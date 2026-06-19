@@ -12,9 +12,9 @@
 
 #  include "MEM_guardedalloc.h"
 
-#  include "BLI_math_geom.h"
-#  include "BLI_math_matrix.h"
-#  include "BLI_math_vector.h"
+#  include "BLI_math_geom_c.hh"
+#  include "BLI_math_matrix_c.hh"
+#  include "BLI_math_vector_c.hh"
 #  include "BLI_task.hh"
 
 #  include "BKE_cloth.hh"
@@ -32,7 +32,7 @@ namespace blender {
 // #define DEBUG_TIME
 
 #  ifdef DEBUG_TIME
-#    include "BLI_time.h"
+#    include "BLI_time.hh"
 #  endif
 
 static float I[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};

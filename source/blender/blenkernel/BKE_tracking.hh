@@ -11,7 +11,7 @@
 #include "DNA_listBase.h"
 
 #include "BLI_enum_flags.hh"
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 namespace blender {
 

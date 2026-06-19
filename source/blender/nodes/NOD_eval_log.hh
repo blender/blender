@@ -415,6 +415,7 @@ class NodesEvalLog;
  */
 class NodeTreeLog {
  private:
+  LinearAllocator<> allocator_;
   NodesEvalLog *root_log_;
   Vector<NodeTreeLogger *> tree_loggers_;
   VectorSet<ComputeContextHash> children_hashes_;
@@ -430,7 +431,7 @@ class NodeTreeLog {
   bool reduced_node_image_previews_ = false;
 
  public:
-  Map<int32_t, NodeLog> nodes;
+  Map<int32_t, destruct_ptr<NodeLog>> nodes;
   Map<int32_t, ViewerNodeLog *, 0> viewer_node_logs;
   VectorSet<NodeWarning> all_warnings;
   std::chrono::nanoseconds execution_time{0};
@@ -460,6 +461,9 @@ class NodeTreeLog {
   void ensure_evaluated_gizmo_nodes();
   void ensure_layer_names();
   void ensure_node_image_previews();
+
+  NodeLog *find_node_log(int32_t identifier) const;
+  NodeLog &lookup_or_add_node_log(const int32_t identifier);
 
   ValueLog *find_socket_value_log(const bNodeSocket &query_socket);
   [[nodiscard]] bool try_convert_primitive_socket_value(const GenericValueLog &value_log,

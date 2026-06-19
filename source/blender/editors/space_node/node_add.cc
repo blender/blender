@@ -17,11 +17,11 @@
 #include "DNA_sequence_types.h"
 #include "DNA_texture_types.h"
 
-#include "BLI_easing.h"
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_easing.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BLT_translation.hh"
 

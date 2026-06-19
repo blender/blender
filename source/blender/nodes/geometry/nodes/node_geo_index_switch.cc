@@ -198,11 +198,29 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
   else {
     const eNodeSocketDatatype other_type = params.other_socket().type;
+    int value_weight = 0;
     if (params.node_tree().typeinfo->validate_link(other_type, SOCK_INT)) {
       params.add_item(IFACE_("Index"), [](LinkSearchOpParams &params) {
         bNode &node = params.add_node("GeometryNodeIndexSwitch"_ustr);
         params.update_and_connect_available_socket(node, "Index"_ustr);
       });
+      /* Make sure the index input comes first in the search for integer sockets. */
+      value_weight--;
+    }
+
+    bke::bNodeTreeType &tree_type = *params.node_tree().typeinfo;
+    bke::bNodeSocketType *socket_type = bke::node_socket_type_find_static(other_type);
+    if (socket_type &&
+        (!tree_type.valid_socket_type || tree_type.valid_socket_type(&tree_type, socket_type)))
+    {
+      params.add_item(
+          IFACE_("Value"),
+          [](LinkSearchOpParams &params) {
+            bNode &node = params.add_node("GeometryNodeIndexSwitch"_ustr);
+            node_storage(node).data_type = params.socket.type;
+            params.update_and_connect_available_socket(node, "0"_ustr);
+          },
+          value_weight);
     }
   }
 }

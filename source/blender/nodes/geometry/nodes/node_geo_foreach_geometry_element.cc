@@ -4,7 +4,7 @@
 
 #include "node_geometry_util.hh"
 
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "BLO_read_write.hh"
 

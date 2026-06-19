@@ -11,10 +11,10 @@
 #include <cstdlib> /* malloc */
 #include <cstring>
 
-#include "BLI_dynstr.h"
-#include "BLI_memarena.h"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_dynstr.hh"
+#include "BLI_memarena.hh"
+#include "BLI_string.hh"
+#include "BLI_utildefines.hh"
 
 #include "MEM_guardedalloc.h"
 

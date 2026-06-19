@@ -15,13 +15,13 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_array.hh"
-#include "BLI_linklist.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
+#include "BLI_linklist.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_memarena.h"
-#include "BLI_task.h"
+#include "BLI_memarena.hh"
+#include "BLI_task_c.hh"
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
@@ -504,7 +504,6 @@ void BM_loop_interp_multires_ex(BMesh * /*bm*/,
         BM_ELEM_CD_GET_VOID_P(BM_FACE_FIRST_LOOP(f_src), cd_loop_mdisp_offset));
 
     md_dst->totdisp = md_src->totdisp;
-    md_dst->level = md_src->level;
     if (md_dst->totdisp) {
       md_dst->disps = MEM_new_array_zeroed<float[3]>(md_dst->totdisp, __func__);
     }

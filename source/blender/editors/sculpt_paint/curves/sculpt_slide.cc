@@ -5,7 +5,7 @@
 #include "sculpt_intern.hh"
 
 #include "BLI_math_matrix_types.hh"
-#include "BLI_math_rotation.h"
+#include "BLI_math_rotation_c.hh"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
 

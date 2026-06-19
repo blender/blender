@@ -9,7 +9,7 @@
 #pragma once
 
 #include "BLI_enum_flags.hh"
-#include "BLI_math_constants.h"
+#include "BLI_math_constants.hh"
 
 #include "DNA_ID.h"
 #include "DNA_anim_enums.h"

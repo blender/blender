@@ -9,7 +9,7 @@
 #include "BLI_kdtree.hh"
 #include "BLI_length_parameterize.hh"
 #include "BLI_math_quaternion.hh"
-#include "BLI_math_rotation.h"
+#include "BLI_math_rotation_c.hh"
 #include "BLI_task.hh"
 
 #include "BKE_curves.hh"

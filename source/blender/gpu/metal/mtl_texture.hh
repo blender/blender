@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_map.hh"
 #include "GPU_texture.hh"
 #include "MEM_guardedalloc.h"

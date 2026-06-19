@@ -370,6 +370,16 @@ void BKE_lib_override_library_delete(Main *bmain, ID *id_root);
 void BKE_lib_override_library_make_local(Main *bmain, ID *id);
 
 /**
+ * Ensure that all subdata that can be either local or from liboverride reference, are now flagged
+ * as local.
+ *
+ * Mainly affects NLA' tracks, modifiers, and contraints.
+ *
+ * This is typically used after making a library override local, and removing the override.
+ */
+void BKE_lib_override_flag_subdata_local(ID &id);
+
+/**
  * Find override property from given RNA path, if it exists.
  */
 IDOverrideLibraryProperty *BKE_lib_override_library_property_find(IDOverrideLibrary *liboverride,

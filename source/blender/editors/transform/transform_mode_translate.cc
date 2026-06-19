@@ -10,11 +10,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_string_utf8.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
 #include "BLI_task.hh"
 
@@ -599,7 +599,7 @@ static void initTranslation(TransInfo *t, wmOperator * /*op*/)
 
   float3 aspect = t->aspect;
   /* Custom aspect for fcurve. */
-  if (t->spacetype == SPACE_GRAPH) {
+  if ((t->spacetype == SPACE_GRAPH) && (t->region != nullptr)) {
     View2D *v2d = &t->region->v2d;
     Scene *scene = t->scene;
     SpaceGraph *sipo = reinterpret_cast<SpaceGraph *>(t->area->spacedata.first);

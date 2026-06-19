@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "gpu_shader_math_matrix_transform_lib.glsl"
 #include "infos/overlay_extra_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(overlay_motion_path_point)
@@ -16,8 +17,8 @@ void main()
   int cacheStart = mpath_point_settings.z;
   int stepSize = mpath_point_settings.w;
 
-  gl_Position = drw_view().winmat *
-                (drw_view().viewmat * (camera_space_matrix * float4(pos, 1.0f)));
+  float3 ws_P = project_point(camera_object_persinv, pos);
+  gl_Position = drw_point_world_to_homogenous(ws_P);
   gl_PointSize = float(pt_size + 2);
 
   int frame = gl_VertexID + cacheStart;
@@ -62,5 +63,5 @@ void main()
 
   gl_PointSize *= theme.sizes.pixel;
 
-  view_clipping_distances(pos);
+  view_clipping_distances(ws_P);
 }

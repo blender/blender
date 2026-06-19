@@ -13,7 +13,7 @@
 #include "DNA_collection_types.h"
 
 #include "BLI_path_utils.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -55,7 +55,7 @@ BLI_STATIC_ASSERT(ARRAY_SIZE(rna_enum_collection_color_items) - 2 == COLLECTION_
 #  include "DEG_depsgraph_build.hh"
 #  include "DEG_depsgraph_query.hh"
 
-#  include "BLI_listbase.h"
+#  include "BLI_listbase.hh"
 
 #  include "BKE_collection.hh"
 #  include "BKE_global.hh"

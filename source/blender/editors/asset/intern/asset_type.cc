@@ -6,7 +6,7 @@
  * \ingroup edasset
  */
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "DNA_userdef_types.h"
 

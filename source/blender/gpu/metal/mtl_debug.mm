@@ -8,10 +8,10 @@
  * Debug features of OpenGL.
  */
 
-#include "BLI_compiler_attrs.h"
-#include "BLI_string.h"
-#include "BLI_system.h"
-#include "BLI_utildefines.h"
+#include "BLI_compiler_attrs.hh"
+#include "BLI_string.hh"
+#include "BLI_system.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_global.hh"
 

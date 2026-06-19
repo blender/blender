@@ -12,7 +12,7 @@
  */
 
 #include "BLI_bounds.hh"
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 #include "BLI_math_matrix.hh"
 
 #include "BKE_curve.hh"
@@ -20,7 +20,7 @@
 #include "BKE_mesh.h"
 #include "BKE_object.hh"
 #include "BKE_volume.hh"
-#include "BLI_hash.h"
+#include "BLI_hash_c.hh"
 #include "DNA_curve_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_meta_types.h"

@@ -13,10 +13,6 @@ struct GPUShaderCreateInfo;
 struct GPUStageInterfaceInfo;
 namespace blender {
 
-#ifndef __cplusplus
-#  include "../generic/py_capi_utils.hh"
-#endif
-
 namespace gpu {
 class Shader;
 }  // namespace gpu

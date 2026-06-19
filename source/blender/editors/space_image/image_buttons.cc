@@ -14,11 +14,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -104,7 +104,6 @@ static void ui_imageuser_slot_menu(bContext *C, ui::Layout *layout, void *image_
     }
     ui::Button *but = uiDefIconTextBut(
         block, ui::ButtonType::ButMenu, icon, str, 0, 0, UI_UNIT_X * 5, UI_UNIT_X, nullptr, "");
-    button_retval_set(but, B_NOP);
     button_func_set(
         but, [image, slot_id = slot_id](bContext & /*C*/) { image->render_slot = slot_id; });
   }

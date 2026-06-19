@@ -12,7 +12,7 @@
 #include "FastGrid.h"
 
 #include "BKE_global.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 namespace Freestyle {
 

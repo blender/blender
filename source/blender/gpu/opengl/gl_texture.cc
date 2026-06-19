@@ -9,9 +9,9 @@
 #include <cstdint>
 #include <string>
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_math_half.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "DNA_userdef_types.h"
 

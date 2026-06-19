@@ -15,11 +15,11 @@
 #include "BKE_global.hh"
 #include "BKE_main.hh"
 
-#include "BLI_listbase.h"
-#include "BLI_string_utf8.h"
-#include "BLI_time.h"
+#include "BLI_listbase.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_time.hh"
 
-#include "BLI_timecode.h"
+#include "BLI_timecode.hh"
 #include "BLT_translation.hh"
 
 #include "ED_screen.hh"

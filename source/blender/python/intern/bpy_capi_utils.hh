@@ -10,7 +10,7 @@
 
 #include <Python.h>
 
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 
 namespace blender {
 

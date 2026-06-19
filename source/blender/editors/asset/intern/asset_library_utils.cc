@@ -14,7 +14,7 @@
 #include "ED_asset_list.hh"
 #include "ED_asset_shelf.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_string_ref.hh"
 
 #include "DNA_userdef_types.h"

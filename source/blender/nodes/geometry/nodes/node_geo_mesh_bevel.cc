@@ -100,12 +100,12 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR)
       .description(
           "Superellipse shape parameter, used when there is no Profile, "
-          " and also used for Arc and Patch miters");
+          "and also used for Arc and Patch miters");
   b.add_input<decl::Geometry>("Profile"_ustr)
       .supported_type(GeometryComponent::Type::Curve)
       .description(
-          "If present, the first curve will be sampled to give a custom profile on edges."
-          " The curve should be in the XY plane, going from (0,1,0) to (1,0,0)");
+          "If present, the first curve will be sampled to give a custom profile on edges. "
+          "The curve should be in the XY plane, going from (0,1,0) to (1,0,0)");
 
   PanelDeclarationBuilder &selections_panel = b.add_panel("Selections"_ustr);
   selections_panel.default_closed(true);
@@ -126,7 +126,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .no_muted_links()
       .description(
           "Identifies output edges that are in the middle of new mesh parts of edges "
-          " and continued through vertices (round down if odd number of segments)");
+          "and continued through vertices (round down if odd number of segments)");
 }
 
 /* -------------------------------------------------------------------- */

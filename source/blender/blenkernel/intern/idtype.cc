@@ -9,8 +9,8 @@
 #include <array>
 #include <cstring>
 
-#include "BLI_ghash.h"
-#include "BLI_utildefines.h"
+#include "BLI_ghash.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 

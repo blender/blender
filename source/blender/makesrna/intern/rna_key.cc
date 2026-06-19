@@ -11,7 +11,7 @@
 #include "DNA_key_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_math_rotation.h"
+#include "BLI_math_rotation_c.hh"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -45,9 +45,9 @@ const EnumPropertyItem rna_enum_keyblock_type_items[] = {
 #  include "DNA_mesh_types.h"
 #  include "DNA_object_types.h"
 
-#  include "BLI_listbase.h"
-#  include "BLI_string.h"
-#  include "BLI_string_utf8.h"
+#  include "BLI_listbase.hh"
+#  include "BLI_string.hh"
+#  include "BLI_string_utf8.hh"
 #  include "BLI_string_utils.hh"
 
 #  include "BKE_key.hh"

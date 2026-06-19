@@ -4,7 +4,7 @@
 
 #include "testing/testing.h"
 
-#include "BLI_math_time.h"
+#include "BLI_math_time.hh"
 
 namespace blender {
 

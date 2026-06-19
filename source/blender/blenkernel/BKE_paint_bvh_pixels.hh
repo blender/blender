@@ -11,7 +11,7 @@
 #include "BLI_array.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector.hh"
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_image_types.h"
@@ -26,9 +26,6 @@ namespace blender::bke::pbvh::pixels {
 
 /**
  * Encode sequential pixels to reduce memory footprint.
- * TODO: Can we pack an associated Bounds<float3> to improve coarse filtering?
- * TODO: Experiment with adding an initial float3 and delta so calculating positions doesn't need
- * to happen as frequently
  */
 struct PackedPixelRow {
   /** Barycentric coordinate of the first pixel. */
@@ -39,6 +36,11 @@ struct PackedPixelRow {
   ushort num_pixels;
   /** Reference to the pbvh triangle index. */
   ushort uv_primitive_index;
+};
+
+struct PackedPixelRowPosition {
+  float3 start;
+  float3 delta;
 };
 
 /**
@@ -56,6 +58,13 @@ struct UDIMTilePixels {
   rcti dirty_region;
 
   Vector<PackedPixelRow> pixel_rows;
+
+  /**
+   * Encoded 3D position data corresponding to each element of `pixel_rows`.
+   *
+   * Needs to be re-calculated when underlying mesh position data changes.
+   */
+  Vector<PackedPixelRowPosition> pixel_row_positions;
 
   UDIMTilePixels()
   {

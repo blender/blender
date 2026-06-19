@@ -117,7 +117,7 @@ static const EnumPropertyItem blend_type_items[] = {
 
 #  include "RNA_access.hh"
 
-#  include "BLI_string.h"
+#  include "BLI_string.hh"
 
 #  include "BKE_brush.hh"
 #  include "BKE_colorband.hh"

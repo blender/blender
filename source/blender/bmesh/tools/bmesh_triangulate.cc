@@ -13,13 +13,13 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
-#include "BLI_heap.h"
-#include "BLI_linklist.h"
-#include "BLI_memarena.h"
+#include "BLI_heap.hh"
+#include "BLI_linklist.hh"
+#include "BLI_memarena.hh"
 
 /* only for defines */
-#include "BLI_polyfill_2d.h"
-#include "BLI_polyfill_2d_beautify.h"
+#include "BLI_polyfill_2d.hh"
+#include "BLI_polyfill_2d_beautify.hh"
 
 #include "bmesh.hh"
 

@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -152,10 +152,18 @@ class MotionPath : Overlay {
     int start_index = frame_range.start() - mpath->start_frame;
 
     Object *camera_eval = nullptr;
+    float4x4 camera_matrix = float4x4::identity();
     if ((eMotionPath_BakeFlag(avs.path_bakeflag) & MOTIONPATH_BAKE_CAMERA_SPACE) &&
         state.v3d->camera)
     {
       camera_eval = DEG_get_evaluated(state.depsgraph, state.v3d->camera);
+      Scene *scene = DEG_get_input_scene(state.depsgraph);
+      float4x4 window_matrix;
+      BKE_camera_multiview_window_matrix(&scene->r, camera_eval, nullptr, window_matrix.ptr());
+      /* Storing the inverse perspective matrix of the current camera to convert the verts stored
+       * in NDC space, back into world space from the point of view of the current camera. See
+       * `anim_motion_paths.cc/motionpaths_calc_bake_targets`. */
+      camera_matrix = math::invert(window_matrix * camera_eval->world_to_object());
     }
 
     /* Draw curve-line of path. */
@@ -169,8 +177,7 @@ class MotionPath : Overlay {
       sub.push_constant("selected", selected);
       sub.push_constant("custom_color_pre", color_pre);
       sub.push_constant("custom_color_post", color_post);
-      sub.push_constant("camera_space_matrix",
-                        camera_eval ? camera_eval->object_to_world() : float4x4::identity());
+      sub.push_constant("camera_object_persinv", camera_matrix);
 
       gpu::Batch *geom = mpath_batch_points_get(mpath);
       /* Only draw the required range. */
@@ -187,8 +194,7 @@ class MotionPath : Overlay {
       sub.push_constant("show_key_frames", show_keyframes);
       sub.push_constant("custom_color_pre", color_pre);
       sub.push_constant("custom_color_post", color_post);
-      sub.push_constant("camera_space_matrix",
-                        camera_eval ? camera_eval->object_to_world() : float4x4::identity());
+      sub.push_constant("camera_object_persinv", camera_matrix);
 
       gpu::Batch *geom = mpath_batch_points_get(mpath);
       /* Only draw the required range. */
@@ -212,11 +218,8 @@ class MotionPath : Overlay {
         int frame = frame_range.start() + i;
         bool is_keyframe = (mpv_curr.flag & MOTIONPATH_VERT_KEY) != 0;
 
-        float3 vert_coordinate(mpv_curr.co);
-        if (camera_eval) {
-          /* Projecting the point into world space from the camera's POV. */
-          vert_coordinate = math::transform_point(camera_eval->object_to_world(), vert_coordinate);
-        }
+        /* Projecting the point into world space from the camera's POV. */
+        float3 vert_world_space = project_point(camera_matrix, float3(mpv_curr.co));
 
         if ((show_keyframes && show_keyframes_number && is_keyframe) ||
             (show_frame_number && (i == 0)))
@@ -224,7 +227,7 @@ class MotionPath : Overlay {
           char numstr[32];
           size_t numstr_len = SNPRINTF_RLEN(numstr, " %d", frame);
           DRW_text_cache_add(state.dt,
-                             vert_coordinate,
+                             vert_world_space,
                              numstr,
                              numstr_len,
                              0,
@@ -243,7 +246,7 @@ class MotionPath : Overlay {
             char numstr[32];
             size_t numstr_len = SNPRINTF_RLEN(numstr, " %d", frame);
             DRW_text_cache_add(state.dt,
-                               vert_coordinate,
+                               vert_world_space,
                                numstr,
                                numstr_len,
                                0,

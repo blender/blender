@@ -6,11 +6,11 @@
  * \ingroup modifiers
  */
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
-#include "BLI_math_color.h"
-#include "BLI_rand.h"
-#include "BLI_string.h"
+#include "BLI_math_color_c.hh"
+#include "BLI_rand_c.hh"
+#include "BLI_string.hh"
 
 #include "BLT_translation.hh"
 

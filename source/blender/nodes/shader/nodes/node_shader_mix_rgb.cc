@@ -11,7 +11,7 @@
 
 #include "BKE_material.hh"
 
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 
 #include "DNA_material_types.h"
 

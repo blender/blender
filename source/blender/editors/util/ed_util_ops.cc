@@ -13,8 +13,8 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_fileops.h"
-#include "BLI_utildefines.h"
+#include "BLI_fileops.hh"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 #include "BLT_translation.hh"

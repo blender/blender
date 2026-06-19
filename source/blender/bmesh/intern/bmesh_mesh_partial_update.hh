@@ -9,7 +9,7 @@
  */
 
 #include "BLI_bit_span.hh"
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 #include "BLI_vector.hh"
 
 #include "bmesh_class.hh"

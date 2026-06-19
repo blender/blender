@@ -24,27 +24,27 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_bit_vector.hh"
-#include "BLI_bitmap.h"
+#include "BLI_bitmap.hh"
 #include "BLI_index_range.hh"
-#include "BLI_math_color_blend.h"
+#include "BLI_math_color_blend.hh"
 #include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_memory_counter.hh"
-#include "BLI_mempool.h"
+#include "BLI_mempool.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_resource_scope.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "PRF_profile.hh"
 
 #ifndef NDEBUG
-#  include "BLI_dynstr.h"
+#  include "BLI_dynstr.hh"
 #endif
 
 #include "BLT_translation.hh"
@@ -637,7 +637,6 @@ static void layerCopy_mdisps(const void *source, void *dest, const int count)
 
     /* still copy even if not in memory, displacement can be external */
     d[i].totdisp = s[i].totdisp;
-    d[i].level = s[i].level;
   }
 }
 
@@ -647,7 +646,6 @@ static void layerFree_mdisps(void *data, const int count)
     MEM_SAFE_DELETE(d.disps);
     MEM_SAFE_DELETE(d.hidden);
     d.totdisp = 0;
-    d.level = 0;
   }
 }
 
@@ -4907,15 +4905,6 @@ static void blend_read_mdisps(BlendDataReader *reader,
       }
       if (!ok) {
         md.totdisp = 0;
-      }
-
-      if (md.totdisp && !md.level) {
-        /* this calculation is only correct for loop mdisps;
-         * if loading pre-BMesh face mdisps this will be
-         * overwritten with the correct value in
-         * #bm_corners_to_loops() */
-        float gridsize = sqrtf(md.totdisp);
-        md.level = int(logf(gridsize - 1.0f) / float(M_LN2)) + 1;
       }
 
       if (!external && !md.disps) {

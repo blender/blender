@@ -71,7 +71,7 @@ PassMain::Sub &MeshPass::get_subpass(eGeometryType geometry_type,
 {
   is_empty_ = false;
 
-  if (texture && texture->gpu.texture && *texture->gpu.texture) {
+  if (texture && texture->gpu.texture) {
     auto add_cb = [&] {
       PassMain::Sub *sub_pass = &get_subpass(geometry_type, eShaderType::TEXTURE);
       sub_pass = &sub_pass->sub(texture->name);
@@ -93,7 +93,7 @@ PassMain::Sub &MeshPass::get_subpass(eGeometryType geometry_type,
     };
 
     return *texture_subpass_map_.lookup_or_add_cb(
-        {*texture->gpu.texture, texture->sampler_state, geometry_type}, add_cb);
+        {texture->gpu.texture, texture->sampler_state, geometry_type}, add_cb);
   }
 
   return get_subpass(geometry_type, eShaderType::MATERIAL);

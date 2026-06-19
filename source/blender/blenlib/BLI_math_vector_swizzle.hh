@@ -8,7 +8,7 @@
  * \ingroup bli
  */
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 
 #include <algorithm>
 #include <array>

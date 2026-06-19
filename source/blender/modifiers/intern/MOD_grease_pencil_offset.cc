@@ -6,9 +6,9 @@
  * \ingroup modifiers
  */
 
-#include "BLI_hash.h"
+#include "BLI_hash_c.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_rand.h"
+#include "BLI_rand_c.hh"
 
 #include "DNA_modifier_types.h"
 

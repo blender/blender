@@ -11,7 +11,7 @@
 #pragma once
 
 #include "BLI_enum_flags.hh"
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 #include "BLI_span.hh"
 #include "BLI_virtual_array.hh"
 

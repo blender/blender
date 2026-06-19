@@ -14,7 +14,7 @@
 #include "UnaryFunction0D/BPy_UnaryFunction0DFloat.h"
 #include "UnaryFunction0D/BPy_UnaryFunction0DUnsigned.h"
 
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 using namespace Freestyle;
 

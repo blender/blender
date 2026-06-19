@@ -23,7 +23,7 @@
 #include "BLI_stack.hh"
 #include "BLI_task.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep */
 
 namespace blender::index_mask {
 

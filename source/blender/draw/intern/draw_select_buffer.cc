@@ -13,11 +13,11 @@
 #include "BLI_math_matrix.hh"
 #include "MEM_guardedalloc.h"
 
-#include "BLI_array_utils.h"
-#include "BLI_bitmap.h"
-#include "BLI_bitmap_draw_2d.h"
-#include "BLI_math_matrix.h"
-#include "BLI_rect.h"
+#include "BLI_array_utils_c.hh"
+#include "BLI_bitmap.hh"
+#include "BLI_bitmap_draw_2d.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_rect.hh"
 
 #include "DNA_layer_types.h"
 #include "DNA_scene_types.h"

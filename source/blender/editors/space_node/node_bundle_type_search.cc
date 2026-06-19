@@ -7,7 +7,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "ED_screen.hh"
 #include "ED_undo.hh"

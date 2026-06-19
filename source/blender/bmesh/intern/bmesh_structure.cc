@@ -8,7 +8,7 @@
  * Low level routines for manipulating the BM structure.
  */
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "bmesh.hh"
 #include "intern/bmesh_private.hh"

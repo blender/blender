@@ -14,9 +14,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math_color.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_math_color_c.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BLT_translation.hh"
 

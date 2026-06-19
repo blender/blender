@@ -116,6 +116,7 @@ def get_arguments(filepath, output_filepath):
         "--enable-autoexec",
         "--debug-memory",
         "--debug-exit-on-error",
+        "--console-crash-handler",
         filepath,
         "-E", "BLENDER_WORKBENCH",
         "-P", os.path.realpath(__file__),

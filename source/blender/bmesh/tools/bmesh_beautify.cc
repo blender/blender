@@ -17,10 +17,10 @@
  * - Take face normals into account.
  */
 
-#include "BLI_heap.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
-#include "BLI_polyfill_2d_beautify.h"
+#include "BLI_heap.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_polyfill_2d_beautify.hh"
 #include "BLI_set.hh"
 
 #include "MEM_guardedalloc.h"
@@ -31,8 +31,8 @@
 // #define DEBUG_TIME
 
 #ifdef DEBUG_TIME
-#  include "BLI_time.h"
-#  include "BLI_time_utildefines.h"
+#  include "BLI_time.hh"
+#  include "BLI_time_utildefines.hh"
 #endif
 
 namespace blender {

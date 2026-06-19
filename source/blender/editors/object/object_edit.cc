@@ -16,11 +16,11 @@
 #include "BLI_path_utils.hh"
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_rotation.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -1929,8 +1929,10 @@ static wmOperatorStatus shade_auto_smooth_exec(bContext *C, wmOperator *op)
       PointerRNA nmd_ptr = RNA_pointer_create_discrete(
           &object->id, RNA_NodesModifier, smooth_by_angle_nmd);
       PointerRNA properties_ptr = RNA_pointer_get(&nmd_ptr, "properties");
+      PointerRNA inputs_ptr = RNA_pointer_get(&properties_ptr, "inputs");
+      PointerRNA input_ptr = RNA_pointer_get(&inputs_ptr, angle_identifier.c_str());
 
-      RNA_float_set(&properties_ptr, angle_identifier.c_str(), angle);
+      RNA_float_set(&input_ptr, "value", angle);
 
       DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
       WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, object);

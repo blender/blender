@@ -5,6 +5,7 @@
 #pragma once
 
 #include "gpu_shader_compat.hh"
+#include "gpu_shader_math_constants_lib.glsl"
 
 /* There are two common ways of implementing a linear interpolation: result = a + t * (b - a) and
  * result = (1 - t) * a + t * b. The former variant is called "mix" in our code and it ensures that
@@ -115,6 +116,27 @@ template<typename VecT> float distance_squared(VecT a, VecT b)
 template float distance_squared<float2>(float2, float2);
 template float distance_squared<float3>(float3, float3);
 template float distance_squared<float4>(float4, float4);
+
+/**
+ * Return the shortest angle in radians between the 2 vectors.
+ */
+template<typename VecT> float angle_normalized(VecT v1, VecT v2)
+{
+  /* Ensure inputs are normalized. */
+  v1 = normalize(v1);
+  v2 = normalize(v2);
+
+  /* This is the same as acos(dot_v3v3(v1, v2)), but more accurate. */
+  if (dot(v1, v2) >= 0.0f) {
+    return 2.0f * asin(clamp(length(v2 - v1) / 2.0f, -1.0f, 1.0f));
+  }
+
+  const VecT v2_n = -v2;
+  return M_PI - 2.0f * asin(clamp(length(v2_n - v1) / 2.0f, -1.0f, 1.0f));
+}
+template float angle_normalized<float2>(float2, float2);
+template float angle_normalized<float3>(float3, float3);
+template float angle_normalized<float4>(float4, float4);
 
 /**
  * Return normalized version of the `vector` and its length.

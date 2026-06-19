@@ -35,16 +35,16 @@
 #include "DNA_world_types.h"
 
 #include "BLI_function_ref.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_color.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_color_c.hh"
 #include "BLI_math_vector.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
@@ -3547,7 +3547,7 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
         GreasePencilDrawingBase *drawing_base = grease_pencil.drawing_array[i];
         if (drawing_base->type == GP_DRAWING) {
           GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
-          bke::curves_convert_customdata_to_storage(drawing->geometry.wrap());
+          bke::curves_convert_customdata_to_storage(drawing->wrap().strokes_for_write());
         }
       }
     }

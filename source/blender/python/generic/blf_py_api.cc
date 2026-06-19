@@ -19,7 +19,7 @@
 
 #include "../../blenfont/BLF_api.hh"
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "../../imbuf/IMB_colormanagement.hh"
 #include "../../imbuf/IMB_imbuf.hh"

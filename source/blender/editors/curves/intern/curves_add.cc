@@ -6,8 +6,8 @@
  * \ingroup edcurves
  */
 
-#include "BLI_listbase.h"
-#include "BLI_math_base_safe.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_base_safe.hh"
 #include "BLI_rand.hh"
 
 #include "BKE_attribute.hh"

@@ -7,7 +7,7 @@
  *
  * Manipulations on double-linked list (#ListBase structs).
  *
- * For single linked lists see `BLI_linklist.h`.
+ * For single linked lists see `BLI_linklist.hh`.
  */
 
 #include <cstdlib>
@@ -17,10 +17,10 @@
 
 #include "DNA_listBase.h"
 
-#include "BLI_assert.h"
-#include "BLI_listbase.h"
+#include "BLI_assert.hh"
+#include "BLI_listbase.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 #define LISTBASE_FOREACH(type, var, list) \
   for (type var = (type)((list)->first); var != nullptr; var = (type)(((Link *)(var))->next))

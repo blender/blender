@@ -11,7 +11,7 @@
 #include "BLT_translation.hh"
 #include "DNA_curves_types.h"
 
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"

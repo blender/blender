@@ -10,7 +10,7 @@
 
 #include "testing/testing.h"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep */
 
 namespace blender::index_mask::tests {
 

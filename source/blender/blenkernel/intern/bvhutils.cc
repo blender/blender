@@ -9,7 +9,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_pointcloud_types.h"
 
-#include "BLI_math_geom.h"
+#include "BLI_math_geom_c.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_bvhutils.hh"

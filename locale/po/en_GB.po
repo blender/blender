@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'2b1958ccdccb')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e899b48ea546')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-08 09:37+0000\n"
+"POT-Creation-Date: 2026-06-15 07:32+0000\n"
 "PO-Revision-Date: 2026-02-16 18:12+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -34942,84 +34942,192 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
-msgid "Relations"
-msgstr "Relations"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
-
-
 msgid "Render Preview"
 msgstr "Render Preview"
-
-
-msgid "Apply"
-msgstr "Apply"
 
 
 msgid "Track"
 msgstr "Track"
 
 
-msgid "Quick Effects"
-msgstr "Quick Effects"
-
-
-msgid "Show/Hide"
-msgstr "Show/Hide"
-
-
-msgid "Clean Up"
-msgstr "Clean Up"
-
-
-msgid "Asset"
-msgstr "Asset"
-
-
-msgid "Make Single User"
-msgstr "Make Single User"
-
-
-msgid "Convert"
-msgstr "Convert"
-
-
-msgid "Link/Transfer Data"
-msgstr "Link/Transfer Data"
-
-
-msgid "Hooks"
-msgstr "Hooks"
-
-
-msgid "Vertex Group Locks"
-msgstr "Vertex Group Locks"
-
-
 msgid "Math"
 msgstr "Maths"
-
-
-msgid "Trim/Add"
-msgstr "Trim/Add"
 
 
 msgid "Utilities"
 msgstr "Utilities"
 
 
-msgid "Sculpt Set Pivot"
-msgstr "Sculpt Set Pivot"
+msgid "Assign Material"
+msgstr "Assign Material"
+
+
+msgid "Read"
+msgstr "Read"
+
+
+msgid "Sample"
+msgstr "Sample"
+
+
+msgid "Write"
+msgstr "Write"
+
+
+msgid "Primitives"
+msgstr "Primitives"
+
+
+msgid "Mirror"
+msgstr "Mirror"
+
+
+msgid "Snap"
+msgstr "Snap"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapping"
+
+
+msgid "Local View"
+msgstr "Local View"
+
+
+msgid "Viewpoint"
+msgstr "Viewpoint"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Align View"
+msgstr "Align View"
+
+
+msgid "Align View to Active"
+msgstr "Align View to Active"
+
+
+msgid "View Regions"
+msgstr "View Regions"
+
+
+msgid "Select More/Less"
+msgstr "Select More/Less"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Instances"
+
+
+msgid "Select Similar"
+msgstr "Select Similar"
+
+
+msgid "Select All by Trait"
+msgstr "Select All by Trait"
+
+
+msgid "Select Linked"
+msgstr "Select Linked"
+
+
+msgid "Select Loops"
+msgstr "Select Loops"
+
+
+msgid "Import"
+msgstr "Import"
+
+
+msgid "Deprecated"
+msgstr "Deprecated"
+
+
+msgid "Relations"
+msgstr "Relations"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Group Locks"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Random Mask"
+msgstr "Random Mask"
+
+
+msgid "Asset"
+msgstr "Asset"
+
+
+msgid "Show/Hide"
+msgstr "Show/Hide"
+
+
+msgid "Apply"
+msgstr "Apply"
+
+
+msgid "Link/Transfer Data"
+msgstr "Link/Transfer Data"
+
+
+msgid "Clean Up"
+msgstr "Clean Up"
 
 
 msgid "Face Sets Init"
 msgstr "Face Sets Init"
 
 
-msgid "Random Mask"
-msgstr "Random Mask"
+msgid "Light Probe"
+msgstr "Light Probe"
+
+
+msgid "Light"
+msgstr "Light"
+
+
+msgid "Add Image"
+msgstr "Add Image"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Sculpt Set Pivot"
+
+
+msgid "Hooks"
+msgstr "Hooks"
+
+
+msgid "Make Single User"
+msgstr "Make Single User"
+
+
+msgid "Quick Effects"
+msgstr "Quick Effects"
+
+
+msgid "Trim/Add"
+msgstr "Trim/Add"
 
 
 msgid "Clear Transform"
@@ -35042,20 +35150,8 @@ msgid "Names"
 msgstr "Names"
 
 
-msgid "Read"
-msgstr "Read"
-
-
-msgid "Sample"
-msgstr "Sample"
-
-
 msgid "Toggle Bone Options"
 msgstr "Toggle Bone Options"
-
-
-msgid "Write"
-msgstr "Write"
 
 
 msgid "Enable Bone Options"
@@ -35064,10 +35160,6 @@ msgstr "Enable Bone Options"
 
 msgid "Disable Bone Options"
 msgstr "Disable Bone Options"
-
-
-msgid "Primitives"
-msgstr "Primitives"
 
 
 msgid "Mesh Select Mode"
@@ -35086,20 +35178,12 @@ msgid "Set Face Strength"
 msgstr "Set Face Strength"
 
 
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instances"
-
-
 msgid "Merge"
 msgstr "Merge"
 
 
-msgid "Import"
-msgstr "Import"
+msgid "Convert"
+msgstr "Convert"
 
 
 msgid "Special Characters"
@@ -35110,28 +35194,32 @@ msgid "Kerning"
 msgstr "Kerning"
 
 
-msgid "Deprecated"
-msgstr "Deprecated"
+msgid "Linked"
+msgstr "Linked"
 
 
-msgid "Metaball"
-msgstr "Metaball"
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Bone Roll"
 msgstr "Bone Roll"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Adjust"
+msgstr "Adjust"
+
+
+msgid "Keying"
+msgstr "Keying"
+
+
+msgid "Tracking"
+msgstr "Tracking"
 
 
 msgid "Pivot Point"
 msgstr "Pivot Point"
-
-
-msgid "Snap"
-msgstr "Snap"
 
 
 msgid "Proportional Editing Falloff"
@@ -35150,96 +35238,8 @@ msgid "Face Sets Edit"
 msgstr "Face Sets Edit"
 
 
-msgid "Mirror"
-msgstr "Mirror"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapping"
-
-
-msgid "Local View"
-msgstr "Local View"
-
-
-msgid "Viewpoint"
-msgstr "Viewpoint"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Linked"
-msgstr "Linked"
-
-
-msgid "Align View"
-msgstr "Align View"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Align View to Active"
-msgstr "Align View to Active"
-
-
-msgid "View Regions"
-msgstr "View Regions"
-
-
-msgid "Select More/Less"
-msgstr "Select More/Less"
-
-
-msgid "Select Similar"
-msgstr "Select Similar"
-
-
-msgid "Select All by Trait"
-msgstr "Select All by Trait"
-
-
-msgid "Select Linked"
-msgstr "Select Linked"
-
-
-msgid "Select Loops"
-msgstr "Select Loops"
-
-
-msgid "Adjust"
-msgstr "Adjust"
-
-
-msgid "Keying"
-msgstr "Keying"
-
-
-msgid "Tracking"
-msgstr "Tracking"
-
-
-msgid "Assign Material"
-msgstr "Assign Material"
-
-
 msgid "Creative"
 msgstr "Creative"
-
-
-msgid "Light"
-msgstr "Light"
-
-
-msgid "Light Probe"
-msgstr "Light Probe"
-
-
-msgid "Add Image"
-msgstr "Add Image"
 
 
 msgid "Keyframe Insert Pie"
@@ -53699,8 +53699,8 @@ msgid "Clear Status"
 msgstr "Clear Status"
 
 
-msgid "Allow internet access. Blender may access configured online extension repositories. Installed third party add-ons may access the internet for their own functionality"
-msgstr "Allow internet access. Blender may access configured online extension repositories. Installed third party add-ons may access the internet for their own functionality"
+msgid "Allow Blender to access the internet. Add-ons that follow this setting will only connect to the internet if enabled. However, Blender cannot prevent third-party add-ons from violating this rule."
+msgstr "Allow Blender to access the internet. Add-ons that follow this setting will only connect to the internet if enabled. However, Blender cannot prevent third-party add-ons from violating this rule."
 
 
 msgid "Open extensions preferences"
@@ -91301,58 +91301,6 @@ msgid "Panel containing UI elements"
 msgstr "Panel containing UI elements"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR Info"
-
-
-msgid "glTF Variants"
-msgstr "glTF Variants"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF Material Variants"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF Animations"
-
-
-msgid "Active Tool"
-msgstr "Active Tool"
-
-
-msgid "View Lock"
-msgstr "View Lock"
-
-
-msgid "Selectability & Visibility"
-msgstr "Selectability & Visibility"
-
-
-msgid "Shadow Settings"
-msgstr "Shadow Settings"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Settings"
-
-
-msgid "Cavity"
-msgstr "Cavity"
-
-
-msgid "Render Pass"
-msgstr "Render Pass"
-
-
 msgid "Compositor"
 msgstr "Compositor"
 
@@ -91439,6 +91387,58 @@ msgstr "Curves Grow/Shrink Scaling"
 
 msgid "Viewport Debug"
 msgstr "Viewport Debug"
+
+
+msgid "glTF Variants"
+msgstr "glTF Variants"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF Material Variants"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR Info"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF Animations"
+
+
+msgid "Active Tool"
+msgstr "Active Tool"
+
+
+msgid "View Lock"
+msgstr "View Lock"
+
+
+msgid "Selectability & Visibility"
+msgstr "Selectability & Visibility"
+
+
+msgid "Shadow Settings"
+msgstr "Shadow Settings"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Settings"
+
+
+msgid "Cavity"
+msgstr "Cavity"
+
+
+msgid "Render Pass"
+msgstr "Render Pass"
 
 
 msgid "Import Settings"
@@ -96274,10 +96274,6 @@ msgid "Allow Online Access"
 msgstr "Allow Online Access"
 
 
-msgid "Allow Blender to access the internet. Add-ons that follow this setting will only connect to the internet if enabled. However, Blender cannot prevent third-party add-ons from violating this rule."
-msgstr "Allow Blender to access the internet. Add-ons that follow this setting will only connect to the internet if enabled. However, Blender cannot prevent third-party add-ons from violating this rule."
-
-
 msgid "Overlay Smooth Wires"
 msgstr "Overlay Smooth Wires"
 
@@ -96754,16 +96750,8 @@ msgid "Serbian (Cyrillic) - Српски"
 msgstr "Serbian (Cyrillic) - Српски"
 
 
-msgid "Locale code: sr_RS. Translation progress: 16%"
-msgstr "Locale code: sr_RS. Translation progress: 16%"
-
-
 msgid "Serbian (Latin) - Srpski latinica"
 msgstr "Serbian (Latin) - Srpski latinica"
-
-
-msgid "Locale code: sr_RS@latin. Translation progress: 16%"
-msgstr "Locale code: sr_RS@latin. Translation progress: 16%"
 
 
 msgid "Slovak - Slovenčina"

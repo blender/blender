@@ -11,7 +11,7 @@
 #include <cmath>
 
 #include "BLI_array.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"

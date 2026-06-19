@@ -8,8 +8,8 @@
 
 #include "intern/eval/deg_eval_runtime_backup_volume.h"
 
-#include "BLI_assert.h"
-#include "BLI_string.h"
+#include "BLI_assert.hh"
+#include "BLI_string.hh"
 
 #include "DNA_volume_types.h"
 

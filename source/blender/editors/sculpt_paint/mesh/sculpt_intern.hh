@@ -332,12 +332,12 @@ struct StrokeCache {
    * calc_brush_local_mat() and used in sculpt_apply_texture().
    * Transforms from model-space coords to local area coords.
    */
-  float4x4 brush_local_mat = float4x4::identity();
+  float4x4 brush_local_mat = float4x4::zero();
   /**
    * The matrix from local area coords to model-space coords is used to calculate the vector
    * displacement in area plane mode.
    */
-  float4x4 brush_local_mat_inv = float4x4::identity();
+  float4x4 brush_local_mat_inv = float4x4::zero();
 
   /* used to shift the plane around when doing tiled strokes */
   float3 plane_offset = float3(0);
@@ -770,6 +770,20 @@ bool node_in_cylinder(const DistRayAABB_Precalc &ray_dist_precalc,
                       const bke::pbvh::Node &node,
                       float radius_sq,
                       bool original);
+/** Calculates whether node intersects the [-1,1] x [-1,1] x [-1,1] volume in local space.*/
+bool node_in_box(const float4x4 &mat,
+                 const Bounds<float3> &bounds,
+                 const float3 brush_center = float3(0.0f, 0.0f, 0.0f),
+                 const float3 brush_half_lengths = float3(1.0f, 1.0f, 1.0f));
+/**
+ * Calculates whether node intersects the [-1,1] x [-1,1] x [0,1] volume in local space.
+ *
+ * Used for brushes similar to Clay strips that only affect vertices below the brush plane.
+ *
+ * The local coordinate system is oriented so that the vertices below the plane have positive
+ * local z-coordinates.
+ */
+bool node_in_box_positive_z(const Bounds<float3> &bounds, const float4x4 &mat);
 IndexMask gather_nodes(const bke::pbvh::Tree &pbvh,
                        eBrushFalloffShape falloff_shape,
                        bool use_original,

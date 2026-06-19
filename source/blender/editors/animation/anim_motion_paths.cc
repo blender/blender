@@ -11,12 +11,12 @@
 #include <cstdlib>
 
 #include "BLI_bounds.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_listbase_wrapper.hh"
-#include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -24,6 +24,7 @@
 
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
+#include "BKE_camera.h"
 #include "BKE_main.hh"
 #include "BKE_scene.hh"
 
@@ -178,9 +179,18 @@ static void motionpaths_calc_bake_targets(const Span<MPathTarget *> targets,
 
     if (mpath->flag & MOTIONPATH_FLAG_BAKE_CAMERA && camera) {
       Object *cam_eval = DEG_get_evaluated(depsgraph, camera);
-      /* Convert point to camera space. */
-      float3 co_camera_space = math::transform_point(cam_eval->world_to_object(), float3(mpv->co));
-      copy_v3_v3(mpv->co, co_camera_space);
+      /* Aka projection matrix. */
+      float4x4 window_matrix;
+      Scene *scene = DEG_get_input_scene(depsgraph);
+      BKE_camera_multiview_window_matrix(&scene->r, cam_eval, nullptr, window_matrix.ptr());
+      /* World to Object is the view matrix. */
+      float4x4 perspective_matrix = window_matrix * cam_eval->world_to_object();
+      const float4 co_clip_space = perspective_matrix *
+                                   float4(mpv->co[0], mpv->co[1], mpv->co[2], 1.0);
+      /* Storing the verts in NDC space which contains lens effects like sensor offset. See
+       * `overlay_motion_path.hh/motion_path_sync`. */
+      const float3 co_ndc_space = float3(co_clip_space) / co_clip_space.w;
+      copy_v3_v3(mpv->co, co_ndc_space);
     }
 
     float mframe = float(cframe);

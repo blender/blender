@@ -75,6 +75,8 @@ struct MultiresReshapeContext {
     /* Copy of original displacement and painting masks. */
     MDisps *mdisps;
     GridPaintMask *grid_paint_masks;
+
+    int grid_size;
   } orig;
 
   /* Number of grids which are required for base_mesh. */

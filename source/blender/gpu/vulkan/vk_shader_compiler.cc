@@ -11,7 +11,7 @@
 #include "BLI_fileops.hh"
 #include "BLI_path_utils.hh"
 #ifdef _WIN32
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #endif
 
 #include "vk_shader.hh"

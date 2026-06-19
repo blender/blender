@@ -18,8 +18,8 @@
 #include "../image/Image.h"
 #include "../image/ImagePyramid.h"
 
-#include "BLI_math_base.h"
-#include "BLI_sys_types.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_sys_types.hh"
 
 #include "BKE_global.hh"
 

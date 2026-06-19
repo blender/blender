@@ -6,17 +6,17 @@
  * \ingroup bli
  */
 
-#include "BLI_math_color.h"
 #include "BLI_math_color.hh"
+#include "BLI_math_color_c.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_simd.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include <algorithm>
 #include <cstring>
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 

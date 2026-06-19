@@ -120,9 +120,9 @@ static void node_geo_exec(GeoNodeExecParams params)
       *bke::socket_type_to_geo_nodes_base_cpp_type(data_type), [&]<typename ValueT>() {
         using type_traits = typename bke::VolumeGridTraits<ValueT>;
         using TreeType = typename type_traits::TreeType;
-        using GridType = openvdb::Grid<TreeType>;
 
-        if constexpr (!std::is_same_v<typename type_traits::BlenderType, void>) {
+        if constexpr (!std::is_same_v<TreeType, void>) {
+          using GridType = openvdb::Grid<TreeType>;
           const std::shared_ptr<const GridType> vdb_typed_grid = openvdb::GridBase::grid<GridType>(
               vdb_grid);
           params.set_output("Background Value"_ustr,

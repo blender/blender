@@ -10,7 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_task.h"
+#include "BLI_task_c.hh"
 
 #include <memory>
 #include <vector>

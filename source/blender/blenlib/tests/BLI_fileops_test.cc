@@ -8,17 +8,17 @@
 
 #include "BLI_fileops.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_system.h"
-#include "BLI_tempfile.h"
-#include "BLI_threads.h"
+#include "BLI_string.hh"
+#include "BLI_system.hh"
+#include "BLI_tempfile.hh"
+#include "BLI_threads.hh"
 
 #include BLI_SYSTEM_PID_H
 
 namespace blender::tests {
 
 /*
- * General `BLI_fileops.h` tests.
+ * General `BLI_fileops.hh` tests.
  */
 
 class FileOpsTest : public testing::Test {

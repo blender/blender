@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BLI_math_color.h" /* IWYU pragma: keep. Used in macros. */
+#include "BLI_math_color_c.hh" /* IWYU pragma: keep. Used in macros. */
 
 namespace blender {
 

@@ -15,8 +15,8 @@
 
 #include "BKE_global.hh"
 
-#include "BLI_assert.h"
-#include "BLI_threads.h"
+#include "BLI_assert.hh"
+#include "BLI_threads.hh"
 #include "BLI_vector_set.hh"
 
 #include "DNA_userdef_types.h"
@@ -201,6 +201,10 @@ GPUContext *GPU_context_create(GHOST_IWindow *ghost_window, GHOST_IContext *ghos
     num_backend_users++;
   }
 
+  BLI_assert(ghost_context);
+  if (ghost_window) {
+    BLI_assert(ghost_context == ghost_window->getDrawingContext());
+  }
   Context *ctx = GPUBackend::get()->context_alloc(ghost_window, ghost_context);
 
   GPU_context_active_set(wrap(ctx));

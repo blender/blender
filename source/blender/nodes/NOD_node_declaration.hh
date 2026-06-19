@@ -13,7 +13,7 @@
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_ustring.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 #include "BLT_translation.hh" /* IWYU pragma: export */
@@ -152,7 +152,7 @@ struct CustomSocketDrawParams {
 };
 
 using CustomSocketDrawFn = std::function<void(CustomSocketDrawParams &params)>;
-using CustomSocketLabelFn = std::function<StringRefNull(bNode node)>;
+using CustomSocketLabelFn = std::function<StringRefNull(const bNode &node)>;
 using SocketUsageInferenceFn =
     std::function<std::optional<bool>(const socket_usage_inference::SocketUsageParams &params)>;
 

@@ -10,7 +10,7 @@
 
 #include "../generic/python_compat.hh" /* IWYU pragma: keep. */
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "bpy_app_build_options.hh"
 

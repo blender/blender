@@ -6,7 +6,7 @@
 
 #include "BLI_generic_span.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "GPU_shader.hh"
 

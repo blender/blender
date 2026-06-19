@@ -6,10 +6,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_linklist_lockfree.h"
-#include "BLI_task.h"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
+#include "BLI_linklist_lockfree.hh"
+#include "BLI_task_c.hh"
+#include "BLI_threads.hh"
+#include "BLI_utildefines.hh"
 
 namespace blender {
 

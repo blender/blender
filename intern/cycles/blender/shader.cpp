@@ -21,7 +21,7 @@
 #include "util/string.h"
 #include "util/task.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "BKE_duplilist.hh"
 #include "BKE_node.hh"

@@ -35,7 +35,7 @@
  * slot definition tells you what types of elements are in it.
  */
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "bmesh.hh"
 #include "intern/bmesh_operators_private.hh"

@@ -14,12 +14,12 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_hash_md5.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_rect.h"
-#include "BLI_string_utf8.h"
+#include "BLI_rect.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include "BLI_vector_set.hh"
 
 #include "DNA_layer_types.h"
@@ -212,7 +212,7 @@ static void render_layer_allocate_pass(RenderResult *rr, RenderPass *rp)
   }
   else if (STREQ(rp->name, RE_PASSNAME_DEPTH)) {
     for (int x = rectsize - 1; x >= 0; x--) {
-      buffer_data[x] = 10e10;
+      buffer_data[x] = 1e10f;
     }
   }
 }
@@ -916,17 +916,6 @@ bool render_result_exr_file_read_path(RenderResult *rr,
         continue;
       }
 
-      if (match->channels != rpass.channels) {
-        BKE_reportf(nullptr,
-                    RPT_WARNING,
-                    "Reading render result: pass \"%s.%s\" has %d channels, expected %d",
-                    rl.name,
-                    rpass.name,
-                    match->channels,
-                    rpass.channels);
-        continue;
-      }
-
       if (rpass.ibuf == nullptr) {
         BKE_reportf(nullptr,
                     RPT_WARNING,
@@ -934,6 +923,18 @@ bool render_result_exr_file_read_path(RenderResult *rr,
                     rl.name,
                     rpass.name);
         continue;
+      }
+
+      if (match->channels != rpass.channels) {
+        /* Only a non-fatal warning, IMB_exr_read_passes will accept this
+         * and leave missing channels 0. */
+        BKE_reportf(nullptr,
+                    RPT_WARNING,
+                    "Reading render result: pass \"%s.%s\" has %d channels, expected %d",
+                    rl.name,
+                    rpass.name,
+                    match->channels,
+                    rpass.channels);
       }
 
       requests.append({.layer = match->layer,

@@ -20,7 +20,7 @@
 
 #include "ED_anim_api.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "testing/testing.h"
 

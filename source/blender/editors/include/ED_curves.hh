@@ -389,7 +389,7 @@ void select_all(bke::CurvesGeometry &curves,
  *
  * \param curves_mask: (optional) The curves that should be affected.
  */
-void select_linked(bke::CurvesGeometry &curves, const bool unselect = true);
+void select_linked(bke::CurvesGeometry &curves, const bool unselect = false);
 void select_linked(bke::CurvesGeometry &curves,
                    const IndexMask &curves_mask,
                    const bool unselect = false);

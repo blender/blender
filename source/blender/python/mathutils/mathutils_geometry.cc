@@ -13,10 +13,10 @@
 
 /* Used for PolyFill */
 #ifndef MATH_STANDALONE /* define when building outside blender */
-#  include "BLI_boxpack_2d.h"
+#  include "BLI_boxpack_2d.hh"
 #  include "BLI_convexhull_2d.hh"
 #  include "BLI_delaunay_2d.hh"
-#  include "BLI_listbase.h"
+#  include "BLI_listbase.hh"
 
 #  include "BKE_curve.hh"
 #  include "BKE_displist.h"
@@ -24,9 +24,9 @@
 #  include "MEM_guardedalloc.h"
 #endif /* !MATH_STANDALONE */
 
-#include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "../generic/py_capi_utils.hh"
 #include "../generic/python_compat.hh" /* IWYU pragma: keep. */

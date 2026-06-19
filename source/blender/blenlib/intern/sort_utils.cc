@@ -8,7 +8,7 @@
  * Utility functions for sorting common types.
  */
 
-#include "BLI_sort_utils.h" /* own include */
+#include "BLI_sort_utils.hh" /* own include */
 
 namespace blender {
 

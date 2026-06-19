@@ -17,8 +17,8 @@
 #include "DNA_object_types.h"
 
 #include "BLI_array_utils.hh"
-#include "BLI_gsqueue.h"
-#include "BLI_math_vector.h"
+#include "BLI_gsqueue.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_ccg.hh"
@@ -1229,7 +1229,6 @@ static void multires_create_grids_in_unsubdivided_base_mesh(MultiresUnsubdivideC
 
     mdisps[i].disps = disps;
     mdisps[i].totdisp = totdisp;
-    mdisps[i].level = context->num_total_levels;
   }
 }
 

@@ -12,11 +12,11 @@
 #include "AS_asset_representation.hh"
 #include "AS_remote_library.hh"
 
-#include "BLI_assert.h"
-#include "BLI_listbase.h"
+#include "BLI_assert.hh"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_utils.hh"
 
 #include "BKE_global.hh"
@@ -254,7 +254,8 @@ void remote_asset_library_request(FileListReadJob *job_params,
   }
 
   /* Check if the library's cache directory exists, otherwise, request download. */
-  if (!BLI_is_dir(library.cache_dirpath.c_str())) {
+  const std::string top_meta_file_path = remote_library_top_meta_file_path(library);
+  if (!BLI_is_file(top_meta_file_path.c_str())) {
     blender::asset_system::remote_library_request_download(library);
   }
 

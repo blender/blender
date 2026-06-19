@@ -19,7 +19,7 @@
 #include <pxr/imaging/hd/tokens.h>
 #include <pxr/imaging/hdx/renderTask.h>
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "MEM_guardedalloc.h"
 

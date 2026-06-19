@@ -666,7 +666,8 @@ void Film::update_passes(Scene *scene)
 
   /* Flush scene updates. */
   const bool have_uv_pass = Pass::contains(scene->passes, PASS_UV);
-  const bool have_motion_pass = Pass::contains(scene->passes, PASS_MOTION);
+  const bool have_motion_pass = Pass::contains(scene->passes, PASS_MOTION) ||
+                                Pass::contains(scene->passes, PASS_DENOISING_BACKWARD_MOTION);
   const bool have_ao_pass = Pass::contains(scene->passes, PASS_AO);
 
   if (have_uv_pass != prev_have_uv_pass) {

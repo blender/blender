@@ -4,7 +4,7 @@
 
 #include "node_function_util.hh"
 
-#include "BLI_math_color.h"
+#include "BLI_math_color_c.hh"
 
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
@@ -21,7 +21,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Color>("Color"_ustr).default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_output<decl::Float>("Red"_ustr).label_fn([](bNode node) {
+  b.add_output<decl::Float>("Red"_ustr).label_fn([](const bNode &node) {
     switch (node_storage(node).mode) {
       case NODE_COMBSEP_COLOR_RGB:
       default:
@@ -31,7 +31,7 @@ static void node_declare(NodeDeclarationBuilder &b)
         return IFACE_("Hue");
     }
   });
-  b.add_output<decl::Float>("Green"_ustr).label_fn([](bNode node) {
+  b.add_output<decl::Float>("Green"_ustr).label_fn([](const bNode &node) {
     switch (node_storage(node).mode) {
       case NODE_COMBSEP_COLOR_RGB:
       default:
@@ -41,7 +41,7 @@ static void node_declare(NodeDeclarationBuilder &b)
         return IFACE_("Saturation");
     }
   });
-  b.add_output<decl::Float>("Blue"_ustr).label_fn([](bNode node) {
+  b.add_output<decl::Float>("Blue"_ustr).label_fn([](const bNode &node) {
     switch (node_storage(node).mode) {
       case NODE_COMBSEP_COLOR_RGB:
       default:

@@ -234,7 +234,7 @@ class Prepass : Overlay {
           geom_single = DRW_cache_mesh_surface_get(ob_ref.object);
 
           if (res.is_selection() && !use_material_slot_selection_ &&
-              FlatObjectRef::flat_axis_index_get(ob_ref.object) != -1)
+              FlatObjectRef::flat_axis_index_get(ob_ref) != -1)
           {
             /* Avoid losing flat objects when in ortho views (see #56549) */
             mesh_flat_ps_->draw(DRW_cache_mesh_all_edges_get(ob_ref.object),

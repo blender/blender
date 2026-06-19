@@ -23,7 +23,7 @@
 
 #  include "bmesh_mesh_debug.hh"
 
-#  include "BLI_dynstr.h"
+#  include "BLI_dynstr.hh"
 
 namespace blender {
 

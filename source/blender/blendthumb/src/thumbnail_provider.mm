@@ -4,8 +4,8 @@
 
 #import <AppKit/NSImage.h>
 
-#include "BLI_fileops.h"
-#include "BLI_filereader.h"
+#include "BLI_fileops.hh"
+#include "BLI_filereader.hh"
 #include "BLI_utility_mixins.hh"
 #include "blendthumb.hh"
 

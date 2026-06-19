@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include "BLI_bitmap.h"
-#include "BLI_memblock.h"
+#include "BLI_bitmap.hh"
+#include "BLI_memblock.hh"
 
 #include "DNA_shader_fx_types.h"
 #include "DRW_render.hh"

@@ -27,13 +27,13 @@
 #ifndef WIN32
 #  include <unistd.h> /* For read close. */
 #else
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #  include "winsock2.h"
 #  include <io.h> /* For open close read. */
 #endif
 
-#include "BLI_fileops.h"
-#include "BLI_filereader.h"
+#include "BLI_fileops.hh"
+#include "BLI_filereader.hh"
 #include "BLI_vector.hh"
 
 #include "blendthumb.hh"

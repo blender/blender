@@ -11,7 +11,7 @@
 
 #include <cstdlib>
 
-/* BEGIN copied from BLI_asan.h */
+/* BEGIN copied from BLI_asan.hh */
 
 /* Clang defines this. */
 #ifndef __has_feature
@@ -28,7 +28,7 @@
 #  define ASAN_UNPOISON_MEMORY_REGION(addr, size) (void)(0 && ((size) != 0 && (addr) != NULL))
 #endif
 
-/* END copied from BLI_asan.h */
+/* END copied from BLI_asan.hh */
 
 /**
  * Util to trigger an error for the given memory block.

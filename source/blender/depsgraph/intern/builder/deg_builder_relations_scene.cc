@@ -13,7 +13,7 @@
 
 #include "BKE_compositor.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 namespace blender::deg {
 

@@ -19,10 +19,10 @@
 #include "BLI_array_utils.hh"
 #include "BLI_color.hh"
 #include "BLI_hash.hh"
-#include "BLI_math_matrix.h"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_math_quaternion_types.hh"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_vector.hh"
 
 #include "DEG_depsgraph_query.hh"

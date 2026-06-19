@@ -12,7 +12,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_linklist.h"
+#include "BLI_linklist.hh"
 
 namespace blender {
 

@@ -27,9 +27,9 @@
 #include "BLT_translation.hh"
 
 #include "BLI_bounds_types.hh"
-#include "BLI_hash.h"
+#include "BLI_hash_c.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_rand.h"
+#include "BLI_rand_c.hh"
 
 #include "WM_types.hh"
 

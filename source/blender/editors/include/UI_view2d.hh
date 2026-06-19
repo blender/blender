@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "BLI_compiler_attrs.h"
-#include "BLI_rect.h"
+#include "BLI_compiler_attrs.hh"
+#include "BLI_rect.hh"
 
 namespace blender {
 

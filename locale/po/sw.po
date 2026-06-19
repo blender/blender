@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'2b1958ccdccb')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e899b48ea546')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-08 09:37+0000\n"
+"POT-Creation-Date: 2026-06-15 07:32+0000\n"
 "PO-Revision-Date: 2025-11-14 10:59+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -28266,32 +28266,12 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
-msgid "Apply"
-msgstr "Tumia"
-
-
-msgid "Show/Hide"
-msgstr "Onyesha/Ficha"
-
-
-msgid "Clean Up"
-msgstr "Safisha"
-
-
-msgid "Asset"
-msgstr "Mali"
-
-
 msgid "Math"
 msgstr "Hisabati"
 
 
 msgid "Utilities"
 msgstr "Huduma"
-
-
-msgid "Bone Collections"
-msgstr "Mikusanyo ya Mifupa"
 
 
 msgid "Read"
@@ -28310,12 +28290,24 @@ msgid "Primitives"
 msgstr "Watu wa kwanza"
 
 
+msgid "Mirror"
+msgstr "Kioo"
+
+
+msgid "Snap"
+msgstr "Picha"
+
+
+msgid "Navigation"
+msgstr "Urambazaji"
+
+
 msgid "Instances"
 msgstr "Matukio"
 
 
-msgid "Merge"
-msgstr "Unganisha"
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
 
 
 msgid "Import"
@@ -28330,20 +28322,36 @@ msgid "Metaball"
 msgstr "Mpira wa miguu"
 
 
-msgid "Pivot Point"
-msgstr "Egemeo"
+msgid "Asset"
+msgstr "Mali"
 
 
-msgid "Snap"
-msgstr "Picha"
+msgid "Show/Hide"
+msgstr "Onyesha/Ficha"
 
 
-msgid "Mirror"
-msgstr "Kioo"
+msgid "Apply"
+msgstr "Tumia"
 
 
-msgid "Navigation"
-msgstr "Urambazaji"
+msgid "Clean Up"
+msgstr "Safisha"
+
+
+msgid "Light Probe"
+msgstr "Uchunguzi wa Mwanga"
+
+
+msgid "Light"
+msgstr "Mwanga"
+
+
+msgid "Bone Collections"
+msgstr "Mikusanyo ya Mifupa"
+
+
+msgid "Merge"
+msgstr "Unganisha"
 
 
 msgid "Linked"
@@ -28352,10 +28360,6 @@ msgstr "Imeunganishwa"
 
 msgid "Layout"
 msgstr "Mpangilio"
-
-
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
 
 
 msgid "Adjust"
@@ -28370,12 +28374,8 @@ msgid "Tracking"
 msgstr "Kufuatilia"
 
 
-msgid "Light"
-msgstr "Mwanga"
-
-
-msgid "Light Probe"
-msgstr "Uchunguzi wa Mwanga"
+msgid "Pivot Point"
+msgstr "Egemeo"
 
 
 msgid "Keyframe Insert Pie"
@@ -72545,22 +72545,6 @@ msgid "Panel containing UI elements"
 msgstr "Paneli iliyo na vipengele vya UI"
 
 
-msgid "View Lock"
-msgstr "Kufuli ya Tazama"
-
-
-msgid "Selectability & Visibility"
-msgstr "Uteuzi"
-
-
-msgid "Shadow Settings"
-msgstr "Mipangilio ya Kivuli"
-
-
-msgid "SSAO Settings"
-msgstr "Mipangilio ya SSAO"
-
-
 msgid "Compositor"
 msgstr "Mtunzi"
 
@@ -72619,6 +72603,22 @@ msgstr "Curves Sculpt Parameta Falloff"
 
 msgid "Viewport Debug"
 msgstr "Utatuzi wa kituo cha kutazama"
+
+
+msgid "View Lock"
+msgstr "Kufuli ya Tazama"
+
+
+msgid "Selectability & Visibility"
+msgstr "Uteuzi"
+
+
+msgid "Shadow Settings"
+msgstr "Mipangilio ya Kivuli"
+
+
+msgid "SSAO Settings"
+msgstr "Mipangilio ya SSAO"
 
 
 msgid "Motion Blur"

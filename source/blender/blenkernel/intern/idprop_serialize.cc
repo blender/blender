@@ -8,7 +8,7 @@
 
 #include "BKE_idprop.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_serialize.hh"
 
 namespace blender::bke::idprop {

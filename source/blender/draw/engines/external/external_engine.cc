@@ -13,7 +13,7 @@
 #include "DRW_engine.hh"
 #include "DRW_render.hh"
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BLT_translation.hh"
 

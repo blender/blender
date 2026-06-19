@@ -9,9 +9,10 @@
 #include "MEM_guardedalloc.h"
 #include <cstring>
 
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
-#include "BLI_string.h"
+#include "BLI_listbase.hh"
+#include "BLI_map.hh"
+#include "BLI_math_base_c.hh"
+#include "BLI_string.hh"
 
 #include "BKE_global.hh"
 
@@ -88,7 +89,31 @@ static int inputs_cmp(const void *a, const void *b)
                  *link_b = static_cast<const LinkData *>(b);
   const GPUInput *input_a = static_cast<const GPUInput *>(link_a->data);
   const GPUInput *input_b = static_cast<const GPUInput *>(link_b->data);
-  return input_a->type < input_b->type ? 1 : 0;
+  return gpu_type_element_count(input_a->type) < gpu_type_element_count(input_b->type) ? 1 : 0;
+}
+
+static inline bool is_ubo_supported_type(const GPUType type)
+{
+  switch (type) {
+    case GPU_FLOAT:
+    case GPU_VEC2:
+    case GPU_VEC3:
+    case GPU_VEC4:
+    case GPU_MAT4:
+      return true;
+    case GPU_NONE:
+    case GPU_MAT3:
+    case GPU_TEX1D_ARRAY:
+    case GPU_TEX2D:
+    case GPU_TEX2D_ARRAY:
+    case GPU_TEX3D:
+    case GPU_CLOSURE:
+    case GPU_ATTR:
+      return false;
+  }
+
+  BLI_assert_unreachable();
+  return false;
 }
 
 /**
@@ -97,10 +122,6 @@ static int inputs_cmp(const void *a, const void *b)
  */
 static void buffer_from_list_inputs_sort(ListBaseT<LinkData> *inputs)
 {
-/* Only support up to this type, if you want to extend it, make sure static void
- * inputs_sobuffer_size_compute(*inputs) padding logic is correct for the new types. */
-#define MAX_UBO_GPU_TYPE GPU_MAT4
-
   /* Order them as mat4, vec4, vec3, vec2, float. */
   BLI_listbase_sort(inputs, inputs_cmp);
 
@@ -109,9 +130,8 @@ static void buffer_from_list_inputs_sort(ListBaseT<LinkData> *inputs)
     return;
   }
 
-  /* Creates a lookup table for the different types. */
-  LinkData *inputs_lookup[MAX_UBO_GPU_TYPE + 1] = {nullptr};
-  GPUType cur_type = static_cast<GPUType>(MAX_UBO_GPU_TYPE + 1);
+  Map<GPUType, LinkData *> first_links;
+  GPUType cur_type = GPU_NONE;
 
   for (LinkData &link : *inputs) {
     GPUInput *input = static_cast<GPUInput *>(link.data);
@@ -121,7 +141,8 @@ static void buffer_from_list_inputs_sort(ListBaseT<LinkData> *inputs)
       BLI_assert_msg(0, "mat3 not supported in UBO");
       continue;
     }
-    if (input->type > MAX_UBO_GPU_TYPE) {
+
+    if (!is_ubo_supported_type(input->type)) {
       BLI_assert_msg(0, "GPU type not supported in UBO");
       continue;
     }
@@ -130,16 +151,16 @@ static void buffer_from_list_inputs_sort(ListBaseT<LinkData> *inputs)
       continue;
     }
 
-    inputs_lookup[input->type] = &link;
+    first_links.add_new(input->type, &link);
     cur_type = input->type;
   }
 
   /* If there is no GPU_VEC3 there is no need for alignment. */
-  if (inputs_lookup[GPU_VEC3] == nullptr) {
+  if (!first_links.contains(GPU_VEC3)) {
     return;
   }
 
-  LinkData *link = inputs_lookup[GPU_VEC3];
+  LinkData *link = first_links.lookup(GPU_VEC3);
   while (link != nullptr && (static_cast<GPUInput *>(link->data))->type == GPU_VEC3) {
     LinkData *link_next = link->next;
 
@@ -149,9 +170,10 @@ static void buffer_from_list_inputs_sort(ListBaseT<LinkData> *inputs)
     }
 
     /* If there is a float, move it next to current vec3. */
-    if (inputs_lookup[GPU_FLOAT] != nullptr) {
-      LinkData *float_input = inputs_lookup[GPU_FLOAT];
-      inputs_lookup[GPU_FLOAT] = float_input->next;
+    LinkData **float_link_ptr = first_links.lookup_ptr(GPU_FLOAT);
+    if (float_link_ptr != nullptr && *float_link_ptr != nullptr) {
+      LinkData *float_input = *float_link_ptr;
+      first_links.add_overwrite(GPU_FLOAT, float_input->next);
 
       BLI_remlink(inputs, float_input);
       BLI_insertlinkafter(inputs, link, float_input);
@@ -159,7 +181,6 @@ static void buffer_from_list_inputs_sort(ListBaseT<LinkData> *inputs)
 
     link = link_next;
   }
-#undef MAX_UBO_GPU_TYPE
 }
 
 static inline size_t buffer_size_from_list(ListBaseT<LinkData> *inputs)
@@ -167,7 +188,7 @@ static inline size_t buffer_size_from_list(ListBaseT<LinkData> *inputs)
   size_t buffer_size = 0;
   for (LinkData &link : *inputs) {
     const GPUType gputype = get_padded_gpu_type(&link);
-    buffer_size += gputype * sizeof(float);
+    buffer_size += gpu_type_element_count(gputype) * sizeof(float);
   }
   /* Round up to size of vec4. (Opengl Requirement) */
   size_t alignment = sizeof(float[4]);
@@ -182,8 +203,8 @@ static inline void buffer_fill_from_list(void *data, ListBaseT<LinkData> *inputs
   float *offset = static_cast<float *>(data);
   for (LinkData &link : *inputs) {
     GPUInput *input = static_cast<GPUInput *>(link.data);
-    memcpy(offset, input->vec, input->type * sizeof(float));
-    offset += get_padded_gpu_type(&link);
+    memcpy(offset, input->vec, gpu_type_element_count(input->type) * sizeof(float));
+    offset += gpu_type_element_count(get_padded_gpu_type(&link));
   }
 }
 

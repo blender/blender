@@ -13,8 +13,8 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
-#include "BLI_assert.h"
-#include "BLI_compiler_typecheck.h"
+#include "BLI_assert.hh"
+#include "BLI_compiler_typecheck.hh"
 
 #include <cstring>
 #include <type_traits>
@@ -987,16 +987,6 @@ enum eID_Tag : int {
    * of physics *shared* pointers.
    */
   ID_TAG_COPIED_ON_EVAL = 1 << 23,
-  /**
-   * ID is not the original evaluated ID created by the depsgraph, but has been re-allocated during
-   * the evaluation process of another ID.
-   *
-   * RESET_NEVER
-   *
-   * Typical example is object data, when evaluating the object's modifier stack the final obdata
-   * can be different than the evaluated initial obdata ID.
-   */
-  ID_TAG_COPIED_ON_EVAL_FINAL_RESULT = 1 << 24,
 
   /**
    * ID management status tags related to non-standard BMain IDs.

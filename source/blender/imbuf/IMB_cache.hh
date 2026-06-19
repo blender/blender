@@ -8,7 +8,7 @@
  * \ingroup imbuf
  */
 
-#include "BLI_ghash.h"
+#include "BLI_ghash.hh"
 struct ImBufCacheIter;
 namespace blender {
 

@@ -23,15 +23,15 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_linklist.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
-#include "BLI_memarena.h"
+#include "BLI_linklist.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_memarena.hh"
 #include "BLI_set.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
-#include "BLI_utildefines_stack.h"
+#include "BLI_utildefines_stack.hh"
 
 #include "BLI_kdopbvh.hh"
 
@@ -42,7 +42,7 @@
 
 #include "tools/bmesh_edgesplit.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 

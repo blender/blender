@@ -28,13 +28,13 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 
-#include "BLI_fileops.h"
-#include "BLI_math_vector.h"
+#include "BLI_fileops.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "DNA_image_types.h"
 #include "DNA_node_types.h"

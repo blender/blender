@@ -14,9 +14,9 @@
 #include "intern/eval/deg_eval.h"
 
 #include "BLI_function_ref.hh"
-#include "BLI_gsqueue.h"
-#include "BLI_task.h"
-#include "BLI_time.h"
+#include "BLI_gsqueue.hh"
+#include "BLI_task_c.hh"
+#include "BLI_time.hh"
 
 #include "BKE_global.hh"
 

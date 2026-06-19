@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BLI_bitmap.h"
+#include "BLI_bitmap.hh"
 
 #include "DNA_listBase.h"
 

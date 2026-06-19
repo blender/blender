@@ -12,7 +12,7 @@
 #include "BKE_subdiv_ccg.hh"
 
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_math_geom.h"
+#include "BLI_math_geom_c.hh"
 
 #include "PRF_profile.hh"
 

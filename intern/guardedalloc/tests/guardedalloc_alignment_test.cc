@@ -4,7 +4,7 @@
 
 #include "testing/testing.h"
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "MEM_guardedalloc.h"
 #include "guardedalloc_test_base.h"

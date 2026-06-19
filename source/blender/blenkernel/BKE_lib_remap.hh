@@ -20,7 +20,7 @@
  * - `BKE_lib_remap_callback_` should be used for functions managing remapping callbacks.
  */
 
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 #include "BLI_enum_flags.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"

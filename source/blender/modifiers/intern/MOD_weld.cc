@@ -12,7 +12,7 @@
  * - Review weight and vertex color interpolation.;
  */
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BLI_array.hh"
 #include "BLI_index_range.hh"

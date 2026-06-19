@@ -17,9 +17,9 @@
 
 #include "BLO_read_write.hh"
 
-#include "BLI_listbase.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_asset.hh"
 #include "BKE_preferences.h"
@@ -100,7 +100,7 @@ AssetLibraryReference &settings_ensure_valid_library_ref(AssetShelfSettings &set
       &U, settings.asset_library_reference.custom_library_index);
 
   /* If the library wasn't found, fall back to the "All" library. */
-  if (!user_library) {
+  if (!user_library || user_library->flag & ASSET_LIBRARY_DISABLED) {
     settings.asset_library_reference = asset_system::all_library_reference();
   }
   return settings.asset_library_reference;

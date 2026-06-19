@@ -4,7 +4,7 @@
 
 #include "overlay_mode_transfer.hh"
 
-#include "BLI_math_color.h"
+#include "BLI_math_color_c.hh"
 
 #include "ED_object.hh"
 

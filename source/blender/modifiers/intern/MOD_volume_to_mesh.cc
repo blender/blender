@@ -29,7 +29,7 @@
 
 #include "BLI_math_matrix_types.hh"
 #include "BLI_span.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "DEG_depsgraph_query.hh"
 

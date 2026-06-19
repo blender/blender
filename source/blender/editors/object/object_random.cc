@@ -9,8 +9,8 @@
 #include "DNA_layer_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_ghash.h"
-#include "BLI_math_vector.h"
+#include "BLI_ghash.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_rand.hh"
 
 #include "BKE_context.hh"

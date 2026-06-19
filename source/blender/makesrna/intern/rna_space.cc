@@ -9,7 +9,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "BLI_math_constants.h"
+#include "BLI_math_constants.hh"
 #include "BLI_string_ref.hh"
 #include "BLT_translation.hh"
 
@@ -23,8 +23,8 @@
 #include "ED_spreadsheet.hh"
 #include "ED_userpref.hh"
 
-#include "BLI_string.h"
-#include "BLI_sys_types.h"
+#include "BLI_string.hh"
+#include "BLI_sys_types.hh"
 
 #include "DNA_action_types.h"
 #include "DNA_camera_types.h"
@@ -684,12 +684,12 @@ static const EnumPropertyItem spreadsheet_table_id_type_items[] = {
 #  include "DNA_userdef_types.h"
 
 #  include "BLI_index_range.hh"
-#  include "BLI_math_matrix.h"
-#  include "BLI_math_rotation.h"
-#  include "BLI_math_vector.h"
+#  include "BLI_math_matrix_c.hh"
+#  include "BLI_math_rotation_c.hh"
+#  include "BLI_math_vector_c.hh"
 #  include "BLI_path_utils.hh"
-#  include "BLI_string.h"
-#  include "BLI_string_utf8.h"
+#  include "BLI_string.hh"
+#  include "BLI_string_utf8.hh"
 
 #  include "BKE_anim_data.hh"
 #  include "BKE_brush.hh"
@@ -7301,6 +7301,11 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
   prop = RNA_def_property(srna, "cache_smoke", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "cache_display", TIME_CACHE_SMOKE);
   RNA_def_property_ui_text(prop, "Smoke", "Show the active object's smoke cache");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TIME, nullptr);
+
+  prop = RNA_def_property(srna, "cache_compositor", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "cache_display", TIME_CACHE_COMPOSITOR);
+  RNA_def_property_ui_text(prop, "Compositor", "Show the interactive compositor playback cache");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TIME, nullptr);
 
   prop = RNA_def_property(srna, "cache_simulation_nodes", PROP_BOOLEAN, PROP_NONE);

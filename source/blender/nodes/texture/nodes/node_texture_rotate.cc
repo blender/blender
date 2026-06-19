@@ -8,7 +8,7 @@
 
 #include <cmath>
 
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 
 #include "node_texture_util.hh"
 

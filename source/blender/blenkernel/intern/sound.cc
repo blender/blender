@@ -22,14 +22,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_build_config.h"
+#include "BLI_build_config.hh"
 #include "BLI_enum_flags.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
-#include "BLI_math_rotation.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_base_c.hh"
+#include "BLI_math_rotation_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_threads.h"
+#include "BLI_string.hh"
+#include "BLI_threads.hh"
 
 #include "BLT_translation.hh"
 
@@ -292,18 +292,14 @@ BLI_INLINE void sound_verify_evaluated_id(const ID *id)
    * them to be allocated on a data-blocks which are result of dependency graph evaluation.
    *
    * Data-blocks which are covered by a copy-on-evaluation system of dependency graph will have
-   * ID_TAG_COPIED_ON_EVAL tag set on them. But if some of data-blocks during its evaluation
-   * decides to re-allocate its nested one (for example, object evaluation could re-allocate mesh
-   * when evaluating modifier stack). Such data-blocks will have
-   * ID_TAG_COPIED_ON_EVAL_FINAL_RESULT tag set on them.
+   * ID_TAG_COPIED_ON_EVAL tag set on them.
    *
    * Additionally, we also allow data-blocks outside of main database. Those can not be "original"
    * and could be used as a temporary evaluated result during operations like baking.
    *
    * NOTE: We consider ID evaluated if ANY of those flags is set. We do NOT require ALL of them.
    */
-  BLI_assert(id->tag &
-             (ID_TAG_COPIED_ON_EVAL | ID_TAG_COPIED_ON_EVAL_FINAL_RESULT | ID_TAG_NO_MAIN));
+  BLI_assert(id->tag & (ID_TAG_COPIED_ON_EVAL | ID_TAG_NO_MAIN));
 }
 
 bSound *BKE_sound_new_file(Main *bmain, const char *filepath, short stream_index)
@@ -1381,7 +1377,9 @@ static void sound_update_base(Scene *scene, Object *object, Set<AUD_SequenceEntr
 
       bke::NlaStripRuntime &strip_runtime = strip.runtime_get();
 
-      if (scene->runtime->audio.speaker_handles.remove(strip_runtime.speaker_handle)) {
+      if ((strip_runtime.speaker_handle != nullptr) &&
+          scene->runtime->audio.speaker_handles.remove(strip_runtime.speaker_handle))
+      {
         if (speaker->sound) {
           strip_runtime.speaker_handle->move(
               double(strip.start) / scene->frames_per_second(), FLT_MAX, 0);
@@ -1879,7 +1877,7 @@ bool bke::sound_mixdown(AUD_Sequence sequence,
 
 #else /* WITH_AUDASPACE */
 
-#  include "BLI_utildefines.h"
+#  include "BLI_utildefines.hh"
 
 void BKE_sound_force_device(const char * /*device*/) {}
 void BKE_sound_init_once() {}

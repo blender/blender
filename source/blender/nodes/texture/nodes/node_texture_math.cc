@@ -6,8 +6,8 @@
  * \ingroup texnodes
  */
 
-#include "BLI_listbase.h"
-#include "BLI_math_rotation.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_rotation_c.hh"
 #include "node_texture_util.hh"
 #include "node_util.hh"
 

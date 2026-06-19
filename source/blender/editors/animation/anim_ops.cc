@@ -10,9 +10,9 @@
 #include <cmath>
 #include <cstdlib>
 
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_base_c.hh"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_ID.h"
@@ -294,18 +294,18 @@ static void seq_frame_snap_update_best(const float position,
   }
 }
 
-static void append_sequencer_strip_snap_target(Span<Strip *> strips,
-                                               const Scene *scene,
+static void append_sequencer_strip_snap_target(const Scene *scene,
                                                const float timeline_frame,
                                                Vector<SnapTarget> &r_targets)
 {
+  Editing *ed = seq::editing_get(scene);
   float best_frame = FLT_MAX;
   float best_distance = FLT_MAX;
 
-  for (Strip *strip : strips) {
-    seq_frame_snap_update_best(strip->left_handle(), timeline_frame, &best_frame, &best_distance);
+  for (Strip &strip : *seq::active_seqbase_get(ed)) {
+    seq_frame_snap_update_best(strip.left_handle(), timeline_frame, &best_frame, &best_distance);
     seq_frame_snap_update_best(
-        strip->right_handle(scene), timeline_frame, &best_frame, &best_distance);
+        strip.right_handle(scene), timeline_frame, &best_frame, &best_distance);
   }
 
   /* best_frame will be FLT_MAX if no target was found. */
@@ -377,9 +377,7 @@ static Vector<SnapTarget> seq_get_snap_targets(bContext *C,
   Vector<SnapTarget> targets;
 
   if (tool_settings->snap_playhead_mode & SCE_SNAP_TO_STRIPS) {
-    ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
-    append_sequencer_strip_snap_target(
-        seq::query_all_strips(seqbase), scene, timeline_frame, targets);
+    append_sequencer_strip_snap_target(scene, timeline_frame, targets);
   }
 
   if (tool_settings->snap_playhead_mode & SCE_SNAP_TO_MARKERS) {

@@ -10,7 +10,7 @@
 
 #include <OpenImageIO/imageio.h>
 
-#include "BLI_threads.h"
+#include "BLI_threads.hh"
 
 namespace blender {
 

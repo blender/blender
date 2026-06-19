@@ -11,8 +11,8 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_path_utils.hh"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf_types.hh"

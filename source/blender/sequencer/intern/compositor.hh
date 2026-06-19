@@ -79,6 +79,7 @@ class CompositorContext : public compositor::Context {
   }
 
   void create_result_from_input(compositor::Result &result, ImBuf &input);
+  void write_viewer_impl(const compositor::Result &result, ImBuf &image);
   void write_output(const compositor::Result &result, ImBuf &image);
   void write_outputs(const bNodeTree &node_group,
                      compositor::NodeGroupOperation &node_group_operation,

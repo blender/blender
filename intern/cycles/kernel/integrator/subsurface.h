@@ -218,7 +218,7 @@ ccl_device_inline bool subsurface_scatter(KernelGlobals kg, IntegratorState stat
   const int shader_flags = kernel_data_fetch(shaders, shader).flags;
   const uint object_flags = intersection_get_object_flags(kg, &ss_isect.hits[0]);
   const bool use_caustics = kernel_data.integrator.use_caustics &&
-                            (object_flags & SD_OBJECT_CAUSTICS);
+                            (object_flags & SD_OBJECT_CAUSTICS_RECEIVER);
   const bool use_raytrace_kernel = (shader_flags & SD_HAS_RAYTRACE);
 
   if (use_caustics) {

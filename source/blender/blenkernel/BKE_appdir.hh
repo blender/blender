@@ -15,7 +15,7 @@
 #include <optional>
 #include <string>
 
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 #include "BLI_string_ref.hh"
 
 #include "DNA_listBase.h"
@@ -182,6 +182,15 @@ enum {
   BLENDER_RESOURCE_PATH_USER = 0,
   BLENDER_RESOURCE_PATH_LOCAL = 1,
   BLENDER_RESOURCE_PATH_SYSTEM = 2,
+  /**
+   * Architecture-dependent libraries, mirroring #BLENDER_RESOURCE_PATH_SYSTEM.
+   * Typically a path under `/usr/lib/...` instead of `/usr/share/...`,
+   * although exact paths are configurable at build-time.
+   *
+   * For run-time library checks, first check if this path is defined,
+   * then fallback to #BLENDER_RESOURCE_PATH_SYSTEM.
+   */
+  BLENDER_RESOURCE_PATH_SYSTEM_LIBS = 3,
 };
 
 #define BLENDER_STARTUP_FILE "startup.blend"

@@ -18,7 +18,7 @@
  * - `BKE_main_namemap_` Should be used for functions in this file.
  */
 
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 #include "BLI_string_ref.hh"
 
 namespace blender {

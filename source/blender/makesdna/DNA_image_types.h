@@ -39,14 +39,6 @@ enum eImageUser_Flag : short {
 };
 ENUM_OPERATORS(eImageUser_Flag)
 
-/* Used to get the correct gpu texture from an Image datablock. */
-enum eGPUTextureTarget : int {
-  TEXTARGET_2D = 0,
-  TEXTARGET_2D_ARRAY = 1,
-  TEXTARGET_TILE_MAPPING = 2,
-  TEXTARGET_COUNT = 3,
-};
-
 /** #Image.flag */
 enum eImage_Flag : int {
   IMA_HIGH_BITDEPTH = (1 << 0),
@@ -72,15 +64,6 @@ enum eImage_Flag : int {
   IMA_AUTOSAVE_TEMPPACK = (1 << 17),
 };
 ENUM_OPERATORS(eImage_Flag)
-
-/** #Image.gpuflag */
-enum eImage_GPUFlag : int {
-  /** All mipmap levels in OpenGL texture set? */
-  IMA_GPU_MIPMAP_COMPLETE = (1 << 0),
-  /** Disable mipmap updates, primarily used for texture painting. */
-  IMA_GPU_DISABLE_MIPMAP_UPDATE = (1 << 1),
-};
-ENUM_OPERATORS(eImage_GPUFlag)
 
 /* Image.source, where the image comes from */
 enum eImageSource : short {

@@ -8,7 +8,6 @@
 
 #include "UI_string_search.hh"
 
-#include "BLI_fileops.h"
 #include "BLI_fileops.hh"
 #include "BLI_map.hh"
 #include "BLI_path_utils.hh"

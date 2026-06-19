@@ -6,7 +6,7 @@
  * \ingroup spseq
  */
 
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "DNA_sequence_types.h"
 

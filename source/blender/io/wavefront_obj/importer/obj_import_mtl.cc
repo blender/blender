@@ -11,9 +11,9 @@
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
 
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"

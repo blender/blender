@@ -26,6 +26,7 @@ def get_arguments(filepath, output_filepath, backend):
         "--factory-startup",
         "--enable-autoexec",
         "--debug-memory",
+        "--console-crash-handler",
         "--debug-exit-on-error"]
 
     execution_device = "CPU"

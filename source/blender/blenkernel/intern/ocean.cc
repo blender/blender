@@ -20,11 +20,11 @@
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_rand.h"
-#include "BLI_task.h"
-#include "BLI_utildefines.h"
+#include "BLI_rand_c.hh"
+#include "BLI_task_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_image.hh"
 #include "BKE_image_format.hh"
@@ -37,7 +37,7 @@
 
 #include "RE_texture.h"
 
-#include "BLI_hash.h"
+#include "BLI_hash_c.hh"
 
 namespace blender {
 

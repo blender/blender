@@ -4,7 +4,7 @@
 
 #include <optional>
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 
 #include "COM_domain.hh"
 #include "COM_implicit_input_operation.hh"

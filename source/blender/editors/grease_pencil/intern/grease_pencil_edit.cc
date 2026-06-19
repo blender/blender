@@ -8,20 +8,20 @@
 
 #include "BLI_array.hh"
 #include "BLI_array_utils.hh"
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_index_range.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 #include "BLT_translation.hh"
@@ -2945,7 +2945,7 @@ static wmOperatorStatus grease_pencil_paste_strokes_exec(bContext *C, wmOperator
       if (!active_layer) {
         BKE_report(op->reports, RPT_ERROR, "No active Grease Pencil layer to paste into");
       }
-      if (!active_layer->is_editable()) {
+      else if (!active_layer->is_editable()) {
         BKE_report(op->reports, RPT_ERROR, "Active layer is not editable");
       }
       return OPERATOR_CANCELLED;
@@ -4645,9 +4645,11 @@ static wmOperatorStatus grease_pencil_outline_exec(bContext *C, wmOperator *op)
       break;
     }
     case OutlineMode::Camera:
-      if (scene->camera != nullptr) {
-        viewinv = scene->camera->world_to_object();
+      if (scene->camera == nullptr) {
+        BKE_report(op->reports, RPT_ERROR, "No camera in the scene");
+        return OPERATOR_CANCELLED;
       }
+      viewinv = scene->camera->world_to_object();
       break;
     default:
       BLI_assert_unreachable();

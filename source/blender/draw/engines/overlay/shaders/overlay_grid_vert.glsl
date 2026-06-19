@@ -64,17 +64,6 @@ LineData decode_axis_data(uint vertex_id)
   return line;
 }
 
-/* Test if the current line falls under an active axis line which occludes it. */
-bool is_occluded_by_axis(float3 vertex_pos_global)
-{
-  if (flag_test(grid_flag, SHOW_GRID)) {
-    return (flag_test(grid_flag, AXIS_X) && grid::is_zero(vertex_pos_global.yz, 1e-4f)) ||
-           (flag_test(grid_flag, AXIS_Y) && grid::is_zero(vertex_pos_global.xz, 1e-4f)) ||
-           (flag_test(grid_flag, AXIS_Z) && grid::is_zero(vertex_pos_global.xy, 1e-4f));
-  }
-  return false;
-}
-
 /* Test if the current line falls under another line on a higher level, which occludes it. */
 bool is_occluded_by_higher_level(LineData line, uint level)
 {
@@ -206,7 +195,7 @@ void main()
   }
 
   /* Additional culling steps to discard occluded lines. */
-  if (is_occluded_by_axis(vertex_out.pos) || is_occluded_by_higher_level(line, level)) {
+  if (is_occluded_by_higher_level(line, level)) {
     return; /* Discard line. */
   }
 

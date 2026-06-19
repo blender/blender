@@ -12,10 +12,10 @@
 
 #include <algorithm>
 
-#include "BLI_heap_simple.h"
-#include "BLI_linklist.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
+#include "BLI_heap_simple.hh"
+#include "BLI_linklist.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "bmesh.hh"
 #include "bmesh_path_uv.hh" /* own include */

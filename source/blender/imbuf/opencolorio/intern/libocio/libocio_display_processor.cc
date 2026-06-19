@@ -244,6 +244,20 @@ static void display_as_extended_srgb(const LibOCIOConfig &config,
                "Color space %s is not a display color space, disabling automatic display color "
                "management",
                display_colorspace->name().c_str());
+
+    if (!display->is_hdr()) {
+      /* This avoids it being blindingly bright on HDR monitor when selecting SDR,
+       * and also avoids the display doing any kind of misleading HDR tone mapping.
+       * For HDR we do not clamp as that is sometimes used for custom view/display
+       * transforms defined in the compositor. */
+      auto clamp = OCIO_NAMESPACE::RangeTransform::Create();
+      clamp->setStyle(OCIO_NAMESPACE::RANGE_CLAMP);
+      clamp->setMinInValue(0.0);
+      clamp->setMinOutValue(0.0);
+      clamp->setMaxInValue(1.0);
+      clamp->setMaxOutValue(1.0);
+      group->appendTransform(clamp);
+    }
     return;
   }
 

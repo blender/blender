@@ -52,7 +52,7 @@ float2 angle_to_v2(float angle)
   return float2(cos(angle), sin(angle));
 }
 
-/* Adapted from BLI_math_vector.h */
+/* Adapted from BLI_math_vector_c.hh */
 float angle_normalized_v2v2(float2 v1, float2 v2)
 {
   v1 = normalize(v1 * aspect);

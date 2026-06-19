@@ -16,7 +16,7 @@
 #include "BKE_main.hh"
 
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #ifdef WIN32
 #  include "utfconv.hh"

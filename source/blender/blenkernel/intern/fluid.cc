@@ -8,17 +8,17 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
-#include "BLI_fileops.h"
-#include "BLI_hash.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
+#include "BLI_fileops.hh"
+#include "BLI_hash_c.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_task.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_task_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_colorband_types.h"
 #include "DNA_fluid_types.h"
@@ -55,8 +55,8 @@
 #  include "BLI_kdtree.hh"
 #  include "BLI_math_vector.hh"
 #  include "BLI_mutex.hh"
-#  include "BLI_threads.h"
-#  include "BLI_voxel.h"
+#  include "BLI_threads.hh"
+#  include "BLI_voxel.hh"
 
 #  include "BKE_bvhutils.hh"
 #  include "BKE_collision.h"
@@ -433,7 +433,11 @@ static void manta_set_domain_from_mesh(FluidDomainSettings *fds,
   }
   /* Apply object scale. */
   for (i = 0; i < 3; i++) {
-    size[i] = fabsf(size[i] * ob->scale[i]);
+    const float scale = ob->scale[i];
+    size[i] = fabsf(size[i] * (isfinite(scale) ? scale : 1.0f));
+    if (!isfinite(size[i])) {
+      size[i] = 1.0f;
+    }
   }
   copy_v3_v3(fds->global_size, size);
   copy_v3_v3(fds->dp0, min);

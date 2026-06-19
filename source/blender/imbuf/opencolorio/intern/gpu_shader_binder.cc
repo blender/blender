@@ -8,8 +8,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_assert.h"
-#include "BLI_build_config.h"
+#include "BLI_assert.hh"
+#include "BLI_build_config.hh"
 #include "BLI_string_utils.hh"
 #include "BLI_vector.hh"
 

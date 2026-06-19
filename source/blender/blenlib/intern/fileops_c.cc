@@ -20,9 +20,9 @@
 #include <zstd.h>
 
 #ifdef WIN32
-#  include "BLI_fileops_types.h"
+#  include "BLI_fileops_types.hh"
 #  include "BLI_string_utils.hh"
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #  include "utf_winfunc.hh"
 #  include "utfconv.hh"
 #  include <io.h>
@@ -43,11 +43,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_fileops.h"
+#include "BLI_fileops.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_sys_types.h" /* For `intptr_t` support. */
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_sys_types.hh" /* For `intptr_t` support. */
+#include "BLI_utildefines.hh"
 
 namespace blender {
 

@@ -12,8 +12,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math_base.h"
-#include "BLI_string.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_string.hh"
 
 #include "BLT_translation.hh"
 

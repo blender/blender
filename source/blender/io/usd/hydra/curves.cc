@@ -14,8 +14,8 @@
 #include <pxr/imaging/hd/tokens.h>
 
 #include "BLI_listbase_iterator.hh"
-#include "BLI_math_matrix.h"
-#include "BLI_string.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_string.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"

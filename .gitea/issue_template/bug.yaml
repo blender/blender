@@ -25,7 +25,7 @@ body:
       label: "System Information"
       hide_label: false
       description: |
-            Please provide system information, including Operating System, Graphics Card and it's drivers, and any other system factors you believe are relevant to the bug report. For example drawing tablet model.
+            Please provide system information, including Operating System, Graphics Card and driver version, and any other notable factors relevant to the bug report. Examples include descriptions of multi-monitor setups or usage of specific models of a drawing tablet.
       placeholder: |
                Operating system: (Windows, macOS, Linux), its version number, and architecture (x86 or arm64)
                Graphics card: NVIDA RTX ..., AMD RX ..., Intel Arc ..., Apple ..., and graphics driver version

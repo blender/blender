@@ -4,7 +4,7 @@
 
 #include <optional>
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "node_function_util.hh"
 #include "node_util.hh"

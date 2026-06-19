@@ -8,8 +8,8 @@
  * Methods for constructing depsgraph.
  */
 
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_cachefile_types.h"
 #include "DNA_camera_types.h"

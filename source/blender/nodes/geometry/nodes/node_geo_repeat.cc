@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "NOD_geo_repeat.hh"
 #include "NOD_socket.hh"
@@ -252,6 +252,19 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   const bNodeSocket &other_socket = params.other_socket();
   if (!RepeatItemsAccessor::supports_socket_type(other_socket.type, params.node_tree().type)) {
     return;
+  }
+  if (other_socket.in_out == SOCK_OUT) {
+    params.add_item_full_name(IFACE_("Repeat -> Iterations"), [](LinkSearchOpParams &params) {
+      bNode &input_node = params.add_node("GeometryNodeRepeatInput"_ustr);
+      bNode &output_node = params.add_node("GeometryNodeRepeatOutput"_ustr);
+      output_node.location[0] = 300;
+
+      auto &input_storage = *static_cast<NodeGeometryRepeatInput *>(input_node.storage);
+      input_storage.output_node_id = output_node.identifier;
+      socket_items::clear<RepeatItemsAccessor>(output_node);
+
+      params.update_and_connect_available_socket(input_node, "Iterations"_ustr);
+    });
   }
   params.add_item_full_name(IFACE_("Repeat"), [](LinkSearchOpParams &params) {
     bNode &input_node = params.add_node("GeometryNodeRepeatInput"_ustr);

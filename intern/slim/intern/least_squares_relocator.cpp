@@ -12,7 +12,7 @@
 
 #include <Eigen/Dense>
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 
 namespace slim {
 

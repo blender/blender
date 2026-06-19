@@ -11,8 +11,8 @@
 #include "BKE_paint.hh"
 
 #include "BLI_bounds.hh"
-#include "BLI_math_color.h"
-#include "BLI_math_geom.h"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_geom_c.hh"
 
 #include "DNA_brush_types.h"
 

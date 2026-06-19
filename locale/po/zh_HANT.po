@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'2b1958ccdccb')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e899b48ea546')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-08 09:37+0000\n"
+"POT-Creation-Date: 2026-06-15 07:32+0000\n"
 "PO-Revision-Date: 2026-05-30 09:12+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -26496,84 +26496,192 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Relations"
-msgstr "關係"
-
-
-msgid "Rigid Body"
-msgstr "剛體"
-
-
 msgid "Render Preview"
 msgstr "算繪預覽"
-
-
-msgid "Apply"
-msgstr "套用"
 
 
 msgid "Track"
 msgstr "追蹤"
 
 
-msgid "Quick Effects"
-msgstr "快速效果"
-
-
-msgid "Show/Hide"
-msgstr "顯示/隱藏"
-
-
-msgid "Clean Up"
-msgstr "清理"
-
-
-msgid "Asset"
-msgstr "素材"
-
-
-msgid "Make Single User"
-msgstr "製作單一使用者"
-
-
-msgid "Convert"
-msgstr "轉換"
-
-
-msgid "Link/Transfer Data"
-msgstr "連結/傳輸資料"
-
-
-msgid "Hooks"
-msgstr "鉤"
-
-
-msgid "Vertex Group Locks"
-msgstr "頂點群組鎖定"
-
-
 msgid "Math"
 msgstr "數學公式"
-
-
-msgid "Trim/Add"
-msgstr "修剪/增加"
 
 
 msgid "Utilities"
 msgstr "效用"
 
 
-msgid "Sculpt Set Pivot"
-msgstr "雕刻設定樞紐"
+msgid "Assign Material"
+msgstr "指派材質"
+
+
+msgid "Read"
+msgstr "讀取"
+
+
+msgid "Sample"
+msgstr "取樣"
+
+
+msgid "Write"
+msgstr "寫入"
+
+
+msgid "Primitives"
+msgstr "原形"
+
+
+msgid "Mirror"
+msgstr "鏡像"
+
+
+msgid "Snap"
+msgstr "吸附"
+
+
+msgid "Rigid Body"
+msgstr "剛體"
+
+
+msgid "UV Mapping"
+msgstr "UV 映射處理"
+
+
+msgid "Local View"
+msgstr "區域檢視"
+
+
+msgid "Viewpoint"
+msgstr "視點"
+
+
+msgid "Navigation"
+msgstr "導覽"
+
+
+msgid "Align View"
+msgstr "對齊檢視"
+
+
+msgid "Align View to Active"
+msgstr "對齊檢視至作用項"
+
+
+msgid "View Regions"
+msgstr "檢視範圍"
+
+
+msgid "Select More/Less"
+msgstr "選取更多/更少"
+
+
+msgid "Gizmo"
+msgstr "操縱器"
+
+
+msgid "Instances"
+msgstr "實例化"
+
+
+msgid "Select Similar"
+msgstr "選取相似者"
+
+
+msgid "Select All by Trait"
+msgstr "依特徵全選"
+
+
+msgid "Select Linked"
+msgstr "選取連結項"
+
+
+msgid "Select Loops"
+msgstr "選取迴圈"
+
+
+msgid "Import"
+msgstr "匯入"
+
+
+msgid "Deprecated"
+msgstr "已棄用"
+
+
+msgid "Relations"
+msgstr "關係"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Vertex Group Locks"
+msgstr "頂點群組鎖定"
+
+
+msgid "Metaball"
+msgstr "變幻球"
+
+
+msgid "Random Mask"
+msgstr "隨機遮罩"
+
+
+msgid "Asset"
+msgstr "素材"
+
+
+msgid "Show/Hide"
+msgstr "顯示/隱藏"
+
+
+msgid "Apply"
+msgstr "套用"
+
+
+msgid "Link/Transfer Data"
+msgstr "連結/傳輸資料"
+
+
+msgid "Clean Up"
+msgstr "清理"
 
 
 msgid "Face Sets Init"
 msgstr "面集初始化"
 
 
-msgid "Random Mask"
-msgstr "隨機遮罩"
+msgid "Light Probe"
+msgstr "燈光採樣器"
+
+
+msgid "Light"
+msgstr "燈光"
+
+
+msgid "Add Image"
+msgstr "新增影像"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "雕刻設定樞紐"
+
+
+msgid "Hooks"
+msgstr "鉤"
+
+
+msgid "Make Single User"
+msgstr "製作單一使用者"
+
+
+msgid "Quick Effects"
+msgstr "快速效果"
+
+
+msgid "Trim/Add"
+msgstr "修剪/增加"
 
 
 msgid "Clear Transform"
@@ -26596,20 +26704,8 @@ msgid "Names"
 msgstr "名稱"
 
 
-msgid "Read"
-msgstr "讀取"
-
-
-msgid "Sample"
-msgstr "取樣"
-
-
 msgid "Toggle Bone Options"
 msgstr "開關骨骼選項"
-
-
-msgid "Write"
-msgstr "寫入"
 
 
 msgid "Enable Bone Options"
@@ -26618,10 +26714,6 @@ msgstr "啟用骨骼設定"
 
 msgid "Disable Bone Options"
 msgstr "停用骨骼設定"
-
-
-msgid "Primitives"
-msgstr "原形"
 
 
 msgid "Mesh Select Mode"
@@ -26636,20 +26728,12 @@ msgid "Set Face Strength"
 msgstr "設定面強度"
 
 
-msgid "Gizmo"
-msgstr "操縱器"
-
-
-msgid "Instances"
-msgstr "實例化"
-
-
 msgid "Merge"
 msgstr "合併"
 
 
-msgid "Import"
-msgstr "匯入"
+msgid "Convert"
+msgstr "轉換"
 
 
 msgid "Special Characters"
@@ -26660,28 +26744,32 @@ msgid "Kerning"
 msgstr "字間微調"
 
 
-msgid "Deprecated"
-msgstr "已棄用"
+msgid "Linked"
+msgstr "已連結"
 
 
-msgid "Metaball"
-msgstr "變幻球"
+msgid "Layout"
+msgstr "配置"
 
 
 msgid "Bone Roll"
 msgstr "骨骼滾動"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Adjust"
+msgstr "調整"
+
+
+msgid "Keying"
+msgstr "鍵處理"
+
+
+msgid "Tracking"
+msgstr "跟蹤"
 
 
 msgid "Pivot Point"
 msgstr "樞紐點"
-
-
-msgid "Snap"
-msgstr "吸附"
 
 
 msgid "Proportional Editing Falloff"
@@ -26700,96 +26788,8 @@ msgid "Face Sets Edit"
 msgstr "面集編輯"
 
 
-msgid "Mirror"
-msgstr "鏡像"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射處理"
-
-
-msgid "Local View"
-msgstr "區域檢視"
-
-
-msgid "Viewpoint"
-msgstr "視點"
-
-
-msgid "Navigation"
-msgstr "導覽"
-
-
-msgid "Linked"
-msgstr "已連結"
-
-
-msgid "Align View"
-msgstr "對齊檢視"
-
-
-msgid "Layout"
-msgstr "配置"
-
-
-msgid "Align View to Active"
-msgstr "對齊檢視至作用項"
-
-
-msgid "View Regions"
-msgstr "檢視範圍"
-
-
-msgid "Select More/Less"
-msgstr "選取更多/更少"
-
-
-msgid "Select Similar"
-msgstr "選取相似者"
-
-
-msgid "Select All by Trait"
-msgstr "依特徵全選"
-
-
-msgid "Select Linked"
-msgstr "選取連結項"
-
-
-msgid "Select Loops"
-msgstr "選取迴圈"
-
-
-msgid "Adjust"
-msgstr "調整"
-
-
-msgid "Keying"
-msgstr "鍵處理"
-
-
-msgid "Tracking"
-msgstr "跟蹤"
-
-
-msgid "Assign Material"
-msgstr "指派材質"
-
-
 msgid "Creative"
 msgstr "創意"
-
-
-msgid "Light"
-msgstr "燈光"
-
-
-msgid "Light Probe"
-msgstr "燈光採樣器"
-
-
-msgid "Add Image"
-msgstr "新增影像"
 
 
 msgid "Keyframe Insert Pie"
@@ -37631,10 +37631,6 @@ msgstr "解鎖所有軟體庫（測試用）"
 msgctxt "Operator"
 msgid "Clear Status"
 msgstr "清除狀態"
-
-
-msgid "Allow internet access. Blender may access configured online extension repositories. Installed third party add-ons may access the internet for their own functionality"
-msgstr "允許存取網際網路。Blender 能夠存取所設定的線上擴充套件軟體庫。已安裝的第三方附加元件能依它們自己的功能需要存取網際網路"
 
 
 msgid "Open extensions preferences"
@@ -61378,54 +61374,6 @@ msgid "Palette Splines"
 msgstr "調色盤雲型線"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR 資訊"
-
-
-msgid "glTF Variants"
-msgstr "glTF 變體"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF 材質變體"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF 動畫"
-
-
-msgid "Active Tool"
-msgstr "作用中工具"
-
-
-msgid "View Lock"
-msgstr "視圖鎖定"
-
-
-msgid "Shadow Settings"
-msgstr "陰影設定"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO 設定"
-
-
-msgid "Cavity"
-msgstr "坑腔"
-
-
-msgid "Render Pass"
-msgstr "算繪通道"
-
-
 msgid "Compositor"
 msgstr "合成器"
 
@@ -61500,6 +61448,54 @@ msgstr "自動遮罩"
 
 msgid "Viewport Debug"
 msgstr "視圖除錯"
+
+
+msgid "glTF Variants"
+msgstr "glTF 變體"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF 材質變體"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR 資訊"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF 動畫"
+
+
+msgid "Active Tool"
+msgstr "作用中工具"
+
+
+msgid "View Lock"
+msgstr "視圖鎖定"
+
+
+msgid "Shadow Settings"
+msgstr "陰影設定"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO 設定"
+
+
+msgid "Cavity"
+msgstr "坑腔"
+
+
+msgid "Render Pass"
+msgstr "算繪通道"
 
 
 msgid "Import Settings"

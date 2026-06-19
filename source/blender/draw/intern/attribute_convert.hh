@@ -8,7 +8,7 @@
 
 #include "BLI_color_types.hh"
 #include "BLI_generic_span.hh"
-#include "BLI_math_color.h"
+#include "BLI_math_color_c.hh"
 #include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"

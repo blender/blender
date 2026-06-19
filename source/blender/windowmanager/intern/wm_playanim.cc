@@ -31,15 +31,15 @@
 #include "CLG_log.h"
 
 #include "BLI_enum_flags.hh"
-#include "BLI_fileops.h"
-#include "BLI_listbase.h"
+#include "BLI_fileops.hh"
+#include "BLI_listbase.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_rect.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_system.h"
-#include "BLI_time.h"
+#include "BLI_rect.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_system.hh"
+#include "BLI_time.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
@@ -2022,7 +2022,8 @@ static std::optional<int> wm_main_playanim_intern(int argc, const char **argv, P
   // GHOST_ActivateWindowDrawingContext(ps.ghost_data.window);
 
   /* Init Blender GPU context. */
-  ps.ghost_data.gpu_context = GPU_context_create(ps.ghost_data.window, nullptr);
+  ps.ghost_data.gpu_context = GPU_context_create(ps.ghost_data.window,
+                                                 ps.ghost_data.window->getDrawingContext());
   GPU_init();
 
   /* Initialize the font. */

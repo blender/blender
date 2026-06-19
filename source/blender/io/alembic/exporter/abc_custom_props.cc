@@ -14,7 +14,7 @@
 
 #include <Alembic/Abc/OTypedArrayProperty.h>
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "BKE_idprop.hh"
 #include "DNA_ID.h"

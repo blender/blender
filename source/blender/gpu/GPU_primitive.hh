@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "BLI_assert.h"
-#include "BLI_sys_types.h"
+#include "BLI_assert.hh"
+#include "BLI_sys_types.hh"
 
 namespace blender {
 

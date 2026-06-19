@@ -147,7 +147,7 @@ EmittedMaterial build_emitted_material(const PopulateContext &ctx, const Materia
     nodes::materialx::ExportParams materialx_export_params{
         material_name, cache_or_get_image_file, "st", "UVMap"};
     MaterialX::DocumentPtr doc = nodes::materialx::export_to_materialx(
-        ctx.depsgraph, const_cast<Material *>(material), materialx_export_params);
+        ctx.depsgraph, material, materialx_export_params);
     pxr::UsdMtlxRead(doc, stage);
 
     if (pxr::UsdPrim materials = stage->GetPrimAtPath(pxr::SdfPath("/MaterialX/Materials"))) {
@@ -164,7 +164,7 @@ EmittedMaterial build_emitted_material(const PopulateContext &ctx, const Materia
 #endif
   {
     usd_material = io::usd::create_usd_material(
-        export_context, usd_material_path, const_cast<Material *>(material), "st", nullptr);
+        export_context, usd_material_path, material, "st", nullptr);
   }
 
   EmittedMaterial entry;

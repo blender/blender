@@ -29,7 +29,7 @@
 #include "BLI_index_range.hh"
 #include "BLI_memory_utils.hh"
 #include "BLI_span.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 namespace blender {
 

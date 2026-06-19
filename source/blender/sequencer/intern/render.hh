@@ -54,6 +54,8 @@ struct SeqResult {
   }
 
   ImBuf *image = nullptr;
+  /* How much the resulting image should be translated, in pixels. */
+  float2 translation = float2(0, 0);
   bool is_opaque_before_transform = false;
 };
 

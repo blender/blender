@@ -91,6 +91,7 @@ BVHEmbree::BVHEmbree(const BVHParams &params_,
     : BVH(params_, geometry_, objects_),
       scene(nullptr),
       rtc_device(nullptr),
+      rtc_device_is_sycl(false),
       build_quality(RTC_BUILD_QUALITY_REFIT)
 {
   SIMD_SET_FLUSH_TO_ZERO;
@@ -144,9 +145,10 @@ void BVHEmbree::build(Progress &progress,
      * public drivers and we raise the minimum oneAPI backend driver version
      * accordingly. */
     /* This workaround is applied only to GPU, per Sergey. See #158123. */
-    LOG_INFO << "Due to a known issue in Intel GPU drivers, overriding RTC_BUILD_QUALITY_HIGH to "
-                "RTC_BUILD_QUALITY_MEDIUM to prevent crashes. This workaround will be removed only"
-                "in a future Blender release.";
+    LOG_INFO
+        << "Due to a known issue in Intel GPU drivers, overriding RTC_BUILD_QUALITY_HIGH to "
+           "RTC_BUILD_QUALITY_MEDIUM to prevent crashes. This workaround will be removed only "
+           "in a future Blender release.";
     build_quality = RTC_BUILD_QUALITY_MEDIUM;
   }
   rtcSetSceneBuildQuality(scene, build_quality);

@@ -21,7 +21,7 @@
 
 #ifdef RNA_RUNTIME
 
-#  include "BLI_string.h"
+#  include "BLI_string.hh"
 
 #  include "BKE_paint.hh"
 #  include "BKE_report.hh"

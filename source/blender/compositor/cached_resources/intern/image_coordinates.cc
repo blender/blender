@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <memory>
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_hash.hh"
 #include "BLI_math_vector_types.hh"
 

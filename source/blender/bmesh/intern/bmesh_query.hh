@@ -8,8 +8,8 @@
  * \ingroup bmesh
  */
 
-#include "BLI_compiler_attrs.h"
-#include "BLI_compiler_compat.h"
+#include "BLI_compiler_attrs.hh"
+#include "BLI_compiler_compat.hh"
 
 #include "bmesh_class.hh"
 

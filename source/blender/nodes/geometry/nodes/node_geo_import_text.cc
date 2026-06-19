@@ -2,11 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_fileops.h"
+#include "BLI_fileops.hh"
 #include "BLI_generic_key_string.hh"
 #include "BLI_memory_cache_file_load.hh"
 #include "BLI_memory_counter.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "node_geometry_util.hh"
 

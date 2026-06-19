@@ -95,22 +95,6 @@ struct ObjectRuntime {
   uint16_t contained_geometry_types = 0;
 
   /**
-   * Mesh structure created during object evaluation.
-   * It has deformation only modifiers applied on it.
-   */
-  Mesh *mesh_deform_eval = nullptr;
-
-  /**
-   * Evaluated mesh cage in edit mode.
-   *
-   * \note When the mesh's `runtime->deformed_only` is true, the meshes vertex positions
-   * and other geometry arrays will be aligned the edit-mesh. Otherwise the #CD_ORIGINDEX
-   * custom-data should be used to map the cage geometry back to the original indices, see
-   * #eModifierTypeFlag_SupportsMapping.
-   */
-  Mesh *editmesh_eval_cage = nullptr;
-
-  /**
    * This is a mesh representation of corresponding object.
    * It created when Python calls `object.to_mesh()`.
    */

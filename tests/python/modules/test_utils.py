@@ -63,6 +63,7 @@ class AbstractBlenderRunnerTest(unittest.TestCase):
             '--factory-startup',
             '--enable-autoexec',
             '--debug-memory',
+            '--console-crash-handler',
             '--debug-exit-on-error',
         ]
 

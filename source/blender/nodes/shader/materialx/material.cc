@@ -51,8 +51,8 @@ class DefaultMaterialNodeParser : public NodeParser {
   }
 };
 
-MaterialX::DocumentPtr export_to_materialx(Depsgraph *depsgraph,
-                                           Material *material,
+MaterialX::DocumentPtr export_to_materialx(const Depsgraph *depsgraph,
+                                           const Material *material,
                                            const ExportParams &export_params)
 {
   CLOG_DEBUG(LOG_IO_MATERIALX, "Material: %s", material->id.name);

@@ -30,9 +30,9 @@
 
 #  include <fmt/format.h>
 
-#  include "BLI_math_vector.h"
-#  include "BLI_string.h"
-#  include "BLI_threads.h"
+#  include "BLI_math_vector_c.hh"
+#  include "BLI_string.hh"
+#  include "BLI_threads.hh"
 
 #  include "BKE_colorband.hh"
 #  include "BKE_context.hh"

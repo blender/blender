@@ -14,8 +14,8 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.hh"
 
-#include "BLI_bitmap.h"
-#include "BLI_math_vector.h"
+#include "BLI_bitmap.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "MEM_guardedalloc.h"
 

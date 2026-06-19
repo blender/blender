@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 #include "GPU_shader.hh"
 #include "GPU_storage_buffer.hh"

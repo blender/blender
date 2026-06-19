@@ -12,8 +12,8 @@
 
 #include "matrix_util.h"
 
-#include "BLI_math_base.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_utildefines.hh"
 
 namespace Freestyle::OGF::MatrixUtil {
 

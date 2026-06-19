@@ -6,8 +6,8 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "BLI_endian_defines.h"
-#include "BLI_filereader.h"
+#include "BLI_endian_defines.hh"
+#include "BLI_filereader.hh"
 
 #include "BLO_core_bhead.hh"
 #include "BLO_core_blend_header.hh"

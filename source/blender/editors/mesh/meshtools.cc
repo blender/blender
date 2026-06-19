@@ -13,8 +13,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_vector.hh"
 #include "BLI_virtual_array.hh"
 
@@ -147,14 +147,6 @@ wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  if (!active_mesh.key) {
-    /* Initialize basis shape key with existing mesh. */
-    active_mesh.key = BKE_key_add(bmain, &active_mesh.id);
-    active_mesh.key->type = KEY_RELATIVE;
-    BKE_keyblock_convert_from_mesh(
-        &active_mesh, active_mesh.key, BKE_keyblock_add(active_mesh.key, nullptr));
-  }
-
   if (mirror) {
     for (const ObjectInfo &info : compatible_objects) {
       if (!info.name.endswith(".L") && !info.name.endswith(".R")) {
@@ -162,6 +154,14 @@ wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C,
         return OPERATOR_CANCELLED;
       }
     }
+  }
+
+  if (!active_mesh.key) {
+    /* Initialize basis shape key with existing mesh. */
+    active_mesh.key = BKE_key_add(bmain, &active_mesh.id);
+    active_mesh.key->type = KEY_RELATIVE;
+    BKE_keyblock_convert_from_mesh(
+        &active_mesh, active_mesh.key, BKE_keyblock_add(active_mesh.key, nullptr));
   }
 
   int mirror_count = 0;
@@ -190,7 +190,7 @@ wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C,
   if (!ensure_keys_exist) {
     if (keys_changed == 0) {
       BKE_report(reports, RPT_ERROR, "No name matches between selected objects and shape keys");
-      return OPERATOR_CANCELLED;
+      return OPERATOR_FINISHED;
     }
     BKE_reportf(reports, RPT_INFO, "Updated %d shape key(s)", keys_changed);
   }

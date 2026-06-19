@@ -18,7 +18,7 @@
 #include "BKE_report.hh"
 
 #include "BLI_path_utils.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "DEG_depsgraph.hh"
 

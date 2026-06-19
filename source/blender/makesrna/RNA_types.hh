@@ -15,7 +15,7 @@
 
 #include "../blenlib/BLI_enum_flags.hh"
 #include "../blenlib/BLI_function_ref.hh"
-#include "../blenlib/BLI_sys_types.h"
+#include "../blenlib/BLI_sys_types.hh"
 #include "../blenlib/BLI_vector.hh"
 
 namespace blender {

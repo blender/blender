@@ -10,11 +10,11 @@
 #include "BLI_linear_allocator.hh"
 #include "BLI_multi_value_map.hh"
 #include "BLI_span.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_string_search.hh"
-#include "BLI_string_utf8.h"
-#include "BLI_string_utf8_symbols.h"
+#include "BLI_string_utf8.hh"
+#include "BLI_string_utf8_symbols.hh"
 #include "BLI_task.hh"
 
 /* Right arrow, keep in sync with #UI_MENU_ARROW_SEP in `UI_interface_c.hh`. */

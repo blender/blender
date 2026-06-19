@@ -13,12 +13,12 @@
 #include "DNA_sequence_types.h"
 
 #include "BLI_bounds.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_base.hh"
+#include "BLI_math_base_c.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 
 #include "BLF_api.hh"
 
@@ -692,8 +692,12 @@ Array<float2> image_transform_quad_get(const Scene *scene, const Strip *strip)
   constexpr int num_corners = 4;
   const float2 image_size = image_transform_raw_size_get(scene, strip);
 
-  /* Raw quad before any rotation/scaling or text anchoring is applied. */
-  const StripCrop *crop = strip->data->crop;
+  /* Raw quad before any rotation/scaling or text anchoring is applied.
+   *
+   * NOTE: For text strips, crops should only affect their visible result and not their bounding
+   * box. Text effects can stray outside, so crop works on the full render buffer. */
+  const StripCrop no_crop{};
+  const StripCrop *crop = (strip->type == STRIP_TYPE_TEXT) ? &no_crop : strip->data->crop;
   float2 quad[num_corners]{
       {(image_size.x / 2) - crop->right, (image_size.y / 2) - crop->top},     /* Top right. */
       {(image_size.x / 2) - crop->right, (-image_size.y / 2) + crop->bottom}, /* Bottom right. */

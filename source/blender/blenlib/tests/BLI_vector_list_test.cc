@@ -6,7 +6,7 @@
 #include "BLI_vector_list.hh"
 #include "testing/testing.h"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender::tests {
 

@@ -10,11 +10,11 @@
 
 #include <cstring>
 
-#include "BLI_dynstr.h"
-#include "BLI_fileops.h"
-#include "BLI_linklist.h"
+#include "BLI_dynstr.hh"
+#include "BLI_fileops.hh"
+#include "BLI_linklist.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BLT_translation.hh"
 

@@ -9,12 +9,12 @@
 #include <cstdlib> /* abort() */
 #include <cstring>
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include "MEM_guardedalloc.h"
 
-#include "BLI_stack.h" /* own include */
+#include "BLI_stack_c.hh" /* own include */
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 

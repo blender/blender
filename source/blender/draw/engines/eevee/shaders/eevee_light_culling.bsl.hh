@@ -314,9 +314,11 @@ struct CullingTile {
     v11 = normalize(v11);
     float3 center = normalize(v00 + v01 + v10 + v11);
     float angle_cosine = dot(center, v00);
-    angle_cosine = max(angle_cosine, dot(center, v01));
-    angle_cosine = max(angle_cosine, dot(center, v10));
-    angle_cosine = max(angle_cosine, dot(center, v11));
+    angle_cosine = min(angle_cosine, dot(center, v01));
+    angle_cosine = min(angle_cosine, dot(center, v10));
+    angle_cosine = min(angle_cosine, dot(center, v11));
+    /* Widen by moving to next representable float to account for float rounding. */
+    angle_cosine = uintBitsToFloat(floatBitsToUint(angle_cosine) - 1u);
     return float4(center, angle_cosine);
   }
 

@@ -11,8 +11,8 @@
 #include "BKE_material.hh"
 
 #include "BLI_math_quaternion.hh"
-#include "BLI_math_vector.h"
-#include "BLI_string_utf8.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string_utf8.hh"
 
 #include "DNA_material_types.h"
 
@@ -407,17 +407,66 @@ static int gpu_shader_mix(GPUMaterial *mat,
     }
   }
 
-  int ret = GPU_stack_link(mat, node, name, in, out);
+  /* Avoid GPU_stack_link here because it creates uniforms for unavailable sockets. */
+  int ret = 0;
+  switch (storage.data_type) {
+    case SOCK_FLOAT:
+      ret = GPU_link(mat,
+                     name,
+                     GPU_node_get_input_link(*node, in, "Factor_Float"),
+                     GPU_node_get_input_link(*node, in, "A_Float"),
+                     GPU_node_get_input_link(*node, in, "B_Float"),
+                     &GPU_node_get_output(*node, out, "Result_Float").link);
+      break;
+    case SOCK_VECTOR:
+      if (is_non_uniform) {
+        ret = GPU_link(mat,
+                       name,
+                       GPU_node_get_input_link(*node, in, "Factor_Vector"),
+                       GPU_node_get_input_link(*node, in, "A_Vector"),
+                       GPU_node_get_input_link(*node, in, "B_Vector"),
+                       &GPU_node_get_output(*node, out, "Result_Vector").link);
+      }
+      else {
+        ret = GPU_link(mat,
+                       name,
+                       GPU_node_get_input_link(*node, in, "Factor_Float"),
+                       GPU_node_get_input_link(*node, in, "A_Vector"),
+                       GPU_node_get_input_link(*node, in, "B_Vector"),
+                       &GPU_node_get_output(*node, out, "Result_Vector").link);
+      }
+      break;
+    case SOCK_RGBA:
+      ret = GPU_link(mat,
+                     name,
+                     GPU_node_get_input_link(*node, in, "Factor_Float"),
+                     GPU_node_get_input_link(*node, in, "A_Color"),
+                     GPU_node_get_input_link(*node, in, "B_Color"),
+                     &GPU_node_get_output(*node, out, "Result_Color").link);
+      break;
+    case SOCK_ROTATION:
+      ret = GPU_link(mat,
+                     name,
+                     GPU_node_get_input_link(*node, in, "Factor_Float"),
+                     GPU_node_get_input_link(*node, in, "A_Rotation"),
+                     GPU_node_get_input_link(*node, in, "B_Rotation"),
+                     &GPU_node_get_output(*node, out, "Result_Rotation").link);
+      break;
+    default:
+      BLI_assert_unreachable();
+      return 0;
+  }
 
   if (ret && is_color_mode && storage.clamp_result) {
     const float min[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     const float max[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+    GPUNodeStack &result = GPU_node_get_output(*node, out, "Result_Color");
     GPU_link(mat,
              "node_mix_clamp_color",
-             out[2].link,
+             result.link,
              GPU_constant(min),
              GPU_constant(max),
-             &out[2].link);
+             &result.link);
   }
   return ret;
 }

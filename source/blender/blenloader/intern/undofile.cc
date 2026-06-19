@@ -23,7 +23,7 @@
 #include "DNA_listBase.h"
 
 #include "BLI_implicit_sharing.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "BLO_readfile.hh"
 #include "BLO_undofile.hh"
@@ -32,7 +32,7 @@
 #include "BKE_main.hh"
 #include "BKE_undo_system.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 #include "writefile.hh"
 

@@ -119,15 +119,15 @@ class StepDrawingGeometry : public StepDrawingGeometryBase {
   bke::CurvesGeometry geometry_;
 
  public:
-  void encode(const GreasePencilDrawing &drawing_geometry,
+  void encode(const GreasePencilDrawing &drawing,
               const int64_t drawing_index,
               StepEncodeStatus & /*encode_status*/)
   {
     BLI_assert(drawing_index >= 0 && drawing_index < INT32_MAX);
     index_ = int(drawing_index);
 
-    flag_ = drawing_geometry.base.flag;
-    geometry_ = drawing_geometry.geometry.wrap();
+    flag_ = drawing.base.flag;
+    geometry_ = drawing.wrap().strokes();
   }
 
   void decode(GreasePencil &grease_pencil, StepDecodeStatus & /*decode_status*/) const
@@ -136,15 +136,14 @@ class StepDrawingGeometry : public StepDrawingGeometryBase {
     this->decode_valid_drawingtype_at_index_ensure(drawings, GP_DRAWING);
     BLI_assert(drawings[index_]->type == GP_DRAWING);
 
-    GreasePencilDrawing &drawing_geometry = *reinterpret_cast<GreasePencilDrawing *>(
-        drawings[index_]);
+    GreasePencilDrawing &drawing = *reinterpret_cast<GreasePencilDrawing *>(drawings[index_]);
 
-    drawing_geometry.base.flag = flag_;
-    drawing_geometry.geometry.wrap() = geometry_;
+    drawing.base.flag = flag_;
+    drawing.wrap().strokes_for_write() = geometry_;
 
     /* TODO: Check if there is a way to tell if both stored and current geometry are still the
      * same, to avoid recomputing the caches all the time for all drawings? */
-    drawing_geometry.wrap().tag_topology_changed();
+    drawing.wrap().tag_topology_changed();
   }
 };
 

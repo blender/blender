@@ -12,7 +12,7 @@
 #include "../BPy_Id.h"
 #include "../Interface1D/BPy_FEdge.h"
 
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 using namespace Freestyle;
 

@@ -9,7 +9,7 @@
 #include "DNA_space_types.h"
 
 #include "BLI_listbase_wrapper.hh"
-#include "BLI_mempool.h"
+#include "BLI_mempool.hh"
 
 #include "BKE_main.hh"
 

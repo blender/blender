@@ -7,11 +7,11 @@
  */
 
 #include "BLI_bounds.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_time.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_time.hh"
 
 #include "DNA_userdef_types.h"
 
@@ -919,25 +919,28 @@ void transform_snap_grid_init(const TransInfo *t, float r_snap[3], float *r_snap
 
   if (t->spacetype == SPACE_VIEW3D) {
     /* Used by incremental snap. */
-    if (t->region->regiontype == RGN_TYPE_WINDOW) {
+    if (t->region && t->region->regiontype == RGN_TYPE_WINDOW) {
       View3D *v3d = static_cast<View3D *>(t->area->spacedata.first);
       r_snap[0] = r_snap[1] = r_snap[2] = ED_view3d_grid_view_scale(
           t->scene, v3d, t->region, nullptr);
     }
   }
   else if (t->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = static_cast<SpaceImage *>(t->area->spacedata.first);
-    const View2D *v2d = &t->region->v2d;
-    int grid_size = SI_GRID_STEPS_LEN;
-    float zoom_factor = ED_space_image_zoom_level(v2d, grid_size);
-    float grid_steps_x[SI_GRID_STEPS_LEN];
-    float grid_steps_y[SI_GRID_STEPS_LEN];
+    if (t->region && t->region->regiontype == RGN_TYPE_WINDOW) {
+      SpaceImage *sima = static_cast<SpaceImage *>(t->area->spacedata.first);
+      const View2D *v2d = &t->region->v2d;
+      int grid_size = SI_GRID_STEPS_LEN;
+      float zoom_factor = ED_space_image_zoom_level(v2d, grid_size);
+      float grid_steps_x[SI_GRID_STEPS_LEN];
+      float grid_steps_y[SI_GRID_STEPS_LEN];
 
-    ED_space_image_grid_steps(sima, grid_steps_x, grid_steps_y, grid_size);
-    /* Snapping value based on what type of grid is used (adaptive-subdividing or custom-grid). */
-    r_snap[0] = ED_space_image_increment_snap_value(grid_size, grid_steps_x, zoom_factor);
-    r_snap[1] = ED_space_image_increment_snap_value(grid_size, grid_steps_y, zoom_factor);
-    *r_snap_precision = 0.5f;
+      ED_space_image_grid_steps(sima, grid_steps_x, grid_steps_y, grid_size);
+      /* Snapping value based on what type of grid is used (adaptive-subdividing or custom-grid).
+       */
+      r_snap[0] = ED_space_image_increment_snap_value(grid_size, grid_steps_x, zoom_factor);
+      r_snap[1] = ED_space_image_increment_snap_value(grid_size, grid_steps_y, zoom_factor);
+      *r_snap_precision = 0.5f;
+    }
   }
   else if (t->spacetype == SPACE_CLIP) {
     r_snap[0] = r_snap[1] = 0.125f;

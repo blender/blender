@@ -1061,7 +1061,7 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
         endforeach()
       endif()
 
-      if(WITH_VULKAN_BACKEND AND WITH_GPU_RENDER_TESTS_VULKAN
+      if(WITH_VULKAN_BACKEND
           AND (NOT (name STREQUAL "storm_hydra" OR name STREQUAL "storm_usd") OR WITH_STORM_TESTS_VULKAN))
         foreach(render_test ${render_tests})
           add_render_test(
@@ -1524,6 +1524,11 @@ if(TEST_SRC_DIR_EXISTS)
     --python ${CMAKE_CURRENT_LIST_DIR}/sequencer_input_colorspace.py
     --
     --testdir "${TEST_SRC_DIR}/sequence_editing"
+  )
+
+  add_blender_test(
+    sequencer_strip_naming
+    --python ${CMAKE_CURRENT_LIST_DIR}/sequencer_strip_naming.py
   )
 
   add_blender_test(

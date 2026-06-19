@@ -19,11 +19,11 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_solvers.h"
-#include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_solvers.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_modifier.hh"
@@ -38,13 +38,13 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 
 /* for timing... */
 #if 0
-#  include "BLI_time_utildefines.h"
+#  include "BLI_time_utildefines.hh"
 #else
 #  define TIMEIT_BENCH(expr, id) (expr)
 #endif

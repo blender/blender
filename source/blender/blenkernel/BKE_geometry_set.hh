@@ -183,6 +183,11 @@ struct GeometrySet {
     return static_cast<Component &>(this->get_component_for_write(Component::static_type));
   }
 
+  GeometryComponentPtr get_component_ptr(GeometryComponent::Type component_type) const
+  {
+    return components_[int(component_type)];
+  }
+
   /**
    * Get the component of the given type. Might return null if the component does not exist yet.
    */
@@ -475,11 +480,11 @@ struct GeometrySet {
    * Retrieve the pointer to a component without creating it if it does not exist,
    * unlike #get_component_for_write.
    */
-  GeometryComponent *get_component_ptr(GeometryComponent::Type type);
-  template<typename Component> Component *get_component_ptr()
+  GeometryComponent *get_component_for_write_ptr(GeometryComponent::Type type);
+  template<typename Component> Component *get_component_for_write_ptr()
   {
     BLI_STATIC_ASSERT(is_geometry_component_v<Component>, "");
-    return static_cast<Component *>(get_component_ptr(Component::static_type));
+    return static_cast<Component *>(get_component_for_write_ptr(Component::static_type));
   }
 };
 
@@ -734,6 +739,25 @@ class VolumeComponent : public GeometryComponent {
   static constexpr GeometryComponent::Type static_type = Type::Volume;
 };
 
+struct MeshEditHints {
+  /**
+   * Mesh created by object evaluation. It only has leading deformation modifiers applied.
+   *
+   * \todo This should use a similar system to #CurvesEditHints storing just an array for the
+   * deformed positions, but for historical reasons we copy the whole mesh.
+   */
+  GeometryComponentPtr mesh_deform;
+  /**
+   * Evaluated mesh cage in edit mode.
+   *
+   * \note When the mesh's `runtime->deformed_only` is true, its vertex positions and other
+   * geometry arrays will be aligned the edit-mesh. Otherwise the #CD_ORIGINDEX custom-data should
+   * be used to map the cage geometry back to the original indices, see
+   * #eModifierTypeFlag_SupportsMapping.
+   */
+  GeometryComponentPtr mesh_cage;
+};
+
 /**
  * When the original data is in some edit mode, we want to propagate some additional information
  * through object evaluation. This information can be used by edit modes to support working on
@@ -758,6 +782,8 @@ class GeometryComponentEditData final : public GeometryComponent {
    * Propagated information for how gizmos should be transformed along with the geometry.
    */
   std::unique_ptr<GizmoEditHints> gizmo_edit_hints_;
+
+  std::unique_ptr<MeshEditHints> mesh_edit_hints_;
 
   GeometryComponentEditData();
 

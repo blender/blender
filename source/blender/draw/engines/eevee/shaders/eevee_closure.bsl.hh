@@ -70,20 +70,19 @@ LightProbeRay bxdf_lightprobe_ray(ClosureUndetermined cl,
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
       bxdf_ggx_context_amend_transmission(cl, V, thickness);
       break;
+    case CLOSURE_NONE_ID:
     case CLOSURE_BSDF_TRANSLUCENT_ID:
     case CLOSURE_BSSRDF_BURLEY_ID:
     case CLOSURE_BSDF_DIFFUSE_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
     case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
       break;
-    case CLOSURE_NONE_ID:
-      assert(false);
-      break;
   }
 
   switch (cl.type) {
     case CLOSURE_BSDF_TRANSLUCENT_ID:
       return bxdf_translucent_lightprobe(cl.N, thickness);
+    case CLOSURE_NONE_ID:
     case CLOSURE_BSSRDF_BURLEY_ID:
     case CLOSURE_BSDF_DIFFUSE_ID:
       return bxdf_diffuse_lightprobe(cl.N);
@@ -93,13 +92,10 @@ LightProbeRay bxdf_lightprobe_ray(ClosureUndetermined cl,
       return bxdf_ggx_lightprobe_transmission(to_closure_refraction(cl), V, thickness);
     case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
       return bxdf_ggx_lightprobe_thin_glass_transmission(to_closure_thin_refraction(cl), V);
-    case CLOSURE_NONE_ID:
-      assert(false);
-      break;
   }
 
-  LightProbeRay ray;
-  return ray;
+  assert(false);
+  return {};
 }
 
 ClosureLight closure_light_new_ex([[resource_table]] const UtilityTexture &util_tx,

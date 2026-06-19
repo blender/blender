@@ -29,7 +29,8 @@ class ImageSpaceDrawingMode : public AbstractDrawingMode {
  public:
   ImageSpaceDrawingMode(Instance &instance,
                         gpu::Texture *texture,
-                        gpu::Texture *tile_mapping_texture = nullptr);
+                        gpu::Texture *tile_mapping_texture = nullptr,
+                        const bool owned = false);
   ~ImageSpaceDrawingMode() override;
   void begin_sync() const override;
   void image_sync(blender::Image *image, blender::ImageUser *iuser) const override;

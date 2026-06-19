@@ -20,8 +20,8 @@
 
 #include "DNA_screen_types.h"
 
-#include "BLI_bitmap_draw_2d.h"
-#include "BLI_math_vector.h"
+#include "BLI_bitmap_draw_2d.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "BKE_colorband.hh"
 #include "BKE_context.hh"

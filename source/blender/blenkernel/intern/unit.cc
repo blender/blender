@@ -12,18 +12,18 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "BLI_math_base.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_string_utf8_symbols.h"
-#include "BLI_sys_types.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_string_utf8_symbols.hh"
+#include "BLI_sys_types.hh"
 
 #include "DNA_scene_types.h"
 
 #include "BKE_unit.hh" /* own include */
 
 #ifdef WIN32
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #endif
 
 namespace blender {

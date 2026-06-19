@@ -9,7 +9,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BKE_main.hh"
 

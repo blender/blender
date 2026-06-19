@@ -28,14 +28,14 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "BLI_asan.h"
-#include "BLI_utildefines.h"
+#include "BLI_asan.hh"
+#include "BLI_utildefines.hh"
 
-#include "BLI_memiter.h" /* own include */
+#include "BLI_memiter.hh" /* own include */
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 

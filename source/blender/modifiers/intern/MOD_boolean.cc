@@ -6,11 +6,11 @@
  * \ingroup modifiers
  */
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BLI_array.hh"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
@@ -508,14 +508,17 @@ static Mesh *non_float_boolean_mesh(BooleanModifierData *bmd,
     }
     return result;
   }
-  if (material_mode == eBooleanModifierMaterialMode_Transfer) {
-    MEM_SAFE_DELETE(result->mat);
-    result->mat = MEM_new_array_uninitialized<Material *>(size_t(materials.size()), __func__);
-    result->totcol = materials.size();
-    MutableSpan(result->mat, result->totcol).copy_from(materials);
-  }
 
-  geometry::debug_randomize_mesh_order(result);
+  if (result) {
+    if (material_mode == eBooleanModifierMaterialMode_Transfer) {
+      MEM_SAFE_DELETE(result->mat);
+      result->mat = MEM_new_array_uninitialized<Material *>(size_t(materials.size()), __func__);
+      result->totcol = materials.size();
+      MutableSpan(result->mat, result->totcol).copy_from(materials);
+    }
+
+    geometry::debug_randomize_mesh_order(result);
+  }
 
   return result;
 }

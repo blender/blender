@@ -22,7 +22,7 @@
 #include "util/transform.h"
 #include "util/types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
@@ -740,6 +740,9 @@ static inline PathRayVisibility object_ray_visibility(blender::Object &b_ob)
                     PATH_RAY_VISIBILITY_NONE;
   visibility |= ((b_ob.visibility_flag & blender::OB_HIDE_VOLUME_SCATTER) == 0) ?
                     PATH_RAY_VISIBILITY_VOLUME_SCATTER :
+                    PATH_RAY_VISIBILITY_NONE;
+  visibility |= ((b_ob.visibility_flag & blender::OB_HIDE_RAYCAST) == 0) ?
+                    PATH_RAY_VISIBILITY_RAYCAST :
                     PATH_RAY_VISIBILITY_NONE;
 
   return visibility;

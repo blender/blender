@@ -6,7 +6,7 @@
  * \ingroup texnodes
  */
 
-#include "BLI_math_color.h"
+#include "BLI_math_color_c.hh"
 #include "node_texture_util.hh"
 #include "node_util.hh"
 

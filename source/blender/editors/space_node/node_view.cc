@@ -8,8 +8,8 @@
 
 #include "DNA_node_types.h"
 
-#include "BLI_rect.h"
-#include "BLI_utildefines.h"
+#include "BLI_rect.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_context.hh"
 #include "BKE_image.hh"
@@ -87,16 +87,11 @@ bool space_node_view_flag(
   BLI_rctf_init_minmax(&cur_new);
 
   int tot = 0;
-  bool has_frame = false;
   if (snode.edittree) {
     for (const bNode *node : snode.edittree->all_nodes()) {
       if ((node->flag & node_flag) == node_flag) {
         BLI_rctf_union(&cur_new, &node->runtime->draw_bounds);
         tot++;
-
-        if (node->is_frame()) {
-          has_frame = true;
-        }
       }
     }
   }
@@ -109,27 +104,19 @@ bool space_node_view_flag(
   const float height = BLI_rctf_size_y(&cur_new);
   const float new_aspect = width / height;
 
-  /* for single non-frame nodes, don't zoom in, just pan view,
-   * but do allow zooming out, this allows for big nodes to be zoomed out */
-  if ((tot == 1) && (has_frame == false) && ((oldwidth * oldheight) > (width * height))) {
-    /* center, don't zoom */
-    BLI_rctf_resize(&cur_new, oldwidth, oldheight);
+  if (old_aspect < new_aspect) {
+    const float height_new = width / old_aspect;
+    cur_new.ymin = cur_new.ymin - height_new / 4.0f;
+    cur_new.ymax = cur_new.ymax + height_new / 4.0f;
   }
   else {
-    if (old_aspect < new_aspect) {
-      const float height_new = width / old_aspect;
-      cur_new.ymin = cur_new.ymin - height_new / 4.0f;
-      cur_new.ymax = cur_new.ymax + height_new / 4.0f;
-    }
-    else {
-      const float width_new = height * old_aspect;
-      cur_new.xmin = cur_new.xmin - width_new / 4.0f;
-      cur_new.xmax = cur_new.xmax + width_new / 4.0f;
-    }
-
-    /* add some padding */
-    BLI_rctf_scale(&cur_new, 1.1f);
+    const float width_new = height * old_aspect;
+    cur_new.xmin = cur_new.xmin - width_new / 4.0f;
+    cur_new.xmax = cur_new.xmax + width_new / 4.0f;
   }
+
+  /* add some padding */
+  BLI_rctf_scale(&cur_new, 1.1f);
 
   ui::view2d_smooth_view(&C, &region, &cur_new, smooth_viewtx);
 

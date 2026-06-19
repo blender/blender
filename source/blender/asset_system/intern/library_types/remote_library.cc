@@ -8,14 +8,14 @@
 
 #include <fmt/format.h>
 
-#include "BLI_assert.h"
-#include "BLI_fileops.h"
+#include "BLI_assert.hh"
+#include "BLI_fileops.hh"
 #include "BLI_hash_md5.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_threads.h"
+#include "BLI_threads.hh"
 
 #include "BLT_translation.hh"
 
@@ -1015,6 +1015,16 @@ std::string remote_library_asset_preview_path(const AssetRepresentation &asset)
 /* -------------------------------------------------------------------- */
 /** \name Other Free Functions
  * \{ */
+
+std::string remote_library_top_meta_file_path(const RemoteLibraryDefinitionRef &library)
+{
+  char filepath[FILE_MAX];
+  BLI_path_join(filepath,
+                sizeof(filepath),
+                library.cache_dirpath.c_str(),
+                asset_system::REMOTE_LIBRARY_TOP_META_FILE_NAME.c_str());
+  return filepath;
+}
 
 bool remote_library_url_ends_with_top_meta_file_name(const StringRef url)
 {

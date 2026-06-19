@@ -6,7 +6,7 @@
 #include <numeric>
 
 #include "BLI_array.hh"
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_fftw.hh"
 #include "BLI_index_range.hh"

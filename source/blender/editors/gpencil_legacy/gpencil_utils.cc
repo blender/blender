@@ -11,8 +11,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math_matrix.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"

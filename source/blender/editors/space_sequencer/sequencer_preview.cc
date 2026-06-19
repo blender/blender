@@ -9,9 +9,9 @@
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_task.h"
-#include "BLI_threads.h"
+#include "BLI_listbase.hh"
+#include "BLI_task_c.hh"
+#include "BLI_threads.hh"
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"

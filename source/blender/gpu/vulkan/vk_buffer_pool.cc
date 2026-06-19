@@ -6,7 +6,7 @@
  * \ingroup gpu
  */
 
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 
 #include "vk_buffer.hh"
 #include "vk_buffer_pool.hh"

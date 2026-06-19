@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BKE_image_gpu.hh"
+
 #include "DRW_render.hh"
 #include "overlay_base.hh"
 #include "overlay_image.hh"
@@ -295,8 +297,9 @@ class Empties : Overlay {
       if (ima != nullptr) {
         ImageUser iuser = *ob->iuser;
         Images::stereo_setup(state.scene, state.v3d, ima, &iuser);
-        tex = BKE_image_get_gpu_texture(ima, &iuser);
+        tex = BKE_image_acquire_gpu_texture(ima, &iuser);
         if (tex) {
+          DRW_manager_get()->hold_texture(tex);
           size = int2(GPU_texture_original_width(tex), GPU_texture_original_height(tex));
         }
       }

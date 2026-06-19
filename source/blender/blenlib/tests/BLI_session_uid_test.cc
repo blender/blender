@@ -4,7 +4,7 @@
 
 #include "testing/testing.h"
 
-#include "BLI_session_uid.h"
+#include "BLI_session_uid.hh"
 
 namespace blender {
 

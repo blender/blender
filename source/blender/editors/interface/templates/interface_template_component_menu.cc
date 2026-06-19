@@ -6,7 +6,7 @@
  * \ingroup edinterface
  */
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_ref.hh"
 
 #include "RNA_access.hh"

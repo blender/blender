@@ -16,15 +16,15 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math_base.h"
-#include "BLI_mempool.h"
-#include "BLI_sys_types.h" /* for intptr_t support */
-#include "BLI_utildefines.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_mempool.hh"
+#include "BLI_sys_types.hh" /* for intptr_t support */
+#include "BLI_utildefines.hh"
 
 #define GHASH_INTERNAL_API
-#include "BLI_ghash.h" /* own include */
+#include "BLI_ghash.hh" /* own include */
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 

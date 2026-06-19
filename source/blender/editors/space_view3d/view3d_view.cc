@@ -8,12 +8,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_linklist.h"
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_rect.h"
+#include "BLI_linklist.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rect.hh"
 
 #include "BKE_action.hh"
 #include "BKE_context.hh"
@@ -974,7 +974,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
         if (rv3d->persp == RV3D_CAMOB) {
           rv3d->persp = RV3D_PERSP;
           camera_old = v3d->camera;
-          if (camera_old->type == OB_CAMERA) {
+          if (camera_old && camera_old->type == OB_CAMERA) {
             const Camera &camera = *id_cast<Camera *>(camera_old->data);
             if (camera.type == CAM_ORTHO) {
               rv3d->persp = RV3D_ORTHO;

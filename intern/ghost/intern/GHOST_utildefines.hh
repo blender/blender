@@ -5,7 +5,7 @@
 /** \file
  * \ingroup GHOST
  *
- * Utility defines (avoid depending on `BLI_utildefines.h`).
+ * Utility defines (avoid depending on `BLI_utildefines.hh`).
  */
 
 #pragma once

@@ -12,10 +12,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_bits.h"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_bits.hh"
+#include "BLI_string.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_layer_types.h"
 #include "DNA_object_types.h"
@@ -519,7 +519,7 @@ void RE_engine_update_progress(RenderEngine *engine, float progress)
 {
   Render *re = engine->re;
 
-  if (re) {
+  if (re && !re->display_shared) {
     CLAMP(progress, 0.0f, 1.0f);
     re->display->progress(progress);
   }

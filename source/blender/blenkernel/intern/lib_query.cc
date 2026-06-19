@@ -13,8 +13,8 @@
 #include "DNA_anim_types.h"
 
 #include "BLI_function_ref.hh"
-#include "BLI_linklist_stack.h"
-#include "BLI_listbase.h"
+#include "BLI_linklist_stack.hh"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
 #include "BLI_set.hh"
 #include "BLI_stack.hh"

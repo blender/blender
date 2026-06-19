@@ -1207,7 +1207,7 @@ def get_dashed_pattern(linestyle):
 
 
 def get_grouped_objects(group):
-    for ob in group.objects:
+    for ob in group.all_objects:
         if ob.instance_type == 'COLLECTION' and ob.instance_collection is not None:
             for dupli in get_grouped_objects(ob.instance_collection):
                 yield dupli
@@ -1229,6 +1229,9 @@ def process(layer_name, lineset_name):
     layer = scene.view_layers[layer_name]
     lineset = layer.freestyle_settings.linesets[lineset_name]
     linestyle = lineset.linestyle
+
+    if linestyle is None:
+        return
 
     # execute line set pre-processing callback functions
     for fn in callbacks_lineset_pre:

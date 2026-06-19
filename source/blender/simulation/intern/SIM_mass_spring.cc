@@ -14,11 +14,11 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_linklist.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
+#include "BLI_linklist.hh"
+#include "BLI_math_geom_c.hh"
 #include "BLI_math_vector.hh"
-#include "BLI_utildefines.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_cloth.hh"
 #include "BKE_collision.h"

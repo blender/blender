@@ -11,7 +11,7 @@
 #include <ctime>
 
 #include "BLI_kdopbvh.hh"
-#include "BLI_math_geom.h"
+#include "BLI_math_geom_c.hh"
 
 #include "RNA_define.hh"
 
@@ -46,9 +46,9 @@ static const EnumPropertyItem space_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#  include "BLI_listbase.h"
-#  include "BLI_math_matrix.h"
-#  include "BLI_string.h"
+#  include "BLI_listbase.hh"
+#  include "BLI_math_matrix_c.hh"
+#  include "BLI_string.hh"
 
 #  include "BKE_bvhutils.hh"
 #  include "BKE_camera.h"

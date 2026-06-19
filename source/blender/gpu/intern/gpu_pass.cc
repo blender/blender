@@ -12,7 +12,7 @@
 
 #include "BLI_map.hh"
 #include "BLI_span.hh"
-#include "BLI_time.h"
+#include "BLI_time.hh"
 #include "BLI_vector.hh"
 
 #include "GPU_capabilities.hh"

@@ -6,7 +6,7 @@
  * \ingroup pythonintern
  */
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include <Python.h>
 
 #include "../generic/python_compat.hh" /* IWYU pragma: keep. */

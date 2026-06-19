@@ -13,24 +13,27 @@
 
 #include <fmt/format.h>
 
+#include "BLI_rect.hh"
+#include "DNA_space_enums.h"
+#include "ED_asset_menu_utils.hh"
 #include "MEM_guardedalloc.h"
 
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 #include "AS_remote_library.hh"
 
-#include "BLI_fileops.h"
-#include "BLI_fileops_types.h"
-#include "BLI_listbase.h"
-#include "BLI_math_color.h"
-#include "BLI_math_vector.h"
+#include "BLI_fileops.hh"
+#include "BLI_fileops_types.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #ifdef WIN32
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #endif
 
 #include "BIF_glutil.hh"
@@ -119,7 +122,6 @@ void ED_file_path_button(bScreen *screen,
                   0.0f,
                   float(FILE_MAX),
                   TIP_("File path"));
-  button_retval_set(but, -1);
 
   BLI_assert(!button_flag_is_set(but, ui::BUT_UNDO));
   BLI_assert(!but_is_utf8(but));
@@ -732,6 +734,34 @@ static void file_add_preview_drag_but(const SpaceFile *sfile,
                                    1.0f;
   file_but_enable_drag(but, sfile, file, path, drag_image, file_type_icon, scale);
   file_but_tooltip_func_set(sfile, file, but);
+}
+
+static void file_add_asset_download_but(ui::Block *block,
+                                        const FileLayout *layout,
+                                        const FileDirEntry *file,
+                                        const rcti *tile_draw_rect)
+{
+  const int preview_center_x = BLI_rcti_cent_x(tile_draw_rect);
+  const int preview_center_y = tile_draw_rect->ymax - layout->tile_border_y - layout->prv_h * 0.5f;
+  const int icon_width = ICON_DEFAULT_WIDTH_SCALE * 2.0f;
+  const int icon_height = ICON_DEFAULT_HEIGHT_SCALE * 2.0f;
+  const int icon_x = preview_center_x - icon_width * 0.5f;
+  const int icon_y = preview_center_y - icon_height * 0.5f;
+
+  ui::Button *but = uiDefIconButO(block,
+                                  ui::ButtonType::But,
+                                  "ASSET_OT_asset_download",
+                                  wm::OpCallContext::ExecDefault,
+                                  ICON_DOWNLOAD,
+                                  icon_x,
+                                  icon_y,
+                                  icon_width,
+                                  icon_height,
+                                  std::nullopt);
+  PointerRNA *opptr = ui::button_operator_ptr_ensure(but);
+  ed::asset::operator_asset_reference_props_set(*file->asset, *opptr);
+  ui::button_icon_scale_set(but, 1.5f);
+  ui::button_pushbutton_draw_as_overlay_set(but, true);
 }
 
 static void file_draw_preview(const FileDirEntry *file,
@@ -1520,6 +1550,11 @@ void file_draw_list(const bContext *C, ARegion *region)
         file_add_preview_drag_but(
             sfile, block, layout, file, path, &tile_draw_rect, file_type_icon);
       }
+
+      const bool is_highlighted = file_selflag & (FILE_SEL_HIGHLIGHTED | FILE_SEL_HIGHLIGHTED);
+      if (is_highlighted && file->asset && file->asset->needs_download()) {
+        file_add_asset_download_but(block, layout, file, &tile_draw_rect);
+      }
     }
     else {
       const BIFIconID icon = [&]() {
@@ -1612,7 +1647,6 @@ void file_draw_list(const bContext *C, ARegion *region)
                                  1.0f,
                                  float(sizeof(params->renamefile)),
                                  "");
-      button_retval_set(but, 1);
       text_button_func_rename_set(but, renamebutton_cb);
       button_flag_enable(but, ui::BUT_NO_UTF8); /* Allow non UTF8 names. */
       button_flag_disable(but, ui::BUT_UNDO);

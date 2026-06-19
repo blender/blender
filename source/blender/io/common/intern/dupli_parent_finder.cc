@@ -4,7 +4,7 @@
 
 #include "dupli_parent_finder.hh"
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 
 #include "DNA_object_types.h"
 

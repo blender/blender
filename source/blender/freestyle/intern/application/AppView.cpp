@@ -22,7 +22,7 @@
 #include "../view_map/Silhouette.h"
 #include "../view_map/ViewMap.h"
 
-#include "BLI_math_rotation.h"
+#include "BLI_math_rotation_c.hh"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"

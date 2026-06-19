@@ -10,9 +10,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
-#include "BLI_rect.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_base_c.hh"
+#include "BLI_rect.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
@@ -325,6 +326,15 @@ void GRAPH_OT_previewrange_set(wmOperatorType *ot)
 /** \name View-All Operator
  * \{ */
 
+static bool graphkeys_viewall_poll(bContext *C)
+{
+  if (!ED_operator_graphedit_active(C)) {
+    return false;
+  }
+  const ARegion *region = CTX_wm_region(C);
+  return region && ELEM(region->regiontype, RGN_TYPE_WINDOW, RGN_TYPE_CHANNELS);
+}
+
 static wmOperatorStatus graphkeys_viewall(bContext *C,
                                           const bool do_sel_only,
                                           const bool include_handles,
@@ -397,8 +407,7 @@ void GRAPH_OT_view_all(wmOperatorType *ot)
 
   /* API callbacks */
   ot->exec = graphkeys_viewall_exec;
-  /* XXX: Unchecked poll to get F-samples working too, but makes modifier damage trickier. */
-  ot->poll = ED_operator_region_graphedit_active;
+  ot->poll = graphkeys_viewall_poll;
 
   /* Flags */
   ot->flag = 0;
@@ -420,8 +429,7 @@ void GRAPH_OT_view_selected(wmOperatorType *ot)
 
   /* API callbacks */
   ot->exec = graphkeys_view_selected_exec;
-  /* XXX: Unchecked poll to get F-samples working too, but makes modifier damage trickier. */
-  ot->poll = ED_operator_region_graphedit_active;
+  ot->poll = graphkeys_viewall_poll;
 
   /* Flags */
   ot->flag = 0;
@@ -652,7 +660,7 @@ static uint16_t find_free_localview_bit(const Main *bmain)
     }
   }
 
-  for (int i = 0; i < sizeof(SpaceGraph::local_view_bit); i++) {
+  for (int i = 0; i < 8 * sizeof(SpaceGraph::local_view_bit); i++) {
     if ((local_view_bits & (1 << i)) == 0) {
       return (1 << i);
     }

@@ -15,14 +15,14 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_array.hh"
-#include "BLI_bitmap.h"
-#include "BLI_linklist_stack.h"
-#include "BLI_listbase.h"
+#include "BLI_bitmap.hh"
+#include "BLI_linklist_stack.hh"
+#include "BLI_listbase.hh"
 #include "BLI_math_base.hh"
-#include "BLI_math_vector.h"
-#include "BLI_task.h"
+#include "BLI_math_vector_c.hh"
 #include "BLI_task.hh"
-#include "BLI_utildefines.h"
+#include "BLI_task_c.hh"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_customdata.hh"
@@ -1974,6 +1974,12 @@ void BM_lnorspace_err(BMesh *bm)
       bm, {}, {}, {}, true, lnors, temp, nullptr, cd_loop_clnors_offset, true);
 
   for (int i = 0; i < bm->totloop; i++) {
+    /* Degenerate faces can produce non-finite normals which can't be usefully compared.
+     * Skip them as the comparison is likely to fail and assert, see #160015. */
+    if (!is_finite_v3(temp->lspacearr[i]->vec_lnor)) {
+      continue;
+    }
+
     int j = 0;
     j += compare_ff(
         temp->lspacearr[i]->ref_alpha, bm->lnor_spacearr->lspacearr[i]->ref_alpha, 1e-4f);

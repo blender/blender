@@ -20,8 +20,8 @@
 
 #include "BKE_camera.h"
 
-#include "BLI_listbase.h"
-#include "BLI_memblock.h"
+#include "BLI_listbase.hh"
+#include "BLI_memblock.hh"
 #include "BLI_virtual_array.hh"
 
 #include "BLT_translation.hh"

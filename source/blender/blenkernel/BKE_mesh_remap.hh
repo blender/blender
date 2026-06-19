@@ -8,7 +8,7 @@
  * \ingroup bke
  */
 
-#include "BLI_math_matrix.h"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 

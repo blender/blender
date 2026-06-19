@@ -10,9 +10,9 @@
 
 #include <cmath>
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_hash.hh"
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 
 namespace blender {
 

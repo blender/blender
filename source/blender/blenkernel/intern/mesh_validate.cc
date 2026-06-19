@@ -18,7 +18,7 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_index_ranges_builder.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_ordered_edge.hh"
 
 #include "BKE_attribute.hh"

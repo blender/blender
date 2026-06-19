@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'2b1958ccdccb')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e899b48ea546')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-08 09:37+0000\n"
-"PO-Revision-Date: 2026-06-04 04:12+0000\n"
+"POT-Creation-Date: 2026-06-15 07:32+0000\n"
+"PO-Revision-Date: 2026-06-08 17:01+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
 "Language: ja\n"
@@ -36055,84 +36055,192 @@ msgid "Editor menu containing buttons"
 msgstr "ボタンを含むエディターメニュー"
 
 
-msgid "Relations"
-msgstr "関係"
-
-
-msgid "Rigid Body"
-msgstr "リジッドボディ"
-
-
 msgid "Render Preview"
 msgstr "レンダープレビュー"
-
-
-msgid "Apply"
-msgstr "適用"
 
 
 msgid "Track"
 msgstr "トラック"
 
 
-msgid "Quick Effects"
-msgstr "クイックエフェクト"
-
-
-msgid "Show/Hide"
-msgstr "表示/隠す"
-
-
-msgid "Clean Up"
-msgstr "クリーンアップ"
-
-
-msgid "Asset"
-msgstr "アセット"
-
-
-msgid "Make Single User"
-msgstr "シングルユーザー化"
-
-
-msgid "Convert"
-msgstr "変換"
-
-
-msgid "Link/Transfer Data"
-msgstr "データのリンク/転送"
-
-
-msgid "Hooks"
-msgstr "フック"
-
-
-msgid "Vertex Group Locks"
-msgstr "頂点グループのロック"
-
-
 msgid "Math"
 msgstr "数式"
-
-
-msgid "Trim/Add"
-msgstr "トリム/追加"
 
 
 msgid "Utilities"
 msgstr "ユーティリティ"
 
 
-msgid "Sculpt Set Pivot"
-msgstr "スカルプトピボット設定"
+msgid "Assign Material"
+msgstr "マテリアルを割り当て"
+
+
+msgid "Read"
+msgstr "読込"
+
+
+msgid "Sample"
+msgstr "サンプル"
+
+
+msgid "Write"
+msgstr "書込"
+
+
+msgid "Primitives"
+msgstr "プリミティブ"
+
+
+msgid "Mirror"
+msgstr "ミラー"
+
+
+msgid "Snap"
+msgstr "スナップ"
+
+
+msgid "Rigid Body"
+msgstr "リジッドボディ"
+
+
+msgid "UV Mapping"
+msgstr "UVマッピング"
+
+
+msgid "Local View"
+msgstr "ローカルビュー"
+
+
+msgid "Viewpoint"
+msgstr "視点"
+
+
+msgid "Navigation"
+msgstr "視点の操作"
+
+
+msgid "Align View"
+msgstr "視点を揃える"
+
+
+msgid "Align View to Active"
+msgstr "アクティブに視点を揃える"
+
+
+msgid "View Regions"
+msgstr "ビュー領域設定"
+
+
+msgid "Select More/Less"
+msgstr "選択の拡大縮小"
+
+
+msgid "Gizmo"
+msgstr "ギズモ"
+
+
+msgid "Instances"
+msgstr "インスタンス"
+
+
+msgid "Select Similar"
+msgstr "類似選択"
+
+
+msgid "Select All by Trait"
+msgstr "特徴で全選択"
+
+
+msgid "Select Linked"
+msgstr "リンク選択"
+
+
+msgid "Select Loops"
+msgstr "ループ選択"
+
+
+msgid "Import"
+msgstr "インポート"
+
+
+msgid "Deprecated"
+msgstr "廃止予定"
+
+
+msgid "Relations"
+msgstr "関係"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Vertex Group Locks"
+msgstr "頂点グループのロック"
+
+
+msgid "Metaball"
+msgstr "メタボール"
+
+
+msgid "Random Mask"
+msgstr "ランダムマスク"
+
+
+msgid "Asset"
+msgstr "アセット"
+
+
+msgid "Show/Hide"
+msgstr "表示/隠す"
+
+
+msgid "Apply"
+msgstr "適用"
+
+
+msgid "Link/Transfer Data"
+msgstr "データのリンク/転送"
+
+
+msgid "Clean Up"
+msgstr "クリーンアップ"
 
 
 msgid "Face Sets Init"
 msgstr "面セットを初期化"
 
 
-msgid "Random Mask"
-msgstr "ランダムマスク"
+msgid "Light Probe"
+msgstr "ライトプローブ"
+
+
+msgid "Light"
+msgstr "ライト"
+
+
+msgid "Add Image"
+msgstr "画像を追加"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "スカルプトピボット設定"
+
+
+msgid "Hooks"
+msgstr "フック"
+
+
+msgid "Make Single User"
+msgstr "シングルユーザー化"
+
+
+msgid "Quick Effects"
+msgstr "クイックエフェクト"
+
+
+msgid "Trim/Add"
+msgstr "トリム/追加"
 
 
 msgid "Clear Transform"
@@ -36155,20 +36263,8 @@ msgid "Names"
 msgstr "名前"
 
 
-msgid "Read"
-msgstr "読込"
-
-
-msgid "Sample"
-msgstr "サンプル"
-
-
 msgid "Toggle Bone Options"
 msgstr "ボーンオプションを切り替え"
-
-
-msgid "Write"
-msgstr "書込"
 
 
 msgid "Enable Bone Options"
@@ -36177,10 +36273,6 @@ msgstr "ボーンオプションを有効化"
 
 msgid "Disable Bone Options"
 msgstr "ボーンオプションを無効化"
-
-
-msgid "Primitives"
-msgstr "プリミティブ"
 
 
 msgid "Mesh Select Mode"
@@ -36199,20 +36291,12 @@ msgid "Set Face Strength"
 msgstr "面の強さを設定"
 
 
-msgid "Gizmo"
-msgstr "ギズモ"
-
-
-msgid "Instances"
-msgstr "インスタンス"
-
-
 msgid "Merge"
 msgstr "マージ"
 
 
-msgid "Import"
-msgstr "インポート"
+msgid "Convert"
+msgstr "変換"
 
 
 msgid "Special Characters"
@@ -36223,28 +36307,32 @@ msgid "Kerning"
 msgstr "カーニング"
 
 
-msgid "Deprecated"
-msgstr "廃止予定"
+msgid "Linked"
+msgstr "リンク"
 
 
-msgid "Metaball"
-msgstr "メタボール"
+msgid "Layout"
+msgstr "レイアウト"
 
 
 msgid "Bone Roll"
 msgstr "ボーンロール"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Adjust"
+msgstr "調整"
+
+
+msgid "Keying"
+msgstr "キーイング"
+
+
+msgid "Tracking"
+msgstr "トラッキング"
 
 
 msgid "Pivot Point"
 msgstr "ピボットポイント"
-
-
-msgid "Snap"
-msgstr "スナップ"
 
 
 msgid "Proportional Editing Falloff"
@@ -36263,96 +36351,8 @@ msgid "Face Sets Edit"
 msgstr "面セット編集"
 
 
-msgid "Mirror"
-msgstr "ミラー"
-
-
-msgid "UV Mapping"
-msgstr "UVマッピング"
-
-
-msgid "Local View"
-msgstr "ローカルビュー"
-
-
-msgid "Viewpoint"
-msgstr "視点"
-
-
-msgid "Navigation"
-msgstr "視点の操作"
-
-
-msgid "Linked"
-msgstr "リンク"
-
-
-msgid "Align View"
-msgstr "視点を揃える"
-
-
-msgid "Layout"
-msgstr "レイアウト"
-
-
-msgid "Align View to Active"
-msgstr "アクティブに視点を揃える"
-
-
-msgid "View Regions"
-msgstr "ビュー領域設定"
-
-
-msgid "Select More/Less"
-msgstr "選択の拡大縮小"
-
-
-msgid "Select Similar"
-msgstr "類似選択"
-
-
-msgid "Select All by Trait"
-msgstr "特徴で全選択"
-
-
-msgid "Select Linked"
-msgstr "リンク選択"
-
-
-msgid "Select Loops"
-msgstr "ループ選択"
-
-
-msgid "Adjust"
-msgstr "調整"
-
-
-msgid "Keying"
-msgstr "キーイング"
-
-
-msgid "Tracking"
-msgstr "トラッキング"
-
-
-msgid "Assign Material"
-msgstr "マテリアルを割り当て"
-
-
 msgid "Creative"
 msgstr "クリエイティブ"
-
-
-msgid "Light"
-msgstr "ライト"
-
-
-msgid "Light Probe"
-msgstr "ライトプローブ"
-
-
-msgid "Add Image"
-msgstr "画像を追加"
 
 
 msgid "Keyframe Insert Pie"
@@ -55505,12 +55505,12 @@ msgid "Clear Status"
 msgstr "状態をクリア"
 
 
-msgid "Allow internet access. Blender may access configured online extension repositories. Installed third party add-ons may access the internet for their own functionality"
+msgid "Allow Blender to access the internet. Add-ons that follow this setting will only connect to the internet if enabled. However, Blender cannot prevent third-party add-ons from violating this rule."
 msgstr ""
-"インターネットアクセスを可能にします．Blender は設定した\n"
-"オンラインのエクステンションリポジトリにアクセスします．\n"
-"インストール済のサードパーティのアドオンもその機能のため，\n"
-"インターネットにアクセスする可能性があります"
+"Blender がインターネットにアクセスすることを許可します．\n"
+"この設定に従うアドオンは有効時のみインターネットに接続しますが，\n"
+"Blender はサードパーティのアドオンがこのルールに違反することを\n"
+"防ぐことができません."
 
 
 msgid "Open extensions preferences"
@@ -94315,58 +94315,6 @@ msgid "Panel containing UI elements"
 msgstr "UIの要素を含むパネル"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR情報"
-
-
-msgid "glTF Variants"
-msgstr "glTFバリアント"
-
-
-msgid "glTF Material Variants"
-msgstr "glTFマテリアルバリアント"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTFアニメーション"
-
-
-msgid "Active Tool"
-msgstr "アクティブツール"
-
-
-msgid "View Lock"
-msgstr "ビューのロック"
-
-
-msgid "Selectability & Visibility"
-msgstr "選択可否と可視性"
-
-
-msgid "Shadow Settings"
-msgstr "影の設定"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO設定"
-
-
-msgid "Cavity"
-msgstr "キャビティ"
-
-
-msgid "Render Pass"
-msgstr "レンダーパス"
-
-
 msgid "Compositor"
 msgstr "コンポジター"
 
@@ -94453,6 +94401,58 @@ msgstr "カーブスケールを拡大/収縮"
 
 msgid "Viewport Debug"
 msgstr "ビューポートデバッグ"
+
+
+msgid "glTF Variants"
+msgstr "glTFバリアント"
+
+
+msgid "glTF Material Variants"
+msgstr "glTFマテリアルバリアント"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR情報"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTFアニメーション"
+
+
+msgid "Active Tool"
+msgstr "アクティブツール"
+
+
+msgid "View Lock"
+msgstr "ビューのロック"
+
+
+msgid "Selectability & Visibility"
+msgstr "選択可否と可視性"
+
+
+msgid "Shadow Settings"
+msgstr "影の設定"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO設定"
+
+
+msgid "Cavity"
+msgstr "キャビティ"
+
+
+msgid "Render Pass"
+msgstr "レンダーパス"
 
 
 msgid "Import Settings"
@@ -99450,14 +99450,6 @@ msgid "Allow Online Access"
 msgstr "オンラインアクセスを許可"
 
 
-msgid "Allow Blender to access the internet. Add-ons that follow this setting will only connect to the internet if enabled. However, Blender cannot prevent third-party add-ons from violating this rule."
-msgstr ""
-"Blender がインターネットにアクセスすることを許可します．\n"
-"この設定に従うアドオンは有効時のみインターネットに接続しますが，\n"
-"Blender はサードパーティのアドオンがこのルールに違反することを\n"
-"防ぐことができません."
-
-
 msgid "Overlay Smooth Wires"
 msgstr "オーバーレイスムーズワイヤ"
 
@@ -100028,16 +100020,8 @@ msgid "Serbian (Cyrillic) - Српски"
 msgstr "セルビア語（キリル文字）- Српски"
 
 
-msgid "Locale code: sr_RS. Translation progress: 16%"
-msgstr "ロケールコード：sr_RS．翻訳の進行状況: 16％"
-
-
 msgid "Serbian (Latin) - Srpski latinica"
 msgstr "セルビア（ラテン）語 - Srpski latinica"
-
-
-msgid "Locale code: sr_RS@latin. Translation progress: 16%"
-msgstr "ロケールコード：sr_RS@latin．翻訳の進行状況: 16％"
 
 
 msgid "Slovak - Slovenčina"

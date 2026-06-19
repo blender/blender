@@ -19,9 +19,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_asan.h"
-#include "BLI_memarena.h"
-#include "BLI_utildefines.h"
+#include "BLI_asan.hh"
+#include "BLI_memarena.hh"
+#include "BLI_utildefines.hh"
 
 #ifdef WITH_MEM_VALGRIND
 #  include "valgrind/memcheck.h"
@@ -32,7 +32,7 @@
 #  define VALGRIND_MOVE_MEMPOOL(pool_a, pool_b) UNUSED_VARS(pool_a, pool_b)
 #endif
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 

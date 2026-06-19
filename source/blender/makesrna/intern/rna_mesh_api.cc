@@ -12,7 +12,7 @@
 
 #include "DNA_customdata_types.h"
 
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 
 #include "rna_internal.hh" /* own include */
 

@@ -5,10 +5,10 @@
 #include <cstring>
 #include <string>
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_memory_utils.hh"
-#include "BLI_threads.h"
+#include "BLI_threads.hh"
 #include "BLI_vector.hh"
 
 #include "MEM_guardedalloc.h"
@@ -26,7 +26,10 @@
 #include "DRW_engine.hh"
 #include "DRW_render.hh"
 
+#include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
+
+#include "DEG_depsgraph_query.hh"
 
 #include "COM_context.hh"
 #include "COM_conversion_operation.hh"
@@ -36,6 +39,7 @@
 #include "COM_render_context.hh"
 #include "COM_result.hh"
 
+#include "NOD_dependencies.hh"
 #include "NOD_eval_log.hh"
 
 #include "RE_compositor.hh"
@@ -216,30 +220,46 @@ class Context : public compositor::Context {
                       render_result->rectx * render_result->recty * 4 * sizeof(float));
         }
       }
+
+      /* Free outdated GPU texture. */
+      IMB_free_gpu_textures(image_buffer);
     }
     RE_ReleaseResult(render);
 
     Image *image = BKE_image_ensure_viewer(G.main, IMA_TYPE_R_RESULT, "Render Result");
     BKE_image_partial_update_mark_full_update(image);
-    BLI_thread_lock(LOCK_DRAW_IMAGE);
-    BKE_image_signal(G.main, image, nullptr, IMA_SIGNAL_FREE);
-    BLI_thread_unlock(LOCK_DRAW_IMAGE);
+  }
+
+  bool should_cache_viewer_result()
+  {
+    /* Caching disabled. */
+    if (!flag_is_set(this->get_render_data().compositor_cache_flags, SCE_COMPOSITOR_CACHE_FRAMES))
+    {
+      return false;
+    }
+
+    /* Not an interactive compositor, so no need to cache. */
+    if (this->render_context()) {
+      return false;
+    }
+
+    /* Node tree is not time depend, so no need to cache. */
+    const bNodeTree *original_node_tree = DEG_get_original(input_data_.node_tree);
+    if (!original_node_tree->runtime->eval_dependencies->time_dependent) {
+      return false;
+    }
+
+    return true;
   }
 
   void write_viewer_image(const compositor::Result &viewer_result)
   {
     Image *image = BKE_image_ensure_viewer(G.main, IMA_TYPE_COMPOSITE, "Viewer Node");
 
-    if (viewer_result.meta_data.is_non_color_data) {
-      image->flag &= ~IMA_VIEW_AS_RENDER;
-    }
-    else {
-      image->flag |= IMA_VIEW_AS_RENDER;
-    }
-
     ImageUser image_user = {nullptr};
-    image_user.multi_index = BKE_scene_multiview_view_id_get(input_data_.render_data,
-                                                             input_data_.view_name.c_str());
+    const int view_identifier = BKE_scene_multiview_view_id_get(input_data_.render_data,
+                                                                input_data_.view_name.c_str());
+    image_user.multi_index = view_identifier;
 
     if (BKE_scene_multiview_is_render_view_first(input_data_.render_data,
                                                  input_data_.view_name.c_str()))
@@ -326,6 +346,39 @@ class Context : public compositor::Context {
     }
     else {
       image_buffer->flags &= ~ImBufFlags::HasDisplayWindow;
+    }
+
+    if (viewer_result.meta_data.is_non_color_data) {
+      image->flag &= ~IMA_VIEW_AS_RENDER;
+      image_buffer->float_buffer.colorspace = IMB_colormanagement_space_get_named(
+          IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DATA));
+    }
+    else {
+      image->flag |= IMA_VIEW_AS_RENDER;
+      image_buffer->float_buffer.colorspace = IMB_colormanagement_space_get_named(
+          IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR));
+    }
+
+    if (this->should_cache_viewer_result()) {
+      /* Duplicate the viewer image buffer to store in the cache, making sure to manually
+       * duplicate the GPU texture since it is not done in IMB_dupImBuf. */
+      ImBuf *cached_buffer = IMB_dupImBuf(image_buffer);
+      if (this->use_gpu()) {
+        gpu::Texture *texture = GPU_texture_create_2d(
+            __func__,
+            GPU_texture_width(image_buffer->gpu.texture),
+            GPU_texture_height(image_buffer->gpu.texture),
+            1,
+            GPU_texture_format(image_buffer->gpu.texture),
+            GPU_TEXTURE_USAGE_GENERAL,
+            nullptr);
+        GPU_texture_copy(texture, image_buffer->gpu.texture);
+        IMB_assign_gpu_texture(cached_buffer, texture);
+      }
+
+      const Scene *original_scene = DEG_get_original(&this->get_scene());
+      original_scene->runtime->compositor.cache.add_frame(
+          this->get_frame_number(), view_identifier, cached_buffer);
     }
 
     BKE_image_partial_update_mark_full_update(image);
@@ -591,8 +644,80 @@ class Context : public compositor::Context {
     return input_data_.render->display->test_break();
   }
 
+  /* Checks if a cached viewer result exists for the current frame. If no cache is found, false is
+   * returned and nothing is done. If the cache exists, write it to the viewer image and return
+   * true. */
+  bool write_frame_cache()
+  {
+    const Scene *original_scene = DEG_get_original(&this->get_scene());
+    const int view_identifier = BKE_scene_multiview_view_id_get(input_data_.render_data,
+                                                                input_data_.view_name.c_str());
+    const ImBuf *cached_buffer = original_scene->runtime->compositor.cache.get_frame(
+        this->get_frame_number(), view_identifier);
+    if (!cached_buffer) {
+      return false;
+    }
+
+    Image *image = BKE_image_ensure_viewer(G.main, IMA_TYPE_COMPOSITE, "Viewer Node");
+
+    ImageUser image_user = {nullptr};
+    image_user.multi_index = view_identifier;
+
+    if (BKE_scene_multiview_is_render_view_first(input_data_.render_data,
+                                                 input_data_.view_name.c_str()))
+    {
+      BKE_image_ensure_viewer_views(input_data_.render_data, image, &image_user);
+    }
+
+    BLI_thread_lock(LOCK_DRAW_IMAGE);
+
+    void *lock;
+    ImBuf *image_buffer = BKE_image_acquire_ibuf_gpu(image, &image_user, &lock);
+
+    image_buffer->x = cached_buffer->x;
+    image_buffer->y = cached_buffer->y;
+    copy_v2_v2_int(image_buffer->display_size, cached_buffer->display_size);
+    copy_v2_v2_int(image_buffer->data_offset, cached_buffer->data_offset);
+    copy_v2_v2_int(image_buffer->display_offset, cached_buffer->display_offset);
+    image_buffer->color_mode = cached_buffer->color_mode;
+    image_buffer->channels = cached_buffer->channels;
+    image_buffer->flags = cached_buffer->flags;
+    image_buffer->byte_buffer = cached_buffer->byte_buffer;
+    image_buffer->float_buffer = cached_buffer->float_buffer;
+    IMB_free_gpu_textures(image_buffer);
+    if (cached_buffer->gpu.texture) {
+      gpu::Texture *texture = GPU_texture_create_2d(__func__,
+                                                    GPU_texture_width(cached_buffer->gpu.texture),
+                                                    GPU_texture_height(cached_buffer->gpu.texture),
+                                                    1,
+                                                    GPU_texture_format(cached_buffer->gpu.texture),
+                                                    GPU_TEXTURE_USAGE_GENERAL,
+                                                    nullptr);
+      GPU_texture_copy(texture, cached_buffer->gpu.texture);
+      IMB_assign_gpu_texture(image_buffer, texture);
+    }
+    image_buffer->userflags = cached_buffer->userflags;
+
+    if (IMB_colormanagement_space_is_data(cached_buffer->float_buffer.colorspace)) {
+      image->flag &= ~IMA_VIEW_AS_RENDER;
+    }
+    else {
+      image->flag |= IMA_VIEW_AS_RENDER;
+    }
+
+    BKE_image_partial_update_mark_full_update(image);
+    BKE_image_release_ibuf(image, image_buffer, lock);
+    BLI_thread_unlock(LOCK_DRAW_IMAGE);
+
+    return true;
+  }
+
   void evaluate()
   {
+    if (this->write_frame_cache()) {
+      return;
+    }
+
     /* Reset log before evaluation. */
     this->get_scene().runtime->compositor.nodes_evaluation_log =
         std::make_unique<nodes::eval_log::NodesEvalLog>();

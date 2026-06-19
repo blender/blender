@@ -4,7 +4,7 @@
 
 #include "blender/output_driver.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "IMB_imbuf_types.hh"
 #include "RE_engine.h"
 

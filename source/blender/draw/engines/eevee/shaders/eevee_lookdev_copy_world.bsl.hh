@@ -123,7 +123,8 @@ void copy_world_main([[resource_table]] CopyWorld &srt,
   imageStore(srt.out_sphere_mip4,
              int3(local_texel, write_coord.layer),
              srt.get_mip_data(4, local_texel, read_coord, write_coord, rotation_mat));
-#ifdef __cplusplus
+
+#ifdef GLSL_CPP_STUBS
   /* If this mismatches, manual unroll needs to be updated. */
   static_assert(SPHERE_PROBE_MIPMAP_LEVELS == 5);
 #endif

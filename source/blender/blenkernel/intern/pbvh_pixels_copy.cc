@@ -4,8 +4,8 @@
 
 #include "BLI_array.hh"
 #include "BLI_index_mask.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
@@ -16,6 +16,8 @@
 #include "BKE_image_wrappers.hh"
 #include "BKE_paint_bvh.hh"
 #include "BKE_paint_bvh_pixels.hh"
+
+#include "PRF_profile.hh"
 
 #include "pbvh_pixels_copy.hh"
 #include "pbvh_uv_islands.hh"
@@ -492,6 +494,7 @@ void copy_update(bke::pbvh::Tree &pbvh,
                  ImageUser &image_user,
                  const uv_islands::MeshData &mesh_data)
 {
+  PRF_scope(ProfileCategory::Editor);
   PixelData &pbvh_data = data_get(pbvh);
   pbvh_data.tiles_copy_pixels.clear();
   const NonManifoldUVEdges non_manifold_edges(mesh_data);

@@ -50,7 +50,7 @@ struct bConstraintOb {
   short type;
   /**
    * Rotation order for constraint owner
-   * (as defined in #eEulerRotationOrders in BLI_math_rotation.h).
+   * (as defined in #eEulerRotationOrders in BLI_math_rotation_c.hh).
    */
   short rotOrder;
 };

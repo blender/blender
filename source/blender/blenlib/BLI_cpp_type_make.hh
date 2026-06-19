@@ -13,7 +13,7 @@
 #include "BLI_cpp_type.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_unique_hash.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 namespace blender {
 

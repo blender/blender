@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BKE_image.hh"
+#include "BKE_image_gpu.hh"
 #include "BKE_paint.hh"
 #include "BKE_scene.hh"
 
@@ -139,7 +140,9 @@ class Paints : Overlay {
       if (show_paint_mask_) {
         const bool mask_premult = (paint_settings.stencil->alpha_mode == IMA_ALPHA_PREMUL);
         const bool mask_inverted = (paint_settings.flag & IMAGEPAINT_PROJECT_LAYER_STENCIL_INV);
-        gpu::Texture *mask_texture = BKE_image_get_gpu_texture(paint_settings.stencil, nullptr);
+        gpu::Texture *mask_texture = BKE_image_acquire_gpu_texture(paint_settings.stencil,
+                                                                   nullptr);
+        DRW_manager_get()->hold_texture(mask_texture);
 
         auto &pass = paint_mask_ps_;
         pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_ALPHA,

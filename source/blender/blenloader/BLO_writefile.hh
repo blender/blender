@@ -9,7 +9,7 @@
  * \brief external `writefile.cc` function prototypes.
  */
 
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 namespace blender {
 

@@ -10,7 +10,7 @@
 #pragma once
 
 #include "BLI_enum_flags.hh"
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 #include "DNA_listBase.h"
 
@@ -192,7 +192,7 @@ enum eConstraint_EulerOrder : char {
   /** Automatic euler mode. */
   CONSTRAINT_EULER_AUTO = 0,
 
-  /** Explicit euler rotation modes - must sync with BLI_math_rotation.h defines. */
+  /** Explicit euler rotation modes - must sync with BLI_math_rotation_c.hh defines. */
   CONSTRAINT_EULER_XYZ = 1,
   CONSTRAINT_EULER_XZY = 2,
   CONSTRAINT_EULER_YXZ = 3,
@@ -728,7 +728,7 @@ struct bConstraintTarget {
   eConstraintTargetFlag flag = {};
   /** Type of target. */
   eConstraintObType type = CONSTRAINT_OBTYPE_OBJECT;
-  /** Rotation order for target (as defined in BLI_math_rotation.h). */
+  /** Rotation order for target (as defined in BLI_math_rotation_c.hh). */
   short rotOrder = 0;
   /** Weight for armature deform. */
   float weight = 0;

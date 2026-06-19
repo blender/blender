@@ -6,7 +6,7 @@
  * \ingroup spoutliner
  */
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "DNA_ID.h"
 #include "DNA_object_types.h"

@@ -10,7 +10,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
 #include "BKE_object.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLT_translation.hh"
 
 #include <numbers>

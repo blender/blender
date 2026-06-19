@@ -14,11 +14,11 @@
 #include "DNA_brush_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_color.h"
-#include "BLI_math_matrix.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_color_c.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_rect.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_rect.hh"
 
 #include "BLT_translation.hh"
 

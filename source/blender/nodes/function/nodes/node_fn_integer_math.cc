@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "FN_multi_function_registry.hh"
 
@@ -24,7 +24,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
 
-  b.add_input<decl::Int>("Value"_ustr).label_fn([](bNode node) {
+  b.add_input<decl::Int>("Value"_ustr).label_fn([](const bNode &node) {
     switch (node.custom1) {
       case NODE_INTEGER_MATH_POWER:
         return IFACE_("Base");
@@ -33,7 +33,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     }
   });
 
-  b.add_input<decl::Int>("Value"_ustr, "Value_001"_ustr).label_fn([](bNode node) {
+  b.add_input<decl::Int>("Value"_ustr, "Value_001"_ustr).label_fn([](const bNode &node) {
     switch (node.custom1) {
       case NODE_INTEGER_MATH_MULTIPLY_ADD:
         return IFACE_("Multiplier");
@@ -43,7 +43,7 @@ static void node_declare(NodeDeclarationBuilder &b)
         return IFACE_("Value");
     }
   });
-  b.add_input<decl::Int>("Value"_ustr, "Value_002"_ustr).label_fn([](bNode node) {
+  b.add_input<decl::Int>("Value"_ustr, "Value_002"_ustr).label_fn([](const bNode &node) {
     switch (node.custom1) {
       case NODE_INTEGER_MATH_MULTIPLY_ADD:
         return IFACE_("Addend");

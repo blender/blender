@@ -215,9 +215,9 @@ const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
 
 #  include "DNA_anim_types.h"
 
-#  include "BLI_listbase.h"
-#  include "BLI_math_base.h"
-#  include "BLI_string.h"
+#  include "BLI_listbase.hh"
+#  include "BLI_math_base_c.hh"
+#  include "BLI_string.hh"
 
 #  include "BLT_translation.hh"
 
@@ -643,9 +643,7 @@ int rna_ID_is_runtime_editable(const PointerRNA *ptr, const char **r_info)
 {
   ID *id = static_cast<ID *>(ptr->data);
   /* TODO: This should be abstracted in a BKE function or define, somewhat related to #88555. */
-  if (id->tag & (ID_TAG_NO_MAIN | ID_TAG_TEMP_MAIN | ID_TAG_LOCALIZED |
-                 ID_TAG_COPIED_ON_EVAL_FINAL_RESULT | ID_TAG_COPIED_ON_EVAL))
-  {
+  if (id->tag & (ID_TAG_NO_MAIN | ID_TAG_TEMP_MAIN | ID_TAG_LOCALIZED | ID_TAG_COPIED_ON_EVAL)) {
     *r_info = N_(
         "Cannot edit 'runtime' status of non-blendfile data-blocks, as they are by definition "
         "always runtime");
@@ -659,9 +657,7 @@ bool rna_ID_is_runtime_get(PointerRNA *ptr)
 {
   ID *id = static_cast<ID *>(ptr->data);
   /* TODO: This should be abstracted in a BKE function or define, somewhat related to #88555. */
-  if (id->tag & (ID_TAG_NO_MAIN | ID_TAG_TEMP_MAIN | ID_TAG_LOCALIZED |
-                 ID_TAG_COPIED_ON_EVAL_FINAL_RESULT | ID_TAG_COPIED_ON_EVAL))
-  {
+  if (id->tag & (ID_TAG_NO_MAIN | ID_TAG_TEMP_MAIN | ID_TAG_LOCALIZED | ID_TAG_COPIED_ON_EVAL)) {
     return true;
   }
 

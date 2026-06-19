@@ -16,12 +16,12 @@
 #include <cstring>
 #include <optional>
 
-#include "BLI_iterator.h"
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
+#include "BLI_iterator.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_base_c.hh"
 #include "BLI_mutex.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
 
 #include "BLT_translation.hh"
@@ -474,6 +474,7 @@ static Collection *collection_add(Main *bmain,
   /* Optionally add to parent collection. */
   if (collection_parent) {
     collection_child_add(bmain, collection_parent, collection, nullptr, 0, true);
+    collection->color_tag = collection_parent->color_tag;
   }
 
   return collection;

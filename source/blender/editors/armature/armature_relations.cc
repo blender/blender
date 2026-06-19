@@ -15,13 +15,13 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_ghash.h"
-#include "BLI_listbase.h"
+#include "BLI_ghash.hh"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BLT_translation.hh"
 
@@ -528,6 +528,10 @@ wmOperatorStatus ED_armature_join_objects_exec(bContext *C, wmOperator *op)
           BKE_animdata_merge_copy(bmain, &arm->id, &curarm->id, ADT_MERGECOPY_KEEP_DST, false);
         }
       }
+
+      /* Bring armature out of edit mode. See #159084. */
+      ED_armature_from_edit(bmain, curarm);
+      ED_armature_edit_free(curarm);
 
       /* Free the old object data */
       ed::object::base_free_and_unlink(bmain, scene, ob_iter);

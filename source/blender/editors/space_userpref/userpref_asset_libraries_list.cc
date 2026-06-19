@@ -8,7 +8,7 @@
 
 #include "BKE_global.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLT_translation.hh"
 
 #include "DNA_screen_types.h"

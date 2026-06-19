@@ -447,14 +447,13 @@ class GRAPH_MT_key(Menu):
         layout.separator()
         layout.operator("graph.frame_jump", text="Jump to Selected")
 
-        layout.separator()
-        layout.operator_menu_enum("graph.keyframe_insert", "type", text="Insert")
-
         layout.operator("graph.copy", text="Copy", icon='COPYDOWN')
         layout.operator("graph.paste", text="Paste", icon='PASTEDOWN')
         layout.operator("graph.paste", text="Paste Flipped", icon='PASTEFLIPDOWN').flipped = True
-        layout.operator("graph.duplicate_move")
-        layout.operator("graph.delete", text="Delete")
+
+        layout.separator()
+        layout.operator_menu_enum("graph.keyframe_insert", "type", text="Insert")
+        layout.operator("graph.duplicate_move", icon='DUPLICATE')
 
         layout.separator()
         layout.operator_menu_enum("graph.handle_type", "type", text="Handle Type")
@@ -466,6 +465,8 @@ class GRAPH_MT_key(Menu):
         layout.menu("GRAPH_MT_key_density")
         layout.menu("GRAPH_MT_key_blending")
         layout.menu("GRAPH_MT_key_smoothing")
+        layout.separator()
+        layout.operator("graph.delete", text="Delete", icon='X')
 
 
 class GRAPH_MT_key_transform(Menu):
@@ -549,14 +550,15 @@ class GRAPH_MT_context_menu(Menu):
         layout.separator()
 
         layout.operator("graph.keyframe_insert").type = 'SEL'
-        layout.operator("graph.duplicate_move")
-        layout.operator_context = 'EXEC_REGION_WIN'
-        layout.operator("graph.delete")
+        layout.operator("graph.duplicate_move", icon='DUPLICATE')
 
         layout.separator()
 
         layout.operator_menu_enum("graph.mirror", "type", text="Mirror")
         layout.operator_menu_enum("graph.snap", "type", text="Snap")
+        layout.separator()
+        layout.operator_context = 'EXEC_REGION_WIN'
+        layout.operator("graph.delete", icon='X')
 
 
 class GRAPH_MT_pivot_pie(Menu):

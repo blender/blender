@@ -17,7 +17,7 @@
 
 #include "WM_types.hh"
 
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 
 namespace blender {
 

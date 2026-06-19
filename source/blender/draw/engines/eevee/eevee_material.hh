@@ -373,14 +373,11 @@ class MaterialModule {
   uint64_t gpu_pass_last_update_ = 0;
   uint64_t gpu_pass_next_update_ = 0;
 
-  Vector<GPUMaterialTexture *> texture_loading_queue_;
-
  public:
   MaterialModule(Instance &inst);
   ~MaterialModule();
 
   void begin_sync();
-  void end_sync();
 
   /**
    * Returned Material references are valid until the next call to this function or material_get().
@@ -418,9 +415,6 @@ class MaterialModule {
                                  eMaterialPipeline pipeline_type,
                                  eMaterialGeometry geometry_type,
                                  eMaterialProbe probe_capture = MAT_PROBE_NONE);
-
-  /* Push unloaded texture used by this material to the texture loading queue. */
-  void queue_texture_loading(GPUMaterial *material);
 
   ShaderGroups default_materials_load(bool block_until_ready = false);
 };

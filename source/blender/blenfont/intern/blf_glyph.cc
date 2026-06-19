@@ -25,10 +25,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_color.h"
-#include "BLI_math_geom.h"
-#include "BLI_rect.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_rect.hh"
 
 #include "BLF_api.hh"
 
@@ -37,7 +37,7 @@
 #include "blf_internal.hh"
 #include "blf_internal_types.hh"
 
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #ifndef WITH_HEADLESS
 #  include "nanosvgrast.h"
@@ -45,7 +45,7 @@
 #  include "svg_icons.h"
 #endif /* WITH_HEADLESS */
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 

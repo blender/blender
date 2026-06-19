@@ -9,17 +9,17 @@
 #include <cmath>
 #include <fmt/format.h>
 
-#include "BLI_listbase.h"
-#include "BLI_math_color.h"
-#include "BLI_math_geom.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_geom_c.hh"
 #include "BLI_math_half.hh"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_rect.h"
-#include "BLI_string_utf8.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_rect.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_threads.h"
-#include "BLI_time.h"
+#include "BLI_threads.hh"
+#include "BLI_time.hh"
 
 #include "BKE_armature.hh"
 #include "BKE_camera.h"
@@ -29,6 +29,7 @@
 #include "BKE_global.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_image.hh"
+#include "BKE_image_gpu.hh"
 #include "BKE_key.hh"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
@@ -1671,7 +1672,7 @@ void view3d_main_region_draw(const bContext *C, ARegion *region)
 
   DRW_cache_free_old_subdiv();
   DRW_cache_free_old_batches(bmain);
-  BKE_image_free_old_gputextures(bmain);
+  BKE_image_free_old_buffers(bmain);
 
   /* No depth test for drawing action zones afterwards. */
   GPU_depth_test(GPU_DEPTH_NONE);

@@ -4,10 +4,10 @@
 
 #include "DNA_curve_types.h"
 
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_mempool.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_mempool.hh"
 
 #include "BLT_translation.hh"
 

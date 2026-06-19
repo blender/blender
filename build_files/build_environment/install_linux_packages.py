@@ -246,13 +246,6 @@ BUILD_MANDATORY_SUBPACKAGES = (
                                   DISTRO_ID_ARCH: "wayland",
                                   },
             ),
-    Package(name="Decor Library",
-            distro_package_names={DISTRO_ID_DEBIAN: "libdecor-0-dev",
-                                  DISTRO_ID_FEDORA: "libdecor-devel",
-                                  DISTRO_ID_SUSE: "libdecor-devel",
-                                  DISTRO_ID_ARCH: "libdecor",
-                                  },
-            ),
     Package(name="Wayland Protocols",
             distro_package_names={DISTRO_ID_DEBIAN: "wayland-protocols",
                                   DISTRO_ID_FEDORA: "wayland-protocols-devel",
@@ -1193,6 +1186,11 @@ def main():
     stdout_handler.setFormatter(LoggingColoredFormatter())
     logger.addHandler(stdout_handler)
     settings.logger = logger
+
+    if sys.version_info < (3, 10):
+        sys.exit(
+            f"Script ran using Python {sys.version.split()[0]} but requires Python 3.10 or later.\n"
+            f"Run with newer version, e.g.: python3.11 {sys.argv[0]}")
 
     if not IS_ROOT and not settings.no_sudo and not MAYSUDO:
         logger.critical("`sudo` or `doas` commands are needed to escalate privileges,"

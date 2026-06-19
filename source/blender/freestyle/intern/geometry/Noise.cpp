@@ -12,9 +12,9 @@
 #include <cstdlib>
 #include <ctime>
 
-#include "BLI_compiler_attrs.h"
-#include "BLI_rand.h"
-#include "BLI_sys_types.h"
+#include "BLI_compiler_attrs.hh"
+#include "BLI_rand_c.hh"
+#include "BLI_sys_types.hh"
 
 #include "Noise.h"
 

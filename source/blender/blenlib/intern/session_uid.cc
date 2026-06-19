@@ -6,7 +6,7 @@
  * \ingroup bli
  */
 
-#include "BLI_session_uid.h"
+#include "BLI_session_uid.hh"
 
 #include "atomic_ops.h"
 

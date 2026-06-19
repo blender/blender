@@ -6,8 +6,8 @@
  * \ingroup asset_system
  */
 
-#include "BLI_assert.h"
-#include "BLI_listbase.h"
+#include "BLI_assert.hh"
+#include "BLI_listbase.hh"
 
 #include "DNA_userdef_types.h"
 

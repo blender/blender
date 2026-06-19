@@ -548,6 +548,69 @@ GSpanAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write_only_span
   return {};
 }
 
+GAttributeWriter MutableAttributeAccessor::convert_or_add_for_write(
+    const StringRef name,
+    const AttrDomain domain,
+    const AttrType data_type,
+    const AttributeInit &initializer)
+{
+  std::optional<AttributeMetaData> meta_data = this->lookup_meta_data(name);
+  if (meta_data.has_value()) {
+    if (meta_data->domain == domain && meta_data->data_type == data_type) {
+      return this->lookup_for_write(name);
+    }
+    /* The attribute already exists, but with the wrong domain or type.
+     * Convert it. */
+    AttributeInitVArray attributeInit(lookup(name, domain, data_type).varray);
+    if (this->add_override(name, domain, data_type, attributeInit)) {
+      return this->lookup_for_write(name);
+    }
+    return {};
+  }
+  this->add(name, domain, data_type, initializer);
+  return this->lookup_for_write(name);
+}
+
+GAttributeWriter MutableAttributeAccessor::convert_or_add_for_write_only(const StringRef name,
+                                                                         const AttrDomain domain,
+                                                                         const AttrType data_type)
+{
+  std::optional<AttributeMetaData> meta_data = this->lookup_meta_data(name);
+  if (meta_data.has_value()) {
+    if (meta_data->domain == domain && meta_data->data_type == data_type) {
+      return this->lookup_for_write(name);
+    }
+    /* The attribute already exists, but with the wrong domain or type.
+     * Convert it. */
+    if (this->add_override(name, domain, data_type, AttributeInitConstruct())) {
+      return this->lookup_for_write(name);
+    }
+    return {};
+  }
+  this->add(name, domain, data_type, AttributeInitConstruct());
+  return this->lookup_for_write(name);
+}
+
+GSpanAttributeWriter MutableAttributeAccessor::convert_or_add_for_write_span(
+    const StringRef name,
+    const AttrDomain domain,
+    const AttrType data_type,
+    const AttributeInit &initializer)
+{
+  GAttributeWriter attribute = this->convert_or_add_for_write(
+      name, domain, data_type, initializer);
+  BLI_assert(attribute);
+  return GSpanAttributeWriter{std::move(attribute), true};
+}
+
+GSpanAttributeWriter MutableAttributeAccessor::convert_or_add_for_write_only_span(
+    const StringRef name, const AttrDomain domain, const AttrType data_type)
+{
+  GAttributeWriter attribute = this->convert_or_add_for_write_only(name, domain, data_type);
+  BLI_assert(attribute);
+  return GSpanAttributeWriter{std::move(attribute), false};
+}
+
 bool MutableAttributeAccessor::rename(const StringRef old_name,
                                       const StringRef new_name,
                                       const bool overwrite)

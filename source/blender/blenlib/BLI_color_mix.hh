@@ -9,9 +9,9 @@
  */
 
 #include "BLI_color_types.hh"
-#include "BLI_math_base.h"
-#include "BLI_math_color.h"
-#include "BLI_sys_types.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_math_color_c.hh"
+#include "BLI_sys_types.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"

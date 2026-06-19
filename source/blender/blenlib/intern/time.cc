@@ -6,7 +6,7 @@
  * \ingroup bli
  */
 
-#include "BLI_time.h"
+#include "BLI_time.hh"
 
 #include <chrono>
 

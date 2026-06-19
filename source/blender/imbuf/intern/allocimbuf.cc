@@ -115,16 +115,6 @@ void IMB_free_all_data(ImBuf *ibuf)
   IMB_free_float_pixels(ibuf);
 }
 
-void IMB_free_gpu_textures(ImBuf *ibuf)
-{
-  if (!ibuf || !ibuf->gpu.texture) {
-    return;
-  }
-
-  GPU_texture_free(ibuf->gpu.texture);
-  ibuf->gpu.texture = nullptr;
-}
-
 void IMB_freeImBuf(ImBuf *ibuf)
 {
   if (ibuf == nullptr) {
@@ -264,12 +254,6 @@ void ImBuf::assign_float_data(const float *data, ImplicitSharingPtr<> sharing_pt
   this->float_buffer.sharing_info = std::move(sharing_ptr);
 }
 
-void IMB_assign_gpu_texture(ImBuf *ibuf, gpu::Texture *texture)
-{
-  IMB_free_gpu_textures(ibuf);
-  ibuf->gpu.texture = texture;
-}
-
 void IMB_ensure_host_buffer(ImBuf *ibuf)
 {
   if (!ibuf || !ibuf->gpu.texture) {
@@ -373,7 +357,8 @@ ImBuf *IMB_allocImBuf(uint x, uint y, ImBufFlags flags)
 
 bool IMB_initImBuf(ImBuf *ibuf, uint x, uint y, ImBufFlags flags)
 {
-  *ibuf = ImBuf{};
+  ibuf->~ImBuf();
+  new (ibuf) ImBuf();
 
   ibuf->x = x;
   ibuf->y = y;
@@ -433,7 +418,6 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
   ibuf2->ppm[0] = ibuf1->ppm[0];
   ibuf2->ppm[1] = ibuf1->ppm[1];
   ibuf2->dither = ibuf1->dither;
-  ibuf2->index = ibuf1->index;
   ibuf2->userflags = ibuf1->userflags;
   ibuf2->userflags = ibuf1->userflags;
   ibuf2->metadata_ptr = ibuf1->metadata_ptr;

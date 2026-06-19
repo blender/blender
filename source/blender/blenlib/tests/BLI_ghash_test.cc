@@ -6,9 +6,9 @@
 
 #define GHASH_INTERNAL_API
 
-#include "BLI_ghash.h"
-#include "BLI_rand.h"
-#include "BLI_utildefines.h"
+#include "BLI_ghash.hh"
+#include "BLI_rand_c.hh"
+#include "BLI_utildefines.hh"
 
 namespace blender {
 

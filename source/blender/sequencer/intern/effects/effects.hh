@@ -9,7 +9,7 @@
  */
 
 #include "BLI_array.hh"
-#include "BLI_math_color.h"
+#include "BLI_math_color_c.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_task.hh"
 

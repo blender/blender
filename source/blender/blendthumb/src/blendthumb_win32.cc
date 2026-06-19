@@ -18,7 +18,7 @@
 
 #include "blendthumb.hh"
 
-#include "BLI_filereader.h"
+#include "BLI_filereader.hh"
 
 #pragma comment(lib, "shlwapi.lib")
 

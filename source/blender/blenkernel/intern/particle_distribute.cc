@@ -11,13 +11,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_jitter_2d.h"
+#include "BLI_jitter_2d.hh"
 #include "BLI_kdtree.hh"
-#include "BLI_math_geom.h"
-#include "BLI_rand.h"
-#include "BLI_sort.h"
-#include "BLI_task.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_rand_c.hh"
+#include "BLI_sort.hh"
+#include "BLI_task_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"

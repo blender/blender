@@ -14,8 +14,8 @@
 #include <cstdlib>
 #include <cstring> /* required for STREQ later on. */
 
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"

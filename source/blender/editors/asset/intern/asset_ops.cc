@@ -28,15 +28,16 @@
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
 
-#include "BLI_fnmatch.h"
+#include "BLI_fnmatch.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 #include "BLI_set.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "ED_asset.hh"
 #include "ED_screen.hh"
 /* XXX needs access to the file list, should all be done via the asset system in future. */
+#include "ED_asset_menu_utils.hh"
 #include "ED_fileselect.hh"
 #include "ED_render.hh"
 #include "ED_util.hh"
@@ -1014,6 +1015,7 @@ static void ASSET_OT_bundle_install(wmOperatorType *ot)
 
   ot->prop = RNA_def_property(ot->srna, "asset_library_reference", PROP_ENUM, PROP_NONE);
   RNA_def_property_flag(ot->prop, PROP_HIDDEN);
+  RNA_def_property_enum_default(ot->prop, ASSET_LIBRARY_LOCAL);
   RNA_def_enum_funcs(ot->prop, rna_asset_library_reference_itemf);
 
   WM_operator_properties_filesel(ot,
@@ -1715,7 +1717,7 @@ static Vector<const asset_system::AssetRepresentation *> selected_or_active_asse
   return assets;
 }
 
-static bool assets_download_poll(bContext *C)
+static bool assets_download_any_poll(bContext *C)
 {
   if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
     CTX_wm_operator_poll_msg_set(
@@ -1728,6 +1730,15 @@ static bool assets_download_poll(bContext *C)
   CTX_wm_operator_poll_msg_set(C, "Asset downloading requires Python");
   return false;
 #endif
+
+  return true;
+}
+
+static bool assets_download_poll(bContext *C)
+{
+  if (!assets_download_any_poll(C)) {
+    return false;
+  }
 
   const Vector<const asset_system::AssetRepresentation *> assets = selected_or_active_assets(C);
   if (assets.is_empty()) {
@@ -1779,6 +1790,41 @@ static void ASSET_OT_assets_download(wmOperatorType *ot)
 
 /* -------------------------------------------------------------------- */
 
+static wmOperatorStatus asset_download_exec(bContext *C, wmOperator *op)
+{
+  const asset_system::AssetRepresentation *asset =
+      operator_asset_reference_props_get_asset_from_all_library(*C, *op->ptr, op->reports);
+
+  if (!asset->needs_download()) {
+    BKE_reportf(
+        op->reports, RPT_ERROR, "Asset '%s' doesn't need downloading", asset->get_name().c_str());
+    return OPERATOR_CANCELLED;
+  }
+  asset_system::remote_library_request_asset_download(*C, *asset, op->reports);
+
+  return OPERATOR_FINISHED;
+}
+
+/**
+ * Variant of #ASSET_OT_assets_download that only downloads a single specific asset given in the
+ * operator properties.
+ */
+static void ASSET_OT_asset_download(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Download Asset";
+  ot->description = "Make the asset available without internet access";
+  ot->idname = "ASSET_OT_asset_download";
+
+  /* API callbacks. */
+  ot->exec = asset_download_exec;
+  ot->poll = assets_download_any_poll;
+
+  operator_asset_reference_props_register(*ot->srna);
+}
+
+/* -------------------------------------------------------------------- */
+
 void operatortypes_asset()
 {
   WM_operatortype_append(ASSET_OT_mark);
@@ -1800,6 +1846,7 @@ void operatortypes_asset()
   WM_operatortype_append(ASSET_OT_screenshot_preview);
 
   WM_operatortype_append(ASSET_OT_assets_download);
+  WM_operatortype_append(ASSET_OT_asset_download);
 }
 
 }  // namespace blender::ed::asset

@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_threads.h"
+#include "BLI_threads.hh"
 #include "COM_result.hh"
 #include "DRW_engine.hh"
 

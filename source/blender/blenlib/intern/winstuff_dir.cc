@@ -21,8 +21,8 @@
 #  endif
 
 #  define WIN32_SKIP_HKEY_PROTECTION /* Need to use `HKEY`. */
-#  include "BLI_utildefines.h"
-#  include "BLI_winstuff.h"
+#  include "BLI_utildefines.hh"
+#  include "BLI_winstuff.hh"
 #  include "utfconv.hh"
 
 #  define PATH_SUFFIX "\\*"

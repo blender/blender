@@ -9,8 +9,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_math_color.h"
-#include "BLI_math_color_blend.h"
+#include "BLI_math_color_blend.hh"
+#include "BLI_math_color_c.hh"
 #include "BLI_math_vector.hh"
 
 #include "BLT_translation.hh"

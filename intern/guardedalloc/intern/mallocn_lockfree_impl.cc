@@ -26,7 +26,7 @@
 #endif
 
 /* to ensure strict conversions */
-#include "../../source/blender/blenlib/BLI_strict_flags.h"
+#include "../../source/blender/blenlib/BLI_strict_flags.hh"
 
 #include "atomic_ops.h"
 #include "mallocn_intern.hh"

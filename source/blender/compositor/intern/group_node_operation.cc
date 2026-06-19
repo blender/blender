@@ -4,7 +4,7 @@
 
 #include <memory>
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_node_types.h"

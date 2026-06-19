@@ -7,7 +7,7 @@
  */
 
 #include "BLI_string_ref.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include <ostream>
 

@@ -47,6 +47,7 @@ void VKDescriptorSetTracker::update_descriptor_set(VKContext &context,
       shader.push_constants.layout_get().storage_type_get() !=
           VKPushConstants::StorageType::BUFFER)
   {
+    r_pipeline_data.vk_descriptor_set = descriptor_sets.vk_descriptor_set;
     return;
   }
   vk_descriptor_set_layout_ = shader_descriptor_set_layout;

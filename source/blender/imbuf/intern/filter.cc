@@ -10,8 +10,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math_base.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "IMB_filter.hh"
 #include "IMB_imbuf.hh"

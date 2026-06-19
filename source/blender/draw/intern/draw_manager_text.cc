@@ -8,15 +8,15 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math_color.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_memiter.h"
-#include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_memiter.hh"
+#include "BLI_rect.hh"
+#include "BLI_string.hh"
 
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"

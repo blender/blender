@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'2b1958ccdccb')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e899b48ea546')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-08 09:37+0000\n"
+"POT-Creation-Date: 2026-06-15 07:32+0000\n"
 "PO-Revision-Date: 2026-01-20 15:20+0000\n"
 "Last-Translator: golden dragon <trmhtk2@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
@@ -2237,20 +2237,20 @@ msgid "Grease Pencil Color"
 msgstr "Grease Pencil יאבצ"
 
 
+msgid "Mirror"
+msgstr "הארמ"
+
+
 msgid "Apply"
 msgstr "לחה"
-
-
-msgid "Convert"
-msgstr "רמה"
 
 
 msgid "Face Data"
 msgstr "האפ ינותנ"
 
 
-msgid "Mirror"
-msgstr "הארמ"
+msgid "Convert"
+msgstr "רמה"
 
 
 msgid "Layout"

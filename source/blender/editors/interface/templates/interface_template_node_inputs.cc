@@ -126,7 +126,8 @@ static void draw_node_inputs_recursive(bContext *C,
     }
     else if (const auto *layout_decl = dynamic_cast<const LayoutDeclaration *>(item_decl)) {
       if (!layout_decl->is_default) {
-        layout_decl->draw(*panel.body, C, node_ptr);
+        Layout &column = panel.body->column(false);
+        layout_decl->draw(column, C, node_ptr);
       }
     }
   }
@@ -177,7 +178,8 @@ void template_node_inputs(Layout *layout, bContext *C, PointerRNA *ptr)
       }
       else if (const auto *layout_decl = dynamic_cast<const LayoutDeclaration *>(item_decl)) {
         if (!layout_decl->is_default) {
-          layout_decl->draw(*layout, C, ptr);
+          Layout &column = layout->column(false);
+          layout_decl->draw(column, C, ptr);
         }
       }
     }

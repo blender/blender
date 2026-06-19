@@ -9,7 +9,7 @@
  */
 
 #ifdef WITH_OCEANSIM
-#  include "BLI_threads.h"
+#  include "BLI_threads.hh"
 #  include "fftw3.h"
 #endif
 

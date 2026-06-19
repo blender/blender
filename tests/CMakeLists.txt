@@ -55,6 +55,7 @@ endif()
 # Specify exit code so that if a Python script error happens, the test fails.
 set(TEST_BLENDER_EXE_PARAMS
   --background
+  --console-crash-handler
   --factory-startup
   --debug-memory
   --debug-exit-on-error

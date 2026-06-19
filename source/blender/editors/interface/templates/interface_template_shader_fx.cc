@@ -8,7 +8,7 @@
  * Template for building the panel layout for the active object's grease pencil shader effects.
  */
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "BKE_screen.hh"
 #include "BKE_shader_fx.hh"

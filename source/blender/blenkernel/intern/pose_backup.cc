@@ -10,7 +10,7 @@
 
 #include <cstring>
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "MEM_guardedalloc.h"
 

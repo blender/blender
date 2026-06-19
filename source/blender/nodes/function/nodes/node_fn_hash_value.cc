@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_hash.h"
+#include "BLI_hash_c.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_noise.hh"
 

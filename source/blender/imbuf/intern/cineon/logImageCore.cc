@@ -17,8 +17,8 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "BLI_fileops.h"
-#include "BLI_utildefines.h"
+#include "BLI_fileops.hh"
+#include "BLI_utildefines.hh"
 
 #include "IMB_imbuf.hh"
 

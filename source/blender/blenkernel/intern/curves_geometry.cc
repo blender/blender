@@ -14,7 +14,7 @@
 #include "BLI_bounds.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_length_parameterize.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation_legacy.hh"
 #include "BLI_memory_counter.hh"
@@ -284,6 +284,7 @@ void CurvesGeometry::fill_curve_types(const IndexMask &selection, const CurveTyp
 
 std::array<int, CURVE_TYPES_NUM> calculate_type_counts(const VArray<int8_t> &types)
 {
+  PRF_scope(ProfileCategory::Core);
   using CountsType = std::array<int, CURVE_TYPES_NUM>;
   CountsType counts;
   counts.fill(0);
@@ -1498,6 +1499,7 @@ CurvesGeometry curves_copy_point_selection(const CurvesGeometry &curves,
                                            const IndexMask &points_to_copy,
                                            const AttributeFilter &attribute_filter)
 {
+  PRF_scope(ProfileCategory::Core);
   const Array<int> point_to_curve_map = curves.point_to_curve_map();
   Array<int> curve_point_counts(curves.curves_num(), 0);
   points_to_copy.foreach_index_optimized<int64_t>(
@@ -1594,6 +1596,7 @@ CurvesGeometry curves_copy_curve_selection(const CurvesGeometry &curves,
                                            const IndexMask &curves_to_copy,
                                            const AttributeFilter &attribute_filter)
 {
+  PRF_scope(ProfileCategory::Core);
   const OffsetIndices points_by_curve = curves.points_by_curve();
   CurvesGeometry dst_curves(0, curves_to_copy.size());
   const OffsetIndices dst_points_by_curve = offset_indices::gather_selected_offsets(

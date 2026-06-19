@@ -6,8 +6,8 @@
 #include "node_graph.h"
 #include "node_parser.h"
 
-#include "BLI_assert.h"
-#include "BLI_utildefines.h"
+#include "BLI_assert.hh"
+#include "BLI_utildefines.hh"
 
 namespace blender::nodes::materialx {
 

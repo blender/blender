@@ -6,9 +6,9 @@
  * \ingroup spfile
  */
 
-#include "BLI_listbase.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
@@ -175,7 +175,6 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
                               float(FILE_MAXFILE),
                               overwrite_alert ? TIP_("File name, overwrite existing") :
                                                 TIP_("File name"));
-  button_retval_set(but, -1);
 
   BLI_assert(!button_flag_is_set(but, ui::BUT_UNDO));
   BLI_assert(!but_is_utf8(but));

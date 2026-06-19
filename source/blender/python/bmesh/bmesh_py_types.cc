@@ -6,10 +6,10 @@
  * \ingroup pybmesh
  */
 
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_sort.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_sort.hh"
 #include "BLI_string_utils.hh"
 
 #include "DNA_material_types.h"

@@ -6,7 +6,7 @@
 
 #include "node_shader_util.hh"
 
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
@@ -407,12 +407,16 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
     flag |= GPU_MATFLAG_TRANSLUCENT;
   }
 
+  const bool refraction_might_be_tinted = use_refract && in[SOCK_BASE_COLOR_ID].might_be_tinted();
+
   if (might_have_tinted_specular(
-          in[SOCK_BASE_COLOR_ID], in[SOCK_METALLIC_ID], in[SOCK_SPECULAR_TINT_ID]))
+          in[SOCK_BASE_COLOR_ID], in[SOCK_METALLIC_ID], in[SOCK_SPECULAR_TINT_ID]) ||
+      /* Multiscatter GGX can tint the reflection lobe. See `bsdf_lut`. */
+      (refraction_might_be_tinted && node->custom1 == SHD_GLOSSY_MULTI_GGX))
   {
     flag |= GPU_MATFLAG_REFLECTION_MAYBE_COLORED;
   }
-  if (use_refract && in[SOCK_BASE_COLOR_ID].might_be_tinted()) {
+  if (refraction_might_be_tinted) {
     flag |= GPU_MATFLAG_REFRACTION_MAYBE_COLORED;
   }
   if (use_coat && in[SOCK_COAT_TINT_ID].might_be_tinted()) {

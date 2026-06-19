@@ -11,7 +11,7 @@
 
 #include <optional>
 
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 #include "BLI_map.hh"
 #include "BLI_ordered_edge.hh"
 #include "BLI_vector.hh"

@@ -197,6 +197,12 @@ Note that these properties can only be assigned basic Python types:
 - array of ints or floats
 - dictionary (only string keys are supported, values must be basic types too)
 
+.. note::
+
+   Using dictionaries allow to nest data into other data.
+   There is a hard limit of 1024 levels to the supported nesting depth.
+   Deeper nesting will lead to error messages and loss of data.
+
 These properties are valid outside of Python. They can be animated by curves or used in driver paths.
 
 For a list of types that support custom properties see:

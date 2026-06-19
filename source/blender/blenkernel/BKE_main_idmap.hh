@@ -17,8 +17,8 @@
  * - `BKE_main_idmap_` Should be used for functions in that file.
  */
 
-#include "BLI_compiler_attrs.h"
-#include "BLI_sys_types.h"
+#include "BLI_compiler_attrs.hh"
+#include "BLI_sys_types.hh"
 
 namespace blender {
 

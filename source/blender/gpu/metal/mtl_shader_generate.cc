@@ -6,7 +6,7 @@
 #include <sstream>
 #include <string>
 
-#include "BLI_math_bits.h"
+#include "BLI_math_bits.hh"
 
 #include "gpu_shader_dependency_private.hh"
 #include "mtl_backend.hh"

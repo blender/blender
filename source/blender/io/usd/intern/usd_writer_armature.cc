@@ -9,7 +9,7 @@
 
 #include "ANIM_action.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase_iterator.hh"
 
 #include "BKE_action.hh"
 

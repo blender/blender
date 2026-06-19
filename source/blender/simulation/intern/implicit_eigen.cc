@@ -51,8 +51,8 @@ extern "C" {
 #  include "DNA_scene_types.h"
 #  include "DNA_texture_types.h"
 
-#  include "BLI_linklist.h"
-#  include "BLI_utildefines.h"
+#  include "BLI_linklist.hh"
+#  include "BLI_utildefines.hh"
 
 #  include "BKE_cloth.hh"
 #  include "BKE_collision.h"

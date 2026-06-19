@@ -15,8 +15,8 @@
 #  include "DNA_meshdata_types.h"
 #endif
 
-#include "BLI_linklist.h"
-#include "BLI_math_vector.h"
+#include "BLI_linklist.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"

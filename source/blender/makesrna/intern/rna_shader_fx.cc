@@ -13,7 +13,7 @@
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_shader_fx_types.h"
 
-#include "BLI_math_rotation.h"
+#include "BLI_math_rotation_c.hh"
 
 #include "BLT_translation.hh"
 
@@ -86,8 +86,8 @@ static const EnumPropertyItem rna_enum_glow_blend_modes_items[] = {
 
 #  include <fmt/format.h>
 
-#  include "BLI_string.h"
-#  include "BLI_string_utf8.h"
+#  include "BLI_string.hh"
+#  include "BLI_string_utf8.hh"
 
 #  include "BKE_lib_id.hh"
 #  include "BKE_shader_fx.hh"

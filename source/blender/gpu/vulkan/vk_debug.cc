@@ -9,7 +9,7 @@
 #include <sstream>
 
 #include "BKE_global.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include "CLG_log.h"
 
 #include "vk_backend.hh"

@@ -22,7 +22,7 @@
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"
 
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 #include "BLI_set.hh"
 
 #include "IO_validate.hh"

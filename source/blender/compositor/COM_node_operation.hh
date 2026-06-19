@@ -8,6 +8,8 @@
 
 #include "BKE_node.hh"
 
+#include "NOD_geometry_nodes_warning.hh"
+
 #include "COM_context.hh"
 #include "COM_operation.hh"
 #include "COM_result.hh"
@@ -63,6 +65,9 @@ class NodeOperation : public Operation {
   void set_needs_node_previews(const bool needed);
 
  protected:
+  /* Add a warning of the given type and message to the node. */
+  void add_warning(nodes::NodeWarningType type, std::string message);
+
   /* Log the values for the inputs and outputs of the node as well as its image preview. */
   void log_data() override;
 

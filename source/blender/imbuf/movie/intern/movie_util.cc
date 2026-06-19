@@ -7,8 +7,8 @@
  */
 
 #include "BLI_path_utils.hh"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
+#include "BLI_threads.hh"
+#include "BLI_utildefines.hh"
 
 #include "CLG_log.h"
 #include "DNA_scene_types.h"
@@ -21,7 +21,7 @@
 #include <mutex>
 
 #ifdef WITH_FFMPEG
-#  include "BLI_string.h"
+#  include "BLI_string.hh"
 
 extern "C" {
 #  include "ffmpeg_compat.h"

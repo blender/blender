@@ -11,8 +11,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_path_utils.hh"
-#include "BLI_string_utf8.h"
-#include "BLI_time.h"
+#include "BLI_string_utf8.hh"
+#include "BLI_time.hh"
 
 #include "BLT_translation.hh"
 

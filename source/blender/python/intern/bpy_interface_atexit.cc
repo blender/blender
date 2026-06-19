@@ -20,7 +20,7 @@
 #include "WM_api.hh"
 
 #ifdef _WIN32
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #else
 #  include <cstdlib>
 #endif

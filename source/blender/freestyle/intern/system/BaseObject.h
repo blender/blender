@@ -12,7 +12,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 namespace Freestyle {
 

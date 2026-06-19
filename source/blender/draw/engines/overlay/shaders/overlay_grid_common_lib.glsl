@@ -27,10 +27,4 @@ float unpack_xy_to_axis(float2 xy, uint grid_flag, uint axis)
   return xyz[axis];
 }
 
-/* True rue if components of `v` fall within `epsilon` of 0. */
-bool is_zero(float2 v, float epsilon)
-{
-  return all(lessThanEqual(abs(v), float2(epsilon)));
-}
-
 }  // namespace grid

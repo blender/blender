@@ -6,7 +6,7 @@
  * \ingroup edgreasepencil
  */
 
-#include "BLI_math_color.h"
+#include "BLI_math_color_c.hh"
 
 #include "BLT_translation.hh"
 
@@ -241,11 +241,16 @@ static void GREASE_PENCIL_OT_vertex_color_hsv(wmOperatorType *ot)
   /* params */
   ot->prop = RNA_def_enum(
       ot->srna, "mode", prop_grease_pencil_vertex_mode, int(VertexColorMode::Both), "Mode", "");
-  RNA_def_float(ot->srna, "h", 0.5f, 0.0f, 1.0f, "Hue", "", 0.0f, 1.0f);
-  RNA_def_float(ot->srna, "s", 1.0f, 0.0f, 2.0f, "Saturation", "", 0.0f, 2.0f);
 
-  ot->prop = RNA_def_float(ot->srna, "v", 1.0f, 0.0f, 2.0f, "Value", "", 0.0f, 2.0f);
-  RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_COLOR);
+  PropertyRNA *prop = RNA_def_float(ot->srna, "h", 0.5f, 0.0f, 1.0f, "Hue", "", 0.0f, 1.0f);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_float(ot->srna, "s", 1.0f, 0.0f, 2.0f, "Saturation", "", 0.0f, 2.0f);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_float(ot->srna, "v", 1.0f, 0.0f, 2.0f, "Value", "", 0.0f, 2.0f);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_COLOR);
 }
 
 static wmOperatorStatus grease_pencil_vertex_paint_invert_exec(bContext *C, wmOperator *op)

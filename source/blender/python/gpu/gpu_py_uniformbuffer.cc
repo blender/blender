@@ -13,7 +13,7 @@
 
 #include <Python.h>
 
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "GPU_context.hh"
 #include "GPU_uniform_buffer.hh"

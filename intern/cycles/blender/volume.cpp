@@ -377,12 +377,21 @@ static void sync_volume_object(blender::Main &b_data,
       std = ATTR_STD_VOLUME_VELOCITY_Z;
     }
 
-    if ((std != ATTR_STD_NONE && volume->need_attribute(scene, std)) ||
-        volume->need_attribute(scene, name))
-    {
-      Attribute *attr = (std != ATTR_STD_NONE) ?
-                            volume->attributes.add(std) :
-                            volume->attributes.add(name, TypeFloat, ATTR_ELEMENT_VOXEL);
+    const bool need_std = (std != ATTR_STD_NONE && volume->need_attribute(scene, std));
+    const bool need_named = volume->need_attribute(scene, name);
+
+    if (need_std || need_named) {
+      Attribute *attr;
+      if (need_std) {
+        /* Make grid available both with std and name. */
+        attr = volume->attributes.add(std, name);
+      }
+      else {
+        /* Make grid available by name with appropriate number of channels. */
+        const int channels = blender::bke::volume_grid::get_channels_num(b_grid.grid_type());
+        const TypeDesc type = (channels == 3) ? TypeVector : TypeFloat;
+        attr = volume->attributes.add(name, type, ATTR_ELEMENT_VOXEL);
+      }
 
       unique_ptr<ImageLoader> loader = make_unique<BlenderVolumeLoader>(
           b_data,

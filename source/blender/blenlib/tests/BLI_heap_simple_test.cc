@@ -7,11 +7,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_compiler_attrs.h"
-#include "BLI_heap_simple.h"
-#include "BLI_rand.h"
-#include "BLI_sys_types.h"
-#include "BLI_utildefines.h"
+#include "BLI_compiler_attrs.hh"
+#include "BLI_heap_simple.hh"
+#include "BLI_rand_c.hh"
+#include "BLI_sys_types.hh"
+#include "BLI_utildefines.hh"
 
 namespace blender {
 

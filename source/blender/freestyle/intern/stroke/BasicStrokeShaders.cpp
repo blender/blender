@@ -25,7 +25,7 @@
 
 #include "BKE_global.hh"
 
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"

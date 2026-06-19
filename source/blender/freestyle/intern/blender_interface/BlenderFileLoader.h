@@ -37,8 +37,8 @@
 #include "BKE_mesh.h"
 #include "BKE_scene.hh"
 
-#include "BLI_iterator.h"
-#include "BLI_listbase.h"
+#include "BLI_iterator.hh"
+#include "BLI_listbase.hh"
 
 #include "DEG_depsgraph_query.hh"
 

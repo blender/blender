@@ -844,6 +844,10 @@ def brush_settings(layout, context, brush, popover=False):
                 row.prop(brush, "invert_hardness_pressure", text="")
                 row.prop(brush, "use_hardness_pressure", text="")
 
+        if capabilities.has_tip_roundness:
+            layout.prop(brush, "tip_roundness", slider=True)
+            layout.prop(brush, "tip_scale_x", slider=True)
+
         # auto_smooth_factor and use_inverse_smooth_pressure
         if capabilities.has_auto_smooth:
             pressure_name = "use_inverse_smooth_pressure" if capabilities.has_auto_smooth_pressure else None
@@ -932,14 +936,7 @@ def brush_settings(layout, context, brush, popover=False):
 
         # Per sculpt tool options.
 
-        if sculpt_brush_type == 'CLAY_STRIPS':
-            row = layout.row()
-            row.prop(brush, "tip_roundness")
-
-            row = layout.row()
-            row.prop(brush, "tip_scale_x")
-
-        elif sculpt_brush_type == 'ELASTIC_DEFORM':
+        if sculpt_brush_type == 'ELASTIC_DEFORM':
             layout.separator()
             layout.prop(brush, "elastic_deform_type")
             layout.prop(brush, "elastic_deform_volume_preservation", slider=True)
@@ -1032,12 +1029,6 @@ def brush_settings(layout, context, brush, popover=False):
             row.prop(brush, "density")
             row.prop(brush, "invert_density_pressure", text="")
             row.prop(brush, "use_density_pressure", text="")
-
-            row = layout.row()
-            row.prop(brush, "tip_roundness")
-
-            row = layout.row()
-            row.prop(brush, "tip_scale_x")
 
         elif sculpt_brush_type == 'SMEAR':
             col = layout.column()

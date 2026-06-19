@@ -12,8 +12,8 @@
 
 #include "BLI_implicit_sharing.hh"
 #include "BLI_implicit_sharing_ptr.hh"
-#include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
 
 #include "BKE_idprop.hh"
 

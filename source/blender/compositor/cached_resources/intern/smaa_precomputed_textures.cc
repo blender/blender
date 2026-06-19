@@ -4,7 +4,7 @@
 
 #include <memory>
 
-#include "BLI_smaa_textures.h"
+#include "BLI_smaa_textures.hh"
 
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"

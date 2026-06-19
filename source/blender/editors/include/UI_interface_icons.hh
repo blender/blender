@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 /* Required for #eIconSizes. */
 #include "DNA_ID_enums.h"
@@ -101,7 +101,8 @@ void icon_draw_ex(float x,
                   const uchar mono_color[4],
                   bool mono_border,
                   const IconTextOverlay *text_overlay,
-                  const bool inverted = false);
+                  const bool inverted = false,
+                  float scale = 1.0f);
 
 ImBuf *svg_icon_bitmap(uint icon_id, float size, bool multicolor = false);
 

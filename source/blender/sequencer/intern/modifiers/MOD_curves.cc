@@ -76,7 +76,7 @@ struct CurvesApplyOp {
 static void curves_apply(ModifierApplyContext &context, StripModifierData *smd)
 {
   PRF_scope_with_name("SeqModCurves", ProfileCategory::Draw);
-  ensure_ibuf_is_sequencer_space(context.render_data.scene, context.image, false);
+  ensure_ibuf_is_sequencer_space(context.render_data.scene, context.result.image, false);
   ImBuf *mask = modifier_render_mask_input(context, *smd);
 
   CurvesModifierData *cmd = reinterpret_cast<CurvesModifierData *>(smd);
@@ -91,7 +91,7 @@ static void curves_apply(ModifierApplyContext &context, StripModifierData *smd)
 
   CurvesApplyOp op;
   op.curve_mapping = &cmd->curve_mapping;
-  apply_modifier_op(op, context.image, mask, context.transform);
+  apply_modifier_op(op, context.result.image, mask, context.transform);
 
   BKE_curvemapping_premultiply(&cmd->curve_mapping, true);
   if (mask != nullptr) {

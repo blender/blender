@@ -17,7 +17,7 @@
 #include "BKE_material.hh"
 
 #include "BLI_array_utils.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_task.hh"
 #include "BLI_task_size_hints.hh"

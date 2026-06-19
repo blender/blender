@@ -10,8 +10,8 @@
 
 #include "DNA_scene_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_bits.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_bits.hh"
 
 #include "bmesh.hh"
 #include "bmesh_structure.hh"

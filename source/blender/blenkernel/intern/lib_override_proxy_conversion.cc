@@ -8,8 +8,8 @@
 
 #include "CLG_log.h"
 
-#include "BLI_linklist.h"
-#include "BLI_listbase.h"
+#include "BLI_linklist.hh"
+#include "BLI_listbase.hh"
 
 /* Required for proxy to liboverrides conversion code. */
 #define DNA_DEPRECATED_ALLOW

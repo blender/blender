@@ -9,7 +9,7 @@
  */
 #include <Python.h>
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "bpy_capi_utils.hh"
 

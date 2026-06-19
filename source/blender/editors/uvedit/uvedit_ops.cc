@@ -24,9 +24,9 @@
 #include "BLI_enum_flags.hh"
 #include "BLI_kdtree.hh"
 #include "BLI_math_base.hh"
-#include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_geom_c.hh"
 #include "BLI_math_vector.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "BLT_translation.hh"
 

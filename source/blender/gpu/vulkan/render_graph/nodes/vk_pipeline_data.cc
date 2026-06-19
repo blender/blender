@@ -62,7 +62,11 @@ void vk_pipeline_data_build_commands(VKCommandBufferInterface &command_buffer,
     command_buffer.bind_pipeline(vk_pipeline_bind_point, r_bound_pipeline.vk_pipeline);
   }
 
-  if (assign_if_different(r_bound_pipeline.vk_descriptor_set, pipeline_data.vk_descriptor_set) &&
+  const bool descriptor_set_changed = assign_if_different(r_bound_pipeline.vk_descriptor_set,
+                                                          pipeline_data.vk_descriptor_set);
+  const bool layout_changed = assign_if_different(r_bound_pipeline.vk_pipeline_layout,
+                                                  pipeline_data.vk_pipeline_layout);
+  if ((descriptor_set_changed || layout_changed) &&
       r_bound_pipeline.vk_descriptor_set != VK_NULL_HANDLE)
   {
     command_buffer.bind_descriptor_sets(vk_pipeline_bind_point,

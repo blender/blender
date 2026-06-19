@@ -426,6 +426,7 @@ set(SRC
   BKE_idtype.hh
   BKE_image.hh
   BKE_image_format.hh
+  BKE_image_gpu.hh
   BKE_image_partial_update.hh
   BKE_image_save.hh
   BKE_image_wrappers.hh
@@ -555,6 +556,7 @@ set(SRC
 
   intern/attribute_storage_access.hh
   intern/data_transfer_intern.hh
+  intern/image_intern.hh
   intern/lib_intern.hh
   intern/multires_inline.hh
   intern/multires_reshape.hh

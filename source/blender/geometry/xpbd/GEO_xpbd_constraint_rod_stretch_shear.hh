@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 
 #include "GEO_xpbd_constraint_coloring_utils.hh"
 #include "GEO_xpbd_constraint_set_templated.hh"

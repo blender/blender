@@ -4,7 +4,7 @@
 #include "testing/testing.h"
 #include <cstring>
 
-#include "BLI_uuid.h"
+#include "BLI_uuid.hh"
 
 namespace blender::tests {
 

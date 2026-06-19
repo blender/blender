@@ -12,7 +12,7 @@
 
 #include <algorithm>
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 namespace blender {
@@ -20,7 +20,7 @@ namespace blender {
 /* -------------------------------------------------------------------- */
 /** \name Constexpr Utility Functions
  *
- * Those should eventually be de-duplicated with functions in BLI_math_base.h.
+ * Those should eventually be de-duplicated with functions in BLI_math_base_c.hh.
  * \{ */
 
 template<typename IntT> constexpr IntT ceil_division(const IntT x, const IntT y)

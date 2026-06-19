@@ -22,7 +22,7 @@
  * over other previous ones.
  */
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "BKE_node_runtime.hh"
 

@@ -12,7 +12,7 @@
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 
-#include "BLI_math_color.h"
+#include "BLI_math_color_c.hh"
 
 #include "BLT_translation.hh"
 

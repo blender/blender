@@ -8,9 +8,9 @@
 
 #pragma once
 
-#include "BLI_linklist.h"
+#include "BLI_linklist.hh"
 #include "BLI_set.hh"
-#include "BLI_threads.h"
+#include "BLI_threads.hh"
 
 #include "DNA_lineart_types.h"
 #include "DNA_listBase.h"

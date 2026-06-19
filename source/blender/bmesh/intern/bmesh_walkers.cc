@@ -30,8 +30,8 @@
 #include <cstdlib>
 #include <cstring> /* For `memcpy`. */
 
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_utildefines.hh"
 
 #include "bmesh.hh"
 

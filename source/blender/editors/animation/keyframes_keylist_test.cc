@@ -25,8 +25,8 @@
 #include "BKE_main.hh"
 #include "BKE_object.hh"
 
-#include "BLI_listbase.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_string_utf8.hh"
 
 #include <functional>
 #include <optional>

@@ -17,7 +17,7 @@
 #include <Python.h>
 #include <descrobject.h>
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "bpy_library.hh"
 #include "bpy_rna.hh"

@@ -6,7 +6,7 @@
  * \ingroup edinterface
  */
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "UI_interface.hh"
 #include "UI_tree_view.hh"

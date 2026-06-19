@@ -107,6 +107,7 @@ void sequencer_operatortypes()
   WM_operatortype_append(SEQUENCER_OT_select_lasso);
   WM_operatortype_append(SEQUENCER_OT_select_circle);
   WM_operatortype_append(SEQUENCER_OT_select_grouped);
+  WM_operatortype_append(SEQUENCER_OT_select_by_type);
 
   /* `sequencer_add.cc` */
   WM_operatortype_append(SEQUENCER_OT_scene_strip_add);

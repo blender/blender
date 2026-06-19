@@ -13,7 +13,7 @@
 #include <pxr/imaging/hd/xformSchema.h>
 
 #include "BLI_hash.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"

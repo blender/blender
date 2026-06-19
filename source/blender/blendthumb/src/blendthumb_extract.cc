@@ -12,11 +12,11 @@
 #include <cctype>
 #include <cstring>
 
-#include "BLI_alloca.h"
-#include "BLI_endian_defines.h"
-#include "BLI_fileops.h"
-#include "BLI_filereader.h"
-#include "BLI_string.h"
+#include "BLI_alloca.hh"
+#include "BLI_endian_defines.hh"
+#include "BLI_fileops.hh"
+#include "BLI_filereader.hh"
+#include "BLI_string.hh"
 
 #include "BLO_core_bhead.hh"
 #include "BLO_core_blend_header.hh"

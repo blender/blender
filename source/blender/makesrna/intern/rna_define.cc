@@ -20,12 +20,12 @@
 
 #include "DNA_sdna_type_ids.hh"
 
-#include "BLI_asan.h"
-#include "BLI_ghash.h"
-#include "BLI_listbase.h"
-#include "BLI_math_bits.h"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_asan.hh"
+#include "BLI_ghash.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_bits.hh"
+#include "BLI_string.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_blender_version.h" /* For #BLENDER_VERSION deprecation warnings. */
 

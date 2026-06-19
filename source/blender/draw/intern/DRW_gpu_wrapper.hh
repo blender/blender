@@ -61,10 +61,10 @@
 
 #include "BKE_global.hh"
 
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 

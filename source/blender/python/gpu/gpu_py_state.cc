@@ -414,6 +414,12 @@ PyDoc_STRVAR(
     "\n"
     "   Specify the diameter of rasterized points.\n"
     "\n"
+    "   When ``program_point_size_set(False)`` is set, this sets the ``size``\n"
+    "   uniform of point shaders. Any value set by ``uniform_float(\"size\", ...)``\n"
+    "   on a point shader will be overwritten by this function. Use\n"
+    "   ``program_point_size_set(True)`` to disable this override and control\n"
+    "   point size via ``gl_PointSize`` in the vertex shader.\n"
+    "\n"
     "   :param size: New diameter.\n"
     "   :type size: float\n");
 static PyObject *pygpu_state_point_size_set(PyObject * /*self*/, PyObject *value)
@@ -506,10 +512,12 @@ PyDoc_STRVAR(
     pygpu_state_program_point_size_set_doc,
     ".. function:: program_point_size_set(enable)\n"
     "\n"
-    "   If enabled, the derived point size is taken from the (potentially clipped) "
-    "shader builtin gl_PointSize.\n"
+    "   When enabled (True), point size is taken from the shader builtin\n"
+    "   ``gl_PointSize``. When disabled (False), the global state value can\n"
+    "   be applied to the shader ``size`` uniform, overwriting any user-set\n"
+    "   value.\n"
     "\n"
-    "   :param enable: True for shader builtin gl_PointSize.\n"
+    "   :param enable: True to use shader ``gl_PointSize``, False for global state.\n"
     "   :type enable: bool\n");
 static PyObject *pygpu_state_program_point_size_set(PyObject * /*self*/, PyObject *value)
 {

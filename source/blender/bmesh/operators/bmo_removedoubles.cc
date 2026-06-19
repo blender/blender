@@ -12,14 +12,14 @@
 
 #include "BLI_array.hh"
 #include "BLI_kdtree.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
 #include "BLI_math_base.hh"
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 #include "BLI_multi_value_map.hh"
-#include "BLI_stack.h"
 #include "BLI_stack.hh"
-#include "BLI_utildefines_stack.h"
+#include "BLI_stack_c.hh"
+#include "BLI_utildefines_stack.hh"
 
 #include "BKE_customdata.hh"
 

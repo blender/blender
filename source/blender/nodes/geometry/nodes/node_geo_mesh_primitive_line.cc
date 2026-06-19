@@ -44,7 +44,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "In offset mode, the distance between each socket on each axis. In end points mode, the "
           "position of the final vertex")
-      .label_fn([](bNode node) {
+      .label_fn([](const bNode &node) {
         return (node_storage(node).mode == GEO_NODE_MESH_LINE_MODE_END_POINTS) ?
                    IFACE_("End Location") :
                    IFACE_("Offset");

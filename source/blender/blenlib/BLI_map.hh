@@ -1179,6 +1179,7 @@ class Map {
       if (slot.is_empty()) {
         slot.occupy(std::forward<ForwardKey>(key), hash, std::forward<ForwardValue>(value)...);
         BLI_assert(hash_(*slot.key()) == hash);
+        BLI_assert(is_equal_(*slot.key(), *slot.key()));
         occupied_and_removed_slots_++;
         return;
       }
@@ -1195,6 +1196,7 @@ class Map {
       if (slot.is_empty()) {
         slot.occupy(std::forward<ForwardKey>(key), hash, std::forward<ForwardValue>(value)...);
         BLI_assert(hash_(*slot.key()) == hash);
+        BLI_assert(is_equal_(*slot.key(), *slot.key()));
         occupied_and_removed_slots_++;
         return true;
       }
@@ -1255,6 +1257,7 @@ class Map {
       if (slot.is_empty()) {
         slot.occupy(std::forward<ForwardKey>(key), hash, create_value());
         BLI_assert(hash_(*slot.key()) == hash);
+        BLI_assert(is_equal_(*slot.key(), *slot.key()));
         occupied_and_removed_slots_++;
         return *slot.value();
       }
@@ -1274,6 +1277,7 @@ class Map {
       if (slot.is_empty()) {
         slot.occupy(std::forward<ForwardKey>(key), hash, std::forward<ForwardValue>(value)...);
         BLI_assert(hash_(*slot.key()) == hash);
+        BLI_assert(is_equal_(*slot.key(), *slot.key()));
         occupied_and_removed_slots_++;
         return *slot.value();
       }

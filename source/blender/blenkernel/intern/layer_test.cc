@@ -10,7 +10,7 @@
 #include "BKE_main.hh"
 #include "BKE_scene.hh"
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "RE_engine.h"
 

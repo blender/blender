@@ -16,7 +16,7 @@
 #include "UnaryFunction1D_vector_ViewShape/BPy_GetOccludersF1D.h"
 #include "UnaryFunction1D_vector_ViewShape/BPy_GetShapeF1D.h"
 
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 using namespace Freestyle;
 

@@ -8,10 +8,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
-#include "BLI_math_vector.h"
-#include "BLI_rand.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rand_c.hh"
 
 #include "BLT_translation.hh"
 

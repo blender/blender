@@ -24,7 +24,7 @@
 #include "paint_intern.hh"
 
 #ifndef NDEBUG
-#  include "BLI_array_utils.h" /* #BLI_array_is_zeroed */
+#  include "BLI_array_utils_c.hh" /* #BLI_array_is_zeroed */
 #endif
 
 namespace blender {

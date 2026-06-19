@@ -18,9 +18,9 @@
 #include "BKE_main.hh"
 #include "BKE_preferences.h"
 
-#include "BLI_listbase.h"  // IWYU pragma: keep
+#include "BLI_listbase.hh"  // IWYU pragma: keep
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "DNA_asset_types.h"
 #include "DNA_space_types.h"

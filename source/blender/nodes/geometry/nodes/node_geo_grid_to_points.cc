@@ -392,7 +392,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     using type_traits = typename bke::VolumeGridTraits<ValueT>;
     using TreeT = typename type_traits::TreeType;
 
-    if constexpr (!std::is_same_v<typename type_traits::BlenderType, void>) {
+    if constexpr (!std::is_same_v<TreeT, void>) {
       valid_grid_type = true;
       const TreeT &tree = static_cast<const TreeT &>(tree_base);
       process_tree<TreeT>(tree,

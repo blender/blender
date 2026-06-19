@@ -13,7 +13,7 @@
 #include <numbers>  // IWYU pragma: export
 #include <type_traits>
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 namespace blender::math {
 

@@ -8,11 +8,11 @@
 
 #include "AS_asset_library.hh"
 
-#include "BLI_linklist.h"
-#include "BLI_listbase.h"
+#include "BLI_linklist.hh"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_stack.h"
-#include "BLI_string.h"
+#include "BLI_stack_c.hh"
+#include "BLI_string.hh"
 #include "BLI_string_utils.hh"
 
 #include "BKE_asset.hh"
@@ -22,7 +22,7 @@
 #ifdef WIN32
 #  include "BKE_appdir.hh"
 #  include "BLF_api.hh"
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #endif
 
 #include "DNA_space_enums.h"

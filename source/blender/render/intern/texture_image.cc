@@ -23,10 +23,10 @@
 #include "DNA_image_types.h"
 #include "DNA_texture_types.h"
 
-#include "BLI_math_vector.h"
-#include "BLI_rect.h"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rect.hh"
+#include "BLI_threads.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_image.hh"
 

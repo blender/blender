@@ -7,7 +7,7 @@
 #include <string>
 #include <variant>
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_cpp_type.hh"
 #include "BLI_generic_array.hh"
 #include "BLI_generic_pointer.hh"

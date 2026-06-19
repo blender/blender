@@ -9,9 +9,10 @@
 #pragma once
 
 #include "BKE_camera.h"
+#include "BKE_image_gpu.hh"
 #include "BKE_tracking.hh"
-#include "BLI_math_color.h"
-#include "BLI_math_rotation.h"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_rotation_c.hh"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_camera_types.h"
 #include "DRW_render.hh"
@@ -715,12 +716,13 @@ class Cameras : Overlay {
         Images::stereo_setup(state.scene, state.v3d, image, iuser);
 
         iuser->scene = const_cast<Scene *>(state.scene);
-        tex = BKE_image_get_gpu_viewer_texture(image, iuser);
+        tex = BKE_image_acquire_gpu_viewer_texture(image, iuser);
         iuser->scene = nullptr;
 
         if (tex == nullptr) {
           return nullptr;
         }
+        DRW_manager_get()->hold_texture(tex);
 
         width = GPU_texture_original_width(tex);
         height = GPU_texture_original_height(tex);

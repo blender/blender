@@ -11,9 +11,9 @@
 
 #include "RNA_types.hh"
 
-#include "BLI_ghash.h"
-#include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_ghash.hh"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
 
 #include "BKE_addon.h" /* own include */
 #include "BKE_idprop.hh"

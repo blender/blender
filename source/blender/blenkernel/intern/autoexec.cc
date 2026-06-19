@@ -14,11 +14,11 @@
 
 #include "DNA_userdef_types.h"
 
-#include "BLI_fnmatch.h"
+#include "BLI_fnmatch.hh"
 #include "BLI_path_utils.hh"
 
 #ifdef WIN32
-#  include "BLI_string.h"
+#  include "BLI_string.hh"
 #endif
 
 #include "BKE_autoexec.hh" /* own include */

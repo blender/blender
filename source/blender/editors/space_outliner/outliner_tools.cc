@@ -29,11 +29,11 @@
 #include "DNA_volume_types.h"
 #include "DNA_world_types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
 #include "BLI_set.hh"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 #include "BLT_translation.hh"
@@ -48,6 +48,7 @@
 #include "BKE_global.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_idtype.hh"
+#include "BKE_image.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
@@ -71,6 +72,7 @@
 #include "ED_screen.hh"
 #include "ED_sequencer.hh"
 #include "ED_undo.hh"
+#include "ED_util.hh"
 
 #include "WM_api.hh"
 #include "WM_message.hh"
@@ -516,6 +518,9 @@ static void unlink_object_fn(bContext *C,
     /* NOTE: Cannot risk tagging the object here, as it may have been deleted if its last usage
      * was removed by above code. */
     DEG_id_tag_update(tsep->id, ID_RECALC_HIERARCHY);
+    /* Clear selection flags. Tree store elements are reused by other matching tree elements, see:
+     * !159899 */
+    tselem->flag &= ~(TSE_ACTIVE | TSE_SELECTED);
     DEG_relations_tag_update(bmain);
   }
 }
@@ -2326,7 +2331,7 @@ static wmOperatorStatus outliner_liboverride_property_remove_exec(bContext *C, w
 void OUTLINER_OT_liboverride_property_remove(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Outliner Library Override Properly Remove";
+  ot->name = "Outliner Library Override Property Remove";
   ot->idname = "OUTLINER_OT_liboverride_property_remove";
   ot->description =
       "Remove the selected library override properties, and reset the relevant data to the linked "
@@ -3039,6 +3044,45 @@ void OUTLINER_OT_delete(wmOperatorType *ot)
 
 /** \} */
 
+static wmOperatorStatus outliner_pack_data_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  Vector<PointerRNA> selected_idptrs = ED_operator_get_ids_from_context_as_vec(C);
+  int count = 0;
+
+  for (PointerRNA &idptr : selected_idptrs) {
+    ID *id = static_cast<ID *>(idptr.data);
+    if (GS(id->name) == ID_IM) {
+      Image *image = reinterpret_cast<Image *>(id);
+      BKE_image_packfile_ensure(bmain, image, op->reports, nullptr, 0);
+      count += BKE_image_has_packedfile(image);
+    }
+  }
+
+  if (count > 0) {
+    BKE_reportf(op->reports, RPT_INFO, "Packed %d images into the .blend file", count);
+    WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, nullptr);
+    return OPERATOR_FINISHED;
+  }
+
+  return OPERATOR_CANCELLED;
+}
+
+void OUTLINER_OT_pack_data(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Pack ID Data";
+  ot->idname = "OUTLINER_OT_pack_data";
+  ot->description = "Embed selected data-blocks into the .blend file";
+
+  /* callbacks */
+  ot->exec = outliner_pack_data_exec;
+  ot->poll = ED_operator_outliner_active;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /* -------------------------------------------------------------------- */
 /** \name ID-Data Menu Operator
  * \{ */
@@ -3060,6 +3104,7 @@ enum eOutlinerIdOpTypes {
   OUTLINER_IDOP_RENAME,
 
   OUTLINER_IDOP_SELECT_LINKED,
+  OUTLINER_IDOP_PACK,
 };
 
 /* TODO: implement support for changing the ID-block used. */
@@ -3086,6 +3131,7 @@ static const EnumPropertyItem prop_id_op_types[] = {
     {OUTLINER_IDOP_FAKE_CLEAR, "CLEAR_FAKE", 0, "Clear Fake User", ""},
     {OUTLINER_IDOP_RENAME, "RENAME", 0, "Rename", ""},
     {OUTLINER_IDOP_SELECT_LINKED, "SELECT_LINKED", 0, "Select Linked", ""},
+    {OUTLINER_IDOP_PACK, "PACK", ICON_PACKAGE, "Pack", "Embed data-blocks into the .blend file"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -3132,6 +3178,15 @@ static const EnumPropertyItem *outliner_id_operation_itemf(bContext *C,
   for (const EnumPropertyItem *it = prop_id_op_types; it->identifier != nullptr; it++) {
     if (!outliner_id_operation_item_poll(C, ptr, prop, it->value)) {
       continue;
+    }
+    if (it->value == OUTLINER_IDOP_PACK) {
+      /* Include Pack operation in context menu just for tree elements that repsents image IDs. */
+      const SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
+      const TreeElement *te = get_target_element(space_outliner);
+      const TreeStoreElem *tselem = TREESTORE(te);
+      if (tselem && (GS(tselem->id->name) != ID_IM)) {
+        continue;
+      }
     }
     RNA_enum_item_add(&items, &totitem, it);
   }
@@ -3306,7 +3361,11 @@ static wmOperatorStatus outliner_id_operation_exec(bContext *C, wmOperator *op)
       ED_outliner_select_sync_from_all_tag(C);
       ED_undo_push(C, "Select");
       break;
-
+    case OUTLINER_IDOP_PACK:
+      if (idlevel == ID_IM) {
+        WM_operator_name_call(
+            C, "OUTLINER_OT_pack_data", wm::OpCallContext::InvokeDefault, nullptr, nullptr);
+      }
     default:
       /* Invalid - unhandled. */
       break;

@@ -19,8 +19,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
 
 #include "BLF_api.hh"
 
@@ -29,9 +29,9 @@
 #include "blf_internal.hh"
 #include "blf_internal_types.hh"
 
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 

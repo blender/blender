@@ -6,7 +6,7 @@
  * \ingroup eevee
  */
 
-#include "BLI_time.h"
+#include "BLI_time.hh"
 #include "DNA_material_types.h"
 
 #include "BKE_lib_id.hh"
@@ -14,8 +14,6 @@
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
 #include "BKE_scene.hh"
-
-#include "NOD_shader.h"
 
 #include "eevee_instance.hh"
 #include "eevee_material.hh"
@@ -131,83 +129,8 @@ void MaterialModule::begin_sync()
   gpu_pass_last_update_ = gpu_pass_next_update_;
   gpu_pass_next_update_ = next_update;
 
-  texture_loading_queue_.clear();
   material_map_.clear();
   shader_map_.clear();
-}
-
-void MaterialModule::queue_texture_loading(GPUMaterial *material)
-{
-  ListBaseT<GPUMaterialTexture> textures = GPU_material_textures(material);
-  for (GPUMaterialTexture *tex : ListBaseWrapper<GPUMaterialTexture>(textures)) {
-    if (tex->ima) {
-      const bool use_tile_mapping = tex->tiled_mapping_name[0];
-      ImageUser *iuser = tex->iuser_available ? &tex->iuser : nullptr;
-      ImageGPUTextures gputex = BKE_image_get_gpu_material_texture_try(
-          tex->ima, iuser, use_tile_mapping);
-      if (*gputex.texture == nullptr) {
-        texture_loading_queue_.append(tex);
-      }
-    }
-  }
-}
-
-void MaterialModule::end_sync()
-{
-  if (texture_loading_queue_.is_empty()) {
-    return;
-  }
-
-  if (inst_.is_viewport()) {
-    /* Avoid ghosting of textures. */
-    inst_.sampling.reset();
-  }
-
-  GPU_debug_group_begin("Texture Loading");
-
-  /* Load files from disk in a multithreaded manner. Allow better parallelism. */
-  threading::parallel_for(texture_loading_queue_.index_range(), 1, [&](const IndexRange range) {
-    for (auto i : range) {
-      GPUMaterialTexture *tex = texture_loading_queue_[i];
-      ImageUser *iuser = tex->iuser_available ? &tex->iuser : nullptr;
-      BKE_image_get_tile(tex->ima, 0);
-      threading::isolate_task([&]() {
-        ImBuf *imbuf = BKE_image_acquire_ibuf(tex->ima, iuser, nullptr);
-        BKE_image_release_ibuf(tex->ima, imbuf, nullptr);
-      });
-    }
-  });
-
-  /* Tag time is not thread-safe. */
-  for (GPUMaterialTexture *tex : texture_loading_queue_) {
-    BKE_image_tag_time(tex->ima);
-  }
-
-  /* Avoid any leftover bind before BKE_image_get_gpu_material_texture which could cause assert
-   * about missing specialization constants. */
-  GPU_shader_unbind();
-
-  /* Upload to the GPU (create gpu::Texture). This part still requires a valid GPU context and
-   * is not easily parallelized. */
-  for (GPUMaterialTexture *tex : texture_loading_queue_) {
-    BLI_assert(tex->ima);
-    GPU_debug_group_begin(tex->ima->id.name);
-
-    const bool use_tile_mapping = tex->tiled_mapping_name[0];
-    ImageUser *iuser = tex->iuser_available ? &tex->iuser : nullptr;
-    ImageGPUTextures gputex = BKE_image_get_gpu_material_texture(
-        tex->ima, iuser, use_tile_mapping);
-
-    /* Acquire the textures since they were not existing inside `PassBase::material_set()`. */
-    inst_.manager->acquire_texture(*gputex.texture);
-    if (gputex.tile_mapping) {
-      inst_.manager->acquire_texture(*gputex.tile_mapping);
-    }
-
-    GPU_debug_group_end();
-  }
-  GPU_debug_group_end();
-  texture_loading_queue_.clear();
 }
 
 MaterialPass MaterialModule::material_pass_get(Object *ob,
@@ -228,8 +151,6 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
   MaterialPass matpass = MaterialPass();
   matpass.gpumat = inst_.shaders.material_shader_get(
       blender_mat, ntree, pipeline_type, geometry_type, use_deferred_compilation, default_mat);
-
-  queue_texture_loading(matpass.gpumat);
 
   const bool is_forward = ELEM(pipeline_type,
                                MAT_PIPE_FORWARD,

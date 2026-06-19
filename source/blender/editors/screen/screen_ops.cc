@@ -12,12 +12,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_build_config.h"
-#include "BLI_listbase.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_time.h"
-#include "BLI_utildefines.h"
+#include "BLI_build_config.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_time.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -604,7 +604,6 @@ bool ED_operator_object_active_from_view_layer(bContext *C)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(bmain, scene, view_layer);
   Object *obact = BKE_view_layer_active_object_get(view_layer);
-  return (obact != nullptr);
   return ((obact != nullptr) && !ed_object_hidden(obact));
 }
 
@@ -6783,6 +6782,11 @@ static void stop_playback(bContext *C)
   ED_scene_fps_average_clear(scene);
   BKE_callback_exec_id_depsgraph(bmain, &scene->id, depsgraph, BKE_CB_EVT_ANIMATION_PLAYBACK_POST);
 
+  /* Send a fake mouse-move event so that the active button (the one the mouse hovers over) is
+   * updated for the change in playback buttons (Pause button disappearing, Reverse/Normal playback
+   * buttons appearing). */
+  WM_event_add_mousemove(CTX_wm_window(C));
+
   /* Triggers redraw of sequencer preview so that it does not show to fps anymore after stopping
    * playback. */
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_SEQUENCER, scene);
@@ -6800,6 +6804,22 @@ static wmOperatorStatus start_playback(bContext *C, int sync, int mode)
   if (!scene) {
     return OPERATOR_CANCELLED;
   }
+
+  /* The SCE_LOOP_MODE_STOP_END_FRAME loop mode is special: playback should stop at the end frame,
+   * but when playback starts, in this mode, already at the end frame, it should actually start
+   * playback from the start frame. This way, you can repeatedly play back the scene, each time
+   * ending at the last frame. */
+  if (scene->playback_loop_mode == SCE_LOOP_MODE_STOP_END_FRAME) {
+    /* What are the actual start/end frames depends on whether playback is reversed or not. */
+    const bool is_playing_forward = mode > 0;
+    const int end_frame = is_playing_forward ? scene->playback_end() : scene->playback_start();
+    if (scene->r.cfra == end_frame) {
+      const int start_frame = is_playing_forward ? scene->playback_start() : scene->playback_end();
+      scene->r.cfra = start_frame;
+      scene->r.subframe = 0.0f;
+    }
+  }
+
   ViewLayer *view_layer = is_sequencer ? BKE_view_layer_default_render(scene) :
                                          CTX_data_view_layer(C);
   Depsgraph *depsgraph = is_sequencer ? BKE_scene_ensure_depsgraph(bmain, scene, view_layer) :
@@ -6825,6 +6845,11 @@ static wmOperatorStatus start_playback(bContext *C, int sync, int mode)
 
     sad->region = CTX_wm_region(C);
   }
+
+  /* Send a fake mouse-move event so that the active button (the one the mouse hovers over) is
+   * updated for the change in playback buttons (Pause button appearing, Reverse/Normal playback
+   * buttons disappearing). */
+  WM_event_add_mousemove(CTX_wm_window(C));
 
   return OPERATOR_FINISHED;
 }
@@ -6880,6 +6905,49 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna, "sync", false, "Sync", "Drop frames to maintain framerate");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Animation Pause Operator
+ *
+ * This operator exists because of a UI quirk in Blender. The active button under the mouse is
+ * stored & restored between redraws, so that the correct button is kept highlighted (among other
+ * things). This storing & restoring is done based on the operator's idname.
+ *
+ * Since during playback the "Pause" button takes the place of the "Reverse Playback" and "Normal
+ * Playback" buttons, and historically these were all three the same operator, Blender would get
+ * confused. Under certain conditions it would activate the "Normal Playback" button when the mouse
+ * was over the "Reverse Playback" button. This is resolved by making the 'Pause' button its own
+ * operator with its own idname.
+ *
+ * Additionally, a fake mouse event is sent to force Blender to reevaluate which button is being
+ * hovered. This only works when there's a difference in the hovered operator's idname though.
+ * \{ */
+
+static wmOperatorStatus screen_animation_pause_exec(bContext *C, wmOperator * /*op*/)
+{
+  bScreen *screen = ED_screen_animation_playing(CTX_wm_manager(C));
+  if (!screen) {
+    return OPERATOR_CANCELLED;
+  }
+  stop_playback(C);
+  return OPERATOR_FINISHED;
+}
+
+static void SCREEN_OT_animation_pause(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Pause Animation";
+  ot->description = "Pause animation, stopping at the current frame";
+  ot->idname = "SCREEN_OT_animation_pause";
+
+  /* API callbacks. */
+  ot->exec = screen_animation_pause_exec;
+  ot->poll = ED_operator_screenactive;
+  ot->flag = OPTYPE_UNDO_GROUPED;
+  ot->undo_group = "Frame Change";
 }
 
 /** \} */
@@ -7731,6 +7799,7 @@ void ED_operatortypes_screen()
 
   WM_operatortype_append(SCREEN_OT_animation_step);
   WM_operatortype_append(SCREEN_OT_animation_play);
+  WM_operatortype_append(SCREEN_OT_animation_pause);
   WM_operatortype_append(SCREEN_OT_animation_cancel);
 
   /* New/delete. */

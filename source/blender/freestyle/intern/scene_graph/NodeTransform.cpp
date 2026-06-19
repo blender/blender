@@ -10,8 +10,8 @@
 
 #include "NodeTransform.h"
 
-#include "BLI_math_base.h"
-#include "BLI_sys_types.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_sys_types.hh"
 
 namespace Freestyle {
 

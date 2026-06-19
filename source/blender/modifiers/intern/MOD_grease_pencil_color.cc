@@ -9,7 +9,7 @@
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
 
-#include "BLI_math_color.h"
+#include "BLI_math_color_c.hh"
 
 #include "BKE_colortools.hh"
 #include "BKE_curves.hh"

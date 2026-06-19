@@ -11,7 +11,7 @@
 #include <optional>
 #include <string>
 
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 #ifdef WITH_INTERNATIONAL
 #  include "BLI_string_ref.hh"

@@ -38,7 +38,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bit_vector.hh"
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 
 #include "bmesh.hh"
 

@@ -9,7 +9,7 @@
  */
 
 #include "BLI_bounds.hh"
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 #include "BLI_span.hh"
 
 #include "BKE_editmesh.hh"

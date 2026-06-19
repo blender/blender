@@ -6,7 +6,7 @@
 
 #ifdef GPU_SHADER
 #  pragma once
-#  include "BLI_utildefines_variadic.h"
+#  include "BLI_utildefines_variadic.hh"
 
 #  include "gpu_shader_compat.hh"
 

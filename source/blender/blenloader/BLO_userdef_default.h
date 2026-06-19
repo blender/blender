@@ -8,15 +8,9 @@
 
 namespace blender {
 
-#ifdef __cplusplus
 extern "C" {
-#endif
-
 /** Default theme, see: `release/datafiles/userdef/userdef_default_theme.c`. */
 extern const bTheme U_theme_default;
-
-#ifdef __cplusplus
 }
-#endif
 
 }  // namespace blender

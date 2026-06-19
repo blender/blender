@@ -115,9 +115,10 @@ void remap_cubemap_to_octahedral([[resource_table]] Remap &srt,
                                  [[resource_table]] const Uniform &uni,
                                  [[global_invocation_id]] const uint3 global_id,
                                  [[work_group_id]] const uint3 group_id,
+                                 [[num_work_groups]] const uint3 num_groups,
                                  [[local_invocation_index]] const uint local_index)
 {
-  uint work_group_index = SPHERE_PROBE_REMAP_GROUP_SIZE * group_id.y + group_id.x;
+  const uint work_group_index = num_groups.x * group_id.y + group_id.x;
   constexpr uint group_size = SPHERE_PROBE_REMAP_GROUP_SIZE * SPHERE_PROBE_REMAP_GROUP_SIZE;
 
   SphereProbeUvArea world_coord = reinterpret_as_atlas_coord(srt.world_coord_packed);

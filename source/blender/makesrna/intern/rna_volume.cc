@@ -18,7 +18,7 @@
 
 #include "BKE_volume_enums.hh"
 
-#include "BLI_string_utf8_symbols.h"
+#include "BLI_string_utf8_symbols.hh"
 
 #include "BLT_translation.hh"
 struct DummyVolumeGridData;
@@ -53,7 +53,7 @@ const EnumPropertyItem rna_enum_volume_grid_data_type_items[] = {
  */
 #ifdef RNA_RUNTIME
 
-#  include "BLI_math_base.h"
+#  include "BLI_math_base_c.hh"
 
 #  include "BKE_volume.hh"
 

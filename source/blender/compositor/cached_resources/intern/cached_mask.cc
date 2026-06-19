@@ -4,7 +4,7 @@
 
 #include <memory>
 
-#include "BLI_math_color.h"
+#include "BLI_math_color_c.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "BKE_lib_id.hh"

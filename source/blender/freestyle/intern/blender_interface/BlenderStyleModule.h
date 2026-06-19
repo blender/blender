@@ -11,7 +11,7 @@
 #include "../stroke/StyleModule.h"
 #include "../system/PythonInterpreter.h"
 
-#include "BLI_utildefines.h"  // BLI_assert()
+#include "BLI_utildefines.hh"  // BLI_assert()
 
 namespace blender {
 struct Text;

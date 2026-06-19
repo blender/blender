@@ -55,9 +55,4 @@ bool bmesh_node_nearest_to_ray(bke::pbvh::BMeshNode &node,
 
 void bmesh_normals_update(Tree &pbvh, const IndexMask &nodes_to_update);
 
-/* pbvh_pixels.hh */
-
-void node_pixels_free(bke::pbvh::Node *node);
-void pixels_free(bke::pbvh::Tree *pbvh);
-
 }  // namespace blender::bke::pbvh

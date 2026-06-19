@@ -11,7 +11,7 @@
 #include "BKE_mball.hh"
 
 #include "BLI_bounds_types.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "DNA_rigidbody_types.h"
 

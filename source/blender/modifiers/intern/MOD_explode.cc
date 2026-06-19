@@ -8,14 +8,14 @@
 
 #define DNA_DEPRECATED_ALLOW /* For #ME_FACE_SEL. */
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BLI_kdtree.hh"
 #include "BLI_map.hh"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_rand.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rand_c.hh"
 
 #include "BLT_translation.hh"
 

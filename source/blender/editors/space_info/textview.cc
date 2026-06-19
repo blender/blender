@@ -12,10 +12,10 @@
 
 #include "BLF_api.hh"
 
-#include "BLI_math_color.h"
-#include "BLI_math_vector.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "GPU_immediate.hh"
 #include "GPU_state.hh"

@@ -6,7 +6,7 @@
  * \ingroup sequencer
  */
 
-#include "BLI_math_color_blend.h"
+#include "BLI_math_color_blend.hh"
 
 #include "DNA_sequence_types.h"
 

@@ -49,7 +49,7 @@ enum class ProfileCategory : uint32_t {
 
 /** Profile the current scope, creating a Tracy zone. */
 #  define PRF_scope(category) ZoneScopedC(uint32_t(category))
-#  define PRF_scope_with_name(name, category) ZoneScopedNC(name, uint32_t(category))
+#  define PRF_scope_with_name(ui_name, category) ZoneScopedNC(ui_name, uint32_t(category))
 
 /** Set the profiled zone's name on a per-call basis. */
 #  define PRF_scope_set_dynamic_name(fmt, ...) ZoneNameF(fmt, ##__VA_ARGS__)
@@ -67,7 +67,7 @@ enum class ProfileCategory : uint32_t {
  */
 #  define PRF_scope_var(var, category) ZoneNamedC(var, uint32_t(category), true)
 #  define PRF_scope_var_with_name(var, ui_name, category) \
-    ZoneNamedNC(var, ui_name.c_str(), uint32_t(category), true)
+    ZoneNamedNC(var, ui_name, uint32_t(category), true)
 
 /** Set the specified zone's name on a per-call basis. */
 #  define PRF_scope_var_set_dynamic_name(var, fmt, ...) ZoneNameVF(var, fmt, ##__VA_ARGS__)
@@ -88,7 +88,7 @@ enum class ProfileCategory : uint32_t {
 #  define PRF_frame_mark_end(name)
 
 #  define PRF_scope(category)
-#  define PRF_scope_with_name(name, category)
+#  define PRF_scope_with_name(ui_name, category)
 
 #  define PRF_scope_set_dynamic_name(fmt, ...)
 #  define PRF_scope_add_text(fmt, ...)

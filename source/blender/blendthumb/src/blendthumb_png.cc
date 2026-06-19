@@ -15,8 +15,8 @@
 
 #include "blendthumb.hh"
 
-#include "BLI_endian_defines.h"
-#include "BLI_endian_switch.h"
+#include "BLI_endian_defines.hh"
+#include "BLI_endian_switch.hh"
 #include "BLI_vector.hh"
 
 namespace blender {

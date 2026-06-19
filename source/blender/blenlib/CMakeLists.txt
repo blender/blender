@@ -167,19 +167,19 @@ set(SRC
   intern/list_sort_impl.h
   intern/radial_tiling_shared.hh
 
-  BLI_alloca.h
+  BLI_alloca.hh
   BLI_allocator.hh
   BLI_any.hh
   BLI_any_derived.hh
   BLI_array.hh
   BLI_array_state.hh
-  BLI_array_store.h
-  BLI_array_store_utils.h
-  BLI_array_utils.h
+  BLI_array_store.hh
+  BLI_array_store_utils.hh
+  BLI_array_utils_c.hh
   BLI_array_utils.hh
-  BLI_asan.h
-  BLI_assert.h
-  BLI_astar.h
+  BLI_asan.hh
+  BLI_assert.hh
+  BLI_astar.hh
   BLI_atomic_disjoint_set.hh
   BLI_binary_search.hh
   BLI_bit_bool_conversion.hh
@@ -189,53 +189,52 @@ set(SRC
   BLI_bit_span_ops.hh
   BLI_bit_span_to_index_ranges.hh
   BLI_bit_vector.hh
-  BLI_bitmap.h
-  BLI_bitmap_draw_2d.h
+  BLI_bitmap.hh
+  BLI_bitmap_draw_2d.hh
   BLI_bounds.hh
   BLI_bounds_types.hh
-  BLI_boxpack_2d.h
-  BLI_build_config.h
+  BLI_boxpack_2d.hh
+  BLI_build_config.hh
   BLI_cache_mutex.hh
   BLI_color.hh
   BLI_color_mix.hh
   BLI_color_types.hh
   BLI_colorspace.hh
-  BLI_compiler_attrs.h
-  BLI_compiler_compat.h
-  BLI_compiler_typecheck.h
+  BLI_compiler_attrs.hh
+  BLI_compiler_compat.hh
+  BLI_compiler_typecheck.hh
   BLI_compression.hh
   BLI_compute_context.hh
   BLI_concurrent_map.hh
-  BLI_console.h
+  BLI_console.hh
   BLI_convexhull_2d.hh
   BLI_cpp_type.hh
   BLI_cpp_type_make.hh
   BLI_csv_parse.hh
   BLI_delaunay_2d.hh
   BLI_devirtualize_parameters.hh
-  BLI_dial_2d.h
+  BLI_dial_2d.hh
   BLI_disjoint_set.hh
   BLI_dot_export.hh
   BLI_dot_export_attribute_enums.hh
   BLI_dynamic_stack_buffer.hh
-  BLI_dynstr.h
-  BLI_easing.h
-  BLI_endian_defines.h
-  BLI_endian_switch.h
-  BLI_endian_switch_inline.h
+  BLI_dynstr.hh
+  BLI_easing.hh
+  BLI_endian_defines.hh
+  BLI_endian_switch.hh
+  BLI_endian_switch_inline.hh
   BLI_enum_flags.hh
   BLI_enumerable_thread_specific.hh
   BLI_execution_mode.hh
-  BLI_expr_pylike_eval.h
+  BLI_expr_pylike_eval.hh
   BLI_fftw.hh
-  BLI_fileops.h
   BLI_fileops.hh
-  BLI_fileops_types.h
-  BLI_filereader.h
+  BLI_fileops_types.hh
+  BLI_filereader.hh
   BLI_fixed_string.hh
   BLI_fixed_width_int.hh
   BLI_fixed_width_int_str.hh
-  BLI_fnmatch.h
+  BLI_fnmatch.hh
   BLI_function_ref.hh
   BLI_generic_array.hh
   BLI_generic_key.hh
@@ -246,18 +245,17 @@ set(SRC
   BLI_generic_vector_array.hh
   BLI_generic_virtual_array.hh
   BLI_generic_virtual_vector_array.hh
-  BLI_ghash.h
-  BLI_gsqueue.h
-  BLI_hash.h
+  BLI_ghash.hh
+  BLI_gsqueue.hh
+  BLI_hash_c.hh
   BLI_hash.hh
   BLI_hash_fwd.hh
   BLI_hash_md5.hh
   BLI_hash_mm2a.hh
   BLI_hash_mm3.hh
   BLI_hash_tables.hh
-  BLI_heap.h
-  BLI_heap_simple.h
-  BLI_implicit_sharing.h
+  BLI_heap.hh
+  BLI_heap_simple.hh
   BLI_implicit_sharing.hh
   BLI_implicit_sharing_ptr.hh
   BLI_index_mask.hh
@@ -267,8 +265,8 @@ set(SRC
   BLI_index_ranges_builder.hh
   BLI_index_ranges_builder_fwd.hh
   BLI_inplace_priority_queue.hh
-  BLI_iterator.h
-  BLI_jitter_2d.h
+  BLI_iterator.hh
+  BLI_jitter_2d.hh
   BLI_kdopbvh.hh
   BLI_kdtree.hh
   BLI_kdtree_types.hh
@@ -277,11 +275,11 @@ set(SRC
   BLI_length_parameterize.hh
   BLI_linear_allocator.hh
   BLI_linear_allocator_chunked_list.hh
-  BLI_link_utils.h
-  BLI_linklist.h
-  BLI_linklist_lockfree.h
-  BLI_linklist_stack.h
-  BLI_listbase.h
+  BLI_link_utils.hh
+  BLI_linklist.hh
+  BLI_linklist_lockfree.hh
+  BLI_linklist_stack.hh
+  BLI_listbase.hh
   BLI_listbase_iterator.hh
   BLI_listbase_wrapper.hh
   BLI_map.hh
@@ -289,121 +287,120 @@ set(SRC
   BLI_math_angle_types.hh
   BLI_math_axis_angle.hh
   BLI_math_axis_angle_types.hh
-  BLI_math_base.h
+  BLI_math_base_c.hh
   BLI_math_base.hh
-  BLI_math_base_safe.h
+  BLI_math_base_safe.hh
   BLI_math_basis_types.hh
-  BLI_math_bits.h
+  BLI_math_bits.hh
   BLI_math_boolean.hh
-  BLI_math_color.h
+  BLI_math_color_c.hh
   BLI_math_color.hh
-  BLI_math_color_blend.h
-  BLI_math_constants.h
+  BLI_math_color_blend.hh
+  BLI_math_constants.hh
   BLI_math_euler.hh
   BLI_math_euler_types.hh
   BLI_math_filter.hh
-  BLI_math_geom.h
+  BLI_math_geom_c.hh
   BLI_math_geom.hh
   BLI_math_half.hh
-  BLI_math_inline.h
+  BLI_math_inline.hh
   BLI_math_interp.hh
-  BLI_math_matrix.h
+  BLI_math_matrix_c.hh
   BLI_math_matrix.hh
   BLI_math_matrix_types.hh
   BLI_math_mpq.hh
   BLI_math_quaternion.hh
   BLI_math_quaternion_types.hh
-  BLI_math_rotation.h
+  BLI_math_rotation_c.hh
   BLI_math_rotation.hh
   BLI_math_rotation_legacy.hh
   BLI_math_rotation_types.hh
-  BLI_math_solvers.h
-  BLI_math_statistics.h
-  BLI_math_time.h
-  BLI_math_vector.h
+  BLI_math_solvers.hh
+  BLI_math_statistics.hh
+  BLI_math_time.hh
+  BLI_math_vector_c.hh
   BLI_math_vector.hh
   BLI_math_vector_mpq_types.hh
   BLI_math_vector_swizzle.hh
   BLI_math_vector_types.hh
   BLI_math_vector_unroll.hh
-  BLI_memarena.h
-  BLI_memblock.h
-  BLI_memiter.h
+  BLI_memarena.hh
+  BLI_memblock.hh
+  BLI_memiter.hh
   BLI_memory_cache.hh
   BLI_memory_cache_file_load.hh
   BLI_memory_counter.hh
   BLI_memory_counter_fwd.hh
   BLI_memory_utils.hh
-  BLI_mempool.h
+  BLI_mempool.hh
   BLI_mesh_boolean.hh
   BLI_mesh_intersect.hh
-  BLI_mmap.h
+  BLI_mmap.hh
   BLI_multi_value_map.hh
   BLI_mutex.hh
-  BLI_noise.h
+  BLI_noise_c.hh
   BLI_noise.hh
   BLI_offset_indices.hh
   BLI_offset_span.hh
   BLI_ordered_edge.hh
   BLI_parameter_pack_utils.hh
   BLI_path_utils.hh
-  BLI_polyfill_2d.h
-  BLI_polyfill_2d_beautify.h
+  BLI_polyfill_2d.hh
+  BLI_polyfill_2d_beautify.hh
   BLI_pool.hh
   BLI_probing_strategies.hh
-  BLI_quadric.h
+  BLI_quadric.hh
   BLI_radial_tiling.hh
-  BLI_rand.h
+  BLI_rand_c.hh
   BLI_rand.hh
   BLI_random_access_iterator_mixin.hh
-  BLI_rect.h
+  BLI_rect.hh
   BLI_resource_scope.hh
-  BLI_scanfill.h
+  BLI_scanfill.hh
   BLI_serialize.hh
-  BLI_session_uid.h
+  BLI_session_uid.hh
   BLI_set.hh
   BLI_set_slots.hh
   BLI_shared_cache.hh
   BLI_simd.hh
-  BLI_smaa_textures.h
-  BLI_sort.h
+  BLI_smaa_textures.hh
   BLI_sort.hh
-  BLI_sort_utils.h
+  BLI_sort_utils.hh
   BLI_span.hh
-  BLI_stack.h
+  BLI_stack_c.hh
   BLI_stack.hh
-  BLI_strict_flags.h
-  BLI_string.h
-  BLI_string_cursor_utf8.h
+  BLI_strict_flags.hh
+  BLI_string.hh
+  BLI_string_cursor_utf8.hh
   BLI_string_ref.hh
   BLI_string_search.hh
-  BLI_string_utf8.h
-  BLI_string_utf8_symbols.h
+  BLI_string_utf8.hh
+  BLI_string_utf8_symbols.hh
   BLI_string_utils.hh
   BLI_sub_frame.hh
   BLI_subprocess.hh
-  BLI_sys_types.h
-  BLI_system.h
-  BLI_task.h
+  BLI_sys_types.hh
+  BLI_system.hh
+  BLI_task_c.hh
   BLI_task.hh
   BLI_task_size_hints.hh
-  BLI_tempfile.h
-  BLI_threads.h
-  BLI_time.h
-  BLI_time_utildefines.h
-  BLI_timecode.h
+  BLI_tempfile.hh
+  BLI_threads.hh
+  BLI_time.hh
+  BLI_time_utildefines.hh
+  BLI_timecode.hh
   BLI_timeit.hh
-  BLI_timer.h
+  BLI_timer.hh
   BLI_unique_hash.hh
   BLI_unique_sorted_indices.hh
   BLI_unroll.hh
   BLI_ustring.hh
-  BLI_utildefines.h
-  BLI_utildefines_iter.h
-  BLI_utildefines_stack.h
-  BLI_utildefines_variadic.h
+  BLI_utildefines.hh
+  BLI_utildefines_iter.hh
+  BLI_utildefines_stack.hh
+  BLI_utildefines_variadic.hh
   BLI_utility_mixins.hh
-  BLI_uuid.h
+  BLI_uuid.hh
   BLI_vector.hh
   BLI_vector_list.hh
   BLI_vector_set.hh
@@ -412,8 +409,8 @@ set(SRC
   BLI_virtual_array_fwd.hh
   BLI_virtual_array_range_spans.hh
   BLI_virtual_vector_array.hh
-  BLI_voxel.h
-  BLI_winstuff.h
+  BLI_voxel.hh
+  BLI_winstuff.hh
   BLI_winstuff_com.hh
 
   # Without these files listed, they aren't known to CMake.
@@ -443,7 +440,7 @@ if(NOT WITH_PYTHON_MODULE)
   list(APPEND SRC
     intern/BLI_args.cc
 
-    BLI_args.h
+    BLI_args.hh
   )
 endif()
 

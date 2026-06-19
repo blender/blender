@@ -11,8 +11,8 @@
 #include "doublearea.h"
 #include "flip_avoiding_line_search.h"
 
-#include "BLI_assert.h"
-#include "BLI_math_base.h" /* M_PI */
+#include "BLI_assert.hh"
+#include "BLI_math_base_c.hh" /* M_PI */
 
 #include <vector>
 

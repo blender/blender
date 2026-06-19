@@ -25,7 +25,7 @@
 #include "ED_node.hh"
 #include "ED_screen.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "BLT_translation.hh"
 

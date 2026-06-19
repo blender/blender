@@ -8,10 +8,11 @@
 
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_context.hh"
+#include "BKE_global.hh"
 #include "BKE_screen.hh"
 
 #include "DNA_text_types.h"
@@ -93,6 +94,10 @@ static wmOperatorStatus text_text_search_exec(bContext *C, wmOperator * /*op*/)
     if (active_category && !STREQ(active_category, "Text")) {
       ui::panel_category_active_set(region, "Text");
       draw = true;
+    }
+
+    if (G.background) {
+      draw = false;
     }
 
     /* Build the layout and draw so `find_text` text button can be activated. */

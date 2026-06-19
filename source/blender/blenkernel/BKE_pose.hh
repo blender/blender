@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 
 #include <concepts>
 #include <type_traits>

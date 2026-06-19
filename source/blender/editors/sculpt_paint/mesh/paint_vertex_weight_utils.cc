@@ -10,7 +10,7 @@
 
 #include <algorithm>
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_string_utils.hh"
 
 #include "DNA_armature_types.h"

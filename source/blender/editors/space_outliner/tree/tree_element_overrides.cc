@@ -11,7 +11,7 @@
 #include "BLI_function_ref.hh"
 #include "BLI_listbase_wrapper.hh"
 #include "BLI_map.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 

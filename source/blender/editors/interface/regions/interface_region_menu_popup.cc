@@ -19,11 +19,11 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_hash.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
-#include "BLI_rect.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rect.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_context.hh"
 #include "BKE_report.hh"
@@ -840,8 +840,6 @@ void popup_block_template_confirm_op(Layout *layout,
                                    UI_UNIT_Y,
                                    nullptr,
                                    "");
-    button_retval_set(but, 1);
-
     return but;
   };
 

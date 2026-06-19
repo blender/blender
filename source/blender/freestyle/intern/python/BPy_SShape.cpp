@@ -14,7 +14,7 @@
 #include "Interface0D/BPy_SVertex.h"
 #include "Interface1D/BPy_FEdge.h"
 
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 #include "../generic/py_capi_utils.hh"
 

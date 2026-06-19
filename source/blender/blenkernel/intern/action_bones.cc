@@ -8,7 +8,7 @@
 
 #include "BKE_action.hh"
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"

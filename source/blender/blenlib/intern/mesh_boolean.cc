@@ -14,12 +14,12 @@
 #  include <iostream>
 
 #  include "BLI_array.hh"
-#  include "BLI_assert.h"
+#  include "BLI_assert.hh"
 #  include "BLI_hash.hh"
 #  include "BLI_kdopbvh.hh"
 #  include "BLI_map.hh"
 #  include "BLI_math_boolean.hh"
-#  include "BLI_math_geom.h"
+#  include "BLI_math_geom_c.hh"
 #  include "BLI_math_mpq.hh"
 #  include "BLI_math_vector.hh"
 #  include "BLI_math_vector_mpq_types.hh"
@@ -38,7 +38,7 @@
 #  endif
 
 #  ifdef _WIN_32
-#    include "BLI_fileops.h"
+#    include "BLI_fileops.hh"
 #  endif
 
 // #  define PERFDEBUG

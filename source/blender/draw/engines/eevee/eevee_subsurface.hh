@@ -56,6 +56,9 @@ struct SubsurfaceModule {
   SubsurfaceTileBuf convolve_tile_buf_;
   DispatchIndirectBuf convolve_dispatch_buf_;
 
+  /* Process direct and indirect radiance separately. */
+  bool use_split_radiance_ = false;
+
  public:
   SubsurfaceModule(Instance &inst) : inst_(inst)
   {

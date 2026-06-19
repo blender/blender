@@ -11,8 +11,8 @@
  * Event codes are used as identifiers.
  */
 
-#include "BLI_rect.h"
-#include "BLI_string_utf8.h"
+#include "BLI_rect.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BLF_api.hh"
 

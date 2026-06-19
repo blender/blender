@@ -16,10 +16,10 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_vector.h"
-#include "BLI_task.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_task_c.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
@@ -501,9 +501,9 @@ ReshapeConstGridElement multires_reshape_orig_grid_element_for_grid_coord(
 
   const MDisps *mdisps = reshape_context->orig.mdisps;
   if (mdisps != nullptr) {
+    const int grid_size = reshape_context->orig.grid_size;
     const MDisps *displacement_grid = &mdisps[grid_coord->grid_index];
     if (displacement_grid->disps != nullptr) {
-      const int grid_size = bke::subdiv::grid_size_from_level(displacement_grid->level);
       const int grid_x = lround(grid_coord->u * (grid_size - 1));
       const int grid_y = lround(grid_coord->v * (grid_size - 1));
       const int grid_element_index = grid_y * grid_size + grid_x;
@@ -558,10 +558,8 @@ void multires_reshape_evaluate_base_mesh_limit_at_grid(
 /** \name Custom data preparation
  * \{ */
 
-static void allocate_displacement_grid(MDisps *displacement_grid, const int level)
+static void allocate_displacement_grid(MDisps *displacement_grid, const int grid_area)
 {
-  const int grid_size = bke::subdiv::grid_size_from_level(level);
-  const int grid_area = grid_size * grid_size;
   float (*disps)[3] = MEM_new_array_zeroed<float[3]>(grid_area, "multires disps");
   if (displacement_grid->disps != nullptr) {
     MEM_delete(displacement_grid->disps);
@@ -569,24 +567,25 @@ static void allocate_displacement_grid(MDisps *displacement_grid, const int leve
   /* TODO(sergey): Preserve data on the old level. */
   displacement_grid->disps = disps;
   displacement_grid->totdisp = grid_area;
-  displacement_grid->level = level;
 }
 
-static void ensure_displacement_grid(MDisps *displacement_grid, const int level)
+static void ensure_displacement_grid(MDisps *displacement_grid, const int grid_area)
 {
-  if (displacement_grid->disps != nullptr && displacement_grid->level >= level) {
+  if (displacement_grid->disps != nullptr && displacement_grid->totdisp >= grid_area) {
     return;
   }
-  allocate_displacement_grid(displacement_grid, level);
+  allocate_displacement_grid(displacement_grid, grid_area);
 }
 
 static void ensure_displacement_grids(Mesh *mesh, const int grid_level)
 {
   const int num_grids = mesh->corners_num;
+  const int grid_size = bke::subdiv::grid_size_from_level(grid_level);
+  const int grid_area = grid_size * grid_size;
   MDisps *mdisps = static_cast<MDisps *>(
       CustomData_get_layer_for_write(&mesh->corner_data, CD_MDISPS, mesh->corners_num));
   for (int grid_index = 0; grid_index < num_grids; grid_index++) {
-    ensure_displacement_grid(&mdisps[grid_index], grid_level);
+    ensure_displacement_grid(&mdisps[grid_index], grid_area);
   }
 }
 
@@ -657,6 +656,7 @@ void multires_reshape_store_original_grids(MultiresReshapeContext *reshape_conte
 
   reshape_context->orig.mdisps = orig_mdisps;
   reshape_context->orig.grid_paint_masks = orig_grid_paint_masks;
+  reshape_context->orig.grid_size = math::sqrt(mdisps->totdisp);
 }
 
 using ForeachGridCoordinateCallback = void (*)(const MultiresReshapeContext *reshape_context,

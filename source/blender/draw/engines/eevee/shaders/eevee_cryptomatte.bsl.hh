@@ -107,7 +107,12 @@ struct Cryptomatte {
 
   float2 merge_sample(FilmSample film_sample, float2 dst, float2 src)
   {
-    return float2(src.x, (dst.y * film_sample.weight + src.y) * film_sample.weight_sum_inv);
+    float coverage = (dst.y * film_sample.weight + src.y) * film_sample.weight_sum_inv;
+    /* Fix alpha not accumulating to 1 because of float imprecision. */
+    if (coverage > 0.9999f) {
+      coverage = 1.0f;
+    }
+    return float2(src.x, coverage);
   }
 };
 

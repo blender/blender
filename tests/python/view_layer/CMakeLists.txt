@@ -20,6 +20,7 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${TEST_OUT_DIR})
 set(TEST_BLENDER_EXE
   $<TARGET_FILE:blender>
   --background
+  --console-crash-handler
   --factory-startup
   --debug-memory
   --debug-exit-on-error

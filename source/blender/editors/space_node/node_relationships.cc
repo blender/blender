@@ -13,9 +13,9 @@
 #include "DNA_array_utils.hh"
 #include "DNA_node_types.h"
 
-#include "BLI_easing.h"
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
+#include "BLI_easing.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
 #include "BLI_stack.hh"
 #include "BLI_vector.hh"
 
@@ -2708,11 +2708,9 @@ void node_insert_on_link_flags_set(SpaceNode &snode,
   }
 }
 
-void node_insert_on_frame_flag_set(bContext &C, SpaceNode &snode, const int2 &cursor)
+void node_insert_on_frame_flag_set(SpaceNode &snode, ARegion &region, const int2 &cursor)
 {
   snode.runtime->frame_identifier_to_highlight.reset();
-
-  ARegion &region = *CTX_wm_region(&C);
 
   snode.edittree->ensure_topology_cache();
   const bNode *frame = node_find_frame_to_attach(region, *snode.edittree, cursor);

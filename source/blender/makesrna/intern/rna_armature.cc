@@ -8,8 +8,8 @@
 
 #include <cstdlib>
 
-#include "BLI_math_constants.h"
-#include "BLI_string_utf8_symbols.h"
+#include "BLI_math_constants.hh"
+#include "BLI_string_utf8_symbols.hh"
 
 #include "BLT_translation.hh"
 
@@ -62,9 +62,9 @@ constexpr int COLOR_SETS_MAX_THEMED_INDEX = 20;
 
 #  include <fmt/format.h>
 
-#  include "BLI_math_vector.h"
-#  include "BLI_string.h"
-#  include "BLI_string_utf8.h"
+#  include "BLI_math_vector_c.hh"
+#  include "BLI_string.hh"
+#  include "BLI_string_utf8.hh"
 
 #  include "BKE_action.hh"
 #  include "BKE_context.hh"

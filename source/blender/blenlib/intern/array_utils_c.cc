@@ -16,14 +16,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
-#include "BLI_math_base.h"
-#include "BLI_sys_types.h"
-#include "BLI_utildefines.h"
+#include "BLI_alloca.hh"
+#include "BLI_math_base_c.hh"
+#include "BLI_sys_types.hh"
+#include "BLI_utildefines.hh"
 
-#include "BLI_array_utils.h"
+#include "BLI_array_utils_c.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 

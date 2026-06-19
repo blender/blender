@@ -9,7 +9,7 @@
  * External write-file function prototypes.
  */
 
-#include "BLI_filereader.h"
+#include "BLI_filereader.hh"
 #include "BLI_implicit_sharing.hh"
 #include "BLI_map.hh"
 

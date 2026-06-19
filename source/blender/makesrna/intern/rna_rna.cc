@@ -298,9 +298,9 @@ const EnumPropertyItem rna_enum_property_string_search_flag_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#  include "BLI_ghash.h"
-#  include "BLI_listbase.h"
-#  include "BLI_string.h"
+#  include "BLI_ghash.hh"
+#  include "BLI_listbase.hh"
+#  include "BLI_string.hh"
 
 #  include "MEM_guardedalloc.h"
 

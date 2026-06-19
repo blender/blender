@@ -13,7 +13,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_kdtree_types.hh"
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_stack.hh"
 #include "BLI_vector.hh"

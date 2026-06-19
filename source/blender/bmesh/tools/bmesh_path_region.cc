@@ -14,9 +14,9 @@
 #include <algorithm>
 
 #include "BLI_array.hh"
-#include "BLI_linklist.h"
-#include "BLI_math_vector.h"
-#include "BLI_utildefines_stack.h"
+#include "BLI_linklist.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_utildefines_stack.hh"
 
 #include "bmesh.hh"
 #include "bmesh_path_region.hh" /* own include */

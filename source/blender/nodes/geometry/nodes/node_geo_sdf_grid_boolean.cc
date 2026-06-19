@@ -97,7 +97,11 @@ static void node_geo_exec(GeoNodeExecParams params)
       if (auto grid = params.extract_input<bke::VolumeGrid<float>>("Grid 1"_ustr)) {
         operands.append(std::move(grid));
       }
-      operands.extend(grids.values);
+      for (const bke::VolumeGrid<float> &grid : grids.values) {
+        if (grid) {
+          operands.append(grid);
+        }
+      }
       break;
   }
 

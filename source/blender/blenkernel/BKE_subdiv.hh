@@ -9,7 +9,7 @@
 #pragma once
 
 #include "BLI_array.hh"
-#include "BLI_compiler_compat.h"
+#include "BLI_compiler_compat.hh"
 #include "BLI_math_vector_types.hh"
 
 struct OpenSubdiv_Converter;

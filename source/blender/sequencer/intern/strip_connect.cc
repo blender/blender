@@ -6,7 +6,7 @@
  * \ingroup sequencer
  */
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "DNA_sequence_types.h"
 

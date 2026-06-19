@@ -18,9 +18,9 @@
 #include "BKE_global.hh"
 #include "DNA_modifier_types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_span.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"

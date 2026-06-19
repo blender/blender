@@ -16,8 +16,8 @@
 
 #include "BKE_context.hh"
 
-#include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

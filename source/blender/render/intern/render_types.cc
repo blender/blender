@@ -12,7 +12,7 @@
 
 #include "BKE_colortools.hh"
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "RE_compositor.hh"
 #include "RE_engine.h"
 

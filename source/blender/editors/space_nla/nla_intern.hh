@@ -154,6 +154,7 @@ void NLA_OT_selected_objects_add(wmOperatorType *ot);
  * Tweak-mode is NOT enabled.
  */
 bool nlaop_poll_tweakmode_off(bContext *C);
+bool nlaop_poll_tweakmode_off_with_main_region(bContext *C);
 /**
  * Tweak-mode IS enabled.
  */

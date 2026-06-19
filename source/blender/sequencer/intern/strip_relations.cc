@@ -11,10 +11,10 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
-#include "BLI_session_uid.h"
-#include "BLI_string.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_base_c.hh"
+#include "BLI_session_uid.hh"
+#include "BLI_string.hh"
 
 #include "BKE_layer.hh"
 #include "BKE_main.hh"

@@ -8,7 +8,7 @@
 
 #include <numeric>
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_utility_mixins.hh"
 
 #include "BKE_curve_legacy_convert.hh"

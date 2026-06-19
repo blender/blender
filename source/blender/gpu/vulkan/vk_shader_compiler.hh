@@ -11,7 +11,7 @@
 #include "gpu_shader_private.hh"
 
 #include "BLI_map.hh"
-#include "BLI_task.h"
+#include "BLI_task_c.hh"
 #include "BLI_vector.hh"
 
 #include "shaderc/shaderc.hpp"

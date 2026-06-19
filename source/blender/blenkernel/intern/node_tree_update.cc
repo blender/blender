@@ -4,15 +4,15 @@
 
 #include <fmt/format.h>
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
 #include "BLI_multi_value_map.hh"
 #include "BLI_noise.hh"
 #include "BLI_rand.hh"
 #include "BLI_set.hh"
 #include "BLI_stack.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8_symbols.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8_symbols.hh"
 #include "BLI_vector_set.hh"
 
 #include "DNA_anim_types.h"

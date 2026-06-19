@@ -13,8 +13,8 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_context.hh"
 
@@ -315,7 +315,15 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
     km = WM_keymap_find_all(wm, "Armature", SPACE_EMPTY, RGN_TYPE_WINDOW);
   }
   else if (STRPREFIX(opname, "POSE_OT") || STRPREFIX(opname, "POSELIB_OT")) {
-    km = WM_keymap_find_all(wm, "Pose", SPACE_EMPTY, RGN_TYPE_WINDOW);
+    switch (CTX_data_mode_enum(C)) {
+      case CTX_MODE_OBJECT:
+        /* Some POSE operators are now working in object mode. See #159734. */
+        km = WM_keymap_find_all(wm, "Object Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
+        break;
+      default:
+        km = WM_keymap_find_all(wm, "Pose", SPACE_EMPTY, RGN_TYPE_WINDOW);
+        break;
+    }
   }
   else if (STRPREFIX(opname, "SCULPT_OT")) {
     switch (CTX_data_mode_enum(C)) {

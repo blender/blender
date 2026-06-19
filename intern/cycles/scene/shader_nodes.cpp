@@ -2419,7 +2419,7 @@ NODE_DEFINE(GlassBsdfNode)
   SOCKET_IN_FLOAT(IOR, "IOR", 1.5f);
 
   SOCKET_IN_FLOAT(thin_film_thickness, "Thin Film Thickness", 0.0f);
-  SOCKET_IN_FLOAT(thin_film_ior, "Thin Film IOR", 1.3f);
+  SOCKET_IN_FLOAT(thin_film_ior, "Thin Film IOR", 1.33f);
 
   SOCKET_OUT_CLOSURE(BSDF, "BSDF");
 
@@ -3967,6 +3967,8 @@ void GeometryNode::compile(SVMCompiler &compiler)
                             .attr = int(ATTR_STD_POINTINESS),
                             .out_offset = compiler.output("Pointiness"),
                             .output_type = NODE_ATTR_OUTPUT_FLOAT,
+                            .bump_offset = bump_offset,
+                            .store_derivatives = store_derivatives,
                             .bump_filter_width = bump_filter_width,
                         },
                         use_derivative);
@@ -3985,6 +3987,8 @@ void GeometryNode::compile(SVMCompiler &compiler)
                             .attr = int(ATTR_STD_RANDOM_PER_ISLAND),
                             .out_offset = compiler.output("Random Per Island"),
                             .output_type = NODE_ATTR_OUTPUT_FLOAT,
+                            .bump_offset = bump_offset,
+                            .store_derivatives = store_derivatives,
                             .bump_filter_width = bump_filter_width,
                         },
                         use_derivative);

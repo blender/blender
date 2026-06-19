@@ -70,7 +70,13 @@ static int node_shader_gpu_vertex_color(GPUMaterial *mat,
     vertexColorLink = GPU_attribute_default_color(mat);
   }
 
-  return GPU_stack_link(mat, node, "node_vertex_color", in, out, vertexColorLink);
+  GPU_stack_link(mat, node, "node_vertex_color", in, out, vertexColorLink);
+
+  for (const auto [i, sock] : node->outputs.enumerate()) {
+    node_shader_gpu_bump_tex_coord(mat, node, &out[i].link);
+  }
+
+  return 1;
 }
 
 NODE_SHADER_MATERIALX_BEGIN

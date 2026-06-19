@@ -20,17 +20,18 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
-#include "BLI_linklist_stack.h"
-#include "BLI_math_geom.h"
+#include "BLI_linklist_stack.hh"
+#include "BLI_math_geom_c.hh"
 
-#include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
-#include "BLI_utildefines_stack.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_set.hh"
+#include "BLI_utildefines.hh"
+#include "BLI_utildefines_stack.hh"
 
 #include "bmesh.hh"
 #include "bmesh_bisect_plane.hh" /* Own include. */
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 
@@ -396,6 +397,9 @@ void BM_mesh_bisect_plane(BMesh *bm,
 
   BMIter iter;
 
+  /* Needed when `use_snap_center` moves vertices. */
+  Set<BMFace *> faces_deferred_normal_update;
+
   if (use_tag) {
     /* Build tagged edge array. */
     BMEdge *e;
@@ -450,9 +454,21 @@ void BM_mesh_bisect_plane(BMesh *bm,
         BMO_vert_flag_enable(bm, v, oflag_center);
       }
       if (use_snap_center) {
-        closest_to_plane_v3(v->co, plane, v->co);
+        float co_center[3];
+        closest_to_plane_v3(co_center, plane, v->co);
+        if (!equals_v3v3(co_center, v->co)) {
+          copy_v3_v3(v->co, co_center);
+          BMIter itersub;
+          BM_ITER_ELEM (f, &itersub, v, BM_FACES_OF_VERT) {
+            faces_deferred_normal_update.add(f);
+          }
+        }
       }
     }
+  }
+
+  for (BMFace *f_iter : faces_deferred_normal_update) {
+    BM_face_normal_update(f_iter);
   }
 
   /* Store a stack of faces to be evaluated for splitting. */

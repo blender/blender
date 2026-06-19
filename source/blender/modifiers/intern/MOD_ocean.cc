@@ -7,9 +7,9 @@
  */
 
 #include "BLI_color_types.hh"
-#include "BLI_math_base.h"
-#include "BLI_task.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_task_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 

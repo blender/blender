@@ -5,9 +5,9 @@
 #include <fmt/format.h>
 
 #include "BLI_generic_key_string.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_memory_cache_file_load.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BKE_report.hh"
 

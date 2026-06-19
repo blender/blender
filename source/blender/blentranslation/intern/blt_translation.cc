@@ -22,7 +22,7 @@
 #endif
 
 #ifdef WITH_INTERNATIONAL
-#  include "BLI_threads.h"
+#  include "BLI_threads.hh"
 #  include "messages.hh"
 #endif /* WITH_INTERNATIONAL */
 

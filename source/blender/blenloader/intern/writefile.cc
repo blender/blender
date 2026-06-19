@@ -70,7 +70,7 @@
 #include <xxhash.h>
 
 #ifdef WIN32
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #  include "winsock2.h"
 #  include <io.h>
 #else
@@ -79,7 +79,7 @@
 
 #include <fmt/format.h>
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "CLG_log.h"
 
@@ -95,18 +95,18 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_endian_defines.h"
+#include "BLI_endian_defines.hh"
 #include "BLI_fileops.hh"
 #include "BLI_implicit_sharing.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
-#include "BLI_math_matrix.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_base_c.hh"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_multi_value_map.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_set.hh"
-#include "BLI_string.h"
-#include "BLI_threads.h"
-#include "BLI_time.h"
+#include "BLI_string.hh"
+#include "BLI_threads.hh"
+#include "BLI_time.hh"
 
 #include "MEM_guardedalloc.h"
 

@@ -11,7 +11,7 @@
 #include "mathutils.hh"
 #include "mathutils_interpolate.hh"
 
-#include "BLI_math_geom.h"
+#include "BLI_math_geom_c.hh"
 
 namespace blender {
 

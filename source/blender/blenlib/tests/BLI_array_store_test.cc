@@ -6,14 +6,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_array_store.h"
-#include "BLI_array_utils.h"
-#include "BLI_listbase.h"
-#include "BLI_rand.h"
+#include "BLI_array_store.hh"
+#include "BLI_array_utils_c.hh"
+#include "BLI_listbase.hh"
+#include "BLI_rand_c.hh"
 #include "BLI_resource_strings.h"
-#include "BLI_string.h"
-#include "BLI_sys_types.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_sys_types.hh"
+#include "BLI_utildefines.hh"
 
 namespace blender {
 
@@ -23,8 +23,8 @@ namespace blender {
 /* Print time. */
 // #define DEBUG_TIME
 #ifdef DEBUG_TIME
-#  include "BLI_time.h"
-#  include "BLI_time_utildefines.h"
+#  include "BLI_time.hh"
+#  include "BLI_time_utildefines.hh"
 #endif
 
 /* -------------------------------------------------------------------- */

@@ -9,7 +9,7 @@
  * the topology of existing mesh data. (split, join, flip etc).
  */
 
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_customdata.hh"
@@ -396,14 +396,11 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm,
 
     if (faces.size() >= 2) {
       BMFace *f_double;
+      if (BMFace *f2 = BM_faces_join(bm, faces.data(), faces.size(), true, &f_double)) {
+        if (kill_duplicate_faces && (f_double != nullptr)) {
+          BM_face_kill(bm, f_double);
+        }
 
-      BMFace *f2 = BM_faces_join(bm, faces.data(), faces.size(), true, &f_double);
-
-      /* See #BM_faces_join note on callers asserting when `r_double` is non-null. */
-      BLI_assert_msg(f_double == nullptr,
-                     "Doubled face detected at " AT ". Resulting mesh may be corrupt.");
-
-      if (f2) {
         BMLoop *l_a, *l_b;
 
         if ((l_a = BM_face_vert_share_loop(f2, tv)) && (l_b = BM_face_vert_share_loop(f2, tv2))) {

@@ -17,24 +17,24 @@
 #  include <numeric>
 
 #  include "BLI_array.hh"
-#  include "BLI_assert.h"
+#  include "BLI_assert.hh"
 #  include "BLI_delaunay_2d.hh"
 #  include "BLI_kdopbvh.hh"
 #  include "BLI_map.hh"
-#  include "BLI_math_geom.h"
-#  include "BLI_math_matrix.h"
+#  include "BLI_math_geom_c.hh"
+#  include "BLI_math_matrix_c.hh"
 #  include "BLI_math_mpq.hh"
-#  include "BLI_math_vector.h"
+#  include "BLI_math_vector_c.hh"
 #  include "BLI_math_vector_mpq_types.hh"
 #  include "BLI_math_vector_types.hh"
 #  include "BLI_mutex.hh"
-#  include "BLI_polyfill_2d.h"
+#  include "BLI_polyfill_2d.hh"
 #  include "BLI_set.hh"
 #  include "BLI_sort.hh"
 #  include "BLI_span.hh"
-#  include "BLI_task.h"
 #  include "BLI_task.hh"
-#  include "BLI_threads.h"
+#  include "BLI_task_c.hh"
+#  include "BLI_threads.hh"
 #  include "BLI_vector.hh"
 #  include "BLI_vector_set.hh"
 
@@ -43,7 +43,7 @@
 // #  define PERFDEBUG
 
 #  ifdef _WIN_32
-#    include "BLI_fileops.h"
+#    include "BLI_fileops.hh"
 #  endif
 
 namespace blender::meshintersect {

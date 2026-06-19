@@ -10,10 +10,6 @@
 
 #pragma once
 
-#ifndef __cplusplus
-#  error This is a C++ header.
-#endif
-
 #include "BLI_map.hh"
 
 #include "BKE_armature.hh"

@@ -8,10 +8,7 @@
 
 #pragma once
 
-#ifdef __cplusplus
 extern "C" {
-#endif
-
 /* Datafiles embedded in Blender */
 
 extern int datatoc_startup_blend_size;
@@ -307,7 +304,4 @@ extern const char datatoc_curves_sculpt_smooth_png[];
 
 extern int datatoc_curves_sculpt_snake_hook_png_size;
 extern const char datatoc_curves_sculpt_snake_hook_png[];
-
-#ifdef __cplusplus
 }
-#endif

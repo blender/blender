@@ -19,9 +19,11 @@
 #include "kernel/svm/node_types.h"
 
 #include "util/log.h"
+#include "util/map.h"
 #include "util/math_float3.h"
 #include "util/progress.h"
 #include "util/queue.h"
+#include "util/set.h"
 #include "util/task.h"
 
 CCL_NAMESPACE_BEGIN
@@ -381,35 +383,39 @@ void SVMCompiler::stack_link(ShaderInput *input, ShaderOutput *output)
   }
 }
 
+bool SVMCompiler::is_sole_user(const ShaderNode *node,
+                               const ShaderOutput *output,
+                               const ShaderNodeSet &done)
+{
+  /* Check if the node is the only remaining user of the output, meaning the
+   * output's stack space can be freed once the node is compiled. */
+
+  /* optimization we should add: verify if in->parent is actually used */
+  for (const ShaderInput *in : output->links) {
+    if (in->parent != node && !done.contains(in->parent)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 void SVMCompiler::stack_clear_users(ShaderNode *node, ShaderNodeSet &done)
 {
-  /* optimization we should add:
-   * find and lower user counts for outputs for which all inputs are done.
-   * this is done before the node is compiled, under the assumption that the
-   * node will first load all inputs from the stack and then writes its
-   * outputs. this used to work, but was disabled because it gave trouble
-   * with inputs getting stack positions assigned */
+  /* Possible minor optimization: If all nodes read all inputs before writing outputs,
+   * the input stack space could be reused for the output and cache locality would be
+   * improved. This was tried at some point but disabled, it would need careful validation
+   * of stack assignment code and every SVM node implementation. It's not obvious if it's
+   * worth it. */
 
   for (ShaderInput *input : node->inputs) {
     ShaderOutput *output = input->link;
 
-    if (output && output->stack_offset != SVM_STACK_INVALID) {
-      bool all_done = true;
+    if (output && output->stack_offset != SVM_STACK_INVALID && is_sole_user(node, output, done)) {
+      stack_clear_offset(output, output->stack_offset);
+      output->stack_offset = SVM_STACK_INVALID;
 
-      /* optimization we should add: verify if in->parent is actually used */
       for (ShaderInput *in : output->links) {
-        if (in->parent != node && !done.contains(in->parent)) {
-          all_done = false;
-        }
-      }
-
-      if (all_done) {
-        stack_clear_offset(output, output->stack_offset);
-        output->stack_offset = SVM_STACK_INVALID;
-
-        for (ShaderInput *in : output->links) {
-          in->stack_offset = SVM_STACK_INVALID;
-        }
+        in->stack_offset = SVM_STACK_INVALID;
       }
     }
   }
@@ -585,35 +591,118 @@ void SVMCompiler::generate_node(ShaderNode *node, ShaderNodeSet &done)
   }
 }
 
+int SVMCompiler::stack_node_output_size(const ShaderNode *node)
+{
+  /* Compute stack size that will be allocated by this node. */
+  int size = 0;
+  for (const ShaderOutput *output : node->outputs) {
+    if (!output->links.empty() && output->stack_offset == SVM_STACK_INVALID) {
+      size += stack_size(output);
+    }
+  }
+  return size;
+}
+
 void SVMCompiler::generate_svm_nodes(const ShaderNodeSet &nodes, CompilerState *state)
 {
   ShaderNodeSet &done = state->nodes_done;
   vector<bool> &done_flag = state->nodes_done_flag;
 
-  bool nodes_done;
-  do {
-    nodes_done = true;
+  /* Use a heuristic for scheduling the nodes to reduce SVM stack size. When
+   * scheduling the next node, pick the one that increases the stack usage the
+   * least, preferring nodes that free more slots than they allocate. This way
+   * short lived intermediate values are released more quickly, before going
+   * into other parts of the graph. */
 
-    for (ShaderNode *node : nodes) {
-      if (!done_flag[node->id]) {
-        bool inputs_done = true;
+  /* Number of pending inputs for each node. */
+  unordered_map<ShaderNode *, int> num_pending_inputs;
+  /* Nodes ready to be scheduled. */
+  vector<ShaderNode *> ready;
 
-        for (ShaderInput *input : node->inputs) {
-          if (input->link && !done_flag[input->link->parent->id]) {
-            inputs_done = false;
-          }
-        }
-        if (inputs_done) {
-          generate_node(node, done);
-          done.insert(node);
-          done_flag[node->id] = true;
-        }
-        else {
-          nodes_done = false;
+  /* Count pending inputs and ready nodes. */
+  for (ShaderNode *node : nodes) {
+    if (done_flag[node->id]) {
+      continue;
+    }
+    int num_pending = 0;
+    for (const ShaderInput *input : node->inputs) {
+      if (input->link && !done_flag[input->link->parent->id]) {
+        num_pending++;
+      }
+    }
+    num_pending_inputs[node] = num_pending;
+    if (num_pending == 0) {
+      ready.push_back(node);
+    }
+  }
+
+  /* Compute stack size that will be freed by scheduling this node. If this
+   * node is the last remaining user of an output socket, scheduling it will
+   * free the output socket's stack space. This mirrors stack_clear_users(),
+   * which performs the actual freeing once the node is compiled. */
+  unordered_set<const ShaderOutput *> output_counted;
+  auto node_free_size = [&](const ShaderNode *node) {
+    int size = 0;
+    /* Clear instead of allocating from scratch for slightly better performance. */
+    output_counted.clear();
+    for (const ShaderInput *input : node->inputs) {
+      const ShaderOutput *output = input->link;
+      if (output && output->stack_offset != SVM_STACK_INVALID && is_sole_user(node, output, done))
+      {
+        /* Multiple inputs may link to the same output, count its size only once. */
+        if (!output_counted.contains(output)) {
+          output_counted.insert(output);
+          size += stack_size(output);
         }
       }
     }
-  } while (!nodes_done);
+    return size;
+  };
+
+  while (!ready.empty()) {
+    /* Pick the node with lowest added - freed, and use highest freed as a tie break.
+     * If equal, use node ID as tie breaker. There is no good justification for the
+     * latter, and it's randomly better or worse in some scenes, but mostly better in
+     * our test scenes. A better solution would be to use Sethi–Ullman ordering. */
+    size_t best_i = 0;
+    if (ready.size() > 1) {
+      int best_delta = 0;
+      int best_freed = 0;
+      for (size_t i = 0; i < ready.size(); i++) {
+        const int freed = node_free_size(ready[i]);
+        const int delta = stack_node_output_size(ready[i]) - freed;
+        if (i == 0 || delta < best_delta || (delta == best_delta && freed > best_freed) ||
+            (delta == best_delta && freed == best_freed && ready[i]->id < ready[best_i]->id))
+        {
+          best_i = i;
+          best_delta = delta;
+          best_freed = freed;
+        }
+      }
+    }
+
+    /* Schedule the chosen node .*/
+    ShaderNode *node = ready[best_i];
+    ready[best_i] = ready.back();
+    ready.pop_back();
+
+    generate_node(node, done);
+    done.insert(node);
+    done_flag[node->id] = true;
+
+    /* Update ready nodes when their inputs are ready. */
+    for (const ShaderOutput *output : node->outputs) {
+      for (ShaderInput *in : output->links) {
+        auto it = num_pending_inputs.find(in->parent);
+        if (it != num_pending_inputs.end() && it->second > 0) {
+          it->second--;
+          if (it->second == 0) {
+            ready.push_back(in->parent);
+          }
+        }
+      }
+    }
+  }
 }
 
 void SVMCompiler::generate_closure_node(ShaderNode *node, CompilerState *state)

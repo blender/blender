@@ -4,11 +4,11 @@
 
 #include "testing/testing.h"
 
-/* Keep first since `BLI_utildefines.h` defines `AT` which conflicts with STL. */
+/* Keep first since `BLI_utildefines.hh` defines `AT` which conflicts with STL. */
 #include "intern/abc_axis_conversion.h"
 
-#include "BLI_math_base.h"
-#include "BLI_math_matrix.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_math_matrix_c.hh"
 
 namespace blender::io::alembic {
 

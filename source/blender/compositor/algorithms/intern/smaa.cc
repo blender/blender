@@ -7,7 +7,7 @@
  *
  * SPDX-License-Identifier: MIT AND GPL-2.0-or-later */
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_math_vector.hh"
 
 #include "IMB_colormanagement.hh"

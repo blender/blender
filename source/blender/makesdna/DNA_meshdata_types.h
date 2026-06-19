@@ -9,7 +9,7 @@
 #pragma once
 
 #include "BLI_enum_flags.hh"
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 namespace blender {
 
@@ -215,14 +215,14 @@ struct MPropCol {
 struct MDisps {
   /* Strange bug in SDNA: if disps pointer comes first, it fails to see totdisp */
   int totdisp;
-  int level;
+  int _pad;
   float (*disps)[3];
 
   /**
    * Used for hiding parts of a multires mesh.
    * Essentially the multires equivalent of the mesh ".hide_vert" boolean attribute.
    *
-   * \note This is a bitmap, keep in sync with type used in BLI_bitmap.h
+   * \note This is a bitmap, keep in sync with type used in BLI_bitmap.hh
    */
   unsigned int *hidden;
 };

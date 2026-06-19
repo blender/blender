@@ -19,21 +19,21 @@
 #  include "CLG_log.h"
 
 #  ifdef WIN32
-#    include "BLI_winstuff.h"
+#    include "BLI_winstuff.hh"
 #  endif
 
-#  include "BLI_args.h"
-#  include "BLI_dynstr.h"
-#  include "BLI_fileops.h"
-#  include "BLI_listbase.h"
+#  include "BLI_args.hh"
+#  include "BLI_dynstr.hh"
+#  include "BLI_fileops.hh"
+#  include "BLI_listbase.hh"
 #  include "BLI_path_utils.hh"
-#  include "BLI_string.h"
-#  include "BLI_string_utf8.h"
-#  include "BLI_system.h"
-#  include "BLI_threads.h"
-#  include "BLI_utildefines.h"
+#  include "BLI_string.hh"
+#  include "BLI_string_utf8.hh"
+#  include "BLI_system.hh"
+#  include "BLI_threads.hh"
+#  include "BLI_utildefines.hh"
 #  ifndef NDEBUG
-#    include "BLI_mempool.h"
+#    include "BLI_mempool.hh"
 #  endif
 
 #  include "BKE_appdir.hh"
@@ -797,6 +797,7 @@ static void print_help(bArgs *ba, bool all)
   if (defs.with_freestyle) {
     BLI_args_print_arg_doc(ba, "--debug-freestyle");
   }
+  BLI_args_print_arg_doc(ba, "--console-crash-handler");
   BLI_args_print_arg_doc(ba, "--disable-crash-handler");
   BLI_args_print_arg_doc(ba, "--disable-abort-handler");
 
@@ -1026,6 +1027,15 @@ static int arg_handle_internet_allow_set(int /*argc*/, const char ** /*argv*/, v
     G.f &= ~G_FLAG_INTERNET_ALLOW;
     G.f |= G_FLAG_INTERNET_OVERRIDE_PREF_OFFLINE;
   }
+  return 0;
+}
+
+static const char arg_handle_crash_handler_console_doc[] =
+    "\n\t"
+    "Use the console to report crashes.";
+static int arg_handle_crash_handler_console(int /*argc*/, const char ** /*argv*/, void * /*data*/)
+{
+  app_state.signal.use_console_crash_handler = true;
   return 0;
 }
 
@@ -3123,6 +3133,8 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
                CB_EX(arg_handle_internet_allow_set, online),
                reinterpret_cast<void *>(true));
 
+  BLI_args_add(
+      ba, nullptr, "--console-crash-handler", CB(arg_handle_crash_handler_console), nullptr);
   BLI_args_add(
       ba, nullptr, "--disable-crash-handler", CB(arg_handle_crash_handler_disable), nullptr);
   BLI_args_add(

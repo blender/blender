@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "IO_abstract_hierarchy_iterator.h"
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 
 #include "BKE_duplilist.hh"
 

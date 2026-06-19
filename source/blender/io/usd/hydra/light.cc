@@ -12,8 +12,8 @@
 #include <pxr/imaging/hd/xformSchema.h>
 #include <pxr/usd/usdLux/tokens.h>
 
-#include "BLI_math_constants.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_constants.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_light_types.h"
 #include "DNA_object_types.h"

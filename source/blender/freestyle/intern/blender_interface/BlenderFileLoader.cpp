@@ -11,10 +11,10 @@
 #include "DNA_layer_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"

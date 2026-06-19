@@ -9,11 +9,11 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_linklist_stack.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
-#include "BLI_memarena.h"
-#include "BLI_stack.h"
+#include "BLI_linklist_stack.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_memarena.hh"
+#include "BLI_stack_c.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_context.hh"

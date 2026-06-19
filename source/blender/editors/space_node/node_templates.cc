@@ -17,9 +17,9 @@
 #include "DNA_node_types.h"
 #include "DNA_screen_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_vector.hh"
 
 #include "BLT_translation.hh"
@@ -667,6 +667,8 @@ void uiTemplateNodeLink(
 {
   using namespace blender::ed::space_node;
 
+  layout->active_set(!input->is_inactive());
+
   ui::Block *block = layout->block();
   NodeLinkArg *arg;
   ui::Button *but;
@@ -784,7 +786,8 @@ static void ui_node_draw_recursive(ui::Layout &layout,
     }
     else if (const auto *layout_decl = dynamic_cast<const nodes::LayoutDeclaration *>(item_decl)) {
       PointerRNA nodeptr = RNA_pointer_create_discrete(&ntree.id, RNA_Node, &node);
-      layout_decl->draw(*panel_layout.body, &C, &nodeptr);
+      ui::Layout &layout = panel_layout.body->column(false);
+      layout_decl->draw(layout, &C, &nodeptr);
     }
   }
 }

@@ -132,7 +132,7 @@ def convert_curves_of_bone(obj, channelbag, bone, order):
     bone_prefix = ''
 
     for fcurve in channelbag.fcurves:
-        if fcurve.group.name == bone.name:
+        if fcurve.group and fcurve.group.name == bone.name:
 
             # If To-Euler conversion
             if order != 'QUATERNION':

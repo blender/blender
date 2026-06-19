@@ -11,8 +11,10 @@
  * Image buffer types.
  */
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
+#include "BLI_enum_flags.hh"
 #include "BLI_implicit_sharing_ptr.hh"
+#include "BLI_mutex.hh"
 #include "BLI_string_ref.hh"
 
 #include "DNA_image_enums.h"
@@ -115,17 +117,34 @@ struct ImBufFloatBuffer {
   const ColorSpace *colorspace = nullptr;
 };
 
+enum ImBufGPUFlag : int {
+  /** Mipmap chain has been generated for the GPU texture. */
+  IMB_GPU_MIPMAP_COMPLETE = (1 << 0),
+  /** Disable mipmap updates, primarily used for texture painting. */
+  IMB_GPU_DISABLE_MIPMAP_UPDATE = (1 << 1),
+};
+ENUM_OPERATORS(ImBufGPUFlag)
+
 struct ImBufGPU {
   /**
-   * Texture which corresponds to the state of the ImBug on the GPU.
+   * Texture which corresponds to the state of the ImBuf on the GPU.
    *
-   * Allocation is supposed to happen outside of the ImBug module from a proper GPU context.
+   * Allocation is supposed to happen outside of the ImBuf module from a proper GPU context.
    * De-referencing the ImBuf or its GPU texture can happen from any state.
    *
    * TODO(@sergey): This should become a list of textures, to support having high-res ImBuf on GPU
    * without hitting hardware limitations.
    */
   gpu::Texture *texture = nullptr;
+
+  /** Last used timestamp for garbage collection */
+  int64_t lastused = 0;
+
+  /** GPU buffer flags. */
+  ImBufGPUFlag flag = ImBufGPUFlag(0);
+
+  /** Mutex guarding access to #texture, #lastused, and #flag. */
+  blender::Mutex mutex;
 };
 
 /** \} */
@@ -201,9 +220,8 @@ struct ImBuf {
   /** Amount of dithering to apply, when converting float -> byte. */
   float dither = 0.0f;
 
-  /* externally used data */
-  /** reference index for ImBuf lists */
-  int index = 0;
+  /** Last used timestamp for garbage collection. */
+  int64_t lastused = 0;
   /** used to set imbuf to dirty and other stuff */
   int userflags = 0;
 
@@ -219,7 +237,7 @@ struct ImBuf {
   ImbFormatOptions foptions;
   /** The absolute file path associated with this image. */
   std::string filepath;
-  /** For movie files, the frame number loaded from the file. */
+  /** For movie files and image sequences, the frame number loaded from the file. */
   int fileframe = 0;
 
   /** reference counter for multiple users */

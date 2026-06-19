@@ -13,10 +13,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_heap.h"
-#include "BLI_utildefines.h"
+#include "BLI_heap.hh"
+#include "BLI_utildefines.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 

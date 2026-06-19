@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'2b1958ccdccb')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e899b48ea546')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-08 09:37+0000\n"
+"POT-Creation-Date: 2026-06-15 07:32+0000\n"
 "PO-Revision-Date: 2026-03-27 12:12+0000\n"
 "Last-Translator: kim nahyeong <weiing0123@ajou.ac.kr>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -34797,84 +34797,192 @@ msgid "Editor menu containing buttons"
 msgstr "버튼이 포함된 에디터 메뉴"
 
 
-msgid "Relations"
-msgstr "관계"
-
-
-msgid "Rigid Body"
-msgstr "리지드 바디"
-
-
 msgid "Render Preview"
 msgstr "렌더링 미리보기"
-
-
-msgid "Apply"
-msgstr "적용"
 
 
 msgid "Track"
 msgstr "트랙"
 
 
-msgid "Quick Effects"
-msgstr "빠른 이펙트"
-
-
-msgid "Show/Hide"
-msgstr "표시/숨기기"
-
-
-msgid "Clean Up"
-msgstr "정리"
-
-
-msgid "Asset"
-msgstr "에셋"
-
-
-msgid "Make Single User"
-msgstr "싱글 유저를 만들기"
-
-
-msgid "Convert"
-msgstr "변환"
-
-
-msgid "Link/Transfer Data"
-msgstr "데이터 연결/전송"
-
-
-msgid "Hooks"
-msgstr "후크"
-
-
-msgid "Vertex Group Locks"
-msgstr "버텍스 그룹 잠금"
-
-
 msgid "Math"
 msgstr "수학"
-
-
-msgid "Trim/Add"
-msgstr "트림/추가"
 
 
 msgid "Utilities"
 msgstr "유틸리티"
 
 
-msgid "Sculpt Set Pivot"
-msgstr "스컬프트 설정 피벗"
+msgid "Assign Material"
+msgstr "머티리얼을 할당"
+
+
+msgid "Read"
+msgstr "읽기"
+
+
+msgid "Sample"
+msgstr "샘플"
+
+
+msgid "Write"
+msgstr "쓰기"
+
+
+msgid "Primitives"
+msgstr "프리미티브"
+
+
+msgid "Mirror"
+msgstr "미러"
+
+
+msgid "Snap"
+msgstr "스냅"
+
+
+msgid "Rigid Body"
+msgstr "리지드 바디"
+
+
+msgid "UV Mapping"
+msgstr "UV 맵핑"
+
+
+msgid "Local View"
+msgstr "로컬 뷰"
+
+
+msgid "Viewpoint"
+msgstr "뷰포트"
+
+
+msgid "Navigation"
+msgstr "네비게이션"
+
+
+msgid "Align View"
+msgstr "뷰를 정렬"
+
+
+msgid "Align View to Active"
+msgstr "뷰를 활성에 정렬"
+
+
+msgid "View Regions"
+msgstr "뷰 지역"
+
+
+msgid "Select More/Less"
+msgstr "선택 증가/감소"
+
+
+msgid "Gizmo"
+msgstr "기즈모"
+
+
+msgid "Instances"
+msgstr "인스턴스"
+
+
+msgid "Select Similar"
+msgstr "유사한 선택"
+
+
+msgid "Select All by Trait"
+msgstr "형질로 모두 선택"
+
+
+msgid "Select Linked"
+msgstr "연결된 선택"
+
+
+msgid "Select Loops"
+msgstr "루프를 선택"
+
+
+msgid "Import"
+msgstr "가져오기"
+
+
+msgid "Deprecated"
+msgstr "사용 중단"
+
+
+msgid "Relations"
+msgstr "관계"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Vertex Group Locks"
+msgstr "버텍스 그룹 잠금"
+
+
+msgid "Metaball"
+msgstr "메타볼"
+
+
+msgid "Random Mask"
+msgstr "랜덤 마스크"
+
+
+msgid "Asset"
+msgstr "에셋"
+
+
+msgid "Show/Hide"
+msgstr "표시/숨기기"
+
+
+msgid "Apply"
+msgstr "적용"
+
+
+msgid "Link/Transfer Data"
+msgstr "데이터 연결/전송"
+
+
+msgid "Clean Up"
+msgstr "정리"
 
 
 msgid "Face Sets Init"
 msgstr "페이스 세트 초기화"
 
 
-msgid "Random Mask"
-msgstr "랜덤 마스크"
+msgid "Light Probe"
+msgstr "라이트 프로브"
+
+
+msgid "Light"
+msgstr "라이트"
+
+
+msgid "Add Image"
+msgstr "이미지를 추가"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "스컬프트 설정 피벗"
+
+
+msgid "Hooks"
+msgstr "후크"
+
+
+msgid "Make Single User"
+msgstr "싱글 유저를 만들기"
+
+
+msgid "Quick Effects"
+msgstr "빠른 이펙트"
+
+
+msgid "Trim/Add"
+msgstr "트림/추가"
 
 
 msgid "Clear Transform"
@@ -34897,20 +35005,8 @@ msgid "Names"
 msgstr "이름"
 
 
-msgid "Read"
-msgstr "읽기"
-
-
-msgid "Sample"
-msgstr "샘플"
-
-
 msgid "Toggle Bone Options"
 msgstr "뼈대 옵션을 토글"
-
-
-msgid "Write"
-msgstr "쓰기"
 
 
 msgid "Enable Bone Options"
@@ -34919,10 +35015,6 @@ msgstr "뼈대 옵션을 사용"
 
 msgid "Disable Bone Options"
 msgstr "뼈대 옵션을 사용 중지"
-
-
-msgid "Primitives"
-msgstr "프리미티브"
 
 
 msgid "Mesh Select Mode"
@@ -34941,20 +35033,12 @@ msgid "Set Face Strength"
 msgstr "페이스 강도를 설정"
 
 
-msgid "Gizmo"
-msgstr "기즈모"
-
-
-msgid "Instances"
-msgstr "인스턴스"
-
-
 msgid "Merge"
 msgstr "병합"
 
 
-msgid "Import"
-msgstr "가져오기"
+msgid "Convert"
+msgstr "변환"
 
 
 msgid "Special Characters"
@@ -34965,28 +35049,32 @@ msgid "Kerning"
 msgstr "자간"
 
 
-msgid "Deprecated"
-msgstr "사용 중단"
+msgid "Linked"
+msgstr "연결됨"
 
 
-msgid "Metaball"
-msgstr "메타볼"
+msgid "Layout"
+msgstr "레이아웃"
 
 
 msgid "Bone Roll"
 msgstr "뼈대 롤"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Adjust"
+msgstr "조정"
+
+
+msgid "Keying"
+msgstr "키잉"
+
+
+msgid "Tracking"
+msgstr "트래킹"
 
 
 msgid "Pivot Point"
 msgstr "피벗 포인트"
-
-
-msgid "Snap"
-msgstr "스냅"
 
 
 msgid "Proportional Editing Falloff"
@@ -35005,96 +35093,8 @@ msgid "Face Sets Edit"
 msgstr "페이스 세트 편집"
 
 
-msgid "Mirror"
-msgstr "미러"
-
-
-msgid "UV Mapping"
-msgstr "UV 맵핑"
-
-
-msgid "Local View"
-msgstr "로컬 뷰"
-
-
-msgid "Viewpoint"
-msgstr "뷰포트"
-
-
-msgid "Navigation"
-msgstr "네비게이션"
-
-
-msgid "Linked"
-msgstr "연결됨"
-
-
-msgid "Align View"
-msgstr "뷰를 정렬"
-
-
-msgid "Layout"
-msgstr "레이아웃"
-
-
-msgid "Align View to Active"
-msgstr "뷰를 활성에 정렬"
-
-
-msgid "View Regions"
-msgstr "뷰 지역"
-
-
-msgid "Select More/Less"
-msgstr "선택 증가/감소"
-
-
-msgid "Select Similar"
-msgstr "유사한 선택"
-
-
-msgid "Select All by Trait"
-msgstr "형질로 모두 선택"
-
-
-msgid "Select Linked"
-msgstr "연결된 선택"
-
-
-msgid "Select Loops"
-msgstr "루프를 선택"
-
-
-msgid "Adjust"
-msgstr "조정"
-
-
-msgid "Keying"
-msgstr "키잉"
-
-
-msgid "Tracking"
-msgstr "트래킹"
-
-
-msgid "Assign Material"
-msgstr "머티리얼을 할당"
-
-
 msgid "Creative"
 msgstr "크리에이티브"
-
-
-msgid "Light"
-msgstr "라이트"
-
-
-msgid "Light Probe"
-msgstr "라이트 프로브"
-
-
-msgid "Add Image"
-msgstr "이미지를 추가"
 
 
 msgid "Keyframe Insert Pie"
@@ -53358,8 +53358,8 @@ msgid "Clear Status"
 msgstr "지우기 상태"
 
 
-msgid "Allow internet access. Blender may access configured online extension repositories. Installed third party add-ons may access the internet for their own functionality"
-msgstr "인터넷 액세스를 허용합니다. Blender는 구성된 온라인 확장 저장소에 액세스할 수 있습니다. 설치된 타사 애드온은 자체 기능을 위해 인터넷에 액세스할 수 있음"
+msgid "Allow Blender to access the internet. Add-ons that follow this setting will only connect to the internet if enabled. However, Blender cannot prevent third-party add-ons from violating this rule."
+msgstr "Blender가 인터넷에 액세스할 수 있도록 허용. 이 설정을 따르는 애드온은 이 설정을 활성화한 경우에만 인터넷에 연결됩니다. 그러나 Blender는 타사 애드온이 이 규칙을 위반하는 것을 막을 수 없음"
 
 
 msgid "Open extensions preferences"
@@ -90370,58 +90370,6 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR 정보"
-
-
-msgid "glTF Variants"
-msgstr "glTF 변형"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF 머티리얼 배리언트"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF 애니메이션"
-
-
-msgid "Active Tool"
-msgstr "활성 도구"
-
-
-msgid "View Lock"
-msgstr "뷰 잠금"
-
-
-msgid "Selectability & Visibility"
-msgstr "선택성 및 가시성"
-
-
-msgid "Shadow Settings"
-msgstr "섀도우 설정"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO 설정"
-
-
-msgid "Cavity"
-msgstr "캐비티"
-
-
-msgid "Render Pass"
-msgstr "렌더 패스"
-
-
 msgid "Compositor"
 msgstr "컴포지터"
 
@@ -90508,6 +90456,58 @@ msgstr "커브 성장/축소 스케일링"
 
 msgid "Viewport Debug"
 msgstr "뷰포트 디버그"
+
+
+msgid "glTF Variants"
+msgstr "glTF 변형"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF 머티리얼 배리언트"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR 정보"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF 애니메이션"
+
+
+msgid "Active Tool"
+msgstr "활성 도구"
+
+
+msgid "View Lock"
+msgstr "뷰 잠금"
+
+
+msgid "Selectability & Visibility"
+msgstr "선택성 및 가시성"
+
+
+msgid "Shadow Settings"
+msgstr "섀도우 설정"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO 설정"
+
+
+msgid "Cavity"
+msgstr "캐비티"
+
+
+msgid "Render Pass"
+msgstr "렌더 패스"
 
 
 msgid "Import Settings"
@@ -95303,10 +95303,6 @@ msgid "Allow Online Access"
 msgstr "온라인 액세스 허용"
 
 
-msgid "Allow Blender to access the internet. Add-ons that follow this setting will only connect to the internet if enabled. However, Blender cannot prevent third-party add-ons from violating this rule."
-msgstr "Blender가 인터넷에 액세스할 수 있도록 허용. 이 설정을 따르는 애드온은 이 설정을 활성화한 경우에만 인터넷에 연결됩니다. 그러나 Blender는 타사 애드온이 이 규칙을 위반하는 것을 막을 수 없음"
-
-
 msgid "Overlay Smooth Wires"
 msgstr "부드러운 와이어 오버레이"
 
@@ -95775,16 +95771,8 @@ msgid "Serbian (Cyrillic) - Српски"
 msgstr "세르비아어(키릴어) - Српски"
 
 
-msgid "Locale code: sr_RS. Translation progress: 16%"
-msgstr "로캘 코드: sr_RS. 번역 진행률: 16%"
-
-
 msgid "Serbian (Latin) - Srpski latinica"
 msgstr "세르비아어(라틴어) - Srpski latinica"
-
-
-msgid "Locale code: sr_RS@latin. Translation progress: 16%"
-msgstr "로캘 코드: sr_RS@latin. 번역 진행률: 16%"
 
 
 msgid "Slovak - Slovenčina"

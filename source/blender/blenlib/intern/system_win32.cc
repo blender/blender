@@ -20,9 +20,9 @@
 #include "uri_convert.hh"
 #include "utfconv.hh"
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
-#include "BLI_system.h" /* Own include. */
+#include "BLI_system.hh" /* Own include. */
 
 /* GetVersionEx is deprecated and also tends to lie about much of the information
  * it gives you. We should deal with that one day, but today is not that day. For

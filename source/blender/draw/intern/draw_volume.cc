@@ -14,7 +14,7 @@
 #include "DNA_fluid_types.h"
 #include "DNA_volume_types.h"
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BKE_global.hh"
 #include "BKE_mesh.hh"

@@ -11,15 +11,15 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_boxpack_2d.h" /* own include */
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
-#include "BLI_utildefines.h"
+#include "BLI_boxpack_2d.hh" /* own include */
+#include "BLI_listbase.hh"
+#include "BLI_math_base_c.hh"
+#include "BLI_utildefines.hh"
 
-#include "BLI_sort.h" /* qsort_r */
+#include "BLI_sort.hh" /* qsort_r */
 #define qsort_r BLI_qsort_r
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 

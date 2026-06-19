@@ -7,7 +7,7 @@
 #include <pxr/usd/sdf/types.h>
 #include <pxr/usd/usd/colorSpaceAPI.h>
 
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "DNA_image_types.h"
 

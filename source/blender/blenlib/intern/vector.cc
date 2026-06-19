@@ -6,7 +6,7 @@
  * \ingroup bli
  */
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_vector.hh"
 
 #include <iostream>

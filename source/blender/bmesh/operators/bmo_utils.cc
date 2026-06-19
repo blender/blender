@@ -15,8 +15,8 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_array.hh"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "BKE_attribute.h"

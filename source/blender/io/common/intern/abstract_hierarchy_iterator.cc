@@ -16,7 +16,7 @@
 #include "BKE_object.hh"
 #include "BKE_particle.h"
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_set.hh"

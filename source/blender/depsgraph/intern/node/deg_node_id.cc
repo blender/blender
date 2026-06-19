@@ -8,8 +8,8 @@
 
 #include "intern/node/deg_node_id.hh"
 
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_ID.h"
 

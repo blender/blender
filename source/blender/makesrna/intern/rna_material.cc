@@ -12,7 +12,7 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 
-#include "BLI_math_rotation.h"
+#include "BLI_math_rotation_c.hh"
 
 #include "BLT_translation.hh"
 
@@ -69,7 +69,7 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
 #  include "DNA_screen_types.h"
 #  include "DNA_space_types.h"
 
-#  include "BLI_string_utf8.h"
+#  include "BLI_string_utf8.hh"
 
 #  include "BKE_attribute.h"
 #  include "BKE_attribute.hh"
@@ -745,10 +745,8 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_range(prop, -DEG2RADF(90.0f), DEG2RADF(90.0f));
   RNA_def_property_ui_range(prop, -DEG2RADF(90.0f), DEG2RADF(90.0f), 10, 3);
-  RNA_def_property_ui_text(prop,
-                           "Rotation",
-                           "Additional rotation applied to dots and square texture of strokes. "
-                           "Only applies in texture shading mode.");
+  RNA_def_property_ui_text(
+      prop, "Rotation", "Additional rotation applied to dots and square texture of strokes");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
 
   /* Placement mode for Dots and Squares. */

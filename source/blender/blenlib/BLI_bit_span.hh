@@ -12,7 +12,7 @@
 
 #include "BLI_bit_ref.hh"
 #include "BLI_index_range.hh"
-#include "BLI_math_bits.h"
+#include "BLI_math_bits.hh"
 #include "BLI_memory_utils.hh"
 
 namespace blender {

@@ -17,9 +17,9 @@
 #include "DNA_action_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 
-#include "BLI_string_utf8_symbols.h"
+#include "BLI_string_utf8_symbols.hh"
 
 #include "UI_resources.hh"
 
@@ -64,10 +64,10 @@ const EnumPropertyItem rna_enum_color_sets_items[] = {
 
 #  include <fmt/format.h>
 
-#  include "BLI_listbase.h"
-#  include "BLI_math_vector.h"
-#  include "BLI_string.h"
-#  include "BLI_string_utf8.h"
+#  include "BLI_listbase.hh"
+#  include "BLI_math_vector_c.hh"
+#  include "BLI_string.hh"
+#  include "BLI_string_utf8.hh"
 
 #  include "MEM_guardedalloc.h"
 

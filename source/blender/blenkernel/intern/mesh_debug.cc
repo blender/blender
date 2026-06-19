@@ -23,7 +23,7 @@
 
 #  include "BKE_mesh.hh"
 
-#  include "BLI_dynstr.h"
+#  include "BLI_dynstr.hh"
 
 namespace blender {
 

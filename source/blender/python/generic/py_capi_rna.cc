@@ -17,8 +17,8 @@
 
 #include "py_capi_rna.hh"
 
-#include "BLI_bitmap.h"
-#include "BLI_dynstr.h"
+#include "BLI_bitmap.hh"
+#include "BLI_dynstr.hh"
 
 #include "RNA_access.hh"
 

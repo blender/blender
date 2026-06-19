@@ -7,7 +7,7 @@
  * \ingroup bke
  */
 
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 #include "DNA_listBase.h"
 
 #include "DNA_shader_fx_types.h" /* Needed for all enum type definitions. */

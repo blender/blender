@@ -37,6 +37,11 @@ struct PreviewImageRuntime {
   int icon_id = 0;
   int16_t tag[NUM_ICON_SIZES] = {};
 
+  /** This is only needed/used in rare cases (asset previews). Multiple libraries may contain the
+   * same asset, so they will request the same preview. In that case, the user count can be used to
+   * avoid freeing too early. */
+  int user_count = 0;
+
   std::array<gpu::Texture *, NUM_ICON_SIZES> gputexture = {};
 
   /** Used to store data to defer the loading of the preview. If empty, loading is not deferred. */
@@ -179,11 +184,15 @@ PreviewImage *BKE_previewimg_cached_ensure(const char *name);
  * Generate a #PreviewImage from given `filepath`, using thumbnails management, if not yet
  * existing. Does not actually generate the preview, #BKE_previewimg_ensure() must be called for
  * that.
+ *
+ * \param count_users: This must be applied consistently to all previews of their kind (for
+ *     example, to all asset previews, to *no* BPY defined previews, etc.).
  */
 PreviewImage *BKE_previewimg_cached_thumbnail_read(const char *name,
                                                    const char *filepath,
                                                    int source,
-                                                   bool force_update);
+                                                   bool force_update,
+                                                   bool count_users = false);
 /* TODO rename this. */
 /**
  * Create a #PreviewImage that is marked as "needs downloading" to \a dst_filepath before loading
@@ -193,10 +202,13 @@ PreviewImage *BKE_previewimg_cached_thumbnail_read(const char *name,
  *
  * \param force_update: Clear the preview's data, so it will be re-loaded once actual loading is
  *   triggered.
+ * \param count_users: This must be applied consistently to all previews of their kind (for
+ *     example, to all asset previews, to *no* BPY defined previews, etc.).
  */
 PreviewImage *BKE_previewimg_online_thumbnail_read(const char *name,
                                                    const char *dst_filepath,
-                                                   bool force_update);
+                                                   bool force_update,
+                                                   bool count_users = false);
 
 void BKE_previewimg_cached_release(const char *name);
 

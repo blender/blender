@@ -7,19 +7,19 @@
  *
  * Routines for working with single linked lists of 'links' - pointers to other data.
  *
- * For double linked lists see `BLI_listbase.h`.
+ * For double linked lists see `BLI_listbase.hh`.
  */
 
 #include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_assert.h"
-#include "BLI_linklist.h"
-#include "BLI_memarena.h"
-#include "BLI_mempool.h"
+#include "BLI_assert.hh"
+#include "BLI_linklist.hh"
+#include "BLI_memarena.hh"
+#include "BLI_mempool.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 

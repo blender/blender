@@ -11,7 +11,7 @@
 #include <zstd.h>
 
 #include "BLI_fileops.hh"
-#include "BLI_filereader.h"
+#include "BLI_filereader.hh"
 
 #include "MEM_guardedalloc.h"
 

@@ -14,7 +14,7 @@
 
 #include <string>
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_enum_flags.hh"
 #include "BLI_index_range.hh"
 

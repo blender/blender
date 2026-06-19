@@ -14,7 +14,7 @@
 
 #include "BKE_fcurve.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "DEG_depsgraph.hh"
 

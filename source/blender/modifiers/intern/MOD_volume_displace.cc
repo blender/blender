@@ -35,7 +35,7 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 
 #ifdef WITH_OPENVDB
 #  include <openvdb/openvdb.h>

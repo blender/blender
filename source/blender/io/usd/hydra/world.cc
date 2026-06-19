@@ -12,7 +12,7 @@
 #include <pxr/usd/sdf/assetPath.h>
 #include <pxr/usd/usdLux/tokens.h>
 
-#include "BLI_math_constants.h"
+#include "BLI_math_constants.hh"
 
 #include "BKE_studiolight.h"
 

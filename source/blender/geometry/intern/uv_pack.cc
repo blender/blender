@@ -12,15 +12,15 @@
 
 #include "BLI_array.hh"
 #include "BLI_bounds.hh"
-#include "BLI_boxpack_2d.h"
+#include "BLI_boxpack_2d.hh"
 #include "BLI_convexhull_2d.hh"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_polyfill_2d.h"
-#include "BLI_polyfill_2d_beautify.h"
-#include "BLI_rect.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_polyfill_2d.hh"
+#include "BLI_polyfill_2d_beautify.hh"
+#include "BLI_rect.hh"
 #include "BLI_vector.hh"
 
 #include "MEM_guardedalloc.h"
@@ -1717,7 +1717,7 @@ static int64_t pack_island_xatlas(const Span<std::unique_ptr<UVAABBIsland>> isla
       }
 
       /* Enlarge search parameters. */
-      if (increase_scale_remaining-- == 0) {
+      if (--increase_scale_remaining < 0) {
         /* Unable to pack within a reasonable number of enlargements, give up and keep the layout
          * from the previous packers (left untouched in `r_phis`). */
         return 0;

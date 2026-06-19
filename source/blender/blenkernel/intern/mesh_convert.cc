@@ -18,10 +18,10 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_index_range.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_span.hh"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -512,10 +512,11 @@ void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Obj
   if (!ob_eval) {
     return;
   }
-  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
   if (!mesh_eval) {
     return;
   }
+  BKE_mesh_wrapper_ensure_mdata(mesh_eval);
 
   ListBaseT<Nurb> nurblist = {nullptr, nullptr};
 
@@ -544,11 +545,12 @@ void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/
   if (!ob_eval) {
     return;
   }
-  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
   if (!mesh_eval) {
     return;
   }
 
+  BKE_mesh_wrapper_ensure_mdata(mesh_eval);
   PointCloud *pointcloud = BKE_pointcloud_add(bmain, ob->id.name + 2);
   pointcloud->totpoint = mesh_eval->verts_num;
 

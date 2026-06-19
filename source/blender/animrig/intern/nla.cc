@@ -7,7 +7,7 @@
  */
 
 #include "BLI_bit_vector.hh"
-#include "BLI_dynstr.h"
+#include "BLI_dynstr.hh"
 
 #include "BKE_animsys.h"
 #include "BKE_fcurve.hh"

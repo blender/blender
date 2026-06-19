@@ -24,7 +24,7 @@
 #include "intern/node/deg_node_id.hh"
 #include "intern/node/deg_node_time.hh"
 
-#include "BLI_math_bits.h"
+#include "BLI_math_bits.hh"
 
 namespace blender {
 

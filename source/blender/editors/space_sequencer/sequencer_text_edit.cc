@@ -14,8 +14,8 @@
 
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_context.hh"
 #include "BKE_scene.hh"

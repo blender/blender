@@ -21,10 +21,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_ghash.h"
-#include "BLI_listbase.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_ghash.hh"
+#include "BLI_listbase.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -187,7 +187,7 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
 
     /* Multi-view always falls back to anaglyph at file opening
      * otherwise quad-buffer saved files can break Blender. */
-    if (win.stereo3d_format) {
+    if (win.stereo3d_format && win.stereo3d_format->display_mode == S3D_DISPLAY_PAGEFLIP) {
       win.stereo3d_format->display_mode = S3D_DISPLAY_ANAGLYPH;
     }
     win.runtime = MEM_new<bke::WindowRuntime>(__func__);

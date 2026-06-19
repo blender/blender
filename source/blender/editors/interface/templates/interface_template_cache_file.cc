@@ -6,9 +6,9 @@
  * \ingroup edinterface
  */
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_context.hh"
 #include "BKE_scene.hh"

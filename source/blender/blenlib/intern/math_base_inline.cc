@@ -14,13 +14,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "BLI_assert.h"
-#include "BLI_math_inline.h"
-#include "BLI_sys_types.h"
+#include "BLI_assert.hh"
+#include "BLI_math_inline.hh"
+#include "BLI_sys_types.hh"
 
 namespace blender {
 
-/* copied from BLI_utildefines.h */
+/* copied from BLI_utildefines.hh */
 #ifdef __GNUC__
 #  define UNLIKELY(x) __builtin_expect(!!(x), 0)
 #else

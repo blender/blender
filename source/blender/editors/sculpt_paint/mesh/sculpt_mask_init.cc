@@ -7,8 +7,8 @@
  */
 
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_hash.h"
-#include "BLI_time.h"
+#include "BLI_hash_c.hh"
+#include "BLI_time.hh"
 
 #include "DNA_object_types.h"
 

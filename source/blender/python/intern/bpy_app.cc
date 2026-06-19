@@ -37,7 +37,7 @@
 #include "bpy_app_icons.hh"
 #include "bpy_app_timers.hh"
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BKE_appdir.hh"
 #include "BKE_blender_version.h"

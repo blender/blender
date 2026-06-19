@@ -16,7 +16,7 @@
 #include <vector>
 
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 using namespace std;
 

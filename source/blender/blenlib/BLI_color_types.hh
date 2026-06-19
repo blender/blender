@@ -12,7 +12,7 @@
 #include <type_traits>
 
 #include "BLI_unique_hash.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 namespace blender {
 

@@ -10,16 +10,16 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 #include "BLI_mutex.hh"
-#include "BLI_string.h"
-#include "BLI_system.h"
+#include "BLI_string.hh"
+#include "BLI_system.hh"
 
 /* for backtrace and gethostname/GetComputerName */
 #if defined(WIN32)
 #  include <intrin.h>
 
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #else
 #  if defined(HAVE_EXECINFO_H)
 #    include <execinfo.h>

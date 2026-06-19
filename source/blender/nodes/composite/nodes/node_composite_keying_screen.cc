@@ -4,7 +4,7 @@
 
 #include "BLI_math_base.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "DNA_movieclip_types.h"
 #include "DNA_node_types.h"

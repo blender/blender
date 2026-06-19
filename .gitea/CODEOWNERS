@@ -131,6 +131,8 @@ source/blender/functions/.*                @JacquesLucke
 source/blender/nodes/NOD_geometry_nodes.*  @JacquesLucke
 source/blender/nodes/geometry/.*           @JacquesLucke
 
+source/blender/nodes/geometry/.*           @LukasTonne
+
 # --------------------------------------------------
 # Blenlib.
 source/blender/blenlib/BLI_allocator.*                     @JacquesLucke
@@ -218,6 +220,7 @@ source/blender/gpu/shaders/.*                           @fclem
 source/blender/editors/space_console/.*   @ideasman42
 source/blender/editors/space_outliner/.*  @JulianEisel
 source/blender/editors/space_text/.*      @ideasman42
+source/blender/editors/space_node/.*      @LukasTonne
 
 # --------------------------------------------------
 # VSE.
@@ -307,6 +310,7 @@ source/blender/makesrna/intern/rna_brush.cc         @Sean-Kim
 source/blender/makesrna/intern/rna_sculpt_paint.cc  @Sean-Kim
 source/blender/blenkernel/BKE_paint.*               @Sean-Kim
 source/blender/blenkernel/intern/brush.*            @Sean-Kim
+source/blender/blenkernel/intern/paint.*            @Sean-Kim
 source/blender/blenkernel/paint.*                   @Sean-Kim
 source/blender/blenkernel/pbvh.*                    @Sean-Kim
 source/blender/editors/sculpt_paint/paint_.*        @Sean-Kim
@@ -323,3 +327,34 @@ source/blender/editors/mesh/.*     @ideasman42
 doc/.*                                          @ideasman42 @Blendify
 scripts/modules/_rna_manual_reference.py        @Blendify
 tools/utils_doc/.*                              @ideasman42 @Blendify
+
+# --------------------------------------------------
+# Physics.
+
+source/blender/geometry/xpbd/.*                         @LukasTonne
+source/blender/geometry/intern/curve_constraints.cc     @LukasTonne
+source/blender/simulation/.*                            @LukasTonne
+source/blender/editors/physics/.*                       @LukasTonne
+
+source/blender/blenkernel/boids.cc                      @LukasTonne
+source/blender/blenkernel/cloth.cc                      @LukasTonne
+source/blender/blenkernel/collision.cc                  @LukasTonne
+source/blender/blenkernel/effect.cc                     @LukasTonne
+source/blender/blenkernel/fluid.cc                      @LukasTonne
+source/blender/blenkernel/particle.cc                   @LukasTonne
+source/blender/blenkernel/particle_child.cc             @LukasTonne
+source/blender/blenkernel/particle_distribute.cc        @LukasTonne
+source/blender/blenkernel/particle_system.cc            @LukasTonne
+source/blender/blenkernel/pointcache.cc                 @LukasTonne
+source/blender/blenkernel/rigidbody.cc                  @LukasTonne
+source/blender/blenkernel/softbody.cc                   @LukasTonne
+
+# --------------------------------------------------
+# Volume Grids.
+
+source/blender/blenkernel/volume.*                      @LukasTonne
+
+# --------------------------------------------------
+# Hair Sculpt.
+
+source/blender/editors/sculpt_paint/curves/.*           @LukasTonne

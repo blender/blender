@@ -5,7 +5,7 @@
 #include "usd_reader_light.hh"
 #include "usd_colorspace_utils.hh"
 
-#include "BLI_math_rotation.h"
+#include "BLI_math_rotation_c.hh"
 
 #include "BKE_light.h"
 #include "BKE_object.hh"

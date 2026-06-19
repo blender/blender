@@ -6,10 +6,10 @@
 
 #include "BLF_api.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_listbase_iterator.hh"
-#include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_rect.hh"
+#include "BLI_string.hh"
 
 #include "DNA_screen_types.h"
 
@@ -319,7 +319,7 @@ TextboxState *textbox_ensure_state(ARegion *region, StringRefNull idname)
   }
   uiTextboxStateLink *link = MEM_new<uiTextboxStateLink>(__func__);
   link->idname = BLI_strdupn(idname.data(), idname.size());
-  link->state.visible_lines = textbox_minimum_visible_lines;
+  BLI_assert(link->state.visible_lines >= textbox_minimum_visible_lines);
   BLI_addtail(&region->textbox_states, link);
   return &link->state;
 }

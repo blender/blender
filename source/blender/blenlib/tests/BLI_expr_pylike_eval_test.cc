@@ -6,9 +6,9 @@
 
 #include <cstring>
 
-#include "BLI_expr_pylike_eval.h"
-#include "BLI_math_base.h"
-#include "BLI_utildefines.h"
+#include "BLI_expr_pylike_eval.hh"
+#include "BLI_math_base_c.hh"
+#include "BLI_utildefines.hh"
 
 namespace blender {
 

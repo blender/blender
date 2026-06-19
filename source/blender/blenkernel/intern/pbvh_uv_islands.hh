@@ -154,22 +154,22 @@ struct UVVertex {
   } flags;
 
   explicit UVVertex();
-  explicit UVVertex(const MeshData &mesh_data, const int loop);
+  explicit UVVertex(const MeshData &mesh_data, int loop);
 };
 
 struct UVEdge {
   std::array<UVVertex *, 2> vertices;
   Vector<int, 2> uv_primitive_indices;
 
-  UVVertex *get_other_uv_vertex(const int vertex_index);
-  bool has_shared_edge(Span<float2> uv_map, const int loop_1, const int loop_2) const;
+  UVVertex *get_other_uv_vertex(int vertex_index);
+  bool has_shared_edge(Span<float2> uv_map, int loop_1, int loop_2) const;
   bool has_shared_edge(const UVEdge &other) const;
   bool has_same_vertices(const int2 &edge) const;
   bool is_border_edge() const;
 
  private:
   bool has_shared_edge(const UVVertex &v1, const UVVertex &v2) const;
-  bool has_same_vertices(const int vert1, const int vert2) const;
+  bool has_same_vertices(int vert1, int vert2) const;
   bool has_same_uv_vertices(const UVEdge &other) const;
 };
 
@@ -180,7 +180,7 @@ struct UVPrimitive {
   const int primitive_i;
   Vector<UVEdge *, 3> edges;
 
-  explicit UVPrimitive(const int primitive_i);
+  explicit UVPrimitive(int primitive_i);
 
   Vector<std::pair<UVEdge *, UVEdge *>> shared_edges(UVPrimitive &other);
   bool has_shared_edge(const UVPrimitive &other) const;
@@ -189,14 +189,14 @@ struct UVPrimitive {
   /**
    * Get the UVVertex in the order that the verts are ordered in the MeshPrimitive.
    */
-  const UVVertex *get_uv_vertex(const MeshData &mesh_data, const uint8_t mesh_vert_index) const;
+  const UVVertex *get_uv_vertex(const MeshData &mesh_data, uint8_t mesh_vert_index) const;
 
   /**
    * Get the UVEdge that share the given uv coordinates.
    * Will assert when no UVEdge found.
    */
-  UVEdge *get_uv_edge(const float2 uv1, const float2 uv2) const;
-  UVEdge *get_uv_edge(const int v1, const int v2) const;
+  UVEdge *get_uv_edge(float2 uv1, float2 uv2) const;
+  UVEdge *get_uv_edge(int v1, int v2) const;
 
   bool contains_uv_vertex(const UVVertex *uv_vertex) const;
   const UVVertex *get_other_uv_vertex(const UVVertex *v1, const UVVertex *v2) const;
@@ -311,17 +311,14 @@ struct UVIsland {
   /** Initialize the border attribute. */
   void extract_borders();
   /** Iterative extend border to fit the mask. */
-  void extend_border(const MeshData &mesh_data,
-                     const UVIslandsMask &mask,
-                     const short island_index);
+  void extend_border(const MeshData &mesh_data, const UVIslandsMask &mask, short island_index);
 
  private:
   void append(const UVPrimitive &primitive);
 
  public:
   bool has_shared_edge(const UVPrimitive &primitive) const;
-  bool has_shared_edge(const MeshData &mesh_data, const int primitive_i) const;
-  void extend_border(const UVPrimitive &primitive);
+  bool has_shared_edge(const MeshData &mesh_data, int primitive_i) const;
 
   /** Print a python script to the console that generates a mesh representing this UVIsland. */
   void print_debug(const MeshData &mesh_data) const;
@@ -349,8 +346,8 @@ struct UVIslandsMask {
 
     Tile(float2 udim_offset, ushort2 tile_resolution);
 
-    bool is_masked(const uint16_t island_index, const float2 uv) const;
-    bool contains(const float2 uv) const;
+    bool is_masked(uint16_t island_index, float2 uv) const;
+    bool contains(float2 uv) const;
     float get_pixel_size_in_uv_space() const;
   };
 
@@ -361,7 +358,7 @@ struct UVIslandsMask {
   /**
    * Find a tile containing the given uv coordinate.
    */
-  const Tile *find_tile(const float2 uv) const;
+  const Tile *find_tile(float2 uv) const;
 
   /**
    * Is the given uv coordinate part of the given island_index mask.
@@ -369,7 +366,7 @@ struct UVIslandsMask {
    * true - part of the island mask.
    * false - not part of the island mask.
    */
-  bool is_masked(const uint16_t island_index, const float2 uv) const;
+  bool is_masked(uint16_t island_index, float2 uv) const;
 
   /**
    * Add the given UVIslands to the mask. Tiles should be added beforehand using the 'add_tile'

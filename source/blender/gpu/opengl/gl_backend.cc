@@ -13,13 +13,13 @@
 
 #include "BKE_global.hh"
 #if defined(WIN32)
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #endif
 #include "BLI_array.hh"
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_subprocess.hh"
-#include "BLI_threads.h"
+#include "BLI_threads.hh"
 #include "BLI_vector.hh"
 
 #include "CLG_log.h"

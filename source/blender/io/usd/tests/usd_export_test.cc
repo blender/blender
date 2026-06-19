@@ -22,9 +22,10 @@
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
+#include "BKE_mesh_types.hh"
 
-#include "BLI_fileops.h"
-#include "BLI_listbase.h"
+#include "BLI_fileops.hh"
+#include "BLI_listbase.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_path_utils.hh"
 
@@ -192,7 +193,23 @@ class UsdExportTest : public BlendfileLoadingBaseTest {
     EXPECT_EQ(mesh->verts_num, positions.size());
     EXPECT_EQ(mesh->faces_num, face_counts.size());
     EXPECT_EQ(mesh->corners_num, face_indices.size());
-    EXPECT_EQ(mesh->corners_num, normals.size());
+    switch (mesh->normals_domain()) {
+      case bke::MeshNormalDomain::Point: {
+        EXPECT_EQ(mesh_prim.GetNormalsInterpolation(), pxr::UsdGeomTokens->vertex);
+        EXPECT_EQ(mesh->verts_num, normals.size());
+        break;
+      }
+      case bke::MeshNormalDomain::Face: {
+        EXPECT_EQ(mesh_prim.GetNormalsInterpolation(), pxr::UsdGeomTokens->uniform);
+        EXPECT_EQ(mesh->faces_num, normals.size());
+        break;
+      }
+      case bke::MeshNormalDomain::Corner: {
+        EXPECT_EQ(mesh_prim.GetNormalsInterpolation(), pxr::UsdGeomTokens->faceVarying);
+        EXPECT_EQ(mesh->corners_num, normals.size());
+        break;
+      }
+    }
   }
 };
 

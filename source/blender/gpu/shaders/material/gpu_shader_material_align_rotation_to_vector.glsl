@@ -6,17 +6,7 @@
 #include "gpu_shader_math_rotation_conversion_lib.glsl"
 #include "gpu_shader_math_rotation_lib.glsl"
 #include "gpu_shader_math_vector_compare_lib.glsl"
-
-float angle_normalized_v3v3(float3 v1, float3 v2)
-{
-  v1 = normalize(v1);
-  v2 = normalize(v2);
-  if (dot(v1, v2) >= 0.0f) {
-    return 2.0f * asin(clamp(length(v2 - v1) / 2.0f, -1.0f, 1.0f));
-  }
-  const float3 v2_n = -v2;
-  return M_PI - 2.0f * asin(clamp(length(v2_n - v1) / 2.0f, -1.0f, 1.0f));
-}
+#include "gpu_shader_math_vector_lib.glsl"
 
 float3 project_plane_normalized_v3_v3v3(float3 p, float3 v_plane)
 {
@@ -31,7 +21,7 @@ float angle_signed_on_axis_v3v3_v3(float3 v1, float3 v2, float3 axis)
   const float3 v1_proj = project_plane_normalized_v3_v3v3(v1, axis_n);
   const float3 v2_proj = project_plane_normalized_v3_v3v3(v2, axis_n);
 
-  float angle = angle_normalized_v3v3(v1_proj, v2_proj);
+  float angle = angle_normalized(v1_proj, v2_proj);
 
   const float3 tproj = cross(v2_proj, v1_proj);
   if (dot(tproj, axis) < 0.0f) {
@@ -66,7 +56,7 @@ void align_rotation_to_vector_auto_pivot(float4 rotation_in,
     }
   }
 
-  const float full_angle = angle_normalized_v3v3(old_axis, new_axis);
+  const float full_angle = angle_normalized(old_axis, new_axis);
   const float angle = factor * full_angle;
 
   AxisAngle aa;

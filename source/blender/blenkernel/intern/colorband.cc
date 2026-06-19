@@ -8,10 +8,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_heap.h"
-#include "BLI_math_color.h"
-#include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
+#include "BLI_heap.hh"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_key_types.h"
 #include "DNA_texture_types.h"

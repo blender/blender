@@ -10,9 +10,9 @@
 
 #include "DNA_object_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "MEM_guardedalloc.h"

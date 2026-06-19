@@ -18,8 +18,8 @@
 
 #include "oiio/openimageio_support.hh"
 
-#include "BLI_fileops.h"
-#include "BLI_mmap.h"
+#include "BLI_fileops.hh"
+#include "BLI_mmap.hh"
 
 #include "IMB_filetype.hh"
 #include "IMB_imbuf.hh"

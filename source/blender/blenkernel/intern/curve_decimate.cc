@@ -8,8 +8,8 @@
 
 #include "DNA_curve_types.h"
 
-#include "BLI_heap.h"
-#include "BLI_math_vector.h"
+#include "BLI_heap.hh"
+#include "BLI_math_vector_c.hh"
 #include "MEM_guardedalloc.h"
 
 #include "BKE_curve.hh"
@@ -22,7 +22,7 @@ extern "C" {
 
 #include <cstring>
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 struct Knot {
   Knot *next, *prev;

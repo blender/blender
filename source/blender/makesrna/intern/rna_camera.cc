@@ -11,7 +11,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_text_types.h"
 
-#include "BLI_math_rotation.h"
+#include "BLI_math_rotation_c.hh"
 
 #include "BLT_translation.hh"
 
@@ -27,7 +27,7 @@
 #  include <fmt/format.h>
 
 #  include "BLI_path_utils.hh"
-#  include "BLI_string.h"
+#  include "BLI_string.hh"
 
 #  include "BKE_camera.h"
 #  include "BKE_lib_id.hh"

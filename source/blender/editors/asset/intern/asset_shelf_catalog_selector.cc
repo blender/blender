@@ -11,11 +11,11 @@
 #include "AS_asset_catalog.hh"
 #include "AS_asset_catalog_tree.hh"
 
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "DNA_screen_types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "BKE_context.hh"
 #include "BKE_screen.hh"

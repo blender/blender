@@ -12,7 +12,7 @@
 #include "BBox.h"
 #include "Grid.h"
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 namespace Freestyle {
 

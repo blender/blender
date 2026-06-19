@@ -4,7 +4,7 @@
 
 #include "node_shader_util.hh"
 
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 
 namespace blender {
 

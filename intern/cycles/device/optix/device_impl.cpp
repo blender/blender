@@ -397,9 +397,23 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
       return false;
     }
 
-    auto load_optional_module = [this](const string &name, string &ptx_data) -> bool {
-      const string filename = path_get("lib/" + name + ".ptx.zst");
-      if (!path_read_compressed_text(filename, ptx_data)) {
+    auto load_optional_module = [this, &kernel_features](const string &name,
+                                                         string &ptx_data) -> bool {
+      string filename = path_get("lib/" + name + ".ptx.zst");
+      if (use_adaptive_compilation() || path_file_size(filename) == -1) {
+        /* Map kernel_optix_foo.ptx to kernel_foo.cu. */
+        const char *suffix = "_optix";
+        string source_name = name;
+        const size_t optix_pos = source_name.find(suffix);
+        if (optix_pos != string::npos) {
+          source_name.erase(optix_pos, strlen(suffix));
+        }
+
+        /* Runtime compile. */
+        const string cflags = compile_kernel_get_common_cflags(kernel_features);
+        filename = compile_kernel(cflags, source_name.c_str(), true);
+      }
+      if (filename.empty() || !path_read_compressed_text(filename, ptx_data)) {
         set_error(string_printf("Failed to load OptiX kernel from '%s'", filename.c_str()));
         return false;
       }

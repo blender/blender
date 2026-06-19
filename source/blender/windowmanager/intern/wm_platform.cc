@@ -11,12 +11,12 @@
 #include "WM_api.hh" /* Own include. */
 
 #ifdef WIN32
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #elif defined(__APPLE__)
 /* Pass. */
 #else
 #  ifdef WITH_PYTHON
-#    include "BLI_string.h"
+#    include "BLI_string.hh"
 
 #    include "BKE_context.hh"
 

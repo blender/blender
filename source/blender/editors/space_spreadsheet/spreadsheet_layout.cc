@@ -13,7 +13,7 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BKE_instances.hh"
 #include "BKE_lib_id.hh"

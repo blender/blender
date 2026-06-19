@@ -7,10 +7,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_ghash.h"
+#include "BLI_ghash.hh"
 #include "BLI_map.hh"
-#include "BLI_mempool.h"
-#include "BLI_utildefines.h"
+#include "BLI_mempool.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_ID.h"
 

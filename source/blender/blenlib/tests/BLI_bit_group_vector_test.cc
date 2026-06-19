@@ -6,7 +6,7 @@
 
 #include "BLI_bit_group_vector.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender::bits::tests {
 

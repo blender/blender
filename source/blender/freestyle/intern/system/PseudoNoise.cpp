@@ -7,8 +7,8 @@
  * \brief Class to define a pseudo Perlin noise
  */
 
-#include "BLI_math_base.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "PseudoNoise.h"
 #include "RandGen.h"

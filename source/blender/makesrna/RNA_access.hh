@@ -18,7 +18,7 @@
 
 #include "RNA_types.hh"
 
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 #include "BLI_enum_flags.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_string_ref.hh"
@@ -657,7 +657,7 @@ bool RNA_property_collection_assign_int(PointerRNA *ptr,
                                         PropertyRNA *prop,
                                         int key,
                                         const PointerRNA *assign_ptr);
-bool RNA_property_collection_type_get(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr);
+std::optional<PointerRNA> RNA_property_collection_type_get(PointerRNA *ptr, PropertyRNA *prop);
 
 /* efficient functions to set properties for arrays */
 int RNA_property_collection_raw_array(

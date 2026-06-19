@@ -15,7 +15,7 @@
 #include <Python.h>
 #include <frameobject.h>
 
-#include "BLI_utildefines.h" /* for bool */
+#include "BLI_utildefines.hh" /* for bool */
 
 #include "DNA_vec_types.h" /* for rcti */
 
@@ -26,11 +26,11 @@
 #ifndef MATH_STANDALONE
 #  include "MEM_guardedalloc.h"
 
-#  include "BLI_string_utf8.h"
+#  include "BLI_string_utf8.hh"
 #endif
 
 #ifdef _WIN32
-#  include "BLI_math_base.h" /* isfinite() */
+#  include "BLI_math_base_c.hh" /* isfinite() */
 #endif
 
 namespace blender {

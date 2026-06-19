@@ -10,9 +10,9 @@
 #include <cstdio>
 #include <cstring>
 
-#include "BLI_dynstr.h"
-#include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_dynstr.hh"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
 
 #include "DNA_ID.h"
 
@@ -21,7 +21,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 

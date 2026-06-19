@@ -582,6 +582,7 @@ class SEQUENCER_MT_select(Menu):
             col.operator("sequencer.select_less", text="Less")
             col.separator()
 
+        col.operator_menu_enum("sequencer.select_by_type", "type", text="Select All by Type")
         col.operator_menu_enum("sequencer.select_grouped", "type", text="Select Grouped")
         col.enabled = not is_retiming
         if has_sequencer:
@@ -1122,9 +1123,10 @@ class SEQUENCER_MT_strip(Menu):
         if has_preview:
             layout.menu("SEQUENCER_MT_strip_mirror")
             layout.separator()
-            layout.operator("sequencer.preview_duplicate_move", text="Duplicate")
             layout.operator("sequencer.copy", text="Copy", icon='COPYDOWN')
             layout.operator("sequencer.paste", text="Paste", icon='PASTEDOWN')
+            layout.separator()
+            layout.operator("sequencer.preview_duplicate_move", text="Duplicate", icon='DUPLICATE')
             layout.separator()
             layout.menu("SEQUENCER_MT_strip_animation")
             layout.separator()
@@ -1148,15 +1150,9 @@ class SEQUENCER_MT_strip(Menu):
 
             layout.operator("sequencer.copy", text="Copy", icon='COPYDOWN')
             layout.operator("sequencer.paste", text="Paste", icon='PASTEDOWN')
-            layout.operator("sequencer.duplicate_move", text="Duplicate")
+            layout.separator()
+            layout.operator("sequencer.duplicate_move", text="Duplicate", icon='DUPLICATE')
             layout.operator("sequencer.duplicate_move_linked", text="Duplicate Linked")
-
-        layout.separator()
-        layout.operator("sequencer.delete", text="Delete")
-
-        if strip and strip.type == 'SCENE':
-            layout.operator("sequencer.delete", text="Delete Strip & Data").delete_data = True
-            layout.operator("sequencer.scene_frame_range_update")
 
         if has_sequencer:
             if strip:
@@ -1203,6 +1199,12 @@ class SEQUENCER_MT_strip(Menu):
 
             layout.separator()
             layout.menu("SEQUENCER_MT_strip_input")
+
+        layout.separator()
+        if strip and strip.type == 'SCENE':
+            layout.operator("sequencer.scene_frame_range_update")
+            layout.operator("sequencer.delete", text="Delete Strip & Data").delete_data = True
+        layout.operator("sequencer.delete", text="Delete", icon='X')
 
 
 class SEQUENCER_MT_image(Menu):

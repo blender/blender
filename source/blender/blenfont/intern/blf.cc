@@ -20,10 +20,10 @@
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 
-#include "BLI_fileops.h"
-#include "BLI_math_rotation.h"
+#include "BLI_fileops.hh"
+#include "BLI_math_rotation_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BLF_api.hh"
 

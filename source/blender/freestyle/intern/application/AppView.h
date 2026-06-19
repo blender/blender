@@ -15,7 +15,7 @@
 #include "../scene_graph/NodeDrawingStyle.h"
 #include "../system/Precision.h"
 
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 
 #include "MEM_guardedalloc.h"
 

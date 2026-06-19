@@ -8,7 +8,7 @@
 
 #include "sequencer_strips_batch.hh"
 
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 
 #include "DNA_userdef_types.h"
 #include "DNA_view2d_types.h"

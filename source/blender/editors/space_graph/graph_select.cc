@@ -13,8 +13,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_lasso_2d.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
@@ -1528,9 +1528,9 @@ void GRAPH_OT_select_less(wmOperatorType *ot)
 
 /* defines for left-right select tool */
 static const EnumPropertyItem prop_graphkeys_leftright_select_types[] = {
-    {GRAPHKEYS_LRSEL_TEST, "CHECK", 0, "Check if Select Left or Right", ""},
     {GRAPHKEYS_LRSEL_LEFT, "LEFT", 0, "Before Current Frame", ""},
     {GRAPHKEYS_LRSEL_RIGHT, "RIGHT", 0, "After Current Frame", ""},
+    {GRAPHKEYS_LRSEL_TEST, "CHECK", 0, "Mouse Click Side", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

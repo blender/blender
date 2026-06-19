@@ -35,15 +35,15 @@
 #include "GHOST_Types.hh"
 
 #include "BLI_enum_flags.hh"
-#include "BLI_fileops.h"
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
+#include "BLI_fileops.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_rect.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_system.h"
-#include "BLI_time.h"
+#include "BLI_rect.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_system.hh"
+#include "BLI_time.hh"
 
 #include "BLT_translation.hh"
 
@@ -103,7 +103,7 @@
 
 /* For assert. */
 #ifndef NDEBUG
-#  include "BLI_threads.h"
+#  include "BLI_threads.hh"
 #endif
 
 namespace blender {
@@ -1045,7 +1045,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
       static_cast<GHOST_IWindow *>((win->parent) ? win->parent->runtime->ghostwin : nullptr));
 
   if (ghost_window) {
-    win->runtime->gpuctx = GPU_context_create(ghost_window, nullptr);
+    win->runtime->gpuctx = GPU_context_create(ghost_window, ghost_window->getDrawingContext());
     GPU_render_begin();
 
     /* Needed so we can detect the graphics card below. */
@@ -1632,14 +1632,15 @@ static void wm_window_set_drawable(wmWindowManager *wm, wmWindow *win, bool acti
   if (activate) {
     GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
     ghost_window->activateDrawingContext();
+    GPU_context_active_set(static_cast<GPUContext *>(win->runtime->gpuctx));
   }
-  GPU_context_active_set(static_cast<GPUContext *>(win->runtime->gpuctx));
 }
 
 void wm_window_clear_drawable(wmWindowManager *wm)
 {
   if (wm->runtime->windrawable) {
     wm->runtime->windrawable = nullptr;
+    GPU_context_active_set(nullptr);
   }
 }
 

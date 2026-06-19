@@ -7,7 +7,7 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"

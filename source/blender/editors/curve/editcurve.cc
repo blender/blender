@@ -15,17 +15,17 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_array_utils.h"
-#include "BLI_ghash.h"
+#include "BLI_array_utils_c.hh"
+#include "BLI_ghash.hh"
 #include "BLI_listbase_wrapper.hh"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BLT_translation.hh"
 
@@ -2127,8 +2127,11 @@ bool ed_editnurb_extrude_flag(EditNurb *editnurb, const eBezTriple_Flag flag)
       is_first_sel_v = false;
     }
     else {
-      sel_to_copy_ints(
+      const int selected_vs = sel_to_copy_ints(
           nu.bp, nu.pntsu, nu.pntsv, 1, nu.pntsu, flag, intvls_v, &intvl_cnt_v, &is_first_sel_v);
+      if (selected_vs == -1) {
+        continue;
+      }
     }
 
     const int new_pntsu = nu.pntsu + intvl_cnt_u - 1;
@@ -2164,6 +2167,7 @@ bool ed_editnurb_extrude_flag(EditNurb *editnurb, const eBezTriple_Flag flag)
       nu.orderv = 2;
     }
     nu.pntsv = new_pntsv;
+    BLI_assert(nu.pntsu >= 1 && nu.pntsv >= 1);
     BKE_nurb_knot_calc_u(&nu);
     BKE_nurb_knot_calc_v(&nu);
 

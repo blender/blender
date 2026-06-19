@@ -19,9 +19,9 @@
 #include "BKE_object_types.hh"
 #include "BKE_scene.hh"
 
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "ED_gizmo_library.hh"
 #include "ED_gizmo_utils.hh"

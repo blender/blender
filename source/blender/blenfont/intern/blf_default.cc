@@ -10,7 +10,7 @@
 
 #include "DNA_userdef_types.h"
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 
 #include "BLF_api.hh"
 

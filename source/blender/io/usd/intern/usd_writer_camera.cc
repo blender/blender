@@ -9,7 +9,7 @@
 #include <pxr/usd/usdGeom/tokens.h>
 
 #include "BKE_camera.h"
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 
 #include "DEG_depsgraph_query.hh"
 

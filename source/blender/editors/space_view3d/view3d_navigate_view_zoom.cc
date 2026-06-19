@@ -6,9 +6,9 @@
  * \ingroup spview3d
  */
 
-#include "BLI_math_vector.h"
-#include "BLI_rect.h"
-#include "BLI_time.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rect.hh"
+#include "BLI_time.hh"
 
 #include "BKE_context.hh"
 #include "BKE_screen.hh"

@@ -21,13 +21,13 @@
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_dynstr.h"
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
+#include "BLI_dynstr.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_base_c.hh"
 #include "BLI_mutex.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -4973,7 +4973,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
     }
     IDP_AppendArray(idprop, item);
     /* IDP_AppendArray does a shallow copy (memcpy), only free memory. */
-    // IDP_FreePropertyContent(item);
+    // IDP_FreeProperty(item);
     MEM_delete(item);
     rna_idproperty_touch(idprop);
   }
@@ -4991,7 +4991,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
       }
       IDP_AppendArray(idprop, item);
       /* #IDP_AppendArray does a shallow copy (memcpy), only free memory. */
-      // IDP_FreePropertyContent(item);
+      // IDP_FreeProperty(item);
       MEM_delete(item);
     }
   }
@@ -5306,19 +5306,14 @@ bool RNA_property_collection_assign_int(PointerRNA *ptr,
   return false;
 }
 
-bool RNA_property_collection_type_get(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr)
+std::optional<PointerRNA> RNA_property_collection_type_get(PointerRNA *ptr, PropertyRNA *prop)
 {
   BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
-
   StructRNA *type = rna_ensure_property(prop)->srna;
-  if (type) {
-    *r_ptr = RNA_pointer_create_with_parent(*ptr, type, ptr->data);
-    return true;
+  if (type == nullptr) {
+    return std::nullopt;
   }
-  else {
-    *r_ptr = *ptr;
-    return false;
-  }
+  return RNA_pointer_create_with_parent(*ptr, type, ptr->data);
 }
 
 int RNA_property_collection_raw_array(

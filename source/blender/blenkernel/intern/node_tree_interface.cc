@@ -15,9 +15,9 @@
 #include "BKE_node_tree_interface_convert.hh"
 #include "BKE_node_tree_update.hh"
 
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 #include "BLI_stack.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BLO_read_write.hh"
 
@@ -726,8 +726,7 @@ static void item_free(bNodeTreeInterfaceItem &item, const bool do_id_user)
       MEM_SAFE_DELETE(socket.default_attribute_name);
       MEM_SAFE_DELETE(socket.identifier);
       if (socket.properties) {
-        IDP_FreePropertyContent_ex(socket.properties, do_id_user);
-        MEM_delete(socket.properties);
+        IDP_FreeProperty_ex(socket.properties, do_id_user);
       }
       break;
     }

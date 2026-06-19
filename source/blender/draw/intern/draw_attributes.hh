@@ -13,7 +13,7 @@
 #include <string>
 
 #include "BLI_string_ref.hh"
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 #include "BLI_vector_set.hh"
 

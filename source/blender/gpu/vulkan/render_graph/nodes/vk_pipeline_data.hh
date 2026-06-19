@@ -95,6 +95,7 @@ struct VKPipelineDataGraphics {
 struct VKBoundPipeline {
   VkPipeline vk_pipeline;
   VkDescriptorSet vk_descriptor_set;
+  VkPipelineLayout vk_pipeline_layout;
 };
 
 struct VKIndexBufferBinding {

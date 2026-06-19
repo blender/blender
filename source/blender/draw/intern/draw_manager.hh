@@ -14,19 +14,25 @@
  * \note It is currently work in progress and should replace the old global draw manager.
  */
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 #include "GPU_material.hh"
+
+#include "IMB_imbuf.hh"
 
 #include "draw_handle.hh"
 #include "draw_resource.hh"
 #include "draw_view.hh"
 
 #include <atomic>
+#include <memory>
 
 namespace blender {
+
+struct Image;
+struct ImageUser;
 
 namespace draw {
 
@@ -74,6 +80,17 @@ class Manager {
     Span<ObjectInfos> infos;
   };
 
+  struct DeferredTexture {
+    /* Input to load textures from. */
+    blender::Image *image = nullptr;
+    blender::ImageUser *image_user = nullptr;
+    bool use_tile_mapping = false;
+
+    /* Loaded textures. */
+    gpu::Texture *texture = nullptr;
+    gpu::Texture *tile_mapping = nullptr;
+  };
+
   /**
    * Buffers containing all object data. Referenced by resource index.
    * Exposed as public members for shader access after sync.
@@ -105,6 +122,13 @@ class Manager {
   Vector<gpu::Texture *> acquired_textures;
 
  private:
+  /**
+   * List of texture that will be deferred loaded in parallel.
+   * Note this uses std::unique_ptr because bind_texture uses the pointer address,
+   * so it must be at a stable memory location.
+   */
+  Vector<std::unique_ptr<DeferredTexture>> deferred_textures_;
+
   /** Number of sync done by managers. Used for fingerprint. */
   static std::atomic<uint32_t> global_sync_counter_;
 
@@ -283,13 +307,37 @@ class Manager {
   DataDebugOutput data_debug();
 
   /**
-   * Will acquire the texture using ref counting and release it after drawing. To be used for
+   * Will take a reference counted texture and release it after drawing. To be used for
    * texture coming from blender Image.
    */
-  void acquire_texture(gpu::Texture *texture)
+  void hold_texture(gpu::Texture *texture)
   {
-    GPU_texture_ref(texture);
-    acquired_textures.append(texture);
+    if (texture != nullptr) {
+      acquired_textures.append(texture);
+    }
+  }
+
+  /**
+   * Add deferred loading texture.
+   */
+  DeferredTexture &add_texture_deferred(blender::Image *image,
+                                        blender::ImageUser *image_user,
+                                        const bool use_tile_mapping)
+  {
+    deferred_textures_.append(std::make_unique<DeferredTexture>());
+    DeferredTexture &deferred = *deferred_textures_.last();
+    deferred.image = image;
+    deferred.image_user = image_user;
+    deferred.use_tile_mapping = use_tile_mapping;
+    return deferred;
+  }
+
+  /**
+   * Return true if there are textures pending deferred loading this frame.
+   */
+  bool has_deferred_textures() const
+  {
+    return !deferred_textures_.is_empty();
   }
 
   /**
@@ -303,6 +351,8 @@ class Manager {
   /** TODO(fclem): The following should become private at some point. */
   void begin_sync(Object *object_active = nullptr);
   void end_sync();
+
+  void load_deferred_textures();
 
   void debug_bind();
   void resource_bind();
