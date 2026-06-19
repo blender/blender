@@ -478,7 +478,7 @@ if(APPLE)
   )
 endif()
 
-if(UNIX AND NOT APPLE)
+if(UNIX AND NOT (APPLE OR ANDROID))
   list(APPEND LIB
     bf_intern_libc_compat
   )
