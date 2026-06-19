@@ -2787,23 +2787,40 @@ static void UI_OT_view_scroll(wmOperatorType *ot)
  *
  * \{ */
 
+static AbstractViewItem *find_active_view_item(bContext *C)
+{
+  const AbstractView *view = get_view_focused(C);
+  if (!view) {
+    return nullptr;
+  }
+  AbstractViewItem *active_item = nullptr;
+  view->foreach_view_item([&](AbstractViewItem &item) {
+    if (item.is_active()) {
+      active_item = &item;
+    }
+  });
+  return active_item;
+}
+
 static bool view_item_rename_poll(bContext *C)
 {
   const AbstractView *view = get_view_focused(C);
   if (view == nullptr) {
     return false;
   }
-
-  const ARegion *region = CTX_wm_region(C);
-  const AbstractViewItem *active_item = region_views_find_active_item(region, view);
+  const AbstractViewItem *active_item = find_active_view_item(C);
   return active_item != nullptr && view_item_can_rename(*active_item);
 }
 
 static wmOperatorStatus view_item_rename_exec(bContext *C, wmOperator * /*op*/)
 {
   ARegion *region = CTX_wm_region(C);
-  const AbstractView *view = get_view_focused(C);
-  AbstractViewItem *active_item = region_views_find_active_item(region, view);
+  AbstractViewItem *active_item = find_active_view_item(C);
+
+  if (AbstractTreeView *tree_view = dynamic_cast<AbstractTreeView *>(&active_item->get_view())) {
+    /* In tree views, ensure the active item is visible when renaming starts. */
+    tree_view->scroll_active_into_view(C, true);
+  }
 
   view_item_begin_rename(*active_item);
   ED_region_tag_redraw(region);
