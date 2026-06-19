@@ -454,11 +454,7 @@ GLShaderInterface::GLShaderInterface(GLuint program, const shader::ShaderCreateI
   for (const ShaderCreateInfo::Resource &res : all_resources) {
     if (res.bind_type == ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER) {
       copy_input_name(input, res.uniformbuf.name, name_buffer_, name_buffer_offset);
-      if (true || !GLContext::explicit_location_support) {
-        input->location = glGetUniformBlockIndex(program, name_buffer_ + input->name_offset);
-        glUniformBlockBinding(program, input->location, res.slot);
-      }
-      input->binding = res.slot;
+      input->location = input->binding = res.slot;
       enabled_ubo_mask_ |= (1 << input->binding);
       input++;
     }
