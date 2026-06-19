@@ -57,6 +57,7 @@
 #include "BLI_string_ref.hh"
 #include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
+#include "BLI_task.hh"
 #include "BLI_utildefines.hh"
 #include "BLI_vector_set.hh"
 #include "BLI_virtual_array.hh"
@@ -493,122 +494,127 @@ static void update_triangle_and_offsets_cache(const Span<float3> positions,
   threading::EnumerableThreadSpecific<LocalMemArena> all_local_mem_arenas;
   fill_mask.foreach_segment(
       [&](const IndexMaskSegment mask_segment, const int segment_pos) {
-        MemArena *pf_arena = all_local_mem_arenas.local().pf_arena;
-        for (const int index : mask_segment.index_range()) {
-          const int fill_index = mask_segment[index];
-          const int pos = segment_pos + index;
+        threading::isolate_task([&] {
+          MemArena *pf_arena = all_local_mem_arenas.local().pf_arena;
+          for (const int index : mask_segment.index_range()) {
+            const int fill_index = mask_segment[index];
+            const int pos = segment_pos + index;
 
-          IndexMaskMemory memory;
-          const IndexMask base_fill = IndexMask::from_indices(fills[fill_index], memory);
+            IndexMaskMemory memory;
+            const IndexMask base_fill = IndexMask::from_indices(fills[fill_index], memory);
 
-          /* Only get curves that are in the fill and valid. */
-          const IndexMask fill = IndexMask::from_predicate(
-              base_fill, memory, [&](const int64_t curve_i) {
-                const IndexRange points = points_by_curve[curve_i];
-                return points.size() >= 3;
-              });
+            /* Only get curves that are in the fill and valid. */
+            const IndexMask fill = IndexMask::from_predicate(
+                base_fill, memory, [&](const int64_t curve_i) {
+                  const IndexRange points = points_by_curve[curve_i];
+                  return points.size() >= 3;
+                });
 
-          if (fill.is_empty()) {
-            continue;
-          }
+            if (fill.is_empty()) {
+              continue;
+            }
 
-          float3x3 axis_mat;
-          axis_dominant_v3_to_m3(axis_mat.ptr(), normals[fill.first()]);
-          const int num_points = offset_indices::sum_group_sizes(points_by_curve, fill);
+            float3x3 axis_mat;
+            axis_dominant_v3_to_m3(axis_mat.ptr(), normals[fill.first()]);
+            const int num_points = offset_indices::sum_group_sizes(points_by_curve, fill);
 
-          float (*projverts)[2] = static_cast<float (*)[2]>(
-              BLI_memarena_alloc(pf_arena, sizeof(*projverts) * size_t(num_points)));
+            float (*projverts)[2] = static_cast<float (*)[2]>(
+                BLI_memarena_alloc(pf_arena, sizeof(*projverts) * size_t(num_points)));
 
-          int *fill_points_by_curve_data = static_cast<int(*)>(BLI_memarena_alloc(
-              pf_arena, sizeof(*fill_points_by_curve_data) * size_t(fill.size() + 1)));
-          const OffsetIndices<int> fill_points_by_curve = offset_indices::gather_selected_offsets(
-              points_by_curve, fill, MutableSpan(fill_points_by_curve_data, fill.size() + 1));
+            int *fill_points_by_curve_data = static_cast<int(*)>(BLI_memarena_alloc(
+                pf_arena, sizeof(*fill_points_by_curve_data) * size_t(fill.size() + 1)));
+            const OffsetIndices<int> fill_points_by_curve =
+                offset_indices::gather_selected_offsets(
+                    points_by_curve,
+                    fill,
+                    MutableSpan(fill_points_by_curve_data, fill.size() + 1));
 
-          fill.foreach_index(
-              [&](const int64_t curve_i, const int64_t pos) {
-                const IndexRange fill_points = fill_points_by_curve[pos];
-                const IndexRange points = points_by_curve[curve_i];
-                for (const int i : points.index_range()) {
-                  const int curve_p = points[i];
-                  const int fill_p = fill_points[i];
-                  mul_v2_m3v3(projverts[fill_p], axis_mat.ptr(), positions[curve_p]);
-                }
-              },
-              exec_mode::grain_size(256));
+            fill.foreach_index(
+                [&](const int64_t curve_i, const int64_t pos) {
+                  const IndexRange fill_points = fill_points_by_curve[pos];
+                  const IndexRange points = points_by_curve[curve_i];
+                  for (const int i : points.index_range()) {
+                    const int curve_p = points[i];
+                    const int fill_p = fill_points[i];
+                    mul_v2_m3v3(projverts[fill_p], axis_mat.ptr(), positions[curve_p]);
+                  }
+                },
+                exec_mode::grain_size(256));
 
-          /* If there is only one stroke then simple poly fill will be used. */
-          if (fill.size() == 1) {
-            triangle_results[pos].resize(num_points - 2);
-            MutableSpan<int3> r_tris = triangle_results[pos];
+            /* If there is only one stroke then simple poly fill will be used. */
+            if (fill.size() == 1) {
+              triangle_results[pos].resize(num_points - 2);
+              MutableSpan<int3> r_tris = triangle_results[pos];
 
-            BLI_polyfill_calc_arena(projverts,
-                                    num_points,
-                                    0,
-                                    reinterpret_cast<uint32_t (*)[3]>(r_tris.data()),
-                                    pf_arena);
+              BLI_polyfill_calc_arena(projverts,
+                                      num_points,
+                                      0,
+                                      reinterpret_cast<uint32_t (*)[3]>(r_tris.data()),
+                                      pf_arena);
+
+              BLI_memarena_clear(pf_arena);
+              continue;
+            }
+
+            meshintersect::CDT_input<double> input;
+            input.vert.reinitialize(num_points);
+            input.face.reinitialize(fill.size());
+            input.need_ids = true;
+
+            threading::parallel_for(IndexRange(num_points), 512, [&](const IndexRange range) {
+              for (const int i : range) {
+                input.vert[i] = double2(projverts[i]);
+              }
+            });
+
+            const Span<float2> projverts_span = Span(reinterpret_cast<float2 *>(projverts),
+                                                     num_points);
+
+            fill.foreach_index(
+                [&](const int64_t curve_i, const int64_t pos) {
+                  const IndexRange fill_points = fill_points_by_curve[pos];
+                  const IndexRange points = points_by_curve[curve_i];
+                  input.face[pos].resize(points.size());
+                  MutableSpan<int> face = input.face[pos].as_mutable_span();
+
+                  array_utils::fill_index_range<int>(face, fill_points.first());
+                  const Span<float2> projpoints = projverts_span.slice(fill_points);
+
+                  /* Curve have to be in a counterclockwise order, so check if a flip is need. */
+                  if (cross_poly_v2(reinterpret_cast<const float (*)[2]>(projpoints.data()),
+                                    projpoints.size()) < 0.0)
+                  {
+                    face.reverse();
+                  }
+                },
+                exec_mode::grain_size(256));
+
+            meshintersect::CDT_result<double> result = delaunay_2d_calc(input,
+                                                                        CDT_INSIDE_WITH_HOLES);
+
+            auto vert_to_point = [&](const int vert) {
+              /* If the points is a newly added intersection point return invalid. */
+              if (result.vert_orig[vert].is_empty()) {
+                return -1;
+              }
+              /* Just get the first point if there are multiple at the same position. */
+              return int(result.vert_orig[vert].first());
+            };
+
+            for (const int i : result.face.index_range()) {
+              BLI_assert(result.face[i].size() == 3);
+              const int3 tri = int3(vert_to_point(result.face[i][0]),
+                                    vert_to_point(result.face[i][1]),
+                                    vert_to_point(result.face[i][2]));
+              /* Don't add the triangle if any of the point are invalid. */
+              if (tri.x != -1 && tri.y != -1 && tri.z != -1) {
+                triangle_results[pos].append(tri);
+              }
+            }
 
             BLI_memarena_clear(pf_arena);
-            continue;
           }
-
-          meshintersect::CDT_input<double> input;
-          input.vert.reinitialize(num_points);
-          input.face.reinitialize(fill.size());
-          input.need_ids = true;
-
-          threading::parallel_for(IndexRange(num_points), 512, [&](const IndexRange range) {
-            for (const int i : range) {
-              input.vert[i] = double2(projverts[i]);
-            }
-          });
-
-          const Span<float2> projverts_span = Span(reinterpret_cast<float2 *>(projverts),
-                                                   num_points);
-
-          fill.foreach_index(
-              [&](const int64_t curve_i, const int64_t pos) {
-                const IndexRange fill_points = fill_points_by_curve[pos];
-                const IndexRange points = points_by_curve[curve_i];
-                input.face[pos].resize(points.size());
-                MutableSpan<int> face = input.face[pos].as_mutable_span();
-
-                array_utils::fill_index_range<int>(face, fill_points.first());
-                const Span<float2> projpoints = projverts_span.slice(fill_points);
-
-                /* Curve have to be in a counterclockwise order, so check if a flip is need. */
-                if (cross_poly_v2(reinterpret_cast<const float (*)[2]>(projpoints.data()),
-                                  projpoints.size()) < 0.0)
-                {
-                  face.reverse();
-                }
-              },
-              exec_mode::grain_size(256));
-
-          meshintersect::CDT_result<double> result = delaunay_2d_calc(input,
-                                                                      CDT_INSIDE_WITH_HOLES);
-
-          auto vert_to_point = [&](const int vert) {
-            /* If the points is a newly added intersection point return invalid. */
-            if (result.vert_orig[vert].is_empty()) {
-              return -1;
-            }
-            /* Just get the first point if there are multiple at the same position. */
-            return int(result.vert_orig[vert].first());
-          };
-
-          for (const int i : result.face.index_range()) {
-            BLI_assert(result.face[i].size() == 3);
-            const int3 tri = int3(vert_to_point(result.face[i][0]),
-                                  vert_to_point(result.face[i][1]),
-                                  vert_to_point(result.face[i][2]));
-            /* Don't add the triangle if any of the point are invalid. */
-            if (tri.x != -1 && tri.y != -1 && tri.z != -1) {
-              triangle_results[pos].append(tri);
-            }
-          }
-
-          BLI_memarena_clear(pf_arena);
-        }
+        });
       },
       exec_mode::grain_size(32));
 

@@ -283,6 +283,13 @@ static bool buttons_context_path_data(ButsContextPath *path, int type)
     Object *ob = static_cast<Object *>(path->ptr[path->len - 1].data);
 
     if (ob && ELEM(type, -1, ob->type)) {
+      if (ob->type == OB_EMPTY && ob->empty_drawtype != OB_EMPTY_IMAGE) {
+        if (ID *id = ob->data; id && GS(id->name) == ID_IM) {
+          path->ptr[path->len] = PointerRNA_NULL;
+          path->len++;
+          return true;
+        }
+      }
       path->ptr[path->len] = RNA_id_pointer_create(ob->data);
       path->len++;
 
