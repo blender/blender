@@ -47,10 +47,6 @@ else()
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
     URL_HASH ${OPENJPEG_HASH_TYPE}=${OPENJPEG_HASH}
 
-    PATCH_COMMAND ${PATCH_CMD} -p 1 -d
-      ${BUILD_DIR}/openjpeg_msvc/src/external_openjpeg_msvc <
-      ${PATCH_DIR}/openjpeg_msvc.diff
-
     PREFIX ${BUILD_DIR}/openjpeg_msvc
 
     CMAKE_ARGS
