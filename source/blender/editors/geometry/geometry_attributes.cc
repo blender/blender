@@ -407,7 +407,7 @@ static wmOperatorStatus geometry_attribute_add_exec(bContext *C, wmOperator *op)
 
   const CPPType &cpp_type = bke::attribute_type_to_cpp_type(type);
   bke::Attribute &attr = attributes.add(
-      attributes.unique_name_calc(name),
+      BKE_attribute_calc_unique_name(owner, name),
       bke::AttrDomain(domain),
       type,
       bke::Attribute::ArrayData::from_default_value(cpp_type, domain_size));
@@ -642,6 +642,13 @@ bool convert_attribute(AttributeOwner &owner,
 
   const bool was_active = BKE_attributes_active_name_get(owner) == name;
 
+  /* Support restoring names after removing, note that this could be a utility. */
+  Mesh *mesh = owner.type() == AttributeOwnerType::Mesh ? owner.get_mesh() : nullptr;
+  const bool was_active_color = mesh && name == StringRef(mesh->active_color_attribute);
+  const bool was_default_color = mesh && name == StringRef(mesh->default_color_attribute);
+  const bool was_active_uv = mesh && name == mesh->active_uv_map_name();
+  const bool was_default_uv = mesh && name == mesh->default_uv_map_name();
+
   const std::string name_copy = name;
   const GVArray varray = *attributes.lookup_or_default(name_copy, dst_domain, dst_type);
 
@@ -649,7 +656,10 @@ bool convert_attribute(AttributeOwner &owner,
   void *new_data = MEM_new_uninitialized_aligned(
       varray.size() * cpp_type.size, cpp_type.alignment, __func__);
   varray.materialize_to_uninitialized(new_data);
-  attributes.remove(name_copy);
+  if (!BKE_attribute_remove(owner, name_copy, reports)) {
+    MEM_delete_void(new_data);
+    return false;
+  }
   if (!attributes.add(name_copy, dst_domain, dst_type, bke::AttributeInitMoveArray(new_data))) {
     MEM_delete_void(new_data);
   }
@@ -658,6 +668,24 @@ bool convert_attribute(AttributeOwner &owner,
     /* The attribute active status is stored as an index. Changing the attribute's domain will
      * change its index, so reassign the active attribute if necessary. */
     BKE_attributes_active_set(owner, name_copy);
+  }
+  if (mesh) {
+    if (bke::mesh::is_color_attribute({dst_domain, dst_type})) {
+      if (was_active_color) {
+        BKE_id_attributes_active_color_set(&mesh->id, name_copy);
+      }
+      if (was_default_color) {
+        BKE_id_attributes_default_color_set(&mesh->id, name_copy);
+      }
+    }
+    else if (bke::mesh::is_uv_map({dst_domain, dst_type})) {
+      if (was_active_uv) {
+        mesh->uv_maps_active_set(name_copy);
+      }
+      if (was_default_uv) {
+        mesh->uv_maps_default_set(name_copy);
+      }
+    }
   }
 
   return true;
@@ -690,7 +718,9 @@ static wmOperatorStatus geometry_attribute_convert_exec(bContext *C, wmOperator 
         VArray<float> src_varray = *attributes.lookup_or_default<float>(
             name, bke::AttrDomain::Point, 0.0f);
         src_varray.materialize(src_weights);
-        attributes.remove(name);
+        if (!BKE_attribute_remove(owner, name, op->reports)) {
+          return OPERATOR_CANCELLED;
+        }
 
         bDeformGroup *defgroup = BKE_object_defgroup_new(ob, name);
         const int defgroup_index = BLI_findindex(BKE_id_defgroup_list_get(&mesh->id), defgroup);
@@ -702,7 +732,6 @@ static wmOperatorStatus geometry_attribute_convert_exec(bContext *C, wmOperator 
           }
         }
         BKE_object_defgroup_active_index_set(ob, defgroup_index + 1);
-        AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
         int *active_index = BKE_attributes_active_index_p(owner);
         if (*active_index > 0) {
           *active_index -= 1;

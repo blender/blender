@@ -101,6 +101,79 @@ class TestMesh(unittest.TestCase):
         self.assertTrue(self.mesh.uv_layers.active.name == "a")
 
 
+class MeshObjectTest(unittest.TestCase):
+    def setUp(self):
+        self.mesh = bpy.data.meshes.new("test")
+        self.mesh.from_pydata([(0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0)], [], [(0, 1, 2, 3)])
+        self.obj = bpy.data.objects.new("test", self.mesh)
+        bpy.context.scene.collection.objects.link(self.obj)
+        bpy.context.view_layer.objects.active = self.obj
+
+    def tearDown(self):
+        bpy.data.objects.remove(self.obj)
+        bpy.data.meshes.remove(self.mesh)
+        del self.obj
+        del self.mesh
+
+
+class TestMeshVertexGroupNameClash(MeshObjectTest):
+    def test_add_attribute(self):
+        self.obj.vertex_groups.new(name="UVMap")
+        attribute = self.mesh.attributes.new("UVMap", 'FLOAT2', 'CORNER')
+        self.assertFalse(attribute.name == "UVMap")
+        self.assertTrue("UVMap" in [group.name for group in self.obj.vertex_groups])
+
+    def test_add_attribute_operator(self):
+        self.obj.vertex_groups.new(name="UVMap")
+        bpy.ops.geometry.attribute_add(name="UVMap", domain='CORNER', data_type='FLOAT2')
+        self.assertFalse(self.mesh.attributes.active.name == "UVMap")
+        self.assertTrue("UVMap" in [group.name for group in self.obj.vertex_groups])
+
+    def test_add_uv_map(self):
+        self.obj.vertex_groups.new(name="UVMap")
+        uv_map = self.mesh.uv_layers.new(name="UVMap")
+        self.assertFalse(uv_map.name == "UVMap")
+        self.assertTrue("UVMap" in [group.name for group in self.obj.vertex_groups])
+
+    def test_convert_to_vertex_group_then_add_uv(self):
+        self.mesh.uv_layers.new(name="UVMap")
+        self.mesh.attributes.active = self.mesh.attributes["UVMap"]
+        bpy.ops.geometry.attribute_convert(mode='VERTEX_GROUP')
+        uv_map = self.mesh.uv_layers.new()
+        self.assertFalse(uv_map.name == "UVMap")
+
+
+class TestMeshAttributeConvert(MeshObjectTest):
+    def test_convert_active_color_to_generic(self):
+        self.mesh.attributes.new("Col", 'FLOAT_COLOR', 'POINT')
+        self.mesh.attributes.active = self.mesh.attributes["Col"]
+        self.assertTrue(self.mesh.attributes.active_color_name == "Col")
+        bpy.ops.geometry.attribute_convert(mode='GENERIC', domain='POINT', data_type='FLOAT')
+        self.assertTrue(self.mesh.attributes.active_color_name == "")
+
+    def test_convert_active_color_to_generic_picks_next(self):
+        self.mesh.attributes.new("ColA", 'FLOAT_COLOR', 'POINT')
+        self.mesh.attributes.new("ColB", 'FLOAT_COLOR', 'POINT')
+        self.assertTrue(self.mesh.attributes.active_color_name == "ColA")
+        self.mesh.attributes.active = self.mesh.attributes["ColA"]
+        bpy.ops.geometry.attribute_convert(mode='GENERIC', domain='POINT', data_type='FLOAT')
+        self.assertTrue(self.mesh.attributes.active_color_name == "ColB")
+
+    def test_convert_active_color_to_color_keeps_active(self):
+        self.mesh.attributes.new("Col", 'FLOAT_COLOR', 'POINT')
+        self.mesh.attributes.active = self.mesh.attributes["Col"]
+        bpy.ops.geometry.attribute_convert(mode='GENERIC', domain='POINT', data_type='BYTE_COLOR')
+        self.assertTrue(self.mesh.attributes.active_color_name == "Col")
+
+    def test_convert_active_uv_to_uv_keeps_active(self):
+        self.mesh.uv_layers.new(name="UVA")
+        self.mesh.uv_layers.new(name="UVB")
+        self.mesh.uv_layers.active = self.mesh.uv_layers["UVA"]
+        self.mesh.attributes.active = self.mesh.attributes["UVA"]
+        bpy.ops.geometry.attribute_convert(mode='GENERIC', domain='CORNER', data_type='FLOAT2')
+        self.assertTrue(self.mesh.uv_layers.active.name == "UVA")
+
+
 if __name__ == '__main__':
     import sys
     sys.argv = [__file__] + (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
