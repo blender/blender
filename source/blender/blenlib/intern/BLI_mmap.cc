@@ -333,7 +333,11 @@ static bool ensure_mmap_initialized()
 
   std::unique_lock lock(mmap_mutex);
   if (!initialized) {
+#ifdef __ANDROID__
+    struct sigaction newact = {}, oldact = {};
+#else
     struct sigaction newact = {{nullptr}}, oldact = {{nullptr}};
+#endif
 
     newact.sa_sigaction = sigbus_handler;
     newact.sa_flags = SA_SIGINFO;
