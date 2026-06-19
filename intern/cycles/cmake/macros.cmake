@@ -126,7 +126,7 @@ function(cycles_external_libraries_append libraries)
       list(APPEND ${libraries} "opengl32")
     endif()
   endif()
-  if(UNIX AND NOT APPLE)
+  if(UNIX AND NOT (APPLE OR ANDROID))
     list(APPEND ${libraries} "-lm -lc -lutil")
   endif()
 
