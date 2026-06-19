@@ -108,13 +108,13 @@ enum ButtonFlagInternal {
 };
 
 /** These two enums can be combined. */
-inline int operator|(const ButtonFlag a, const ButtonFlagInternal b)
+inline int64_t operator|(const ButtonFlag a, const ButtonFlagInternal b)
 {
-  return int(a) | int(b);
+  return int64_t(a) | int64_t(b);
 }
-inline int operator|(const ButtonFlagInternal b, const ButtonFlag a)
+inline int64_t operator|(const ButtonFlagInternal b, const ButtonFlag a)
 {
-  return int(a) | int(b);
+  return int64_t(a) | int64_t(b);
 }
 
 /** #Button.pie_dir */
@@ -196,7 +196,7 @@ struct Button : NonMovable {
 
   /** Pointer back to the layout item holding this button. */
   Layout *layout = nullptr;
-  int flag = 0;
+  int64_t flag = 0;
   int drawflag = 0;
   char flag2 = 0;
 
