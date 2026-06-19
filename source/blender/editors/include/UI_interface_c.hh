@@ -341,7 +341,7 @@ enum {
 };
 
 /** #Button.flag general state flags. */
-enum ButtonFlag {
+enum ButtonFlag : int64_t {
   /* WARNING: the first 8 flags are internal (see #UI_SELECT definition). */
 
   BUT_ICON_SUBMENU = 1 << 8,
@@ -392,7 +392,7 @@ enum ButtonFlag {
   BUT_VALUE_CLEAR = 1 << 30,
 
   /** RNA property of the button is overridden from linked reference data. */
-  BUT_OVERRIDDEN = 1u << 31u,
+  BUT_OVERRIDDEN = int64_t(1) << 31,
 };
 
 enum {
@@ -1201,9 +1201,9 @@ Button *button_active_drop_name_button(const bContext *C);
 bool button_active_drop_name(const bContext *C);
 bool button_active_drop_color(bContext *C);
 
-void button_flag_enable(Button *but, int flag);
-void button_flag_disable(Button *but, int flag);
-bool button_flag_is_set(Button *but, int flag);
+void button_flag_enable(Button *but, int64_t flag);
+void button_flag_disable(Button *but, int64_t flag);
+bool button_flag_is_set(Button *but, int64_t flag);
 void button_flag2_enable(Button *but, int flag);
 
 void button_drawflag_enable(Button *but, int flag);

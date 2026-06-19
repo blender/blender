@@ -685,7 +685,7 @@ static void searchbox_region_draw_fn(const bContext *C, ARegion *region)
     if (data->preview) {
       /* draw items */
       for (int a = 0; a < data->items.totitem; a++) {
-        const int but_flag = ((a == data->active) ? UI_HOVER : 0) | data->items.but_flags[a];
+        const int64_t but_flag = ((a == data->active) ? UI_HOVER : 0) | data->items.but_flags[a];
 
         /* ensure icon is up-to-date */
         icon_ensure_deferred(C, data->items.icons[a], data->preview);
@@ -726,7 +726,7 @@ static void searchbox_region_draw_fn(const bContext *C, ARegion *region)
       const int search_sep_len = data->sep_string ? strlen(data->sep_string) : 0;
       /* draw items */
       for (int a = 0; a < data->items.totitem; a++) {
-        const int but_flag = ((a == data->active) ? UI_HOVER : 0) | data->items.but_flags[a];
+        const int64_t but_flag = ((a == data->active) ? UI_HOVER : 0) | data->items.but_flags[a];
         const char *name = data->items.names[a];
         int icon = data->items.icons[a];
         char *name_sep_test = nullptr;
@@ -1120,7 +1120,7 @@ static void searchbox_region_draw_cb__operator(const bContext * /*C*/, ARegion *
       /* widget itself */
       /* NOTE: i18n messages extracting tool does the same, please keep it in sync. */
       {
-        const int but_flag = ((a == data->active) ? UI_HOVER : 0) | data->items.but_flags[a];
+        const int64_t but_flag = ((a == data->active) ? UI_HOVER : 0) | data->items.but_flags[a];
 
         wmOperatorType *ot = static_cast<wmOperatorType *>(data->items.pointers[a]);
         char text_pre[128];

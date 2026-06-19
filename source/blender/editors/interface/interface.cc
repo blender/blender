@@ -945,7 +945,7 @@ static void but_update_old_active_from_new(Button *oldbut, Button *but)
   BLI_assert(oldbut->active || oldbut->semi_modal_state);
 
   /* flags from the buttons we want to refresh, may want to add more here... */
-  const int flag_copy = BUT_REDALERT | BUT_DISABLED | UI_HAS_ICON | UI_SELECT_DRAW;
+  const int64_t flag_copy = BUT_REDALERT | BUT_DISABLED | UI_HAS_ICON | UI_SELECT_DRAW;
   const int drawflag_copy = BUT_HAS_QUICK_TOOLTIP | BUT_NO_TOOLTIP;
 
   /* still stuff needs to be copied */
@@ -1156,7 +1156,7 @@ static bool but_update_from_old_block(Block *block,
   }
   else {
     matched_old_buttons.add(oldbut);
-    int flag_copy = BUT_DRAG_MULTI;
+    int64_t flag_copy = BUT_DRAG_MULTI;
 
     /* Stupid special case: The active button may be inside (as in, overlapped on top) a row
      * button which we also want to keep highlighted then. */
@@ -2037,7 +2037,7 @@ bool button_context_poll_operator_ex(bContext *C,
                                      const wmOperatorCallParams *optype_params)
 {
   bool result;
-  int old_but_flag = 0;
+  int64_t old_but_flag = 0;
 
   const bContextStore *previous_ctx = CTX_store_get(C);
   if (but) {
@@ -4537,7 +4537,7 @@ static Button *def_but(Block *block,
   return but;
 }
 
-void def_but_icon(Button *but, const int icon, const int flag)
+void def_but_icon(Button *but, const int icon, const int64_t flag)
 {
   if (icon) {
     icon_ensure_deferred(
@@ -5638,7 +5638,7 @@ void block_flag_disable(Block *block, int flag)
   block->flag &= ~flag;
 }
 
-void button_flag_enable(Button *but, int flag)
+void button_flag_enable(Button *but, int64_t flag)
 {
   but->flag |= flag;
 }
@@ -5648,12 +5648,12 @@ void button_flag2_enable(Button *but, int flag)
   but->flag2 |= flag;
 }
 
-void button_flag_disable(Button *but, int flag)
+void button_flag_disable(Button *but, int64_t flag)
 {
   but->flag &= ~flag;
 }
 
-bool button_flag_is_set(Button *but, int flag)
+bool button_flag_is_set(Button *but, int64_t flag)
 {
   return (but->flag & flag) != 0;
 }

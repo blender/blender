@@ -5558,7 +5558,7 @@ static void item_align(Layout *litem, short nr)
   }
 }
 
-static void item_flag(Layout *litem, int flag)
+static void item_flag(Layout *litem, int64_t flag)
 {
   for (Item *item : litem->items()) {
     if (item->type() == ItemType::Button) {
