@@ -9,7 +9,20 @@
 if(NOT WITH_LIBS_PRECOMPILED)
   unset(LIBDIR)
 else()
-  if(NOT DEFINED LIBDIR)
+  if(NOT DEFINED LIBDIR AND ANDROID)
+    set(LIBDIR_ANDROID ${CMAKE_SOURCE_DIR}/lib/android_arm64)
+
+    file(GLOB LIBDIR_RESULT ${ANDROID_LIBDIR}/*)
+    list(LENGTH LIBDIR_RESULT LIBDIR_LEN)
+
+    if(NOT LIBDIR_LEN EQUAL 0)
+      set(LIBDIR ${LIBDIR_ANDROID})
+    else()
+      message(STATUS
+        "Library directory \"${LIBDIR_ANDROID}\" is empty or does not exist."
+      )
+    endif()
+  elseif(NOT DEFINED LIBDIR)
     # Path to libraries with known glibc 2.28 ABI.
     if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
       set(LIBDIR_GLIBC228_ABI ${CMAKE_SOURCE_DIR}/lib/linux_arm64)
@@ -87,6 +100,13 @@ if(DEFINED LIBDIR)
   # not need to be ever discovered for the Blender linking.
   list(REMOVE_ITEM LIB_SUBDIRS ${LIBDIR}/dpcpp)
 
+  if(ANDROID)
+    # The Android CMake toolchain sets the CMAKE_FIND_ROOT_PATH to the NDK root and
+    # the ROOT_PATH_MODE_PACKAGE to ONLY, set it to LIB_SUBDIRS (then prepended before
+    # the NDK by the toolchain) to allow it to find the pre-compiled libraries.
+    set(CMAKE_FIND_ROOT_PATH ${LIB_SUBDIRS})
+  endif()
+
   # NOTE: Make sure "proper" compiled zlib comes first
   set(CMAKE_PREFIX_PATH ${LIBDIR}/zlib ${LIB_SUBDIRS})
 
@@ -138,7 +158,12 @@ find_package_wrapper(JPEG REQUIRED)
 find_package_wrapper(PNG REQUIRED)
 find_package_wrapper(ZLIB REQUIRED)
 find_package_wrapper(Zstd REQUIRED)
-find_package_wrapper(Epoxy REQUIRED)
+
+if(NOT ANDROID)
+  # Android only supports Vulkan.
+  find_package_wrapper(Epoxy REQUIRED)
+endif()
+
 find_package_wrapper(fmt REQUIRED)
 if(DEFINED fmt_DIR)
   # Hide the fmt_DIR from the standard user settings to be consistent with our
@@ -148,18 +173,22 @@ endif()
 
 if(WITH_VULKAN_BACKEND)
   if(DEFINED LIBDIR)
-    # If these are missing, something went wrong (outdated LIBDIR?).
-    if(NOT ((EXISTS "${LIBDIR}/vulkan") AND (EXISTS "${LIBDIR}/shaderc")))
-      message(FATAL_ERROR "${LIBDIR}/vulkan & ${LIBDIR}/shaderc are missing!")
+    if(NOT ANDROID)  # Android provides its own Vulkan Loader
+      if(NOT EXISTS "${LIBDIR}/vulkan")
+        message(FATAL_ERROR "${LIBDIR}/vulkan is missing!")
+      endif()
+      if(NOT DEFINED VULKAN_ROOT_DIR)
+        set(VULKAN_ROOT_DIR ${LIBDIR}/vulkan)
+      endif()
+      find_package_wrapper(Vulkan REQUIRED)
     endif()
-    if(NOT DEFINED VULKAN_ROOT_DIR)
-      set(VULKAN_ROOT_DIR ${LIBDIR}/vulkan)
+
+    if(NOT EXISTS "${LIBDIR}/shaderc")
+      message(FATAL_ERROR "${LIBDIR}/shaderc is missing!")
     endif()
     if(NOT DEFINED SHADERC_ROOT_DIR)
       set(SHADERC_ROOT_DIR ${LIBDIR}/shaderc)
     endif()
-
-    find_package_wrapper(Vulkan REQUIRED)
     find_package_wrapper(ShaderC REQUIRED)
   else()
     # Use system libs
@@ -597,6 +626,8 @@ add_bundled_libraries(hiprt/lib)
 # OpenSuse needs lutil, ArchLinux not, for now keep, can avoid by using --as-needed
 if(HAIKU)
   list(APPEND PLATFORM_LINKLIBS -lnetwork)
+elseif(ANDROID)
+  # Pass.
 else()
   list(APPEND PLATFORM_LINKLIBS -lutil -lc -lm)
 endif()
