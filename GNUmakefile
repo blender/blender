@@ -208,10 +208,12 @@ ifneq "$(findstring android, $(MAKECMDGOALS))" ""
  	endif
 
  	ifndef ANDROID_MINSDKVERSION
- 		# Set to API level 28, minimum set to Android 9.0 Pie. See https://apilevels.com.
+ 		# Set to API level 29, minimum set to Android 10. See https://apilevels.com.
  		# Used to be 23 (min Android 6.0), bumped to 28 to support C11 aligned_alloc required by OpenJPH.
  		# It might be possible to lower it back down by patching OpenJPH.
- 		ANDROID_MINSDKVERSION = 28
+ 		# Used to be 28 (min Android 9.0), bumped to 29 to support timespec_get for BLI's uuid.cc.
+ 		# It should be possible to lower it back down by adding an ifdef switch in uuid.cc
+ 		ANDROID_MINSDKVERSION = 29
  	endif
 
  	# Path to host deps build directory, needed to execute native tools during cross-compilation.
