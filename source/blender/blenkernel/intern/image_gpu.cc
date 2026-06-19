@@ -515,6 +515,8 @@ static ImageGPUTextures image_get_gpu_texture_tiled(Image *ima,
       ima->id.name + 2, mapping_ibuf, false, false, false, true);
 
   if (try_only || (result.texture != nullptr && result.tile_mapping != nullptr)) {
+    IMB_freeImBuf(atlas_ibuf);
+    IMB_freeImBuf(mapping_ibuf);
     return result;
   }
 
@@ -578,6 +580,9 @@ static ImageGPUTextures image_get_gpu_texture_tiled(Image *ima,
   /* Assign to the image buffers, which takes the reference from creation. */
   IMB_assign_gpu_texture(atlas_ibuf, atlas_tex);
   IMB_assign_gpu_texture(mapping_ibuf, mapping_tex);
+
+  IMB_freeImBuf(atlas_ibuf);
+  IMB_freeImBuf(mapping_ibuf);
 
   return result;
 }
