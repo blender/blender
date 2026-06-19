@@ -270,7 +270,7 @@ else()
     if(ANDROID)
       # Forward Android CMake toolchain file and settings.
       # The Android CMake toolchain sets the CMAKE_FIND_ROOT_PATH to the NDK root and the ROOT_PATH_MODE_PACKAGE
-      # to ONLY, set it LIBDIR (then preprended before the NDK by the toolchain) to allow built dependencies that
+      # to ONLY, set it to LIBDIR (then prepended before the NDK by the toolchain) to allow built dependencies that
       # use find_package() to find each others.
       set(PLATFORM_CMAKE_FLAGS
         ${PLATFORM_CMAKE_FLAGS}
