@@ -148,7 +148,7 @@ function(cycles_external_libraries_append libraries)
   endif()
 
   # Compatibility libraries.
-  if(UNIX AND NOT APPLE)
+  if(UNIX AND NOT (APPLE OR ANDROID))
     if(CYCLES_STANDALONE_REPOSITORY)
       list(APPEND ${libraries} extern_libc_compat)
       # Hack to solve linking order issue where external libs depend

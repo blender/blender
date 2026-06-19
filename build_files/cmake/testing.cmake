@@ -102,7 +102,7 @@ function(blender_src_gtest_ex)
                           bf::dependencies::optional::tbb
                           bf::dependencies::optional::gmp)
 
-    if(UNIX AND NOT APPLE)
+    if(UNIX AND NOT (APPLE OR ANDROID))
       target_link_libraries(${TARGET_NAME} PRIVATE bf_intern_libc_compat)
     endif()
 

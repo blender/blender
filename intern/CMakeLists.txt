@@ -57,7 +57,7 @@ if(WITH_QUADRIFLOW)
   add_subdirectory(quadriflow)
 endif()
 
-if(UNIX AND NOT APPLE)
+if(UNIX AND (NOT APPLE OR ANDROID))
   add_subdirectory(libc_compat)
 endif()
 
