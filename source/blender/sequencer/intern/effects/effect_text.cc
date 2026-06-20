@@ -798,10 +798,9 @@ static int text_effect_line_size_get(const RenderData *context, const TextVars &
   return size_scale * text.text_size;
 }
 
-static int text_effect_font_init(const RenderData *context, TextVars &text, FontFlags font_flags)
+int text_effect_font_get(TextVars &text)
 {
   int font = blf_mono_font_render;
-
   /* In case font got unloaded behind our backs: mark it as needing a load. */
   if (text.text_blf_id >= 0 && !BLF_is_loaded_id(text.text_blf_id)) {
     text.text_blf_id = STRIP_FONT_NOT_LOADED;
@@ -815,7 +814,12 @@ static int text_effect_font_init(const RenderData *context, TextVars &text, Font
   if (text.text_blf_id >= 0) {
     font = text.text_blf_id;
   }
+  return font;
+}
 
+static int text_effect_font_init(const RenderData *context, TextVars &text, FontFlags font_flags)
+{
+  int font = text_effect_font_get(text);
   BLF_size(font, text_effect_line_size_get(context, text));
   BLF_enable(font, font_flags);
   return font;
