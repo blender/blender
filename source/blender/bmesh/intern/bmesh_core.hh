@@ -160,6 +160,34 @@ bool BM_vert_splice_check_double_face(BMVert *v_a, BMVert *v_b);
  * \return true if calling #BM_vert_collapse on `v_collapse` would create a duplicate face.
  */
 bool BM_vert_collapse_check_double_face(BMVert *v_collapse);
+/**
+ * Check if splitting a face between `l_a->v` & `l_b->v` would create
+ * a duplicate face on either side of the split.
+ *
+ * \note Arguments `(l_a, l_b, f_len)` are equivalent to `(l_b, l_a, (l_a->f->len - f_len) + 2)`,
+ * that is to say - the side of the face checked isn't important.
+ */
+bool BM_face_split_check_double_face(BMLoop *l_a, BMLoop *l_b, int f_len);
+/**
+ * Check two faces share the same vertices over a partial span of their loops,
+ * comparing `l_a` -> `l_a_end` against `l_b` -> `l_b_end` (inclusive).
+ * Both spans must have the same topological length,
+ * and `l_a` & `l_b` must belong to different faces.
+ *
+ * Useful to check whether collapsing, splicing or splitting would create a duplicate face.
+ */
+bool BM_face_pair_overlap_check_subset_same_winding(const BMLoop *l_a,
+                                                    const BMLoop *l_a_end,
+                                                    const BMLoop *l_b,
+                                                    const BMLoop *l_b_end);
+/**
+ * A version of #BM_face_pair_overlap_check_subset_same_winding that walks `l_b` -> `l_b_end`
+ * in the reverse direction (for a candidate face of opposite winding).
+ */
+bool BM_face_pair_overlap_check_subset_swap_winding(const BMLoop *l_a,
+                                                    const BMLoop *l_a_end,
+                                                    const BMLoop *l_b,
+                                                    const BMLoop *l_b_end);
 
 /**
  * \brief Loop Reverse
