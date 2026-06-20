@@ -450,6 +450,8 @@ enum {
 #define UI_PANEL_CATEGORY_MIN_WIDTH ((U.uiflag2 & USER_UIFLAG2_PANEL_TABS_COMPACT) ? 32.0f : 26.0f)
 /* Minimum width for a panel showing content and category tabs. */
 #define UI_PANEL_CATEGORY_MIN_SNAP_WIDTH 90.0f
+/* Minimum panel draw width. */
+static constexpr int PANEL_MIN_DRAW_WIDTH = 20;
 
 /* Both these margins should be ignored if the panel doesn't show a background (check
  * #panel_should_show_background()). */
