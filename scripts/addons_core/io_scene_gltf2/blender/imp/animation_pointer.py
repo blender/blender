@@ -272,7 +272,7 @@ class BlenderPointerAnim():
                     base_color_socket = get_socket(asset.blender_nodetree, "Base Color")
                     if base_color_socket.socket.is_linked:
                         # We need to find the correct node value to animate (An Mix Factor node)
-                        mix_node = base_color_socket.links[0].from_node
+                        mix_node = base_color_socket.socket.links[0].from_node
                         if mix_node.type == "MIX":
                             blender_path = mix_node.inputs[7].path_from_id() + ".default_value"
                             group_name = 'Material'
@@ -297,7 +297,7 @@ class BlenderPointerAnim():
                 roughness_socket = get_socket(asset.blender_nodetree, "Roughness")
                 if roughness_socket.socket.is_linked:
                     # We need to find the correct node value to animate (An Mix Factor node)
-                    mix_node = roughness_socket.links[0].from_node
+                    mix_node = roughness_socket.socket.links[0].from_node
                     if mix_node.type == "MATH":
                         blender_path = mix_node.inputs[1].path_from_id() + ".default_value"
                         group_name = 'Material'
@@ -313,7 +313,7 @@ class BlenderPointerAnim():
                 metallic_socket = get_socket(asset.blender_nodetree, "Metallic")
                 if metallic_socket.socket.is_linked:
                     # We need to find the correct node value to animate (An Mix Factor node)
-                    mix_node = metallic_socket.links[0].from_node
+                    mix_node = metallic_socket.socket.links[0].from_node
                     if mix_node.type == "MATH":
                         blender_path = mix_node.inputs[1].path_from_id() + ".default_value"
                         group_name = 'Material'
