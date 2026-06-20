@@ -14,7 +14,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
-#include "BLI_asan.h"
 
 #include "bmesh.hh"
 #include "bmesh_decimate.hh" /* own include */
@@ -340,8 +339,9 @@ static std::optional<VertDissolveMethod> bm_vert_dissolve_fan_or_chain_test(
            *
            * NOTE(@ideasman42): If this was an important use case it's possible to inspect the
            * topology and only reject dissolving when it would cause problems.
-           * However the situations where this occurs are not so important to support,
-           * so it's simpler to reject them. */
+           * However the situations where this occurs are not so important to support
+           * as they tend to be caused by overlapping/bow-tie faces.
+           * So it's simpler to reject them. */
           return std::nullopt;
         }
       }
