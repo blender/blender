@@ -820,7 +820,7 @@ def metallic_roughness(mh: MaterialHelper, location, metallic_socket, roughness_
         if len(mh.pymat.pbr_metallic_roughness.animations) > 0:
             for anim_idx in mh.pymat.pbr_metallic_roughness.animations.keys():
                 for channel_idx in mh.pymat.pbr_metallic_roughness.animations[anim_idx]:
-                    channel = mh.gltf.data.pbr_metallic_roughness.animations[anim_idx].channels[channel_idx]
+                    channel = mh.gltf.data.animations[anim_idx].channels[channel_idx]
                     pointer_tab = channel.target.extensions["KHR_animation_pointer"]["pointer"].split("/")
                     if len(pointer_tab) == 5 and pointer_tab[1] == "materials" and \
                             pointer_tab[3] == "pbrMetallicRoughness" and \
