@@ -341,7 +341,7 @@ def material_nodetree_caching(data, action_name, slot_identifier, frame, export_
                         export_settings['log'].warning(
                             "SpecularFactor is greater than 1.0, but no specularColorFactor found. Using default value for specularColorFactor.")
                 if len(colorfactor_path) != 0:
-                    data[key1][key2][key3][key4][colorfactor_path][frame] = val_colorfactor
+                    data[key1][key2][key3][key4][colorfactor_path][frame] = list(val_colorfactor)[:3]
             elif export_settings['KHR_animation_pointer']['materials'][mat]['paths'][path]['path'] == "/materials/XXX/extensions/KHR_materials_specular/specularColorFactor":
                 # Already handled by specularFactor
                 continue
