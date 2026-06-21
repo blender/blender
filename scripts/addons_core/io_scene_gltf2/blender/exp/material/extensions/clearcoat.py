@@ -45,7 +45,7 @@ def export_clearcoat(bmat, export_settings):
             path_ = {}
             path_['length'] = 1
             path_['path'] = "/materials/XXX/extensions/KHR_materials_clearcoat/clearcoatFactor"
-            export_settings['current_paths'][path] = path_, {}
+            export_settings['current_paths'][path] = path_
 
     if clearcoat_roughness_socket.socket is not None and isinstance(
             clearcoat_roughness_socket.socket,
