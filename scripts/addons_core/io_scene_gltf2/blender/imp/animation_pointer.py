@@ -495,7 +495,7 @@ class BlenderPointerAnim():
 
             transmission_socket = get_socket(asset['blender_nodetree'], 'Transmission Weight')
             if transmission_socket.socket.is_linked:
-                mix_node = transmission_socket.links[0].from_node
+                mix_node = transmission_socket.socket.links[0].from_node
                 if mix_node.type == "MATH":
                     blender_path = mix_node.inputs[1].path_from_id() + ".default_value"
                     group_name = 'Material'
