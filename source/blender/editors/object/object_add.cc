@@ -4237,14 +4237,16 @@ static Object *convert_font_to_curves(Base &base, ObjectConversionInfo &info, Ba
   Curves *curves_nomain = bke::curve_legacy_to_curves(*legacy_curve_id);
 
   Curves *curves_id = BKE_curves_add(info.bmain, BKE_id_name(legacy_curve_id->id));
-  curves_id->geometry.wrap() = curves_nomain->geometry.wrap();
 
-  bke::curves_copy_parameters(*curves_nomain, *curves_id);
+  if (curves_nomain) {
+    curves_id->geometry.wrap() = curves_nomain->geometry.wrap();
+    bke::curves_copy_parameters(*curves_nomain, *curves_id);
+
+    BKE_id_free(nullptr, curves_nomain);
+  }
 
   curve_ob->data = id_cast<ID *>(curves_id);
   curve_ob->type = OB_CURVES;
-
-  BKE_id_free(nullptr, curves_nomain);
 
   return curve_ob;
 }
@@ -4326,17 +4328,21 @@ static Object *convert_font_to_grease_pencil(Base &base,
 
   bke::greasepencil::Drawing *drawing = grease_pencil->insert_frame(layer, current_frame);
 
-  bke::CurvesGeometry &curves = curves_nomain->geometry.wrap();
+  if (curves_nomain) {
+    bke::CurvesGeometry &curves = curves_nomain->geometry.wrap();
 
-  drawing->strokes_for_write() = std::move(curves);
-  /* Default radius (1.0 unit) is too thick for converted strokes. */
-  bke::MutableAttributeAccessor attributes = drawing->strokes_for_write().attributes_for_write();
-  attributes.remove("radius");
-  attributes.add<float>("radius", bke::AttrDomain::Point, bke::AttributeInitValue(0.01f));
+    drawing->strokes_for_write() = std::move(curves);
+    /* Default radius (1.0 unit) is too thick for converted strokes. */
+    bke::MutableAttributeAccessor attributes = drawing->strokes_for_write().attributes_for_write();
+    attributes.remove("radius");
+    attributes.add<float>("radius", bke::AttrDomain::Point, bke::AttributeInitValue(0.01f));
 
-  const bool use_fill = (legacy_curve_id->flag & (CU_FRONT | CU_BACK)) != 0;
-  if (use_fill) {
-    create_grease_pencil_fills(*drawing);
+    const bool use_fill = (legacy_curve_id->flag & (CU_FRONT | CU_BACK)) != 0;
+    if (use_fill) {
+      create_grease_pencil_fills(*drawing);
+    }
+
+    BKE_id_free(nullptr, curves_nomain);
   }
 
   curve_ob->data = id_cast<ID *>(grease_pencil);
@@ -4352,8 +4358,6 @@ static Object *convert_font_to_grease_pencil(Base &base,
    * curves id (and that seems to only happen if "Keep Original" is enabled, and only with this
    * specific conversion combination), not sure why. Ref: #138793 / #146252 */
   DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
-
-  BKE_id_free(nullptr, curves_nomain);
 
   return curve_ob;
 }
