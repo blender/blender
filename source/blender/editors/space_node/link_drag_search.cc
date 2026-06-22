@@ -179,8 +179,8 @@ static void search_link_ops_for_asset_metadata(const bNodeTree &node_tree,
   if (!properties || properties->type != IDP_GROUP) {
     return;
   }
-  const IDProperty *sockets = IDP_GetPropertyFromGroup(properties,
-                                                       in_out == SOCK_IN ? "inputs" : "outputs");
+  const IDProperty *sockets = IDP_GetPropertyFromGroup(
+      properties, in_out == SOCK_IN ? "inputs" : "output_sockets");
   if (!sockets || sockets->type != IDP_GROUP) {
     return;
   }
