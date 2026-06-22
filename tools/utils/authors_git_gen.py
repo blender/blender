@@ -254,7 +254,15 @@ class Credits:
             for match_glob in author_exclude_glob
         )
 
-        sorted_authors = dict(sorted(self.users.items()))
+        # Normalize using decomposed strings for sorting.
+        # That makes letters with diacritics grouped with the undiacritized variant.
+        # Collation is not perfect, but better than having non-English letters at the very bottom of the list.
+        from unicodedata import normalize
+        sorted_authors = dict(sorted(
+            self.users.items(),
+            key=lambda item: (normalize('NFD', item[0]).casefold(), item[1].commit_total),
+        ))
+
         for author_with_email, cu in sorted_authors.items():
             if author_with_email.endswith(" <>"):
                 if verbose:
