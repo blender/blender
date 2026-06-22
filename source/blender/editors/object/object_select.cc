@@ -527,9 +527,8 @@ static bool object_select_all_by_instance_collection(bContext *C, Object *ob)
   return changed;
 }
 
-static bool object_select_all_by_particle(bContext *C, Object *ob)
+static bool object_select_all_by_particle(bContext *C, const ParticleSystem *psys_act)
 {
-  ParticleSystem *psys_act = psys_get_current(ob);
   bool changed = false;
 
   CTX_DATA_BEGIN (C, Base *, base, visible_bases) {
@@ -663,11 +662,12 @@ static wmOperatorStatus object_select_linked_exec(bContext *C, wmOperator *op)
     changed = object_select_all_by_instance_collection(C, ob);
   }
   else if (nr == OBJECT_SELECT_LINKED_PARTICLE) {
-    if (ob->particlesystem.is_empty()) {
+    const ParticleSystem *psys_act = psys_get_current(ob);
+    if (psys_act == nullptr) {
       return OPERATOR_CANCELLED;
     }
 
-    changed = object_select_all_by_particle(C, ob);
+    changed = object_select_all_by_particle(C, psys_act);
   }
   else if (nr == OBJECT_SELECT_LINKED_LIBRARY) {
     /* do nothing */
