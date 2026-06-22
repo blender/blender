@@ -491,7 +491,9 @@ void OverrideRNAPathTreeBuilder::ensure_entire_collection(
 
     MEM_delete(coll_item_path);
     item_idx++;
-    previous_te = current_te;
+    if (current_te) {
+      previous_te = current_te;
+    }
   }
   RNA_PROP_END;
 }
