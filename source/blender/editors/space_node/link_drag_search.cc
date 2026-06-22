@@ -156,7 +156,7 @@ static void add_existing_group_input_fn(nodes::LinkSearchOpParams &params,
 }
 
 /**
- * \note This could use #search_link_ops_for_socket_templates, but we have to store the inputs and
+ * \note This could use #search_link_ops_for_declarations, but we have to store the inputs and
  * outputs as IDProperties for assets because of asset indexing, so that's all we have without
  * loading the file.
  */
