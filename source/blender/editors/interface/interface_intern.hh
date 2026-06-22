@@ -198,7 +198,6 @@ struct Button : NonMovable {
   Layout *layout = nullptr;
   int64_t flag = 0;
   int drawflag = 0;
-  char flag2 = 0;
 
   TextDirection text_direction = TextDirection::Default;
 

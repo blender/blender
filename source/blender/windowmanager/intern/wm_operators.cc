@@ -2033,7 +2033,7 @@ static ui::Block *wm_block_search_menu(bContext *C, ARegion *region, void *userd
   }
   else if (init_data->search_type == SEARCH_TYPE_SINGLE_MENU) {
     button_func_menu_search(but, init_data->single_menu_idname.c_str());
-    button_flag2_enable(but, ui::BUT2_ACTIVATE_ON_INIT_NO_SELECT);
+    button_flag_enable(but, ui::BUT_ACTIVATE_ON_INIT_NO_SELECT);
   }
   else {
     BLI_assert_unreachable();

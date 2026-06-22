@@ -2343,7 +2343,7 @@ void Layout::prop(PointerRNA *ptr,
       button_placeholder_set(but, *placeholder);
     }
     if (ELEM(but->type, ButtonType::Text) && (flag & ITEM_R_TEXT_BUT_FORCE_SEMI_MODAL_ACTIVE)) {
-      button_flag2_enable(but, BUT2_FORCE_SEMI_MODAL_ACTIVE);
+      button_flag_enable(but, BUT_FORCE_SEMI_MODAL_ACTIVE);
     }
   }
 

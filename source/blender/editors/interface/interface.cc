@@ -5643,11 +5643,6 @@ void button_flag_enable(Button *but, int64_t flag)
   but->flag |= flag;
 }
 
-void button_flag2_enable(Button *but, int flag)
-{
-  but->flag2 |= flag;
-}
-
 void button_flag_disable(Button *but, int64_t flag)
 {
   but->flag &= ~flag;
