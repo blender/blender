@@ -111,29 +111,24 @@ static void compositor_job_start(void *compositor_job_data, wmJobWorkerStatus *w
 
   bke::CompositorRuntime &compositor_runtime = compositor_job->scene->runtime->compositor;
   Scene *evaluated_scene = DEG_get_evaluated_scene(compositor_runtime.preview_depsgraph);
+  render::CompositorInputData input_data(*compositor_job->render,
+                                         *compositor_job->bmain,
+                                         *evaluated_scene,
+                                         evaluated_scene->r,
+                                         *compositor_job->evaluated_node_tree,
+                                         "",
+                                         nullptr,
+                                         compositor_job->needed_outputs);
   if (!(evaluated_scene->r.scemode & R_MULTIVIEW)) {
-    RE_compositor_execute(*compositor_job->render,
-                          *compositor_job->bmain,
-                          *evaluated_scene,
-                          evaluated_scene->r,
-                          *compositor_job->evaluated_node_tree,
-                          "",
-                          nullptr,
-                          compositor_job->needed_outputs);
+    RE_compositor_execute(input_data);
   }
   else {
     for (SceneRenderView &scene_render_view : evaluated_scene->r.views) {
       if (!BKE_scene_multiview_is_render_view_active(&evaluated_scene->r, &scene_render_view)) {
         continue;
       }
-      RE_compositor_execute(*compositor_job->render,
-                            *compositor_job->bmain,
-                            *evaluated_scene,
-                            evaluated_scene->r,
-                            *compositor_job->evaluated_node_tree,
-                            scene_render_view.name,
-                            nullptr,
-                            compositor_job->needed_outputs);
+      input_data.view_name = scene_render_view.name;
+      RE_compositor_execute(input_data);
     }
   }
 }

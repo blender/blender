@@ -57,49 +57,10 @@ namespace blender {
 
 namespace render {
 
-/**
- * Render Context Data
- *
- * Stored separately from the context so we can update it without losing any cached
- * data from the context.
- */
-class ContextInputData {
- public:
-  const Render *render;
-  const Main *main;
-  const Scene *scene;
-  const RenderData *render_data;
-  const bNodeTree *node_tree;
-  std::string view_name;
-  compositor::RenderContext *render_context;
-  compositor::NodeGroupOutputTypes needed_outputs;
-
-  ContextInputData(const Render *render,
-                   const Main &main,
-                   const Scene &scene,
-                   const RenderData &render_data,
-                   const bNodeTree &node_tree,
-                   const char *view_name,
-                   compositor::RenderContext *render_context,
-                   compositor::NodeGroupOutputTypes needed_outputs)
-      : render(render),
-        main(&main),
-        scene(&scene),
-        render_data(&render_data),
-        node_tree(&node_tree),
-        view_name(view_name),
-        render_context(render_context),
-        needed_outputs(needed_outputs)
-  {
-  }
-};
-
-/* Render Context Data */
-
 class Context : public compositor::Context {
  private:
   /* Input data. */
-  ContextInputData input_data_;
+  CompositorInputData input_data_;
 
   /* Cached GPU and CPU passes that the compositor took ownership of. Those had their reference
    * count incremented when accessed and need to be freed/have their reference count decremented
@@ -111,7 +72,7 @@ class Context : public compositor::Context {
   bool gpu_supported_ = true;
 
  public:
-  Context(compositor::StaticCacheManager &cache_manager, const ContextInputData &input_data)
+  Context(compositor::StaticCacheManager &cache_manager, const CompositorInputData &input_data)
       : compositor::Context(cache_manager), input_data_(input_data)
   {
   }
@@ -128,12 +89,12 @@ class Context : public compositor::Context {
 
   const Main &get_main() const override
   {
-    return *input_data_.main;
+    return input_data_.main;
   }
 
   const Scene &get_scene() const override
   {
-    return *input_data_.scene;
+    return input_data_.scene;
   }
 
   void set_gpu_supported(const bool supported)
@@ -154,12 +115,12 @@ class Context : public compositor::Context {
 
   const RenderData &get_render_data() const override
   {
-    return *(input_data_.render_data);
+    return input_data_.render_data;
   }
 
   int2 get_render_size() const
   {
-    Render *render = RE_GetSceneRender(input_data_.scene);
+    Render *render = RE_GetSceneRender(&input_data_.scene);
     RenderResult *render_result = RE_AcquireResultRead(render);
 
     /* If a render result already exist, use its size, since the compositor operates on the render
@@ -169,7 +130,7 @@ class Context : public compositor::Context {
       size = int2(render_result->rectx, render_result->recty);
     }
     else {
-      BKE_render_resolution(input_data_.render_data, true, &size.x, &size.y);
+      BKE_render_resolution(&input_data_.render_data, true, &size.x, &size.y);
     }
 
     RE_ReleaseResult(render);
@@ -184,7 +145,7 @@ class Context : public compositor::Context {
 
   void write_output(const compositor::Result &result)
   {
-    Render *render = RE_GetSceneRender(input_data_.scene);
+    Render *render = RE_GetSceneRender(&input_data_.scene);
     RenderResult *render_result = RE_AcquireResultWrite(render);
 
     if (render_result) {
@@ -244,7 +205,7 @@ class Context : public compositor::Context {
     }
 
     /* Node tree is not time depend, so no need to cache. */
-    const bNodeTree *original_node_tree = DEG_get_original(input_data_.node_tree);
+    const bNodeTree *original_node_tree = DEG_get_original(&input_data_.node_tree);
     if (!original_node_tree->runtime->eval_dependencies->time_dependent) {
       return false;
     }
@@ -257,14 +218,14 @@ class Context : public compositor::Context {
     Image *image = BKE_image_ensure_viewer(G.main, IMA_TYPE_COMPOSITE, "Viewer Node");
 
     ImageUser image_user = {nullptr};
-    const int view_identifier = BKE_scene_multiview_view_id_get(input_data_.render_data,
+    const int view_identifier = BKE_scene_multiview_view_id_get(&input_data_.render_data,
                                                                 input_data_.view_name.c_str());
     image_user.multi_index = view_identifier;
 
-    if (BKE_scene_multiview_is_render_view_first(input_data_.render_data,
+    if (BKE_scene_multiview_is_render_view_first(&input_data_.render_data,
                                                  input_data_.view_name.c_str()))
     {
-      BKE_image_ensure_viewer_views(input_data_.render_data, image, &image_user);
+      BKE_image_ensure_viewer_views(&input_data_.render_data, image, &image_user);
     }
 
     BLI_thread_lock(LOCK_DRAW_IMAGE);
@@ -597,7 +558,7 @@ class Context : public compositor::Context {
 
   compositor::ResultPrecision get_precision() const override
   {
-    switch (input_data_.scene->r.compositor_precision) {
+    switch (input_data_.scene.r.compositor_precision) {
       case SCE_COMPOSITOR_PRECISION_AUTO:
         /* Auto uses full precision for final renders and half precision otherwise. */
         if (this->render_context()) {
@@ -641,7 +602,7 @@ class Context : public compositor::Context {
 
   bool is_canceled() const override
   {
-    return input_data_.render->display->test_break();
+    return input_data_.render.display->test_break();
   }
 
   /* Checks if a cached viewer result exists for the current frame. If no cache is found, false is
@@ -650,7 +611,7 @@ class Context : public compositor::Context {
   bool write_frame_cache()
   {
     const Scene *original_scene = DEG_get_original(&this->get_scene());
-    const int view_identifier = BKE_scene_multiview_view_id_get(input_data_.render_data,
+    const int view_identifier = BKE_scene_multiview_view_id_get(&input_data_.render_data,
                                                                 input_data_.view_name.c_str());
     const ImBuf *cached_buffer = original_scene->runtime->compositor.cache.get_frame(
         this->get_frame_number(), view_identifier);
@@ -663,10 +624,10 @@ class Context : public compositor::Context {
     ImageUser image_user = {nullptr};
     image_user.multi_index = view_identifier;
 
-    if (BKE_scene_multiview_is_render_view_first(input_data_.render_data,
+    if (BKE_scene_multiview_is_render_view_first(&input_data_.render_data,
                                                  input_data_.view_name.c_str()))
     {
-      BKE_image_ensure_viewer_views(input_data_.render_data, image, &image_user);
+      BKE_image_ensure_viewer_views(&input_data_.render_data, image, &image_user);
     }
 
     BLI_thread_lock(LOCK_DRAW_IMAGE);
@@ -724,7 +685,7 @@ class Context : public compositor::Context {
 
     using namespace compositor;
     const NodeGroupOutputTypes needed_outputs = this->needed_outputs();
-    const bNodeTree &node_group = *input_data_.node_tree;
+    const bNodeTree &node_group = input_data_.node_tree;
     const bke::DataBlockComputeContext compute_context(nullptr, this->get_scene().id);
     NodeGroupOperation node_group_operation(*this,
                                             node_group,
@@ -854,7 +815,7 @@ class Compositor {
     }
   }
 
-  void execute(const ContextInputData &input_data)
+  void execute(const CompositorInputData &input_data)
   {
     Context context(cache_manager_, input_data);
 
@@ -916,7 +877,7 @@ class Compositor {
    * compositor execution device or precision changed, because we either need to update all cached
    * resources for the new execution device and precision, or we simply recreate the entire
    * compositor, since it is much easier and safer. */
-  bool needs_to_be_recreated(const ContextInputData &input_data)
+  bool needs_to_be_recreated(const CompositorInputData &input_data)
   {
     Context context(cache_manager_, input_data);
     /* See last_evaluation_used_gpu_ and last_evaluation_precision_ for more information what how
@@ -928,18 +889,9 @@ class Compositor {
 
 }  // namespace render
 
-void Render::compositor_execute(const Main &main,
-                                const Scene &scene,
-                                const RenderData &render_data,
-                                const bNodeTree &node_tree,
-                                const char *view_name,
-                                compositor::RenderContext *render_context,
-                                compositor::NodeGroupOutputTypes needed_outputs)
+void Render::compositor_execute(const render::CompositorInputData input_data)
 {
   std::unique_lock lock(this->compositor_mutex);
-
-  render::ContextInputData input_data(
-      this, main, scene, render_data, node_tree, view_name, render_context, needed_outputs);
 
   if (this->compositor && this->compositor->needs_to_be_recreated(input_data)) {
     /* Free it here and it will be recreated in the check below. */
@@ -964,17 +916,9 @@ void Render::compositor_free()
   }
 }
 
-void RE_compositor_execute(Render &render,
-                           const Main &main,
-                           const Scene &scene,
-                           const RenderData &render_data,
-                           const bNodeTree &node_tree,
-                           const char *view_name,
-                           compositor::RenderContext *render_context,
-                           compositor::NodeGroupOutputTypes needed_outputs)
+void RE_compositor_execute(const render::CompositorInputData input_data)
 {
-  render.compositor_execute(
-      main, scene, render_data, node_tree, view_name, render_context, needed_outputs);
+  input_data.render.compositor_execute(input_data);
 }
 
 void RE_compositor_free(Render &render)

@@ -51,13 +51,7 @@ struct BaseRender {
    * highlight. */
   virtual render::TilesHighlight *get_tile_highlight() = 0;
 
-  virtual void compositor_execute(const Main &main,
-                                  const Scene &scene,
-                                  const RenderData &render_data,
-                                  const bNodeTree &node_tree,
-                                  const char *view_name,
-                                  compositor::RenderContext *render_context,
-                                  compositor::NodeGroupOutputTypes needed_outputs) = 0;
+  virtual void compositor_execute(render::CompositorInputData input_data) = 0;
   virtual void compositor_free() = 0;
 
   /**
@@ -96,15 +90,7 @@ struct ViewRender : public BaseRender {
     return nullptr;
   }
 
-  void compositor_execute(const Main & /*main*/,
-                          const Scene & /*scene*/,
-                          const RenderData & /*render_data*/,
-                          const bNodeTree & /*node_tree*/,
-                          const char * /*view_name*/,
-                          compositor::RenderContext * /*render_context*/,
-                          compositor::NodeGroupOutputTypes /*needed_outputs*/) override
-  {
-  }
+  void compositor_execute(render::CompositorInputData /*input_data*/) override {}
   void compositor_free() override {}
 
   bool prepare_viewlayer(struct ViewLayer * /*view_layer*/,
@@ -124,13 +110,7 @@ struct Render : public BaseRender {
     return &tile_highlight;
   }
 
-  void compositor_execute(const Main &main,
-                          const Scene &scene,
-                          const RenderData &render_data,
-                          const bNodeTree &node_tree,
-                          const char *view_name,
-                          compositor::RenderContext *render_context,
-                          compositor::NodeGroupOutputTypes needed_outputs) override;
+  void compositor_execute(render::CompositorInputData input_data) override;
   void compositor_free() override;
 
   bool prepare_viewlayer(struct ViewLayer *view_layer, struct Depsgraph *depsgraph) override;

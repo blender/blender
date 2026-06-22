@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 namespace blender {
 
@@ -28,17 +29,23 @@ struct Scene;
 
 namespace render {
 class Compositor;
-}
+
+class CompositorInputData {
+ public:
+  Render &render;
+  const Main &main;
+  const Scene &scene;
+  const RenderData &render_data;
+  const bNodeTree &node_tree;
+  std::string view_name;
+  compositor::RenderContext *render_context;
+  compositor::NodeGroupOutputTypes needed_outputs;
+};
+
+}  // namespace render
 
 /* Execute compositor. */
-void RE_compositor_execute(Render &render,
-                           const Main &main,
-                           const Scene &scene,
-                           const RenderData &render_data,
-                           const bNodeTree &node_tree,
-                           const char *view_name,
-                           compositor::RenderContext *render_context,
-                           compositor::NodeGroupOutputTypes needed_outputs);
+void RE_compositor_execute(render::CompositorInputData input_data);
 
 /* Free compositor caches. */
 void RE_compositor_free(Render &render);
