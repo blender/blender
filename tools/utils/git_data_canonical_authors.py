@@ -39,6 +39,9 @@ def canonical_author_map() -> dict[str, str]:
             "Aaron Carlisle <carlisle.b3d@gmail.com>",
             "Your Name <Aaron Carlisle>",
         ),
+        "Abinjith-Tk <abinjith781@gmail.com>": (
+            "AbinjithTK <Abinjith781@gmail.com>",
+        ),
         "Adarsh TS <tsadarsh0707@gmail.com>": (
             "Adarsh TS <tsadarsh@pop-os.localdomain>",
             "blend_adarsh <tsadarsh0707@gmail.com>",
@@ -91,6 +94,9 @@ def canonical_author_map() -> dict[str, str]:
             "Amelie Fondevilla <amelie@les-fees-speciales.coop>",
             "Amelie Fondevilla <amelief@noreply.localhost>",
             "Am\u00e9lie Fondevilla <afonde>",
+        ),
+        "Andrej <azhilenkov@gmail.com>": (
+            "Andrej730 <azhilenkov@gmail.com>",
         ),
         "Andrew Oates <andrew@andrewoates.com>": (
             "Andrew Oates <andrewoates@noreply.localhost>",
@@ -457,6 +463,9 @@ def canonical_author_map() -> dict[str, str]:
         "IRIE Shinsuke <irieshinsuke@yahoo.co.jp>": (
             "Irie Shinsuke <irieshinsuke@yahoo.co.jp>",
         ),
+        "Ido Shahar <ido-shahar@noreply.localhost>": (
+            "Ido-Shahar <ido-shahar@noreply.localhost>",
+        ),
         "Iliya Katueshenock <modormoder@gmail.com>": (
             "Iliay Katueshenock <Moder>",
             "Iliya Katueshenock <Moder>",
@@ -768,6 +777,7 @@ def canonical_author_map() -> dict[str, str]:
             "Nathan Vegdahl <cessen>",
         ),
         "Nazir Galimov <nazir.galimov@gmail.com>": (
+            "Nazir <nazir.galimov@gmail.com>",
             "Nazir Galimov <aicedor@noreply.localhost>",
         ),
         "Nicholas Bishop <nicholasbishop@gmail.com>": (
@@ -928,11 +938,13 @@ def canonical_author_map() -> dict[str, str]:
             "Sean Stirling <sstirlin@qti.qualcomm.com>",
         ),
         "Sebastian Herholz <sebastian.herholz@intel.com>": (
+            "Sebastian <sebastian.herholz@gmail.com>",
             "Sebastian Herholz <Sebastian.Herholz@gmail.com>",
             "Sebastian Herholz <sebastian.herholz@gmail.com>",
             "Sebastian Herholz <sherholz>",
             "Sebastian Herholz <sherholz@noreply.localhost>",
             "Sebastian Herhoz <sebastian.herholz@intel.com>",
+            "sherholz <sebastian.herholz@gmail.com>",
         ),
         "Sebastian Koenig <sebastiankoenig@posteo.de>": (
             "Sebastian Koenig <sebastian_k>",
@@ -1013,6 +1025,7 @@ def canonical_author_map() -> dict[str, str]:
             "HG1 <HG1_public@gmx.net>",
         ),
         "Tibo Stans <192132910+stanzerelli@users.noreply.github.com>": (
+            "Stanzerelli <192132910+stanzerelli@users.noreply.github.com>",
             "Tibo Stans <stanzerelli@noreply.localhost>",
         ),
         "Tobias Kummer | Overmind Studios <tobiaskummer@googlemail.com>": (
@@ -1073,6 +1086,7 @@ def canonical_author_map() -> dict[str, str]:
         ),
         "Weizhen Huang <weizhen@blender.org>": (
             "RiverIntheSky <itsnotrj@hotmail.com>",
+            "RiverIntheSky <weizhen@blender.org>",
             "Weizhen Huang <itsnotrj@gmail.com>",
             "Weizhen Huang <weizhen@noreply.localhost>",
             "weizhen <weizhen@blender.org>",
@@ -1146,6 +1160,9 @@ def canonical_author_map() -> dict[str, str]:
         ),
         "ok_what <ip1149a@gmail.com>": (
             "ok what <ok_what>",
+        ),
+        "quackarooni <alfonsomartzii@gmail.com>": (
+            "Quackers <alfonsomartzii@gmail.com>",
         ),
         "syzygial <syzygial.123@gmail.com>": (
             "syzygial <syzygial@noreply.localhost>",

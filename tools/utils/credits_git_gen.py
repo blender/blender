@@ -405,16 +405,25 @@ def main() -> int:
     # Report when a single name has multiple entries,
     # as they may need deduplicating in git_data_canonical_authors.py.
     unique_author_names = {}
+    unique_author_emails = {}
     for author in credits.users:
         author_name, author_email = author.rsplit("<", 1)
         author_name = author_name.rstrip()
         author_email = "<" + author_email
         unique_author_name = unique_author_names.setdefault(author_name, [])
         unique_author_name.append(author_email)
+
+        unique_author_email = unique_author_emails.setdefault(author_email, [])
+        unique_author_email.append(author_name)
     for name, emails in sorted(unique_author_names.items()):
         if len(emails) > 1:
             print(f"More than one entry for {name}:")
             for email in sorted(emails):
+                print(f'            "{name} {email}",')
+    for email, names in sorted(unique_author_emails.items()):
+        if len(names) > 1:
+            print(f"More than one entry for {email}:")
+            for name in sorted(names):
                 print(f'            "{name} {email}",')
 
     credits.write(
