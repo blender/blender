@@ -57,6 +57,7 @@ class VolumeModule {
   Instance &inst_;
 
   bool enabled_;
+  bool viewport_sampling_is_reset_ = false;
   bool use_reprojection_;
   bool use_lights_;
 
