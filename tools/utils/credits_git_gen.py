@@ -371,7 +371,7 @@ def parse_organizations(authors_file: str) -> tuple[str, ...] | None:
         print("Error: Could not find \"{:s}\" in AUTHORS file: {:s}".format(section_end, authors_file))
         return None
 
-    sorted_unique_organizations = tuple(sorted(set(orgs)))
+    sorted_unique_organizations = tuple(sorted(set(orgs), key=str.casefold))
     return sorted_unique_organizations
 
 
