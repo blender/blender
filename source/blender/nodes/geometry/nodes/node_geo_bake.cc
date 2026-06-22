@@ -314,8 +314,10 @@ class LazyFunctionForBakeNode final : public LazyFunction {
         prev_bake_values, data_block_map, compute_context);
     Vector<SocketValueVariant> next_values = this->bake_to_output_values(
         next_bake_values, data_block_map, compute_context);
-    for (const int i : bake_items_.index_range()) {
-      geometry::mix_socket_values(output_values[i], next_values[i], mix_factor);
+    if (mix_factor != 0.0f) {
+      for (const int i : bake_items_.index_range()) {
+        geometry::mix_socket_values(output_values[i], next_values[i], mix_factor);
+      }
     }
     for (const int i : bake_items_.index_range()) {
       params.set_output(i, std::move(output_values[i]));

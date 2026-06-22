@@ -530,11 +530,12 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
   {
     Vector<SocketValueVariant> output_values = get_output_values_from_bake_values(
         simulation_items_, compute_context, data_block_map, std::move(prev_bake_values));
-
     Vector<SocketValueVariant> next_values = get_output_values_from_bake_values(
         simulation_items_, compute_context, data_block_map, std::move(next_bake_values));
-    for (const int i : simulation_items_.index_range()) {
-      geometry::mix_socket_values(output_values[i], next_values[i], mix_factor);
+    if (mix_factor != 0.0f) {
+      for (const int i : simulation_items_.index_range()) {
+        geometry::mix_socket_values(output_values[i], next_values[i], mix_factor);
+      }
     }
     for (const int i : simulation_items_.index_range()) {
       params.set_output(i, std::move(output_values[i]));
