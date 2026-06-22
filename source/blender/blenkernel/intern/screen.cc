@@ -137,7 +137,6 @@ static void screen_copy_data(Main * /*bmain*/,
   for (ScrEdge &se_dst : screen_dst->edgebase) {
     se_dst.v1 = se_dst.v1->newv;
     se_dst.v2 = se_dst.v2->newv;
-    BKE_screen_sort_scrvert(&(se_dst.v1), &(se_dst.v2));
   }
 
   {
@@ -796,25 +795,29 @@ void BKE_screen_copy_data(bScreen *screen_dst, const bScreen *screen_src)
 /** \name Screen edges & verts
  * \{ */
 
+bool BKE_screen_scredge_equals(const ScrVert *a1,
+                               const ScrVert *a2,
+                               const ScrVert *b1,
+                               const ScrVert *b2)
+{
+  if (a1 == b1 && a2 == b2) {
+    return true;
+  }
+  if (a1 == b2 && a2 == b1) {
+    return true;
+  }
+  return false;
+}
+
 ScrEdge *BKE_screen_find_edge(const bScreen *screen, ScrVert *v1, ScrVert *v2)
 {
-  BKE_screen_sort_scrvert(&v1, &v2);
   for (ScrEdge &se : screen->edgebase) {
-    if (se.v1 == v1 && se.v2 == v2) {
+    if (BKE_screen_scredge_equals(se.v1, se.v2, v1, v2)) {
       return &se;
     }
   }
 
   return nullptr;
-}
-
-void BKE_screen_sort_scrvert(ScrVert **v1, ScrVert **v2)
-{
-  if (*v1 > *v2) {
-    ScrVert *tmp = *v1;
-    *v1 = *v2;
-    *v2 = tmp;
-  }
 }
 
 void BKE_screen_remove_double_scrverts(bScreen *screen)
@@ -842,8 +845,6 @@ void BKE_screen_remove_double_scrverts(bScreen *screen)
     if (se.v2->newv) {
       se.v2 = se.v2->newv;
     }
-    /* edges changed: so.... */
-    BKE_screen_sort_scrvert(&(se.v1), &(se.v2));
   }
   for (ScrArea &area : screen->areabase) {
     if (area.v1->newv) {
@@ -876,7 +877,7 @@ void BKE_screen_remove_double_scredges(bScreen *screen)
     ScrEdge *se = verg.next;
     while (se) {
       ScrEdge *sn = se->next;
-      if (verg.v1 == se->v1 && verg.v2 == se->v2) {
+      if (BKE_screen_scredge_equals(verg.v1, verg.v2, se->v1, se->v2)) {
         BLI_remlink(&screen->edgebase, se);
         MEM_delete(se);
       }
@@ -1632,7 +1633,6 @@ bool BKE_screen_area_map_blend_read_data(BlendDataReader *reader, ScrAreaMap *ar
   for (ScrEdge &se : area_map->edgebase) {
     BLO_read_struct(reader, ScrVert, &se.v1);
     BLO_read_struct(reader, ScrVert, &se.v2);
-    BKE_screen_sort_scrvert(&se.v1, &se.v2);
 
     if (se.v1 == nullptr) {
       BLI_remlink(&area_map->edgebase, &se);

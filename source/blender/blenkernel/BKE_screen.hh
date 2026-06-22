@@ -936,8 +936,12 @@ void BKE_screen_area_map_free(ScrAreaMap *area_map) ATTR_NONNULL();
  */
 void BKE_screen_copy_data(bScreen *screen_dst, const bScreen *screen_src);
 
+/** \return True if the edge defined by a1 and a2 is equal to the edge defined by b1 and b2. */
+bool BKE_screen_scredge_equals(const ScrVert *a1,
+                               const ScrVert *a2,
+                               const ScrVert *b1,
+                               const ScrVert *b2);
 ScrEdge *BKE_screen_find_edge(const bScreen *screen, ScrVert *v1, ScrVert *v2);
-void BKE_screen_sort_scrvert(ScrVert **v1, ScrVert **v2);
 void BKE_screen_remove_double_scrverts(bScreen *screen);
 void BKE_screen_remove_double_scredges(bScreen *screen);
 void BKE_screen_remove_unused_scredges(bScreen *screen);
