@@ -25,6 +25,8 @@ struct StructInfo {
   Vector<PointerInfo> pointers;
   /** Size of the struct in bytes. */
   int size_in_bytes = 0;
+
+  bool has_pointer_at_offset(int64_t offset) const;
 };
 
 /**
