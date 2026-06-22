@@ -567,6 +567,7 @@ def canonical_author_map() -> dict[str, str]:
             "joshua-maros <60271685+joshua-maros@users.noreply.github.com>",
         ),
         "Julian Eisel <julian@blender.org>": (
+            "Julian Eisel <7320+julianeisel@noreply.localhost>",
             "Julian Eisel <>",
             "Julian Eisel <Severin>",
             "Julian Eisel <eiseljulian@gmail.com>",
@@ -1017,6 +1018,7 @@ def canonical_author_map() -> dict[str, str]:
             "Thomas Dinges <blender@dingto.org>",
             "Thomas Dinges <dingto>",
             "Thomas Dinges <thomasdinges@noreply.localhost>",
+            "blender <blender@MacBook-Pro-von-Thomas.local>",
         ),
         "Thomas Lachmann <tl@bunker-werk.net>": (
             "Thomas Lachmann <TL>",
