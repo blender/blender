@@ -268,10 +268,6 @@ class Credits:
                 if verbose:
                     print("Skipping:", author_with_email, "explicit exclusion requested.")
                 continue
-            if author_with_email in author_exclude_individuals:
-                if verbose:
-                    print("Skipping:", author_with_email, "explicit exclusion requested.")
-                continue
             if match_glob_found := next(iter([
                     match_glob for match_glob, match_regex in author_exclude_regex
                     if match_regex.match(author_with_email)
