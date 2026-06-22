@@ -223,12 +223,12 @@ class Credits:
         if sort == "commit":
             sorted_authors = dict(sorted(
                 self.users.items(),
-                key=lambda item: (item[1].commit_total, normalize('NFD', item[0])),
+                key=lambda item: (item[1].commit_total, normalize('NFD', item[0]).casefold()),
             ))
         else:
             sorted_authors = dict(sorted(
                 self.users.items(),
-                key=lambda item: (normalize('NFD', item[0]), item[1].commit_total),
+                key=lambda item: (normalize('NFD', item[0]).casefold(), item[1].commit_total),
             ))
 
         fh.write("<h3>Individual Contributors</h3>\n\n")
