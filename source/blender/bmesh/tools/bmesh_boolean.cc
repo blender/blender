@@ -140,19 +140,6 @@ static bool bmvert_attached_to_hidden_face(BMVert *bmv)
   return false;
 }
 
-static bool face_has_verts_in_order(BMesh *bm, BMFace *bmf, const BMVert *v1, const BMVert *v2)
-{
-  BMIter liter;
-  BMLoop *l = static_cast<BMLoop *>(BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, bmf));
-  while (l != nullptr) {
-    if (l->v == v1 && l->next->v == v2) {
-      return true;
-    }
-    l = static_cast<BMLoop *>(BM_iter_step(&liter));
-  }
-  return false;
-}
-
 /** Use the unused _BM_ELEM_TAG_ALT #BMElem.hflag to mark geometry we will keep. */
 constexpr uint KEEP_FLAG = (1 << 6);
 
@@ -255,9 +242,8 @@ static bool apply_mesh_output_to_bmesh(BMesh *bm, IMesh &m_out, bool keep_hidden
       face_bmverts[i] = new_bmvs[v_index];
     }
     BMFace *bmf = BM_face_exists(face_bmverts.data(), flen);
-    /* #BM_face_exists checks if the face exists with the vertices in either order.
-     * We can only reuse the face if the orientations are the same. */
-    if (bmf != nullptr && face_has_verts_in_order(bm, bmf, face_bmverts[0], face_bmverts[1])) {
+    /* Never allow any duplicates (either winding), as this isn't legal mesh data, see: 160437. */
+    if (bmf != nullptr) {
       BM_elem_flag_enable(bmf, KEEP_FLAG);
     }
     else {
