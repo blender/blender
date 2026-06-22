@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e899b48ea546')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-15 07:32+0000\n"
-"PO-Revision-Date: 2026-06-12 12:00+0000\n"
+"POT-Creation-Date: 2026-06-22 07:24+0000\n"
+"PO-Revision-Date: 2026-06-19 12:12+0000\n"
 "Last-Translator: Gamfid <gamfid@users.noreply.translate.blender.org>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
 "Language: uk\n"
@@ -26380,46 +26380,6 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
-msgid "Track"
-msgstr "Стеження"
-
-
-msgid "Math"
-msgstr "Математика"
-
-
-msgid "Utilities"
-msgstr "Утиліти"
-
-
-msgid "Assign Material"
-msgstr "Призначити Матеріал"
-
-
-msgid "Sample"
-msgstr "Вибірка"
-
-
-msgid "Primitives"
-msgstr "Примітиви"
-
-
-msgid "Mirror"
-msgstr "Дзеркалення"
-
-
-msgid "Snap"
-msgstr "Підхоп"
-
-
-msgid "Rigid Body"
-msgstr "Тверде тіло"
-
-
-msgid "UV Mapping"
-msgstr "Розкладання UV"
-
-
 msgid "Local View"
 msgstr "Огляд Локально"
 
@@ -26464,76 +26424,104 @@ msgid "Select Loops"
 msgstr "Виділити петлі"
 
 
-msgid "Import"
-msgstr "Імпортувати"
+msgid "Assign Material"
+msgstr "Призначити Матеріал"
 
 
-msgid "Relations"
-msgstr "Зв'язки"
+msgid "Math"
+msgstr "Математика"
 
 
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Vertex Group Locks"
-msgstr "Блокування Груп Вершин"
+msgid "Utilities"
+msgstr "Утиліти"
 
 
 msgid "Metaball"
 msgstr "Метакуля"
 
 
-msgid "Asset"
-msgstr "Актив"
-
-
-msgid "Show/Hide"
-msgstr "Показати/приховати"
-
-
-msgid "Apply"
-msgstr "Застосувати"
-
-
-msgid "Link/Transfer Data"
-msgstr "Пов'язати/Перенести Дані"
-
-
-msgid "Clean Up"
-msgstr "Вичищення"
-
-
-msgid "Face Sets Init"
-msgstr "Ініціація Наборів Граней"
+msgid "Light"
+msgstr "Слабко"
 
 
 msgid "Light Probe"
 msgstr "Проба Освітлення"
 
 
-msgid "Light"
-msgstr "Слабко"
-
-
 msgid "Add Image"
 msgstr "Додати Зображення"
 
 
-msgid "Sculpt Set Pivot"
-msgstr "Ліплення Задати Опертя"
+msgid "Relations"
+msgstr "Зв'язки"
 
 
-msgid "Hooks"
-msgstr "Гачки"
+msgid "Sample"
+msgstr "Вибірка"
+
+
+msgid "Rigid Body"
+msgstr "Тверде тіло"
+
+
+msgid "Primitives"
+msgstr "Примітиви"
+
+
+msgid "Apply"
+msgstr "Застосувати"
+
+
+msgid "Track"
+msgstr "Стеження"
+
+
+msgid "Quick Effects"
+msgstr "Швидкі ефекти"
+
+
+msgid "Show/Hide"
+msgstr "Показати/приховати"
+
+
+msgid "Clean Up"
+msgstr "Вичищення"
+
+
+msgid "Asset"
+msgstr "Актив"
 
 
 msgid "Make Single User"
 msgstr "Зробити однокористувацьким"
 
 
-msgid "Quick Effects"
-msgstr "Швидкі ефекти"
+msgid "Convert"
+msgstr "Конвертування"
+
+
+msgid "Link/Transfer Data"
+msgstr "Пов'язати/Перенести Дані"
+
+
+msgid "Hooks"
+msgstr "Гачки"
+
+
+msgid "Vertex Group Locks"
+msgstr "Блокування Груп Вершин"
+
+
+msgid "Import"
+msgstr "Імпортувати"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Ліплення Задати Опертя"
+
+
+msgid "Face Sets Init"
+msgstr "Ініціація Наборів Граней"
 
 
 msgid "Clear Transform"
@@ -26546,6 +26534,10 @@ msgstr "У проміжках"
 
 msgid "Propagate"
 msgstr "Поширити"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Names"
@@ -26584,16 +26576,16 @@ msgid "Merge"
 msgstr "Об'єднання"
 
 
-msgid "Convert"
-msgstr "Конвертування"
-
-
 msgid "Special Characters"
 msgstr "Спеціальні символи"
 
 
 msgid "Kerning"
 msgstr "Кернінг"
+
+
+msgid "Bone Roll"
+msgstr "Прокручення Кістки"
 
 
 msgid "Linked"
@@ -26604,20 +26596,12 @@ msgid "Layout"
 msgstr "Розстановка"
 
 
-msgid "Bone Roll"
-msgstr "Прокручення Кістки"
-
-
-msgid "Keying"
-msgstr "Ключування"
-
-
-msgid "Tracking"
-msgstr "Стеження"
-
-
 msgid "Pivot Point"
 msgstr "Точка Опертя"
+
+
+msgid "Snap"
+msgstr "Підхоп"
 
 
 msgid "Proportional Editing Falloff"
@@ -26634,6 +26618,22 @@ msgstr "Автомаскування"
 
 msgid "Face Sets Edit"
 msgstr "Редагування Наборів Граней"
+
+
+msgid "Keying"
+msgstr "Ключування"
+
+
+msgid "Tracking"
+msgstr "Стеження"
+
+
+msgid "Mirror"
+msgstr "Дзеркалення"
+
+
+msgid "UV Mapping"
+msgstr "Розкладання UV"
 
 
 msgid "Basic"
@@ -45642,11 +45642,6 @@ msgid "Angle limit"
 msgstr "Граничний кут"
 
 
-msgctxt "Operator"
-msgid "Bevel"
-msgstr "Фаска"
-
-
 msgid "Cut into selected items at an angle to create bevel or chamfer"
 msgstr "Врізати вибрані елементи у кут для створення скосу або фаски"
 
@@ -60711,22 +60706,6 @@ msgid "Panel containing UI elements"
 msgstr "Панель, що містить елементи Інтерфейсу Користувача"
 
 
-msgid "Overlays"
-msgstr "Накладки"
-
-
-msgid "Guides"
-msgstr "Напрямні"
-
-
-msgid "Motion Tracking"
-msgstr "Відстеження руху"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Режим Редагування Сіті"
-
-
 msgid "Measurement"
 msgstr "Вимірювання"
 
@@ -60745,6 +60724,10 @@ msgstr "Розміщення Штриха"
 
 msgid "Drawing Plane"
 msgstr "Площина Рисування"
+
+
+msgid "Guides"
+msgstr "Напрямні"
 
 
 msgid "Quad View"
@@ -60793,6 +60776,18 @@ msgstr "Порожнинність"
 
 msgid "Render Pass"
 msgstr "Прохід Рендера"
+
+
+msgid "Overlays"
+msgstr "Накладки"
+
+
+msgid "Motion Tracking"
+msgstr "Відстеження руху"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Режим Редагування Сіті"
 
 
 msgid "Chain Scaling"
@@ -61736,11 +61731,6 @@ msgstr "Уштовх"
 msgctxt "Operator"
 msgid "Roll"
 msgstr "Прокручення"
-
-
-msgctxt "Operator"
-msgid "Bone Size"
-msgstr "Розмір Кістки"
 
 
 msgctxt "Operator"
@@ -76195,6 +76185,10 @@ msgid "Denoising Data"
 msgstr "Дані Знешумлювання"
 
 
+msgid "Transmit"
+msgstr "Пропускання"
+
+
 msgid "Incompatible output node"
 msgstr "Несумісний вузол виводу"
 
@@ -76283,6 +76277,21 @@ msgstr "Жодне 'Connections' не знайдено у файлі %r"
 
 msgid "Couldn't open file %r (%s)"
 msgstr "Неможливо відкрити файл %r (%s)"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Shift"
+msgstr "Shift"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Alt"
+msgstr "Alt"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Ctrl"
+msgstr "Ctrl"
 
 
 msgid "Description:"
@@ -76661,6 +76670,10 @@ msgstr "Прилучення..."
 
 msgid "Assign"
 msgstr "Призначення"
+
+
+msgid "Credits"
+msgstr "Авторт"
 
 
 msgctxt "Operator"
@@ -82098,6 +82111,78 @@ msgid "Picometers"
 msgstr "Пікометри"
 
 
+msgid "Kilograms"
+msgstr "Кілограми"
+
+
+msgid "Hectograms"
+msgstr "Гектограми"
+
+
+msgid "Grams"
+msgstr "Грами"
+
+
+msgid "Milligrams"
+msgstr "Міліграми"
+
+
+msgid "Hours"
+msgstr "Години"
+
+
+msgid "Minutes"
+msgstr "Хвилини"
+
+
+msgid "Milliseconds"
+msgstr "Мілісекунди"
+
+
+msgid "Microseconds"
+msgstr "Мікросекунди"
+
+
+msgid "Gigawatts"
+msgstr "Гігавати"
+
+
+msgid "Megawatts"
+msgstr "Мегавати"
+
+
+msgid "Kilowatts"
+msgstr "Кіловати"
+
+
+msgid "Watts"
+msgstr "Вати"
+
+
+msgid "Milliwatts"
+msgstr "Мілівати"
+
+
+msgid "Microwatts"
+msgstr "Мікровати"
+
+
+msgid "Nanowatts"
+msgstr "Нановати"
+
+
+msgid "Kelvin"
+msgstr "Кельвін"
+
+
+msgid "Celsius"
+msgstr "Цельсій"
+
+
+msgid "Fahrenheit"
+msgstr "Фаренгейт"
+
+
 msgid "ID %s is in local database while being linked from library %s!"
 msgstr "Ідентифікатор %s є у локальній базі даних і водночас пов'язаний з бібліотеки %s!"
 
@@ -84484,24 +84569,12 @@ msgid "Copy particle systems to selected: %d done, %d failed"
 msgstr "Копіювання систем частинок у вибране: %d успішно, %d невдало"
 
 
-msgid "Bake failed: no Fluid modifier found"
-msgstr "Запікання не вдалося: не знайдено модифікатор рідини"
-
-
-msgid "Bake failed: invalid domain"
-msgstr "Запікання не вдалося: поганий домен"
-
-
 msgid "Bake free failed: no Fluid modifier found"
 msgstr "Вільне запікання не вдалося: не знайдено модифікатор рідини"
 
 
 msgid "Bake free failed: invalid domain"
 msgstr "Вільне запікання не вдалося: поганий домен"
-
-
-msgid "Bake free failed: pending bake jobs found"
-msgstr "Вільне запікання не вдалося: виявлено незакінчене запікання"
 
 
 msgid "Fluid: Empty cache path, reset to default '%s'"
@@ -88274,6 +88347,11 @@ msgid "Recursion detected in video sequencer. Strip %s at frame %d will not be r
 msgstr "Рекурсія виявлена у секвенсері відео. Смужка %s у кадрі %d не буде рендеритися"
 
 
+msgctxt "Sequence"
+msgid "Audio"
+msgstr "Аудіо"
+
+
 msgid "Glow"
 msgstr "Сяяння"
 
@@ -88288,6 +88366,10 @@ msgstr "Опертя Об'єкта"
 
 msgid "Wave Effect"
 msgstr "Ефект Хвилі"
+
+
+msgid "window_managers"
+msgstr "Диспетчерт вікон"
 
 
 msgid "Blender File View"

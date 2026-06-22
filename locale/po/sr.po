@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e899b48ea546')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-15 07:32+0000\n"
+"POT-Creation-Date: 2026-06-22 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 15:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -8498,30 +8498,6 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
-msgid "Track"
-msgstr "Стаза"
-
-
-msgid "Math"
-msgstr "Математика"
-
-
-msgid "Mirror"
-msgstr "Огледало"
-
-
-msgid "Snap"
-msgstr "Лепљење"
-
-
-msgid "Rigid Body"
-msgstr "Круто тело"
-
-
-msgid "UV Mapping"
-msgstr "UV Мапирање"
-
-
 msgid "Local View"
 msgstr "Локални поглед"
 
@@ -8538,40 +8514,48 @@ msgid "Select Linked"
 msgstr "Изабери повезано"
 
 
-msgid "Import"
-msgstr "Увоз"
-
-
-msgid "Relations"
-msgstr "Односи"
-
-
-msgid "UV"
-msgstr "UV"
+msgid "Math"
+msgstr "Математика"
 
 
 msgid "Metaball"
 msgstr "Мета лопта"
 
 
-msgid "Show/Hide"
-msgstr "Прикажи/сакриј"
+msgid "Light"
+msgstr "Светлост"
+
+
+msgid "Relations"
+msgstr "Односи"
+
+
+msgid "Rigid Body"
+msgstr "Круто тело"
 
 
 msgid "Apply"
 msgstr "Примени"
 
 
-msgid "Light"
-msgstr "Светлост"
+msgid "Track"
+msgstr "Стаза"
+
+
+msgid "Quick Effects"
+msgstr "Брзи ефекти"
+
+
+msgid "Show/Hide"
+msgstr "Прикажи/сакриј"
 
 
 msgid "Hooks"
 msgstr "Удице"
 
 
-msgid "Quick Effects"
-msgstr "Брзи ефекти"
+msgid "Import"
+msgstr "Увоз"
 
 
 msgid "Clear Transform"
@@ -8584,6 +8568,10 @@ msgstr "У међувремену"
 
 msgid "Propagate"
 msgstr "Пренеси"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Names"
@@ -8614,12 +8602,16 @@ msgid "Special Characters"
 msgstr "Специјални знаци"
 
 
+msgid "Bone Roll"
+msgstr "Ролна костију"
+
+
 msgid "Linked"
 msgstr "Повезано"
 
 
-msgid "Bone Roll"
-msgstr "Ролна костију"
+msgid "Snap"
+msgstr "Лепљење"
 
 
 msgid "Keying"
@@ -8628,6 +8620,14 @@ msgstr "Збирка тастера"
 
 msgid "Tracking"
 msgstr "Праћење"
+
+
+msgid "Mirror"
+msgstr "Огледало"
+
+
+msgid "UV Mapping"
+msgstr "UV Мапирање"
 
 
 msgid "Basic"
@@ -19066,12 +19066,12 @@ msgid "Restrict"
 msgstr "Ограничи"
 
 
-msgid "Motion Tracking"
-msgstr "Праћење покрета"
-
-
 msgid "Transform Orientations"
 msgstr "Трансформација оријентација"
+
+
+msgid "Motion Tracking"
+msgstr "Праћење покрета"
 
 
 msgid "Bone Constraints"
