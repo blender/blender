@@ -402,6 +402,21 @@ def main() -> int:
 
     credits.process(GitCommitIter(args.source_dir, commit_range), jobs=jobs)
 
+    # Report when a single name has multiple entries,
+    # as they may need deduplicating in git_data_canonical_authors.py.
+    unique_author_names = {}
+    for author in credits.users:
+        author_name, author_email = author.rsplit("<", 1)
+        author_name = author_name.rstrip()
+        author_email = "<" + author_email
+        unique_author_name = unique_author_names.setdefault(author_name, [])
+        unique_author_name.append(author_email)
+    for name, emails in sorted(unique_author_names.items()):
+        if len(emails) > 1:
+            print(f"More than one entry for {name}:")
+            for email in sorted(emails):
+                print(f'            "{name} {email}",')
+
     credits.write(
         "credits.html",
         is_main_credits=True,
