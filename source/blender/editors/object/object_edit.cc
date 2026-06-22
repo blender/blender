@@ -1290,7 +1290,7 @@ void motion_paths_recalc(bContext *C,
   Main *bmain = CTX_data_main(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  Vector<MPathTarget *> targets;
+  Vector<MPathTarget> targets;
   for (Object *ob : objects) {
     /* set flag to force recalc, then grab path(s) from object */
     if (has_object_motion_paths(ob)) {
@@ -1307,7 +1307,6 @@ void motion_paths_recalc(bContext *C,
   Depsgraph *depsgraph = animviz_depsgraph_build(bmain, scene, view_layer, targets);
 
   animviz_calc_motionpaths(depsgraph, scene, targets, range);
-  animviz_free_motionpath_targets(targets);
 
   /* Tag objects for copy-on-eval - so paths will draw/redraw
    * For currently frame only we update evaluated object directly. */

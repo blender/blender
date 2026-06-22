@@ -147,7 +147,7 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob, eAnimvizCa
   Main *bmain = CTX_data_main(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  Vector<MPathTarget *> targets;
+  Vector<MPathTarget> targets;
   /* set flag to force recalc, then grab the relevant bones to target */
   ob->pose->avs.recalc |= ANIMVIZ_RECALC_PATHS;
   animviz_build_motionpath_targets(ob, targets);
@@ -164,7 +164,6 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob, eAnimvizCa
   TIMEIT_END(pose_path_calc);
 #endif
 
-  animviz_free_motionpath_targets(targets);
   DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
 
   /* Free temporary depsgraph. */
