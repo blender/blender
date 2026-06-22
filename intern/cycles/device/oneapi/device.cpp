@@ -39,7 +39,7 @@ bool device_oneapi_init()
   if (getenv("SYCL_CACHE_PERSISTENT") == nullptr) {
     _putenv_s("SYCL_CACHE_PERSISTENT", "1");
   }
-  if (getenv("SYCL_CACHE_TRESHOLD") == nullptr) {
+  if (getenv("SYCL_CACHE_THRESHOLD") == nullptr) {
     _putenv_s("SYCL_CACHE_THRESHOLD", "0");
   }
   if (getenv("ONEAPI_DEVICE_SELECTOR") == nullptr) {

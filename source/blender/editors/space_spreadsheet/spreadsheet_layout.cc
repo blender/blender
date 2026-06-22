@@ -634,23 +634,37 @@ float ColumnValues::fit_column_values_width_px(const std::optional<int64_t> &max
           [](const int value) { return fmt::format("{}", value); });
     }
     case SPREADSHEET_VALUE_TYPE_INT32: {
-      return estimate_max_column_width<int>(
+      return estimate_max_column_width<int>(get_min_width(3 * SPREADSHEET_WIDTH_UNIT),
+                                            fontid,
+                                            max_sample_size,
+                                            data_.typed<int>(),
+                                            [](const int value) {
+                                              char dst[BLI_STR_FORMAT_INT32_GROUPED_SIZE];
+                                              BLI_str_format_int_grouped(dst, value);
+                                              return std::string(dst);
+                                            });
+    }
+    case SPREADSHEET_VALUE_TYPE_INT64: {
+      const ColumnValueDisplayHint display_hint = this->display_hint();
+      return estimate_max_column_width<int64_t>(
           get_min_width(3 * SPREADSHEET_WIDTH_UNIT),
           fontid,
           max_sample_size,
-          data_.typed<int>(),
-          [](const int value) { return fmt::format("{}", value); });
-    }
-    case SPREADSHEET_VALUE_TYPE_INT64: {
-      return estimate_max_column_width<int64_t>(get_min_width(3 * SPREADSHEET_WIDTH_UNIT),
-                                                fontid,
-                                                max_sample_size,
-                                                data_.typed<int64_t>(),
-                                                [](const int64_t value) {
-                                                  char dst[BLI_STR_FORMAT_INT64_GROUPED_SIZE];
-                                                  BLI_str_format_int64_grouped(dst, value);
-                                                  return std::string(dst);
-                                                });
+          data_.typed<int64_t>(),
+          [display_hint](const int64_t value) {
+            switch (display_hint) {
+              case ColumnValueDisplayHint::Bytes: {
+                char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE];
+                BLI_str_format_byte_unit(dst, value, true);
+                return std::string(dst);
+              }
+              default: {
+                char dst[BLI_STR_FORMAT_INT64_GROUPED_SIZE];
+                BLI_str_format_int64_grouped(dst, value);
+                return std::string(dst);
+              }
+            }
+          });
     }
     case SPREADSHEET_VALUE_TYPE_FLOAT: {
       return estimate_max_column_width<float>(
@@ -731,7 +745,9 @@ float ColumnValues::fit_column_values_width_px(const std::optional<int64_t> &max
           max_sample_size,
           data_.typed<ColorGeometry4b>(),
           [](const ColorGeometry4b value) {
-            return fmt::format("{}  {}  {}  {}", value.r, value.g, value.b, value.a);
+            const ColorGeometry4f color = color::decode(value);
+            return fmt::format(
+                "{:.3f}  {:.3f}  {:.3f}  {:.3f}", color.r, color.g, color.b, color.a);
           });
     }
     case SPREADSHEET_VALUE_TYPE_QUATERNION: {
