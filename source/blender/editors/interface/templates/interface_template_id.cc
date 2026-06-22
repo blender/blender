@@ -146,7 +146,7 @@ static bool id_search_add(const bContext *C, TemplateID *template_ui, SearchItem
                        name_ui,
                        id,
                        iconid,
-                       has_sep_char ? int(BUT_HAS_SEP_CHAR) : 0,
+                       has_sep_char ? int64_t(BUT_HAS_SEP_CHAR) : 0,
                        name_prefix_offset))
   {
     return false;

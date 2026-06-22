@@ -1844,7 +1844,7 @@ bool search_item_add(SearchItems *items,
                      StringRef name,
                      void *poin,
                      int iconid,
-                     int but_flag,
+                     int64_t but_flag,
                      uint8_t name_prefix_offset);
 
 /**

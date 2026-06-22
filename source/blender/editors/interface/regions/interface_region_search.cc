@@ -60,7 +60,7 @@ struct SearchItems {
   char **names;
   void **pointers;
   int *icons;
-  int *but_flags;
+  int64_t *but_flags;
   uint8_t *name_prefix_offsets;
 
   /** Is there any item with an icon? */
@@ -105,7 +105,7 @@ bool search_item_add(SearchItems *items,
                      const StringRef name,
                      void *poin,
                      int iconid,
-                     const int but_flag,
+                     const int64_t but_flag,
                      const uint8_t name_prefix_offset)
 {
   /* hijack for autocomplete */
@@ -1054,7 +1054,7 @@ static ARegion *searchbox_create_generic_ex(bContext *C,
   data->items.names = MEM_new_array_zeroed<char *>(data->items.maxitem, __func__);
   data->items.pointers = MEM_new_array_zeroed<void *>(data->items.maxitem, __func__);
   data->items.icons = MEM_new_array_zeroed<int>(data->items.maxitem, __func__);
-  data->items.but_flags = MEM_new_array_zeroed<int>(data->items.maxitem, __func__);
+  data->items.but_flags = MEM_new_array_zeroed<int64_t>(data->items.maxitem, __func__);
   data->items.name_prefix_offsets = nullptr; /* Lazy initialized as needed. */
   for (int i = 0; i < data->items.maxitem; i++) {
     data->items.names[i] = MEM_new_array_zeroed<char>(data->items.maxstrlen + 1, __func__);

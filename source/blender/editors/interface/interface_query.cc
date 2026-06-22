@@ -788,7 +788,9 @@ Button *region_find_active_but(ARegion *region)
   return nullptr;
 }
 
-Button *region_find_first_but_test_flag(ARegion *region, int flag_include, int flag_exclude)
+Button *region_find_first_but_test_flag(ARegion *region,
+                                        int64_t flag_include,
+                                        int64_t flag_exclude)
 {
   for (Block &block : region->runtime->uiblocks) {
     for (Button &but : block.buttons()) {
