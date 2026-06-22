@@ -3987,7 +3987,9 @@ void BKE_lib_override_library_main_resync(
       break;
     }
     if (new_scene) {
-      view_layer = BKE_view_layer_find(new_scene, view_layer->name);
+      if (view_layer) {
+        view_layer = BKE_view_layer_find(new_scene, view_layer->name);
+      }
       if (!view_layer) {
         view_layer = static_cast<ViewLayer *>(new_scene->view_layers.first);
       }
