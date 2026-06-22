@@ -4292,12 +4292,14 @@ class VIEW3D_MT_pose_slide(Menu):
 
     def draw(self, _context):
         layout = self.layout
-
+        ctx = layout.operator_context
+        layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("pose.blend_with_rest")
         layout.operator("pose.push")
         layout.operator("pose.relax")
         layout.operator("pose.breakdown")
         layout.operator("pose.blend_to_neighbor")
+        layout.operator_context = ctx
 
 
 class VIEW3D_MT_pose_propagate(Menu):
