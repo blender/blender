@@ -215,14 +215,21 @@ class Credits:
             use_email: bool = False,
     ) -> None:
         commit_word = "commit", "commits"
+        from unicodedata import normalize
+        # Normalize using decomposed strings for sorting.
+        # That makes letters with diacritics grouped with the undiacritized variant.
+        # Collation is not perfect, but better than having non-English letters at the very bottom of the list.
 
         if sort == "commit":
             sorted_authors = dict(sorted(
                 self.users.items(),
-                key=lambda item: (item[1].commit_total, item[0]),
+                key=lambda item: (item[1].commit_total, normalize('NFD', item[0])),
             ))
         else:
-            sorted_authors = dict(sorted(self.users.items()))
+            sorted_authors = dict(sorted(
+                self.users.items(),
+                key=lambda item: (normalize('NFD', item[0]), item[1].commit_total),
+            ))
 
         fh.write("<h3>Individual Contributors</h3>\n\n")
         for author, cu in sorted_authors.items():
