@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e899b48ea546')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-15 07:32+0000\n"
-"PO-Revision-Date: 2026-04-13 10:12+0000\n"
+"POT-Creation-Date: 2026-06-22 07:24+0000\n"
+"PO-Revision-Date: 2026-06-21 05:12+0000\n"
 "Last-Translator: Dominic Iastrebschi <domjotebit@gmail.com>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
 "Language: ro\n"
@@ -77,6 +77,10 @@ msgstr "Curbele F individuale care animează slotul"
 
 msgid "F-Curve Groups"
 msgstr "Grupuri de curbele F"
+
+
+msgid "Groupings of F-Curves for display purposes, in e.g. the dopesheet and graph editor"
+msgstr "Grupări de curbe F în scopuri de afișare, de exemplu în dopesheet și în editorul de grafice"
 
 
 msgid "Slot"
@@ -244,7 +248,7 @@ msgstr "Grupul de acțiune este extins cu excepția în editorului de grafice"
 
 
 msgid "Expanded in Graph Editor"
-msgstr "Extins în Editorul de Grafice"
+msgstr "Extins în editorul de grafice"
 
 
 msgid "Action group is expanded in graph editor"
@@ -255,24 +259,40 @@ msgid "Pin in Graph Editor"
 msgstr "Fixare în Editorul de Grafice"
 
 
+msgid "Strips"
+msgstr "Benzi"
+
+
+msgid "The list of strips that are on this animation layer"
+msgstr "Lista benzilor care se află pe acest strat de animație"
+
+
+msgid "Action Layers"
+msgstr "Straturi de acțiune"
+
+
+msgid "Collection of animation layers"
+msgstr "Colecție de straturi de animație"
+
+
 msgid "Action Pose Markers"
-msgstr "Marcatori de poziție de acțiune"
+msgstr "Marcatoare de poziție de acțiune"
 
 
 msgid "Collection of timeline markers"
-msgstr "Colecție de marcatori cronologici"
+msgstr "Colecție de marcatoare cronologici"
 
 
 msgid "Active Pose Marker"
-msgstr "Marcator Poziție Activ"
+msgstr "Marcator de poziție activ"
 
 
 msgid "Active pose marker for this action"
-msgstr "Marcator Poziție Activ pentru această acțiune"
+msgstr "Marcator de poziție activ pentru această acțiune"
 
 
 msgid "Active Pose Marker Index"
-msgstr "Indexul Marcatorului De Poziție Activ"
+msgstr "Indexul marcatorului de poziție activ"
 
 
 msgid "Index of active pose marker"
@@ -2136,14 +2156,6 @@ msgid "Sampling"
 msgstr "Eșantionare"
 
 
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Apply"
-msgstr "Aplicare"
-
-
 msgid "Light"
 msgstr "Lumină"
 
@@ -2152,8 +2164,16 @@ msgid "Add Image"
 msgstr "Adăugare Imagine"
 
 
+msgid "Apply"
+msgstr "Aplicare"
+
+
 msgid "Convert"
 msgstr "Convertire"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Layout"

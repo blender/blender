@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e899b48ea546')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-15 07:32+0000\n"
+"POT-Creation-Date: 2026-06-22 07:24+0000\n"
 "PO-Revision-Date: 2026-05-04 00:12+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -24518,54 +24518,6 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Track"
-msgstr "Traccia"
-
-
-msgid "Math"
-msgstr "Matematica"
-
-
-msgid "Utilities"
-msgstr "Utilità"
-
-
-msgid "Assign Material"
-msgstr "Assegna Materiale"
-
-
-msgid "Read"
-msgstr "Lettura"
-
-
-msgid "Sample"
-msgstr "Campione"
-
-
-msgid "Write"
-msgstr "Scrittura"
-
-
-msgid "Primitives"
-msgstr "Primitive"
-
-
-msgid "Mirror"
-msgstr "Specchia"
-
-
-msgid "Snap"
-msgstr "Aggancia"
-
-
-msgid "Rigid Body"
-msgstr "Corpo Rigido"
-
-
-msgid "UV Mapping"
-msgstr "Mappatura UV"
-
-
 msgid "Local View"
 msgstr "Vista Locale"
 
@@ -24594,10 +24546,6 @@ msgid "Select More/Less"
 msgstr "Seleziona Più/Meno"
 
 
-msgid "Instances"
-msgstr "Istanze"
-
-
 msgid "Select Similar"
 msgstr "Seleziona Simili"
 
@@ -24614,76 +24562,116 @@ msgid "Select Loops"
 msgstr "Seleziona Anelli"
 
 
-msgid "Import"
-msgstr "Importa"
+msgid "Assign Material"
+msgstr "Assegna Materiale"
 
 
-msgid "Relations"
-msgstr "Relazioni"
+msgid "Math"
+msgstr "Matematica"
 
 
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Vertex Group Locks"
-msgstr "Blocchi del Gruppo di Vertici"
+msgid "Utilities"
+msgstr "Utilità"
 
 
 msgid "Metaball"
 msgstr "Metaball"
 
 
-msgid "Random Mask"
-msgstr "Maschera Casuale"
-
-
-msgid "Asset"
-msgstr "Risorsa"
-
-
-msgid "Show/Hide"
-msgstr "Mostra/Nascondi"
-
-
-msgid "Apply"
-msgstr "Applica"
-
-
-msgid "Link/Transfer Data"
-msgstr "Collega/Trasferisci Dati"
-
-
-msgid "Clean Up"
-msgstr "Ripulisci"
-
-
-msgid "Face Sets Init"
-msgstr "Init Sets di Facce"
+msgid "Light"
+msgstr "Luce"
 
 
 msgid "Light Probe"
 msgstr "Sensore di Luce"
 
 
-msgid "Light"
-msgstr "Luce"
-
-
 msgid "Add Image"
 msgstr "Aggiungi Immagine"
 
 
-msgid "Hooks"
-msgstr "Ganci"
+msgid "Relations"
+msgstr "Relazioni"
+
+
+msgid "Read"
+msgstr "Lettura"
+
+
+msgid "Sample"
+msgstr "Campione"
+
+
+msgid "Write"
+msgstr "Scrittura"
+
+
+msgid "Rigid Body"
+msgstr "Corpo Rigido"
+
+
+msgid "Primitives"
+msgstr "Primitive"
+
+
+msgid "Apply"
+msgstr "Applica"
+
+
+msgid "Track"
+msgstr "Traccia"
+
+
+msgid "Quick Effects"
+msgstr "Effetti Veloci"
+
+
+msgid "Show/Hide"
+msgstr "Mostra/Nascondi"
+
+
+msgid "Clean Up"
+msgstr "Ripulisci"
+
+
+msgid "Asset"
+msgstr "Risorsa"
 
 
 msgid "Make Single User"
 msgstr "Rendi Utilizzatore Singolo"
 
 
-msgid "Quick Effects"
-msgstr "Effetti Veloci"
+msgid "Convert"
+msgstr "Converti"
+
+
+msgid "Link/Transfer Data"
+msgstr "Collega/Trasferisci Dati"
+
+
+msgid "Instances"
+msgstr "Istanze"
+
+
+msgid "Hooks"
+msgstr "Ganci"
+
+
+msgid "Vertex Group Locks"
+msgstr "Blocchi del Gruppo di Vertici"
+
+
+msgid "Import"
+msgstr "Importa"
+
+
+msgid "Face Sets Init"
+msgstr "Init Sets di Facce"
+
+
+msgid "Random Mask"
+msgstr "Maschera Casuale"
 
 
 msgid "Clear Transform"
@@ -24696,6 +24684,10 @@ msgstr "Intermedio"
 
 msgid "Propagate"
 msgstr "Propaga"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Bone Collections"
@@ -24738,16 +24730,16 @@ msgid "Merge"
 msgstr "Unisci"
 
 
-msgid "Convert"
-msgstr "Converti"
-
-
 msgid "Special Characters"
 msgstr "Caratteri Speciali"
 
 
 msgid "Kerning"
 msgstr "Crenatura"
+
+
+msgid "Bone Roll"
+msgstr "Rollio Osso"
 
 
 msgid "Linked"
@@ -24758,24 +24750,12 @@ msgid "Layout"
 msgstr "Layout"
 
 
-msgid "Bone Roll"
-msgstr "Rollio Osso"
-
-
-msgid "Adjust"
-msgstr "Regola"
-
-
-msgid "Keying"
-msgstr "Keying"
-
-
-msgid "Tracking"
-msgstr "Tracciamento"
-
-
 msgid "Pivot Point"
 msgstr "Punto di Perno"
+
+
+msgid "Snap"
+msgstr "Aggancia"
 
 
 msgid "Proportional Editing Falloff"
@@ -24786,12 +24766,32 @@ msgid "Mask Edit"
 msgstr "Modifica Maschera"
 
 
+msgid "Adjust"
+msgstr "Regola"
+
+
 msgid "Automasking"
 msgstr "Automascheramento"
 
 
 msgid "Face Sets Edit"
 msgstr "Modifica Sets di Facce"
+
+
+msgid "Keying"
+msgstr "Keying"
+
+
+msgid "Tracking"
+msgstr "Tracciamento"
+
+
+msgid "Mirror"
+msgstr "Specchia"
+
+
+msgid "UV Mapping"
+msgstr "Mappatura UV"
 
 
 msgid "Keyframe Insert Pie"
@@ -50170,26 +50170,6 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
-msgid "Compositor"
-msgstr "Compositore"
-
-
-msgid "Overlays"
-msgstr "Sovrapposizioni"
-
-
-msgid "Guides"
-msgstr "Guide"
-
-
-msgid "Motion Tracking"
-msgstr "Tracciatura Movimento"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Modalità Modifica Mesh"
-
-
 msgid "Measurement"
 msgstr "Misurazione"
 
@@ -50200,6 +50180,10 @@ msgstr "Assi (Orientamenti Trasformazione)"
 
 msgid "Stroke Placement"
 msgstr "Giacitura Tratto"
+
+
+msgid "Guides"
+msgstr "Guide"
 
 
 msgid "Stereoscopy"
@@ -50228,6 +50212,22 @@ msgstr "Cavità"
 
 msgid "Render Pass"
 msgstr "Passaggi Render"
+
+
+msgid "Compositor"
+msgstr "Compositore"
+
+
+msgid "Overlays"
+msgstr "Sovrapposizioni"
+
+
+msgid "Motion Tracking"
+msgstr "Tracciatura Movimento"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Modalità Modifica Mesh"
 
 
 msgid "Chain Scaling"

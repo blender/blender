@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e899b48ea546')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-15 07:32+0000\n"
+"POT-Creation-Date: 2026-06-22 07:24+0000\n"
 "PO-Revision-Date: 2025-09-08 15:59+0000\n"
 "Last-Translator: william sélifet <williamselifet@live.be>\n"
 "Language-Team: Esperanto <https://translate.blender.org/projects/blender-ui/ui/eo/>\n"

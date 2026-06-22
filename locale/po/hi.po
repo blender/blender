@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e899b48ea546')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-15 07:32+0000\n"
+"POT-Creation-Date: 2026-06-22 07:24+0000\n"
 "PO-Revision-Date: 2025-12-04 22:18+0000\n"
 "Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -2586,24 +2586,40 @@ msgid "Placement"
 msgstr "नियोजन"
 
 
-msgid "Track"
-msgstr "ट्रैक"
-
-
 msgid "Math"
 msgstr "गणित"
 
 
-msgid "Mirror"
-msgstr "दर्पण"
-
-
-msgid "Snap"
-msgstr "स्नैप"
+msgid "Light"
+msgstr "प्रकाश"
 
 
 msgid "Rigid Body"
 msgstr "कठोर-पदार्थ"
+
+
+msgid "Apply"
+msgstr "लागू करें"
+
+
+msgid "Track"
+msgstr "ट्रैक"
+
+
+msgid "Quick Effects"
+msgstr "त्वरित प्रभाव"
+
+
+msgid "Show/Hide"
+msgstr "छुपाएँ / दिखाएँ"
+
+
+msgid "Make Single User"
+msgstr "एकल प्रयोक्ता बनाएँ"
+
+
+msgid "Hooks"
+msgstr "खूँटी"
 
 
 msgid "Import"
@@ -2612,30 +2628,6 @@ msgstr "आयात करें"
 
 msgid "UV"
 msgstr "यूवी"
-
-
-msgid "Show/Hide"
-msgstr "छुपाएँ / दिखाएँ"
-
-
-msgid "Apply"
-msgstr "लागू करें"
-
-
-msgid "Light"
-msgstr "प्रकाश"
-
-
-msgid "Hooks"
-msgstr "खूँटी"
-
-
-msgid "Make Single User"
-msgstr "एकल प्रयोक्ता बनाएँ"
-
-
-msgid "Quick Effects"
-msgstr "त्वरित प्रभाव"
 
 
 msgid "Names"
@@ -2658,8 +2650,16 @@ msgid "Bone Roll"
 msgstr "हड्डी पंजी"
 
 
+msgid "Snap"
+msgstr "स्नैप"
+
+
 msgid "Keying"
 msgstr "कुंजीयन"
+
+
+msgid "Mirror"
+msgstr "दर्पण"
 
 
 msgid "Basic"
@@ -4414,12 +4414,12 @@ msgid "Lock Y"
 msgstr "तालाबंदी y"
 
 
-msgid "Motion Tracking"
-msgstr "गति मार्गन"
-
-
 msgid "Transform Orientations"
 msgstr "दिक् विन्यास संरचनांतरण"
+
+
+msgid "Motion Tracking"
+msgstr "गति मार्गन"
 
 
 msgid "Predefined tracking camera intrinsics"

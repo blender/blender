@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e899b48ea546')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-15 07:32+0000\n"
+"POT-Creation-Date: 2026-06-22 07:24+0000\n"
 "PO-Revision-Date: 2026-05-30 09:12+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -26496,58 +26496,6 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Render Preview"
-msgstr "算繪預覽"
-
-
-msgid "Track"
-msgstr "追蹤"
-
-
-msgid "Math"
-msgstr "數學公式"
-
-
-msgid "Utilities"
-msgstr "效用"
-
-
-msgid "Assign Material"
-msgstr "指派材質"
-
-
-msgid "Read"
-msgstr "讀取"
-
-
-msgid "Sample"
-msgstr "取樣"
-
-
-msgid "Write"
-msgstr "寫入"
-
-
-msgid "Primitives"
-msgstr "原形"
-
-
-msgid "Mirror"
-msgstr "鏡像"
-
-
-msgid "Snap"
-msgstr "吸附"
-
-
-msgid "Rigid Body"
-msgstr "剛體"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射處理"
-
-
 msgid "Local View"
 msgstr "區域檢視"
 
@@ -26564,6 +26512,10 @@ msgid "Align View"
 msgstr "對齊檢視"
 
 
+msgid "Render Preview"
+msgstr "算繪預覽"
+
+
 msgid "Align View to Active"
 msgstr "對齊檢視至作用項"
 
@@ -26574,14 +26526,6 @@ msgstr "檢視範圍"
 
 msgid "Select More/Less"
 msgstr "選取更多/更少"
-
-
-msgid "Gizmo"
-msgstr "操縱器"
-
-
-msgid "Instances"
-msgstr "實例化"
 
 
 msgid "Select Similar"
@@ -26600,88 +26544,132 @@ msgid "Select Loops"
 msgstr "選取迴圈"
 
 
-msgid "Import"
-msgstr "匯入"
+msgid "Assign Material"
+msgstr "指派材質"
 
 
-msgid "Deprecated"
-msgstr "已棄用"
+msgid "Math"
+msgstr "數學公式"
 
 
-msgid "Relations"
-msgstr "關係"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Vertex Group Locks"
-msgstr "頂點群組鎖定"
+msgid "Utilities"
+msgstr "效用"
 
 
 msgid "Metaball"
 msgstr "變幻球"
 
 
-msgid "Random Mask"
-msgstr "隨機遮罩"
-
-
-msgid "Asset"
-msgstr "素材"
-
-
-msgid "Show/Hide"
-msgstr "顯示/隱藏"
-
-
-msgid "Apply"
-msgstr "套用"
-
-
-msgid "Link/Transfer Data"
-msgstr "連結/傳輸資料"
-
-
-msgid "Clean Up"
-msgstr "清理"
-
-
-msgid "Face Sets Init"
-msgstr "面集初始化"
+msgid "Light"
+msgstr "燈光"
 
 
 msgid "Light Probe"
 msgstr "燈光採樣器"
 
 
-msgid "Light"
-msgstr "燈光"
-
-
 msgid "Add Image"
 msgstr "新增影像"
 
 
-msgid "Sculpt Set Pivot"
-msgstr "雕刻設定樞紐"
+msgid "Relations"
+msgstr "關係"
 
 
-msgid "Hooks"
-msgstr "鉤"
+msgid "Read"
+msgstr "讀取"
 
 
-msgid "Make Single User"
-msgstr "製作單一使用者"
+msgid "Sample"
+msgstr "取樣"
+
+
+msgid "Write"
+msgstr "寫入"
+
+
+msgid "Rigid Body"
+msgstr "剛體"
+
+
+msgid "Primitives"
+msgstr "原形"
+
+
+msgid "Apply"
+msgstr "套用"
+
+
+msgid "Track"
+msgstr "追蹤"
 
 
 msgid "Quick Effects"
 msgstr "快速效果"
 
 
+msgid "Show/Hide"
+msgstr "顯示/隱藏"
+
+
+msgid "Clean Up"
+msgstr "清理"
+
+
+msgid "Asset"
+msgstr "素材"
+
+
+msgid "Make Single User"
+msgstr "製作單一使用者"
+
+
+msgid "Convert"
+msgstr "轉換"
+
+
+msgid "Gizmo"
+msgstr "操縱器"
+
+
+msgid "Link/Transfer Data"
+msgstr "連結/傳輸資料"
+
+
+msgid "Instances"
+msgstr "實例化"
+
+
+msgid "Hooks"
+msgstr "鉤"
+
+
+msgid "Vertex Group Locks"
+msgstr "頂點群組鎖定"
+
+
+msgid "Import"
+msgstr "匯入"
+
+
 msgid "Trim/Add"
 msgstr "修剪/增加"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "雕刻設定樞紐"
+
+
+msgid "Face Sets Init"
+msgstr "面集初始化"
+
+
+msgid "Random Mask"
+msgstr "隨機遮罩"
+
+
+msgid "Deprecated"
+msgstr "已棄用"
 
 
 msgid "Clear Transform"
@@ -26694,6 +26682,10 @@ msgstr "內部之間"
 
 msgid "Propagate"
 msgstr "增生"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Bone Collections"
@@ -26732,16 +26724,16 @@ msgid "Merge"
 msgstr "合併"
 
 
-msgid "Convert"
-msgstr "轉換"
-
-
 msgid "Special Characters"
 msgstr "特殊字元"
 
 
 msgid "Kerning"
 msgstr "字間微調"
+
+
+msgid "Bone Roll"
+msgstr "骨骼滾動"
 
 
 msgid "Linked"
@@ -26752,24 +26744,12 @@ msgid "Layout"
 msgstr "配置"
 
 
-msgid "Bone Roll"
-msgstr "骨骼滾動"
-
-
-msgid "Adjust"
-msgstr "調整"
-
-
-msgid "Keying"
-msgstr "鍵處理"
-
-
-msgid "Tracking"
-msgstr "跟蹤"
-
-
 msgid "Pivot Point"
 msgstr "樞紐點"
+
+
+msgid "Snap"
+msgstr "吸附"
 
 
 msgid "Proportional Editing Falloff"
@@ -26780,6 +26760,10 @@ msgid "Mask Edit"
 msgstr "遮罩編輯"
 
 
+msgid "Adjust"
+msgstr "調整"
+
+
 msgid "Automasking"
 msgstr "自動遮罩"
 
@@ -26788,8 +26772,24 @@ msgid "Face Sets Edit"
 msgstr "面集編輯"
 
 
+msgid "Keying"
+msgstr "鍵處理"
+
+
+msgid "Tracking"
+msgstr "跟蹤"
+
+
 msgid "Creative"
 msgstr "創意"
+
+
+msgid "Mirror"
+msgstr "鏡像"
+
+
+msgid "UV Mapping"
+msgstr "UV 映射處理"
 
 
 msgid "Keyframe Insert Pie"
@@ -40421,6 +40421,14 @@ msgid "+X to -X"
 msgstr "+X 至 -X"
 
 
+msgid "Asset Library Identifier"
+msgstr "素材藏庫識別碼"
+
+
+msgid "Asset Library Type"
+msgstr "素材庫類型"
+
+
 msgid "Check Existing"
 msgstr "檢查是否存在"
 
@@ -40676,14 +40684,6 @@ msgstr "上移群集個體狀態"
 
 msgid "Move boid state up in the list"
 msgstr "在清單中上移群集個體狀態"
-
-
-msgid "Asset Library Identifier"
-msgstr "素材藏庫識別碼"
-
-
-msgid "Asset Library Type"
-msgstr "素材庫類型"
 
 
 msgid "Edit asset information like the catalog, preview image, tags, or author"
@@ -61374,30 +61374,6 @@ msgid "Palette Splines"
 msgstr "調色盤雲型線"
 
 
-msgid "Compositor"
-msgstr "合成器"
-
-
-msgid "Overlays"
-msgstr "疊層"
-
-
-msgid "Guides"
-msgstr "引導"
-
-
-msgid "Viewer Node"
-msgstr "檢視器節點"
-
-
-msgid "Motion Tracking"
-msgstr "運動跟蹤"
-
-
-msgid "Mesh Edit Mode"
-msgstr "網格編輯模式"
-
-
 msgid "Measurement"
 msgstr "測量"
 
@@ -61420,6 +61396,10 @@ msgstr "筆觸放置"
 
 msgid "Drawing Plane"
 msgstr "描繪平面"
+
+
+msgid "Guides"
+msgstr "引導"
 
 
 msgid "Grease Pencil Options"
@@ -61450,20 +61430,20 @@ msgid "Viewport Debug"
 msgstr "視圖除錯"
 
 
-msgid "glTF Variants"
-msgstr "glTF 變體"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF 材質變體"
-
-
 msgid "VR"
 msgstr "VR"
 
 
 msgid "VR Info"
 msgstr "VR 資訊"
+
+
+msgid "glTF Variants"
+msgstr "glTF 變體"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF 材質變體"
 
 
 msgid "glTF"
@@ -61496,6 +61476,26 @@ msgstr "坑腔"
 
 msgid "Render Pass"
 msgstr "算繪通道"
+
+
+msgid "Compositor"
+msgstr "合成器"
+
+
+msgid "Overlays"
+msgstr "疊層"
+
+
+msgid "Viewer Node"
+msgstr "檢視器節點"
+
+
+msgid "Motion Tracking"
+msgstr "運動跟蹤"
+
+
+msgid "Mesh Edit Mode"
+msgstr "網格編輯模式"
 
 
 msgid "Import Settings"
@@ -90263,10 +90263,6 @@ msgid "Baking canceled!"
 msgstr "烘焙已取消！"
 
 
-msgid "Bake failed: no Fluid modifier found"
-msgstr "烘焙失敗：找不到流體修改器"
-
-
 msgid "Bake free failed: no Fluid modifier found"
 msgstr "烘焙釋放失敗：找不到流體修改器"
 
@@ -98134,10 +98130,6 @@ msgstr "結合球形"
 
 msgid "Theta"
 msgstr "Theta"
-
-
-msgid "Saturation "
-msgstr "飽和度 "
 
 
 msgid "Retime"
