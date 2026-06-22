@@ -612,7 +612,7 @@ void psys_sim_data_init(ParticleSimulationData *sim)
         break;
       }
     }
-    if (lattice) {
+    if (lattice && lattice->type == OB_LATTICE) {
       psys->lattice_deform_data = BKE_lattice_deform_data_create(lattice, nullptr);
     }
   }
