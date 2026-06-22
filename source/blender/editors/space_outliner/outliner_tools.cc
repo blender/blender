@@ -2178,7 +2178,7 @@ static bool outliner_liboverride_property_remove_do(bContext *C,
                 current_id->override_library->reference->lib ?
                     current_id->override_library->reference->lib->runtime->filepath_abs :
                     "<NONE>",
-                liboverride_property->rna_path);
+                override_elem.rna_path.c_str());
     return false;
   }
 
@@ -2209,7 +2209,7 @@ static bool outliner_liboverride_property_remove_do(bContext *C,
                   current_id->override_library->reference->lib ?
                       current_id->override_library->reference->lib->runtime->filepath_abs :
                       "<NONE>",
-                  liboverride_property->rna_path);
+                  override_elem.rna_path.c_str());
       return false;
     }
   }
