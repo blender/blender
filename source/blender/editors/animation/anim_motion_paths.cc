@@ -188,8 +188,11 @@ static void motionpaths_calc_bake_targets(const Span<MPathTarget *> targets,
       const float4 co_clip_space = perspective_matrix *
                                    float4(mpv->co[0], mpv->co[1], mpv->co[2], 1.0);
       /* Storing the verts in NDC space which contains lens effects like sensor offset. See
-       * `overlay_motion_path.hh/motion_path_sync`. */
-      const float3 co_ndc_space = float3(co_clip_space) / co_clip_space.w;
+       * `overlay_motion_path.hh/motion_path_sync`. Negative w values are behind the camera, thus
+       * can't be correctly projected into the scene. Using abs(w) is consistent with
+       * `project_point` in shader code. */
+      const float3 co_ndc_space = float3(co_clip_space) /
+                                  math::max(math::abs(co_clip_space.w), 0.0001f);
       copy_v3_v3(mpv->co, co_ndc_space);
     }
 
