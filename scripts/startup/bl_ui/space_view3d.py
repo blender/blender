@@ -1362,12 +1362,11 @@ class VIEW3D_MT_transform_armature(VIEW3D_MT_transform_base, Menu):
 
             if obj.data.display_type == 'BBONE':
                 layout.separator()
-
                 layout.operator("transform.transform", text="Scale BBone").mode = 'BONE_SIZE'
+
             elif obj.data.display_type == 'ENVELOPE':
                 layout.separator()
-
-                layout.operator("transform.transform", text="Scale Envelope Distance").mode = 'BONE_SIZE'
+                layout.operator("transform.transform", text="Scale Envelope Distance").mode = 'BONE_ENVELOPE_DIST'
                 layout.operator("transform.transform", text="Scale Radius").mode = 'BONE_ENVELOPE'
 
         if context.edit_object and context.edit_object.type == 'ARMATURE':
