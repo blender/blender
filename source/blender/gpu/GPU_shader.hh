@@ -38,9 +38,6 @@ struct ShaderCreateInfo;
  * This makes sure the GPUVertexFormat name buffer does not overflow. */
 constexpr static int GPU_MAX_ATTR = 15;
 
-/* Determined by the maximum uniform buffer size divided by chunk size. */
-constexpr static int GPU_MAX_UNIFORM_ATTR = 8;
-
 /* -------------------------------------------------------------------- */
 /** \name Creation
  * \{ */

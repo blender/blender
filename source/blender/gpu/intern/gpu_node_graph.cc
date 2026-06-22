@@ -453,8 +453,7 @@ static GPUUniformAttr *gpu_node_graph_add_uniform_attribute(GPUNodeGraph *graph,
     }
   }
 
-  /* Add new requested attribute if it's within GPU limits. */
-  if (attr == nullptr && attrs->count < GPU_MAX_UNIFORM_ATTR) {
+  if (attr == nullptr) {
     attr = MEM_new_zeroed<GPUUniformAttr>(__func__);
     STRNCPY(attr->name, name);
     attr->use_dupli = use_dupli;

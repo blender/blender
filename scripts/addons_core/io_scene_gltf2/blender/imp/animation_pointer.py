@@ -657,10 +657,14 @@ class BlenderPointerAnim():
             anisotropy_rotation_socket = get_socket(asset['blender_nodetree'], 'Anisotropic Rotation')
             if anisotropy_rotation_socket.socket.is_linked:
                 mix_node = anisotropy_rotation_socket.socket.links[0].from_node
-                if mix_node.type == "MATH":
-                    blender_path = mix_node.inputs[1].path_from_id() + ".default_value"
-                    group_name = 'Material'
-                    num_components = 1
+                if mix_node.type == "MATH" and mix_node.inputs[0].is_linked:
+                    mix_rotation = mix_node.inputs[0].links[0].from_node
+                    if mix_rotation.type == "MATH":
+                        blender_path = mix_rotation.inputs[1].path_from_id() + ".default_value"
+                        group_name = 'Material'
+                        num_components = 1
+                    else:
+                        print("Error, something is wrong, we didn't detect adding a Mix Node because of Pointers")
                 else:
                     print("Error, something is wrong, we didn't detect adding a Mix Node because of Pointers")
             else:
