@@ -2280,7 +2280,7 @@ bool rna_NodesModifierBake_override_apply(Main *bmain,
    * #override_remove_button_exec), to revert the overridden changes. */
   BLI_assert_msg((((opop->operation == LIBOVERRIDE_OP_CUSTOM) && !removed_opop) ||
                   ((opop->operation == LIBOVERRIDE_OP_REPLACE) &&
-                   (removed_opop && (removed_opop->operation = LIBOVERRIDE_OP_CUSTOM)))),
+                   (removed_opop && (removed_opop->operation == LIBOVERRIDE_OP_CUSTOM)))),
                  "Unsupported RNA override operation on Nodes modifier bakes collection");
 #  endif
 
