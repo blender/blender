@@ -40,6 +40,9 @@ class CompositorInputData {
   std::string view_name;
   compositor::RenderContext *render_context;
   compositor::NodeGroupOutputTypes needed_outputs;
+  /* Identifies if the compositor is executing due to the user making a modification or if it is
+   * executing due to playback or rendering. */
+  const bool triggered_by_user = false;
 };
 
 }  // namespace render

@@ -44,6 +44,9 @@ struct CompositorJob {
   bNodeTree *evaluated_node_tree;
   Render *render;
   compositor::NodeGroupOutputTypes needed_outputs;
+  /* Identifies if the compositor is executing due to the user making a modification or if it is
+   * executing due to playback or rendering. */
+  bool triggered_by_user = false;
 };
 
 /* Suspend or resume animation playback if animation is playing. */
@@ -118,7 +121,8 @@ static void compositor_job_start(void *compositor_job_data, wmJobWorkerStatus *w
                                          *compositor_job->evaluated_node_tree,
                                          "",
                                          nullptr,
-                                         compositor_job->needed_outputs);
+                                         compositor_job->needed_outputs,
+                                         compositor_job->triggered_by_user);
   if (!(evaluated_scene->r.scemode & R_MULTIVIEW)) {
     RE_compositor_execute(input_data);
   }
@@ -260,7 +264,10 @@ static compositor::NodeGroupOutputTypes get_compositor_needed_outputs(
   return needed_outputs;
 }
 
-void ED_node_compositor_job(Main *bmain, Scene *scene, ViewLayer *view_layer)
+void ED_node_compositor_job(Main *bmain,
+                            Scene *scene,
+                            ViewLayer *view_layer,
+                            const bool triggered_by_user)
 {
   if (!is_compositing_possible(scene)) {
     return;
@@ -292,6 +299,7 @@ void ED_node_compositor_job(Main *bmain, Scene *scene, ViewLayer *view_layer)
   compositor_job->scene = scene;
   compositor_job->view_layer = view_layer;
   compositor_job->needed_outputs = needed_outputs;
+  compositor_job->triggered_by_user = triggered_by_user;
 
   WM_jobs_customdata_set(job, compositor_job, compositor_job_free);
   WM_jobs_timer(job, 0.1, 0, 0);

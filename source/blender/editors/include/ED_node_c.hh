@@ -86,9 +86,13 @@ void ED_node_set_active(
 /* `node_compositor_job.cc` */
 
 /**
- * Launch a compositor job for the given scene and view layer.
- */
-void ED_node_compositor_job(Main *bmain, Scene *scene, ViewLayer *view_layer);
+ * Launch a compositor job for the given scene and view layer. Triggered by user indicates whether
+ * the compositor is executing due to the user making a modification or if it is executing due to
+ * playback or rendering. */
+void ED_node_compositor_job(Main *bmain,
+                            Scene *scene,
+                            ViewLayer *view_layer,
+                            bool triggered_by_user);
 
 /* `node_ops.cc` */
 

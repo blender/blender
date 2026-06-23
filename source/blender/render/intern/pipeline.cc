@@ -1290,7 +1290,8 @@ static void do_render_compositor(Render *re)
                                                             *ntree,
                                                             rv.name,
                                                             &compositor_render_context,
-                                                            needed_outputs));
+                                                            needed_outputs,
+                                                            false));
         }
         compositor_render_context.save_file_outputs(re->pipeline_scene_eval);
       }
