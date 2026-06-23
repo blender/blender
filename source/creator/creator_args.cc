@@ -2526,9 +2526,17 @@ static int arg_handle_render_frame(int argc, const char **argv, void *data)
         return 1;
       }
 
-      re = RE_NewSceneRender(scene);
       BKE_reports_init(&reports, RPT_STORE);
+
+      if (!RE_disable_save_output_allowed(true, *scene, &reports)) {
+        BKE_reports_free(&reports);
+        MEM_delete(frame_range_arr);
+        return 1;
+      }
+
+      re = RE_NewSceneRender(scene);
       RE_SetReports(re, &reports);
+
       for (int i = 0; i < frames_range_len; i++) {
         /* We could pass in frame ranges,
          * but prefer having exact behavior as passing in multiple frames. */
@@ -2563,10 +2571,18 @@ static int arg_handle_render_animation(int /*argc*/, const char ** /*argv*/, voi
     add_log_render_filter();
 
     Main *bmain = CTX_data_main(C);
-    Render *re = RE_NewSceneRender(scene);
+
     ReportList reports;
     BKE_reports_init(&reports, RPT_STORE);
+
+    if (!RE_disable_save_output_allowed(true, *scene, &reports)) {
+      BKE_reports_free(&reports);
+      return 0;
+    }
+
+    Render *re = RE_NewSceneRender(scene);
     RE_SetReports(re, &reports);
+
     RE_RenderAnim(
         re, bmain, scene, nullptr, nullptr, scene->r.sfra, scene->r.efra, scene->r.frame_step);
     RE_SetReports(re, nullptr);
