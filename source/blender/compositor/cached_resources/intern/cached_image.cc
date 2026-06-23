@@ -338,33 +338,24 @@ CachedImage::CachedImage(Context &context,
   }
   else {
     const int2 size = int2(image_buffer->x, image_buffer->y);
-    Result buffer_result(context, float_type(image_buffer->channels), ResultPrecision::Full);
-    buffer_result.share_data(linear_image_buffer->float_buffer.data,
-                             size,
-                             linear_image_buffer->float_buffer.sharing_info);
-    this->result.allocate_texture(size, false);
-
-    if (buffer_result.type() == ResultType::Color && result.type() == ResultType::Float4) {
-      parallel_for(size, [&](const int2 texel) {
-        this->result.store_pixel(texel, float4(buffer_result.load_pixel<Color>(texel)));
-      });
-    }
-    else if (buffer_result.type() == ResultType::Float3 && result.type() == ResultType::Color) {
+    if (linear_image_buffer->channels == 3 && this->result.type() == ResultType::Color) {
       /* Color passes with no alpha could be stored in a Float3 type. */
+      Result buffer_result(context, float_type(image_buffer->channels), ResultPrecision::Full);
+      buffer_result.share_data(linear_image_buffer->float_buffer.data,
+                               size,
+                               linear_image_buffer->float_buffer.sharing_info);
+      this->result.allocate_texture(size);
       parallel_for(size, [&](const int2 texel) {
         this->result.store_pixel(texel,
                                  Color(float4(buffer_result.load_pixel<float3>(texel), 1.0f)));
       });
+      buffer_result.release();
     }
     else {
-      result.get_cpp_type().to_static_type<float, float2, float3, float4, Color>(
-          [&]<typename T>() {
-            parallel_for(result.domain().data_size, [&](const int2 texel) {
-              result.store_pixel(texel, buffer_result.load_pixel<T>(texel));
-            });
-          });
+      this->result.share_data(linear_image_buffer->float_buffer.data,
+                              size,
+                              linear_image_buffer->float_buffer.sharing_info);
     }
-    buffer_result.release();
   }
 
   if (flag_is_set(image_buffer->flags, ImBufFlags::HasDisplayWindow)) {
