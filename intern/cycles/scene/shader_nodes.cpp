@@ -165,10 +165,11 @@ bool TextureMapping::skip()
 
 void TextureMapping::compile(SVMCompiler &compiler,
                              const SVMStackOffset offset_in,
-                             const SVMStackOffset offset_out)
+                             const SVMStackOffset offset_out,
+                             ShaderNode *node)
 {
   const Transform tfm = compute_transform();
-  compiler.add_node(nullptr,
+  compiler.add_node(node,
                     NODE_TEXTURE_MAPPING,
                     SVMNodeTextureMapping{
                         .vec_offset = offset_in,
@@ -188,7 +189,7 @@ void TextureMapping::compile(SVMCompiler &compiler,
   }
 
   if (type == NORMAL) {
-    compiler.add_node(nullptr,
+    compiler.add_node(node,
                       NODE_VECTOR_MATH,
                       SVMNodeVectorMath{
                           .math_type = NODE_VECTOR_MATH_NORMALIZE,
@@ -204,14 +205,16 @@ void TextureMapping::compile(SVMCompiler &compiler,
 
 /* Convenience function for texture nodes, allocating stack space to output
  * a modified vector and returning its offset */
-SVMStackOffset TextureMapping::compile_begin(SVMCompiler &compiler, ShaderInput *vector_in)
+SVMStackOffset TextureMapping::compile_begin(SVMCompiler &compiler,
+                                             ShaderInput *vector_in,
+                                             ShaderNode *node)
 {
   if (!skip()) {
     const SVMStackOffset offset_in = compiler.stack_assign(vector_in);
     assert(vector_in->type() == SocketType::VECTOR || vector_in->type() == SocketType::POINT);
     const SVMStackOffset offset_out = compiler.stack_find_offset(vector_in);
 
-    compile(compiler, offset_in, offset_out);
+    compile(compiler, offset_in, offset_out, node);
 
     return offset_out;
   }
@@ -437,7 +440,7 @@ void ImageTextureNode::compile(SVMCompiler &compiler)
   const ImageMetaData metadata = handle.metadata(compiler.progress);
   const bool compress_as_srgb = metadata.is_compressible_as_srgb;
 
-  const SVMStackOffset vector_offset = tex_mapping.compile_begin(compiler, vector_in);
+  const SVMStackOffset vector_offset = tex_mapping.compile_begin(compiler, vector_in, this);
   uint flags = 0;
 
   if (compress_as_srgb) {
@@ -627,7 +630,7 @@ void EnvironmentTextureNode::compile(SVMCompiler &compiler)
   const ImageMetaData metadata = handle.metadata(compiler.progress);
   const bool compress_as_srgb = metadata.is_compressible_as_srgb;
 
-  const SVMStackOffset vector_offset = tex_mapping.compile_begin(compiler, vector_in);
+  const SVMStackOffset vector_offset = tex_mapping.compile_begin(compiler, vector_in, this);
   uint flags = 0;
 
   if (compress_as_srgb) {
@@ -1013,7 +1016,7 @@ void SkyTextureNode::compile(SVMCompiler &compiler)
     }
   }
 
-  const SVMStackOffset vector_offset = tex_mapping.compile_begin(compiler, vector_in);
+  const SVMStackOffset vector_offset = tex_mapping.compile_begin(compiler, vector_in, nullptr);
 
   compiler.add_node(this,
                     NODE_TEX_SKY,
@@ -1142,7 +1145,7 @@ void GradientTextureNode::compile(SVMCompiler &compiler)
 {
   ShaderInput *vector_in = input("Vector");
 
-  const SVMStackOffset vector_offset = tex_mapping.compile_begin(compiler, vector_in);
+  const SVMStackOffset vector_offset = tex_mapping.compile_begin(compiler, vector_in, nullptr);
   compiler.add_node(this,
                     NODE_TEX_GRADIENT,
                     SVMNodeTexGradient{
@@ -1210,7 +1213,8 @@ void NoiseTextureNode::compile(SVMCompiler &compiler)
 {
   ShaderInput *vector_in = input("Vector");
 
-  const SVMStackOffset vector_stack_offset = tex_mapping.compile_begin(compiler, vector_in);
+  const SVMStackOffset vector_stack_offset = tex_mapping.compile_begin(
+      compiler, vector_in, nullptr);
   compiler.add_node(this,
                     NODE_TEX_NOISE,
                     SVMNodeTexNoise{
@@ -1275,7 +1279,8 @@ void GaborTextureNode::compile(SVMCompiler &compiler)
 {
   ShaderInput *vector_in = input("Vector");
 
-  const SVMStackOffset vector_stack_offset = tex_mapping.compile_begin(compiler, vector_in);
+  const SVMStackOffset vector_stack_offset = tex_mapping.compile_begin(
+      compiler, vector_in, nullptr);
   compiler.add_node(this,
                     NODE_TEX_GABOR,
                     SVMNodeTexGabor{
@@ -1358,7 +1363,8 @@ void VoronoiTextureNode::compile(SVMCompiler &compiler)
 {
   ShaderInput *vector_in = input("Vector");
 
-  const SVMStackOffset vector_stack_offset = tex_mapping.compile_begin(compiler, vector_in);
+  const SVMStackOffset vector_stack_offset = tex_mapping.compile_begin(
+      compiler, vector_in, nullptr);
   compiler.add_node(this,
                     NODE_TEX_VORONOI,
                     SVMNodeTexVoronoi{
@@ -1457,7 +1463,7 @@ void IESLightNode::compile(SVMCompiler &compiler)
   get_slot();
   ShaderInput *vector_in = input("Vector");
 
-  const SVMStackOffset vector_offset = tex_mapping.compile_begin(compiler, vector_in);
+  const SVMStackOffset vector_offset = tex_mapping.compile_begin(compiler, vector_in, nullptr);
   compiler.add_node(this,
                     NODE_IES,
                     SVMNodeIES{
@@ -1578,7 +1584,7 @@ void WaveTextureNode::compile(SVMCompiler &compiler)
 {
   ShaderInput *vector_in = input("Vector");
 
-  const SVMStackOffset vector_offset = tex_mapping.compile_begin(compiler, vector_in);
+  const SVMStackOffset vector_offset = tex_mapping.compile_begin(compiler, vector_in, nullptr);
   compiler.add_node(this,
                     NODE_TEX_WAVE,
                     SVMNodeTexWave{
@@ -1638,7 +1644,7 @@ void MagicTextureNode::compile(SVMCompiler &compiler)
 {
   ShaderInput *vector_in = input("Vector");
 
-  const SVMStackOffset vector_offset = tex_mapping.compile_begin(compiler, vector_in);
+  const SVMStackOffset vector_offset = tex_mapping.compile_begin(compiler, vector_in, nullptr);
   compiler.add_node(this,
                     NODE_TEX_MAGIC,
                     SVMNodeTexMagic{
@@ -1686,7 +1692,7 @@ void CheckerTextureNode::compile(SVMCompiler &compiler)
 {
   ShaderInput *vector_in = input("Vector");
 
-  const SVMStackOffset vector_offset = tex_mapping.compile_begin(compiler, vector_in);
+  const SVMStackOffset vector_offset = tex_mapping.compile_begin(compiler, vector_in, nullptr);
   compiler.add_node(this,
                     NODE_TEX_CHECKER,
                     SVMNodeTexChecker{
@@ -1745,7 +1751,7 @@ void BrickTextureNode::compile(SVMCompiler &compiler)
 {
   ShaderInput *vector_in = input("Vector");
 
-  const SVMStackOffset vector_offset = tex_mapping.compile_begin(compiler, vector_in);
+  const SVMStackOffset vector_offset = tex_mapping.compile_begin(compiler, vector_in, nullptr);
   compiler.add_node(this,
                     NODE_TEX_BRICK,
                     SVMNodeTexBrick{

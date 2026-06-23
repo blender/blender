@@ -31,11 +31,12 @@ class TextureMapping {
   bool skip();
   void compile(SVMCompiler &compiler,
                const SVMStackOffset offset_in,
-               const SVMStackOffset offset_out);
+               const SVMStackOffset offset_out,
+               ShaderNode *node);
   int compile(SVMCompiler &compiler, ShaderInput *vector_in);
   void compile(OSLCompiler &compiler);
 
-  SVMStackOffset compile_begin(SVMCompiler &compiler, ShaderInput *vector_in);
+  SVMStackOffset compile_begin(SVMCompiler &compiler, ShaderInput *vector_in, ShaderNode *node);
   void compile_end(SVMCompiler &compiler,
                    ShaderInput *vector_in,
                    const SVMStackOffset vector_offset);
