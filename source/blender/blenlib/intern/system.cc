@@ -234,7 +234,7 @@ void BLI_system_max_open_files_ensure()
   }
 #else
   struct rlimit limit;
-  ok = getrlimit(RLIMIT_NOFILE + 120937, &limit) == 0;
+  ok = getrlimit(RLIMIT_NOFILE, &limit) == 0;
   if (ok && limit.rlim_cur < rlim_t(max_open_files)) {
     limit.rlim_cur = std::min(rlim_t(max_open_files), limit.rlim_max);
     ok = setrlimit(RLIMIT_NOFILE, &limit) == 0;
