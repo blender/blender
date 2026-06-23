@@ -486,6 +486,10 @@ void RE_GetWindowMatrixWithOverscan(bool is_ortho,
 struct Scene *RE_GetScene(struct Render *re);
 void RE_SetScene(struct Render *re, struct Scene *sce);
 
+/* When rendering an animation, saving files is required, either through scene saving or through
+ * a compositor File Output node. */
+bool RE_disable_save_output_allowed(const bool is_animation, Scene &scene, ReportList *reports);
+
 bool RE_is_rendering_allowed(const Main &bmain,
                              struct Scene *scene,
                              struct ViewLayer *single_layer,
