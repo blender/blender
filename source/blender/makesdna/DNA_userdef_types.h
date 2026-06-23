@@ -210,8 +210,10 @@ enum eUserPref_GPUBackendType : short {
   USER_GPU_BACKEND_VULKAN = 1 << 3,
 #ifdef __APPLE__
   USER_GPU_BACKEND_DEFAULT = USER_GPU_BACKEND_METAL,
-#else
+#elif defined(WIN32) && (defined(_M_ARM64) || defined(__aarch64__))
   USER_GPU_BACKEND_DEFAULT = USER_GPU_BACKEND_OPENGL,
+#else
+  USER_GPU_BACKEND_DEFAULT = USER_GPU_BACKEND_VULKAN,
 #endif
 };
 
