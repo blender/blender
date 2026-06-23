@@ -2913,7 +2913,7 @@ static wmOperatorStatus sequencer_meta_make_exec(bContext *C, wmOperator * /*op*
   }
 
   const int channel = active_strip ? active_strip->channel : channel_max;
-  seq::strip_channel_set(strip_meta, channel);
+  strip_meta->channel_set(channel);
   BLI_strncpy_utf8(strip_meta->name + 2, DATA_("MetaStrip"), sizeof(strip_meta->name) - 2);
   seq::strip_unique_name_set(scene, &ed->seqbase, strip_meta);
   strip_meta->start = meta_start_frame;

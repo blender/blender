@@ -606,6 +606,11 @@ void Strip::handles_set(const Scene *scene, int left_frame, int right_frame)
   }
 }
 
+void Strip::channel_set(int channel)
+{
+  this->channel = math::clamp(channel, 1, seq::MAX_CHANNELS);
+}
+
 bool Strip::intersects_frame(const Scene *scene, const int timeline_frame) const
 {
   return (this->left_handle() <= timeline_frame) && (this->right_handle(scene) > timeline_frame);

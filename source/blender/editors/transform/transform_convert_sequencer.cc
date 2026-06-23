@@ -722,7 +722,7 @@ static void flushTransSeq(TransInfo *t)
             max_offset = offset;
           }
         }
-        seq::strip_channel_set(strip, new_channel);
+        strip->channel_set(new_channel);
         break;
       }
       case SEQ_LEFTSEL: { /* No vertical transform. */
