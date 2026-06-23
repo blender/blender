@@ -250,7 +250,7 @@ static void mball_undosys_foreach_ID_ref(UndoStep *us_p,
 
 void ED_mball_undosys_type(UndoType *ut)
 {
-  ut->name = "Edit MBall";
+  ut->identifier = "EDIT_MBALL";
   ut->poll = mball_undosys_poll;
   ut->step_encode = mball_undosys_step_encode;
   ut->step_decode = mball_undosys_step_decode;

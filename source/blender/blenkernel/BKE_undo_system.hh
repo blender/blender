@@ -8,6 +8,7 @@
  */
 
 #include "BLI_enum_flags.hh"
+#include "BLI_function_ref.hh"
 #include "BLI_path_utils.hh"
 
 #include "DNA_ID.h"
@@ -110,8 +111,11 @@ using UndoTypeForEachIDRefFn = void (*)(void *user_data, UndoRefID *id_ref);
 
 struct UndoType {
   UndoType *next, *prev;
-  /** Only for debugging. */
-  const char *name;
+  /**
+   * Identifier for the undo type, also exposed as the RNA enum identifier.
+   * Use upper-case with underscore separated words (e.g. "EDIT_ARMATURE").
+   */
+  const char *identifier;
 
   /**
    * When undefined, we don't consider this undo type for context checks.
@@ -350,6 +354,15 @@ UndoStep *BKE_undosys_step_same_type_next(UndoStep *us);
 UndoStep *BKE_undosys_step_same_type_prev(UndoStep *us);
 
 /* Type System. */
+
+/**
+ * Run `fn` for each registered undo type, in registration order.
+ *
+ * `fn` returns `true` to keep looping, `false` to break.
+ *
+ * \return `false` if `fn` broke the loop, otherwise `true`.
+ */
+bool BKE_undosys_type_foreach(FunctionRef<bool(const UndoType *ut)> fn);
 
 /**
  * Similar to #WM_operatortype_append

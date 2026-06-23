@@ -228,7 +228,7 @@ static void text_undosys_foreach_ID_ref(UndoStep *us_p,
 
 void ED_text_undosys_type(UndoType *ut)
 {
-  ut->name = "Text";
+  ut->identifier = "TEXT";
   ut->poll = text_undosys_poll;
   ut->step_encode_init = text_undosys_step_encode_init;
   ut->step_encode = text_undosys_step_encode;

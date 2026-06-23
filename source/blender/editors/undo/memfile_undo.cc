@@ -338,7 +338,7 @@ static void memfile_undosys_step_free(UndoStep *us_p)
 
 void ED_memfile_undosys_type(UndoType *ut)
 {
-  ut->name = "Global Undo";
+  ut->identifier = "GLOBAL_UNDO";
   ut->poll = memfile_undosys_poll;
   ut->step_encode = memfile_undosys_step_encode;
   ut->step_decode = memfile_undosys_step_decode;

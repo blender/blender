@@ -775,7 +775,8 @@ void ED_OT_undo_history(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Undo History";
-  ot->description = "Undo or redo specific action in history";
+  ot->description =
+      "Undo or redo from the current active step until the specified action in history";
   ot->idname = "ED_OT_undo_history";
 
   /* API callbacks. */

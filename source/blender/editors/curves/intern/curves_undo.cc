@@ -136,7 +136,7 @@ static void foreach_ID_ref(UndoStep *us_p,
 
 void undosys_type_register(UndoType *ut)
 {
-  ut->name = "Edit Curves";
+  ut->identifier = "EDIT_CURVES";
   ut->poll = editable_curves_in_edit_mode_poll;
   ut->step_encode = undo::step_encode;
   ut->step_decode = undo::step_decode;
