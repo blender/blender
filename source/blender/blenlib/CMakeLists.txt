@@ -423,6 +423,7 @@ set(LIB
   PRIVATE bf::extern::xxhash
   bf_intern_eigen
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::intern::clog
   PRIVATE bf::extern::wcwidth
   PRIVATE bf::intern::atomic
   PUBLIC bf::intern::profile

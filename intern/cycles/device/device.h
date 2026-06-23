@@ -85,7 +85,7 @@ class DeviceInfo {
   int num = 0;
   bool display_device = false;          /* GPU is used as a display device. */
   bool has_nanovdb = false;             /* Support NanoVDB volumes. */
-  bool has_mnee = true;                 /* Support MNEE. */
+  bool has_mnee_ = true;                /* Support MNEE. */
   bool has_osl = false;                 /* Support Open Shading Language. */
   bool has_guiding = false;             /* Support path guiding. */
   bool has_profiling = false;           /* Supports runtime collection of profiling info. */
@@ -118,6 +118,14 @@ class DeviceInfo {
   bool operator!=(const DeviceInfo &info) const
   {
     return !(*this == info);
+  }
+
+  bool has_mnee() const
+  {
+    /* Shadow caustics not supported on HIP without hardware ray-tracing, see #160089.
+     * This is a more complex condition that can't be determined in device_hip_info,
+     * so there is a helper for it here. */
+    return has_mnee_ && (type != DEVICE_HIP || use_hardware_raytracing);
   }
 };
 

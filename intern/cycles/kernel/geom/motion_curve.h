@@ -42,8 +42,8 @@ ccl_device_inline void motion_curve_keys_for_step_linear(KernelGlobals kg,
     offset += step * numverts;
   }
 
-  keys[0] = kernel_data_fetch(attributes_float4, offset + k0);
-  keys[1] = kernel_data_fetch(attributes_float4, offset + k1);
+  keys[0] = kernel_data_fetch(curve_keys, offset + k0);
+  keys[1] = kernel_data_fetch(curve_keys, offset + k1);
 }
 
 /* return 2 curve key locations */
@@ -98,10 +98,10 @@ ccl_device_inline void motion_curve_keys_for_step(KernelGlobals kg,
     offset += step * numverts;
   }
 
-  keys[0] = kernel_data_fetch(attributes_float4, offset + k0);
-  keys[1] = kernel_data_fetch(attributes_float4, offset + k1);
-  keys[2] = kernel_data_fetch(attributes_float4, offset + k2);
-  keys[3] = kernel_data_fetch(attributes_float4, offset + k3);
+  keys[0] = kernel_data_fetch(curve_keys, offset + k0);
+  keys[1] = kernel_data_fetch(curve_keys, offset + k1);
+  keys[2] = kernel_data_fetch(curve_keys, offset + k2);
+  keys[3] = kernel_data_fetch(curve_keys, offset + k3);
 }
 
 /* return 2 curve key locations */

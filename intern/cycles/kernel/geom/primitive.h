@@ -186,6 +186,32 @@ ccl_device Float3Type primitive_tangent(KernelGlobals kg, ccl_private ShaderData
 
 /* Motion vector common */
 
+ccl_device_inline float3 primitive_motion_position(KernelGlobals kg,
+                                                   const ccl_private ShaderData *sd,
+                                                   const int offset)
+{
+#if defined(__HAIR__)
+  if (sd->type & PRIMITIVE_CURVE) {
+    const KernelCurve curve = kernel_data_fetch(curves, sd->prim);
+    const int k0 = curve.first_key + PRIMITIVE_UNPACK_SEGMENT(sd->type);
+    const int k1 = k0 + 1;
+    const float4 f0 = kernel_data_fetch(curve_keys, offset + k0);
+    const float4 f1 = kernel_data_fetch(curve_keys, offset + k1);
+    return make_float3(mix(f0, f1, sd->u));
+  }
+#endif
+#if defined(__POINTCLOUD__)
+  if (sd->type & PRIMITIVE_POINT) {
+    return make_float3(kernel_data_fetch(points, offset + sd->prim));
+  }
+#endif
+  const uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
+  const float3 v0 = kernel_data_fetch(tri_verts, offset + tri_vindex.x);
+  const float3 v1 = kernel_data_fetch(tri_verts, offset + tri_vindex.y);
+  const float3 v2 = kernel_data_fetch(tri_verts, offset + tri_vindex.z);
+  return triangle_interpolate(sd->u, sd->v, v0, v1, v2);
+}
+
 ccl_device_forceinline void primitive_motion_data_without_camera(KernelGlobals kg,
                                                                  const ccl_private ShaderData *sd,
                                                                  ccl_private float3 *motion_center,
@@ -227,42 +253,16 @@ ccl_device_forceinline void primitive_motion_data_without_camera(KernelGlobals k
   const int numverts = kobject.numverts;
   const int num_motion_steps = kobject.num_geom_steps;
 
-#if defined(__HAIR__) || defined(__POINTCLOUD__)
-  if (is_curve_or_point) {
-    if (sd->object_flag & SD_OBJECT_HAS_VERTEX_MOTION) {
-      AttributeDescriptor desc;
-      desc.type = NODE_ATTR_FLOAT4;
-      desc.element = (sd->type & PRIMITIVE_CURVE) ? ATTR_ELEMENT_CURVE_KEY : ATTR_ELEMENT_VERTEX;
-
-      desc.offset = pos_offset + numverts;
-      *motion_pre = make_float3(primitive_surface_attribute<float4>(kg, sd, desc));
-      if (num_motion_steps > 2) {
-        desc.offset += numverts;
-        *motion_post = make_float3(primitive_surface_attribute<float4>(kg, sd, desc));
-      }
-      else {
-        object_inverse_position_transform(kg, sd, motion_post);
-      }
+  if (sd->object_flag & SD_OBJECT_HAS_VERTEX_MOTION) {
+    /* Motion steps are stored after the center position in the dedicated position arrays. */
+    int offset = pos_offset + numverts;
+    *motion_pre = primitive_motion_position(kg, sd, offset);
+    if (num_motion_steps > 2) {
+      offset += numverts;
+      *motion_post = primitive_motion_position(kg, sd, offset);
     }
-  }
-  else
-#endif
-      if (sd->type & PRIMITIVE_TRIANGLE)
-  {
-    if (sd->object_flag & SD_OBJECT_HAS_VERTEX_MOTION) {
-      AttributeDescriptor desc;
-      desc.element = ATTR_ELEMENT_VERTEX;
-      desc.type = NODE_ATTR_FLOAT3;
-
-      desc.offset = pos_offset + numverts;
-      *motion_pre = triangle_attribute<float3>(kg, sd, desc);
-      if (num_motion_steps > 2) {
-        desc.offset += numverts;
-        *motion_post = triangle_attribute<float3>(kg, sd, desc);
-      }
-      else {
-        object_inverse_position_transform(kg, sd, motion_post);
-      }
+    else {
+      object_inverse_position_transform(kg, sd, motion_post);
     }
   }
 

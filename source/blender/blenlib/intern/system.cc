@@ -6,9 +6,13 @@
  * \ingroup bli
  */
 
+#include <algorithm>
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
+
+#include "CLG_log.h"
 
 #include "BLI_math_base_c.hh"
 #include "BLI_mutex.hh"
@@ -24,10 +28,13 @@
 #  if defined(HAVE_EXECINFO_H)
 #    include <execinfo.h>
 #  endif
+#  include <sys/resource.h>
 #  include <unistd.h>
 #endif
 
 namespace blender {
+
+static CLG_LogRef LOG = {"system"};
 
 int BLI_cpu_support_sse2()
 {
@@ -213,6 +220,33 @@ int BLI_system_memory_max_in_megabytes_int()
   const size_t limit_megabytes = BLI_system_memory_max_in_megabytes();
   /* NOTE: The result will fit into integer. */
   return int(min_zz(limit_megabytes, size_t(INT_MAX)));
+}
+
+void BLI_system_max_open_files_ensure()
+{
+  /* The Windows maximum is documented as 8192. */
+  constexpr int max_open_files = 8192;
+  bool ok = true;
+
+#if defined(WIN32)
+  if (_getmaxstdio() < max_open_files) {
+    ok = _setmaxstdio(max_open_files) == max_open_files;
+  }
+#else
+  struct rlimit limit;
+  ok = getrlimit(RLIMIT_NOFILE, &limit) == 0;
+  if (ok && limit.rlim_cur < rlim_t(max_open_files)) {
+    limit.rlim_cur = std::min(rlim_t(max_open_files), limit.rlim_max);
+    ok = setrlimit(RLIMIT_NOFILE, &limit) == 0;
+  }
+#endif
+
+  if (!ok) {
+    CLOG_DEBUG(&LOG,
+               "Failed to ensure max open files is at least %d: %s",
+               max_open_files,
+               strerror(errno));
+  }
 }
 
 }  // namespace blender

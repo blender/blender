@@ -143,7 +143,7 @@ void BVHBuild::add_reference_curves(BoundBox &root,
 {
   const Attribute *attr_P = hair->attributes.find(ATTR_STD_POSITION);
   const Attribute *attr_R = hair->attributes.find(ATTR_STD_RADIUS);
-  const bool has_motion = attr_P->has_motion();
+  const bool has_motion = hair->has_motion_blur() && attr_P->has_motion();
 
   const PrimitiveType primitive_type = hair->primitive_type();
 
@@ -233,7 +233,7 @@ void BVHBuild::add_reference_points(BoundBox &root,
 {
   const Attribute *attr_P = pointcloud->attributes.find(ATTR_STD_POSITION);
   const Attribute *attr_R = pointcloud->attributes.find(ATTR_STD_RADIUS);
-  const bool has_motion = attr_P->has_motion();
+  const bool has_motion = pointcloud->has_motion_blur() && attr_P->has_motion();
 
   const packed_float3 *points_data = pointcloud->get_position();
   const float *radius_data = pointcloud->get_radius();
