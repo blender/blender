@@ -2171,9 +2171,23 @@ bool ED_preview_id_is_supported(const ID *id, const char **r_disabled_hint)
                 RPT_("Scenes without a camera do not support previews")};
       case ID_BR:
         return {false, RPT_("Brushes do not support automatic previews")};
+      case ID_MA:
+        return {true, ""};
+      case ID_TE:
+        return {true, ""};
+      case ID_WO:
+        return {true, ""};
+      case ID_LA:
+        return {true, ""};
+      case ID_IM:
+        return {true, ""};
+      case ID_AC:
+        return {true, ""};
+      case ID_SCR:
+        return {false, RPT_("Screens do not support automatic previews")};
       default:
-        return {BKE_previewimg_id_get_p(id) != nullptr,
-                RPT_("Data-block type does not support automatic previews")};
+        BLI_assert(!BKE_previewimg_id_get_p(id));
+        return {false, RPT_("Data-block type does not support automatic previews")};
     }
   }();
 
@@ -2187,6 +2201,11 @@ bool ED_preview_id_is_supported(const ID *id, const char **r_disabled_hint)
 void ED_preview_icon_render(
     const bContext *C, Scene *scene, PreviewImage *prv_img, ID *id, eIconSizes icon_size)
 {
+  /* Check if the ID supports the auto-generated previews at all. */
+  if (!ED_preview_id_is_supported(id)) {
+    return;
+  }
+
   /* Deferred loading of previews from the file system. */
   if (prv_img->runtime->deferred_loading_data) {
     if (BKE_previewimg_is_rendering(prv_img, icon_size)) {
