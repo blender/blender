@@ -104,7 +104,8 @@ template<> inline pxr::GfMatrix4d convert_value(const float4x4 &value)
   pxr::GfMatrix4d result;
   for (int i = 0; i < 4; ++i) {
     for (int j = 0; j < 4; ++j) {
-      result[i][j] = value[i][j];
+      /* USD is row-major, Blender is column-major. */
+      result[j][i] = value[i][j];
     }
   }
   return result;
@@ -136,7 +137,8 @@ template<> inline float4x4 convert_value(const pxr::GfMatrix4d &value)
   float4x4 result;
   for (int i = 0; i < 4; ++i) {
     for (int j = 0; j < 4; ++j) {
-      result[i][j] = float(value[i][j]);
+      /* USD is row-major, Blender is column-major. */
+      result[j][i] = float(value[i][j]);
     }
   }
   return result;

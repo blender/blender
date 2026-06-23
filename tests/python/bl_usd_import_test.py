@@ -1126,6 +1126,15 @@ class USDImportTest(AbstractUSDTest):
         self.check_attribute(mesh, "fc_quat", 'CORNER', 'QUATERNION', 4)
         self.check_attribute(mesh, "fc_mat4x4", 'CORNER', 'FLOAT4X4', 4)
 
+        # Matrix attributes need additional validation to check row-major vs. col-major differences.
+        # Pick a representative matrix to check.
+        depsgraph = bpy.context.evaluated_depsgraph_get()
+        blender_data = bpy.data.objects["Mesh"].evaluated_get(depsgraph).data
+        blender_mat = blender_data.attributes["p_mat4x4"].data[3].value
+        blender_values = [blender_mat[i][j] for i in range(0, 4) for j in range(0, 4)]
+        expected = [0.4, 0.8, 1.2, 1.6] * 4
+        self.assertTrue(self.round_vector(blender_values), expected)
+
         # Find the non "bezier" Curves object -- Has 2 curves (12 vertices each)
         all_curves = [o for o in bpy.data.objects if o.type == 'CURVES']
         curves = [o for o in all_curves if not o.parent.name.startswith("Curve_bezier")]
