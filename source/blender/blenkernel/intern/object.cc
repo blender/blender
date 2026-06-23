@@ -1439,7 +1439,8 @@ bool BKE_object_supports_modifiers(const Object *ob)
               OB_LATTICE,
               OB_POINTCLOUD,
               OB_VOLUME,
-              OB_GREASE_PENCIL);
+              OB_GREASE_PENCIL,
+              OB_EMPTY);
 }
 
 bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
