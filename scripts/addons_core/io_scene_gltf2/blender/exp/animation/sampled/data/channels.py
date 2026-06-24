@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import typing
+from copy import deepcopy
 from ......io.com import gltf2_io
 from ......blender.com.conversion import get_gltf_interpolation
 from .channel_target import gather_data_sampled_channel_target
@@ -37,6 +38,34 @@ def gather_data_sampled_channels(blender_type_data, blender_id, blender_action_n
             export_settings)
         if channel is not None:
             channels.append(channel)
+
+            # Manage multiple Texture Transform for the same path
+            for additional_path in export_settings['KHR_animation_pointer'][blender_type_data][blender_id]['paths'][path].get('additional', [
+            ]):
+
+                new_target = gltf2_io.AnimationChannelTarget(
+                    extensions=channel.target.extensions,
+                    extras=channel.target.extras,
+                    node=channel.target.node,
+                    path=additional_path
+                )
+
+                new_sampler = gltf2_io.AnimationSampler(
+                    extensions=None,
+                    extras=None,
+                    input=deepcopy(channel.sampler.input),
+                    interpolation=channel.sampler.interpolation,
+                    output=deepcopy(channel.sampler.output)
+                )
+
+                new_channel = gltf2_io.AnimationChannel(
+                    extensions=None,
+                    extras=None,
+                    sampler=new_sampler,
+                    target=new_target
+                )
+
+                channels.append(new_channel)
 
         if export_settings['KHR_animation_pointer'][blender_type_data][blender_id]['paths'][path]['path'] == "/materials/XXX/pbrMetallicRoughness/baseColorFactor":
             baseColorFactor_alpha_merged_already_done = True

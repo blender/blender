@@ -14,6 +14,7 @@ from ..search_node_tree import \
 
 
 def export_volume(bmat, export_settings):
+    export_settings['current_texture_transform'] = {}
     # Implementation based on https://github.com/KhronosGroup/glTF-Blender-IO/issues/1454#issuecomment-928319444
 
     # If no transmission --> No volume
@@ -107,7 +108,13 @@ def export_volume(bmat, export_settings):
                 path_['path'] = export_settings['current_texture_transform'][k]['path'].replace(
                     "YYY", "extensions/KHR_materials_volume/thicknessTexture/extensions")
                 path_['vector_type'] = export_settings['current_texture_transform'][k]['vector_type']
-                export_settings['current_paths'][k] = path_
+                if k in export_settings['current_paths']:
+                    if 'additional' not in export_settings['current_paths'][k]:
+                        export_settings['current_paths'][k]['additional'] = []
+                    if path_['path'] != export_settings['current_paths'][k]['path']:
+                        export_settings['current_paths'][k]['additional'].append(path_['path'])
+                else:
+                    export_settings['current_paths'][k] = path_
 
         export_settings['current_texture_transform'] = {}
 

@@ -276,16 +276,13 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
     socket_items::clear<RepeatItemsAccessor>(output_node);
     const UString name(params.socket.name);
-    socket_items::add_item_with_socket_type_and_name<RepeatItemsAccessor>(
+    auto *item = socket_items::add_item_with_socket_type_and_name<RepeatItemsAccessor>(
         params.node_tree, output_node, params.socket.type, name.c_str());
     update_node_declaration_and_sockets(params.node_tree, input_node);
     update_node_declaration_and_sockets(params.node_tree, output_node);
-    if (params.socket.in_out == SOCK_IN) {
-      params.connect_available_socket(output_node, name);
-    }
-    else {
-      params.connect_available_socket(input_node, name);
-    }
+    bNode &node = params.socket.in_out == SOCK_IN ? output_node : input_node;
+    params.connect_available_socket_by_identifier(
+        node, UString(RepeatItemsAccessor::socket_identifier_for_item(*item)));
     params.node_tree.ensure_topology_cache();
     bke::node_add_link(params.node_tree,
                        input_node,

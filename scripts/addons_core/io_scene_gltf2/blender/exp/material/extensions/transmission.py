@@ -12,6 +12,7 @@ from ..search_node_tree import \
 
 
 def export_transmission(bmat, export_settings):
+    export_settings['current_texture_transform'] = {}
     has_transmission_texture = False
 
     transmission_extension = {}
@@ -66,7 +67,13 @@ def export_transmission(bmat, export_settings):
                 path_['path'] = export_settings['current_texture_transform'][k]['path'].replace(
                     "YYY", "extensions/KHR_materials_transmission/transmissionTexture/extensions")
                 path_['vector_type'] = export_settings['current_texture_transform'][k]['vector_type']
-                export_settings['current_paths'][k] = path_
+                if k in export_settings['current_paths']:
+                    if 'additional' not in export_settings['current_paths'][k]:
+                        export_settings['current_paths'][k]['additional'] = []
+                    if path_['path'] != export_settings['current_paths'][k]['path']:
+                        export_settings['current_paths'][k]['additional'].append(path_['path'])
+                else:
+                    export_settings['current_paths'][k] = path_
 
         export_settings['current_texture_transform'] = {}
 

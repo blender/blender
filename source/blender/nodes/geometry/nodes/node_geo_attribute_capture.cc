@@ -263,9 +263,14 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
   params.add_item(IFACE_("Value"), [type](LinkSearchOpParams &params) {
     bNode &node = params.add_node("GeometryNodeCaptureAttribute"_ustr);
-    socket_items::add_item_with_socket_type_and_name<CaptureAttributeItemsAccessor>(
-        params.node_tree, node, type, params.socket.name);
-    params.update_and_connect_available_socket(node, UString(params.socket.name));
+    const auto *item =
+        socket_items::add_item_with_socket_type_and_name<CaptureAttributeItemsAccessor>(
+            params.node_tree, node, type, params.socket.name);
+    const std::string identifier =
+        params.socket.in_out == SOCK_IN ?
+            CaptureAttributeItemsAccessor::output_socket_identifier_for_item(*item) :
+            CaptureAttributeItemsAccessor::input_socket_identifier_for_item(*item);
+    params.update_and_connect_available_socket_by_identifier(node, UString(identifier));
   });
 }
 
