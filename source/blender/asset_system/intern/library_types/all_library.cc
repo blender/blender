@@ -54,6 +54,17 @@ std::optional<eAssetImportMethod> AllAssetLibrary::import_method() const
 
 void AllAssetLibrary::rebuild_catalogs_from_nested(const bool reload_nested_catalogs)
 {
+  /* Only one thread should rebuild at a time. If another thread is already rebuilding, wait for it
+   * to finish and then skip rebuilding. The result would effectively be the same, so re-running
+   * would just be wasted work. Waiting (rather than returning early) ensures callers don't see
+   * partially rebuilt catalogs. */
+  std::unique_lock rebuild_lock{rebuild_mutex_, std::try_to_lock};
+  if (!rebuild_lock.owns_lock()) {
+    /* Another thread holds the lock and is rebuilding. Block until it is done, then return. */
+    rebuild_lock.lock();
+    return;
+  }
+
   /* Start with empty catalog storage. Don't do this directly in #this.catalog_service to avoid
    * race conditions. Rather build into a new service and replace the current one when done. */
   std::unique_ptr<AssetCatalogService> new_catalog_service = std::make_unique<AssetCatalogService>(
