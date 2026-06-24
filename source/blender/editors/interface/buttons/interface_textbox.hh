@@ -58,7 +58,9 @@ float textbox_grip_height();
 /* Top/Bottom padding for text in a text-box. */
 float textbox_vertical_padding();
 
-TextboxState *textbox_ensure_state(ARegion *region, StringRefNull idname);
+TextboxState *textbox_ensure_state(ARegion *region,
+                                   StringRefNull idname,
+                                   const int initial_visible_lines = 3);
 
 }  // namespace ui
 }  // namespace blender
