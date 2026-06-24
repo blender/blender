@@ -110,6 +110,11 @@ if platform.system() == "Darwin":
         ]
 
 
+BLOCKLIST_HIPRT = [
+    # Light leaking fireflies due to HIP-RT intersection precision issue.
+    "normal_mapping_light_leak.blend",
+]
+
 BLOCKLIST_HIP_NORT = [
     # MNEE not supported on HIP without HIP-RT
     "underwater_caustics.blend",
@@ -312,6 +317,8 @@ def main():
 
     if device == 'HIP':
         blocklist += BLOCKLIST_HIP_NORT
+    if device == 'HIP-RT':
+        blocklist += BLOCKLIST_HIPRT
 
     test_dir_name = Path(args.testdir).name
     report = CyclesReport('Cycles', test_dir_name, args.outdir, args.oiiotool, device, blocklist, args.osl == 'all')
