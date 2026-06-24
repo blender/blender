@@ -225,8 +225,9 @@ const ImBuf *ED_image_paint_tile_push(PaintTileMap *paint_tile_map,
 
     ImBuf *ptile_ibuf;
     if (ibuf->float_data()) {
-      ptile_ibuf = IMB_allocImBuf(
-          ED_IMAGE_UNDO_TILE_SIZE, ED_IMAGE_UNDO_TILE_SIZE, ImBufFlags::FloatData);
+      ptile_ibuf = IMB_allocImBuf(ED_IMAGE_UNDO_TILE_SIZE,
+                                  ED_IMAGE_UNDO_TILE_SIZE,
+                                  ImBufFlags::FloatData | ImBufFlags::UninitializedPixels);
       IMB_copy_rect(ptile_ibuf->float_data_for_write(),
                     int2(ED_IMAGE_UNDO_TILE_SIZE),
                     ibuf->float_data(),
@@ -237,8 +238,9 @@ const ImBuf *ED_image_paint_tile_push(PaintTileMap *paint_tile_map,
                     tile_copy_size);
     }
     else {
-      ptile_ibuf = IMB_allocImBuf(
-          ED_IMAGE_UNDO_TILE_SIZE, ED_IMAGE_UNDO_TILE_SIZE, ImBufFlags::ByteData);
+      ptile_ibuf = IMB_allocImBuf(ED_IMAGE_UNDO_TILE_SIZE,
+                                  ED_IMAGE_UNDO_TILE_SIZE,
+                                  ImBufFlags::ByteData | ImBufFlags::UninitializedPixels);
       IMB_copy_rect(ptile_ibuf->byte_data_for_write(),
                     int2(ED_IMAGE_UNDO_TILE_SIZE),
                     ibuf->byte_data(),
