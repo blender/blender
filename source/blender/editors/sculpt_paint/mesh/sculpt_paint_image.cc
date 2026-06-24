@@ -517,7 +517,7 @@ static void push_undo(const PixelNode &node_data,
     for (int ty = tiley; ty <= tileh; ty++) {
       for (int tx = tilex; tx <= tilew; tx++) {
         ED_image_paint_tile_push(
-            undo_tiles, &image, &image_buffer, &image_user, tx, ty, nullptr, nullptr, true, true);
+            undo_tiles, &image, &image_buffer, &image_user, tx, ty, nullptr, nullptr);
       }
     }
   }

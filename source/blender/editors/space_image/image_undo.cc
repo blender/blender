@@ -27,6 +27,7 @@
 #include "BLI_map.hh"
 #include "BLI_math_base_c.hh"
 #include "BLI_math_vector.hh"
+#include "BLI_mutex.hh"
 #include "BLI_string.hh"
 #include "BLI_threads.hh"
 #include "BLI_utildefines.hh"
@@ -60,27 +61,6 @@
 namespace blender {
 
 static CLG_LogRef LOG = {"undo.image"};
-
-/* -------------------------------------------------------------------- */
-/** \name Thread Locking
- * \{ */
-
-/* This is a non-global static resource,
- * Maybe it should be exposed as part of the
- * paint operation, but for now just give a public interface */
-static SpinLock paint_tiles_lock;
-
-void ED_image_paint_tile_lock_init()
-{
-  BLI_spin_init(&paint_tiles_lock);
-}
-
-void ED_image_paint_tile_lock_end()
-{
-  BLI_spin_end(&paint_tiles_lock);
-}
-
-/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Paint Tiles
@@ -131,6 +111,7 @@ struct PaintTile {
   bool valid = false;
   bool use_float = false;
   int x_tile = 0, y_tile = 0;
+  blender::Mutex mutex;
 };
 
 static void ptile_free(PaintTile *ptile)
@@ -143,6 +124,7 @@ static void ptile_free(PaintTile *ptile)
 }
 
 struct PaintTileMap {
+  blender::Mutex mutex;
   Map<PaintTileKey, PaintTile *> map;
 
   ~PaintTileMap()
@@ -201,79 +183,9 @@ const ImBuf *ED_image_paint_tile_push(PaintTileMap *paint_tile_map,
                                       int x_tile,
                                       int y_tile,
                                       ushort **r_mask,
-                                      bool **r_valid,
-                                      bool use_thread_lock,
-                                      bool find_prev)
+                                      bool **r_valid)
 {
-  if (use_thread_lock) {
-    BLI_spin_lock(&paint_tiles_lock);
-  }
   const bool has_float = (ibuf->float_data() != nullptr);
-
-  /* check if tile is already pushed */
-
-  /* in projective painting we keep accounting of tiles, so if we need one pushed, just push! */
-  if (find_prev) {
-    const ImBuf *data = ED_image_paint_tile_find(
-        paint_tile_map, image, ibuf, iuser, x_tile, y_tile, r_mask, true);
-    if (data) {
-      if (use_thread_lock) {
-        BLI_spin_unlock(&paint_tiles_lock);
-      }
-      return data;
-    }
-  }
-
-  PaintTile *ptile = MEM_new<PaintTile>("PaintTile");
-
-  ptile->image = image;
-  ptile->ibuf = ibuf;
-  ptile->iuser = *iuser;
-  ptile->iuser.scene = nullptr;
-
-  ptile->x_tile = x_tile;
-  ptile->y_tile = y_tile;
-
-  /* add mask explicitly here */
-  if (r_mask) {
-    *r_mask = ptile->mask = MEM_new_array_zeroed<uint16_t>(square_i(ED_IMAGE_UNDO_TILE_SIZE),
-                                                           "PaintTile.mask");
-  }
-
-  int2 tile_pos;
-  int2 tile_copy_size;
-  calc_tile_rect(*ibuf, ptile->x_tile, ptile->y_tile, tile_pos, tile_copy_size);
-
-  if (ibuf->float_data()) {
-    ptile->ptile_ibuf = IMB_allocImBuf(
-        ED_IMAGE_UNDO_TILE_SIZE, ED_IMAGE_UNDO_TILE_SIZE, ImBufFlags::FloatData);
-    IMB_copy_rect(ptile->ptile_ibuf->float_data_for_write(),
-                  int2(ED_IMAGE_UNDO_TILE_SIZE),
-                  ibuf->float_data(),
-                  int2(ibuf->x, ibuf->y),
-                  ibuf->channels,
-                  tile_pos,
-                  int2(0, 0),
-                  tile_copy_size);
-  }
-  else {
-    ptile->ptile_ibuf = IMB_allocImBuf(
-        ED_IMAGE_UNDO_TILE_SIZE, ED_IMAGE_UNDO_TILE_SIZE, ImBufFlags::ByteData);
-    IMB_copy_rect(ptile->ptile_ibuf->byte_data_for_write(),
-                  int2(ED_IMAGE_UNDO_TILE_SIZE),
-                  ibuf->byte_data(),
-                  int2(ibuf->x, ibuf->y),
-                  tile_pos,
-                  int2(0, 0),
-                  tile_copy_size);
-  }
-
-  ptile->use_float = has_float;
-  ptile->valid = true;
-
-  if (r_valid) {
-    *r_valid = &ptile->valid;
-  }
 
   PaintTileKey key = {};
   key.ibuf = ibuf;
@@ -281,19 +193,82 @@ const ImBuf *ED_image_paint_tile_push(PaintTileMap *paint_tile_map,
   key.iuser_tile = iuser->tile;
   key.x_tile = x_tile;
   key.y_tile = y_tile;
-  PaintTile *existing_tile = nullptr;
-  paint_tile_map->map.add_or_modify(
-      key,
-      [&](PaintTile **pptile) { *pptile = ptile; },
-      [&](PaintTile **pptile) { existing_tile = *pptile; });
-  if (existing_tile) {
-    ptile_free(ptile);
-    ptile = existing_tile;
+
+  /* Allocate the tile if it does not exist yet. */
+  PaintTile *ptile = nullptr;
+  bool created = false;
+  {
+    std::scoped_lock map_lock(paint_tile_map->mutex);
+    paint_tile_map->map.add_or_modify(
+        key,
+        [&](PaintTile **pptile) {
+          ptile = MEM_new<PaintTile>("PaintTile");
+          ptile->image = image;
+          ptile->ibuf = ibuf;
+          ptile->iuser = *iuser;
+          ptile->iuser.scene = nullptr;
+          ptile->x_tile = x_tile;
+          ptile->y_tile = y_tile;
+          ptile->use_float = has_float;
+          ptile->mutex.lock();
+          *pptile = ptile;
+          created = true;
+        },
+        [&](PaintTile **pptile) { ptile = *pptile; });
   }
 
-  if (use_thread_lock) {
-    BLI_spin_unlock(&paint_tiles_lock);
+  if (created) {
+    /* This thread created the tile, allocate it and copy pixels. */
+    int2 tile_pos;
+    int2 tile_copy_size;
+    calc_tile_rect(*ibuf, x_tile, y_tile, tile_pos, tile_copy_size);
+
+    ImBuf *ptile_ibuf;
+    if (ibuf->float_data()) {
+      ptile_ibuf = IMB_allocImBuf(
+          ED_IMAGE_UNDO_TILE_SIZE, ED_IMAGE_UNDO_TILE_SIZE, ImBufFlags::FloatData);
+      IMB_copy_rect(ptile_ibuf->float_data_for_write(),
+                    int2(ED_IMAGE_UNDO_TILE_SIZE),
+                    ibuf->float_data(),
+                    int2(ibuf->x, ibuf->y),
+                    ibuf->channels,
+                    tile_pos,
+                    int2(0, 0),
+                    tile_copy_size);
+    }
+    else {
+      ptile_ibuf = IMB_allocImBuf(
+          ED_IMAGE_UNDO_TILE_SIZE, ED_IMAGE_UNDO_TILE_SIZE, ImBufFlags::ByteData);
+      IMB_copy_rect(ptile_ibuf->byte_data_for_write(),
+                    int2(ED_IMAGE_UNDO_TILE_SIZE),
+                    ibuf->byte_data(),
+                    int2(ibuf->x, ibuf->y),
+                    tile_pos,
+                    int2(0, 0),
+                    tile_copy_size);
+    }
+
+    ptile->ptile_ibuf = ptile_ibuf;
   }
+  else {
+    /* Other threads wait until the creator is finished and unlocks the mutex. */
+    ptile->mutex.lock();
+  }
+
+  /* Set up the mask on demand. */
+  ptile->valid = true;
+  if (r_mask) {
+    if (!ptile->mask) {
+      ptile->mask = MEM_new_array_zeroed<uint16_t>(square_i(ED_IMAGE_UNDO_TILE_SIZE),
+                                                   "PaintTile.mask");
+    }
+    *r_mask = ptile->mask;
+  }
+  if (r_valid) {
+    *r_valid = &ptile->valid;
+  }
+
+  ptile->mutex.unlock();
   return ptile->ptile_ibuf;
 }
 

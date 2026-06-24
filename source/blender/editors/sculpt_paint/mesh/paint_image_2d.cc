@@ -1381,8 +1381,7 @@ static int paint_2d_op(void *state,
                              region[a].destx,
                              region[a].desty,
                              region[a].width,
-                             region[a].height,
-                             true);
+                             region[a].height);
 
     if (s->do_masking) {
       /* masking, find original pixels tiles from undo buffer to composite over */
@@ -1903,7 +1902,7 @@ void paint_2d_bucket_fill(const bContext *C,
 
   if (!mouse_final || !br) {
     /* first case, no image UV, fill the whole image */
-    ED_imapaint_dirty_region(ima, ibuf, iuser, 0, 0, ibuf->x, ibuf->y, false);
+    ED_imapaint_dirty_region(ima, ibuf, iuser, 0, 0, ibuf->x, ibuf->y);
 
     if (do_float) {
       float *float_data = ibuf->float_data_for_write();
@@ -1947,7 +1946,7 @@ void paint_2d_bucket_fill(const bContext *C,
     }
 
     /* change image invalidation method later */
-    ED_imapaint_dirty_region(ima, ibuf, iuser, 0, 0, ibuf->x, ibuf->y, false);
+    ED_imapaint_dirty_region(ima, ibuf, iuser, 0, 0, ibuf->x, ibuf->y);
 
     stack = BLI_stack_new(sizeof(size_t), __func__);
     touched = BLI_BITMAP_NEW(size_t(ibuf->x) * ibuf->y, "bucket_fill_bitmap");
@@ -2095,7 +2094,7 @@ void paint_2d_gradient_fill(
   do_float = (ibuf->float_data() != nullptr);
 
   /* this will be substituted by something else when selection is available */
-  ED_imapaint_dirty_region(ima, ibuf, iuser, 0, 0, ibuf->x, ibuf->y, false);
+  ED_imapaint_dirty_region(ima, ibuf, iuser, 0, 0, ibuf->x, ibuf->y);
 
   if (do_float) {
     float *float_data = ibuf->float_data_for_write();

@@ -117,7 +117,7 @@ void imapaint_region_tiles(
 }
 
 void ED_imapaint_dirty_region(
-    Image *ima, ImBuf *ibuf, ImageUser *iuser, int x, int y, int w, int h, bool find_old)
+    Image *ima, ImBuf *ibuf, ImageUser *iuser, int x, int y, int w, int h)
 {
   int tilex, tiley, tilew, tileh, tx, ty;
   int srcx = 0, srcy = 0;
@@ -138,8 +138,7 @@ void ED_imapaint_dirty_region(
 
   for (ty = tiley; ty <= tileh; ty++) {
     for (tx = tilex; tx <= tilew; tx++) {
-      ED_image_paint_tile_push(
-          undo_tiles, ima, ibuf, iuser, tx, ty, nullptr, nullptr, false, find_old);
+      ED_image_paint_tile_push(undo_tiles, ima, ibuf, iuser, tx, ty, nullptr, nullptr);
     }
   }
 

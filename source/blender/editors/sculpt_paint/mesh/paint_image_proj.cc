@@ -1841,9 +1841,7 @@ static int project_paint_undo_subtiles(const TileInfo *tinf, int tx, int ty)
                                                        tx,
                                                        ty,
                                                        &pjIma->maskRect[tile_index],
-                                                       &pjIma->valid[tile_index],
-                                                       true,
-                                                       false))
+                                                       &pjIma->valid[tile_index]))
       {
         if (ibuf->float_data()) {
           undorect = ibuf->float_data();
@@ -1861,9 +1859,7 @@ static int project_paint_undo_subtiles(const TileInfo *tinf, int tx, int ty)
                                                        tx,
                                                        ty,
                                                        nullptr,
-                                                       &pjIma->valid[tile_index],
-                                                       true,
-                                                       false))
+                                                       &pjIma->valid[tile_index]))
       {
         if (ibuf->float_data()) {
           undorect = ibuf->float_data();
@@ -3995,8 +3991,6 @@ static void proj_paint_state_thread_init(ProjPaintState *ps, const bool reset_th
       ps->tile_lock = MEM_new_uninitialized<SpinLock>("projpaint_tile_lock");
       BLI_spin_init(ps->tile_lock);
     }
-
-    ED_image_paint_tile_lock_init();
   }
 
   for (int a = 0; a < ps->thread_tot; a++) {
@@ -4772,8 +4766,6 @@ static void project_paint_end(ProjPaintState *ps)
       /* The void cast is needed when building without TBB. */
       MEM_delete_void((void *)ps->tile_lock);
     }
-
-    ED_image_paint_tile_lock_end();
 
 #ifndef PROJ_DEBUG_NOSEAMBLEED
     if (ps->seam_bleed_px > 0.0f) {
