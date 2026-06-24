@@ -324,7 +324,7 @@ struct Rows {
         if (source == first_source) {
           continue;
         }
-        int pixel_index = sy * resolution.y + sx;
+        int pixel_index = sy * resolution.x + sx;
         if (pixels[pixel_index].type != PixelType::Brush) {
           continue;
         }
