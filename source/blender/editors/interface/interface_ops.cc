@@ -3142,6 +3142,54 @@ static void UI_OT_view_item_focus(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Tree View Page Scroll Operator
+ *
+ * Scroll the view to up/down by one page or to the top/bottom of the view.
+ *
+ * \{ */
+
+static wmOperatorStatus ui_view_item_scroll_page_invoke(bContext *C,
+                                                        wmOperator *op,
+                                                        const wmEvent * /*event*/)
+{
+  ARegion &region = *CTX_wm_region(C);
+  AbstractView *view = get_view_focused(C);
+  const PageScrollDirection direction = PageScrollDirection(
+      RNA_enum_get(op->ptr, "scroll_direction"));
+
+  view->page_scroll(C, direction);
+
+  ED_region_tag_redraw(&region);
+  return OPERATOR_FINISHED;
+}
+
+static void UI_OT_view_item_page_scroll(wmOperatorType *ot)
+{
+  ot->name = "Scroll page";
+  ot->idname = "UI_OT_view_item_page_scroll";
+  ot->description = "Scroll the list to the next/previous page";
+
+  ot->invoke = ui_view_item_scroll_page_invoke;
+  ot->poll = view_focused_poll;
+
+  static const EnumPropertyItem direction_enum_items[] = {
+      {int(PageScrollDirection::Up), "UP", 0, "Up", "Scroll one page up"},
+      {int(PageScrollDirection::Down), "DOWN", 0, "Down", "Scroll one page down"},
+      {int(PageScrollDirection::Top), "TOP", 0, "Top", "Scroll to the top"},
+      {int(PageScrollDirection::Bottom), "BOTTOM", 0, "Bottom", "Scroll to the bottom"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  RNA_def_enum(ot->srna,
+               "scroll_direction",
+               direction_enum_items,
+               0,
+               "Scroll Direction",
+               "Scroll to next/previous page in the list.");
+}
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Material Drag/Drop Operator
  *
  * \{ */
@@ -3245,6 +3293,7 @@ void operatortypes_ui()
   WM_operatortype_append(UI_OT_view_item_delete);
   WM_operatortype_append(UI_OT_view_item_navigate);
   WM_operatortype_append(UI_OT_view_item_focus);
+  WM_operatortype_append(UI_OT_view_item_page_scroll);
 
   WM_operatortype_append(UI_OT_override_add_button);
   WM_operatortype_append(UI_OT_override_remove_button);

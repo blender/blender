@@ -207,6 +207,30 @@ AbstractViewItem *AbstractTreeView::navigate_down(AbstractViewItem *from)
   return next_item ? next_item : from;
 }
 
+void AbstractTreeView::page_scroll(bContext * /*C*/, PageScrollDirection direction)
+{
+  if (this->is_fully_visible() || !this->supports_scrolling()) {
+    return;
+  }
+
+  const int visible_rows = this->tot_visible_row_count().value_or(0);
+
+  switch (direction) {
+    case PageScrollDirection::Up:
+      *this->scroll_value_ = std::max(0, *this->scroll_value_ - visible_rows);
+      break;
+    case PageScrollDirection::Down:
+      *this->scroll_value_ = std::min(this->last_tot_items_, *this->scroll_value_ + visible_rows);
+      break;
+    case PageScrollDirection::Top:
+      *this->scroll_value_ = 0;
+      break;
+    case PageScrollDirection::Bottom:
+      *this->scroll_value_ = this->last_tot_items_;
+      break;
+  }
+}
+
 void AbstractTreeView::set_default_rows(int default_rows)
 {
   BLI_assert_msg(default_rows >= MIN_ROWS,

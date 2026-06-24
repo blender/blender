@@ -219,6 +219,8 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
   AbstractViewItem *navigate_right(AbstractViewItem *from) override;
   AbstractViewItem *navigate_up(AbstractViewItem *from) override;
   AbstractViewItem *navigate_down(AbstractViewItem *from) override;
+
+  void page_scroll(bContext *C, PageScrollDirection direction) override;
 };
 
 /** \} */
