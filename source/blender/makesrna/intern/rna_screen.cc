@@ -42,6 +42,7 @@ const EnumPropertyItem rna_enum_region_type_items[] = {
     {RGN_TYPE_FOOTER, "FOOTER", 0, "Footer", ""},
     {RGN_TYPE_TOOL_HEADER, "TOOL_HEADER", 0, "Tool Header", ""},
     {RGN_TYPE_XR, "XR", 0, "XR", ""},
+    {RGN_TYPE_SCRUBBING, "SCRUBBING", 0, "Scrubbing", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
