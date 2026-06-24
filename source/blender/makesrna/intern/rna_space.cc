@@ -380,6 +380,25 @@ const EnumPropertyItem rna_enum_fileselect_params_sort_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+static const EnumPropertyItem rna_enum_asset_catalog_visibility_items[] = {
+    {FILE_SHOW_ASSETS_ALL_CATALOGS,
+     "ALL",
+     ICON_NONE,
+     "All",
+     "Show assets from all catalogs"},
+    {FILE_SHOW_ASSETS_FROM_CATALOG,
+     "CATALOG",
+     ICON_NONE,
+     "Catalog",
+     "Show assets from the active catalog only"},
+    {FILE_SHOW_ASSETS_WITHOUT_CATALOG,
+     "UNASSIGNED",
+     ICON_NONE,
+     "Unassigned",
+     "Show assets not assigned to any catalog"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 static const EnumPropertyItem rna_enum_fileselect_params_asset_import_method_items[] = {
     {FILE_ASSET_IMPORT_FOLLOW_PREFS,
      "FOLLOW_PREFS",
@@ -7932,6 +7951,14 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
                                 "rna_FileAssetSelectParams_catalog_id_length",
                                 "rna_FileAssetSelectParams_catalog_id_set");
   RNA_def_property_ui_text(prop, "Catalog UUID", "The UUID of the catalog shown in the browser");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, nullptr);
+
+  prop = RNA_def_property(srna, "asset_catalog_visibility", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "asset_catalog_visibility");
+  RNA_def_property_enum_items(prop, rna_enum_asset_catalog_visibility_items);
+  RNA_def_property_ui_text(prop,
+                           "Catalog Visibility",
+                           "Which assets to show based on catalog filter");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, nullptr);
 
   prop = RNA_def_property(srna, "filter_asset_id", PROP_POINTER, PROP_NONE);
