@@ -9,7 +9,7 @@ import bpy
 
 
 def export_dispersion(bmat, extensions, export_settings):
-
+    export_settings['current_texture_transform'] = {}
     # If no volume extension, no dispersion extension export
     if "KHR_materials_volume" not in extensions:
         return None

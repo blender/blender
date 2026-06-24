@@ -152,7 +152,13 @@ def __gather_base_color_texture(bmat, export_settings):
             path_['path'] = export_settings['current_texture_transform'][k]['path'].replace(
                 "YYY", "pbrMetallicRoughness/baseColorTexture/extensions")
             path_['vector_type'] = export_settings['current_texture_transform'][k]['vector_type']
-            export_settings['current_paths'][k] = path_
+            if k in export_settings['current_paths']:
+                if 'additional' not in export_settings['current_paths'][k]:
+                    export_settings['current_paths'][k]['additional'] = []
+                if path_['path'] != export_settings['current_paths'][k]['path']:
+                    export_settings['current_paths'][k]['additional'].append(path_['path'])
+            else:
+                export_settings['current_paths'][k] = path_
 
     export_settings['current_texture_transform'] = {}
 
@@ -214,12 +220,28 @@ def __gather_metallic_roughness_texture(bmat, orm_texture, export_settings):
     else:
         texture_input = (metallic_socket, roughness_socket)
 
+    export_settings['current_texture_transform'] = {}
     tex, uvmap_info, udim_info, factor = gather_texture_info(
 
         texture_input[0],
         orm_texture or texture_input,
         export_settings,
     )
+
+    if len(export_settings['current_texture_transform']) != 0:
+        for k in export_settings['current_texture_transform'].keys():
+            path_ = {}
+            path_['length'] = export_settings['current_texture_transform'][k]['length']
+            path_['path'] = export_settings['current_texture_transform'][k]['path'].replace(
+                "YYY", "pbrMetallicRoughness/metallicRoughnessTexture/extensions")
+            path_['vector_type'] = export_settings['current_texture_transform'][k]['vector_type']
+            if k in export_settings['current_paths']:
+                if 'additional' not in export_settings['current_paths'][k]:
+                    export_settings['current_paths'][k]['additional'] = []
+                if path_['path'] != export_settings['current_paths'][k]['path']:
+                    export_settings['current_paths'][k]['additional'].append(path_['path'])
+            else:
+                export_settings['current_paths'][k] = path_
 
     return tex, {
         'metallicRoughnessTexture': uvmap_info}, {

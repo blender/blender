@@ -62,7 +62,7 @@ def pbr_specular_glossiness(mh):
     pbr_node.inputs['IOR'].default_value = 1000
 
     # Specular
-    color_factor_and_texture(
+    new_tex_info = color_factor_and_texture(
         mh,
         location=locs['specular'],
         label='Specular Color',
@@ -70,6 +70,14 @@ def pbr_specular_glossiness(mh):
         factor=ext.get('specularFactor', [1, 1, 1]),
         tex_info=ext.get('specularGlossinessTexture'),
     )
+
+    if len(ext) > 0:
+        tex_info = TextureInfo.from_dict(ext.get('specularGlossinessTexture')) if ext.get(
+            'specularGlossinessTexture') is not None else None
+        # Because extensions are dict, they are not passed by reference
+        # So we need to update the dict of the KHR_texture_transform extension if needed
+        if tex_info is not None and tex_info.extensions is not None and "KHR_texture_transform" in tex_info.extensions:
+            mh.pymat.extensions['KHR_materials_specular']['specularGlossinessTexture']['extensions']['KHR_texture_transform'] = new_tex_info.extensions["KHR_texture_transform"]
 
     # Glossiness
     glossiness(

@@ -102,6 +102,8 @@ def scalar_factor_and_texture(
         alpha_socket=socket if channel == 4 else None,
     )
 
+    return tex_info
+
 
 # Creates nodes for multiplying a texture color and color factor.
 # [Texture] => [Mix Factor] => socket
@@ -149,6 +151,8 @@ def color_factor_and_texture(
         is_data=False,
         color_socket=socket,
     )
+
+    return tex_info
 
 
 # [Texture] => [Normal Map] => socket
