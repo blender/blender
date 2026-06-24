@@ -423,11 +423,14 @@ static bool seq_prefetch_scene_strip_is_rendered(const Scene *scene,
       int target_timeline_frame = give_frame_index(scene, strip, timeline_frame) +
                                   target_scene->r.sfra;
 
-      return seq_prefetch_scene_strip_is_rendered(target_scene,
-                                                  channels_displayed_get(target_ed),
-                                                  target_seqbase,
-                                                  target_scene_strips,
-                                                  target_timeline_frame);
+      if (seq_prefetch_scene_strip_is_rendered(target_scene,
+                                               channels_displayed_get(target_ed),
+                                               target_seqbase,
+                                               target_scene_strips,
+                                               target_timeline_frame))
+      {
+        return true;
+      }
     }
 
     /* Check if strip is effect of scene strip or uses it as modifier.
