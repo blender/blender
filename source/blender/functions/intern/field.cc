@@ -421,6 +421,11 @@ bool operator==(const GFieldRef &a, const GFieldRef &b)
             if (v_a.type != v_b->type) {
               return false;
             }
+            if (v_a.value == v_b->value) {
+              /* This may return true even if the values don't compare equal, e.g. due to NaN
+               * values. */
+              return true;
+            }
             return v_a.type->is_equal_or_false(v_a.value, v_b->value);
           }
           return false;
