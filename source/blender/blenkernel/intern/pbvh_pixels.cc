@@ -24,6 +24,7 @@
 
 #include "pbvh_intern.hh"
 #include "pbvh_pixels_copy.hh"
+#include "pbvh_pixels_rasterize.hh"
 #include "pbvh_uv_islands.hh"
 
 namespace blender {
@@ -74,6 +75,14 @@ static void extract_barycentric_pixels(UDIMTilePixels &tile_data,
                                        const int maxx,
                                        const int maxy)
 {
+  const float inv_w = 1.0f / image_buffer->x;
+  const float inv_h = 1.0f / image_buffer->y;
+
+  const float2 image_dimensions(image_buffer->x, image_buffer->y);
+  const TriRasterizer rasterizer(
+      uvs[0] * image_dimensions, uvs[1] * image_dimensions, uvs[2] * image_dimensions);
+
+  float3 row_edge_vals = rasterizer.edge_values(minx, miny);
   for (int y = miny; y < maxy; y++) {
     bool start_detected = false;
     PackedPixelRow pixel_row;
@@ -81,23 +90,31 @@ static void extract_barycentric_pixels(UDIMTilePixels &tile_data,
     pixel_row.num_pixels = 0;
     int x;
 
-    for (x = minx; x < maxx; x++) {
-      float2 uv((float(x) + 0.5f) / image_buffer->x, (float(y) + 0.5f) / image_buffer->y);
-      float3 barycentric_weights;
-      barycentric_weights_v2(uvs[0], uvs[1], uvs[2], uv, barycentric_weights);
+    const float fy = float(y) + 0.5f;
 
-      const bool is_inside = barycentric_inside_triangle_v2(barycentric_weights);
+    float3 edge_vals = row_edge_vals;
+    for (x = minx; x < maxx; x++) {
+      const float fx = float(x) + 0.5f;
+      const float2 uv(fx * inv_w, fy * inv_h);
+
+      /* The mask UV is always in range, since loop pixels are inside the clamped bounding box. */
       const bool is_masked = uv_mask.is_masked(uv_island_index, uv + tile_offset);
+      const bool is_inside = rasterizer.inside(edge_vals);
+
       if (!start_detected && is_inside && is_masked) {
         start_detected = true;
         pixel_row.start_image_coordinate = ushort2(x, y);
+        float3 barycentric_weights;
+        barycentric_weights_v2(uvs[0], uvs[1], uvs[2], uv, barycentric_weights);
         pixel_row.start_barycentric_coord = float2(barycentric_weights.x, barycentric_weights.y);
       }
       else if (start_detected && (!is_inside || !is_masked)) {
         break;
       }
+      edge_vals += rasterizer.dx_step;
     }
 
+    row_edge_vals += rasterizer.dy_step;
     if (!start_detected) {
       continue;
     }
