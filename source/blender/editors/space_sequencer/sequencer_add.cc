@@ -2008,7 +2008,7 @@ static wmOperatorStatus sequencer_add_effect_strip_exec(bContext *C, wmOperator 
   const int min_inputs = seq::effect_type_get_min_num_inputs(effect_type);
 
   VectorSet<Strip *> inputs = strip_effect_get_new_inputs(
-      scene, effect_type == STRIP_TYPE_COMPOSITOR ? 2 : min_inputs);
+      scene, effect_type, effect_type == STRIP_TYPE_COMPOSITOR ? 2 : min_inputs);
   if (effect_type != STRIP_TYPE_COMPOSITOR) {
     const char *error_msg = effect_inputs_validate(inputs.size(), min_inputs);
     if (error_msg != nullptr) {
