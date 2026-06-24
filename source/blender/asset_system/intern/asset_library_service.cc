@@ -14,6 +14,7 @@
 #include "BLI_fileops.hh"  // IWYU pragma: keep
 #include "BLI_path_utils.hh"
 #include "BLI_string_ref.hh"
+#include "BLI_vector.hh"
 
 #include "DNA_asset_types.h"
 #include "DNA_userdef_types.h"
@@ -687,12 +688,21 @@ bool AssetLibraryService::has_any_unsaved_catalogs() const
 void AssetLibraryService::foreach_loaded_asset_library(FunctionRef<void(AssetLibrary &)> fn,
                                                        const bool include_all_library) const
 {
+  /* Collect the libraries to visit first, then invoke the callback without holding any of the
+   * library mutexes. The callback may re-enter the asset library service, e.g. the "All" library
+   * reading triggers a catalog rebuild, which itself calls #foreach_loaded() - so running it while
+   * holding these mutexes can deadlock.
+   *
+   * Holding on to the raw pointers is safe as long as loaded libraries are not freed concurrently.
+   */
+  Vector<AssetLibrary *, 16> libraries;
+
   if (include_all_library && all_library_) {
-    fn(*all_library_);
+    libraries.append(all_library_.get());
   }
 
   if (current_file_library_) {
-    fn(*current_file_library_);
+    libraries.append(current_file_library_.get());
   }
 
   {
@@ -706,7 +716,7 @@ void AssetLibraryService::foreach_loaded_asset_library(FunctionRef<void(AssetLib
       }
 
       if (asset_lib_uptr->is_enabled()) {
-        fn(*asset_lib_uptr);
+        libraries.append(asset_lib_uptr.get());
       }
       break;
     }
@@ -717,7 +727,7 @@ void AssetLibraryService::foreach_loaded_asset_library(FunctionRef<void(AssetLib
   if (include_remote_libraries && online_essentials_library_ &&
       (U.asset_flag & USER_ASSETS_USE_ONLINE_ESSENTIALS))
   {
-    fn(*online_essentials_library_);
+    libraries.append(online_essentials_library_.get());
   }
 
   {
@@ -729,7 +739,7 @@ void AssetLibraryService::foreach_loaded_asset_library(FunctionRef<void(AssetLib
       }
 
       if (asset_lib_uptr->is_enabled()) {
-        fn(*asset_lib_uptr);
+        libraries.append(asset_lib_uptr.get());
       }
     }
   }
@@ -738,9 +748,13 @@ void AssetLibraryService::foreach_loaded_asset_library(FunctionRef<void(AssetLib
     std::scoped_lock lock{remote_libraries_mutex_};
     for (const auto &asset_lib_uptr : remote_libraries_.values()) {
       if (asset_lib_uptr->is_enabled()) {
-        fn(*asset_lib_uptr);
+        libraries.append(asset_lib_uptr.get());
       }
     }
+  }
+
+  for (AssetLibrary *library : libraries) {
+    fn(*library);
   }
 }
 
