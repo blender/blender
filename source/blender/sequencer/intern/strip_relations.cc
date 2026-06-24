@@ -132,7 +132,7 @@ static void update_range_with_effects(const Scene *scene, const Strip *strip, in
 {
   r_range.x = std::min(r_range.x, strip->left_handle());
   r_range.y = std::max(r_range.y, strip->right_handle(scene) - 1);
-  Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene->ed, strip);
+  Span<Strip *> effects = lookup_effects_by_strip(scene->ed, strip);
   for (Strip *effect : effects) {
     update_range_with_effects(scene, effect, r_range);
   }
