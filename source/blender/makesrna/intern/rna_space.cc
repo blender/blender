@@ -381,11 +381,7 @@ const EnumPropertyItem rna_enum_fileselect_params_sort_items[] = {
 };
 
 static const EnumPropertyItem rna_enum_asset_catalog_visibility_items[] = {
-    {FILE_SHOW_ASSETS_ALL_CATALOGS,
-     "ALL",
-     ICON_NONE,
-     "All",
-     "Show assets from all catalogs"},
+    {FILE_SHOW_ASSETS_ALL_CATALOGS, "ALL", ICON_NONE, "All", "Show assets from all catalogs"},
     {FILE_SHOW_ASSETS_FROM_CATALOG,
      "CATALOG",
      ICON_NONE,
@@ -7956,9 +7952,8 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
   prop = RNA_def_property(srna, "asset_catalog_visibility", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "asset_catalog_visibility");
   RNA_def_property_enum_items(prop, rna_enum_asset_catalog_visibility_items);
-  RNA_def_property_ui_text(prop,
-                           "Catalog Visibility",
-                           "Which assets to show based on catalog filter");
+  RNA_def_property_ui_text(
+      prop, "Catalog Visibility", "Which assets to show based on catalog filter");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, nullptr);
 
   prop = RNA_def_property(srna, "filter_asset_id", PROP_POINTER, PROP_NONE);
