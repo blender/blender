@@ -61,7 +61,10 @@ KERNEL_STRUCT_MEMBER(shadow_path,
 #else
 KERNEL_STRUCT_MEMBER(shadow_path, uint64_t, path_segment, KERNEL_FEATURE_PATH_GUIDING)
 #endif
-KERNEL_STRUCT_MEMBER(shadow_path, float, guiding_mis_weight, KERNEL_FEATURE_PATH_GUIDING)
+KERNEL_STRUCT_MEMBER(shadow_path,
+                     float,
+                     guiding_light_linking_mis_weight,
+                     KERNEL_FEATURE_PATH_GUIDING)
 /* Only need when path tracing without the light tree. Stored as a single float to save
  * space, as we do not expect to make it a big difference. */
 KERNEL_STRUCT_MEMBER(shadow_path,
