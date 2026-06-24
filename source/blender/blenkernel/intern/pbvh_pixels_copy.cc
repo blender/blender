@@ -530,7 +530,7 @@ void copy_update(bke::pbvh::Tree &pbvh,
     rows.find_copy_source(selected_pixels, tile_edges);
     rows.pack_into(selected_pixels, copy_tile);
 
-    copy_tile.print_compression_rate();
+    // copy_tile.print_compression_rate();
     pbvh_data.tiles_copy_pixels.tiles.append(copy_tile);
   }
 }
