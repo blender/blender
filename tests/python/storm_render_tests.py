@@ -38,6 +38,8 @@ BLOCKLIST_HYDRA = [
     "white_noise_256spp.blend",
     # Render is incorrect
     "principled_bsdf_thin_glass.blend",
+    # Custom OSL camera not supported.
+    "osl_camera_.*.blend",
 ]
 
 BLOCKLIST_USD = [
@@ -54,6 +56,8 @@ BLOCKLIST_USD = [
     "white_noise_256spp.blend",
     # Render is incorrect
     "principled_bsdf_thin_glass.blend",
+    # Custom OSL camera not supported.
+    "osl_camera_.*.blend",
 ]
 
 # Metal support in Storm is no as good as OpenGL, though this needs to be

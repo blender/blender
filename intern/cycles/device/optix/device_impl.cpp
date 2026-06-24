@@ -222,6 +222,36 @@ void OptiXDevice::create_optix_module(TaskPool &pool,
   }
 }
 
+/* Add hit and miss programs to the pipeline group, which are needed by shader raytrace and MNEE
+ * and live in a separate OptiX module. */
+static void add_hit_miss_program_groups(const OptixProgramGroup *groups,
+                                        vector<OptixProgramGroup> &pipeline_groups)
+{
+  if (groups[PG_MISS] != nullptr) {
+    pipeline_groups.push_back(groups[PG_MISS]);
+  }
+
+  for (int i = HIT_PROGAM_GROUP_OFFSET; i < HIT_PROGAM_GROUP_OFFSET + NUM_HIT_PROGRAM_GROUPS; i++)
+  {
+    if (groups[i] != nullptr) {
+      pipeline_groups.push_back(groups[i]);
+    }
+  }
+}
+
+/* Compute required stack size for hit programs, which are needed by shader raytrace and MNEE
+ * and live in a separate OptiX module. */
+static unsigned int hit_program_continuation_stack_size(const OptixStackSizes *stack_size)
+{
+  unsigned int trace_css = 0;
+  for (int i = HIT_PROGAM_GROUP_OFFSET; i < HIT_PROGAM_GROUP_OFFSET + NUM_HIT_PROGRAM_GROUPS; i++)
+  {
+    trace_css = std::max(trace_css, stack_size[i].cssCH);
+    trace_css = std::max(trace_css, stack_size[i].cssIS + stack_size[i].cssAH);
+  }
+  return trace_css;
+}
+
 bool OptiXDevice::load_kernels(const uint kernel_features)
 {
   if (have_error()) {
@@ -757,38 +787,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     }
 
     /* Calculate maximum trace continuation stack size. */
-    trace_css = stack_size[PG_HITD].cssCH;
-    /* This is based on the maximum of closest-hit and any-hit/intersection programs. */
-    trace_css = std::max(trace_css, stack_size[PG_HITD].cssIS + stack_size[PG_HITD].cssAH);
-    trace_css = std::max(trace_css, stack_size[PG_HITS].cssIS + stack_size[PG_HITS].cssAH);
-    trace_css = std::max(trace_css, stack_size[PG_HITL].cssIS + stack_size[PG_HITL].cssAH);
-    trace_css = std::max(trace_css, stack_size[PG_HITV].cssIS + stack_size[PG_HITV].cssAH);
-    trace_css = std::max(trace_css,
-                         stack_size[PG_HITD_MOTION].cssIS + stack_size[PG_HITD_MOTION].cssAH);
-    trace_css = std::max(trace_css,
-                         stack_size[PG_HITS_MOTION].cssIS + stack_size[PG_HITS_MOTION].cssAH);
-    trace_css = std::max(trace_css,
-                         stack_size[PG_HITD_CURVE_LINEAR].cssIS +
-                             stack_size[PG_HITD_CURVE_LINEAR].cssAH);
-    trace_css = std::max(trace_css,
-                         stack_size[PG_HITS_CURVE_LINEAR].cssIS +
-                             stack_size[PG_HITS_CURVE_LINEAR].cssAH);
-    trace_css = std::max(trace_css,
-                         stack_size[PG_HITD_CURVE_LINEAR_MOTION].cssIS +
-                             stack_size[PG_HITD_CURVE_LINEAR_MOTION].cssAH);
-    trace_css = std::max(trace_css,
-                         stack_size[PG_HITS_CURVE_LINEAR_MOTION].cssIS +
-                             stack_size[PG_HITS_CURVE_LINEAR_MOTION].cssAH);
-    trace_css = std::max(trace_css,
-                         stack_size[PG_HITD_CURVE_RIBBON].cssIS +
-                             stack_size[PG_HITD_CURVE_RIBBON].cssAH);
-    trace_css = std::max(trace_css,
-                         stack_size[PG_HITS_CURVE_RIBBON].cssIS +
-                             stack_size[PG_HITS_CURVE_RIBBON].cssAH);
-    trace_css = std::max(
-        trace_css, stack_size[PG_HITD_POINTCLOUD].cssIS + stack_size[PG_HITD_POINTCLOUD].cssAH);
-    trace_css = std::max(
-        trace_css, stack_size[PG_HITS_POINTCLOUD].cssIS + stack_size[PG_HITS_POINTCLOUD].cssAH);
+    trace_css = hit_program_continuation_stack_size(stack_size.data());
 
     return stack_size;
   };
@@ -821,41 +820,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     if (kernel_features & KERNEL_FEATURE_MNEE) {
       pipeline_groups.push_back(groups[PG_RGEN_INTERSECT_MNEE]);
     }
-    pipeline_groups.push_back(groups[PG_MISS]);
-    pipeline_groups.push_back(groups[PG_HITD]);
-    pipeline_groups.push_back(groups[PG_HITS]);
-    pipeline_groups.push_back(groups[PG_HITL]);
-    pipeline_groups.push_back(groups[PG_HITV]);
-    if (pipeline_options.usesMotionBlur) {
-      pipeline_groups.push_back(groups[PG_HITD_MOTION]);
-      pipeline_groups.push_back(groups[PG_HITS_MOTION]);
-      pipeline_groups.push_back(groups[PG_HITV_MOTION]);
-      pipeline_groups.push_back(groups[PG_HITL_MOTION]);
-    }
-    if (kernel_features & KERNEL_FEATURE_HAIR_THICK) {
-      pipeline_groups.push_back(groups[PG_HITD_CURVE_LINEAR]);
-      pipeline_groups.push_back(groups[PG_HITS_CURVE_LINEAR]);
-      pipeline_groups.push_back(groups[PG_HITV_CURVE_LINEAR]);
-      pipeline_groups.push_back(groups[PG_HITL_CURVE_LINEAR]);
-      if (pipeline_options.usesMotionBlur) {
-        pipeline_groups.push_back(groups[PG_HITD_CURVE_LINEAR_MOTION]);
-        pipeline_groups.push_back(groups[PG_HITS_CURVE_LINEAR_MOTION]);
-        pipeline_groups.push_back(groups[PG_HITV_CURVE_LINEAR_MOTION]);
-        pipeline_groups.push_back(groups[PG_HITL_CURVE_LINEAR_MOTION]);
-      }
-    }
-    if (kernel_features & KERNEL_FEATURE_HAIR_RIBBON) {
-      pipeline_groups.push_back(groups[PG_HITD_CURVE_RIBBON]);
-      pipeline_groups.push_back(groups[PG_HITS_CURVE_RIBBON]);
-      pipeline_groups.push_back(groups[PG_HITV_CURVE_RIBBON]);
-      pipeline_groups.push_back(groups[PG_HITL_CURVE_RIBBON]);
-    }
-    if (kernel_features & KERNEL_FEATURE_POINTCLOUD) {
-      pipeline_groups.push_back(groups[PG_HITD_POINTCLOUD]);
-      pipeline_groups.push_back(groups[PG_HITS_POINTCLOUD]);
-      pipeline_groups.push_back(groups[PG_HITV_POINTCLOUD]);
-      pipeline_groups.push_back(groups[PG_HITL_POINTCLOUD]);
-    }
+    add_hit_miss_program_groups(groups, pipeline_groups);
 
     optix_assert(optixPipelineCreate(context,
                                      &pipeline_options,
@@ -1200,6 +1165,14 @@ bool OptiXDevice::load_osl_kernels()
     pipeline_groups.push_back(groups[PG_RGEN_INIT_FROM_CAMERA]);
     pipeline_groups.push_back(groups[PG_RGEN_EVAL_VOLUME_DENSITY]);
 
+    /* For shader ray-tracing, trace depth and hit program groups are needed. */
+    if (groups[PG_RGEN_SHADE_SURFACE_RAYTRACE] != nullptr ||
+        groups[PG_RGEN_INTERSECT_MNEE] != nullptr)
+    {
+      link_options.maxTraceDepth = 1;
+      add_hit_miss_program_groups(groups, pipeline_groups);
+    }
+
     for (const OptixProgramGroup &group : osl_groups) {
       if (group != nullptr) {
         pipeline_groups.push_back(group);
@@ -1232,8 +1205,10 @@ bool OptiXDevice::load_osl_kernels()
       }
     }
 
+    const unsigned int trace_css = hit_program_continuation_stack_size(stack_size);
     const unsigned int css = std::max(stack_size[PG_RGEN_SHADE_SURFACE_RAYTRACE].cssRG,
-                                      stack_size[PG_RGEN_INTERSECT_MNEE].cssRG);
+                                      stack_size[PG_RGEN_INTERSECT_MNEE].cssRG) +
+                             link_options.maxTraceDepth * trace_css;
     unsigned int dss = std::max(stack_size[PG_CALL_SVM_AO].dssDC,
                                 stack_size[PG_CALL_SVM_BEVEL].dssDC);
     for (unsigned int i = 0; i < osl_stack_size.size(); ++i) {
