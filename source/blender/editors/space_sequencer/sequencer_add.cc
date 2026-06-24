@@ -199,14 +199,16 @@ static void sequencer_add_ui(bContext * /*C*/, wmOperator *op)
     layout.prop(op->ptr, "length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  layout.separator();
+  if (RNA_struct_find_property(op->ptr, "show_multiview")) {
+    layout.separator();
 
-  /* Image template. */
-  PointerRNA imf_ptr = RNA_pointer_create_discrete(nullptr, RNA_ImageFormatSettings, imf);
+    /* Image template. */
+    PointerRNA imf_ptr = RNA_pointer_create_discrete(nullptr, RNA_ImageFormatSettings, imf);
 
-  /* Multiview template. */
-  if (RNA_boolean_get(op->ptr, "show_multiview")) {
-    uiTemplateImageFormatViews(&layout, &imf_ptr, op->ptr);
+    /* Multiview template. */
+    if (RNA_boolean_get(op->ptr, "show_multiview")) {
+      uiTemplateImageFormatViews(&layout, &imf_ptr, op->ptr);
+    }
   }
 }
 
@@ -2006,7 +2008,7 @@ static wmOperatorStatus sequencer_add_effect_strip_exec(bContext *C, wmOperator 
   const int min_inputs = seq::effect_type_get_min_num_inputs(effect_type);
 
   VectorSet<Strip *> inputs = strip_effect_get_new_inputs(
-      scene, effect_type == STRIP_TYPE_COMPOSITOR ? 2 : min_inputs);
+      scene, effect_type, effect_type == STRIP_TYPE_COMPOSITOR ? 2 : min_inputs);
   if (effect_type != STRIP_TYPE_COMPOSITOR) {
     const char *error_msg = effect_inputs_validate(inputs.size(), min_inputs);
     if (error_msg != nullptr) {

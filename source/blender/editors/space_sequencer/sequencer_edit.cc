@@ -1643,35 +1643,59 @@ const char *effect_inputs_validate(int have_inputs, int num_inputs)
 }
 
 VectorSet<Strip *> strip_effect_get_new_inputs(const Scene *scene,
+                                               StripType effect_type,
                                                int num_inputs,
                                                bool ignore_active)
 {
+  BLI_assert(num_inputs <= 2);
   if (num_inputs == 0) {
     return {};
   }
 
   Editing *ed = seq::editing_get(scene);
-  VectorSet<Strip *> selected_strips = seq::query_selected_strips(ed->current_strips());
+  VectorSet<Strip *> inputs = seq::query_selected_strips(ed->current_strips());
   /* Ignore sound strips for now (avoids unnecessary errors when connected strips are
    * selected together, and the intent to operate on strips with video content is clear). */
-  selected_strips.remove_if([&](Strip *strip) { return strip->type == STRIP_TYPE_SOUND; });
+  inputs.remove_if([&](Strip *strip) { return strip->type == STRIP_TYPE_SOUND; });
 
   if (ignore_active) {
     /* If `ignore_active` is true, this function is being called from the reassign inputs
      * operator, meaning the active strip must be the effect strip to reassign. */
     Strip *active_strip = seq::select_active_get(scene);
-    selected_strips.remove_if([&](Strip *strip) { return strip == active_strip; });
+    inputs.remove_if([&](Strip *strip) { return strip == active_strip; });
   }
 
-  if (selected_strips.size() > num_inputs) {
-    VectorSet<Strip *> inputs;
-    for (int64_t i : IndexRange(num_inputs)) {
-      inputs.add(selected_strips[i]);
+  while (inputs.size() > num_inputs) {
+    inputs.pop();
+  }
+
+  if (inputs.size() == 2 && num_inputs == 2) {
+    Strip *first = inputs[0];
+    Strip *second = inputs[1];
+    bool do_swap = false;
+    if (seq::effect_is_transition(effect_type)) {
+      /* Sort by timeline frame so 2-input transitions go "from" earlier "to" later. */
+      const int first_start = first->left_handle();
+      const int second_start = second->left_handle();
+      do_swap = (first_start > second_start) ||
+                (first_start == second_start &&
+                 first->right_handle(scene) > second->right_handle(scene));
     }
-    return inputs;
+    else if (first == seq::select_active_get(scene) ||
+             (ignore_active && first->channel < second->channel))
+    {
+      /* Other 2-input effects (blend-modes) make the active strip the second input. If neither
+       * strip is active (as in reassign inputs), make it the strip on the lower channel. */
+      do_swap = true;
+    }
+    if (do_swap) {
+      inputs.clear();
+      inputs.add(second);
+      inputs.add(first);
+    }
   }
 
-  return selected_strips;
+  return inputs;
 }
 
 static wmOperatorStatus sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
@@ -1685,7 +1709,8 @@ static wmOperatorStatus sequencer_reassign_inputs_exec(bContext *C, wmOperator *
     return OPERATOR_CANCELLED;
   }
 
-  VectorSet<Strip *> inputs = strip_effect_get_new_inputs(scene, num_inputs, true);
+  VectorSet<Strip *> inputs = strip_effect_get_new_inputs(
+      scene, active_strip->type, num_inputs, true);
   StringRef error_msg = effect_inputs_validate(inputs.size(), num_inputs);
 
   if (!error_msg.is_empty()) {
