@@ -659,12 +659,13 @@ struct Layout : public Item, NonCopyable, NonMovable {
 
   /**
    * Adds a string property item as textbox, this will let multi-line text editing, textbox state
-   * will be persistent at runtime.
+   * will stored in the current context region.
    */
   void textbox(const bContext *C,
                PointerRNA *ptr,
                StringRefNull propname,
-               std::optional<StringRefNull> placeholder = std::nullopt);
+               std::optional<StringRefNull> placeholder = std::nullopt,
+               const int initial_visible_lines = 3);
   /**
    * Adds a string property item as textbox, this will let multi-line text editing.
    * \param textbox_state: custom allocation for persistent textbox state.

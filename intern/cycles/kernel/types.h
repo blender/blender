@@ -276,6 +276,9 @@ enum PathRayFlag : uint32_t {
   /* Volume scattering probability guiding. This flag is added to path where the primary ray passed
    * through the volume without scattering. */
   PATH_RAY_VOLUME_PRIMARY_TRANSMIT = (1U << 24U),
+
+  /* The current shadow ray is a light linking (forward) and not next-event shadow ray. */
+  PATH_RAY_SHADOW_FOR_LIGHT_LINKING = (1U << 25U),
 };
 
 // 8bit enum, just in case we need to move more variables in it
