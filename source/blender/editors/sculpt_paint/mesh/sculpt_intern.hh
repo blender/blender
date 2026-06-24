@@ -163,6 +163,7 @@ struct TileColorspaceProcessor : NonCopyable {
   ColormanageProcessor buffer_to_linear_processor = {};
   ColormanageProcessor linear_to_buffer_processor = {};
   bool is_noop = true;
+  bool is_srgb_byte = false;
 };
 
 struct ImageData : NonCopyable {

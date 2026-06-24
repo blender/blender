@@ -17,6 +17,7 @@
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_color_blend.hh"
+#include "BLI_math_color_c.hh"
 #include "BLI_math_geom_c.hh"
 #ifdef DEBUG_PIXEL_NODES
 #  include "BLI_hash_c.hh"
@@ -112,6 +113,14 @@ static void fetch_image_buffers(ImageData &image_data,
         if (!buffer_colorspace) {
           return processor;
         }
+
+        /* Fast path for sRGB, to avoid overhead of calling into OpenColorIO. */
+        if (buffer->byte_data() && IMB_colormanagement_space_is_srgb(buffer_colorspace)) {
+          processor.is_srgb_byte = true;
+          processor.is_noop = false;
+          return processor;
+        }
+
         ColormanageProcessor buffer_to_linear =
             ColormanageProcessor::colorspace_processor_to_scene_linear_new(*buffer_colorspace);
         if (buffer_to_linear.is_noop()) {
@@ -213,6 +222,15 @@ static MutableSpan<float4> read_image_pixels(Span<uchar4> image_pixels,
   const int start_offset = int(pixel_row.start_image_coordinate.y) * width +
                            int(pixel_row.start_image_coordinate.x) + range.start();
 
+  if (processors.is_srgb_byte) {
+    /* Fast path for common sRGB byte buffer case. */
+    for (int i = 0; i < range.size(); i++) {
+      srgb_to_linearrgb_uchar4(storage[i], image_pixels[start_offset + i]);
+      IMB_colormanagement_rec709_to_scene_linear(storage[i], storage[i]);
+    }
+    return storage;
+  }
+
   for (int i = 0; i < range.size(); i++) {
     rgba_uchar_to_float(storage[i], image_pixels[start_offset + i]);
   }
@@ -235,13 +253,24 @@ static void write_image_pixels(MutableSpan<float4> scene_linear_pixels,
                                const int width)
 {
   PRF_scope(ProfileCategory::Editor);
+  const int start_offset = int(pixel_row.start_image_coordinate.y) * width +
+                           int(pixel_row.start_image_coordinate.x) + range.start();
+
+  if (processors.is_srgb_byte) {
+    /* Fast path for common sRGB byte buffer case. */
+    for (int i = 0; i < range.size(); i++) {
+      float4 srgb;
+      IMB_colormanagement_scene_linear_to_srgb_v3(srgb, scene_linear_pixels[i]);
+      srgb[3] = scene_linear_pixels[i][3];
+      rgba_float_to_uchar(image_pixels[start_offset + i], srgb);
+    }
+    return;
+  }
+
   if (!processors.is_noop) {
     processors.linear_to_buffer_processor.apply(
         reinterpret_cast<float *>(scene_linear_pixels.data()), range.size(), 1, 4, false);
   }
-
-  const int start_offset = int(pixel_row.start_image_coordinate.y) * width +
-                           int(pixel_row.start_image_coordinate.x) + range.start();
 
   for (int i = 0; i < range.size(); i++) {
     rgba_float_to_uchar(image_pixels[start_offset + i], scene_linear_pixels[i]);
