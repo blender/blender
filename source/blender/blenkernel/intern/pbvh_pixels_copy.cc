@@ -206,7 +206,7 @@ class PixelNodesTileData : public Vector<std::reference_wrapper<UDIMTilePixels>>
  */
 
 struct Rows {
-  enum class PixelType {
+  enum class PixelType : uint8_t {
     Undecided,
     /** This pixel is directly affected by a brush and doesn't need to be solved. */
     Brush,
@@ -216,62 +216,29 @@ struct Rows {
   };
 
   struct Pixel {
-    PixelType type;
-    float distance;
-    CopyPixelCommand copy_command;
+    float distance = std::numeric_limits<float>::max();
     /**
      * Index of the edge in the list of non-manifold edges.
      *
      * The edge is kept to calculate the mix factor between the two pixels that have chosen to
      * be mixed.
      */
-    int64_t edge_index;
-
-    Pixel() = default;
-
-    void init(int2 coordinate)
-    {
-      copy_command.destination = coordinate;
-      copy_command.source_1 = coordinate;
-      copy_command.source_2 = coordinate;
-      copy_command.mix_factor = 0.0f;
-      type = PixelType::Undecided;
-      distance = std::numeric_limits<float>::max();
-      edge_index = -1;
-    }
+    int edge_index = -1;
+    PixelType type = PixelType::Undecided;
   };
 
   int2 resolution;
   int margin;
   Array<Pixel> pixels;
 
-  struct RowView {
-    int row_number = 0;
-    /** Not owning pointer into Row.pixels starts at the start of the row. */
-    MutableSpan<Pixel> pixels;
-    RowView() = delete;
-    RowView(Rows &rows, int64_t row_number)
-        : row_number(row_number),
-          pixels(
-              MutableSpan<Pixel>(&rows.pixels[row_number * rows.resolution.x], rows.resolution.x))
-    {
-    }
-  };
-
   Rows(int2 resolution, int margin)
       : resolution(resolution), margin(margin), pixels(resolution.x * resolution.y)
   {
   }
 
-  void init_pixels()
+  int2 coordinate_of(const int64_t index) const
   {
-    int64_t index = 0;
-    for (int y : IndexRange(resolution.y)) {
-      for (int64_t x : IndexRange(resolution.x)) {
-        int2 position(x, y);
-        pixels[index++].init(position);
-      }
-    }
+    return int2(int(index % resolution.x), int(index / resolution.x));
   }
 
   /**
@@ -361,16 +328,16 @@ struct Rows {
         (destination_lambda - source_1_lambda) / (source_2_lambda - source_1_lambda), 0.0f, 1.0f);
   }
 
-  void find_copy_source(Pixel &pixel, const NonManifoldTileEdges &tile_edges)
+  void find_copy_source(const int64_t index,
+                        CopyPixelCommand &r_command,
+                        const NonManifoldTileEdges &tile_edges)
   {
+    Pixel &pixel = pixels[index];
     BLI_assert(pixel.type == PixelType::SelectedForCloserExamination);
+    const int2 destination = coordinate_of(index);
 
     rcti bounds;
-    BLI_rcti_init(&bounds,
-                  pixel.copy_command.destination.x,
-                  pixel.copy_command.destination.x,
-                  pixel.copy_command.destination.y,
-                  pixel.copy_command.destination.y);
+    BLI_rcti_init(&bounds, destination.x, destination.x, destination.y, destination.y);
     add_margin(bounds, margin);
     clamp(bounds, resolution);
 
@@ -384,8 +351,7 @@ struct Rows {
         if (source.type != PixelType::Brush) {
           continue;
         }
-        float new_distance = math::distance(float2(sx, sy),
-                                            float2(pixel.copy_command.destination));
+        float new_distance = math::distance(float2(sx, sy), float2(destination));
         if (new_distance < found_distance) {
           found_source = int2(sx, sy);
           found_distance = new_distance;
@@ -398,30 +364,28 @@ struct Rows {
     }
     pixel.type = PixelType::CopyFromClosestEdge;
     pixel.distance = found_distance;
-    pixel.copy_command.source_1 = found_source;
-    pixel.copy_command.source_2 = find_second_source(pixel.copy_command.destination, found_source);
-    pixel.copy_command.mix_factor = determine_mix_factor(pixel.copy_command.destination,
-                                                         pixel.copy_command.source_1,
-                                                         pixel.copy_command.source_2,
-                                                         tile_edges[pixel.edge_index]);
+    r_command.destination = destination;
+    r_command.source_1 = found_source;
+    r_command.source_2 = find_second_source(destination, found_source);
+    r_command.mix_factor = determine_mix_factor(
+        destination, found_source, r_command.source_2, tile_edges[pixel.edge_index]);
   }
 
-  void find_copy_source(Vector<std::reference_wrapper<Pixel>> &selected_pixels,
+  void find_copy_source(const Span<int64_t> selected_pixels,
+                        MutableSpan<CopyPixelCommand> r_commands,
                         const NonManifoldTileEdges &tile_edges)
   {
     threading::parallel_for(
-        IndexRange(selected_pixels.size()), THREADING_GRAIN_SIZE, [&](IndexRange range) {
-          for (int selected_pixel_index : range) {
-            Pixel &current_pixel = selected_pixels[selected_pixel_index];
-            find_copy_source(current_pixel, tile_edges);
+        selected_pixels.index_range(), THREADING_GRAIN_SIZE, [&](IndexRange range) {
+          for (const int64_t i : range) {
+            find_copy_source(selected_pixels[i], r_commands[i], tile_edges);
           }
         });
   }
 
-  Vector<std::reference_wrapper<Pixel>> filter_pixels_for_closer_examination(
-      const NonManifoldTileEdges &tile_edges)
+  Vector<int64_t> filter_pixels_for_closer_examination(const NonManifoldTileEdges &tile_edges)
   {
-    Vector<std::reference_wrapper<Pixel>> selected_pixels;
+    Vector<int64_t> selected_pixels;
     selected_pixels.reserve(10000);
 
     for (int tile_edge_index : tile_edges.index_range()) {
@@ -450,7 +414,7 @@ struct Rows {
           float distance_to_edge = math::distance(closest_edge_point, point);
           if (distance_to_edge < margin && distance_to_edge < pixel.distance) {
             if (pixel.type != PixelType::SelectedForCloserExamination) {
-              selected_pixels.append(std::reference_wrapper<Pixel>(pixel));
+              selected_pixels.append(index);
             }
             pixel.type = PixelType::SelectedForCloserExamination;
             pixel.distance = distance_to_edge;
@@ -462,17 +426,19 @@ struct Rows {
     return selected_pixels;
   }
 
-  void pack_into(const Span<std::reference_wrapper<Pixel>> selected_pixels,
+  void pack_into(const Span<int64_t> selected_pixels,
+                 const Span<CopyPixelCommand> commands,
                  CopyPixelTile &copy_tile) const
   {
     std::optional<std::reference_wrapper<CopyPixelGroup>> last_group = std::nullopt;
     std::optional<CopyPixelCommand> last_command = std::nullopt;
 
-    for (const Pixel &elem : selected_pixels) {
-      if (elem.type == PixelType::CopyFromClosestEdge) {
-        if (!last_command.has_value() || !last_command->can_be_extended(elem.copy_command)) {
-          CopyPixelGroup new_group = {elem.copy_command.destination - int2(1, 0),
-                                      elem.copy_command.source_1,
+    for (const int64_t i : selected_pixels.index_range()) {
+      if (pixels[selected_pixels[i]].type == PixelType::CopyFromClosestEdge) {
+        const CopyPixelCommand &command = commands[i];
+        if (!last_command.has_value() || !last_command->can_be_extended(command)) {
+          CopyPixelGroup new_group = {command.destination - int2(1, 0),
+                                      command.source_1,
                                       copy_tile.command_deltas.size(),
                                       0};
           copy_tile.groups.append(new_group);
@@ -480,10 +446,10 @@ struct Rows {
           last_command = CopyPixelCommand(*last_group);
         }
 
-        DeltaCopyPixelCommand delta_command = last_command->encode_delta(elem.copy_command);
+        DeltaCopyPixelCommand delta_command = last_command->encode_delta(command);
         copy_tile.command_deltas.append(delta_command);
         last_group->get().num_deltas++;
-        last_command = elem.copy_command;
+        last_command = command;
       }
     }
   }
@@ -522,13 +488,12 @@ void copy_update(bke::pbvh::Tree &pbvh,
     CopyPixelTile copy_tile(image_tile.get_tile_number());
 
     Rows rows(tile_resolution, image.seam_margin);
-    rows.init_pixels();
     rows.mark_pixels_effected_by_brush(nodes_tile_pixels);
 
-    Vector<std::reference_wrapper<Rows::Pixel>> selected_pixels =
-        rows.filter_pixels_for_closer_examination(tile_edges);
-    rows.find_copy_source(selected_pixels, tile_edges);
-    rows.pack_into(selected_pixels, copy_tile);
+    Vector<int64_t> selected_pixels = rows.filter_pixels_for_closer_examination(tile_edges);
+    Array<CopyPixelCommand> selected_commands(selected_pixels.size());
+    rows.find_copy_source(selected_pixels, selected_commands, tile_edges);
+    rows.pack_into(selected_pixels, selected_commands, copy_tile);
 
     // copy_tile.print_compression_rate();
     pbvh_data.tiles_copy_pixels.tiles.append(copy_tile);
