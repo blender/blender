@@ -501,14 +501,14 @@ void ImageTextureNode::compile(OSLCompiler &compiler)
     handle = image_manager->add_image(filename.string(), image_params(), tiles);
 
     if (use_cache && !tiles.empty() && !image_manager->get_auto_texture_cache()) {
-      if (!handle.all_udim_tiled(compiler.progress)) {
+      if (!handle.all_udim_tiled(*compiler.progress)) {
         cull_tiles(compiler.scene, compiler.current_graph);
         handle = image_manager->add_image(filename.string(), image_params(), tiles);
       }
     }
   }
 
-  const ImageMetaData metadata = handle.metadata(compiler.progress);
+  const ImageMetaData metadata = handle.metadata(*compiler.progress);
   const bool is_float = metadata.is_float();
   const bool compress_as_srgb = metadata.is_compressible_as_srgb;
 
@@ -660,7 +660,7 @@ void EnvironmentTextureNode::compile(OSLCompiler &compiler)
 
   tex_mapping.compile(compiler);
 
-  const ImageMetaData metadata = handle.metadata(compiler.progress);
+  const ImageMetaData metadata = handle.metadata(*compiler.progress);
   const bool is_float = metadata.is_float();
   const bool compress_as_srgb = metadata.is_compressible_as_srgb;
 
