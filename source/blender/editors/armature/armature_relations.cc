@@ -717,6 +717,9 @@ static void separate_armature_bones(Main *bmain, Object *ob, const bool is_selec
     PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, RNA_Object, ob);
     PathResolvedRNA resolved_rna;
     for (FCurve &fcurve : ob->adt->drivers.items_mutable()) {
+      if (!fcurve.rna_path) {
+        continue;
+      }
       std::optional<std::string> bone_name = animrig::pose_bone_name_from_rna_path(
           fcurve.rna_path);
       if (!bone_name.has_value() || !freed_bone_names.contains(bone_name.value())) {
