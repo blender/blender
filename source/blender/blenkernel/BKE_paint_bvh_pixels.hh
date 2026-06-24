@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BLI_array.hh"
+#include "BLI_function_ref.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_rect.hh"
@@ -167,6 +168,14 @@ struct PixelNode {
 /** \name Fix non-manifold edge bleeding.
  * \{ */
 
+/**
+ * Each UDIM tile is split into smaller (64x64) seam tiles for which we can
+ * do seam bleeding. These are tagged as modified during painting, and only
+ * the modified subset will be processed.
+ */
+constexpr int SEAM_TILE_BITS = 6;
+constexpr int SEAM_TILE_SIZE = 1 << SEAM_TILE_BITS;
+
 struct DeltaCopyPixelCommand {
   char2 delta_source_1;
   char2 delta_source_2;
@@ -250,7 +259,18 @@ struct CopyPixelTile {
   Vector<CopyPixelGroup> groups;
   Vector<DeltaCopyPixelCommand> command_deltas;
 
+  /** The groups used by each seam tile, as an index range into #groups which is
+   * sorted by seam tile. */
+  Map<int, IndexRange> seam_tile_to_groups;
+
   CopyPixelTile(image::TileNumber tile_number) : tile_number(tile_number) {}
+
+  static int seam_tile_index(const int2 source, const int seam_tiles_x)
+  {
+    return (source.x >> SEAM_TILE_BITS) + (source.y >> SEAM_TILE_BITS) * seam_tiles_x;
+  }
+
+  void build_seam_tile_map(const int2 resolution);
 
   void copy_pixels(ImBuf &tile_buffer, IndexRange group_range) const
   {
@@ -340,6 +360,8 @@ void collect_dirty_tiles(PixelNode &pixel_node, Vector<image::TileNumber> &r_dir
 
 void copy_pixels(bke::pbvh::Tree &pbvh,
                  Map<image::TileNumber, ImBuf *> &buffers,
-                 image::TileNumber tile_number);
+                 image::TileNumber tile_number,
+                 Span<uint8_t> seam_tiles_modified,
+                 FunctionRef<void(int x_start, int x_end, int y)> push_undo_tiles);
 
 }  // namespace blender::bke::pbvh::pixels

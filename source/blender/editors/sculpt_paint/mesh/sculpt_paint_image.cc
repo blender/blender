@@ -102,6 +102,11 @@ static void fetch_image_buffers(ImageData &image_data,
                                 ED_IMAGE_UNDO_TILE_BITS;
         return Array<uint32_t>(tiles_x * tiles_y, 0);
       });
+      image_data.seam_tile_modified.lookup_or_add_cb(tile.tile_number, [&]() {
+        const int tiles_x = (buffer->x + SEAM_TILE_SIZE - 1) >> SEAM_TILE_BITS;
+        const int tiles_y = (buffer->y + SEAM_TILE_SIZE - 1) >> SEAM_TILE_BITS;
+        return Array<uint8_t>(int64_t(tiles_x) * tiles_y, 0);
+      });
       image_data.processors.lookup_or_add_cb(tile.tile_number, [&]() {
         const StringRefNull buffer_colorspace_name =
             buffer->float_data() ? IMB_colormanagement_get_float_colorspace(buffer) :
@@ -413,6 +418,33 @@ static void push_undo_tiles(ImageData &image_data,
   }
 }
 
+/**
+ * Mark the seam tiles covering the given pixel row as modified. Dilated by one tile so a
+ * seam whose second source sits one pixel across a tile boundary is still handled.
+ */
+static void mark_seam_tiles_modified(MutableSpan<uint8_t> mask,
+                                     const int tiles_x,
+                                     const int tiles_y,
+                                     const int x_start,
+                                     const int x_end,
+                                     const int y)
+{
+  const int tile_y = y >> SEAM_TILE_BITS;
+  const int tile_y_min = (tile_y > 0) ? tile_y - 1 : 0;
+  const int tile_y_max = (tile_y + 1 < tiles_y) ? tile_y + 1 : tiles_y - 1;
+
+  const int tile_x_start = x_start >> SEAM_TILE_BITS;
+  const int tile_x_end = x_end >> SEAM_TILE_BITS;
+  const int tile_x_min = (tile_x_start > 0) ? tile_x_start - 1 : 0;
+  const int tile_x_max = (tile_x_end + 1 < tiles_x) ? tile_x_end + 1 : tiles_x - 1;
+
+  for (int dty = tile_y_min; dty <= tile_y_max; dty++) {
+    for (int dtx = tile_x_min; dtx <= tile_x_max; dtx++) {
+      mask[int64_t(dty) * tiles_x + dtx] = 1;
+    }
+  }
+}
+
 static void do_paint_pixels(const Depsgraph &depsgraph,
                             Object &object,
                             const Paint &paint,
@@ -563,6 +595,11 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
 
     const IndexMask changed_rows = IndexMask::from_bools(valid_rows, row_changed, memory);
 
+    const MutableSpan<uint8_t> seam_tile_modified = image_data.seam_tile_modified.lookup(
+        tile_data.tile_number);
+    const int seam_tiles_x = (image_buffer->x + SEAM_TILE_SIZE - 1) >> SEAM_TILE_BITS;
+    const int seam_tiles_y = (image_buffer->y + SEAM_TILE_SIZE - 1) >> SEAM_TILE_BITS;
+
     const Bounds<int2> dirty_bounds = threading::parallel_reduce(
         changed_rows.index_range(),
         512,
@@ -571,6 +608,14 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
           Bounds<int2> current = init;
           changed_rows.slice(range).foreach_index([&](const int row_i) {
             const PackedPixelRow pixel_row = tile_data.pixel_rows[row_i];
+
+            mark_seam_tiles_modified(seam_tile_modified,
+                                     seam_tiles_x,
+                                     seam_tiles_y,
+                                     int(pixel_row.start_image_coordinate.x),
+                                     int(pixel_row.start_image_coordinate.x) +
+                                         int(pixel_row.num_pixels) - 1,
+                                     int(pixel_row.start_image_coordinate.y));
 
             const int2 start(pixel_row.start_image_coordinate.x,
                              pixel_row.start_image_coordinate.y);
@@ -608,12 +653,26 @@ static Vector<image::TileNumber> collect_dirty_tiles(MutableSpan<PixelNode> node
   return dirty_tiles;
 }
 static void fix_non_manifold_seam_bleeding(bke::pbvh::Tree &pbvh,
-                                           Map<paint::image::TileNumber, ImBuf *> &buffers,
+                                           ImageData &image_data,
                                            Span<TileNumber> tile_numbers_to_fix)
 {
   PRF_scope(ProfileCategory::Editor);
   for (image::TileNumber tile_number : tile_numbers_to_fix) {
-    bke::pbvh::pixels::copy_pixels(pbvh, buffers, tile_number);
+    ImBuf *image_buffer = image_data.buffers.lookup_default(tile_number, nullptr);
+    if (image_buffer == nullptr) {
+      continue;
+    }
+    const MutableSpan<uint32_t> undo_tile_pushed = image_data.undo_tile_pushed.lookup(tile_number);
+
+    bke::pbvh::pixels::copy_pixels(
+        pbvh,
+        image_data.buffers,
+        tile_number,
+        image_data.seam_tile_modified.lookup(tile_number),
+        [&](const int x_start, const int x_end, const int y) {
+          push_undo_tiles(
+              image_data, tile_number, *image_buffer, undo_tile_pushed, x_start, x_end, y);
+        });
   }
 }
 
@@ -624,7 +683,7 @@ static void fix_non_manifold_seam_bleeding(Object &ob,
                                            const IndexMask &node_mask)
 {
   Vector<image::TileNumber> dirty_tiles = collect_dirty_tiles(pixel_nodes, node_mask);
-  fix_non_manifold_seam_bleeding(*bke::object::pbvh_get(ob), image_data.buffers, dirty_tiles);
+  fix_non_manifold_seam_bleeding(*bke::object::pbvh_get(ob), image_data, dirty_tiles);
 }
 
 /** \} */
@@ -668,6 +727,11 @@ void SCULPT_do_paint_brush_image(const Depsgraph &depsgraph,
 
   node_mask.foreach_index(
       [&](const int i) { fetch_image_buffers(image_data, nodes[i], pixel_nodes[i]); });
+
+  for (Array<uint8_t> &modified : image_data.seam_tile_modified.values()) {
+    modified.as_mutable_span().fill(0);
+  }
+
   node_mask.foreach_index(
       [&](const int i) {
         do_paint_pixels(depsgraph, ob, sd.paint, *brush, image_data, nodes[i], pixel_nodes[i]);

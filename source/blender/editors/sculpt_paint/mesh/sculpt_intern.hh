@@ -176,6 +176,9 @@ struct ImageData : NonCopyable {
   /** Per undo tile, to quickly check if it was already pushed. */
   Map<bke::image::TileNumber, Array<uint32_t>> undo_tile_pushed = {};
 
+  /** Per seam tile modified state, to only do seam bleeding where needed. */
+  Map<bke::image::TileNumber, Array<uint8_t>> seam_tile_modified = {};
+
   ~ImageData();
 
   static std::unique_ptr<ImageData> init_active_image(Object &ob,

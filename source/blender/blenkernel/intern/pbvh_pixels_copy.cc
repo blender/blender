@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <algorithm>
+
 #include "BLI_array.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_listbase.hh"
@@ -432,15 +434,24 @@ struct Rows {
   {
     std::optional<std::reference_wrapper<CopyPixelGroup>> last_group = std::nullopt;
     std::optional<CopyPixelCommand> last_command = std::nullopt;
+    const int seam_tilex_x = (resolution.x + SEAM_TILE_SIZE - 1) >> SEAM_TILE_BITS;
+    int last_seam_tile = -1;
 
     for (const int64_t i : selected_pixels.index_range()) {
       if (pixels[selected_pixels[i]].type == PixelType::CopyFromClosestEdge) {
         const CopyPixelCommand &command = commands[i];
-        if (!last_command.has_value() || !last_command->can_be_extended(command)) {
+
+        /* Split group when it cross into another seam tile, so we can cleanly
+         * sort each group into a seam tile later. */
+        const int seam_tile = CopyPixelTile::seam_tile_index(command.source_1, seam_tilex_x);
+        if (!last_command.has_value() || !last_command->can_be_extended(command) ||
+            seam_tile != last_seam_tile)
+        {
           CopyPixelGroup new_group = {command.destination - int2(1, 0),
                                       command.source_1,
                                       copy_tile.command_deltas.size(),
                                       0};
+          last_seam_tile = seam_tile;
           copy_tile.groups.append(new_group);
           last_group = copy_tile.groups.last();
           last_command = CopyPixelCommand(*last_group);
@@ -454,6 +465,28 @@ struct Rows {
     }
   }
 };
+
+void CopyPixelTile::build_seam_tile_map(const int2 resolution)
+{
+  /* Sort the groups by the seam tile their source pixels fall in and
+   * store the index range into the group array for each seam tile. */
+  const int tiles_x = (resolution.x + SEAM_TILE_SIZE - 1) >> SEAM_TILE_BITS;
+  std::ranges::stable_sort(groups, std::less<>{}, [tiles_x](const CopyPixelGroup &group) {
+    return seam_tile_index(group.start_source_1, tiles_x);
+  });
+
+  seam_tile_to_groups.clear();
+  int64_t start = 0;
+  while (start < groups.size()) {
+    const int tile = seam_tile_index(groups[start].start_source_1, tiles_x);
+    int64_t end = start + 1;
+    while (end < groups.size() && seam_tile_index(groups[end].start_source_1, tiles_x) == tile) {
+      end++;
+    }
+    seam_tile_to_groups.add(tile, IndexRange(start, end - start));
+    start = end;
+  }
+}
 
 void copy_update(bke::pbvh::Tree &pbvh,
                  Image &image,
@@ -494,6 +527,7 @@ void copy_update(bke::pbvh::Tree &pbvh,
     Array<CopyPixelCommand> selected_commands(selected_pixels.size());
     rows.find_copy_source(selected_pixels, selected_commands, tile_edges);
     rows.pack_into(selected_pixels, selected_commands, copy_tile);
+    copy_tile.build_seam_tile_map(tile_resolution);
 
     // copy_tile.print_compression_rate();
     pbvh_data.tiles_copy_pixels.tiles.append(copy_tile);
@@ -504,7 +538,9 @@ void copy_update(bke::pbvh::Tree &pbvh,
  * bke namespace. */
 void copy_pixels(bke::pbvh::Tree &pbvh,
                  Map<image::TileNumber, ImBuf *> &buffers,
-                 image::TileNumber tile_number)
+                 image::TileNumber tile_number,
+                 const Span<uint8_t> seam_tiles_modified,
+                 const FunctionRef<void(int x_start, int x_end, int y)> push_undo_tiles)
 {
   PixelData &pbvh_data = data_get(pbvh);
   std::optional<std::reference_wrapper<CopyPixelTile>> pixel_tile =
@@ -521,8 +557,30 @@ void copy_pixels(bke::pbvh::Tree &pbvh,
   }
 
   CopyPixelTile &tile = pixel_tile->get();
-  threading::parallel_for(tile.groups.index_range(), THREADING_GRAIN_SIZE, [&](IndexRange range) {
-    tile.copy_pixels(*tile_buffer, range);
+
+  /* Gather groups to update based on modified seam tiles. */
+  Vector<IndexRange> active_groups;
+  for (const auto item : tile.seam_tile_to_groups.items()) {
+    BLI_assert(item.key < seam_tiles_modified.size());
+    if (seam_tiles_modified[item.key]) {
+      active_groups.append(item.value);
+    }
+  }
+
+  /* Apply pixel copy for each group. */
+  threading::parallel_for(active_groups.index_range(), 1, [&](IndexRange range) {
+    for (const int64_t i : range) {
+      const IndexRange group_range = active_groups[i];
+
+      /* Push undo tiles affected by these group before editing, just like painting. */
+      for (const CopyPixelGroup &group : tile.groups.as_span().slice(group_range)) {
+        push_undo_tiles(group.start_destination.x + 1,
+                        group.start_destination.x + group.num_deltas,
+                        group.start_destination.y);
+      }
+
+      tile.copy_pixels(*tile_buffer, group_range);
+    }
   });
 }
 
