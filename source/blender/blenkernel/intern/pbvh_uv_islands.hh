@@ -332,7 +332,13 @@ struct UVIslandsMask {
 
     Tile(float2 udim_offset, ushort2 tile_resolution);
 
+    /** Lookup by UV. */
     bool is_masked(uint16_t island_index, float2 uv) const;
+    /** Lookup by resolved mask pixel coordinate. */
+    bool is_masked(const uint16_t island_index, const int mask_x, const int mask_y) const
+    {
+      return mask[int64_t(mask_y) * mask_resolution.x + mask_x] == island_index;
+    }
     bool contains(float2 uv) const;
     float get_pixel_size_in_uv_space() const;
   };

@@ -65,11 +65,10 @@ constexpr bool USE_WATERTIGHT_CHECK = false;
 
 static void extract_barycentric_pixels(UDIMTilePixels &tile_data,
                                        const ImBuf *image_buffer,
-                                       const uv_islands::UVIslandsMask &uv_mask,
+                                       const uv_islands::UVIslandsMask::Tile &mask_tile,
                                        const int uv_island_index,
                                        const int uv_primitive_index,
                                        const float2 uvs[3],
-                                       const float2 tile_offset,
                                        const int minx,
                                        const int miny,
                                        const int maxx,
@@ -77,6 +76,11 @@ static void extract_barycentric_pixels(UDIMTilePixels &tile_data,
 {
   const float inv_w = 1.0f / image_buffer->x;
   const float inv_h = 1.0f / image_buffer->y;
+
+  const int mask_resolution_x = mask_tile.mask_resolution.x;
+  const int mask_resolution_y = mask_tile.mask_resolution.y;
+  const float mask_scale_x = mask_resolution_x * inv_w;
+  const float mask_scale_y = mask_resolution_y * inv_h;
 
   const float2 image_dimensions(image_buffer->x, image_buffer->y);
   const TriRasterizer rasterizer(
@@ -91,20 +95,22 @@ static void extract_barycentric_pixels(UDIMTilePixels &tile_data,
     int x;
 
     const float fy = float(y) + 0.5f;
+    const int mask_y = std::clamp(int(fy * mask_scale_y), 0, mask_resolution_y - 1);
 
     float3 edge_vals = row_edge_vals;
     for (x = minx; x < maxx; x++) {
       const float fx = float(x) + 0.5f;
-      const float2 uv(fx * inv_w, fy * inv_h);
 
       /* The mask UV is always in range, since loop pixels are inside the clamped bounding box. */
-      const bool is_masked = uv_mask.is_masked(uv_island_index, uv + tile_offset);
+      const int mask_x = std::clamp(int(fx * mask_scale_x), 0, mask_resolution_x - 1);
+      const bool is_masked = mask_tile.is_masked(uv_island_index, mask_x, mask_y);
       const bool is_inside = rasterizer.inside(edge_vals);
 
       if (!start_detected && is_inside && is_masked) {
         start_detected = true;
         pixel_row.start_image_coordinate = ushort2(x, y);
         float3 barycentric_weights;
+        const float2 uv(fx * inv_w, fy * inv_h);
         barycentric_weights_v2(uvs[0], uvs[1], uvs[2], uv, barycentric_weights);
         pixel_row.start_barycentric_coord = float2(barycentric_weights.x, barycentric_weights.y);
       }
@@ -189,6 +195,10 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
     tile_data.tile_number = image_tile.get_tile_number();
     float2 tile_offset = float2(image_tile.get_tile_offset());
 
+    /* Lookup mask tile once per triangle, as each triangle belongs to one UDIM tile. */
+    const uv_islands::UVIslandsMask::Tile *mask_tile = uv_masks.find_tile(tile_offset +
+                                                                          float2(0.5f, 0.5f));
+
     for (const int face : node.faces()) {
       for (const int tri : bke::mesh::face_triangles_range(mesh_data.faces, face)) {
         for (const UVPrimitiveLookup::Entry &entry : uv_prim_lookup.lookup[tri]) {
@@ -212,17 +222,18 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
               calc_barycentric_delta_x(image_buffer, uvs, minx, miny));
 
           /* Extract the pixels. */
-          extract_barycentric_pixels(tile_data,
-                                     image_buffer,
-                                     uv_masks,
-                                     entry.uv_island_index,
-                                     uv_prim_index,
-                                     uvs,
-                                     tile_offset,
-                                     minx,
-                                     miny,
-                                     maxx,
-                                     maxy);
+          if (mask_tile != nullptr) {
+            extract_barycentric_pixels(tile_data,
+                                       image_buffer,
+                                       *mask_tile,
+                                       entry.uv_island_index,
+                                       uv_prim_index,
+                                       uvs,
+                                       minx,
+                                       miny,
+                                       maxx,
+                                       maxy);
+          }
         }
       }
     }
