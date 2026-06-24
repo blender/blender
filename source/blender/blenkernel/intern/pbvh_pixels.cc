@@ -447,10 +447,6 @@ static bool update_pixels(const Depsgraph &depsgraph,
   /* Add solution for non-manifold parts of the model. */
   copy_update(pbvh, image, image_user, mesh_data);
 
-  /* Rebuild the undo regions. */
-  nodes_to_update.foreach_index([&](const int i) { pixel_nodes[i].rebuild_undo_regions(); },
-                                exec_mode::grain_size(1));
-
   /* Clear the UpdatePixels flag. */
   nodes_to_update.foreach_index([&](const int i) { pixel_nodes[i].flags.rebuild = false; });
 

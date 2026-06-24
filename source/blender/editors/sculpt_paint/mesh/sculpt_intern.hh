@@ -172,6 +172,9 @@ struct ImageData : NonCopyable {
   Map<bke::image::TileNumber, ImBuf *> buffers = {};
   Map<bke::image::TileNumber, TileColorspaceProcessor> processors = {};
 
+  /** Per undo tile, to quickly check if it was already pushed. */
+  Map<bke::image::TileNumber, Array<uint32_t>> undo_tile_pushed = {};
+
   ~ImageData();
 
   static std::unique_ptr<ImageData> init_active_image(Object &ob,

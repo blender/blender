@@ -86,13 +86,6 @@ struct UDIMTilePixels {
   }
 };
 
-struct UDIMTileUndo {
-  short tile_number;
-  rcti region;
-
-  UDIMTileUndo(short tile_number, rcti &region) : tile_number(tile_number), region(region) {}
-};
-
 /**
  * Contains triangle/pixel data used during texture painting.
  */
@@ -106,7 +99,6 @@ struct PixelNode {
   } flags;
 
   Vector<UDIMTilePixels, 0> tiles;
-  Vector<UDIMTileUndo, 0> undo_regions;
 
   struct {
     /** Corresponding index into triangles */
@@ -134,27 +126,6 @@ struct PixelNode {
       }
     }
     return nullptr;
-  }
-
-  void rebuild_undo_regions()
-  {
-    undo_regions.clear();
-    for (UDIMTilePixels &tile : tiles) {
-      if (tile.pixel_rows.is_empty()) {
-        continue;
-      }
-
-      rcti region;
-      BLI_rcti_init_minmax(&region);
-      for (PackedPixelRow &pixel_row : tile.pixel_rows) {
-        BLI_rcti_do_minmax_v(
-            &region, int2(pixel_row.start_image_coordinate.x, pixel_row.start_image_coordinate.y));
-        BLI_rcti_do_minmax_v(&region,
-                             int2(pixel_row.start_image_coordinate.x + pixel_row.num_pixels + 1,
-                                  pixel_row.start_image_coordinate.y + 1));
-      }
-      undo_regions.append(UDIMTileUndo(tile.tile_number, region));
-    }
   }
 
   void mark_region(UDIMTilePixels &tile,
@@ -189,7 +160,6 @@ struct PixelNode {
     tiles.clear();
     uv_primitives.tri_indices.clear();
     uv_primitives.delta_barycentric_coords.clear();
-    undo_regions.clear();
   }
 };
 

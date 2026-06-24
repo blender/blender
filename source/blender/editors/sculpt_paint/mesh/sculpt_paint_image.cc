@@ -35,6 +35,8 @@
 #include "sculpt_automask.hh"
 #include "sculpt_intern.hh"
 
+#include <atomic>
+
 namespace blender {
 
 namespace ed::sculpt_paint::paint::image {
@@ -91,6 +93,13 @@ static void fetch_image_buffers(ImageData &image_data,
     });
 
     if (buffer) {
+      image_data.undo_tile_pushed.lookup_or_add_cb(tile.tile_number, [&]() {
+        const int64_t tiles_x = (buffer->x + ED_IMAGE_UNDO_TILE_SIZE - 1) >>
+                                ED_IMAGE_UNDO_TILE_BITS;
+        const int64_t tiles_y = (buffer->y + ED_IMAGE_UNDO_TILE_SIZE - 1) >>
+                                ED_IMAGE_UNDO_TILE_BITS;
+        return Array<uint32_t>(tiles_x * tiles_y, 0);
+      });
       image_data.processors.lookup_or_add_cb(tile.tile_number, [&]() {
         const StringRefNull buffer_colorspace_name =
             buffer->float_data() ? IMB_colormanagement_get_float_colorspace(buffer) :
@@ -310,6 +319,40 @@ static Bounds<int2> negative_bounds()
   return {int2(std::numeric_limits<int>::max()), int2(std::numeric_limits<int>::lowest())};
 }
 
+/**
+ * Save the pre-stroke pixels of an undo tile for a pixel row, just-in-time
+ * before painting. Uses a mask to quickly skip already pushed tiles.
+ */
+static void push_undo_tiles(ImageData &image_data,
+                            const image::TileNumber tile_number,
+                            ImBuf &image_buffer,
+                            MutableSpan<uint32_t> tile_pushed,
+                            const int img_x_start,
+                            const int img_x_end,
+                            const int img_y)
+{
+  const int tile_y = img_y >> ED_IMAGE_UNDO_TILE_BITS;
+  const int tile_x_start = img_x_start >> ED_IMAGE_UNDO_TILE_BITS;
+  const int tile_x_end = img_x_end >> ED_IMAGE_UNDO_TILE_BITS;
+  const int undo_tiles_x = (image_buffer.x + ED_IMAGE_UNDO_TILE_SIZE - 1) >>
+                           ED_IMAGE_UNDO_TILE_BITS;
+
+  for (int tile_x = tile_x_start; tile_x <= tile_x_end; tile_x++) {
+    const int tile_index = tile_y * undo_tiles_x + tile_x;
+    std::atomic_ref<uint32_t> pushed(tile_pushed[tile_index]);
+    /* This atomic load is free on x86_64, and cheap on arm64. */
+    if (pushed.load(std::memory_order_acquire)) {
+      continue;
+    }
+    ImageUser tile_user = *image_data.image_user;
+    tile_user.tile = tile_number;
+    PaintTileMap *undo_tiles = ED_image_paint_tile_map_get();
+    ED_image_paint_tile_push(
+        undo_tiles, image_data.image, &image_buffer, &tile_user, tile_x, tile_y, nullptr, nullptr);
+    pushed.store(1, std::memory_order_release);
+  }
+}
+
 static void do_paint_pixels(const Depsgraph &depsgraph,
                             Object &object,
                             const Paint &paint,
@@ -372,6 +415,9 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
     const TileColorspaceProcessor *processors = image_data.processors.lookup_ptr(
         tile_data.tile_number);
 
+    const MutableSpan<uint32_t> undo_tile_pushed = image_data.undo_tile_pushed.lookup(
+        tile_data.tile_number);
+
     const IndexMask valid_uv_rows = IndexMask::from_predicate(
         tile_data.pixel_rows.index_range(), memory, [&](const int i) {
           return brush_test[tile_data.pixel_rows[i].uv_primitive_index];
@@ -414,6 +460,18 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
               return;
             }
             row_changed[row_i] = true;
+
+            const int undo_img_x_start = int(pixel_row.start_image_coordinate.x) +
+                                         int(range.start());
+            const int undo_img_x_end = undo_img_x_start + int(range.size()) - 1;
+            const int undo_img_y = int(pixel_row.start_image_coordinate.y);
+            push_undo_tiles(image_data,
+                            tile_data.tile_number,
+                            *image_buffer,
+                            undo_tile_pushed,
+                            undo_img_x_start,
+                            undo_img_x_end,
+                            undo_img_y);
 
             tls.paint_pixels.resize(range.size());
             calc_brush_colors(tls.paint_pixels, factors, brush_color);
@@ -480,62 +538,6 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
   }
 
   pixel_node.flags.dirty |= pixels_updated;
-}
-
-static void undo_region_tiles(
-    ImBuf *ibuf, int x, int y, int w, int h, int *tx, int *ty, int *tw, int *th)
-{
-  int srcx = 0, srcy = 0;
-  IMB_rectclip(ibuf, nullptr, &x, &y, &srcx, &srcy, &w, &h);
-  *tw = ((x + w - 1) >> ED_IMAGE_UNDO_TILE_BITS);
-  *th = ((y + h - 1) >> ED_IMAGE_UNDO_TILE_BITS);
-  *tx = (x >> ED_IMAGE_UNDO_TILE_BITS);
-  *ty = (y >> ED_IMAGE_UNDO_TILE_BITS);
-}
-
-static void push_undo(const PixelNode &node_data,
-                      Image &image,
-                      ImageUser &image_user,
-                      const TileNumber tile_number,
-                      ImBuf &image_buffer)
-{
-  for (const UDIMTileUndo &tile_undo : node_data.undo_regions) {
-    if (tile_undo.tile_number != tile_number) {
-      continue;
-    }
-    int tilex, tiley, tilew, tileh;
-    PaintTileMap *undo_tiles = ED_image_paint_tile_map_get();
-    undo_region_tiles(&image_buffer,
-                      tile_undo.region.xmin,
-                      tile_undo.region.ymin,
-                      BLI_rcti_size_x(&tile_undo.region),
-                      BLI_rcti_size_y(&tile_undo.region),
-                      &tilex,
-                      &tiley,
-                      &tilew,
-                      &tileh);
-    for (int ty = tiley; ty <= tileh; ty++) {
-      for (int tx = tilex; tx <= tilew; tx++) {
-        ED_image_paint_tile_push(
-            undo_tiles, &image, &image_buffer, &image_user, tx, ty, nullptr, nullptr);
-      }
-    }
-  }
-}
-
-static void do_push_undo_tile(ImageData &image_data,
-                              bke::pbvh::Node & /*node*/,
-                              PixelNode &pixel_node)
-{
-  PRF_scope(ProfileCategory::Editor);
-  for (const UDIMTilePixels &tile : pixel_node.tiles) {
-    ImBuf *buffer = image_data.buffers.lookup_default(tile.tile_number, nullptr);
-    if (buffer == nullptr) {
-      continue;
-    }
-
-    push_undo(pixel_node, *image_data.image, *image_data.image_user, tile.tile_number, *buffer);
-  }
 }
 
 /* -------------------------------------------------------------------- */
@@ -612,9 +614,6 @@ void SCULPT_do_paint_brush_image(const Depsgraph &depsgraph,
 
   node_mask.foreach_index(
       [&](const int i) { fetch_image_buffers(image_data, nodes[i], pixel_nodes[i]); });
-  node_mask.foreach_index(
-      [&](const int i) { do_push_undo_tile(image_data, nodes[i], pixel_nodes[i]); },
-      exec_mode::grain_size(1));
   node_mask.foreach_index(
       [&](const int i) {
         do_paint_pixels(depsgraph, ob, sd.paint, *brush, image_data, nodes[i], pixel_nodes[i]);
