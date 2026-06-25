@@ -2811,6 +2811,7 @@ void node_insert_on_link_flags(Main &bmain, SpaceNode &snode, bool is_new_node)
   bNode *to_node = old_link->tonode;
 
   const bool best_input_is_linked = best_input && best_input->is_directly_linked();
+  const bool old_link_muted = old_link->is_muted();
 
   if (best_output != nullptr) {
     /* Relink the "start" of the existing link to the newly inserted node. */
@@ -2826,7 +2827,9 @@ void node_insert_on_link_flags(Main &bmain, SpaceNode &snode, bool is_new_node)
     /* Don't change an existing link. */
     if (!best_input_is_linked) {
       /* Add a new link that connects the node on the left to the newly inserted node. */
-      bke::node_add_link(ntree, *from_node, *from_socket, *node_to_insert, *best_input);
+      bNodeLink &link_from = bke::node_add_link(
+          ntree, *from_node, *from_socket, *node_to_insert, *best_input);
+      bke::node_link_set_mute(ntree, link_from, old_link_muted);
     }
   }
 
