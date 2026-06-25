@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_atomic_disjoint_set.hh"
 #include "BLI_map.hh"
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix.hh"
@@ -141,58 +142,34 @@ static void mesh_data_init_edges(MeshData &mesh_data)
     }
   }
 }
-static constexpr int INVALID_UV_ISLAND_ID = -1;
-/**
- * NOTE: doesn't support weird topology where unconnected mesh primitives share the same uv
- * island. For a accurate implementation we should use implement an uv_prim_lookup.
- */
-static void extract_uv_neighbors(const MeshData &mesh_data,
-                                 const Span<int> uv_island_ids,
-                                 const int primitive_i,
-                                 Vector<int> &prims_to_add)
-{
-  for (const int edge : mesh_data.primitive_to_edge_map[primitive_i]) {
-    for (const int other_primitive_i : mesh_data.edge_to_primitive_map[edge]) {
-      if (primitive_i == other_primitive_i) {
-        continue;
-      }
-      if (uv_island_ids[other_primitive_i] != INVALID_UV_ISLAND_ID) {
-        continue;
-      }
-
-      if (primitive_has_shared_uv_edge(mesh_data.uv_map,
-                                       mesh_data.corner_tris[primitive_i],
-                                       mesh_data.corner_tris[other_primitive_i]))
-      {
-        prims_to_add.append(other_primitive_i);
-      }
-    }
-  }
-}
 
 static int mesh_data_init_primitive_uv_island_ids(MeshData &mesh_data)
 {
-  mesh_data.uv_island_ids.reinitialize(mesh_data.corner_tris.size());
-  mesh_data.uv_island_ids.fill(INVALID_UV_ISLAND_ID);
+  /* Group primitives into UV islands, connected through shared UV edges. */
+  const int64_t primitives_num = mesh_data.corner_tris.size();
+  mesh_data.uv_island_ids.reinitialize(primitives_num);
 
-  int uv_island_id = 0;
-  Vector<int> prims_to_add;
-  for (const int primitive_i : mesh_data.corner_tris.index_range()) {
-    /* Early exit when uv island id is already extracted during uv neighbor extractions. */
-    if (mesh_data.uv_island_ids[primitive_i] != INVALID_UV_ISLAND_ID) {
-      continue;
+  AtomicDisjointSet disjoint_set(primitives_num);
+  threading::parallel_for(IndexRange(primitives_num), 1024, [&](const IndexRange range) {
+    for (const int primitive_i : range) {
+      for (const int edge : mesh_data.primitive_to_edge_map[primitive_i]) {
+        for (const int other_primitive_i : mesh_data.edge_to_primitive_map[edge]) {
+          /* Join each pair once. */
+          if (other_primitive_i <= primitive_i) {
+            continue;
+          }
+          if (primitive_has_shared_uv_edge(mesh_data.uv_map,
+                                           mesh_data.corner_tris[primitive_i],
+                                           mesh_data.corner_tris[other_primitive_i]))
+          {
+            disjoint_set.join(primitive_i, other_primitive_i);
+          }
+        }
+      }
     }
+  });
 
-    prims_to_add.append(primitive_i);
-    while (!prims_to_add.is_empty()) {
-      const int other_primitive_i = prims_to_add.pop_last();
-      mesh_data.uv_island_ids[other_primitive_i] = uv_island_id;
-      extract_uv_neighbors(mesh_data, mesh_data.uv_island_ids, other_primitive_i, prims_to_add);
-    }
-    uv_island_id++;
-  }
-
-  return uv_island_id;
+  return disjoint_set.calc_reduced_ids(mesh_data.uv_island_ids);
 }
 
 static void mesh_data_init(MeshData &mesh_data)
