@@ -14,6 +14,7 @@
 
 #include "BLI_bit_vector.hh"
 #include "BLI_bounds.hh"
+#include "BLI_colorspace.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_color_blend.hh"
@@ -224,10 +225,14 @@ static MutableSpan<float4> read_image_pixels(Span<uchar4> image_pixels,
 
   if (processors.is_srgb_byte) {
     /* Fast path for common sRGB byte buffer case. */
-    for (int i = 0; i < range.size(); i++) {
-      srgb_to_linearrgb_uchar4(storage[i], image_pixels[start_offset + i]);
-      IMB_colormanagement_rec709_to_scene_linear(storage[i], storage[i]);
-    }
+    const float (*matrix)[3] = blender::colorspace::scene_linear_is_rec709 ?
+                                   nullptr :
+                                   reinterpret_cast<const float (*)[3]>(
+                                       blender::colorspace::rec709_to_scene_linear.ptr());
+    srgb_to_linearrgb_uchar4_n(reinterpret_cast<float (*)[4]>(storage.data()),
+                               reinterpret_cast<const uchar(*)[4]>(&image_pixels[start_offset]),
+                               range.size(),
+                               matrix);
     return storage;
   }
 
@@ -258,12 +263,14 @@ static void write_image_pixels(MutableSpan<float4> scene_linear_pixels,
 
   if (processors.is_srgb_byte) {
     /* Fast path for common sRGB byte buffer case. */
-    for (int i = 0; i < range.size(); i++) {
-      float4 srgb;
-      IMB_colormanagement_scene_linear_to_srgb_v3(srgb, scene_linear_pixels[i]);
-      srgb[3] = scene_linear_pixels[i][3];
-      rgba_float_to_uchar(image_pixels[start_offset + i], srgb);
-    }
+    const float (*matrix)[3] = blender::colorspace::scene_linear_is_rec709 ?
+                                   nullptr :
+                                   reinterpret_cast<const float (*)[3]>(
+                                       blender::colorspace::scene_linear_to_rec709.ptr());
+    linearrgb_to_srgb_uchar4_n(reinterpret_cast<uchar(*)[4]>(&image_pixels[start_offset]),
+                               reinterpret_cast<const float (*)[4]>(scene_linear_pixels.data()),
+                               range.size(),
+                               matrix);
     return;
   }
 
