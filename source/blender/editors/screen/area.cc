@@ -1747,8 +1747,11 @@ static void region_rect_recursive(
       region->flag |= RGN_FLAG_TOO_SMALL;
     }
     else if (width < prefsizex) {
-      const float aspect = BLI_rctf_size_y(&region->v2d.cur) /
-                           (BLI_rcti_size_y(&region->v2d.mask) + 1);
+      float aspect = (region->v2d.flag & V2D_IS_INIT) ?
+                         (BLI_rctf_size_y(&region->v2d.cur) /
+                          (BLI_rcti_size_y(&region->v2d.mask) + 1)) :
+                         1.0f;
+
       const bool has_tabs = BKE_regiontype_uses_category_tabs(region->runtime->type);
       const int min = int(UI_SCALE_FAC *
                           (has_tabs ? UI_PANEL_CATEGORY_MIN_SNAP_WIDTH : UI_TOOLBAR_WIDTH) /
