@@ -1038,6 +1038,41 @@ static void editbmesh_build_data(Depsgraph &depsgraph,
   BLI_assert(mesh->key == nullptr || DEG_is_evaluated(mesh->key));
   me_final->key = mesh->key;
 
+  /* NOTE(@ideasman42): Workaround for geometry-nodes
+   * where the result might contain mapping data, but also may not (depending on the nodes used).
+   * When it doesn't `me_cage` isn't a usable cage which can map back to the original elements,
+   * causing various problems with transform & selection. See: !160540.
+   *
+   * Detect this and replace the mesh with a thin edit-mesh wrapper,
+   * although there may be a more elegant solution in the future because
+   * ideally - it would be possible to know which modifier index is guaranteed
+   * to produce a usable cage instead of replacing it with a place-holder which
+   * at least lets the user see an editable mesh (with no modifiers applied). */
+  if (me_cage && !BKE_editmesh_eval_orig_map_available(*me_cage, mesh) &&
+      !(CustomData_has_layer(&me_cage->vert_data, CD_ORIGINDEX) &&
+        CustomData_has_layer(&me_cage->edge_data, CD_ORIGINDEX) &&
+        CustomData_has_layer(&me_cage->face_data, CD_ORIGINDEX)))
+  {
+    /* This problem only occurs with node-groups, assert it doesn't happen with other modifiers.
+     * The assert is imperfect as it's possible nodes were not used to calculate `me_cage`,
+     * nevertheless it will catch errors where modifier nodes aren't used at all. */
+    BLI_assert(BKE_modifiers_findby_type(&obedit, eModifierType_Nodes));
+
+    if (me_cage != me_final) {
+      BKE_id_free(nullptr, me_cage);
+    }
+    me_cage = BKE_mesh_wrapper_from_editmesh(mesh->runtime->edit_mesh, &dataMask, mesh);
+    /* A non-empty `positions` array is needed because #BKE_mesh_wrapper_vert_coords
+     * is expected to be able to return vertex coordinates.
+     * Otherwise crazy-space calculation crashes, see: #160540. */
+    if (me_cage->runtime->edit_mesh->bm->totvert &&
+        me_cage->runtime->edit_data->vert_positions.is_empty())
+    {
+      me_cage->runtime->edit_data->vert_positions = BM_mesh_vert_coords_alloc(
+          mesh->runtime->edit_mesh->bm);
+    }
+  }
+
   obedit.runtime->editmesh_eval_cage = me_cage;
 
   obedit.runtime->last_data_mask = dataMask;
