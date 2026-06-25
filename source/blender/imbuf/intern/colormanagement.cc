@@ -986,6 +986,11 @@ bool IMB_colormanagement_space_is_srgb(const ColorSpace *colorspace)
   return (colorspace && colorspace->is_srgb());
 }
 
+bool IMB_colormanagement_space_is_scene_linear_srgb(const ColorSpace *colorspace)
+{
+  return IMB_colormanagement_space_is_srgb(colorspace) && colorspace::scene_linear_is_rec709;
+}
+
 bool IMB_colormanagement_space_name_is_data(const char *name)
 {
   const ColorSpace *colorspace = g_config()->get_color_space(name);
@@ -2001,11 +2006,11 @@ void IMB_colormanagement_imbuf_to_byte_texture(uchar *out_buffer,
                                                const ImBuf *ibuf,
                                                const bool store_premultiplied)
 {
-  /* Byte buffer storage, only for sRGB, scene linear and data texture since other
-   * color space conversions can't be done on the GPU. */
+  /* Byte buffer storage, only for scene linear + sRGB, scene linear and data texture
+   * since other color space conversions can't currently be done on the GPU. */
   BLI_assert(ibuf->byte_data());
   BLI_assert(ibuf->float_data() == nullptr);
-  BLI_assert(IMB_colormanagement_space_is_srgb(ibuf->byte_buffer.colorspace) ||
+  BLI_assert(IMB_colormanagement_space_is_scene_linear_srgb(ibuf->byte_buffer.colorspace) ||
              IMB_colormanagement_space_is_scene_linear(ibuf->byte_buffer.colorspace) ||
              IMB_colormanagement_space_is_data(ibuf->byte_buffer.colorspace));
 
