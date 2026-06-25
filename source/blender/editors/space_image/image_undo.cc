@@ -23,12 +23,14 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_index_range.hh"
 #include "BLI_listbase.hh"
 #include "BLI_map.hh"
 #include "BLI_math_base_c.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_mutex.hh"
 #include "BLI_string.hh"
+#include "BLI_task.hh"
 #include "BLI_threads.hh"
 #include "BLI_utildefines.hh"
 
@@ -806,56 +808,56 @@ static bool image_undosys_step_encode(bContext *C, Main * /*bmain*/, UndoStep *u
                                   us_reference, uh.image_ref.ptr, uh.iuser.tile, ubuf_post) :
                               nullptr);
 
-          int i = 0;
-          for (uint y_tile = 0; y_tile < ubuf_pre.tiles_dims[1]; y_tile += 1) {
-            for (uint x_tile = 0; x_tile < ubuf_pre.tiles_dims[0]; x_tile += 1) {
+          const uint tiles_dims_x = ubuf_pre.tiles_dims[0];
+          threading::parallel_for(
+              IndexRange(ubuf_pre.tiles_len), 1024, [&](const IndexRange range) {
+                for (const int64_t i : range) {
+                  const uint x_tile = uint(i) % tiles_dims_x;
+                  const uint y_tile = uint(i) / tiles_dims_x;
 
-              if ((ubuf_reference != nullptr) &&
-                  ((ubuf_pre.tiles[i] == nullptr) ||
-                   /* In this case the paint stroke as has added a tile
-                    * which we have a duplicate reference available. */
-                   (ubuf_pre.tiles[i]->users == 1)))
-              {
-                if (ubuf_pre.tiles[i] != nullptr) {
-                  /* If we have a reference, re-use this single use tile for the post state. */
-                  BLI_assert(ubuf_pre.tiles[i]->users == 1);
-                  ubuf_post->tiles[i] = ubuf_pre.tiles[i];
-                  ubuf_pre.tiles[i] = nullptr;
-                  utile_init_from_imbuf(ubuf_post->tiles[i], x_tile, y_tile, ibuf);
-                }
-                else {
-                  BLI_assert(ubuf_post->tiles[i] == nullptr);
-                  ubuf_post->tiles[i] = ubuf_reference->tiles[i];
-                  ubuf_post->tiles[i]->users += 1;
-                }
-                BLI_assert(ubuf_pre.tiles[i] == nullptr);
-                ubuf_pre.tiles[i] = ubuf_reference->tiles[i];
-                ubuf_pre.tiles[i]->users += 1;
+                  if ((ubuf_reference != nullptr) &&
+                      ((ubuf_pre.tiles[i] == nullptr) ||
+                       /* In this case the paint stroke as has added a tile
+                        * which we have a duplicate reference available. */
+                       (ubuf_pre.tiles[i]->users == 1)))
+                  {
+                    if (ubuf_pre.tiles[i] != nullptr) {
+                      /* If we have a reference, re-use this single use tile for the post state. */
+                      BLI_assert(ubuf_pre.tiles[i]->users == 1);
+                      ubuf_post->tiles[i] = ubuf_pre.tiles[i];
+                      ubuf_pre.tiles[i] = nullptr;
+                      utile_init_from_imbuf(ubuf_post->tiles[i], x_tile, y_tile, ibuf);
+                    }
+                    else {
+                      BLI_assert(ubuf_post->tiles[i] == nullptr);
+                      ubuf_post->tiles[i] = ubuf_reference->tiles[i];
+                      ubuf_post->tiles[i]->users += 1;
+                    }
+                    BLI_assert(ubuf_pre.tiles[i] == nullptr);
+                    ubuf_pre.tiles[i] = ubuf_reference->tiles[i];
+                    ubuf_pre.tiles[i]->users += 1;
 
-                BLI_assert(ubuf_pre.tiles[i] != nullptr);
-                BLI_assert(ubuf_post->tiles[i] != nullptr);
-              }
-              else {
-                UndoImageTile *utile = utile_alloc(has_float);
-                utile_init_from_imbuf(utile, x_tile, y_tile, ibuf);
+                    BLI_assert(ubuf_pre.tiles[i] != nullptr);
+                    BLI_assert(ubuf_post->tiles[i] != nullptr);
+                  }
+                  else {
+                    UndoImageTile *utile = utile_alloc(has_float);
+                    utile_init_from_imbuf(utile, x_tile, y_tile, ibuf);
 
-                if (ubuf_pre.tiles[i] != nullptr) {
-                  ubuf_post->tiles[i] = utile;
-                  utile->users = 1;
+                    if (ubuf_pre.tiles[i] != nullptr) {
+                      ubuf_post->tiles[i] = utile;
+                      utile->users = 1;
+                    }
+                    else {
+                      ubuf_pre.tiles[i] = utile;
+                      ubuf_post->tiles[i] = utile;
+                      utile->users = 2;
+                    }
+                  }
+                  BLI_assert(ubuf_pre.tiles[i] != nullptr);
+                  BLI_assert(ubuf_post->tiles[i] != nullptr);
                 }
-                else {
-                  ubuf_pre.tiles[i] = utile;
-                  ubuf_post->tiles[i] = utile;
-                  utile->users = 2;
-                }
-              }
-              BLI_assert(ubuf_pre.tiles[i] != nullptr);
-              BLI_assert(ubuf_post->tiles[i] != nullptr);
-              i += 1;
-            }
-          }
-          BLI_assert(i == ubuf_pre.tiles_len);
-          BLI_assert(i == ubuf_post->tiles_len);
+              });
         }
         BKE_image_release_ibuf(uh.image_ref.ptr, ibuf, nullptr);
       }
