@@ -1683,12 +1683,13 @@ static void sequencer_preview_draw_overlays(const bContext *C,
                                             gpu::Texture *current_texture,
                                             gpu::Texture *reference_texture,
                                             const ImBuf *input_ibuf,
+                                            gpu::Texture *input_texture,
                                             const int timeline_frame)
 {
   const bool is_playing = ED_screen_animation_playing(&wm);
   const bool show_preview_image = space_sequencer.mainb == SEQ_DRAW_IMG_IMBUF;
   const bool has_cpu_scope = input_ibuf && space_sequencer.mainb == SEQ_DRAW_IMG_HISTOGRAM;
-  const bool has_gpu_scope = input_ibuf && current_texture &&
+  const bool has_gpu_scope = input_ibuf && input_texture &&
                              ((space_sequencer.mainb == SEQ_DRAW_IMG_IMBUF &&
                                space_sequencer.zebra != 0) ||
                               ELEM(space_sequencer.mainb,
@@ -1702,7 +1703,7 @@ static void sequencer_preview_draw_overlays(const bContext *C,
   }
   if (has_gpu_scope) {
     update_gpu_scopes(input_ibuf,
-                      current_texture,
+                      input_texture,
                       view_settings,
                       display_settings,
                       space_sequencer,
@@ -1861,9 +1862,8 @@ void sequencer_preview_region_draw(const bContext *C, ARegion *region)
                                   draw_overlay;
   const bool need_current_frame = !(draw_frame_overlay && (space_sequencer.overlay_frame_type ==
                                                            SEQ_OVERLAY_FRAME_TYPE_REFERENCE));
-  const bool need_reference_frame = show_imbuf && draw_frame_overlay &&
-                                    space_sequencer.overlay_frame_type !=
-                                        SEQ_OVERLAY_FRAME_TYPE_CURRENT;
+  const bool need_reference_frame = draw_frame_overlay && space_sequencer.overlay_frame_type !=
+                                                              SEQ_OVERLAY_FRAME_TYPE_CURRENT;
 
   int timeline_frame = render_data.cfra;
   if (sequencer_draw_get_transform_preview(space_sequencer, *scene)) {
@@ -1887,7 +1887,7 @@ void sequencer_preview_region_draw(const bContext *C, ARegion *region)
     const int offset = get_reference_frame_offset(editing, render_data);
     reference_ibuf = sequencer_ibuf_get(
         C, timeline_frame + offset, view_names[space_sequencer.multiview_eye]);
-    if (show_imbuf && reference_ibuf) {
+    if (use_gpu_texture && reference_ibuf) {
       reference_texture = create_texture(*reference_ibuf);
     }
   }
@@ -1905,8 +1905,9 @@ void sequencer_preview_region_draw(const bContext *C, ARegion *region)
     }
   }
 
-  /* Image buffer used for overlays: scopes, metadata etc. */
+  /* Image buffer and texture used for overlays: scopes, metadata etc. */
   ImBuf *overlay_ibuf = need_current_frame ? current_ibuf : reference_ibuf;
+  gpu::Texture *overlay_texture = need_current_frame ? current_texture : reference_texture;
 
   /* Draw parts of the preview region to the corresponding frame buffers. */
   sequencer_preview_draw_color_render(space_sequencer,
@@ -1927,6 +1928,7 @@ void sequencer_preview_region_draw(const bContext *C, ARegion *region)
                                   current_texture,
                                   reference_texture,
                                   overlay_ibuf,
+                                  overlay_texture,
                                   timeline_frame);
 
 #if 0
