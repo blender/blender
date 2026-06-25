@@ -15,6 +15,7 @@
 
 #include "pbvh_uv_islands.hh"
 
+#include <atomic>
 #include <iostream>
 #include <optional>
 #include <queue>
@@ -1461,65 +1462,84 @@ void UVIslandsMask::add_tile(const float2 udim_offset, ushort2 resolution)
   tiles.append_as(Tile(udim_offset, resolution));
 }
 
-static bool dilate_x(UVIslandsMask::Tile &islands_mask)
+static bool dilate_x(const Span<uint16_t> prev_mask,
+                     MutableSpan<uint16_t> mask,
+                     const ushort2 resolution)
 {
-  bool changed = false;
-  const Array<uint16_t> prev_mask = islands_mask.mask;
-  for (int y = 0; y < islands_mask.mask_resolution.y; y++) {
-    for (int x = 0; x < islands_mask.mask_resolution.x; x++) {
-      uint64_t offset = y * islands_mask.mask_resolution.x + x;
-      if (prev_mask[offset] != 0xffff) {
-        continue;
-      }
-      if (x != 0 && prev_mask[offset - 1] != 0xffff) {
-        islands_mask.mask[offset] = prev_mask[offset - 1];
-        changed = true;
-      }
-      else if (x < islands_mask.mask_resolution.x - 1 && prev_mask[offset + 1] != 0xffff) {
-        islands_mask.mask[offset] = prev_mask[offset + 1];
-        changed = true;
+  std::atomic<bool> changed = false;
+  threading::parallel_for(IndexRange(resolution.y), 32, [&](const IndexRange y_range) {
+    bool local_changed = false;
+    for (const int y : y_range) {
+      const int row = y * resolution.x;
+      for (int x = 0; x < resolution.x; x++) {
+        const int offset = row + x;
+        uint16_t value = prev_mask[offset];
+        if (value == 0xffff) {
+          if (x != 0 && prev_mask[offset - 1] != 0xffff) {
+            value = prev_mask[offset - 1];
+            local_changed = true;
+          }
+          else if (x < resolution.x - 1 && prev_mask[offset + 1] != 0xffff) {
+            value = prev_mask[offset + 1];
+            local_changed = true;
+          }
+        }
+        mask[offset] = value;
       }
     }
-  }
+    if (local_changed) {
+      changed = true;
+    }
+  });
   return changed;
 }
 
-static bool dilate_y(UVIslandsMask::Tile &islands_mask)
+static bool dilate_y(const Span<uint16_t> prev_mask,
+                     MutableSpan<uint16_t> mask,
+                     const ushort2 resolution)
 {
-  bool changed = false;
-  const Array<uint16_t> prev_mask = islands_mask.mask;
-  for (int y = 0; y < islands_mask.mask_resolution.y; y++) {
-    for (int x = 0; x < islands_mask.mask_resolution.x; x++) {
-      uint64_t offset = y * islands_mask.mask_resolution.x + x;
-      if (prev_mask[offset] != 0xffff) {
-        continue;
-      }
-      if (y != 0 && prev_mask[offset - islands_mask.mask_resolution.x] != 0xffff) {
-        islands_mask.mask[offset] = prev_mask[offset - islands_mask.mask_resolution.x];
-        changed = true;
-      }
-      else if (y < islands_mask.mask_resolution.y - 1 &&
-               prev_mask[offset + islands_mask.mask_resolution.x] != 0xffff)
-      {
-        islands_mask.mask[offset] = prev_mask[offset + islands_mask.mask_resolution.x];
-        changed = true;
+  std::atomic<bool> changed = false;
+  threading::parallel_for(IndexRange(resolution.y), 32, [&](const IndexRange y_range) {
+    bool local_changed = false;
+    for (const int y : y_range) {
+      const int row = y * resolution.x;
+      for (int x = 0; x < resolution.x; x++) {
+        const int offset = row + x;
+        uint16_t value = prev_mask[offset];
+        if (value == 0xffff) {
+          if (y != 0 && prev_mask[offset - resolution.x] != 0xffff) {
+            value = prev_mask[offset - resolution.x];
+            local_changed = true;
+          }
+          else if (y < resolution.y - 1 && prev_mask[offset + resolution.x] != 0xffff) {
+            value = prev_mask[offset + resolution.x];
+            local_changed = true;
+          }
+        }
+        mask[offset] = value;
       }
     }
-  }
+    if (local_changed) {
+      changed = true;
+    }
+  });
   return changed;
 }
 
 static void dilate_tile(UVIslandsMask::Tile &tile, int max_iterations)
 {
   PRF_scope(ProfileCategory::Editor);
-  int index = 0;
-  while (index < max_iterations) {
-    bool changed = dilate_x(tile);
-    changed |= dilate_y(tile);
+
+  /* Ping-pong between the mask and a scratch buffer for multithreading. */
+  Array<uint16_t> scratch_buffer(tile.mask.size());
+  MutableSpan<uint16_t> mask = tile.mask;
+  MutableSpan<uint16_t> scratch_mask = scratch_buffer;
+  for (int index = 0; index < max_iterations; index++) {
+    bool changed = dilate_x(mask, scratch_mask, tile.mask_resolution);
+    changed |= dilate_y(scratch_mask, mask, tile.mask_resolution);
     if (!changed) {
       break;
     }
-    index++;
   }
 }
 
