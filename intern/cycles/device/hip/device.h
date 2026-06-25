@@ -15,7 +15,7 @@ class DeviceInfo;
 class Profiler;
 class Stats;
 
-bool device_hip_init();
+bool device_hip_init(bool *r_meets_driver_requirement = nullptr);
 
 unique_ptr<Device> device_hip_create(const DeviceInfo &info,
                                      Stats &stats,

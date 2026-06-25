@@ -96,6 +96,14 @@ class DeviceInfo {
   /* Indicate that device execution has been optimized by Blender or vendor developers.
    * For LTS versions, this helps communicate that newer versions may have better performance. */
   bool has_execution_optimization = true;
+  /* True if device's driver is above the minimal Blender required version, false otherwise.
+   * Needed for properly communicating this fact back to the user, who then can choose to upgrade
+   * the driver or do nothing.
+   *
+   * Default value is chosen to be true intentionally - assume compliant unless proven otherwise,
+   * especially since CPU devices do not have any minimal versions, as well as some GPU backends,
+   * for example CUDA. */
+  bool meets_driver_requirement = true;
 
   KernelOptimizationLevel kernel_optimization_level =
       KERNEL_OPTIMIZATION_LEVEL_FULL;         /* Optimization level applied to path tracing

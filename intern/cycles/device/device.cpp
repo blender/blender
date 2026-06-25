@@ -276,8 +276,17 @@ vector<DeviceInfo> Device::available_devices(const uint mask)
 #ifdef WITH_OPTIX
   if (mask & DEVICE_MASK_OPTIX) {
     if (!(devices_initialized_mask & DEVICE_MASK_OPTIX)) {
-      if (device_optix_init()) {
+      bool meets_nvidia_driver_requirement = true;
+      if (device_optix_init(&meets_nvidia_driver_requirement) || !meets_nvidia_driver_requirement)
+      {
         device_optix_info(cuda_devices(), optix_devices());
+        for (DeviceInfo &info : optix_devices()) {
+          info.meets_driver_requirement = meets_nvidia_driver_requirement;
+        }
+      }
+      else {
+        /* `device_optix_init` has failed but not because of the driver being too old.
+         * Nothing to do in this case. */
       }
       devices_initialized_mask |= DEVICE_MASK_OPTIX;
     }
@@ -290,8 +299,29 @@ vector<DeviceInfo> Device::available_devices(const uint mask)
 #ifdef WITH_HIP
   if (mask & DEVICE_MASK_HIP) {
     if (!(devices_initialized_mask & DEVICE_MASK_HIP)) {
-      if (device_hip_init()) {
+      bool meets_amd_driver_requirement = true;
+      if (device_hip_init(&meets_amd_driver_requirement)) {
         device_hip_info(hip_devices());
+        for (DeviceInfo &info : hip_devices()) {
+          info.meets_driver_requirement = meets_amd_driver_requirement;
+        }
+      }
+      else if (meets_amd_driver_requirement == false) {
+        /* If we are here, then hipewInit has failed with HIPEW_ERROR_OLD_DRIVER. */
+        /* It is unclear if proper device info can be collected at this point, so we create
+         * a placeholder device to communicate the need to upgrade the driver, as presumably
+         * the hardware is available. */
+        DeviceInfo info = DeviceInfo();
+        info.type = DEVICE_HIP;
+        info.description = "Unknown AMD device";
+        info.id = "unknown_amd_device_with_outdated_driver";
+        info.num = 0;
+        info.meets_driver_requirement = false;
+        hip_devices().push_back(info);
+      }
+      else {
+        /* `device_hip_init` has failed but not because of the driver being too old.
+         * Nothing to do in this case. */
       }
       devices_initialized_mask |= DEVICE_MASK_HIP;
     }
