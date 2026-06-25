@@ -109,100 +109,103 @@ void animviz_build_motionpath_targets(Object *ob, Vector<MPathTarget> &r_targets
 
 /* ........ */
 
+/* Converts the given point into NDC space. */
+static void transform_mpath_point_to_camera(Depsgraph &depsgraph,
+                                            Object &camera,
+                                            bMotionPathVert &mpv)
+{
+  Object *cam_eval = DEG_get_evaluated(&depsgraph, &camera);
+  /* Aka projection matrix. */
+  float4x4 window_matrix;
+  Scene *scene = DEG_get_input_scene(&depsgraph);
+  BKE_camera_multiview_window_matrix(&scene->r, cam_eval, nullptr, window_matrix.ptr());
+  /* World to Object is the view matrix. */
+  float4x4 perspective_matrix = window_matrix * cam_eval->world_to_object();
+  const float4 co_clip_space = perspective_matrix * float4(mpv.co[0], mpv.co[1], mpv.co[2], 1.0);
+  /* Storing the verts in NDC space which contains lens effects like sensor offset. See
+   * `overlay_motion_path.hh/motion_path_sync`. Negative w values are behind the camera, thus
+   * can't be correctly projected into the scene. Using abs(w) is consistent with
+   * `project_point` in shader code. */
+  const float3 co_ndc_space = float3(co_clip_space) /
+                              math::max(math::abs(co_clip_space.w), 0.0001f);
+  copy_v3_v3(mpv.co, co_ndc_space);
+}
+
 /* Perform baking for the targets on the current frame. */
-static void motionpaths_calc_bake_targets(const Span<MPathTarget> targets,
-                                          const int cframe,
-                                          Depsgraph *depsgraph,
-                                          Object *camera)
+static void motionpaths_calc_bake_target(const MPathTarget &mpt,
+                                         const int cframe,
+                                         Depsgraph *depsgraph,
+                                         Object *camera)
 {
   /* For each target, check if it can be baked on the current frame. */
-  for (const MPathTarget &mpt : targets) {
-    bMotionPath *mpath = mpt.mpath;
+  bMotionPath *mpath = mpt.mpath;
 
-    /* Current frame must be within the range the cache works for.
-     * - is inclusive of the first frame, but not the last otherwise we get buffer overruns.
-     */
-    if ((cframe < mpath->start_frame) || (cframe >= mpath->end_frame)) {
-      continue;
-    }
+  /* Current frame must be within the range the cache works for.
+   * - is inclusive of the first frame, but not the last otherwise we get buffer overruns.
+   */
+  if ((cframe < mpath->start_frame) || (cframe >= mpath->end_frame)) {
+    return;
+  }
 
-    /* Get the relevant cache vert to write to. */
-    bMotionPathVert *mpv = mpath->points + (cframe - mpath->start_frame);
+  /* Get the relevant cache vert to write to. */
+  bMotionPathVert &mpv = mpath->points[cframe - mpath->start_frame];
 
-    Object *ob_eval = DEG_get_evaluated(depsgraph, mpt.ob);
+  Object *ob_eval = DEG_get_evaluated(depsgraph, mpt.ob);
 
-    /* Lookup evaluated pose channel, here because the depsgraph
-     * evaluation can change them so they are not cached in mpt. */
-    bPoseChannel *pchan_eval = nullptr;
-    if (mpt.pchan) {
-      pchan_eval = BKE_pose_channel_find_name(ob_eval->pose, mpt.pchan->name);
-    }
+  /* Lookup evaluated pose channel, here because the depsgraph
+   * evaluation can change them so they are not cached in mpt. */
+  bPoseChannel *pchan_eval = nullptr;
+  if (mpt.pchan) {
+    pchan_eval = BKE_pose_channel_find_name(ob_eval->pose, mpt.pchan->name);
+  }
 
-    /* Pose-channel or object path baking? */
-    if (pchan_eval) {
-      /* Heads or tails. */
-      if (mpath->flag & MOTIONPATH_FLAG_BHEAD) {
-        copy_v3_v3(mpv->co, pchan_eval->pose_head);
-      }
-      else {
-        copy_v3_v3(mpv->co, pchan_eval->pose_tail);
-      }
-
-      /* Result must be in world-space. */
-      mul_m4_v3(ob_eval->object_to_world().ptr(), mpv->co);
+  /* Pose-channel or object path baking? */
+  if (pchan_eval) {
+    /* Heads or tails. */
+    if (mpath->flag & MOTIONPATH_FLAG_BHEAD) {
+      copy_v3_v3(mpv.co, pchan_eval->pose_head);
     }
     else {
-      /* World-space object location. */
-      copy_v3_v3(mpv->co, ob_eval->object_to_world().location());
+      copy_v3_v3(mpv.co, pchan_eval->pose_tail);
     }
 
-    if (mpath->flag & MOTIONPATH_FLAG_BAKE_CAMERA && camera) {
-      Object *cam_eval = DEG_get_evaluated(depsgraph, camera);
-      /* Aka projection matrix. */
-      float4x4 window_matrix;
-      Scene *scene = DEG_get_input_scene(depsgraph);
-      BKE_camera_multiview_window_matrix(&scene->r, cam_eval, nullptr, window_matrix.ptr());
-      /* World to Object is the view matrix. */
-      float4x4 perspective_matrix = window_matrix * cam_eval->world_to_object();
-      const float4 co_clip_space = perspective_matrix *
-                                   float4(mpv->co[0], mpv->co[1], mpv->co[2], 1.0);
-      /* Storing the verts in NDC space which contains lens effects like sensor offset. See
-       * `overlay_motion_path.hh/motion_path_sync`. Negative w values are behind the camera, thus
-       * can't be correctly projected into the scene. Using abs(w) is consistent with
-       * `project_point` in shader code. */
-      const float3 co_ndc_space = float3(co_clip_space) /
-                                  math::max(math::abs(co_clip_space.w), 0.0001f);
-      copy_v3_v3(mpv->co, co_ndc_space);
-    }
+    /* Result must be in world-space. */
+    mul_m4_v3(ob_eval->object_to_world().ptr(), mpv.co);
+  }
+  else {
+    /* World-space object location. */
+    copy_v3_v3(mpv.co, ob_eval->object_to_world().location());
+  }
 
-    float mframe = float(cframe);
+  if (mpath->flag & MOTIONPATH_FLAG_BAKE_CAMERA && camera) {
+    transform_mpath_point_to_camera(*depsgraph, *camera, mpv);
+  }
 
-    /* Tag if it's a keyframe. */
-    if (ED_keylist_find_exact(mpt.keylist, mframe)) {
-      mpv->flag |= MOTIONPATH_VERT_KEY;
-    }
-    else {
-      mpv->flag &= ~MOTIONPATH_VERT_KEY;
-    }
+  /* Tag if it's a keyframe. */
+  if (ED_keylist_find_exact(mpt.keylist, cframe)) {
+    mpv.flag |= MOTIONPATH_VERT_KEY;
+  }
+  else {
+    mpv.flag &= ~MOTIONPATH_VERT_KEY;
+  }
 
-    /* Incremental update on evaluated object if possible, for fast updating
-     * while dragging in transform. */
-    bMotionPath *mpath_eval = nullptr;
-    if (mpt.pchan) {
-      mpath_eval = (pchan_eval) ? pchan_eval->mpath : nullptr;
-    }
-    else {
-      mpath_eval = ob_eval->mpath;
-    }
+  /* Incremental update on evaluated object if possible, for fast updating
+   * while dragging in transform. */
+  bMotionPath *mpath_eval = nullptr;
+  if (mpt.pchan) {
+    mpath_eval = (pchan_eval) ? pchan_eval->mpath : nullptr;
+  }
+  else {
+    mpath_eval = ob_eval->mpath;
+  }
 
-    if (mpath_eval && mpath_eval->length == mpath->length) {
-      bMotionPathVert *mpv_eval = mpath_eval->points + (cframe - mpath_eval->start_frame);
-      *mpv_eval = *mpv;
+  if (mpath_eval && mpath_eval->length == mpath->length) {
+    bMotionPathVert &mpv_eval = mpath_eval->points[cframe - mpath_eval->start_frame];
+    mpv_eval = mpv;
 
-      GPU_VERTBUF_DISCARD_SAFE(mpath_eval->points_vbo);
-      GPU_BATCH_DISCARD_SAFE(mpath_eval->batch_line);
-      GPU_BATCH_DISCARD_SAFE(mpath_eval->batch_points);
-    }
+    GPU_VERTBUF_DISCARD_SAFE(mpath_eval->points_vbo);
+    GPU_BATCH_DISCARD_SAFE(mpath_eval->batch_line);
+    GPU_BATCH_DISCARD_SAFE(mpath_eval->batch_points);
   }
 }
 
@@ -489,7 +492,9 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
     DEG_evaluate_on_framechange(depsgraph, frame);
 
     /* Perform baking for targets. */
-    motionpaths_calc_bake_targets(targets, frame, depsgraph, scene->camera);
+    for (const MPathTarget &target : targets) {
+      motionpaths_calc_bake_target(target, frame, depsgraph, scene->camera);
+    }
   }
 
   /* Clear recalc flags from targets. */
