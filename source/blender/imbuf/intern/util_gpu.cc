@@ -34,7 +34,7 @@ static bool imb_is_grayscale_texture_format_compatible(const ImBuf *ibuf)
 
   if (ibuf->byte_data() && !ibuf->float_data()) {
 
-    if (IMB_colormanagement_space_is_srgb(ibuf->byte_buffer.colorspace) ||
+    if (IMB_colormanagement_space_is_scene_linear_srgb(ibuf->byte_buffer.colorspace) ||
         IMB_colormanagement_space_is_scene_linear(ibuf->byte_buffer.colorspace))
     {
       /* Grey-scale byte buffers with these color transforms utilize float buffers under the hood
@@ -49,7 +49,7 @@ static bool imb_is_grayscale_texture_format_compatible(const ImBuf *ibuf)
   /* Only #IMBuf's with color-space that do not modify the chrominance of the texture data relative
    * to the scene color space can be uploaded as single channel textures. */
   if (IMB_colormanagement_space_is_data(ibuf->float_buffer.colorspace) ||
-      IMB_colormanagement_space_is_srgb(ibuf->float_buffer.colorspace) ||
+      IMB_colormanagement_space_is_scene_linear_srgb(ibuf->float_buffer.colorspace) ||
       IMB_colormanagement_space_is_scene_linear(ibuf->float_buffer.colorspace))
   {
     return true;
@@ -82,8 +82,8 @@ static void imb_gpu_get_format(const ImBuf *ibuf,
       *r_texture_format = (is_grayscale) ? gpu::TextureFormat::UNORM_8 :
                                            gpu::TextureFormat::UNORM_8_8_8_8;
     }
-    else if (IMB_colormanagement_space_is_srgb(ibuf->byte_buffer.colorspace)) {
-      /* sRGB, store as byte texture that the GPU can decode directly. */
+    else if (IMB_colormanagement_space_is_scene_linear_srgb(ibuf->byte_buffer.colorspace)) {
+      /* scene linear + sRGB, store as byte texture that the GPU can decode directly. */
       *r_texture_format = (is_grayscale) ? gpu::TextureFormat::SFLOAT_16 :
                                            gpu::TextureFormat::SRGBA_8_8_8_8;
     }
@@ -168,10 +168,11 @@ static void *imb_gpu_get_data(ImBuf *ibuf,
     if (IMB_colormanagement_space_is_data(ibuf->byte_buffer.colorspace)) {
       /* Non-color data, just store buffer as is. */
     }
-    else if (IMB_colormanagement_space_is_srgb(ibuf->byte_buffer.colorspace) ||
+    else if (IMB_colormanagement_space_is_scene_linear_srgb(ibuf->byte_buffer.colorspace) ||
              IMB_colormanagement_space_is_scene_linear(ibuf->byte_buffer.colorspace))
     {
-      /* sRGB or scene linear, store as byte texture that the GPU can decode directly. */
+      /* scene linear + sRGB or scene linear, store as byte texture that the GPU can decode
+       * directly. */
       data_rect = MEM_new_uninitialized((is_grayscale ? sizeof(float[4]) : sizeof(uchar[4])) *
                                             IMB_get_pixel_count(ibuf),
                                         __func__);
