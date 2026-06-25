@@ -772,7 +772,8 @@ static bool image_undosys_step_encode(bContext *C, Main * /*bmain*/, UndoStep *u
 
         UndoImageTile *utile = MEM_new_zeroed<UndoImageTile>("UndoImageTile");
         utile->users = 1;
-        utile->ibuf = IMB_dupImBuf(ptile->ptile_ibuf);
+        utile->ibuf = ptile->ptile_ibuf;
+        ptile->ptile_ibuf = nullptr;
         const uint tile_index = index_from_xy(ptile->x_tile, ptile->y_tile, ubuf_pre->tiles_dims);
 
         BLI_assert(ubuf_pre->tiles[tile_index] == nullptr);
