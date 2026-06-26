@@ -62,7 +62,7 @@ def pbr_specular_glossiness(mh):
     pbr_node.inputs['IOR'].default_value = 1000
 
     # Specular
-    new_tex_info = color_factor_and_texture(
+    new_tex_info, factor_socket, texture_socket = color_factor_and_texture(
         mh,
         location=locs['specular'],
         label='Specular Color',
@@ -108,7 +108,7 @@ def glossiness(mh, ext, location, roughness_socket):
     if roughness_img is None:
         return
 
-    texture(
+    socket = texture(
         mh,
         tex_info,
         location=location,
@@ -118,6 +118,7 @@ def glossiness(mh, ext, location, roughness_socket):
         is_data=False,
         forced_image=roughness_img,
     )
+    mh.gltf.socket_infos[mh.material_idx]['Roughness Texture'] = socket
 
 
 def make_roughness_image(mh, glossiness_factor, tex_info):

@@ -7,7 +7,6 @@ from .....io.com.gltf2_io_extensions import Extension
 from ...material.texture_info import gather_texture_info
 from ..search_node_tree import \
     has_image_node_from_socket, \
-    get_socket, \
     get_factor_from_socket
 
 
@@ -15,8 +14,8 @@ def export_specular(bmat, export_settings):
     export_settings['current_texture_transform'] = {}
     specular_extension = {}
 
-    specular_socket = get_socket(bmat.get_used_material().node_tree, 'Specular IOR Level')
-    speculartint_socket = get_socket(bmat.get_used_material().node_tree, 'Specular Tint')
+    specular_socket = bmat.get_socket('Specular IOR Level')
+    speculartint_socket = bmat.get_socket('Specular Tint')
 
     if specular_socket.socket is None or speculartint_socket.socket is None:
         return None, {}, {}

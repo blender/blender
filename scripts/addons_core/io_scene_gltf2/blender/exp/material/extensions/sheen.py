@@ -7,7 +7,6 @@ from .....io.com.gltf2_io_extensions import Extension
 from ...material import texture_info as gltf2_blender_gather_texture_info
 from ..search_node_tree import \
     has_image_node_from_socket, \
-    get_socket, \
     get_factor_from_socket
 
 
@@ -15,9 +14,9 @@ def export_sheen(bmat, export_settings):
     export_settings['current_texture_transform'] = {}
     sheen_extension = {}
 
-    sheenTint_socket = get_socket(bmat.get_used_material().node_tree, "Sheen Tint")
-    sheenRoughness_socket = get_socket(bmat.get_used_material().node_tree, "Sheen Roughness")
-    sheen_socket = get_socket(bmat.get_used_material().node_tree, "Sheen Weight")
+    sheenTint_socket = bmat.get_socket("Sheen Tint")
+    sheenRoughness_socket = bmat.get_socket("Sheen Roughness")
+    sheen_socket = bmat.get_socket("Sheen Weight")
 
     if sheenTint_socket.socket is None or sheenRoughness_socket.socket is None or sheen_socket.socket is None:
         return None, {}, {}

@@ -92,6 +92,8 @@ def pbr_metallic_roughness(mh: MaterialHelper):
         volume_node = mh.nodes.new('ShaderNodeVolumeAbsorption')
         volume_node.location = 40, -520 if need_settings_node else -370
         mh.links.new(out_node.inputs[1], volume_node.outputs[0])
+        mh.gltf.socket_infos[mh.material_idx]['Volume Color'] = volume_node.inputs[0]
+        mh.gltf.socket_infos[mh.material_idx]['Volume Density'] = volume_node.inputs[1]
 
     locs = calc_locations(mh)
 
@@ -169,6 +171,7 @@ def pbr_metallic_roughness(mh: MaterialHelper):
     ior_ext = mh.get_ext('KHR_materials_ior', {})
     ior = ior_ext.get('ior', GLTF_IOR)
     pbr_node.inputs['IOR'].default_value = ior
+    mh.gltf.socket_infos[mh.material_idx]['IOR'] = pbr_node.inputs['IOR']
 
     if len(ior_ext) > 0:
         mh.pymat.extensions['KHR_materials_ior']['blender_nodetree'] = mh.node_tree  # Needed for KHR_animation_pointer
@@ -198,7 +201,7 @@ def clearcoat(mh, locs, pbr_node):
                             pointer_tab[5] == "clearcoatFactor":
                         force_clearcoat_factor = True
 
-    new_tex_info = scalar_factor_and_texture(
+    new_tex_info, socket_coat_weight, coat_weight_texture_socket = scalar_factor_and_texture(
         mh,
         location=locs['clearcoat'],
         label='Clearcoat',
@@ -208,6 +211,8 @@ def clearcoat(mh, locs, pbr_node):
         channel=0,  # Red
         force_mix_node=force_clearcoat_factor
     )
+    mh.gltf.socket_infos[mh.material_idx]['Coat Weight'] = socket_coat_weight
+    mh.gltf.socket_infos[mh.material_idx]['Coat Weight Texture'] = coat_weight_texture_socket
 
     if len(ext) > 0:
         tex_info = TextureInfo.from_dict(ext.get('clearcoatTexture')) if ext.get(
@@ -235,7 +240,7 @@ def clearcoat(mh, locs, pbr_node):
                             pointer_tab[5] == "clearcoatRoughnessFactor":
                         force_clearcoat_roughness_factor = True
 
-    new_tex_info = scalar_factor_and_texture(
+    new_tex_info, socket_coat_roughness, socket_coat_roughness_texture = scalar_factor_and_texture(
         mh,
         location=locs['clearcoat_roughness'],
         label='Clearcoat Roughness',
@@ -246,7 +251,8 @@ def clearcoat(mh, locs, pbr_node):
         channel=1,  # Green
         force_mix_node=force_clearcoat_roughness_factor
     )
-
+    mh.gltf.socket_infos[mh.material_idx]['Coat Roughness'] = socket_coat_roughness
+    mh.gltf.socket_infos[mh.material_idx]['Coat Roughness Texture'] = socket_coat_roughness_texture
     if len(ext) > 0:
         tex_info = TextureInfo.from_dict(ext.get('clearcoatRoughnessTexture')) if ext.get(
             'clearcoatRoughnessTexture') is not None else None
@@ -257,7 +263,7 @@ def clearcoat(mh, locs, pbr_node):
 
     tex_info = MaterialNormalTextureInfoClass.from_dict(ext.get('clearcoatNormalTexture')) if ext.get(
         'clearcoatNormalTexture') is not None else None
-    normal_map(
+    coat_normal_socket, coat_normal_texture_socket = normal_map(
         mh,
         location=locs['clearcoat_normal'],
         label='Clearcoat Normal',
@@ -267,6 +273,9 @@ def clearcoat(mh, locs, pbr_node):
     if tex_info is not None and tex_info.extensions is not None and "KHR_texture_transform" in tex_info.extensions:
         # Used in case of for KHR_animation_pointer
         mh.pymat.extensions['KHR_materials_clearcoat']['clearcoatNormalTexture']['extensions']['KHR_texture_transform'] = tex_info.extensions["KHR_texture_transform"]
+
+    mh.gltf.socket_infos[mh.material_idx]['Coat Normal'] = coat_normal_socket
+    mh.gltf.socket_infos[mh.material_idx]['Coat Normal Texture'] = coat_normal_texture_socket
 
 
 def transmission(mh, locs, pbr_node):
@@ -297,7 +306,7 @@ def transmission(mh, locs, pbr_node):
         # Activate screen refraction (for Eevee)
         mh.mat.use_raytrace_refraction = True
 
-    new_tex_info = scalar_factor_and_texture(
+    new_tex_info, transmission_factor, transmission_texture_socket = scalar_factor_and_texture(
         mh,
         location=locs['transmission'],
         label='Transmission',
@@ -307,6 +316,8 @@ def transmission(mh, locs, pbr_node):
         channel=0,  # Red
         force_mix_node=force_transmission,
     )
+    mh.gltf.socket_infos[mh.material_idx]['Transmission Weight'] = transmission_factor
+    mh.gltf.socket_infos[mh.material_idx]['Transmission Texture'] = transmission_texture_socket
 
     if len(ext) > 0:
         tex_info = TextureInfo.from_dict(ext.get('transmissionTexture')) if ext.get(
@@ -347,7 +358,7 @@ def volume(mh, location, volume_node, thickness_socket):
                             pointer_tab[5] == "thicknessFactor":
                         force_math_node = True
 
-    new_tex_info = scalar_factor_and_texture(
+    new_tex_info, thickness_factor, thickness_texture_socket = scalar_factor_and_texture(
         mh,
         location=location,
         label='Thickness',
@@ -357,6 +368,8 @@ def volume(mh, location, volume_node, thickness_socket):
         channel=1,  # Green
         force_mix_node=force_math_node,
     )
+    mh.gltf.socket_infos[mh.material_idx]['Thickness'] = thickness_factor
+    mh.gltf.socket_infos[mh.material_idx]['Thickness Texture'] = thickness_texture_socket
 
     if len(ext) > 0:
         tex_info = TextureInfo.from_dict(ext.get('thicknessTexture')) if ext.get(
@@ -376,6 +389,7 @@ def dispersion(mh, dispersion_socket):
         mh.pymat.extensions['KHR_materials_dispersion']['blender_mat'] = mh.mat  # Needed for KHR_animation_pointer
 
     dispersion_socket.default_value = ext.get('dispersion', 0)
+    mh.gltf.socket_infos[mh.material_idx]['Dispersion'] = dispersion_socket
 
 
 def specular(mh, locs, pbr_node):
@@ -387,7 +401,7 @@ def specular(mh, locs, pbr_node):
         mh.pymat.extensions['KHR_materials_specular']['blender_mat'] = mh.mat  # Needed for KHR_animation_pointer
 
     # blender.IORLevel = 0.5 * gltf.specular
-    new_tex_info = scalar_factor_and_texture(
+    new_tex_info, specular_factor_socket, specular_texture_socket = scalar_factor_and_texture(
         mh,
         location=locs['specularTexture'],
         label='Specular',
@@ -396,6 +410,8 @@ def specular(mh, locs, pbr_node):
         tex_info=ext.get('specularTexture'),
         channel=4,  # Alpha
     )
+    mh.gltf.socket_infos[mh.material_idx]['Specular IOR Level'] = specular_factor_socket
+    mh.gltf.socket_infos[mh.material_idx]['Specular IOR Level Texture'] = specular_texture_socket
 
     if len(ext) > 0:
         tex_info = TextureInfo.from_dict(ext.get('specularTexture')) if ext.get('specularTexture') is not None else None
@@ -404,7 +420,7 @@ def specular(mh, locs, pbr_node):
         if tex_info is not None and tex_info.extensions is not None and "KHR_texture_transform" in tex_info.extensions:
             mh.pymat.extensions['KHR_materials_specular']['specularTexture']['extensions']['KHR_texture_transform'] = new_tex_info.extensions["KHR_texture_transform"]
 
-    new_tex_info = color_factor_and_texture(
+    new_tex_info, specular_color_factor_socket, specular_texture_socket = color_factor_and_texture(
         mh,
         location=locs['specularColorTexture'],
         label='Specular Color',
@@ -412,6 +428,8 @@ def specular(mh, locs, pbr_node):
         factor=ext.get('specularColorFactor', [1, 1, 1]),
         tex_info=ext.get('specularColorTexture'),
     )
+    mh.gltf.socket_infos[mh.material_idx]['Specular Tint'] = specular_color_factor_socket
+    mh.gltf.socket_infos[mh.material_idx]['Specular Tint Texture'] = specular_texture_socket
 
     if len(ext) > 0:
         tex_info = TextureInfo.from_dict(ext.get('specularColorTexture')) if ext.get(
@@ -432,7 +450,7 @@ def sheen(mh, locs, pbr_node):
 
     pbr_node.inputs['Sheen Weight'].default_value = 1
 
-    new_tex_info = color_factor_and_texture(
+    new_tex_info, sheenColorFactor_socket, sheenTexture_socket = color_factor_and_texture(
         mh,
         location=locs['sheenColorTexture'],
         label='Sheen Color',
@@ -440,6 +458,8 @@ def sheen(mh, locs, pbr_node):
         factor=ext.get('sheenColorFactor', [0, 0, 0]),
         tex_info=ext.get('sheenColorTexture'),
     )
+    mh.gltf.socket_infos[mh.material_idx]['Sheen Color'] = sheenColorFactor_socket
+    mh.gltf.socket_infos[mh.material_idx]['Sheen Color Texture'] = sheenTexture_socket
 
     if len(ext) > 0:
         tex_info = TextureInfo.from_dict(ext.get('sheenColorTexture')) if ext.get(
@@ -449,7 +469,7 @@ def sheen(mh, locs, pbr_node):
         if tex_info is not None and tex_info.extensions is not None and "KHR_texture_transform" in tex_info.extensions:
             mh.pymat.extensions['KHR_materials_sheen']['sheenColorTexture']['extensions']['KHR_texture_transform'] = new_tex_info.extensions["KHR_texture_transform"]
 
-    new_tex_info = scalar_factor_and_texture(
+    new_tex_info, sheenRoughnessFactor_socket, sheenRoughnessTexture_socket = scalar_factor_and_texture(
         mh,
         location=locs['sheenRoughnessTexture'],
         label='Sheen Roughness',
@@ -458,6 +478,8 @@ def sheen(mh, locs, pbr_node):
         tex_info=ext.get('sheenRoughnessTexture'),
         channel=4,  # Alpha
     )
+    mh.gltf.socket_infos[mh.material_idx]['Sheen Roughness'] = sheenRoughnessFactor_socket
+    mh.gltf.socket_infos[mh.material_idx]['Sheen Roughness Texture'] = sheenRoughnessTexture_socket
 
     if len(ext) > 0:
         tex_info = TextureInfo.from_dict(ext.get('sheenRoughnessTexture')) if ext.get(
@@ -578,7 +600,7 @@ def emission(mh: MaterialHelper, location, color_socket, strength_socket):
                             pointer_tab[3] == "emissiveFactor":
                         force_mix_node = True
 
-    new_tex_info = color_factor_and_texture(
+    new_tex_info, emission_socket, emission_texture_socket = color_factor_and_texture(
         mh,
         location,
         label='Emissive',
@@ -587,6 +609,9 @@ def emission(mh: MaterialHelper, location, color_socket, strength_socket):
         tex_info=mh.pymat.emissive_texture,
         force_mix_node=force_mix_node,
     )
+    mh.gltf.socket_infos[mh.material_idx]['Emission Color'] = emission_socket
+    mh.gltf.socket_infos[mh.material_idx]['Emission Strength'] = strength_socket
+    mh.gltf.socket_infos[mh.material_idx]['Emission Texture'] = emission_texture_socket
     strength_socket.default_value = strength
 
     if mh.pymat.emissive_texture is not None:
@@ -608,6 +633,10 @@ def base_color(
     """Handle base color (= baseColorTexture * vertexColor * baseColorFactor)."""
     x, y = location
     pbr = mh.pymat.pbr_metallic_roughness
+
+    if alpha_socket:
+        # Maybe overwiten later
+        mh.gltf.socket_infos[mh.material_idx]['Base Color Alpha'] = alpha_socket
 
     if not is_diffuse:
         base_color_factor = pbr.base_color_factor or [1, 1, 1, 1]
@@ -631,6 +660,7 @@ def base_color(
     # Only factor
     if base_color_texture is None and not mh.vertex_color:
         color_socket.default_value = [*color_factor, 1]
+        mh.gltf.socket_infos[mh.material_idx]['Base Color'] = color_socket
 
         if alpha_socket:
             if alpha_mode == 'OPAQUE':
@@ -699,6 +729,7 @@ def base_color(
             node.operation = 'LESS_THAN'
             alpha_socket = node.inputs[0]
             node.inputs[1].default_value = alpha_cutoff
+            mh.gltf.socket_infos[mh.material_idx]['AlphaCutoff'] = node.inputs[1]
 
             x -= 200
 
@@ -734,6 +765,7 @@ def base_color(
             node.inputs['Factor'].default_value = 1.0
             color_socket = node.inputs[6]
             node.inputs[7].default_value = [*color_factor, 1]
+            mh.gltf.socket_infos[mh.material_idx]['Base Color'] = node.inputs[7]
 
         if needs_alpha_factor:
             node = mh.node_tree.nodes.new('ShaderNodeMath')
@@ -745,6 +777,7 @@ def base_color(
             node.operation = 'MULTIPLY'
             alpha_socket = node.inputs[0]
             node.inputs[1].default_value = alpha_factor
+            mh.gltf.socket_infos[mh.material_idx]['Base Color Alpha'] = node.inputs[1]
 
         x -= 200
 
@@ -795,7 +828,7 @@ def base_color(
 
     # Texture
     if base_color_texture is not None:
-        texture(
+        texture_socket = texture(
             mh,
             tex_info=base_color_texture,
             label='BASE COLOR' if not is_diffuse else 'DIFFUSE',
@@ -803,6 +836,7 @@ def base_color(
             color_socket=texture_color_socket,
             alpha_socket=texture_alpha_socket,
         )
+        mh.gltf.socket_infos[mh.material_idx]['Base Color Texture'] = texture_socket
 
 
 # [Texture] => [Separate GB] => [Metal/Rough Factor] =>
@@ -819,6 +853,8 @@ def metallic_roughness(mh: MaterialHelper, location, metallic_socket, roughness_
     if pbr.metallic_roughness_texture is None:
         metallic_socket.default_value = metal_factor
         roughness_socket.default_value = rough_factor
+        mh.gltf.socket_infos[mh.material_idx]['Metallic'] = metallic_socket
+        mh.gltf.socket_infos[mh.material_idx]['Roughness'] = roughness_socket
         return
 
     need_metal_factor = metal_factor != 1.0
@@ -854,6 +890,7 @@ def metallic_roughness(mh: MaterialHelper, location, metallic_socket, roughness_
             # Inputs
             metallic_socket = node.inputs[0]
             node.inputs[1].default_value = metal_factor
+            mh.gltf.socket_infos[mh.material_idx]['Metallic'] = node.inputs[1]
 
         # Mix rough factor
         if need_rough_factor:
@@ -866,6 +903,7 @@ def metallic_roughness(mh: MaterialHelper, location, metallic_socket, roughness_
             # Inputs
             roughness_socket = node.inputs[0]
             node.inputs[1].default_value = rough_factor
+            mh.gltf.socket_infos[mh.material_idx]['Roughness'] = node.inputs[1]
 
         x -= 200
 
@@ -880,7 +918,7 @@ def metallic_roughness(mh: MaterialHelper, location, metallic_socket, roughness_
 
     x -= 200
 
-    texture(
+    texture_socket = texture(
         mh,
         tex_info=pbr.metallic_roughness_texture,
         label='METALLIC ROUGHNESS',
@@ -888,6 +926,7 @@ def metallic_roughness(mh: MaterialHelper, location, metallic_socket, roughness_
         is_data=True,
         color_socket=color_socket,
     )
+    mh.gltf.socket_infos[mh.material_idx]['Metallic Roughness Texture'] = texture_socket
 
 
 # [Texture] => [Normal Map] =>
@@ -897,13 +936,16 @@ def normal(mh: MaterialHelper, location, normal_socket):
         tex_info.blender_nodetree = mh.mat.node_tree  # Used in case of for KHR_animation_pointer
         tex_info.blender_mat = mh.mat  # Used in case of for KHR_animation_pointer #TODOPointer Vertex Color...
 
-    normal_map(
+    normal_socket, normal_texture_socket = normal_map(
         mh,
         location=location,
         label='Normal Map',
         socket=normal_socket,
         tex_info=tex_info,
     )
+
+    mh.gltf.socket_infos[mh.material_idx]['Normal'] = normal_socket
+    mh.gltf.socket_infos[mh.material_idx]['Normal Texture'] = normal_texture_socket
 
 
 # [Texture] => [Separate R] => [Mix Strength] =>
@@ -944,6 +986,7 @@ def occlusion(mh: MaterialHelper, location, occlusion_socket):
         mh.node_tree.links.new(occlusion_socket, node.outputs[2])
         # Inputs
         node.inputs['Factor'].default_value = strength
+        mh.gltf.socket_infos[mh.material_idx]['Occlusion'] = node.inputs['Factor']
         node.inputs[6].default_value = [1, 1, 1, 1]
         occlusion_socket = node.inputs[7]
 
@@ -963,7 +1006,7 @@ def occlusion(mh: MaterialHelper, location, occlusion_socket):
     # Used in case of for KHR_animation_pointer #TODOPointer Vertex Color...
     mh.pymat.occlusion_texture.blender_mat = mh.mat
 
-    texture(
+    texture_socket = texture(
         mh,
         tex_info=mh.pymat.occlusion_texture,
         label='OCCLUSION',
@@ -971,6 +1014,7 @@ def occlusion(mh: MaterialHelper, location, occlusion_socket):
         is_data=True,
         color_socket=color_socket,
     )
+    mh.gltf.socket_infos[mh.material_idx]['Occlusion Texture'] = texture_socket
 
 
 def make_settings_node(mh):

@@ -42,11 +42,15 @@ def iridescence(
     if thickness_tex_info is not None:
         thickness_tex_info = TextureInfo.from_dict(thickness_tex_info)
 
+    mh.gltf.socket_infos[mh.material_idx]['Iridescence IOR'] = iridescence_ior_socket
     if tex_info is None and thickness_tex_info is None:
         iridescence_factor_socket.default_value = iridescence_factor
         iridescence_thickness_maximum_socket.default_value = iridescence_thickness_maximum
         iridescence_thickness_minimum_socket.default_value = iridescence_thickness_minimum
         iridescence_ior_socket.default_value = iridescence_ior
+        mh.gltf.socket_infos[mh.material_idx]['Iridescence Thickness Maximum'] = iridescence_thickness_maximum_socket
+        mh.gltf.socket_infos[mh.material_idx]['Iridescence Thickness Minimum'] = iridescence_thickness_minimum_socket
+        mh.gltf.socket_infos[mh.material_idx]['Iridescence Factor'] = iridescence_factor_socket
         return
 
     if tex_info is not None:
@@ -67,7 +71,7 @@ def iridescence(
                                 pointer_tab[5] == "iridescenceFactor":
                             force_iridescence_factor = True
 
-        new_tex_info = scalar_factor_and_texture(
+        new_tex_info, socket_iridescence_factor, socket_iridescence_texture = scalar_factor_and_texture(
             mh,
             location=locs['iridescence'],
             label='Iridescence',
@@ -77,6 +81,8 @@ def iridescence(
             channel=0,  # Red
             force_mix_node=force_iridescence_factor
         )
+        mh.gltf.socket_infos[mh.material_idx]['Iridescence Factor'] = socket_iridescence_factor
+        mh.gltf.socket_infos[mh.material_idx]['Iridescence Texture'] = socket_iridescence_texture
 
         if len(ext) > 0:
             # Because extensions are dict, they are not passed by reference
@@ -99,7 +105,7 @@ def iridescence(
         mh.node_tree.links.new(separate_node.outputs[1], mix_node.inputs[0])  # Factor is in the green channel
 
         # Texture node
-        texture(
+        socket = texture(
             mh,
             tex_info=thickness_tex_info,
             label='IRIDESCENCE THICKNESS',
@@ -107,6 +113,7 @@ def iridescence(
             is_data=True,
             color_socket=separate_node.inputs[0]
         )
+        mh.gltf.socket_infos[mh.material_idx]['Iridescence Thickness Texture'] = socket
 
         if len(ext) > 0:
             # Because extensions are dict, they are not passed by reference
@@ -122,6 +129,7 @@ def iridescence(
         value_node.outputs[0].default_value = iridescence_thickness_minimum
         mh.node_tree.links.new(mix_node.inputs[2], value_node.outputs[0])
         mh.node_tree.links.new(iridescence_thickness_minimum_socket, value_node.outputs[0])
+        mh.gltf.socket_infos[mh.material_idx]['Iridescence Thickness Minimum'] = value_node.outputs[0]
 
         # Value node (maximum thickness)
         value_node_max = mh.node_tree.nodes.new('ShaderNodeValue')
@@ -129,3 +137,4 @@ def iridescence(
         value_node_max.location = x - 180 * 2, y - 600
         value_node_max.outputs[0].default_value = iridescence_thickness_maximum
         mh.node_tree.links.new(mix_node.inputs[3], value_node_max.outputs[0])
+        mh.gltf.socket_infos[mh.material_idx]['Iridescence Thickness Maximum'] = value_node_max.outputs[0]

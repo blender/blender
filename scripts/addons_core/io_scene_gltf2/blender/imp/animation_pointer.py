@@ -5,9 +5,9 @@
 import bpy
 from ...io.imp.user_extensions import import_user_extensions
 from ...io.imp.gltf2_io_binary import BinaryData
-from ..exp.material.search_node_tree import NodeSocket, previous_node, from_socket, get_socket, FilterByType, get_socket_from_gltf_material_node, get_texture_node_from_socket, get_factor_from_socket  # TODO move to COM
+from ..exp.material.search_node_tree import NodeSocket  # TODO move to COM
+
 from ..exp.sampler import detect_manual_uv_wrapping  # TODO move to COM
-from ..exp.material.unlit import detect_shadeless_material  # TODO move to COM
 from ..com.conversion import texture_transform_gltf_to_blender
 from .animation_utils import make_fcurve
 from .light import BlenderLight
@@ -42,16 +42,16 @@ class BlenderPointerAnim():
                                           asset_type, name=name, is_unlit=is_unlit, target_id_type=target_id_type)
 
     @staticmethod
+    def __previous_node(socket):
+        nav = socket.to_node_nav()
+        nav.move_back()
+        if nav.moved:
+            return nav.node
+        return None
+
+    @staticmethod
     def do_channel(
-            gltf,
-            anim_idx,
-            channel,
-            asset,
-            asset_idx,
-            asset_type,
-            name=None,
-            is_unlit=False,
-            target_id_type=None):
+            gltf, anim_idx, channel, asset, asset_idx, asset_type, name=None, is_unlit=False, target_id_type=None):
         animation = gltf.data.animations[anim_idx]
         pointer_tab = channel.target.extensions["KHR_animation_pointer"]["pointer"].split("/")
 
@@ -213,67 +213,34 @@ class BlenderPointerAnim():
                 pointer_tab[3] in ["emissiveFactor", "alphaCutoff"]:
 
             if pointer_tab[3] == "emissiveFactor":
-                emissive_socket = get_socket(asset.blender_nodetree, "Emissive")
-                if emissive_socket.socket.is_linked:
-                    # We need to find the correct node value to animate (An Emissive Factor node)
-                    mix_node = emissive_socket.socket.links[0].from_node
-                    if mix_node.type == "MIX":
-                        blender_path = mix_node.inputs[7].path_from_id() + ".default_value"
-                        group_name = 'Material'
-                        num_components = 3
-                    else:
-                        print("Error, something is wrong, we didn't detect adding a Mix Node because of Pointers")
-                else:
-                    blender_path = emissive_socket.socket.path_from_id() + ".default_value"
-                    num_components = 3
+                emissive_socket = NodeSocket(gltf.socket_infos[asset_idx]['Emission Color'], [asset.blender_nodetree])
+                blender_path = emissive_socket.socket.path_from_id() + ".default_value"
+                group_name = 'Material'
+                num_components = 3
             elif pointer_tab[3] == "alphaCutoff":
                 # Retrieve the alpha cutoff socket from the material node tree
-                alpha_socket = get_socket(asset.blender_nodetree, "Alpha")
-                if alpha_socket.socket.is_linked:
-                    # We need to find the correct node value to animate (An Alpha Cutoff node)
-                    substract_node = alpha_socket.socket.links[0].from_node
-                    if substract_node.type == "MATH":
-                        less_node = substract_node.inputs[1].links[0].from_node
-                        if less_node.type == "MATH":
-                            blender_path = less_node.inputs[1].path_from_id() + ".default_value"
-                            group_name = 'Material'
-                            num_components = 1
-                        else:
-                            print("Error, something is wrong, we didn't detect clipping because of Pointers")
-                    else:
-                        print("Error, something is wrong, we didn't detect alpha clipping because of Pointers")
+                alpha_cutoff_socket = NodeSocket(gltf.socket_infos[asset_idx]['AlphaCutoff'], [asset.blender_nodetree])
+                blender_path = alpha_cutoff_socket.socket.path_from_id() + ".default_value"
+                group_name = 'Material'
+                num_components = 1
 
         if len(pointer_tab) == 5 and pointer_tab[1] == "materials" and \
                 pointer_tab[3] == "normalTexture" and \
                 pointer_tab[4] == "scale":
 
-            normal_socket = get_socket(asset.blender_nodetree, "Normal")
-            if normal_socket.socket.is_linked:
-                normal_node = normal_socket.socket.links[0].from_node
-                if normal_node.type == "NORMAL_MAP":
-                    blender_path = normal_node.inputs[0].path_from_id() + ".default_value"
-                    group_name = 'Material'
-                    num_components = 1
+            normal_socket = NodeSocket(gltf.socket_infos[asset_idx]['Normal'], [asset.blender_nodetree])
+            blender_path = normal_socket.socket.path_from_id() + ".default_value"
+            group_name = 'Material'
+            num_components = 1
 
         if len(pointer_tab) == 5 and pointer_tab[1] == "materials" and \
                 pointer_tab[3] == "occlusionTexture" and \
                 pointer_tab[4] == "strength":
 
-            occlusion_socket = get_socket(asset.blender_nodetree, "Occlusion")
-            if occlusion_socket.socket is None:
-                occlusion_socket = get_socket_from_gltf_material_node(asset.blender_mat.node_tree, "Occlusion")
-            if occlusion_socket.socket.is_linked:
-                mix_node = occlusion_socket.socket.links[0].from_node
-                if mix_node.type == "MIX":
-                    blender_path = mix_node.inputs[0].path_from_id() + ".default_value"
-                    group_name = 'Material'
-                    num_components = 1
-                else:
-                    print("Error, something is wrong, we didn't detect adding a Mix Node because of Pointers")
-            else:
-                blender_path = occlusion_socket.socket.path_from_id() + ".default_value"
-                group_name = 'Material'
-                num_components = 1
+            occlusion_socket = NodeSocket(gltf.socket_infos[asset_idx]['Occlusion'], [asset.blender_nodetree])
+            blender_path = occlusion_socket.socket.path_from_id() + ".default_value"
+            group_name = 'Material'
+            num_components = 1
 
         if len(pointer_tab) == 5 and pointer_tab[1] == "materials" and \
                 pointer_tab[3] == "pbrMetallicRoughness" and \
@@ -284,24 +251,15 @@ class BlenderPointerAnim():
                 # This can be regular PBR, or unlit
                 if is_unlit is False:
 
-                    base_color_socket = get_socket(asset.blender_nodetree, "Base Color")
-                    if base_color_socket.socket.is_linked:
-                        # We need to find the correct node value to animate (An Mix Factor node)
-                        mix_node = base_color_socket.socket.links[0].from_node
-                        if mix_node.type == "MIX":
-                            blender_path = mix_node.inputs[7].path_from_id() + ".default_value"
-                            group_name = 'Material'
-                            num_components = 3  # Do not use alpha here, will be managed later
-                        else:
-                            print("Error, something is wrong, we didn't detect adding a Mix Node because of Pointers")
-                    else:
-                        blender_path = base_color_socket.socket.path_from_id() + ".default_value"
-                        num_components = 3  # Do not use alpha here, will be managed later
+                    base_color_socket = NodeSocket(gltf.socket_infos[asset_idx]['Base Color'], [asset.blender_nodetree])
+                    blender_path = base_color_socket.socket.path_from_id() + ".default_value"
+                    group_name = 'Material'
+                    num_components = 3  # Do not use alpha here, will be managed later
 
                 else:
-                    unlit_info = detect_shadeless_material(asset.blender_nodetree, {})
+                    unlit_info = gltf.socket_infos[asset_idx]
                     if 'rgb_socket' in unlit_info:
-                        socket = unlit_info['rgb_socket']
+                        socket = NodeSocket(unlit_info['rgb_socket'], [asset.blender_nodetree])
                         blender_path = socket.socket.path_from_id() + ".default_value"
                         group_name = 'Material'
                         num_components = 3
@@ -309,36 +267,16 @@ class BlenderPointerAnim():
                         socket = NodeSocket(None, None)
 
             if pointer_tab[4] == "roughnessFactor":
-                roughness_socket = get_socket(asset.blender_nodetree, "Roughness")
-                if roughness_socket.socket.is_linked:
-                    # We need to find the correct node value to animate (An Mix Factor node)
-                    mix_node = roughness_socket.socket.links[0].from_node
-                    if mix_node.type == "MATH":
-                        blender_path = mix_node.inputs[1].path_from_id() + ".default_value"
-                        group_name = 'Material'
-                        num_components = 1
-                    else:
-                        print("Error, something is wrong, we didn't detect adding a Mix Node because of Pointers")
-                else:
-                    blender_path = roughness_socket.socket.path_from_id() + ".default_value"
-                    group_name = 'Material'
-                    num_components = 1
+                roughness_socket = NodeSocket(gltf.socket_infos[asset_idx]['Roughness'], [asset.blender_nodetree])
+                blender_path = roughness_socket.socket.path_from_id() + ".default_value"
+                group_name = 'Material'
+                num_components = 1
 
             if pointer_tab[4] == "metallicFactor":
-                metallic_socket = get_socket(asset.blender_nodetree, "Metallic")
-                if metallic_socket.socket.is_linked:
-                    # We need to find the correct node value to animate (An Mix Factor node)
-                    mix_node = metallic_socket.socket.links[0].from_node
-                    if mix_node.type == "MATH":
-                        blender_path = mix_node.inputs[1].path_from_id() + ".default_value"
-                        group_name = 'Material'
-                        num_components = 1
-                    else:
-                        print("Error, something is wrong, we didn't detect adding a Mix Node because of Pointers")
-                else:
-                    blender_path = metallic_socket.socket.path_from_id() + ".default_value"
-                    group_name = 'Material'
-                    num_components = 1
+                metallic_socket = NodeSocket(gltf.socket_infos[asset_idx]['Metallic'], [asset.blender_nodetree])
+                blender_path = metallic_socket.socket.path_from_id() + ".default_value"
+                group_name = 'Material'
+                num_components = 1
 
         if len(pointer_tab) >= 7 and pointer_tab[1] == "materials" and \
                 pointer_tab[-3] == "extensions" and \
@@ -349,72 +287,96 @@ class BlenderPointerAnim():
             if pointer_tab[-4] == "baseColorTexture":
                 # This can be regular PBR, or unlit
                 if is_unlit is False:
-                    socket = get_socket(asset['blender_nodetree'], "Base Color")
+                    socket = NodeSocket(gltf.socket_infos[asset_idx]['Base Color Texture'], [asset['blender_nodetree']])
                 else:
-                    unlit_info = detect_shadeless_material(asset['blender_nodetree'], {})
+                    unlit_info = gltf.socket_infos[asset_idx]
                     if 'rgb_socket' in unlit_info:
-                        socket = unlit_info['rgb_socket']
+                        socket = NodeSocket(unlit_info['rgb_socket'], [asset['blender_nodetree']])
                     else:
                         socket = NodeSocket(None, None)
             elif pointer_tab[-4] == "emissiveTexture":
-                socket = get_socket(asset['blender_nodetree'], "Emission Color")
+                socket = NodeSocket(gltf.socket_infos[asset_idx]['Emission Texture'], [asset['blender_nodetree']])
             elif pointer_tab[-4] == "normalTexture":
-                socket = get_socket(asset['blender_nodetree'], "Normal")
+                socket = NodeSocket(gltf.socket_infos[asset_idx]['Normal Texture'], [asset['blender_nodetree']])
             elif pointer_tab[-4] == "occlusionTexture":
-                socket = get_socket(asset['blender_nodetree'], "Occlusion")
-                if socket.socket is None:
-                    socket = get_socket_from_gltf_material_node(asset['blender_nodetree'], "Occlusion")
+                socket = NodeSocket(gltf.socket_infos[asset_idx]['Occlusion Texture'], [asset['blender_nodetree']])
             elif pointer_tab[-4] == "metallicRoughnessTexture":
-                socket = get_socket(asset['blender_nodetree'], "Roughness")
+                socket = NodeSocket(
+                    gltf.socket_infos[asset_idx]['Metallic Roughness Texture'], [
+                        asset['blender_nodetree']])
             elif pointer_tab[-4] == "specularTexture":
-                socket = get_socket(asset['blender_nodetree'], "Specular IOR Level")
+                socket = NodeSocket(
+                    gltf.socket_infos[asset_idx]['Specular IOR Level Texture'], [
+                        asset['blender_nodetree']])
             elif pointer_tab[-4] == "specularColorTexture":
-                socket = get_socket(asset['blender_nodetree'], "Specular Tint")
+                socket = NodeSocket(
+                    gltf.socket_infos[asset_idx]['Specular Tint Texture'], [
+                        asset['blender_nodetree']])
             elif pointer_tab[-4] == "sheenColorTexture":
-                socket = get_socket(asset['blender_nodetree'], "Sheen Tint")
+                socket = NodeSocket(
+                    gltf.socket_infos[asset_idx]['Sheen Color Texture'], [
+                        asset['blender_nodetree']])
             elif pointer_tab[-4] == "sheenRoughnessTexture":
-                socket = get_socket(asset['blender_nodetree'], "Sheen Roughness")
+                socket = NodeSocket(
+                    gltf.socket_infos[asset_idx]['Sheen Roughness Texture'], [
+                        asset['blender_nodetree']])
             elif pointer_tab[-4] == "clearcoatTexture":
-                socket = get_socket(asset['blender_nodetree'], "Coat Weight")
+                socket = NodeSocket(
+                    gltf.socket_infos[asset_idx]['Coat Weight Texture'], [
+                        asset['blender_nodetree']])
             elif pointer_tab[-4] == "clearcoatRoughnessTexture":
-                socket = get_socket(asset['blender_nodetree'], "Coat Roughness")
+                socket = NodeSocket(
+                    gltf.socket_infos[asset_idx]['Coat Roughness Texture'], [
+                        asset['blender_nodetree']])
             elif pointer_tab[-4] == "clearcoatNormalTexture":
-                socket = get_socket(asset['blender_nodetree'], "Coat Normal")
+                socket = NodeSocket(
+                    gltf.socket_infos[asset_idx]['Coat Normal Texture'], [
+                        asset['blender_nodetree']])
             elif pointer_tab[-4] == "thicknessTexture":
-                socket = get_socket_from_gltf_material_node(asset['blender_nodetree'], "Thickness")
+                socket = NodeSocket(
+                    gltf.socket_infos[asset_idx]['Thickness Texture'], [
+                        asset['blender_nodetree']])
             elif pointer_tab[-4] == "transmissionTexture":
-                socket = get_socket(asset['blender_nodetree'], "Transmission Weight")
+                socket = NodeSocket(
+                    gltf.socket_infos[asset_idx]['Transmission Texture'], [
+                        asset['blender_nodetree']])
             elif pointer_tab[-4] == "iridescenceTexture":
-                socket = get_socket_from_gltf_material_node(asset['blender_nodetree'], "Iridescence Factor")
+                socket = NodeSocket(
+                    gltf.socket_infos[asset_idx]['Iridescence Texture'], [
+                        asset['blender_nodetree']])
             elif pointer_tab[-4] == "iridescenceThicknessTexture":
-                socket = get_socket(asset['blender_nodetree'], "Thin Film Thickness")
+                socket = NodeSocket(
+                    gltf.socket_infos[asset_idx]['Iridescence Thickness Texture'], [
+                        asset['blender_nodetree']])
             elif pointer_tab[-4] == "anisotropyTexture":
-                socket = get_socket(asset['blender_nodetree'], "Anisotropic")
+                socket = NodeSocket(
+                    gltf.socket_infos[asset_idx]['Anisotropy Texture'], [
+                        asset['blender_nodetree']])
             else:
                 print("Some Texture are not managed for KHR_animation_pointer / KHR_texture_transform")
 
-            tex = get_texture_node_from_socket(socket, {}) if socket.socket is not None else None
-            tex_node = tex.shader_node if tex is not None else None
+            tex_node = socket.socket.node if socket.socket is not None else None
             if tex_node is not None:
-                result = detect_manual_uv_wrapping(tex_node, tex.group_path)
+                result = detect_manual_uv_wrapping(tex_node, socket.group_path)
                 if result:
-                    mapping_node = previous_node(result['next_socket'])
+                    mapping_node = BlenderPointerAnim.__previous_node(result['next_socket'])
                 else:
-                    mapping_node = previous_node(NodeSocket(tex_node.inputs['Vector'], tex.group_path))
+                    mapping_node = BlenderPointerAnim.__previous_node(
+                        NodeSocket(tex_node.inputs['Vector'], socket.group_path))
             else:
                 mapping_node = None
 
             if mapping_node is not None:
                 if pointer_tab[-1] == "offset":
-                    blender_path = mapping_node.node.inputs[1].path_from_id() + ".default_value"
+                    blender_path = mapping_node.inputs[1].path_from_id() + ".default_value"
                     group_name = 'Material'
                     num_components = 2
                 elif pointer_tab[-1] == "rotation":
-                    blender_path = mapping_node.node.inputs[2].path_from_id() + ".default_value"
+                    blender_path = mapping_node.inputs[2].path_from_id() + ".default_value"
                     group_name = 'Material'
                     num_components = 2
                 elif pointer_tab[-1] == "scale":
-                    blender_path = mapping_node.node.inputs[3].path_from_id() + ".default_value"
+                    blender_path = mapping_node.inputs[3].path_from_id() + ".default_value"
                     group_name = 'Material'
                     num_components = 2
 
@@ -458,7 +420,7 @@ class BlenderPointerAnim():
                 pointer_tab[4] == "KHR_materials_emissive_strength" and \
                 pointer_tab[5] == "emissiveStrength":
 
-            socket = get_socket(asset['blender_nodetree'], "Emission Strength")
+            socket = NodeSocket(gltf.socket_infos[asset_idx]['Emission Strength'], [asset['blender_nodetree']])
             blender_path = socket.socket.path_from_id() + ".default_value"
             group_name = 'Material'
             num_components = 1
@@ -469,22 +431,14 @@ class BlenderPointerAnim():
                 pointer_tab[5] in ["thicknessFactor", "attenuationDistance", "attenuationColor"]:
 
             if pointer_tab[5] == "thicknessFactor":
-                thicknesss_socket = get_socket_from_gltf_material_node(asset['blender_nodetree'], 'Thickness')
-                if thicknesss_socket.socket.is_linked:
-                    mix_node = thicknesss_socket.socket.links[0].from_node
-                    if mix_node.type == "MATH":
-                        blender_path = mix_node.inputs[1].path_from_id() + ".default_value"
-                        group_name = 'Material'
-                        num_components = 1
-                    else:
-                        print("Error, something is wrong, we didn't detect adding a Mix Node because of Pointers")
-                else:
-                    blender_path = thicknesss_socket.socket.path_from_id() + ".default_value"
-                    group_name = 'Material'
-                    num_components = 1
+
+                thickness_socket = NodeSocket(gltf.socket_infos[asset_idx]['Thickness'], [asset['blender_nodetree']])
+                blender_path = thickness_socket.socket.path_from_id() + ".default_value"
+                group_name = 'Material'
+                num_components = 1
 
             if pointer_tab[5] == "attenuationDistance":
-                density_socket = get_socket(asset['blender_nodetree'], 'Density', volume=True)
+                density_socket = NodeSocket(gltf.socket_infos[asset_idx]['Volume Density'], [asset['blender_nodetree']])
                 blender_path = density_socket.socket.path_from_id() + ".default_value"
                 group_name = 'Material'
                 num_components = 1
@@ -494,7 +448,9 @@ class BlenderPointerAnim():
                     values[idx] = [1.0 / old_values[idx][0]]
 
             if pointer_tab[5] == "attenuationColor":
-                attenuation_color_socket = get_socket(asset['blender_nodetree'], 'Color', volume=True)
+                attenuation_color_socket = NodeSocket(
+                    gltf.socket_infos[asset_idx]['Volume Color'], [
+                        asset['blender_nodetree']])
                 blender_path = attenuation_color_socket.socket.path_from_id() + ".default_value"
                 group_name = 'Material'
                 num_components = 3
@@ -504,7 +460,7 @@ class BlenderPointerAnim():
                 pointer_tab[4] == "KHR_materials_ior" and \
                 pointer_tab[5] == "ior":
 
-            ior_socket = get_socket(asset['blender_nodetree'], 'IOR')
+            ior_socket = NodeSocket(gltf.socket_infos[asset_idx]['IOR'], [asset['blender_nodetree']])
             blender_path = ior_socket.socket.path_from_id() + ".default_value"
             group_name = 'Material'
             num_components = 1
@@ -514,122 +470,77 @@ class BlenderPointerAnim():
                 pointer_tab[4] == "KHR_materials_transmission" and \
                 pointer_tab[5] == "transmissionFactor":
 
-            transmission_socket = get_socket(asset['blender_nodetree'], 'Transmission Weight')
-            if transmission_socket.socket.is_linked:
-                mix_node = transmission_socket.socket.links[0].from_node
-                if mix_node.type == "MATH":
-                    blender_path = mix_node.inputs[1].path_from_id() + ".default_value"
-                    group_name = 'Material'
-                    num_components = 1
-                else:
-                    print("Error, something is wrong, we didn't detect adding a Mix Node because of Pointers")
-            else:
-                blender_path = transmission_socket.socket.path_from_id() + ".default_value"
-                group_name = 'Material'
-                num_components = 1
+            transmission_socket = NodeSocket(
+                gltf.socket_infos[asset_idx]['Transmission Weight'], [
+                    asset['blender_nodetree']])
+            blender_path = transmission_socket.socket.path_from_id() + ".default_value"
+            group_name = 'Material'
+            num_components = 1
 
         if len(pointer_tab) == 7 and pointer_tab[1] == "materials" and \
                 pointer_tab[3] == "extensions" and \
                 pointer_tab[4] == "KHR_materials_clearcoat" and \
                 pointer_tab[5] == "clearcoatNormalTexture" and \
                 pointer_tab[6] == "scale":
-            result = from_socket(
-                get_socket(asset['blender_nodetree'], 'Coat Normal'),
-                FilterByType(bpy.types.ShaderNodeNormalMap))
-            if result:
-                blender_path = result[0].shader_node.inputs['Strength'].path_from_id() + ".default_value"
-                group_name = 'Material'
-                num_components = 1
+
+            coat_normal_socket = NodeSocket(
+                gltf.socket_infos[asset_idx]['Coat Normal'], [
+                    asset['blender_nodetree']])
+            blender_path = coat_normal_socket.socket.path_from_id() + ".default_value"
+            group_name = 'Material'
+            num_components = 1
 
         if len(pointer_tab) == 6 and pointer_tab[1] == "materials" and \
                 pointer_tab[3] == "extensions" and \
                 pointer_tab[4] == "KHR_materials_clearcoat" and \
                 pointer_tab[5] == "clearcoatFactor":
-            clearcoat_socket = get_socket(asset['blender_nodetree'], 'Coat Weight')
-            if clearcoat_socket.socket.is_linked:
-                mix_node = clearcoat_socket.socket.links[0].from_node
-                if mix_node.type == "MATH":
-                    blender_path = mix_node.inputs[1].path_from_id() + ".default_value"
-                    group_name = 'Material'
-                    num_components = 1
-                else:
-                    print("Error, something is wrong, we didn't detect adding a Mix Node because of Pointers")
-            else:
-                blender_path = clearcoat_socket.socket.path_from_id() + ".default_value"
-                group_name = 'Material'
-                num_components = 1
+            clearcoat_socket = NodeSocket(gltf.socket_infos[asset_idx]['Coat Weight'], [asset['blender_nodetree']])
+            blender_path = clearcoat_socket.socket.path_from_id() + ".default_value"
+            group_name = 'Material'
+            num_components = 1
 
         if len(pointer_tab) == 6 and pointer_tab[1] == "materials" and \
                 pointer_tab[3] == "extensions" and \
                 pointer_tab[4] == "KHR_materials_clearcoat" and \
                 pointer_tab[5] == "clearcoatRoughnessFactor":
-            clearcoat_roughness_socket = get_socket(asset['blender_nodetree'], 'Coat Roughness')
-            if clearcoat_roughness_socket.socket.is_linked:
-                mix_node = clearcoat_roughness_socket.socket.links[0].from_node
-                if mix_node.type == "MATH":
-                    blender_path = mix_node.inputs[1].path_from_id() + ".default_value"
-                    group_name = 'Material'
-                    num_components = 1
-                else:
-                    print("Error, something is wrong, we didn't detect adding a Mix Node because of Pointers")
-            else:
-                blender_path = clearcoat_roughness_socket.socket.path_from_id() + ".default_value"
-                group_name = 'Material'
-                num_components = 1
+            clearcoat_roughness_socket = NodeSocket(
+                gltf.socket_infos[asset_idx]['Coat Roughness'], [
+                    asset['blender_nodetree']])
+            blender_path = clearcoat_roughness_socket.socket.path_from_id() + ".default_value"
+            group_name = 'Material'
+            num_components = 1
 
         if len(pointer_tab) == 6 and pointer_tab[1] == "materials" and \
                 pointer_tab[3] == "extensions" and \
                 pointer_tab[4] == "KHR_materials_sheen" and \
                 pointer_tab[5] == "sheenColorFactor":
-            sheen_color_socket = get_socket(asset['blender_nodetree'], 'Sheen Tint')
-            if sheen_color_socket.socket.is_linked:
-                mix_node = sheen_color_socket.socket.links[0].from_node
-                if mix_node.type == "MIX":
-                    blender_path = mix_node.inputs[7].path_from_id() + ".default_value"
-                    group_name = 'Material'
-                    num_components = 3
-                else:
-                    print("Error, something is wrong, we didn't detect adding a Mix Node because of Pointers")
-            else:
-                blender_path = sheen_color_socket.socket.path_from_id() + ".default_value"
-                group_name = 'Material'
-                num_components = 3
+            sheen_color_socket = NodeSocket(gltf.socket_infos[asset_idx]['Sheen Color'], [asset['blender_nodetree']])
+            blender_path = sheen_color_socket.socket.path_from_id() + ".default_value"
+            group_name = 'Material'
+            num_components = 3
 
         if len(pointer_tab) == 6 and pointer_tab[1] == "materials" and \
                 pointer_tab[3] == "extensions" and \
                 pointer_tab[4] == "KHR_materials_sheen" and \
                 pointer_tab[5] == "sheenRoughnessFactor":
-            sheen_roughness_socket = get_socket(asset['blender_nodetree'], 'Sheen Roughness')
-            if sheen_roughness_socket.socket.is_linked:
-                mix_node = sheen_roughness_socket.socket.links[0].from_node
-                if mix_node.type == "MATH":
-                    blender_path = mix_node.inputs[1].path_from_id() + ".default_value"
-                    group_name = 'Material'
-                    num_components = 1
-                else:
-                    print("Error, something is wrong, we didn't detect adding a Mix Node because of Pointers")
-            else:
-                blender_path = sheen_roughness_socket.socket.path_from_id() + ".default_value"
-                group_name = 'Material'
-                num_components = 1
+            sheen_roughness_socket = NodeSocket(
+                gltf.socket_infos[asset_idx]['Sheen Roughness'], [
+                    asset['blender_nodetree']])
+            blender_path = sheen_roughness_socket.socket.path_from_id() + ".default_value"
+            group_name = 'Material'
+            num_components = 1
 
         if len(pointer_tab) == 6 and pointer_tab[1] == "materials" and \
                 pointer_tab[3] == "extensions" and \
                 pointer_tab[4] == "KHR_materials_specular" and \
                 pointer_tab[5] == "specularFactor":
-            specular_socket = get_socket(asset['blender_nodetree'], 'Specular IOR Level')
-            if specular_socket.socket.is_linked:
-                mix_node = specular_socket.socket.links[0].from_node
-                if mix_node.type == "MATH":
-                    blender_path = mix_node.inputs[1].path_from_id() + ".default_value"
-                    group_name = 'Material'
-                    num_components = 1
-                else:
-                    print("Error, something is wrong, we didn't detect adding a Mix Node because of Pointers")
-            else:
-                blender_path = specular_socket.socket.path_from_id() + ".default_value"
-                group_name = 'Material'
-                num_components = 1
+
+            specular_socket = NodeSocket(
+                gltf.socket_infos[asset_idx]['Specular IOR Level'], [
+                    asset['blender_nodetree']])
+            blender_path = specular_socket.socket.path_from_id() + ".default_value"
+            group_name = 'Material'
+            num_components = 1
 
             old_values = values.copy()
             for idx, i in enumerate(old_values):
@@ -639,65 +550,46 @@ class BlenderPointerAnim():
                 pointer_tab[3] == "extensions" and \
                 pointer_tab[4] == "KHR_materials_specular" and \
                 pointer_tab[5] == "specularColorFactor":
-            specular_color_socket = get_socket(asset['blender_nodetree'], 'Specular Tint')
-            if specular_color_socket.socket.is_linked:
-                mix_node = specular_color_socket.socket.links[0].from_node
-                if mix_node.type == "MIX":
-                    blender_path = mix_node.inputs[7].path_from_id() + ".default_value"
-                    group_name = 'Material'
-                    num_components = 3
-                else:
-                    print("Error, something is wrong, we didn't detect adding a Mix Node because of Pointers")
-            else:
-                blender_path = specular_color_socket.socket.path_from_id() + ".default_value"
-                group_name = 'Material'
-                num_components = 3
+            specular_color_socket = NodeSocket(
+                gltf.socket_infos[asset_idx]['Specular Tint'], [
+                    asset['blender_nodetree']])
+            blender_path = specular_color_socket.socket.path_from_id() + ".default_value"
+            group_name = 'Material'
+            num_components = 3
 
         if len(pointer_tab) == 6 and pointer_tab[1] == "materials" and \
                 pointer_tab[3] == "extensions" and \
                 pointer_tab[4] == "KHR_materials_anisotropy" and \
                 pointer_tab[5] == "anisotropyStrength":
-            anisotropy_socket = get_socket(asset['blender_nodetree'], 'Anisotropic')
-            if anisotropy_socket.socket.is_linked:
-                mix_node = anisotropy_socket.socket.links[0].from_node
-                if mix_node.type == "MATH":
-                    blender_path = mix_node.inputs[1].path_from_id() + ".default_value"
-                    group_name = 'Material'
-                    num_components = 1
-                else:
-                    print("Error, something is wrong, we didn't detect adding a Mix Node because of Pointers")
-            else:
-                blender_path = anisotropy_socket.socket.path_from_id() + ".default_value"
-                group_name = 'Material'
-                num_components = 1
+
+            anisotropy_socket = NodeSocket(
+                gltf.socket_infos[asset_idx]['AnisotropyStrength'], [
+                    asset['blender_nodetree']])
+
+            blender_path = anisotropy_socket.socket.path_from_id() + ".default_value"
+            group_name = 'Material'
+            num_components = 1
 
         if len(pointer_tab) == 6 and pointer_tab[1] == "materials" and \
                 pointer_tab[3] == "extensions" and \
                 pointer_tab[4] == "KHR_materials_anisotropy" and \
                 pointer_tab[5] == "anisotropyRotation":
-            anisotropy_rotation_socket = get_socket(asset['blender_nodetree'], 'Anisotropic Rotation')
-            if anisotropy_rotation_socket.socket.is_linked:
-                mix_node = anisotropy_rotation_socket.socket.links[0].from_node
-                if mix_node.type == "MATH" and mix_node.inputs[0].is_linked:
-                    mix_rotation = mix_node.inputs[0].links[0].from_node
-                    if mix_rotation.type == "MATH":
-                        blender_path = mix_rotation.inputs[1].path_from_id() + ".default_value"
-                        group_name = 'Material'
-                        num_components = 1
-                    else:
-                        print("Error, something is wrong, we didn't detect adding a Mix Node because of Pointers")
-                else:
-                    print("Error, something is wrong, we didn't detect adding a Mix Node because of Pointers")
-            else:
-                blender_path = anisotropy_rotation_socket.socket.path_from_id() + ".default_value"
-                group_name = 'Material'
-                num_components = 1
+
+            anisotropy_rotation_socket = NodeSocket(
+                gltf.socket_infos[asset_idx]['AnisotropyRotation'], [
+                    asset['blender_nodetree']])
+            blender_path = anisotropy_rotation_socket.socket.path_from_id() + ".default_value"
+            group_name = 'Material'
+            num_components = 1
 
         if len(pointer_tab) == 6 and pointer_tab[1] == "materials" and \
                 pointer_tab[3] == "extensions" and \
                 pointer_tab[4] == "KHR_materials_dispersion" and \
                 pointer_tab[5] == "dispersion":
-            dispersion_socket = get_socket_from_gltf_material_node(asset['blender_nodetree'], 'Dispersion')
+
+            dispersion_socket = NodeSocket(
+                gltf.socket_infos[asset_idx]['Dispersion'], [
+                    asset['blender_nodetree']])
             if dispersion_socket.socket.is_linked:
                 print("Error, something is wrong, Dispersion should not be linked")
             else:
@@ -709,79 +601,48 @@ class BlenderPointerAnim():
                 pointer_tab[3] == "extensions" and \
                 pointer_tab[4] == "KHR_materials_iridescence" and \
                 pointer_tab[5] == "iridescenceFactor":
-            iridescence_factor_socket = get_socket_from_gltf_material_node(
-                asset['blender_nodetree'], 'Iridescence Factor')
-            if iridescence_factor_socket.socket.is_linked:
-                mix_node = iridescence_factor_socket.socket.links[0].from_node
-                if mix_node.type == "MATH":
-                    blender_path = mix_node.inputs[1].path_from_id() + ".default_value"
-                    group_name = 'Material'
-                    num_components = 1
-                else:
-                    print("Error, something is wrong, we didn't detect adding a Mix Node because of Pointers")
-            else:
-                blender_path = iridescence_factor_socket.socket.path_from_id() + ".default_value"
-                group_name = 'Material'
-                num_components = 1
+
+            iridescence_factor_socket = NodeSocket(
+                gltf.socket_infos[asset_idx]['Iridescence Factor'], [
+                    asset['blender_nodetree']])
+            blender_path = iridescence_factor_socket.socket.path_from_id() + ".default_value"
+            group_name = 'Material'
+            num_components = 1
 
         if len(pointer_tab) == 6 and pointer_tab[1] == "materials" and \
                 pointer_tab[3] == "extensions" and \
                 pointer_tab[4] == "KHR_materials_iridescence" and \
                 pointer_tab[5] == "iridescenceIor":
-            iridescence_ior_socket = get_socket(asset['blender_nodetree'], 'Thin Film IOR')
-            if iridescence_ior_socket.socket.is_linked:
-                mix_node = iridescence_ior_socket.socket.links[0].from_node
-                if mix_node.type == "MATH":
-                    blender_path = mix_node.inputs[1].path_from_id() + ".default_value"
-                    group_name = 'Material'
-                    num_components = 1
-                else:
-                    print("Error, something is wrong, we didn't detect adding a Mix Node because of Pointers")
-            else:
-                blender_path = iridescence_ior_socket.socket.path_from_id() + ".default_value"
-                group_name = 'Material'
-                num_components = 1
+
+            iridescence_ior_socket = NodeSocket(
+                gltf.socket_infos[asset_idx]['Iridescence IOR'], [
+                    asset['blender_nodetree']])
+            blender_path = iridescence_ior_socket.socket.path_from_id() + ".default_value"
+            group_name = 'Material'
+            num_components = 1
 
         if len(pointer_tab) == 6 and pointer_tab[1] == "materials" and \
                 pointer_tab[3] == "extensions" and \
                 pointer_tab[4] == "KHR_materials_iridescence" and \
                 pointer_tab[5] == "iridescenceThicknessMinimum":
-            iridescence_thickness_min_socket = get_socket_from_gltf_material_node(
-                asset['blender_nodetree'], 'Iridescence Thickness Minimum')
-            if iridescence_thickness_min_socket.socket.is_linked:
-                value_node = iridescence_thickness_min_socket.socket.links[0].from_node
-                if value_node.type == "VALUE":
-                    blender_path = value_node.outputs[0].path_from_id() + ".default_value"
-                    group_name = 'Material'
-                    num_components = 1
-                else:
-                    print("Error, something is wrong, we didn't detect adding a Mix Node because of Pointers")
-            else:
-                blender_path = iridescence_thickness_min_socket.socket.path_from_id() + ".default_value"
-                group_name = 'Material'
-                num_components = 1
+
+            iridescence_thickness_min_socket = NodeSocket(
+                gltf.socket_infos[asset_idx]['Iridescence Thickness Minimum'], [
+                    asset['blender_nodetree']])
+            blender_path = iridescence_thickness_min_socket.socket.path_from_id() + ".default_value"
+            group_name = 'Material'
+            num_components = 1
 
         if len(pointer_tab) == 6 and pointer_tab[1] == "materials" and \
                 pointer_tab[3] == "extensions" and \
                 pointer_tab[4] == "KHR_materials_iridescence" and \
                 pointer_tab[5] == "iridescenceThicknessMaximum":
-            iridescence_thickness_max_socket = get_socket(asset['blender_nodetree'], 'Thin Film Thickness')
-            if iridescence_thickness_max_socket.socket.is_linked:
-                mix_node = iridescence_thickness_max_socket.socket.links[0].from_node
-                if mix_node.type == "MIX":
-                    value_node = mix_node.inputs[3].links[0].from_node
-                    if value_node.type == "VALUE":
-                        blender_path = value_node.outputs[0].path_from_id() + ".default_value"
-                        group_name = 'Material'
-                        num_components = 1
-                    else:
-                        print("Error, something is wrong, we didn't detect adding a Mix Node because of Pointers")
-                else:
-                    print("Error, something is wrong, we didn't detect adding a Mix Node because of Pointers")
-            else:
-                blender_path = iridescence_thickness_max_socket.socket.path_from_id() + ".default_value"
-                group_name = 'Material'
-                num_components = 1
+            iridescence_thickness_max_socket = NodeSocket(
+                gltf.socket_infos[asset_idx]['Iridescence Thickness Maximum'], [
+                    asset['blender_nodetree']])
+            blender_path = iridescence_thickness_max_socket.socket.path_from_id() + ".default_value"
+            group_name = 'Material'
+            num_components = 1
 
         # Extras Node
         if len(pointer_tab) == 5 and pointer_tab[1] == "nodes" and pointer_tab[3] == "extras":
@@ -847,20 +708,13 @@ class BlenderPointerAnim():
                 pointer_tab[4] == "baseColorFactor":
 
             if is_unlit is False:
-                alpha_socket = get_socket(asset.blender_nodetree, "Alpha")
-            else:
-                unlit_info = detect_shadeless_material(asset.blender_nodetree, {})
-                if 'alpha_socket' in unlit_info:
-                    alpha_socket = unlit_info['alpha_socket']
-            if alpha_socket.socket.is_linked:
-                # We need to find the correct node value to animate (An Mix Factor node)
-                mix_node = alpha_socket.socket.links[0].from_node
-                if mix_node.type == "MATH":
-                    blender_path = mix_node.inputs[1].path_from_id() + ".default_value"
-                else:
-                    print("Error, something is wrong, we didn't detect adding a Mix Node because of Pointers")
-            else:
+                alpha_socket = NodeSocket(gltf.socket_infos[asset_idx]['Base Color Alpha'], [asset.blender_nodetree])
                 blender_path = alpha_socket.socket.path_from_id() + ".default_value"
+            else:
+                unlit_info = gltf.socket_infos[asset_idx]
+                if 'alpha_socket' in unlit_info:
+                    alpha_socket = NodeSocket(unlit_info['alpha_socket'], [asset.blender_nodetree])
+                    blender_path = alpha_socket.socket.path_from_id() + ".default_value"
 
             coords[1::2] = (vals[3] for vals in values)
             make_fcurve(

@@ -13,8 +13,9 @@ from .texture import texture
 class MaterialHelper:
     """Helper class. Stores material stuff to be passed around everywhere."""
 
-    def __init__(self, gltf, pymat, mat, vertex_color):
+    def __init__(self, gltf, material_idx, pymat, mat, vertex_color):
         self.gltf = gltf
+        self.material_idx = material_idx
         self.pymat = pymat
         self.mat = mat
         self.node_tree = mat.node_tree
@@ -31,12 +32,6 @@ class MaterialHelper:
     def is_opaque(self):
         alpha_mode = self.pymat.alpha_mode
         return alpha_mode is None or alpha_mode == 'OPAQUE'
-
-    def needs_emissive(self):
-        return (
-            self.pymat.emissive_texture is not None or
-            (self.pymat.emissive_factor or [0, 0, 0]) != [0, 0, 0]
-        )
 
     def get_ext(self, ext_name, default=None):
         if not self.pymat.extensions:
@@ -56,17 +51,22 @@ def scalar_factor_and_texture(
     channel,                # texture channel to use (0-4)
     force_mix_node=False,   # Needed for KHR_animation_pointer
 ):
+
+    factor_socket = None
+
     if isinstance(tex_info, dict):
         tex_info = TextureInfo.from_dict(tex_info)
 
     x, y = location
 
     if socket is None:
-        return
+        return tex_info, None, None
 
     if tex_info is None:
         socket.default_value = factor
-        return
+        return tex_info, socket, None
+
+    factor_socket = socket
 
     if factor != 1.0 or force_mix_node:
         node = mh.nodes.new('ShaderNodeMath')
@@ -78,6 +78,7 @@ def scalar_factor_and_texture(
         # Inputs
         socket = node.inputs[0]
         node.inputs[1].default_value = factor
+        factor_socket = node.inputs[1]
 
         x -= 200
 
@@ -92,7 +93,7 @@ def scalar_factor_and_texture(
 
         x -= 200
 
-    texture(
+    texture_socket = texture(
         mh,
         tex_info=tex_info,
         label=label.upper(),
@@ -101,12 +102,12 @@ def scalar_factor_and_texture(
         color_socket=socket if channel != 4 else None,
         alpha_socket=socket if channel == 4 else None,
     )
-
-    return tex_info
-
+    return tex_info, factor_socket, texture_socket
 
 # Creates nodes for multiplying a texture color and color factor.
 # [Texture] => [Mix Factor] => socket
+
+
 def color_factor_and_texture(
     mh: MaterialHelper,
     location,
@@ -116,17 +117,20 @@ def color_factor_and_texture(
     tex_info,              # texture
     force_mix_node=False,  # Needed for KHR_animation_pointer
 ):
+
+    factor_socket = None
+
     if isinstance(tex_info, dict):
         tex_info = TextureInfo.from_dict(tex_info)
 
     x, y = location
 
     if socket is None:
-        return
+        return None, None, None
 
     if tex_info is None:
         socket.default_value = [*factor, 1]
-        return
+        return None, socket, None
 
     if factor != [1, 1, 1] or force_mix_node:
         node = mh.nodes.new('ShaderNodeMix')
@@ -140,10 +144,11 @@ def color_factor_and_texture(
         node.inputs['Factor'].default_value = 1
         socket = node.inputs[6]
         node.inputs[7].default_value = [*factor, 1]
+        factor_socket = node.inputs[7]
 
         x -= 200
 
-    texture(
+    texture_socket = texture(
         mh,
         tex_info=tex_info,
         label=label.upper(),
@@ -152,7 +157,7 @@ def color_factor_and_texture(
         color_socket=socket,
     )
 
-    return tex_info
+    return tex_info, factor_socket, texture_socket
 
 
 # [Texture] => [Normal Map] => socket
@@ -163,11 +168,14 @@ def normal_map(
     socket,
     tex_info,
 ):
+
+    normal_socket = None
+
     if isinstance(tex_info, dict):
         tex_info = MaterialNormalTextureInfoClass.from_dict(tex_info)
 
     if not tex_info:
-        return
+        return normal_socket, None
 
     x, y = location
 
@@ -185,12 +193,13 @@ def normal_map(
     scale = tex_info.scale
     scale = scale if scale is not None else 1
     node.inputs['Strength'].default_value = scale
+    normal_socket = node.inputs['Strength']
     # Outputs
     mh.links.new(socket, node.outputs['Normal'])
 
     x -= 200
 
-    texture(
+    texture_socket = texture(
         mh,
         tex_info=tex_info,
         label=label.upper(),
@@ -198,3 +207,5 @@ def normal_map(
         is_data=True,
         color_socket=node.inputs['Color'],
     )
+
+    return normal_socket, texture_socket

@@ -335,6 +335,11 @@ class BlenderGlTF():
         # Manage KHR_materials_variants
         BlenderGlTF.manage_material_variants(gltf)
 
+        # Socket infos
+        # For any materials imported, we need to store the socket info,
+        # Because this may be used  for KHR_animation_pointer, to know which socket is animated
+        gltf.socket_infos = {}
+
     @staticmethod
     def dispatch_animation_pointer(gltf, anim, anim_idx, channel, channel_idx):
         if channel.target.path != "pointer":

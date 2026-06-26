@@ -4,7 +4,6 @@
 
 from . import texture_info as gltf2_blender_gather_texture_info
 from .search_node_tree import \
-    get_socket, \
     NodeSocket, \
     previous_socket, \
     previous_node, \
@@ -12,62 +11,7 @@ from .search_node_tree import \
     gather_color_info
 
 
-def detect_shadeless_material(blender_material_node_tree, export_settings):
-    """Detect if this material is "shadeless" ie. should be exported
-    with KHR_materials_unlit. Returns None if not. Otherwise, returns
-    a dict with info from parsing the node tree.
-    """
-
-    # Old Background node detection (unlikely to happen)
-    bg_socket = get_socket(blender_material_node_tree, "Background")
-    if bg_socket.socket is not None:
-        return {'rgb_socket': bg_socket}
-
-    # Look for
-    # * any color socket, connected to...
-    # * optionally, the lightpath trick, connected to...
-    # * optionally, a mix-with-transparent (for alpha), connected to...
-    # * the output node
-
-    info = {}
-
-    # TODOSNode this can be a function call
-    for node in blender_material_node_tree.nodes:
-        if node.type == 'OUTPUT_MATERIAL' and node.is_active_output:
-            socket = node.inputs[0]
-            break
-    else:
-        return None
-
-    socket = NodeSocket(socket, [blender_material_node_tree])
-
-    # Be careful not to misidentify a lightpath trick as mix-alpha.
-    result = __detect_lightpath_trick(socket)
-    if result is not None:
-        socket = result['next_socket']
-    else:
-        result = __detect_mix_alpha(socket)
-        if result is not None:
-            socket = result['next_socket']
-            info['alpha_socket'] = result['alpha_socket']
-
-        result = __detect_lightpath_trick(socket)
-        if result is not None:
-            socket = result['next_socket']
-
-    # Check if a color socket, or connected to a color socket
-    if socket.socket.type != 'RGBA':
-        from_socket = previous_socket(socket)
-        if from_socket.socket is None:
-            return None
-        if from_socket.socket.type != 'RGBA':
-            return None
-
-    info['rgb_socket'] = socket
-    return info
-
-
-def __detect_mix_alpha(socket):
+def detect_mix_alpha(socket):
     # Detects this (used for an alpha hookup)
     #
     #                  [   Mix   ]
@@ -89,7 +33,7 @@ def __detect_mix_alpha(socket):
     }
 
 
-def __detect_lightpath_trick(socket):
+def detect_lightpath_trick(socket):
     # Detects this (used to prevent casting light on other objects) See ex.
     # https://blender.stackexchange.com/a/21535/88681
     #
