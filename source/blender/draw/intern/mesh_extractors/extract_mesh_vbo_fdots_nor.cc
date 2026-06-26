@@ -78,7 +78,7 @@ gpu::VertBufPtr extract_face_dot_normals(const MeshRenderData &mr, const bool us
       "norAndFlag", gpu::VertAttrType::SNORM_10_10_10_2);
   gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
   GPU_vertbuf_data_alloc(*vbo, mr.faces_num);
-  MutableSpan vbo_data = vbo->data<gpu::PackedNormal>();
+  MutableSpan vbo_data = vbo->data<int1010102_norm>();
 
   if (mr.extract_type == MeshExtractType::Mesh) {
     extract_face_dot_normals_mesh(mr, vbo_data);

@@ -20,7 +20,7 @@ static void convert_normals_impl(const Span<float3> src, MutableSpan<GPUType> ds
   });
 }
 
-template<> void convert_normals(const Span<float3> src, MutableSpan<PackedNormal> dst)
+template<> void convert_normals(const Span<float3> src, MutableSpan<int1010102_norm> dst)
 {
   convert_normals_impl(src, dst);
 }
