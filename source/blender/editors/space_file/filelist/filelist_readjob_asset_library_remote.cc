@@ -70,9 +70,12 @@ static void filelist_readjob_remote_asset_library_index_read(
 
     /* For assets already on disk, stamp the listing's file status onto the existing
      * AssetRepresentation so the UI can reflect whether it is up to date. */
-    const StringRefNull asset_file = entry.online_info.asset_file();
+    std::string asset_file = entry.online_info.asset_file();
+    /* Relative identifiers use native slashes, but #asset_system::OnlineAssetInfo::asset_file()
+     * has forward slashes instead, so they need to be converted to native. */
+    BLI_path_slash_native(asset_file.data());
     {
-      BLI_assert(asset_file.endswith(".blend"));
+      BLI_assert(asset_file.ends_with(".blend"));
 
       /* Matches #asset_system::AssetRepresentation.library_relative_identifier(). */
       char asset_identifier[FILE_MAX_LIBEXTRA];
