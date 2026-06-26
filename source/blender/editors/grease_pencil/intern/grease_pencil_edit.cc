@@ -4057,7 +4057,7 @@ static wmOperatorStatus grease_pencil_texture_gradient_exec(bContext *C, wmOpera
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
   }
 
-  return OPERATOR_RUNNING_MODAL;
+  return OPERATOR_FINISHED;
 }
 
 static wmOperatorStatus grease_pencil_texture_gradient_modal(bContext *C,
