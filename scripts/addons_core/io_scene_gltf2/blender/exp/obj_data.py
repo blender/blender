@@ -65,6 +65,9 @@ def gather_mesh(blender_data,
                     blender_data, vertex_groups, modifiers, export_settings), primitives=__gather_primitives(
                         blender_data, uuid_for_skined_data, vertex_groups, modifiers, materials, export_settings), )
 
+    if export_settings['gltf_extras'] and export_settings['gltf_export_anim_pointer']:
+        export_settings['KHR_animation_pointer']['extras']['meshes'][id(blender_data)]['glTF_extras'] = mesh
+
     if len(mesh.primitives) == 0:
         export_settings['log'].warning("Mesh '{}' has no primitives and will be omitted.".format(mesh.name))
         return None
@@ -110,7 +113,7 @@ def __gather_extras(blender_data,
     extras = {}
 
     if export_settings['gltf_extras']:
-        extras = generate_extras(blender_data) or {}
+        extras = generate_extras(blender_data, 'meshes', export_settings) or {}
     # Not for point clouds
     if blender_data.id_type == "POINTCLOUD":
         return extras if extras else None

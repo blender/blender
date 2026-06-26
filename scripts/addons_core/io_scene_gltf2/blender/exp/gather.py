@@ -56,18 +56,39 @@ def gather_gltf2(export_settings):
 
 @cached
 def __gather_scene(blender_scene, export_settings):
+
+    # Initialize some data needed for animation pointer
+    export_settings['KHR_animation_pointer'] = {}
+
+    export_settings['KHR_animation_pointer'][None] = {}
+    export_settings['KHR_animation_pointer'][None]['materials'] = {}
+    export_settings['KHR_animation_pointer'][None]['lights'] = {}
+    export_settings['KHR_animation_pointer'][None]['cameras'] = {}
+
+    export_settings['KHR_animation_pointer']['extras'] = {}
+    export_settings['KHR_animation_pointer']['extras']['objects'] = {}
+    export_settings['KHR_animation_pointer']['extras']['bones'] = {}
+    export_settings['KHR_animation_pointer']['extras']['materials'] = {}
+    export_settings['KHR_animation_pointer']['extras']['lights'] = {}
+    export_settings['KHR_animation_pointer']['extras']['cameras'] = {}
+    export_settings['KHR_animation_pointer']['extras']['scenes'] = {}
+    export_settings['KHR_animation_pointer']['extras']['animations'] = {}
+    export_settings['KHR_animation_pointer']['extras']['meshes'] = {}
+
     scene = gltf2_io.Scene(
         extensions=None,
         extras=__gather_extras(blender_scene, export_settings),
         name=__gather_name(blender_scene, export_settings),
         nodes=[]
     )
-
-    # Initialize some data needed for animation pointer
-    export_settings['KHR_animation_pointer'] = {}
-    export_settings['KHR_animation_pointer']['materials'] = {}
-    export_settings['KHR_animation_pointer']['lights'] = {}
-    export_settings['KHR_animation_pointer']['cameras'] = {}
+    if export_settings['gltf_extras'] and export_settings['gltf_export_anim_pointer']:
+        if export_settings['gltf_collection']:
+            # If case of collection export, use custom properties of the collection instead of the scene
+            # So Collection custom properties are exported as glTF Scene extras
+            export_settings['KHR_animation_pointer']['extras']['scenes'][id(
+                bpy.data.collections[export_settings['gltf_collection']])]['glTF_extras'] = scene
+        else:
+            export_settings['KHR_animation_pointer']['extras']['objects'][id(blender_scene)]['glTF_extras'] = scene
 
     vtree = gltf2_blender_gather_tree.VExportTree(export_settings)
     vtree.construct(blender_scene)
@@ -147,8 +168,8 @@ def __gather_extras(blender_object, export_settings):
         # If case of collection export, use custom properties of the collection instead of the scene
         # So Collection custom properties are exported as glTF Scene extras
         if export_settings['gltf_collection']:
-            return generate_extras(bpy.data.collections[export_settings['gltf_collection']])
-        return generate_extras(blender_object)
+            return generate_extras(bpy.data.collections[export_settings['gltf_collection']], 'scenes', export_settings)
+        return generate_extras(blender_object, 'objects', export_settings)
     return None
 
 

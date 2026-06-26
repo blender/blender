@@ -20,13 +20,17 @@ class BlenderPointerAnim():
         raise RuntimeError("%s should not be instantiated" % cls)
 
     @staticmethod
-    def anim(gltf, anim_idx, asset, asset_idx, asset_type, name=None, is_unlit=False):
+    def anim(gltf, anim_idx, asset, asset_idx, asset_type, name=None, is_unlit=False, target_id_type=None):
         animation = gltf.data.animations[anim_idx]
 
         if asset_type in ["LIGHT", "TEX_TRANSFORM", "EXT"]:
             if anim_idx not in asset['animations'].keys():
                 return
             tab = asset['animations']
+        elif asset_type == "EXTRAS":
+            if anim_idx not in asset['gltf_tmp_data_animations'].keys():
+                return
+            tab = asset['gltf_tmp_data_animations']
         else:
             if anim_idx not in asset.animations.keys():
                 return
@@ -35,10 +39,19 @@ class BlenderPointerAnim():
         for channel_idx in tab[anim_idx]:
             channel = animation.channels[channel_idx]
             BlenderPointerAnim.do_channel(gltf, anim_idx, channel, asset, asset_idx,
-                                          asset_type, name=name, is_unlit=is_unlit)
+                                          asset_type, name=name, is_unlit=is_unlit, target_id_type=target_id_type)
 
     @staticmethod
-    def do_channel(gltf, anim_idx, channel, asset, asset_idx, asset_type, name=None, is_unlit=False):
+    def do_channel(
+            gltf,
+            anim_idx,
+            channel,
+            asset,
+            asset_idx,
+            asset_type,
+            name=None,
+            is_unlit=False,
+            target_id_type=None):
         animation = gltf.data.animations[anim_idx]
         pointer_tab = channel.target.extensions["KHR_animation_pointer"]["pointer"].split("/")
 
@@ -49,11 +62,13 @@ class BlenderPointerAnim():
             target_id_type = "NODETREE"
         elif asset_type == "MATERIAL_PBR":
             target_id_type = "NODETREE"
+        elif asset_type == "EXTRAS":
+            target_id_type = target_id_type
         else:
             target_id_type = asset_type
 
         action, slot = BlenderPointerAnim.get_or_create_action_and_slot(
-            gltf, anim_idx, asset, asset_idx, target_id_type, name_=name)
+            gltf, anim_idx, asset, asset_idx, target_id_type, asset_type, name_=name, target_id_type=target_id_type)
 
         keys = BinaryData.get_data_from_accessor(gltf, animation.samplers[channel.sampler].input)
         values = BinaryData.get_data_from_accessor(gltf, animation.samplers[channel.sampler].output)
@@ -768,6 +783,43 @@ class BlenderPointerAnim():
                 group_name = 'Material'
                 num_components = 1
 
+        # Extras Node
+        if len(pointer_tab) == 5 and pointer_tab[1] == "nodes" and pointer_tab[3] == "extras":
+            bone_name = asset.get('blender_bone_name', None)
+            if bone_name is None:
+                blender_path = '["%s"]' % pointer_tab[4]
+                group_name = 'Extras'
+                num_components = 1  # TODOEXTRAS
+            else:
+                blender_path = 'pose.bones["%s"]["%s"]' % (bone_name, pointer_tab[4])
+                group_name = 'Extras'
+                num_components = 1  # TODOEXTRAS
+
+        # Extras Mesh
+        if len(pointer_tab) == 5 and pointer_tab[1] == "meshes" and pointer_tab[3] == "extras":
+            blender_path = '["%s"]' % pointer_tab[4]
+            group_name = 'Extras'
+            num_components = 1  # TODOEXTRAS
+
+        # Extras Material
+        if len(pointer_tab) == 5 and pointer_tab[1] == "materials" and pointer_tab[3] == "extras":
+            blender_path = '["%s"]' % pointer_tab[4]
+            group_name = 'Extras'
+            num_components = 1  # TODOEXTRAS
+
+        # Extras light
+        if len(
+                pointer_tab) == 7 and pointer_tab[2] == "KHR_lights_punctual" and pointer_tab[3] == "lights" and pointer_tab[5] == "extras":
+            blender_path = '["%s"]' % pointer_tab[6]
+            group_name = 'Extras'
+            num_components = 1  # TODOEXTRAS
+
+        # Extras camera
+        if len(pointer_tab) == 5 and pointer_tab[1] == "cameras" and pointer_tab[3] == "extras":
+            blender_path = '["%s"]' % pointer_tab[4]
+            group_name = 'Extras'
+            num_components = 1  # TODOEXTRAS
+
         if blender_path is None:
             gltf.log.warning("Unsupported animation target: %s" % pointer_tab)
             return  # Should not happen if all specification is managed
@@ -822,15 +874,30 @@ class BlenderPointerAnim():
             )
 
     @staticmethod
-    def get_or_create_action_and_slot(gltf, anim_idx, asset, asset_idx, asset_type, name_=None):
+    def get_or_create_action_and_slot(
+            gltf,
+            anim_idx,
+            asset,
+            asset_idx,
+            asset_type,
+            real_asset_type,
+            name_=None,
+            target_id_type=None):
         animation = gltf.data.animations[anim_idx]
 
         if asset_type == "CAMERA":
-            name = asset.name
-            stash = asset.blender_object_data
+            if real_asset_type == "EXTRAS":
+                name = name_ if name_ is not None else asset.name
+                stash = asset['blender_object_data']
+            else:
+                name = asset.name
+                stash = asset.blender_object_data
             target_id_type = "CAMERA"
         elif asset_type == "LIGHT":
-            name = asset['name']
+            if real_asset_type == "EXTRAS":
+                name = name_ if name_ is not None else asset['name']
+            else:
+                name = asset['name']
             stash = asset['blender_object_data']
             target_id_type = "LIGHT"
         elif asset_type == "MATERIAL":
@@ -849,6 +916,18 @@ class BlenderPointerAnim():
             name = name_ if name_ is not None else asset.name
             stash = asset['blender_nodetree']
             target_id_type = "NODETREE"
+        elif asset_type == "EXTRAS":
+            name = name_ if name_ is not None else asset.name
+            stash = asset['blender_object_data']
+            target_id_type = target_id_type
+        elif asset_type == "OBJECT":
+            if real_asset_type == "EXTRAS":
+                name = name_ if name_ is not None else asset.name
+                stash = asset['blender_object_data']
+            else:
+                name = asset.name
+                stash = asset.blender_object_data
+            target_id_type = "OBJECT"
 
         objects = gltf.action_cache.get(anim_idx)
         if not objects:
@@ -864,6 +943,10 @@ class BlenderPointerAnim():
             gltf.action_cache[anim_idx]['object_slots'] = {}
 
         # We now have an action for the animation, check if we have slots for this object
+        # For bones (extra on bone), we need to use the armature name, not the bone name
+        if real_asset_type == "EXTRAS" and asset_type == "OBJECT" and asset.get('blender_bone_name', None) is not None:
+            name = asset['blender_object_data'].name
+
         slots = gltf.action_cache[anim_idx]['object_slots'].get(name)
         if not slots:
 

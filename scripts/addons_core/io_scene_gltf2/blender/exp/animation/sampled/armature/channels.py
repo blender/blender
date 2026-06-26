@@ -10,6 +10,7 @@ from .....com.conversion import get_gltf_interpolation
 from .....com.conversion import get_target, get_channel_from_target
 from ...fcurves.channels import get_channel_groups
 from ...drivers import get_sk_drivers
+from ..data.channels import gather_sampled_data_channel
 from ..object.channels import gather_sampled_object_channel
 from ..shapekeys.channels import gather_sampled_sk_channel
 from .channel_target import gather_armature_sampled_channel_target
@@ -19,7 +20,7 @@ from .sampler import gather_bone_sampled_animation_sampler
 def gather_armature_sampled_channels(armature_uuid, blender_action_name, slot_identifier,
                                      export_settings) -> typing.List[gltf2_io.AnimationChannel]:
     channels = []
-    extra_channels = {}
+    additional_channels = {}
 
     # Then bake all bones
     bones_to_be_animated = []
@@ -32,7 +33,7 @@ def gather_armature_sampled_channels(armature_uuid, blender_action_name, slot_id
     if slot_identifier is not None:
         if armature_uuid != blender_action_name and blender_action_name in bpy.data.actions:
             # Not bake situation
-            channels_animated, to_be_sampled, extra_channels = get_channel_groups(
+            channels_animated, to_be_sampled, additional_channels, extras_channels = get_channel_groups(
                 armature_uuid, bpy.data.actions[blender_action_name],
                 bpy.data.actions[blender_action_name].slots[slot_identifier], export_settings)
             for chan in [chan for chan in channels_animated.values() if chan['bone'] is not None]:
@@ -93,12 +94,39 @@ def gather_armature_sampled_channels(armature_uuid, blender_action_name, slot_id
     # Retrieve channels for drivers, if needed
     drivers_to_manage = get_sk_drivers(armature_uuid, export_settings)
     for obj_driver_uuid in drivers_to_manage:
-        channel = gather_sampled_sk_channel(obj_driver_uuid, armature_uuid + "_" +
+        channel = gather_sampled_sk_channel('SK', obj_driver_uuid, armature_uuid + "_" +
                                             blender_action_name, slot_identifier, export_settings)
         if channel is not None:
             channels.append(channel)
 
-    return channels, extra_channels
+    # Manage extras channels (custom properties animated)
+    if export_settings['gltf_export_anim_pointer'] and export_settings['gltf_extras']:
+        blender_armature_object = export_settings['vtree'].nodes[armature_uuid].blender_object
+        for b_key, b in export_settings['KHR_animation_pointer']['extras'].get('bones', {}).items():
+            if id(b['blender_armature_object']) != id(blender_armature_object):
+                continue
+
+            for prop in b['paths'].keys():
+
+                channel = gather_sampled_data_channel(
+                    "extras",
+                    "bones",
+                    (armature_uuid, b_key),
+                    b['blender_bone_name'],
+                    prop,
+                    blender_action_name,
+                    slot_identifier,  # TODOSLOT
+                    True,  # Extras channels are always animated (otherwise they are not exported)
+                    get_gltf_interpolation(
+                        # Keep user choice for interpolation of extras channels
+                        export_settings['gltf_sampling_interpolation_fallback'], export_settings),
+                    None,  # No additional key for object extras channels
+                    export_settings
+                )
+                if channel is not None:
+                    channels.append(channel)
+
+    return channels, additional_channels
 
 
 def gather_sampled_bone_channel(
@@ -183,7 +211,7 @@ def __gather_sampler(
 def __gather_armature_object_channel(obj_uuid: str, blender_action, slot_identifier, export_settings):
     channels = []
 
-    channels_animated, to_be_sampled, extra_channels = get_channel_groups(
+    channels_animated, to_be_sampled, additional_channels, _ = get_channel_groups(
         obj_uuid, blender_action, blender_action.slots[slot_identifier], export_settings)
     # Remove all channel linked to bones, keep only directly object channels
     channels_animated = [c for c in channels_animated.values() if c['type'] == "OBJECT"]
@@ -228,5 +256,8 @@ def __gather_armature_object_channel(obj_uuid: str, blender_action, slot_identif
                 get_gltf_interpolation(export_settings['gltf_sampling_interpolation_fallback'], export_settings)
             )
         )
+
+    # TODOPOINTER : extras on armature object ?
+    # This should probably be managed elsewhere ?
 
     return channels

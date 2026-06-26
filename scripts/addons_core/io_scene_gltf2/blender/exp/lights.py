@@ -211,7 +211,7 @@ def __gather_extensions(blender_lamp, export_settings) -> Optional[dict]:
 
 def __gather_extras(blender_lamp, export_settings) -> Optional[Any]:
     if export_settings['gltf_extras']:
-        return generate_extras(blender_lamp)
+        return generate_extras(blender_lamp, 'lights', export_settings)
     return None
 
 

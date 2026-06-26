@@ -90,6 +90,11 @@ class VExportNode:
         self.data = None
         self.materials = None
 
+        # Used to retrieve extras (custom properties), based on object id
+        # Used for animation pointer on mesh extras animation
+        self.mesh_id = None
+        self.blender_object_id = None
+
         self.is_instancer = False
 
     def add_child(self, uuid):

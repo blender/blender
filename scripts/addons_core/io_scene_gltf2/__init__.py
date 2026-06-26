@@ -7,7 +7,7 @@ bl_info = {
     # This is now displayed as the maintainer, so show the foundation.
     # "author": "Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein", # Original Authors
     'author': "Blender Foundation, Khronos Group",
-    "version": (5, 3, 12),
+    "version": (5, 3, 13),
     'blender': (5, 2, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -1252,15 +1252,11 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
             else:
                 export_settings['gltf_anim_scene_split_object'] = False
 
-            if export_settings['gltf_animation_mode'] in ['NLA_TRACKS', 'SCENE']:
-                export_settings['gltf_export_anim_pointer'] = self.export_pointer_animation
-                if self.export_pointer_animation:
-                    export_settings['gltf_trs_w_animation_pointer'] = self.export_convert_animation_pointer
-                else:
-                    export_settings['gltf_trs_w_animation_pointer'] = False
+            export_settings['gltf_export_anim_pointer'] = self.export_pointer_animation
+            if self.export_pointer_animation:
+                export_settings['gltf_trs_w_animation_pointer'] = self.export_convert_animation_pointer
             else:
                 export_settings['gltf_trs_w_animation_pointer'] = False
-                export_settings['gltf_export_anim_pointer'] = False
 
             if export_settings['gltf_animation_mode'] != "ACTIONS":
                 export_settings['gltf_merge_animation'] = "NLA_TRACK"
@@ -1816,7 +1812,6 @@ def export_panel_animation_sampling(layout, operator):
 def export_panel_animation_pointer(layout, operator):
     header, body = layout.panel("GLTF_export_animation_pointer", default_closed=True)
     header.use_property_split = False
-    header.active = operator.export_animations and operator.export_animation_mode in ['NLA_TRACKS', 'SCENE']
     header.prop(operator, "export_pointer_animation", text="")
     header.label(text="Animation Pointer (Experimental)")
     if body:

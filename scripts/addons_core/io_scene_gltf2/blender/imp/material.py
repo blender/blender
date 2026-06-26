@@ -48,6 +48,9 @@ class BlenderMaterial():
         pymaterial.blender_material[vertex_color] = mat.name
 
         set_extras(mat, pymaterial.extras)
+        if pymaterial.extras:
+            pymaterial.extras['blender_object_data'] = mat  # Used in case of for KHR_animation_pointer
+
         BlenderMaterial.set_double_sided(pymaterial, mat)
         BlenderMaterial.set_eevee_surface_render_method(pymaterial, mat)
         BlenderMaterial.set_viewport_color(pymaterial, mat, vertex_color)

@@ -7,7 +7,7 @@ from ...com.extras import generate_extras
 
 def gather_extras(blender_material, export_settings):
     if export_settings['gltf_extras']:
-        return generate_extras(blender_material)
+        return generate_extras(blender_material, 'materials', export_settings)
     return None
 
 
