@@ -633,9 +633,10 @@ static wmOperatorStatus mesh_customdata_skin_clear_exec(bContext *C, wmOperator 
   Object *object = ed::object::context_object(C);
   Mesh *mesh = id_cast<Mesh *>(object->data);
   if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-    if (!CustomData_free_layers(&em->bm->vdata, CD_MVERT_SKIN)) {
+    if (!CustomData_has_layer(&em->bm->vdata, CD_MVERT_SKIN)) {
       return OPERATOR_CANCELLED;
     }
+    BM_data_layer_free(em->bm, &em->bm->vdata, CD_MVERT_SKIN);
   }
   else {
     if (!CustomData_free_layers(&mesh->vert_data, CD_MVERT_SKIN)) {
