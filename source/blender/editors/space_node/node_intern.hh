@@ -97,10 +97,10 @@ struct NodeAndSocket {
     return in_out == SOCK_OUT;
   }
 
-  const bNodeSocket &find_socket_in_node(const bNode &other_node) const;
-  bNodeSocket &find_socket_in_node(bNode &other_node) const;
+  const bNodeSocket *find_socket_in_node(const bNode &other_node) const;
+  bNodeSocket *find_socket_in_node(bNode &other_node) const;
 
-  const bNodeSocket &find_socket() const
+  const bNodeSocket *find_socket() const
   {
     return find_socket_in_node(this->node);
   }
@@ -174,10 +174,10 @@ struct MutableNodeAndSocket {
     return in_out == SOCK_OUT;
   }
 
-  const bNodeSocket &find_socket_in_node(const bNode &other_node) const;
-  bNodeSocket &find_socket_in_node(bNode &other_node) const;
+  const bNodeSocket *find_socket_in_node(const bNode &other_node) const;
+  bNodeSocket *find_socket_in_node(bNode &other_node) const;
 
-  bNodeSocket &find_socket() const
+  bNodeSocket *find_socket() const
   {
     return find_socket_in_node(this->node);
   }
