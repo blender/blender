@@ -257,10 +257,11 @@ static CollectionLightLinking *light_linking_collection_add_collection(Main *bma
   return &collection_child->light_linking;
 }
 
-void BKE_light_linking_add_receiver_to_collection(Main *bmain,
-                                                  Collection *collection,
-                                                  ID *receiver,
-                                                  const eCollectionLightLinkingState link_state)
+static void light_linking_add_receiver_to_collection(Main *bmain,
+                                                     Collection *collection,
+                                                     ID *receiver,
+                                                     const eCollectionLightLinkingState link_state,
+                                                     const bool allow_all_objects)
 {
   const ID_Type id_type = GS(receiver->name);
 
@@ -269,16 +270,19 @@ void BKE_light_linking_add_receiver_to_collection(Main *bmain,
   if (id_type == ID_OB) {
     Object *object = reinterpret_cast<Object *>(receiver);
 
-    if (object->type == OB_EMPTY && object->instance_collection) {
-      if (!BKE_collection_contains_geometry_recursive(object->instance_collection) &&
-          !DEG_object_has_geometry_component(object))
-      {
+    if (!allow_all_objects) {
+      if (object->type == OB_EMPTY && object->instance_collection) {
+        if (!BKE_collection_contains_geometry_recursive(object->instance_collection) &&
+            !DEG_object_has_geometry_component(object))
+        {
+          return;
+        }
+      }
+      else if (!DEG_object_has_geometry_component(object)) {
         return;
       }
     }
-    else if (!DEG_object_has_geometry_component(object)) {
-      return;
-    }
+
     collection_light_linking = light_linking_collection_add_object(bmain, collection, object);
   }
   else if (id_type == ID_GR) {
@@ -299,6 +303,14 @@ void BKE_light_linking_add_receiver_to_collection(Main *bmain,
   DEG_id_tag_update(receiver, ID_RECALC_SHADING);
 
   DEG_relations_tag_update(bmain);
+}
+
+void BKE_light_linking_add_receiver_to_collection(Main *bmain,
+                                                  Collection *collection,
+                                                  ID *receiver,
+                                                  const eCollectionLightLinkingState link_state)
+{
+  light_linking_add_receiver_to_collection(bmain, collection, receiver, link_state, false);
 }
 
 static void order_collection_receiver_before(Collection *collection,
@@ -438,7 +450,7 @@ void BKE_light_linking_add_receiver_to_collection_before(
 {
   BLI_assert(before);
 
-  BKE_light_linking_add_receiver_to_collection(bmain, collection, receiver, link_state);
+  light_linking_add_receiver_to_collection(bmain, collection, receiver, link_state, true);
 
   if (!before) {
     return;
@@ -462,7 +474,7 @@ void BKE_light_linking_add_receiver_to_collection_after(
 {
   BLI_assert(after);
 
-  BKE_light_linking_add_receiver_to_collection(bmain, collection, receiver, link_state);
+  light_linking_add_receiver_to_collection(bmain, collection, receiver, link_state, true);
 
   if (!after) {
     return;
