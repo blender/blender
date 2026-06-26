@@ -456,11 +456,7 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
       return;
     }
     std::optional<FoundNestedNodeID> found_id = find_nested_node_id(user_data, node_.identifier);
-    if (!found_id) {
-      this->set_default_outputs(params);
-      return;
-    }
-    if (found_id->is_in_loop || found_id->is_in_closure) {
+    if (!found_id || found_id->is_in_loop || found_id->is_in_closure) {
       if (eval_log::NodeTreeLogger *tree_logger = local_user_data.try_get_tree_logger(user_data)) {
         const StringRefNull message = TIP_("Simulation must not be in a loop or closure");
         tree_logger->node_warnings.append(*tree_logger->allocator,
