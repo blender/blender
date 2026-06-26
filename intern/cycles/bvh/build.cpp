@@ -442,6 +442,18 @@ unique_ptr<BVHNode> BVHBuild::run()
 {
   BVHRange root;
 
+  /* Spatial splits do not work correctly for motion blur: BVHSpatialSplit::split_*_primitive()
+   * methods do not handle motion blur positions.
+   *
+   * TODO(sergey): Support motion blur attributes in the BVHSpatialSplit. */
+  if (!params.top_level) {
+    for (const Object *object : objects) {
+      if (object->get_geometry()->has_motion_blur()) {
+        params.use_spatial_split = false;
+      }
+    }
+  }
+
   /* add references */
   add_references(root);
 
