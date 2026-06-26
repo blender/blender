@@ -24,6 +24,11 @@ class TreeElementEditBone final : public AbstractTreeElement {
 
  public:
   TreeElementEditBone(TreeElement &legacy_te, ID &armature_id, EditBone &ebone);
+
+  std::optional<BIFIconID> get_icon() const override
+  {
+    return ICON_BONE_DATA;
+  }
 };
 
 }  // namespace ed::outliner

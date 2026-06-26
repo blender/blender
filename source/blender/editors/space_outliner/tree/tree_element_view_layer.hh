@@ -24,6 +24,11 @@ class TreeElementViewLayerBase final : public AbstractTreeElement {
   TreeElementViewLayerBase(TreeElement &legacy_te, Scene &scene);
 
   void expand(SpaceOutliner & /*soops*/) const override;
+
+  std::optional<BIFIconID> get_icon() const override
+  {
+    return ICON_RENDERLAYERS;
+  }
 };
 
 class TreeElementViewLayer final : public AbstractTreeElement {
@@ -33,6 +38,11 @@ class TreeElementViewLayer final : public AbstractTreeElement {
 
  public:
   TreeElementViewLayer(TreeElement &legacy_te, Scene &scene, ViewLayer &view_layer);
+
+  std::optional<BIFIconID> get_icon() const override
+  {
+    return ICON_RENDER_RESULT;
+  }
 };
 
 }  // namespace ed::outliner

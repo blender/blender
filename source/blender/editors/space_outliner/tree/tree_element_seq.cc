@@ -53,9 +53,47 @@ Strip &TreeElementStrip::get_strip() const
   return strip_;
 }
 
-StripType TreeElementStrip::get_strip_type() const
+std::optional<BIFIconID> TreeElementStrip::get_icon() const
 {
-  return strip_.type;
+  switch (strip_.type) {
+    case STRIP_TYPE_SCENE:
+      return ICON_SCENE_DATA;
+    case STRIP_TYPE_MOVIECLIP:
+      return ICON_TRACKER;
+    case STRIP_TYPE_MASK:
+      return ICON_MOD_MASK;
+    case STRIP_TYPE_MOVIE:
+      return ICON_FILE_MOVIE;
+    case STRIP_TYPE_SOUND:
+      return ICON_SOUND;
+    case STRIP_TYPE_IMAGE:
+      return ICON_FILE_IMAGE;
+    case STRIP_TYPE_COLOR:
+    case STRIP_TYPE_ADJUSTMENT:
+      return ICON_COLOR;
+    case STRIP_TYPE_TEXT:
+      return ICON_FONT_DATA;
+    case STRIP_TYPE_ADD:
+    case STRIP_TYPE_SUB:
+    case STRIP_TYPE_MUL:
+    case STRIP_TYPE_ALPHAOVER:
+    case STRIP_TYPE_ALPHAUNDER:
+    case STRIP_TYPE_COLORMIX:
+    case STRIP_TYPE_MULTICAM:
+    case STRIP_TYPE_SPEED:
+    case STRIP_TYPE_GLOW:
+    case STRIP_TYPE_GAUSSIAN_BLUR:
+      return ICON_SHADERFX;
+    case STRIP_TYPE_CROSS:
+    case STRIP_TYPE_GAMCROSS:
+    case STRIP_TYPE_WIPE:
+    case STRIP_TYPE_COMPOSITOR:
+      return ICON_ARROW_LEFTRIGHT;
+    case STRIP_TYPE_META:
+      return ICON_SEQ_STRIP_META;
+    default:
+      return ICON_DOT;
+  }
 }
 
 /* -------------------------------------------------------------------- */

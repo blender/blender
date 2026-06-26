@@ -48,4 +48,17 @@ bke::greasepencil::TreeNode &TreeElementGreasePencilNode::node() const
   return node_;
 }
 
+std::optional<BIFIconID> TreeElementGreasePencilNode::get_icon() const
+{
+  BIFIconID icon = ICON_OUTLINER_DATA_GP_LAYER;
+  if (node_.is_group()) {
+    const bke::greasepencil::LayerGroup &group = node_.as_group();
+
+    icon = ICON_GREASEPENCIL_LAYER_GROUP;
+    if (group.color_tag != LAYERGROUP_COLOR_NONE) {
+      icon = ICON_LAYERGROUP_COLOR_01 + int(group.color_tag);
+    }
+  }
+  return icon;
+}
 }  // namespace blender::ed::outliner

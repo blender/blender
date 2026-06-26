@@ -23,6 +23,10 @@ class TreeElementShapeKeyBase final : public AbstractTreeElement {
  public:
   TreeElementShapeKeyBase(TreeElement &legacy_te, Key &key);
   void expand(SpaceOutliner & /*space_outliner*/) const override;
+  std::optional<BIFIconID> get_icon() const override
+  {
+    return ICON_SHAPEKEY_DATA;
+  }
 };
 
 class TreeElementShapeKey final : public AbstractTreeElement {
@@ -30,6 +34,10 @@ class TreeElementShapeKey final : public AbstractTreeElement {
 
  public:
   TreeElementShapeKey(TreeElement &legacy_te, KeyBlock &keyblock);
+  std::optional<BIFIconID> get_icon() const override
+  {
+    return ICON_SHAPEKEY_DATA;
+  }
 };
 
 }  // namespace ed::outliner
