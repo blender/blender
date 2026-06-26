@@ -188,7 +188,7 @@ ccl_device_inline float fresnel_f82(const float cosi, const float F0, const floa
   const float s = saturatef(1.0f - cosi);
   const float s5 = sqr(sqr(s)) * s;
   const float F_schlick = mix(F0, 1.0f, s5);
-  return clamp(F_schlick - B * cosi * s5 * s, 0.0f, 1.0);
+  return clamp(F_schlick - B * cosi * s5 * s, 0.0f, 1.0f);
 }
 
 /* Evaluates the Fresnel equations at a dielectric-conductor interface, calculating reflectances
