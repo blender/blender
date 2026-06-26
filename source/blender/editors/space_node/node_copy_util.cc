@@ -53,37 +53,33 @@
 
 namespace blender {
 
-const bNodeSocket &NodeAndSocket::find_socket_in_node(const bNode &other_node) const
+const bNodeSocket *NodeAndSocket::find_socket_in_node(const bNode &other_node) const
 {
   /* Don't use "by_identifier" functions of bNode because they depend on valid topology cache. */
   ListBaseT<bNodeSocket> sockets = (this->in_out == SOCK_IN) ? other_node.inputs :
                                                                other_node.outputs;
-  const bNodeSocket *socket = reinterpret_cast<bNodeSocket *>(BLI_findstring(
+  return reinterpret_cast<bNodeSocket *>(BLI_findstring(
       &sockets, this->socket_identifier.c_str(), offsetof(bNodeSocket, identifier)));
-  BLI_assert(socket != nullptr);
-  return *socket;
 }
 
-bNodeSocket &NodeAndSocket::find_socket_in_node(bNode &other_node) const
+bNodeSocket *NodeAndSocket::find_socket_in_node(bNode &other_node) const
 {
-  return const_cast<bNodeSocket &>(
+  return const_cast<bNodeSocket *>(
       this->find_socket_in_node(const_cast<const bNode &>(other_node)));
 }
 
-const bNodeSocket &MutableNodeAndSocket::find_socket_in_node(const bNode &other_node) const
+const bNodeSocket *MutableNodeAndSocket::find_socket_in_node(const bNode &other_node) const
 {
   /* Don't use "by_identifier" functions of bNode because they depend on valid topology cache. */
   ListBaseT<bNodeSocket> sockets = (this->in_out == SOCK_IN) ? other_node.inputs :
                                                                other_node.outputs;
-  const bNodeSocket *socket = reinterpret_cast<bNodeSocket *>(BLI_findstring(
+  return reinterpret_cast<bNodeSocket *>(BLI_findstring(
       &sockets, this->socket_identifier.c_str(), offsetof(bNodeSocket, identifier)));
-  BLI_assert(socket != nullptr);
-  return *socket;
 }
 
-bNodeSocket &MutableNodeAndSocket::find_socket_in_node(bNode &other_node) const
+bNodeSocket *MutableNodeAndSocket::find_socket_in_node(bNode &other_node) const
 {
-  return const_cast<bNodeSocket &>(
+  return const_cast<bNodeSocket *>(
       this->find_socket_in_node(const_cast<const bNode &>(other_node)));
 }
 
@@ -397,9 +393,11 @@ void NodeSetInterfaceBuilder::expose_socket(const bNodeSocket &src_socket,
   if (use_external_socket_key) {
     /* Create a unique interface socket for each external link. */
     for (const MutableNodeAndSocket &external_socket : external_links) {
-      if (InterfaceSocketData *data = try_add_socket_data(external_socket.find_socket())) {
-        data->internal_sockets.add({src_socket.owner_node(), src_socket, false});
-        data->external_sockets.add(external_socket);
+      if (const bNodeSocket *socket = external_socket.find_socket()) {
+        if (InterfaceSocketData *data = try_add_socket_data(*socket)) {
+          data->internal_sockets.add({src_socket.owner_node(), src_socket, false});
+          data->external_sockets.add(external_socket);
+        }
       }
     }
   }
@@ -816,8 +814,12 @@ GroupInputOutputNodes connect_copied_nodes_to_interface(const bContext &C,
   for (const auto &item : io_mapping.socket_data.items()) {
     for (const NodeAndSocket &origin : item.value.internal_sockets) {
       bNode &new_node = *copied_nodes.node_map().lookup(&origin.node);
-      bNodeSocket &new_socket = origin.find_socket_in_node(new_node);
-      if (new_socket.is_input()) {
+      bNodeSocket *new_socket = origin.find_socket_in_node(new_node);
+      /* Some nodes change after unlinking (e.g. viewers), socket may not exist any more. */
+      if (!new_socket) {
+        continue;
+      }
+      if (new_socket->is_input()) {
         bNodeSocket *group_input_socket = node_group_input_find_socket(io_nodes.input_node,
                                                                        item.key->identifier);
         BLI_assert(group_input_socket);
@@ -826,7 +828,7 @@ GroupInputOutputNodes connect_copied_nodes_to_interface(const bContext &C,
                                   *io_nodes.input_node,
                                   *group_input_socket,
                                   new_node,
-                                  new_socket,
+                                  *new_socket,
                                   origin.link_muted,
                                   origin.multi_input_sort_id);
       }
@@ -837,7 +839,7 @@ GroupInputOutputNodes connect_copied_nodes_to_interface(const bContext &C,
         add_link_and_make_visible(tree,
                                   links_by_socket,
                                   new_node,
-                                  new_socket,
+                                  *new_socket,
                                   *io_nodes.output_node,
                                   *group_output_socket,
                                   origin.link_muted,
@@ -896,9 +898,10 @@ static bool any_link_need_conversion(const Span<MutableNodeAndSocket> links,
   /* A proxy is needed if any internal or external connection has a different type and therefore
    * cannot directly be connected without loss of conversion. */
   for (const MutableNodeAndSocket &in_link : links) {
-    const bNodeSocket &in_socket = in_link.find_socket();
-    if (socket_types_need_conversion(in_socket.idname, io_socket.socket_type)) {
-      return true;
+    if (const bNodeSocket *in_socket = in_link.find_socket()) {
+      if (socket_types_need_conversion(in_socket->idname, io_socket.socket_type)) {
+        return true;
+      }
     }
   }
   return false;
@@ -1159,15 +1162,19 @@ InterfaceProxyNodes connect_copied_nodes_to_external_sockets(
 
       /* Map the old internal to the new socket in the target tree. */
       bNode &new_node = *copied_nodes.node_map().lookup_default(&origin.node, nullptr);
-      bNodeSocket &new_socket = origin.find_socket_in_node(new_node);
+      bNodeSocket *new_socket = origin.find_socket_in_node(new_node);
+      /* Some nodes change after unlinking (e.g. viewers), socket may not exist any more. */
+      if (!new_socket) {
+        continue;
+      }
       if (is_input) {
         outgoing_links.append(
-            {new_node, new_socket, origin.link_muted, origin.multi_input_sort_id});
+            {new_node, *new_socket, origin.link_muted, origin.multi_input_sort_id});
       }
       else {
         /* Outputs shouldn't have multi-input sort ids. */
         BLI_assert(!origin.multi_input_sort_id.has_value());
-        incoming_links.append({new_node, new_socket, origin.link_muted});
+        incoming_links.append({new_node, *new_socket, origin.link_muted});
       }
     }
 
@@ -1191,14 +1198,18 @@ InterfaceProxyNodes connect_copied_nodes_to_external_sockets(
     const bool link_muted = item.first.link_muted || item.second.link_muted;
     /* Outputs shouldn't have multi-input sort ids. */
     BLI_assert(!item.first.multi_input_sort_id.has_value());
-    add_link_and_make_visible(dst_tree,
-                              links_by_socket,
-                              item.first.node,
-                              item.first.find_socket(),
-                              item.second.node,
-                              item.second.find_socket(),
-                              link_muted,
-                              item.second.multi_input_sort_id);
+    bNodeSocket *from_socket = item.first.find_socket();
+    bNodeSocket *to_socket = item.second.find_socket();
+    if (from_socket && to_socket) {
+      add_link_and_make_visible(dst_tree,
+                                links_by_socket,
+                                item.first.node,
+                                *from_socket,
+                                item.second.node,
+                                *to_socket,
+                                link_muted,
+                                item.second.multi_input_sort_id);
+    }
   }
 
   BKE_animdata_copy_by_basepath(
@@ -1235,14 +1246,16 @@ void connect_group_node_to_external_sockets(bNode &group_node,
     }
     for (const MutableNodeAndSocket &link : data->external_sockets) {
       BLI_assert(owner_tree.all_nodes().contains(&link.node));
-      add_link_and_make_visible(owner_tree,
-                                links_by_socket,
-                                link.node,
-                                link.find_socket(),
-                                group_node,
-                                *group_node_input,
-                                link.link_muted,
-                                std::nullopt);
+      if (bNodeSocket *link_socket = link.find_socket()) {
+        add_link_and_make_visible(owner_tree,
+                                  links_by_socket,
+                                  link.node,
+                                  *link_socket,
+                                  group_node,
+                                  *group_node_input,
+                                  link.link_muted,
+                                  std::nullopt);
+      }
     }
     /* Keep old socket visibility. */
     SET_FLAG_FROM_TEST(group_node_input->flag, data->hidden, SOCK_HIDDEN);
@@ -1260,14 +1273,16 @@ void connect_group_node_to_external_sockets(bNode &group_node,
     }
     for (const MutableNodeAndSocket &link : data->external_sockets) {
       BLI_assert(owner_tree.all_nodes().contains(&link.node));
-      add_link_and_make_visible(owner_tree,
-                                links_by_socket,
-                                group_node,
-                                *group_node_output,
-                                link.node,
-                                link.find_socket(),
-                                link.link_muted,
-                                link.multi_input_sort_id);
+      if (bNodeSocket *link_socket = link.find_socket()) {
+        add_link_and_make_visible(owner_tree,
+                                  links_by_socket,
+                                  group_node,
+                                  *group_node_output,
+                                  link.node,
+                                  *link_socket,
+                                  link.link_muted,
+                                  link.multi_input_sort_id);
+      }
     }
     /* Keep old socket visibility. */
     SET_FLAG_FROM_TEST(group_node_output->flag, data->hidden, SOCK_HIDDEN);
