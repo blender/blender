@@ -9,8 +9,8 @@
 #pragma once
 
 #include <atomic>
+#include <thread>
 
-#include "BLI_task_c.hh"
 #include "BLI_threads.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
@@ -159,14 +159,14 @@ class VKDevice : public NonCopyable {
   bool is_initialized_ = false;
 
   /**
-   * Task pool for render graph submission.
+   * Render graph submission thread.
    *
-   * Multiple threads in Blender can build a render graph. Building the command buffer for a render
-   * graph is faster when doing it in serial. Submission pool ensures that only one task is
-   * building at a time (background_serial).
+   * Multiple threads in Blender can build a render graph. All submitted
+   * render graphs are queued and consumed one at a time by this thread.
    */
-  TaskPool *submission_pool_ = nullptr;
-  std::atomic<bool> submission_runner_should_exit_ = false;
+  std::thread submission_thread_;
+  std::atomic<bool> submission_thread_should_exit_ = false;
+
   /**
    * All created render graphs.
    */
@@ -407,7 +407,7 @@ class VKDevice : public NonCopyable {
   /* -------------------------------------------------------------------- */
   /** \name Render graph
    * \{ */
-  static void submission_runner(TaskPool *__restrict pool, void *task_data);
+  static void submission_runner(VKDevice *device);
   render_graph::VKRenderGraph *render_graph_new();
 
   TimelineValue render_graph_submit(render_graph::VKRenderGraph *render_graph,
@@ -482,8 +482,8 @@ class VKDevice : public NonCopyable {
   void init_physical_device_features();
   void init_physical_device_extensions();
   void init_debug_callbacks();
-  void init_submission_pool();
-  void deinit_submission_pool();
+  void init_submission_thread();
+  void deinit_submission_thread();
   /**
    * Initialize the functions struct with extension specific function pointer.
    */
