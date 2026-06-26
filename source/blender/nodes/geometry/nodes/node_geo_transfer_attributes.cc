@@ -23,7 +23,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.use_custom_socket_order();
   b.allow_any_socket_order();
 
-  b.add_input<decl::Geometry>("Target"_ustr);
+  auto &target_geo = b.add_input<decl::Geometry>("Target"_ustr);
   b.add_output<decl::Geometry>("Target"_ustr).align_with_previous().propagate_all_geometry();
   b.add_output<decl::String>("Transferred Names"_ustr)
       .structure_type(StructureType::List)
@@ -40,10 +40,10 @@ static void node_declare(NodeDeclarationBuilder &b)
 
     for (BaseSocketDeclarationBuilder *socket : sockets) {
       socket->default_input_type(NODE_DEFAULT_INPUT_INDEX_FIELD);
-      socket->structure_type(StructureType::Field);
+      socket->evaluated_geometry_field({target_geo.index()});
     }
   }
-  b.add_input<decl::Geometry>("Source"_ustr);
+  auto &source_geo = b.add_input<decl::Geometry>("Source"_ustr);
   {
     auto &p = b.add_panel("Source IDs"_ustr).default_closed(true);
     Vector<BaseSocketDeclarationBuilder *> sockets;
@@ -56,7 +56,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
     for (BaseSocketDeclarationBuilder *socket : sockets) {
       socket->default_input_type(NODE_DEFAULT_INPUT_INDEX_FIELD);
-      socket->structure_type(StructureType::Field);
+      socket->evaluated_geometry_field({source_geo.index()});
     }
   }
 
