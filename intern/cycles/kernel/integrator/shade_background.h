@@ -66,12 +66,19 @@ ccl_device Spectrum integrator_eval_background_shader(KernelGlobals kg,
   ShaderDataTinyStorage emission_sd_storage;
   ccl_private ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
 
+  /* Clamp indirect evaluations to the importance map. Camera rays are not affected
+   * by the importance map and don't involve NEE, so don't need this. */
+  float ray_dD = INTEGRATOR_STATE(state, ray, dD);
+  if (!(path_visibility & PATH_RAY_VISIBILITY_CAMERA)) {
+    ray_dD = background_light_clamp_dD(kg, ray_dD);
+  }
+
   PROFILING_INIT_FOR_SHADER(kg, PROFILING_SHADE_LIGHT_SETUP);
   shader_setup_from_background(kg,
                                emission_sd,
                                INTEGRATOR_STATE(state, ray, P),
                                INTEGRATOR_STATE(state, ray, D),
-                               INTEGRATOR_STATE(state, ray, dD),
+                               ray_dD,
                                INTEGRATOR_STATE(state, ray, time));
 
   PROFILING_SHADER(emission_sd->object, emission_sd->shader);

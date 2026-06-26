@@ -60,10 +60,22 @@ ccl_device_inline float bsdf_get_roughness_pass_squared(const ccl_private Shader
 /* Widen the compact ray differential dD after a non-specular bounce so that
  * texture mip selection on subsequent hits reflects the BSDF lobe's angular
  * spread. This significantly save memory, and is needed to make image cache
- * memory usage scale with render tile size rather than overall resolution. */
-ccl_device_forceinline float bsdf_widen_dD(const float prev_dD, const float2 sampled_roughness)
+ * memory usage scale with render tile size rather than overall resolution.
+ *
+ * This must be done consistently between next event estimation and forward
+ * sampling for both to converge to the same result for MIS. This is not just
+ * a theoretical concern, but can otherwise lead to seams.
+ *
+ * To achieve that, the sampled roughness is computed as a MIS weighted
+ * average. This makes it so directions with high contribution from sharp
+ * BSDFs have a lower roughness, as they will have a high MIS weight. */
+ccl_device_forceinline float bsdf_widen_dD(const float prev_dD, const float avg_roughness_squared)
 {
-  return max(prev_dD, min(sampled_roughness.x, sampled_roughness.y));
+  if (!(avg_roughness_squared > 0.0f)) {
+    return prev_dD;
+  }
+
+  return max(prev_dD, sqrtf(avg_roughness_squared));
 }
 
 /* An additional term to smooth illumination on grazing angles when using bump mapping

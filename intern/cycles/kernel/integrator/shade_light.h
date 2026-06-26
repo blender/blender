@@ -144,7 +144,7 @@ ccl_device ShaderEvalResult integrate_light_nee(KernelGlobals kg, IntegratorShad
     if (light_type == LIGHT_BACKGROUND) {
       /* Background light. */
 #ifdef __RAY_DIFFERENTIALS__
-      const float ray_dD = ray.dD;
+      const float ray_dD = background_light_clamp_dD(kg, ray.dD);
 #else
       const float ray_dD = 0.0f;
 #endif

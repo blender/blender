@@ -34,6 +34,8 @@ KERNEL_STRUCT_MEMBER(background, float, map_weight)
 KERNEL_STRUCT_MEMBER(background, float, portal_weight)
 KERNEL_STRUCT_MEMBER(background, int, map_res_x)
 KERNEL_STRUCT_MEMBER(background, int, map_res_y)
+/* Ray differential used for generating the importance map. */
+KERNEL_STRUCT_MEMBER(background, float, map_dD)
 /* Multiple importance sampling. */
 KERNEL_STRUCT_MEMBER(background, int, use_mis)
 /* Light-group. */
@@ -42,7 +44,6 @@ KERNEL_STRUCT_MEMBER(background, int, lightgroup)
 KERNEL_STRUCT_MEMBER(background, int, object_index)
 /* Padding. */
 KERNEL_STRUCT_MEMBER(background, int, pad1)
-KERNEL_STRUCT_MEMBER(background, int, pad2)
 KERNEL_STRUCT_END(KernelBackground)
 
 /* BVH: own BVH2 if no native device acceleration struct used. */
