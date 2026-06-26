@@ -1868,7 +1868,7 @@ void BKE_pose_check_uids_unique_and_report(const bPose *pose)
 
   for (bPoseChannel &pchan : pose->chanbase) {
     const SessionUID *session_uid = &pchan.runtime.session_uid;
-    if (!BLI_session_uid_is_generated(session_uid)) {
+    if (!session_uid->is_generated()) {
       printf("Pose channel %s does not have UID generated.\n", pchan.name);
       continue;
     }

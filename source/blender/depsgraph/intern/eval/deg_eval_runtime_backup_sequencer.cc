@@ -31,7 +31,7 @@ static bool strip_init_cb(Strip *strip, void *user_data)
   strip_backup.init_from_strip(strip);
   if (!strip_backup.isEmpty()) {
     const SessionUID &session_uid = strip->runtime->session_uid;
-    BLI_assert(BLI_session_uid_is_generated(&session_uid));
+    BLI_assert(session_uid.is_generated());
     sb->strips_backup.add(session_uid, strip_backup);
   }
   return true;
@@ -48,7 +48,7 @@ static bool strip_restore_cb(Strip *strip, void *user_data)
 {
   SequencerBackup *sb = static_cast<SequencerBackup *>(user_data);
   const SessionUID &session_uid = strip->runtime->session_uid;
-  BLI_assert(BLI_session_uid_is_generated(&session_uid));
+  BLI_assert(session_uid.is_generated());
   StripBackup *strip_backup = sb->strips_backup.lookup_ptr(session_uid);
   if (strip_backup != nullptr) {
     strip_backup->restore_to_strip(strip);
