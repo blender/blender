@@ -17,9 +17,13 @@ static const EnumPropertyItem mode_items[] = {
     {int(Mode::FirstFromStart),
      "FROM_START",
      0,
-     "From Start",
-     "Find the first occurrence of the string"},
-    {int(Mode::FirstFromEnd), "FROM_END", 0, "From End", "Find the last occurrence of the string"},
+     N_("From Start"),
+     N_("Find the first occurrence of the string")},
+    {int(Mode::FirstFromEnd),
+     "FROM_END",
+     0,
+     N_("From End"),
+     N_("Find the last occurrence of the string")},
     {},
 };
 
