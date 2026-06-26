@@ -166,6 +166,7 @@ class VKDevice : public NonCopyable {
    * building at a time (background_serial).
    */
   TaskPool *submission_pool_ = nullptr;
+  std::atomic<bool> submission_runner_should_exit_ = false;
   /**
    * All created render graphs.
    */

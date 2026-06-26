@@ -155,7 +155,7 @@ void VKDevice::submission_runner(TaskPool *__restrict pool, void *task_data)
   uint64_t num_nodes = 0;
 
   CLOG_TRACE(&LOG, "Submission runner initialized");
-  while (!BLI_task_pool_current_canceled(pool)) {
+  while (!device->submission_runner_should_exit_) {
     VKRenderGraphSubmitTask *submit_task = static_cast<VKRenderGraphSubmitTask *>(
         BLI_thread_queue_pop_timeout(device->submitted_render_graphs_, 1));
     if (submit_task == nullptr) {
@@ -282,6 +282,7 @@ void VKDevice::submission_runner(TaskPool *__restrict pool, void *task_data)
 void VKDevice::init_submission_pool()
 {
   CLOG_TRACE(&LOG, "Create submission pool");
+  submission_runner_should_exit_ = false;
   submission_pool_ = BLI_task_pool_create_background_serial(this, TASK_PRIORITY_HIGH);
   submitted_render_graphs_ = BLI_thread_queue_init();
   unused_render_graphs_ = BLI_thread_queue_init();
@@ -298,7 +299,7 @@ void VKDevice::init_submission_pool()
 void VKDevice::deinit_submission_pool()
 {
   CLOG_TRACE(&LOG, "Cancelling submission pool");
-  BLI_task_pool_cancel(submission_pool_);
+  submission_runner_should_exit_ = true;
   CLOG_TRACE(&LOG, "Waiting for completion");
   BLI_task_pool_work_and_wait(submission_pool_);
   CLOG_TRACE(&LOG, "Freeing submission pool");
