@@ -29,6 +29,8 @@
 #include "pbvh_pixels_rasterize.hh"
 #include "pbvh_uv_islands.hh"
 
+#include <algorithm>
+
 namespace blender {
 
 namespace bke::pbvh::pixels {
@@ -165,6 +167,36 @@ struct UVPrimitiveLookup {
   }
 };
 
+static void build_pixel_row_runs(UDIMTilePixels &tile_data)
+{
+  const int n = tile_data.pixel_rows.size();
+
+  /* Sort pixel rows by (y, x), to group contiguous pixel rows runs from adjacent triangles.
+   * Stable sort for deterministic results with overlapping triangles. */
+  std::ranges::stable_sort(tile_data.pixel_rows,
+                           [](const PackedPixelRow &a, const PackedPixelRow &b) {
+                             if (a.start_image_coordinate.y != b.start_image_coordinate.y) {
+                               return a.start_image_coordinate.y < b.start_image_coordinate.y;
+                             }
+                             return a.start_image_coordinate.x < b.start_image_coordinate.x;
+                           });
+
+  /* Compute run starts. */
+  tile_data.pixel_row_run_starts.clear();
+  tile_data.pixel_row_run_starts.append(0);
+  for (int i = 1; i < n; i++) {
+    const PackedPixelRow &prev = tile_data.pixel_rows[i - 1];
+    const PackedPixelRow &cur = tile_data.pixel_rows[i];
+    const bool contiguous = cur.start_image_coordinate.y == prev.start_image_coordinate.y &&
+                            cur.start_image_coordinate.x ==
+                                prev.start_image_coordinate.x + prev.num_pixels;
+    if (!contiguous) {
+      tile_data.pixel_row_run_starts.append(i);
+    }
+  }
+  tile_data.pixel_row_run_starts.append(n);
+}
+
 static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
                              const Span<uv_islands::UVIsland> islands,
                              const uv_islands::UVIslandsMask &uv_masks,
@@ -245,6 +277,8 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
       continue;
     }
 
+    build_pixel_row_runs(tile_data);
+
     BLI_assert(pixel_node.uv_primitives.delta_barycentric_coords.size() ==
                pixel_node.uv_primitives.tri_indices.size());
 
@@ -297,6 +331,10 @@ static void apply_watertight_check(Tree &pbvh, Image &image, ImageUser &image_us
     if (image_buffer == nullptr) {
       continue;
     }
+
+    float *data_float = image_buffer->float_data_for_write();
+    uint8_t *data_byte = image_buffer->byte_data_for_write();
+
     IndexMaskMemory memory;
     IndexMask leaf_nodes = all_leaf_nodes(pbvh, memory);
     PixelData &pixel_data = *pbvh.pixels_;
@@ -311,11 +349,11 @@ static void apply_watertight_check(Tree &pbvh, Image &image, ImageUser &image_us
         int pixel_offset = pixel_row.start_image_coordinate.y * image_buffer->x +
                            pixel_row.start_image_coordinate.x;
         for (int x = 0; x < pixel_row.num_pixels; x++) {
-          if (float *data = image_buffer->float_data_for_write()) {
-            copy_v4_fl(&data[pixel_offset * 4], 1.0);
+          if (data_float) {
+            copy_v4_fl(&data_float[pixel_offset * 4], 1.0);
           }
-          if (uint8_t *data = image_buffer->byte_data_for_write()) {
-            uint8_t *dest = &data[pixel_offset * 4];
+          if (data_byte) {
+            uint8_t *dest = &data_byte[pixel_offset * 4];
             dest[0] = dest[1] = dest[2] = dest[3] = 255;
           }
           pixel_offset += 1;

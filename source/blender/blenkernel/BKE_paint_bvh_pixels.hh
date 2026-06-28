@@ -68,6 +68,9 @@ struct UDIMTilePixels {
    */
   Vector<PackedPixelRowPosition> pixel_row_positions;
 
+  /** Offsets into #pixel_rows grouping it into contiguous runs for batch processing. */
+  Vector<int> pixel_row_run_starts;
+
   UDIMTilePixels()
   {
     flags.dirty = false;
