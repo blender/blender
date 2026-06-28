@@ -107,10 +107,6 @@ void linearrgb_to_srgb_uchar4_n(unsigned char (*srgb)[4],
                                 const float (*linear)[4],
                                 int size,
                                 const float (*matrix)[3] = nullptr);
-void srgb_to_linearrgb_uchar4_n(float (*linear)[4],
-                                const unsigned char (*srgb)[4],
-                                int size,
-                                const float (*matrix)[3] = nullptr);
 
 void BLI_init_srgb_conversion();
 
