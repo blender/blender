@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-22 07:24+0000\n"
+"POT-Creation-Date: 2026-06-29 10:51+0000\n"
 "PO-Revision-Date: 2026-06-19 12:12+0000\n"
 "Last-Translator: Gamfid <gamfid@users.noreply.translate.blender.org>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -14014,6 +14014,10 @@ msgid "Tool Header"
 msgstr "Заголовок Засобу"
 
 
+msgid "Scrubbing"
+msgstr "Шкряботіння"
+
+
 msgid "The space where the panel is going to be used in"
 msgstr "Простір, де має використовуватися ця панель"
 
@@ -26380,6 +26384,18 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
+msgid "Mirror"
+msgstr "Дзеркалення"
+
+
+msgid "Snap"
+msgstr "Підхоп"
+
+
+msgid "UV Mapping"
+msgstr "Розкладання UV"
+
+
 msgid "Local View"
 msgstr "Огляд Локально"
 
@@ -26404,8 +26420,16 @@ msgid "View Regions"
 msgstr "Регіони Огляду"
 
 
+msgid "Math"
+msgstr "Математика"
+
+
 msgid "Select More/Less"
 msgstr "Вибрати більше/менше"
+
+
+msgid "Utilities"
+msgstr "Утиліти"
 
 
 msgid "Select Similar"
@@ -26428,12 +26452,12 @@ msgid "Assign Material"
 msgstr "Призначити Матеріал"
 
 
-msgid "Math"
-msgstr "Математика"
+msgid "Sample"
+msgstr "Вибірка"
 
 
-msgid "Utilities"
-msgstr "Утиліти"
+msgid "Primitives"
+msgstr "Примітиви"
 
 
 msgid "Metaball"
@@ -26456,16 +26480,12 @@ msgid "Relations"
 msgstr "Зв'язки"
 
 
-msgid "Sample"
-msgstr "Вибірка"
-
-
 msgid "Rigid Body"
 msgstr "Тверде тіло"
 
 
-msgid "Primitives"
-msgstr "Примітиви"
+msgid "Import"
+msgstr "Імпортувати"
 
 
 msgid "Apply"
@@ -26508,12 +26528,12 @@ msgid "Hooks"
 msgstr "Гачки"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Vertex Group Locks"
 msgstr "Блокування Груп Вершин"
-
-
-msgid "Import"
-msgstr "Імпортувати"
 
 
 msgid "Sculpt Set Pivot"
@@ -26534,10 +26554,6 @@ msgstr "У проміжках"
 
 msgid "Propagate"
 msgstr "Поширити"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Names"
@@ -26576,6 +26592,14 @@ msgid "Merge"
 msgstr "Об'єднання"
 
 
+msgid "Linked"
+msgstr "Пов'язане"
+
+
+msgid "Layout"
+msgstr "Розстановка"
+
+
 msgid "Special Characters"
 msgstr "Спеціальні символи"
 
@@ -26588,20 +26612,16 @@ msgid "Bone Roll"
 msgstr "Прокручення Кістки"
 
 
-msgid "Linked"
-msgstr "Пов'язане"
+msgid "Keying"
+msgstr "Ключування"
 
 
-msgid "Layout"
-msgstr "Розстановка"
+msgid "Tracking"
+msgstr "Стеження"
 
 
 msgid "Pivot Point"
 msgstr "Точка Опертя"
-
-
-msgid "Snap"
-msgstr "Підхоп"
 
 
 msgid "Proportional Editing Falloff"
@@ -26618,22 +26638,6 @@ msgstr "Автомаскування"
 
 msgid "Face Sets Edit"
 msgstr "Редагування Наборів Граней"
-
-
-msgid "Keying"
-msgstr "Ключування"
-
-
-msgid "Tracking"
-msgstr "Стеження"
-
-
-msgid "Mirror"
-msgstr "Дзеркалення"
-
-
-msgid "UV Mapping"
-msgstr "Розкладання UV"
 
 
 msgid "Basic"
@@ -60706,6 +60710,38 @@ msgid "Panel containing UI elements"
 msgstr "Панель, що містить елементи Інтерфейсу Користувача"
 
 
+msgid "Shadow Settings"
+msgstr "Устави Тіні"
+
+
+msgid "SSAO Settings"
+msgstr "Устави Загороди Оточення Простору Екрану"
+
+
+msgid "Cavity"
+msgstr "Порожнинність"
+
+
+msgid "Render Pass"
+msgstr "Прохід Рендера"
+
+
+msgid "Overlays"
+msgstr "Накладки"
+
+
+msgid "Guides"
+msgstr "Напрямні"
+
+
+msgid "Motion Tracking"
+msgstr "Відстеження руху"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Режим Редагування Сіті"
+
+
 msgid "Measurement"
 msgstr "Вимірювання"
 
@@ -60724,10 +60760,6 @@ msgstr "Розміщення Штриха"
 
 msgid "Drawing Plane"
 msgstr "Площина Рисування"
-
-
-msgid "Guides"
-msgstr "Напрямні"
 
 
 msgid "Quad View"
@@ -60760,34 +60792,6 @@ msgstr "Активний Засіб"
 
 msgid "View Lock"
 msgstr "Блокувати Огляд"
-
-
-msgid "Shadow Settings"
-msgstr "Устави Тіні"
-
-
-msgid "SSAO Settings"
-msgstr "Устави Загороди Оточення Простору Екрану"
-
-
-msgid "Cavity"
-msgstr "Порожнинність"
-
-
-msgid "Render Pass"
-msgstr "Прохід Рендера"
-
-
-msgid "Overlays"
-msgstr "Накладки"
-
-
-msgid "Motion Tracking"
-msgstr "Відстеження руху"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Режим Редагування Сіті"
 
 
 msgid "Chain Scaling"
@@ -79647,10 +79651,6 @@ msgstr "Дублювати Маркер у Сцену..."
 msgctxt "Operator"
 msgid "Duplicate Marker to Scene"
 msgstr "Дублювати Маркер у Сцену"
-
-
-msgid "Scrubbing"
-msgstr "Шкряботіння"
 
 
 msgid "Limit to Frame Range"

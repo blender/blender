@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-22 07:24+0000\n"
+"POT-Creation-Date: 2026-06-29 10:51+0000\n"
 "PO-Revision-Date: 2026-05-04 00:12+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -12319,6 +12319,10 @@ msgid "Asset Select Parameters"
 msgstr "Parametri di Selezione delle Risorse"
 
 
+msgid "Catalog"
+msgstr "Catalogo"
+
+
 msgid "Filter Asset Types"
 msgstr "Filtra per Tipi di Risorse"
 
@@ -24518,6 +24522,18 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
+msgid "Mirror"
+msgstr "Specchia"
+
+
+msgid "Snap"
+msgstr "Aggancia"
+
+
+msgid "UV Mapping"
+msgstr "Mappatura UV"
+
+
 msgid "Local View"
 msgstr "Vista Locale"
 
@@ -24542,8 +24558,16 @@ msgid "View Regions"
 msgstr "Regione Vista"
 
 
+msgid "Math"
+msgstr "Matematica"
+
+
 msgid "Select More/Less"
 msgstr "Seleziona Più/Meno"
+
+
+msgid "Utilities"
+msgstr "Utilità"
 
 
 msgid "Select Similar"
@@ -24566,12 +24590,20 @@ msgid "Assign Material"
 msgstr "Assegna Materiale"
 
 
-msgid "Math"
-msgstr "Matematica"
+msgid "Read"
+msgstr "Lettura"
 
 
-msgid "Utilities"
-msgstr "Utilità"
+msgid "Sample"
+msgstr "Campione"
+
+
+msgid "Write"
+msgstr "Scrittura"
+
+
+msgid "Primitives"
+msgstr "Primitive"
 
 
 msgid "Metaball"
@@ -24586,6 +24618,10 @@ msgid "Light Probe"
 msgstr "Sensore di Luce"
 
 
+msgid "Instances"
+msgstr "Istanze"
+
+
 msgid "Add Image"
 msgstr "Aggiungi Immagine"
 
@@ -24594,24 +24630,12 @@ msgid "Relations"
 msgstr "Relazioni"
 
 
-msgid "Read"
-msgstr "Lettura"
-
-
-msgid "Sample"
-msgstr "Campione"
-
-
-msgid "Write"
-msgstr "Scrittura"
-
-
 msgid "Rigid Body"
 msgstr "Corpo Rigido"
 
 
-msgid "Primitives"
-msgstr "Primitive"
+msgid "Import"
+msgstr "Importa"
 
 
 msgid "Apply"
@@ -24650,20 +24674,16 @@ msgid "Link/Transfer Data"
 msgstr "Collega/Trasferisci Dati"
 
 
-msgid "Instances"
-msgstr "Istanze"
-
-
 msgid "Hooks"
 msgstr "Ganci"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Vertex Group Locks"
 msgstr "Blocchi del Gruppo di Vertici"
-
-
-msgid "Import"
-msgstr "Importa"
 
 
 msgid "Face Sets Init"
@@ -24684,10 +24704,6 @@ msgstr "Intermedio"
 
 msgid "Propagate"
 msgstr "Propaga"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Bone Collections"
@@ -24730,6 +24746,14 @@ msgid "Merge"
 msgstr "Unisci"
 
 
+msgid "Linked"
+msgstr "Collegato"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
 msgid "Special Characters"
 msgstr "Caratteri Speciali"
 
@@ -24742,40 +24766,8 @@ msgid "Bone Roll"
 msgstr "Rollio Osso"
 
 
-msgid "Linked"
-msgstr "Collegato"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Pivot Point"
-msgstr "Punto di Perno"
-
-
-msgid "Snap"
-msgstr "Aggancia"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Decadimento Modifica Proporzionale"
-
-
-msgid "Mask Edit"
-msgstr "Modifica Maschera"
-
-
 msgid "Adjust"
 msgstr "Regola"
-
-
-msgid "Automasking"
-msgstr "Automascheramento"
-
-
-msgid "Face Sets Edit"
-msgstr "Modifica Sets di Facce"
 
 
 msgid "Keying"
@@ -24786,12 +24778,24 @@ msgid "Tracking"
 msgstr "Tracciamento"
 
 
-msgid "Mirror"
-msgstr "Specchia"
+msgid "Pivot Point"
+msgstr "Punto di Perno"
 
 
-msgid "UV Mapping"
-msgstr "Mappatura UV"
+msgid "Proportional Editing Falloff"
+msgstr "Decadimento Modifica Proporzionale"
+
+
+msgid "Mask Edit"
+msgstr "Modifica Maschera"
+
+
+msgid "Automasking"
+msgstr "Automascheramento"
+
+
+msgid "Face Sets Edit"
+msgstr "Modifica Sets di Facce"
 
 
 msgid "Keyframe Insert Pie"
@@ -24804,10 +24808,6 @@ msgstr "Di Base"
 
 msgid "Bone Collection Specials"
 msgstr "Speciali della Raccolta di Ossa"
-
-
-msgid "Catalog"
-msgstr "Catalogo"
 
 
 msgid "Assets"
@@ -50170,30 +50170,6 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
-msgid "Measurement"
-msgstr "Misurazione"
-
-
-msgid "Transform Orientations"
-msgstr "Assi (Orientamenti Trasformazione)"
-
-
-msgid "Stroke Placement"
-msgstr "Giacitura Tratto"
-
-
-msgid "Guides"
-msgstr "Guide"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoscopia"
-
-
-msgid "Auto-Masking"
-msgstr "Auto-Mascheramento"
-
-
 msgid "Selectability & Visibility"
 msgstr "Selezionabilità e Visibilità"
 
@@ -50222,12 +50198,36 @@ msgid "Overlays"
 msgstr "Sovrapposizioni"
 
 
+msgid "Guides"
+msgstr "Guide"
+
+
 msgid "Motion Tracking"
 msgstr "Tracciatura Movimento"
 
 
 msgid "Mesh Edit Mode"
 msgstr "Modalità Modifica Mesh"
+
+
+msgid "Measurement"
+msgstr "Misurazione"
+
+
+msgid "Transform Orientations"
+msgstr "Assi (Orientamenti Trasformazione)"
+
+
+msgid "Stroke Placement"
+msgstr "Giacitura Tratto"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoscopia"
+
+
+msgid "Auto-Masking"
+msgstr "Auto-Mascheramento"
 
 
 msgid "Chain Scaling"

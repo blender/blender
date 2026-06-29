@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-22 07:24+0000\n"
-"PO-Revision-Date: 2026-06-21 05:12+0000\n"
+"POT-Creation-Date: 2026-06-29 10:51+0000\n"
+"PO-Revision-Date: 2026-06-29 10:51+0000\n"
 "Last-Translator: Dominic Iastrebschi <domjotebit@gmail.com>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
 "Language: ro\n"
@@ -85,6 +85,18 @@ msgstr "Grupări de curbe F în scopuri de afișare, de exemplu în dopesheet ș
 
 msgid "Slot"
 msgstr "Slot"
+
+
+msgid "The Slot that the Channelbag's animation data is for"
+msgstr "Slotul pentru care sunt destinate datele de animație ale Channelbag-ului"
+
+
+msgid "Collection of F-Curves for a specific action slot, on a specific strip"
+msgstr "Colecție de curbe F pentru un slot de acțiune specific, pe o bandă specifică"
+
+
+msgid "Collection of f-curve groups"
+msgstr "Colecție de grupuri de curbe F"
 
 
 msgid "For each action slot, a list of animation channels that are meant for that slot"

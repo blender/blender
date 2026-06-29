@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-22 07:24+0000\n"
+"POT-Creation-Date: 2026-06-29 10:51+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -12183,6 +12183,14 @@ msgid "Settings for the file selection in Asset Browser mode"
 msgstr "Varlık Tarayıcısı modunda dosya seçimine ilişkin ayarlar"
 
 
+msgid "Catalog"
+msgstr "Katalog"
+
+
+msgid "Unassigned"
+msgstr "Atanmamış"
+
+
 msgid "The UUID of the catalog shown in the browser"
 msgstr "Tarayıcıda gösterilen kataloğun UUID'si"
 
@@ -14524,6 +14532,10 @@ msgstr "Araç Başlığı"
 
 msgid "XR"
 msgstr "X.Z."
+
+
+msgid "Scrubbing"
+msgstr "Ovma"
 
 
 msgid "The space where the panel is going to be used in"
@@ -28787,6 +28799,18 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
+msgid "Mirror"
+msgstr "Yansıtma"
+
+
+msgid "Snap"
+msgstr "Yakala"
+
+
+msgid "UV Mapping"
+msgstr "UV Haritalama"
+
+
 msgid "Local View"
 msgstr "Yerel Görünüm"
 
@@ -28811,8 +28835,16 @@ msgid "View Regions"
 msgstr "Bölgeleri Görüntüle"
 
 
+msgid "Math"
+msgstr "Matematik"
+
+
 msgid "Select More/Less"
 msgstr "Daha Fazla/Daha Az Seç"
+
+
+msgid "Utilities"
+msgstr "Kamu hizmetleri"
 
 
 msgid "Select Similar"
@@ -28835,12 +28867,20 @@ msgid "Assign Material"
 msgstr "Malzeme Atamak"
 
 
-msgid "Math"
-msgstr "Matematik"
+msgid "Read"
+msgstr "Okumak"
 
 
-msgid "Utilities"
-msgstr "Kamu hizmetleri"
+msgid "Sample"
+msgstr "Örnek"
+
+
+msgid "Write"
+msgstr "Yazmak"
+
+
+msgid "Primitives"
+msgstr "İlkel"
 
 
 msgid "Metaball"
@@ -28855,6 +28895,10 @@ msgid "Light Probe"
 msgstr "Işık Sondası"
 
 
+msgid "Instances"
+msgstr "Örnekler"
+
+
 msgid "Add Image"
 msgstr "Resim Ekle"
 
@@ -28863,24 +28907,12 @@ msgid "Relations"
 msgstr "İlişkiler"
 
 
-msgid "Read"
-msgstr "Okumak"
-
-
-msgid "Sample"
-msgstr "Örnek"
-
-
-msgid "Write"
-msgstr "Yazmak"
-
-
 msgid "Rigid Body"
 msgstr "Sert Gövde"
 
 
-msgid "Primitives"
-msgstr "İlkel"
+msgid "Import"
+msgstr "İçe Aktar"
 
 
 msgid "Apply"
@@ -28897,6 +28929,10 @@ msgstr "Hızlı Etkiler"
 
 msgid "Show/Hide"
 msgstr "Göster/Gizle"
+
+
+msgid "Deprecated"
+msgstr "Kullanım dışı bırakıldı"
 
 
 msgid "Clean Up"
@@ -28919,20 +28955,16 @@ msgid "Link/Transfer Data"
 msgstr "Veriyi Bağlantıla/Aktar"
 
 
-msgid "Instances"
-msgstr "Örnekler"
-
-
 msgid "Hooks"
 msgstr "Kancalar"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Vertex Group Locks"
 msgstr "Vertex Grup Kilitleri"
-
-
-msgid "Import"
-msgstr "İçe Aktar"
 
 
 msgid "Trim/Add"
@@ -28951,10 +28983,6 @@ msgid "Random Mask"
 msgstr "Rastgele Maske"
 
 
-msgid "Deprecated"
-msgstr "Kullanım dışı bırakıldı"
-
-
 msgid "Clear Transform"
 msgstr "Temizle Dönüşüm"
 
@@ -28965,10 +28993,6 @@ msgstr "Arada Kalanlar"
 
 msgid "Propagate"
 msgstr "Yaymak"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Bone Collections"
@@ -29011,6 +29035,14 @@ msgid "Merge"
 msgstr "Birleştir"
 
 
+msgid "Linked"
+msgstr "Bağlantılı"
+
+
+msgid "Layout"
+msgstr "Yerleşim"
+
+
 msgid "Special Characters"
 msgstr "Özel Karakterler"
 
@@ -29023,40 +29055,8 @@ msgid "Bone Roll"
 msgstr "Kemik Rulosu"
 
 
-msgid "Linked"
-msgstr "Bağlantılı"
-
-
-msgid "Layout"
-msgstr "Yerleşim"
-
-
-msgid "Pivot Point"
-msgstr "Pivot Noktası"
-
-
-msgid "Snap"
-msgstr "Yakala"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Orantılı Düzenleme Düşüşü"
-
-
-msgid "Mask Edit"
-msgstr "Maske Düzenleme"
-
-
 msgid "Adjust"
 msgstr "Ayarlamak"
-
-
-msgid "Automasking"
-msgstr "Otomatik maskeleme"
-
-
-msgid "Face Sets Edit"
-msgstr "Yüz Setleri Düzenle"
 
 
 msgid "Keying"
@@ -29067,12 +29067,24 @@ msgid "Tracking"
 msgstr "Takip"
 
 
-msgid "Mirror"
-msgstr "Yansıtma"
+msgid "Pivot Point"
+msgstr "Pivot Noktası"
 
 
-msgid "UV Mapping"
-msgstr "UV Haritalama"
+msgid "Proportional Editing Falloff"
+msgstr "Orantılı Düzenleme Düşüşü"
+
+
+msgid "Mask Edit"
+msgstr "Maske Düzenleme"
+
+
+msgid "Automasking"
+msgstr "Otomatik maskeleme"
+
+
+msgid "Face Sets Edit"
+msgstr "Yüz Setleri Düzenle"
 
 
 msgid "Keyframe Insert Pie"
@@ -29093,10 +29105,6 @@ msgstr "Ekle -> Armatür -> Meta-Rigleri Sertleştir."
 
 msgid "Rigify Meta-Rigs"
 msgstr "Meta-Teçhizatları Sertleştirin"
-
-
-msgid "Catalog"
-msgstr "Katalog"
 
 
 msgid "Assets"
@@ -75542,6 +75550,50 @@ msgid "Panel containing UI elements"
 msgstr "UI öğelerini içeren panel"
 
 
+msgid "Selectability & Visibility"
+msgstr "Seçilebilirlik ve Görünürlük"
+
+
+msgid "Shadow Settings"
+msgstr "Gölge Ayarları"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Ayarları"
+
+
+msgid "Cavity"
+msgstr "Boşluk"
+
+
+msgid "Render Pass"
+msgstr "Render Geçişi"
+
+
+msgid "Compositor"
+msgstr "Dizgici"
+
+
+msgid "Overlays"
+msgstr "Kaplamalar"
+
+
+msgid "Guides"
+msgstr "Rehberler"
+
+
+msgid "Viewer Node"
+msgstr "Görüntüleyici Düğümü"
+
+
+msgid "Motion Tracking"
+msgstr "Hareket İzleme"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Mesh Düzenleme Modu"
+
+
 msgid "Measurement"
 msgstr "Ölçüm"
 
@@ -75560,10 +75612,6 @@ msgstr "İnme Yerleşimi"
 
 msgid "Drawing Plane"
 msgstr "Çizim düzlemi"
-
-
-msgid "Guides"
-msgstr "Rehberler"
 
 
 msgid "Quad View"
@@ -75602,14 +75650,6 @@ msgid "Viewport Debug"
 msgstr "Görüş Alanı Hata Ayıklaması"
 
 
-msgid "VR"
-msgstr "Sanal Gerçeklik"
-
-
-msgid "VR Info"
-msgstr "VR Bilgisi"
-
-
 msgid "glTF Variants"
 msgstr "glTF Çeşitleri"
 
@@ -75618,52 +75658,20 @@ msgid "glTF Material Variants"
 msgstr "glTF Malzeme Varyantları"
 
 
+msgid "VR"
+msgstr "Sanal Gerçeklik"
+
+
+msgid "VR Info"
+msgstr "VR Bilgisi"
+
+
 msgid "Active Tool"
 msgstr "Etkin Araç"
 
 
 msgid "View Lock"
 msgstr "Görünüm Kilidi"
-
-
-msgid "Selectability & Visibility"
-msgstr "Seçilebilirlik ve Görünürlük"
-
-
-msgid "Shadow Settings"
-msgstr "Gölge Ayarları"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Ayarları"
-
-
-msgid "Cavity"
-msgstr "Boşluk"
-
-
-msgid "Render Pass"
-msgstr "Render Geçişi"
-
-
-msgid "Compositor"
-msgstr "Dizgici"
-
-
-msgid "Overlays"
-msgstr "Kaplamalar"
-
-
-msgid "Viewer Node"
-msgstr "Görüntüleyici Düğümü"
-
-
-msgid "Motion Tracking"
-msgstr "Hareket İzleme"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Mesh Düzenleme Modu"
 
 
 msgid "Chain Scaling"
@@ -103791,10 +103799,6 @@ msgid "Duplicate Marker to Scene"
 msgstr "Sahneye İşaretçiyi Kopyala"
 
 
-msgid "Scrubbing"
-msgstr "Ovma"
-
-
 msgid "Limit to Frame Range"
 msgstr "Çerçeve Aralığını Sınırla"
 
@@ -110238,10 +110242,6 @@ msgstr "Seçili metaball elemanları silinsin mi?"
 
 msgid "Loading Asset Libraries"
 msgstr "Varlık Kitaplıkları Yükleniyor"
-
-
-msgid "Unassigned"
-msgstr "Atanmamış"
 
 
 msgid "Delete selected objects?"
@@ -119188,6 +119188,14 @@ msgid "Font not specified"
 msgstr "Yazı tipi belirtilmemiş"
 
 
+msgid "Top Right"
+msgstr "Sağ Üst"
+
+
+msgid "Bottom Left"
+msgstr "Sol Alt"
+
+
 msgid "Text Box Width"
 msgstr "Metin Kutusu Genişliği"
 
@@ -119218,14 +119226,6 @@ msgstr "Her bir öğenin kayan nokta değeri olarak seçilmesi"
 
 msgid "How the transformation is specified"
 msgstr "Dönüşüm nasıl belirtilir"
-
-
-msgid "Bottom Left"
-msgstr "Sol Alt"
-
-
-msgid "Top Right"
-msgstr "Sağ Üst"
 
 
 msgid "Faces to consider when packing islands"

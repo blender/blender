@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-22 07:24+0000\n"
+"POT-Creation-Date: 2026-06-29 10:51+0000\n"
 "PO-Revision-Date: 2026-06-16 11:12+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
@@ -15635,6 +15635,14 @@ msgid "Show only assets that are available on disk already (no internet access n
 msgstr "Zobrazí len súbory, ktoré sú už k dispozícii na disku (nie je potrebný prístup k internetu)"
 
 
+msgid "Catalog"
+msgstr "Katalóg"
+
+
+msgid "Unassigned"
+msgstr "Nepriradené"
+
+
 msgid "The UUID of the catalog shown in the browser"
 msgstr "UUID katalógu zobrazeného v prehliadači"
 
@@ -18419,6 +18427,10 @@ msgstr "Záhlavie Nástroj"
 
 msgid "XR"
 msgstr "XR"
+
+
+msgid "Scrubbing"
+msgstr "Snímanie"
 
 
 msgid "The space where the panel is going to be used in"
@@ -35888,6 +35900,22 @@ msgid "Editor menu containing buttons"
 msgstr "Ponuka editora obsahujúca tlačidlá"
 
 
+msgid "Render Preview"
+msgstr "Náhľad prekreslenia"
+
+
+msgid "Mirror"
+msgstr "Zrkadlo"
+
+
+msgid "Snap"
+msgstr "Prichytiť"
+
+
+msgid "UV Mapping"
+msgstr "UV mapovanie"
+
+
 msgid "Local View"
 msgstr "Lokálny pohľad"
 
@@ -35904,10 +35932,6 @@ msgid "Align View"
 msgstr "Zarovnať pohľad"
 
 
-msgid "Render Preview"
-msgstr "Náhľad prekreslenia"
-
-
 msgid "Align View to Active"
 msgstr "Zarovnať pohľad na aktívne"
 
@@ -35916,8 +35940,16 @@ msgid "View Regions"
 msgstr "Oblasti pohľadu"
 
 
+msgid "Math"
+msgstr "Matematika"
+
+
 msgid "Select More/Less"
 msgstr "Vybrať viac/menej"
+
+
+msgid "Utilities"
+msgstr "Obslužné programy"
 
 
 msgid "Select Similar"
@@ -35940,12 +35972,20 @@ msgid "Assign Material"
 msgstr "Priradiť materiál"
 
 
-msgid "Math"
-msgstr "Matematika"
+msgid "Read"
+msgstr "Čítanie"
 
 
-msgid "Utilities"
-msgstr "Obslužné programy"
+msgid "Sample"
+msgstr "Snímka"
+
+
+msgid "Write"
+msgstr "Zápis"
+
+
+msgid "Primitives"
+msgstr "Prvotné tvary"
 
 
 msgid "Metaball"
@@ -35960,6 +36000,14 @@ msgid "Light Probe"
 msgstr "Snímač svetla"
 
 
+msgid "Gizmo"
+msgstr "Manipulačný prvok"
+
+
+msgid "Instances"
+msgstr "Inštancie"
+
+
 msgid "Add Image"
 msgstr "Pridať obrázok"
 
@@ -35968,24 +36016,12 @@ msgid "Relations"
 msgstr "Vzťahy"
 
 
-msgid "Read"
-msgstr "Čítanie"
-
-
-msgid "Sample"
-msgstr "Snímka"
-
-
-msgid "Write"
-msgstr "Zápis"
-
-
 msgid "Rigid Body"
 msgstr "Pevné teleso"
 
 
-msgid "Primitives"
-msgstr "Prvotné tvary"
+msgid "Import"
+msgstr "Import"
 
 
 msgid "Apply"
@@ -36004,6 +36040,10 @@ msgid "Show/Hide"
 msgstr "Ukázať/skryť"
 
 
+msgid "Deprecated"
+msgstr "Zastarané"
+
+
 msgid "Clean Up"
 msgstr "Prečistiť"
 
@@ -36020,28 +36060,20 @@ msgid "Convert"
 msgstr "Konvertovať"
 
 
-msgid "Gizmo"
-msgstr "Manipulačný prvok"
-
-
 msgid "Link/Transfer Data"
 msgstr "Prepojiť/preniesť údaje"
-
-
-msgid "Instances"
-msgstr "Inštancie"
 
 
 msgid "Hooks"
 msgstr "Háky"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Vertex Group Locks"
 msgstr "Zámky skupiny vrcholov"
-
-
-msgid "Import"
-msgstr "Import"
 
 
 msgid "Trim/Add"
@@ -36064,10 +36096,6 @@ msgid "Random Mask"
 msgstr "Náhodná maska"
 
 
-msgid "Deprecated"
-msgstr "Zastarané"
-
-
 msgid "Clear Transform"
 msgstr "Zmazať transformáciu"
 
@@ -36078,10 +36106,6 @@ msgstr "Sprostredkovatelia"
 
 msgid "Propagate"
 msgstr "Propagovať"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Bone Collections"
@@ -36124,6 +36148,14 @@ msgid "Merge"
 msgstr "Zlúčiť"
 
 
+msgid "Linked"
+msgstr "Prepojené"
+
+
+msgid "Layout"
+msgstr "Rozloženie"
+
+
 msgid "Special Characters"
 msgstr "Špeciálne znaky"
 
@@ -36136,40 +36168,8 @@ msgid "Bone Roll"
 msgstr "Kývanie kosti"
 
 
-msgid "Linked"
-msgstr "Prepojené"
-
-
-msgid "Layout"
-msgstr "Rozloženie"
-
-
-msgid "Pivot Point"
-msgstr "Otočný bod"
-
-
-msgid "Snap"
-msgstr "Prichytiť"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Dopad proporcionálnej úpravy"
-
-
-msgid "Mask Edit"
-msgstr "Úprava masky"
-
-
 msgid "Adjust"
 msgstr "Prispôsobenie"
-
-
-msgid "Automasking"
-msgstr "Automatické maskovanie"
-
-
-msgid "Face Sets Edit"
-msgstr "Úprava nastavenia plôšok"
 
 
 msgid "Keying"
@@ -36184,12 +36184,24 @@ msgid "Creative"
 msgstr "Kreatívne"
 
 
-msgid "Mirror"
-msgstr "Zrkadlo"
+msgid "Pivot Point"
+msgstr "Otočný bod"
 
 
-msgid "UV Mapping"
-msgstr "UV mapovanie"
+msgid "Proportional Editing Falloff"
+msgstr "Dopad proporcionálnej úpravy"
+
+
+msgid "Mask Edit"
+msgstr "Úprava masky"
+
+
+msgid "Automasking"
+msgstr "Automatické maskovanie"
+
+
+msgid "Face Sets Edit"
+msgstr "Úprava nastavenia plôšok"
 
 
 msgid "Keyframe Insert Pie"
@@ -36214,10 +36226,6 @@ msgstr "Pridať -> Armatúra -> Meta výbava Rigify."
 
 msgid "Rigify Meta-Rigs"
 msgstr "Meta výbavy Rigify"
-
-
-msgid "Catalog"
-msgstr "Katalóg"
 
 
 msgid "Assets"
@@ -94272,6 +94280,50 @@ msgid "Panel containing UI elements"
 msgstr "Panel obsahujúci prvky užívateľského rozhrania"
 
 
+msgid "Selectability & Visibility"
+msgstr "Výber a viditeľnosť"
+
+
+msgid "Shadow Settings"
+msgstr "Nastavenie tieňa"
+
+
+msgid "SSAO Settings"
+msgstr "Nastavenie SSAO"
+
+
+msgid "Cavity"
+msgstr "Dutina"
+
+
+msgid "Render Pass"
+msgstr "Prechod Prekreslenie"
+
+
+msgid "Compositor"
+msgstr "Kompozítor"
+
+
+msgid "Overlays"
+msgstr "Prekrytia"
+
+
+msgid "Guides"
+msgstr "Vodenie"
+
+
+msgid "Viewer Node"
+msgstr "Uzol Zobrazovač"
+
+
+msgid "Motion Tracking"
+msgstr "Snímanie pohybu"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Režim editácie povrchovej siete"
+
+
 msgid "Measurement"
 msgstr "Miera"
 
@@ -94294,10 +94346,6 @@ msgstr "Umiestnenie ťahu"
 
 msgid "Drawing Plane"
 msgstr "Rovina kreslenia"
-
-
-msgid "Guides"
-msgstr "Vodenie"
 
 
 msgid "Grease Pencil Options"
@@ -94340,20 +94388,20 @@ msgid "Viewport Debug"
 msgstr "Ladenie záberu"
 
 
-msgid "VR"
-msgstr "Virtuálna realita VR"
-
-
-msgid "VR Info"
-msgstr "VR Info"
-
-
 msgid "glTF Variants"
 msgstr "glTF varianty"
 
 
 msgid "glTF Material Variants"
 msgstr "glTF varianty materiálu"
+
+
+msgid "VR"
+msgstr "Virtuálna realita VR"
+
+
+msgid "VR Info"
+msgstr "VR Info"
 
 
 msgid "glTF"
@@ -94370,46 +94418,6 @@ msgstr "Aktívny nástroj"
 
 msgid "View Lock"
 msgstr "Zamknúť zobrazenie"
-
-
-msgid "Selectability & Visibility"
-msgstr "Výber a viditeľnosť"
-
-
-msgid "Shadow Settings"
-msgstr "Nastavenie tieňa"
-
-
-msgid "SSAO Settings"
-msgstr "Nastavenie SSAO"
-
-
-msgid "Cavity"
-msgstr "Dutina"
-
-
-msgid "Render Pass"
-msgstr "Prechod Prekreslenie"
-
-
-msgid "Compositor"
-msgstr "Kompozítor"
-
-
-msgid "Overlays"
-msgstr "Prekrytia"
-
-
-msgid "Viewer Node"
-msgstr "Uzol Zobrazovač"
-
-
-msgid "Motion Tracking"
-msgstr "Snímanie pohybu"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Režim editácie povrchovej siete"
 
 
 msgid "Import Settings"
@@ -99832,10 +99840,6 @@ msgid "French - Français"
 msgstr "Francúzky - Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 98%"
-msgstr "Kód lokalizácie: fr_FR. Pokrok prekladu: 98%"
-
-
 msgid "Georgian - ქართული"
 msgstr "Gruzínsky - ქართული"
 
@@ -100014,10 +100018,6 @@ msgstr "Kód lokalizácie: sl. Pokrok prekladu: 50%"
 
 msgid "Spanish - Español"
 msgstr "Španielsky - Español"
-
-
-msgid "Locale code: es. Translation progress: 99%"
-msgstr "Kód lokalizácie: es. Pokrok prekladu: 99%"
 
 
 msgid "Swahili - Kiswahili"
@@ -130561,10 +130561,6 @@ msgid "Duplicate Marker to Scene"
 msgstr "Vytvoriť kópiu značky na scéne"
 
 
-msgid "Scrubbing"
-msgstr "Snímanie"
-
-
 msgid "Limit to Frame Range"
 msgstr "Obmedziť na rozsah snímok"
 
@@ -134137,10 +134133,6 @@ msgstr "Atribút oblasť vplyvu nie je týmto typom geometrie podporovaná"
 
 msgid "The attribute name must not be empty"
 msgstr "Názov atribútu nemôže byť prázdny"
-
-
-msgid "Attribute is required and cannot be removed"
-msgstr "Atribút je povinný a nemožno ho odstrániť"
 
 
 msgid "Domain unsupported for \"%s\" attribute"
@@ -139768,10 +139760,6 @@ msgid "Loading Asset Libraries"
 msgstr "Načítavanie knižnice aktív"
 
 
-msgid "Unassigned"
-msgstr "Nepriradené"
-
-
 msgid ""
 "Modifier node group assets not assigned to a catalog.\n"
 "Catalogs can be assigned in the Asset Browser"
@@ -141610,18 +141598,6 @@ msgid "Rendering..."
 msgstr "Prekresľovanie..."
 
 
-msgid "Render output disabled in Output properties"
-msgstr "Výstup prekreslenia je vo vlastnostiach výstupu zakázaný"
-
-
-msgid "Render output and compositing disabled in Output properties"
-msgstr "Výstup prekreslenia a kompozícia sú vo vlastnostiach výstupu zakázané"
-
-
-msgid "Render output disabled in Output properties and no active compositing File Output nodes"
-msgstr "Vlastnosti výstupu majú zakázané prekresľovanie výstupu a nie sú aktívne žiadne uzly kompozície výstupu súborov"
-
-
 msgid "No sequencer scene with video strips to render"
 msgstr "Žiadna scéna radiča sekvencií s video pásmi na prekreslenie"
 
@@ -141652,6 +141628,10 @@ msgstr "Nemožno použiť OpenGL prekreslenie v režime na pozadí (bez kontextu
 
 msgid "Scene has no camera"
 msgstr "Scéna nemá kameru"
+
+
+msgid "Render output disabled in Output properties"
+msgstr "Výstup prekreslenia je vo vlastnostiach výstupu zakázaný"
 
 
 msgid "Failed to create OpenGL off-screen buffer, %s"
@@ -148065,6 +148045,10 @@ msgid "Attribute per point/vertex"
 msgstr "Atribút na bod/vrchol"
 
 
+msgid "Attribute is required and cannot be removed"
+msgstr "Atribút je povinný a nemožno ho odstrániť"
+
+
 msgid "Smooth the surface"
 msgstr "Vyhladiť povrch"
 
@@ -148675,10 +148659,6 @@ msgstr "Počet vlastných normál nie je počtom vrcholov (%f / %d)"
 
 msgid "Metaball '%s' does not contain spline given"
 msgstr "Meta guľa '%s' neobsahuje danú drážku"
-
-
-msgid "{}::{}::{}"
-msgstr "{}::{}::{}"
 
 
 msgid "Modify"
@@ -149835,10 +149815,6 @@ msgstr "PrenosUdajov"
 
 msgid "Topology Mapping"
 msgstr "Mapovanie topológie"
-
-
-msgid "Face Count: %s"
-msgstr "Počet plôšok: %s"
 
 
 msgid "Modifier requires more than 3 input faces"
@@ -153526,12 +153502,12 @@ msgid "Volume to take a named grid out of"
 msgstr "Objem na prevzatie pomenovanej mriežky z"
 
 
-msgid "Pattern Mode"
-msgstr "Režim vzoru"
-
-
 msgid "Bundle Type"
 msgstr "Typ balíka"
+
+
+msgid "Pattern Mode"
+msgstr "Režim vzoru"
 
 
 msgid "If true, the gizmo is displayed in screen space. Otherwise it's in object space"
@@ -155426,6 +155402,14 @@ msgid "Font not specified"
 msgstr "Písmo nie je určené"
 
 
+msgid "Top Right"
+msgstr "Vpravo hore"
+
+
+msgid "Bottom Left"
+msgstr "Vľavo dole"
+
+
 msgid "Align Y"
 msgstr "Zarovnať Y"
 
@@ -155637,14 +155621,6 @@ msgstr "Presný tvar"
 
 msgid "Use exact geometry for most efficient packing (slowest)"
 msgstr "Použije presnú geometriu pre najefektívnejšie zbalenie (najpomalšie)"
-
-
-msgid "Bottom Left"
-msgstr "Vľavo dole"
-
-
-msgid "Top Right"
-msgstr "Vpravo hore"
 
 
 msgid "Faces to consider when packing islands"
@@ -157269,6 +157245,14 @@ msgid "Cannot render, no camera"
 msgstr "Nemožno vykresliť, žiadna kamera"
 
 
+msgid "Render output and compositing disabled in Output properties"
+msgstr "Výstup prekreslenia a kompozícia sú vo vlastnostiach výstupu zakázané"
+
+
+msgid "Render output disabled in Output properties and no active compositing File Output nodes"
+msgstr "Vlastnosti výstupu majú zakázané prekresľovanie výstupu a nie sú aktívne žiadne uzly kompozície výstupu súborov"
+
+
 msgid "No border area selected"
 msgstr "Nie je vybratá žiadna ohraničená oblasť"
 
@@ -157597,10 +157581,6 @@ msgstr "súbor sa nedá otvoriť"
 
 msgid "Images are not automatically saved with the file"
 msgstr "Obrázky nie sú automaticky ukladané spolu so súborom"
-
-
-msgid "Save %u modified image(s)"
-msgstr "Uloží %u upravených obrázkov"
 
 
 msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"

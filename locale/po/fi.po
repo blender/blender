@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-22 07:24+0000\n"
+"POT-Creation-Date: 2026-06-29 10:51+0000\n"
 "PO-Revision-Date: 2026-04-06 09:16+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -7236,8 +7236,20 @@ msgid "ID Type"
 msgstr "ID-tyyppi"
 
 
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
+
+
+msgid "Math"
+msgstr "Matematiikka"
+
+
 msgid "Select More/Less"
 msgstr "Valitse enemmän/vähemmän"
+
+
+msgid "Utilities"
+msgstr "Työkalut"
 
 
 msgid "Select Similar"
@@ -7252,12 +7264,12 @@ msgid "Select Loops"
 msgstr "Valitse silmukat"
 
 
-msgid "Math"
-msgstr "Matematiikka"
+msgid "Read"
+msgstr "Lue"
 
 
-msgid "Utilities"
-msgstr "Työkalut"
+msgid "Write"
+msgstr "Kirjoita"
 
 
 msgid "Metaball"
@@ -7272,16 +7284,16 @@ msgid "Light Probe"
 msgstr "Valoluotain"
 
 
+msgid "Instances"
+msgstr "Instanssit"
+
+
 msgid "Add Image"
 msgstr "Lisää kuva"
 
 
-msgid "Read"
-msgstr "Lue"
-
-
-msgid "Write"
-msgstr "Kirjoita"
+msgid "Import"
+msgstr "Tuo"
 
 
 msgid "Track"
@@ -7292,24 +7304,16 @@ msgid "Show/Hide"
 msgstr "Näytä/Piilota"
 
 
-msgid "Instances"
-msgstr "Instanssit"
-
-
 msgid "Hooks"
 msgstr "Koukut"
 
 
-msgid "Import"
-msgstr "Tuo"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Random Mask"
 msgstr "Satunnainen maski"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Names"
@@ -7322,10 +7326,6 @@ msgstr "Muodon valintatila"
 
 msgid "Linked"
 msgstr "Linkitetyt"
-
-
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
 
 
 msgid "Basic"

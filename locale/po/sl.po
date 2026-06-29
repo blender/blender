@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-22 07:24+0000\n"
+"POT-Creation-Date: 2026-06-29 10:51+0000\n"
 "PO-Revision-Date: 2026-06-16 19:55+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
@@ -15127,6 +15127,14 @@ msgid "Online Only"
 msgstr "Samo na spletu"
 
 
+msgid "Catalog"
+msgstr "Katalog"
+
+
+msgid "Unassigned"
+msgstr "Neuvrščeno"
+
+
 msgid "The UUID of the catalog shown in the browser"
 msgstr "UUID kataloga, prikazanega v brskalniku"
 
@@ -16795,6 +16803,10 @@ msgstr "Glava orodja"
 
 msgid "XR"
 msgstr "Razširjena resničnost"
+
+
+msgid "Scrubbing"
+msgstr "Prevrtavanje"
 
 
 msgid "Gizmos"
@@ -26288,6 +26300,22 @@ msgid "Use Material Mask"
 msgstr "Uporabi masko materiala"
 
 
+msgid "Render Preview"
+msgstr "Predogled upodobitve"
+
+
+msgid "Mirror"
+msgstr "Zrcali"
+
+
+msgid "Snap"
+msgstr "Pritrdi"
+
+
+msgid "UV Mapping"
+msgstr "Preslikanje UV"
+
+
 msgid "Local View"
 msgstr "Krajevni pogled"
 
@@ -26304,10 +26332,6 @@ msgid "Align View"
 msgstr "Poravnava pogleda"
 
 
-msgid "Render Preview"
-msgstr "Predogled upodobitve"
-
-
 msgid "Align View to Active"
 msgstr "Poravnaj pogled na aktivno"
 
@@ -26316,8 +26340,16 @@ msgid "View Regions"
 msgstr "Področja pogleda"
 
 
+msgid "Math"
+msgstr "Matematika"
+
+
 msgid "Select More/Less"
 msgstr "Izberi več / manj"
+
+
+msgid "Utilities"
+msgstr "Pripomočki"
 
 
 msgid "Select Similar"
@@ -26340,12 +26372,20 @@ msgid "Assign Material"
 msgstr "Dodeli material"
 
 
-msgid "Math"
-msgstr "Matematika"
+msgid "Read"
+msgstr "Branje"
 
 
-msgid "Utilities"
-msgstr "Pripomočki"
+msgid "Sample"
+msgstr "Vzorčenje"
+
+
+msgid "Write"
+msgstr "Zapiši"
+
+
+msgid "Primitives"
+msgstr "Primitivi"
 
 
 msgid "Metaball"
@@ -26360,6 +26400,14 @@ msgid "Light Probe"
 msgstr "Svetlobna sonda"
 
 
+msgid "Gizmo"
+msgstr "Manipulator"
+
+
+msgid "Instances"
+msgstr "Primerki"
+
+
 msgid "Add Image"
 msgstr "Dodaj sliko"
 
@@ -26368,24 +26416,12 @@ msgid "Relations"
 msgstr "Razmerja"
 
 
-msgid "Read"
-msgstr "Branje"
-
-
-msgid "Sample"
-msgstr "Vzorčenje"
-
-
-msgid "Write"
-msgstr "Zapiši"
-
-
 msgid "Rigid Body"
 msgstr "Togo telo"
 
 
-msgid "Primitives"
-msgstr "Primitivi"
+msgid "Import"
+msgstr "Uvozi"
 
 
 msgid "Apply"
@@ -26404,6 +26440,10 @@ msgid "Show/Hide"
 msgstr "Pokaži / skrij"
 
 
+msgid "Deprecated"
+msgstr "Zastarelo"
+
+
 msgid "Clean Up"
 msgstr "Počisti"
 
@@ -26420,24 +26460,16 @@ msgid "Convert"
 msgstr "Pretvori"
 
 
-msgid "Gizmo"
-msgstr "Manipulator"
-
-
 msgid "Link/Transfer Data"
 msgstr "Poveži / prenesi podatke"
-
-
-msgid "Instances"
-msgstr "Primerki"
 
 
 msgid "Hooks"
 msgstr "Kavlji"
 
 
-msgid "Import"
-msgstr "Uvozi"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Trim/Add"
@@ -26452,10 +26484,6 @@ msgid "Random Mask"
 msgstr "Naključna maska"
 
 
-msgid "Deprecated"
-msgstr "Zastarelo"
-
-
 msgid "Clear Transform"
 msgstr "Počisti transformacijo"
 
@@ -26466,10 +26494,6 @@ msgstr "Vmesni okvirji"
 
 msgid "Propagate"
 msgstr "Razširjanje"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Bone Collections"
@@ -26496,6 +26520,14 @@ msgid "Merge"
 msgstr "Združi"
 
 
+msgid "Linked"
+msgstr "Povezano"
+
+
+msgid "Layout"
+msgstr "Ureditev"
+
+
 msgid "Special Characters"
 msgstr "Posebni znaki"
 
@@ -26508,36 +26540,8 @@ msgid "Bone Roll"
 msgstr "Zasukaj kost"
 
 
-msgid "Linked"
-msgstr "Povezano"
-
-
-msgid "Layout"
-msgstr "Ureditev"
-
-
-msgid "Pivot Point"
-msgstr "Osišče"
-
-
-msgid "Snap"
-msgstr "Pritrdi"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Slabljenje sorazmernega urejanja"
-
-
-msgid "Mask Edit"
-msgstr "Urejanje maske"
-
-
 msgid "Adjust"
 msgstr "Prilagoditev"
-
-
-msgid "Automasking"
-msgstr "Samodejno maskiranje"
 
 
 msgid "Keying"
@@ -26552,12 +26556,20 @@ msgid "Creative"
 msgstr "Ustvarjanje"
 
 
-msgid "Mirror"
-msgstr "Zrcali"
+msgid "Pivot Point"
+msgstr "Osišče"
 
 
-msgid "UV Mapping"
-msgstr "Preslikanje UV"
+msgid "Proportional Editing Falloff"
+msgstr "Slabljenje sorazmernega urejanja"
+
+
+msgid "Mask Edit"
+msgstr "Urejanje maske"
+
+
+msgid "Automasking"
+msgstr "Samodejno maskiranje"
 
 
 msgid "Animals"
@@ -26570,10 +26582,6 @@ msgstr "Osnovno"
 
 msgid "Rigify Meta-Rigs"
 msgstr "Metaskeleti Rigify"
-
-
-msgid "Catalog"
-msgstr "Katalog"
 
 
 msgid "Assets"
@@ -50578,6 +50586,50 @@ msgid "Panel containing UI elements"
 msgstr "Plošča, ki vsebuje elemente uporabniškega vmesnika"
 
 
+msgid "Selectability & Visibility"
+msgstr "Izbirljivost in vidnost"
+
+
+msgid "Shadow Settings"
+msgstr "Nastavitve senc"
+
+
+msgid "SSAO Settings"
+msgstr "Nastavitve SSAO"
+
+
+msgid "Cavity"
+msgstr "Relief"
+
+
+msgid "Render Pass"
+msgstr "Obhod upodabljanja"
+
+
+msgid "Compositor"
+msgstr "Stavitelj slik"
+
+
+msgid "Overlays"
+msgstr "Pomagala"
+
+
+msgid "Guides"
+msgstr "Vodnice"
+
+
+msgid "Viewer Node"
+msgstr "Predogledno vozlišče"
+
+
+msgid "Motion Tracking"
+msgstr "Obrisovanje gibanja"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Mrežni urejevalni način"
+
+
 msgid "Measurement"
 msgstr "Meritev"
 
@@ -50600,10 +50652,6 @@ msgstr "Postavitev poteze"
 
 msgid "Drawing Plane"
 msgstr "Risalna ravnina"
-
-
-msgid "Guides"
-msgstr "Vodnice"
 
 
 msgid "Grease Pencil Options"
@@ -50656,46 +50704,6 @@ msgstr "Aktivno orodje"
 
 msgid "View Lock"
 msgstr "Zaklep pogleda"
-
-
-msgid "Selectability & Visibility"
-msgstr "Izbirljivost in vidnost"
-
-
-msgid "Shadow Settings"
-msgstr "Nastavitve senc"
-
-
-msgid "SSAO Settings"
-msgstr "Nastavitve SSAO"
-
-
-msgid "Cavity"
-msgstr "Relief"
-
-
-msgid "Render Pass"
-msgstr "Obhod upodabljanja"
-
-
-msgid "Compositor"
-msgstr "Stavitelj slik"
-
-
-msgid "Overlays"
-msgstr "Pomagala"
-
-
-msgid "Viewer Node"
-msgstr "Predogledno vozlišče"
-
-
-msgid "Motion Tracking"
-msgstr "Obrisovanje gibanja"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Mrežni urejevalni način"
 
 
 msgid "Import Settings"
@@ -68127,10 +68135,6 @@ msgid "Duplicate Marker to Scene"
 msgstr "Podvoji oznako na sceno"
 
 
-msgid "Scrubbing"
-msgstr "Prevrtavanje"
-
-
 msgid "Limit to Frame Range"
 msgstr "Omeji na interval okvirjev"
 
@@ -74880,10 +74884,6 @@ msgid "Delete selected metaball elements?"
 msgstr "Naj izbrišem izbrane elemente metažog?"
 
 
-msgid "Unassigned"
-msgstr "Neuvrščeno"
-
-
 msgctxt "Operator"
 msgid "Set Active Shape Key"
 msgstr "Nastavi aktivni oblikovni ključ"
@@ -79722,12 +79722,12 @@ msgid "Filter Data Type"
 msgstr "Filter podatkovnih tipov"
 
 
-msgid "Pattern Mode"
-msgstr "Način primerjave"
-
-
 msgid "Bundle Type"
 msgstr "Tip svežnja"
+
+
+msgid "Pattern Mode"
+msgstr "Način primerjave"
 
 
 msgid "Semi-Lagrangian"
@@ -80154,6 +80154,14 @@ msgid "Strings"
 msgstr "Nizi"
 
 
+msgid "Top Right"
+msgstr "Zgoraj desni"
+
+
+msgid "Bottom Left"
+msgstr "Spodaj levo"
+
+
 msgid "Align Y"
 msgstr "Poravnaj Y"
 
@@ -80229,14 +80237,6 @@ msgstr "Izvorni ID-ji"
 
 msgid "Components"
 msgstr "Komponente"
-
-
-msgid "Bottom Left"
-msgstr "Spodaj levo"
-
-
-msgid "Top Right"
-msgstr "Zgoraj desni"
 
 
 msgid "(None)"
