@@ -5,6 +5,7 @@
 import bpy
 from bl_ui import node_add_menu
 from bpy.app.translations import (
+    pgettext_n as n_,
     contexts as i18n_contexts,
 )
 
@@ -839,7 +840,7 @@ class NODE_MT_category_utilities_bundle_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "NodeGetNestedBundlePaths")
         self.node_operator(layout, "NodeStoreBundleItem")
         self.node_operator(layout, "NodeJoinBundle")
-        self.typed_bundle(layout, label="Typed Bundle")
+        self.typed_bundle(layout, label=n_("Typed Bundle"))
 
         self.draw_assets_for_catalog(layout, self.menu_path)
 
