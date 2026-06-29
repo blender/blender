@@ -107,7 +107,10 @@ bool button_is_interactive_ex(const Button *but, const bool labeledit, const boo
   if ((but->type == ButtonType::Text) &&
       ELEM(but->emboss, EmbossType::None, EmbossType::NoneOrStatus) && !labeledit)
   {
-    return false;
+    /* Make editable text buttons with no emboss interactive. */
+    if ((but->flag & BUT_TEXT_LABEL_STYLE) == 0) {
+      return false;
+    }
   }
   if ((but->type == ButtonType::ListRow) && labeledit) {
     return false;

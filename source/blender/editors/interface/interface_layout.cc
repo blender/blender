@@ -2345,6 +2345,9 @@ void Layout::prop(PointerRNA *ptr,
     if (ELEM(but->type, ButtonType::Text) && (flag & ITEM_R_TEXT_BUT_FORCE_SEMI_MODAL_ACTIVE)) {
       button_flag_enable(but, BUT_FORCE_SEMI_MODAL_ACTIVE);
     }
+    if (ELEM(but->type, ButtonType::Text) && (flag & ITEM_R_TEXT_BUT_LABEL_STYLE)) {
+      button_flag_enable(but, BUT_TEXT_LABEL_STYLE);
+    }
   }
 
 #ifdef UI_PROP_DECORATE

@@ -9055,6 +9055,12 @@ static int do_button(bContext *C, Block *block, Button *but, const wmEvent *even
       return WM_UI_HANDLER_CONTINUE;
     }
 
+    if (event->type == LEFTMOUSE && event->val == KM_DBL_CLICK && but->flag & BUT_TEXT_LABEL_STYLE)
+    {
+      button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
+      return WM_UI_HANDLER_BREAK;
+    }
+
 #ifdef WITH_INPUT_NDOF
     /* 2D view navigation conflicts with using NDOF to adjust colors,
      * especially in the node-editor, see: #105224. */

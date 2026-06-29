@@ -1123,7 +1123,8 @@ static void draw_node_socket_name_editable(ui::Layout *layout,
       layout->emboss_set(ui::EmbossType::None);
       layout->prop((&sock->runtime->declaration->socket_name_rna->owner),
                    sock->runtime->declaration->socket_name_rna->property_name,
-                   sock->in_out == SOCK_OUT ? ui::eUI_Item_Flag::ITEM_R_TEXT_RIGHT : UI_ITEM_NONE,
+                   ui::ITEM_R_TEXT_BUT_LABEL_STYLE |
+                       (sock->in_out == SOCK_OUT ? ui::ITEM_R_TEXT_RIGHT : UI_ITEM_NONE),
                    "",
                    ICON_NONE);
       return;

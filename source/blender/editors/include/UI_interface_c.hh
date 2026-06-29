@@ -406,6 +406,8 @@ enum ButtonFlag : int64_t {
    * buttons currently.
    */
   BUT_FORCE_SEMI_MODAL_ACTIVE = int64_t(1) << 33,
+  /** Allow double click editing on text buttons with no emboss styled like labels. */
+  BUT_TEXT_LABEL_STYLE = int64_t(1) << 34,
 };
 
 /** #Button.dragflag */
