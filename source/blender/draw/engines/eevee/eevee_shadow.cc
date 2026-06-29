@@ -748,6 +748,10 @@ void ShadowModule::sync_object(const ObjectHandle &ob_handle,
                                bool has_transparent_shadows,
                                bool has_time_dependent_shadows)
 {
+  if (is_alpha_blend && !inst_.is_baking()) {
+    tilemap_usage_transparent_ps_->draw(box_batch_, ob_handle.res_handle);
+  }
+
   bool is_shadow_caster = !(ob_handle.object->visibility_flag & OB_HIDE_SHADOW);
   if (!is_shadow_caster) {
     return;
@@ -780,10 +784,6 @@ void ShadowModule::sync_object(const ObjectHandle &ob_handle,
     if (is_shadow_caster) {
       curr_casters_.append(instance_handle.raw());
     }
-  }
-
-  if (is_alpha_blend && !inst_.is_baking()) {
-    tilemap_usage_transparent_ps_->draw(box_batch_, ob_handle.res_handle);
   }
 }
 
