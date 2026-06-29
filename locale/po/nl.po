@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-22 07:24+0000\n"
+"POT-Creation-Date: 2026-06-29 10:51+0000\n"
 "PO-Revision-Date: 2026-02-14 01:12+0000\n"
 "Last-Translator: Timo Hoetmer <timo@timohoetmer.nl>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -5747,6 +5747,10 @@ msgid "Dots"
 msgstr "Stippen"
 
 
+msgid "Mirror"
+msgstr "Spiegel"
+
+
 msgid "Local View"
 msgstr "Lokale Scherm"
 
@@ -5779,6 +5783,10 @@ msgid "Rigid Body"
 msgstr "Star Lichaam"
 
 
+msgid "Import"
+msgstr "Importeren"
+
+
 msgid "Quick Effects"
 msgstr "Snelle Effecten"
 
@@ -5795,10 +5803,6 @@ msgid "Hooks"
 msgstr "Haken"
 
 
-msgid "Import"
-msgstr "Importeren"
-
-
 msgid "Clear Transform"
 msgstr "Maak Transformatie Leeg"
 
@@ -5813,10 +5817,6 @@ msgstr "Gekoppeld"
 
 msgid "Layout"
 msgstr "Indeling"
-
-
-msgid "Mirror"
-msgstr "Spiegel"
 
 
 msgctxt "MovieClip"

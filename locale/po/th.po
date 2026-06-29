@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-22 07:24+0000\n"
+"POT-Creation-Date: 2026-06-29 10:51+0000\n"
 "PO-Revision-Date: 2026-03-19 12:41+0000\n"
 "Last-Translator: Banditer1483 <pleum.wongvarit@gmail.com>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -4937,6 +4937,14 @@ msgid "Mix Color"
 msgstr "ผสมสี"
 
 
+msgid "Mirror"
+msgstr "กระจกสะท้อน"
+
+
+msgid "Snap"
+msgstr "ยึดติด"
+
+
 msgid "Local View"
 msgstr "มุมมองท้องถิ่น"
 
@@ -4977,6 +4985,10 @@ msgid "Add Image"
 msgstr "เพิ่มภาพ"
 
 
+msgid "Import"
+msgstr "นำเข้า"
+
+
 msgid "Apply"
 msgstr "นำไปใช้"
 
@@ -4987,10 +4999,6 @@ msgstr "แทร็ค"
 
 msgid "Hooks"
 msgstr "ตะขอ"
-
-
-msgid "Import"
-msgstr "นำเข้า"
 
 
 msgid "UV"
@@ -5013,12 +5021,12 @@ msgid "Layout"
 msgstr "เค้าโครง"
 
 
+msgid "Keying"
+msgstr "คีย์"
+
+
 msgid "Pivot Point"
 msgstr "จุดหมุน"
-
-
-msgid "Snap"
-msgstr "ยึดติด"
 
 
 msgid "Proportional Editing Falloff"
@@ -5027,14 +5035,6 @@ msgstr "แก้ไข"
 
 msgid "Mask Edit"
 msgstr "การแก้ไขหน้ากาก"
-
-
-msgid "Keying"
-msgstr "คีย์"
-
-
-msgid "Mirror"
-msgstr "กระจกสะท้อน"
 
 
 msgid "Zoom"
@@ -6299,12 +6299,12 @@ msgid "Single Image"
 msgstr "ภาพเดี่ยว"
 
 
-msgid "View Lock"
-msgstr "ล็อกมุมมอง"
-
-
 msgid "Overlays"
 msgstr "วางซ้อน"
+
+
+msgid "View Lock"
+msgstr "ล็อกมุมมอง"
 
 
 msgid "Mask Display"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-22 07:24+0000\n"
+"POT-Creation-Date: 2026-06-29 10:51+0000\n"
 "PO-Revision-Date: 2025-07-23 15:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -8498,6 +8498,18 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
+msgid "Mirror"
+msgstr "Огледало"
+
+
+msgid "Snap"
+msgstr "Лепљење"
+
+
+msgid "UV Mapping"
+msgstr "UV Мапирање"
+
+
 msgid "Local View"
 msgstr "Локални поглед"
 
@@ -8510,12 +8522,12 @@ msgid "Align View"
 msgstr "Поравнај поглед"
 
 
-msgid "Select Linked"
-msgstr "Изабери повезано"
-
-
 msgid "Math"
 msgstr "Математика"
+
+
+msgid "Select Linked"
+msgstr "Изабери повезано"
 
 
 msgid "Metaball"
@@ -8532,6 +8544,10 @@ msgstr "Односи"
 
 msgid "Rigid Body"
 msgstr "Круто тело"
+
+
+msgid "Import"
+msgstr "Увоз"
 
 
 msgid "Apply"
@@ -8554,8 +8570,8 @@ msgid "Hooks"
 msgstr "Удице"
 
 
-msgid "Import"
-msgstr "Увоз"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Clear Transform"
@@ -8568,10 +8584,6 @@ msgstr "У међувремену"
 
 msgid "Propagate"
 msgstr "Пренеси"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Names"
@@ -8598,6 +8610,10 @@ msgid "Merge"
 msgstr "Сједини"
 
 
+msgid "Linked"
+msgstr "Повезано"
+
+
 msgid "Special Characters"
 msgstr "Специјални знаци"
 
@@ -8606,28 +8622,12 @@ msgid "Bone Roll"
 msgstr "Ролна костију"
 
 
-msgid "Linked"
-msgstr "Повезано"
-
-
-msgid "Snap"
-msgstr "Лепљење"
-
-
 msgid "Keying"
 msgstr "Збирка тастера"
 
 
 msgid "Tracking"
 msgstr "Праћење"
-
-
-msgid "Mirror"
-msgstr "Огледало"
-
-
-msgid "UV Mapping"
-msgstr "UV Мапирање"
 
 
 msgid "Basic"
@@ -19066,12 +19066,12 @@ msgid "Restrict"
 msgstr "Ограничи"
 
 
-msgid "Transform Orientations"
-msgstr "Трансформација оријентација"
-
-
 msgid "Motion Tracking"
 msgstr "Праћење покрета"
+
+
+msgid "Transform Orientations"
+msgstr "Трансформација оријентација"
 
 
 msgid "Bone Constraints"

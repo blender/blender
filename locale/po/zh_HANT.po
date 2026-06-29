@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-22 07:24+0000\n"
-"PO-Revision-Date: 2026-05-30 09:12+0000\n"
+"POT-Creation-Date: 2026-06-29 10:51+0000\n"
+"PO-Revision-Date: 2026-06-25 10:12+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
 "Language: zh_HANT\n"
@@ -12714,6 +12714,14 @@ msgid "Settings for the file selection in Asset Browser mode"
 msgstr "素材瀏覽器模式中的檔案選取設定"
 
 
+msgid "Catalog"
+msgstr "編目"
+
+
+msgid "Unassigned"
+msgstr "未指派"
+
+
 msgid "The UUID of the catalog shown in the browser"
 msgstr "瀏覽器中顯示的編目檔的 UUID"
 
@@ -14437,6 +14445,10 @@ msgstr "工具標頭欄"
 
 msgid "XR"
 msgstr "XR"
+
+
+msgid "Scrubbing"
+msgstr "刷動"
 
 
 msgid "Gizmos"
@@ -26496,6 +26508,22 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
+msgid "Render Preview"
+msgstr "算繪預覽"
+
+
+msgid "Mirror"
+msgstr "鏡像"
+
+
+msgid "Snap"
+msgstr "吸附"
+
+
+msgid "UV Mapping"
+msgstr "UV 映射處理"
+
+
 msgid "Local View"
 msgstr "區域檢視"
 
@@ -26512,10 +26540,6 @@ msgid "Align View"
 msgstr "對齊檢視"
 
 
-msgid "Render Preview"
-msgstr "算繪預覽"
-
-
 msgid "Align View to Active"
 msgstr "對齊檢視至作用項"
 
@@ -26524,8 +26548,16 @@ msgid "View Regions"
 msgstr "檢視範圍"
 
 
+msgid "Math"
+msgstr "數學公式"
+
+
 msgid "Select More/Less"
 msgstr "選取更多/更少"
+
+
+msgid "Utilities"
+msgstr "效用"
 
 
 msgid "Select Similar"
@@ -26548,12 +26580,20 @@ msgid "Assign Material"
 msgstr "指派材質"
 
 
-msgid "Math"
-msgstr "數學公式"
+msgid "Read"
+msgstr "讀取"
 
 
-msgid "Utilities"
-msgstr "效用"
+msgid "Sample"
+msgstr "取樣"
+
+
+msgid "Write"
+msgstr "寫入"
+
+
+msgid "Primitives"
+msgstr "原形"
 
 
 msgid "Metaball"
@@ -26568,6 +26608,14 @@ msgid "Light Probe"
 msgstr "燈光採樣器"
 
 
+msgid "Gizmo"
+msgstr "操縱器"
+
+
+msgid "Instances"
+msgstr "實例化"
+
+
 msgid "Add Image"
 msgstr "新增影像"
 
@@ -26576,24 +26624,12 @@ msgid "Relations"
 msgstr "關係"
 
 
-msgid "Read"
-msgstr "讀取"
-
-
-msgid "Sample"
-msgstr "取樣"
-
-
-msgid "Write"
-msgstr "寫入"
-
-
 msgid "Rigid Body"
 msgstr "剛體"
 
 
-msgid "Primitives"
-msgstr "原形"
+msgid "Import"
+msgstr "匯入"
 
 
 msgid "Apply"
@@ -26612,6 +26648,10 @@ msgid "Show/Hide"
 msgstr "顯示/隱藏"
 
 
+msgid "Deprecated"
+msgstr "已棄用"
+
+
 msgid "Clean Up"
 msgstr "清理"
 
@@ -26628,28 +26668,20 @@ msgid "Convert"
 msgstr "轉換"
 
 
-msgid "Gizmo"
-msgstr "操縱器"
-
-
 msgid "Link/Transfer Data"
 msgstr "連結/傳輸資料"
-
-
-msgid "Instances"
-msgstr "實例化"
 
 
 msgid "Hooks"
 msgstr "鉤"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Vertex Group Locks"
 msgstr "頂點群組鎖定"
-
-
-msgid "Import"
-msgstr "匯入"
 
 
 msgid "Trim/Add"
@@ -26668,10 +26700,6 @@ msgid "Random Mask"
 msgstr "隨機遮罩"
 
 
-msgid "Deprecated"
-msgstr "已棄用"
-
-
 msgid "Clear Transform"
 msgstr "清除變換"
 
@@ -26682,10 +26710,6 @@ msgstr "內部之間"
 
 msgid "Propagate"
 msgstr "增生"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Bone Collections"
@@ -26724,6 +26748,14 @@ msgid "Merge"
 msgstr "合併"
 
 
+msgid "Linked"
+msgstr "已連結"
+
+
+msgid "Layout"
+msgstr "配置"
+
+
 msgid "Special Characters"
 msgstr "特殊字元"
 
@@ -26736,40 +26768,8 @@ msgid "Bone Roll"
 msgstr "骨骼滾動"
 
 
-msgid "Linked"
-msgstr "已連結"
-
-
-msgid "Layout"
-msgstr "配置"
-
-
-msgid "Pivot Point"
-msgstr "樞紐點"
-
-
-msgid "Snap"
-msgstr "吸附"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "比例化編輯衰落"
-
-
-msgid "Mask Edit"
-msgstr "遮罩編輯"
-
-
 msgid "Adjust"
 msgstr "調整"
-
-
-msgid "Automasking"
-msgstr "自動遮罩"
-
-
-msgid "Face Sets Edit"
-msgstr "面集編輯"
 
 
 msgid "Keying"
@@ -26784,12 +26784,24 @@ msgid "Creative"
 msgstr "創意"
 
 
-msgid "Mirror"
-msgstr "鏡像"
+msgid "Pivot Point"
+msgstr "樞紐點"
 
 
-msgid "UV Mapping"
-msgstr "UV 映射處理"
+msgid "Proportional Editing Falloff"
+msgstr "比例化編輯衰落"
+
+
+msgid "Mask Edit"
+msgstr "遮罩編輯"
+
+
+msgid "Automasking"
+msgstr "自動遮罩"
+
+
+msgid "Face Sets Edit"
+msgstr "面集編輯"
 
 
 msgid "Keyframe Insert Pie"
@@ -26802,10 +26814,6 @@ msgstr "動物"
 
 msgid "Basic"
 msgstr "基本"
-
-
-msgid "Catalog"
-msgstr "編目"
 
 
 msgid "Assets"
@@ -45293,6 +45301,11 @@ msgid "Target Grease Pencil Layer"
 msgstr "目標蠟筆層"
 
 
+msgctxt "Operator"
+msgid "Outline"
+msgstr "輪廓"
+
+
 msgid "Corner Subdivisions"
 msgstr "角落細分"
 
@@ -61374,6 +61387,46 @@ msgid "Palette Splines"
 msgstr "調色盤雲型線"
 
 
+msgid "Shadow Settings"
+msgstr "陰影設定"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO 設定"
+
+
+msgid "Cavity"
+msgstr "坑腔"
+
+
+msgid "Render Pass"
+msgstr "算繪通道"
+
+
+msgid "Compositor"
+msgstr "合成器"
+
+
+msgid "Overlays"
+msgstr "疊層"
+
+
+msgid "Guides"
+msgstr "引導"
+
+
+msgid "Viewer Node"
+msgstr "檢視器節點"
+
+
+msgid "Motion Tracking"
+msgstr "運動跟蹤"
+
+
+msgid "Mesh Edit Mode"
+msgstr "網格編輯模式"
+
+
 msgid "Measurement"
 msgstr "測量"
 
@@ -61396,10 +61449,6 @@ msgstr "筆觸放置"
 
 msgid "Drawing Plane"
 msgstr "描繪平面"
-
-
-msgid "Guides"
-msgstr "引導"
 
 
 msgid "Grease Pencil Options"
@@ -61430,20 +61479,20 @@ msgid "Viewport Debug"
 msgstr "視圖除錯"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR 資訊"
-
-
 msgid "glTF Variants"
 msgstr "glTF 變體"
 
 
 msgid "glTF Material Variants"
 msgstr "glTF 材質變體"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR 資訊"
 
 
 msgid "glTF"
@@ -61460,42 +61509,6 @@ msgstr "作用中工具"
 
 msgid "View Lock"
 msgstr "視圖鎖定"
-
-
-msgid "Shadow Settings"
-msgstr "陰影設定"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO 設定"
-
-
-msgid "Cavity"
-msgstr "坑腔"
-
-
-msgid "Render Pass"
-msgstr "算繪通道"
-
-
-msgid "Compositor"
-msgstr "合成器"
-
-
-msgid "Overlays"
-msgstr "疊層"
-
-
-msgid "Viewer Node"
-msgstr "檢視器節點"
-
-
-msgid "Motion Tracking"
-msgstr "運動跟蹤"
-
-
-msgid "Mesh Edit Mode"
-msgstr "網格編輯模式"
 
 
 msgid "Import Settings"
@@ -77181,6 +77194,11 @@ msgid "Activate Gizmo"
 msgstr "啟動操縱器"
 
 
+msgctxt "View3D"
+msgid "Press"
+msgstr "按壓"
+
+
 msgid "Select & Tweak"
 msgstr "選取並調整"
 
@@ -78819,6 +78837,11 @@ msgid "Website"
 msgstr "網站"
 
 
+msgctxt "Preferences"
+msgid "Feedback"
+msgstr "回饋"
+
+
 msgid "Maintainer"
 msgstr "維護者"
 
@@ -79959,6 +79982,11 @@ msgstr "物體額外項"
 
 msgid "Controller Style"
 msgstr "控制器樣式"
+
+
+msgctxt "Camera"
+msgid "End"
+msgstr "結束"
 
 
 msgid "Gamepad"
@@ -84075,10 +84103,6 @@ msgstr "製作標記複本至場景..."
 msgctxt "Operator"
 msgid "Duplicate Marker to Scene"
 msgstr "製作標記複本至場景"
-
-
-msgid "Scrubbing"
-msgstr "刷動"
 
 
 msgid "Limit to Frame Range"
@@ -89801,10 +89825,6 @@ msgstr "結合結果為 %d 個頂點，限制為 %ld"
 
 msgid "No additional selected meshes with equal vertex count to join"
 msgstr "無其他有相同頂點數的選取網格可結合"
-
-
-msgid "Unassigned"
-msgstr "未指派"
 
 
 msgctxt "Operator"
@@ -96159,6 +96179,14 @@ msgid "Font not specified"
 msgstr "未指定字型"
 
 
+msgid "Top Right"
+msgstr "右上"
+
+
+msgid "Bottom Left"
+msgstr "左下"
+
+
 msgid "Text Box Width"
 msgstr "文字方塊寬度"
 
@@ -96191,14 +96219,6 @@ msgid "Exact Shape"
 msgstr "精確形狀"
 
 
-msgid "Bottom Left"
-msgstr "左下"
-
-
-msgid "Top Right"
-msgstr "右上"
-
-
 msgid "Rotate islands for best fit"
 msgstr "旋轉島塊以最佳適應"
 
@@ -96229,6 +96249,10 @@ msgstr "立方體外面體素的值"
 
 msgid "Substeps"
 msgstr "子步數"
+
+
+msgid "Begin"
+msgstr "開始"
 
 
 msgid "Mask Input"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-06-22 07:24+0000\n"
+"POT-Creation-Date: 2026-06-29 10:51+0000\n"
 "PO-Revision-Date: 2026-04-13 10:12+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21188,6 +21188,18 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "Snap"
+msgstr "Atrair"
+
+
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
 msgid "Local View"
 msgstr "Visão local"
 
@@ -21212,6 +21224,10 @@ msgid "View Regions"
 msgstr "Visualizar Regiões"
 
 
+msgid "Math"
+msgstr "Matemática"
+
+
 msgid "Select More/Less"
 msgstr "Selecionar mais ou menos"
 
@@ -21232,10 +21248,6 @@ msgid "Select Loops"
 msgstr "Selecionar anéis"
 
 
-msgid "Math"
-msgstr "Matemática"
-
-
 msgid "Metaball"
 msgstr "Meta-esfera"
 
@@ -21248,6 +21260,10 @@ msgid "Light Probe"
 msgstr "Sonda de Luz"
 
 
+msgid "Instances"
+msgstr "Instâncias"
+
+
 msgid "Add Image"
 msgstr "Adicionar Imagem"
 
@@ -21258,6 +21274,10 @@ msgstr "Relações"
 
 msgid "Rigid Body"
 msgstr "Corpo rígido"
+
+
+msgid "Import"
+msgstr "Importar"
 
 
 msgid "Apply"
@@ -21288,16 +21308,12 @@ msgid "Convert"
 msgstr "Converter"
 
 
-msgid "Instances"
-msgstr "Instâncias"
-
-
 msgid "Hooks"
 msgstr "Ganchos"
 
 
-msgid "Import"
-msgstr "Importar"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Random Mask"
@@ -21314,10 +21330,6 @@ msgstr "Entre as continuidades"
 
 msgid "Propagate"
 msgstr "Propagar"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Names"
@@ -21348,14 +21360,6 @@ msgid "Merge"
 msgstr "Fundir"
 
 
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Bone Roll"
-msgstr "Rolagem dos ossos"
-
-
 msgid "Linked"
 msgstr "Vinculando"
 
@@ -21364,16 +21368,12 @@ msgid "Layout"
 msgstr "Organizar"
 
 
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
+msgid "Special Characters"
+msgstr "Caracteres especiais"
 
 
-msgid "Snap"
-msgstr "Atrair"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
+msgid "Bone Roll"
+msgstr "Rolagem dos ossos"
 
 
 msgid "Keying"
@@ -21384,12 +21384,12 @@ msgid "Tracking"
 msgstr "Rastreamento"
 
 
-msgid "Mirror"
-msgstr "Espelhar"
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
 
 
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
 
 
 msgid "Basic"
@@ -47979,6 +47979,14 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
+msgid "Render Pass"
+msgstr "Passo de renderização"
+
+
+msgid "Motion Tracking"
+msgstr "Captura de movimentos"
+
+
 msgid "Transform Orientations"
 msgstr "Orientações de transformação"
 
@@ -47989,14 +47997,6 @@ msgstr "Exibição Quadrante"
 
 msgid "Stereoscopy"
 msgstr "Estereoscopia"
-
-
-msgid "Render Pass"
-msgstr "Passo de renderização"
-
-
-msgid "Motion Tracking"
-msgstr "Captura de movimentos"
 
 
 msgid "Bone Constraints"
@@ -66963,6 +66963,10 @@ msgid "Strings"
 msgstr "Fios"
 
 
+msgid "Top Right"
+msgstr "Topo à Direita"
+
+
 msgid "Text Box Width"
 msgstr "Largura da caixa de texto"
 
@@ -66973,10 +66977,6 @@ msgstr "Altura da caixa de texto"
 
 msgid "Edge Crease"
 msgstr "Vincos de arestas"
-
-
-msgid "Top Right"
-msgstr "Topo à Direita"
 
 
 msgid "Rotate islands for best fit"

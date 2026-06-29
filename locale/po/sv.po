@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-22 07:24+0000\n"
+"POT-Creation-Date: 2026-06-29 10:51+0000\n"
 "PO-Revision-Date: 2026-03-17 14:12+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -15078,6 +15078,14 @@ msgid "Settings for the file selection in Asset Browser mode"
 msgstr "Inställningar för filval i Asset Browser-läget"
 
 
+msgid "Catalog"
+msgstr "Katalog"
+
+
+msgid "Unassigned"
+msgstr "Otilldelad"
+
+
 msgid "The UUID of the catalog shown in the browser"
 msgstr "UUID för katalogen som visas i webbläsaren"
 
@@ -17830,6 +17838,10 @@ msgstr "Verktygshuvud"
 
 msgid "XR"
 msgstr "XR"
+
+
+msgid "Scrubbing"
+msgstr "Skrubbning"
 
 
 msgid "The space where the panel is going to be used in"
@@ -35062,6 +35074,22 @@ msgid "Editor menu containing buttons"
 msgstr "Redigeringsmeny med knappar"
 
 
+msgid "Render Preview"
+msgstr "Förhandsgranska rendering"
+
+
+msgid "Mirror"
+msgstr "Spegel"
+
+
+msgid "Snap"
+msgstr "Fäst"
+
+
+msgid "UV Mapping"
+msgstr "UV-mappning"
+
+
 msgid "Local View"
 msgstr "Lokal vy"
 
@@ -35078,10 +35106,6 @@ msgid "Align View"
 msgstr "Justera vy"
 
 
-msgid "Render Preview"
-msgstr "Förhandsgranska rendering"
-
-
 msgid "Align View to Active"
 msgstr "Justera vy till aktiv"
 
@@ -35090,8 +35114,16 @@ msgid "View Regions"
 msgstr "Visa regioner"
 
 
+msgid "Math"
+msgstr "Matematik"
+
+
 msgid "Select More/Less"
 msgstr "Välj Mer/Mindre"
+
+
+msgid "Utilities"
+msgstr "Allmännyttiga tjänster"
 
 
 msgid "Select Similar"
@@ -35114,12 +35146,20 @@ msgid "Assign Material"
 msgstr "Tilldela material"
 
 
-msgid "Math"
-msgstr "Matematik"
+msgid "Read"
+msgstr "Läs"
 
 
-msgid "Utilities"
-msgstr "Allmännyttiga tjänster"
+msgid "Sample"
+msgstr "Exempel"
+
+
+msgid "Write"
+msgstr "Skriv"
+
+
+msgid "Primitives"
+msgstr "Primitiva"
 
 
 msgid "Metaball"
@@ -35134,6 +35174,14 @@ msgid "Light Probe"
 msgstr "Ljusprob"
 
 
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Instanser"
+
+
 msgid "Add Image"
 msgstr "Lägg till bild"
 
@@ -35142,24 +35190,12 @@ msgid "Relations"
 msgstr "Relationer"
 
 
-msgid "Read"
-msgstr "Läs"
-
-
-msgid "Sample"
-msgstr "Exempel"
-
-
-msgid "Write"
-msgstr "Skriv"
-
-
 msgid "Rigid Body"
 msgstr "Stel kropp"
 
 
-msgid "Primitives"
-msgstr "Primitiva"
+msgid "Import"
+msgstr "Importera"
 
 
 msgid "Apply"
@@ -35178,6 +35214,10 @@ msgid "Show/Hide"
 msgstr "Visa/Dölj"
 
 
+msgid "Deprecated"
+msgstr "Föråldrad"
+
+
 msgid "Clean Up"
 msgstr "Rensa upp"
 
@@ -35194,28 +35234,20 @@ msgid "Convert"
 msgstr "Konvertera"
 
 
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
 msgid "Link/Transfer Data"
 msgstr "Länk/överför data"
-
-
-msgid "Instances"
-msgstr "Instanser"
 
 
 msgid "Hooks"
 msgstr "Krokar"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Vertex Group Locks"
 msgstr "Vertex Group Lås"
-
-
-msgid "Import"
-msgstr "Importera"
 
 
 msgid "Trim/Add"
@@ -35234,10 +35266,6 @@ msgid "Random Mask"
 msgstr "Slumpmässig mask"
 
 
-msgid "Deprecated"
-msgstr "Föråldrad"
-
-
 msgid "Clear Transform"
 msgstr "Rensa Transform"
 
@@ -35248,10 +35276,6 @@ msgstr "Mellanliggande"
 
 msgid "Propagate"
 msgstr "Föröka"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Bone Collections"
@@ -35294,6 +35318,14 @@ msgid "Merge"
 msgstr "Sammanfoga"
 
 
+msgid "Linked"
+msgstr "Länkad"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
 msgid "Special Characters"
 msgstr "Specialtecken"
 
@@ -35306,40 +35338,8 @@ msgid "Bone Roll"
 msgstr "Benrulle"
 
 
-msgid "Linked"
-msgstr "Länkad"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Pivot Point"
-msgstr "Pivotpunkt"
-
-
-msgid "Snap"
-msgstr "Fäst"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportionell redigering Falloff"
-
-
-msgid "Mask Edit"
-msgstr "Maskredigering"
-
-
 msgid "Adjust"
 msgstr "Justera"
-
-
-msgid "Automasking"
-msgstr "Automatisk maskering"
-
-
-msgid "Face Sets Edit"
-msgstr "Ansiktsuppsättningar Redigera"
 
 
 msgid "Keying"
@@ -35354,12 +35354,24 @@ msgid "Creative"
 msgstr "Kreativ"
 
 
-msgid "Mirror"
-msgstr "Spegel"
+msgid "Pivot Point"
+msgstr "Pivotpunkt"
 
 
-msgid "UV Mapping"
-msgstr "UV-mappning"
+msgid "Proportional Editing Falloff"
+msgstr "Proportionell redigering Falloff"
+
+
+msgid "Mask Edit"
+msgstr "Maskredigering"
+
+
+msgid "Automasking"
+msgstr "Automatisk maskering"
+
+
+msgid "Face Sets Edit"
+msgstr "Ansiktsuppsättningar Redigera"
 
 
 msgid "Keyframe Insert Pie"
@@ -35384,10 +35396,6 @@ msgstr "Lägg till -> Armatur -> Rigga Meta-Rigs."
 
 msgid "Rigify Meta-Rigs"
 msgstr "Rigify Meta-Rigs"
-
-
-msgid "Catalog"
-msgstr "Katalog"
 
 
 msgid "Assets"
@@ -91960,6 +91968,50 @@ msgid "Panel containing UI elements"
 msgstr "Panel som innehåller UI-element"
 
 
+msgid "Selectability & Visibility"
+msgstr "Valbarhet och synlighet"
+
+
+msgid "Shadow Settings"
+msgstr "Skugginställningar"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO-inställningar"
+
+
+msgid "Cavity"
+msgstr "Hålrum"
+
+
+msgid "Render Pass"
+msgstr "Renderingspass"
+
+
+msgid "Compositor"
+msgstr "Compositor"
+
+
+msgid "Overlays"
+msgstr "Överlägg"
+
+
+msgid "Guides"
+msgstr "Guider"
+
+
+msgid "Viewer Node"
+msgstr "Visningsnod"
+
+
+msgid "Motion Tracking"
+msgstr "Rörelsespårning"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Redigeringsläge för nät"
+
+
 msgid "Measurement"
 msgstr "Mätning"
 
@@ -91982,10 +92034,6 @@ msgstr "Strokeplacering"
 
 msgid "Drawing Plane"
 msgstr "Ritplan"
-
-
-msgid "Guides"
-msgstr "Guider"
 
 
 msgid "Grease Pencil Options"
@@ -92028,20 +92076,20 @@ msgid "Viewport Debug"
 msgstr "Fönsterdebugging"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR-information"
-
-
 msgid "glTF Variants"
 msgstr "glTF-varianter"
 
 
 msgid "glTF Material Variants"
 msgstr "glTF-materialvarianter"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR-information"
 
 
 msgid "glTF"
@@ -92058,46 +92106,6 @@ msgstr "Aktivt verktyg"
 
 msgid "View Lock"
 msgstr "Visa lås"
-
-
-msgid "Selectability & Visibility"
-msgstr "Valbarhet och synlighet"
-
-
-msgid "Shadow Settings"
-msgstr "Skugginställningar"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO-inställningar"
-
-
-msgid "Cavity"
-msgstr "Hålrum"
-
-
-msgid "Render Pass"
-msgstr "Renderingspass"
-
-
-msgid "Compositor"
-msgstr "Compositor"
-
-
-msgid "Overlays"
-msgstr "Överlägg"
-
-
-msgid "Viewer Node"
-msgstr "Visningsnod"
-
-
-msgid "Motion Tracking"
-msgstr "Rörelsespårning"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Redigeringsläge för nät"
 
 
 msgid "Import Settings"
@@ -126974,10 +126982,6 @@ msgid "Duplicate Marker to Scene"
 msgstr "Duplicera markör till scen"
 
 
-msgid "Scrubbing"
-msgstr "Skrubbning"
-
-
 msgid "Limit to Frame Range"
 msgstr "Begränsa till bildintervall"
 
@@ -130404,10 +130408,6 @@ msgstr "Attributdomän stöds inte av denna geometrityp"
 
 msgid "The attribute name must not be empty"
 msgstr "Attributnamnet får inte vara tomt."
-
-
-msgid "Attribute is required and cannot be removed"
-msgstr "Attributet är obligatoriskt och kan inte tas bort."
 
 
 msgid "Domain unsupported for \"%s\" attribute"
@@ -135672,10 +135672,6 @@ msgstr "Ta bort valda metaball-element?"
 
 msgid "Loading Asset Libraries"
 msgstr "Laddar tillgångsbibliotek"
-
-
-msgid "Unassigned"
-msgstr "Otilldelad"
 
 
 msgid ""
@@ -143487,6 +143483,10 @@ msgid "Attribute per point/vertex"
 msgstr "Attribut per punkt/hörnpunkt"
 
 
+msgid "Attribute is required and cannot be removed"
+msgstr "Attributet är obligatoriskt och kan inte tas bort."
+
+
 msgid "Smooth the surface"
 msgstr "Jämna ut ytan"
 
@@ -145203,10 +145203,6 @@ msgstr "Dataöverföring"
 
 msgid "Topology Mapping"
 msgstr "Topologikartläggning"
-
-
-msgid "Face Count: %s"
-msgstr "Antal ansikten: %s"
 
 
 msgid "Modifier requires more than 3 input faces"
@@ -150466,6 +150462,14 @@ msgid "Font not specified"
 msgstr "Typsnitt ej angivet"
 
 
+msgid "Top Right"
+msgstr "Övre högra hörnet"
+
+
+msgid "Bottom Left"
+msgstr "Nederst till vänster"
+
+
 msgid "Align Y"
 msgstr "Justera Y"
 
@@ -150577,14 +150581,6 @@ msgstr "Exakt form"
 
 msgid "Use exact geometry for most efficient packing (slowest)"
 msgstr "Använd exakt geometri för mest effektiv packning (långsamt)"
-
-
-msgid "Bottom Left"
-msgstr "Nederst till vänster"
-
-
-msgid "Top Right"
-msgstr "Övre högra hörnet"
 
 
 msgid "Faces to consider when packing islands"
@@ -152375,10 +152371,6 @@ msgstr "Fortsätt använda filen utan Python-skript"
 
 msgid "unable to open the file"
 msgstr "kan inte öppna filen"
-
-
-msgid "Save %u modified image(s)"
-msgstr "Spara %u modifierade bilder"
 
 
 msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"

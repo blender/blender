@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2026-06-22 07:24+0000\n"
-"PO-Revision-Date: 2026-06-22 00:12+0000\n"
+"POT-Creation-Date: 2026-06-29 10:51+0000\n"
+"PO-Revision-Date: 2026-06-26 19:07+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -15636,6 +15636,10 @@ msgstr "Apenas Locais"
 
 msgid "Show only assets that are available on disk already (no internet access needed)"
 msgstr "Mostrar apenas recursos que estão alojados localmente (não precisa de acesso à internet)"
+
+
+msgid "Catalog"
+msgstr "Catálogo"
 
 
 msgid "The UUID of the catalog shown in the browser"
@@ -35569,6 +35573,10 @@ msgid "Do not follow drawing path or object rotation and keeps aligned with view
 msgstr "Não seguir o traçado do traço nem rotação do objecto e manter alinhamento com ponto de vista"
 
 
+msgid "Additional rotation applied to dots and square texture of strokes"
+msgstr "Rotação adicional aplicada à textura das pintas e quadrados dos traços"
+
+
 msgid "Fill Color"
 msgstr "Cor de preenchimento"
 
@@ -35891,6 +35899,22 @@ msgid "Editor menu containing buttons"
 msgstr "Menu de editor contendo botões"
 
 
+msgid "Render Preview"
+msgstr "Pré-Visualização da Render"
+
+
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "Snap"
+msgstr "Atrair"
+
+
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
 msgid "Local View"
 msgstr "Visão local"
 
@@ -35907,10 +35931,6 @@ msgid "Align View"
 msgstr "Alinhar visualização"
 
 
-msgid "Render Preview"
-msgstr "Pré-Visualização da Render"
-
-
 msgid "Align View to Active"
 msgstr "Alinhar vista para o activo"
 
@@ -35919,8 +35939,16 @@ msgid "View Regions"
 msgstr "Regiões de Visualização"
 
 
+msgid "Math"
+msgstr "Matemática"
+
+
 msgid "Select More/Less"
 msgstr "Seleccionar mais ou menos"
+
+
+msgid "Utilities"
+msgstr "Utilidades"
 
 
 msgid "Select Similar"
@@ -35943,12 +35971,20 @@ msgid "Assign Material"
 msgstr "Aplicar Material"
 
 
-msgid "Math"
-msgstr "Matemática"
+msgid "Read"
+msgstr "Ler"
 
 
-msgid "Utilities"
-msgstr "Utilidades"
+msgid "Sample"
+msgstr "Amostrar"
+
+
+msgid "Write"
+msgstr "Escrever"
+
+
+msgid "Primitives"
+msgstr "Primitivas"
 
 
 msgid "Metaball"
@@ -35963,6 +35999,14 @@ msgid "Light Probe"
 msgstr "Sonda de Luz"
 
 
+msgid "Gizmo"
+msgstr "Manipulador"
+
+
+msgid "Instances"
+msgstr "Instâncias"
+
+
 msgid "Add Image"
 msgstr "Adicionar Imagem"
 
@@ -35971,24 +36015,12 @@ msgid "Relations"
 msgstr "Relações"
 
 
-msgid "Read"
-msgstr "Ler"
-
-
-msgid "Sample"
-msgstr "Amostrar"
-
-
-msgid "Write"
-msgstr "Escrever"
-
-
 msgid "Rigid Body"
 msgstr "Corpo rígido"
 
 
-msgid "Primitives"
-msgstr "Primitivas"
+msgid "Import"
+msgstr "Importar"
 
 
 msgid "Apply"
@@ -36007,6 +36039,10 @@ msgid "Show/Hide"
 msgstr "Mostrar ou ocultar"
 
 
+msgid "Deprecated"
+msgstr "Obsoleto"
+
+
 msgid "Clean Up"
 msgstr "Limpeza"
 
@@ -36023,28 +36059,20 @@ msgid "Convert"
 msgstr "Converter"
 
 
-msgid "Gizmo"
-msgstr "Manipulador"
-
-
 msgid "Link/Transfer Data"
 msgstr "Vincular/Transferir Dados"
-
-
-msgid "Instances"
-msgstr "Instâncias"
 
 
 msgid "Hooks"
 msgstr "Ganchos"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Vertex Group Locks"
 msgstr "Bloqueios de Grupos de Vértices"
-
-
-msgid "Import"
-msgstr "Importar"
 
 
 msgid "Trim/Add"
@@ -36067,10 +36095,6 @@ msgid "Random Mask"
 msgstr "Máscara Aleatória"
 
 
-msgid "Deprecated"
-msgstr "Obsoleto"
-
-
 msgid "Clear Transform"
 msgstr "Limpar transformações"
 
@@ -36081,10 +36105,6 @@ msgstr "Entre as continuidades"
 
 msgid "Propagate"
 msgstr "Propagar"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Bone Collections"
@@ -36127,6 +36147,14 @@ msgid "Merge"
 msgstr "Fundir"
 
 
+msgid "Linked"
+msgstr "Vinculando"
+
+
+msgid "Layout"
+msgstr "Organizar"
+
+
 msgid "Special Characters"
 msgstr "Caracteres especiais"
 
@@ -36139,40 +36167,8 @@ msgid "Bone Roll"
 msgstr "Rolagem do osso"
 
 
-msgid "Linked"
-msgstr "Vinculando"
-
-
-msgid "Layout"
-msgstr "Organizar"
-
-
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
-
-
-msgid "Snap"
-msgstr "Atrair"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Mask Edit"
-msgstr "Edição de Máscara"
-
-
 msgid "Adjust"
 msgstr "Ajustar"
-
-
-msgid "Automasking"
-msgstr "Auto Máscara"
-
-
-msgid "Face Sets Edit"
-msgstr "Edições de Conjuntos de Faces"
 
 
 msgid "Keying"
@@ -36187,12 +36183,24 @@ msgid "Creative"
 msgstr "Criativo"
 
 
-msgid "Mirror"
-msgstr "Espelhar"
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
 
 
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "Mask Edit"
+msgstr "Edição de Máscara"
+
+
+msgid "Automasking"
+msgstr "Auto Máscara"
+
+
+msgid "Face Sets Edit"
+msgstr "Edições de Conjuntos de Faces"
 
 
 msgid "Keyframe Insert Pie"
@@ -36217,10 +36225,6 @@ msgstr "Adicionar -> Armação -> Meta-Rigs Rigify."
 
 msgid "Rigify Meta-Rigs"
 msgstr "Meta-Rigs Rigify"
-
-
-msgid "Catalog"
-msgstr "Catálogo"
 
 
 msgid "Assets"
@@ -47691,9 +47695,17 @@ msgid "Divide Floor"
 msgstr "Parte Inteira da Divisão"
 
 
+msgid "Divide and floor to the largest integer smaller than or equal to the result"
+msgstr "Dividir e obter parte inteira (piso) do maior inteiro menor ou igual ao resultado"
+
+
 msgctxt "NodeTree"
 msgid "Divide Ceiling"
 msgstr "Tecto da Divisão"
+
+
+msgid "Divide and ceil to the smallest integer greater than or equal to the result"
+msgstr "Dividir e obter parte inteira (tecto) do menor inteiro maior ou igual ao resultado"
 
 
 msgctxt "NodeTree"
@@ -59785,6 +59797,15 @@ msgstr "-X para +X"
 
 msgid "+X to -X"
 msgstr "+X para -X"
+
+
+msgctxt "Operator"
+msgid "Download Asset"
+msgstr "Descarregar Recurso"
+
+
+msgid "Make the asset available without internet access"
+msgstr "Tornar o recurso disponível sem acesso à internet"
 
 
 msgid "Asset Library Identifier"
@@ -79825,6 +79846,11 @@ msgid "Reset"
 msgstr "Redefinir"
 
 
+msgctxt "Operator"
+msgid "Outliner Library Override Property Remove"
+msgstr "Remoção de Propriedade em Revogação de Biblioteca no Organizador"
+
+
 msgid "Remove the selected library override properties, and reset the relevant data to the linked reference values"
 msgstr "Remover as propriedades de revogação de biblioteca seleccionadas, e repor os dados relevantes para os valores de referência"
 
@@ -83149,6 +83175,15 @@ msgstr "Restaura o fotograma para o momento que a animação foi inicializada."
 
 
 msgctxt "Operator"
+msgid "Pause Animation"
+msgstr "Pausar Animação"
+
+
+msgid "Pause animation, stopping at the current frame"
+msgstr "Pausar animação, parando no fotograma actual"
+
+
+msgctxt "Operator"
 msgid "Play Animation"
 msgstr "Reproduzir animação"
 
@@ -85319,6 +85354,26 @@ msgid "Enable selected proxies on all selected Movie and Image strips"
 msgstr "Activar aproximações seleccionadas em todas as faixas de Filme seleccionadas"
 
 
+msgid "Overwrite existing proxy files"
+msgstr "Substituir ficheiros de representantes existentes"
+
+
+msgid "Build proxy at 100% resolution"
+msgstr "Construir representantes com 100% da resolução"
+
+
+msgid "Build proxy at 25% resolution"
+msgstr "Construir representantes com 25% da resolução"
+
+
+msgid "Build proxy at 50% resolution"
+msgstr "Construir representantes com 50% da resolução"
+
+
+msgid "Build proxy at 75% resolution"
+msgstr "Construir representantes com 75% da resolução"
+
+
 msgctxt "Operator"
 msgid "Export Subtitles"
 msgstr "Exportar subtítulos"
@@ -85524,6 +85579,10 @@ msgstr "Adicionar Faixa Máscara"
 
 msgid "Add a mask strip to the sequencer"
 msgstr "Adiciona uma faixa de máscara ao editor de sequências."
+
+
+msgid "Mask to add as a strip"
+msgstr "Máscara a adicionar como uma faixa"
 
 
 msgctxt "Operator"
@@ -86039,6 +86098,10 @@ msgid "Select strips relative to the current frame"
 msgstr "Seleccionar faixas relativas ao fotograma actual"
 
 
+msgid "Whether to select all strips to the left or right of the current frame, or just those intersecting with it"
+msgstr "Se seleccionar todas as faixas para a esquerda"
+
+
 msgid "Select to the left of the current frame"
 msgstr "Seleccionar à esquerda do fotograma actual"
 
@@ -86102,6 +86165,10 @@ msgid "Snap Strips to the Current Frame"
 msgstr "Atrair faixas aos Fotograma Actual"
 
 
+msgid "Snap strips to the current frame, using the active (or closest) strip as the anchor, and the mouse cursor relative to the playhead to determine the side of the playhead to snap to"
+msgstr "Atrair faixas ao fotograma actual, usando a faixa activa (ou mais próxima) como referência, e a posição do cursor do rato relativa ao cursor de reprodução para determinar o lado ao qual atrair"
+
+
 msgid "Frame where selected strips will be snapped"
 msgstr "Fotograma ao qual as faixas seleccionadas serão atraídas"
 
@@ -86163,6 +86230,10 @@ msgid "Set a color tag for the selected strips"
 msgstr "Seleccionar etiqueta de cor para as faixas seleccionadas"
 
 
+msgid "Color used to tag strips for organizing them in the timeline"
+msgstr "Cor usada para marcar faixas para organizá-las na linha do tempo"
+
+
 msgid "Color 09"
 msgstr "Cor 09"
 
@@ -86172,12 +86243,24 @@ msgid "Jump to Strip"
 msgstr "Saltar para faixa"
 
 
+msgid "Move playhead to the next or previous edit point, which may be a strip handle or its center"
+msgstr "Mover cursor de reprodução para o ponto de edição seguinte ou anterior, que pode ser um manípulo de faixa ou o seu centro"
+
+
 msgid "Use Strip Center"
 msgstr "Usar Centro da Faixa"
 
 
+msgid "Jump to the center of the strip rather than its handles"
+msgstr "Saltar para o centro da faixa, em vez dos seus manípulos"
+
+
 msgid "Next Strip"
 msgstr "Próxima faixa"
+
+
+msgid "Jump to the next handle or center, else the previous"
+msgstr "Saltar para o manípulo seguinte ou centro, caso contrário o anterior"
 
 
 msgctxt "Operator"
@@ -86200,6 +86283,10 @@ msgstr "Copia os modificadores da faixa activa para todas as faixas seleccionada
 
 msgid "Name of the modifier to copy. If empty, copy all modifiers"
 msgstr "Nome do modificador a copiar. Se vazio, copiar todos os modificadores"
+
+
+msgid "Whether to replace all modifiers on the selected strips or append to their existing modifier stack"
+msgstr "Se substituir todos os modificadores nas faixas seleccionadas ou apor à lista de modificadores existentes"
 
 
 msgid "Replace modifiers in destination"
@@ -88127,6 +88214,11 @@ msgstr "Arrastar e largar num conjunto de dados ou item pertencente a conjunto d
 
 msgid "Delete selected list item"
 msgstr "Apagar item da lista seleccionado"
+
+
+msgctxt "Operator"
+msgid "Focus Active Item"
+msgstr "Focar Item Activo"
 
 
 msgctxt "Operator"
@@ -94104,6 +94196,50 @@ msgid "Panel containing UI elements"
 msgstr "Painel contendo elementos do Interface do Utilizador"
 
 
+msgid "Selectability & Visibility"
+msgstr "Selectividade e Visibilidade"
+
+
+msgid "Shadow Settings"
+msgstr "Definições de Sombra"
+
+
+msgid "SSAO Settings"
+msgstr "Definições SSAO"
+
+
+msgid "Cavity"
+msgstr "Cavidade"
+
+
+msgid "Render Pass"
+msgstr "Passo de renderização"
+
+
+msgid "Compositor"
+msgstr "Compositor"
+
+
+msgid "Overlays"
+msgstr "Sobreposições"
+
+
+msgid "Guides"
+msgstr "Guias"
+
+
+msgid "Viewer Node"
+msgstr "Nó de Visualização"
+
+
+msgid "Motion Tracking"
+msgstr "Captura de movimentos"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Modo de Edição de Malha"
+
+
 msgid "Measurement"
 msgstr "Medição"
 
@@ -94126,10 +94262,6 @@ msgstr "Posicionamento de Traços"
 
 msgid "Drawing Plane"
 msgstr "Plano de Desenho"
-
-
-msgid "Guides"
-msgstr "Guias"
 
 
 msgid "Grease Pencil Options"
@@ -94172,20 +94304,20 @@ msgid "Viewport Debug"
 msgstr "Diagnóstico de Janela de Visualização"
 
 
-msgid "VR"
-msgstr "RV"
-
-
-msgid "VR Info"
-msgstr "Informação RV"
-
-
 msgid "glTF Variants"
 msgstr "Variantes glTF"
 
 
 msgid "glTF Material Variants"
 msgstr "Variantes de material glTF"
+
+
+msgid "VR"
+msgstr "RV"
+
+
+msgid "VR Info"
+msgstr "Informação RV"
 
 
 msgid "glTF"
@@ -94202,46 +94334,6 @@ msgstr "Ferramenta Activa"
 
 msgid "View Lock"
 msgstr "Trancar Vista"
-
-
-msgid "Selectability & Visibility"
-msgstr "Selectividade e Visibilidade"
-
-
-msgid "Shadow Settings"
-msgstr "Definições de Sombra"
-
-
-msgid "SSAO Settings"
-msgstr "Definições SSAO"
-
-
-msgid "Cavity"
-msgstr "Cavidade"
-
-
-msgid "Render Pass"
-msgstr "Passo de renderização"
-
-
-msgid "Compositor"
-msgstr "Compositor"
-
-
-msgid "Overlays"
-msgstr "Sobreposições"
-
-
-msgid "Viewer Node"
-msgstr "Nó de Visualização"
-
-
-msgid "Motion Tracking"
-msgstr "Captura de movimentos"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Modo de Edição de Malha"
 
 
 msgid "Import Settings"
@@ -126377,20 +126469,20 @@ msgid "Strings"
 msgstr "Textos"
 
 
-msgid "Edge Crease"
-msgstr "Vincos de arestas"
-
-
-msgid "How the transformation is specified"
-msgstr "Como a transformação é especificada"
+msgid "Top Right"
+msgstr "Topo Direita"
 
 
 msgid "Bottom Left"
 msgstr "Base Esquerda"
 
 
-msgid "Top Right"
-msgstr "Topo Direita"
+msgid "Edge Crease"
+msgstr "Vincos de arestas"
+
+
+msgid "How the transformation is specified"
+msgstr "Como a transformação é especificada"
 
 
 msgid "Rotate islands for best fit"

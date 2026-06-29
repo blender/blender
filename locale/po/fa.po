@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-22 07:24+0000\n"
+"POT-Creation-Date: 2026-06-29 10:51+0000\n"
 "PO-Revision-Date: 2025-11-19 06:24+0000\n"
 "Last-Translator: \"M. Amin Taheri\" <amintaheri2001@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -2317,6 +2317,10 @@ msgid "Operator"
 msgstr "ﻞﻣﺎﻋ"
 
 
+msgid "Unassigned"
+msgstr "ﻩﺪﺸﻧ ﺭﺍﺬﮔﺍﻭ"
+
+
 msgid "Matrix"
 msgstr "ﺲﯾﺮﺗﺎﻣ"
 
@@ -3086,6 +3090,10 @@ msgid "Mix"
 msgstr "ﻁﻮﻠﺨﻣ"
 
 
+msgid "Mirror"
+msgstr "ﻪﻨﯾﺁ"
+
+
 msgid "Math"
 msgstr "ﯽﺿﺎﯾﺭ"
 
@@ -3098,16 +3106,16 @@ msgid "Relations"
 msgstr "ﻂﺑﺍﻭﺭ"
 
 
+msgid "Import"
+msgstr "ﻥﺩﺮﮐ ﺩﺭﺍﻭ"
+
+
 msgid "Apply"
 msgstr "ﻝﺎﻤﻋﺍ"
 
 
 msgid "Convert"
 msgstr "ﻞﯾﺪﺒﺗ"
-
-
-msgid "Import"
-msgstr "ﻥﺩﺮﮐ ﺩﺭﺍﻭ"
 
 
 msgid "UV"
@@ -3122,16 +3130,12 @@ msgid "Layout"
 msgstr "ﺡﺮﻃ"
 
 
-msgid "Pivot Point"
-msgstr "ﺶﺧﺮﭼ ﻪﻄﻘﻧ"
-
-
 msgid "Tracking"
 msgstr "ﯽﺑﺎﯾﺩﺭ"
 
 
-msgid "Mirror"
-msgstr "ﻪﻨﯾﺁ"
+msgid "Pivot Point"
+msgstr "ﺶﺧﺮﭼ ﻪﻄﻘﻧ"
 
 
 msgid "Key"
@@ -4316,12 +4320,12 @@ msgid "Restrict"
 msgstr "ﻥﺩﺮﮐ ﺩﻭﺪﺤﻣ"
 
 
-msgid "Transform Orientations"
-msgstr "ﻞﮑﺷ ﺮﯿﯿﻐﺗ ﺖﻬﺟ"
-
-
 msgid "Motion Tracking"
 msgstr "ﺖﮐﺮﺣ ﯽﺑﺎﯾﺩﺭ"
+
+
+msgid "Transform Orientations"
+msgstr "ﻞﮑﺷ ﺮﯿﯿﻐﺗ ﺖﻬﺟ"
 
 
 msgid "Bone Constraints"
@@ -5151,10 +5155,6 @@ msgstr "؟ﺩﻮﺷ ﻑﺬﺣ ﯽﺑﺎﺨﺘﻧﺍ ﻝﺎﺑﺎﺘﻣ ﺮﺻﺎ
 
 msgid "Loading Asset Libraries"
 msgstr "ﯽﯾﺍﺭﺍﺩ ﯼﺎﻫ‌ﻪﻧﺎﺨﺑﺎﺘﮐ ﯼﺮﯿﮔﺭﺎﺑ"
-
-
-msgid "Unassigned"
-msgstr "ﻩﺪﺸﻧ ﺭﺍﺬﮔﺍﻭ"
 
 
 msgid "Delete selected objects?"

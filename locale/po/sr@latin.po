@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-22 07:24+0000\n"
+"POT-Creation-Date: 2026-06-29 10:51+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -8498,6 +8498,18 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
+msgid "Mirror"
+msgstr "Ogledalo"
+
+
+msgid "Snap"
+msgstr "Lepljenje"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapiranje"
+
+
 msgid "Local View"
 msgstr "Lokalni pogled"
 
@@ -8510,12 +8522,12 @@ msgid "Align View"
 msgstr "Poravnaj pogled"
 
 
-msgid "Select Linked"
-msgstr "Izaberi povezano"
-
-
 msgid "Math"
 msgstr "Matematika"
+
+
+msgid "Select Linked"
+msgstr "Izaberi povezano"
 
 
 msgid "Metaball"
@@ -8532,6 +8544,10 @@ msgstr "Odnosi"
 
 msgid "Rigid Body"
 msgstr "Kruto telo"
+
+
+msgid "Import"
+msgstr "Uvoz"
 
 
 msgid "Apply"
@@ -8554,8 +8570,8 @@ msgid "Hooks"
 msgstr "Udice"
 
 
-msgid "Import"
-msgstr "Uvoz"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Clear Transform"
@@ -8568,10 +8584,6 @@ msgstr "U međuvremenu"
 
 msgid "Propagate"
 msgstr "Prenesi"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Names"
@@ -8598,6 +8610,10 @@ msgid "Merge"
 msgstr "Sjedini"
 
 
+msgid "Linked"
+msgstr "Povezano"
+
+
 msgid "Special Characters"
 msgstr "Specijalni znaci"
 
@@ -8606,28 +8622,12 @@ msgid "Bone Roll"
 msgstr "Rolna kostiju"
 
 
-msgid "Linked"
-msgstr "Povezano"
-
-
-msgid "Snap"
-msgstr "Lepljenje"
-
-
 msgid "Keying"
 msgstr "Zbirka tastera"
 
 
 msgid "Tracking"
 msgstr "Praćenje"
-
-
-msgid "Mirror"
-msgstr "Ogledalo"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapiranje"
 
 
 msgid "Basic"
@@ -19066,12 +19066,12 @@ msgid "Restrict"
 msgstr "Ograniči"
 
 
-msgid "Transform Orientations"
-msgstr "Transformacija orijentacija"
-
-
 msgid "Motion Tracking"
 msgstr "Praćenje pokreta"
+
+
+msgid "Transform Orientations"
+msgstr "Transformacija orijentacija"
 
 
 msgid "Bone Constraints"

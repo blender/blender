@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-22 07:24+0000\n"
+"POT-Creation-Date: 2026-06-29 10:51+0000\n"
 "PO-Revision-Date: 2026-03-27 12:12+0000\n"
 "Last-Translator: kim nahyeong <weiing0123@ajou.ac.kr>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -15009,6 +15009,14 @@ msgid "Settings for the file selection in Asset Browser mode"
 msgstr "어셋 브라우저 모드에서 파일 선택에 대한 설정"
 
 
+msgid "Catalog"
+msgstr "카탈로그"
+
+
+msgid "Unassigned"
+msgstr "할당되지 않음"
+
+
 msgid "The UUID of the catalog shown in the browser"
 msgstr "브라우저에 표시된 카탈로그의 UUID함"
 
@@ -17745,6 +17753,10 @@ msgstr "도구 해더"
 
 msgid "XR"
 msgstr "XR"
+
+
+msgid "Scrubbing"
+msgstr "스크러빙"
 
 
 msgid "The space where the panel is going to be used in"
@@ -34793,6 +34805,22 @@ msgid "Editor menu containing buttons"
 msgstr "버튼이 포함된 에디터 메뉴"
 
 
+msgid "Render Preview"
+msgstr "렌더링 미리보기"
+
+
+msgid "Mirror"
+msgstr "미러"
+
+
+msgid "Snap"
+msgstr "스냅"
+
+
+msgid "UV Mapping"
+msgstr "UV 맵핑"
+
+
 msgid "Local View"
 msgstr "로컬 뷰"
 
@@ -34809,10 +34837,6 @@ msgid "Align View"
 msgstr "뷰를 정렬"
 
 
-msgid "Render Preview"
-msgstr "렌더링 미리보기"
-
-
 msgid "Align View to Active"
 msgstr "뷰를 활성에 정렬"
 
@@ -34821,8 +34845,16 @@ msgid "View Regions"
 msgstr "뷰 지역"
 
 
+msgid "Math"
+msgstr "수학"
+
+
 msgid "Select More/Less"
 msgstr "선택 증가/감소"
+
+
+msgid "Utilities"
+msgstr "유틸리티"
 
 
 msgid "Select Similar"
@@ -34845,12 +34877,20 @@ msgid "Assign Material"
 msgstr "머티리얼을 할당"
 
 
-msgid "Math"
-msgstr "수학"
+msgid "Read"
+msgstr "읽기"
 
 
-msgid "Utilities"
-msgstr "유틸리티"
+msgid "Sample"
+msgstr "샘플"
+
+
+msgid "Write"
+msgstr "쓰기"
+
+
+msgid "Primitives"
+msgstr "프리미티브"
 
 
 msgid "Metaball"
@@ -34865,6 +34905,14 @@ msgid "Light Probe"
 msgstr "라이트 프로브"
 
 
+msgid "Gizmo"
+msgstr "기즈모"
+
+
+msgid "Instances"
+msgstr "인스턴스"
+
+
 msgid "Add Image"
 msgstr "이미지를 추가"
 
@@ -34873,24 +34921,12 @@ msgid "Relations"
 msgstr "관계"
 
 
-msgid "Read"
-msgstr "읽기"
-
-
-msgid "Sample"
-msgstr "샘플"
-
-
-msgid "Write"
-msgstr "쓰기"
-
-
 msgid "Rigid Body"
 msgstr "리지드 바디"
 
 
-msgid "Primitives"
-msgstr "프리미티브"
+msgid "Import"
+msgstr "가져오기"
 
 
 msgid "Apply"
@@ -34909,6 +34945,10 @@ msgid "Show/Hide"
 msgstr "표시/숨기기"
 
 
+msgid "Deprecated"
+msgstr "사용 중단"
+
+
 msgid "Clean Up"
 msgstr "정리"
 
@@ -34925,28 +34965,20 @@ msgid "Convert"
 msgstr "변환"
 
 
-msgid "Gizmo"
-msgstr "기즈모"
-
-
 msgid "Link/Transfer Data"
 msgstr "데이터 연결/전송"
-
-
-msgid "Instances"
-msgstr "인스턴스"
 
 
 msgid "Hooks"
 msgstr "후크"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Vertex Group Locks"
 msgstr "버텍스 그룹 잠금"
-
-
-msgid "Import"
-msgstr "가져오기"
 
 
 msgid "Trim/Add"
@@ -34965,10 +34997,6 @@ msgid "Random Mask"
 msgstr "랜덤 마스크"
 
 
-msgid "Deprecated"
-msgstr "사용 중단"
-
-
 msgid "Clear Transform"
 msgstr "변환을 지우기"
 
@@ -34979,10 +35007,6 @@ msgstr "사이에서"
 
 msgid "Propagate"
 msgstr "전파"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Bone Collections"
@@ -35025,6 +35049,14 @@ msgid "Merge"
 msgstr "병합"
 
 
+msgid "Linked"
+msgstr "연결됨"
+
+
+msgid "Layout"
+msgstr "레이아웃"
+
+
 msgid "Special Characters"
 msgstr "특수 문자"
 
@@ -35037,40 +35069,8 @@ msgid "Bone Roll"
 msgstr "뼈대 롤"
 
 
-msgid "Linked"
-msgstr "연결됨"
-
-
-msgid "Layout"
-msgstr "레이아웃"
-
-
-msgid "Pivot Point"
-msgstr "피벗 포인트"
-
-
-msgid "Snap"
-msgstr "스냅"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "비례 편집 감소"
-
-
-msgid "Mask Edit"
-msgstr "마스크 편집"
-
-
 msgid "Adjust"
 msgstr "조정"
-
-
-msgid "Automasking"
-msgstr "오토마스킹"
-
-
-msgid "Face Sets Edit"
-msgstr "페이스 세트 편집"
 
 
 msgid "Keying"
@@ -35085,12 +35085,24 @@ msgid "Creative"
 msgstr "크리에이티브"
 
 
-msgid "Mirror"
-msgstr "미러"
+msgid "Pivot Point"
+msgstr "피벗 포인트"
 
 
-msgid "UV Mapping"
-msgstr "UV 맵핑"
+msgid "Proportional Editing Falloff"
+msgstr "비례 편집 감소"
+
+
+msgid "Mask Edit"
+msgstr "마스크 편집"
+
+
+msgid "Automasking"
+msgstr "오토마스킹"
+
+
+msgid "Face Sets Edit"
+msgstr "페이스 세트 편집"
 
 
 msgid "Keyframe Insert Pie"
@@ -35115,10 +35127,6 @@ msgstr "추가 -> 아마츄어 -> 메타 릭을 리깅함"
 
 msgid "Rigify Meta-Rigs"
 msgstr "메타-리그 리깅"
-
-
-msgid "Catalog"
-msgstr "카탈로그"
 
 
 msgid "Assets"
@@ -90358,6 +90366,50 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
+msgid "Selectability & Visibility"
+msgstr "선택성 및 가시성"
+
+
+msgid "Shadow Settings"
+msgstr "섀도우 설정"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO 설정"
+
+
+msgid "Cavity"
+msgstr "캐비티"
+
+
+msgid "Render Pass"
+msgstr "렌더 패스"
+
+
+msgid "Compositor"
+msgstr "컴포지터"
+
+
+msgid "Overlays"
+msgstr "오버레이"
+
+
+msgid "Guides"
+msgstr "가이드"
+
+
+msgid "Viewer Node"
+msgstr "뷰어 노드"
+
+
+msgid "Motion Tracking"
+msgstr "모션 트래킹"
+
+
+msgid "Mesh Edit Mode"
+msgstr "메시 에디트 모드"
+
+
 msgid "Measurement"
 msgstr "측정"
 
@@ -90380,10 +90432,6 @@ msgstr "스트로크 배치"
 
 msgid "Drawing Plane"
 msgstr "드로잉 평면"
-
-
-msgid "Guides"
-msgstr "가이드"
 
 
 msgid "Grease Pencil Options"
@@ -90426,20 +90474,20 @@ msgid "Viewport Debug"
 msgstr "뷰포트 디버그"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR 정보"
-
-
 msgid "glTF Variants"
 msgstr "glTF 변형"
 
 
 msgid "glTF Material Variants"
 msgstr "glTF 머티리얼 배리언트"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR 정보"
 
 
 msgid "glTF"
@@ -90456,46 +90504,6 @@ msgstr "활성 도구"
 
 msgid "View Lock"
 msgstr "뷰 잠금"
-
-
-msgid "Selectability & Visibility"
-msgstr "선택성 및 가시성"
-
-
-msgid "Shadow Settings"
-msgstr "섀도우 설정"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO 설정"
-
-
-msgid "Cavity"
-msgstr "캐비티"
-
-
-msgid "Render Pass"
-msgstr "렌더 패스"
-
-
-msgid "Compositor"
-msgstr "컴포지터"
-
-
-msgid "Overlays"
-msgstr "오버레이"
-
-
-msgid "Viewer Node"
-msgstr "뷰어 노드"
-
-
-msgid "Motion Tracking"
-msgstr "모션 트래킹"
-
-
-msgid "Mesh Edit Mode"
-msgstr "메시 에디트 모드"
 
 
 msgid "Import Settings"
@@ -124546,10 +124554,6 @@ msgid "Duplicate Marker to Scene"
 msgstr "마커를 씬에 복제"
 
 
-msgid "Scrubbing"
-msgstr "스크러빙"
-
-
 msgid "Limit to Frame Range"
 msgstr "프레임 범위 제한"
 
@@ -127912,10 +127916,6 @@ msgstr "이 지오메트리 유형에서 지원되지 않는 속성 도메인"
 
 msgid "The attribute name must not be empty"
 msgstr "속성 이름은 비어 있지 않아야 함"
-
-
-msgid "Attribute is required and cannot be removed"
-msgstr "속성은 필수이며 제거할 수 없음"
 
 
 msgid "Domain unsupported for \"%s\" attribute"
@@ -132946,10 +132946,6 @@ msgstr "선택한 메타볼 요소를 삭제하시겠습니까?"
 
 msgid "Loading Asset Libraries"
 msgstr "어셋 라이브러리 로드"
-
-
-msgid "Unassigned"
-msgstr "할당되지 않음"
 
 
 msgid ""
@@ -140529,6 +140525,10 @@ msgid "Attribute per point/vertex"
 msgstr "포인트/버텍스 속성"
 
 
+msgid "Attribute is required and cannot be removed"
+msgstr "속성은 필수이며 제거할 수 없음"
+
+
 msgid "Smooth the surface"
 msgstr "표면을 스무스하게 함"
 
@@ -147242,6 +147242,14 @@ msgid "Font not specified"
 msgstr "폰트 지정되지 않음"
 
 
+msgid "Top Right"
+msgstr "오른쪽 상단"
+
+
+msgid "Bottom Left"
+msgstr "왼쪽 하단"
+
+
 msgid "Text Box Width"
 msgstr "텍스트 박스 너비"
 
@@ -147344,14 +147352,6 @@ msgstr "정확한 형태 사용함"
 
 msgid "Use exact geometry for most efficient packing (slowest)"
 msgstr "섬 패킹에 가장 효율적인 패킹 (가장 느림)"
-
-
-msgid "Bottom Left"
-msgstr "왼쪽 하단"
-
-
-msgid "Top Right"
-msgstr "오른쪽 상단"
 
 
 msgid "Faces to consider when packing islands"
@@ -149114,10 +149114,6 @@ msgstr "파일을 Python 스크립트 없이 계속 사용함"
 
 msgid "unable to open the file"
 msgstr "파일을 열 수 없음"
-
-
-msgid "Save %u modified image(s)"
-msgstr "%u개의 수정된 이미지 저장함"
 
 
 msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"
