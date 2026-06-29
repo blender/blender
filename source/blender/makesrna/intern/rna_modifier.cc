@@ -2256,7 +2256,7 @@ void rna_NodesModifierBake_override_diff(Main *bmain, RNAPropertyOverrideDiffCon
       BKE_lib_override_library_property_operation_ui_info_set(
           *opop,
           node->name,
-          fmt::format(fmt::runtime(DATA_("{}::{}::{}")),
+          fmt::format("{}::{}::{}",
                       owner_ntree->id.lib ? BKE_id_name(owner_ntree->id.lib->id) : "LOCAL",
                       BKE_id_name(owner_ntree->id),
                       node->name));
