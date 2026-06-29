@@ -56,9 +56,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     true_decl.compositor_realization_mode(CompositorInputRealizationMode::None);
   }
   if (node_tree->type == NTREE_GEOMETRY) {
-    if (socket_type_supports_fields(socket_type)) {
-      output_decl.inferred_structure_type();
-    }
+    output_decl.inferred_structure_type();
   }
 
   switch_decl.structure_type(condition_structure_type);
