@@ -25,23 +25,27 @@
 namespace blender::nodes::node_composite_blur_cc {
 
 static const EnumPropertyItem type_items[] = {
-    {CMP_NODE_BLUR_TYPE_BOX, "FLAT", 0, N_("Flat"), "Applies a box blur filter"},
-    {CMP_NODE_BLUR_TYPE_TENT, "TENT", 0, N_("Tent"), "Applies a triangle blur filter"},
-    {CMP_NODE_BLUR_TYPE_QUAD, "QUAD", 0, N_("Quadratic"), "Applies a quadratic blur filter"},
-    {CMP_NODE_BLUR_TYPE_CUBIC, "CUBIC", 0, N_("Cubic"), "Applies a cubic blur filter"},
-    {CMP_NODE_BLUR_TYPE_GAUSS, "GAUSS", 0, N_("Gaussian"), "Applies a Gaussian blur"},
+    {CMP_NODE_BLUR_TYPE_BOX, "FLAT", 0, N_("Flat"), N_("Applies a box blur filter")},
+    {CMP_NODE_BLUR_TYPE_TENT, "TENT", 0, N_("Tent"), N_("Applies a triangle blur filter")},
+    {CMP_NODE_BLUR_TYPE_QUAD, "QUAD", 0, N_("Quadratic"), N_("Applies a quadratic blur filter")},
+    {CMP_NODE_BLUR_TYPE_CUBIC, "CUBIC", 0, N_("Cubic"), N_("Applies a cubic blur filter")},
+    {CMP_NODE_BLUR_TYPE_GAUSS, "GAUSS", 0, N_("Gaussian"), N_("Applies a Gaussian blur")},
     {CMP_NODE_BLUR_TYPE_FAST_GAUSS,
      "FAST_GAUSS",
      0,
      N_("Fast Gaussian"),
-     "Applies a recursive Gaussian blur that can be faster and more accurate in some cases, but "
-     "less accurate in other cases"},
-    {CMP_NODE_BLUR_TYPE_CATROM, "CATROM", 0, N_("Catrom"), "Applies a cubic Catmull-Rom filter"},
+     N_("Applies a recursive Gaussian blur that can be faster and more accurate in some cases, "
+        "but less accurate in other cases")},
+    {CMP_NODE_BLUR_TYPE_CATROM,
+     "CATROM",
+     0,
+     N_("Catrom"),
+     N_("Applies a cubic Catmull-Rom filter")},
     {CMP_NODE_BLUR_TYPE_MITCH,
      "MITCH",
      0,
      N_("Mitch"),
-     "Applies a cubic Mitchell-Netravali filter"},
+     N_("Applies a cubic Mitchell-Netravali filter")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

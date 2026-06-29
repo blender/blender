@@ -49,8 +49,8 @@ static const EnumPropertyItem window_function_items[] = {
     {int(WindowFunction::Rectangular),
      "Rectangular",
      0,
-     "Rectangular",
-     "Equivalent to having no window function"},
+     N_("Rectangular"),
+     N_("Equivalent to having no window function")},
     {},
 };
 
