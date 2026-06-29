@@ -44,6 +44,7 @@
 #include "BLI_math_vector_c.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_time.hh"
 #include "BLI_utildefines.hh"
 
@@ -3641,13 +3642,13 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 
     /* smoke doesn't use frame 0 as info frame so can't check based on totpoint */
     if (pid->type == PTCACHE_TYPE_SMOKE_DOMAIN && totframes) {
-      SNPRINTF(cache->info, RPT_("%i frames found!"), totframes);
+      SNPRINTF_UTF8(cache->info, RPT_("%i frames found!"), totframes);
     }
     else if (totframes && cache->totpoint) {
-      SNPRINTF(cache->info, RPT_("%i points found!"), cache->totpoint);
+      SNPRINTF_UTF8(cache->info, RPT_("%i points found!"), cache->totpoint);
     }
     else {
-      STRNCPY(cache->info, RPT_("No valid data to read!"));
+      STRNCPY_UTF8(cache->info, RPT_("No valid data to read!"));
     }
     return;
   }
@@ -3657,10 +3658,10 @@ void BKE_ptcache_update_info(PTCacheID *pid)
       int totpoint = pid->totpoint(pid->calldata, 0);
 
       if (cache->totpoint > totpoint) {
-        SNPRINTF(mem_info, RPT_("%i cells + High Resolution cached"), totpoint);
+        SNPRINTF_UTF8(mem_info, RPT_("%i cells + High Resolution cached"), totpoint);
       }
       else {
-        SNPRINTF(mem_info, RPT_("%i cells cached"), totpoint);
+        SNPRINTF_UTF8(mem_info, RPT_("%i cells cached"), totpoint);
       }
     }
     else {
@@ -3672,7 +3673,7 @@ void BKE_ptcache_update_info(PTCacheID *pid)
         }
       }
 
-      SNPRINTF(mem_info, RPT_("%i frames on disk"), totframes);
+      SNPRINTF_UTF8(mem_info, RPT_("%i frames on disk"), totframes);
     }
   }
   else {
@@ -3700,17 +3701,17 @@ void BKE_ptcache_update_info(PTCacheID *pid)
     BLI_str_format_int_grouped(formatted_tot, totframes);
     BLI_str_format_byte_unit(formatted_mem, bytes, false);
 
-    SNPRINTF(mem_info, RPT_("%s frames in memory (%s)"), formatted_tot, formatted_mem);
+    SNPRINTF_UTF8(mem_info, RPT_("%s frames in memory (%s)"), formatted_tot, formatted_mem);
   }
 
   if (cache->flag & PTCACHE_OUTDATED) {
-    SNPRINTF(cache->info, RPT_("%s, cache is outdated!"), mem_info);
+    SNPRINTF_UTF8(cache->info, RPT_("%s, cache is outdated!"), mem_info);
   }
   else if (cache->flag & PTCACHE_FRAMES_SKIPPED) {
-    SNPRINTF(cache->info, RPT_("%s, not exact since frame %i"), mem_info, cache->last_exact);
+    SNPRINTF_UTF8(cache->info, RPT_("%s, not exact since frame %i"), mem_info, cache->last_exact);
   }
   else {
-    SNPRINTF(cache->info, "%s.", mem_info);
+    SNPRINTF_UTF8(cache->info, "%s.", mem_info);
   }
 }
 

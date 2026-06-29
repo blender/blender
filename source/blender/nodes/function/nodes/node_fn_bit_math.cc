@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "RNA_enum_types.hh"
 
@@ -128,14 +129,12 @@ static void node_label(const bNodeTree * /*ntree*/,
                        char *label,
                        int label_maxncpy)
 {
-  char name[64] = {0};
   const char *operation_name = IFACE_("Unknown");
   /* NOTE: This assumes that the matching RNA enum property also uses the default i18n context, and
    * needs to be kept manually in sync. */
   RNA_enum_name_gettexted(
       bit_math_operation_items.data(), node->custom1, BLT_I18NCONTEXT_DEFAULT, &operation_name);
-  SNPRINTF(name, IFACE_("Bitwise %s"), operation_name);
-  BLI_strncpy(label, name, label_maxncpy);
+  BLI_snprintf_utf8(label, label_maxncpy, IFACE_("Bitwise %s"), operation_name);
 }
 
 static const mf::MultiFunction *get_multi_function(const bNode &bnode)
