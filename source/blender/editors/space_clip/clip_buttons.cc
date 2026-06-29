@@ -821,7 +821,7 @@ void uiTemplateMovieclipInformation(ui::Layout *layout,
       file = "-";
     }
 
-    SNPRINTF(str, RPT_("File: %s"), file);
+    SNPRINTF_UTF8(str, RPT_("File: %s"), file);
 
     col.label(str, ICON_NONE);
   }
