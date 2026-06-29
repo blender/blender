@@ -265,9 +265,27 @@ static void node_declare(NodeDeclarationBuilder &b)
     return;
   }
 
-  b.add_default_layout();
-
   const NodeGeometryViewer &storage = node_storage(*node);
+
+  bool has_geometry_input = false;
+  bool has_potential_attribute_input = false;
+  for (const int i : IndexRange(storage.items_num)) {
+    const NodeGeometryViewerItem &item = storage.items[i];
+    const eNodeSocketDatatype socket_type = item.socket_type;
+    if (socket_type == SOCK_GEOMETRY) {
+      has_geometry_input = true;
+    }
+    else if (socket_type_supports_attributes(socket_type)) {
+      has_potential_attribute_input = true;
+    }
+  }
+
+  if (has_geometry_input && has_potential_attribute_input) {
+    b.add_layout([](ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr) {
+      layout.prop(ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
+    });
+  }
+
   for (const int i : IndexRange(storage.items_num)) {
     const NodeGeometryViewerItem &item = storage.items[i];
     const eNodeSocketDatatype socket_type = item.socket_type;
@@ -292,29 +310,6 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   data->data_type_legacy = CD_PROP_FLOAT;
   data->domain = int8_t(AttrDomain::Auto);
   node->storage = data;
-}
-
-static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  const bNode &node = *ptr->data_as<bNode>();
-  const NodeGeometryViewer &storage = node_storage(node);
-
-  bool has_geometry_input = false;
-  bool has_potential_field_input = false;
-  for (const int i : IndexRange(storage.items_num)) {
-    const NodeGeometryViewerItem &item = storage.items[i];
-    const eNodeSocketDatatype socket_type = item.socket_type;
-    if (socket_type == SOCK_GEOMETRY) {
-      has_geometry_input = true;
-    }
-    else if (socket_type_supports_attributes(socket_type)) {
-      has_potential_field_input = true;
-    }
-  }
-
-  if (has_geometry_input && has_potential_field_input) {
-    layout.prop(ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
-  }
 }
 
 static void node_layout_ex(ui::Layout &layout, bContext *C, PointerRNA *ptr)
@@ -535,7 +530,6 @@ static void node_register()
   bke::node_type_storage(ntype, "NodeGeometryViewer", node_free_storage, node_copy_storage);
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
-  ntype.draw_buttons = node_layout;
   ntype.draw_buttons_ex = node_layout_ex;
   ntype.insert_link = node_insert_link;
   ntype.gather_link_search_ops = node_gather_link_searches;
