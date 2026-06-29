@@ -364,9 +364,10 @@ void CaptureView::render_probes()
   while (const auto update_info = inst_.sphere_probes.probe_update_info_pop()) {
     GPU_debug_group_begin("Probe.Capture");
 
-    if (assign_if_different(inst_.pipelines.data.ray_type, RAY_TYPE_GLOSSY) ||
-        prev_extent != update_info->cube_target_extent)
-    {
+    if (assign_if_different(inst_.pipelines.data.ray_type, RAY_TYPE_GLOSSY)) {
+      inst_.uniform_data.pipeline.push_update();
+    }
+    if (prev_extent != update_info->cube_target_extent) {
       /* Set correct thickness for raycast node in probe pipelines. */
       inst_.raytracing.thickness_parameters_setup(win_m4, int2(update_info->cube_target_extent));
       inst_.uniform_data.raytrace.push_update();
