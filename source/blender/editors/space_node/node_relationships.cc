@@ -53,16 +53,6 @@
 
 namespace blender {
 
-struct NodeInsertOfsData {
-  bNodeTree *ntree;
-  bNode *insert;      /* Inserted node. */
-  bNode *prev, *next; /* Previous/next node in the chain. */
-
-  wmTimer *anim_timer;
-
-  float offset_x; /* Offset to apply to node chain. */
-};
-
 namespace ed::space_node {
 
 static void clear_picking_highlight(ListBaseT<bNodeLink> *links)
@@ -2836,13 +2826,13 @@ void node_insert_on_link_flags(Main &bmain, SpaceNode &snode, bool is_new_node)
   /* Set up insert offset data, it needs stuff from here. */
   if (U.uiflag & USER_NODE_AUTO_OFFSET) {
     BLI_assert(snode.runtime->iofsd == nullptr);
-    NodeInsertOfsData *iofsd = MEM_new_zeroed<NodeInsertOfsData>(__func__);
+    auto iofsd = std::make_unique<NodeInsertOfsData>();
 
     iofsd->insert = node_to_insert;
     iofsd->prev = from_node;
     iofsd->next = to_node;
 
-    snode.runtime->iofsd = iofsd;
+    snode.runtime->iofsd = std::move(iofsd);
   }
 
   BKE_main_ensure_invariants(bmain, ntree.id);
@@ -3136,7 +3126,7 @@ static wmOperatorStatus node_insert_offset_modal(bContext *C, wmOperator *op, co
       node->runtime->anim_ofsx = 0.0f;
     }
 
-    MEM_delete(iofsd);
+    delete iofsd;
 
     return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
   }
@@ -3151,9 +3141,8 @@ static wmOperatorStatus node_insert_offset_invoke(bContext *C,
                                                   const wmEvent *event)
 {
   const SpaceNode *snode = CTX_wm_space_node(C);
-  NodeInsertOfsData *iofsd = snode->runtime->iofsd;
-  snode->runtime->iofsd = nullptr;
-  op->customdata = iofsd;
+  NodeInsertOfsData *iofsd = snode->runtime->iofsd.get();
+  op->customdata = snode->runtime->iofsd.release();
 
   if (!iofsd || !iofsd->insert) {
     return OPERATOR_CANCELLED;
@@ -3166,7 +3155,7 @@ static wmOperatorStatus node_insert_offset_invoke(bContext *C,
   const bool offset_applied = node_link_insert_offset_ntree(
       iofsd, CTX_wm_region(C), event->mval, (snode->insert_ofs_dir == SNODE_INSERTOFS_DIR_RIGHT));
   if (!offset_applied) {
-    MEM_delete(iofsd);
+    delete iofsd;
     op->customdata = nullptr;
     return OPERATOR_CANCELLED;
   }
