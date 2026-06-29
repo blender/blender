@@ -16,9 +16,9 @@
 
 #include "BLF_api.hh"
 
-#include "BLI_listbase.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_curve.hh"
 #include "BKE_vfont.hh"
@@ -147,7 +147,7 @@ VChar *BKE_vfontdata_char_copy(const VChar *vchar_src)
 {
   VChar *vchar_dst = MEM_dupalloc(vchar_src);
 
-  BLI_listbase_clear(&vchar_dst->nurbsbase);
+  vchar_dst->nurbsbase.clear_no_delete();
   BKE_nurbList_duplicate(&vchar_dst->nurbsbase, &vchar_src->nurbsbase);
 
   return vchar_dst;

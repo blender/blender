@@ -15,7 +15,7 @@
 #include "BLI_set.hh"
 #include "BLI_timeit.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender::index_mask::tests {
 

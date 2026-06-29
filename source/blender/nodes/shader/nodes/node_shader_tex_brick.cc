@@ -9,7 +9,7 @@
 
 #include "BKE_texture.h"
 
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "NOD_multi_function.hh"
@@ -24,10 +24,16 @@ namespace nodes::node_shader_tex_brick_cc {
 static void sh_node_tex_brick_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
+
+  const bool is_compositor = b.tree_or_null() && b.tree_or_null()->type == NTREE_COMPOSIT;
+  const NodeDefaultInputType default_input_type =
+      is_compositor ? NODE_DEFAULT_INPUT_UNIFORM_IMAGE_COORDINATES :
+                      NODE_DEFAULT_INPUT_POSITION_FIELD;
   b.add_input<decl::Vector>("Vector"_ustr)
       .min(-10000.0f)
       .max(10000.0f)
-      .implicit_field(NODE_DEFAULT_INPUT_POSITION_FIELD);
+      .default_input_type(default_input_type);
+
   b.add_input<decl::Color>("Color1"_ustr)
       .default_value({0.8f, 0.8f, 0.8f, 1.0f})
       .description("Color of the first reference brick");
@@ -324,13 +330,13 @@ void register_node_type_sh_tex_brick()
   ntype.nclass = NODE_CLASS_TEXTURE;
   ntype.declare = file_ns::sh_node_tex_brick_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_brick;
-  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
+  ntype.default_width = bke::NodeWidth::_160;
   ntype.initfunc = file_ns::node_shader_init_tex_brick;
   bke::node_type_storage(
       ntype, "NodeTexBrick", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_brick;
   ntype.build_multi_function = file_ns::sh_node_brick_build_multi_function;
-  bke::node_type_size(ntype, 165, 140, NODE_DEFAULT_MAX_WIDTH);
+  ntype.default_width = bke::NodeWidth::_180;
 
   bke::node_register_type(ntype);
 }

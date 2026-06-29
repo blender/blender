@@ -24,7 +24,7 @@
 #include "paint_intern.hh"
 
 #ifndef NDEBUG
-#  include "BLI_array_utils.h" /* #BLI_array_is_zeroed */
+#  include "BLI_array_utils_c.hh" /* #BLI_array_is_zeroed */
 #endif
 
 namespace blender {
@@ -144,7 +144,7 @@ static void paintcurve_undosys_foreach_ID_ref(UndoStep *us_p,
 
 void ED_paintcurve_undosys_type(UndoType *ut)
 {
-  ut->name = "Paint Curve";
+  ut->identifier = "PAINT_CURVE";
   ut->poll = paintcurve_undosys_poll;
   ut->step_encode_init = paintcurve_undosys_step_encode_init;
   ut->step_encode = paintcurve_undosys_step_encode;

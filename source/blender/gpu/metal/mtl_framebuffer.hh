@@ -24,6 +24,7 @@ class MTLContext;
 
 struct MTLAttachment {
   bool used = false;
+  bool ignored = false;
   gpu::MTLTexture *texture = nullptr;
   double4 clear_value;
 
@@ -104,15 +105,15 @@ class MTLFrameBuffer : public FrameBuffer {
   /** Whether the primary Frame-buffer attachment is an SRGB target or not. */
   bool srgb_;
 
-  /** Default width/height represent raw size of active frame-buffer attachments.
+  /** Attachment width/height represent raw size of active frame-buffer attachments.
    * For consistency with OpenGL backend, as width_/height_ can affect viewport and scissor
    * size, we need to track this differently to ensure viewport state does not get reset.
    * This size is only used to reset viewport/scissor regions when viewports and scissor are
    * disabled, as Metal does not provide a utility to fully disable either without manually
    * specifying the size.
    */
-  int default_width_ = 0;
-  int default_height_ = 0;
+  int attachment_width_ = 0;
+  int attachment_height_ = 0;
 
  public:
   /**
@@ -223,8 +224,9 @@ class MTLFrameBuffer : public FrameBuffer {
 
   int get_width();
   int get_height();
-  int get_default_width();
-  int get_default_height();
+  int get_attachment_width();
+  int get_attachment_height();
+  void attachment_size_set(int w, int h);
 
   bool get_dirty()
   {
@@ -244,12 +246,6 @@ class MTLFrameBuffer : public FrameBuffer {
   bool get_is_srgb()
   {
     return srgb_;
-  }
-
-  inline void default_size_set(int w, int h)
-  {
-    default_width_ = w;
-    default_height_ = h;
   }
 
  private:

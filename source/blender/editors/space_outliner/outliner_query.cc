@@ -8,7 +8,7 @@
 
 #include <functional>
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "DNA_space_types.h"
 

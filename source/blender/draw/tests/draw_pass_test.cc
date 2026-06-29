@@ -4,7 +4,7 @@
 
 #include "testing/testing.h"
 
-#include "BLI_math_geom.h"
+#include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix.hh"
 #include "GPU_context.hh"
 

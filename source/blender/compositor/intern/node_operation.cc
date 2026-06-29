@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector_set.hh"
 
@@ -33,8 +33,7 @@ NodeOperation::NodeOperation(Context &context, const bNode &node) : Operation(co
       continue;
     }
 
-    const ResultType result_type = get_node_socket_result_type(output);
-    populate_result(output->identifier, context.create_result(result_type));
+    populate_result(output->identifier, get_node_socket_result_type(output));
   }
 
   for (const bNodeSocket *input : this->node().input_sockets()) {
@@ -126,22 +125,97 @@ const ComputeContext &NodeOperation::get_compute_context() const
   return *compute_context_;
 }
 
-void NodeOperation::set_node_previews(Map<bNodeInstanceKey, bke::bNodePreview> *node_previews)
+void NodeOperation::set_needs_node_previews(const bool needed)
 {
-  node_previews_ = node_previews;
+  needs_node_previews_ = needed;
 }
 
-Map<bNodeInstanceKey, bke::bNodePreview> *NodeOperation::get_node_previews()
+static destruct_ptr<nodes::eval_log::ImageInfoLog> get_image_info_log(LinearAllocator<> *allocator,
+                                                                      const Result &result)
 {
-  return node_previews_;
+  const Domain &domain = result.domain();
+  return allocator->construct<nodes::eval_log::ImageInfoLog>(
+      domain.data_size,
+      domain.display_size,
+      domain.data_offset,
+      domain.transformation,
+      to_string(domain.realization_options.interpolation),
+      to_string(domain.realization_options.extension_x),
+      to_string(domain.realization_options.extension_y),
+      to_string(result.precision()));
 }
 
-void NodeOperation::compute_preview()
+void NodeOperation::add_warning(nodes::NodeWarningType type, std::string message)
 {
-  if (node_previews_ && is_node_preview_needed(this->node())) {
-    const Result *result = get_preview_result();
-    if (result) {
-      compositor::compute_preview(context(), node_previews_, this->get_instance_key(), *result);
+  nodes::eval_log::NodesEvalLog *log = this->context().nodes_evaluation_log();
+  if (!log) {
+    return;
+  }
+  nodes::eval_log::NodeTreeLogger &tree_logger = log->get_local_tree_logger(
+      this->get_compute_context());
+  tree_logger.node_warnings.append(*tree_logger.allocator,
+                                   {this->node().identifier, {type, message}});
+}
+
+void NodeOperation::log_data()
+{
+  nodes::eval_log::NodesEvalLog *log = this->context().nodes_evaluation_log();
+  if (!log) {
+    return;
+  }
+  nodes::eval_log::NodeTreeLogger &tree_logger = log->get_local_tree_logger(*compute_context_);
+
+  /* Log input values. */
+  for (const bNodeSocket *input_socket : this->node().input_sockets()) {
+    if (!is_socket_available(input_socket)) {
+      continue;
+    }
+
+    const InputDescriptor &input_descriptor = this->get_input_descriptor(input_socket->identifier);
+    if (!input_socket->is_logically_linked() && !input_descriptor.implicit_input.has_value()) {
+      continue;
+    }
+
+    const Result &input = this->get_input(input_socket->identifier);
+    if (input.is_single_value()) {
+      tree_logger.log_value(this->node(), *input_socket, input.single_value());
+      continue;
+    }
+
+    tree_logger.input_socket_values.append(*tree_logger.allocator,
+                                           {node_.identifier,
+                                            input_socket->index(),
+                                            get_image_info_log(tree_logger.allocator, input)});
+  }
+
+  /* Log output values. */
+  for (const bNodeSocket *output_socket : this->node().output_sockets()) {
+    if (!is_socket_available(output_socket)) {
+      continue;
+    }
+
+    const Result &result = this->get_result(output_socket->identifier);
+    if (!result.is_allocated()) {
+      continue;
+    }
+
+    if (result.is_single_value()) {
+      tree_logger.log_value(this->node(), *output_socket, result.single_value());
+      continue;
+    }
+
+    tree_logger.output_socket_values.append(*tree_logger.allocator,
+                                            {node_.identifier,
+                                             output_socket->index(),
+                                             get_image_info_log(tree_logger.allocator, result)});
+  }
+
+  /* Log node preview. */
+  if (needs_node_previews_ && is_node_preview_needed(this->node())) {
+    const Result *result = this->get_preview_result();
+    if (result && !result->is_single_value()) {
+      ImBuf *preview = compositor::compute_preview(this->context(), *result);
+      tree_logger.node_image_previews.append(*tree_logger.allocator, {node_.identifier, preview});
     }
   }
 }

@@ -31,6 +31,7 @@ set(DEFSRC
   rna_armature.cc
   rna_asset.cc
   rna_attribute.cc
+  rna_blender_project.cc
   rna_blendfile_import.cc
   rna_boid.cc
   rna_brush.cc
@@ -96,6 +97,7 @@ set(DEFSRC
   rna_volume.cc
   rna_wm.cc
   rna_wm_gizmo.cc
+  rna_wm_undo.cc
   rna_workspace.cc
   rna_world.cc
   rna_xr.cc
@@ -411,6 +413,7 @@ target_link_libraries(makesrna PRIVATE bf::intern::atomic)
 target_link_libraries(makesrna PRIVATE bf::intern::guardedalloc)
 target_link_libraries(makesrna PRIVATE bf_dna_blenlib)
 target_link_libraries(makesrna PRIVATE bf_dna_defaults)
+target_link_libraries(makesrna PRIVATE bf::dependencies::optional::openvdb)
 target_link_libraries(makesrna PRIVATE bf::dependencies::optional::tbb)
 target_link_libraries(makesrna PRIVATE bf::dependencies::pthreads)
 target_link_libraries(makesrna PRIVATE bf::dependencies::fmt)

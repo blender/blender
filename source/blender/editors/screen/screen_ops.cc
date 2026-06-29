@@ -12,12 +12,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_build_config.h"
-#include "BLI_listbase.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_time.h"
-#include "BLI_utildefines.h"
+#include "BLI_build_config.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_time.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -330,6 +330,19 @@ bool ED_operator_animview_active(bContext *C)
   return false;
 }
 
+bool ED_operator_region_animview_active(bContext *C)
+{
+  if (!ED_operator_animview_active(C)) {
+    return false;
+  }
+  const ARegion *region = CTX_wm_region(C);
+  if (!(region && region->regiontype == RGN_TYPE_WINDOW)) {
+    CTX_wm_operator_poll_msg_set(C, "Expected a timeline/animation region");
+    return false;
+  }
+  return true;
+}
+
 bool ED_operator_outliner_active(bContext *C)
 {
   return ed_spacetype_test(C, SPACE_OUTLINER);
@@ -367,6 +380,20 @@ bool ED_operator_file_active(bContext *C)
   return ed_spacetype_test(C, SPACE_FILE);
 }
 
+bool ED_operator_region_file_active(bContext *C)
+{
+  if (!ED_operator_file_active(C)) {
+    CTX_wm_operator_poll_msg_set(C, "Expected an active File Browser");
+    return false;
+  }
+  const ARegion *region = CTX_wm_region(C);
+  if (!(region && region->regiontype == RGN_TYPE_WINDOW)) {
+    CTX_wm_operator_poll_msg_set(C, "Expected a File Browser region");
+    return false;
+  }
+  return true;
+}
+
 bool ED_operator_file_browsing_active(bContext *C)
 {
   if (ed_spacetype_test(C, SPACE_FILE)) {
@@ -391,6 +418,20 @@ bool ED_operator_spreadsheet_active(bContext *C)
 bool ED_operator_action_active(bContext *C)
 {
   return ed_spacetype_test(C, SPACE_ACTION);
+}
+
+bool ED_operator_region_action_active(bContext *C)
+{
+  if (!ED_operator_action_active(C)) {
+    CTX_wm_operator_poll_msg_set(C, "Expected an active Dope Sheet");
+    return false;
+  }
+  const ARegion *region = CTX_wm_region(C);
+  if (!(region && region->regiontype == RGN_TYPE_WINDOW)) {
+    CTX_wm_operator_poll_msg_set(C, "Expected a Dope Sheet region");
+    return false;
+  }
+  return true;
 }
 
 bool ED_operator_buttons_active(bContext *C)
@@ -430,6 +471,20 @@ bool ED_operator_graphedit_active(bContext *C)
   return ed_spacetype_test(C, SPACE_GRAPH);
 }
 
+bool ED_operator_region_graphedit_active(bContext *C)
+{
+  if (!ED_operator_graphedit_active(C)) {
+    CTX_wm_operator_poll_msg_set(C, "Expected an active Graph Editor");
+    return false;
+  }
+  const ARegion *region = CTX_wm_region(C);
+  if (!(region && region->regiontype == RGN_TYPE_WINDOW)) {
+    CTX_wm_operator_poll_msg_set(C, "Expected a Graph Editor region");
+    return false;
+  }
+  return true;
+}
+
 bool ED_operator_sequencer_active(bContext *C)
 {
   return ed_spacetype_test(C, SPACE_SEQ) && CTX_data_sequencer_scene(C) != nullptr;
@@ -450,9 +505,37 @@ bool ED_operator_nla_active(bContext *C)
   return ed_spacetype_test(C, SPACE_NLA);
 }
 
+bool ED_operator_region_nla_active(bContext *C)
+{
+  if (!ED_operator_nla_active(C)) {
+    CTX_wm_operator_poll_msg_set(C, "Expected an active Nonlinear Animation editor");
+    return false;
+  }
+  const ARegion *region = CTX_wm_region(C);
+  if (!(region && region->regiontype == RGN_TYPE_WINDOW)) {
+    CTX_wm_operator_poll_msg_set(C, "Expected a Nonlinear Animation region");
+    return false;
+  }
+  return true;
+}
+
 bool ED_operator_info_active(bContext *C)
 {
   return ed_spacetype_test(C, SPACE_INFO);
+}
+
+bool ED_operator_region_info_active(bContext *C)
+{
+  if (!ED_operator_info_active(C)) {
+    CTX_wm_operator_poll_msg_set(C, "Expected an active Info editor");
+    return false;
+  }
+  const ARegion *region = CTX_wm_region(C);
+  if (!(region && region->regiontype == RGN_TYPE_WINDOW)) {
+    CTX_wm_operator_poll_msg_set(C, "Expected an Info region");
+    return false;
+  }
+  return true;
 }
 
 bool ED_operator_console_active(bContext *C)
@@ -504,6 +587,26 @@ bool ED_operator_object_active_editable(bContext *C)
   return ED_operator_object_active_editable_ex(C, ob);
 }
 
+bool ED_operator_object_active_only_from_view_layer(bContext *C)
+{
+  Main &bmain = *CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(bmain, scene, view_layer);
+  Object *obact = BKE_view_layer_active_object_get(view_layer);
+  return (obact != nullptr);
+}
+
+bool ED_operator_object_active_from_view_layer(bContext *C)
+{
+  Main &bmain = *CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(bmain, scene, view_layer);
+  Object *obact = BKE_view_layer_active_object_get(view_layer);
+  return ((obact != nullptr) && !ed_object_hidden(obact));
+}
+
 bool ED_operator_object_active_local_editable_ex(bContext *C, const Object *ob)
 {
   return ED_operator_object_active_editable_ex(C, ob) && !ID_IS_OVERRIDE_LIBRARY(ob);
@@ -520,6 +623,22 @@ bool ED_operator_object_active_editable_mesh(bContext *C)
   Object *ob = ed::object::context_active_object(C);
   return ((ob != nullptr) && ID_IS_EDITABLE(ob) && !ed_object_hidden(ob) &&
           (ob->type == OB_MESH) && ID_IS_EDITABLE(ob->data) && !ID_IS_OVERRIDE_LIBRARY(ob->data));
+}
+
+bool ED_operator_object_active_editable_obdata_from_view_layer_ex(bContext *C, const short obtype)
+{
+  Main &bmain = *CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(bmain, scene, view_layer);
+  const Object *ob = BKE_view_layer_active_object_get(view_layer);
+  return ((ob != nullptr) && ID_IS_EDITABLE(ob) && !ed_object_hidden(ob) && (ob->type == obtype) &&
+          ID_IS_EDITABLE(ob->data) && !ID_IS_OVERRIDE_LIBRARY(ob->data));
+}
+
+bool ED_operator_object_active_editable_mesh_from_view_layer(bContext *C)
+{
+  return ED_operator_object_active_editable_obdata_from_view_layer_ex(C, OB_MESH);
 }
 
 bool ED_operator_object_active_editable_font(bContext *C)
@@ -2536,6 +2655,7 @@ static void SCREEN_OT_edge_merge(wmOperatorType *ot)
   ot->description = "Merge aligned area edges";
   ot->idname = "SCREEN_OT_edge_merge";
   ot->exec = area_edge_merge_exec;
+  ot->poll = ED_operator_screenactive;
 
   /* flags */
   ot->flag = OPTYPE_INTERNAL;
@@ -3305,6 +3425,38 @@ static void region_scale_toggle_hidden(bContext *C, RegionMoveData *rmd, bool do
   }
 }
 
+static void region_scale_apply_stack(RegionMoveData *rmd,
+                                     const wmEvent *event,
+                                     const int size_no_snap,
+                                     const float aspect)
+{
+  if (!(rmd->region->alignment & RGN_STACK_ON_PREV) && rmd->region->next &&
+      !(rmd->region->next->alignment & RGN_STACK_ON_PREV))
+  {
+    return;
+  }
+  const bool axis_x = ELEM(rmd->edge, AE_LEFT_TO_TOPRIGHT, AE_RIGHT_TO_TOPLEFT);
+  const ARegionType *art = rmd->region->runtime->type;
+  const int prefsize = axis_x ? art->prefsizex : art->prefsizey;
+  const int threshold = prefsize + (axis_x ? UI_UNIT_X : UI_UNIT_Y / 4) / aspect;
+  ARegion *target = nullptr;
+
+  if (size_no_snap > threshold && !(rmd->region->flag & RGN_FLAG_HIDDEN) && rmd->region->next &&
+      (rmd->region->next->alignment & RGN_STACK_ON_PREV))
+  {
+    target = rmd->region->next;
+  }
+  else if ((rmd->region->flag & RGN_FLAG_HIDDEN) && (rmd->region->alignment & RGN_STACK_ON_PREV)) {
+    target = rmd->region->prev;
+  }
+
+  if (target) {
+    rmd->region = target;
+    copy_v2_v2_int(rmd->orig_xy, event->xy);
+    rmd->origval = axis_x ? target->sizex : target->sizey;
+  }
+}
+
 static wmOperatorStatus region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   RegionMoveData *rmd = static_cast<RegionMoveData *>(op->customdata);
@@ -3313,14 +3465,14 @@ static wmOperatorStatus region_scale_modal(bContext *C, wmOperator *op, const wm
   /* execute the events */
   switch (event->type) {
     case MOUSEMOVE: {
-      const float aspect = (rmd->region->v2d.flag & V2D_IS_INIT) ?
-                               (BLI_rctf_size_x(&rmd->region->v2d.cur) /
-                                (BLI_rcti_size_x(&rmd->region->v2d.mask) + 1)) :
-                               1.0f;
-      const int snap_size_threshold = (U.widget_unit * 2) / aspect;
       bool size_changed = false;
 
       if (ELEM(rmd->edge, AE_LEFT_TO_TOPRIGHT, AE_RIGHT_TO_TOPLEFT)) {
+        const float aspect_x = (rmd->region->v2d.flag & V2D_IS_INIT) ?
+                                   (BLI_rctf_size_x(&rmd->region->v2d.cur) /
+                                    (BLI_rcti_size_x(&rmd->region->v2d.mask) + 1)) :
+                                   1.0f;
+        const int snap_size_threshold_x = (U.widget_unit * 2) / aspect_x;
         delta = event->xy[0] - rmd->orig_xy[0];
         if (rmd->edge == AE_LEFT_TO_TOPRIGHT) {
           delta = -delta;
@@ -3338,7 +3490,7 @@ static wmOperatorStatus region_scale_modal(bContext *C, wmOperator *op, const wm
         if (rmd->region->runtime->type->snap_size) {
           short sizex_test = rmd->region->runtime->type->snap_size(
               rmd->region, rmd->region->sizex, 0);
-          if ((abs(rmd->region->sizex - sizex_test) < snap_size_threshold) &&
+          if ((abs(rmd->region->sizex - sizex_test) < snap_size_threshold_x) &&
               /* Don't snap to a new size if that would exceed the maximum width. */
               sizex_test <= rmd->maxsize)
           {
@@ -3346,8 +3498,10 @@ static wmOperatorStatus region_scale_modal(bContext *C, wmOperator *op, const wm
           }
         }
         BLI_assert(rmd->region->sizex <= rmd->maxsize);
-
-        if (size_no_snap < UI_UNIT_X / aspect) {
+        const int collapse_size = BKE_regiontype_uses_category_tabs(rmd->region->runtime->type) ?
+                                      (UI_PANEL_CATEGORY_MIN_WIDTH / aspect_x) * 0.75f :
+                                      UI_UNIT_X / aspect_x;
+        if (size_no_snap < collapse_size) {
           rmd->region->sizex = rmd->origval;
           if (!(rmd->region->flag & RGN_FLAG_HIDDEN)) {
             region_scale_toggle_hidden(C, rmd);
@@ -3365,8 +3519,14 @@ static wmOperatorStatus region_scale_modal(bContext *C, wmOperator *op, const wm
         if (rmd->region->sizex != rmd->origval) {
           size_changed = true;
         }
+        region_scale_apply_stack(rmd, event, size_no_snap, aspect_x);
       }
       else {
+        const float aspect_y = (rmd->region->v2d.flag & V2D_IS_INIT) ?
+                                   (BLI_rctf_size_y(&rmd->region->v2d.cur) /
+                                    (BLI_rcti_size_y(&rmd->region->v2d.mask) + 1)) :
+                                   1.0f;
+        const int snap_size_threshold_y = (U.widget_unit * 2) / aspect_y;
         delta = event->xy[1] - rmd->orig_xy[1];
         if (rmd->edge == AE_BOTTOM_TO_TOPLEFT) {
           delta = -delta;
@@ -3384,7 +3544,7 @@ static wmOperatorStatus region_scale_modal(bContext *C, wmOperator *op, const wm
         if (rmd->region->runtime->type->snap_size) {
           short sizey_test = rmd->region->runtime->type->snap_size(
               rmd->region, rmd->region->sizey, 1);
-          if ((abs(rmd->region->sizey - sizey_test) < snap_size_threshold) &&
+          if ((abs(rmd->region->sizey - sizey_test) < snap_size_threshold_y) &&
               /* Don't snap to a new size if that would exceed the maximum height. */
               (sizey_test <= rmd->maxsize))
           {
@@ -3396,7 +3556,7 @@ static wmOperatorStatus region_scale_modal(bContext *C, wmOperator *op, const wm
         /* NOTE: `UI_UNIT_Y / 4` means you need to drag the footer and execute region
          * almost all the way down for it to become hidden, this is done
          * otherwise its too easy to do this by accident. */
-        if (size_no_snap < (UI_UNIT_Y / 4) / aspect) {
+        if (size_no_snap < (UI_UNIT_Y / 4) / aspect_y) {
           rmd->region->sizey = rmd->origval;
           if (!(rmd->region->flag & RGN_FLAG_HIDDEN)) {
             region_scale_toggle_hidden(C, rmd);
@@ -3414,6 +3574,8 @@ static wmOperatorStatus region_scale_modal(bContext *C, wmOperator *op, const wm
         if (rmd->region->sizey != rmd->origval) {
           size_changed = true;
         }
+
+        region_scale_apply_stack(rmd, event, size_no_snap, aspect_y);
       }
       if (size_changed && rmd->region->runtime->type->on_user_resize) {
         rmd->region->runtime->type->on_user_resize(rmd->region);
@@ -3631,6 +3793,8 @@ static void SCREEN_OT_quadview_size(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Frame Change Operator
@@ -4147,7 +4311,9 @@ static wmOperatorStatus screen_set_exec(bContext *C, wmOperator *op)
 {
   WorkSpace *workspace = CTX_wm_workspace(C);
   int delta = RNA_int_get(op->ptr, "delta");
-
+  if (delta == 0) [[unlikely]] { /* Avoids an assert which would step next anyway. */
+    delta = 1;
+  }
   if (ED_workspace_layout_cycle(workspace, delta, C)) {
     return OPERATOR_FINISHED;
   }
@@ -4206,7 +4372,7 @@ static wmOperatorStatus screen_maximize_area_exec(bContext *C, wmOperator *op)
     if (!ELEM(screen->state, SCREENNORMAL, SCREENMAXIMIZED)) {
       return OPERATOR_CANCELLED;
     }
-    if (BLI_listbase_is_single(&screen->areabase) && screen->state == SCREENNORMAL) {
+    if (screen->areabase.is_single() && screen->state == SCREENNORMAL) {
       /* SCREENMAXIMIZED is not useful when a singleton. #144740. */
       return OPERATOR_CANCELLED;
     }
@@ -4228,7 +4394,7 @@ static bool screen_maximize_area_poll(bContext *C)
          /* Don't change temporary screens. */
          !WM_window_is_temp_screen(win) &&
          /* Don't maximize when dragging. */
-         BLI_listbase_is_empty(&wm->runtime->drags);
+         wm->runtime->drags.is_empty();
 }
 
 static void SCREEN_OT_screen_full_area(wmOperatorType *ot)
@@ -4437,7 +4603,7 @@ static bool area_join_apply(bContext *C, wmOperator *op)
     CTX_wm_region_set(C, nullptr);
   }
 
-  if (BLI_listbase_is_single(&screen->areabase)) {
+  if (screen->areabase.is_single()) {
     /* Areas reduced to just one, so show nicer title. */
     WM_window_title_refresh(CTX_wm_manager(C), CTX_wm_window(C));
   }
@@ -4593,7 +4759,7 @@ void static area_docking_apply(bContext *C, wmOperator *op)
   {
     ED_area_swapspace(C, jd->sa2, jd->sa1);
     if (BLI_listbase_is_single(&WM_window_get_active_screen(jd->win1)->areabase) &&
-        BLI_listbase_is_empty(&jd->win1->global_areas.areabase))
+        jd->win1->global_areas.areabase.is_empty())
     {
       jd->close_win = true;
       /* Clear the active region in each screen, otherwise they are pointing
@@ -5105,7 +5271,7 @@ static wmOperatorStatus area_join_modal(bContext *C, wmOperator *op, const wmEve
             if (!screen_area_close(C, op->reports, WM_window_get_active_screen(jd->win1), jd->sa1))
             {
               if (BLI_listbase_is_single(&WM_window_get_active_screen(jd->win1)->areabase) &&
-                  BLI_listbase_is_empty(&jd->win1->global_areas.areabase))
+                  jd->win1->global_areas.areabase.is_empty())
               {
                 /* We've pulled a single editor out of the window into empty space.
                  * Close the source window so we don't end up with a duplicate. */
@@ -5380,7 +5546,7 @@ static wmOperatorStatus spacedata_cleanup_exec(bContext *C, wmOperator *op)
         SpaceLink *sl = static_cast<SpaceLink *>(area.spacedata.first);
 
         BLI_remlink(&area.spacedata, sl);
-        tot += BLI_listbase_count(&area.spacedata);
+        tot += area.spacedata.count();
         BKE_spacedata_freelist(&area.spacedata);
         BLI_addtail(&area.spacedata, sl);
       }
@@ -5415,7 +5581,7 @@ static bool repeat_history_poll(bContext *C)
     return false;
   }
   wmWindowManager *wm = CTX_wm_manager(C);
-  return !BLI_listbase_is_empty(&wm->runtime->operators);
+  return !wm->runtime->operators.is_empty();
 }
 
 static wmOperatorStatus repeat_last_exec(bContext *C, wmOperator * /*op*/)
@@ -5425,7 +5591,8 @@ static wmOperatorStatus repeat_last_exec(bContext *C, wmOperator * /*op*/)
 
   /* Seek last registered operator */
   while (lastop) {
-    if (lastop->type->flag & OPTYPE_REGISTER) {
+    if ((lastop->type->flag & OPTYPE_REGISTER) && !(lastop->type->flag & OPTYPE_DEPENDS_ON_CURSOR))
+    {
       break;
     }
     lastop = lastop->prev;
@@ -5464,7 +5631,7 @@ static wmOperatorStatus repeat_history_invoke(bContext *C,
 {
   wmWindowManager *wm = CTX_wm_manager(C);
 
-  int items = BLI_listbase_count(&wm->runtime->operators);
+  int items = wm->runtime->operators.count();
   if (items == 0) {
     return OPERATOR_CANCELLED;
   }
@@ -6175,6 +6342,9 @@ static bool match_region_with_redraws(const ScrArea *area,
         break;
     }
   }
+  else if (regiontype == RGN_TYPE_SCRUBBING) {
+    return true;
+  }
 
   return false;
 }
@@ -6614,6 +6784,11 @@ static void stop_playback(bContext *C)
   ED_scene_fps_average_clear(scene);
   BKE_callback_exec_id_depsgraph(bmain, &scene->id, depsgraph, BKE_CB_EVT_ANIMATION_PLAYBACK_POST);
 
+  /* Send a fake mouse-move event so that the active button (the one the mouse hovers over) is
+   * updated for the change in playback buttons (Pause button disappearing, Reverse/Normal playback
+   * buttons appearing). */
+  WM_event_add_mousemove(CTX_wm_window(C));
+
   /* Triggers redraw of sequencer preview so that it does not show to fps anymore after stopping
    * playback. */
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_SEQUENCER, scene);
@@ -6631,6 +6806,22 @@ static wmOperatorStatus start_playback(bContext *C, int sync, int mode)
   if (!scene) {
     return OPERATOR_CANCELLED;
   }
+
+  /* The SCE_LOOP_MODE_STOP_END_FRAME loop mode is special: playback should stop at the end frame,
+   * but when playback starts, in this mode, already at the end frame, it should actually start
+   * playback from the start frame. This way, you can repeatedly play back the scene, each time
+   * ending at the last frame. */
+  if (scene->playback_loop_mode == SCE_LOOP_MODE_STOP_END_FRAME) {
+    /* What are the actual start/end frames depends on whether playback is reversed or not. */
+    const bool is_playing_forward = mode > 0;
+    const int end_frame = is_playing_forward ? scene->playback_end() : scene->playback_start();
+    if (scene->r.cfra == end_frame) {
+      const int start_frame = is_playing_forward ? scene->playback_start() : scene->playback_end();
+      scene->r.cfra = start_frame;
+      scene->r.subframe = 0.0f;
+    }
+  }
+
   ViewLayer *view_layer = is_sequencer ? BKE_view_layer_default_render(scene) :
                                          CTX_data_view_layer(C);
   Depsgraph *depsgraph = is_sequencer ? BKE_scene_ensure_depsgraph(bmain, scene, view_layer) :
@@ -6657,6 +6848,11 @@ static wmOperatorStatus start_playback(bContext *C, int sync, int mode)
     sad->region = CTX_wm_region(C);
   }
 
+  /* Send a fake mouse-move event so that the active button (the one the mouse hovers over) is
+   * updated for the change in playback buttons (Pause button appearing, Reverse/Normal playback
+   * buttons disappearing). */
+  WM_event_add_mousemove(CTX_wm_window(C));
+
   return OPERATOR_FINISHED;
 }
 
@@ -6681,10 +6877,11 @@ static wmOperatorStatus screen_animation_play_exec(bContext *C, wmOperator *op)
 
   const wmOperatorStatus status = ED_screen_animation_play(C, sync, mode);
 
-  if (!ED_screen_animation_playing(CTX_wm_manager(C))) {
+  if (!ED_screen_animation_playing(CTX_wm_manager(C)) && !ED_undo_has_redo_step(C)) {
     /* Only pushing undo step when stopping playback so that there are no undo steps that seemingly
-     * do nothing. Creating an undo step is important though so that when undoing an action right
-     * after playback stop doesn't also change the current frame. See #144058. */
+     * do nothing. Creating an undo step is important though, so that undoing an action right
+     * after playback stop doesn't also change the current frame. See #144058. However adding an
+     * undo step would remove any redo steps so we only do it when there are none. See #157688.*/
     ED_undo_grouped_push_op(C, op);
   }
   return status;
@@ -6710,6 +6907,49 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna, "sync", false, "Sync", "Drop frames to maintain framerate");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Animation Pause Operator
+ *
+ * This operator exists because of a UI quirk in Blender. The active button under the mouse is
+ * stored & restored between redraws, so that the correct button is kept highlighted (among other
+ * things). This storing & restoring is done based on the operator's idname.
+ *
+ * Since during playback the "Pause" button takes the place of the "Reverse Playback" and "Normal
+ * Playback" buttons, and historically these were all three the same operator, Blender would get
+ * confused. Under certain conditions it would activate the "Normal Playback" button when the mouse
+ * was over the "Reverse Playback" button. This is resolved by making the 'Pause' button its own
+ * operator with its own idname.
+ *
+ * Additionally, a fake mouse event is sent to force Blender to reevaluate which button is being
+ * hovered. This only works when there's a difference in the hovered operator's idname though.
+ * \{ */
+
+static wmOperatorStatus screen_animation_pause_exec(bContext *C, wmOperator * /*op*/)
+{
+  bScreen *screen = ED_screen_animation_playing(CTX_wm_manager(C));
+  if (!screen) {
+    return OPERATOR_CANCELLED;
+  }
+  stop_playback(C);
+  return OPERATOR_FINISHED;
+}
+
+static void SCREEN_OT_animation_pause(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Pause Animation";
+  ot->description = "Pause animation, stopping at the current frame";
+  ot->idname = "SCREEN_OT_animation_pause";
+
+  /* API callbacks. */
+  ot->exec = screen_animation_pause_exec;
+  ot->poll = ED_operator_screenactive;
+  ot->flag = OPTYPE_UNDO_GROUPED;
+  ot->undo_group = "Frame Change";
 }
 
 /** \} */
@@ -6839,9 +7079,10 @@ static wmOperatorStatus fullscreen_back_exec(bContext *C, wmOperator *op)
   bScreen *screen = CTX_wm_screen(C);
   ScrArea *area = nullptr;
 
-  /* search current screen for 'fullscreen' areas */
+  /* Search current screen for 'fullscreen' areas.
+   * Skip `SPACE_EMPTY` areas: they have no space-data to restore. */
   for (ScrArea &area_iter : screen->areabase) {
-    if (area_iter.full) {
+    if (area_iter.full && area_iter.spacetype != SPACE_EMPTY) {
       area = &area_iter;
       break;
     }
@@ -6941,6 +7182,41 @@ static void SCREEN_OT_userpref_show(wmOperatorType *ot)
                       "",
                       "Section to activate in the Preferences");
   RNA_def_property_flag(prop, PROP_HIDDEN);
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Show Project Setup Operator
+ * \{ */
+
+static wmOperatorStatus project_setup_show_exec(bContext *C, wmOperator *op)
+{
+  /* changes context! */
+  if (ScrArea *area = ED_screen_temp_space_open(
+          C, nullptr, SPACE_PROJECT, USER_TEMP_SPACE_DISPLAY_WINDOW, false))
+  {
+    /* The header only contains the editor switcher and looks empty.
+     * So hiding in the temp window makes sense. */
+    ARegion *region_header = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
+
+    region_header->flag |= RGN_FLAG_HIDDEN;
+    ED_region_visibility_change_update(C, area, region_header);
+
+    return OPERATOR_FINISHED;
+  }
+  BKE_report(op->reports, RPT_ERROR, "Failed to open window!");
+  return OPERATOR_CANCELLED;
+}
+
+static void SCREEN_OT_project_setup_show(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Open Project Setup...";
+  ot->description = "Create and manage projects";
+  ot->idname = "SCREEN_OT_project_setup_show";
+
+  /* API callbacks. */
+  ot->exec = project_setup_show_exec;
+  ot->poll = ED_operator_screenactive_nobackground; /* Not in background as this opens a window. */
 }
 
 /** \} */
@@ -7508,6 +7784,7 @@ void ED_operatortypes_screen()
   WM_operatortype_append(SCREEN_OT_screenshot);
   WM_operatortype_append(SCREEN_OT_screenshot_area);
   WM_operatortype_append(SCREEN_OT_userpref_show);
+  WM_operatortype_append(SCREEN_OT_project_setup_show);
   WM_operatortype_append(SCREEN_OT_drivers_editor_show);
   WM_operatortype_append(SCREEN_OT_info_log_show);
   WM_operatortype_append(SCREEN_OT_region_blend);
@@ -7524,6 +7801,7 @@ void ED_operatortypes_screen()
 
   WM_operatortype_append(SCREEN_OT_animation_step);
   WM_operatortype_append(SCREEN_OT_animation_play);
+  WM_operatortype_append(SCREEN_OT_animation_pause);
   WM_operatortype_append(SCREEN_OT_animation_cancel);
 
   /* New/delete. */

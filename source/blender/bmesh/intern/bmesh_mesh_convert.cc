@@ -83,10 +83,10 @@
 
 #include "BLI_array.hh"
 #include "BLI_index_range.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_span.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
@@ -410,7 +410,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
     /* Evaluated meshes can be topologically inconsistent with their shape keys.
      * Shape keys are also already integrated into the state of the evaluated
      * mesh, so considering them here would kind of apply them twice. */
-    tot_shape_keys = BLI_listbase_count(&mesh->key->block);
+    tot_shape_keys = mesh->key->block.count();
 
     /* Original meshes must never contain a shape-key custom-data layers.
      *
@@ -615,7 +615,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
       ftable[i] = f;
     }
 
-    if (UNLIKELY(f == nullptr)) {
+    if (f == nullptr) [[unlikely]] {
       printf(
           "%s: Warning! Bad face in mesh"
           " \"%s\" at index %d!, skipping\n",
@@ -872,7 +872,7 @@ static int bm_to_mesh_shape_layer_index_from_kb(BMesh *bm, KeyBlock *currkey)
  * basis are typically copied into the `positions` array since it makes sense for the meshes
  * vertex coordinates to match the "Basis" key.
  * When enabled, skip this step and copy #BMVert.co directly to the mesh position.
- * See #BMeshToMeshParams.active_shapekey_to_mvert doc-string.
+ * See #BMeshToMeshParams.active_shapekey_to_mvert docstring.
  */
 static void bm_to_mesh_shape(BMesh *bm,
                              Key *key,

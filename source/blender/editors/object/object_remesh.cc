@@ -15,10 +15,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bounds.hh"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_object_types.h"
 #include "DNA_userdef_types.h"
@@ -326,7 +326,8 @@ static void voxel_size_edit_draw(const bContext *C, ARegion * /*region*/, void *
   Scene *scene = CTX_data_scene(C);
   const UnitSettings &unit = scene->unit;
 
-  BKE_unit_value_as_string_scaled(str, sizeof(str), cd->voxel_size, -3, B_UNIT_LENGTH, unit, true);
+  BKE_unit_value_as_string_scaled(
+      str, sizeof(str), cd->voxel_size, -3, B_UNIT_LENGTH, unit, true, true);
   strdrawlen = BLI_strlen_utf8(str);
 
   immUnbindProgram();

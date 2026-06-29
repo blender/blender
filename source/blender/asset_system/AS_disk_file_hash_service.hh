@@ -32,17 +32,20 @@ class DiskFileHashService {
 
  public:
   explicit DiskFileHashService(StringRef storage_path);
-  ~DiskFileHashService() = default;
+  ~DiskFileHashService();
 
   /** Return the hash of a file on disk. */
-  std::string get_hash(bContext &C, StringRef filepath, StringRef hash_algorithm);
+  std::string get_hash(StringRef filepath, StringRef hash_algorithm);
 
   /** Check the file on disk, to see if it matches the given properties. */
-  bool file_matches(bContext &C,
-                    StringRef filepath,
+  bool file_matches(StringRef filepath,
                     StringRef hash_algorithm,
                     StringRef hexhash,
                     int64_t size_in_bytes);
+
+ private:
+  /** Release the Python instance associated with this DFHS. */
+  void release_python();
 };
 
 /**

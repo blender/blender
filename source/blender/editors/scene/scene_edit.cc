@@ -9,8 +9,8 @@
 #include <cstdio>
 #include <cstring>
 
-#include "BLI_listbase.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_string_utf8.hh"
 
 #include "DNA_sequence_types.h"
 
@@ -58,6 +58,7 @@ static Scene *scene_add(Main *bmain, Scene *scene_old, eSceneCopyMethod method)
   else { /* different kinds of copying */
     /* We are going to deep-copy collections, objects and various object data, we need to have
      * up-to-date obdata for that. */
+    BLI_assert(scene_old != nullptr);
     if (method == SCE_COPY_FULL) {
       ED_editors_flush_edits(bmain);
     }
@@ -240,7 +241,7 @@ bool ED_scene_view_layer_delete(Main *bmain, Scene *scene, ViewLayer *layer, Rep
   view_layer_remove_unset_nodetrees(bmain, scene, layer);
 
   BLI_remlink(&scene->view_layers, layer);
-  BLI_assert(BLI_listbase_is_empty(&scene->view_layers) == false);
+  BLI_assert(scene->view_layers.is_empty() == false);
 
   /* Remove from windows. */
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
@@ -252,6 +253,9 @@ bool ED_scene_view_layer_delete(Main *bmain, Scene *scene, ViewLayer *layer, Rep
   }
 
   BKE_scene_free_view_layer_depsgraph(scene, layer);
+
+  /* Update any sequencer scene strips referencing this view layer by name. */
+  seq::relations_update_view_layer_scene_strips(bmain, scene, layer->name, nullptr);
 
   BKE_view_layer_free(layer);
 
@@ -425,12 +429,18 @@ static wmOperatorStatus new_sequencer_scene_exec(bContext *C, wmOperator *op)
   wmWindow *win = CTX_wm_window(C);
   WorkSpace *workspace = CTX_wm_workspace(C);
   Scene *scene_old = CTX_data_sequencer_scene(C);
-  const int type = RNA_enum_get(op->ptr, "type");
-
+  eSceneCopyMethod type = eSceneCopyMethod(RNA_enum_get(op->ptr, "type"));
+  /* When there is no scene to copy from, force new. */
+  if (scene_old == nullptr) {
+    type = SCE_COPY_NEW;
+  }
   Scene *new_scene = scene_add(bmain, scene_old, eSceneCopyMethod(type));
   seq::editing_ensure(new_scene);
 
-  workspace->sequencer_scene = new_scene;
+  /* Unlikely but not impossible as poll doesn't check for this. */
+  if (workspace != nullptr) [[unlikely]] {
+    workspace->sequencer_scene = new_scene;
+  }
 
   /* Switching the active scene to the newly created sequencer scene should prevent confusion among
    * new users to the VSE. For example, this prevents the case where attempting to change
@@ -468,6 +478,7 @@ static void SCENE_OT_new_sequencer_scene(wmOperatorType *ot)
   /* API callbacks. */
   ot->exec = new_sequencer_scene_exec;
   ot->invoke = new_sequencer_scene_invoke;
+  ot->poll = ED_operator_screenactive;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

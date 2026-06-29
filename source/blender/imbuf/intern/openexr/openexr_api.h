@@ -23,16 +23,16 @@ void imb_exitopenexr();
  */
 bool imb_is_a_openexr(const unsigned char *mem, size_t size);
 
-bool imb_save_openexr(ImBuf *ibuf, const char *filepath, int flags);
-Vector<uint8_t> imb_save_buffer_openexr(ImBuf *ibuf, int flags);
+bool imb_save_openexr(ImBuf *ibuf, const char *filepath, ImBufFlags flags);
+Vector<uint8_t> imb_save_buffer_openexr(ImBuf *ibuf, ImBufFlags flags);
 
 ImBuf *imb_load_openexr(const unsigned char *mem,
                         size_t size,
-                        int flags,
+                        ImBufFlags flags,
                         ImFileColorSpace &r_colorspace);
 
 ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
-                                           int flags,
+                                           ImBufFlags flags,
                                            size_t max_thumb_size,
                                            ImFileColorSpace &r_colorspace,
                                            size_t *r_width,

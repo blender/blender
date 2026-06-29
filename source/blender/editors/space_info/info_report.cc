@@ -12,9 +12,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_dynstr.h"
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "BLI_dynstr.hh"
+#include "BLI_listbase.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_context.hh"
 
@@ -184,7 +184,7 @@ void INFO_OT_select_pick(wmOperatorType *ot)
   ot->idname = "INFO_OT_select_pick";
 
   /* API callbacks. */
-  ot->poll = ED_operator_info_active;
+  ot->poll = ED_operator_region_info_active;
   ot->invoke = select_report_pick_invoke;
   ot->exec = select_report_pick_exec;
 
@@ -306,7 +306,7 @@ void INFO_OT_select_box(wmOperatorType *ot)
   ot->modal = WM_gesture_box_modal;
   ot->cancel = WM_gesture_box_cancel;
 
-  ot->poll = ED_operator_info_active;
+  ot->poll = ED_operator_region_info_active;
 
   /* flags */
   // ot->flag = OPTYPE_REGISTER;

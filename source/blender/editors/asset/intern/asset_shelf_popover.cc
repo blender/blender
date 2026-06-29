@@ -12,8 +12,8 @@
 
 #include "BKE_screen.hh"
 
-#include "BLI_listbase.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BLT_translation.hh"
 
@@ -236,6 +236,8 @@ static void popover_panel_draw(const bContext *C, Panel *panel)
     BLI_assert_unreachable();
     return;
   }
+
+  settings_ensure_valid_library_ref(shelf->settings);
 
   bScreen *screen = CTX_wm_screen(C);
   PointerRNA library_ref_ptr = RNA_pointer_create_discrete(

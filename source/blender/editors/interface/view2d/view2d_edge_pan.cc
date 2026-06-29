@@ -8,9 +8,9 @@
 
 #include "BKE_context.hh"
 
-#include "BLI_math_base.h"
-#include "BLI_rect.h"
-#include "BLI_time.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_rect.hh"
+#include "BLI_time.hh"
 
 #include "ED_screen.hh"
 

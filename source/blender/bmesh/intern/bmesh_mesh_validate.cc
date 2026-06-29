@@ -14,7 +14,7 @@
 #  include "BLI_map.hh"
 #  include "BLI_ordered_edge.hh"
 #  include "BLI_set.hh"
-#  include "BLI_utildefines.h"
+#  include "BLI_utildefines.hh"
 
 #  include "bmesh.hh"
 
@@ -26,7 +26,10 @@ namespace blender {
 #  if defined __GNUC__
 #    define ERRMSG(format, args...) \
       { \
-        fprintf(stderr, "%s: " format ", " AT "\n", __func__, ##args); \
+        fprintf(stderr, \
+                "%s: " format ", " AT "\n", \
+                __func__, /* NOLINT(bugprone-lambda-function-name) */ \
+                ##args); \
         errtot++; \
       } \
       (void)0

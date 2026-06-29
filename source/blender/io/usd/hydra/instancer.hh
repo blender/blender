@@ -4,71 +4,23 @@
 
 #pragma once
 
-#include "BLI_map.hh"
-#include "BLI_set.hh"
+#include <pxr/base/gf/matrix4d.h>
+#include <pxr/base/vt/array.h>
+#include <pxr/imaging/hd/dataSource.h>
+#include <pxr/usd/sdf/path.h>
 
-#include "mesh.hh"
+#include "BLI_span.hh"
 
-namespace blender {
+namespace blender::io::hydra {
 
-struct DupliObject;
-struct ParticleSystem;
+/** Build an #HdInstancedBySchema data source binding a prototype to its instancer. */
+pxr::HdContainerDataSourceHandle build_instanced_by_data_source(
+    const pxr::SdfPath &instancer_path, const pxr::SdfPath &prototype_root);
 
-namespace io::hydra {
+/** Build the aggregate instancer prim data source. */
+pxr::HdContainerDataSourceHandle build_instancer_prim_data_source(
+    Span<pxr::SdfPath> prototypes,
+    Span<pxr::VtIntArray> instance_indices,
+    const pxr::VtMatrix4dArray &transforms);
 
-class InstancerData : public IdData {
-  struct MeshInstance {
-    std::unique_ptr<MeshData> data;
-    pxr::VtIntArray indices;
-  };
-
-  struct NonmeshInstance {
-    std::unique_ptr<ObjectData> data;
-    pxr::VtMatrix4dArray transforms;
-    int count = 0;
-  };
-
- private:
-  Map<pxr::SdfPath, MeshInstance> mesh_instances_;
-  Map<pxr::SdfPath, NonmeshInstance> nonmesh_instances_;
-  pxr::VtMatrix4dArray mesh_transforms_;
-
- public:
-  InstancerData(HydraSceneDelegate *scene_delegate, pxr::SdfPath const &prim_id);
-
-  void init() override;
-  void insert() override;
-  void remove() override;
-  void update() override;
-
-  pxr::VtValue get_data(pxr::TfToken const &key) const override;
-  pxr::GfMatrix4d transform(pxr::SdfPath const &id) const;
-  pxr::HdPrimvarDescriptorVector primvar_descriptors(pxr::HdInterpolation interpolation) const;
-  pxr::VtIntArray indices(pxr::SdfPath const &id) const;
-  ObjectData *object_data(pxr::SdfPath const &id) const;
-  pxr::SdfPathVector prototypes() const;
-  void available_materials(Set<pxr::SdfPath> &paths) const;
-  void update_double_sided(MaterialData *mat_data);
-
-  /* Following update functions are working together:
-   *   pre_update()
-   *     update_instance()
-   *     update_instance()
-   *     ...
-   *   post_update() */
-  void pre_update();
-  void update_instance(DupliObject *dupli);
-  void post_update();
-
- private:
-  pxr::SdfPath object_prim_id(Object *object) const;
-  pxr::SdfPath hair_prim_id(Object *parent_obj, const ParticleSystem *psys) const;
-  pxr::SdfPath nonmesh_prim_id(pxr::SdfPath const &prim_id, int index) const;
-  int nonmesh_prim_id_index(pxr::SdfPath const &id) const;
-  void update_nonmesh_instance(NonmeshInstance &inst);
-  MeshInstance *mesh_instance(pxr::SdfPath const &id) const;
-  NonmeshInstance *nonmesh_instance(pxr::SdfPath const &id) const;
-};
-
-}  // namespace io::hydra
-}  // namespace blender
+}  // namespace blender::io::hydra

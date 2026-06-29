@@ -27,7 +27,7 @@
 
 #include "BKE_global.hh"
 
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 using namespace std;
 
@@ -174,7 +174,7 @@ void GeomCleaner::SortAndCompressIndexedVertexArray(const float *iVertices,
 struct GeomCleanerHasher {
 #define _MUL 950706376UL
 #define _MOD 2147483647UL
-  inline size_t operator()(const Vec3r &p) const
+  size_t operator()(const Vec3r &p) const
   {
     size_t res = ulong(p[0] * _MUL) % _MOD;
     res = (res + ulong(p[1]) * _MUL) % _MOD;

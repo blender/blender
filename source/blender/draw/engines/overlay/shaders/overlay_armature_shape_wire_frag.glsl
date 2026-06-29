@@ -14,9 +14,7 @@ float edge_step(float dist)
   if (do_smooth_wire) {
     return smoothstep(LINE_SMOOTH_START, LINE_SMOOTH_END, dist);
   }
-  else {
-    return step(0.5f, dist);
-  }
+  return step(0.5f, dist);
 }
 
 void main()
@@ -28,7 +26,7 @@ void main()
 
   frag_color = mix(float4(final_color.rgb, alpha), float4(0), mix_w);
   frag_color.a *= 1.0f - mix_w;
-  line_output = float4(0);
+  line_output = float4(0.0f);
 
   select_id_output(select_id);
 }

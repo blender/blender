@@ -306,7 +306,7 @@ static void node_register()
   ntype.nclass = NODE_CLASS_MATTE;
   ntype.declare = node_declare;
   ntype.get_compositor_operation = get_compositor_operation;
-  bke::node_type_size(ntype, 145, 140, NODE_DEFAULT_MAX_WIDTH);
+  ntype.default_width = bke::NodeWidth::_160;
 
   bke::node_register_type(ntype);
 }

@@ -23,7 +23,7 @@
 #include "ANIM_action.hh"
 #include "ANIM_action_iterators.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_stack.hh"
 
 namespace blender::nodes {
@@ -782,7 +782,7 @@ class SocketValueInferencerImpl {
       return;
     }
     if (const SocketDeclaration *socket_decl = socket.socket->runtime->declaration) {
-      if (socket_decl->input_field_type == InputSocketFieldType::Implicit) {
+      if (socket_decl->default_input_type != NODE_DEFAULT_INPUT_VALUE) {
         /* Implicit fields inputs don't have a single static value. */
         all_socket_values_.add_new(socket, InferenceValue::Unknown());
         return;

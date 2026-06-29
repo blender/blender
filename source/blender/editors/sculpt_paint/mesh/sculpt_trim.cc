@@ -9,12 +9,12 @@
 #include "GEO_join_geometries.hh"
 #include "GEO_mesh_boolean.hh"
 
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
+#include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_vector.h"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_math_vector.hh"
-#include "BLI_polyfill_2d.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_polyfill_2d.hh"
 
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
@@ -756,14 +756,15 @@ static void initialize_cursor_info(bContext &C,
   int mval[2];
   RNA_int_get_array(op.ptr, "location", mval);
 
-  CursorGeometryInfo cgi;
   const float mval_fl[2] = {float(mval[0]), float(mval[1])};
 
   TrimOperation *trim_operation = reinterpret_cast<TrimOperation *>(gesture_data.operation);
-  trim_operation->initial_hit = cursor_geometry_info_update(&C, &cgi, mval_fl, false);
+  const std::optional<CursorGeometryInfo> cgi = cursor_geometry_info_update(&C, mval_fl, false);
+
+  trim_operation->initial_hit = cgi.has_value();
   if (trim_operation->initial_hit) {
-    copy_v3_v3(trim_operation->initial_location, cgi.location);
-    copy_v3_v3(trim_operation->initial_normal, cgi.normal);
+    copy_v3_v3(trim_operation->initial_location, cgi->location);
+    copy_v3_v3(trim_operation->initial_normal, cgi->normal);
   }
 }
 

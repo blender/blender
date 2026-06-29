@@ -9,11 +9,11 @@
 #pragma once
 
 #include "BLI_enum_flags.hh"
-#include "BLI_linklist.h"
+#include "BLI_linklist.hh"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 #include "BLI_set.hh"
-#include "BLI_threads.h"
+#include "BLI_threads.hh"
 
 #include "ED_grease_pencil.hh"
 

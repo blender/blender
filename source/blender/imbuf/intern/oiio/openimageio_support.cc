@@ -8,8 +8,8 @@
 
 #include <algorithm>
 
-#include "BLI_listbase.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_idprop.hh"
 
@@ -99,20 +99,35 @@ static void fill_all_channels(T *pixels, int width, int height, int components, 
 
 template<typename T>
 static ImBuf *load_pixels(
-    ImageInput *in, int width, int height, int channels, int flags, bool use_all_planes)
+    ImageInput *in, int width, int height, int channels, ImBufFlags flags, bool use_all_planes)
 {
   /* Allocate the ImBuf for the image. */
   constexpr bool is_float = sizeof(T) > 1;
-  const uint format_flag = (is_float ? IB_float_data : IB_byte_data) | IB_uninitialized_pixels;
-  const uint ibuf_flags = (flags & IB_test) ? 0 : format_flag;
-  const int planes = use_all_planes ? 32 : 8 * channels;
-  ImBuf *ibuf = IMB_allocImBuf(width, height, planes, ibuf_flags);
+  const ImBufFlags format_flag = (is_float ? ImBufFlags::FloatData : ImBufFlags::ByteData) |
+                                 ImBufFlags::UninitializedPixels;
+  const ImBufFlags ibuf_flags = flag_is_set(flags, ImBufFlags::Test) ? ImBufFlags::Zero :
+                                                                       format_flag;
+
+  ImColorMode color_mode = ImColorMode::RGBA;
+  if (channels == 2) {
+    color_mode = ImColorMode::BW_A;
+  }
+  else if (!use_all_planes) {
+    if (channels == 1) {
+      color_mode = ImColorMode::BW;
+    }
+    else if (channels == 3) {
+      color_mode = ImColorMode::RGB;
+    }
+  }
+  ImBuf *ibuf = IMB_allocImBuf(width, height, ibuf_flags);
   if (!ibuf) {
     return nullptr;
   }
+  ibuf->color_mode = color_mode;
 
   /* No need to load actual pixel data during the test phase. */
-  if (flags & IB_test) {
+  if (flag_is_set(flags, ImBufFlags::Test)) {
     return ibuf;
   }
 
@@ -228,15 +243,15 @@ static ImBuf *get_oiio_ibuf(ImageInput *in, const ReadContext &ctx, ImFileColorS
     }
 
     /* Transfer metadata to the ibuf if necessary. */
-    if (ctx.flags & IB_metadata) {
-      IMB_metadata_ensure(&ibuf->metadata);
-      ibuf->flags |= spec.extra_attribs.empty() ? 0 : IB_metadata;
+    if (flag_is_set(ctx.flags, ImBufFlags::Metadata)) {
+      IDProperty *metadata = ibuf->metadata_for_write();
+      ibuf->flags |= spec.extra_attribs.empty() ? ImBufFlags::Zero : ImBufFlags::Metadata;
 
       for (const auto &attrib : spec.extra_attribs) {
         if (attrib.name().find("ICCProfile") != string::npos) {
           continue;
         }
-        IMB_metadata_set_field(ibuf->metadata, attrib.name().c_str(), attrib.get_string().c_str());
+        IMB_metadata_set_field(metadata, attrib.name().c_str(), attrib.get_string().c_str());
       }
     }
   }
@@ -325,6 +340,14 @@ static void oiio_write_prepare(const ImageSpec &file_spec, ImageBuf &orig_buf, I
                            cspan<float>(channel_values, file_spec.nchannels),
                            cspan<std::string>(channel_names, file_spec.nchannels));
   }
+  else if (file_spec.nchannels == 2 && original_channels_count >= 2) {
+    /* Gray-scale + alpha output (#ImColorMode::BW_A). The #ImBuf source replicates gray into
+     * RGB and stores alpha at index 3, so extract {gray, alpha} = {0, 3}. */
+    const int channel_order[] = {0, 3};
+    const float channel_values[] = {0.0f, 1.0f};
+    const std::string channel_names[] = {"Y", "A"};
+    ImageBufAlgo::channels(final_buf, orig_buf, 2, channel_order, channel_values, channel_names);
+  }
   else if (original_channels_count != file_spec.nchannels) {
     /* Either trim or fill new channels based on the needed channels count. */
     int channel_order[4];
@@ -410,7 +433,7 @@ Vector<uint8_t> imb_oiio_write_buffer(const WriteContext &ctx, const ImageSpec &
 
 WriteContext imb_create_write_context(const char *file_format,
                                       ImBuf *ibuf,
-                                      int flags,
+                                      ImBufFlags flags,
                                       bool prefer_float)
 {
   WriteContext ctx{};
@@ -457,8 +480,8 @@ ImageSpec imb_create_write_spec(const WriteContext &ctx, int file_channels, Type
    *   the current format being written (e.g. metadata for tiff being written to a `PNG`)
    */
 
-  if (ctx.ibuf->metadata) {
-    for (IDProperty &prop : ctx.ibuf->metadata->data.group) {
+  if (ctx.ibuf->metadata()) {
+    for (IDProperty &prop : ctx.ibuf->metadata()->data.group) {
       if (prop.type == IDP_STRING) {
         /* If this property has a prefixed name (oiio:, tiff:, etc.) and it belongs to
          * oiio or a different format, then skip. */

@@ -26,6 +26,15 @@
 namespace blender::gpu {
 
 VKContext::VKContext(GHOST_IWindow *ghost_window, GHOST_IContext *ghost_context)
+    : push_constants_pool(VKBufferPool("PushConstants",
+                                       64 * 1024,
+                                       VKBackend::get()
+                                           .device.physical_device_properties_get()
+                                           .limits.minUniformBufferOffsetAlignment,
+                                       VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                                       VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+                                       VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+                                       0.8f))
 {
   ghost_window_ = ghost_window;
   ghost_context_ = ghost_context;
@@ -98,7 +107,7 @@ void VKContext::sync_backbuffer()
       GCaps.hdr_viewport_support = (swap_chain_format_.format == VK_FORMAT_R16G16B16A16_SFLOAT) &&
                                    ELEM(swap_chain_format_.colorSpace,
                                         VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT,
-                                        VK_COLOR_SPACE_SRGB_NONLINEAR_KHR);
+                                        VK_COLOR_SPACE_PASS_THROUGH_EXT);
     }
   }
 }
@@ -107,6 +116,8 @@ void VKContext::activate()
 {
   /* Make sure no other context is already bound to this thread. */
   BLI_assert(is_active_ == false);
+  /* Make sure the active GHOST context matches the one this GPU Context was created for. */
+  BLI_assert(ghost_context_ == GHOST_IContext::getActiveDrawingContext());
 
   VKDevice &device = VKBackend::get().device;
   VKThreadData &thread_data = device.current_thread_data();
@@ -168,6 +179,8 @@ TimelineValue VKContext::flush_render_graph(RenderGraphFlushFlags flags,
     }
   }
   VKDevice &device = VKBackend::get().device;
+  push_constants_pool.ensure_uploaded();
+  push_constants_pool.discard();
   descriptor_set_get().upload_descriptor_sets();
   TimelineValue timeline = device.render_graph_submit(
       &render_graph_.value().get(),

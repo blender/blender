@@ -23,15 +23,15 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_fileops.h"
+#include "BLI_fileops.hh"
 #include "BLI_function_ref.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_system.h"
-#include "BLI_time.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_system.hh"
+#include "BLI_time.hh"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 
@@ -596,8 +596,8 @@ static void swap_old_bmain_data_for_blendfile(ReuseOldBMainData *reuse_data, con
 
   /* NOTE: Full swapping is only supported for ID types that are assumed to be only local
    * data-blocks (like UI-like ones). Otherwise, the swapping could fail in many funny ways. */
-  BLI_assert(BLI_listbase_is_empty(old_lb) || !ID_IS_LINKED(static_cast<ID *>(old_lb->last)));
-  BLI_assert(BLI_listbase_is_empty(new_lb) || !ID_IS_LINKED(static_cast<ID *>(new_lb->last)));
+  BLI_assert(old_lb->is_empty() || !ID_IS_LINKED(static_cast<ID *>(old_lb->last)));
+  BLI_assert(new_lb->is_empty() || !ID_IS_LINKED(static_cast<ID *>(new_lb->last)));
 
   std::swap(*new_lb, *old_lb);
 
@@ -2284,10 +2284,10 @@ bool PartialWriteContext::is_valid()
   return is_valid;
 }
 
-bool PartialWriteContext::write(const char *write_filepath,
-                                const int write_flags,
-                                const int remap_mode,
-                                ReportList &reports)
+bool PartialWriteContext::write_impl(const char *write_filepath,
+                                     const int write_flags,
+                                     const BlendFileWriteParams &blend_file_write_params,
+                                     ReportList &reports)
 {
   BLI_assert_msg(write_filepath != reference_root_filepath_,
                  "A library blendfile should not overwrite currently edited blendfile");
@@ -2317,15 +2317,32 @@ bool PartialWriteContext::write(const char *write_filepath,
 
   BLI_assert(this->is_valid());
 
-  BlendFileWriteParams blend_file_write_params{};
-  blend_file_write_params.remap_mode = eBLO_WritePathRemap(remap_mode);
   return BLO_write_file(
       &this->bmain, write_filepath, write_flags, &blend_file_write_params, &reports);
+}
+
+bool PartialWriteContext::write(const char *write_filepath,
+                                const int write_flags,
+                                const int remap_mode,
+                                ReportList &reports)
+{
+  BlendFileWriteParams blend_file_write_params{};
+  blend_file_write_params.remap_mode = eBLO_WritePathRemap(remap_mode);
+  return this->write_impl(write_filepath, write_flags, blend_file_write_params, reports);
 }
 
 bool PartialWriteContext::write(const char *write_filepath, ReportList &reports)
 {
   return this->write(write_filepath, 0, BLO_WRITE_PATH_REMAP_RELATIVE, reports);
+}
+
+bool PartialWriteContext::write_as_copypaste_buffer(const char *write_filepath,
+                                                    ReportList &reports)
+{
+  BlendFileWriteParams blend_file_write_params{};
+  blend_file_write_params.remap_mode = BLO_WRITE_PATH_REMAP_RELATIVE;
+  blend_file_write_params.is_copypaste_buffer = true;
+  return this->write_impl(write_filepath, 0, blend_file_write_params, reports);
 }
 
 }  // namespace bke::blendfile

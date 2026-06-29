@@ -43,10 +43,11 @@ ccl_device Spectrum integrator_eval_background_shader(KernelGlobals kg,
                                                       ccl_private ShaderEvalResult &result)
 {
   const int shader = kernel_data.background.surface_shader;
+  const PathRayVisibility path_visibility = INTEGRATOR_STATE(state, path, visibility);
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
   /* Use visibility flag to skip lights. */
-  if (!is_light_shader_visible_to_path(shader, path_flag)) {
+  if (!is_light_shader_visible_to_path(shader, path_visibility, path_flag)) {
     result = SHADER_EVAL_EMPTY;
     return zero_spectrum();
   }
@@ -65,18 +66,25 @@ ccl_device Spectrum integrator_eval_background_shader(KernelGlobals kg,
   ShaderDataTinyStorage emission_sd_storage;
   ccl_private ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
 
+  /* Clamp indirect evaluations to the importance map. Camera rays are not affected
+   * by the importance map and don't involve NEE, so don't need this. */
+  float ray_dD = INTEGRATOR_STATE(state, ray, dD);
+  if (!(path_visibility & PATH_RAY_VISIBILITY_CAMERA)) {
+    ray_dD = background_light_clamp_dD(kg, ray_dD);
+  }
+
   PROFILING_INIT_FOR_SHADER(kg, PROFILING_SHADE_LIGHT_SETUP);
   shader_setup_from_background(kg,
                                emission_sd,
                                INTEGRATOR_STATE(state, ray, P),
                                INTEGRATOR_STATE(state, ray, D),
-                               INTEGRATOR_STATE(state, ray, dD),
+                               ray_dD,
                                INTEGRATOR_STATE(state, ray, time));
 
   PROFILING_SHADER(emission_sd->object, emission_sd->shader);
   PROFILING_EVENT(PROFILING_SHADE_LIGHT_EVAL);
   surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_BACKGROUND>(
-      kg, state, emission_sd, render_buffer, path_flag | PATH_RAY_EMISSION);
+      kg, state, emission_sd, render_buffer, path_visibility, path_flag | PATH_RAY_EMISSION);
 
   result = (emission_sd->flag & SD_CACHE_MISS) ? SHADER_EVAL_CACHE_MISS : SHADER_EVAL_OK;
   return surface_shader_background(emission_sd);
@@ -90,6 +98,7 @@ ccl_device_inline ShaderEvalResult integrate_background(
   bool eval_background = true;
   float transparent = 0.0f;
 
+  const PathRayVisibility path_visibility = INTEGRATOR_STATE(state, path, visibility);
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
   const bool is_transparent_background_ray = kernel_data.background.transparent &&
                                              (path_flag & PATH_RAY_TRANSPARENT_BACKGROUND);
@@ -139,7 +148,8 @@ ccl_device_inline ShaderEvalResult integrate_background(
     }
 
     /* Background MIS weights. */
-    const float mis_weight = light_sample_mis_weight_forward_background(kg, state, path_flag);
+    const float mis_weight = light_sample_mis_weight_forward_background(
+        kg, state, path_visibility, path_flag);
 
     guiding_record_background(kg, state, L, mis_weight);
     L *= mis_weight;
@@ -177,14 +187,15 @@ ccl_device_inline ShaderEvalResult integrate_sun_lights(
 
     /* Use visibility flag to skip lights. */
 #ifdef __PASSES__
+    const PathRayVisibility path_visibility = INTEGRATOR_STATE(state, path, visibility);
     const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
-    if (!is_light_shader_visible_to_path(klight->shader_id, path_flag)) {
+    if (!is_light_shader_visible_to_path(klight->shader_id, path_visibility, path_flag)) {
       continue;
     }
 #endif
 
 #ifdef __LIGHT_LINKING__
-    if (!(path_flag & PATH_RAY_CAMERA) &&
+    if (!(path_visibility & PATH_RAY_VISIBILITY_CAMERA) &&
         !light_link_object_match(kg, light_link_receiver_forward(kg, state), klight->object_id))
     {
       continue;
@@ -224,7 +235,7 @@ ccl_device_inline ShaderEvalResult integrate_sun_lights(
 
     /* MIS weighting. */
     const float mis_weight = light_sample_mis_weight_forward_distant(
-        kg, state, path_flag, klight->object_id, light_eval.pdf);
+        kg, state, path_visibility, path_flag, klight->object_id, light_eval.pdf);
 
     /* Write to render buffer. */
     guiding_record_background(kg, state, eval, mis_weight);

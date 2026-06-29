@@ -16,15 +16,16 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_bitmap.h"
+#include "BLI_bitmap.hh"
 #include "BLI_index_mask.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_task.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_task_c.hh"
 
 #include "BKE_ccg.hh"
 #include "BKE_editmesh.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_types.hh"
@@ -33,6 +34,7 @@
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 #include "BKE_scene.hh"
+#include "BKE_subdiv.hh"
 #include "BKE_subdiv_ccg.hh"
 
 #include "BKE_object.hh"
@@ -102,18 +104,20 @@ Mesh *BKE_multires_create_mesh(Depsgraph *depsgraph, Object *object, MultiresMod
 {
   Object *object_eval = DEG_get_evaluated(depsgraph, object);
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Mesh *deformed_mesh = bke::mesh_get_eval_deform(
+  const Mesh *deformed_mesh = bke::mesh_get_eval_deform(
       depsgraph, scene_eval, object_eval, &CD_MASK_BAREMESH);
   ModifierEvalContext modifier_ctx{};
   modifier_ctx.depsgraph = depsgraph;
   modifier_ctx.object = object_eval;
   modifier_ctx.flag = MOD_APPLY_USECACHE | MOD_APPLY_IGNORE_SIMPLIFY;
 
-  const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(mmd->modifier.type));
-  Mesh *result = mti->modify_mesh(&mmd->modifier, &modifier_ctx, deformed_mesh);
+  Mesh *input_i = BKE_mesh_copy_for_eval(*deformed_mesh);
 
-  if (result == deformed_mesh) {
-    result = BKE_mesh_copy_for_eval(*deformed_mesh);
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(mmd->modifier.type);
+  Mesh *result = mti->modify_mesh(&mmd->modifier, &modifier_ctx, input_i);
+
+  if (result != input_i) {
+    BKE_id_free(nullptr, input_i);
   }
   return result;
 }
@@ -148,7 +152,7 @@ Array<float3> BKE_multires_create_deformed_base_mesh_vert_coords(Depsgraph *deps
   Array<float3> deformed_verts(base_mesh->vert_positions());
 
   for (ModifierData *md = first_md; md != nullptr; md = md->next) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
     if (md == &mmd->modifier) {
       break;
     }
@@ -410,7 +414,6 @@ static void multires_set_tot_mdisps(Mesh *mesh, const int lvl)
   if (mdisps) {
     for (int i = 0; i < mesh->corners_num; i++, mdisps++) {
       mdisps->totdisp = multires_grid_tot[lvl];
-      mdisps->level = lvl;
     }
   }
 }
@@ -497,7 +500,7 @@ static void multires_del_higher(MultiresModifierData *mmd, Object *ob, const int
 
             multires_copy_grid(ndisps, hdisps, nsize, hsize);
             if (mdisp->hidden) {
-              BLI_bitmap *gh = multires_mdisps_downsample_hidden(mdisp->hidden, mdisp->level, lvl);
+              BLI_bitmap *gh = multires_mdisps_downsample_hidden(mdisp->hidden, mmd->totlvl, lvl);
               MEM_delete(mdisp->hidden);
               mdisp->hidden = gh;
             }
@@ -507,7 +510,6 @@ static void multires_del_higher(MultiresModifierData *mmd, Object *ob, const int
 
           mdisp->disps = disps;
           mdisp->totdisp = totdisp;
-          mdisp->level = lvl;
 
           if (gpm) {
             multires_grid_paint_mask_downsample(&gpm[corner], lvl);
@@ -730,7 +732,6 @@ void multiresModifier_prepare_join(Depsgraph *depsgraph, Scene *scene, Object *o
 
 void multires_topology_changed(Mesh *mesh)
 {
-
   CustomData_external_read(&mesh->corner_data, &mesh->id, CD_MASK_MDISPS, mesh->corners_num);
   MDisps *mdisp = static_cast<MDisps *>(
       CustomData_get_layer_for_write(&mesh->corner_data, CD_MDISPS, mesh->corners_num));
@@ -779,8 +780,11 @@ void multires_ensure_external_read(Mesh *mesh, const int top_level)
 
   const int totloop = mesh->corners_num;
 
+  const int grid_size = bke::subdiv::grid_size_from_level(top_level);
+  const int grid_area = grid_size * grid_size;
+
   for (int i = 0; i < totloop; ++i) {
-    if (mdisps[i].level != top_level) {
+    if (mdisps[i].totdisp != grid_area) {
       MEM_SAFE_DELETE(mdisps[i].disps);
     }
 
@@ -789,7 +793,6 @@ void multires_ensure_external_read(Mesh *mesh, const int top_level)
 
     const int totdisp = multires_grid_tot[top_level];
     mdisps[i].totdisp = totdisp;
-    mdisps[i].level = top_level;
   }
 
   CustomData_external_read(&mesh->corner_data, &mesh->id, CD_MASK_MDISPS, mesh->corners_num);

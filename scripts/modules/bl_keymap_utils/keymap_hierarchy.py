@@ -126,6 +126,7 @@ _km_hierarchy = [
         ('View3D Move Modal', 'EMPTY', 'WINDOW', []),
         ('View3D Zoom Modal', 'EMPTY', 'WINDOW', []),
         ('View3D Dolly Modal', 'EMPTY', 'WINDOW', []),
+        ('View3D VR Location Scouting Capture Review Modal', 'EMPTY', 'WINDOW', []),
 
         # toolbar and properties
         ('3D View Generic', 'VIEW_3D', 'WINDOW', [

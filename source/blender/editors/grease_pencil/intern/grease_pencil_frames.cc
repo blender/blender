@@ -10,10 +10,10 @@
 
 #include "BKE_curves.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
@@ -485,7 +485,7 @@ static bool curves_geometry_is_equal(const bke::CurvesGeometry &curves_a,
     }
 
     if (attributes_varrays_span_data_equal(attrs_a, attrs_b)) {
-      return true;
+      continue;
     }
 
     bool attributes_are_equal = true;
@@ -713,7 +713,7 @@ bool grease_pencil_paste_keyframes(bAnimContext *ac,
                 ANIMFILTER_FOREDIT | ANIMFILTER_SEL);
   ANIM_animdata_filter(
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
-  if (BLI_listbase_is_empty(&anim_data)) {
+  if (anim_data.is_empty()) {
     /* If no layers are selected at all, make even unselected layers "targets" for pasting. */
     filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS |
               ANIMFILTER_FOREDIT);

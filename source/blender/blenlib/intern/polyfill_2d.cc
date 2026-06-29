@@ -31,22 +31,22 @@
  * No globals - keep threadsafe.
  */
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include <algorithm>
 #include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
+#include "BLI_alloca.hh"
 #include "BLI_enum_flags.hh"
-#include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
-#include "BLI_memarena.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_memarena.hh"
 
-#include "BLI_polyfill_2d.h" /* own include */
+#include "BLI_polyfill_2d.hh" /* own include */
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 
@@ -76,7 +76,7 @@ namespace blender {
 
 // #define DEBUG_TIME
 #ifdef DEBUG_TIME
-#  include "BLI_time_utildefines.h"
+#  include "BLI_time_utildefines.hh"
 #endif
 
 namespace {
@@ -243,7 +243,7 @@ BLI_INLINE eSign signum_enum(float a)
   if (a > 0.0f) {
     return CONVEX;
   }
-  if (UNLIKELY(a == 0.0f)) {
+  if (a == 0.0f) [[unlikely]] {
     return TANGENTIAL;
   }
   return CONCAVE;
@@ -619,7 +619,7 @@ static void pf_coord_remove(PolyFill *pf, PolyIndex *pi)
   pi->next->prev = pi->prev;
   pi->prev->next = pi->next;
 
-  if (UNLIKELY(pf->indices == pi)) {
+  if (pf->indices == pi) [[unlikely]] {
     pf->indices = pi->next;
   }
 #ifndef NDEBUG
@@ -873,7 +873,7 @@ static bool pf_ear_tip_check(PolyFill *pf, PolyIndex *pi_ear_tip, const eSign si
   }
 #endif
 
-  if (UNLIKELY(pi_ear_tip->sign != sign_accept)) {
+  if (pi_ear_tip->sign != sign_accept) [[unlikely]] {
     return false;
   }
 
@@ -1117,7 +1117,7 @@ void BLI_polyfill_calc(const float (*coords)[2],
   /* Fall back to heap memory for large allocations.
    * Avoid running out of stack memory on systems with 512kb stack (macOS).
    * This happens at around 13,000 points, use a much lower value to be safe. */
-  if (UNLIKELY(coords_num > 8192)) {
+  if (coords_num > 8192) [[unlikely]] {
     /* The buffer size only accounts for the index allocation,
      * worst case we do two allocations when concave, while we should try to be efficient,
      * any caller that relies on this frequently should use #BLI_polyfill_calc_arena directly. */

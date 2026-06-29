@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #ifndef __APPLE__
-#  include "BLI_system.h"
+#  include "BLI_system.hh"
 #endif
 
 #include "MEM_guardedalloc.h"

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2024 Blender Authors
+/* SPDX-FileCopyrightText: 2024-2026 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,8 +11,6 @@
 #pragma once
 
 #include "IMB_imbuf_enums.h"
-
-#include "MOV_enums.hh"
 
 #include "BLI_function_ref.hh"
 #include "BLI_set.hh"
@@ -28,7 +26,7 @@ struct MovieProxyBuilder;
 
 /**
  * Opens a movie file for reading / playback.
- * ib_flags are `IB_` ImBuf bitmask (only IB_animdeinterlace is taken into account).
+ * From ib_flags only ImBufFlags::Deinterlace is taken into account.
  * streamindex is for multi-track movie files.
  *
  * Returned MovieReader object can be used in other playback related functions.
@@ -39,7 +37,7 @@ struct MovieProxyBuilder;
  * When done with playback, use #MOV_close to delete it.
  */
 MovieReader *MOV_open_file(const char *filepath,
-                           int ib_flags,
+                           ImBufFlags ib_flags,
                            int streamindex,
                            bool keep_original_colorspace,
                            char colorspace[IM_MAX_SPACE]);
@@ -70,7 +68,6 @@ void MOV_close(MovieReader *anim);
  */
 ImBuf *MOV_decode_frame(MovieReader *anim,
                         int position,
-                        IMB_Timecode_Type tc /* = 1 = IMB_TC_RECORD_RUN */,
                         IMB_Proxy_Size preview_size /* = 0 = IMB_PROXY_NONE */);
 
 /**
@@ -82,9 +79,15 @@ ImBuf *MOV_decode_frame(MovieReader *anim,
 ImBuf *MOV_decode_preview_frame(MovieReader *anim);
 
 /**
+ * Returns the number of video streams in the movie file backing `anim`.
+ * Returns 0 if the file cannot be opened or contains no video streams.
+ */
+int MOV_get_video_stream_count(MovieReader *anim);
+
+/**
  * Return the length (in frames) of the movie.
  */
-int MOV_get_duration_frames(MovieReader *anim, IMB_Timecode_Type tc);
+int MOV_get_duration_frames(const MovieReader *anim);
 
 /**
  * Return the encoded start offset (in seconds) of the movie.
@@ -139,7 +142,7 @@ IDProperty *MOV_load_metadata(MovieReader *anim);
 void MOV_set_multiview_suffix(MovieReader *anim, const char *suffix);
 
 /* -------------------------------------------------------------------- */
-/** \name Movie proxy / time-code index related functionality
+/** \name Movie proxy related functionality
  * \{ */
 
 /**
@@ -154,18 +157,6 @@ void MOV_close_proxies(MovieReader *anim);
 void MOV_set_custom_proxy_dir(MovieReader *anim, const char *dir);
 
 /**
- * Given a frame index, calculate final frame index taking timecode into account.
- *
- * This does nothing (returns input frame position) if #IMB_TC_NONE is used,
- * or movie proxy/index file is not built.
- *
- * When a timecode index file is present and is requested to be used, this can
- * return a different frame index than input frame, particularly for
- * #IMB_TC_RECORD_RUN_NO_GAPS.
- */
-int MOV_calc_frame_index_with_timecode(MovieReader *anim, IMB_Timecode_Type tc, int position);
-
-/**
  * Queries which proxies exist for this movie.
  *
  * Note that it does not check whether proxies are up to date,
@@ -176,10 +167,9 @@ int MOV_calc_frame_index_with_timecode(MovieReader *anim, IMB_Timecode_Type tc, 
 int MOV_get_existing_proxies(const MovieReader *anim);
 
 /**
- * Initialize movie proxies / time-code indices builder.
+ * Initialize movie proxies builder.
  */
 MovieProxyBuilder *MOV_proxy_builder_start(MovieReader *anim,
-                                           IMB_Timecode_Type tcs_in_use,
                                            int proxy_sizes_in_use,
                                            int quality,
                                            const bool overwrite,
@@ -187,7 +177,7 @@ MovieProxyBuilder *MOV_proxy_builder_start(MovieReader *anim,
                                            bool build_only_on_bad_performance);
 
 /**
- * Will rebuild all used indices and proxies at once.
+ * Will rebuild all used proxies at once.
  */
 void MOV_proxy_builder_process(MovieProxyBuilder *context,
                                const bool *stop,
@@ -195,7 +185,7 @@ void MOV_proxy_builder_process(MovieProxyBuilder *context,
                                blender::FunctionRef<void(float progress)> set_progress_fn);
 
 /**
- * Finish building proxies / time-codes indices, and delete the builder.
+ * Finish building proxies, and delete the builder.
  */
 void MOV_proxy_builder_finish(MovieProxyBuilder *context, bool stop);
 

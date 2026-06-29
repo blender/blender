@@ -42,17 +42,17 @@ bool operator==(const MorphologicalDistanceFeatherWeightsKey &a,
  * and the shader takes that into consideration. */
 class MorphologicalDistanceFeatherWeights : public CachedResource {
  public:
-  Result weights_result;
-  Result falloffs_result;
+  Result weights;
+  Result falloffs;
 
   MorphologicalDistanceFeatherWeights(Context &context, int type, int radius);
 
   ~MorphologicalDistanceFeatherWeights();
 
  private:
-  void compute_weights(int radius);
+  Result compute_weights(Context &context, int radius);
 
-  void compute_distance_falloffs(int type, int radius);
+  Result compute_distance_falloffs(Context &context, int type, int radius);
 };
 
 /* ------------------------------------------------------------------------------------------------

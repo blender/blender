@@ -7,6 +7,7 @@ import numpy as np
 from .user_extensions import import_user_extensions, MutatingArgument
 from ..com.gltf2_io import Accessor
 from ..com.constants import ComponentType, DataType
+from .gltf2_io_binary_meshopt import MeshoptDecoder
 
 
 class BinaryData():
@@ -46,6 +47,12 @@ class BinaryData():
     def get_buffer_view(gltf, buffer_view_idx):
         """Get binary data for buffer view."""
         buffer_view = gltf.data.buffer_views[buffer_view_idx]
+
+        # Check if this buffer view is compressed with meshopt
+        if 'EXT_meshopt_compression' in (
+                buffer_view.extensions or {}) or 'KHR_meshopt_compression' in (
+                buffer_view.extensions or {}):
+            return MeshoptDecoder.get_buffer_view(gltf, buffer_view_idx)
 
         buffer_slice = MutatingArgument(None)
         import_user_extensions('get_buffer_view_before_hook', gltf, buffer_view, buffer_slice)

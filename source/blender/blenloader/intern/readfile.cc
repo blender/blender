@@ -21,7 +21,7 @@
 #ifndef WIN32
 #  include <unistd.h> /* for read close */
 #else
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #  include "winsock2.h"
 #  include <io.h> /* for open close read */
 #endif
@@ -51,20 +51,20 @@
 #include "MEM_guardedalloc.h"
 #include "MEM_safe_multiply.h"
 
-#include "BLI_endian_defines.h"
-#include "BLI_fileops.h"
-#include "BLI_ghash.h"
-#include "BLI_listbase.h"
+#include "BLI_endian_defines.hh"
+#include "BLI_fileops.hh"
+#include "BLI_ghash.hh"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
-#include "BLI_memarena.h"
+#include "BLI_memarena.hh"
 #include "BLI_set.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_threads.h"
-#include "BLI_time.h"
-#include "BLI_utildefines.h"
+#include "BLI_threads.hh"
+#include "BLI_time.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -173,7 +173,7 @@ namespace blender {
  *
  * \note Still a weak point is the new-address function, that doesn't solve reading from
  * multiple files at the same time.
- * (added remark: oh, i thought that was solved? will look at that... (ton).
+ * (added remark: oh, i thought that was solved? will look at that... (ton)).
  */
 
 /**
@@ -424,7 +424,7 @@ void blo_split_main(Main *bmain, const bool do_split_packed_ids)
   bmain->split_mains = std::make_shared<VectorSet<Main *>>();
   bmain->split_mains->add_new(bmain);
 
-  if (BLI_listbase_is_empty(&bmain->libraries)) {
+  if (bmain->libraries.is_empty()) {
     return;
   }
 
@@ -616,7 +616,7 @@ static BHeadN *get_bhead(FileData *fd)
           new_bhead->is_memchunk_identical = false;
           new_bhead->bhead = *bhead;
           const off64_t seek_new = fd->file->seek(fd->file, bhead->len, SEEK_CUR);
-          if (UNLIKELY(seek_new == -1)) {
+          if (seek_new == -1) [[unlikely]] {
             fd->is_eof = true;
             MEM_delete(new_bhead);
             new_bhead = nullptr;
@@ -644,7 +644,7 @@ static BHeadN *get_bhead(FileData *fd)
 
           const int64_t readsize = fd->file->read(fd->file, new_bhead + 1, size_t(bhead->len));
 
-          if (UNLIKELY(readsize != bhead->len)) {
+          if (readsize != bhead->len) [[unlikely]] {
             fd->is_eof = true;
             MEM_delete(new_bhead);
             new_bhead = nullptr;
@@ -734,12 +734,12 @@ static bool blo_bhead_read_data(FileData *fd, BHead *thisblock, void *buf)
   BHeadN *new_bhead = BHEADN_FROM_BHEAD(thisblock);
   BLI_assert(new_bhead->has_data == false && new_bhead->file_offset != 0);
   off64_t offset_backup = fd->file->offset;
-  if (UNLIKELY(fd->file->seek(fd->file, new_bhead->file_offset, SEEK_SET) == -1)) {
+  if (fd->file->seek(fd->file, new_bhead->file_offset, SEEK_SET) == -1) [[unlikely]] {
     success = false;
   }
   else {
-    if (UNLIKELY(fd->file->read(fd->file, buf, size_t(new_bhead->bhead.len)) !=
-                 new_bhead->bhead.len))
+    if (fd->file->read(fd->file, buf, size_t(new_bhead->bhead.len)) != new_bhead->bhead.len)
+        [[unlikely]]
     {
       success = false;
     }
@@ -1357,7 +1357,7 @@ void blo_filedata_free(FileData *fd)
 {
   /* Free all BHeadN data blocks */
 #ifdef NDEBUG
-  BLI_freelistN(&fd->bhead_list);
+  fd->bhead_list.free_no_destruct();
 #else
   /* Sanity check we're not keeping memory we don't need. */
   for (BHeadN &new_bhead : fd->bhead_list.items_mutable()) {
@@ -1522,9 +1522,7 @@ static FileData *change_ID_link_filedata_get(Main *bmain, FileData *basefd)
   if (bmain->curlib) {
     return bmain->curlib->runtime->filedata;
   }
-  else {
-    return basefd;
-  }
+  return basefd;
 }
 
 static void change_link_placeholder_to_real_ID_pointer(FileData *basefd, void *old, void *newp)
@@ -1792,7 +1790,7 @@ static const char *get_alloc_name(FileData *fd,
   /* Simple storage for pure release builds, using integer as key, one entry for each ID type. */
   UNUSED_VARS_NDEBUG(bh);
   if (is_id_data) {
-    if (UNLIKELY(!storage.contains(id_type_index))) {
+    if (!storage.contains(id_type_index)) [[unlikely]] {
       if (id_type_index == INDEX_ID_NULL) {
         return storage.insert(id_type_index, "Data from UNKNOWN");
       }
@@ -1825,7 +1823,7 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname, const i
 #ifdef USE_BHEAD_READ_ON_DEMAND
       if (BHEADN_FROM_BHEAD(bh)->has_data == false) {
         bh = blo_bhead_read_full(fd, bh);
-        if (UNLIKELY(bh == nullptr)) {
+        if (bh == nullptr) [[unlikely]] {
           fd->flags &= ~FD_FLAGS_FILE_OK;
           return nullptr;
         }
@@ -1839,7 +1837,7 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname, const i
 #ifdef USE_BHEAD_READ_ON_DEMAND
         if (BHEADN_FROM_BHEAD(bh)->has_data == false) {
           bh = blo_bhead_read_full(fd, bh);
-          if (UNLIKELY(bh == nullptr)) {
+          if (bh == nullptr) [[unlikely]] {
             fd->flags &= ~FD_FLAGS_FILE_OK;
             return nullptr;
           }
@@ -1859,7 +1857,7 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname, const i
         else {
           /* Instead of allocating the bhead, then copying it,
            * read the data from the file directly into the memory. */
-          if (UNLIKELY(!blo_bhead_read_data(fd, bh, temp))) {
+          if (!blo_bhead_read_data(fd, bh, temp)) [[unlikely]] {
             fd->flags &= ~FD_FLAGS_FILE_OK;
             MEM_delete_void(temp);
             temp = nullptr;
@@ -2016,6 +2014,8 @@ static void direct_link_id_override_property(BlendDataReader *reader,
   for (IDOverrideLibraryPropertyOperation &opop : op->operations) {
     BLO_read_string(reader, &opop.subitem_reference_name);
     BLO_read_string(reader, &opop.subitem_local_name);
+    BLO_read_string(reader, &opop.label);
+    BLO_read_string(reader, &opop.tooltip);
 
     opop.tag = {}; /* Runtime only. */
   }
@@ -2402,7 +2402,7 @@ static bool scene_validate_setscene__liblink(Scene *sce, const int totscene)
 static void lib_link_scenes_check_set(Main *bmain)
 {
 #ifdef USE_SETSCENE_CHECK
-  const int totscene = BLI_listbase_count(&bmain->scenes);
+  const int totscene = bmain->scenes.count();
   for (Scene &sce : bmain->scenes) {
     if (sce.flag & SCE_READFILE_LIBLINK_NEED_SETSCENE_CHECK) {
       sce.flag &= ~SCE_READFILE_LIBLINK_NEED_SETSCENE_CHECK;
@@ -2921,7 +2921,7 @@ static void read_undo_reuse_noundo_local_ids(FileData *fd)
     }
 
     ListBaseT<ID> *new_lb = which_libbase(new_bmain, id_type->id_code);
-    BLI_assert(BLI_listbase_is_empty(new_lb));
+    BLI_assert(new_lb->is_empty());
     BLI_movelisttolist(new_lb, lbarray[i]);
 
     /* Update mappings accordingly. */
@@ -3697,7 +3697,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
     char build_commit_datetime[32];
     time_t temp_time = main->build_commit_timestamp;
     tm *tm = (temp_time) ? gmtime(&temp_time) : nullptr;
-    if (LIKELY(tm)) {
+    if (tm) [[likely]] {
       strftime(build_commit_datetime, sizeof(build_commit_datetime), "%Y-%m-%d %H:%M", tm);
     }
     else {
@@ -3760,6 +3760,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
   }
   if (!main->is_read_invalid) {
     blo_do_versions_520(fd, lib, main);
+  }
+  if (!main->is_read_invalid) {
+    blo_do_versions_530(fd, lib, main);
   }
 
   /* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -3828,6 +3831,9 @@ static void do_versions_after_linking(FileData *fd, Main *main)
   }
   if (!main->is_read_invalid) {
     do_versions_after_linking_520(fd, main);
+  }
+  if (!main->is_read_invalid) {
+    do_versions_after_linking_530(fd, main);
   }
 
   main->is_locked_for_linking = false;
@@ -4527,6 +4533,8 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
       /* Update invariants after re-generating overrides. */
       BKE_main_ensure_invariants(*bfd->main);
 
+      BKE_main_id_indirect_linked_update(*bfd->main);
+
       fd->reports->duration.lib_overrides = BLI_time_now_seconds() -
                                             fd->reports->duration.lib_overrides;
     }
@@ -4667,7 +4675,7 @@ static BHead *find_bhead_from_code_name(FileData *fd, const short idcode, const 
 static BHead *find_bhead_from_idname(FileData *fd, const char *idname)
 {
   BHead *bhead = fd->bhead_idname_map->lookup_default(idname, nullptr);
-  if (LIKELY(bhead)) {
+  if (bhead) [[likely]] {
     return bhead;
   }
 

@@ -24,17 +24,17 @@
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
-#include "BLI_ghash.h"
-#include "BLI_listbase.h"
-#include "BLI_math_base_safe.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_noise.h"
-#include "BLI_rand.h"
-#include "BLI_string.h"
-#include "BLI_time.h"
-#include "BLI_utildefines.h"
+#include "BLI_ghash.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_base_safe.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_noise_c.hh"
+#include "BLI_rand_c.hh"
+#include "BLI_string.hh"
+#include "BLI_time.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_anim_path.h" /* needed for where_on_path */
 #include "BKE_bvhutils.hh"
@@ -247,7 +247,7 @@ ListBaseT<EffectorRelation> *BKE_effector_relations_create(Depsgraph *depsgraph,
 void BKE_effector_relations_free(ListBaseT<EffectorRelation> *lb)
 {
   if (lb) {
-    BLI_freelistN(lb);
+    lb->free_no_destruct();
     MEM_delete(lb);
   }
 }
@@ -378,7 +378,7 @@ void BKE_effectors_free(ListBaseT<EffectorCache> *lb)
       }
     }
 
-    BLI_freelistN(lb);
+    lb->free_no_destruct();
     MEM_delete(lb);
   }
 }

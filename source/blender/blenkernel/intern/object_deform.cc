@@ -13,10 +13,10 @@
 
 #include "BLT_translation.hh"
 
-#include "BLI_ghash.h"
-#include "BLI_listbase.h"
+#include "BLI_ghash.hh"
+#include "BLI_listbase.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "DNA_armature_types.h"
 #include "DNA_cloth_types.h"
@@ -32,6 +32,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_action.hh"
+#include "BKE_armature.hh"
 #include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_grease_pencil_vertex_groups.hh"
@@ -265,7 +266,7 @@ static void object_defgroup_remove_common(Object *ob, bDeformGroup *dg, const in
   }
 
   /* Remove all deform-verts. */
-  if (BLI_listbase_is_empty(defbase)) {
+  if (defbase->is_empty()) {
     if (ob->type == OB_MESH) {
       Mesh *mesh = id_cast<Mesh *>(ob->data);
       CustomData_free_layer_active(&mesh->vert_data, CD_MDEFORMVERT);
@@ -443,13 +444,13 @@ int *BKE_object_defgroup_index_map_create(Object *ob_src, Object *ob_dst, int *r
   const ListBaseT<bDeformGroup> *dst_defbase = BKE_object_defgroup_list(ob_dst);
 
   /* Build src to merged mapping of vgroup indices. */
-  if (BLI_listbase_is_empty(src_defbase) || BLI_listbase_is_empty(dst_defbase)) {
+  if (src_defbase->is_empty() || dst_defbase->is_empty()) {
     *r_map_len = 0;
     return nullptr;
   }
 
   bDeformGroup *dg_src;
-  *r_map_len = BLI_listbase_count(src_defbase);
+  *r_map_len = src_defbase->count();
   int *vgroup_index_map = MEM_new_array_uninitialized<int>(size_t(*r_map_len),
                                                            "defgroup index map create");
   bool is_vgroup_remap_needed = false;
@@ -573,7 +574,7 @@ bool *BKE_object_defgroup_validmap_get(Object *ob, const int defbase_tot)
   const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
   VirtualModifierData virtual_modifier_data;
 
-  if (BLI_listbase_is_empty(defbase)) {
+  if (defbase->is_empty()) {
     return nullptr;
   }
 
@@ -603,10 +604,7 @@ bool *BKE_object_defgroup_validmap_get(Object *ob, const int defbase_tot)
       if (object && object->pose) {
         bPose *pose = object->pose;
         bArmature *armature = id_cast<bArmature *>(object->data);
-        /* TODO(Sybren): call the yet-to-be-written 'assert the bone indices are up to date'
-         * function. This way the code below can just access the armature, instead of going through
-         * the object->data pointer. */
-
+        BKE_pose_ensure_bone_indices(*object);
         for (bPoseChannel &chan : pose->chanbase) {
           void **val_p;
           if (chan.bone_get(*armature)->flag & BONE_NO_DEFORM) {

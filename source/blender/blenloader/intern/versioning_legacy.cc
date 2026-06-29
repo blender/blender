@@ -12,7 +12,7 @@
 #ifndef WIN32
 #  include <unistd.h> /* for read close */
 #else
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #  include "winsock2.h"
 #  include <io.h> /* for open close read */
 #endif
@@ -47,13 +47,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_time.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_time.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
@@ -1373,9 +1373,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         if (ob->softflag & OB_SB_POSTDEF) {
           ModifierData *md = static_cast<ModifierData *>(ob->modifiers.first);
 
-          while (md && BKE_modifier_get_info(ModifierType(md->type))->type ==
-                           ModifierTypeType::OnlyDeform)
-          {
+          while (md && BKE_modifier_get_info(md->type)->type == ModifierTypeType::OnlyDeform) {
             md = md->next;
           }
 
@@ -2234,7 +2232,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         BLI_addtail(&ob->particlesystem, psys);
 
         md = BKE_modifier_new(eModifierType_ParticleSystem);
-        SNPRINTF_UTF8(md->name, "ParticleSystem %i", BLI_listbase_count(&ob->particlesystem));
+        SNPRINTF_UTF8(md->name, "ParticleSystem %i", ob->particlesystem.count());
         psmd = reinterpret_cast<ParticleSystemModifierData *>(md);
         psmd->psys = psys;
         BLI_addtail(&ob->modifiers, md);

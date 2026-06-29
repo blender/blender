@@ -19,7 +19,7 @@
 
 #include "../../blenfont/BLF_api.hh"
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "../../imbuf/IMB_colormanagement.hh"
 #include "../../imbuf/IMB_imbuf.hh"
@@ -514,7 +514,7 @@ static PyObject *py_blf_unload(PyObject * /*self*/, PyObject *args)
 
 static PyObject *py_blf_bind_imbuf_enter(BPyBLFImBufContext *self)
 {
-  if (UNLIKELY(self->buffer_state)) {
+  if (self->buffer_state) [[unlikely]] {
     PyErr_SetString(PyExc_ValueError,
                     "BLFImBufContext.__enter__: unable to enter the same context more than once");
     return nullptr;

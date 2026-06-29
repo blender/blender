@@ -6,23 +6,26 @@
  * \ingroup bli
  */
 
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_solvers.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_solvers.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_simd.hh"
 
 #ifndef MATH_STANDALONE
 #  include "eigen_capi.h"
 #endif
 
+#include <algorithm>
 #include <cstring>
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 
-/********************************* Init **************************************/
+/* -------------------------------------------------------------------- */
+/** \name Init
+ * \{ */
 
 void zero_m3(float m[3][3])
 {
@@ -205,7 +208,11 @@ void shuffle_m4(float R[4][4], const int index[4])
   }
 }
 
-/******************************** Arithmetic *********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Arithmetic
+ * \{ */
 
 void mul_m4_m4m4(float R[4][4], const float A[4][4], const float B[4][4])
 {
@@ -443,6 +450,8 @@ void mul_m3_m4m4(float R[3][3], const float A[4][4], const float B[4][4])
   R[2][2] = B[2][0] * A[0][2] + B[2][1] * A[1][2] + B[2][2] * A[2][2];
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Macro helpers for: mul_m3_series
  * \{ */
@@ -642,6 +651,10 @@ void _va_mul_m4_series_9(float r[4][4],
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Arithmetic
+ * \{ */
 
 void mul_v2_m3v2(float r[2], const float m[3][3], const float v[2])
 {
@@ -1041,7 +1054,7 @@ bool invert_m3_m3(float inverse[3][3], const float mat[3][3])
 
   success = (det != 0.0f);
 
-  if (LIKELY(det != 0.0f)) {
+  if (det != 0.0f) [[likely]] {
     det = 1.0f / det;
     for (a = 0; a < 3; a++) {
       for (b = 0; b < 3; b++) {
@@ -1113,7 +1126,7 @@ bool invert_m4_m4_fallback(float inverse[4][4], const float mat[4][4])
       }
     }
 
-    if (UNLIKELY(tempmat[i][i] == 0.0f)) {
+    if (tempmat[i][i] == 0.0f) [[unlikely]] {
       return false; /* No non-zero pivot */
     }
     temp = double(tempmat[i][i]);
@@ -1177,7 +1190,11 @@ void mul_m4_m4m4_split_channels(float R[4][4], const float A[4][4], const float 
   loc_rot_size_to_mat4(R, loc_r, rot_r, size_r);
 }
 
-/****************************** Linear Algebra *******************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Linear Algebra
+ * \{ */
 
 void transpose_m3(float R[3][3])
 {
@@ -1525,6 +1542,8 @@ void orthogonalize_m4_stable(float R[4][4], int axis, bool normalize)
   }
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Orthogonalize Matrix Zeroed Axes
  *
@@ -1588,7 +1607,7 @@ static bool orthogonalize_m3_zero_axes_impl(float *mat[3], const float unit_leng
 
   for (int i = 0; i < 3; i++) {
     if (flag & (1 << i)) {
-      if (UNLIKELY(normalize_v3_length(mat[i], unit_length) == 0.0f)) {
+      if (normalize_v3_length(mat[i], unit_length) == 0.0f) [[unlikely]] {
         mat[i][i] = unit_length;
       }
     }
@@ -1609,6 +1628,10 @@ bool orthogonalize_m4_zero_axes(float m[4][4], const float unit_length)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Linear Algebra
+ * \{ */
 
 bool is_orthogonal_m3(const float m[3][3])
 {
@@ -1901,7 +1924,11 @@ float determinant_m4(const float m[4][4])
   return ans;
 }
 
-/****************************** Transformations ******************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Transformations
+ * \{ */
 
 void size_to_mat3(float R[3][3], const float size[3])
 {
@@ -1952,7 +1979,7 @@ void mat4_to_size(float size[3], const float M[4][4])
 
 float mat4_to_size_max_axis(const float M[4][4])
 {
-  return sqrtf(max_fff(len_squared_v3(M[0]), len_squared_v3(M[1]), len_squared_v3(M[2])));
+  return sqrtf(std::max({len_squared_v3(M[0]), len_squared_v3(M[1]), len_squared_v3(M[2])}));
 }
 
 void mat4_to_size_fix_shear(float size[3], const float M[4][4])
@@ -1995,7 +2022,7 @@ void mat3_to_rot_size(float rot[3][3], float size[3], const float mat3[3][3])
   size[0] = normalize_v3_v3(rot[0], mat3[0]);
   size[1] = normalize_v3_v3(rot[1], mat3[1]);
   size[2] = normalize_v3_v3(rot[2], mat3[2]);
-  if (UNLIKELY(is_negative_m3(rot))) {
+  if (is_negative_m3(rot)) [[unlikely]] {
     negate_m3(rot);
     negate_v3(size);
   }
@@ -2371,7 +2398,11 @@ void loc_quat_size_to_mat4(float R[4][4],
   R[3][2] = loc[2];
 }
 
-/*********************************** Other ***********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Other
+ * \{ */
 
 void print_m3(const char *str, const float m[3][3])
 {
@@ -2888,6 +2919,8 @@ void invert_m4_m4_safe(float inverse[4][4], const float mat[4][4])
   }
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Invert (Safe Orthographic)
  *
@@ -2905,10 +2938,12 @@ void invert_m4_m4_safe(float inverse[4][4], const float mat[4][4])
 
 void invert_m4_m4_safe_ortho(float inverse[4][4], const float mat[4][4])
 {
-  if (UNLIKELY(!invert_m4_m4(inverse, mat))) {
+  if (!invert_m4_m4(inverse, mat)) [[unlikely]] {
     float mat_tmp[4][4];
     copy_m4_m4(mat_tmp, mat);
-    if (UNLIKELY(!(orthogonalize_m4_zero_axes(mat_tmp, 1.0f) && invert_m4_m4(inverse, mat_tmp)))) {
+    if (!(orthogonalize_m4_zero_axes(mat_tmp, 1.0f) && invert_m4_m4(inverse, mat_tmp)))
+        [[unlikely]]
+    {
       unit_m4(inverse);
     }
   }
@@ -2916,16 +2951,22 @@ void invert_m4_m4_safe_ortho(float inverse[4][4], const float mat[4][4])
 
 void invert_m3_m3_safe_ortho(float inverse[3][3], const float mat[3][3])
 {
-  if (UNLIKELY(!invert_m3_m3(inverse, mat))) {
+  if (!invert_m3_m3(inverse, mat)) [[unlikely]] {
     float mat_tmp[3][3];
     copy_m3_m3(mat_tmp, mat);
-    if (UNLIKELY(!(orthogonalize_m3_zero_axes(mat_tmp, 1.0f) && invert_m3_m3(inverse, mat_tmp)))) {
+    if (!(orthogonalize_m3_zero_axes(mat_tmp, 1.0f) && invert_m3_m3(inverse, mat_tmp)))
+        [[unlikely]]
+    {
       unit_m3(inverse);
     }
   }
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Other
+ * \{ */
 
 void BLI_space_transform_from_matrices(SpaceTransform *data,
                                        const float local[4][4],
@@ -2968,5 +3009,7 @@ void BLI_space_transform_invert_normal(const SpaceTransform *data, float no[3])
   mul_transposed_mat3_m4_v3(data->local2target, no);
   normalize_v3(no);
 }
+
+/** \} */
 
 }  // namespace blender

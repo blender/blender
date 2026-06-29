@@ -8,7 +8,7 @@
 
 #include "SceneHash.h"
 
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 #include <sstream>
 

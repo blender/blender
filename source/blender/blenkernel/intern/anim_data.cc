@@ -33,12 +33,12 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_world_types.h"
 
-#include "BLI_alloca.h"
-#include "BLI_dynstr.h"
-#include "BLI_listbase.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_alloca.hh"
+#include "BLI_dynstr.hh"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -237,8 +237,7 @@ bool BKE_animdata_id_is_animated(const ID *id)
     }
   }
 
-  return !BLI_listbase_is_empty(&adt->drivers) || !BLI_listbase_is_empty(&adt->nla_tracks) ||
-         !BLI_listbase_is_empty(&adt->overrides);
+  return !adt->drivers.is_empty() || !adt->nla_tracks.is_empty() || !adt->overrides.is_empty();
 }
 
 void BKE_animdata_foreach_id(AnimData *adt, LibraryForeachIDData *data)
@@ -320,7 +319,7 @@ AnimData *BKE_animdata_copy_in_lib(Main *bmain,
   dadt->driver_array = nullptr;
 
   /* don't copy overrides */
-  BLI_listbase_clear(&dadt->overrides);
+  dadt->overrides.clear_no_delete();
 
   const bool is_main = (flag & LIB_ID_CREATE_NO_MAIN) == 0;
   if (is_main) {
@@ -790,6 +789,14 @@ static bool fcurves_path_rename_fix(ID *owner_id,
      * (i.e. F-Curve is first of a bone's F-Curves;
      * hence renaming this should also trigger rename) */
     if (fcu->rna_path != old_path) {
+      /* If the path changed, make sure to update the fcurve flags to the new property type. See
+       * #157234. We assume that the property type didn't change if the path is the same. */
+      PointerRNA ptr = RNA_id_pointer_create(owner_id);
+      PointerRNA resolved_ptr;
+      PropertyRNA *resolved_prop;
+      if (RNA_path_resolve(&ptr, fcu->rna_path, &resolved_ptr, &resolved_prop)) {
+        animrig::update_autoflags_fcurve_direct(fcu, RNA_property_type(resolved_prop));
+      }
       bActionGroup *agrp = fcu->grp;
       is_changed = true;
       if (oldName != nullptr && (agrp != nullptr) && STREQ(oldName, agrp->name)) {
@@ -1253,8 +1260,7 @@ static bool nlastrips_apply_all_curves_cb(ID *id,
 {
   for (NlaStrip &strip : *strips) {
     if (strip.act) {
-      BLI_assert_msg(BLI_listbase_is_empty(&strip.act->curves),
-                     "Legacy Actions are not supported here");
+      BLI_assert_msg(strip.act->curves.is_empty(), "Legacy Actions are not supported here");
       const Vector<FCurve *> fcurves = animrig::fcurves_for_action_slot(strip.act->wrap(),
                                                                         strip.action_slot_handle);
       if (!fcurves_apply_cb(id, fcurves, func)) {
@@ -1280,8 +1286,7 @@ static bool nlastrips_apply_all_curves_cb(ID *id,
 static bool adt_apply_all_fcurves_cb(ID *id, AnimData *adt, const IDFCurveCallback func)
 {
   if (adt->action) {
-    BLI_assert_msg(BLI_listbase_is_empty(&adt->action->curves),
-                   "Legacy Actions are not supported here");
+    BLI_assert_msg(adt->action->curves.is_empty(), "Legacy Actions are not supported here");
     animrig::Action &action = adt->action->wrap();
     const bool result = animrig::foreach_keyframe_strip_in_action_slot(
         action,
@@ -1297,8 +1302,7 @@ static bool adt_apply_all_fcurves_cb(ID *id, AnimData *adt, const IDFCurveCallba
   }
 
   if (adt->tmpact) {
-    BLI_assert_msg(BLI_listbase_is_empty(&adt->tmpact->curves),
-                   "Legacy Actions are not supported here");
+    BLI_assert_msg(adt->tmpact->curves.is_empty(), "Legacy Actions are not supported here");
     animrig::Action &action = adt->tmpact->wrap();
     const bool result = animrig::foreach_keyframe_strip_in_action_slot(
         action,

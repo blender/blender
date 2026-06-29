@@ -305,7 +305,7 @@ class CameraExportImportTest(unittest.TestCase):
 
         # A MeshSequenceCache modifier should be present on every imported object
         for blender_mesh in [blender_mesh1, blender_mesh2]:
-            self.assertTrue(len(blender_mesh.modifiers) == 1 and blender_mesh.modifiers[0].type ==
+            self.assertTrue(len(blender_mesh.modifiers) >= 1 and blender_mesh.modifiers[0].type ==
                             'MESH_SEQUENCE_CACHE', f"{blender_mesh.name} has incorrect modifiers")
 
         # Conversion from USD to Blender convention
@@ -320,8 +320,10 @@ class CameraExportImportTest(unittest.TestCase):
             blender_mesh2_eval = bpy.data.objects["mesh_vert_crease"].evaluated_get(depsgraph)
 
             # The file was written using a simple formula for each frame's crease value
-            expected_edge_creases = [round(frame / 24.0, 3)] * 12
-            expected_vert_creases = [round(frame / 24.0, 3)] * 4
+            expected_edge_creases = [round(frame / 24.0, 3)] * 48
+            # Creases are not propagated to edges that do not come from a coarse edge
+            expected_edge_creases.extend([0.0] * 144)
+            expected_vert_creases = [round(frame / 24.0, 3)] * 25
 
             # Check crease values
             blender_crease_data = [round(d.value, 3) for d in blender_mesh1_eval.data.attributes["crease_edge"].data]
@@ -335,6 +337,56 @@ class CameraExportImportTest(unittest.TestCase):
                 blender_crease_data,
                 expected_vert_creases,
                 f"Frame {frame}: {blender_mesh2_eval.name} crease values do not match")
+
+    def test_mesh_subd_params(self):
+        """Test export of subdivision parameters."""
+
+        abc_path = str(self.tempdir / "mesh_subd_params.abc")
+
+        # Export
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "mesh_subd_params.blend"))
+        self.assertIn('FINISHED', bpy.ops.wm.alembic_export(
+            filepath=abc_path,
+            subdiv_schema=True
+        ))
+
+        # Re-import what we just exported into an empty file.
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "empty.blend"))
+        bpy.ops.wm.alembic_import(
+            filepath=abc_path,
+            as_background_job=False)
+
+        uv_smooth_options = [
+            'NONE',
+            'PRESERVE_CORNERS',
+            # NOTE: in Blender this should be PRESERVE_CORNERS_AND_JUNCTIONS, however
+            # Alembic does not have this concept.
+            'PRESERVE_CORNERS',
+            'PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE',
+            'PRESERVE_BOUNDARIES',
+            'SMOOTH_ALL'
+        ]
+
+        boundary_smooth_options = [
+            'PRESERVE_CORNERS',
+            'ALL'
+        ]
+
+        for uv_smooth_index in range(len(uv_smooth_options)):
+            uv_smooth = uv_smooth_options[uv_smooth_index]
+
+            for boundary_smooth_index in range(len(boundary_smooth_options)):
+                boundary_smooth = boundary_smooth_options[boundary_smooth_index]
+
+                obj_name = 'obj{}{}'.format(uv_smooth_index, boundary_smooth_index)
+
+                obj = bpy.data.objects[obj_name]
+                modifier = obj.modifiers['Subdivision']
+
+                self.assertEqual(modifier.uv_smooth, uv_smooth)
+                self.assertEqual(modifier.boundary_smooth, boundary_smooth)
+                self.assertEqual(modifier.levels, 1 + uv_smooth_index)
+                self.assertEqual(modifier.render_levels, 2 + uv_smooth_index)
 
     def do_export_import_test(self, *, flatten: bool):
         bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "camera_transforms.blend"))
@@ -497,6 +549,127 @@ class AlembicVisibilityImportTests(AbstractAlembicTest):
 
         # Objects inherit the name of their parent Xform which is called 'HIDDEN' here
         self.assertObjectVisible('HIDDEN')
+
+
+class AlembicAnimatedVisibilityImportTests(AbstractAlembicTest):
+    def test_import_visibility_animated(self):
+        res = bpy.ops.wm.alembic_import(
+            filepath=str(self.testdir / "visibility-animated.abc"),
+            as_background_job=False)
+        self.assertEqual({'FINISHED'}, res)
+
+        view_layer = bpy.context.view_layer
+
+        # The object was written to be visible on frames following the Fibonacci sequence
+        a = 0
+        b = 1
+        next_fib = a + b
+
+        # Compare visibility against the expected value for every frame
+        for frame in range(1, 25):
+            bpy.context.scene.frame_set(frame)
+            depsgraph = bpy.context.evaluated_depsgraph_get()
+            point_object = bpy.data.objects["ANIMATED"].evaluated_get(depsgraph)
+
+            is_hidden = True
+
+            if frame == next_fib:
+                a = b
+                b = next_fib
+                next_fib = a + b
+                is_hidden = False
+
+            # Unlike static visibility, animated visibility by default should not set the visibility on the `Base`
+            self.assertEqual(point_object.hide_get(view_layer=view_layer), False)
+            self.assertEqual(point_object.hide_viewport, is_hidden)
+            self.assertEqual(point_object.hide_render, is_hidden)
+
+
+class AlembicAnimatedCameraImportTests(AbstractAlembicTest):
+    def test_import_camera_data_animation(self):
+        res = bpy.ops.wm.alembic_import(
+            filepath=str(self.testdir / "camera-data-animated.abc"),
+            as_background_job=False)
+        self.assertEqual({'FINISHED'}, res)
+
+        view_layer = bpy.context.view_layer
+
+        # Compare Blender data against the expected value for every frame
+        for frame in range(1, 26):
+            bpy.context.scene.frame_set(frame)
+            depsgraph = bpy.context.evaluated_depsgraph_get()
+            camera_object = bpy.data.objects["Camera"].evaluated_get(depsgraph)
+            camera = camera_object.data
+
+            lens = 50.0 + frame
+            sensor_width = 35.0 + frame
+            sensor_height = 23.0 + frame
+            shift_x = (frame - 1) * (1.0 / 24.0)
+            shift_y = -(frame - 1) * (1.0 / 24.0)
+            clip_start = frame
+            clip_end = frame * 100.0
+            focus_distance = frame * 10.0
+            aperture_fstop = frame * 3.0
+            convergence_distance = frame * 2.0
+            interocular_distance = frame * 0.05
+
+            self.assertEqual(
+                lens,
+                camera.lens,
+                f"Frame {frame}: {camera_object.name} lens values do not match")
+
+            self.assertEqual(
+                sensor_width,
+                camera.sensor_width,
+                f"Frame {frame}: {camera_object.name} sensor_width values do not match")
+
+            self.assertEqual(
+                sensor_height,
+                camera.sensor_height,
+                f"Frame {frame}: {camera_object.name} sensor_height values do not match")
+
+            self.assertAlmostEqual(
+                shift_x,
+                camera.shift_x,
+                places=6,
+                msg=f"Frame {frame}: {camera_object.name} shift_x values do not match")
+
+            self.assertAlmostEqual(
+                shift_y,
+                camera.shift_y,
+                places=6,
+                msg=f"Frame {frame}: {camera_object.name} shift_y values do not match")
+
+            self.assertEqual(
+                clip_start,
+                camera.clip_start,
+                f"Frame {frame}: {camera_object.name} clip_start values do not match")
+
+            self.assertEqual(
+                clip_end,
+                camera.clip_end,
+                f"Frame {frame}: {camera_object.name} clip_end values do not match")
+
+            self.assertEqual(
+                focus_distance,
+                camera.dof.focus_distance,
+                f"Frame {frame}: {camera_object.name} focus_distance values do not match")
+
+            self.assertEqual(
+                aperture_fstop,
+                camera.dof.aperture_fstop,
+                f"Frame {frame}: {camera_object.name} aperture_fstop values do not match")
+
+            self.assertEqual(
+                convergence_distance,
+                camera.stereo.convergence_distance,
+                f"Frame {frame}: {camera_object.name} convergence_distance values do not match")
+
+            self.assertAlmostEqual(
+                interocular_distance,
+                camera.stereo.interocular_distance,
+                delta=1e-6,
+                msg=f"Frame {frame}: {camera_object.name} interocular_distance values do not match")
 
 
 class AlembicImportComparisonTests(unittest.TestCase):

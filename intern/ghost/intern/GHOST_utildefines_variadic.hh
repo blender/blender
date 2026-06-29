@@ -8,7 +8,7 @@
  * \ingroup bli
  */
 
-/* NOTE: copied from `BLI_utildefines_variadic.h` which would be a bad-level include. */
+/* NOTE: copied from `BLI_utildefines_variadic.hh` which would be a bad-level include. */
 
 /* Over wrapped args. */
 /* clang-format off */

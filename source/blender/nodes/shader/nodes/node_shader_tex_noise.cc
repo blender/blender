@@ -25,11 +25,25 @@ NODE_STORAGE_FUNCS(NodeTexNoise)
 static void sh_node_tex_noise_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>("Vector"_ustr).implicit_field(NODE_DEFAULT_INPUT_POSITION_FIELD);
-  b.add_input<decl::Float>("W"_ustr).min(-1000.0f).max(1000.0f).make_available([](bNode &node) {
-    /* Default to 1 instead of 4, because it is much faster. */
-    node_storage(node).dimensions = 1;
-  });
+
+  const int dimensions = b.node_or_null() ? node_storage(*b.node_or_null()).dimensions : 3;
+  const bool is_compositor = b.tree_or_null() && b.tree_or_null()->type == NTREE_COMPOSIT;
+  const NodeDefaultInputType default_input_type =
+      is_compositor ? NODE_DEFAULT_INPUT_UNIFORM_IMAGE_COORDINATES :
+                      NODE_DEFAULT_INPUT_POSITION_FIELD;
+  b.add_input<decl::Vector>("Vector"_ustr)
+      .default_input_type(default_input_type)
+      .available(dimensions != 1);
+
+  b.add_input<decl::Float>("W"_ustr)
+      .min(-1000.0f)
+      .max(1000.0f)
+      .available(dimensions == 1 || dimensions == 4)
+      .make_available([](bNode &node) {
+        /* Default to 1 instead of 4, because it is much faster. */
+        node_storage(node).dimensions = 1;
+      });
+
   b.add_input<decl::Float>("Scale"_ustr)
       .min(-1000.0f)
       .max(1000.0f)
@@ -58,10 +72,15 @@ static void sh_node_tex_noise_declare(NodeDeclarationBuilder &b)
       .description(
           "The difference between the scale of each two consecutive octaves. Larger values "
           "corresponds to larger scale for higher octaves");
+
+  const eNodeNoiseTexture_Type noise_type = eNodeNoiseTexture_Type(
+      b.node_or_null() ? eNodeNoiseTexture_Type(node_storage(*b.node_or_null()).type) :
+                         SHD_NOISE_FBM);
   b.add_input<decl::Float>("Offset"_ustr)
       .min(-1000.0f)
       .max(1000.0f)
       .default_value(0.0f)
+      .available(noise_type != SHD_NOISE_MULTIFRACTAL && noise_type != SHD_NOISE_FBM)
       .make_available([](bNode &node) { node_storage(node).type = SHD_NOISE_RIDGED_MULTIFRACTAL; })
       .description(
           "An added offset to each octave, determines the level where the highest octave will "
@@ -70,6 +89,8 @@ static void sh_node_tex_noise_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1000.0f)
       .default_value(1.0f)
+      .available(noise_type == SHD_NOISE_HYBRID_MULTIFRACTAL ||
+                 noise_type == SHD_NOISE_RIDGED_MULTIFRACTAL)
       .make_available([](bNode &node) { node_storage(node).type = SHD_NOISE_RIDGED_MULTIFRACTAL; })
       .description("An extra multiplier to tune the magnitude of octaves");
   b.add_input<decl::Float>("Distortion"_ustr)
@@ -153,27 +174,6 @@ static int node_shader_gpu_tex_noise(GPUMaterial *mat,
   const char *name = gpu_shader_get_name(storage.dimensions, storage.type);
   return GPU_stack_link(
       mat, node, name, in, out, GPU_constant(&normalize), GPU_constant(&compute_color));
-}
-
-static void node_shader_update_tex_noise(bNodeTree *ntree, bNode *node)
-{
-  bNodeSocket *sockVector = bke::node_find_socket(*node, SOCK_IN, "Vector"_ustr);
-  bNodeSocket *sockW = bke::node_find_socket(*node, SOCK_IN, "W"_ustr);
-  bNodeSocket *inOffsetSock = bke::node_find_socket(*node, SOCK_IN, "Offset"_ustr);
-  bNodeSocket *inGainSock = bke::node_find_socket(*node, SOCK_IN, "Gain"_ustr);
-
-  const NodeTexNoise &storage = node_storage(*node);
-  bke::node_set_socket_availability(*ntree, *sockVector, storage.dimensions != 1);
-  bke::node_set_socket_availability(
-      *ntree, *sockW, storage.dimensions == 1 || storage.dimensions == 4);
-  bke::node_set_socket_availability(*ntree,
-                                    *inOffsetSock,
-                                    storage.type != SHD_NOISE_MULTIFRACTAL &&
-                                        storage.type != SHD_NOISE_FBM);
-  bke::node_set_socket_availability(*ntree,
-                                    *inGainSock,
-                                    storage.type == SHD_NOISE_HYBRID_MULTIFRACTAL ||
-                                        storage.type == SHD_NOISE_RIDGED_MULTIFRACTAL);
 }
 
 class NoiseFunction : public mf::MultiFunction {
@@ -505,10 +505,9 @@ void register_node_type_sh_tex_noise()
   bke::node_type_storage(
       ntype, "NodeTexNoise", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_noise;
-  ntype.updatefunc = file_ns::node_shader_update_tex_noise;
   ntype.build_multi_function = file_ns::sh_node_noise_build_multi_function;
   ntype.materialx_fn = file_ns::node_shader_materialx;
-  bke::node_type_size(ntype, 145, 140, NODE_DEFAULT_MAX_WIDTH);
+  ntype.default_width = bke::NodeWidth::_160;
 
   bke::node_register_type(ntype);
 }

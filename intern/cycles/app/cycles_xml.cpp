@@ -122,7 +122,9 @@ static bool xml_read_float3(float3 *value, const xml_node node, const char *name
   return false;
 }
 
-static bool xml_read_float3_array(vector<float3> &value, const xml_node node, const char *name)
+static bool xml_read_float3_array(vector<packed_float3> &value,
+                                  const xml_node node,
+                                  const char *name)
 {
   vector<float> array;
 
@@ -404,8 +406,8 @@ static void xml_read_mesh(const XMLReadState &state, const xml_node node)
   const bool smooth = state.smooth;
 
   /* read vertices and polygons */
-  vector<float3> P;
-  vector<float3> VN; /* Vertex normals */
+  vector<packed_float3> P;
+  vector<packed_float3> VN; /* Vertex normals */
   vector<float> UV;
   vector<float> T;  /* UV tangents */
   vector<float> TS; /* UV tangent signs */
@@ -423,19 +425,15 @@ static void xml_read_mesh(const XMLReadState &state, const xml_node node)
     mesh->set_subdivision_type(Mesh::SUBDIVISION_LINEAR);
   }
 
-  array<float3> P_array;
-  P_array = P;
-
   if (mesh->get_subdivision_type() == Mesh::SUBDIVISION_NONE) {
     /* create vertices */
-
-    mesh->set_verts(P_array);
 
     size_t num_triangles = 0;
     for (size_t i = 0; i < nverts.size(); i++) {
       num_triangles += nverts[i] - 2;
     }
-    mesh->resize_mesh(mesh->get_verts().size(), num_triangles);
+    mesh->resize_mesh(P.size(), num_triangles);
+    std::copy_n(P.data(), P.size(), mesh->get_position_for_write());
 
     int *triangles = mesh->get_triangles().data();
 
@@ -471,7 +469,7 @@ static void xml_read_mesh(const XMLReadState &state, const xml_node node)
     /* Vertex normals */
     if (xml_read_float3_array(VN, node, Attribute::standard_name(ATTR_STD_VERTEX_NORMAL))) {
       Attribute *attr = mesh->attributes.add(ATTR_STD_VERTEX_NORMAL);
-      packed_normal *fdata = attr->data_normal_for_write();
+      packed_normal *fdata = attr->data_for_write<packed_normal>();
 
       /* Loop over the normals */
       for (auto n : VN) {
@@ -485,7 +483,7 @@ static void xml_read_mesh(const XMLReadState &state, const xml_node node)
         xml_read_float_array(UV, node, Attribute::standard_name(ATTR_STD_UV)))
     {
       Attribute *attr = mesh->attributes.add(ATTR_STD_UV);
-      float2 *fdata = attr->data_float2_for_write();
+      float2 *fdata = attr->data_for_write<float2>();
 
       /* Loop over the triangles */
       index_offset = 0;
@@ -512,7 +510,7 @@ static void xml_read_mesh(const XMLReadState &state, const xml_node node)
     /* Tangents */
     if (xml_read_float_array(T, node, Attribute::standard_name(ATTR_STD_UV_TANGENT))) {
       Attribute *attr = mesh->attributes.add(ATTR_STD_UV_TANGENT);
-      float3 *fdata = attr->data_float3_for_write();
+      packed_float3 *fdata = attr->data_for_write<packed_float3>();
 
       /* Loop over the triangles */
       index_offset = 0;
@@ -538,7 +536,7 @@ static void xml_read_mesh(const XMLReadState &state, const xml_node node)
     /* Tangent signs */
     if (xml_read_float_array(TS, node, Attribute::standard_name(ATTR_STD_UV_TANGENT_SIGN))) {
       Attribute *attr = mesh->attributes.add(ATTR_STD_UV_TANGENT_SIGN);
-      float *fdata = attr->data_float_for_write();
+      float *fdata = attr->data_for_write<float>();
 
       /* Loop over the triangles */
       index_offset = 0;
@@ -563,13 +561,17 @@ static void xml_read_mesh(const XMLReadState &state, const xml_node node)
   }
   else {
     /* create vertices */
-    mesh->set_verts(P_array);
+    mesh->resize_mesh(P.size(), 0);
 
     size_t num_corners = 0;
     for (size_t i = 0; i < nverts.size(); i++) {
       num_corners += nverts[i];
     }
     mesh->resize_subd_faces(nverts.size(), num_corners);
+
+    Attribute *subd_attr_P = mesh->subd_attributes.add(ATTR_STD_POSITION);
+    subd_attr_P->resize(P.size());
+    std::copy_n(P.data(), P.size(), subd_attr_P->data_for_write<packed_float3>());
 
     int *subd_start_corner = mesh->get_subd_start_corner().data();
     int *subd_num_corners = mesh->get_subd_num_corners().data();
@@ -607,7 +609,7 @@ static void xml_read_mesh(const XMLReadState &state, const xml_node node)
         xml_read_float_array(UV, node, Attribute::standard_name(ATTR_STD_UV)))
     {
       Attribute *attr = mesh->subd_attributes.add(ATTR_STD_UV);
-      float3 *fdata = attr->data_float3_for_write();
+      packed_float3 *fdata = attr->data_for_write<packed_float3>();
 
       int index_offset = 0;
       for (size_t i = 0; i < nverts.size(); i++) {
@@ -630,7 +632,7 @@ static void xml_read_mesh(const XMLReadState &state, const xml_node node)
    * coordinates as generated coordinates if requested */
   if (mesh->need_attribute(state.scene, ATTR_STD_GENERATED)) {
     Attribute *attr = mesh->attributes.add(ATTR_STD_GENERATED);
-    std::copy_n(mesh->get_verts().data(), mesh->get_verts().size(), attr->data_float3_for_write());
+    std::copy_n(mesh->get_position(), mesh->num_verts(), attr->data_for_write<packed_float3>());
   }
 }
 
@@ -671,7 +673,7 @@ static void xml_read_light(XMLReadState &state, const xml_node node)
   /* Create object. */
   Object *object = scene->create_node<Object>();
   object->set_tfm(state.tfm);
-  object->set_visibility(PATH_RAY_ALL_VISIBILITY & ~PATH_RAY_CAMERA);
+  object->set_visibility(PATH_RAY_VISIBILITY_ALL & ~PATH_RAY_VISIBILITY_CAMERA);
   object->set_geometry(light);
 
   xml_read_node(state, light, node);

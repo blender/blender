@@ -11,8 +11,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_lazy_threading.hh"
-#include "BLI_task.h"
-#include "BLI_threads.h"
+#include "BLI_task_c.hh"
+#include "BLI_threads.hh"
 
 #ifdef WITH_TBB
 /* Need to include at least one header to get the version define. */

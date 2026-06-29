@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "fast_float.h"
 
@@ -26,6 +26,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   const bNode *node = b.node_or_null();
   if (node != nullptr) {
     const eNodeSocketDatatype data_type = eNodeSocketDatatype(node->custom1);
+    b.add_input<decl::Int>("Base"_ustr)
+        .min(2)
+        .max(36)
+        .default_value(10)
+        .description("Numeric base for the input string (e.g. 2 for binary, 16 for hexadecimal)")
+        .available(data_type == SOCK_INT);
     b.add_output(data_type, "Value"_ustr);
   }
 
@@ -37,12 +43,27 @@ static const mf::MultiFunction *get_multi_function(const bNode &bnode)
   static auto str_to_float_fn = mf::build::SI1_SO2<std::string, float, int>(
       "String to Value", [](const std::string &s, float &value, int &length) -> void {
         const auto result = fast_float::from_chars(s.data(), s.data() + s.size(), value);
+        if (result.ec != std::errc()) {
+          value = 0.0f;
+          length = 0;
+          return;
+        }
         length = BLI_strnlen_utf8(s.data(), result.ptr - s.data());
       });
 
-  static auto str_to_int_fn = mf::build::SI1_SO2<std::string, int, int>(
-      "String to Value", [](const std::string &s, int &value, int &length) -> void {
-        const auto result = std::from_chars(s.data(), s.data() + s.size(), value);
+  static auto str_to_int_fn = mf::build::SI2_SO2<std::string, int, int, int>(
+      "String to Value", [](const std::string &s, int base, int &value, int &length) -> void {
+        if (base < 2 || base > 36) {
+          value = 0;
+          length = 0;
+          return;
+        }
+        const auto result = std::from_chars(s.data(), s.data() + s.size(), value, base);
+        if (result.ec != std::errc()) {
+          value = 0;
+          length = 0;
+          return;
+        }
         length = BLI_strnlen_utf8(s.data(), result.ptr - s.data());
       });
 
@@ -70,7 +91,7 @@ static void node_init(bNodeTree *, bNode *node)
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const eNodeSocketDatatype socket_type = eNodeSocketDatatype(params.other_socket().type);
+  const eNodeSocketDatatype socket_type = params.other_socket().type;
   if (params.in_out() == SOCK_IN) {
     if (socket_type == SOCK_STRING) {
       params.add_item(IFACE_("String"), [](LinkSearchOpParams &params) {

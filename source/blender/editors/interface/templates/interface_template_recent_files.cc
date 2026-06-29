@@ -8,11 +8,11 @@
 
 #include <fmt/format.h>
 
-#include "BLI_fileops.h"
-#include "BLI_listbase.h"
+#include "BLI_fileops.hh"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BLO_readfile.hh"
 
@@ -64,7 +64,7 @@ static void template_recent_files_tooltip_func(bContext & /*C*/,
   if (thumb) {
     /* Look for version in existing thumbnail if available. */
     IMB_metadata_get_field(
-        thumb->metadata, "Thumb::Blender::Version", version_str, sizeof(version_str));
+        thumb->metadata(), "Thumb::Blender::Version", version_str, sizeof(version_str));
   }
 
   eFileAttributes attributes = BLI_file_attributes(path);

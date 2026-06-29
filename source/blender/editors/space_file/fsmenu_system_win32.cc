@@ -14,7 +14,7 @@
 #include <windows.h>
 /* For SHGetSpecialFolderPath, has to be done before BLI_winstuff
  * because 'near' is disabled through BLI_windstuff. */
-#include "BLI_winstuff.h"
+#include "BLI_winstuff.hh"
 #include <comdef.h>
 #include <shlobj.h>
 #include <shlwapi.h>
@@ -26,7 +26,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BLT_translation.hh"
 

@@ -33,8 +33,8 @@ namespace blender::nodes::partial_eval {
  * \note This handles node groups transparently, but does not handle e.g. repeat zones yet.
  *
  * \param initial_sockets: Sockets where the evaluation should start.
- * \param scope: Is used to construct compute contexts which the caller may want to outlive the
- *   entire evaluation.
+ * \param compute_context_cache: Is used to construct compute contexts
+ *   which the caller may want to outlive the entire evaluation.
  * \param evaluate_node_fn: Is called when all (relevant) upstream nodes are already evaluated and
  *   evaluates the given node. This should updated the values the caller stores for the output
  *   sockets.
@@ -67,8 +67,8 @@ struct UpstreamEvalTargets {
  * \note This handles node groups transparently, but does not handle e.g. repeat zones yet.
  *
  * \param initial_sockets: Sockets where the evaluation should start.
- * \param scope: Is used to construct compute contexts which the caller may want to outlive the
- *   entire evaluation.
+ * \param compute_context_cache: Is used to construct compute contexts
+ *   which the caller may want to outlive the entire evaluation.
  * \param evaluate_node_fn: Called to evaluate the node in reverse, i.e. it's outputs are computed
  *   first, and the node evaluation computes the inputs.
  * \param propagate_value_fn: Should copy the value from one socket to another, while optionally

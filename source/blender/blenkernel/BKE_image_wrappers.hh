@@ -10,8 +10,8 @@
 
 #include "DNA_image_types.h"
 
-#include "BLI_math_color.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_memory_utils.hh"
 
@@ -75,7 +75,7 @@ template<typename T, int Channels = 4> struct ImageBufferAccessor {
 
   void write_pixel(const int2 coordinate, float4 new_value)
   {
-    if constexpr ((std::is_same_v<T, float>)) {
+    if constexpr ((std::is_same_v<T, float4>)) {
       int offset = (coordinate.y * image_buffer.x + coordinate.x) * Channels;
       copy_v4_v4(&image_buffer.float_data_for_write()[offset], new_value);
     }

@@ -15,12 +15,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Int>("Face Group ID"_ustr, "Face Set"_ustr)
       .default_value(0)
       .hide_value()
-      .supports_field()
+      .structure_type(StructureType::Field)
       .description(
           "An identifier for the group of each face. All contiguous faces with the "
           "same value are in the same region");
   b.add_output<decl::Bool>("Boundary Edges"_ustr)
-      .field_source_reference_all()
+      .structure_type(StructureType::Field)
+      .propagate_references()
       .description("The edges that lie on the boundaries between the different face groups");
 }
 
@@ -131,7 +132,7 @@ static void node_register()
       "Find edges on the boundaries between groups of faces with the same ID value";
   ntype.enum_name_legacy = "MESH_FACE_SET_BOUNDARIES";
   ntype.nclass = NODE_CLASS_INPUT;
-  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
+  ntype.default_width = bke::NodeWidth::_160;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   bke::node_register_type(ntype);

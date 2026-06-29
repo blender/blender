@@ -26,23 +26,27 @@ struct ProjCameraInfo *BKE_uvproject_camera_info(const struct Object *ob,
 /**
  * Apply UV from #ProjCameraInfo (camera).
  */
-void BKE_uvproject_from_camera(float target[2], float source[3], struct ProjCameraInfo *uci);
+void BKE_uvproject_from_camera(float target[2],
+                               const float source[3],
+                               const struct ProjCameraInfo *uci);
 
 /**
  * Apply uv from perspective matrix.
  * \param persmat: Can be `rv3d->persmat`.
  */
 void BKE_uvproject_from_view(float target[2],
-                             float source[3],
-                             float persmat[4][4],
-                             float rotmat[4][4],
+                             const float source[3],
+                             const float persmat[4][4],
+                             const float rotmat[4][4],
                              float winx,
                              float winy);
 
 /**
  * Apply orthographic UVs.
  */
-void BKE_uvproject_from_view_ortho(float target[2], float source[3], const float rotmat[4][4]);
+void BKE_uvproject_from_view_ortho(float target[2],
+                                   const float source[3],
+                                   const float rotmat[4][4]);
 
 /**
  * So we can adjust scale with keeping the struct private.

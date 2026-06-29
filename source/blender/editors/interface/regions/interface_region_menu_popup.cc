@@ -19,11 +19,11 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_hash.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
-#include "BLI_rect.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rect.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_context.hh"
 #include "BKE_report.hh"
@@ -433,8 +433,12 @@ static PopupBlockHandle *popup_menu_create_impl(
   return handle;
 }
 
-PopupBlockHandle *popup_menu_create(
-    bContext *C, ARegion *butregion, Button *but, MenuCreateFunc menu_func, void *arg)
+PopupBlockHandle *popup_menu_create(bContext *C,
+                                    ARegion *butregion,
+                                    Button *but,
+                                    MenuCreateFunc menu_func,
+                                    void *arg,
+                                    const bool can_refresh)
 {
   return popup_menu_create_impl(
       C,
@@ -442,7 +446,7 @@ PopupBlockHandle *popup_menu_create(
       but,
       nullptr,
       [menu_func, arg](bContext *C, Layout *layout) { menu_func(C, layout, arg); },
-      false);
+      can_refresh);
 }
 
 /** \} */
@@ -836,8 +840,6 @@ void popup_block_template_confirm_op(Layout *layout,
                                    UI_UNIT_Y,
                                    nullptr,
                                    "");
-    button_retval_set(but, 1);
-
     return but;
   };
 

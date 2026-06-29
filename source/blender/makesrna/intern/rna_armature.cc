@@ -8,8 +8,8 @@
 
 #include <cstdlib>
 
-#include "BLI_math_constants.h"
-#include "BLI_string_utf8_symbols.h"
+#include "BLI_math_constants.hh"
+#include "BLI_string_utf8_symbols.hh"
 
 #include "BLT_translation.hh"
 
@@ -62,9 +62,9 @@ constexpr int COLOR_SETS_MAX_THEMED_INDEX = 20;
 
 #  include <fmt/format.h>
 
-#  include "BLI_math_vector.h"
-#  include "BLI_string.h"
-#  include "BLI_string_utf8.h"
+#  include "BLI_math_vector_c.hh"
+#  include "BLI_string.hh"
+#  include "BLI_string_utf8.hh"
 
 #  include "BKE_action.hh"
 #  include "BKE_context.hh"
@@ -955,7 +955,7 @@ static void rna_Bone_bbone_handle_update(Main *bmain, Scene *scene, PointerRNA *
     if (obt->data == id_cast<ID *>(arm) && obt->pose) {
       bPoseChannel *pchan = BKE_pose_channel_find_name(obt->pose, bone->name);
 
-      if (pchan && pchan->bone_get(*arm) == bone) {
+      if (pchan && pchan->bone_get(*obt) == bone) {
         BKE_pchan_rebuild_bbone_handles(obt->pose, {pchan, bone});
         DEG_id_tag_update(&obt->id, ID_RECALC_SYNC_TO_EVAL);
       }
@@ -1280,6 +1280,7 @@ void rna_def_bone_curved_common(StructRNA *srna, bool is_posebone, bool is_editb
   RNA_def_property_array(prop, 3);
   RNA_def_property_flag(prop, PROP_PROPORTIONAL);
   RNA_def_property_ui_range(prop, 0.0f, FLT_MAX, 1, 3);
+  RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_ui_text(
       prop,
       "Scale In",
@@ -1291,6 +1292,7 @@ void rna_def_bone_curved_common(StructRNA *srna, bool is_posebone, bool is_editb
   RNA_def_property_array(prop, 3);
   RNA_def_property_flag(prop, PROP_PROPORTIONAL);
   RNA_def_property_ui_range(prop, 0.0f, FLT_MAX, 1, 3);
+  RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_ui_text(
       prop,
       "Scale Out",

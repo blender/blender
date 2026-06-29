@@ -6,7 +6,7 @@
 
 #include "DNA_node_types.h"
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 
 #include "BKE_customdata.hh"
 

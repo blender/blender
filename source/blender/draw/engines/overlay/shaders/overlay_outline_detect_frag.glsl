@@ -126,18 +126,16 @@ float2 diag_offset(bool4 edges)
     /* Horizontal line. */
     return float2(2.5f, 0.5f);
   }
-  else if (all(not(edges.xw))) {
+  if (all(not(edges.xw))) {
     /* Vertical line. */
     return float2(0.5f, 2.5f);
   }
-  else if (edges.w) {
+  if (edges.w) {
     /* Less horizontal Line. */
     return float2(2.5f, 0.5f);
   }
-  else {
-    /* Less vertical Line. */
-    return float2(0.5f, 2.5f);
-  }
+  /* Less vertical Line. */
+  return float2(0.5f, 2.5f);
 }
 
 /* Compute line direction vector from the bottom left corner. */

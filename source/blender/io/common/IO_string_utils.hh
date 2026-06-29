@@ -30,12 +30,6 @@ namespace blender::io {
 StringRef read_next_line(StringRef &buffer);
 
 /**
- * Fix up OBJ line continuations by replacing backslash (\) and the
- * following newline with spaces.
- */
-void fixup_line_continuations(char *p, char *end);
-
-/**
  * Drop leading white-space from a string part.
  */
 const char *drop_whitespace(const char *p, const char *end);

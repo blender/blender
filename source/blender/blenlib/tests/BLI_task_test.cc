@@ -10,10 +10,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_mempool.h"
-#include "BLI_task.h"
+#include "BLI_listbase.hh"
+#include "BLI_mempool.hh"
 #include "BLI_task.hh"
+#include "BLI_task_c.hh"
 
 namespace blender {
 
@@ -217,7 +217,7 @@ TEST(task, MempoolIterTLS)
 
   BLI_task_parallel_mempool(mempool, nullptr, task_mempool_iter_tls_func, &settings);
 
-  EXPECT_EQ(BLI_listbase_count(tls_data.accumulate_items), ITEMS_NUM);
+  EXPECT_EQ(tls_data.accumulate_items->count(), ITEMS_NUM);
 
   /* Check that all elements are added into the list once. */
   int number_accum = 0;
@@ -227,7 +227,7 @@ TEST(task, MempoolIterTLS)
   }
   EXPECT_EQ(number_accum, (ITEMS_NUM * (ITEMS_NUM + 1)) / 2);
 
-  BLI_freelistN(tls_data.accumulate_items);
+  tls_data.accumulate_items->free_no_destruct();
   MEM_delete(tls_data.accumulate_items);
 
   BLI_mempool_destroy(mempool);

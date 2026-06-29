@@ -51,6 +51,52 @@ const EnumPropertyItem rna_enum_attribute_type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+const EnumPropertyItem rna_enum_attrtype_items[] = {
+    {int(bke::AttrType::Float), "FLOAT", 0, "Float", "Floating-point value"},
+    {int(bke::AttrType::Int32), "INT", 0, "Integer", "32-bit integer"},
+    {int(bke::AttrType::Bool), "BOOLEAN", 0, "Boolean", "True or false"},
+    {int(bke::AttrType::Float3),
+     "FLOAT_VECTOR",
+     0,
+     "Vector",
+     "3D vector with floating-point values"},
+    {int(bke::AttrType::ColorFloat),
+     "FLOAT_COLOR",
+     0,
+     "Color",
+     "RGBA color with 32-bit floating-point values"},
+    {int(bke::AttrType::Quaternion),
+     "QUATERNION",
+     0,
+     "Quaternion",
+     "Floating point quaternion rotation"},
+    {int(bke::AttrType::Float4x4), "FLOAT4X4", 0, "4x4 Matrix", "Floating point matrix"},
+    {int(bke::AttrType::String), "STRING", 0, "String", "Text string"},
+    {int(bke::AttrType::Int8),
+     "INT8",
+     0,
+     "8-Bit Integer",
+     "Smaller integer with a range from -128 to 127"},
+    {int(bke::AttrType::Int16_2D),
+     "INT16_2D",
+     0,
+     "2D 16-Bit Integer Vector",
+     "16-bit signed integer vector"},
+    {int(bke::AttrType::Int32_2D),
+     "INT32_2D",
+     0,
+     "2D Integer Vector",
+     "32-bit signed integer vector"},
+    {int(bke::AttrType::Float2), "FLOAT2", 0, "2D Vector", "2D vector with floating-point values"},
+    {int(bke::AttrType::Float4), "FLOAT4", 0, "4D Vector", "4D vector with floating-point values"},
+    {int(bke::AttrType::ColorByte),
+     "BYTE_COLOR",
+     0,
+     "Byte Color",
+     "RGBA color with 8-bit positive integer values"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 const EnumPropertyItem rna_enum_color_attribute_type_items[] = {
     {CD_PROP_COLOR, "FLOAT_COLOR", 0, "Color", "RGBA color 32-bit floating-point values"},
     {CD_PROP_BYTE_COLOR,
@@ -223,8 +269,8 @@ const EnumPropertyItem rna_enum_attribute_curves_domain_items[] = {
 #  include "DNA_meshdata_types.h"
 #  include "DNA_pointcloud_types.h"
 
-#  include "BLI_math_color.h"
-#  include "BLI_string.h"
+#  include "BLI_math_color_c.hh"
+#  include "BLI_string.hh"
 
 #  include "BKE_anonymous_attribute_id.hh"
 #  include "BKE_attribute_legacy_convert.hh"
@@ -828,7 +874,7 @@ static PointerRNA rna_AttributeGroupID_new(
   bke::AttributeStorage &attributes = *owner.get_storage();
   const CPPType &cpp_type = *bke::custom_data_type_to_cpp_type(eCustomDataType(type));
   bke::Attribute &attr = attributes.add(
-      attributes.unique_name_calc(name),
+      BKE_attribute_calc_unique_name(owner, name),
       AttrDomain(domain),
       *bke::custom_data_type_to_attr_type(eCustomDataType(type)),
       bke::Attribute::ArrayData::from_default_value(cpp_type, domain_size));

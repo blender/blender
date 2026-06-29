@@ -7,6 +7,7 @@
 #include <DRW_render.hh>
 
 #include "BKE_context.hh"
+#include "BKE_image_gpu.hh"
 
 #include "GPU_capabilities.hh"
 
@@ -73,28 +74,17 @@ class Instance : public DrawEngine {
   std::unique_ptr<AbstractDrawingMode> get_drawing_mode()
   {
     if (this->state.image->source != IMA_SRC_TILED) {
-      void *lock;
-      ImBuf *buffer = BKE_image_acquire_ibuf_gpu(
-          this->state.image, space_->get_image_user(), &lock);
-      BLI_SCOPED_DEFER([&]() { BKE_image_release_ibuf(this->state.image, buffer, lock); });
-
-      /* The image buffer already has a GPU texture, so use image space drawing. */
-      if (buffer && buffer->gpu.texture) {
-        return std::make_unique<ImageSpaceDrawingMode>(*this, buffer->gpu.texture);
+      /* If the full image resolution can fit in a GPU texture, draw it directly.
+       * Otherwise fall back to slower tiled screen space drawing. */
+      const bool only_full_resolution = true;
+      gpu::Texture *texture = BKE_image_acquire_gpu_viewer_texture(
+          this->state.image, space_->get_image_user(), only_full_resolution);
+      if (texture) {
+        const bool texture_owned = true;
+        return std::make_unique<ImageSpaceDrawingMode>(*this, texture, nullptr, texture_owned);
       }
 
-      /* Buffer does not exist or image will not fit in a GPU texture, use screen space drawing. */
-      if (!buffer || (!buffer->float_data() && !buffer->byte_data()) ||
-          !GPU_is_safe_texture_size(buffer->x, buffer->y))
-      {
-        return std::make_unique<ScreenSpaceDrawingMode>(*this);
-      }
-
-      /* Image can fit in a GPU texture, use image space drawing. */
-      BKE_image_ensure_gpu_texture(this->state.image, space_->get_image_user());
-      gpu::Texture *texture = BKE_image_get_gpu_viewer_texture(
-          this->state.image, space_->get_image_user(), buffer);
-      return std::make_unique<ImageSpaceDrawingMode>(*this, texture);
+      return std::make_unique<ScreenSpaceDrawingMode>(*this);
     }
 
     for (ImageTile &tile : this->state.image->tiles) {
@@ -112,14 +102,24 @@ class Instance : public DrawEngine {
       if (!GPU_is_safe_texture_size(buffer->x, buffer->y)) {
         return std::make_unique<ScreenSpaceDrawingMode>(*this);
       }
+
+      /* GPU drawing will limit image resolution due to the GPU back-end having a lower maximum
+       * texture size or a resolution limit in the preferences, so use screen space drawing to get
+       * the full resolution. */
+      if (GPU_texture_size_with_limit(buffer->x) != buffer->x ||
+          GPU_texture_size_with_limit(buffer->y) != buffer->y)
+      {
+        return std::make_unique<ScreenSpaceDrawingMode>(*this);
+      }
     }
 
     /* Image can fit in a GPU texture, use image space drawing. */
-    BKE_image_ensure_gpu_texture(this->state.image, space_->get_image_user());
-    ImageGPUTextures gpu_tiles_textures = BKE_image_get_gpu_material_texture(
-        this->state.image, space_->get_image_user(), true);
-    return std::make_unique<ImageSpaceDrawingMode>(
-        *this, *gpu_tiles_textures.texture, *gpu_tiles_textures.tile_mapping);
+    ImageGPUTextures gpu_tiles_textures = BKE_image_acquire_gpu_material_texture(
+        this->state.image, space_->get_image_user(), true, false);
+    const bool texture_owned = true;
+    auto mode = std::make_unique<ImageSpaceDrawingMode>(
+        *this, gpu_tiles_textures.texture, gpu_tiles_textures.tile_mapping, texture_owned);
+    return mode;
   }
 
   void begin_sync() final
@@ -206,7 +206,7 @@ class Instance : public DrawEngine {
                                      image_buffer ? image_buffer->y : 1024.0f);
     float2 offset = float2(0.0f);
     if (image_buffer && space_->use_display_window() &&
-        (image_buffer->flags & IB_has_display_window))
+        flag_is_set(image_buffer->flags, ImBufFlags::HasDisplayWindow))
     {
       offset = float2(image_buffer->display_offset);
     }

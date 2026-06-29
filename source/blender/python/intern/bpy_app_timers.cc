@@ -6,7 +6,7 @@
  * \ingroup pythonintern
  */
 
-#include "BLI_timer.h"
+#include "BLI_timer.hh"
 
 #include <Python.h>
 

@@ -11,10 +11,10 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_rect.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rect.hh"
 #include "BLI_string_utils.hh"
 
 #include "BKE_action.hh"
@@ -166,9 +166,14 @@ static void *ed_armature_pick_bone_from_selectbuffer_impl(const bool is_editmode
   bool takeNext = false;
   int minsel = 0xffffffff, minunsel = 0xffffffff;
 
-  for (const GPUSelectResult &hit_result : hit_results) {
-    uint hit_id = hit_result.id;
+  Vector<GPUSelectResult> hit_results_sorted = hit_results;
+  qsort(hit_results_sorted.data(),
+        hit_results_sorted.size(),
+        sizeof(GPUSelectResult),
+        gpu_select_buffer_depth_id_cmp);
 
+  for (const GPUSelectResult &hit_result : hit_results_sorted) {
+    uint hit_id = hit_result.id;
     if (hit_id & BONESEL_ANY) { /* to avoid including objects in selection */
       Base *base = nullptr;
       bool sel;

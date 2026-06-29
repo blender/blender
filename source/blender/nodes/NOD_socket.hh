@@ -20,7 +20,7 @@ bNodeSocket *node_add_socket_from_template(bNodeTree *ntree,
                                            bke::bNodeSocketTemplate *stemp,
                                            eNodeSocketInOut in_out);
 
-void node_verify_sockets(bNodeTree *ntree, bNode *node, bool do_id_user);
+void node_verify_sockets(Main *bmain, bNodeTree *ntree, bNode *node, bool do_id_user);
 
 void node_socket_init_default_value_data(eNodeSocketDatatype datatype, int subtype, void **data);
 void node_socket_copy_default_value_data(eNodeSocketDatatype datatype, void *to, const void *from);
@@ -30,7 +30,12 @@ void register_standard_node_socket_types();
 
 namespace nodes {
 
-void update_node_declaration_and_sockets(bNodeTree &ntree, bNode &node);
+/**
+ * Change the sockets of the node so that it matches the declaration.
+ *
+ * \param bmain: Optional, necessary for updating animation data.
+ */
+void update_node_declaration_and_sockets(bNodeTree &ntree, bNode &node, Main *bmain = nullptr);
 bool socket_type_supports_fields(eNodeSocketDatatype socket_type);
 bool socket_type_supports_attributes(eNodeSocketDatatype socket_type);
 bool socket_type_supports_grids(eNodeSocketDatatype socket_type);

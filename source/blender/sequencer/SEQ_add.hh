@@ -38,7 +38,8 @@ ENUM_OPERATORS(eLoadFlags)
 struct LoadData {
   int start_frame;
   int channel;
-  char name[64]; /* Strip name, including file extension. */
+  short stream_index; /* Index within the source for files with multiple video/audio streams. */
+  char name[64];      /* Strip name, including file extension. */
   /** Typically a `filepath` but may reference any kind of path. */
   char path[/*FILE_MAX*/ 1024];
   struct {
@@ -59,8 +60,8 @@ struct LoadData {
   bool use_multiview;
   eImageFormat_ViewsFormat views_format;
   Stereo3dFormat *stereo3d_format;
-  bool allow_invalid_file;     /* Used by RNA API to create placeholder strips. */
-  double r_video_stream_start; /* For AV synchronization. Set by `seq::add_movie_strip`. */
+  bool allow_invalid_file;   /* Used by RNA API to create placeholder strips. */
+  double video_stream_start; /* For AV synchronization. Set by `seq::add_movie_strip`. */
   bool adjust_playback_rate;
   bool allow_overlap;
 };
@@ -100,17 +101,6 @@ Strip *add_image_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, Loa
 Strip *add_sound_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, LoadData *load_data);
 
 /**
- * Sync up the sound strip 'seq' with the video data in 'load_data'.
- * This is intended to be used after adding a movie strip and you want to make sure that the audio
- * track is properly synced up with the video.
- *
- * \param bmain: Main reference
- * \param scene: Scene where the sound strip is located
- * \param strip: The sound strip that will be synced
- * \param load_data: SeqLoadData with information necessary to sync the sound strip
- */
-void add_sound_av_sync(Main *bmain, Scene *scene, Strip *strip, LoadData *load_data);
-/**
  * Add meta strip.
  *
  * \param scene: Scene where strips will be added
@@ -121,6 +111,8 @@ void add_sound_av_sync(Main *bmain, Scene *scene, Strip *strip, LoadData *load_d
 Strip *add_meta_strip(Scene *scene, ListBaseT<Strip> *seqbase, LoadData *load_data);
 /**
  * Add movie strip.
+ *
+ * NOTE: This function can change the scene FPS if `SEQ_LOAD_MOVIE_SYNC_FPS` is set, take caution!
  *
  * \param bmain: Main reference
  * \param scene: Scene where strips will be added
@@ -169,7 +161,7 @@ Strip *add_effect_strip(Scene *scene, ListBaseT<Strip> *seqbase, LoadData *load_
  * Set directory used by image strip.
  *
  * \param strip: image strip to be changed
- * \param path: directory path
+ * \param dirpath: directory path
  */
 void add_image_set_directory(Strip *strip, const char *dirpath);
 /**

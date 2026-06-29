@@ -120,7 +120,9 @@ class DiskFileHashService:
             return False
 
         actual_hash = self.get_hash(filepath, hash_algorithm)
-        return actual_hash == hexhash
+
+        # The hash value in hex notation is case-insensitive.
+        return actual_hash.lower() == hexhash.lower()
 
     def _file_stat_matches(self, filepath: Path, size_in_bytes: int, file_stat_mtime: float) -> bool:
         """Check whether the file on disk matches this size & timestamp."""

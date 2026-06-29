@@ -14,13 +14,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_rect.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rect.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
@@ -807,11 +807,13 @@ static wmOperatorStatus view3d_clipping_invoke(bContext *C, wmOperator *op, cons
   return WM_gesture_box_invoke(C, op, event);
 }
 
-static bool view3d_wire_or_solid_poll(bContext *C)
+static bool view3d_region_wire_or_solid_poll(bContext *C)
 {
   if (const View3D *v3d = CTX_wm_view3d(C)) {
-    if ELEM (v3d->shading.type, OB_WIRE, OB_SOLID) {
-      return true;
+    if (ELEM(v3d->shading.type, OB_WIRE, OB_SOLID)) {
+      if (CTX_wm_region_view3d(C)) {
+        return true;
+      }
     }
   }
 
@@ -833,7 +835,7 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
   ot->modal = WM_gesture_box_modal;
   ot->cancel = WM_gesture_box_cancel;
 
-  ot->poll = view3d_wire_or_solid_poll;
+  ot->poll = view3d_region_wire_or_solid_poll;
 
   /* flags */
   ot->flag = 0;

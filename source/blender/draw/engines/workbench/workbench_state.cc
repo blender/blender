@@ -290,7 +290,8 @@ static bool mesh_has_uv_map_attribute(const Mesh &mesh)
 ObjectState::ObjectState(const DRWContext *draw_ctx,
                          const SceneState &scene_state,
                          const SceneResources &resources,
-                         Object *ob)
+                         Object *ob,
+                         Manager &manager)
 {
   const bool is_active = (ob == draw_ctx->obact);
 
@@ -347,7 +348,7 @@ ObjectState::ObjectState(const DRWContext *draw_ctx,
       if (override_material && has_uv()) {
         show_missing_texture = true;
         if (paint_mode->canvas_image) {
-          image_paint_override = MaterialTexture(paint_mode->canvas_image);
+          image_paint_override = MaterialTexture(manager, paint_mode->canvas_image);
           image_paint_override.sampler_state.extend_x = GPU_SAMPLER_EXTEND_MODE_REPEAT;
           image_paint_override.sampler_state.extend_yz = GPU_SAMPLER_EXTEND_MODE_REPEAT;
           /* TODO: Add an image texture interpolation variable to PaintModeSettings, similar to
@@ -373,7 +374,7 @@ ObjectState::ObjectState(const DRWContext *draw_ctx,
       const ImagePaintSettings *imapaint = &scene_state.scene->toolsettings->imapaint;
       if (imapaint->mode == IMAGEPAINT_MODE_IMAGE) {
         if (imapaint->canvas) {
-          image_paint_override = MaterialTexture(imapaint->canvas);
+          image_paint_override = MaterialTexture(manager, imapaint->canvas);
           image_paint_override.sampler_state.extend_x = GPU_SAMPLER_EXTEND_MODE_REPEAT;
           image_paint_override.sampler_state.extend_yz = GPU_SAMPLER_EXTEND_MODE_REPEAT;
           const bool use_linear_filter = imapaint->interp == IMAGEPAINT_INTERP_LINEAR;

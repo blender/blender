@@ -11,9 +11,9 @@
 #include "DNA_cachefile_types.h"
 #include "DNA_space_types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BKE_cachefile.hh"
 #include "BKE_context.hh"

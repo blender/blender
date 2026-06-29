@@ -8,10 +8,10 @@
 
 #include "intern/debug/deg_debug.h"
 
-#include "BLI_console.h"
-#include "BLI_hash.h"
-#include "BLI_string.h"
-#include "BLI_time.h"
+#include "BLI_console.hh"
+#include "BLI_hash_c.hh"
+#include "BLI_string.hh"
+#include "BLI_time.hh"
 
 #include "BKE_global.hh"
 

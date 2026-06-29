@@ -32,7 +32,7 @@
 
 #include <optional>
 
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 #include "BLI_enum_flags.hh"
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
@@ -134,8 +134,6 @@ void *BKE_libblock_alloc_in_lib(Main *bmain,
 /**
  * Initialize an ID of given type, such that it has valid 'empty' data.
  * ID is assumed to be just calloc'ed.
- *
- * \params bmain The Main data-base containing the \a id to initialize. May be null.
  */
 void BKE_libblock_init_empty(ID *id) ATTR_NONNULL(1);
 
@@ -929,6 +927,15 @@ void BKE_main_id_flag_all(Main *bmain, int flag, bool value);
 void BKE_main_id_newptr_and_tag_clear(Main *bmain);
 
 void BKE_main_id_refcount_recompute(Main *bmain, bool do_linked_only);
+
+/**
+ * Update the ID_TAG_INDIRECT flag for all non-local IDs.
+ *
+ * \param local_ids: Optionally, provide a list of IDs that are considered local. If not provided,
+ * all local IDs from the given main are used.
+ */
+void BKE_main_id_indirect_linked_update(Main &bmain,
+                                        std::optional<Span<ID *>> local_ids = std::nullopt);
 
 void BKE_main_lib_objects_recalc_all(Main *bmain);
 

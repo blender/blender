@@ -16,7 +16,7 @@
 #include "Stroke.h"
 #include "StrokeIterators.h"
 
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 #include "BKE_global.hh"
 
@@ -1043,12 +1043,12 @@ int Operators::recursiveSplit(UnaryFunction0D<double> &func,
 // Internal class
 class PredicateWrapper {
  public:
-  inline PredicateWrapper(BinaryPredicate1D &pred)
+  PredicateWrapper(BinaryPredicate1D &pred)
   {
     _pred = &pred;
   }
 
-  inline bool operator()(Interface1D *i1, Interface1D *i2)
+  bool operator()(Interface1D *i1, Interface1D *i2)
   {
     if (i1 == i2) {
       return false;

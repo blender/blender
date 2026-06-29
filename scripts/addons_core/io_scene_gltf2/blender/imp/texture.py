@@ -21,6 +21,8 @@ def texture(
     forced_image=None
 ):
     """Creates nodes for a TextureInfo and hooks up the color/alpha outputs."""
+    texture_socket = None
+
     x, y = location
     pytexture = mh.gltf.data.textures[tex_info.index]
 
@@ -159,6 +161,7 @@ def texture(
                                                                                               ] = (anim_idx, channel_idx)
 
     if needs_tex_transform:
+        texture_socket = uv_socket
         mapping = mh.node_tree.nodes.new('ShaderNodeMapping')
         mapping.location = x - 160, y + 30
         mapping.vector_type = 'POINT'
@@ -196,6 +199,8 @@ def texture(
 
     import_user_extensions('gather_import_texture_after_hook', mh.gltf, pytexture, mh.node_tree,
                            mh, tex_info, location, label, color_socket, alpha_socket, is_data)
+
+    return texture_socket
 
 
 def get_source(mh, pytexture):

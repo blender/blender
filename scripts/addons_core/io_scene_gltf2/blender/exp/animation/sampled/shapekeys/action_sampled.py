@@ -40,4 +40,4 @@ def gather_action_sk_sampled(object_uuid: str,
 
 def __gather_channels(object_uuid: str, blender_action_name: str, slot_identifier: str,
                       export_settings) -> typing.List[gltf2_io.AnimationChannel]:
-    return gather_sk_sampled_channels(object_uuid, blender_action_name, slot_identifier, export_settings)
+    return gather_sk_sampled_channels('SK', object_uuid, blender_action_name, slot_identifier, export_settings)

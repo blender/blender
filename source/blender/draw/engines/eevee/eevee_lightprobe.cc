@@ -181,6 +181,7 @@ void LightProbeModule::sync_planar(const ObjectRef &ob_ref)
     plane.world_to_plane = math::invert(plane.plane_to_world);
     plane.clipping_offset = light_probe.clipsta;
     plane.viewport_display = (light_probe.flag & LIGHTPROBE_FLAG_SHOW_DATA) != 0;
+    plane.parallax_distance = light_probe.distpar;
   }
 }
 

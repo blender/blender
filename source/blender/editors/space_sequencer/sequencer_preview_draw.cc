@@ -15,10 +15,10 @@
 #include "BLI_index_range.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_math_rotation.h"
+#include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_rect.h"
-#include "BLI_utildefines.h"
+#include "BLI_rect.hh"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_scene_types.h"
@@ -38,6 +38,8 @@
 
 #include "OCIO_scope.hh"
 
+#include "PRF_profile.hh"
+
 #include "GPU_compute.hh"
 #include "GPU_debug.hh"
 #include "GPU_framebuffer.hh"
@@ -53,6 +55,7 @@
 #include "ED_screen.hh"
 #include "ED_sequencer.hh"
 #include "ED_space_api.hh"
+#include "ED_time_scrub_ui.hh"
 #include "ED_util.hh"
 #include "ED_view3d.hh"
 
@@ -228,20 +231,29 @@ static void sequencer_draw_borders_overlay(const SpaceSeq &sseq,
 
   imm_draw_box_wire_2d(shdr_pos, x1 - 0.5f, y1 - 0.5f, x2 + 0.5f, y2 + 0.5f);
 
+  rctf rect;
+  rect.xmin = x1;
+  rect.xmax = x2;
+  rect.ymin = y1;
+  rect.ymax = y2;
+
   /* Draw safety border. */
   if (sseq.preview_overlay.flag & SEQ_PREVIEW_SHOW_SAFE_MARGINS) {
     immUniformThemeColorBlend(TH_VIEW_OVERLAY, TH_BACK, 0.25f);
-    rctf rect;
-    rect.xmin = x1;
-    rect.xmax = x2;
-    rect.ymin = y1;
-    rect.ymax = y2;
     ui::draw_safe_areas(shdr_pos, &rect, scene->safe_areas.title, scene->safe_areas.action);
 
     if (sseq.preview_overlay.flag & SEQ_PREVIEW_SHOW_SAFE_CENTER) {
       ui::draw_safe_areas(
           shdr_pos, &rect, scene->safe_areas.title_center, scene->safe_areas.action_center);
     }
+  }
+
+  /* Draw composition guides. */
+  if (sseq.preview_overlay.flag & SEQ_PREVIEW_SHOW_COMPOSITION_GUIDES) {
+    ED_draw_composition_guides(shdr_pos,
+                               sseq.preview_overlay.composition_guide_flags,
+                               &rect,
+                               sseq.preview_overlay.composition_guide_color);
   }
 
   immUnbindProgram();
@@ -915,6 +927,7 @@ static void update_gpu_scopes(const ImBuf *input_ibuf,
                               Scene *scene,
                               int timeline_frame)
 {
+  PRF_scope_with_name("SeqUpdateGPUScopes", ProfileCategory::Draw);
   BLI_assert(input_ibuf && input_texture);
 
   /* Display space GPU texture is already calculated. */
@@ -991,6 +1004,8 @@ static void update_cpu_scopes(const SpaceSeq &space_sequencer,
     /* Nothing to do: scopes already calculated for this image/frame. */
     return;
   }
+
+  PRF_scope_with_name("SeqUpdateCPUScopes", ProfileCategory::Draw);
 
   scopes.cleanup();
   if (space_sequencer.mainb == SEQ_DRAW_IMG_HISTOGRAM) {
@@ -1224,6 +1239,7 @@ static void text_edit_draw(const bContext *C)
   GPU_blend(GPU_BLEND_ALPHA);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
+  std::scoped_lock runtime_lock(seq::text_runtime_mutex_get());
   text_selection_draw(C, strip, pos);
   text_edit_draw_cursor(C, strip, pos);
 
@@ -1533,6 +1549,7 @@ static int get_reference_frame_offset(const Editing &editing, const RenderData &
  * If channel configuration is incompatible with the texture nullptr is returned. */
 static gpu::Texture *create_texture(const ImBuf &ibuf)
 {
+  PRF_scope_with_name("SeqPreviewCreateTexture", ProfileCategory::Draw);
   const eGPUTextureUsage texture_usage = GPU_TEXTURE_USAGE_SHADER_READ |
                                          GPU_TEXTURE_USAGE_ATTACHMENT;
 
@@ -1666,12 +1683,13 @@ static void sequencer_preview_draw_overlays(const bContext *C,
                                             gpu::Texture *current_texture,
                                             gpu::Texture *reference_texture,
                                             const ImBuf *input_ibuf,
+                                            gpu::Texture *input_texture,
                                             const int timeline_frame)
 {
   const bool is_playing = ED_screen_animation_playing(&wm);
   const bool show_preview_image = space_sequencer.mainb == SEQ_DRAW_IMG_IMBUF;
   const bool has_cpu_scope = input_ibuf && space_sequencer.mainb == SEQ_DRAW_IMG_HISTOGRAM;
-  const bool has_gpu_scope = input_ibuf && current_texture &&
+  const bool has_gpu_scope = input_ibuf && input_texture &&
                              ((space_sequencer.mainb == SEQ_DRAW_IMG_IMBUF &&
                                space_sequencer.zebra != 0) ||
                               ELEM(space_sequencer.mainb,
@@ -1685,7 +1703,7 @@ static void sequencer_preview_draw_overlays(const bContext *C,
   }
   if (has_gpu_scope) {
     update_gpu_scopes(input_ibuf,
-                      current_texture,
+                      input_texture,
                       view_settings,
                       display_settings,
                       space_sequencer,
@@ -1824,6 +1842,8 @@ void sequencer_preview_region_draw(const bContext *C, ARegion *region)
     return;
   }
 
+  PRF_scope_with_name("SeqPreviewDraw", ProfileCategory::Draw);
+
   const Editing &editing = *scene->ed;
   const RenderData &render_data = scene->r;
 
@@ -1842,9 +1862,8 @@ void sequencer_preview_region_draw(const bContext *C, ARegion *region)
                                   draw_overlay;
   const bool need_current_frame = !(draw_frame_overlay && (space_sequencer.overlay_frame_type ==
                                                            SEQ_OVERLAY_FRAME_TYPE_REFERENCE));
-  const bool need_reference_frame = show_imbuf && draw_frame_overlay &&
-                                    space_sequencer.overlay_frame_type !=
-                                        SEQ_OVERLAY_FRAME_TYPE_CURRENT;
+  const bool need_reference_frame = draw_frame_overlay && space_sequencer.overlay_frame_type !=
+                                                              SEQ_OVERLAY_FRAME_TYPE_CURRENT;
 
   int timeline_frame = render_data.cfra;
   if (sequencer_draw_get_transform_preview(space_sequencer, *scene)) {
@@ -1868,7 +1887,7 @@ void sequencer_preview_region_draw(const bContext *C, ARegion *region)
     const int offset = get_reference_frame_offset(editing, render_data);
     reference_ibuf = sequencer_ibuf_get(
         C, timeline_frame + offset, view_names[space_sequencer.multiview_eye]);
-    if (show_imbuf && reference_ibuf) {
+    if (use_gpu_texture && reference_ibuf) {
       reference_texture = create_texture(*reference_ibuf);
     }
   }
@@ -1886,8 +1905,9 @@ void sequencer_preview_region_draw(const bContext *C, ARegion *region)
     }
   }
 
-  /* Image buffer used for overlays: scopes, metadata etc. */
+  /* Image buffer and texture used for overlays: scopes, metadata etc. */
   ImBuf *overlay_ibuf = need_current_frame ? current_ibuf : reference_ibuf;
+  gpu::Texture *overlay_texture = need_current_frame ? current_texture : reference_texture;
 
   /* Draw parts of the preview region to the corresponding frame buffers. */
   sequencer_preview_draw_color_render(space_sequencer,
@@ -1908,6 +1928,7 @@ void sequencer_preview_region_draw(const bContext *C, ARegion *region)
                                   current_texture,
                                   reference_texture,
                                   overlay_ibuf,
+                                  overlay_texture,
                                   timeline_frame);
 
 #if 0
@@ -1925,6 +1946,16 @@ void sequencer_preview_region_draw(const bContext *C, ARegion *region)
   IMB_freeImBuf(reference_ibuf);
 
   preview_draw_end(C);
+}
+
+void sequencer_scrubbing_region_draw(const bContext *C, ARegion *region)
+{
+  const Scene *scene = CTX_data_sequencer_scene(C);
+  const SpaceSeq *sseq = CTX_wm_space_seq(C);
+
+  const int fps = round_db_to_int(scene->frames_per_second());
+  ED_time_scrub_draw(region, scene, !(sseq->flag & SEQ_DRAWFRAMES), true, fps);
+  ED_time_scrub_draw_current_frame(region, scene, !(sseq->flag & SEQ_DRAWFRAMES), false, true);
 }
 
 }  // namespace blender::ed::vse

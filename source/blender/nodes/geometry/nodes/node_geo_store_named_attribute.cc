@@ -37,14 +37,17 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   b.add_input<decl::Geometry>("Geometry"_ustr)
       .description("Geometry to store a new attribute with the given name on");
-  b.add_output<decl::Geometry>("Geometry"_ustr).propagate_all().align_with_previous();
-  b.add_input<decl::Bool>("Selection"_ustr).default_value(true).hide_value().field_on_all();
+  b.add_output<decl::Geometry>("Geometry"_ustr).propagate_all_geometry().align_with_previous();
+  b.add_input<decl::Bool>("Selection"_ustr)
+      .default_value(true)
+      .hide_value()
+      .evaluated_geometry_field();
   b.add_input<decl::String>("Name"_ustr).is_attribute_name().optional_label();
 
   if (node != nullptr) {
     const NodeGeometryStoreNamedAttribute &storage = node_storage(*node);
     const eCustomDataType data_type = eCustomDataType(storage.data_type);
-    b.add_input(data_type, "Value"_ustr).field_on_all();
+    b.add_input(data_type, "Value"_ustr).evaluated_geometry_field();
   }
 }
 
@@ -72,7 +75,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
   if (params.in_out() == SOCK_IN) {
     const std::optional<eCustomDataType> type = bke::socket_type_to_custom_data_type(
-        eNodeSocketDatatype(params.other_socket().type));
+        params.other_socket().type);
     if (type && *type != CD_PROP_STRING) {
       /* The input and output sockets have the same name. */
       params.add_item(IFACE_("Value"), [type](LinkSearchOpParams &params) {
@@ -182,10 +185,10 @@ static void node_geo_exec(GeoNodeExecParams params)
     RNA_enum_name_from_value(rna_enum_attribute_type_items, cd_type, &type_name);
     const std::string message = fmt::format(
         fmt::runtime(
-            TIP_("Failed to write to attribute \"{}\" with domain \"{}\" and type \"{}\"")),
+            RPT_("Failed to write to attribute \"{}\" with domain \"{}\" and type \"{}\"")),
         name,
-        TIP_(domain_name),
-        TIP_(type_name));
+        RPT_(domain_name),
+        RPT_(type_name));
     params.error_message_add(NodeWarningType::Warning, message);
   }
 
@@ -232,12 +235,12 @@ static void node_register()
                          "NodeGeometryStoreNamedAttribute",
                          node_free_standard_storage,
                          node_copy_standard_storage);
-  bke::node_type_size(ntype, 140, 100, 700);
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
+  ntype.default_width = bke::NodeWidth::_160;
   bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);

@@ -8,6 +8,7 @@
 
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_string_ref.hh"
 
 #include "GPU_texture.hh"
 
@@ -204,6 +205,8 @@ class Domain {
 bool operator==(const Domain &a, const Domain &b);
 bool operator!=(const Domain &a, const Domain &b);
 
+StringRefNull to_string(const Interpolation &interpolation);
+StringRefNull to_string(const Extension &extension);
 GPUSamplerExtendMode map_extension_mode_to_extend_mode(const Extension &mode);
 
 }  // namespace blender::compositor

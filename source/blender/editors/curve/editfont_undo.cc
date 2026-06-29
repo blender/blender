@@ -13,8 +13,8 @@
 
 #include "CLG_log.h"
 
-#include "BLI_array_utils.h" /* For #BLI_array_is_zeroed. */
-#include "BLI_utildefines.h"
+#include "BLI_array_utils_c.hh" /* For #BLI_array_is_zeroed. */
+#include "BLI_utildefines.hh"
 
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
@@ -37,9 +37,9 @@
 
 #ifdef USE_ARRAY_STORE
 // #  define DEBUG_PRINT
-#  include "BLI_array_store.h"
-#  include "BLI_array_store_utils.h"
-#  include "BLI_listbase.h"
+#  include "BLI_array_store.hh"
+#  include "BLI_array_store_utils.hh"
+#  include "BLI_listbase.hh"
 #  define ARRAY_CHUNK_SIZE 32
 #endif
 
@@ -67,6 +67,8 @@ struct UndoFont {
 
   size_t undo_size;
 };
+
+/** \} */
 
 #ifdef USE_ARRAY_STORE
 
@@ -218,6 +220,10 @@ static void uf_arraystore_free(UndoFont *uf)
 /** \} */
 
 #endif /* USE_ARRAY_STORE */
+
+/* -------------------------------------------------------------------- */
+/** \name Undo/Redo Helper Functions
+ * \{ */
 
 static void undofont_to_editfont(UndoFont *uf, Curve *cu)
 {
@@ -404,7 +410,7 @@ static void font_undosys_foreach_ID_ref(UndoStep *us_p,
 
 void ED_font_undosys_type(UndoType *ut)
 {
-  ut->name = "Edit Font";
+  ut->identifier = "EDIT_FONT";
   ut->poll = font_undosys_poll;
   ut->step_encode = font_undosys_step_encode;
   ut->step_decode = font_undosys_step_decode;

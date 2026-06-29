@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "eevee_geom_types_lib.glsl"
+#include "eevee_geom_types_lib.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
 
 /* -------------------------------------------------------------------- */
@@ -13,9 +13,9 @@
  * World has no attributes other than orco.
  * \{ */
 
-float3 attr_load_orco(WorldPoint /*point*/, float4 /*orco*/, int /*index*/)
+float3 attr_load_orco(WorldPoint point, float4 /*orco*/, int /*index*/)
 {
-  return -g_data.N;
+  return point.lP;
 }
 float4 attr_load_tangent(WorldPoint /*point*/, float4 /*tangent*/, int /*index*/)
 {

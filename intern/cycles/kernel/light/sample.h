@@ -90,7 +90,7 @@ light_sample_shader_eval_forward(KernelGlobals kg,
     /* No proper path flag, we're evaluating this for all closures. that's
      * weak but we'd have to do multiple evaluations otherwise. */
     surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT>(
-        kg, state, emission_sd, nullptr, PATH_RAY_EMISSION);
+        kg, state, emission_sd, nullptr, PATH_RAY_VISIBILITY_NONE, PATH_RAY_EMISSION);
     if (emission_sd->flag & SD_CACHE_MISS) {
       return SHADER_EVAL_CACHE_MISS;
     }
@@ -466,10 +466,12 @@ ccl_device_forceinline void light_sample_update(KernelGlobals kg,
  * The BSDF or phase pdf from the previous bounce was stored in mis_ray_pdf and
  * is used for balancing with the light sampling pdf. */
 
-ccl_device_inline float light_sample_mis_weight_forward_surface(KernelGlobals kg,
-                                                                IntegratorState state,
-                                                                const uint32_t path_flag,
-                                                                const ccl_private ShaderData *sd)
+ccl_device_inline float light_sample_mis_weight_forward_surface(
+    KernelGlobals kg,
+    IntegratorState state,
+    const PathRayVisibility path_visibility,
+    const uint32_t path_flag,
+    const ccl_private ShaderData *sd)
 {
   bool has_mis = !(path_flag & PATH_RAY_MIS_SKIP) &&
                  (sd->flag & ((sd->flag & SD_BACKFACING) ? SD_MIS_BACK : SD_MIS_FRONT));
@@ -498,8 +500,15 @@ ccl_device_inline float light_sample_mis_weight_forward_surface(KernelGlobals kg
     const uint triangle = kernel_data_fetch(triangle_to_tree,
                                             sd->prim - prim_offset + lookup_offset);
 
-    pdf *= light_tree_pdf(
-        kg, ray_P, N, dt, path_flag, sd->object, triangle, light_link_receiver_forward(kg, state));
+    pdf *= light_tree_pdf(kg,
+                          ray_P,
+                          N,
+                          dt,
+                          path_visibility,
+                          path_flag,
+                          sd->object,
+                          triangle,
+                          light_link_receiver_forward(kg, state));
   }
   else
 #endif
@@ -510,12 +519,14 @@ ccl_device_inline float light_sample_mis_weight_forward_surface(KernelGlobals kg
   return light_sample_mis_weight_forward(kg, bsdf_pdf, pdf);
 }
 
-ccl_device_inline float light_sample_mis_weight_forward_lamp(KernelGlobals kg,
-                                                             IntegratorState state,
-                                                             const uint32_t path_flag,
-                                                             const int object_id,
-                                                             const float light_sample_pdf,
-                                                             const float3 P)
+ccl_device_inline float light_sample_mis_weight_forward_lamp(
+    KernelGlobals kg,
+    IntegratorState state,
+    const PathRayVisibility path_visibility,
+    const uint32_t path_flag,
+    const int object_id,
+    const float light_sample_pdf,
+    const float3 P)
 {
   if (path_flag & PATH_RAY_MIS_SKIP) {
     return 1.0f;
@@ -533,6 +544,7 @@ ccl_device_inline float light_sample_mis_weight_forward_lamp(KernelGlobals kg,
                           P,
                           N,
                           dt,
+                          path_visibility,
                           path_flag,
                           0,
                           kernel_data_fetch(light_to_tree, object_id),
@@ -547,20 +559,24 @@ ccl_device_inline float light_sample_mis_weight_forward_lamp(KernelGlobals kg,
   return light_sample_mis_weight_forward(kg, mis_ray_pdf, pdf);
 }
 
-ccl_device_inline float light_sample_mis_weight_forward_distant(KernelGlobals kg,
-                                                                IntegratorState state,
-                                                                const uint32_t path_flag,
-                                                                const int object_id,
-                                                                const float light_sample_pdf)
+ccl_device_inline float light_sample_mis_weight_forward_distant(
+    KernelGlobals kg,
+    IntegratorState state,
+    const PathRayVisibility path_visibility,
+    const uint32_t path_flag,
+    const int object_id,
+    const float light_sample_pdf)
 {
   const float3 ray_P = INTEGRATOR_STATE(state, ray, P);
   return light_sample_mis_weight_forward_lamp(
-      kg, state, path_flag, object_id, light_sample_pdf, ray_P);
+      kg, state, path_visibility, path_flag, object_id, light_sample_pdf, ray_P);
 }
 
-ccl_device_inline float light_sample_mis_weight_forward_background(KernelGlobals kg,
-                                                                   IntegratorState state,
-                                                                   const uint32_t path_flag)
+ccl_device_inline float light_sample_mis_weight_forward_background(
+    KernelGlobals kg,
+    IntegratorState state,
+    const PathRayVisibility path_visibility,
+    const uint32_t path_flag)
 {
   /* Check if background light exists or if we should skip PDF. */
   if (!kernel_data.background.use_mis || (path_flag & PATH_RAY_MIS_SKIP)) {
@@ -579,8 +595,15 @@ ccl_device_inline float light_sample_mis_weight_forward_background(KernelGlobals
     const float3 N = INTEGRATOR_STATE(state, path, mis_origin_n);
     const float dt = INTEGRATOR_STATE(state, ray, previous_dt);
     const uint light = kernel_data_fetch(light_to_tree, kernel_data.background.object_index);
-    pdf *= light_tree_pdf(
-        kg, ray_P, N, dt, path_flag, 0, light, light_link_receiver_forward(kg, state));
+    pdf *= light_tree_pdf(kg,
+                          ray_P,
+                          N,
+                          dt,
+                          path_visibility,
+                          path_flag,
+                          0,
+                          light,
+                          light_link_receiver_forward(kg, state));
   }
   else
 #endif

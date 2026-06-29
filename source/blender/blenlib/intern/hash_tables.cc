@@ -7,7 +7,7 @@
  */
 
 #include "BLI_hash_tables.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include <iostream>
 

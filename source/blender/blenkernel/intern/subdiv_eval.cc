@@ -10,9 +10,9 @@
 #include "BKE_subdiv_eval.hh"
 
 #include "BLI_array_utils.hh"
-#include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
-#include "BLI_task.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_task_c.hh"
 
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"

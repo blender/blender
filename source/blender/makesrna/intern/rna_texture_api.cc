@@ -17,7 +17,7 @@
 
 #  include "BKE_context.hh"
 #  include "BKE_global.hh"
-#  include "BLI_math_vector.h"
+#  include "BLI_math_vector_c.hh"
 #  include "DNA_scene_types.h"
 #  include "IMB_imbuf.hh"
 #  include "IMB_imbuf_types.hh"

@@ -12,16 +12,16 @@
 
 #include "BLI_enum_flags.hh"
 #include "BLI_function_ref.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
-#include "BLI_math_matrix.h"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_math_vector.h"
-#include "BLI_rect.h"
-#include "BLI_string.h"
-#include "BLI_sys_types.h"
-#include "BLI_task.h"
-#include "BLI_threads.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rect.hh"
+#include "BLI_string.hh"
+#include "BLI_sys_types.hh"
+#include "BLI_task_c.hh"
+#include "BLI_threads.hh"
 
 #include "BLF_api.hh"
 
@@ -107,7 +107,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "BLI_time.h"
+#include "BLI_time.hh"
 
 #include "DRW_select_buffer.hh"
 
@@ -143,7 +143,7 @@ DRWContext::DRWContext(Mode mode_,
   /* Active object. Set to nullptr for render (when region is nullptr). */
   this->obact = (this->region) ? BKE_view_layer_active_object_get(this->view_layer) : nullptr;
   /* Object mode. */
-  this->object_mode = (this->obact) ? eObjectMode(this->obact->mode) : OB_MODE_OBJECT;
+  this->object_mode = (this->obact) ? this->obact->mode : OB_MODE_OBJECT;
   /* Edit object. */
   this->object_edit = (this->object_mode & OB_MODE_EDIT) ? this->obact : nullptr;
   /* Pose object. */
@@ -1247,6 +1247,8 @@ static bool gpencil_any_exists(Depsgraph *depsgraph)
   return (DEG_id_type_any_exists(depsgraph, ID_GD_LEGACY) ||
           DEG_id_type_any_exists(depsgraph, ID_GP));
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Callbacks

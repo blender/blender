@@ -23,12 +23,12 @@
 #include "DNA_space_types.h"
 #include "DNA_world_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -1033,6 +1033,13 @@ static wmOperatorStatus view_layer_add_exec(bContext *C, wmOperator *op)
   const Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
 
+  /* Only make the view layer active if the windows scene matches the context. */
+  if (win) {
+    if (scene != WM_window_get_active_scene(win)) {
+      win = nullptr;
+    }
+  }
+
   ViewLayer *view_layer_current = win ? WM_window_get_active_view_layer(win) : nullptr;
   int type = RNA_enum_get(op->ptr, "type");
   /* Copy requires a source. */
@@ -1496,9 +1503,10 @@ static Vector<Object *> lightprobe_cache_irradiance_volume_subset_get(bContext *
       break;
     }
     case LIGHTCACHE_SUBSET_ACTIVE: {
-      Object *active_ob = CTX_data_active_object(C);
-      if (is_irradiance_volume(active_ob)) {
-        irradiance_volume_setup(active_ob);
+      if (Object *active_ob = CTX_data_active_object(C)) {
+        if (is_irradiance_volume(active_ob)) {
+          irradiance_volume_setup(active_ob);
+        }
       }
       break;
     }
@@ -1748,7 +1756,7 @@ static wmOperatorStatus render_view_add_exec(bContext *C, wmOperator * /*op*/)
   Scene *scene = CTX_data_scene(C);
 
   BKE_scene_add_render_view(scene, nullptr);
-  scene->r.actview = BLI_listbase_count(&scene->r.views) - 1;
+  scene->r.actview = scene->r.views.count() - 1;
 
   WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
 
@@ -2797,7 +2805,7 @@ static wmOperatorStatus copy_material_exec(bContext *C, wmOperator *op)
 
   char filepath[FILE_MAX];
   material_copybuffer_filepath_get(filepath, sizeof(filepath));
-  copybuffer.write(filepath, *op->reports);
+  copybuffer.write_as_copypaste_buffer(filepath, *op->reports);
 
   /* We are all done! */
   BKE_report(op->reports, RPT_INFO, "Copied material to internal clipboard");

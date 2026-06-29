@@ -4,8 +4,8 @@
 
 #include "testing/testing.h"
 
-#include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_vector.hh"
 
 namespace blender::tests {
@@ -206,5 +206,8 @@ TEST(math_vector, square)
   EXPECT_NEAR(result.y, 4.0f, 1e-6f);
   EXPECT_NEAR(result.z, 9.0f, 1e-6f);
 }
+
+static_assert(get_default_hash(float3(0.0f, 0.0f, 0.0f)) ==
+              get_default_hash(float3(-0.0f, -0.0f, -0.0f)));
 
 }  // namespace blender::tests

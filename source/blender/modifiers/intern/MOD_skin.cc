@@ -43,12 +43,12 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array_utils.hh"
-#include "BLI_bitmap.h"
+#include "BLI_bitmap.hh"
 #include "BLI_enum_flags.hh"
-#include "BLI_heap_simple.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_stack.h"
+#include "BLI_heap_simple.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_stack_c.hh"
 #include "BLI_vector.hh"
 
 #include "BLT_translation.hh"
@@ -175,7 +175,9 @@ struct SkinOutput {
 
 static void add_poly(SkinOutput *so, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4);
 
-/***************************** Convex Hull ****************************/
+/* -------------------------------------------------------------------- */
+/** \name Convex Hull
+ * \{ */
 
 static bool is_quad_symmetric(BMVert *quad[4], const SkinModifierData *smd)
 {
@@ -478,7 +480,11 @@ static Frame **collect_hull_frames(
   return hull_frames;
 }
 
-/**************************** Create Frames ***************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Create Frames
+ * \{ */
 
 static void node_frames_init(SkinNode *nf, int totframe)
 {
@@ -680,7 +686,11 @@ static SkinNode *build_frames(const Span<float3> vert_positions,
   return skin_nodes;
 }
 
-/**************************** Edge Matrices ***************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edge Matrices
+ * \{ */
 
 static void calc_edge_mat(float mat[3][3], const float a[3], const float b[3])
 {
@@ -828,7 +838,11 @@ static EMat *build_edge_mats(const MVertSkin *vs,
   return emat;
 }
 
-/************************** Input Subdivision *************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Input Subdivision
+ * \{ */
 
 /* Returns number of edge subdivisions, taking into account the radius
  * of the endpoints and the edge length. If both endpoints are branch
@@ -1025,7 +1039,11 @@ static Mesh *subdivide_base(const Mesh *orig)
   return result;
 }
 
-/******************************* Output *******************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Output
+ * \{ */
 
 /* Can be either quad or triangle */
 static void add_poly(SkinOutput *so, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4)
@@ -1942,7 +1960,7 @@ static BMesh *build_skin(SkinNode *skin_nodes,
    * partially detached, first detach it fully, then find a suitable
    * existing face to merge with. (Note that we do this after
    * creating all hull faces, but before creating any other
-   * faces.
+   * faces).
    */
   skin_fix_hull_topology(so.bm, skin_nodes, verts_num);
 
@@ -2033,7 +2051,11 @@ static Mesh *final_skin(SkinModifierData *smd, Mesh *mesh, eSkinErrorFlag *r_err
   return result;
 }
 
-/**************************** Skin Modifier ***************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Skin Modifier
+ * \{ */
 
 static void init_data(ModifierData *md)
 {
@@ -2158,5 +2180,7 @@ ModifierTypeInfo modifierType_Skin = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+/** \} */
 
 }  // namespace blender

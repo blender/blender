@@ -10,9 +10,9 @@
 #include <cmath>
 #include <cstdlib>
 
-#include "BLI_math_base.h"
-#include "BLI_math_color.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_task.hh"
 
 #include "BKE_image.hh"
@@ -382,20 +382,9 @@ void BKE_image_buf_fill_checker_color(uchar *rect, float *rect_float, int width,
   checker_board_text(rect, rect_float, width, height, 128, 2);
 
   if (rect_float != nullptr) {
-    /* TODO(sergey): Currently it's easier to fill in form buffer and
-     * linearize it afterwards. This could be optimized with some smart
-     * trickery around blending factors and such.
-     */
-    IMB_buffer_float_from_float_threaded(rect_float,
-                                         rect_float,
-                                         4,
-                                         IB_PROFILE_LINEAR_RGB,
-                                         IB_PROFILE_SRGB,
-                                         true,
-                                         width,
-                                         height,
-                                         width,
-                                         width);
+    /* It is easier to fill the buffer in sRGB and linearize it afterwards.
+     * Maybe this could be optimized with some smart trickery around blending factors. */
+    IMB_buffer_float_rgba_srgb_to_linear(rect_float, width, height);
   }
 }
 

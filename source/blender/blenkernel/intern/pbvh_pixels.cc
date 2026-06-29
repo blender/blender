@@ -11,12 +11,14 @@
 #include "DNA_image_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "BKE_image_wrappers.hh"
 #include "BKE_paint.hh"
+
+#include "PRF_profile.hh"
 
 #include "pbvh_intern.hh"
 #include "pbvh_pixels_copy.hh"
@@ -105,6 +107,7 @@ static void extract_barycentric_pixels(UDIMTilePixels &tile_data,
 /** Update the geometry primitives of the pbvh. */
 static void update_geom_primitives(Tree &pbvh, const uv_islands::MeshData &mesh_data)
 {
+  PRF_scope(ProfileCategory::Editor);
   PixelData &pbvh_data = data_get(pbvh);
   pbvh_data.vert_tris.reinitialize(mesh_data.corner_tris.size());
   bke::mesh::vert_tris_from_corner_tris(
@@ -146,6 +149,7 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
                              MeshNode &node,
                              PixelNode &pixel_node)
 {
+  PRF_scope(ProfileCategory::Editor);
   BLI_assert(pixel_node.flags.rebuild ||
              (pixel_node.uv_primitives.tri_indices.is_empty() &&
               pixel_node.uv_primitives.delta_barycentric_coords.is_empty() &&
@@ -175,13 +179,13 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
               entry.uv_primitive->get_uv_vertex(mesh_data, 1)->uv - tile_offset,
               entry.uv_primitive->get_uv_vertex(mesh_data, 2)->uv - tile_offset,
           };
-          const float minv = clamp_f(min_fff(uvs[0].y, uvs[1].y, uvs[2].y), 0.0f, 1.0f);
+          const float minv = clamp_f(std::min({uvs[0].y, uvs[1].y, uvs[2].y}), 0.0f, 1.0f);
           const int miny = floor(minv * image_buffer->y);
-          const float maxv = clamp_f(max_fff(uvs[0].y, uvs[1].y, uvs[2].y), 0.0f, 1.0f);
+          const float maxv = clamp_f(std::max({uvs[0].y, uvs[1].y, uvs[2].y}), 0.0f, 1.0f);
           const int maxy = min_ii(ceil(maxv * image_buffer->y), image_buffer->y);
-          const float minu = clamp_f(min_fff(uvs[0].x, uvs[1].x, uvs[2].x), 0.0f, 1.0f);
+          const float minu = clamp_f(std::min({uvs[0].x, uvs[1].x, uvs[2].x}), 0.0f, 1.0f);
           const int minx = floor(minu * image_buffer->x);
-          const float maxu = clamp_f(max_fff(uvs[0].x, uvs[1].x, uvs[2].x), 0.0f, 1.0f);
+          const float maxu = clamp_f(std::max({uvs[0].x, uvs[1].x, uvs[2].x}), 0.0f, 1.0f);
           const int maxx = min_ii(ceil(maxu * image_buffer->x), image_buffer->x);
 
           const int uv_prim_index = pixel_node.uv_primitives.tri_indices.size();
@@ -292,6 +296,58 @@ static void apply_watertight_check(Tree &pbvh, Image &image, ImageUser &image_us
   BKE_image_partial_update_mark_full_update(&image);
 }
 
+static float3 calc_pixel_position(const Span<float3> vert_positions,
+                                  const Span<int3> vert_tris,
+                                  const int tri_index,
+                                  const float2 &bary_weight)
+{
+  const int3 &verts = vert_tris[tri_index];
+  const float3 weights(bary_weight.x, bary_weight.y, 1.0f - bary_weight.x - bary_weight.y);
+  float3 result;
+  interp_v3_v3v3v3(result,
+                   vert_positions[verts[0]],
+                   vert_positions[verts[1]],
+                   vert_positions[verts[2]],
+                   weights);
+  return result;
+}
+
+static void calc_node_pixel_row_positions(const uv_islands::MeshData &mesh_data,
+                                          const PixelData &pixel_data,
+                                          PixelNode &pixel_node)
+{
+  for (UDIMTilePixels &tile_data : pixel_node.tiles) {
+    BLI_assert(tile_data.pixel_row_positions.is_empty() ||
+               tile_data.pixel_row_positions.size() == tile_data.pixel_rows.size());
+
+    if (tile_data.pixel_row_positions.size() == tile_data.pixel_rows.size()) {
+      continue;
+    }
+
+    tile_data.pixel_row_positions.resize(tile_data.pixel_rows.size());
+
+    for (const int i : tile_data.pixel_rows.index_range()) {
+      PackedPixelRow &pixel_row = tile_data.pixel_rows[i];
+
+      const float3 start = calc_pixel_position(
+          mesh_data.vert_positions,
+          pixel_data.vert_tris,
+          pixel_node.uv_primitives.tri_indices[pixel_row.uv_primitive_index],
+          pixel_row.start_barycentric_coord);
+      const float3 next = calc_pixel_position(
+          mesh_data.vert_positions,
+          pixel_data.vert_tris,
+          pixel_node.uv_primitives.tri_indices[pixel_row.uv_primitive_index],
+          pixel_row.start_barycentric_coord +
+              pixel_node.uv_primitives.delta_barycentric_coords[pixel_row.uv_primitive_index]);
+      const float3 delta = next - start;
+
+      tile_data.pixel_row_positions[i].start = start;
+      tile_data.pixel_row_positions[i].delta = delta;
+    }
+  }
+}
+
 static bool update_pixels(const Depsgraph &depsgraph,
                           const Object &object,
                           Tree &pbvh,
@@ -345,10 +401,16 @@ static bool update_pixels(const Depsgraph &depsgraph,
   MutableSpan<MeshNode> nodes = pbvh.nodes<MeshNode>();
   MutableSpan<PixelNode> pixel_nodes = pbvh.pixels_->nodes;
 
-  nodes_to_update.foreach_index([&](const int i) {
-    do_encode_pixels(
-        mesh_data, uv_masks, uv_primitive_lookup, image, image_user, nodes[i], pixel_nodes[i]);
-  });
+  nodes_to_update.foreach_index(
+      [&](const int i) {
+        do_encode_pixels(
+            mesh_data, uv_masks, uv_primitive_lookup, image, image_user, nodes[i], pixel_nodes[i]);
+      },
+      exec_mode::grain_size(1));
+  const PixelData &pixel_data = data_get(pbvh);
+  nodes_to_update.foreach_index(
+      [&](const int i) { calc_node_pixel_row_positions(mesh_data, pixel_data, pixel_nodes[i]); },
+      exec_mode::grain_size(1));
   if (USE_WATERTIGHT_CHECK) {
     apply_watertight_check(pbvh, image, image_user);
   }
@@ -357,7 +419,8 @@ static bool update_pixels(const Depsgraph &depsgraph,
   copy_update(pbvh, image, image_user, mesh_data);
 
   /* Rebuild the undo regions. */
-  nodes_to_update.foreach_index([&](const int i) { pixel_nodes[i].rebuild_undo_regions(); });
+  nodes_to_update.foreach_index([&](const int i) { pixel_nodes[i].rebuild_undo_regions(); },
+                                exec_mode::grain_size(1));
 
   /* Clear the UpdatePixels flag. */
   nodes_to_update.foreach_index([&](const int i) { pixel_nodes[i].flags.rebuild = false; });
@@ -423,6 +486,7 @@ void mark_image_dirty(bke::pbvh::Node & /*node*/,
                       Image &image,
                       Map<image::TileNumber, ImBuf *> &buffers)
 {
+  PRF_scope(ProfileCategory::Editor);
   if (pixel_node.flags.dirty) {
     for (UDIMTilePixels &tile : pixel_node.tiles) {
       std::optional<image::ImageTileWrapper> image_tile = find_image_tile(image, tile.tile_number);
@@ -448,6 +512,7 @@ namespace bke::pbvh {
 
 void build_pixels(const Depsgraph &depsgraph, Object &object, Image &image, ImageUser &image_user)
 {
+  PRF_scope(ProfileCategory::Editor);
   Tree &pbvh = *object::pbvh_get(object);
   pixels::update_pixels(depsgraph, object, pbvh, image, image_user);
 }

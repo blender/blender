@@ -31,7 +31,7 @@ static void sh_node_math_declare(NodeDeclarationBuilder &b)
       .default_value(0.5f)
       .min(-10000.0f)
       .max(10000.0f)
-      .label_fn([](bNode node) {
+      .label_fn([](const bNode &node) {
         switch (node.custom1) {
           case NODE_MATH_POWER:
             return IFACE_("Base");
@@ -47,7 +47,7 @@ static void sh_node_math_declare(NodeDeclarationBuilder &b)
       .default_value(0.5f)
       .min(-10000.0f)
       .max(10000.0f)
-      .label_fn([](bNode node) {
+      .label_fn([](const bNode &node) {
         switch (node.custom1) {
           case NODE_MATH_WRAP:
             return IFACE_("Max");
@@ -72,7 +72,7 @@ static void sh_node_math_declare(NodeDeclarationBuilder &b)
       .default_value(0.5f)
       .min(-10000.0f)
       .max(10000.0f)
-      .label_fn([](bNode node) {
+      .label_fn([](const bNode &node) {
         switch (node.custom1) {
           case NODE_MATH_WRAP:
             return IFACE_("Min");
@@ -139,9 +139,7 @@ class SocketSearchOp {
 
 static void sh_node_math_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  if (!params.node_tree().typeinfo->validate_link(eNodeSocketDatatype(params.other_socket().type),
-                                                  SOCK_FLOAT))
-  {
+  if (!params.node_tree().typeinfo->validate_link(params.other_socket().type, SOCK_FLOAT)) {
     return;
   }
 

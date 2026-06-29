@@ -10,9 +10,9 @@
 
 #include <cstring>
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "DNA_space_types.h"
 
@@ -95,7 +95,7 @@ bool folderlist_clear_next(SpaceFile *sfile)
   FolderList *folder;
 
   /* if there is no folder_next there is nothing we can clear */
-  if (BLI_listbase_is_empty(sfile->folders_next)) {
+  if (sfile->folders_next->is_empty()) {
     return false;
   }
 
@@ -117,7 +117,7 @@ void folderlist_free(ListBaseT<FolderList> *folderlist)
       MEM_delete(folder.foldername);
       MEM_delete(&folder);
     }
-    BLI_listbase_clear(folderlist);
+    folderlist->clear_no_delete();
   }
 }
 

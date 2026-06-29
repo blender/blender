@@ -7,8 +7,8 @@
  */
 
 #include "BLI_path_utils.hh"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
+#include "BLI_threads.hh"
+#include "BLI_utildefines.hh"
 
 #include "CLG_log.h"
 #include "DNA_scene_types.h"
@@ -21,7 +21,7 @@
 #include <mutex>
 
 #ifdef WITH_FFMPEG
-#  include "BLI_string.h"
+#  include "BLI_string.hh"
 
 extern "C" {
 #  include "ffmpeg_compat.h"
@@ -68,7 +68,8 @@ static void ffmpeg_log_callback(void * /*ptr*/, int level, const char *format, v
   switch (level) {
     case AV_LOG_PANIC:
     case AV_LOG_FATAL:
-      clg_level = CLG_LEVEL_FATAL;
+      /* ffmpeg "fatal" should not quit whole Blender; report as error. */
+      clg_level = CLG_LEVEL_ERROR;
       break;
     case AV_LOG_ERROR:
     case AV_LOG_WARNING:

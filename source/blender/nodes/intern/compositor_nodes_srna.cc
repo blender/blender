@@ -4,8 +4,8 @@
 
 #include <fmt/format.h>
 
-#include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
 
 #include "NOD_compositor_nodes_srna.hh"
 #include "NOD_socket.hh"
@@ -137,17 +137,18 @@ static StructRNA *create_panels_srna(const bNodeTree &tree, GeneratedTreeSrnaDat
 
   tree.ensure_interface_cache();
   for (const bNodeTreeInterfaceItem *item : tree.interface_items()) {
-    if (item->item_type != NODE_INTERFACE_PANEL) {
+    if (item->item_type != NodeTreeInterfaceItemType::Panel) {
       continue;
     }
     const auto &panel = *reinterpret_cast<const bNodeTreeInterfacePanel *>(item);
     const StringRefNull identifier = allocator.copy_string(
         fmt::format("open_{}", panel.identifier));
-    RNA_def_boolean(srna,
-                    identifier.c_str(),
-                    !(panel.flag & NODE_INTERFACE_PANEL_DEFAULT_CLOSED),
-                    "Is Open",
-                    "");
+    PropertyRNA *prop = RNA_def_boolean(srna,
+                                        identifier.c_str(),
+                                        !(panel.flag & NODE_INTERFACE_PANEL_DEFAULT_CLOSED),
+                                        "Is Open",
+                                        "");
+    RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
   }
 
   return srna;

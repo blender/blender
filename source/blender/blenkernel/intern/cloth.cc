@@ -16,12 +16,12 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_linklist.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_rand.h"
+#include "BLI_linklist.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rand_c.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -38,7 +38,7 @@
 
 #include "SIM_mass_spring.h"
 
-// #include "BLI_time.h"  /* timing for debug prints */
+// #include "BLI_time.hh"  /* timing for debug prints */
 
 namespace blender {
 
@@ -61,11 +61,9 @@ struct BendSpringRef {
   ClothSpring *spring;
 };
 
-/******************************************************************************
- *
- * External interface called by modifier.cc clothModifier functions.
- *
- ******************************************************************************/
+/* -------------------------------------------------------------------- */
+/** \name BVH Tree
+ * \{ */
 
 static BVHTree *bvhtree_build_from_cloth(ClothModifierData *clmd, float epsilon)
 {
@@ -200,6 +198,12 @@ void bvhtree_update_from_cloth(ClothModifierData *clmd, bool moving, bool self)
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Modifier Simulation Entry Points
+ * \{ */
+
 void cloth_clear_cache(Object *ob, ClothModifierData *clmd, float framenr)
 {
   PTCacheID pid;
@@ -314,10 +318,11 @@ static int do_step_cloth(
   return ret;
 }
 
-/************************************************
- * clothModifier_do - main simulation function
- ************************************************/
-
+/**
+ * Main Simulation Function
+ *
+ * Advance the cloth state for one frame.
+ */
 void clothModifier_do(ClothModifierData *clmd,
                       Depsgraph *depsgraph,
                       Scene *scene,
@@ -429,6 +434,12 @@ void clothModifier_do(ClothModifierData *clmd,
   cloth_to_object(ob, clmd, vertexCos);
   clmd->clothObject->last_frame = framenr;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Free Modifier Data
+ * \{ */
 
 void cloth_free_modifier(ClothModifierData *clmd)
 {
@@ -559,11 +570,11 @@ void cloth_free_modifier_extern(ClothModifierData *clmd)
   }
 }
 
-/******************************************************************************
- *
- * Internal functions.
- *
- ******************************************************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Internal Functions
+ * \{ */
 
 /**
  * Copies the deformed vertices to the object.
@@ -867,6 +878,8 @@ static void cloth_from_mesh(ClothModifierData *clmd, const Object *ob, const Mes
     MEM_delete(clmd->clothObject->springs);
   }
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Spring Network Building Implementation

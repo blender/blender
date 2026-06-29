@@ -5,7 +5,7 @@
 #pragma once
 
 #include "BLI_math_vector_types.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include "BLI_utility_mixins.hh"
 
 namespace blender {
@@ -63,8 +63,9 @@ struct PaintRuntime : NonCopyable, NonMovable {
   float brush_rotation_sec = 0.0f;
 
   /*******************************************************************************
-   * all data below are used to communicate with cursor drawing and tex sampling *
+   * All data below are used to communicate with cursor drawing and tex sampling *
    *******************************************************************************/
+
   bool draw_anchored = false;
   int anchored_size = 0;
 

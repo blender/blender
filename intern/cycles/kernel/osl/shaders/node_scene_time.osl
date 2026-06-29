@@ -1,0 +1,11 @@
+/* SPDX-FileCopyrightText: 2026 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
+
+#include "stdcycles.h"
+
+shader node_scene_time(output float Seconds = 0.0, output float Frame = 0.0)
+{
+  getattribute("scene:time", Seconds);
+  getattribute("scene:frame", Frame);
+}

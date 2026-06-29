@@ -14,8 +14,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_lasso_2d.hh"
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -685,7 +685,7 @@ void ACTION_OT_select_box(wmOperatorType *ot)
   ot->modal = WM_gesture_box_modal;
   ot->cancel = WM_gesture_box_cancel;
 
-  ot->poll = ED_operator_action_active;
+  ot->poll = ED_operator_region_action_active;
 
   /* flags */
   ot->flag = OPTYPE_UNDO;
@@ -951,7 +951,7 @@ void ACTION_OT_select_lasso(wmOperatorType *ot)
   ot->invoke = WM_gesture_lasso_invoke;
   ot->modal = WM_gesture_lasso_modal;
   ot->exec = actkeys_lassoselect_exec;
-  ot->poll = ED_operator_action_active;
+  ot->poll = ED_operator_region_action_active;
   ot->cancel = WM_gesture_lasso_cancel;
 
   /* flags */
@@ -1018,7 +1018,7 @@ void ACTION_OT_select_circle(wmOperatorType *ot)
   ot->invoke = WM_gesture_circle_invoke;
   ot->modal = WM_gesture_circle_modal;
   ot->exec = action_circle_select_exec;
-  ot->poll = ED_operator_action_active;
+  ot->poll = ED_operator_region_action_active;
   ot->cancel = WM_gesture_circle_cancel;
   ot->get_name = ED_select_circle_get_name;
 
@@ -1229,8 +1229,8 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
   }
 
   /* free elements */
-  BLI_freelistN(&ked.cfra_elem_list);
-  BLI_freelistN(&ked.time_marker_list);
+  ked.cfra_elem_list.free_no_destruct();
+  ked.time_marker_list.free_no_destruct();
 
   ANIM_animdata_update(ac, &anim_data);
   ANIM_animdata_freelist(&anim_data);
@@ -1834,8 +1834,8 @@ static void actkeys_mselect_column(bAnimContext *ac, eEditKeyframes_Select selec
   }
 
   /* free elements */
-  BLI_freelistN(&ked.cfra_elem_list);
-  BLI_freelistN(&ked.time_marker_list);
+  ked.cfra_elem_list.free_no_destruct();
+  ked.time_marker_list.free_no_destruct();
 
   ANIM_animdata_update(ac, &anim_data);
   ANIM_animdata_freelist(&anim_data);
@@ -2096,7 +2096,7 @@ void ACTION_OT_clickselect(wmOperatorType *ot)
   ot->description = "Select keyframes by clicking on them";
 
   /* callbacks */
-  ot->poll = ED_operator_action_active;
+  ot->poll = ED_operator_region_action_active;
   ot->exec = actkeys_clickselect_exec;
   ot->invoke = WM_generic_select_invoke;
   ot->modal = WM_generic_select_modal;
@@ -2183,6 +2183,11 @@ static wmOperatorStatus select_by_type_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static bool select_by_type_poll(bContext *C)
+{
+  return ED_operator_graphedit_active(C) || ED_operator_action_active(C);
+}
+
 void ACTION_OT_select_by_type(wmOperatorType *ot)
 {
   ot->name = "Select by Type";
@@ -2190,7 +2195,7 @@ void ACTION_OT_select_by_type(wmOperatorType *ot)
   ot->description = "Select all keyframes of the given type";
 
   ot->exec = select_by_type_exec;
-  ot->poll = ED_operator_action_active;
+  ot->poll = select_by_type_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 

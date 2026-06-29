@@ -3,15 +3,16 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "NOD_bundle_type.hh"
+#include "NOD_geometry_nodes_closure_signature.hh"
 #include "NOD_socket_declarations.hh"
 #include "NOD_socket_declarations_geometry.hh"
 
 #include "BKE_lib_id.hh"
 #include "BKE_node_runtime.hh"
 
-#include "BLI_math_vector.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 namespace blender::nodes::decl {
 
@@ -23,8 +24,8 @@ namespace blender::nodes::decl {
 static bool field_types_are_compatible(const SocketDeclaration &input,
                                        const SocketDeclaration &output)
 {
-  if (output.output_field_dependency.field_type() == OutputSocketFieldType::FieldSource) {
-    if (input.input_field_type == InputSocketFieldType::None) {
+  if (output.structure_type == StructureType::Field) {
+    if (!ELEM(input.structure_type, StructureType::Field, StructureType::Dynamic)) {
       return false;
     }
   }
@@ -834,6 +835,10 @@ BundleBuilder &BundleBuilder::pass_through_input_index(const std::optional<int> 
 /** \name #Closure
  * \{ */
 
+Closure::Closure() = default;
+
+Closure::~Closure() = default;
+
 bNodeSocket &Closure::build(bNodeTree &ntree, bNode &node) const
 {
   bNodeSocket &socket = *bke::node_add_static_socket(ntree,
@@ -874,6 +879,18 @@ bNodeSocket &Closure::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket
   }
   this->set_common_flags(socket);
   return socket;
+}
+
+void ClosureBuilder::create_signature(
+    std::function<ClosureSignature(const bNode &)> create_signature)
+{
+  if (create_signature) {
+    decl_->create_signature = std::make_unique<std::function<ClosureSignature(const bNode &)>>(
+        std::move(create_signature));
+  }
+  else {
+    decl_->create_signature.reset();
+  }
 }
 
 /** \} */

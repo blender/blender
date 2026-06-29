@@ -422,20 +422,26 @@ IndexMask retrieve_visible_bezier_points(Object &object,
                                          const bke::greasepencil::Drawing &drawing,
                                          IndexMaskMemory &memory);
 
+/**
+ * \return The handle display setting for the given view,
+ * or the default (handle-selected) when `v3d == nullptr`.
+ */
+eHandleDisplay view3d_handle_type_or_default(const View3D *v3d);
+
 IndexMask retrieve_visible_bezier_handle_strokes(Object &object,
                                                  const bke::greasepencil::Drawing &drawing,
-                                                 int handle_display,
+                                                 eHandleDisplay handle_display,
                                                  IndexMaskMemory &memory);
 IndexMask retrieve_visible_bezier_handle_points(Object &object,
                                                 const bke::greasepencil::Drawing &drawing,
                                                 int layer_index,
-                                                int handle_display,
+                                                eHandleDisplay handle_display,
                                                 IndexMaskMemory &memory);
 IndexMask retrieve_visible_bezier_handle_elements(Object &object,
                                                   const bke::greasepencil::Drawing &drawing,
                                                   int layer_index,
                                                   bke::AttrDomain selection_domain,
-                                                  int handle_display,
+                                                  eHandleDisplay handle_display,
                                                   IndexMaskMemory &memory);
 
 IndexMask retrieve_editable_and_selected_strokes(Object &grease_pencil_object,
@@ -458,7 +464,7 @@ IndexMask retrieve_editable_and_selected_elements(Object &object,
 IndexMask retrieve_editable_and_all_selected_points(Object &object,
                                                     const bke::greasepencil::Drawing &drawing,
                                                     int layer_index,
-                                                    int handle_display,
+                                                    eHandleDisplay handle_display,
                                                     IndexMaskMemory &memory);
 bool has_editable_layer(const GreasePencil &grease_pencil);
 
@@ -636,25 +642,52 @@ struct ExtensionData {
  * \param boundary_layers: Layers that are purely for boundaries, regular strokes are not rendered.
  * \param src_drawings: Drawings to include as boundary strokes.
  * \param invert: Construct boundary around empty areas instead.
- * \param alpha_threshold: Render transparent stroke where opacity is below the threshold.
+ * \param opacity_threshold: Render transparent stroke where opacity is below the threshold.
  * \param fill_point: Point from which to start the bucket fill.
  * \param fit_method: View fitting method to include all strokes.
- * \param stroke_material_index: Material index to use for the new strokes.
  * \param keep_images: Keep the image data block after generating curves.
  */
-bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
-                                 const Brush &brush,
-                                 const Scene &scene,
-                                 const bke::greasepencil::Layer &layer,
-                                 const VArray<bool> &boundary_layers,
-                                 Span<DrawingInfo> src_drawings,
-                                 bool invert,
-                                 const std::optional<float> alpha_threshold,
-                                 const float2 &fill_point,
-                                 const ExtensionData &extensions,
-                                 FillToolFitMethod fit_method,
-                                 int stroke_material_index,
-                                 bool keep_images);
+bke::CurvesGeometry pixel_fill_strokes(const ViewContext &view_context,
+                                       const Brush &brush,
+                                       const Scene &scene,
+                                       const bke::greasepencil::Layer &layer,
+                                       const VArray<bool> &boundary_layers,
+                                       const Span<DrawingInfo> src_drawings,
+                                       bool invert,
+                                       const std::optional<float> opacity_threshold,
+                                       const float2 &fill_point,
+                                       const ExtensionData &extensions,
+                                       FillToolFitMethod fit_method,
+                                       bool keep_images);
+
+/**
+ * Fill tool for generating strokes in empty areas.
+ *
+ * This uses delaunay triangulation to compute exact fill geometry.
+ *
+ * This is based on "Delaunay painting: Perceptual image colouring from raster contours with gaps."
+ * (Parakkat, Amal Dev, Pooran Memari, and Marie-Paule Cani)
+ *
+ * Will return `nullopt` when unable to fill.
+ *
+ * \param layer: The layer containing the new stroke, used for projecting the geometry.
+ * \param boundary_layers: Layers that are purely for boundaries, regular strokes are skipped.
+ * \param src_drawings: Drawings to include as boundary strokes.
+ * \param invert: Construct boundary around empty areas instead.
+ * \param opacity_threshold: Skip transparent stroke where opacity is below the threshold.
+ * \param gap_factor: Automatically detect gaps using edge ratio.
+ * \param fill_points: Points from which to start each bucket fill.
+ */
+std::optional<bke::CurvesGeometry> delaunay_fill_strokes(const ViewContext &view_context,
+                                                         const Scene &scene,
+                                                         const bke::greasepencil::Layer &layer,
+                                                         const VArray<bool> &boundary_layers,
+                                                         const Span<DrawingInfo> src_drawings,
+                                                         bool invert,
+                                                         std::optional<float> opacity_threshold,
+                                                         bool internal_gaps,
+                                                         float gap_factor,
+                                                         const GroupedSpan<float2> &fill_points);
 
 namespace image_render {
 
@@ -743,7 +776,6 @@ void draw_lines(const float4x4 &transform,
 
 /**
  * Draw curves geometry.
- * \param mode: Mode of \a eMaterialGPencilStyle_Mode.
  */
 void draw_grease_pencil_strokes(const RegionView3D &rv3d,
                                 const int2 &win_size,
@@ -829,9 +861,10 @@ void free_curves_2d_bvh_data(Curves2DBVHTree &data);
  * masks.
  *
  * \param curves: Curves geometry for both target and cutter curves.
+ * \param curve_mask: Set of curves that will be intersected.
  * \param screen_space_positions: Screen space positions computed in advance.
- * \param target_curves: Set of curves that will be intersected.
- * \param intersecting_curves: Set of curves that create cuts on target curves.
+ * \param tree_data: Screen-space BVH tree of the intersecting curves.
+ * \param tree_data_range: Range of BVH elements in \a tree_data that belong to this drawing.
  * \param r_hits: True for points with at least one intersection.
  * \param r_first_intersect_factors: Smallest cut factor in the interval (optional).
  * \param r_last_intersect_factors: Largest cut factor in the interval (optional).
@@ -884,13 +917,6 @@ struct CurveSegmentsData {
  * \param curve_mask: Set of curves that will be intersected.
  * \param screen_space_positions: Screen space positions computed in advance.
  * \param tree_data: Screen-space BVH tree of the intersecting curves.
- * \param r_curve_starts: Start index for segments of each curve.
- *        Shift the curve points index range to ensure contiguous segments with cyclic curves.
- * \param r_segments_by_curve: Offsets for segments in each curve.
- * \param r_points_by_segment: Offsets for point range of each segment. Index ranges can exceed
- *        original curve range and must be wrapped around.
- * \param r_start_factors: Factor (-1..0) previous segment to prepend.
- * \param r_end_factors: Factor (0..1) of last segment to append.
  */
 CurveSegmentsData find_curve_segments(const bke::CurvesGeometry &curves,
                                       const IndexMask &curve_mask,

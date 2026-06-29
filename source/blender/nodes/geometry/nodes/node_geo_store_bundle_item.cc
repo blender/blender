@@ -25,23 +25,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   const bNode *node = b.node_or_null();
 
   b.add_input<decl::Bundle>("Bundle"_ustr);
-  b.add_output<decl::Bundle>("Bundle"_ustr)
-      .align_with_previous()
-      .propagate_all()
-      .reference_pass_all();
+  b.add_output<decl::Bundle>("Bundle"_ustr).align_with_previous().propagate_all();
   b.add_input<decl::String>("Path"_ustr).optional_label();
 
   if (node != nullptr) {
     const NodeStoreBundleItem &storage = node_storage(*node);
-    const eNodeSocketDatatype socket_type = eNodeSocketDatatype(storage.socket_type);
+    const eNodeSocketDatatype socket_type = storage.socket_type;
     auto &decl = b.add_input(socket_type, "Item"_ustr);
-    if (ELEM(storage.structure_type,
-             NodeSocketInterfaceStructureType::Dynamic,
-             NodeSocketInterfaceStructureType::Field,
-             NodeSocketInterfaceStructureType::Auto))
-    {
-      decl.supports_field();
-    }
     if (storage.structure_type == NodeSocketInterfaceStructureType::Auto) {
       decl.structure_type(StructureType::Dynamic);
     }
@@ -84,7 +74,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   Bundle &bundle = bundle_ptr.ensure_mutable_inplace();
 
   const std::string path = params.extract_input<std::string>("Path"_ustr);
-  if (!Bundle::is_valid_path(path)) {
+  const std::optional<Vector<BundleKey>> split_path = Bundle::split_path(path);
+  if (!split_path) {
     if (!path.empty()) {
       params.error_message_add(NodeWarningType::Warning, "Invalid bundle path");
     }
@@ -105,7 +96,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  bundle.add_path_override(path, BundleItemSocketValue{stype, std::move(value)});
+  bundle.add_path_override(*split_path, BundleItemSocketValue{stype, std::move(value)});
 
   params.set_output("Bundle"_ustr, std::move(bundle_ptr));
 }

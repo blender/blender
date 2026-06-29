@@ -17,10 +17,11 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_string_utils.hh"
 
 #include "BLT_translation.hh"
 
@@ -87,13 +88,12 @@ void strip_unique_name_set(Scene *scene, ListBaseT<Strip> *seqbasep, Strip *stri
   sui.count = 1;
   sui.match = 1; /* assume the worst to start the loop */
 
-  /* Strip off the suffix */
+  /* Strip off the suffix only if it is purely numeric. */
   if ((dot = strrchr(sui.name_src, '.'))) {
-    *dot = '\0';
-    dot++;
-
-    if (*dot) {
-      sui.count = atoi(dot) + 1;
+    char *suffix = dot + 1;
+    if (BLI_string_is_decimal(suffix)) {
+      *dot = '\0';
+      sui.count = atoi(suffix) + 1;
     }
   }
 
@@ -213,13 +213,14 @@ static MovieReader *open_anim_filepath(Strip *strip, const char *filepath, bool 
    * kept unchanged for the performance reasons. */
   if (openfile) {
     return openanim(filepath,
-                    IB_byte_data | ((strip->flag & SEQ_DEINTERLACE) ? IB_animdeinterlace : 0),
+                    (strip->flag & SEQ_DEINTERLACE) ? ImBufFlags::Deinterlace : ImBufFlags::Zero,
                     strip->streamindex,
                     true,
                     strip->data->colorspace_settings.name);
   }
   return openanim_noload(filepath,
-                         IB_byte_data | ((strip->flag & SEQ_DEINTERLACE) ? IB_animdeinterlace : 0),
+                         (strip->flag & SEQ_DEINTERLACE) ? ImBufFlags::Deinterlace :
+                                                           ImBufFlags::Zero,
                          strip->streamindex,
                          true,
                          strip->data->colorspace_settings.name);
@@ -402,7 +403,7 @@ Strip *get_strip_by_name(ListBaseT<Strip> *seqbase, const char *name, bool recur
     if (STREQ(name, istrip.name + 2)) {
       return &istrip;
     }
-    if (recursive && !BLI_listbase_is_empty(&istrip.seqbase)) {
+    if (recursive && !istrip.seqbase.is_empty()) {
       Strip *rseq = get_strip_by_name(&istrip.seqbase, name, true);
       if (rseq != nullptr) {
         return rseq;

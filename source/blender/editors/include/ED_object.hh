@@ -10,7 +10,7 @@
 
 #include <string>
 
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
 #include "BLI_math_matrix_types.hh"
@@ -383,6 +383,14 @@ void single_obdata_user_make(Main *bmain, Scene *scene, Object *ob);
  */
 void motion_paths_clear(bContext *C, bool only_selected);
 
+/**
+ * Recalculate the motion paths on the given objects. This includes bones when recalculating
+ * armature objects.
+ */
+void motion_paths_recalc(bContext *C,
+                         Scene *scene,
+                         const eAnimvizCalcRange range,
+                         const Span<Object *> objects);
 /**
  * Recalculate motion paths on all selected objects. This includes bones when recalculating
  * armature objects.

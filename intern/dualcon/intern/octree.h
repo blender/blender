@@ -515,20 +515,20 @@ class Octree {
 
   void printInfo(const LeafNode *leaf)
   {
-    /*
-      printf("Edge mask: ");
-      for(int i = 0; i < 12; i ++)
-      {
+    /* Disable overly verbose debugging information. */
+#if 0
+    printf("Edge mask: ");
+    for (int i = 0; i < 12; i++) {
       printf("%d ", getEdgeParity(leaf, i));
-      }
-      printf("\n");
-      printf("Stored edge mask: ");
-      for(i = 0; i < 3; i ++)
-      {
+    }
+    printf("\n");
+    printf("Stored edge mask: ");
+    for (int i = 0; i < 3; i++) {
       printf("%d ", getStoredEdgesParity(leaf, i));
-      }
-      printf("\n");
-    */
+    }
+    printf("\n");
+#endif
+
     printf("Sign mask: ");
     for (int i = 0; i < 8; i++) {
       printf("%d ", getSign(leaf, i));

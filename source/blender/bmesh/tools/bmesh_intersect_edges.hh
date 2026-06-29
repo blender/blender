@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BLI_ghash.h"
+#include "BLI_ghash.hh"
 
 #include "bmesh_class.hh"
 

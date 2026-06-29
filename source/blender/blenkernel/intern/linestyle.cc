@@ -21,12 +21,12 @@
 #include "DNA_sdna_type_ids.hh"
 #include "DNA_texture_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_rotation.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -87,22 +87,22 @@ static void linestyle_copy_data(Main *bmain,
                        flag_embedded_id_data);
   }
 
-  BLI_listbase_clear(&linestyle_dst->color_modifiers);
+  linestyle_dst->color_modifiers.clear_no_delete();
   for (LineStyleModifier &linestyle_modifier : linestyle_src->color_modifiers) {
     BKE_linestyle_color_modifier_copy(linestyle_dst, &linestyle_modifier, flag_subdata);
   }
 
-  BLI_listbase_clear(&linestyle_dst->alpha_modifiers);
+  linestyle_dst->alpha_modifiers.clear_no_delete();
   for (LineStyleModifier &linestyle_modifier : linestyle_src->alpha_modifiers) {
     BKE_linestyle_alpha_modifier_copy(linestyle_dst, &linestyle_modifier, flag_subdata);
   }
 
-  BLI_listbase_clear(&linestyle_dst->thickness_modifiers);
+  linestyle_dst->thickness_modifiers.clear_no_delete();
   for (LineStyleModifier &linestyle_modifier : linestyle_src->thickness_modifiers) {
     BKE_linestyle_thickness_modifier_copy(linestyle_dst, &linestyle_modifier, flag_subdata);
   }
 
-  BLI_listbase_clear(&linestyle_dst->geometry_modifiers);
+  linestyle_dst->geometry_modifiers.clear_no_delete();
   for (LineStyleModifier &linestyle_modifier : linestyle_src->geometry_modifiers) {
     BKE_linestyle_geometry_modifier_copy(linestyle_dst, &linestyle_modifier, flag_subdata);
   }
@@ -832,7 +832,7 @@ LineStyleModifier *BKE_linestyle_color_modifier_add(FreestyleLineStyle *linestyl
   LineStyleModifier *m;
 
   m = alloc_color_modifier(name, type);
-  if (UNLIKELY(m == nullptr)) {
+  if (m == nullptr) [[unlikely]] {
     return nullptr;
   }
   m->blend = LS_VALUE_BLEND;
@@ -898,7 +898,7 @@ LineStyleModifier *BKE_linestyle_color_modifier_copy(FreestyleLineStyle *linesty
   LineStyleModifier *new_m;
 
   new_m = alloc_color_modifier(m->name, m->type);
-  if (UNLIKELY(new_m == nullptr)) {
+  if (new_m == nullptr) [[unlikely]] {
     return nullptr;
   }
   new_m->influence = m->influence;
@@ -1609,8 +1609,12 @@ int BKE_linestyle_thickness_modifier_remove(FreestyleLineStyle *linestyle, LineS
     case LS_MODIFIER_NOISE:
       break;
     case LS_MODIFIER_CREASE_ANGLE:
+      BKE_curvemapping_free(
+          (reinterpret_cast<LineStyleThicknessModifier_CreaseAngle *>(m))->curve);
       break;
     case LS_MODIFIER_CURVATURE_3D:
+      BKE_curvemapping_free(
+          (reinterpret_cast<LineStyleThicknessModifier_Curvature_3D *>(m))->curve);
       break;
     default:
       break;
@@ -2010,7 +2014,7 @@ void BKE_linestyle_modifier_list_color_ramps(FreestyleLineStyle *linestyle,
   ColorBand *color_ramp;
   LinkData *link;
 
-  BLI_listbase_clear(listbase);
+  listbase->clear_no_delete();
 
   for (LineStyleModifier &m : linestyle->color_modifiers) {
     switch (m.type) {

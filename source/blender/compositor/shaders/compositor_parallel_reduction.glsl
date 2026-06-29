@@ -364,16 +364,22 @@ void reduction()
     barrier();
 
     /* Only the threads up to the current stride should be active as can be seen in the diagram
-     * above. */
-    if (gl_LocalInvocationIndex >= stride) {
-      continue;
-    }
+     * above, but Vulkan requires that all invocations need to access shared memory identically
+     * without conditionals, so we read all unconditionally and ignore inactive ones below. */
+    const T first_value = load_shared_data<T>(gl_LocalInvocationIndex);
+    const T second_value = load_shared_data<T>(gl_LocalInvocationIndex + stride);
 
-    /* Reduce each two elements that are stride apart, writing the result to the element with the
-     * lower index, as can be seen in the diagram above.  */
-    T result = reduce<T, ReduceFunction>(load_shared_data<T>(gl_LocalInvocationIndex),
-                                         load_shared_data<T>(gl_LocalInvocationIndex + stride));
-    store_shared_data(gl_LocalInvocationIndex, result);
+    /* Barrier ensures all reads complete before any writes begin. */
+    barrier();
+
+    /* Only the threads up to the current stride should be active as can be seen in the diagram
+     * above. */
+    if (gl_LocalInvocationIndex < stride) {
+      /* Reduce each two elements that are stride apart, writing the result to the element with the
+       * lower index, as can be seen in the diagram above. */
+      const T result = reduce<T, ReduceFunction>(first_value, second_value);
+      store_shared_data(gl_LocalInvocationIndex, result);
+    }
   }
 
   /* Finally, the result of the reduction is available as the first element in the reduction data,

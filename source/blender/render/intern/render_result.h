@@ -19,7 +19,7 @@ namespace blender {
 
 struct ColorManagedDisplaySettings;
 struct ColorManagedViewSettings;
-struct ExrHandle;
+struct ExrReadHandle;
 struct ImBuf;
 struct Render;
 struct RenderData;
@@ -48,7 +48,7 @@ void render_result_passes_allocated_ensure(struct RenderResult *rr);
  * it's not a single-layer multi-view we convert this to render result.
  */
 struct RenderResult *render_result_new_from_exr(
-    ExrHandle *exrhandle, const char *colorspace, bool predivide, int rectx, int recty);
+    ExrReadHandle *exrhandle, const char *colorspace, bool predivide, int rectx, int recty);
 
 void render_result_view_new(struct RenderResult *rr, const char *viewname);
 void render_result_views_new(struct RenderResult *rr, const struct RenderData *rd);

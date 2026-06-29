@@ -4,7 +4,7 @@
 
 #include <type_traits>
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "GPU_shader.hh"
@@ -68,11 +68,11 @@ static const char *get_blur_shader(const ResultType type)
   return nullptr;
 }
 
-static Result blur_pass_gpu(Context &context,
-                            const Result &input,
-                            Result &output,
-                            const float radius,
-                            const math::FilterKernel filter_type)
+static void blur_pass_gpu(Context &context,
+                          const Result &input,
+                          Result &output,
+                          const float radius,
+                          const math::FilterKernel filter_type)
 {
   gpu::Shader *shader = context.get_shader(get_blur_shader(input.type()));
   GPU_shader_bind(shader);
@@ -91,27 +91,22 @@ static Result blur_pass_gpu(Context &context,
    * effectively undoing the transposition in the horizontal pass. This is done to improve
    * spatial cache locality in the shader and to avoid having two separate shaders for each blur
    * pass. */
-  Domain domain = input.domain();
-  const int2 transposed_domain = int2(domain.data_size.y, domain.data_size.x);
-
-  output.allocate_texture(transposed_domain);
+  output.allocate_texture(input.domain().transposed());
   output.bind_as_image(shader, "output_img");
 
-  compute_dispatch_threads_at_least(shader, domain.data_size);
+  compute_dispatch_threads_at_least(shader, input.domain().data_size);
 
   GPU_shader_unbind();
   input.unbind_as_texture();
   weights.unbind_as_texture();
   output.unbind_as_image();
-
-  return output;
 }
 
-static Result blur_pass_cpu(Context &context,
-                            const Result &input,
-                            Result &output,
-                            const float radius,
-                            const math::FilterKernel filter_type)
+static void blur_pass_cpu(Context &context,
+                          const Result &input,
+                          Result &output,
+                          const float radius,
+                          const math::FilterKernel filter_type)
 {
   const Result &weights = context.cache_manager().symmetric_separable_blur_weights.get(
       context, filter_type, radius);
@@ -123,10 +118,7 @@ static Result blur_pass_cpu(Context &context,
    * it will effectively do a vertical blur and write to the output transposed, effectively undoing
    * the transposition in the horizontal pass. This is done to improve spatial cache locality in
    * the shader and to avoid having two separate shaders for each blur pass. */
-  const Domain domain = input.domain();
-  const int2 transposed_domain = int2(domain.data_size.y, domain.data_size.x);
-
-  output.allocate_texture(transposed_domain);
+  output.allocate_texture(input.domain().transposed());
 
   switch (input.type()) {
     case ResultType::Float:
@@ -142,20 +134,19 @@ static Result blur_pass_cpu(Context &context,
       BLI_assert_unreachable();
       break;
   }
-
-  return output;
 }
 
-static Result blur_pass(Context &context,
-                        const Result &input,
-                        Result &output,
-                        const float radius,
-                        const math::FilterKernel filter_type)
+static void blur_pass(Context &context,
+                      const Result &input,
+                      Result &output,
+                      const float radius,
+                      const math::FilterKernel filter_type)
 {
   if (context.use_gpu()) {
-    return blur_pass_gpu(context, input, output, radius, filter_type);
+    blur_pass_gpu(context, input, output, radius, filter_type);
+    return;
   }
-  return blur_pass_cpu(context, input, output, radius, filter_type);
+  blur_pass_cpu(context, input, output, radius, filter_type);
 }
 
 void symmetric_separable_blur(Context &context,

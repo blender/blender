@@ -41,7 +41,12 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "Geometry to evaluate the given fields and store the resulting attributes on. All "
           "geometry types except volumes are supported");
-  b.add_output<decl::Geometry>("Geometry"_ustr).propagate_all().align_with_previous();
+  b.add_output<decl::Geometry>("Geometry"_ustr).propagate_all_geometry().align_with_previous();
+  b.add_input<decl::Bool>("Selection"_ustr)
+      .default_value(true)
+      .hide_value()
+      .evaluated_geometry_field();
+  b.add_output<decl::Bool>("Selection"_ustr).anonymous_attribute_output().align_with_previous();
   if (node != nullptr) {
     const NodeGeometryAttributeCapture &storage = node_storage(*node);
     for (const NodeGeometryAttributeCaptureItem &item :
@@ -54,12 +59,16 @@ static void node_declare(NodeDeclarationBuilder &b)
       const UString output_identifier(
           CaptureAttributeItemsAccessor::output_socket_identifier_for_item(item));
       b.add_input(data_type, name, input_identifier)
-          .field_on_all()
+          .evaluated_geometry_field()
           .socket_name_ptr(&tree->id, *CaptureAttributeItemsAccessor::item_srna, &item, "name");
-      b.add_output(data_type, name, output_identifier).field_on_all().align_with_previous();
+      b.add_output(data_type, name, output_identifier)
+          .anonymous_attribute_output()
+          .align_with_previous();
     }
   }
-  b.add_input<decl::Extend>(""_ustr, "__extend__"_ustr).structure_type(StructureType::Field);
+  b.add_input<decl::Extend>(""_ustr, "__extend__"_ustr)
+      .structure_type(StructureType::Field)
+      .custom_draw(socket_items::ui::draw_extend_socket_fn<CaptureAttributeItemsAccessor>());
   b.add_output<decl::Extend>(""_ustr, "__extend__"_ustr)
       .structure_type(StructureType::Field)
       .align_with_previous();
@@ -106,7 +115,7 @@ static void node_operators()
 }
 
 static void clean_unused_attributes(const AttributeFilter &attribute_filter,
-                                    const Set<StringRef> &keep,
+                                    const VectorSet<std::string> &keep,
                                     GeometryComponent &component)
 {
   std::optional<MutableAttributeAccessor> attributes = component.attributes_for_write();
@@ -147,11 +156,10 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   const NodeGeometryAttributeCapture &storage = node_storage(params.node());
   const AttrDomain domain = AttrDomain(storage.domain);
+  const Field<bool> selection = params.extract_input<Field<bool>>("Selection"_ustr);
 
-  Vector<const NodeGeometryAttributeCaptureItem *> used_items;
   Vector<GField> fields;
-  Vector<std::string> attribute_id_ptrs;
-  Set<StringRef> used_attribute_ids_set;
+  VectorSet<std::string> out_attribute_names;
   for (const NodeGeometryAttributeCaptureItem &item :
        Span{storage.capture_items, storage.capture_items_num})
   {
@@ -164,10 +172,17 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (!attribute_id) {
       continue;
     }
-    used_attribute_ids_set.add(*attribute_id);
     fields.append(params.extract_input<GField>(UString(input_identifier)));
-    attribute_id_ptrs.append(std::move(*attribute_id));
-    used_items.append(&item);
+    out_attribute_names.add_new(std::move(*attribute_id));
+  }
+
+  {
+    std::optional<std::string> selection_attribute_id =
+        params.get_output_anonymous_attribute_id_if_needed("Selection"_ustr);
+    if (selection_attribute_id) {
+      fields.append(selection);
+      out_attribute_names.add_new(std::move(*selection_attribute_id));
+    }
   }
 
   if (fields.is_empty()) {
@@ -176,17 +191,15 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  Array<StringRef> attribute_ids(attribute_id_ptrs.size());
-  for (const int i : attribute_id_ptrs.index_range()) {
-    attribute_ids[i] = attribute_id_ptrs[i];
-  }
+  const Array<StringRef> out_attribute_name_refs = out_attribute_names.as_span();
 
   const auto capture_on = [&](GeometryComponent &component) {
-    bke::try_capture_fields_on_geometry(component, attribute_ids, domain, fields);
+    bke::try_capture_fields_on_geometry(
+        component, out_attribute_name_refs, domain, selection, fields);
     /* Changing of the anonymous attributes may require removing attributes that are no longer
      * needed. */
     clean_unused_attributes(
-        params.get_attribute_filter("Geometry"_ustr), used_attribute_ids_set, component);
+        params.get_attribute_filter("Geometry"_ustr), out_attribute_names, component);
   };
 
   /* Run on the instances component separately to only affect the top level of instances. */
@@ -237,7 +250,7 @@ static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const b
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const eNodeSocketDatatype type = eNodeSocketDatatype(params.other_socket().type);
+  const eNodeSocketDatatype type = params.other_socket().type;
   if (type == SOCK_GEOMETRY) {
     params.add_item(IFACE_("Geometry"), [](LinkSearchOpParams &params) {
       bNode &node = params.add_node("GeometryNodeCaptureAttribute"_ustr);
@@ -250,9 +263,14 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
   params.add_item(IFACE_("Value"), [type](LinkSearchOpParams &params) {
     bNode &node = params.add_node("GeometryNodeCaptureAttribute"_ustr);
-    socket_items::add_item_with_socket_type_and_name<CaptureAttributeItemsAccessor>(
-        params.node_tree, node, type, params.socket.name);
-    params.update_and_connect_available_socket(node, UString(params.socket.name));
+    const auto *item =
+        socket_items::add_item_with_socket_type_and_name<CaptureAttributeItemsAccessor>(
+            params.node_tree, node, type, params.socket.name);
+    const std::string identifier =
+        params.socket.in_out == SOCK_IN ?
+            CaptureAttributeItemsAccessor::output_socket_identifier_for_item(*item) :
+            CaptureAttributeItemsAccessor::input_socket_identifier_for_item(*item);
+    params.update_and_connect_available_socket_by_identifier(node, UString(identifier));
   });
 }
 

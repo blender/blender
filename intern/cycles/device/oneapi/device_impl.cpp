@@ -38,7 +38,12 @@ extern "C" void rtcSetDeviceSYCLDevice(RTCDevice device, const sycl::device sycl
 
 CCL_NAMESPACE_BEGIN
 
-static std::vector<sycl::device> available_sycl_devices(
+struct SyclDeviceEntry {
+  sycl::device device;
+  bool meets_driver_requirement;
+};
+
+static std::vector<SyclDeviceEntry> available_sycl_devices(
     bool *multiple_level_zero_platforms_detected);
 static int parse_driver_build_version(const sycl::device &device);
 
@@ -297,8 +302,6 @@ void OneapiDevice::reserve_private_memory(const uint kernel_features)
   /* Use the biggest kernel for estimation. */
   const DeviceKernel test_kernel = (kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) ?
                                        DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE :
-                                   (kernel_features & KERNEL_FEATURE_MNEE) ?
-                                       DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE :
                                        DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE;
 
   {
@@ -1053,13 +1056,21 @@ bool OneapiDevice::create_queue(SyclQueue *&external_queue,
   *multiple_level_zero_platforms_detected_pointer = false;
 
   try {
-    std::vector<sycl::device> devices = available_sycl_devices(
+    std::vector<SyclDeviceEntry> devices = available_sycl_devices(
         multiple_level_zero_platforms_detected_pointer);
+
     if (device_index < 0 || device_index >= devices.size()) {
       return false;
     }
 
-    sycl::queue *created_queue = new sycl::queue(devices[device_index],
+    if (devices[device_index].meets_driver_requirement == false) {
+      oneapi_error_string_ = "The device driver is too old.";
+      LOG_ERROR << "Internal error: The SYCL device does not meet minimum driver requirement, but "
+                   "it was used anyway. Please report a bug.";
+      return false;
+    }
+
+    sycl::queue *created_queue = new sycl::queue(devices[device_index].device,
                                                  sycl::property::queue::in_order());
     external_queue = reinterpret_cast<SyclQueue *>(created_queue);
 
@@ -1074,7 +1085,7 @@ bool OneapiDevice::create_queue(SyclQueue *&external_queue,
             "\"intel-level-zero-gpu-raytracing\" to enable it or disable Embree on GPU.";
       }
       else {
-        rtcSetDeviceSYCLDevice(*device_object_ptr, devices[device_index]);
+        rtcSetDeviceSYCLDevice(*device_object_ptr, devices[device_index].device);
       }
     }
 #  else
@@ -1316,6 +1327,7 @@ void OneapiDevice::get_adjusted_global_and_local_sizes(SyclQueue *queue,
     case DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE:
     case DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK:
     case DEVICE_KERNEL_INTEGRATOR_INTERSECT_DEDICATED_LIGHT:
+    case DEVICE_KERNEL_INTEGRATOR_INTERSECT_MNEE:
       preferred_work_group_size = preferred_work_group_size_intersect;
       break;
 
@@ -1324,7 +1336,6 @@ void OneapiDevice::get_adjusted_global_and_local_sizes(SyclQueue *queue,
     case DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT_FORWARD:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE:
-    case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME_RAY_MARCHING:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW:
@@ -1386,7 +1397,15 @@ static const int lowest_supported_driver_version_win = 1018306;
  * This information is returned by `ocloc query OCL_DRIVER_VERSION`. */
 static const int lowest_supported_driver_version_neo = 35716;
 #  else
-static const int lowest_supported_driver_version_neo = 34666;
+/* For Linux, according to Blender version file
+ * build_files\build_environment\cmake\versions.cmake we
+ * at the moment are using Intel Graphics Compiler v2.30.1.
+ * According to the Intel Linux Driver releases page:
+ * https://github.com/intel/compute-runtime/releases the first driver
+ * which supports this IGC version is 26.09.37435.1, which you can
+ * confirm by checking "Additional components revisions used in build"
+ * section. Thus, this version is our minimal one. */
+static const int lowest_supported_driver_version_neo = 37435;
 #  endif
 
 int parse_driver_build_version(const sycl::device &device)
@@ -1433,10 +1452,10 @@ int parse_driver_build_version(const sycl::device &device)
   return driver_build_version;
 }
 
-std::vector<sycl::device> available_sycl_devices(
+std::vector<SyclDeviceEntry> available_sycl_devices(
     bool *multiple_level_zero_platforms_detected = nullptr)
 {
-  std::vector<sycl::device> available_devices;
+  std::vector<SyclDeviceEntry> available_devices;
   bool allow_all_devices = false;
   if (getenv("CYCLES_ONEAPI_ALL_DEVICES") != nullptr) {
     allow_all_devices = true;
@@ -1464,6 +1483,7 @@ std::vector<sycl::device> available_sycl_devices(
 
       for (const sycl::device &device : oneapi_devices) {
         bool filter_out = false;
+        bool meets_driver_requirement = true;
 
         if (!allow_all_devices) {
           /* For now we support all Intel(R) Arc(TM) devices and likely any future GPU,
@@ -1514,7 +1534,7 @@ std::vector<sycl::device> available_sycl_devices(
                                                               lowest_supported_driver_version_win :
                                                               lowest_supported_driver_version_neo;
               if (driver_build_version < lowest_supported_driver_version) {
-                filter_out = true;
+                meets_driver_requirement = false;
 
                 LOG_WARNING << "Driver version for device \""
                             << device.get_info<sycl::info::device::name>()
@@ -1533,8 +1553,8 @@ std::vector<sycl::device> available_sycl_devices(
         /* The order of adding devices is not important, as both duplicated GPUs are fully
          * functional and performant, so we can pick up the first one we find. */
         if (!filter_out) {
-          for (const sycl::device &already_available_device : available_devices) {
-            std::array<sycl::device, 2> devices = {already_available_device, device};
+          for (const SyclDeviceEntry &available_entry : available_devices) {
+            std::array<sycl::device, 2> devices = {available_entry.device, device};
             std::vector<sycl::ext::intel::info::device::uuid::return_type> uuids;
             for (int i = 0; i < 2; i++) {
               /* As this is an Intel-specific enumeration issue - we are collecting Intel UUID
@@ -1571,7 +1591,7 @@ std::vector<sycl::device> available_sycl_devices(
         }
 
         if (!filter_out) {
-          available_devices.push_back(device);
+          available_devices.push_back(SyclDeviceEntry{device, meets_driver_requirement});
         }
       }
     }
@@ -1664,8 +1684,10 @@ char *OneapiDevice::device_capabilities()
 {
   std::stringstream capabilities;
 
-  const std::vector<sycl::device> &oneapi_devices = available_sycl_devices();
-  for (const sycl::device &device : oneapi_devices) {
+  const std::vector<SyclDeviceEntry> &entries = available_sycl_devices();
+  for (const SyclDeviceEntry &entry : entries) {
+    const sycl::device &device = entry.device;
+
     const std::string &name = device.get_info<sycl::info::device::name>();
 
     capabilities << std::string("\t") << name << "\n";
@@ -1680,6 +1702,8 @@ char *OneapiDevice::device_capabilities()
     capabilities << arch_name << "\n";
     capabilities << "\t\tsycl::info::device::is_cycles_optimized\t\t\t";
     capabilities << is_optimised_for_arch << "\n";
+    capabilities << "\t\tsycl::info::device::meets_driver_requirement\t\t\t";
+    capabilities << entry.meets_driver_requirement << "\n";
 
 #  define WRITE_ATTR(attribute_name, attribute_variable) \
     capabilities << "\t\tsycl::info::device::" #attribute_name "\t\t\t" << attribute_variable \
@@ -1779,8 +1803,10 @@ char *OneapiDevice::device_capabilities()
 void OneapiDevice::iterate_devices(OneAPIDeviceIteratorCallback cb, void *user_ptr)
 {
   int num = 0;
-  std::vector<sycl::device> devices = available_sycl_devices();
-  for (sycl::device &device : devices) {
+  std::vector<SyclDeviceEntry> entries = available_sycl_devices();
+  for (const SyclDeviceEntry &entry : entries) {
+    const sycl::device &device = entry.device;
+
     const std::string &platform_name =
         device.get_platform().get_info<sycl::info::platform::name>();
     std::string name = device.get_info<sycl::info::device::name>();
@@ -1810,6 +1836,7 @@ void OneapiDevice::iterate_devices(OneAPIDeviceIteratorCallback cb, void *user_p
          hwrt_support,
          oidn_support,
          is_optimised_for_arch,
+         entry.meets_driver_requirement,
          user_ptr);
     num++;
   }

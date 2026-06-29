@@ -31,11 +31,12 @@ class TextureMapping {
   bool skip();
   void compile(SVMCompiler &compiler,
                const SVMStackOffset offset_in,
-               const SVMStackOffset offset_out);
+               const SVMStackOffset offset_out,
+               ShaderNode *node);
   int compile(SVMCompiler &compiler, ShaderInput *vector_in);
   void compile(OSLCompiler &compiler);
 
-  SVMStackOffset compile_begin(SVMCompiler &compiler, ShaderInput *vector_in);
+  SVMStackOffset compile_begin(SVMCompiler &compiler, ShaderInput *vector_in, ShaderNode *node);
   void compile_end(SVMCompiler &compiler,
                    ShaderInput *vector_in,
                    const SVMStackOffset vector_offset);
@@ -520,6 +521,8 @@ class BsdfNode : public BsdfBaseNode {
   explicit BsdfNode(const NodeType *node_type);
   SHADER_NODE_BASE_CLASS(BsdfNode)
 
+  template<typename T> void compile(SVMCompiler &compiler, const T &data);
+
   NODE_SOCKET_API(float3, color)
   NODE_SOCKET_API(float3, normal)
   NODE_SOCKET_API(float, surface_mix_weight)
@@ -541,6 +544,8 @@ class PrincipledBsdfNode : public BsdfBaseNode {
  public:
   SHADER_NODE_CLASS(PrincipledBsdfNode)
 
+  bool is_thin_wall();
+  bool subsurface_has_positive_weight();
   bool has_surface_bssrdf() override;
   bool has_bssrdf_bump() override;
   void simplify_settings(Scene *scene) override;
@@ -549,6 +554,7 @@ class PrincipledBsdfNode : public BsdfBaseNode {
   NODE_SOCKET_API(float, metallic)
   NODE_SOCKET_API(float, roughness)
   NODE_SOCKET_API(float, ior)
+  NODE_SOCKET_API(int, thin_wall)
   NODE_SOCKET_API(float3, normal)
   NODE_SOCKET_API(float, alpha)
   NODE_SOCKET_API(float, diffuse_roughness)
@@ -1609,7 +1615,7 @@ class CurvesNode : public ShaderNode {
   explicit CurvesNode(const NodeType *node_type);
   SHADER_NODE_BASE_CLASS(CurvesNode)
 
-  NODE_SOCKET_API_ARRAY(array<float3>, curves)
+  NODE_SOCKET_API_ARRAY(array<packed_float3>, curves)
   NODE_SOCKET_API(float, min_x)
   NODE_SOCKET_API(float, max_x)
   NODE_SOCKET_API(float, fac)
@@ -1657,7 +1663,7 @@ class RGBRampNode : public ShaderNode {
   SHADER_NODE_CLASS(RGBRampNode)
   void constant_fold(const ConstantFolder &folder) override;
 
-  NODE_SOCKET_API_ARRAY(array<float3>, ramp)
+  NODE_SOCKET_API_ARRAY(array<packed_float3>, ramp)
   NODE_SOCKET_API_ARRAY(array<float>, ramp_alpha)
   NODE_SOCKET_API(float, fac)
   NODE_SOCKET_API(bool, interpolate)
@@ -1889,6 +1895,14 @@ class RaycastNode : public ShaderNode {
 
   /* Types for the dynamically registered output sockets. */
   unique_ptr_vector<SocketType> socket_types_;
+};
+
+class SceneTimeNode : public ShaderNode {
+ public:
+  SHADER_NODE_CLASS(SceneTimeNode)
+
+  NODE_SOCKET_API(float, seconds)
+  NODE_SOCKET_API(float, frame)
 };
 
 CCL_NAMESPACE_END

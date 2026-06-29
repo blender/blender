@@ -28,12 +28,12 @@
 #include "DNA_vfont_types.h"
 
 #include "BLI_kdtree.hh"
-#include "BLI_linklist.h"
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_linklist.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 #include "BLI_vector_set.hh"
 
 #include "BLT_translation.hh"
@@ -64,6 +64,7 @@
 #include "BKE_node_tree_interface.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
+#include "BKE_paint.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 
@@ -822,7 +823,7 @@ static void parent_set_vert_find(KDTree<float3> *tree, Object *child, int vert_p
     vert_par[1] = nearest[1].index;
     vert_par[2] = nearest[2].index;
 
-    BLI_assert(min_iii(UNPACK3(vert_par)) >= 0);
+    BLI_assert(std::min({UNPACK3(vert_par)}) >= 0);
   }
   else {
     vert_par[0] = kdtree_find_nearest<float3>(tree, co_find, nullptr);
@@ -914,7 +915,8 @@ static bool parent_set_vertex_parent(bContext *C, ParentingContext *parenting_co
   Object *par_eval = DEG_get_evaluated(depsgraph, parenting_context->par);
 
   tree = BKE_object_as_kdtree(par_eval, &tree_tot);
-  BLI_assert(tree != nullptr);
+  /* Zero & null for unsupported object types. */
+  BLI_assert((tree != nullptr) || (tree_tot == 0));
 
   if (tree_tot < (parenting_context->is_vertex_tri ? 3 : 1)) {
     BKE_report(parenting_context->reports, RPT_ERROR, "Not enough vertices for vertex-parent");
@@ -1597,6 +1599,7 @@ static wmOperatorStatus make_links_data_exec(bContext *C, wmOperator *op)
             id_us_plus(obdata_id);
             ob_dst->data = obdata_id;
 
+            BKE_sculptsession_free_pbvh(*ob_dst);
             /* if amount of material indices changed: */
             BKE_object_materials_sync_length(bmain, ob_dst, ob_dst->data);
 
@@ -2728,7 +2731,7 @@ static bool make_override_library_poll(bContext *C)
 {
   Base *base_act = CTX_data_active_base(C);
   /* If the active object is not selected, do nothing (operators rely on selection too, they will
-   * misbehave if the active object is not also selected, see e.g. #120701. */
+   * misbehave if the active object is not also selected, see e.g. #120701). */
   if ((base_act == nullptr) || ((base_act->flag & BASE_SELECTED) == 0)) {
     return false;
   }
@@ -2785,7 +2788,7 @@ static bool reset_clear_override_library_poll(bContext *C)
 {
   Base *base_act = CTX_data_active_base(C);
   /* If the active object is not selected, do nothing (operators rely on selection too, they will
-   * misbehave if the active object is not also selected, see e.g. #120701. */
+   * misbehave if the active object is not also selected, see e.g. #120701). */
   if ((base_act == nullptr) || ((base_act->flag & BASE_SELECTED) == 0)) {
     return false;
   }

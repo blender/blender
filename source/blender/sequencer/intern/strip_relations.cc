@@ -11,10 +11,12 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
-#include "BLI_session_uid.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_base_c.hh"
+#include "BLI_session_uid.hh"
+#include "BLI_string.hh"
 
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_report.hh"
 
@@ -130,7 +132,7 @@ static void update_range_with_effects(const Scene *scene, const Strip *strip, in
 {
   r_range.x = std::min(r_range.x, strip->left_handle());
   r_range.y = std::max(r_range.y, strip->right_handle(scene) - 1);
-  Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene->ed, strip);
+  Span<Strip *> effects = lookup_effects_by_strip(scene->ed, strip);
   for (Strip *effect : effects) {
     update_range_with_effects(scene, effect, r_range);
   }
@@ -187,6 +189,35 @@ void relations_invalidate_scene_strips(const Main *bmain, const Scene *scene_tar
     if (scene.ed != nullptr) {
       for (Strip *strip : lookup_strips_by_scene(editing_get(&scene), scene_target)) {
         relations_invalidate_cache_raw(&scene, strip);
+      }
+    }
+  }
+}
+
+void relations_update_view_layer_scene_strips(Main *bmain,
+                                              Scene *scene,
+                                              const char *old_name,
+                                              const char *new_name)
+{
+  for (Scene &scene_iter : bmain->scenes) {
+    Editing *ed = seq::editing_get(&scene_iter);
+    if (ed == nullptr) {
+      continue;
+    }
+    for (Strip *strip : seq::lookup_strips_by_scene(ed, scene)) {
+      BLI_assert(strip->scene_view_layer_name != nullptr);
+      if (!STREQ(strip->scene_view_layer_name, old_name)) {
+        continue;
+      }
+
+      MEM_delete(strip->scene_view_layer_name);
+      strip->scene_view_layer_name = new_name ?
+                                         BLI_strdup(new_name) :
+                                         BLI_strdup(
+                                             BKE_view_layer_default_render(strip->scene)->name);
+      if (new_name == nullptr) {
+        /* View layer was deleted. */
+        seq::relations_invalidate_cache_raw(&scene_iter, strip);
       }
     }
   }
@@ -398,7 +429,7 @@ static bool get_uids_cb(Strip *strip, void *user_data)
 {
   Set<SessionUID> &used_uids = *static_cast<Set<SessionUID> *>(user_data);
   const SessionUID &session_uid = strip->runtime->session_uid;
-  if (!BLI_session_uid_is_generated(&session_uid)) {
+  if (!session_uid.is_generated()) {
     printf("Sequence %s does not have UID generated.\n", strip->name);
     return true;
   }

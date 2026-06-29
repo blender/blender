@@ -22,15 +22,15 @@
 
 #include "BLI_kdtree.hh"
 #include "BLI_lasso_2d.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_math_vector.hh"
-#include "BLI_rand.h"
-#include "BLI_rect.h"
-#include "BLI_task.h"
-#include "BLI_time.h"
-#include "BLI_utildefines.h"
+#include "BLI_rand_c.hh"
+#include "BLI_rect.hh"
+#include "BLI_task_c.hh"
+#include "BLI_time.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -312,7 +312,7 @@ static PTCacheEdit *pe_get_current(Depsgraph *depsgraph, Scene *scene, Object *o
   BKE_ptcache_ids_from_object(&pidlist, ob, nullptr, 0);
 
   /* in the case of only one editable thing, set pset->edittype accordingly */
-  if (BLI_listbase_is_single(&pidlist)) {
+  if (pidlist.is_single()) {
     pid = static_cast<PTCacheID *>(pidlist.first);
     switch (pid->type) {
       case PTCACHE_TYPE_PARTICLES:
@@ -392,7 +392,7 @@ static PTCacheEdit *pe_get_current(Depsgraph *depsgraph, Scene *scene, Object *o
     }
   }
 
-  BLI_freelistN(&pidlist);
+  pidlist.free_no_destruct();
 
   return edit;
 }
@@ -5333,7 +5333,7 @@ void PE_create_particle_edit(
     return;
   }
 
-  if (psys == nullptr && (cache && BLI_listbase_is_empty(&cache->mem_cache))) {
+  if (psys == nullptr && (cache && cache->mem_cache.is_empty())) {
     return;
   }
 
@@ -5363,7 +5363,7 @@ void PE_create_particle_edit(
       psys->free_edit = PE_free_ptcache_edit;
 
       edit->pathcache = nullptr;
-      BLI_listbase_clear(&edit->pathcachebufs);
+      edit->pathcachebufs.clear_no_delete();
 
       pa = psys->particles;
       LOOP_POINTS {
@@ -5394,7 +5394,7 @@ void PE_create_particle_edit(
       cache->free_edit = PE_free_ptcache_edit;
       edit->psys = nullptr;
 
-      totframe += BLI_listbase_count(&cache->mem_cache);
+      totframe += cache->mem_cache.count();
 
       for (PTCacheMem &pm : cache->mem_cache) {
         LOOP_POINTS {
@@ -5576,6 +5576,10 @@ static wmOperatorStatus clear_edited_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = CTX_data_active_object(C);
   ParticleSystem *psys = psys_get_current(ob);
+  /* Additional check as poll doesn't do this exact lookup. */
+  if (psys == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
 
   if (psys->edit) {
     if (/*psys->edit->edited ||*/ true) {

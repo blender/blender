@@ -44,6 +44,10 @@ static void node_declare(NodeDeclarationBuilder &b)
     template_id(&layout, context, node_pointer, "clip", nullptr, "CLIP_OT_open", nullptr);
   });
 
+  b.add_input<decl::Int>("Frame"_ustr)
+      .default_input_type(NodeDefaultInputType::NODE_DEFAULT_INPUT_SCENE_FRAME)
+      .description("The frame to get the stabilization data at");
+
   b.add_input<decl::Bool>("Invert"_ustr)
       .default_value(false)
       .description("Invert stabilization to reintroduce motion to the image");
@@ -94,8 +98,8 @@ class Stabilize2DOperation : public NodeOperation {
 
     const int width = input.domain().data_size.x;
     const int height = input.domain().data_size.y;
-    const int frame_number = BKE_movieclip_remap_scene_to_clip_frame(movie_clip,
-                                                                     context().get_frame_number());
+    const int frame = this->get_input("Frame").get_single_value_default<int>();
+    const int frame_number = BKE_movieclip_remap_scene_to_clip_frame(movie_clip, frame);
 
     float2 translation;
     float scale, rotation;

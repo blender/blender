@@ -10,9 +10,9 @@
 #include "DNA_shader_fx_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BLI_link_utils.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
+#include "BLI_link_utils.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "DRW_render.hh"
 

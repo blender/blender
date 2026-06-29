@@ -10,7 +10,7 @@
 
 #include "DNA_scene_types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 namespace blender::deg {
 
@@ -58,18 +58,6 @@ void DepsgraphNodeBuilder::build_scene_parameters(Scene *scene)
   build_idproperties(scene->id.system_properties);
 
   add_operation_node(&scene->id, NodeType::SCENE, OperationCode::SCENE_EVAL);
-
-  /* NOTE: This is a bit overkill and can potentially pull a bit too much into the graph, but:
-   *
-   * - We definitely need an ID node for the scene's compositor, otherwise re-mapping will no
-   *   happen correct and we will risk remapping pointers in the main database.
-   * - Alternatively, we should discard compositor tree, but this might cause other headache like
-   *   drivers which are coming from the tree.
-   *
-   * Would be nice to find some reliable way of ignoring compositor here, but it's already pulled
-   * in when building scene from view layer, so this particular case does not make things
-   * marginally worse. */
-  build_scene_compositor(scene);
 
   for (TimeMarker &marker : scene->markers) {
     build_idproperties(marker.prop);

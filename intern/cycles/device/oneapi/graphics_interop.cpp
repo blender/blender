@@ -59,13 +59,13 @@ void OneapiDeviceGraphicsInterop::set_buffer(GraphicsInteropBuffer &interop_buff
       sycl::ext::oneapi::experimental::external_mem_handle_type::win32_nt_handle;
   sycl::ext::oneapi::experimental::external_mem_descriptor<
       sycl::ext::oneapi::experimental::resource_win32_handle>
-      sycl_external_mem_descriptor{vulkan_windows_handle_, sycl_mem_handle_type};
+      sycl_external_mem_descriptor{{vulkan_windows_handle_}, sycl_mem_handle_type};
 #  else
   /* import_external_memory will take ownership of the file descriptor. */
   auto sycl_mem_handle_type = sycl::ext::oneapi::experimental::external_mem_handle_type::opaque_fd;
   sycl::ext::oneapi::experimental::external_mem_descriptor<
       sycl::ext::oneapi::experimental::resource_fd>
-      sycl_external_mem_descriptor{static_cast<int>(interop_buffer.take_handle()),
+      sycl_external_mem_descriptor{{static_cast<int>(interop_buffer.take_handle())},
                                    sycl_mem_handle_type};
 #  endif
 

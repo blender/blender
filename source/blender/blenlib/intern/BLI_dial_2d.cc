@@ -6,11 +6,11 @@
  * \ingroup bli
  */
 
-#include "BLI_dial_2d.h"
+#include "BLI_dial_2d.hh"
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 
 namespace blender {
 

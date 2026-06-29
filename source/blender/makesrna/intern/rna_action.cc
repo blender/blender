@@ -93,10 +93,10 @@ const EnumPropertyItem default_ActionSlot_target_id_type_items[] = {
 
 #  include <algorithm>
 
-#  include "BLI_listbase.h"
-#  include "BLI_math_base.h"
-#  include "BLI_string.h"
-#  include "BLI_string_utf8.h"
+#  include "BLI_listbase.hh"
+#  include "BLI_math_base_c.hh"
+#  include "BLI_string.hh"
+#  include "BLI_string_utf8.hh"
 
 #  include "BKE_fcurve.hh"
 #  include "BKE_main.hh"
@@ -1006,7 +1006,7 @@ static void rna_Action_active_pose_marker_index_range(
   bAction *act = static_cast<bAction *>(ptr->data);
 
   *min = 0;
-  *max = max_ii(0, BLI_listbase_count(&act->markers) - 1);
+  *max = max_ii(0, act->markers.count() - 1);
 }
 
 static bool rna_Action_is_empty_get(PointerRNA *ptr)

@@ -17,6 +17,7 @@ __all__ = (
 )
 
 import atexit
+import threading
 from typing import TYPE_CHECKING
 
 import bpy
@@ -29,8 +30,9 @@ else:
     _DiskFileHashService = object
 
 
-# Mapping from storage path to the service.
-_services: dict[_Path, _DiskFileHashService] = {}
+# Mapping from storage path + thread ID to the service instance.
+_services: dict[tuple[_Path, int], _DiskFileHashService] = {}
+_services_mutex = threading.Lock()
 
 
 def get_service(storage_path: _Path) -> _DiskFileHashService:
@@ -44,26 +46,64 @@ def get_service(storage_path: _Path) -> _DiskFileHashService:
     Once a DiskFileHashService is constructed, it is cached for future
     invocations. These cached services are cleaned up when Blender loads another
     file or when it exits.
+
+    NOTE: DiskFileHashService instances should _NOT_ be used by different
+    threads. When this function is used from a thread other than the main
+    thread, it MUST use `release_service(storage_path)` once the work is done.
     """
-    try:
-        return _services[storage_path]
-    except KeyError:
-        pass
+    map_key = _map_key(storage_path)
 
-    from _bpy_internal.disk_file_hash_service import backend_sqlite, hash_service
+    with _services_mutex:
+        try:
+            return _services[map_key]
+        except KeyError:
+            pass
 
-    # Construct the service.
-    backend = backend_sqlite.SQLiteBackend(storage_path)
-    service = hash_service.DiskFileHashService(backend)
+        from _bpy_internal.disk_file_hash_service import backend_sqlite, hash_service
 
-    # Register cleanup app handlers, if they haven't been registered yet.
-    if _on_file_load_pre not in bpy.app.handlers.load_pre:
-        bpy.app.handlers.load_pre.append(_on_file_load_pre)
+        # Construct the service.
+        backend = backend_sqlite.SQLiteBackend(storage_path)
+        service = hash_service.DiskFileHashService(backend)
 
-    service.open()
-    _services[storage_path] = service
+        # Register cleanup app handlers, if they haven't been registered yet.
+        if _on_file_load_pre not in bpy.app.handlers.load_pre:
+            bpy.app.handlers.load_pre.append(_on_file_load_pre)
 
-    return service
+        service.open()
+        _services[map_key] = service
+
+        return service
+
+
+def release_service(storage_path: _Path) -> None:
+    """Close a DiskFileHashService and release its resources.
+
+    Since DiskFileHashService instances should not be shared across threads,
+    when your thread is done with the service, call this function. This is
+    mandatory, as thread IDs can be reused; not releasing the service when
+    your thread is done with it can cause hard-to-diagnose corruptions when
+    the thread ID is reused by another thread.
+
+    If your DFHS is only ever used from the main thread, it is not mandatory to
+    release it, as that'll automatically happen when a new blend file loads or
+    when Blender exits.
+
+    When there is no known service for the given storage path, this is a no-op.
+    """
+    map_key = _map_key(storage_path)
+
+    with _services_mutex:
+        try:
+            service = _services.pop(map_key)
+        except KeyError:
+            return
+        service.close()
+
+
+def _map_key(storage_path: _Path) -> tuple[_Path, int]:
+    thread_id = threading.current_thread().ident
+    assert thread_id is not None, "current thread should be running"
+    return (storage_path, thread_id)
 
 
 @bpy.app.handlers.persistent
@@ -81,12 +121,24 @@ def on_blender_exit() -> None:
 def _cleanup_all_services() -> None:
     """Close & delete all known services."""
 
-    while _services:
-        _, service = _services.popitem()
-        try:
-            service.close()
-        except Exception:
-            # Print the exception, but keep running so that the next service can
-            # be closed.
-            import traceback
-            traceback.print_exc()
+    current_thread_id = threading.current_thread().ident
+    if current_thread_id != threading.main_thread().ident:
+        raise RuntimeError("this function MUST be run from the main thread")
+
+    with _services_mutex:
+        while _services:
+            (_, thread_id), service = _services.popitem()
+
+            # DFHS instances created in a thread MUST be freed by that thread.
+            if thread_id != current_thread_id:
+                print(
+                    "WARNING: Disk File Hash Service was created on thread {:d} but not released by that thread".format(thread_id))
+                # Keep running, maybe it can still be freed from this thread, and then we don't leak instances.
+
+            try:
+                service.close()
+            except Exception:
+                # Print the exception, but keep running so that the next service can
+                # be closed.
+                import traceback
+                traceback.print_exc()

@@ -121,6 +121,13 @@ static void add_output_nodes(const Context &context,
     }
   }
 
+  /* Add Warning nodes. */
+  for (const bNode *node : node_group.nodes_by_type("GeometryNodeWarning"_ustr)) {
+    if (!node->is_muted()) {
+      node_stack.push(node);
+    }
+  }
+
   /* Add File Output nodes. */
   if (flag_is_set(needed_outputs_types, NodeGroupOutputTypes::FileOutputNode)) {
     for (const bNode *node : node_group.nodes_by_type("CompositorNodeOutputFile"_ustr)) {
@@ -216,7 +223,7 @@ static bool is_switch_node_input_needed(const bNode &node,
     return true;
   }
 
-  return (input.identifier_ustr() == "On"_ustr) == condition.value();
+  return (input.identifier_ustr() == "True"_ustr) == condition.value();
 }
 
 /* returns true if the given input of the given menu switch node in the given node group operation
@@ -280,7 +287,7 @@ static bool is_input_needed(const bNode &node,
     return node_group_operation.get_result(input.identifier).should_compute();
   }
 
-  if (node.is_type("CompositorNodeSwitch"_ustr)) {
+  if (node.is_type("GeometryNodeSwitch"_ustr)) {
     return is_switch_node_input_needed(node, input, node_group_operation);
   }
 
@@ -457,7 +464,11 @@ static NeededBuffers compute_number_of_needed_buffers(Stack<const bNode *> &outp
 
       /* If any of the links is not between two pixel nodes, it means that the node outputs
        * a buffer through this output and so we increment the number of output buffers. */
-      if (!is_output_linked_to_node_conditioned(*output, is_pixel_node) || !is_pixel_node(node)) {
+      if (!is_pixel_node(node) ||
+          is_output_linked_to_input_conditioned(*output, [&](const bNodeSocket &input) {
+            return !is_pixel_node(input.owner_node());
+          }))
+      {
         number_of_output_buffers++;
       }
     }

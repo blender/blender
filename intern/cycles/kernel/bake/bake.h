@@ -87,7 +87,7 @@ ccl_device void kernel_background_evaluate(KernelGlobals kg,
   const uint32_t path_flag = PATH_RAY_EMISSION | PATH_RAY_IMPORTANCE_BAKE;
   surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT &
                       ~(KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_NODE_LIGHT_PATH)>(
-      kg, state, &sd, nullptr, path_flag);
+      kg, state, &sd, nullptr, PATH_RAY_VISIBILITY_NONE, path_flag);
   if (sd.flag & SD_CACHE_MISS) {
     *cache_miss = true;
   }
@@ -129,7 +129,7 @@ ccl_device void kernel_curve_shadow_transparency_evaluate(
   ConstIntegratorBakeState state;
   surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW &
                       ~(KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_NODE_LIGHT_PATH)>(
-      kg, state, &sd, nullptr, PATH_RAY_SHADOW);
+      kg, state, &sd, nullptr, PATH_RAY_VISIBILITY_SHADOW, PATH_RAY_FLAG_NONE);
 
   if (sd.flag & SD_CACHE_MISS) {
     *cache_miss = true;
@@ -175,7 +175,8 @@ ccl_device void kernel_volume_density_evaluate(KernelGlobals kg,
    * that depends on ray types, the extrema are estimated on the fly. */
   /* TODO(weizhen): Volume invisible to camera ray might appear noisy. We can at least build a
    * separate octree for shadow ray. */
-  const uint32_t path_flag = PATH_RAY_CAMERA;
+  const PathRayVisibility path_visibility = PATH_RAY_VISIBILITY_CAMERA;
+  const uint32_t path_flag = PATH_RAY_FLAG_NONE;
 
   /* Setup volume stack entry. */
   in = input[offset * 2 + 1];
@@ -212,7 +213,7 @@ ccl_device void kernel_volume_density_evaluate(KernelGlobals kg,
     ConstIntegratorBakeState state;
     volume_shader_eval_entry<false,
                              KERNEL_FEATURE_NODE_MASK_VOLUME & ~KERNEL_FEATURE_NODE_LIGHT_PATH>(
-        kg, state, &sd, entry, path_flag);
+        kg, state, &sd, entry, path_visibility, path_flag);
 
     if (sd.flag & SD_CACHE_MISS) {
       /* Note we keep rendering other samples so we find all cache misses in one go. */

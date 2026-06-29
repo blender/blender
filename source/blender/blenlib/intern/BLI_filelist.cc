@@ -20,7 +20,7 @@
 #include <sys/stat.h>
 
 #ifdef WIN32
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #  include "utfconv.hh"
 #  include <direct.h>
 #  include <io.h>
@@ -35,11 +35,11 @@
 
 #include "DNA_listBase.h"
 
-#include "BLI_fileops.h"
-#include "BLI_fileops_types.h"
-#include "BLI_listbase.h"
+#include "BLI_fileops.hh"
+#include "BLI_fileops_types.hh"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_utils.hh"
 
 namespace blender {
@@ -112,7 +112,7 @@ static void bli_builddir(BuildDirCtx *dir_ctx, const char *dirname)
 {
   BLI_assert(!BLI_path_is_rel(dirname));
   DIR *dir = opendir(dirname);
-  if (UNLIKELY(dir == nullptr)) {
+  if (dir == nullptr) [[unlikely]] {
     fprintf(stderr,
             "Failed to open dir (%s): %s\n",
             errno ? strerror(errno) : "unknown error",
@@ -190,7 +190,7 @@ static void bli_builddir(BuildDirCtx *dir_ctx, const char *dirname)
       dir_ctx->files = MEM_new_array_uninitialized<direntry>(size_t(newnum), __func__);
     }
 
-    if (UNLIKELY(dir_ctx->files == nullptr)) {
+    if (dir_ctx->files == nullptr) [[unlikely]] {
       fprintf(stderr, "Couldn't get memory for dir: %s\n", dirname);
       dir_ctx->files_num = 0;
     }

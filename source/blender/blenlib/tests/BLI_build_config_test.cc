@@ -4,8 +4,8 @@
 
 #include "testing/testing.h"
 
-#include "BLI_build_config.h"
-#include "BLI_endian_defines.h"
+#include "BLI_build_config.hh"
+#include "BLI_endian_defines.hh"
 
 namespace blender::tests {
 

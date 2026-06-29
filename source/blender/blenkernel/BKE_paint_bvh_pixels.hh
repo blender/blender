@@ -11,7 +11,7 @@
 #include "BLI_array.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector.hh"
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_image_types.h"
@@ -38,6 +38,11 @@ struct PackedPixelRow {
   ushort uv_primitive_index;
 };
 
+struct PackedPixelRowPosition {
+  float3 start;
+  float3 delta;
+};
+
 /**
  * Node pixel data containing the pixels for a single UDIM tile.
  */
@@ -54,17 +59,23 @@ struct UDIMTilePixels {
 
   Vector<PackedPixelRow> pixel_rows;
 
+  /**
+   * Encoded 3D position data corresponding to each element of `pixel_rows`.
+   *
+   * Needs to be re-calculated when underlying mesh position data changes.
+   */
+  Vector<PackedPixelRowPosition> pixel_row_positions;
+
   UDIMTilePixels()
   {
     flags.dirty = false;
     BLI_rcti_init_minmax(&dirty_region);
   }
 
-  void mark_dirty(const PackedPixelRow &pixel_row)
+  void mark_dirty(const Bounds<int2> &bounds)
   {
-    int2 start_image_coord(pixel_row.start_image_coordinate.x, pixel_row.start_image_coordinate.y);
-    BLI_rcti_do_minmax_v(&dirty_region, start_image_coord);
-    BLI_rcti_do_minmax_v(&dirty_region, start_image_coord + int2(pixel_row.num_pixels + 1, 0));
+    BLI_rcti_do_minmax_v(&dirty_region, bounds.min);
+    BLI_rcti_do_minmax_v(&dirty_region, bounds.max);
     flags.dirty = true;
   }
 
@@ -152,8 +163,8 @@ struct PixelNode {
                    ImBuf &image_buffer)
   {
     if (tile.flags.dirty) {
-      if (image_buffer.planes == 8) {
-        image_buffer.planes = 32;
+      if (image_buffer.color_mode == ImColorMode::BW) {
+        image_buffer.color_mode = ImColorMode::RGBA;
         BKE_image_partial_update_mark_full_update(&image);
       }
       else {

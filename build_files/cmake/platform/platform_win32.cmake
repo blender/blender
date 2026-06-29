@@ -444,8 +444,8 @@ endif()
 set(EPOXY_ROOT_DIR ${LIBDIR}/epoxy)
 windows_find_package(Epoxy REQUIRED)
 if(NOT EPOXY_FOUND)
-  set(Epoxy_INCLUDE_DIRS ${LIBDIR}/epoxy/include)
-  set(Epoxy_LIBRARIES ${LIBDIR}/epoxy/lib/epoxy.lib)
+  set(EPOXY_INCLUDE_DIRS ${LIBDIR}/epoxy/include)
+  set(EPOXY_LIBRARIES ${LIBDIR}/epoxy/lib/epoxy.lib)
 endif()
 
 set(PTHREADS_INCLUDE_DIRS ${LIBDIR}/pthreads/include)
@@ -543,14 +543,6 @@ set(IMATH_ROOT ${LIBDIR}/imath)
 find_package(IMATH REQUIRED CONFIG)
 set(OpenEXR_ROOT ${LIBDIR}/openexr)
 find_package(OpenEXR REQUIRED CONFIG)
-
-# Try to find tiff first then complain and set static and maybe wrong paths
-windows_find_package(TIFF)
-if(NOT TIFF_FOUND)
-  warn_hardcoded_paths(libtiff)
-  set(TIFF_LIBRARY ${LIBDIR}/tiff/lib/libtiff.lib)
-  set(TIFF_INCLUDE_DIR ${LIBDIR}/tiff/include)
-endif()
 
 if(WITH_JACK)
   set(JACK_INCLUDE_DIRS
@@ -1166,11 +1158,10 @@ if(WITH_CYCLES AND (WITH_CYCLES_DEVICE_ONEAPI OR (WITH_CYCLES_EMBREE AND EMBREE_
     # there is a safe guard against it below.
     string(REPLACE "d.dll" ".dll" sycl_unified_runtime_library_release ${sycl_unified_runtime_library})
 
-    list(FIND _sycl_unified_runtime_libraries_glob ${sycl_unified_runtime_library_debug} debug_index)
-    list(FIND _sycl_unified_runtime_libraries_glob ${sycl_unified_runtime_library_release} release_index)
-    if(NOT debug_index EQUAL -1)
+    if(sycl_unified_runtime_library_debug IN_LIST _sycl_unified_runtime_libraries_glob)
       set(sycl_unified_runtime_library_release ${sycl_unified_runtime_library})
-    elseif(NOT release_index EQUAL -1 AND NOT sycl_unified_runtime_library_release STREQUAL sycl_unified_runtime_library)
+    elseif(sycl_unified_runtime_library_release IN_LIST _sycl_unified_runtime_libraries_glob AND
+           NOT sycl_unified_runtime_library_release STREQUAL sycl_unified_runtime_library)
       set(sycl_unified_runtime_library_debug ${sycl_unified_runtime_library})
     else()
       # If there is no debug pair version of the library, then we are assuming
@@ -1179,8 +1170,7 @@ if(WITH_CYCLES AND (WITH_CYCLES_DEVICE_ONEAPI OR (WITH_CYCLES_EMBREE AND EMBREE_
       set(sycl_unified_runtime_library_release ${sycl_unified_runtime_library})
       set(sycl_unified_runtime_library_debug ${sycl_unified_runtime_library})
     endif()
-    list(FIND _sycl_runtime_libraries ${sycl_unified_runtime_library_release} found_index)
-    if(found_index EQUAL -1)
+    if(NOT sycl_unified_runtime_library_release IN_LIST _sycl_runtime_libraries)
       list(APPEND _sycl_runtime_libraries RELEASE ${sycl_unified_runtime_library_release})
       list(APPEND _sycl_runtime_libraries DEBUG ${sycl_unified_runtime_library_debug})
       # NOTE(Sirgienko) Due to a bug in DPC++ runtime, in versions 6.2 and 6.3

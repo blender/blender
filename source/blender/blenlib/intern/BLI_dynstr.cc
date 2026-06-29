@@ -11,10 +11,10 @@
 #include <cstdlib> /* malloc */
 #include <cstring>
 
-#include "BLI_dynstr.h"
-#include "BLI_memarena.h"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_dynstr.hh"
+#include "BLI_memarena.hh"
+#include "BLI_string.hh"
+#include "BLI_utildefines.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -113,7 +113,7 @@ void BLI_dynstr_appendf(DynStr *__restrict ds, const char *__restrict format, ..
   va_start(args, format);
   str = BLI_vsprintfN_with_buffer(fixed_buf, sizeof(fixed_buf), &str_len, format, args);
   va_end(args);
-  if (LIKELY(str)) {
+  if (str) [[likely]] {
     BLI_dynstr_append(ds, str);
     if (str != fixed_buf) {
       MEM_delete(str);

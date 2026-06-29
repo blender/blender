@@ -9,9 +9,9 @@
 #pragma once
 
 #include <atomic>
+#include <thread>
 
-#include "BLI_task.h"
-#include "BLI_threads.h"
+#include "BLI_threads.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 
@@ -102,7 +102,7 @@ struct VKExtensions {
   bool vertex_input_dynamic_state = false;
 
   /**
-   *Does the device support VK_EXT_host_image_copy
+   * Does the device support VK_EXT_host_image_copy
    */
   bool host_image_copy = false;
 
@@ -159,13 +159,14 @@ class VKDevice : public NonCopyable {
   bool is_initialized_ = false;
 
   /**
-   * Task pool for render graph submission.
+   * Render graph submission thread.
    *
-   * Multiple threads in Blender can build a render graph. Building the command buffer for a render
-   * graph is faster when doing it in serial. Submission pool ensures that only one task is
-   * building at a time (background_serial).
+   * Multiple threads in Blender can build a render graph. All submitted
+   * render graphs are queued and consumed one at a time by this thread.
    */
-  TaskPool *submission_pool_ = nullptr;
+  std::thread submission_thread_;
+  std::atomic<bool> submission_thread_should_exit_ = false;
+
   /**
    * All created render graphs.
    */
@@ -267,7 +268,7 @@ class VKDevice : public NonCopyable {
     PFN_vkCopyMemoryToImageEXT vkCopyMemoryToImage = nullptr;
     PFN_vkTransitionImageLayoutEXT vkTransitionImageLayout = nullptr;
 
-    /* Extension: VK_KHR_mainentance4 */
+    /* Extension: VK_KHR_maintenance4 */
     PFN_vkGetDeviceImageMemoryRequirements vkGetDeviceImageMemoryRequirements = nullptr;
     PFN_vkGetDeviceBufferMemoryRequirements vkGetDeviceBufferMemoryRequirements = nullptr;
 
@@ -406,7 +407,7 @@ class VKDevice : public NonCopyable {
   /* -------------------------------------------------------------------- */
   /** \name Render graph
    * \{ */
-  static void submission_runner(TaskPool *__restrict pool, void *task_data);
+  static void submission_runner(VKDevice *device);
   render_graph::VKRenderGraph *render_graph_new();
 
   TimelineValue render_graph_submit(render_graph::VKRenderGraph *render_graph,
@@ -481,8 +482,8 @@ class VKDevice : public NonCopyable {
   void init_physical_device_features();
   void init_physical_device_extensions();
   void init_debug_callbacks();
-  void init_submission_pool();
-  void deinit_submission_pool();
+  void init_submission_thread();
+  void deinit_submission_thread();
   /**
    * Initialize the functions struct with extension specific function pointer.
    */

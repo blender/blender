@@ -13,8 +13,8 @@
 
 #include <Python.h>
 
-#include "BLI_math_base.h"
-#include "BLI_string_utf8.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_string_utf8.hh"
 
 #include "DNA_image_types.h"
 
@@ -22,6 +22,7 @@
 #include "GPU_texture.hh"
 
 #include "BKE_image.hh"
+#include "BKE_image_gpu.hh"
 
 #include "../generic/py_capi_utils.hh"
 #include "../generic/python_compat.hh" /* IWYU pragma: keep. */
@@ -31,7 +32,7 @@
 
 #include "gpu_py_texture.hh" /* own include */
 
-/* Doc-string Literal type for texture formats. */
+/* Docstring Literal type for texture formats. */
 
 #define PYDOC_TEX_FORMAT_LITERAL \
   "Literal[" \
@@ -144,7 +145,7 @@ const PyC_StringEnumItems pygpu_textureextendmode_items[] = {
 
 static int pygpu_texture_valid_check(BPyGPUTexture *bpygpu_tex)
 {
-  if (UNLIKELY(bpygpu_tex->tex == nullptr)) {
+  if (bpygpu_tex->tex == nullptr) [[unlikely]] {
     PyErr_SetString(PyExc_ReferenceError,
 #ifdef BPYGPU_USE_GPUOBJ_FREE_METHOD
                     "GPU texture was freed, no further access is valid"
@@ -160,7 +161,7 @@ static int pygpu_texture_valid_check(BPyGPUTexture *bpygpu_tex)
 
 #define BPYGPU_TEXTURE_CHECK_OBJ(bpygpu) \
   { \
-    if (UNLIKELY(pygpu_texture_valid_check(bpygpu) == -1)) { \
+    if (pygpu_texture_valid_check(bpygpu) == -1) [[unlikely]] { \
       return nullptr; \
     } \
   } \
@@ -915,9 +916,13 @@ static PyObject *pygpu_texture_from_image(PyObject * /*self*/, PyObject *arg)
 
   ImageUser iuser;
   BKE_imageuser_default(&iuser);
-  gpu::Texture *tex = BKE_image_get_gpu_texture(ima, &iuser);
+  gpu::Texture *tex = BKE_image_acquire_gpu_texture(ima, &iuser);
 
-  return BPyGPUTexture_CreatePyObject(tex, true);
+  PyObject *result = BPyGPUTexture_CreatePyObject(tex, true);
+  if (tex) {
+    GPU_texture_free(tex);
+  }
+  return result;
 }
 
 static PyMethodDef pygpu_texture__m_methods[] = {
@@ -963,7 +968,7 @@ int bpygpu_ParseTexture(PyObject *o, void *p)
     return 0;
   }
 
-  if (UNLIKELY(pygpu_texture_valid_check((BPyGPUTexture *)o) == -1)) {
+  if (pygpu_texture_valid_check((BPyGPUTexture *)o) == -1) [[unlikely]] {
     return 0;
   }
 

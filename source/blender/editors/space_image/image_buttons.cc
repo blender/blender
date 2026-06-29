@@ -14,11 +14,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -104,7 +104,6 @@ static void ui_imageuser_slot_menu(bContext *C, ui::Layout *layout, void *image_
     }
     ui::Button *but = uiDefIconTextBut(
         block, ui::ButtonType::ButMenu, icon, str, 0, 0, UI_UNIT_X * 5, UI_UNIT_X, nullptr, "");
-    button_retval_set(but, B_NOP);
     button_func_set(
         but, [image, slot_id = slot_id](bContext & /*C*/) { image->render_slot = slot_id; });
   }
@@ -174,7 +173,7 @@ static void ui_imageuser_layer_menu(bContext * /*C*/, ui::Layout *layout, void *
 
   /* May have been freed since drawing. */
   RenderResult *rr = BKE_image_acquire_renderresult(scene, image);
-  if (UNLIKELY(rr == nullptr)) {
+  if (rr == nullptr) [[unlikely]] {
     BKE_image_release_renderresult(scene, image, rr);
     return;
   }
@@ -194,7 +193,7 @@ static void ui_imageuser_layer_menu(bContext * /*C*/, ui::Layout *layout, void *
                                 0.0,
                                 0.0,
                                 "");
-    button_retval_set(but, B_NOP);
+    button_enum_prop_value_set(but, 0);
   }
 
   int nr = fake_name ? 1 : 0;
@@ -207,10 +206,10 @@ static void ui_imageuser_layer_menu(bContext * /*C*/, ui::Layout *layout, void *
                                 UI_UNIT_X * 5,
                                 UI_UNIT_X,
                                 &iuser->layer,
-                                float(nr),
+                                0.0,
                                 0.0,
                                 "");
-    button_retval_set(but, B_NOP);
+    button_enum_prop_value_set(but, nr);
   }
 
   layout->separator();
@@ -245,7 +244,7 @@ static void ui_imageuser_pass_menu(bContext * /*C*/, ui::Layout *layout, void *r
 
   /* may have been freed since drawing */
   rr = BKE_image_acquire_renderresult(scene, image);
-  if (UNLIKELY(rr == nullptr)) {
+  if (rr == nullptr) [[unlikely]] {
     BKE_image_release_renderresult(scene, image, rr);
     return;
   }
@@ -257,7 +256,7 @@ static void ui_imageuser_pass_menu(bContext * /*C*/, ui::Layout *layout, void *r
   nr = (rl == nullptr) ? 1 : 0;
 
   ListBaseT<LinkData> added_passes;
-  BLI_listbase_clear(&added_passes);
+  added_passes.clear_no_delete();
 
   /* rendered results don't have a Combined pass */
   /* multiview: the ordering must be ascending, so the left-most pass is always the one picked */
@@ -278,10 +277,10 @@ static void ui_imageuser_pass_menu(bContext * /*C*/, ui::Layout *layout, void *r
                                 UI_UNIT_X * 5,
                                 UI_UNIT_X,
                                 &iuser->pass,
-                                float(nr),
+                                0.0,
                                 0.0,
                                 "");
-    button_retval_set(but, B_NOP);
+    button_enum_prop_value_set(but, nr);
   }
 
   layout->separator();
@@ -297,7 +296,7 @@ static void ui_imageuser_pass_menu(bContext * /*C*/, ui::Layout *layout, void *r
            0.0,
            "");
 
-  BLI_freelistN(&added_passes);
+  added_passes.free_no_destruct();
 
   BKE_image_release_renderresult(scene, image, rr);
 }
@@ -316,7 +315,7 @@ static void ui_imageuser_view_menu_rr(bContext * /*C*/, ui::Layout *layout, void
 
   /* may have been freed since drawing */
   rr = BKE_image_acquire_renderresult(scene, image);
-  if (UNLIKELY(rr == nullptr)) {
+  if (rr == nullptr) [[unlikely]] {
     BKE_image_release_renderresult(scene, image, rr);
     return;
   }
@@ -337,7 +336,7 @@ static void ui_imageuser_view_menu_rr(bContext * /*C*/, ui::Layout *layout, void
 
   layout->separator();
 
-  nr = (rr ? BLI_listbase_count(&rr->views) : 0) - 1;
+  nr = (rr ? rr->views.count() : 0) - 1;
   for (rview = static_cast<RenderView *>(rr ? rr->views.last : nullptr); rview;
        rview = rview->prev, nr--)
   {
@@ -349,10 +348,10 @@ static void ui_imageuser_view_menu_rr(bContext * /*C*/, ui::Layout *layout, void
                                 UI_UNIT_X * 5,
                                 UI_UNIT_X,
                                 &iuser->view,
-                                float(nr),
+                                0.0,
                                 0.0,
                                 "");
-    button_retval_set(but, B_NOP);
+    button_enum_prop_value_set(but, nr);
   }
 
   BKE_image_release_renderresult(scene, image, rr);
@@ -383,7 +382,7 @@ static void ui_imageuser_view_menu_multiview(bContext * /*C*/, ui::Layout *layou
 
   layout->separator();
 
-  nr = BLI_listbase_count(&image->views) - 1;
+  nr = image->views.count() - 1;
   for (iv = static_cast<ImageView *>(image->views.last); iv; iv = iv->prev, nr--) {
     ui::Button *but = uiDefButV(block,
                                 ui::ButtonType::ButMenu,
@@ -393,20 +392,25 @@ static void ui_imageuser_view_menu_multiview(bContext * /*C*/, ui::Layout *layou
                                 UI_UNIT_X * 5,
                                 UI_UNIT_X,
                                 &iuser->view,
-                                float(nr),
+                                0.0,
                                 0.0,
                                 "");
-    button_retval_set(but, B_NOP);
+    button_enum_prop_value_set(but, nr);
   }
 }
 
 /* 5 layer button callbacks... */
-static void image_multi_cb(bContext *C, void *rnd_pt, void *rr_v)
+static void image_multi_cb(bContext *C, void *rnd_pt, void * /*unused*/)
 {
+  Scene *scene = CTX_data_scene(C);
   ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
+  Image *image = rnd_data->image;
   ImageUser *iuser = rnd_data->iuser;
 
-  BKE_image_multilayer_index(static_cast<RenderResult *>(rr_v), iuser);
+  RenderResult *rr = BKE_image_acquire_renderresult(scene, image);
+  BKE_image_multilayer_index(rr, iuser);
+  BKE_image_release_renderresult(scene, image, rr);
+
   WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, nullptr);
 }
 
@@ -420,7 +424,7 @@ static bool ui_imageuser_layer_menu_step(bContext *C, int direction, void *rnd_p
   bool changed = false;
 
   rr = BKE_image_acquire_renderresult(scene, image);
-  if (UNLIKELY(rr == nullptr)) {
+  if (rr == nullptr) [[unlikely]] {
     BKE_image_release_renderresult(scene, image, rr);
     return false;
   }
@@ -432,7 +436,7 @@ static bool ui_imageuser_layer_menu_step(bContext *C, int direction, void *rnd_p
     }
   }
   else if (direction == 1) {
-    int tot = BLI_listbase_count(&rr->layers);
+    int tot = rr->layers.count();
 
     if (RE_HasCombinedLayer(rr)) {
       tot++; /* fake compo/sequencer layer */
@@ -447,12 +451,12 @@ static bool ui_imageuser_layer_menu_step(bContext *C, int direction, void *rnd_p
     BLI_assert(0);
   }
 
-  BKE_image_release_renderresult(scene, image, rr);
-
   if (changed) {
     BKE_image_multilayer_index(rr, iuser);
     WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, nullptr);
   }
+
+  BKE_image_release_renderresult(scene, image, rr);
 
   return changed;
 }
@@ -470,7 +474,7 @@ static bool ui_imageuser_pass_menu_step(bContext *C, int direction, void *rnd_pt
   RenderPass *rpass;
 
   rr = BKE_image_acquire_renderresult(scene, image);
-  if (UNLIKELY(rr == nullptr)) {
+  if (rr == nullptr) [[unlikely]] {
     BKE_image_release_renderresult(scene, image, rr);
     return false;
   }
@@ -524,12 +528,12 @@ static bool ui_imageuser_pass_menu_step(bContext *C, int direction, void *rnd_pt
     BLI_assert(0);
   }
 
-  BKE_image_release_renderresult(scene, image, rr);
-
   if (changed) {
     BKE_image_multilayer_index(rr, iuser);
     WM_event_add_notifier(C, NC_IMAGE | ND_DRAW, nullptr);
   }
+
+  BKE_image_release_renderresult(scene, image, rr);
 
   return changed;
 }
@@ -592,7 +596,7 @@ static void uiblock_layer_pass_buttons(ui::Layout &layout,
     but = uiDefMenuBut(
         block, ui_imageuser_slot_menu, image, str, 0, 0, wmenu1, UI_UNIT_Y, TIP_("Select Slot"));
     button_func_menu_step_set(but, ui_imageuser_slot_menu_step);
-    button_funcN_set(but, image_multi_cb, rnd_pt, rr);
+    button_funcN_set(but, image_multi_cb, rnd_pt, nullptr);
     button_type_set_menu_from_pulldown(but);
     rnd_pt = nullptr;
   }
@@ -621,7 +625,7 @@ static void uiblock_layer_pass_buttons(ui::Layout &layout,
                          UI_UNIT_Y,
                          TIP_("Select Layer"));
       button_func_menu_step_set(but, ui_imageuser_layer_menu_step);
-      button_funcN_set(but, image_multi_cb, rnd_pt, rr);
+      button_funcN_set(but, image_multi_cb, rnd_pt, nullptr);
       button_type_set_menu_from_pulldown(but);
       rnd_pt = nullptr;
     }
@@ -642,7 +646,7 @@ static void uiblock_layer_pass_buttons(ui::Layout &layout,
                          UI_UNIT_Y,
                          TIP_("Select Pass"));
       button_func_menu_step_set(but, ui_imageuser_pass_menu_step);
-      button_funcN_set(but, image_multi_cb, rnd_pt, rr);
+      button_funcN_set(but, image_multi_cb, rnd_pt, nullptr);
       button_type_set_menu_from_pulldown(but);
       rnd_pt = nullptr;
     }
@@ -664,7 +668,7 @@ static void uiblock_layer_pass_buttons(ui::Layout &layout,
                          wmenu4,
                          UI_UNIT_Y,
                          TIP_("Select View"));
-      button_funcN_set(but, image_multi_cb, rnd_pt, rr);
+      button_funcN_set(but, image_multi_cb, rnd_pt, nullptr);
       button_type_set_menu_from_pulldown(but);
       rnd_pt = nullptr;
     }
@@ -969,7 +973,7 @@ void uiTemplateImageSettings(ui::Layout *layout,
   /* Note: this excludes any video formats; for them the image template does
    * not show the color depth. Color depth instead is shown as part of encoding UI block,
    * which is less confusing. */
-  const int depth_ok = BKE_imtype_valid_depths(imf->imtype);
+  const eImageFormatDepth depth_ok = BKE_imtype_valid_depths(imf->imtype);
   /* some settings depend on this being a scene that's rendered */
   const bool is_render_out = (id && GS(id->name) == ID_SCE);
 
@@ -997,12 +1001,10 @@ void uiTemplateImageSettings(ui::Layout *layout,
 
   /* only display depth setting if multiple depths can be used */
   if (ELEM(depth_ok,
-           R_IMF_CHAN_DEPTH_1,
            R_IMF_CHAN_DEPTH_8,
            R_IMF_CHAN_DEPTH_10,
            R_IMF_CHAN_DEPTH_12,
            R_IMF_CHAN_DEPTH_16,
-           R_IMF_CHAN_DEPTH_24,
            R_IMF_CHAN_DEPTH_32) == 0)
   {
     col.row(true).prop(imfptr, "color_depth", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
@@ -1225,7 +1227,7 @@ void uiTemplateImageInfo(ui::Layout *layout, bContext *C, Image *ima, ImageUser 
         ofs += BLI_snprintf_utf8_rlen(
             str + ofs, len - ofs, RPT_("%d float channel(s)"), ibuf->channels);
       }
-      else if (ibuf->planes == R_IMF_PLANES_RGBA) {
+      else if (ibuf->color_mode == ImColorMode::RGBA) {
         ofs += BLI_strncpy_utf8_rlen(str + ofs, RPT_(" RGBA float"), len - ofs);
       }
       else {
@@ -1233,7 +1235,7 @@ void uiTemplateImageInfo(ui::Layout *layout, bContext *C, Image *ima, ImageUser 
       }
     }
     else {
-      if (ibuf->planes == R_IMF_PLANES_RGBA) {
+      if (ibuf->color_mode == ImColorMode::RGBA) {
         ofs += BLI_strncpy_utf8_rlen(str + ofs, RPT_(" RGBA byte"), len - ofs);
       }
       else {
@@ -1246,7 +1248,7 @@ void uiTemplateImageInfo(ui::Layout *layout, bContext *C, Image *ima, ImageUser 
     /* Try to see if this texture is a compressed format, if not, get the generic format. */
     if (!IMB_gpu_get_compressed_format(ibuf, &texture_format)) {
       texture_format = IMB_gpu_get_texture_format(
-          ibuf, ima->flag & IMA_HIGH_BITDEPTH, ibuf->planes >= 8);
+          ibuf, ima->flag & IMA_HIGH_BITDEPTH, ibuf->color_mode == ImColorMode::BW);
     }
 
     const char *texture_format_description = GPU_texture_format_name(texture_format);
@@ -1266,7 +1268,7 @@ void uiTemplateImageInfo(ui::Layout *layout, bContext *C, Image *ima, ImageUser 
     if (ima->source == IMA_SRC_MOVIE && BKE_image_has_anim(ima)) {
       MovieReader *anim = (static_cast<ImageAnim *>(ima->anims.first))->anim;
       if (anim) {
-        duration = MOV_get_duration_frames(anim, IMB_TC_RECORD_RUN);
+        duration = MOV_get_duration_frames(anim);
       }
     }
 

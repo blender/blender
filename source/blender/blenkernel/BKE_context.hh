@@ -57,6 +57,7 @@ struct SpaceLink;
 struct SpaceNla;
 struct SpaceNode;
 struct SpaceOutliner;
+struct SpaceProject;
 struct SpaceProperties;
 struct SpaceSeq;
 struct SpaceSpreadsheet;
@@ -237,6 +238,7 @@ SpaceUserPref *CTX_wm_space_userpref(const bContext *C);
 SpaceClip *CTX_wm_space_clip(const bContext *C);
 SpaceTopBar *CTX_wm_space_topbar(const bContext *C);
 SpaceSpreadsheet *CTX_wm_space_spreadsheet(const bContext *C);
+SpaceProject *CTX_wm_space_project(const bContext *C);
 
 void CTX_wm_manager_set(bContext *C, wmWindowManager *wm);
 void CTX_wm_window_set(bContext *C, wmWindow *win);
@@ -400,6 +402,13 @@ enum eContextObjectMode CTX_data_mode_enum_ex(const Object *obedit,
                                               const Object *ob,
                                               eObjectMode object_mode);
 enum eContextObjectMode CTX_data_mode_enum(const bContext *C);
+
+/**
+ * Explicitly indicate if the UI context is allowed to be accessed for returning context data.
+ *
+ * The default is to permit and allow UI context data to be used during data retrieval.
+ */
+void CTX_data_ui_context_access_deny(bContext *C, bool deny);
 
 void CTX_data_main_set(bContext *C, Main *bmain);
 void CTX_data_scene_set(bContext *C, Scene *scene);

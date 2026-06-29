@@ -27,7 +27,7 @@ NODE_STORAGE_FUNCS(NodeCombSepColor)
 static void sh_node_sepcolor_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Color"_ustr).default_value({0.8f, 0.8f, 0.8f, 1.0f});
-  b.add_output<decl::Float>("Red"_ustr).label_fn([](bNode node) {
+  b.add_output<decl::Float>("Red"_ustr).label_fn([](const bNode &node) {
     switch (node_storage(node).mode) {
       case NODE_COMBSEP_COLOR_RGB:
       default:
@@ -37,7 +37,7 @@ static void sh_node_sepcolor_declare(NodeDeclarationBuilder &b)
         return IFACE_("Hue");
     }
   });
-  b.add_output<decl::Float>("Green"_ustr).label_fn([](bNode node) {
+  b.add_output<decl::Float>("Green"_ustr).label_fn([](const bNode &node) {
     switch (node_storage(node).mode) {
       case NODE_COMBSEP_COLOR_RGB:
       default:
@@ -47,7 +47,7 @@ static void sh_node_sepcolor_declare(NodeDeclarationBuilder &b)
         return IFACE_("Saturation");
     }
   });
-  b.add_output<decl::Float>("Blue"_ustr).label_fn([](bNode node) {
+  b.add_output<decl::Float>("Blue"_ustr).label_fn([](const bNode &node) {
     switch (node_storage(node).mode) {
       case NODE_COMBSEP_COLOR_RGB:
       default:
@@ -153,7 +153,7 @@ static void sh_node_combcolor_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .label_fn([](bNode node) {
+      .label_fn([](const bNode &node) {
         switch (node_storage(node).mode) {
           case NODE_COMBSEP_COLOR_RGB:
           default:
@@ -168,7 +168,7 @@ static void sh_node_combcolor_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .label_fn([](bNode node) {
+      .label_fn([](const bNode &node) {
         switch (node_storage(node).mode) {
           case NODE_COMBSEP_COLOR_RGB:
           default:
@@ -183,7 +183,7 @@ static void sh_node_combcolor_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .label_fn([](bNode node) {
+      .label_fn([](const bNode &node) {
         switch (node_storage(node).mode) {
           case NODE_COMBSEP_COLOR_RGB:
           default:

@@ -157,7 +157,7 @@ MetaStack *meta_stack_active_get(const Editing *ed);
 /**
  * Open Meta strip content for editing.
  *
- * \param ed: sequence editor data
+ * \param scene: Scene containing the sequence editor data.
  * \param dst: meta strip or NULL for top level view
  */
 void meta_stack_set(const Scene *scene, Strip *dst);

@@ -18,8 +18,8 @@
 #include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
@@ -61,11 +61,14 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
     ListBaseT<Nurb> *nurbs = BKE_curve_editNurbs_get(cu);
     Nurb *nu = static_cast<Nurb *>(nurbs->first);
 
+    /* #ED_transverts_create_from_obedit fills a single contiguous array spanning all nurbs,
+     * so advance over every nurb's verts instead of resetting per nurb. */
+    TransVert *tv = tvs->transverts;
+
     while (nu) {
       /* keep handles' vectors unchanged */
       if (nu->bezt && (mode & TM_SKIP_HANDLES)) {
         int a = nu->pntsu;
-        TransVert *tv = tvs->transverts;
         BezTriple *bezt = nu->bezt;
 
         while (a--) {
@@ -104,6 +107,17 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
           }
 
           bezt++;
+        }
+      }
+      else if (nu->bp && (mode & TM_SKIP_HANDLES)) {
+        /* No handles to keep unchanged, but the `tv` array must be kept in sync. */
+        int a = nu->pntsu * nu->pntsv;
+        BPoint *bp = nu->bp;
+        while (a--) {
+          if ((bp->hide == 0) && (bp->f1 & SELECT)) {
+            tv++;
+          }
+          bp++;
         }
       }
 
@@ -340,7 +354,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
   }
   else if (obedit->type == OB_ARMATURE) {
     bArmature *arm = id_cast<bArmature *>(obedit->data);
-    int totmalloc = BLI_listbase_count(arm->edbo);
+    int totmalloc = arm->edbo->count();
 
     totmalloc *= 2; /* probably overkill but bones can have 2 trans verts each */
 
@@ -476,7 +490,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
   }
   else if (obedit->type == OB_MBALL) {
     MetaBall *mb = id_cast<MetaBall *>(obedit->data);
-    int totmalloc = BLI_listbase_count(mb->editelems);
+    int totmalloc = mb->editelems->count();
 
     tv = tvs->transverts = MEM_new_array_zeroed<TransVert>(totmalloc, __func__);
 
@@ -493,7 +507,8 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     }
   }
   else if (obedit->type == OB_LATTICE) {
-    Lattice *lt = id_cast<Lattice *>(obedit->data);
+    const Object *object_orig = DEG_get_original(obedit);
+    Lattice *lt = id_cast<Lattice *>(object_orig->data);
 
     bp = lt->editlatt->latt->def;
 

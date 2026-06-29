@@ -9,7 +9,7 @@
 #include "BKE_context.hh"
 #include "BKE_report.hh"
 
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 
 #include "WM_api.hh"
 

@@ -8,8 +8,8 @@
 
 #include "BKE_material.hh"
 #include "BKE_texture.h"
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
 #include "DNA_material_types.h"
 #include "node_texture_util.hh"
 #include "node_util.hh"
@@ -71,7 +71,7 @@ static void texfn(
 
 static int count_outputs(bNode *node)
 {
-  return BLI_listbase_count(&node->outputs);
+  return node->outputs.count();
 }
 
 /* Boilerplate generators */
@@ -255,7 +255,7 @@ static void init(bNodeTree * /*ntree*/, bNode *node)
     ntype.enum_name_legacy = EnumNameLegacy; \
     ntype.nclass = NODE_CLASS_TEXTURE; \
     bke::node_type_socket_templates(&ntype, name##_inputs, outputs); \
-    bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle); \
+    ntype.default_width = bke::NodeWidth::_160; \
     ntype.initfunc = init; \
     bke::node_type_storage(ntype, "Tex", node_free_standard_storage, node_copy_standard_storage); \
     ntype.exec_fn = name##_exec; \

@@ -29,16 +29,18 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Geometry to sample a value on");
   if (node != nullptr) {
     const eCustomDataType data_type = eCustomDataType(node_storage(*node).data_type);
-    b.add_input(data_type, "Value"_ustr).hide_value().field_on_all();
+    b.add_input(data_type, "Value"_ustr).hide_value().evaluated_geometry_field();
   }
-  b.add_input<decl::Int>("Index"_ustr)
-      .supports_field()
-      .description("Which element to retrieve a value from on the geometry")
-      .structure_type(StructureType::Dynamic);
+  auto &index = b.add_input<decl::Int>("Index"_ustr)
+                    .description("Which element to retrieve a value from on the geometry")
+                    .structure_type(StructureType::Dynamic);
 
   if (node != nullptr) {
     const eCustomDataType data_type = eCustomDataType(node_storage(*node).data_type);
-    b.add_output(data_type, "Value"_ustr).dependent_field({2});
+    std::array<int, 1> dynamic_inputs = {index.index()};
+    b.add_output(data_type, "Value"_ustr)
+        .inferred_structure_type(dynamic_inputs)
+        .propagate_references(dynamic_inputs);
   }
 }
 
@@ -64,7 +66,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   search_link_ops_for_declarations(params, declaration.inputs);
 
   const std::optional<eCustomDataType> type = bke::socket_type_to_custom_data_type(
-      eNodeSocketDatatype(params.other_socket().type));
+      params.other_socket().type);
   if (type && *type != CD_PROP_STRING) {
     /* The input and output sockets have the same name. */
     params.add_item(IFACE_("Value"), [type](LinkSearchOpParams &params) {

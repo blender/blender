@@ -10,7 +10,7 @@
 #pragma once
 
 #include "BLI_enum_flags.hh"
-#include "BLI_math_constants.h"
+#include "BLI_math_constants.hh"
 #include "BLI_math_matrix_types.hh"
 
 #include "DNA_object_enums.h"
@@ -232,7 +232,7 @@ enum eObject_BoundType : char {
 };
 
 /** #Object.visibility_flag */
-enum eObject_VisibilityFlag : short {
+enum eObject_VisibilityFlag : int {
   OB_HIDE_VIEWPORT = 1 << 0,
   OB_HIDE_SELECT = 1 << 1,
   OB_HIDE_RENDER = 1 << 2,
@@ -248,6 +248,7 @@ enum eObject_VisibilityFlag : short {
   OB_HIDE_PROBE_CUBEMAP = 1 << 12,
   OB_HIDE_PROBE_PLANAR = 1 << 13,
   OB_HIDE_SURFACE_PICK = 1 << 14,
+  OB_HIDE_RAYCAST = 1 << 15,
 };
 ENUM_OPERATORS(eObject_VisibilityFlag)
 
@@ -480,6 +481,8 @@ struct Object {
   /** String describing sub-object info. */
   char parsubstr[/*MAX_NAME*/ 64] = "";
   struct Object *parent = nullptr, *track = nullptr;
+  float parent_bone_head_tail_factor = 1.0f;
+  char _pad4[4] = {};
   /* Proxy pointer are deprecated, only kept for conversion to liboverrides. */
   DNA_DEPRECATED struct Object *proxy = nullptr;
   DNA_DEPRECATED struct Object *proxy_group = nullptr;
@@ -599,23 +602,21 @@ struct Object {
   short index = 0;
   /** Current deformation group, NOTE: index starts at 1. */
   DNA_DEPRECATED unsigned short actdef = 0;
-  /** Current face map, NOTE: index starts at 1. */
-  char _pad2[4] = {};
   /** Object color (in most cases the material color is used for drawing). */
   float color[4] = {1, 1, 1, 1};
 
-  /** Softbody settings. */
-  short softflag = 0;
-
   /** For restricting view, select, render etc. accessible in outliner. */
   eObject_VisibilityFlag visibility_flag = {};
+
+  /** Softbody settings. */
+  short softflag = 0;
 
   /** Current shape key for menu or pinned. */
   short shapenr = 0;
   /** Flag for pinning. */
   eObject_ShapeFlag shapeflag = {};
 
-  char _pad3[1] = {};
+  char _pad3[3] = {};
 
   /** Object constraints. */
   ListBaseT<bConstraint> constraints = {nullptr, nullptr};

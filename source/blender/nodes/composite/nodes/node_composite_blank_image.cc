@@ -17,7 +17,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::IntVector>("Size"_ustr)
       .dimensions(2)
       .default_value(int2(1920, 1080))
-      .subtype(PROP_UNSIGNED)
+      .subtype(PROP_PIXEL)
       .min(1)
       .description("The size of the image");
 

@@ -8,8 +8,8 @@
  * \ingroup bmesh
  */
 
-#include "BLI_linklist.h"
-#include "BLI_sys_types.h"
+#include "BLI_linklist.hh"
+#include "BLI_sys_types.hh"
 
 #include "bmesh_class.hh"
 

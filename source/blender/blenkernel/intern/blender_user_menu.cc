@@ -12,8 +12,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
 
 #include "DNA_userdef_types.h"
 
@@ -103,7 +103,7 @@ void BKE_blender_user_menu_item_free_list(ListBaseT<bUserMenuItem> *lb)
     umi_next = umi->next;
     BKE_blender_user_menu_item_free(umi);
   }
-  BLI_listbase_clear(lb);
+  lb->clear_no_delete();
 }
 
 /** \} */

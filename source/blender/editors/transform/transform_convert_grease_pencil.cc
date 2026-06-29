@@ -130,7 +130,7 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
 
         index_mask::ExprBuilder builder;
         const index_mask::Expr &selected_bezier_points = builder.intersect(
-            {&bezier_points, &selection_per_attribute[0]});
+            {&bezier_points, selection_per_attribute.data()});
 
         /* Select bezier handles that must be transformed because the control point is
          * selected. */

@@ -18,7 +18,7 @@
  * so you should only use it for temporary data.
  */
 
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 
 #include "BLI_hash_mm2a.hh" /* own include */
 

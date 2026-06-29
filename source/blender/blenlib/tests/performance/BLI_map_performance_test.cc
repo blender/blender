@@ -9,14 +9,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_fileops.h"
-#include "BLI_ghash.h"
+#include "BLI_fileops.hh"
+#include "BLI_ghash.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_rand.h"
-#include "BLI_string.h"
+#include "BLI_rand_c.hh"
+#include "BLI_string.hh"
 #include "BLI_timeit.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 namespace blender {
 

@@ -9,6 +9,7 @@ from ......io.exp.user_extensions import export_user_extensions
 from ......blender.com.conversion import get_gltf_interpolation, get_target, get_channel_from_target
 from ....cache import cached
 from ...fcurves.channels import get_channel_groups
+from ..data.channels import gather_sampled_data_channel
 from .sampler import gather_object_sampled_animation_sampler
 from .channel_target import gather_object_sampled_channel_target
 
@@ -16,16 +17,17 @@ from .channel_target import gather_object_sampled_channel_target
 def gather_object_sampled_channels(object_uuid: str, blender_action_name: str, slot_identifier: str,
                                    export_settings) -> typing.List[gltf2_io.AnimationChannel]:
     channels = []
-    extra_channels = {}
+    additionnal_channels = {}
 
     # Bake situation does not export any extra animation channels, as we bake TRS + weights on Track or scene level, without direct
     # Access to fcurve and action data
 
     list_of_animated_channels = {}
+    extras_channels = {}
     if slot_identifier is not None:
         if object_uuid != blender_action_name and blender_action_name in bpy.data.actions:
             # Not bake situation
-            channels_animated, to_be_sampled, extra_channels = get_channel_groups(
+            channels_animated, to_be_sampled, additionnal_channels, extras_channels = get_channel_groups(
                 object_uuid, bpy.data.actions[blender_action_name], bpy.data.actions[blender_action_name].slots[slot_identifier], export_settings)
             for chan in [chan for chan in channels_animated.values() if chan['bone'] is None]:
                 for prop in chan['properties'].keys():
@@ -55,10 +57,32 @@ def gather_object_sampled_channels(object_uuid: str, blender_action_name: str, s
         if channel is not None:
             channels.append(channel)
 
+    # Manage extras channels (custom properties animated)
+    for chan in [chan for chan in extras_channels.values() if len(chan['properties']) != 0]:
+        for custom_prop, channel_group in chan['properties'].items():
+
+            channel = gather_sampled_data_channel(
+                "extras",
+                "objects",
+                object_uuid,
+                None,
+                custom_prop,
+                blender_action_name,
+                slot_identifier,  # TODOSLOT
+                True,  # Extras channels are always animated (otherwise they are not exported)
+                get_gltf_interpolation(
+                    # Keep user choice for interpolation of extras channels
+                    export_settings['gltf_sampling_interpolation_fallback'], export_settings),
+                None,  # No additional key for object extras channels
+                export_settings
+            )
+            if channel is not None:
+                channels.append(channel)
+
     blender_object = export_settings['vtree'].nodes[object_uuid].blender_object
     export_user_extensions('animation_gather_object_channel', export_settings, blender_object, blender_action_name)
 
-    return channels if len(channels) > 0 else None, extra_channels
+    return channels if len(channels) > 0 else None, additionnal_channels
 
 
 @cached

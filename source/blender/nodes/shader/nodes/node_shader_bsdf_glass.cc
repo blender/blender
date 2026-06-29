@@ -122,7 +122,7 @@ void register_node_type_sh_bsdf_glass()
   ntype.declare = file_ns::node_declare;
   ntype.gather_link_search_ops = search_link_ops_for_shader_bsdf_node;
   ntype.add_ui_poll = object_shader_nodes_poll;
-  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
+  ntype.default_width = bke::NodeWidth::_160;
   ntype.draw_buttons = file_ns::node_shader_buts_glass;
   ntype.initfunc = file_ns::node_shader_init_glass;
   ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_glass;

@@ -13,11 +13,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_mask_types.h"
 
@@ -852,7 +852,7 @@ void BKE_mask_layer_evaluate_animation(MaskLayer *masklay, const float ctime)
       printf("%s: exact %d %d (%d)\n",
              __func__,
              int(ctime),
-             BLI_listbase_count(&masklay->splines_shapes),
+             masklay->splines_shapes.count(),
              masklay_shape_a->frame);
 #endif
       BKE_mask_layer_shape_to_mask(masklay, masklay_shape_a);
@@ -863,7 +863,7 @@ void BKE_mask_layer_evaluate_animation(MaskLayer *masklay, const float ctime)
       printf("%s: tween %d %d (%d %d)\n",
              __func__,
              int(ctime),
-             BLI_listbase_count(&masklay->splines_shapes),
+             masklay->splines_shapes.count(),
              masklay_shape_a->frame,
              masklay_shape_b->frame);
 #endif

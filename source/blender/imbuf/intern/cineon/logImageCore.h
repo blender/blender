@@ -17,8 +17,8 @@
 
 #include <cstdio>
 
-#include "BLI_compiler_compat.h"
-#include "BLI_sys_types.h"
+#include "BLI_compiler_compat.hh"
+#include "BLI_sys_types.hh"
 
 namespace blender {
 
@@ -181,8 +181,8 @@ LogImageFile *logImageCreate(const char *filepath,
                              int width,
                              int height,
                              int bitsPerSample,
-                             int isLogarithmic,
                              int hasAlpha,
+                             int isLogarithmic,
                              int referenceWhite,
                              int referenceBlack,
                              float gamma,

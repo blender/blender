@@ -32,6 +32,10 @@ class CompositorContext : public compositor::Context {
       : compositor::Context(cache_manager), render_data_(render_data), strip_(&strip)
   {
   }
+  const Main &get_main() const override
+  {
+    return *render_data_.bmain;
+  }
   const Scene &get_scene() const override
   {
     return *render_data_.scene;
@@ -75,6 +79,7 @@ class CompositorContext : public compositor::Context {
   }
 
   void create_result_from_input(compositor::Result &result, ImBuf &input);
+  void write_viewer_impl(const compositor::Result &result, ImBuf &image);
   void write_output(const compositor::Result &result, ImBuf &image);
   void write_outputs(const bNodeTree &node_group,
                      compositor::NodeGroupOperation &node_group_operation,

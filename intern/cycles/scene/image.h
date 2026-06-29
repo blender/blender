@@ -201,6 +201,9 @@ class ImageManager {
   bool auto_texture_cache = false;
   std::string texture_cache_path;
 
+  std::atomic<int> load_failure_num = 0;
+  std::atomic<int> tx_failure_num = 0;
+
   ImageSingle *add_image_texture(unique_ptr<ImageLoader> &&loader,
                                  const ImageParams &params,
                                  const bool builtin);
@@ -227,6 +230,8 @@ class ImageManager {
 
   void device_resize_image_textures(Scene *scene);
   void device_copy_image_textures(Device *device, Scene *scene);
+
+  void report_failures();
 
   friend class ImageHandle;
 };

@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include "BLI_bitmap.h"
-#include "BLI_ghash.h"
+#include "BLI_bitmap.hh"
+#include "BLI_ghash.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_listBase.h"

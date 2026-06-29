@@ -13,9 +13,9 @@
 
 #include "CLG_log.h"
 
-#include "BLI_array_utils.h"
-#include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_array_utils_c.hh"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
 
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
@@ -107,7 +107,7 @@ static void undolatt_to_editlatt(UndoLattice *ult,
 
   STRNCPY(editlatt->latt->vgroup, ult->vgroup);
 
-  BLI_freelistN(vertex_group_names);
+  vertex_group_names->free_no_destruct();
   BKE_defgroup_copy_list(vertex_group_names, &ult->vertex_group_names);
   *vertex_group_active_index = ult->vertex_group_active_index;
 
@@ -166,7 +166,7 @@ static void undolatt_free_data(UndoLattice *ult)
     BKE_defvert_array_free(ult->dvert, ult->pntsu * ult->pntsv * ult->pntsw);
     ult->dvert = nullptr;
   }
-  BLI_freelistN(&ult->vertex_group_names);
+  ult->vertex_group_names.free_no_destruct();
 }
 
 #if 0
@@ -345,7 +345,7 @@ static void lattice_undosys_foreach_ID_ref(UndoStep *us_p,
 
 void ED_lattice_undosys_type(UndoType *ut)
 {
-  ut->name = "Edit Lattice";
+  ut->identifier = "EDIT_LATTICE";
   ut->poll = lattice_undosys_poll;
   ut->step_encode = lattice_undosys_step_encode;
   ut->step_decode = lattice_undosys_step_decode;

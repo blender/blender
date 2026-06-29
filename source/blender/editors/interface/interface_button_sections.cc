@@ -9,9 +9,9 @@
  * separated by a separator spacer button.
  */
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 

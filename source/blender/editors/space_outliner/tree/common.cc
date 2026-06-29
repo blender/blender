@@ -8,7 +8,7 @@
  * Functions and helpers shared between tree-display types or other tree related code.
  */
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "BKE_idtype.hh"
 

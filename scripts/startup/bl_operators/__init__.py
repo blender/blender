@@ -32,6 +32,7 @@ _modules = [
     "object_quick_effects",
     "object_randomize_transform",
     "presets",
+    "project",
     "render",
     "rigidbody",
     "screen_play_rendered_anim",
@@ -71,6 +72,7 @@ def register():
 
     bone_selection_sets.register()
     copy_global_transform.register()
+    project.register()
 
 
 def unregister():
@@ -82,6 +84,7 @@ def unregister():
 
     bone_selection_sets.unregister()
     copy_global_transform.unregister()
+    project.unregister()
 
     for mod in reversed(_modules_loaded):
         for cls in reversed(mod.classes):

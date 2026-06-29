@@ -206,10 +206,12 @@ class BreakdownerTestPoseBone(AbstractPoseSlideTest):
     def setUp(self) -> None:
         super().setUp()
         bpy.context.preferences.edit.use_keyframe_insert_available = False
+        bpy.context.preferences.edit.use_auto_keyframe_insert_needed = False
 
     def tearDown(self) -> None:
         super().tearDown()
         bpy.context.preferences.edit.use_keyframe_insert_available = True
+        bpy.context.preferences.edit.use_auto_keyframe_insert_needed = True
 
     def test_no_keys(self):
         # The case of no keys will produce no interpolation.
@@ -250,7 +252,9 @@ class BreakdownerTestPoseBone(AbstractPoseSlideTest):
             self.assertAlmostEqual(self.pose_bone.location[i], 1, 3)
 
         # The key count depends on the setting "Only insert available" in the user preferences.
-        self.assertEqual(len(channelbag.fcurves), 10)
+        # Also keys are only inserted into channels that already have keys.
+        self.assertEqual(len(channelbag.fcurves), 3)
+        # This depends on the setting "Only insert needed".
         self.assertEqual(len(channelbag.fcurves[0].keyframe_points), 2)
 
     def test_all_properties(self):

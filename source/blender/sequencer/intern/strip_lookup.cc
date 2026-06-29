@@ -14,7 +14,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_mutex.hh"
 
 #include <cstring>
@@ -209,7 +209,7 @@ Strip *lookup_meta_by_strip(Editing *ed, const Strip *key)
   return lookup->meta_by_strip.lookup_default(key, nullptr);
 }
 
-Span<Strip *> SEQ_lookup_effects_by_strip(Editing *ed, const Strip *key)
+Span<Strip *> lookup_effects_by_strip(Editing *ed, const Strip *key)
 {
   BLI_assert(ed != nullptr);
   std::lock_guard lock(lookup_lock);

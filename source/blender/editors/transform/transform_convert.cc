@@ -15,10 +15,10 @@
 #include "BLI_array_utils.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_kdtree.hh"
-#include "BLI_linklist_stack.h"
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
+#include "BLI_linklist_stack.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
@@ -761,7 +761,7 @@ static void init_proportional_edit(TransInfo *t)
       /* Already calculated by #uv_set_connectivity_distance. */
     }
     else if (t->data_type == &TransConvertType_Curve) {
-      BLI_assert(t->obedit_type == OB_CURVES_LEGACY);
+      BLI_assert(ELEM(t->obedit_type, OB_CURVES_LEGACY, OB_SURF));
       if (t->flag & T_PROP_CONNECTED) {
         /* Already calculated by #calc_distanceCurveVerts. */
       }
@@ -816,7 +816,7 @@ static void init_TransDataContainers(TransInfo *t, Object *obact, Span<Object *>
     return;
   }
 
-  const eObjectMode object_mode = eObjectMode(obact ? obact->mode : OB_MODE_OBJECT);
+  const eObjectMode object_mode = obact ? obact->mode : OB_MODE_OBJECT;
   const short object_type = obact ? obact->type : -1;
 
   if ((object_mode & OB_MODE_EDIT) ||
@@ -958,7 +958,7 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
   }
   if (t->spacetype == SPACE_CLIP) {
     if (t->options & CTX_MOVIECLIP) {
-      if (t->region->regiontype == RGN_TYPE_PREVIEW) {
+      if (t->region && (t->region->regiontype == RGN_TYPE_PREVIEW)) {
         return &TransConvertType_TrackingCurves;
       }
       return &TransConvertType_Tracking;
@@ -1021,7 +1021,14 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
     return nullptr;
   }
   if (ob && (ob->mode & OB_MODE_ALL_PAINT_GPENCIL)) {
-    /* In grease pencil all transformations must be canceled if not Object or Edit. */
+    /* In Grease Pencil all transformations must be canceled if not Object or Edit mode.
+     * Exception: Grease Pencil sculpt mode allows for paint curves
+     * which need to be able to be transformed. */
+    if ((ob->mode & OB_MODE_SCULPT_GREASE_PENCIL) && (t->options & CTX_PAINT_CURVE) &&
+        !ELEM(t->mode, TFM_SHEAR, TFM_SHRINKFATTEN))
+    {
+      return &TransConvertType_PaintCurve;
+    }
     return nullptr;
   }
   return &TransConvertType_Object;

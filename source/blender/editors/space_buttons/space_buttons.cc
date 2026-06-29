@@ -15,13 +15,13 @@
 #include "DNA_space_types.h"
 #include "DNA_view2d_types.h"
 
-#include "BLI_bitmap.h"
-#include "BLI_listbase.h"
+#include "BLI_bitmap.hh"
+#include "BLI_listbase.hh"
 #include "BLI_span.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_context.hh"
 #include "BKE_lib_query.hh"
@@ -121,7 +121,7 @@ static void buttons_free(SpaceLink *sl)
     for (ButsTextureUser &user : ct->users.items_mutable()) {
       MEM_delete(&user);
     }
-    BLI_listbase_clear(&ct->users);
+    ct->users.clear_no_delete();
     MEM_delete(ct);
   }
 
@@ -419,7 +419,7 @@ static void property_search_all_tabs(const bContext *C,
   sbuts_copy.texuser = nullptr;
   sbuts_copy.runtime = MEM_new<SpaceProperties_Runtime>(__func__, *sbuts->runtime);
   sbuts_copy.runtime->tab_search_results = nullptr;
-  BLI_listbase_clear(&area_copy.spacedata);
+  area_copy.spacedata.clear_no_delete();
   BLI_addtail(&area_copy.spacedata, &sbuts_copy);
 
   /* Loop through the tabs added to the properties editor. */
@@ -1006,7 +1006,7 @@ static void buttons_id_remap(ScrArea * /*area*/,
     for (ButsTextureUser &user : ct->users.items_mutable()) {
       MEM_delete(&user);
     }
-    BLI_listbase_clear(&ct->users);
+    ct->users.clear_no_delete();
     ct->user = nullptr;
   }
 }
@@ -1038,7 +1038,7 @@ static void buttons_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data
       for (ButsTextureUser &user : ct->users.items_mutable()) {
         MEM_delete(&user);
       }
-      BLI_listbase_clear(&ct->users);
+      ct->users.clear_no_delete();
       ct->user = nullptr;
     }
   }

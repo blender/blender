@@ -4,10 +4,10 @@
 
 #include "BLI_bounds.hh"
 #include "BLI_color_types.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_camera.h"
@@ -204,7 +204,9 @@ std::optional<Bounds<float2>> GreasePencilExporter::compute_objects_bounds(
   }
 
   /* Add small gap. */
-  full_bounds->pad(gap);
+  if (full_bounds) {
+    full_bounds->pad(gap);
+  }
 
   return full_bounds;
 }

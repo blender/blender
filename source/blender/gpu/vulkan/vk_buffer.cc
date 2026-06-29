@@ -31,7 +31,8 @@ bool VKBuffer::create(size_t size_in_bytes,
                       VmaMemoryUsage vma_memory_usage,
                       VmaAllocationCreateFlags allocation_flags,
                       float priority,
-                      bool export_memory)
+                      bool export_memory,
+                      const char *debug_name)
 {
   BLI_assert(!is_allocated());
   BLI_assert(vk_buffer_ == VK_NULL_HANDLE);
@@ -91,6 +92,11 @@ bool VKBuffer::create(size_t size_in_bytes,
     vma_create_info.pool = device.vma_pools.external_memory_pixel_buffer.pool;
   }
 
+  if (debug_name && G.debug & G_DEBUG_GPU) {
+    vma_create_info.flags |= VMA_ALLOCATION_CREATE_USER_DATA_COPY_STRING_BIT;
+    vma_create_info.pUserData = (void *)debug_name;
+  }
+
   VkResult result = vmaCreateBuffer(
       allocator, &create_info, &vma_create_info, &vk_buffer_, &allocation_, nullptr);
   if (result != VK_SUCCESS) {
@@ -101,6 +107,10 @@ bool VKBuffer::create(size_t size_in_bytes,
   }
 
   device.resources.add_buffer(vk_buffer_);
+
+  if (debug_name) {
+    debug::object_label(vk_buffer_, debug_name);
+  }
 
   /* Check if the memory is mappable. Although the Vulkan specs allow to map any memory that is
    * host visible, VMA checks for specific host access flags.
@@ -223,6 +233,20 @@ VkDeviceMemory VKBuffer::export_memory_get(size_t &memory_size)
 
   memory_size = info.size;
   return info.deviceMemory;
+}
+
+void VKBuffer::flush_mapped_memory()
+{
+  const VKDevice &device = VKBackend::get().device;
+  VmaAllocator allocator = device.mem_allocator_get();
+  vmaFlushAllocation(allocator, allocation_, 0, size_in_bytes_);
+}
+
+void VKBuffer::invalidate_mapped_memory()
+{
+  const VKDevice &device = VKBackend::get().device;
+  VmaAllocator allocator = device.mem_allocator_get();
+  vmaInvalidateAllocation(allocator, allocation_, 0, size_in_bytes_);
 }
 
 bool VKBuffer::free()

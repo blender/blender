@@ -26,11 +26,45 @@ class TexturePool {
    * Only valid if a context is active. */
   static TexturePool &get();
 
-  /* Acquire a 2D texture from the pool with the given characteristics. */
-  virtual Texture *acquire_texture(int2 extent,
-                                   TextureFormat format,
-                                   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
-                                   const char *name = nullptr) = 0;
+  /* Acquire a texture of a particular type from the pool. */
+  virtual Texture *acquire_texture_1d(int extent,
+                                      int mip_len,
+                                      TextureFormat format,
+                                      eGPUTextureUsage usage,
+                                      const char *name = nullptr) = 0;
+  virtual Texture *acquire_texture_1d_array(int extent,
+                                            int layer_len,
+                                            int mip_len,
+                                            TextureFormat format,
+                                            eGPUTextureUsage usage,
+                                            const char *name = nullptr) = 0;
+  virtual Texture *acquire_texture_2d(int2 extent,
+                                      int mip_len,
+                                      TextureFormat format,
+                                      eGPUTextureUsage usage,
+                                      const char *name = nullptr) = 0;
+  virtual Texture *acquire_texture_2d_array(int2 extent,
+                                            int layer_len,
+                                            int mip_len,
+                                            TextureFormat format,
+                                            eGPUTextureUsage usage,
+                                            const char *name = nullptr) = 0;
+  virtual Texture *acquire_texture_3d(int3 extent,
+                                      int mip_len,
+                                      TextureFormat format,
+                                      eGPUTextureUsage usage,
+                                      const char *name = nullptr) = 0;
+  virtual Texture *acquire_texture_cube(int extent,
+                                        int mip_len,
+                                        TextureFormat format,
+                                        eGPUTextureUsage usage,
+                                        const char *name = nullptr) = 0;
+  virtual Texture *acquire_texture_cube_array(int extent,
+                                              int layer_len,
+                                              int mip_len,
+                                              TextureFormat format,
+                                              eGPUTextureUsage usage,
+                                              const char *name = nullptr) = 0;
 
   /* Release the texture back into the pool so it can be reused. */
   virtual void release_texture(Texture *tex) = 0;

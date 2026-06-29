@@ -6,14 +6,14 @@
  * \ingroup spview3d
  */
 
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_math_rotation.h"
+#include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_context.hh"
 #include "BKE_gpencil_legacy.h"
@@ -202,7 +202,7 @@ static void ruler_item_as_string(
     }
     else {
       BKE_unit_value_as_string(
-          numstr, numstr_size, double(ruler_angle), prec, B_UNIT_ROTATION, unit, false);
+          numstr, numstr_size, double(ruler_angle), prec, B_UNIT_ROTATION, unit, false, true);
     }
   }
   else {
@@ -213,7 +213,7 @@ static void ruler_item_as_string(
     }
     else {
       BKE_unit_value_as_string_scaled(
-          numstr, numstr_size, ruler_len, prec, B_UNIT_LENGTH, unit, false);
+          numstr, numstr_size, ruler_len, prec, B_UNIT_LENGTH, unit, false, true);
     }
   }
 }
@@ -253,7 +253,7 @@ static bool view3d_ruler_pick(wmGizmoGroup *gzgroup,
               math::distance_squared(co_ss[1], mval),
               math::distance_squared(co_ss[2], mval),
           };
-          if (min_fff(UNPACK3(dist_points)) < RULER_PICK_DIST_SQ) {
+          if (std::min({UNPACK3(dist_points)}) < RULER_PICK_DIST_SQ) {
             co_index_best = min_axis_v3(dist_points);
           }
           else {
@@ -785,9 +785,9 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
       float3 axis;
       float angle;
       const float px_scale = (ED_view3d_pixel_size_no_ui_scale(rv3d, ruler_item->co[1]) *
-                              min_fff(arc_size,
-                                      math::distance(co_ss[0], co_ss[1]) / 2.0f,
-                                      math::distance(co_ss[2], co_ss[1]) / 2.0f));
+                              std::min({arc_size,
+                                        math::distance(co_ss[0], co_ss[1]) / 2.0f,
+                                        math::distance(co_ss[2], co_ss[1]) / 2.0f}));
 
       dir_a = math::normalize(ruler_item->co[0] - ruler_item->co[1]);
       dir_b = math::normalize(ruler_item->co[2] - ruler_item->co[1]);

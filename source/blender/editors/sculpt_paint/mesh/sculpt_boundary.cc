@@ -9,7 +9,7 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_math_geom.h"
+#include "BLI_math_geom_c.hh"
 #include "BLI_math_rotation_legacy.hh"
 #include "BLI_math_vector.hh"
 
@@ -2886,6 +2886,8 @@ static void do_smooth_brush(const Depsgraph &depsgraph,
   pbvh.flush_bounds_to_parents();
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Brush Initialization
  * \{ */
@@ -3305,6 +3307,7 @@ void do_boundary_brush(const Depsgraph &depsgraph,
                        Object &ob,
                        const IndexMask &node_mask)
 {
+  PRF_scope(ProfileCategory::Editor);
   SculptSession &ss = *ob.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
@@ -3431,6 +3434,7 @@ std::unique_ptr<SculptBoundary> data_init_mesh(const Depsgraph &depsgraph,
                                                const int initial_vert,
                                                const float radius)
 {
+  PRF_scope(ProfileCategory::Editor);
   SculptSession &ss = *object.runtime->sculpt_session;
 
   boundary::ensure_boundary_info(object);
@@ -3462,7 +3466,7 @@ std::unique_ptr<SculptBoundary> data_init_mesh(const Depsgraph &depsgraph,
   /* Starting from a vertex that is the limit of a boundary is ambiguous, so return nullptr instead
    * of forcing a random active boundary from a corner. */
   /* TODO: Investigate whether initial_vert should actually be boundary_initial_vert. If
-   * initial_vert is correct, the above comment and the doc-string for the relevant function should
+   * initial_vert is correct, the above comment and the docstring for the relevant function should
    * be fixed. */
   if (!is_vert_in_editable_boundary_mesh(faces,
                                          corner_verts,
@@ -3512,6 +3516,7 @@ std::unique_ptr<SculptBoundary> data_init_grids(Object &object,
                                                 const SubdivCCGCoord initial_vert,
                                                 const float radius)
 {
+  PRF_scope(ProfileCategory::Editor);
   SculptSession &ss = *object.runtime->sculpt_session;
 
   boundary::ensure_boundary_info(object);
@@ -3577,6 +3582,7 @@ std::unique_ptr<SculptBoundary> data_init_bmesh(Object &object,
                                                 BMVert *initial_vert,
                                                 const float radius)
 {
+  PRF_scope(ProfileCategory::Editor);
   SculptSession &ss = *object.runtime->sculpt_session;
 
   vert_random_access_ensure(object);

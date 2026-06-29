@@ -14,12 +14,7 @@ HDCYCLES_NAMESPACE_OPEN_SCOPE
 
 class HdCyclesPoints final : public HdCyclesGeometry<PXR_NS::HdPoints, CCL_NS::PointCloud> {
  public:
-  HdCyclesPoints(const PXR_NS::SdfPath &rprimId
-#if PXR_VERSION < 2102
-                 ,
-                 const PXR_NS::SdfPath &instancerId = {}
-#endif
-  );
+  HdCyclesPoints(const PXR_NS::SdfPath &rprimId);
   ~HdCyclesPoints() override;
 
   PXR_NS::HdDirtyBits GetInitialDirtyBitsMask() const override;

@@ -8,9 +8,9 @@
 
 #include <memory>
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "AS_asset_library.hh"
 
@@ -130,7 +130,7 @@ void BKE_asset_catalog_path_list_free(ListBaseT<AssetCatalogPathLink> &catalog_p
     MEM_delete(catalog_path.path);
     BLI_freelinkN(&catalog_path_list, &catalog_path);
   }
-  BLI_assert(BLI_listbase_is_empty(&catalog_path_list));
+  BLI_assert(catalog_path_list.is_empty());
 }
 
 ListBaseT<AssetCatalogPathLink> BKE_asset_catalog_path_list_duplicate(

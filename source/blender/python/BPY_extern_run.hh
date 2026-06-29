@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 namespace blender {
 
@@ -85,6 +85,13 @@ bool BPY_run_text(bContext *C, Text *text, ReportList *reports, bool do_jump) AT
  * - Use 'exec' for full multi-line scripts.
  * \{ */
 
+/**
+ * Compile the python expression and \return true if no errors occurred during compilation,
+ * otherwise \return false.
+ *
+ * \param C: Optional context (may be null).
+ */
+bool BPY_string_compile_check(const char *expr);
 /**
  * Run an entire script, matches: `exec(compile(..., "exec"))`
  *

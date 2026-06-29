@@ -20,8 +20,8 @@
  */
 
 #include "BLI_bit_span.hh"
-#include "BLI_compiler_attrs.h"
-#include "BLI_mempool.h"
+#include "BLI_compiler_attrs.hh"
+#include "BLI_mempool.hh"
 
 #include "bmesh_class.hh"
 #include "intern/bmesh_operator_api.hh"

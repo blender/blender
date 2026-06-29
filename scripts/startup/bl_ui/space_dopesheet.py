@@ -522,6 +522,7 @@ class DOPESHEET_MT_cache(Menu):
         col.prop(st, "cache_softbody")
         col.prop(st, "cache_particles")
         col.prop(st, "cache_cloth")
+        col.prop(st, "cache_compositor")
         col.prop(st, "cache_simulation_nodes")
         col.prop(st, "cache_smoke")
         col.prop(st, "cache_dynamicpaint")
@@ -662,20 +663,23 @@ class DOPESHEET_MT_key(Menu):
 
         layout.menu("DOPESHEET_MT_key_transform", text="Transform")
 
-        layout.operator_menu_enum("action.snap", "type", text="Snap")
         layout.operator_menu_enum("action.mirror", "type", text="Mirror")
+        layout.operator_menu_enum("action.snap", "type", text="Snap")
 
         layout.separator()
         layout.operator("action.frame_jump", text="Jump to Selected")
 
         layout.separator()
-        layout.operator("action.keyframe_insert")
 
-        layout.operator("action.copy")
-        layout.operator("action.paste")
-        layout.operator("action.paste", text="Paste Flipped").flipped = True
-        layout.operator("action.duplicate_move")
-        layout.operator("action.delete")
+        layout.operator("action.copy", icon='COPYDOWN')
+        layout.operator("action.paste", icon='PASTEDOWN')
+        layout.operator("action.paste", text="Paste Flipped", icon='PASTEFLIPDOWN').flipped = True
+        layout.separator()
+        layout.operator("action.keyframe_insert")
+        layout.operator("action.duplicate_move", icon='DUPLICATE')
+
+        layout.separator()
+
         if ob and ob.type == 'GREASEPENCIL':
             layout.operator("grease_pencil.delete_breakdown")
 
@@ -691,6 +695,8 @@ class DOPESHEET_MT_key(Menu):
 
         layout.separator()
         layout.operator("graph.euler_filter", text="Discontinuity (Euler) Filter")
+        layout.separator()
+        layout.operator("action.delete", icon='X')
 
 
 class DOPESHEET_MT_key_transform(Menu):
@@ -852,7 +858,10 @@ class DOPESHEET_MT_context_menu(Menu):
         layout.operator("action.copy", text="Copy", icon='COPYDOWN')
         layout.operator("action.paste", text="Paste", icon='PASTEDOWN')
         layout.operator("action.paste", text="Paste Flipped", icon='PASTEFLIPDOWN').flipped = True
+        layout.separator()
 
+        layout.operator("action.keyframe_insert").type = 'SEL'
+        layout.operator("action.duplicate_move", icon='DUPLICATE')
         layout.separator()
 
         layout.operator_menu_enum("action.keyframe_type", "type", text="Keyframe Type")
@@ -862,22 +871,19 @@ class DOPESHEET_MT_context_menu(Menu):
             layout.operator_menu_enum("action.interpolation_type", "type", text="Interpolation Mode")
             layout.operator_menu_enum("action.easing_type", "type", text="Easing Mode")
 
-        layout.separator()
-
-        layout.operator("action.keyframe_insert").type = 'SEL'
-        layout.operator("action.duplicate_move")
-
         if st.mode == 'GPENCIL':
             layout.separator()
             layout.operator("grease_pencil.delete_breakdown")
-
-        layout.operator_context = 'EXEC_REGION_WIN'
-        layout.operator("action.delete")
 
         layout.separator()
 
         layout.operator_menu_enum("action.mirror", "type", text="Mirror")
         layout.operator_menu_enum("action.snap", "type", text="Snap")
+
+        layout.separator()
+
+        layout.operator_context = 'EXEC_REGION_WIN'
+        layout.operator("action.delete", icon='X')
 
 
 class DOPESHEET_MT_channel_context_menu(Menu):

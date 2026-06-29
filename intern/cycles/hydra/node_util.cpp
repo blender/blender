@@ -189,11 +189,11 @@ array<DstType> convertToCyclesArray(const VtValue &value)
   return array<DstType>();
 }
 
-template<> array<float3> convertToCyclesArray<float3, GfVec3f>(const VtValue &value)
+template<> array<packed_float3> convertToCyclesArray<packed_float3, GfVec3f>(const VtValue &value)
 {
   if (value.IsHolding<VtVec3fArray>()) {
     const auto &valueData = value.UncheckedGet<VtVec3fArray>();
-    array<float3> cyclesArray;
+    array<packed_float3> cyclesArray;
     cyclesArray.reserve(valueData.size());
     for (const GfVec3f &vec : valueData) {
       cyclesArray.push_back_reserved(make_float3(vec[0], vec[1], vec[2]));
@@ -202,7 +202,7 @@ template<> array<float3> convertToCyclesArray<float3, GfVec3f>(const VtValue &va
   }
   if (value.IsHolding<VtVec4fArray>()) {
     const auto &valueData = value.UncheckedGet<VtVec4fArray>();
-    array<float3> cyclesArray;
+    array<packed_float3> cyclesArray;
     cyclesArray.reserve(valueData.size());
     for (const GfVec4f &vec : valueData) {
       cyclesArray.push_back_reserved(make_float3(vec[0], vec[1], vec[2]));
@@ -211,13 +211,13 @@ template<> array<float3> convertToCyclesArray<float3, GfVec3f>(const VtValue &va
   }
 
   if (value.CanCast<VtVec3fArray>()) {
-    return convertToCyclesArray<float3, GfVec3f>(VtValue::Cast<VtVec3fArray>(value));
+    return convertToCyclesArray<packed_float3, GfVec3f>(VtValue::Cast<VtVec3fArray>(value));
   }
   if (value.CanCast<VtVec4fArray>()) {
-    return convertToCyclesArray<float3, GfVec3f>(VtValue::Cast<VtVec4fArray>(value));
+    return convertToCyclesArray<packed_float3, GfVec3f>(VtValue::Cast<VtVec4fArray>(value));
   }
 
-  return array<float3>();
+  return array<packed_float3>();
 }
 
 template<> array<ustring> convertToCyclesArray<ustring, void>(const VtValue &value)
@@ -381,7 +381,8 @@ template<> VtValue convertFromCyclesArray<float2, GfVec2f>(const array<float2> &
   return VtValue(convertedValue);
 }
 
-template<> VtValue convertFromCyclesArray<float3, GfVec3f>(const array<float3> &value)
+template<>
+VtValue convertFromCyclesArray<packed_float3, GfVec3f>(const array<packed_float3> &value)
 {
   VtVec3fArray convertedValue;
   convertedValue.reserve(value.size());
@@ -484,7 +485,7 @@ void SetNodeValue(Node *node, const SocketType &socket, const VtValue &value)
     case SocketType::VECTOR_ARRAY:
     case SocketType::POINT_ARRAY:
     case SocketType::NORMAL_ARRAY: {
-      auto cyclesArray = convertToCyclesArray<float3, GfVec3f>(value);
+      auto cyclesArray = convertToCyclesArray<packed_float3, GfVec3f>(value);
       node->set(socket, cyclesArray);
       break;
     }
@@ -556,7 +557,7 @@ VtValue GetNodeValue(const Node *node, const SocketType &socket)
     case SocketType::VECTOR_ARRAY:
     case SocketType::POINT_ARRAY:
     case SocketType::NORMAL_ARRAY:
-      return convertFromCyclesArray<float3, GfVec3f>(node->get_float3_array(socket));
+      return convertFromCyclesArray<packed_float3, GfVec3f>(node->get_float3_array(socket));
     case SocketType::POINT2_ARRAY:
       return convertFromCyclesArray<float2, GfVec2f>(node->get_float2_array(socket));
     case SocketType::STRING_ARRAY:

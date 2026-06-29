@@ -6,14 +6,14 @@
  * \ingroup spfile
  */
 
-#include "BLI_fileops.h"
-#include "BLI_linklist.h"
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
+#include "BLI_fileops.hh"
+#include "BLI_linklist.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_base_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_appdir.hh"
 #include "BKE_blendfile.hh"
@@ -25,7 +25,7 @@
 #include "BLT_translation.hh"
 
 #ifdef WIN32
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #endif
 
 #include "ED_fileselect.hh"
@@ -510,6 +510,10 @@ static wmOperatorStatus file_box_select_exec(bContext *C, wmOperator *op)
   rcti rect;
   FileSelect ret;
 
+  if (sfile->files == nullptr || sfile->layout == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
   WM_operator_properties_border_to_rcti(op, &rect);
 
   const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
@@ -584,15 +588,14 @@ static wmOperatorStatus file_select_exec(bContext *C, wmOperator *op)
   const bool pass_through = RNA_boolean_get(op->ptr, "pass_through");
   bool wait_to_deselect_others = RNA_boolean_get(op->ptr, "wait_to_deselect_others");
 
-  if (region->regiontype != RGN_TYPE_WINDOW) {
-    return OPERATOR_CANCELLED;
-  }
-
   int mval[2];
   mval[0] = RNA_int_get(op->ptr, "mouse_x");
   mval[1] = RNA_int_get(op->ptr, "mouse_y");
   rect = file_select_mval_to_select_rect(mval);
 
+  if (sfile->files == nullptr || sfile->layout == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
   if (!ED_fileselect_layout_is_inside_pt(sfile->layout, &region->v2d, rect.xmin, rect.ymin)) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
@@ -667,7 +670,7 @@ void FILE_OT_select(wmOperatorType *ot)
   ot->exec = file_select_exec;
   ot->modal = WM_generic_select_modal;
   /* Operator works for file or asset browsing */
-  ot->poll = ED_operator_file_active;
+  ot->poll = ED_operator_region_file_active;
 
   /* properties */
   WM_operator_properties_generic_select(ot);
@@ -979,6 +982,11 @@ static wmOperatorStatus file_select_all_exec(bContext *C, wmOperator *op)
   SpaceFile *sfile = CTX_wm_space_file(C);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
   FileSelection sel;
+
+  if (sfile->files == nullptr || params == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
   const int numfiles = filelist_files_ensure(sfile->files);
   int action = RNA_enum_get(op->ptr, "action");
 
@@ -1055,8 +1063,13 @@ void FILE_OT_select_all(wmOperatorType *ot)
 static wmOperatorStatus file_view_selected_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
-  FileSelection sel = file_current_selection_range_get(sfile->files);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+
+  if (sfile->files == nullptr || params == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
+  FileSelection sel = file_current_selection_range_get(sfile->files);
 
   if (sel.first == -1 && sel.last == -1 && params->active_file == -1) {
     /* Nothing was selected. */
@@ -1114,6 +1127,9 @@ static wmOperatorStatus bookmark_select_exec(bContext *C, wmOperator *op)
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "dir");
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+  if (params == nullptr) [[unlikely]] {
+    return OPERATOR_CANCELLED;
+  }
   char entry[256];
 
   RNA_property_string_get(op->ptr, prop, entry);
@@ -1158,6 +1174,9 @@ static wmOperatorStatus bookmark_add_exec(bContext *C, wmOperator *op)
   SpaceFile *sfile = CTX_wm_space_file(C);
   FSMenu *fsmenu = ED_fsmenu_get();
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+  if (!params) {
+    return OPERATOR_CANCELLED;
+  }
 
   if (params->dir[0] != '\0') {
 
@@ -1750,7 +1769,7 @@ void file_sfile_filepath_set(SpaceFile *sfile, const char *filepath)
 void file_draw_check_ex(bContext *C, ScrArea *area)
 {
   /* May happen when manipulating non-active spaces. */
-  if (UNLIKELY(area->spacetype != SPACE_FILE)) {
+  if (area->spacetype != SPACE_FILE) [[unlikely]] {
     return;
   }
   SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
@@ -1863,15 +1882,22 @@ static wmOperatorStatus file_external_operation_exec(bContext *C, wmOperator *op
     return OPERATOR_CANCELLED;
   }
 
+  const FileExternalOperation operation = (FileExternalOperation)RNA_enum_get(op->ptr,
+                                                                              "operation");
+
   char filepath[FILE_MAX_LIBEXTRA];
-  filelist_file_get_full_path(sfile->files, fileentry, filepath);
+  if (!(fileentry->typeflag & FILE_TYPE_DIR) && (operation == FILE_EXTERNAL_OPERATION_FOLDER_OPEN))
+  {
+    const char *root = filelist_dir(sfile->files);
+    BLI_strncpy(filepath, root, sizeof(filepath));
+  }
+  else {
+    filelist_file_get_full_path(sfile->files, fileentry, filepath);
+  }
 
   WM_cursor_set(CTX_wm_window(C), WM_CURSOR_WAIT);
 
 #ifdef WIN32
-  const FileExternalOperation operation = (FileExternalOperation)RNA_enum_get(op->ptr,
-                                                                              "operation");
-
   if (!(fileentry->typeflag & FILE_TYPE_DIR) &&
       ELEM(operation, FILE_EXTERNAL_OPERATION_FOLDER_OPEN, FILE_EXTERNAL_OPERATION_FOLDER_CMD))
   {
@@ -2094,6 +2120,9 @@ static bool file_execute(bContext *C, SpaceFile *sfile)
 {
   Main *bmain = CTX_data_main(C);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+  if (!params) {
+    return false;
+  }
   FileDirEntry *file = filelist_file(sfile->files, params->active_file);
 
   if (file && file->redirection_path) {
@@ -2926,7 +2955,7 @@ void file_directory_enter_handle(bContext *C, void * /*arg_unused*/, void *arg_b
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-  if (UNLIKELY(params == nullptr)) {
+  if (params == nullptr) [[unlikely]] {
     return;
   }
 
@@ -3019,7 +3048,7 @@ void file_filename_enter_handle(bContext *C, void * /*arg_unused*/, void *arg_bu
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-  if (UNLIKELY(params == nullptr)) {
+  if (params == nullptr) [[unlikely]] {
     return;
   }
 
@@ -3037,7 +3066,7 @@ void file_filename_enter_handle(bContext *C, void * /*arg_unused*/, void *arg_bu
   BLI_path_make_safe_filename_ex(params->file, allow_tokens);
 
   if (matches) {
-    /* Replace the pattern (or filename that the user typed in,
+    /* Replace the pattern (or filename that the user typed in),
      * with the first selected file of the match. */
     STRNCPY(params->file, matched_file);
 

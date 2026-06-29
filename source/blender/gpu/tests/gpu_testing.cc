@@ -6,7 +6,7 @@
 
 #include "CLG_log.h"
 
-#include "BLI_math_color.h"
+#include "BLI_math_color_c.hh"
 
 #include "BKE_gtest_base.hh"
 

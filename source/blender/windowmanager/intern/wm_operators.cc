@@ -40,16 +40,16 @@
 
 #include "BLT_translation.hh"
 
-#include "BLI_dial_2d.h"
-#include "BLI_listbase.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
+#include "BLI_dial_2d.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_time.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_time.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_anim_data.hh"
 #include "BKE_brush.hh"
@@ -417,7 +417,7 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
       }
     }
   }
-  BLI_freelistN(&lb);
+  lb.free_no_destruct();
 
   if (member_found) {
     *r_is_id = member_found_is_id;
@@ -941,7 +941,7 @@ bool WM_operator_last_properties_store(wmOperator *op)
   }
 
   if (op->properties) {
-    if (!BLI_listbase_is_empty(&op->properties->data.group)) {
+    if (!op->properties->data.group.is_empty()) {
       CLOG_DEBUG(WM_LOG_OPERATORS, "Storing properties for '%s'", op->type->idname);
     }
     op->type->last_properties = IDP_CopyProperty(op->properties);
@@ -1869,7 +1869,8 @@ wmOperatorStatus WM_operator_props_dialog_popup(bContext *C,
                                                 std::optional<std::string> title,
                                                 std::optional<std::string> confirm_text,
                                                 const bool cancel_default,
-                                                std::optional<std::string> message)
+                                                std::optional<std::string> message,
+                                                const bool show_icon)
 {
   wmOpPopUp *data = MEM_new<wmOpPopUp>(__func__);
   data->op = op;
@@ -1879,8 +1880,8 @@ wmOperatorStatus WM_operator_props_dialog_popup(bContext *C,
   data->title = title ? std::move(*title) : WM_operatortype_name(op->type, op->ptr);
   data->confirm_text = confirm_text ? std::move(*confirm_text) : IFACE_("OK");
   data->message = message ? std::move(*message) : std::string();
-  data->icon = ui::AlertIcon::None;
-  data->size = WM_POPUP_SIZE_SMALL;
+  data->icon = show_icon ? ui::AlertIcon::Info : ui::AlertIcon::None;
+  data->size = show_icon ? WM_POPUP_SIZE_LARGE : WM_POPUP_SIZE_SMALL;
   data->position = (message) ? WM_POPUP_POSITION_CENTER : WM_POPUP_POSITION_MOUSE;
   data->cancel_default = cancel_default;
   data->mouse_move_quit = false;
@@ -2032,7 +2033,7 @@ static ui::Block *wm_block_search_menu(bContext *C, ARegion *region, void *userd
   }
   else if (init_data->search_type == SEARCH_TYPE_SINGLE_MENU) {
     button_func_menu_search(but, init_data->single_menu_idname.c_str());
-    button_flag2_enable(but, ui::BUT2_ACTIVATE_ON_INIT_NO_SELECT);
+    button_flag_enable(but, ui::BUT_ACTIVATE_ON_INIT_NO_SELECT);
   }
   else {
     BLI_assert_unreachable();
@@ -3223,7 +3224,7 @@ static wmOperatorStatus radial_control_invoke(bContext *C, wmOperator *op, const
   /* Temporarily disable other paint cursors. */
   wmWindowManager *wm = CTX_wm_manager(C);
   rc->orig_paintcursors = wm->runtime->paintcursors;
-  BLI_listbase_clear(&wm->runtime->paintcursors);
+  wm->runtime->paintcursors.clear_no_delete();
 
   /* Add radial control paint cursor. */
   rc->cursor = WM_paint_cursor_activate(

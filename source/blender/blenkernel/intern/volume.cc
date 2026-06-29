@@ -16,15 +16,15 @@
 #include "DNA_volume_types.h"
 
 #include "BLI_bounds.hh"
-#include "BLI_fileops.h"
+#include "BLI_fileops.hh"
 #include "BLI_index_range.hh"
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BKE_anim_data.hh"
 #include "BKE_bake_data_block_id.hh"
@@ -221,6 +221,28 @@ static void volume_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   if (volume->packedfile != nullptr &&
       (bpath_data->flag & BKE_BPATH_FOREACH_PATH_SKIP_PACKED) != 0)
   {
+    return;
+  }
+
+  if (volume->is_sequence && (bpath_data->flag & BKE_BPATH_FOREACH_PATH_EXPAND_SEQUENCES) != 0 &&
+      volume->filepath[0] != '\0')
+  {
+    char abs_filepath[FILE_MAX];
+    STRNCPY(abs_filepath, volume->filepath);
+    if (bpath_data->absolute_base_path) {
+      BLI_path_abs(abs_filepath, bpath_data->absolute_base_path);
+    }
+    else {
+      BLI_path_abs(abs_filepath, ID_BLEND_PATH(bpath_data->bmain, &volume->id));
+    }
+
+    bpath_data->is_expanded = true;
+    BKE_bpath_sequence_filepaths_foreach(abs_filepath, [&](StringRef frame_filepath) {
+      char frame_path[FILE_MAX];
+      frame_filepath.copy_utf8_truncated(frame_path);
+      BKE_bpath_foreach_path_readonly_process(bpath_data, frame_path);
+    });
+    bpath_data->is_expanded = false;
     return;
   }
 
@@ -703,7 +725,7 @@ static void volume_evaluate_modifiers(Depsgraph *depsgraph,
 
   /* Evaluate modifiers. */
   for (; md; md = md->next) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
     if (!BKE_modifier_is_enabled(scene, md, required_mode)) {
       continue;

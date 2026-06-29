@@ -6,8 +6,8 @@
  * \ingroup gpu
  */
 
-#include "BLI_assert.h"
-#include "BLI_utildefines.h"
+#include "BLI_assert.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_global.hh"
 
@@ -32,7 +32,9 @@ using namespace blender::gpu;
 /** \name Constructor / Destructor
  * \{ */
 
-GLContext::GLContext(GHOST_IWindow *ghost_window, GLSharedOrphanLists &shared_orphan_list)
+GLContext::GLContext(GHOST_IWindow *ghost_window,
+                     GHOST_IContext *ghost_context,
+                     GLSharedOrphanLists &shared_orphan_list)
     : shared_orphan_list_(shared_orphan_list)
 {
   GLBackend::get()->add_context_id(context_id);
@@ -81,6 +83,7 @@ GLContext::GLContext(GHOST_IWindow *ghost_window, GLSharedOrphanLists &shared_or
     /* For off-screen contexts. Default frame-buffer is null. */
     back_left = new GLFrameBuffer("back_left", this, GL_NONE, 0, 0, 0);
   }
+  ghost_context_ = ghost_context;
 
   active_fb = back_left;
   static_cast<GLStateManager *>(state_manager)->active_fb = static_cast<GLFrameBuffer *>(
@@ -118,6 +121,8 @@ void GLContext::activate()
 {
   /* Make sure no other context is already bound to this thread. */
   BLI_assert(is_active_ == false);
+  /* Make sure the active GHOST context matches the one this GPU Context was created for. */
+  BLI_assert(ghost_context_ == GHOST_IContext::getActiveDrawingContext());
 
   is_active_ = true;
   thread_ = pthread_self();

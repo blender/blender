@@ -129,7 +129,7 @@ bool BKE_lib_override_library_is_system_defined(const Main *bmain, const ID *id)
  * Check if given Override Property for given ID is animated (through a F-Curve in an Action, or
  * from a driver).
  *
- * \param liboverride_rna_prop: if not NULL, the RNA property matching the given path in the
+ * \param override_rna_prop: if not NULL, the RNA property matching the given path in the
  * `liboverride_prop`.
  * \param rnaprop_index: Array in the RNA property, 0 if unknown or irrelevant.
  */
@@ -370,6 +370,16 @@ void BKE_lib_override_library_delete(Main *bmain, ID *id_root);
 void BKE_lib_override_library_make_local(Main *bmain, ID *id);
 
 /**
+ * Ensure that all subdata that can be either local or from liboverride reference, are now flagged
+ * as local.
+ *
+ * Mainly affects NLA' tracks, modifiers, and contraints.
+ *
+ * This is typically used after making a library override local, and removing the override.
+ */
+void BKE_lib_override_flag_subdata_local(ID &id);
+
+/**
  * Find override property from given RNA path, if it exists.
  */
 IDOverrideLibraryProperty *BKE_lib_override_library_property_find(IDOverrideLibrary *liboverride,
@@ -398,8 +408,8 @@ bool BKE_lib_override_library_property_search_and_delete(IDOverrideLibrary *libo
  *
  * No-op if the property override cannot be found.
  *
- * \param from_rna_path: The RNA path of the property to change.
- * \param to_rna_path: The new RNA path.
+ * \param old_rna_path: The RNA path of the property to change.
+ * \param new_rna_path: The new RNA path.
  * The library override system will copy the string to its own memory;
  * the caller will retain ownership of the passed pointer.
  * \return True if the property was found (and thus changed), false if it wasn't found.
@@ -473,6 +483,14 @@ bool BKE_lib_override_library_property_operation_operands_validate(
     PropertyRNA *prop_dst,
     PropertyRNA *prop_src,
     PropertyRNA *prop_storage);
+
+/**
+ * Set the label (UI-only 'name') of the given operation.
+ */
+void BKE_lib_override_library_property_operation_ui_info_set(
+    IDOverrideLibraryPropertyOperation &liboverride_property_operation,
+    StringRefNull label,
+    StringRefNull tooltip);
 
 /**
  * Check against potential \a bmain.
@@ -609,6 +627,11 @@ void BKE_lib_override_library_main_update(Main *bmain);
  * In case an ID is used by another liboverride ID, user may not be allowed to delete it.
  */
 bool BKE_lib_override_library_id_is_user_deletable(Main *bmain, ID *id);
+
+/**
+ * Return a stringified version of the given liboverride operation.
+ */
+StringRefNull BKE_lib_override_operation_as_string(const eID_OverrideLib_Op operation);
 
 /**
  * Debugging helper to show content of given liboverride data.

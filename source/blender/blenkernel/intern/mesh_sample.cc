@@ -8,7 +8,7 @@
 #include "BKE_mesh_sample.hh"
 
 #include "BLI_array_utils.hh"
-#include "BLI_math_geom.h"
+#include "BLI_math_geom_c.hh"
 #include "BLI_rand.hh"
 
 namespace blender::bke::mesh_surface_sample {

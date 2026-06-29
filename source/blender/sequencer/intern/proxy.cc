@@ -1,5 +1,5 @@
 /* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
- * SPDX-FileCopyrightText: 2003-2009 Blender Authors
+ * SPDX-FileCopyrightText: 2003-2026 Blender Authors
  * SPDX-FileCopyrightText: 2005-2006 Peter Schlaile <peter [at] schlaile [dot] de>
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
@@ -13,13 +13,13 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
-#include "BLI_fileops.h"
-#include "BLI_math_base.h"
+#include "BLI_fileops.hh"
+#include "BLI_math_base_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #ifdef WIN32
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #else
 #  include <unistd.h>
 #endif
@@ -54,7 +54,6 @@ namespace blender::seq {
 struct ProxyBuildContext {
   MovieProxyBuilder *movie_proxy_builder = nullptr;
 
-  int tc_flags = 0;
   int size_flags = 0;
   int quality = 0;
   bool overwrite = false;
@@ -240,18 +239,14 @@ ImBuf *seq_proxy_fetch(const RenderData *context, Strip *strip, int timeline_fra
       /* Sequencer takes care of colorspace conversion of the result. The input is the best to be
        * kept unchanged for the performance reasons. */
       proxy->anim = openanim(
-          filepath, IB_byte_data, 0, true, strip->data->colorspace_settings.name);
+          filepath, ImBufFlags::Zero, 0, true, strip->data->colorspace_settings.name);
     }
     if (proxy->anim == nullptr) {
       return nullptr;
     }
 
     strip_open_anim_file(context->scene, strip, true);
-    MovieReader *anim = strip->runtime->movie_reader_get();
-    frameno = MOV_calc_frame_index_with_timecode(
-        anim, IMB_Timecode_Type(strip->data->proxy->tc), frameno);
-
-    return MOV_decode_frame(proxy->anim, frameno, IMB_TC_NONE, IMB_PROXY_NONE);
+    return MOV_decode_frame(proxy->anim, frameno, IMB_PROXY_NONE);
   }
 
   if (seq_proxy_get_filepath(
@@ -265,8 +260,10 @@ ImBuf *seq_proxy_fetch(const RenderData *context, Strip *strip, int timeline_fra
      * conversion of float to scene linear that would usually be done. */
     char colorspace[IMA_MAX_SPACE];
     STRNCPY(colorspace, context->scene->sequencer_colorspace_settings.name);
-    return IMB_load_image_from_filepath(
-        filepath, IB_byte_data | IB_metadata | IB_no_colorspace_convert, colorspace);
+    return IMB_load_image_from_filepath(filepath,
+                                        ImBufFlags::ByteData | ImBufFlags::Metadata |
+                                            ImBufFlags::NoColorspaceConvert,
+                                        colorspace);
   }
 
   return nullptr;
@@ -419,7 +416,6 @@ bool proxy_build_start(Main *bmain,
     Strip *strip_new = strip_duplicate_recursive(
         bmain, scene, scene, nullptr, strip, StripDuplicate::Selected);
 
-    context->tc_flags = strip_new->data->proxy->build_tc_flags;
     context->size_flags = strip_new->data->proxy->build_size_flags;
     context->quality = strip_new->data->proxy->quality;
     context->overwrite = (strip_new->data->proxy->build_flags & SEQ_PROXY_SKIP_EXISTING) == 0;
@@ -434,14 +430,12 @@ bool proxy_build_start(Main *bmain,
       strip_open_anim_file(scene, strip_new, true);
       anim = strip_new->runtime->movie_reader_get(i);
       if (anim) {
-        context->movie_proxy_builder = MOV_proxy_builder_start(
-            anim,
-            IMB_Timecode_Type(context->tc_flags),
-            context->size_flags,
-            context->quality,
-            context->overwrite,
-            processed_paths,
-            build_only_on_bad_performance);
+        context->movie_proxy_builder = MOV_proxy_builder_start(anim,
+                                                               context->size_flags,
+                                                               context->quality,
+                                                               context->overwrite,
+                                                               processed_paths,
+                                                               build_only_on_bad_performance);
       }
       if (!context->movie_proxy_builder) {
         MEM_delete(context);
@@ -498,13 +492,14 @@ static void seq_proxy_build_frame(const Scene *scene,
   else {
     /* Byte image: save as JPG. */
     ibuf->ftype = IMB_FTYPE_JPG;
-    if (ibuf->planes == 32) {
-      ibuf->planes = 24; /* JPGs do not support alpha. */
+    if (ibuf->can_contain_alpha()) {
+      ibuf->color_mode = ImColorMode::RGB; /* JPGs do not support alpha. */
     }
   }
   BLI_file_ensure_parent_dir_exists(filepath);
 
-  const bool ok = IMB_save_image(ibuf, filepath, save_float ? IB_float_data : IB_byte_data);
+  const bool ok = IMB_save_image(
+      ibuf, filepath, save_float ? ImBufFlags::FloatData : ImBufFlags::ByteData);
   if (ok == false) {
     perror(filepath);
   }
@@ -523,9 +518,9 @@ static ImBuf *render_image_strip_frame(const ProxyBuildContext &context,
 {
   ImBuf *ibuf = nullptr;
 
-  int flag = IB_byte_data | IB_metadata | IB_multilayer;
+  ImBufFlags flag = ImBufFlags::ByteData | ImBufFlags::Metadata;
   if (strip.alpha_mode == SEQ_ALPHA_PREMUL) {
-    flag |= IB_alphamode_premul;
+    flag |= ImBufFlags::AlphaPremul;
   }
 
   if (prefix[0] == '\0') {
@@ -541,7 +536,7 @@ static ImBuf *render_image_strip_frame(const ProxyBuildContext &context,
     return nullptr;
   }
 
-  convert_multilayer_ibuf(ibuf);
+  ensure_ibuf_is_rgba(ibuf);
   if (ibuf->float_data() != nullptr && ibuf->byte_data() != nullptr) {
     IMB_free_byte_pixels(ibuf); /* If both float & byte exist, free byte buffer. */
   }
@@ -597,7 +592,10 @@ static void image_proxy_builder_process(ProxyBuildContext &context,
 
       if (ibufs_arr[0] != nullptr) {
         if (strip.views_format == R_IMF_VIEWS_STEREO_3D) {
-          IMB_ImBufFromStereo3d(strip.stereo3d_format, ibufs_arr[0], &ibufs_arr[0], &ibufs_arr[1]);
+          IMB_ImBufFromStereo3d(strip.stereo3d_format,
+                                ibufs_arr[0],
+                                &ibufs_arr[0],  // NOLINT(readability-container-data-pointer)
+                                &ibufs_arr[1]);
         }
 
         /* Return the requested image; release the others. */

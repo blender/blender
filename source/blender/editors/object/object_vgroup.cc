@@ -20,12 +20,12 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_array.hh"
-#include "BLI_bitmap.h"
-#include "BLI_listbase.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
-#include "BLI_utildefines_stack.h"
+#include "BLI_bitmap.hh"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
+#include "BLI_utildefines_stack.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_attribute.hh"
@@ -405,8 +405,8 @@ bool vgroup_array_copy(Object *ob, Object *ob_from)
   ListBaseT<bDeformGroup> *defbase_dst = BKE_object_defgroup_list_mutable(ob);
   const ListBaseT<bDeformGroup> *defbase_src = BKE_object_defgroup_list(ob_from);
 
-  int defbase_tot_from = BLI_listbase_count(defbase_src);
-  int defbase_tot = BLI_listbase_count(defbase_dst);
+  int defbase_tot_from = defbase_src->count();
+  int defbase_tot = defbase_dst->count();
   bool new_vgroup = false;
 
   BLI_assert(ob != ob_from);
@@ -449,7 +449,7 @@ bool vgroup_array_copy(Object *ob, Object *ob_from)
   }
 
   /* do the copy */
-  BLI_freelistN(defbase_dst);
+  defbase_dst->free_no_destruct();
   BLI_duplicatelist(defbase_dst, defbase_src);
   BKE_object_defgroup_active_index_set(ob, BKE_object_defgroup_active_index_get(ob_from));
 
@@ -1237,7 +1237,7 @@ static void vgroup_duplicate(Object *ob)
   BLI_addtail(defbase, cdg);
 
   idg = BKE_object_defgroup_active_index_get(ob) - 1;
-  BKE_object_defgroup_active_index_set(ob, BLI_listbase_count(defbase));
+  BKE_object_defgroup_active_index_set(ob, defbase->count());
   icdg = BKE_object_defgroup_active_index_get(ob) - 1;
 
   /* TODO(@ideasman42): we might want to allow only copy selected verts here? */
@@ -1456,13 +1456,14 @@ static bool vgroup_normalize_all(Object *ob,
  * that means.
  */
 static void vgroup_normalize_all_deform_if_active_is_deform(Object *ob,
+                                                            const int def_nr,
                                                             const bool soft_lock_active,
                                                             ReportList *reports,
                                                             std::optional<int> current_frame = {})
 {
+  BLI_assert(BLI_findlink(BKE_object_defgroup_list(ob), def_nr));
   const int defgroup_tot = BKE_object_defgroup_count(ob);
   bool *defgroup_validmap = BKE_object_defgroup_validmap_get(ob, defgroup_tot);
-  const int def_nr = BKE_object_defgroup_active_index_get(ob) - 1;
 
   /* Only auto-normalize if the active group is bone-deforming. */
   if (defgroup_validmap[def_nr] == true) {
@@ -2367,14 +2368,9 @@ static void vgroup_delete_active(Object *ob)
 }
 
 /* only in editmode */
-static void vgroup_assign_verts(Object *ob, Scene &scene, const float weight)
+static void vgroup_assign_verts(Object *ob, Scene &scene, const int def_nr, const float weight)
 {
-  const int def_nr = BKE_object_defgroup_active_index_get(ob) - 1;
-
-  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
-  if (!BLI_findlink(defbase, def_nr)) {
-    return;
-  }
+  BLI_assert(BLI_findlink(BKE_object_defgroup_list(ob), def_nr));
 
   if (ob->type == OB_MESH) {
     Mesh *mesh = id_cast<Mesh *>(ob->data);
@@ -2504,7 +2500,7 @@ static bool vertex_group_poll_ex(bContext *C, Object *ob)
   }
 
   const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
-  if (BLI_listbase_is_empty(defbase)) {
+  if (defbase->is_empty()) {
     CTX_wm_operator_poll_msg_set(C, "Object has no vertex groups");
     return false;
   }
@@ -2788,15 +2784,23 @@ static wmOperatorStatus vertex_group_assign_exec(bContext *C, wmOperator *op)
   Object *ob = context_object(C);
   Scene &scene = *CTX_data_scene(C);
 
-  vgroup_assign_verts(ob, scene, ts->vgroup_weight);
+  const int def_nr = BKE_object_defgroup_active_index_get(ob) - 1;
+  const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
+  if (!BLI_findlink(defbase, def_nr)) {
+    BKE_report(op->reports, RPT_ERROR, "No active vertex group to operate on");
+    return OPERATOR_CANCELLED;
+  }
+
+  vgroup_assign_verts(ob, scene, def_nr, ts->vgroup_weight);
 
   if (ts->auto_normalize) {
     if (ob->type == OB_GREASE_PENCIL) {
       const int current_frame = scene.r.cfra;
-      vgroup_normalize_all_deform_if_active_is_deform(ob, true, op->reports, current_frame);
+      vgroup_normalize_all_deform_if_active_is_deform(
+          ob, def_nr, true, op->reports, current_frame);
     }
     else {
-      vgroup_normalize_all_deform_if_active_is_deform(ob, true, op->reports);
+      vgroup_normalize_all_deform_if_active_is_deform(ob, def_nr, true, op->reports);
     }
   }
 
@@ -2899,12 +2903,16 @@ static wmOperatorStatus vertex_group_remove_from_exec(bContext *C, wmOperator *o
 
   ToolSettings *ts = CTX_data_tool_settings(C);
   if (ts->auto_normalize) {
-    if (ob->type == OB_GREASE_PENCIL) {
-      const int current_frame = scene.r.cfra;
-      vgroup_normalize_all_deform_if_active_is_deform(ob, true, op->reports, current_frame);
-    }
-    else {
-      vgroup_normalize_all_deform_if_active_is_deform(ob, true, op->reports);
+    const int def_nr = BKE_object_defgroup_active_index_get(ob) - 1;
+    if (def_nr >= 0) {
+      if (ob->type == OB_GREASE_PENCIL) {
+        const int current_frame = scene.r.cfra;
+        vgroup_normalize_all_deform_if_active_is_deform(
+            ob, def_nr, true, op->reports, current_frame);
+      }
+      else {
+        vgroup_normalize_all_deform_if_active_is_deform(ob, def_nr, true, op->reports);
+      }
     }
   }
 
@@ -3877,7 +3885,7 @@ void OBJECT_OT_vertex_group_set_active(wmOperatorType *ot)
 static char *vgroup_init_remap(Object *ob)
 {
   const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
-  int defbase_tot = BLI_listbase_count(defbase);
+  int defbase_tot = defbase->count();
   char *name_array = MEM_new_array_uninitialized<char>(MAX_VGROUP_NAME * defbase_tot,
                                                        "sort vgroups");
   char *name;
@@ -3896,7 +3904,7 @@ static wmOperatorStatus vgroup_do_remap(Object *ob, const char *name_array, wmOp
   MDeformVert *dvert = nullptr;
   const bDeformGroup *def;
   const ListBaseT<bDeformGroup> *defbase = BKE_object_defgroup_list(ob);
-  int defbase_tot = BLI_listbase_count(defbase);
+  int defbase_tot = defbase->count();
 
   /* Needs a dummy index at the start. */
   int *sort_map_update = MEM_new_array_uninitialized<int>((defbase_tot + 1), __func__);

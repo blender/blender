@@ -12,9 +12,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "DNA_object_types.h"
@@ -682,15 +682,16 @@ static void gizmo2d_xform_invoke_prepare(const bContext *C,
    * rotating with the gizmo.
    *
    * The coordinates are referred to as their cardinal directions:
-   *       N
-   *       o
-   *NW     |     NE
-   * x-----------x
-   * |           |
-   *W|     C     |E
-   * |           |
-   * x-----------x
-   *SW     S     SE
+   *
+   *        N
+   *        o
+   * NW     |     NE
+   *  x-----------x
+   *  |           |
+   * W|     C     |E
+   *  |           |
+   *  x-----------x
+   * SW     S     SE
    */
   float n[3] = {mid[0], max[1], 0.0f};
   float w[3] = {min[0], mid[1], 0.0f};

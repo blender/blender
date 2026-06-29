@@ -318,7 +318,7 @@ class StringRefPrinter:
         size = int(self.value["size_"])
         if size == 0:
             return ""
-        return data.string()
+        return data.string(length=size)
 
     def display_hint(self):
         return "string"

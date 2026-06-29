@@ -131,11 +131,11 @@ static const EnumPropertyItem part_fluid_type_items[] = {
 #  include "DNA_mesh_types.h"
 #  include "DNA_meshdata_types.h"
 
-#  include "BLI_listbase.h"
-#  include "BLI_math_matrix.h"
-#  include "BLI_math_vector.h"
-#  include "BLI_string.h"
-#  include "BLI_string_utf8.h"
+#  include "BLI_listbase.hh"
+#  include "BLI_math_matrix_c.hh"
+#  include "BLI_math_vector_c.hh"
+#  include "BLI_string.hh"
+#  include "BLI_string_utf8.hh"
 #  include "BLI_string_utils.hh"
 
 #  include "BKE_boids.h"
@@ -927,7 +927,7 @@ static void rna_ParticleSystem_active_particle_target_index_range(
 {
   ParticleSystem *psys = static_cast<ParticleSystem *>(ptr->data);
   *min = 0;
-  *max = max_ii(0, BLI_listbase_count(&psys->targets) - 1);
+  *max = max_ii(0, psys->targets.count() - 1);
 }
 
 static int rna_ParticleSystem_active_particle_target_index_get(PointerRNA *ptr)
@@ -1068,7 +1068,7 @@ static void rna_ParticleDupliWeight_active_index_range(
 {
   ParticleSettings *part = id_cast<ParticleSettings *>(ptr->owner_id);
   *min = 0;
-  *max = max_ii(0, BLI_listbase_count(&part->instance_weights) - 1);
+  *max = max_ii(0, part->instance_weights.count() - 1);
 }
 
 static int rna_ParticleDupliWeight_active_index_get(PointerRNA *ptr)

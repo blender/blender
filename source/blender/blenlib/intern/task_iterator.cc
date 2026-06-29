@@ -12,9 +12,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_mempool.h"
+#include "BLI_mempool.hh"
 #include "BLI_mempool_private.h"
-#include "BLI_task.h"
+#include "BLI_task_c.hh"
 
 namespace blender {
 
@@ -59,7 +59,7 @@ void BLI_task_parallel_mempool(BLI_mempool *mempool,
                                TaskParallelMempoolFunc func,
                                const TaskParallelSettings *settings)
 {
-  if (UNLIKELY(BLI_mempool_len(mempool) == 0)) {
+  if (BLI_mempool_len(mempool) == 0) [[unlikely]] {
     return;
   }
 

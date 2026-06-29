@@ -16,7 +16,7 @@ class ImBufScalingTest : public bke::BlenderGTestBase {};
 
 static ImBuf *create_6x2_test_image()
 {
-  ImBuf *img = IMB_allocImBuf(6, 2, 32, IB_byte_data);
+  ImBuf *img = IMB_allocImBuf(6, 2, ImBufFlags::ByteData);
   uchar4 *col = reinterpret_cast<uchar4 *>(img->byte_data_for_write());
 
   /* Source pixels are spelled out in 2x2 blocks below:
@@ -42,7 +42,7 @@ static ImBuf *create_6x2_test_image()
 
 static ImBuf *create_6x2_test_image_fl(int channels)
 {
-  ImBuf *img = IMB_allocImBuf(6, 2, 32, IB_float_data);
+  ImBuf *img = IMB_allocImBuf(6, 2, ImBufFlags::FloatData);
   img->channels = channels;
   float *col = img->float_data_for_write();
 

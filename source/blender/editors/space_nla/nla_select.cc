@@ -13,7 +13,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "BKE_nla.hh"
 
@@ -409,7 +409,7 @@ void NLA_OT_select_box(wmOperatorType *ot)
   ot->modal = WM_gesture_box_modal;
   ot->cancel = WM_gesture_box_cancel;
 
-  ot->poll = nlaop_poll_tweakmode_off;
+  ot->poll = nlaop_poll_tweakmode_off_with_main_region;
 
   /* flags */
   ot->flag = OPTYPE_UNDO;
@@ -578,7 +578,7 @@ void NLA_OT_select_leftright(wmOperatorType *ot)
   /* API callbacks. */
   ot->invoke = nlaedit_select_leftright_invoke;
   ot->exec = nlaedit_select_leftright_exec;
-  ot->poll = ED_operator_nla_active;
+  ot->poll = ED_operator_region_nla_active;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -718,7 +718,7 @@ void NLA_OT_click_select(wmOperatorType *ot)
   ot->description = "Handle clicks to select NLA Strips";
 
   /* callbacks */
-  ot->poll = ED_operator_nla_active;
+  ot->poll = ED_operator_region_nla_active;
   ot->exec = nlaedit_clickselect_exec;
   ot->invoke = WM_generic_select_invoke;
   ot->modal = WM_generic_select_modal;

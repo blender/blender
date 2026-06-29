@@ -9,12 +9,14 @@
 #include <thread>
 
 #include "AS_asset_library.hh"
+#include "AS_asset_representation.hh"
 #include "AS_remote_library.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_assert.hh"
+#include "BLI_listbase.hh"
+#include "BLI_map.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_set.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_utils.hh"
 
 #include "BKE_global.hh"
@@ -31,13 +33,18 @@ namespace blender {
 using RemoteLibraryLoadingStatus = asset_system::RemoteLibraryLoadingStatus;
 
 /* TODO handle \a progress. */
+/**
+ *\param already_downloaded_assets: Mapping from asset library-relative identifier to its
+ * AssetRepresentation. This function can update the AssetRepresentation based on the remote asset
+ * listing.
+ */
 static void filelist_readjob_remote_asset_library_index_read(
     FileListReadJob *job_params,
     RemoteLibraryRequest &request,
-    bool *stop,
+    const bool *stop,
     bool *do_update,
     float * /*progress*/,
-    const Set<StringRef> already_downloaded_asset_identifiers)
+    Map<StringRef, asset_system::AssetRepresentation *> &already_downloaded_assets)
 {
   using namespace ed::asset;
 
@@ -61,10 +68,14 @@ static void filelist_readjob_remote_asset_library_index_read(
 
     const char *group_name = BKE_idtype_idcode_to_name(entry.idcode);
 
-    /* Skip assets that are already listed with the downloaded assets. */
-    const StringRefNull asset_file = entry.online_info.asset_file();
+    /* For assets already on disk, stamp the listing's file status onto the existing
+     * AssetRepresentation so the UI can reflect whether it is up to date. */
+    std::string asset_file = entry.online_info.asset_file();
+    /* Relative identifiers use native slashes, but #asset_system::OnlineAssetInfo::asset_file()
+     * has forward slashes instead, so they need to be converted to native. */
+    BLI_path_slash_native(asset_file.data());
     {
-      BLI_assert(asset_file.endswith(".blend"));
+      BLI_assert(asset_file.ends_with(".blend"));
 
       /* Matches #asset_system::AssetRepresentation.library_relative_identifier(). */
       char asset_identifier[FILE_MAX_LIBEXTRA];
@@ -75,7 +86,15 @@ static void filelist_readjob_remote_asset_library_index_read(
                       group_name,
                       SEP_STR,
                       entry.datablock_info.name);
-      if (already_downloaded_asset_identifiers.contains(asset_identifier)) {
+      if (asset_system::AssetRepresentation **existing = already_downloaded_assets.lookup_ptr(
+              asset_identifier))
+      {
+        if (entry.remote_file_status == asset_system::RemoteAssetFileStatus::NO_MATCH) {
+          /* Store the full online info so the asset can be re-downloaded. */
+          (*existing)->online_info_set(std::move(entry.online_info));
+        }
+        (*existing)->remote_file_status_set(entry.remote_file_status);
+        *do_update = true;
         return true;
       }
     }
@@ -115,9 +134,15 @@ static void filelist_readjob_remote_asset_library_index_read(
       }
 
       /* Atomically test and reset the new pages flag. */
-      if (request.new_pages_available.exchange(false) || !request.is_downloading) {
+      if (request.new_pages_available.exchange(false)) {
         /* New pages available or loading ended. Done waiting. */
         return true;
+      }
+
+      if (!request.is_downloading) {
+        /* Nothing is downloading any more, so it doesn't make sense for the caller to continue
+         * looping. */
+        return false;
       }
 
       /* Busy waiting for new files, with some sleeping to avoid wasting a lot of CPU
@@ -146,12 +171,14 @@ void remote_asset_library_load(FileListReadJob *job_params,
 {
   FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
 
-  Set<StringRef> already_downloaded_asset_identifiers;
+  /* Mapping from asset library-relative identifier to its AssetRepresentation. */
+  Map<StringRef, asset_system::AssetRepresentation *> already_downloaded_assets;
+
   /* Get assets that were downloaded already. */
   {
     job_params->on_asset_added =
-        [&already_downloaded_asset_identifiers](const asset_system::AssetRepresentation &asset) {
-          already_downloaded_asset_identifiers.add(asset.library_relative_identifier());
+        [&already_downloaded_assets](asset_system::AssetRepresentation &asset) {
+          already_downloaded_assets.add(asset.library_relative_identifier(), &asset);
         };
 
     float progress_on_disk = 0.0;
@@ -193,7 +220,7 @@ void remote_asset_library_load(FileListReadJob *job_params,
   }
 
   filelist_readjob_remote_asset_library_index_read(
-      job_params, request, stop, do_update, progress, already_downloaded_asset_identifiers);
+      job_params, request, stop, do_update, progress, already_downloaded_assets);
 }
 
 static void filelist_remote_asset_library_update_loading_flags(RemoteLibraryRequest &request,
@@ -216,7 +243,8 @@ static void filelist_remote_asset_library_update_loading_flags(RemoteLibraryRequ
 }
 
 /* Called when starting the job (from the main thread). */
-void remote_asset_library_request(FileListReadJob *job_params, bUserAssetLibrary &library)
+void remote_asset_library_request(FileListReadJob *job_params,
+                                  const asset_system::RemoteLibraryDefinitionRef &library)
 {
   if (!USER_EXPERIMENTAL_TEST(&U, use_remote_asset_libraries)) {
     return;
@@ -229,12 +257,13 @@ void remote_asset_library_request(FileListReadJob *job_params, bUserAssetLibrary
   }
 
   /* Check if the library's cache directory exists, otherwise, request download. */
-  if (!BLI_is_dir(library.dirpath)) {
+  const std::string top_meta_file_path = remote_library_top_meta_file_path(library);
+  if (!BLI_is_file(top_meta_file_path.c_str())) {
     blender::asset_system::remote_library_request_download(library);
   }
 
   std::unique_ptr<RemoteLibraryRequest> request = std::make_unique<RemoteLibraryRequest>();
-  request->dirpath = library.dirpath;
+  request->dirpath = library.cache_dirpath;
   request->request_time = RemoteLibraryLoadingStatus::loading_start_time(library.remote_url);
 
   filelist_remote_asset_library_update_loading_flags(*request, library.remote_url);
@@ -246,7 +275,7 @@ static bUserAssetLibrary *lookup_remote_library(const FileListReadJob *job_param
 {
   bUserAssetLibrary *library = BKE_preferences_asset_library_find_index(
       &U, job_params->filelist->asset_library_ref->custom_library_index);
-  if (!library && !(library->flag & ASSET_LIBRARY_USE_REMOTE_URL)) {
+  if (!library || !(library->flag & ASSET_LIBRARY_USE_REMOTE_URL)) {
     return nullptr;
   }
 
@@ -267,7 +296,7 @@ static void filelist_readjob_remote_asset_library(FileListReadJob *job_params,
 {
   FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
 
-  BLI_assert(BLI_listbase_is_empty(&filelist->filelist.entries) &&
+  BLI_assert(filelist->filelist.entries.is_empty() &&
              (filelist->filelist.entries_num == FILEDIR_NBR_ENTRIES_UNSET));
 
   /* A valid, but empty file-list from now. */

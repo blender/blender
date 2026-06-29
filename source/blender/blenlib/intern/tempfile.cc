@@ -6,11 +6,11 @@
  * \ingroup bli
  */
 
-#include "BLI_tempfile.h"
+#include "BLI_tempfile.hh"
 
-#include "BLI_fileops.h"
+#include "BLI_fileops.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 namespace blender {
 
@@ -31,7 +31,7 @@ bool BLI_temp_directory_path_copy_if_valid(char *tempdir,
   /* Disallow paths starting with two forward slashes. While they are valid paths,
    * Blender interprets them as relative in situations relative paths aren't supported,
    * see #95411. */
-  while (UNLIKELY(dirpath[0] == '/' && dirpath[1] == '/')) {
+  while (dirpath[0] == '/' && dirpath[1] == '/') [[unlikely]] {
     dirpath++;
   }
   if (dirpath[0] == '\0') {

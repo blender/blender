@@ -11,7 +11,7 @@
 #include "BKE_nla.hh"
 
 #include "BLI_enum_flags.hh"
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 #include "DNA_listBase.h"
 #include "DNA_screen_types.h"
@@ -49,6 +49,8 @@ struct bDopeSheet;
 struct FCurve;
 struct FModifier;
 struct bAction;
+struct AnimKeylist;
+struct bMotionPath;
 
 namespace ui {
 struct Block;
@@ -63,6 +65,17 @@ namespace animrig {
 class Action;
 class Slot;
 }  // namespace animrig
+
+/* Motion path needing to be baked (target). */
+struct MPathTarget {
+  bMotionPath *mpath = nullptr; /* Motion path in question. */
+
+  AnimKeylist *keylist = nullptr; /* Temp, to know where the keyframes are. */
+
+  /* Original (Source Objects) */
+  Object *ob = nullptr;          /* Source Object */
+  bPoseChannel *pchan = nullptr; /* Source pose-channel (if applicable). */
+};
 
 /* ************************************************ */
 /* ANIMATION CHANNEL FILTERING */
@@ -1260,9 +1273,6 @@ void ED_anim_ale_fcurve_delete(bAnimContext &ac, bAnimListElem &ale);
 /* ************************************************ */
 
 enum eAnimvizCalcRange : uint8_t {
-  /** Update motion paths at the current frame only. */
-  ANIMVIZ_CALC_RANGE_CURRENT_FRAME,
-
   /** Try to limit updates to a close neighborhood of the current frame. */
   ANIMVIZ_CALC_RANGE_CHANGED,
 
@@ -1276,18 +1286,17 @@ enum eAnimvizCalcRange : uint8_t {
 Depsgraph *animviz_depsgraph_build(Main *bmain,
                                    Scene *scene,
                                    ViewLayer *view_layer,
-                                   Span<MPathTarget *> targets);
+                                   Span<MPathTarget> targets);
 
 /**
  * Evaluated the given `depsgraph` for all targets.
  *
- * \param range determines which frames the Depsgraph is evaluated for. This can have big
- * performance implications.
+ * \param range: determines which frames the Depsgraph is evaluated for.
+ * This can have big performance implications.
  */
 void animviz_calc_motionpaths(Depsgraph *depsgraph,
-                              Main *bmain,
                               Scene *scene,
-                              MutableSpan<MPathTarget *> targets,
+                              MutableSpan<MPathTarget> targets,
                               eAnimvizCalcRange range);
 
 /**
@@ -1301,16 +1310,9 @@ void animviz_motionpath_compute_range(Object *ob, Scene *scene);
 
 /**
  * Populate the given vector with MPathTarget elements for the given object.
- * Will look for pose bones as well. `animviz_free_motionpath_targets` needs to be called
- * to free the memory allocated in this function.
+ * Will look for pose bones as well.
  */
-void animviz_build_motionpath_targets(Object *ob, Vector<MPathTarget *> &r_targets);
-
-/**
- * Free the elements of the vector populated with `animviz_build_motionpath_targets`.
- * After this function the Vector will have a length of 0.
- */
-void animviz_free_motionpath_targets(Vector<MPathTarget *> &targets);
+void animviz_build_motionpath_targets(Object *ob, Vector<MPathTarget> &r_targets);
 
 /** \} */
 

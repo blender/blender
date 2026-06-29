@@ -37,13 +37,13 @@
 
 #include "BLI_color_types.hh"
 #include "BLI_function_ref.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
-#include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
 #include "BLI_vector.hh"
 
@@ -646,7 +646,7 @@ static void find_used_vertex_groups(const bGPDframe &gpf,
       }
     }
   }
-  BLI_listbase_clear(&r_vertex_group_names);
+  r_vertex_group_names.clear_no_delete();
   r_indices.reinitialize(num_vertex_groups);
   int new_group_i = 0;
 
@@ -827,12 +827,12 @@ static Drawing legacy_gpencil_frame_to_grease_pencil_drawing(
   /* Find used vertex groups in this drawing. */
   ListBaseT<bDeformGroup> stroke_vertex_group_names;
   Array<int> stroke_def_nr_map;
-  const int num_vertex_groups = BLI_listbase_count(&vertex_group_names);
+  const int num_vertex_groups = vertex_group_names.count();
   find_used_vertex_groups(
       gpf, vertex_group_names, num_vertex_groups, stroke_vertex_group_names, stroke_def_nr_map);
-  BLI_assert(BLI_listbase_is_empty(&curves.vertex_group_names));
+  BLI_assert(curves.vertex_group_names.is_empty());
   curves.vertex_group_names = stroke_vertex_group_names;
-  const bool use_dverts = !BLI_listbase_is_empty(&curves.vertex_group_names);
+  const bool use_dverts = !curves.vertex_group_names.is_empty();
 
   /* Copy vertex weights and map the vertex group indices. */
   auto copy_dvert = [&](const MDeformVert &src_dvert, MDeformVert &dst_dvert) {
@@ -1519,7 +1519,7 @@ static ModifierData &legacy_object_modifier_common(ConversionData &conversion_da
   if (mti->flags & eModifierTypeFlag_RequiresOriginalData) {
     ModifierData *md;
     for (md = static_cast<ModifierData *>(object.modifiers.first);
-         md && BKE_modifier_get_info(ModifierType(md->type))->type == ModifierTypeType::OnlyDeform;
+         md && BKE_modifier_get_info(md->type)->type == ModifierTypeType::OnlyDeform;
          md = md->next)
     {
       ;
@@ -2794,7 +2794,7 @@ static void legacy_object_modifier_simplify(ConversionData &conversion_data,
 
 static void legacy_object_modifiers(ConversionData &conversion_data, Object &object)
 {
-  BLI_assert(BLI_listbase_is_empty(&object.modifiers));
+  BLI_assert(object.modifiers.is_empty());
 
   while (GpencilModifierData *gpd_md = static_cast<GpencilModifierData *>(
              BLI_pophead(&object.greasepencil_modifiers)))
@@ -3038,6 +3038,7 @@ static void legacy_gpencil_sanitize_annotations(Main &bmain)
           case SPACE_TOPBAR:
           case SPACE_STATUSBAR:
           case SPACE_SPREADSHEET:
+          case SPACE_PROJECT:
             break;
         }
       }

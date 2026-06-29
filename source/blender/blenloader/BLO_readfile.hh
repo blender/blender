@@ -6,10 +6,10 @@
 #include "DNA_ID_enums.h"
 #include "DNA_listBase.h"
 
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 #include "BLI_enum_flags.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 #include "BLI_utility_mixins.hh"
 struct BlendHandle;
 namespace blender {

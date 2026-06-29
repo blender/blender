@@ -22,7 +22,7 @@
 #include "Curvature.h"
 #include "WEdge.h"
 
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 
 #include "../geometry/normal_cycle.h"
 
@@ -551,7 +551,7 @@ void compute_curvature_tensor(WVertex *start, real radius, NormalCycle &nc)
 
         if (!isect) {
           WVertex *w = h->GetaVertex();
-          if (vertices.find(w) == vertices.end()) {
+          if (!vertices.contains(w)) {
             vertices.insert(w);
             S.push(w);
           }

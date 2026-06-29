@@ -95,15 +95,15 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_assert.h"
-#include "BLI_listbase.h"
+#include "BLI_assert.hh"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
-#include "BLI_mempool.h"
-#include "BLI_utildefines.h"
+#include "BLI_mempool.hh"
+#include "BLI_utildefines.hh"
 
-#include "BLI_array_store.h" /* Own include. */
+#include "BLI_array_store.hh" /* Own include. */
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 
@@ -338,7 +338,7 @@ struct BArrayState {
 struct BChunkList {
   /** List of #BChunkRef's. */
   ListBaseT<BChunkRef> chunk_refs;
-  /** Result of `BLI_listbase_count(chunks)`, store for reuse. */
+  /** Result of `chunks->count()`, store for reuse. */
   uint chunk_refs_len;
   /** Size of all chunks (expanded). */
   size_t total_expanded_size;
@@ -450,7 +450,7 @@ static BChunkList *bchunk_list_new(BArrayMemory *bs_mem, size_t total_expanded_s
 {
   BChunkList *chunk_list = static_cast<BChunkList *>(BLI_mempool_alloc(bs_mem->chunk_list));
 
-  BLI_listbase_clear(&chunk_list->chunk_refs);
+  chunk_list->chunk_refs.clear_no_delete();
   chunk_list->chunk_refs_len = 0;
   chunk_list->total_expanded_size = total_expanded_size;
   chunk_list->users = 0;
@@ -664,7 +664,7 @@ static void bchunk_list_append_data(const BArrayInfo *info,
 #ifdef USE_MERGE_CHUNKS
   BLI_assert(data_len <= info->chunk_byte_size_max);
 
-  if (!BLI_listbase_is_empty(&chunk_list->chunk_refs)) {
+  if (!chunk_list->chunk_refs.is_empty()) {
     BChunkRef *cref = static_cast<BChunkRef *>(chunk_list->chunk_refs.last);
     BChunk *chunk_prev = cref->link;
 
@@ -778,7 +778,7 @@ static void bchunk_list_fill_from_array(const BArrayInfo *info,
                                         const uchar *data,
                                         const size_t data_len)
 {
-  BLI_assert(BLI_listbase_is_empty(&chunk_list->chunk_refs));
+  BLI_assert(chunk_list->chunk_refs.is_empty());
 
   size_t data_trim_len, data_last_chunk_len;
   bchunk_list_calc_trim_len(info, data_len, &data_trim_len, &data_last_chunk_len);
@@ -1037,7 +1037,7 @@ BLI_INLINE void hash_accum_impl(hash_key *hash_array, const size_t i_dst, const 
 static void hash_accum(hash_key *hash_array, const size_t hash_array_len, size_t iter_steps)
 {
   /* _very_ unlikely, can happen if you select a chunk-size of 1 for example. */
-  if (UNLIKELY(iter_steps > hash_array_len)) {
+  if (iter_steps > hash_array_len) [[unlikely]] {
     iter_steps = hash_array_len;
   }
 
@@ -1058,7 +1058,7 @@ static void hash_accum(hash_key *hash_array, const size_t hash_array_len, size_t
 static void hash_accum_single(hash_key *hash_array, const size_t hash_array_len, size_t iter_steps)
 {
   BLI_assert(iter_steps <= hash_array_len);
-  if (UNLIKELY(!(iter_steps <= hash_array_len))) {
+  if (!(iter_steps <= hash_array_len)) [[unlikely]] {
     /* While this shouldn't happen, avoid crashing. */
     iter_steps = hash_array_len;
   }
@@ -1102,7 +1102,7 @@ static hash_key key_from_chunk_ref(const BArrayInfo *info,
       key = hash_store[0];
 
       /* Cache the key. */
-      if (UNLIKELY(key == HASH_TABLE_KEY_UNSET)) {
+      if (key == HASH_TABLE_KEY_UNSET) [[unlikely]] {
         key = HASH_TABLE_KEY_FALLBACK;
       }
       chunk->key = key;
@@ -1121,7 +1121,7 @@ static hash_key key_from_chunk_ref(const BArrayInfo *info,
   hash_key key = hash_store[0];
 
 #  ifdef USE_HASH_TABLE_KEY_CACHE
-  if (UNLIKELY(key == HASH_TABLE_KEY_UNSET)) {
+  if (key == HASH_TABLE_KEY_UNSET) [[unlikely]] {
     key = HASH_TABLE_KEY_FALLBACK;
   }
 #  endif
@@ -1368,7 +1368,7 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
   const BChunkRef *chunk_list_reference_last = nullptr;
 
 #ifdef USE_FASTPATH_CHUNKS_LAST
-  if (!BLI_listbase_is_empty(&chunk_list_reference->chunk_refs)) {
+  if (!chunk_list_reference->chunk_refs.is_empty()) {
     const BChunkRef *cref = static_cast<const BChunkRef *>(chunk_list_reference->chunk_refs.last);
     while ((cref->prev != nullptr) && (cref != cref_match_first) &&
            (cref->link->data_len <= data_len - i_prev))
@@ -1801,7 +1801,7 @@ void BLI_array_store_clear(BArrayStore *bs)
 {
   array_store_free_data(bs);
 
-  BLI_listbase_clear(&bs->states);
+  bs->states.clear_no_delete();
 
   BLI_mempool_clear(bs->memory.chunk_list);
   BLI_mempool_clear(bs->memory.chunk_ref);
@@ -1963,7 +1963,7 @@ bool BLI_array_store_is_valid(BArrayStore *bs)
       return false;
     }
 
-    if (BLI_listbase_count(&chunk_list->chunk_refs) != int(chunk_list->chunk_refs_len)) {
+    if (chunk_list->chunk_refs.count() != int(chunk_list->chunk_refs_len)) {
       return false;
     }
 

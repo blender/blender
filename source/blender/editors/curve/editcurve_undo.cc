@@ -14,9 +14,9 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_array_utils.h"
-#include "BLI_ghash.h"
-#include "BLI_listbase.h"
+#include "BLI_array_utils_c.hh"
+#include "BLI_ghash.hh"
+#include "BLI_listbase.hh"
 
 #include "BKE_anim_data.hh"
 #include "BKE_context.hh"
@@ -306,7 +306,7 @@ static void curve_undosys_foreach_ID_ref(UndoStep *us_p,
 
 void ED_curve_undosys_type(UndoType *ut)
 {
-  ut->name = "Edit Curve";
+  ut->identifier = "EDIT_CURVE";
   ut->poll = curve_undosys_poll;
   ut->step_encode = curve_undosys_step_encode;
   ut->step_decode = curve_undosys_step_decode;

@@ -23,16 +23,16 @@
  * No globals - keep threadsafe.
  */
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
-#include "BLI_heap.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_memarena.h"
+#include "BLI_heap.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_memarena.hh"
 
-#include "BLI_polyfill_2d_beautify.h" /* own include */
+#include "BLI_polyfill_2d_beautify.hh" /* own include */
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 
@@ -204,7 +204,7 @@ float BLI_polyfill_edge_calc_rotate_beauty__area(const float v1[3],
                  (ELEM(v3, v1, v2, v4) == false) && (ELEM(v4, v1, v2, v3) == false));
 
       add_v3_v3v3(no, no_a, no_b);
-      if (UNLIKELY((no_scale = normalize_v3(no)) == 0.0f)) {
+      if ((no_scale = normalize_v3(no)) == 0.0f) [[unlikely]] {
         break;
       }
 

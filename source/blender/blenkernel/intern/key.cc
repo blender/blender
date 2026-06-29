@@ -14,14 +14,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
 #include "BLI_task.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -37,6 +37,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_anim_data.hh"
+#include "BKE_animsys.h"
 #include "BKE_attribute.hh"
 #include "BKE_curve.hh"
 #include "BKE_customdata.hh"
@@ -559,8 +560,8 @@ static char *key_block_get_data(Key *key, KeyBlock *actkb, KeyBlock *kb, char **
 /**
  * Move the point in `r_targets` along the vector of ab by a factor of `weight`.
  *
- * \param start_index points to the x value in the flat float array. Indices of +1 and +2 from this
- * are accessed.
+ * \param start_index: points to the x value in the flat float array.
+ * Indices of +1 and +2 from this are accessed.
  */
 static void add_weighted_vector(
     const int start_index, const float weight, const float *a, const float *b, float *r_target)
@@ -621,8 +622,9 @@ static void copy_key_float3(
 /**
  * Copy the shapekey data of `source` into the output array of `r_target`.
  *
- * \param weights is a float array of size `vertex_count`. It determines how much of `source` is
- * blended into the result. The base for it is the reference key. If this is passed as a nullptr,
+ * \param weights: is a float array of size `vertex_count`.
+ * It determines how much of `source` is blended into the result.
+ * The base for it is the reference key. If this is passed as a nullptr,
  * `source` is copied at full weight.
  */
 static void copy_key_float3_weighted(const int vertex_count,
@@ -669,9 +671,9 @@ static void copy_key_float3_weighted(const int vertex_count,
 /**
  * Shapekey evaluation for data of 3 floats (Vector3).
  *
- * \param target_data is the float array into which the result of the evaluation is written.
- * \param per_keyblock_weights is a 2d array which gives a per KeyBlock per Vertex weight. Can be a
- * nullptr.
+ * \param per_keyblock_weights: is a 2d array which gives a per KeyBlock per Vertex weight. Can be
+ * \param target_data: is the float array into which the result of the evaluation is written.
+ * a nullptr.
  */
 static void key_evaluate_relative_float3(Key *key,
                                          KeyBlock *active_keyblock,
@@ -1010,7 +1012,7 @@ float *BKE_key_evaluate_object_ex(Object *ob,
   Key *key = BKE_key_from_object(ob);
   KeyBlock *actkb = BKE_keyblock_from_object(ob);
 
-  if (key == nullptr || BLI_listbase_is_empty(&key->block)) {
+  if (key == nullptr || key->block.is_empty()) {
     return nullptr;
   }
 
@@ -1326,7 +1328,7 @@ KeyBlock *BKE_keyblock_add(Key *key, const char *name)
   BLI_addtail(&key->block, kb);
   kb->type = KEY_LINEAR;
 
-  const int tot = BLI_listbase_count(&key->block);
+  const int tot = key->block.count();
   if (name) {
     STRNCPY_UTF8(kb->name, name);
   }
@@ -1872,7 +1874,7 @@ std::optional<Array<bool>> BKE_keyblock_get_dependent_keys(const Key *key, const
     return std::nullopt;
   }
 
-  const int count = BLI_listbase_count(&key->block);
+  const int count = key->block.count();
 
   if (index < 0 || index >= count) {
     return std::nullopt;
@@ -1907,4 +1909,24 @@ std::optional<Array<bool>> BKE_keyblock_get_dependent_keys(const Key *key, const
   return marked;
 }
 
+void BKE_keyblock_rename(const Key *key, KeyBlock *kb, const char *newname)
+{
+  char oldname[sizeof(kb->name)];
+
+  /* Make a copy of the old name first. */
+  STRNCPY(oldname, kb->name);
+  /* Copy the new name into the name slot. */
+  STRNCPY_UTF8(kb->name, newname);
+
+  /* Make sure the name is truly unique. */
+  BLI_uniquename(&key->block,
+                 kb,
+                 CTX_DATA_(BLT_I18NCONTEXT_ID_SHAPEKEY, "Key"),
+                 '.',
+                 offsetof(KeyBlock, name),
+                 sizeof(kb->name));
+
+  /* Fix all the animation data which may link to this. */
+  BKE_animdata_fix_paths_rename_all(nullptr, "key_blocks", oldname, kb->name);
+}
 }  // namespace blender

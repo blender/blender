@@ -7,7 +7,7 @@
  */
 
 #include "BLI_math_matrix.hh"
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 
 #include "BKE_bvhutils.hh"
 #include "BKE_mesh.hh"

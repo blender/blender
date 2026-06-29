@@ -10,11 +10,11 @@
 #include "BLI_linear_allocator.hh"
 #include "BLI_multi_value_map.hh"
 #include "BLI_span.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_string_search.hh"
-#include "BLI_string_utf8.h"
-#include "BLI_string_utf8_symbols.h"
+#include "BLI_string_utf8.hh"
+#include "BLI_string_utf8_symbols.hh"
 #include "BLI_task.hh"
 
 /* Right arrow, keep in sync with #UI_MENU_ARROW_SEP in `UI_interface_c.hh`. */
@@ -270,7 +270,7 @@ static int get_best_word_index_that_startswith(StringRef query,
    * itself anymore.
    *
    * E.g. the full query `T > Test` wouldn't match itself anymore if `Test` has a higher weight.
-   * That's because the `T` would be matched with the `Test`, but then `Test` can't match `Test
+   * That's because the `T` would be matched with the `Test`, but then `Test` can't match `Test`
    * anymore because that's taken up already.
    *
    * If we don't have to pick the shortest match for correctness, pick the one with the largest

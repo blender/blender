@@ -5,10 +5,6 @@
 #pragma once
 
 #include "infos/eevee_common_infos.hh"
-#include "infos/eevee_uniform_infos.hh"
-
-SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
-SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
 
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_vector_reduce_lib.glsl"
@@ -87,6 +83,11 @@ ClosureType closure_type_get(ClosureRefraction /*cl*/)
 ClosureType closure_type_get(ClosureSubsurface /*cl*/)
 {
   return CLOSURE_BSSRDF_BURLEY_ID;
+}
+
+ClosureType closure_type_get(ClosureThinRefraction /*cl*/)
+{
+  return CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID;
 }
 
 /**

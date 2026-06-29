@@ -13,15 +13,15 @@
 
 #include "BLI_array.hh"
 #include "BLI_function_ref.hh"
-#include "BLI_heap.h"
-#include "BLI_listbase.h"
-#include "BLI_math_bits.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_rand.h"
-#include "BLI_utildefines_stack.h"
+#include "BLI_heap.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_bits.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rand_c.hh"
+#include "BLI_utildefines_stack.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_attribute.h"
@@ -1681,7 +1681,7 @@ static void walker_select_count(BMEditMesh *em,
   {
     r_count_by_select[BM_elem_flag_test(ele, BM_ELEM_SELECT) ? 1 : 0] += 1;
 
-    /* Early exit when mixed (could be optional if needed. */
+    /* Early exit when mixed (could be optional if needed). */
     if (r_count_by_select[0] && r_count_by_select[1]) {
       r_count_by_select[0] = r_count_by_select[1] = -1;
       break;
@@ -1772,8 +1772,14 @@ static wmOperatorStatus edbm_edge_loop_multiselect_exec(bContext *C, wmOperator 
       eed = edarray[edindex];
       const bool non_manifold = BM_edge_face_count_is_over(eed, 2);
       if (non_manifold) {
-        changed |= walker_select(
-            em, BMW_EDGELOOP_NONMANIFOLD, eed, true, BMW_FLAG_TEST_HIDDEN, delimit, nullptr);
+        changed |= walker_select(em,
+                                 BMW_EDGELOOP_NONMANIFOLD,
+                                 eed,
+                                 true,
+                                 BMW_FLAG_TEST_HIDDEN,
+                                 /* No support for delimiters, see #BMW_init. */
+                                 BMW_DELIMIT_NONE,
+                                 nullptr);
       }
       else {
         changed |= walker_select(
@@ -2536,7 +2542,7 @@ void MESH_OT_loop_select(wmOperatorType *ot)
   ot->poll_property = edbm_select_loop_poll_property;
 
   /* Flags. */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* Properties. */
 
@@ -2571,7 +2577,7 @@ void MESH_OT_edgering_select(wmOperatorType *ot)
   ot->poll = ED_operator_editmesh_region_view3d;
 
   /* Flags. */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* Properties. */
   RNA_def_enum_flag(ot->srna,
@@ -3193,6 +3199,11 @@ bool EDBM_selectmode_toggle_multi(bContext *C,
         only_update = true;
         break;
       }
+      /* Can't disable this flag if its the only one set. */
+      if (selectmode_old == selectmode_toggle) {
+        only_update = true;
+        break;
+      }
       selectmode_new &= ~selectmode_toggle;
       break;
     case 1: /* Enable. */
@@ -3215,6 +3226,7 @@ bool EDBM_selectmode_toggle_multi(bContext *C,
       BLI_assert(0);
       break;
   }
+  BLI_assert(selectmode_new != 0);
 
   const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       *bmain, scene, view_layer, CTX_wm_view3d(C));
@@ -6006,7 +6018,7 @@ static bool edbm_select_ungrouped_poll(bContext *C)
     if ((em->selectmode & SCE_SELECT_VERTEX) == 0) {
       CTX_wm_operator_poll_msg_set(C, "Must be in vertex selection mode");
     }
-    else if (BLI_listbase_is_empty(defbase) || cd_dvert_offset == -1) {
+    else if (defbase->is_empty() || cd_dvert_offset == -1) {
       CTX_wm_operator_poll_msg_set(C, "No weights/vertex groups on object");
     }
     else {

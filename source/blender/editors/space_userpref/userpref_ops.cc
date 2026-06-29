@@ -14,14 +14,14 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #ifdef WIN32
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #endif
-#include "BLI_fileops.h"
+#include "BLI_fileops.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_callbacks.hh"
 #include "BKE_context.hh"
@@ -199,7 +199,11 @@ static wmOperatorStatus preferences_asset_library_add_exec(bContext *C, wmOperat
   }
 
   /* Activate new library in the UI for further setup. */
-  U.active_asset_library = BLI_findindex(&U.asset_libraries, new_library);
+  if (const std::optional<int> new_active_idx =
+          userpref_ui_asset_libraries_index_from_user_library(*new_library))
+  {
+    U.active_asset_library = *new_active_idx;
+  }
   U.runtime.is_dirty = true;
 
   if (new_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) {
@@ -347,7 +351,7 @@ static void PREFERENCES_OT_asset_library_add(wmOperatorType *ot)
 
 static bool preferences_asset_library_remove_poll(bContext *C)
 {
-  if (BLI_listbase_is_empty(&U.asset_libraries)) {
+  if (U.asset_libraries.is_empty()) {
     CTX_wm_operator_poll_msg_set(C, "There is no asset library to remove");
     return false;
   }
@@ -377,27 +381,8 @@ static wmOperatorStatus preferences_asset_library_remove_exec(bContext *C, wmOpe
     BKE_preferences_asset_library_remove(&U, library);
   }
 
-  /* If the experimental flag was disabled, make sure the newly activated asset
-   * library is not a remote one. */
-  if (!use_remote_libraries) {
-    int nonremote_index = 0;
-    for (auto [index, lib] : U.asset_libraries.enumerate()) {
-      if (lib.flag & ASSET_LIBRARY_USE_REMOTE_URL) {
-        /* Ignore remote libraries. */
-        continue;
-      }
-
-      nonremote_index = index;
-      if (index >= U.active_asset_library) {
-        /* We've found the first usable library above the deleted one, the search can stop. */
-        break;
-      }
-    }
-    U.active_asset_library = nonremote_index;
-  }
-
   /* Update active library index to be in range. */
-  const int count_remaining = BLI_listbase_count(&U.asset_libraries);
+  const int count_remaining = userpref_ui_asset_libraries_count();
   CLAMP(U.active_asset_library, 0, count_remaining - 1);
   U.runtime.is_dirty = true;
 
@@ -781,7 +766,7 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
 
 static bool preferences_extension_repo_remove_poll(bContext *C)
 {
-  if (BLI_listbase_is_empty(&U.extension_repos)) {
+  if (U.extension_repos.is_empty()) {
     CTX_wm_operator_poll_msg_set(C, "There is no extension repository to remove");
     return false;
   }
@@ -918,7 +903,7 @@ static wmOperatorStatus preferences_extension_repo_remove_exec(bContext *C, wmOp
   }
 
   BKE_preferences_extension_repo_remove(&U, repo);
-  const int count_remaining = BLI_listbase_count(&U.extension_repos);
+  const int count_remaining = U.extension_repos.count();
   /* Update active repo index to be in range. */
   CLAMP(U.active_extension_repo, 0, count_remaining - 1);
   U.runtime.is_dirty = true;

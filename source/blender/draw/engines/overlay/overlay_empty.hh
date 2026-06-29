@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BKE_image_gpu.hh"
+
 #include "DRW_render.hh"
 #include "overlay_base.hh"
 #include "overlay_image.hh"
@@ -123,6 +125,14 @@ class Empties : Overlay {
     const select::ID select_id = res.select_id(ob_ref);
     if (ob_ref.object->empty_drawtype == OB_EMPTY_IMAGE) {
       image_sync(ob_ref, select_id, manager, res, state, call_buffers_.image_buf);
+      return;
+    }
+    /* Only draw the empty overlay if it's not a collection instance and the evaluated geometry set
+     * is empty. Since we draw overlays for e.g. generated geometry, it is redundant to draw the
+     * empty overlay here. */
+    const bool empty_has_geometry = ob_ref.object->runtime->geometry_set_eval &&
+                                    !ob_ref.object->runtime->geometry_set_eval->is_empty();
+    if (empty_has_geometry && ob_ref.object->instance_collection == nullptr) {
       return;
     }
     object_sync(select_id,
@@ -287,8 +297,9 @@ class Empties : Overlay {
       if (ima != nullptr) {
         ImageUser iuser = *ob->iuser;
         Images::stereo_setup(state.scene, state.v3d, ima, &iuser);
-        tex = BKE_image_get_gpu_texture(ima, &iuser);
+        tex = BKE_image_acquire_gpu_texture(ima, &iuser);
         if (tex) {
+          DRW_manager_get()->hold_texture(tex);
           size = int2(GPU_texture_original_width(tex), GPU_texture_original_height(tex));
         }
       }

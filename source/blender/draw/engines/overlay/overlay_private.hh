@@ -783,18 +783,18 @@ struct Resources : public select::SelectMap {
 
     if (state.xray_enabled) {
       /* For X-ray we render the scene to a separate depth buffer. */
-      this->xray_depth_tx.acquire(render_size, gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8);
+      this->xray_depth_tx.acquire_2d(render_size, gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8);
       this->depth_target_tx.wrap(this->xray_depth_tx);
       /* TODO(fclem): Remove mandatory allocation. */
-      this->xray_depth_in_front_tx.acquire(render_size,
-                                           gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8);
+      this->xray_depth_in_front_tx.acquire_2d(render_size,
+                                              gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8);
       this->depth_target_in_front_tx.wrap(this->xray_depth_in_front_tx);
     }
     else {
       /* TODO(fclem): Remove mandatory allocation. */
       if (!this->depth_in_front_tx.is_valid()) {
-        this->depth_in_front_alloc_tx.acquire(render_size,
-                                              gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8);
+        this->depth_in_front_alloc_tx.acquire_2d(render_size,
+                                                 gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8);
         this->depth_in_front_tx.wrap(this->depth_in_front_alloc_tx);
       }
       this->depth_target_tx.wrap(this->depth_tx);
@@ -804,14 +804,14 @@ struct Resources : public select::SelectMap {
     /* TODO: Better semantics using a switch? */
     if (!this->color_overlay_tx.is_valid()) {
       /* Likely to be the selection case. Allocate dummy texture and bind only depth buffer. */
-      this->color_overlay_alloc_tx.acquire(int2(1, 1), gpu::TextureFormat::SRGBA_8_8_8_8);
-      this->color_render_alloc_tx.acquire(int2(1, 1), gpu::TextureFormat::SRGBA_8_8_8_8);
+      this->color_overlay_alloc_tx.acquire_2d(int2(1, 1), gpu::TextureFormat::SRGBA_8_8_8_8);
+      this->color_render_alloc_tx.acquire_2d(int2(1, 1), gpu::TextureFormat::SRGBA_8_8_8_8);
 
       this->color_overlay_tx.wrap(this->color_overlay_alloc_tx);
       this->color_render_tx.wrap(this->color_render_alloc_tx);
 
-      this->line_tx.acquire(int2(1, 1), gpu::TextureFormat::UNORM_8_8_8_8);
-      this->overlay_tx.acquire(int2(1, 1), gpu::TextureFormat::SRGBA_8_8_8_8);
+      this->line_tx.acquire_2d(int2(1, 1), gpu::TextureFormat::UNORM_8_8);
+      this->overlay_tx.acquire_2d(int2(1, 1), gpu::TextureFormat::SRGBA_8_8_8_8);
 
       this->overlay_fb.ensure(GPU_ATTACHMENT_TEXTURE(this->depth_target_tx));
       this->overlay_line_fb.ensure(GPU_ATTACHMENT_TEXTURE(this->depth_target_tx));
@@ -821,8 +821,8 @@ struct Resources : public select::SelectMap {
     else {
       eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
                                GPU_TEXTURE_USAGE_ATTACHMENT;
-      this->line_tx.acquire(render_size, gpu::TextureFormat::UNORM_8_8_8_8, usage);
-      this->overlay_tx.acquire(render_size, gpu::TextureFormat::SRGBA_8_8_8_8, usage);
+      this->line_tx.acquire_2d(render_size, gpu::TextureFormat::UNORM_8_8, usage);
+      this->overlay_tx.acquire_2d(render_size, gpu::TextureFormat::SRGBA_8_8_8_8, usage);
 
       this->overlay_fb.ensure(GPU_ATTACHMENT_TEXTURE(this->depth_target_tx),
                               GPU_ATTACHMENT_TEXTURE(this->overlay_tx));
@@ -898,7 +898,7 @@ struct Resources : public select::SelectMap {
 
   const float4 &object_wire_color(const ObjectRef &ob_ref, ThemeColorID theme_id) const
   {
-    if (UNLIKELY(ob_ref.object->base_flag & BASE_FROM_SET)) {
+    if (ob_ref.object->base_flag & BASE_FROM_SET) [[unlikely]] {
       return theme.colors.wire;
     }
     switch (theme_id) {
@@ -993,9 +993,9 @@ struct FlatObjectRef {
   int flattened_axis_id;
 
   /* Returns flat axis index if only one axis is flat. Returns -1 otherwise. */
-  static int flat_axis_index_get(const Object *ob)
+  static int flat_axis_index_get(const ObjectRef &ob_ref)
   {
-    BLI_assert(ELEM(ob->type,
+    BLI_assert(ELEM(ob_ref.object->type,
                     OB_MESH,
                     OB_CURVES_LEGACY,
                     OB_SURF,
@@ -1004,8 +1004,19 @@ struct FlatObjectRef {
                     OB_POINTCLOUD,
                     OB_VOLUME));
 
-    float dim[3];
-    BKE_object_dimensions_get(ob, dim);
+    float3 dim;
+    if (!ob_ref.is_dupli()) {
+      BKE_object_dimensions_get(ob_ref.object, dim);
+    }
+    else {
+      /* BKE_object_dimensions_get can't be used with dupli objects.
+       * Just use mesh bounds instead of object bounds. */
+      std::optional<Bounds<float3>> bounds = BKE_object_boundbox_get(ob_ref.object);
+      if (!bounds) {
+        return -1;
+      }
+      dim = bounds->size();
+    }
 
     /* Small epsilon relative to object size to handle float errors in flat axis detection after
      * rotation. See #139555. */

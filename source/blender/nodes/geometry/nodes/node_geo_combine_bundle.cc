@@ -33,10 +33,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   const bNodeTree *tree = b.tree_or_null();
   const bNode *node = b.node_or_null();
 
-  b.add_output<decl::Bundle>("Bundle"_ustr)
-      .propagate_all()
-      .reference_pass_all()
-      .structure_type(StructureType::Single);
+  b.add_output<decl::Bundle>("Bundle"_ustr).propagate_all().structure_type(StructureType::Single);
 
   if (tree && node) {
     FlatBundleTypePtr flat_bundle_type;
@@ -47,13 +44,12 @@ static void node_declare(NodeDeclarationBuilder &b)
     const NodeCombineBundle &storage = node_storage(*node);
     for (const int i : IndexRange(storage.items_num)) {
       const NodeCombineBundleItem &item = storage.items[i];
-      const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+      const eNodeSocketDatatype socket_type = item.socket_type;
       const UString name(item.name);
       const UString identifier(CombineBundleItemsAccessor::socket_identifier_for_item(item));
       auto &decl = b.add_input(socket_type, name, identifier)
                        .socket_name_ptr(
-                           &tree->id, *CombineBundleItemsAccessor::item_srna, &item, "name")
-                       .supports_field();
+                           &tree->id, *CombineBundleItemsAccessor::item_srna, &item, "name");
       if (item.structure_type != NodeSocketInterfaceStructureType::Auto) {
         decl.structure_type(StructureType(item.structure_type));
       }
@@ -67,12 +63,13 @@ static void node_declare(NodeDeclarationBuilder &b)
         }
       }
 
-      if (i == 0 && socket_type == SOCK_STRING && name == Bundle::type_item_name) {
+      if (i == 0 && socket_type == SOCK_STRING && name == Bundle::type_item_name.ustr()) {
         decl.optional_label();
         b.add_separator();
       }
     }
-    b.add_input<decl::Extend>(""_ustr, "__extend__"_ustr);
+    b.add_input<decl::Extend>(""_ustr, "__extend__"_ustr)
+        .custom_draw(socket_items::ui::draw_extend_socket_fn<CombineBundleItemsAccessor>());
   }
 }
 
@@ -157,12 +154,13 @@ static void node_geo_exec(GeoNodeExecParams params)
       continue;
     }
     const StringRef name = item.name;
-    if (!Bundle::is_valid_key(name)) {
+    const std::optional<BundleKey> key = BundleKey::from_str(name);
+    if (!key) {
       continue;
     }
     bke::SocketValueVariant value = params.extract_input<bke::SocketValueVariant>(
         node.input_socket(i).identifier_ustr());
-    bundle.add(UString(name), BundleItemSocketValue{stype, std::move(value)});
+    bundle.add(*key, BundleItemSocketValue{stype, std::move(value)});
   }
 
   params.set_output("Bundle"_ustr, std::move(bundle_ptr));
@@ -253,7 +251,7 @@ std::string CombineBundleItemsAccessor::validate_name(const StringRef name)
   if (name.is_empty()) {
     return result;
   }
-  const Span<char> forbidden_chars = Bundle::forbidden_key_chars;
+  const Span<char> forbidden_chars = BundleKey::forbidden_key_chars;
   for (const char c : name) {
     if (forbidden_chars.contains(c)) {
       result += '_';
@@ -273,7 +271,7 @@ std::string CombineBundleItemsAccessor::validate_name(const StringRef name)
       result[last_index] = '_';
     }
   }
-  BLI_assert(Bundle::is_valid_key(result));
+  BLI_assert(BundleKey::is_valid_key(result));
   return result;
 }
 
@@ -286,7 +284,7 @@ std::optional<StringRefNull> combine_bundle_node_type(const bNodeTree & /*tree*/
     if (socket.type != SOCK_STRING) {
       continue;
     }
-    if (socket.name != Bundle::type_item_name) {
+    if (socket.name != Bundle::type_item_name.ustr()) {
       continue;
     }
     return socket.default_value_typed<bNodeSocketValueString>()->value;

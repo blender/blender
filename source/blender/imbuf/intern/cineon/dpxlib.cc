@@ -18,9 +18,9 @@
 #include <ctime>
 #include <sys/types.h>
 
-#include "BLI_fileops.h"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_fileops.hh"
+#include "BLI_string.hh"
+#include "BLI_utildefines.hh"
 
 #include "MEM_guardedalloc.h"
 

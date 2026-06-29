@@ -6,8 +6,6 @@
 #include <csetjmp>
 #include <cstdio>
 
-#include <jpeglib.h>
-
 #include <OpenImageIO/filesystem.h>
 #include <OpenImageIO/typedesc.h>
 
@@ -249,6 +247,10 @@ void ImageMetaData::detect_tiles(ImageInput &input,
                                  const ImageSpec &spec,
                                  OIIO::string_view filepath)
 {
+  /* 1x1 file can be used as tx file regardless of how it was generated,
+   * could be a constant color tx or just regular file. */
+  is_tx_file = (width == 1 && height == 1);
+
   if (spec.tile_width == 0) {
     return;
   }
@@ -257,16 +259,19 @@ void ImageMetaData::detect_tiles(ImageInput &input,
   int tx_file_format_version = INT_MAX;
   sscanf(software.c_str(), "Blender maketx v%d", &tx_file_format_version);
 
-  if (tx_file_format_version == INT_MAX) {
-    LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath)
-              << " has tiles, but is missing blender:TxFileFormatVersion";
-    tile_need_conform = true;
-  }
-  else if (tx_file_format_version < 0 || tx_file_format_version > TX_FILE_FORMAT_VERSION) {
+  if (tx_file_format_version != INT_MAX &&
+      (tx_file_format_version < 0 || tx_file_format_version > TX_FILE_FORMAT_VERSION))
+  {
     LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath)
               << " has tiles, but file format version " << tx_file_format_version
               << " is not supported by this version of Cycles";
     return;
+  }
+
+  if (tx_file_format_version == INT_MAX) {
+    LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath)
+              << " has tiles, but is missing blender:TxFileFormatVersion";
+    tile_need_conform = true;
   }
   else if (!(channels == 1 || channels == 4)) {
     LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath)
@@ -275,9 +280,16 @@ void ImageMetaData::detect_tiles(ImageInput &input,
   }
   else {
     tile_need_conform = false;
+
+    /* For tx files, use the color space hint to determine if this was encoded
+     * as scene linear, scene linear + sRGB or data. */
+    if (!colorspace_file_hint.empty()) {
+      colorspace = ustring(colorspace_file_hint);
+    }
   }
 
   bool has_tiles = false;
+  bool is_small_image = false;
 
   if (!is_power_of_two(spec.tile_width)) {
     LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath)
@@ -305,6 +317,7 @@ void ImageMetaData::detect_tiles(ImageInput &input,
     LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath)
               << " has tiles, but image resolution is smaller than tile size";
     has_tiles = true;
+    is_small_image = true;
   }
   else {
     tile_size = spec.tile_width;
@@ -332,23 +345,28 @@ void ImageMetaData::detect_tiles(ImageInput &input,
 
     input.seek_subimage(0, 0);
   }
+
+  /* Tiled tx files need to either have mipmaps, or be small enough not to need mipmaps. */
+  if (has_tiles && (is_small_image || has_tiles_and_mipmaps)) {
+    is_tx_file = true;
+  }
 }
 
 bool ImageMetaData::oiio_load_metadata(OIIO::string_view filepath, OIIO::ImageSpec *r_spec)
 {
   /* Perform preliminary checks, with meaningful logging. */
   if (!OIIO::Filesystem::exists(filepath)) {
-    LOG_ERROR << "Image file " << filepath << " does not exist.";
+    LOG_WARNING << "Image file " << filepath << " does not exist.";
     return false;
   }
   if (OIIO::Filesystem::is_directory(filepath)) {
-    LOG_ERROR << "Image file " << filepath << " is a directory, cannot use as image.";
+    LOG_WARNING << "Image file " << filepath << " is a directory, cannot use as image.";
     return false;
   }
 
   std::unique_ptr<ImageInput> in(ImageInput::create(filepath));
   if (!in) {
-    LOG_ERROR << "Image file " << filepath << " failed to load.";
+    LOG_WARNING << "Image file " << filepath << " failed to load.";
     return false;
   }
 
@@ -359,12 +377,12 @@ bool ImageMetaData::oiio_load_metadata(OIIO::string_view filepath, OIIO::ImageSp
   config.attribute("oiio:UnassociatedAlpha", 1);
 
   if (!in->open(filepath, spec, config)) {
-    LOG_ERROR << "Image file " << filepath << " failed to open.";
+    LOG_WARNING << "Image file " << filepath << " failed to open.";
     return false;
   }
 
   if (spec.depth > 1) {
-    LOG_ERROR << "Image file " << filepath << " has unsupported depth of " << spec.depth;
+    LOG_WARNING << "Image file " << filepath << " has unsupported depth of " << spec.depth;
     return false;
   }
 
@@ -631,73 +649,6 @@ void ImageMetaData::conform_pixels(void *pixels) const
   conform_pixels(pixels, width, height, channels, width * channels, width * (is_rgba() ? 4 : 1));
 }
 
-/* Workaround for OpenImageIO bug #4962 with JPEG CMYK files, until we upgrade. */
-static bool load_cmyk_jpeg_pixels(const int64_t width,
-                                  const int64_t height,
-                                  const string &filepath,
-                                  uchar *pixels,
-                                  const bool flip_y)
-{
-  struct JpegErrorHandler {
-    jpeg_error_mgr manager;
-    jmp_buf setjmp_buffer;
-  };
-
-  FILE *file = path_fopen(filepath, "rb");
-  if (!file) {
-    return false;
-  }
-
-  jpeg_decompress_struct decompress = {};
-
-  JpegErrorHandler error_handler = {};
-  decompress.err = jpeg_std_error(&error_handler.manager);
-  error_handler.manager.error_exit = [](j_common_ptr cinfo) {
-    JpegErrorHandler *err = (JpegErrorHandler *)cinfo->err;
-    longjmp(err->setjmp_buffer, 1);
-  };
-
-  if (setjmp(error_handler.setjmp_buffer)) {
-    jpeg_destroy_decompress(&decompress);
-    fclose(file);
-    return false;
-  }
-
-  jpeg_create_decompress(&decompress);
-  jpeg_stdio_src(&decompress, file);
-  jpeg_read_header(&decompress, TRUE);
-
-  /* JCS_RGB is not supported, we need to do the conversion ourselves. */
-  decompress.out_color_space = JCS_CMYK;
-  jpeg_start_decompress(&decompress);
-
-  const int64_t out_scanline_stride = width * 3;
-  const int64_t cmyk_scanline_stride = width * 4;
-  vector<JSAMPLE> row_buffer(cmyk_scanline_stride);
-  JSAMPROW row_pointer = row_buffer.data();
-
-  for (int64_t y = 0; y < height; y++) {
-    jpeg_read_scanlines(&decompress, &row_pointer, 1);
-    const int64_t dest_y = flip_y ? (height - 1 - y) : y;
-    uchar *dest = pixels + dest_y * out_scanline_stride;
-    for (int64_t x = 0; x < width; x++) {
-      const float c = util_image_cast_to_float(row_buffer[x * 4 + 0]);
-      const float m = util_image_cast_to_float(row_buffer[x * 4 + 1]);
-      const float y = util_image_cast_to_float(row_buffer[x * 4 + 2]);
-      const float k = util_image_cast_to_float(row_buffer[x * 4 + 3]);
-      dest[x * 3 + 0] = util_image_cast_from_float<uchar>(c * k);
-      dest[x * 3 + 1] = util_image_cast_from_float<uchar>(m * k);
-      dest[x * 3 + 2] = util_image_cast_from_float<uchar>(y * k);
-    }
-  }
-
-  jpeg_finish_decompress(&decompress);
-  jpeg_destroy_decompress(&decompress);
-  fclose(file);
-
-  return true;
-}
-
 template<TypeDesc::BASETYPE FileFormat, typename StorageType>
 static bool load_pixels_oiio(const ImageMetaData &metadata,
                              const std::unique_ptr<ImageInput> &in,
@@ -772,17 +723,8 @@ bool ImageMetaData::oiio_load_pixels(OIIO::string_view filepath,
   }
 
   if (spec.depth > 1) {
-    LOG_ERROR << "Image file " << filepath << " has unsupported depth " << spec.depth;
+    LOG_WARNING << "Image file " << filepath << " has unsupported depth " << spec.depth;
     return false;
-  }
-
-  /* Workaround for OpenImageIO bug #4962 with JPEG CMYK files, until we upgrade. */
-  if (strcmp(in->format_name(), "jpeg") == 0) {
-    const OIIO::string_view jpeg_colorspace = spec.get_string_attribute("jpeg:ColorSpace");
-    if (jpeg_colorspace == "CMYK" || jpeg_colorspace == "YCbCrK") {
-      in.reset();
-      return load_cmyk_jpeg_pixels(width, height, filepath, (uchar *)pixels, flip_y);
-    }
   }
 
   switch (type) {

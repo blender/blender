@@ -101,7 +101,7 @@ inline void lines_adjacency_triangle(uint3 vert_tri,
             vert_to_corner[vert_tri[1]] = corner_tri[1];
             vert_to_corner[vert_tri[2]] = corner_tri[2];
           }
-          else if (UNLIKELY(v_data == EDGE_IS_HANDLED)) {
+          else if (v_data == EDGE_IS_HANDLED) [[unlikely]] {
             /* Ignore additional faces once this has been handled
              * as this may exceed the pre-sized index buffer: see #150841 & !151084 for details. */
 

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-11 07:23+0000\n"
+"POT-Creation-Date: 2026-06-22 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -152,12 +152,24 @@ msgid "Node Editor"
 msgstr "Възлов Редактор"
 
 
+msgid "Custom"
+msgstr "Потребителски"
+
+
 msgid "Author"
 msgstr "Автор"
 
 
-msgid "Custom"
-msgstr "Потребителски"
+msgid "Link"
+msgstr "Връзка"
+
+
+msgid "Append"
+msgstr "Добави"
+
+
+msgid "Pack"
+msgstr "Пакетирай"
 
 
 msgid "Space Type"
@@ -812,18 +824,6 @@ msgid "Sort"
 msgstr "Сортирай"
 
 
-msgid "Link"
-msgstr "Връзка"
-
-
-msgid "Append"
-msgstr "Добави"
-
-
-msgid "Pack"
-msgstr "Пакетирай"
-
-
 msgid "End"
 msgstr "Край"
 
@@ -888,6 +888,10 @@ msgid "Grid"
 msgstr "Мрежа"
 
 
+msgid "Dynamic"
+msgstr "Динамика"
+
+
 msgid "Region Type"
 msgstr "Тип на Региона"
 
@@ -906,10 +910,6 @@ msgstr "Слоеве"
 
 msgid "Box"
 msgstr "Кутия"
-
-
-msgid "Dynamic"
-msgstr "Динамика"
 
 
 msgid "Draw"
@@ -1148,10 +1148,6 @@ msgid "ID Type"
 msgstr "ID тип"
 
 
-msgid "UV Mapping"
-msgstr "UV Картиране"
-
-
 msgid "Light"
 msgstr "Светлина"
 
@@ -1164,10 +1160,6 @@ msgid "Apply"
 msgstr "Прилагане"
 
 
-msgid "Import"
-msgstr "Внеси"
-
-
 msgid "Make Single User"
 msgstr "Направи с Единствен Потребител"
 
@@ -1176,12 +1168,20 @@ msgid "Hooks"
 msgstr "Куки"
 
 
+msgid "Import"
+msgstr "Внеси"
+
+
 msgid "In-Betweens"
 msgstr "Междинни Кадри"
 
 
 msgid "Merge"
 msgstr "Слей"
+
+
+msgid "UV Mapping"
+msgstr "UV Картиране"
 
 
 msgid "Cache"
@@ -2135,6 +2135,10 @@ msgid "Shaded"
 msgstr "Светлосенки"
 
 
+msgid "Passepartout"
+msgstr "Зона на видимост"
+
+
 msgid "Sub"
 msgstr "Изв"
 
@@ -2227,6 +2231,15 @@ msgid "Animated"
 msgstr "Анимирани"
 
 
+msgid "Cancel"
+msgstr "Отказ"
+
+
+msgctxt "Operator"
+msgid "Clear"
+msgstr "Изчистване"
+
+
 msgid "Author:"
 msgstr "Автор:"
 
@@ -2237,15 +2250,6 @@ msgstr "Тороид"
 
 msgid "Python API Reference"
 msgstr "Python API Справка"
-
-
-msgid "Passepartout"
-msgstr "Зона на видимост"
-
-
-msgctxt "Operator"
-msgid "Clear"
-msgstr "Изчистване"
 
 
 msgid "Date"
@@ -2274,10 +2278,6 @@ msgstr "Обърни посоката на увеличение"
 
 msgid "Missing script files"
 msgstr "Липсват скриптови файлове"
-
-
-msgid "Cancel"
-msgstr "Отказ"
 
 
 msgid "%d items"

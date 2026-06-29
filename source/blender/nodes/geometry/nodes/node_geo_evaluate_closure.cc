@@ -6,6 +6,7 @@
 #include "UI_resources.hh"
 
 #include "NOD_geo_closure.hh"
+#include "NOD_geometry_nodes_closure_signature.hh"
 #include "NOD_socket_items_blend.hh"
 #include "NOD_socket_items_ops.hh"
 #include "NOD_socket_items_ui.hh"
@@ -13,6 +14,7 @@
 #include "NOD_sync_sockets.hh"
 
 #include "BKE_idprop.hh"
+#include "BKE_node_tree_reference_lifetimes.hh"
 
 #include "BLO_read_write.hh"
 
@@ -25,23 +27,68 @@ namespace nodes::node_geo_evaluate_closure_cc {
 
 NODE_STORAGE_FUNCS(NodeEvaluateClosure)
 
+static void create_all_reference_lifetime_relations(NodeDeclarationBuilder &b)
+{
+  using bke::node_tree_reference_lifetimes::can_contain_reference;
+  using bke::node_tree_reference_lifetimes::can_contain_referenced_data;
+  rl::RelationsInNode &relations = b.get_reference_lifetime_relations();
+  const NodeDeclaration &node_decl = b.declaration();
+  for (const SocketDeclaration *input : node_decl.inputs) {
+    if (can_contain_reference(input->socket_type)) {
+      for (const SocketDeclaration *other_input : node_decl.inputs) {
+        if (can_contain_referenced_data(other_input->socket_type)) {
+          relations.use_relations.append({input->index, other_input->index});
+        }
+      }
+      for (const SocketDeclaration *output : node_decl.outputs) {
+        if (can_contain_reference(output->socket_type)) {
+          relations.reference_propagations.append({input->index, output->index});
+        }
+      }
+    }
+    if (can_contain_referenced_data(input->socket_type)) {
+      for (const SocketDeclaration *output : node_decl.outputs) {
+        if (can_contain_referenced_data(output->socket_type)) {
+          relations.data_propagations.append({input->index, output->index});
+        }
+      }
+    }
+  }
+  for (const SocketDeclaration *output : node_decl.outputs) {
+    if (can_contain_reference(output->socket_type)) {
+      for (const SocketDeclaration *other_output : node_decl.outputs) {
+        if (can_contain_referenced_data(other_output->socket_type)) {
+          relations.available_relations.append({output->index, other_output->index});
+        }
+      }
+    }
+  }
+}
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
 
-  b.add_input<decl::Closure>("Closure"_ustr);
+  b.add_input<decl::Closure>("Closure"_ustr).create_signature([](const bNode &node) {
+    const auto &storage = node_storage(node);
+    return nodes::ClosureSignature::from_evaluate_closure_node(
+        node, storage.flag & NODE_EVALUATE_CLOSURE_FLAG_DEFINE_SIGNATURE);
+  });
 
   const bNode *node = b.node_or_null();
+  const bNodeTree *tree = b.tree_or_null();
   auto &panel = b.add_panel("Interface"_ustr);
   if (node) {
     const auto &storage = node_storage(*node);
     for (const int i : IndexRange(storage.output_items.items_num)) {
       const NodeEvaluateClosureOutputItem &item = storage.output_items.items[i];
-      const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+      const eNodeSocketDatatype socket_type = item.socket_type;
       const UString identifier(
           EvaluateClosureOutputItemsAccessor::socket_identifier_for_item(item));
       auto &decl = panel.add_output(socket_type, UString(item.name), identifier);
+      decl.socket_name_ptr(
+          &tree->id, *EvaluateClosureOutputItemsAccessor::item_srna, &item, "name");
       if (item.structure_type != NodeSocketInterfaceStructureType::Auto) {
         decl.structure_type(StructureType(item.structure_type));
       }
@@ -49,16 +96,17 @@ static void node_declare(NodeDeclarationBuilder &b)
         decl.structure_type(StructureType::Dynamic);
       }
     }
-    panel.add_output<decl::Extend>(""_ustr, "__extend__"_ustr);
+    panel.add_output<decl::Extend>(""_ustr, "__extend__"_ustr)
+        .custom_draw(
+            socket_items::ui::draw_extend_socket_fn<EvaluateClosureOutputItemsAccessor>());
     for (const int i : IndexRange(storage.input_items.items_num)) {
       const NodeEvaluateClosureInputItem &item = storage.input_items.items[i];
-      const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+      const eNodeSocketDatatype socket_type = item.socket_type;
       const UString identifier(
           EvaluateClosureInputItemsAccessor::socket_identifier_for_item(item));
       auto &decl = panel.add_input(socket_type, UString(item.name), identifier);
-      if (socket_type_supports_fields(socket_type)) {
-        decl.supports_field();
-      }
+      decl.socket_name_ptr(
+          &tree->id, *EvaluateClosureInputItemsAccessor::item_srna, &item, "name");
       if (item.structure_type != NodeSocketInterfaceStructureType::Auto) {
         decl.structure_type(StructureType(item.structure_type));
       }
@@ -66,7 +114,12 @@ static void node_declare(NodeDeclarationBuilder &b)
         decl.structure_type(StructureType::Dynamic);
       }
     }
-    panel.add_input<decl::Extend>(""_ustr, "__extend__"_ustr);
+    panel.add_input<decl::Extend>(""_ustr, "__extend__"_ustr)
+        .custom_draw(socket_items::ui::draw_extend_socket_fn<EvaluateClosureInputItemsAccessor>());
+
+    /* This creates all possible reference lifetime relations because the closure could do
+     * anything. */
+    create_all_reference_lifetime_relations(b);
   }
 }
 
@@ -282,8 +335,7 @@ const bNodeSocket *evaluate_closure_node_internally_linked_input(const bNodeSock
     const StringRef input_key = input_item.name;
     if (output_key == input_key) {
       if (!tree.typeinfo->validate_link ||
-          tree.typeinfo->validate_link(eNodeSocketDatatype(input_item.socket_type),
-                                       eNodeSocketDatatype(output_item.socket_type)))
+          tree.typeinfo->validate_link(input_item.socket_type, output_item.socket_type))
       {
         return &node.input_socket(i + 1);
       }

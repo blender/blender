@@ -35,6 +35,7 @@ set(SRC
   keyframing.cc
   keyingsets.cc
   time_scrub_ui.cc
+  transformable.cc
 
   anim_intern.hh
   keyframes_general_intern.hh
@@ -70,6 +71,7 @@ if(WITH_GTESTS)
     anim_filter_test.cc
     keyframes_general_test.cc
     keyframes_keylist_test.cc
+    transformable_test.cc
   )
   set(TEST_INC
   )

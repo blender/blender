@@ -29,15 +29,11 @@ class USDXformReader : public USDPrimReader {
  private:
   bool use_parent_xform_ = false;
 
-  /* Indicates if the created object is the root of a
-   * transform hierarchy. */
-  bool is_root_xform_;
-
  public:
   USDXformReader(const pxr::UsdPrim &prim,
                  const USDImportParams &import_params,
                  const ImportSettings &settings)
-      : USDPrimReader(prim, import_params, settings), is_root_xform_(is_root_xform_prim())
+      : USDPrimReader(prim, import_params, settings)
   {
   }
 
@@ -55,14 +51,13 @@ class USDXformReader : public USDPrimReader {
   void set_use_parent_xform(bool flag)
   {
     use_parent_xform_ = flag;
-    is_root_xform_ = is_root_xform_prim();
   }
 
   bool prim_has_xform_ops() const;
 
  protected:
   /* Returns true if the contained USD prim is the root of a transform hierarchy. */
-  bool is_root_xform_prim() const;
+  virtual bool is_root_xform_prim() const;
 
   /**
    * Return the USD prim's local transformation.

@@ -8,6 +8,8 @@
 #include "BKE_attribute.hh"
 #include "BKE_mesh.hh"
 
+#include "BLI_array_utils.hh"
+
 #include "GEO_mesh_primitive_cylinder_cone.hh"
 #include "GEO_mesh_primitive_line.hh"
 #include "GEO_mesh_primitive_uv_sphere.hh"
@@ -399,10 +401,8 @@ static void calculate_cone_faces(const ConeConfig &config,
 
     /* Center n-gon in the fill. */
     face_sizes.first() = config.circle_segments;
-    for (const int i : IndexRange(config.circle_segments)) {
-      corner_verts[i] = i;
-      corner_edges[i] = i;
-    }
+    array_utils::fill_index_range(corner_verts.take_front(config.circle_segments));
+    array_utils::fill_index_range(corner_edges.take_front(config.circle_segments));
   }
 
   /* Quads connect one edge ring to the next one. */

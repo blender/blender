@@ -59,6 +59,7 @@ enum OSLClosureType {
 
 #define OSL_CLOSURE_STRUCT_BEGIN(Upper, lower) OSL_CLOSURE_##Upper##_ID,
 #include "closures_template.h"
+
   OSL_CLOSURE_LAYER_ID,
 };
 

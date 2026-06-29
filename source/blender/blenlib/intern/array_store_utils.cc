@@ -9,10 +9,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_array_store.h"
-#include "BLI_array_store_utils.h" /* own include */
+#include "BLI_array_store.hh"
+#include "BLI_array_store_utils.hh" /* own include */
 
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 
 namespace blender {
 

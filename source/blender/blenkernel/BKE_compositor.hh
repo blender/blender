@@ -10,17 +10,71 @@
 
 #include <string>
 
+#include "BLI_index_range.hh"
+#include "BLI_map.hh"
+#include "BLI_mutex.hh"
 #include "BLI_set.hh"
+#include "BLI_vector.hh"
 
 namespace blender {
 
 struct Scene;
 struct ViewLayer;
+struct ImBuf;
 struct bContext;
 struct DepsNodeHandle;
 struct bNodeTree;
 
 namespace bke::compositor {
+
+struct Cache {
+  struct FrameKey {
+    int frame_number = 0;
+    int view_identifier = 0;
+
+    uint64_t hash() const
+    {
+      return get_default_hash(frame_number, view_identifier);
+    }
+
+    friend bool operator==(const FrameKey &a, const FrameKey &b) = default;
+  };
+
+ private:
+  /* A cache of final interactive compositor results across frames. */
+  Map<FrameKey, ImBuf *> frames_;
+  /* A mutex for accessing frames_. The frames cache is intrinsically thread-safe since all access
+   * happen in the same interactive compositor job, except for drawing cache overlays since it can
+   * happen simultaneously while the job is running, that's why the mutex is needed. */
+  Mutex frames_mutex_;
+
+ public:
+  /* Clear all caches. */
+  ~Cache();
+
+  /* Get the frame cache corresponding to the given frame number and view. */
+  const ImBuf *get_frame(int frame_number, int view_identifier);
+
+  /* Add a new frame cache entry. If the new entry would surpass the memory cache limit, frames
+   * will be evicted to make room. */
+  void add_frame(int frame_number, int view_identifier, ImBuf *image_buffer);
+
+  /* Clears the frames cache. */
+  void clear_frames();
+
+  /* Computes a list of every contiguous segment of cached frames. Can be used to draw which frame
+   * ranges are cached. */
+  Vector<IndexRange> compute_frame_ranges();
+
+ private:
+  /* Delete one entry from the frames cache given the current frame number. If a cached frame exist
+   * before the current frame, the furthest one will be removed, otherwise, the furthest cached
+   * frame after the current frame will be removed. */
+  void evict_frame(int current_frame_number);
+
+  /* Computes the total size of the cache in bytes. */
+  int64_t size();
+};
 
 /* Get the set of all passes used by the compositor for the given view layer, identified by their
  * pass names. This might be a superset of the passes actually supported by the render engine, in

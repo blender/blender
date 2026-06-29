@@ -32,6 +32,7 @@ struct BlendDataReader;
 struct BlendWriter;
 struct MDeformVert;
 namespace bke {
+struct GeometrySet;
 class AttributeAccessor;
 class MutableAttributeAccessor;
 enum class AttrDomain : int8_t;
@@ -742,8 +743,8 @@ void calculate_auto_handles(bool cyclic,
 
 void calculate_single_aligned_handles(const IndexMask &selection,
                                       Span<float3> positions,
-                                      Span<float3> align_by,
-                                      MutableSpan<float3> align);
+                                      Span<float3> align_with,
+                                      MutableSpan<float3> align_handles);
 
 void calculate_aligned_handles(const IndexMask &selection,
                                Span<float3> positions,
@@ -976,6 +977,10 @@ Curves *curves_new_nomain_single(int points_num, CurveType type);
  * copy high-level parameters when a geometry-altering operation creates a new curves data-block.
  */
 void curves_copy_parameters(const Curves &src, Curves &dst);
+
+void curves_store_surface_in_geometry_bundle(const Depsgraph &depsgraph,
+                                             const Curves &curves,
+                                             GeometrySet &geometry);
 
 CurvesGeometry curves_copy_point_selection(const CurvesGeometry &curves,
                                            const IndexMask &points_to_copy,

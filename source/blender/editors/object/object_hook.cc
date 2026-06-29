@@ -11,11 +11,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
@@ -569,7 +569,7 @@ static int add_hook_object(const bContext *C,
       STRNCPY_UTF8(hmd->subtarget, arm->act_bone->name);
 
       pchan_act = BKE_pose_channel_active_if_bonecoll_visible(ob);
-      if (LIKELY(pchan_act)) {
+      if (pchan_act) [[likely]] {
         invert_m4_m4(pose_mat, pchan_act->pose_mat);
         mul_v3_m4v3(cent, ob->object_to_world().ptr(), pchan_act->pose_mat[3]);
         mul_v3_m4v3(cent, obedit->world_to_object().ptr(), cent);
@@ -698,18 +698,16 @@ static wmOperatorStatus object_hook_remove_exec(bContext *C, wmOperator *op)
 {
   int num = RNA_enum_get(op->ptr, "modifier");
   Object *ob = CTX_data_edit_object(C);
-  HookModifierData *hmd = nullptr;
-
-  hmd = static_cast<HookModifierData *>(BLI_findlink(&ob->modifiers, num));
-  if (!hmd) {
+  ModifierData *md = static_cast<ModifierData *>(BLI_findlink(&ob->modifiers, num));
+  if (!(md && md->type == eModifierType_Hook)) {
     BKE_report(op->reports, RPT_ERROR, "Could not find hook modifier");
     return OPERATOR_CANCELLED;
   }
 
   /* remove functionality */
 
-  BKE_modifier_remove_from_list(ob, reinterpret_cast<ModifierData *>(hmd));
-  BKE_modifier_free(reinterpret_cast<ModifierData *>(hmd));
+  BKE_modifier_remove_from_list(ob, md);
+  BKE_modifier_free(md);
 
   DEG_relations_tag_update(CTX_data_main(C));
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);

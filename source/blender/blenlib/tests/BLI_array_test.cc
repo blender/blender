@@ -8,7 +8,7 @@
 #include "BLI_exception_safety_test_utils.hh"
 #include "BLI_vector.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender::tests {
 
@@ -145,7 +145,7 @@ TEST(array, MoveAssignment)
 TEST(array, TrivialTypeSizeConstructor)
 {
   Array<char, 1> *array = new Array<char, 1>(1);
-  char *ptr = &(*array)[0];
+  char *ptr = array->data();
   array->~Array();
 
   const char magic = 42;

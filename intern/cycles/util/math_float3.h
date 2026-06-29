@@ -448,16 +448,6 @@ ccl_device_inline float3 ceil(const float3 a)
 #  endif
 }
 
-ccl_device_inline float3 mix(const float3 a, const float3 b, const float t)
-{
-  return a + t * (b - a);
-}
-
-ccl_device_inline float3 mix(const float3 a, const float3 b, const float3 t)
-{
-  return a + t * (b - a);
-}
-
 ccl_device_inline float3 saturate(const float3 a)
 {
   return make_float3(saturatef(a.x), saturatef(a.y), saturatef(a.z));
@@ -513,7 +503,8 @@ ccl_device_inline float3 faceforward(const float3 vector,
 {
   return (dot(reference, incident) < 0.0f) ? vector : -vector;
 }
-#endif
+
+#endif /* !__KERNEL_METAL__ */
 
 ccl_device_inline float3 safe_sqrt(const float3 a)
 {

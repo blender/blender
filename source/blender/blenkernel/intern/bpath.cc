@@ -22,17 +22,17 @@
 #  include <dirent.h>
 #  include <unistd.h>
 #else
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #  include <io.h>
 #endif
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_fileops.h"
-#include "BLI_listbase.h"
+#include "BLI_fileops.hh"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_utildefines.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -49,7 +49,7 @@
 namespace blender {
 
 #ifndef _MSC_VER
-#  include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#  include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 #endif
 
 static CLG_LogRef LOG = {"lib.bpath"};
@@ -83,6 +83,9 @@ void BKE_bpath_foreach_path_id(BPathForeachPathData *bpath_data, ID *id)
   bpath_data->absolute_base_path = absbase;
   bpath_data->owner_id = id;
   bpath_data->is_path_modified = false;
+  bpath_data->is_expanded = false;
+  bpath_data->is_cache = false;
+  bpath_data->is_readonly = false;
 
   if ((flag & BKE_BPATH_FOREACH_PATH_SKIP_LINKED) && ID_IS_LINKED(id)) {
     return;
@@ -153,6 +156,80 @@ bool BKE_bpath_foreach_path_fixed_process(BPathForeachPathData *bpath_data,
   }
 
   return false;
+}
+
+void BKE_bpath_foreach_path_readonly_process(BPathForeachPathData *bpath_data, const char *path)
+{
+  char path_src[FILE_MAX];
+  char path_dst[FILE_MAX];
+
+  STRNCPY(path_src, path);
+  if (bpath_data->absolute_base_path) {
+    BLI_path_abs(path_src, bpath_data->absolute_base_path);
+  }
+  /* Any modification to path_dst will be discarded. */
+  STRNCPY(path_dst, path_src);
+
+  bpath_data->is_readonly = true;
+  const bool changed = bpath_data->callback_function(
+      bpath_data, path_dst, sizeof(path_dst), path_src);
+  bpath_data->is_readonly = false;
+
+  BLI_assert_msg(!changed, "Read-only path edited in bpath foreach");
+  UNUSED_VARS_NDEBUG(changed);
+}
+
+void BKE_bpath_sequence_filepaths_foreach(const char *abs_filepath,
+                                          FunctionRef<void(StringRef frame_filepath)> callback)
+{
+  char dirname[FILE_MAX], filename[FILE_MAX];
+  BLI_path_split_dir_file(abs_filepath, dirname, sizeof(dirname), filename, sizeof(filename));
+
+  char head[FILE_MAX], tail[FILE_MAX];
+  ushort digits_len = 0;
+  BLI_path_sequence_decode(filename, head, sizeof(head), tail, sizeof(tail), &digits_len);
+
+  if (digits_len == 0) {
+    /* Not a numbered sequence, treat as a single file. */
+    if (BLI_is_file(abs_filepath)) {
+      callback(abs_filepath);
+    }
+    return;
+  }
+
+  const size_t head_len = strlen(head);
+  const size_t tail_len = strlen(tail);
+  const size_t expected_len = head_len + size_t(digits_len) + tail_len;
+
+  direntry *filelist = nullptr;
+  const uint filelist_num = BLI_filelist_dir_contents(dirname, &filelist);
+  for (uint i = 0; i < filelist_num; i++) {
+    const direntry &entry = filelist[i];
+    if (!(entry.type & S_IFREG)) {
+      continue;
+    }
+    const char *name = entry.relname;
+    const size_t name_len = strlen(name);
+
+    /* Match files of the form <head><digits><tail>. */
+    if (name_len != expected_len) {
+      continue;
+    }
+    if (!STRPREFIX(name, head) || !BLI_str_endswith(name, tail)) {
+      continue;
+    }
+    bool all_digits = true;
+    for (size_t c = head_len; c < head_len + digits_len; c++) {
+      if (!(name[c] >= '0' && name[c] <= '9')) {
+        all_digits = false;
+        break;
+      }
+    }
+    if (all_digits) {
+      callback(entry.path);
+    }
+  }
+  BLI_filelist_free(filelist, filelist_num);
 }
 
 bool BKE_bpath_foreach_path_dirfile_fixed_process(BPathForeachPathData *bpath_data,
@@ -264,7 +341,7 @@ void BKE_bpath_missing_files_check(Main *bmain, ReportList *reports)
   path_data.user_data = reports;
   BKE_bpath_foreach_path_main(&path_data);
 
-  if (BLI_listbase_is_empty(&reports->list)) {
+  if (reports->list.is_empty()) {
     BKE_reportf(reports, RPT_INFO, "No missing files");
   }
 }
@@ -676,7 +753,7 @@ static bool bpath_list_restore(BPathForeachPathData *bpath_data,
 
   /* `ls->first` should never be nullptr, because the number of paths should not change.
    * If this happens, there is a bug in caller code. */
-  BLI_assert(!BLI_listbase_is_empty(path_list));
+  BLI_assert(!path_list->is_empty());
 
   PathStore *path_store = static_cast<PathStore *>(path_list->first);
   const char *filepath = path_store->filepath;
@@ -722,9 +799,9 @@ void BKE_bpath_list_free(void *path_list_handle)
   ListBaseT<PathStore> *path_list = static_cast<ListBaseT<PathStore> *>(path_list_handle);
   /* The whole list should have been consumed by #BKE_bpath_list_restore, see also comment in
    * #bpath_list_restore. */
-  BLI_assert(BLI_listbase_is_empty(path_list));
+  BLI_assert(path_list->is_empty());
 
-  BLI_freelistN(path_list);
+  path_list->free_no_destruct();
   MEM_delete(path_list);
 }
 

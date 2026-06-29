@@ -15,15 +15,15 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_kdtree.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_base_safe.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_base_safe.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_rand.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_rand_c.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_boids.h"
 #include "BKE_collision.h"
@@ -1099,7 +1099,7 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
     }
     case eBoidRulesetType_Random: {
       /* use random rule for each particle (always same for same particle though) */
-      const int n = BLI_listbase_count(&state->rules);
+      const int n = state->rules.count();
       if (n) {
         rule = static_cast<BoidRule *>(BLI_findlink(&state->rules, rand % n));
         apply_boid_rule(bbd, rule, &val, pa, -1.0);
@@ -1697,12 +1697,12 @@ void boid_free_settings(BoidSettings *boids)
     BoidState *state = static_cast<BoidState *>(boids->states.first);
 
     for (; state; state = state->next) {
-      BLI_freelistN(&state->rules);
+      state->rules.free_no_destruct();
       BLI_freelistN(&state->conditions);
       BLI_freelistN(&state->actions);
     }
 
-    BLI_freelistN(&boids->states);
+    boids->states.free_no_destruct();
 
     MEM_delete(boids);
   }

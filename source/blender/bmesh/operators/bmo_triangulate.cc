@@ -12,10 +12,10 @@
 
 #include "DNA_listBase.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
-#include "BLI_scanfill.h"
-#include "BLI_sort_utils.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_scanfill.hh"
+#include "BLI_sort_utils.hh"
 
 #include "bmesh.hh"
 #include "bmesh_tools.hh"
@@ -143,7 +143,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
       }
     }
 
-    if (UNLIKELY(is_degenerate)) {
+    if (is_degenerate) [[unlikely]] {
       /* no vertices have 2 edges?
        * in this case fall back to the average vertex normals */
     }
@@ -152,7 +152,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 
       copy_v3_v3(normal, nors[0].no);
       for (i = 0; i < nors_tot; i++) {
-        if (UNLIKELY(nors[i].value == -1.0f)) {
+        if (nors[i].value == -1.0f) [[unlikely]] {
           break;
         }
         if (dot_v3v3(normal, nors[i].no) < 0.0f) {
@@ -171,7 +171,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 
   /* in this case we almost certainly have degenerate geometry,
    * better set a fallback value as a last resort */
-  if (UNLIKELY(normalize_v3(normal) == 0.0f)) {
+  if (normalize_v3(normal) == 0.0f) [[unlikely]] {
     normal[2] = 1.0f;
   }
 
@@ -240,14 +240,40 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
     BM_ITER_MESH_MUTABLE (e, e_next, &iter, bm, BM_EDGES_OF_MESH) {
       if (BMO_edge_flag_test(bm, e, ELE_NEW)) {
         /* in rare cases the edges face will have already been removed from the edge */
-        if (LIKELY(BM_edge_is_manifold(e))) {
+        BMLoop *l_a, *l_b;
+        if (BM_edge_loop_pair(e, &l_a, &l_b) &&
+            /* This ensures we don't delete existing faces attached to the geometry being filled.
+             * The likely cause of this will have been a duplicate, where the newly created
+             * face was removed and the existing (un-tagged) face kept.
+             * Follow the rule of not deleting geometry unrelated to the fill. */
+            (BMO_face_flag_test(bm, l_a->f, ELE_NEW) && BMO_face_flag_test(bm, l_b->f, ELE_NEW)))
+            [[likely]]
+        {
           BMFace *f_double;
           BMFace *f_new = BM_faces_join_pair(bm, e->l, e->l->radial_next, false, &f_double);
-          /* See #BM_faces_join note on callers asserting when `r_double` is non-null. */
-          BLI_assert_msg(f_double == nullptr,
-                         "Doubled face detected at " AT ". Resulting mesh may be corrupt.");
 
-          if (f_new) {
+          if (f_double) [[unlikely]] {
+            /* NOTE(@ideasman42): Regarding duplicate faces.
+             * The common case for filling is to select an empty region and fill it.
+             * In general filling over and existing filled area isn't likely to work well,
+             * so anything done here is more to avoid errors - not part of a typical workflow.
+             *
+             * - It's important never to finish with duplicate faces (an *invalid* mesh).
+             * - Remove the "new" face because having a "fill" action
+             *   delete existing geometry is unexpected and could cause problems
+             *   if the caller doesn't know to account for this.
+             * - This face may be an *intermediate* state - where multiple edges
+             *   would be collapsed to create the final face.
+             *   Unfortunately this isn't currently handled as well as it might be,
+             *   it may be better to fill a temporary mesh, then apply the final result,
+             *   so we only have to deal with final duplicates (not intermediate ones).
+             */
+            if (f_new) {
+              BM_face_kill(bm, f_new);
+            }
+            BM_edge_kill(bm, e);
+          }
+          else if (f_new) {
             BMO_face_flag_enable(bm, f_new, ELE_NEW);
             BM_edge_kill(bm, e);
           }

@@ -4,17 +4,17 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_main.hh"
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_bounds.hh"
 #include "BLI_color_types.hh"
-#include "BLI_math_color.h"
+#include "BLI_math_color_c.hh"
 #include "BLI_math_euler_types.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_rotation.h"
+#include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
@@ -226,16 +226,23 @@ static void shape_attributes_to_curves(bke::CurvesGeometry &curves,
 
   const bool use_stroke = bool(shape.stroke.type);
   const bool use_fill = bool(shape.fill.type);
+  /* Ensure stroke/fill attributes exist if non-zero values need to be written. */
   if (!use_stroke) {
-    bke::SpanAttributeWriter<bool> hide_stroke = attributes.lookup_or_add_for_write_span<bool>(
-        "hide_stroke", bke::AttrDomain::Curve);
-    hide_stroke.span.slice(curves_range).fill(true);
-    hide_stroke.finish();
+    attributes.add<bool>("hide_stroke", bke::AttrDomain::Curve, bke::AttributeInitDefaultValue());
   }
   if (use_fill) {
-    bke::SpanAttributeWriter<int> fill_ids = attributes.lookup_or_add_for_write_span<int>(
-        "fill_id", bke::AttrDomain::Curve);
-    fill_ids.span.slice(curves_range).fill(shape_index + 1);
+    attributes.add<int>("fill_id", bke::AttrDomain::Curve, bke::AttributeInitDefaultValue());
+  }
+
+  bke::SpanAttributeWriter<bool> hide_stroke = attributes.lookup_for_write_span<bool>(
+      "hide_stroke");
+  bke::SpanAttributeWriter<int> fill_ids = attributes.lookup_for_write_span<int>("fill_id");
+  if (hide_stroke) {
+    hide_stroke.span.slice(curves_range).fill(!use_stroke);
+    hide_stroke.finish();
+  }
+  if (fill_ids) {
+    fill_ids.span.slice(curves_range).fill(use_fill ? shape_index + 1 : 0);
     fill_ids.finish();
   }
 

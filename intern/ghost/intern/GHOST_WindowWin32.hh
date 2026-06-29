@@ -64,9 +64,9 @@ class GHOST_WindowWin32 : public GHOST_Window {
    * \param height: The height the window.
    * \param state: The state the window is initially opened with.
    * \param type: The type of drawing context installed in this window.
-   * \param wantStereoVisual: Stereo visual for quad buffered stereo.
+   * \param context_params: Context parameters such as stereo visual for quad buffered stereo.
+   * \param parent_window: TODO.
    * \param preferred_device: Preferred device to use when new device will be created.
-   * \param parentWindowHwnd: TODO.
    */
   GHOST_WindowWin32(GHOST_SystemWin32 *system,
                     const char *title,
@@ -237,8 +237,6 @@ class GHOST_WindowWin32 : public GHOST_Window {
 
   /**
    * Loads the windows equivalent of a standard GHOST cursor.
-   * \param visible: Flag for cursor visibility.
-   * \param cursor_shape: The cursor shape.
    */
   HCURSOR getStandardCursor(GHOST_TStandardCursor shape) const;
   void loadCursor(bool visible, GHOST_TStandardCursor cursor_shape) const;
@@ -313,12 +311,12 @@ class GHOST_WindowWin32 : public GHOST_Window {
   void endIME() override;
 #endif /* WITH_INPUT_IME */
 
-  /*
+  /**
    * Drive DirectManipulation context.
    */
   void updateDirectManipulation();
 
-  /*
+  /**
    * Handle DM_POINTERHITTEST events.
    * \param wParam: wParam from the event.
    */
@@ -326,7 +324,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
 
   GHOST_TTrackpadInfo getTrackpadInfo();
 
-  /* Update HDR info on initialization and window changes. */
+  /** Update HDR info on initialization and window changes. */
   void updateHDRInfo();
 
  private:

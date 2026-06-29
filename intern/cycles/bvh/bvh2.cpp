@@ -152,8 +152,10 @@ void BVH2::pack_aligned_node(const int idx,
   assert(c1 < 0 || c1 < pack.nodes.size());
 
   int4 data[BVH_NODE_SIZE] = {
-      make_int4(
-          visibility0 & ~PATH_RAY_NODE_UNALIGNED, visibility1 & ~PATH_RAY_NODE_UNALIGNED, c0, c1),
+      make_int4(visibility0 & ~PATH_RAY_VISIBILITY_NODE_UNALIGNED,
+                visibility1 & ~PATH_RAY_VISIBILITY_NODE_UNALIGNED,
+                c0,
+                c1),
       make_int4(__float_as_int(b0.min.x),
                 __float_as_int(b1.min.x),
                 __float_as_int(b0.max.x),
@@ -203,8 +205,10 @@ void BVH2::pack_unaligned_node(const int idx,
   int4 data[BVH_UNALIGNED_NODE_SIZE];
   const Transform space0 = BVHUnaligned::compute_node_transform(b0, aligned_space0);
   const Transform space1 = BVHUnaligned::compute_node_transform(b1, aligned_space1);
-  data[0] = make_int4(
-      visibility0 | PATH_RAY_NODE_UNALIGNED, visibility1 | PATH_RAY_NODE_UNALIGNED, c0, c1);
+  data[0] = make_int4(visibility0 | PATH_RAY_VISIBILITY_NODE_UNALIGNED,
+                      visibility1 | PATH_RAY_VISIBILITY_NODE_UNALIGNED,
+                      c0,
+                      c1);
 
   data[1] = __float4_as_int4(space0.x);
   data[2] = __float4_as_int4(space0.y);
@@ -322,7 +326,7 @@ void BVH2::refit_node(const int idx, bool leaf, BoundBox &bbox, uint &visibility
     assert(idx + BVH_NODE_SIZE <= pack.nodes.size());
 
     const int4 *data = &pack.nodes[idx];
-    const bool is_unaligned = (data[0].x & PATH_RAY_NODE_UNALIGNED) != 0;
+    const bool is_unaligned = (data[0].x & PATH_RAY_VISIBILITY_NODE_UNALIGNED) != 0;
     const int c0 = data[0].z;
     const int c1 = data[0].w;
     /* refit inner node, set bbox from children */
@@ -372,20 +376,17 @@ void BVH2::refit_primitives(const int start, const int end, BoundBox &bbox, uint
         const Hair::Curve curve = hair->get_curve(pidx - prim_offset);
         const int k = PRIMITIVE_UNPACK_SEGMENT(pack.prim_type[prim]);
 
-        curve.bounds_grow(k, hair->get_curve_keys().data(), hair->get_curve_radius().data(), bbox);
+        curve.bounds_grow(k, hair->get_position(), hair->get_radius(), bbox);
 
         /* Motion curves. */
         if (hair->get_use_motion_blur()) {
-          Attribute *attr = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+          const Attribute *attr_P = hair->attributes.find(ATTR_STD_POSITION);
+          const Attribute *attr_R = hair->attributes.find(ATTR_STD_RADIUS);
 
-          if (attr) {
-            const size_t hair_size = hair->get_curve_keys().size();
-            const size_t steps = hair->get_motion_steps() - 1;
-            const float3 *key_steps = attr->data_float3();
-
-            for (size_t i = 0; i < steps; i++) {
+          if (attr_P->has_motion()) {
+            for (int attr_step = 1; attr_step < attr_P->num_motion_steps(); attr_step++) {
               curve.bounds_grow(
-                  k, key_steps + i * hair_size, hair->get_curve_radius().data(), bbox);
+                  k, attr_P->data<packed_float3>(attr_step), attr_R->data<float>(attr_step), bbox);
             }
           }
         }
@@ -394,23 +395,22 @@ void BVH2::refit_primitives(const int start, const int end, BoundBox &bbox, uint
         /* Points. */
         const PointCloud *pointcloud = static_cast<const PointCloud *>(ob->get_geometry());
         const int prim_offset = (params.top_level) ? pointcloud->prim_offset : 0;
-        const float3 *points = pointcloud->points.data();
-        const float *radius = pointcloud->radius.data();
+        const packed_float3 *points = pointcloud->get_position();
+        const float *radius = pointcloud->get_radius();
         const PointCloud::Point point = pointcloud->get_point(pidx - prim_offset);
 
         point.bounds_grow(points, radius, bbox);
 
         /* Motion points. */
         if (pointcloud->get_use_motion_blur()) {
-          Attribute *attr = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+          const Attribute *attr_P = pointcloud->attributes.find(ATTR_STD_POSITION);
 
-          if (attr) {
-            const size_t pointcloud_size = pointcloud->points.size();
-            const size_t steps = pointcloud->get_motion_steps() - 1;
-            const float3 *point_steps = attr->data_float3();
-
-            for (size_t i = 0; i < steps; i++) {
-              point.bounds_grow(point_steps + i * pointcloud_size, radius, bbox);
+          if (attr_P->has_motion()) {
+            const Attribute *attr_R = pointcloud->attributes.find(ATTR_STD_RADIUS);
+            for (int attr_step = 1; attr_step < attr_P->num_motion_steps(); attr_step++) {
+              const float3 P = attr_P->data<packed_float3>(attr_step)[point.index];
+              const float r = attr_R->data<float>(attr_step)[point.index];
+              bbox.grow(P, r);
             }
           }
         }
@@ -420,21 +420,17 @@ void BVH2::refit_primitives(const int start, const int end, BoundBox &bbox, uint
         const Mesh *mesh = static_cast<const Mesh *>(ob->get_geometry());
         const int prim_offset = (params.top_level) ? mesh->prim_offset : 0;
         const Mesh::Triangle triangle = mesh->get_triangle(pidx - prim_offset);
-        const float3 *vpos = mesh->verts.data();
+        const packed_float3 *vpos = mesh->get_position();
 
         triangle.bounds_grow(vpos, bbox);
 
         /* Motion triangles. */
         if (mesh->use_motion_blur) {
-          Attribute *attr = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+          const Attribute *attr_P = mesh->attributes.find(ATTR_STD_POSITION);
 
-          if (attr) {
-            const size_t mesh_size = mesh->verts.size();
-            const size_t steps = mesh->motion_steps - 1;
-            const float3 *vert_steps = attr->data_float3();
-
-            for (size_t i = 0; i < steps; i++) {
-              triangle.bounds_grow(vert_steps + i * mesh_size, bbox);
+          if (attr_P->has_motion()) {
+            for (int attr_step = 1; attr_step < attr_P->num_motion_steps(); attr_step++) {
+              triangle.bounds_grow(attr_P->data<packed_float3>(attr_step), bbox);
             }
           }
         }
@@ -610,7 +606,7 @@ void BVH2::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
       for (size_t i = 0; i < bvh_nodes_size;) {
         size_t nsize;
         size_t nsize_bbox;
-        if (bvh_nodes[i].x & PATH_RAY_NODE_UNALIGNED) {
+        if (bvh_nodes[i].x & PATH_RAY_VISIBILITY_NODE_UNALIGNED) {
           nsize = BVH_UNALIGNED_NODE_SIZE;
           nsize_bbox = 0;
         }

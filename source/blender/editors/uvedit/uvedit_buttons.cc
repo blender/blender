@@ -15,10 +15,10 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -113,6 +113,8 @@ static void uvedit_translate(Scene *scene, const Span<Object *> objects, const f
 
 static float uvedit_old_center[2];
 
+static void do_uvedit_vertex(bContext *C);
+
 static void uvedit_vertex_buttons(const bContext *C, ui::Block *block)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
@@ -170,7 +172,7 @@ static void uvedit_vertex_buttons(const bContext *C, ui::Block *block)
                     &uvedit_old_center[0],
                     UNPACK2(range_xy[0]),
                     "");
-    button_retval_set(but, B_UVEDIT_VERTEX);
+    ui::button_func_set(but, [](bContext &C) { do_uvedit_vertex(&C); });
     button_number_step_size_set(but, step);
     button_number_precision_set(but, digits);
     but = uiDefButV(block,
@@ -183,24 +185,20 @@ static void uvedit_vertex_buttons(const bContext *C, ui::Block *block)
                     &uvedit_old_center[1],
                     UNPACK2(range_xy[1]),
                     "");
-    button_retval_set(but, B_UVEDIT_VERTEX);
+    ui::button_func_set(but, [](bContext &C) { do_uvedit_vertex(&C); });
     button_number_step_size_set(but, step);
     button_number_precision_set(but, digits);
     block_align_end(block);
   }
 }
 
-static void do_uvedit_vertex(bContext *C, void * /*arg*/, int event)
+static void do_uvedit_vertex(bContext *C)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
   const Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   float center[2], delta[2];
   int imx, imy;
-
-  if (event != B_UVEDIT_VERTEX) {
-    return;
-  }
 
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       *bmain, scene, CTX_data_view_layer(C), CTX_wm_view3d(C));
@@ -240,7 +238,6 @@ static bool image_panel_uv_poll(const bContext *C, PanelType * /*pt*/)
 static void image_panel_uv(const bContext *C, Panel *panel)
 {
   ui::Block *block = panel->layout->absolute().block();
-  block_func_handle_set(block, do_uvedit_vertex, nullptr);
 
   uvedit_vertex_buttons(C, block);
 }

@@ -14,7 +14,7 @@
 
 #include <string>
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_enum_flags.hh"
 #include "BLI_index_range.hh"
 
@@ -1209,6 +1209,11 @@ bool GPU_texture_is_array(const gpu::Texture *texture);
  * Return true if the texture is an cube-map texture type.
  */
 bool GPU_texture_is_cube(const gpu::Texture *texture);
+
+/**
+ * Return true if the texture was created with GPU_texture_create_view.
+ */
+bool GPU_texture_is_view(const gpu::Texture *texture);
 
 /**
  * Return true if the texture format has a depth component.

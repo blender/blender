@@ -14,6 +14,9 @@ class USDHairWriter : public USDAbstractWriter {
 
  protected:
   void do_write(HierarchyContext &context) override;
+  void assign_material(const HierarchyContext &context,
+                       const pxr::UsdGeomBasisCurves &curves,
+                       const int material_slot);
   bool check_is_animated(const HierarchyContext &context) const override;
 };
 

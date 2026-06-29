@@ -37,6 +37,8 @@ class BlenderLight():
         set_extras(light, pylight.get('extras'))
 
         pylight['blender_object_data'] = light  # Needed in case of KHR_animation_pointer
+        if 'extras' in pylight.keys():
+            pylight['extras']['blender_object_data'] = light
 
         return light
 

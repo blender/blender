@@ -18,14 +18,14 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_array.hh"
-#include "BLI_dynstr.h"
+#include "BLI_dynstr.hh"
 #include "BLI_enum_flags.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_base_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "BLT_translation.hh"
 
@@ -1082,7 +1082,7 @@ static void keymap_but_cb(bContext * /*C*/, void *but_v, void * /*key_v*/)
  *
  * \param w_hint: For varying width layout, this becomes the label width.
  *                Otherwise it's used to fit both items into it.
- * \param button_type: Overrides the default button type for \a prop, see #uiDefAutoButR.
+ * \param button_type_override: Overrides the default button type for \a prop, see #uiDefAutoButR.
  * \param caller_fn_name: A friendly function name of the caller for tracing keymap item warnings,
  * matching the RNA struct function name. For example `"UILayout.prop()"`.
  */
@@ -1236,6 +1236,10 @@ static Button *item_with_label(Layout *layout,
                                                  std::make_optional<StringRefNull>("");
     but = uiDefAutoButR(
         block, ptr, prop, index, str, icon, x, y, prop_but_width, h, button_type_override);
+    if (flag & ITEM_R_TEXT_RIGHT) {
+      but->drawflag |= BUT_TEXT_RIGHT;
+      but->drawflag &= ~BUT_TEXT_LEFT;
+    }
   }
 
   /* Highlight in red on path template validity errors. */
@@ -2271,8 +2275,10 @@ void Layout::prop(PointerRNA *ptr,
     if (is_id_name_prop) {
       Main *bmain = CTX_data_main(static_cast<bContext *>(block->evil_C));
       ID *id = ptr->owner_id;
-      button_func_rename_full_set(
-          but, [bmain, id](const std::string &new_name) { ED_id_rename(*bmain, *id, new_name); });
+      BLI_assert(type == PROP_STRING);
+      BLI_assert(!RNA_property_string_search_flag(prop));
+      text_button_func_rename_full_set(
+          but, [bmain, id](StringRefNull new_name) { ED_id_rename(*bmain, *id, new_name); });
     }
 
     if (layout->red_alert()) {
@@ -2337,7 +2343,7 @@ void Layout::prop(PointerRNA *ptr,
       button_placeholder_set(but, *placeholder);
     }
     if (ELEM(but->type, ButtonType::Text) && (flag & ITEM_R_TEXT_BUT_FORCE_SEMI_MODAL_ACTIVE)) {
-      button_flag2_enable(but, BUT2_FORCE_SEMI_MODAL_ACTIVE);
+      button_flag_enable(but, BUT_FORCE_SEMI_MODAL_ACTIVE);
     }
   }
 
@@ -2511,7 +2517,7 @@ void Layout::prop_enum(PointerRNA *ptr,
                        const std::optional<StringRefNull> name,
                        int icon)
 {
-  if (UNLIKELY(RNA_property_type(prop) != PROP_ENUM)) {
+  if (RNA_property_type(prop) != PROP_ENUM) [[unlikely]] {
     const StringRefNull propname = RNA_property_identifier(prop);
     item_disabled(this, propname.c_str());
     RNA_warning_bare("UILayout.prop_enum(): not an enum property: %s.%s",
@@ -2563,7 +2569,7 @@ void Layout::prop_enum(PointerRNA *ptr,
                        int icon)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
-  if (UNLIKELY(prop == nullptr)) {
+  if (prop == nullptr) [[unlikely]] {
     item_disabled(this, propname.c_str());
     RNA_warning_bare("UILayout.prop_enum(): enum property not found: %s.%s",
                      RNA_struct_identifier(ptr->type),
@@ -2754,10 +2760,13 @@ void button_configure_search(Button *but,
 void Layout::textbox(const bContext *C,
                      PointerRNA *ptr,
                      StringRefNull propname,
-                     std::optional<StringRefNull> placeholder)
+                     std::optional<StringRefNull> placeholder,
+                     const int initial_visible_lines)
 {
   TextboxState *textbox_state = textbox_ensure_state(
-      CTX_wm_region(C), fmt::format("{}.{}", RNA_struct_identifier(ptr->type), propname));
+      CTX_wm_region(C),
+      fmt::format("{}.{}", RNA_struct_identifier(ptr->type), propname),
+      initial_visible_lines);
   this->textbox_with_state(ptr, propname, textbox_state, placeholder);
 }
 
@@ -2789,20 +2798,22 @@ void Layout::textbox_with_state(PointerRNA *ptr,
 
   int w, h;
   item_rna_size(block->curlayout, "", ICON_NONE, ptr, prop, -1, false, false, &w, &h);
-  Button *but = uiDefButR_prop(block,
-                               ButtonType::TextBox,
-                               RNA_property_ui_name(prop),
-                               0,
-                               0,
-                               w,
-                               line_heigth * textbox_state->visible_lines +
-                                   textbox_vertical_padding() * 2.0f,
-                               ptr,
-                               prop,
-                               0,
-                               0,
-                               0,
-                               std::nullopt);
+  Button *but = uiDefButR_prop(
+      block,
+      ButtonType::TextBox,
+      RNA_property_ui_name(prop),
+      0,
+      0,
+      w,
+      std::max<int>(UI_UNIT_Y,
+                    std::round(line_heigth * textbox_state->visible_lines) +
+                        (textbox_vertical_padding() * 2.0f)),
+      ptr,
+      prop,
+      0,
+      0,
+      0,
+      std::nullopt);
   ButtonTextBox *textbox = static_cast<ButtonTextBox *>(but);
   textbox->state = textbox_state;
   if (placeholder) {
@@ -5272,9 +5283,9 @@ bool Layout::use_property_decorate() const
   return flag_is_set(flag_, ItemInternalFlag::PropDecorate);
 }
 
-void Layout::use_property_decorate_set(bool is_sep)
+void Layout::use_property_decorate_set(bool is_decorate)
 {
-  SET_FLAG_FROM_TEST(flag_, is_sep, ItemInternalFlag::PropDecorate);
+  SET_FLAG_FROM_TEST(flag_, is_decorate, ItemInternalFlag::PropDecorate);
 }
 
 Panel *Layout::root_panel() const
@@ -5550,7 +5561,7 @@ static void item_align(Layout *litem, short nr)
   }
 }
 
-static void item_flag(Layout *litem, int flag)
+static void item_flag(Layout *litem, int64_t flag)
 {
   for (Item *item : litem->items()) {
     if (item->type() == ItemType::Button) {
@@ -5848,12 +5859,12 @@ int2 block_layout_resolve(Block *block)
     MEM_delete(&root);
   }
 
-  BLI_listbase_clear(&block->layouts);
+  block->layouts.clear_no_delete();
   return block_size;
 }
 bool block_layout_needs_resolving(const Block *block)
 {
-  return !BLI_listbase_is_empty(&block->layouts);
+  return !block->layouts.is_empty();
 }
 
 const PointerRNA *Layout::context_ptr_get(const StringRef name, const StructRNA *type) const

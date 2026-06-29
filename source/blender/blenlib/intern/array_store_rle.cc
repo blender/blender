@@ -42,12 +42,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_assert.h"
-#include "BLI_utildefines.h"
+#include "BLI_assert.hh"
+#include "BLI_utildefines.hh"
 
-#include "BLI_array_store.h" /* Own include. */
+#include "BLI_array_store.hh" /* Own include. */
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 
@@ -90,14 +90,14 @@ static size_t find_byte_not_equal_to(const uint8_t *data,
        * add to ensure there is at least one item to read. */
       sizeof(fast_int));
 
-  if (LIKELY(size - offset > min_size_for_fast_path)) {
+  if (size - offset > min_size_for_fast_path) [[likely]] {
 
     /* Pass 1: Scan forward with a fixed size to check if an early exit
      * is needed (this may exit on the first few bytes). */
     const uint8_t *p = data + offset;
     const uint8_t *p_end = p + sizeof(size_t[2]);
     do {
-      if (LIKELY(*p != value)) {
+      if (*p != value) [[likely]] {
         return size_t(p - data);
       }
       p++;
@@ -109,7 +109,7 @@ static size_t find_byte_not_equal_to(const uint8_t *data,
     p_end = reinterpret_cast<const uint8_t *>(
         ((uintptr_t(p) + sizeof(size_t) + sizeof(fast_int)) & ~(sizeof(fast_int) - 1)));
     do {
-      if (LIKELY(*p != value)) {
+      if (*p != value) [[likely]] {
         return size_t(p - data);
       }
       p++;
@@ -130,7 +130,7 @@ static size_t find_byte_not_equal_to(const uint8_t *data,
     memset(&value_fast, value, sizeof(value_fast));
     do {
       /* Use unlikely given many of the previous bytes match. */
-      if (UNLIKELY(*p_fast != value_fast)) {
+      if (*p_fast != value_fast) [[unlikely]] {
         break;
       }
       p_fast++;
@@ -232,7 +232,7 @@ static size_t find_next_rle_span_start(const uint8_t *data,
   /* Byte-level scan. */
   size_t ofs_test = ofs_test_start + 1;
   /* Check the offset isn't at the very end of the array. */
-  if (LIKELY(ofs_test < size)) {
+  if (ofs_test < size) [[likely]] {
     /* The first value that changed, start searching here. */
     uint8_t value = data[ofs_test_start];
     do {
@@ -345,7 +345,7 @@ static void rle_link_chunk_free_all(RLE_ElemChunk *link_block)
 static RLE_Elem *rle_link_chunk_elem_new(RLE_ElemChunk **link_block_p)
 {
   RLE_ElemChunk *link_block = *link_block_p;
-  if (UNLIKELY(link_block->links_num == ARRAY_SIZE(link_block->links))) {
+  if (link_block->links_num == ARRAY_SIZE(link_block->links)) [[unlikely]] {
     RLE_ElemChunk *link_block_next = rle_link_chunk_new();
     link_block->next = link_block_next;
     link_block = link_block_next;

@@ -1171,6 +1171,8 @@ struct SVMNodePrincipledBsdfData {
   /* Thin film. */
   SVMInputFloat thin_film_thickness;
   SVMInputFloat thin_film_ior;
+  /* Thin wall. */
+  SVMInputInt thin_wall;
 };
 static_assert(alignof(SVMNodePrincipledBsdfData) <= alignof(uint));
 static_assert(sizeof(SVMNodePrincipledBsdfData) % sizeof(uint) == 0);
@@ -1294,5 +1296,14 @@ struct SVMNodeMinMax {
 };
 static_assert(alignof(SVMNodeMinMax) <= alignof(uint));
 static_assert(sizeof(SVMNodeMinMax) % sizeof(uint) == 0);
+
+/* NODE_SCENE_TIME */
+struct SVMNodeSceneTime {
+  SVMStackOffset seconds_out;
+  SVMStackOffset frame_out;
+  uint8_t _pad[2];
+};
+static_assert(alignof(SVMNodeSceneTime) <= alignof(uint));
+static_assert(sizeof(SVMNodeSceneTime) % sizeof(uint) == 0);
 
 CCL_NAMESPACE_END

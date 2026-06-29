@@ -15,7 +15,7 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
-#include "BLI_sys_types.h" /* for bool and uint */
+#include "BLI_sys_types.hh" /* for bool and uint */
 
 namespace blender {
 
@@ -95,8 +95,7 @@ uint *DRW_select_buffer_bitmap_from_circle(Depsgraph *depsgraph,
                                            int radius,
                                            uint *r_bitmap_len);
 /**
- * \param poly: The polygon coordinates.
- * \param face_len: Length of the polygon.
+ * \param poly: The polygon array.
  * \param rect: Polygon boundaries.
  * \returns a #BLI_bitmap.
  */

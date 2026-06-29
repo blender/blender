@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "DNA_object_types.h"
 
@@ -271,8 +271,6 @@ static const auto &array_storage_required()
       "position", "handle_left", "handle_right", "nurbs_weight", "surface_uv_coordinate"};
   return attributes;
 }
-
-/** \} */
 
 static AttributeAccessorFunctions get_curves_accessor_functions()
 {

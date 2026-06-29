@@ -7,7 +7,7 @@
 #include "BLI_array.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_math_base.hh"
-#include "BLI_math_geom.h"
+#include "BLI_math_geom_c.hh"
 #include "BLI_task.hh"
 
 #include "BKE_asset_edit.hh"
@@ -195,12 +195,14 @@ struct EraseOperationExecutor {
    *
    * \param squared_radius: squared radius of the brush in pixels.
    *
-   * \param r_mu0, r_mu0: (output) factor of the two intersections if they exists, otherwise (-1).
+   * \param r_mu0, r_mu1: (output) factor of the two intersections if they exists, otherwise (-1).
    *
-   * \param point_side, point_after_side: (output) enum describing where the first (resp. second)
-   * endpoint lies relatively to the eraser: inside, outside or at the boundary of the eraser.
+   * \param r_point_side, r_point_after_side: (output) enum describing where the first
+   * (resp. second) endpoint lies relatively to the eraser: inside,
+   * outside or at the boundary of the eraser.
    *
-   * \returns total number of intersections lying inside the segment (ie whose factor is in ]0,1[).
+   * \returns total number of intersections lying inside the segment
+   * (ie whose factor is in (0, 1)).
    *
    * Note that the eraser is represented as a circle, and thus there can be only 0, 1 or 2
    * intersections with a segment.
@@ -305,15 +307,13 @@ struct EraseOperationExecutor {
    *
    * \param screen_space_positions: 2D positions of the geometry in screen space.
    *
-   * \param intersections_max_per_segment: maximum number of intersections per-segment.
-   *
-   * \param r_point_side: (output) for each point in the source, enum describing where the point
-   * lies relatively to the eraser: inside, outside or at the boundary of the eraser.
+   * \param r_point_ring: (output) for each point in the source, a pair of (ring index, side)
+   * TODO: document this fully.
    *
    * \param r_intersections: (output) array containing all the intersections found in the curves
-   * geometry. The size of the array should be `src.points_num*intersections_max_per_segment`.
+   * geometry. The size of the array should be `src.points_num * intersections_max_per_segment`.
    * Initially all intersections are set as invalid, and the function fills valid intersections at
-   * an offset of `src_point*intersections_max_per_segment`.
+   * an offset of `src_point * intersections_max_per_segment`.
    *
    * \returns total number of intersections found.
    */
@@ -324,7 +324,8 @@ struct EraseOperationExecutor {
       MutableSpan<std::pair<int, PointCircleSide>> r_point_ring,
       MutableSpan<SegmentCircleIntersection> r_intersections) const
   {
-    /* Each ring can generate zero, one or two intersections per segment. */
+    /* Each ring can generate zero, one or two intersections per segment.
+     * Maximum number of intersections per-segment. */
     const int intersections_max_per_segment = rings.size() * 2;
     const OffsetIndices<int> src_points_by_curve = src.points_by_curve();
     const VArray<bool> src_cyclic = src.cyclic();
@@ -1004,7 +1005,7 @@ struct EraseOperationExecutor {
 
       if (erased) {
         /* Set the new geometry. */
-        drawing.geometry.wrap() = std::move(dst);
+        drawing.strokes_for_write() = std::move(dst);
         drawing.tag_topology_changed();
         changed = true;
         self.affected_drawings_.add(&drawing);
@@ -1146,7 +1147,7 @@ static void remove_points_with_low_opacity(bke::CurvesGeometry &curves,
       curves.points_range(), memory, [&](const int64_t point) {
         return opacities[point] < epsilon && point_was_modified[point];
       });
-  curves = geometry::remove_points_and_split(curves, points_to_remove_and_split);
+  curves = geometry::grease_pencil_remove_points_and_split(curves, points_to_remove_and_split);
 }
 
 void EraseOperation::on_stroke_done(const bContext &C)

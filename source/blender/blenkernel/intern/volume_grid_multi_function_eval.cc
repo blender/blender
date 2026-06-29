@@ -211,7 +211,6 @@ BLI_NOINLINE static void process_leaf_node(const mf::MultiFunction &fn,
  *
  * \param fn: The multi-function to call.
  * \param input_values: All input values which may be grids, fields or single values.
- * \param input_grids: The input grids already extracted from #input_values.
  * \param output_grids: The output grids to be filled with the results of the multi-function. The
  *   topology of these grids is initialized already.
  * \param transform: The transform of all input and output grids.

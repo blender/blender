@@ -50,6 +50,10 @@ void sync_sockets_closure(SpaceNode &snode,
                           bNode &closure_output_node,
                           ReportList *reports,
                           const bNodeSocket *src_closure_socket = nullptr);
+void sync_sockets_closure_to_list(SpaceNode &snode,
+                                  bNode &closure_to_list_node,
+                                  ReportList *reports,
+                                  const bNodeSocket *src_closure_socket = nullptr);
 
 }  // namespace nodes
 }  // namespace blender

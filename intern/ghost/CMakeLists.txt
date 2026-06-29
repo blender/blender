@@ -309,7 +309,7 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     # - `SRC`: appended with generated protocol source and header files.
     function(generate_protocol_bindings PROT_DEF)
       # File name without directory or extension (use for header name).
-      get_filename_component(_name ${PROT_DEF} NAME_WLE)
+      cmake_path(GET PROT_DEF STEM LAST_ONLY _name)
       add_custom_command(
         OUTPUT ${INC_DST}/${_name}-client-protocol.h
         COMMAND ${CMAKE_COMMAND} -E make_directory ${INC_DST}
@@ -420,11 +420,6 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     )
   endif()
 
-  if(NOT WITH_INSTALL_PORTABLE)
-    add_definitions(-DPREFIX="${CMAKE_INSTALL_PREFIX}")
-  endif()
-
-
 elseif(WIN32)
   # # Warnings as errors, this is too strict!
   # if(MSVC)
@@ -507,8 +502,31 @@ elseif(UNIX)
     intern/GHOST_SystemPathsUnix.hh
   )
 
+  # System-wide (non-portable) installs locate architecture-dependent libraries under `lib`
+  # (typically `/usr/lib`), following the FHS convention - alongside `share/`.
   if(NOT WITH_INSTALL_PORTABLE)
     add_definitions(-DPREFIX="${CMAKE_INSTALL_PREFIX}")
+
+    # NOTE: A Python module is itself a library: its wrapper libraries are bundled in the package
+    # beside the add-on, so it doesn't need a separate system libraries path.
+    if(NOT WITH_PYTHON_MODULE)
+      # The standard variable for this path is `CMAKE_INSTALL_LIBDIR` (typically `lib` or `lib64`).
+      # It isn't set by default, but systems that build packages may define it.
+      #
+      # NOTE: `include(GNUInstallDirs)` could auto-detect this path.
+      # Since default builds aren't system-wide, leave it to the
+      # package-build scripts to pass in the correct directory.
+      set(_lib "lib")
+      if(DEFINED CMAKE_INSTALL_LIBDIR)
+        if(CMAKE_INSTALL_LIBDIR)
+          set(_lib "${CMAKE_INSTALL_LIBDIR}")
+        endif()
+      endif()
+
+      add_definitions(-DBLENDER_INSTALL_LIBDIR="${_lib}")
+
+      unset(_lib)
+    endif()
   endif()
 
 elseif(WIN32)

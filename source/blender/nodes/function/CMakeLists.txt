@@ -53,6 +53,7 @@ set(SRC
   nodes/node_fn_quaternion_to_rotation.cc
   nodes/node_fn_random_value.cc
   nodes/node_fn_replace_string.cc
+  nodes/node_fn_reverse_string.cc
   nodes/node_fn_rotate_euler.cc
   nodes/node_fn_rotate_rotation.cc
   nodes/node_fn_rotate_vector.cc
@@ -62,6 +63,7 @@ set(SRC
   nodes/node_fn_separate_color.cc
   nodes/node_fn_separate_matrix.cc
   nodes/node_fn_separate_transform.cc
+  nodes/node_fn_set_string_case.cc
   nodes/node_fn_slice_string.cc
   nodes/node_fn_split_string.cc
   nodes/node_fn_string_length.cc

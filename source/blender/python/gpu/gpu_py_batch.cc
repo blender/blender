@@ -14,7 +14,7 @@
 
 #include <Python.h>
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "GPU_batch.hh"
 #include "GPU_state.hh"

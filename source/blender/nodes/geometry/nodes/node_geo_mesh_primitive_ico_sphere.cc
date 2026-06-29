@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_math_constants.h"
+#include "BLI_math_constants.hh"
 
 #include "DNA_mesh_types.h"
 
@@ -31,7 +31,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(7)
       .description("Number of subdivisions on top of the basic icosahedron");
   b.add_output<decl::Geometry>("Mesh"_ustr);
-  b.add_output<decl::Vector>("UV Map"_ustr).field_on_all();
+  b.add_output<decl::Vector>("UV Map"_ustr).anonymous_attribute_output();
 }
 
 static Bounds<float3> calculate_bounds_ico_sphere(const float radius, const int subdivisions)

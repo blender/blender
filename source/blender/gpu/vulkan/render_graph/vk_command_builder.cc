@@ -16,6 +16,21 @@
 
 namespace blender::gpu::render_graph {
 
+static VkImageLayout to_default_image_layout(VkImageAspectFlags aspect, bool use_local_read)
+{
+  if (aspect & VK_IMAGE_ASPECT_DEPTH_BIT) {
+    if (aspect & VK_IMAGE_ASPECT_STENCIL_BIT) {
+      return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    }
+    return VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+  }
+  if (aspect & VK_IMAGE_ASPECT_STENCIL_BIT) {
+    return VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL;
+  }
+  return use_local_read ? VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR :
+                          VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Build nodes
  * \{ */
@@ -121,8 +136,28 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
       else if (node.type == VKNodeType::END_RENDERING) {
         /* End rendering scope. */
         BLI_assert(rendering_active);
+
+        /* Save rendering scope handle for resource state update below. */
+        const NodeHandle end_rendering_scope = rendering_scope;
         rendering_scope = 0;
         rendering_active = false;
+
+        /* The render pass storeOp writes each attachment with COLOR_ATTACHMENT_WRITE_BIT (or
+         * DEPTH_STENCIL_ATTACHMENT_WRITE_BIT). END_RENDERING has VKResourceType::NONE and
+         * declares no resource dependencies, so these implicit writes are invisible to the
+         * resource state tracker. Propagate them here so the next scope's pipeline barrier
+         * correctly synchronizes with the storeOp, avoiding WRITE_AFTER_WRITE hazards. */
+        for (const VKRenderGraphImage &link : render_graph.linked_images(end_rendering_scope)) {
+          VKResourceStateTracker::Resource &resource = render_graph.resources_.get_image_resource(
+              link.resource.handle);
+          VKResourceBarrierState &state = resource.barrier_state;
+          if (link.vk_access_flags & VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT) {
+            state.vk_access |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+          }
+          if (link.vk_access_flags & VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT) {
+            state.vk_access |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+          }
+        }
 
         /* Any specific layout changes needs to be reverted, so the global resource state tracker
          * reflects the correct state. These barriers needs to be added as node post barriers. We
@@ -131,6 +166,18 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
         image_tracker.end(barrier, use_local_read);
         if (!barrier.is_empty()) {
           post_barriers.append(barrier);
+        }
+
+        /* After image_tracker.end() reverts tracked image layouts back to the default layout,
+         * sync the global resource state tracker so subsequent barriers use the correct
+         * oldLayout. */
+        for (const VKRenderGraphImage &link : render_graph.linked_images(end_rendering_scope)) {
+          VKResourceStateTracker::Resource &resource = render_graph.resources_.get_image_resource(
+              link.resource.handle);
+          if (resource.use_subresource_tracking()) {
+            VKResourceBarrierState &state = resource.barrier_state;
+            state.image_layout = to_default_image_layout(link.vk_image_aspect, use_local_read);
+          }
         }
       }
 
@@ -145,6 +192,16 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
         image_tracker.suspend(barrier, use_local_read);
         if (!barrier.is_empty()) {
           post_barriers.append(barrier);
+        }
+
+        /* Sync resource state layout after suspend reverts tracked images. */
+        for (const VKRenderGraphImage &link : render_graph.linked_images(rendering_scope)) {
+          VKResourceStateTracker::Resource &resource = render_graph.resources_.get_image_resource(
+              link.resource.handle);
+          if (resource.use_subresource_tracking()) {
+            VKResourceBarrierState &state = resource.barrier_state;
+            state.image_layout = to_default_image_layout(link.vk_image_aspect, use_local_read);
+          }
         }
       }
 
@@ -196,7 +253,88 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
       if (!barrier.is_empty()) {
         post_barriers.append(barrier);
       }
+
+      /* Sync resource state layout after the tracker reverts tracked images. */
+      for (const VKRenderGraphImage &link : render_graph.linked_images(rendering_scope)) {
+        VKResourceStateTracker::Resource &resource = render_graph.resources_.get_image_resource(
+            link.resource.handle);
+        if (resource.use_subresource_tracking()) {
+          VKResourceBarrierState &state = resource.barrier_state;
+          state.image_layout = to_default_image_layout(link.vk_image_aspect, use_local_read);
+        }
+      }
+
       rendering_active = false;
+    }
+
+    /* After all node barriers have been extracted, check if depth/stencil attachments in
+     * BEGIN_RENDERING were transitioned to a non-optimal layout by group pre-barriers. If so,
+     * fix up VkRenderingAttachmentInfo.imageLayout to match the actual GPU layout, and add an
+     * acquire barrier when LOAD_OP_LOAD is used to ensure memory visibility. */
+    {
+      NodeHandle first_handle = node_handles[node_group.first()];
+      VKRenderGraphNode &first_node = render_graph.nodes_[first_handle];
+      if (first_node.type == VKNodeType::BEGIN_RENDERING) {
+        VKBeginRenderingData &begin_data =
+            render_graph.storage_.begin_rendering[first_node.storage_index];
+
+        for (const VKRenderGraphImage &link : render_graph.linked_images(first_handle)) {
+          if (!(link.vk_image_aspect & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)))
+          {
+            continue;
+          }
+          VKResourceStateTracker::Resource &resource = render_graph.resources_.get_image_resource(
+              link.resource.handle);
+          VkImageLayout gpu_layout = resource.barrier_state.image_layout;
+          VkImageLayout optimal_layout = to_default_image_layout(link.vk_image_aspect,
+                                                                 use_local_read);
+          if (gpu_layout == optimal_layout) {
+            continue;
+          }
+
+          /* Fix up the imageLayout to reflect the actual GPU layout after all pre-barriers. */
+          if (link.vk_image_aspect & VK_IMAGE_ASPECT_DEPTH_BIT &&
+              begin_data.vk_rendering_info.pDepthAttachment != nullptr)
+          {
+            begin_data.depth_attachment.imageLayout = gpu_layout;
+          }
+          if (link.vk_image_aspect & VK_IMAGE_ASPECT_STENCIL_BIT &&
+              begin_data.vk_rendering_info.pStencilAttachment != nullptr)
+          {
+            begin_data.stencil_attachment.imageLayout = gpu_layout;
+          }
+
+          /* When LOAD_OP_LOAD is used with a non-optimal layout, the existing layout transition
+           * barriers may not provide proper memory visibility for the load operation. Add an
+           * acquire barrier to ensure prior writes are visible before the depth/stencil test. */
+          bool depth_load = (link.vk_image_aspect & VK_IMAGE_ASPECT_DEPTH_BIT) &&
+                            begin_data.vk_rendering_info.pDepthAttachment != nullptr &&
+                            begin_data.depth_attachment.loadOp == VK_ATTACHMENT_LOAD_OP_LOAD;
+          bool stencil_load = (link.vk_image_aspect & VK_IMAGE_ASPECT_STENCIL_BIT) &&
+                              begin_data.vk_rendering_info.pStencilAttachment != nullptr &&
+                              begin_data.stencil_attachment.loadOp == VK_ATTACHMENT_LOAD_OP_LOAD;
+          if (!depth_load && !stencil_load) {
+            continue;
+          }
+
+          Barrier barrier = {};
+          reset_barriers(barrier);
+          barrier.src_stage_mask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+          barrier.dst_stage_mask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+          barrier.image_memory_barriers = IndexRange(vk_image_memory_barriers_.size(), 0);
+          add_image_barrier(resource.image.vk_image,
+                            barrier,
+                            VK_ACCESS_MEMORY_WRITE_BIT,
+                            VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT,
+                            gpu_layout,
+                            gpu_layout,
+                            link.vk_image_aspect,
+                            {});
+          barrier.image_memory_barriers = barrier.image_memory_barriers.with_new_end(
+              vk_image_memory_barriers_.size());
+          barrier_list_.append(barrier);
+        }
+      }
     }
 
     /* Update the group pre and post barriers. Pre barriers are already stored in the
@@ -649,7 +787,32 @@ void VKCommandBuilder::add_image_read_barriers(VKRenderGraph &render_graph,
                              link.subimage,
                              resource_state.image_layout,
                              link.vk_image_layout,
+                             link.vk_image_aspect,
                              r_barrier);
+        resource_state.image_layout = link.vk_image_layout;
+      }
+      /* Image tracker only tracks layout changes. Access flag synchronization is still needed
+       * to avoid WRITE->READ hazards between rendering scopes. See #158501. */
+      VkAccessFlags wait_access = resource_state.vk_access;
+      r_barrier.src_stage_mask |= resource_state.vk_pipeline_stages;
+      r_barrier.dst_stage_mask |= node_stages;
+      if (is_first_read) {
+        resource_state.vk_access = link.vk_access_flags;
+        resource_state.vk_pipeline_stages = node_stages;
+      }
+      else {
+        resource_state.vk_access |= link.vk_access_flags;
+        resource_state.vk_pipeline_stages |= node_stages;
+      }
+      if (wait_access != VK_ACCESS_NONE && (wait_access & ~link.vk_access_flags) != 0) {
+        add_image_barrier(resource.image.vk_image,
+                          r_barrier,
+                          wait_access,
+                          link.vk_access_flags,
+                          resource_state.image_layout,
+                          link.vk_image_layout,
+                          link.vk_image_aspect,
+                          {});
       }
       continue;
     }
@@ -711,7 +874,25 @@ void VKCommandBuilder::add_image_write_barriers(VKRenderGraph &render_graph,
                              link.subimage,
                              resource_state.image_layout,
                              link.vk_image_layout,
+                             link.vk_image_aspect,
                              r_barrier);
+        resource_state.image_layout = link.vk_image_layout;
+      }
+      /* Image tracker only tracks layout changes. Access flag synchronization is still needed
+       * to avoid READ->WRITE hazards between rendering scopes. See #158501. */
+      r_barrier.src_stage_mask |= resource_state.vk_pipeline_stages;
+      r_barrier.dst_stage_mask |= node_stages;
+      resource_state.vk_access = link.vk_access_flags;
+      resource_state.vk_pipeline_stages = node_stages;
+      if (wait_access != VK_ACCESS_NONE && (wait_access & ~link.vk_access_flags) != 0) {
+        add_image_barrier(resource.image.vk_image,
+                          r_barrier,
+                          wait_access,
+                          link.vk_access_flags,
+                          resource_state.image_layout,
+                          link.vk_image_layout,
+                          link.vk_image_aspect,
+                          {});
       }
       continue;
     }
@@ -756,6 +937,14 @@ void VKCommandBuilder::add_image_barrier(VkImage vk_image,
        * EEVEE update HIZ compute shader and shadow tagging. */
       if ((vk_image_memory_barrier.dstAccessMask & src_access_mask) == src_access_mask) {
         vk_image_memory_barrier.dstAccessMask |= dst_access_mask;
+        vk_image_memory_barrier.srcAccessMask |= src_access_mask;
+        /* When the existing barrier's newLayout matches the new barrier's
+         * oldLayout, update to the combined layout transition. For example,
+         * a read barrier (UNDEFINED->TRANSFER_DST) followed by a write
+         * barrier (TRANSFER_DST->GENERAL) becomes UNDEFINED->GENERAL. */
+        if (old_image_layout == vk_image_memory_barrier.newLayout) {
+          vk_image_memory_barrier.newLayout = new_image_layout;
+        }
         return;
       }
       /* When re-registering resources we can skip if access mask already contain all the flags.
@@ -811,13 +1000,14 @@ void VKCommandBuilder::ImageTracker::update(VkImage vk_image,
                                             const VKSubImageRange &subimage,
                                             VkImageLayout old_layout,
                                             VkImageLayout new_layout,
+                                            VkImageAspectFlags aspect,
                                             Barrier &r_barrier)
 {
   for (const SubImageChange &change : changes) {
     if (change.vk_image == vk_image && ((subimage.layer_count != VK_REMAINING_ARRAY_LAYERS &&
                                          change.subimage.layer_base == subimage.layer_base) ||
                                         (subimage.mipmap_count != VK_REMAINING_MIP_LEVELS &&
-                                         change.subimage.mipmap_level != subimage.mipmap_level)))
+                                         change.subimage.mipmap_level == subimage.mipmap_level)))
     {
       BLI_assert_msg(
           change.vk_image_layout == new_layout,
@@ -829,21 +1019,33 @@ void VKCommandBuilder::ImageTracker::update(VkImage vk_image,
     }
   }
 
-  changes.append({vk_image, new_layout, subimage});
+  changes.append({vk_image, new_layout, aspect, subimage});
 
   /* We should be able to do better. BOTTOM/TOP is really a worst case barrier. */
   r_barrier.src_stage_mask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
   r_barrier.dst_stage_mask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+  VkAccessFlags dst_access_mask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT |
+                                  VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
+  if (aspect & VK_IMAGE_ASPECT_COLOR_BIT) {
+    dst_access_mask |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+  }
+  if (aspect & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) {
+    dst_access_mask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+                       VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+  }
+  /* NOTE: src_access_mask uses a conservative VK_ACCESS_TRANSFER_WRITE_BIT as a
+   * placeholder. The actual prior access flags are added by the sync barrier logic
+   * in add_image_read_barriers/add_image_write_barriers (via wait_access from the
+   * resource state tracker) and merged into this barrier by add_image_barrier's merge.
+   * TODO: Pass the actual tracked wait_access here instead, removing the redundant
+   * sync barrier and this placeholder. */
   command_builder.add_image_barrier(vk_image,
                                     r_barrier,
                                     VK_ACCESS_TRANSFER_WRITE_BIT,
-                                    VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT |
-                                        VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
-                                        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
-                                        VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
+                                    dst_access_mask,
                                     old_layout,
                                     new_layout,
-                                    VK_IMAGE_ASPECT_COLOR_BIT,
+                                    aspect,
                                     subimage);
 }
 
@@ -878,9 +1080,8 @@ void VKCommandBuilder::ImageTracker::suspend(Barrier &r_barrier, bool use_local_
             VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
             VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
         change.vk_image_layout,
-        use_local_read ? VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR :
-                         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-        VK_IMAGE_ASPECT_COLOR_BIT,
+        to_default_image_layout(change.vk_image_aspect, use_local_read),
+        change.vk_image_aspect,
         change.subimage);
     r_barrier.image_memory_barriers = r_barrier.image_memory_barriers.with_new_end(
         command_builder.vk_image_memory_barriers_.size());
@@ -890,7 +1091,9 @@ void VKCommandBuilder::ImageTracker::suspend(Barrier &r_barrier, bool use_local_
               << ", layer=" << change.subimage.layer_base
               << ", count=" << change.subimage.layer_count
               << ", from_layout=" << to_string(change.vk_image_layout)
-              << ", to_layout=" << to_string(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) << "\n";
+              << ", to_layout=" << to_string(
+                     to_default_image_layout(change.vk_image_aspect, use_local_read))
+              << "\n";
 #endif
   }
 }
@@ -918,16 +1121,16 @@ void VKCommandBuilder::ImageTracker::resume(Barrier &r_barrier, bool use_local_r
         VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT |
             VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
             VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
-        use_local_read ? VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR :
-                         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        to_default_image_layout(change.vk_image_aspect, use_local_read),
         change.vk_image_layout,
-        VK_IMAGE_ASPECT_COLOR_BIT,
+        change.vk_image_aspect,
         change.subimage);
 #if 0
     std::cout << __func__ << ": transition layout image=" << change.vk_image
               << ", layer=" << change.subimage.layer_base
               << ", count=" << change.subimage.layer_count
-              << ", from_layout=" << to_string(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+              << ", from_layout=" << to_string(
+                     to_default_image_layout(change.vk_image_aspect, use_local_read))
               << ", to_layout=" << to_string(change.vk_image_layout) << "\n";
 #endif
   }

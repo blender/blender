@@ -21,21 +21,21 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_bounds.hh"
-#include "BLI_hash.h"
+#include "BLI_hash_c.hh"
 #include "BLI_implicit_sharing.hh"
 #include "BLI_index_range.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_memory_counter.hh"
 #include "BLI_resource_scope.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_task.hh"
-#include "BLI_time.h"
-#include "BLI_utildefines.h"
+#include "BLI_time.hh"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 #include "BLI_virtual_array.hh"
 
@@ -45,7 +45,6 @@
 #include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.hh"
 #include "BKE_attribute_legacy_convert.hh"
-#include "BKE_attribute_math.hh"
 #include "BKE_attribute_storage.hh"
 #include "BKE_attribute_storage_blend_write.hh"
 #include "BKE_bake_data_block_id.hh"
@@ -242,6 +241,11 @@ static void mesh_copy_data(Main *bmain,
                        &mesh_dst->id,
                        reinterpret_cast<ID **>(&mesh_dst->key),
                        flag);
+    /* It has one user, but its owner reference (added in #id_copy_libmanagement_cb)
+     * is the real owner, remove the reference here, see: #159691. */
+    if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+      id_us_min(&mesh_dst->key->id);
+    }
   }
 }
 
@@ -254,7 +258,7 @@ static void mesh_free_data(ID *id)
   CustomData_free(&mesh->fdata_legacy);
   CustomData_free(&mesh->corner_data);
   CustomData_free(&mesh->face_data);
-  BLI_freelistN(&mesh->vertex_group_names);
+  mesh->vertex_group_names.free_no_destruct();
   MEM_SAFE_DELETE(mesh->active_color_attribute);
   MEM_SAFE_DELETE(mesh->default_color_attribute);
   MEM_SAFE_DELETE(mesh->active_uv_map_attribute);
@@ -369,10 +373,6 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
     CustomData_blend_write_prepare(mesh->edge_data, edge_layers);
     CustomData_blend_write_prepare(mesh->face_data, face_layers);
     CustomData_blend_write_prepare(mesh->corner_data, loop_layers);
-    if (!is_undo) {
-      mesh_freestyle_marks_to_legacy(
-          attribute_data, mesh->edge_data, mesh->face_data, edge_layers, face_layers);
-    }
     if (attribute_data.attributes.is_empty()) {
       mesh->attribute_storage.dna_attributes = nullptr;
       mesh->attribute_storage.dna_attributes_num = 0;
@@ -388,7 +388,9 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
 
   BLO_write_generated_pointer_tag(writer, mesh->attribute_storage.dna_attributes);
 
-  writer->write_id_struct(id_address, mesh);
+  writer->write_id_struct(id_address, mesh, [](BlendStructWriter &struct_writer) {
+    struct_writer.generated_ptr(offsetof(Mesh, attribute_storage.dna_attributes));
+  });
   BKE_id_blend_write(writer, &mesh->id);
 
   BKE_defbase_blend_write(writer, &mesh->vertex_group_names);
@@ -978,18 +980,30 @@ void mesh_apply_spatial_organization(Mesh &mesh)
     }
     if (iter.domain == bke::AttrDomain::Face) {
       bke::GSpanAttributeWriter attribute = attributes_for_write.lookup_for_write_span(iter.name);
-      const CPPType &type = attribute.span.type();
+      GMutableSpan attribute_data = attribute.span;
+      const CPPType &type = attribute_data.type();
       GArray<> new_values(type, new_face_order.size());
-      bke::attribute_math::gather(attribute.span, new_face_order, new_values.as_mutable_span());
-      attribute.span.copy_from(new_values.as_span());
+
+      int new_face_idx = 0;
+      for (const int old_face_idx : new_face_order) {
+        type.copy_construct(attribute_data[old_face_idx], new_values[new_face_idx]);
+        new_face_idx++;
+      }
+      attribute_data.copy_from(new_values.as_span());
       attribute.finish();
     }
     else if (iter.domain == bke::AttrDomain::Point) {
       bke::GSpanAttributeWriter attribute = attributes_for_write.lookup_for_write_span(iter.name);
-      const CPPType &type = attribute.span.type();
+      GMutableSpan attribute_data = attribute.span;
+      const CPPType &type = attribute_data.type();
       GArray<> new_values(type, new_vert_order.size());
-      bke::attribute_math::gather(attribute.span, new_vert_order, new_values.as_mutable_span());
-      attribute.span.copy_from(new_values.as_span());
+
+      int new_vert_idx = 0;
+      for (const int old_vert_idx : new_vert_order) {
+        type.copy_construct(attribute_data[old_vert_idx], new_values[new_vert_idx]);
+        new_vert_idx++;
+      }
+      attribute_data.copy_from(new_values.as_span());
       attribute.finish();
     }
     else if (iter.domain == bke::AttrDomain::Corner && iter.name != ".corner_vert") {
@@ -1099,7 +1113,7 @@ static void mesh_clear_geometry(Mesh &mesh)
 
 static void clear_attribute_names(Mesh &mesh)
 {
-  BLI_freelistN(&mesh.vertex_group_names);
+  mesh.vertex_group_names.free_no_destruct();
   MEM_SAFE_DELETE(mesh.active_color_attribute);
   MEM_SAFE_DELETE(mesh.default_color_attribute);
   MEM_SAFE_DELETE(mesh.active_uv_map_attribute);
@@ -1460,7 +1474,7 @@ void BKE_mesh_copy_parameters_for_eval(Mesh *me_dst, const Mesh *me_src)
   copy_attribute_names(*me_src, *me_dst);
 
   /* Copy vertex group names. */
-  BLI_assert(BLI_listbase_is_empty(&me_dst->vertex_group_names));
+  BLI_assert(me_dst->vertex_group_names.is_empty());
   BKE_defgroup_copy_list(&me_dst->vertex_group_names, &me_src->vertex_group_names);
 
   /* Copy materials. */

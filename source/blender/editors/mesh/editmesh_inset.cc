@@ -11,9 +11,9 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_string_utf8.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
 
 #include "BLT_translation.hh"
@@ -92,6 +92,7 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
                                precision * -1,
                                B_UNIT_LENGTH,
                                sce->unit,
+                               true,
                                true);
       BKE_unit_value_as_string(flts_str + NUM_STR_REP_LEN,
                                NUM_STR_REP_LEN,
@@ -99,6 +100,7 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
                                precision * -1,
                                B_UNIT_LENGTH,
                                sce->unit,
+                               true,
                                true);
     }
     SNPRINTF_UTF8(msg,

@@ -12,10 +12,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_polyfill_2d.h"
+#include "BLI_polyfill_2d.hh"
 #include "BLI_span.hh"
 
 #include "DNA_gpencil_legacy_types.h"
@@ -26,6 +26,10 @@
 #include "BKE_gpencil_legacy.h"
 
 namespace blender {
+
+/* -------------------------------------------------------------------- */
+/** \name Stroke 2D Flat & UV Calculation
+ * \{ */
 
 void BKE_gpencil_stroke_2d_flat(const bGPDspoint *points,
                                 int totpoints,
@@ -502,5 +506,7 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
 
   return new_stroke;
 }
+
+/** \} */
 
 }  // namespace blender

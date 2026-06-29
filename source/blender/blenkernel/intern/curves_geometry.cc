@@ -14,7 +14,7 @@
 #include "BLI_bounds.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_length_parameterize.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation_legacy.hh"
 #include "BLI_memory_counter.hh"
@@ -73,7 +73,7 @@ CurvesGeometry::CurvesGeometry(const int point_num, const int curve_num)
   CustomData_reset(&this->point_data);
   CustomData_reset(&this->curve_data_legacy);
   new (&this->attribute_storage.wrap()) bke::AttributeStorage();
-  BLI_listbase_clear(&this->vertex_group_names);
+  this->vertex_group_names.clear_no_delete();
 
   this->attributes_for_write().add<float3>(
       "position", AttrDomain::Point, AttributeInitConstruct());
@@ -184,7 +184,7 @@ CurvesGeometry::CurvesGeometry(CurvesGeometry &&other)
   other.curve_num = 0;
 
   this->vertex_group_names = other.vertex_group_names;
-  BLI_listbase_clear(&other.vertex_group_names);
+  other.vertex_group_names.clear_no_delete();
 
   this->vertex_group_active_index = other.vertex_group_active_index;
   other.vertex_group_active_index = 0;
@@ -210,7 +210,7 @@ CurvesGeometry::~CurvesGeometry()
 {
   CustomData_free(&this->point_data);
   this->attribute_storage.wrap().~AttributeStorage();
-  BLI_freelistN(&this->vertex_group_names);
+  this->vertex_group_names.free_no_destruct();
   if (this->runtime) {
     implicit_sharing::free_shared_data(&this->curve_offsets,
                                        &this->runtime->curve_offsets_sharing_info);
@@ -284,6 +284,7 @@ void CurvesGeometry::fill_curve_types(const IndexMask &selection, const CurveTyp
 
 std::array<int, CURVE_TYPES_NUM> calculate_type_counts(const VArray<int8_t> &types)
 {
+  PRF_scope(ProfileCategory::Core);
   using CountsType = std::array<int, CURVE_TYPES_NUM>;
   CountsType counts;
   counts.fill(0);
@@ -649,6 +650,7 @@ static void calculate_evaluated_offsets(const CurvesGeometry &curves,
                                         MutableSpan<int> offsets,
                                         MutableSpan<int> all_bezier_offsets)
 {
+  PRF_scope(ProfileCategory::Default);
   const OffsetIndices points_by_curve = curves.points_by_curve();
   const VArray<int8_t> types = curves.curve_types();
   const VArray<int> resolution = curves.resolution();
@@ -763,6 +765,7 @@ void CurvesGeometry::ensure_nurbs_basis_cache() const
 {
   const CurvesGeometryRuntime &runtime = *this->runtime;
   runtime.nurbs_basis_cache.ensure([&](Vector<curves::nurbs::BasisCache> &r_data) {
+    PRF_scope_with_name("CurvesGeometry::ensure_nurbs_basis_cache", ProfileCategory::Default);
     IndexMaskMemory memory;
     const IndexMask nurbs_mask = this->indices_for_curve_type(CURVE_TYPE_NURBS, memory);
     if (nurbs_mask.is_empty()) {
@@ -833,6 +836,7 @@ Span<float3> CurvesGeometry::evaluated_positions() const
   }
   this->ensure_nurbs_basis_cache();
   runtime.evaluated_position_cache.ensure([&](Vector<float3> &r_data) {
+    PRF_scope_with_name("CurvesGeometry::evaluated_positions", ProfileCategory::Default);
     r_data.resize(this->evaluated_points_num());
     MutableSpan<float3> evaluated_positions = r_data;
 
@@ -915,6 +919,7 @@ Span<float3> CurvesGeometry::evaluated_tangents() const
 {
   const CurvesGeometryRuntime &runtime = *this->runtime;
   runtime.evaluated_tangent_cache.ensure([&](Vector<float3> &r_data) {
+    PRF_scope_with_name("CurvesGeometry::evaluated_tangents", ProfileCategory::Default);
     const OffsetIndices<int> evaluated_points_by_curve = this->evaluated_points_by_curve();
     const Span<float3> evaluated_positions = this->evaluated_positions();
     const VArray<bool> cyclic = this->cyclic();
@@ -976,7 +981,7 @@ static void rotate_directions_around_axes(MutableSpan<float3> directions,
 {
   for (const int i : directions.index_range()) {
     const float3 axis = axes[i];
-    if (UNLIKELY(math::is_zero(axis))) {
+    if (math::is_zero(axis)) [[unlikely]] {
       continue;
     }
     directions[i] = math::rotate_direction_around_axis(directions[i], axis, angles[i]);
@@ -1163,6 +1168,7 @@ void CurvesGeometry::interpolate_to_evaluated(const GSpan src, GMutableSpan dst)
       this->nurbs_weights(),
   };
   const OffsetIndices evaluated_points_by_curve = this->evaluated_points_by_curve();
+  PRF_scope_with_name("CurvesGeometry::interpolate_to_evaluated", ProfileCategory::Default);
 
   threading::parallel_for(this->curves_range(), 512, [&](IndexRange curves_range) {
     for (const int curve_index : curves_range) {
@@ -1178,6 +1184,7 @@ void CurvesGeometry::ensure_evaluated_lengths() const
 {
   const CurvesGeometryRuntime &runtime = *this->runtime;
   runtime.evaluated_length_cache.ensure([&](Vector<float> &r_data) {
+    PRF_scope_with_name("CurvesGeometry::ensure_evaluated_lengths", ProfileCategory::Default);
     /* Use an extra length value for the final cyclic segment for a consistent size
      * (see comment on #evaluated_length_cache). */
     const int total_num = this->evaluated_points_num() + this->curves_num();
@@ -1492,6 +1499,7 @@ CurvesGeometry curves_copy_point_selection(const CurvesGeometry &curves,
                                            const IndexMask &points_to_copy,
                                            const AttributeFilter &attribute_filter)
 {
+  PRF_scope(ProfileCategory::Core);
   const Array<int> point_to_curve_map = curves.point_to_curve_map();
   Array<int> curve_point_counts(curves.curves_num(), 0);
   points_to_copy.foreach_index_optimized<int64_t>(
@@ -1588,6 +1596,7 @@ CurvesGeometry curves_copy_curve_selection(const CurvesGeometry &curves,
                                            const IndexMask &curves_to_copy,
                                            const AttributeFilter &attribute_filter)
 {
+  PRF_scope(ProfileCategory::Core);
   const OffsetIndices points_by_curve = curves.points_by_curve();
   CurvesGeometry dst_curves(0, curves_to_copy.size());
   const OffsetIndices dst_points_by_curve = offset_indices::gather_selected_offsets(
@@ -1838,6 +1847,7 @@ void adapt_curve_domain_point_to_curve_impl(const CurvesGeometry &curves,
 static GVArray adapt_curve_domain_point_to_curve(const CurvesGeometry &curves,
                                                  const GVArray &varray)
 {
+  PRF_scope(ProfileCategory::Default);
   GVArray new_varray;
   attribute_math::to_static_type(varray.type(), [&]<typename T>() {
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
@@ -1861,6 +1871,7 @@ static void adapt_curve_domain_curve_to_point_impl(const CurvesGeometry &curves,
                                                    const VArray<T> &old_values,
                                                    MutableSpan<T> r_values)
 {
+  PRF_scope(ProfileCategory::Default);
   const OffsetIndices points_by_curve = curves.points_by_curve();
   for (const int i_curve : IndexRange(curves.curves_num())) {
     r_values.slice(points_by_curve[i_curve]).fill(old_values[i_curve]);
@@ -1870,6 +1881,7 @@ static void adapt_curve_domain_curve_to_point_impl(const CurvesGeometry &curves,
 static GVArray adapt_curve_domain_curve_to_point(const CurvesGeometry &curves,
                                                  const GVArray &varray)
 {
+  PRF_scope(ProfileCategory::Default);
   GVArray new_varray;
   attribute_math::to_static_type(varray.type(), [&]<typename T>() {
     Array<T> values(curves.points_num());

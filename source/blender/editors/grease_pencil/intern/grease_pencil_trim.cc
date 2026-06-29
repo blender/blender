@@ -8,7 +8,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_lasso_2d.hh"
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 #include "BLI_task.hh"
 
 #include "DNA_brush_types.h"

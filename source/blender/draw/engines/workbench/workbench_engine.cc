@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_rect.hh"
+#include "BLI_string.hh"
 
 #include "DNA_fluid_types.h"
 
@@ -165,7 +165,7 @@ class Instance : public DrawEngine {
       return;
     }
 
-    const ObjectState object_state = ObjectState(this->draw_ctx, scene_state_, resources_, ob);
+    ObjectState object_state = ObjectState(this->draw_ctx, scene_state_, resources_, ob, manager);
 
     bool is_object_data_visible = (DRW_object_visibility_in_active_context(ob) &
                                    OB_VISIBLE_SELF) &&
@@ -191,12 +191,12 @@ class Instance : public DrawEngine {
     if (is_object_data_visible) {
       if (object_state.sculpt_pbvh) {
         ResourceHandleRange handle = manager.unique_handle_for_sculpt(ob_ref);
-        this->sculpt_sync(ob_ref, handle, object_state);
+        this->sculpt_sync(manager, ob_ref, handle, object_state);
         emitter_handle = handle;
       }
       else if (ob->type == OB_MESH) {
         ResourceHandleRange handle = manager.unique_handle(ob_ref);
-        this->mesh_sync(ob_ref, handle, object_state);
+        this->mesh_sync(manager, ob_ref, handle, object_state);
         emitter_handle = handle;
       }
       else if (ob->type == OB_POINTCLOUD) {
@@ -279,7 +279,10 @@ class Instance : public DrawEngine {
     });
   }
 
-  void mesh_sync(ObjectRef &ob_ref, ResourceHandleRange handle, const ObjectState &object_state)
+  void mesh_sync(Manager &manager,
+                 ObjectRef &ob_ref,
+                 ResourceHandleRange handle,
+                 const ObjectState &object_state)
   {
     bool has_transparent_material = false;
 
@@ -307,7 +310,7 @@ class Instance : public DrawEngine {
 
           MaterialTexture texture;
           if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
-            texture = MaterialTexture(ob_ref.object, material_slot);
+            texture = MaterialTexture(manager, ob_ref.object, material_slot);
           }
 
           this->draw_mesh(
@@ -345,7 +348,10 @@ class Instance : public DrawEngine {
     }
   }
 
-  void sculpt_sync(ObjectRef &ob_ref, ResourceHandleRange handle, const ObjectState &object_state)
+  void sculpt_sync(Manager &manager,
+                   ObjectRef &ob_ref,
+                   ResourceHandleRange handle,
+                   const ObjectState &object_state)
   {
     SculptBatchFeature features = SCULPT_BATCH_DEFAULT;
     if (object_state.color_type == V3D_SHADING_VERTEX_COLOR) {
@@ -364,7 +370,7 @@ class Instance : public DrawEngine {
 
         MaterialTexture texture;
         if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
-          texture = MaterialTexture(ob_ref.object, batch.material_slot);
+          texture = MaterialTexture(manager, ob_ref.object, batch.material_slot);
         }
 
         this->draw_mesh(
@@ -412,7 +418,7 @@ class Instance : public DrawEngine {
     Material mat = this->get_material(ob_ref, object_state.color_type, psys->part->omat - 1);
     MaterialTexture texture;
     if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
-      texture = MaterialTexture(ob_ref.object, psys->part->omat - 1);
+      texture = MaterialTexture(manager, ob_ref.object, psys->part->omat - 1);
     }
     resources_.material_buf.append(mat);
     int material_index = resources_.material_buf.size() - 1;
@@ -479,10 +485,10 @@ class Instance : public DrawEngine {
 
     GPUAttachment id_attachment = GPU_ATTACHMENT_NONE;
     if (scene_state_.draw_object_id) {
-      resources_.object_id_tx.acquire(resolution,
-                                      gpu::TextureFormat::UINT_16,
-                                      GPU_TEXTURE_USAGE_SHADER_READ |
-                                          GPU_TEXTURE_USAGE_ATTACHMENT);
+      resources_.object_id_tx.acquire_2d(resolution,
+                                         gpu::TextureFormat::UINT_16,
+                                         GPU_TEXTURE_USAGE_SHADER_READ |
+                                             GPU_TEXTURE_USAGE_ATTACHMENT);
       id_attachment = GPU_ATTACHMENT_TEXTURE(resources_.object_id_tx);
     }
     resources_.clear_fb.ensure(GPU_ATTACHMENT_TEXTURE(resources_.depth_tx),

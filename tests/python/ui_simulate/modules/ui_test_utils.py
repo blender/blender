@@ -194,3 +194,14 @@ def cursor_motion_data_circle(center, radius):
     return [
         (int(center[0] + -radius * sin(phi)), int(center[1] + radius * cos(phi))) for phi in angles
     ]
+
+
+# Grid helpers
+def largest_area(screen):
+    """
+    Return the currently largest visible area in the screen.
+    """
+    return max(
+        screen.areas,
+        key=lambda a: a.width * a.height
+    )

@@ -42,7 +42,7 @@ bool operator==(const SymmetricBlurWeightsKey &a, const SymmetricBlurWeightsKey 
  * are computed and the user takes that into consideration. */
 class SymmetricBlurWeights : public CachedResource {
  public:
-  Result result;
+  Result weights;
 
   SymmetricBlurWeights(Context &context, math::FilterKernel type, float2 radius);
 

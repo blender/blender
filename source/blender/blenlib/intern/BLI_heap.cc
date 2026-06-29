@@ -13,10 +13,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_heap.h"
-#include "BLI_utildefines.h"
+#include "BLI_heap.hh"
+#include "BLI_utildefines.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 
@@ -99,7 +99,7 @@ static void heap_down(Heap *heap, uint i)
       smallest = r;
     }
 
-    if (UNLIKELY(smallest == i)) {
+    if (smallest == i) [[unlikely]] {
       break;
     }
 
@@ -112,7 +112,7 @@ static void heap_up(Heap *heap, uint i)
 {
   HeapNode **const tree = heap->tree;
 
-  while (LIKELY(i > 0)) {
+  while (i > 0) [[likely]] {
     const uint p = HEAP_PARENT(i);
 
     if (HEAP_COMPARE(tree[p], tree[i])) {
@@ -149,7 +149,7 @@ static HeapNode *heap_node_alloc(Heap *heap)
   }
   else {
     HeapNode_Chunk *chunk = heap->nodes.chunk;
-    if (UNLIKELY(chunk->size == chunk->bufsize)) {
+    if (chunk->size == chunk->bufsize) [[unlikely]] {
       chunk = heap->nodes.chunk = heap_node_alloc_chunk(HEAP_CHUNK_DEFAULT_NUM, chunk);
     }
     node = &chunk->buf[chunk->size++];
@@ -237,7 +237,7 @@ HeapNode *BLI_heap_insert(Heap *heap, float value, void *ptr)
 {
   HeapNode *node;
 
-  if (UNLIKELY(heap->size >= heap->bufsize)) {
+  if (heap->size >= heap->bufsize) [[unlikely]] {
     heap->bufsize *= 2;
     heap->tree = static_cast<HeapNode **>(
         MEM_realloc_uninitialized(heap->tree, heap->bufsize * sizeof(*heap->tree)));

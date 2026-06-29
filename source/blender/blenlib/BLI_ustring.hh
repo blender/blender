@@ -122,10 +122,10 @@ template<> struct DefaultHash<UString> {
 template<FixedString FStr> inline UString operator""_ustr()
 {
   /* This is a more optimized variant of just doing this:
-   *   ```
+   * \code{.cc}
    *   static UString ustr(FStr.data);
    *   return ustr
-   *   ```
+   * \endcode
    *
    * The goal of the actual implementation is to improve upon performance and binary size compared
    * to the above. This is possible here we have two pieces of information the compiler can't have:

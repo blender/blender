@@ -92,4 +92,6 @@ void Engine::free_static()
   ShaderCache::release();
 }
 
+/** \} */
+
 }  // namespace blender::draw::edit_select_debug

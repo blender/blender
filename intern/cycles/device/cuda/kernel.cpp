@@ -16,8 +16,7 @@ void CUDADeviceKernels::load(CUDADevice *device)
   for (int i = 0; i < (int)DEVICE_KERNEL_NUM; i++) {
     CUDADeviceKernel &kernel = kernels_[i];
 
-    /* No mega-kernel used for GPU. */
-    if (i == DEVICE_KERNEL_INTEGRATOR_MEGAKERNEL) {
+    if (!device_kernel_has_gpu_function((DeviceKernel)i)) {
       continue;
     }
 

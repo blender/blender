@@ -9,8 +9,8 @@
 #include <algorithm>
 #include <cstring>
 
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_action_types.h"
 #include "DNA_screen_types.h"
@@ -82,9 +82,7 @@ TreeElement *outliner_find_item_at_y(const SpaceOutliner *space_outliner,
         return &te_iter;
       }
 
-      if (BLI_listbase_is_empty(&te_iter.subtree) ||
-          !TSELEM_OPEN(TREESTORE(&te_iter), space_outliner))
-      {
+      if (te_iter.subtree.is_empty() || !TSELEM_OPEN(TREESTORE(&te_iter), space_outliner)) {
         /* No need for recursion. */
         continue;
       }

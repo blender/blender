@@ -20,13 +20,13 @@
 #include "DNA_text_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_rect.h"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rect.hh"
+#include "BLI_string.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_action.hh"
 #include "BKE_bpath.hh"
@@ -81,7 +81,7 @@ static void camera_copy_data(Main * /*bmain*/,
   /* We never handle user-count here for owned data. */
   const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
 
-  BLI_listbase_clear(&cam_dst->bg_images);
+  cam_dst->bg_images.clear_no_delete();
   for (CameraBGImage &bgpic_src : cam_src->bg_images) {
     CameraBGImage *bgpic_dst = BKE_camera_background_image_copy(&bgpic_src, flag_subdata);
     BLI_addtail(&cam_dst->bg_images, bgpic_dst);
@@ -96,7 +96,7 @@ static void camera_copy_data(Main * /*bmain*/,
 static void camera_free_data(ID *id)
 {
   Camera *cam = id_cast<Camera *>(id);
-  BLI_freelistN(&cam->bg_images);
+  cam->bg_images.free_no_destruct();
   if (cam->custom_bytecode) {
     MEM_delete(cam->custom_bytecode);
   }

@@ -6,7 +6,7 @@
  * \ingroup gpu
  */
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BKE_global.hh"
 
@@ -31,11 +31,12 @@ static bool check_texture_format_compatability(TextureFormat src_format, Texture
 
   /* Metal's newTextureViewWithPixelFormat doesn't support aliasing on depth, stencil,
    * or compressed formats. */
-  GPUTextureFormatFlag format_flag = to_format_flag(src_format);
-  if (bool(format_flag & GPU_FORMAT_DEPTH_STENCIL)) {
+  GPUTextureFormatFlag src_format_flag = to_format_flag(src_format);
+  if (bool(src_format_flag & (GPU_FORMAT_DEPTH_STENCIL | GPU_FORMAT_COMPRESSED))) {
     return false;
   }
-  if (bool(format_flag & GPU_FORMAT_COMPRESSED)) {
+  GPUTextureFormatFlag dst_format_flag = to_format_flag(dst_format);
+  if (bool(dst_format_flag & (GPU_FORMAT_DEPTH_STENCIL | GPU_FORMAT_COMPRESSED))) {
     return false;
   }
 
@@ -54,10 +55,12 @@ MTLTexturePool::~MTLTexturePool()
   }
 }
 
-Texture *MTLTexturePool::acquire_texture(int2 extent,
-                                         TextureFormat format,
-                                         eGPUTextureUsage usage,
-                                         const char *name)
+Texture *MTLTexturePool::acquire_texture_impl(int3 extent,
+                                              int mip_len,
+                                              GPUTextureType type,
+                                              TextureFormat format,
+                                              eGPUTextureUsage usage,
+                                              const char *name)
 {
   eGPUTextureUsage usage_flag = usage | GPU_TEXTURE_USAGE_FORMAT_VIEW;
 
@@ -67,7 +70,12 @@ Texture *MTLTexturePool::acquire_texture(int2 extent,
   for (uint64_t i : pool_.index_range()) {
     const AllocationHandle &handle = pool_[i];
     /* Do dimensions match? */
-    if (int2(handle.texture->w_, handle.texture->h_) != extent) {
+    if (int3(handle.texture->w_, handle.texture->h_, handle.texture->d_) != extent) {
+      /* TODO(not_mark): sub-view on `texture->d_`. */
+      continue;
+    }
+    if (handle.texture->mip_count() != mip_len) {
+      /* TODO(not_mark): sub-view on mip levels. */
       continue;
     }
     /* Are the formats compatible? */
@@ -112,8 +120,34 @@ Texture *MTLTexturePool::acquire_texture(int2 extent,
     if (G.debug & G_DEBUG_GPU) {
       texture_name_str = fmt::format("TexFromPool_{}", pool_.size());
     }
-    texture_handle.texture = unwrap(GPU_texture_create_2d(
-        texture_name_str.c_str(), extent.x, extent.y, 1, format, usage_flag, nullptr));
+
+    Texture *texture = GPUBackend::get()->texture_alloc(texture_name_str.c_str());
+    texture->usage_set(usage | GPU_TEXTURE_USAGE_FORMAT_VIEW);
+    bool texture_result = false;
+    UNUSED_VARS_NDEBUG(texture_result);
+    switch (type) {
+      case GPU_TEXTURE_1D:
+      case GPU_TEXTURE_1D_ARRAY:
+        texture_result = texture->init_1D(extent.x, extent.y, mip_len, format);
+        break;
+      case GPU_TEXTURE_2D:
+      case GPU_TEXTURE_2D_ARRAY:
+        texture_result = texture->init_2D(extent.x, extent.y, extent.z, mip_len, format);
+        break;
+      case GPU_TEXTURE_3D:
+        texture_result = texture->init_3D(extent.x, extent.y, extent.z, mip_len, format);
+        break;
+      case GPU_TEXTURE_CUBE:
+      case GPU_TEXTURE_CUBE_ARRAY:
+        texture_result = texture->init_cubemap(extent.x, extent.y, mip_len, format);
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
+    BLI_assert(texture_result);
+
+    texture_handle.texture = unwrap(texture);
     exact_format_match = true;
   }
 
@@ -130,12 +164,6 @@ Texture *MTLTexturePool::acquire_texture(int2 extent,
   }
   GPU_memory_barrier(barrier);
 
-  if (G.debug & G_DEBUG_GPU) {
-    current_usage_data_.usage_count++;
-    current_usage_data_.usage_count_max = std::max(current_usage_data_.usage_count,
-                                                   current_usage_data_.usage_count_max);
-  }
-
   /* Only create a view if the format actually differs.
    * This removes the limitation that the view will strip
    * any render-target or shader-write usage flags. */
@@ -151,9 +179,40 @@ Texture *MTLTexturePool::acquire_texture(int2 extent,
       view_name_str = name ? name : texture_handle.texture->name_;
     }
 
-    /* Create texture view and add to handle. */
-    texture_handle.view = unwrap(GPU_texture_create_view(
-        view_name_str.c_str(), texture_handle.texture, format, 0, 1, 0, 1, false, false));
+    /* Assemble texture view and add to handle. */
+    Texture *view = GPUBackend::get()->texture_alloc(view_name_str.c_str());
+    bool view_result = false;
+    UNUSED_VARS_NDEBUG(view_result);
+    switch (type) {
+      case GPU_TEXTURE_1D:
+      case GPU_TEXTURE_2D:
+      case GPU_TEXTURE_3D:
+      case GPU_TEXTURE_CUBE:
+        view_result = view->init_view(
+            texture_handle.texture, format, type, 0, mip_len, 0, 1, false, false);
+        break;
+      case GPU_TEXTURE_1D_ARRAY:
+        view_result = view->init_view(
+            texture_handle.texture, format, type, 0, mip_len, 0, extent.y, false, false);
+        break;
+      case GPU_TEXTURE_2D_ARRAY:
+      case GPU_TEXTURE_CUBE_ARRAY:
+        view_result = view->init_view(
+            texture_handle.texture, format, type, 0, mip_len, 0, extent.z, false, false);
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
+    BLI_assert(view_result);
+
+    texture_handle.view = unwrap(view);
+  }
+
+  if (G.debug & G_DEBUG_GPU) {
+    current_usage_data_.usage_count++;
+    current_usage_data_.usage_count_max = std::max(current_usage_data_.usage_count,
+                                                   current_usage_data_.usage_count_max);
   }
 
   acquired_.add(texture_handle);

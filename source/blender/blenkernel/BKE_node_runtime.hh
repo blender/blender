@@ -34,15 +34,14 @@ struct bNodeSocket;
 struct bNodeTree;
 
 namespace nodes {
-struct FieldInferencingInterface;
 struct EvalDependencies;
 struct GeneratedTreeSrnaData;
 class NodeDeclaration;
 struct GeometryNodesLazyFunctionGraphInfo;
 struct StructureTypeInterface;
-namespace anonymous_attribute_lifetime {
+namespace reference_lifetimes {
 }
-namespace aal = anonymous_attribute_lifetime;
+namespace rl = reference_lifetimes;
 namespace gizmos {
 struct TreeGizmoPropagation;
 }
@@ -166,10 +165,6 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
   /** Contains RNA types generated for the compositor strip modifier interface. */
   std::shared_ptr<nodes::GeneratedTreeSrnaData> compositor_nodes_srna_data;
 
-  /** Information about how inputs and outputs of the node group interact with fields. */
-  std::unique_ptr<nodes::FieldInferencingInterface> field_inferencing_interface;
-  /** Field status for every socket, accessed with #bNodeSocket::index_in_tree(). */
-  Array<FieldSocketState> field_states;
   /** Information about usage of anonymous attributes within the group. */
   std::unique_ptr<node_tree_reference_lifetimes::ReferenceLifetimesInfo> reference_lifetimes_info;
   std::unique_ptr<nodes::gizmos::TreeGizmoPropagation> gizmo_propagation;
@@ -245,12 +240,6 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
    * those are not used when the node tree is evaluated.
    */
   std::unique_ptr<nodes::EvalDependencies> eval_dependencies;
-
-  /**
-   * Node previews for the compositor.
-   * Only available in base node trees (e.g. scene->compositing_node_group).
-   */
-  Map<bNodeInstanceKey, bNodePreview> previews;
 
   /** Only valid when #topology_cache_is_dirty is false. */
   Vector<bNodeLink *> links;
@@ -485,10 +474,6 @@ inline bool topology_cache_is_available(const bNodeSocket &socket)
 }
 
 }  // namespace node_tree_runtime
-
-namespace node_field_inferencing {
-bool update_field_inferencing(const bNodeTree &tree);
-}
 
 namespace node_structure_type_inferencing {
 bool update_structure_type_interface(bNodeTree &tree);

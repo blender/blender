@@ -19,6 +19,7 @@
 #include "BLI_offset_indices.hh"
 #include "BLI_set.hh"
 
+#include "BKE_attribute_enums.hh"
 #include "BKE_attribute_filters.hh"
 
 namespace blender {
@@ -38,53 +39,8 @@ namespace bke {
 class AttributeAccessor;
 class MutableAttributeAccessor;
 
-/** Some storage types are only relevant for certain attribute types. */
-enum class AttrStorageType : int8_t {
-  /** #AttributeDataArray. */
-  Array = 0,
-  /** A single value for the whole attribute. */
-  Single = 1,
-};
-
-enum class AttrType : int16_t {
-  Bool = 0,
-  Int8 = 1,
-  Int16_2D = 2,
-  Int32 = 3,
-  Int32_2D = 4,
-  Float = 5,
-  Float2 = 6,
-  Float3 = 7,
-  Float4x4 = 8,
-  ColorByte = 9,
-  ColorFloat = 10,
-  Quaternion = 11,
-  String = 12,
-  Float4 = 13,
-};
-
 const CPPType &attribute_type_to_cpp_type(AttrType type);
 AttrType cpp_type_to_attribute_type(const CPPType &type);
-
-enum class AttrDomain : int8_t {
-  /* Used to choose automatically based on other data. */
-  Auto = -1,
-  /* Mesh, Curve or Point Cloud Point. */
-  Point = 0,
-  /* Mesh Edge. */
-  Edge = 1,
-  /* Mesh Face. */
-  Face = 2,
-  /* Mesh Corner. */
-  Corner = 3,
-  /* A single curve in a larger curve data-block. */
-  Curve = 4,
-  /* Instance. */
-  Instance = 5,
-  /* A layer in a grease pencil data-block. */
-  Layer = 6,
-};
-#define ATTR_DOMAIN_NUM 7
 
 /**
  * Contains information about an attribute in a geometry component.
@@ -755,6 +711,9 @@ class AttributeAccessor {
    * Get a set of all attributes.
    */
   Set<StringRefNull> all_names() const;
+
+  /** True if there are any anonymous attributes. */
+  bool has_anonymous() const;
 };
 
 /**
@@ -847,6 +806,29 @@ class MutableAttributeAccessor : public AttributeAccessor {
     return this->add(name, domain, data_type, initializer);
   }
 
+  bool add_override(const StringRef name,
+                    const AttrDomain domain,
+                    const AttrType data_type,
+                    const AttributeInit &initializer)
+  {
+    if (name.is_empty()) {
+      return false;
+    }
+    if (!this->domain_supported(domain)) {
+      return false;
+    }
+    const std::optional<AttributeMetaData> old_meta = this->lookup_meta_data(name);
+    if (old_meta.has_value()) {
+      if (old_meta->domain == domain && old_meta->data_type == data_type) {
+        return this->assign_data(name, initializer);
+      }
+      if (!this->remove(name)) {
+        return false;
+      }
+    }
+    return this->add(name, domain, data_type, initializer);
+  }
+
   bool assign_data(const StringRef name, const AttributeInit &initializer)
   {
     BLI_assert(this->contains(name));
@@ -927,6 +909,104 @@ class MutableAttributeAccessor : public AttributeAccessor {
                                                            const AttrDomain domain)
   {
     AttributeWriter<T> attribute = this->lookup_or_add_for_write<T>(
+        name, domain, AttributeInitConstruct());
+
+    if (attribute) {
+      return SpanAttributeWriter<T>{std::move(attribute), false};
+    }
+    return {};
+  }
+
+  /**
+   * Find an attribute with the given id->name, domain and data type. If it does not exist, create
+   * a new attribute. If the attribute with the same name but a different type or domain already
+   * exists the attribute will be converted to match the type and domain and then returned. This
+   * can only fail for certain built-in attributes, so when you are sure you are not handling one
+   * of those you don't need to check if the accessor is valid.
+   */
+  GAttributeWriter convert_or_add_for_write(
+      StringRef name,
+      AttrDomain domain,
+      AttrType data_type,
+      const AttributeInit &initializer = AttributeInitDefaultValue());
+
+  /**
+   * Find an attribute with the given id, domain and data type. If it does not exist, create a new
+   * attribute. If the attribute with the same name but a different type or domain already exists
+   * the attribute will be converted to match the type and domain and then returned. The existing
+   * data will not be converted, as the write_only indicates the attribute will be rewritten.
+   * Also see the note on built-in attributes above.
+   */
+  GAttributeWriter convert_or_add_for_write_only(StringRef name,
+                                                 AttrDomain domain,
+                                                 AttrType data_type);
+
+  /**
+   * Same as above, but returns a type that makes it easier to work with the attribute as a span.
+   * If the caller newly initializes the attribute, it's better to use
+   * #convert_or_add_for_write_only_span.
+   * Also see the note on built-in attributes above.
+   */
+  GSpanAttributeWriter convert_or_add_for_write_span(
+      StringRef name,
+      AttrDomain domain,
+      AttrType data_type,
+      const AttributeInit &initializer = AttributeInitDefaultValue());
+
+  /**
+   * Same as above, but should be used when the type is known at compile time.
+   * Also see the note on built-in attributes above.
+   */
+  template<typename T>
+  AttributeWriter<T> convert_or_add_for_write(
+      const StringRef name,
+      const AttrDomain domain,
+      const AttributeInit &initializer = AttributeInitDefaultValue())
+  {
+    const CPPType &cpp_type = CPPType::get<T>();
+    const AttrType data_type = cpp_type_to_attribute_type(cpp_type);
+    return this->convert_or_add_for_write(name, domain, data_type, initializer).typed<T>();
+  }
+
+  /**
+   * Same as above, but should be used when the type is known at compile time.
+   * Also see the note on built-in attributes above.
+   */
+  template<typename T>
+  SpanAttributeWriter<T> convert_or_add_for_write_span(
+      const StringRef name,
+      const AttrDomain domain,
+      const AttributeInit &initializer = AttributeInitDefaultValue())
+  {
+    AttributeWriter<T> attribute = this->convert_or_add_for_write<T>(name, domain, initializer);
+    BLI_assert(attribute);
+    return SpanAttributeWriter<T>{std::move(attribute), true};
+  }
+
+  /**
+   * Find an attribute with the given id, domain and data type. If it does not exist, create a new
+   * attribute. If an attribute with the same name but a differing domain/type already exists
+   * the attribute will be converted to the new domain/type.
+   *
+   * The "only" in the name indicates that the caller should not read existing values from the
+   * span. If the attribute is not stored as span internally, the existing values won't be copied
+   * over to the span.
+   *
+   * For trivial types, the values in a newly created attribute will not be initialized.
+   * Also see the note on built-in attributes above.
+   */
+  GSpanAttributeWriter convert_or_add_for_write_only_span(StringRef name,
+                                                          AttrDomain domain,
+                                                          AttrType data_type);
+
+  /**
+   * Same as above, but should be used when the type is known at compile time.
+   */
+  template<typename T>
+  SpanAttributeWriter<T> convert_or_add_for_write_only_span(const StringRef name,
+                                                            const AttrDomain domain)
+  {
+    AttributeWriter<T> attribute = this->convert_or_add_for_write<T>(
         name, domain, AttributeInitConstruct());
 
     if (attribute) {

@@ -10,10 +10,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
-#include "BLI_sort.h"
-#include "BLI_stack.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_sort.hh"
+#include "BLI_stack_c.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_bvhutils.hh"
@@ -795,6 +795,15 @@ bool BM_mesh_intersect_edges(
 
           BMVert *v_new = BM_edge_split(bm, e, e->v1, nullptr, lambda);
           pair_elem->vert = v_new;
+        }
+
+        /* As this function uses face-normals to check if a point is "within" a face,
+         * (asserting on stale face normals), recalculated modified faces.
+         * Note that vertex normals are *not* recalculated as it's not needed. */
+        if (BMLoop *l_iter = e->l) {
+          do {
+            BM_face_normal_update(l_iter->f);
+          } while ((l_iter = l_iter->radial_next) != e->l);
         }
       }
 

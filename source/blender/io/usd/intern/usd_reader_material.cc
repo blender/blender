@@ -19,17 +19,16 @@
 #include "BKE_node_tree_update.hh"
 #include "BKE_report.hh"
 
-#include "BLI_fileops.h"
-#include "BLI_listbase.h"
+#include "BLI_fileops.hh"
+#include "BLI_listbase_iterator.hh"
 #include "BLI_map.hh"
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_string_utf8.h"
 #include "BLI_vector.hh"
 
+#include "DNA_listBase.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 
@@ -169,7 +168,7 @@ static Vector<int> get_udim_tiles(const std::string &file_path)
     }
   }
 
-  BLI_freelistN(&tiles);
+  tiles.free_no_destruct();
 
   return udim_tiles;
 }

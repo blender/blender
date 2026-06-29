@@ -6,14 +6,14 @@
  * \ingroup modifiers
  */
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
-#include "BLI_ghash.h"
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_rand.h"
-#include "BLI_task.h"
+#include "BLI_ghash.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rand_c.hh"
+#include "BLI_task_c.hh"
 
 #include "BLT_translation.hh"
 
@@ -58,13 +58,13 @@ namespace blender {
 // #define USE_TIMEIT
 
 #ifdef USE_TIMEIT
-#  include "BLI_time.h"
-#  include "BLI_time_utildefines.h"
+#  include "BLI_time.hh"
+#  include "BLI_time_utildefines.hh"
 #endif
 
-/**************************************
- * Util functions.                    *
- **************************************/
+/* -------------------------------------------------------------------- */
+/** \name Util functions.
+ * \{ */
 
 /* Util macro. */
 #define OUT_OF_MEMORY() (void)printf("WeightVGProximity: Out of memory.\n")
@@ -297,9 +297,12 @@ static void do_map(Object *ob,
   }
 }
 
-/**************************************
- * Modifiers functions.               *
- **************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Modifiers functions.
+ * \{ */
+
 static void init_data(ModifierData *md)
 {
   WeightVGProximityModifierData *wmd = reinterpret_cast<WeightVGProximityModifierData *>(md);
@@ -444,7 +447,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   /* Check if we can just return the original mesh.
    * Must have verts and therefore verts assigned to vgroups to do anything useful!
    */
-  if ((verts_num == 0) || BLI_listbase_is_empty(&mesh->vertex_group_names)) {
+  if ((verts_num == 0) || mesh->vertex_group_names.is_empty()) {
     return mesh;
   }
 
@@ -716,6 +719,8 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
     BKE_curvemapping_blend_read(reader, wmd->cmap_curve);
   }
 }
+
+/** \} */
 
 ModifierTypeInfo modifierType_WeightVGProximity = {
     /*idname*/ "VertexWeightProximity",

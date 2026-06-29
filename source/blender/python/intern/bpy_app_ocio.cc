@@ -6,7 +6,7 @@
  * \ingroup pythonintern
  */
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include <Python.h>
 
 #include "../generic/python_compat.hh" /* IWYU pragma: keep. */
@@ -53,7 +53,7 @@ static PyObject *make_ocio_info()
   SetObjItem(PyUnicode_FromFormat(
       "%2d, %2d, %2d", ocio_version.major, ocio_version.minor, ocio_version.patch));
 
-  if (UNLIKELY(PyErr_Occurred())) {
+  if (PyErr_Occurred()) [[unlikely]] {
     Py_DECREF(ocio_info);
     return nullptr;
   }

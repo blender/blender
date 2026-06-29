@@ -5,8 +5,7 @@
 #pragma once
 
 #include "draw_math_geom_lib.glsl"
-#include "draw_view_lib.glsl"
-#include "gpu_shader_math_matrix_transform_lib.glsl"
+#include "draw_shader_shared.hh"
 #include "gpu_shader_math_safe_lib.glsl"
 #include "gpu_shader_ray_lib.glsl"
 
@@ -36,10 +35,12 @@ struct ScreenSpaceRay {
 
   static ScreenSpaceRay from_start_end(float4 hs_start, float4 hs_end, float2 pixel_size)
   {
-    /* Constant bias (due to depth buffer precision). Helps with self intersection. */
-    /* Magic numbers for 24bits of precision.
-     * From http://terathon.com/gdc07_lengyel.pdf (slide 26) */
-    constexpr float bias = -2.4e-7f * 2.0f;
+    /* Constant bias (due to depth buffer precision). Helps with self intersection.
+     * Magic numbers for 24bits of precision from
+     * http://terathon.com/gdc07_lengyel.pdf (slide 26)
+     * Increased factor from 2 to 7 to work around
+     * https://projects.blender.org/blender/blender/issues/159634. */
+    constexpr float bias = -2.4e-7f * 7.0f;
     hs_start.z += bias;
     hs_end.z += bias;
 
@@ -71,10 +72,10 @@ struct ScreenSpaceRay {
     return ray;
   }
 
-  static ScreenSpaceRay create(Ray ray, float2 pixel_size)
+  static ScreenSpaceRay create(ViewMatrices view, Ray ray, float2 pixel_size)
   {
-    float4 start = drw_point_view_to_homogenous(ray.origin);
-    float4 end = drw_point_view_to_homogenous(ray.origin + ray.direction * ray.max_time);
+    float4 start = view.point_view_to_homogenous(ray.origin);
+    float4 end = view.point_view_to_homogenous(ray.origin + ray.direction * ray.max_time);
 
     return ScreenSpaceRay::from_start_end(start, end, pixel_size);
   }

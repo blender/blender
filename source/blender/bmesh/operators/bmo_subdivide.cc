@@ -12,11 +12,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
-#include "BLI_noise.h"
-#include "BLI_rand.h"
-#include "BLI_stack.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_noise_c.hh"
+#include "BLI_rand_c.hh"
+#include "BLI_stack_c.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_customdata.hh"
@@ -248,7 +248,7 @@ static void alter_co(BMVert *v,
 
   copy_v3_v3(co, v->co);
 
-  if (UNLIKELY(params->use_sphere)) { /* subdivide sphere */
+  if (params->use_sphere) [[unlikely]] { /* subdivide sphere */
     normalize_v3_length(co, params->smooth);
   }
   else if (params->use_smooth) {

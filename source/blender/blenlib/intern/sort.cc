@@ -8,7 +8,7 @@
 
 #include <cstdlib>
 
-#include "BLI_sort.h"
+#include "BLI_sort.hh"
 
 namespace blender {
 

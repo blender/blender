@@ -14,15 +14,15 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_build_config.h"
-#include "BLI_listbase.h"
-#include "BLI_string.h"
-#include "BLI_threads.h"
-#include "BLI_time.h"
-#include "BLI_utildefines.h"
+#include "BLI_build_config.hh"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
+#include "BLI_threads.hh"
+#include "BLI_time.hh"
+#include "BLI_utildefines.hh"
 
 #if OS_WINDOWS
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #endif
 
 #include "BKE_context.hh"
@@ -576,7 +576,7 @@ static void wm_job_free(wmWindowManager *wm, wmJob *wm_job)
   WM_job_main_thread_lock_release(wm_job);
   BLI_ticket_mutex_free(wm_job->main_thread_mutex);
 
-  BLI_assert(BLI_listbase_is_empty(&wm_job->worker_status.reports->list));
+  BLI_assert(wm_job->worker_status.reports->list.is_empty());
   BKE_reports_free(wm_job->worker_status.reports);
   MEM_delete(wm_job->worker_status.reports);
   MEM_delete(wm_job);

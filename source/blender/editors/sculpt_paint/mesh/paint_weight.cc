@@ -13,10 +13,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_array_utils.h"
+#include "BLI_array_utils_c.hh"
 #include "BLI_color_mix.hh"
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_base.hh"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
@@ -957,7 +957,7 @@ bool WeightPaintStroke::test_start(wmOperator *op, const float mouse[2])
   }
 
   /* check that multipaint groups are unlocked */
-  defbase_tot = BLI_listbase_count(&mesh.vertex_group_names);
+  defbase_tot = mesh.vertex_group_names.count();
   defbase_sel = BKE_object_defgroup_selected_get(&ob, defbase_tot, &defbase_tot_sel);
 
   if (ts.multipaint && defbase_tot_sel > 1) {
@@ -1099,9 +1099,7 @@ static float wpaint_get_active_weight(const MDeformVert &dv, const WeightPaintIn
 static void precompute_weight_values(
     Object &ob, const Brush &brush, WPaintData &wpd, WeightPaintInfo &wpi, Mesh &mesh)
 {
-  if (wpd.precomputed_weight_ready &&
-      !vwpaint::brush_use_accumulate_ex(brush, eObjectMode(ob.mode)))
-  {
+  if (wpd.precomputed_weight_ready && !vwpaint::brush_use_accumulate_ex(brush, ob.mode)) {
     return;
   }
 

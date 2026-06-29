@@ -26,11 +26,11 @@
 
 #undef DNA_GENFILE_VERSIONING_MACROS
 
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_multi_value_map.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_task.hh"
 
 #include "BKE_anim_data.hh"
@@ -811,7 +811,7 @@ static void versioning_fix_socket_subtype_idnames(bNodeTree *ntree)
   bNodeTreeInterface &tree_interface = ntree->tree_interface;
 
   tree_interface.foreach_item([](bNodeTreeInterfaceItem &item) -> bool {
-    if (item.item_type == NODE_INTERFACE_SOCKET) {
+    if (item.item_type == NodeTreeInterfaceItemType::Socket) {
       bNodeTreeInterfaceSocket &socket = reinterpret_cast<bNodeTreeInterfaceSocket &>(item);
       StringRef corrected_socket_type = legacy_socket_idname_to_socket_type(socket.socket_type);
       if (socket.socket_type != corrected_socket_type) {

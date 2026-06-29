@@ -9,7 +9,7 @@
 #include "BKE_curves.hh"
 
 #include "BLI_array_utils.hh"
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_length_parameterize.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_offset_indices.hh"

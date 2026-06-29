@@ -9,7 +9,7 @@
  * \brief General operations, lookup, etc. for blender lights.
  */
 
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 

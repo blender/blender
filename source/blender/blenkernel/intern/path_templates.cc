@@ -10,6 +10,7 @@
 #include "BLI_path_utils.hh"
 #include "BLI_span.hh"
 
+#include "BKE_blender_project.hh"
 #include "BKE_context.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
@@ -143,14 +144,12 @@ bool VariableMap::add_filename_only(StringRef var_name,
     /* If there is no file name, default to the fallback. */
     return this->add_filepath(var_name, fallback);
   }
-  else if (file_name_end == file_name) {
+  if (file_name_end == file_name) {
     /* When the filename has no extension, but starts with a period. */
     return this->add_filepath(var_name, StringRef(file_name));
   }
-  else {
-    /* Normal case. */
-    return this->add_filepath(var_name, StringRef(file_name, file_name_end));
-  }
+  /* Normal case. */
+  return this->add_filepath(var_name, StringRef(file_name, file_name_end));
 }
 
 bool VariableMap::add_path_up_to_file(StringRef var_name,
@@ -235,7 +234,9 @@ std::optional<VariableMap> BKE_build_template_variables_for_prop(const bContext 
   VariableMap variables;
 
   /* General variables. */
-  BKE_add_template_variables_general(variables, ptr->owner_id);
+  BKE_blender_project_read_callback(CTX_data_main(C), [&](const bke::BlenderProject *project) {
+    BKE_add_template_variables_general(variables, ptr->owner_id, project);
+  });
 
   /* Purpose-specific variables. */
   switch (RNA_property_path_template_type(prop)) {
@@ -272,8 +273,16 @@ std::optional<VariableMap> BKE_build_template_variables_for_prop(const bContext 
   return variables;
 }
 
-void BKE_add_template_variables_general(VariableMap &variables, const ID *path_owner_id)
+void BKE_add_template_variables_general(bke::path_templates::VariableMap &variables,
+                                        const ID *path_owner_id,
+                                        const bke::BlenderProject *project)
 {
+  /* Project variables. */
+  if (project) {
+    variables.add_string("project_name", project->get_name());
+    variables.add_filepath("project_root", project->get_root_path());
+  }
+
   /* Global blend filepath (a.k.a. path to the blend file that's currently
    * open). */
   {
@@ -786,9 +795,7 @@ static std::optional<Error> token_to_syntax_error(const Token &token)
       if (token.format.type == FormatSpecifierType::SYNTAX_ERROR) {
         return {{ErrorType::FORMAT_SPECIFIER, token.byte_range}};
       }
-      else {
-        return {{ErrorType::VARIABLE_SYNTAX, token.byte_range}};
-      }
+      return {{ErrorType::VARIABLE_SYNTAX, token.byte_range}};
     }
 
     case TokenType::UNESCAPED_CURLY_BRACE_ERROR: {

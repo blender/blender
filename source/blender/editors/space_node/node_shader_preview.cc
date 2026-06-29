@@ -22,9 +22,9 @@
  * the wanted viewlayer/pass for each previewed node.
  */
 
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_base_c.hh"
+#include "BLI_string_utf8.hh"
 
 #include "DNA_camera_types.h"
 #include "DNA_material_types.h"
@@ -639,7 +639,7 @@ static void preview_render(ShaderNodesPreviewJob &job_data)
   reinterpret_cast<Camera *>(scene->camera->data)->lens = oldlens;
 
   /* Free the aov layers and the layers generated for each node. */
-  BLI_freelistN(&AOV_layer->aovs);
+  AOV_layer->aovs.free_no_destruct();
   ViewLayer *vl = AOV_layer->next;
   while (vl) {
     ViewLayer *vl_rem = vl;

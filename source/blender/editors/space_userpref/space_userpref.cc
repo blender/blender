@@ -11,9 +11,9 @@
 #include "DNA_space_types.h"
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
@@ -36,7 +36,9 @@
 
 namespace blender {
 
-/* ******************** default callbacks for userpref space ***************** */
+/* -------------------------------------------------------------------- */
+/** \name Default Callbacks for User Preferences Space
+ * \{ */
 
 static SpaceLink *userpref_create(const ScrArea *area, const Scene * /*scene*/)
 {
@@ -225,7 +227,7 @@ static void userpref_search_all_tabs(const bContext *C,
   SpaceUserPref sprefs_copy = dna::shallow_copy(*sprefs);
   sprefs_copy.runtime = MEM_new<SpaceUserPref_Runtime>(__func__, *sprefs->runtime);
   sprefs_copy.runtime->tab_search_results.fill(false);
-  BLI_listbase_clear(&area_copy.spacedata);
+  area_copy.spacedata.clear_no_delete();
   BLI_addtail(&area_copy.spacedata, &sprefs_copy);
   /* Loop through the tabs. */
   for (const int i : context_tabs_array.index_range()) {
@@ -416,6 +418,7 @@ void ED_spacetype_userpref()
   art->draw = ED_region_panels_draw;
   art->listener = userpref_main_region_listener;
   art->keymapflag = ED_KEYMAP_UI;
+  userpref_panels_register(*art);
 
   BLI_addhead(&st->regiontypes, art);
 

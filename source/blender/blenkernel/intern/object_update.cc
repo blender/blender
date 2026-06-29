@@ -12,10 +12,10 @@
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string.hh"
 
 #include "BKE_armature.hh"
 #include "BKE_constraint.h"
@@ -25,10 +25,12 @@
 #include "BKE_editmesh.hh"
 #include "BKE_grease_pencil.h"
 #include "BKE_grease_pencil.hh"
+#include "BKE_instances.hh"
 #include "BKE_lattice.hh"
 #include "BKE_layer.hh"
 #include "BKE_mball.hh"
 #include "BKE_mesh.hh"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -98,7 +100,7 @@ void BKE_object_eval_constraints(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
   /* evaluate constraints stack */
   /* TODO: split this into:
-   * - pre (i.e. BKE_constraints_make_evalob, per-constraint (i.e.
+   * - pre (i.e. BKE_constraints_make_evalob), per-constraint (i.e.
    * - inner body of BKE_constraints_solve),
    * - post (i.e. BKE_constraints_clear_evalob)
    *
@@ -126,12 +128,64 @@ void BKE_object_eval_transform_final(Depsgraph *depsgraph, Object *ob)
   ob->runtime->last_update_transform = DEG_get_update_count(depsgraph);
 }
 
+static void empty_object_apply_modifiers(Depsgraph *depsgraph,
+                                         Scene *scene,
+                                         Object *object,
+                                         bke::GeometrySet &geometry_set)
+{
+  const bool use_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
+  const int required_mode = use_render ? eModifierMode_Render : eModifierMode_Realtime;
+  ModifierApplyFlag apply_flag = use_render ? MOD_APPLY_RENDER : MOD_APPLY_USECACHE;
+  const ModifierEvalContext mectx = {depsgraph, object, apply_flag};
+
+  BKE_modifiers_clear_errors(object);
+
+  VirtualModifierData virtual_modifier_data;
+  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(object, &virtual_modifier_data);
+
+  /* Evaluate modifiers. */
+  for (; md; md = md->next) {
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
+
+    if (!BKE_modifier_is_enabled(scene, md, required_mode)) {
+      continue;
+    }
+
+    if (mti->modify_geometry_set) {
+      mti->modify_geometry_set(md, &mectx, &geometry_set);
+    }
+  }
+}
+
+static void empty_object_update(Depsgraph *depsgraph, Scene *scene, Object *object)
+{
+  BKE_object_free_derived_caches(object);
+
+  bke::GeometrySet geometry_set;
+  /* If the empty is instancing a collection, create an input geometry set of this collection. */
+  if (object->instance_collection != nullptr) {
+    Collection &collection = *object->instance_collection;
+    auto instances = std::make_unique<bke::Instances>(1);
+    instances->reference_handles_for_write().first() = instances->add_reference(collection);
+    instances->transforms_for_write().first() = float4x4::identity();
+    geometry_set = bke::GeometrySet::from_instances(std::move(instances));
+  }
+  /* Evaluate modifiers. */
+  empty_object_apply_modifiers(depsgraph, scene, object, geometry_set);
+
+  object->runtime->geometry_set_eval = new bke::GeometrySet(std::move(geometry_set));
+}
+
 void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   DEG_debug_print_eval(depsgraph, __func__, ob->id.name, ob);
 
   /* includes all keys and modifiers */
   switch (ob->type) {
+    case OB_EMPTY: {
+      empty_object_update(depsgraph, scene, ob);
+      break;
+    }
     case OB_MESH: {
       CustomData_MeshMasks cddata_masks = scene->customdata_mask;
       CustomData_MeshMasks_update(&cddata_masks, &CD_MASK_BAREMESH);
@@ -341,7 +395,7 @@ void BKE_object_eval_transform_all(Depsgraph *depsgraph, Scene *scene, Object *o
   if (object->parent != nullptr) {
     BKE_object_eval_parent(depsgraph, object);
   }
-  if (!BLI_listbase_is_empty(&object->constraints)) {
+  if (!object->constraints.is_empty()) {
     BKE_object_eval_constraints(depsgraph, scene, object);
   }
   BKE_object_eval_uber_transform(depsgraph, object);

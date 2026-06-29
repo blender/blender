@@ -14,7 +14,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 #include "BKE_multires.hh"
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 
 #include "multires_reshape.hh"
 
@@ -37,7 +37,6 @@ static void multires_subdivide_create_object_space_linear_grids(Mesh *mesh)
 
       float (*disps)[3] = mdisps[loop_index].disps;
       mdisps[loop_index].totdisp = 4;
-      mdisps[loop_index].level = 1;
 
       int prev_loop_index = l - 1 >= 0 ? loop_index - 1 : loop_index + face.size() - 1;
       int next_loop_index = l + 1 < face.size() ? loop_index + 1 : face.start();

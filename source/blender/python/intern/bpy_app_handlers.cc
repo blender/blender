@@ -10,7 +10,7 @@
  * functions into (called via blenders generic BLI_cb API)
  */
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include <Python.h>
 
 #include "../generic/python_compat.hh" /* IWYU pragma: keep. */
@@ -45,7 +45,8 @@ static PyTypeObject BlenderAppCbType;
 
 #define RENDER_STATS_ARG \
   "Accepts one argument: " \
-  "the render stats (render/saving time plus in background mode frame/used [peak] memory)."
+  "the render progress as a string containing current frame, current sample, render time and " \
+  "saving time."
 #define PYDOC_RENDER_STATS_TYPE "\n\n:type: list[Callable[[str], None]]"
 
 #define DEPSGRAPH_UPDATE_ARG \

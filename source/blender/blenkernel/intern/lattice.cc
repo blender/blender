@@ -12,12 +12,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_bitmap.h"
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_bitmap.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -73,6 +73,11 @@ static void lattice_copy_data(Main *bmain,
                        &lattice_dst->id,
                        reinterpret_cast<ID **>(&lattice_dst->key),
                        flag);
+    /* It has one user, but its owner reference (added in #id_copy_libmanagement_cb)
+     * is the real owner, remove the reference here, see: #159691. */
+    if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+      id_us_min(&lattice_dst->key->id);
+    }
   }
 
   BKE_defgroup_copy_list(&lattice_dst->vertex_group_names, &lattice_src->vertex_group_names);
@@ -94,7 +99,7 @@ static void lattice_free_data(ID *id)
 
   BKE_lattice_batch_cache_free(lattice);
 
-  BLI_freelistN(&lattice->vertex_group_names);
+  lattice->vertex_group_names.free_no_destruct();
 
   MEM_SAFE_DELETE(lattice->def);
   if (lattice->dvert) {
@@ -534,7 +539,7 @@ void BKE_lattice_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
   const ModifierEvalContext mectx = {depsgraph, ob, ModifierApplyFlag(0)};
 
   for (; md; md = md->next) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
     if (!(mti->flags & eModifierTypeFlag_AcceptsVertexCosOnly)) {
       continue;

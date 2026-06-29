@@ -201,7 +201,7 @@ OffsetIndices<int> build_reverse_offsets(Span<int> indices, MutableSpan<int> off
  * Used as a final step for parallel creation of grouped indices, to make results deterministic as
  * each group's indices are potentially filled from multiple threads.
  */
-void sort_small_groups(OffsetIndices<int> groups, MutableSpan<int> indices);
+void sort_groups(OffsetIndices<int> groups, MutableSpan<int> indices);
 
 /**
  * Where the `group_indices` argument maps elements into buckets, and the `offsets` argument

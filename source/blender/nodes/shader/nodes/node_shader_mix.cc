@@ -11,8 +11,8 @@
 #include "BKE_material.hh"
 
 #include "BLI_math_quaternion.hh"
-#include "BLI_math_vector.h"
-#include "BLI_string_utf8.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string_utf8.hh"
 
 #include "DNA_material_types.h"
 
@@ -152,7 +152,7 @@ static void sh_node_mix_label(const bNodeTree * /*ntree*/,
 static int sh_node_mix_ui_class(const bNode *node)
 {
   const NodeShaderMix &storage = node_storage(*node);
-  const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.data_type);
+  const eNodeSocketDatatype data_type = storage.data_type;
 
   switch (data_type) {
     case SOCK_VECTOR:
@@ -167,7 +167,7 @@ static int sh_node_mix_ui_class(const bNode *node)
 static void sh_node_mix_update(bNodeTree *ntree, bNode *node)
 {
   const NodeShaderMix &storage = node_storage(*node);
-  const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.data_type);
+  const eNodeSocketDatatype data_type = storage.data_type;
 
   bNodeSocket *sock_factor = static_cast<bNodeSocket *>(node->inputs.first);
   bNodeSocket *sock_factor_vec = static_cast<bNodeSocket *>(sock_factor->next);
@@ -204,7 +204,7 @@ class SocketSearchOp {
 static void node_mix_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   eNodeSocketDatatype type;
-  switch (eNodeSocketDatatype(params.other_socket().type)) {
+  switch (params.other_socket().type) {
     case SOCK_BOOLEAN:
     case SOCK_INT:
     case SOCK_FLOAT:
@@ -376,8 +376,7 @@ static int gpu_shader_mix(GPUMaterial *mat,
   const bool is_color_mode = storage.data_type == SOCK_RGBA;
   const bool is_vector_mode = storage.data_type == SOCK_VECTOR;
   const int blend_type = storage.blend_type;
-  const char *name = gpu_shader_get_name(
-      eNodeSocketDatatype(storage.data_type), is_non_uniform, blend_type);
+  const char *name = gpu_shader_get_name(storage.data_type, is_non_uniform, blend_type);
 
   if (name == nullptr) {
     return 0;
@@ -408,17 +407,66 @@ static int gpu_shader_mix(GPUMaterial *mat,
     }
   }
 
-  int ret = GPU_stack_link(mat, node, name, in, out);
+  /* Avoid GPU_stack_link here because it creates uniforms for unavailable sockets. */
+  int ret = 0;
+  switch (storage.data_type) {
+    case SOCK_FLOAT:
+      ret = GPU_link(mat,
+                     name,
+                     GPU_node_get_input_link(*node, in, "Factor_Float"),
+                     GPU_node_get_input_link(*node, in, "A_Float"),
+                     GPU_node_get_input_link(*node, in, "B_Float"),
+                     &GPU_node_get_output(*node, out, "Result_Float").link);
+      break;
+    case SOCK_VECTOR:
+      if (is_non_uniform) {
+        ret = GPU_link(mat,
+                       name,
+                       GPU_node_get_input_link(*node, in, "Factor_Vector"),
+                       GPU_node_get_input_link(*node, in, "A_Vector"),
+                       GPU_node_get_input_link(*node, in, "B_Vector"),
+                       &GPU_node_get_output(*node, out, "Result_Vector").link);
+      }
+      else {
+        ret = GPU_link(mat,
+                       name,
+                       GPU_node_get_input_link(*node, in, "Factor_Float"),
+                       GPU_node_get_input_link(*node, in, "A_Vector"),
+                       GPU_node_get_input_link(*node, in, "B_Vector"),
+                       &GPU_node_get_output(*node, out, "Result_Vector").link);
+      }
+      break;
+    case SOCK_RGBA:
+      ret = GPU_link(mat,
+                     name,
+                     GPU_node_get_input_link(*node, in, "Factor_Float"),
+                     GPU_node_get_input_link(*node, in, "A_Color"),
+                     GPU_node_get_input_link(*node, in, "B_Color"),
+                     &GPU_node_get_output(*node, out, "Result_Color").link);
+      break;
+    case SOCK_ROTATION:
+      ret = GPU_link(mat,
+                     name,
+                     GPU_node_get_input_link(*node, in, "Factor_Float"),
+                     GPU_node_get_input_link(*node, in, "A_Rotation"),
+                     GPU_node_get_input_link(*node, in, "B_Rotation"),
+                     &GPU_node_get_output(*node, out, "Result_Rotation").link);
+      break;
+    default:
+      BLI_assert_unreachable();
+      return 0;
+  }
 
   if (ret && is_color_mode && storage.clamp_result) {
     const float min[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     const float max[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+    GPUNodeStack &result = GPU_node_get_output(*node, out, "Result_Color");
     GPU_link(mat,
              "node_mix_clamp_color",
-             out[2].link,
+             result.link,
              GPU_constant(min),
              GPU_constant(max),
-             &out[2].link);
+             &result.link);
   }
   return ret;
 }
@@ -548,9 +596,11 @@ static const mf::MultiFunction *get_multi_function(const bNode &node)
               });
       return &fn;
     }
+    default: {
+      BLI_assert_unreachable();
+      return nullptr;
+    }
   }
-  BLI_assert_unreachable();
-  return nullptr;
 }
 
 static void sh_node_mix_build_multi_function(NodeMultiFunctionBuilder &builder)

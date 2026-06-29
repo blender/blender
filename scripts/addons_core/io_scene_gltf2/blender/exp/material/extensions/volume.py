@@ -8,12 +8,11 @@ from ...material import texture_info as gltf2_blender_gather_texture_info
 from ..search_node_tree import \
     has_image_node_from_socket, \
     get_const_from_default_value_socket, \
-    get_socket_from_gltf_material_node, \
-    get_socket, \
     get_factor_from_socket
 
 
 def export_volume(bmat, export_settings):
+    export_settings['current_texture_transform'] = {}
     # Implementation based on https://github.com/KhronosGroup/glTF-Blender-IO/issues/1454#issuecomment-928319444
 
     # If no transmission --> No volume
@@ -24,14 +23,13 @@ def export_volume(bmat, export_settings):
     thickness_slots = ()
     uvmap_info = {}
 
-    thickness_socket = get_socket_from_gltf_material_node(
-        bmat.get_used_material().node_tree, 'Thickness')
+    thickness_socket = bmat.get_socket_from_gltf_material_node('Thickness')
     if thickness_socket.socket is None:
         # If no thickness (here because there is no glTF Material Output node), no volume extension export
         return None, {}, {}
 
-    density_socket = get_socket(bmat.get_used_material().node_tree, 'Density', volume=True)
-    attenuation_color_socket = get_socket(bmat.get_used_material().node_tree, 'Color', volume=True)
+    density_socket = bmat.get_socket('Density', volume=True)
+    attenuation_color_socket = bmat.get_socket('Color', volume=True)
     # Even if density or attenuation are not set, we export volume extension
 
     if attenuation_color_socket.socket is not None and isinstance(
@@ -107,7 +105,13 @@ def export_volume(bmat, export_settings):
                 path_['path'] = export_settings['current_texture_transform'][k]['path'].replace(
                     "YYY", "extensions/KHR_materials_volume/thicknessTexture/extensions")
                 path_['vector_type'] = export_settings['current_texture_transform'][k]['vector_type']
-                export_settings['current_paths'][k] = path_
+                if k in export_settings['current_paths']:
+                    if 'additional' not in export_settings['current_paths'][k]:
+                        export_settings['current_paths'][k]['additional'] = []
+                    if path_['path'] != export_settings['current_paths'][k]['path']:
+                        export_settings['current_paths'][k]['additional'].append(path_['path'])
+                else:
+                    export_settings['current_paths'][k] = path_
 
         export_settings['current_texture_transform'] = {}
 

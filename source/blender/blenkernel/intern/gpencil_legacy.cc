@@ -16,10 +16,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
 
 #include "BLT_translation.hh"
@@ -52,14 +52,18 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "BLI_math_color.h"
-#include "BLI_string_utf8.h"
+#include "BLI_math_color_c.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BLO_read_write.hh"
 
 #include "IMB_colormanagement.hh"
 
 namespace blender {
+
+/* -------------------------------------------------------------------- */
+/** \name Grease Pencil Data Block
+ * \{ */
 
 static CLG_LogRef LOG = {"geom.gpencil"};
 
@@ -80,7 +84,7 @@ static void greasepencil_copy_data(Main * /*bmain*/,
   BKE_defgroup_copy_list(&gpd_dst->vertex_group_names, &gpd_src->vertex_group_names);
 
   /* copy layers */
-  BLI_listbase_clear(&gpd_dst->layers);
+  gpd_dst->layers.clear_no_delete();
   for (bGPDlayer &gpl_src : gpd_src->layers) {
     /* make a copy of source layer and its data */
 
@@ -360,13 +364,13 @@ void BKE_gpencil_free_stroke(bGPDstroke *gps)
 
 bool BKE_gpencil_free_strokes(bGPDframe *gpf)
 {
-  bool changed = (BLI_listbase_is_empty(&gpf->strokes) == false);
+  bool changed = (gpf->strokes.is_empty() == false);
 
   /* free strokes */
   for (bGPDstroke &gps : gpf->strokes.items_mutable()) {
     BKE_gpencil_free_stroke(&gps);
   }
-  BLI_listbase_clear(&gpf->strokes);
+  gpf->strokes.clear_no_delete();
 
   return changed;
 }
@@ -428,10 +432,10 @@ void BKE_gpencil_free_layers(ListBaseT<bGPDlayer> *list)
 void BKE_gpencil_free_legacy_palette_data(ListBaseT<bGPDpalette> *list)
 {
   for (bGPDpalette &palette : list->items_mutable()) {
-    BLI_freelistN(&palette.colors);
+    palette.colors.free_no_destruct();
     MEM_delete(&palette);
   }
-  BLI_listbase_clear(list);
+  list->clear_no_delete();
 }
 
 void BKE_gpencil_free_data(bGPdata *gpd, bool /*free_all*/)
@@ -443,7 +447,7 @@ void BKE_gpencil_free_data(bGPdata *gpd, bool /*free_all*/)
   /* materials */
   MEM_SAFE_DELETE(gpd->mat);
 
-  BLI_freelistN(&gpd->vertex_group_names);
+  gpd->vertex_group_names.free_no_destruct();
 }
 
 void BKE_gpencil_tag(bGPdata *gpd)
@@ -754,7 +758,7 @@ bGPDframe *BKE_gpencil_frame_duplicate(const bGPDframe *gpf_src, const bool dup_
   gpf_dst->prev = gpf_dst->next = nullptr;
 
   /* Copy strokes. */
-  BLI_listbase_clear(&gpf_dst->strokes);
+  gpf_dst->strokes.clear_no_delete();
   if (dup_strokes) {
     for (bGPDstroke &gps_src : gpf_src->strokes) {
       /* make copy of source stroke */
@@ -784,7 +788,7 @@ bGPDlayer *BKE_gpencil_layer_duplicate(const bGPDlayer *gpl_src,
   gpl_dst->prev = gpl_dst->next = nullptr;
 
   /* copy frames */
-  BLI_listbase_clear(&gpl_dst->frames);
+  gpl_dst->frames.clear_no_delete();
   if (dup_frames) {
     for (bGPDframe &gpf_src : gpl_src->frames) {
       /* make a copy of source frame */

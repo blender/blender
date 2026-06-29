@@ -13,15 +13,16 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_base.hh"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_string_utf8.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
+#include "BKE_layer.hh"
 
 #include "BLT_translation.hh"
 
@@ -39,14 +40,15 @@ namespace blender::ed::transform {
 eTfmMode transform_mode_really_used(bContext *C, eTfmMode mode)
 {
   if (mode == TFM_BONESIZE) {
-    Object *ob = CTX_data_active_object(C);
+    /* Use context here as `TransInfo` scene/view_layer members aren't yet initialized. */
+    Main &bmain = *CTX_data_main(C);
+    Scene *scene = CTX_data_scene(C);
+    ViewLayer *view_layer = CTX_data_view_layer(C);
+    BKE_view_layer_synced_ensure(bmain, scene, view_layer);
+    const Object *ob = BKE_view_layer_active_object_get(view_layer);
     BLI_assert(ob);
     if (ob->type != OB_ARMATURE) {
       return TFM_RESIZE;
-    }
-    bArmature *arm = id_cast<bArmature *>(ob->data);
-    if (arm->drawtype == ARM_DRAW_TYPE_ENVELOPE) {
-      return TFM_BONE_ENVELOPE_DIST;
     }
   }
 
@@ -261,7 +263,7 @@ void constraintTransLim(const TransInfo *t, const TransDataContainer *tc, TransD
     float ctime = float(t->scene->r.cfra);
 
     /* Make a temporary bConstraintOb for using these limit constraints
-     * - They only care that cob->matrix is correctly set ;-).
+     * - They only care that cob->matrix is correctly set.
      * - Current space should be local.
      */
     unit_m4(cob.matrix);
@@ -338,7 +340,7 @@ void constraintTransLim(const TransInfo *t, const TransDataContainer *tc, TransD
         }
 
         /* Free targets list. */
-        BLI_freelistN(&targets);
+        targets.free_no_destruct();
       }
     }
 
@@ -350,8 +352,8 @@ void constraintTransLim(const TransInfo *t, const TransDataContainer *tc, TransD
 static void constraintob_from_transdata(bConstraintOb *cob, TransDataExtension *td_ext)
 {
   /* Make a temporary bConstraintOb for use by limit constraints
-   * - they only care that cob->matrix is correctly set ;-)
-   * - current space should be local
+   * - They only care that cob->matrix is correctly set.
+   * - Current space should be local
    */
   memset(cob, 0, sizeof(bConstraintOb));
   if (!td_ext) {

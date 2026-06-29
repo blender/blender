@@ -2,9 +2,11 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+from .common import normalize_device_id
 from .environment import TestFailure, TestEnvironment
 from .device import TestDevice, TestMachine
 from .config import TestEntry, TestQueue, TestConfig
 from .test import Test, TestCollection
 from .graph import TestGraph
 from .table import MarkdownTable
+from .bisect import Bisect, BisectProgress

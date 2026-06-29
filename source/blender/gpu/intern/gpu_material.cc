@@ -17,11 +17,11 @@
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
-#include "BLI_string.h"
-#include "BLI_time.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string.hh"
+#include "BLI_time.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_main.hh"
 #include "BKE_material.hh"
@@ -271,7 +271,7 @@ void GPU_material_free(ListBaseT<LinkData> *gpumaterial)
     GPUMaterial *material = static_cast<GPUMaterial *>(link.data);
     GPU_material_free_single(material);
   }
-  BLI_freelistN(gpumaterial);
+  gpumaterial->free_no_destruct();
 }
 
 void GPU_materials_free(Main *bmain)
@@ -413,7 +413,7 @@ const GPUUniformAttrList *GPU_material_uniform_attributes(const GPUMaterial *mat
 const ListBaseT<GPULayerAttr> *GPU_material_layer_attributes(const GPUMaterial *material)
 {
   const ListBaseT<GPULayerAttr> *attrs = &material->graph.layer_attrs;
-  return !BLI_listbase_is_empty(attrs) ? attrs : nullptr;
+  return !attrs->is_empty() ? attrs : nullptr;
 }
 
 GPUNodeGraph *gpu_material_node_graph(GPUMaterial *material)

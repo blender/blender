@@ -330,6 +330,11 @@ enum GeometryNodeAssetTraitFlag {
 };
 ENUM_OPERATORS(GeometryNodeAssetTraitFlag);
 
+enum CompositorNodeAssetTraitFlag {
+  COMPOSIT_NODE_ASSET_STRIP_MODIFIER = (1 << 0),
+};
+ENUM_OPERATORS(CompositorNodeAssetTraitFlag);
+
 /* Data structs, for `node->storage`. */
 
 enum CMPNodeMaskType {
@@ -1811,21 +1816,6 @@ struct bNodeInstanceKey {
 #endif
 };
 
-/**
- * Base struct for entries in node instance hash.
- *
- * \warning pointers are cast to this struct internally,
- * it must be first member in hash entry structs!
- */
-#
-#
-struct bNodeInstanceHashEntry {
-  bNodeInstanceKey key;
-
-  /** Tags for cleaning the cache. */
-  short tag = 0;
-};
-
 struct bNodeLink {
   struct bNodeLink *next = nullptr, *prev = nullptr;
 
@@ -1959,6 +1949,7 @@ struct bNodeTree {
   bNestedNodeRef *nested_node_refs = nullptr;
 
   struct GeometryNodeAssetTraits *geometry_node_asset_traits = nullptr;
+  struct CompositorNodeAssetTraits *compositor_node_asset_traits = nullptr;
 
   /** Image representing what the node group does. */
   struct PreviewImage *preview = nullptr;
@@ -2179,6 +2170,12 @@ struct GeometryNodeAssetTraits {
   char *node_tool_idname = nullptr;
 };
 
+struct CompositorNodeAssetTraits {
+  /* #CompositorNodeAssetTraitFlag. */
+  int flag = 0;
+  char _pad[4] = {};
+};
+
 struct NodeFrame {
   DNA_DEFINE_CXX_METHODS(NodeFrame)
 
@@ -2360,7 +2357,7 @@ struct NodeCompositorFileOutputItem {
   int identifier = 0;
   /* The type of socket for the item, which is limited to the types listed in the
    * FileOutputItemsAccessor::supports_socket_type. */
-  int16_t socket_type = 0;
+  eNodeSocketDatatype socket_type = {};
   /* The number of dimensions in the vector socket if the socket type is vector, otherwise, it is
    * unused, */
   char vector_socket_dimensions = 0;
@@ -3070,7 +3067,7 @@ struct NodeInputString {
   DNA_DEFINE_CXX_METHODS(NodeInputString)
 
   char *string = nullptr;
-  TextboxState textbox_state = {};
+  TextboxState textbox_state;
 };
 
 struct NodeGeometryExtrudeMesh {
@@ -3161,8 +3158,7 @@ struct NodeGeometryMeshLine {
 struct NodeSwitch {
   DNA_DEFINE_CXX_METHODS(NodeSwitch)
 
-  /** #eNodeSocketDatatype. */
-  uint8_t input_type = 0;
+  eNodeSocketDatatype input_type = {};
 };
 
 struct NodeEnumItem {
@@ -3194,9 +3190,8 @@ struct NodeMenuSwitch {
 
   NodeEnumDefinition enum_definition;
 
-  /** #eNodeSocketDatatype. */
-  uint8_t data_type = 0;
-  char _pad[7] = {};
+  eNodeSocketDatatype data_type = {};
+  char _pad[6] = {};
 };
 
 struct NodeGeometryCurveSplineType {
@@ -3447,8 +3442,7 @@ struct NodeGeometryImageTexture {
 
 struct NodeGeometryViewerItem {
   char *name = nullptr;
-  /** #eNodeSocketDatatype. */
-  short socket_type = 0;
+  eNodeSocketDatatype socket_type = {};
   uint8_t flag = 0;
   char _pad[1] = {};
   /**
@@ -3482,8 +3476,7 @@ struct NodeGeometryUVUnwrap {
 
 struct NodeSimulationItem {
   char *name = nullptr;
-  /** #eNodeSocketDatatype. */
-  short socket_type = 0;
+  eNodeSocketDatatype socket_type = {};
   /** #AttrDomain. */
   short attribute_domain = 0;
   /**
@@ -3518,8 +3511,7 @@ struct NodeGeometrySimulationOutput {
 
 struct NodeRepeatItem {
   char *name = nullptr;
-  /** #eNodeSocketDatatype. */
-  short socket_type = 0;
+  eNodeSocketDatatype socket_type = {};
   char _pad[2] = {};
   /**
    * Generated unique identifier for sockets which stays the same even when the item order or
@@ -3560,8 +3552,7 @@ struct NodeGeometryForeachGeometryElementInput {
 
 struct NodeForeachGeometryElementInputItem {
   char *name = nullptr;
-  /** #eNodeSocketDatatype. */
-  short socket_type = 0;
+  eNodeSocketDatatype socket_type = {};
   char _pad[2] = {};
   /** Generated identifier that stays the same even when the name or order changes. */
   int identifier = 0;
@@ -3569,8 +3560,7 @@ struct NodeForeachGeometryElementInputItem {
 
 struct NodeForeachGeometryElementMainItem {
   char *name = nullptr;
-  /** #eNodeSocketDatatype. */
-  short socket_type = 0;
+  eNodeSocketDatatype socket_type = {};
   char _pad[2] = {};
   /** Generated identifier that stays the same even when the name or order changes. */
   int identifier = 0;
@@ -3578,8 +3568,7 @@ struct NodeForeachGeometryElementMainItem {
 
 struct NodeForeachGeometryElementGenerationItem {
   char *name = nullptr;
-  /** #eNodeSocketDatatype. */
-  short socket_type = 0;
+  eNodeSocketDatatype socket_type = {};
   /** #AttrDomain. */
   uint8_t domain = 0;
   char _pad[1] = {};
@@ -3644,8 +3633,7 @@ struct NodeClosureInput {
 
 struct NodeClosureInputItem {
   char *name = nullptr;
-  /** #eNodeSocketDatatype. */
-  short socket_type = 0;
+  eNodeSocketDatatype socket_type = {};
   NodeSocketInterfaceStructureType structure_type = NodeSocketInterfaceStructureType::Auto;
   char _pad[1] = {};
   int identifier = 0;
@@ -3653,8 +3641,7 @@ struct NodeClosureInputItem {
 
 struct NodeClosureOutputItem {
   char *name = nullptr;
-  /** #eNodeSocketDatatype. */
-  short socket_type = 0;
+  eNodeSocketDatatype socket_type = {};
   NodeSocketInterfaceStructureType structure_type = NodeSocketInterfaceStructureType::Auto;
   char _pad[1] = {};
   int identifier = 0;
@@ -3691,8 +3678,7 @@ struct NodeClosureOutput {
 
 struct NodeEvaluateClosureInputItem {
   char *name = nullptr;
-  /** #eNodeSocketDatatype */
-  short socket_type = 0;
+  eNodeSocketDatatype socket_type = {};
   NodeSocketInterfaceStructureType structure_type = NodeSocketInterfaceStructureType::Auto;
   char _pad[1] = {};
   int identifier = 0;
@@ -3700,8 +3686,7 @@ struct NodeEvaluateClosureInputItem {
 
 struct NodeEvaluateClosureOutputItem {
   char *name = nullptr;
-  /** #eNodeSocketDatatype */
-  short socket_type = 0;
+  eNodeSocketDatatype socket_type = {};
   NodeSocketInterfaceStructureType structure_type = NodeSocketInterfaceStructureType::Auto;
   char _pad[1] = {};
   int identifier = 0;
@@ -3747,12 +3732,11 @@ struct NodeIndexSwitch {
   IndexSwitchItem *items = nullptr;
   int items_num = 0;
 
-  /* #eNodeSocketDataType. */
-  int data_type = 0;
   /** Identifier to give to the next item. */
   int next_identifier = 0;
+  eNodeSocketDatatype data_type = {};
 
-  char _pad[4] = {};
+  char _pad[6] = {};
 #ifdef __cplusplus
   Span<IndexSwitchItem> items_span() const;
   MutableSpan<IndexSwitchItem> items_span();
@@ -3760,9 +3744,8 @@ struct NodeIndexSwitch {
 };
 
 struct GeometryNodeFieldToGridItem {
-  /** #eNodeSocketDatatype. */
-  int8_t data_type = 0;
-  char _pad[3] = {};
+  eNodeSocketDatatype data_type = {};
+  char _pad[2] = {};
   int identifier = 0;
   char *name = nullptr;
 };
@@ -3770,9 +3753,8 @@ struct GeometryNodeFieldToGridItem {
 struct GeometryNodeFieldToGrid {
   DNA_DEFINE_CXX_METHODS(GeometryNodeFieldToGrid)
 
-  /** #eNodeSocketDatatype. */
-  int8_t data_type = 0;
-  char _pad[3] = {};
+  eNodeSocketDatatype data_type = {};
+  char _pad[2] = {};
   int next_identifier = 0;
   GeometryNodeFieldToGridItem *items = nullptr;
   int items_num = 0;
@@ -3780,9 +3762,8 @@ struct GeometryNodeFieldToGrid {
 };
 
 struct GeometryNodeFieldToListItem {
-  /** #eNodeSocketDatatype. */
-  int8_t socket_type = SOCK_FLOAT;
-  char _pad[3] = {};
+  eNodeSocketDatatype socket_type = SOCK_FLOAT;
+  char _pad[2] = {};
   int identifier = 0;
   char *name = nullptr;
 };
@@ -3791,6 +3772,22 @@ struct GeometryNodeFieldToList {
   char _pad[4] = {};
   int next_identifier = 0;
   GeometryNodeFieldToListItem *items = nullptr;
+  int items_num = 0;
+  int active_index = 0;
+};
+
+struct GeometryNodeClosureToListItem {
+  eNodeSocketDatatype socket_type = SOCK_FLOAT;
+  NodeSocketInterfaceStructureType structure_type = NodeSocketInterfaceStructureType::Auto;
+  char _pad[1] = {};
+  int identifier = 0;
+  char *name = nullptr;
+};
+
+struct GeometryNodeClosureToList {
+  char _pad[4] = {};
+  int next_identifier = 0;
+  GeometryNodeClosureToListItem *items = nullptr;
   int items_num = 0;
   int active_index = 0;
 };
@@ -3806,10 +3803,8 @@ struct NodeFunctionCompare {
   DNA_DEFINE_CXX_METHODS(NodeFunctionCompare)
 
   NodeCompareOperation operation = NODE_COMPARE_LESS_THAN;
-  /** #eNodeSocketDatatype */
-  int8_t data_type = 0;
   NodeCompareMode mode = NODE_COMPARE_MODE_ELEMENT;
-  char _pad[1] = {};
+  eNodeSocketDatatype data_type = {};
 };
 
 struct NodeCombSepColor {
@@ -3821,13 +3816,12 @@ struct NodeCombSepColor {
 struct NodeShaderMix {
   DNA_DEFINE_CXX_METHODS(NodeShaderMix)
 
-  /** #eNodeSocketDatatype */
-  int8_t data_type = 0;
+  eNodeSocketDatatype data_type = {};
   NodeShaderMixMode factor_mode = NODE_MIX_MODE_UNIFORM;
   int8_t clamp_factor = 0;
   int8_t clamp_result = 0;
   int8_t blend_type = 0;
-  char _pad[3] = {};
+  char _pad[2] = {};
 };
 
 struct NodeGeometryLinearGizmo {
@@ -3851,7 +3845,7 @@ struct NodeGeometryTransformGizmo {
 
 struct NodeGeometryBakeItem {
   char *name = nullptr;
-  int16_t socket_type = 0;
+  eNodeSocketDatatype socket_type = {};
   int16_t attribute_domain = 0;
   int identifier = 0;
   int32_t flag = 0;
@@ -3871,7 +3865,7 @@ struct NodeGeometryBake {
 struct NodeCombineBundleItem {
   char *name = nullptr;
   int identifier = 0;
-  int16_t socket_type = 0;
+  eNodeSocketDatatype socket_type = {};
   NodeSocketInterfaceStructureType structure_type = NodeSocketInterfaceStructureType::Auto;
   char _pad[1] = {};
 };
@@ -3890,7 +3884,7 @@ struct NodeCombineBundle {
 struct NodeSeparateBundleItem {
   char *name = nullptr;
   int identifier = 0;
-  int16_t socket_type = 0;
+  eNodeSocketDatatype socket_type = {};
   NodeSocketInterfaceStructureType structure_type = NodeSocketInterfaceStructureType::Auto;
   char _pad[1] = {};
 };
@@ -3909,7 +3903,7 @@ struct NodeSeparateBundle {
 struct NodeFunctionFormatStringItem {
   char *name = nullptr;
   int identifier = 0;
-  int16_t socket_type = 0;
+  eNodeSocketDatatype socket_type = {};
   char _pad[2] = {};
 };
 
@@ -3924,22 +3918,19 @@ struct NodeFunctionFormatString {
 };
 
 struct NodeGeometryListGetItem {
-  /** #eNodeSocketDatatype. */
-  int16_t socket_type = SOCK_FLOAT;
+  eNodeSocketDatatype socket_type = SOCK_FLOAT;
   NodeSocketInterfaceStructureType structure_type = NodeSocketInterfaceStructureType::Auto;
   char _pad = {};
 };
 
 struct NodeGetBundleItem {
-  /** #eNodeSocketDatatype. */
-  int16_t socket_type = 0;
+  eNodeSocketDatatype socket_type = {};
   NodeSocketInterfaceStructureType structure_type = NodeSocketInterfaceStructureType::Auto;
   char _pad = {};
 };
 
 struct NodeStoreBundleItem {
-  /** #eNodeSocketDatatype. */
-  int16_t socket_type = 0;
+  eNodeSocketDatatype socket_type = {};
   NodeSocketInterfaceStructureType structure_type = NodeSocketInterfaceStructureType::Auto;
   char _pad = {};
 };

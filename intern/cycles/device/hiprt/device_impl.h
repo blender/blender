@@ -59,6 +59,9 @@ class HIPRTDevice : public HIPDevice {
   hiprtGeometryBuildInput prepare_curve_blas(BVHHIPRT *bvh, Hair *hair);
   hiprtGeometryBuildInput prepare_point_blas(BVHHIPRT *bvh, PointCloud *pointcloud);
   void build_blas(BVHHIPRT *bvh, Geometry *geom, hiprtBuildOptions options);
+  hiprtBuildFlags select_blas_build_flags(BVHHIPRT *bvh,
+                                          Geometry *geom,
+                                          const hiprtGeometryBuildInput &geom_input);
   hiprtScene build_tlas(BVHHIPRT *bvh,
                         const vector<Object *> &objects,
                         hiprtBuildOptions options,

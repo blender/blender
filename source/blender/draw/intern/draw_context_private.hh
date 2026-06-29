@@ -13,8 +13,8 @@
 #include "DRW_engine.hh"
 #include "DRW_render.hh"
 
-#include "BLI_task.h"
-#include "BLI_threads.h"
+#include "BLI_task_c.hh"
+#include "BLI_threads.hh"
 #include "BLI_vector_set.hh"
 
 #include "GPU_batch.hh"

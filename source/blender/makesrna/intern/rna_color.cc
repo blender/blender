@@ -51,8 +51,8 @@ const EnumPropertyItem rna_enum_color_space_convert_default_items[] = {
 
 #  include "MEM_guardedalloc.h"
 
-#  include "BLI_listbase.h"
-#  include "BLI_string_utf8.h"
+#  include "BLI_listbase.hh"
+#  include "BLI_string_utf8.hh"
 
 #  include "BKE_colorband.hh"
 #  include "BKE_colortools.hh"
@@ -321,7 +321,7 @@ static std::optional<std::string> rna_ColorRampElement_path(const PointerRNA *pt
           ramp_ptr = RNA_pointer_create_discrete(id, RNA_ColorRamp, link->data);
           COLRAMP_GETPATH;
         }
-        BLI_freelistN(&listbase);
+        listbase.free_no_destruct();
         break;
       }
 

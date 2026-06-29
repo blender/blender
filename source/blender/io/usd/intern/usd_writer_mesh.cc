@@ -17,7 +17,7 @@
 #include <pxr/usd/usdSkel/bindingAPI.h>
 
 #include "BLI_array_utils.hh"
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "BKE_anonymous_attribute_id.hh"
@@ -629,7 +629,8 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
                                             const pxr::UsdGeomMesh &usd_mesh,
                                             const MaterialFaceGroups &usd_face_groups)
 {
-  if (context.object->totcol == 0) {
+  const int totcol = BKE_object_material_count_eval(context.object);
+  if (totcol == 0) {
     return;
   }
 
@@ -639,8 +640,8 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
   bool mesh_material_bound = false;
   auto mesh_prim = usd_mesh.GetPrim();
   pxr::UsdShadeMaterialBindingAPI material_binding_api(mesh_prim);
-  for (int mat_num = 0; mat_num < context.object->totcol; mat_num++) {
-    Material *material = BKE_object_material_get(context.object, mat_num + 1);
+  for (int mat_num = 0; mat_num < totcol; mat_num++) {
+    Material *material = BKE_object_material_get_eval(context.object, mat_num + 1);
     if (material == nullptr) {
       continue;
     }
@@ -680,7 +681,7 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
     short material_number = face_group.key;
     const pxr::VtIntArray &face_indices = face_group.value;
 
-    Material *material = BKE_object_material_get(context.object, material_number + 1);
+    Material *material = BKE_object_material_get_eval(context.object, material_number + 1);
     if (material == nullptr) {
       continue;
     }
@@ -702,36 +703,36 @@ void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh &usd
 {
   pxr::UsdTimeCode time = get_export_time_code();
 
+  Span<float3> src_normals;
   pxr::VtVec3fArray loop_normals;
-  loop_normals.resize(mesh->corners_num);
-
-  MutableSpan dst_normals(reinterpret_cast<float3 *>(loop_normals.data()), loop_normals.size());
-
+  pxr::TfToken interpolation;
   switch (mesh->normals_domain()) {
     case bke::MeshNormalDomain::Point: {
-      array_utils::gather(mesh->vert_normals(), mesh->corner_verts(), dst_normals);
+      src_normals = mesh->vert_normals();
+      interpolation = pxr::UsdGeomTokens->vertex;
       break;
     }
     case bke::MeshNormalDomain::Face: {
-      const OffsetIndices faces = mesh->faces();
-      const Span<float3> face_normals = mesh->face_normals();
-      for (const int i : faces.index_range()) {
-        dst_normals.slice(faces[i]).fill(face_normals[i]);
-      }
+      src_normals = mesh->face_normals();
+      interpolation = pxr::UsdGeomTokens->uniform;
       break;
     }
     case bke::MeshNormalDomain::Corner: {
-      array_utils::copy(mesh->corner_normals(), dst_normals);
+      src_normals = mesh->corner_normals();
+      interpolation = pxr::UsdGeomTokens->faceVarying;
       break;
     }
   }
 
+  loop_normals.resize(src_normals.size());
+  MutableSpan dst_normals(reinterpret_cast<float3 *>(loop_normals.data()), loop_normals.size());
+  array_utils::copy(src_normals, dst_normals);
   pxr::UsdAttribute attr_normals = usd_mesh.CreateNormalsAttr(pxr::VtValue(), true);
   if (!attr_normals.HasValue()) {
     attr_normals.Set(loop_normals, pxr::UsdTimeCode::Default());
   }
   usd_value_writer_.SetAttribute(attr_normals, pxr::VtValue(loop_normals), time);
-  usd_mesh.SetNormalsInterpolation(pxr::UsdGeomTokens->faceVarying);
+  usd_mesh.SetNormalsInterpolation(interpolation);
 }
 
 void USDGenericMeshWriter::write_surface_velocity(const Mesh *mesh,

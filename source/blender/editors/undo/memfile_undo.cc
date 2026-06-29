@@ -8,10 +8,10 @@
  * Wrapper between `ED_undo.hh` and `BKE_undo_system.hh` API's.
  */
 
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
-#include "BLI_ghash.h"
-#include "BLI_listbase.h"
+#include "BLI_ghash.hh"
+#include "BLI_listbase.hh"
 
 #include "DNA_ID.h"
 #include "DNA_collection_types.h"
@@ -338,7 +338,7 @@ static void memfile_undosys_step_free(UndoStep *us_p)
 
 void ED_memfile_undosys_type(UndoType *ut)
 {
-  ut->name = "Global Undo";
+  ut->identifier = "GLOBAL_UNDO";
   ut->poll = memfile_undosys_poll;
   ut->step_encode = memfile_undosys_step_encode;
   ut->step_decode = memfile_undosys_step_decode;
@@ -354,26 +354,13 @@ void ED_memfile_undosys_type(UndoType *ut)
 /* -------------------------------------------------------------------- */
 /** \name Utilities
  * \{ */
-
-/**
- * Ideally we wouldn't need to export global undo internals,
- * there are some cases where it's needed though.
- */
-static MemFile *ed_undosys_step_get_memfile(UndoStep *us_p)
-{
-  MemFileUndoStep *us = reinterpret_cast<MemFileUndoStep *>(us_p);
-  return &us->data->memfile;
-}
-
-MemFile *ED_undosys_stack_memfile_get_if_active(UndoStack *ustack)
+bool ED_undosys_autosave_compatible(UndoStack *ustack)
 {
   if (!ustack->step_active) {
-    return nullptr;
+    return false;
   }
-  if (ustack->step_active->type != BKE_UNDOSYS_TYPE_MEMFILE) {
-    return nullptr;
-  }
-  return ed_undosys_step_get_memfile(ustack->step_active);
+
+  return ELEM(ustack->step_active->type, BKE_UNDOSYS_TYPE_MEMFILE, BKE_UNDOSYS_TYPE_IMAGE);
 }
 
 void ED_undosys_stack_memfile_id_changed_tag(UndoStack *ustack, ID *id)

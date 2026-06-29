@@ -4,7 +4,6 @@
 
 import bpy
 from ....io.com import gltf2_io
-from ...com.extras import generate_extras
 from ..tree import VExportNode
 from .drivers import get_sk_drivers
 from .sampled.armature.channels import gather_armature_sampled_channels
@@ -12,6 +11,7 @@ from .sampled.object.channels import gather_object_sampled_channels
 from .sampled.shapekeys.channels import gather_sk_sampled_channels
 from .sampled.data.channels import gather_data_sampled_channels
 from .anim_utils import link_samplers, add_slide_data
+from .anim_extra_utils import gather_blender_element
 
 
 def gather_scene_animations(export_settings):
@@ -91,7 +91,7 @@ def gather_scene_animations(export_settings):
 
                 if ignore_sk is False:
                     # Setting slot_identifier to None, always
-                    channels = gather_sk_sampled_channels(obj_uuid, obj_uuid, None, export_settings)
+                    channels = gather_sk_sampled_channels('SK', obj_uuid, obj_uuid, None, export_settings)
                     if channels is not None:
                         total_channels.extend(channels)
         elif blender_object is None:
@@ -113,7 +113,7 @@ def gather_scene_animations(export_settings):
                 animation = gltf2_io.Animation(
                     channels=total_channels,
                     extensions=None,
-                    extras=__gather_extras(blender_object, export_settings),
+                    extras=None,
                     name=blender_object.name if blender_object else "GN Instance",
                     samplers=[]
                 )
@@ -124,24 +124,21 @@ def gather_scene_animations(export_settings):
 
     if export_settings['gltf_export_anim_pointer'] is True:
         # Export now KHR_animation_pointer for materials
-        for mat in export_settings['KHR_animation_pointer']['materials'].keys():
-            if len(export_settings['KHR_animation_pointer']['materials'][mat]['paths']) == 0:
+        for mat in export_settings['KHR_animation_pointer'][None]['materials'].keys():
+            if len(export_settings['KHR_animation_pointer'][None]['materials'][mat]['paths']) == 0:
                 continue
 
-            if export_settings['gltf_animation_mode'] == "NLA_TRACKS" and export_settings['gltf_apply'] is True:
-                blender_material = export_settings['material_identifiers'][mat]
-            else:
-                blender_material = [m for m in bpy.data.materials if id(m) == mat][0]
+            blender_material = export_settings['material_identifiers'][mat]['blender']
 
-            export_settings['ranges'][id(blender_material)] = {}
-            export_settings['ranges'][id(blender_material)][id(blender_material)] = {
+            export_settings['ranges'][mat] = {}
+            export_settings['ranges'][mat][mat] = {
                 'start': start_frame, 'end': end_frame}
 
             if export_settings['gltf_anim_slide_to_zero'] is True and start_frame > 0:
                 add_slide_data(start_frame, mat, mat, export_settings, add_drivers=False)
 
             # Setting slot_identifier to None, always
-            channels = gather_data_sampled_channels('materials', mat, mat, None, None, export_settings)
+            channels = gather_data_sampled_channels(None, 'materials', mat, mat, None, None, export_settings)
             if channels is not None:
                 total_channels.extend(channels)
 
@@ -150,7 +147,7 @@ def gather_scene_animations(export_settings):
                 animation = gltf2_io.Animation(
                     channels=total_channels,
                     extensions=None,
-                    extras=__gather_extras(blender_material, export_settings),
+                    extras=None,
                     name=blender_material.name,
                     samplers=[]
                 )
@@ -160,20 +157,20 @@ def gather_scene_animations(export_settings):
             total_channels = []
 
         # Export now KHR_animation_pointer for lights
-        for light in export_settings['KHR_animation_pointer']['lights'].keys():
-            if len(export_settings['KHR_animation_pointer']['lights'][light]['paths']) == 0:
+        for light in export_settings['KHR_animation_pointer'][None]['lights'].keys():
+            if len(export_settings['KHR_animation_pointer'][None]['lights'][light]['paths']) == 0:
                 continue
 
             blender_light = [alight for alight in bpy.data.lights if id(alight) == light][0]
 
-            export_settings['ranges'][id(blender_light)] = {}
-            export_settings['ranges'][id(blender_light)][id(blender_light)] = {'start': start_frame, 'end': end_frame}
+            export_settings['ranges'][light] = {}
+            export_settings['ranges'][light][light] = {'start': start_frame, 'end': end_frame}
 
             if export_settings['gltf_anim_slide_to_zero'] is True and start_frame > 0:
                 add_slide_data(start_frame, light, light, export_settings, add_drivers=False)
 
             # Setting slot_identifier to None, always
-            channels = gather_data_sampled_channels('lights', light, light, None, None, export_settings)
+            channels = gather_data_sampled_channels(None, 'lights', light, light, None, None, export_settings)
             if channels is not None:
                 total_channels.extend(channels)
 
@@ -182,7 +179,7 @@ def gather_scene_animations(export_settings):
                     animation = gltf2_io.Animation(
                         channels=total_channels,
                         extensions=None,
-                        extras=__gather_extras(blender_light, export_settings),
+                        extras=None,
                         name=blender_light.name,
                         samplers=[]
                     )
@@ -192,20 +189,20 @@ def gather_scene_animations(export_settings):
                 total_channels = []
 
         # Export now KHR_animation_pointer for cameras
-        for cam in export_settings['KHR_animation_pointer']['cameras'].keys():
-            if len(export_settings['KHR_animation_pointer']['cameras'][cam]['paths']) == 0:
+        for cam in export_settings['KHR_animation_pointer'][None]['cameras'].keys():
+            if len(export_settings['KHR_animation_pointer'][None]['cameras'][cam]['paths']) == 0:
                 continue
 
             blender_camera = [camera for camera in bpy.data.cameras if id(camera) == cam][0]
 
-            export_settings['ranges'][id(blender_camera)] = {}
-            export_settings['ranges'][id(blender_camera)][id(blender_camera)] = {'start': start_frame, 'end': end_frame}
+            export_settings['ranges'][cam] = {}
+            export_settings['ranges'][cam][cam] = {'start': start_frame, 'end': end_frame}
 
             if export_settings['gltf_anim_slide_to_zero'] is True and start_frame > 0:
                 add_slide_data(start_frame, cam, cam, export_settings, add_drivers=False)
 
             # Setting slot_identifier to None, always
-            channels = gather_data_sampled_channels('cameras', cam, cam, None, None, export_settings)
+            channels = gather_data_sampled_channels(None, 'cameras', cam, cam, None, None, export_settings)
             if channels is not None:
                 total_channels.extend(channels)
 
@@ -214,7 +211,7 @@ def gather_scene_animations(export_settings):
                     animation = gltf2_io.Animation(
                         channels=total_channels,
                         extensions=None,
-                        extras=__gather_extras(blender_camera, export_settings),
+                        extras=None,
                         name=blender_camera.name,
                         samplers=[]
                     )
@@ -223,12 +220,50 @@ def gather_scene_animations(export_settings):
 
                 total_channels = []
 
+        # Export now KHR_animation_pointer for extras
+        for extra_type in export_settings['KHR_animation_pointer']['extras'].keys():
+            for extra in export_settings['KHR_animation_pointer']['extras'][extra_type].keys():
+                if len(export_settings['KHR_animation_pointer']['extras'][extra_type][extra]['paths']) == 0:
+                    continue
+
+                if extra_type == "bones":
+                    continue  # Already managed in armature
+
+                blender_element, _, _ = gather_blender_element('extras', extra_type, extra, export_settings)
+
+                if blender_element is None:
+                    continue
+
+                export_settings['ranges'][extra] = {}
+                export_settings['ranges'][extra][extra] = {'start': start_frame, 'end': end_frame}
+                if export_settings['gltf_anim_slide_to_zero'] is True and start_frame > 0:
+                    add_slide_data(start_frame, extra, extra, export_settings, add_drivers=False)
+
+                # Setting slot_identifier to None, always
+                channels = gather_data_sampled_channels("extras", extra_type, extra, extra, None, None, export_settings)
+                if channels is not None:
+                    total_channels.extend(channels)
+
+                if export_settings['gltf_anim_scene_split_object'] is True:
+                    if len(total_channels) > 0:
+                        animation = gltf2_io.Animation(
+                            channels=total_channels,
+                            extensions=None,
+                            extras=None,
+                            name=blender_element.name if blender_element else "Extra " + str(extra),
+                            samplers=[]
+                        )
+                        link_samplers(animation, export_settings)
+                        animations.append(animation)
+
+                    total_channels = []
+
     if export_settings['gltf_anim_scene_split_object'] is False:
         if len(total_channels) > 0:
             animation = gltf2_io.Animation(
                 channels=total_channels,
                 extensions=None,
-                extras=__gather_extras(bpy.context.scene, export_settings),
+                extras=None,
                 name=bpy.context.scene.name,
                 samplers=[]
             )
@@ -236,9 +271,3 @@ def gather_scene_animations(export_settings):
             animations.append(animation)
 
     return animations
-
-
-def __gather_extras(blender_asset, export_settings):
-    if export_settings['gltf_extras']:
-        return generate_extras(blender_asset)
-    return None

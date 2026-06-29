@@ -19,8 +19,8 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "BLI_kdtree.hh"
-#include "BLI_listbase.h"
-#include "BLI_rect.h"
+#include "BLI_listbase.hh"
+#include "BLI_rect.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_meshdata_types.h"
@@ -172,7 +172,7 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
           }
         }
       }
-      if (BLI_listbase_is_empty(defbase)) {
+      if (defbase->is_empty()) {
         BKE_object_defgroup_add(this->object);
         object_defgroup_nr = 0;
       }

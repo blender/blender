@@ -8,11 +8,11 @@
 
 #include "AS_asset_library.hh"
 
-#include "BLI_linklist.h"
-#include "BLI_listbase.h"
+#include "BLI_linklist.hh"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_stack.h"
-#include "BLI_string.h"
+#include "BLI_stack_c.hh"
+#include "BLI_string.hh"
 #include "BLI_string_utils.hh"
 
 #include "BKE_asset.hh"
@@ -22,7 +22,7 @@
 #ifdef WIN32
 #  include "BKE_appdir.hh"
 #  include "BLF_api.hh"
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #endif
 
 #include "DNA_space_enums.h"
@@ -153,7 +153,7 @@ bool filelist_readjob_append_entries(FileListReadJob *job_params,
                                      ListBaseT<FileListInternEntry> *from_entries,
                                      int from_entries_num)
 {
-  BLI_assert(BLI_listbase_count(from_entries) == from_entries_num);
+  BLI_assert(from_entries->count() == from_entries_num);
   if (from_entries_num <= 0) {
     return false;
   }
@@ -697,6 +697,10 @@ void filelist_readjob_recursive_dir_add_items(const bool do_lib,
   const int max_recursion = filelist->max_recursion;
   int dirs_done_count = 0, dirs_todo_count = 1;
 
+  /* The code below assumes the root ends in a slash. It's also not just the code below; weird
+   * things happen when it doesn't end in a slash. Better to just enforce it. */
+  BLI_assert_msg(StringRef(filelist->filelist.root).endswith(SEP_STR), filelist->filelist.root);
+
   todo_dirs = BLI_stack_new(sizeof(*td_dir), __func__);
   td_dir = static_cast<TodoDir *>(BLI_stack_push_r(todo_dirs));
   td_dir->level = 1;
@@ -837,7 +841,7 @@ void filelist_readjob_directories_and_libraries(const bool do_lib,
   FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
 
   //  BLI_assert(filelist->filtered == nullptr);
-  BLI_assert(BLI_listbase_is_empty(&filelist->filelist.entries) &&
+  BLI_assert(filelist->filelist.entries.is_empty() &&
              (filelist->filelist.entries_num == FILEDIR_NBR_ENTRIES_UNSET));
 
   /* A valid, but empty directory from now. */

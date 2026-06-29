@@ -7,7 +7,7 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
@@ -34,7 +34,7 @@ RealizeOnDomainOperation::RealizeOnDomainOperation(Context &context,
   InputDescriptor input_descriptor;
   input_descriptor.type = type;
   this->declare_input_descriptor(input_descriptor);
-  this->populate_result(context.create_result(type));
+  this->populate_result(type);
 }
 
 void RealizeOnDomainOperation::execute()

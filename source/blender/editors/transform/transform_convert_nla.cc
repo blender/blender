@@ -14,9 +14,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "BKE_anim_data.hh"
 #include "BKE_context.hh"
@@ -169,7 +169,7 @@ static bool transdata_get_track_shuffle_offset_side(ListBaseT<LinkData> *trans_d
                                                     int *r_total_offset)
 {
   *r_total_offset = 0;
-  if (BLI_listbase_is_empty(trans_datas)) {
+  if (trans_datas->is_empty()) {
     return false;
   }
 
@@ -923,9 +923,9 @@ static void nlastrip_shuffle_transformed(TransDataContainer *tc, TransDataNla *f
 
   /* Memory cleanup. */
   for (IDGroupedTransData &group : grouped_trans_datas) {
-    BLI_freelistN(&group.trans_datas);
+    group.trans_datas.free_no_destruct();
   }
-  BLI_freelistN(&grouped_trans_datas);
+  grouped_trans_datas.free_no_destruct();
 }
 
 static void special_aftertrans_update__nla(bContext *C, TransInfo *t)

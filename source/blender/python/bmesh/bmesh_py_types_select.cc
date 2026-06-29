@@ -14,8 +14,8 @@
 
 #include <Python.h>
 
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_utildefines.hh"
 
 #include "bmesh.hh"
 
@@ -219,7 +219,7 @@ static Py_ssize_t bpy_bmeditselseq_length(BPy_BMEditSelSeq *self)
 {
   BPY_BM_CHECK_INT(self);
 
-  return BLI_listbase_count(&self->bm->selected);
+  return self->bm->selected.count();
 }
 
 static PyObject *bpy_bmeditselseq_subscript_int(BPy_BMEditSelSeq *self, Py_ssize_t keynum)

@@ -6,8 +6,8 @@
 
 #include "BKE_appdir.hh"
 
-#include "BLI_fileops.h"
-#include "BLI_string.h"
+#include "BLI_fileops.hh"
+#include "BLI_string.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -70,8 +70,7 @@ class STLExportTest : public BlendfileLoadingBaseTest {
    * Export the given blend file with the given parameters and
    * test to see if it matches a golden file (ignoring any difference in Blender version number).
    * \param blendfile: input, relative to "tests" directory.
-   * \param golden_obj: expected output, relative to "tests" directory.
-   * \param params: the parameters to be used for export.
+   * \param golden_stl: expected output, relative to "tests" directory.
    */
   void compare_to_golden(const std::string &blendfile, const std::string &golden_stl)
   {

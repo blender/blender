@@ -5,7 +5,7 @@
 #include "testing/testing.h"
 
 #include "BLI_math_half.hh"
-#include "BLI_time.h"
+#include "BLI_time.hh"
 
 #include <cmath>
 

@@ -155,16 +155,28 @@ def draw_compositor_effect_node_group_errors(layout, node_tree, strip_input_num)
 
     if color_input_sockets_num < strip_input_num:
         layout.label(
-            text=f"Node group must have at least {strip_input_num} Color input{
-                's' if strip_input_num > 1 else ''}.",
-            icon='ERROR')
+            text=rpt_("Node group must have at least {:d} Color input(s).").format(strip_input_num),
+            icon='ERROR',
+            translate=False,
+        )
     if float_input_sockets_num == 0:
-        layout.label(text="Node group does not have an input of type Float. Fade is unused.", icon='ERROR')
-
+        layout.label(
+            text=rpt_("Node group does not have an input of type Float. Fade is unused."),
+            icon='ERROR',
+            translate=False,
+        )
     if len(output_sockets) < 1:
-        layout.label(text="Node group must have an output.", icon='ERROR')
+        layout.label(
+            text=rpt_("Node group must have an output."),
+            icon='ERROR',
+            translate=False,
+        )
     elif output_sockets[0].socket_type != 'NodeSocketColor':
-        layout.label(text="The first node group output must have the Color type.", icon='ERROR')
+        layout.label(
+            text=rpt_("The first node group output must have the Color type."),
+            icon='ERROR',
+            translate=False,
+        )
 
 
 class STRIP_PT_effect(StripButtonsPanel, Panel):
@@ -301,7 +313,7 @@ class STRIP_PT_effect(StripButtonsPanel, Panel):
         elif strip_type == 'TEXT':
             layout = self.layout
             col = layout.column()
-            col.textbox(strip, "text", textbox_state=strip.textbox_state)
+            col.textbox_with_state(strip, "text", textbox_state=strip.textbox_state)
             layout.prop(strip, "wrap_width", text="Wrap Width")
 
         col = layout.column(align=True)
@@ -361,6 +373,13 @@ class STRIP_PT_effect_text_style(StripButtonsPanel, Panel):
         row.prop(strip, "use_italic", text="", icon='ITALIC')
 
         col.prop(strip, "font_size")
+        row = col.row()
+        if strip.use_absolute_line_spacing:
+            row.prop(strip, "abs_space_line", text="Line Spacing")
+        else:
+            row.prop(strip, "space_line", text="Line Spacing")
+
+        row.prop(strip, "use_absolute_line_spacing", text="", icon='FIXED_SIZE')
         col.prop(strip, "color")
 
 
@@ -635,6 +654,12 @@ class STRIP_PT_scene(StripButtonsPanel, Panel):
         layout.active = not strip.mute
 
         layout.template_ID(strip, "scene", text="Scene", new="scene.new_sequencer")
+
+        if scene:
+            row = layout.row()
+            row.enabled = (strip.scene_input == 'CAMERA')
+            row.template_search(strip, "view_layer", scene, "view_layers", text="View Layer")
+
         layout.prop(strip, "scene_input", text="Input")
 
         if strip.scene_input == 'CAMERA':
@@ -988,6 +1013,11 @@ class STRIP_PT_adjust_transform(StripButtonsPanel, Panel):
         col = layout.column(align=True)
         col.prop(strip.transform, "offset_x", text="Position X")
         col.prop(strip.transform, "offset_y", text="Y")
+
+        if strip.type == 'COLOR':
+            col = layout.column(align=True)
+            col.prop(strip, "width", text="Width")
+            col.prop(strip, "height", text="Height")
 
         col = layout.column(align=True)
         col.prop(strip.transform, "scale_x", text="Scale X")

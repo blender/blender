@@ -13,8 +13,8 @@ struct Main;
 struct Text;
 struct TextLine;
 
-#include "BLI_compiler_attrs.h"
-#include "BLI_sys_types.h"
+#include "BLI_compiler_attrs.hh"
+#include "BLI_sys_types.hh"
 
 /**
  * \note caller must handle `compiled` member.

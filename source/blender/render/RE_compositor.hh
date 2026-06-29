@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 namespace blender {
 
@@ -15,6 +16,7 @@ enum class NodeGroupOutputTypes : uint8_t;
 
 struct bNodeTree;
 struct Render;
+struct Main;
 struct RenderData;
 struct Scene;
 
@@ -27,16 +29,26 @@ struct Scene;
 
 namespace render {
 class Compositor;
-}
+
+class CompositorInputData {
+ public:
+  Render &render;
+  const Main &main;
+  const Scene &scene;
+  const RenderData &render_data;
+  const bNodeTree &node_tree;
+  std::string view_name;
+  compositor::RenderContext *render_context;
+  compositor::NodeGroupOutputTypes needed_outputs;
+  /* Identifies if the compositor is executing due to the user making a modification or if it is
+   * executing due to playback or rendering. */
+  const bool triggered_by_user = false;
+};
+
+}  // namespace render
 
 /* Execute compositor. */
-void RE_compositor_execute(Render &render,
-                           const Scene &scene,
-                           const RenderData &render_data,
-                           const bNodeTree &node_tree,
-                           const char *view_name,
-                           compositor::RenderContext *render_context,
-                           compositor::NodeGroupOutputTypes needed_outputs);
+void RE_compositor_execute(render::CompositorInputData input_data);
 
 /* Free compositor caches. */
 void RE_compositor_free(Render &render);

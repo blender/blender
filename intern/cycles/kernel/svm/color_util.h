@@ -12,17 +12,17 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device float3 svm_mix_blend(const float t, const float3 col1, const float3 col2)
 {
-  return interp(col1, col2, t);
+  return endvalue_preserving_mix(col1, col2, t);
 }
 
 ccl_device float3 svm_mix_add(const float t, const float3 col1, const float3 col2)
 {
-  return interp(col1, col1 + col2, t);
+  return col1 + t * col2;
 }
 
 ccl_device float3 svm_mix_mul(const float t, const float3 col1, const float3 col2)
 {
-  return interp(col1, col1 * col2, t);
+  return col1 * (make_float3(1.0f - t) + t * col2);
 }
 
 ccl_device float3 svm_mix_screen(const float t, const float3 col1, const float3 col2)
@@ -66,7 +66,7 @@ ccl_device float3 svm_mix_overlay(const float t, const float3 col1, const float3
 
 ccl_device float3 svm_mix_sub(const float t, const float3 col1, const float3 col2)
 {
-  return interp(col1, col1 - col2, t);
+  return col1 - t * col2;
 }
 
 ccl_device float3 svm_mix_div(const float t, const float3 col1, const float3 col2)

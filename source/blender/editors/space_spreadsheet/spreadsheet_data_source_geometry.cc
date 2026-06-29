@@ -4,7 +4,7 @@
 
 #include <fmt/format.h>
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_virtual_array.hh"
 
@@ -809,7 +809,7 @@ ListDataSource::ListDataSource(nodes::GListPtr list) : list_(std::move(list)) {}
 void ListDataSource::foreach_default_column_ids(
     FunctionRef<void(const SpreadsheetColumnID &, bool is_extra)> fn) const
 {
-  if (list_->size() == 0) {
+  if (!list_ || list_->size() == 0) {
     return;
   }
 
@@ -822,6 +822,9 @@ void ListDataSource::foreach_default_column_ids(
 std::unique_ptr<ColumnValues> ListDataSource::get_column_values(
     const SpreadsheetColumnID &column_id) const
 {
+  if (!list_) {
+    return {};
+  }
   if (STREQ(column_id.name, "Value")) {
     return std::make_unique<ColumnValues>(IFACE_("Value"), list_->varray());
   }
@@ -830,6 +833,9 @@ std::unique_ptr<ColumnValues> ListDataSource::get_column_values(
 
 int ListDataSource::tot_rows() const
 {
+  if (!list_) {
+    return 0;
+  }
   return list_->size();
 }
 
@@ -910,8 +916,8 @@ void BundleDataSource::collect_flat_items(const nodes::Bundle &bundle, const Str
 {
   for (const auto &item : bundle.items()) {
     const std::string path = parent_path.is_empty() ?
-                                 item.key.string() :
-                                 nodes::Bundle::combine_path({parent_path, item.key.ref()});
+                                 item.key.ustr().string() :
+                                 nodes::Bundle::combine_path({parent_path, item.key.ustr().ref()});
     flat_item_keys_.append(path);
     flat_items_.append(&item.value);
     if (const auto *value = std::get_if<nodes::BundleItemSocketValue>(&item.value.value)) {
@@ -1094,9 +1100,16 @@ static bke::SocketValueVariant lookup_bundle_path(const nodes::BundlePtr &bundle
   if (path.bundle_path_num == 0) {
     return bke::SocketValueVariant::From(bundle);
   }
-  Vector<UString> keys;
+  Vector<nodes::BundleKey> keys;
   for (const int i : IndexRange(path.bundle_path_num)) {
-    keys.append(UString(path.bundle_path[i].identifier));
+    if (const std::optional<nodes::BundleKey> key = nodes::BundleKey::from_str(
+            path.bundle_path[i].identifier))
+    {
+      keys.append(*key);
+    }
+    else {
+      return {};
+    }
   }
   return bundle->lookup_path<bke::SocketValueVariant>(keys).value_or(bke::SocketValueVariant{});
 }
@@ -1141,7 +1154,7 @@ bke::SocketValueVariant root_display_data_get(const SpaceSpreadsheet *sspreadshe
     return {};
   }
 
-  if (BLI_listbase_is_single(&sspreadsheet->geometry_id.viewer_path.path)) {
+  if (sspreadsheet->geometry_id.viewer_path.path.is_single()) {
     return bke::SocketValueVariant::From(bke::object_get_evaluated_geometry_set(*object_eval));
   }
 

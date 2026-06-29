@@ -8,7 +8,7 @@
 
 #include <cstddef>
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_filetype.hh"
@@ -98,10 +98,10 @@ const ImFileType IMB_FILE_TYPES[] = {
         /*load_filepath*/ nullptr,
         /*load_filepath_thumbnail*/ nullptr,
         /*save*/ imb_saveiris,
-        /*save_buffer*/ nullptr,
+        /*save_buffer*/ imb_save_buffer_iris,
         /*flag*/ 0,
         /*capability_read*/ (eImFileTypeCapability::File | eImFileTypeCapability::Memory),
-        /*capability_write*/ eImFileTypeCapability::File,
+        /*capability_write*/ (eImFileTypeCapability::File | eImFileTypeCapability::Memory),
         /*filetype*/ IMB_FTYPE_IRIS,
         /*filetype_id*/ "IRIS",
         /*file_extensions*/ imb_file_extensions_iris,

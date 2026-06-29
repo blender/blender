@@ -617,7 +617,7 @@ class StrokeTextureStepShader : public StrokeShader {
 
  public:
   /** Builds the shader.
-   *  \param id:
+   *  \param step:
    *    The number of the preset to use.
    */
   StrokeTextureStepShader(float step)

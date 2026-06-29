@@ -10,6 +10,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_gpencil_legacy_types.h"
+#include "DNA_key_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_light_types.h"
 #include "DNA_lightprobe_types.h"
@@ -18,14 +19,14 @@
 #include "DNA_sequence_types.h"
 #include "DNA_text_types.h"
 
-#include "BLI_fileops.h"
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
+#include "BLI_fileops.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -37,6 +38,8 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_idtype.hh"
+#include "BKE_image.hh"
+#include "BKE_key.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
@@ -742,13 +745,12 @@ static void scenes__collection_set_flag_recursive_fn(bContext *C, void *poin, vo
   outliner_collection_set_flag_recursive_fn(C, nullptr, collection, propname);
 }
 
-static void namebutton_fn(bContext *C, void *tsep, char *oldname)
+static void namebutton_fn(bContext *C, TreeStoreElem *tselem, const char *oldname)
 {
   Main *bmain = CTX_data_main(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   wmMsgBus *mbus = CTX_wm_message_bus(C);
   BLI_mempool *ts = space_outliner->treestore;
-  TreeStoreElem *tselem = static_cast<TreeStoreElem *>(tsep);
 
   const char *undo_str = nullptr;
 
@@ -993,6 +995,20 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
         case TSE_ACTION_SLOT: {
           WM_event_add_notifier(C, NC_ID | NA_RENAME, nullptr);
           undo_str = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Rename Action Slot");
+          break;
+        }
+        case TSE_SHAPE_KEY_BLOCK: {
+          const Key *key = id_cast<Key *>(tselem->id);
+          KeyBlock *keyblock = static_cast<KeyBlock *>(te->directdata);
+          /* Outliner renaming already sets the new name to the KeyBlock. Restore the old name
+          before calling rename function which will ensure unique name. */
+          char newname[sizeof(keyblock->name)];
+          STRNCPY_UTF8(newname, keyblock->name);
+          STRNCPY_UTF8(keyblock->name, oldname);
+          BKE_keyblock_rename(key, keyblock, newname);
+          WM_event_add_notifier(C, NC_ID | NA_RENAME, nullptr);
+          DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
+          undo_str = CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Rename Shape Key");
           break;
         }
         default:
@@ -1973,6 +1989,7 @@ static void outliner_draw_overrides_rna_buts(ui::Block *block,
     {
       StringRefNull op_label = override_op_elem->get_override_operation_label();
       if (!op_label.is_empty()) {
+        StringRefNull op_tooltip = override_op_elem->get_override_operation_tooltip();
         uiDefBut(block,
                  ui::ButtonType::Label,
                  op_label,
@@ -1983,7 +2000,7 @@ static void outliner_draw_overrides_rna_buts(ui::Block *block,
                  nullptr,
                  0,
                  0,
-                 "");
+                 op_tooltip);
         continue;
       }
     }
@@ -2226,12 +2243,13 @@ static void outliner_buttons(const bContext *C,
                 1.0,
                 float(len),
                 "");
-  button_retval_set(bt, OL_NAMEBUTTON);
   /* Handle undo through the #template_id_cb set below. Default undo handling from the button
    * code (see #apply_but_undo) would not work here, as the new name is not yet applied to the
    * ID. */
   button_flag_disable(bt, ui::BUT_UNDO);
-  button_func_rename_set(bt, namebutton_fn, tselem);
+  text_button_func_rename_set(bt, [tselem](bContext &C, StringRefNull oldname) {
+    namebutton_fn(&C, tselem, oldname.c_str());
+  });
 
   /* Returns false if button got removed. */
   if (false == button_active_only(C, region, block, bt)) {
@@ -2600,274 +2618,22 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
 
 TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
 {
-  TreeElementIcon data = {nullptr};
+  TreeElementIcon data = {nullptr, nullptr, ICON_DOT};
 
   if (tselem->type != TSE_SOME_ID) {
     switch (tselem->type) {
-      case TSE_ACTION_SLOT:
-        data.icon = ICON_ACTION_SLOT;
-        break;
-      case TSE_ANIM_DATA:
-        data.icon = ICON_ANIM_DATA; /* XXX */
-        break;
-      case TSE_NLA:
-        data.icon = ICON_NLA;
-        break;
-      case TSE_NLA_TRACK:
-        data.icon = ICON_NLA; /* XXX */
-        break;
-      case TSE_NLA_ACTION:
-        data.icon = ICON_ACTION;
-        break;
-      case TSE_DRIVER_BASE:
-        data.icon = ICON_DRIVER;
-        break;
-      case TSE_DEFGROUP_BASE:
-        data.icon = ICON_GROUP_VERTEX;
-        break;
-      case TSE_DEFGROUP:
-        data.icon = ICON_GROUP_VERTEX;
-        break;
-      case TSE_BONE:
-      case TSE_EBONE:
-        data.icon = ICON_BONE_DATA;
-        break;
+      case TSE_CONSTRAINT:
       case TSE_CONSTRAINT_BASE:
-        data.icon = ICON_CONSTRAINT;
-        data.drag_id = tselem->id;
-        break;
-      case TSE_CONSTRAINT: {
-        bConstraint *con = static_cast<bConstraint *>(te->directdata);
-        data.drag_id = tselem->id;
-        switch (eBConstraint_Types(con->type)) {
-          case CONSTRAINT_TYPE_CAMERASOLVER:
-            data.icon = ICON_CON_CAMERASOLVER;
-            break;
-          case CONSTRAINT_TYPE_FOLLOWTRACK:
-            data.icon = ICON_CON_FOLLOWTRACK;
-            break;
-          case CONSTRAINT_TYPE_OBJECTSOLVER:
-            data.icon = ICON_CON_OBJECTSOLVER;
-            break;
-          case CONSTRAINT_TYPE_LOCLIKE:
-            data.icon = ICON_CON_LOCLIKE;
-            break;
-          case CONSTRAINT_TYPE_ROTLIKE:
-            data.icon = ICON_CON_ROTLIKE;
-            break;
-          case CONSTRAINT_TYPE_SIZELIKE:
-            data.icon = ICON_CON_SIZELIKE;
-            break;
-          case CONSTRAINT_TYPE_TRANSLIKE:
-            data.icon = ICON_CON_TRANSLIKE;
-            break;
-          case CONSTRAINT_TYPE_DISTLIMIT:
-            data.icon = ICON_CON_DISTLIMIT;
-            break;
-          case CONSTRAINT_TYPE_LOCLIMIT:
-            data.icon = ICON_CON_LOCLIMIT;
-            break;
-          case CONSTRAINT_TYPE_ROTLIMIT:
-            data.icon = ICON_CON_ROTLIMIT;
-            break;
-          case CONSTRAINT_TYPE_SIZELIMIT:
-            data.icon = ICON_CON_SIZELIMIT;
-            break;
-          case CONSTRAINT_TYPE_SAMEVOL:
-            data.icon = ICON_CON_SAMEVOL;
-            break;
-          case CONSTRAINT_TYPE_TRANSFORM:
-            data.icon = ICON_CON_TRANSFORM;
-            break;
-          case CONSTRAINT_TYPE_TRANSFORM_CACHE:
-            data.icon = ICON_CON_TRANSFORM_CACHE;
-            break;
-          case CONSTRAINT_TYPE_CLAMPTO:
-            data.icon = ICON_CON_CLAMPTO;
-            break;
-          case CONSTRAINT_TYPE_DAMPTRACK:
-            data.icon = ICON_CON_TRACKTO;
-            break;
-          case CONSTRAINT_TYPE_KINEMATIC:
-            data.icon = ICON_CON_KINEMATIC;
-            break;
-          case CONSTRAINT_TYPE_LOCKTRACK:
-            data.icon = ICON_CON_LOCKTRACK;
-            break;
-          case CONSTRAINT_TYPE_SPLINEIK:
-            data.icon = ICON_CON_SPLINEIK;
-            break;
-          case CONSTRAINT_TYPE_STRETCHTO:
-            data.icon = ICON_CON_STRETCHTO;
-            break;
-          case CONSTRAINT_TYPE_TRACKTO:
-            data.icon = ICON_CON_TRACKTO;
-            break;
-          case CONSTRAINT_TYPE_ACTION:
-            data.icon = ICON_CON_ACTION;
-            break;
-          case CONSTRAINT_TYPE_ARMATURE:
-            data.icon = ICON_CON_ARMATURE;
-            break;
-          case CONSTRAINT_TYPE_CHILDOF:
-            data.icon = ICON_CON_CHILDOF;
-            break;
-          case CONSTRAINT_TYPE_MINMAX:
-            data.icon = ICON_CON_FLOOR;
-            break;
-          case CONSTRAINT_TYPE_FOLLOWPATH:
-            data.icon = ICON_CON_FOLLOWPATH;
-            break;
-          case CONSTRAINT_TYPE_PIVOT:
-            data.icon = ICON_CON_PIVOT;
-            break;
-          case CONSTRAINT_TYPE_SHRINKWRAP:
-            data.icon = ICON_CON_SHRINKWRAP;
-            break;
-          case CONSTRAINT_TYPE_GEOMETRY_ATTRIBUTE:
-            data.icon = ICON_CON_GEOMETRYATTRIBUTE;
-            break;
-
-          default:
-            data.icon = ICON_DOT;
-            break;
-        }
-        break;
-      }
       case TSE_MODIFIER_BASE:
-        data.icon = ICON_MODIFIER_DATA;
+      case TSE_MODIFIER:
+      case TSE_RNA_STRUCT:
+      case TSE_GPENCIL_EFFECT_BASE:
+      case TSE_GPENCIL_EFFECT:
         data.drag_id = tselem->id;
         break;
       case TSE_LIBRARY_OVERRIDE_BASE: {
         TreeElementOverridesBase *base_te = tree_element_cast<TreeElementOverridesBase>(te);
         data.icon = tree_element_get_icon_from_id(&base_te->id);
-        break;
-      }
-      case TSE_LIBRARY_OVERRIDE:
-        data.icon = ICON_LIBRARY_DATA_OVERRIDE;
-        break;
-      case TSE_LINKED_OB:
-        data.icon = ICON_OBJECT_DATA;
-        break;
-      case TSE_LINKED_PSYS:
-        data.icon = ICON_PARTICLES;
-        break;
-      case TSE_MODIFIER: {
-        Object *ob = id_cast<Object *>(tselem->id);
-        data.drag_id = tselem->id;
-
-        ModifierData *md = static_cast<ModifierData *>(BLI_findlink(&ob->modifiers, tselem->nr));
-        if (const ModifierTypeInfo *modifier_type = BKE_modifier_get_info(ModifierType(md->type)))
-        {
-          data.icon = modifier_type->icon;
-        }
-        else {
-          data.icon = ICON_DOT;
-        }
-        break;
-      }
-      case TSE_LINKED_NODE_TREE:
-        data.icon = ICON_NODETREE;
-        break;
-      case TSE_POSE_BASE:
-        data.icon = ICON_ARMATURE_DATA;
-        break;
-      case TSE_POSE_CHANNEL:
-        data.icon = ICON_BONE_DATA;
-        break;
-      case TSE_R_LAYER_BASE:
-        data.icon = ICON_RENDERLAYERS;
-        break;
-      case TSE_SCENE_OBJECTS_BASE:
-        data.icon = ICON_OUTLINER_OB_GROUP_INSTANCE;
-        break;
-      case TSE_R_LAYER:
-        data.icon = ICON_RENDER_RESULT;
-        break;
-      case TSE_BONE_COLLECTION_BASE:
-      case TSE_BONE_COLLECTION:
-        data.icon = ICON_GROUP_BONE;
-        break;
-      case TSE_STRIP: {
-        const TreeElementStrip *te_strip = tree_element_cast<TreeElementStrip>(te);
-        switch (te_strip->get_strip_type()) {
-          case STRIP_TYPE_SCENE:
-            data.icon = ICON_SCENE_DATA;
-            break;
-          case STRIP_TYPE_MOVIECLIP:
-            data.icon = ICON_TRACKER;
-            break;
-          case STRIP_TYPE_MASK:
-            data.icon = ICON_MOD_MASK;
-            break;
-          case STRIP_TYPE_MOVIE:
-            data.icon = ICON_FILE_MOVIE;
-            break;
-          case STRIP_TYPE_SOUND:
-            data.icon = ICON_SOUND;
-            break;
-          case STRIP_TYPE_IMAGE:
-            data.icon = ICON_FILE_IMAGE;
-            break;
-          case STRIP_TYPE_COLOR:
-          case STRIP_TYPE_ADJUSTMENT:
-            data.icon = ICON_COLOR;
-            break;
-          case STRIP_TYPE_TEXT:
-            data.icon = ICON_FONT_DATA;
-            break;
-          case STRIP_TYPE_ADD:
-          case STRIP_TYPE_SUB:
-          case STRIP_TYPE_MUL:
-          case STRIP_TYPE_ALPHAOVER:
-          case STRIP_TYPE_ALPHAUNDER:
-          case STRIP_TYPE_COLORMIX:
-          case STRIP_TYPE_MULTICAM:
-          case STRIP_TYPE_SPEED:
-          case STRIP_TYPE_GLOW:
-          case STRIP_TYPE_GAUSSIAN_BLUR:
-            data.icon = ICON_SHADERFX;
-            break;
-          case STRIP_TYPE_CROSS:
-          case STRIP_TYPE_GAMCROSS:
-          case STRIP_TYPE_WIPE:
-          case STRIP_TYPE_COMPOSITOR:
-            data.icon = ICON_ARROW_LEFTRIGHT;
-            break;
-          case STRIP_TYPE_META:
-            data.icon = ICON_SEQ_STRIP_META;
-            break;
-          default:
-            data.icon = ICON_DOT;
-            break;
-        }
-        break;
-      }
-      case TSE_STRIP_DATA:
-        data.icon = ICON_LIBRARY_DATA_DIRECT;
-        break;
-      case TSE_STRIP_DUP:
-        data.icon = ICON_SEQ_STRIP_DUPLICATE;
-        break;
-      case TSE_RNA_STRUCT: {
-        const TreeElementRNAStruct *te_rna_struct = tree_element_cast<TreeElementRNAStruct>(te);
-        const PointerRNA &ptr = te_rna_struct->get_pointer_rna();
-
-        if (RNA_struct_is_ID(ptr.type)) {
-          ID *id = static_cast<ID *>(ptr.data);
-          data.drag_id = id;
-          if (id && GS(id->name) == ID_LI &&
-              id_cast<Library *>(id)->flag & LIBRARY_FLAG_IS_ARCHIVE)
-          {
-            data.icon = ICON_PACKAGE;
-          }
-          else {
-            data.icon = RNA_struct_ui_icon(ptr.type);
-          }
-        }
-        else {
-          data.icon = RNA_struct_ui_icon(ptr.type);
-        }
         break;
       }
       case TSE_LAYER_COLLECTION:
@@ -2882,33 +2648,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         data.icon = ICON_OUTLINER_COLLECTION;
         break;
       }
-      case TSE_GP_LAYER: {
-        data.icon = ICON_OUTLINER_DATA_GP_LAYER;
-        break;
-      }
-      case TSE_GREASE_PENCIL_NODE: {
-        bke::greasepencil::TreeNode &node =
-            tree_element_cast<TreeElementGreasePencilNode>(te)->node();
-        if (node.is_layer()) {
-          data.icon = ICON_OUTLINER_DATA_GP_LAYER;
-        }
-        else if (node.is_group()) {
-          const bke::greasepencil::LayerGroup &group = node.as_group();
-
-          data.icon = ICON_GREASEPENCIL_LAYER_GROUP;
-          if (group.color_tag != LAYERGROUP_COLOR_NONE) {
-            data.icon = ICON_LAYERGROUP_COLOR_01 + int(group.color_tag);
-          }
-        }
-        break;
-      }
-      case TSE_GPENCIL_EFFECT_BASE:
-      case TSE_GPENCIL_EFFECT:
-        data.drag_id = tselem->id;
-        data.icon = ICON_SHADERFX;
-        break;
       default:
-        data.icon = ICON_DOT;
         break;
     }
   }
@@ -3188,7 +2928,8 @@ static void outliner_draw_iconrow(ui::Block *block,
                 TSE_BONE_COLLECTION,
                 TSE_DEFGROUP,
                 TSE_ACTION_SLOT,
-                TSE_NLA_TRACK))
+                TSE_NLA_TRACK) &&
+          tselem->type != TSE_SHAPE_KEY_BLOCK)
       {
         outliner_draw_iconrow_doit(block, &te, xmax, offsx, ys, alpha_fac, active, 1);
       }
@@ -3477,6 +3218,17 @@ static void outliner_draw_tree_element(ui::Block *block,
         offsx += UI_UNIT_X + 4 * ufac;
       }
 
+      if ((lib_icon == ICON_NONE) && (GS(tselem->id->name) == ID_IM)) {
+        const Image *image = id_cast<Image *>(tselem->id);
+        if (BKE_image_has_packedfile(image)) {
+          ui::icon_draw_alpha(float(startx) + offsx + 2 * ufac,
+                              float(*starty) + 2 * ufac,
+                              ICON_PACKAGE,
+                              alpha_fac);
+          offsx += UI_UNIT_X + 4 * ufac;
+        }
+      }
+
       if (tselem->type == TSE_LAYER_COLLECTION) {
         const Collection *collection = id_cast<Collection *>(tselem->id);
         if (collection->importer) {
@@ -3485,7 +3237,7 @@ static void outliner_draw_tree_element(ui::Block *block,
           offsx += UI_UNIT_X + 4 * ufac;
         }
 
-        if (!BLI_listbase_is_empty(&collection->exporters)) {
+        if (!collection->exporters.is_empty()) {
           ui::icon_draw_alpha(
               float(startx) + offsx + 2 * ufac, float(*starty) + 2 * ufac, ICON_EXPORT, alpha_fac);
           offsx += UI_UNIT_X + 4 * ufac;
@@ -3620,7 +3372,7 @@ static void outliner_draw_hierarchy_lines_recursive(uint pos,
     short color_tag = COLLECTION_COLOR_NONE;
 
     /* Only draw hierarchy lines for expanded collections and objects with children. */
-    if (TSELEM_OPEN(tselem, space_outliner) && !BLI_listbase_is_empty(&te.subtree)) {
+    if (TSELEM_OPEN(tselem, space_outliner) && !te.subtree.is_empty()) {
       if (tselem->type == TSE_LAYER_COLLECTION) {
         draw_hierarchy_line = true;
 

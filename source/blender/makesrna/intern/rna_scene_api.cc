@@ -22,8 +22,8 @@
 
 #  include "DNA_screen_types.h"
 
-#  include "BLI_math_matrix.h"
-#  include "BLI_math_vector.h"
+#  include "BLI_math_matrix_c.hh"
+#  include "BLI_math_vector_c.hh"
 
 #  include "BKE_editmesh.hh"
 #  include "BKE_global.hh"
@@ -128,11 +128,15 @@ static void rna_SceneRender_get_frame_path(ID *id,
   }
 
   if (BKE_imtype_is_movie(rd->im_format.imtype)) {
-    MOV_filepath_from_settings(filepath, scene, rd, preview != 0, suffix, reports);
+    BKE_blender_project_read_callback(bmain, [&](const bke::BlenderProject *project) {
+      MOV_filepath_from_settings(filepath, scene, project, rd, preview != 0, suffix, reports);
+    });
   }
   else {
     bke::path_templates::VariableMap template_variables;
-    BKE_add_template_variables_general(template_variables, &scene->id);
+    BKE_blender_project_read_callback(bmain, [&](const bke::BlenderProject *project) {
+      BKE_add_template_variables_general(template_variables, &scene->id, project);
+    });
     BKE_add_template_variables_for_render_path(template_variables, *scene);
 
     const char *relbase = BKE_main_blendfile_path(bmain);

@@ -12,22 +12,22 @@
 #include <cmath>
 #include <cstdio>
 
-#include "BLI_assert.h"
-#include "BLI_fileops.h"
+#include "BLI_assert.hh"
+#include "BLI_fileops.hh"
 #include "BLI_kdtree.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_color.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_mutex.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_task.h"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
+#include "BLI_task_c.hh"
+#include "BLI_threads.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -632,7 +632,8 @@ static void boundInsert(Bounds3D *b, const float point[3])
 static float getSurfaceDimension(PaintSurfaceData *sData)
 {
   Bounds3D *mb = &sData->bData->mesh_bounds;
-  return max_fff((mb->max[0] - mb->min[0]), (mb->max[1] - mb->min[1]), (mb->max[2] - mb->min[2]));
+  return std::max(
+      {(mb->max[0] - mb->min[0]), (mb->max[1] - mb->min[1]), (mb->max[2] - mb->min[2])});
 }
 
 static void freeGrid(PaintSurfaceData *data)
@@ -778,7 +779,7 @@ static void surfaceGenerateGrid(DynamicPaintSurface *surface)
     sub_v3_v3v3(dim, grid->grid_bounds.max, grid->grid_bounds.min);
     copy_v3_v3(td, dim);
     copy_v3_v3(bData->dim, dim);
-    min_dim = max_fff(td[0], td[1], td[2]) / 1000.0f;
+    min_dim = std::max({td[0], td[1], td[2]}) / 1000.0f;
 
     /* deactivate zero axes */
     for (i = 0; i < 3; i++) {
@@ -788,7 +789,7 @@ static void surfaceGenerateGrid(DynamicPaintSurface *surface)
       }
     }
 
-    if (axis == 0 || max_fff(td[0], td[1], td[2]) < 0.0001f) {
+    if (axis == 0 || std::max({td[0], td[1], td[2]}) < 0.0001f) {
       MEM_delete(bData->grid);
       bData->grid = nullptr;
       return;
@@ -2484,7 +2485,7 @@ static int dynamic_paint_find_neighbor_pixel(const DynamicPaintCreateUVSurfaceDa
 {
   /* NOTE: Current method only uses face edges to detect neighboring pixels.
    *       -> It doesn't always lead to the optimum pixel but is accurate enough
-   *          and faster/simpler than including possible face tip point links)
+   *          and faster/simpler than including possible face tip point links.
    */
 
   /* shift position by given n_index */
@@ -3341,7 +3342,8 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface,
   BLI_file_ensure_parent_dir_exists(output_file);
 
   /* Init image buffer */
-  ibuf = IMB_allocImBuf(surface->image_resolution, surface->image_resolution, 32, IB_float_data);
+  ibuf = IMB_allocImBuf(
+      surface->image_resolution, surface->image_resolution, ImBufFlags::FloatData);
   if (ibuf == nullptr) {
     setError(surface->canvas, N_("Image save failed: not enough free memory"));
     return;
@@ -3436,7 +3438,7 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface,
   }
 
   /* Save image */
-  IMB_save_image(ibuf, output_file, IB_float_data);
+  IMB_save_image(ibuf, output_file, ImBufFlags::FloatData);
   IMB_freeImBuf(ibuf);
 }
 
@@ -3517,7 +3519,7 @@ static void mesh_tris_nearest_point_dp(void *userdata,
  * \param surface: Canvas surface
  * \param index: Surface point index
  * \param paintFlags: paint object flags
- * \param paintColor,paintAlpha,paintWetness: To be mixed paint values
+ * \param paintColor, paintAlpha, paintWetness: To be mixed paint values
  * \param timescale: Value used to adjust time dependent
  * operations when using substeps
  */
@@ -4365,7 +4367,7 @@ static bool dynamicPaint_paintMesh(Depsgraph *depsgraph,
     if (brush->flags & MOD_DPAINT_PROX_PROJECT && brush->collision != MOD_DPAINT_COL_VOLUME) {
       mul_v3_fl(avg_brushNor, 1.0f / float(numOfVerts));
       /* instead of null vector use positive z */
-      if (UNLIKELY(normalize_v3(avg_brushNor) == 0.0f)) {
+      if (normalize_v3(avg_brushNor) == 0.0f) [[unlikely]] {
         avg_brushNor[2] = 1.0f;
       }
     }
@@ -5233,7 +5235,7 @@ static int dynamicPaint_prepareEffectStep(Depsgraph *depsgraph,
     shrink_speed = surface->shrink_speed;
   }
 
-  fastest_effect = max_fff(spread_speed, shrink_speed, average_force);
+  fastest_effect = std::max({spread_speed, shrink_speed, float(average_force)});
   avg_dist = bData->average_dist * double(CANVAS_REL_SIZE) / double(getSurfaceDimension(sData));
 
   steps = int(ceilf(1.5f * EFF_MOVEMENT_PER_FRAME * fastest_effect / avg_dist * timescale));
@@ -5274,7 +5276,7 @@ static void dynamic_paint_effect_spread_cb(void *__restrict userdata,
     const PaintPoint *pPoint_prev = &prevPoint[n_target[n_idx]];
     const float speed_scale = (bNeighs[n_idx].dist < eff_scale) ? 1.0f :
                                                                   eff_scale / bNeighs[n_idx].dist;
-    const float color_mix = min_fff(pPoint_prev->wetness, pPoint->wetness, 1.0f) * 0.25f *
+    const float color_mix = std::min({pPoint_prev->wetness, pPoint->wetness, 1.0f}) * 0.25f *
                             surface->color_spread_speed;
 
     /* do color mixing */

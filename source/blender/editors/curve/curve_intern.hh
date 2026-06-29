@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 #include "DNA_curve_types.h"
 #include "DNA_listBase.h"
@@ -21,7 +21,6 @@ struct Base;
 struct BezTriple;
 struct Curve;
 struct EditNurb;
-struct GHash;
 struct Nurb;
 struct Object;
 struct View3D;
@@ -229,7 +228,7 @@ bool ED_curve_pick_vert(ViewContext *vc,
 /**
  * Pick the nearest `r_nurb` and `r_bezt` or `r_bp`.
  * \param select: selected vertices have a disadvantage.
- * \param sel_dist_mul: A multiplier on the default select distance.
+ * \param dist_px: The selection distance in pixels.
  * \param r_handle: For bezier triples, set the handle index [0, 1, 2].
  */
 bool ED_curve_pick_vert_ex(ViewContext *vc,

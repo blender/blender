@@ -4,7 +4,7 @@
 
 #include <memory>
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_node_types.h"
@@ -67,7 +67,6 @@ class GroupNodeOperation : public NodeOperation {
     NodeGroupOperation operation(this->context(),
                                  *node_group,
                                  needed_outputs_,
-                                 this->get_node_previews(),
                                  active_node_group_instance_key_,
                                  this->get_instance_key(),
                                  compute_context);
@@ -100,10 +99,10 @@ class GroupNodeOperation : public NodeOperation {
     node_group->ensure_interface_cache();
     for (const bNodeTreeInterfaceSocket *input_socket : node_group->interface_inputs()) {
       const Result &input_result = this->get_input(input_socket->identifier);
-      Result temporary_input = this->context().create_result(input_result.type(),
-                                                             input_result.precision());
-      temporary_input.share_data(input_result);
-      temporary_inputs.append(std::make_unique<Result>(temporary_input));
+      std::unique_ptr<Result> temporary_input = std::make_unique<Result>(
+          this->context().create_result(input_result.type(), input_result.precision()));
+      temporary_input->share_data(input_result);
+      temporary_inputs.append(std::move(temporary_input));
       operation.map_input_to_result(input_socket->identifier, temporary_inputs.last().get());
     }
     return temporary_inputs;

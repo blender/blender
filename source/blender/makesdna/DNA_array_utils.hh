@@ -16,7 +16,7 @@
 
 #include "BLI_function_ref.hh"
 #include "BLI_index_range.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 namespace blender::dna::array {
 

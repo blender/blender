@@ -8,7 +8,7 @@
 
 #include <algorithm>
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "node_texture_util.hh"
 #include "node_util.hh"
@@ -145,7 +145,7 @@ void register_node_type_tex_output()
   ntype.enum_name_legacy = "OUTPUT";
   ntype.nclass = NODE_CLASS_OUTPUT;
   bke::node_type_socket_templates(&ntype, inputs, nullptr);
-  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
+  ntype.default_width = bke::NodeWidth::_160;
   ntype.initfunc = init;
   bke::node_type_storage(ntype, "TexNodeOutput", node_free_standard_storage, copy);
   ntype.exec_fn = exec;

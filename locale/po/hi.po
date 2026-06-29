@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-11 07:23+0000\n"
+"POT-Creation-Date: 2026-06-22 07:24+0000\n"
 "PO-Revision-Date: 2025-12-04 22:18+0000\n"
 "Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -372,6 +372,10 @@ msgid "X Position"
 msgstr "स्थिति x"
 
 
+msgid "Link"
+msgstr "संयुक्त"
+
+
 msgid "Brushes"
 msgstr "तूलिका"
 
@@ -705,6 +709,10 @@ msgstr "बहु"
 
 msgid "All"
 msgstr "सभी"
+
+
+msgid "Pixel"
+msgstr "पिक्सेल"
 
 
 msgid "Iterations"
@@ -1461,10 +1469,6 @@ msgid "Filter Text"
 msgstr "निस्पादक पाठ"
 
 
-msgid "Link"
-msgstr "संयुक्त"
-
-
 msgid "End"
 msgstr "समाप्त"
 
@@ -1565,6 +1569,10 @@ msgid "Grid"
 msgstr "जालक"
 
 
+msgid "Dynamic"
+msgstr "गतिकी"
+
+
 msgid "Items"
 msgstr "वस्तु"
 
@@ -1655,10 +1663,6 @@ msgstr "स्थानीय"
 
 msgid "Global"
 msgstr "भूमंडलीय"
-
-
-msgid "Dynamic"
-msgstr "गतिकी"
 
 
 msgid "Add Color"
@@ -2129,10 +2133,6 @@ msgid "Rigid Body Constraint"
 msgstr "कठोर-पदार्थ प्रतिबंधी"
 
 
-msgid "Pixel"
-msgstr "पिक्सेल"
-
-
 msgid "Global X"
 msgstr "भूमंडलीय एक्स"
 
@@ -2586,10 +2586,6 @@ msgid "Placement"
 msgstr "नियोजन"
 
 
-msgid "Snap"
-msgstr "स्नैप"
-
-
 msgid "Math"
 msgstr "गणित"
 
@@ -2618,16 +2614,16 @@ msgid "Show/Hide"
 msgstr "छुपाएँ / दिखाएँ"
 
 
-msgid "Import"
-msgstr "आयात करें"
-
-
 msgid "Make Single User"
 msgstr "एकल प्रयोक्ता बनाएँ"
 
 
 msgid "Hooks"
 msgstr "खूँटी"
+
+
+msgid "Import"
+msgstr "आयात करें"
 
 
 msgid "UV"
@@ -2652,6 +2648,10 @@ msgstr "विलय करें"
 
 msgid "Bone Roll"
 msgstr "हड्डी पंजी"
+
+
+msgid "Snap"
+msgstr "स्नैप"
 
 
 msgid "Keying"
@@ -3325,8 +3325,16 @@ msgid "Paste Driver"
 msgstr "चिपकाएँ यंत्र-संवादी"
 
 
+msgid "Axes"
+msgstr "अक्ष"
+
+
 msgid "Move"
 msgstr "विचलन"
+
+
+msgid "Search"
+msgstr "खोज"
 
 
 msgctxt "Operator"
@@ -4953,8 +4961,8 @@ msgid "Relationship Lines"
 msgstr "संबंध रेखाएँ"
 
 
-msgid "Search"
-msgstr "खोज"
+msgid "Cancel"
+msgstr "रद्द करें"
 
 
 msgctxt "WindowManager"
@@ -5064,6 +5072,11 @@ msgstr "बाह्य shader स्क्रिप्ट .osl या .oso ए�
 
 
 msgctxt "Operator"
+msgid "Clear"
+msgstr "स्पष्ट"
+
+
+msgctxt "Operator"
 msgid "Assign"
 msgstr "निर्दिष्ट"
 
@@ -5162,10 +5175,6 @@ msgid "Shapes"
 msgstr "आकृतियाँ"
 
 
-msgid "Axes"
-msgstr "अक्ष"
-
-
 msgctxt "Operator"
 msgid "Add Image"
 msgstr "छवि जोड़ें"
@@ -5198,11 +5207,6 @@ msgstr "प्रसंकेतक के लिए चयन"
 
 msgid "Transform:"
 msgstr "संचनांतरण:"
-
-
-msgctxt "Operator"
-msgid "Clear"
-msgstr "स्पष्ट"
 
 
 msgid "Date"
@@ -5670,6 +5674,11 @@ msgid "Key %d"
 msgstr "कुंजी %d"
 
 
+msgctxt "Key"
+msgid "Key"
+msgstr "कुंजी"
+
+
 msgid "No new files have been packed"
 msgstr "कोई संचिकाएँ संकुल नहीं की गईं"
 
@@ -5784,10 +5793,6 @@ msgstr "\"%s\" संपत्ति एनिमेटेड किया ज�
 
 msgid "Same bone selected..."
 msgstr "एक ही हड्डी का चयन किया..."
-
-
-msgid "Cancel"
-msgstr "रद्द करें"
 
 
 msgctxt "Curve"
@@ -6433,11 +6438,6 @@ msgstr "लेखन के लिए संचिका को नहीं ख
 
 msgid "Flame"
 msgstr "लौ"
-
-
-msgctxt "Key"
-msgid "Key"
-msgstr "कुंजी"
 
 
 msgid "Soften"

@@ -8,9 +8,9 @@
 
 #include <cstring>
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "BLT_translation.hh"
 
@@ -217,7 +217,7 @@ static void free_data(ModifierData *md)
     }
 
     if (md->flag & eModifierFlag_SharedCaches) {
-      BLI_listbase_clear(&clmd->ptcaches);
+      clmd->ptcaches.clear_no_delete();
     }
     else {
       BKE_ptcache_free_list(&clmd->ptcaches);

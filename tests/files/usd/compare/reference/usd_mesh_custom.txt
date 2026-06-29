@@ -1,11 +1,18 @@
 ==== Meshes: 4
-- Mesh 'mesh_counts_but_no_indices' vtx:0 face:0 loop:0 edge:0
+- Mesh 'mesh_counts_but_no_indices' vtx:4 face:0 loop:0 edge:0
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, -0.500, 0.000)
+    - (0.500, -0.500, 0.000)
+    - (-0.500, 0.500, 0.000)
+    - (0.500, 0.500, 0.000)
 
 - Mesh 'mesh_counts_but_no_points' vtx:0 face:0 loop:0 edge:0
 
 - Mesh 'mesh_empty_frame' vtx:0 face:0 loop:0 edge:0
 
-- Mesh 'mesh_too_few_points' vtx:0 face:0 loop:0 edge:0
+- Mesh 'mesh_too_few_points' vtx:1 face:0 loop:0 edge:0
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, -0.500, 0.000)
 
 ==== Objects: 5
 - Obj 'mesh_counts_but_no_indices' MESH data:'mesh_counts_but_no_indices' par:'root'

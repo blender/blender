@@ -179,14 +179,16 @@ def copy_bone(obj: ArmatureObject, bone_name: str, assign_name='', *,
 
 
 def copy_bone_properties(obj: ArmatureObject, bone_name_1: str, bone_name_2: str,
-                         transforms=True, props=True, widget=True):
-    """ Copy transform and custom properties from bone 1 to bone 2. """
+                         transforms=True, props=True, widget=True, bbone=True):
+    """ Copy transform, bbone, and custom properties from bone 1 to bone 2. """
     if obj.mode in {'OBJECT', 'POSE'}:
-        # Get the pose bones
+        # Get the pose and data bones.
         pose_bone_1 = obj.pose.bones[bone_name_1]
         pose_bone_2 = obj.pose.bones[bone_name_2]
+        bone_1 = obj.data.bones[bone_name_1]
+        bone_2 = obj.data.bones[bone_name_2]
 
-        # Copy pose bone attributes
+        # Copy pose bone attributes.
         if transforms:
             pose_bone_2.rotation_mode = pose_bone_1.rotation_mode
             pose_bone_2.rotation_axis_angle = tuple(pose_bone_1.rotation_axis_angle)
@@ -199,7 +201,7 @@ def copy_bone_properties(obj: ArmatureObject, bone_name_1: str, bone_name_2: str
             pose_bone_2.lock_rotation_w = pose_bone_1.lock_rotation_w
             pose_bone_2.lock_rotations_4d = pose_bone_1.lock_rotations_4d
 
-        # Copy custom properties
+        # Copy custom properties.
         if props:
             from .mechanism import copy_custom_properties
 
@@ -207,6 +209,30 @@ def copy_bone_properties(obj: ArmatureObject, bone_name_1: str, bone_name_2: str
 
         if widget:
             pose_bone_2.custom_shape = pose_bone_1.custom_shape
+
+        # Properties shared between PoseBone and Bone
+        if bbone:
+            bbone_shared_properties = [
+                'bbone_curveinx', 'bbone_curveinz',
+                'bbone_curveoutx', 'bbone_curveoutz',
+                'bbone_easein', 'bbone_easeout',
+                'bbone_rollin', 'bbone_rollout',
+                'bbone_scalein', 'bbone_scaleout',
+            ]
+
+            bbone_bone_properties = [
+                'bbone_segments', 'bbone_mapping_mode', 'use_endroll_as_inroll', 'use_scale_easing',
+                'bbone_x', 'bbone_z',
+                'bbone_custom_handle_start', 'bbone_custom_handle_end',
+            ]
+
+            for name in bbone_shared_properties:
+                setattr(bone_2, name, getattr(bone_1, name))
+                setattr(pose_bone_2, name, getattr(pose_bone_1, name))
+
+            for name in bbone_bone_properties:
+                setattr(bone_2, name, getattr(bone_1, name))
+
     else:
         raise MetarigError("Cannot copy bone properties in edit mode")
 

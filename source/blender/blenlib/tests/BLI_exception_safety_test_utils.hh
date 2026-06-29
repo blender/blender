@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "BLI_hash.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include "MEM_guardedalloc.h"
 #include "testing/testing.h"
 

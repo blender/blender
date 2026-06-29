@@ -14,12 +14,12 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_hash.h"
+#include "BLI_hash_c.hh"
 #include "BLI_index_range.hh"
 #include "BLI_math_base.hh"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_math_vector.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "BLT_translation.hh"
@@ -2529,8 +2529,7 @@ static wmOperatorStatus sculpt_mesh_filter_start(bContext *C, wmOperator *op)
   if (use_automasking) {
     /* Update the active face set manually as the paint cursor is not enabled when using the
      * Mesh Filter Tool. */
-    CursorGeometryInfo cgi;
-    cursor_geometry_info_update(C, &cgi, mval_fl, false);
+    cursor_geometry_info_update(C, mval_fl, false);
   }
 
   vert_random_access_ensure(ob);

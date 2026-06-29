@@ -13,12 +13,12 @@
 #include "DNA_sequence_types.h"
 
 #include "BLI_bounds.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_base.hh"
+#include "BLI_math_base_c.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 
 #include "BLF_api.hh"
 
@@ -50,7 +50,7 @@ bool transform_is_locked(const ListBaseT<SeqTimelineChannel> *channels, const St
 {
   const SeqTimelineChannel *channel = channel_get_by_index(channels, strip->channel);
   return strip->flag & SEQ_LOCK ||
-         (channel_is_locked(channel) &&
+         (channel->is_locked() &&
           !flag_is_set(strip->runtime->flag, StripRuntimeFlag::IgnoreChannelLock));
 }
 
@@ -96,7 +96,7 @@ void transform_translate_strip(Scene *evil_scene, Strip *strip, int delta)
   /* Meta strips requires their content is to be translated, and then frame range of the meta is
    * updated based on nested strips. This won't work for empty meta-strips,
    * so they can be treated as normal strip. */
-  if (strip->type == STRIP_TYPE_META && !BLI_listbase_is_empty(&strip->seqbase)) {
+  if (strip->type == STRIP_TYPE_META && !strip->seqbase.is_empty()) {
     for (Strip &strip_child : strip->seqbase) {
       transform_translate_strip(evil_scene, &strip_child, delta);
     }
@@ -113,7 +113,7 @@ void transform_translate_strip(Scene *evil_scene, Strip *strip, int delta)
   }
 
   offset_animdata(evil_scene, strip, delta);
-  Span<Strip *> effects = SEQ_lookup_effects_by_strip(evil_scene->ed, strip);
+  Span<Strip *> effects = lookup_effects_by_strip(evil_scene->ed, strip);
   strip_time_update_effects_strip_range(evil_scene, effects);
   time_update_meta_strip_range(evil_scene, lookup_meta_by_strip(evil_scene->ed, strip));
 }
@@ -126,15 +126,15 @@ bool transform_seqbase_shuffle_ex(ListBaseT<Strip> *seqbasep,
   const int orig_channel = test->channel;
   BLI_assert(ELEM(channel_delta, -1, 1));
 
-  strip_channel_set(test, test->channel + channel_delta);
+  test->channel_set(test->channel + channel_delta);
 
   const ListBaseT<SeqTimelineChannel> *channels = channels_displayed_get(editing_get(evil_scene));
   SeqTimelineChannel *channel = channel_get_by_index(channels, test->channel);
 
   bool use_fallback_translation = false;
 
-  while (transform_test_overlap(evil_scene, seqbasep, test) || channel_is_muted(channel) ||
-         channel_is_locked(channel))
+  while (transform_test_overlap(evil_scene, seqbasep, test) || channel->is_muted() ||
+         channel->is_locked())
   {
     if ((channel_delta > 0) ? (test->channel + channel_delta >= MAX_CHANNELS) :
                               (test->channel + channel_delta < 1))
@@ -143,7 +143,7 @@ bool transform_seqbase_shuffle_ex(ListBaseT<Strip> *seqbasep,
       break;
     }
 
-    strip_channel_set(test, test->channel + channel_delta);
+    test->channel_set(test->channel + channel_delta);
     channel = channel_get_by_index(channels, test->channel);
   }
 
@@ -157,7 +157,7 @@ bool transform_seqbase_shuffle_ex(ListBaseT<Strip> *seqbasep,
       }
     }
 
-    strip_channel_set(test, orig_channel);
+    test->channel_set(orig_channel);
 
     new_frame = new_frame + (test->start - test->left_handle()); /* adjust by the startdisp */
     transform_translate_strip(evil_scene, test, new_frame - test->start);
@@ -581,11 +581,6 @@ void transform_offset_after_frame(Scene *scene,
   }
 }
 
-void strip_channel_set(Strip *strip, int channel)
-{
-  strip->channel = math::clamp(channel, 1, MAX_CHANNELS);
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -621,20 +616,18 @@ float2 image_transform_raw_size_get(const Scene *scene, const Strip *strip)
     }
   }
 
+  if (strip->type == STRIP_TYPE_COLOR) {
+    const SolidColorVars *data = static_cast<const SolidColorVars *>(strip->effectdata);
+    return {float(data->width), float(data->height)};
+  }
+
   if (strip->type == STRIP_TYPE_TEXT) {
-    const TextVars *data = static_cast<TextVars *>(strip->effectdata);
-    const FontFlags font_flags = ((data->flag & SEQ_TEXT_BOLD) ? BLF_BOLD : BLF_NONE) |
-                                 ((data->flag & SEQ_TEXT_ITALIC) ? BLF_ITALIC : BLF_NONE);
-
-    std::unique_lock<Mutex> lock = text_runtime_scoped_lock_get();
-    const int font = text_effect_font_init(nullptr, strip, font_flags);
-    const TextVarsRuntime *runtime = text_effect_calc_runtime(
-        strip, font, int2(scene_render_size));
-    BLF_disable(font, font_flags);
-
-    const float2 text_size(float(BLI_rcti_size_x(&runtime->text_boundbox)),
-                           float(BLI_rcti_size_y(&runtime->text_boundbox)));
-    MEM_delete(runtime);
+    TextVars *data = static_cast<TextVars *>(strip->effectdata);
+    std::scoped_lock runtime_lock(text_runtime_mutex_get());
+    text_effect_update_runtime(nullptr, *data, int2(scene_render_size));
+    BLF_disable(data->runtime->font, BLF_BOLD | BLF_ITALIC);
+    const float2 text_size(float(BLI_rcti_size_x(&data->runtime->text_boundbox)),
+                           float(BLI_rcti_size_y(&data->runtime->text_boundbox)));
     return text_size;
   }
 
@@ -694,8 +687,12 @@ Array<float2> image_transform_quad_get(const Scene *scene, const Strip *strip)
   constexpr int num_corners = 4;
   const float2 image_size = image_transform_raw_size_get(scene, strip);
 
-  /* Raw quad before any rotation/scaling or text anchoring is applied. */
-  const StripCrop *crop = strip->data->crop;
+  /* Raw quad before any rotation/scaling or text anchoring is applied.
+   *
+   * NOTE: For text strips, crops should only affect their visible result and not their bounding
+   * box. Text effects can stray outside, so crop works on the full render buffer. */
+  const StripCrop no_crop{};
+  const StripCrop *crop = (strip->type == STRIP_TYPE_TEXT) ? &no_crop : strip->data->crop;
   float2 quad[num_corners]{
       {(image_size.x / 2) - crop->right, (image_size.y / 2) - crop->top},     /* Top right. */
       {(image_size.x / 2) - crop->right, (-image_size.y / 2) + crop->bottom}, /* Bottom right. */

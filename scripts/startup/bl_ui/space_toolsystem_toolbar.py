@@ -235,7 +235,7 @@ class _defs_annotate:
                 row.ui_units_x = 15
                 row.prop(props, "arrowstyle_start", text="Start")
                 row.separator()
-                row.prop(props, "arrowstyle_end", text="End", translation_context=i18n_contexts.id_curve)
+                row.prop(props, "arrowstyle_end", text="End", text_ctxt=i18n_contexts.id_curve)
             else:
                 col = layout.row().column(align=True)
                 col.prop(props, "arrowstyle_start", text="Style Start")
@@ -763,7 +763,7 @@ class _defs_edit_armature:
     def bone_size():
         return dict(
             idname="builtin.bone_size",
-            label="Bone Size",
+            label="B-Bone Size",
             icon="ops.transform.bone_size",
             widget="VIEW3D_GGT_tool_generic_handle_free",
             keymap=(),
@@ -1430,7 +1430,7 @@ class _defs_pose:
             label="Breakdowner",
             icon="ops.pose.breakdowner",
             widget=None,
-            keymap=(),
+            keymap="3D View Tool: Breakdowner",
         )
 
     @ToolDef.from_fn
@@ -1440,7 +1440,7 @@ class _defs_pose:
             label="Push",
             icon="ops.pose.push",
             widget=None,
-            keymap=(),
+            keymap="3D View Tool: Push",
         )
 
     @ToolDef.from_fn
@@ -1450,7 +1450,7 @@ class _defs_pose:
             label="Relax",
             icon="ops.pose.relax",
             widget=None,
-            keymap=(),
+            keymap="3D View Tool: Relax",
         )
 
 
@@ -2455,7 +2455,7 @@ class _defs_grease_pencil_paint:
                 row = col.row(align=True)
                 row.template_ID(settings, "palette", new="palette.new")
                 if settings.palette:
-                    col.template_palette(settings, "palette", color=True)
+                    col.template_palette(settings, "palette")
 
         return dict(
             idname="builtin.eyedropper",
@@ -3770,6 +3770,12 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         _defs_view3d_add.ico_sphere_add,
     )
 
+    _tools_pose = (
+        _defs_pose.breakdown,
+        _defs_pose.push,
+        _defs_pose.relax,
+    )
+
     _tools_default = (
         *_tools_select,
         _defs_view3d_generic.cursor,
@@ -3793,15 +3799,13 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             *_tools_default,
             None,
             _tools_view3d_add,
+            None,
+            _tools_pose,
         ],
         'POSE': [
             *_tools_default,
             None,
-            (
-                _defs_pose.breakdown,
-                _defs_pose.push,
-                _defs_pose.relax,
-            ),
+            _tools_pose,
         ],
         'EDIT_ARMATURE': [
             *_tools_default,

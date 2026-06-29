@@ -12,14 +12,14 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "BLI_fileops.h"
-#include "BLI_fileops_types.h"
-#include "BLI_listbase.h"
+#include "BLI_fileops.hh"
+#include "BLI_fileops_types.hh"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_tempfile.h"
-#include "BLI_utildefines.h"
+#include "BLI_tempfile.hh"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_appdir.hh" /* own include */
@@ -32,7 +32,7 @@
 #include "CLG_log.h"
 
 #ifdef WIN32
-#  include "BLI_string_utf8.h"
+#  include "BLI_string_utf8.hh"
 #  include "utf_winfunc.hh"
 #  include "utfconv.hh"
 #  include <io.h>
@@ -40,7 +40,7 @@
 #    undef _WIN32_IE
 #  endif
 #  define _WIN32_IE 0x0501
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #  include <shlobj.h>
 #  include <windows.h>
 #else /* non windows */
@@ -266,10 +266,10 @@ bool BKE_appdir_font_folder_default(char *dir, size_t dir_maxncpy)
  * Concatenates paths into \a targetpath,
  * returning true if result points to a directory.
  *
+ * \param check_is_dir: When false, return true even if the path doesn't exist.
  * \param path_base: Path base, never nullptr.
  * \param folder_name: First sub-directory (optional).
  * \param subfolder_name: Second sub-directory (optional).
- * \param check_is_dir: When false, return true even if the path doesn't exist.
  *
  * \note The names for optional paths only follow other usage in this file,
  * the names don't matter for this function.
@@ -604,6 +604,42 @@ static bool get_path_system(char *targetpath,
       targetpath, targetpath_maxncpy, folder_name, subfolder_name, version, check_is_dir);
 }
 
+/**
+ * Returns the path of a folder for architecture-dependent libraries, mirroring
+ * #get_path_system_ex under the install lib tree (FHS). See #GHOST_ISystemPaths::getSystemLibsDir;
+ * returns false on platforms that bundle libraries beside the executable.
+ */
+static bool get_path_system_libs_ex(char *targetpath,
+                                    size_t targetpath_maxncpy,
+                                    const char *folder_name,
+                                    const char *subfolder_name,
+                                    const int version,
+                                    const bool check_is_dir)
+{
+  char system_path[FILE_MAX] = "";
+
+  const GHOST_ISystemPaths *ghost_system_paths = GHOST_ISystemPaths::get();
+  const char *system_base_path = ghost_system_paths->getSystemLibsDir(
+      version, blender_version_decimal(version));
+  if (system_base_path) {
+    STRNCPY(system_path, system_base_path);
+  }
+
+  if (!system_path[0]) {
+    return false;
+  }
+
+  CLOG_DEBUG(&LOG,
+             "Get path system libs: '%s', folder='%s', subfolder='%s'",
+             system_path,
+             STR_OR_FALLBACK(folder_name),
+             STR_OR_FALLBACK(subfolder_name));
+
+  /* Try `$LIBDIR/folder_name/subfolder_name`, `subfolder_name` may be nullptr. */
+  return test_path(
+      targetpath, targetpath_maxncpy, check_is_dir, system_path, folder_name, subfolder_name);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -824,6 +860,9 @@ std::optional<std::string> BKE_appdir_resource_path_id_with_version(const int fo
     case BLENDER_RESOURCE_PATH_SYSTEM:
       ok = get_path_system_ex(path, sizeof(path), nullptr, nullptr, version, check_is_dir);
       break;
+    case BLENDER_RESOURCE_PATH_SYSTEM_LIBS:
+      ok = get_path_system_libs_ex(path, sizeof(path), nullptr, nullptr, version, check_is_dir);
+      break;
     default:
       path[0] = '\0'; /* in case check_is_dir is false */
       ok = false;
@@ -861,7 +900,7 @@ std::optional<std::string> BKE_appdir_resource_path_id(const int folder_id,
  *
  * \param program_filepath: The full path and full name of the executable
  * (must be #FILE_MAX minimum)
- * \param name: The name of the executable (usually `argv[0]`) to be checked
+ * \param program_name: The name of the executable (usually `argv[0]`) to be checked
  */
 static void where_am_i(char *program_filepath,
                        const size_t program_filepath_maxncpy,
@@ -1121,7 +1160,7 @@ bool BKE_appdir_app_template_has_userpref(const char *app_template)
 
 void BKE_appdir_app_templates(ListBaseT<LinkData> *templates)
 {
-  BLI_listbase_clear(templates);
+  templates->clear_no_delete();
 
   const Vector<std::string> directories = appdir_app_template_directories();
 
@@ -1231,7 +1270,7 @@ void BKE_tempdir_init(const char *userdir)
     }
   }
 
-  if (UNLIKELY(g_app.temp_dirname_session_can_be_deleted == false)) {
+  if (g_app.temp_dirname_session_can_be_deleted == false) [[unlikely]] {
     /* This should practically never happen as either the preferences or the systems
      * default temporary directory should be usable, if not, use the base directory and warn. */
     STRNCPY(g_app.temp_dirname_session, g_app.temp_dirname_base);

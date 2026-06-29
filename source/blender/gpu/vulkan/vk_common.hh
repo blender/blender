@@ -11,7 +11,7 @@
 #include <typeinfo>
 
 #ifdef _WIN32
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #endif
 
 #include <vulkan/vulkan.h>

@@ -86,6 +86,7 @@ set(SRC
   intern/geometry_nodes_lazy_function.cc
   intern/geometry_nodes_list.cc
   intern/geometry_nodes_repeat_zone.cc
+  intern/geometry_nodes_physics_bundles.cc
   intern/geometry_nodes_srna.cc
   intern/geometry_nodes_warning.cc
   intern/inverse_eval.cc
@@ -108,6 +109,7 @@ set(SRC
   intern/socket_search_link.cc
   intern/socket_usage_inference.cc
   intern/socket_value_inference.cc
+  intern/string_pattern.cc
   intern/sync_sockets.cc
   intern/trace_values.cc
   intern/value_elem.cc
@@ -139,6 +141,7 @@ set(SRC
   NOD_geometry_nodes_lazy_function.hh
   NOD_geometry_nodes_list.hh
   NOD_geometry_nodes_list_fwd.hh
+  NOD_geometry_nodes_physics_bundles.hh
   NOD_geometry_nodes_srna.hh
   NOD_geometry_nodes_values.hh
   NOD_geometry_nodes_warning.hh
@@ -169,6 +172,7 @@ set(SRC
   NOD_socket_usage_inference.hh
   NOD_socket_usage_inference_fwd.hh
   NOD_socket_value_inference.hh
+  NOD_string_pattern.hh
   NOD_sync_sockets.hh
   NOD_texture.h
   NOD_trace_values.hh

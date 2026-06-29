@@ -6,11 +6,12 @@
 
 #include "BKE_studiolight.h"
 
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "GPU_batch_utils.hh"
+#include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "draw_common_c.hh"
@@ -120,7 +121,10 @@ void SceneResources::init(const SceneState &scene_state, const DRWContext *ctx)
   world_buf.matcap_orientation = (shading.flag & V3D_SHADING_MATCAP_FLIP_X) != 0;
 
   StudioLight *studio_light = nullptr;
-  if (U.edit_studio_light) {
+  if (U.edit_studio_light && shading.light == V3D_LIGHTING_STUDIO) {
+    /* Do not use this for MATCAP.
+     * matcap is also stored as StudioLight data but it needs its selected matcap texture loaded
+     * through the normal matcap path. */
     studio_light = BKE_studiolight_studio_edit_get();
   }
   else {
@@ -184,12 +188,10 @@ void SceneResources::init(const SceneState &scene_state, const DRWContext *ctx)
 
   clip_planes_buf.push_update();
 
-  missing_tx.ensure_2d(gpu::TextureFormat::UNORM_8_8_8_8,
-                       int2(1),
-                       GPU_TEXTURE_USAGE_SHADER_READ,
-                       float4(1.0f, 0.0f, 1.0f, 1.0f));
-  missing_texture.gpu.texture = &missing_tx;
-  missing_texture.name = "Missing Texture";
+  if (missing_texture.gpu.texture == nullptr) {
+    missing_texture.gpu.texture = GPU_texture_create_error(2, false);
+    missing_texture.name = "Missing Texture";
+  }
 
   dummy_texture_tx.ensure_2d(gpu::TextureFormat::UNORM_8_8_8_8,
                              int2(1),

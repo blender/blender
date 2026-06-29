@@ -14,19 +14,19 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_ghash.h"
+#include "BLI_ghash.hh"
 #include "BLI_index_range.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_base_safe.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_solvers.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_base_safe.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_solvers.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 #include "BLT_translation.hh"
 
 /* Allow using deprecated functionality for .blend file I/O. */
@@ -86,7 +86,7 @@ static void curve_copy_data(Main *bmain,
   Curve *curve_dst = id_cast<Curve *>(id_dst);
   const Curve *curve_src = id_cast<const Curve *>(id_src);
 
-  BLI_listbase_clear(&curve_dst->nurb);
+  curve_dst->nurb.clear_no_delete();
   BKE_nurbList_duplicate(&(curve_dst->nurb), &(curve_src->nurb));
 
   curve_dst->mat = MEM_dupalloc(curve_src->mat);
@@ -105,6 +105,11 @@ static void curve_copy_data(Main *bmain,
                        &curve_dst->id,
                        reinterpret_cast<ID **>(&curve_dst->key),
                        flag);
+    /* It has one user, but its owner reference (added in #id_copy_libmanagement_cb)
+     * is the real owner, remove the reference here, see: #159691. */
+    if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+      id_us_min(&curve_dst->key->id);
+    }
   }
 
   curve_dst->editnurb = nullptr;
@@ -230,11 +235,11 @@ static void curve_blend_read_data(BlendDataReader *reader, ID *id)
   else {
     cu->nurb.first = cu->nurb.last = nullptr;
 
-    if (UNLIKELY(cu->str == nullptr)) {
+    if (cu->str == nullptr) [[unlikely]] {
       cu->len_char32 = 0;
       cu->str = MEM_new_array_zeroed<char>(cu->len_char32 + 1, "str new");
     }
-    if (UNLIKELY(cu->strinfo == nullptr)) {
+    if (cu->strinfo == nullptr) [[unlikely]] {
       cu->strinfo = MEM_new_array<CharInfo>(cu->len_char32 + 1, "strinfo new");
     }
 
@@ -619,7 +624,7 @@ void BKE_nurbList_free(ListBaseT<Nurb> *lb)
   for (Nurb &nu : lb->items_mutable()) {
     BKE_nurb_free(&nu);
   }
-  BLI_listbase_clear(lb);
+  lb->clear_no_delete();
 }
 
 Nurb *BKE_nurb_duplicate(const Nurb *nu)
@@ -2078,7 +2083,7 @@ static void bevel_list_calc_bisect(BevList *bl)
   if (is_cyclic == false) {
     bevp0 = &bl->bevpoints[0];
     bevp1 = &bl->bevpoints[1];
-    if (UNLIKELY(is_zero_v3(bevp0->dir))) {
+    if (is_zero_v3(bevp0->dir)) [[unlikely]] {
       sub_v3_v3v3(bevp0->dir, bevp1->vec, bevp0->vec);
       if (normalize_v3(bevp0->dir) == 0.0f) {
         copy_v3_v3(bevp0->dir, bevp1->dir);
@@ -2087,7 +2092,7 @@ static void bevel_list_calc_bisect(BevList *bl)
 
     bevp0 = &bl->bevpoints[bl->nr - 2];
     bevp1 = &bl->bevpoints[bl->nr - 1];
-    if (UNLIKELY(is_zero_v3(bevp1->dir))) {
+    if (is_zero_v3(bevp1->dir)) [[unlikely]] {
       sub_v3_v3v3(bevp1->dir, bevp1->vec, bevp0->vec);
       if (normalize_v3(bevp1->dir) == 0.0f) {
         copy_v3_v3(bevp1->dir, bevp0->dir);
@@ -2550,7 +2555,7 @@ void BKE_curve_bevelList_free(ListBaseT<BevList> *bev)
     MEM_delete(&bl);
   }
 
-  BLI_listbase_clear(bev);
+  bev->clear_no_delete();
 }
 
 void BKE_curve_bevelList_make(Object *ob, const ListBaseT<Nurb> *nurbs, const bool for_render)
@@ -5106,7 +5111,7 @@ void BKE_curve_nurb_vert_active_validate(Curve *cu)
 static std::optional<Bounds<float3>> calc_nurblist_bounds(const ListBaseT<Nurb> *nurbs,
                                                           const bool use_radius)
 {
-  if (BLI_listbase_is_empty(nurbs)) {
+  if (nurbs->is_empty()) {
     return std::nullopt;
   }
   float3 min(std::numeric_limits<float>::max());
@@ -5120,7 +5125,7 @@ static std::optional<Bounds<float3>> calc_nurblist_bounds(const ListBaseT<Nurb> 
 std::optional<Bounds<float3>> BKE_curve_minmax(const Curve *cu, bool use_radius)
 {
   const ListBaseT<Nurb> *nurb_lb = BKE_curve_nurbs_get_for_read(cu);
-  const bool is_font = BLI_listbase_is_empty(nurb_lb) && (cu->len != 0);
+  const bool is_font = nurb_lb->is_empty() && (cu->len != 0);
   /* For font curves we generate temp list of splines.
    *
    * This is likely to be fine, this function is not supposed to be called
@@ -5491,7 +5496,7 @@ void BKE_curve_correct_bezpart(const float v1[2], float v2[2], float v3[2], cons
 
 std::optional<int> Curve::material_index_max() const
 {
-  if (BLI_listbase_is_empty(&this->nurb)) {
+  if (this->nurb.is_empty()) {
     return std::nullopt;
   }
   int max_index = 0;

@@ -94,7 +94,7 @@ void VKDevice::deinit()
     return;
   }
 
-  deinit_submission_pool();
+  deinit_submission_thread();
 
   dummy_buffer.free();
   samplers_.free();
@@ -169,7 +169,7 @@ void VKDevice::init(GHOST_IContext *ghost_context)
   resources.use_dynamic_rendering_local_read = extensions_.dynamic_rendering_local_read;
   orphaned_data.timeline_ = 0;
 
-  init_submission_pool();
+  init_submission_thread();
   is_initialized_ = true;
 }
 
@@ -203,7 +203,7 @@ void VKDevice::init_functions()
     functions.vkTransitionImageLayout = LOAD_FUNCTION(vkTransitionImageLayoutEXT);
   }
 
-  /* VK_KHR_mainentance4 */
+  /* VK_KHR_maintenance4 */
   if (extensions_.maintenance4) {
     functions.vkGetDeviceImageMemoryRequirements = LOAD_FUNCTION(
         vkGetDeviceImageMemoryRequirementsKHR);
@@ -306,8 +306,9 @@ void VKDevice::init_dummy_buffer()
                       VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                       VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
                       VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
-                      1.0f);
-  debug::object_label(dummy_buffer.vk_handle(), "DummyBuffer");
+                      1.0f,
+                      false,
+                      "DummyBuffer");
   /* Default dummy buffer. Set the 4th element to 1 to fix missing orcos. */
   float data[16] = {
       0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
@@ -326,6 +327,7 @@ shader::GeneratedSource VKDevice::extensions_define(StringRefNull stage_define) 
     ss << "#define gpu_BaseInstance (gl_BaseInstanceARB)\n";
   }
   ss << "#define GPU_ARB_clip_control\n";
+  ss << "#define GPU_ARB_derivative_control\n";
 
   ss << "#define gl_VertexID gl_VertexIndex\n";
   ss << "#define gpu_InstanceIndex (gl_InstanceIndex)\n";

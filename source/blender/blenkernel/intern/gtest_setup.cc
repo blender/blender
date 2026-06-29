@@ -18,8 +18,8 @@
 #include "BKE_volume.hh"
 
 #include "BLI_fftw.hh"
-#include "BLI_task.h"
-#include "BLI_threads.h"
+#include "BLI_task_c.hh"
+#include "BLI_threads.hh"
 
 #include "CLG_log.h"
 
@@ -89,6 +89,7 @@ void gtest_teardown()
   BLI_task_scheduler_exit();
   BKE_brush_system_exit();
   BKE_sound_exit_once();
+  BKE_callback_global_finalize();
   BKE_appdir_exit();
   IMB_cache_destruct();
   IMB_exit();

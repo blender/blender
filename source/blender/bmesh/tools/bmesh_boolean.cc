@@ -11,7 +11,7 @@
 #include <functional>
 
 #include "BLI_array.hh"
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 #include "BLI_math_mpq.hh"
 #include "BLI_mesh_boolean.hh"
 #include "BLI_mesh_intersect.hh"
@@ -27,6 +27,21 @@ namespace blender {
 namespace meshintersect {
 
 #ifdef WITH_GMP
+
+static float3 clean_float3(const float3 &co)
+{
+  float3 cleaned = co;
+  if (!isfinite(co[0])) [[unlikely]] {
+    cleaned[0] = 0.0f;
+  }
+  if (!isfinite(co[1])) [[unlikely]] {
+    cleaned[1] = 0.0f;
+  }
+  if (!isfinite(co[2])) [[unlikely]] {
+    cleaned[2] = 0.0f;
+  }
+  return cleaned;
+}
 
 /**
  * Make a #meshintersect::Mesh from #BMesh bm.
@@ -51,8 +66,9 @@ static IMesh mesh_from_bm(BMesh *bm,
   arena->reserve(estimate_num_outv, estimate_num_outf);
   Array<const Vert *> vert(bm->totvert);
   for (int v = 0; v < bm->totvert; ++v) {
-    BMVert *bmv = BM_vert_at_index(bm, v);
-    vert[v] = arena->add_or_find_vert(mpq3(bmv->co[0], bmv->co[1], bmv->co[2]), v);
+    const BMVert *bmv = BM_vert_at_index(bm, v);
+    const float3 co = clean_float3(bmv->co);
+    vert[v] = arena->add_or_find_vert(mpq3(co[0], co[1], co[2]), v);
   }
   Array<Face *> face(bm->totface);
   constexpr int estimated_max_facelen = 100;
@@ -120,19 +136,6 @@ static bool bmvert_attached_to_hidden_face(BMVert *bmv)
     if (BM_elem_flag_test(bmf, BM_ELEM_HIDDEN)) {
       return true;
     }
-  }
-  return false;
-}
-
-static bool face_has_verts_in_order(BMesh *bm, BMFace *bmf, const BMVert *v1, const BMVert *v2)
-{
-  BMIter liter;
-  BMLoop *l = static_cast<BMLoop *>(BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, bmf));
-  while (l != nullptr) {
-    if (l->v == v1 && l->next->v == v2) {
-      return true;
-    }
-    l = static_cast<BMLoop *>(BM_iter_step(&liter));
   }
   return false;
 }
@@ -239,9 +242,8 @@ static bool apply_mesh_output_to_bmesh(BMesh *bm, IMesh &m_out, bool keep_hidden
       face_bmverts[i] = new_bmvs[v_index];
     }
     BMFace *bmf = BM_face_exists(face_bmverts.data(), flen);
-    /* #BM_face_exists checks if the face exists with the vertices in either order.
-     * We can only reuse the face if the orientations are the same. */
-    if (bmf != nullptr && face_has_verts_in_order(bm, bmf, face_bmverts[0], face_bmverts[1])) {
+    /* Never allow any duplicates (either winding), as this isn't legal mesh data, see: 160437. */
+    if (bmf != nullptr) {
       BM_elem_flag_enable(bmf, KEEP_FLAG);
     }
     else {

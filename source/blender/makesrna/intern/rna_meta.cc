@@ -21,9 +21,9 @@
 
 #  include "MEM_guardedalloc.h"
 
-#  include "BLI_listbase.h"
-#  include "BLI_math_rotation.h"
-#  include "BLI_math_vector.h"
+#  include "BLI_listbase.hh"
+#  include "BLI_math_rotation_c.hh"
+#  include "BLI_math_vector_c.hh"
 
 #  include "DNA_object_types.h"
 #  include "DNA_scene_types.h"
@@ -143,7 +143,7 @@ static void rna_MetaBall_elements_remove(MetaBall *mb, ReportList *reports, Poin
 
 static void rna_MetaBall_elements_clear(MetaBall *mb)
 {
-  BLI_freelistN(&mb->elems);
+  mb->elems.free_no_destruct();
 
   /* cheating way for importers to avoid slow updates */
   if (mb->id.us > 0) {

@@ -17,11 +17,11 @@
 #include "DNA_sequence_types.h"
 #include "DNA_texture_types.h"
 
-#include "BLI_easing.h"
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_easing.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BLT_translation.hh"
 
@@ -247,11 +247,18 @@ static wmOperatorStatus add_reroute_exec(bContext *C, wmOperator *op)
       bke::node_set_active(ntree, *reroute);
     }
 
-    bke::node_add_link(ntree,
-                       *item.value.from_node,
-                       *item.key,
-                       *reroute,
-                       *static_cast<bNodeSocket *>(reroute->inputs.first));
+    bNodeLink &link_from = bke::node_add_link(ntree,
+                                              *item.value.from_node,
+                                              *item.key,
+                                              *reroute,
+                                              *static_cast<bNodeSocket *>(reroute->inputs.first));
+
+    /* Mute resulting link if all cut links were muted as well. */
+    bke::node_link_set_mute(ntree,
+                            link_from,
+                            std::all_of(cuts.keys().begin(),
+                                        cuts.keys().end(),
+                                        [](const bNodeLink *link) { return link->is_muted(); }));
 
     /* Reconnect links from the original output socket to the new reroute. */
     for (bNodeLink *link : cuts.keys()) {
@@ -859,7 +866,7 @@ void NODE_OT_add_collection(wmOperatorType *ot)
 static bool node_add_image_poll(bContext *C)
 {
   const SpaceNode *snode = CTX_wm_space_node(C);
-  if (!snode) {
+  if (!snode || !snode->nodetree) {
     return false;
   }
 
@@ -926,7 +933,12 @@ static wmOperatorStatus node_add_image_exec(bContext *C, wmOperator *op)
   int type = 0;
   switch (snode.nodetree->type) {
     case NTREE_SHADER:
-      type = SH_NODE_TEX_IMAGE;
+      if (snode.shaderfrom == SNODE_SHADER_WORLD) {
+        type = SH_NODE_TEX_ENVIRONMENT;
+      }
+      else {
+        type = SH_NODE_TEX_IMAGE;
+      }
       break;
     case NTREE_TEXTURE:
       type = TEX_NODE_IMAGE;
@@ -1342,8 +1354,8 @@ static void hide_unselected_sockets(bNode *node,
                                     bNodeTreeInterfaceItem *item,
                                     bool panels_with_header_unselected)
 {
-  switch (eNodeTreeInterfaceItemType(item->item_type)) {
-    case NODE_INTERFACE_SOCKET: {
+  switch (item->item_type) {
+    case NodeTreeInterfaceItemType::Socket: {
       auto *socket = reinterpret_cast<bNodeTreeInterfaceSocket *>(item);
       if (socket->flag & NODE_INTERFACE_SOCKET_INPUT &&
           !(socket->flag & NODE_INTERFACE_SOCKET_SELECT))
@@ -1353,7 +1365,7 @@ static void hide_unselected_sockets(bNode *node,
       }
       break;
     }
-    case NODE_INTERFACE_PANEL: {
+    case NodeTreeInterfaceItemType::Panel: {
       /* Only visit unselected panels. */
       auto *interface_panel = reinterpret_cast<bNodeTreeInterfacePanel *>(item);
       bool panel_selection_ignored = panels_with_header_unselected &&
@@ -1415,13 +1427,13 @@ static wmOperatorStatus node_add_group_input_node_invoke(bContext *C,
 
 static bool contains_any_selected_input(const bNodeTreeInterfaceItem &item, bool parent_selected)
 {
-  switch (eNodeTreeInterfaceItemType(item.item_type)) {
-    case NODE_INTERFACE_SOCKET: {
+  switch (item.item_type) {
+    case NodeTreeInterfaceItemType::Socket: {
       const auto &socket = reinterpret_cast<const bNodeTreeInterfaceSocket &>(item);
       return socket.flag & NODE_INTERFACE_SOCKET_INPUT &&
              (parent_selected || socket.flag & NODE_INTERFACE_SOCKET_SELECT);
     }
-    case NODE_INTERFACE_PANEL: {
+    case NodeTreeInterfaceItemType::Panel: {
       const auto &panel = reinterpret_cast<const bNodeTreeInterfacePanel &>(item);
       for (const auto *sub_item : panel.items()) {
         /* There's no need to handle the header toggle differently. */
@@ -1600,6 +1612,8 @@ void NODE_OT_add_color(wmOperatorType *ot)
   RNA_def_boolean(
       ot->srna, "has_alpha", false, "Has Alpha", "The source color contains an Alpha component");
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name New Node Tree Operator
@@ -1824,7 +1838,7 @@ static void initialize_compositor_sequencer_node_group(const bContext *C,
                                                        int effect_input_count)
 {
   BLI_assert(ntree.type == NTREE_COMPOSIT);
-  BLI_assert(BLI_listbase_count(&ntree.nodes) == 0);
+  BLI_assert(ntree.nodes.count() == 0);
 
   if (for_effect) {
     /* Effect: Input 1, Input 2, Fader depending on input count. */
@@ -1911,6 +1925,14 @@ static wmOperatorStatus new_compositor_sequencer_node_group_exec(bContext *C, wm
    * already have been called. */
   bNodeTree *ntree = bke::node_tree_add_tree(bmain, tree_name, "CompositorNodeTree");
   initialize_compositor_sequencer_node_group(C, *ntree, is_effect_active, effect_input_count);
+  if (!is_effect_active) {
+    /* Set the compositor asset trait `is_strip_modifier` to true. */
+    if (!ntree->compositor_node_asset_traits) {
+      ntree->compositor_node_asset_traits = MEM_new<CompositorNodeAssetTraits>(__func__);
+    }
+    ntree->compositor_node_asset_traits->flag |= COMPOSIT_NODE_ASSET_STRIP_MODIFIER;
+    bke::node_update_asset_metadata(*ntree);
+  }
   node_templateID_assign(C, ntree);
 
   if (strip != nullptr && strip->type != STRIP_TYPE_SOUND) {

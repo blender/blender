@@ -7,10 +7,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_ghash.h"
+#include "BLI_ghash.hh"
 #include "BLI_map.hh"
-#include "BLI_mempool.h"
-#include "BLI_utildefines.h"
+#include "BLI_mempool.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_ID.h"
 
@@ -200,7 +200,7 @@ ID *BKE_main_idmap_lookup_name(IDNameLib_Map *id_map,
 {
   IDNameLib_TypeMap *type_map = main_idmap_from_idcode(id_map, id_type);
 
-  if (UNLIKELY(type_map == nullptr)) {
+  if (type_map == nullptr) [[unlikely]] {
     return nullptr;
   }
 

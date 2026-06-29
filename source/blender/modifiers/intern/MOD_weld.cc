@@ -12,7 +12,7 @@
  * - Review weight and vertex color interpolation.;
  */
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BLI_array.hh"
 #include "BLI_index_range.hh"
@@ -40,7 +40,7 @@
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
-#include "GEO_mesh_merge_by_distance.hh"
+#include "GEO_mesh_merge_verts.hh"
 
 namespace blender {
 

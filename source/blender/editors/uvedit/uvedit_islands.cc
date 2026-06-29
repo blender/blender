@@ -13,8 +13,8 @@
  * This API uses #BMesh data structures and doesn't have limitations for manifold meshes.
  */
 
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "BKE_editmesh.hh"
 

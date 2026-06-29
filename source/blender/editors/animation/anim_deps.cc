@@ -21,10 +21,10 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_set.hh"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
@@ -472,9 +472,9 @@ void ANIM_animdata_freelist(ListBaseT<bAnimListElem> *anim_data)
     BLI_assert(ale->update == 0);
     MEM_delete(ale);
   }
-  BLI_listbase_clear(anim_data);
+  anim_data->clear_no_delete();
 #else
-  BLI_freelistN(anim_data);
+  anim_data->free_no_destruct();
 #endif
 }
 

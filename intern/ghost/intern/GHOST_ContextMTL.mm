@@ -286,8 +286,10 @@ void GHOST_ContextMTL::metalInit()
                       texture2d<float> t [[texture(0)]]) {
 
         /* Final blit should ensure alpha is 1.0. This resolves
-         * rendering artifacts for blitting of final back-buffer. */
+         * rendering artifacts for blitting of final back-buffer.
+         * Also clamp the RGB values to avoid artifacts. */
         float4 out_tex = t.sample(s, v.texCoord);
+        out_tex.rgb = min(out_tex.rgb, 16384.0);
         out_tex.a = 1.0;
         return out_tex;
       }
@@ -320,20 +322,6 @@ void GHOST_ContextMTL::metalInit()
     if (error) {
       ghost_fatal_error_dialog(
           "GHOST_ContextMTL::metalInit: newRenderPipelineStateWithDescriptor:error: failed!");
-    }
-
-    /* Create a render pipeline to composite things rendered with Metal on top
-     * of the frame-buffer contents. Uses the same vertex and fragment shader
-     * as the blit above, but with alpha blending enabled. */
-    desc.label = @"Metal Overlay";
-    desc.colorAttachments[0].blendingEnabled = YES;
-    desc.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
-    desc.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
-
-    if (error) {
-      ghost_fatal_error_dialog(
-          "GHOST_ContextMTL::metalInit: newRenderPipelineStateWithDescriptor:error: failed (when "
-          "creating the Metal overlay pipeline)!");
     }
 
     [desc.fragmentFunction release];

@@ -138,9 +138,4 @@ inline void interpolate_cubic_mitchell_byte(const ImBuf *in, uchar output[4], fl
 
 }  // namespace imbuf
 
-/**
- * Sample pixel of image using NEAREST method.
- */
-void IMB_sampleImageAtLocation(ImBuf *ibuf, float x, float y, float scene_linear_rgb[3]);
-
 }  // namespace blender

@@ -6,7 +6,7 @@
  * \ingroup pythonintern
  */
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include <Python.h>
 
 #include "../generic/python_compat.hh" /* IWYU pragma: keep. */
@@ -70,7 +70,7 @@ static PyObject *make_usd_info()
   SetStrItem("Unknown");
 #endif
 
-  if (UNLIKELY(PyErr_Occurred())) {
+  if (PyErr_Occurred()) [[unlikely]] {
     Py_DECREF(usd_info);
     return nullptr;
   }

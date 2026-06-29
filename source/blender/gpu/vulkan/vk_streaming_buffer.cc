@@ -36,7 +36,9 @@ VkDeviceSize VKStreamingBuffer::update(VKContext &context, const void *data, siz
                        VMA_MEMORY_USAGE_AUTO,
                        VMA_ALLOCATION_CREATE_MAPPED_BIT |
                            VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
-                       0.4f);
+                       0.4f,
+                       false,
+                       "StreamingBuffer");
     offset_ = 0;
 
     render_graph::VKCopyBufferNode::CreateInfo copy_buffer = {

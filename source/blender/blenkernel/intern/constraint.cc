@@ -18,18 +18,18 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_kdopbvh.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_math_quaternion.hh"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -2513,7 +2513,7 @@ static void armdef_free(bConstraint *con)
   bArmatureConstraint *data = static_cast<bArmatureConstraint *>(con->data);
 
   /* Target list. */
-  BLI_freelistN(&data->targets);
+  data->targets.free_no_destruct();
 }
 
 static void armdef_copy(bConstraint *con, bConstraint *srccon)
@@ -2531,7 +2531,7 @@ static int armdef_get_tars(bConstraint *con, ListBaseT<bConstraintTarget> *list)
 
     *list = data->targets;
 
-    return BLI_listbase_count(&data->targets);
+    return data->targets.count();
   }
 
   return 0;
@@ -3651,7 +3651,7 @@ static void stretchto_evaluate(bConstraint *con,
         copy_v3_v3(cob->matrix[1], vec);
 
         /* Build new Z vector. */
-        /* Orthogonal to "new Y" "old X! plane. */
+        /* Orthogonal to "new Y" "old X"! plane. */
         cross_v3_v3v3(orth, xx, vec);
         normalize_v3(orth);
 
@@ -3667,7 +3667,7 @@ static void stretchto_evaluate(bConstraint *con,
         copy_v3_v3(cob->matrix[1], vec);
 
         /* Build new X vector. */
-        /* Orthogonal to "new Y" "old Z! plane. */
+        /* Orthogonal to "new Y" "old Z"! plane. */
         cross_v3_v3v3(orth, zz, vec);
         normalize_v3(orth);
 
@@ -5978,7 +5978,7 @@ void BKE_constraints_free_ex(ListBaseT<bConstraint> *list, bool do_id_user)
   }
 
   /* Free the whole list */
-  BLI_freelistN(list);
+  list->free_no_destruct();
 }
 
 void BKE_constraints_free(ListBaseT<bConstraint> *list)
@@ -6381,7 +6381,7 @@ void BKE_constraints_copy_ex(ListBaseT<bConstraint> *dst,
 {
   bConstraint *con, *srccon;
 
-  BLI_listbase_clear(dst);
+  dst->clear_no_delete();
   BLI_duplicatelist(dst, src);
 
   for (con = static_cast<bConstraint *>(dst->first),
@@ -6566,7 +6566,7 @@ bool BKE_constraint_is_nonlocal_in_liboverride(const Object *ob, const bConstrai
 
 int BKE_constraint_targets_get(bConstraint *con, ListBaseT<bConstraintTarget> *r_targets)
 {
-  BLI_listbase_clear(r_targets);
+  r_targets->clear_no_delete();
 
   const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 

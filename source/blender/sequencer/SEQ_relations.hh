@@ -60,6 +60,20 @@ void relations_invalidate_cache_raw(Scene *scene, Strip *strip);
 void relations_invalidate_scene_strips(const Main *bmain, const Scene *scene_target);
 
 /**
+ * Sync sequencer scene strips that reference a view layer by name.
+ * This updates `strip->scene_view_layer_name` from \a old_name to \a new_name for any matching
+ * strip across all sequencer scenes that use \a scene as input.
+ *
+ * NOTE: If a view layer is deleted, `new_name = nullptr` should be passed to clear the strips'
+ * `scene_view_layer_name` to the default view layer. In this case, the function will also clear
+ * the caches of these matching strips to evict stale frames.
+ */
+void relations_update_view_layer_scene_strips(Main *bmain,
+                                              Scene *scene,
+                                              const char *old_name,
+                                              const char *new_name);
+
+/**
  * Invalidates the cache for all strips that uses the given compositor node tree.
  */
 void relations_invalidate_compositor_users(const Main *bmain, const bNodeTree *node_tree);

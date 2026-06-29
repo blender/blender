@@ -11,10 +11,10 @@
 #include <cmath>
 #include <cstring>
 
-#include "BLI_jitter_2d.h"
-#include "BLI_rand.h"
+#include "BLI_jitter_2d.hh"
+#include "BLI_rand_c.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 

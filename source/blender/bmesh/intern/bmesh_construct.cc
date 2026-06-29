@@ -12,8 +12,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_attribute_legacy_convert.hh"
@@ -167,7 +167,7 @@ static bool bm_edges_sort_winding(BMVert *v1,
   do {
     /* entering loop will always succeed */
     if (BM_ELEM_API_FLAG_TEST(e_iter, _FLAG_MF)) {
-      if (UNLIKELY(BM_ELEM_API_FLAG_TEST(v_iter, _FLAG_MV) == false)) {
+      if (BM_ELEM_API_FLAG_TEST(v_iter, _FLAG_MV) == false) [[unlikely]] {
         /* vert is in loop multiple times */
         goto error;
       }
@@ -183,7 +183,7 @@ static bool bm_edges_sort_winding(BMVert *v1,
       /* walk onto the next vertex */
       v_iter = BM_edge_other_vert(e_iter, v_iter);
       if (i == len) {
-        if (UNLIKELY(v_iter != verts_sort[0])) {
+        if (v_iter != verts_sort[0]) [[unlikely]] {
           goto error;
         }
         break;
@@ -434,7 +434,7 @@ static BMFace *bm_mesh_copy_new_face(BMesh *bm_new,
 
   f_new = BM_face_create(bm_new, verts.data(), edges.data(), f->len, nullptr, BM_CREATE_SKIP_CD);
 
-  if (UNLIKELY(f_new == nullptr)) {
+  if (f_new == nullptr) [[unlikely]] {
     return nullptr;
   }
 

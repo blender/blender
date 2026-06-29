@@ -8,7 +8,7 @@
  */
 
 #include "BLI_function_ref.hh"
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 #include "BKE_duplilist.hh"
 

@@ -9,9 +9,9 @@
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_task.h"
-#include "BLI_threads.h"
+#include "BLI_listbase.hh"
+#include "BLI_task_c.hh"
+#include "BLI_threads.hh"
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"
@@ -60,7 +60,7 @@ static void free_preview_job(void *data)
   PreviewJob *pj = static_cast<PreviewJob *>(data);
 
   BLI_mutex_free(pj->mutex);
-  BLI_freelistN(&pj->previews);
+  pj->previews.free_no_destruct();
   MEM_delete(pj);
 }
 
@@ -106,7 +106,7 @@ static void preview_startjob(void *data, wmJobWorkerStatus *worker_status)
      * is done. */
     BLI_mutex_lock(pj->mutex);
 
-    while (BLI_listbase_is_empty(&pj->previews) && pj->processed != pj->total) {
+    while (pj->previews.is_empty() && pj->processed != pj->total) {
 
       float current_progress = (pj->total > 0) ? float(pj->processed) / float(pj->total) : 1.0f;
 
@@ -131,7 +131,7 @@ static void preview_startjob(void *data, wmJobWorkerStatus *worker_status)
         BKE_sound_runtime_clear_waveform_loading_tag(previewjb.sound);
       }
 
-      BLI_freelistN(&pj->previews);
+      pj->previews.free_no_destruct();
       pj->processed = 0;
       pj->total = 0;
       pj->running = false;

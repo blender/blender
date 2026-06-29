@@ -22,7 +22,7 @@ NODE_DEFINE(Background)
   NodeType *type = NodeType::add("background", create);
 
   SOCKET_BOOLEAN(use_shader, "Use Shader", true);
-  SOCKET_UINT(visibility, "Visibility", PATH_RAY_ALL_VISIBILITY);
+  SOCKET_UINT(visibility, "Visibility", PATH_RAY_VISIBILITY_ALL);
 
   SOCKET_BOOLEAN(transparent, "Transparent", false);
   SOCKET_BOOLEAN(transparent_glass, "Transparent Glass", false);
@@ -90,19 +90,19 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
   }
   /* Background present, check visibilities */
   else {
-    if (!(visibility & PATH_RAY_DIFFUSE)) {
+    if (!(visibility & PATH_RAY_VISIBILITY_DIFFUSE)) {
       kbackground->surface_shader |= SHADER_EXCLUDE_DIFFUSE;
     }
-    if (!(visibility & PATH_RAY_GLOSSY)) {
+    if (!(visibility & PATH_RAY_VISIBILITY_GLOSSY)) {
       kbackground->surface_shader |= SHADER_EXCLUDE_GLOSSY;
     }
-    if (!(visibility & PATH_RAY_TRANSMIT)) {
+    if (!(visibility & PATH_RAY_VISIBILITY_TRANSMIT)) {
       kbackground->surface_shader |= SHADER_EXCLUDE_TRANSMIT;
     }
-    if (!(visibility & PATH_RAY_VOLUME_SCATTER)) {
+    if (!(visibility & PATH_RAY_VISIBILITY_VOLUME_SCATTER)) {
       kbackground->surface_shader |= SHADER_EXCLUDE_SCATTER;
     }
-    if (!(visibility & PATH_RAY_CAMERA)) {
+    if (!(visibility & PATH_RAY_VISIBILITY_CAMERA)) {
       kbackground->surface_shader |= SHADER_EXCLUDE_CAMERA;
     }
   }

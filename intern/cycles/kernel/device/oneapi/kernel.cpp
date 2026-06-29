@@ -180,7 +180,7 @@ bool oneapi_kernel_is_required_for_features(const std::string &kernel_name,
   }
 
   if ((kernel_features & KERNEL_FEATURE_MNEE) == 0 &&
-      kernel_name.find(device_kernel_as_string(DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE)) !=
+      kernel_name.find(device_kernel_as_string(DEVICE_KERNEL_INTEGRATOR_INTERSECT_MNEE)) !=
           std::string::npos)
   {
     return false;
@@ -200,6 +200,8 @@ bool oneapi_kernel_is_required_for_features(const std::string &kernel_name,
         std::string::npos) ||
        (kernel_name.find(device_kernel_as_string(DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE)) !=
         std::string::npos) ||
+       (kernel_name.find(device_kernel_as_string(DEVICE_KERNEL_INTEGRATOR_INTERSECT_MNEE)) !=
+        std::string::npos) ||
        (kernel_name.find(device_kernel_as_string(
             DEVICE_KERNEL_INTEGRATOR_INTERSECT_DEDICATED_LIGHT)) != std::string::npos)))
   {
@@ -214,7 +216,7 @@ bool oneapi_kernel_is_compatible_with_hardware_raytracing(const std::string &ker
   /* MNEE and Ray-trace kernels work correctly with Hardware Ray-tracing starting with Embree 4.1.
    */
 #  if defined(RTC_VERSION) && RTC_VERSION < 40100
-  return (kernel_name.find(device_kernel_as_string(DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE)) ==
+  return (kernel_name.find(device_kernel_as_string(DEVICE_KERNEL_INTEGRATOR_INTERSECT_MNEE)) ==
           std::string::npos) &&
          (kernel_name.find(device_kernel_as_string(
               DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE)) == std::string::npos);
@@ -427,6 +429,11 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
                       oneapi_kernel_integrator_intersect_dedicated_light);
           break;
         }
+        case DEVICE_KERNEL_INTEGRATOR_INTERSECT_MNEE: {
+          oneapi_call(
+              kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_intersect_mnee);
+          break;
+        }
         case DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND: {
           oneapi_call(
               kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_shade_background);
@@ -463,11 +470,6 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
                       local_size,
                       args,
                       oneapi_kernel_integrator_shade_surface_raytrace);
-          break;
-        }
-        case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_shade_surface_mnee);
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME: {
@@ -732,6 +734,7 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
         /* Unsupported kernels */
         case DEVICE_KERNEL_NUM:
         case DEVICE_KERNEL_INTEGRATOR_MEGAKERNEL:
+        case DEVICE_KERNEL_INTEGRATOR_SHADOW_PATH_MNEE_PENDING:
           kernel_assert(0);
           break;
       }

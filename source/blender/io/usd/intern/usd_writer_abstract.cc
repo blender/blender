@@ -13,7 +13,7 @@
 #include <pxr/usd/usdGeom/scope.h>
 #include <pxr/usd/usdUI/accessibilityAPI.h>
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_bounds_types.hh"
 
 #include "DNA_material_types.h"
@@ -394,7 +394,7 @@ bool USDAbstractWriter::mark_as_instance(const HierarchyContext &context, const 
   usd_export_context_.stage->DefinePrim(ref_path);
 
   if (!prim.GetReferences().AddInternalReference(ref_path)) {
-    /* See this URL for a description for why referencing may fail"
+    /* See this URL for a description for why referencing may fail:
      * https://graphics.pixar.com/usd/docs/api/class_usd_references.html#Usd_Failing_References
      */
     CLOG_WARN(&LOG,

@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_math_base_safe.h"
+#include "BLI_math_base_safe.hh"
 #include "BLI_math_vector.hh"
 
 #include "FN_init.hh"

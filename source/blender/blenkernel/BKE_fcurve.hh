@@ -245,6 +245,10 @@ void BKE_fcurve_rnapath_set(FCurve &fcu, StringRef rna_path);
 void BKE_fmodifier_name_set(FModifier *fcm, const char *name);
 
 /**
+ * Disable modifiers that requires original data and are not first in the stack.
+ */
+void BKE_fmodifier_ensure_flag(ListBaseT<FModifier> *modifiers);
+/**
  * Callback used by lib_query to walk over all ID usages
  * (mimics `foreach_id` callback of #IDTypeInfo structure).
  *
@@ -356,11 +360,11 @@ bool BKE_fcurve_calc_range(const FCurve *fcu, float *r_min, float *r_max, bool s
 /**
  * Calculate the x and y extents of F-Curve's data.
  *
+ * \param selected_keys_only: if true, only selected keyframes are considered for the bounds.
+ * \param include_handles: if true, the handles are considered for the bounds, otherwise only the
+ * key point itself.
  * \param frame_range: Only calculate the bounds of the FCurve in the given range.
  * Does the full range if NULL.
- * \param selected_keys_only if true, only selected keyframes are considered for the bounds.
- * \param include_handles if true, the handles are considered for the bounds, otherwise only the
- * key point itself.
  *
  * \return true if the bounds have been found.
  */
@@ -378,13 +382,8 @@ bool BKE_fcurve_calc_bounds(const FCurve *fcu,
  * \note An interval of zero could be supported (this implies no rounding at all),
  * however this risks very small differences in float values being treated as separate keyframes.
  */
-float *BKE_fcurves_calc_keyed_frames_ex(FCurve **fcurve_array,
-                                        int fcurve_array_len,
-                                        float interval,
-                                        int *r_frames_len);
-float *BKE_fcurves_calc_keyed_frames(FCurve **fcurve_array,
-                                     int fcurve_array_len,
-                                     int *r_frames_len);
+Array<float> BKE_fcurves_calc_keyed_frames_ex(Span<FCurve *> fcurve_array, float interval);
+Array<float> BKE_fcurves_calc_keyed_frames(Span<FCurve *> fcurve_array);
 
 /**
  * Set the index that stores the FCurve's active keyframe, assuming that \a active_bezt
@@ -566,7 +565,7 @@ enum class HandleSide {
  * it wouldn't be actually aligned. This is useful in cases where the user explicitly sets on
  * handle type.
  *
- * \param side: The source side from which to update the handle flags. This side will not be
+ * \param source_side: The source side from which to update the handle flags. This side will not be
  * affected.
  */
 void BKE_fcurve_update_handle_flag_from_opposite(BezTriple &key, HandleSide source_side);

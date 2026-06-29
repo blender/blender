@@ -25,6 +25,8 @@ struct Curves *BKE_curves_add(struct Main *bmain, const char *name);
 
 bool BKE_curves_attribute_required(const struct Curves *curves, StringRef name);
 
+void BKE_curves_material_remap(struct Curves *curves, const unsigned int *remap, int remap_num);
+
 /* Depsgraph */
 
 struct Curves *BKE_curves_copy_for_eval(const struct Curves *curves_src);

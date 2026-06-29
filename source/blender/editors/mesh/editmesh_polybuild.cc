@@ -20,10 +20,10 @@
 #include "BKE_object_types.hh"
 #include "BKE_screen.hh"
 
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "WM_types.hh"
 
@@ -93,7 +93,7 @@ static bool edbm_preselect_or_active(bContext *C, const View3D *v3d, Base **r_ba
       /* Typically only reached when attempting to use the tool during animation playback. */
       gzgroup = nullptr;
     }
-    else if (BLI_listbase_is_empty(&gzgroup->gizmos)) {
+    else if (gzgroup->gizmos.is_empty()) {
       /* If the gizmo group is drawing it *should* never be empty.
        * Even so, avoid crashing if it is - investigate if this is ever reached. */
       BLI_assert(false);

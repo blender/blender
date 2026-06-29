@@ -6,15 +6,15 @@
  * \ingroup bli
  */
 
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 
-#include "BLI_easing.h" /* own include */
+#include "BLI_easing.hh" /* own include */
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 
-/* blend if (amplitude < fabsf(change) */
+/* blend if (amplitude < fabsf(change)) */
 #define USE_ELASTIC_BLEND
 
 float BLI_easing_back_ease_in(

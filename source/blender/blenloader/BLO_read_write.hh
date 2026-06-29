@@ -53,24 +53,74 @@ struct WriteData;
 struct FileData;
 enum eReportType : uint16_t;
 
+/**
+ * Allows code using #BlendWriter to customize how a specific struct is written. Often, small
+ * changes to the struct data are done before it is written (e.g. zeroing runtime pointers and
+ * setting generated pointers).
+ */
+class BlendStructWriter {
+ private:
+  WriteData *wd_;
+  int struct_nr_;
+  /** This is a shallow copy of the struct being written. */
+  MutableSpan<char> data_;
+
+ public:
+  BlendStructWriter(WriteData &wd, const int struct_nr, MutableSpan<char> data)
+      : wd_(&wd), struct_nr_(struct_nr), data_(data)
+  {
+  }
+
+  /**
+   * Mark the pointer at the given offset as purely runtime. That means that it will be zeroed.
+   */
+  void runtime_ptr(int64_t offset);
+
+  /**
+   * Tag the pointer at the given offset as "generated". That implies that it may be remapped
+   * to a stable pointer. It's expected that the pointer has been tagged with
+   * #BLO_write_generated_pointer_tag before.
+   */
+  void generated_ptr(int64_t offset);
+};
+
+using BlendStructWriterFn = FunctionRef<void(BlendStructWriter &struct_writer)>;
+
 struct BlendWriter {
   WriteData *wd = nullptr;
 
-  void write_struct_by_name(const char *struct_name, const void *data);
-  void write_struct_by_id(int struct_id, const void *data);
-  void write_struct_at_address_by_id(int struct_id, const void *address, const void *data);
+  void write_struct_by_name(const char *struct_name,
+                            const void *data,
+                            BlendStructWriterFn fn = nullptr);
+  void write_struct_by_id(int struct_id, const void *data, BlendStructWriterFn fn = nullptr);
+  void write_struct_at_address_by_id(int struct_id,
+                                     const void *address,
+                                     const void *data,
+                                     BlendStructWriterFn fn = nullptr);
   void write_struct_at_address_by_id_with_filecode(int filecode,
                                                    int struct_id,
                                                    const void *address,
-                                                   const void *data);
-  void write_struct_array_by_name(const char *struct_name, int64_t array_size, const void *data);
-  void write_struct_array_by_id(int struct_id, int64_t array_size, const void *data);
+                                                   const void *data,
+                                                   BlendStructWriterFn fn = nullptr);
+  void write_struct_array_by_name(const char *struct_name,
+                                  int64_t array_size,
+                                  const void *data,
+                                  BlendStructWriterFn fn = nullptr);
+  void write_struct_array_by_id(int struct_id,
+                                int64_t array_size,
+                                const void *data,
+                                BlendStructWriterFn fn = nullptr);
   void write_struct_array_at_address_by_id(int struct_id,
                                            int64_t array_size,
                                            const void *address,
-                                           const void *data);
-  void write_struct_list_by_name(const char *struct_name, ListBase *list);
-  void write_struct_list_by_id(int struct_id, const ListBase *list);
+                                           const void *data,
+                                           BlendStructWriterFn fn = nullptr);
+  void write_struct_list_by_name(const char *struct_name,
+                                 ListBase *list,
+                                 BlendStructWriterFn fn = nullptr);
+  void write_struct_list_by_id(int struct_id,
+                               const ListBase *list,
+                               BlendStructWriterFn fn = nullptr);
 
   /**
    * Write raw data.
@@ -105,52 +155,70 @@ struct BlendWriter {
 
   int struct_id_by_name(const char *struct_name) const;
 
-  template<typename T> void write_struct(const T *data)
+  template<typename T> void write_struct(const T *data, const BlendStructWriterFn fn = nullptr)
   {
-    this->write_struct_by_id(dna::sdna_struct_id_get<T>(), data);
-  }
-
-  template<typename T> void write_struct_cast(const void *data)
-  {
-    this->write_struct_by_id(dna::sdna_struct_id_get<T>(), data);
-  }
-
-  template<typename T> void write_struct_at_address(const void *address, const T *data)
-  {
-    this->write_struct_at_address_by_id(dna::sdna_struct_id_get<T>(), address, data);
-  }
-
-  template<typename T> void write_struct_at_address_cast(const void *address, const void *data)
-  {
-    this->write_struct_at_address_by_id(dna::sdna_struct_id_get<T>(), address, data);
-  }
-
-  template<typename T> void write_struct_array(const int64_t array_size, const T *data)
-  {
-    this->write_struct_array_by_id(dna::sdna_struct_id_get<T>(), array_size, data);
-  }
-
-  template<typename T> void write_struct_array_cast(const int64_t array_size, const void *data)
-  {
-    this->write_struct_array_by_id(dna::sdna_struct_id_get<T>(), array_size, data);
+    this->write_struct_by_id(dna::sdna_struct_id_get<T>(), data, fn);
   }
 
   template<typename T>
-  void write_struct_array_at_address(const int64_t array_size, const void *address, const T *data)
+  void write_struct_cast(const void *data, const BlendStructWriterFn fn = nullptr)
+  {
+    this->write_struct_by_id(dna::sdna_struct_id_get<T>(), data, fn);
+  }
+
+  template<typename T>
+  void write_struct_at_address(const void *address,
+                               const T *data,
+                               const BlendStructWriterFn fn = nullptr)
+  {
+    this->write_struct_at_address_by_id(dna::sdna_struct_id_get<T>(), address, data, fn);
+  }
+
+  template<typename T>
+  void write_struct_at_address_cast(const void *address,
+                                    const void *data,
+                                    const BlendStructWriterFn fn = nullptr)
+  {
+    this->write_struct_at_address_by_id(dna::sdna_struct_id_get<T>(), address, data, fn);
+  }
+
+  template<typename T>
+  void write_struct_array(const int64_t array_size,
+                          const T *data,
+                          const BlendStructWriterFn fn = nullptr)
+  {
+    this->write_struct_array_by_id(dna::sdna_struct_id_get<T>(), array_size, data, fn);
+  }
+
+  template<typename T>
+  void write_struct_array_cast(const int64_t array_size,
+                               const void *data,
+                               const BlendStructWriterFn fn = nullptr)
+  {
+    this->write_struct_array_by_id(dna::sdna_struct_id_get<T>(), array_size, data, fn);
+  }
+
+  template<typename T>
+  void write_struct_array_at_address(const int64_t array_size,
+                                     const void *address,
+                                     const T *data,
+                                     const BlendStructWriterFn fn = nullptr)
   {
     this->write_struct_array_at_address_by_id(
-        dna::sdna_struct_id_get<T>(), array_size, address, data);
+        dna::sdna_struct_id_get<T>(), array_size, address, data, fn);
   }
 
-  template<typename T> void write_struct_list(const ListBaseT<T> *list)
+  template<typename T>
+  void write_struct_list(const ListBaseT<T> *list, const BlendStructWriterFn fn = nullptr)
   {
-    this->write_struct_list_by_id(dna::sdna_struct_id_get<T>(), list);
+    this->write_struct_list_by_id(dna::sdna_struct_id_get<T>(), list, fn);
   }
 
-  template<typename T> void write_id_struct(const void *id_address, const T *id)
+  template<typename T>
+  void write_id_struct(const void *id_address, const T *id, const BlendStructWriterFn fn = nullptr)
   {
     this->write_struct_at_address_by_id_with_filecode(
-        GS(id_cast<const ID *>(id)->name), dna::sdna_struct_id_get<T>(), id_address, id);
+        GS(id_cast<const ID *>(id)->name), dna::sdna_struct_id_get<T>(), id_address, id, fn);
   }
 };
 

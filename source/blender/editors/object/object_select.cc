@@ -19,11 +19,11 @@
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
-#include "BLI_rand.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rand_c.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -31,6 +31,7 @@
 #include "BKE_armature.hh"
 #include "BKE_collection.hh"
 #include "BKE_context.hh"
+#include "BKE_global.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -526,9 +527,8 @@ static bool object_select_all_by_instance_collection(bContext *C, Object *ob)
   return changed;
 }
 
-static bool object_select_all_by_particle(bContext *C, Object *ob)
+static bool object_select_all_by_particle(bContext *C, const ParticleSystem *psys_act)
 {
-  ParticleSystem *psys_act = psys_get_current(ob);
   bool changed = false;
 
   CTX_DATA_BEGIN (C, Base *, base, visible_bases) {
@@ -662,11 +662,12 @@ static wmOperatorStatus object_select_linked_exec(bContext *C, wmOperator *op)
     changed = object_select_all_by_instance_collection(C, ob);
   }
   else if (nr == OBJECT_SELECT_LINKED_PARTICLE) {
-    if (BLI_listbase_is_empty(&ob->particlesystem)) {
+    const ParticleSystem *psys_act = psys_get_current(ob);
+    if (psys_act == nullptr) {
       return OPERATOR_CANCELLED;
     }
 
-    changed = object_select_all_by_particle(C, ob);
+    changed = object_select_all_by_particle(C, psys_act);
   }
   else if (nr == OBJECT_SELECT_LINKED_LIBRARY) {
     /* do nothing */
@@ -1081,6 +1082,15 @@ static wmOperatorStatus object_select_grouped_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 }
 
+static bool object_select_grouped_poll(bContext *C)
+{
+  /* Uses popup menus which won't work in background mode. */
+  if (G.background) {
+    return false;
+  }
+  return objects_selectable_poll(C);
+}
+
 void OBJECT_OT_select_grouped(wmOperatorType *ot)
 {
   /* identifiers */
@@ -1091,7 +1101,7 @@ void OBJECT_OT_select_grouped(wmOperatorType *ot)
   /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = object_select_grouped_exec;
-  ot->poll = objects_selectable_poll;
+  ot->poll = object_select_grouped_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

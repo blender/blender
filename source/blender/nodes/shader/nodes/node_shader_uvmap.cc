@@ -102,7 +102,7 @@ void register_node_type_sh_uvmap()
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_uvmap;
-  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
+  ntype.default_width = bke::NodeWidth::_160;
   ntype.initfunc = file_ns::node_shader_init_uvmap;
   bke::node_type_storage(
       ntype, "NodeShaderUVMap", node_free_standard_storage, node_copy_standard_storage);

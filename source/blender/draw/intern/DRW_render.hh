@@ -265,8 +265,10 @@ struct DRWContext {
     VIEWPORT_XR,
     /** Render for a 3D viewport offscreen render (python). Runs on main thread. */
     VIEWPORT_OFFSCREEN,
-    /** Render for a 3D viewport image render (Render Viewport Preview, also VSE scene strips).
-       Runs on main thread. */
+    /**
+     * Render for a 3D viewport image render (Render Viewport Preview, also VSE scene strips).
+     * Runs on main thread.
+     */
     VIEWPORT_RENDER,
 
     /** Render for object mode selection. Runs on main thread. */
@@ -423,6 +425,10 @@ struct DRWContext {
   bool is_viewport_image_render() const
   {
     return ELEM(mode, VIEWPORT_RENDER);
+  }
+  bool is_viewport_xr() const
+  {
+    return ELEM(mode, VIEWPORT_XR);
   }
   float last_sync_time() const
   {

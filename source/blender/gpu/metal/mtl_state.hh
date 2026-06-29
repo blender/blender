@@ -9,7 +9,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "GPU_state.hh"
 #include "gpu_state_private.hh"

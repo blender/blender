@@ -7,14 +7,14 @@
 #include "BLI_index_mask.hh"
 #include "BLI_index_mask_expression.hh"
 #include "BLI_index_ranges_builder.hh"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_polyfill_2d.h"
-#include "BLI_polyfill_2d_beautify.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_polyfill_2d.hh"
+#include "BLI_polyfill_2d_beautify.hh"
 #include "BLI_vector_set.hh"
 
-#include "BLI_heap.h"
-#include "BLI_memarena.h"
+#include "BLI_heap.hh"
+#include "BLI_memarena.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
@@ -101,10 +101,10 @@ static QuadDirection calc_quad_direction_beauty(const float3 &v0,
                                                 const float3 &v3)
 {
   const int flip_flag = is_quad_flip_v3(v1, v2, v3, v0);
-  if (UNLIKELY(flip_flag & (1 << 0))) {
+  if (flip_flag & (1 << 0)) [[unlikely]] {
     return QuadDirection::Edge_0_2;
   }
-  if (UNLIKELY(flip_flag & (1 << 1))) {
+  if (flip_flag & (1 << 1)) [[unlikely]] {
     return QuadDirection::Edge_1_3;
   }
   return BLI_polyfill_edge_calc_rotate_beauty__area(v1, v2, v3, v0, false) > 0.0f ?
@@ -310,7 +310,7 @@ static void calc_corner_tris(const Span<float3> positions,
 
         if (ngon_mode == TriangulateNGonMode::Beauty) {
           if (!data.arena) {
-            data.arena = BLI_memarena_new(BLI_POLYFILL_ARENA_SIZE, __func__);
+            data.arena = BLI_memarena_new(BLI_POLYFILL_ARENA_SIZE, "calc_corner_tris data.arena");
           }
           if (!data.heap) {
             data.heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);

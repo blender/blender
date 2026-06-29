@@ -12,9 +12,9 @@
 #include <cstdio>
 #include <cstring>
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_anim_types.h"
@@ -312,7 +312,7 @@ static void draw_fcurve_selected_handle_vertices(
           (prevbezt && (prevbezt->ipo == BEZT_IPO_BEZ)))
       {
         if ((bezt->f1 & SELECT) == sel
-            /* && v2d->cur.xmin < bezt->vec[0][0] < v2d->cur.xmax) */)
+            /* && v2d->cur.xmin < bezt->vec[0][0] < v2d->cur.xmax */)
         {
           immVertex2fv(pos, bezt->vec[0]);
         }
@@ -320,7 +320,7 @@ static void draw_fcurve_selected_handle_vertices(
 
       if (bezt->ipo == BEZT_IPO_BEZ) {
         if ((bezt->f3 & SELECT) == sel
-            /* && v2d->cur.xmin < bezt->vec[2][0] < v2d->cur.xmax) */)
+            /* && v2d->cur.xmin < bezt->vec[2][0] < v2d->cur.xmax */)
         {
           immVertex2fv(pos, bezt->vec[2]);
         }
@@ -826,10 +826,10 @@ static int calculate_bezt_draw_resolution(BezTriple *bezt,
                                points_per_pixel);
   /* Include the handles in the resolution calculation to cover the case where keys have the same
    * y-value, but their handles are offset to create an arc. */
-  const float min_y = min_ffff(
-      bezt->vec[1][1], bezt->vec[2][1], prevbezt->vec[1][1], prevbezt->vec[0][1]);
-  const float max_y = max_ffff(
-      bezt->vec[1][1], bezt->vec[2][1], prevbezt->vec[1][1], prevbezt->vec[0][1]);
+  const float min_y = std::min(
+      {bezt->vec[1][1], bezt->vec[2][1], prevbezt->vec[1][1], prevbezt->vec[0][1]});
+  const float max_y = std::max(
+      {bezt->vec[1][1], bezt->vec[2][1], prevbezt->vec[1][1], prevbezt->vec[0][1]});
   const int resolution_y = int(((max_y - min_y) * pixels_per_unit[1]) * points_per_pixel);
 
   /* Using a simple sum instead of calculating the diagonal. This gives a slightly higher
@@ -993,10 +993,10 @@ static void expand_key_bounds(const BezTriple *left_key, const BezTriple *right_
   bounds.xmax = right_key->vec[1][0];
   if (left_key->ipo == BEZT_IPO_BEZ) {
     /* Respect handles of bezier keys. */
-    bounds.ymin = min_ffff(
-        bounds.ymin, right_key->vec[1][1], right_key->vec[0][1], left_key->vec[2][1]);
-    bounds.ymax = max_ffff(
-        bounds.ymax, right_key->vec[1][1], right_key->vec[0][1], left_key->vec[2][1]);
+    bounds.ymin = std::min(
+        {bounds.ymin, right_key->vec[1][1], right_key->vec[0][1], left_key->vec[2][1]});
+    bounds.ymax = std::max(
+        {bounds.ymax, right_key->vec[1][1], right_key->vec[0][1], left_key->vec[2][1]});
   }
   else {
     bounds.ymax = max_ff(bounds.ymax, right_key->vec[1][1]);
@@ -1331,7 +1331,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
   /* No curve to modify/visualize the result?
    * => We still want to show the 1-1 default...
    */
-  if ((fcu->totvert == 0) && BLI_listbase_is_empty(&fcu->modifiers)) {
+  if ((fcu->totvert == 0) && fcu->modifiers.is_empty()) {
     float t;
 
     /* draw with thin dotted lines in style of what curve would have been */

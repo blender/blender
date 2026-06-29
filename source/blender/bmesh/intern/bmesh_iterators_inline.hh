@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "BLI_compiler_attrs.h"
-#include "BLI_compiler_compat.h"
+#include "BLI_compiler_attrs.hh"
+#include "BLI_compiler_compat.hh"
 
 namespace blender {
 
@@ -156,7 +156,7 @@ ATTR_NONNULL(1) BLI_INLINE bool BM_iter_init(BMIter *iter, BMesh *bm, const char
 ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE
     void *BM_iter_new(BMIter *iter, BMesh *bm, const char itype, void *data)
 {
-  if (LIKELY(BM_iter_init(iter, bm, itype, data))) {
+  if (BM_iter_init(iter, bm, itype, data)) [[likely]] {
     return BM_iter_step(iter);
   }
   else {
@@ -170,7 +170,8 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE
  *
  * Uses #BLI_task_parallel_mempool to iterate over all items of underlying matching mempool.
  *
- * \note You have to include BLI_task.h before BMesh includes to be able to use this function!
+ * \note You have to include BLI_task_c.hh before BMesh includes to be able to use this
+ * function!
  */
 
 #ifdef __BLI_TASK_H__

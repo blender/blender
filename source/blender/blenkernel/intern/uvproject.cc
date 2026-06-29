@@ -13,9 +13,9 @@
 #include "DNA_camera_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "BKE_uvproject.h"
 
@@ -31,7 +31,7 @@ struct ProjCameraInfo {
   bool do_persp, do_pano, do_rotmat;
 };
 
-void BKE_uvproject_from_camera(float target[2], float source[3], ProjCameraInfo *uci)
+void BKE_uvproject_from_camera(float target[2], const float source[3], const ProjCameraInfo *uci)
 {
   float pv4[4];
 
@@ -84,9 +84,9 @@ void BKE_uvproject_from_camera(float target[2], float source[3], ProjCameraInfo 
 }
 
 void BKE_uvproject_from_view(float target[2],
-                             float source[3],
-                             float persmat[4][4],
-                             float rotmat[4][4],
+                             const float source[3],
+                             const float persmat[4][4],
+                             const float rotmat[4][4],
                              float winx,
                              float winy)
 {
@@ -181,7 +181,9 @@ void BKE_uvproject_camera_info_free(ProjCameraInfo *uci)
   MEM_delete(uci);
 }
 
-void BKE_uvproject_from_view_ortho(float target[2], float source[3], const float rotmat[4][4])
+void BKE_uvproject_from_view_ortho(float target[2],
+                                   const float source[3],
+                                   const float rotmat[4][4])
 {
   float pv[3];
 

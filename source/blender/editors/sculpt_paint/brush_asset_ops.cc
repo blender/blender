@@ -2,10 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_fileops.h"
-#include "BLI_listbase.h"
+#include "BLI_fileops.hh"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_scene_types.h"
@@ -74,7 +74,7 @@ static wmOperatorStatus brush_asset_activate_exec(bContext *C, wmOperator *op)
     BKE_reportf(op->reports, RPT_ERROR, "Asset '%s' is not a brush", asset->get_name().c_str());
     return OPERATOR_CANCELLED;
   }
-  if (asset->is_online()) {
+  if (asset->is_online_only()) {
     BKE_reportf(op->reports,
                 RPT_ERROR,
                 "Brush '%s' needs downloading before it can be used (check context menu)",
@@ -233,7 +233,8 @@ static wmOperatorStatus brush_asset_save_as_exec(bContext *C, wmOperator *op)
 
   AssetMetaData &meta_data = *brush->id.asset_data;
   if (catalog_path_c[0]) {
-    const asset_system::AssetCatalogPath catalog_path(catalog_path_c);
+    const asset_system::AssetCatalogPath catalog_path =
+        asset_system::AssetCatalogPath::from_user_input(catalog_path_c);
     const asset_system::AssetCatalog &catalog = asset::library_ensure_catalogs_in_path(
         *library, catalog_path);
     BKE_asset_metadata_catalog_id_set(&meta_data, catalog.catalog_id, catalog.simple_name.c_str());
@@ -323,7 +324,8 @@ static const EnumPropertyItem *rna_asset_library_reference_itemf(bContext * /*C*
       /* Only get writable libraries. */
       /*include_readonly=*/false,
       /*include_current_file=*/true,
-      /*include_remote_libraries=*/false);
+      /*include_remote_libraries=*/false,
+      /*include_separate_online_essentials=*/false);
   if (!items) {
     *r_free = false;
     return nullptr;
@@ -394,7 +396,8 @@ static wmOperatorStatus brush_asset_edit_metadata_exec(bContext *C, wmOperator *
   meta_data.description = RNA_string_get_alloc(op->ptr, "description", nullptr, 0, nullptr);
 
   if (catalog_path_c[0]) {
-    const asset_system::AssetCatalogPath catalog_path(catalog_path_c);
+    const asset_system::AssetCatalogPath catalog_path =
+        asset_system::AssetCatalogPath::from_user_input(catalog_path_c);
     const asset_system::AssetCatalog &catalog = asset::library_ensure_catalogs_in_path(
         library, catalog_path);
     BKE_asset_metadata_catalog_id_set(&meta_data, catalog.catalog_id, catalog.simple_name.c_str());

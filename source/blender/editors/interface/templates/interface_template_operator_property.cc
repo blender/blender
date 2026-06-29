@@ -11,8 +11,8 @@
 #include "BKE_idprop.hh"
 #include "BKE_screen.hh"
 
-#include "BLI_listbase.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BLT_translation.hh"
 
@@ -338,7 +338,10 @@ static wmOperator *minimal_operator_create(wmOperatorType *ot, PointerRNA *prope
   return op;
 }
 
-static void draw_import_controls(bContext *, Layout &layout, const std::string &label, bool valid)
+static void draw_import_controls(bContext * /*C*/,
+                                 Layout &layout,
+                                 const std::string &label,
+                                 bool valid)
 {
   layout.label(label, ICON_NONE);
   if (valid) {
@@ -484,7 +487,7 @@ void template_collection_exporters(Layout *layout, bContext *C)
 
   /* Register the exporter list type on first use. */
   static const uiListType *exporter_item_list = []() {
-    uiListType *lt = MEM_new_zeroed<uiListType>(__func__);
+    uiListType *lt = MEM_new_zeroed<uiListType>("template_collection_exporters");
     STRNCPY_UTF8(lt->idname, "COLLECTION_UL_exporter_list");
     lt->draw_item = draw_exporter_item;
     WM_uilisttype_add(lt);
@@ -521,7 +524,7 @@ void template_collection_exporters(Layout *layout, bContext *C)
 
   col = &layout->column(true);
   col->op("COLLECTION_OT_export_all", std::nullopt, ICON_EXPORT);
-  col->enabled_set(!BLI_listbase_is_empty(exporters));
+  col->enabled_set(!exporters->is_empty());
 
   /* Draw the active exporter. */
   CollectionExport *data = static_cast<CollectionExport *>(BLI_findlink(exporters, index));

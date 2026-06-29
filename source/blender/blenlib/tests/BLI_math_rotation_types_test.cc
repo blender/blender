@@ -6,9 +6,9 @@
 
 #include "DNA_action_types.h"
 
-#include "BLI_math_base.h"
-#include "BLI_math_rotation.h"
+#include "BLI_math_base_c.hh"
 #include "BLI_math_rotation.hh"
+#include "BLI_math_rotation_c.hh"
 #include "BLI_math_rotation_types.hh"
 
 namespace blender::tests {

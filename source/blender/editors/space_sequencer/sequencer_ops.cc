@@ -107,6 +107,7 @@ void sequencer_operatortypes()
   WM_operatortype_append(SEQUENCER_OT_select_lasso);
   WM_operatortype_append(SEQUENCER_OT_select_circle);
   WM_operatortype_append(SEQUENCER_OT_select_grouped);
+  WM_operatortype_append(SEQUENCER_OT_select_by_type);
 
   /* `sequencer_add.cc` */
   WM_operatortype_append(SEQUENCER_OT_scene_strip_add);
@@ -140,6 +141,8 @@ void sequencer_operatortypes()
 
   /* `sequencer_channels_edit.cc` */
   WM_operatortype_append(SEQUENCER_OT_rename_channel);
+
+  sequencer_strip_modifier_add_asset_register();
 }
 
 void sequencer_keymap(wmKeyConfig *keyconf)

@@ -51,10 +51,10 @@ static const EnumPropertyItem effector_shape_items[] = {
 
 #  include <fmt/format.h>
 
-#  include "BLI_listbase.h"
-#  include "BLI_math_base.h"
+#  include "BLI_listbase.hh"
+#  include "BLI_math_base_c.hh"
 #  include "BLI_path_utils.hh"
-#  include "BLI_string.h"
+#  include "BLI_string.hh"
 
 #  include "BKE_lib_id.hh"
 
@@ -176,7 +176,7 @@ static std::optional<std::string> rna_PointCache_path(const PointerRNA *ptr)
 
   ModifierData *md;
   for (md = static_cast<ModifierData *>(ob->modifiers.first); md; md = md->next) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
     if (!(mti->flags & eModifierTypeFlag_UsesPointCache)) {
       continue;
@@ -360,7 +360,7 @@ static void rna_Cache_idname_change(Main * /*bmain*/, Scene * /*scene*/, Pointer
       STRNCPY(cache->prev_name, cache->name);
     }
 
-    BLI_freelistN(&pidlist);
+    pidlist.free_no_destruct();
   }
 }
 
@@ -395,7 +395,7 @@ static void rna_Cache_active_point_cache_index_range(
   PTCacheID pid = BKE_ptcache_id_find(ob, scene, cache);
 
   if (pid.cache) {
-    *max = max_ii(0, BLI_listbase_count(pid.ptcaches) - 1);
+    *max = max_ii(0, pid.ptcaches->count() - 1);
   }
 }
 

@@ -6,10 +6,10 @@
  * \ingroup edtransform
  */
 
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_rect.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rect.hh"
 
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
@@ -236,7 +236,7 @@ void projectFloatViewCenterFallback(TransInfo *t, float adr[2])
 {
   const ARegion *region = t->region;
 
-  if (UNLIKELY(region == nullptr)) {
+  if (region == nullptr) [[unlikely]] {
     /* While this function probably wont be calved without a region.
      * Doing so shouldn't cause errors. */
     adr[0] = 0.0f;
@@ -314,13 +314,18 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
       adr[1] = vec[1];
     }
     else {
-      float v[2];
-
-      v[0] = vec[0] / t->aspect[0];
-      v[1] = vec[1] / t->aspect[1];
-
-      ui::view2d_view_to_region(
-          static_cast<const View2D *>(t->view), v[0], v[1], &adr[0], &adr[1]);
+      if (t->view) {
+        const float v[2] = {
+            vec[0] / t->aspect[0],
+            vec[1] / t->aspect[1],
+        };
+        ui::view2d_view_to_region(
+            static_cast<const View2D *>(t->view), v[0], v[1], &adr[0], &adr[1]);
+      }
+      else {
+        adr[0] = 0;
+        adr[1] = 0;
+      }
     }
   }
   else if (t->spacetype == SPACE_ACTION) {
@@ -335,7 +340,7 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
     }
     else
 #endif
-    {
+    if (t->view) {
       ui::view2d_view_to_region(static_cast<View2D *>(t->view), vec[0], vec[1], &out[0], &out[1]);
     }
 
@@ -344,15 +349,17 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
   }
   else if (ELEM(t->spacetype, SPACE_GRAPH, SPACE_NLA)) {
     int out[2] = {0, 0};
-
-    ui::view2d_view_to_region(static_cast<View2D *>(t->view), vec[0], vec[1], &out[0], &out[1]);
+    if (t->view) {
+      ui::view2d_view_to_region(static_cast<View2D *>(t->view), vec[0], vec[1], &out[0], &out[1]);
+    }
     adr[0] = out[0];
     adr[1] = out[1];
   }
   else if (t->spacetype == SPACE_SEQ) { /* XXX not tested yet, but should work. */
     int out[2] = {0, 0};
-
-    ui::view2d_view_to_region(static_cast<View2D *>(t->view), vec[0], vec[1], &out[0], &out[1]);
+    if (t->view) {
+      ui::view2d_view_to_region(static_cast<View2D *>(t->view), vec[0], vec[1], &out[0], &out[1]);
+    }
     adr[0] = out[0];
     adr[1] = out[1];
   }
@@ -381,20 +388,31 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
       }
     }
     else if (t->options & CTX_MOVIECLIP) {
-      float v[2];
-
-      v[0] = vec[0] / t->aspect[0];
-      v[1] = vec[1] / t->aspect[1];
-
-      ui::view2d_view_to_region(
-          static_cast<const View2D *>(t->view), v[0], v[1], &adr[0], &adr[1]);
+      if (t->view) {
+        const float v[2] = {
+            vec[0] / t->aspect[0],
+            vec[1] / t->aspect[1],
+        };
+        ui::view2d_view_to_region(
+            static_cast<const View2D *>(t->view), v[0], v[1], &adr[0], &adr[1]);
+      }
+      else {
+        adr[0] = 0;
+        adr[1] = 0;
+      }
     }
     else {
       BLI_assert(0);
     }
   }
   else if (t->spacetype == SPACE_NODE) {
-    ui::view2d_view_to_region(static_cast<View2D *>(t->view), vec[0], vec[1], &adr[0], &adr[1]);
+    if (t->view) {
+      ui::view2d_view_to_region(static_cast<View2D *>(t->view), vec[0], vec[1], &adr[0], &adr[1]);
+    }
+    else {
+      adr[0] = 0;
+      adr[1] = 0;
+    }
   }
 }
 void projectIntView(TransInfo *t, const float vec[3], int adr[2])
@@ -550,8 +568,11 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
       SpaceImage *sima = static_cast<SpaceImage *>(t->area->spacedata.first);
       if (sima->lock) {
         BKE_view_layer_synced_ensure(*t->bmain, t->scene, t->view_layer);
-        WM_event_add_notifier(
-            C, NC_GEOM | ND_DATA, BKE_view_layer_edit_object_get(t->view_layer)->data);
+        if (Object *ob = BKE_view_layer_edit_object_get(t->view_layer)) {
+          if (ob->type == OB_MESH) {
+            WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+          }
+        }
       }
       else {
         ED_area_tag_redraw(t->area);
@@ -637,7 +658,7 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
     }
     case TFM_MODAL_ADD_SNAP:
     case TFM_MODAL_REMOVE_SNAP: {
-      if (t->spacetype != SPACE_VIEW3D) {
+      if (!ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE)) {
         return false;
       }
       if (value == TFM_MODAL_ADD_SNAP) {
@@ -1756,7 +1777,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
       {
         BKE_view_layer_synced_ensure(*t->bmain, t->scene, t->view_layer);
         const Object *obact = BKE_view_layer_active_object_get(t->view_layer);
-        const eObjectMode object_mode = eObjectMode(obact ? obact->mode : OB_MODE_OBJECT);
+        const eObjectMode object_mode = obact ? obact->mode : OB_MODE_OBJECT;
 
         if (t->spacetype == SPACE_GRAPH) {
           ts->proportional_fcurve = use_prop_edit;

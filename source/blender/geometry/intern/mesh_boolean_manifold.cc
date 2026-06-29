@@ -10,9 +10,9 @@
 #  include "BLI_array.hh"
 #  include "BLI_array_utils.hh"
 #  include "BLI_map.hh"
-#  include "BLI_math_geom.h"
-#  include "BLI_math_matrix.h"
+#  include "BLI_math_geom_c.hh"
 #  include "BLI_math_matrix.hh"
+#  include "BLI_math_matrix_c.hh"
 #  include "BLI_math_matrix_types.hh"
 #  include "BLI_math_vector.hh"
 #  include "BLI_math_vector_types.hh"
@@ -146,10 +146,10 @@ static void dump_meshgl(const MeshGL &mgl, const std::string &name)
   dump_vector_values(indent, "m.runIndex", mgl.runIndex);
   dump_vector_values(indent, "m.runOriginalID", mgl.runOriginalID);
   dump_vector_values(indent, "m.faceID", mgl.faceID);
-  if (mgl.runTransform.size() != 0) {
+  if (!mgl.runTransform.empty()) {
     dump_vector_values(indent, "m.runTransform", mgl.runTransform);
   }
-  if (mgl.halfedgeTangent.size() != 0) {
+  if (!mgl.halfedgeTangent.empty()) {
     dump_vector_values(indent, "m.halfedgeTangent", mgl.halfedgeTangent);
   }
   if (mgl.tolerance != 0) {
@@ -822,7 +822,7 @@ constexpr int face_group_inline = 4;
 /**
  * Return an array of length \a input_faces_num, where the i'th entry
  * is a Vector of the \a mgl triangles that derive from the i'th input
- * face (where i is an index in the concatenated input mesh face space.
+ * face (where i is an index in the concatenated input mesh face space).
  */
 static Array<Vector<int, face_group_inline>> get_face_groups(const MeshGL &mgl,
                                                              int input_faces_num)
@@ -1596,7 +1596,7 @@ static MeshGL mesh_trim_manifold(Manifold &manifold0,
   /* This meshgl_result has a non-standard (but non-zero) original ID for the
    * plane faces, and faceIDs that make no sense for them. Fix this.
    * But only do this if the result is not empty. */
-  if (meshgl.vertProperties.size() > 0) {
+  if (!meshgl.vertProperties.empty()) {
     BLI_assert(meshgl.runOriginalID.size() == 2 && meshgl.runOriginalID[1] > 0);
     meshgl.runOriginalID[1] = 1;
     BLI_assert(meshgl.runIndex.size() == 3);

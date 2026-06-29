@@ -10,8 +10,8 @@
 
 #include <Python.h> /* IWYU pragma: keep. */
 
-#include "BLI_utildefines.h" /* IWYU pragma: keep. */
-#include "python_compat.hh"  /* IWYU pragma: keep. */
+#include "BLI_utildefines.hh" /* IWYU pragma: keep. */
+#include "python_compat.hh"   /* IWYU pragma: keep. */
 
 int _PyArg_CheckPositional(const char *name, Py_ssize_t nargs, Py_ssize_t min, Py_ssize_t max)
 {

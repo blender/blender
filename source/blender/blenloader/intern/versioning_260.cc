@@ -15,8 +15,8 @@
 #define DNA_GENFILE_VERSIONING_MACROS
 
 #include "BKE_idprop.hh"
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_brush_types.h"
@@ -45,12 +45,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
 
 #include "BKE_anim_visualization.h"
@@ -190,7 +190,7 @@ static void do_versions_image_settings_2_60(Scene *sce)
 
   /* we know no data loss happens here, the old values were in char range */
   imf->imtype = char(rd->imtype);
-  imf->planes = char(rd->planes);
+  imf->color_mode = ImColorMode(rd->color_mode);
   imf->compress = char(rd->quality);
   imf->quality = char(rd->quality);
 
@@ -393,7 +393,7 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
        * checks when adding new sockets.
        * sock->storage is expected to contain path info in ntreeCompositOutputFileAddSocket.
        */
-      BLI_listbase_clear(&node.inputs);
+      node.inputs.clear_no_delete();
 
       node.storage = nimf;
 
@@ -1290,7 +1290,7 @@ static bNode *version_add_group_in_out_node(bNodeTree *ntree, const int type)
      * These are stubs for links, full typeinfo is defined later. */
     for (bNodeSocket &tree_socket : *ntree_socket_list) {
       bNodeSocket *node_socket = version_make_socket_stub(tree_socket.idname,
-                                                          eNodeSocketDatatype(tree_socket.type),
+                                                          tree_socket.type,
                                                           socket_in_out,
                                                           tree_socket.identifier,
                                                           tree_socket.name,
@@ -1434,8 +1434,6 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
           clip.aspy = 1.0f;
         }
 
-        clip.proxy.build_tc_flag = MCLIP_TC_RECORD_RUN;
-
         if (clip.proxy.build_size_flag == 0) {
           clip.proxy.build_size_flag = MCLIP_PROXY_SIZE_25;
         }
@@ -1558,13 +1556,11 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
         MovieTrackingObject *tracking_object = static_cast<MovieTrackingObject *>(
             tracking->objects.first);
 
-        clip.proxy.build_tc_flag |= MCLIP_TC_RECORD_RUN_NO_GAPS;
-
         if (!tracking->settings.object_distance) {
           tracking->settings.object_distance = 1.0f;
         }
 
-        if (BLI_listbase_is_empty(&tracking->objects)) {
+        if (tracking->objects.is_empty()) {
           BKE_tracking_object_add(tracking, "Camera");
         }
 
@@ -1878,7 +1874,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
         if (md.type == eModifierType_Fluid) {
           FluidModifierData *fmd = reinterpret_cast<FluidModifierData *>(&md);
           if ((fmd->type & MOD_FLUID_TYPE_DOMAIN) && fmd->domain) {
-            int maxres = max_iii(fmd->domain->res[0], fmd->domain->res[1], fmd->domain->res[2]);
+            int maxres = std::max({fmd->domain->res[0], fmd->domain->res[1], fmd->domain->res[2]});
             fmd->domain->scale = fmd->domain->dx * maxres;
             fmd->domain->dx = 1.0f / fmd->domain->scale;
           }

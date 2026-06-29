@@ -233,7 +233,7 @@ class Wireframe : Overlay {
                 geom, manager.unique_handle(ob_ref), res.select_id(ob_ref).get());
           }
           else {
-            coloring.mesh_ps_->draw(
+            coloring.mesh_all_edges_ps_->draw(
                 geom, manager.unique_handle(ob_ref), res.select_id(ob_ref).get());
           }
         }
@@ -263,7 +263,7 @@ class Wireframe : Overlay {
 
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
     int2 render_size = int2(depth_tx.size());
-    tmp_depth_tx_.acquire(render_size, gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8, usage);
+    tmp_depth_tx_.acquire_2d(render_size, gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8, usage);
 
     /* WORKAROUND: Nasty framebuffer copy.
      * We should find a way to have nice wireframe without this. */

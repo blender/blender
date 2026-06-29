@@ -15,11 +15,11 @@
 
 #include "DNA_userdef_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_rect.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_rect.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_global.hh"
 
@@ -30,12 +30,10 @@
 #include "interface_intern.hh"
 
 #ifdef WIN32
-#  include "BLI_math_base.h" /* M_PI */
+#  include "BLI_math_base_c.hh" /* M_PI */
 #endif
 
-namespace blender {
-
-namespace ui {
+namespace blender::ui {
 
 static CLG_LogRef LOG = {"ui.font"};
 
@@ -612,5 +610,4 @@ void fontstyle_set(const uiFontStyle *fs)
   fontstyle_set_ex(fs, UI_SCALE_FAC);
 }
 
-}  // namespace ui
-}  // namespace blender
+}  // namespace blender::ui

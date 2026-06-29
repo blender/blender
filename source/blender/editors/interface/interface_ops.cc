@@ -22,17 +22,18 @@
 
 #include "ANIM_keyframing.hh"
 
-#include "BLI_listbase.h"
-#include "BLI_math_color.h"
-#include "BLI_rect.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_color_c.hh"
+#include "BLI_rect.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BLF_api.hh"
 #include "BLT_lang.hh"
 #include "BLT_translation.hh"
 
 #include "BKE_anim_data.hh"
+#include "BKE_armature.hh"
 #include "BKE_context.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_idtype.hh"
@@ -59,6 +60,7 @@
 #include "UI_abstract_view.hh"
 #include "UI_interface.hh"
 #include "UI_interface_layout.hh"
+#include "UI_tree_view.hh"
 
 #include "interface_intern.hh"
 
@@ -530,10 +532,10 @@ static bool override_add_button_poll(bContext *C)
 
   context_active_but_prop_get(C, &ptr, &prop, &index);
 
-  const uint override_status = RNA_property_override_library_status(
+  const eRNAOverrideStatus override_status = RNA_property_override_library_status(
       CTX_data_main(C), &ptr, prop, index);
 
-  return (ptr.data && prop && (override_status & RNA_OVERRIDE_STATUS_OVERRIDABLE));
+  return (ptr.data && prop && flag_is_set(override_status, eRNAOverrideStatus::LibOverridable));
 }
 
 static wmOperatorStatus override_add_button_exec(bContext *C, wmOperator *op)
@@ -600,10 +602,11 @@ static bool override_remove_button_poll(bContext *C)
 
   context_active_but_prop_get(C, &ptr, &prop, &index);
 
-  const uint override_status = RNA_property_override_library_status(
+  const eRNAOverrideStatus override_status = RNA_property_override_library_status(
       CTX_data_main(C), &ptr, prop, index);
 
-  return (ptr.data && ptr.owner_id && prop && (override_status & RNA_OVERRIDE_STATUS_OVERRIDDEN));
+  return (ptr.data && ptr.owner_id && prop &&
+          flag_is_set(override_status, eRNAOverrideStatus::LibOverridden));
 }
 
 static wmOperatorStatus override_remove_button_exec(bContext *C, wmOperator *op)
@@ -647,16 +650,16 @@ static wmOperatorStatus override_remove_button_exec(bContext *C, wmOperator *op)
         }
       }
     }
+    RNA_property_copy(bmain, &ptr, &src, prop, index, oprop, opop);
     BKE_lib_override_library_property_operation_delete(oprop, opop);
-    RNA_property_copy(bmain, &ptr, &src, prop, index);
-    if (BLI_listbase_is_empty(&oprop->operations)) {
+    if (oprop->operations.is_empty()) {
       BKE_lib_override_library_property_delete(id->override_library, oprop);
     }
   }
   else {
     /* Just remove whole generic override operation of this property. */
+    RNA_property_copy(bmain, &ptr, &src, prop, -1, oprop);
     BKE_lib_override_library_property_delete(id->override_library, oprop);
-    RNA_property_copy(bmain, &ptr, &src, prop, -1);
   }
 
   /* Outliner e.g. has to be aware of this change. */
@@ -985,6 +988,7 @@ static PointerRNA rnapointer_pchan_to_bone(const PointerRNA &pchan_ptr)
 
   BLI_assert(GS(pchan_ptr.owner_id->name) == ID_OB);
   Object *object = reinterpret_cast<Object *>(pchan_ptr.owner_id);
+  BKE_pose_ensure_bone_indices(*object);
 
   BLI_assert(GS(object->data->name) == ID_AR);
   bArmature *armature = id_cast<bArmature *>(object->data);
@@ -1052,8 +1056,8 @@ static bool tree_interface_item_can_set_prop(const bNodeTreeInterfaceItem &item,
   const bool is_generic_prop = STR_ELEM(
       prop_id, "socket_type", "description", "optional_label", "hide_value", "hide_in_modifier");
 
-  switch (eNodeTreeInterfaceItemType(item.item_type)) {
-    case NODE_INTERFACE_SOCKET: {
+  switch (item.item_type) {
+    case NodeTreeInterfaceItemType::Socket: {
       const auto &sock = reinterpret_cast<const bNodeTreeInterfaceSocket &>(item);
       if ((sock.flag & NODE_INTERFACE_SOCKET_SELECT) == 0) {
         return false;
@@ -1076,7 +1080,7 @@ static bool tree_interface_item_can_set_prop(const bNodeTreeInterfaceItem &item,
       const auto &active_sock = reinterpret_cast<const bNodeTreeInterfaceSocket &>(active_item);
       return sock.socket_typeinfo()->type == active_sock.socket_typeinfo()->type;
     }
-    case NODE_INTERFACE_PANEL: {
+    case NodeTreeInterfaceItemType::Panel: {
       const auto &panel = reinterpret_cast<const bNodeTreeInterfacePanel &>(item);
       return panel.flag & NODE_INTERFACE_PANEL_SELECT;
     }
@@ -2783,23 +2787,40 @@ static void UI_OT_view_scroll(wmOperatorType *ot)
  *
  * \{ */
 
+static AbstractViewItem *find_active_view_item(bContext *C)
+{
+  const AbstractView *view = get_view_focused(C);
+  if (!view) {
+    return nullptr;
+  }
+  AbstractViewItem *active_item = nullptr;
+  view->foreach_view_item([&](AbstractViewItem &item) {
+    if (item.is_active()) {
+      active_item = &item;
+    }
+  });
+  return active_item;
+}
+
 static bool view_item_rename_poll(bContext *C)
 {
   const AbstractView *view = get_view_focused(C);
   if (view == nullptr) {
     return false;
   }
-
-  const ARegion *region = CTX_wm_region(C);
-  const AbstractViewItem *active_item = region_views_find_active_item(region, view);
+  const AbstractViewItem *active_item = find_active_view_item(C);
   return active_item != nullptr && view_item_can_rename(*active_item);
 }
 
 static wmOperatorStatus view_item_rename_exec(bContext *C, wmOperator * /*op*/)
 {
   ARegion *region = CTX_wm_region(C);
-  const AbstractView *view = get_view_focused(C);
-  AbstractViewItem *active_item = region_views_find_active_item(region, view);
+  AbstractViewItem *active_item = find_active_view_item(C);
+
+  if (AbstractTreeView *tree_view = dynamic_cast<AbstractTreeView *>(&active_item->get_view())) {
+    /* In tree views, ensure the active item is visible when renaming starts. */
+    tree_view->scroll_active_into_view(C, true);
+  }
 
   view_item_begin_rename(*active_item);
   ED_region_tag_redraw(region);
@@ -3000,6 +3021,175 @@ static void UI_OT_view_item_delete(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name UI View Item Navigate Operator
+ *
+ * Operator for navigating in view with arrow keys.
+ *
+ * \{ */
+
+enum class Direction {
+  UP,
+  Down,
+  LEFT,
+  RIGHT,
+};
+
+static wmOperatorStatus ui_view_item_navigate_invoke(bContext *C,
+                                                     wmOperator *op,
+                                                     const wmEvent * /*event*/)
+{
+  ARegion &region = *CTX_wm_region(C);
+  const Direction direction = Direction(RNA_enum_get(op->ptr, "direction"));
+  AbstractView *view = get_view_focused(C);
+
+  AbstractViewItem *from = view->find_active_or_visible_item();
+  AbstractViewItem *next_item = nullptr;
+  switch (direction) {
+    case Direction::UP: {
+      next_item = view->navigate_up(from);
+      break;
+    }
+    case Direction::Down: {
+      next_item = view->navigate_down(from);
+      break;
+    }
+    case Direction::LEFT: {
+      next_item = view->navigate_left(from);
+      break;
+    }
+    case Direction::RIGHT: {
+      next_item = view->navigate_right(from);
+      break;
+    }
+  }
+
+  if (next_item) {
+    view_item_click_select(*C, next_item, *view, false, false, false);
+    view->scroll_active_into_view(C);
+  }
+
+  ED_region_tag_redraw(&region);
+  return OPERATOR_FINISHED;
+}
+
+static void UI_OT_view_item_navigate(wmOperatorType *ot)
+{
+  ot->name = "View Navigate";
+  ot->idname = "UI_OT_view_item_navigate";
+  ot->description = "Walk and select view items in given direction";
+
+  ot->invoke = ui_view_item_navigate_invoke;
+  ot->poll = view_focused_poll;
+
+  ot->flag = OPTYPE_INTERNAL;
+
+  static const EnumPropertyItem direction_enum_items[] = {
+      {int(Direction::UP), "UP", 0, "Up", "Select item above the active"},
+      {int(Direction::Down), "DOWN", 0, "Down", "Select item below the active"},
+      {int(Direction::LEFT),
+       "LEFT",
+       0,
+       "Left",
+       "Collapse or walk towards left of the active item"},
+      {int(Direction::RIGHT),
+       "RIGHT",
+       0,
+       "Right",
+       "Uncollapse or walk towards right of the active item"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  RNA_def_enum(ot->srna,
+               "direction",
+               direction_enum_items,
+               0,
+               "Navigation Direction",
+               "Direction in which to navigate and select next element.");
+}
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name UI View Item Focus Operator
+ *
+ * Operator to bring the active item into view by scrolling the view.
+ *
+ * \{ */
+
+static wmOperatorStatus ui_view_item_focus_invoke(bContext *C,
+                                                  wmOperator * /*op*/,
+                                                  const wmEvent * /*event*/)
+{
+  ARegion *region = CTX_wm_region(C);
+  AbstractView *view = get_view_focused(C);
+
+  view->scroll_active_into_view(C, true);
+  ED_region_tag_redraw(region);
+
+  return OPERATOR_FINISHED;
+}
+
+static void UI_OT_view_item_focus(wmOperatorType *ot)
+{
+  ot->name = "Focus Active Item";
+  ot->idname = "UI_OT_view_item_focus";
+  ot->description = "Bring active item into focus by scrolling the view";
+
+  ot->invoke = ui_view_item_focus_invoke;
+  ot->poll = view_focused_poll;
+
+  ot->flag = OPTYPE_INTERNAL;
+}
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tree View Page Scroll Operator
+ *
+ * Scroll the view to up/down by one page or to the top/bottom of the view.
+ *
+ * \{ */
+
+static wmOperatorStatus ui_view_item_scroll_page_invoke(bContext *C,
+                                                        wmOperator *op,
+                                                        const wmEvent * /*event*/)
+{
+  ARegion &region = *CTX_wm_region(C);
+  AbstractView *view = get_view_focused(C);
+  const PageScrollDirection direction = PageScrollDirection(
+      RNA_enum_get(op->ptr, "scroll_direction"));
+
+  view->page_scroll(C, direction);
+
+  ED_region_tag_redraw(&region);
+  return OPERATOR_FINISHED;
+}
+
+static void UI_OT_view_item_page_scroll(wmOperatorType *ot)
+{
+  ot->name = "Scroll page";
+  ot->idname = "UI_OT_view_item_page_scroll";
+  ot->description = "Scroll the list to the next/previous page";
+
+  ot->invoke = ui_view_item_scroll_page_invoke;
+  ot->poll = view_focused_poll;
+
+  static const EnumPropertyItem direction_enum_items[] = {
+      {int(PageScrollDirection::Up), "UP", 0, "Up", "Scroll one page up"},
+      {int(PageScrollDirection::Down), "DOWN", 0, "Down", "Scroll one page down"},
+      {int(PageScrollDirection::Top), "TOP", 0, "Top", "Scroll to the top"},
+      {int(PageScrollDirection::Bottom), "BOTTOM", 0, "Bottom", "Scroll to the bottom"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  RNA_def_enum(ot->srna,
+               "scroll_direction",
+               direction_enum_items,
+               0,
+               "Scroll Direction",
+               "Scroll to next/previous page in the list.");
+}
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Material Drag/Drop Operator
  *
  * \{ */
@@ -3101,6 +3291,9 @@ void operatortypes_ui()
   WM_operatortype_append(UI_OT_view_item_rename);
   WM_operatortype_append(UI_OT_view_item_select);
   WM_operatortype_append(UI_OT_view_item_delete);
+  WM_operatortype_append(UI_OT_view_item_navigate);
+  WM_operatortype_append(UI_OT_view_item_focus);
+  WM_operatortype_append(UI_OT_view_item_page_scroll);
 
   WM_operatortype_append(UI_OT_override_add_button);
   WM_operatortype_append(UI_OT_override_remove_button);

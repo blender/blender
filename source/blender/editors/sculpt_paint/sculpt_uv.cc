@@ -9,11 +9,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_ghash.h"
-#include "BLI_math_base_safe.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
+#include "BLI_ghash.hh"
+#include "BLI_math_base_safe.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -174,10 +174,12 @@ static float calc_strength(const UvSculptData *sculptdata, float p, const float 
   return strength;
 }
 
-/*********** Improved Laplacian Relaxation Operator ************************/
-/* original code by Raul Fernandez Hernandez "farsthary"                   *
- * adapted to uv smoothing by Antony Riakiatakis                           *
- ***************************************************************************/
+/* -------------------------------------------------------------------- */
+/** \name Improved Laplacian Relaxation Operator
+ *
+ * Original code by Raul Fernandez Hernandez "farsthary"
+ * adapted to uv smoothing by Antony Riakiatakis
+ * \{ */
 
 struct Temp_UVData {
   float sum_co[2], p[2], b[2], sum_b[2];
@@ -480,6 +482,8 @@ static void relaxation_iteration_uv(UvSculptData *sculptdata,
 
   MEM_SAFE_DELETE(delta_buf);
 }
+
+/** \} */
 
 static void uv_sculpt_stroke_apply(bContext *C,
                                    wmOperator *op,

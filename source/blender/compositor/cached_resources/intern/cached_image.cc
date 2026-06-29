@@ -7,10 +7,10 @@
 #include <string>
 
 #include "BLI_hash.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_ref.hh"
 
 #include "RE_pipeline.h"
@@ -155,23 +155,23 @@ static int get_view_index(const Context &context,
  * argument should be set, otherwise, it is ignored. The image user will have a pass index of -1 if
  * the pass/later were not found in the image for multi-layer images. */
 static ImageUser compute_image_user_for_pass(const Context &context,
-                                             const Image *image,
+                                             const Image &image,
                                              const RenderResult *render_result,
-                                             const ImageUser *image_user,
+                                             const ImageUser &image_user,
                                              const char *pass_name)
 {
-  ImageUser image_user_for_pass = *image_user;
+  ImageUser image_user_for_pass = image_user;
 
   /* Set the needed view. */
   image_user_for_pass.view = get_view_index(context, render_result, image_user_for_pass);
 
   /* Set the needed pass. */
-  if (BKE_image_is_multilayer(image)) {
+  if (BKE_image_is_multilayer(&image)) {
     image_user_for_pass.pass = get_pass_index(render_result, image_user_for_pass, pass_name);
     BKE_image_multilayer_index(const_cast<RenderResult *>(render_result), &image_user_for_pass);
   }
   else {
-    BKE_image_multiview_index(image, &image_user_for_pass);
+    BKE_image_multiview_index(&image, &image_user_for_pass);
   }
 
   return image_user_for_pass;
@@ -195,20 +195,18 @@ static ImBuf *compute_linear_buffer(ImBuf *image_buffer)
 {
   /* Do not pass the flags to the allocation function to avoid buffer allocation, but assign them
    * after to retain important information like precision and alpha mode. */
-  ImBuf *linear_image_buffer = IMB_allocImBuf(
-      image_buffer->x, image_buffer->y, image_buffer->planes, 0);
+  ImBuf *linear_image_buffer = IMB_allocImBuf(image_buffer->x, image_buffer->y, ImBufFlags::Zero);
+  linear_image_buffer->color_mode = image_buffer->color_mode;
   linear_image_buffer->flags = image_buffer->flags;
 
   /* Assign the float buffer if it exists, as well as its number of channels. */
-  IMB_assign_float_buffer(
-      linear_image_buffer, image_buffer->float_buffer, IB_DO_NOT_TAKE_OWNERSHIP);
+  linear_image_buffer->float_buffer = image_buffer->float_buffer;
   linear_image_buffer->channels = image_buffer->channels;
 
   /* If no float buffer exists, assign it then compute a float buffer from it. This is the main
    * call of this function. */
   if (!linear_image_buffer->float_data()) {
-    IMB_assign_byte_buffer(
-        linear_image_buffer, image_buffer->byte_buffer, IB_DO_NOT_TAKE_OWNERSHIP);
+    linear_image_buffer->byte_buffer = image_buffer->byte_buffer;
     IMB_float_from_byte(linear_image_buffer);
   }
 
@@ -281,8 +279,8 @@ static ResultType get_pass_type(const RenderPass *render_pass)
 }
 
 CachedImage::CachedImage(Context &context,
-                         Image *image,
-                         ImageUser *image_user,
+                         Image &image,
+                         ImageUser &image_user,
                          const char *pass_name)
     : result(context)
 {
@@ -293,80 +291,74 @@ CachedImage::CachedImage(Context &context,
    * render result as a side effect. We also use that as a mean of validation, since we can early
    * exit if the returned image buffer is nullptr. This image buffer can be immediately released.
    * Since it carries no important information. */
-  ImBuf *initial_image_buffer = BKE_image_acquire_ibuf(image, image_user, nullptr);
-  BKE_image_release_ibuf(image, initial_image_buffer, nullptr);
+  ImBuf *initial_image_buffer = BKE_image_acquire_ibuf(&image, &image_user, nullptr);
+  BKE_image_release_ibuf(&image, initial_image_buffer, nullptr);
   if (!initial_image_buffer) {
     return;
   }
 
-  RenderResult *render_result = BKE_image_acquire_renderresult(nullptr, image);
+  RenderResult *render_result = BKE_image_acquire_renderresult(nullptr, &image);
 
   ImageUser image_user_for_pass = compute_image_user_for_pass(
       context, image, render_result, image_user, pass_name);
 
   /* Pass or layer were not found. */
-  if (BKE_image_is_multilayer(image) && image_user_for_pass.pass == -1) {
-    BKE_image_release_renderresult(nullptr, image, render_result);
+  if (BKE_image_is_multilayer(&image) && image_user_for_pass.pass == -1) {
+    BKE_image_release_renderresult(nullptr, &image, render_result);
     return;
   }
 
-  if (BKE_image_is_multilayer(image)) {
+  if (BKE_image_is_multilayer(&image)) {
     const RenderPass *render_pass = get_render_pass(render_result, image_user_for_pass);
     this->result.set_type(get_pass_type(render_pass));
   }
 
   this->populate_cryptomatte_meta_data(render_result, image_user_for_pass);
 
-  BKE_image_release_renderresult(nullptr, image, render_result);
+  BKE_image_release_renderresult(nullptr, &image, render_result);
 
-  ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &image_user_for_pass, nullptr);
+  ImBuf *image_buffer = BKE_image_acquire_ibuf(&image, &image_user_for_pass, nullptr);
   ImBuf *linear_image_buffer = compute_linear_buffer(image_buffer);
 
   this->populate_meta_data(image_buffer);
 
   const bool use_half_float = linear_image_buffer->foptions.flag & OPENEXR_HALF;
   this->result.set_precision(use_half_float ? ResultPrecision::Half : ResultPrecision::Full);
-  if (!BKE_image_is_multilayer(image)) {
+  if (!BKE_image_is_multilayer(&image)) {
     this->result.set_type(float_type(linear_image_buffer->channels));
   }
 
   /* For GPU, we wrap the texture returned by IMB module and free it ourselves in destructor. For
    * CPU, we allocate the result and copy to it from the image buffer. */
   if (context.use_gpu()) {
-    texture_ = IMB_create_gpu_texture("Image Texture", linear_image_buffer, true, true, false);
-    GPU_texture_update_mipmap_chain(texture_);
+    const GPUTextureCreateFlags flags = GPUTextureCreateFlags::HighBitDepth |
+                                        GPUTextureCreateFlags::Premultiplied;
+    texture_ = IMB_create_gpu_texture("Image Texture", linear_image_buffer, flags);
     this->result.share_data(texture_);
   }
   else {
     const int2 size = int2(image_buffer->x, image_buffer->y);
-    Result buffer_result(context, float_type(image_buffer->channels), ResultPrecision::Full);
-    buffer_result.share_data(linear_image_buffer->float_data(), size);
-    this->result.allocate_texture(size, false);
-
-    if (buffer_result.type() == ResultType::Color && result.type() == ResultType::Float4) {
-      parallel_for(size, [&](const int2 texel) {
-        this->result.store_pixel(texel, float4(buffer_result.load_pixel<Color>(texel)));
-      });
-    }
-    else if (buffer_result.type() == ResultType::Float3 && result.type() == ResultType::Color) {
+    if (linear_image_buffer->channels == 3 && this->result.type() == ResultType::Color) {
       /* Color passes with no alpha could be stored in a Float3 type. */
+      Result buffer_result(context, float_type(image_buffer->channels), ResultPrecision::Full);
+      buffer_result.share_data(linear_image_buffer->float_buffer.data,
+                               size,
+                               linear_image_buffer->float_buffer.sharing_info);
+      this->result.allocate_texture(size);
       parallel_for(size, [&](const int2 texel) {
         this->result.store_pixel(texel,
                                  Color(float4(buffer_result.load_pixel<float3>(texel), 1.0f)));
       });
+      buffer_result.release();
     }
     else {
-      result.get_cpp_type().to_static_type<float, float2, float3, float4, Color>(
-          [&]<typename T>() {
-            parallel_for(result.domain().data_size, [&](const int2 texel) {
-              result.store_pixel(texel, buffer_result.load_pixel<T>(texel));
-            });
-          });
+      this->result.share_data(linear_image_buffer->float_buffer.data,
+                              size,
+                              linear_image_buffer->float_buffer.sharing_info);
     }
-    buffer_result.release();
   }
 
-  if (image_buffer->flags & IB_has_display_window) {
+  if (flag_is_set(image_buffer->flags, ImBufFlags::HasDisplayWindow)) {
     this->result.domain().display_size = int2(image_buffer->display_size);
     this->result.domain().data_offset = int2(image_buffer->data_offset);
     this->result.transform(
@@ -374,7 +366,7 @@ CachedImage::CachedImage(Context &context,
   }
 
   IMB_freeImBuf(linear_image_buffer);
-  BKE_image_release_ibuf(image, image_buffer, nullptr);
+  BKE_image_release_ibuf(&image, image_buffer, nullptr);
 }
 
 void CachedImage::populate_cryptomatte_meta_data(const RenderResult *render_result,
@@ -475,45 +467,41 @@ void CachedImageContainer::reset()
   }
 }
 
-Result CachedImageContainer::get(Context &context,
-                                 Image *image,
-                                 const ImageUser *image_user,
-                                 const char *pass_name)
+Result &CachedImageContainer::get(Context &context,
+                                  Image &image,
+                                  const ImageUser &image_user,
+                                  const char *pass_name)
 {
-  if (!image || !image_user) {
-    return Result(context);
-  }
-
   /* Compute the effective frame number of the image if it was animated. */
-  ImageUser image_user_for_frame = *image_user;
-  BKE_image_user_frame_calc(image, &image_user_for_frame, context.get_frame_number());
+  ImageUser image_user_for_frame = image_user;
+  BKE_image_user_frame_calc(&image, &image_user_for_frame, context.get_frame_number());
 
   /* A view of 0 is a special value that means the current view being rendered so use the context
    * view name. For other values, just convert the view index into a string and use it as the name,
    * while this is not correct it works as the cache key and is very fast compared to reading the
    * views from file and finding out their name. */
-  const std::string view_name = image_user->view == 0 ? std::string(context.get_view_name()) :
-                                                        std::to_string(image_user->view);
+  const std::string view_name = image_user.view == 0 ? std::string(context.get_view_name()) :
+                                                       std::to_string(image_user.view);
 
-  const CachedImageKey key(image_user->layer, pass_name, view_name, image_user_for_frame.framenr);
+  const CachedImageKey key(image_user.layer, pass_name, view_name, image_user_for_frame.framenr);
 
-  const std::string library_key = image->id.lib ? image->id.lib->id.name : "";
-  const std::string id_key = std::string(image->id.name) + library_key;
+  const std::string library_key = image.id.lib ? image.id.lib->id.name : "";
+  const std::string id_key = std::string(image.id.name) + library_key;
   auto &cached_images_for_id = map_.lookup_or_add_default(id_key);
 
   /* Invalidate the cache for that image if it was changed since it was cached. */
   if (!cached_images_for_id.is_empty() &&
-      image->runtime->update_count != update_counts_.lookup(id_key))
+      image.runtime->update_count != update_counts_.lookup(id_key))
   {
     cached_images_for_id.clear();
   }
 
   auto &cached_image = *cached_images_for_id.lookup_or_add_cb(key, [&]() {
-    return std::make_unique<CachedImage>(context, image, &image_user_for_frame, pass_name);
+    return std::make_unique<CachedImage>(context, image, image_user_for_frame, pass_name);
   });
 
   /* Store the current update count to later compare to and check if the image changed. */
-  update_counts_.add_overwrite(id_key, image->runtime->update_count);
+  update_counts_.add_overwrite(id_key, image.runtime->update_count);
 
   cached_image.needed = true;
   return cached_image.result;

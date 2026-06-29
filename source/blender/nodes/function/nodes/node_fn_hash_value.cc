@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_hash.h"
+#include "BLI_hash_c.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_noise.hh"
 
@@ -117,7 +117,7 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  eNodeSocketDatatype socket_type = eNodeSocketDatatype(params.other_socket().type);
+  eNodeSocketDatatype socket_type = params.other_socket().type;
   if (!ELEM(socket_type,
             SOCK_BOOLEAN,
             SOCK_FLOAT,

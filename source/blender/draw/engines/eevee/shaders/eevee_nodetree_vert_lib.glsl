@@ -6,13 +6,17 @@
 /* This file must replaced at runtime. The following content is only a possible implementation. */
 #pragma runtime_generated
 
-#include "eevee_geom_types_lib.glsl"
-#include "eevee_nodetree_lib.glsl"
+#include "eevee_geom_types_lib.bsl.hh"
+/* Note: Only included if there is a nodetree eval in the vertex shader. */
+#include "eevee_nodetree_lib.bsl.hh"
 
 /* Loading of the attributes into GlobalData. */
 void attrib_load(MeshVertex /*domain*/) {}
 void attrib_load(PointCloudPoint /*domain*/) {}
 void attrib_load(CurvesPoint /*domain*/) {}
+
+#ifndef NODETREE_FUNCTIONS /* Needed for linting. */
+#  define NODETREE_FUNCTIONS
 
 /* Material graph connected to the displacement output. */
 float3 nodetree_displacement()
@@ -41,3 +45,5 @@ float nodetree_thickness()
 /* Replaced by define at runtime. */
 /* TODO(fclem): Find a way to pass material parameters inside the material UBO. */
 ThicknessMode thickness_mode = ThicknessMode::Slab;
+
+#endif

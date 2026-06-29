@@ -6,9 +6,13 @@
  * \ingroup imbuf
  */
 
-#include "BLI_utildefines.h"
+#include "BLI_mutex.hh"
+#include "BLI_time.hh"
+#include "BLI_utildefines.hh"
 
 #include "MEM_guardedalloc.h"
+
+#include <mutex>
 
 #include "CLG_log.h"
 
@@ -28,13 +32,13 @@ static CLG_LogRef LOG = {"image.gpu"};
 
 static bool imb_is_grayscale_texture_format_compatible(const ImBuf *ibuf)
 {
-  if (ibuf->planes > 8) {
+  if (ibuf->color_mode != ImColorMode::BW) {
     return false;
   }
 
   if (ibuf->byte_data() && !ibuf->float_data()) {
 
-    if (IMB_colormanagement_space_is_srgb(ibuf->byte_buffer.colorspace) ||
+    if (IMB_colormanagement_space_is_scene_linear_srgb(ibuf->byte_buffer.colorspace) ||
         IMB_colormanagement_space_is_scene_linear(ibuf->byte_buffer.colorspace))
     {
       /* Grey-scale byte buffers with these color transforms utilize float buffers under the hood
@@ -49,7 +53,7 @@ static bool imb_is_grayscale_texture_format_compatible(const ImBuf *ibuf)
   /* Only #IMBuf's with color-space that do not modify the chrominance of the texture data relative
    * to the scene color space can be uploaded as single channel textures. */
   if (IMB_colormanagement_space_is_data(ibuf->float_buffer.colorspace) ||
-      IMB_colormanagement_space_is_srgb(ibuf->float_buffer.colorspace) ||
+      IMB_colormanagement_space_is_scene_linear_srgb(ibuf->float_buffer.colorspace) ||
       IMB_colormanagement_space_is_scene_linear(ibuf->float_buffer.colorspace))
   {
     return true;
@@ -82,8 +86,8 @@ static void imb_gpu_get_format(const ImBuf *ibuf,
       *r_texture_format = (is_grayscale) ? gpu::TextureFormat::UNORM_8 :
                                            gpu::TextureFormat::UNORM_8_8_8_8;
     }
-    else if (IMB_colormanagement_space_is_srgb(ibuf->byte_buffer.colorspace)) {
-      /* sRGB, store as byte texture that the GPU can decode directly. */
+    else if (IMB_colormanagement_space_is_scene_linear_srgb(ibuf->byte_buffer.colorspace)) {
+      /* scene linear + sRGB, store as byte texture that the GPU can decode directly. */
       *r_texture_format = (is_grayscale) ? gpu::TextureFormat::SFLOAT_16 :
                                            gpu::TextureFormat::SRGBA_8_8_8_8;
     }
@@ -125,149 +129,192 @@ bool IMB_gpu_get_compressed_format(const ImBuf *ibuf, gpu::TextureFormat *r_text
   return false;
 }
 
-/**
- * Apply colormanagement and scale buffer if needed.
- * `*r_freedata` is set to true if the returned buffer need to be manually freed.
- */
-static void *imb_gpu_get_data(ImBuf *ibuf,
-                              const bool do_rescale,
-                              const int rescale_size[2],
-                              const bool store_premultiplied,
-                              const bool allow_grayscale,
-                              bool *r_freedata,
-                              eGPUDataFormat *r_data_format)
+/* Returns an image buffer containing the data from the source buffer but suitable for uploading to
+ * GPU textures. The output should be freed by the caller. If rescale_size is not nullopt, the
+ * image will be scaled using a box filter to match the rescale size. If premultiplied_alpha is
+ * true and alpha is not packed, alpha is ensured to be premultiplied, otherwise, it is ensured to
+ * be straight. If allow_grayscale is true, if the image could be stored as a grayscale image with
+ * no data loss, it will be return as so, otherwise, it will be RGBA. */
+static ImBuf *get_gpu_texture_data(ImBuf *source_buffer,
+                                   const std::optional<int2> rescale_size,
+                                   const bool premultiplied_alpha,
+                                   const bool allow_grayscale)
 {
-  bool is_float_rect = (ibuf->float_data() != nullptr);
-  const bool is_grayscale = allow_grayscale && imb_is_grayscale_texture_format_compatible(ibuf);
-  void *data_rect = (is_float_rect) ? static_cast<void *>(ibuf->float_data_for_write()) :
-                                      static_cast<void *>(ibuf->byte_data_for_write());
-  bool freedata = false;
+  /* Start with a copy of the source buffer, this will be processed further if needed below. */
+  ImBuf *output_buffer = IMB_allocImBuf(source_buffer->x, source_buffer->y, ImBufFlags::Zero);
+  output_buffer->color_mode = source_buffer->color_mode;
+  output_buffer->flags = source_buffer->flags;
+  output_buffer->float_buffer = source_buffer->float_buffer;
+  output_buffer->channels = source_buffer->channels;
+  output_buffer->byte_buffer = source_buffer->byte_buffer;
 
-  if (is_float_rect) {
-    /* Float image is already in scene linear colorspace or non-color data by
-     * convention, no colorspace conversion needed. But we do require 4 channels
-     * currently. */
-    if (ibuf->channels != 4 || !store_premultiplied) {
-      data_rect = MEM_new_array_uninitialized<float>(4 * size_t(ibuf->x) * size_t(ibuf->y),
-                                                     __func__);
-      *r_freedata = freedata = true;
+  const bool is_grayscale = allow_grayscale &&
+                            imb_is_grayscale_texture_format_compatible(source_buffer);
 
-      if (data_rect == nullptr) {
-        return nullptr;
-      }
-
-      IMB_colormanagement_imbuf_to_float_texture(
-          static_cast<float *>(data_rect), 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
+  /* Ensure that the output buffer is RGBA with the given alpha association. */
+  if (output_buffer->float_data()) {
+    /* Float images are already in scene linear color space or contain non-color data with
+     * premultiplied alpha by convention, so no color space conversion is needed. But we need to
+     * convert to RGBA and unpremultiply alpha if needed. */
+    if (output_buffer->channels != 4 || !premultiplied_alpha) {
+      ImBuf *buffer = IMB_allocImBuf(output_buffer->x,
+                                     output_buffer->y,
+                                     ImBufFlags::FloatData | ImBufFlags::UninitializedPixels);
+      IMB_colormanagement_imbuf_to_float_texture(buffer->float_data_for_write(),
+                                                 0,
+                                                 0,
+                                                 output_buffer->x,
+                                                 output_buffer->y,
+                                                 output_buffer,
+                                                 premultiplied_alpha);
+      IMB_freeImBuf(output_buffer);
+      output_buffer = buffer;
     }
   }
   else {
-    /* Byte image is in original colorspace from the file, and may need conversion.
-     *
-     * We must also convert to premultiplied for correct texture interpolation
-     * and consistency with float images. */
-    if (IMB_colormanagement_space_is_data(ibuf->byte_buffer.colorspace)) {
-      /* Non-color data, just store buffer as is. */
+    /* Byte images are in original color space from the file with straight alpha, so we need to
+     * convert to scene linear color space and premultiply alpha if needed. An exception is images
+     * in sRGB color space, see the relevant case below for more information.  */
+    if (IMB_colormanagement_space_is_data(source_buffer->byte_buffer.colorspace)) {
+      /* Non-color data, used as is. */
     }
-    else if (IMB_colormanagement_space_is_srgb(ibuf->byte_buffer.colorspace) ||
-             IMB_colormanagement_space_is_scene_linear(ibuf->byte_buffer.colorspace))
+    else if (IMB_colormanagement_space_is_scene_linear(source_buffer->byte_buffer.colorspace)) {
+      /* Color space is already linear, we just need to premultiply the alpha if needed. */
+      if (!is_grayscale && premultiplied_alpha) {
+        ImBuf *buffer = IMB_allocImBuf(output_buffer->x,
+                                       output_buffer->y,
+                                       ImBufFlags::ByteData | ImBufFlags::UninitializedPixels);
+        IMB_colormanagement_imbuf_to_byte_texture(buffer->byte_data_for_write(),
+                                                  0,
+                                                  0,
+                                                  output_buffer->x,
+                                                  output_buffer->y,
+                                                  output_buffer,
+                                                  premultiplied_alpha);
+        IMB_freeImBuf(output_buffer);
+        output_buffer = buffer;
+      }
+    }
+    else if (IMB_colormanagement_space_is_scene_linear_srgb(source_buffer->byte_buffer.colorspace))
     {
-      /* sRGB or scene linear, store as byte texture that the GPU can decode directly. */
-      data_rect = MEM_new_uninitialized((is_grayscale ? sizeof(float[4]) : sizeof(uchar[4])) *
-                                            IMB_get_pixel_count(ibuf),
-                                        __func__);
-      *r_freedata = freedata = true;
-
-      if (data_rect == nullptr) {
-        return nullptr;
-      }
-
-      /* Texture storage of images is defined by the alpha mode of the image. The
-       * downside of this is that there can be artifacts near alpha edges. However,
-       * this allows us to use sRGB texture formats and preserves color values in
-       * zero alpha areas, and appears generally closer to what game engines that we
-       * want to be compatible with do. */
+      /* Images in scene linear + sRGB color space are a special case since they can be stored in
+       * sRGB textures on GPU, where scene linear space conversion will happen during sampling in
+       * the shader, however, this is not possible for grayscale images, so we need to do the
+       * conversion here, converting to a float image to prevent precision loss.
+       *
+       * It should be noted that for other color spaces, color space conversion happen before alpha
+       * premultiplication, while for sRGB, premultiplication will happen first since color space
+       * conversion happen in the shader as mentioned above. This will manifest as differences near
+       * alpha edges. But we generally accept this due to the advantages of sRGB textures. If this
+       * is problematic, the source image buffer should be linearised first. */
       if (is_grayscale) {
-        /* Convert to byte buffer to then pack as half floats reducing the buffer size by half. */
-        IMB_colormanagement_imbuf_to_float_texture(
-            static_cast<float *>(data_rect), 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
-        is_float_rect = true;
+        ImBuf *buffer = IMB_allocImBuf(output_buffer->x,
+                                       output_buffer->y,
+                                       ImBufFlags::FloatData | ImBufFlags::UninitializedPixels);
+        IMB_colormanagement_imbuf_to_float_texture(buffer->float_data_for_write(),
+                                                   0,
+                                                   0,
+                                                   output_buffer->x,
+                                                   output_buffer->y,
+                                                   output_buffer,
+                                                   premultiplied_alpha);
+        IMB_freeImBuf(output_buffer);
+        output_buffer = buffer;
       }
-      else {
-        IMB_colormanagement_imbuf_to_byte_texture(
-            static_cast<uchar *>(data_rect), 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
+      else if (premultiplied_alpha) {
+        /* We need to premultiply the alpha. */
+        ImBuf *buffer = IMB_allocImBuf(output_buffer->x,
+                                       output_buffer->y,
+                                       ImBufFlags::ByteData | ImBufFlags::UninitializedPixels);
+        IMB_colormanagement_imbuf_to_byte_texture(buffer->byte_data_for_write(),
+                                                  0,
+                                                  0,
+                                                  output_buffer->x,
+                                                  output_buffer->y,
+                                                  output_buffer,
+                                                  premultiplied_alpha);
+        IMB_freeImBuf(output_buffer);
+        output_buffer = buffer;
       }
     }
     else {
-      /* Other colorspace, store as float texture to avoid precision loss. */
-      data_rect = MEM_new_array_uninitialized<float>(4 * size_t(ibuf->x) * size_t(ibuf->y),
-                                                     __func__);
-      *r_freedata = freedata = true;
-      is_float_rect = true;
-
-      if (data_rect == nullptr) {
-        return nullptr;
-      }
-
-      /* Texture storage of images is defined by the alpha mode of the image. The
-       * downside of this is that there can be artifacts near alpha edges. However,
-       * this allows us to use sRGB texture formats and preserves color values in
-       * zero alpha areas, and appears generally closer to what game engines that we
-       * want to be compatible with do. */
-      IMB_colormanagement_imbuf_to_float_texture(
-          static_cast<float *>(data_rect), 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
+      /* Other color-space, convert to linear color space and premultiply alpha if needed.
+       * Conversion happen as a float to avoid precision loss. */
+      ImBuf *buffer = IMB_allocImBuf(output_buffer->x,
+                                     output_buffer->y,
+                                     ImBufFlags::FloatData | ImBufFlags::UninitializedPixels);
+      IMB_colormanagement_imbuf_to_float_texture(buffer->float_data_for_write(),
+                                                 0,
+                                                 0,
+                                                 output_buffer->x,
+                                                 output_buffer->y,
+                                                 output_buffer,
+                                                 premultiplied_alpha);
+      IMB_freeImBuf(output_buffer);
+      output_buffer = buffer;
     }
   }
 
-  if (do_rescale) {
-    const uint8_t *rect = (is_float_rect) ? nullptr : static_cast<uint8_t *>(data_rect);
-    const float *rect_float = (is_float_rect) ? static_cast<float *>(data_rect) : nullptr;
-
-    ImBuf *scale_ibuf = IMB_allocFromBuffer(rect, rect_float, ibuf->x, ibuf->y, 4);
-    IMB_scale(scale_ibuf, UNPACK2(rescale_size), IMBScaleFilter::Box, false);
-
-    if (freedata) {
-      MEM_delete_void(data_rect);
+  /* Rescale the image using a box filter if needed. */
+  if (rescale_size.has_value()) {
+    if (output_buffer->float_data()) {
+      ImBuf *buffer = IMB_allocImBuf(rescale_size->x,
+                                     rescale_size->y,
+                                     ImBufFlags::FloatData | ImBufFlags::UninitializedPixels);
+      IMB_scale_box(output_buffer->float_data(),
+                    int2(output_buffer->x, output_buffer->y),
+                    4,
+                    buffer->float_data_for_write(),
+                    *rescale_size,
+                    true);
+      IMB_freeImBuf(output_buffer);
+      output_buffer = buffer;
     }
-
-    data_rect = (is_float_rect) ? static_cast<void *>(scale_ibuf->float_data_for_write()) :
-                                  static_cast<void *>(scale_ibuf->byte_data_for_write());
-    *r_freedata = freedata = true;
-    /* Steal the rescaled buffer to avoid double free. */
-    (void)IMB_steal_byte_buffer(scale_ibuf);
-    (void)IMB_steal_float_buffer(scale_ibuf);
-    IMB_freeImBuf(scale_ibuf);
+    else {
+      ImBuf *buffer = IMB_allocImBuf(rescale_size->x,
+                                     rescale_size->y,
+                                     ImBufFlags::ByteData | ImBufFlags::UninitializedPixels);
+      IMB_scale_box(output_buffer->byte_data(),
+                    int2(output_buffer->x, output_buffer->y),
+                    4,
+                    buffer->byte_data_for_write(),
+                    *rescale_size,
+                    true);
+      IMB_freeImBuf(output_buffer);
+      output_buffer = buffer;
+    }
   }
 
-  /* Pack first channel data manually at the start of the buffer. */
+  /* So far, the output buffer is RGBA, if it should be grayscale, we need to convert it to a
+   * single channel image. */
   if (is_grayscale) {
-    void *src_rect = data_rect;
-
-    if (freedata == false) {
-      data_rect = MEM_new_uninitialized(
-          (is_float_rect ? sizeof(float) : sizeof(uchar)) * IMB_get_pixel_count(ibuf), __func__);
-      *r_freedata = freedata = true;
-    }
-
-    if (data_rect == nullptr) {
-      return nullptr;
-    }
-
-    size_t buffer_size = do_rescale ? size_t(rescale_size[0]) * size_t(rescale_size[1]) :
-                                      size_t(ibuf->x) * size_t(ibuf->y);
-    if (is_float_rect) {
+    const size_t buffer_size = output_buffer->x * output_buffer->y;
+    if (output_buffer->float_data()) {
+      ImBuf *buffer = IMB_allocImBuf(output_buffer->x, output_buffer->y, ImBufFlags::Zero);
+      IMB_alloc_float_pixels(buffer, 1);
+      const float *source_pixels = output_buffer->float_data();
+      float *target_pixels = buffer->float_data_for_write();
       for (size_t i = 0; i < buffer_size; i++) {
-        (static_cast<float *>(data_rect))[i] = (static_cast<float *>(src_rect))[i * 4];
+        target_pixels[i] = source_pixels[i * 4];
       }
+      IMB_freeImBuf(output_buffer);
+      output_buffer = buffer;
     }
     else {
+      ImBuf *buffer = IMB_allocImBuf(output_buffer->x, output_buffer->y, ImBufFlags::Zero);
+      buffer->color_mode = ImColorMode::BW;
+      buffer->assign_byte_data(MEM_new_array_uninitialized<uint8_t>(buffer_size, __func__));
+      const uint8_t *source_pixels = output_buffer->byte_data();
+      uint8_t *target_pixels = buffer->byte_data_for_write();
       for (size_t i = 0; i < buffer_size; i++) {
-        (static_cast<uchar *>(data_rect))[i] = (static_cast<uchar *>(src_rect))[i * 4];
+        target_pixels[i] = source_pixels[i * 4];
       }
+      IMB_freeImBuf(output_buffer);
+      output_buffer = buffer;
     }
   }
 
-  *r_data_format = (is_float_rect) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
-  return data_rect;
+  return output_buffer;
 }
 
 gpu::Texture *IMB_touch_gpu_texture(const char *name,
@@ -315,36 +362,34 @@ void IMB_update_gpu_texture_sub(gpu::Texture *tex,
                                 int z,
                                 int w,
                                 int h,
-                                bool use_high_bitdepth,
                                 bool use_grayscale,
                                 bool use_premult)
 {
-  const bool do_rescale = (ibuf->x != w || ibuf->y != h);
-  const int size[2] = {w, h};
+  const std::optional<int2> rescale_size = (ibuf->x != w || ibuf->y != h) ?
+                                               std::optional<int2>(int2(w, h)) :
+                                               std::nullopt;
+  ImBuf *data = get_gpu_texture_data(ibuf, rescale_size, use_premult, use_grayscale);
 
-  gpu::TextureFormat tex_format;
-  imb_gpu_get_format(ibuf, use_high_bitdepth, use_grayscale, &tex_format);
-
-  bool freebuf = false;
-
-  eGPUDataFormat data_format;
-  void *data = imb_gpu_get_data(
-      ibuf, do_rescale, size, use_premult, use_grayscale, &freebuf, &data_format);
-
-  /* Update Texture. */
-  GPU_texture_update_sub(tex, data_format, data, x, y, z, w, h, 1);
-
-  if (freebuf) {
-    MEM_delete_void(data);
+  if (data->float_data()) {
+    GPU_texture_update_sub(tex, GPU_DATA_FLOAT, data->float_data(), x, y, z, w, h, 1);
   }
+  else {
+    GPU_texture_update_sub(tex, GPU_DATA_UBYTE, data->byte_data(), x, y, z, w, h, 1);
+  }
+  IMB_freeImBuf(data);
 }
 
-gpu::Texture *IMB_create_gpu_texture(
-    const char *name, ImBuf *ibuf, bool use_high_bitdepth, bool use_premult, const bool limit_size)
+gpu::Texture *IMB_create_gpu_texture(const char *name,
+                                     ImBuf *ibuf,
+                                     const GPUTextureCreateFlags flags)
 {
+  ibuf->gpu.lastused = BLI_time_now_seconds_i();
+
+  const bool use_mipmap = flag_is_set(flags, GPUTextureCreateFlags::EnableMipmaps);
+
   gpu::Texture *tex = nullptr;
   int size[2] = {ibuf->x, ibuf->y};
-  if (limit_size) {
+  if (flag_is_set(flags, GPUTextureCreateFlags::LimitSize)) {
     size[0] = GPU_texture_size_with_limit(ibuf->x);
     size[1] = GPU_texture_size_with_limit(ibuf->y);
   }
@@ -389,7 +434,7 @@ gpu::Texture *IMB_create_gpu_texture(
         tex = GPU_texture_create_compressed_2d(name,
                                                ibuf->x,
                                                ibuf->y,
-                                               mip_count,
+                                               use_mipmap ? mip_count : 1,
                                                compressed_format,
                                                GPU_TEXTURE_USAGE_GENERAL,
                                                compressed_data);
@@ -410,33 +455,99 @@ gpu::Texture *IMB_create_gpu_texture(
   }
 
   gpu::TextureFormat tex_format;
-  imb_gpu_get_format(ibuf, use_high_bitdepth, true, &tex_format);
-
-  bool freebuf = false;
+  imb_gpu_get_format(
+      ibuf, flag_is_set(flags, GPUTextureCreateFlags::HighBitDepth), true, &tex_format);
 
   /* Create Texture. Specify read usage to allow both shader and host reads, the latter is needed
    * by the GPU compositor. */
-  const eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
-                                 GPU_TEXTURE_USAGE_HOST_READ;
-  tex = GPU_texture_create_2d(name, UNPACK2(size), 9999, tex_format, usage, nullptr);
+  const eGPUTextureUsage usage = use_mipmap ?
+                                     GPU_TEXTURE_USAGE_SHADER_READ |
+                                         GPU_TEXTURE_USAGE_SHADER_WRITE |
+                                         GPU_TEXTURE_USAGE_HOST_READ :
+                                     GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_HOST_READ;
+  tex = GPU_texture_create_2d(
+      name, UNPACK2(size), use_mipmap ? 9999 : 1, tex_format, usage, nullptr);
   if (tex == nullptr) {
     size[0] = max_ii(1, size[0] / 2);
     size[1] = max_ii(1, size[1] / 2);
-    tex = GPU_texture_create_2d(name, UNPACK2(size), 9999, tex_format, usage, nullptr);
+    tex = GPU_texture_create_2d(
+        name, UNPACK2(size), use_mipmap ? 9999 : 1, tex_format, usage, nullptr);
     do_rescale = true;
   }
   BLI_assert(tex != nullptr);
-  eGPUDataFormat data_format;
-  void *data = imb_gpu_get_data(ibuf, do_rescale, size, use_premult, true, &freebuf, &data_format);
-  GPU_texture_update(tex, data_format, data);
+  const std::optional<int2> rescale_size = do_rescale ? std::optional<int2>(int2(size)) :
+                                                        std::nullopt;
+  ImBuf *data = get_gpu_texture_data(
+      ibuf, rescale_size, flag_is_set(flags, GPUTextureCreateFlags::Premultiplied), true);
+  if (data->float_data()) {
+    GPU_texture_update(tex, GPU_DATA_FLOAT, data->float_data());
+  }
+  else {
+    GPU_texture_update(tex, GPU_DATA_UBYTE, data->byte_data());
+  }
+  IMB_freeImBuf(data);
 
   GPU_texture_swizzle_set(tex, imb_gpu_get_swizzle(ibuf));
   GPU_texture_anisotropic_filter(tex, true);
 
-  if (freebuf) {
-    MEM_delete_void(data);
+  return tex;
+}
+
+gpu::Texture *IMB_acquire_gpu_texture(const char *name,
+                                      ImBuf *ibuf,
+                                      bool use_high_bitdepth,
+                                      bool use_premult,
+                                      bool limit_size,
+                                      bool try_only)
+{
+  if (ibuf == nullptr || (ibuf->byte_data() == nullptr && ibuf->float_data() == nullptr &&
+                          ibuf->gpu.texture == nullptr))
+  {
+    return nullptr;
   }
 
+  std::scoped_lock lock(ibuf->gpu.mutex);
+  if (ibuf->gpu.texture != nullptr) {
+    ibuf->gpu.lastused = BLI_time_now_seconds_i();
+    GPU_texture_ref(ibuf->gpu.texture);
+    return ibuf->gpu.texture;
+  }
+  if (try_only) {
+    return nullptr;
+  }
+
+  GPUTextureCreateFlags create_flags = GPUTextureCreateFlags::EnableMipmaps;
+  if (use_high_bitdepth) {
+    create_flags |= GPUTextureCreateFlags::HighBitDepth;
+  }
+  if (use_premult) {
+    create_flags |= GPUTextureCreateFlags::Premultiplied;
+  }
+  if (limit_size) {
+    create_flags |= GPUTextureCreateFlags::LimitSize;
+  }
+  gpu::Texture *tex = IMB_create_gpu_texture(name, ibuf, create_flags);
+  if (tex == nullptr) {
+    ibuf->gpu.flag |= IMB_GPU_LOAD_FAILED;
+    ibuf->gpu.lastused = BLI_time_now_seconds_i();
+    return nullptr;
+  }
+  ibuf->gpu.flag &= ~IMB_GPU_LOAD_FAILED;
+
+  GPU_texture_extend_mode(tex, GPU_SAMPLER_EXTEND_MODE_REPEAT);
+
+  if (!(ibuf->gpu.flag & IMB_GPU_DISABLE_MIPMAP_UPDATE)) {
+    GPU_texture_update_mipmap_chain(tex);
+    GPU_texture_mipmap_mode(tex, true, true);
+    ibuf->gpu.flag |= IMB_GPU_MIPMAP_COMPLETE;
+  }
+  else {
+    GPU_texture_mipmap_mode(tex, false, true);
+  }
+
+  ibuf->gpu.texture = tex;
+  ibuf->gpu.lastused = BLI_time_now_seconds_i();
+  GPU_texture_ref(tex);
   return tex;
 }
 
@@ -447,6 +558,45 @@ gpu::TextureFormat IMB_gpu_get_texture_format(const ImBuf *ibuf,
   gpu::TextureFormat gpu_texture_format;
   imb_gpu_get_format(ibuf, high_bitdepth, use_grayscale, &gpu_texture_format);
   return gpu_texture_format;
+}
+
+void IMB_free_gpu_textures(ImBuf *ibuf)
+{
+  if (!ibuf) {
+    return;
+  }
+
+  std::scoped_lock lock(ibuf->gpu.mutex);
+  if (ibuf->gpu.texture) {
+    GPU_texture_free(ibuf->gpu.texture);
+    ibuf->gpu.texture = nullptr;
+  }
+  ibuf->gpu.flag = ImBufGPUFlag(0);
+}
+
+void IMB_clear_gpu_load_failed(ImBuf *ibuf)
+{
+  if (!ibuf) {
+    return;
+  }
+
+  std::scoped_lock lock(ibuf->gpu.mutex);
+  ibuf->gpu.flag &= ~IMB_GPU_LOAD_FAILED;
+}
+
+void IMB_assign_gpu_texture(ImBuf *ibuf, gpu::Texture *texture)
+{
+  if (!ibuf) {
+    return;
+  }
+
+  std::scoped_lock lock(ibuf->gpu.mutex);
+  if (ibuf->gpu.texture) {
+    GPU_texture_free(ibuf->gpu.texture);
+    ibuf->gpu.texture = nullptr;
+  }
+  ibuf->gpu.flag = ImBufGPUFlag(0);
+  ibuf->gpu.texture = texture;
 }
 
 void IMB_gpu_clamp_half_float(ImBuf *image_buffer)

@@ -26,8 +26,11 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   if (node != nullptr) {
     const eCustomDataType data_type = eCustomDataType(node->custom2);
-    b.add_input(data_type, "Value"_ustr).supports_field();
-    b.add_output(data_type, "Value"_ustr).field_source_reference_all().align_with_previous();
+    b.add_input(data_type, "Value"_ustr).structure_type(StructureType::Field);
+    b.add_output(data_type, "Value"_ustr)
+        .structure_type(StructureType::Field)
+        .propagate_references()
+        .align_with_previous();
   }
 }
 
@@ -47,7 +50,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const bke::bNodeType &node_type = params.node_type();
   const std::optional<eCustomDataType> type = bke::socket_type_to_custom_data_type(
-      eNodeSocketDatatype(params.other_socket().type));
+      params.other_socket().type);
   if (type && *type != CD_PROP_STRING) {
     params.add_item(IFACE_("Value"), [node_type, type](LinkSearchOpParams &params) {
       bNode &node = params.add_node(node_type);

@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BLI_math_color.h"
+#include "BLI_math_color_c.hh"
 #include "BLI_math_matrix.hh"
 
 #include "BKE_vfont.hh"

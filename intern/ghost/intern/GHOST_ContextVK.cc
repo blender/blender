@@ -765,6 +765,10 @@ struct GHOST_InstanceVK {
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Vulkan Instance Extensions Query
+ * \{ */
+
 /**
  * A shared device between multiple contexts.
  *
@@ -1176,6 +1180,64 @@ GHOST_TSuccess GHOST_ContextVK::releaseDrawingContext()
   return GHOST_kSuccess;
 }
 
+static const char *to_string_vk_format(VkFormat format)
+{
+  switch (format) {
+    case VK_FORMAT_R8G8B8A8_UNORM:
+      return STRINGIFY(VK_FORMAT_R8G8B8A8_UNORM);
+    case VK_FORMAT_B8G8R8A8_UNORM:
+      return STRINGIFY(VK_FORMAT_B8G8R8A8_UNORM);
+    case VK_FORMAT_R16G16B16A16_SFLOAT:
+      return STRINGIFY(VK_FORMAT_R16G16B16A16_SFLOAT);
+    default:
+      return STRINGIFY_ARG(format);
+  }
+}
+
+static const char *to_string_vk_color_space(VkColorSpaceKHR color_space)
+{
+  switch (color_space) {
+    case VK_COLOR_SPACE_SRGB_NONLINEAR_KHR:
+      return STRINGIFY(VK_COLOR_SPACE_SRGB_NONLINEAR_KHR);
+    case VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT:
+      return STRINGIFY(VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT);
+    case VK_COLOR_SPACE_PASS_THROUGH_EXT:
+      return STRINGIFY(VK_COLOR_SPACE_PASS_THROUGH_EXT);
+    case VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT:
+      return STRINGIFY(VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT);
+    case VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT:
+      return STRINGIFY(VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT);
+    case VK_COLOR_SPACE_BT709_LINEAR_EXT:
+      return STRINGIFY(VK_COLOR_SPACE_BT709_LINEAR_EXT);
+    case VK_COLOR_SPACE_BT709_NONLINEAR_EXT:
+      return STRINGIFY(VK_COLOR_SPACE_BT709_NONLINEAR_EXT);
+    case VK_COLOR_SPACE_BT2020_LINEAR_EXT:
+      return STRINGIFY(VK_COLOR_SPACE_BT2020_LINEAR_EXT);
+    case VK_COLOR_SPACE_HDR10_ST2084_EXT:
+      return STRINGIFY(VK_COLOR_SPACE_HDR10_ST2084_EXT);
+    case VK_COLOR_SPACE_DISPLAY_NATIVE_AMD:
+      return STRINGIFY(VK_COLOR_SPACE_DISPLAY_NATIVE_AMD);
+    default:
+      return STRINGIFY_ARG(color_space);
+  }
+}
+
+static const char *to_string_vk_present_mode(VkPresentModeKHR present_mode)
+{
+  switch (present_mode) {
+    case VK_PRESENT_MODE_FIFO_KHR:
+      return STRINGIFY(VK_PRESENT_MODE_FIFO_KHR);
+    case VK_PRESENT_MODE_MAILBOX_KHR:
+      return STRINGIFY(VK_PRESENT_MODE_MAILBOX_KHR);
+    case VK_PRESENT_MODE_IMMEDIATE_KHR:
+      return STRINGIFY(VK_PRESENT_MODE_IMMEDIATE_KHR);
+    case VK_PRESENT_MODE_FIFO_RELAXED_KHR:
+      return STRINGIFY(VK_PRESENT_MODE_FIFO_RELAXED_KHR);
+    default:
+      return STRINGIFY_ARG(present_mode);
+  }
+}
+
 static GHOST_TSuccess selectPresentMode(const GHOST_TVSyncModes vsync,
                                         VkPhysicalDevice device,
                                         VkSurfaceKHR surface,
@@ -1483,14 +1545,14 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain(bool use_hdr_swapchain)
     swapchain_images_[index].vk_image = swapchain_images[index];
   }
   CLOG_DEBUG(&LOG,
-             "Vulkan: recreating swapchain: width=%u, height=%u, format=%d, colorSpace=%d, "
-             "present_mode=%d, image_count_requested=%u, image_count_acquired=%u, "
+             "Vulkan: recreating swapchain: width=%u, height=%u, format=%s, colorSpace=%s, "
+             "present_mode=%s, image_count_requested=%u, image_count_acquired=%u, "
              "swapchain=%" PRIx64 ", old_swapchain=%" PRIx64 "",
              render_extent_.width,
              render_extent_.height,
-             surface_format_.format,
-             surface_format_.colorSpace,
-             present_mode,
+             to_string_vk_format(surface_format_.format),
+             to_string_vk_color_space(surface_format_.colorSpace),
+             to_string_vk_present_mode(present_mode),
              image_count_requested,
              actual_image_count,
              uint64_t(swapchain_),

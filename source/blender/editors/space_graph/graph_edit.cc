@@ -19,10 +19,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_fileops.h"
-#include "BLI_listbase.h"
-#include "BLI_math_rotation.h"
-#include "BLI_utildefines.h"
+#include "BLI_fileops.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
@@ -360,7 +360,7 @@ static wmOperatorStatus graphkeys_click_insert_exec(bContext *C, wmOperator *op)
 
     ale->update |= ANIM_UPDATE_DEPS;
 
-    BLI_listbase_clear(&anim_data);
+    anim_data.clear_no_delete();
     BLI_addtail(&anim_data, ale);
 
     ANIM_animdata_update(&ac, &anim_data);
@@ -2046,7 +2046,7 @@ static wmOperatorStatus graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
 
   int groups = 0;
   ListBaseT<tEulerFilter> eulers = euler_filter_group_channels(&anim_data, op->reports, &groups);
-  BLI_assert(BLI_listbase_count(&eulers) == groups);
+  BLI_assert(eulers.count() == groups);
 
   if (groups == 0) {
     ANIM_animdata_freelist(&anim_data);
@@ -2061,7 +2061,7 @@ static wmOperatorStatus graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
   int curves_seen;
   euler_filter_perform_filter(&eulers, op->reports, &curves_filtered, &curves_seen);
 
-  BLI_freelistN(&eulers);
+  eulers.free_no_destruct();
   ANIM_animdata_update(&ac, &anim_data);
   ANIM_animdata_freelist(&anim_data);
 
@@ -2953,6 +2953,8 @@ void GRAPH_OT_fmodifier_add(wmOperatorType *ot)
   RNA_def_boolean(
       ot->srna, "only_active", false, "Only Active", "Only add F-Modifier to active F-Curve");
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Delete F-Modifiers Operator

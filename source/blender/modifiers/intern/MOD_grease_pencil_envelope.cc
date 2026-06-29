@@ -9,7 +9,7 @@
 #include "DNA_modifier_types.h"
 
 #include "BLI_array_utils.hh"
-#include "BLI_math_geom.h"
+#include "BLI_math_geom_c.hh"
 
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"

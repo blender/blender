@@ -15,7 +15,7 @@
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_utils.hh"
 
 #include "DEG_depsgraph_query.hh"
@@ -26,8 +26,8 @@
 
 #include "ED_util.hh"
 
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -168,7 +168,7 @@ void exporter_main(const bContext *C, const STLExportParams &export_params)
 
   ED_editors_flush_edits(bmain);
 
-  Depsgraph *depsgraph = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_RENDER);
+  Depsgraph *depsgraph = DEG_graph_new(bmain, scene, view_layer, export_params.evaluation_mode);
 
   if (export_params.collection[0]) {
     Collection *collection = reinterpret_cast<Collection *>(

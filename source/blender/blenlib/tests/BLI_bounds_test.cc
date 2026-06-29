@@ -225,4 +225,49 @@ TEST(bounds, IntersectSegment2D)
   EXPECT_TRUE(bounds2.intersects_segment(float2(1.0f, -2.0f), float2(-3.0f, 1.0f)));
 }
 
+TEST(bounds, IntersectSegment3D)
+{
+  Bounds<float3> float_bounds(float3(-2.0f, -2.0f, -2.0f), float3(2.0f, 2.0f, 2.0f));
+  Bounds<int3> int_bounds(int3(-2, -2, -2), int3(2, 2, 2));
+  /* Line segment is entirely within bounding box. */
+  EXPECT_TRUE(
+      float_bounds.intersects_segment(float3(-1.0f, -1.0f, -1.0f), float3(1.0f, 1.0f, 1.0f)));
+  EXPECT_TRUE(int_bounds.intersects_segment(int3(-1, -1, -1), int3(1, 1, 1)));
+
+  /* Line segment is entirely outside bounding box and does not intersect it. */
+  EXPECT_FALSE(float_bounds.intersects_segment(float3(-10.0f, -10.0f, -10.0f),
+                                               float3(-10.0f, -10.0f, 10.0f)));
+  EXPECT_FALSE(int_bounds.intersects_segment(int3(-10, -10, -10), int3(-10, -10, -10)));
+
+  /* Line segment is entirely outside bounding box and intersects it. */
+  EXPECT_TRUE(
+      float_bounds.intersects_segment(float3(-4.0f, -4.0f, -4.0f), float3(4.0f, 4.0f, 4.0f)));
+  EXPECT_TRUE(int_bounds.intersects_segment(int3(-4, -4, -4), int3(4, 4, 4)));
+
+  /* Line segment starts inside bounding box and ends outside it. */
+  EXPECT_TRUE(float_bounds.intersects_segment(float3(0.0f, 0.0f, 0.0f), float3(4.0f, 4.0f, 4.0f)));
+  EXPECT_TRUE(int_bounds.intersects_segment(int3(0, 0, 0), int3(4, 4, 4)));
+
+  /* Line segment starts inside outside bounding box and ends inside it. */
+  EXPECT_TRUE(
+      float_bounds.intersects_segment(float3(-4.0f, -4.0f, -4.0f), float3(0.0f, 0.0f, 0.0f)));
+  EXPECT_TRUE(int_bounds.intersects_segment(int3(-4, -4, -4), int3(0, 0, 0)));
+
+  /* Line segment is co-planar with one of the bounding box planes, but not contained within the
+   * bounding box.
+   */
+  EXPECT_TRUE(
+      float_bounds.intersects_segment(float3(0.0f, 2.0f, -4.0f), float3(0.0f, 2.0f, 4.0f)));
+  EXPECT_TRUE(int_bounds.intersects_segment(int3(0, 2, -4), int3(0, 2, 4)));
+
+  /* Line segment is single point inside bounding box. */
+  EXPECT_TRUE(float_bounds.intersects_segment(float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, 0.0f)));
+  EXPECT_TRUE(int_bounds.intersects_segment(int3(0, 0, 0), int3(0, 0, 0)));
+
+  /* Line segment is single point outside bounding box. */
+  EXPECT_FALSE(
+      float_bounds.intersects_segment(float3(4.0f, 4.0f, 4.0f), float3(4.0f, 4.0f, 4.0f)));
+  EXPECT_FALSE(int_bounds.intersects_segment(int3(4, 4, 4), int3(4, 4, 4)));
+}
+
 }  // namespace blender::tests

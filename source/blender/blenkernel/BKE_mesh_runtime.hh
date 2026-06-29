@@ -48,27 +48,27 @@ void BKE_mesh_runtime_clear_cache(Mesh *mesh);
 
 namespace bke {
 
-void mesh_get_mapped_verts_coords(Mesh *mesh_eval, MutableSpan<float3> r_cos);
+void mesh_get_mapped_verts_coords(const Mesh *mesh_eval, MutableSpan<float3> r_cos);
 
-Mesh *editbmesh_get_eval_cage(Depsgraph *depsgraph,
-                              const Scene *scene,
-                              Object *obedit,
-                              BMEditMesh *em,
-                              const CustomData_MeshMasks *dataMask);
-Mesh *editbmesh_get_eval_cage_from_orig(Depsgraph *depsgraph,
-                                        const Scene *scene,
-                                        Object *obedit,
-                                        const CustomData_MeshMasks *dataMask);
+const Mesh *editbmesh_get_eval_cage(Depsgraph *depsgraph,
+                                    const Scene *scene,
+                                    Object *obedit,
+                                    BMEditMesh *em,
+                                    const CustomData_MeshMasks *dataMask);
+const Mesh *editbmesh_get_eval_cage_from_orig(Depsgraph *depsgraph,
+                                              const Scene *scene,
+                                              Object *obedit,
+                                              const CustomData_MeshMasks *dataMask);
 
 bool editbmesh_modifier_is_enabled(const Scene *scene,
                                    const Object *ob,
                                    ModifierData *md,
                                    bool has_prev_mesh);
 
-Mesh *mesh_get_eval_deform(Depsgraph *depsgraph,
-                           const Scene *scene,
-                           Object *ob,
-                           const CustomData_MeshMasks *dataMask);
+const Mesh *mesh_get_eval_deform(Depsgraph *depsgraph,
+                                 const Scene *scene,
+                                 Object *ob,
+                                 const CustomData_MeshMasks *dataMask);
 
 Mesh *mesh_create_eval_final(Depsgraph *depsgraph,
                              const Scene *scene,

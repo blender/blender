@@ -96,8 +96,9 @@ LightTreeEmitter::LightTreeEmitter(Scene *scene,
     const Mesh::Triangle triangle = mesh->get_triangle(prim_id);
     Shader *shader = static_cast<Shader *>(mesh->get_used_shaders()[mesh->get_shader()[prim_id]]);
 
+    const packed_float3 *mesh_positions = mesh->get_position();
     for (int i = 0; i < 3; i++) {
-      vertices[i] = mesh->get_verts()[triangle.v[i]];
+      vertices[i] = mesh_positions[triangle.v[i]];
     }
 
     if (need_transformation) {

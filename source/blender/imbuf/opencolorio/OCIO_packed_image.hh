@@ -6,7 +6,7 @@
 
 #include <cstddef>
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 
 #include "intern/opencolorio.hh"
 

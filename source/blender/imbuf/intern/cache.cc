@@ -15,9 +15,9 @@
 #include "MEM_CacheLimiterC-Api.h"
 #include "MEM_guardedalloc.h"
 
-#include "BLI_ghash.h"
-#include "BLI_mempool.h"
-#include "BLI_string.h"
+#include "BLI_ghash.hh"
+#include "BLI_mempool.hh"
+#include "BLI_string.hh"
 
 #include "IMB_cache.hh"
 
@@ -173,18 +173,20 @@ static void imbufcache_destructor(void *p)
 {
   ImBufCacheItem *item = static_cast<ImBufCacheItem *>(p);
 
-  if (item && item->ibuf) {
-    ImBufCache *cache = item->cache_owner;
-
-    PRINT("%s: cache '%s' destroy item %p buffer %p\n", __func__, cache->name, item, item->ibuf);
-
-    IMB_freeImBuf(item->ibuf);
-
-    item->ibuf = nullptr;
+  if (item) {
     item->c_handle = nullptr;
+    if (item->ibuf) {
+      ImBufCache *cache = item->cache_owner;
 
-    /* force cached segments to be updated */
-    MEM_SAFE_DELETE(cache->points);
+      PRINT("%s: cache '%s' destroy item %p buffer %p\n", __func__, cache->name, item, item->ibuf);
+
+      IMB_freeImBuf(item->ibuf);
+
+      item->ibuf = nullptr;
+
+      /* force cached segments to be updated */
+      MEM_SAFE_DELETE(cache->points);
+    }
   }
 }
 

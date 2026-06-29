@@ -14,13 +14,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "BLI_assert.h"
-#include "BLI_math_inline.h"
-#include "BLI_sys_types.h"
+#include "BLI_assert.hh"
+#include "BLI_math_inline.hh"
+#include "BLI_sys_types.hh"
 
 namespace blender {
 
-/* copied from BLI_utildefines.h */
+/* copied from BLI_utildefines.hh */
 #ifdef __GNUC__
 #  define UNLIKELY(x) __builtin_expect(!!(x), 0)
 #else
@@ -50,10 +50,10 @@ MINLINE float pow7f(float x)
 
 MINLINE float sqrt3f(float f)
 {
-  if (UNLIKELY(f == 0.0f)) {
+  if (f == 0.0f) [[unlikely]] {
     return 0.0f;
   }
-  if (UNLIKELY(f < 0.0f)) {
+  if (f < 0.0f) [[unlikely]] {
     return -float(exp(log(-f) / 3.0));
   }
   return float(exp(log(f) / 3.0));
@@ -61,10 +61,10 @@ MINLINE float sqrt3f(float f)
 
 MINLINE double sqrt3d(double d)
 {
-  if (UNLIKELY(d == 0.0)) {
+  if (d == 0.0) [[unlikely]] {
     return 0.0;
   }
-  if (UNLIKELY(d < 0.0)) {
+  if (d < 0.0) [[unlikely]] {
     return -exp(log(-d) / 3.0);
   }
   return exp(log(d) / 3.0);
@@ -158,10 +158,10 @@ MINLINE unsigned int log2_ceil_u(unsigned int x)
 #define _round_clamp_fl_impl(arg, ty, min, max) \
   { \
     float r = floorf(arg + 0.5f); \
-    if (UNLIKELY(r <= float(min))) { \
+    if (r <= float(min)) [[unlikely]] { \
       return (ty)min; \
     } \
-    if (UNLIKELY(r >= float(max))) { \
+    if (r >= float(max)) [[unlikely]] { \
       return (ty)max; \
     } \
     return (ty)r; \
@@ -170,10 +170,10 @@ MINLINE unsigned int log2_ceil_u(unsigned int x)
 #define _round_clamp_db_impl(arg, ty, min, max) \
   { \
     double r = floor(arg + 0.5); \
-    if (UNLIKELY(r <= double(min))) { \
+    if (r <= double(min)) [[unlikely]] { \
       return (ty)min; \
     } \
-    if (UNLIKELY(r >= double(max))) { \
+    if (r >= double(max)) [[unlikely]] { \
       return (ty)max; \
     } \
     return (ty)r; \
@@ -386,47 +386,6 @@ MINLINE unsigned long long min_ulul(unsigned long long a, unsigned long long b)
 MINLINE unsigned long long max_ulul(unsigned long long a, unsigned long long b)
 {
   return (b < a) ? a : b;
-}
-
-MINLINE double max_ddd(double a, double b, double c)
-{
-  return max_dd(max_dd(a, b), c);
-}
-
-MINLINE float min_fff(float a, float b, float c)
-{
-  return min_ff(min_ff(a, b), c);
-}
-MINLINE float max_fff(float a, float b, float c)
-{
-  return max_ff(max_ff(a, b), c);
-}
-
-MINLINE int min_iii(int a, int b, int c)
-{
-  return min_ii(min_ii(a, b), c);
-}
-MINLINE int max_iii(int a, int b, int c)
-{
-  return max_ii(max_ii(a, b), c);
-}
-
-MINLINE float min_ffff(float a, float b, float c, float d)
-{
-  return min_ff(min_fff(a, b, c), d);
-}
-MINLINE float max_ffff(float a, float b, float c, float d)
-{
-  return max_ff(max_fff(a, b, c), d);
-}
-
-MINLINE int min_iiii(int a, int b, int c, int d)
-{
-  return min_ii(min_iii(a, b, c), d);
-}
-MINLINE int max_iiii(int a, int b, int c, int d)
-{
-  return max_ii(max_iii(a, b, c), d);
 }
 
 MINLINE size_t min_zz(size_t a, size_t b)

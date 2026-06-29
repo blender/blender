@@ -23,6 +23,7 @@ These can be unquoted eventually.
 
 __all__ = (
     "main",
+    "floating_checkout_update",
 )
 
 

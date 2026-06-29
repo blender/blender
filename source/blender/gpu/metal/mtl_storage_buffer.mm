@@ -6,8 +6,8 @@
  * \ingroup gpu
  */
 
-#include "BLI_string.h"
-#include "BLI_time.h"
+#include "BLI_string.hh"
+#include "BLI_time.hh"
 
 #include "GPU_state.hh"
 #include "gpu_backend.hh"
@@ -523,5 +523,7 @@ size_t MTLStorageBuf::get_size()
   BLI_assert(this);
   return size_in_bytes_;
 }
+
+/** \} */
 
 }  // namespace blender::gpu

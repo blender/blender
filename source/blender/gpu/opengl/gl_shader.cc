@@ -11,13 +11,13 @@
 #include "BKE_appdir.hh"
 #include "BKE_global.hh"
 
-#include "BLI_fileops.h"
+#include "BLI_fileops.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_time.h"
+#include "BLI_string.hh"
+#include "BLI_time.hh"
 #include "BLI_vector.hh"
 
-#include "BLI_system.h"
+#include "BLI_system.hh"
 #include BLI_SYSTEM_PID_H
 
 #include "GPU_capabilities.hh"
@@ -1042,10 +1042,13 @@ bool GLShader::do_geometry_shader_injection(const shader::ShaderCreateInfo *info
   {
     return true;
   }
-  if (!GLContext::layered_rendering_support && flag_is_set(builtins, BuiltinBits::LAYER)) {
+  if (!GLContext::layered_rendering_support && !GLContext::vertex_shader_layer_support &&
+      flag_is_set(builtins, BuiltinBits::LAYER))
+  {
     return true;
   }
-  if (!GLContext::layered_rendering_support && flag_is_set(builtins, BuiltinBits::VIEWPORT_INDEX))
+  if (!GLContext::layered_rendering_support && !GLContext::vertex_shader_viewport_index_support &&
+      flag_is_set(builtins, BuiltinBits::VIEWPORT_INDEX))
   {
     return true;
   }
@@ -1078,6 +1081,12 @@ static StringRefNull glsl_patch_vertex_get()
     if (GLContext::layered_rendering_support) {
       ss << "#extension GL_ARB_shader_viewport_layer_array: enable\n";
     }
+    if (!GLContext::layered_rendering_support && GLContext::vertex_shader_layer_support) {
+      ss << "#extension GL_AMD_vertex_shader_layer: enable\n";
+    }
+    if (!GLContext::layered_rendering_support && GLContext::vertex_shader_viewport_index_support) {
+      ss << "#extension GL_AMD_vertex_shader_viewport_index: enable\n";
+    }
     if (GLContext::native_barycentric_support) {
       ss << "#extension GL_AMD_shader_explicit_vertex_parameter: enable\n";
     }
@@ -1107,9 +1116,6 @@ static StringRefNull glsl_patch_geometry_get()
     /* Version need to go first. */
     ss << "#version 430\n";
 
-    if (GLContext::layered_rendering_support) {
-      ss << "#extension GL_ARB_shader_viewport_layer_array: enable\n";
-    }
     if (GLContext::native_barycentric_support) {
       ss << "#extension GL_AMD_shader_explicit_vertex_parameter: enable\n";
     }
@@ -1137,14 +1143,15 @@ static StringRefNull glsl_patch_fragment_get()
     /* Version need to go first. */
     ss << "#version 430\n";
 
-    if (GLContext::layered_rendering_support) {
-      ss << "#extension GL_ARB_shader_viewport_layer_array: enable\n";
-    }
     if (GLContext::native_barycentric_support) {
       ss << "#extension GL_AMD_shader_explicit_vertex_parameter: enable\n";
     }
     if (GLContext::framebuffer_fetch_support) {
       ss << "#extension GL_EXT_shader_framebuffer_fetch: enable\n";
+    }
+    if (GLContext::derivative_control_support) {
+      ss << "#extension GL_ARB_derivative_control: enable\n";
+      ss << "#define GPU_ARB_derivative_control\n";
     }
     if (GPU_stencil_export_support()) {
       ss << "#extension GL_ARB_shader_stencil_export: enable\n";

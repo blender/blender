@@ -12,7 +12,7 @@
 
 #include "BLI_bit_vector.hh"
 #include "BLI_span.hh"
-#include "BLI_sys_types.h" /* for bool */
+#include "BLI_sys_types.hh" /* for bool */
 
 #include <string>
 
@@ -159,10 +159,10 @@ void BKE_action_fix_paths_rename(struct ID *owner_id,
 /**
  * Fix all the paths for the given ID+AnimData
  *
- * \param old_infix,new_infix The path section immediately following the `prefix`. If
+ * \param old_infix, new_infix: The path section immediately following the `prefix`. If
  * `infix_is_name` is true, this is processed as a name..
  *
- * \param infix_is_name If true, old_infix and new_infix are treated as names and padded with
+ * \param infix_is_name: If true, old_infix and new_infix are treated as names and padded with
  * [""] so that only exact matches are made. For example, the structure we're replacing is
  * `<prefix><["><name><"]>` i.e. `pose.bones["Bone"]`.
  */
@@ -180,10 +180,10 @@ void BKE_animdata_fix_paths_rename(struct ID *owner_id,
 /**
  * Fix all RNA-Paths throughout the database (directly access the #Global.main version).
  *
- * \param old_infix,new_infix The path section immediately following the `prefix`. If
+ * \param old_infix, new_infix: The path section immediately following the `prefix`. If
  * `infix_is_name` is true, this is processed as a name.
  *
- * \param infix_is_name If true, old_infix and new_infix are treated as names and padded with
+ * \param infix_is_name: If true, old_infix and new_infix are treated as names and padded with
  * [""] so that only exact matches are made. For example, the structure we're replacing is
  * `<prefix><["><name><"]>` i.e. `pose.bones["Bone"]`
  */

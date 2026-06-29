@@ -21,14 +21,14 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
-#include "BLI_heap.h"
+#include "BLI_heap.hh"
 
-#include "BLI_linklist.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
-#include "BLI_memarena.h"
-#include "BLI_polyfill_2d.h"
-#include "BLI_polyfill_2d_beautify.h"
+#include "BLI_linklist.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_memarena.hh"
+#include "BLI_polyfill_2d.hh"
+#include "BLI_polyfill_2d_beautify.hh"
 
 #include "bmesh.hh"
 
@@ -134,9 +134,13 @@ static bool bm_face_split_by_concave(BMesh *bm,
           BMFace *f_double;
           BMFace *f_new, *f_pair[2] = {l_pair[0]->f, l_pair[1]->f};
           f_new = BM_faces_join(bm, f_pair, 2, true, &f_double);
-          /* See #BM_faces_join note on callers asserting when `r_double` is non-null. */
-          BLI_assert_msg(f_double == nullptr,
-                         "Doubled face detected at " AT ". Resulting mesh may be corrupt.");
+
+          /* If a double is found - queue the new face to be removed
+           * since it's not expected that this would remove other existing geometry. */
+          if (f_double) [[unlikely]] {
+            BLI_linklist_prepend(&faces_double, f_new);
+            f_new = nullptr;
+          }
 
           if (f_new) {
             BMO_face_flag_enable(bm, f_new, FACE_OUT);

@@ -23,11 +23,11 @@
 #include <cstring>
 
 #include "BLI_array.hh"
-#include "BLI_ghash.h"
-#include "BLI_linklist.h"
-#include "BLI_linklist_stack.h"
-#include "BLI_listbase.h"
-#include "BLI_mempool.h"
+#include "BLI_ghash.hh"
+#include "BLI_linklist.hh"
+#include "BLI_linklist_stack.hh"
+#include "BLI_listbase.hh"
+#include "BLI_mempool.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -50,11 +50,11 @@
 // #define DEBUG_PRINT
 
 #ifdef DEBUG_TIME
-#  include "BLI_time.h"
-#  include "BLI_time_utildefines.h"
+#  include "BLI_time.hh"
+#  include "BLI_time_utildefines.hh"
 #endif
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 
@@ -198,7 +198,7 @@ static void bm_uidwalk_init(UIDWalk *uidwalk,
                             const uint faces_src_region_len,
                             const uint verts_src_region_len)
 {
-  BLI_listbase_clear(&uidwalk->faces_step);
+  uidwalk->faces_step.clear_no_delete();
 
   uidwalk->verts_uid = ghash_bmelem_new_ex(__func__, verts_src_region_len);
   uidwalk->faces_uid = ghash_bmelem_new_ex(__func__, faces_src_region_len);
@@ -224,7 +224,7 @@ static void bm_uidwalk_init(UIDWalk *uidwalk,
 
 static void bm_uidwalk_clear(UIDWalk *uidwalk)
 {
-  BLI_listbase_clear(&uidwalk->faces_step);
+  uidwalk->faces_step.clear_no_delete();
 
   BLI_ghash_clear(uidwalk->verts_uid, nullptr, nullptr);
   BLI_ghash_clear(uidwalk->faces_uid, nullptr, nullptr);
@@ -373,7 +373,7 @@ static UID_Int bm_uidwalk_calc_face_uid(UIDWalk *uidwalk, BMFace *f)
 
 static void bm_uidwalk_rehash_reserve(UIDWalk *uidwalk, uint rehash_store_len_new)
 {
-  if (UNLIKELY(rehash_store_len_new > uidwalk->cache.rehash_store_len)) {
+  if (rehash_store_len_new > uidwalk->cache.rehash_store_len) [[unlikely]] {
     /* Avoid re-allocations. */
     rehash_store_len_new *= 2;
     uidwalk->cache.rehash_store = static_cast<UID_Int *>(MEM_realloc_uninitialized(
@@ -494,7 +494,7 @@ static void bm_uidwalk_pass_add(UIDWalk *uidwalk, LinkNode *faces_pass, const ui
   fstep = static_cast<UIDFaceStep *>(BLI_mempool_alloc(uidwalk->step_pool));
   BLI_addhead(&uidwalk->faces_step, fstep);
   fstep->faces = nullptr;
-  BLI_listbase_clear(&fstep->items);
+  fstep->items.clear_no_delete();
 
   for (f_link = faces_pass; f_link; f_link = f_link->next) {
     BMFace *f = static_cast<BMFace *>(f_link->link);
@@ -618,7 +618,7 @@ static bool bm_uidwalk_facestep_begin(UIDWalk *uidwalk, UIDFaceStep *fstep)
   bool ok = false;
 
   BLI_assert(BLI_ghash_len(uidwalk->cache.faces_from_uid) == 0);
-  BLI_assert(BLI_listbase_is_empty(&fstep->items));
+  BLI_assert(fstep->items.is_empty());
 
   f_link_prev_p = &fstep->faces;
   for (f_link = fstep->faces; f_link; f_link = f_link_next) {
@@ -681,7 +681,7 @@ static void bm_uidwalk_facestep_free(UIDWalk *uidwalk, UIDFaceStep *fstep)
 {
   LinkNode *f_link, *f_link_next;
 
-  BLI_assert(BLI_listbase_is_empty(&fstep->items));
+  BLI_assert(fstep->items.is_empty());
 
   for (f_link = fstep->faces; f_link; f_link = f_link_next) {
     f_link_next = f_link->next;
@@ -729,7 +729,8 @@ static BMFace **bm_mesh_region_match_pair(
   w_src->use_face_isolate = true;
 
   /* setup the initial state */
-  if (UNLIKELY(bm_uidwalk_init_from_edge(w_src, e_src) != bm_uidwalk_init_from_edge(w_dst, e_dst)))
+  if (bm_uidwalk_init_from_edge(w_src, e_src) != bm_uidwalk_init_from_edge(w_dst, e_dst))
+      [[unlikely]]
   {
     /* should never happen, if verts passed are compatible, but to be safe... */
     goto finally;
@@ -744,7 +745,7 @@ static BMFace **bm_mesh_region_match_pair(
     UIDFaceStep *fstep_src = static_cast<UIDFaceStep *>(w_src->faces_step.first);
     UIDFaceStep *fstep_dst = static_cast<UIDFaceStep *>(w_dst->faces_step.first);
 
-    BLI_assert(BLI_listbase_count(&w_src->faces_step) == BLI_listbase_count(&w_dst->faces_step));
+    BLI_assert(w_src->faces_step.count() == w_dst->faces_step.count());
 
     while (fstep_src) {
 
@@ -1377,7 +1378,7 @@ int BM_mesh_region_match(BMesh *bm,
     return 0;
   }
 
-  BLI_listbase_clear(r_face_regions);
+  r_face_regions->clear_no_delete();
 
 #ifdef USE_PIVOT_FASTMATCH
   if (depth > 0) {

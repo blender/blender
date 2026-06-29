@@ -8,14 +8,16 @@
 
 #pragma once
 
-#include "BLI_math_base.h"
-#include "BLI_math_color.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_math_color_c.hh"
 
 #include <cmath>
 
 namespace blender {
 
-/******************************** Color Space ********************************/
+/* -------------------------------------------------------------------- */
+/** \name Color Space
+ * \{ */
 
 MINLINE void srgb_to_linearrgb_v4(float linear[4], const float srgb[4])
 {
@@ -99,27 +101,6 @@ MINLINE void linearrgb_to_srgb_predivide_v4(float srgb[4], const float linear[4]
 /* LUT accelerated conversions */
 
 extern float BLI_color_from_srgb_table[256];
-extern unsigned short BLI_color_to_srgb_table[0x10000];
-
-MINLINE unsigned short to_srgb_table_lookup(const float f)
-{
-
-  union {
-    float f;
-    unsigned short us[2];
-  } tmp;
-  tmp.f = f;
-  /* NOTE: this is endianness-sensitive. */
-  return BLI_color_to_srgb_table[tmp.us[1]];
-}
-
-MINLINE void linearrgb_to_srgb_ushort4(unsigned short srgb[4], const float linear[4])
-{
-  srgb[0] = to_srgb_table_lookup(linear[0]);
-  srgb[1] = to_srgb_table_lookup(linear[1]);
-  srgb[2] = to_srgb_table_lookup(linear[2]);
-  srgb[3] = unit_float_to_ushort_clamp(linear[3]);
-}
 
 MINLINE void srgb_to_linearrgb_uchar4(float linear[4], const unsigned char srgb[4])
 {
@@ -207,6 +188,8 @@ MINLINE void cpack_cpy_3ub(unsigned char r_col[3], const unsigned int pack)
   r_col[2] = ((pack) >> 16) & 0xFF;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name sRGB/Gray-Scale Functions
  *
@@ -238,6 +221,10 @@ MINLINE unsigned char srgb_to_grayscale_byte(const unsigned char rgb[3])
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Color Compare / Pack
+ * \{ */
 
 MINLINE int compare_rgb_uchar(const unsigned char col_a[3],
                               const unsigned char col_b[3],
@@ -287,7 +274,11 @@ MINLINE void float_to_byte_dither_v3(
   b[2] = unit_float_to_uchar_clamp(dither_value + f[2]);
 }
 
-/**************** Alpha Transformations *****************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Alpha Transformations
+ * \{ */
 
 MINLINE void premul_to_straight_v4_v4(float straight[4], const float premul[4])
 {
@@ -354,5 +345,7 @@ MINLINE void premul_float_to_straight_uchar(unsigned char *result, const float c
     result[3] = unit_float_to_uchar_clamp(color[3]);
   }
 }
+
+/** \} */
 
 }  // namespace blender

@@ -4,9 +4,9 @@
 
 #include "workbench_private.hh"
 
-#include "BLI_jitter_2d.h"
-#include "BLI_math_geom.h"
-#include "BLI_smaa_textures.h"
+#include "BLI_jitter_2d.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_smaa_textures.hh"
 
 namespace blender::workbench {
 
@@ -298,12 +298,12 @@ void AntiAliasingPass::draw(const DRWContext *draw_ctx,
   }
 
   /** Always acquire to avoid constant allocation/deallocation. */
-  smaa_weight_tx_.acquire(scene_state.resolution,
-                          gpu::TextureFormat::UNORM_8_8_8_8,
-                          GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
-  smaa_edge_tx_.acquire(scene_state.resolution,
-                        gpu::TextureFormat::UNORM_8_8,
-                        GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
+  smaa_weight_tx_.acquire_2d(scene_state.resolution,
+                             gpu::TextureFormat::UNORM_8_8_8_8,
+                             GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
+  smaa_edge_tx_.acquire_2d(scene_state.resolution,
+                           gpu::TextureFormat::UNORM_8_8,
+                           GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
 
   if (!draw_ctx->is_image_render() || last_sample || taa_finished) {
     /* After a certain point SMAA is no longer necessary. */

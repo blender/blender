@@ -14,12 +14,12 @@
 #  include <iostream>
 
 #  include "BLI_array.hh"
-#  include "BLI_assert.h"
+#  include "BLI_assert.hh"
 #  include "BLI_hash.hh"
 #  include "BLI_kdopbvh.hh"
 #  include "BLI_map.hh"
 #  include "BLI_math_boolean.hh"
-#  include "BLI_math_geom.h"
+#  include "BLI_math_geom_c.hh"
 #  include "BLI_math_mpq.hh"
 #  include "BLI_math_vector.hh"
 #  include "BLI_math_vector_mpq_types.hh"
@@ -38,7 +38,7 @@
 #  endif
 
 #  ifdef _WIN_32
-#    include "BLI_fileops.h"
+#    include "BLI_fileops.hh"
 #  endif
 
 // #  define PERFDEBUG
@@ -3455,7 +3455,7 @@ static void dissolve_verts(IMesh *imesh, const Array<bool> dissolve, IMeshArena 
  * Triangle #IMesh as output.
  * This function converts back into a general polygonal mesh by removing
  * any possible triangulation edges (which can be identified because they
- * will have an original edge that is NO_INDEX.
+ * will have an original edge that is NO_INDEX).
  * Not all triangulation edges can be removed: if they ended up non-trivially overlapping a real
  * input edge, then we need to keep it. Also, some are necessary to make the output satisfy
  * the "valid #BMesh" property: we can't produce output faces that have repeated vertices in

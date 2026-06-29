@@ -8,9 +8,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math_base.h"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_string.hh"
+#include "BLI_utildefines.hh"
 
 #include "CLG_log.h"
 
@@ -594,7 +594,13 @@ void GPU_framebuffer_blit(gpu::FrameBuffer *fb_read,
 
   if (blit_buffers & GPU_DEPTH_BIT) {
     BLI_assert(GPU_texture_has_depth_format(read_tex) && GPU_texture_has_depth_format(write_tex));
-    BLI_assert(GPU_texture_format(read_tex) == GPU_texture_format(write_tex));
+    BLI_assert(GPU_texture_format(read_tex) == GPU_texture_format(write_tex) ||
+               (ELEM(GPU_texture_format(read_tex),
+                     TextureFormat::SFLOAT_32_DEPTH,
+                     TextureFormat::SFLOAT_32_DEPTH_UINT_8) &&
+                ELEM(GPU_texture_format(write_tex),
+                     TextureFormat::SFLOAT_32_DEPTH,
+                     TextureFormat::SFLOAT_32_DEPTH_UINT_8)));
   }
   if (blit_buffers & GPU_STENCIL_BIT) {
     BLI_assert(GPU_texture_has_stencil_format(read_tex) &&

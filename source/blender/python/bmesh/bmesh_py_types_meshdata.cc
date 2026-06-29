@@ -25,10 +25,10 @@
 
 #include "BKE_customdata.hh"
 
-#include "BLI_math_base.h"
-#include "BLI_math_color.h"
-#include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_deform.hh"
 
@@ -103,7 +103,7 @@ PyDoc_STRVAR(
 static PyObject *bpy_bmloopuv_pin_uv_get(BPy_BMLoopUV *self, void * /*closure*/)
 {
   /* A non existing pin layer means nothing is currently pinned. */
-  if (UNLIKELY(!bpy_bmloopuv_pin_uv_ok_or_error(self))) {
+  if (!bpy_bmloopuv_pin_uv_ok_or_error(self)) [[unlikely]] {
     return nullptr;
   }
   return PyBool_FromLong(*self->pin);
@@ -117,7 +117,7 @@ static int bpy_bmloopuv_pin_uv_set(BPy_BMLoopUV *self, PyObject *value, void * /
    * existing python objects. So for now lazy allocation isn't done and self->pin should
    * never be nullptr. */
   BLI_assert(self->pin);
-  if (UNLIKELY(!bpy_bmloopuv_pin_uv_ok_or_error(self))) {
+  if (!bpy_bmloopuv_pin_uv_ok_or_error(self)) [[unlikely]] {
     return -1;
   }
   *self->pin = PyC_Long_AsBool(value);
@@ -158,7 +158,7 @@ static void bm_init_types_bmloopuv()
 
 int BPy_BMLoopUV_AssignPyObject(BMesh *bm, BMLoop *loop, PyObject *value)
 {
-  if (UNLIKELY(!BPy_BMLoopUV_Check(value))) {
+  if (!BPy_BMLoopUV_Check(value)) [[unlikely]] {
     PyErr_Format(PyExc_TypeError, "expected BMLoopUV, not a %.200s", Py_TYPE(value)->tp_name);
     return -1;
   }
@@ -296,7 +296,7 @@ static void bm_init_types_bmvertskin()
 
 int BPy_BMVertSkin_AssignPyObject(MVertSkin *mvertskin, PyObject *value)
 {
-  if (UNLIKELY(!BPy_BMVertSkin_Check(value))) {
+  if (!BPy_BMVertSkin_Check(value)) [[unlikely]] {
     PyErr_Format(PyExc_TypeError, "expected BMVertSkin, not a %.200s", Py_TYPE(value)->tp_name);
     return -1;
   }
@@ -755,13 +755,13 @@ static void bm_init_types_bmdvert()
 
 int BPy_BMDeformVert_AssignPyObject(MDeformVert *dvert, PyObject *value)
 {
-  if (UNLIKELY(!BPy_BMDeformVert_Check(value))) {
+  if (!BPy_BMDeformVert_Check(value)) [[unlikely]] {
     PyErr_Format(PyExc_TypeError, "expected BMDeformVert, not a %.200s", Py_TYPE(value)->tp_name);
     return -1;
   }
 
   MDeformVert *dvert_src = (reinterpret_cast<BPy_BMDeformVert *>(value))->data;
-  if (LIKELY(dvert != dvert_src)) {
+  if (dvert != dvert_src) [[likely]] {
     BKE_defvert_copy(dvert, dvert_src);
   }
   return 0;

@@ -22,12 +22,12 @@
 #include "CLG_log.h"
 
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_threads.hh"
+#include "BLI_utildefines.hh"
 #ifdef WITH_PYTHON_MODULE
-#  include "BLI_string.h"
+#  include "BLI_string.hh"
 #endif
 
 #include "BLT_translation.hh"
@@ -93,7 +93,7 @@ static bool py_use_user_env = false;
 // #define TIME_PY_RUN /* Simple python tests. prints on exit. */
 
 #ifdef TIME_PY_RUN
-#  include "BLI_time.h"
+#  include "BLI_time.hh"
 static int bpy_timer_count = 0;
 /** Time since python starts. */
 static double bpy_timer;
@@ -122,7 +122,7 @@ void BPY_context_update(bContext *C)
  * Wrap `bpy_context_set` & `bpy_context_set_allow_null`.
  *
  * \param allow_null_context: Ideally we would phase this out,
- * however some code uses a null context, see: `bpy_context_set_allow_null` doc-string for details.
+ * however some code uses a null context, see: `bpy_context_set_allow_null` docstring for details.
  */
 static void bpy_context_set_ex(bContext *C,
                                PyGILState_STATE *gilstate,
@@ -200,7 +200,7 @@ void bpy_context_clear(bContext *C, const PyGILState_STATE *gilstate)
 
 static void bpy_context_end(bContext *C)
 {
-  if (UNLIKELY(C == nullptr)) {
+  if (C == nullptr) [[unlikely]] {
     return;
   }
   CTX_wm_operator_poll_msg_clear(C);
@@ -359,7 +359,7 @@ static _inittab bpy_internal_modules[] = {
  */
 static void pystatus_exit_on_error(const PyStatus &status)
 {
-  if (UNLIKELY(PyStatus_Exception(status))) {
+  if (PyStatus_Exception(status)) [[unlikely]] {
     fputs("Internal error initializing Python!\n", stderr);
     /* This calls `exit`. */
     Py_ExitStatusException(status);

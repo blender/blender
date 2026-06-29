@@ -6,12 +6,14 @@
 
 #include <pxr/base/plug/plugin.h>
 #include <pxr/base/plug/registry.h>
+#include <pxr/imaging/hd/flatteningSceneIndex.h>
 #include <pxr/imaging/hd/rendererPluginRegistry.h>
 #include <pxr/imaging/hdSt/renderDelegate.h>
+#include <pxr/imaging/hdsi/extComputationPrimvarPruningSceneIndex.h>
 #include <pxr/imaging/hgi/tokens.h>
 #include <pxr/usd/usdGeom/tokens.h>
-
-#include "BLI_path_utils.hh"
+#include <pxr/usdImaging/usdImaging/flattenedDataSourceProviders.h>
+#include <pxr/usdImaging/usdImaging/materialBindingsResolvingSceneIndex.h>
 
 #include "BKE_context.hh"
 
@@ -69,19 +71,31 @@ Engine::Engine(RenderEngine *bl_engine, const std::string &render_delegate_name)
   free_camera_delegate_ = std::make_unique<io::hydra::CameraDelegate>(
       render_index_.get(), pxr::SdfPath::AbsoluteRootPath().AppendElementString("freeCamera"));
 
+  /* Tasks are exposed as task prims through a retained scene index. */
+  const bool needs_prefixing = false;
+  task_scene_index_ = pxr::HdRetainedSceneIndex::New();
+  render_index_->InsertSceneIndex(
+      task_scene_index_, pxr::SdfPath::AbsoluteRootPath(), needs_prefixing);
+
   if (bl_engine->type->flag & RE_USE_GPU_CONTEXT && GPU_backend_get_type() == GPU_BACKEND_OPENGL) {
     render_task_delegate_ = std::make_unique<GPURenderTaskDelegate>(
-        render_index_.get(), pxr::SdfPath::AbsoluteRootPath().AppendElementString("renderTask"));
+        render_index_.get(),
+        task_scene_index_,
+        pxr::SdfPath::AbsoluteRootPath().AppendElementString("renderTask"));
   }
   else {
     render_task_delegate_ = std::make_unique<RenderTaskDelegate>(
-        render_index_.get(), pxr::SdfPath::AbsoluteRootPath().AppendElementString("renderTask"));
+        render_index_.get(),
+        task_scene_index_,
+        pxr::SdfPath::AbsoluteRootPath().AppendElementString("renderTask"));
   }
   render_task_delegate_->set_camera(free_camera_delegate_->GetCameraId());
 
   if (render_delegate_name_ == "HdStormRendererPlugin") {
     light_tasks_delegate_ = std::make_unique<LightTasksDelegate>(
-        render_index_.get(), pxr::SdfPath::AbsoluteRootPath().AppendElementString("lightTasks"));
+        render_index_.get(),
+        task_scene_index_,
+        pxr::SdfPath::AbsoluteRootPath().AppendElementString("lightTasks"));
     light_tasks_delegate_->set_camera(free_camera_delegate_->GetCameraId());
   }
 
@@ -100,24 +114,29 @@ void Engine::sync(Depsgraph *depsgraph, bContext *context)
     /* Fast path. */
     usd_scene_delegate_.reset();
 
-    if (!hydra_scene_delegate_) {
-      pxr::SdfPath scene_path = pxr::SdfPath::AbsoluteRootPath().AppendElementString("scene");
-      hydra_scene_delegate_ = std::make_unique<io::hydra::HydraSceneDelegate>(
-          render_index_.get(), scene_path, free_camera_delegate_.get(), use_materialx);
+    if (!hydra_scene_index_) {
+      hydra_scene_index_path_ = pxr::SdfPath::AbsoluteRootPath().AppendElementString("scene");
+      hydra_scene_index_ = std::make_unique<io::hydra::HydraSceneIndex>(
+          hydra_scene_index_path_, render_delegate_.Get(), use_materialx);
+      const bool needs_prefixing = false;
+      pxr::HdSceneIndexBaseRefPtr filtered = hydra_scene_index_->retained();
+      filtered = pxr::HdSiExtComputationPrimvarPruningSceneIndex::New(filtered);
+      filtered = pxr::HdFlatteningSceneIndex::New(filtered,
+                                                  pxr::UsdImagingFlattenedDataSourceProviders());
+      filtered = pxr::UsdImagingMaterialBindingsResolvingSceneIndex::New(filtered, nullptr);
+      render_index_->InsertSceneIndex(filtered, hydra_scene_index_path_, needs_prefixing);
     }
-    hydra_scene_delegate_->populate(depsgraph, context ? CTX_wm_view3d(context) : nullptr);
+    hydra_scene_index_->populate(depsgraph, context ? CTX_wm_view3d(context) : nullptr);
   }
   else {
     /* Slow USD export for reference. */
-    if (hydra_scene_delegate_) {
-      /* Freeing the Hydra scene delegate crashes as something internal to USD
-       * still holds a pointer to it, only clear it instead. */
-      hydra_scene_delegate_->clear();
+    if (hydra_scene_index_) {
+      hydra_scene_index_->clear();
     }
 
     if (!usd_scene_delegate_) {
       pxr::SdfPath scene_path = pxr::SdfPath::AbsoluteRootPath().AppendElementString("usd_scene");
-      usd_scene_delegate_ = std::make_unique<io::hydra::USDSceneDelegate>(
+      usd_scene_delegate_ = std::make_unique<io::hydra::USDSceneIndex>(
           render_index_.get(), scene_path, use_materialx);
     }
     usd_scene_delegate_->populate(depsgraph);

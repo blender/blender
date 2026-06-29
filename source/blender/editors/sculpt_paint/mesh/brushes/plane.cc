@@ -59,6 +59,7 @@ static void calc_local_positions(const float4x4 &mat,
                                  const Span<float3> positions,
                                  const MutableSpan<float3> local_positions)
 {
+  PRF_scope(ProfileCategory::Editor);
   for (const int i : verts.index_range()) {
     local_positions[i] = math::transform_point(mat, positions[verts[i]]);
   }
@@ -81,6 +82,7 @@ static void calc_local_distances(const float height,
                                  const MutableSpan<float3> local_positions,
                                  const MutableSpan<float> distances)
 {
+  PRF_scope(ProfileCategory::Editor);
   if (height != 0.0f) {
     const float height_rcp = math::rcp(height);
 
@@ -133,6 +135,7 @@ static void scale_factors_by_height_and_depth(const float height,
                                               const MutableSpan<float3> local_positions,
                                               const MutableSpan<float> factors)
 {
+  PRF_scope(ProfileCategory::Editor);
   if (!ELEM(height, 1.0f, 0.0f)) {
     for (const int i : factors.index_range()) {
       if (local_positions[i].z > 0.0f) {
@@ -179,6 +182,7 @@ static void calc_translations(const float3 &plane_normal,
                               const MutableSpan<float> factors,
                               const MutableSpan<float3> r_translations)
 {
+  PRF_scope(ProfileCategory::Editor);
   for (const int i : local_positions.index_range()) {
     factors[i] *= local_positions[i].z;
   }
@@ -366,6 +370,7 @@ void do_plane_brush(const Depsgraph &depsgraph,
                     const float3 &plane_normal,
                     const float3 &plane_center)
 {
+  PRF_scope(ProfileCategory::Editor);
   const SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);

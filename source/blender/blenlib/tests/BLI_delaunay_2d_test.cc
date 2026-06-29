@@ -6,8 +6,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_rand.h"
-#include "BLI_time.h"
+#include "BLI_rand_c.hh"
+#include "BLI_time.hh"
 
 #include <fstream>
 #include <iostream>
@@ -30,7 +30,7 @@ namespace blender::meshintersect {
 
 /* The spec should have the form:
  * #verts #edges #faces
- * <float> <float>   [#verts lines)
+ * <float> <float>   [#verts lines]
  * <int> <int>   [#edges lines]
  * <int> <int> ... <int>   [#faces lines]
  */
@@ -80,7 +80,7 @@ template<typename T> CDT_input<T> fill_input_from_string(const char *spec)
   ans.edge = edges;
   ans.face = faces;
 #ifdef WITH_GMP
-  if (std::is_same<mpq_class, T>::value) {
+  if (std::is_same_v<mpq_class, T>) {
     ans.epsilon = T(0);
   }
   else {
@@ -975,8 +975,8 @@ template<typename T> void even_odd_coincident_polygons_need_ids_stable_test()
 
 /**
  * Single face whose vertex list traces an outer ring and an inner ring, then repeats the
- * whole sequence. Each unique boundary edge is walked twice within one face. Without
- * per-face dedup of polygon-boundary counts, the face is dropped entirely.
+ * whole sequence. Each unique boundary edge is walked twice within one face.
+ * Without per-face de-duplicate of polygon-boundary counts, the face is dropped entirely.
  */
 template<typename T> void even_odd_self_doubled_polygon_with_hole_test()
 {
@@ -3853,7 +3853,7 @@ void text_test(
   constexpr bool print_timing = true;
   /*
    * Make something like a letter B:
-   *
+   * \code{.unparsed}
    *    4------------3
    *    |              )
    *    |  12--11       )
@@ -3867,7 +3867,7 @@ void text_test(
    *    |  5----6       )
    *    |              )
    *    0------------1
-   *
+   * \endcode
    * Where the numbers are the first 13 vertices, and the rest of
    * the vertices are in arcs a0, a1, a2, a3, each of which have
    * arc_points_num per arc in them.

@@ -17,9 +17,9 @@
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
 
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_meshdata_types.h"
@@ -307,7 +307,7 @@ static int lookup_or_add_deform_group_index(CurvesGeometry &curves, const String
     bDeformGroup *defgroup = MEM_new<bDeformGroup>(__func__);
     name.copy_utf8_truncated(defgroup->name);
     BLI_addtail(&curves.vertex_group_names, defgroup);
-    def_nr = BLI_listbase_count(&curves.vertex_group_names) - 1;
+    def_nr = curves.vertex_group_names.count() - 1;
     BLI_assert(def_nr >= 0);
   }
 

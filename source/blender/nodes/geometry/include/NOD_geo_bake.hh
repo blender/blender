@@ -26,8 +26,8 @@ struct Object;
 namespace nodes {
 
 /**
- * Makes it possible to use various functions (e.g. the ones in `NOD_socket_items.hh`) for index
- * bake node items.
+ * Makes it possible to use various functions (e.g. the ones in `NOD_socket_items.hh`) for bake
+ * node items.
  */
 struct BakeItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeGeometryBakeItem;
@@ -71,7 +71,7 @@ struct BakeItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
 
   static eNodeSocketDatatype get_socket_type(const NodeGeometryBakeItem &item)
   {
-    return eNodeSocketDatatype(item.socket_type);
+    return item.socket_type;
   }
 
   static char **get_name(NodeGeometryBakeItem &item)

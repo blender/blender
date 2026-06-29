@@ -64,17 +64,6 @@ LineData decode_axis_data(uint vertex_id)
   return line;
 }
 
-/* Test if the current line falls under an active axis line which occludes it. */
-bool is_occluded_by_axis(float3 vertex_pos_global)
-{
-  if (flag_test(grid_flag, SHOW_GRID)) {
-    return (flag_test(grid_flag, AXIS_X) && grid::is_zero(vertex_pos_global.yz, 1e-4f)) ||
-           (flag_test(grid_flag, AXIS_Y) && grid::is_zero(vertex_pos_global.xz, 1e-4f)) ||
-           (flag_test(grid_flag, AXIS_Z) && grid::is_zero(vertex_pos_global.xy, 1e-4f));
-  }
-  return false;
-}
-
 /* Test if the current line falls under another line on a higher level, which occludes it. */
 bool is_occluded_by_higher_level(LineData line, uint level)
 {
@@ -117,16 +106,21 @@ void main()
   uint step_axis = flag_test(grid_flag, GRID_SIMA) ? 1u - line.axis : line.axis;
   float step_size = grid_buf.steps[level][step_axis];
 
-  float2 step_offs;
+  float2 step_offs = grid_buf.offset;
+  /* TODO(not_mark): remove all this horrible axis-swapping BS in BSL port. */
   if (flag_test(grid_flag, SHOW_GRID)) {
-    step_offs = flag_test(grid_flag, GRID_SIMA) ? grid_buf.offset :
-                                                  round(grid_buf.offset / step_size) * step_size;
+    /* Line moves with offset along its axis, but snaps to the rounded offset on the other axis. */
+    if (line.axis == 0) {
+      step_offs.y = round(grid_buf.offset.y / step_size) * step_size;
+    }
+    else {
+      step_offs.x = round(grid_buf.offset.x / step_size) * step_size;
+    }
   }
-  else { /* SHOW_AXIS */
+  else if (flag_test(grid_flag, SHOW_AXES)) {
     /* Store axis value on X-axis for now, it is swapped later. */
-    /* TODO(not_mark): remove all this horrible axis-swapping BS in BSL port. */
     step_offs = float2(drw_view_position()[line.axis], 0.0f);
-  }
+  } /* else: GRID_SIMA, do nothing. */
 
   /* Output vertex position in [-1,1], which we use to fade level boundaries. */
   vertex_out.coord = line.P / max(float(grid_buf.num_lines >> 1), 1.0f);
@@ -206,7 +200,7 @@ void main()
   }
 
   /* Additional culling steps to discard occluded lines. */
-  if (is_occluded_by_axis(vertex_out.pos) || is_occluded_by_higher_level(line, level)) {
+  if (is_occluded_by_higher_level(line, level)) {
     return; /* Discard line. */
   }
 

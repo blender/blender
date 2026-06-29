@@ -6,7 +6,6 @@
 
 #include <variant>
 
-#include "BLI_function_ref.hh"
 #include "BLI_implicit_sharing_ptr.hh"
 #include "BLI_map.hh"
 #include "BLI_memory_counter_fwd.hh"
@@ -14,6 +13,8 @@
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector_set.hh"
+
+#include "BKE_attribute_enums.hh"
 
 #include "DNA_attribute_types.h"
 
@@ -164,6 +165,7 @@ class AttributeStorage : public blender::AttributeStorage {
    */
   bool remove(StringRef name);
   bool remove(const Set<StringRef> &names);
+  bool remove(const Set<const Attribute *> &attributes);
 
   /**
    * Add an attribute with the given name, which must not already be used by an existing attribute
@@ -290,6 +292,17 @@ inline AttrType Attribute::data_type() const
 inline const Attribute::DataVariant &Attribute::data() const
 {
   return data_;
+}
+
+inline AttrStorageType Attribute::storage_type() const
+{
+  static_assert(std::is_same_v<
+                std::variant_alternative_t<int(AttrStorageType::Array), Attribute::DataVariant>,
+                Attribute::ArrayData>);
+  static_assert(std::is_same_v<
+                std::variant_alternative_t<int(AttrStorageType::Single), Attribute::DataVariant>,
+                Attribute::SingleData>);
+  return AttrStorageType(data_.index());
 }
 
 inline void Attribute::assign_data(DataVariant &&data)

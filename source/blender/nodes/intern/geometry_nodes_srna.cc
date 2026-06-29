@@ -4,8 +4,8 @@
 
 #include <fmt/format.h>
 
-#include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
 
 #include "NOD_geometry_nodes_srna.hh"
 #include "NOD_socket.hh"
@@ -19,6 +19,8 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_prototypes.hh"
+
+#include "PRF_profile.hh"
 
 namespace blender::nodes {
 
@@ -144,7 +146,7 @@ static StructRNA *create_outputs_srna(const bNodeTree &tree, GeneratedTreeSrnaDa
 
   for (const bNodeTreeInterfaceSocket *output : tree.interface_outputs()) {
     const bke::bNodeSocketType *socket_type = bke::node_socket_type_find(output->socket_type);
-    if (!nodes::socket_type_supports_attributes(eNodeSocketDatatype(socket_type->type))) {
+    if (!nodes::socket_type_supports_attributes(socket_type->type)) {
       continue;
     }
 
@@ -180,17 +182,18 @@ static StructRNA *create_panels_srna(const bNodeTree &tree, GeneratedTreeSrnaDat
 
   tree.ensure_interface_cache();
   for (const bNodeTreeInterfaceItem *item : tree.interface_items()) {
-    if (item->item_type != NODE_INTERFACE_PANEL) {
+    if (item->item_type != NodeTreeInterfaceItemType::Panel) {
       continue;
     }
     const auto &panel = *reinterpret_cast<const bNodeTreeInterfacePanel *>(item);
     const StringRefNull identifier = allocator.copy_string(
         fmt::format("open_{}", panel.identifier));
-    RNA_def_boolean(srna,
-                    identifier.c_str(),
-                    !(panel.flag & NODE_INTERFACE_PANEL_DEFAULT_CLOSED),
-                    "Is Open",
-                    "");
+    PropertyRNA *prop = RNA_def_boolean(srna,
+                                        identifier.c_str(),
+                                        !(panel.flag & NODE_INTERFACE_PANEL_DEFAULT_CLOSED),
+                                        "Is Open",
+                                        "");
+    RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
   }
 
   return srna;
@@ -199,6 +202,7 @@ static StructRNA *create_panels_srna(const bNodeTree &tree, GeneratedTreeSrnaDat
 std::shared_ptr<GeneratedTreeSrnaData> create_geometry_nodes_rna_for_modifier(
     const bNodeTree &tree)
 {
+  PRF_scope(ProfileCategory::Core);
   auto generated = std::make_unique<GeneratedTreeSrnaData>();
   tree.ensure_interface_cache();
 

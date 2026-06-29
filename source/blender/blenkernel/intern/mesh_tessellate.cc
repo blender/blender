@@ -13,16 +13,16 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_memarena.h"
-#include "BLI_polyfill_2d.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_memarena.hh"
+#include "BLI_polyfill_2d.hh"
 #include "BLI_task.hh"
 
 #include "BKE_mesh.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender::bke::mesh {
 
@@ -60,10 +60,10 @@ BLI_INLINE void mesh_calc_tessellation_for_face_impl(const Span<int> corner_vert
       int3 *tri_a = tri++;
       create_tri(0, 2, 3);
       int3 *tri_b = tri;
-      if (UNLIKELY(is_quad_flip_v3_first_third_fast(positions[corner_verts[(*tri_a)[0]]],
-                                                    positions[corner_verts[(*tri_a)[1]]],
-                                                    positions[corner_verts[(*tri_a)[2]]],
-                                                    positions[corner_verts[(*tri_b)[2]]])))
+      if (is_quad_flip_v3_first_third_fast(positions[corner_verts[(*tri_a)[0]]],
+                                           positions[corner_verts[(*tri_a)[1]]],
+                                           positions[corner_verts[(*tri_a)[2]]],
+                                           positions[corner_verts[(*tri_b)[2]]])) [[unlikely]]
       {
         /* Flip out of degenerate 0-2 state. */
         (*tri_a)[2] = (*tri_b)[2];
@@ -88,7 +88,7 @@ BLI_INLINE void mesh_calc_tessellation_for_face_impl(const Span<int> corner_vert
           add_newell_cross_v3_v3v3(normal, co_prev, co_curr);
           co_prev = co_curr;
         }
-        if (UNLIKELY(normalize_v3(normal) == 0.0f)) {
+        if (normalize_v3(normal) == 0.0f) [[unlikely]] {
           normal[2] = 1.0f;
         }
         axis_dominant_v3_to_m3_negate(axis_mat, normal);
@@ -100,7 +100,7 @@ BLI_INLINE void mesh_calc_tessellation_for_face_impl(const Span<int> corner_vert
       const int totfilltri = face_size - 2;
 
       MemArena *pf_arena = *pf_arena_p;
-      if (UNLIKELY(pf_arena == nullptr)) {
+      if (pf_arena == nullptr) [[unlikely]] {
         pf_arena = *pf_arena_p = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
       }
 

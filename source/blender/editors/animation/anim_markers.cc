@@ -13,11 +13,11 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -160,7 +160,7 @@ int ED_markers_post_apply_transform(
 
 TimeMarker *ED_markers_find_nearest_marker(ListBaseT<TimeMarker> *markers, const float frame)
 {
-  if (markers == nullptr || BLI_listbase_is_empty(markers)) {
+  if (markers == nullptr || markers->is_empty()) {
     return nullptr;
   }
 
@@ -230,6 +230,10 @@ static bool operator_markers_region_active(bContext *C)
     return false;
   }
 
+  if (ui::view2d_fromcontext(C) == nullptr) {
+    return false;
+  }
+
   switch (area->spacetype) {
     case SPACE_ACTION: {
       SpaceAction *saction = static_cast<SpaceAction *>(area->spacedata.first);
@@ -267,7 +271,7 @@ static TimeMarker *region_position_is_over_marker(const View2D *v2d,
                                                   ListBaseT<TimeMarker> *markers,
                                                   float region_x)
 {
-  if (markers == nullptr || BLI_listbase_is_empty(markers)) {
+  if (markers == nullptr || markers->is_empty()) {
     return nullptr;
   }
 
@@ -648,7 +652,7 @@ void ED_markers_draw(const bContext *C, int flag)
   const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
   ListBaseT<TimeMarker> *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
                                                   ED_context_get_markers(C);
-  if (markers == nullptr || BLI_listbase_is_empty(markers)) {
+  if (markers == nullptr || markers->is_empty()) {
     return;
   }
 
@@ -735,7 +739,7 @@ void ED_markers_draw(const bContext *C, int flag)
     marker.flag &= ~ELEVATED;
   }
 
-  BLI_freelistN(&sorted_markers);
+  sorted_markers.free_no_destruct();
 
   GPU_matrix_pop();
 }
@@ -1733,7 +1737,7 @@ enum eMarkers_LeftRightSelect_Mode {
 static const EnumPropertyItem prop_markers_select_leftright_modes[] = {
     {MARKERS_LRSEL_LEFT, "LEFT", 0, "Before Current Frame", ""},
     {MARKERS_LRSEL_RIGHT, "RIGHT", 0, "After Current Frame", ""},
-    {MARKERS_LRSEL_CLICK_SIDE, "CLICK_SIDE", 0, "Check which side was clicked", ""},
+    {MARKERS_LRSEL_CLICK_SIDE, "CLICK_SIDE", 0, "Mouse Click Side", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -1854,8 +1858,7 @@ static wmOperatorStatus ed_marker_delete_exec(bContext *C, wmOperator * /*op*/)
     nmarker = marker->next;
     if (marker->flag & SELECT) {
       if (marker->prop != nullptr) {
-        IDP_FreePropertyContent(marker->prop);
-        MEM_delete(marker->prop);
+        IDP_FreeProperty(marker->prop);
       }
       BLI_freelinkN(markers, marker);
       changed = true;

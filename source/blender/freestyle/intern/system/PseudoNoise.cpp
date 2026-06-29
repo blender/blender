@@ -7,8 +7,8 @@
  * \brief Class to define a pseudo Perlin noise
  */
 
-#include "BLI_math_base.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "PseudoNoise.h"
 #include "RandGen.h"
@@ -62,7 +62,7 @@ real PseudoNoise::smoothNoise(real x)
   real tmp;
   int i = modf_to_index(x, NB_VALUE_NOISE);
   int h = i - 1;
-  if (UNLIKELY(h < 0)) {
+  if (h < 0) [[unlikely]] {
     h = NB_VALUE_NOISE + h;
   }
 

@@ -17,10 +17,10 @@
 
 #include "DNA_listBase.h"
 
-#include "BLI_assert.h"
-#include "BLI_mempool.h"
-#include "BLI_task.h"
-#include "BLI_threads.h"
+#include "BLI_assert.hh"
+#include "BLI_mempool.hh"
+#include "BLI_task_c.hh"
+#include "BLI_threads.hh"
 #include "BLI_vector.hh"
 
 #ifdef WITH_TBB

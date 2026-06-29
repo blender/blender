@@ -5,6 +5,29 @@
 #pragma once
 
 #include "gpu_shader_compat.hh"
+#include "gpu_shader_math_constants_lib.glsl"
+
+/* There are two common ways of implementing a linear interpolation: result = a + t * (b - a) and
+ * result = (1 - t) * a + t * b. The former variant is called "mix" in our code and it ensures that
+ * result always changes monotonically when t increases monotonically. This comes at the cost of
+ * the fact that generally result != b when t == 1, which becomes particularly noticeable when the
+ * magnitudes of a and b are vastly different. The latter variant is called
+ * "endvalue_preserving_mix" in our code ensures that result == b when t == 1. This comes at the
+ * cost of an additional multiplication step compared to the former version and the fact that
+ * result may not change monotonically when a and b have different signs and t increases
+ * monotonically, which however isn't noticeable in most cases as long as monotony isn't explicitly
+ * required. In general, "endvalue_preserving_mix" should be preferred over "mix" when it is
+ * important that result == b when t == 1 or when a and b may have vastly different magnitudes.*/
+template<typename VecT, typename FacT> VecT endvalue_preserving_mix(VecT a, VecT b, FacT t)
+{
+  return (FacT(1.0f) - t) * a + t * b;
+}
+template float2 endvalue_preserving_mix<float2, float>(float2, float2, float);
+template float3 endvalue_preserving_mix<float3, float>(float3, float3, float);
+template float4 endvalue_preserving_mix<float4, float>(float4, float4, float);
+template float2 endvalue_preserving_mix<float2, float2>(float2, float2, float2);
+template float3 endvalue_preserving_mix<float3, float3>(float3, float3, float3);
+template float4 endvalue_preserving_mix<float4, float4>(float4, float4, float4);
 
 /**
  * Returns \a a if it is a multiple of \a b or the next multiple or \a b after \b a .
@@ -93,6 +116,27 @@ template<typename VecT> float distance_squared(VecT a, VecT b)
 template float distance_squared<float2>(float2, float2);
 template float distance_squared<float3>(float3, float3);
 template float distance_squared<float4>(float4, float4);
+
+/**
+ * Return the shortest angle in radians between the 2 vectors.
+ */
+template<typename VecT> float angle_normalized(VecT v1, VecT v2)
+{
+  /* Ensure inputs are normalized. */
+  v1 = normalize(v1);
+  v2 = normalize(v2);
+
+  /* This is the same as acos(dot_v3v3(v1, v2)), but more accurate. */
+  if (dot(v1, v2) >= 0.0f) {
+    return 2.0f * asin(clamp(length(v2 - v1) / 2.0f, -1.0f, 1.0f));
+  }
+
+  const VecT v2_n = -v2;
+  return M_PI - 2.0f * asin(clamp(length(v2_n - v1) / 2.0f, -1.0f, 1.0f));
+}
+template float angle_normalized<float2>(float2, float2);
+template float angle_normalized<float3>(float3, float3);
+template float angle_normalized<float4>(float4, float4);
 
 /**
  * Return normalized version of the `vector` and its length.

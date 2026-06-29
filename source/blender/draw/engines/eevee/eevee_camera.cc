@@ -8,7 +8,7 @@
 
 #include "BKE_screen.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 
 #include "DRW_render.hh"
 

@@ -6,8 +6,8 @@
 #include "DNA_pointcloud_types.h"
 
 #include "GEO_foreach_geometry.hh"
-#include "GEO_mesh_merge_by_distance.hh"
-#include "GEO_point_merge_by_distance.hh"
+#include "GEO_mesh_merge_verts.hh"
+#include "GEO_point_merge.hh"
 
 #include "node_geometry_util.hh"
 
@@ -36,8 +36,11 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Geometry"_ustr)
       .supported_type({GeometryComponent::Type::PointCloud, GeometryComponent::Type::Mesh})
       .description("Point cloud or mesh to merge points of");
-  b.add_output<decl::Geometry>("Geometry"_ustr).propagate_all().align_with_previous();
-  b.add_input<decl::Bool>("Selection"_ustr).default_value(true).hide_value().field_on_all();
+  b.add_output<decl::Geometry>("Geometry"_ustr).propagate_all_geometry().align_with_previous();
+  b.add_input<decl::Bool>("Selection"_ustr)
+      .default_value(true)
+      .hide_value()
+      .evaluated_geometry_field();
   b.add_input<decl::Menu>("Mode"_ustr).static_items(mode_items).optional_label();
   b.add_input<decl::Float>("Distance"_ustr).default_value(0.001f).min(0.0f).subtype(PROP_DISTANCE);
 }
@@ -106,10 +109,12 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     if (const PointCloud *pointcloud = geometry_set.get_pointcloud()) {
-      PointCloud *result = pointcloud_merge_by_distance(
-          *pointcloud, merge_distance, selection, params.get_attribute_filter("Geometry"_ustr));
-      if (result) {
-        geometry_set.replace_pointcloud(result);
+      if (mode == GEO_NODE_MERGE_BY_DISTANCE_MODE_ALL) {
+        PointCloud *result = pointcloud_merge_by_distance(
+            *pointcloud, merge_distance, selection, params.get_attribute_filter("Geometry"_ustr));
+        if (result) {
+          geometry_set.replace_pointcloud(result);
+        }
       }
     }
     if (const Mesh *mesh = geometry_set.get_mesh()) {

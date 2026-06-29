@@ -7,9 +7,9 @@
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_multi_value_map.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "DNA_space_types.h"
 #include "DNA_workspace_types.h"
@@ -180,7 +180,7 @@ static void sequencer_add_scene_draw(const bContext *C, Menu *menu)
 
   /* Show existing scenes. */
   Main *bmain = CTX_data_main(C);
-  const int scenes_len = BLI_listbase_count(&bmain->scenes);
+  const int scenes_len = bmain->scenes.count();
   if (scenes_len > 10) {
     layout.op("SEQUENCER_OT_scene_strip_add",
               IFACE_("Scene Strip..."),

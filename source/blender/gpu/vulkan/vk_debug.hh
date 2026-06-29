@@ -8,9 +8,9 @@
 #pragma once
 
 #include "BKE_global.hh"
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 #include "BLI_set.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "vk_common.hh"
 

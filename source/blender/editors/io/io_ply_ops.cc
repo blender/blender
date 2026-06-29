@@ -13,8 +13,8 @@
 #  include "BKE_main.hh"
 #  include "BKE_report.hh"
 
-#  include "BLI_string.h"
-#  include "BLI_string_utf8.h"
+#  include "BLI_string.hh"
+#  include "BLI_string_utf8.hh"
 
 #  include "WM_api.hh"
 #  include "WM_types.hh"

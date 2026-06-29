@@ -8,7 +8,7 @@
 
 #include "BKE_global.hh"
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "gpu_backend.hh"
 #include "gpu_context_private.hh"

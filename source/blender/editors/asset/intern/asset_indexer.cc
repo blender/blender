@@ -17,22 +17,26 @@
 #include "DNA_ID.h"
 #include "DNA_asset_types.h"
 
-#include "BLI_fileops.h"
+#include "BLI_fileops.hh"
 #include "BLI_hash.hh"
-#include "BLI_linklist.h"
-#include "BLI_listbase.h"
+#include "BLI_linklist.hh"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_serialize.hh"
 #include "BLI_set.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "AS_asset_catalog.hh"
 #include "BKE_appdir.hh"
 #include "BKE_asset.hh"
 #include "BKE_idprop.hh"
 #include "BKE_preferences.h"
+
+/* For converting enum values to/from identifiers. */
+#include "RNA_access.hh"
+#include "RNA_enum_types.hh"
 
 #include "CLG_log.h"
 
@@ -69,13 +73,15 @@ using namespace blender::bke::idprop;
  *     "copyright": "<copyright>",
  *     "license": "<license>",
  *     "tags": ["<tag>"],
+ *     "preferred_import_method": eAssetImportMethod,
  *     "properties": [..]
  *   }]
  * }
  * \endcode
  *
  * NOTE: entries, author, description, copyright, license, tags and properties are optional
- * attributes.
+ * attributes. If preferred_import_method is set, the #ASSETDATA_USE_OWN_IMPORT_METHOD flag will be
+ * set on the asset metadata. Otherwise, it will not be set.
  *
  * NOTE: File browser uses name and idcode separate. Inside the index they are joined together like
  * #ID.name.
@@ -92,6 +98,7 @@ constexpr StringRef ATTRIBUTE_ENTRIES_COPYRIGHT("copyright");
 constexpr StringRef ATTRIBUTE_ENTRIES_LICENSE("license");
 constexpr StringRef ATTRIBUTE_ENTRIES_TAGS("tags");
 constexpr StringRef ATTRIBUTE_ENTRIES_PROPERTIES("properties");
+constexpr StringRef ATTRIBUTE_ENTRIES_PREFERRED_IMPORT_METHOD("preferred_import_method");
 
 /** Abstract class for #BlendFile and #AssetIndexFile. */
 class AbstractFile {
@@ -178,10 +185,19 @@ static void init_value_from_file_indexer_entry(DictionaryValue &result,
     result.append_str(ATTRIBUTE_ENTRIES_LICENSE, license);
   }
 
-  if (!BLI_listbase_is_empty(&asset_data.tags)) {
+  if (!asset_data.tags.is_empty()) {
     ArrayValue &tags = *result.append_array(ATTRIBUTE_ENTRIES_TAGS);
     for (AssetTag &tag : asset_data.tags) {
       tags.append_str(tag.name);
+    }
+  }
+
+  if (asset_data.flag & ASSETDATA_USE_OWN_IMPORT_METHOD) {
+    const char *identifier = nullptr;
+    RNA_enum_identifier(
+        rna_enum_asset_import_method_items, asset_data.preferred_import_method, &identifier);
+    if (identifier) {
+      result.append_str(ATTRIBUTE_ENTRIES_PREFERRED_IMPORT_METHOD, identifier);
     }
   }
 
@@ -251,6 +267,19 @@ AssetMetaData *asset_metadata_from_dictionary(const DictionaryValue &entry)
     }
   }
 
+  if (const std::optional<StringRefNull> import_method_identifier = entry.lookup_str(
+          ATTRIBUTE_ENTRIES_PREFERRED_IMPORT_METHOD))
+  {
+    int preferred_import_method = 0;
+    if (RNA_enum_value_from_identifier(rna_enum_asset_import_method_items,
+                                       import_method_identifier->c_str(),
+                                       &preferred_import_method))
+    {
+      asset_data->preferred_import_method = eAssetImportMethod(preferred_import_method);
+      asset_data->flag |= ASSETDATA_USE_OWN_IMPORT_METHOD;
+    }
+  }
+
   if (const std::shared_ptr<Value> *value = entry.lookup(ATTRIBUTE_ENTRIES_PROPERTIES)) {
     IDProperty *properties = convert_from_serialize_value(**value);
 
@@ -258,8 +287,11 @@ AssetMetaData *asset_metadata_from_dictionary(const DictionaryValue &entry)
      * that. This is also the only way to support more than a single property. */
     if (properties && (properties->next || properties->type != IDP_GROUP)) {
       asset_data->properties = bke::idprop::create_group("AssetMetaData.properties").release();
-      for (IDProperty *property = properties; property != nullptr; property = property->next) {
+      for (IDProperty *property = properties; property != nullptr;) {
+        /* Save next before IDP_AddToGroup (via BLI_addtail) overwrites property->next. */
+        IDProperty *next = property->next;
         IDP_AddToGroup(asset_data->properties, property);
+        property = next;
       }
     }
     else {

@@ -11,9 +11,9 @@
 #include "BKE_library.hh"
 
 #include "BLI_bounds.hh"
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 #include "BLI_string_ref.hh"
 
 #include "BLT_translation.hh"

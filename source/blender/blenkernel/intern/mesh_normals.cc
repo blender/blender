@@ -12,19 +12,19 @@
 
 #include <climits>
 
-#include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "BLI_array_utils.hh"
 #include "BLI_bit_vector.hh"
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_linklist.h"
+#include "BLI_linklist.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_vector.hh"
-#include "BLI_memarena.h"
+#include "BLI_memarena.hh"
 #include "BLI_span.hh"
 #include "BLI_task.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_global.hh"
@@ -132,7 +132,7 @@ static float3 normal_calc_ngon(const Span<float3> vert_positions, const Span<int
     v_prev = v_curr;
   }
 
-  if (UNLIKELY(normalize_v3(normal) == 0.0f)) {
+  if (normalize_v3(normal) == 0.0f) [[unlikely]] {
     /* Other axis are already set to zero. */
     normal[2] = 1.0f;
   }
@@ -160,7 +160,7 @@ float3 face_normal_calc(const Span<float3> vert_positions, const Span<int> face_
     normal = normal_calc_ngon(vert_positions, face_verts);
   }
 
-  if (UNLIKELY(math::is_zero(normal))) {
+  if (math::is_zero(normal)) [[unlikely]] {
     normal.z = 1.0f;
   }
 
@@ -182,6 +182,7 @@ void normals_calc_faces(const Span<float3> positions,
                         const Span<int> corner_verts,
                         MutableSpan<float3> face_normals)
 {
+  PRF_scope(ProfileCategory::Default);
   BLI_assert(faces.size() == face_normals.size());
   threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
     for (const int i : range) {
@@ -197,6 +198,7 @@ void normals_calc_verts(const Span<float3> vert_positions,
                         const Span<float3> face_normals,
                         MutableSpan<float3> vert_normals)
 {
+  PRF_scope(ProfileCategory::Default);
   const Span<float3> positions = vert_positions;
   threading::parallel_for(positions.index_range(), 1024, [&](const IndexRange range) {
     for (const int vert : range) {
@@ -230,6 +232,7 @@ static void mix_normals_corner_to_vert(const Span<float3> vert_positions,
                                        const Span<float3> corner_normals,
                                        MutableSpan<float3> vert_normals)
 {
+  PRF_scope(ProfileCategory::Default);
   const Span<float3> positions = vert_positions;
   threading::parallel_for(positions.index_range(), 1024, [&](const IndexRange range) {
     for (const int vert : range) {
@@ -262,6 +265,7 @@ static void mix_normals_vert_to_face(const OffsetIndices<int> faces,
                                      const Span<float3> vert_normals,
                                      MutableSpan<float3> face_normals)
 {
+  PRF_scope(ProfileCategory::Default);
   threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
     for (const int face : range) {
       float3 sum(0);
@@ -277,6 +281,7 @@ static void mix_normals_corner_to_face(const OffsetIndices<int> faces,
                                        const Span<float3> corner_normals,
                                        MutableSpan<float3> face_normals)
 {
+  PRF_scope(ProfileCategory::Default);
   threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
     for (const int face : range) {
       const Span<float3> face_corner_normals = corner_normals.slice(faces[face]);
@@ -293,7 +298,7 @@ static void mix_normals_corner_to_face(const OffsetIndices<int> faces,
 /** \name Mesh Normal Calculation
  * \{ */
 
-bke::MeshNormalDomain Mesh::normals_domain(const bool support_sharp_face) const
+bke::MeshNormalDomain Mesh::normals_domain() const
 {
   using namespace blender::bke;
   if (this->faces_num == 0) {
@@ -333,7 +338,7 @@ bke::MeshNormalDomain Mesh::normals_domain(const bool support_sharp_face) const
   }
 
   if (edge_mix == array_utils::BooleanMix::AllFalse &&
-      (face_mix == array_utils::BooleanMix::AllFalse || support_sharp_face))
+      face_mix == array_utils::BooleanMix::AllFalse)
   {
     return MeshNormalDomain::Point;
   }
@@ -597,8 +602,8 @@ static CornerNormalSpace corner_fan_space_define(const float3 &lnor,
   const float dtp_ref = math::dot(vec_ref, lnor);
   const float dtp_other = math::dot(vec_other, lnor);
 
-  if (UNLIKELY(std::abs(dtp_ref) >= LNOR_SPACE_TRIGO_THRESHOLD ||
-               std::abs(dtp_other) >= LNOR_SPACE_TRIGO_THRESHOLD))
+  if (std::abs(dtp_ref) >= LNOR_SPACE_TRIGO_THRESHOLD ||
+      std::abs(dtp_other) >= LNOR_SPACE_TRIGO_THRESHOLD) [[unlikely]]
   {
     /* If vec_ref or vec_other are too much aligned with lnor, we can't build lnor space,
      * tag it as invalid and abort. */
@@ -637,7 +642,7 @@ static CornerNormalSpace corner_fan_space_define(const float3 &lnor,
 
   /* Beta is angle between ref_vec and other_vec, around lnor. */
   const float dtp = math::dot(lnor_space.vec_ref, vec_other_proj);
-  if (LIKELY(dtp < LNOR_SPACE_TRIGO_THRESHOLD)) {
+  if (dtp < LNOR_SPACE_TRIGO_THRESHOLD) [[likely]] {
     const float beta = math::safe_acos_approx(dtp);
     lnor_space.ref_beta = (math::dot(lnor_space.vec_ortho, vec_other_proj) < 0.0f) ? pi2 - beta :
                                                                                      beta;
@@ -1243,6 +1248,7 @@ void normals_calc_corners(const Span<float3> vert_positions,
                           CornerNormalSpaceArray *r_fan_spaces,
                           MutableSpan<float3> r_corner_normals)
 {
+  PRF_scope(ProfileCategory::Default);
   BLI_assert(corner_verts.size() == corner_edges.size());
   BLI_assert(custom_normals.is_empty() || corner_verts.size() == custom_normals.size());
   BLI_assert(corner_verts.size() == r_corner_normals.size());

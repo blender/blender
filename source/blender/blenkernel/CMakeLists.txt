@@ -56,13 +56,13 @@ set(SRC
   intern/bake_data_block_map.cc
   intern/bake_geometry_nodes_modifier.cc
   intern/bake_geometry_nodes_modifier_pack.cc
-  intern/bake_items.cc
   intern/bake_items_paths.cc
   intern/bake_items_serialize.cc
-  intern/bake_items_socket.cc
+  intern/bake_values.cc
   intern/blender.cc
   intern/blender_cli_command.cc
   intern/blender_copybuffer.cc
+  intern/blender_project.cc
   intern/blender_undo.cc
   intern/blender_user_menu.cc
   intern/blendfile.cc
@@ -228,8 +228,8 @@ set(SRC
   intern/node_enum_definition.cc
   intern/node_runtime.cc
   intern/node_socket_value.cc
+  intern/node_socket_value_iter.cc
   intern/node_tree_dot_export.cc
-  intern/node_tree_field_inferencing.cc
   intern/node_tree_interface.cc
   intern/node_tree_reference_lifetimes.cc
   intern/node_tree_structure_type_inferencing.cc
@@ -330,6 +330,7 @@ set(SRC
   BKE_asset_edit.hh
   BKE_attribute.h
   BKE_attribute.hh
+  BKE_attribute_enums.hh
   BKE_attribute_filter.hh
   BKE_attribute_filters.hh
   BKE_attribute_legacy_convert.hh
@@ -341,13 +342,13 @@ set(SRC
   BKE_bake_data_block_map.hh
   BKE_bake_geometry_nodes_modifier.hh
   BKE_bake_geometry_nodes_modifier_pack.hh
-  BKE_bake_items.hh
   BKE_bake_items_paths.hh
   BKE_bake_items_serialize.hh
-  BKE_bake_items_socket.hh
+  BKE_bake_values.hh
   BKE_blender.hh
   BKE_blender_cli_command.hh
   BKE_blender_copybuffer.hh
+  BKE_blender_project.hh
   BKE_blender_undo.hh
   BKE_blender_user_menu.hh
   BKE_blender_version.h
@@ -425,6 +426,7 @@ set(SRC
   BKE_idtype.hh
   BKE_image.hh
   BKE_image_format.hh
+  BKE_image_gpu.hh
   BKE_image_partial_update.hh
   BKE_image_save.hh
   BKE_image_wrappers.hh
@@ -476,6 +478,7 @@ set(SRC
   BKE_node_runtime.hh
   BKE_node_socket_value.hh
   BKE_node_socket_value_fwd.hh
+  BKE_node_socket_value_iter.hh
   BKE_node_tree_dot_export.hh
   BKE_node_tree_interface.hh
   BKE_node_tree_interface_convert.hh
@@ -553,6 +556,7 @@ set(SRC
 
   intern/attribute_storage_access.hh
   intern/data_transfer_intern.hh
+  intern/image_intern.hh
   intern/lib_intern.hh
   intern/multires_inline.hh
   intern/multires_reshape.hh
@@ -586,6 +590,7 @@ set(LIB
   PRIVATE bf::imbuf::movie
   PRIVATE bf::imbuf::opencolorio
   PRIVATE bf::intern::clog
+  PUBLIC bf::intern::profile
   bf_intern_ghost
   PRIVATE bf::intern::guardedalloc
   PUBLIC bf::intern::optional::openvdb  # Contains intern-openvdb items in public headers
@@ -673,7 +678,7 @@ if(WITH_PYTHON)
 
 
   if(PYTHON_EXECUTABLE)
-    get_filename_component(_python_exe_name ${PYTHON_EXECUTABLE} NAME)
+    cmake_path(GET PYTHON_EXECUTABLE FILENAME _python_exe_name)
     add_definitions(-DPYTHON_EXECUTABLE_NAME=${_python_exe_name})
     unset(_python_exe_name)
   endif()
@@ -774,6 +779,7 @@ if(WITH_GTESTS)
     intern/lib_remap_test.cc
     intern/main_test.cc
     intern/nla_test.cc
+    intern/node_socket_value_iter_test.cc
     intern/path_templates_test.cc
     intern/scene_test.cc
     intern/subdiv_ccg_test.cc

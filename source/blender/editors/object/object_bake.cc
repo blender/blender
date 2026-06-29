@@ -16,9 +16,9 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_span.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_attribute.hh"
@@ -231,13 +231,13 @@ static void clear_single_image(Image *image, ClearFlag flag)
       ImBuf *ibuf = BKE_image_acquire_ibuf(image, &iuser, nullptr);
 
       if (flag == CLEAR_TANGENT_NORMAL) {
-        IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? nor_alpha : nor_solid);
+        IMB_rectfill(ibuf, ibuf->can_contain_alpha() ? nor_alpha : nor_solid);
       }
       else if (flag == CLEAR_DISPLACEMENT) {
-        IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? disp_alpha : disp_solid);
+        IMB_rectfill(ibuf, ibuf->can_contain_alpha() ? disp_alpha : disp_solid);
       }
       else {
-        IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? vec_alpha : vec_solid);
+        IMB_rectfill(ibuf, ibuf->can_contain_alpha() ? vec_alpha : vec_solid);
       }
 
       image->id.tag |= ID_TAG_DOIT;
@@ -381,7 +381,7 @@ static void multiresbake_startjob(void *bkv, wmJobWorkerStatus *worker_status)
   MultiresBakeJob *bkj = static_cast<MultiresBakeJob *>(bkv);
   int baked_objects = 0, tot_obj;
 
-  tot_obj = BLI_listbase_count(&bkj->data);
+  tot_obj = bkj->data.count();
 
   if (bkj->bake_clear) { /* clear images */
     for (MultiresBakerJobData &data : bkj->data) {

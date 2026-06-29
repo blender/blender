@@ -12,6 +12,7 @@ __all__ = (
 import bpy
 import os
 import sys
+from pathlib import Path
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 from bl_blendfile_utils import TestBlendLibLinkHelper
@@ -486,6 +487,73 @@ class TestBlendLibAppendReuseID(TestBlendLibLinkHelper):
         self.assertEqual(len(bpy.data.collections), 0)  # Scene's master collection is not listed here
 
 
+class TestBlendLibAppendCollectionInstances(TestBlendLibLinkHelper):
+
+    def __init__(self, args):
+        super().__init__(args)
+
+        self.testdir = Path(self.args.src_test_dir) / "libraries_and_linking"
+
+    def assert_contains_all(self, actual_list, expected_list):
+        self.assertEqual(len(actual_list), len(expected_list))
+        for item in expected_list:
+            self.assertTrue(item in actual_list, f"Could not find {item}")
+
+    def test_dependency_instatiation(self):
+        # Append collection instances (see issue #154707)
+        self.reset_blender()
+
+        link_dir = self.testdir / "libraries/collection_assets.blend" / "Object"
+
+        bpy.ops.wm.append(directory=str(link_dir), filename="Coll_154707_Data_Instance",
+                          instance_object_data=False, set_fake=False, use_recursive=True, do_reuse_local_id=False)
+
+        self.assertEqual(len(bpy.data.collections), 1)
+        self.assertEqual(len(bpy.data.meshes), 2)
+        self.assertEqual(len(bpy.data.objects), 3)
+        self.assertEqual(bpy.data.collections[0].users, 1)
+        self.assertEqual(bpy.data.meshes[0].users, 1)
+        self.assertEqual(bpy.data.meshes[1].users, 1)
+        self.assertEqual(bpy.data.objects["Coll_154707_Data_Instance"].users, 2)
+        self.assertEqual(bpy.data.objects["Plane_A"].users, 1)
+        self.assertEqual(bpy.data.objects["Plane_B"].users, 1)
+
+        self.assert_contains_all(
+            bpy.context.scene.collection.all_objects, ["Coll_154707_Data_Instance"])
+        self.assert_contains_all(
+            bpy.data.collections["Coll_154707_Data"].all_objects, ["Plane_A", "Plane_B"])
+
+    def test_recusive_instantiation(self):
+        # Append collection instances (see issue #155006)
+        self.reset_blender()
+
+        link_dir = self.testdir / "libraries/collection_assets.blend" / "Object"
+
+        bpy.ops.wm.append(directory=str(link_dir), filename="Coll_155006_A_Instance",
+                          instance_object_data=False, set_fake=False, use_recursive=True, do_reuse_local_id=False)
+
+        self.assertEqual(len(bpy.data.collections), 2)
+        self.assertEqual(len(bpy.data.meshes), 3)
+        self.assertEqual(len(bpy.data.objects), 5)
+        self.assertEqual(bpy.data.collections[0].users, 1)
+        self.assertEqual(bpy.data.collections[1].users, 1)
+        self.assertEqual(bpy.data.meshes[0].users, 1)
+        self.assertEqual(bpy.data.meshes[1].users, 1)
+        self.assertEqual(bpy.data.meshes[2].users, 1)
+        self.assertEqual(bpy.data.objects["Coll_155006_A_Instance"].users, 2)
+        self.assertEqual(bpy.data.objects["Coll_155006_B"].users, 1)
+        self.assertEqual(bpy.data.objects["Cone"].users, 1)
+        self.assertEqual(bpy.data.objects["Cube"].users, 1)
+        self.assertEqual(bpy.data.objects["Cylinder"].users, 1)
+
+        self.assert_contains_all(
+            bpy.context.scene.collection.all_objects, ["Coll_155006_A_Instance"])
+        self.assert_contains_all(
+            bpy.data.collections["Coll_155006_A"].all_objects, ["Cube", "Cylinder", "Coll_155006_B"])
+        self.assert_contains_all(
+            bpy.data.collections["Coll_155006_B"].all_objects, ["Cone"])
+
+
 class TestBlendLibPackedLinkedID(TestBlendLibLinkHelper):
 
     def __init__(self, args):
@@ -680,6 +748,25 @@ class TestBlendLibPackedLinkedID(TestBlendLibLinkHelper):
         library_indirect_archive = bpy.data.libraries[3]
 
         check_valid()
+
+
+class TestBlendLibPackedWithAnimation(TestBlendLibLinkHelper):
+
+    def __init__(self, args):
+        super().__init__(args)
+
+        self.testdir = Path(self.args.src_test_dir) / "libraries_and_linking"
+
+    def test_material_animation(self):
+        # Append w/Pack a Material using drivers (see issue #155087)
+        self.reset_blender()
+
+        link_dir = self.testdir / "libraries/animated_assets.blend"
+
+        with bpy.data.libraries.load(filepath=str(link_dir), link=True, pack=True) as (data_from, data_to):
+            data_to.objects = ["Plane_with_animated_mat"]
+
+        self.assertIsNotNone(bpy.data.materials['MAT_animated'].node_tree.animation_data)
 
 
 class TestBlendLibLibraryReload(TestBlendLibLinkHelper):
@@ -964,8 +1051,10 @@ TESTS = (
 
     TestBlendLibAppendBasic,
     TestBlendLibAppendReuseID,
+    TestBlendLibAppendCollectionInstances,
 
     TestBlendLibPackedLinkedID,
+    TestBlendLibPackedWithAnimation,
 
     TestBlendLibLibraryReload,
     TestBlendLibLibraryRelocate,

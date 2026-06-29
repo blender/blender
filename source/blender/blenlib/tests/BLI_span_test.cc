@@ -7,7 +7,7 @@
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender::tests {
 
@@ -281,10 +281,10 @@ TEST(span, ContainsPtr)
   std::array<int, 3> a = {5, 6, 7};
   int other = 10;
   Span<int> a_span(a);
-  EXPECT_TRUE(a_span.contains_ptr(&a[0] + 0));
-  EXPECT_TRUE(a_span.contains_ptr(&a[0] + 1));
-  EXPECT_TRUE(a_span.contains_ptr(&a[0] + 2));
-  EXPECT_FALSE(a_span.contains_ptr(&a[0] + 3));
+  EXPECT_TRUE(a_span.contains_ptr(a.data() + 0));
+  EXPECT_TRUE(a_span.contains_ptr(a.data() + 1));
+  EXPECT_TRUE(a_span.contains_ptr(a.data() + 2));
+  EXPECT_FALSE(a_span.contains_ptr(a.data() + 3));
   int *ptr_before = reinterpret_cast<int *>(uintptr_t(a.data()) - 1);
   EXPECT_FALSE(a_span.contains_ptr(ptr_before));
   EXPECT_FALSE(a_span.contains_ptr(&other));

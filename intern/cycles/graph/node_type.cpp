@@ -69,13 +69,13 @@ size_t SocketType::size(Type type, bool packed)
     case INT_ARRAY:
       return sizeof(array<int>);
     case COLOR_ARRAY:
-      return sizeof(array<float3>);
+      return sizeof(array<packed_float3>);
     case VECTOR_ARRAY:
-      return sizeof(array<float3>);
+      return sizeof(array<packed_float3>);
     case POINT_ARRAY:
-      return sizeof(array<float3>);
+      return sizeof(array<packed_float3>);
     case NORMAL_ARRAY:
-      return sizeof(array<float3>);
+      return sizeof(array<packed_float3>);
     case POINT2_ARRAY:
       return sizeof(array<float2>);
     case STRING_ARRAY:

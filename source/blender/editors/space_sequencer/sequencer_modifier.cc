@@ -6,8 +6,8 @@
  * \ingroup spseq
  */
 
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -286,7 +286,7 @@ static wmOperatorStatus strip_modifier_copy_exec(bContext *C, wmOperator *op)
           seq::modifier_free(smd);
           smd = smd_tmp;
         }
-        BLI_listbase_clear(&strip_iter->modifiers);
+        strip_iter->modifiers.clear_no_delete();
       }
     }
 
@@ -346,7 +346,13 @@ void SEQUENCER_OT_strip_modifier_copy(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  ot->prop = RNA_def_enum(ot->srna, "type", type_items, SEQ_MODIFIER_COPY_REPLACE, "Type", "");
+  ot->prop = RNA_def_enum(ot->srna,
+                          "type",
+                          type_items,
+                          SEQ_MODIFIER_COPY_REPLACE,
+                          "Type",
+                          "Whether to replace all modifiers on the selected strips or append to "
+                          "their existing modifier stack");
   prop = RNA_def_string(ot->srna,
                         "modifier",
                         nullptr,
@@ -366,7 +372,7 @@ static wmOperatorStatus strip_modifier_duplicate_exec(bContext *C, wmOperator *o
 {
   Scene *sequencer_scene = CTX_data_sequencer_scene(C);
   Strip *active_strip = seq::select_active_get(sequencer_scene);
-  if (!active_strip || BLI_listbase_is_empty(&active_strip->modifiers)) {
+  if (!active_strip || active_strip->modifiers.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 

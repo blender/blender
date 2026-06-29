@@ -22,12 +22,12 @@
 
 #include "BLI_array.hh"
 #include "BLI_bounds_types.hh"
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 #include "BLI_enum_flags.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 #include "WM_keymap.hh"
 #include "WM_types.hh"
@@ -78,6 +78,7 @@ struct wmNDOFMotionData;
 #ifdef WITH_XR_OPENXR
 struct wmXrRuntimeData;
 struct wmXrSessionState;
+struct wmXrViewfinderState;
 #endif
 
 namespace bke::id {
@@ -404,7 +405,7 @@ enum eWindowAlignment {
 };
 
 /**
- * \param rect: Position & size of the window.
+ * \param rect_unscaled: Position & size of the window.
  * \param space_type: #SPACE_VIEW3D, #SPACE_INFO, ... (#eSpace_Type).
  * \param toplevel: Not a child owned by other windows. A peer of main window.
  * \param dialog: whether this should be made as a dialog-style window
@@ -607,10 +608,14 @@ void WM_cursor_warp(wmWindow *win, int x, int y);
 #define WM_CURSOR_DEFAULT_LOGICAL_SIZE 24
 
 /**
+ * \param hardware_cursor: True when this uses hardware cursor display,
+ * the hardware cursor is post-scaled on macOS (out of our control).
+ * When false, this is a software cursor and the logical size is always returned.
+ *
  * \return the preferred logical size for the cursor
  * (before DPI/Hi-DPI scaling is applied).
  */
-uint WM_cursor_preferred_logical_size();
+uint WM_cursor_preferred_logical_size(bool hardware_cursor);
 
 /* Handlers. */
 
@@ -847,9 +852,9 @@ void WM_report_banners_cancel(Main *bmain);
  * given \a reports will be empty after calling this function. The \a reports #ReportList data
  * itself is not freed or cleared though, and remains fully usable after this call.
  *
- * \params reports The #ReportList from which to move reports to the WM one, may be `nullptr`.
- * \params wm the WindowManager to add given \a reports to. If `nullptr`, the first WM of current
- * #G_MAIN will be used.
+ * \param wm: the WindowManager to add given \a reports to.
+ * If `nullptr`, the first WM of current #G_MAIN will be used.
+ * \param reports: The #ReportList from which to move reports to the WM one, may be `nullptr`.
  */
 void WM_reports_from_reports_move(wmWindowManager *wm, ReportList *reports);
 
@@ -998,7 +1003,8 @@ wmOperatorStatus WM_operator_props_dialog_popup(
     std::optional<std::string> title = std::nullopt,
     std::optional<std::string> confirm_text = std::nullopt,
     bool cancel_default = false,
-    std::optional<std::string> message = std::nullopt);
+    std::optional<std::string> message = std::nullopt,
+    bool show_icon = false);
 
 wmOperatorStatus WM_operator_redo_popup(bContext *C, wmOperator *op);
 wmOperatorStatus WM_operator_ui_popup(bContext *C, wmOperator *op, int width);
@@ -1766,7 +1772,7 @@ ID *WM_drag_get_local_ID_or_import_from_asset(const bContext *C, const wmDrag *d
 /**
  * \brief Free asset ID imported for canceled drop.
  *
- * If the asset was imported (linked/appended) using #WM_drag_get_local_ID_or_import_from_asset()`
+ * If the asset was imported (linked/appended) using #WM_drag_get_local_ID_or_import_from_asset
  * (typically via a #wmDropBox.copy() callback), we want the ID to be removed again if the drop
  * operator cancels.
  * This is for use as #wmDropBox.cancel() callback.
@@ -2160,7 +2166,7 @@ bool WM_cursor_test_motion_and_update(const int mval[2]) ATTR_NONNULL(1) ATTR_WA
 /**
  * Return true if this event type is a candidate for being flagged as consecutive.
  *
- * See: #WM_EVENT_IS_CONSECUTIVE doc-string.
+ * See: #WM_EVENT_IS_CONSECUTIVE docstring.
  */
 bool WM_event_consecutive_gesture_test(const wmEvent *event);
 /**
@@ -2272,17 +2278,29 @@ bool WM_xr_session_exists(const wmXrData *xr);
  * Check if the session is running, according to the OpenXR definition.
  */
 bool WM_xr_session_is_ready(const wmXrData *xr);
+
 wmXrSessionState *WM_xr_session_state_handle_get(const wmXrData *xr);
+wmXrViewfinderState *WM_xr_session_state_viewfinder_handle_get(const wmXrData *xr);
 
 bContext *WM_xr_session_context_get(const wmXrData *xr);
 bContext *WM_xr_session_context_ensure(wmXrData *xr, const wmWindowManager *wm);
 
 void WM_xr_session_base_pose_reset(wmXrData *xr);
+void WM_xr_session_state_navigation_reset(wmXrSessionState *state);
+
+void WM_xr_session_state_viewfinder_init(wmXrSessionState *state);
+void WM_xr_session_state_viewfinder_reset(wmXrSessionState *state);
+
+void WM_xr_session_state_vignette_activate(wmXrData *xr);
+void WM_xr_session_state_vignette_update(wmXrSessionState *state);
+
 bool WM_xr_session_state_viewer_pose_location_get(const wmXrData *xr, float r_location[3]);
 bool WM_xr_session_state_viewer_pose_rotation_get(const wmXrData *xr, float r_rotation[4]);
 bool WM_xr_session_state_viewer_pose_matrix_info_get(const wmXrData *xr,
                                                      float r_viewmat[4][4],
                                                      float *r_focal_len);
+bool WM_xr_session_state_viewer_scale_get(const wmXrData *xr, float *r_scale);
+
 bool WM_xr_session_state_controller_grip_location_get(const wmXrData *xr,
                                                       unsigned int subaction_idx,
                                                       float r_location[3]);
@@ -2295,16 +2313,52 @@ bool WM_xr_session_state_controller_aim_location_get(const wmXrData *xr,
 bool WM_xr_session_state_controller_aim_rotation_get(const wmXrData *xr,
                                                      unsigned int subaction_idx,
                                                      float r_rotation[4]);
+
 bool WM_xr_session_state_nav_location_get(const wmXrData *xr, float r_location[3]);
 void WM_xr_session_state_nav_location_set(wmXrData *xr, const float location[3]);
 bool WM_xr_session_state_nav_rotation_get(const wmXrData *xr, float r_rotation[4]);
 void WM_xr_session_state_nav_rotation_set(wmXrData *xr, const float rotation[4]);
 bool WM_xr_session_state_nav_scale_get(const wmXrData *xr, float *r_scale);
 void WM_xr_session_state_nav_scale_set(wmXrData *xr, float scale);
-bool WM_xr_session_state_viewer_scale_get(const wmXrData *xr, float *r_scale);
-void WM_xr_session_state_navigation_reset(wmXrSessionState *state);
-void WM_xr_session_state_vignette_activate(wmXrData *xr);
-void WM_xr_session_state_vignette_update(wmXrSessionState *state);
+
+bool WM_xr_session_state_viewfinder_location_get(const wmXrData *xr, float r_location[3]);
+bool WM_xr_session_state_viewfinder_orientation_get(const wmXrData *xr, float r_rotation[4]);
+
+void WM_xr_session_state_viewfinder_trigger_flash(wmXrData *xr);
+void WM_xr_session_state_viewfinder_trigger_focus_indicator(wmXrData *xr, bool hit_success);
+void WM_xr_session_state_viewfinder_reset_view_smoothing(wmXrData *xr);
+
+bool WM_xr_session_state_viewfinder_capture_dof_enabled_get(const wmXrData *xr,
+                                                            bool *r_dof_enabled);
+void WM_xr_session_state_viewfinder_capture_dof_enabled_set(wmXrData *xr, bool dof_enabled);
+bool WM_xr_session_state_viewfinder_capture_lens_focal_get(const wmXrData *xr,
+                                                           float *r_lens_focal);
+void WM_xr_session_state_viewfinder_capture_lens_focal_set(wmXrData *xr, float lens_focal);
+bool WM_xr_session_state_viewfinder_capture_dof_distance_get(const wmXrData *xr,
+                                                             float *r_dof_distance);
+void WM_xr_session_state_viewfinder_capture_dof_distance_set(wmXrData *xr, float dof_distance);
+bool WM_xr_session_state_viewfinder_capture_dof_fstop_get(const wmXrData *xr, float *r_dof_fstop);
+void WM_xr_session_state_viewfinder_capture_dof_fstop_set(wmXrData *xr, float dof_fstop);
+
+bool WM_xr_session_state_viewfinder_playback_show_active_capture_in_space_enabled_get(
+    const wmXrData *xr, bool *r_enabled);
+void WM_xr_session_state_viewfinder_playback_show_active_capture_in_space_enabled_set(
+    wmXrData *xr, bool enabled);
+
+bool WM_xr_session_state_viewfinder_active_mode_get(const wmXrData *xr, eXrViewfinderMode *r_mode);
+void WM_xr_session_state_viewfinder_active_mode_set(wmXrData *xr, eXrViewfinderMode mode);
+bool WM_xr_session_state_viewfinder_active_action_live_get(const wmXrData *xr,
+                                                           eXrViewfinderLiveAction *r_action);
+void WM_xr_session_state_viewfinder_active_action_live_set(wmXrData *xr,
+                                                           eXrViewfinderLiveAction action);
+bool WM_xr_session_state_viewfinder_active_action_playback_get(
+    const wmXrData *xr, eXrViewfinderPlaybackAction *r_action);
+void WM_xr_session_state_viewfinder_active_action_playback_set(wmXrData *xr,
+                                                               eXrViewfinderPlaybackAction action);
+bool WM_xr_session_state_viewfinder_active_action_confirm_get(
+    const wmXrData *xr, eXrViewfinderConfirmAction *r_action);
+void WM_xr_session_state_viewfinder_active_action_confirm_set(wmXrData *xr,
+                                                              eXrViewfinderConfirmAction action);
 
 ARegionType *WM_xr_surface_controller_region_type_get();
 

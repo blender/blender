@@ -31,7 +31,10 @@ bool imb_is_a_avif(const uchar *mem, size_t size)
   return imb_oiio_check(mem, size, "heif");
 }
 
-ImBuf *imb_load_avif(const uchar *mem, size_t size, int flags, ImFileColorSpace &r_colorspace)
+ImBuf *imb_load_avif(const uchar *mem,
+                     size_t size,
+                     ImBufFlags flags,
+                     ImFileColorSpace &r_colorspace)
 {
   ImageSpec config, spec;
   config.attribute("oiio:UnassociatedAlpha", 1);
@@ -100,22 +103,24 @@ static void imb_save_avif_padding_workaround_end(const uchar *buf_padded)
   MEM_delete(buf_padded);
 }
 
-static std::tuple<WriteContext, ImageSpec, bool> prepare_save_avif(ImBuf *ibuf, int flags)
+static std::tuple<WriteContext, ImageSpec, bool> prepare_save_avif(ImBuf *ibuf, ImBufFlags flags)
 {
   const int bits_per_sample = (ibuf->foptions.flag & AVIF_10BIT) ? 10 :
                               (ibuf->foptions.flag & AVIF_12BIT) ? 12 :
                                                                    8;
   const bool use_float = bits_per_sample > 8;
-  const int file_channels = ibuf->planes >> 3;
+  int file_channels = ibuf->color_mode_channels_get();
+  /* AVIF/HEIF does not support 2-channel (gray + alpha) writes; promote to RGBA. */
+  if (file_channels == 2) {
+    file_channels = 4;
+  }
   const TypeDesc data_format = use_float ? TypeDesc::UINT16 : TypeDesc::UINT8;
 
   WriteContext ctx = imb_create_write_context("heif", ibuf, flags, use_float);
   ImageSpec file_spec = imb_create_write_spec(ctx, file_channels, data_format);
 
   /* Skip if the float buffer was managed already. */
-  if (use_float &&
-      (ibuf->float_buffer.colorspace || (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA)))
-  {
+  if (use_float && (ibuf->float_buffer.colorspace || ibuf->colorspace_is_data())) {
     file_spec.attribute("oiio:UnassociatedAlpha", 0);
   }
   else {
@@ -128,11 +133,11 @@ static std::tuple<WriteContext, ImageSpec, bool> prepare_save_avif(ImBuf *ibuf, 
   return {ctx, file_spec, use_float};
 }
 
-bool imb_save_avif(ImBuf *ibuf, const char *filepath, int flags)
+bool imb_save_avif(ImBuf *ibuf, const char *filepath, ImBufFlags flags)
 {
   auto [ctx, file_spec, use_float] = prepare_save_avif(ibuf, flags);
   const uchar *buf_padded = nullptr;
-  if (OIIO_VERSION_LESS(3, 2, 0)) {
+  if (OIIO_VERSION_LESS(3, 1, 12)) {
     buf_padded = imb_save_avif_padding_workaround_begin(ibuf, ctx, use_float);
   }
   bool result = imb_oiio_write(ctx, filepath, file_spec);
@@ -140,11 +145,11 @@ bool imb_save_avif(ImBuf *ibuf, const char *filepath, int flags)
   return result;
 }
 
-Vector<uint8_t> imb_save_buffer_avif(ImBuf *ibuf, int flags)
+Vector<uint8_t> imb_save_buffer_avif(ImBuf *ibuf, ImBufFlags flags)
 {
   auto [ctx, file_spec, use_float] = prepare_save_avif(ibuf, flags);
   const uchar *buf_padded = nullptr;
-  if (OIIO_VERSION_LESS(3, 2, 0)) {
+  if (OIIO_VERSION_LESS(3, 1, 12)) {
     buf_padded = imb_save_avif_padding_workaround_begin(ibuf, ctx, use_float);
   }
   Vector<uint8_t> result = imb_oiio_write_buffer(ctx, file_spec);

@@ -19,8 +19,8 @@
 
 #ifdef RNA_RUNTIME
 
-#  include "BLI_listbase.h"
-#  include "BLI_string.h"
+#  include "BLI_listbase.hh"
+#  include "BLI_string.hh"
 
 #  include "BKE_global.hh"
 #  include "BKE_paint.hh"
@@ -93,7 +93,7 @@ static void rna_WorkSpace_owner_ids_remove(WorkSpace *workspace,
 
 static void rna_WorkSpace_owner_ids_clear(WorkSpace *workspace)
 {
-  BLI_freelistN(&workspace->owner_ids);
+  workspace->owner_ids.free_no_destruct();
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, workspace);
 }
 
@@ -491,7 +491,7 @@ static void rna_def_workspace(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Use UI Tags", "Filter the UI by tags");
   RNA_def_property_update(prop, 0, "rna_window_update_all");
 
-  prop = rna_def_asset_library_reference_common(
+  prop = rna_def_asset_library_ui_reference_common(
       srna, "rna_WorkSpace_asset_library_get", "rna_WorkSpace_asset_library_set");
   RNA_def_property_ui_text(prop,
                            "Asset Library",
@@ -502,8 +502,8 @@ static void rna_def_workspace(BlenderRNA *brna)
   prop = RNA_def_property(srna, "sequencer_scene", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, nullptr, "sequencer_scene");
   RNA_def_property_ui_text(prop, "Sequencer Scene", "");
-  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_PTR_NO_OWNERSHIP);
-  RNA_def_property_update(prop, 0, "rna_window_update_all");
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_PTR_NO_OWNERSHIP | PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, NC_WINDOW, "rna_workspace_sync_scene_time_update");
 
   prop = RNA_def_property(srna, "use_scene_time_sync", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flags", WORKSPACE_SYNC_SCENE_TIME);

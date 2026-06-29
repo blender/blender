@@ -20,7 +20,7 @@
 #  include <algorithm>
 #  include <fmt/format.h>
 
-#  include "BLI_string.h"
+#  include "BLI_string.hh"
 
 #  include "DNA_curve_types.h"
 #  include "DNA_meshdata_types.h"

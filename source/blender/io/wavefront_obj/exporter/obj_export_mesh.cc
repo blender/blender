@@ -16,10 +16,10 @@
 #include "BKE_object.hh"
 
 #include "BLI_array_utils.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_rotation.h"
+#include "BLI_math_rotation_c.hh"
 #include "BLI_sort.hh"
 #include "BLI_vector_set.hh"
 
@@ -377,14 +377,14 @@ void OBJMesh::store_normal_coords_and_indices()
 
 int OBJMesh::tot_deform_groups() const
 {
-  return BLI_listbase_count(&export_mesh_->vertex_group_names);
+  return export_mesh_->vertex_group_names.count();
 }
 
 int16_t OBJMesh::get_face_deform_group_index(const int face_index,
                                              MutableSpan<float> group_weights) const
 {
   BLI_assert(face_index < export_mesh_->faces_num);
-  BLI_assert(group_weights.size() == BLI_listbase_count(&export_mesh_->vertex_group_names));
+  BLI_assert(group_weights.size() == export_mesh_->vertex_group_names.count());
   const Span<MDeformVert> dverts = export_mesh_->deform_verts();
   if (dverts.is_empty()) {
     return NOT_FOUND;

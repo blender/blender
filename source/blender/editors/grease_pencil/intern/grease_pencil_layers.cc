@@ -6,11 +6,11 @@
  * \ingroup edgreasepencil
  */
 
-#include "BLI_assert.h"
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
+#include "BLI_assert.hh"
+#include "BLI_listbase.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_string.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_string.hh"
 
 #include "BKE_attribute_math.hh"
 #include "BKE_context.hh"
@@ -902,7 +902,7 @@ static wmOperatorStatus grease_pencil_layer_mask_add_exec(bContext *C, wmOperato
     LayerMask *new_mask = MEM_new<LayerMask>(__func__, mask_name);
     BLI_addtail(&active_layer.masks, reinterpret_cast<GreasePencilLayerMask *>(new_mask));
     /* Make the newly added mask active. */
-    active_layer.active_mask_index = BLI_listbase_count(&active_layer.masks) - 1;
+    active_layer.active_mask_index = active_layer.masks.count() - 1;
   }
   else {
     BKE_report(op->reports, RPT_ERROR, "Unable to find layer to add");
@@ -942,7 +942,7 @@ static bool grease_pencil_layer_mask_poll(bContext *C)
   GreasePencil &grease_pencil = *ed::greasepencil::from_context(*C);
   Layer &active_layer = *grease_pencil.get_active_layer();
 
-  return !BLI_listbase_is_empty(&active_layer.masks);
+  return !active_layer.masks.is_empty();
 }
 
 static wmOperatorStatus grease_pencil_layer_mask_remove_exec(bContext *C, wmOperator * /*op*/)
@@ -996,7 +996,7 @@ static bool grease_pencil_layer_mask_reorder_poll(bContext *C)
   GreasePencil &grease_pencil = *ed::greasepencil::from_context(*C);
   Layer &active_layer = *grease_pencil.get_active_layer();
 
-  return BLI_listbase_count(&active_layer.masks) > 1;
+  return active_layer.masks.count() > 1;
 }
 
 static wmOperatorStatus grease_pencil_layer_mask_reorder_exec(bContext *C, wmOperator *op)

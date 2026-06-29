@@ -6,7 +6,7 @@
  * \ingroup blenloader
  */
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include <string>
 
@@ -61,12 +61,12 @@
 #include "SEQ_effects.hh"
 #include "SEQ_iterator.hh"
 
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
 
 #include "BLT_translation.hh"
@@ -593,7 +593,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
           ListBaseT<ARegion> *lb = (&sl == area.spacedata.first) ? &area.regionbase :
                                                                    &sl.regionbase;
           for (ARegion &region : *lb) {
-            BLI_listbase_clear(&region.ui_previews);
+            region.ui_previews.clear_no_delete();
           }
         }
       }
@@ -627,7 +627,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
         sce.r.bake.normal_swizzle[2] = R_BAKE_POSZ;
         STRNCPY(sce.r.bake.filepath, U.renderdir);
 
-        sce.r.bake.im_format.planes = R_IMF_PLANES_RGBA;
+        sce.r.bake.im_format.color_mode = ImColorMode::RGBA;
         sce.r.bake.im_format.imtype = R_IMF_IMTYPE_PNG;
         sce.r.bake.im_format.depth = R_IMF_CHAN_DEPTH_8;
         sce.r.bake.im_format.quality = 90;
@@ -644,7 +644,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
 
     {
       for (Scene &scene : bmain->scenes) {
-        int num_layers = BLI_listbase_count(&scene.r.layers);
+        int num_layers = scene.r.layers.count();
         scene.r.actlay = min_ff(scene.r.actlay, num_layers - 1);
       }
     }
@@ -1290,7 +1290,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
        * Loop all strokes and create the palette and all colors
        */
       for (bGPdata &gpd : bmain->gpencils) {
-        if (BLI_listbase_is_empty(&gpd.palettes)) {
+        if (gpd.palettes.is_empty()) {
           /* create palette */
           bGPDpalette *palette = BKE_gpencil_palette_addnew(&gpd, "GP_Palette");
           for (bGPDlayer &gpl : gpd.layers) {

@@ -10,8 +10,8 @@
 
 #include <cstring>
 
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_fluid_types.h"
 #include "DNA_modifier_types.h"
@@ -582,7 +582,7 @@ void DRW_fluid_ensure_range_field(FluidModifierData *fmd)
 
 void DRW_smoke_begin_sync(DRWData *drw_data)
 {
-  if (BLI_listbase_is_empty(&drw_data->smoke_textures)) {
+  if (drw_data->smoke_textures.is_empty()) {
     return;
   }
   /* See workaround at blender::eevee::Instance::render_sample
@@ -602,7 +602,7 @@ void DRW_smoke_exit(DRWData *drw_data)
   for (LinkData &link : drw_data->smoke_textures) {
     GPU_TEXTURE_FREE_SAFE(*(gpu::Texture **)link.data);
   }
-  BLI_freelistN(&drw_data->smoke_textures);
+  drw_data->smoke_textures.free_no_destruct();
 }
 
 /** \} */

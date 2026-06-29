@@ -45,7 +45,7 @@ std::optional<FillCache> fill_cache_from_fill_ids(const VArray<int> &fill_ids)
           fill_sizes.append(1);
           curve_indices_by_fill.append(Vector<int>({curve}));
         },
-        [&](int *value) {
+        [&](const int *value) {
           const int fill_index = *value;
           fill_sizes[fill_index]++;
           curve_indices_by_fill[fill_index].append(curve);
@@ -129,7 +129,7 @@ IndexMask selected_mask_to_fills(const IndexMask &selected_mask,
     BLI_assert(domain == AttrDomain::Point);
 
     const IndexMask selected_curves = curves::point_to_curve_selection(
-        points_by_curve, curves.curves_range(), memory);
+        points_by_curve, selected_mask, memory);
     return curves::curve_to_point_selection(points_by_curve, selected_curves, memory);
   }
 
@@ -138,7 +138,7 @@ IndexMask selected_mask_to_fills(const IndexMask &selected_mask,
 
   if (domain == AttrDomain::Point) {
     const IndexMask selected_curves = curves::point_to_curve_selection(
-        points_by_curve, curves.curves_range(), memory);
+        points_by_curve, selected_mask, memory);
 
     selected_curves.foreach_index([&](const int64_t curve_i) {
       const int fill_id = fill_ids[curve_i];
@@ -196,6 +196,7 @@ void separate_fill_ids(CurvesGeometry &curves, const IndexMask &strokes_to_keep)
       [&](const int curve_i) { max_id = math::max(max_id, fill_ids.span[curve_i]); });
 
   if (max_id == 0) {
+    fill_ids.finish();
     return;
   }
 

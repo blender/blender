@@ -17,11 +17,11 @@
 #include "DNA_screen_types.h"
 
 #include "BLI_math_matrix.hh"
-#include "BLI_math_rotation.h"
-#include "BLI_polyfill_2d.h"
-#include "BLI_rect.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_polyfill_2d.hh"
+#include "BLI_rect.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -364,18 +364,17 @@ void draw_but_IMAGE(ARegion * /*region*/,
     rgba_uchar_to_float(col, but->col);
   }
 
-  IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
-  immDrawPixelsTexTiled(&state,
-                        float(rect->xmin),
-                        float(rect->ymin),
-                        ibuf->x,
-                        ibuf->y,
-                        gpu::TextureFormat::UNORM_8_8_8_8,
-                        false,
-                        ibuf->byte_data(),
-                        1.0f,
-                        1.0f,
-                        col);
+  PixelBitmapDrawer drawer(GPU_SHADER_3D_IMAGE_COLOR);
+  drawer.draw(float(rect->xmin),
+              float(rect->ymin),
+              ibuf->x,
+              ibuf->y,
+              gpu::TextureFormat::UNORM_8_8_8_8,
+              false,
+              ibuf->byte_data(),
+              1.0f,
+              1.0f,
+              col);
 
   GPU_blend(GPU_BLEND_NONE);
 
@@ -2461,18 +2460,17 @@ void draw_but_TRACKPREVIEW(ARegion *region,
         draw_roundbox_4fv(&mask_rect, true, 3.0f, color);
       }
 
-      IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
-      immDrawPixelsTexTiled(&state,
-                            rect.xmin,
-                            rect.ymin + 1,
-                            drawibuf->x,
-                            drawibuf->y,
-                            gpu::TextureFormat::UNORM_8_8_8_8,
-                            true,
-                            drawibuf->byte_data(),
-                            1.0f,
-                            1.0f,
-                            nullptr);
+      PixelBitmapDrawer drawer(GPU_SHADER_3D_IMAGE_COLOR);
+      drawer.draw(rect.xmin,
+                  rect.ymin + 1,
+                  drawibuf->x,
+                  drawibuf->y,
+                  gpu::TextureFormat::UNORM_8_8_8_8,
+                  true,
+                  drawibuf->byte_data(),
+                  1.0f,
+                  1.0f,
+                  nullptr);
 
       /* draw cross for pixel position */
       GPU_matrix_translate_2f(rect.xmin + scopes->track_pos[0], rect.ymin + scopes->track_pos[1]);

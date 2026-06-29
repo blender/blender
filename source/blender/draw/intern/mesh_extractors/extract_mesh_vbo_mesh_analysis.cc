@@ -10,11 +10,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_jitter_2d.h"
+#include "BLI_jitter_2d.hh"
 #include "BLI_map.hh"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
 #include "BLI_ordered_edge.hh"
 
 #include "BKE_bvhutils.hh"
@@ -262,7 +262,7 @@ static bool bvh_overlap_cb(void *userdata, int index_a, int index_b, int /*threa
 {
   BVHTree_OverlapData *data = static_cast<BVHTree_OverlapData *>(userdata);
 
-  if (UNLIKELY(data->tri_faces[index_a] == data->tri_faces[index_b])) {
+  if (data->tri_faces[index_a] == data->tri_faces[index_b]) [[unlikely]] {
     return false;
   }
 

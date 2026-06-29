@@ -240,40 +240,155 @@ void ShadowPipeline::render(View &view)
  * Helper class for handling prepasses in Forward and Deferred pipelines.
  * \{ */
 
-void Prepass::setup_subpasses(DRWState common_state)
+void Prepass::init(DRWState extra_state,
+                   bool supports_motion_vectors,
+                   bool supports_raycast_visibility,
+                   FunctionRef<void(PassMain &pass)> pass_setup_cb)
 {
-  /* We can't know at this point if the normal target is enabled, so we always enable color write.
-   * The write will be optimized out if the attachment is empty. */
-  common_state |= DRW_STATE_WRITE_COLOR;
+  common_state_ = DRW_STATE_WRITE_DEPTH | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
+                  inst_.film.depth.test_state | extra_state;
+  supports_motion_vectors_ = supports_motion_vectors;
+  supports_raycast_visibility_ = supports_raycast_visibility;
 
-  static constexpr const char *subpass_names[2 /*double sided*/][2 /*moving*/][2 /*write id*/] = {
-      {{"SingleSided.Static.NoID", "SingleSided.Static.ID"},
-       {"SingleSided.Moving.NoID", "SingleSided.Moving.ID"}},
-      {{"DoubleSided.Static.NoID", "DoubleSided.Static.ID"},
-       {"DoubleSided.Moving.NoID", "DoubleSided.Moving.ID"}}};
+  pass_.init();
+  /* Common resources. */
+  pass_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+  pass_.bind_resources(inst_.uniform_data);
+  pass_.bind_resources(inst_.velocity);
+  pass_.bind_resources(inst_.sampling);
+  if (pass_setup_cb) {
+    pass_setup_cb(pass_);
+  }
 
-  for (bool double_sided : {false, true}) {
-    for (bool moving : {false, true}) {
-      for (bool write_id : {false, true}) {
-        PassMain::Sub *&subpass = prepass_subpasses[double_sided][moving][write_id];
-        subpass = &this->sub(subpass_names[double_sided][moving][write_id]);
-        subpass->state_set(common_state |
-                           (double_sided ? DRW_STATE_NO_DRAW : DRW_STATE_CULL_BACK));
-        subpass->subpass_transition(GPU_ATTACHMENT_WRITE,
-                                    {GPU_ATTACHMENT_WRITE, /* normal */
-                                     write_id ? GPU_ATTACHMENT_WRITE : GPU_ATTACHMENT_IGNORE,
-                                     moving ? GPU_ATTACHMENT_WRITE : GPU_ATTACHMENT_IGNORE});
+  static constexpr const char
+      *subpass_names[2 /*hide from raycast*/][2 /*double sided*/][2 /*moving*/][2 /*write id*/] = {
+          {{{"SingleSided.Static", "SingleSided.Static.ID"},
+            {"SingleSided.Moving", "SingleSided.Moving.ID"}},
+           {{"DoubleSided.Static", "DoubleSided.Static.ID"},
+            {"DoubleSided.Moving", "DoubleSided.Moving.ID"}}},
+          {{{"HideFromRaycast.SingleSided.Static", ""},
+            {"HideFromRaycast.SingleSided.Moving", ""}},
+           {{"HideFromRaycast.DoubleSided.Static", ""},
+            {"HideFromRaycast.DoubleSided.Moving", ""}}}};
+
+  for (bool hide_from_raycast : {false, true}) {
+    for (bool double_sided : {false, true}) {
+      for (bool moving : {false, true}) {
+        for (bool write_id : {false, true}) {
+          PassMain::Sub *&sub = subs_[hide_from_raycast][double_sided][moving][write_id];
+          PassMain::Sub *&setup_sub =
+              setup_subs_[hide_from_raycast][double_sided][moving][write_id];
+          if ((hide_from_raycast && write_id) || (!supports_motion_vectors && moving) ||
+              (!supports_raycast_visibility && !hide_from_raycast))
+          {
+            /* Never needed.
+             * Object IDs are only used for checking raycast self-hits.
+             * If the pipeline doesn't support motion vectors, Prepass::add should always be called
+             * with has_motion == false.
+             * If the pipeline doesn't support raycast visibility, Prepass::add should always be
+             * called with hide_from_raycast == true. */
+            sub = nullptr;
+            setup_sub = nullptr;
+            continue;
+          }
+          sub = &pass_.sub(subpass_names[hide_from_raycast][double_sided][moving][write_id]);
+          setup_sub = &sub->sub("Setup");
+        }
       }
     }
   }
+
+  dummy_raycast_depth_tx_.ensure_2d(RenderBuffers::depth_format, int2(1));
+  dummy_raycast_id_tx_.ensure_2d(RenderBuffers::object_id_format, int2(1));
+  dummy_raycast_normal_tx_.ensure_2d(RenderBuffers::prepass_normal_format, int2(1));
 }
 
-PassMain::Sub *Prepass::add(blender::Material *blender_mat, GPUMaterial *gpumat, bool has_motion)
+PassMain::Sub *Prepass::add(blender::Material *blender_mat,
+                            GPUMaterial *gpumat,
+                            bool has_motion,
+                            bool hide_from_raycast)
 {
-  bool double_sided = !(blender_mat->blend_flag & MA_BL_CULL_BACKFACE);
-  bool write_id = GPU_material_flag_get(gpumat, GPU_MATFLAG_RAYCAST);
-  PassMain::Sub *pass = prepass_subpasses[double_sided][has_motion][write_id];
-  return &pass->sub(GPU_material_get_name(gpumat));
+  const bool double_sided = !(blender_mat->blend_flag & MA_BL_CULL_BACKFACE);
+  const bool has_raycast = GPU_material_flag_get(gpumat, GPU_MATFLAG_RAYCAST);
+  const bool write_id = has_raycast && !hide_from_raycast;
+
+  PassMain::Sub &sub = subs_[hide_from_raycast][double_sided][has_motion][write_id]->sub(
+      GPU_material_get_name(gpumat));
+  if (has_raycast) {
+    /* NOTE: Bound per subpass since material textures could override these slots. */
+    sub.bind_texture(RAYCAST_DEPTH_TEX_SLOT,
+                     hide_from_raycast ? &inst_.render_buffers.raycast_depth_tx :
+                                         &dummy_raycast_depth_tx_);
+    sub.bind_texture(OBJECT_ID_TEX_SLOT,
+                     hide_from_raycast ? &inst_.render_buffers.object_id_tx :
+                                         &dummy_raycast_id_tx_);
+    sub.bind_texture(PREPASS_NORMAL_TEX_SLOT,
+                     hide_from_raycast ? &inst_.render_buffers.prepass_normal_tx :
+                                         &dummy_raycast_normal_tx_);
+  }
+  return &sub;
+}
+
+void Prepass::end_sync()
+{
+  const bool has_raycast = inst_.pipelines.has_raycast;
+
+  for (bool hide_from_raycast : {false, true}) {
+    for (bool double_sided : {false, true}) {
+      for (bool moving : {false, true}) {
+        for (bool write_id : {false, true}) {
+          PassMain::Sub *sub = setup_subs_[hide_from_raycast][double_sided][moving][write_id];
+          if (!sub) {
+            continue;
+          }
+          const bool write_raycast = has_raycast && !hide_from_raycast;
+          const bool read_raycast = has_raycast && hide_from_raycast;
+          const bool write_motion = supports_motion_vectors_ && moving;
+          DRWState state = common_state_;
+          SET_FLAG_FROM_TEST(state, !double_sided, DRW_STATE_CULL_BACK);
+          SET_FLAG_FROM_TEST(state, write_raycast || write_motion, DRW_STATE_WRITE_COLOR);
+          sub->state_set(state);
+          sub->subpass_transition(
+              GPU_ATTACHMENT_WRITE,
+              {write_raycast ?
+                   GPU_ATTACHMENT_WRITE :
+                   (read_raycast ? GPU_ATTACHMENT_READ : GPU_ATTACHMENT_IGNORE), /* normal */
+               (write_raycast && write_id) ?
+                   GPU_ATTACHMENT_WRITE :
+                   (read_raycast ? GPU_ATTACHMENT_READ : GPU_ATTACHMENT_IGNORE),
+               write_motion ? GPU_ATTACHMENT_WRITE : GPU_ATTACHMENT_IGNORE});
+        }
+      }
+    }
+  }
+
+  if (supports_raycast_visibility_) {
+    /* First Raycast-visible Subpass. */
+    setup_subs_[false][false][false][false]->bind_ubo(PIPELINE_BUF_SLOT, &pipeline_buf_copy_);
+  }
+  /* First HideFromRaycast Subpass. */
+  setup_subs_[true][false][false][false]->bind_ubo(PIPELINE_BUF_SLOT,
+                                                   &pipeline_buf_copy_hide_from_raycast_);
+
+  if (has_raycast && supports_raycast_visibility_) {
+    setup_subs_[true][false][false][false]->texture_copy(&fb_depth_tx_,
+                                                         &inst_.render_buffers.raycast_depth_tx);
+  }
+}
+
+void Prepass::render(View &view, gpu::Texture *fb_depth_tx, bool can_raycast)
+{
+  *pipeline_buf_copy_.data() = *inst_.uniform_data.pipeline.data();
+  pipeline_buf_copy_.can_raycast = false;
+  pipeline_buf_copy_.push_update();
+
+  *pipeline_buf_copy_hide_from_raycast_.data() = *inst_.uniform_data.pipeline.data();
+  pipeline_buf_copy_hide_from_raycast_.can_raycast = can_raycast;
+  pipeline_buf_copy_hide_from_raycast_.push_update();
+
+  fb_depth_tx_ = fb_depth_tx;
+
+  inst_.manager->submit(pass_, view);
 }
 
 /** \} */
@@ -292,20 +407,8 @@ void ForwardPipeline::sync()
   has_colored_transparency_ = false;
   has_holdout_ = false;
 
-  {
-    prepass_ps_.init();
+  prepass_.init({}, true, false);
 
-    {
-      /* Common resources. */
-      prepass_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-      prepass_ps_.bind_resources(inst_.uniform_data);
-      prepass_ps_.bind_resources(inst_.velocity);
-      prepass_ps_.bind_resources(inst_.sampling);
-    }
-
-    prepass_ps_.setup_subpasses(DRW_STATE_WRITE_DEPTH | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
-                                inst_.film.depth.test_state);
-  }
   {
     opaque_ps_.init();
 
@@ -321,6 +424,7 @@ void ForwardPipeline::sync()
       opaque_ps_.bind_resources(inst_.hiz_buffer.front);
       opaque_ps_.bind_resources(inst_.volume_probes);
       opaque_ps_.bind_resources(inst_.sphere_probes);
+      opaque_ps_.bind_resources(inst_.planar_probes);
     }
 
     const DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
@@ -336,6 +440,7 @@ void ForwardPipeline::sync()
         pass = &opaque_ps_.sub(subpass_names[raycast][double_sided]);
         pass->state_set(double_sided ? state : (state | DRW_STATE_CULL_BACK));
         if (raycast) {
+          pass->bind_texture(RAYCAST_DEPTH_TEX_SLOT, &inst_.render_buffers.raycast_depth_tx);
           pass->bind_texture(OBJECT_ID_TEX_SLOT, &inst_.render_buffers.object_id_tx);
           pass->bind_texture(PREPASS_NORMAL_TEX_SLOT, &inst_.render_buffers.prepass_normal_tx);
         }
@@ -361,6 +466,7 @@ void ForwardPipeline::sync()
     sub.bind_resources(inst_.hiz_buffer.front);
     sub.bind_resources(inst_.volume_probes);
     sub.bind_resources(inst_.sphere_probes);
+    sub.bind_resources(inst_.planar_probes);
   }
   {
     gpu::Shader *sh = inst_.shaders.static_shader_get(TRANSPARENCY_RESOLVE);
@@ -382,6 +488,7 @@ void ForwardPipeline::sync()
 void ForwardPipeline::end_sync()
 {
   inst_.pipelines.data.use_monochromatic_transmittance = !use_colored_transparency();
+  prepass_.end_sync();
 }
 
 PassMain::Sub *ForwardPipeline::prepass_opaque_add(blender::Material *blender_mat,
@@ -397,7 +504,7 @@ PassMain::Sub *ForwardPipeline::prepass_opaque_add(blender::Material *blender_ma
    * is no mix shader (could do better constant folding but that's expensive). */
 
   has_opaque_ = true;
-  return prepass_ps_.add(blender_mat, gpumat, has_motion);
+  return prepass_.add(blender_mat, gpumat, has_motion, true);
 }
 
 PassMain::Sub *ForwardPipeline::material_opaque_add(const Object *ob,
@@ -448,6 +555,8 @@ void ForwardPipeline::transparent_add(const Object *ob,
    * NOTE: Pre-pass needs to be created first in order to be sorted first. */
   float sorting_value = math::dot(ob_location, camera_forward_);
 
+  const bool has_raycast = GPU_material_flag_get(gpumat, GPU_MATFLAG_RAYCAST);
+
   /* Prepass */
   if (blender_mat->blend_flag & MA_BL_HIDE_BACKFACE) {
     PassMain::Sub *pass = &transparent_ps_.sub(GPU_material_get_name(gpumat), sorting_value);
@@ -457,7 +566,8 @@ void ForwardPipeline::transparent_add(const Object *ob,
       pass->bind_texture(HIZ_PREVIOUS_LAYER_TEX_SLOT, &inst_.hiz_buffer.back.ref_tx_);
       pass->bind_texture(RADIANCE_PREVIOUS_LAYER_TEX_SLOT, &inst_.render_buffers.combined_tx);
     }
-    if (GPU_material_flag_get(gpumat, GPU_MATFLAG_RAYCAST)) {
+    if (has_raycast) {
+      pass->bind_texture(RAYCAST_DEPTH_TEX_SLOT, &inst_.render_buffers.raycast_depth_tx);
       pass->bind_texture(OBJECT_ID_TEX_SLOT, &inst_.render_buffers.object_id_tx);
       pass->bind_texture(PREPASS_NORMAL_TEX_SLOT, &inst_.render_buffers.prepass_normal_tx);
     }
@@ -473,7 +583,8 @@ void ForwardPipeline::transparent_add(const Object *ob,
       pass->bind_texture(HIZ_PREVIOUS_LAYER_TEX_SLOT, &inst_.hiz_buffer.back.ref_tx_);
       pass->bind_texture(RADIANCE_PREVIOUS_LAYER_TEX_SLOT, &inst_.render_buffers.combined_tx);
     }
-    if (GPU_material_flag_get(gpumat, GPU_MATFLAG_RAYCAST)) {
+    if (has_raycast) {
+      pass->bind_texture(RAYCAST_DEPTH_TEX_SLOT, &inst_.render_buffers.raycast_depth_tx);
       pass->bind_texture(OBJECT_ID_TEX_SLOT, &inst_.render_buffers.object_id_tx);
       pass->bind_texture(PREPASS_NORMAL_TEX_SLOT, &inst_.render_buffers.prepass_normal_tx);
     }
@@ -486,17 +597,17 @@ void ForwardPipeline::TransparencyBuffer::acquire(int2 extent, bool use_colored_
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
 
   if (!use_colored_transparency) {
-    r_channel_tx.acquire(extent, gpu::TextureFormat::SFLOAT_16_16_16_16, usage);
+    r_channel_tx.acquire_2d(extent, gpu::TextureFormat::SFLOAT_16_16_16_16, usage);
     /* Dummy texture for validation. Will not be sampled or attached. */
-    g_channel_tx.acquire(int2(1), gpu::TextureFormat::UNORM_8_8_8_8);
-    b_channel_tx.acquire(int2(1), gpu::TextureFormat::UNORM_8_8_8_8);
-    a_channel_tx.acquire(int2(1), gpu::TextureFormat::UNORM_8_8_8_8);
+    g_channel_tx.acquire_2d(int2(1), gpu::TextureFormat::UNORM_8_8_8_8);
+    b_channel_tx.acquire_2d(int2(1), gpu::TextureFormat::UNORM_8_8_8_8);
+    a_channel_tx.acquire_2d(int2(1), gpu::TextureFormat::UNORM_8_8_8_8);
   }
   else {
-    r_channel_tx.acquire(extent, gpu::TextureFormat::SFLOAT_16_16, usage);
-    g_channel_tx.acquire(extent, gpu::TextureFormat::SFLOAT_16_16, usage);
-    b_channel_tx.acquire(extent, gpu::TextureFormat::SFLOAT_16_16, usage);
-    a_channel_tx.acquire(extent, gpu::TextureFormat::UNORM_8_8, usage);
+    r_channel_tx.acquire_2d(extent, gpu::TextureFormat::SFLOAT_16_16, usage);
+    g_channel_tx.acquire_2d(extent, gpu::TextureFormat::SFLOAT_16_16, usage);
+    b_channel_tx.acquire_2d(extent, gpu::TextureFormat::SFLOAT_16_16, usage);
+    a_channel_tx.acquire_2d(extent, gpu::TextureFormat::UNORM_8_8, usage);
   }
 }
 
@@ -532,7 +643,7 @@ void ForwardPipeline::render(View &view,
   GPU_debug_group_begin("Forward.Opaque");
 
   prepass_fb.bind();
-  inst_.manager->submit(prepass_ps_, view);
+  prepass_.render(view, nullptr, true);
 
   inst_.hiz_buffer.set_dirty();
   inst_.hiz_buffer.update();
@@ -639,10 +750,17 @@ void DeferredLayerBase::gbuffer_pass_sync(Instance &inst)
           pass->bind_resources(inst.shadows);
           pass->bind_resources(inst.sphere_probes);
           pass->bind_resources(inst.volume_probes);
+          if (is_probe_) {
+            pass->bind_resources(inst.planar_probes.dummy_resources);
+          }
+          else {
+            pass->bind_resources(inst.planar_probes);
+          }
           pass->bind_texture(HIZ_PREVIOUS_LAYER_TEX_SLOT, &inst.hiz_buffer.back.ref_tx_);
           pass->bind_texture(RADIANCE_PREVIOUS_LAYER_TEX_SLOT, &radiance_behind_tx_);
         }
         if (raycast) {
+          pass->bind_texture(RAYCAST_DEPTH_TEX_SLOT, &inst.render_buffers.raycast_depth_tx);
           pass->bind_texture(OBJECT_ID_TEX_SLOT, &inst.render_buffers.object_id_tx);
           pass->bind_texture(PREPASS_NORMAL_TEX_SLOT, &inst.render_buffers.prepass_normal_tx);
         }
@@ -657,28 +775,27 @@ void DeferredLayerBase::gbuffer_pass_sync(Instance &inst)
 
 void DeferredLayer::begin_sync()
 {
+  /* Make alpha hash scale sub-pixel so that it converges to a noise free image.
+   * If there is motion, use pixel scale for stability. */
+  bool alpha_hash_subpixel_scale = !inst_.is_viewport() || !inst_.velocity.camera_has_motion();
+  inst_.pipelines.data.alpha_hash_scale = alpha_hash_subpixel_scale ? 0.1f : 1.0f;
+
+  prepass_.init(DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_ALWAYS,
+                true,
+                true,
+                [](PassMain &pass) { pass.state_stencil(0xFFu, 0u, 0xFFu); });
+
   {
-    prepass_ps_.init();
-    /* Textures. */
-    prepass_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-
-    /* Make alpha hash scale sub-pixel so that it converges to a noise free image.
-     * If there is motion, use pixel scale for stability. */
-    bool alpha_hash_subpixel_scale = !inst_.is_viewport() || !inst_.velocity.camera_has_motion();
-    inst_.pipelines.data.alpha_hash_scale = alpha_hash_subpixel_scale ? 0.1f : 1.0f;
-
-    prepass_ps_.bind_resources(inst_.uniform_data);
-    prepass_ps_.bind_resources(inst_.velocity);
-    prepass_ps_.bind_resources(inst_.sampling);
-
-    /* Clear stencil buffer so that prepass can tag it. Then draw a full-screen triangle that will
-     * clear AOVs for all the pixels touched by this layer. */
-    prepass_ps_.clear_stencil(0xFFu);
-    prepass_ps_.state_stencil(0xFFu, 0u, 0xFFu);
-
-    prepass_ps_.setup_subpasses(DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_ALWAYS |
-                                DRW_STATE_WRITE_DEPTH | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
-                                inst_.film.depth.test_state);
+    gpu::Shader *sh = inst_.shaders.static_shader_get(DEFERRED_AOV_CLEAR);
+    clear_aovs_ps_.init();
+    clear_aovs_ps_.shader_set(sh);
+    clear_aovs_ps_.state_set(DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_EQUAL);
+    clear_aovs_ps_.bind_image("rp_color_img", &inst_.render_buffers.rp_color_tx);
+    clear_aovs_ps_.bind_image("rp_value_img", &inst_.render_buffers.rp_value_tx);
+    clear_aovs_ps_.bind_image("rp_cryptomatte_img", &inst_.render_buffers.cryptomatte_tx);
+    clear_aovs_ps_.bind_resources(inst_.cryptomatte);
+    clear_aovs_ps_.bind_resources(inst_.uniform_data);
+    clear_aovs_ps_.state_stencil(0xFFu, 0x0u, 0xFFu);
   }
 
   this->gbuffer_pass_sync(inst_);
@@ -699,6 +816,8 @@ void DeferredLayer::end_sync(bool is_first_pass,
                              bool is_last_pass,
                              bool next_layer_has_transmission)
 {
+  prepass_.end_sync();
+
   const bool has_any_closure = closure_bits_ != 0;
   /* We need the feedback output in case of refraction in the next pass (see #126455). */
   const bool is_layer_refracted = (next_layer_has_transmission && has_any_closure);
@@ -729,17 +848,7 @@ void DeferredLayer::end_sync(bool is_first_pass,
   /* Clear AOVs in case previous layers wrote to them. First pass always get clear buffer because
    * of #BackgroundPipeline::clear(). */
   if (inst_.film.aovs_info.color_len > 0 && !is_first_pass) {
-    gpu::Shader *sh = inst_.shaders.static_shader_get(DEFERRED_AOV_CLEAR);
-    PassMain::Sub &sub = prepass_ps_.sub("AOVsClear");
-    sub.shader_set(sh);
-    sub.state_set(DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_EQUAL);
-    sub.bind_image("rp_color_img", &inst_.render_buffers.rp_color_tx);
-    sub.bind_image("rp_value_img", &inst_.render_buffers.rp_value_tx);
-    sub.bind_image("rp_cryptomatte_img", &inst_.render_buffers.cryptomatte_tx);
-    sub.bind_resources(inst_.cryptomatte);
-    sub.bind_resources(inst_.uniform_data);
-    sub.state_stencil(0xFFu, 0x0u, 0xFFu);
-    sub.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+    clear_aovs_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
 
   {
@@ -800,6 +909,7 @@ void DeferredLayer::end_sync(bool is_first_pass,
         sub.bind_resources(inst_.hiz_buffer.front);
         sub.bind_resources(inst_.uniform_data);
         sub.bind_resources(inst_.sampling);
+        sub.bind_texture("utility_tx", &inst_.pipelines.utility_tx);
         sub.bind_texture("gbuf_header_tx", &inst_.gbuffer.header_tx);
         sub.bind_image("gbuf_normal_img", &inst_.gbuffer.normal_tx);
         sub.state_set(DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_EQUAL);
@@ -818,7 +928,7 @@ void DeferredLayer::end_sync(bool is_first_pass,
         /* Use depth test to reject background pixels which have not been stencil cleared. */
         /* WORKAROUND: Avoid rasterizer discard by enabling stencil write, but the shaders actually
          * use no fragment output. */
-        sub.state_set(DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_EQUAL | DRW_STATE_DEPTH_GREATER);
+        sub.state_set(DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_EQUAL | DRW_STATE_DEPTH_LESS);
         sub.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
         sub.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
         sub.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
@@ -914,9 +1024,10 @@ void DeferredLayer::end_sync(bool is_first_pass,
 
 PassMain::Sub *DeferredLayer::prepass_add(blender::Material *blender_mat,
                                           GPUMaterial *gpumat,
-                                          bool has_motion)
+                                          bool has_motion,
+                                          bool hide_from_raycast)
 {
-  return prepass_ps_.add(blender_mat, gpumat, has_motion);
+  return prepass_.add(blender_mat, gpumat, has_motion, hide_from_raycast);
 }
 
 PassMain::Sub *DeferredLayer::material_add(blender::Material *blender_mat, GPUMaterial *gpumat)
@@ -971,7 +1082,13 @@ gpu::Texture *DeferredLayer::render(View &render_view,
   }
 
   GPU_framebuffer_bind(prepass_fb);
-  inst_.manager->submit(prepass_ps_, render_view);
+  /* Clear stencil buffer so that prepass can tag it. Then draw a full-screen triangle that will
+   * clear AOVs for all the pixels touched by this layer. */
+  GPU_framebuffer_clear_stencil(prepass_fb, 0xFFu);
+  prepass_.render(render_view, rb.depth_tx, true);
+  if (!clear_aovs_ps_.is_empty()) {
+    inst_.manager->submit(clear_aovs_ps_);
+  }
 
   inst_.hiz_buffer.swap_layer();
   /* Update for lighting pass or AO node. */
@@ -985,9 +1102,9 @@ gpu::Texture *DeferredLayer::render(View &render_view,
   inst_.manager->submit(gbuffer_ps_, render_view);
 
   for (int i = 0; i < ARRAY_SIZE(direct_radiance_txs_); i++) {
-    direct_radiance_txs_[i].acquire((closure_count_ > i) ? extent : int2(1),
-                                    gpu::TextureFormat::DEFERRED_RADIANCE_FORMAT,
-                                    usage_rw);
+    direct_radiance_txs_[i].acquire_2d((closure_count_ > i) ? extent : int2(1),
+                                       gpu::TextureFormat::DEFERRED_RADIANCE_FORMAT,
+                                       usage_rw);
   }
 
   if (use_raytracing_) {
@@ -1107,12 +1224,13 @@ void DeferredPipeline::debug_draw(draw::View &view, gpu::FrameBuffer *combined_f
 
 PassMain::Sub *DeferredPipeline::prepass_add(blender::Material *blender_mat,
                                              GPUMaterial *gpumat,
-                                             bool has_motion)
+                                             bool has_motion,
+                                             bool hide_from_raycast)
 {
   if (blender_mat->blend_flag & MA_BL_SS_REFRACTION) {
-    return refraction_layer_.prepass_add(blender_mat, gpumat, has_motion);
+    return refraction_layer_.prepass_add(blender_mat, gpumat, has_motion, hide_from_raycast);
   }
-  return opaque_layer_.prepass_add(blender_mat, gpumat, has_motion);
+  return opaque_layer_.prepass_add(blender_mat, gpumat, has_motion, hide_from_raycast);
 }
 
 PassMain::Sub *DeferredPipeline::material_add(blender::Material *blender_mat, GPUMaterial *gpumat)
@@ -1382,31 +1500,19 @@ bool VolumePipeline::use_hit_list() const
 
 void DeferredProbePipeline::begin_sync()
 {
-  Prepass &pass = opaque_layer_.prepass_ps_;
-  pass.init();
-  {
-    /* Common resources. */
-
-    /* Textures. */
-    pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-
-    pass.bind_resources(inst_.uniform_data);
-    pass.bind_resources(inst_.velocity);
-    pass.bind_resources(inst_.sampling);
-  }
-  pass.setup_subpasses(DRW_STATE_WRITE_DEPTH | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
-                       inst_.film.depth.test_state);
+  opaque_layer_.prepass_.init({}, false);
 
   opaque_layer_.gbuffer_pass_sync(inst_);
 }
 
 void DeferredProbePipeline::end_sync()
 {
-  if (!opaque_layer_.prepass_ps_.is_empty()) {
+  opaque_layer_.prepass_.end_sync();
+  if (!opaque_layer_.gbuffer_ps_.is_empty()) {
     PassSimple &pass = eval_light_ps_;
     pass.init();
     /* Use depth test to reject background pixels. */
-    pass.state_set(DRW_STATE_DEPTH_GREATER | DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD_FULL);
+    pass.state_set(DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD_FULL);
     pass.shader_set(inst_.shaders.static_shader_get(DEFERRED_CAPTURE_EVAL));
     pass.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
     pass.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
@@ -1424,9 +1530,10 @@ void DeferredProbePipeline::end_sync()
 }
 
 PassMain::Sub *DeferredProbePipeline::prepass_add(blender::Material *blender_mat,
-                                                  GPUMaterial *gpumat)
+                                                  GPUMaterial *gpumat,
+                                                  bool hide_from_raycast)
 {
-  return opaque_layer_.prepass_ps_.add(blender_mat, gpumat, false);
+  return opaque_layer_.prepass_.add(blender_mat, gpumat, false, hide_from_raycast);
 }
 
 PassMain::Sub *DeferredProbePipeline::material_add(blender::Material *blender_mat,
@@ -1456,8 +1563,10 @@ void DeferredProbePipeline::render(View &view,
 
   opaque_layer_.radiance_behind_tx_ = dummy_black;
 
-  GPU_framebuffer_bind(prepass_fb);
-  inst_.manager->submit(opaque_layer_.prepass_ps_, view);
+  prepass_fb.bind();
+  prepass_fb.clear_depth(inst_.film.depth.clear_value);
+  prepass_fb.clear_color(float4(0.0f));
+  opaque_layer_.prepass_.render(view, inst_.render_buffers.depth_tx, true);
 
   inst_.hiz_buffer.set_source(&inst_.render_buffers.depth_tx);
   inst_.hiz_buffer.update();
@@ -1473,7 +1582,7 @@ void DeferredProbePipeline::render(View &view,
   inst_.gbuffer.bind(gbuffer_fb);
   inst_.manager->submit(opaque_layer_.gbuffer_ps_, view);
 
-  GPU_framebuffer_bind(combined_fb);
+  combined_fb.bind();
   inst_.manager->submit(eval_light_ps_, view);
 
   GPU_debug_group_end();
@@ -1488,15 +1597,9 @@ void DeferredProbePipeline::render(View &view,
 
 void PlanarProbePipeline::begin_sync()
 {
-  {
-    prepass_ps_.init();
-    prepass_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-    prepass_ps_.bind_ubo(CLIP_PLANE_BUF, inst_.planar_probes.world_clip_buf_);
-    prepass_ps_.bind_resources(inst_.uniform_data);
-    prepass_ps_.bind_resources(inst_.sampling);
-    prepass_ps_.setup_subpasses(DRW_STATE_WRITE_DEPTH | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
-                                inst_.film.depth.test_state);
-  }
+  prepass_.init(DRW_STATE_NO_DRAW, false, true, [&](PassMain &pass) {
+    pass.bind_ubo(CLIP_PLANE_BUF, inst_.planar_probes.world_clip_buf_);
+  });
 
   this->gbuffer_pass_sync(inst_);
 
@@ -1506,10 +1609,11 @@ void PlanarProbePipeline::begin_sync()
 
 void PlanarProbePipeline::end_sync()
 {
-  if (!prepass_ps_.is_empty()) {
+  prepass_.end_sync();
+  if (!gbuffer_ps_.is_empty()) {
     PassSimple &pass = eval_light_ps_;
     pass.init();
-    pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD_FULL);
+    pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD_FULL | DRW_STATE_DEPTH_LESS);
     pass.shader_set(inst_.shaders.static_shader_get(DEFERRED_PLANAR_EVAL));
     pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
     pass.bind_resources(inst_.uniform_data);
@@ -1526,9 +1630,10 @@ void PlanarProbePipeline::end_sync()
 }
 
 PassMain::Sub *PlanarProbePipeline::prepass_add(blender::Material *blender_mat,
-                                                GPUMaterial *gpumat)
+                                                GPUMaterial *gpumat,
+                                                bool hide_from_raycast)
 {
-  return prepass_ps_.add(blender_mat, gpumat, false);
+  return prepass_.add(blender_mat, gpumat, false, hide_from_raycast);
 }
 
 PassMain::Sub *PlanarProbePipeline::material_add(blender::Material *blender_mat,
@@ -1564,7 +1669,7 @@ void PlanarProbePipeline::render(View &view,
 
   GPU_framebuffer_bind(prepass_fb);
   GPU_framebuffer_clear_depth(prepass_fb, inst_.film.depth.clear_value);
-  inst_.manager->submit(prepass_ps_, view);
+  prepass_.render(view, depth_layer_tx, true);
 
   /* TODO(fclem): This is the only place where we use the layer source to HiZ.
    * This is because the texture layer view is still a layer texture. */

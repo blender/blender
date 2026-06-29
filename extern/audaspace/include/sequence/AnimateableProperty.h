@@ -73,6 +73,7 @@ private:
 	AnimateableProperty& operator=(const AnimateableProperty&) = delete;
 
 	void AUD_LOCAL updateUnknownCache(int start, int end);
+	void AUD_LOCAL updateUnknownAfterWrite(int pos, int position, int count);
 
 public:
 	/**

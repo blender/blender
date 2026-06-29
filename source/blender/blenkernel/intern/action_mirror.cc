@@ -17,13 +17,13 @@
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
@@ -121,15 +121,14 @@ static void action_flip_pchan_cache_fcurve_assign_array(FCurve_KeyCache *fkc,
  * note that each frame is rounded to the nearest int.
  * \param keyed_frames_len: The length of the `keyed_frames` array.
  */
-static void action_flip_pchan_cache_init(FCurve_KeyCache *fkc,
-                                         const float *keyed_frames,
-                                         int keyed_frames_len)
+static void action_flip_pchan_cache_init(FCurve_KeyCache *fkc, const Span<float> keyed_frames)
 {
   BLI_assert(fkc->fcurve != nullptr);
 
   /* Cache the F-Curve values for `keyed_frames`. */
   const eFCurve_Flags fcurve_flag = fkc->fcurve->flag;
   fkc->fcurve->flag |= FCURVE_MOD_OFF;
+  const int keyed_frames_len = keyed_frames.size();
   fkc->fcurve_eval = MEM_new_array_uninitialized<float>(size_t(keyed_frames_len), __func__);
   for (int frame_index = 0; frame_index < keyed_frames_len; frame_index++) {
     const float evaltime = keyed_frames[frame_index];
@@ -166,7 +165,7 @@ static void action_flip_pchan_cache_init(FCurve_KeyCache *fkc,
 }
 
 /**
- * \param fcurve_cache is used to quickly find the flipped FCurve.
+ * \param fcurve_cache: is used to quickly find the flipped FCurve.
  */
 static void action_flip_pchan(Object *ob_arm,
                               const bPoseChannel *pchan,
@@ -224,25 +223,22 @@ static void action_flip_pchan(Object *ob_arm,
 
 /* Array of F-Curves, for convenient access. */
 #define FCURVE_CHANNEL_LEN (sizeof(fkc_pchan) / sizeof(FCurve_KeyCache))
-  FCurve *fcurve_array[FCURVE_CHANNEL_LEN];
-  int fcurve_array_len = 0;
+  Vector<FCurve *> fcurve_array;
 
   for (int chan = 0; chan < FCURVE_CHANNEL_LEN; chan++) {
     FCurve_KeyCache *fkc = reinterpret_cast<FCurve_KeyCache *>(&fkc_pchan) + chan;
     if (fkc->fcurve != nullptr) {
-      fcurve_array[fcurve_array_len++] = fkc->fcurve;
+      fcurve_array.append(fkc->fcurve);
     }
   }
 
   /* If this pose has no transform channels, there is nothing to do. */
-  if (fcurve_array_len == 0) {
+  if (fcurve_array.is_empty()) {
     return;
   }
 
   /* Calculate an array of frames used by any of the key-frames in `fcurve_array`. */
-  int keyed_frames_len;
-  const float *keyed_frames = BKE_fcurves_calc_keyed_frames(
-      fcurve_array, fcurve_array_len, &keyed_frames_len);
+  const Array<float> keyed_frames = BKE_fcurves_calc_keyed_frames(fcurve_array);
 
   /* Initialize the pose channel curve cache from the F-Curve. */
   for (int chan = 0; chan < FCURVE_CHANNEL_LEN; chan++) {
@@ -250,7 +246,7 @@ static void action_flip_pchan(Object *ob_arm,
     if (fkc->fcurve == nullptr) {
       continue;
     }
-    action_flip_pchan_cache_init(fkc, keyed_frames, keyed_frames_len);
+    action_flip_pchan_cache_init(fkc, keyed_frames);
   }
 
   /* X-axis flipping matrix. */
@@ -273,7 +269,7 @@ static void action_flip_pchan(Object *ob_arm,
 
   /* Now flip the transformation & write it back to the F-Curves in `fkc_pchan`. */
 
-  for (int frame_index = 0; frame_index < keyed_frames_len; frame_index++) {
+  for (int frame_index = 0; frame_index < keyed_frames.size(); frame_index++) {
 
     /* Temporary pose channel to write values into,
      * using the `fkc_pchan` values, falling back to the values in the pose channel. */
@@ -378,11 +374,9 @@ static void action_flip_pchan(Object *ob_arm,
   }
 
   /* Recalculate handles. */
-  for (int i = 0; i < fcurve_array_len; i++) {
-    BKE_fcurve_handles_recalc_ex(*fcurve_array[i], eBezTriple_Flag{});
+  for (FCurve *fcurve : fcurve_array) {
+    BKE_fcurve_handles_recalc_ex(*fcurve, eBezTriple_Flag{});
   }
-
-  MEM_delete(keyed_frames);
 
   for (int chan = 0; chan < FCURVE_CHANNEL_LEN; chan++) {
     FCurve_KeyCache *fkc = reinterpret_cast<FCurve_KeyCache *>(&fkc_pchan) + chan;
@@ -417,7 +411,7 @@ static void action_flip_pchan_rna_paths(bAction *act)
     const char *name_esc_end = BLI_str_escape_find_quote(name_esc);
 
     /* While unlikely, an RNA path could be malformed. */
-    if (UNLIKELY(name_esc_end == nullptr)) {
+    if (name_esc_end == nullptr) [[unlikely]] {
       continue;
     }
 
@@ -427,7 +421,7 @@ static void action_flip_pchan_rna_paths(bAction *act)
 
     /* While unlikely, data paths could be constructed that have longer names than
      * are currently supported. */
-    if (UNLIKELY(name_len >= sizeof(name))) {
+    if (name_len >= sizeof(name)) [[unlikely]] {
       continue;
     }
 

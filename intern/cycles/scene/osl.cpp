@@ -365,43 +365,44 @@ void OSLManager::shading_system_init(const string &colorspace_interop_id)
 
       /* our own ray types */
       static const char *raytypes[] = {
-          "camera",          /* PATH_RAY_CAMERA */
-          "reflection",      /* PATH_RAY_REFLECT */
-          "refraction",      /* PATH_RAY_TRANSMIT */
-          "diffuse",         /* PATH_RAY_DIFFUSE */
-          "glossy",          /* PATH_RAY_GLOSSY */
-          "singular",        /* PATH_RAY_SINGULAR */
-          "transparent",     /* PATH_RAY_TRANSPARENT */
-          "volume_scatter",  /* PATH_RAY_VOLUME_SCATTER */
-          "importance_bake", /* PATH_RAY_IMPORTANCE_BAKE */
+          /* Bits from the PathRayVisibilityFlag.
+           * Low word of 16 bits of the packed raytype. */
+          "camera",         /* Bit 0: PATH_RAY_VISIBILITY_CAMERA */
+          "refraction",     /* Bit 1: PATH_RAY_VISIBILITY_TRANSMIT */
+          "diffuse",        /* Bit 2: PATH_RAY_VISIBILITY_DIFFUSE */
+          "glossy",         /* Bit 3: PATH_RAY_VISIBILITY_GLOSSY */
+          "volume_scatter", /* Bit 4: PATH_RAY_VISIBILITY_VOLUME_SCATTER */
+          "shadow",         /* Bit 5: PATH_RAY_VISIBILITY_SHADOW_OPAQUE */
+          "shadow",         /* Bit 6: PATH_RAY_VISIBILITY_SHADOW_TRANSPARENT */
+          "__unused__",     /* Bit 7 */
+          "__unused__",     /* Bit 8 */
+          "__unused__",     /* Bit 9 */
+          "__unused__",     /* Bit 10 */
+          "__unused__",     /* Bit 11 */
+          "__unused__",     /* Bit 12 */
+          "__unused__",     /* Bit 13 */
+          "__unused__",     /* Bit 14 */
+          "__unused__",     /* Bit 15 */
 
-          "shadow", /* PATH_RAY_SHADOW_OPAQUE */
-          "shadow", /* PATH_RAY_SHADOW_TRANSPARENT */
+          /* Bits from the PathRayFlag.
+           * High word of 16 bits of the packed raytype. */
 
-          "__unused__", /* PATH_RAY_NODE_UNALIGNED */
-          "__unused__", /* PATH_RAY_MIS_SKIP */
-
-          "diffuse_ancestor", /* PATH_RAY_DIFFUSE_ANCESTOR */
-
-          /* Remaining irrelevant bits up to 32. */
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
-          "__unused__",
+          "reflection",       /* Bit 0: PATH_RAY_REFLECT */
+          "singular",         /* Bit 1: PATH_RAY_SINGULAR */
+          "transparent",      /* Bit 2: PATH_RAY_TRANSPARENT */
+          "importance_bake",  /* Bit 3: PATH_RAY_IMPORTANCE_BAKE */
+          "diffuse_ancestor", /* Bit 4: PATH_RAY_DIFFUSE_ANCESTOR */
+          "__unused__",       /* Bit 5 */
+          "__unused__",       /* Bit 6 */
+          "__unused__",       /* Bit 7 */
+          "__unused__",       /* Bit 8 */
+          "__unused__",       /* Bit 9 */
+          "__unused__",       /* Bit 10 */
+          "__unused__",       /* Bit 11 */
+          "__unused__",       /* Bit 12 */
+          "__unused__",       /* Bit 13 */
+          "__unused__",       /* Bit 14 */
+          "__unused__",       /* Bit 15 */
       };
 
       const int nraytypes = sizeof(raytypes) / sizeof(raytypes[0]);
@@ -838,7 +839,7 @@ OSLNode *OSLShaderManager::osl_node(ShaderGraph *graph,
           if (metadata.name == "widget" && metadata.sdefault[0] == "null") {
             socket_flags |= SocketType::LINK_OSL_INITIALIZER;
           }
-          else if (metadata.name == "defaultgeomprop") {
+          else if (metadata.name == "mtlx_defaultgeomprop") {
             /* the following match up to MaterialX default geometry properties
              * that we use to help set socket flags to the corresponding
              * geometry link equivalents. */
@@ -906,7 +907,7 @@ void OSLShaderManager::osl_image_handles(Device *device,
 
 OSLCompiler::OSLCompiler(OSL::ShadingSystem *ss, Scene *scene, Progress &progress, Device *device)
     : scene(scene),
-      progress(progress),
+      progress(&progress),
       services(static_cast<OSLRenderServices *>(ss->renderer())),
       ss(ss),
       device(device)
@@ -1285,16 +1286,8 @@ void OSLCompiler::parameter(ShaderNode *node, const char *name)
           break;
       }
 
-      // convert to tightly packed array since float3 has padding
-      const array<float3> &value = node->get_float3_array(socket);
-      array<float> fvalue(value.size() * 3);
-      for (size_t i = 0, j = 0; i < value.size(); i++) {
-        fvalue[j++] = value[i].x;
-        fvalue[j++] = value[i].y;
-        fvalue[j++] = value[i].z;
-      }
-
-      ss->Parameter(*current_group, uname, array_typedesc(typedesc, value.size()), fvalue.data());
+      const array<packed_float3> &value = node->get_float3_array(socket);
+      ss->Parameter(*current_group, uname, array_typedesc(typedesc, value.size()), value.data());
       break;
     }
     case SocketType::POINT2_ARRAY: {
@@ -1389,20 +1382,11 @@ void OSLCompiler::parameter_array(const char *name, const float f[], int arrayle
   ss->Parameter(*current_group, name, type, f);
 }
 
-void OSLCompiler::parameter_color_array(const char *name, const array<float3> &f)
+void OSLCompiler::parameter_color_array(const char *name, const array<packed_float3> &f)
 {
-  /* NOTE: cycles float3 type is actually 4 floats! need to use an explicit array. */
-  array<float[3]> table(f.size());
-
-  for (int i = 0; i < f.size(); ++i) {
-    table[i][0] = f[i].x;
-    table[i][1] = f[i].y;
-    table[i][2] = f[i].z;
-  }
-
   TypeDesc type = TypeColor;
-  type.arraylen = table.size();
-  ss->Parameter(*current_group, name, type, table.data());
+  type.arraylen = f.size();
+  ss->Parameter(*current_group, name, type, f.data());
 }
 
 void OSLCompiler::parameter_string_array(const char *name, const array<ustring> &a)
@@ -1654,7 +1638,9 @@ void OSLCompiler::parameter(const char * /*name*/, const Transform & /*tfm*/) {}
 
 void OSLCompiler::parameter_array(const char * /*name*/, const float /*f*/[], int /*arraylen*/) {}
 
-void OSLCompiler::parameter_color_array(const char * /*name*/, const array<float3> & /*f*/) {}
+void OSLCompiler::parameter_color_array(const char * /*name*/, const array<packed_float3> & /*f*/)
+{
+}
 
 void OSLCompiler::parameter_string_array(const char * /*name*/, const array<ustring> & /*a*/) {}
 

@@ -7,7 +7,11 @@
  */
 
 #include "DNA_constraint_types.h"
+#include "DNA_object_types.h"
 #include "DNA_outliner_types.h"
+
+#include "RNA_access.hh"
+#include "RNA_prototypes.hh"
 
 #include "BLT_translation.hh"
 
@@ -33,5 +37,11 @@ TreeElementConstraint::TreeElementConstraint(TreeElement &legacy_te,
   legacy_te.name = con_.name;
   legacy_te.directdata = &con_;
 }
-
+std::optional<BIFIconID> TreeElementConstraint::get_icon() const
+{
+  bConstraint *con = static_cast<bConstraint *>(legacy_te_.directdata);
+  Object *ob = reinterpret_cast<Object *>(legacy_te_.store_elem->id);
+  const PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, RNA_Constraint, con);
+  return RNA_struct_ui_icon(ptr.type);
+}
 }  // namespace blender::ed::outliner

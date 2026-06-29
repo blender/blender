@@ -59,6 +59,10 @@ void BKE_pointcloud_nomain_to_pointcloud(PointCloud *pointcloud_src, PointCloud 
 
 bool BKE_pointcloud_attribute_required(const PointCloud *pointcloud, StringRef name);
 
+void BKE_pointcloud_material_remap(PointCloud *pointcloud,
+                                   const unsigned int *remap,
+                                   int remap_num);
+
 /**
  * Copy data from #src to #dst, except the geometry and attributes. Typically used to
  * copy high-level parameters when a geometry-altering operation creates a new point cloud

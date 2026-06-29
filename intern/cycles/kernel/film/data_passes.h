@@ -211,6 +211,12 @@ ccl_device_inline void film_write_data_passes_background(
         film_overwrite_pass_float3(buffer + kernel_data.film.pass_position, zero_float3());
       }
     }
+
+    if (flag & PASSMASK(MOTION)) {
+      const float4 speed = camera_motion_vector_direction(kg, INTEGRATOR_STATE(state, ray, D));
+      film_write_pass_float4(buffer + kernel_data.film.pass_motion, speed);
+      film_write_pass_float(buffer + kernel_data.film.pass_motion_weight, 1.0f);
+    }
   }
 #endif
 }

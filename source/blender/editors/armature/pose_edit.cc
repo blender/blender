@@ -7,9 +7,9 @@
  * Pose Mode API's and Operators for Pose Mode armatures.
  */
 
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BLT_translation.hh"
 
@@ -53,7 +53,7 @@ namespace blender {
 #undef DEBUG_TIME
 
 #ifdef DEBUG_TIME
-#  include "BLI_time_utildefines.h"
+#  include "BLI_time_utildefines.hh"
 #endif
 
 Object *ED_pose_object_from_context(bContext *C)
@@ -147,10 +147,7 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob, eAnimvizCa
   Main *bmain = CTX_data_main(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  Depsgraph *depsgraph;
-  bool free_depsgraph = false;
-
-  Vector<MPathTarget *> targets;
+  Vector<MPathTarget> targets;
   /* set flag to force recalc, then grab the relevant bones to target */
   ob->pose->avs.recalc |= ANIMVIZ_RECALC_PATHS;
   animviz_build_motionpath_targets(ob, targets);
@@ -160,37 +157,17 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob, eAnimvizCa
   TIMEIT_START(pose_path_calc);
 #endif
 
-  /* For a single frame update it's faster to re-use existing dependency graph and avoid overhead
-   * of building all the relations and so on for a temporary one. */
-  if (range == ANIMVIZ_CALC_RANGE_CURRENT_FRAME) {
-    /* NOTE: Dependency graph will be evaluated at all the frames, but we first need to access some
-     * nested pointers, like animation data. */
-    depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-    free_depsgraph = false;
-  }
-  else {
-    depsgraph = animviz_depsgraph_build(bmain, scene, view_layer, targets);
-    free_depsgraph = true;
-  }
-
-  animviz_calc_motionpaths(depsgraph, bmain, scene, targets, range);
+  Depsgraph *depsgraph = animviz_depsgraph_build(bmain, scene, view_layer, targets);
+  animviz_calc_motionpaths(depsgraph, scene, targets, range);
 
 #ifdef DEBUG_TIME
   TIMEIT_END(pose_path_calc);
 #endif
 
-  animviz_free_motionpath_targets(targets);
-
-  if (range != ANIMVIZ_CALC_RANGE_CURRENT_FRAME) {
-    /* Tag armature object for copy-on-eval - so paths will draw/redraw.
-     * For currently frame only we update evaluated object directly. */
-    DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
-  }
+  DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
 
   /* Free temporary depsgraph. */
-  if (free_depsgraph) {
-    DEG_graph_free(depsgraph);
-  }
+  DEG_graph_free(depsgraph);
 }
 
 /* show popup to determine settings */
@@ -312,7 +289,7 @@ void POSE_OT_paths_calculate(wmOperatorType *ot)
 static bool pose_update_paths_poll(bContext *C)
 {
   if (ED_operator_posemode_exclusive(C)) {
-    Object *ob = CTX_data_active_object(C);
+    Object *ob = ed::object::context_active_object(C);
     return (ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS) != 0;
   }
 
@@ -505,7 +482,7 @@ static wmOperatorStatus pose_flip_names_exec(bContext *C, wmOperator *op)
 
     ED_armature_bones_flip_names(bmain, arm, &bones_names, do_strip_numbers);
 
-    BLI_freelistN(&bones_names);
+    bones_names.free_no_destruct();
 
     /* Since we renamed stuff... */
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);

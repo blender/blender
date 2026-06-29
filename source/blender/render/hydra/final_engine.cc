@@ -11,9 +11,9 @@
 #include "DNA_layer_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_time.h"
-#include "BLI_timecode.h"
+#include "BLI_listbase.hh"
+#include "BLI_time.hh"
+#include "BLI_timecode.hh"
 
 #include "BKE_lib_id.hh"
 

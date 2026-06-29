@@ -9,7 +9,7 @@ COMPUTE_SHADER_CREATE_INFO(subdiv_edituv_stretch_angle)
 #define M_PI 3.1415926535897932f
 #define M_1_PI 0.31830988618379067154f
 
-/* Adapted from BLI_math_vector.h */
+/* Adapted from BLI_math_vector_c.hh */
 float angle_normalized_v3v3(float3 v1, float3 v2)
 {
   /* this is the same as acos(dot_v3v3(v1, v2)), but more accurate */

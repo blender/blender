@@ -7,7 +7,7 @@
  * \ingroup imbuf
  */
 
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 #include "BLI_task.hh"
 
 #include "IMB_imbuf.hh"

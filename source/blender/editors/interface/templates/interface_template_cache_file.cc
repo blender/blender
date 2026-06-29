@@ -6,9 +6,9 @@
  * \ingroup edinterface
  */
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_context.hh"
 #include "BKE_scene.hh"
@@ -126,7 +126,7 @@ void template_uilist_flags(Layout *layout, const bContext *C, PointerRNA *filept
   col->op("cachefile.layer_remove", "", ICON_REMOVE);
 
   CacheFile *file = static_cast<CacheFile *>(fileptr->data);
-  if (BLI_listbase_count(&file->layers) > 1) {
+  if (file->layers.count() > 1) {
     col->separator(1.0f);
     col->op("cachefile.layer_move", "", ICON_TRIA_UP);
     col->op("cachefile.layer_move", "", ICON_TRIA_DOWN);

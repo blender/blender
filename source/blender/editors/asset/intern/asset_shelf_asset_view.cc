@@ -13,9 +13,9 @@
 
 #include "BKE_screen.hh"
 
-#include "BLI_fnmatch.h"
-#include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_fnmatch.hh"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
 
 #include "BLT_translation.hh"
 
@@ -138,7 +138,9 @@ void AssetView::build_items()
      * add a #bl_click_operator for repeated execution on every click. So far it seems like every
      * asset shelf use case works with activating on every click though. */
     item.always_reactivate_on_click();
-    if (shelf_.type->flag & ASSET_SHELF_TYPE_FLAG_ACTIVATE_FOR_CONTEXT_MENU) {
+    if (shelf_.type->flag & ASSET_SHELF_TYPE_FLAG_ACTIVATE_FOR_CONTEXT_MENU &&
+        !asset.is_online_only())
+    {
       item.activate_for_context_menu_set();
     }
 
@@ -282,11 +284,61 @@ void AssetViewItem::build_grid_tile(const bContext &C, ui::Layout &layout) const
   ui::Layout &overlay_row = overlap.row(true);
   overlay_row.alignment_set(ui::LayoutAlign::Right);
 
-  const bool is_highlighted = this->is_selected() || this->is_active() || this->is_hovered();
-  if (asset_.is_online() && is_highlighted) {
+  if (asset_.is_online_only()) {
     ui::Button *online_icon = uiItemL_ex(&overlay_row, "", ICON_INTERNET, false, false);
     button_label_alpha_factor_set(online_icon, 0.6f);
     button_label_draw_icon_border_set(online_icon, true);
+  }
+  else if (asset_.needs_download()) {
+    ui::Button *needs_download_icon = uiItemL_ex(&overlay_row, "", ICON_ERROR, false, false);
+    button_label_alpha_factor_set(needs_download_icon, 0.6f);
+    button_label_draw_icon_border_set(needs_download_icon, true);
+  }
+
+  /* Download overlay button for online assets. */
+  if (is_hovered() && asset_.needs_download()) {
+    ui::Block *block = overlap.block();
+
+    ui::Layout &center_row = overlap.row(true);
+    center_row.alignment_set(ui::LayoutAlign::Center);
+    center_row.ui_units_x_set(overlap.ui_units_x());
+
+    center_row.column(true);
+
+    const int overlay_width = ICON_DEFAULT_WIDTH_SCALE * 2.0f;
+    const int overlay_height = ICON_DEFAULT_HEIGHT_SCALE * 2.0f;
+    const int preview_height = tile_height(asset_view.shelf_.settings) -
+                               ((asset_view.shelf_.settings.display_flag & ASSETSHELF_SHOW_NAMES) ?
+                                    UI_UNIT_Y :
+                                    0.0f);
+
+    /* Insert padding above the overlay to center it vertically. */
+    ui::uiDefBut(block,
+                 ui::ButtonType::Label,
+                 "",
+                 0,
+                 0,
+                 1,
+                 std::max(0.0f, (preview_height - overlay_height + U.pixelsize) * 0.5f),
+                 nullptr,
+                 0,
+                 0,
+                 std::nullopt);
+
+    ui::Button *but = uiDefIconButO(block,
+                                    ui::ButtonType::But,
+                                    "ASSET_OT_asset_download",
+                                    wm::OpCallContext::ExecDefault,
+                                    ICON_DOWNLOAD,
+                                    0,
+                                    0,
+                                    overlay_width,
+                                    overlay_height,
+                                    std::nullopt);
+    PointerRNA *opptr = ui::button_operator_ptr_ensure(but);
+    ed::asset::operator_asset_reference_props_set(asset_, *opptr);
+    ui::button_icon_scale_set(but, 1.5f);
+    ui::button_pushbutton_draw_as_overlay_set(but, true);
   }
 }
 
@@ -295,19 +347,8 @@ void AssetViewItem::build_context_menu(bContext &C, ui::Layout &column) const
   const AssetView &asset_view = dynamic_cast<const AssetView &>(this->get_view());
   const AssetShelfType &shelf_type = *asset_view.shelf_.type;
 
-  bool has_items = false;
-
-  if (asset_.is_online()) {
-    column.op("asset.assets_download", IFACE_("Download Asset"), ICON_NONE);
-    has_items = true;
-  }
-
   if (shelf_type.draw_context_menu) {
-    if (has_items) {
-      column.separator();
-    }
     shelf_type.draw_context_menu(&C, &shelf_type, &asset_, column);
-    has_items = true;
   }
 }
 
@@ -331,6 +372,11 @@ void AssetViewItem::on_activate(bContext &C)
 {
   const AssetView &asset_view = dynamic_cast<const AssetView &>(this->get_view());
   const AssetShelfType &shelf_type = *asset_view.shelf_.type;
+
+  /* Don't allow activating the asset when it requires downloading. */
+  if (asset_.is_online_only()) {
+    return;
+  }
 
   if (std::optional<wmOperatorCallParams> activate_op = create_asset_operator_params(
           shelf_type.activate_operator, asset_))

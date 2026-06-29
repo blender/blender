@@ -16,21 +16,22 @@
 #include "DNA_camera_types.h"
 #include "DNA_text_types.h"
 
-#include "BLI_fileops.h"
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
-#include "BLI_math_vector.h"
+#include "BLI_fileops.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_base_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_rect.h"
-#include "BLI_string.h"
-#include "BLI_string_cursor_utf8.h"
-#include "BLI_string_utf8.h"
-#include "BLI_time.h"
+#include "BLI_rect.hh"
+#include "BLI_string.hh"
+#include "BLI_string_cursor_utf8.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_time.hh"
 #include "BLI_vector_set.hh"
 
 #include "BLT_translation.hh"
 
 #include "BKE_context.hh"
+#include "BKE_global.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
@@ -226,6 +227,9 @@ BLI_INLINE int space_text_pixel_x_to_column(const SpaceText *st, const int x)
 
 static void text_select_update_primary_clipboard(const Text *text)
 {
+  if (G.background) {
+    return;
+  }
   if ((WM_capabilities_flag() & WM_CAPABILITY_CLIPBOARD_PRIMARY) == 0) {
     return;
   }
@@ -4117,7 +4121,7 @@ static wmOperatorStatus text_jump_to_file_at_point_exec(bContext *C, wmOperator 
 
   char filepath[FILE_MAX];
   RNA_property_string_get(op->ptr, prop_filepath, filepath);
-  if (UNLIKELY(BLI_path_is_rel(filepath))) {
+  if (BLI_path_is_rel(filepath)) [[unlikely]] {
     BLI_path_abs(filepath, BKE_main_blendfile_path(bmain));
   }
   const int line_index = RNA_property_int_get(op->ptr, prop_line);

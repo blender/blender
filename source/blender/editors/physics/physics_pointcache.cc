@@ -11,8 +11,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_context.hh"
 #include "BKE_duplilist.hh"
@@ -277,7 +277,7 @@ static wmOperatorStatus ptcache_free_bake_all_exec(bContext *C, wmOperator * /*o
       ptcache_free_bake(pid.cache);
     }
 
-    BLI_freelistN(&pidlist);
+    pidlist.free_no_destruct();
 
     WM_event_add_notifier(C, NC_OBJECT | ND_POINTCACHE, ob);
   }

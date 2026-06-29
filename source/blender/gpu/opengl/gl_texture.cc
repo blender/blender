@@ -9,9 +9,9 @@
 #include <cstdint>
 #include <string>
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_math_half.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "DNA_userdef_types.h"
 
@@ -815,27 +815,23 @@ void GLTexture::check_feedback_loop()
     return;
   }
   GLFrameBuffer *fb = static_cast<GLFrameBuffer *>(GLContext::get()->active_fb);
-  for (int i = 0; i < ARRAY_SIZE(fb_); i++) {
-    if (fb_[i] == fb) {
-      GPUAttachmentType type = fb_attachment_[i];
-      GPUAttachment attachment = fb->attachments_[type];
-      /* Check for when texture is used with texture barrier. */
-      GPUAttachment attachment_read = fb->tmp_detached_[type];
-      if (attachment.mip <= mip_max_ && attachment.mip >= mip_min_ &&
-          attachment_read.tex == nullptr)
-      {
-        char msg[256];
-        SNPRINTF(msg,
-                 "Feedback loop: Trying to bind a texture (%s) with mip range %d-%d but mip %d is "
-                 "attached to the active framebuffer (%s)",
-                 name_.c_str(),
-                 mip_min_,
-                 mip_max_,
-                 attachment.mip,
-                 fb->name_);
-        debug::raise_gl_error(msg);
-      }
-      return;
+  std::optional<GPUAttachmentType> type = fb_attachments_.lookup_try(fb);
+  if (type.has_value()) {
+    GPUAttachment attachment = fb->attachments_[*type];
+    /* Check for when texture is used with texture barrier. */
+    GPUAttachment attachment_read = fb->tmp_detached_[*type];
+    if (attachment.mip <= mip_max_ && attachment.mip >= mip_min_ && attachment_read.tex == nullptr)
+    {
+      char msg[256];
+      SNPRINTF(msg,
+               "Feedback loop: Trying to bind a texture (%s) with mip range %d-%d but mip %d is "
+               "attached to the active framebuffer (%s)",
+               name_.c_str(),
+               mip_min_,
+               mip_max_,
+               attachment.mip,
+               fb->name_);
+      debug::raise_gl_error(msg);
     }
   }
 }

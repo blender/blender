@@ -19,18 +19,19 @@
 
 #pragma once
 
+#include "render.hh"
+
 namespace blender {
 
-struct ImBuf;
 struct Strip;
 struct Scene;
 
 namespace seq {
 
-ImBuf *intra_frame_cache_get_preprocessed(Scene *scene, const Strip *strip);
-ImBuf *intra_frame_cache_get_composite(Scene *scene, const Strip *strip);
-void intra_frame_cache_put_preprocessed(Scene *scene, const Strip *strip, ImBuf *image);
-void intra_frame_cache_put_composite(Scene *scene, const Strip *strip, ImBuf *image);
+SeqResult intra_frame_cache_get_preprocessed(Scene *scene, const Strip *strip);
+SeqResult intra_frame_cache_get_composite(Scene *scene, const Strip *strip);
+void intra_frame_cache_put_preprocessed(Scene *scene, const Strip *strip, const SeqResult &result);
+void intra_frame_cache_put_composite(Scene *scene, const Strip *strip, const SeqResult &result);
 
 void intra_frame_cache_destroy(Scene *scene);
 

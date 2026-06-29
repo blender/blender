@@ -12,6 +12,8 @@
 
 namespace blender {
 
+[[nodiscard]] PyObject *BPyInit_blend_data_path_meta_type();
+
 extern PyMethodDef BPY_rna_id_collection_user_map_method_def;
 extern PyMethodDef BPY_rna_id_collection_file_path_map_method_def;
 extern PyMethodDef BPY_rna_id_collection_file_path_foreach_method_def;

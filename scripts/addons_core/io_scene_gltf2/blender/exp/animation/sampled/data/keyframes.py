@@ -4,16 +4,20 @@
 
 import math
 import numpy as np
+import typing
 from .....com.conversion import PBR_WATTS_TO_LUMENS
 from ....cache import cached
 from ...keyframes import Keyframe
 from ..sampling_cache import get_cache_data
+from ...anim_extra_utils import gather_animated_blender_id
 
 
 @cached
 def gather_data_sampled_keyframes(
+        blender_main_type,
         blender_type_data: str,
         blender_id,
+        bone_name: typing.Optional[str],
         channel,
         action_name,
         slot_identifier: str,
@@ -21,8 +25,33 @@ def gather_data_sampled_keyframes(
         additional_key,  # Used to differentiate between material / material node_tree
         export_settings):
 
-    start_frame = export_settings['ranges'][blender_id][action_name]['start']
-    end_frame = export_settings['ranges'][blender_id][action_name]['end']
+    range_blender_id = blender_id
+    action_name_for_range = action_name
+
+    if blender_main_type == "extras" and blender_type_data == "bones":
+        range_blender_id = blender_id[0]
+
+    if blender_main_type == "extras" and \
+            blender_type_data == "bones" and \
+            export_settings['gltf_animation_mode'] in ["ACTIONS", "ACTIVE_ACTIONS"]:
+        channel = channel.replace("pose.bones[\"" + bone_name + "\"]", "")
+
+    used_blender_id = gather_animated_blender_id(
+        blender_main_type,
+        blender_type_data,
+        blender_id,
+        bone_name,
+        export_settings
+    )
+
+    if blender_main_type == "extras" and \
+        blender_type_data == "bones" and \
+            export_settings['gltf_animation_mode'] not in ["ACTIONS", "ACTIVE_ACTIONS"]:
+        action_name = used_blender_id
+
+    # Use object_uuid always, here (so keep range_blender_id, that comes from blender_id not overriden)
+    start_frame = export_settings['ranges'][range_blender_id][action_name_for_range]['start']
+    end_frame = export_settings['ranges'][range_blender_id][action_name_for_range]['end']
 
     keyframes = []
 
@@ -31,16 +60,18 @@ def gather_data_sampled_keyframes(
     while frame <= end_frame:
 
         # Retrieve length of data to export
-        if export_settings['KHR_animation_pointer'][blender_type_data][blender_id]['paths'][channel]['path'] != "/materials/XXX/pbrMetallicRoughness/baseColorFactor":
-            length = export_settings['KHR_animation_pointer'][blender_type_data][blender_id]['paths'][channel]['length']
+        if export_settings['KHR_animation_pointer'][blender_main_type][blender_type_data][used_blender_id][
+                'paths'][channel]['path'] != "/materials/XXX/pbrMetallicRoughness/baseColorFactor":
+            length = export_settings['KHR_animation_pointer'][blender_main_type][blender_type_data][used_blender_id]['paths'][channel]['length']
         else:
             length = 4
 
         key = Keyframe([None] * length, frame, 'value')
+        key.set_id_type(blender_type_data.upper())
 
         value = get_cache_data(
             'value',
-            blender_id,
+            used_blender_id,
             channel,
             action_name,
             frame,
@@ -50,20 +81,21 @@ def gather_data_sampled_keyframes(
         )
 
         # Convert data if needed
-        if blender_type_data == "materials":
-            if "attenuationDistance" in export_settings['KHR_animation_pointer']['materials'][blender_id]['paths'][channel]['path']:
+        if blender_main_type is None and blender_type_data == "materials":
+            if "attenuationDistance" in export_settings['KHR_animation_pointer'][
+                    blender_main_type]['materials'][used_blender_id]['paths'][channel]['path']:
                 value = 1.0 / value if value != 0.0 else 1e13
 
-            if export_settings['KHR_animation_pointer']['materials'][blender_id]['paths'][channel]['path'] == "/materials/XXX/occlusionTexture/strength":
-                if export_settings['KHR_animation_pointer']['materials'][blender_id]['paths'][channel]['reverse'] is True:
+            if export_settings['KHR_animation_pointer'][blender_main_type]['materials'][used_blender_id]['paths'][channel]['path'] == "/materials/XXX/occlusionTexture/strength":
+                if export_settings['KHR_animation_pointer'][blender_main_type]['materials'][used_blender_id]['paths'][channel]['reverse'] is True:
                     value = 1.0 - value
 
-            if export_settings['KHR_animation_pointer']['materials'][blender_id]['paths'][channel]['path'] == "/materials/XXX/emissiveFactor":
+            if export_settings['KHR_animation_pointer'][blender_main_type]['materials'][used_blender_id]['paths'][channel]['path'] == "/materials/XXX/emissiveFactor":
                 # We need to retrieve the strength of the emissive too
                 strength = get_cache_data(
                     'value',
-                    blender_id,
-                    export_settings['KHR_animation_pointer']['materials'][blender_id]['paths'][channel]['strength_channel'],
+                    used_blender_id,
+                    export_settings['KHR_animation_pointer'][blender_main_type]['materials'][used_blender_id]['paths'][channel]['strength_channel'],
                     action_name,
                     frame,
                     step,
@@ -81,14 +113,14 @@ def gather_data_sampled_keyframes(
                 else:
                     pass  # Don't need to do anything, as we are in the range [0,1]
 
-            if export_settings['KHR_animation_pointer']['materials'][blender_id]['paths'][channel][
-                    'path'] == "/materials/XXX/extensions/KHR_materials_emissive_strength/emissiveStrength":
+            if export_settings['KHR_animation_pointer'][blender_main_type]['materials'][used_blender_id]['paths'][
+                    channel]['path'] == "/materials/XXX/extensions/KHR_materials_emissive_strength/emissiveStrength":
 
-                if export_settings['KHR_animation_pointer']['materials'][blender_id]['paths'][channel]['factor_channel'] is not None:
+                if export_settings['KHR_animation_pointer'][blender_main_type]['materials'][used_blender_id]['paths'][channel]['factor_channel'] is not None:
                     factor = get_cache_data(
                         'value',
-                        blender_id,
-                        export_settings['KHR_animation_pointer']['materials'][blender_id]['paths'][channel]['factor_channel'],
+                        used_blender_id,
+                        export_settings['KHR_animation_pointer'][blender_main_type]['materials'][used_blender_id]['paths'][channel]['factor_channel'],
                         action_name,
                         frame,
                         step,
@@ -114,16 +146,18 @@ def gather_data_sampled_keyframes(
             # This is done in cache retrieval
 
         elif blender_type_data == "lights":
-            if export_settings['KHR_animation_pointer']['lights'][blender_id]['paths'][channel]['path'] == "/extensions/KHR_lights_punctual/lights/XXX/intensity":
+            if export_settings['KHR_animation_pointer'][blender_main_type]['lights'][used_blender_id][
+                    'paths'][channel]['path'] == "/extensions/KHR_lights_punctual/lights/XXX/intensity":
                 # Lights need conversion in case quadratic_falloff_node is used, for intensity
                 if 'quadratic_falloff_node' in channel:
                     value /= (math.pi * 4.0)
 
                 if export_settings['gltf_lighting_mode'] == 'SPEC' \
-                        and export_settings['KHR_animation_pointer']['lights'][blender_id]['paths'][channel]['lamp_type'] != "SUN":
+                        and export_settings['KHR_animation_pointer'][blender_main_type]['lights'][used_blender_id]['paths'][channel]['lamp_type'] != "SUN":
                     value *= PBR_WATTS_TO_LUMENS
 
-            if export_settings['KHR_animation_pointer']['lights'][blender_id]['paths'][channel]['path'] == "/extensions/KHR_lights_punctual/lights/XXX/spot.outerConeAngle":
+            if export_settings['KHR_animation_pointer'][blender_main_type]['lights'][used_blender_id][
+                    'paths'][channel]['path'] == "/extensions/KHR_lights_punctual/lights/XXX/spot.outerConeAngle":
                 value *= 0.5
 
             # innerConeAngle is handled in cache retrieval, as it requires spot_size and spot_blend
@@ -144,7 +178,8 @@ def gather_data_sampled_keyframes(
         return None, None
     else:
         # We need to check if the alpha channel is constant, for baseColorFactor
-        if export_settings['KHR_animation_pointer'][blender_type_data][blender_id]['paths'][channel]['path'] == "/materials/XXX/pbrMetallicRoughness/baseColorFactor":
+        if export_settings['KHR_animation_pointer'][blender_main_type][blender_type_data][used_blender_id][
+                'paths'][channel]['path'] == "/materials/XXX/pbrMetallicRoughness/baseColorFactor":
             # Check if alpha channel is constant
             return keyframes, fcurve_channel_is_constant(keyframes, 3)
         else:

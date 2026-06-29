@@ -11,8 +11,8 @@
 #include <sstream>
 
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_threads.h"
+#include "BLI_string.hh"
+#include "BLI_threads.hh"
 
 #include "CLG_log.h"
 
@@ -274,7 +274,7 @@ bool VKBackend::is_supported()
 
   VkInstance vk_instance = VK_NULL_HANDLE;
   if (!vk_instance_create_for_platform_checks(&vk_instance)) {
-    CLOG_ERROR(&LOG, "Unable to initialize a Vulkan 1.2 instance.");
+    CLOG_WARN(&LOG, "Unable to initialize a Vulkan 1.2 instance.");
     return false;
   }
 
@@ -505,6 +505,66 @@ void VKBackend::platform_init(const VKDevice &device)
             driver_version.c_str());
 }
 
+enum class IntelGpuArch : uint32_t {
+  Gen9AndOlder,
+  Gen11,
+  Gen12,
+  Xe = Gen12,
+  Xe2,
+  Xe3AndNewer,
+};
+
+inline IntelGpuArch get_intel_gpu_arch(uint32_t device_id)
+{
+  /* Source for device IDs:
+   * https://gitlab.freedesktop.org/mesa/mesa/-/blob/main/include/pci_ids/iris_pci_ids.h
+   */
+  switch (device_id & 0xFF00) {
+    case 0x2900:  // Broadwater
+    case 0x2A00:  // Broadwater/Eagle Lake
+    case 0x2E00:  // Eagle Lake
+    case 0x0000:  // Iron Lake
+    case 0x0100:  // Ivy Bridge/Sandy Bridge/Baytrail
+    case 0x0F00:  // Baytrail
+    case 0x0400:  // Haswell
+    case 0x0C00:  // Haswell
+    case 0x0D00:  // Haswell
+    case 0x0A00:  // Haswell / Appollo Lake
+    case 0x2200:  // Cherrytrail
+    case 0x1600:  // Broadwell
+    case 0x5A00:  // Apollo Lake
+    case 0x1900:  // Skylake
+    case 0x1A00:  // Apollo Lake
+    case 0x3100:  // Gemini Lake
+    case 0x5900:  // Kaby Lake/Amber Lake
+    case 0x8700:  // Kaby Lake/Coffee Lake
+    case 0x3E00:  // Coffee Lake/Whiskey Lake
+    case 0x9B00:  // Comet Lake
+      return IntelGpuArch::Gen9AndOlder;
+    case 0x8A00:  // Ice Lake
+    case 0x4500:  // Elkhart Lake
+    case 0x4E00:  // Jasper Lake
+      return IntelGpuArch::Gen11;
+    case 0x9A00:  // Tiger Lake
+    case 0x4C00:  // Rocket Lake
+    case 0x4900:  // DG1
+    case 0x4600:  // Alder Lake
+    case 0x4F00:  // Alchemist
+    case 0x5600:  // Alchemist
+    case 0xA700:  // Raptor Lake
+    case 0x7D00:  // Meteor Lake / Arrow Lake
+    case 0xB600:  // Meteor Lake / Arrow Lake
+      return IntelGpuArch::Xe;
+    case 0x6400:  // Lunar Lake
+    case 0xE200:  // Battlemage
+      return IntelGpuArch::Xe2;
+    case 0xB000:  // Panther Lake
+    case 0xFD00:  // Wildcat Lake
+    default:
+      return IntelGpuArch::Xe3AndNewer;
+  }
+}
+
 void VKBackend::detect_workarounds(VKDevice &device)
 {
   VKWorkarounds workarounds;
@@ -627,30 +687,31 @@ void VKBackend::detect_workarounds(VKDevice &device)
   }
 
 #ifdef _WIN32
-  /* Intel 7th to 10th Gen Processor iGPUs show a black screen at application startup when using
-   * VK_EXT_vertex_input_dynamic_state. Furthermore, texture pool usage leads to visual artifacts.
-   * The used driver version for these iGPUs is 101.2xxx or older.
-   *
-   * See #147721
-   */
   if (GPU_type_matches(GPU_DEVICE_INTEL | GPU_DEVICE_INTEL_UHD, GPU_OS_WIN, GPU_DRIVER_OFFICIAL)) {
-    const uint32_t driver_version = device.physical_device_properties_get().driverVersion;
-    uint32_t driver_version_major = driver_version >> 14u;
-    uint32_t driver_version_minor = driver_version & 0x3fffu;
-    if (driver_version_major < 101 || (driver_version_major == 101 && driver_version_minor < 3000))
-    {
+    IntelGpuArch gpu_arch = get_intel_gpu_arch(device.physical_device_properties_get().deviceID);
+
+    /* Intel Gen9 iGPUs (Intel 7th to 10th Gen Processor Graphics driver) show a black screen at
+     * application startup when using VK_EXT_vertex_input_dynamic_state.
+     *
+     * See #147721
+     */
+    if (gpu_arch == IntelGpuArch::Gen9AndOlder) {
       extensions.vertex_input_dynamic_state = false;
+    }
+
+    /* Using the texture pool causes varying issues on older Intel iGPUs.
+     * Note: Gen12 iGPUs are partly covered by the Intel 11th to 14th Gen Processor Graphics driver
+     * and the Intel Arc Graphics driver (the latter handles Arrow Lake and Meteor Lake).
+     * - Visual corruptions can be seen on Gen9 and older iGPUs (Intel 7th to 10th Gen Processor
+     * Graphics driver; #147721).
+     * - When using the image cache, visual artifacts can be seen on Gen11 and Gen12 iGPUs
+     * (#156496) and Gen12 dGPUs (#160002).
+     * - When using the texture pool without the image cache, memory leaks happen on Gen11 and
+     * Gen12 GPUs (#157777).
+     */
+    if (gpu_arch <= IntelGpuArch::Gen12) {
       GCaps.texture_pool_workaround = true;
     }
-  }
-
-  /* Using the texture pool causes issues on Intel Meteor/Arrow/Alder Lake and older iGPUs.
-   * - When using the image cache, visual artifacts can be seen (#156496).
-   * - When using the texture pool without the image cache, memory leaks happen (#157777).
-   * Until the issues have been resolved, the texture pool workaround is used.
-   */
-  if (GPU_type_matches(GPU_DEVICE_INTEL | GPU_DEVICE_INTEL_UHD, GPU_OS_WIN, GPU_DRIVER_OFFICIAL)) {
-    GCaps.texture_pool_workaround = true;
   }
 #endif
 
@@ -709,12 +770,6 @@ void VKBackend::compute_dispatch_indirect(StorageBuf *indirect_buf)
 
 Context *VKBackend::context_alloc(GHOST_IWindow *ghost_window, GHOST_IContext *ghost_context)
 {
-  if (ghost_window) {
-    BLI_assert(ghost_context == nullptr);
-    ghost_context = ghost_window->getDrawingContext();
-  }
-
-  BLI_assert(ghost_context != nullptr);
   if (!device.is_initialized()) {
     device.init(ghost_context);
     device.extensions_get().log();

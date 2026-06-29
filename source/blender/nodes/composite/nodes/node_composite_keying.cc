@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_math_color.h"
+#include "BLI_math_color_c.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "DNA_scene_types.h"
@@ -46,6 +46,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   PanelDeclarationBuilder &preprocess_panel = b.add_panel("Preprocess"_ustr).default_closed(true);
   preprocess_panel.add_input<decl::Int>("Blur Size"_ustr, "Preprocess Blur Size"_ustr)
       .default_value(0)
+      .subtype(PROP_PIXEL)
       .min(0)
       .description(
           "Blur the color of the input image in YCC color space before keying while leaving the "
@@ -86,6 +87,7 @@ static void node_declare(NodeDeclarationBuilder &b)
                                              .default_closed(true)
                                              .translation_context(BLT_I18NCONTEXT_ID_IMAGE);
   edges_panel.add_input<decl::Int>("Size"_ustr, "Edge Search Size"_ustr)
+      .subtype(PROP_PIXEL)
       .default_value(3)
       .min(0)
       .description(
@@ -120,15 +122,18 @@ static void node_declare(NodeDeclarationBuilder &b)
   PanelDeclarationBuilder &postprocess_panel =
       b.add_panel("Postprocess"_ustr).default_closed(true);
   postprocess_panel.add_input<decl::Int>("Blur Size"_ustr, "Postprocess Blur Size"_ustr)
+      .subtype(PROP_PIXEL)
       .default_value(0)
       .min(0)
       .description("Blur the computed matte using a Gaussian blur of the given size");
   postprocess_panel.add_input<decl::Int>("Dilate Size"_ustr, "Postprocess Dilate Size"_ustr)
+      .subtype(PROP_PIXEL)
       .default_value(0)
       .description(
           "Dilate or erode the computed matte using a circular structuring element of the "
           "specified size. Negative sizes means erosion while positive means dilation");
   postprocess_panel.add_input<decl::Int>("Feather Size"_ustr, "Postprocess Feather Size"_ustr)
+      .subtype(PROP_PIXEL)
       .default_value(0)
       .description(
           "Dilate or erode the computed matte using an inverse distance operation evaluated at "
@@ -225,8 +230,8 @@ class KeyingOperation : public NodeOperation {
      * since it is now returned as the output. */
     const float blur_size = this->get_preprocess_blur_size();
     if (blur_size == 0.0f) {
-      Result output = get_input("Image");
-      output.increment_reference_count();
+      Result output = this->context().create_result(ResultType::Color);
+      output.share_data(this->get_input("Image"));
       return output;
     }
 
@@ -486,8 +491,8 @@ class KeyingOperation : public NodeOperation {
         core_matte.get_single_value_default<float>() == 0.0f &&
         garbage_matte.get_single_value_default<float>() == 0.0f)
     {
-      Result output_matte = input_matte;
-      input_matte.increment_reference_count();
+      Result output_matte = this->context().create_result(ResultType::Float);
+      output_matte.share_data(input_matte);
       return output_matte;
     }
 
@@ -647,8 +652,8 @@ class KeyingOperation : public NodeOperation {
      * input because the caller will release it after the call, and we want to extend its life
      * since it is now returned as the output. */
     if (blur_size == 0.0f) {
-      Result output_matte = input_matte;
-      input_matte.increment_reference_count();
+      Result output_matte = this->context().create_result(ResultType::Float);
+      output_matte.share_data(input_matte);
       return output_matte;
     }
 
@@ -671,8 +676,8 @@ class KeyingOperation : public NodeOperation {
      * the input because the caller will release it after the call, and we want to extend its life
      * since it is now returned as the output. */
     if (distance == 0) {
-      Result output_matte = input_matte;
-      input_matte.increment_reference_count();
+      Result output_matte = this->context().create_result(ResultType::Float);
+      output_matte.share_data(input_matte);
       return output_matte;
     }
 
@@ -694,8 +699,8 @@ class KeyingOperation : public NodeOperation {
      * the input because the caller will release it after the call, and we want to extend its life
      * since it is now returned as the output. */
     if (distance == 0) {
-      Result output_matte = input_matte;
-      input_matte.increment_reference_count();
+      Result output_matte = this->context().create_result(ResultType::Float);
+      output_matte.share_data(input_matte);
       return output_matte;
     }
 
@@ -825,7 +830,7 @@ static void node_register()
   bke::node_type_storage(
       ntype, "NodeKeyingData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = get_compositor_operation;
-  bke::node_type_size(ntype, 155, 140, NODE_DEFAULT_MAX_WIDTH);
+  ntype.default_width = bke::NodeWidth::_160;
 
   bke::node_register_type(ntype);
 }

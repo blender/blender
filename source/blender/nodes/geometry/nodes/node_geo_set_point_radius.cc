@@ -17,13 +17,16 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Points"_ustr)
       .supported_type(GeometryComponent::Type::PointCloud)
       .description("Points to set the radius of");
-  b.add_output<decl::Geometry>("Points"_ustr).propagate_all().align_with_previous();
-  b.add_input<decl::Bool>("Selection"_ustr).default_value(true).hide_value().field_on_all();
+  b.add_output<decl::Geometry>("Points"_ustr).propagate_all_geometry().align_with_previous();
+  b.add_input<decl::Bool>("Selection"_ustr)
+      .default_value(true)
+      .hide_value()
+      .evaluated_geometry_field();
   b.add_input<decl::Float>("Radius"_ustr)
       .default_value(0.05f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .field_on_all();
+      .evaluated_geometry_field();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

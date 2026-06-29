@@ -14,7 +14,7 @@
 #include "DNA_movieclip_types.h"
 
 #include "BLI_map.hh"
-#include "BLI_threads.h"
+#include "BLI_threads.hh"
 struct libmv_CameraIntrinsicsOptions;
 struct libmv_TrackRegionOptions;
 struct libmv_FrameAccessor;

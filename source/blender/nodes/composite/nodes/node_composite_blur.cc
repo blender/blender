@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -60,6 +60,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Vector>("Size"_ustr)
       .dimensions(2)
       .default_value({0.0f, 0.0f})
+      .subtype(PROP_PIXEL)
       .min(0.0f)
       .structure_type(StructureType::Dynamic);
   b.add_input<decl::Menu>("Type"_ustr)

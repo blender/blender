@@ -28,14 +28,14 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "BLI_asan.h"
-#include "BLI_utildefines.h"
+#include "BLI_asan.hh"
+#include "BLI_utildefines.hh"
 
-#include "BLI_memiter.h" /* own include */
+#include "BLI_memiter.hh" /* own include */
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 
@@ -146,7 +146,7 @@ void *BLI_memiter_alloc(BLI_memiter *mi, uint elem_size)
 #endif
 
     uint chunk_size_in_bytes = mi->chunk_size_in_bytes_min;
-    if (UNLIKELY(chunk_size_in_bytes < elem_size + uint(sizeof(data_t[2])))) {
+    if (chunk_size_in_bytes < elem_size + uint(sizeof(data_t[2]))) [[unlikely]] {
       chunk_size_in_bytes = elem_size + uint(sizeof(data_t[2]));
     }
     uint chunk_size = data_offset_from_size(chunk_size_in_bytes);
@@ -301,7 +301,7 @@ void *BLI_memiter_iter_step_size(BLI_memiter_handle *iter, uint *r_size)
 {
   if (iter->elem_left != 0) {
     iter->elem_left -= 1;
-    if (UNLIKELY(iter->elem->size < 0)) {
+    if (iter->elem->size < 0) [[unlikely]] {
       memiter_chunk_step(iter);
     }
     BLI_assert(iter->elem->size >= 0);
@@ -318,7 +318,7 @@ void *BLI_memiter_iter_step(BLI_memiter_handle *iter)
 {
   if (iter->elem_left != 0) {
     iter->elem_left -= 1;
-    if (UNLIKELY(iter->elem->size < 0)) {
+    if (iter->elem->size < 0) [[unlikely]] {
       memiter_chunk_step(iter);
     }
     BLI_assert(iter->elem->size >= 0);

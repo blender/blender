@@ -15,14 +15,14 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_kdopbvh.hh"
-#include "BLI_linklist_stack.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
+#include "BLI_linklist_stack.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_memarena.h"
-#include "BLI_sort_utils.h"
-#include "BLI_utildefines_stack.h"
+#include "BLI_memarena.hh"
+#include "BLI_sort_utils.hh"
+#include "BLI_utildefines_stack.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_customdata.hh"
@@ -567,7 +567,7 @@ bool BM_face_split_edgenet(
     {
       BMFace *f_new = nullptr;
 
-      if (UNLIKELY(check_face_exists && BM_face_exists(face_verts, face_verts_len))) {
+      if (check_face_exists && BM_face_exists(face_verts, face_verts_len)) [[unlikely]] {
         /* Should only happen in unexpected/degenerate cases, see: #150360. */
       }
       else {
@@ -798,7 +798,7 @@ static int group_min_cmp_fn(const void *p1, const void *p2)
   const EdgeGroupIsland *g2 = *static_cast<EdgeGroupIsland **>(const_cast<void *>(p2));
   /* min->co[SORT_AXIS] hasn't been applied yet */
   int test = axis_pt_cmp(g1->vert_span.min_axis, g2->vert_span.min_axis);
-  if (UNLIKELY(test == 0)) {
+  if (test == 0) [[unlikely]] {
     test = axis_pt_cmp(g1->vert_span.max_axis, g2->vert_span.max_axis);
   }
   return test;
@@ -838,7 +838,7 @@ static void bvhtree_test_edges_isect_2d_vert_cb(void *user_data,
     /* avoid float precision issues, possible this is greater,
      * check above zero to allow some overlap
      * (and needed for partial-connect which will overlap vertices) */
-    if (LIKELY((dist_new < hit->dist) && (dist_new > 0.0f))) {
+    if ((dist_new < hit->dist) && (dist_new > 0.0f)) [[likely]] {
       /* v1/v2 will both be in the same group */
       if (v1_index < int(data->vert_range[0]) || v1_index >= int(data->vert_range[1])) {
         hit->dist = dist_new;
@@ -864,7 +864,7 @@ static void bvhtree_test_edges_isect_2d_ray_cb(void *user_data,
     /* avoid float precision issues, possible this is greater,
      * check above zero to allow some overlap
      * (and needed for partial-connect which will overlap vertices) */
-    if (LIKELY(dist_new < hit->dist && (dist_new > 0.0f))) {
+    if (dist_new < hit->dist && (dist_new > 0.0f)) [[likely]] {
       if (e->v1 != data->v_origin && e->v2 != data->v_origin) {
         const int v1_index = BM_elem_index_get(e->v1);
         /* v1/v2 will both be in the same group */
@@ -927,11 +927,12 @@ static BMEdge *test_edges_isect_2d_vert(const EdgeGroup_FindConnection_Args *arg
   BMEdge *e_hit = (index != -1) ? args->edge_arr[index] : nullptr;
 
   /* check existing connections (no spatial optimization here since we're continually adding). */
-  if (LIKELY(index == -1)) {
+  if (index == -1) [[likely]] {
     float t_best = 1.0f;
     for (uint i = 0; i < args->edge_arr_new_len; i++) {
       float co_isect[2];
-      if (UNLIKELY(edge_isect_verts_point_2d(args->edge_arr_new[i], v_origin, v_other, co_isect)))
+      if (edge_isect_verts_point_2d(args->edge_arr_new[i], v_origin, v_other, co_isect))
+          [[unlikely]]
       {
         const float t_test = line_point_factor_v2(co_isect, v_origin->co, v_other->co);
         if (t_test < t_best) {
@@ -979,14 +980,14 @@ static BMEdge *test_edges_isect_2d_ray(const EdgeGroup_FindConnection_Args *args
   BMEdge *e_hit = (index != -1) ? args->edge_arr[index] : nullptr;
 
   /* check existing connections (no spatial optimization here since we're continually adding). */
-  if (LIKELY(index != -1)) {
+  if (index != -1) [[likely]] {
     for (uint i = 0; i < args->edge_arr_new_len; i++) {
       BMEdge *e = args->edge_arr_new[i];
       float dist_new;
       if (isect_ray_seg_v2(v_origin->co, dir, e->v1->co, e->v2->co, &dist_new, nullptr)) {
         if (e->v1 != v_origin && e->v2 != v_origin) {
           /* avoid float precision issues, possible this is greater */
-          if (LIKELY(dist_new < hit.dist)) {
+          if (dist_new < hit.dist) [[likely]] {
             hit.dist = dist_new;
 
             e_hit = args->edge_arr_new[i];
@@ -1138,7 +1139,7 @@ static BMVert *bm_face_split_edgenet_partial_connect(BMesh *bm, BMVert *v_delimi
   });
 
   /* skip typical edge-chain verts */
-  if (LIKELY(e_delimit_list_len <= 2)) {
+  if (e_delimit_list_len <= 2) [[likely]] {
     return nullptr;
   }
 
@@ -1206,7 +1207,7 @@ static BMVert *bm_face_split_edgenet_partial_connect(BMesh *bm, BMVert *v_delimi
 #  if 0
     BLI_assert(v_split->e != nullptr);
 #  else
-    if (UNLIKELY(v_split->e == nullptr)) {
+    if (v_split->e == nullptr) [[unlikely]] {
       BM_vert_kill(bm, v_split);
       v_split = nullptr;
     }
@@ -1236,7 +1237,7 @@ static bool bm_vert_partial_connect_check_overlap(const int *remap,
                                                   const int v_b_index)
 {
   /* Connected to each other. */
-  if (UNLIKELY((remap[v_a_index] == v_b_index) || (remap[v_b_index] == v_a_index))) {
+  if ((remap[v_a_index] == v_b_index) || (remap[v_b_index] == v_a_index)) [[unlikely]] {
     return true;
   }
   return false;
@@ -1317,7 +1318,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
         BMVert *v_other;
 
         /* NOTE: remapping will _never_ map a vertex to an already mapped vertex. */
-        while (UNLIKELY(v_other = bm_face_split_edgenet_partial_connect(bm, v_delimit, f))) {
+        while ((v_other = bm_face_split_edgenet_partial_connect(bm, v_delimit, f))) [[unlikely]] {
           TempVertPair *tvp = static_cast<TempVertPair *>(
               BLI_memarena_alloc(mem_arena, sizeof(*tvp)));
           tvp->next = temp_vert_pairs.list;
@@ -1421,6 +1422,9 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
   axis_dominant_v3_to_m3(axis_mat, f->no);
 
 #define VERT_IN_ARRAY BM_ELEM_INTERNAL_TAG
+  /* Any destructive edits are going to render the UV selection dirty,
+   * the flags use here is acceptable. */
+#define EDGE_IS_NEW BM_ELEM_SELECT_UV
 
   group_arr = static_cast<EdgeGroupIsland **>(
       BLI_memarena_alloc(mem_arena, sizeof(*group_arr) * group_arr_len));
@@ -1614,14 +1618,16 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
 #endif
           {
             BMVert *v_end = vert_arr[index_other];
+            const int totedge_prev = bm->totedge;
             /* Doubles should not be present in the common case,
              * see the complex test file from: #150360. */
-            if ((edge_net_new[edge_net_new_index] = BM_edge_create(
-                     bm, v_origin, v_end, nullptr, BM_CREATE_NO_DOUBLE)))
-            {
+            BMEdge *e_new = edge_net_new[edge_net_new_index] = BM_edge_create(
+                bm, v_origin, v_end, nullptr, BM_CREATE_NO_DOUBLE);
+            if ((edge_net_new[edge_net_new_index] = e_new)) {
 #ifdef USE_PARTIAL_CONNECT
-              BM_elem_index_set(edge_net_new[edge_net_new_index], edge_net_new_index);
+              BM_elem_index_set(e_new, edge_net_new_index);
 #endif
+              BM_elem_flag_set(e_new, EDGE_IS_NEW, bm->totedge != totedge_prev);
               edge_net_new_index++;
               args.edge_arr_new_len++;
             }
@@ -1644,14 +1650,16 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
 #endif
           {
             BMVert *v_end = vert_arr[index_other];
+            const int totedge_prev = bm->totedge;
             /* Doubles should not be present in the common case,
              * see the complex test file from: #150360. */
-            if ((edge_net_new[edge_net_new_index] = BM_edge_create(
-                     bm, v_origin, v_end, nullptr, BM_CREATE_NO_DOUBLE)))
-            {
+            BMEdge *e_new = edge_net_new[edge_net_new_index] = BM_edge_create(
+                bm, v_origin, v_end, nullptr, BM_CREATE_NO_DOUBLE);
+            if ((edge_net_new[edge_net_new_index] = e_new)) {
 #ifdef USE_PARTIAL_CONNECT
-              BM_elem_index_set(edge_net_new[edge_net_new_index], edge_net_new_index);
+              BM_elem_index_set(e_new, edge_net_new_index);
 #endif
+              BM_elem_flag_set(e_new, EDGE_IS_NEW, bm->totedge != totedge_prev);
               edge_net_new_index++;
               args.edge_arr_new_len++;
             }
@@ -1707,10 +1715,17 @@ finally:
     } while ((tvp = tvp->next));
 
     /* Remove edges which have become doubles since splicing vertices together,
-     * its less trouble than detecting future-doubles on edge-creation. */
+     * its less trouble than detecting future-doubles on edge-creation.
+     *
+     * Only kill it when it was created here because an pre-existing edge may be
+     * part of a face which should not be removed as part of this isolated cleanup.
+     * Any other doubles which may exist are left as-is,
+     * the caller is responsible for them, see #160601. */
     for (uint i = edge_net_init_len; i < edge_net_new_len; i++) {
       while (BM_edge_find_double(edge_net_new[i])) {
-        BM_edge_kill(bm, edge_net_new[i]);
+        if (BM_elem_flag_test(edge_net_new[i], EDGE_IS_NEW)) {
+          BM_edge_kill(bm, edge_net_new[i]);
+        }
         edge_net_new_len--;
         if (i == edge_net_new_len) {
           break;
@@ -1724,12 +1739,13 @@ finally:
 #endif
 
   for (uint i = 0; i < edge_arr_len; i++) {
-    BM_elem_flag_disable(edge_arr[i], EDGE_NOT_IN_STACK);
+    BM_elem_flag_disable(edge_arr[i], EDGE_NOT_IN_STACK | EDGE_IS_NEW);
     BM_elem_flag_disable(edge_arr[i]->v1, VERT_NOT_IN_STACK);
     BM_elem_flag_disable(edge_arr[i]->v2, VERT_NOT_IN_STACK);
   }
 
 #undef VERT_IN_ARRAY
+#undef EDGE_IS_NEW
 #undef VERT_NOT_IN_STACK
 #undef EDGE_NOT_IN_STACK
 

@@ -9,7 +9,7 @@
 #include "BLI_math_boolean.hh"
 #include "BLI_math_mpq.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 namespace blender {
 
@@ -182,7 +182,7 @@ static RobustInitCaller init_caller;
  * Split(), and Two_Product() are all implemented as described in the
  * reference.  Each of these macros requires certain variables to be
  * defined in the calling routine.  The variables `bvirt`, `c`, `abig`,
- * `_i`, `_j`, `_k`, `_l`, `_m`, and `_n` are declared `INEXACT' because
+ * `_i`, `_j`, `_k`, `_l`, `_m`, and `_n` are declared `INEXACT` because
  * they store the result of an operation that may incur round-off error.
  * The input parameter `x` (or the highest numbered `x_` parameter) must
  * also be declared `INEXACT`.
@@ -424,7 +424,7 @@ void exactinit()
   splitter = 1.0;
   check = 1.0;
   /* Repeatedly divide `epsilon` by two until it is too small to add to
-   * one without causing round-off.  (Also check if the sum is equal to
+   * one without causing round-off. Also check if the sum is equal to
    * the previous sum, for machines that round up instead of using exact
    * rounding.  Not that this library will work on such machines anyway. */
   do {

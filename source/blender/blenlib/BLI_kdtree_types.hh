@@ -9,7 +9,7 @@
  * \brief A KD-tree for nearest neighbor search.
  */
 
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 #include <cstdint>
 

@@ -252,7 +252,7 @@ static void sync_smoke_volume(blender::Scene &b_scene,
     mesh_texture_space(b_mesh, loc, size);
 
     Attribute *attr = volume->attributes.add(ATTR_STD_GENERATED_TRANSFORM);
-    Transform *tfm = attr->data_transform_for_write();
+    Transform *tfm = attr->data_for_write<Transform>();
     *tfm = transform_translate(-loc) * transform_scale(size);
   }
 }
@@ -377,12 +377,21 @@ static void sync_volume_object(blender::Main &b_data,
       std = ATTR_STD_VOLUME_VELOCITY_Z;
     }
 
-    if ((std != ATTR_STD_NONE && volume->need_attribute(scene, std)) ||
-        volume->need_attribute(scene, name))
-    {
-      Attribute *attr = (std != ATTR_STD_NONE) ?
-                            volume->attributes.add(std) :
-                            volume->attributes.add(name, TypeFloat, ATTR_ELEMENT_VOXEL);
+    const bool need_std = (std != ATTR_STD_NONE && volume->need_attribute(scene, std));
+    const bool need_named = volume->need_attribute(scene, name);
+
+    if (need_std || need_named) {
+      Attribute *attr;
+      if (need_std) {
+        /* Make grid available both with std and name. */
+        attr = volume->attributes.add(std, name);
+      }
+      else {
+        /* Make grid available by name with appropriate number of channels. */
+        const int channels = blender::bke::volume_grid::get_channels_num(b_grid.grid_type());
+        const TypeDesc type = (channels == 3) ? TypeVector : TypeFloat;
+        attr = volume->attributes.add(name, type, ATTR_ELEMENT_VOXEL);
+      }
 
       unique_ptr<ImageLoader> loader = make_unique<BlenderVolumeLoader>(
           b_data,
@@ -403,13 +412,15 @@ static void sync_volume_object(blender::Main &b_data,
   if (volume->need_attribute(scene, ATTR_STD_GENERATED_TRANSFORM)) {
     std::optional<const blender::Bounds<blender::float3>> bounds = BKE_volume_min_max(&b_volume);
 
-    const blender::float3 size = bounds->size();
-    const float3 loc = make_float3(bounds->min[0], bounds->min[1], bounds->min[2]);
-    const float3 inv_size = safe_divide(one_float3(), make_float3(size[0], size[1], size[2]));
+    if (bounds.has_value()) {
+      const blender::float3 size = bounds->size();
+      const float3 loc = make_float3(bounds->min[0], bounds->min[1], bounds->min[2]);
+      const float3 inv_size = safe_divide(one_float3(), make_float3(size[0], size[1], size[2]));
 
-    Attribute *attr = volume->attributes.add(ATTR_STD_GENERATED_TRANSFORM);
-    Transform *tfm = attr->data_transform_for_write();
-    *tfm = transform_scale(inv_size) * transform_translate(-loc);
+      Attribute *attr = volume->attributes.add(ATTR_STD_GENERATED_TRANSFORM);
+      Transform *tfm = attr->data_for_write<Transform>();
+      *tfm = transform_scale(inv_size) * transform_translate(-loc);
+    }
   }
 }
 

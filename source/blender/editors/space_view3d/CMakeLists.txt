@@ -65,6 +65,7 @@ set(SRC
   view3d_snap.cc
   view3d_utils.cc
   view3d_view.cc
+  view3d_vr_location_scouting.cc
 
   view3d_intern.hh
   view3d_navigate.hh
@@ -105,6 +106,10 @@ endif()
 
 if(WITH_XR_OPENXR)
   add_definitions(-DWITH_XR_OPENXR)
+
+  list(APPEND INC
+    ../../windowmanager/xr/
+  )
 endif()
 
 blender_add_lib(bf_editor_space_view3d "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

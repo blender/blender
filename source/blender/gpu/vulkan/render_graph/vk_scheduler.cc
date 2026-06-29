@@ -51,8 +51,12 @@ std::optional<std::pair<int64_t, int64_t>> VKScheduler::find_rendering_scope(
       return std::pair(rendering_start, index);
     }
   }
-  BLI_assert(rendering_start == -1);
-
+  /* When using VK_EXT_dynamic_rendering_local_read, rendering scopes can be suspended and
+   * resumed without explicit END_RENDERING (see VKFrameBuffer::subpass_transition_impl).
+   * This can leave a BEGIN_RENDERING node without a matching END_RENDERING at the end of
+   * the search range. Orphaned nodes don't need reordering.
+   * When NOT using local read, an unmatched BEGIN_RENDERING is a bug. */
+  BLI_assert(rendering_start == -1 || render_graph.resources_.use_dynamic_rendering_local_read);
   return std::nullopt;
 }
 

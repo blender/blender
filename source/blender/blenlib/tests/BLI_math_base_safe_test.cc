@@ -4,7 +4,7 @@
 
 #include "testing/testing.h"
 
-#include "BLI_math_base_safe.h"
+#include "BLI_math_base_safe.hh"
 
 namespace blender {
 

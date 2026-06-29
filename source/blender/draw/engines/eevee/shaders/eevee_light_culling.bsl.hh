@@ -4,17 +4,12 @@
 
 #pragma once
 
-#include "infos/eevee_common_infos.hh"
-#include "infos/eevee_light_infos.hh"
-
-SHADER_LIBRARY_CREATE_INFO(eevee_hiz_data)
-SHADER_LIBRARY_CREATE_INFO(eevee_light_data)
-
 #include "draw_intersect_lib.glsl"
 #include "draw_shape_lib.glsl"
-#include "draw_view_lib.glsl"
-#include "eevee_light_iter_lib.glsl"
-#include "eevee_light_lib.glsl"
+#include "draw_view.bsl.hh"
+#include "eevee_hiz.bsl.hh"
+#include "eevee_light_iter.bsl.hh"
+#include "eevee_light_lib.bsl.hh"
 #include "eevee_light_shared.hh"
 #include "gpu_shader_debug_gradients_lib.glsl"
 #include "gpu_shader_fullscreen_lib.glsl"
@@ -26,7 +21,6 @@ namespace eevee::light::culling {
  * Select the visible items inside the active view and put them inside the sorting buffer.
  */
 struct Cull {
-  [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo draw_view_culling;
 
   [[uniform(0)]] const LightData (&sunlight_buf)[2];
@@ -40,7 +34,9 @@ struct Cull {
 };
 
 [[compute, local_size(CULLING_SELECT_GROUP_SIZE)]]
-void cull_main([[resource_table]] Cull &srt, [[global_invocation_id]] const uint3 global_id)
+void cull_main([[resource_table]] Cull &srt,
+               [[resource_table]] const draw::View &views,
+               [[global_invocation_id]] const uint3 global_id)
 {
   uint l_idx = global_id.x;
   if (l_idx >= srt.light_cull_buf.items_count) {
@@ -58,7 +54,7 @@ void cull_main([[resource_table]] Cull &srt, [[global_invocation_id]] const uint
       light.object_to_world = srt.sunlight_buf[l_idx].object_to_world;
 
       LightSunData sun_data = light.sun();
-      sun_data.direction = transform_z_axis(srt.sunlight_buf[l_idx].object_to_world);
+      sun_data.direction = srt.sunlight_buf[l_idx].object_to_world.z_axis();
       light.sun() = sun_data;
       /* NOTE: Use the radius from UI instead of auto sun size for now. */
     }
@@ -79,12 +75,12 @@ void cull_main([[resource_table]] Cull &srt, [[global_invocation_id]] const uint
       LightSpotData spot = light.spot();
       /* Only for < ~170 degree Cone due to plane extraction precision. */
       if (spot.spot_tan < 10.0f) {
-        float3 x_axis = light_x_axis(light);
-        float3 y_axis = light_y_axis(light);
-        float3 z_axis = light_z_axis(light);
+        float3 x_axis = light.x_axis();
+        float3 y_axis = light.y_axis();
+        float3 z_axis = light.z_axis();
         Pyramid pyramid = shape_pyramid_non_oblique(
-            light_position_get(light),
-            light_position_get(light) - z_axis * spot.local.influence_radius_max,
+            light.position(),
+            light.position() - z_axis * spot.local.influence_radius_max,
             x_axis * spot.local.influence_radius_max * spot.spot_tan / spot.spot_size_inv.x,
             y_axis * spot.local.influence_radius_max * spot.spot_tan / spot.spot_size_inv.y);
         if (!intersect_view(pyramid)) {
@@ -97,7 +93,7 @@ void cull_main([[resource_table]] Cull &srt, [[global_invocation_id]] const uint
     case LIGHT_ELLIPSE:
     case LIGHT_OMNI_SPHERE:
     case LIGHT_OMNI_DISK:
-      sphere.center = light_position_get(light);
+      sphere.center = light.position();
       sphere.radius = light.local().local.influence_radius_max;
       break;
     default:
@@ -109,10 +105,10 @@ void cull_main([[resource_table]] Cull &srt, [[global_invocation_id]] const uint
   /* TODO(fclem): Small light culling / fading? */
 
   if (intersect_view(sphere)) {
+    const ViewMatrices view = views.get(0);
     uint index = atomicAdd(srt.light_cull_buf.visible_count, 1u);
 
-    float z_dist = dot(drw_view_forward(), light_position_get(light)) -
-                   dot(drw_view_forward(), drw_view_position());
+    float z_dist = dot(view.forward(), light.position()) - dot(view.forward(), view.position());
     srt.out_zdist_buf[index] = z_dist;
     srt.out_key_buf[index] = l_idx;
   }
@@ -124,8 +120,6 @@ void cull_main([[resource_table]] Cull &srt, [[global_invocation_id]] const uint
  * One thread processes one Light entity.
  */
 struct Sort {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-
   [[shared]] float zdists_cache[CULLING_SORT_GROUP_SIZE];
 
   [[storage(0, read)]] const LightCullingData &light_cull_buf;
@@ -206,16 +200,17 @@ struct ZBinning {
   [[shared]] uint zbin_max[CULLING_ZBIN_COUNT];
   [[shared]] uint zbin_min[CULLING_ZBIN_COUNT];
 
-  [[legacy_info]] ShaderCreateInfo draw_view;
   [[storage(0, read)]] const LightCullingData &light_cull_buf;
   [[storage(1, read)]] const LightData (&light_buf)[];
   [[storage(2, write)]] uint (&out_zbin_buf)[];
 };
 
 [[compute, local_size(CULLING_ZBIN_GROUP_SIZE)]]
-void zbin_main([[resource_table]] ZBinning &srt, [[local_invocation_id]] const uint3 local_id)
+void zbin_main([[resource_table]] ZBinning &srt,
+               [[resource_table]] const draw::View &views,
+               [[local_invocation_id]] const uint3 local_id)
 {
-  constexpr uint zbin_iter = CULLING_ZBIN_COUNT / gl_WorkGroupSize.x;
+  constexpr uint zbin_iter = CULLING_ZBIN_COUNT / CULLING_ZBIN_GROUP_SIZE;
   const uint zbin_local = local_id.x * zbin_iter;
 
   for (uint i = 0u, l = zbin_local; i < zbin_iter; i++, l++) {
@@ -224,17 +219,19 @@ void zbin_main([[resource_table]] ZBinning &srt, [[local_invocation_id]] const u
   }
   barrier();
 
-  uint light_iter = divide_ceil(srt.light_cull_buf.visible_count, gl_WorkGroupSize.x);
+  const ViewMatrices view = views.get(0);
+
+  uint light_iter = divide_ceil(srt.light_cull_buf.visible_count, uint(CULLING_ZBIN_GROUP_SIZE));
   for (uint i = 0u; i < light_iter; i++) {
-    uint index = i * gl_WorkGroupSize.x + local_id.x;
+    uint index = i * CULLING_ZBIN_GROUP_SIZE + local_id.x;
     if (index >= srt.light_cull_buf.visible_count) {
       continue;
     }
     LightData light = srt.light_buf[index];
-    float3 P = light_position_get(light);
+    float3 P = light.position();
     /* TODO(fclem): Could have better bounds for spot and area lights. */
     float radius = light.local().local.influence_radius_max;
-    float z_dist = dot(drw_view_forward(), P) - dot(drw_view_forward(), drw_view_position());
+    float z_dist = dot(view.forward(), P) - dot(view.forward(), view.position());
     int z_min = culling_z_to_zbin(
         srt.light_cull_buf.zbin_scale, srt.light_cull_buf.zbin_bias, z_dist + radius);
     int z_max = culling_z_to_zbin(
@@ -275,12 +272,12 @@ struct CullingTile {
     return tile;
   }
 
-  bool intersect(Sphere sphere)
+  bool intersect(const ViewMatrices view, Sphere sphere)
   {
     bool isect = true;
     /* Test tile intersection using bounding cone or bounding cylinder.
      * This has less false positive cases when the sphere is large. */
-    if (drw_view().winmat[3][3] == 0.0f) {
+    if (view.is_perspective()) {
       isect = ::intersect(shape_cone(this->bounds.xyz, this->bounds.w), sphere);
     }
     else {
@@ -317,9 +314,11 @@ struct CullingTile {
     v11 = normalize(v11);
     float3 center = normalize(v00 + v01 + v10 + v11);
     float angle_cosine = dot(center, v00);
-    angle_cosine = max(angle_cosine, dot(center, v01));
-    angle_cosine = max(angle_cosine, dot(center, v10));
-    angle_cosine = max(angle_cosine, dot(center, v11));
+    angle_cosine = min(angle_cosine, dot(center, v01));
+    angle_cosine = min(angle_cosine, dot(center, v10));
+    angle_cosine = min(angle_cosine, dot(center, v11));
+    /* Widen by moving to next representable float to account for float rounding. */
+    angle_cosine = uintBitsToFloat(floatBitsToUint(angle_cosine) - 1u);
     return float4(center, angle_cosine);
   }
 
@@ -338,7 +337,6 @@ struct CullingTile {
 };
 
 struct Tile {
-  [[legacy_info]] ShaderCreateInfo draw_view;
   [[legacy_info]] ShaderCreateInfo draw_view_culling;
 
   [[storage(0, read)]] const LightCullingData &light_cull_buf;
@@ -356,7 +354,7 @@ struct Tile {
     return tile_co * light_cull_buf.tile_to_uv_fac * 2.0f - 1.0f;
   }
 
-  CullingTile tile_culling_get(uint2 tile_co)
+  CullingTile tile_culling_get(const ViewMatrices view, uint2 tile_co)
   {
     float2 ftile = float2(tile_co);
     /* Culling frustum corners for this tile. */
@@ -371,16 +369,18 @@ struct Tile {
 
     for (int i = 0; i < 8; i++) [[unroll]] {
       /* Culling in view space for precision. */
-      corners[i] = project_point(drw_view().wininv, corners[i]);
+      corners[i] = project_point(view.wininv, corners[i]);
     }
 
-    bool is_persp = drw_view().winmat[3][3] == 0.0f;
+    bool is_persp = view.winmat[3][3] == 0.0f;
     return CullingTile::from_corners(is_persp, corners);
   }
 };
 
 [[compute, local_size(CULLING_TILE_GROUP_SIZE)]]
-void tile_main([[resource_table]] Tile &srt, [[global_invocation_id]] const uint3 global_id)
+void tile_main([[resource_table]] const draw::View &views,
+               [[resource_table]] Tile &srt,
+               [[global_invocation_id]] const uint3 global_id)
 {
   uint word_idx = global_id.x % srt.light_cull_buf.tile_word_len;
   uint tile_idx = global_id.x / srt.light_cull_buf.tile_word_len;
@@ -391,8 +391,10 @@ void tile_main([[resource_table]] Tile &srt, [[global_invocation_id]] const uint
     return;
   }
 
+  const ViewMatrices view = views.get(0);
+
   /* TODO(fclem): We could stop the tile at the HiZ depth. */
-  CullingTile tile = srt.tile_culling_get(tile_co);
+  CullingTile tile = srt.tile_culling_get(view, tile_co);
 
   uint l_idx = word_idx * 32u;
   uint l_end = min(l_idx + 32u, srt.light_cull_buf.visible_count);
@@ -401,10 +403,10 @@ void tile_main([[resource_table]] Tile &srt, [[global_invocation_id]] const uint
     LightData light = srt.light_buf[l_idx];
 
     /* Culling in view space for precision and simplicity. */
-    float3 vP = drw_point_world_to_view(light_position_get(light));
-    float3 v_right = drw_normal_world_to_view(light_x_axis(light));
-    float3 v_up = drw_normal_world_to_view(light_y_axis(light));
-    float3 v_back = drw_normal_world_to_view(light_z_axis(light));
+    float3 vP = view.point_world_to_view(light.position());
+    float3 v_right = view.normal_world_to_view(light.x_axis());
+    float3 v_up = view.normal_world_to_view(light.y_axis());
+    float3 v_back = view.normal_world_to_view(light.z_axis());
     float radius = light.local().local.influence_radius_max;
 
     if (srt.light_cull_buf.view_is_flipped) {
@@ -412,7 +414,7 @@ void tile_main([[resource_table]] Tile &srt, [[global_invocation_id]] const uint
     }
 
     Sphere sphere = shape_sphere(vP, radius);
-    bool intersect_tile = tile.intersect(sphere);
+    bool intersect_tile = tile.intersect(view, sphere);
 
     switch (light.type) {
       case LIGHT_SPOT_SPHERE:
@@ -467,12 +469,6 @@ struct DebugFragOut {
   [[frag_color(0), index(1)]] float4 out_debug_color_mul;
 };
 
-struct Debug {
-  [[legacy_info]] ShaderCreateInfo draw_view;
-  [[legacy_info]] ShaderCreateInfo eevee_light_data;
-  [[legacy_info]] ShaderCreateInfo eevee_hiz_data;
-};
-
 [[vertex]]
 void debug_vert([[vertex_id]] const int vert_id,
                 [[position]] float4 &out_position,
@@ -481,41 +477,81 @@ void debug_vert([[vertex_id]] const int vert_id,
   fullscreen_vertex(vert_id, out_position, v_out.screen_uv);
 }
 
+struct NoCullCtx {
+  float light_count;
+  uint light_bits;
+
+  void eval_directional([[resource_table]] LightRenderData & /*lrd*/,
+                        uint /*l_idx*/,
+                        LightData /*light*/)
+  {
+  }
+
+  void eval_local([[resource_table]] LightRenderData & /*lrd*/, uint l_idx, LightData /*light*/)
+  {
+    light_bits |= 1u << l_idx;
+    light_count += 1.0f;
+  }
+};
+
+struct WithCullCtx {
+  uint light_bits;
+  float3 P;
+
+  void eval_directional([[resource_table]] LightRenderData & /*lrd*/,
+                        uint /*l_idx*/,
+                        LightData /*light*/)
+  {
+  }
+
+  void eval_local([[resource_table]] LightRenderData & /*lrd*/, uint l_idx, LightData light)
+  {
+    LightVector lv = light_vector_get(light, false, P);
+    if (light_attenuation_surface(light, false, lv) > LIGHT_ATTENUATION_THRESHOLD) {
+      light_bits |= 1u << l_idx;
+    }
+  }
+};
+
+}  // namespace eevee::light::culling
+
+namespace eevee::light {
+
+template void light::foreach<culling::NoCullCtx, LightRenderData>(const LightRenderData &,
+                                                                  culling::NoCullCtx &,
+                                                                  LightRenderData &);
+
+template void light::foreach_visible<culling::WithCullCtx, LightRenderData>(
+    const LightRenderData &, float2, float, culling::WithCullCtx &, LightRenderData &);
+
+}  // namespace eevee::light
+
+namespace eevee::light::culling {
 [[fragment]]
-void debug_frag([[resource_table]] Debug & /*srt*/,
+void debug_frag([[resource_table]] const draw::View &views,
+                [[resource_table]] LightRenderData &lrd,
+                [[resource_table]] const HiZ &hiz,
                 [[frag_coord]] const float4 frag_co,
                 [[in]] const DebugVertOut &v_out,
                 [[out]] DebugFragOut &frag_out)
 {
   int2 texel = int2(frag_co.xy);
 
-  float depth = texelFetch(hiz_tx, texel, 0).r;
-  float vP_z = drw_depth_screen_to_view(depth);
-  float3 P = drw_point_screen_to_world(float3(v_out.screen_uv, depth));
+  const ViewMatrices view = views.get(0);
 
-  float light_count = 0.0f;
-  uint light_cull = 0u;
-  float2 px = frag_co.xy;
-  LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, px, vP_z, l_idx) {
-    light_cull |= 1u << l_idx;
-    light_count += 1.0f;
-  }
-  LIGHT_FOREACH_END
+  float depth = texelFetch(hiz.hiz_tx, texel, 0).r;
+  float vP_z = view.depth_screen_to_view(depth);
+  float3 P = view.point_screen_to_world(float3(v_out.screen_uv, depth));
 
-  uint light_nocull = 0u;
-  LIGHT_FOREACH_BEGIN_LOCAL_NO_CULL(light_cull_buf, l_idx)
-  {
-    LightData light = light_buf[l_idx];
-    LightVector lv = light_vector_get(light, false, P);
-    if (light_attenuation_surface(light, false, lv) > LIGHT_ATTENUATION_THRESHOLD) {
-      light_nocull |= 1u << l_idx;
-    }
-  }
-  LIGHT_FOREACH_END
+  NoCullCtx no_cull = {};
+  light::foreach(lrd, no_cull, lrd);
 
-  float4 color = float4(heatmap_gradient(light_count / 4.0f), 1.0f);
+  WithCullCtx with_cull = {.P = P};
+  light::foreach_visible(lrd, frag_co.xy, vP_z, with_cull, lrd);
 
-  if ((light_cull & light_nocull) != light_nocull) {
+  float4 color = float4(heatmap_gradient(no_cull.light_count / 4.0f), 1.0f);
+
+  if ((with_cull.light_bits & no_cull.light_bits) != no_cull.light_bits) {
     /* ERROR. Some lights were culled incorrectly. */
     color = float4(0.0f, 1.0f, 0.0f, 1.0f);
   }

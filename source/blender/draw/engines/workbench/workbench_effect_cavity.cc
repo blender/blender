@@ -13,7 +13,7 @@
  * This is done as part of the opaque resolve pass. It only affects the opaque surfaces.
  */
 
-#include "BLI_rand.h"
+#include "BLI_rand_c.hh"
 #include "DNA_scene_types.h"
 #include "workbench_private.hh"
 

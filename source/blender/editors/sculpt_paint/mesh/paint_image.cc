@@ -14,12 +14,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_color.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_color_c.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_rand.hh"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_utildefines.hh"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
@@ -37,6 +37,7 @@
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_image.hh"
+#include "BKE_image_gpu.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_material.hh"
@@ -156,8 +157,8 @@ void imapaint_image_update(
    * make sure that partial updating is working but uses more GPU memory as the gpu texture will
    * have 4 channels. When so the whole texture needs to be re-uploaded to the GPU using the new
    * texture format. */
-  if (ibuf != nullptr && ibuf->planes == 8) {
-    ibuf->planes = 32;
+  if (ibuf != nullptr && ibuf->color_mode == ImColorMode::BW) {
+    ibuf->color_mode = ImColorMode::RGBA;
     BKE_image_partial_update_mark_full_update(image);
     return;
   }
@@ -727,7 +728,7 @@ void ED_object_texture_paint_mode_enter_ex(Main &bmain,
   BKE_paint_brushes_validate(&bmain, &imapaint.paint);
 
   if (U.glreslimit != 0) {
-    BKE_image_free_all_gputextures(&bmain);
+    BKE_image_free_all_gpu_texture_caches(&bmain);
   }
   BKE_image_paint_set_mipmap(&bmain, false);
 
@@ -762,7 +763,7 @@ void ED_object_texture_paint_mode_exit_ex(Main &bmain, Scene &scene, Object &ob)
   ob.mode &= ~OB_MODE_TEXTURE_PAINT;
 
   if (U.glreslimit != 0) {
-    BKE_image_free_all_gputextures(&bmain);
+    BKE_image_free_all_gpu_texture_caches(&bmain);
   }
   BKE_image_paint_set_mipmap(&bmain, true);
   toggle_paint_cursor(scene, false);

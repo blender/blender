@@ -49,6 +49,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   b.add_input<decl::Float>("Size"_ustr)
       .default_value(6.0f)
+      .subtype(PROP_PIXEL)
       .min(0.0f)
       .description("The size of the filter in pixels")
       .structure_type(StructureType::Dynamic);
@@ -844,7 +845,7 @@ static void node_register()
   bke::node_type_storage(
       ntype, "NodeKuwaharaData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = get_compositor_operation;
-  bke::node_type_size(ntype, 150, 140, NODE_DEFAULT_MAX_WIDTH);
+  ntype.default_width = bke::NodeWidth::_160;
 
   bke::node_register_type(ntype);
 }

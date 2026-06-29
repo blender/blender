@@ -8,11 +8,11 @@
 
 #include <cstring>
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
-#include "BLI_ghash.h"
-#include "BLI_listbase.h"
-#include "BLI_rand.h"
+#include "BLI_ghash.hh"
+#include "BLI_listbase.hh"
+#include "BLI_rand_c.hh"
 
 #include "BLT_translation.hh"
 
@@ -52,9 +52,10 @@
 
 namespace blender {
 
-/**************************************
- * Modifiers functions.               *
- **************************************/
+/* -------------------------------------------------------------------- */
+/** \name Modifiers Functions
+ * \{ */
+
 static void init_data(ModifierData *md)
 {
   WeightVGEditModifierData *wmd = reinterpret_cast<WeightVGEditModifierData *>(md);
@@ -174,7 +175,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   /* Check if we can just return the original mesh.
    * Must have verts and therefore verts assigned to vgroups to do anything useful!
    */
-  if ((verts_num == 0) || BLI_listbase_is_empty(&mesh->vertex_group_names)) {
+  if ((verts_num == 0) || mesh->vertex_group_names.is_empty()) {
     return mesh;
   }
 
@@ -383,6 +384,8 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
     BKE_curvemapping_blend_read(reader, wmd->cmap_curve);
   }
 }
+
+/** \} */
 
 ModifierTypeInfo modifierType_WeightVGEdit = {
     /*idname*/ "VertexWeightEdit",

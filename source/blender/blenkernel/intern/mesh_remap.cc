@@ -15,18 +15,18 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
-#include "BLI_astar.h"
+#include "BLI_astar.hh"
 #include "BLI_bit_vector.hh"
 #include "BLI_index_mask.hh"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_solvers.h"
-#include "BLI_math_statistics.h"
-#include "BLI_math_vector.h"
-#include "BLI_memarena.h"
-#include "BLI_polyfill_2d.h"
-#include "BLI_rand.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_solvers.hh"
+#include "BLI_math_statistics.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_memarena.hh"
+#include "BLI_polyfill_2d.hh"
+#include "BLI_rand_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_modifier_enums.h"
 
@@ -37,7 +37,7 @@
 #include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_remap.hh" /* own include */
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 
@@ -1024,7 +1024,7 @@ static void mesh_island_to_astar_graph_edge_process(MeshIslandStore *islands,
     const int pidx_isld = islands ? face_island_index_map[pidx] : pidx;
     void *custom_data = is_edge_innercut ? POINTER_FROM_INT(edge_idx) : POINTER_FROM_INT(-1);
 
-    if (UNLIKELY(islands && (islands->items_to_islands[face.start()] != island_index))) {
+    if (islands && (islands->items_to_islands[face.start()] != island_index)) [[unlikely]] {
       /* face not in current island, happens with border edges... */
       face_island_indices[i] = -1;
       continue;
@@ -1498,7 +1498,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                 nors_src = loop_normals_src;
                 vert_to_refelem_map_src = vert_to_corner_map_src[nearest.index];
               }
-              else { /* if (mode == MREMAP_MODE_LOOP_NEAREST_POLYNOR) { */
+              else { /* `mode == MREMAP_MODE_LOOP_NEAREST_POLYNOR` */
                 nor_dst = &pnor_dst;
                 nors_src = face_normals_src;
                 vert_to_refelem_map_src = vert_to_face_map_src[nearest.index];
@@ -2122,7 +2122,7 @@ void BKE_mesh_remap_calc_faces_from_mesh(const int mode,
 
         std::fill_n(weights, int(numfaces_src), 0.0f);
 
-        if (UNLIKELY(size_t(face.size()) > tmp_face_size)) {
+        if (size_t(face.size()) > tmp_face_size) [[unlikely]] {
           tmp_face_size = size_t(face.size());
           face_vcos_2d = static_cast<float (*)[2]>(
               MEM_realloc_uninitialized(face_vcos_2d, sizeof(*face_vcos_2d) * tmp_face_size));

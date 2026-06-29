@@ -45,12 +45,11 @@
 #include "BKE_object.hh"
 #include "BKE_scene.hh"
 
-#include "BLI_ghash.h"
-#include "BLI_listbase.h"
-#include "BLI_math_color.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -112,7 +111,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(blender::Render *re, int render_cou
   if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Stroke rendering engine : " << freestyle_scene->r.engine << endl;
   }
-  freestyle_scene->r.im_format.planes = R_IMF_PLANES_RGBA;
+  freestyle_scene->r.im_format.color_mode = ImColorMode::RGBA;
   freestyle_scene->r.im_format.imtype = R_IMF_IMTYPE_PNG;
 
   // Copy ID properties, including Cycles render properties
@@ -178,7 +177,7 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
   /* detach the window manager from freestyle bmain (see comments
    * in add_freestyle() for more detail)
    */
-  BLI_listbase_clear(&freestyle_bmain->wm);
+  freestyle_bmain->wm.clear_no_delete();
 
   BKE_main_free(freestyle_bmain);
 }
@@ -187,9 +186,6 @@ float BlenderStrokeRenderer::get_stroke_vertex_z() const
 {
   float z = _z;
   BlenderStrokeRenderer *self = const_cast<BlenderStrokeRenderer *>(this);
-  if (!(_z < _z_delta * 100000.0f)) {
-    self->_z_delta *= 10.0f;
-  }
   self->_z += _z_delta;
   return -z;
 }
@@ -569,6 +565,22 @@ int BlenderStrokeRenderer::GenerateScene()
 {
   vector<StrokeGroup *>::const_iterator it, itend;
 
+  /* Each stroke is placed at a different z depth. Compute the delta based the number
+   * of vertices to try to maximize the available precision. */
+  int verts_num = 0;
+  for (it = strokeGroups.begin(), itend = strokeGroups.end(); it != itend; ++it) {
+    verts_num += (*it)->totvert;
+  }
+  for (it = texturedStrokeGroups.begin(), itend = texturedStrokeGroups.end(); it != itend; ++it) {
+    verts_num += (*it)->totvert;
+  }
+
+  const blender::Camera *camera = blender::id_cast<const blender::Camera *>(
+      freestyle_scene->camera->data);
+  const float z_range = 0.9f;
+  _z_delta = std::min((verts_num > 0) ? z_range / float(verts_num) : z_range, 1e-5f);
+  _z = camera->clip_start + _z_delta;
+
   for (it = strokeGroups.begin(), itend = strokeGroups.end(); it != itend; ++it) {
     GenerateStrokeMesh(*it, false);
   }
@@ -871,12 +883,9 @@ blender::Object *BlenderStrokeRenderer::NewMesh() const
 blender::Render *BlenderStrokeRenderer::RenderScene(blender::Render *re, bool render)
 {
   using namespace blender;
-  Camera *camera = (Camera *)freestyle_scene->camera->data;
-  if (camera->clip_end < _z) {
-    camera->clip_end = _z + _z_delta * 100.0f;
-  }
 #if 0
   if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
+    const Camera *camera = (const Camera *)freestyle_scene->camera->data;
     cout << "clip_start " << camera->clip_start << ", clip_end " << camera->clip_end << endl;
   }
 #endif

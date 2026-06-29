@@ -9,8 +9,8 @@
 #include "ANIM_action.hh"
 #include "ANIM_action_iterators.hh"
 
-#include "BLI_assert.h"
-#include "BLI_listbase.h"
+#include "BLI_assert.hh"
+#include "BLI_listbase.hh"
 
 #include "BKE_anim_data.hh"
 #include "BKE_nla.hh"

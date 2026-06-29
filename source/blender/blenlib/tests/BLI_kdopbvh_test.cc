@@ -8,10 +8,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 #include "BLI_kdopbvh.hh"
-#include "BLI_math_vector.h"
-#include "BLI_rand.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rand_c.hh"
 
 namespace blender {
 

@@ -14,13 +14,14 @@
 #include "BLI_kdtree.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_offset_indices.hh"
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 #include "BLI_stack.hh"
 #include "BLI_task.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"
+#include "BKE_deform.hh"
 #include "BKE_grease_pencil.hh"
 
 #include "DNA_curves_types.h"
@@ -225,6 +226,9 @@ bke::CurvesGeometry curves_merge_by_distance(const bke::CurvesGeometry &src_curv
   src_curves.ensure_evaluated_lengths();
 
   bke::CurvesGeometry dst_curves = bke::curves::copy_only_curve_domain(src_curves);
+
+  BKE_defgroup_copy_list(&dst_curves.vertex_group_names, &src_curves.vertex_group_names);
+
   MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
 
   std::atomic<int> total_duplicate_count = 0;
@@ -593,13 +597,10 @@ static void generate_corner(const float3 &pt_a,
       r_src_indices.append_n_times(src_point_index, 2);
       return;
     }
-    else {
-      const float3 miter_point = pt_b + miter * radius / miter_invscale;
-
-      r_perimeter.append(miter_point);
-      r_src_indices.append(src_point_index);
-      return;
-    }
+    const float3 miter_point = pt_b + miter * radius / miter_invscale;
+    r_perimeter.append(miter_point);
+    r_src_indices.append(src_point_index);
+    return;
   }
 
   /* Avoid division by tiny values for steep angles. */

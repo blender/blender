@@ -12,16 +12,16 @@
 
 #include "mathutils.hh"
 
-#include "BLI_math_base_safe.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_base_safe.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "../generic/py_capi_utils.hh"
 
 #ifndef MATH_STANDALONE
-#  include "BLI_dynstr.h"
+#  include "BLI_dynstr.hh"
 #endif
 
 namespace blender {
@@ -145,7 +145,7 @@ static PyObject *Vector_vectorcall(PyObject *type,
                                    const size_t nargsf,
                                    PyObject *kwnames)
 {
-  if (UNLIKELY(kwnames && PyTuple_GET_SIZE(kwnames))) {
+  if (kwnames && PyTuple_GET_SIZE(kwnames)) [[unlikely]] {
     PyErr_SetString(PyExc_TypeError,
                     "Vector(): "
                     "takes no keyword args");
@@ -189,7 +189,7 @@ static PyObject *Vector_vectorcall(PyObject *type,
 
 static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-  if (UNLIKELY(kwds && PyDict_GET_SIZE(kwds))) {
+  if (kwds && PyDict_GET_SIZE(kwds)) [[unlikely]] {
     PyErr_SetString(PyExc_TypeError,
                     "Vector(): "
                     "takes no keyword args");
@@ -538,7 +538,7 @@ static PyObject *Vector_resize(VectorObject *self, PyObject *value)
 {
   int vec_num;
 
-  if (UNLIKELY(BaseMathObject_Prepare_ForResize(self, "Vector.resize()") == -1)) {
+  if (BaseMathObject_Prepare_ForResize(self, "Vector.resize()") == -1) [[unlikely]] {
     /* An exception has been raised. */
 
     return nullptr;
@@ -621,7 +621,7 @@ PyDoc_STRVAR(
     "   Resize the vector to 2D (x, y).\n");
 static PyObject *Vector_resize_2d(VectorObject *self)
 {
-  if (UNLIKELY(BaseMathObject_Prepare_ForResize(self, "Vector.resize_2d()") == -1)) {
+  if (BaseMathObject_Prepare_ForResize(self, "Vector.resize_2d()") == -1) [[unlikely]] {
     /* An exception has been raised. */
     return nullptr;
   }
@@ -646,7 +646,7 @@ PyDoc_STRVAR(
     "   Resize the vector to 3D (x, y, z).\n");
 static PyObject *Vector_resize_3d(VectorObject *self)
 {
-  if (UNLIKELY(BaseMathObject_Prepare_ForResize(self, "Vector.resize_3d()") == -1)) {
+  if (BaseMathObject_Prepare_ForResize(self, "Vector.resize_3d()") == -1) [[unlikely]] {
     /* An exception has been raised. */
     return nullptr;
   }
@@ -675,7 +675,7 @@ PyDoc_STRVAR(
     "   Resize the vector to 4D (x, y, z, w).\n");
 static PyObject *Vector_resize_4d(VectorObject *self)
 {
-  if (UNLIKELY(BaseMathObject_Prepare_ForResize(self, "Vector.resize_4d()") == -1)) {
+  if (BaseMathObject_Prepare_ForResize(self, "Vector.resize_4d()") == -1) [[unlikely]] {
     /* An exception has been raised. */
     return nullptr;
   }
@@ -1461,7 +1461,7 @@ static PyObject *Vector_slerp(VectorObject *self, PyObject *args)
   other_len_sq = normalize_vn(other_vec, vec_num);
 
   /* use fallbacks for zero length vectors */
-  if (UNLIKELY((self_len_sq < FLT_EPSILON) || (other_len_sq < FLT_EPSILON))) {
+  if ((self_len_sq < FLT_EPSILON) || (other_len_sq < FLT_EPSILON)) [[unlikely]] {
     /* avoid exception */
     if (fallback) {
       Py_INCREF(fallback);
@@ -1478,7 +1478,7 @@ static PyObject *Vector_slerp(VectorObject *self, PyObject *args)
   cosom = float(dot_vn_vn(self_vec, other_vec, vec_num));
 
   /* direct opposite, can't slerp */
-  if (UNLIKELY(cosom < (-1.0f + FLT_EPSILON))) {
+  if (cosom < (-1.0f + FLT_EPSILON)) [[unlikely]] {
     /* avoid exception */
     if (fallback) {
       Py_INCREF(fallback);
@@ -1660,10 +1660,10 @@ static PyObject *Vector_str(VectorObject *self)
 static int Vector_getbuffer(PyObject *obj, Py_buffer *view, int flags)
 {
   VectorObject *self = reinterpret_cast<VectorObject *>(obj);
-  if (UNLIKELY(BaseMath_Prepare_ForBufferAccess(self, view, flags) == -1)) {
+  if (BaseMath_Prepare_ForBufferAccess(self, view, flags) == -1) [[unlikely]] {
     return -1;
   }
-  if (UNLIKELY(BaseMath_ReadCallback(self) == -1)) {
+  if (BaseMath_ReadCallback(self) == -1) [[unlikely]] {
     return -1;
   }
 
@@ -1693,7 +1693,7 @@ static void Vector_releasebuffer(PyObject * /*exporter*/, Py_buffer *view)
   self->flag &= ~BASE_MATH_FLAG_HAS_BUFFER_VIEW;
 
   if (view->readonly == 0) {
-    if (UNLIKELY(BaseMath_WriteCallback(self) == -1)) {
+    if (BaseMath_WriteCallback(self) == -1) [[unlikely]] {
       PyErr_Print();
     }
   }
@@ -3634,7 +3634,7 @@ PyObject *Vector_CreatePyObject(const float *vec, const int vec_num, PyTypeObjec
   }
 
   vec_alloc = static_cast<float *>(PyMem_Malloc(vec_num * sizeof(float)));
-  if (UNLIKELY(vec_alloc == nullptr)) {
+  if (vec_alloc == nullptr) [[unlikely]] {
     PyErr_SetString(PyExc_MemoryError,
                     "Vector(): "
                     "problem allocating data");

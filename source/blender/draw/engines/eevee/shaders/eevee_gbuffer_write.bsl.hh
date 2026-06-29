@@ -1,0 +1,402 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+#pragma once
+
+/**
+ * G-buffer: Packing and unpacking of G-buffer data.
+ *
+ * See #GBuffer for a breakdown of the G-buffer layout.
+ *
+ * There is two way of indexing closure data from the GBuffer:
+ * - per "bin": same closure indices as during the material evaluation pass.
+ *              Can have none-closures.
+ * - per "layer": gbuffer internal storage order. Tightly packed, will only have none-closures at
+ *                the end of the array.
+ *
+ * Indexing per bin is better to avoid parameter discontinuity for a given closure
+ * (i.e: for denoising), whereas indexing per layer is better for iterating through the closure
+ * without dealing with none-closures.
+ */
+
+#include "eevee_gbuffer_types.bsl.hh"
+#include "eevee_sampling_lib.bsl.hh"
+
+namespace gbuffer {
+
+struct PackParameters {
+  [[compilation_constant]] bool gbuffer_has_reflection;
+  [[compilation_constant]] bool gbuffer_has_refraction;
+  [[compilation_constant]] bool gbuffer_has_subsurface;
+  [[compilation_constant]] bool gbuffer_has_translucent;
+  [[compilation_constant]] bool gbuffer_reflection_colorless;
+  [[compilation_constant]] bool gbuffer_refraction_colorless;
+  [[compilation_constant]] int gbuffer_layer_max;
+  [[compilation_constant]] bool gbuffer_simple_layout;
+};
+
+/* WORKAROUND: Arrays cannot be sized using compilation_constant. */
+#ifdef SRT_CONSTANT_gbuffer_layer_max
+#  define GBUFFER_LAYER_MAX SRT_CONSTANT_gbuffer_layer_max
+#endif
+
+/* -------------------------------------------------------------------- */
+/** \name G-buffer Write
+ * \{ */
+
+using ClosurePacking = gbuffer::ClosurePacking;
+using Header = gbuffer::Header;
+
+ClosurePacking pack_closure([[resource_table]] const PackParameters &srt, ClosureUndetermined cl)
+{
+  ClosurePacking cl_packed;
+  cl_packed.mode = gbuffer::closure_type_to_mode(cl.type, gbuffer::color_is_grayscale(cl.color));
+
+  if (cl.weight <= CLOSURE_WEIGHT_CUTOFF) {
+    cl_packed.mode = GBUF_NONE;
+  }
+  /* Common to all configs. */
+  cl_packed.N = cl.N;
+  cl_packed.data0 = gbuffer::closure_color_pack(cl.color);
+  /* Some closures require additional packing. */
+  switch (cl_packed.mode) {
+    case GBUF_REFLECTION:
+      if (srt.gbuffer_has_reflection) [[static_branch]] {
+        if (srt.gbuffer_reflection_colorless) [[static_branch]] {
+          /* Material is colored, but the flag is set to colorless. */
+          assert(false);
+        }
+        else {
+          gbuffer::Reflection::pack_additional(cl_packed, cl);
+        }
+      }
+      break;
+    case GBUF_REFLECTION_COLORLESS:
+      if (srt.gbuffer_has_reflection) [[static_branch]] {
+        gbuffer::ReflectionColorless::pack_additional(cl_packed, cl);
+      }
+      break;
+    case GBUF_REFRACTION:
+      if (srt.gbuffer_has_refraction) [[static_branch]] {
+        if (srt.gbuffer_refraction_colorless) [[static_branch]] {
+          /* Material is colored, but the flag is set to colorless. */
+          assert(false);
+        }
+        else {
+          gbuffer::Refraction::pack_additional(cl_packed, cl);
+        }
+      }
+      break;
+    case GBUF_REFRACTION_COLORLESS:
+      if (srt.gbuffer_has_refraction) [[static_branch]] {
+        gbuffer::RefractionColorless::pack_additional(cl_packed, cl);
+      }
+      break;
+    case GBUF_THIN_REFRACTION:
+      if (srt.gbuffer_has_refraction) [[static_branch]] {
+        if (srt.gbuffer_refraction_colorless) [[static_branch]] {
+          /* Material is colored, but the flag is set to colorless. */
+          assert(false);
+        }
+        else {
+          gbuffer::ThinRefraction::pack_additional(cl_packed, cl);
+        }
+      }
+      break;
+    case GBUF_THIN_REFRACTION_COLORLESS:
+      if (srt.gbuffer_has_refraction) [[static_branch]] {
+        gbuffer::ThinRefractionColorless::pack_additional(cl_packed, cl);
+      }
+      break;
+    case GBUF_SUBSURFACE:
+      if (srt.gbuffer_has_subsurface) [[static_branch]] {
+        gbuffer::Subsurface::pack_additional(cl_packed, cl);
+      }
+      break;
+    default:
+      break;
+  }
+  return cl_packed;
+}
+
+/* Data laid-out as stored in the gbuffer. */
+struct Packed {
+  float4 closure[GBUFFER_LAYER_MAX * 2];
+  float2 normal[GBUFFER_LAYER_MAX];
+  float2 additional_info;
+  uint header;
+  uint object_id;
+  UsedLayerFlag used_layers;
+};
+
+/* ROP writes round to nearest. */
+float3 closure_data_dither_round_to_nearest(float3 data, float3 noise)
+{
+  constexpr float quantization_step = 1.0f / 1023.0f;
+  return saturate(data + (noise - 0.5f) * quantization_step);
+}
+
+float4 closure_data_dither_round_to_nearest(float4 data, float3 noise)
+{
+  return float4(closure_data_dither_round_to_nearest(data.rgb, noise), data.a);
+}
+
+/* Image writes to UNORM flush toward zero. */
+float3 closure_data_dither_flush_to_zero(float3 data, float3 noise)
+{
+  constexpr float quantization_step = 1.0f / 1023.0f;
+  return saturate(data + noise * quantization_step);
+}
+
+float4 closure_data_dither_flush_to_zero(float4 data, float3 noise)
+{
+  return float4(closure_data_dither_flush_to_zero(data.rgb, noise), data.a);
+}
+
+float3 closure_dither_noise(float2 texel, uint layer_id, float3 offset)
+{
+  float seed = float(layer_id) * 3.0f;
+  return interleaved_gradient_noise(texel, float3(seed, seed + 1.0f, seed + 2.0f), offset);
+}
+
+float4 closure_data_layer_dither_round_to_nearest(float4 data,
+                                                  float2 texel,
+                                                  uint layer_id,
+                                                  float3 offset)
+{
+  return closure_data_dither_round_to_nearest(data, closure_dither_noise(texel, layer_id, offset));
+}
+
+float4 closure_data_layer_dither_flush_to_zero(float4 data,
+                                               float2 texel,
+                                               uint layer_id,
+                                               float3 offset)
+{
+  return closure_data_dither_flush_to_zero(data, closure_dither_noise(texel, layer_id, offset));
+}
+
+/* Transient data used during packing. */
+struct Packer {
+  /* Packed GBuffer data in layer indexing. */
+  ClosurePacking closures[GBUFFER_LAYER_MAX];
+  /* Additional info to be stored inside the normal stack. */
+  float additional_info;
+  /* Header containing which closures are encoded and which normals are used. */
+  Header header;
+
+  /* Swap closures to avoid gap in data. Closures are then in layer order. */
+  void closures_to_layer_order([[resource_table]] const PackParameters &srt)
+  {
+#if 0 /* NOTE: 4 closures mode are not yet supported but might be in the future. */
+    if (srt.gbuffer_layer_max > 3) [[static_branch]] {
+      if (this->closures[2].is_empty()) {
+        this->closures[2] = this->closures[3];
+        this->closures[3].mode = GBUF_NONE;
+      }
+    }
+#endif
+    if (srt.gbuffer_layer_max > 2) [[static_branch]] {
+      if (this->closures[1].is_empty()) {
+        this->closures[1] = this->closures[2];
+        this->closures[2].mode = GBUF_NONE;
+#if 0 /* NOTE: 4 closures mode are not yet supported but might be in the future. */
+        if (srt.gbuffer_layer_max > 3) [[static_branch]] {
+          this->closures[2] = this->closures[3];
+          this->closures[3].mode = GBUF_NONE;
+        }
+#endif
+      }
+    }
+    if (srt.gbuffer_layer_max > 1) [[static_branch]] {
+      if (this->closures[0].is_empty()) {
+        this->closures[0] = this->closures[1];
+        this->closures[1].mode = GBUF_NONE;
+        if (srt.gbuffer_layer_max > 2) [[static_branch]] {
+          this->closures[1] = this->closures[2];
+          this->closures[2].mode = GBUF_NONE;
+#if 0 /* NOTE: 4 closures mode are not yet supported but might be in the future. */
+          if (srt.gbuffer_layer_max > 3) [[static_branch]] {
+            this->closures[2] = this->closures[3];
+            this->closures[3].mode = GBUF_NONE;
+          }
+#endif
+        }
+      }
+    }
+  }
+
+  /* Needs to happen in layer order. */
+  void reuse_tangent_spaces([[resource_table]] const PackParameters &srt)
+  {
+    /* Assume that the header was cleared to 0 and all layers point to the 1st tangent (0 id). */
+    /* Since this function runs in layer ordering (after compaction) each layer (if non-empty) can
+     * rely on the previous one to also be non-empty. */
+    if (srt.gbuffer_layer_max > 1) [[static_branch]] {
+      if (!this->closures[1].is_empty()) {
+        if (!all(equal(this->closures[0].N, this->closures[1].N))) {
+          /* Unique tangent space. */
+          this->header.tangent_space_id_set(1, 1);
+        }
+        else {
+          /* Reuse layer 0 tangent space. */
+        }
+      }
+    }
+    if (srt.gbuffer_layer_max > 2) [[static_branch]] {
+      if (!this->closures[2].is_empty()) {
+        if (!all(equal(this->closures[0].N, this->closures[2].N))) {
+          if (!all(equal(this->closures[1].N, this->closures[2].N))) {
+            /* Unique tangent space. */
+            this->header.tangent_space_id_set(2, 2);
+          }
+          else {
+            /* Reuse layer 1 tangent space. */
+            this->header.tangent_space_id_set(2, 1);
+          }
+        }
+        else {
+          /* Reuse layer 0 tangent space. */
+        }
+      }
+    }
+  }
+
+  UsedLayerFlag get_used_normal_layers()
+  {
+    uchar flag = 0;
+    if (this->header.tangent_space_id(1) == 1u) {
+      flag |= NORMAL_DATA_1;
+    }
+    if (this->header.tangent_space_id(2) == 2u) {
+      flag |= NORMAL_DATA_2;
+    }
+    return UsedLayerFlag(flag);
+  }
+
+  Packed result_get([[resource_table]] const PackParameters &srt)
+  {
+    Packed data;
+    /* Note: Normals are not interleaved or packed together.
+     * Even if they are packed, only the first one is required to be written in the gbuffer.
+     * The other ones are optional. This means layer's tangent space are indexed using layer id. */
+    for (int i = 0; i < 3 /* GBUFFER_LAYER_MAX */; i++) [[unroll]] {
+      if (srt.gbuffer_layer_max > i) [[static_branch]] {
+        data.normal[i] = gbuffer::normal_pack(this->closures[i].N);
+      }
+    }
+
+    uint used_layers = this->get_used_normal_layers();
+
+    uint closure_count = this->header.closure_len();
+
+    /* Interleave data to simplify loading code and keep packed storage. */
+    switch (closure_count) {
+      case 1u:
+        data.closure[0] = this->closures[0].data0;
+        data.closure[1] = this->closures[0].data1;
+        break;
+      case 2u:
+        if (srt.gbuffer_layer_max > 1) [[static_branch]] {
+          data.closure[0] = this->closures[0].data0;
+          data.closure[1] = this->closures[1].data0;
+          if (!srt.gbuffer_simple_layout) [[static_branch]] {
+            data.closure[2] = this->closures[0].data1;
+            data.closure[3] = this->closures[1].data1;
+            set_flag_from_test(used_layers, this->closures[0].use_data1(), CLOSURE_DATA_2);
+            set_flag_from_test(used_layers, this->closures[1].use_data1(), CLOSURE_DATA_3);
+          }
+        }
+        break;
+      case 3u:
+        if (srt.gbuffer_layer_max > 2) [[static_branch]] {
+          data.closure[0] = this->closures[0].data0;
+          data.closure[1] = this->closures[1].data0;
+          data.closure[2] = this->closures[2].data0;
+          data.closure[3] = this->closures[0].data1;
+          data.closure[4] = this->closures[1].data1;
+          data.closure[5] = this->closures[2].data1;
+          set_flag_from_test(used_layers, true, CLOSURE_DATA_2);
+          set_flag_from_test(used_layers, this->closures[0].use_data1(), CLOSURE_DATA_3);
+          set_flag_from_test(used_layers, this->closures[1].use_data1(), CLOSURE_DATA_4);
+          set_flag_from_test(used_layers, this->closures[2].use_data1(), CLOSURE_DATA_5);
+        }
+        break;
+    }
+
+    if (this->header.has_additional_data()) {
+      data.additional_info = float2(this->additional_info);
+      set_flag_from_test(used_layers, true, ADDITIONAL_DATA);
+    }
+
+    if (this->header.use_object_id()) {
+      set_flag_from_test(used_layers, true, OBJECT_ID);
+    }
+
+    data.used_layers = UsedLayerFlag(used_layers);
+    data.header = this->header.raw();
+
+    return data;
+  }
+};
+
+struct InputClosures {
+  ClosureUndetermined closure[GBUFFER_LAYER_MAX];
+};
+
+/**
+ * - cl_data       : general closure output data.
+ * - Ng            : geometric normal.
+ * - surface_N     : packed surface normal.
+ * - thickness     : object thickness, packed in additional information if a closure needs it.
+ * - use_object_id : if surface uses a dedicated object id layer. Should only be on if needed.
+ */
+Packed pack([[resource_table]] const PackParameters &srt,
+            InputClosures cl_data,
+            float3 Ng,
+            packed_float3 surface_N,
+            Thickness thickness,
+            bool use_object_id)
+{
+  Packer packer;
+  packer.header = Header::zero();
+  packer.header.use_object_id_set(use_object_id);
+
+  for (int i = 0; i < 3 /* GBUFFER_LAYER_MAX */; i++) [[unroll]] {
+    if (srt.gbuffer_layer_max > i) [[static_branch]] {
+      packer.closures[i] = pack_closure(srt, cl_data.closure[i]);
+    }
+  }
+
+  for (int i = 0; i < 3 /* GBUFFER_LAYER_MAX */; i++) [[unroll]] {
+    if (srt.gbuffer_layer_max > i) [[static_branch]] {
+      packer.header.closure_set(uchar(i), packer.closures[i].mode);
+    }
+  }
+
+  if (packer.header.has_additional_data()) {
+    packer.additional_info = gbuffer::AdditionalInfo::pack(thickness).x;
+  }
+
+  /* ---- Switch from Bin to Layer order. ---- */
+  packer.closures_to_layer_order(srt);
+
+  /* This is correct in layer order. */
+  bool has_any_closure = packer.closures[0].mode != GBUF_NONE;
+  if (!has_any_closure) {
+    /* Output dummy closure in the case of unlit materials for correct render passes data. */
+    packer.closures[0] = ClosurePacking::fallback(surface_N);
+    packer.header.closure_set(0, packer.closures[0].mode);
+  }
+
+  packer.reuse_tangent_spaces(srt);
+
+  /* Needs to happen in layer order and after normal fallback. */
+  packer.header.geometry_normal_set(Ng, packer.closures[0].N);
+
+  return packer.result_get(srt);
+}
+
+/** \} */
+
+}  // namespace gbuffer

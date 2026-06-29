@@ -23,23 +23,6 @@ TEST(io_common_string_utils, read_next_line)
   EXPECT_TRUE(s.is_empty());
 }
 
-TEST(io_common_string_utils, fixup_line_continuations)
-{
-  const char *str =
-      "backslash \\\n eol\n"
-      "backslash spaces \\   \n eol\n"
-      "without eol \\ is \\\\ \\ left intact\n"
-      "\\";
-  const char *exp =
-      "backslash    eol\n"
-      "backslash spaces       eol\n"
-      "without eol \\ is \\\\ \\ left intact\n"
-      "\\";
-  std::string buf(str);
-  fixup_line_continuations(buf.data(), buf.data() + buf.size());
-  EXPECT_STRREF_EQ(exp, buf);
-}
-
 static StringRef drop_whitespace(StringRef s)
 {
   return StringRef(drop_whitespace(s.begin(), s.end()), s.end());

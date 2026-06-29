@@ -12,9 +12,9 @@
 #include "BLI_array.hh"
 #include "BLI_color.hh"
 #include "BLI_function_ref.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
-#include "BLI_math_color.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_base_c.hh"
+#include "BLI_math_color_c.hh"
 #include "BLI_vector.hh"
 
 #include "BLT_translation.hh"
@@ -184,14 +184,12 @@ static void face_corner_color_equalize_verts(Mesh &mesh, const IndexMask selecti
     BLI_assert_unreachable();
     return;
   }
-  if (attribute.domain == bke::AttrDomain::Point) {
-    return;
+  if (attribute.domain != bke::AttrDomain::Point) {
+    GVArray color_attribute_point = *attributes.lookup(name, bke::AttrDomain::Point);
+    GVArray color_attribute_corner = attributes.adapt_domain(
+        color_attribute_point, bke::AttrDomain::Point, bke::AttrDomain::Corner);
+    color_attribute_corner.materialize(selection, attribute.span.data());
   }
-
-  GVArray color_attribute_point = *attributes.lookup(name, bke::AttrDomain::Point);
-  GVArray color_attribute_corner = attributes.adapt_domain(
-      color_attribute_point, bke::AttrDomain::Point, bke::AttrDomain::Corner);
-  color_attribute_corner.materialize(selection, attribute.span.data());
   attribute.finish();
 }
 

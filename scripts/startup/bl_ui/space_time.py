@@ -95,7 +95,7 @@ def playback_controls(layout, context):
             row.operator("screen.animation_play", text="", icon='PLAY')
     else:
         row.scale_x = 2
-        row.operator("screen.animation_play", text="", icon='PAUSE')
+        row.operator("screen.animation_pause", text="", icon='PAUSE')
         row.scale_x = 1
 
     row.operator("screen.keyframe_jump", text="", icon='NEXT_KEYFRAME').next = True
@@ -204,7 +204,7 @@ def marker_menu_generic(layout, context):
     else:
         layout.operator_menu_enum("marker.make_links_scene", "scene", text="Duplicate Marker to Scene")
 
-    layout.operator("marker.duplicate", text="Duplicate Marker")
+    layout.operator("marker.duplicate", text="Duplicate Marker", icon='DUPLICATE')
     layout.operator("marker.add", text="Add Marker")
 
 
@@ -256,6 +256,8 @@ class TIME_PT_playback(TimelinePanelButtons, Panel):
         col.prop(screen, "use_play_spreadsheet_editors", text="Spreadsheet")
 
         col = layout.column(heading="Show")
+        if st.type == 'SEQUENCE_EDITOR':
+            col.prop(st, "show_scrubbing_region", text="Scrubbing Region")
         col.prop(scene, "show_subframe", text="Subframes")
 
         layout.separator()

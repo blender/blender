@@ -45,6 +45,8 @@ size_t malloc_usable_size(void *ptr);
 
 #define SIZET_ALIGN_4(len) ((len + 3) & ~size_t(3))
 
+/* NOTE: prefer C++ `[[likely]]` / `[[unlikely]]` attribute.
+ * Use the defines in contexts where attributes aren't supported (ternary operators for e.g.). */
 #ifdef __GNUC__
 #  define LIKELY(x) __builtin_expect(!!(x), 1)
 #  define UNLIKELY(x) __builtin_expect(!!(x), 0)

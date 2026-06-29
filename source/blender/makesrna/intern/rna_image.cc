@@ -51,13 +51,14 @@ static const EnumPropertyItem image_source_items[] = {
 #  include <algorithm>
 #  include <fmt/format.h>
 
-#  include "BLI_listbase.h"
-#  include "BLI_math_base.h"
-#  include "BLI_math_vector.h"
+#  include "BLI_listbase.hh"
+#  include "BLI_math_base_c.hh"
+#  include "BLI_math_vector_c.hh"
 
 #  include "BKE_global.hh"
 #  include "BKE_image.hh"
 #  include "BKE_image_format.hh"
+#  include "BKE_image_gpu.hh"
 #  include "BKE_lib_id.hh"
 #  include "BKE_main.hh"
 #  include "BKE_main_invariants.hh"
@@ -322,9 +323,7 @@ static void rna_Image_gpu_texture_update(Main * /*bmain*/, Scene * /*scene*/, Po
 {
   Image *ima = id_cast<Image *>(ptr->owner_id);
 
-  if (!G.background) {
-    BKE_image_free_gputextures(ima);
-  }
+  BKE_image_free_gpu_texture_caches(ima);
 
   WM_main_add_notifier(NC_IMAGE | ND_DISPLAY, &ima->id);
 }
@@ -475,7 +474,7 @@ static int rna_Image_active_tile_index_get(PointerRNA *ptr)
 static void rna_Image_active_tile_index_set(PointerRNA *ptr, int value)
 {
   Image *image = static_cast<Image *>(ptr->data);
-  int num_tiles = BLI_listbase_count(&image->tiles);
+  int num_tiles = image->tiles.count();
 
   image->active_tile_index = min_ii(value, num_tiles - 1);
 }
@@ -484,7 +483,7 @@ static void rna_Image_active_tile_index_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
 {
   Image *image = static_cast<Image *>(ptr->data);
-  int num_tiles = BLI_listbase_count(&image->tiles);
+  int num_tiles = image->tiles.count();
 
   *min = 0;
   *max = max_ii(0, num_tiles - 1);
@@ -572,25 +571,23 @@ static void rna_Image_resolution_set(PointerRNA *ptr, const float *values)
 static int rna_Image_depth_get(PointerRNA *ptr)
 {
   Image *im = static_cast<Image *>(ptr->data);
-  ImBuf *ibuf;
   void *lock;
-  int planes;
+  ImBuf *ibuf = BKE_image_acquire_ibuf(im, nullptr, &lock);
 
-  ibuf = BKE_image_acquire_ibuf(im, nullptr, &lock);
-
+  int depth = 0;
   if (!ibuf) {
-    planes = 0;
+    depth = 0;
   }
   else if (ibuf->float_data()) {
-    planes = ibuf->planes * 4;
+    depth = ibuf->color_mode_channels_get() * 8 * 4;
   }
   else {
-    planes = ibuf->planes;
+    depth = ibuf->color_mode_channels_get() * 8;
   }
 
   BKE_image_release_ibuf(im, ibuf, lock);
 
-  return planes;
+  return depth;
 }
 
 static int rna_Image_frame_duration_get(PointerRNA *ptr)
@@ -608,7 +605,7 @@ static int rna_Image_frame_duration_get(PointerRNA *ptr)
   if (BKE_image_has_anim(ima)) {
     MovieReader *anim = (static_cast<ImageAnim *>(ima->anims.first))->anim;
     if (anim) {
-      duration = MOV_get_duration_frames(anim, IMB_TC_RECORD_RUN);
+      duration = MOV_get_duration_frames(anim);
     }
   }
 
@@ -685,10 +682,8 @@ static void rna_Image_pixels_set(PointerRNA *ptr, const float *values)
      * the values, and it does not invoke the update(). */
 
     ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+    IMB_free_gpu_textures(ibuf);
     BKE_image_mark_dirty(ima, ibuf);
-    if (!G.background) {
-      BKE_image_free_gputextures(ima);
-    }
 
     BKE_image_partial_update_mark_full_update(ima);
     WM_main_add_notifier(NC_IMAGE | ND_DISPLAY, &ima->id);
@@ -783,7 +778,7 @@ static int rna_render_slots_active_index_get(PointerRNA *ptr)
 static void rna_render_slots_active_index_set(PointerRNA *ptr, int value)
 {
   Image *image = id_cast<Image *>(ptr->owner_id);
-  int num_slots = BLI_listbase_count(&image->renderslots);
+  int num_slots = image->renderslots.count();
   image->render_slot = value;
   BKE_image_partial_update_mark_full_update(image);
   CLAMP(image->render_slot, 0, num_slots - 1);
@@ -794,7 +789,7 @@ static void rna_render_slots_active_index_range(
 {
   Image *image = id_cast<Image *>(ptr->owner_id);
   *min = 0;
-  *max = max_ii(0, BLI_listbase_count(&image->renderslots) - 1);
+  *max = max_ii(0, image->renderslots.count() - 1);
 }
 
 static ImageTile *rna_UDIMTile_new(Image *image, int tile_number, const char *label)

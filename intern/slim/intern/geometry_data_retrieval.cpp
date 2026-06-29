@@ -10,7 +10,7 @@
 
 #include <Eigen/Dense>
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 
 #include "slim.h"
 #include "slim_matrix_transfer.h"

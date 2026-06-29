@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include "scene/image.h"
 
 #include "kernel/types.h"
@@ -52,16 +54,22 @@ enum AttrKernelDataType {
 
 class Attribute {
  public:
+  /* Storage buffer for one motion step, or a single buffer if no motion. */
+  struct Buffer {
+    /* Optionally used to share ownership of #data, see implicit_sharing.h.
+     * If this is null, #data is wholly owned by this Attribute. */
+    const void *data = nullptr;
+    ImplicitSharingInfo sharing_info = nullptr;
+  };
+
   ustring name;
   AttributeStandard std;
 
   TypeDesc type;
-  /**
-   * Optionally used to share ownership of #buffer, see implicit_sharing.h.
-   * If this is null, #buffer is wholly owned by this Attribute.
-   */
-  ImplicitSharingInfo sharing_info = nullptr;
-  const void *buffer = nullptr;
+  /* Center motion step. */
+  Buffer center;
+  /* Other motion steps. Empty when the attribute has no motion. */
+  vector<Buffer> motion;
   int size = 0;
   AttributeElement element;
   uint flags; /* enum AttributeFlag */
@@ -89,98 +97,86 @@ class Attribute {
   void resize(Geometry *geom, AttributePrimitive prim);
   void resize(const size_t num_elements);
 
+  /* Allocate or free motion steps, matching the geometry's motion_steps. */
+  void add_motion(const Geometry *geom);
+  void remove_motion();
+  bool has_motion() const
+  {
+    return !motion.empty();
+  }
+  /* Number of motion steps stored, including the center step. */
+  int num_motion_steps() const
+  {
+    return has_motion() ? int(motion.size()) + 1 : 1;
+  }
+
+  /* Move motion steps from another attribute into this one. */
+  void take_motion_from(Attribute &other);
+
+  /* Replace a single motion step's data with a buffer shared with another owner,
+   * using implicit sharing. Motion steps are 1-indexed (step 0 is the center). */
+  void set_motion_step_shared(int step,
+                              const void *data,
+                              int new_size,
+                              ImplicitSharingInfo sharing_info);
+
   size_t data_sizeof() const;
   static size_t element_size(Geometry *geom, AttributeElement element, AttributePrimitive prim);
   size_t buffer_size(Geometry *geom, AttributePrimitive prim) const;
 
-  char *data_for_write();
-  float2 *data_float2_for_write()
+  /* Typed data access. */
+  template<typename T = void> const T *data(const int step = 0) const
   {
-    assert(data_sizeof() == sizeof(float2));
-    return reinterpret_cast<float2 *>(this->data_for_write());
+    if constexpr (!std::is_same_v<T, void>) {
+      assert(data_sizeof() == sizeof(T));
+    }
+    if (step == 0 || !has_motion()) {
+      return static_cast<const T *>(center.data);
+    }
+    assert(step >= 1 && step <= int(motion.size()));
+    return static_cast<const T *>(motion[step - 1].data);
   }
-  float3 *data_float3_for_write()
+  template<typename T = void> T *data_for_write(const int step = 0)
   {
-    assert(data_sizeof() == sizeof(float3));
-    return reinterpret_cast<float3 *>(this->data_for_write());
-  }
-  float4 *data_float4_for_write()
-  {
-    assert(data_sizeof() == sizeof(float4));
-    return reinterpret_cast<float4 *>(this->data_for_write());
-  }
-  float *data_float_for_write()
-  {
-    assert(data_sizeof() == sizeof(float));
-    return reinterpret_cast<float *>(this->data_for_write());
-  }
-  uchar4 *data_uchar4_for_write()
-  {
-    assert(data_sizeof() == sizeof(uchar4));
-    return reinterpret_cast<uchar4 *>(this->data_for_write());
-  }
-  packed_normal *data_normal_for_write()
-  {
-    assert(data_sizeof() == sizeof(packed_normal));
-    return reinterpret_cast<packed_normal *>(this->data_for_write());
-  }
-  Transform *data_transform_for_write()
-  {
-    assert(data_sizeof() == sizeof(Transform));
-    return reinterpret_cast<Transform *>(this->data_for_write());
-  }
-  /* Attributes for voxels are images */
-  ImageHandle &data_voxel_for_write()
-  {
-    assert(data_sizeof() == sizeof(ImageHandle));
-    return *reinterpret_cast<ImageHandle *>(this->data_for_write());
+    if constexpr (!std::is_same_v<T, void>) {
+      assert(data_sizeof() == sizeof(T));
+    }
+    return reinterpret_cast<T *>(data_for_write_buffer(step));
   }
 
-  const char *data() const
+  /* Motion steps come in two orderings:
+   * - data() indexes the attribute step, with the center step at index 0.
+   * - data_at_time_step() indexes the time-ordered step, with the center step
+   *   in the middle.
+   *
+   * The number of time steps must be passed in, as it may be lower than the
+   * stored motion steps, for example when BVH building without motion blur
+   * but there are motion steps for a motion render pass. */
+  int time_step_to_attr_step(const int step, const int num_time_steps) const
   {
-    return static_cast<const char *>(buffer);
+    const int center = (num_time_steps - 1) / 2;
+    return (step == center) ? 0 : (step < center) ? step + 1 : step;
   }
-  const float2 *data_float2() const
+  template<typename T = void>
+  const T *data_at_time_step(const int step, const int num_time_steps) const
   {
-    assert(data_sizeof() == sizeof(float2));
-    return reinterpret_cast<const float2 *>(this->data());
+    return data<T>(time_step_to_attr_step(step, num_time_steps));
   }
-  const float3 *data_float3() const
-  {
-    assert(data_sizeof() == sizeof(float3));
-    return reinterpret_cast<const float3 *>(this->data());
-  }
-  const float4 *data_float4() const
-  {
-    assert(data_sizeof() == sizeof(float4));
-    return reinterpret_cast<const float4 *>(this->data());
-  }
-  const float *data_float() const
-  {
-    assert(data_sizeof() == sizeof(float));
-    return reinterpret_cast<const float *>(this->data());
-  }
-  const uchar4 *data_uchar4() const
-  {
-    assert(data_sizeof() == sizeof(uchar4));
-    return reinterpret_cast<const uchar4 *>(this->data());
-  }
-  const packed_normal *data_normal() const
-  {
-    assert(data_sizeof() == sizeof(packed_normal));
-    return reinterpret_cast<const packed_normal *>(this->data());
-  }
-  const Transform *data_transform() const
-  {
-    assert(data_sizeof() == sizeof(Transform));
-    return reinterpret_cast<const Transform *>(this->data());
-  }
+
+  /* Attributes for voxels are 3D NanoVDB images. */
   const ImageHandle &data_voxel() const
   {
-    assert(data_sizeof() == sizeof(ImageHandle));
-    return *reinterpret_cast<const ImageHandle *>(this->data());
+    return *data<ImageHandle>();
+  }
+  ImageHandle &data_voxel_for_write()
+  {
+    return *data_for_write<ImageHandle>();
   }
 
+ private:
+  char *data_for_write_buffer(const int step);
+
+ public:
   void zero_data(void *dst);
 
   void set_data_from(Attribute &&other);

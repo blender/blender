@@ -11,8 +11,8 @@
 namespace blender::nodes {
 
 /**
- * Makes it possible to use various functions (e.g. the ones in `NOD_socket_items.hh`) for field
- * to grid items.
+ * Makes it possible to use various functions (e.g. the ones in `NOD_socket_items.hh`) for field to
+ * list items.
  */
 struct FieldToListItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = GeometryNodeFieldToListItem;
@@ -57,7 +57,7 @@ struct FieldToListItemsAccessor : public socket_items::SocketItemsAccessorDefaul
 
   static eNodeSocketDatatype get_socket_type(const ItemT &item)
   {
-    return eNodeSocketDatatype(item.socket_type);
+    return item.socket_type;
   }
 
   static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int /*ntree_type*/)

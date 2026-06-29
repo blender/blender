@@ -1,0 +1,507 @@
+==== Meshes: 5
+- Mesh 'Mesh' vtx:1155 face:1126 loop:4550 edge:2275
+    - 49 48 47 46 45 ... 1150 1151 1152 1153 1154 
+    - 48/49 47/48 46/47 45/46 44/45 ... 939/944 939/943 940/943 941/943 941/942 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'map1' FLOAT2 CORNER
+    - (0.265, 0.502)
+    - (0.268, 0.502)
+    - (0.270, 0.503)
+      ...
+    - (0.308, 0.560)
+    - (0.304, 0.562)
+    - (0.301, 0.562)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.132, 0.224, 0.000)
+    - (0.108, 0.222, 0.000)
+    - (0.086, 0.216, 0.000)
+      ...
+    - (0.946, 0.293, 2.500)
+    - (0.930, 0.300, 2.500)
+    - (0.912, 0.305, 2.500)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 0 0 0 0 0 
+  - 1 materials
+    - 'typeBlinn' 
+
+- Mesh 'Mesh.001' vtx:930 face:946 loop:3740 edge:1870
+    - 49 48 47 46 45 ... 925 926 927 928 929 
+    - 48/49 47/48 46/47 45/46 44/45 ... 894/899 894/898 895/898 896/898 896/897 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'map1' FLOAT2 CORNER
+    - (0.379, 0.502)
+    - (0.382, 0.502)
+    - (0.385, 0.503)
+      ...
+    - (0.404, 0.555)
+    - (0.404, 0.502)
+    - (0.412, 0.502)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.132, 0.224, 0.000)
+    - (0.108, 0.222, 0.000)
+    - (0.086, 0.216, 0.000)
+      ...
+    - (0.880, 0.269, 2.500)
+    - (0.880, 0.000, 2.500)
+    - (0.919, 0.000, 2.500)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 0 0 0 0 0 
+  - 1 materials
+    - 'typeBlinn' 
+
+- Mesh 'Mesh.002' vtx:4065 face:4056 loop:16186 edge:8093
+    - 49 48 47 46 45 ... 4060 4061 4062 4063 4064 
+    - 48/49 47/48 46/47 45/46 44/45 ... 3877/3882 3877/3881 3878/3881 3879/3881 3879/3880 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'map1' FLOAT2 CORNER
+    - (0.667, 0.169)
+    - (0.679, 0.170)
+    - (0.691, 0.172)
+      ...
+    - (0.065, 0.405)
+    - (0.065, 0.420)
+    - (0.036, 0.420)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (6.747, 12.243, 0.000)
+    - (5.418, 12.141, 0.000)
+    - (4.248, 11.833, 0.000)
+      ...
+    - (199.421, 7.570, 2.500)
+    - (199.421, 8.765, 2.500)
+    - (197.129, 8.765, 2.500)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 0 0 0 0 0 
+  - 1 materials
+    - 'typeBlinn1' 
+
+- Mesh 'Mesh.003' vtx:8 face:6 loop:24 edge:12
+    - 0 1 3 2 2 ... 3 6 0 2 4 
+    - 0/1 2/3 4/5 6/7 0/2 ... 3/5 4/6 5/7 0/6 1/7 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'map1' FLOAT2 CORNER
+    - (0.375, 0.000)
+    - (0.625, 0.000)
+    - (0.625, 0.250)
+      ...
+    - (0.375, 0.000)
+    - (0.375, 0.250)
+    - (0.125, 0.250)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, -0.500, 0.500)
+    - (0.500, -0.500, 0.500)
+    - (-0.500, 0.500, 0.500)
+      ...
+    - (0.500, 0.500, -0.500)
+    - (-0.500, -0.500, -0.500)
+    - (0.500, -0.500, -0.500)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - vertex groups:
+    - 1=1.000
+    - 1=1.000
+    - 1=1.000
+    - 1=1.000
+    - 1=1.000
+  - 1 materials
+    - 'lambert1' 
+
+- Mesh 'Mesh.004' vtx:8 face:6 loop:24 edge:12
+    - 0 1 3 2 2 ... 3 6 0 2 4 
+    - 0/1 2/3 4/5 6/7 0/2 ... 3/5 4/6 5/7 0/6 1/7 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'map1' FLOAT2 CORNER
+    - (0.375, 0.000)
+    - (0.625, 0.000)
+    - (0.625, 0.250)
+      ...
+    - (0.375, 0.000)
+    - (0.375, 0.250)
+    - (0.125, 0.250)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, -0.500, 0.500)
+    - (0.500, -0.500, 0.500)
+    - (-0.500, 0.500, 0.500)
+      ...
+    - (0.500, 0.500, -0.500)
+    - (-0.500, -0.500, -0.500)
+    - (0.500, -0.500, -0.500)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - vertex groups:
+    - 0=1.000
+    - 0=1.000
+    - 0=1.000
+    - 0=1.000
+    - 0=1.000
+  - 1 materials
+    - 'lambert1' 
+
+==== Objects: 8
+- Obj 'cube1' ARMATURE data:'cube1'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - posed bone 'joint1'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'joint2'
+      0.558 0.520 0.647 0.000
+      -0.076 0.808 -0.584 0.000
+      -0.826 0.277 0.490 0.000
+    - props: int:lockInfluenceWeights=False
+  - anim act:Take 001 slot:OBcube1 blend:REPLACE drivers:0
+- Obj 'cube1_text_target' MESH data:'Mesh.001'
+  - pos -0.037, 0.000, 0.007
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.000
+  - anim act:Take 001 slot:OBcube1_text_target blend:REPLACE drivers:0
+  - props: str:currentUVSet='map1'
+- Obj 'cube2' ARMATURE data:'cube2'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - posed bone 'joint4'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'joint5'
+      0.308 0.946 -0.099 0.000
+      -0.916 0.267 -0.298 0.000
+      -0.256 0.183 0.949 0.000
+    - props: int:lockInfluenceWeights=False
+  - anim act:Take 001 slot:OBcube2 blend:REPLACE drivers:0
+- Obj 'cube2_text_target' MESH data:'Mesh'
+  - pos -0.004, 0.000, 0.007
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.000
+  - anim act:Take 001 slot:OBcube2_text_target blend:REPLACE drivers:0
+  - props: str:currentUVSet='map1'
+- Obj 'pCube1' MESH data:'Mesh.003' par:'cube1'
+  - pos -3.149, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 2 vertex groups
+    - 'joint1' 'joint2' 
+  - 1 modifiers
+    - ARMATURE 'cube1'
+  - props: str:currentUVSet='map1'
+- Obj 'pCube2' MESH data:'Mesh.004' par:'cube2'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 1 vertex groups
+    - 'joint5' 
+  - 1 modifiers
+    - ARMATURE 'cube2'
+  - props: str:currentUVSet='map1'
+- Obj 'transform2' EMPTY
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+- Obj 'typeMesh2' MESH data:'Mesh.002'
+  - pos -0.051, 0.000, -0.021
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.001, 0.001, 0.001
+  - props: str:currentUVSet='map1'
+
+==== Materials: 3
+- Mat 'lambert1'
+  - base color (0.500, 0.500, 0.500)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.500, 0.500, 0.500, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+- Mat 'typeBlinn'
+  - base color (1.000, 1.000, 1.000)
+  - specular ior 1.000
+  - specular tint (0.500, 0.500, 0.500)
+  - roughness 0.749
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (1.000, 1.000, 1.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 1.000
+  - viewport metallic 0.000, roughness 0.749
+  - backface False probe True shadow False
+
+- Mat 'typeBlinn1'
+  - base color (1.000, 1.000, 1.000)
+  - specular ior 1.000
+  - specular tint (0.500, 0.500, 0.500)
+  - roughness 0.749
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (1.000, 1.000, 1.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 1.000
+  - viewport metallic 0.000, roughness 0.749
+  - backface False probe True shadow False
+
+==== Actions: 1
+- Action 'Take 001' curverange:(1.0 .. 41.8) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:4
+ - Channelbag slot 'OBcube2_text_target' curves:9
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'cube2_text_target'
+    - (2.000, -0.004) lh:(-2.667, -0.004 AUTO_CLAMPED) rh:(6.667, -0.004 AUTO_CLAMPED)
+    - (16.000, -0.037) lh:(11.333, -0.037 AUTO_CLAMPED) rh:(21.000, -0.037 AUTO_CLAMPED)
+    - (31.000, -0.002) lh:(26.000, -0.002 AUTO_CLAMPED) rh:(36.000, -0.002 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'cube2_text_target'
+    - (2.000, 0.000) lh:(-2.667, 0.000 AUTO_CLAMPED) rh:(6.667, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(11.333, 0.000 AUTO_CLAMPED) rh:(21.000, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.000) lh:(26.000, 0.000 AUTO_CLAMPED) rh:(36.000, 0.000 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'cube2_text_target'
+    - (2.000, 0.007) lh:(-2.667, 0.007 AUTO_CLAMPED) rh:(6.667, 0.007 AUTO_CLAMPED)
+    - (16.000, 0.007) lh:(11.333, 0.007 AUTO_CLAMPED) rh:(21.000, 0.007 AUTO_CLAMPED)
+    - (31.000, 0.007) lh:(26.000, 0.007 AUTO_CLAMPED) rh:(36.000, 0.007 AUTO_CLAMPED)
+  - fcu 'rotation_euler[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'cube2_text_target'
+    - (2.000, 1.571) lh:(-2.667, 1.571 AUTO_CLAMPED) rh:(6.667, 1.571 AUTO_CLAMPED)
+    - (16.000, 1.571) lh:(11.333, 1.571 AUTO_CLAMPED) rh:(21.000, 1.571 AUTO_CLAMPED)
+    - (31.000, 1.571) lh:(26.000, 1.571 AUTO_CLAMPED) rh:(36.000, 1.571 AUTO_CLAMPED)
+  - fcu 'rotation_euler[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'cube2_text_target'
+    - (2.000, 0.000) lh:(-2.667, 0.000 AUTO_CLAMPED) rh:(6.667, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(11.333, 0.000 AUTO_CLAMPED) rh:(21.000, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.000) lh:(26.000, 0.000 AUTO_CLAMPED) rh:(36.000, 0.000 AUTO_CLAMPED)
+  - fcu 'rotation_euler[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'cube2_text_target'
+    - (2.000, 0.000) lh:(-2.667, 0.000 AUTO_CLAMPED) rh:(6.667, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(11.333, 0.000 AUTO_CLAMPED) rh:(21.000, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.000) lh:(26.000, 0.000 AUTO_CLAMPED) rh:(36.000, 0.000 AUTO_CLAMPED)
+  - fcu 'scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'cube2_text_target'
+    - (2.000, 0.010) lh:(-2.667, 0.010 AUTO_CLAMPED) rh:(6.667, 0.010 AUTO_CLAMPED)
+    - (16.000, 0.010) lh:(11.333, 0.010 AUTO_CLAMPED) rh:(21.000, 0.010 AUTO_CLAMPED)
+    - (31.000, 0.010) lh:(26.000, 0.010 AUTO_CLAMPED) rh:(36.000, 0.010 AUTO_CLAMPED)
+  - fcu 'scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'cube2_text_target'
+    - (2.000, 0.010) lh:(-2.667, 0.010 AUTO_CLAMPED) rh:(6.667, 0.010 AUTO_CLAMPED)
+    - (16.000, 0.010) lh:(11.333, 0.010 AUTO_CLAMPED) rh:(21.000, 0.010 AUTO_CLAMPED)
+    - (31.000, 0.010) lh:(26.000, 0.010 AUTO_CLAMPED) rh:(36.000, 0.010 AUTO_CLAMPED)
+  - fcu 'scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'cube2_text_target'
+    - (2.000, 0.000) lh:(-2.667, 0.000 AUTO_CLAMPED) rh:(6.667, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(11.333, 0.000 AUTO_CLAMPED) rh:(21.000, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.000) lh:(26.000, 0.000 AUTO_CLAMPED) rh:(36.000, 0.000 AUTO_CLAMPED)
+ - Channelbag slot 'OBcube1_text_target' curves:9
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'cube1_text_target'
+    - (2.000, -0.037) lh:(-3.000, -0.037 AUTO_CLAMPED) rh:(7.000, -0.037 AUTO_CLAMPED)
+    - (17.000, -0.037) lh:(12.000, -0.037 AUTO_CLAMPED) rh:(21.667, -0.037 AUTO_CLAMPED)
+    - (31.000, -0.037) lh:(26.333, -0.037 AUTO_CLAMPED) rh:(35.667, -0.037 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'cube1_text_target'
+    - (2.000, 0.000) lh:(-3.000, 0.000 AUTO_CLAMPED) rh:(7.000, 0.000 AUTO_CLAMPED)
+    - (17.000, 0.000) lh:(12.000, 0.000 AUTO_CLAMPED) rh:(21.667, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.000) lh:(26.333, 0.000 AUTO_CLAMPED) rh:(35.667, 0.000 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'cube1_text_target'
+    - (2.000, 0.007) lh:(-3.000, 0.007 AUTO_CLAMPED) rh:(7.000, 0.007 AUTO_CLAMPED)
+    - (17.000, 0.028) lh:(12.000, 0.028 AUTO_CLAMPED) rh:(21.667, 0.028 AUTO_CLAMPED)
+    - (31.000, 0.005) lh:(26.333, 0.005 AUTO_CLAMPED) rh:(35.667, 0.005 AUTO_CLAMPED)
+  - fcu 'rotation_euler[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'cube1_text_target'
+    - (2.000, 1.571) lh:(-3.000, 1.571 AUTO_CLAMPED) rh:(7.000, 1.571 AUTO_CLAMPED)
+    - (17.000, 1.571) lh:(12.000, 1.571 AUTO_CLAMPED) rh:(21.667, 1.571 AUTO_CLAMPED)
+    - (31.000, 1.571) lh:(26.333, 1.571 AUTO_CLAMPED) rh:(35.667, 1.571 AUTO_CLAMPED)
+  - fcu 'rotation_euler[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'cube1_text_target'
+    - (2.000, 0.000) lh:(-3.000, 0.000 AUTO_CLAMPED) rh:(7.000, 0.000 AUTO_CLAMPED)
+    - (17.000, 0.000) lh:(12.000, 0.000 AUTO_CLAMPED) rh:(21.667, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.000) lh:(26.333, 0.000 AUTO_CLAMPED) rh:(35.667, 0.000 AUTO_CLAMPED)
+  - fcu 'rotation_euler[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'cube1_text_target'
+    - (2.000, 0.000) lh:(-3.000, 0.000 AUTO_CLAMPED) rh:(7.000, 0.000 AUTO_CLAMPED)
+    - (17.000, 0.000) lh:(12.000, 0.000 AUTO_CLAMPED) rh:(21.667, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.000) lh:(26.333, 0.000 AUTO_CLAMPED) rh:(35.667, 0.000 AUTO_CLAMPED)
+  - fcu 'scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'cube1_text_target'
+    - (2.000, 0.010) lh:(-3.000, 0.010 AUTO_CLAMPED) rh:(7.000, 0.010 AUTO_CLAMPED)
+    - (17.000, 0.010) lh:(12.000, 0.010 AUTO_CLAMPED) rh:(21.667, 0.010 AUTO_CLAMPED)
+    - (31.000, 0.010) lh:(26.333, 0.010 AUTO_CLAMPED) rh:(35.667, 0.010 AUTO_CLAMPED)
+  - fcu 'scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'cube1_text_target'
+    - (2.000, 0.010) lh:(-3.000, 0.010 AUTO_CLAMPED) rh:(7.000, 0.010 AUTO_CLAMPED)
+    - (17.000, 0.010) lh:(12.000, 0.010 AUTO_CLAMPED) rh:(21.667, 0.010 AUTO_CLAMPED)
+    - (31.000, 0.010) lh:(26.333, 0.010 AUTO_CLAMPED) rh:(35.667, 0.010 AUTO_CLAMPED)
+  - fcu 'scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'cube1_text_target'
+    - (2.000, 0.000) lh:(-3.000, 0.000 AUTO_CLAMPED) rh:(7.000, 0.000 AUTO_CLAMPED)
+    - (17.000, 0.000) lh:(12.000, 0.000 AUTO_CLAMPED) rh:(21.667, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.000) lh:(26.333, 0.000 AUTO_CLAMPED) rh:(35.667, 0.000 AUTO_CLAMPED)
+ - Channelbag slot 'OBcube1' curves:10
+  - fcu 'pose.bones["joint2"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:6 grp:'joint2'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(7.000, 0.000 AUTO_CLAMPED)
+    - (17.000, 0.000) lh:(12.000, 0.000 AUTO_CLAMPED) rh:(17.333, 0.000 AUTO_CLAMPED)
+    - (18.000, 0.000) lh:(17.667, 0.000 AUTO_CLAMPED) rh:(22.333, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.000) lh:(26.667, 0.000 AUTO_CLAMPED) rh:(34.600, 0.000 AUTO_CLAMPED)
+    - (41.800, 0.000) lh:(38.200, 0.000 AUTO_CLAMPED) rh:(45.400, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["joint2"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:6 grp:'joint2'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(7.000, 0.000 AUTO_CLAMPED)
+    - (17.000, 2.169) lh:(12.000, 2.169 AUTO_CLAMPED) rh:(17.333, 2.169 AUTO_CLAMPED)
+    - (18.000, 2.001) lh:(17.667, 2.085 AUTO_CLAMPED) rh:(22.333, 0.909 AUTO_CLAMPED)
+    - (31.000, -0.182) lh:(26.667, -0.182 AUTO_CLAMPED) rh:(34.600, -0.182 AUTO_CLAMPED)
+    - (41.800, -0.182) lh:(38.200, -0.182 AUTO_CLAMPED) rh:(45.400, -0.182 AUTO_CLAMPED)
+  - fcu 'pose.bones["joint2"].location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:6 grp:'joint2'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(7.000, 0.000 AUTO_CLAMPED)
+    - (17.000, 0.000) lh:(12.000, 0.000 AUTO_CLAMPED) rh:(17.333, 0.000 AUTO_CLAMPED)
+    - (18.000, 0.000) lh:(17.667, 0.000 AUTO_CLAMPED) rh:(22.333, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.000) lh:(26.667, 0.000 AUTO_CLAMPED) rh:(34.600, 0.000 AUTO_CLAMPED)
+    - (41.800, 0.000) lh:(38.200, 0.000 AUTO_CLAMPED) rh:(45.400, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["joint2"].rotation_quaternion[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:6 grp:'joint2'
+    - (1.000, 0.845) lh:(0.667, 0.845 AUTO_CLAMPED) rh:(1.333, 0.845 AUTO_CLAMPED)
+    - (2.000, 0.838) lh:(1.667, 0.842 AUTO_CLAMPED) rh:(7.000, 0.776 AUTO_CLAMPED)
+    - (17.000, 0.511) lh:(12.000, 0.511 AUTO_CLAMPED) rh:(17.333, 0.511 AUTO_CLAMPED)
+    - (18.000, 0.544) lh:(17.667, 0.544 AUTO_CLAMPED) rh:(22.333, 0.544 AUTO_CLAMPED)
+    - (31.000, -0.079) lh:(26.667, 0.201 AUTO_CLAMPED) rh:(34.600, -0.312 AUTO_CLAMPED)
+    - (41.800, -0.500) lh:(38.200, -0.500 AUTO_CLAMPED) rh:(45.400, -0.500 AUTO_CLAMPED)
+  - fcu 'pose.bones["joint2"].rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:6 grp:'joint2'
+    - (1.000, 0.255) lh:(0.667, 0.255 AUTO_CLAMPED) rh:(1.333, 0.255 AUTO_CLAMPED)
+    - (2.000, 0.339) lh:(1.667, 0.339 AUTO_CLAMPED) rh:(7.000, 0.339 AUTO_CLAMPED)
+    - (17.000, 0.093) lh:(12.000, 0.339 AUTO_CLAMPED) rh:(17.333, 0.077 AUTO_CLAMPED)
+    - (18.000, 0.040) lh:(17.667, 0.040 AUTO_CLAMPED) rh:(22.333, 0.040 AUTO_CLAMPED)
+    - (31.000, 0.371) lh:(26.667, 0.276 AUTO_CLAMPED) rh:(34.600, 0.450 AUTO_CLAMPED)
+    - (41.800, 0.450) lh:(38.200, 0.450 AUTO_CLAMPED) rh:(45.400, 0.450 AUTO_CLAMPED)
+  - fcu 'pose.bones["joint2"].rotation_quaternion[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:6 grp:'joint2'
+    - (1.000, 0.436) lh:(0.667, 0.436 AUTO_CLAMPED) rh:(1.333, 0.436 AUTO_CLAMPED)
+    - (2.000, 0.347) lh:(1.667, 0.391 AUTO_CLAMPED) rh:(7.000, -0.317 AUTO_CLAMPED)
+    - (17.000, -0.843) lh:(12.000, -0.843 AUTO_CLAMPED) rh:(17.333, -0.843 AUTO_CLAMPED)
+    - (18.000, -0.831) lh:(17.667, -0.831 AUTO_CLAMPED) rh:(22.333, -0.831 AUTO_CLAMPED)
+    - (31.000, -0.894) lh:(26.667, -0.894 AUTO_CLAMPED) rh:(34.600, -0.894 AUTO_CLAMPED)
+    - (41.800, -0.610) lh:(38.200, -0.610 AUTO_CLAMPED) rh:(45.400, -0.610 AUTO_CLAMPED)
+  - fcu 'pose.bones["joint2"].rotation_quaternion[3]' smooth:CONT_ACCEL extra:CONSTANT keyframes:6 grp:'joint2'
+    - (1.000, -0.176) lh:(0.667, -0.176 AUTO_CLAMPED) rh:(1.333, -0.176 AUTO_CLAMPED)
+    - (2.000, -0.252) lh:(1.667, -0.252 AUTO_CLAMPED) rh:(7.000, -0.252 AUTO_CLAMPED)
+    - (17.000, -0.141) lh:(12.000, -0.252 AUTO_CLAMPED) rh:(17.333, -0.133 AUTO_CLAMPED)
+    - (18.000, -0.108) lh:(17.667, -0.108 AUTO_CLAMPED) rh:(22.333, -0.108 AUTO_CLAMPED)
+    - (31.000, -0.237) lh:(26.667, -0.149 AUTO_CLAMPED) rh:(34.600, -0.311 AUTO_CLAMPED)
+    - (41.800, -0.418) lh:(38.200, -0.418 AUTO_CLAMPED) rh:(45.400, -0.418 AUTO_CLAMPED)
+  - fcu 'pose.bones["joint2"].scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:6 grp:'joint2'
+    - (1.000, 1.000) lh:(0.667, 1.000 AUTO_CLAMPED) rh:(1.333, 1.000 AUTO_CLAMPED)
+    - (2.000, 1.000) lh:(1.667, 1.000 AUTO_CLAMPED) rh:(7.000, 1.000 AUTO_CLAMPED)
+    - (17.000, 1.000) lh:(12.000, 1.000 AUTO_CLAMPED) rh:(17.333, 1.000 AUTO_CLAMPED)
+    - (18.000, 1.000) lh:(17.667, 1.000 AUTO_CLAMPED) rh:(22.333, 1.000 AUTO_CLAMPED)
+    - (31.000, 1.000) lh:(26.667, 1.000 AUTO_CLAMPED) rh:(34.600, 1.000 AUTO_CLAMPED)
+    - (41.800, 1.000) lh:(38.200, 1.000 AUTO_CLAMPED) rh:(45.400, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["joint2"].scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:6 grp:'joint2'
+    - (1.000, 1.000) lh:(0.667, 1.000 AUTO_CLAMPED) rh:(1.333, 1.000 AUTO_CLAMPED)
+    - (2.000, 1.000) lh:(1.667, 1.000 AUTO_CLAMPED) rh:(7.000, 1.000 AUTO_CLAMPED)
+    - (17.000, 1.000) lh:(12.000, 1.000 AUTO_CLAMPED) rh:(17.333, 1.000 AUTO_CLAMPED)
+    - (18.000, 1.000) lh:(17.667, 1.000 AUTO_CLAMPED) rh:(22.333, 1.000 AUTO_CLAMPED)
+    - (31.000, 1.000) lh:(26.667, 1.000 AUTO_CLAMPED) rh:(34.600, 1.000 AUTO_CLAMPED)
+    - (41.800, 1.000) lh:(38.200, 1.000 AUTO_CLAMPED) rh:(45.400, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["joint2"].scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:6 grp:'joint2'
+    - (1.000, 1.000) lh:(0.667, 1.000 AUTO_CLAMPED) rh:(1.333, 1.000 AUTO_CLAMPED)
+    - (2.000, 1.000) lh:(1.667, 1.000 AUTO_CLAMPED) rh:(7.000, 1.000 AUTO_CLAMPED)
+    - (17.000, 1.000) lh:(12.000, 1.000 AUTO_CLAMPED) rh:(17.333, 1.000 AUTO_CLAMPED)
+    - (18.000, 1.000) lh:(17.667, 1.000 AUTO_CLAMPED) rh:(22.333, 1.000 AUTO_CLAMPED)
+    - (31.000, 1.000) lh:(26.667, 1.000 AUTO_CLAMPED) rh:(34.600, 1.000 AUTO_CLAMPED)
+    - (41.800, 1.000) lh:(38.200, 1.000 AUTO_CLAMPED) rh:(45.400, 1.000 AUTO_CLAMPED)
+ - Channelbag slot 'OBcube2' curves:10
+  - fcu 'pose.bones["joint5"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'joint5'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(6.667, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.042) lh:(11.333, 0.042 AUTO_CLAMPED) rh:(21.000, 0.042 AUTO_CLAMPED)
+    - (31.000, -0.002) lh:(26.000, -0.002 AUTO_CLAMPED) rh:(36.000, -0.002 AUTO_CLAMPED)
+  - fcu 'pose.bones["joint5"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'joint5'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(6.667, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(11.333, 0.000 AUTO_CLAMPED) rh:(21.000, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.000) lh:(26.000, 0.000 AUTO_CLAMPED) rh:(36.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["joint5"].location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'joint5'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(6.667, 0.000 AUTO_CLAMPED)
+    - (16.000, -3.265) lh:(11.333, -3.265 AUTO_CLAMPED) rh:(21.000, -3.265 AUTO_CLAMPED)
+    - (31.000, 0.185) lh:(26.000, 0.185 AUTO_CLAMPED) rh:(36.000, 0.185 AUTO_CLAMPED)
+  - fcu 'pose.bones["joint5"].rotation_quaternion[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'joint5'
+    - (1.000, 0.794) lh:(0.667, 0.794 AUTO_CLAMPED) rh:(1.333, 0.794 AUTO_CLAMPED)
+    - (2.000, 0.768) lh:(1.667, 0.781 AUTO_CLAMPED) rh:(6.667, 0.583 AUTO_CLAMPED)
+    - (16.000, 0.286) lh:(11.333, 0.464 AUTO_CLAMPED) rh:(21.000, 0.096 AUTO_CLAMPED)
+    - (31.000, -0.162) lh:(26.000, -0.162 AUTO_CLAMPED) rh:(36.000, -0.162 AUTO_CLAMPED)
+  - fcu 'pose.bones["joint5"].rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'joint5'
+    - (1.000, 0.151) lh:(0.667, 0.151 AUTO_CLAMPED) rh:(1.333, 0.151 AUTO_CLAMPED)
+    - (2.000, 0.171) lh:(1.667, 0.166 AUTO_CLAMPED) rh:(6.667, 0.238 AUTO_CLAMPED)
+    - (16.000, 0.238) lh:(11.333, 0.238 AUTO_CLAMPED) rh:(21.000, 0.238 AUTO_CLAMPED)
+    - (31.000, -0.122) lh:(26.000, -0.122 AUTO_CLAMPED) rh:(36.000, -0.122 AUTO_CLAMPED)
+  - fcu 'pose.bones["joint5"].rotation_quaternion[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'joint5'
+    - (1.000, 0.049) lh:(0.667, 0.049 AUTO_CLAMPED) rh:(1.333, 0.049 AUTO_CLAMPED)
+    - (2.000, 0.025) lh:(1.667, 0.037 AUTO_CLAMPED) rh:(6.667, -0.139 AUTO_CLAMPED)
+    - (16.000, -0.397) lh:(11.333, -0.252 AUTO_CLAMPED) rh:(21.000, -0.553 AUTO_CLAMPED)
+    - (31.000, -0.746) lh:(26.000, -0.746 AUTO_CLAMPED) rh:(36.000, -0.746 AUTO_CLAMPED)
+  - fcu 'pose.bones["joint5"].rotation_quaternion[3]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'joint5'
+    - (1.000, -0.586) lh:(0.667, -0.586 AUTO_CLAMPED) rh:(1.333, -0.586 AUTO_CLAMPED)
+    - (2.000, -0.617) lh:(1.667, -0.602 AUTO_CLAMPED) rh:(6.667, -0.826 AUTO_CLAMPED)
+    - (16.000, -0.839) lh:(11.333, -0.839 AUTO_CLAMPED) rh:(21.000, -0.839 AUTO_CLAMPED)
+    - (31.000, -0.634) lh:(26.000, -0.634 AUTO_CLAMPED) rh:(36.000, -0.634 AUTO_CLAMPED)
+  - fcu 'pose.bones["joint5"].scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'joint5'
+    - (1.000, 1.000) lh:(0.667, 1.000 AUTO_CLAMPED) rh:(1.333, 1.000 AUTO_CLAMPED)
+    - (2.000, 1.000) lh:(1.667, 1.000 AUTO_CLAMPED) rh:(6.667, 1.000 AUTO_CLAMPED)
+    - (16.000, 1.000) lh:(11.333, 1.000 AUTO_CLAMPED) rh:(21.000, 1.000 AUTO_CLAMPED)
+    - (31.000, 1.000) lh:(26.000, 1.000 AUTO_CLAMPED) rh:(36.000, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["joint5"].scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'joint5'
+    - (1.000, 1.000) lh:(0.667, 1.000 AUTO_CLAMPED) rh:(1.333, 1.000 AUTO_CLAMPED)
+    - (2.000, 1.000) lh:(1.667, 1.000 AUTO_CLAMPED) rh:(6.667, 1.000 AUTO_CLAMPED)
+    - (16.000, 1.000) lh:(11.333, 1.000 AUTO_CLAMPED) rh:(21.000, 1.000 AUTO_CLAMPED)
+    - (31.000, 1.000) lh:(26.000, 1.000 AUTO_CLAMPED) rh:(36.000, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["joint5"].scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'joint5'
+    - (1.000, 1.000) lh:(0.667, 1.000 AUTO_CLAMPED) rh:(1.333, 1.000 AUTO_CLAMPED)
+    - (2.000, 1.000) lh:(1.667, 1.000 AUTO_CLAMPED) rh:(6.667, 1.000 AUTO_CLAMPED)
+    - (16.000, 1.000) lh:(11.333, 1.000 AUTO_CLAMPED) rh:(21.000, 1.000 AUTO_CLAMPED)
+    - (31.000, 1.000) lh:(26.000, 1.000 AUTO_CLAMPED) rh:(36.000, 1.000 AUTO_CLAMPED)
+
+==== Armatures: 2
+- Armature 'cube1' 2 bones
+  - bone 'joint1' h:(-5.436, 0.000, 0.891) t:(-5.436, 2.419, 0.891) radius h:0.100 t:0.050
+      0.993 0.000 0.118 -5.436
+      0.000 1.000 0.000 0.000
+      -0.118 0.000 0.993 0.891
+  - bone 'joint2' parent:'joint1' h:(2.419, -2.419, 0.000) t:(2.419, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      -0.214 0.000 0.977 -3.034
+      0.000 1.000 0.000 0.000
+      -0.977 0.000 -0.214 0.605
+
+- Armature 'cube2' 2 bones
+  - bone 'joint4' h:(5.470, 0.000, 0.394) t:(5.470, 5.407, 0.394) radius h:0.100 t:0.050
+      -1.000 0.000 0.016 5.470
+      0.000 1.000 0.000 0.000
+      -0.016 0.000 -1.000 0.394
+  - bone 'joint5' parent:'joint4' h:(5.406, -5.407, 0.057) t:(5.406, 0.000, 0.057) inh_scale:NONE radius h:0.100 t:0.050
+      0.003 0.000 1.000 0.066
+      0.000 1.000 0.000 0.000
+      -1.000 0.000 0.003 0.251
+

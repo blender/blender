@@ -6,8 +6,8 @@
  * \ingroup texnodes
  */
 
-#include "BLI_math_color.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "node_texture_util.hh"
 
 namespace blender {
@@ -100,7 +100,7 @@ void register_node_type_tex_hue_sat()
   ntype.enum_name_legacy = "HUE_SAT";
   ntype.nclass = NODE_CLASS_OP_COLOR;
   bke::node_type_socket_templates(&ntype, inputs, outputs);
-  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
+  ntype.default_width = bke::NodeWidth::_160;
   ntype.exec_fn = exec;
 
   bke::node_register_type(ntype);

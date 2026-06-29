@@ -13,10 +13,10 @@
 
 #include "DNA_userdef_types.h"
 
-#include "BLI_fileops.h"
+#include "BLI_fileops.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -373,7 +373,7 @@ static wmOperatorStatus file_browse_invoke(bContext *C, wmOperator *op, const wm
         is_relative = BLI_path_is_rel(path);
       }
 
-      if (UNLIKELY(ptr.data == &U || is_userdef)) {
+      if (ptr.data == &U || is_userdef) [[unlikely]] {
         is_relative = false;
       }
 

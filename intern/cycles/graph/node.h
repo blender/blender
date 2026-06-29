@@ -120,7 +120,7 @@ struct Node {
   void set(const SocketType &input, array<int> &value);
   void set(const SocketType &input, array<float> &value);
   void set(const SocketType &input, array<float2> &value);
-  void set(const SocketType &input, array<float3> &value);
+  void set(const SocketType &input, array<packed_float3> &value);
   void set(const SocketType &input, array<ustring> &value);
   void set(const SocketType &input, array<Transform> &value);
   void set(const SocketType &input, array<Node *> &value);
@@ -142,7 +142,7 @@ struct Node {
   const array<int> &get_int_array(const SocketType &input) const;
   const array<float> &get_float_array(const SocketType &input) const;
   const array<float2> &get_float2_array(const SocketType &input) const;
-  const array<float3> &get_float3_array(const SocketType &input) const;
+  const array<packed_float3> &get_float3_array(const SocketType &input) const;
   const array<ustring> &get_string_array(const SocketType &input) const;
   const array<Transform> &get_transform_array(const SocketType &input) const;
   const array<Node *> &get_node_array(const SocketType &input) const;

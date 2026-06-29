@@ -18,10 +18,10 @@
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_base.hh"
-#include "BLI_math_color.h"
-#include "BLI_rand.h"
+#include "BLI_math_color_c.hh"
+#include "BLI_rand_c.hh"
 
 #include "BLT_translation.hh"
 
@@ -46,6 +46,8 @@
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
+
+#include "PRF_profile.hh"
 
 #include "RE_texture.h" /* RE_texture_evaluate */
 
@@ -1479,6 +1481,7 @@ void BKE_brush_calc_curve_factors(const eBrushCurvePreset preset,
                                   const float brush_radius,
                                   const MutableSpan<float> factors)
 {
+  PRF_scope(ProfileCategory::Editor);
   BLI_assert(factors.size() == distances.size());
 
   const float radius_rcp = math::rcp(brush_radius);
@@ -1709,7 +1712,7 @@ ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary, bool displa
 
   BKE_curvemapping_init(br->curve_distance_falloff);
 
-  ImBuf *im = IMB_allocImBuf(side, side, 32, IB_float_data);
+  ImBuf *im = IMB_allocImBuf(side, side, ImBufFlags::FloatData);
 
   const bool have_texture = brush_gen_texture(br, side, secondary, im->float_data_for_write());
 
@@ -1735,7 +1738,7 @@ bool BKE_brush_has_cube_tip(const Brush *brush, PaintMode paint_mode)
         return true;
       }
 
-      if (ELEM(brush->sculpt_brush_type, SCULPT_BRUSH_TYPE_CLAY_STRIPS, SCULPT_BRUSH_TYPE_PAINT) &&
+      if (bke::brush::supports_tip_roundness(*brush) &&
           (brush->tip_roundness < 1.0f || brush->tip_scale_x != 1.0f))
       {
         return true;
@@ -1855,6 +1858,10 @@ bool supports_normal_radius(const Brush &brush)
   /* TODO: This setting is closely tied to #supports_sculpt_plane, they should be merged in some
    * way. Update after initial commit to avoid confusing PRs. */
   return !ELEM(brush.sculpt_brush_type, SCULPT_BRUSH_TYPE_POSE);
+}
+bool supports_tip_roundness(const Brush &brush)
+{
+  return ELEM(brush.sculpt_brush_type, SCULPT_BRUSH_TYPE_CLAY_STRIPS, SCULPT_BRUSH_TYPE_PAINT);
 }
 bool supports_hardness(const Brush &brush)
 {

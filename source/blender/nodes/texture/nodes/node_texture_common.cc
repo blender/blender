@@ -8,8 +8,8 @@
 
 #include "DNA_node_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
@@ -157,7 +157,7 @@ void register_node_type_tex_group()
   BLI_assert(ntype.rna_ext.srna != nullptr);
   RNA_struct_blender_type_set(ntype.rna_ext.srna, &ntype);
 
-  bke::node_type_size(ntype, GROUP_NODE_DEFAULT_WIDTH, GROUP_NODE_MIN_WIDTH, GROUP_NODE_MAX_WIDTH);
+  ntype.minwidth = bke::NodeWidth::GroupMin;
   ntype.labelfunc = node_group_label;
   ntype.declare = nodes::node_group_declare;
   ntype.init_exec_fn = group_initexec;

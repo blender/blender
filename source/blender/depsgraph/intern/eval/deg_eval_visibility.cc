@@ -12,8 +12,8 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_assert.h"
-#include "BLI_listbase.h"
+#include "BLI_assert.hh"
+#include "BLI_listbase.hh"
 #include "BLI_stack.hh"
 
 #include "DEG_depsgraph.hh"
@@ -61,7 +61,7 @@ void deg_evaluate_object_modifiers_mode_node_visibility(blender::Depsgraph *deps
 
   DEG_debug_print_eval(depsgraph, __func__, object->id.name, &object->id);
 
-  if (BLI_listbase_is_empty(&object->modifiers)) {
+  if (object->modifiers.is_empty()) {
     return;
   }
 

@@ -16,12 +16,12 @@
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_bvhutils.hh"
 #include "BKE_context.hh"
@@ -1015,7 +1015,7 @@ static void copy_particle_edit(Depsgraph *depsgraph,
 
   edit->pathcache = nullptr;
   edit->mirror_cache = nullptr;
-  BLI_listbase_clear(&edit->pathcachebufs);
+  edit->pathcachebufs.clear_no_delete();
 
   edit->emitter_field = nullptr;
   edit->emitter_cosnos = nullptr;
@@ -1115,7 +1115,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
   static_cast<ParticleSystem *>( \
       (single_psys_from ? single_psys_from : ob_from->particlesystem.first))
 #define PSYS_FROM_NEXT(cur) (single_psys_from ? nullptr : (cur)->next)
-  totpsys = single_psys_from ? 1 : BLI_listbase_count(&ob_from->particlesystem);
+  totpsys = single_psys_from ? 1 : ob_from->particlesystem.count();
 
   tmp_psys = MEM_new_array_uninitialized<ParticleSystem *>(totpsys,
                                                            "temporary particle system array");
@@ -1227,7 +1227,7 @@ static bool copy_particle_systems_poll(bContext *C)
   }
 
   ob = ed::object::context_active_object(C);
-  if (BLI_listbase_is_empty(&ob->particlesystem)) {
+  if (ob->particlesystem.is_empty()) {
     return false;
   }
 
@@ -1333,7 +1333,7 @@ static bool duplicate_particle_systems_poll(bContext *C)
     return false;
   }
   Object *ob = ed::object::context_active_object(C);
-  if (BLI_listbase_is_empty(&ob->particlesystem)) {
+  if (ob->particlesystem.is_empty()) {
     return false;
   }
   if (ob->mode != OB_MODE_OBJECT) {
@@ -1385,7 +1385,7 @@ static bool remove_all_particle_systems_poll(bContext *C)
     return false;
   }
   const Object *ob = ed::object::context_active_object(C);
-  if (BLI_listbase_is_empty(&ob->particlesystem)) {
+  if (ob->particlesystem.is_empty()) {
     return false;
   }
   if (ob->mode != OB_MODE_OBJECT) {
@@ -1405,7 +1405,7 @@ static wmOperatorStatus particle_system_remove_all_exec(bContext *C, wmOperator 
     return OPERATOR_CANCELLED;
   }
 
-  const eObjectMode mode_orig = eObjectMode(ob->mode);
+  const eObjectMode mode_orig = ob->mode;
   for (ParticleSystem &psys : ob->particlesystem.items_mutable()) {
     object_remove_particle_system(bmain, scene, ob, &psys);
   }

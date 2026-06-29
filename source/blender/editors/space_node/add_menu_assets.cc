@@ -8,7 +8,7 @@
 #include "AS_asset_representation.hh"
 
 #include "BLI_multi_value_map.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "DNA_space_types.h"
 
@@ -52,7 +52,8 @@ static asset::AssetItemTree build_catalog_tree(const bContext &C, const bNodeTre
   };
   const AssetLibraryReference library = asset_system::all_library_reference();
   asset_system::all_library_reload_catalogs_if_dirty();
-  return asset::build_filtered_all_catalog_tree(library, C, type_filter, meta_data_filter);
+  return asset::build_filtered_all_catalog_tree(
+      library, C, type_filter, meta_data_filter, node_tree.typeinfo->asset_catalog_path_prefix);
 }
 
 /**
@@ -199,12 +200,7 @@ static void node_catalog_assets_draw(const bContext *C, Menu *menu)
       layout->separator();
       add_separator = false;
     }
-    PointerRNA op_ptr = layout->op(*operator_id,
-                                   IFACE_(asset->get_name()),
-                                   ICON_NONE,
-                                   wm::OpCallContext::InvokeRegionWin,
-                                   UI_ITEM_NONE);
-    asset::operator_asset_reference_props_set(*asset, op_ptr);
+    ed::asset::draw_asset_menu_item(asset, *operator_id, *layout);
   }
 
   const Set<StringRef> all_builtin_menus = get_builtin_menus(edit_tree->type);
@@ -241,12 +237,7 @@ static void node_unassigned_assets_draw(const bContext *C, Menu *menu)
   }
   asset::AssetItemTree &tree = *snode.runtime->assets_for_menu;
   for (const asset_system::AssetRepresentation *asset : tree.unassigned_assets) {
-    PointerRNA op_ptr = menu->layout->op(*operator_id,
-                                         IFACE_(asset->get_name()),
-                                         ICON_NONE,
-                                         wm::OpCallContext::InvokeRegionWin,
-                                         UI_ITEM_NONE);
-    asset::operator_asset_reference_props_set(*asset, op_ptr);
+    asset::draw_asset_menu_item(asset, *operator_id, *menu->layout);
   }
 }
 

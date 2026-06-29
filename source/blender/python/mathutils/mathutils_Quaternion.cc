@@ -12,17 +12,17 @@
 
 #include "mathutils.hh"
 
-#include "BLI_math_base_safe.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_base_safe.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "../generic/py_capi_utils.hh"
 #include "../generic/python_utildefines.hh"
 
 #ifndef MATH_STANDALONE
-#  include "BLI_dynstr.h"
+#  include "BLI_dynstr.hh"
 #endif
 
 namespace blender {
@@ -111,7 +111,7 @@ static PyObject *Quaternion_vectorcall(PyObject *type,
                                        const size_t nargsf,
                                        PyObject *kwnames)
 {
-  if (UNLIKELY(kwnames && PyTuple_GET_SIZE(kwnames))) {
+  if (kwnames && PyTuple_GET_SIZE(kwnames)) [[unlikely]] {
     PyErr_SetString(PyExc_TypeError,
                     "mathutils.Quaternion(): "
                     "takes no keyword args");
@@ -131,7 +131,7 @@ static PyObject *Quaternion_vectorcall(PyObject *type,
       const int size = mathutils_array_parse(
           quat, 3, QUAT_SIZE, args[0], "mathutils.Quaternion()");
 
-      if (UNLIKELY(size == -1)) {
+      if (size == -1) [[unlikely]] {
         return nullptr;
       }
 
@@ -152,7 +152,7 @@ static PyObject *Quaternion_vectorcall(PyObject *type,
         return nullptr;
       }
       angle = PyFloat_AsDouble(args[1]);
-      if (UNLIKELY(angle == -1.0 && PyErr_Occurred())) {
+      if (angle == -1.0 && PyErr_Occurred()) [[unlikely]] {
         PyErr_Format(PyExc_TypeError,
                      "mathutils.Quaternion(): "
                      "angle must be a real number, not '%.200s'",
@@ -177,7 +177,7 @@ static PyObject *Quaternion_vectorcall(PyObject *type,
 static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
   /* Only called on sub-classes. */
-  if (UNLIKELY(kwds && PyDict_GET_SIZE(kwds))) {
+  if (kwds && PyDict_GET_SIZE(kwds)) [[unlikely]] {
     PyErr_SetString(PyExc_TypeError,
                     "mathutils.Quaternion(): "
                     "takes no keyword args");
@@ -912,10 +912,10 @@ static PyObject *Quaternion_str(QuaternionObject *self)
 static int Quaternion_getbuffer(PyObject *obj, Py_buffer *view, int flags)
 {
   QuaternionObject *self = reinterpret_cast<QuaternionObject *>(obj);
-  if (UNLIKELY(BaseMath_Prepare_ForBufferAccess(self, view, flags) == -1)) {
+  if (BaseMath_Prepare_ForBufferAccess(self, view, flags) == -1) [[unlikely]] {
     return -1;
   }
-  if (UNLIKELY(BaseMath_ReadCallback(self) == -1)) {
+  if (BaseMath_ReadCallback(self) == -1) [[unlikely]] {
     return -1;
   }
 
@@ -945,7 +945,7 @@ static void Quaternion_releasebuffer(PyObject * /*exporter*/, Py_buffer *view)
   self->flag &= ~BASE_MATH_FLAG_HAS_BUFFER_VIEW;
 
   if (view->readonly == 0) {
-    if (UNLIKELY(BaseMath_WriteCallback(self) == -1)) {
+    if (BaseMath_WriteCallback(self) == -1) [[unlikely]] {
       PyErr_Print();
     }
   }
@@ -1960,7 +1960,7 @@ PyObject *Quaternion_CreatePyObject(const float quat[4], PyTypeObject *base_type
   float *quat_alloc;
 
   quat_alloc = static_cast<float *>(PyMem_Malloc(QUAT_SIZE * sizeof(float)));
-  if (UNLIKELY(quat_alloc == nullptr)) {
+  if (quat_alloc == nullptr) [[unlikely]] {
     PyErr_SetString(PyExc_MemoryError,
                     "Quaternion(): "
                     "problem allocating data");

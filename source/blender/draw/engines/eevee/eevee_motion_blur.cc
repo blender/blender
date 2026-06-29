@@ -241,7 +241,7 @@ void MotionBlurModule::render(View &view, gpu::Texture **input_tx, gpu::Texture 
 
   GPU_debug_group_begin("Motion Blur");
 
-  tiles_tx_.acquire(tiles_extent, gpu::TextureFormat::SFLOAT_16_16_16_16);
+  tiles_tx_.acquire_2d(tiles_extent, gpu::TextureFormat::SFLOAT_16_16_16_16);
 
   tile_indirection_buf_.clear_to_zero();
 

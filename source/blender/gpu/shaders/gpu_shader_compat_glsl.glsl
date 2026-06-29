@@ -178,7 +178,7 @@ RESHAPE(float3x3, mat3x3, mat3x4)
  * WORKAROUND(fclem): Only used for cases when passing down the resource_table is impractical.
  * Note that this placeholder is just for the code to compile.
  */
-#define resource_table_get(table_type) table_type()
+#define resource_table_get(table_type) table_type##_ctor_()
 
 /* Incompatible keywords. */
 #define static
@@ -236,8 +236,13 @@ float4 texelFetchExtend(sampler2D samp, int2 texel, int lvl)
  * Make sure builtin functions are stubbed when used in an invalid stage. */
 #ifdef GPU_FRAGMENT_SHADER
 #  define gpu_discard_fragment() discard
-#  define gpu_dfdx(x) dFdx(x)
-#  define gpu_dfdy(x) dFdy(x)
+#  ifdef GPU_ARB_derivative_control
+#    define gpu_dfdx(x) dFdxFine(x)
+#    define gpu_dfdy(x) dFdyFine(x)
+#  else
+#    define gpu_dfdx(x) dFdx(x)
+#    define gpu_dfdy(x) dFdy(x)
+#  endif
 #  define gpu_fwidth(x) fwidth(x)
 #else
 #  define gpu_discard_fragment()

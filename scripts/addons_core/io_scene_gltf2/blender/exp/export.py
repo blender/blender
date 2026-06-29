@@ -185,7 +185,7 @@ def __check_iridescence(json, export_settings):
                         animation_pointer_deleted = True
                     else:
                         channels_to_keep.append(channel)
-                        samplers_to_keep.append(anim['samplers'][channel_idx])
+                        samplers_to_keep.append(anim['samplers'][channel['sampler']])
                 anim['channels'] = channels_to_keep
                 anim['samplers'] = samplers_to_keep
             # If no more channel in this animation, we can remove the entire animation
@@ -394,6 +394,9 @@ def __gather_gltf(exporter, export_settings):
         gltf2_io_draco_compression_extension.encode_scene_primitives(scenes, export_settings)
         exporter.add_draco_extension()
 
+    if export_settings['gltf_meshopt_compression']:
+        exporter.add_meshopt_extension()
+
     export_user_extensions('gather_gltf_hook', export_settings, active_scene_idx, scenes, animations)
 
     for idx, scene in enumerate(scenes):
@@ -525,7 +528,6 @@ def __should_include_json_value(key, value, export_settings):
             "KHR_materials_ior",
             "KHR_materials_iridescence",
             "KHR_materials_sheen",
-            "KHR_materials_specular",
             "KHR_materials_transmission",
             "KHR_materials_volume",
             "KHR_lights_punctual",

@@ -17,7 +17,7 @@
 #  include "BLI_enum_flags.hh"
 #  include "BLI_hash.hh"
 #  include "BLI_string_ref.hh"
-#  include "BLI_utildefines_variadic.h"
+#  include "BLI_utildefines_variadic.hh"
 #  include "BLI_vector.hh"
 #  include "GPU_common_types.hh"
 #  include "GPU_material.hh"
@@ -25,12 +25,6 @@
 #  include "gpu_shader_create_info_pipeline.hh"
 
 #  include <iostream>
-#endif
-
-#if defined(GPU_SHADER)
-#  include "gpu_shader_srd_cpp.hh"
-#else
-#  include "gpu_shader_srd_info.hh"
 #endif
 
 #if !defined(GPU_SHADER)
@@ -489,19 +483,21 @@ enum class BuiltinBits {
   /* On metal, tag the shader to use argument buffer to overcome the 16 sampler limit. */
   USE_SAMPLER_ARG_BUFFER = (1 << 20),
 
+  /* WORKAROUND: Used to disable viewport index programmatically. */
+  NO_VIEWPORT_INDEX = (1 << 21),
   /* Disable our own GPU shader preprocessor optimizer in case we can't ensure the
    * input is within spec. */
-  NO_PREPROCESSOR = (1 << 27),
+  NO_PREPROCESSOR = (1 << 22),
   /** If true, will bypass check that all buffer types have been linted by shader tool
    * (e.g. using [[host_shared]]). This is needed for struct that are not parsed or are
    * not yet supported by the host_shared check (false negative). */
-  NO_BUFFER_TYPE_LINTING = (1 << 27),
+  NO_BUFFER_TYPE_LINTING = (1 << 23),
   /* Not a builtin but a flag we use to tag shaders that use the debug features. */
-  USE_PRINTF = (1 << 28),
-  USE_DEBUG_DRAW = (1 << 29),
+  USE_PRINTF = (1 << 24),
+  USE_DEBUG_DRAW = (1 << 25),
 
   /* Shader source needs to be implemented at runtime. */
-  RUNTIME_GENERATED = (1 << 30),
+  RUNTIME_GENERATED = (1 << 26),
 };
 ENUM_OPERATORS(BuiltinBits);
 
@@ -614,6 +610,7 @@ enum class Qualifier {
   write = (1 << 2),
   /** Shorthand version of combined flags. */
   read_write = read | write,
+  read_no_restrict = read | no_restrict,
   QUALIFIER_MAX = (write << 1) - 1,
 };
 ENUM_OPERATORS(Qualifier);
@@ -1115,6 +1112,12 @@ struct ShaderCreateInfo {
 
   using Self = ShaderCreateInfo;
 
+  /* WORKAROUND: Avoid unused expression warning. */
+  Self &noop()
+  {
+    return *this;
+  }
+
   /* -------------------------------------------------------------------- */
   /** \name Shaders in/outs (fixed function pipeline config)
    * \{ */
@@ -1580,6 +1583,13 @@ struct ShaderCreateInfo {
 
   std::string resource_guard_defines(Span<CompilationConstant> constants) const;
 
+  void extend_predicate(Vector<Resource, 0> &resource_vector,
+                        ShaderCreateInfo::Resource res_copy,
+                        Span<ConditionFn> additional_conditions) const;
+  void assert_no_overlap(const ShaderCreateInfo &info,
+                         const bool test,
+                         const StringRefNull error) const;
+  void set_resource_slot(Resource &res, int &images, int &samplers, int &ubos, int &ssbos) const;
   std::string check_error() const;
   bool is_vulkan_compatible() const;
 

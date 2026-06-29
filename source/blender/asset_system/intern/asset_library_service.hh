@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <memory>
+#include <mutex>
 #include <optional>
 #include <utility>
 
@@ -16,7 +18,7 @@
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
 
-#include <memory>
+#include "essentials_library.hh"
 
 namespace blender {
 
@@ -27,7 +29,7 @@ namespace asset_system {
 
 class AllAssetLibrary;
 class OnDiskAssetLibrary;
-class RemoteAssetLibrary;
+class PreferencesRemoteAssetLibrary;
 class RuntimeAssetLibrary;
 
 /**
@@ -52,10 +54,14 @@ class AssetLibraryService {
    * library may point to the same path as a custom library.
    */
   using OnDiskLibraryIdentifier = std::pair<eAssetLibraryType, std::string>;
-  /** Mapping of a (type, root path) pair to the AssetLibrary instance. */
+  /** Mapping of a (type, root path) pair to the AssetLibrary instance.
+   * Always protect access with #on_disk_libraries_mutex_ below. */
   Map<OnDiskLibraryIdentifier, std::unique_ptr<OnDiskAssetLibrary>> on_disk_libraries_;
+  mutable std::recursive_mutex on_disk_libraries_mutex_;
   using URLLibraryIdentifier = std::string;
-  Map<URLLibraryIdentifier, std::unique_ptr<RemoteAssetLibrary>> remote_libraries_;
+  /** Always protect access with #remote_libraries_mutex_ below. */
+  Map<URLLibraryIdentifier, std::unique_ptr<PreferencesRemoteAssetLibrary>> remote_libraries_;
+  mutable std::recursive_mutex remote_libraries_mutex_;
   /**
    * Library without a known path, i.e. the "Current File" library if the file isn't saved yet. If
    * the file was saved, a valid path for the library can be determined and #on_disk_libraries_
@@ -64,6 +70,7 @@ class AssetLibraryService {
   std::unique_ptr<RuntimeAssetLibrary> current_file_library_;
   /** The "all" asset library, merging all other libraries into one. */
   std::unique_ptr<AllAssetLibrary> all_library_;
+  std::unique_ptr<OnlineEssentialsLibrary> online_essentials_library_;
 
   /** Handlers for managing the life cycle of the AssetLibraryService instance. */
   bCallbackFuncStore on_load_callback_store_;
@@ -185,7 +192,8 @@ class AssetLibraryService {
 
   AssetLibrary *find_loaded_on_disk_asset_library_from_name(StringRef name) const;
 
-  AssetLibrary *get_remote_asset_library(const bUserAssetLibrary &custom_library);
+  AssetLibrary *get_online_essentials_asset_library();
+  AssetLibrary *get_preferences_remote_asset_library(const bUserAssetLibrary &custom_library);
   /**
    * Get the given asset library. Opens it (i.e. creates a new AssetLibrary instance) if necessary.
    *

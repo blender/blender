@@ -18,14 +18,14 @@
 #include "BKE_material.hh"
 #include "BKE_object.hh"
 
-#include "BLI_ghash.h"
-#include "BLI_hash.h"
-#include "BLI_link_utils.h"
-#include "BLI_math_color.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
+#include "BLI_ghash.hh"
+#include "BLI_hash_c.hh"
+#include "BLI_link_utils.hh"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_math_vector.hh"
-#include "BLI_memblock.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_memblock.hh"
 
 #include "IMB_colormanagement.hh"
 
@@ -317,8 +317,7 @@ tLayer *grease_pencil_layer_cache_add(Instance *inst,
   const bool disable_masks_render = is_viewlayer_render &&
                                     (layer.base.flag &
                                      GP_LAYER_TREE_NODE_DISABLE_MASKS_IN_VIEWLAYER) != 0;
-  bool is_masked = !disable_masks_render && layer.use_masks() &&
-                   !BLI_listbase_is_empty(&layer.masks);
+  bool is_masked = !disable_masks_render && layer.use_masks() && !layer.masks.is_empty();
 
   const float vert_col_opacity = (override_vertcol) ?
                                      (is_vert_col_mode ? inst->vertex_paint_opacity : 0.0f) :

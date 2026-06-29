@@ -22,6 +22,7 @@ class ShaderGraph;
 class ShaderInput;
 class ShaderNode;
 class ShaderOutput;
+struct SVMNodeClosureBsdf;
 
 /* Shader Manager */
 
@@ -79,6 +80,7 @@ class SVMCompiler {
   void compile(Shader *shader, array<int> &svm_nodes, const int index, Summary *summary = nullptr);
 
   /* Create input and output node parameters for struct T passed to add_node. */
+  SVMInputInt input_int(const char *name);
   SVMInputFloat input_float(const char *name);
   SVMInputFloat3 input_float3(const char *name);
   SVMInputFloat3 input_float3_from_offset(SVMStackOffset offset);
@@ -91,7 +93,7 @@ class SVMCompiler {
 
   /* Add SVM node with parameters in struct T. */
   template<typename T>
-  void add_node(const ShaderNode *shader_node,
+  void add_node(ShaderNode *shader_node,
                 const ShaderNodeType type,
                 const T &node,
                 const bool use_derivatives = false)
@@ -104,11 +106,22 @@ class SVMCompiler {
     for (size_t i = 0; i < sizeof(T) / sizeof(int); i++) {
       current_svm_nodes.push_back_slow(data[i]);
     }
+    if (shader_node) {
+      shader_node->added_to_svm = true;
+    }
   }
 
   /* Add value node. */
-  void add_value_node(const ShaderNode *shader_node, const float value, const int stack_offset);
-  void add_value_node(const ShaderNode *shader_node, const float3 &value, const int stack_offset);
+  void add_value_node(ShaderNode *shader_node, const float value, const int stack_offset);
+  void add_value_node(ShaderNode *shader_node, const float3 &value, const int stack_offset);
+
+  /* Add BSDF node. */
+  template<typename T> void add_bsdf_node(const SVMNodeClosureBsdf &node, const T &data)
+  {
+    assert(current_node->shader_node_type() == NODE_CLOSURE_BSDF);
+    add_node(current_node, NODE_CLOSURE_BSDF, node);
+    add_node_data(data);
+  }
 
   /* Add extra node data following add_node. */
   template<typename T>
@@ -236,7 +249,11 @@ class SVMCompiler {
   int stack_size(SocketType::Type type);
   int stack_size(const ShaderIO *io);
   void stack_clear_users(ShaderNode *node, ShaderNodeSet &done);
+  bool is_sole_user(const ShaderNode *node, const ShaderOutput *output, const ShaderNodeSet &done);
   void stack_zero_incomplete_derivatives(const ShaderNode *node);
+
+  /* Stack size that will be allocated for the outputs of this node. */
+  int stack_node_output_size(const ShaderNode *node);
 
   /* single closure */
   void find_dependencies(ShaderNodeSet &dependencies,

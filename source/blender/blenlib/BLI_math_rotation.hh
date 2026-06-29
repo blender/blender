@@ -278,7 +278,7 @@ template<typename T>
 
   const T vec_len = length(vector);
 
-  if (UNLIKELY(vec_len == 0.0f)) {
+  if (vec_len == 0.0f) [[unlikely]] {
     return QuaternionBase<T>::identity();
   }
 

@@ -12,7 +12,7 @@
 
 #include "../view_map/SteerableViewMap.h"
 
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 namespace Freestyle::Functions1D {
 

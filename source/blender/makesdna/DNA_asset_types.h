@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
+
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 #include "DNA_uuid_types.h"
@@ -27,6 +29,9 @@ enum eAssetLibraryType : short {
   ASSET_LIBRARY_ALL = 2,
   /** Display assets bundled with Blender by default. */
   ASSET_LIBRARY_ESSENTIALS = 3,
+  /** Additions to the essentials library that are stored online - displayed in the UI as part of
+   * the normal essentials library. */
+  ASSET_LIBRARY_ONLINE_ESSENTIALS = 4,
 
   /** Display assets from custom asset libraries, as defined in the preferences
    * (#bUserAssetLibrary). The name will be taken from #FileSelectParams.asset_library_ref.idname
@@ -55,6 +60,12 @@ enum eAssetLibrary_Flag : int {
   ASSET_LIBRARY_USE_REMOTE_URL = (1 << 2),
 };
 
+enum class AssetAccess : int8_t {
+  OnlineAndOffline = 0,
+  OnlyOnline = 1,
+  OnlyOffline = 2,
+};
+
 /**
  * \brief User defined tag.
  * Currently only used by assets, could be used more often at some point.
@@ -64,6 +75,17 @@ struct AssetTag {
   struct AssetTag *next = nullptr, *prev = nullptr;
   char name[/*MAX_NAME*/ 64] = "";
 };
+
+enum AssetMetaDataFlag : int {
+  /**
+   * When the import method is set to "Follow Asset or Preferences", use the asset's own import
+   * method instead of the one from the library. Not used often, but for some assets there's a
+   * specific preferred import method. For example, base mesh objects may always want to use
+   * appending, so they can be edited directly and independently from previous usages.
+   */
+  ASSETDATA_USE_OWN_IMPORT_METHOD = (1 << 0),
+};
+ENUM_OPERATORS(AssetMetaDataFlag);
 
 /**
  * \brief The meta-data of an asset.
@@ -113,6 +135,12 @@ struct AssetMetaData {
   /** Store the number of tags to avoid continuous counting. Could be turned into runtime data, we
    * can always reliably reconstruct it from the list. */
   short tot_tags = 0;
+
+  AssetMetaDataFlag flag = {};
+
+  /** The import method to use when "Follow Asset or Preferences" is used and
+   * #AssetMetaDataFlag::ASSETDATA_USE_OWN_IMPORT_METHOD is set in the flags above. */
+  eAssetImportMethod preferred_import_method = ASSET_IMPORT_APPEND;
 
   char _pad[4] = {};
 

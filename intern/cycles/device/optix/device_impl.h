@@ -26,12 +26,12 @@ enum {
   PG_RGEN_INTERSECT_SUBSURFACE,
   PG_RGEN_INTERSECT_VOLUME_STACK,
   PG_RGEN_INTERSECT_DEDICATED_LIGHT,
+  PG_RGEN_INTERSECT_MNEE,
   PG_RGEN_SHADE_BACKGROUND,
   PG_RGEN_SHADE_LIGHT_NEE,
   PG_RGEN_SHADE_LIGHT_FORWARD,
   PG_RGEN_SHADE_SURFACE,
   PG_RGEN_SHADE_SURFACE_RAYTRACE,
-  PG_RGEN_SHADE_SURFACE_MNEE,
   PG_RGEN_SHADE_VOLUME,
   PG_RGEN_SHADE_VOLUME_RAY_MARCHING,
   PG_RGEN_SHADE_SHADOW,
@@ -97,7 +97,9 @@ class OptiXDevice : public CUDADevice {
  public:
   OptixDeviceContext context = nullptr;
 
-  OptixModule optix_module = nullptr; /* All necessary OptiX kernels are in one module. */
+  OptixModule optix_module = nullptr;
+  OptixModule mnee_module = nullptr;
+  OptixModule shader_raytrace_module = nullptr;
   OptixModule builtin_modules[4] = {};
   OptixPipeline pipelines[NUM_PIPELINES] = {};
   OptixProgramGroup groups[NUM_PROGRAM_GROUPS] = {};
@@ -108,6 +110,7 @@ class OptiXDevice : public CUDADevice {
   vector<OptixModule> osl_modules;
   vector<OptixProgramGroup> osl_groups;
   OptixModule osl_camera_module = nullptr;
+  OptixModule osl_volume_module = nullptr;
   device_vector<uint8_t> osl_colorsystem;
 #  endif
 

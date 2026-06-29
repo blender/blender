@@ -8,10 +8,10 @@
 
 #include <cstring>
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_collection_types.h"
 #include "DNA_object_types.h"
@@ -574,8 +574,7 @@ static bool collection_exporter_poll(bContext *C)
 static bool collection_exporter_remove_poll(bContext *C)
 {
   const Collection *collection = CTX_data_collection(C);
-  return collection_exporter_common_check(collection) &&
-         !BLI_listbase_is_empty(&collection->exporters);
+  return collection_exporter_common_check(collection) && !collection->exporters.is_empty();
 }
 
 static bool collection_export_all_poll(bContext *C)

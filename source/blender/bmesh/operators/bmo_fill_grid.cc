@@ -10,9 +10,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "BKE_customdata.hh"
 
@@ -20,7 +20,7 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 
@@ -488,7 +488,7 @@ static void bm_grid_fill(BMesh *bm,
   ListBaseT<LinkData> *lb_rail_a = BM_edgeloop_verts_get(estore_rail_a);
   ListBaseT<LinkData> *lb_rail_b = BM_edgeloop_verts_get(estore_rail_b);
 
-  BMVert **v_grid = MEM_new_array_zeroed<BMVert *>(size_t(xtot * ytot), __func__);
+  BMVert **v_grid = MEM_new_array_zeroed<BMVert *>(size_t(xtot) * ytot, __func__);
   /**
    * <pre>
    *           estore_b
@@ -671,7 +671,7 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
   bm_edgeloop_flag_set(estore_a, BM_ELEM_HIDDEN, false);
   bm_edgeloop_flag_set(estore_b, BM_ELEM_HIDDEN, false);
 
-  if (BLI_listbase_is_empty(&eloops_rail)) {
+  if (eloops_rail.is_empty()) {
     BMO_error_raise(bm, op, BMO_ERROR_CANCEL, "Loops are not connected by wire/boundary edges");
     goto cleanup;
   }

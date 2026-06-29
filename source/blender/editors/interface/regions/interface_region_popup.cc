@@ -19,10 +19,10 @@
 
 #include "BLF_api.hh"
 
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
-#include "BLI_rect.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rect.hh"
+#include "BLI_utildefines.hh"
 #include "BLI_vector_set.hh"
 
 #include "BKE_context.hh"
@@ -398,7 +398,7 @@ static void popup_block_position(wmWindow *window, ARegion *butregion, Button *b
   SafetyRect *saferct = MEM_new<SafetyRect>(__func__);
   saferct->parent = butrct;
   saferct->safety = block->safety;
-  BLI_freelistN(&block->saferct);
+  block->saferct.free_no_destruct();
   BLI_duplicatelist(&block->saferct, &but->block->saferct);
   BLI_addhead(&block->saferct, saferct);
 }
@@ -583,7 +583,7 @@ static void popup_block_remove(bContext *C, PopupBlockHandle *handle)
   CTX_wm_region_set(C, ctx_region);
 
   /* reset to region cursor (only if there's not another menu open) */
-  if (BLI_listbase_is_empty(&screen->regionbase)) {
+  if (screen->regionbase.is_empty()) {
     win->tag_cursor_refresh = true;
   }
 

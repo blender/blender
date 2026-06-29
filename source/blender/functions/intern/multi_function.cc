@@ -5,7 +5,7 @@
 #include "FN_multi_function.hh"
 
 #include "BLI_task.hh"
-#include "BLI_threads.h"
+#include "BLI_threads.hh"
 
 namespace blender::fn::multi_function {
 

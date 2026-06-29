@@ -13,7 +13,7 @@
 
 /* path/file handling stuff */
 #ifdef WIN32
-#  include "BLI_winstuff.h"
+#  include "BLI_winstuff.hh"
 #  include <direct.h>
 #  include <io.h>
 #else
@@ -25,18 +25,19 @@
 #include "AS_asset_representation.hh"
 
 #include "DNA_screen_types.h"
+#include "DNA_space_enums.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_fileops.h"
-#include "BLI_fnmatch.h"
-#include "BLI_math_base.h"
+#include "BLI_fileops.hh"
+#include "BLI_fnmatch.hh"
+#include "BLI_math_base_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_date_string.hh"
 #include "BLT_lang.hh"
@@ -66,6 +67,7 @@
 
 #include "AS_essentials_library.hh"
 
+#include "file_banner.hh"
 #include "file_intern.hh"
 #include "filelist.hh"
 
@@ -443,7 +445,11 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
   switch (eAssetLibraryType(library->type)) {
     case ASSET_LIBRARY_ESSENTIALS:
       STRNCPY(base_params->dir, asset_system::essentials_directory_path().c_str());
-      base_params->type = FILE_ASSET_LIBRARY;
+      base_params->type = FILE_ASSET_LIBRARY_ESSENTIALS;
+      break;
+    case ASSET_LIBRARY_ONLINE_ESSENTIALS:
+      STRNCPY(base_params->dir, asset_system::online_essentials_cache_directory_path().c_str());
+      base_params->type = FILE_ASSET_LIBRARY_ESSENTIALS;
       break;
     case ASSET_LIBRARY_ALL:
       base_params->dir[0] = '\0';
@@ -1073,6 +1079,7 @@ void ED_fileselect_init_layout(SpaceFile *sfile, ARegion *region)
   /* Slightly increased than font height for padding. */
   layout->text_line_height = file_font_pointsize();
   layout->text_lines_count = 1;
+  layout->offset_top = 0;
 
   if (params->display == FILE_IMGDISPLAY) {
     /* More compact spacing for asset browser. */
@@ -1162,6 +1169,10 @@ void ED_fileselect_init_layout(SpaceFile *sfile, ARegion *region)
     layout->flag = FILE_LAYOUT_HOR;
   }
   layout->dirty = false;
+
+  if (sfile->runtime->banners_state.any_visible) {
+    layout->offset_top += UI_UNIT_Y + 2 * sfile->layout->tile_border_y;
+  }
 }
 
 FileLayout *ED_fileselect_get_layout(SpaceFile *sfile, ARegion *region)
@@ -1175,7 +1186,7 @@ FileLayout *ED_fileselect_get_layout(SpaceFile *sfile, ARegion *region)
 void ED_file_change_dir_ex(bContext *C, ScrArea *area)
 {
   /* May happen when manipulating non-active spaces. */
-  if (UNLIKELY(area->spacetype != SPACE_FILE)) {
+  if (area->spacetype != SPACE_FILE) [[unlikely]] {
     return;
   }
   SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
@@ -1323,8 +1334,9 @@ void ED_fileselect_clear(wmWindowManager *wm, SpaceFile *sfile)
     filelist_clear(sfile->files);
   }
 
-  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-  params->highlight_file = -1;
+  if (FileSelectParams *params = ED_fileselect_get_active_params(sfile)) {
+    params->highlight_file = -1;
+  }
   WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_LIST, nullptr);
 }
 
@@ -1339,8 +1351,9 @@ void ED_fileselect_clear_main_assets(wmWindowManager *wm, SpaceFile *sfile)
     filelist_clear_from_reset_tag(sfile->files);
   }
 
-  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-  params->highlight_file = -1;
+  if (FileSelectParams *params = ED_fileselect_get_active_params(sfile)) {
+    params->highlight_file = -1;
+  }
   WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_LIST, nullptr);
 }
 

@@ -64,7 +64,7 @@ class ShaderOperation : public PixelOperation {
    * inputs that are linked to the same output socket. */
   Map<const bNodeSocket *, GPUNodeLink *> output_to_material_attribute_map_;
   /* A map that associates implicit inputs to the attributes that were created for them. */
-  Map<ImplicitInput, GPUNodeLink *> implicit_input_to_material_attribute_map_;
+  Map<ImplicitInputType, GPUNodeLink *> implicit_input_to_material_attribute_map_;
 
  public:
   /* Shaders operations have a limit on how many outputs and inputs they can support. Inputs use
@@ -74,7 +74,10 @@ class ShaderOperation : public PixelOperation {
 
   /* Construct and compile a GPU material from the given shader compile unit and execution schedule
    * by calling GPU_material_from_callbacks with the appropriate callbacks. */
-  ShaderOperation(Context &context, PixelCompileUnit &compile_unit, const Schedule &schedule);
+  ShaderOperation(Context &context,
+                  PixelCompileUnit &compile_unit,
+                  const Schedule &schedule,
+                  const ComputeContext &compute_context);
 
   /* Free the GPU material. */
   ~ShaderOperation() override;

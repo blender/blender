@@ -127,16 +127,16 @@ enum class OperationCode {
   /* Bone. ---------------------------------------------------------------- */
   /* Bone local transforms - entry point */
   BONE_LOCAL,
-  /* Pose-space conversion (includes parent + rest-pose. */
+  /* Pose-space conversion (includes parent + rest-pose). */
   BONE_POSE_PARENT,
   /* Constraints */
   BONE_CONSTRAINTS,
   /* Bone transforms are ready
    *
-   * - "READY"  This (internal, noop is used to signal that all pre-IK
+   * - "READY"  This (internal, noop) is used to signal that all pre-IK
    *            operations are done. Its role is to help mediate situations
    *            where cyclic relations may otherwise form (i.e. one bone in
-   *            chain targeting another in same chain,
+   *            chain targeting another in same chain),
    *
    * - "DONE"   This noop is used to signal that the bone's final pose
    *            transform can be read by others. */

@@ -12,11 +12,11 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_memarena.h"
-#include "BLI_utildefines_stack.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_memarena.hh"
+#include "BLI_utildefines_stack.hh"
 
 #include "DNA_modifier_enums.h"
 
@@ -162,6 +162,11 @@ static void bm_loop_customdata_merge(BMesh *bm,
   else {
     e_a = l_a_inner->e;
     e_b = l_b_inner->prev->e;
+  }
+
+  /* The edges must be manifold for the "other" loop to make sense. */
+  if (!BM_edge_is_manifold(e_a) || !BM_edge_is_manifold(e_b)) {
+    return;
   }
 
   l_a_inner_inset = BM_edge_other_loop(e_a, l_a_inner);
@@ -482,7 +487,7 @@ struct SplitEdgeInfo {
  */
 static BMLoop *bm_edge_is_mixed_face_tag(BMLoop *l)
 {
-  if (LIKELY(l != nullptr)) {
+  if (l != nullptr) [[likely]] {
     int tot_tag = 0;
     int tot_untag = 0;
     BMLoop *l_iter;
@@ -570,7 +575,7 @@ static float bm_edge_info_average_length_fallback(BMVert *v_lookup,
   } *vert_lengths = static_cast<VertLengths *>(*vert_lengths_p);
 
   /* Only run this once, if needed. */
-  if (UNLIKELY(vert_lengths == nullptr)) {
+  if (vert_lengths == nullptr) [[unlikely]] {
     BMVert **vert_stack = MEM_new_array_uninitialized<BMVert *>(bm->totvert, __func__);
     STACK_DECLARE(vert_stack);
     STACK_INIT(vert_stack, bm->totvert);

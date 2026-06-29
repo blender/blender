@@ -29,7 +29,7 @@ class TreeElementStrip : public AbstractTreeElement {
   void expand(SpaceOutliner & /*soops*/) const override;
 
   Strip &get_strip() const;
-  StripType get_strip_type() const;
+  std::optional<BIFIconID> get_icon() const override;
 };
 
 /* -------------------------------------------------------------------- */
@@ -37,6 +37,11 @@ class TreeElementStrip : public AbstractTreeElement {
 class TreeElementStripData : public AbstractTreeElement {
  public:
   TreeElementStripData(TreeElement &legacy_te, StripData &strip);
+
+  std::optional<BIFIconID> get_icon() const override
+  {
+    return ICON_LIBRARY_DATA_DIRECT;
+  }
 };
 
 /* -------------------------------------------------------------------- */
@@ -48,6 +53,11 @@ class TreeElementStripDuplicate : public AbstractTreeElement {
   TreeElementStripDuplicate(TreeElement &legacy_te, Strip &strip);
 
   Strip &get_strip() const;
+
+  std::optional<BIFIconID> get_icon() const override
+  {
+    return ICON_SEQ_STRIP_DUPLICATE;
+  }
 };
 
 }  // namespace ed::outliner

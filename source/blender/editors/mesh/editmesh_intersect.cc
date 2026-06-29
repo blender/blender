@@ -9,11 +9,11 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_linklist_stack.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
-#include "BLI_memarena.h"
-#include "BLI_stack.h"
+#include "BLI_linklist_stack.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_memarena.hh"
+#include "BLI_stack_c.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_context.hh"
@@ -747,8 +747,8 @@ static BMEdge *bm_face_split_edge_find(BMEdge *e_a,
       if ((dist_test_sq < dist_best_sq) || (e_split == nullptr)) {
         bool ok = true;
 
-        if (UNLIKELY(BM_edge_exists(v_pivot, l_iter->e->v1) ||
-                     BM_edge_exists(v_pivot, l_iter->e->v2)))
+        if (BM_edge_exists(v_pivot, l_iter->e->v1) || BM_edge_exists(v_pivot, l_iter->e->v2))
+            [[unlikely]]
         {
           /* very unlikely but will cause complications splicing the verts together,
            * so just skip this case */

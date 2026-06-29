@@ -16,11 +16,11 @@
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_animsys.h"
 #include "BKE_grease_pencil_legacy_convert.hh"
@@ -258,7 +258,7 @@ bNode &version_node_add_empty(bNodeTree &ntree, const char *idname)
   bke::node_unique_name(ntree, *node);
 
   node->flag = NODE_SELECT | NODE_OPTIONS | NODE_INIT;
-  node->width = ntype->width;
+  node->width = ntype->default_width;
   node->height = ntype->height;
   node->color[0] = node->color[1] = node->color[2] = 0.608;
 
@@ -285,8 +285,7 @@ bNode &version_node_add_unknown(bNodeTree &ntree,
   ntype.idname = UString(idname);
   ntype.type_legacy = legacy_type;
   ntype.height = height;
-  ntype.width = width;
-  node_type_size_preset(ntype, eNodeSizePreset::Default);
+  ntype.default_width = width;
   ntype.minheight = 30.0f;
   ntype.maxheight = FLT_MAX;
 
@@ -308,7 +307,7 @@ bNode &version_node_add_unknown(bNodeTree &ntree,
   node_unique_name(ntree, *node);
 
   node->flag = NODE_SELECT | NODE_OPTIONS | NODE_INIT;
-  node->width = ntype.width;
+  node->width = ntype.default_width;
   node->height = ntype.height;
   node->color[0] = node->color[1] = node->color[2] = 0.608f;
 

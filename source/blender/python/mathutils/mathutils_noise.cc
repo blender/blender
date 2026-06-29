@@ -12,13 +12,13 @@
 /************************/
 /* Blender Noise Module */
 /************************/
-#include <time.h>
+#include <ctime>
 
 #include <Python.h>
 
-#include "BLI_math_vector.h"
-#include "BLI_noise.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_noise_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_texture_types.h"
 

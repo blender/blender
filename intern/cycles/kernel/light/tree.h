@@ -276,7 +276,7 @@ ccl_device bool compute_emitter_centroid_and_dir(KernelGlobals kg,
     kernel_assert(is_triangle(kemitter));
     const int object = kemitter->object_id;
     float3 vertices[3];
-    triangle_vertices(kg, kemitter->triangle.id, vertices);
+    triangle_vertices(kg, object, kemitter->triangle.id, vertices);
     centroid = (vertices[0] + vertices[1] + vertices[2]) / 3.0f;
 
     const bool is_front_only = (kemitter->triangle.emission_sampling == EMISSION_SAMPLING_FRONT);
@@ -740,14 +740,14 @@ ccl_device int light_tree_root_node_index(KernelGlobals kg, const int object_rec
 /* Pick a random light from the light tree from a given shading point P, write to the picked light
  * index and the probability of picking the light. */
 template<bool in_volume_segment>
-ccl_device_noinline bool light_tree_sample(KernelGlobals kg,
-                                           const float rand,
-                                           const float3 P,
-                                           float3 N_or_D,
-                                           float t,
-                                           const int object_receiver,
-                                           const int shader_flags,
-                                           ccl_private LightSample *ls)
+ccl_device bool light_tree_sample(KernelGlobals kg,
+                                  const float rand,
+                                  const float3 P,
+                                  float3 N_or_D,
+                                  float t,
+                                  const int object_receiver,
+                                  const int shader_flags,
+                                  ccl_private LightSample *ls)
 {
   if (!kernel_data.integrator.use_direct_light) {
     return false;
@@ -931,12 +931,13 @@ ccl_device float light_tree_pdf(KernelGlobals kg,
                                 float3 P,
                                 const float3 N,
                                 const float dt,
+                                const PathRayVisibility path_visibility,
                                 const uint32_t path_flag,
                                 const int emitter_object,
                                 const uint emitter_id,
                                 const int object_receiver)
 {
-  if (path_flag & PATH_RAY_VOLUME_SCATTER) {
+  if (path_visibility & PATH_RAY_VISIBILITY_VOLUME_SCATTER) {
     const float3 D_times_t = N;
     const float3 D = normalize(D_times_t);
     P = P - D_times_t;

@@ -8,9 +8,9 @@
 
 #include <cstddef>
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_mutex.hh"
-#include "BLI_threads.h"
+#include "BLI_threads.hh"
 
 #include "GPU_context.hh"
 

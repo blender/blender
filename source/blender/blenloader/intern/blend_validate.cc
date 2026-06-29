@@ -13,10 +13,10 @@
 
 #include "CLG_log.h"
 
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_utildefines.hh"
 
-#include "BLI_linklist.h"
+#include "BLI_linklist.hh"
 
 #include "DNA_collection_types.h"
 #include "DNA_key_types.h"

@@ -40,10 +40,10 @@ static void node_declare(NodeDeclarationBuilder &b)
   if (const bNode *node = b.node_or_null()) {
     switch (SelectionType(node->custom2)) {
       case SelectionType::Boolean:
-        b.add_input<decl::Bool>("Selection"_ustr).default_value(true).field_on_all();
+        b.add_input<decl::Bool>("Selection"_ustr).default_value(true).evaluated_geometry_field();
         break;
       case SelectionType::Float:
-        b.add_input<decl::Float>("Selection"_ustr).default_value(1.0f).field_on_all();
+        b.add_input<decl::Float>("Selection"_ustr).default_value(1.0f).evaluated_geometry_field();
         break;
     }
   }

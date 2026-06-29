@@ -11,8 +11,8 @@
 #include <algorithm>
 #include <cmath>
 
-#include "BLI_math_bits.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_bits.hh"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 namespace blender {

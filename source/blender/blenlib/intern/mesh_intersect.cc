@@ -17,24 +17,24 @@
 #  include <numeric>
 
 #  include "BLI_array.hh"
-#  include "BLI_assert.h"
+#  include "BLI_assert.hh"
 #  include "BLI_delaunay_2d.hh"
 #  include "BLI_kdopbvh.hh"
 #  include "BLI_map.hh"
-#  include "BLI_math_geom.h"
-#  include "BLI_math_matrix.h"
+#  include "BLI_math_geom_c.hh"
+#  include "BLI_math_matrix_c.hh"
 #  include "BLI_math_mpq.hh"
-#  include "BLI_math_vector.h"
+#  include "BLI_math_vector_c.hh"
 #  include "BLI_math_vector_mpq_types.hh"
 #  include "BLI_math_vector_types.hh"
 #  include "BLI_mutex.hh"
-#  include "BLI_polyfill_2d.h"
+#  include "BLI_polyfill_2d.hh"
 #  include "BLI_set.hh"
 #  include "BLI_sort.hh"
 #  include "BLI_span.hh"
-#  include "BLI_task.h"
 #  include "BLI_task.hh"
-#  include "BLI_threads.h"
+#  include "BLI_task_c.hh"
+#  include "BLI_threads.hh"
 #  include "BLI_vector.hh"
 #  include "BLI_vector_set.hh"
 
@@ -43,7 +43,7 @@
 // #  define PERFDEBUG
 
 #  ifdef _WIN_32
-#    include "BLI_fileops.h"
+#    include "BLI_fileops.hh"
 #  endif
 
 namespace blender::meshintersect {
@@ -1926,7 +1926,7 @@ static Array<Face *> polyfill_triangulate_poly(Face *f, IMeshArena *arena)
     int eo_23 = f->edge_orig[2];
     int eo_30 = f->edge_orig[3];
     Face *f0, *f1;
-    if (UNLIKELY(is_quad_flip_first_third(v0->co, v1->co, v2->co, v3->co))) {
+    if (is_quad_flip_first_third(v0->co, v1->co, v2->co, v3->co)) [[unlikely]] {
       f0 = arena->add_face({v0, v1, v3}, f->orig, {eo_01, -1, eo_30}, {false, false, false});
       f1 = arena->add_face({v1, v2, v3}, f->orig, {eo_12, eo_23, -1}, {false, false, false});
     }

@@ -23,13 +23,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 #include "BLI_math_vector.hh"
-#include "BLI_string.h"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_threads.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_image_types.h"
 #include "DNA_object_types.h"
@@ -43,6 +43,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_image.hh"
+#include "BKE_image_gpu.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_types.hh"
 #include "BKE_undo_system.hh"
@@ -125,11 +126,7 @@ struct PaintTile {
    * For 3D projection painting this only uses a tile & frame number.
    * The scene pointer must be cleared (or temporarily set it as needed, but leave cleared). */
   ImageUser iuser;
-  union {
-    float *fp = nullptr;
-    uint8_t *byte_ptr;
-    void *pt;
-  } rect;
+  ImBuf *ptile_ibuf = nullptr;
   uint16_t *mask = nullptr;
   bool valid = false;
   bool use_float = false;
@@ -138,9 +135,7 @@ struct PaintTile {
 
 static void ptile_free(PaintTile *ptile)
 {
-  if (ptile->rect.pt) {
-    MEM_delete_void(ptile->rect.pt);
-  }
+  IMB_freeImBuf(ptile->ptile_ibuf);
   if (ptile->mask) {
     MEM_delete(ptile->mask);
   }
@@ -165,14 +160,14 @@ static void ptile_invalidate_map(PaintTileMap *paint_tile_map)
   }
 }
 
-void *ED_image_paint_tile_find(PaintTileMap *paint_tile_map,
-                               Image *image,
-                               ImBuf *ibuf,
-                               ImageUser *iuser,
-                               int x_tile,
-                               int y_tile,
-                               ushort **r_mask,
-                               bool validate)
+const ImBuf *ED_image_paint_tile_find(PaintTileMap *paint_tile_map,
+                                      Image *image,
+                                      ImBuf *ibuf,
+                                      ImageUser *iuser,
+                                      int x_tile,
+                                      int y_tile,
+                                      ushort **r_mask,
+                                      bool validate)
 {
   PaintTileKey key;
   key.ibuf = ibuf;
@@ -196,19 +191,19 @@ void *ED_image_paint_tile_find(PaintTileMap *paint_tile_map,
   if (validate) {
     ptile->valid = true;
   }
-  return ptile->rect.pt;
+  return ptile->ptile_ibuf;
 }
 
-void *ED_image_paint_tile_push(PaintTileMap *paint_tile_map,
-                               Image *image,
-                               ImBuf *ibuf,
-                               ImageUser *iuser,
-                               int x_tile,
-                               int y_tile,
-                               ushort **r_mask,
-                               bool **r_valid,
-                               bool use_thread_lock,
-                               bool find_prev)
+const ImBuf *ED_image_paint_tile_push(PaintTileMap *paint_tile_map,
+                                      Image *image,
+                                      ImBuf *ibuf,
+                                      ImageUser *iuser,
+                                      int x_tile,
+                                      int y_tile,
+                                      ushort **r_mask,
+                                      bool **r_valid,
+                                      bool use_thread_lock,
+                                      bool find_prev)
 {
   if (use_thread_lock) {
     BLI_spin_lock(&paint_tiles_lock);
@@ -219,7 +214,7 @@ void *ED_image_paint_tile_push(PaintTileMap *paint_tile_map,
 
   /* in projective painting we keep accounting of tiles, so if we need one pushed, just push! */
   if (find_prev) {
-    void *data = ED_image_paint_tile_find(
+    const ImBuf *data = ED_image_paint_tile_find(
         paint_tile_map, image, ibuf, iuser, x_tile, y_tile, r_mask, true);
     if (data) {
       if (use_thread_lock) {
@@ -250,9 +245,9 @@ void *ED_image_paint_tile_push(PaintTileMap *paint_tile_map,
   calc_tile_rect(*ibuf, ptile->x_tile, ptile->y_tile, tile_pos, tile_copy_size);
 
   if (ibuf->float_data()) {
-    ptile->rect.pt = MEM_new_array_zeroed<float[4]>(square_i(ED_IMAGE_UNDO_TILE_SIZE),
-                                                    "PaintTile.rect");
-    IMB_copy_rect(ptile->rect.fp,
+    ptile->ptile_ibuf = IMB_allocImBuf(
+        ED_IMAGE_UNDO_TILE_SIZE, ED_IMAGE_UNDO_TILE_SIZE, ImBufFlags::FloatData);
+    IMB_copy_rect(ptile->ptile_ibuf->float_data_for_write(),
                   int2(ED_IMAGE_UNDO_TILE_SIZE),
                   ibuf->float_data(),
                   int2(ibuf->x, ibuf->y),
@@ -262,9 +257,9 @@ void *ED_image_paint_tile_push(PaintTileMap *paint_tile_map,
                   tile_copy_size);
   }
   else {
-    ptile->rect.pt = MEM_new_array_zeroed<char[4]>(square_i(ED_IMAGE_UNDO_TILE_SIZE),
-                                                   "PaintTile.rect");
-    IMB_copy_rect(ptile->rect.byte_ptr,
+    ptile->ptile_ibuf = IMB_allocImBuf(
+        ED_IMAGE_UNDO_TILE_SIZE, ED_IMAGE_UNDO_TILE_SIZE, ImBufFlags::ByteData);
+    IMB_copy_rect(ptile->ptile_ibuf->byte_data_for_write(),
                   int2(ED_IMAGE_UNDO_TILE_SIZE),
                   ibuf->byte_data(),
                   int2(ibuf->x, ibuf->y),
@@ -299,7 +294,7 @@ void *ED_image_paint_tile_push(PaintTileMap *paint_tile_map,
   if (use_thread_lock) {
     BLI_spin_unlock(&paint_tiles_lock);
   }
-  return ptile->rect.pt;
+  return ptile->ptile_ibuf;
 }
 
 static void ptile_restore_runtime_map(PaintTileMap *paint_tile_map)
@@ -315,7 +310,7 @@ static void ptile_restore_runtime_map(PaintTileMap *paint_tile_map)
     if (ibuf->float_data()) {
       IMB_copy_rect(ibuf->float_data_for_write(),
                     int2(ibuf->x, ibuf->y),
-                    ptile->rect.fp,
+                    ptile->ptile_ibuf->float_data(),
                     int2(ED_IMAGE_UNDO_TILE_SIZE),
                     ibuf->channels,
                     int2(0, 0),
@@ -325,15 +320,14 @@ static void ptile_restore_runtime_map(PaintTileMap *paint_tile_map)
     else {
       IMB_copy_rect(ibuf->byte_data_for_write(),
                     int2(ibuf->x, ibuf->y),
-                    ptile->rect.byte_ptr,
+                    ptile->ptile_ibuf->byte_data(),
                     int2(ED_IMAGE_UNDO_TILE_SIZE),
                     int2(0, 0),
                     tile_pos,
                     tile_copy_size);
     }
 
-    /* Force OpenGL reload (maybe partial update will operate better?) */
-    BKE_image_free_gputextures(image);
+    BKE_image_partial_update_mark_full_update(image);
 
     if (ibuf->float_data()) {
       ibuf->userflags |= IB_RECT_INVALID; /* force recreate of char rect */
@@ -357,25 +351,16 @@ static uint32_t index_from_xy(uint32_t tile_x, uint32_t tile_y, const uint32_t t
 }
 
 struct UndoImageTile {
-  union {
-    float *fp;
-    uint8_t *byte_ptr;
-    void *pt;
-  } rect;
+  ImBuf *ibuf;
   int users;
 };
 
 static UndoImageTile *utile_alloc(bool has_float)
 {
   UndoImageTile *utile = MEM_new_zeroed<UndoImageTile>("ImageUndoTile");
-  if (has_float) {
-    utile->rect.fp = MEM_new_array_uninitialized<float>(4 * square_i(ED_IMAGE_UNDO_TILE_SIZE),
-                                                        __func__);
-  }
-  else {
-    utile->rect.byte_ptr = MEM_new_array_uninitialized<uint8_t>(
-        4 * square_i(ED_IMAGE_UNDO_TILE_SIZE), __func__);
-  }
+  utile->ibuf = IMB_allocImBuf(ED_IMAGE_UNDO_TILE_SIZE,
+                               ED_IMAGE_UNDO_TILE_SIZE,
+                               has_float ? ImBufFlags::FloatData : ImBufFlags::ByteData);
   return utile;
 }
 
@@ -388,7 +373,7 @@ static void utile_init_from_imbuf(UndoImageTile *utile,
   int2 tile_copy_size;
   calc_tile_rect(*ibuf, x_tile, y_tile, tile_pos, tile_copy_size);
   if (ibuf->float_data()) {
-    IMB_copy_rect(utile->rect.fp,
+    IMB_copy_rect(utile->ibuf->float_data_for_write(),
                   int2(ED_IMAGE_UNDO_TILE_SIZE),
                   ibuf->float_data(),
                   int2(ibuf->x, ibuf->y),
@@ -398,7 +383,7 @@ static void utile_init_from_imbuf(UndoImageTile *utile,
                   tile_copy_size);
   }
   else {
-    IMB_copy_rect(utile->rect.byte_ptr,
+    IMB_copy_rect(utile->ibuf->byte_data_for_write(),
                   int2(ED_IMAGE_UNDO_TILE_SIZE),
                   ibuf->byte_data(),
                   int2(ibuf->x, ibuf->y),
@@ -419,7 +404,7 @@ static void utile_restore(const UndoImageTile *utile,
   if (ibuf->float_data()) {
     IMB_copy_rect(ibuf->float_data_for_write(),
                   int2(ibuf->x, ibuf->y),
-                  utile->rect.fp,
+                  utile->ibuf->float_data(),
                   int2(ED_IMAGE_UNDO_TILE_SIZE),
                   ibuf->channels,
                   int2(0, 0),
@@ -429,7 +414,7 @@ static void utile_restore(const UndoImageTile *utile,
   else {
     IMB_copy_rect(ibuf->byte_data_for_write(),
                   int2(ibuf->x, ibuf->y),
-                  utile->rect.byte_ptr,
+                  utile->ibuf->byte_data(),
                   int2(ED_IMAGE_UNDO_TILE_SIZE),
                   int2(0, 0),
                   tile_pos,
@@ -442,7 +427,7 @@ static void utile_decref(UndoImageTile *utile)
   utile->users -= 1;
   BLI_assert(utile->users >= 0);
   if (utile->users == 0) {
-    MEM_delete_void(utile->rect.pt);
+    IMB_freeImBuf(utile->ibuf);
     MEM_delete(utile);
   }
 }
@@ -592,7 +577,7 @@ static void uhandle_restore_list(ListBaseT<UndoImageHandle> *undo_handles, bool 
     Image *image = uh.image_ref.ptr;
 
     ImBuf *ibuf = BKE_image_acquire_ibuf(image, &uh.iuser, nullptr);
-    if (UNLIKELY(ibuf == nullptr)) {
+    if (ibuf == nullptr) [[unlikely]] {
       CLOG_ERROR(&LOG, "Unable to get buffer for image '%s'", image->id.name + 2);
       continue;
     }
@@ -635,7 +620,7 @@ static void uhandle_free_list(ListBaseT<UndoImageHandle> *undo_handles)
     }
     MEM_delete(&uh);
   }
-  BLI_listbase_clear(undo_handles);
+  undo_handles->clear_no_delete();
 }
 
 /** \} */
@@ -779,7 +764,7 @@ static void image_undosys_step_encode_init(bContext * /*C*/, UndoStep *us_p)
   ImageUndoStep *us = reinterpret_cast<ImageUndoStep *>(us_p);
   /* dummy, memory is cleared anyway. */
   us->is_encode_init = true;
-  BLI_listbase_clear(&us->handles);
+  us->handles.clear_no_delete();
   us->paint_tile_map = MEM_new<PaintTileMap>(__func__);
 }
 
@@ -810,8 +795,7 @@ static bool image_undosys_step_encode(bContext *C, Main * /*bmain*/, UndoStep *u
 
         UndoImageTile *utile = MEM_new_zeroed<UndoImageTile>("UndoImageTile");
         utile->users = 1;
-        utile->rect.pt = ptile->rect.pt;
-        ptile->rect.pt = nullptr;
+        utile->ibuf = IMB_dupImBuf(ptile->ptile_ibuf);
         const uint tile_index = index_from_xy(ptile->x_tile, ptile->y_tile, ubuf_pre->tiles_dims);
 
         BLI_assert(ubuf_pre->tiles[tile_index] == nullptr);
@@ -1025,7 +1009,7 @@ static void image_undosys_foreach_ID_ref(UndoStep *us_p,
 
 void ED_image_undosys_type(UndoType *ut)
 {
-  ut->name = "Image";
+  ut->identifier = "IMAGE";
   /* Note, we do not need the `poll` method overridden because of the `step_encode_init` callback
    * and exposed #ED_image_undo_push_begin/end calls. */
   ut->step_encode_init = image_undosys_step_encode_init;

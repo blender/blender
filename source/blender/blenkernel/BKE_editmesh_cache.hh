@@ -28,12 +28,12 @@ struct EditMeshData {
   Array<float3> vert_positions;
 
   /**
-   * Lazily initialized vertex normal cache (used when `vert_positions` is set.
+   * Lazily initialized vertex normal cache (used when `vert_positions` is set).
    * Access via #BKE_editmesh_cache_ensure_vert_normals instead of directly.
    */
   Array<float3> vert_normals;
   /**
-   * Lazily initialized face normal cache (used when `vert_positions` is set.
+   * Lazily initialized face normal cache (used when `vert_positions` is set).
    * Access via #BKE_editmesh_cache_ensure_face_normals instead of directly.
    */
   Array<float3> face_normals;

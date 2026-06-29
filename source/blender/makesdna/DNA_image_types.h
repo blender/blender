@@ -39,14 +39,6 @@ enum eImageUser_Flag : short {
 };
 ENUM_OPERATORS(eImageUser_Flag)
 
-/* Used to get the correct gpu texture from an Image datablock. */
-enum eGPUTextureTarget : int {
-  TEXTARGET_2D = 0,
-  TEXTARGET_2D_ARRAY = 1,
-  TEXTARGET_TILE_MAPPING = 2,
-  TEXTARGET_COUNT = 3,
-};
-
 /** #Image.flag */
 enum eImage_Flag : int {
   IMA_HIGH_BITDEPTH = (1 << 0),
@@ -68,15 +60,10 @@ enum eImage_Flag : int {
   IMA_USE_VIEWS = (1 << 14),
   IMA_FLAG_UNUSED_15 = (1 << 15), /* cleared */
   IMA_FLAG_UNUSED_16 = (1 << 16), /* cleared */
+  /** Indicates that the image has autosave information */
+  IMA_AUTOSAVE_TEMPPACK = (1 << 17),
 };
 ENUM_OPERATORS(eImage_Flag)
-
-/** #Image.gpuflag */
-enum eImage_GPUFlag : int {
-  /** All mipmap levels in OpenGL texture set? */
-  IMA_GPU_MIPMAP_COMPLETE = (1 << 0),
-};
-ENUM_OPERATORS(eImage_GPUFlag)
 
 /* Image.source, where the image comes from */
 enum eImageSource : short {
@@ -238,6 +225,8 @@ struct Image {
   DNA_DEPRECATED struct PackedFile *packedfile = nullptr;
   ListBaseT<ImagePackedFile> packedfiles = {nullptr, nullptr};
   struct PreviewImage *preview = nullptr;
+
+  ListBaseT<ImagePackedFile> autosave_packedfiles = {nullptr, nullptr};
 
   char _pad3[4] = {};
 

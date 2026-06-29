@@ -4,13 +4,13 @@
 
 #include <cstring>
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_cpp_type.hh"
 #include "BLI_generic_pointer.hh"
 #include "BLI_index_range.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BLT_translation.hh"
 
@@ -81,7 +81,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   for (const int i : IndexRange(storage.items_count)) {
     const NodeCompositorFileOutputItem &item = storage.items[i];
-    const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+    const eNodeSocketDatatype socket_type = item.socket_type;
     const std::string identifier = FileOutputItemsAccessor::socket_identifier_for_item(item);
     BaseSocketDeclarationBuilder *declaration = nullptr;
     if (socket_type == SOCK_VECTOR) {
@@ -96,7 +96,8 @@ static void node_declare(NodeDeclarationBuilder &b)
         .socket_name_ptr(&node_tree->id, *FileOutputItemsAccessor::item_srna, &item, "name");
   }
 
-  b.add_input<decl::Extend>(""_ustr, "__extend__"_ustr);
+  b.add_input<decl::Extend>(""_ustr, "__extend__"_ustr)
+      .custom_draw(socket_items::ui::draw_extend_socket_fn<FileOutputItemsAccessor>());
 }
 
 static void node_init(const bContext *C, PointerRNA *node_pointer)
@@ -106,7 +107,7 @@ static void node_init(const bContext *C, PointerRNA *node_pointer)
   node->storage = data;
   data->save_as_render = true;
   data->use_file_extension = true;
-  data->file_name = BLI_strdup("file_name");
+  data->file_name = BLI_strdup("{blend_name}");
 
   BKE_image_format_init(&data->format);
   BKE_image_format_media_type_set(
@@ -163,6 +164,7 @@ static Vector<bke::path_templates::Error> compute_image_path(const StringRefNull
                                                              const char *view,
                                                              const int frame_number,
                                                              const ImageFormatData &format,
+                                                             const Main &bmain,
                                                              const Scene &scene,
                                                              const bNode &node,
                                                              const bool is_animation_render,
@@ -174,7 +176,9 @@ static Vector<bke::path_templates::Error> compute_image_path(const StringRefNull
   BLI_path_append(base_path, FILE_MAX, full_file_name.c_str());
 
   bke::path_templates::VariableMap template_variables;
-  BKE_add_template_variables_general(template_variables, &node.owner_tree().id);
+  BKE_blender_project_read_callback(&bmain, [&](const bke::BlenderProject *project) {
+    BKE_add_template_variables_general(template_variables, &node.owner_tree().id, project);
+  });
   BKE_add_template_variables_for_render_path(template_variables, scene);
   BKE_add_template_variables_for_node(template_variables, node);
 
@@ -239,6 +243,7 @@ static void output_path_layout(ui::Layout &layout,
                                const StringRefNull file_name_suffix,
                                const char *view,
                                const ImageFormatData &format,
+                               const Main &bmain,
                                const Scene &scene,
                                const bNode &node)
 {
@@ -250,6 +255,7 @@ static void output_path_layout(ui::Layout &layout,
                                                                             view,
                                                                             scene.r.cfra,
                                                                             format,
+                                                                            bmain,
                                                                             scene,
                                                                             node,
                                                                             false,
@@ -274,20 +280,22 @@ static void output_paths_layout(ui::Layout &layout,
   const NodeCompositorFileOutput &storage = node_storage(node);
   const StringRefNull directory = storage.directory;
   const std::string file_name = storage.file_name ? storage.file_name : "";
+  const Main &main = *CTX_data_main(context);
   const Scene &scene = *CTX_data_scene(context);
 
-  if (bool(scene.r.scemode & R_MULTIVIEW) && format.views_format == R_IMF_VIEWS_MULTIVIEW) {
+  if (bool(scene.r.scemode & R_MULTIVIEW) && format.views_format == R_IMF_VIEWS_INDIVIDUAL) {
     for (SceneRenderView &view : scene.r.views) {
       if (!BKE_scene_multiview_is_render_view_active(&scene.r, &view)) {
         continue;
       }
 
       output_path_layout(
-          layout, directory, file_name, file_name_suffix, view.name, format, scene, node);
+          layout, directory, file_name, file_name_suffix, view.name, format, main, scene, node);
     }
   }
   else {
-    output_path_layout(layout, directory, file_name, file_name_suffix, "", format, scene, node);
+    output_path_layout(
+        layout, directory, file_name, file_name_suffix, "", format, main, scene, node);
   }
 }
 
@@ -404,13 +412,13 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   if (origin_socket.in_out != SOCK_OUT) {
     return;
   }
-  const eNodeSocketDatatype origin_socket_type = eNodeSocketDatatype(origin_socket.type);
+  const eNodeSocketDatatype origin_socket_type = origin_socket.type;
   if (!FileOutputItemsAccessor::supports_socket_type(origin_socket_type, NTREE_COMPOSIT)) {
     return;
   }
   params.add_item("File Output", [](LinkSearchOpParams &params) {
     bNode &node = params.add_node("CompositorNodeOutputFile"_ustr);
-    const eNodeSocketDatatype socket_type = eNodeSocketDatatype(params.socket.type);
+    const eNodeSocketDatatype socket_type = params.socket.type;
     if (socket_type == SOCK_VECTOR) {
       socket_items::add_item_with_socket_type_and_name<FileOutputItemsAccessor>(
           params.node_tree,
@@ -743,6 +751,7 @@ class FileOutputOperation : public NodeOperation {
         view,
         this->context().get_frame_number(),
         format,
+        this->context().get_main(),
         this->context().get_scene(),
         this->node(),
         this->is_animation_render(),

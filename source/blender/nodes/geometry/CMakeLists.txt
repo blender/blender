@@ -38,6 +38,7 @@ set(SRC
   nodes/node_geo_boolean.cc
   nodes/node_geo_bounding_box.cc
   nodes/node_geo_camera_info.cc
+  nodes/node_geo_closure_to_list.cc
   nodes/node_geo_closure.cc
   nodes/node_geo_cluster_by_connected.cc
   nodes/node_geo_cluster_by_distance.cc
@@ -93,21 +94,31 @@ set(SRC
   nodes/node_geo_field_min_and_max.cc
   nodes/node_geo_field_to_grid.cc
   nodes/node_geo_field_to_list.cc
+  nodes/node_geo_filter_list.cc
   nodes/node_geo_field_variance.cc
   nodes/node_geo_flip_faces.cc
   nodes/node_geo_foreach_geometry_element.cc
   nodes/node_geo_geometry_to_instance.cc
+  nodes/node_geo_get_attribute_names.cc
   nodes/node_geo_get_bundle_item.cc
   nodes/node_geo_get_geometry_bundle.cc
+  nodes/node_geo_get_geometry_component.cc
   nodes/node_geo_get_named_grid.cc
   nodes/node_geo_get_nested_bundle_paths.cc
   nodes/node_geo_gizmo_dial.cc
   nodes/node_geo_gizmo_linear.cc
   nodes/node_geo_gizmo_transform.cc
+  nodes/node_geo_grease_pencil_color.cc
+  nodes/node_geo_grease_pencil_draw_time.cc
+  nodes/node_geo_grease_pencil_fill_id.cc
+  nodes/node_geo_grease_pencil_opacity.cc
+  nodes/node_geo_grease_pencil_stroke_softness.cc
+  nodes/node_geo_grease_pencil_stroke_visibility.cc
   nodes/node_geo_grease_pencil_to_curves.cc
   nodes/node_geo_grid_advect.cc
   nodes/node_geo_grid_clip.cc
   nodes/node_geo_grid_curl.cc
+  nodes/node_geo_grid_deactivate_voxels.cc
   nodes/node_geo_grid_dilate_erode.cc
   nodes/node_geo_grid_divergence.cc
   nodes/node_geo_grid_gradient.cc
@@ -118,6 +129,7 @@ set(SRC
   nodes/node_geo_grid_prune.cc
   nodes/node_geo_grid_to_mesh.cc
   nodes/node_geo_grid_to_points.cc
+  nodes/node_geo_grid_topology_boolean.cc
   nodes/node_geo_grid_voxelize.cc
   nodes/node_geo_image.cc
   nodes/node_geo_image_info.cc
@@ -181,6 +193,7 @@ set(SRC
   nodes/node_geo_merge_by_distance.cc
   nodes/node_geo_merge_layers.cc
   nodes/node_geo_merge_points.cc
+  nodes/node_geo_mesh_bevel.cc
   nodes/node_geo_mesh_face_group_boundaries.cc
   nodes/node_geo_mesh_primitive_circle.cc
   nodes/node_geo_mesh_primitive_cone.cc
@@ -205,6 +218,8 @@ set(SRC
   nodes/node_geo_mesh_topology_offset_corner_in_face.cc
   nodes/node_geo_mesh_topology_vertex_of_corner.cc
   nodes/node_geo_mouse_position.cc
+  nodes/node_geo_nurbs_order.cc
+  nodes/node_geo_nurbs_weight.cc
   nodes/node_geo_object_info.cc
   nodes/node_geo_offset_point_in_curve.cc
   nodes/node_geo_points.cc
@@ -264,6 +279,7 @@ set(SRC
   nodes/node_geo_set_spline_resolution.cc
   nodes/node_geo_simulation.cc
   nodes/node_geo_sort_elements.cc
+  nodes/node_geo_sort_list.cc
   nodes/node_geo_split_to_instances.cc
   nodes/node_geo_store_bundle_item.cc
   nodes/node_geo_store_named_attribute.cc
@@ -272,6 +288,7 @@ set(SRC
   nodes/node_geo_string_to_curves.cc
   nodes/node_geo_subdivision_surface.cc
   nodes/node_geo_switch.cc
+  nodes/node_geo_tag_filter.cc
   nodes/node_geo_tool_3d_cursor.cc
   nodes/node_geo_tool_active_element.cc
   nodes/node_geo_tool_face_set.cc
@@ -280,6 +297,7 @@ set(SRC
   nodes/node_geo_tool_set_selection.cc
   nodes/node_geo_transform_geometry.cc
   nodes/node_geo_translate_instances.cc
+  nodes/node_geo_transfer_attributes.cc
   nodes/node_geo_triangulate.cc
   nodes/node_geo_uv_pack_islands.cc
   nodes/node_geo_uv_tangent.cc
@@ -289,11 +307,13 @@ set(SRC
   nodes/node_geo_volume_cube.cc
   nodes/node_geo_volume_to_mesh.cc
   nodes/node_geo_warning.cc
+  nodes/node_geo_xpbd_solver.cc
 
   include/NOD_geo_bake.hh
   include/NOD_geo_bundle.hh
   include/NOD_geo_capture_attribute.hh
   include/NOD_geo_closure.hh
+  include/NOD_geo_closure_to_list.hh
   include/NOD_geo_field_to_grid.hh
   include/NOD_geo_field_to_list.hh
   include/NOD_geo_foreach_geometry_element.hh
@@ -301,6 +321,7 @@ set(SRC
   include/NOD_geo_menu_switch.hh
   include/NOD_geo_repeat.hh
   include/NOD_geo_simulation.hh
+  include/NOD_geo_tag_filter.hh
   include/NOD_geo_viewer.hh
 
   node_geometry_tree.cc

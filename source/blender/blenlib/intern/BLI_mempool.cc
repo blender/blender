@@ -20,15 +20,15 @@
 
 #include "atomic_ops.h"
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
-#include "BLI_asan.h"
-#include "BLI_math_base.h"
-#include "BLI_mempool.h"         /* own include */
+#include "BLI_asan.hh"
+#include "BLI_math_base_c.hh"
+#include "BLI_mempool.hh"        /* own include */
 #include "BLI_mempool_private.h" /* own include */
 
 #ifdef WITH_ASAN
-#  include "BLI_threads.h"
+#  include "BLI_threads.hh"
 #endif
 
 #include "MEM_guardedalloc.h"
@@ -37,7 +37,7 @@
 #  include "valgrind/memcheck.h"
 #endif
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 
@@ -209,7 +209,7 @@ static BLI_freenode *mempool_chunk_add(BLI_mempool *pool,
   mpchunk->next = nullptr;
   pool->chunk_tail = mpchunk;
 
-  if (UNLIKELY(pool->free == nullptr)) {
+  if (pool->free == nullptr) [[unlikely]] {
     pool->free = curnode;
   }
 
@@ -386,7 +386,7 @@ void *BLI_mempool_alloc(BLI_mempool *pool)
 {
   BLI_freenode *free_pop;
 
-  if (UNLIKELY(pool->free == nullptr)) {
+  if (pool->free == nullptr) [[unlikely]] {
     /* Need to allocate a new chunk. */
     BLI_mempool_chunk *mpchunk = mempool_chunk_alloc(pool);
     mempool_chunk_add(pool, mpchunk, nullptr);
@@ -452,7 +452,7 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
   }
 
   /* Enable for debugging. */
-  if (UNLIKELY(mempool_debug_memset)) {
+  if (mempool_debug_memset) [[unlikely]] {
     memset(addr, 255, pool->esize - POISON_REDZONE_SIZE);
   }
 #endif
@@ -658,7 +658,7 @@ void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
 
 void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
 {
-  if (UNLIKELY(iter->curchunk == nullptr)) {
+  if (iter->curchunk == nullptr) [[unlikely]] {
     return nullptr;
   }
 
@@ -679,7 +679,7 @@ void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
     else {
       iter->curindex = 0;
       iter->curchunk = iter->curchunk->next;
-      if (UNLIKELY(iter->curchunk == nullptr)) {
+      if (iter->curchunk == nullptr) [[unlikely]] {
         BLI_asan_unpoison(ret, iter->pool->esize - POISON_REDZONE_SIZE);
 #  ifdef WITH_MEM_VALGRIND
         VALGRIND_MAKE_MEM_DEFINED(ret, iter->pool->esize - POISON_REDZONE_SIZE);
@@ -705,7 +705,7 @@ void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
 void *mempool_iter_threadsafe_step(BLI_mempool_threadsafe_iter *ts_iter)
 {
   BLI_mempool_iter *iter = &ts_iter->iter;
-  if (UNLIKELY(iter->curchunk == nullptr)) {
+  if (iter->curchunk == nullptr) [[unlikely]] {
     return nullptr;
   }
 
@@ -738,7 +738,7 @@ void *mempool_iter_threadsafe_step(BLI_mempool_threadsafe_iter *ts_iter)
       {
         /* pass. */
       }
-      if (UNLIKELY(iter->curchunk == nullptr)) {
+      if (iter->curchunk == nullptr) [[unlikely]] {
         if (ret->freeword == FREEWORD) {
           BLI_asan_poison(ret, esize);
 #  ifdef WITH_MEM_VALGRIND
@@ -753,7 +753,7 @@ void *mempool_iter_threadsafe_step(BLI_mempool_threadsafe_iter *ts_iter)
       /* End `threadsafe` exception. */
 
       iter->curchunk = iter->curchunk->next;
-      if (UNLIKELY(iter->curchunk == nullptr)) {
+      if (iter->curchunk == nullptr) [[unlikely]] {
         if (ret->freeword == FREEWORD) {
           BLI_asan_poison(ret, iter->pool->esize);
 #  ifdef WITH_MEM_VALGRIND

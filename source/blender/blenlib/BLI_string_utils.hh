@@ -11,10 +11,10 @@
 #include <cstdarg>
 #include <string>
 
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 namespace blender {
 
@@ -101,10 +101,10 @@ size_t BLI_string_replace_range(
  * Foo.001 -> "Foo", 1
  * Returning the length of "Foo"
  *
- * \param left: Where to return copy of part preceding `delim`.
- * \param nr: Where to return value of numeric suffix.
  * \param name: String to split.
  * \param delim: Delimiter character.
+ * \param r_name_left: Where to return copy of part preceding `delim`.
+ * \param r_number: Where to return value of numeric suffix.
  * \return Length of \a left.
  */
 size_t BLI_string_split_name_number(const char *name, char delim, char *r_name_left, int *r_number)

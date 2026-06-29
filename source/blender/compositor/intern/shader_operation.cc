@@ -8,8 +8,8 @@
 
 #include <fmt/format.h>
 
-#include "BLI_assert.h"
-#include "BLI_listbase.h"
+#include "BLI_assert.hh"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
 #include "BLI_math_euler.hh"
 #include "BLI_math_vector_types.hh"
@@ -46,8 +46,9 @@ namespace blender::compositor {
 
 ShaderOperation::ShaderOperation(Context &context,
                                  PixelCompileUnit &compile_unit,
-                                 const Schedule &schedule)
-    : PixelOperation(context, compile_unit, schedule)
+                                 const Schedule &schedule,
+                                 const ComputeContext &compute_context)
+    : PixelOperation(context, compile_unit, schedule, compute_context, false)
 {
   material_ = GPU_material_from_callbacks(
       GPU_MAT_COMPOSITOR, &construct_material, &generate_code, this);
@@ -152,7 +153,7 @@ void ShaderOperation::link_node_inputs(const bNode &node)
     const bNodeSocket *output = get_output_linked_to_input(*input);
     if (!output) {
       const InputDescriptor input_descriptor = input_descriptor_from_input_socket(input);
-      if (input_descriptor.implicit_input == ImplicitInput::None) {
+      if (!input_descriptor.implicit_input.has_value()) {
         /* No implicit input, so link a constant setter node for it that holds the input value. */
         this->link_node_input_constant(*input);
       }
@@ -347,7 +348,7 @@ void ShaderOperation::link_node_input_implicit(const bNodeSocket &input)
   GPUNodeStack &stack = node.get_input(input.identifier);
 
   const InputDescriptor input_descriptor = input_descriptor_from_input_socket(&input);
-  const ImplicitInput implicit_input = input_descriptor.implicit_input;
+  const ImplicitInputType implicit_input = input_descriptor.implicit_input.value();
 
   /* An input was already declared for that implicit input, so no need to declare it again and we
    * just link it. */
@@ -480,9 +481,8 @@ void ShaderOperation::declare_operation_input(const bNodeSocket &input_socket,
 
 void ShaderOperation::populate_results_for_node(const bNode &node)
 {
-  const bool is_node_preview_needed = this->get_node_previews() != nullptr;
-  const bNodeSocket *preview_output = is_node_preview_needed ? find_preview_output_socket(node) :
-                                                               nullptr;
+  const bNodeSocket *preview_output = needs_node_previews_ ? find_preview_output_socket(node) :
+                                                             nullptr;
 
   for (const bNodeSocket *output : node.output_sockets()) {
     if (!is_socket_available(output)) {
@@ -491,9 +491,11 @@ void ShaderOperation::populate_results_for_node(const bNode &node)
 
     /* If any of the nodes linked to the output are not part of the shader operation but are part
      * of the execution schedule, then an output result needs to be populated for it. */
-    const bool is_operation_output = is_output_linked_to_node_conditioned(
-        *output, [&](const bNode &node) {
-          return schedule_.nodes.contains(&node) && !compile_unit_.contains(&node);
+    const bool is_operation_output = is_output_linked_to_input_conditioned(
+        *output, [&](const bNodeSocket &input) {
+          return schedule_.nodes.contains(&input.owner_node()) &&
+                 !schedule_.unneeded_inputs.contains(&input) &&
+                 !compile_unit_.contains(&input.owner_node());
         });
 
     /* If the output is used as the node preview, then an output result needs to be populated for
@@ -561,8 +563,7 @@ void ShaderOperation::populate_operation_result(const bNodeSocket &output_socket
   std::string output_identifier = "output" + std::to_string(output_id);
 
   const ResultType result_type = get_node_socket_result_type(&output_socket);
-  const Result result = context().create_result(result_type);
-  populate_result(output_identifier, result);
+  populate_result(output_identifier, result_type);
 
   /* Map the output socket to the identifier of the newly populated result. */
   output_sockets_to_output_identifiers_map_.add_new(&output_socket, output_identifier);
@@ -1066,7 +1067,7 @@ std::string ShaderOperation::generate_code_for_inputs(GPUMaterial *material,
   /* The attributes of the GPU material represents the inputs of the operation. */
   ListBaseT<GPUMaterialAttribute> attributes = GPU_material_attributes(material);
 
-  if (BLI_listbase_is_empty(&attributes)) {
+  if (attributes.is_empty()) {
     return "";
   }
 
@@ -1076,7 +1077,7 @@ std::string ShaderOperation::generate_code_for_inputs(GPUMaterial *material,
    * counting the sampler slot location from the number of textures in the material, since some
    * sampler slots may be reserved for things like color band textures. */
   const ListBaseT<GPUMaterialTexture> textures = GPU_material_textures(material);
-  int input_slot_location = BLI_listbase_count(&textures);
+  int input_slot_location = textures.count();
   for (GPUMaterialAttribute &attribute : attributes) {
     const InputDescriptor &input_descriptor = get_input_descriptor(attribute.name);
     shader_create_info.sampler(input_slot_location,

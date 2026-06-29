@@ -4,7 +4,7 @@
 
 #include "testing/testing.h"
 
-#include "BLI_session_uid.h"
+#include "BLI_session_uid.hh"
 
 namespace blender {
 
@@ -12,14 +12,14 @@ TEST(SessionUID, GenerateBasic)
 {
   {
     const SessionUID uid = BLI_session_uid_generate();
-    EXPECT_TRUE(BLI_session_uid_is_generated(&uid));
+    EXPECT_TRUE(uid.is_generated());
   }
 
   {
     const SessionUID uid1 = BLI_session_uid_generate();
     const SessionUID uid2 = BLI_session_uid_generate();
 
-    EXPECT_FALSE(BLI_session_uid_is_equal(&uid1, &uid2));
+    EXPECT_FALSE(uid1 == uid2);
   }
 }
 

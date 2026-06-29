@@ -100,9 +100,9 @@ static const EnumPropertyItem boidruleset_type_items[] = {
 
 #  include <fmt/format.h>
 
-#  include "BLI_listbase.h"
-#  include "BLI_math_base.h"
-#  include "BLI_string.h"
+#  include "BLI_listbase.hh"
+#  include "BLI_math_base_c.hh"
+#  include "BLI_string.hh"
 
 #  include "BKE_context.hh"
 #  include "BKE_particle.h"
@@ -192,7 +192,7 @@ static void rna_BoidState_active_boid_rule_index_range(
 {
   BoidState *state = static_cast<BoidState *>(ptr->data);
   *min = 0;
-  *max = max_ii(0, BLI_listbase_count(&state->rules) - 1);
+  *max = max_ii(0, state->rules.count() - 1);
 }
 
 static int rna_BoidState_active_boid_rule_index_get(PointerRNA *ptr)
@@ -263,7 +263,7 @@ static void rna_BoidSettings_active_boid_state_index_range(
 {
   BoidSettings *boids = static_cast<BoidSettings *>(ptr->data);
   *min = 0;
-  *max = max_ii(0, BLI_listbase_count(&boids->states) - 1);
+  *max = max_ii(0, boids->states.count() - 1);
 }
 
 static int rna_BoidSettings_active_boid_state_index_get(PointerRNA *ptr)

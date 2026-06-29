@@ -10,11 +10,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_bitmap.h"
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
-#include "BLI_rand.h"
-#include "BLI_utildefines.h"
+#include "BLI_bitmap.hh"
+#include "BLI_ghash.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rand_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
@@ -493,7 +494,7 @@ static wmOperatorStatus lattice_select_ungrouped_exec(bContext *C, wmOperator *o
     BPoint *bp;
     int a, tot;
 
-    if (BLI_listbase_is_empty(&lt->vertex_group_names) || lt->dvert == nullptr) {
+    if (lt->vertex_group_names.is_empty() || lt->dvert == nullptr) {
       continue;
     }
 

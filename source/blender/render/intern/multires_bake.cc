@@ -73,14 +73,14 @@
 #include "DNA_modifier_types.h"
 
 #include "BLI_array.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_base.hh"
-#include "BLI_math_geom.h"
+#include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_span.hh"
 #include "BLI_task.hh"
-#include "BLI_threads.h"
+#include "BLI_threads.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
@@ -1573,7 +1573,7 @@ static void bake_ibuf_filter(ImBuf &ibuf,
                              const float2 uv_offset)
 {
   /* NOTE: Must check before filtering. */
-  const bool is_new_alpha = (ibuf.planes != R_IMF_PLANES_RGBA) && BKE_imbuf_alpha_test(&ibuf);
+  const bool is_new_alpha = !ibuf.can_contain_alpha() && BKE_imbuf_alpha_test(&ibuf);
 
   if (margin) {
     switch (margin_type) {
@@ -1596,10 +1596,10 @@ static void bake_ibuf_filter(ImBuf &ibuf,
 
   /* If the bake results in new alpha then change the image setting. */
   if (is_new_alpha) {
-    ibuf.planes = R_IMF_PLANES_RGBA;
+    ibuf.color_mode = ImColorMode::RGBA;
   }
   else {
-    if (margin && ibuf.planes != R_IMF_PLANES_RGBA) {
+    if (margin && !ibuf.can_contain_alpha()) {
       /* Clear alpha added by filtering. */
       IMB_rectfill_alpha(&ibuf, 1.0f);
     }

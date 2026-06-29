@@ -11,7 +11,7 @@
 #include "BKE_main.hh"
 
 #if defined(WIN32)
-#  include "BLI_string.h"
+#  include "BLI_string.hh"
 #endif
 
 #include "DNA_asset_types.h"

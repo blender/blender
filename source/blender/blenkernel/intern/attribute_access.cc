@@ -23,6 +23,8 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 
+#include "PRF_profile.hh"
+
 #include "BLT_translation.hh"
 
 #include "FN_field.hh"
@@ -153,7 +155,7 @@ const CPPType *custom_data_type_to_cpp_type(const eCustomDataType type)
   }
 }
 
-eCustomDataType cpp_type_to_custom_data_type(const CPPType &type)
+std::optional<eCustomDataType> cpp_type_to_custom_data_type(const CPPType &type)
 {
   if (type.is<float>()) {
     return CD_PROP_FLOAT;
@@ -197,8 +199,7 @@ eCustomDataType cpp_type_to_custom_data_type(const CPPType &type)
   if (type.is<MStringProperty>()) {
     return CD_PROP_STRING;
   }
-  BLI_assert_unreachable();
-  return CD_PROP_FLOAT;
+  return std::nullopt;
 }
 
 const char *no_procedural_access_message = N_(
@@ -429,6 +430,19 @@ Set<StringRefNull> AttributeAccessor::all_names() const
   return names;
 }
 
+/** True if there are any anonymous attributes. */
+bool AttributeAccessor::has_anonymous() const
+{
+  bool found_anonymous = false;
+  this->foreach_attribute([&](const AttributeIter &iter) {
+    if (attribute_name_is_anonymous(iter.name)) {
+      found_anonymous = true;
+      iter.stop();
+    }
+  });
+  return found_anonymous;
+}
+
 void MutableAttributeAccessor::remove_anonymous()
 {
   Vector<std::string> anonymous_ids;
@@ -534,6 +548,69 @@ GSpanAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write_only_span
   return {};
 }
 
+GAttributeWriter MutableAttributeAccessor::convert_or_add_for_write(
+    const StringRef name,
+    const AttrDomain domain,
+    const AttrType data_type,
+    const AttributeInit &initializer)
+{
+  std::optional<AttributeMetaData> meta_data = this->lookup_meta_data(name);
+  if (meta_data.has_value()) {
+    if (meta_data->domain == domain && meta_data->data_type == data_type) {
+      return this->lookup_for_write(name);
+    }
+    /* The attribute already exists, but with the wrong domain or type.
+     * Convert it. */
+    AttributeInitVArray attributeInit(lookup(name, domain, data_type).varray);
+    if (this->add_override(name, domain, data_type, attributeInit)) {
+      return this->lookup_for_write(name);
+    }
+    return {};
+  }
+  this->add(name, domain, data_type, initializer);
+  return this->lookup_for_write(name);
+}
+
+GAttributeWriter MutableAttributeAccessor::convert_or_add_for_write_only(const StringRef name,
+                                                                         const AttrDomain domain,
+                                                                         const AttrType data_type)
+{
+  std::optional<AttributeMetaData> meta_data = this->lookup_meta_data(name);
+  if (meta_data.has_value()) {
+    if (meta_data->domain == domain && meta_data->data_type == data_type) {
+      return this->lookup_for_write(name);
+    }
+    /* The attribute already exists, but with the wrong domain or type.
+     * Convert it. */
+    if (this->add_override(name, domain, data_type, AttributeInitConstruct())) {
+      return this->lookup_for_write(name);
+    }
+    return {};
+  }
+  this->add(name, domain, data_type, AttributeInitConstruct());
+  return this->lookup_for_write(name);
+}
+
+GSpanAttributeWriter MutableAttributeAccessor::convert_or_add_for_write_span(
+    const StringRef name,
+    const AttrDomain domain,
+    const AttrType data_type,
+    const AttributeInit &initializer)
+{
+  GAttributeWriter attribute = this->convert_or_add_for_write(
+      name, domain, data_type, initializer);
+  BLI_assert(attribute);
+  return GSpanAttributeWriter{std::move(attribute), true};
+}
+
+GSpanAttributeWriter MutableAttributeAccessor::convert_or_add_for_write_only_span(
+    const StringRef name, const AttrDomain domain, const AttrType data_type)
+{
+  GAttributeWriter attribute = this->convert_or_add_for_write_only(name, domain, data_type);
+  BLI_assert(attribute);
+  return GSpanAttributeWriter{std::move(attribute), false};
+}
+
 bool MutableAttributeAccessor::rename(const StringRef old_name,
                                       const StringRef new_name,
                                       const bool overwrite)
@@ -617,6 +694,7 @@ void gather_attributes(const AttributeAccessor src_attributes,
                        const IndexMask &selection,
                        MutableAttributeAccessor dst_attributes)
 {
+  PRF_scope(ProfileCategory::Default);
   const int src_size = src_attributes.domain_size(src_domain);
   src_attributes.foreach_attribute([&](const AttributeIter &iter) {
     if (iter.domain != src_domain) {
@@ -657,6 +735,7 @@ void gather_attributes(const AttributeAccessor src_attributes,
                        const Span<int> indices,
                        MutableAttributeAccessor dst_attributes)
 {
+  PRF_scope(ProfileCategory::Default);
   if (array_utils::indices_are_range(indices, IndexRange(src_attributes.domain_size(src_domain))))
   {
     copy_attributes(src_attributes, src_domain, dst_domain, attribute_filter, dst_attributes);
@@ -698,6 +777,7 @@ void gather_attributes_group_to_group(const AttributeAccessor src_attributes,
                                       const IndexMask &selection,
                                       MutableAttributeAccessor dst_attributes)
 {
+  PRF_scope(ProfileCategory::Default);
   if (selection.size() == src_offsets.size()) {
     if (src_attributes.domain_size(src_domain) == dst_attributes.domain_size(src_domain)) {
       /* When all groups are selected and the domains are the same size, all values are copied,
@@ -740,6 +820,7 @@ void gather_attributes_to_groups(const AttributeAccessor src_attributes,
                                  const IndexMask &src_selection,
                                  MutableAttributeAccessor dst_attributes)
 {
+  PRF_scope(ProfileCategory::Default);
   src_attributes.foreach_attribute([&](const AttributeIter &iter) {
     if (iter.domain != src_domain) {
       return;
@@ -772,6 +853,7 @@ void copy_attributes(const AttributeAccessor src_attributes,
                      const AttributeFilter &attribute_filter,
                      MutableAttributeAccessor dst_attributes)
 {
+  PRF_scope(ProfileCategory::Default);
   BLI_assert(src_attributes.domain_size(src_domain) == dst_attributes.domain_size(dst_domain));
   gather_attributes(src_attributes,
                     src_domain,
@@ -802,6 +884,7 @@ void copy_attributes_group_to_group(const AttributeAccessor src_attributes,
                                     const IndexMask &selection,
                                     MutableAttributeAccessor dst_attributes)
 {
+  PRF_scope(ProfileCategory::Default);
   if (selection.is_empty()) {
     return;
   }
@@ -846,6 +929,7 @@ void fill_attribute_range_default(MutableAttributeAccessor attributes,
                                   const AttributeFilter &attribute_filter,
                                   const IndexRange range)
 {
+  PRF_scope(ProfileCategory::Default);
   /* While it is valid to call this function for any valid range which can be placed in target
    * domain, it is computationally costly to perform this loop. This check is COW elision and not
    * just loop skip. */
@@ -882,6 +966,7 @@ void fill_attribute_range_default(MutableAttributeAccessor attributes,
 void transform_custom_normal_attribute(const float4x4 &transform,
                                        MutableAttributeAccessor &attributes)
 {
+  PRF_scope(ProfileCategory::Default);
   const GAttributeReader normals = attributes.lookup("custom_normal");
   if (!normals) {
     return;

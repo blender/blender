@@ -17,13 +17,15 @@
 #include "DNA_action_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 
-#include "BLI_string_utf8_symbols.h"
+#include "BLI_string_utf8_symbols.hh"
 
 #include "UI_resources.hh"
 
 #include "WM_types.hh"
+
+#include "ANIM_rna.hh"
 
 namespace blender {
 
@@ -62,10 +64,10 @@ const EnumPropertyItem rna_enum_color_sets_items[] = {
 
 #  include <fmt/format.h>
 
-#  include "BLI_listbase.h"
-#  include "BLI_math_vector.h"
-#  include "BLI_string.h"
-#  include "BLI_string_utf8.h"
+#  include "BLI_listbase.hh"
+#  include "BLI_math_vector_c.hh"
+#  include "BLI_string.hh"
+#  include "BLI_string_utf8.hh"
 
 #  include "MEM_guardedalloc.h"
 
@@ -134,10 +136,7 @@ static std::optional<std::string> rna_Pose_path(const PointerRNA * /*ptr*/)
 static std::optional<std::string> rna_PoseBone_path(const PointerRNA *ptr)
 {
   const bPoseChannel *pchan = static_cast<const bPoseChannel *>(ptr->data);
-  char name_esc[sizeof(pchan->name) * 2];
-
-  BLI_str_escape(name_esc, pchan->name, sizeof(name_esc));
-  return fmt::format("pose.bones[\"{}\"]", name_esc);
+  return animrig::get_pose_bone_rna_path(*pchan);
 }
 
 /* shared for actions groups and bone groups */

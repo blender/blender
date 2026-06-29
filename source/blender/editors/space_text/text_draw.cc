@@ -12,10 +12,10 @@
 
 #include "BLF_api.hh"
 
-#include "BLI_listbase.h"
-#include "BLI_rect.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_rect.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -628,7 +628,7 @@ static void space_text_drawcache_init(SpaceText *st)
   DrawCache *drawcache = MEM_new_zeroed<DrawCache>("text draw cache");
 
   drawcache->winx = -1;
-  drawcache->nlines = BLI_listbase_count(&st->text->lines);
+  drawcache->nlines = st->text->lines.count();
   drawcache->text_id[0] = '\0';
 
   st->runtime->drawcache = drawcache;
@@ -680,7 +680,7 @@ static void space_text_update_drawcache(SpaceText *st, const ARegion *region)
       int lineno = 0, lines_count;
       int *fp = drawcache->line_height, *new_tail, *old_tail;
 
-      nlines = BLI_listbase_count(&txt->lines);
+      nlines = txt->lines.count();
 
       if (fp) {
         fp = static_cast<int *>(MEM_realloc_uninitialized(fp, sizeof(int) * nlines));
@@ -726,7 +726,7 @@ static void space_text_update_drawcache(SpaceText *st, const ARegion *region)
     MEM_SAFE_DELETE(drawcache->line_height);
 
     if (full_update || drawcache->update) {
-      nlines = BLI_listbase_count(&txt->lines);
+      nlines = txt->lines.count();
 
       if (st->showlinenrs) {
         st->runtime->line_number_display_digits = integer_digits_i(nlines);
@@ -1435,8 +1435,8 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
       }
     }
     else {
-      BLI_assert(fc == 0);
-      fc = -1;
+      /* For balanced brackets: `fc == 0`. */
+      fc--;
     }
     while (linep) {
       while (fc >= 0) {
@@ -1466,8 +1466,8 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
           }
         }
         else {
-          BLI_assert(fc == 0);
-          fc = -1;
+          /* For balanced brackets: `fc == 0`. */
+          fc--;
         }
       }
       if (endl) {
@@ -1482,7 +1482,7 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
           fc = space_text_get_format_index(st, linep->line, c);
         }
         else {
-          BLI_assert(fc == 0);
+          /* Empty or unformatted line: nothing to scan, skip to the previous line. */
           fc = -1;
         }
       }

@@ -13,7 +13,7 @@
 #include "BKE_library.hh"
 #include "BKE_screen.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_string_utils.hh"
 
 #include "BLT_translation.hh"
@@ -89,7 +89,7 @@ static void constraint_ops_extra_draw(bContext *C, Layout *layout, void *con_v)
                    UI_ITEM_NONE);
   ListBaseT<bConstraint> *constraint_list = ed::object::constraint_list_from_constraint(
       ob, con, nullptr);
-  RNA_int_set(&op_ptr, "index", BLI_listbase_count(constraint_list) - 1);
+  RNA_int_set(&op_ptr, "index", constraint_list->count() - 1);
   if (!con->next) {
     row->enabled_set(false);
   }

@@ -9,12 +9,12 @@
 #include <algorithm>
 #include <cstdlib>
 
-#include "BLI_math_base.h"
-#include "BLI_math_color_blend.h"
-#include "BLI_math_vector.h"
-#include "BLI_rect.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_math_color_blend.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rect.hh"
 #include "BLI_task.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
@@ -474,40 +474,21 @@ void IMB_crop(ImBuf *ibuf, const int2 &rect_pos, const int2 &rect_size)
     return;
   }
 
+  const ColorSpace *byte_colorspace = ibuf->byte_buffer.colorspace;
+  const ColorSpace *float_colorspace = ibuf->float_buffer.colorspace;
+
   if (const uchar *byte_data = ibuf->byte_data()) {
-    IMB_assign_byte_buffer(
-        ibuf, create_cropped_buffer(byte_data, src_size, rect_pos, rect_size), IB_TAKE_OWNERSHIP);
+    ibuf->assign_byte_data(create_cropped_buffer(byte_data, src_size, rect_pos, rect_size));
+    ibuf->byte_buffer.colorspace = byte_colorspace;
   }
   if (const float *float_data = ibuf->float_data()) {
-    IMB_assign_float_buffer(
-        ibuf,
-        create_cropped_buffer(float_data, src_size, ibuf->channels, rect_pos, rect_size),
-        IB_TAKE_OWNERSHIP);
+    ibuf->assign_float_data(
+        create_cropped_buffer(float_data, src_size, ibuf->channels, rect_pos, rect_size));
+    ibuf->float_buffer.colorspace = float_colorspace;
   }
 
   ibuf->x = rect_size.x;
   ibuf->y = rect_size.y;
-}
-
-/**
- * Re-allocate buffers at a new size.
- */
-static void rect_realloc_4bytes(void **buf_p, const uint size[2])
-{
-  if (*buf_p == nullptr) {
-    return;
-  }
-  MEM_delete_void(*buf_p);
-  *buf_p = MEM_new_array_uninitialized<uint>(size_t(size[0]) * size_t(size[1]), __func__);
-}
-
-static void rect_realloc_16bytes(void **buf_p, const uint size[2])
-{
-  if (*buf_p == nullptr) {
-    return;
-  }
-  MEM_delete_void(*buf_p);
-  *buf_p = MEM_new_array_uninitialized<uint>(4 * size_t(size[0]) * size_t(size[1]), __func__);
 }
 
 void IMB_rect_size_set(ImBuf *ibuf, const uint size[2])
@@ -517,12 +498,15 @@ void IMB_rect_size_set(ImBuf *ibuf, const uint size[2])
     return;
   }
 
-  /* TODO(sergey: Validate ownership. */
-  rect_realloc_4bytes(reinterpret_cast<void **>(&ibuf->byte_buffer.data), size);
-  rect_realloc_16bytes(reinterpret_cast<void **>(&ibuf->float_buffer.data), size);
-
   ibuf->x = size[0];
   ibuf->y = size[1];
+
+  if (ibuf->float_data()) {
+    IMB_alloc_float_pixels(ibuf, ibuf->channels, false);
+  }
+  if (ibuf->byte_data()) {
+    IMB_alloc_byte_pixels(ibuf, false);
+  }
 }
 
 /** \} */

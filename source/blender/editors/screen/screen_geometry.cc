@@ -10,9 +10,9 @@
  * which the flexible screen-layout system of Blender is established.
  */
 
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
-#include "BLI_rect.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rect.hh"
 
 #include "BKE_screen.hh"
 
@@ -56,7 +56,6 @@ ScrEdge *screen_geom_edge_add_ex(ScrAreaMap *area_map, ScrVert *v1, ScrVert *v2)
 {
   ScrEdge *se = MEM_new<ScrEdge>("addscredge");
 
-  BKE_screen_sort_scrvert(&v1, &v2);
   se->v1 = v1;
   se->v2 = v2;
 
@@ -518,7 +517,6 @@ void screen_geom_edge_aligned_merge(const wmWindow *win, ScrEdge *edge)
     if (se.v2->newv) {
       se.v2 = se.v2->newv;
     }
-    BKE_screen_sort_scrvert(&(se.v1), &(se.v2));
   }
   for (ScrArea &area : screen->areabase) {
     if (area.v1->newv) {

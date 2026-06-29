@@ -194,8 +194,49 @@ class VRLandmark(PropertyGroup):
         )
 
 
+class VRCapture(PropertyGroup):
+    # Note: This PropertyGroup needs to be kept in sync with the internal XrLocationScoutingCapture struct
+    #       and get_active_location_scouting_capture() function.
+    name: bpy.props.StringProperty(
+        name="VR Capture",
+        default="Capture"
+    )
+    location: bpy.props.FloatVectorProperty(
+        name="Capture Location",
+        subtype='TRANSLATION',
+    )
+    orientation: bpy.props.FloatVectorProperty(
+        name="Capture Orientation",
+        size=4,
+        subtype='QUATERNION',
+    )
+    lens_focal: bpy.props.FloatProperty(
+        name="Capture Focal Length",
+    )
+    dof_enabled: bpy.props.BoolProperty(
+        name="Capture DoF Enabled",
+    )
+    dof_distance: bpy.props.FloatProperty(
+        name="Capture DoF Focus Distance",
+    )
+    dof_fstop: bpy.props.FloatProperty(
+        name="Capture DoF Aperture F-Stop",
+    )
+
+    @staticmethod
+    def get_selected_capture(context):
+        scene = context.scene
+        captures = scene.vr_captures
+
+        return (
+            None if (len(captures) <
+                     1) else captures[scene.vr_captures_selected]
+        )
+
+
 classes = (
     VRLandmark,
+    VRCapture,
 )
 
 
@@ -214,6 +255,19 @@ def register():
         update=vr_landmark_active_update,
     )
 
+    bpy.types.Scene.vr_captures = bpy.props.CollectionProperty(
+        name="Location Scouting Captures",
+        type=VRCapture,
+    )
+    bpy.types.Scene.vr_captures_selected = bpy.props.IntProperty(
+        name="Selected Capture"
+    )
+
+    bpy.types.WindowManager.vr_capture_review_running = bpy.props.BoolProperty(
+        name="Capture Review Modal Operator Running",
+        default=False
+    )
+
     bpy.app.handlers.load_post.append(vr_ensure_default_landmark)
 
 
@@ -224,5 +278,10 @@ def unregister():
     del bpy.types.Scene.vr_landmarks
     del bpy.types.Scene.vr_landmarks_selected
     del bpy.types.Scene.vr_landmarks_active
+
+    del bpy.types.Scene.vr_captures
+    del bpy.types.Scene.vr_captures_selected
+
+    del bpy.types.WindowManager.vr_capture_review_running
 
     bpy.app.handlers.load_post.remove(vr_ensure_default_landmark)

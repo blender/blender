@@ -11,9 +11,9 @@ namespace blender::nodes::node_geo_input_normal_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Vector>("Normal"_ustr).field_source();
+  b.add_output<decl::Vector>("Normal"_ustr).structure_type(StructureType::Field);
   b.add_output<decl::Vector>("True Normal"_ustr)
-      .field_source()
+      .structure_type(StructureType::Field)
       .description(
           "For meshes, outputs normals without custom normal attributes taken into account");
 }

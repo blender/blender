@@ -10,10 +10,10 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 
@@ -951,8 +951,7 @@ static wmOperatorStatus set_pivot_position_exec(bContext *C, wmOperator *op)
       break;
     case PivotPositionMode::ActiveVert: {
       const float2 mval(RNA_float_get(op->ptr, "mouse_x"), RNA_float_get(op->ptr, "mouse_y"));
-      CursorGeometryInfo cgi;
-      if (cursor_geometry_info_update(C, &cgi, mval, false)) {
+      if (cursor_geometry_info_update(C, mval, false)) {
         ss.pivot_pos = ss.active_vert_position(*depsgraph, ob);
       }
       break;
@@ -1008,7 +1007,7 @@ void SCULPT_OT_set_pivot_position(wmOperatorType *ot)
 
   ot->invoke = set_pivot_position_invoke;
   ot->exec = set_pivot_position_exec;
-  ot->poll = sculpt_mode_poll;
+  ot->poll = sculpt_mode_poll_view3d;
   ot->depends_on_cursor = set_pivot_depends_on_cursor;
   ot->poll_property = set_pivot_position_poll_property;
 

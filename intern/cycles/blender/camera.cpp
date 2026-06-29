@@ -680,8 +680,11 @@ static void blender_camera_sync(Camera *cam,
   /* transform */
   cam->set_matrix(blender_camera_matrix(bcam->matrix, bcam->type, bcam->panorama_type));
 
-  array<Transform> motion;
+  array<Transform> motion = cam->get_motion();
   motion.resize(bcam->motion_steps, cam->get_matrix());
+  if (bcam->motion_steps != 0) {
+    motion[bcam->motion_steps / 2] = cam->get_matrix();
+  }
   cam->set_motion(motion);
   cam->set_use_perspective_motion(false);
 
@@ -817,7 +820,7 @@ blender::Object *BlenderSync::get_camera_object(blender::View3D *b_v3d,
     return b_camera_override;
   }
 
-  if (b_v3d && b_rv3d && b_rv3d->persp == blender::RV3D_CAMOB && b_v3d->scenelock) {
+  if (b_v3d && b_rv3d && b_rv3d->persp == blender::RV3D_CAMOB && !b_v3d->scenelock) {
     return b_v3d->camera;
   }
 
@@ -936,7 +939,7 @@ static void blender_camera_from_view(BlenderCamera *bcam,
 
   if (b_rv3d->persp == blender::RV3D_CAMOB) {
     /* camera view */
-    blender::Object *b_ob = (b_v3d->scenelock) ? b_v3d->camera : b_scene.camera;
+    blender::Object *b_ob = (b_v3d->scenelock) ? b_scene.camera : b_v3d->camera;
 
     if (b_ob) {
       blender_camera_from_object(
@@ -1107,7 +1110,7 @@ static void blender_camera_border(BlenderCamera *bcam,
     return;
   }
 
-  blender::Object *b_ob = (b_v3d->scenelock) ? b_v3d->camera : b_scene.camera;
+  blender::Object *b_ob = (b_v3d->scenelock) ? b_scene.camera : b_v3d->camera;
 
   if (!b_ob) {
     return;
@@ -1166,6 +1169,7 @@ void BlenderSync::sync_view(blender::View3D *b_v3d,
       &bcam, *b_engine, b_render_settings, *b_scene, *b_data, b_v3d, b_rv3d, width, height);
   blender_camera_border(
       &bcam, *b_engine, b_render_settings, *b_scene, *b_data, b_v3d, b_rv3d, width, height);
+  bcam.motion_steps = scene->need_motion() == Scene::MOTION_PASS_INTERACTIVE ? 2 : 0;
   blender::PointerRNA scene_rna_ptr = RNA_id_pointer_create(&b_scene->id);
   blender::PointerRNA cscene = RNA_pointer_get(&scene_rna_ptr, "cycles");
   blender_camera_sync(scene->camera, scene, &bcam, width, height, "", &cscene);

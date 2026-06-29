@@ -53,7 +53,10 @@ def cast_value(source, target):
     source_type = source.type
     target_type = target.type
 
-    value = source.default_value
+    if hasattr(source, "default_value"):
+        value = source.default_value
+    else:
+        return None
 
     def to_bool(value):
         return value > 0
@@ -372,12 +375,14 @@ class NodeSwapOperator(NodeOperator):
                 for i, input in enumerate(old_node.inputs):
                     for link in input.links[:]:
                         try:
+                            is_muted = link.is_muted
                             new_socket = new_node.inputs[i]
 
                             if new_socket.hide or not new_socket.enabled:
                                 continue
 
-                            tree.links.new(link.from_socket, new_socket)
+                            new_link = tree.links.new(link.from_socket, new_socket)
+                            new_link.is_muted = is_muted
                         except IndexError:
                             pass
             elif is_reroute:
@@ -392,19 +397,23 @@ class NodeSwapOperator(NodeOperator):
                         break
                 if new_socket:
                     for link in input.links[:]:
-                        tree.links.new(link.from_socket, new_socket)
+                        is_muted = link.is_muted
+                        new_link = tree.links.new(link.from_socket, new_socket)
+                        new_link.is_muted = is_muted
             else:
                 for input in old_node.inputs:
                     links = sorted(input.links, key=lambda link: link.multi_input_sort_id)
 
                     for link in links:
                         try:
+                            is_muted = link.is_muted
                             new_socket = new_node.inputs[input.name]
 
                             if new_socket.hide or not new_socket.enabled:
                                 continue
 
-                            tree.links.new(link.from_socket, new_socket)
+                            new_link = tree.links.new(link.from_socket, new_socket)
+                            new_link.is_muted = is_muted
                         except KeyError:
                             pass
 
@@ -413,12 +422,14 @@ class NodeSwapOperator(NodeOperator):
                 for i, output in enumerate(old_node.outputs):
                     for link in output.links[:]:
                         try:
+                            is_muted = link.is_muted
                             new_socket = new_node.outputs[i]
 
                             if new_socket.hide or not new_socket.enabled:
                                 continue
 
                             new_link = tree.links.new(new_socket, link.to_socket)
+                            new_link.is_muted = is_muted
                         except IndexError:
                             pass
             elif is_reroute:
@@ -434,14 +445,19 @@ class NodeSwapOperator(NodeOperator):
                 if new_socket:
                     # Transfer reroute outputs to chosen socket.
                     for link in output.links[:]:
+                        is_muted = link.is_muted
                         is_multi_input = link.to_socket.is_multi_input
+
                         new_link = tree.links.new(new_socket, link.to_socket)
+                        new_link.is_muted = is_muted
+
                         if is_multi_input:
                             new_link.swap_multi_input_sort_id(link)
             else:
                 for output in old_node.outputs:
                     for link in output.links[:]:
                         try:
+                            is_muted = link.is_muted
                             new_socket = new_node.outputs[output.name]
 
                             if new_socket.hide or not new_socket.enabled:
@@ -450,6 +466,7 @@ class NodeSwapOperator(NodeOperator):
                             is_multi_input = link.to_socket.is_multi_input
 
                             new_link = tree.links.new(new_socket, link.to_socket)
+                            new_link.is_muted = is_muted
 
                             if is_multi_input:
                                 new_link.swap_multi_input_sort_id(link)
@@ -735,6 +752,21 @@ class NODE_OT_add_typed_bundle(NodeAddOperator, bpy.types.Operator):
         self.deselect_nodes(context)
         node = self.create_node(context, "NodeCombineBundle")
         node.bundle_items.new("STRING", "Type")
+        return {"FINISHED"}
+
+
+class NODE_OT_swap_typed_bundle(NodeSwapOperator, bpy.types.Operator):
+    bl_idname = "node.swap_typed_bundle"
+    bl_label = "Swap Typed Bundle"
+    bl_description = "Swap existing node with a Combine Bundle node with a type input"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        bpy.ops.node.swap_node('INVOKE_DEFAULT', type="NodeCombineBundle")
+
+        for node in context.selected_nodes:
+            node.bundle_items.new("STRING", "Type")
+
         return {"FINISHED"}
 
 
@@ -1520,6 +1552,7 @@ classes = (
     NODE_OT_add_foreach_geometry_element_zone,
     NODE_OT_add_closure_zone,
     NODE_OT_add_typed_bundle,
+    NODE_OT_swap_typed_bundle,
     NODE_OT_collapse_hide_unused_toggle,
     NODE_OT_interface_item_new,
     NODE_OT_interface_item_new_panel_toggle,

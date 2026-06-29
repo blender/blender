@@ -4,7 +4,7 @@
 
 #include <cmath>
 
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "RNA_enum_types.hh"
 
@@ -12,6 +12,7 @@
 #include "UI_resources.hh"
 
 #include "node_function_util.hh"
+#include "node_shader_util.hh"
 
 namespace blender::nodes::node_fn_float_to_int_cc {
 
@@ -73,11 +74,43 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
   builder.set_matching_fn(fn);
 }
 
+static const char *gpu_shader_get_name(const FloatToIntRoundingMode rounding_mode)
+{
+  switch (rounding_mode) {
+    case FN_NODE_FLOAT_TO_INT_ROUND:
+      return "float_to_int_round";
+    case FN_NODE_FLOAT_TO_INT_FLOOR:
+      return "float_to_int_floor";
+    case FN_NODE_FLOAT_TO_INT_CEIL:
+      return "float_to_int_ceil";
+    case FN_NODE_FLOAT_TO_INT_TRUNCATE:
+      return "float_to_int_truncate";
+  }
+
+  BLI_assert_unreachable();
+  return nullptr;
+}
+
+static int node_gpu_material(GPUMaterial *mat,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *in,
+                             GPUNodeStack *out)
+{
+  const char *name = gpu_shader_get_name(FloatToIntRoundingMode(node->custom1));
+
+  if (name == nullptr) {
+    return 0;
+  }
+
+  return GPU_stack_link(mat, node, name, in, out);
+}
+
 static void node_register()
 {
   static bke::bNodeType ntype;
 
-  fn_node_type_base(&ntype, "FunctionNodeFloatToInt"_ustr, FN_NODE_FLOAT_TO_INT);
+  fn_cmp_node_type_base(&ntype, "FunctionNodeFloatToInt"_ustr, FN_NODE_FLOAT_TO_INT);
   ntype.ui_name = "Float to Integer";
   ntype.ui_description =
       "Convert the given floating-point number to an integer, with a choice of methods";
@@ -86,6 +119,7 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.labelfunc = node_label;
   ntype.build_multi_function = node_build_multi_function;
+  ntype.gpu_fn = node_gpu_material;
   ntype.draw_buttons = node_layout;
   bke::node_register_type(ntype);
 }

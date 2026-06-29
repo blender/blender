@@ -110,6 +110,8 @@ bool VolumeModule::will_enable() const
 void VolumeModule::end_sync()
 {
   enabled_ = will_enable();
+  /* Save reset state. */
+  viewport_sampling_is_reset_ = inst_.is_viewport() && inst_.sampling.is_reset();
 
   const Scene *scene_eval = inst_.scene;
 
@@ -359,7 +361,7 @@ void VolumeModule::set_view(View &main_view)
      * artifacts on lights because of voxels stretched in Z or anisotropy. */
     exponential_frame_count = 8;
   }
-  else if (inst_.is_viewport() && inst_.sampling.is_reset()) {
+  else if (viewport_sampling_is_reset_) {
     /* If we are not falling in any cases above, this usually means there is a scene or object
      * parameter update. Reset accumulation completely. */
     exponential_frame_count = 0;

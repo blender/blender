@@ -10,7 +10,7 @@
 #include <fmt/format.h>
 
 #include "BLI_array.hh"
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_index_range.hh"
 #include "BLI_math_matrix.hh"
 
@@ -68,7 +68,7 @@ LibOCIOConfig::LibOCIOConfig(const OCIO_NAMESPACE::ConstConfigRcPtr &ocio_config
   initialize_displays();
 }
 
-LibOCIOConfig::~LibOCIOConfig() {}
+LibOCIOConfig::~LibOCIOConfig() = default;
 
 void LibOCIOConfig::initialize_active_color_spaces()
 {
@@ -450,7 +450,7 @@ const Display *LibOCIOConfig::get_default_display() const
   }
   /* Matches the behavior of OpenColorIO, but avoids using API which potentially throws exception
    * and requires string lookups. */
-  return &displays_[0];
+  return &displays_[0];  // NOLINT(readability-container-data-pointer)
 }
 
 const Display *LibOCIOConfig::get_display_by_name(const StringRefNull name) const

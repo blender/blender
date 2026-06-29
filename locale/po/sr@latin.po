@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 Alpha (b'8c7c45ad114e')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'051706edb5e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-11 07:23+0000\n"
+"POT-Creation-Date: 2026-06-22 07:24+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -619,12 +619,16 @@ msgid "Active Bone"
 msgstr "Aktivna kost"
 
 
+msgid "Custom"
+msgstr "Prilagođeno"
+
+
 msgid "Description"
 msgstr "Opis"
 
 
-msgid "Custom"
-msgstr "Prilagođeno"
+msgid "Link"
+msgstr "Veza"
 
 
 msgid "ID Name"
@@ -1516,6 +1520,10 @@ msgstr "Preciznost"
 
 msgid "Simplify"
 msgstr "Pojednostavljivanje"
+
+
+msgid "Pixel"
+msgstr "Piksel"
 
 
 msgid "Input Samples"
@@ -4369,10 +4377,6 @@ msgid "Show image files"
 msgstr "Prikaži datoteke slika"
 
 
-msgid "Link"
-msgstr "Veza"
-
-
 msgid "Matrix"
 msgstr "Matrica"
 
@@ -4757,6 +4761,10 @@ msgid "Grid"
 msgstr "Mreža"
 
 
+msgid "Dynamic"
+msgstr "Dinamičko"
+
+
 msgid "Items"
 msgstr "Stavke"
 
@@ -4935,10 +4943,6 @@ msgstr "Lokalno"
 
 msgid "Global"
 msgstr "Globalno"
-
-
-msgid "Dynamic"
-msgstr "Dinamičko"
 
 
 msgid "Add Color"
@@ -6585,10 +6589,6 @@ msgstr "Podešavanje čestica"
 
 msgid "Degrees"
 msgstr "Stepeni"
-
-
-msgid "Pixel"
-msgstr "Piksel"
 
 
 msgid "Angular Velocity"
@@ -8498,14 +8498,6 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
-msgid "Snap"
-msgstr "Lepljenje"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapiranje"
-
-
 msgid "Local View"
 msgstr "Lokalni pogled"
 
@@ -8558,16 +8550,12 @@ msgid "Show/Hide"
 msgstr "Prikaži/sakrij"
 
 
-msgid "Import"
-msgstr "Uvoz"
-
-
 msgid "Hooks"
 msgstr "Udice"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Import"
+msgstr "Uvoz"
 
 
 msgid "Clear Transform"
@@ -8580,6 +8568,10 @@ msgstr "U međuvremenu"
 
 msgid "Propagate"
 msgstr "Prenesi"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Names"
@@ -8614,6 +8606,14 @@ msgid "Bone Roll"
 msgstr "Rolna kostiju"
 
 
+msgid "Linked"
+msgstr "Povezano"
+
+
+msgid "Snap"
+msgstr "Lepljenje"
+
+
 msgid "Keying"
 msgstr "Zbirka tastera"
 
@@ -8624,6 +8624,10 @@ msgstr "Praćenje"
 
 msgid "Mirror"
 msgstr "Ogledalo"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapiranje"
 
 
 msgid "Basic"
@@ -10158,10 +10162,6 @@ msgid "Lines"
 msgstr "Linije"
 
 
-msgid "Timecode"
-msgstr "Vreme"
-
-
 msgid "Average error of reconstruction"
 msgstr "Prosečna greška rekonstrukcije"
 
@@ -11098,10 +11098,6 @@ msgid "Hide Value"
 msgstr "Sakrij vrednost"
 
 
-msgid "Linked"
-msgstr "Povezano"
-
-
 msgid "Is Output"
 msgstr "jeste izlaz"
 
@@ -11986,6 +11982,10 @@ msgid "Add Bone"
 msgstr "Dodaj kost"
 
 
+msgid "Axes"
+msgstr "Ose"
+
+
 msgid "Name of the newly created bone"
 msgstr "Ime novoformirane kosti"
 
@@ -12035,6 +12035,10 @@ msgstr "Dupliraj izabranu kost/i"
 
 msgid "Move"
 msgstr "Pomeri"
+
+
+msgid "Search"
+msgstr "Pretraga"
 
 
 msgctxt "Operator"
@@ -13838,6 +13842,11 @@ msgstr "Skoči na prethodni/naredni ključni kadar"
 
 msgid "Next Keyframe"
 msgstr "Sledeći ključni kadar"
+
+
+msgctxt "Operator"
+msgid "Local View"
+msgstr "Lokalni pogled"
 
 
 msgctxt "Operator"
@@ -18505,11 +18514,6 @@ msgid "Interactively fly around the scene"
 msgstr "Interaktivan let kroz scenu"
 
 
-msgctxt "Operator"
-msgid "Local View"
-msgstr "Lokalni pogled"
-
-
 msgid "Move the view"
 msgstr "Pomeri pogled"
 
@@ -19294,10 +19298,6 @@ msgid "Shaded"
 msgstr "Senčeno"
 
 
-msgid "Styles"
-msgstr "Stilovi"
-
-
 msgid "User Interface"
 msgstr "Korisničko okruženje"
 
@@ -19755,6 +19755,10 @@ msgstr "Standardna akcija za srednji taster miša"
 
 msgid "System & OpenGL"
 msgstr "Sistem i OpenGL"
+
+
+msgid "Styles"
+msgstr "Stilovi"
 
 
 msgid "View & Controls"
@@ -22331,8 +22335,8 @@ msgid "Operator Properties"
 msgstr "Osobine operatora"
 
 
-msgid "Search"
-msgstr "Pretraga"
+msgid "Cancel"
+msgstr "Odustani"
 
 
 msgctxt "WindowManager"
@@ -22564,6 +22568,11 @@ msgid "Object Index"
 msgstr "Indeks objekta"
 
 
+msgctxt "Operator"
+msgid "Clear"
+msgstr "Očisti"
+
+
 msgid "No output node"
 msgstr "Bez izlaznog čvora"
 
@@ -22712,10 +22721,6 @@ msgid "Shapes"
 msgstr "Oblici"
 
 
-msgid "Axes"
-msgstr "Ose"
-
-
 msgctxt "Operator"
 msgid "Add Image"
 msgstr "Dodaj sliku"
@@ -22789,11 +22794,6 @@ msgstr "Roditelj:"
 
 msgid "Transform:"
 msgstr "Transformacija:"
-
-
-msgctxt "Operator"
-msgid "Clear"
-msgstr "Očisti"
 
 
 msgid "Date"
@@ -23832,6 +23832,11 @@ msgid "Key %d"
 msgstr "Ključ %d"
 
 
+msgctxt "Key"
+msgid "Key"
+msgstr "Ključ"
+
+
 msgid "MaskLayer"
 msgstr "Sloj maske"
 
@@ -23915,10 +23920,6 @@ msgstr "Bez aktivne zbirke ključeva"
 
 msgid "Cannot remove built in keying set"
 msgstr "Ne mogu da uklonim ugrađenu zbirku ključeva"
-
-
-msgid "Cancel"
-msgstr "Odustani"
 
 
 msgid "No keyframes to slide between"
@@ -25020,11 +25021,6 @@ msgstr "Modifikator vrednosti F-krive"
 
 msgid "Image not packed"
 msgstr "Naziv slike"
-
-
-msgctxt "Key"
-msgid "Key"
-msgstr "Ključ"
 
 
 msgid "unsupported font format"

@@ -24,12 +24,6 @@ class LibOCIOColorSpace : public ColorSpace {
   StringRefNull interop_id_;
   bool is_primary_interop_id_ = false;
 
-  /* Mutable because they are lazily initialized and cached from the is_scene_linear() and
-   * is_srgb(). */
-  mutable bool is_info_cached_ = false;
-  mutable bool is_scene_linear_ = false;
-  mutable bool is_srgb_ = false;
-
   CPUProcessorCache to_scene_linear_cpu_processor_;
   CPUProcessorCache from_scene_linear_cpu_processor_;
 
@@ -79,9 +73,6 @@ class LibOCIOColorSpace : public ColorSpace {
   void clear_caches();
 
   MEM_CXX_CLASS_ALLOC_FUNCS("LibOCIOColorSpace");
-
- private:
-  void ensure_srgb_scene_linear_info() const;
 };
 
 }  // namespace blender::ocio

@@ -12,7 +12,7 @@
 
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
@@ -83,6 +83,7 @@ void ED_spacetypes_init()
   ED_spacetype_console();
   ED_spacetype_userpref();
   ED_spacetype_clip();
+  ED_spacetype_project();
   ED_spacetype_statusbar();
   ED_spacetype_topbar();
   spreadsheet::register_spacetype();

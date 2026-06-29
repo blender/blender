@@ -195,6 +195,7 @@ SourceProcessor::Result SourceProcessor::convert_bsl(metadata::Source external_s
   lower_array_initializations(parser);
   lower_scope_resolution_operators(parser);
   lower_structured_bindings(parser);
+  lower_tests(parser);
   /* Lower references. */
   lower_reference_arguments(parser);
   lower_reference_variables(parser);
@@ -346,6 +347,19 @@ void SourceProcessor::parse_defines(Parser &parser)
 {
   parser().foreach_match<true>("#A", [&](const vector<Token> &tokens) {
     if (tokens[1].str() == "define") {
+      if (tokens[1].next().str().starts_with("LIGHT_STACK_SIZE_")) {
+        /* WORKAROUND: Avoid warning caused by EEVEE macro setup. */
+        return;
+      }
+      if (tokens[1].next().str() == "GBUFFER_LAYER_MAX") {
+        /* WORKAROUND: Avoid warning caused by EEVEE macro setup. */
+        return;
+      }
+      if (tokens[1].next().str().starts_with("gather_")) {
+        /* WORKAROUND: Avoid warning caused by EEVEE macro setup. */
+        return;
+      }
+
       metadata_.create_infos_defines.emplace_back(tokens[1].next().scope().str_with_whitespace());
     }
     if (tokens[1].str() == "undef") {
@@ -474,6 +488,7 @@ static std::string_view str_view_exclusive(Token tok)
 
 void SourceProcessor::parse_includes(Parser &parser)
 {
+  const string filename = filepath_.substr(filepath_.find_last_of('/') + 1);
   parser().foreach_match<true>("#A\"", [&](const vector<Token> &tokens) {
     if (tokens[1].str() != "include") {
       return;
@@ -486,7 +501,7 @@ void SourceProcessor::parse_includes(Parser &parser)
       metadata_.create_infos_dependencies.emplace_back(dependency_name);
     }
 
-    if (dependency_name == "BLI_utildefines_variadic.h") {
+    if (dependency_name == "BLI_utildefines_variadic.hh") {
       /* Skip GLSL-C++ stubs. They are only for IDE linting. */
       parser.erase(tokens.front(), tokens.back());
       return;
@@ -506,6 +521,9 @@ void SourceProcessor::parse_includes(Parser &parser)
       dependency_name = dependency_name.substr(6);
     }
 
+    if (dependency_name == filename) {
+      report_error(tokens[2], "Recursive include");
+    }
     metadata_.dependencies.emplace_back(dependency_name);
   });
 }
@@ -795,8 +813,16 @@ void SourceProcessor::parse_builtins(const string &str, const string &filename, 
  * Empty structs are useful for templating. */
 void SourceProcessor::lower_empty_struct(Parser &parser)
 {
-  parser().foreach_match(
-      "sA{};", [&](const vector<Token> &tokens) { parser.insert_after(tokens[2], "int _pad;"); });
+  parser().foreach_struct([&](Token, Scope, Token, Scope body) {
+    int decl_count = 0;
+    body.foreach_declaration(
+        [&](Scope, Token, Token, Scope, Token, Scope, Token) { decl_count += 1; });
+
+    if (decl_count == 0) {
+      parser.insert_before(body.back(), "int _pad;");
+    }
+  });
+
   parser.apply_mutations();
 }
 
@@ -1094,7 +1120,7 @@ void SourceProcessor::lower_host_shared_structures(Parser &parser)
       size_t align = type_info.alignment - (offset % type_info.alignment);
       if (align != type_info.alignment) {
         string err = "Misaligned member, missing " + to_string(align) + " padding bytes";
-        report_error(type, err.c_str());
+        report_error(type, err);
       }
 
       size_t array_size = 1;
@@ -1118,7 +1144,7 @@ void SourceProcessor::lower_host_shared_structures(Parser &parser)
     }
     else if (offset % 16 != 0) {
       string err = "Alignment issue, missing " + to_string(16 - (offset % 16)) + " padding bytes";
-      report_error(struct_name, err.c_str());
+      report_error(struct_name, err);
     }
     /* Insert an alias to the type that will get referenced for shaders that enforce usage of
      * linted types. */
@@ -1170,9 +1196,38 @@ void SourceProcessor::lint_reserved_tokens(Parser &parser)
   parser().foreach_token(Word, [&](Token tok) {
     if (reserved_symbols.contains(string(tok.str()))) {
       string err = string(tok.str()) + " is a reserved token";
-      report_error(tok, err.c_str());
+      report_error(tok, err);
     }
   });
+}
+
+void SourceProcessor::lower_tests(Parser &parser)
+{
+  parser().foreach_function([&](bool, Token type, Token, Scope, bool, Scope fn_body) {
+    if (type.str() != "void") {
+      return;
+    }
+    /* Note: Assume any function containing tests are entry points. */
+    int test_id = 0;
+    fn_body.foreach_match("A(A,A){..}", [&](Tokens toks) {
+      if (toks[0].str() != "TEST") {
+        return;
+      }
+      Scope test_body = toks[6].scope();
+      test_body.foreach_match("A(..)", [&](Tokens toks) {
+        if (toks[0].str().starts_with("EXPECT_")) {
+          int id = test_id;
+          parser.insert_before(toks[0], "out_test[" + to_string(id) + "] = ");
+          parser.insert_after(toks[4],
+                              "; out_test[" + to_string(id) +
+                                  "].line = " + to_string(toks[0].line_number()));
+          test_id++;
+        }
+      });
+    });
+  });
+
+  parser.apply_mutations();
 }
 
 void SourceProcessor::lower_noop_keywords(Parser &parser)
@@ -1714,16 +1769,23 @@ void SourceProcessor::lower_reference_variables(Parser &parser)
 
       string definition = parser.substr_range_inclusive(assignment[1], assignment.back());
 
+      bool error = false;
       /* Replace declaration. */
       parser.erase(decl_start, decl_end);
       /* Replace all occurrences with definition. */
       name.scope().foreach_token(Word, [&](const Token token) {
         /* Do not match member access or function calls. */
-        if (token.prev() == '.' || token.next() == '(') {
+        if (error || token.prev() == '.' || token.next() == '(') {
           return;
         }
         if (token.str_index_start() > decl_end.str_index_last() && token.str() == name.str()) {
-          parser.replace(token, definition);
+          if (token.prev() == '&' && token.next() == '=') {
+            report_error(token, "Local reference shadowing is not allowed.");
+            error = true;
+          }
+          else {
+            parser.replace(token, definition);
+          }
         }
       });
     });

@@ -9,6 +9,7 @@
 #pragma once
 
 #include <atomic>
+#include <mutex>
 
 #include "AS_asset_library.hh"
 
@@ -17,8 +18,13 @@ namespace blender::asset_system {
 class AllAssetLibrary : public AssetLibrary {
   std::atomic<bool> catalogs_dirty_ = true;
 
+  /** Serializes #rebuild_catalogs_from_nested so only one thread rebuilds at a time. */
+  std::mutex rebuild_mutex_;
+
  public:
   AllAssetLibrary();
+
+  void force_remote_listing_download() const override;
 
   std::optional<AssetLibraryReference> library_reference() const override;
   std::optional<eAssetImportMethod> import_method() const override;

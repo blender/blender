@@ -8,7 +8,7 @@
 
 #include <cstdlib>
 
-#include "BLI_math_rotation.h"
+#include "BLI_math_rotation_c.hh"
 
 #include "BLT_translation.hh"
 
@@ -133,7 +133,7 @@ const EnumPropertyItem rna_enum_constraint_type_items[] = {
     RNA_ENUM_ITEM_HEADING(N_("Relationship"), nullptr),
     {CONSTRAINT_TYPE_ACTION,
      "ACTION",
-     ICON_ACTION,
+     ICON_CON_ACTION,
      "Action",
      "Use transform property of target to look up pose for owner from an Action"},
     {CONSTRAINT_TYPE_ARMATURE,
@@ -278,9 +278,9 @@ static const EnumPropertyItem euler_order_items[] = {
 
 #  include "DNA_cachefile_types.h"
 
-#  include "BLI_listbase.h"
-#  include "BLI_string.h"
-#  include "BLI_string_utf8.h"
+#  include "BLI_listbase.hh"
+#  include "BLI_string.hh"
+#  include "BLI_string_utf8.hh"
 
 #  include "BKE_action.hh"
 #  include "BKE_animsys.h"
@@ -656,7 +656,7 @@ static void rna_ArmatureConstraint_target_clear(ID *id, bConstraint *con, Main *
 {
   bArmatureConstraint *acon = static_cast<bArmatureConstraint *>(con->data);
 
-  BLI_freelistN(&acon->targets);
+  acon->targets.free_no_destruct();
 
   ed::object::constraint_dependency_tag_update(bmain, id_cast<Object *>(id), con);
 }
@@ -1914,7 +1914,7 @@ static void rna_def_constraint_action(BlenderRNA *brna)
   RNA_def_struct_ui_text(
       srna, "Action Constraint", "Map an action to the transform axes of a bone");
   RNA_def_struct_sdna_from(srna, "bActionConstraint", "data");
-  RNA_def_struct_ui_icon(srna, ICON_ACTION);
+  RNA_def_struct_ui_icon(srna, ICON_CON_ACTION);
 
   rna_def_constraint_target_common(srna);
 

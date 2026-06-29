@@ -17,10 +17,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_mutex.hh"
 
 #ifdef WITH_BULLET
@@ -566,7 +566,7 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
   }
   else if (rbo->shape == RB_SHAPE_SPHERE) {
     /* take radius to the largest dimension to try and encompass everything */
-    radius = max_fff(size[0], size[1], size[2]) * 0.5f;
+    radius = std::max({size[0], size[1], size[2]}) * 0.5f;
   }
 
   /* Calculate volume as appropriate. */
@@ -2028,7 +2028,7 @@ static void rigidbody_free_substep_data(ListBaseT<LinkData> *substep_targets)
     MEM_delete(data);
   }
 
-  BLI_freelistN(substep_targets);
+  substep_targets->free_no_destruct();
 }
 static void rigidbody_update_simulation_post_step(Depsgraph *depsgraph, RigidBodyWorld *rbw)
 {

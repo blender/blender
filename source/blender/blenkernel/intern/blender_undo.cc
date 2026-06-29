@@ -24,7 +24,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BKE_appdir.hh"
 #include "BKE_blender_undo.hh" /* own include */

@@ -10,10 +10,11 @@
 
 #include "BLI_fileops.hh"
 #include "BLI_function_ref.hh"
+#include "BLI_implicit_sharing.hh"
 #include "BLI_mutex.hh"
 #include "BLI_serialize.hh"
 
-#include "BKE_bake_items.hh"
+#include "BKE_bake_values.hh"
 
 namespace blender::bke::bake {
 
@@ -244,13 +245,13 @@ class MemoryBlobReader : public BlobReader {
   [[nodiscard]] bool read(const BlobSlice &slice, void *r_data) const override;
 };
 
-void serialize_bake(const BakeState &bake_state,
+void serialize_bake(const BakeValues &bake_values,
                     BlobWriter &blob_writer,
                     BlobWriteSharing &blob_sharing,
                     std::ostream &r_stream);
 
-std::optional<BakeState> deserialize_bake(std::istream &stream,
-                                          const BlobReader &blob_reader,
-                                          const BlobReadSharing &blob_sharing);
+std::optional<BakeValues> deserialize_bake(std::istream &stream,
+                                           const BlobReader &blob_reader,
+                                           const BlobReadSharing &blob_sharing);
 
 }  // namespace blender::bke::bake

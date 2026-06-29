@@ -15,10 +15,10 @@
 #include "BKE_preferences.h"
 #include "BKE_preview_image.hh"
 
-#include "BLI_assert.h"
-#include "BLI_listbase.h"
+#include "BLI_assert.hh"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BLT_translation.hh"
 
@@ -48,9 +48,19 @@ void asset_tooltip(const asset_system::AssetRepresentation &asset,
     tooltip_text_field_add(tip, meta_data.description, {}, ui::TIP_STYLE_HEADER, ui::TIP_LC_MAIN);
   }
 
+  if (asset.remote_file_status() == asset_system::RemoteAssetFileStatus::NO_MATCH) {
+    tooltip_text_field_add(
+        tip,
+        TIP_("This asset was previously downloaded, but it is outdated or inconsistent.\n"
+             "Downloading it again is recommended."),
+        {},
+        ui::TIP_STYLE_NORMAL,
+        ui::TIP_LC_ALERT);
+  }
+
   switch (asset.owner_asset_library().library_type()) {
     case ASSET_LIBRARY_CUSTOM: {
-      if (asset.is_online()) {
+      if (asset.is_online_only()) {
         /* Don't show file path or .blend name. Data on disk is just a cache. */
         break;
       }
@@ -76,6 +86,7 @@ void asset_tooltip(const asset_system::AssetRepresentation &asset,
           tip, TIP_("Asset Library: Current File"), {}, ui::TIP_STYLE_NORMAL, ui::TIP_LC_VALUE);
       break;
     case ASSET_LIBRARY_ESSENTIALS:
+    case ASSET_LIBRARY_ONLINE_ESSENTIALS:
       tooltip_text_field_add(tip, {}, {}, ui::TIP_STYLE_SPACER, ui::TIP_LC_NORMAL, false);
       tooltip_text_field_add(
           tip, TIP_("Asset Library: Essentials"), {}, ui::TIP_STYLE_NORMAL, ui::TIP_LC_VALUE);
@@ -85,7 +96,7 @@ void asset_tooltip(const asset_system::AssetRepresentation &asset,
       break;
   }
 
-  if (asset.is_online()) {
+  if (asset.is_online_only()) {
     if (std::optional<int64_t> combined_size = asset.online_asset_files_combined_size_in_bytes()) {
       tooltip_text_field_add(tip, {}, {}, ui::TIP_STYLE_SPACER, ui::TIP_LC_NORMAL, false);
 

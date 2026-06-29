@@ -25,9 +25,14 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Mesh"_ustr, "Geometry"_ustr)
       .supported_type(GeometryComponent::Type::Mesh)
       .description("Geometry to set the smoothness of");
-  b.add_output<decl::Geometry>("Mesh"_ustr, "Geometry"_ustr).propagate_all().align_with_previous();
-  b.add_input<decl::Bool>("Selection"_ustr).default_value(true).hide_value().field_on_all();
-  b.add_input<decl::Bool>("Shade Smooth"_ustr).default_value(true).field_on_all();
+  b.add_output<decl::Geometry>("Mesh"_ustr, "Geometry"_ustr)
+      .propagate_all_geometry()
+      .align_with_previous();
+  b.add_input<decl::Bool>("Selection"_ustr)
+      .default_value(true)
+      .hide_value()
+      .evaluated_geometry_field();
+  b.add_input<decl::Bool>("Shade Smooth"_ustr).default_value(true).evaluated_geometry_field();
 }
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)

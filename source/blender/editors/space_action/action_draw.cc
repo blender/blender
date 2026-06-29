@@ -12,9 +12,10 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_memory_utils.hh"
+#include "BLI_utildefines.hh"
 
 /* Types --------------------------------------------------------------- */
 
@@ -27,6 +28,7 @@
 
 #include "BKE_bake_geometry_nodes_modifier.hh"
 #include "BKE_pointcache.h"
+#include "BKE_scene_runtime.hh"
 
 #include "ANIM_action.hh"
 
@@ -837,27 +839,66 @@ static void timeline_cache_draw_geometry_nodes(const Span<CacheRange> cache_rang
   *y_offset += max_used_height * 2;
 }
 
+/* Draw the interactive compositor playback cache markers. */
+static void timeline_cache_draw_compositor(const Vector<IndexRange> cached_frame_ranges,
+                                           const float y_offset,
+                                           const float line_height,
+                                           const uint pos_id)
+{
+
+  GPU_matrix_push();
+  GPU_matrix_translate_2f(0.0, float(V2D_SCROLL_HANDLE_HEIGHT) + y_offset);
+  GPU_matrix_scale_2f(1.0, line_height);
+
+  ColorTheme4f color;
+  ui::theme::get_color_4fv(TH_SIMULATED_FRAMES, color);
+
+  for (const IndexRange &range : cached_frame_ranges) {
+    immUniform4fv("color1", color);
+    immUniform4fv("color2", color);
+    immBeginAtMost(GPU_PRIM_TRIS, 6);
+    immRectf_fast(pos_id, range.start(), 0.0f, range.last() + 1.0f, 1.0f);
+    immEnd();
+  }
+  GPU_matrix_pop();
+}
+
 void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Scene *scene)
 {
-  if ((saction->cache_display & TIME_CACHE_DISPLAY) == 0 || ob == nullptr) {
+  if (!flag_is_set(saction->cache_display, TIME_CACHE_DISPLAY)) {
     return;
   }
 
-  ListBaseT<PTCacheID> pidlist;
-  BKE_ptcache_ids_from_object(&pidlist, const_cast<Object *>(ob), const_cast<Scene *>(scene), 0);
-
   uint pos_id = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_2D_DIAG_STRIPES);
-
   GPU_blend(GPU_BLEND_ALPHA);
 
-  /* Iterate over point-caches on the active object, and draw each one's range. */
-  float y_offset = 0.0f;
-  const float cache_draw_height = 4.0f * UI_SCALE_FAC * U.pixelsize;
+  BLI_SCOPED_DEFER([]() {
+    GPU_blend(GPU_BLEND_NONE);
+    immUnbindProgram();
+  });
 
+  const float cache_draw_height = 4.0f * UI_SCALE_FAC * U.pixelsize;
   immUniform1i("size1", cache_draw_height * 2.0f);
   immUniform1i("size2", cache_draw_height);
 
+  float y_offset = 0.0f;
+  if (saction->cache_display & TIME_CACHE_COMPOSITOR) {
+    const Vector<IndexRange> cached_frame_ranges =
+        scene->runtime->compositor.cache.compute_frame_ranges();
+    if (!cached_frame_ranges.is_empty()) {
+      timeline_cache_draw_compositor(cached_frame_ranges, y_offset, cache_draw_height, pos_id);
+      y_offset += cache_draw_height;
+    }
+  }
+
+  if (ob == nullptr) {
+    return;
+  }
+
+  /* Iterate over point-caches on the active object, and draw each one's range. */
+  ListBaseT<PTCacheID> pidlist;
+  BKE_ptcache_ids_from_object(&pidlist, const_cast<Object *>(ob), const_cast<Scene *>(scene), 0);
   for (PTCacheID &pid : pidlist) {
     if (timeline_cache_is_hidden_by_setting(saction, &pid)) {
       continue;
@@ -871,6 +912,8 @@ void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Sce
 
     y_offset += cache_draw_height;
   }
+  pidlist.free_no_destruct();
+
   if (saction->cache_display & TIME_CACHE_SIMULATION_NODES) {
     Vector<CacheRange> cache_ranges;
     bool all_simulations_baked = true;
@@ -922,11 +965,6 @@ void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Sce
     timeline_cache_draw_geometry_nodes(
         cache_ranges, all_simulations_baked, &y_offset, cache_draw_height, pos_id);
   }
-
-  GPU_blend(GPU_BLEND_NONE);
-  immUnbindProgram();
-
-  BLI_freelistN(&pidlist);
 }
 
 /** \} */

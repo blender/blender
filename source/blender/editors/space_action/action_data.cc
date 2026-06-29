@@ -10,8 +10,8 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -226,7 +226,7 @@ static wmOperatorStatus action_new_exec(bContext *C, wmOperator * /*op*/)
   }
   else {
     adt = ED_actedit_animdata_from_context(C, &adt_id_owner);
-    oldact = adt->action;
+    oldact = adt ? adt->action : nullptr;
   }
   {
     bAction *action = nullptr;

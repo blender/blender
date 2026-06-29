@@ -12,8 +12,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_ghash.h"
-#include "BLI_listbase.h"
+#include "BLI_ghash.hh"
+#include "BLI_listbase.hh"
 
 #include "WM_message.hh"
 #include "WM_types.hh"
@@ -70,7 +70,7 @@ static void wm_msg_static_repr(FILE *stream, const wmMsgSubscribeKey *msg_key)
           "values_len=%d\n",
           m,
           m->msg.head.id,
-          BLI_listbase_count(&m->head.values));
+          m->head.values.count());
 }
 
 void WM_msgtypeinfo_init_static(wmMsgTypeInfo *msgtype_info)

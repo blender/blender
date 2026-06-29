@@ -16,12 +16,12 @@
 #include "DNA_constraint_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_ghash.h"
+#include "BLI_ghash.hh"
 #include "BLI_listbase_wrapper.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -483,13 +483,13 @@ static wmOperatorStatus armature_flip_names_exec(bContext *C, wmOperator *op)
       }
     }
 
-    if (BLI_listbase_is_empty(&bones_names)) {
+    if (bones_names.is_empty()) {
       continue;
     }
 
     ED_armature_bones_flip_names(bmain, arm, &bones_names, do_strip_numbers);
 
-    BLI_freelistN(&bones_names);
+    bones_names.free_no_destruct();
 
     /* since we renamed stuff... */
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);

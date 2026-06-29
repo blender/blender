@@ -16,7 +16,7 @@ namespace blender::geometry {
  * 1D Gaussian-like smoothing function.
  *
  * \param iterations: Number of times to repeat the smoothing.
- * \param influence: Influence factor for each point.
+ * \param influence_by_point: Influence factor for each point.
  * \param smooth_ends: Smooth the first and last value.
  * \param keep_shape: Changes the gaussian kernel to avoid severe deformations.
  * \param is_cyclic: Propagate smoothing across the ends of the input as if they were connected.

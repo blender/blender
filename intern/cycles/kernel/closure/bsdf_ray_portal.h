@@ -43,7 +43,7 @@ ccl_device void bsdf_ray_portal_setup(ccl_private ShaderData *sd,
     pc->sample_weight = sample_weight;
     pc->N = sd->N;
     pc->P = position;
-    pc->D = direction;
+    pc->D = safe_normalize(direction);
   }
 }
 

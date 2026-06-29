@@ -22,14 +22,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_build_config.h"
+#include "BLI_build_config.hh"
 #include "BLI_enum_flags.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
-#include "BLI_math_rotation.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_base_c.hh"
+#include "BLI_math_rotation_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_threads.h"
+#include "BLI_string.hh"
+#include "BLI_threads.hh"
 
 #include "BLT_translation.hh"
 
@@ -185,10 +185,12 @@ static void sound_free_data(ID *id)
     sound->packedfile = nullptr;
   }
 
-  sound_free_audio(sound);
-  sound_free_waveform(sound);
-  BLI_spin_end(&sound->runtime->spinlock);
-  MEM_delete(sound->runtime);
+  if (sound->runtime) {
+    sound_free_audio(sound);
+    sound_free_waveform(sound);
+    BLI_spin_end(&sound->runtime->spinlock);
+    MEM_delete(sound->runtime);
+  }
 }
 
 static void sound_foreach_cache(ID *id,
@@ -290,21 +292,17 @@ BLI_INLINE void sound_verify_evaluated_id(const ID *id)
    * them to be allocated on a data-blocks which are result of dependency graph evaluation.
    *
    * Data-blocks which are covered by a copy-on-evaluation system of dependency graph will have
-   * ID_TAG_COPIED_ON_EVAL tag set on them. But if some of data-blocks during its evaluation
-   * decides to re-allocate its nested one (for example, object evaluation could re-allocate mesh
-   * when evaluating modifier stack). Such data-blocks will have
-   * ID_TAG_COPIED_ON_EVAL_FINAL_RESULT tag set on them.
+   * ID_TAG_COPIED_ON_EVAL tag set on them.
    *
    * Additionally, we also allow data-blocks outside of main database. Those can not be "original"
    * and could be used as a temporary evaluated result during operations like baking.
    *
    * NOTE: We consider ID evaluated if ANY of those flags is set. We do NOT require ALL of them.
    */
-  BLI_assert(id->tag &
-             (ID_TAG_COPIED_ON_EVAL | ID_TAG_COPIED_ON_EVAL_FINAL_RESULT | ID_TAG_NO_MAIN));
+  BLI_assert(id->tag & (ID_TAG_COPIED_ON_EVAL | ID_TAG_NO_MAIN));
 }
 
-bSound *BKE_sound_new_file(Main *bmain, const char *filepath)
+bSound *BKE_sound_new_file(Main *bmain, const char *filepath, short stream_index)
 {
   bSound *sound;
   const char *blendfile_path = BKE_main_blendfile_path(bmain);
@@ -316,6 +314,7 @@ bSound *BKE_sound_new_file(Main *bmain, const char *filepath)
   sound = static_cast<bSound *>(BKE_libblock_alloc(bmain, ID_SO, BLI_path_basename(filepath), 0));
   STRNCPY(sound->filepath, filepath);
   sound_init_runtime(sound);
+  sound->stream_index = stream_index;
 
   /* Extract sound specs for bSound */
   SoundInfo info;
@@ -328,7 +327,7 @@ bSound *BKE_sound_new_file(Main *bmain, const char *filepath)
   return sound;
 }
 
-static bSound *sound_new_file_exists_ex(Main *bmain, const char *filepath, bool *r_exists)
+static bSound *sound_new_file_exists_ex(Main *bmain, const char *filepath, short stream_index)
 {
   bSound *sound;
   char filepath_abs[FILE_MAX], filepath_test[FILE_MAX];
@@ -336,31 +335,28 @@ static bSound *sound_new_file_exists_ex(Main *bmain, const char *filepath, bool 
   STRNCPY(filepath_abs, filepath);
   BLI_path_abs(filepath_abs, BKE_main_blendfile_path(bmain));
 
-  /* first search an identical filepath */
+  /* Search for an existing sound matching both filepath and stream index. */
   for (sound = static_cast<bSound *>(bmain->sounds.first); sound;
        sound = static_cast<bSound *>(sound->id.next))
   {
+    if (sound->stream_index != stream_index) {
+      continue;
+    }
     STRNCPY(filepath_test, sound->filepath);
     BLI_path_abs(filepath_test, ID_BLEND_PATH(bmain, &sound->id));
 
     if (BLI_path_cmp(filepath_test, filepath_abs) == 0) {
       id_us_plus(&sound->id); /* officially should not, it doesn't link here! */
-      if (r_exists) {
-        *r_exists = true;
-      }
       return sound;
     }
   }
 
-  if (r_exists) {
-    *r_exists = false;
-  }
-  return BKE_sound_new_file(bmain, filepath);
+  return BKE_sound_new_file(bmain, filepath, stream_index);
 }
 
-bSound *BKE_sound_new_file_exists(Main *bmain, const char *filepath)
+bSound *BKE_sound_new_file_exists(Main *bmain, const char *filepath, short stream_index)
 {
-  return sound_new_file_exists_ex(bmain, filepath, nullptr);
+  return sound_new_file_exists_ex(bmain, filepath, stream_index);
 }
 
 static void sound_free_audio(bSound *sound)
@@ -712,11 +708,11 @@ static void sound_load_audio(Main *bmain, bSound *sound, bool free_waveform)
 
     /* but we need a packed file then */
     if (pf) {
-      runtime->handle = AUD_Sound(new aud::File((uchar *)pf->data, pf->size));
+      runtime->handle = AUD_Sound(new aud::File((uchar *)pf->data, pf->size, sound->stream_index));
     }
     else {
       /* or else load it from disk */
-      runtime->handle = AUD_Sound(new aud::File(fullpath));
+      runtime->handle = AUD_Sound(new aud::File(fullpath, sound->stream_index));
     }
   }
   if (sound->flags & SOUND_FLAGS_MONO) {
@@ -731,7 +727,8 @@ static void sound_load_audio(Main *bmain, bSound *sound, bool free_waveform)
     try {
       runtime->cache = AUD_Sound(new aud::StreamBuffer(runtime->handle));
     }
-    catch (aud::Exception &) {
+    catch (aud::Exception &ex) {
+      (void)ex;
     }
   }
 
@@ -804,8 +801,8 @@ void BKE_sound_create_scene(Scene *scene)
   aud::Specs specs;
   specs.channels = aud::CHANNELS_STEREO;
   specs.rate = aud::RATE_48000;
-  audio.sound_scene = AUD_Sequence(
-      new aud::Sequence(specs, scene->frames_per_second(), scene->audio.flag & AUDIO_MUTE));
+  audio.sound_scene = std::make_shared<aud::Sequence>(
+      specs, scene->frames_per_second(), scene->audio.flag & AUDIO_MUTE);
   audio.sound_scene->setSpeedOfSound(scene->audio.speed_of_sound);
   audio.sound_scene->setDopplerFactor(scene->audio.doppler_factor);
   audio.sound_scene->setDistanceModel(aud::DistanceModel(scene->audio.distance_model));
@@ -1246,7 +1243,7 @@ double BKE_sound_sync_scene(Scene *scene)
 }
 
 static int sound_read(
-    AUD_Sound sound, float *buffer, int length, int samples_per_second, bool *interrupt)
+    AUD_Sound sound, float *buffer, int length, int samples_per_second, const bool *interrupt)
 {
   using namespace aud;
   DeviceSpecs specs;
@@ -1380,7 +1377,9 @@ static void sound_update_base(Scene *scene, Object *object, Set<AUD_SequenceEntr
 
       bke::NlaStripRuntime &strip_runtime = strip.runtime_get();
 
-      if (scene->runtime->audio.speaker_handles.remove(strip_runtime.speaker_handle)) {
+      if ((strip_runtime.speaker_handle != nullptr) &&
+          scene->runtime->audio.speaker_handles.remove(strip_runtime.speaker_handle))
+      {
         if (speaker->sound) {
           strip_runtime.speaker_handle->move(
               double(strip.start) / scene->frames_per_second(), FLT_MAX, 0);
@@ -1550,6 +1549,22 @@ bool BKE_sound_stream_info_get(Main *main,
   return true;
 }
 
+int BKE_sound_stream_count(Main *main, const char *filepath)
+{
+  char filepath_abs[FILE_MAX];
+  STRNCPY(filepath_abs, filepath);
+  BLI_path_abs(filepath_abs, BKE_main_blendfile_path(main));
+
+  std::vector<aud::StreamInfo> streams;
+  try {
+    streams = aud::FileManager::queryStreams(filepath_abs);
+    return streams.size();
+  }
+  catch (aud::Exception &) {
+    return 0;
+  }
+}
+
 #  ifdef WITH_RUBBERBAND
 AUD_Sound BKE_sound_ensure_time_stretch_effect(const Strip *strip, float fps)
 {
@@ -1614,14 +1629,15 @@ SoundInfo bke::sound_info_get(AUD_Sound sound)
 
   try {
     std::shared_ptr<aud::IReader> reader = sound->createReader();
-    if (reader.get()) {
+    if (reader) {
       aud::Specs specs = reader->getSpecs();
       res.specs.channels = eSoundChannels(specs.channels);
       res.specs.samplerate = specs.rate;
       res.length = reader->getLength() / float(specs.rate);
     }
   }
-  catch (aud::Exception &) {
+  catch (aud::Exception &ex) {
+    (void)ex;
   }
   return res;
 }
@@ -1652,7 +1668,8 @@ AUD_Device bke::sound_device_init(const char *device,
       return AUD_Device(device);
     }
   }
-  catch (Exception &) {
+  catch (Exception &ex) {
+    (void)ex;
   }
   return nullptr;
 }
@@ -1670,7 +1687,8 @@ AUD_Handle bke::sound_device_play(AUD_Device device, AUD_Sound sound)
   try {
     return device->play(sound, true);
   }
-  catch (aud::Exception &) {
+  catch (aud::Exception &ex) {
+    (void)ex;
   }
   return nullptr;
 }
@@ -1713,7 +1731,8 @@ AUD_Handle bke::sound_pause_after(AUD_Handle handle, double seconds)
       return handle2;
     }
   }
-  catch (aud::Exception &) {
+  catch (aud::Exception &ex) {
+    (void)ex;
   }
   return nullptr;
 }
@@ -1772,7 +1791,7 @@ float *bke::sound_read_file_buffer(const char *filename,
 
     reader = sound->createReader();
 
-    if (!reader.get()) {
+    if (!reader) {
       return nullptr;
     }
 
@@ -1858,7 +1877,7 @@ bool bke::sound_mixdown(AUD_Sequence sequence,
 
 #else /* WITH_AUDASPACE */
 
-#  include "BLI_utildefines.h"
+#  include "BLI_utildefines.hh"
 
 void BKE_sound_force_device(const char * /*device*/) {}
 void BKE_sound_init_once() {}
@@ -1958,6 +1977,11 @@ bool BKE_sound_stream_info_get(Main * /*main*/,
                                SoundStreamInfo * /*sound_info*/)
 {
   return false;
+}
+
+int BKE_sound_stream_count(Main * /*main*/, const char * /*filepath*/)
+{
+  return 0;
 }
 
 #endif /* WITH_AUDASPACE */

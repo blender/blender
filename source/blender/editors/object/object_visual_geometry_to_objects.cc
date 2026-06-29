@@ -33,10 +33,10 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
-#include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
+#include "BLI_math_matrix_c.hh"
 
 #include "object_intern.hh"
 

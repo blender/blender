@@ -11,7 +11,6 @@
 #include "BLT_translation.hh"
 
 #include "COM_domain.hh"
-#include "COM_realize_on_domain_operation.hh"
 #include "COM_result.hh"
 #include "COM_utilities.hh"
 
@@ -32,6 +31,8 @@
 #include "NOD_composite.hh"
 #include "NOD_compositor_nodes_caller_ui.hh"
 #include "NOD_compositor_nodes_srna.hh"
+
+#include "PRF_profile.hh"
 
 #include "SEQ_modifier.hh"
 #include "SEQ_select.hh"
@@ -148,8 +149,7 @@ static void set_single_input_from_rna_value(PointerRNA *input_props_ptr,
         float3 value_euler;
         RNA_float_get_array(input_props_ptr, "value", value_euler);
         math::Quaternion value_rotation = math::to_quaternion(math::EulerXYZ(value_euler));
-        result.set_single_value(
-            float4(value_rotation.x, value_rotation.y, value_rotation.z, value_rotation.w));
+        result.set_single_value(value_rotation);
       }
       break;
     }
@@ -195,11 +195,18 @@ static void set_single_input_from_rna_value(PointerRNA *input_props_ptr,
       }
       break;
     }
+    case SOCK_FONT: {
+      const auto type = CompositorNodesInputType(RNA_enum_get(input_props_ptr, "type"));
+      if (type == CompositorNodesInputType::Value) {
+        VFont *value = RNA_pointer_get(input_props_ptr, "value").data_as<VFont>();
+        result.set_single_value(value);
+      }
+      break;
+    }
     case SOCK_IMAGE:
     case SOCK_COLLECTION:
     case SOCK_TEXTURE:
     case SOCK_MATERIAL:
-    case SOCK_FONT:
     case SOCK_SCENE:
     case SOCK_TEXT_ID:
     case SOCK_MASK:
@@ -220,7 +227,7 @@ static std::optional<int> get_socket_dimension(const bNodeTreeInterfaceSocket *s
   if (socket_type == SOCK_VECTOR) {
     return static_cast<bNodeSocketValueVector *>(socket->socket_data)->dimensions;
   }
-  else if (socket_type == SOCK_INT_VECTOR) {
+  if (socket_type == SOCK_INT_VECTOR) {
     return static_cast<bNodeSocketValueIntVector *>(socket->socket_data)->dimensions;
   }
   return {};
@@ -233,7 +240,6 @@ class CompositorModifierContext : public CompositorContext {
 
   ImBuf *image_buffer_;
   compositor::Result mask_;
-  float3x3 mask_transform_;
   ImBuf *mask_buffer_ = nullptr;
   int timeline_frame_;
   bool owns_mask_ = false;
@@ -246,26 +252,23 @@ class CompositorModifierContext : public CompositorContext {
       : CompositorContext(cache_manager, mod_context.render_data, mod_context.strip),
         mod_context_(mod_context),
         modifier_data_(modifier_data),
-        image_buffer_(mod_context.image),
+        image_buffer_(mod_context.result.image),
         mask_(*this, compositor::ResultType::Color, compositor::ResultPrecision::Full),
         timeline_frame_(mod_context.timeline_frame)
   {
-    /* Masks are in screen space, whereas modifier executes in strip space. */
-    mask_transform_ = math::invert(
-        image_transform_matrix_get(mod_context.render_data.scene, &mod_context.strip));
-
     PointerRNA ptr = RNA_pointer_create_discrete(
         &mod_context.render_data.scene->id, RNA_SequencerCompositorModifierData, modifier_data);
     properties_ptr_ = RNA_pointer_get(&ptr, "properties");
   }
 
-  ~CompositorModifierContext()
+  void free_resources()
   {
-    if (this->mask_buffer_ != nullptr) {
-      IMB_freeImBuf(this->mask_buffer_);
-    }
+    IMB_freeImBuf(this->mask_buffer_);
+    this->mask_buffer_ = nullptr;
+
     if (this->owns_mask_) {
       this->mask_.release();
+      this->owns_mask_ = false;
     }
   }
 
@@ -276,30 +279,7 @@ class CompositorModifierContext : public CompositorContext {
 
   void write_viewer(compositor::Result &viewer_result) override
   {
-    using namespace compositor;
-
-    /* Realize the transforms if needed. */
-    const InputDescriptor input_descriptor = {ResultType::Color,
-                                              InputRealizationMode::OperationDomain};
-    SimpleOperation *realization_operation = RealizeOnDomainOperation::construct_if_needed(
-        *this, viewer_result, input_descriptor, viewer_result.domain());
-
-    if (realization_operation) {
-      Result realize_input = this->create_result(ResultType::Color, viewer_result.precision());
-      realize_input.share_data(viewer_result);
-      realization_operation->map_input_to_result(&realize_input);
-      realization_operation->evaluate();
-
-      Result &realized_viewer_result = realization_operation->get_result();
-      this->write_output(realized_viewer_result, *image_buffer_);
-      realized_viewer_result.release();
-      viewer_was_written_ = true;
-      delete realization_operation;
-      return;
-    }
-
-    this->write_output(viewer_result, *image_buffer_);
-    viewer_was_written_ = true;
+    write_viewer_impl(viewer_result, *image_buffer_);
   }
 
   void evaluate()
@@ -316,7 +296,6 @@ class CompositorModifierContext : public CompositorContext {
     NodeGroupOperation node_group_operation(*this,
                                             node_group,
                                             this->needed_outputs(),
-                                            nullptr,
                                             node_group.active_viewer_key,
                                             bke::NODE_INSTANCE_KEY_BASE,
                                             compute_context);
@@ -357,7 +336,7 @@ class CompositorModifierContext : public CompositorContext {
             input_result->set_type(this->mask_.type());
             input_result->set_precision(this->mask_.precision());
             input_result->share_data(this->mask_);
-            input_result->set_transformation(this->mask_transform_);
+            input_result->set_transformation(this->mod_context_.transform_comp_result);
           }
           else {
             input_result->allocate_invalid();
@@ -383,7 +362,10 @@ class CompositorModifierContext : public CompositorContext {
       inputs.append(std::unique_ptr<Result>(input_result));
     }
 
-    node_group_operation.evaluate();
+    {
+      PRF_scope_with_name("SeqCompositorEvaluate", ProfileCategory::Draw);
+      node_group_operation.evaluate();
+    }
     this->write_outputs(node_group, node_group_operation, *this->image_buffer_);
   }
 
@@ -391,10 +373,14 @@ class CompositorModifierContext : public CompositorContext {
    * path we do a more efficient approach than rendering into a full ImBuf. */
   void render_mask_input(const ModifierApplyContext &context, int timeline_frame)
   {
+    PRF_scope_with_name("SeqRenderMaskInput", ProfileCategory::Draw);
     const StripModifierData &smd = this->modifier_data_->modifier;
     if (smd.mask_input_type == STRIP_MASK_INPUT_STRIP && smd.mask_strip) {
-      this->mask_buffer_ = seq_render_strip(
-          &context.render_data, &context.render_state, smd.mask_strip, timeline_frame);
+      this->mask_buffer_ = seq_render_strip(&context.render_data,
+                                            &context.render_state,
+                                            smd.mask_strip,
+                                            timeline_frame)
+                               .image;
       if (this->mask_buffer_ != nullptr) {
         this->create_result_from_input(this->mask_, *this->mask_buffer_);
         this->owns_mask_ = true;
@@ -419,15 +405,17 @@ class CompositorModifierContext : public CompositorContext {
 
       const int width = context.render_data.rectx;
       const int height = context.render_data.recty;
-      this->mask_ = this->cache_manager().cached_masks.get(*this,
-                                                           smd.mask_id,
-                                                           compositor::Domain(int2(width, height)),
-                                                           1.0f,
-                                                           true,
-                                                           frame_index,
-                                                           1,
-                                                           0.0f,
-                                                           seq_space_is_srgb);
+      this->mask_.set_type(compositor::ResultType::Float);
+      this->mask_.share_data(
+          this->cache_manager().cached_masks.get(*this,
+                                                 smd.mask_id,
+                                                 compositor::Domain(int2(width, height)),
+                                                 1.0f,
+                                                 true,
+                                                 frame_index,
+                                                 1,
+                                                 0.0f,
+                                                 seq_space_is_srgb));
       this->owns_mask_ = false;
     }
   }
@@ -443,6 +431,7 @@ static void compositor_modifier_init_data(StripModifierData *strip_modifier_data
 static void compositor_modifier_apply(ModifierApplyContext &context,
                                       StripModifierData *strip_modifier_data)
 {
+  PRF_scope_with_name("SeqModCompositor", ProfileCategory::Draw);
   SequencerCompositorModifierData *modifier_data =
       reinterpret_cast<SequencerCompositorModifierData *>(strip_modifier_data);
   if (!modifier_data->node_group) {
@@ -460,11 +449,12 @@ static void compositor_modifier_apply(ModifierApplyContext &context,
       com_mod_context.use_gpu(), com_mod_context.get_precision(), context.render_data.gpu_context);
   com_mod_context.evaluate();
   com_mod_context.cache_manager().reset();
+  com_mod_context.free_resources();
   if (com_mod_context.use_gpu()) {
     render_end_gpu(context.render_data);
   }
 
-  context.result_translation += com_mod_context.get_result_translation();
+  context.result.translation += com_mod_context.get_result_translation();
 }
 
 static PointerRNA *modifier_panel_get_property_pointers(Panel *panel)

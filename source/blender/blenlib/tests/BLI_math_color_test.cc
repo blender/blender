@@ -4,8 +4,8 @@
 
 #include "testing/testing.h"
 
-#include "BLI_math_color.h"
-#include "BLI_math_color_blend.h"
+#include "BLI_math_color_blend.hh"
+#include "BLI_math_color_c.hh"
 
 namespace blender {
 

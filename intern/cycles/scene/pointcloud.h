@@ -16,31 +16,26 @@ class PointCloud : public Geometry {
   struct Point {
     int index;
 
-    void bounds_grow(const float3 *points, const float *radius, BoundBox &bounds) const;
-    void bounds_grow(const float3 *points,
+    void bounds_grow(const packed_float3 *points, const float *radius, BoundBox &bounds) const;
+    void bounds_grow(const packed_float3 *points,
                      const float *radius,
                      const Transform &aligned_space,
                      BoundBox &bounds) const;
     void bounds_grow(const float4 &point, BoundBox &bounds) const;
 
-    float4 motion_key(const float3 *points,
-                      const float *radius,
-                      const float4 *point_steps,
-                      const size_t num_points,
+    float4 motion_key(const float *radius,
+                      const Attribute *attr_P,
+                      const Attribute *attr_R,
                       const size_t num_steps,
                       const float time,
                       size_t p) const;
-    float4 point_for_step(const float3 *points,
-                          const float *radius,
-                          const float4 *point_steps,
-                          const size_t num_points,
-                          const size_t num_steps,
+    float4 point_for_step(const float *radius,
+                          const Attribute *attr_P,
+                          const Attribute *attr_R,
                           const size_t step,
                           size_t p) const;
   };
 
-  NODE_SOCKET_API_ARRAY(array<float3>, points)
-  NODE_SOCKET_API_ARRAY(array<float>, radius)
   NODE_SOCKET_API_ARRAY(array<int>, shader)
 
   /* Constructor/Destructor */
@@ -67,7 +62,8 @@ class PointCloud : public Geometry {
 
   size_t num_points() const
   {
-    return points.size();
+    const Attribute *attr = attributes.find(ATTR_STD_POSITION);
+    return attr ? attr->size : 0;
   }
 
   size_t num_attributes() const
@@ -81,9 +77,11 @@ class PointCloud : public Geometry {
   PrimitiveType primitive_type() const override;
 
   /* BVH */
-  void pack(Scene *scene, float4 *packed_points, uint *packed_shader);
+  void pack(Scene *scene, uint *packed_shader);
 
  private:
+  void add_builtin_attributes();
+
   friend class BVH2;
   friend class BVHBuild;
   friend class BVHSpatialSplit;

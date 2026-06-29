@@ -3,12 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "BLI_string_ref.hh"
-#include "BLI_string_utf8_symbols.h"
+#include "BLI_string_utf8_symbols.hh"
 #include "BLI_vector.hh"
 
 #include "testing/testing.h"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender::tests {
 

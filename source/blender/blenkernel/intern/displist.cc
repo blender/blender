@@ -18,16 +18,16 @@
 #include "BLI_array.hh"
 #include "BLI_delaunay_2d.hh"
 #include "BLI_index_range.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_memarena.h"
-#include "BLI_scanfill.h"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_memarena.hh"
+#include "BLI_scanfill.hh"
 #include "BLI_span.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_task.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_anim_path.h"
@@ -279,7 +279,7 @@ static float isect_vert_calc_z(int vert_index,
   /* -1 if this intersection vertex only appears on Delaunay edges
    * (edges created by triangulation) rather than edges deriving from
    * input polygon edges. Fall back to Z=0. */
-  if (UNLIKELY(edge_index == -1)) {
+  if (edge_index == -1) [[unlikely]] {
     return 0.0f;
   }
 
@@ -295,12 +295,12 @@ static float isect_vert_calc_z(int vert_index,
     const int face_index = (orig_id / result.face_edge_offset) - 1;
     const int edge_in_face = orig_id % result.face_edge_offset;
 
-    if (UNLIKELY(face_index == -1 || face_index >= int(poly_ranges.size()))) {
+    if (face_index == -1 || face_index >= int(poly_ranges.size())) [[unlikely]] {
       continue;
     }
 
     const PolyRange &poly = poly_ranges[face_index];
-    if (UNLIKELY(edge_in_face >= poly.count)) {
+    if (edge_in_face >= poly.count) [[unlikely]] {
       continue;
     }
 
@@ -319,7 +319,7 @@ static float isect_vert_calc_z(int vert_index,
     const double edge_len_sq = math::length_squared(edge_vec);
 
     double t;
-    if (UNLIKELY(edge_len_sq < 1e-16)) {
+    if (edge_len_sq < 1e-16) [[unlikely]] {
       t = 0.5;
     }
     else {
@@ -527,7 +527,7 @@ static DispList *displist_fill_cdt_process_group(const CDTFillGroup &group,
   meshintersect::CDT_result<double> result = meshintersect::delaunay_2d_calc(input,
                                                                              cdt_output_type);
 
-  if (UNLIKELY(result.face.is_empty())) {
+  if (result.face.is_empty()) [[unlikely]] {
     return nullptr;
   }
 
@@ -638,7 +638,7 @@ static void displist_fill_cdt(const ListBaseT<DispList> *dispbase,
     groups.append_unchecked(std::move(group));
   }
 
-  if (UNLIKELY(groups.is_empty())) {
+  if (groups.is_empty()) [[unlikely]] {
     return;
   }
 
@@ -859,7 +859,7 @@ static ModifierData *curve_get_tessellate_point(const Scene *scene,
 
   ModifierData *pretessellatePoint = nullptr;
   for (; md; md = md->next) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
     if (!BKE_modifier_is_enabled(scene, md, required_mode)) {
       continue;
@@ -940,7 +940,7 @@ void BKE_curve_calc_modifiers_pre(Depsgraph *depsgraph,
     for (ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data); md;
          md = md->next)
     {
-      const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+      const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
       if (!BKE_modifier_is_enabled(scene, md, required_mode)) {
         continue;
@@ -1061,7 +1061,7 @@ static bke::GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
   }
 
   for (; md; md = md->next) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
     if (!BKE_modifier_is_enabled(scene, md, required_mode)) {
       continue;
     }
@@ -1471,7 +1471,7 @@ static bke::GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph,
   ListBaseT<DispList> dlbev = BKE_curve_bevel_make(cu);
 
   /* no bevel or extrude, and no width correction? */
-  if (BLI_listbase_is_empty(&dlbev) && cu->offset == 1.0f) {
+  if (dlbev.is_empty() && cu->offset == 1.0f) {
     curve_to_displist(cu, deformed_nurbs, for_render, r_dispbase);
   }
   else {
@@ -1487,7 +1487,7 @@ static bke::GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph,
       }
 
       /* exception handling; curve without bevel or extrude, with width correction */
-      if (BLI_listbase_is_empty(&dlbev)) {
+      if (dlbev.is_empty()) {
         DispList *dl = MEM_new_zeroed<DispList>("makeDispListbev");
         dl->verts = MEM_new_array_uninitialized<float>(3 * size_t(bl->nr), "dlverts");
         BLI_addtail(r_dispbase, dl);

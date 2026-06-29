@@ -19,13 +19,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_rect.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_rect.hh"
+#include "BLI_utildefines.hh"
 
 #include "gpu_select_private.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 
@@ -420,7 +420,7 @@ static void gpu_select_load_id_pass_all(const DepthBufCache *rect_curr)
 #undef EVAL_TEST
 
   /* Ensure enough space. */
-  if (UNLIKELY(ps->all.hits_len == ps->all.hits_len_alloc)) {
+  if (ps->all.hits_len == ps->all.hits_len_alloc) [[unlikely]] {
     ps->all.hits_len_alloc += ALLOC_DEPTHS;
     ps->all.hits = static_cast<DepthID *>(
         MEM_realloc_uninitialized(ps->all.hits, ps->all.hits_len_alloc * sizeof(*ps->all.hits)));
@@ -711,12 +711,12 @@ void gpu_select_pick_cache_begin()
 void gpu_select_pick_cache_end()
 {
 #ifdef DEBUG_PRINT
-  printf("%s: with %d buffers\n", __func__, BLI_listbase_count(&g_pick_state.cache.bufs));
+  printf("%s: with %d buffers\n", __func__, g_pick_state.cache.bufs.count());
 #endif
   g_pick_state.use_cache = false;
   g_pick_state.is_cached = false;
 
-  BLI_freelistN(&g_pick_state.cache.bufs);
+  g_pick_state.cache.bufs.free_no_destruct();
 }
 
 bool gpu_select_pick_is_cached()

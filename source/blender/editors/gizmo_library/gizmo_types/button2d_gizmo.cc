@@ -16,12 +16,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_color.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_rect.h"
+#include "BLI_rect.hh"
 
 #include "DNA_userdef_types.h"
 
@@ -192,7 +192,7 @@ static void button2d_draw_intern(const bContext *C,
     }
     else if (RNA_property_is_set(gz->ptr, shape_prop)) {
       const uint polys_len = RNA_property_string_length(gz->ptr, shape_prop);
-      if (LIKELY(polys_len > 0)) {
+      if (polys_len > 0) [[likely]] {
         char *polys = MEM_new_array_uninitialized<char>(polys_len, __func__);
         RNA_property_string_get(gz->ptr, shape_prop, polys);
         button->shape_batch[0] = GPU_batch_tris_from_poly_2d_encoded(

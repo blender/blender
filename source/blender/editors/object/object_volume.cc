@@ -8,10 +8,10 @@
 
 #include <cstring>
 
-#include "BLI_listbase.h"
-#include "BLI_math_constants.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_constants.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "DNA_object_types.h"
 #include "DNA_volume_types.h"
@@ -125,9 +125,9 @@ static wmOperatorStatus volume_import_exec(bContext *C, wmOperator *op)
 
     imported = true;
 
-    BLI_freelistN(&range.frames);
+    range.frames.free_no_destruct();
   }
-  BLI_freelistN(&ranges);
+  ranges.free_no_destruct();
 
   return (imported) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }

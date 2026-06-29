@@ -7,7 +7,7 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_scene.hh"
 
-#include "BLI_math_color.h"
+#include "BLI_math_color_c.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -62,7 +62,7 @@ class PDFExporter : public GreasePencilExporter {
 bool PDFExporter::export_scene(Scene &scene, StringRefNull filepath)
 {
   bool result = false;
-  Object &ob_eval = *DEG_get_evaluated(context_.depsgraph, params_.object);
+  Object *ob_eval = DEG_get_evaluated(context_.depsgraph, params_.object);
 
   if (!create_document()) {
     return false;
@@ -81,16 +81,21 @@ bool PDFExporter::export_scene(Scene &scene, StringRefNull filepath)
     case ExportParams::FrameMode::Selected: {
       case ExportParams::FrameMode::Scene:
         const bool only_selected = (params_.frame_mode == ExportParams::FrameMode::Selected);
-        if (only_selected && ob_eval.type != OB_GREASE_PENCIL) {
+        if (only_selected && (!ob_eval || ob_eval->type != OB_GREASE_PENCIL)) {
           /* For exporting "Selected Frames", the active object is required to be a grease pencil
            * object, from which we will read selected frames from. */
           break;
         }
         const int orig_frame = scene.r.cfra;
         for (int frame_number = scene.r.sfra; frame_number <= scene.r.efra; frame_number++) {
-          GreasePencil &grease_pencil = *id_cast<GreasePencil *>(ob_eval.data);
-          if (only_selected && !this->is_selected_frame(grease_pencil, frame_number)) {
-            continue;
+          if (only_selected) {
+            if (!ob_eval) {
+              break;
+            }
+            GreasePencil &grease_pencil = *id_cast<GreasePencil *>(ob_eval->data);
+            if (!this->is_selected_frame(grease_pencil, frame_number)) {
+              continue;
+            }
           }
 
           scene.r.cfra = frame_number;
@@ -215,7 +220,7 @@ constexpr double default_pdf_ppi = 72.0;
 bool PDFExporter::add_page(Scene &scene)
 {
   page_ = HPDF_AddPage(pdf_);
-  if (!pdf_) {
+  if (!page_) {
     std::cout << "error: cannot create PdfPage\n";
     return false;
   }

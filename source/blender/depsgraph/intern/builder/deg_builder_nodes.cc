@@ -16,9 +16,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_span.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
@@ -924,7 +924,7 @@ void DepsgraphNodeBuilder::build_object_instance_collection(Object *object, bool
 
 void DepsgraphNodeBuilder::build_object_modifiers(Object *object)
 {
-  if (BLI_listbase_is_empty(&object->modifiers)) {
+  if (object->modifiers.is_empty()) {
     return;
   }
 
@@ -985,11 +985,14 @@ void DepsgraphNodeBuilder::build_object_modifiers(Object *object)
 
 void DepsgraphNodeBuilder::build_object_data(Object *object)
 {
-  if (object->data == nullptr) {
+  if (object->type != OB_EMPTY && object->data == nullptr) {
     return;
   }
   /* type-specific data. */
   switch (object->type) {
+    case OB_EMPTY:
+      build_empty_object(object);
+      break;
     case OB_MESH:
     case OB_CURVES_LEGACY:
     case OB_FONT:
@@ -1250,7 +1253,7 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
   /* Make sure ID node exists. */
   (void)add_id_node(id);
   ID *id_cow = get_cow_id(id);
-  if (adt->action != nullptr || !BLI_listbase_is_empty(&adt->nla_tracks)) {
+  if (adt->action != nullptr || !adt->nla_tracks.is_empty()) {
     OperationNode *operation_node;
     /* Explicit entry operation. */
     operation_node = add_operation_node(id, NodeType::ANIMATION, OperationCode::ANIMATION_ENTRY);
@@ -1722,6 +1725,39 @@ void DepsgraphNodeBuilder::build_shapekeys(Key *key)
     add_operation_node(
         &key->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL, nullptr, key_block.name);
   }
+}
+
+void DepsgraphNodeBuilder::build_empty_object(Object *object)
+{
+  OperationNode *op_node;
+  Scene *scene_cow = get_cow_datablock(scene_);
+  Object *object_cow = get_cow_datablock(object);
+
+  const bool has_modifiers = !BLI_listbase_is_empty(&object->modifiers);
+  if (!has_modifiers) {
+    if (deg_eval_copy_is_expanded(&object_cow->id)) {
+      /* The empty might have had modifiers previously, so it might still have cached evaluated
+       * geometry. Usually this would be freed by #BKE_object_eval_uber_data during the next
+       * evaluation. However, since the geometry evaluation is fully skipped, we need to free the
+       * data here already. */
+      BKE_object_free_derived_caches(object_cow);
+    }
+    return;
+  }
+  /* Entry operation, takes care of initialization, and some other
+   * relations which needs to be run prior actual geometry evaluation. */
+  op_node = add_operation_node(&object->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_INIT);
+  op_node->set_as_entry();
+  /* Geometry evaluation. */
+  /* The empty object type doesn't contain any original geometry, but it can have a geometry nodes
+   * modifier that creates geometry dynamically. */
+  op_node = add_operation_node(&object->id,
+                               NodeType::GEOMETRY,
+                               OperationCode::GEOMETRY_EVAL,
+                               [scene_cow, object_cow](blender::Depsgraph *depsgraph) {
+                                 BKE_object_eval_uber_data(depsgraph, scene_cow, object_cow);
+                               });
+  op_node->set_as_exit();
 }
 
 /* ObData Geometry Evaluation */
@@ -2350,11 +2386,12 @@ static bool strip_node_build_cb(Strip *strip, void *user_data)
     nb->build_scene_parameters(strip->scene);
   }
   if (strip->type == STRIP_TYPE_SCENE && strip->scene != nullptr) {
+    BLI_assert(strip->scene_view_layer_name != nullptr);
     if (strip->flag & SEQ_SCENE_STRIPS) {
       nb->build_scene_sequencer(strip->scene);
     }
-    ViewLayer *sequence_view_layer = BKE_view_layer_default_render(strip->scene);
-    nb->build_scene_speakers(strip->scene, sequence_view_layer);
+    ViewLayer *strip_view_layer = BKE_view_layer_find(strip->scene, strip->scene_view_layer_name);
+    nb->build_scene_speakers(strip->scene, strip_view_layer);
   }
 
   if (strip->type == STRIP_TYPE_COMPOSITOR && strip->effectdata) {

@@ -15,12 +15,12 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "BLI_math_base.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_math_vector.hh"
-#include "BLI_rect.h"
-#include "BLI_utildefines.h"
+#include "BLI_rect.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_vec_types.h"
 
@@ -307,7 +307,7 @@ bool BLI_rctf_isect_segment(const rctf *rect, const float s1[2], const float s2[
   /* both points are outside but may intersect the rect */
   float tvec1[2];
   float tvec2[2];
-  /* diagonal: [/] */
+  /* diagonal: `[/]` */
   tvec1[0] = rect->xmin;
   tvec1[1] = rect->ymin;
   tvec2[0] = rect->xmax;
@@ -316,7 +316,7 @@ bool BLI_rctf_isect_segment(const rctf *rect, const float s1[2], const float s2[
     return true;
   }
 
-  /* diagonal: [\] */
+  /* diagonal: `[\]` */
   tvec1[0] = rect->xmin;
   tvec1[1] = rect->ymax;
   tvec2[0] = rect->xmax;

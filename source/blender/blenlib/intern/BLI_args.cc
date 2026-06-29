@@ -12,11 +12,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_args.h"
-#include "BLI_ghash.h"
-#include "BLI_listbase.h"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_args.hh"
+#include "BLI_ghash.hh"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
+#include "BLI_utildefines.hh"
 
 namespace blender {
 
@@ -129,7 +129,7 @@ bArgs *BLI_args_create(int argc, const char **argv)
   bArgs *ba = MEM_new_zeroed<bArgs>("bArgs");
   ba->passes = MEM_new_array_zeroed<int>(argc, "bArgs passes");
   ba->items = BLI_ghash_new(keyhash, keycmp, "bArgs passes gh");
-  BLI_listbase_clear(&ba->docs);
+  ba->docs.clear_no_delete();
   ba->argc = argc;
   ba->argv = argv;
 
@@ -148,7 +148,7 @@ void BLI_args_destroy(bArgs *ba)
 {
   BLI_ghash_free(ba->items, MEM_delete_void, MEM_delete_void);
   MEM_delete(ba->passes);
-  BLI_freelistN(&ba->docs);
+  ba->docs.free_no_destruct();
   MEM_delete(ba);
 }
 

@@ -8,7 +8,7 @@
  * Metal implementation of gpu::Batch.
  */
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_span.hh"
 
 #include "BKE_global.hh"

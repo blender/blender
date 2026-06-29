@@ -7,9 +7,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_base.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "DNA_node_types.h"
 
@@ -68,7 +68,7 @@ struct FileOutputItemsAccessor : public socket_items::SocketItemsAccessorDefault
 
   static eNodeSocketDatatype get_socket_type(const NodeCompositorFileOutputItem &item)
   {
-    return eNodeSocketDatatype(item.socket_type);
+    return item.socket_type;
   }
 
   static char **get_name(NodeCompositorFileOutputItem &item)

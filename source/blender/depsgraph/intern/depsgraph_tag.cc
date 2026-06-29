@@ -16,8 +16,8 @@
 #include <cstring> /* required for memset */
 
 #include "BLI_index_range.hh"
-#include "BLI_math_bits.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_bits.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
@@ -606,6 +606,14 @@ NodeType geometry_tag_to_component(const ID *id)
     case ID_OB: {
       const Object *object = id_cast<Object *>(const_cast<ID *>(id));
       switch (object->type) {
+        /* Empties don't contain original geometry, but can have evaluated geometry if there are
+         * modifiers. */
+        case OB_EMPTY: {
+          if (!BLI_listbase_is_empty(&object->modifiers)) {
+            return NodeType::GEOMETRY;
+          }
+          break;
+        }
         case OB_MESH:
         case OB_CURVES_LEGACY:
         case OB_SURF:

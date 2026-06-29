@@ -9,7 +9,7 @@
 #pragma once
 
 #include "BLI_enum_flags.hh"
-#include "BLI_math_constants.h"
+#include "BLI_math_constants.hh"
 
 #include "DNA_ID.h"
 #include "DNA_anim_enums.h"
@@ -62,6 +62,12 @@ enum eUserPref_Flag : int {
 };
 ENUM_OPERATORS(eUserPref_Flag)
 
+/** #UserDef.asset_flag */
+enum eUserPref_AssetFlag : char {
+  USER_ASSETS_USE_ONLINE_ESSENTIALS = 1 << 0,
+};
+ENUM_OPERATORS(eUserPref_AssetFlag)
+
 /** #UserDef.extension_flag */
 enum eUserPref_ExtensionFlag : char {
   USER_EXTENSION_FLAG_ONLINE_ACCESS_HANDLED = 1 << 0,
@@ -85,6 +91,7 @@ enum eUserpref_Save_Modified_Images : char {
 
 enum eUserPref_PrefFlag : char {
   USER_PREF_FLAG_SAVE = (1 << 0),
+  USER_PREF_FLAG_PROJECT_SAVE = (1 << 1),
 };
 ENUM_OPERATORS(eUserPref_PrefFlag)
 
@@ -180,7 +187,7 @@ enum eUserpref_UI_Flag2 : char {
   USER_REGION_OVERLAP = (1 << 1),
   USER_UIFLAG2_UNUSED_2 = (1 << 2),
   USER_UIFLAG2_UNUSED_3 = (1 << 3), /* dirty */
-  USER_UIFLAG2_SHOW_ONLINE_ASSETS = (1 << 4),
+  USER_UIFLAG2_UNUSED_4 = (1 << 4), /* Not cleared! */
   USER_UIFLAG2_PANEL_TABS_COMPACT = (1 << 5),
 };
 ENUM_OPERATORS(eUserpref_UI_Flag2)
@@ -203,8 +210,10 @@ enum eUserPref_GPUBackendType : short {
   USER_GPU_BACKEND_VULKAN = 1 << 3,
 #ifdef __APPLE__
   USER_GPU_BACKEND_DEFAULT = USER_GPU_BACKEND_METAL,
-#else
+#elif defined(WIN32) && (defined(_M_ARM64) || defined(__aarch64__))
   USER_GPU_BACKEND_DEFAULT = USER_GPU_BACKEND_OPENGL,
+#else
+  USER_GPU_BACKEND_DEFAULT = USER_GPU_BACKEND_VULKAN,
 #endif
 };
 
@@ -646,12 +655,20 @@ struct bUserAssetLibrary {
    * (#ASSET_LIBRARY_USE_REMOTE_URL), this is the download cache directory, where already
    * downloaded assets will be placed. */
   char dirpath[/*FILE_MAX*/ 1024] = "";
-  /** Only for remote asset libraries (#ASSET_LIBRARY_USE_REMOTE_URL is set). */
+  /** Only for remote asset libraries (#ASSET_LIBRARY_USE_REMOTE_URL is set). Update using
+   * #BKE_preferences_remote_asset_library_url_set() only. */
   char remote_url[/*FILE_MAX*/ 1024];
 
   short import_method = ASSET_IMPORT_PACK;  /* eAssetImportMethod */
   short flag = ASSET_LIBRARY_RELATIVE_PATH; /* eAssetLibrary_Flag */
   char _pad0[4] = {};
+
+#ifdef __cplusplus
+  bool is_enabled() const
+  {
+    return (this->flag & ASSET_LIBRARY_DISABLED) == 0;
+  }
+#endif
 };
 
 enum eUserExtensionRepo_Flag : uint8_t {
@@ -814,6 +831,7 @@ struct UserDef_TempWinBounds {
   rctf image = {50.0f, 1360.0f, 50.0f, 830.0f};
   rctf graph = {50.0f, 950.0f, 200.0f, 780.0f};
   rctf info = {100.0f, 1000.0f, 300.0f, 880.0f};
+  rctf project = {100.0f, 800.0f, 500.0f, 850.0f};
   rctf outliner = {100.0f, 550.0f, 350.0f, 800.0f};
 };
 
@@ -844,11 +862,11 @@ struct UserDef_Experimental {
   char use_extended_asset_browser = 0;
   char use_sculpt_texture_paint = 0;
   char use_shader_node_previews = 0;
-  char use_geometry_bundle = 0;
-  char use_remote_asset_libraries = 0;
+  /* As a temporary exception to the above sanitation rules, this flag is always ON. The work to
+   * actually remove this flag is tracked in #158903. */
+  char use_remote_asset_libraries = 1;
   char use_collection_importer = 0;
-  char use_geometry_nodes_hair_dynamics = 0;
-  char _pad[2] = {};
+  char _pad[4] = {};
 };
 
 #define USER_EXPERIMENTAL_TEST(userdef, member) (((userdef)->experimental).member)
@@ -902,7 +920,7 @@ struct UserDef {
                          USER_DUP_CAMERA | USER_DUP_SPEAKER | USER_DUP_ACT | USER_DUP_LIGHTPROBE |
                          USER_DUP_GPENCIL | USER_DUP_CURVES | USER_DUP_POINTCLOUD;
   /** Preferences for the preferences. */
-  eUserPref_PrefFlag pref_flag = USER_PREF_FLAG_SAVE;
+  eUserPref_PrefFlag pref_flag = USER_PREF_FLAG_SAVE | USER_PREF_FLAG_PROJECT_SAVE;
   char savetime = 2;
   eUserpref_EmulateMMBMod mouse_emulate_3_button_modifier = {};
   /**
@@ -936,7 +954,9 @@ struct UserDef {
   short versions = 1;
   short dbl_click_time = 350;
 
-  char _pad0[2] = {};
+  AssetAccess asset_access = AssetAccess::OnlineAndOffline;
+
+  char _pad0 = {};
 
   /** Space around each area. Inter-editor gap width. */
   char border_width = 2;
@@ -947,7 +967,7 @@ struct UserDef {
                              USER_NODE_AUTO_OFFSET | USER_GLOBALUNDO | USER_SHOW_GIZMO_NAVIGATE |
                              USER_SHOW_VIEWPORTNAME | USER_SHOW_FPS | USER_CONTINUOUS_MOUSE |
                              USER_SAVE_PROMPT;
-  eUserpref_UI_Flag2 uiflag2 = USER_REGION_OVERLAP | USER_UIFLAG2_SHOW_ONLINE_ASSETS;
+  eUserpref_UI_Flag2 uiflag2 = USER_REGION_OVERLAP;
   eUserpref_GPU_Flag gpu_flag = USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE |
                                 USER_GPU_FLAG_SUBDIVISION_EVALUATION;
 
@@ -1047,9 +1067,6 @@ struct UserDef {
 
   char keyconfigstr[64] = "Blender";
 
-  /** Index of the asset library being edited in the Preferences UI. */
-  short active_asset_library = 0;
-
   /** Index of the extension repo in the Preferences UI. */
   short active_extension_repo = 0;
   /** Flag for all extensions. */
@@ -1062,7 +1079,13 @@ struct UserDef {
   /** Maximum number of simulations connection limit for online operations. */
   uint8_t network_connection_limit = 5;
 
-  char _pad14[3] = {};
+  char _pad2[1] = {};
+
+  /** Index of the asset library being edited in the Preferences UI. */
+  short active_asset_library = 0;
+  eUserPref_AssetFlag asset_flag = USER_ASSETS_USE_ONLINE_ESSENTIALS;
+
+  char _pad14[1] = {};
 
   short undosteps = 32;
   int undomemory = 0;

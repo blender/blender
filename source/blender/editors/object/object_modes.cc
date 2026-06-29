@@ -13,8 +13,8 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_time.h"
-#include "BLI_utildefines.h"
+#include "BLI_time.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_context.hh"
 #include "BKE_idtype.hh"
@@ -27,8 +27,8 @@
 #include "BKE_paint_types.hh"
 #include "BKE_report.hh"
 
-#include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -157,7 +157,7 @@ bool mode_compat_set(bContext *C, Object *ob, eObjectMode mode, ReportList *repo
 {
   bool ok;
   if (!ELEM(ob->mode, mode, OB_MODE_OBJECT)) {
-    const char *opstring = object_mode_op_string(eObjectMode(ob->mode));
+    const char *opstring = object_mode_op_string(ob->mode);
 
     WM_operator_name_call(C, opstring, wm::OpCallContext::ExecRegionWin, nullptr, nullptr);
     ok = ELEM(ob->mode, mode, OB_MODE_OBJECT);
@@ -204,8 +204,7 @@ bool mode_set_ex(bContext *C, eObjectMode mode, bool use_undo, ReportList *repor
     return false;
   }
 
-  const char *opstring = object_mode_op_string((mode == OB_MODE_OBJECT) ? eObjectMode(ob->mode) :
-                                                                          mode);
+  const char *opstring = object_mode_op_string((mode == OB_MODE_OBJECT) ? ob->mode : mode);
   wmOperatorType *ot = WM_operatortype_find(opstring, false);
 
   if (!use_undo) {
@@ -544,7 +543,7 @@ static wmOperatorStatus object_transfer_mode_invoke(bContext *C,
   Scene *scene = CTX_data_scene(C);
   ARegion *region = CTX_wm_region(C);
   Object *ob_src = CTX_data_active_object(C);
-  const eObjectMode mode_src = eObjectMode(ob_src->mode);
+  const eObjectMode mode_src = ob_src->mode;
 
   Base *base_dst = ED_view3d_give_base_under_cursor(C, event->mval);
   if (!base_dst) {

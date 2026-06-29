@@ -9,15 +9,15 @@
 
 #include <cmath>
 
-#include "BLI_listbase.h"
-#include "BLI_math_color.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
 #include "BLI_task.hh"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
+#include "BLI_threads.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -29,6 +29,7 @@
 #include "BKE_context.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_global.hh"
+#include "BKE_layer.hh"
 #include "BKE_screen.hh"
 #include "BKE_sound.hh"
 
@@ -42,6 +43,8 @@
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
 #include "GPU_state.hh"
+
+#include "PRF_profile.hh"
 
 #include "RNA_prototypes.hh"
 
@@ -154,7 +157,7 @@ static bool strip_hides_text_overlay_first(const TimelineDrawContext &ctx,
                                            const StripDrawContext &strip_ctx)
 {
   return seq_draw_waveforms_poll(ctx.sseq, strip_ctx.strip) ||
-         strip_ctx.strip->type == STRIP_TYPE_COLOR;
+         ELEM(strip_ctx.strip->type, STRIP_TYPE_COLOR, STRIP_TYPE_TEXT);
 }
 
 static void strip_draw_context_set_text_overlay_visibility(const TimelineDrawContext &ctx,
@@ -454,6 +457,8 @@ static void draw_seq_waveform_overlay(const TimelineDrawContext &ctx,
     return;
   }
 
+  PRF_scope_with_name("SeqTimelineWaveform", ProfileCategory::Draw);
+
   const View2D *v2d = ctx.v2d;
   Scene *scene = ctx.scene;
   Strip *strip = strip_ctx.strip;
@@ -637,7 +642,7 @@ static void drawmeta_contents(const TimelineDrawContext &ctx,
 
   ListBaseT<Strip> *meta_seqbase = get_seqbase_from_strip(strip_meta, &meta_channels, &offset);
 
-  if (!meta_seqbase || BLI_listbase_is_empty(meta_seqbase)) {
+  if (!meta_seqbase || meta_seqbase->is_empty()) {
     return;
   }
 
@@ -776,7 +781,13 @@ static void draw_seq_text_get_source(const Strip *strip, char *r_source, size_t 
     }
     case STRIP_TYPE_SOUND: {
       if (strip->sound != nullptr) {
-        BLI_strncpy_utf8(r_source, strip->sound->filepath, source_maxncpy);
+        if (strip->sound->packedfile != nullptr) {
+          /* The sound data has been packed, don't display the path. */
+          BLI_strncpy_utf8(r_source, "<Packed File>", source_maxncpy);
+        }
+        else {
+          BLI_strncpy_utf8(r_source, strip->sound->filepath, source_maxncpy);
+        }
       }
       break;
     }
@@ -829,7 +840,7 @@ static size_t draw_seq_text_get_overlay_string(const TimelineDrawContext &ctx,
   const Strip *strip = strip_ctx.strip;
 
   const char *text_sep = " | ";
-  const char *text_array[5];
+  const char *text_array[7];
   int i = 0;
 
   if (ctx.sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_NAME) {
@@ -844,6 +855,16 @@ static size_t draw_seq_text_get_overlay_string(const TimelineDrawContext &ctx,
         text_array[i++] = text_sep;
       }
       text_array[i++] = source;
+    }
+
+    if (strip->type == STRIP_TYPE_SCENE && strip->scene != nullptr &&
+        (strip->flag & SEQ_SCENE_STRIPS) == 0)
+    {
+      BLI_assert(strip->scene_view_layer_name != nullptr);
+      if (i != 0) {
+        text_array[i++] = text_sep;
+      }
+      text_array[i++] = strip->scene_view_layer_name;
     }
   }
 
@@ -1115,6 +1136,8 @@ static void draw_seq_fcurve_overlay(const TimelineDrawContext &ctx,
   if (strip_ctx.curve == nullptr) {
     return;
   }
+
+  PRF_scope_with_name("SeqTimelineFCurve", ProfileCategory::Draw);
 
   const int eval_step = max_ii(1, floor(ctx.pixelx));
   uchar color[4] = {0, 0, 0, 38};
@@ -1522,6 +1545,74 @@ static void draw_retiming_segments(const TimelineDrawContext &ctx,
   GPU_matrix_pop_projection();
 }
 
+static void draw_strip_texts(const TimelineDrawContext &ctx,
+                             const StripsDrawBatch &batch,
+                             const Vector<StripDrawContext> &strips)
+{
+  /* Nothing to do if we're not showing thumbnails overall. */
+  const bool show_thumbnails = (ctx.sseq->timeline_overlay.flag &
+                                SEQ_TIMELINE_STRIP_END_THUMBNAILS) ||
+                               (ctx.sseq->timeline_overlay.flag &
+                                SEQ_TIMELINE_CONTINUOUS_THUMBNAILS);
+  if ((ctx.sseq->flag & SEQ_SHOW_OVERLAY) == 0 || !show_thumbnails) {
+    return;
+  }
+
+  GPU_matrix_push_projection();
+  wmOrtho2_region_pixelspace(ctx.region);
+
+  std::lock_guard lock(seq::text_runtime_mutex_get());
+
+  for (const StripDrawContext &strip : strips) {
+    if (!strip.can_draw_strip_content || strip.strip->type != STRIP_TYPE_TEXT) {
+      continue;
+    }
+
+    TextVars *data = static_cast<TextVars *>(strip.strip->effectdata);
+    if (data == nullptr || data->text_len_bytes < 1 || data->color[3] < 0.01f) {
+      continue;
+    }
+
+    const float content_height_px = (strip.strip_content_top - strip.bottom) / ctx.pixely;
+    if (content_height_px <= 10 * UI_SCALE_FAC) {
+      continue;
+    }
+
+    const FontFlags font_flags = ((data->flag & SEQ_TEXT_BOLD) ? BLF_BOLD : BLF_NONE) |
+                                 ((data->flag & SEQ_TEXT_ITALIC) ? BLF_ITALIC : BLF_NONE) |
+                                 BLF_CLIPPING | BLF_SHADOW;
+
+    const int font = seq::text_effect_font_get(*data);
+    float font_size = std::min(data->text_size, content_height_px * 0.5f);
+    const float lightness = srgb_to_grayscale(data->color);
+    const bool outline_is_dark = lightness > 0.37f;
+    float outline_dark_color[4] = {0, 0, 0, 0.8f * data->color[3]};
+    float outline_light_color[4] = {1, 1, 1, 0.8f * data->color[3]};
+
+    BLF_enable(font, font_flags);
+    BLF_size(font, font_size);
+    BLF_shadow(
+        font, FontShadowType::None, outline_is_dark ? outline_dark_color : outline_light_color);
+    BLF_shadow_offset(font, 1, -1);
+
+    BLF_color4fv(font, data->color);
+
+    constexpr float margin = 2.0f;
+    const float x1 = batch.pos_to_pixel_space_x(strip.left_handle) + margin;
+    const float x2 = batch.pos_to_pixel_space_x(strip.right_handle) - margin;
+    const float y1 = batch.pos_to_pixel_space_y(strip.bottom) + margin;
+    const float y2 = batch.pos_to_pixel_space_y(strip.strip_content_top) - margin;
+
+    BLF_clipping(font, int(x1), int(y1), int(x2), int(y2));
+    BLF_position(font, x1 + margin, (y1 + y2) * 0.5f - font_size * 0.25f, 0.0f);
+    BLF_draw(font, data->text_ptr, data->text_len_bytes);
+
+    BLF_disable(font, font_flags);
+  }
+
+  GPU_matrix_pop_projection();
+}
+
 static void draw_seq_strips(const TimelineDrawContext &ctx,
                             StripsDrawBatch &strips_batch,
                             const Vector<StripDrawContext> &strips)
@@ -1529,6 +1620,8 @@ static void draw_seq_strips(const TimelineDrawContext &ctx,
   if (strips.is_empty()) {
     return;
   }
+
+  PRF_scope_with_name("SeqTimelineStrips", ProfileCategory::Draw);
 
   ui::view2d_view_ortho(ctx.v2d);
 
@@ -1543,8 +1636,9 @@ static void draw_seq_strips(const TimelineDrawContext &ctx,
   }
   ctx.quads->draw();
 
-  /* Draw thumbnails. */
+  /* Draw thumbnails and text strip content. */
   draw_strip_thumbnails(ctx, strips_batch, strips);
+  draw_strip_texts(ctx, strips_batch, strips);
 
   /* Draw parts of strips above thumbnails. */
   GPU_blend(GPU_BLEND_ALPHA);
@@ -1630,7 +1724,7 @@ static void draw_timeline_sfra_efra(const TimelineDrawContext &ctx)
   ctx.quads->draw();
 
   /* While in meta strip, draw a checkerboard overlay outside of frame range. */
-  if (ed && !BLI_listbase_is_empty(&ed->metastack)) {
+  if (ed && !ed->metastack.is_empty()) {
     const MetaStack *ms = static_cast<const MetaStack *>(ed->metastack.last);
 
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
@@ -1861,6 +1955,8 @@ static void draw_timeline_post_view_callbacks(const TimelineDrawContext &ctx)
 
 void draw_timeline_seq(const bContext *C, const ARegion *region)
 {
+  PRF_scope_with_name("SeqTimelineDraw", ProfileCategory::Draw);
+
   SeqQuadsBatch quads_batch;
   TimelineDrawContext ctx = timeline_draw_context_get(C, &quads_batch);
   StripsDrawBatch strips_batch(ctx.v2d);

@@ -4,7 +4,7 @@
 
 #include "node_geometry_util.hh"
 
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "BLO_read_write.hh"
 
@@ -135,7 +135,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "Single-element geometry for the current iteration. Note that it can be quite "
           "inefficient to split up large geometries into many small geometries")
-      .propagate_all()
+      .propagate_all_geometry()
       .available(output_storage && AttrDomain(output_storage->domain) != AttrDomain::Corner);
 
   b.add_input<decl::Geometry>("Geometry"_ustr)
@@ -144,13 +144,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>("Selection"_ustr)
       .default_value(true)
       .hide_value()
-      .field_on_all()
+      .evaluated_geometry_field()
       .description("Selection on the iteration domain");
 
   if (output_storage) {
     for (const int i : IndexRange(output_storage->input_items.items_num)) {
       const NodeForeachGeometryElementInputItem &item = output_storage->input_items.items[i];
-      const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+      const eNodeSocketDatatype socket_type = item.socket_type;
       const UString name = item.name ? UString(item.name) : ""_ustr;
       const UString identifier(
           ForeachGeometryElementInputItemsAccessor::socket_identifier_for_item(item));
@@ -158,14 +158,17 @@ static void node_declare(NodeDeclarationBuilder &b)
           .socket_name_ptr(
               &tree->id, *ForeachGeometryElementInputItemsAccessor::item_srna, &item, "name")
           .description("Field that is evaluated on the iteration domain")
-          .field_on_all();
+          .evaluated_geometry_field();
       b.add_output(socket_type, name, identifier)
           .align_with_previous()
           .description("Evaluated field value for the current element");
     }
   }
 
-  b.add_input<decl::Extend>(""_ustr, "__extend__"_ustr).structure_type(StructureType::Dynamic);
+  b.add_input<decl::Extend>(""_ustr, "__extend__"_ustr)
+      .structure_type(StructureType::Dynamic)
+      .custom_draw(
+          socket_items::ui::draw_extend_socket_fn<ForeachGeometryElementInputItemsAccessor>());
   b.add_output<decl::Extend>(""_ustr, "__extend__"_ustr)
       .structure_type(StructureType::Dynamic)
       .align_with_previous();
@@ -258,7 +261,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     const NodeGeometryForeachGeometryElementOutput &storage = node_storage(*node);
     for (const int i : IndexRange(storage.main_items.items_num)) {
       const NodeForeachGeometryElementMainItem &item = storage.main_items.items[i];
-      const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+      const eNodeSocketDatatype socket_type = item.socket_type;
       const UString name = item.name ? UString(item.name) : ""_ustr;
       const UString identifier(
           ForeachGeometryElementMainItemsAccessor::socket_identifier_for_item(item));
@@ -269,10 +272,12 @@ static void node_declare(NodeDeclarationBuilder &b)
               "Attribute value that will be stored for the current element on the main geometry");
       b.add_output(socket_type, name, identifier)
           .align_with_previous()
-          .field_on({0})
+          .anonymous_attribute_output({0})
           .description("Attribute on the geometry above");
     }
-    b.add_input<decl::Extend>(""_ustr, "__extend__main"_ustr);
+    b.add_input<decl::Extend>(""_ustr, "__extend__main"_ustr)
+        .custom_draw(
+            socket_items::ui::draw_extend_socket_fn<ForeachGeometryElementMainItemsAccessor>());
     b.add_output<decl::Extend>(""_ustr, "__extend__main"_ustr).align_with_previous();
 
     auto &panel = b.add_panel("Generated"_ustr);
@@ -281,7 +286,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     int previous_input_geometry_index = -1;
     for (const int i : IndexRange(storage.generation_items.items_num)) {
       const NodeForeachGeometryElementGenerationItem &item = storage.generation_items.items[i];
-      const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+      const eNodeSocketDatatype socket_type = item.socket_type;
       if (socket_type == SOCK_GEOMETRY && i > 0) {
         panel.add_separator();
       }
@@ -307,13 +312,15 @@ static void node_declare(NodeDeclarationBuilder &b)
       else {
         if (previous_output_geometry_index > 0) {
           input_decl.description("Field that will be stored as attribute on the geometry above");
-          input_decl.field_on({previous_input_geometry_index});
-          output_decl.field_on({previous_output_geometry_index});
+          input_decl.evaluated_geometry_field({previous_input_geometry_index});
+          output_decl.anonymous_attribute_output({previous_output_geometry_index});
         }
         output_decl.description("Attribute on the geometry above");
       }
     }
-    panel.add_input<decl::Extend>(""_ustr, "__extend__generation"_ustr);
+    panel.add_input<decl::Extend>(""_ustr, "__extend__generation"_ustr)
+        .custom_draw(socket_items::ui::draw_extend_socket_fn<
+                     ForeachGeometryElementGenerationItemsAccessor>());
     panel.add_output<decl::Extend>(""_ustr, "__extend__generation"_ustr).align_with_previous();
   }
 }
@@ -403,7 +410,7 @@ static std::pair<bNode *, bNode *> add_foreach_zone(LinkSearchOpParams &params)
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const bNodeSocket &other_socket = params.other_socket();
-  const eNodeSocketDatatype type = eNodeSocketDatatype(other_socket.type);
+  const eNodeSocketDatatype type = other_socket.type;
   if (type != SOCK_GEOMETRY) {
     return;
   }

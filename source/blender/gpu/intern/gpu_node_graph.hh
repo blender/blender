@@ -13,7 +13,6 @@
 #include "DNA_listBase.h"
 
 #include "BLI_enum_flags.hh"
-#include "BLI_ghash.h"
 
 #include "GPU_material.hh"
 

@@ -5,11 +5,13 @@
 import bpy
 import typing
 import mathutils
+import numpy as np
 from .....io.com import gltf2_io
 from .....io.com import constants as gltf2_io_constants
 from .....blender.com.conversion import get_gltf_interpolation
 from .....io.exp import binary_data as gltf2_io_binary_data
 from .....io.exp.user_extensions import export_user_extensions
+from .....io.exp.meshopt import MeshoptEncoder
 from ....com.data_path import get_target_property_name
 from ....com import gltf2_blender_math
 from ...cache import cached
@@ -20,6 +22,7 @@ from .keyframes import gather_fcurve_keyframes
 
 @cached
 def gather_animation_fcurves_sampler(
+        id_type: str,
         obj_uuid: str,
         channel_group: typing.Tuple[bpy.types.FCurve],
         bone: typing.Optional[str],
@@ -31,6 +34,7 @@ def gather_animation_fcurves_sampler(
     # matrix_parent_inverse needed for fcurves?
 
     keyframes = __gather_keyframes(
+        id_type,
         obj_uuid,
         channel_group,
         bone,
@@ -43,7 +47,7 @@ def gather_animation_fcurves_sampler(
         return None
 
     # Now we are raw input/output, we need to convert to glTF data
-    input, output = __convert_keyframes(obj_uuid, channel_group, bone, keyframes, extra_mode, export_settings)
+    input, output = __convert_keyframes(id_type, obj_uuid, channel_group, bone, keyframes, extra_mode, export_settings)
 
     sampler = gltf2_io.AnimationSampler(
         extensions=None,
@@ -53,14 +57,16 @@ def gather_animation_fcurves_sampler(
         output=output
     )
 
-    blender_object = export_settings['vtree'].nodes[obj_uuid].blender_object
-    export_user_extensions('animation_gather_fcurve_channel_sampler', export_settings, blender_object, bone)
+    if id_type == 'OBJECT':
+        blender_object = export_settings['vtree'].nodes[obj_uuid].blender_object
+        export_user_extensions('animation_gather_fcurve_channel_sampler', export_settings, blender_object, bone)
 
     return sampler
 
 
 @cached
 def __gather_keyframes(
+        id_type: str,
         obj_uuid: str,
         channel_group: typing.Tuple[bpy.types.FCurve],
         bone: typing.Optional[str],
@@ -69,10 +75,11 @@ def __gather_keyframes(
         export_settings
 ):
 
-    return gather_fcurve_keyframes(obj_uuid, channel_group, bone, custom_range, extra_mode, export_settings)
+    return gather_fcurve_keyframes(id_type, obj_uuid, channel_group, bone, custom_range, extra_mode, export_settings)
 
 
 def __convert_keyframes(
+        id_type: str,
         obj_uuid: str,
         channel_group: typing.Tuple[bpy.types.FCurve],
         bone_name: typing.Optional[str],
@@ -81,20 +88,39 @@ def __convert_keyframes(
         export_settings):
 
     times = [k.seconds for k in keyframes]
+
+    binary_data = gltf2_io_binary_data.BinaryData.from_list(times, gltf2_io_constants.ComponentType.Float)
+    if export_settings['gltf_meshopt_compression']:
+        compressed_time, filter = MeshoptEncoder.encode_attribute(
+            'TIME', np.array(times, dtype=np.float32), 4, export_settings)
+        binary_data.set_extension(export_settings['gltf_meshopt_extension'], {
+            'buffer': compressed_time,  # to be filled in later by the exporter, use data in placeholder for now
+            'byteOffset': None,  # to be filled in later by the exporter
+            'byteLength': len(compressed_time),
+            'byteStride': 4,
+            'count': len(times),
+            'mode': 'ATTRIBUTES',
+            'filter': filter
+        })
+
     input = gather_accessor(
-        gltf2_io_binary_data.BinaryData.from_list(times, gltf2_io_constants.ComponentType.Float),
+        binary_data,
         gltf2_io_constants.ComponentType.Float,
         len(times),
         tuple([max(times)]),
         tuple([min(times)]),
         gltf2_io_constants.DataType.Scalar,
+        None,
         export_settings)
 
     is_yup = export_settings['gltf_yup']
 
-    need_rotation_correction = (
-        export_settings['gltf_cameras'] and export_settings['vtree'].nodes[obj_uuid].blender_type == VExportNode.CAMERA) or (
-        export_settings['gltf_lights'] and export_settings['vtree'].nodes[obj_uuid].blender_type == VExportNode.LIGHT)
+    if id_type == "OBJECT":
+        need_rotation_correction = (
+            export_settings['gltf_cameras'] and export_settings['vtree'].nodes[obj_uuid].blender_type == VExportNode.CAMERA) or (
+            export_settings['gltf_lights'] and export_settings['vtree'].nodes[obj_uuid].blender_type == VExportNode.LIGHT)
+    else:
+        need_rotation_correction = False
 
     target_datapath = [c for c in channel_group if c is not None][0].data_path
 
@@ -136,12 +162,15 @@ def __convert_keyframes(
         transform = correction_matrix_local
 
     else:
-        if export_settings['vtree'].nodes[obj_uuid].blender_object.parent is not None:
-            matrix_parent_inverse = export_settings['vtree'].nodes[obj_uuid].blender_object.matrix_parent_inverse.copy(
-            ).freeze()
+        if id_type == "OBJECT":
+            if export_settings['vtree'].nodes[obj_uuid].blender_object.parent is not None:
+                matrix_parent_inverse = export_settings['vtree'].nodes[obj_uuid].blender_object.matrix_parent_inverse.copy(
+                ).freeze()
+            else:
+                matrix_parent_inverse = mathutils.Matrix.Identity(4).freeze()
+            transform = matrix_parent_inverse
         else:
-            matrix_parent_inverse = mathutils.Matrix.Identity(4).freeze()
-        transform = matrix_parent_inverse
+            transform = mathutils.Matrix.Identity(4).freeze()
 
     values = []
     fps = (bpy.context.scene.render.fps * bpy.context.scene.render.fps_base)
@@ -158,16 +187,22 @@ def __convert_keyframes(
             continue
 
         # Transform the data and build gltf control points
-        value = gltf2_blender_math.transform(keyframe.value, target_datapath, transform, need_rotation_correction)
-        if is_yup and bone_name is None:
+        if id_type not in ["NODETREE", "MATERIAL"]:
+            value = gltf2_blender_math.transform(keyframe.value, target_datapath, transform, need_rotation_correction)
+        else:
+            value = keyframe.value
+        if is_yup and bone_name is None and id_type not in ["NODETREE", "MATERIAL"]:
             value = gltf2_blender_math.swizzle_yup(value, target_datapath)
         keyframe_value = gltf2_blender_math.mathutils_to_gltf(value)
 
         if keyframe.in_tangent is not None:
             # we can directly transform the tangent as it currently is represented by a control point
-            in_tangent = gltf2_blender_math.transform(
-                keyframe.in_tangent, target_datapath, transform, need_rotation_correction)
-            if is_yup and bone_name is None:
+            if id_type not in ["NODETREE", "MATERIAL"]:
+                in_tangent = gltf2_blender_math.transform(
+                    keyframe.in_tangent, target_datapath, transform, need_rotation_correction)
+            else:
+                in_tangent = keyframe.in_tangent
+            if is_yup and bone_name is None and id_type not in ["NODETREE", "MATERIAL"]:
                 in_tangent = gltf2_blender_math.swizzle_yup(in_tangent, target_datapath)
             # the tangent in glTF is relative to the keyframe value and uses seconds
             if not isinstance(value, list):
@@ -178,9 +213,12 @@ def __convert_keyframes(
 
         if keyframe.out_tangent is not None:
             # we can directly transform the tangent as it currently is represented by a control point
-            out_tangent = gltf2_blender_math.transform(
-                keyframe.out_tangent, target_datapath, transform, need_rotation_correction)
-            if is_yup and bone_name is None:
+            if id_type not in ["NODETREE", "MATERIAL"]:
+                out_tangent = gltf2_blender_math.transform(
+                    keyframe.out_tangent, target_datapath, transform, need_rotation_correction)
+            else:
+                out_tangent = keyframe.out_tangent
+            if is_yup and bone_name is None and id_type not in ["NODETREE", "MATERIAL"]:
                 out_tangent = gltf2_blender_math.swizzle_yup(out_tangent, target_datapath)
             # the tangent in glTF is relative to the keyframe value and uses seconds
             if not isinstance(value, list):
@@ -199,8 +237,72 @@ def __convert_keyframes(
     else:
         data_type = gltf2_io_constants.DataType.vec_type_from_num(len(keyframes[0].value))
 
+    binary_data = gltf2_io_binary_data.BinaryData.from_list(values, component_type)
+    output_normalized = None
+
+    if export_settings['gltf_meshopt_compression']:
+
+        compressed_type = {
+            'location': 'POSITION',
+            'rotation_quaternion': 'ROTATION',
+            'rotation_euler': 'ROTATION',
+            'scale': 'SCALE',
+        }.get(target_datapath, None)
+
+        if compressed_type is not None:
+            target = target_datapath
+
+        if compressed_type is None and target_datapath.startswith('key_blocks'):
+            compressed_type = 'SK_ANIM'
+
+        if compressed_type is None and target_datapath.startswith('pose.bones'):
+            compressed_type = {
+                'location': 'POSITION',
+                'rotation_quaternion': 'ROTATION',
+                'rotation_euler': 'ROTATION',
+                'scale': 'SCALE',
+            }.get(get_target_property_name(target_datapath), None)
+
+            if compressed_type is not None:
+                target = get_target_property_name(target_datapath)
+
+        byteStride = {
+            'location': 12,
+            'rotation_quaternion': 8,
+            'rotation_euler': 8,
+            'scale': 12,
+        }.get(target, None)
+
+        if compressed_type is not None and byteStride is None:
+            byteStride = 4  # SK_ANIM
+
+        if compressed_type is not None:
+            num_components = gltf2_io_constants.DataType.num_elements(data_type)
+            compressed_values, filter = MeshoptEncoder.encode_attribute(compressed_type, np.array(
+                values, dtype=np.float32).reshape(-1, num_components), byteStride, export_settings)
+
+            if filter == 'QUATERNION':
+                component_type = gltf2_io_constants.ComponentType.Short
+                output_normalized = True
+            else:
+                output_normalized = None
+
+            binary_data.set_extension(export_settings['gltf_meshopt_extension'], {
+                'buffer': compressed_values,  # to be filled in later by the exporter, use data in placeholder for now
+                'byteOffset': None,  # to be filled in later by the exporter
+                'byteLength': len(compressed_values),
+                'count': len(values) // gltf2_io_constants.DataType.num_elements(data_type),
+                'byteStride': byteStride,
+                'mode': 'ATTRIBUTES',
+                'filter': filter
+            })
+
+        else:
+            export_settings['log'].warning(
+                f"Meshopt compression for channel {target_datapath} is not supported, skipping compression for this channel")
+
     output = gltf2_io.Accessor(
-        buffer_view=gltf2_io_binary_data.BinaryData.from_list(values, component_type),
+        buffer_view=binary_data,
         byte_offset=None,
         component_type=component_type,
         count=len(values) // gltf2_io_constants.DataType.num_elements(data_type),
@@ -209,7 +311,7 @@ def __convert_keyframes(
         max=None,
         min=None,
         name=None,
-        normalized=None,
+        normalized=output_normalized,
         sparse=None,
         type=data_type
     )

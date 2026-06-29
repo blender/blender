@@ -71,7 +71,7 @@ PassMain::Sub &MeshPass::get_subpass(eGeometryType geometry_type,
 {
   is_empty_ = false;
 
-  if (texture && texture->gpu.texture && *texture->gpu.texture) {
+  if (texture && texture->gpu.texture) {
     auto add_cb = [&] {
       PassMain::Sub *sub_pass = &get_subpass(geometry_type, eShaderType::TEXTURE);
       sub_pass = &sub_pass->sub(texture->name);
@@ -93,7 +93,7 @@ PassMain::Sub &MeshPass::get_subpass(eGeometryType geometry_type,
     };
 
     return *texture_subpass_map_.lookup_or_add_cb(
-        {*texture->gpu.texture, texture->sampler_state, geometry_type}, add_cb);
+        {texture->gpu.texture, texture->sampler_state, geometry_type}, add_cb);
   }
 
   return get_subpass(geometry_type, eShaderType::MATERIAL);
@@ -149,12 +149,12 @@ void OpaquePass::draw(Manager &manager,
   if (is_empty()) {
     return;
   }
-  gbuffer_material_tx.acquire(resolution,
-                              gpu::TextureFormat::SFLOAT_16_16_16_16,
-                              GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
-  gbuffer_normal_tx.acquire(resolution,
-                            gpu::TextureFormat::SFLOAT_16_16,
-                            GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
+  gbuffer_material_tx.acquire_2d(resolution,
+                                 gpu::TextureFormat::SFLOAT_16_16_16_16,
+                                 GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
+  gbuffer_normal_tx.acquire_2d(resolution,
+                               gpu::TextureFormat::SFLOAT_16_16,
+                               GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
 
   GPUAttachment object_id_attachment = GPU_ATTACHMENT_NONE;
   if (resources.object_id_tx.is_valid()) {
@@ -263,12 +263,12 @@ void TransparentPass::draw(Manager &manager,
   if (is_empty()) {
     return;
   }
-  accumulation_tx.acquire(resolution,
-                          gpu::TextureFormat::SFLOAT_16_16_16_16,
-                          GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
-  reveal_tx.acquire(resolution,
-                    gpu::TextureFormat::SFLOAT_16,
-                    GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
+  accumulation_tx.acquire_2d(resolution,
+                             gpu::TextureFormat::SFLOAT_16_16_16_16,
+                             GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
+  reveal_tx.acquire_2d(resolution,
+                       gpu::TextureFormat::SFLOAT_16,
+                       GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
 
   resolve_fb.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(resources.color_tx));
 

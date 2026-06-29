@@ -108,7 +108,7 @@ void IDProp_Init_Types();
 /**
  * Create an IDProperty from a Python object.
  *
- * \param prop_exists: pre-existing IDProperty to populate with the value. Can be `nullptr` to
+ * \param prop_exist: pre-existing IDProperty to populate with the value. Can be `nullptr` to
  * allocate a new IDProperty.
  * \param name: the name of the IDProperty. Only used when creating a new IDProperty.
  * \param ob: the Python object to convert.

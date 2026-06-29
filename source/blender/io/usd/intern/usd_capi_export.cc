@@ -46,13 +46,13 @@
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 
-#include "BLI_fileops.h"
+#include "BLI_fileops.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_timeit.hh"
 
 #include "ED_util.hh"
@@ -404,12 +404,12 @@ std::string cache_image_color(const float color[4])
     return file_path;
   }
 
-  ImBuf *ibuf = IMB_allocImBuf(1, 1, 32, IB_float_data);
+  ImBuf *ibuf = IMB_allocImBuf(1, 1, ImBufFlags::FloatData);
   IMB_rectfill(ibuf, color);
   ibuf->ftype = IMB_FTYPE_OPENEXR;
   ibuf->foptions.flag = R_IMF_EXR_CODEC_RLE;
 
-  if (IMB_save_image(ibuf, file_path.c_str(), IB_float_data)) {
+  if (IMB_save_image(ibuf, file_path.c_str(), ImBufFlags::FloatData)) {
     CLOG_INFO(&LOG, "%s", file_path.c_str());
   }
   else {

@@ -23,18 +23,18 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_assert.h"
-#include "BLI_ghash.h"
-#include "BLI_listbase.h"
-#include "BLI_math_color.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_session_uid.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_assert.hh"
+#include "BLI_ghash.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_session_uid.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -139,7 +139,7 @@ static void action_copy_data(Main * /*bmain*/,
   BKE_copy_time_markers(action_dst.markers, action_src.markers, flag);
 
   /* Copy F-Curves, fixing up the links as we go. */
-  BLI_listbase_clear(&action_dst.curves);
+  action_dst.curves.clear_no_delete();
 
   for (fcurve_src = static_cast<FCurve *>(action_src.curves.first); fcurve_src;
        fcurve_src = fcurve_src->next)
@@ -235,10 +235,10 @@ static void action_free_data(ID *id)
 
   /* Free legacy F-Curves & groups. */
   BKE_fcurves_free(&action.curves);
-  BLI_freelistN(&action.groups);
+  action.groups.free_no_destruct();
 
   /* Free markers & preview. */
-  BLI_freelistN(&action.markers);
+  action.markers.free_no_destruct();
   BKE_previewimg_id_free(&action.id);
 
   BLI_assert(action.is_empty());
@@ -404,7 +404,7 @@ static void action_blend_write_make_legacy_channel_groups_listbase(
     ListBaseT<bActionGroup> &listbase, const Span<bActionGroup *> channel_groups)
 {
   if (channel_groups.is_empty()) {
-    BLI_listbase_clear(&listbase);
+    listbase.clear_no_delete();
     return;
   }
 
@@ -443,7 +443,7 @@ static void action_blend_write_clear_legacy_channel_groups_listbase(
     group.channels = {nullptr, nullptr};
   }
 
-  BLI_listbase_clear(&listbase);
+  listbase.clear_no_delete();
 }
 
 /**
@@ -464,7 +464,7 @@ static void action_blend_write_make_legacy_fcurves_listbase(ListBaseT<FCurve> &l
                                                             const Span<FCurve *> fcurves)
 {
   if (fcurves.is_empty()) {
-    BLI_listbase_clear(&listbase);
+    listbase.clear_no_delete();
     return;
   }
 
@@ -486,7 +486,7 @@ static void action_blend_write_clear_legacy_fcurves_listbase(ListBaseT<FCurve> &
     fcurve.next = nullptr;
   }
 
-  BLI_listbase_clear(&listbase);
+  listbase.clear_no_delete();
 }
 
 static void action_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -497,10 +497,9 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
    * bottom layer, first Keyframe strip. */
   const bool do_write_forward_compat = !BLO_write_is_undo(writer) && action.slot_array_num > 0;
   if (do_write_forward_compat) {
-    BLI_assert_msg(BLI_listbase_is_empty(&action.curves),
-                   "Layered Action should not have legacy data");
-    BLI_assert_msg(BLI_listbase_is_empty(&action.groups),
-                   "Layered Action should not have legacy data");
+    animrig::assert_baklava_phase_1_invariants(action);
+    BLI_assert_msg(action.curves.is_empty(), "Layered Action should not have legacy data");
+    BLI_assert_msg(action.groups.is_empty(), "Layered Action should not have legacy data");
 
     const animrig::Slot &first_slot = *action.slot(0);
 
@@ -690,8 +689,8 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
 
   if (animrig::versioning::action_is_layered(action)) {
     /* Clear the forward-compatible storage (see action_blend_write_data()). */
-    BLI_listbase_clear(&action.curves);
-    BLI_listbase_clear(&action.groups);
+    action.curves.clear_no_delete();
+    action.groups.clear_no_delete();
 
     /* Layered actions should always have `idroot == 0`, but when writing an
      * action to a blend file `idroot` is typically set otherwise for forward
@@ -754,7 +753,7 @@ IDTypeInfo IDType_ID_AC = {
     .main_listbase_index = INDEX_ID_AC,
     .struct_size = sizeof(bAction),
     .name = "Action",
-    .name_plural = "actions",
+    .name_plural = N_("actions"),
     .translation_context = BLT_I18NCONTEXT_ID_ACTION,
     .flags = IDTYPE_FLAGS_NO_ANIMDATA,
     .asset_type_info = &bke::AssetType_AC,
@@ -855,9 +854,9 @@ const Bone *bPoseChannel::bone_get(const bArmature &armature) const
     /* This is a valid use case, as the nullptr is used to determine whether the bone exists. See
      * BKE_pose_channels_clear_with_null_bone().
      *
-     * In the future, this could be handled by another function (like `bool bone_exists(...)` while
-     * this one can then return a reference instead of a pointer. Currently that is not yet done,
-     * to keep the introduction of this function semantically close to the bPoseChannel::bone
+     * In the future, this could be handled by another function (like `bool bone_exists(...)`)
+     * while this one can then return a reference instead of a pointer. Currently that is not yet
+     * done, to keep the introduction of this function semantically close to the bPoseChannel::bone
      * pointer it replaces. */
     return nullptr;
   }
@@ -1020,7 +1019,7 @@ bPoseChannel *BKE_pose_channel_active_or_first_selected(Object *ob)
   }
 
   bPoseChannel *pchan = BKE_pose_channel_active_if_bonecoll_visible(ob);
-  if (pchan && animrig::bone_is_selected(arm, pchan)) {
+  if (pchan && animrig::bone_is_selected(arm, {pchan, pchan->bone_get(*ob)})) {
     return pchan;
   }
 
@@ -1406,12 +1405,12 @@ void BKE_pose_channel_free(bPoseChannel *pchan)
 
 void BKE_pose_channels_free_ex(bPose *pose, bool do_id_user)
 {
-  if (!BLI_listbase_is_empty(&pose->chanbase)) {
+  if (!pose->chanbase.is_empty()) {
     for (bPoseChannel &pchan : pose->chanbase) {
       BKE_pose_channel_free_ex(&pchan, do_id_user);
     }
 
-    BLI_freelistN(&pose->chanbase);
+    pose->chanbase.free_no_destruct();
   }
 
   BKE_pose_channels_hash_free(pose);
@@ -1431,7 +1430,7 @@ void BKE_pose_free_data_ex(bPose *pose, bool do_id_user)
 
   /* free pose-groups */
   if (pose->agroups.first) {
-    BLI_freelistN(&pose->agroups);
+    pose->agroups.free_no_destruct();
   }
 
   /* free IK solver state */
@@ -1626,7 +1625,7 @@ bActionGroup *BKE_pose_add_group(bPose *pose, const char *name)
   BLI_addtail(&pose->agroups, grp);
   BLI_uniquename(&pose->agroups, grp, name, '.', offsetof(bActionGroup, name), sizeof(grp->name));
 
-  pose->active_group = BLI_listbase_count(&pose->agroups);
+  pose->active_group = pose->agroups.count();
 
   return grp;
 }
@@ -1657,7 +1656,7 @@ void BKE_pose_remove_group(bPose *pose, bActionGroup *grp, const int index)
   /* now, remove it from the pose */
   BLI_freelinkN(&pose->agroups, grp);
   if (pose->active_group >= idx) {
-    const bool has_groups = !BLI_listbase_is_empty(&pose->agroups);
+    const bool has_groups = !pose->agroups.is_empty();
     pose->active_group--;
     if (pose->active_group == 0 && has_groups) {
       pose->active_group = 1;
@@ -1780,7 +1779,7 @@ void what_does_obaction(Object *ob,
                         bPose *pose,
                         bAction *act,
                         const int32_t action_slot_handle,
-                        char groupname[],
+                        const char groupname[],
                         const AnimationEvalContext *anim_eval_context)
 {
   using namespace blender::animrig;
@@ -1878,7 +1877,7 @@ void BKE_pose_check_uids_unique_and_report(const bPose *pose)
 
   for (bPoseChannel &pchan : pose->chanbase) {
     const SessionUID *session_uid = &pchan.runtime.session_uid;
-    if (!BLI_session_uid_is_generated(session_uid)) {
+    if (!session_uid->is_generated()) {
       printf("Pose channel %s does not have UID generated.\n", pchan.name);
       continue;
     }
@@ -1966,8 +1965,8 @@ void BKE_pose_blend_read_data(BlendDataReader *reader, ID *id_owner, bPose *pose
       animviz_motionpath_blend_read_data(reader, pchan.mpath);
     }
 
-    BLI_listbase_clear(&pchan.iktree);
-    BLI_listbase_clear(&pchan.siktree);
+    pchan.iktree.clear_no_delete();
+    pchan.siktree.clear_no_delete();
 
     /* in case this value changes in future, clamp else we get undefined behavior */
     CLAMP(pchan.rotmode, ROT_MODE_MIN, ROT_MODE_MAX);

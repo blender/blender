@@ -21,13 +21,13 @@
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_dynstr.h"
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
+#include "BLI_dynstr.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_base_c.hh"
 #include "BLI_mutex.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -1155,7 +1155,7 @@ char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen, i
 bool RNA_struct_available_or_report(ReportList *reports, const char *identifier)
 {
   const StructRNA *srna_exists = RNA_struct_find(identifier);
-  if (UNLIKELY(srna_exists != nullptr)) {
+  if (srna_exists != nullptr) [[unlikely]] {
     /* Use comprehensive string construction since this is such a rare occurrence
      * and information here may cut down time troubleshooting. */
     DynStr *dynstr = BLI_dynstr_new();
@@ -2526,7 +2526,9 @@ static void rna_property_update(
     /* End message bus. */
   }
 
-  if (!is_rna || (prop->flag & PROP_IDPROPERTY)) {
+  const bool is_idprop = prop->flag & PROP_IDPROPERTY;
+  const bool use_deg_update = !(prop->flag & PROP_NO_DEG_UPDATE);
+  if (!is_rna || (is_idprop && use_deg_update)) {
 
     /* Disclaimer: this logic is not applied consistently, causing some confusing behavior.
      *
@@ -4161,6 +4163,7 @@ int RNA_property_string_length(PointerRNA *ptr, PropertyRNA *prop)
    * length. Otherwise, get the 'storage length', which is typically more efficient to compute. */
   if (sprop->get_transform) {
     std::string string_final = property_string_get(ptr, prop_rna_or_id);
+    string_final = sprop->get_transform(ptr, sprop, string_final, prop_rna_or_id.is_set);
     return int(string_final.size());
   }
   return int(property_string_length_storage(ptr, prop_rna_or_id));
@@ -4970,7 +4973,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
     }
     IDP_AppendArray(idprop, item);
     /* IDP_AppendArray does a shallow copy (memcpy), only free memory. */
-    // IDP_FreePropertyContent(item);
+    // IDP_FreeProperty(item);
     MEM_delete(item);
     rna_idproperty_touch(idprop);
   }
@@ -4988,7 +4991,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
       }
       IDP_AppendArray(idprop, item);
       /* #IDP_AppendArray does a shallow copy (memcpy), only free memory. */
-      // IDP_FreePropertyContent(item);
+      // IDP_FreeProperty(item);
       MEM_delete(item);
     }
   }
@@ -5303,12 +5306,14 @@ bool RNA_property_collection_assign_int(PointerRNA *ptr,
   return false;
 }
 
-bool RNA_property_collection_type_get(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr)
+std::optional<PointerRNA> RNA_property_collection_type_get(PointerRNA *ptr, PropertyRNA *prop)
 {
   BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
-
-  *r_ptr = *ptr;
-  return ((r_ptr->type = rna_ensure_property(prop)->srna) ? 1 : 0);
+  StructRNA *type = rna_ensure_property(prop)->srna;
+  if (type == nullptr) {
+    return std::nullopt;
+  }
+  return RNA_pointer_create_with_parent(*ptr, type, ptr->data);
 }
 
 int RNA_property_collection_raw_array(
@@ -6449,7 +6454,7 @@ void rna_iterator_array_begin(CollectionPropertyIterator *iter,
     data = nullptr;
     itemsize = 0;
   }
-  else if (UNLIKELY(length < 0 || length > std::numeric_limits<uint64_t>::max() / itemsize)) {
+  else if (length < 0 || length > std::numeric_limits<uint64_t>::max() / itemsize) [[unlikely]] {
     /* This path is never expected to execute. Assert and trace if it ever does. */
     BLI_assert_unreachable();
     data = nullptr;
@@ -6515,7 +6520,7 @@ PointerRNA rna_array_lookup_int(
   if (index < 0 || index >= length) {
     return PointerRNA_NULL;
   }
-  if (UNLIKELY(index > std::numeric_limits<uint64_t>::max() / itemsize)) {
+  if (index > std::numeric_limits<uint64_t>::max() / itemsize) [[unlikely]] {
     /* This path is never expected to execute. Assert and trace if it ever does. */
     BLI_assert_unreachable();
     return PointerRNA_NULL;
@@ -7330,19 +7335,9 @@ std::string RNA_property_as_string(
       }
       break;
     case PROP_STRING: {
-      char *buf_esc;
-      char *buf;
-      int length;
-
-      length = RNA_property_string_length(ptr, prop);
-      buf = MEM_new_array_uninitialized<char>(size_t(length) + 1, "RNA_property_as_string");
-      buf_esc = MEM_new_array_uninitialized<char>(size_t(length) * 2 + 1,
-                                                  "RNA_property_as_string esc");
-      RNA_property_string_get(ptr, prop, buf);
-      BLI_str_escape(buf_esc, buf, length * 2 + 1);
-      MEM_delete(buf);
-      ss << fmt::format("\"{}\"", buf_esc);
-      MEM_delete(buf_esc);
+      const std::string str_value = RNA_property_string_get(ptr, prop);
+      const std::string escaped = BLI_str_escape(str_value.c_str());
+      ss << fmt::format("\"{}\"", escaped.c_str());
       break;
     }
     case PROP_ENUM: {

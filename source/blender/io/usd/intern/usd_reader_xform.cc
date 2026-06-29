@@ -13,7 +13,7 @@
 
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "DNA_cachefile_types.h"
 #include "DNA_constraint_types.h"
@@ -84,7 +84,7 @@ void USDXformReader::read_matrix(float4x4 &r_mat /* local matrix */,
 
   /* Apply global scaling and rotation only to root objects, parenting
    * will propagate it. */
-  if (is_root_xform_) {
+  if (is_root_xform_prim()) {
     if (scale != 1.0f) {
       const float4x4 mat_scale = math::from_scale<float4x4>(float3(scale));
       r_mat = mat_scale * r_mat;

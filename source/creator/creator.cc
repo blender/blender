@@ -31,14 +31,14 @@
 
 #include "DNA_genfile.h"
 
-#include "BLI_endian_defines.h"
+#include "BLI_endian_defines.hh"
 #include "BLI_fftw.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_system.h"
-#include "BLI_task.h"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_system.hh"
+#include "BLI_task_c.hh"
+#include "BLI_threads.hh"
+#include "BLI_utildefines.hh"
 
 /* Mostly initialization functions. */
 #include "BKE_appdir.hh"
@@ -59,7 +59,7 @@
 #include "BKE_volume.hh"
 
 #ifndef WITH_PYTHON_MODULE
-#  include "BLI_args.h"
+#  include "BLI_args.hh"
 #endif
 
 #include "DEG_depsgraph.hh"
@@ -179,6 +179,7 @@ namespace blender {
 ApplicationState app_state = []() {
   ApplicationState app_state{};
   app_state.signal.use_crash_handler = true;
+  app_state.signal.use_console_crash_handler = false;
   app_state.signal.use_abort_handler = true;
   app_state.exit_code_on_error.python = 0;
   app_state.main_arg_deferred = nullptr;
@@ -417,7 +418,7 @@ int main(int argc,
   {
     const time_t temp_time = build_commit_timestamp;
     const tm *tm = gmtime(&temp_time);
-    if (LIKELY(tm)) {
+    if (tm) [[likely]] {
       strftime(build_commit_date, sizeof(build_commit_date), "%Y-%m-%d", tm);
       strftime(build_commit_time, sizeof(build_commit_time), "%H:%M", tm);
     }
@@ -551,6 +552,10 @@ int main(int argc,
   CCL_log_init();
   CCL_implicit_sharing_init();
 #endif
+
+  /* Set max open files to better handle production files that may use many
+   * open geometry or texture cache file handles. After logging since it's used .*/
+  BLI_system_max_open_files_ensure();
 
   /* Must be initialized after #BKE_appdir_init to account for color-management paths. */
   IMB_init();

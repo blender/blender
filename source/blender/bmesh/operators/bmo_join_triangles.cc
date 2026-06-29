@@ -15,11 +15,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_heap.h"
-#include "BLI_math_base.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
+#include "BLI_heap.hh"
+#include "BLI_math_base_c.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "BKE_customdata.hh"
 
@@ -167,7 +167,7 @@ struct JoinEdgesState {
  *
  * A quad that is concave has higher error.
  *
- * \param v1,v2,v3,v4: The four corner coordinates of the quad.
+ * \param v1, v2, v3, v4: The four corner coordinates of the quad.
  * \return The computed error associated with the quad.
  */
 static float quad_calc_error(const float v1[3],
@@ -490,11 +490,9 @@ struct JoinEdgesNeighborInfo {
  * of a freshly merged quad might be seen as a neighbor of _both_ the quad edges it touches,
  * (depending on the triangulation), and might get double the improvement it deserves.
  *
- * \param merge_edges: the array to add the merge edges to
- * \param shared_loops: the array to add the shared loops to
- * \param count: the number of items currently in each array.
- * \param e: The new merge edge to add to the array, if it's not a duplicate.
- * \param l: The new shared loop to add to the array, if the edge isn't a duplicate
+ * \param neighbor_info: the collection of neighbor items to add to.
+ * \param e: The new merge edge to add, if it's not a duplicate.
+ * \param l: The new shared loop to add, if the edge isn't a duplicate.
  */
 static void add_without_duplicates(JoinEdgesNeighborInfo &neighbor_info, BMEdge *e, BMLoop *l)
 {
@@ -517,11 +515,9 @@ static void add_without_duplicates(JoinEdgesNeighborInfo &neighbor_info, BMEdge 
 }
 
 /**
- * Add the neighboring edges of a given loop to the `merge_edges` and `shared_loops` arrays.
+ * Add the neighboring edges of a given loop to the `neighbor_info` collection.
  *
- * \param merge_edges: the array of mergeable edges to add to.
- * \param shared_loops: the array to shared loops to add to.
- * \param count: the number of items currently in each array.
+ * \param neighbor_info: the collection of neighbor items to add to.
  * \param l_in_quad: The loop to add the neighboring edges of, if they check out.
  */
 static void add_neighbors(JoinEdgesNeighborInfo &neighbor_info, BMLoop *l_in_quad)
@@ -962,15 +958,22 @@ static BMFace *bm_faces_join_pair_by_edge(BMesh *bm,
   }
 #endif
 
-  BMFace *f_double;
+  /* NOTE(@ideasman42): there isn't a great option here.
+   * - Join triangles shouldn't replace faces that haven't been selected (may be hidden).
+   *   (with the principle of only manipulating out inputs).
+   * - The inputs could be deleted - but this is likely not what users want/expect.
+   *
+   * Seeing as there are often other combinations that can be joined,
+   * opt for rejecting the join entirely - allow other pairs to be joined instead.
+   *
+   * See #BM_faces_join note on `r_double`. The corners match #bm_edge_to_quad_verts winding. */
+  BMVert *v_quad[4] = {l_a->v, l_b->prev->v, l_a->next->v, l_a->prev->v};
+  if (BM_face_exists(v_quad, 4) != nullptr) [[unlikely]] {
+    return nullptr;
+  }
 
   /* Join the edge and identify the face. */
-  BMFace *f = BM_faces_join_pair(bm, l_a, l_b, true, &f_double);
-  /* See #BM_faces_join note on callers asserting when `r_double` is non-null. */
-  BLI_assert_msg(f_double == nullptr,
-                 "Doubled face detected at " AT ". Resulting mesh may be corrupt.");
-
-  return f;
+  return BM_faces_join_pair(bm, l_a, l_b, true, nullptr);
 }
 
 /** Given a mesh, convert triangles to quads. */

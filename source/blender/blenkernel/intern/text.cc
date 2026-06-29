@@ -15,13 +15,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_fileops.h"
-#include "BLI_listbase.h"
+#include "BLI_fileops.hh"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_string_cursor_utf8.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_string_cursor_utf8.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -74,7 +74,7 @@ static void text_init_data(ID *id)
     text->flags |= TXT_TABSTOSPACES;
   }
 
-  BLI_listbase_clear(&text->lines);
+  text->lines.clear_no_delete();
 
   TextLine *tmp = txt_line_malloc();
   tmp->line = MEM_new_array_uninitialized<char>(1, "textline_string");
@@ -120,7 +120,7 @@ static void text_copy_data(Main * /*bmain*/,
 
   text_dst->flags |= TXT_ISDIRTY;
 
-  BLI_listbase_clear(&text_dst->lines);
+  text_dst->lines.clear_no_delete();
   text_dst->curl = text_dst->sell = nullptr;
   text_dst->compiled = nullptr;
 
@@ -276,7 +276,7 @@ void BKE_text_free_lines(Text *text)
     MEM_delete(tmp);
   }
 
-  BLI_listbase_clear(&text->lines);
+  text->lines.clear_no_delete();
 
   text->curl = text->sell = nullptr;
 }
@@ -361,7 +361,7 @@ static void text_from_buf(Text *text, const uchar *buffer, const int len)
 {
   int i, llen, lines_count;
 
-  BLI_assert(BLI_listbase_is_empty(&text->lines));
+  BLI_assert(text->lines.is_empty());
 
   llen = 0;
   lines_count = 0;
@@ -476,7 +476,7 @@ Text *BKE_text_load_ex(Main *bmain,
   id_us_min(&ta->id);
   id_fake_user_set(&ta->id);
 
-  BLI_listbase_clear(&ta->lines);
+  ta->lines.clear_no_delete();
   ta->curl = ta->sell = nullptr;
 
   if ((U.flag & USER_TXT_TABSTOSPACES_DISABLE) == 0) {
@@ -1290,7 +1290,7 @@ void txt_sel_set(Text *text, int startl, int startc, int endl, int endc)
 
   /* Support negative indices. */
   if (startl < 0 || endl < 0) {
-    int end = BLI_listbase_count(&text->lines) - 1;
+    int end = text->lines.count() - 1;
     if (startl < 0) {
       startl = end + startl + 1;
     }
@@ -1372,7 +1372,7 @@ void txt_from_buf_for_undo(Text *text, const char *buf, size_t buf_len)
    * Good for undo since it means in practice many operations re-use all
    * except for the modified line. */
   TextLine *l_src = static_cast<TextLine *>(text->lines.first);
-  BLI_listbase_clear(&text->lines);
+  text->lines.clear_no_delete();
   while (buf_step != buf_end && l_src) {
     /* New lines are ensured by #txt_to_buf_for_undo. */
     const char *buf_step_next = strchr(buf_step, '\n');
@@ -1433,7 +1433,7 @@ void txt_from_buf_for_undo(Text *text, const char *buf, size_t buf_len)
 
 char *txt_to_buf(Text *text, size_t *r_buf_strlen)
 {
-  const bool has_data = !BLI_listbase_is_empty(&text->lines);
+  const bool has_data = !text->lines.is_empty();
   /* Identical to #txt_to_buf_for_undo except that the string is nil terminated. */
   size_t buf_len = 0;
   for (const TextLine &l : text->lines) {
@@ -1556,7 +1556,7 @@ void txt_insert_buf(Text *text, const char *in_buffer, int in_buffer_len)
   buffer = BLI_strdupn(in_buffer, in_buffer_len);
   in_buffer_len += txt_extended_ascii_as_utf8(&buffer);
 
-  /* Read the first line (or as close as possible */
+  /* Read the first line (or as close as possible). */
   while (buffer[i] && buffer[i] != '\n') {
     txt_add_raw_char(text, BLI_str_utf8_as_unicode_step_safe(buffer, in_buffer_len, &i));
   }
@@ -2385,7 +2385,7 @@ bool text_check_whitespace(const char ch)
 
 int text_find_identifier_start(const char *str, int i)
 {
-  if (UNLIKELY(i <= 0)) {
+  if (i <= 0) [[unlikely]] {
     return 0;
   }
 

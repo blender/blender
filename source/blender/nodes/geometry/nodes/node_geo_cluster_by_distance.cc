@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array.hh"
+#include "BLI_array_utils.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_kdtree.hh"
 
@@ -16,13 +17,19 @@ namespace blender::nodes::node_geo_cluster_by_distance_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Bool>("Selection"_ustr).default_value(true).supports_field().hide_value();
-  b.add_input<decl::Int>("Group ID"_ustr).supports_field().hide_value();
+  b.add_input<decl::Bool>("Selection"_ustr)
+      .default_value(true)
+      .structure_type(StructureType::Field)
+      .hide_value();
+  b.add_input<decl::Int>("Group ID"_ustr).structure_type(StructureType::Field).hide_value();
   b.add_input<decl::Vector>("Position"_ustr)
-      .implicit_field_on_all(NODE_DEFAULT_INPUT_POSITION_FIELD);
+      .default_input_type(NODE_DEFAULT_INPUT_POSITION_FIELD)
+      .structure_type(StructureType::Field);
   b.add_input<decl::Float>("Distance"_ustr).default_value(0.001f).min(0.0f).subtype(PROP_DISTANCE);
 
-  b.add_output<decl::Int>("Cluster ID"_ustr).field_source_reference_all();
+  b.add_output<decl::Int>("Cluster ID"_ustr)
+      .structure_type(StructureType::Field)
+      .propagate_references();
 }
 
 constexpr int NO_CLUSTER_VALUE = -1;
@@ -86,9 +93,8 @@ class ClusterByDistanceFieldInput final : public bke::GeometryFieldInput {
 
     Array<int> cluster_ids(mask.min_array_size());
 
-    const IndexMask mask_to_fallback = IndexMask::from_difference(mask, selection, memory);
-    mask_to_fallback.foreach_index_optimized<int>([&](const int i) { cluster_ids[i] = i; },
-                                                  exec_mode::parallel);
+    const IndexMask mask_to_fallback = IndexMask::from_difference(mask, mask_to_cluster, memory);
+    array_utils::fill_index_range<int>(mask_to_fallback, cluster_ids);
 
     std::optional<VArraySpan<int>> group_id_span;
     const auto group_indices = [&]() -> VectorSet<int> {
@@ -104,13 +110,14 @@ class ClusterByDistanceFieldInput final : public bke::GeometryFieldInput {
 
     const int groups_num = group_indices.size();
     if (groups_num == 1) {
-      KDTree<float3> *tree = kdtree_new<float3>(selection.size());
-      selection.foreach_index([&](const int i) { kdtree_insert<float3>(tree, i, positions[i]); });
+      KDTree<float3> *tree = kdtree_new<float3>(mask_to_cluster.size());
+      mask_to_cluster.foreach_index(
+          [&](const int i) { kdtree_insert<float3>(tree, i, positions[i]); });
       kdtree_balance<float3>(tree);
-      index_mask::masked_fill<int>(cluster_ids, NO_CLUSTER_VALUE, selection);
+      index_mask::masked_fill<int>(cluster_ids, NO_CLUSTER_VALUE, mask_to_cluster);
       kdtree_calc_duplicates_fast<float3>(tree, distance_, true, cluster_ids.data());
       kdtree_free<float3>(tree);
-      set_no_cluster_value(cluster_ids, selection);
+      set_no_cluster_value(cluster_ids, mask_to_cluster);
       return VArray<int>::from_container(std::move(cluster_ids));
     }
 
@@ -133,7 +140,7 @@ class ClusterByDistanceFieldInput final : public bke::GeometryFieldInput {
           indices_by_group[group_offsets[group_i][index_in_group]] = int(i);
         },
         exec_mode::grain_size(8192));
-    offset_indices::sort_small_groups(group_offsets, indices_by_group);
+    offset_indices::sort_groups(group_offsets, indices_by_group);
 
     threading::parallel_for(
         IndexRange(groups_num),

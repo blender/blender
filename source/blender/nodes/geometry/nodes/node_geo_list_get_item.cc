@@ -2,8 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_array_utils.hh"
-
 #include "NOD_geometry_nodes_list.hh"
 #include "NOD_geometry_nodes_values.hh"
 #include "NOD_rna_define.hh"
@@ -15,6 +13,7 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
+#include "list_function_eval.hh"
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_list_get_item_cc {
@@ -29,17 +28,17 @@ static void node_declare(NodeDeclarationBuilder &b)
   }
 
   const NodeGeometryListGetItem &storage = node_storage(*node);
-  const auto type = eNodeSocketDatatype(storage.socket_type);
+  const eNodeSocketDatatype type = storage.socket_type;
+  const bool is_auto_structure_type = storage.structure_type ==
+                                      NodeSocketInterfaceStructureType::Auto;
 
-  const auto structure_type = storage.structure_type == NodeSocketInterfaceStructureType::Auto ?
-                                  StructureType::Dynamic :
-                                  StructureType(storage.structure_type);
-
-  b.add_input(type, "List"_ustr).structure_type(StructureType::List).hide_value();
-
+  auto &list = b.add_input(type, "List"_ustr).structure_type(StructureType::List).hide_value();
   b.add_input<decl::Int>("Index"_ustr).min(0).structure_type(StructureType::Dynamic);
-
-  b.add_output(type, "Value"_ustr).dependent_field({1}).structure_type(structure_type);
+  b.add_output(type, "Value"_ustr)
+      .propagate_all({list.index()})
+      .propagate_references()
+      .structure_type(is_auto_structure_type ? StructureType::Dynamic :
+                                               StructureType(storage.structure_type));
 }
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
@@ -74,7 +73,7 @@ class SocketSearchOp {
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const eNodeSocketDatatype socket_type = eNodeSocketDatatype(params.other_socket().type);
+  const eNodeSocketDatatype socket_type = params.other_socket().type;
   if (params.in_out() == SOCK_IN) {
     if (params.node_tree().typeinfo->validate_link(socket_type, SOCK_INT)) {
       params.add_item(IFACE_("Index"), SocketSearchOp{"Index"_ustr, SOCK_INT});
@@ -85,54 +84,6 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     params.add_item(IFACE_("Value"), SocketSearchOp{"Value"_ustr, socket_type});
   }
 }
-
-class SampleIndexFunction : public mf::MultiFunction {
-  GListPtr list_;
-  mf::Signature signature_;
-
- public:
-  SampleIndexFunction(GListPtr list) : list_(std::move(list))
-  {
-    mf::SignatureBuilder builder{"Sample Index", signature_};
-    builder.single_input<int>("Index");
-    builder.single_output("Value", list_->cpp_type());
-    this->set_signature(&signature_);
-  }
-
-  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
-  {
-    const VArraySpan<int> indices = params.readonly_single_input<int>(0, "Index");
-    GMutableSpan dst = params.uninitialized_single_output(1, "Value");
-
-    IndexMaskMemory memory;
-    const IndexMask valid_indices = array_utils::indices_in_range(
-        mask, indices, IndexRange(list_->size()), memory);
-
-    if (valid_indices.size() != mask.size()) {
-      const IndexMask invalid_indices = valid_indices.complement(mask, memory);
-      list_->cpp_type().fill_construct_indices(
-          list_->cpp_type().default_value(), dst.data(), invalid_indices);
-    }
-
-    const GList::DataVariant &data = list_->data();
-    if (const auto *array_data = std::get_if<nodes::GList::ArrayData>(&data)) {
-      const GSpan src(list_->cpp_type(), array_data->data, list_->size());
-      valid_indices.foreach_index([&](const int i, const int mask) {
-        list_->cpp_type().copy_construct(src[indices[i]], dst[mask]);
-      });
-    }
-    else if (const auto *single_data = std::get_if<nodes::GList::SingleData>(&data)) {
-      list_->cpp_type().fill_construct_indices(single_data->value, dst.data(), valid_indices);
-    }
-  }
-
-  void hash_unique(UniqueHashBytes &hash) const override
-  {
-    static constexpr int8_t id = 0;
-    hash.add(&id);
-    hash.add(list_.get());
-  }
-};
 
 static void node_rna(StructRNA *srna)
 {

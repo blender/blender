@@ -7,9 +7,9 @@
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_multi_value_map.hh"
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #include "DNA_modifier_types.h"
 #include "DNA_screen_types.h"
@@ -34,6 +34,8 @@
 #include "ED_screen.hh"
 
 #include "MOD_nodes.hh"
+
+#include "NOD_geometry.hh"
 
 #include "UI_interface.hh"
 #include "UI_interface_layout.hh"
@@ -68,7 +70,8 @@ static asset::AssetItemTree build_catalog_tree(const bContext &C)
   };
   const AssetLibraryReference library = asset_system::all_library_reference();
   asset_system::all_library_reload_catalogs_if_dirty();
-  return asset::build_filtered_all_catalog_tree(library, C, type_filter, meta_data_filter);
+  return asset::build_filtered_all_catalog_tree(
+      library, C, type_filter, meta_data_filter, ntreeType_Geometry->asset_catalog_path_prefix);
 }
 
 static asset::AssetItemTree *get_static_item_tree()
@@ -106,17 +109,18 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
     }
   };
 
-  wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_modifier_add_node_group", true);
   for (const asset_system::AssetRepresentation *asset : assets) {
     if (skip_essentials) {
-      if (asset->owner_asset_library().library_reference()->type == ASSET_LIBRARY_ESSENTIALS) {
+      if (ELEM(asset->owner_asset_library().library_reference()->type,
+               ASSET_LIBRARY_ESSENTIALS,
+               ASSET_LIBRARY_ONLINE_ESSENTIALS))
+      {
         continue;
       }
     }
     ensure_separator();
-    PointerRNA props_ptr = layout.op(
-        ot, IFACE_(asset->get_name()), ICON_NONE, wm::OpCallContext::InvokeDefault, UI_ITEM_NONE);
-    asset::operator_asset_reference_props_set(*asset, props_ptr);
+
+    asset::draw_asset_menu_item(asset, "OBJECT_OT_modifier_add_node_group", layout);
   }
 
   catalog_item->foreach_child([&](const asset_system::AssetCatalogTreeItem &item) {
@@ -149,9 +153,7 @@ static void unassigned_assets_draw(const bContext *C, Menu *menu)
   ui::Layout &layout = *menu->layout;
   wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_modifier_add_node_group", true);
   for (const asset_system::AssetRepresentation *asset : tree.unassigned_assets) {
-    PointerRNA props_ptr = layout.op(
-        ot, IFACE_(asset->get_name()), ICON_NONE, wm::OpCallContext::InvokeDefault, UI_ITEM_NONE);
-    asset::operator_asset_reference_props_set(*asset, props_ptr);
+    asset::draw_asset_menu_item(asset, ot->idname, layout);
   }
 
   bool first = true;

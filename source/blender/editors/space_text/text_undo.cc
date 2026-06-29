@@ -13,8 +13,8 @@
 
 #include "DNA_text_types.h"
 
-#include "BLI_array_store.h"
-#include "BLI_array_utils.h" /* For `BLI_array_is_zeroed`. */
+#include "BLI_array_store.hh"
+#include "BLI_array_utils_c.hh" /* For `BLI_array_is_zeroed`. */
 
 #include "BKE_context.hh"
 #include "BKE_main.hh"
@@ -228,7 +228,7 @@ static void text_undosys_foreach_ID_ref(UndoStep *us_p,
 
 void ED_text_undosys_type(UndoType *ut)
 {
-  ut->name = "Text";
+  ut->identifier = "TEXT";
   ut->poll = text_undosys_poll;
   ut->step_encode_init = text_undosys_step_encode_init;
   ut->step_encode = text_undosys_step_encode;

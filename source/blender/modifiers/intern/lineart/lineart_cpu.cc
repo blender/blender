@@ -11,15 +11,15 @@
 #include "MOD_lineart.hh"
 
 #include "BLI_bounds.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_rotation.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
 #include "BLI_sort.hh"
-#include "BLI_task.h"
-#include "BLI_time.h"
-#include "BLI_utildefines.h"
+#include "BLI_task_c.hh"
+#include "BLI_time.hh"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_attribute.hh"
@@ -179,10 +179,10 @@ void lineart_edge_cut(LineartData *ld,
   if (LRT_DOUBLE_CLOSE_ENOUGH(start, 1) || LRT_DOUBLE_CLOSE_ENOUGH(end, 0)) {
     return;
   }
-  if (UNLIKELY(start != start)) {
+  if (start != start) [[unlikely]] {
     start = 0.0;
   }
-  if (UNLIKELY(end != end)) {
+  if (end != end) [[unlikely]] {
     end = 0.0;
   }
 
@@ -1746,7 +1746,7 @@ void lineart_add_edge_to_array(LineartPendingEdges *pe, LineartEdge *e)
 
     LineartEdge **new_array = MEM_new_array_uninitialized<LineartEdge *>(
         size_t(pe->max) * 2, "LineartPendingEdges array");
-    if (LIKELY(pe->array)) {
+    if (pe->array) [[likely]] {
       memcpy(new_array, pe->array, sizeof(LineartEdge *) * pe->max);
       MEM_delete(pe->array);
     }
@@ -2588,8 +2588,8 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
     copy_m4_m4_db(ld->conf.view, view);
   }
 
-  BLI_listbase_clear(&ld->geom.triangle_buffer_pointers);
-  BLI_listbase_clear(&ld->geom.vertex_buffer_pointers);
+  ld->geom.triangle_buffer_pointers.clear_no_delete();
+  ld->geom.vertex_buffer_pointers.clear_no_delete();
 
   double t_start;
   if (G.debug_value == 4000) {
@@ -3532,12 +3532,12 @@ void lineart_destroy_render_data_keep_init(LineartData *ld)
     return;
   }
 
-  BLI_listbase_clear(&ld->chains);
-  BLI_listbase_clear(&ld->wasted_cuts);
+  ld->chains.clear_no_delete();
+  ld->wasted_cuts.clear_no_delete();
 
-  BLI_listbase_clear(&ld->geom.vertex_buffer_pointers);
-  BLI_listbase_clear(&ld->geom.line_buffer_pointers);
-  BLI_listbase_clear(&ld->geom.triangle_buffer_pointers);
+  ld->geom.vertex_buffer_pointers.clear_no_delete();
+  ld->geom.line_buffer_pointers.clear_no_delete();
+  ld->geom.triangle_buffer_pointers.clear_no_delete();
 
   if (ld->pending_edges.array) {
     MEM_delete(ld->pending_edges.array);
@@ -3968,10 +3968,10 @@ static void lineart_bounding_areas_connect_new(LineartData *ld, LineartBoundingA
   }
 
   /* Finally clear parent's adjacent list. */
-  BLI_listbase_clear(&root->lp);
-  BLI_listbase_clear(&root->rp);
-  BLI_listbase_clear(&root->up);
-  BLI_listbase_clear(&root->bp);
+  root->lp.clear_no_delete();
+  root->rp.clear_no_delete();
+  root->up.clear_no_delete();
+  root->bp.clear_no_delete();
 }
 
 static void lineart_bounding_areas_connect_recursive(LineartData *ld, LineartBoundingArea *root)
@@ -5061,6 +5061,10 @@ bool MOD_lineart_compute_feature_lines_v3(Depsgraph *depsgraph,
     }
   }
 
+  if (lineart_camera->type != OB_CAMERA) {
+    return false;
+  }
+
   LineartCache *lc = *cached_result;
   if (!lc) {
     lc = MOD_lineart_init_cache();
@@ -5423,7 +5427,8 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
   bke::CurvesGeometry new_curves(total_point_count, stroke_count);
   new_curves.fill_curve_types(CURVE_TYPE_POLY);
 
-  BKE_defgroup_copy_list(&new_curves.vertex_group_names, &drawing.geometry.vertex_group_names);
+  BKE_defgroup_copy_list(&new_curves.vertex_group_names,
+                         &drawing.strokes_for_write().vertex_group_names);
 
   MutableAttributeAccessor attributes = new_curves.attributes_for_write();
   MutableSpan<float3> point_positions = new_curves.positions_for_write();
@@ -5458,7 +5463,7 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
     return -1;
   };
 
-  const bool skip_weight_transfer = BLI_listbase_is_empty(&drawing.geometry.vertex_group_names);
+  const bool skip_weight_transfer = drawing.strokes().vertex_group_names.is_empty();
 
   int up_to_point = 0;
   for (int chain_i : writer.index_range()) {

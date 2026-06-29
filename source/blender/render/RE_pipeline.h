@@ -20,7 +20,11 @@ namespace gpu {
 class Texture;
 }
 
-struct ExrHandle;
+namespace bke {
+class BlenderProject;
+}
+
+struct ExrReadHandle;
 struct ImBuf;
 struct Image;
 struct ImageFormatData;
@@ -349,6 +353,7 @@ void RE_init_threadcount(Render *re);
 
 bool RE_WriteRenderViewsMovie(struct ReportList *reports,
                               struct RenderResult *rr,
+                              const bke::BlenderProject *project,
                               struct Scene *scene,
                               struct RenderData *rd,
                               struct MovieWriter **movie_writers,
@@ -410,7 +415,7 @@ void RE_PreviewRender(struct Render *re, struct Main *bmain, struct Scene *scene
 bool RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
 
 struct RenderResult *RE_MultilayerConvert(
-    ExrHandle *exrhandle, const char *colorspace, bool predivide, int rectx, int recty);
+    ExrReadHandle *exrhandle, const char *colorspace, bool predivide, int rectx, int recty);
 
 /**
  * Display, event callbacks and GPU contexts
@@ -480,6 +485,10 @@ void RE_GetWindowMatrixWithOverscan(bool is_ortho,
 
 struct Scene *RE_GetScene(struct Render *re);
 void RE_SetScene(struct Render *re, struct Scene *sce);
+
+/* When rendering an animation, saving files is required, either through scene saving or through
+ * a compositor File Output node. */
+bool RE_disable_save_output_allowed(const bool is_animation, Scene &scene, ReportList *reports);
 
 bool RE_is_rendering_allowed(const Main &bmain,
                              struct Scene *scene,

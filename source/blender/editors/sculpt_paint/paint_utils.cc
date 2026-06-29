@@ -14,11 +14,11 @@
 #include "DNA_brush_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_color.h"
-#include "BLI_math_matrix.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_color_c.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_rect.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_rect.hh"
 
 #include "BLT_translation.hh"
 
@@ -419,7 +419,7 @@ static wmOperatorStatus vert_select_ungrouped_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   Mesh *mesh = id_cast<Mesh *>(ob->data);
 
-  if (BLI_listbase_is_empty(&mesh->vertex_group_names) || mesh->deform_verts().is_empty()) {
+  if (mesh->vertex_group_names.is_empty() || mesh->deform_verts().is_empty()) {
     BKE_report(op->reports, RPT_ERROR, "No weights/vertex groups on object");
     return OPERATOR_CANCELLED;
   }

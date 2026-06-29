@@ -40,7 +40,9 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  node->storage = MEM_new<NodeInputString>(__func__);
+  NodeInputString *storage = MEM_new<NodeInputString>(__func__);
+  storage->textbox_state.visible_lines = 1;
+  node->storage = storage;
 }
 
 static void node_storage_free(bNode *node)
@@ -81,7 +83,7 @@ static void node_blend_read(bNodeTree & /*tree*/, bNode &node, BlendDataReader &
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  const eNodeSocketDatatype type = eNodeSocketDatatype(params.other_socket().type);
+  const eNodeSocketDatatype type = params.other_socket().type;
   if (type != SOCK_STRING) {
     return;
   }

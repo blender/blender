@@ -6,9 +6,9 @@
  * \ingroup wm
  */
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #ifndef NDEBUG
-#  include "BLI_threads.h"
+#  include "BLI_threads.hh"
 #endif
 
 #include "BKE_global.hh"
@@ -139,7 +139,7 @@ void wm_surfaces_free()
     wm_surface_remove(&surf);
   }
 
-  BLI_assert(BLI_listbase_is_empty(&global_surface_list));
+  BLI_assert(global_surface_list.is_empty());
 }
 
 }  // namespace blender

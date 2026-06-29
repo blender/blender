@@ -11,7 +11,11 @@
 #include "DNA_armature_types.h"
 #include "DNA_listBase.h"
 
+#include "RNA_types.hh"
+
 #include "BLI_span.hh"
+
+#include "ED_anim_transformable.hh"
 
 namespace blender {
 
@@ -149,71 +153,66 @@ enum eAction_TransformFlags {
   ACT_TRANS_ALL = (ACT_TRANS_ONLY | ACT_TRANS_PROP),
 };
 
+/* Stores values of an RNA property for use at a later date. */
+struct PropertySnapshot {
+  PropertyRNA *property;
+  /* Non-float properties are also stored as float. The length of the array matches the length of
+   * the property. */
+  Array<float> values;
+};
+
 /* Temporary struct wrapping data used for pose sliding. */
 struct SlideSubject {
   SlideSubject *next, *prev;
 
-  /** Object this Pose Channel belongs to. */
-  Object *ob;
-
   /** F-Curves for this PoseChannel (wrapped with LinkData) */
+  /** The AnimTransformable which the data is attached to */
+  ed::AnimTransformable *transformable;
+  /* A pointer to the data represented by this link. */
+  PointerRNA ptr;
+  /** F-Curves for this AnimTransformable. */
   Vector<FCurve *> fcurves;
   /* This is used as an optimization to only do blending on transform types that actually have
    * animation. */
   eAction_TransformFlags transform_flag;
-  /** Pose Channel which data is attached to */
-  bPoseChannel *pchan;
 
-  /** RNA Path to this Pose Channel (needs to be freed when we're done) */
-  char *pchan_path;
+  /** Transform values at start of operator (to be restored before each modal step). */
+  ed::TransformFloats old_loc;
+  ed::Rotation old_rot;
+  ed::TransformFloats old_scale;
 
-  /** transform values at start of operator (to be restored before each modal step) */
-  float oldloc[3];
-  float oldrot[3];
-  float oldscale[3];
-  float oldquat[4];
-  float oldangle;
-  float oldaxis[3];
+  /* Additional properties of the transformable to affect which are not custom properties. Bones
+   * use this to store bbone data, e.g. `bbone_rollin`. */
+  Vector<PropertySnapshot> additional_properties;
 
-  /** old bbone values (to be restored along with the transform properties) */
-  float roll1, roll2;
-  /** (NOTE: we haven't renamed these this time, as their names are already long enough) */
-  float curve_in_x, curve_in_z;
-  float curve_out_x, curve_out_z;
-  float ease1, ease2;
-  float scale_in[3];
-  float scale_out[3];
-
-  /** copy of custom properties at start of operator (to be restored before each modal step) */
-  IDProperty *oldprops;
-  IDProperty *old_system_properties;
+  /* Custom properties defined via the UI. See ID::properties. */
+  Vector<PropertySnapshot> properties;
+  /* User defined properties through addons. See ID::system_properties. */
+  Vector<PropertySnapshot> system_properties;
 };
 
 /* ----------- */
 
-/** Returns a valid pose armature for this object, else returns NULL. */
-Object *poseAnim_object_get(Object *ob_);
 /**
- * Build up a list of SlideSubject. First only selected, and if that yields no result, all
- * visible.
+ * Build up a list of SlideSubject. The items put into the list depend on the mode of
+ * the context.
  */
-void slide_subjects_get(bContext *C, ListBaseT<SlideSubject> *slide_subjects);
-/** Free all slide targets. */
+void slide_subjects_get(bContext *C, ListBaseT<SlideSubject> *r_transformable_list);
+/** Free all slide subjects. */
 void slide_subjects_free(ListBaseT<SlideSubject> *slide_subjects);
 
 /**
  * Helper for apply() / reset() - refresh the data.
  */
-void slide_subjects_refresh(bContext *C, Scene *scene, Object *ob);
+void slide_subjects_refresh(bContext *C, const SlideSubject &slide_subject);
 /**
- * Reset changes made to current slide targets back to their stored values.
+ * Reset changes made to current slide subjects back to their stored values.
  */
 void slide_subjects_reset(ListBaseT<SlideSubject> *slide_subjects);
 /** Perform auto-key-framing after changes were made + confirmed. */
 void slide_subjects_autokey(bContext *C,
                             Scene *scene,
-                            ListBaseT<SlideSubject> *slide_subjects,
-                            float cframe);
+                            const ListBaseT<SlideSubject> *slide_subjects);
 
 /** \} */
 

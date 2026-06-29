@@ -13,7 +13,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "BLT_translation.hh"
@@ -260,7 +260,7 @@ static void eyedropper_add_palette_color(bContext *C, const float3 color)
   /* Create Colors. */
   PaletteColor *palcol = BKE_palette_color_add(palette);
   if (palcol) {
-    palette->active_color = BLI_listbase_count(&palette->colors) - 1;
+    palette->active_color = palette->colors.count() - 1;
     BKE_palette_color_set(palcol, color);
   }
 }

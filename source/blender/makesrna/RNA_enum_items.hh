@@ -43,6 +43,7 @@ DEF_ENUM(rna_enum_space_image_mode_items)
 DEF_ENUM(rna_enum_space_image_mode_all_items)
 DEF_ENUM(rna_enum_space_action_mode_items)
 DEF_ENUM(rna_enum_fileselect_params_sort_items)
+DEF_ENUM(rna_enum_asset_access_items)
 DEF_ENUM(rna_enum_region_type_items)
 DEF_ENUM(rna_enum_region_panel_category_items)
 DEF_ENUM(rna_enum_object_modifier_type_items)
@@ -225,6 +226,7 @@ DEF_ENUM(rna_enum_context_mode_items)
 DEF_ENUM(rna_enum_preference_section_items)
 
 DEF_ENUM(rna_enum_attribute_type_items)
+DEF_ENUM(rna_enum_attrtype_items)
 DEF_ENUM(rna_enum_attr_storage_type_items)
 DEF_ENUM(rna_enum_color_attribute_type_items)
 DEF_ENUM(rna_enum_attribute_type_with_auto_items)
@@ -264,6 +266,8 @@ DEF_ENUM(rna_enum_curve_normal_mode_items)
 
 DEF_ENUM(rna_enum_geometry_nodes_gizmo_color_items)
 DEF_ENUM(rna_enum_geometry_nodes_linear_gizmo_draw_style_items)
+
+DEF_ENUM(rna_enum_asset_import_method_items)
 
 /* Not available to RNA pre-processing (`makesrna`).
  * Defined in editors for example. */

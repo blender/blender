@@ -6,17 +6,19 @@
  * \ingroup bli
  */
 
-#include "BLI_math_base.h"
-#include "BLI_math_statistics.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_math_statistics.hh"
+#include "BLI_math_vector_c.hh"
 
-#include "BLI_task.h"
+#include "BLI_task_c.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 
-/********************************** Covariance Matrices *********************************/
+/* -------------------------------------------------------------------- */
+/** \name Covariance Matrices
+ * \{ */
 
 struct CovarianceData {
   const float *cos_vn;
@@ -129,5 +131,7 @@ void BLI_covariance_m3_v3n(const float (*cos_v3)[3],
                          use_sample_correction,
                          reinterpret_cast<float *>(r_covmat));
 }
+
+/** \} */
 
 }  // namespace blender

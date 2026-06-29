@@ -18,15 +18,15 @@
 #include "DNA_action_types.h"
 #include "DNA_node_types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
-#include "BLI_math_matrix.h"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_resource_scope.hh"
 #include "BLI_set.hh"
 #include "BLI_stack.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -84,8 +84,8 @@ struct MenuSearch_Item {
   StringRef drawstr;
   StringRef drawwstr_full;
   int icon = 0;
-  int state = 0;
   float weight = 0.0f;
+  int64_t state = 0; /**  Used to store #ButtonFlag values. */
 
   MenuSearch_Parent *menu_parent = nullptr;
   MenuType *mt = nullptr;
@@ -646,6 +646,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
           SPACE_MENU_NOP(SPACE_STATUSBAR);
           SPACE_MENU_NOP(SPACE_TOPBAR);
           SPACE_MENU_NOP(SPACE_SPREADSHEET);
+          SPACE_MENU_NOP(SPACE_PROJECT);
         }
       }
       for (int i = 0; i < idname_array_len; i++) {
@@ -741,7 +742,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
               /* Detect empty string, fall back to menu name. */
               const char *drawstr = but->drawstr.c_str();
               int drawstr_len = drawstr_sep - but->drawstr.c_str();
-              if (UNLIKELY(drawstr_len == 0)) {
+              if (drawstr_len == 0) [[unlikely]] {
                 drawstr = CTX_IFACE_(mt_from_but->translation_context, mt_from_but->label);
                 drawstr_len = strlen(drawstr);
                 if (drawstr[0] == '\0') {
@@ -756,7 +757,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
             }
             else {
               const char *drawstr = but->drawstr.c_str();
-              if (UNLIKELY(drawstr[0] == '\0')) {
+              if (drawstr[0] == '\0') [[unlikely]] {
                 drawstr = CTX_IFACE_(mt_from_but->translation_context, mt_from_but->label);
                 if (drawstr[0] == '\0') {
                   drawstr_is_empty = true;

@@ -94,7 +94,7 @@ void register_node_type_sh_hue_sat()
   ntype.enum_name_legacy = "HUE_SAT";
   ntype.nclass = NODE_CLASS_OP_COLOR;
   ntype.declare = file_ns::node_declare;
-  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
+  ntype.default_width = bke::NodeWidth::_160;
   ntype.gpu_fn = file_ns::gpu_shader_hue_sat;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 

@@ -35,8 +35,8 @@
 #include <fcntl.h>
 
 #ifdef WIN32
-#  include "BLI_string_utf8.h"
-#  include "BLI_winstuff.h"
+#  include "BLI_string_utf8.hh"
+#  include "BLI_winstuff.hh"
 #  include "utfconv.hh"
 #  include <ShObjIdl.h>
 #  include <direct.h>
@@ -51,12 +51,12 @@
 /* lib includes */
 #include "MEM_guardedalloc.h"
 
-#include "BLI_fileops.h"
-#include "BLI_linklist.h"
+#include "BLI_fileops.hh"
+#include "BLI_linklist.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_threads.hh"
+#include "BLI_utildefines.hh"
 
 namespace blender {
 
@@ -603,7 +603,7 @@ LinkNode *BLI_file_read_as_lines(const char *filepath)
   size = size_t(BLI_ftell(fp));
   BLI_fseek(fp, 0, SEEK_SET);
 
-  if (UNLIKELY(size == size_t(-1))) {
+  if (size == size_t(-1)) [[unlikely]] {
     fclose(fp);
     return nullptr;
   }

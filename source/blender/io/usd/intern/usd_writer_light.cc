@@ -12,8 +12,8 @@
 #include <pxr/usd/usdLux/shapingAPI.h>
 #include <pxr/usd/usdLux/sphereLight.h>
 
-#include "BLI_assert.h"
-#include "BLI_math_constants.h"
+#include "BLI_assert.hh"
+#include "BLI_math_constants.hh"
 
 #include "DNA_light_types.h"
 #include "DNA_object_types.h"
@@ -151,9 +151,8 @@ void USDLightWriter::do_write(HierarchyContext &context)
                 pxr::GfVec3f(light->r, light->g, light->b),
                 time,
                 usd_value_writer_);
-  set_attribute(usd_light_api.CreateEnableColorTemperatureAttr(
-                    pxr::VtValue(), (light->mode & LA_USE_TEMPERATURE) != 0),
-                true,
+  set_attribute(usd_light_api.CreateEnableColorTemperatureAttr(pxr::VtValue(), true),
+                (light->mode & LA_USE_TEMPERATURE) != 0,
                 time,
                 usd_value_writer_);
   set_attribute(usd_light_api.CreateColorTemperatureAttr(pxr::VtValue(), true),

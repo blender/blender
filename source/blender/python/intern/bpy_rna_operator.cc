@@ -10,7 +10,7 @@
 
 #include <Python.h>
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BKE_context.hh"
 

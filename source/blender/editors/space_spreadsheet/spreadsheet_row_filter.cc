@@ -5,7 +5,7 @@
 #include <cstring>
 
 #include "BLI_color.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_vector.hh"
 
 #include "DNA_space_types.h"
@@ -425,7 +425,7 @@ static bool use_row_filters(const SpaceSpreadsheet &sspreadsheet)
   if (!(sspreadsheet.filter_flag & SPREADSHEET_FILTER_ENABLE)) {
     return false;
   }
-  if (BLI_listbase_is_empty(&sspreadsheet.row_filters)) {
+  if (sspreadsheet.row_filters.is_empty()) {
     return false;
   }
   return true;

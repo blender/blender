@@ -9,7 +9,7 @@ namespace blender::nodes::node_geo_input_face_smooth_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Bool>("Smooth"_ustr)
-      .field_source()
+      .structure_type(StructureType::Field)
       .translation_context(BLT_I18NCONTEXT_ID_MESH);
 }
 

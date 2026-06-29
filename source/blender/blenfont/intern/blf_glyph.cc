@@ -25,10 +25,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_color.h"
-#include "BLI_math_geom.h"
-#include "BLI_rect.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_rect.hh"
 
 #include "BLF_api.hh"
 
@@ -37,7 +37,7 @@
 #include "blf_internal.hh"
 #include "blf_internal_types.hh"
 
-#include "BLI_string_utf8.h"
+#include "BLI_string_utf8.hh"
 
 #ifndef WITH_HEADLESS
 #  include "nanosvgrast.h"
@@ -45,7 +45,7 @@
 #  include "svg_icons.h"
 #endif /* WITH_HEADLESS */
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 
@@ -507,7 +507,7 @@ static const UnicodeBlock unicode_blocks[] = {
     {0x1800, 0x18AF, 81},     /* Mongolian. */
     {0x1900, 0x194F, 93},     /* Limbu. */
     {0x1950, 0x197F, 94},     /* Tai Le. */
-    {0x1980, 0x19DF, 95},     /* New Tai Lue". */
+    {0x1980, 0x19DF, 95},     /* New Tai Lue. */
     {0x19E0, 0x19FF, 80},     /* Khmer. */
     {0x1A00, 0x1A1F, 96},     /* Buginese. */
     {0x1A20, 0x1AAF, -1},     /* Tai Tham. */
@@ -1036,7 +1036,7 @@ static bool blf_glyph_set_variation_float(const FontBLF *font,
  * Set the #BLF_VARIATION_AXIS_WEIGHT (Weight) axis to a specific weight value.
  *
  * \param coords: Array of design coordinates, per axis.
- * \param weight: Weight class value (1-1000 allowed, 100-900 typical).
+ * \param current_weight: Weight class value (1-1000 allowed, 100-900 typical).
  * \return value set (could be clamped), or current weight if the axis does not exist.
  */
 static float blf_glyph_set_variation_weight(const FontBLF *font,
@@ -1055,7 +1055,7 @@ static float blf_glyph_set_variation_weight(const FontBLF *font,
  * Set the #BLF_VARIATION_AXIS_SLANT (Slant) axis to a specific slant value.
  *
  * \param coords: Array of design coordinates, per axis.
- * \param degrees: Slant in clockwise (opposite to spec) degrees.
+ * \param target_degrees: Slant in clockwise (opposite to spec) degrees.
  * \return value set (could be clamped), or current slant if the axis does not exist.
  */
 static float blf_glyph_set_variation_slant(const FontBLF *font,
@@ -1074,7 +1074,7 @@ static float blf_glyph_set_variation_slant(const FontBLF *font,
  * Set the #BLF_VARIATION_AXIS_WIDTH (Width) axis to a specific width value.
  *
  * \param coords: Array of design coordinates, per axis.
- * \param width: Glyph width value. 1.0 is normal, as per spec (which uses percent).
+ * \param target_width: Glyph width value. 1.0 is normal, as per spec (which uses percent).
  * \return value set (could be clamped), or current width if the axis does not exist.
  */
 static float blf_glyph_set_variation_width(const FontBLF *font,
@@ -1093,7 +1093,7 @@ static float blf_glyph_set_variation_width(const FontBLF *font,
  * Set the proposed #BLF_VARIATION_AXIS_SPACING (Spacing) axis to a specific value.
  *
  * \param coords: Array of design coordinates, per axis.
- * \param spacing: Glyph spacing value. 0.0 is normal, as per spec.
+ * \param target_spacing: Glyph spacing value. 0.0 is normal, as per spec.
  * \return value set (could be clamped), or current spacing if the axis does not exist.
  */
 static float blf_glyph_set_variation_spacing(const FontBLF *font,
@@ -1584,5 +1584,7 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
   blf_texture_draw(
       g, font->color, FontShadowType::None, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 }
+
+/** \} */
 
 }  // namespace blender

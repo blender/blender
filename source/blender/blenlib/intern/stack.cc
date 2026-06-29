@@ -9,12 +9,12 @@
 #include <cstdlib> /* abort() */
 #include <cstring>
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include "MEM_guardedalloc.h"
 
-#include "BLI_stack.h" /* own include */
+#include "BLI_stack_c.hh" /* own include */
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 
@@ -58,7 +58,7 @@ static size_t stack_chunk_elem_max_calc(const size_t elem_size, size_t chunk_siz
 
   BLI_assert((elem_size != 0) && (chunk_size != 0));
 
-  while (UNLIKELY(chunk_size <= elem_size_min)) {
+  while (chunk_size <= elem_size_min) [[unlikely]] {
     chunk_size <<= 1;
   }
 
@@ -107,7 +107,7 @@ void *BLI_stack_push_r(BLI_Stack *stack)
 {
   stack->chunk_index++;
 
-  if (UNLIKELY(stack->chunk_index == stack->chunk_elem_max)) {
+  if (stack->chunk_index == stack->chunk_elem_max) [[unlikely]] {
     StackChunk *chunk;
     if (stack->chunk_free) {
       chunk = stack->chunk_free;
@@ -183,7 +183,7 @@ void BLI_stack_discard(BLI_Stack *stack)
 #ifdef USE_TOTELEM
   stack->elem_num--;
 #endif
-  if (UNLIKELY(--stack->chunk_index == CHUNK_EMPTY)) {
+  if (--stack->chunk_index == CHUNK_EMPTY) [[unlikely]] {
     StackChunk *chunk_free;
 
     chunk_free = stack->chunk_curr;
@@ -199,12 +199,12 @@ void BLI_stack_discard(BLI_Stack *stack)
 void BLI_stack_clear(BLI_Stack *stack)
 {
 #ifdef USE_TOTELEM
-  if (UNLIKELY(stack->elem_num == 0)) {
+  if (stack->elem_num == 0) [[unlikely]] {
     return;
   }
   stack->elem_num = 0;
 #else
-  if (UNLIKELY(stack->chunk_curr == nullptr)) {
+  if (stack->chunk_curr == nullptr) [[unlikely]] {
     return;
   }
 #endif

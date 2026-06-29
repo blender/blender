@@ -20,10 +20,10 @@
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 
-#include "BLI_fileops.h"
-#include "BLI_math_rotation.h"
+#include "BLI_fileops.hh"
+#include "BLI_math_rotation_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BLF_api.hh"
 
@@ -694,6 +694,18 @@ void BLF_boundbox_foreach_glyph(
     else {
       blf_font_boundbox_foreach_glyph(font, str, str_len, user_fn, user_data);
     }
+  }
+}
+
+void BLF_info_foreach_glyph(
+    int fontid,
+    const char *str,
+    size_t str_len,
+    FunctionRef<void(int index, size_t byte_offset, int byte_len, int advance_x)> callback)
+{
+  FontBLF *font = blf_get(fontid);
+  if (font != nullptr) {
+    blf_font_info_foreach_glyph(font, str, str_len, callback);
   }
 }
 

@@ -19,8 +19,8 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BLI_math_vector.h"
-#include "BLI_string_utf8.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BLT_translation.hh"
 
@@ -140,7 +140,7 @@ static bool depthdropper_test(bContext *C, wmOperator *op)
     RegionView3D *rv3d = CTX_wm_region_view3d(C);
     if (rv3d && rv3d->persp == RV3D_CAMOB) {
       View3D *v3d = CTX_wm_view3d(C);
-      if (v3d->camera && v3d->camera->data &&
+      if (v3d->camera && v3d->camera->type == OB_CAMERA && v3d->camera->data &&
           BKE_id_is_editable(CTX_data_main(C), static_cast<const ID *>(v3d->camera->data)))
       {
         return true;
@@ -177,7 +177,7 @@ static int depthdropper_init(bContext *C, wmOperator *op)
       RegionView3D *rv3d = CTX_wm_region_view3d(C);
       if (rv3d && rv3d->persp == RV3D_CAMOB) {
         View3D *v3d = CTX_wm_view3d(C);
-        if (v3d->camera && v3d->camera->data &&
+        if (v3d->camera && v3d->camera->type == OB_CAMERA && v3d->camera->data &&
             BKE_id_is_editable(CTX_data_main(C), static_cast<const ID *>(v3d->camera->data)))
         {
           Camera *camera = id_cast<Camera *>(v3d->camera->data);
@@ -290,7 +290,8 @@ static void depthdropper_depth_sample_pt(bContext *C,
                                    -4,
                                    B_UNIT_LENGTH,
                                    scene->unit,
-                                   false);
+                                   false,
+                                   true);
         }
         else {
           STRNCPY_UTF8(ddr->name, RPT_("Nothing under cursor"));
@@ -467,7 +468,7 @@ static bool depthdropper_poll(bContext *C)
     RegionView3D *rv3d = CTX_wm_region_view3d(C);
     if (rv3d && rv3d->persp == RV3D_CAMOB) {
       View3D *v3d = CTX_wm_view3d(C);
-      if (v3d->camera && v3d->camera->data &&
+      if (v3d->camera && v3d->camera->type == OB_CAMERA && v3d->camera->data &&
           BKE_id_is_editable(CTX_data_main(C), static_cast<const ID *>(v3d->camera->data)))
       {
         return true;

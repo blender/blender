@@ -15,9 +15,9 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_library.hh"
 
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
-#include "BLI_rect.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rect.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -689,7 +689,7 @@ void ED_channel_list_free(ChannelDrawList *channel_list)
   for (ChannelListElement &elem : channel_list->channels) {
     ED_keylist_free(elem.keylist);
   }
-  BLI_freelistN(&channel_list->channels);
+  channel_list->channels.free_no_destruct();
   MEM_delete(channel_list);
 }
 

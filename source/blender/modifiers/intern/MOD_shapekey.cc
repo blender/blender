@@ -6,7 +6,7 @@
  * \ingroup modifiers
  */
 
-#include "BLI_math_matrix.h"
+#include "BLI_math_matrix_c.hh"
 
 #include "BLT_translation.hh"
 

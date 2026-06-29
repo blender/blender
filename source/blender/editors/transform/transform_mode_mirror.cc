@@ -8,10 +8,10 @@
 
 #include <cstdlib>
 
-#include "BLI_math_bits.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_string_utf8.h"
+#include "BLI_math_bits.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string_utf8.hh"
 
 #include "ED_screen.hh"
 
@@ -175,7 +175,7 @@ static void applyMirror(TransInfo *t)
     int special_axis_bitmap = 0;
     int special_axis = -1;
     int bitmap_len = count_bits_i(axis_bitmap);
-    if (LIKELY(!ELEM(bitmap_len, 0, 3))) {
+    if (!ELEM(bitmap_len, 0, 3)) [[likely]] {
       special_axis_bitmap = (bitmap_len == 2) ? ~axis_bitmap : axis_bitmap;
       special_axis = bitscan_forward_i(special_axis_bitmap);
     }

@@ -175,7 +175,7 @@ enum eDriverTarget_RotationMode : char {
   /** Automatic euler mode. */
   DTAR_ROTMODE_AUTO = 0,
 
-  /** Explicit euler rotation modes - must sync with BLI_math_rotation.h defines. */
+  /** Explicit euler rotation modes - must sync with BLI_math_rotation_c.hh defines. */
   DTAR_ROTMODE_EULER_XYZ = 1,
   DTAR_ROTMODE_EULER_XZY,
   DTAR_ROTMODE_EULER_YXZ,
@@ -586,7 +586,7 @@ enum eAnimData_Flag : int {
 };
 ENUM_OPERATORS(eAnimData_Flag);
 
-/* From: `DNA_object_types.h`, see its doc-string there. */
+/* From: `DNA_object_types.h`, see its docstring there. */
 #define SELECT 1
 
 }  // namespace blender

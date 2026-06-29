@@ -74,7 +74,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(FLT_MAX)
       .description("Minimum density of a volume cell to contain a grid point")
       .usage_by_single_menu(GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_GRID);
-  b.add_output<decl::Geometry>("Points"_ustr).propagate_all();
+  b.add_output<decl::Geometry>("Points"_ustr).propagate_all_geometry();
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -255,7 +255,7 @@ static void node_register()
                          node_free_standard_storage,
                          node_copy_standard_storage);
   ntype.initfunc = node_init;
-  bke::node_type_size(ntype, 170, 100, 320);
+  ntype.default_width = bke::NodeWidth::_180;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   bke::node_register_type(ntype);

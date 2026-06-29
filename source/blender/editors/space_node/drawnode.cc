@@ -8,9 +8,9 @@
  */
 
 #include "BLI_color_types.hh"
-#include "BLI_listbase.h"
-#include "BLI_string_utf8.h"
-#include "BLI_threads.h"
+#include "BLI_listbase.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_threads.hh"
 
 #include "DNA_node_types.h"
 #include "DNA_screen_types.h"
@@ -1100,7 +1100,7 @@ static bool socket_needs_volume_grid_search(const bNode &node, const bNodeSocket
 static bool socket_needs_bundle_type_search(const bNode &node, const bNodeSocket &socket)
 {
   if (node.type_legacy == NODE_COMBINE_BUNDLE) {
-    return socket.name == nodes::Bundle::type_item_name;
+    return socket.name == nodes::Bundle::type_item_name.ustr();
   }
   if (node.is_type("NodeGetNestedBundlePaths"_ustr)) {
     return socket.name == StringRef("Bundle Type");
@@ -1123,7 +1123,7 @@ static void draw_node_socket_name_editable(ui::Layout *layout,
       layout->emboss_set(ui::EmbossType::None);
       layout->prop((&sock->runtime->declaration->socket_name_rna->owner),
                    sock->runtime->declaration->socket_name_rna->property_name,
-                   UI_ITEM_NONE,
+                   sock->in_out == SOCK_OUT ? ui::eUI_Item_Flag::ITEM_R_TEXT_RIGHT : UI_ITEM_NONE,
                    "",
                    ICON_NONE);
       return;
@@ -1486,7 +1486,7 @@ static void std_node_socket_interface_draw(ID *id,
 
   const bke::bNodeSocketType *typeinfo = interface_socket->socket_typeinfo();
   BLI_assert(typeinfo != nullptr);
-  eNodeSocketDatatype type = eNodeSocketDatatype(typeinfo->type);
+  eNodeSocketDatatype type = typeinfo->type;
 
   ui::Layout *col = &layout->column(false);
 
@@ -1574,8 +1574,12 @@ static void std_node_socket_interface_draw(ID *id,
   col = &layout->column(false);
 
   const bNodeTree *node_tree = reinterpret_cast<const bNodeTree *>(id);
-  if (interface_socket->flag & NODE_INTERFACE_SOCKET_INPUT && node_tree->type == NTREE_GEOMETRY) {
-    if (ELEM(type, SOCK_INT, SOCK_VECTOR, SOCK_MATRIX)) {
+  if (interface_socket->flag & NODE_INTERFACE_SOCKET_INPUT &&
+      ELEM(node_tree->type, NTREE_GEOMETRY, NTREE_COMPOSIT))
+  {
+    if (ELEM(type, SOCK_INT, SOCK_FLOAT, SOCK_VECTOR, SOCK_MATRIX) ||
+        (node_tree->type == NTREE_GEOMETRY && type == SOCK_OBJECT))
+    {
       col->prop(&ptr, "default_input", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
     }
   }
@@ -1700,8 +1704,9 @@ void draw_nodespace_back_pix(const bContext &C,
   if (ibuf) {
     /* somehow the offset has to be calculated inverse */
     wmOrtho2_region_pixelspace(&region);
-    const float2 offset = ibuf->flags & IB_has_display_window ? float2(ibuf->display_offset) :
-                                                                float2(0.0f);
+    const float2 offset = flag_is_set(ibuf->flags, ImBufFlags::HasDisplayWindow) ?
+                              float2(ibuf->display_offset) :
+                              float2(0.0f);
     const float offset_x = snode.xof + offset.x * snode.zoom;
     const float offset_y = snode.yof + offset.y * snode.zoom;
     const float x = (region.winx - snode.zoom * ibuf->x) / 2 + offset_x;
@@ -1778,10 +1783,10 @@ static std::array<float2, 4> node_link_bezier_points(const bNodeLink &link)
 
 static bool node_link_draw_is_visible(const View2D &v2d, const std::array<float2, 4> &points)
 {
-  if (min_ffff(points[0].x, points[1].x, points[2].x, points[3].x) > v2d.cur.xmax) {
+  if (std::min({points[0].x, points[1].x, points[2].x, points[3].x}) > v2d.cur.xmax) {
     return false;
   }
-  if (max_ffff(points[0].x, points[1].x, points[2].x, points[3].x) < v2d.cur.xmin) {
+  if (std::max({points[0].x, points[1].x, points[2].x, points[3].x}) < v2d.cur.xmin) {
     return false;
   }
   return true;
@@ -2241,7 +2246,7 @@ static bool node_link_is_field_link(const SpaceNode &snode, const bNodeLink &lin
   if (!link.fromsock) {
     return false;
   }
-  if (!nodes::socket_type_supports_fields(eNodeSocketDatatype(link.fromsock->type))) {
+  if (!nodes::socket_type_supports_fields(link.fromsock->type)) {
     /* Normally, StructureType::Dynamic would result in dashed links. We override that for socket
      * types we know currently can't be used as fields. */
     return false;
@@ -2469,6 +2474,8 @@ void node_draw_link_dragged(const bContext &C,
   /* End marker fill. */
   node_draw_link_end_markers(link, draw_config, points, false);
 }
+
+/** \} */
 
 }  // namespace ed::space_node
 

@@ -11,9 +11,9 @@
 #include "node_shader_util.hh"
 #include "node_util.hh"
 
-#include "BLI_math_base_safe.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_base_safe.hh"
 #include "BLI_math_vector.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "FN_multi_function_builder.hh"
 
@@ -78,8 +78,8 @@ static void node_shader_update_map_range(bNodeTree *ntree, bNode *node)
   const eCustomDataType data_type = eCustomDataType(storage.data_type);
   const int type = (data_type == CD_PROP_FLOAT) ? SOCK_FLOAT : SOCK_VECTOR;
 
-  Array<bool> new_input_availability(BLI_listbase_count(&node->inputs));
-  Array<bool> new_output_availability(BLI_listbase_count(&node->outputs));
+  Array<bool> new_input_availability(node->inputs.count());
+  Array<bool> new_output_availability(node->outputs.count());
 
   for (const auto [index, socket] : node->inputs.enumerate()) {
     new_input_availability[index] = socket.type == type;

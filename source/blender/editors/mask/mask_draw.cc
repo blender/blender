@@ -8,11 +8,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_color.h"
-#include "BLI_math_vector.h"
-#include "BLI_rect.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rect.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_context.hh"
 #include "BKE_mask.hh"
@@ -723,37 +723,38 @@ void ED_mask_draw_region(
     if (stabmat) {
       GPU_matrix_mul(stabmat);
     }
-    IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
-    GPU_shader_uniform_float_ex(
-        state.shader, GPU_shader_get_uniform(state.shader, "shuffle"), 4, 1, buf_col);
+    PixelBitmapDrawer drawer(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
+    GPU_shader_uniform_float_ex(drawer.shader_get(),
+                                GPU_shader_get_uniform(drawer.shader_get(), "shuffle"),
+                                4,
+                                1,
+                                buf_col);
 
     if (overlay_mode == MASK_OVERLAY_COMBINED) {
       const float blend_col[4] = {0.0f, 0.0f, 0.0f, blend_factor};
 
-      immDrawPixelsTexTiled(&state,
-                            0.0f,
-                            0.0f,
-                            width,
-                            height,
-                            gpu::TextureFormat::SFLOAT_16,
-                            false,
-                            buffer,
-                            1.0f,
-                            1.0f,
-                            blend_col);
+      drawer.draw(0.0f,
+                  0.0f,
+                  width,
+                  height,
+                  gpu::TextureFormat::SFLOAT_16,
+                  false,
+                  buffer,
+                  1.0f,
+                  1.0f,
+                  blend_col);
     }
     else {
-      immDrawPixelsTexTiled(&state,
-                            0.0f,
-                            0.0f,
-                            width,
-                            height,
-                            gpu::TextureFormat::SFLOAT_16,
-                            false,
-                            buffer,
-                            1.0f,
-                            1.0f,
-                            nullptr);
+      drawer.draw(0.0f,
+                  0.0f,
+                  width,
+                  height,
+                  gpu::TextureFormat::SFLOAT_16,
+                  false,
+                  buffer,
+                  1.0f,
+                  1.0f,
+                  nullptr);
     }
     GPU_matrix_pop();
 
@@ -800,7 +801,7 @@ void ED_mask_draw_frames(
     return;
   }
 
-  uint num_lines = BLI_listbase_count(&mask_layer->splines_shapes);
+  uint num_lines = mask_layer->splines_shapes.count();
   if (num_lines == 0) {
     return;
   }

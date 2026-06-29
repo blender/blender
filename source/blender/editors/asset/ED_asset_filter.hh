@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "DNA_listBase.h"
 
 #include "BLI_function_ref.hh"
@@ -72,7 +74,8 @@ AssetItemTree build_filtered_all_catalog_tree(
     const AssetLibraryReference &library_ref,
     const bContext &C,
     const AssetFilterSettings &filter_settings,
-    FunctionRef<bool(const AssetMetaData &)> meta_data_filter = {});
+    FunctionRef<bool(const AssetMetaData &)> meta_data_filter = {},
+    const std::optional<StringRef> skip_prefix = std::nullopt);
 
 }  // namespace ed::asset
 }  // namespace blender

@@ -15,13 +15,13 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_ghash.h"
-#include "BLI_listbase.h"
+#include "BLI_ghash.hh"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BLT_translation.hh"
 
@@ -31,6 +31,7 @@
 #include "BKE_armature.hh"
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
+#include "BKE_fcurve.hh"
 #include "BKE_fcurve_driver.h"
 #include "BKE_idprop.hh"
 #include "BKE_layer.hh"
@@ -42,6 +43,7 @@
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
+#include "RNA_prototypes.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -57,6 +59,7 @@
 
 #include "ANIM_armature.hh"
 #include "ANIM_bone_collections.hh"
+#include "ANIM_rna.hh"
 
 #include "armature_intern.hh"
 
@@ -529,6 +532,10 @@ wmOperatorStatus ED_armature_join_objects_exec(bContext *C, wmOperator *op)
         }
       }
 
+      /* Bring armature out of edit mode. See #159084. */
+      ED_armature_from_edit(bmain, curarm);
+      ED_armature_edit_free(curarm);
+
       /* Free the old object data */
       ed::object::base_free_and_unlink(bmain, scene, ob_iter);
     }
@@ -662,7 +669,7 @@ static void separate_armature_bones(Main *bmain, Object *ob, const bool is_selec
 
   /* make local set of edit-bones to manipulate here */
   ED_armature_to_edit(arm);
-
+  Set<std::string> freed_bone_names;
   /* go through pose-channels, checking if a bone should be removed */
   for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan; pchan = pchann) {
     pchann = pchan->next;
@@ -695,12 +702,32 @@ static void separate_armature_bones(Main *bmain, Object *ob, const bool is_selec
       }
 
       /* Free any of the extra-data this pchan might have. */
+      freed_bone_names.add(pchan->name);
       BKE_pose_channel_free(pchan);
       BKE_pose_channels_hash_free(ob->pose);
 
       /* get rid of unneeded bone */
       bone_free(arm, curbone);
       BLI_freelinkN(&ob->pose->chanbase, pchan);
+    }
+  }
+
+  if (ob->adt) {
+    /* Also delete any drivers that point to bones which no longer exist. */
+    PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, RNA_Object, ob);
+    PathResolvedRNA resolved_rna;
+    for (FCurve &fcurve : ob->adt->drivers.items_mutable()) {
+      if (!fcurve.rna_path) {
+        continue;
+      }
+      std::optional<std::string> bone_name = animrig::pose_bone_name_from_rna_path(
+          fcurve.rna_path);
+      if (!bone_name.has_value() || !freed_bone_names.contains(bone_name.value())) {
+        continue;
+      }
+      /* If the driver path cannot be resolved, we can assume that the bone no longer exists. */
+      BLI_remlink(&ob->adt->drivers, &fcurve);
+      BKE_fcurve_free(&fcurve);
     }
   }
 

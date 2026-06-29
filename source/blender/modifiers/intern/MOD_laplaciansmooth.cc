@@ -6,8 +6,8 @@
  * \ingroup modifiers
  */
 
-#include "BLI_math_geom.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 

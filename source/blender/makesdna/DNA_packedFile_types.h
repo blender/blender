@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BLI_implicit_sharing.h"
+#include "BLI_implicit_sharing.hh"
 
 namespace blender {
 

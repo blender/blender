@@ -118,7 +118,7 @@ class IndexRangeCyclic {
   /**
    * Create a cyclical iterator of the specified size.
    *
-   * \param start_point: Point on the curve that define the starting point of the interval.
+   * \param start_index: Point on the curve that define the starting point of the interval.
    * \param iterator_size: Number of elements to iterate (size of the iterated cyclical range).
    * \param iterable_range_size: Size of the underlying range (superset to the cyclical range).
    */

@@ -11,7 +11,7 @@
 #include "intern/depsgraph_physics.hh"
 
 #include "BLI_enum_flags.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "BKE_collision.h"
 #include "BKE_dynamicpaint.h"

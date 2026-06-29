@@ -54,6 +54,8 @@ int /*eContextResult*/ file_context(const bContext *C,
   (_layout->flag & FILE_LAYOUT_VER && (_layout->width / UI_SCALE_FAC) < 350)
 
 void file_draw_list(const bContext *C, ARegion *region);
+bool file_banner_poll(const SpaceFile *sfile);
+void file_draw_banner(const bContext *C, const SpaceFile *sfile, ARegion *region);
 /**
  * Draw a string hint if the file list is invalid.
  * \return true if the list is invalid and a hint was drawn.
@@ -192,6 +194,13 @@ void file_params_rename_end(wmWindowManager *wm,
  */
 void file_params_renamefile_activate(SpaceFile *sfile, FileSelectParams *params);
 
+/**
+ * Information about the current state of banners that needs preserving over redraws.
+ */
+struct BannersState {
+  bool any_visible;
+};
+
 using onReloadFnData = void *;
 using onReloadFn = void (*)(SpaceFile *space_data, onReloadFnData custom_data);
 struct SpaceFile_Runtime {
@@ -205,6 +214,8 @@ struct SpaceFile_Runtime {
   bool is_blendfile_status_set;
   bool is_blendfile_readable;
   ReportList is_blendfile_readable_reports;
+
+  BannersState banners_state;
 };
 
 /**

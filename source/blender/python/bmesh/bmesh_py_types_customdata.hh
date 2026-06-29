@@ -61,7 +61,7 @@ struct BPy_BMLayerItem {
 void BPy_BM_init_types_customdata();
 
 /**
- *\brief BMElem.__getitem__() / __setitem__()
+ * \brief `BMElem.__getitem__() / __setitem__()`
  *
  * Assume all error checks are done, eg: `uv = vert[uv_layer]`
  */

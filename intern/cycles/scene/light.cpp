@@ -349,16 +349,16 @@ void BackgroundLight::copy_to_kernel(KernelLight *klight,
 
   uint shader_flags = SHADER_USE_MIS;
 
-  if (!(visibility & PATH_RAY_DIFFUSE)) {
+  if (!(visibility & PATH_RAY_VISIBILITY_DIFFUSE)) {
     shader_flags |= SHADER_EXCLUDE_DIFFUSE;
   }
-  if (!(visibility & PATH_RAY_GLOSSY)) {
+  if (!(visibility & PATH_RAY_VISIBILITY_GLOSSY)) {
     shader_flags |= SHADER_EXCLUDE_GLOSSY;
   }
-  if (!(visibility & PATH_RAY_TRANSMIT)) {
+  if (!(visibility & PATH_RAY_VISIBILITY_TRANSMIT)) {
     shader_flags |= SHADER_EXCLUDE_TRANSMIT;
   }
-  if (!(visibility & PATH_RAY_VOLUME_SCATTER)) {
+  if (!(visibility & PATH_RAY_VISIBILITY_VOLUME_SCATTER)) {
     shader_flags |= SHADER_EXCLUDE_SCATTER;
   }
   Light::copy_to_kernel(klight, scene, object, shader_flags);
@@ -438,19 +438,19 @@ static uint light_object_visibility_flags(const Object *object)
   const uint visibility = object->get_visibility();
   uint visibility_flag = 0;
 
-  if (!(visibility & PATH_RAY_CAMERA)) {
+  if (!(visibility & PATH_RAY_VISIBILITY_CAMERA)) {
     visibility_flag |= SHADER_EXCLUDE_CAMERA;
   }
-  if (!(visibility & PATH_RAY_DIFFUSE)) {
+  if (!(visibility & PATH_RAY_VISIBILITY_DIFFUSE)) {
     visibility_flag |= SHADER_EXCLUDE_DIFFUSE;
   }
-  if (!(visibility & PATH_RAY_GLOSSY)) {
+  if (!(visibility & PATH_RAY_VISIBILITY_GLOSSY)) {
     visibility_flag |= SHADER_EXCLUDE_GLOSSY;
   }
-  if (!(visibility & PATH_RAY_TRANSMIT)) {
+  if (!(visibility & PATH_RAY_VISIBILITY_TRANSMIT)) {
     visibility_flag |= SHADER_EXCLUDE_TRANSMIT;
   }
-  if (!(visibility & PATH_RAY_VOLUME_SCATTER)) {
+  if (!(visibility & PATH_RAY_VISIBILITY_VOLUME_SCATTER)) {
     visibility_flag |= SHADER_EXCLUDE_SCATTER;
   }
   if (!(object->get_is_shadow_catcher())) {
@@ -645,6 +645,7 @@ void LightManager::device_update_distribution(Device * /*unused*/,
     const int visibility_flag = light_object_visibility_flags(object);
 
     const size_t mesh_num_triangles = mesh->num_triangles();
+    const packed_float3 *mesh_positions = mesh->get_position();
     for (size_t i = 0; i < mesh_num_triangles; i++) {
       const int shader_index = mesh->get_shader()[i];
       Shader *shader = (shader_index < mesh->get_used_shaders().size()) ?
@@ -659,12 +660,12 @@ void LightManager::device_update_distribution(Device * /*unused*/,
         offset++;
 
         const Mesh::Triangle t = mesh->get_triangle(i);
-        if (!t.valid(mesh->get_verts().data())) {
+        if (!t.valid(mesh_positions)) {
           continue;
         }
-        float3 p1 = mesh->get_verts()[t.v[0]];
-        float3 p2 = mesh->get_verts()[t.v[1]];
-        float3 p3 = mesh->get_verts()[t.v[2]];
+        float3 p1 = mesh_positions[t.v[0]];
+        float3 p2 = mesh_positions[t.v[1]];
+        float3 p3 = mesh_positions[t.v[2]];
 
         if (!transform_applied) {
           p1 = transform_point(&tfm, p1);
@@ -1228,6 +1229,7 @@ void LightManager::device_update_background(Device *device,
   if (!background_light || !background_light->is_enabled) {
     kbackground->map_res_x = 0;
     kbackground->map_res_y = 0;
+    kbackground->map_dD = FLT_MAX;
     kbackground->use_mis = (kbackground->portal_weight > 0.0f);
     return;
   }
@@ -1316,6 +1318,13 @@ void LightManager::device_update_background(Device *device,
   }
   kbackground->map_res_x = res.x;
   kbackground->map_res_y = res.y;
+
+  /* Minimum ray differential for one importance map pixels, using the minimum of both
+   * dimensions to account for non-square maps.
+   * See #background_light_clamp_dD for motivation. */
+  kbackground->map_dD = (kbackground->map_weight > 0.0f && res.x > 0 && res.y > 0) ?
+                            min(M_PI_F / res.y, M_2PI_F / res.x) :
+                            FLT_MAX;
 
   vector<float3> pixels;
   shade_background_pixels(device, dscene, res.x, res.y, pixels, progress);

@@ -7,7 +7,7 @@
 #  include <cstdint>
 
 #  include "BLI_array.hh"
-#  include "BLI_assert.h"
+#  include "BLI_assert.hh"
 #  include "BLI_span.hh"
 
 #  include "GPU_platform.hh"

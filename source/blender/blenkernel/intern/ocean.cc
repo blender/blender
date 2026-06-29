@@ -20,11 +20,11 @@
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_rand.h"
-#include "BLI_task.h"
-#include "BLI_utildefines.h"
+#include "BLI_rand_c.hh"
+#include "BLI_task_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_image.hh"
 #include "BKE_image_format.hh"
@@ -37,7 +37,7 @@
 
 #include "RE_texture.h"
 
-#include "BLI_hash.h"
+#include "BLI_hash_c.hh"
 
 namespace blender {
 
@@ -1366,19 +1366,19 @@ void BKE_ocean_simulate_cache(OceanCache *och, int frame)
    * files were saved with default settings too. */
 
   cache_filepath(filepath, och->bakepath, och->relbase, frame, CACHE_TYPE_DISPLACE);
-  och->ibufs_disp[f] = IMB_load_image_from_filepath(filepath, 0);
+  och->ibufs_disp[f] = IMB_load_image_from_filepath(filepath, ImBufFlags::Zero);
 
   cache_filepath(filepath, och->bakepath, och->relbase, frame, CACHE_TYPE_FOAM);
-  och->ibufs_foam[f] = IMB_load_image_from_filepath(filepath, 0);
+  och->ibufs_foam[f] = IMB_load_image_from_filepath(filepath, ImBufFlags::Zero);
 
   cache_filepath(filepath, och->bakepath, och->relbase, frame, CACHE_TYPE_SPRAY);
-  och->ibufs_spray[f] = IMB_load_image_from_filepath(filepath, 0);
+  och->ibufs_spray[f] = IMB_load_image_from_filepath(filepath, ImBufFlags::Zero);
 
   cache_filepath(filepath, och->bakepath, och->relbase, frame, CACHE_TYPE_SPRAY_INVERSE);
-  och->ibufs_spray_inverse[f] = IMB_load_image_from_filepath(filepath, 0);
+  och->ibufs_spray_inverse[f] = IMB_load_image_from_filepath(filepath, ImBufFlags::Zero);
 
   cache_filepath(filepath, och->bakepath, och->relbase, frame, CACHE_TYPE_NORMAL);
-  och->ibufs_norm[f] = IMB_load_image_from_filepath(filepath, 0);
+  och->ibufs_norm[f] = IMB_load_image_from_filepath(filepath, ImBufFlags::Zero);
 }
 
 void BKE_ocean_bake(Ocean *o,
@@ -1424,11 +1424,11 @@ void BKE_ocean_bake(Ocean *o,
   for (f = och->start, i = 0; f <= och->end; f++, i++) {
 
     /* create a new imbuf to store image for this frame */
-    ibuf_foam = IMB_allocImBuf(res_x, res_y, 32, IB_float_data);
-    ibuf_disp = IMB_allocImBuf(res_x, res_y, 32, IB_float_data);
-    ibuf_normal = IMB_allocImBuf(res_x, res_y, 32, IB_float_data);
-    ibuf_spray = IMB_allocImBuf(res_x, res_y, 32, IB_float_data);
-    ibuf_spray_inverse = IMB_allocImBuf(res_x, res_y, 32, IB_float_data);
+    ibuf_foam = IMB_allocImBuf(res_x, res_y, ImBufFlags::FloatData);
+    ibuf_disp = IMB_allocImBuf(res_x, res_y, ImBufFlags::FloatData);
+    ibuf_normal = IMB_allocImBuf(res_x, res_y, ImBufFlags::FloatData);
+    ibuf_spray = IMB_allocImBuf(res_x, res_y, ImBufFlags::FloatData);
+    ibuf_spray_inverse = IMB_allocImBuf(res_x, res_y, ImBufFlags::FloatData);
 
     BKE_ocean_simulate(o, och->time[i], och->wave_scale, och->chop_amount);
 

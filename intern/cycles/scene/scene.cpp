@@ -24,6 +24,7 @@
 #include "scene/pointcloud.h"
 #include "scene/procedural.h"
 #include "scene/scene.h"
+#include "scene/scene_attributes.h"
 #include "scene/shader.h"
 #include "scene/svm.h"
 #include "scene/tables.h"
@@ -75,6 +76,7 @@ Scene ::Scene(const SceneParams &params_, Device *device)
   film = create_node<Film>();
   background = create_node<Background>();
   integrator = create_node<Integrator>();
+  scene_attribute = create_node<SceneAttributes>();
 
   ccl::Film::add_default(this);
   ccl::ShaderManager::add_default(this);
@@ -111,17 +113,20 @@ void Scene::free_memory(bool final)
     film->device_free(device, &dscene, this);
     background->device_free(device, &dscene);
     integrator->device_free(device, &dscene, true);
+    scene_attribute->device_free(device, &dscene, true);
   }
 
   if (final) {
     cameras.clear();
     integrators.clear();
+    scene_attributes.clear();
     films.clear();
     backgrounds.clear();
 
     camera = nullptr;
     dicing_camera = nullptr;
     integrator = nullptr;
+    scene_attribute = nullptr;
     film = nullptr;
     background = nullptr;
   }
@@ -266,6 +271,13 @@ void Scene::device_update(Device *device_, Progress &progress)
     return;
   }
 
+  progress.set_status("Updating Scene Attribute");
+  scene_attribute->device_update(device, &dscene, this);
+
+  if (progress.get_cancel() || device->have_error()) {
+    return;
+  }
+
   /* Camera will be used by adaptive subdivision, so do early. */
   progress.set_status("Updating Camera");
   camera->device_update(device, &dscene, this);
@@ -395,6 +407,13 @@ void Scene::device_update(Device *device_, Progress &progress)
 
   device->optimize_for_scene(this);
 
+  if (need_motion() == MOTION_PASS_INTERACTIVE) {
+    /* Swap current camera/object/vertex positions to previous positions for next frame. */
+    camera->update_interactive_motion();
+    object_manager->update_interactive_motion(this);
+    geometry_manager->update_interactive_motion(this);
+  }
+
   if (print_stats) {
     const size_t mem_used = util_guarded_get_mem_used();
     const size_t mem_peak = util_guarded_get_mem_peak();
@@ -412,17 +431,20 @@ Scene::MotionType Scene::need_motion() const
   if (integrator->get_motion_blur()) {
     return MOTION_BLUR;
   }
-  if (Pass::contains(passes, PASS_MOTION) ||
-      Pass::contains(passes, PASS_DENOISING_BACKWARD_MOTION))
+  const bool denoiser_motion = integrator->get_use_denoise() &&
+                               (integrator->get_denoiser_passes() &
+                                (DENOISER_PASS_MOTION | DENOISER_PASS_BACKWARD_MOTION)) != 0;
+  if (denoiser_motion || (Pass::contains(passes, PASS_MOTION) ||
+                          Pass::contains(passes, PASS_DENOISING_BACKWARD_MOTION)))
   {
-    return MOTION_PASS;
+    return params.background ? MOTION_PASS : MOTION_PASS_INTERACTIVE;
   }
   return MOTION_NONE;
 }
 
 float Scene::motion_shutter_time()
 {
-  if (need_motion() == Scene::MOTION_PASS) {
+  if (need_motion() == Scene::MOTION_PASS || need_motion() == Scene::MOTION_PASS_INTERACTIVE) {
     return 2.0f;
   }
   return camera->get_shuttertime();
@@ -432,9 +454,6 @@ bool Scene::need_global_attribute(AttributeStandard std) const
 {
   if (std == ATTR_STD_UV) {
     return Pass::contains(passes, PASS_UV);
-  }
-  if (std == ATTR_STD_MOTION_VERTEX_POSITION) {
-    return need_motion() != MOTION_NONE;
   }
   if (std == ATTR_STD_VOLUME_VELOCITY || std == ATTR_STD_VOLUME_VELOCITY_X ||
       std == ATTR_STD_VOLUME_VELOCITY_Y || std == ATTR_STD_VOLUME_VELOCITY_Z)
@@ -465,12 +484,12 @@ bool Scene::need_update()
 
 bool Scene::need_data_update()
 {
-  return (background->is_modified() || image_manager->need_update() ||
-          object_manager->need_update() || geometry_manager->need_update() ||
-          light_manager->need_update() || lookup_tables->need_update() ||
-          integrator->is_modified() || shader_manager->need_update() ||
-          particle_system_manager->need_update() || bake_manager->need_update() ||
-          film->is_modified() || procedural_manager->need_update());
+  return (
+      background->is_modified() || image_manager->need_update() || object_manager->need_update() ||
+      geometry_manager->need_update() || light_manager->need_update() ||
+      lookup_tables->need_update() || integrator->is_modified() || shader_manager->need_update() ||
+      particle_system_manager->need_update() || bake_manager->need_update() ||
+      film->is_modified() || procedural_manager->need_update() || scene_attribute->is_modified());
 }
 
 bool Scene::need_reset(const bool check_camera)
@@ -491,6 +510,7 @@ void Scene::reset()
 
   background->tag_update(this);
   integrator->tag_update(this, Integrator::UPDATE_ALL);
+  scene_attribute->tag_update(this, SceneAttributes::UPDATE_ALL);
   object_manager->tag_update(this, ObjectManager::UPDATE_ALL);
   geometry_manager->tag_update(this, GeometryManager::UPDATE_ALL);
   light_manager->tag_update(this, LightManager::UPDATE_ALL);
@@ -586,7 +606,8 @@ void Scene::update_kernel_features()
   }
 
   dscene.data.integrator.use_caustics = false;
-  if (device->info.has_mnee && has_caustics_caster && has_caustics_receiver && has_caustics_light)
+  if (device->info.has_mnee() && has_caustics_caster && has_caustics_receiver &&
+      has_caustics_light)
   {
     dscene.data.integrator.use_caustics = true;
     kernel_features |= KERNEL_FEATURE_MNEE;
@@ -973,6 +994,15 @@ template<> Integrator *Scene::create_node<Integrator>()
   Integrator *node_ptr = node.get();
   node->set_owner(this);
   integrators.push_back(std::move(node));
+  return node_ptr;
+}
+
+template<> SceneAttributes *Scene::create_node<SceneAttributes>()
+{
+  unique_ptr<SceneAttributes> node = make_unique<SceneAttributes>();
+  SceneAttributes *node_ptr = node.get();
+  node->set_owner(this);
+  scene_attributes.push_back(std::move(node));
   return node_ptr;
 }
 

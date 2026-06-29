@@ -138,6 +138,7 @@ struct TimelineDrawContext {
 /* Returns value in frames (view-space), 5px for large strips, 1/4 of the strip for smaller. */
 float strip_handle_draw_size_get(const Scene *scene, const Strip *strip, float pixelx);
 void draw_timeline_seq(const bContext *C, const ARegion *region);
+void sequencer_scrubbing_region_draw(const bContext *C, ARegion *region);
 void draw_timeline_seq_display(const bContext *C, ARegion *region);
 
 /* `sequencer_preview_draw.cc` */
@@ -180,6 +181,7 @@ void channel_draw_context_init(const bContext *C,
 
 void slip_modal_keymap(wmKeyConfig *keyconf);
 VectorSet<Strip *> strip_effect_get_new_inputs(const Scene *scene,
+                                               StripType effect_type,
                                                int num_inputs,
                                                bool ignore_active = false);
 const char *effect_inputs_validate(int have_inputs, int num_inputs);
@@ -287,6 +289,7 @@ void SEQUENCER_OT_select_lasso(wmOperatorType *ot);
 void SEQUENCER_OT_select_circle(wmOperatorType *ot);
 void SEQUENCER_OT_select_inverse(wmOperatorType *ot);
 void SEQUENCER_OT_select_grouped(wmOperatorType *ot);
+void SEQUENCER_OT_select_by_type(wmOperatorType *ot);
 
 bool strip_point_image_isect(const Scene *scene, const Strip *strip, float point_view[2]);
 void sequencer_select_do_updates(const bContext *C, Scene *scene);
@@ -440,6 +443,8 @@ wmOperatorStatus sequencer_clipboard_paste_invoke(bContext *C,
 MenuType add_catalog_assets_menu_type();
 MenuType add_unassigned_assets_menu_type();
 MenuType add_scene_menu_type();
+
+void sequencer_strip_modifier_add_asset_register();
 
 }  // namespace ed::vse
 }  // namespace blender

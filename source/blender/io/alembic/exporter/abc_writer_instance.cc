@@ -9,7 +9,7 @@
 #include "abc_writer_instance.h"
 #include "abc_hierarchy_iterator.h"
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 
 #include "CLG_log.h"
 

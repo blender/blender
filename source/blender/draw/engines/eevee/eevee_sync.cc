@@ -67,6 +67,8 @@ static inline void geometry_volume_call(PassMain::Sub *pass,
   }
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Common Helpers
  * \{ */
@@ -150,20 +152,27 @@ void SyncModule::sync_common(const ObjectHandle &ob_handle,
   bool has_volume = false;
   bool is_alpha_blend = false;
   bool has_transparent_shadows = false;
+  bool has_time_dependent_shadows = false;
   float inflate_bounds = 0.0f;
+
   for (const Material *material : materials) {
     has_volume |= material->has_volume;
     if (material->has_volume && !material->has_surface) {
       continue;
     }
 
-    is_alpha_blend |= material->is_alpha_blend_transparent;
-    has_transparent_shadows |= material->has_transparent_shadows;
-
     GPUMaterial *gpu_material = material->shading.gpumat;
     blender::Material *bl_material = GPU_material_get_material(gpu_material);
 
-    if (GPU_material_has_displacement_output(gpu_material)) {
+    const bool has_displacement = GPU_material_has_displacement_output(gpu_material) &&
+                                  (bl_material->displacement_method != MA_DISPLACEMENT_BUMP);
+    const bool has_time_node = GPU_material_flag_get(gpu_material, GPU_MATFLAG_SCENE_TIME);
+
+    is_alpha_blend |= material->is_alpha_blend_transparent;
+    has_transparent_shadows |= material->has_transparent_shadows;
+    has_time_dependent_shadows |= has_time_node && (has_transparent_shadows || has_displacement);
+
+    if (has_displacement) {
       inflate_bounds = math::max(inflate_bounds, bl_material->inflate_bounds);
     }
 
@@ -172,7 +181,8 @@ void SyncModule::sync_common(const ObjectHandle &ob_handle,
 
   inst_.cryptomatte.sync_object(ob_handle);
 
-  inst_.shadows.sync_object(ob_handle, is_alpha_blend, has_transparent_shadows);
+  inst_.shadows.sync_object(
+      ob_handle, is_alpha_blend, has_transparent_shadows, has_time_dependent_shadows);
 
   if (has_volume) {
     inst_.volume.object_sync(ob_handle);
@@ -184,8 +194,6 @@ void SyncModule::sync_common(const ObjectHandle &ob_handle,
 
   inst_.manager->extract_object_attributes(ob_handle.res_handle, ob_handle, gpu_materials);
 }
-
-/** \} */
 
 /** \} */
 
@@ -407,7 +415,7 @@ void SyncModule::sync_volume(const ObjectRef &ob_ref)
    * This mimic Cycles behavior (see #124061). */
   ListBaseT<GPUMaterialAttribute> attr_list = GPU_material_attributes(
       material.volume_material.gpumat);
-  if (BLI_listbase_is_empty(&attr_list)) {
+  if (attr_list.is_empty()) {
     return;
   }
 

@@ -65,7 +65,8 @@ struct bSound {
   int audio_channels = 0;
   int samplerate = 0;
   eSound_Flag flags = {};
-  char _pad1[6] = {};
+  short stream_index = 0;
+  char _pad1[4] = {};
 
   bke::SoundRuntime *runtime = nullptr;
   void *_pad2 = nullptr;

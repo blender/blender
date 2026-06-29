@@ -18,6 +18,7 @@
 
 #  include "subd/patch.h"
 
+#  include "util/types.h"
 #  include "util/unique_ptr.h"
 #  include "util/vector.h"
 
@@ -45,7 +46,12 @@ template<typename T> struct OsdValue {
 
   void AddWithWeight(OsdValue<T> const &src, float weight)
   {
-    value += src.value * weight;
+    if constexpr (std::is_same_v<T, packed_float3>) {
+      value = float3(value) + float3(src.value) * weight;
+    }
+    else {
+      value += src.value * weight;
+    }
   }
 };
 
@@ -78,7 +84,7 @@ struct OsdData {
   unique_ptr<Far::TopologyRefiner> refiner;
   unique_ptr<Far::PatchTable> patch_table;
   unique_ptr<Far::PatchMap> patch_map;
-  vector<OsdValue<float3>> refined_verts;
+  vector<OsdValue<packed_float3>> refined_verts;
 
   void build(OsdMesh &osd_mesh);
 };

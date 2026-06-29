@@ -16,12 +16,12 @@
 #include <cstring>
 #include <optional>
 
-#include "BLI_iterator.h"
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
+#include "BLI_iterator.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_base_c.hh"
 #include "BLI_mutex.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
 
 #include "BLT_translation.hh"
@@ -164,9 +164,9 @@ static void collection_copy_data(Main *bmain,
 
   collection_dst->flag &= ~(COLLECTION_HAS_OBJECT_CACHE | COLLECTION_HAS_OBJECT_CACHE_INSTANCED);
 
-  BLI_listbase_clear(&collection_dst->gobject);
-  BLI_listbase_clear(&collection_dst->children);
-  BLI_listbase_clear(&collection_dst->exporters);
+  collection_dst->gobject.clear_no_delete();
+  collection_dst->children.clear_no_delete();
+  collection_dst->exporters.clear_no_delete();
   collection_dst->importer = nullptr;
 
   for (CollectionChild &child : collection_src->children) {
@@ -191,19 +191,19 @@ static void collection_free_data(ID *id)
   /* No animation-data here. */
   BKE_previewimg_id_free(&collection->id);
 
-  BLI_freelistN(&collection->gobject);
+  collection->gobject.free_no_destruct();
   if (collection->runtime->gobject_hash) {
     MEM_delete(collection->runtime->gobject_hash);
     collection->runtime->gobject_hash = nullptr;
   }
 
-  BLI_freelistN(&collection->children);
-  BLI_freelistN(&collection->runtime->parents);
+  collection->children.free_no_destruct();
+  collection->runtime->parents.free_no_destruct();
 
   for (CollectionExport &data : collection->exporters) {
     BKE_collection_exporter_free_data(&data);
   }
-  BLI_freelistN(&collection->exporters);
+  collection->exporters.free_no_destruct();
 
   if (collection->importer) {
     BKE_collection_importer_free_data(collection->importer);
@@ -474,6 +474,7 @@ static Collection *collection_add(Main *bmain,
   /* Optionally add to parent collection. */
   if (collection_parent) {
     collection_child_add(bmain, collection_parent, collection, nullptr, 0, true);
+    collection->color_tag = collection_parent->color_tag;
   }
 
   return collection;
@@ -851,13 +852,11 @@ void BKE_collection_new_name_get(Collection *collection_parent, char r_name[MAX_
     BLI_strncpy_utf8(r_name, DATA_("Collection"), name_maxncpy);
   }
   else if (collection_parent->flag & COLLECTION_IS_MASTER) {
-    BLI_snprintf_utf8(r_name,
-                      name_maxncpy,
-                      DATA_("Collection %d"),
-                      BLI_listbase_count(&collection_parent->children) + 1);
+    BLI_snprintf_utf8(
+        r_name, name_maxncpy, DATA_("Collection %d"), collection_parent->children.count() + 1);
   }
   else {
-    const int number = BLI_listbase_count(&collection_parent->children) + 1;
+    const int number = collection_parent->children.count() + 1;
     const int digits = integer_digits_i(number);
     const size_t name_part_maxncpy = name_maxncpy - (1 + digits);
     const size_t name_part_len = BLI_strncpy_utf8_rlen(
@@ -954,8 +953,8 @@ static void collection_object_cache_free(const Main *bmain,
                                          const uint id_recalc_flag)
 {
   collection->flag &= ~(COLLECTION_HAS_OBJECT_CACHE | COLLECTION_HAS_OBJECT_CACHE_INSTANCED);
-  BLI_freelistN(&collection->runtime->object_cache);
-  BLI_freelistN(&collection->runtime->object_cache_instanced);
+  collection->runtime->object_cache.free_no_destruct();
+  collection->runtime->object_cache_instanced.free_no_destruct();
 
   /* Although it may seem abusive to call depsgraph updates from this utility function,
    * it is called from any code-path modifying the collections hierarchy and/or their objects.
@@ -1154,7 +1153,7 @@ bool BKE_collection_contains_geometry_recursive(const Collection *collection)
     if (col_ob.ob->visibility_flag & OB_HIDE_RENDER) {
       continue;
     }
-    if (OB_TYPE_IS_GEOMETRY(col_ob.ob->type)) {
+    if (DEG_object_has_geometry_component(col_ob.ob)) {
       return true;
     }
   }
@@ -1206,8 +1205,7 @@ Collection *BKE_collection_object_find(Main *bmain,
 
 bool BKE_collection_is_empty(const Collection *collection)
 {
-  return BLI_listbase_is_empty(&collection->gobject) &&
-         BLI_listbase_is_empty(&collection->children);
+  return collection->gobject.is_empty() && collection->children.is_empty();
 }
 
 /** \} */
@@ -1222,7 +1220,7 @@ static void collection_gobject_assert_internal_consistency(Collection *collectio
 static CollectionObjectMap *collection_gobject_hash_alloc(const Collection *collection)
 {
   auto *gobject_hash = MEM_new<CollectionObjectMap>(__func__);
-  gobject_hash->reserve(BLI_listbase_count(&collection->gobject));
+  gobject_hash->reserve(collection->gobject.count());
   return gobject_hash;
 }
 
@@ -1230,7 +1228,7 @@ static void collection_gobject_hash_create(Collection *collection)
 {
   CollectionObjectMap *gobject_hash = collection_gobject_hash_alloc(collection);
   for (CollectionObject &cob : collection->gobject) {
-    if (UNLIKELY(cob.ob == nullptr)) {
+    if (cob.ob == nullptr) [[unlikely]] {
       BLI_assert(collection->runtime->tag & COLLECTION_TAG_COLLECTION_OBJECT_DIRTY);
       continue;
     }
@@ -1463,7 +1461,7 @@ static bool collection_object_add(Main *bmain,
   bool newly_added = false;
   CollectionObject *cob = collection->runtime->gobject_hash->lookup_or_add_cb(ob, [&]() {
     newly_added = true;
-    return MEM_new<CollectionObject>(__func__);
+    return MEM_new<CollectionObject>("collection_object_add");
   });
   if (!newly_added) {
     return false;
@@ -1581,7 +1579,7 @@ CollectionExport *BKE_collection_exporter_add(Collection *collection, char *idna
   data->flag |= IO_HANDLER_PANEL_OPEN;
 
   BLI_addtail(&collection->exporters, data);
-  collection->active_exporter_index = BLI_listbase_count(&collection->exporters) - 1;
+  collection->active_exporter_index = collection->exporters.count() - 1;
 
   return data;
 }
@@ -1594,7 +1592,7 @@ void BKE_collection_exporter_remove(Collection *collection, CollectionExport *da
 
   MEM_delete(data);
 
-  const int count = BLI_listbase_count(exporters);
+  const int count = exporters->count();
   const int new_index = count == 0 ? 0 : std::min(collection->active_exporter_index, count - 1);
   collection->active_exporter_index = new_index;
 }
@@ -2181,7 +2179,7 @@ void BKE_main_collections_parent_relations_rebuild(Main *bmain)
 {
   /* Only collections not in bmain (master ones in scenes) have no parent... */
   for (Collection &collection : bmain->collections) {
-    BLI_freelistN(&collection.runtime->parents);
+    collection.runtime->parents.free_no_destruct();
 
     collection.runtime->tag |= COLLECTION_TAG_RELATION_REBUILD;
   }
@@ -2193,7 +2191,7 @@ void BKE_main_collections_parent_relations_rebuild(Main *bmain)
      * nullptr.
      */
     if (scene.master_collection != nullptr) {
-      BLI_assert(BLI_listbase_is_empty(&scene.master_collection->runtime->parents));
+      BLI_assert(scene.master_collection->runtime->parents.is_empty());
       scene.master_collection->runtime->tag |= COLLECTION_TAG_RELATION_REBUILD;
       collection_parents_rebuild_recursive(scene.master_collection);
     }

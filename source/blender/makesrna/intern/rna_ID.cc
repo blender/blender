@@ -109,6 +109,12 @@ static const EnumPropertyItem rna_enum_override_library_property_operation_items
      "Insert Before",
      "Insert a new item into collection before the one referenced in "
      "subitem_reference_name/_id or _index (NOT USED)"},
+    {LIBOVERRIDE_OP_CUSTOM,
+     "CUSTOM",
+     0,
+     "Custom",
+     "Custom operation, specific to a RNA property, and handled through dedicated callbacks (used "
+     "in specific cases, e.g. to handle data not actually exposed in RNA)"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -209,9 +215,9 @@ const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
 
 #  include "DNA_anim_types.h"
 
-#  include "BLI_listbase.h"
-#  include "BLI_math_base.h"
-#  include "BLI_string.h"
+#  include "BLI_listbase.hh"
+#  include "BLI_math_base_c.hh"
+#  include "BLI_string.hh"
 
 #  include "BLT_translation.hh"
 
@@ -271,6 +277,34 @@ int rna_ID_override_library_property_operation_locname_length(PointerRNA *ptr)
   IDOverrideLibraryPropertyOperation *opop = static_cast<IDOverrideLibraryPropertyOperation *>(
       ptr->data);
   return (opop->subitem_local_name == nullptr) ? 0 : strlen(opop->subitem_local_name);
+}
+
+void rna_ID_override_library_property_operation_label_get(PointerRNA *ptr, char *value)
+{
+  IDOverrideLibraryPropertyOperation *opop = static_cast<IDOverrideLibraryPropertyOperation *>(
+      ptr->data);
+  strcpy(value, (opop->label == nullptr) ? "" : opop->label);
+}
+
+int rna_ID_override_library_property_operation_label_length(PointerRNA *ptr)
+{
+  IDOverrideLibraryPropertyOperation *opop = static_cast<IDOverrideLibraryPropertyOperation *>(
+      ptr->data);
+  return (opop->label == nullptr) ? 0 : strlen(opop->label);
+}
+
+void rna_ID_override_library_property_operation_tooltip_get(PointerRNA *ptr, char *value)
+{
+  IDOverrideLibraryPropertyOperation *opop = static_cast<IDOverrideLibraryPropertyOperation *>(
+      ptr->data);
+  strcpy(value, (opop->tooltip == nullptr) ? "" : opop->tooltip);
+}
+
+int rna_ID_override_library_property_operation_tooltip_length(PointerRNA *ptr)
+{
+  IDOverrideLibraryPropertyOperation *opop = static_cast<IDOverrideLibraryPropertyOperation *>(
+      ptr->data);
+  return (opop->tooltip == nullptr) ? 0 : strlen(opop->tooltip);
 }
 
 /* name functions that ignore the first two ID characters */
@@ -374,7 +408,7 @@ static PointerRNA rna_ID_original_get(PointerRNA *ptr)
 short RNA_type_to_ID_code(const StructRNA *type)
 {
   const StructRNA *base_type = RNA_struct_base_child_of(type, RNA_ID);
-  if (UNLIKELY(base_type == nullptr)) {
+  if (base_type == nullptr) [[unlikely]] {
     return 0;
   }
   if (base_type == RNA_Action) {
@@ -609,9 +643,7 @@ int rna_ID_is_runtime_editable(const PointerRNA *ptr, const char **r_info)
 {
   ID *id = static_cast<ID *>(ptr->data);
   /* TODO: This should be abstracted in a BKE function or define, somewhat related to #88555. */
-  if (id->tag & (ID_TAG_NO_MAIN | ID_TAG_TEMP_MAIN | ID_TAG_LOCALIZED |
-                 ID_TAG_COPIED_ON_EVAL_FINAL_RESULT | ID_TAG_COPIED_ON_EVAL))
-  {
+  if (id->tag & (ID_TAG_NO_MAIN | ID_TAG_TEMP_MAIN | ID_TAG_LOCALIZED | ID_TAG_COPIED_ON_EVAL)) {
     *r_info = N_(
         "Cannot edit 'runtime' status of non-blendfile data-blocks, as they are by definition "
         "always runtime");
@@ -625,9 +657,7 @@ bool rna_ID_is_runtime_get(PointerRNA *ptr)
 {
   ID *id = static_cast<ID *>(ptr->data);
   /* TODO: This should be abstracted in a BKE function or define, somewhat related to #88555. */
-  if (id->tag & (ID_TAG_NO_MAIN | ID_TAG_TEMP_MAIN | ID_TAG_LOCALIZED |
-                 ID_TAG_COPIED_ON_EVAL_FINAL_RESULT | ID_TAG_COPIED_ON_EVAL))
-  {
+  if (id->tag & (ID_TAG_NO_MAIN | ID_TAG_TEMP_MAIN | ID_TAG_LOCALIZED | ID_TAG_COPIED_ON_EVAL)) {
     return true;
   }
 
@@ -1973,6 +2003,32 @@ static void rna_def_ID_override_library_property_operation(BlenderRNA *brna)
                      -1,
                      INT_MAX);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* For now. */
+
+  prop = RNA_def_string(srna,
+                        "label",
+                        nullptr,
+                        0,
+                        "UI Label",
+                        "UI label to display in dedicated view of the Outliner, in place of the "
+                        "actual UI widget to edit the value");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* For now. */
+  RNA_def_property_string_funcs(prop,
+                                "rna_ID_override_library_property_operation_label_get",
+                                "rna_ID_override_library_property_operation_label_length",
+                                nullptr);
+
+  prop = RNA_def_string(srna,
+                        "tooltip",
+                        nullptr,
+                        0,
+                        "UI Tooltip",
+                        "UI tooltip to display in dedicated view of the Outliner, when the label "
+                        "itself cannot provide all required information");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* For now. */
+  RNA_def_property_string_funcs(prop,
+                                "rna_ID_override_library_property_operation_tooltip_get",
+                                "rna_ID_override_library_property_operation_tooltip_length",
+                                nullptr);
 }
 
 static void rna_def_ID_override_library_property_operations(BlenderRNA *brna, PropertyRNA *cprop)

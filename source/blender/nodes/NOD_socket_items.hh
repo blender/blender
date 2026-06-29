@@ -19,7 +19,7 @@
 
 #include <optional>
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_string_utils.hh"
 
 #include "BKE_node.hh"
@@ -104,7 +104,9 @@ template<typename Accessor> inline void clear(bNode &node)
   destruct_array<Accessor>(node);
   SocketItemsRef ref = Accessor::get_items_from_node(node);
   *ref.items_num = 0;
-  *ref.active_index = 0;
+  if (ref.active_index) {
+    *ref.active_index = 0;
+  }
 }
 
 /**
@@ -319,7 +321,7 @@ template<typename Accessor>
 
   ItemT *item = nullptr;
   if constexpr (Accessor::has_name && Accessor::has_type) {
-    const eNodeSocketDatatype src_socket_type = eNodeSocketDatatype(src_socket->type);
+    const eNodeSocketDatatype src_socket_type = src_socket->type;
     const std::optional<eNodeSocketDatatype> added_socket_type = get_socket_item_type_to_add(
         src_socket_type, [&](const eNodeSocketDatatype type) {
           return Accessor::supports_socket_type(type, ntree.type);

@@ -32,6 +32,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .structure_type(StructureType::Dynamic);
   b.add_input<decl::Float>("Size"_ustr)
       .default_value(0.0f)
+      .subtype(PROP_PIXEL)
       .min(0.0f)
       .structure_type(StructureType::Dynamic);
   b.add_input<decl::Float>("Mask"_ustr)
@@ -389,7 +390,7 @@ static void node_register()
   ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = node_declare;
   ntype.get_compositor_operation = get_compositor_operation;
-  bke::node_type_size(ntype, 160, 140, NODE_DEFAULT_MAX_WIDTH);
+  ntype.default_width = bke::NodeWidth::_160;
 
   bke::node_register_type(ntype);
 }

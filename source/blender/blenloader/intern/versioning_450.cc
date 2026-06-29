@@ -19,13 +19,13 @@
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_set.hh"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
@@ -3796,7 +3796,7 @@ static void do_version_replace_image_info_node_coordinates(bNodeTree *node_tree)
 static void do_version_vector_sockets_dimensions(bNodeTree *node_tree)
 {
   node_tree->tree_interface.foreach_item([&](bNodeTreeInterfaceItem &item) {
-    if (item.item_type != NODE_INTERFACE_SOCKET) {
+    if (item.item_type != NodeTreeInterfaceItemType::Socket) {
       return true;
     }
 
@@ -4989,7 +4989,7 @@ static void version_convert_sculpt_planar_brushes(Main *bmain)
 
 static void node_interface_single_value_to_structure_type(bNodeTreeInterfaceItem &item)
 {
-  if (item.item_type == eNodeTreeInterfaceItemType::NODE_INTERFACE_SOCKET) {
+  if (item.item_type == NodeTreeInterfaceItemType::Socket) {
     auto &socket = reinterpret_cast<bNodeTreeInterfaceSocket &>(item);
     if (socket.flag & NODE_INTERFACE_SOCKET_SINGLE_VALUE_ONLY_LEGACY) {
       socket.structure_type = NodeSocketInterfaceStructureType::Single;

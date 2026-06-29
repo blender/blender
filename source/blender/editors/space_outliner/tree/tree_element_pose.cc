@@ -10,7 +10,7 @@
 #include "DNA_object_types.h"
 #include "DNA_outliner_types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "BLT_translation.hh"
 
@@ -44,7 +44,7 @@ void TreeElementPoseBase::expand(SpaceOutliner & /*space_outliner*/) const
           &legacy_te_.subtree, &object_.id, &pchan, &legacy_te_, TSE_POSE_CHANNEL, a);
       pchan.temp = static_cast<void *>(ten);
 
-      if (!BLI_listbase_is_empty(&pchan.constraints)) {
+      if (!pchan.constraints.is_empty()) {
         // Object *target;
         TreeElement *tenla1 = add_element(
             &ten->subtree, &object_.id, nullptr, ten, TSE_CONSTRAINT_BASE, 0);

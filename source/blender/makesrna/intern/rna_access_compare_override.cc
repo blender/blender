@@ -22,13 +22,13 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_utildefines.hh"
 
 // #define DEBUG_OVERRIDE_TIMEIT
 
 #ifdef DEBUG_OVERRIDE_TIMEIT
-#  include "BLI_time_utildefines.h"
+#  include "BLI_time_utildefines.hh"
 #  include <stdio.h>
 #endif
 
@@ -215,12 +215,23 @@ bool RNA_property_comparable(PointerRNA * /*ptr*/, PropertyRNA *prop)
 
 static bool rna_property_override_operation_apply(Main *bmain,
                                                   RNAPropertyOverrideApplyContext &rnaapply_ctx);
+static void rna_property_override_collection_subitem_lookup(
+    RNAPropertyOverrideApplyContext &rnaapply_ctx);
 
-bool RNA_property_copy(
-    Main *bmain, PointerRNA *ptr, PointerRNA *fromptr, PropertyRNA *prop, int index)
+bool RNA_property_copy(Main *bmain,
+                       PointerRNA *ptr,
+                       PointerRNA *fromptr,
+                       PropertyRNA *prop,
+                       int index,
+                       IDOverrideLibraryProperty *removed_oprop,
+                       IDOverrideLibraryPropertyOperation *removed_opop)
 {
-  if (!RNA_property_editable(ptr, prop)) {
-    return false;
+  /* Ignore editable state if this is removing a liboverride, and the removed operation is a
+   * custom one. Apply callback of the property is expected to know what to do then. */
+  if (!removed_opop || removed_opop->operation != LIBOVERRIDE_OP_CUSTOM) {
+    if (!RNA_property_editable(ptr, prop)) {
+      return false;
+    }
   }
 
   IDOverrideLibraryPropertyOperation opop{};
@@ -234,6 +245,23 @@ bool RNA_property_copy(
   rnaapply_ctx.prop_dst = prop;
   rnaapply_ctx.prop_src = prop;
   rnaapply_ctx.liboverride_operation = &opop;
+
+  rnaapply_ctx.liboverride_removed_property = removed_oprop;
+  rnaapply_ctx.liboverride_removed_operation = removed_opop;
+  if (removed_opop) {
+    /* Note that here, when removing a liboverride operation, the reference data is copied into the
+     * override one, which is the opposite from regular liboverride apply process (where
+     * liboverride data is copied into the reference data). hence the inversion of local and
+     * reference subitem identification info below. */
+    opop.subitem_local_id = removed_opop->subitem_reference_id;
+    opop.subitem_reference_id = removed_opop->subitem_local_id;
+    opop.subitem_local_index = removed_opop->subitem_reference_index;
+    opop.subitem_reference_index = removed_opop->subitem_local_index;
+    opop.subitem_local_name = removed_opop->subitem_reference_name;
+    opop.subitem_reference_name = removed_opop->subitem_local_name;
+  }
+
+  rna_property_override_collection_subitem_lookup(rnaapply_ctx);
 
   return rna_property_override_operation_apply(bmain, rnaapply_ctx);
 }
@@ -308,7 +336,7 @@ bool RNA_struct_equals(Main *bmain, PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACo
  * Generic RNA property diff function.
  *
  * Return value follows comparison functions convention (`0` is equal, `-1` if `prop_a` value is
- * lesser than `prop_b` one, and `1` otherwise.
+ * lesser than `prop_b` one, and `1` otherwise).
  *
  * \note When there is no equality, but no order can be determined (greater than/lesser than),
  *       1 is returned.
@@ -1034,7 +1062,7 @@ static bool rna_property_override_collection_subitem_name_id_match(
 
   is_match = ((item_name_len == namelen) && STREQ(item_name, name));
 
-  if (UNLIKELY(name != name_buf)) {
+  if (name != name_buf) [[unlikely]] {
     MEM_delete(name);
   }
 
@@ -1760,18 +1788,18 @@ eRNAOverrideStatus RNA_property_override_library_status(Main *bmain,
   }
 
   if (RNA_property_overridable_get(ptr, prop) && RNA_property_editable_flag(ptr, prop)) {
-    override_status |= RNA_OVERRIDE_STATUS_OVERRIDABLE;
+    override_status |= eRNAOverrideStatus::LibOverridable;
   }
 
   IDOverrideLibraryPropertyOperation *opop = RNA_property_override_property_operation_find(
       bmain, ptr, prop, index, false, nullptr);
   if (opop != nullptr) {
-    override_status |= RNA_OVERRIDE_STATUS_OVERRIDDEN;
+    override_status |= eRNAOverrideStatus::LibOverridden;
     if (opop->flag & LIBOVERRIDE_OP_FLAG_MANDATORY) {
-      override_status |= RNA_OVERRIDE_STATUS_MANDATORY;
+      override_status |= eRNAOverrideStatus::LibOverrideMandatory;
     }
     if (opop->flag & LIBOVERRIDE_OP_FLAG_LOCKED) {
-      override_status |= RNA_OVERRIDE_STATUS_LOCKED;
+      override_status |= eRNAOverrideStatus::LibOverrideLocked;
     }
   }
 

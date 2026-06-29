@@ -23,10 +23,10 @@
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_task.hh"
 
 #include "BKE_armature.hh"
@@ -428,7 +428,7 @@ static std::unique_ptr<XFormObjectData> data_xform_create_ex(ID *id, bool is_edi
         auto xod = std::make_unique<XFormObjectData_Armature>();
         xod->id = id;
         xod->is_edit_mode = is_edit_mode;
-        xod->elems.reinitialize(BLI_listbase_count(arm->edbo));
+        xod->elems.reinitialize(arm->edbo->count());
         edit_armature_coords_and_quats_get(arm, xod->elems);
         return xod;
       }
@@ -445,7 +445,7 @@ static std::unique_ptr<XFormObjectData> data_xform_create_ex(ID *id, bool is_edi
       auto xod = std::make_unique<XFormObjectData_MetaBall>();
       xod->id = id;
       xod->is_edit_mode = is_edit_mode;
-      xod->elems.reinitialize(BLI_listbase_count(&mb->elems));
+      xod->elems.reinitialize(mb->elems.count());
       metaball_coords_and_quats_get(mb, xod->elems);
       return xod;
     }

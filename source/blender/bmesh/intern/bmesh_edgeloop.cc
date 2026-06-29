@@ -10,12 +10,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
-#include "BLI_mempool.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_mempool.hh"
 #include "BLI_set.hh"
-#include "BLI_stack.h"
-#include "BLI_utildefines_iter.h"
+#include "BLI_stack_c.hh"
+#include "BLI_utildefines_iter.hh"
 
 #include "bmesh.hh"
 
@@ -88,7 +88,7 @@ static bool bm_loop_build(BMEdgeLoopStore *el_store, BMVert *v_prev, BMVert *v, 
     if (count == 1) {
       v_next = BM_edge_other_vert(e_next, v);
       BM_elem_flag_disable(e_next, BM_ELEM_INTERNAL_TAG);
-      if (UNLIKELY(v_next == v_first)) {
+      if (v_next == v_first) [[unlikely]] {
         el_store->flag |= BM_EDGELOOP_IS_CLOSED;
         v_next = nullptr;
       }
@@ -258,7 +258,7 @@ static bool bm_loop_path_build_step(BLI_mempool *vs_pool,
   /* `lb` is now full of freed items, overwrite. */
   *lb = lb_tmp;
 
-  return (BLI_listbase_is_empty(lb) == false);
+  return (lb->is_empty() == false);
 }
 
 bool BM_mesh_edgeloops_find_path(BMesh *bm,
@@ -520,7 +520,7 @@ BMEdgeLoopStore *BM_edgeloop_from_verts(BMVert **v_arr, const int v_arr_tot, boo
 
 void BM_edgeloop_free(BMEdgeLoopStore *el_store)
 {
-  BLI_freelistN(&el_store->verts);
+  el_store->verts.free_no_destruct();
   MEM_delete(el_store);
 }
 
@@ -632,7 +632,7 @@ bool BM_edgeloop_calc_normal(BMesh * /*bm*/, BMEdgeLoopStore *el_store)
     }
   } while (true);
 
-  if (UNLIKELY(normalize_v3(el_store->no) < EDGELOOP_EPS)) {
+  if (normalize_v3(el_store->no) < EDGELOOP_EPS) [[unlikely]] {
     el_store->no[2] = 1.0f; /* other axis set to 0.0 */
     return false;
   }
@@ -666,7 +666,7 @@ bool BM_edgeloop_calc_normal_aligned(BMesh * /*bm*/,
     }
   } while (true);
 
-  if (UNLIKELY(normalize_v3(el_store->no) < EDGELOOP_EPS)) {
+  if (normalize_v3(el_store->no) < EDGELOOP_EPS) [[unlikely]] {
     el_store->no[2] = 1.0f; /* other axis set to 0.0 */
     return false;
   }

@@ -16,9 +16,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_listbase.hh"
+#include "BLI_rect.hh"
+#include "BLI_string.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_context.hh"
@@ -92,7 +92,7 @@ void wm_gizmogroup_free(bContext *C, wmGizmoGroup *gzgroup)
     }
     WM_gizmo_free(gz);
   }
-  BLI_listbase_clear(&gzgroup->gizmos);
+  gzgroup->gizmos.clear_no_delete();
 
 #ifdef WITH_PYTHON
   if (gzgroup->py_instance) {
@@ -240,7 +240,7 @@ void wm_gizmogroup_intersectable_gizmos_to_list(wmWindowManager *wm,
 void WM_gizmogroup_ensure_init(const bContext *C, wmGizmoGroup *gzgroup)
 {
   /* Prepare for first draw. */
-  if (UNLIKELY((gzgroup->init_flag & WM_GIZMOGROUP_INIT_SETUP) == 0)) {
+  if ((gzgroup->init_flag & WM_GIZMOGROUP_INIT_SETUP) == 0) [[unlikely]] {
 
     gzgroup->type->setup(C, gzgroup);
 
@@ -256,7 +256,7 @@ void WM_gizmogroup_ensure_init(const bContext *C, wmGizmoGroup *gzgroup)
 
   /* Refresh may be called multiple times,
    * this just ensures its called at least once before we draw. */
-  if (UNLIKELY((gzgroup->init_flag & WM_GIZMOGROUP_INIT_REFRESH) == 0)) {
+  if ((gzgroup->init_flag & WM_GIZMOGROUP_INIT_REFRESH) == 0) [[unlikely]] {
     /* Clear the flag before calling refresh so the callback
      * can postpone the refresh by clearing this flag. */
     gzgroup->init_flag |= WM_GIZMOGROUP_INIT_REFRESH;
@@ -803,7 +803,7 @@ static wmKeyMap *WM_gizmogroup_keymap_template_select_ex(wmKeyConfig *kc,
   /* Use area and region id since we might have multiple gizmos
    * with the same name in different areas/regions. */
   wmKeyMap *km = WM_keymap_ensure(kc, name, params->spaceid, params->regionid);
-  const bool do_init = BLI_listbase_is_empty(&km->items);
+  const bool do_init = km->items.is_empty();
 
 /* FIXME(@ideasman42): Currently hard coded. */
 #if 0

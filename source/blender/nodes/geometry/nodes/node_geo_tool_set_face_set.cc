@@ -18,8 +18,11 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>("Mesh"_ustr)
       .align_with_previous()
       .description("Mesh to override the face set attribute on");
-  b.add_input<decl::Bool>("Selection"_ustr).default_value(true).hide_value().field_on_all();
-  b.add_input<decl::Int>("Face Set"_ustr).hide_value().field_on_all();
+  b.add_input<decl::Bool>("Selection"_ustr)
+      .default_value(true)
+      .hide_value()
+      .evaluated_geometry_field();
+  b.add_input<decl::Int>("Face Set"_ustr).hide_value().evaluated_geometry_field();
 }
 
 static bool is_constant_zero(const Field<int> &face_set)

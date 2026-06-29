@@ -14,7 +14,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 
 #include "BKE_anim_data.hh"
 #include "BKE_context.hh"
@@ -626,7 +626,7 @@ bool nlaedit_add_tracks_empty(bAnimContext *ac)
     BLI_assert(adt->flag & ADT_UI_SELECTED);
 
     /* ensure it is empty */
-    if (BLI_listbase_is_empty(&adt->nla_tracks)) {
+    if (adt->nla_tracks.is_empty()) {
       /* add new track to this AnimData block then */
       new_track = BKE_nlatrack_new_tail(&adt->nla_tracks, ID_IS_OVERRIDE_LIBRARY(ale.id));
       BKE_nlatrack_set_active(&adt->nla_tracks, new_track);

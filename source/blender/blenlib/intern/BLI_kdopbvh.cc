@@ -27,16 +27,16 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
-#include "BLI_heap_simple.h"
+#include "BLI_alloca.hh"
+#include "BLI_heap_simple.hh"
 #include "BLI_kdopbvh.hh"
-#include "BLI_math_geom.h"
+#include "BLI_math_geom_c.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_stack.h"
-#include "BLI_task.h"
-#include "BLI_utildefines.h"
+#include "BLI_stack_c.hh"
+#include "BLI_task_c.hh"
+#include "BLI_utildefines.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 
@@ -446,10 +446,12 @@ static void node_join(BVHTree *tree, BVHNode *node)
   }
 }
 
+/** \} */
+
 #ifdef USE_PRINT_TREE
 
 /* -------------------------------------------------------------------- */
-/** \name * Debug and Information Functions
+/** \name Debug and Information Functions
  * \{ */
 
 static void bvhtree_print_tree(BVHTree *tree, BVHNode *node, int depth)
@@ -548,6 +550,10 @@ static void bvhtree_verify(BVHTree *tree)
          tree->branch_num + tree->leaf_num);
 }
 #endif /* USE_VERIFY_TREE */
+
+/* -------------------------------------------------------------------- */
+/** \name Implicit Tree Construction
+ * \{ */
 
 /* Helper data and structures to build a min-leaf generalized implicit tree
  * This code can be easily reduced
@@ -903,7 +909,8 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
     tree->nodechild = MEM_new_array_zeroed<BVHNode *>(tree_type * size_t(numnodes), "BVHNodeBV");
     tree->nodearray = MEM_new_array_zeroed<BVHNode>(size_t(numnodes), "BVHNodeArray");
 
-    if (UNLIKELY((!tree->nodes) || (!tree->nodebv) || (!tree->nodechild) || (!tree->nodearray))) {
+    if ((!tree->nodes) || (!tree->nodebv) || (!tree->nodechild) || (!tree->nodearray)) [[unlikely]]
+    {
       goto fail;
     }
 
@@ -1101,7 +1108,7 @@ static void tree_overlap_traverse(BVHOverlapData_Thread *data_thread,
       if (!node2->node_num) {
         BVHTreeOverlap *overlap;
 
-        if (UNLIKELY(node1 == node2)) {
+        if (node1 == node2) [[unlikely]] {
           return;
         }
 
@@ -1145,7 +1152,7 @@ static void tree_overlap_traverse_cb(BVHOverlapData_Thread *data_thread,
       if (!node2->node_num) {
         BVHTreeOverlap *overlap;
 
-        if (UNLIKELY(node1 == node2)) {
+        if (node1 == node2) [[unlikely]] {
           return;
         }
 
@@ -1192,7 +1199,7 @@ static bool tree_overlap_traverse_num(BVHOverlapData_Thread *data_thread,
       if (!node2->node_num) {
         BVHTreeOverlap *overlap;
 
-        if (UNLIKELY(node1 == node2)) {
+        if (node1 == node2) [[unlikely]] {
           return false;
         }
 
@@ -1344,14 +1351,14 @@ BVHTreeOverlap *BLI_bvhtree_overlap_ex(
   axis_t start_axis, stop_axis;
 
   /* check for compatibility of both trees (can't compare 14-DOP with 18-DOP) */
-  if (UNLIKELY((tree1->axis != tree2->axis) && (tree1->axis == 14 || tree2->axis == 14) &&
-               (tree1->axis == 18 || tree2->axis == 18)))
+  if ((tree1->axis != tree2->axis) && (tree1->axis == 14 || tree2->axis == 14) &&
+      (tree1->axis == 18 || tree2->axis == 18)) [[unlikely]]
   {
     BLI_assert(0);
     return nullptr;
   }
 
-  if (UNLIKELY(use_self && tree1 != tree2)) {
+  if (use_self && tree1 != tree2) [[unlikely]] {
     use_self = false;
   }
 
@@ -1849,7 +1856,7 @@ static float fast_ray_nearest_hit(const BVHRayCastData *data, const BVHNode *nod
   {
     return FLT_MAX;
   }
-  return max_fff(t1x, t1y, t1z);
+  return std::max({t1x, t1y, t1z});
 }
 
 static void dfs_raycast(BVHRayCastData *data, BVHNode *node)

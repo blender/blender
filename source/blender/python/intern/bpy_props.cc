@@ -21,8 +21,8 @@
 #include "RNA_types.hh"
 
 #include "BLI_array.hh"
-#include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_utildefines.hh"
 
 #include "bpy_capi_utils.hh"
 #include "bpy_props.hh"
@@ -50,7 +50,7 @@ namespace blender {
 // #define USE_ENUM_COPY_STRINGS
 
 /* -------------------------------------------------------------------- */
-/** \name Shared Enums & Doc-Strings
+/** \name Shared Enums & Docstrings
  * \{ */
 
 #define BPY_PROPDEF_OPTIONS_DOC \
@@ -2085,7 +2085,7 @@ static bool bpy_prop_string_visit_fn_call(
   }
   else {
     text = PyUnicode_AsUTF8(item);
-    if (UNLIKELY(text == nullptr)) {
+    if (text == nullptr) [[unlikely]] {
       PyErr_Clear();
       PyErr_Format(PyExc_TypeError,
                    "expected sequence of strings or tuple pairs of strings, not %.200s",
@@ -3312,14 +3312,14 @@ static int bpy_prop_arg_parse_id(PyObject *o, void *p)
   const char *id;
 
   id = PyUnicode_AsUTF8AndSize(o, &id_len);
-  if (UNLIKELY(id_len >= MAX_IDPROP_NAME)) {
+  if (id_len >= MAX_IDPROP_NAME) [[unlikely]] {
     PyErr_Format(PyExc_TypeError, "'%.200s' too long, max length is %d", id, MAX_IDPROP_NAME - 1);
     return 0;
   }
 
   parse_data->prop_free_handle = nullptr;
-  if (UNLIKELY(RNA_def_property_free_identifier_deferred_prepare(
-                   srna, id, &parse_data->prop_free_handle) == -1))
+  if (RNA_def_property_free_identifier_deferred_prepare(srna, id, &parse_data->prop_free_handle) ==
+      -1) [[unlikely]]
   {
     PyErr_Format(PyExc_TypeError,
                  "'%s' is defined as a non-dynamic type for '%s'",
@@ -3359,7 +3359,7 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Shared Method Doc-Strings
+/** \name Shared Method Docstrings
  * \{ */
 
 #define BPY_PROPDEF_NAME_DOC \
@@ -5929,7 +5929,7 @@ void BPY_rna_props_clear_all()
   RNA_def_property_free_pointers_set_py_data_callback(nullptr);
 
   /* Include as it's correct, in practice this should never be used again. */
-  BLI_listbase_clear(&g_bpy_prop_store_list);
+  g_bpy_prop_store_list.clear_no_delete();
 }
 
 /** \} */

@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_filereader.h"
+#include "BLI_filereader.hh"
 
 #include "BLO_core_bhead.hh"
 

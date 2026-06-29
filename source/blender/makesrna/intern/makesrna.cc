@@ -20,10 +20,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_string.h"
-#include "BLI_system.h" /* For #BLI_system_backtrace stub. */
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
+#include "BLI_system.hh" /* For #BLI_system_backtrace stub. */
+#include "BLI_utildefines.hh"
 #include "BLI_vector_set.hh"
 
 #include "RNA_define.hh"
@@ -847,7 +847,7 @@ static char *rna_def_property_get_func(
           if (dp->dnaarraylength == 1) {
             if (prop->type == PROP_BOOLEAN && dp->booleanbit) {
               fprintf(f,
-                      "        values[i] = %s((data->%s & (uint64_t(",
+                      "        values[i] = %s((uint64_t(data->%s) & (uint64_t(",
                       (dp->booleannegative) ? "!" : "",
                       dp->dnaname.c_str());
               rna_int_print(f, dp->booleanbit);
@@ -864,7 +864,7 @@ static char *rna_def_property_get_func(
           else {
             if (prop->type == PROP_BOOLEAN && dp->booleanbit) {
               fprintf(f,
-                      "        values[i] = %s((data->%s[i] & ",
+                      "        values[i] = %s((uint64_t(data->%s[i]) & ",
                       (dp->booleannegative) ? "!" : "",
                       dp->dnaname.c_str());
               rna_int_print(f, dp->booleanbit);
@@ -927,14 +927,14 @@ static char *rna_def_property_get_func(
           rna_print_data_get(f, dp);
           if (prop->type == PROP_BOOLEAN && dp->booleanbit) {
             fprintf(f,
-                    "    return %s(((data->%s) & ",
+                    "    return %s((uint64_t(data->%s) & ",
                     (dp->booleannegative) ? "!" : "",
                     dp->dnaname.c_str());
             rna_int_print(f, dp->booleanbit);
             fprintf(f, ") != 0);\n");
           }
           else if (prop->type == PROP_ENUM && dp->enumbitflags) {
-            fprintf(f, "    return ((data->%s) & ", dp->dnaname.c_str());
+            fprintf(f, "    return (uint64_t(data->%s) & ", dp->dnaname.c_str());
             rna_int_print(f, rna_enum_bitmask(prop));
             fprintf(f, ");\n");
           }
@@ -991,7 +991,6 @@ static void rna_clamp_value_range_check(FILE *f,
   if (prop->type == PROP_INT) {
     IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
     fprintf(f, "    {\n");
-    fprintf(f, "#ifdef __cplusplus\n");
     fprintf(f, "        using T = decltype(%s%s);\n", dnaname_prefix, dnaname);
     fprintf(f,
             "        static_assert(std::numeric_limits<std::decay_t<T>>::max() >= %d);\n",
@@ -999,19 +998,6 @@ static void rna_clamp_value_range_check(FILE *f,
     fprintf(f,
             "        static_assert(std::numeric_limits<std::decay_t<T>>::min() <= %d);\n",
             iprop->hardmin);
-    fprintf(f, "#else\n");
-    fprintf(f,
-            "        BLI_STATIC_ASSERT("
-            "(TYPEOF_MAX(%s%s) >= %d) && "
-            "(TYPEOF_MIN(%s%s) <= %d), "
-            "\"invalid limits\");\n",
-            dnaname_prefix,
-            dnaname,
-            iprop->hardmax,
-            dnaname_prefix,
-            dnaname,
-            iprop->hardmin);
-    fprintf(f, "#endif\n");
     fprintf(f, "    }\n");
   }
 }
@@ -3970,7 +3956,7 @@ static void rna_generate_struct_register_func(BlenderRNA * /*brna*/, StructRNA *
       rna_generate_property(f, srna, func->identifier, &parm);
     }
     fprintf(f, "\t\tauto func = std::make_unique<FunctionRNA>();\n");
-    if (!BLI_listbase_is_empty(&func->cont.properties)) {
+    if (!func->cont.properties.is_empty()) {
       fprintf(f,
               "\t\tfunc->cont.properties = {&rna_%s_%s_%s, &rna_%s_%s_%s};\n",
               srna->identifier,
@@ -4025,6 +4011,7 @@ static RNAProcessItem PROCESS_ITEMS[] = {
     {"rna_armature.cc", "rna_armature_api.cc", RNA_def_armature},
     {"rna_attribute.cc", nullptr, RNA_def_attribute},
     {"rna_asset.cc", nullptr, RNA_def_asset},
+    {"rna_blender_project.cc", nullptr, RNA_def_blender_project},
     {"rna_boid.cc", nullptr, RNA_def_boid},
     {"rna_brush.cc", nullptr, RNA_def_brush},
     {"rna_cachefile.cc", nullptr, RNA_def_cachefile},
@@ -4089,6 +4076,7 @@ static RNAProcessItem PROCESS_ITEMS[] = {
     {"rna_volume.cc", nullptr, RNA_def_volume},
     {"rna_wm.cc", "rna_wm_api.cc", RNA_def_wm},
     {"rna_wm_gizmo.cc", "rna_wm_gizmo_api.cc", RNA_def_wm_gizmo},
+    {"rna_wm_undo.cc", nullptr, RNA_def_undo},
     {"rna_workspace.cc", "rna_workspace_api.cc", RNA_def_workspace},
     {"rna_world.cc", nullptr, RNA_def_world},
     {"rna_movieclip.cc", nullptr, RNA_def_movieclip},
@@ -4122,13 +4110,13 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
   fprintf(f, "#include \"DNA_scene_types.h\"\n");
   fprintf(f, "#include \"DNA_node_types.h\"\n");
 
-  fprintf(f, "#include \"BLI_fileops.h\"\n\n");
-  fprintf(f, "#include \"BLI_listbase.h\"\n\n");
+  fprintf(f, "#include \"BLI_fileops.hh\"\n\n");
+  fprintf(f, "#include \"BLI_listbase.hh\"\n\n");
   fprintf(f, "#include \"BLI_path_utils.hh\"\n\n");
-  fprintf(f, "#include \"BLI_rect.h\"\n\n");
-  fprintf(f, "#include \"BLI_string.h\"\n\n");
-  fprintf(f, "#include \"BLI_string_utf8.h\"\n\n");
-  fprintf(f, "#include \"BLI_utildefines.h\"\n\n");
+  fprintf(f, "#include \"BLI_rect.hh\"\n\n");
+  fprintf(f, "#include \"BLI_string.hh\"\n\n");
+  fprintf(f, "#include \"BLI_string_utf8.hh\"\n\n");
+  fprintf(f, "#include \"BLI_utildefines.hh\"\n\n");
 
   fprintf(f, "#include \"BKE_context.hh\"\n");
   fprintf(f, "#include \"BKE_lib_id.hh\"\n");
@@ -4231,8 +4219,8 @@ static void make_bad_file(const char *file, int line)
 }
 
 /**
- * \param extern_outfile: Directory to put public headers into. Can be nullptr, in which case
- *                        everything is put into \a outfile.
+ * \param public_header_outfile: Directory to put public headers into.
+ * Can be nullptr, in which case everything is put into \a outfile.
  */
 static int rna_preprocess(const char *outfile, const char *public_header_outfile)
 {

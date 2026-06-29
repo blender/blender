@@ -22,6 +22,7 @@ BVHHIPRT::BVHHIPRT(const BVHParams &params,
       custom_primitive_bound(in_device, "Custom Primitive Bound", MEM_READ_ONLY),
       triangle_index(in_device, "HIPRT Triangle Index", MEM_READ_ONLY),
       vertex_data(in_device, "vertex_data", MEM_READ_ONLY),
+      aabb_overlap_ratio(0.0f),
       device(in_device)
 {
   triangle_mesh = {nullptr};

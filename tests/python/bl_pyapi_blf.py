@@ -647,7 +647,6 @@ def imbuf_rgb_new(size: tuple[int, int]) -> imbuf.types.ImBuf:
     ibuf = imbuf.new(size, planes=24)
     ibuf.file_type = "PNG"
     ibuf.compress = 100
-    ibuf.ensure_buffer("BYTE")
     return ibuf
 
 
@@ -677,8 +676,8 @@ def render_text_buffer(font_id: int, case: CaseBuffer) -> imbuf.types.ImBuf:
     # Opaque-black background. The internal buffer is RGBA; alpha must be 1.0
     # so BLF's draw_buffer composites text onto opaque pixels (otherwise
     # blending against alpha=0 produces darker text).
-    with ibuf.with_buffer("BYTE", write=True) as buf:
-        buf[:] = BUFFER_CLEAR_PIXEL * (case.size[0] * case.size[1])
+    with ibuf.with_buffer(write=True) as buf:
+        buf.cast('B')[:] = BUFFER_CLEAR_PIXEL * (case.size[0] * case.size[1])
     blf.color(font_id, 1.0, 1.0, 1.0, 1.0)
     with _blf_wrap_width(font_id, case.wrap_width), blf.bind_imbuf(font_id, ibuf, display_name="sRGB"):
         blf.position(
@@ -730,8 +729,8 @@ def render_text_gpu(font_id: int, case: CaseBuffer) -> imbuf.types.ImBuf:
     # composite/discard them on save.
     gpu_bytes = bytearray(pixel_buf)
     gpu_bytes[3::4] = b"\xff" * (w * h)
-    with ibuf.with_buffer("BYTE", write=True) as pixels:
-        pixels[:] = gpu_bytes
+    with ibuf.with_buffer(write=True) as pixels:
+        pixels.cast('B')[:] = gpu_bytes
     return ibuf
 
 
@@ -911,7 +910,7 @@ def check_image_bounds(ibuf: imbuf.types.ImBuf, name: str) -> str | None:
     Returns an error message string, or ``None`` if the image is OK.
     """
     w, h = ibuf.size
-    with ibuf.with_buffer("BYTE") as pixels:
+    with ibuf.with_buffer() as pixels:
         data = bytes(pixels)
 
     def is_black(x: int, y: int) -> bool:
@@ -1040,8 +1039,8 @@ def render_text_vfont(
     ibuf_hi = imbuf_rgb_new((sw, sh))
     gpu_bytes = bytearray(pixel_buf)
     gpu_bytes[3::4] = b"\xff" * (sw * sh)
-    with ibuf_hi.with_buffer("BYTE", write=True) as pixels:
-        pixels[:] = gpu_bytes
+    with ibuf_hi.with_buffer(write=True) as pixels:
+        pixels.cast('B')[:] = gpu_bytes
 
     ibuf_hi.resize(image_size, method='BILINEAR')
     return ibuf_hi
@@ -1363,7 +1362,7 @@ class TestImageComparison_MixIn:
                 position_offset=(PREPARE_SEARCH_MARGIN_PX, offset),
             )
             ibuf = render_text_buffer(self.font_id, scratch_case)
-            with ibuf.with_buffer("BYTE") as pixels:
+            with ibuf.with_buffer() as pixels:
                 # Walk in from each edge; row equality is a single C-level compare.
                 first_row = -1
                 for y in range(search_h):

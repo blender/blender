@@ -6,23 +6,25 @@
  * \ingroup bli
  */
 
-#include "BLI_math_base.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_solvers.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_base_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_solvers.hh"
+#include "BLI_math_vector_c.hh"
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "eigen_capi.h"
 
 #include <cstring>
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 
-/********************************** Eigen Solvers *********************************/
+/* -------------------------------------------------------------------- */
+/** \name Eigen Solvers
+ * \{ */
 
 bool BLI_eigen_solve_selfadjoint_m3(const float m3[3][3],
                                     float r_eigen_values[3],
@@ -50,7 +52,11 @@ void BLI_svd_m3(const float m3[3][3], float r_U[3][3], float r_S[3], float r_V[3
                         reinterpret_cast<float *>(r_V));
 }
 
-/***************************** Simple Solvers ************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Simple Solvers
+ * \{ */
 
 bool BLI_tridiagonal_solve(
     const float *a, const float *b, const float *c, const float *d, float *r_x, const int count)
@@ -243,5 +249,7 @@ bool BLI_newton3d_solve(Newton3D_DeltaFunc func_delta,
   copy_v3_v3(result, x);
   return success;
 }
+
+/** \} */
 
 }  // namespace blender

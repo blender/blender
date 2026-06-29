@@ -130,7 +130,7 @@ void xml_read_node(XMLReader &reader, Node *node, const xml_node xml_node)
       case SocketType::VECTOR_ARRAY:
       case SocketType::POINT_ARRAY:
       case SocketType::NORMAL_ARRAY: {
-        array<float3> value;
+        array<packed_float3> value;
         xml_read_float_array<3>(value, attr);
         node->set(socket, value);
         break;
@@ -322,7 +322,7 @@ xml_node xml_write_node(Node *node, xml_node xml_root)
       case SocketType::POINT_ARRAY:
       case SocketType::NORMAL_ARRAY: {
         std::stringstream ss;
-        const array<float3> &value = node->get_float3_array(socket);
+        const array<packed_float3> &value = node->get_float3_array(socket);
         for (size_t i = 0; i < value.size(); i++) {
           ss << string_printf(
               "%g %g %g", (double)value[i].x, (double)value[i].y, (double)value[i].z);

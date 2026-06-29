@@ -11,8 +11,8 @@
 #include <algorithm>
 #include <cstdarg>
 
-#include "BLI_compiler_attrs.h"
-#include "BLI_math_base.h"
+#include "BLI_compiler_attrs.hh"
+#include "BLI_math_base_c.hh"
 
 #include "intern/depsgraph.hh"
 #include "intern/node/deg_node_id.hh"

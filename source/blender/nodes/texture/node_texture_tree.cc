@@ -12,9 +12,9 @@
 #include "DNA_space_types.h"
 #include "DNA_texture_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_threads.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
@@ -142,6 +142,9 @@ void register_node_tree_type_tex()
   tt->ui_name = N_("Texture Node Editor");
   tt->ui_icon = ICON_NODE_TEXTURE; /* Defined in `drawnode.cc`. */
   tt->ui_description = N_("Edit textures using nodes");
+  /* Don't define this yet since we don't know which exact catalog name to use yet. Otherwise this
+   * has to be kept for compatibility. */
+  // tt->asset_catalog_path_prefix = "Textures";
 
   tt->foreach_nodeclass = foreach_nodeclass;
   tt->update = update;

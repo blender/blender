@@ -36,6 +36,23 @@ struct [[host_shared]] Transform {
                     float4(x.w, y.w, z.w, 1.0f));
   }
 #endif
+
+  float3 x_axis() const
+  {
+    return float3(x.x, y.x, z.x);
+  }
+  float3 y_axis() const
+  {
+    return float3(x.y, y.y, z.y);
+  }
+  float3 z_axis() const
+  {
+    return float3(x.z, y.z, z.z);
+  }
+  float3 location() const
+  {
+    return float3(x.w, y.w, z.w);
+  }
 };
 
 static inline float4x4 transform_to_matrix(Transform t)
@@ -53,23 +70,6 @@ static inline Transform transform_from_matrix(float4x4 m)
   t.y = float4(m[0][1], m[1][1], m[2][1], m[3][1]);
   t.z = float4(m[0][2], m[1][2], m[2][2], m[3][2]);
   return t;
-}
-
-static inline float3 transform_x_axis(Transform t)
-{
-  return float3(t.x.x, t.y.x, t.z.x);
-}
-static inline float3 transform_y_axis(Transform t)
-{
-  return float3(t.x.y, t.y.y, t.z.y);
-}
-static inline float3 transform_z_axis(Transform t)
-{
-  return float3(t.x.z, t.y.z, t.z.z);
-}
-static inline float3 transform_location(Transform t)
-{
-  return float3(t.x.w, t.y.w, t.z.w);
 }
 
 #ifdef GPU_SHADER
@@ -105,7 +105,7 @@ static inline float3 transform_point_inversed(Transform t, float3 point)
   return float3x3(float3(t.x.x, t.x.y, t.x.z),
                   float3(t.y.x, t.y.y, t.y.z),
                   float3(t.z.x, t.z.y, t.z.z)) *
-         (point - transform_location(t));
+         (point - t.location());
 }
 
 #ifndef GPU_SHADER

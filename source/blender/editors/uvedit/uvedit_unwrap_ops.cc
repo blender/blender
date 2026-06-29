@@ -20,17 +20,17 @@
 #include "BKE_global.hh"
 
 #include "BLI_array.hh"
-#include "BLI_linklist.h"
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_memarena.h"
-#include "BLI_rect.h"
-#include "BLI_string_utf8.h"
-#include "BLI_time.h"
-#include "BLI_utildefines.h"
+#include "BLI_linklist.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_memarena.hh"
+#include "BLI_rect.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_time.hh"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 #include "BLT_translation.hh"
@@ -66,6 +66,8 @@
 #include "ED_undo.hh"
 #include "ED_uvedit.hh"
 #include "ED_view3d.hh"
+
+#include "DEG_depsgraph_query.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -207,6 +209,7 @@ struct UnwrapOptions {
   bool use_abf;
   bool use_subsurf;
   bool use_weights;
+  bool use_original_bounds;
 
   ParamSlimOptions slim;
   char weight_group[MAX_VGROUP_NAME];
@@ -264,6 +267,7 @@ static UnwrapOptions unwrap_options_get(wmOperator *op, Object *ob, const ToolSe
   options.pin_unselected = false;
 
   options.slim.skip_init = false;
+  options.use_original_bounds = false;
 
   if (ts) {
     options.method = ts->unwrapper;
@@ -283,6 +287,7 @@ static UnwrapOptions unwrap_options_get(wmOperator *op, Object *ob, const ToolSe
     options.correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect");
     options.fill_holes = RNA_boolean_get(op->ptr, "fill_holes");
     options.use_subsurf = RNA_boolean_get(op->ptr, "use_subsurf_data");
+    options.use_original_bounds = RNA_boolean_get(op->ptr, "use_original_bounds");
 
     options.use_weights = RNA_boolean_get(op->ptr, "use_weights");
     RNA_string_get(op->ptr, "weight_group", options.weight_group);
@@ -498,7 +503,7 @@ void ED_uvedit_get_aspect_from_material(Object *ob,
                                         float *r_aspx,
                                         float *r_aspy)
 {
-  if (UNLIKELY(material_index < 0 || material_index >= ob->totcol)) {
+  if (material_index < 0 || material_index >= ob->totcol) [[unlikely]] {
     *r_aspx = 1.0f;
     *r_aspy = 1.0f;
     return;
@@ -1436,7 +1441,6 @@ static bool island_has_pins(const Scene *scene,
  *
  * \param scene: Scene containing the objects to be packed.
  * \param objects: Array of Objects to pack.
- * \param objects_len: Length of `objects` array.
  * \param bmesh_override: BMesh array aligned with `objects`.
  * Optional, when non-null this overrides object's BMesh.
  * This is needed to perform UV packing on objects that aren't in edit-mode.
@@ -2188,7 +2192,8 @@ void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit, wmWindow *win_mod
     }
   }
   else {
-    geometry::uv_parametrizer_lscm_begin(handle, true, options.use_abf);
+    geometry::uv_parametrizer_lscm_begin(
+        handle, true, options.use_abf, options.use_original_bounds);
   }
 
   /* Create or increase size of g_live_unwrap.handles array */
@@ -2563,7 +2568,7 @@ static void correct_uv_aspect_per_face(Object *ob, BMEditMesh *em)
     }
 
     const int material_index = efa->mat_nr;
-    if (UNLIKELY(material_index < 0 || material_index >= materials_num)) {
+    if (material_index < 0 || material_index >= materials_num) [[unlikely]] {
       /* The index might be for a material slot which is not currently setup. */
       continue;
     }
@@ -2766,15 +2771,21 @@ static void uvedit_unwrap(const Scene *scene,
   }
 
   if (options->use_slim) {
-    uv_parametrizer_slim_solve(handle, &options->slim, r_count_changed, r_count_failed);
+    uv_parametrizer_slim_solve(
+        handle, &options->slim, options->use_original_bounds, r_count_changed, r_count_failed);
   }
   else {
-    geometry::uv_parametrizer_lscm_begin(handle, false, options->use_abf);
+    geometry::uv_parametrizer_lscm_begin(
+        handle, false, options->use_abf, options->use_original_bounds);
     geometry::uv_parametrizer_lscm_solve(handle, r_count_changed, r_count_failed);
     geometry::uv_parametrizer_lscm_end(handle);
   }
-
-  geometry::uv_parametrizer_average(handle, true, false, false);
+  if (options->use_original_bounds) {
+    geometry::uv_parametrizer_original_bounds(handle);
+  }
+  else {
+    geometry::uv_parametrizer_average(handle, true, false, false);
+  }
 
   geometry::uv_parametrizer_flush(handle);
 
@@ -2912,8 +2923,15 @@ static wmOperatorStatus unwrap_exec(bContext *C, wmOperator *op)
   /* execute unwrap */
   int count_changed = 0;
   int count_failed = 0;
-  uvedit_unwrap_multi(scene, objects, &options, &count_changed, &count_failed);
 
+  if (options.use_original_bounds) {
+    if (!uv_stitch_selected_islands_for_original_bounds(scene, objects)) {
+      /* Fall back to a regular unwrap (with packing) instead of aborting. */
+      BKE_report(op->reports, RPT_WARNING, "Original Bounds could not stitch islands, ignoring");
+      options.use_original_bounds = false;
+    }
+  }
+  uvedit_unwrap_multi(scene, objects, &options, &count_changed, &count_failed);
   geometry::UVPackIsland_Params pack_island_params;
   pack_island_params.setFromUnwrapOptions(options);
   pack_island_params.rotate_method = ED_UVPACK_ROTATION_ANY;
@@ -2922,8 +2940,10 @@ static wmOperatorStatus unwrap_exec(bContext *C, wmOperator *op)
       RNA_enum_get(op->ptr, "margin_method"));
   pack_island_params.margin = RNA_float_get(op->ptr, "margin");
 
-  uvedit_pack_islands_multi(
-      scene, objects, nullptr, nullptr, false, true, nullptr, &pack_island_params);
+  if (!options.use_original_bounds) {
+    uvedit_pack_islands_multi(
+        scene, objects, nullptr, nullptr, false, true, nullptr, &pack_island_params);
+  }
 
   if (count_failed == 0 && count_changed == 0) {
     BKE_report(op->reports,
@@ -2974,11 +2994,18 @@ static void unwrap_draw(bContext * /*C*/, wmOperator *op)
 
   col->separator();
   col->prop(&ptr, "use_subsurf_data", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(&ptr, "use_original_bounds", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  const bool use_original_bounds = RNA_boolean_get(op->ptr, "use_original_bounds");
 
   col->separator();
-  col->prop(&ptr, "correct_aspect", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  col->prop(&ptr, "margin_method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  col->prop(&ptr, "margin", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+
+  blender::ui::Layout &sub = col->column(false);
+  sub.active_set(!use_original_bounds);
+
+  sub.prop(&ptr, "correct_aspect", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  sub.separator();
+  sub.prop(&ptr, "margin_method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  sub.prop(&ptr, "margin", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 void UV_OT_unwrap(wmOperatorType *ot)
@@ -3033,6 +3060,12 @@ void UV_OT_unwrap(wmOperatorType *ot)
       false,
       "Use Subdivision Surface",
       "Map UVs taking vertex position after Subdivision Surface modifier has been applied");
+  RNA_def_boolean(ot->srna,
+                  "use_original_bounds",
+                  false,
+                  "Original Bounds",
+                  "Unwrap islands into their original bounds, instead of re-packing");
+
   RNA_def_enum(ot->srna,
                "margin_method",
                pack_margin_method_items,
@@ -3068,7 +3101,7 @@ void UV_OT_unwrap(wmOperatorType *ot)
   RNA_def_string(ot->srna,
                  "weight_group",
                  tool_settings_default_uvcalc_weight_group,
-                 MAX_ID_NAME,
+                 MAX_VGROUP_NAME,
                  "Weight Group",
                  "Vertex group name for importance weights (modulating the deform)");
   RNA_def_float(
@@ -3127,7 +3160,7 @@ static Vector<float3> smart_uv_project_calculate_project_normals(
     const float project_angle_limit_cos,
     const float area_weight)
 {
-  if (UNLIKELY(thick_faces_len == 0)) {
+  if (thick_faces_len == 0) [[unlikely]] {
     return {};
   }
 
@@ -3503,6 +3536,7 @@ static wmOperatorStatus uv_from_view_exec(bContext *C, wmOperator *op)
   View3D *v3d = CTX_wm_view3d(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   const Camera *camera = ED_view3d_camera_data_get(v3d, rv3d);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   BMFace *efa;
   BMLoop *l;
   BMIter iter, liter;
@@ -3528,6 +3562,7 @@ static wmOperatorStatus uv_from_view_exec(bContext *C, wmOperator *op)
   }
 
   Vector<Object *> changed_objects;
+  Scene *scene_eval = const_cast<Scene *>(DEG_get_evaluated(depsgraph, scene));
 
   for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -3540,6 +3575,15 @@ static wmOperatorStatus uv_from_view_exec(bContext *C, wmOperator *op)
 
     const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_PROP_FLOAT2);
 
+    Array<float3> vert_positions_storage;
+    Object *obedit_eval = DEG_get_evaluated(depsgraph, obedit);
+    Span<float3> vert_positions = BKE_editmesh_vert_coords_when_deformed(
+        depsgraph, em, scene_eval, obedit_eval, vert_positions_storage);
+
+    if (!vert_positions.is_empty()) {
+      BM_mesh_elem_index_ensure(em->bm, BM_VERT);
+    }
+
     if (use_orthographic) {
       uv_map_rotation_matrix_ex(rotmat, rv3d, obedit, 90.0f, 0.0f, 1.0f, objects_pos_offset);
 
@@ -3550,7 +3594,10 @@ static wmOperatorStatus uv_from_view_exec(bContext *C, wmOperator *op)
 
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
           float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
-          BKE_uvproject_from_view_ortho(luv, l->v->co, rotmat);
+          const float *v_co = vert_positions.is_empty() ?
+                                  l->v->co :
+                                  &vert_positions[BM_elem_index_get(l->v)].x;
+          BKE_uvproject_from_view_ortho(luv, v_co, rotmat);
         }
         changed = true;
       }
@@ -3571,7 +3618,10 @@ static wmOperatorStatus uv_from_view_exec(bContext *C, wmOperator *op)
 
           BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
             float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
-            BKE_uvproject_from_camera(luv, l->v->co, uci);
+            const float *v_co = vert_positions.is_empty() ?
+                                    l->v->co :
+                                    &vert_positions[BM_elem_index_get(l->v)].x;
+            BKE_uvproject_from_camera(luv, v_co, uci);
           }
           changed = true;
         }
@@ -3589,8 +3639,10 @@ static wmOperatorStatus uv_from_view_exec(bContext *C, wmOperator *op)
 
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
           float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
-          BKE_uvproject_from_view(
-              luv, l->v->co, rv3d->persmat, rotmat, region->winx, region->winy);
+          const float *v_co = vert_positions.is_empty() ?
+                                  l->v->co :
+                                  &vert_positions[BM_elem_index_get(l->v)].x;
+          BKE_uvproject_from_view(luv, v_co, rv3d->persmat, rotmat, region->winx, region->winy);
         }
         changed = true;
       }
@@ -4212,7 +4264,7 @@ static void uvedit_unwrap_cube_project(const Scene *scene,
     zero_v3(loc);
   }
 
-  if (UNLIKELY(cube_size == 0.0f)) {
+  if (cube_size == 0.0f) [[unlikely]] {
     cube_size = 1.0f;
   }
 
@@ -4284,7 +4336,7 @@ static wmOperatorStatus cube_project_exec(bContext *C, wmOperator *op)
     if (bounds_buf) {
       float dims[3];
       sub_v3_v3v3(dims, bounds[1], bounds[0]);
-      cube_size = max_fff(UNPACK3(dims));
+      cube_size = std::max({UNPACK3(dims)});
       if (ob_index == 0) {
         /* This doesn't fit well with, multiple objects. */
         RNA_property_float_set(op->ptr, prop_cube_size, cube_size);
@@ -4349,6 +4401,9 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
   scene->toolsettings->uv_flag &= ~UV_FLAG_SELECT_SYNC;
 
   ED_mesh_uv_ensure(mesh, nullptr);
+
+  bm->uv_select_sync_valid = false;
+  uvedit_select_prepare_custom_data(scene, bm);
 
   BMeshFromMeshParams bm_from_me_params{};
   bm_from_me_params.calc_face_normal = true;

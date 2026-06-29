@@ -12,7 +12,7 @@
 
 #include "CLG_log.h"
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "RNA_types.hh"
 

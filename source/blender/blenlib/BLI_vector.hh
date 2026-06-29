@@ -30,7 +30,7 @@
 #include "BLI_index_range.hh"
 #include "BLI_memory_utils.hh"
 #include "BLI_span.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 namespace blender {
 
@@ -1113,7 +1113,7 @@ class Vector {
  private:
   void ensure_space_for_one()
   {
-    if (UNLIKELY(end_ >= capacity_end_)) {
+    if (end_ >= capacity_end_) [[unlikely]] {
       this->realloc_to_at_least(this->size() + 1);
     }
   }

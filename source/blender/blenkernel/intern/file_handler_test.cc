@@ -5,7 +5,7 @@
 #include "BKE_file_handler.hh"
 #include "BKE_gtest_base.hh"
 
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "testing/testing.h"
 

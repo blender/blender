@@ -19,12 +19,12 @@
 #include "DRW_render.hh"
 
 #include "BLI_listbase_wrapper.hh"
-#include "BLI_math_color.h"
-#include "BLI_math_matrix.h"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
@@ -2088,7 +2088,7 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
   for (bPoseChannel *pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan;
        pchan = pchan->next, index += 0x10000)
   {
-    if (!animrig::bone_is_visible(&arm, pchan)) {
+    if (!animrig::bone_is_visible(&arm, {pchan, pchan->bone_get(*ob)})) {
       continue;
     }
 
@@ -2108,7 +2108,9 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
     }
 
     eBone_Flag boneflag = bone_ptr.flag();
-    if (pchan->parent && !animrig::bone_is_visible(&arm, pchan->parent)) {
+    if (pchan->parent &&
+        !animrig::bone_is_visible(&arm, {pchan->parent, pchan->parent->bone_get(*ob)}))
+    {
       /* Avoid drawing connection line to hidden parent. */
       boneflag &= ~BONE_CONNECTED;
     }

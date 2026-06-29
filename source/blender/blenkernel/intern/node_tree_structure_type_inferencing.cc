@@ -22,10 +22,18 @@
 namespace blender::bke::node_structure_type_inferencing {
 
 using nodes::StructureType;
-namespace aal = nodes::anonymous_attribute_lifetime;
+namespace rl = nodes::reference_lifetimes;
 
 static nodes::StructureTypeInterface calc_node_interface(const bNode &node)
 {
+  if (node.is_group()) {
+    if (const bNodeTree *group = id_cast<const bNodeTree *>(node.id)) {
+      if (!ID_MISSING(group) && group->runtime->structure_type_interface) {
+        return *group->runtime->structure_type_interface;
+      }
+    }
+  }
+
   const Span<const bNodeSocket *> input_sockets = node.input_sockets();
   const Span<const bNodeSocket *> output_sockets = node.output_sockets();
 
@@ -57,23 +65,23 @@ static nodes::StructureTypeInterface calc_node_interface(const bNode &node)
     if (dependency.type != StructureType::Dynamic) {
       continue;
     }
-
-    /* Currently the input sockets that influence the field status of an output are the same as the
-     * sockets that influence its structure type. Reuse that for the propagation of structure type
-     * until there is a more generic format of intra-node dependencies. */
-    switch (decl.output_field_dependency.field_type()) {
-      case nodes::OutputSocketFieldType::None:
-        break;
-      case nodes::OutputSocketFieldType::FieldSource:
-        break;
-      case nodes::OutputSocketFieldType::DependentField:
-        dependency.linked_inputs.reinitialize(input_sockets.size());
-        array_utils::fill_index_range(dependency.linked_inputs.as_mutable_span());
-        break;
-      case nodes::OutputSocketFieldType::PartiallyDependent:
-        dependency.linked_inputs = decl.output_field_dependency.linked_input_indices();
-        break;
-    }
+    std::visit(
+        [&]<typename T>(const T &value) {
+          if constexpr (std::is_same_v<T, nodes::OutputStructureTypeDependency::None>) {
+            /* Nothing to do. */
+          }
+          else if constexpr (std::is_same_v<T, nodes::OutputStructureTypeDependency::All>) {
+            dependency.linked_inputs.reinitialize(input_sockets.size());
+            array_utils::fill_index_range(dependency.linked_inputs.as_mutable_span());
+          }
+          else if constexpr (std::is_same_v<T, nodes::OutputStructureTypeDependency::Partial>) {
+            dependency.linked_inputs = value.linked_inputs.as_span();
+          }
+          else {
+            BLI_assert_unreachable_static_t(T);
+          }
+        },
+        decl.structure_type_output_dependency.variant);
   }
 
   return node_interface;
@@ -692,7 +700,7 @@ static bool propagate_zone_status(const bNodeTree &tree,
 static StructureType get_unconnected_input_structure_type(
     const nodes::SocketDeclaration &declaration)
 {
-  if (declaration.input_field_type == nodes::InputSocketFieldType::Implicit) {
+  if (nodes::default_input_type_is_field(declaration.default_input_type)) {
     return StructureType::Field;
   }
   return StructureType::Single;

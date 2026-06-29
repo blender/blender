@@ -14,10 +14,10 @@
 #include "DNA_scene_types.h"
 #include "DNA_shader_fx_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -192,7 +192,7 @@ bool shaderfx_move_to_index(ReportList *reports, Object *ob, ShaderFxData *fx, c
 {
   BLI_assert(fx != nullptr);
   BLI_assert(index >= 0);
-  if (index >= BLI_listbase_count(&ob->shader_fx)) {
+  if (index >= ob->shader_fx.count()) {
     BKE_report(reports, RPT_WARNING, "Cannot move effect beyond the end of the stack");
     return false;
   }
@@ -224,7 +224,7 @@ bool shaderfx_move_to_index(ReportList *reports, Object *ob, ShaderFxData *fx, c
 
 void shaderfx_link(Object *dst, Object *src)
 {
-  BLI_freelistN(&dst->shader_fx);
+  dst->shader_fx.free_no_destruct();
   BKE_shaderfx_copy(&dst->shader_fx, &src->shader_fx);
 
   DEG_id_tag_update(&dst->id, ID_RECALC_GEOMETRY);

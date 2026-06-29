@@ -16,9 +16,9 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_collection.hh"
 #include "BKE_context.hh"
@@ -319,7 +319,7 @@ void blo_do_versions_430(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
           BKE_image_format_update_color_space_for_type(&storage->format);
         }
 
-        if (BLI_listbase_is_empty(&node.inputs)) {
+        if (node.inputs.is_empty()) {
           continue;
         }
 
@@ -400,7 +400,7 @@ void blo_do_versions_430(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 403, 17)) {
     FOREACH_NODETREE_BEGIN (bmain, tree, id) {
       if (tree->default_group_node_width == 0) {
-        tree->default_group_node_width = GROUP_NODE_DEFAULT_WIDTH;
+        tree->default_group_node_width = bke::NodeWidth::Default;
       }
     }
     FOREACH_NODETREE_END;

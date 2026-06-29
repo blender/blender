@@ -14,10 +14,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_threads.h"
-#include "BLI_time.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_threads.hh"
+#include "BLI_time.hh"
+#include "BLI_utildefines.hh"
 
 /* for checking system threads - BLI_system_thread_count */
 #ifdef WIN32
@@ -124,7 +124,7 @@ void BLI_threadpool_init(ListBaseT<ThreadSlot> *threadbase, void *(*do_thread)(v
   int a;
 
   if (threadbase != nullptr && tot > 0) {
-    BLI_listbase_clear(threadbase);
+    threadbase->clear_no_delete();
 
     if (tot > RE_MAX_THREAD) {
       tot = RE_MAX_THREAD;
@@ -237,7 +237,7 @@ void BLI_threadpool_end(ListBaseT<ThreadSlot> *threadbase)
 
   /* Only needed if there's actually some stuff to end
    * this way we don't end up decrementing thread_levels on an empty `threadbase`. */
-  if (threadbase == nullptr || BLI_listbase_is_empty(threadbase)) {
+  if (threadbase == nullptr || threadbase->is_empty()) {
     return;
   }
 
@@ -246,7 +246,7 @@ void BLI_threadpool_end(ListBaseT<ThreadSlot> *threadbase)
       pthread_join(tslot.pthread, nullptr);
     }
   }
-  BLI_freelistN(threadbase);
+  threadbase->free_no_destruct();
 }
 
 /* System Information */
@@ -258,7 +258,7 @@ int BLI_system_thread_count()
   if (threads_override_num != 0) {
     return threads_override_num;
   }
-  if (LIKELY(t != -1)) {
+  if (t != -1) [[likely]] {
     return t;
   }
 

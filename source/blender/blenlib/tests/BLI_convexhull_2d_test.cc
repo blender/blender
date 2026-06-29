@@ -18,13 +18,13 @@
 #include "BLI_array.hh"
 #include "BLI_convexhull_2d.hh"
 #include "BLI_math_angle_types.hh"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_math_rotation.h"
 #include "BLI_math_rotation.hh"
-#include "BLI_math_vector.h"
+#include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rand.hh"
 
@@ -96,7 +96,7 @@ TEST(convexhull_2d, IsConvex)
       p = float2(rng.get_float(), rng.get_float());
     }
     Array<float2> points_hull = convexhull_2d_as_array(points);
-    if (UNLIKELY(points_hull.size() < 3)) {
+    if (points_hull.size() < 3) [[unlikely]] {
       continue;
     }
 
@@ -492,6 +492,29 @@ TEST(convexhull_2d, NearCoLinear)
                   BLI_convexhull_aabb_fit_points_2d(Span<float2>(coords, ARRAY_SIZE(coords)))),
               float(math::AngleRadian::from_degree(89.984655)),
               ROTATION_EPS);
+}
+
+TEST(convexhull_2d, CoincidentTopmostX)
+{
+  /* The top-most point shares its X with the point below, which gave an incorrect
+   * (concave) result in v5.1. */
+  const Array<float2> points = {
+      {0.404492587f, 0.514067411f},
+      {0.222857147f, 0.608571410f},
+      {0.222857147f, 0.631428599f}, /* Top-most, shares X with the previous point. */
+      {0.214285702f, 0.608571410f},
+      {0.214285702f, 0.579999983f},
+      {0.217142850f, 0.557142854f},
+      {0.222857147f, 0.545714259f},
+  };
+  Array<float2> points_hull = convexhull_2d_as_array(points);
+  ASSERT_GE(points_hull.size(), 3);
+
+  int i_prev = points_hull.size() - 2;
+  int i_curr = points_hull.size() - 1;
+  for (int i_next = 0; i_next < points_hull.size(); i_prev = i_curr, i_curr = i_next++) {
+    EXPECT_GE(cross_tri_v2(points_hull[i_prev], points_hull[i_curr], points_hull[i_next]), 0.0f);
+  }
 }
 
 /* Keep these as they're handy for generating a lot of random data.

@@ -17,9 +17,9 @@
 #include "BKE_screen.hh"
 
 #include "BLI_bounds.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -101,7 +101,7 @@ static void view3d_from_minmax(bContext *C,
   float dist_new;
 
   sub_v3_v3v3(afm, max, min);
-  size = max_fff(afm[0], afm[1], afm[2]);
+  size = std::max({afm[0], afm[1], afm[2]});
 
   if (do_zoom) {
     eRegionView3D_Persp persp;

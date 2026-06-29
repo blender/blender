@@ -82,7 +82,7 @@ const EnumPropertyItem rna_enum_curve_normal_mode_items[] = {
 
 #  include <fmt/format.h>
 
-#  include "BLI_math_vector.h"
+#  include "BLI_math_vector_c.hh"
 #  include "BLI_offset_indices.hh"
 
 #  include "BKE_attribute.hh"

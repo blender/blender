@@ -10,14 +10,14 @@
 
 #include "DNA_brush_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_rand.h"
-#include "BLI_string_utf8.h"
-#include "BLI_time.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rand_c.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_time.hh"
 
 #include "BLT_translation.hh"
 
@@ -126,7 +126,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(*bmain, sce, view_layer);
   Object *obact = BKE_view_layer_active_object_get(view_layer);
-  const eObjectMode object_mode = eObjectMode(obact ? obact->mode : OB_MODE_OBJECT);
+  const eObjectMode object_mode = obact ? obact->mode : OB_MODE_OBJECT;
   ToolSettings *ts = CTX_data_tool_settings(C);
   ARegion *region = CTX_wm_region(C);
   ScrArea *area = CTX_wm_area(C);
@@ -274,7 +274,9 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       t->flag |= T_V3D_ALIGN;
     }
 
-    if ((object_mode & OB_MODE_ALL_PAINT) || (object_mode & OB_MODE_SCULPT_CURVES)) {
+    if ((object_mode & OB_MODE_ALL_PAINT) ||
+        (object_mode & (OB_MODE_SCULPT_CURVES | OB_MODE_SCULPT_GREASE_PENCIL)))
+    {
       Paint *paint = BKE_paint_get_active_from_context(C);
       Brush *brush = (paint) ? BKE_paint_brush(paint) : nullptr;
       if (brush && (brush->stroke_method == BRUSH_STROKE_CURVE)) {
@@ -807,7 +809,7 @@ void postTrans(bContext *C, TransInfo *t)
   MEM_SAFE_DELETE(t->data_container);
   t->data_container = nullptr;
 
-  BLI_freelistN(&t->tsnap.points);
+  t->tsnap.points.free_no_destruct();
 
   if (t->spacetype == SPACE_IMAGE) {
     if (t->options & (CTX_MASK | CTX_PAINT_CURVE)) {

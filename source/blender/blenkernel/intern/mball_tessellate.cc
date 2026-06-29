@@ -20,15 +20,15 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector.hh"
-#include "BLI_memarena.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_memarena.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BKE_global.hh"
 #include "BKE_mball_tessellate.hh" /* own include */
@@ -39,7 +39,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 
@@ -288,7 +288,7 @@ static void build_bvh_spatial(
 
 /**
  * the LBN corner of cube (i, j, k), corresponds with location
- * (i-0.5)*size, (j-0.5)*size, (k-0.5)*size)
+ * (i-0.5)*size, (j-0.5)*size, (k-0.5)*size
  */
 
 #define HASHBIT (5)
@@ -445,7 +445,7 @@ static void make_face(PROCESS *process, int i1, int i2, int i3, int i4)
   float n[3];
 #endif
 
-  if (UNLIKELY(process->totindex == process->curindex)) {
+  if (process->totindex == process->curindex) [[unlikely]] {
     process->totindex = process->totindex ? (process->totindex * 2) : MBALL_ARRAY_LEN_INIT;
     process->indices = static_cast<int (*)[4]>(
         MEM_realloc_uninitialized(process->indices, sizeof(int[4]) * process->totindex));
@@ -1344,7 +1344,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
       copy_v3_v3(new_ml->bb->vec[6], tempmax);
 
       /* add new_ml to mainb[] */
-      if (UNLIKELY(process->totelem == process->mem)) {
+      if (process->totelem == process->mem) [[unlikely]] {
         process->mem = process->mem * 2 + 10;
         process->mainb = static_cast<MetaElem **>(
             MEM_realloc_uninitialized(process->mainb, sizeof(MetaElem *) * process->mem));

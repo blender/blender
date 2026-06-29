@@ -12,6 +12,7 @@
 
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
+#include "BKE_image_gpu.hh"
 #include "BKE_mask.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_types.hh"
@@ -994,8 +995,10 @@ class MeshUVs : Overlay {
 
       const ImagePaintSettings &image_paint_settings = tool_setting->imapaint;
       blender::Image *stencil_image = image_paint_settings.clone;
+      gpu::Texture *stencil_gpu_texture = BKE_image_acquire_gpu_texture(stencil_image, nullptr);
+      DRW_manager_get()->hold_texture(stencil_gpu_texture);
       TextureRef stencil_texture;
-      stencil_texture.wrap(BKE_image_get_gpu_texture(stencil_image, nullptr));
+      stencil_texture.wrap(stencil_gpu_texture);
 
       if (stencil_texture.is_valid()) {
         float2 size_image;

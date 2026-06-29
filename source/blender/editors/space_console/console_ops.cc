@@ -16,15 +16,16 @@
 
 #include "DNA_userdef_types.h"
 
-#include "BLI_dynstr.h"
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
-#include "BLI_string.h"
-#include "BLI_string_cursor_utf8.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_dynstr.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_base_c.hh"
+#include "BLI_string.hh"
+#include "BLI_string_cursor_utf8.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_context.hh"
+#include "BKE_global.hh"
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
 
@@ -94,6 +95,10 @@ static char *console_select_to_buffer(SpaceConsole *sc)
 
 static void console_select_update_primary_clipboard(SpaceConsole *sc)
 {
+  if (G.background) {
+    return;
+  }
+
   if ((WM_capabilities_flag() & WM_CAPABILITY_CLIPBOARD_PRIMARY) == 0) {
     return;
   }
@@ -178,7 +183,7 @@ static void console_scrollback_limit(SpaceConsole *sc)
 {
   int tot;
 
-  for (tot = BLI_listbase_count(&sc->scrollback); tot > U.scrollback; tot--) {
+  for (tot = sc->scrollback.count(); tot > U.scrollback; tot--) {
     console_scrollback_free(sc, static_cast<ConsoleLine *>(sc->scrollback.first));
   }
 }
@@ -211,7 +216,7 @@ static void console_lb_debug__internal(ListBaseT<ConsoleLine> *lb)
 {
   ConsoleLine *cl;
 
-  printf("%d: ", BLI_listbase_count(lb));
+  printf("%d: ", lb->count());
   for (cl = lb->first; cl; cl = cl->next) {
     printf("<%s> ", cl->line);
   }

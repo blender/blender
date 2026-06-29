@@ -194,6 +194,11 @@ void VIEW3D_OT_snap_cursor_to_active(wmOperatorType *ot);
 
 void VIEW3D_OT_interactive_add(wmOperatorType *ot);
 
+/* `view3d_location_scouting.cc` */
+
+void vr_location_scouting_capture_review_modal_keymap(wmKeyConfig *keyconf);
+void VIEW3D_OT_vr_location_scouting_capture_review(wmOperatorType *ot);
+
 /* space_view3d.cc */
 
 extern "C" const char *view3d_context_dir[]; /* doc access */

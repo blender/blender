@@ -37,7 +37,7 @@ class SingleValueNodeInputOperation : public Operation {
  private:
   /* Populate the result of the operation, this essentially calls the super populate_result method
    * with the output identifier of the operation. */
-  void populate_result(Result result);
+  void populate_result(ResultType type);
 };
 
 }  // namespace blender::compositor

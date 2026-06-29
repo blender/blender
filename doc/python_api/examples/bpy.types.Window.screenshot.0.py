@@ -1,6 +1,5 @@
 """
-Save 3D Viewport to a PNG
-+++++++++++++++++++++++++
+**Save 3D Viewport to a PNG**
 
 Capture the 3D viewport's main region from the current window
 and write it to a PNG file using :mod:`imbuf`.
@@ -32,7 +31,7 @@ if region is not None:
 
     ibuf = imbuf.new((width, height))
     ibuf.file_type = 'PNG'
-    with ibuf.with_buffer('BYTE', write=True) as buf:
+    with ibuf.with_buffer(write=True) as buf:
         # The cast produces a zero-copy 1-D view of the same bytes.
         # Currently only 1-D copies are supported by Python.
         buf.cast('B')[:] = pixels.cast('B')

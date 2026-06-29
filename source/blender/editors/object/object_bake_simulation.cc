@@ -5,9 +5,9 @@
 #include <sstream>
 
 #include "BLI_fileops.hh"
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 #include "BLI_vector.hh"
 
 #include "BLT_translation.hh"
@@ -56,7 +56,7 @@ namespace ed::object::bake_simulation {
 
 static bool simulate_to_frame_poll(bContext *C)
 {
-  if (!ED_operator_object_active(C)) {
+  if (!ED_operator_object_active_editable(C)) {
     return false;
   }
   return true;
@@ -200,7 +200,7 @@ static wmOperatorStatus simulate_to_frame_modal(bContext *C,
 
 static bool bake_simulation_poll(bContext *C)
 {
-  if (!ED_operator_object_active(C)) {
+  if (!ED_operator_object_active_editable(C)) {
     return false;
   }
   Object *ob = context_active_object(C);
@@ -339,7 +339,7 @@ static void bake_geometry_nodes_startjob(void *customdata, wmJobWorkerStatus *wo
         BLI_file_ensure_parent_dir_exists(meta_path);
         bake::DiskBlobWriter blob_writer{request.path->blobs_dir, frame_file_name};
         fstream meta_file{meta_path, std::ios::out};
-        bake::serialize_bake(frame_cache.state, blob_writer, *request.blob_sharing, meta_file);
+        bake::serialize_bake(frame_cache.values, blob_writer, *request.blob_sharing, meta_file);
         written_size += blob_writer.written_size();
         written_size += meta_file.tellp();
       }
@@ -348,7 +348,7 @@ static void bake_geometry_nodes_startjob(void *customdata, wmJobWorkerStatus *wo
 
         bake::MemoryBlobWriter blob_writer{frame_file_name};
         std::ostringstream meta_file{std::ios::binary};
-        bake::serialize_bake(frame_cache.state, blob_writer, *request.blob_sharing, meta_file);
+        bake::serialize_bake(frame_cache.values, blob_writer, *request.blob_sharing, meta_file);
 
         packed_data.meta_files.append({frame_file_name + ".json", meta_file.str()});
         const Map<std::string, bake::MemoryBlobWriter::OutputStream> &blob_stream_by_name =
@@ -831,8 +831,9 @@ static PathUsersMap bake_simulation_get_path_users(bContext *C, const Span<Objec
       }
 
       /* If all bakes have a custom directory, we're done. */
-      if (all_bakes_have_custom_dir)
+      if (all_bakes_have_custom_dir) {
         continue;
+      }
 
       if (StringRef(nmd->bake_directory).is_empty()) {
         continue;
@@ -1213,7 +1214,7 @@ void OBJECT_OT_simulation_nodes_cache_delete(wmOperatorType *ot)
   ot->idname = __func__;
 
   ot->exec = delete_baked_simulation_exec;
-  ot->poll = ED_operator_object_active;
+  ot->poll = ED_operator_object_active_editable;
 
   RNA_def_boolean(ot->srna, "selected", false, "Selected", "Delete cache on all selected objects");
 }
@@ -1241,6 +1242,7 @@ void OBJECT_OT_geometry_node_bake_single(wmOperatorType *ot)
   ot->invoke = bake_single_node_invoke;
   ot->exec = bake_single_node_exec;
   ot->modal = bake_single_node_modal;
+  ot->poll = ED_operator_object_active_editable;
 
   single_bake_operator_props(ot);
 }
@@ -1252,6 +1254,7 @@ void OBJECT_OT_geometry_node_bake_delete_single(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_geometry_node_bake_delete_single";
 
   ot->exec = delete_single_bake_exec;
+  ot->poll = ED_operator_object_active_editable;
 
   single_bake_operator_props(ot);
 }
@@ -1263,6 +1266,7 @@ void OBJECT_OT_geometry_node_bake_pack_single(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_geometry_node_bake_pack_single";
 
   ot->exec = pack_single_bake_exec;
+  ot->poll = ED_operator_object_active_editable;
 
   single_bake_operator_props(ot);
 }
@@ -1275,6 +1279,7 @@ void OBJECT_OT_geometry_node_bake_unpack_single(wmOperatorType *ot)
 
   ot->exec = unpack_single_bake_exec;
   ot->invoke = unpack_single_bake_invoke;
+  ot->poll = ED_operator_object_active_editable;
 
   single_bake_operator_props(ot);
 

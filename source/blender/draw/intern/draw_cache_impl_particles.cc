@@ -16,12 +16,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
-#include "BLI_math_color.h"
-#include "BLI_math_vector.h"
+#include "BLI_alloca.hh"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_offset_indices.hh"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "DNA_customdata_types.h"
 #include "DNA_mesh_types.h"
@@ -390,7 +390,7 @@ static void particle_calculate_parent_uvs(ParticleSystem *psys,
   if (!ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
     const MFace *mfaces = static_cast<const MFace *>(
         CustomData_get_layer(&psmd->mesh_final->fdata_legacy, CD_MFACE));
-    if (UNLIKELY(mfaces == nullptr)) {
+    if (mfaces == nullptr) [[unlikely]] {
       BLI_assert_msg(psmd->mesh_final->faces_num == 0,
                      "A mesh with polygons should always have a generated 'CD_MFACE' layer!");
       return;
@@ -426,7 +426,7 @@ static void particle_calculate_parent_mcol(ParticleSystem *psys,
   if (!ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
     const MFace *mfaces = static_cast<const MFace *>(
         CustomData_get_layer(&psmd->mesh_final->fdata_legacy, CD_MFACE));
-    if (UNLIKELY(mfaces == nullptr)) {
+    if (mfaces == nullptr) [[unlikely]] {
       BLI_assert_msg(psmd->mesh_final->faces_num == 0,
                      "A mesh with polygons should always have a generated 'CD_MFACE' layer!");
       return;

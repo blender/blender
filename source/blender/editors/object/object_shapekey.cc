@@ -16,9 +16,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -348,6 +348,18 @@ static wmOperatorStatus shape_key_add_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static std::string shape_key_add_get_description(bContext * /*C*/,
+                                                 wmOperatorType * /*ot*/,
+                                                 PointerRNA *ptr)
+{
+  const bool do_from_mix = RNA_boolean_get(ptr, "from_mix");
+  if (do_from_mix) {
+    return TIP_("Create a new shape key from the visual result of existing mix of keys");
+  }
+
+  return "";
+}
+
 void OBJECT_OT_shape_key_add(wmOperatorType *ot)
 {
   /* identifiers */
@@ -358,6 +370,7 @@ void OBJECT_OT_shape_key_add(wmOperatorType *ot)
   /* API callbacks. */
   ot->poll = shape_key_mode_poll;
   ot->exec = shape_key_add_exec;
+  ot->get_description = shape_key_add_get_description;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -367,7 +380,7 @@ void OBJECT_OT_shape_key_add(wmOperatorType *ot)
                   "from_mix",
                   true,
                   "From Mix",
-                  "Create the new shape key from the existing mix of keys");
+                  "Create a new shape key from the visual result of existing mix of keys");
 }
 
 /** \} */
@@ -504,6 +517,11 @@ static std::string shape_key_remove_get_description(bContext * /*C*/,
     return TIP_("Apply current visible shape to the object data, and delete all shape keys");
   }
 
+  const bool do_remove_all = RNA_boolean_get(ptr, "all");
+  if (do_remove_all) {
+    return TIP_("Remove all shape keys from the object");
+  }
+
   return "";
 }
 
@@ -512,7 +530,7 @@ void OBJECT_OT_shape_key_remove(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Remove Shape Key";
   ot->idname = "OBJECT_OT_shape_key_remove";
-  ot->description = "Remove shape key from the object";
+  ot->description = "Remove selected shape keys from the object";
 
   /* API callbacks. */
   ot->poll = shape_key_mode_exists_poll;
@@ -543,7 +561,7 @@ static wmOperatorStatus shape_key_clear_exec(bContext *C, wmOperator * /*op*/)
   Object *ob = context_object(C);
   Key *key = BKE_key_from_object(ob);
 
-  if (!key || BLI_listbase_is_empty(&key->block)) {
+  if (!key || key->block.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 
@@ -580,7 +598,7 @@ static wmOperatorStatus shape_key_retime_exec(bContext *C, wmOperator * /*op*/)
   Key *key = BKE_key_from_object(ob);
   float cfra = 0.0f;
 
-  if (!key || BLI_listbase_is_empty(&key->block)) {
+  if (!key || key->block.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 
@@ -635,16 +653,31 @@ static wmOperatorStatus shape_key_mirror_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static std::string shape_key_mirror_get_description(bContext * /*C*/,
+                                                    wmOperatorType * /*ot*/,
+                                                    PointerRNA *ptr)
+{
+  const bool do_use_topology = RNA_boolean_get(ptr, "use_topology");
+  if (do_use_topology) {
+    return TIP_(
+        "Mirror the active shape key along the local X axis using topology based mirroring\n"
+        "(for when both sides of mesh have matching, unique topology)");
+  }
+
+  return "";
+}
+
 void OBJECT_OT_shape_key_mirror(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Mirror Shape Key";
   ot->idname = "OBJECT_OT_shape_key_mirror";
-  ot->description = "Mirror the current shape key along the local X axis";
+  ot->description = "Mirror the active shape key along the local X axis";
 
   /* API callbacks. */
   ot->poll = shape_key_mode_exists_poll;
   ot->exec = shape_key_mirror_exec;
+  ot->get_description = shape_key_mirror_get_description;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -781,11 +814,11 @@ enum {
 
 static wmOperatorStatus shape_key_lock_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = CTX_data_active_object(C);
+  Object *ob = context_object(C);
   const int action = RNA_enum_get(op->ptr, "action");
   const Key *keys = BKE_key_from_object(ob);
 
-  if (!keys || BLI_listbase_is_empty(&keys->block)) {
+  if (!keys || keys->block.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 
@@ -873,7 +906,7 @@ static bool shape_key_make_basis_poll(bContext *C)
 
 static wmOperatorStatus shape_key_make_basis_exec(bContext *C, wmOperator * /*op*/)
 {
-  Object *ob = CTX_data_active_object(C);
+  Object *ob = context_object(C);
   Key *key = BKE_key_from_object(ob);
   KeyBlock *old_basis_key = static_cast<KeyBlock *>(key->block.first);
 
@@ -930,8 +963,8 @@ void OBJECT_OT_shape_key_make_basis(wmOperatorType *ot)
   ot->name = "Make Shape Key the Basis Key";
   ot->idname = "OBJECT_OT_shape_key_make_basis";
   ot->description =
-      "Make this shape key the new basis key, effectively applying it to the mesh. Note that this "
-      "applies the shape key at its 100% value";
+      "Make the active shape key the new basis key, effectively applying it to the mesh.\n"
+      "Note that this applies the shape key at its 100% value";
 
   /* API callbacks. */
   ot->poll = shape_key_make_basis_poll;
@@ -974,7 +1007,7 @@ static void add_arrays(const MutableSpan<float3> a, const Span<float3> b)
 static wmOperatorStatus shape_key_apply_to_basis_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  Object *ob = CTX_data_active_object(C);
+  Object *ob = context_object(C);
   Key *key = BKE_key_from_object(ob);
   KeyBlock *basis_key = static_cast<KeyBlock *>(key->block.first);
   MutableSpan<float3> basis_data(static_cast<float3 *>(basis_key->data), basis_key->totelem);
@@ -983,7 +1016,7 @@ static wmOperatorStatus shape_key_apply_to_basis_exec(bContext *C, wmOperator *o
   MutableSpan<float3> positions = mesh.vert_positions_for_write();
 
   int locked_count = 0;
-  Array<bool> keys_to_process(BLI_listbase_count(&key->block), false);
+  Array<bool> keys_to_process(key->block.count(), false);
   for (const auto [i, kb] : key->block.enumerate()) {
     if (!shape_key_is_selected(*ob, kb, i)) {
       continue;

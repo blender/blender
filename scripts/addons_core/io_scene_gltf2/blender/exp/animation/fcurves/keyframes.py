@@ -11,6 +11,7 @@ from ..keyframes import Keyframe
 
 @cached
 def gather_fcurve_keyframes(
+        id_type: str,
         obj_uuid: str,
         channel_group: typing.Tuple[bpy.types.FCurve],
         bone: typing.Optional[str],
@@ -20,7 +21,7 @@ def gather_fcurve_keyframes(
 
     keyframes = []
 
-    non_keyed_values = gather_non_keyed_values(obj_uuid, channel_group, bone, extra_mode, export_settings)
+    non_keyed_values = gather_non_keyed_values(id_type, obj_uuid, channel_group, bone, extra_mode, export_settings)
 
     # Just use the keyframes as they are specified in blender
     # Note: channels has some None items only for SK if some SK are not animated
@@ -42,9 +43,11 @@ def gather_fcurve_keyframes(
 
     for i, frame in enumerate(frames):
         key = Keyframe(channel_group, frame, None)
+        key.set_id_type(id_type)
         key.value = [c.evaluate(frame) for c in channel_group if c is not None]
         # Complete key with non keyed values, if needed
-        if len([c for c in channel_group if c is not None]) != key.get_target_len():
+        target_len = key.get_target_len()
+        if target_len is not None and len([c for c in channel_group if c is not None]) != target_len:
             complete_key(key, non_keyed_values)
 
         # compute tangents for cubic spline interpolation
@@ -82,7 +85,8 @@ def gather_fcurve_keyframes(
                                    (c.keyframe_points[i].handle_right[0] -
                                     c.keyframe_points[i].co[0]) for c in channel_group if c is not None]
 
-            __complete_key_tangents(key, non_keyed_values)
+            if target_len is not None:
+                __complete_key_tangents(key, non_keyed_values)
 
         keyframes.append(key)
 
@@ -90,6 +94,7 @@ def gather_fcurve_keyframes(
 
 
 def gather_non_keyed_values(
+        id_type: str,
         obj_uuid: str,
         channel_group: typing.Tuple[bpy.types.FCurve],
         bone: typing.Optional[str],
@@ -100,6 +105,9 @@ def gather_non_keyed_values(
     if extra_mode is True:
         # No need to check if there are non non keyed values, as we export fcurve independently
         return [None]
+
+    if id_type == "NODETREE":
+        return []  # TODO, not implemented yet
 
     blender_object = export_settings['vtree'].nodes[obj_uuid].blender_object
 

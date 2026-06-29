@@ -14,14 +14,15 @@
 
 #include "DNA_userdef_types.h"
 
-#include "BLI_fnmatch.h"
+#include "BLI_fnmatch.hh"
 #include "BLI_path_utils.hh"
 
 #ifdef WIN32
-#  include "BLI_string.h"
+#  include "BLI_string.hh"
 #endif
 
 #include "BKE_autoexec.hh" /* own include */
+#include "BKE_global.hh"
 
 namespace blender {
 
@@ -35,7 +36,8 @@ bool BKE_autoexec_match(const char *path)
   const int fnmatch_flags = 0;
 #endif
 
-  BLI_assert((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0);
+  /* Auto-execution must be enabled by the preference or trusted for this session. */
+  BLI_assert((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0 || (G.f & G_FLAG_SCRIPT_AUTOEXEC));
 
   for (path_cmp = static_cast<bPathCompare *>(U.autoexec_paths.first); path_cmp;
        path_cmp = path_cmp->next)

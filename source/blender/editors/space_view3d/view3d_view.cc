@@ -8,12 +8,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_linklist.h"
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_rect.h"
+#include "BLI_linklist.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rect.hh"
 
 #include "BKE_action.hh"
 #include "BKE_context.hh"
@@ -534,10 +534,9 @@ static std::optional<eV3DSelectObjectFilter> view3d_select_filter_from_mode_lock
     return std::nullopt;
   }
 
-  /* NOTE: don't use #BKE_object_pose_armature_get it doesn't check for weight-paint mode
-   * when dealing using the deforming armature (breaking selection outside weight paint mode). */
-  const Object *obpose = OBPOSE_FROM_OBACT(obact);
-  if (obpose) {
+  /* NOTE: don't use #BKE_object_pose_armature_get as it doesn't check for weight-paint mode
+   * when using the deforming armature (breaking selection outside weight paint mode). */
+  if (const Object *obpose = OBPOSE_FROM_OBACT(obact)) {
     if (obpose->mode == OB_MODE_POSE) {
       /* This check only makes sense in pose-mode,
        * where this "X-ray" options gives pose-bones a priority over other objects.
@@ -550,13 +549,12 @@ static std::optional<eV3DSelectObjectFilter> view3d_select_filter_from_mode_lock
       return VIEW3D_SELECT_FILTER_OBJECT_MODE_LOCK_SAME_TYPE;
     }
   }
-  else {
-    const Object *obweight = OBWEIGHTPAINT_FROM_OBACT(obact);
-    if (obweight) {
-      /* Only use Armature pose selection, when connected armature is in pose mode. */
-      const Object *ob_armature = BKE_modifiers_is_deformed_by_armature(
-          const_cast<Object *>(obweight));
-      if (ob_armature && ob_armature->mode == OB_MODE_POSE) {
+  else if (const Object *obweight = OBWEIGHTPAINT_ALL_FROM_OBACT(obact)) {
+    /* Only use Armature pose selection, when connected armature is in pose mode. */
+    if (const Object *ob_armature = BKE_modifiers_is_deformed_by_armature(
+            const_cast<Object *>(obweight)))
+    {
+      if (ob_armature->mode == OB_MODE_POSE) {
         return VIEW3D_SELECT_FILTER_WPAINT_POSE_MODE_LOCK;
       }
     }
@@ -587,14 +585,14 @@ eV3DSelectObjectFilter ED_view3d_select_filter_from_mode(const Scene *scene,
 static bool drw_select_filter_object_mode_lock(Object *ob, void *user_data)
 {
   const Object *obact = static_cast<const Object *>(user_data);
-  return BKE_object_is_mode_compat(ob, eObjectMode(obact->mode));
+  return BKE_object_is_mode_compat(ob, obact->mode);
 }
 
 /** Implement #VIEW3D_SELECT_FILTER_OBJECT_MODE_LOCK_SAME_TYPE. */
 static bool drw_select_filter_object_mode_lock_same_type(Object *ob, void *user_data)
 {
   const Object *obact = static_cast<const Object *>(user_data);
-  return (obact->type == ob->type) && BKE_object_is_mode_compat(ob, eObjectMode(obact->mode));
+  return (obact->type == ob->type) && BKE_object_is_mode_compat(ob, obact->mode);
 }
 
 /**
@@ -936,7 +934,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
     }
 
     sub_v3_v3v3(box, max, min);
-    size = max_fff(box[0], box[1], box[2]);
+    size = std::max({box[0], box[1], box[2]});
   }
 
   if (changed == false) {
@@ -974,9 +972,14 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
         negate_v3_v3(ofs_new, mid);
 
         if (rv3d->persp == RV3D_CAMOB) {
+          rv3d->persp = RV3D_PERSP;
           camera_old = v3d->camera;
-          const Camera &camera = *id_cast<Camera *>(camera_old->data);
-          rv3d->persp = (camera.type == CAM_ORTHO) ? RV3D_ORTHO : RV3D_PERSP;
+          if (camera_old && camera_old->type == OB_CAMERA) {
+            const Camera &camera = *id_cast<Camera *>(camera_old->data);
+            if (camera.type == CAM_ORTHO) {
+              rv3d->persp = RV3D_ORTHO;
+            }
+          }
         }
 
         if (rv3d->persp == RV3D_ORTHO) {

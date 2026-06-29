@@ -16,8 +16,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "For curves, point clouds, and Grease Pencil, take the radius attribute into account "
           "when computing the bounds.");
-  b.add_output<decl::Vector>("Min"_ustr).field_source();
-  b.add_output<decl::Vector>("Max"_ustr).field_source();
+  b.add_output<decl::Vector>("Min"_ustr).structure_type(StructureType::Field);
+  b.add_output<decl::Vector>("Max"_ustr).structure_type(StructureType::Field);
 }
 
 class InstanceBoundsField final : public bke::InstancesFieldInput {

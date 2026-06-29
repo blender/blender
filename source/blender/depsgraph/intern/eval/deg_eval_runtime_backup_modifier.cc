@@ -13,7 +13,7 @@
 namespace blender::deg {
 
 ModifierDataBackup::ModifierDataBackup(ModifierData *modifier_data)
-    : type(static_cast<ModifierType>(modifier_data->type)), runtime(modifier_data->runtime)
+    : type(modifier_data->type), runtime(modifier_data->runtime)
 {
 }
 

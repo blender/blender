@@ -113,7 +113,7 @@ integrate_transparent_surface_shadow(KernelGlobals kg,
   /* Evaluate shader. */
   if (!(shadow_sd->flag & SD_HAS_ONLY_VOLUME)) {
     surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW>(
-        kg, state, shadow_sd, nullptr, PATH_RAY_SHADOW);
+        kg, state, shadow_sd, nullptr, PATH_RAY_VISIBILITY_SHADOW, PATH_RAY_FLAG_NONE);
     if (shadow_sd->flag & SD_CACHE_MISS) {
       result = SHADER_EVAL_CACHE_MISS;
       return zero_spectrum();

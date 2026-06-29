@@ -477,6 +477,9 @@ package_archive: .FORCE
 test: .FORCE
 	@$(PYTHON) ./build_files/utils/make_test.py "$(BUILD_DIR)"
 
+benchmark: .FORCE
+	@$(PYTHON) ./build_files/utils/make_benchmark.py "$(BUILD_DIR)"
+
 
 # -----------------------------------------------------------------------------
 # Project Files
@@ -640,6 +643,7 @@ ifneq ($(BLENDER_DOC_SPHINX), 0)
 endif
 
 python_stubs: .FORCE
+	@rm -rf "$(BLENDER_DIR)/doc/python_api/stubs"
 	@ASAN_OPTIONS=halt_on_error=0:${ASAN_OPTIONS} \
 	$(BLENDER_BIN) \
 	    --background --factory-startup --quiet \

@@ -13,7 +13,7 @@
 
 #include "gpu_backend.hh"
 
-#include "BLI_threads.h"
+#include "BLI_threads.hh"
 #include "BLI_vector.hh"
 
 #include "gpu_capabilities_private.hh"
@@ -86,9 +86,9 @@ class GLBackend : public GPUBackend {
     return static_cast<GLBackend *>(GPUBackend::get());
   }
 
-  Context *context_alloc(GHOST_IWindow *ghost_window, GHOST_IContext * /*ghost_context*/) override
+  Context *context_alloc(GHOST_IWindow *ghost_window, GHOST_IContext *ghost_context) override
   {
-    return new GLContext(ghost_window, shared_orphan_list_);
+    return new GLContext(ghost_window, ghost_context, shared_orphan_list_);
   };
 
   void add_context_id(int context_id)

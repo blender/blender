@@ -9,8 +9,8 @@
 #include <array>
 #include <cstring>
 
-#include "BLI_ghash.h"
-#include "BLI_utildefines.h"
+#include "BLI_ghash.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -286,6 +286,12 @@ short BKE_idtype_idcode_from_name_case_insensitive(const char *idtype_name)
   const IDTypeInfo *id_type = idtype_get_info_from_name_case_insensitive(idtype_name);
   BLI_assert(id_type);
   return id_type != nullptr ? id_type->id_code : 0;
+}
+
+const char *BKE_idtype_name_normalize(const char *idtype_name)
+{
+  const IDTypeInfo *id_type = idtype_get_info_from_name_case_insensitive(idtype_name);
+  return id_type ? id_type->name : nullptr;
 }
 
 bool BKE_idtype_idcode_is_valid(const short idcode)

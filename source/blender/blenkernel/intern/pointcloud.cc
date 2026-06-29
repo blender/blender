@@ -19,7 +19,7 @@
 #include "BLI_index_range.hh"
 #include "BLI_resource_scope.hh"
 #include "BLI_span.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_anim_data.hh"
@@ -32,6 +32,7 @@
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
+#include "BKE_material.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
@@ -135,7 +136,9 @@ static void pointcloud_blend_write(BlendWriter *writer, ID *id, const void *id_a
   CustomData_reset(&pointcloud->pdata_legacy);
 
   /* Write LibData */
-  writer->write_id_struct(id_address, pointcloud);
+  writer->write_id_struct(id_address, pointcloud, [](BlendStructWriter &struct_writer) {
+    struct_writer.generated_ptr(offsetof(PointCloud, attribute_storage.dna_attributes));
+  });
   BKE_id_blend_write(writer, &pointcloud->id);
 
   /* Direct data */
@@ -308,6 +311,11 @@ bool BKE_pointcloud_attribute_required(const PointCloud * /*pointcloud*/, const 
   return name == ATTR_POSITION;
 }
 
+void BKE_pointcloud_material_remap(PointCloud *pointcloud, const uint *remap, const int remap_num)
+{
+  BKE_material_attr_indices_remap(pointcloud->attributes_for_write(), remap, remap_num);
+}
+
 void pointcloud_copy_parameters(const PointCloud &src, PointCloud &dst)
 {
   dst.flag = src.flag;
@@ -372,7 +380,7 @@ static void pointcloud_evaluate_modifiers(Depsgraph *depsgraph,
 
   /* Evaluate modifiers. */
   for (; md; md = md->next) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
     if (!BKE_modifier_is_enabled(scene, md, required_mode)) {
       continue;

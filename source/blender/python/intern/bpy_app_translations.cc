@@ -17,7 +17,7 @@
 
 #include "../generic/python_compat.hh" /* IWYU pragma: keep. */
 
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BPY_extern.hh"
 #include "bpy_app_translations.hh"
@@ -32,7 +32,7 @@
 #ifdef WITH_INTERNATIONAL
 #  include "BLI_map.hh"
 #  include "BLI_string_ref.hh"
-#  include "BLI_string_utf8.h"
+#  include "BLI_string_utf8.hh"
 #endif
 
 namespace blender {

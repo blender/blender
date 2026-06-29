@@ -15,13 +15,14 @@
 
 #include "DNA_node_types.h"
 
-#include "BLI_assert.h"
-#include "BLI_ghash.h"
-#include "BLI_listbase.h"
+#include "BLI_assert.hh"
+#include "BLI_ghash.hh"
+#include "BLI_listbase.hh"
 #include "BLI_stack.hh"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_string.hh"
+#include "BLI_utildefines.hh"
 
+#include "BKE_image.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
@@ -141,7 +142,11 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const GPUType 
       /* Fail-safe handling if the same attribute is used with different data-types for
        * some reason (only really makes sense with float/vec2/vec3/vec4 though). This
        * can happen if mixing the generic Attribute node with specialized ones. */
-      CLAMP_MIN(input->attr->gputype, type);
+      if (input->attr->gputype == GPU_NONE ||
+          gpu_type_element_count(input->attr->gputype) < gpu_type_element_count(type))
+      {
+        input->attr->gputype = type;
+      }
       break;
     case GPU_NODE_LINK_UNIFORM_ATTR:
       input->source = GPU_SOURCE_UNIFORM_ATTR;
@@ -170,7 +175,7 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const GPUType 
   }
 
   if (ELEM(input->source, GPU_SOURCE_CONSTANT, GPU_SOURCE_UNIFORM)) {
-    memcpy(input->vec, link->data, type * sizeof(float));
+    memcpy(input->vec, link->data, gpu_type_element_count(type) * sizeof(float));
   }
 
   if (link->link_type != GPU_NODE_LINK_OUTPUT) {
@@ -230,10 +235,7 @@ static GPUNodeLink *gpu_uniformbuffer_link(GPUMaterial *mat,
   GPUNodeLink *link = GPU_uniform(stack->vec);
 
   if (in_out == SOCK_IN) {
-    GPU_link(mat,
-             gpu_uniform_set_function_from_type(eNodeSocketDatatype(socket->type)),
-             link,
-             &stack->link);
+    GPU_link(mat, gpu_uniform_set_function_from_type(socket->type), link, &stack->link);
   }
 
   return link;
@@ -333,13 +335,13 @@ void GPU_uniform_attr_list_free(GPUUniformAttrList *set)
 {
   set->count = 0;
   set->hash_code = 0;
-  BLI_freelistN(&set->list);
+  set->list.free_no_destruct();
 }
 
 void gpu_node_graph_finalize_uniform_attrs(GPUNodeGraph *graph)
 {
   GPUUniformAttrList *attrs = &graph->uniform_attrs;
-  BLI_assert(attrs->count == BLI_listbase_count(&attrs->list));
+  BLI_assert(attrs->count == attrs->list.count());
 
   /* Sort the attributes by name to ensure a stable order. */
   BLI_listbase_sort(&attrs->list, uniform_attr_sort_cmp);
@@ -451,8 +453,7 @@ static GPUUniformAttr *gpu_node_graph_add_uniform_attribute(GPUNodeGraph *graph,
     }
   }
 
-  /* Add new requested attribute if it's within GPU limits. */
-  if (attr == nullptr && attrs->count < GPU_MAX_UNIFORM_ATTR) {
+  if (attr == nullptr) {
     attr = MEM_new_zeroed<GPUUniformAttr>(__func__);
     STRNCPY(attr->name, name);
     attr->use_dupli = use_dupli;
@@ -497,6 +498,16 @@ static GPULayerAttr *gpu_node_graph_add_layer_attribute(GPUNodeGraph *graph, con
   return attr;
 }
 
+static bool gpu_image_user_match(const GPUMaterialTexture *tex, const ImageUser *iuser)
+{
+  const bool iuser_available = iuser != nullptr;
+  if (tex->iuser_available != iuser_available) {
+    return false;
+  }
+
+  return (tex->iuser_available) ? BKE_image_user_match(tex->iuser, *iuser) : true;
+}
+
 static GPUMaterialTexture *gpu_node_graph_add_texture(GPUNodeGraph *graph,
                                                       Image *ima,
                                                       ImageUser *iuser,
@@ -510,7 +521,7 @@ static GPUMaterialTexture *gpu_node_graph_add_texture(GPUNodeGraph *graph,
   GPUMaterialTexture *tex = static_cast<GPUMaterialTexture *>(graph->textures.first);
   for (; tex; tex = tex->next) {
     if (tex->ima == ima && tex->colorband == colorband && tex->sky == sky &&
-        tex->sampler_state == sampler_state)
+        tex->sampler_state == sampler_state && gpu_image_user_match(tex, iuser))
     {
       break;
     }
@@ -786,7 +797,8 @@ static bool gpu_stack_link_v(GPUMaterial *material,
                              const char *name,
                              GPUNodeStack *in,
                              GPUNodeStack *out,
-                             va_list params)
+                             va_list params  // NOLINT
+)
 {
   GPUNodeGraph *graph = gpu_material_node_graph(material);
   GPUNode *node;
@@ -944,7 +956,7 @@ static void gpu_inputs_free(ListBaseT<GPUInput> *inputs)
     }
   }
 
-  BLI_freelistN(inputs);
+  inputs->free_no_destruct();
 }
 
 static void gpu_node_free(GPUNode *node)
@@ -958,7 +970,7 @@ static void gpu_node_free(GPUNode *node)
     }
   }
 
-  BLI_freelistN(&node->outputs);
+  node->outputs.free_no_destruct();
   MEM_delete(node);
 }
 
@@ -976,15 +988,15 @@ void gpu_node_graph_free_nodes(GPUNodeGraph *graph)
 
 void gpu_node_graph_free(GPUNodeGraph *graph)
 {
-  BLI_freelistN(&graph->outlink_aovs);
-  BLI_freelistN(&graph->material_functions);
-  BLI_freelistN(&graph->outlink_compositor);
+  graph->outlink_aovs.free_no_destruct();
+  graph->material_functions.free_no_destruct();
+  graph->outlink_compositor.free_no_destruct();
   gpu_node_graph_free_nodes(graph);
 
-  BLI_freelistN(&graph->textures);
-  BLI_freelistN(&graph->attributes);
+  graph->textures.free_no_destruct();
+  graph->attributes.free_no_destruct();
   GPU_uniform_attr_list_free(&graph->uniform_attrs);
-  BLI_freelistN(&graph->layer_attrs);
+  graph->layer_attrs.free_no_destruct();
 }
 
 /* Prune Unused Nodes */

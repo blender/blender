@@ -66,6 +66,7 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
                                      bool draw_background,
                                      const char *viewname,
                                      bool do_color_management,
+                                     Object *camera_override,
                                      GPUOffScreen *ofs,
                                      GPUViewport *viewport);
 
@@ -77,7 +78,7 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
  * \param viewport: Optional viewport data, can be NULL.
  * (avoids re-creating when doing multiple GL renders,
  * allows keeping track of state across frames).
- * \param use_camera_view_bounds if true and the viewport is looking through a camera, only render
+ * \param use_camera_view_bounds: if true and the viewport is looking through a camera, only render
  * what the camera can see. In case the aspect ratio of the given `sizex` and `sizey` does not
  * match the render aspect ratio of the scene, the returned image will be expanded so the camera
  * view bounds are contained within it.
@@ -89,7 +90,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
                                       ARegion *region,
                                       int sizex,
                                       int sizey,
-                                      eImBufFlags imbuf_flag,
+                                      ImBufFlags imbuf_flag,
                                       int alpha_mode,
                                       const char *viewname,
                                       bool restore_rv3d_mats,
@@ -115,7 +116,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
                                              Object *camera,
                                              int width,
                                              int height,
-                                             eImBufFlags imbuf_flags,
+                                             ImBufFlags imbuf_flags,
                                              eV3DOffscreenDrawFlag draw_flags,
                                              int alpha_mode,
                                              const char *viewname,

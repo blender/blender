@@ -10,8 +10,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_linklist_stack.h"
-#include "BLI_math_vector.h"
+#include "BLI_linklist_stack.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "bmesh.hh"
 
@@ -159,7 +159,7 @@ static int recalc_face_normals_find_index(BMesh *bm,
               float loop_dir_dot;
               /* Highly unlikely the furthest loop is also the concave part of an ngon,
                * but it can be contrived with _very_ non-planar faces - so better check. */
-              if (UNLIKELY(dot_v3v3(loop_dir, l_iter->f->no) < 0.0f)) {
+              if (dot_v3v3(loop_dir, l_iter->f->no) < 0.0f) [[unlikely]] {
                 negate_v3(loop_dir);
               }
               loop_dir_dot = dot_v3v3(dir, loop_dir);

@@ -56,7 +56,7 @@ void register_node_type_tex_valtorgb()
   ntype.enum_name_legacy = "VALTORGB";
   ntype.nclass = NODE_CLASS_CONVERTER;
   bke::node_type_socket_templates(&ntype, valtorgb_in, valtorgb_out);
-  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Large);
+  ntype.default_width = bke::NodeWidth::_240;
   ntype.initfunc = valtorgb_init;
   bke::node_type_storage(
       ntype, "ColorBand", node_free_standard_storage, node_copy_standard_storage);

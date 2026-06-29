@@ -8,7 +8,7 @@
  * \ingroup sequencer
  */
 
-#include "BLI_math_color.h"
+#include "BLI_math_color_c.hh"
 #include "BLI_math_interp.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"
@@ -36,20 +36,23 @@ namespace seq {
 
 struct RenderData;
 struct SeqRenderState;
+struct SeqResult;
 
 struct ModifierApplyContext {
   ModifierApplyContext(const RenderData &render_data,
                        SeqRenderState &render_state,
                        const Strip &strip,
                        const float3x3 &transform,
+                       const float3x3 &transform_comp_result,
                        const float timeline_frame,
-                       ImBuf *image)
+                       SeqResult &result)
       : render_data(render_data),
         render_state(render_state),
         strip(strip),
         transform(transform),
+        transform_comp_result(transform_comp_result),
         timeline_frame(timeline_frame),
-        image(image)
+        result(result)
   {
   }
   const RenderData &render_data;
@@ -60,14 +63,11 @@ struct ModifierApplyContext {
    * full render area pixel coordinates.This is used to sample
    * modifier masks (since masks are in full render area space). */
   const float3x3 transform;
+  /* Transformation to apply when sampling masks in compositor modifier. */
+  const float3x3 transform_comp_result;
   /* Timeline frame at which the modifiers are being applied at. */
   const float timeline_frame;
-  ImBuf *const image;
-
-  /* How much the resulting image should be translated, in pixels.
-   * Compositor modifier can have some nodes that translate the output
-   * image. */
-  float2 result_translation = float2(0, 0);
+  SeqResult &result;
 };
 
 void modifier_apply_stack(ModifierApplyContext &context);
@@ -128,7 +128,7 @@ struct MaskSamplerDirectFloat {
   }
   float load_mask_min()
   {
-    float r = min_fff(this->ptr[0], this->ptr[1], this->ptr[2]);
+    float r = std::min({this->ptr[0], this->ptr[1], this->ptr[2]});
     this->ptr += 4;
     return r;
   }
@@ -159,7 +159,7 @@ struct MaskSamplerDirectByte {
   }
   float load_mask_min()
   {
-    float r = float(min_iii(this->ptr[0], this->ptr[1], this->ptr[2])) * (1.0f / 255.0f);
+    float r = float(std::min({this->ptr[0], this->ptr[1], this->ptr[2]})) * (1.0f / 255.0f);
     this->ptr += 4;
     return r;
   }
@@ -202,7 +202,7 @@ struct MaskSamplerTransformedFloat {
     float4 m;
     math::interpolate_bilinear_border_fl(
         this->mask->float_data(), m, this->mask->x, this->mask->y, 4, uv.x, uv.y);
-    float r = min_fff(m.x, m.y, m.z);
+    float r = std::min({m.x, m.y, m.z});
     this->cur_x++;
     return r;
   }
@@ -248,7 +248,7 @@ struct MaskSamplerTransformedByte {
     float2 uv = this->cur_uv_row + this->cur_x * this->add_x - 0.5f;
     uchar4 m = math::interpolate_bilinear_border_byte(
         this->mask->byte_data(), this->mask->x, this->mask->y, uv.x, uv.y);
-    float r = float(min_iii(m.x, m.y, m.z)) * (1.0f / 255.0f);
+    float r = float(std::min({m.x, m.y, m.z})) * (1.0f / 255.0f);
     this->cur_x++;
     return r;
   }

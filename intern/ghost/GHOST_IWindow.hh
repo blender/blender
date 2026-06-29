@@ -71,7 +71,7 @@ class GHOST_IWindow {
 
   /**
    * Returns the title displayed in the title bar.
-   * \param title: The title displayed in the title bar.
+   * \return The title displayed in the title bar.
    */
   virtual std::string getTitle() const = 0;
 
@@ -334,7 +334,7 @@ class GHOST_IWindow {
 
   /**
    * Grabs the cursor for a modal operation.
-   * \param grab: The new grab state of the cursor.
+   * \param mode: The new grab mode of the cursor.
    * \return Indication of success.
    */
   virtual GHOST_TSuccess setCursorGrab(GHOST_TGrabCursorMode /*mode*/,
@@ -370,7 +370,7 @@ class GHOST_IWindow {
    * \param y: Requested y-coordinate of the rectangle.
    * \param w: Requested width of the rectangle.
    * \param h: Requested height of the rectangle.
-   * \param complete: Whether or not to complete the ongoing composition.
+   * \param completed: Whether or not to complete the ongoing composition.
    * - true:  Start a new composition
    * - false: Move the IME windows to the given position without finishing it.
    */

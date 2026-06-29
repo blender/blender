@@ -10,7 +10,7 @@
 
 #include <cstdio>
 
-#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_attrs.hh"
 #include "BLI_enum_flags.hh"
 #include "BLI_mutex.hh"
 

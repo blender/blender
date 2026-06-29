@@ -24,7 +24,10 @@ bool imb_is_a_png(const uchar *mem, size_t size)
   return imb_oiio_check(mem, size, "png");
 }
 
-ImBuf *imb_load_png(const uchar *mem, size_t size, int flags, ImFileColorSpace &r_colorspace)
+ImBuf *imb_load_png(const uchar *mem,
+                    size_t size,
+                    ImBufFlags flags,
+                    ImFileColorSpace &r_colorspace)
 {
   ImageSpec config, spec;
   config.attribute("oiio:UnassociatedAlpha", 1);
@@ -44,19 +47,17 @@ ImBuf *imb_load_png(const uchar *mem, size_t size, int flags, ImFileColorSpace &
   return ibuf;
 }
 
-static std::tuple<WriteContext, ImageSpec> prepare_save_png(ImBuf *ibuf, int flags)
+static std::tuple<WriteContext, ImageSpec> prepare_save_png(ImBuf *ibuf, ImBufFlags flags)
 {
   const bool is_16bit = (ibuf->foptions.flag & PNG_16BIT);
-  const int file_channels = ibuf->planes >> 3;
+  const int file_channels = ibuf->color_mode_channels_get();
   const TypeDesc data_format = is_16bit ? TypeDesc::UINT16 : TypeDesc::UINT8;
 
   WriteContext ctx = imb_create_write_context("png", ibuf, flags, is_16bit);
   ImageSpec file_spec = imb_create_write_spec(ctx, file_channels, data_format);
 
   /* Skip if the float buffer was managed already. */
-  if (is_16bit &&
-      (ibuf->float_buffer.colorspace || (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA)))
-  {
+  if (is_16bit && (ibuf->float_buffer.colorspace || ibuf->colorspace_is_data())) {
     file_spec.attribute("oiio:UnassociatedAlpha", 0);
   }
   else {
@@ -69,13 +70,13 @@ static std::tuple<WriteContext, ImageSpec> prepare_save_png(ImBuf *ibuf, int fla
   return {ctx, file_spec};
 }
 
-bool imb_save_png(ImBuf *ibuf, const char *filepath, int flags)
+bool imb_save_png(ImBuf *ibuf, const char *filepath, ImBufFlags flags)
 {
   const auto [ctx, file_spec] = prepare_save_png(ibuf, flags);
   return imb_oiio_write(ctx, filepath, file_spec);
 }
 
-Vector<uint8_t> imb_save_buffer_png(ImBuf *ibuf, int flags)
+Vector<uint8_t> imb_save_buffer_png(ImBuf *ibuf, ImBufFlags flags)
 {
   const auto [ctx, file_spec] = prepare_save_png(ibuf, flags);
   return imb_oiio_write_buffer(ctx, file_spec);

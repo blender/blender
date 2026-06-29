@@ -75,9 +75,9 @@ const EnumPropertyItem rna_enum_window_cursor_items[] = {
 #  include "ED_geometry.hh"
 #  include "ED_screen.hh"
 
-#  include "BLI_listbase.h"
-#  include "BLI_string.h"
-#  include "BLI_string_utf8.h"
+#  include "BLI_listbase.hh"
+#  include "BLI_string.hh"
+#  include "BLI_string_utf8.hh"
 
 #  include "BKE_context.hh"
 #  include "BKE_global.hh"
@@ -448,7 +448,7 @@ static void rna_KeyMap_item_remove(wmKeyMap *km, ReportList *reports, PointerRNA
 {
   wmKeyMapItem *kmi = static_cast<wmKeyMapItem *>(kmi_ptr->data);
 
-  if (UNLIKELY(BLI_findindex(&km->items, kmi) == -1)) {
+  if (BLI_findindex(&km->items, kmi) == -1) [[unlikely]] {
     BKE_reportf(
         reports, RPT_ERROR, "KeyMapItem '%s' not found in KeyMap '%s'", kmi->idname, km->idname);
     return;
@@ -556,7 +556,7 @@ static void rna_KeyMaps_remove(wmKeyConfig *keyconfig, ReportList *reports, Poin
 {
   wmKeyMap *keymap = static_cast<wmKeyMap *>(keymap_ptr->data);
 
-  if (UNLIKELY(BLI_findindex(&keyconfig->keymaps, keymap) == -1)) {
+  if (BLI_findindex(&keyconfig->keymaps, keymap) == -1) [[unlikely]] {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "KeyMap '%s' not found in KeyConfig '%s'",
@@ -582,7 +582,7 @@ wmKeyConfig *rna_KeyConfig_new(wmWindowManager *wm, const char *idname)
 static void rna_KeyConfig_remove(wmWindowManager *wm, ReportList *reports, PointerRNA *keyconf_ptr)
 {
   wmKeyConfig *keyconf = static_cast<wmKeyConfig *>(keyconf_ptr->data);
-  if (UNLIKELY(BLI_findindex(&wm->runtime->keyconfigs, keyconf) == -1)) {
+  if (BLI_findindex(&wm->runtime->keyconfigs, keyconf) == -1) [[unlikely]] {
     BKE_reportf(reports, RPT_ERROR, "KeyConfig '%s' cannot be removed", keyconf->idname);
     return;
   }
@@ -848,9 +848,33 @@ static void rna_asset_library_status_ping_loaded_new_preview(bContext *C,
   RemoteLibraryLoadingStatus::ping_new_preview(*C, preview_full_path);
 }
 
-static void rna_asset_library_status_ping_loaded_new_assets(bContext *C, const char *library_url)
+static void rna_asset_library_status_ping_asset_file_progress(const char *absolute_file_url,
+                                                              const int size_written)
 {
-  RemoteLibraryLoadingStatus::ping_new_assets(*C, library_url);
+  RemoteLibraryLoadingStatus::ping_asset_file_progress(absolute_file_url, size_written);
+}
+
+static void rna_asset_library_status_ping_asset_file_succeeded(bContext *C,
+                                                               const char *library_url,
+                                                               const char *absolute_file_url,
+                                                               const char *local_file_abspath)
+{
+  RemoteLibraryLoadingStatus::ping_asset_file_download_succeeded(
+      *C, library_url, absolute_file_url, local_file_abspath);
+}
+
+static void rna_asset_library_status_ping_asset_file_failed(bContext *C,
+                                                            const char *library_url,
+                                                            const char *absolute_file_url,
+                                                            const char *local_file_abspath)
+{
+  RemoteLibraryLoadingStatus::ping_asset_file_download_failed(
+      *C, library_url, absolute_file_url, local_file_abspath);
+}
+
+static void rna_asset_library_status_ping_finished_download_queue(bContext *C)
+{
+  RemoteLibraryLoadingStatus::ping_download_queue_done(*C);
 }
 
 static void rna_asset_library_status_finished_loading(const char *library_url)
@@ -1698,11 +1722,36 @@ void RNA_api_asset_library_loading_status(StructRNA *srna)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   func = RNA_def_function(srna,
-                          "asset_library_status_ping_loaded_new_assets",
-                          "rna_asset_library_status_ping_loaded_new_assets");
+                          "asset_library_status_ping_asset_file_progress",
+                          "rna_asset_library_status_ping_asset_file_progress");
+  RNA_def_function_ui_description(
+      func, "Inform the asset system about the current progress of an asset file.");
+  RNA_def_function_flag(func, FUNC_NO_SELF);
+  parm = RNA_def_string(func,
+                        "absolute_file_url",
+                        nullptr,
+                        0,
+                        "URL",
+                        "The absolute URL this file was downloaded from");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_int(
+      func,
+      "size_written",
+      0,
+      0,
+      INT_MAX,
+      "Size Written to Disk",
+      "The number of bytes written to disk after uncompressing the download data, if needed",
+      0,
+      0);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+
+  func = RNA_def_function(srna,
+                          "asset_library_status_ping_asset_file_succeeded",
+                          "rna_asset_library_status_ping_asset_file_succeeded");
   RNA_def_function_ui_description(func,
-                                  "Inform the asset system that new assets were downloaded and "
-                                  "available at the expected location on disk");
+                                  "Inform the asset system that a single asset file download has "
+                                  "finished successfully.");
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
   parm = RNA_def_string(func,
                         "library_url",
@@ -1711,6 +1760,57 @@ void RNA_api_asset_library_loading_status(StructRNA *srna)
                         "URL",
                         "The URL identifying the asset library being loaded");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_string(func,
+                        "absolute_file_url",
+                        nullptr,
+                        0,
+                        "URL",
+                        "The absolute URL this file was downloaded from");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_string(func,
+                        "local_file_abspath",
+                        nullptr,
+                        0,
+                        "Local Path",
+                        "The absolute path this file was downloaded to");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+
+  func = RNA_def_function(srna,
+                          "asset_library_status_ping_asset_file_failed",
+                          "rna_asset_library_status_ping_asset_file_failed");
+  RNA_def_function_ui_description(func,
+                                  "Inform the asset system that a single asset file download has "
+                                  "stopped because of some failure.");
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+  parm = RNA_def_string(func,
+                        "library_url",
+                        nullptr,
+                        0,
+                        "URL",
+                        "The URL identifying the asset library being loaded");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_string(func,
+                        "absolute_file_url",
+                        nullptr,
+                        0,
+                        "URL",
+                        "The absolute URL this file was downloaded from");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_string(func,
+                        "local_file_abspath",
+                        nullptr,
+                        0,
+                        "Local Path",
+                        "The absolute path this file was supposed to be downloaded to");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+
+  func = RNA_def_function(srna,
+                          "asset_library_status_ping_finished_download_queue",
+                          "rna_asset_library_status_ping_finished_download_queue");
+  RNA_def_function_ui_description(func,
+                                  "Inform the asset system that there are no more pending asset "
+                                  "file downloads for any asset library.");
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
 
   func = RNA_def_function(
       srna, "asset_library_status_finished_loading", "rna_asset_library_status_finished_loading");

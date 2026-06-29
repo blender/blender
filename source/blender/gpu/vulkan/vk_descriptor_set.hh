@@ -90,7 +90,8 @@ class VKDescriptorSetUpdator {
                                            render_graph::VKPipelineData &r_pipeline_data) = 0;
   void bind_shader_resources(const VKDevice &device,
                              const VKStateManager &state_manager,
-                             VKShader &shader);
+                             VKShader &shader,
+                             const VKBufferWithOffset &push_constants_buffer);
   virtual void upload_descriptor_sets() = 0;
 
  private:
@@ -107,7 +108,8 @@ class VKDescriptorSetUpdator {
                                       const VKStateManager &state_manager,
                                       const VKResourceBinding &resource_binding);
 
-  void bind_push_constants(VKPushConstants &push_constants);
+  void bind_push_constants(VKPushConstants &push_constants,
+                           const VKBufferWithOffset &push_constants_buffer);
 
  protected:
   virtual void bind_texel_buffer(VKVertexBuffer &vertex_buffer,
@@ -185,8 +187,9 @@ class VKDescriptorSetTracker {
   /**
    * Add resources of the descriptor set to the resource access info.
    */
-  static void update_resource_access_info(
-      VKContext &context, render_graph::VKResourceAccessInfo &resource_access_info);
+  static void update_resource_access_info(VKContext &context,
+                                          render_graph::VKResourceAccessInfo &resource_access_info,
+                                          const VKBufferWithOffset &push_constants_buffer);
   static void update_resource_access_info_binding(const VKStateManager &state_manager,
                                                   const VKResourceBinding &resource_binding,
                                                   render_graph::VKResourceAccessInfo &access_info);

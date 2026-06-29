@@ -4,18 +4,17 @@
 
 
 from .....io.com.gltf2_io_extensions import Extension
-from ..search_node_tree import get_socket_from_gltf_material_node, get_const_from_default_value_socket
+from ..search_node_tree import get_const_from_default_value_socket
 import bpy
 
 
 def export_dispersion(bmat, extensions, export_settings):
-
+    export_settings['current_texture_transform'] = {}
     # If no volume extension, no dispersion extension export
     if "KHR_materials_volume" not in extensions:
         return None
 
-    dispersion_socket = get_socket_from_gltf_material_node(
-        bmat.get_used_material().node_tree, 'Dispersion')
+    dispersion_socket = bmat.get_socket_from_gltf_material_node('Dispersion')
     if dispersion_socket.socket is None:
         # If no dispersion (here because there is no glTF Material Output node), no dispersion extension export
         return None

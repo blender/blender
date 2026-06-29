@@ -18,10 +18,10 @@
 #include "DNA_scene_types.h"
 #include "DNA_volume_types.h"
 
-#include "BLI_ghash.h"
-#include "BLI_listbase.h"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_ghash.hh"
+#include "BLI_listbase.hh"
+#include "BLI_string.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
@@ -363,9 +363,7 @@ gpu::Batch *DRW_cache_lattice_wire_get(Object *ob, bool use_weight)
   Lattice &lt = DRW_object_get_data_for_drawing<Lattice>(*ob);
   int actdef = -1;
 
-  if (use_weight && !BLI_listbase_is_empty(&lt.vertex_group_names) && lt.editlatt &&
-      lt.editlatt->latt->dvert)
-  {
+  if (use_weight && !lt.vertex_group_names.is_empty() && lt.editlatt && lt.editlatt->latt->dvert) {
     actdef = lt.vertex_group_active_index - 1;
   }
 

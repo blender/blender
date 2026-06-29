@@ -8,10 +8,10 @@
 
 #include <algorithm>
 
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
+#include "BLI_listbase.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_vector.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "DNA_screen_types.h"
 
@@ -318,7 +318,8 @@ void SnapData::register_result(SnapObjectContext *sctx,
 
   /* Global space. */
   sctx->ret.loc = math::transform_point(obmat, sctx->ret.loc);
-  sctx->ret.no = math::normalize(math::transform_direction(obmat, sctx->ret.no));
+  const float3x3 normal_transform = math::transpose(math::invert(float3x3(obmat)));
+  sctx->ret.no = math::normalize(math::transform_direction(normal_transform, sctx->ret.no));
 
 #ifndef NDEBUG
   /* Make sure this is only called once. */
@@ -341,7 +342,8 @@ void SnapData::register_result_raycast(SnapObjectContext *sctx,
   const float depth_max = is_in_front ? sctx->ret.ray_depth_max_in_front : sctx->ret.ray_depth_max;
   if (hit->dist <= depth_max) {
     float3 co = math::transform_point(obmat, float3(hit->co));
-    float3 no = math::normalize(math::transform_direction(obmat, float3(hit->no)));
+    const float3x3 normal_transform = math::transpose(math::invert(float3x3(obmat)));
+    float3 no = math::normalize(math::transform_direction(normal_transform, float3(hit->no)));
 
     sctx->ret.loc = co;
     sctx->ret.no = no;
@@ -679,8 +681,8 @@ static eSnapMode raycast_obj_fn(SnapObjectContext *sctx,
  * Read/Write Args
  * ---------------
  *
- * \param ray_depth: maximum depth allowed for r_co,
- * elements deeper than this value will be ignored.
+ * - `ray_depth`: maximum depth allowed for r_co,
+ *   elements deeper than this value will be ignored.
  */
 static bool raycastObjects(SnapObjectContext *sctx)
 {
@@ -807,10 +809,10 @@ static eSnapMode nearest_world_object_fn(SnapObjectContext *sctx,
  *
  * Walks through all objects in the scene to find the nearest location on target surface.
  *
- * \param sctx: Snap context to store data.
- * \param params: Settings for snapping.
- * \param init_co: Initial location of source point.
- * \param prev_co: Current location of source point after transformation but before snapping.
+ * - `sctx`: Snap context to store data.
+ * - `params`: Settings for snapping.
+ * - `init_co`: Initial location of source point.
+ * - `prev_co`: Current location of source point after transformation but before snapping.
  */
 static bool nearestWorldObjects(SnapObjectContext *sctx)
 {
@@ -1020,7 +1022,7 @@ static eSnapMode snap_obj_fn(SnapObjectContext *sctx,
  * Read/Write Args
  * ---------------
  *
- * \param dist_px: Maximum threshold distance (in pixels).
+ * - `dist_px`: Maximum threshold distance (in pixels).
  */
 static eSnapMode snapObjectsRay(SnapObjectContext *sctx)
 {

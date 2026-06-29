@@ -29,22 +29,24 @@ static void node_declare(NodeDeclarationBuilder &b)
   if (node != nullptr) {
     const eCustomDataType data_type = eCustomDataType(node->custom1);
     b.add_input(data_type, "Value"_ustr)
-        .supports_field()
+        .structure_type(StructureType::Field)
         .description("The values the standard deviation and variance will be calculated from");
   }
 
   b.add_input<decl::Int>("Group ID"_ustr, "Group Index"_ustr)
-      .supports_field()
+      .structure_type(StructureType::Field)
       .hide_value()
       .description("An index used to group values together for multiple separate operations");
 
   if (node != nullptr) {
     const eCustomDataType data_type = eCustomDataType(node->custom1);
     b.add_output(data_type, "Standard Deviation"_ustr)
-        .field_source_reference_all()
+        .structure_type(StructureType::Field)
+        .propagate_references()
         .description("The square root of the variance for each group");
     b.add_output(data_type, "Variance"_ustr)
-        .field_source_reference_all()
+        .structure_type(StructureType::Field)
+        .propagate_references()
         .description("The expected squared deviation from the mean for each group");
   }
 }
@@ -162,7 +164,7 @@ class FieldVarianceInput final : public bke::GeometryFieldInput {
       if (operation_ == Operation::StdDev) {
         if (group_indices.is_single()) {
           const T mean = std::reduce(values.begin(), values.end(), T()) / domain_size;
-          const T sum_of_squared_diffs = std::reduce(
+          const T sum_of_squared_diffs = std::accumulate(
               values.begin(), values.end(), T(), [mean](T accumulator, const T &value) {
                 T difference = mean - value;
                 return accumulator + difference * difference;
@@ -201,7 +203,7 @@ class FieldVarianceInput final : public bke::GeometryFieldInput {
       else {
         if (group_indices.is_single()) {
           const T mean = std::reduce(values.begin(), values.end(), T()) / domain_size;
-          const T sum_of_squared_diffs = std::reduce(
+          const T sum_of_squared_diffs = std::accumulate(
               values.begin(), values.end(), T(), [mean](T accumulator, const T &value) {
                 T difference = mean - value;
                 return accumulator + difference * difference;

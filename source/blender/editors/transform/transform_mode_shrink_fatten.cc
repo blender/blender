@@ -9,7 +9,7 @@
 #include <cstdlib>
 #include <fmt/format.h>
 
-#include "BLI_math_vector.h"
+#include "BLI_math_vector_c.hh"
 #include "BLI_string_utils.hh"
 #include "BLI_task.hh"
 
@@ -82,7 +82,7 @@ static eRedrawFlag shrinkfatten_handleEvent(TransInfo *t, const wmEvent *event)
     custom_data->mode = use_even_thickness ? EVEN_THICKNESS_ON : EVEN_THICKNESS_OFF;
     return TREDRAW_HARD;
   }
-  else if (kmi && event->type == kmi->type && event->val == kmi->val) {
+  if (kmi && event->type == kmi->type && event->val == kmi->val) {
     /* Allows the "Even Thickness" effect to be enabled as a toggle. */
     custom_data->mode = custom_data->mode == EVEN_THICKNESS_ON ? EVEN_THICKNESS_OFF :
                                                                  EVEN_THICKNESS_ON;
@@ -122,7 +122,7 @@ static void applyShrinkFatten(TransInfo *t)
       char unit_str[64];
       const int precision = t->modifiers & MOD_PRECISION ? 6 : 4;
       BKE_unit_value_as_string_scaled(
-          unit_str, sizeof(unit_str), distance, precision * -1, B_UNIT_LENGTH, unit, true);
+          unit_str, sizeof(unit_str), distance, precision * -1, B_UNIT_LENGTH, unit, true, true);
       fmt::format_to(fmt::appender(str), "{}", BLI_string_pad_number_sign(unit_str).c_str());
     }
     else {
@@ -220,11 +220,15 @@ static void initShrinkFatten(TransInfo *t, wmOperator *op)
 
   if (op) {
     custom_data->op = op;
-    PropertyRNA *prop = RNA_struct_find_property(op->ptr, "use_even_offset");
-    if (RNA_property_is_set(op->ptr, prop) && RNA_property_boolean_get(op->ptr, prop)) {
-      /* TODO: Check if the Alt button is already pressed. */
-      custom_data->mode = EVEN_THICKNESS_ON;
-      custom_data->use_alt_press_to_disable = true;
+    if (PropertyRNA *prop = RNA_struct_find_property(op->ptr, "use_even_offset")) {
+      if (RNA_property_is_set(op->ptr, prop) && RNA_property_boolean_get(op->ptr, prop)) {
+        /* TODO: Check if the Alt button is already pressed. */
+        custom_data->mode = EVEN_THICKNESS_ON;
+        custom_data->use_alt_press_to_disable = true;
+      }
+    }
+    else {
+      BLI_assert(STREQ(op->idname, "TRANSFORM_OT_transform"));
     }
   }
 }

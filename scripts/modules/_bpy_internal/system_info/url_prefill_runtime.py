@@ -9,16 +9,17 @@ __all__ = (
 )
 
 
-def url_from_blender(*, addon_info=None):
+def url_from_blender():
     import bpy
     import gpu
     import struct
     import platform
     import urllib.parse
 
-    query_params = {"type": "bug_report"}
-
-    query_params["project"] = "blender-addons" if addon_info else "blender"
+    query_params = {
+        "type": "bug_report",
+        "project": "blender",
+    }
 
     query_params["os"] = "{:s} {:d} Bits".format(
         platform.platform(),
@@ -50,11 +51,6 @@ def url_from_blender(*, addon_info=None):
         bpy.app.build_commit_time.decode('utf-8', 'replace'),
         bpy.app.build_hash.decode('ascii'),
     )
-
-    if addon_info:
-        addon_info_lines = addon_info.splitlines()
-        query_params["addon_name"] = addon_info_lines[0].removeprefix("Name: ")
-        query_params["addon_author"] = addon_info_lines[1].removeprefix("Author: ")
 
     query_str = urllib.parse.urlencode(query_params)
     return "https://redirect.blender.org/?" + query_str

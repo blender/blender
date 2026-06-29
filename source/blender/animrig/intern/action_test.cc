@@ -18,8 +18,8 @@
 
 #include "RNA_access.hh"
 
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
+#include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "DEG_depsgraph_build.hh"
 

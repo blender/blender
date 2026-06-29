@@ -9,20 +9,21 @@
 #include <string>
 #include <variant>
 
-#include "BLI_assert.h"
+#include "BLI_assert.hh"
 #include "BLI_color_types.hh"
-#include "BLI_compiler_compat.h"
+#include "BLI_compiler_compat.hh"
 #include "BLI_cpp_type.hh"
 #include "BLI_generic_pointer.hh"
 #include "BLI_generic_span.hh"
-#include "BLI_implicit_sharing.hh"
+#include "BLI_implicit_sharing_ptr.hh"
 #include "BLI_math_interp.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_quaternion_types.hh"
-#include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_memory_utils.hh"
+#include "BLI_string_ref.hh"
 
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
@@ -149,7 +150,7 @@ class Result {
    * does not implement a copy-on-write mechanism, so copying needs to be done explicitly. The
    * result may contain data with a nullptr sharing info, this is a special case where the data is
    * considered external and needn't be managed/freed by the result. */
-  ImplicitSharingInfo *sharing_info_ = nullptr;
+  ImplicitSharingPtr<> sharing_info_ = nullptr;
   /* The number of users that currently needs this result. Operations initializes this by calling
    * the set_reference_count method before evaluation. Once each operation that needs the result no
    * longer needs it, the release method is called and the reference count is decremented, until it
@@ -302,14 +303,14 @@ class Result {
    * covers the entire evaluation of the compositor, and will thus not be freed. The domain will be
    * set to have the data and display size as the texture size. The given texture should have a
    * format that is compatible with the result. */
-  void share_data(gpu::Texture *texture, ImplicitSharingInfo *sharing_info = nullptr);
+  void share_data(gpu::Texture *texture, ImplicitSharingPtr<> sharing_info = nullptr);
 
   /* Share the data of a GPU buffer that is managed by the given implicit sharing info. If no
    * implicit sharing info is provided, the buffer is assumed to be external, has a lifetime that
    * covers the entire evaluation of the compositor, and will thus not be freed. The domain will be
    * set to have the data and display size as the given size. The given buffer should have a format
    * that is compatible with the result. */
-  void share_data(const void *data, int2 size, ImplicitSharingInfo *sharing_info = nullptr);
+  void share_data(const void *data, int2 size, ImplicitSharingPtr<> sharing_info = nullptr);
 
   /* Sets the transformation of the domain of the result to the given transformation. */
   void set_transformation(const float3x3 &transformation);
@@ -326,9 +327,6 @@ class Result {
   /* Set the value of reference_count_, see that member for more details. This should be called
    * after constructing the result to declare the number of operations that needs it. */
   void set_reference_count(int count);
-
-  /* Increment the reference count of the result by the given count. */
-  void increment_reference_count(int count = 1);
 
   /* Decrement the reference count of the result by the given count. */
   void decrement_reference_count(int count = 1);
@@ -384,6 +382,8 @@ class Result {
 
   GSpan cpu_data() const;
   GMutableSpan cpu_data_for_write();
+
+  const ImplicitSharingPtr<> &sharing_info() const;
 
   /* It is important to call update_single_value_data after adjusting the single value. See that
    * method for more information. */
@@ -480,6 +480,8 @@ class Result {
   int64_t get_pixel_index(const int2 &texel) const;
 };
 
+StringRefNull to_string(const ResultPrecision &precision);
+
 /* -------------------------------------------------------------------- */
 /* Inline Methods.
  */
@@ -504,6 +506,11 @@ BLI_INLINE_METHOD GSpan Result::cpu_data() const
 {
   BLI_assert(storage_type_ == ResultStorageType::CPU);
   return cpu_data_;
+}
+
+inline const ImplicitSharingPtr<> &Result::sharing_info() const
+{
+  return sharing_info_;
 }
 
 BLI_INLINE_METHOD GMutableSpan Result::cpu_data_for_write()

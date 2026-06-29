@@ -13,8 +13,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BLT_translation.hh"
 
@@ -471,7 +471,7 @@ static void nla_panel_actclip(const bContext *C, Panel *panel)
   ui::Block *block = layout.block();
   block_func_handle_set(block, do_nla_region_buttons, nullptr);
   layout.use_property_split_set(true);
-  layout.use_property_decorate_set(true);
+  layout.use_property_decorate_set(false);
 
   /* Strip Properties ------------------------------------- */
   /* action pointer */

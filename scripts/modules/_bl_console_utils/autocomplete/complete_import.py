@@ -4,7 +4,7 @@
 
 # Copyright (c) 2009 Fernando Perez, https://www.stani.be
 
-# Original copyright (see doc-string):
+# Original copyright (see docstring):
 # ****************************************************************************
 #       Copyright (C) 2001-2006 Fernando Perez <fperez@colorado.edu>
 #

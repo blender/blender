@@ -13,7 +13,7 @@
 #include "BLI_function_ref.hh"
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_sys_types.h"
+#include "BLI_sys_types.hh"
 
 namespace blender {
 
@@ -33,14 +33,14 @@ struct BlendWriter;
 struct BlendDataReader;
 
 /** Type of interface item. */
-enum eNodeTreeInterfaceItemType : char {
-  NODE_INTERFACE_PANEL = 0,
-  NODE_INTERFACE_SOCKET = 1,
+enum class NodeTreeInterfaceItemType : char {
+  Panel = 0,
+  Socket = 1,
 };
 
 /** Describes a socket and all necessary details for a node declaration. */
 struct bNodeTreeInterfaceItem {
-  eNodeTreeInterfaceItemType item_type = NODE_INTERFACE_PANEL;
+  NodeTreeInterfaceItemType item_type = NodeTreeInterfaceItemType::Panel;
   char _pad[7] = {};
 
 #ifdef __cplusplus
@@ -120,6 +120,9 @@ enum NodeDefaultInputType : short {
   NODE_DEFAULT_INPUT_INSTANCE_TRANSFORM_FIELD = 5,
   NODE_DEFAULT_INPUT_HANDLE_LEFT_FIELD = 6,
   NODE_DEFAULT_INPUT_HANDLE_RIGHT_FIELD = 7,
+  NODE_DEFAULT_INPUT_SCENE_FRAME = 8,
+  NODE_DEFAULT_INPUT_UNIFORM_IMAGE_COORDINATES = 9,
+  NODE_DEFAULT_INPUT_SELF_OBJECT = 10,
 };
 
 struct bNodeTreeInterfaceSocket {

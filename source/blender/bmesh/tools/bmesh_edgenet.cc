@@ -13,14 +13,14 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
-#include "BLI_linklist.h"
-#include "BLI_mempool.h"
-#include "BLI_utildefines.h"
+#include "BLI_linklist.hh"
+#include "BLI_mempool.hh"
+#include "BLI_utildefines.hh"
 
 #include "bmesh.hh"
 #include "bmesh_edgenet.hh" /* own include */
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 

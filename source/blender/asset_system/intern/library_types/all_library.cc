@@ -11,6 +11,8 @@
 /* For getting the experimental flag for remote library support. */
 #include "DNA_userdef_types.h"
 
+#include "AS_remote_library.hh"
+
 #include "all_library.hh"
 
 #include "CLG_log.h"
@@ -27,6 +29,19 @@ AllAssetLibrary::AllAssetLibrary()
 {
 }
 
+void AllAssetLibrary::force_remote_listing_download() const
+{
+  /* This includes the online essentials as a separate library, if loaded. */
+  AssetLibrary::foreach_loaded(
+      [&](AssetLibrary &nested) {
+        const std::optional<StringRefNull> url = nested.remote_url();
+        if (url.has_value()) {
+          remote_library_request_download(RemoteLibraryDefinitionRef{*url, nested.root_path()});
+        }
+      },
+      /*include_all_library=*/false);
+}
+
 std::optional<AssetLibraryReference> AllAssetLibrary::library_reference() const
 {
   return all_library_reference();
@@ -39,6 +54,17 @@ std::optional<eAssetImportMethod> AllAssetLibrary::import_method() const
 
 void AllAssetLibrary::rebuild_catalogs_from_nested(const bool reload_nested_catalogs)
 {
+  /* Only one thread should rebuild at a time. If another thread is already rebuilding, wait for it
+   * to finish and then skip rebuilding. The result would effectively be the same, so re-running
+   * would just be wasted work. Waiting (rather than returning early) ensures callers don't see
+   * partially rebuilt catalogs. */
+  std::unique_lock rebuild_lock{rebuild_mutex_, std::try_to_lock};
+  if (!rebuild_lock.owns_lock()) {
+    /* Another thread holds the lock and is rebuilding. Block until it is done, then return. */
+    rebuild_lock.lock();
+    return;
+  }
+
   /* Start with empty catalog storage. Don't do this directly in #this.catalog_service to avoid
    * race conditions. Rather build into a new service and replace the current one when done. */
   std::unique_ptr<AssetCatalogService> new_catalog_service = std::make_unique<AssetCatalogService>(
@@ -68,12 +94,14 @@ void AllAssetLibrary::rebuild_catalogs_from_nested(const bool reload_nested_cata
                            existing.path.c_str());
               }
               else {
-                CLOG_ERROR(&LOG,
-                           "multiple definitions of catalog %s with differing paths (%s vs. %s), "
-                           "ignoring second one",
-                           existing.catalog_id.str().c_str(),
-                           existing.path.c_str(),
-                           to_be_ignored.path.c_str());
+                /* This is bound to happen at some point, for example with the Online Essentials
+                 * catalogs diverging from this Blender version's bundled Essentials catalogs. */
+                CLOG_INFO(&LOG,
+                          "multiple definitions of catalog %s with differing paths (%s vs. %s), "
+                          "ignoring second one",
+                          existing.catalog_id.str().c_str(),
+                          existing.path.c_str(),
+                          to_be_ignored.path.c_str());
               }
             });
       },

@@ -27,8 +27,8 @@ struct ExportParams {
   std::string original_active_uvmap_name;
 };
 
-MaterialX::DocumentPtr export_to_materialx(Depsgraph *depsgraph,
-                                           Material *material,
+MaterialX::DocumentPtr export_to_materialx(const Depsgraph *depsgraph,
+                                           const Material *material,
                                            const ExportParams &export_params);
 
 }  // namespace nodes::materialx

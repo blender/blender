@@ -24,14 +24,21 @@ struct USDExportParams;
 /**
  * Create USDMaterial from Blender material.
  *
- * \param default_uv: used as the default UV set name sampled by the `primvar`
+ * \param active_uvmap_name: used as the default UV set name sampled by the `primvar`
  * reader shaders generated for image texture nodes that don't have an attached UVMap node.
  */
 pxr::UsdShadeMaterial create_usd_material(const USDExporterContext &usd_export_context,
                                           pxr::SdfPath usd_path,
-                                          Material *material,
+                                          const Material *material,
                                           const std::string &active_uvmap_name,
                                           ReportList *reports);
+
+/**
+ * Create a viewport UsdPreviewSurface material from a Blender material.
+ */
+void create_usd_viewport_material(const USDExporterContext &usd_export_context,
+                                  const Material *material,
+                                  const pxr::UsdShadeMaterial &usd_material);
 
 /**
  * Returns a USDPreviewSurface token name for a given Blender shader Socket name,
@@ -58,7 +65,7 @@ void export_texture(Image *ima,
  * This function may return an empty string if the image does not have a filepath
  * assigned and no asset path could be determined.
  */
-std::string get_tex_image_asset_filepath(bNode *node,
+std::string get_tex_image_asset_filepath(const bNode *node,
                                          const pxr::UsdStageRefPtr stage,
                                          const USDExportParams &export_params);
 

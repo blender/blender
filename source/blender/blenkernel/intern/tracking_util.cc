@@ -15,13 +15,13 @@
 
 #include "DNA_movieclip_types.h"
 
-#include "BLI_ghash.h"
-#include "BLI_listbase.h"
-#include "BLI_math_color.h"
-#include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_ghash.hh"
+#include "BLI_listbase.hh"
+#include "BLI_math_color_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string.hh"
 #include "BLI_string_utils.hh"
-#include "BLI_threads.h"
+#include "BLI_threads.hh"
 
 #include "BLT_translation.hh"
 
@@ -616,7 +616,7 @@ static ImBuf *accessor_get_preprocessed_ibuf(TrackingImageAccessor *accessor,
 
 static ImBuf *make_grayscale_ibuf_copy(ImBuf *ibuf)
 {
-  ImBuf *grayscale = IMB_allocImBuf(ibuf->x, ibuf->y, 32, 0);
+  ImBuf *grayscale = IMB_allocImBuf(ibuf->x, ibuf->y, ImBufFlags::Zero);
 
   BLI_assert(ELEM(ibuf->channels, 3, 4));
 
@@ -629,7 +629,7 @@ static ImBuf *make_grayscale_ibuf_copy(ImBuf *ibuf)
   grayscale->channels = 1;
   float *rect_float = MEM_new_array_zeroed<float>(num_pixels, "tracking grayscale image");
   if (rect_float != nullptr) {
-    IMB_assign_float_buffer(grayscale, rect_float, IB_TAKE_OWNERSHIP);
+    grayscale->assign_float_data(rect_float);
 
     for (int i = 0; i < grayscale->x * grayscale->y; i++) {
       const float *pixel = ibuf->float_data() + ibuf->channels * i;
@@ -652,12 +652,12 @@ static void ibuf_to_float_image(ImBuf *ibuf, libmv_FloatImage *float_image)
 
 static ImBuf *float_image_to_ibuf(libmv_FloatImage *float_image)
 {
-  ImBuf *ibuf = IMB_allocImBuf(float_image->width, float_image->height, 32, 0);
+  ImBuf *ibuf = IMB_allocImBuf(float_image->width, float_image->height, ImBufFlags::Zero);
   size_t num_total_channels = size_t(ibuf->x) * size_t(ibuf->y) * float_image->channels;
   ibuf->channels = float_image->channels;
   float *rect_float = MEM_new_array_zeroed<float>(num_total_channels, "tracking grayscale image");
   if (rect_float != nullptr) {
-    IMB_assign_float_buffer(ibuf, rect_float, IB_TAKE_OWNERSHIP);
+    ibuf->assign_float_data(rect_float);
 
     memcpy(rect_float, float_image->buffer, num_total_channels * sizeof(float));
   }
@@ -696,17 +696,19 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
     clamped_width = min_ii(clamped_width, orig_ibuf->x - clamped_origin_x);
     clamped_height = min_ii(clamped_height, orig_ibuf->y - clamped_origin_y);
 
-    final_ibuf = IMB_allocImBuf(width, height, 32, IB_float_data);
+    final_ibuf = IMB_allocImBuf(width, height, ImBufFlags::FloatData);
 
     if (orig_ibuf->float_data() != nullptr) {
-      IMB_copy_rect(final_ibuf->float_data_for_write(),
-                    int2(final_ibuf->x, final_ibuf->y),
-                    orig_ibuf->float_data(),
-                    int2(orig_ibuf->x, orig_ibuf->y),
-                    orig_ibuf->channels,
-                    int2(clamped_origin_x, clamped_origin_y),
-                    int2(dst_offset_x, dst_offset_y),
-                    int2(clamped_width, clamped_height));
+      if (clamped_width > 0 && clamped_height > 0) {
+        IMB_copy_rect(final_ibuf->float_data_for_write(),
+                      int2(final_ibuf->x, final_ibuf->y),
+                      orig_ibuf->float_data(),
+                      int2(orig_ibuf->x, orig_ibuf->y),
+                      orig_ibuf->channels,
+                      int2(clamped_origin_x, clamped_origin_y),
+                      int2(dst_offset_x, dst_offset_y),
+                      int2(clamped_width, clamped_height));
+      }
     }
     else {
       /* TODO(sergey): We don't do any color space or alpha conversion

@@ -1159,6 +1159,21 @@ class KDTreeTesting(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             k.find(co)
 
+    def test_kdtree_without_balance(self):
+        co = (0,) * 3
+
+        k = kdtree.KDTree(1)
+        k.insert(co, 1)
+        with self.assertRaises(RuntimeError):
+            k.find(co)
+
+    def test_kdtree_without_balance_and_insert(self):
+        co = (0,) * 3
+
+        k = kdtree.KDTree(1)
+        with self.assertRaises(RuntimeError):
+            k.find(co)
+
     def test_kdtree_invalid_filter(self):
         k = kdtree.KDTree(1)
         k.insert((0,) * 3, 0)

@@ -19,9 +19,18 @@ static void node_declare(NodeDeclarationBuilder &b)
       .supported_type(GeometryComponent::Type::GreasePencil)
       .align_with_previous()
       .description("Grease Pencil to set the softness of");
-  b.add_output<decl::Geometry>("Grease Pencil"_ustr).propagate_all().align_with_previous();
-  b.add_input<decl::Bool>("Selection"_ustr).default_value(true).hide_value().field_on_all();
-  b.add_input<decl::Float>("Softness"_ustr).default_value(0.0f).min(0.0f).max(1.0f).field_on_all();
+  b.add_output<decl::Geometry>("Grease Pencil"_ustr)
+      .propagate_all_geometry()
+      .align_with_previous();
+  b.add_input<decl::Bool>("Selection"_ustr)
+      .default_value(true)
+      .hide_value()
+      .evaluated_geometry_field();
+  b.add_input<decl::Float>("Softness"_ustr)
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .evaluated_geometry_field();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -66,7 +75,7 @@ static void node_register()
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
-  bke::node_type_size(ntype, 180, 120, NODE_DEFAULT_MAX_WIDTH);
+  ntype.default_width = bke::NodeWidth::_180;
   bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)

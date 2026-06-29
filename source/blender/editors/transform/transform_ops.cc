@@ -12,8 +12,8 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -556,7 +556,7 @@ static wmOperatorStatus transform_invoke(bContext *C, wmOperator *op, const wmEv
   if ((t->flag & T_NO_CURSOR_WRAP) == 0) {
     op->flag |= OP_IS_MODAL_GRAB_CURSOR; /* XXX maybe we want this with the gizmo only? */
   }
-  if (UNLIKELY(!is_zero_v4(t->values_modal_offset))) {
+  if (!is_zero_v4(t->values_modal_offset)) [[unlikely]] {
     transformApply(C, t);
   }
 
@@ -1201,7 +1201,7 @@ static void TRANSFORM_OT_bbone_resize(wmOperatorType *ot)
   ot->exec = transform_exec;
   ot->modal = transform_modal;
   ot->cancel = transform_cancel;
-  ot->poll = ED_operator_object_active;
+  ot->poll = ED_operator_object_active_only_from_view_layer;
   ot->poll_property = transform_poll_property;
 
   RNA_def_float_translation(

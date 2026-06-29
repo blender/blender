@@ -16,6 +16,8 @@ set(INC_SYS
 
 set(SRC
   asset_catalog_tree_view.cc
+  file_banner.cc
+  file_banner_remote_assets.cc
   file_context.cc
   file_draw.cc
   file_indexer.cc
@@ -27,6 +29,7 @@ set(SRC
   filelist/filelist_readjob.cc
   filelist/filelist_readjob_asset_library_all.cc
   filelist/filelist_readjob_asset_library_current_file.cc
+  filelist/filelist_readjob_asset_library_essentials.cc
   filelist/filelist_readjob_asset_library_on_disk.cc
   filelist/filelist_readjob_asset_library_remote.cc
   filelist/filelist_readjob_common.cc
@@ -39,6 +42,7 @@ set(SRC
   fsmenu.cc
   space_file.cc
 
+  file_banner.hh
   file_indexer.hh
   file_intern.hh
   filelist.hh

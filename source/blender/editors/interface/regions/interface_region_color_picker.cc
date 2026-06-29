@@ -16,10 +16,10 @@
 
 #include "DNA_userdef_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_rect.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
+#include "BLI_listbase.hh"
+#include "BLI_rect.hh"
+#include "BLI_string_utf8.hh"
+#include "BLI_utildefines.hh"
 
 #include "BKE_context.hh"
 
@@ -516,8 +516,8 @@ static void colorpicker_update_type_space_cb(bContext * /*C*/, void *picker_bt1,
 
 /** Get localized tooltips for the current color picker type.
  *
- * \param r_area_tooltip Tooltip describing the color area (e.g., "Hue/Saturation").
- * \param r_slider_tooltip Tooltip describing the slider (e.g., "Lightness" or "Value").
+ * \param r_area_tooltip: Tooltip describing the color area (e.g., "Hue/Saturation").
+ * \param r_slider_tooltip: Tooltip describing the slider (e.g., "Lightness" or "Value").
  */
 static void colorpicker_tooltips(ColorPicker *cpicker,
                                  const char **r_area_tooltip,

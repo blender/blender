@@ -23,13 +23,13 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_array.hh"
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_rotation.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
 #include "BLI_task.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_armature.hh"
@@ -982,7 +982,8 @@ static wmOperatorStatus apply_objects_internal(bContext *C,
        */
 
       if (apply_scale) {
-        float max_scale = max_fff(fabsf(ob->scale[0]), fabsf(ob->scale[1]), fabsf(ob->scale[2]));
+        float max_scale = std::max(
+            {fabsf(ob->scale[0]), fabsf(ob->scale[1]), fabsf(ob->scale[2])});
         ob->empty_drawsize *= max_scale;
       }
     }
@@ -1675,8 +1676,11 @@ static wmOperatorStatus object_origin_set_exec(bContext *C, wmOperator *op)
       }
       else if (around == V3D_AROUND_CENTER_BOUNDS) {
         const int current_frame = scene->r.cfra;
-        const Bounds<float3> bounds = *grease_pencil.bounds_min_max(current_frame);
-        cent = math::midpoint(bounds.min, bounds.max);
+        if (const std::optional<Bounds<float3>> bounds = grease_pencil.bounds_min_max(
+                current_frame))
+        {
+          cent = math::midpoint(bounds->min, bounds->max);
+        }
       }
       else if (around == V3D_AROUND_CENTER_MEDIAN) {
         const int current_frame = scene->r.cfra;

@@ -347,7 +347,7 @@
         </wcol_list_item>
         <wcol_state>
           <ThemeWidgetStateColors
-            error="#771111ff"
+            error="#991616ff"
             warning="#ac8737ff"
             info="#28487dff"
             success="#188625ff"
@@ -470,6 +470,7 @@
       <ThemeView3D
         grid="#00000033"
         grid_major="#00000066"
+        grid_axis_brightness="0.58"
         clipping_border_3d="#606060ff"
         wire="#000000"
         wire_edit="#000000"

@@ -4,8 +4,8 @@
 
 #include "BLI_math_quaternion.hh"
 #include "BLI_math_rotation.hh"
-#include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"

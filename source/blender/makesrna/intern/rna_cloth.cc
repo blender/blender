@@ -12,7 +12,7 @@
 
 #include "DNA_cloth_types.h"
 
-#include "BLI_math_base.h"
+#include "BLI_math_base_c.hh"
 
 #include "RNA_define.hh"
 
@@ -31,7 +31,7 @@
 
 #  include <fmt/format.h>
 
-#  include "BLI_string.h"
+#  include "BLI_string.hh"
 
 #  include "BKE_cloth.hh"
 #  include "BKE_context.hh"

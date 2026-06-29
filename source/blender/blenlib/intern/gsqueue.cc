@@ -13,10 +13,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_gsqueue.h"
-#include "BLI_utildefines.h"
+#include "BLI_gsqueue.hh"
+#include "BLI_utildefines.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 
@@ -63,7 +63,7 @@ static size_t queue_chunk_elem_max_calc(const size_t elem_size, size_t chunk_siz
 
   BLI_assert((elem_size != 0) && (chunk_size != 0));
 
-  while (UNLIKELY(chunk_size <= elem_size_min)) {
+  while (chunk_size <= elem_size_min) [[unlikely]] {
     chunk_size <<= 1;
   }
 
@@ -106,7 +106,7 @@ void BLI_gsqueue_push(GSQueue *queue, const void *item)
   queue->chunk_last_index++;
   queue->elem_num++;
 
-  if (UNLIKELY(queue->chunk_last_index == queue->chunk_elem_max)) {
+  if (queue->chunk_last_index == queue->chunk_elem_max) [[unlikely]] {
     QueueChunk *chunk;
     if (queue->chunk_free) {
       chunk = queue->chunk_free;
@@ -144,7 +144,7 @@ void BLI_gsqueue_pop(GSQueue *queue, void *r_item)
   queue->chunk_first_index++;
   queue->elem_num--;
 
-  if (UNLIKELY(queue->chunk_first_index == queue->chunk_elem_max || queue->elem_num == 0)) {
+  if (queue->chunk_first_index == queue->chunk_elem_max || queue->elem_num == 0) [[unlikely]] {
     QueueChunk *chunk_free = queue->chunk_first;
 
     queue->chunk_first = queue->chunk_first->next;

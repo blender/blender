@@ -135,7 +135,7 @@ class Config {
   /**
    * Get colorspace to be used for saving and loading HDR image files, which
    * may need adjustments compared to the colorspace as chosen by the user.
-   **/
+   */
   virtual const ColorSpace *get_color_space_for_hdr_image(StringRefNull name) const = 0;
 
   /** \} */

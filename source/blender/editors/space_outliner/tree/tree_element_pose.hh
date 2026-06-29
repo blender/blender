@@ -23,6 +23,11 @@ class TreeElementPoseBase final : public AbstractTreeElement {
  public:
   TreeElementPoseBase(TreeElement &legacy_te, Object &object);
   void expand(SpaceOutliner & /*soops*/) const override;
+
+  std::optional<BIFIconID> get_icon() const override
+  {
+    return ICON_ARMATURE_DATA;
+  }
 };
 
 class TreeElementPoseChannel final : public AbstractTreeElement {
@@ -32,6 +37,11 @@ class TreeElementPoseChannel final : public AbstractTreeElement {
 
  public:
   TreeElementPoseChannel(TreeElement &legacy_te, Object &object, bPoseChannel &pchan);
+
+  std::optional<BIFIconID> get_icon() const override
+  {
+    return ICON_BONE_DATA;
+  }
 };
 
 }  // namespace ed::outliner

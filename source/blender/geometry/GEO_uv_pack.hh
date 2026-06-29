@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "BLI_heap.h"
-#include "BLI_memarena.h"
+#include "BLI_heap.hh"
+#include "BLI_memarena.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 

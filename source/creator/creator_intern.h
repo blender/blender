@@ -16,10 +16,7 @@ struct BA_ArgCallback_Deferred;
 struct bArgs;
 struct bContext;
 
-#ifdef __cplusplus
 extern "C" {
-#endif
-
 #ifndef WITH_PYTHON_MODULE
 
 /* `creator_args.cc` */
@@ -55,6 +52,7 @@ void main_signal_setup_fpe(void);
 struct ApplicationState {
   struct {
     bool use_crash_handler;
+    bool use_console_crash_handler;
     bool use_abort_handler;
   } signal;
 
@@ -121,9 +119,6 @@ extern char build_cxxflags[];
 extern char build_linkflags[];
 extern char build_system[];
 #endif /* BUILD_DATE */
-
-#ifdef __cplusplus
 }
-#endif
 
 }  // namespace blender

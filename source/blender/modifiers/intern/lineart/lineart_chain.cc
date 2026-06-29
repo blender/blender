@@ -6,8 +6,8 @@
  * \ingroup editors
  */
 
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
 
 #include "MOD_lineart.hh"
 
@@ -1076,7 +1076,7 @@ void MOD_lineart_chain_discard_unused(LineartData *ld,
 
 int MOD_lineart_chain_count(const LineartEdgeChain *ec)
 {
-  return BLI_listbase_count(&ec->chain);
+  return ec->chain.count();
 }
 
 void MOD_lineart_chain_clear_picked_flag(LineartCache *lc)
@@ -1113,7 +1113,7 @@ void MOD_lineart_finalize_chains(LineartData *ld)
     LineartElementLinkNode *eln = lineart_find_matching_eln_obj(&ld->geom.vertex_buffer_pointers,
                                                                 ec.object_ref);
     BLI_assert(eln != nullptr);
-    if (LIKELY(eln)) {
+    if (eln) [[likely]] {
       for (LineartEdgeChainItem &eci : ec.chain) {
         if (eci.index > eln->global_index_offset) {
           eci.index -= eln->global_index_offset;
@@ -1218,7 +1218,7 @@ static LineartEdgeChainItem *lineart_chain_create_crossing_point(LineartData *ld
     found = (isect_seg_seg_v2_point(eci1->pos, eci2->pos, ref_lu, ref_ru, isec) > 0);
   }
 
-  if (UNLIKELY(!found)) {
+  if (!found) [[unlikely]] {
     return nullptr;
   }
 

@@ -17,8 +17,8 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
-#include "BLI_math_vector.h"
-#include "BLI_string_utf8.h"
+#include "BLI_math_vector_c.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BLT_translation.hh"
 

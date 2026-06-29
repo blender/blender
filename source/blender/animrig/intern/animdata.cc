@@ -19,8 +19,8 @@
 
 #include "BLT_translation.hh"
 
-#include "BLI_listbase.h"
-#include "BLI_string_utf8.h"
+#include "BLI_listbase.hh"
+#include "BLI_string_utf8.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -251,7 +251,7 @@ bAction *id_action_ensure(Main *bmain, ID *id)
 void animdata_fcurve_delete(AnimData *adt, FCurve *fcu)
 {
   /* - If no AnimData, we've got nowhere to remove the F-Curve from
-   *   (this doesn't guarantee that the F-Curve is in there, but at least we tried
+   *   (this doesn't guarantee that the F-Curve is in there, but at least we tried).
    * - If no F-Curve, there is nothing to remove
    */
   if (ELEM(nullptr, adt, fcu)) {

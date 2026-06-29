@@ -6,14 +6,14 @@
  * \ingroup bli
  */
 
-#include "BLI_math_base.h"
-#include "BLI_math_matrix.h"
+#include "BLI_math_base_c.hh"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_rotation.h"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_math_rotation.hh"
+#include "BLI_math_rotation_c.hh"
 #include "BLI_math_rotation_legacy.hh"
-#include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
+#include "BLI_math_vector_c.hh"
 
 namespace blender::math {
 
@@ -113,7 +113,9 @@ float3 rotate_direction_around_axis(const float3 &direction, const float3 &axis,
 {
   BLI_assert(math::is_unit(axis));
 
-  if (UNLIKELY(angle == 0.0f || math::is_zero(direction, std::numeric_limits<float>::epsilon()))) {
+  if (angle == 0.0f || math::is_zero(direction, std::numeric_limits<float>::epsilon()))
+      [[unlikely]]
+  {
     return direction;
   }
 

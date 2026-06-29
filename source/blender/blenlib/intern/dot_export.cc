@@ -14,8 +14,9 @@
 
 namespace blender::dot_export {
 
-/* Graph Building
- ************************************************/
+/* -------------------------------------------------------------------- */
+/** \name Graph Building
+ * \{ */
 
 Node &Graph::new_node(StringRef label)
 {
@@ -89,8 +90,11 @@ void Node::set_parent_cluster(Cluster *cluster)
   cluster_ = cluster;
 }
 
-/* Utility methods
- **********************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Utility Methods
+ * \{ */
 
 void Graph::set_random_cluster_bgcolors()
 {
@@ -123,8 +127,11 @@ bool Cluster::contains(Node &node) const
   return false;
 }
 
-/* Dot Generation
- **********************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Dot Generation
+ * \{ */
 
 std::string DirectedGraph::to_dot_string() const
 {
@@ -318,5 +325,7 @@ NodeWithSocketsRef::NodeWithSocketsRef(Node &node, const NodeWithSockets &data) 
   node_->attributes.set("label", ss.str());
   node_->set_shape(Attr_shape::Rectangle);
 }
+
+/** \} */
 
 }  // namespace blender::dot_export

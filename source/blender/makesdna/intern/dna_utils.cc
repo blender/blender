@@ -12,12 +12,12 @@
 
 #include "DNA_defs.h"
 
-#include "BLI_alloca.h"
-#include "BLI_assert.h"
-#include "BLI_sys_types.h"
-#include "BLI_utildefines.h"
+#include "BLI_alloca.hh"
+#include "BLI_assert.hh"
+#include "BLI_sys_types.hh"
+#include "BLI_utildefines.hh"
 
-#include "BLI_memarena.h"
+#include "BLI_memarena.hh"
 
 #include "dna_utils.h"
 

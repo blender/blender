@@ -23,6 +23,10 @@ class TreeElementActionSlot final : public AbstractTreeElement {
 
  public:
   TreeElementActionSlot(TreeElement &legacy_te, animrig::Slot &slot);
+  std::optional<BIFIconID> get_icon() const override
+  {
+    return ICON_ACTION_SLOT;
+  }
 };
 
 }  // namespace ed::outliner

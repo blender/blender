@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "infos/eevee_common_infos.hh"
-
 #include "draw_shape_lib.glsl"
+#include "eevee_light_shared.hh"
+#include "eevee_shadow_shared.hh"
 #include "gpu_shader_math_constants_lib.glsl"
 #include "gpu_shader_math_vector_reduce_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
@@ -302,7 +302,7 @@ ShadowCoordinates shadow_directional_coordinates_at_level(LightData light, float
  */
 ShadowCoordinates shadow_directional_coordinates(LightData light, float3 lP)
 {
-  int level = shadow_directional_level(light, lP - light_position_get(light));
+  int level = shadow_directional_level(light, lP - light.position());
   return shadow_directional_coordinates_at_level(light, lP, level);
 }
 

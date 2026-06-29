@@ -15,10 +15,10 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_array_utils.h"
-#include "BLI_listbase.h"
+#include "BLI_array_utils_c.hh"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
@@ -154,8 +154,7 @@ static void *undoarm_from_editarm(UndoArmature *uarm, bArmature *arm)
   uarm->undo_size = 0;
   for (EditBone &ebone : uarm->ebones) {
     uarm->undo_size += sizeof(EditBone);
-    uarm->undo_size += sizeof(BoneCollectionReference) *
-                       BLI_listbase_count(&ebone.bone_collections);
+    uarm->undo_size += sizeof(BoneCollectionReference) * ebone.bone_collections.count();
   }
   /* Size of the bone collections + the size of the pointers to those
    * bone collections in the bone collection array. */
@@ -313,7 +312,7 @@ static void armature_undosys_foreach_ID_ref(UndoStep *us_p,
 
 void ED_armature_undosys_type(UndoType *ut)
 {
-  ut->name = "Edit Armature";
+  ut->identifier = "EDIT_ARMATURE";
   ut->poll = armature_undosys_poll;
   ut->step_encode = armature_undosys_step_encode;
   ut->step_decode = armature_undosys_step_decode;

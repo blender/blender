@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_listbase_iterator.hh"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-#include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_rect.hh"
+#include "BLI_string.hh"
 
 #include "BKE_context.hh"
 #include "BKE_image.hh"
@@ -383,15 +383,16 @@ void box_mask_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Render Result");
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
 
-  if (UNLIKELY(ibuf == nullptr)) {
+  if (ibuf == nullptr) [[unlikely]] {
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
     BKE_image_release_ibuf(ima, ibuf, lock);
     return;
   }
 
   mask_group->state.dims = node_gizmo_safe_calc_dims(ibuf, GIZMO_NODE_DEFAULT_DIMS);
-  mask_group->state.offset = ibuf->flags & IB_has_display_window ? float2(ibuf->display_offset) :
-                                                                   float2(0.0f);
+  mask_group->state.offset = flag_is_set(ibuf->flags, ImBufFlags::HasDisplayWindow) ?
+                                 float2(ibuf->display_offset) :
+                                 float2(0.0f);
 
   RNA_float_set_array(gz->ptr, "dimensions", mask_group->state.dims);
   WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
@@ -548,7 +549,7 @@ static bool show_crop_gizmo(const SpaceNode &snode)
        * gizmo has no effect. */
       return false;
     }
-    else if (STREQ(input.name, "Alpha Crop") && !input.is_directly_linked()) {
+    if (STREQ(input.name, "Alpha Crop") && !input.is_directly_linked()) {
       PointerRNA input_rna_pointer = RNA_pointer_create_discrete(nullptr, RNA_NodeSocket, &input);
       if (RNA_boolean_get(&input_rna_pointer, "default_value")) {
         /* If Alpha Crop is not set, the image size changes depending on the input parameters,
@@ -646,15 +647,16 @@ void crop_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
 
-  if (UNLIKELY(ibuf == nullptr)) {
+  if (ibuf == nullptr) [[unlikely]] {
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
     BKE_image_release_ibuf(ima, ibuf, lock);
     return;
   }
 
   crop_group->state.dims = node_gizmo_safe_calc_dims(ibuf, GIZMO_NODE_DEFAULT_DIMS);
-  crop_group->state.offset = ibuf->flags & IB_has_display_window ? float2(ibuf->display_offset) :
-                                                                   float2(0.0f);
+  crop_group->state.offset = flag_is_set(ibuf->flags, ImBufFlags::HasDisplayWindow) ?
+                                 float2(ibuf->display_offset) :
+                                 float2(0.0f);
 
   RNA_float_set_array(gz->ptr, "dimensions", crop_group->state.dims);
   WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
@@ -827,15 +829,16 @@ void glare_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
 
-  if (UNLIKELY(ibuf == nullptr)) {
+  if (ibuf == nullptr) [[unlikely]] {
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
     BKE_image_release_ibuf(ima, ibuf, lock);
     return;
   }
 
   glare_group->state.dims = node_gizmo_safe_calc_dims(ibuf, GIZMO_NODE_DEFAULT_DIMS);
-  glare_group->state.offset = ibuf->flags & IB_has_display_window ? float2(ibuf->display_offset) :
-                                                                    float2(0.0f);
+  glare_group->state.offset = flag_is_set(ibuf->flags, ImBufFlags::HasDisplayWindow) ?
+                                  float2(ibuf->display_offset) :
+                                  float2(0.0f);
 
   SpaceNode *snode = find_active_node_editor(C);
   BLI_assert(snode != nullptr);
@@ -975,7 +978,7 @@ void corner_pin_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
 
-  if (UNLIKELY(ibuf == nullptr)) {
+  if (ibuf == nullptr) [[unlikely]] {
     for (int i = 0; i < 4; i++) {
       wmGizmo *gz = cpin_group->gizmos[i];
       WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
@@ -985,8 +988,9 @@ void corner_pin_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   }
 
   cpin_group->state.dims = node_gizmo_safe_calc_dims(ibuf, GIZMO_NODE_DEFAULT_DIMS);
-  cpin_group->state.offset = ibuf->flags & IB_has_display_window ? float2(ibuf->display_offset) :
-                                                                   float2(0.0f);
+  cpin_group->state.offset = flag_is_set(ibuf->flags, ImBufFlags::HasDisplayWindow) ?
+                                 float2(ibuf->display_offset) :
+                                 float2(0.0f);
 
   SpaceNode *snode = find_active_node_editor(C);
   BLI_assert(snode != nullptr);
@@ -1193,7 +1197,7 @@ void split_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Render Result");
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
 
-  if (UNLIKELY(ibuf == nullptr)) {
+  if (ibuf == nullptr) [[unlikely]] {
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
     BKE_image_release_ibuf(ima, ibuf, lock);
     return;
@@ -1201,8 +1205,9 @@ void split_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
   /* Larger fallback size otherwise the gizmo would be partially hidden. */
   split_group->state.dims = node_gizmo_safe_calc_dims(ibuf, float2{1000.0f, 1000.0f});
-  split_group->state.offset = ibuf->flags & IB_has_display_window ? float2(ibuf->display_offset) :
-                                                                    float2(0.0f);
+  split_group->state.offset = flag_is_set(ibuf->flags, ImBufFlags::HasDisplayWindow) ?
+                                  float2(ibuf->display_offset) :
+                                  float2(0.0f);
 
   RNA_float_set_array(gz->ptr, "dimensions", split_group->state.dims);
   WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
@@ -1370,13 +1375,13 @@ void transform_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
 
-  if (UNLIKELY(ibuf == nullptr)) {
+  if (ibuf == nullptr) [[unlikely]] {
     WM_gizmo_set_flag(cage, WM_GIZMO_HIDDEN, true);
     BKE_image_release_ibuf(ima, ibuf, lock);
     return;
   }
 
-  transform_group->state.offset = ibuf->flags & IB_has_display_window ?
+  transform_group->state.offset = flag_is_set(ibuf->flags, ImBufFlags::HasDisplayWindow) ?
                                       float2(ibuf->display_offset) :
                                       float2(0.0f);
   const float2 dims = node_gizmo_safe_calc_dims(ibuf, GIZMO_NODE_DEFAULT_DIMS);

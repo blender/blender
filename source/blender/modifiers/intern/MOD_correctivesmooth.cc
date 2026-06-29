@@ -11,9 +11,9 @@
 #include <algorithm>
 
 #include "BLI_math_base.hh"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLT_translation.hh"
 
@@ -44,11 +44,11 @@
 // #define DEBUG_TIME
 
 #ifdef DEBUG_TIME
-#  include "BLI_time.h"
-#  include "BLI_time_utildefines.h"
+#  include "BLI_time.hh"
+#  include "BLI_time_utildefines.hh"
 #endif
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender {
 
@@ -384,7 +384,7 @@ static bool calc_tangent_loop(const float v_dir_prev[3],
                               const float v_dir_next[3],
                               float r_tspace[3][3])
 {
-  if (UNLIKELY(compare_v3v3(v_dir_prev, v_dir_next, FLT_EPSILON * 10.0f))) {
+  if (compare_v3v3(v_dir_prev, v_dir_next, FLT_EPSILON * 10.0f)) [[unlikely]] {
     /* As there are no weights, the value doesn't matter just initialize it. */
     unit_m3(r_tspace);
     return false;
@@ -537,7 +537,7 @@ static void calc_deltas(CorrectiveSmoothModifierData *csmd,
     sub_v3_v3v3(delta, rest_coords[v_index], smooth_vertex_coords[v_index]);
 
     float imat[3][3];
-    if (UNLIKELY(!invert_m3_m3(imat, tangent_spaces[l_index]))) {
+    if (!invert_m3_m3(imat, tangent_spaces[l_index])) [[unlikely]] {
       transpose_m3_m3(imat, tangent_spaces[l_index]);
     }
     mul_v3_m3v3(csmd->delta_cache.deltas[l_index], imat, delta);
@@ -598,7 +598,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
     }
   }
 
-  if (UNLIKELY(use_only_smooth)) {
+  if (use_only_smooth) [[unlikely]] {
     smooth_verts(csmd, mesh, dvert, defgrp_index, vertexCos);
     return;
   }
@@ -706,7 +706,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
     for (const int64_t l_index : corner_verts.index_range()) {
       const int v_index = corner_verts[l_index];
       const float weight = tangent_weights[l_index] / tangent_weights_per_vertex[v_index];
-      if (UNLIKELY(!(weight > 0.0f))) {
+      if (!(weight > 0.0f)) [[unlikely]] {
         /* Catches zero & divide by zero. */
         continue;
       }

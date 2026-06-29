@@ -12,9 +12,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_matrix_c.hh"
+#include "BLI_math_vector_c.hh"
 
 #include "BLT_translation.hh"
 
@@ -484,7 +484,7 @@ Nurb *ED_curve_add_nurbs_primitive(
 
   if (nu) { /* should always be set */
     nu->flag |= CU_SMOOTH;
-    cu->actnu = BLI_listbase_count(editnurb);
+    cu->actnu = editnurb->count();
     cu->actvert = CU_ACT_NONE;
 
     if (CU_IS_2D(cu)) {

@@ -19,9 +19,9 @@
 
 #include "DNA_scene_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_vector.h"
-#include "BLI_task.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
+#include "BLI_task_c.hh"
 
 #include "bmesh.hh"
 #include "bmesh_query_uv.hh"
@@ -1209,7 +1209,7 @@ void _bm_select_history_store_after(BMesh *bm, BMEditSelection *ese_ref, BMHeade
 
 void BM_select_history_clear(BMesh *bm)
 {
-  BLI_freelistN(&bm->selected);
+  bm->selected.free_no_destruct();
 }
 
 void BM_select_history_validate(BMesh *bm)
@@ -1275,7 +1275,7 @@ bool BM_select_history_active_get(BMesh *bm, BMEditSelection *ese)
 
 GHash *BM_select_history_map_create(BMesh *bm)
 {
-  if (BLI_listbase_is_empty(&bm->selected)) {
+  if (bm->selected.is_empty()) {
     return nullptr;
   }
 
@@ -1330,7 +1330,7 @@ void BM_select_history_merge_from_targetmap(BMesh *bm,
         }
         ele_dst = ele_dst_next;
         /* Break loop on circular reference (should never happen). */
-        if (UNLIKELY(ele_dst == ese.ele)) {
+        if (ele_dst == ese.ele) [[unlikely]] {
           BLI_assert(0);
           break;
         }
@@ -1403,7 +1403,7 @@ void BM_mesh_elem_hflag_disable_test(BMesh *bm,
         ele = static_cast<BMElem *>(BM_iter_new(&iter, bm, iter_types[i], nullptr));
         for (; ele; ele = static_cast<BMElem *>(BM_iter_step(&iter))) {
 
-          if (UNLIKELY(respecthide && BM_elem_flag_test(ele, BM_ELEM_HIDDEN))) {
+          if (respecthide && BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) [[unlikely]] {
             /* pass */
           }
           else if (!hflag_test || BM_elem_flag_test(ele, hflag_test)) {
@@ -1457,7 +1457,7 @@ void BM_mesh_elem_hflag_enable_test(BMesh *bm,
       ele = static_cast<BMElem *>(BM_iter_new(&iter, bm, iter_types[i], nullptr));
       for (; ele; ele = static_cast<BMElem *>(BM_iter_step(&iter))) {
 
-        if (UNLIKELY(respecthide && BM_elem_flag_test(ele, BM_ELEM_HIDDEN))) {
+        if (respecthide && BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) [[unlikely]] {
           /* pass */
         }
         else if (!hflag_test || BM_elem_flag_test(ele, hflag_test)) {

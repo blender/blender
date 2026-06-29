@@ -4,7 +4,7 @@
 
 #include <fmt/format.h>
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_set.hh"
 
 #include "BKE_context.hh"
@@ -108,6 +108,16 @@ bNode &LinkSearchOpParams::add_node(UString idname)
 bNode &LinkSearchOpParams::add_node(const bke::bNodeType &node_type)
 {
   return this->add_node(node_type.idname);
+}
+
+void LinkSearchOpParams::update_and_connect_available_socket_by_identifier(
+    bNode &new_node, UString socket_identifier)
+{
+  update_node_declaration_and_sockets(this->node_tree, new_node);
+  if (new_node.typeinfo->updatefunc) {
+    new_node.typeinfo->updatefunc(&node_tree, &new_node);
+  }
+  this->connect_available_socket_by_identifier(new_node, socket_identifier);
 }
 
 void LinkSearchOpParams::update_and_connect_available_socket(bNode &new_node, UString socket_name)

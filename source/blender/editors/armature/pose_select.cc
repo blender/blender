@@ -16,10 +16,10 @@
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_enums.h"
 
-#include "BLI_assert.h"
-#include "BLI_listbase.h"
+#include "BLI_assert.hh"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
-#include "BLI_string.h"
+#include "BLI_string.hh"
 
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
@@ -93,7 +93,7 @@ static Set<bPoseChannel *> get_selected_pose_bones(Object &pose_object)
   Set<bPoseChannel *> selected_pose_bones;
   bArmature *arm = id_cast<bArmature *>(pose_object.data);
   for (bPoseChannel &pchan : pose_object.pose->chanbase) {
-    if (animrig::bone_is_selected(arm, &pchan)) {
+    if (animrig::bone_is_selected(arm, {&pchan, pchan.bone_get(pose_object)})) {
       selected_pose_bones.add(&pchan);
     }
   }
@@ -145,7 +145,7 @@ static bool any_child_to_select(const Set<bPoseChannel *> &pose_bones, const bAr
 {
   for (bPoseChannel *pose_bone : pose_bones) {
     const Bone *bone = pose_bone->bone_get(armature);
-    if (!BLI_listbase_is_empty(&bone->childbase)) {
+    if (!bone->childbase.is_empty()) {
       return true;
     }
   }
@@ -155,8 +155,8 @@ static bool any_child_to_select(const Set<bPoseChannel *> &pose_bones, const bAr
 /**
  * Of all selected pose bones, select their parents.
  *
- * \param stop_at_root If true, selection will remain unchanged if there are no parents to select.
- * \param modify_active The active bone of an armature will be moved to the parent.
+ * \param stop_at_root: If true, selection will remain unchanged if there are no parents to select.
+ * \param modify_active: The active bone of an armature will be moved to the parent.
  */
 static bool pose_select_parents(bContext *C,
                                 const bool extend,
@@ -216,8 +216,9 @@ static Bone *get_new_active_child(Bone &parent_bone)
  * bone will be selected if any bone in its parent hierarchy is selected. If false, only bones
  * whose direct parent is selected are changed.
  *
- * \param stop_at_leaf If true, selection will remain unchanged if there are no children to select.
- * \param modify_active The active bone of an armature will be moved to the first child.
+ * \param stop_at_leaf: If true, selection will remain unchanged if there are no children to
+ * select.
+ * \param modify_active: The active bone of an armature will be moved to the first child.
  */
 static bool pose_select_children(bContext *C,
                                  const bool all,
@@ -523,7 +524,7 @@ bool ED_pose_deselect_all(Object *ob, int select_mode, const bool ignore_visibil
   if (select_mode == SEL_TOGGLE) {
     select_mode = SEL_SELECT;
     for (bPoseChannel &pchan : ob->pose->chanbase) {
-      if (ignore_visibility || animrig::bone_is_visible(arm, &pchan)) {
+      if (ignore_visibility || animrig::bone_is_visible(arm, {&pchan, pchan.bone_get(*ob)})) {
         if (pchan.flag & POSE_SELECTED) {
           select_mode = SEL_DESELECT;
           break;
@@ -1140,7 +1141,7 @@ static bool pose_select_siblings(bContext *C, const bool extend)
     BLI_assert(arm);
     Set<bPoseChannel *> parents_of_selected;
     for (bPoseChannel &pchan : pose_object->pose->chanbase) {
-      if (animrig::bone_is_selected(arm, &pchan)) {
+      if (animrig::bone_is_selected(arm, {&pchan, pchan.bone_get(*pose_object)})) {
         parents_of_selected.add(pchan.parent);
       }
     }
@@ -1413,7 +1414,8 @@ static wmOperatorStatus pose_select_mirror_exec(bContext *C, wmOperator *op)
     Map<bPoseChannel *, ePchan_Flag> old_selection_flags;
     for (bPoseChannel &pchan : ob->pose->chanbase) {
       /* Treat invisible bones as deselected. */
-      const int flags = animrig::bone_is_visible(arm, &pchan) ? pchan.flag : 0;
+      const int flags = animrig::bone_is_visible(arm, {&pchan, pchan.bone_get(*ob)}) ? pchan.flag :
+                                                                                       0;
 
       old_selection_flags.add_new(&pchan, ePchan_Flag(flags));
     }

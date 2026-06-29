@@ -25,10 +25,10 @@
 #include "BLI_set.hh"
 #include "BLI_sort.hh"
 #include "BLI_task.hh"
-#include "BLI_threads.h"
+#include "BLI_threads.hh"
 #include "BLI_virtual_array.hh"
 
-#include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
+#include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
 namespace blender::index_mask {
 
@@ -634,8 +634,6 @@ IndexMask IndexMask::from_bools(const IndexMask &universe,
         return from_bits_batch_predicate(universe_segment, builder, bits);
       },
       exec_mode::grain_size(max_segment_size));
-  BitVector bits(bools);
-  return IndexMask::from_bits(universe, bits, memory);
 }
 
 IndexMask IndexMask::from_bools_inverse(const IndexMask &universe,

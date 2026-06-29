@@ -65,34 +65,26 @@ static void vertex_buffer_fetch_mode(ColorType color)
 
   GPU_offscreen_read_color(offscreen, GPU_DATA_FLOAT, read_data.data());
 
-  switch (attr_type) {
-    case VertAttrType::SNORM_8_8_8_8:
-      read_data[0] = read_data[0] * float(127);
-      break;
-    case VertAttrType::UNORM_8_8_8_8:
-      read_data[0] = read_data[0] * float(255);
-      break;
-    case VertAttrType::SNORM_16_16_16_16:
-      read_data[0] = read_data[0] * float(32767);
-      break;
-    case VertAttrType::UNORM_16_16_16_16:
-      read_data[0] = read_data[0] * float(65535);
-      break;
-    case VertAttrType::SNORM_10_10_10_2:
-      read_data[0] = read_data[0] * float4(511, 511, 511, 1);
-      break;
-    case VertAttrType::SFLOAT_32_32_32_32:
-      break;
-    default:
-      BLI_assert_unreachable();
-  }
+  /* Do integer comparison to avoid floating point inaccuracies from each conversion steps. */
+  if constexpr (std::is_same_v<ColorType, char4_norm> || std::is_same_v<ColorType, short2_norm> ||
+                std::is_same_v<ColorType, short4_norm> ||
+                std::is_same_v<ColorType, int1010102_norm>)
+  {
 
-  if (attr_type == VertAttrType::SFLOAT_32_32_32_32) {
+    EXPECT_EQ(int4(ColorType(read_data[0])), int4(color));
+  }
+  else if constexpr (std::is_same_v<ColorType, uchar4_norm> ||
+                     std::is_same_v<ColorType, ushort2_norm> ||
+                     std::is_same_v<ColorType, ushort4_norm> ||
+                     std::is_same_v<ColorType, uint1010102_norm>)
+  {
+    EXPECT_EQ(uint4(ColorType(read_data[0])), uint4(color));
+  }
+  else if constexpr (std::is_same_v<ColorType, float4>) {
     EXPECT_EQ(read_data[0], float4(color));
   }
   else {
-    /* Do integer comparison to avoid floating point inaccuracies from each conversion steps. */
-    EXPECT_EQ(int4(read_data[0]), int4(float4(color)));
+    static_assert(false, "Missing implementation");
   }
 
   GPU_batch_discard(batch);
@@ -101,34 +93,34 @@ static void vertex_buffer_fetch_mode(ColorType color)
 
 static void test_vertex_buffer_fetch_mode__GPU_COMP_I8__GPU_FETCH_INT_TO_FLOAT_UNIT()
 {
-  vertex_buffer_fetch_mode<VertAttrType::SNORM_8_8_8_8, char4>(char4(100, -127, 127, 0));
+  vertex_buffer_fetch_mode<VertAttrType::SNORM_8_8_8_8, char4_norm>(int4(100, -127, 127, 0));
 }
 GPU_TEST(vertex_buffer_fetch_mode__GPU_COMP_I8__GPU_FETCH_INT_TO_FLOAT_UNIT);
 
 static void test_vertex_buffer_fetch_mode__GPU_COMP_U8__GPU_FETCH_INT_TO_FLOAT_UNIT()
 {
-  vertex_buffer_fetch_mode<VertAttrType::UNORM_8_8_8_8, uchar4>(uchar4(100, 0, 255, 127));
+  vertex_buffer_fetch_mode<VertAttrType::UNORM_8_8_8_8, uchar4_norm>(uint4(100, 0, 255, 127));
 }
 GPU_TEST(vertex_buffer_fetch_mode__GPU_COMP_U8__GPU_FETCH_INT_TO_FLOAT_UNIT);
 
 static void test_vertex_buffer_fetch_mode__GPU_COMP_I16__GPU_FETCH_INT_TO_FLOAT_UNIT()
 {
-  vertex_buffer_fetch_mode<VertAttrType::SNORM_16_16_16_16, short4>(
-      short4(12034, -32767, 32767, 0));
+  vertex_buffer_fetch_mode<VertAttrType::SNORM_16_16_16_16, short4_norm>(
+      int4(12034, -32767, 32767, 0));
 }
 GPU_TEST(vertex_buffer_fetch_mode__GPU_COMP_I16__GPU_FETCH_INT_TO_FLOAT_UNIT);
 
 static void test_vertex_buffer_fetch_mode__GPU_COMP_U16__GPU_FETCH_INT_TO_FLOAT_UNIT()
 {
-  vertex_buffer_fetch_mode<VertAttrType::UNORM_16_16_16_16, ushort4>(
-      ushort4(12034, 0, 65535, 32767));
+  vertex_buffer_fetch_mode<VertAttrType::UNORM_16_16_16_16, ushort4_norm>(
+      uint4(12034, 0, 65535, 32767));
 }
 GPU_TEST(vertex_buffer_fetch_mode__GPU_COMP_U16__GPU_FETCH_INT_TO_FLOAT_UNIT);
 
 static void test_vertex_buffer_fetch_mode__GPU_COMP_I10__GPU_FETCH_INT_TO_FLOAT_UNIT()
 {
-  vertex_buffer_fetch_mode<VertAttrType::SNORM_10_10_10_2, PackedNormal>(
-      PackedNormal(321, -511, 511, 0));
+  vertex_buffer_fetch_mode<VertAttrType::SNORM_10_10_10_2, int1010102_norm>(
+      int4(321, -511, 511, 0));
 }
 GPU_TEST(vertex_buffer_fetch_mode__GPU_COMP_I10__GPU_FETCH_INT_TO_FLOAT_UNIT);
 

@@ -14,12 +14,15 @@ namespace blender::image_engine {
 
 ImageSpaceDrawingMode::ImageSpaceDrawingMode(Instance &instance,
                                              gpu::Texture *texture,
-                                             gpu::Texture *tile_mapping_texture)
+                                             gpu::Texture *tile_mapping_texture,
+                                             const bool owned)
     : instance_(instance), texture_(texture), tile_mapping_texture_(tile_mapping_texture)
 {
-  GPU_texture_ref(texture_);
-  if (tile_mapping_texture_) {
-    GPU_texture_ref(tile_mapping_texture_);
+  if (!owned) {
+    GPU_texture_ref(texture_);
+    if (tile_mapping_texture_) {
+      GPU_texture_ref(tile_mapping_texture_);
+    }
   }
 }
 

@@ -11,11 +11,11 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
+#include "BLI_listbase.hh"
+#include "BLI_math_geom_c.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_set.hh"
-#include "BLI_utildefines.h"
+#include "BLI_utildefines.hh"
 
 #include "BKE_context.hh"
 #include "BKE_image.hh"
@@ -1133,7 +1133,7 @@ void CLIP_OT_hide_tracks_clear(wmOperatorType *ot)
 static bool frame_jump_poll(bContext *C)
 {
   SpaceClip *space_clip = CTX_wm_space_clip(C);
-  return space_clip != nullptr;
+  return space_clip != nullptr && ED_space_clip_get_clip(space_clip) != nullptr;
 }
 
 static wmOperatorStatus frame_jump_exec(bContext *C, wmOperator *op)

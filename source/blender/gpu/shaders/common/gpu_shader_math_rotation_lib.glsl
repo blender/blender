@@ -20,7 +20,7 @@
  *
  * \param t: factor in [0..1]
  * \param cosom: dot product from normalized vectors/quaternions.
- * \param r_w: calculated weights.
+ * \return calculated weights.
  */
 float2 interpolate_dot_slerp(float t, float cosom)
 {

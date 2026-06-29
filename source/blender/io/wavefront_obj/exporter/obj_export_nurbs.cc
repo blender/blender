@@ -8,7 +8,7 @@
 
 #include <numeric>
 
-#include "BLI_listbase.h"
+#include "BLI_listbase.hh"
 #include "BLI_utility_mixins.hh"
 
 #include "BKE_curve_legacy_convert.hh"
@@ -189,7 +189,7 @@ const char *OBJLegacyCurve::get_curve_name() const
 
 int OBJLegacyCurve::total_splines() const
 {
-  return BLI_listbase_count(&export_curve_->nurb);
+  return export_curve_->nurb.count();
 }
 
 const float4x4 &OBJLegacyCurve::object_transform() const
