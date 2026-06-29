@@ -164,7 +164,7 @@ class FieldVarianceInput final : public bke::GeometryFieldInput {
       if (operation_ == Operation::StdDev) {
         if (group_indices.is_single()) {
           const T mean = std::reduce(values.begin(), values.end(), T()) / domain_size;
-          const T sum_of_squared_diffs = std::reduce(
+          const T sum_of_squared_diffs = std::accumulate(
               values.begin(), values.end(), T(), [mean](T accumulator, const T &value) {
                 T difference = mean - value;
                 return accumulator + difference * difference;
@@ -203,7 +203,7 @@ class FieldVarianceInput final : public bke::GeometryFieldInput {
       else {
         if (group_indices.is_single()) {
           const T mean = std::reduce(values.begin(), values.end(), T()) / domain_size;
-          const T sum_of_squared_diffs = std::reduce(
+          const T sum_of_squared_diffs = std::accumulate(
               values.begin(), values.end(), T(), [mean](T accumulator, const T &value) {
                 T difference = mean - value;
                 return accumulator + difference * difference;

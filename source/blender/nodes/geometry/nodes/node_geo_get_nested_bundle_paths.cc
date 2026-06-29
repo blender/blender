@@ -26,13 +26,13 @@ static const EnumPropertyItem mode_items[] = {
     {int(Mode::BundleType),
      "BUNDLE_TYPE",
      ICON_NONE,
-     "Bundle Type",
-     "Find paths to bundles of a specific type"},
+     N_("Bundle Type"),
+     N_("Find paths to bundles of a specific type")},
     {int(Mode::DataType),
      "DATA_TYPE",
      ICON_NONE,
-     "Data Type",
-     "Find paths to values of a specific data type"},
+     N_("Data Type"),
+     N_("Find paths to values of a specific data type")},
     {0},
 };
 

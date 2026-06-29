@@ -44,9 +44,9 @@ ccl_device_inline void motion_triangle_verts_for_step(KernelGlobals kg,
     offset += step * numverts;
   }
 
-  verts[0] = kernel_data_fetch(attributes_float3, offset + tri_vindex.x);
-  verts[1] = kernel_data_fetch(attributes_float3, offset + tri_vindex.y);
-  verts[2] = kernel_data_fetch(attributes_float3, offset + tri_vindex.z);
+  verts[0] = kernel_data_fetch(tri_verts, offset + tri_vindex.x);
+  verts[1] = kernel_data_fetch(tri_verts, offset + tri_vindex.y);
+  verts[2] = kernel_data_fetch(tri_verts, offset + tri_vindex.z);
 }
 
 ccl_device_inline void motion_triangle_normals_for_step(KernelGlobals kg,

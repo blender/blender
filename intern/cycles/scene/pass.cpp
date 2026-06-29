@@ -326,7 +326,7 @@ PassInfo Pass::get_info(const PassType type,
 
     case PASS_SHADOW_CATCHER:
       pass_info.num_components = 3;
-      pass_info.use_exposure = true;
+      pass_info.use_exposure = false;
       pass_info.use_compositing = true;
       pass_info.use_denoising_albedo = false;
       pass_info.support_denoise = true;

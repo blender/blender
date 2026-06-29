@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e899b48ea546')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-15 07:32+0000\n"
+"POT-Creation-Date: 2026-06-29 10:51+0000\n"
 "PO-Revision-Date: 2025-12-04 22:18+0000\n"
 "Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -2586,20 +2586,20 @@ msgid "Placement"
 msgstr "नियोजन"
 
 
-msgid "Track"
-msgstr "ट्रैक"
-
-
-msgid "Math"
-msgstr "गणित"
-
-
 msgid "Mirror"
 msgstr "दर्पण"
 
 
 msgid "Snap"
 msgstr "स्नैप"
+
+
+msgid "Math"
+msgstr "गणित"
+
+
+msgid "Light"
+msgstr "प्रकाश"
 
 
 msgid "Rigid Body"
@@ -2610,32 +2610,32 @@ msgid "Import"
 msgstr "आयात करें"
 
 
-msgid "UV"
-msgstr "यूवी"
+msgid "Apply"
+msgstr "लागू करें"
+
+
+msgid "Track"
+msgstr "ट्रैक"
+
+
+msgid "Quick Effects"
+msgstr "त्वरित प्रभाव"
 
 
 msgid "Show/Hide"
 msgstr "छुपाएँ / दिखाएँ"
 
 
-msgid "Apply"
-msgstr "लागू करें"
-
-
-msgid "Light"
-msgstr "प्रकाश"
+msgid "Make Single User"
+msgstr "एकल प्रयोक्ता बनाएँ"
 
 
 msgid "Hooks"
 msgstr "खूँटी"
 
 
-msgid "Make Single User"
-msgstr "एकल प्रयोक्ता बनाएँ"
-
-
-msgid "Quick Effects"
-msgstr "त्वरित प्रभाव"
+msgid "UV"
+msgstr "यूवी"
 
 
 msgid "Names"

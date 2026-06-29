@@ -2418,7 +2418,7 @@ void geometry_end(Object &ob)
 
 void register_type(UndoType *ut)
 {
-  ut->name = "Sculpt";
+  ut->identifier = "SCULPT";
   ut->poll = nullptr; /* No poll from context for now. */
   ut->step_encode_init = step_encode_init;
   ut->step_encode = step_encode;

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e899b48ea546')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-15 07:32+0000\n"
+"POT-Creation-Date: 2026-06-29 10:51+0000\n"
 "PO-Revision-Date: 2025-12-02 20:06+0000\n"
 "Last-Translator: Bastitron <bastitronhd@gmail.com>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -9968,6 +9968,10 @@ msgid "Asset Select Parameters"
 msgstr "Asset Auswahl-Parameter"
 
 
+msgid "Unassigned"
+msgstr "Unbestimmt"
+
+
 msgid "Float2 Attribute Value"
 msgstr "Float2 Eigenschaftswert"
 
@@ -11156,6 +11160,10 @@ msgstr "Fußzeile"
 
 msgid "XR"
 msgstr "XR"
+
+
+msgid "Scrubbing"
+msgstr "Schruppen"
 
 
 msgid "Gizmos"
@@ -18683,44 +18691,12 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Track"
-msgstr "Spur"
-
-
-msgid "Math"
-msgstr "Mathematisch"
-
-
-msgid "Assign Material"
-msgstr "Material zuweisen"
-
-
-msgid "Read"
-msgstr "Lesen"
-
-
-msgid "Sample"
-msgstr "Beispiel"
-
-
-msgid "Write"
-msgstr "Schreiben"
-
-
-msgid "Primitives"
-msgstr "Grundkörper"
-
-
 msgid "Mirror"
 msgstr "Spiegeln"
 
 
 msgid "Snap"
 msgstr "Einrasten"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
 
 
 msgid "Local View"
@@ -18747,12 +18723,12 @@ msgid "View Regions"
 msgstr "Vierfenster Ansicht"
 
 
+msgid "Math"
+msgstr "Mathematisch"
+
+
 msgid "Select More/Less"
 msgstr "Mehr/weniger anzeigen"
-
-
-msgid "Instances"
-msgstr "Instanzen"
 
 
 msgid "Select Similar"
@@ -18771,12 +18747,92 @@ msgid "Select Loops"
 msgstr "Schleifen auswählen"
 
 
-msgid "Import"
-msgstr "Importieren"
+msgid "Assign Material"
+msgstr "Material zuweisen"
+
+
+msgid "Read"
+msgstr "Lesen"
+
+
+msgid "Sample"
+msgstr "Beispiel"
+
+
+msgid "Write"
+msgstr "Schreiben"
+
+
+msgid "Primitives"
+msgstr "Grundkörper"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Light"
+msgstr "Licht"
+
+
+msgid "Light Probe"
+msgstr "Lichtsonde"
+
+
+msgid "Instances"
+msgstr "Instanzen"
+
+
+msgid "Add Image"
+msgstr "Bild hinzufügen"
 
 
 msgid "Relations"
 msgstr "Beziehungen"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
+
+
+msgid "Import"
+msgstr "Importieren"
+
+
+msgid "Apply"
+msgstr "Anwenden"
+
+
+msgid "Track"
+msgstr "Spur"
+
+
+msgid "Quick Effects"
+msgstr "Schnelle Effekte"
+
+
+msgid "Show/Hide"
+msgstr "Zeigen/Verbergen"
+
+
+msgid "Clean Up"
+msgstr "Aufräumen"
+
+
+msgid "Asset"
+msgstr "Asset"
+
+
+msgid "Make Single User"
+msgstr "Einfachen Benutzer erzeugen"
+
+
+msgid "Convert"
+msgstr "Konvertieren"
+
+
+msgid "Hooks"
+msgstr "Haken"
 
 
 msgid "UV"
@@ -18787,52 +18843,8 @@ msgid "Vertex Group Locks"
 msgstr "Punktgruppen sperren"
 
 
-msgid "Metaball"
-msgstr "Metaball"
-
-
 msgid "Random Mask"
 msgstr "Zufällige Maske"
-
-
-msgid "Asset"
-msgstr "Asset"
-
-
-msgid "Show/Hide"
-msgstr "Zeigen/Verbergen"
-
-
-msgid "Apply"
-msgstr "Anwenden"
-
-
-msgid "Clean Up"
-msgstr "Aufräumen"
-
-
-msgid "Light Probe"
-msgstr "Lichtsonde"
-
-
-msgid "Light"
-msgstr "Licht"
-
-
-msgid "Add Image"
-msgstr "Bild hinzufügen"
-
-
-msgid "Hooks"
-msgstr "Haken"
-
-
-msgid "Make Single User"
-msgstr "Einfachen Benutzer erzeugen"
-
-
-msgid "Quick Effects"
-msgstr "Schnelle Effekte"
 
 
 msgid "Clear Transform"
@@ -18871,8 +18883,12 @@ msgid "Merge"
 msgstr "Zusammenführen"
 
 
-msgid "Convert"
-msgstr "Konvertieren"
+msgid "Linked"
+msgstr "Verknüpft"
+
+
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Special Characters"
@@ -18881,14 +18897,6 @@ msgstr "Sonderzeichen"
 
 msgid "Kerning"
 msgstr "Kerning"
-
-
-msgid "Linked"
-msgstr "Verknüpft"
-
-
-msgid "Layout"
-msgstr "Layout"
 
 
 msgid "Keying"
@@ -38732,6 +38740,22 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
+msgid "Shadow Settings"
+msgstr "Schatteneinstellungen"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Einstellungen"
+
+
+msgid "Cavity"
+msgstr "Hohlraum"
+
+
+msgid "Render Pass"
+msgstr "Renderdurchgänge"
+
+
 msgid "Compositor"
 msgstr "Setzer"
 
@@ -38794,22 +38818,6 @@ msgstr "Aktives Werkzeug"
 
 msgid "View Lock"
 msgstr "Ansicht sperren"
-
-
-msgid "Shadow Settings"
-msgstr "Schatteneinstellungen"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Einstellungen"
-
-
-msgid "Cavity"
-msgstr "Hohlraum"
-
-
-msgid "Render Pass"
-msgstr "Renderdurchgänge"
 
 
 msgid "Chain Scaling"
@@ -39570,11 +39578,6 @@ msgstr "Drücken"
 msgctxt "Operator"
 msgid "Roll"
 msgstr "Rollen"
-
-
-msgctxt "Operator"
-msgid "Bone Size"
-msgstr "Knochengröße"
 
 
 msgctxt "Operator"
@@ -51475,10 +51478,6 @@ msgid "Duplicate Marker to Scene"
 msgstr "Marker der Szene duplizieren"
 
 
-msgid "Scrubbing"
-msgstr "Schruppen"
-
-
 msgid "Limit to Frame Range"
 msgstr "Limit für Einzelbildbereich"
 
@@ -54816,10 +54815,6 @@ msgid "No mesh data to join"
 msgstr "Keine Maschendaten zum verknüpfen"
 
 
-msgid "Unassigned"
-msgstr "Unbestimmt"
-
-
 msgid "SoundTrack"
 msgstr "Soundtrack"
 
@@ -57336,6 +57331,10 @@ msgid "Strings"
 msgstr "Strings"
 
 
+msgid "Top Right"
+msgstr "Oben rechts"
+
+
 msgid "Text Box Width"
 msgstr "Textboxbreite"
 
@@ -57354,10 +57353,6 @@ msgstr "Rest"
 
 msgid "Edge Crease"
 msgstr "Kantenfalte"
-
-
-msgid "Top Right"
-msgstr "Oben rechts"
 
 
 msgid "No named attributes used"

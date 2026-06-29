@@ -143,7 +143,7 @@ void BVHBuild::add_reference_curves(BoundBox &root,
 {
   const Attribute *attr_P = hair->attributes.find(ATTR_STD_POSITION);
   const Attribute *attr_R = hair->attributes.find(ATTR_STD_RADIUS);
-  const bool has_motion = attr_P->has_motion();
+  const bool has_motion = hair->has_motion_blur() && attr_P->has_motion();
 
   const PrimitiveType primitive_type = hair->primitive_type();
 
@@ -233,7 +233,7 @@ void BVHBuild::add_reference_points(BoundBox &root,
 {
   const Attribute *attr_P = pointcloud->attributes.find(ATTR_STD_POSITION);
   const Attribute *attr_R = pointcloud->attributes.find(ATTR_STD_RADIUS);
-  const bool has_motion = attr_P->has_motion();
+  const bool has_motion = pointcloud->has_motion_blur() && attr_P->has_motion();
 
   const packed_float3 *points_data = pointcloud->get_position();
   const float *radius_data = pointcloud->get_radius();
@@ -441,6 +441,18 @@ void BVHBuild::add_references(BVHRange &root)
 unique_ptr<BVHNode> BVHBuild::run()
 {
   BVHRange root;
+
+  /* Spatial splits do not work correctly for motion blur: BVHSpatialSplit::split_*_primitive()
+   * methods do not handle motion blur positions.
+   *
+   * TODO(sergey): Support motion blur attributes in the BVHSpatialSplit. */
+  if (!params.top_level) {
+    for (const Object *object : objects) {
+      if (object->get_geometry()->has_motion_blur()) {
+        params.use_spatial_split = false;
+      }
+    }
+  }
 
   /* add references */
   add_references(root);

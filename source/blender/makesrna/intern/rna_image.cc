@@ -323,9 +323,7 @@ static void rna_Image_gpu_texture_update(Main * /*bmain*/, Scene * /*scene*/, Po
 {
   Image *ima = id_cast<Image *>(ptr->owner_id);
 
-  if (!G.background) {
-    BKE_image_free_gputextures(ima);
-  }
+  BKE_image_free_gpu_texture_caches(ima);
 
   WM_main_add_notifier(NC_IMAGE | ND_DISPLAY, &ima->id);
 }
@@ -684,10 +682,8 @@ static void rna_Image_pixels_set(PointerRNA *ptr, const float *values)
      * the values, and it does not invoke the update(). */
 
     ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+    IMB_free_gpu_textures(ibuf);
     BKE_image_mark_dirty(ima, ibuf);
-    if (!G.background) {
-      BKE_image_free_gputextures(ima);
-    }
 
     BKE_image_partial_update_mark_full_update(ima);
     WM_main_add_notifier(NC_IMAGE | ND_DISPLAY, &ima->id);

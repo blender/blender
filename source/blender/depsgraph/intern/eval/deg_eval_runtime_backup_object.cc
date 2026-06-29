@@ -72,7 +72,7 @@ void ObjectRuntimeBackup::backup_pose_channel_runtime_data(Object *object)
   if (object->pose != nullptr) {
     for (bPoseChannel &pchan : object->pose->chanbase) {
       const SessionUID &session_uid = pchan.runtime.session_uid;
-      BLI_assert(BLI_session_uid_is_generated(&session_uid));
+      BLI_assert(session_uid.is_generated());
 
       pose_channel_runtime_data.add(session_uid, pchan.runtime);
       BKE_pose_channel_runtime_reset(&pchan.runtime);

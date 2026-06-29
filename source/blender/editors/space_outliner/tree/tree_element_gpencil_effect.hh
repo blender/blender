@@ -23,6 +23,10 @@ class TreeElementGPencilEffectBase final : public AbstractTreeElement {
  public:
   TreeElementGPencilEffectBase(TreeElement &legacy_te, Object &object);
   void expand(SpaceOutliner & /*soops*/) const override;
+  std::optional<BIFIconID> get_icon() const override
+  {
+    return ICON_SHADERFX;
+  }
 };
 
 class TreeElementGPencilEffect final : public AbstractTreeElement {
@@ -33,6 +37,10 @@ class TreeElementGPencilEffect final : public AbstractTreeElement {
  public:
   TreeElementGPencilEffect(TreeElement &legacy_te, Object &object, ShaderFxData &fx);
   void expand(SpaceOutliner & /*soops*/) const override;
+  std::optional<BIFIconID> get_icon() const override
+  {
+    return ICON_SHADERFX;
+  }
 };
 
 }  // namespace ed::outliner

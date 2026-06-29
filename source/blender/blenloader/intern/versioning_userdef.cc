@@ -851,11 +851,11 @@ void blo_do_versions_userdef(UserDef *userdef)
   if (userdef->gpu_backend == USER_GPU_BACKEND_OPENGL ||
       userdef->gpu_backend == USER_GPU_BACKEND_VULKAN)
   {
-    userdef->gpu_backend = USER_GPU_BACKEND_METAL;
+    userdef->gpu_backend = USER_GPU_BACKEND_DEFAULT;
   }
 #else
   if (userdef->gpu_backend == USER_GPU_BACKEND_METAL) {
-    userdef->gpu_backend = USER_GPU_BACKEND_OPENGL;
+    userdef->gpu_backend = USER_GPU_BACKEND_DEFAULT;
   }
 #endif
 
@@ -1396,13 +1396,9 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->dupflag |= USER_DUP_CURVES | USER_DUP_POINTCLOUD;
   }
 
-  /* Set GPU backend to OpenGL. */
+  /* Set GPU backend to the default backend. */
   if (!USER_VERSION_ATLEAST(305, 5)) {
-#ifdef __APPLE__
-    userdef->gpu_backend = USER_GPU_BACKEND_METAL;
-#else
-    userdef->gpu_backend = USER_GPU_BACKEND_OPENGL;
-#endif
+    userdef->gpu_backend = USER_GPU_BACKEND_DEFAULT;
   }
 
   if (!USER_VERSION_ATLEAST(305, 10)) {

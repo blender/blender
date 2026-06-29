@@ -119,8 +119,10 @@ static void update_compositor(const DEGEditorUpdateContext *update_context)
       update_context->scene->runtime->compositor.cache.clear_frames();
     }
 
-    ED_node_compositor_job(
-        update_context->bmain, update_context->scene, update_context->view_layer);
+    ED_node_compositor_job(update_context->bmain,
+                           update_context->scene,
+                           update_context->view_layer,
+                           DEG_id_is_user_modified(update_context->depsgraph, &node_tree->id));
   }
 }
 

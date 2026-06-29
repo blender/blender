@@ -27,15 +27,16 @@ ccl_device_noinline void svm_node_mapping(ccl_private float *ccl_restrict stack,
 
 /* Texture Mapping */
 
+template<typename Float3Type>
 ccl_device_noinline void svm_node_texture_mapping(
     ccl_private float *ccl_restrict stack,
     const ccl_global SVMNodeTextureMapping &ccl_restrict node)
 {
-  const float3 v = stack_load_float3(stack, node.vec_offset);
+  const Float3Type v = stack_load<Float3Type>(stack, node.vec_offset);
   const Transform tfm = make_transform(node.tfm);
 
-  const float3 r = transform_point(&tfm, v);
-  stack_store_float3(stack, node.out_offset, r);
+  const Float3Type r = transform_point(&tfm, v);
+  stack_store(stack, node.out_offset, r);
 }
 
 ccl_device_noinline void svm_node_min_max(ccl_private float *ccl_restrict stack,

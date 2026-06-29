@@ -1733,7 +1733,7 @@ void paint_2d_redraw(const bContext *C, void *ps, bool final)
 
   if (final) {
     if (s->image && !(s->sima && s->sima->lock)) {
-      BKE_image_free_gputextures(s->image);
+      BKE_image_partial_update_mark_full_update(s->image);
     }
 
     /* compositor listener deals with updating */

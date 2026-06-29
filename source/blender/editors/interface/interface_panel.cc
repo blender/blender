@@ -1424,12 +1424,19 @@ static void expand_panel_region(bContext &C, ARegion *region)
   const float aspect = BLI_rctf_size_y(&region->v2d.cur) /
                        (BLI_rcti_size_y(&region->v2d.mask) + 1);
   const bool too_narrow = BLI_rcti_size_x(&region->winrct) <=
-                          int(std::ceil(UI_PANEL_CATEGORY_MIN_WIDTH * UI_SCALE_FAC / aspect));
+                          int((UI_PANEL_CATEGORY_MIN_WIDTH + PANEL_MIN_DRAW_WIDTH) * UI_SCALE_FAC /
+                              aspect);
   if (!too_narrow) {
     return;
   }
   /* Enlarge region. */
-  const int new_width = region->runtime->type->prefsizex ? region->runtime->type->prefsizex : 250;
+  int new_width = region->runtime->type->prefsizex ? region->runtime->type->prefsizex : 250;
+
+  if (new_width < int(UI_PANEL_CATEGORY_MIN_WIDTH + PANEL_MIN_DRAW_WIDTH)) {
+    region->runtime->type->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
+    new_width = UI_SIDEBAR_PANEL_WIDTH;
+  }
+
   panel_region_width_set(region, aspect, new_width);
   WM_event_add_notifier(&C, NC_SCREEN | NA_EDITED, nullptr);
   ED_region_tag_redraw(region);
@@ -1512,8 +1519,9 @@ void panel_category_tabs_draw_all(const bContext *C,
     immUnbindProgram();
   }
   /* If the area is too small to show panels, then don't show any tabs as active. */
-  const bool too_narrow = BLI_rcti_size_x(&region->winrct) <=
-                          int(UI_PANEL_CATEGORY_MIN_WIDTH * UI_SCALE_FAC / aspect);
+  const bool too_narrow = BLI_rcti_size_x(&region->winrct) <
+                          int((UI_PANEL_CATEGORY_MIN_WIDTH + PANEL_MIN_DRAW_WIDTH) * UI_SCALE_FAC /
+                              aspect);
   /* #widget_roundbox_set has this correction, keep in sync. */
   const int align_pad = (!region->overlap && !is_left) ? px : 0;
   /* Same for all tabs. */
@@ -2624,9 +2632,10 @@ int handler_panel_region(bContext *C,
       if (active_button && active_button->hardmax == val) {
         const float aspect = BLI_rctf_size_y(&region->v2d.cur) /
                              (BLI_rcti_size_y(&region->v2d.mask) + 1);
-        const bool too_narrow = BLI_rcti_size_x(&region->winrct) <=
-                                int(std::ceil(UI_PANEL_CATEGORY_MIN_WIDTH * UI_SCALE_FAC /
-                                              aspect));
+        const bool too_narrow = BLI_rcti_size_x(&region->winrct) <
+                                int(std::floor(
+                                    (UI_PANEL_CATEGORY_MIN_WIDTH + PANEL_MIN_DRAW_WIDTH) *
+                                    UI_SCALE_FAC / aspect));
         if (too_narrow) {
           expand_panel_region(*C, region);
         }

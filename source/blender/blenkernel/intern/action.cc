@@ -744,7 +744,7 @@ IDTypeInfo IDType_ID_AC = {
     .main_listbase_index = INDEX_ID_AC,
     .struct_size = sizeof(bAction),
     .name = "Action",
-    .name_plural = "actions",
+    .name_plural = N_("actions"),
     .translation_context = BLT_I18NCONTEXT_ID_ACTION,
     .flags = IDTYPE_FLAGS_NO_ANIMDATA,
     .asset_type_info = &bke::AssetType_AC,
@@ -1868,7 +1868,7 @@ void BKE_pose_check_uids_unique_and_report(const bPose *pose)
 
   for (bPoseChannel &pchan : pose->chanbase) {
     const SessionUID *session_uid = &pchan.runtime.session_uid;
-    if (!BLI_session_uid_is_generated(session_uid)) {
+    if (!session_uid->is_generated()) {
       printf("Pose channel %s does not have UID generated.\n", pchan.name);
       continue;
     }

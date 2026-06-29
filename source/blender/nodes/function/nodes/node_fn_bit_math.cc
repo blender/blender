@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "RNA_enum_types.hh"
 
@@ -15,6 +16,7 @@
 #include "FN_multi_function_registry.hh"
 
 #include "node_function_util.hh"
+#include "node_shader_util.hh"
 
 namespace blender {
 
@@ -127,14 +129,12 @@ static void node_label(const bNodeTree * /*ntree*/,
                        char *label,
                        int label_maxncpy)
 {
-  char name[64] = {0};
   const char *operation_name = IFACE_("Unknown");
   /* NOTE: This assumes that the matching RNA enum property also uses the default i18n context, and
    * needs to be kept manually in sync. */
   RNA_enum_name_gettexted(
       bit_math_operation_items.data(), node->custom1, BLT_I18NCONTEXT_DEFAULT, &operation_name);
-  SNPRINTF(name, IFACE_("Bitwise %s"), operation_name);
-  BLI_strncpy(label, name, label_maxncpy);
+  BLI_snprintf_utf8(label, label_maxncpy, IFACE_("Bitwise %s"), operation_name);
 }
 
 static const mf::MultiFunction *get_multi_function(const bNode &bnode)
@@ -164,6 +164,68 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
   builder.set_matching_fn(fn);
 }
 
+static const char *gpu_shader_get_name(const BitMathOperation operation)
+{
+  switch (operation) {
+    case BitMathOperation::And:
+      return "bit_math_and";
+    case BitMathOperation::Or:
+      return "bit_math_or";
+    case BitMathOperation::Xor:
+      return "bit_math_xor";
+    case BitMathOperation::Not:
+      return "bit_math_not";
+    case BitMathOperation::Shift:
+      return "bit_math_shift";
+    case BitMathOperation::Rotate:
+      return "bit_math_rotate";
+  }
+
+  BLI_assert_unreachable();
+  return nullptr;
+}
+
+static int node_gpu_material(GPUMaterial *mat,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *in,
+                             GPUNodeStack *out)
+{
+  const BitMathOperation operation = BitMathOperation(node->custom1);
+  const char *name = gpu_shader_get_name(operation);
+
+  if (name == nullptr) {
+    return 0;
+  }
+
+  /* Avoid GPU_stack_link here because it creates uniforms for unavailable sockets. */
+  switch (operation) {
+    case BitMathOperation::And:
+    case BitMathOperation::Or:
+    case BitMathOperation::Xor:
+      return GPU_link(mat,
+                      name,
+                      GPU_node_get_input_link(*node, in, "A"),
+                      GPU_node_get_input_link(*node, in, "B"),
+                      &GPU_node_get_output(*node, out, "Value").link);
+    case BitMathOperation::Not:
+      return GPU_link(mat,
+                      name,
+                      GPU_node_get_input_link(*node, in, "A"),
+                      &GPU_node_get_output(*node, out, "Value").link);
+    case BitMathOperation::Shift:
+    case BitMathOperation::Rotate:
+      return GPU_link(mat,
+                      name,
+                      GPU_node_get_input_link(*node, in, "A"),
+                      GPU_node_get_input_link(*node, in, "Shift"),
+                      &GPU_node_get_output(*node, out, "Value").link);
+  }
+
+  BLI_assert_unreachable();
+  return 0;
+}
+
 static void node_rna(StructRNA *srna)
 {
   PropertyRNA *prop = RNA_def_node_enum(srna,
@@ -180,12 +242,13 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  fn_node_type_base(&ntype, "FunctionNodeBitMath"_ustr);
+  fn_cmp_node_type_base(&ntype, "FunctionNodeBitMath"_ustr);
   ntype.ui_name = "Bit Math";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.labelfunc = node_label;
   ntype.build_multi_function = node_build_multi_function;
+  ntype.gpu_fn = node_gpu_material;
   ntype.draw_buttons = node_layout;
   ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.ui_description = "Perform bitwise operations on 32-bit integers";

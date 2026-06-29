@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import bpy
+import typing
 import numpy as np
 from ......io.com import gltf2_io
 from ......io.exp import binary_data as gltf2_io_binary_data
@@ -15,8 +16,10 @@ from .keyframes import gather_data_sampled_keyframes
 
 @cached
 def gather_data_sampled_animation_sampler(
+        blender_main_type,
         blender_type_data: str,
         blender_id: str,
+        bone_name: typing.Optional[str],
         channel: str,
         action_name: str,
         slot_identifier: str,
@@ -27,8 +30,10 @@ def gather_data_sampled_animation_sampler(
 ):
 
     keyframes, alpha_cst = __gather_keyframes(
+        blender_main_type,
         blender_type_data,
         blender_id,
+        bone_name,
         channel,
         action_name,
         slot_identifier,
@@ -50,8 +55,10 @@ def gather_data_sampled_animation_sampler(
 
 
 def __gather_keyframes(
+        blender_main_type,
         blender_type_data,
         blender_id,
+        bone_name,
         channel,
         action_name,
         slot_identifier,
@@ -60,8 +67,10 @@ def __gather_keyframes(
         export_settings):
 
     keyframes, alpha_cst = gather_data_sampled_keyframes(
+        blender_main_type,
         blender_type_data,
         blender_id,
+        bone_name,
         channel,
         action_name,
         slot_identifier,

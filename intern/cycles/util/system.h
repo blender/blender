@@ -26,4 +26,8 @@ uint64_t system_self_process_id();
 
 size_t system_max_open_files();
 
+/* Ensure the process can open many files simultaneously.
+ * This should be called once on application startup, as it is not thread safe. */
+void system_max_open_files_ensure();
+
 CCL_NAMESPACE_END

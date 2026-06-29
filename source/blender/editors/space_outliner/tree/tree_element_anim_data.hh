@@ -26,6 +26,11 @@ class TreeElementAnimData final : public AbstractTreeElement {
 
   void expand(SpaceOutliner &space_outliner) const override;
 
+  std::optional<BIFIconID> get_icon() const override
+  {
+    return ICON_ANIM_DATA;
+  }
+
   animrig::slot_handle_t get_slot_handle() const;
 
  private:

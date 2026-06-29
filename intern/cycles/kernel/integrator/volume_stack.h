@@ -45,6 +45,27 @@ ccl_device_forceinline void volume_stack_write(IntegratorGenericState state,
 }
 
 template<const bool shadow, typename IntegratorGenericState>
+ccl_device_inline void volume_stack_exit(IntegratorGenericState state, const int exit_i)
+{
+  /* Get size of the volume stack. */
+  /* TODO(weizhen): instead looping until SHADER_NONE, can we store the size in the first entry? */
+  int i = exit_i;
+  for (;; i++) {
+    if (volume_stack_read<shadow>(state, i + 1).shader == SHADER_NONE) {
+      break;
+    }
+  }
+
+  if (exit_i != i) {
+    /* Swap the last entry and the exit entry. */
+    volume_stack_write<shadow>(state, exit_i, volume_stack_read<shadow>(state, i));
+  }
+
+  /* Write sentinel value. */
+  volume_stack_write<shadow>(state, i, {OBJECT_NONE, SHADER_NONE});
+}
+
+template<const bool shadow, typename IntegratorGenericState>
 ccl_device void volume_stack_enter_exit(KernelGlobals kg,
                                         IntegratorGenericState state,
                                         const ccl_private ShaderData *sd)
@@ -68,19 +89,13 @@ ccl_device void volume_stack_enter_exit(KernelGlobals kg,
   if (sd->flag & SD_BACKFACING) {
     /* Exit volume object: remove from stack. */
     for (int i = 0;; i++) {
-      VolumeStack entry = volume_stack_read<shadow>(state, i);
+      const VolumeStack entry = volume_stack_read<shadow>(state, i);
       if (entry.shader == SHADER_NONE) {
         break;
       }
 
       if (entry.object == sd->object && entry.shader == sd->shader) {
-        /* Shift back next stack entries. */
-        do {
-          entry = volume_stack_read<shadow>(state, i + 1);
-          volume_stack_write<shadow>(state, i, entry);
-          i++;
-        } while (entry.shader != SHADER_NONE);
-
+        volume_stack_exit<shadow>(state, i);
         return;
       }
     }

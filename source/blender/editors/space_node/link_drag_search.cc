@@ -156,7 +156,7 @@ static void add_existing_group_input_fn(nodes::LinkSearchOpParams &params,
 }
 
 /**
- * \note This could use #search_link_ops_for_socket_templates, but we have to store the inputs and
+ * \note This could use #search_link_ops_for_declarations, but we have to store the inputs and
  * outputs as IDProperties for assets because of asset indexing, so that's all we have without
  * loading the file.
  */
@@ -179,8 +179,8 @@ static void search_link_ops_for_asset_metadata(const bNodeTree &node_tree,
   if (!properties || properties->type != IDP_GROUP) {
     return;
   }
-  const IDProperty *sockets = IDP_GetPropertyFromGroup(properties,
-                                                       in_out == SOCK_IN ? "inputs" : "outputs");
+  const IDProperty *sockets = IDP_GetPropertyFromGroup(
+      properties, in_out == SOCK_IN ? "inputs" : "output_sockets");
   if (!sockets || sockets->type != IDP_GROUP) {
     return;
   }

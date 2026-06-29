@@ -1609,8 +1609,12 @@ int BKE_linestyle_thickness_modifier_remove(FreestyleLineStyle *linestyle, LineS
     case LS_MODIFIER_NOISE:
       break;
     case LS_MODIFIER_CREASE_ANGLE:
+      BKE_curvemapping_free(
+          (reinterpret_cast<LineStyleThicknessModifier_CreaseAngle *>(m))->curve);
       break;
     case LS_MODIFIER_CURVATURE_3D:
+      BKE_curvemapping_free(
+          (reinterpret_cast<LineStyleThicknessModifier_Curvature_3D *>(m))->curve);
       break;
     default:
       break;

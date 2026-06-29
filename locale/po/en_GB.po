@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e899b48ea546')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-15 07:32+0000\n"
+"POT-Creation-Date: 2026-06-29 10:51+0000\n"
 "PO-Revision-Date: 2026-02-16 18:12+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -15029,6 +15029,14 @@ msgid "Settings for the file selection in Asset Browser mode"
 msgstr "Settings for the file selection in Asset Browser mode"
 
 
+msgid "Catalog"
+msgstr "Catalog"
+
+
+msgid "Unassigned"
+msgstr "Unassigned"
+
+
 msgid "The UUID of the catalog shown in the browser"
 msgstr "The UUID of the catalog shown in the browser"
 
@@ -17765,6 +17773,10 @@ msgstr "Tool Header"
 
 msgid "XR"
 msgstr "XR"
+
+
+msgid "Scrubbing"
+msgstr "Scrubbing"
 
 
 msgid "The space where the panel is going to be used in"
@@ -34676,10 +34688,6 @@ msgid "Do not follow drawing path or object rotation and keeps aligned with view
 msgstr "Do not follow drawing path or object rotation and keeps aligned with viewport"
 
 
-msgid "Additional rotation applied to dots and square texture of strokes. Only applies in texture shading mode."
-msgstr "Additional rotation applied to dots and square texture of strokes. Only applies in texture shading mode."
-
-
 msgid "Fill Color"
 msgstr "Fill Colour"
 
@@ -34946,48 +34954,12 @@ msgid "Render Preview"
 msgstr "Render Preview"
 
 
-msgid "Track"
-msgstr "Track"
-
-
-msgid "Math"
-msgstr "Maths"
-
-
-msgid "Utilities"
-msgstr "Utilities"
-
-
-msgid "Assign Material"
-msgstr "Assign Material"
-
-
-msgid "Read"
-msgstr "Read"
-
-
-msgid "Sample"
-msgstr "Sample"
-
-
-msgid "Write"
-msgstr "Write"
-
-
-msgid "Primitives"
-msgstr "Primitives"
-
-
 msgid "Mirror"
 msgstr "Mirror"
 
 
 msgid "Snap"
 msgstr "Snap"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
 
 
 msgid "UV Mapping"
@@ -35018,16 +34990,16 @@ msgid "View Regions"
 msgstr "View Regions"
 
 
+msgid "Math"
+msgstr "Maths"
+
+
 msgid "Select More/Less"
 msgstr "Select More/Less"
 
 
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instances"
+msgid "Utilities"
+msgstr "Utilities"
 
 
 msgid "Select Similar"
@@ -35046,16 +35018,104 @@ msgid "Select Loops"
 msgstr "Select Loops"
 
 
+msgid "Assign Material"
+msgstr "Assign Material"
+
+
+msgid "Read"
+msgstr "Read"
+
+
+msgid "Sample"
+msgstr "Sample"
+
+
+msgid "Write"
+msgstr "Write"
+
+
+msgid "Primitives"
+msgstr "Primitives"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Light"
+msgstr "Light"
+
+
+msgid "Light Probe"
+msgstr "Light Probe"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Instances"
+
+
+msgid "Add Image"
+msgstr "Add Image"
+
+
+msgid "Relations"
+msgstr "Relations"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
+
+
 msgid "Import"
 msgstr "Import"
+
+
+msgid "Apply"
+msgstr "Apply"
+
+
+msgid "Track"
+msgstr "Track"
+
+
+msgid "Quick Effects"
+msgstr "Quick Effects"
+
+
+msgid "Show/Hide"
+msgstr "Show/Hide"
 
 
 msgid "Deprecated"
 msgstr "Deprecated"
 
 
-msgid "Relations"
-msgstr "Relations"
+msgid "Clean Up"
+msgstr "Clean Up"
+
+
+msgid "Asset"
+msgstr "Asset"
+
+
+msgid "Make Single User"
+msgstr "Make Single User"
+
+
+msgid "Convert"
+msgstr "Convert"
+
+
+msgid "Link/Transfer Data"
+msgstr "Link/Transfer Data"
+
+
+msgid "Hooks"
+msgstr "Hooks"
 
 
 msgid "UV"
@@ -35066,68 +35126,20 @@ msgid "Vertex Group Locks"
 msgstr "Vertex Group Locks"
 
 
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Random Mask"
-msgstr "Random Mask"
-
-
-msgid "Asset"
-msgstr "Asset"
-
-
-msgid "Show/Hide"
-msgstr "Show/Hide"
-
-
-msgid "Apply"
-msgstr "Apply"
-
-
-msgid "Link/Transfer Data"
-msgstr "Link/Transfer Data"
-
-
-msgid "Clean Up"
-msgstr "Clean Up"
-
-
-msgid "Face Sets Init"
-msgstr "Face Sets Init"
-
-
-msgid "Light Probe"
-msgstr "Light Probe"
-
-
-msgid "Light"
-msgstr "Light"
-
-
-msgid "Add Image"
-msgstr "Add Image"
+msgid "Trim/Add"
+msgstr "Trim/Add"
 
 
 msgid "Sculpt Set Pivot"
 msgstr "Sculpt Set Pivot"
 
 
-msgid "Hooks"
-msgstr "Hooks"
+msgid "Face Sets Init"
+msgstr "Face Sets Init"
 
 
-msgid "Make Single User"
-msgstr "Make Single User"
-
-
-msgid "Quick Effects"
-msgstr "Quick Effects"
-
-
-msgid "Trim/Add"
-msgstr "Trim/Add"
+msgid "Random Mask"
+msgstr "Random Mask"
 
 
 msgid "Clear Transform"
@@ -35182,8 +35194,12 @@ msgid "Merge"
 msgstr "Merge"
 
 
-msgid "Convert"
-msgstr "Convert"
+msgid "Linked"
+msgstr "Linked"
+
+
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Special Characters"
@@ -35192,14 +35208,6 @@ msgstr "Special Characters"
 
 msgid "Kerning"
 msgstr "Kerning"
-
-
-msgid "Linked"
-msgstr "Linked"
-
-
-msgid "Layout"
-msgstr "Layout"
 
 
 msgid "Bone Roll"
@@ -35216,6 +35224,10 @@ msgstr "Keying"
 
 msgid "Tracking"
 msgstr "Tracking"
+
+
+msgid "Creative"
+msgstr "Creative"
 
 
 msgid "Pivot Point"
@@ -35236,10 +35248,6 @@ msgstr "Automasking"
 
 msgid "Face Sets Edit"
 msgstr "Face Sets Edit"
-
-
-msgid "Creative"
-msgstr "Creative"
 
 
 msgid "Keyframe Insert Pie"
@@ -35264,10 +35272,6 @@ msgstr "Add -> Armature -> Rigify Meta-Rigs."
 
 msgid "Rigify Meta-Rigs"
 msgstr "Rigify Meta-Rigs"
-
-
-msgid "Catalog"
-msgstr "Catalog"
 
 
 msgid "Assets"
@@ -46552,17 +46556,9 @@ msgid "Divide Floor"
 msgstr "Divide Floor"
 
 
-msgid "Divide and floor result, the largest integer smaller than or equal A"
-msgstr "Divide and floor result, the largest integer smaller than or equal A"
-
-
 msgctxt "NodeTree"
 msgid "Divide Ceiling"
 msgstr "Divide Ceiling"
-
-
-msgid "Divide and ceil result, the smallest integer greater than or equal A"
-msgstr "Divide and ceil result, the smallest integer greater than or equal A"
 
 
 msgctxt "NodeTree"
@@ -57989,6 +57985,18 @@ msgid "+X to -X"
 msgstr "+X to -X"
 
 
+msgid "Asset Library Identifier"
+msgstr "Asset Library Identifier"
+
+
+msgid "Asset Library Type"
+msgstr "Asset Library Type"
+
+
+msgid "Relative Asset Identifier"
+msgstr "Relative Asset Identifier"
+
+
 msgid "Set this pose Action as active Action on the active Object"
 msgstr "Set this pose Action as active Action on the active Object"
 
@@ -58341,18 +58349,6 @@ msgstr "Activate Brush Asset"
 
 msgid "Activate a brush asset as current sculpt and paint tool"
 msgstr "Activate a brush asset as current sculpt and paint tool"
-
-
-msgid "Asset Library Identifier"
-msgstr "Asset Library Identifier"
-
-
-msgid "Asset Library Type"
-msgstr "Asset Library Type"
-
-
-msgid "Relative Asset Identifier"
-msgstr "Relative Asset Identifier"
 
 
 msgid "Switch between the current and assigned brushes on consecutive uses."
@@ -91301,6 +91297,26 @@ msgid "Panel containing UI elements"
 msgstr "Panel containing UI elements"
 
 
+msgid "Selectability & Visibility"
+msgstr "Selectability & Visibility"
+
+
+msgid "Shadow Settings"
+msgstr "Shadow Settings"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Settings"
+
+
+msgid "Cavity"
+msgstr "Cavity"
+
+
+msgid "Render Pass"
+msgstr "Render Pass"
+
+
 msgid "Compositor"
 msgstr "Compositor"
 
@@ -91419,26 +91435,6 @@ msgstr "Active Tool"
 
 msgid "View Lock"
 msgstr "View Lock"
-
-
-msgid "Selectability & Visibility"
-msgstr "Selectability & Visibility"
-
-
-msgid "Shadow Settings"
-msgstr "Shadow Settings"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Settings"
-
-
-msgid "Cavity"
-msgstr "Cavity"
-
-
-msgid "Render Pass"
-msgstr "Render Pass"
 
 
 msgid "Import Settings"
@@ -92753,11 +92749,6 @@ msgstr "Push"
 msgctxt "Operator"
 msgid "Roll"
 msgstr "Roll"
-
-
-msgctxt "Operator"
-msgid "Bone Size"
-msgstr "Bone Size"
 
 
 msgctxt "Operator"
@@ -115942,16 +115933,6 @@ msgstr "3D View Tool: Edit Armature, Roll (fallback)"
 
 
 msgctxt "WindowManager"
-msgid "3D View Tool: Edit Armature, Bone Size"
-msgstr "3D View Tool: Edit Armature, Bone Size"
-
-
-msgctxt "WindowManager"
-msgid "3D View Tool: Edit Armature, Bone Size (fallback)"
-msgstr "3D View Tool: Edit Armature, Bone Size (fallback)"
-
-
-msgctxt "WindowManager"
 msgid "3D View Tool: Edit Armature, Bone Envelope"
 msgstr "3D View Tool: Edit Armature, Bone Envelope"
 
@@ -126142,10 +126123,6 @@ msgid "Duplicate Marker to Scene"
 msgstr "Duplicate Marker to Scene"
 
 
-msgid "Scrubbing"
-msgstr "Scrubbing"
-
-
 msgid "Limit to Frame Range"
 msgstr "Limit to Frame Range"
 
@@ -129552,10 +129529,6 @@ msgstr "Attribute domain not supported by this geometry type"
 
 msgid "The attribute name must not be empty"
 msgstr "The attribute name must not be empty"
-
-
-msgid "Attribute is required and cannot be removed"
-msgstr "Attribute is required and cannot be removed"
 
 
 msgid "Domain unsupported for \"%s\" attribute"
@@ -134760,10 +134733,6 @@ msgid "Loading Asset Libraries"
 msgstr "Loading Asset Libraries"
 
 
-msgid "Unassigned"
-msgstr "Unassigned"
-
-
 msgid ""
 "Modifier node group assets not assigned to a catalog.\n"
 "Catalogs can be assigned in the Asset Browser"
@@ -136226,24 +136195,12 @@ msgid "Object must be in object mode"
 msgstr "Object must be in object mode"
 
 
-msgid "Bake failed: no Fluid modifier found"
-msgstr "Bake failed: no Fluid modifier found"
-
-
-msgid "Bake failed: invalid domain"
-msgstr "Bake failed: invalid domain"
-
-
 msgid "Bake free failed: no Fluid modifier found"
 msgstr "Bake free failed: no Fluid modifier found"
 
 
 msgid "Bake free failed: invalid domain"
 msgstr "Bake free failed: invalid domain"
-
-
-msgid "Bake free failed: pending bake jobs found"
-msgstr "Bake free failed: pending bake jobs found"
 
 
 msgid "Fluid: Empty cache path, reset to default '%s'"
@@ -138549,10 +138506,6 @@ msgstr "Verts:%s | Faces:%s | Tris:%s"
 
 msgid " | Objects:%s/%s"
 msgstr " | Objects:%s/%s"
-
-
-msgid "Duration: %s (Frame %i/%i)"
-msgstr "Duration: %s (Frame %i/%i)"
 
 
 msgid "Memory: %s"
@@ -142561,6 +142514,10 @@ msgid "Attribute per point/vertex"
 msgstr "Attribute per point/vertex"
 
 
+msgid "Attribute is required and cannot be removed"
+msgstr "Attribute is required and cannot be removed"
+
+
 msgid "Smooth the surface"
 msgstr "Smooth the surface"
 
@@ -144279,10 +144236,6 @@ msgstr "DataTransfer"
 
 msgid "Topology Mapping"
 msgstr "Topology Mapping"
-
-
-msgid "Face Count: %s"
-msgstr "Face Count: %s"
 
 
 msgid "Modifier requires more than 3 input faces"
@@ -149494,6 +149447,14 @@ msgid "Font not specified"
 msgstr "Font not specified"
 
 
+msgid "Top Right"
+msgstr "Top Right"
+
+
+msgid "Bottom Left"
+msgstr "Bottom Left"
+
+
 msgid "Text Box Width"
 msgstr "Text Box Width"
 
@@ -149596,14 +149557,6 @@ msgstr "Exact Shape"
 
 msgid "Use exact geometry for most efficient packing (slowest)"
 msgstr "Use exact geometry for most efficient packing (slowest)"
-
-
-msgid "Bottom Left"
-msgstr "Bottom Left"
-
-
-msgid "Top Right"
-msgstr "Top Right"
 
 
 msgid "Faces to consider when packing islands"
@@ -151404,10 +151357,6 @@ msgid "unable to open the file"
 msgstr "unable to open the file"
 
 
-msgid "Save %u modified image(s)"
-msgstr "Save %u modified image(s)"
-
-
 msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"
 msgstr "For security reasons, automatic execution of Python scripts in this file was disabled:"
 
@@ -152976,10 +152925,6 @@ msgid "The intensity of the aberration effect"
 msgstr "The intensity of the aberration effect"
 
 
-msgid "The number of samples used to compute the blur. The more samples the smoother the result, at the expense of more compute time. The actual number of samples is two to the power of this input, so it increases exponentially"
-msgstr "The number of samples used to compute the blur. The more samples the smoother the result, at the expense of more compute time. The actual number of samples is two to the power of this input, so it increases exponentially"
-
-
 msgid "Different styles of aberrations"
 msgstr "Different styles of aberrations"
 
@@ -153040,16 +152985,8 @@ msgid "Cycle Length"
 msgstr "Cycle Length"
 
 
-msgid "Number of frames to cycle through. Not affected by Speed"
-msgstr "Number of frames to cycle through. Not affected by Speed"
-
-
 msgid "Restart from start frame when Cycle Length is reached"
 msgstr "Restart from start frame when Cycle Length is reached"
-
-
-msgid "Offset to add to the current scene frame. Can also be negative"
-msgstr "Offset to add to the current scene frame. Can also be negative"
 
 
 msgid "Multiply the current scene frame by this factor"
@@ -153088,16 +153025,8 @@ msgid "Separate Cylindrical"
 msgstr "Separate Cylindrical"
 
 
-msgid "Decompose into its cylindrical components."
-msgstr "Decompose into its cylindrical components."
-
-
 msgid "Separate Spherical"
 msgstr "Separate Spherical"
-
-
-msgid "Decompose into its spherical components."
-msgstr "Decompose into its spherical components."
 
 
 msgid "Applies a brown tint to mimic vintage photo tones."
@@ -153192,10 +153121,6 @@ msgid "Darkens edges."
 msgstr "Darkens edges."
 
 
-msgid "Roation of the area to be darkened"
-msgstr "Roation of the area to be darkened"
-
-
 msgid "Corner Roundness"
 msgstr "Corner Roundness"
 
@@ -153230,10 +153155,6 @@ msgstr "Curve ID"
 
 msgid "ID of each curve"
 msgstr "ID of each curve"
-
-
-msgid "Index of each Curve"
-msgstr "Index of each Curve"
 
 
 msgid "Direction from root to tip of each curve"
@@ -153300,32 +153221,16 @@ msgid "Curve Segment"
 msgstr "Curve Segment"
 
 
-msgid "Reads information each point's previous curve segment"
-msgstr "Reads information each point's previous curve segment"
-
-
 msgid "Neighbor Index"
 msgstr "Neighbour Index"
-
-
-msgid "Index of previous neighboring point on segment"
-msgstr "Index of previous neighbouring point on segment"
 
 
 msgid "Segment Direction"
 msgstr "Segment Direction"
 
 
-msgid "Direction from previous neighboring point on segment"
-msgstr "Direction from previous neighbouring point on segment"
-
-
 msgid "Segment Length"
 msgstr "Segment Length"
-
-
-msgid "Distance to previous point on curve"
-msgstr "Distance to previous point on curve"
 
 
 msgid "Curve Tip"
@@ -153442,10 +153347,6 @@ msgstr "Exclude Last"
 
 msgid "Exclude the last copy from randomization"
 msgstr "Exclude the last copy from randomization"
-
-
-msgid "Merge overlapping points by their distance. (Realize Instances must be enabled)"
-msgstr "Merge overlapping points by their distance. (Realise Instances must be enabled)"
 
 
 msgid "Distance below which points will be merged"
@@ -153724,10 +153625,6 @@ msgid "Profile Resolution"
 msgstr "Profile Resolution"
 
 
-msgid "Number of points on the profile circle. Also defines the round cap resolution"
-msgstr "Number of points on the profile circle. Also defines the round cap resolution"
-
-
 msgid "Resample"
 msgstr "Resample"
 
@@ -153792,16 +153689,8 @@ msgid "UV Map Parameter U"
 msgstr "UV Map Parameter U"
 
 
-msgid "Method generate map's X coordinate along the main curve"
-msgstr "Method generate map's X coordinate along the main curve"
-
-
 msgid "UV Map Parameter V"
 msgstr "UV Map Parameter V"
-
-
-msgid "Method generate map's Y coordinate along the profile curve"
-msgstr "Method generate map's Y coordinate along the profile curve"
 
 
 msgid "No curve data in input"
@@ -153842,10 +153731,6 @@ msgstr "Displace geometry by an offset iteratively"
 
 msgid "Distance of the displacement offset in normal direction"
 msgstr "Distance of the displacement offset in normal direction"
-
-
-msgid "Input method how to generate the displacement vector"
-msgstr "Input method how to generate the displacement vector"
 
 
 msgid "Offset Vector"
@@ -153908,10 +153793,6 @@ msgid "Take reference geometry as input"
 msgstr "Take reference geometry as input"
 
 
-msgid "Input the geometry as an instance. (Further processing might require non-instance geometry)"
-msgstr "Input the geometry as an instance. (Further processing might require non-instance geometry)"
-
-
 msgid "Collection to use as the input geometry"
 msgstr "Collection to use as the input geometry"
 
@@ -153928,20 +153809,12 @@ msgid "Transform the input relative to the main geometry"
 msgstr "Transform the input relative to the main geometry"
 
 
-msgid "Replace the incoming geometry with the selected input geometry"
-msgstr "Replace the incoming geometry with the selected input geometry"
-
-
 msgid "Instance on Elements"
 msgstr "Instance on Elements"
 
 
 msgid "Create copies of referenced geometry on geometry elements"
 msgstr "Create copies of referenced geometry on geometry elements"
-
-
-msgid "Rotate instances based on the shape of the incoming geometry"
-msgstr "Rotate instances based on the shape of the incoming geometry"
 
 
 msgid "Instance geometry collection"
@@ -153974,10 +153847,6 @@ msgstr "Move the instances towards the face centre"
 
 msgid "Corner Offset Method"
 msgstr "Corner Offset Method"
-
-
-msgid "Method for direction of the offset along the corner"
-msgstr "Method for direction of the offset along the corner"
 
 
 msgid "Even Edge Distance"
@@ -154020,20 +153889,8 @@ msgid "Keep Surface"
 msgstr "Keep Surface"
 
 
-msgid "Keep the original incoming geometry and join it with the instance geometry"
-msgstr "Keep the original incoming geometry and join it with the instance geometry"
-
-
-msgid "Specify which elements to use for instancing. (Floating point values result in a random selection)"
-msgstr "Specify which elements to use for instancing. (Floating point values result in a random selection)"
-
-
 msgid "Instance geometry object"
 msgstr "Instance geometry object"
-
-
-msgid "Choose child instances each element instead of instancing the entire geometry"
-msgstr "Choose child instances each element instead of instancing the entire geometry"
 
 
 msgid "Reset Transform"
@@ -154052,10 +153909,6 @@ msgid "Scale by Face Area"
 msgstr "Scale by Face Area"
 
 
-msgid "Scale the instances based on the face area of the incoming geometry"
-msgstr "Scale the instances based on the face area of the incoming geometry"
-
-
 msgid "Scale by Face Area Multiplier"
 msgstr "Scale by Face Area Multiplier"
 
@@ -154064,16 +153917,8 @@ msgid "Multiply the instance scale with a factor to calibrate the considered fac
 msgstr "Multiply the instance scale with a factor to calibrate the considered face area"
 
 
-msgid "Distance to offset each instance along the normal of the incoming geometry"
-msgstr "Distance to offset each instance along the normal of the incoming geometry"
-
-
 msgid "Configuration regarding the transformation of each instance"
 msgstr "Configuration regarding the transformation of each instance"
-
-
-msgid "Pick Instance is on, but there is no instances to pick from. Falling back to use input as instance."
-msgstr "Pick Instance is on, but there is no instances to pick from. Falling back to use input as instance."
 
 
 msgid "Is Edge Boundary"
@@ -154116,16 +153961,8 @@ msgid "Is UV Split"
 msgstr "Is UV Split"
 
 
-msgid "Returns a selection of edges that make up a seam in the provided UV data. A seam is defined as a discontinuity of the data between connected face corners"
-msgstr "Returns a selection of edges that make up a seam in the provided UV data. A seam is defined as a discontinuity of the data between connected face corners"
-
-
 msgid "Selection of edges that signify a discontinuity of the input vectors"
 msgstr "Selection of edges that signify a discontinuity of the input vectors"
-
-
-msgid "Vectors to compare between connected face corners of an egde for differences. (Supports 3D vectors)"
-msgstr "Vectors to compare between connected face corners of an egde for differences. (Supports 3D vectors)"
 
 
 msgid "Normal Selection"
@@ -154138,10 +153975,6 @@ msgstr "Create a selection by normal"
 
 msgid "Target direction to compare the normal to"
 msgstr "Target direction to compare the normal to"
-
-
-msgid "Selection of elements with normals matching a target direction. (The normal is evaluated on the same domain as this selection output)"
-msgstr "Selection of elements with normals matching a target direction. (The normal is evaluated on the same domain as this selection output)"
 
 
 msgid "Maximum angle between normal and target to include in the selection"
@@ -154288,10 +154121,6 @@ msgid "Configuration of the scattered instances"
 msgstr "Configuration of the scattered instances"
 
 
-msgid "Keep the original incoming geometry and join it with the scattered geometry"
-msgstr "Keep the original incoming geometry and join it with the scattered geometry"
-
-
 msgid "Additional masking applied after the initial scattering of instances"
 msgstr "Additional masking applied after the initial scattering of instances"
 
@@ -154330,10 +154159,6 @@ msgstr "Scale of the instances on each local axis"
 
 msgid "Scatter on Instances"
 msgstr "Scatter on Instances"
-
-
-msgid "Use instances contained in the incoming geometry as base for scattering"
-msgstr "Use instances contained in the incoming geometry as base for scattering"
 
 
 msgid "Which faces to scatter on"
@@ -154472,20 +154297,16 @@ msgid "Reads attachment information regarding a surface mesh"
 msgstr "Reads attachment information regarding a surface mesh"
 
 
+msgid "Whether the stored attachment UV coordinate is valid"
+msgstr "Whether the stored attachment UV coordinate is valid"
+
+
 msgid "Attachment UV"
 msgstr "Attachment UV"
 
 
 msgid "Surface attachment UV coordinates stored on each curve"
 msgstr "Surface attachment UV coordinates stored on each curve"
-
-
-msgid "Attachment is Valid"
-msgstr "Attachment is Valid"
-
-
-msgid "Whether the stored attachment UV coordinate is valid"
-msgstr "Whether the stored attachment UV coordinate is valid"
 
 
 msgid "Surface geometry of the curve attachment"
@@ -154616,10 +154437,6 @@ msgid "Guide index map that was used for the operation"
 msgstr "Guide index map that was used for the operation"
 
 
-msgid "Guide index map to be used. This input has priority"
-msgstr "Guide index map to be used. This input has priority"
-
-
 msgid "Guide Map"
 msgstr "Guide Map"
 
@@ -154740,10 +154557,6 @@ msgid "Random seed for the operation"
 msgstr "Random seed for the operation"
 
 
-msgid "Shape of the influence along curves (0=constant, 0.5=linear)"
-msgstr "Shape of the influence along curves (0=constant, 0.5=linear)"
-
-
 msgid "Tip Spread"
 msgstr "Tip Spread"
 
@@ -154810,10 +154623,6 @@ msgstr "Overall radius of the curls"
 
 msgid "Amount of random offset per curve"
 msgstr "Amount of random offset per curve"
-
-
-msgid "Random Seed for the operation"
-msgstr "Random Seed for the operation"
 
 
 msgid "Displace Hair Curves"
@@ -155014,10 +154823,6 @@ msgstr "Scale of noise texture along each curve"
 
 msgid "Seed value for randomization"
 msgstr "Seed value for randomization"
-
-
-msgid "Shape of amount along each curve (0=constant, 0.5=linear)"
-msgstr "Shape of amount along each curve (0=constant, 0.5=linear)"
 
 
 msgid "Interpolates existing guide curves on a surface mesh"

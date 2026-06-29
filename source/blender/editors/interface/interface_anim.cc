@@ -165,7 +165,7 @@ void button_anim_decorate_update_from_flag(ButtonDecorator *but)
     return;
   }
 
-  const int flag = but_anim->flag;
+  const int64_t flag = but_anim->flag;
 
   if (flag & BUT_DRIVEN) {
     but->icon = ICON_DECORATE_DRIVER;
@@ -188,7 +188,7 @@ void button_anim_decorate_update_from_flag(ButtonDecorator *but)
     but->toggle_keyframe_on_click = true;
   }
 
-  const int flag_copy = (BUT_DISABLED | BUT_INACTIVE);
+  const int64_t flag_copy = (BUT_DISABLED | BUT_INACTIVE);
   but->flag = (but->flag & ~flag_copy) | (flag & flag_copy);
 }
 

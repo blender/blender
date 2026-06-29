@@ -94,7 +94,7 @@ void VKDevice::deinit()
     return;
   }
 
-  deinit_submission_pool();
+  deinit_submission_thread();
 
   dummy_buffer.free();
   samplers_.free();
@@ -169,7 +169,7 @@ void VKDevice::init(GHOST_IContext *ghost_context)
   resources.use_dynamic_rendering_local_read = extensions_.dynamic_rendering_local_read;
   orphaned_data.timeline_ = 0;
 
-  init_submission_pool();
+  init_submission_thread();
   is_initialized_ = true;
 }
 

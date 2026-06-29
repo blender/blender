@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e899b48ea546')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-06-15 07:32+0000\n"
+"POT-Creation-Date: 2026-06-29 10:51+0000\n"
 "PO-Revision-Date: 2026-04-13 10:12+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21188,24 +21188,12 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Track"
-msgstr "Rastrear"
-
-
-msgid "Math"
-msgstr "Matemática"
-
-
 msgid "Mirror"
 msgstr "Espelhar"
 
 
 msgid "Snap"
 msgstr "Atrair"
-
-
-msgid "Rigid Body"
-msgstr "Corpo rígido"
 
 
 msgid "UV Mapping"
@@ -21236,12 +21224,12 @@ msgid "View Regions"
 msgstr "Visualizar Regiões"
 
 
+msgid "Math"
+msgstr "Matemática"
+
+
 msgid "Select More/Less"
 msgstr "Selecionar mais ou menos"
-
-
-msgid "Instances"
-msgstr "Instâncias"
 
 
 msgid "Select Similar"
@@ -21260,60 +21248,76 @@ msgid "Select Loops"
 msgstr "Selecionar anéis"
 
 
-msgid "Import"
-msgstr "Importar"
-
-
-msgid "Relations"
-msgstr "Relações"
-
-
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Metaball"
 msgstr "Meta-esfera"
-
-
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
-
-
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
-msgid "Apply"
-msgstr "Aplicar"
-
-
-msgid "Clean Up"
-msgstr "Limpeza"
-
-
-msgid "Light Probe"
-msgstr "Sonda de Luz"
 
 
 msgid "Light"
 msgstr "Luz"
 
 
+msgid "Light Probe"
+msgstr "Sonda de Luz"
+
+
+msgid "Instances"
+msgstr "Instâncias"
+
+
 msgid "Add Image"
 msgstr "Adicionar Imagem"
 
 
-msgid "Hooks"
-msgstr "Ganchos"
+msgid "Relations"
+msgstr "Relações"
+
+
+msgid "Rigid Body"
+msgstr "Corpo rígido"
+
+
+msgid "Import"
+msgstr "Importar"
+
+
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Track"
+msgstr "Rastrear"
+
+
+msgid "Quick Effects"
+msgstr "Efeitos instantâneos"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
 
 
 msgid "Make Single User"
 msgstr "Tornar usuário único"
 
 
-msgid "Quick Effects"
-msgstr "Efeitos instantâneos"
+msgid "Convert"
+msgstr "Converter"
+
+
+msgid "Hooks"
+msgstr "Ganchos"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
 
 
 msgid "Clear Transform"
@@ -21356,20 +21360,16 @@ msgid "Merge"
 msgstr "Fundir"
 
 
-msgid "Convert"
-msgstr "Converter"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
 msgid "Linked"
 msgstr "Vinculando"
 
 
 msgid "Layout"
 msgstr "Organizar"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
 
 
 msgid "Bone Roll"
@@ -47979,6 +47979,10 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
+msgid "Render Pass"
+msgstr "Passo de renderização"
+
+
 msgid "Motion Tracking"
 msgstr "Captura de movimentos"
 
@@ -47993,10 +47997,6 @@ msgstr "Exibição Quadrante"
 
 msgid "Stereoscopy"
 msgstr "Estereoscopia"
-
-
-msgid "Render Pass"
-msgstr "Passo de renderização"
 
 
 msgid "Bone Constraints"
@@ -48590,11 +48590,6 @@ msgstr "Empurrar"
 msgctxt "Operator"
 msgid "Roll"
 msgstr "Rolagem"
-
-
-msgctxt "Operator"
-msgid "Bone Size"
-msgstr "Tamanho dos ossos"
 
 
 msgctxt "Operator"
@@ -66968,6 +66963,10 @@ msgid "Strings"
 msgstr "Fios"
 
 
+msgid "Top Right"
+msgstr "Topo à Direita"
+
+
 msgid "Text Box Width"
 msgstr "Largura da caixa de texto"
 
@@ -66978,10 +66977,6 @@ msgstr "Altura da caixa de texto"
 
 msgid "Edge Crease"
 msgstr "Vincos de arestas"
-
-
-msgid "Top Right"
-msgstr "Topo à Direita"
 
 
 msgid "Rotate islands for best fit"

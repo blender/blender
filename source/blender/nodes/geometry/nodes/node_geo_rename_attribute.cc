@@ -19,13 +19,13 @@ const EnumPropertyItem rename_mode_items[] = {
     {int(RenameMode::Single),
      "SINGLE",
      0,
-     "Single",
-     "Rename a single attribute with the provided attribute name"},
+     N_("Single"),
+     N_("Rename a single attribute with the provided attribute name")},
     {int(RenameMode::Prefix),
      "PREFIX",
      0,
-     "Prefix",
-     "Rename all attributes with the provided prefix"},
+     N_("Prefix"),
+     N_("Rename all attributes with the provided prefix")},
     {},
 };
 

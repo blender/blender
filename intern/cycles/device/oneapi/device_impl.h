@@ -16,7 +16,7 @@ CCL_NAMESPACE_BEGIN
 class DeviceQueue;
 
 using OneAPIDeviceIteratorCallback =
-    void (*)(const char *, const char *, const int, bool, bool, bool, void *);
+    void (*)(const char *, const char *, const int, bool, bool, bool, bool, void *);
 
 class OneapiDevice : public GPUDevice {
  private:

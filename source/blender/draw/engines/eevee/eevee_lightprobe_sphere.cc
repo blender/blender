@@ -18,7 +18,7 @@ int SphereProbeModule::probe_render_extent() const
 
 void SphereProbeModule::init()
 {
-  if (!instance_.is_viewport()) {
+  if (!instance_.is_viewport() || instance_.is_image_render) {
     /* TODO(jbakker): should we check on the subtype as well? Now it also populates even when
      * there are other light probes in the scene. */
     update_probes_next_sample_ = DEG_id_type_any_exists(instance_.depsgraph, ID_LP);

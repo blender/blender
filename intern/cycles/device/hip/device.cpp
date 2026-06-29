@@ -24,8 +24,11 @@
 
 CCL_NAMESPACE_BEGIN
 
-bool device_hip_init()
+bool device_hip_init(bool *r_meets_driver_requirement)
 {
+  if (r_meets_driver_requirement) {
+    *r_meets_driver_requirement = true;
+  }
 #if !defined(WITH_HIP)
   return false;
 #elif defined(WITH_HIP_DYNLOAD)
@@ -43,6 +46,13 @@ bool device_hip_init()
     LOG_INFO << "HIPEW initialization succeeded";
     if (!hipSupportsDriver()) {
       LOG_WARNING << "Driver version is too old";
+      if (r_meets_driver_requirement) {
+        *r_meets_driver_requirement = false;
+      }
+      /* The device will not be used because it does not meet the driver requirement.
+       * Returning true ensures the real AMD device information is still reported
+       * in the UI. */
+      result = true;
     }
     else if (HIPDevice::have_precompiled_kernels()) {
       LOG_INFO << "Found precompiled kernels";
@@ -64,6 +74,9 @@ bool device_hip_init()
     else if (hipew_result == HIPEW_ERROR_OLD_DRIVER) {
       LOG_WARNING << "HIPEW initialization failed: Driver version too old, requires AMD Adrenalin "
                      "driver 24.9.1 or newer, or AMD Radeon Pro driver 24.Q4 or newer";
+      if (r_meets_driver_requirement) {
+        *r_meets_driver_requirement = false;
+      }
     }
     else {
       LOG_WARNING << "HIPEW initialization failed: Error opening HIP dynamic library";
@@ -167,7 +180,6 @@ void device_hip_info(vector<DeviceInfo> &devices)
     info.description = string(name);
     info.num = num;
 
-    info.has_mnee = true;
     info.has_nanovdb = true;
 
     info.has_gpu_queue = true;

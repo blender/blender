@@ -5,11 +5,15 @@
 from .pbrMetallicRoughness import base_color
 
 
-def unlit(mh):
+def unlit(material_idx, vertex_color, mh):
     """Creates node tree for unlit materials."""
     # Emission node for the base color
     emission_node = mh.nodes.new('ShaderNodeEmission')
     emission_node.location = 10, 126
+
+    # Store socket info for KHR_animation_pointer
+    # Vertex color?
+    mh.gltf.socket_infos[material_idx]['rgb_socket'] = emission_node.inputs['Color']
 
     # Create a "Lightpath trick": makes Emission visible only to
     # camera rays, so it won't "glow" in Cycles.
@@ -47,6 +51,9 @@ def unlit(mh):
         mh.links.new(mix2_node.inputs[1], transparent_node.outputs[0])
         mh.links.new(mix2_node.inputs[2], mix_node.outputs[0])
         mh.links.new(out_node.inputs[0], mix2_node.outputs[0])
+
+        # Store socket info for KHR_animation_pointer
+        mh.gltf.socket_infos[material_idx]['alpha_socket'] = mix2_node.inputs['Fac']
 
     base_color(
         mh,

@@ -682,6 +682,14 @@ class USDExportTest(AbstractUSDTest):
         self.check_primvar(prim, "fc_quat", "VtArray<GfQuatf>", "faceVarying", 4)
         self.check_primvar(prim, "fc_mat4x4", "VtArray<GfMatrix4d>", "faceVarying", 4)
 
+        # Matrix attributes need additional validation to check row-major vs. col-major differences.
+        # Pick a representative matrix to check.
+        pv = UsdGeom.PrimvarsAPI(prim).GetPrimvar("p_mat4x4")
+        usd_mat = pv.Get()[3]
+        usd_values = [usd_mat[i][j] for i in range(0, 4) for j in range(0, 4)]
+        expected = [0.4, 0.8, 1.2, 1.6] * 4
+        self.assertTrue(self.round_vector(usd_values), expected)
+
         prim = stage.GetPrimAtPath("/root/Curve_base/Curves/Curves")
 
         self.check_primvar(prim, "p_bool", "VtArray<bool>", "vertex", 24)

@@ -303,7 +303,10 @@ class AttributeTableBuilder {
         attr_float3{dscene->attributes_float3, 0, 0},
         attr_float4{dscene->attributes_float4, 0, 0},
         attr_uchar4{dscene->attributes_uchar4, 0, 0},
-        attr_normal{dscene->attributes_normal, 0, 0}
+        attr_normal{dscene->attributes_normal, 0, 0},
+        tri_verts{dscene->tri_verts, 0, 0},
+        curve_keys{dscene->curve_keys, 0, 0},
+        points{dscene->points, 0, 0}
   {
   }
 
@@ -313,6 +316,11 @@ class AttributeTableBuilder {
   AttributeTableEntry<float4> attr_float4;
   AttributeTableEntry<uchar4> attr_uchar4;
   AttributeTableEntry<packed_normal> attr_normal;
+
+  /* Positions in dedicated arrays, gives better BVH2 perforamnce. */
+  AttributeTableEntry<packed_float3> tri_verts;
+  AttributeTableEntry<float4> curve_keys;
+  AttributeTableEntry<float4> points;
 
   void add(Geometry *geom,
            Attribute *mattr,
@@ -393,9 +401,11 @@ class AttributeTableBuilder {
       }
     }
     else {
-      offset = attr_float3.add(mattr->data<packed_float3>(), per_step, mattr->modified);
+      AttributeTableEntry<packed_float3> &table = (mattr->std == ATTR_STD_POSITION) ? tri_verts :
+                                                                                      attr_float3;
+      offset = table.add(mattr->data<packed_float3>(), per_step, mattr->modified);
       for (int step = 1; step <= num_motion; step++) {
-        attr_float3.add(mattr->data<packed_float3>(step), per_step, mattr->modified);
+        table.add(mattr->data<packed_float3>(step), per_step, mattr->modified);
       }
     }
 
@@ -456,7 +466,9 @@ class AttributeTableBuilder {
       attr_float4.reserve(size);
     }
     else {
-      attr_float3.reserve(size);
+      AttributeTableEntry<packed_float3> &table = (mattr->std == ATTR_STD_POSITION) ? tri_verts :
+                                                                                      attr_float3;
+      table.reserve(size);
     }
   }
 
@@ -486,7 +498,8 @@ class AttributeTableBuilder {
 
     int &offset = desc.offset;
     const bool modified = attr_P->modified || attr_R->modified;
-    offset = attr_float4.add(combined.data(), total_size, modified);
+    AttributeTableEntry<float4> &table = geom->is_hair() ? curve_keys : points;
+    offset = table.add(combined.data(), total_size, modified);
 
     /* Pointcloud uses global primitive index. */
     if (geom->is_pointcloud()) {
@@ -498,7 +511,8 @@ class AttributeTableBuilder {
   {
     const int steps = attr_P->has_motion() ? geom->get_motion_steps() : 1;
     const size_t total_size = attr_P->size * steps;
-    attr_float4.reserve(total_size);
+    AttributeTableEntry<float4> &table = geom->is_hair() ? curve_keys : points;
+    table.reserve(total_size);
   }
 
   void alloc()
@@ -509,6 +523,9 @@ class AttributeTableBuilder {
     attr_float4.alloc();
     attr_uchar4.alloc();
     attr_normal.alloc();
+    tri_verts.alloc();
+    curve_keys.alloc();
+    points.alloc();
   }
 
   void copy_to_device_if_modified()
@@ -519,6 +536,9 @@ class AttributeTableBuilder {
     attr_float4.data.copy_to_device_if_modified();
     attr_uchar4.data.copy_to_device_if_modified();
     attr_normal.data.copy_to_device_if_modified();
+    tri_verts.data.copy_to_device_if_modified();
+    curve_keys.data.copy_to_device_if_modified();
+    points.data.copy_to_device_if_modified();
   }
 };
 

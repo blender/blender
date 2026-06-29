@@ -65,6 +65,8 @@ class LinkSearchOpParams {
    * Like #connect_available_socket, but also calls the node's update function.
    */
   void update_and_connect_available_socket(bNode &new_node, UString socket_name);
+  void update_and_connect_available_socket_by_identifier(bNode &new_node,
+                                                         UString socket_identifier);
 };
 
 struct SocketLinkOperation {

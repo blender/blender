@@ -38,7 +38,7 @@ static bool imb_is_grayscale_texture_format_compatible(const ImBuf *ibuf)
 
   if (ibuf->byte_data() && !ibuf->float_data()) {
 
-    if (IMB_colormanagement_space_is_srgb(ibuf->byte_buffer.colorspace) ||
+    if (IMB_colormanagement_space_is_scene_linear_srgb(ibuf->byte_buffer.colorspace) ||
         IMB_colormanagement_space_is_scene_linear(ibuf->byte_buffer.colorspace))
     {
       /* Grey-scale byte buffers with these color transforms utilize float buffers under the hood
@@ -53,7 +53,7 @@ static bool imb_is_grayscale_texture_format_compatible(const ImBuf *ibuf)
   /* Only #IMBuf's with color-space that do not modify the chrominance of the texture data relative
    * to the scene color space can be uploaded as single channel textures. */
   if (IMB_colormanagement_space_is_data(ibuf->float_buffer.colorspace) ||
-      IMB_colormanagement_space_is_srgb(ibuf->float_buffer.colorspace) ||
+      IMB_colormanagement_space_is_scene_linear_srgb(ibuf->float_buffer.colorspace) ||
       IMB_colormanagement_space_is_scene_linear(ibuf->float_buffer.colorspace))
   {
     return true;
@@ -86,8 +86,8 @@ static void imb_gpu_get_format(const ImBuf *ibuf,
       *r_texture_format = (is_grayscale) ? gpu::TextureFormat::UNORM_8 :
                                            gpu::TextureFormat::UNORM_8_8_8_8;
     }
-    else if (IMB_colormanagement_space_is_srgb(ibuf->byte_buffer.colorspace)) {
-      /* sRGB, store as byte texture that the GPU can decode directly. */
+    else if (IMB_colormanagement_space_is_scene_linear_srgb(ibuf->byte_buffer.colorspace)) {
+      /* scene linear + sRGB, store as byte texture that the GPU can decode directly. */
       *r_texture_format = (is_grayscale) ? gpu::TextureFormat::SFLOAT_16 :
                                            gpu::TextureFormat::SRGBA_8_8_8_8;
     }
@@ -195,11 +195,12 @@ static ImBuf *get_gpu_texture_data(ImBuf *source_buffer,
         output_buffer = buffer;
       }
     }
-    else if (IMB_colormanagement_space_is_srgb(source_buffer->byte_buffer.colorspace)) {
-      /* Images in sRGB color space are a special case since they can be stored in sRGB textures on
-       * GPU, where scene linear space conversion will happen during sampling in the shader,
-       * however, this is not possible for grayscale images, so we need to do the conversion here,
-       * converting to a float image to prevent precision loss.
+    else if (IMB_colormanagement_space_is_scene_linear_srgb(source_buffer->byte_buffer.colorspace))
+    {
+      /* Images in scene linear + sRGB color space are a special case since they can be stored in
+       * sRGB textures on GPU, where scene linear space conversion will happen during sampling in
+       * the shader, however, this is not possible for grayscale images, so we need to do the
+       * conversion here, converting to a float image to prevent precision loss.
        *
        * It should be noted that for other color spaces, color space conversion happen before alpha
        * premultiplication, while for sRGB, premultiplication will happen first since color space
@@ -527,8 +528,11 @@ gpu::Texture *IMB_acquire_gpu_texture(const char *name,
   }
   gpu::Texture *tex = IMB_create_gpu_texture(name, ibuf, create_flags);
   if (tex == nullptr) {
+    ibuf->gpu.flag |= IMB_GPU_LOAD_FAILED;
+    ibuf->gpu.lastused = BLI_time_now_seconds_i();
     return nullptr;
   }
+  ibuf->gpu.flag &= ~IMB_GPU_LOAD_FAILED;
 
   GPU_texture_extend_mode(tex, GPU_SAMPLER_EXTEND_MODE_REPEAT);
 
@@ -568,6 +572,16 @@ void IMB_free_gpu_textures(ImBuf *ibuf)
     ibuf->gpu.texture = nullptr;
   }
   ibuf->gpu.flag = ImBufGPUFlag(0);
+}
+
+void IMB_clear_gpu_load_failed(ImBuf *ibuf)
+{
+  if (!ibuf) {
+    return;
+  }
+
+  std::scoped_lock lock(ibuf->gpu.mutex);
+  ibuf->gpu.flag &= ~IMB_GPU_LOAD_FAILED;
 }
 
 void IMB_assign_gpu_texture(ImBuf *ibuf, gpu::Texture *texture)

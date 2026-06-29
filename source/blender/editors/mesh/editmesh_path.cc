@@ -382,6 +382,8 @@ static void mouse_mesh_shortest_path_edge(
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;
 
+  edgetag_ensure_cd_flag(id_cast<Mesh *>(obedit->data), op_params->edge_mode);
+
   int cd_offset = -1;
   switch (op_params->edge_mode) {
     case EDGE_MODE_SELECT:
@@ -403,8 +405,6 @@ static void mouse_mesh_shortest_path_edge(
   UserData user_data = {bm, id_cast<Mesh *>(obedit->data), cd_offset, op_params};
   LinkNode *path = nullptr;
   bool is_path_ordered = false;
-
-  edgetag_ensure_cd_flag(id_cast<Mesh *>(obedit->data), op_params->edge_mode);
 
   if (e_act && (e_act != e_dst)) {
     if (op_params->use_fill) {
@@ -461,7 +461,6 @@ static void mouse_mesh_shortest_path_edge(
   }
   else {
     const bool is_act = !edgetag_test_cb(e_dst, &user_data);
-    edgetag_ensure_cd_flag(id_cast<Mesh *>(obedit->data), op_params->edge_mode);
     edgetag_set_cb(e_dst, is_act, &user_data); /* switch the edge option */
   }
 

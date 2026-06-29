@@ -25,6 +25,11 @@ class TreeElementNLA final : public AbstractTreeElement {
   TreeElementNLA(TreeElement &legacy_te, AnimData &anim_data);
 
   void expand(SpaceOutliner &space_outliner) const override;
+
+  std::optional<BIFIconID> get_icon() const override
+  {
+    return ICON_NLA;
+  }
 };
 
 class TreeElementNLATrack final : public AbstractTreeElement {
@@ -34,11 +39,21 @@ class TreeElementNLATrack final : public AbstractTreeElement {
   TreeElementNLATrack(TreeElement &legacy_te, NlaTrack &track);
 
   void expand(SpaceOutliner &space_outliner) const override;
+
+  std::optional<BIFIconID> get_icon() const override
+  {
+    return ICON_NLA;
+  }
 };
 
 class TreeElementNLAAction final : public AbstractTreeElement {
  public:
   TreeElementNLAAction(TreeElement &legacy_te, const bAction &action);
+
+  std::optional<BIFIconID> get_icon() const override
+  {
+    return ICON_ACTION;
+  }
 };
 
 }  // namespace ed::outliner

@@ -77,10 +77,10 @@ ccl_device_forceinline bool curve_ribbon_accept(KernelGlobals kg,
    * radius. */
   const int position_offset = kernel_data_fetch(objects, object).position_offset;
   float radius[4];
-  radius[0] = kernel_data_fetch(attributes_float4, position_offset + ka).w;
-  radius[1] = kernel_data_fetch(attributes_float4, position_offset + k0).w;
-  radius[2] = kernel_data_fetch(attributes_float4, position_offset + k1).w;
-  radius[3] = kernel_data_fetch(attributes_float4, position_offset + kb).w;
+  radius[0] = kernel_data_fetch(curve_keys, position_offset + ka).w;
+  radius[1] = kernel_data_fetch(curve_keys, position_offset + k0).w;
+  radius[2] = kernel_data_fetch(curve_keys, position_offset + k1).w;
+  radius[3] = kernel_data_fetch(curve_keys, position_offset + kb).w;
   const float r = metal::catmull_rom(u, radius[0], radius[1], radius[2], radius[3]);
 
   /* MPJ TODO: Can we ignore motion and/or object transforms here? Depends on scaling? */
@@ -126,10 +126,10 @@ ccl_device_forceinline float curve_ribbon_v(KernelGlobals kg,
   float4 curve[4];
   if (!is_motion) {
     const int position_offset = kernel_data_fetch(objects, object).position_offset;
-    curve[0] = kernel_data_fetch(attributes_float4, position_offset + ka);
-    curve[1] = kernel_data_fetch(attributes_float4, position_offset + k0);
-    curve[2] = kernel_data_fetch(attributes_float4, position_offset + k1);
-    curve[3] = kernel_data_fetch(attributes_float4, position_offset + kb);
+    curve[0] = kernel_data_fetch(curve_keys, position_offset + ka);
+    curve[1] = kernel_data_fetch(curve_keys, position_offset + k0);
+    curve[2] = kernel_data_fetch(curve_keys, position_offset + k1);
+    curve[3] = kernel_data_fetch(curve_keys, position_offset + kb);
   }
   else {
     motion_curve_keys(kg, object, time, ka, k0, k1, kb, curve);
@@ -399,12 +399,9 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
 
     const int position_offset = kernel_data_fetch(objects, local_object).position_offset;
     const packed_uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
-    const float3 tri_a = float3(
-        kernel_data_fetch(attributes_float3, position_offset + tri_vindex.x));
-    const float3 tri_b = float3(
-        kernel_data_fetch(attributes_float3, position_offset + tri_vindex.y));
-    const float3 tri_c = float3(
-        kernel_data_fetch(attributes_float3, position_offset + tri_vindex.z));
+    const float3 tri_a = float3(kernel_data_fetch(tri_verts, position_offset + tri_vindex.x));
+    const float3 tri_b = float3(kernel_data_fetch(tri_verts, position_offset + tri_vindex.y));
+    const float3 tri_c = float3(kernel_data_fetch(tri_verts, position_offset + tri_vindex.z));
     local_isect->Ng[0] = normalize(cross(tri_b - tri_a, tri_c - tri_a));
     return true;
   }
@@ -471,12 +468,9 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
 
         const int position_offset = kernel_data_fetch(objects, local_object).position_offset;
         const packed_uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
-        const float3 tri_a = float3(
-            kernel_data_fetch(attributes_float3, position_offset + tri_vindex.x));
-        const float3 tri_b = float3(
-            kernel_data_fetch(attributes_float3, position_offset + tri_vindex.y));
-        const float3 tri_c = float3(
-            kernel_data_fetch(attributes_float3, position_offset + tri_vindex.z));
+        const float3 tri_a = float3(kernel_data_fetch(tri_verts, position_offset + tri_vindex.x));
+        const float3 tri_b = float3(kernel_data_fetch(tri_verts, position_offset + tri_vindex.y));
+        const float3 tri_c = float3(kernel_data_fetch(tri_verts, position_offset + tri_vindex.z));
         local_isect->Ng[hit] = normalize(cross(tri_b - tri_a, tri_c - tri_a));
       }
     }

@@ -142,7 +142,11 @@ DeviceInfo blender_device_info(blender::UserDef &b_preferences,
         const string id = get_string(device, "id");
         for (const DeviceInfo &info : devices) {
           if (info.id == id) {
-            used_devices.push_back(info);
+            /* Devices not meeting driver requirements are still enumerated for UI reporting,
+             * but must not be added to the active render device list. */
+            if (info.meets_driver_requirement) {
+              used_devices.push_back(info);
+            }
             break;
           }
         }
@@ -164,7 +168,16 @@ DeviceInfo blender_device_info(blender::UserDef &b_preferences,
   DeviceInfo device;
 
   if (BlenderSession::device_override != DEVICE_MASK_ALL) {
-    const vector<DeviceInfo> devices = Device::available_devices(BlenderSession::device_override);
+    const vector<DeviceInfo> available_devices = Device::available_devices(
+        BlenderSession::device_override);
+    vector<DeviceInfo> devices;
+    for (const DeviceInfo &info : available_devices) {
+      /* Devices not meeting driver requirements are still enumerated for UI reporting,
+       * but must not be added to the active render device list. */
+      if (info.meets_driver_requirement) {
+        devices.push_back(info);
+      }
+    }
 
     if (devices.empty()) {
       device = Device::dummy_device("Found no Cycles device of the specified type");

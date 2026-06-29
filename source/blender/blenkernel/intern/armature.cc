@@ -2598,16 +2598,16 @@ void BKE_pchan_protected_scale_set(bPoseChannel *pchan, const float scale[3])
 
 void BKE_pchan_protected_rotation_quaternion_set(bPoseChannel *pchan, const float quat[4])
 {
-  if ((pchan->protectflag & OB_LOCK_ROTX) == 0) {
+  if ((pchan->protectflag & OB_LOCK_ROTW) == 0) {
     pchan->quat[0] = quat[0];
   }
-  if ((pchan->protectflag & OB_LOCK_ROTY) == 0) {
+  if ((pchan->protectflag & OB_LOCK_ROTX) == 0) {
     pchan->quat[1] = quat[1];
   }
-  if ((pchan->protectflag & OB_LOCK_ROTZ) == 0) {
+  if ((pchan->protectflag & OB_LOCK_ROTY) == 0) {
     pchan->quat[2] = quat[2];
   }
-  if ((pchan->protectflag & OB_LOCK_ROTW) == 0) {
+  if ((pchan->protectflag & OB_LOCK_ROTZ) == 0) {
     pchan->quat[3] = quat[3];
   }
 }

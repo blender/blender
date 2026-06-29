@@ -64,6 +64,11 @@ class TreeElementOverridesProperty : public AbstractTreeElement {
 
   StringRefNull get_warning() const override;
 
+  std::optional<BIFIconID> get_icon() const override
+  {
+    return ICON_LIBRARY_DATA_OVERRIDE;
+  }
+
   /** Return the liboverride property matching this tree element, for the given ID. */
   IDOverrideLibraryProperty *get_override_property_from_id(ID &id) const;
 };

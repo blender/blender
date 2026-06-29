@@ -484,20 +484,20 @@ enum class BuiltinBits {
   USE_SAMPLER_ARG_BUFFER = (1 << 20),
 
   /* WORKAROUND: Used to disable viewport index programmatically. */
-  NO_VIEWPORT_INDEX = (1 << 16),
+  NO_VIEWPORT_INDEX = (1 << 21),
   /* Disable our own GPU shader preprocessor optimizer in case we can't ensure the
    * input is within spec. */
-  NO_PREPROCESSOR = (1 << 27),
+  NO_PREPROCESSOR = (1 << 22),
   /** If true, will bypass check that all buffer types have been linted by shader tool
    * (e.g. using [[host_shared]]). This is needed for struct that are not parsed or are
    * not yet supported by the host_shared check (false negative). */
-  NO_BUFFER_TYPE_LINTING = (1 << 27),
+  NO_BUFFER_TYPE_LINTING = (1 << 23),
   /* Not a builtin but a flag we use to tag shaders that use the debug features. */
-  USE_PRINTF = (1 << 28),
-  USE_DEBUG_DRAW = (1 << 29),
+  USE_PRINTF = (1 << 24),
+  USE_DEBUG_DRAW = (1 << 25),
 
   /* Shader source needs to be implemented at runtime. */
-  RUNTIME_GENERATED = (1 << 30),
+  RUNTIME_GENERATED = (1 << 26),
 };
 ENUM_OPERATORS(BuiltinBits);
 

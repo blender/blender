@@ -209,12 +209,12 @@ ccl_device void shadow_linking_shade(KernelGlobals kg, IntegratorState state)
 
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, visibility) = INTEGRATOR_STATE(
       state, path, visibility);
-  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, flag) = shadow_flag;
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, flag) = shadow_flag |
+                                                            PATH_RAY_SHADOW_FOR_LIGHT_LINKING;
 
 #  if defined(__PATH_GUIDING__)
   if (kernel_data.integrator.train_guiding) {
-    guiding_record_light_surface_segment(kg, state, &isect);
-    INTEGRATOR_STATE(shadow_state, shadow_path, guiding_mis_weight) = mis_weight;
+    INTEGRATOR_STATE(shadow_state, shadow_path, guiding_light_linking_mis_weight) = mis_weight;
   }
 #  endif
 }

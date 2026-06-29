@@ -134,6 +134,7 @@ find_path(OSL_SHADER_DIR
     ${_osl_SEARCH_DIRS}
   PATH_SUFFIXES
     share/OSL/shaders
+    share/openshadinglanguage/shaders
     shaders
 )
 mark_as_advanced(OSL_SHADER_DIR)

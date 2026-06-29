@@ -362,6 +362,7 @@ ccl_device_inline Spectrum camera_sample_custom(KernelGlobals kg,
   (void)raster;
   (void)rand_lens;
   (void)ray;
+  (void)r_cache_miss;
   return zero_spectrum();
 #endif
 }

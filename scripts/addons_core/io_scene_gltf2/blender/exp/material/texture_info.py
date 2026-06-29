@@ -12,11 +12,11 @@ from ..cache import cached
 from . import texture as gltf2_blender_gather_texture
 from .search_node_tree import \
     get_texture_node_from_socket, \
-    from_socket, \
     FilterByType, \
     previous_node, \
     NodeSocket, \
-    get_texture_transform_from_mapping_node
+    get_texture_transform_from_mapping_node, \
+    NodeTreeSearcher
 
 # blender_shader_sockets determine the texture and primary_socket determines
 # the textransform and UVMap. Ex: when combining an ORM texture, for
@@ -170,9 +170,10 @@ def __gather_extras(blender_shader_sockets, export_settings):
 
 # MaterialNormalTextureInfo only
 def __gather_normal_scale(primary_socket, export_settings):
-    result = from_socket(
+    result = NodeTreeSearcher.from_socket(
         primary_socket,
-        FilterByType(bpy.types.ShaderNodeNormalMap))
+        FilterByType(bpy.types.ShaderNodeNormalMap),
+        export_settings)
     if not result:
         return None
     strengthInput = result[0].shader_node.inputs['Strength']

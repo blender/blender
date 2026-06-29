@@ -7,17 +7,17 @@ from .....io.com.gltf2_io_extensions import Extension
 from ...material import texture_info as gltf2_blender_gather_texture_info
 from ..search_node_tree import \
     has_image_node_from_socket, \
-    get_socket, \
     get_factor_from_socket
 
 
 def export_transmission(bmat, export_settings):
+    export_settings['current_texture_transform'] = {}
     has_transmission_texture = False
 
     transmission_extension = {}
     transmission_slots = ()
 
-    transmission_socket = get_socket(bmat.get_used_material().node_tree, 'Transmission Weight')
+    transmission_socket = bmat.get_socket('Transmission Weight')
 
     if transmission_socket.socket is not None and isinstance(
             transmission_socket.socket,
@@ -66,7 +66,13 @@ def export_transmission(bmat, export_settings):
                 path_['path'] = export_settings['current_texture_transform'][k]['path'].replace(
                     "YYY", "extensions/KHR_materials_transmission/transmissionTexture/extensions")
                 path_['vector_type'] = export_settings['current_texture_transform'][k]['vector_type']
-                export_settings['current_paths'][k] = path_
+                if k in export_settings['current_paths']:
+                    if 'additional' not in export_settings['current_paths'][k]:
+                        export_settings['current_paths'][k]['additional'] = []
+                    if path_['path'] != export_settings['current_paths'][k]['path']:
+                        export_settings['current_paths'][k]['additional'].append(path_['path'])
+                else:
+                    export_settings['current_paths'][k] = path_
 
         export_settings['current_texture_transform'] = {}
 

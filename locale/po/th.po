@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e899b48ea546')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-15 07:32+0000\n"
+"POT-Creation-Date: 2026-06-29 10:51+0000\n"
 "PO-Revision-Date: 2026-03-19 12:41+0000\n"
 "Last-Translator: Banditer1483 <pleum.wongvarit@gmail.com>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -4937,14 +4937,6 @@ msgid "Mix Color"
 msgstr "ผสมสี"
 
 
-msgid "Track"
-msgstr "แทร็ค"
-
-
-msgid "Math"
-msgstr "คณิตศาสตร์"
-
-
 msgid "Mirror"
 msgstr "กระจกสะท้อน"
 
@@ -4977,20 +4969,12 @@ msgid "View Regions"
 msgstr "ขอบเขตมุมมอง"
 
 
-msgid "Import"
-msgstr "นำเข้า"
-
-
-msgid "UV"
-msgstr "UV"
+msgid "Math"
+msgstr "คณิตศาสตร์"
 
 
 msgid "Metaball"
 msgstr "เมตาบอล"
-
-
-msgid "Apply"
-msgstr "นำไปใช้"
 
 
 msgid "Light"
@@ -5001,8 +4985,24 @@ msgid "Add Image"
 msgstr "เพิ่มภาพ"
 
 
+msgid "Import"
+msgstr "นำเข้า"
+
+
+msgid "Apply"
+msgstr "นำไปใช้"
+
+
+msgid "Track"
+msgstr "แทร็ค"
+
+
 msgid "Hooks"
 msgstr "ตะขอ"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Names"
@@ -6386,11 +6386,6 @@ msgstr "อินเตอร์เฟสผู้ใช้"
 msgctxt "Operator"
 msgid "Measure"
 msgstr "วัดขนาด"
-
-
-msgctxt "Operator"
-msgid "Bone Size"
-msgstr "ขนาดกระดูก"
 
 
 msgctxt "Operator"

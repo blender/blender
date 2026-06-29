@@ -1229,6 +1229,7 @@ void LightManager::device_update_background(Device *device,
   if (!background_light || !background_light->is_enabled) {
     kbackground->map_res_x = 0;
     kbackground->map_res_y = 0;
+    kbackground->map_dD = FLT_MAX;
     kbackground->use_mis = (kbackground->portal_weight > 0.0f);
     return;
   }
@@ -1317,6 +1318,13 @@ void LightManager::device_update_background(Device *device,
   }
   kbackground->map_res_x = res.x;
   kbackground->map_res_y = res.y;
+
+  /* Minimum ray differential for one importance map pixels, using the minimum of both
+   * dimensions to account for non-square maps.
+   * See #background_light_clamp_dD for motivation. */
+  kbackground->map_dD = (kbackground->map_weight > 0.0f && res.x > 0 && res.y > 0) ?
+                            min(M_PI_F / res.y, M_2PI_F / res.x) :
+                            FLT_MAX;
 
   vector<float3> pixels;
   shade_background_pixels(device, dscene, res.x, res.y, pixels, progress);

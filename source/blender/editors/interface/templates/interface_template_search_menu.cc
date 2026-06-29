@@ -84,8 +84,8 @@ struct MenuSearch_Item {
   StringRef drawstr;
   StringRef drawwstr_full;
   int icon = 0;
-  int state = 0;
   float weight = 0.0f;
+  int64_t state = 0; /**  Used to store #ButtonFlag values. */
 
   MenuSearch_Parent *menu_parent = nullptr;
   MenuType *mt = nullptr;

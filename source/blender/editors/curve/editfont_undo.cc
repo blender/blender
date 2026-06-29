@@ -410,7 +410,7 @@ static void font_undosys_foreach_ID_ref(UndoStep *us_p,
 
 void ED_font_undosys_type(UndoType *ut)
 {
-  ut->name = "Edit Font";
+  ut->identifier = "EDIT_FONT";
   ut->poll = font_undosys_poll;
   ut->step_encode = font_undosys_step_encode;
   ut->step_decode = font_undosys_step_decode;

@@ -11,6 +11,8 @@
 #include "DNA_object_types.h"
 #include "DNA_outliner_types.h"
 
+#include "BKE_modifier.hh"
+
 #include "BLI_listbase.hh"
 
 #include "BLT_translation.hh"
@@ -139,4 +141,17 @@ void TreeElementModifier::expand(SpaceOutliner & /*space_outliner*/) const
   }
 }
 
+std::optional<BIFIconID> TreeElementModifier::get_icon() const
+{
+  Object *ob = reinterpret_cast<Object *>(legacy_te_.store_elem->id);
+
+  ModifierData *md = static_cast<ModifierData *>(
+      BLI_findlink(&ob->modifiers, legacy_te_.store_elem->nr));
+  if (const ModifierTypeInfo *modifier_type = BKE_modifier_get_info(ModifierType(md->type))) {
+    return modifier_type->icon;
+  }
+  else {
+    return ICON_DOT;
+  }
+}
 }  // namespace blender::ed::outliner

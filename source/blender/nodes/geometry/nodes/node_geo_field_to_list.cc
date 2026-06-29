@@ -91,9 +91,10 @@ static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
     if (ItemsAccessor::supports_socket_type(data_type, NTREE_GEOMETRY)) {
       params.add_item(IFACE_("Field"), [data_type](LinkSearchOpParams &params) {
         bNode &node = params.add_node("GeometryNodeFieldToList"_ustr);
-        socket_items::add_item_with_socket_type_and_name<ItemsAccessor>(
+        const auto *item = socket_items::add_item_with_socket_type_and_name<ItemsAccessor>(
             params.node_tree, node, data_type, params.socket.name);
-        params.update_and_connect_available_socket(node, UString(params.socket.name));
+        params.update_and_connect_available_socket_by_identifier(
+            node, UString(FieldToListItemsAccessor::input_socket_identifier_for_item(*item)));
       });
     }
   }

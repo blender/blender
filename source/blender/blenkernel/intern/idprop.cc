@@ -1599,7 +1599,7 @@ static void IDP_WriteIDPArray(const IDProperty *prop,
         IDP_WriteProperty_OnlyData(&empty_array[a], writer, recursion_depth + 1);
       }
 
-      MEM_delete(empty_prop_idparray);
+      IDP_FreeProperty_ex(empty_prop_idparray, false);
       return;
     }
 

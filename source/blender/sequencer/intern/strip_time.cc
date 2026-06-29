@@ -171,7 +171,7 @@ void time_update_meta_strip_range(const Scene *scene, Strip *strip_meta)
   strip_meta->enddisp = strip_end; /* Only to make files usable in older versions. */
 
   strip_update_sound_bounds_recursive(scene, strip_meta);
-  Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene->ed, strip_meta);
+  Span<Strip *> effects = lookup_effects_by_strip(scene->ed, strip_meta);
   strip_time_update_effects_strip_range(scene, effects);
   time_update_meta_strip_range(scene, lookup_meta_by_strip(scene->ed, strip_meta));
 }
@@ -216,7 +216,7 @@ void strip_time_update_effects_strip_range(const Scene *scene, const Span<Strip 
   /* Second pass: Recursive call to update effects in chain and in order, so they inherit length
    * correctly. */
   for (Strip *strip : effects) {
-    Span<Strip *> effects_recurse = SEQ_lookup_effects_by_strip(scene->ed, strip);
+    Span<Strip *> effects_recurse = lookup_effects_by_strip(scene->ed, strip);
     strip_time_update_effects_strip_range(scene, effects_recurse);
   }
 }
@@ -440,7 +440,7 @@ static void strip_time_slip_strip_ex(const Scene *scene,
   strip->startdisp = strip->left_handle();
   strip->enddisp = strip->right_handle(scene);
 
-  Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene->ed, strip);
+  Span<Strip *> effects = lookup_effects_by_strip(scene->ed, strip);
   strip_time_update_effects_strip_range(scene, effects);
 }
 
@@ -498,7 +498,7 @@ float Strip::content_start() const
 void Strip::content_start_set(const Scene *scene, int timeline_frame)
 {
   this->start = timeline_frame;
-  Span<Strip *> effects = seq::SEQ_lookup_effects_by_strip(scene->ed, this);
+  Span<Strip *> effects = seq::lookup_effects_by_strip(scene->ed, this);
   seq::strip_time_update_effects_strip_range(scene, effects);
   seq::time_update_meta_strip_range(scene, seq::lookup_meta_by_strip(scene->ed, this));
 }
@@ -570,7 +570,7 @@ void Strip::left_handle_set(const Scene *scene, int timeline_frame)
 
   this->startdisp = timeline_frame; /* Only to make files usable in older versions. */
 
-  Span<Strip *> effects = seq::SEQ_lookup_effects_by_strip(scene->ed, this);
+  Span<Strip *> effects = seq::lookup_effects_by_strip(scene->ed, this);
   seq::strip_time_update_effects_strip_range(scene, effects);
   seq::time_update_meta_strip_range(scene, seq::lookup_meta_by_strip(scene->ed, this));
 }
@@ -586,7 +586,7 @@ void Strip::right_handle_set(const Scene *scene, int timeline_frame)
   this->endofs = this->content_end(scene) - timeline_frame;
   this->enddisp = timeline_frame; /* Only to make files usable in older versions. */
 
-  Span<Strip *> effects = seq::SEQ_lookup_effects_by_strip(scene->ed, this);
+  Span<Strip *> effects = seq::lookup_effects_by_strip(scene->ed, this);
   seq::strip_time_update_effects_strip_range(scene, effects);
   seq::time_update_meta_strip_range(scene, seq::lookup_meta_by_strip(scene->ed, this));
 }
@@ -604,6 +604,11 @@ void Strip::handles_set(const Scene *scene, int left_frame, int right_frame)
     this->left_handle_set(scene, left_frame);
     this->right_handle_set(scene, right_frame);
   }
+}
+
+void Strip::channel_set(int channel)
+{
+  this->channel = math::clamp(channel, 1, seq::MAX_CHANNELS);
 }
 
 bool Strip::intersects_frame(const Scene *scene, const int timeline_frame) const

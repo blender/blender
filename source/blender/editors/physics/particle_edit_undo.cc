@@ -290,7 +290,7 @@ static void particle_undosys_foreach_ID_ref(UndoStep *us_p,
 
 void ED_particle_undosys_type(UndoType *ut)
 {
-  ut->name = "Edit Particle";
+  ut->identifier = "EDIT_PARTICLE";
   ut->poll = particle_undosys_poll;
   ut->step_encode = particle_undosys_step_encode;
   ut->step_decode = particle_undosys_step_decode;

@@ -24,6 +24,10 @@ class TreeElementParticleSystem final : public AbstractTreeElement {
 
  public:
   TreeElementParticleSystem(TreeElement &legacy_te, Object &object, ParticleSystem &psys);
+  std::optional<BIFIconID> get_icon() const override
+  {
+    return ICON_PARTICLES;
+  }
 };
 
 }  // namespace ed::outliner

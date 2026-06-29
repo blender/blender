@@ -1672,6 +1672,63 @@ BMFace *BM_face_exists(BMVert *const *varr, int len)
   return nullptr;
 }
 
+BMFace *BM_face_exists_subset_from_face(BMLoop *l_a, BMLoop *l_b, const int f_len)
+{
+  BLI_assert(l_a->f == l_b->f);
+  BLI_assert(l_a != l_b);
+#ifndef NDEBUG
+  {
+    BMLoop *l_test = l_a;
+    for (int i = 1; i < f_len; i++) {
+      l_test = l_test->next;
+    }
+    BLI_assert(l_test == l_b);
+  }
+#endif
+
+  BMEdge *e_exists = BM_edge_exists(l_a->v, l_b->v);
+  if (e_exists == nullptr || e_exists->l == nullptr) {
+    return nullptr;
+  }
+
+  BMLoop *l_radial_iter = e_exists->l;
+  do {
+    if (l_radial_iter->f->len != f_len) {
+      continue;
+    }
+
+    const bool swap_winding = (l_radial_iter->v == l_a->v);
+    BMLoop *l_other_beg, *l_other_end;
+    if (swap_winding) {
+      l_other_beg = l_radial_iter;
+      l_other_end = l_radial_iter->next;
+    }
+    else {
+      l_other_beg = l_radial_iter->next;
+      l_other_end = l_radial_iter;
+    }
+    BLI_assert(l_a->v == l_other_beg->v);
+    BLI_assert(l_b->v == l_other_end->v);
+
+    if (swap_winding) {
+      if (BM_face_pair_overlap_check_subset_swap_winding(
+              l_a->next, l_b->prev, l_other_beg->prev, l_other_end->next))
+      {
+        return l_radial_iter->f;
+      }
+    }
+    else {
+      if (BM_face_pair_overlap_check_subset_same_winding(
+              l_a->next, l_b->prev, l_other_beg->next, l_other_end->prev))
+      {
+        return l_radial_iter->f;
+      }
+    }
+  } while ((l_radial_iter = l_radial_iter->radial_next) != e_exists->l);
+
+  return nullptr;
+}
+
 BMFace *BM_face_find_double(BMFace *f)
 {
   BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
@@ -1815,10 +1872,33 @@ finally:
 
 bool BM_face_exists_multi_edge(BMEdge **earr, int len)
 {
+  /* Build a unique vertex array from `earr`, to pass to #BM_face_exists_multi. */
   Array<BMVert *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> varr(len);
 
-  /* first check if verts have edges, if not we can bail out early */
-  if (!BM_verts_from_edges(varr.data(), earr, len)) {
+  for (int i = 0; i < len; i++) {
+    BM_elem_flag_enable(earr[i]->v1, BM_ELEM_INTERNAL_TAG);
+    BM_elem_flag_enable(earr[i]->v2, BM_ELEM_INTERNAL_TAG);
+  }
+
+  int varr_len = 0;
+  for (int i = 0; i < len; i++) {
+    BMEdge *e = earr[i];
+    for (int j = 0; j < 2; j++) {
+      BMVert *v = *((&e->v1) + j);
+      if (BM_elem_flag_test(v, BM_ELEM_INTERNAL_TAG)) {
+        BM_elem_flag_disable(v, BM_ELEM_INTERNAL_TAG);
+        /* Invalid input, likely a bug in the caller (assert below).
+         * Keep going so all flags are cleared. */
+        if (varr_len < len) {
+          varr[varr_len] = v;
+        }
+        varr_len++;
+      }
+    }
+  }
+
+  /* A closed loop has exactly one vert per edge, anything else is invalid input. */
+  if (varr_len != len) {
     BMESH_ASSERT(0);
     return false;
   }

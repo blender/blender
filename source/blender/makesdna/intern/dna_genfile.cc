@@ -2025,6 +2025,16 @@ void PointersInDNA::gather_pointer_members_recursive(const SDNA_Struct &sdna_str
   }
 }
 
+bool StructInfo::has_pointer_at_offset(const int64_t offset) const
+{
+  for (const PointerInfo &info : this->pointers) {
+    if (info.offset == offset) {
+      return true;
+    }
+  }
+  return false;
+}
+
 }  // namespace dna::pointers
 
 /** \} */

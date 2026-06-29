@@ -1306,6 +1306,8 @@ static wmOperatorStatus insert_key_button_exec(bContext *C, wmOperator *op)
         }
       }
       else {
+        /* This special case exists because we have to allow drivers and clearing the
+         * PROP_ANIMATABLE flag from the properties would prevent that. */
         BKE_report(op->reports,
                    RPT_ERROR,
                    "This property cannot be animated as it will not get updated correctly");

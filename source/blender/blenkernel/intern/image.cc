@@ -508,7 +508,7 @@ IDTypeInfo IDType_ID_IM = {
     .main_listbase_index = INDEX_ID_IM,
     .struct_size = sizeof(Image),
     .name = "Image",
-    .name_plural = "images",
+    .name_plural = N_("images"),
     .translation_context = BLT_I18NCONTEXT_ID_IMAGE,
     .flags = IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     .asset_type_info = nullptr,
@@ -539,7 +539,8 @@ static ImBuf *image_load_image_file(
 static ImBuf *image_acquire_ibuf(Image *ima,
                                  ImageUser *iuser,
                                  void **r_lock,
-                                 const bool ensure_host_buffer);
+                                 const bool ensure_host_buffer,
+                                 bool *r_load_failed = nullptr);
 static void image_update_views_format(Image *ima, ImageUser *iuser);
 static void image_add_view(Image *ima, const char *viewname, const char *filepath);
 
@@ -693,8 +694,6 @@ void BKE_image_free_buffers_ex(Image *ima, bool do_lock)
     ima->rr = nullptr;
   }
 
-  BKE_image_free_gputextures(ima);
-
   if (do_lock) {
     ima->runtime->cache_mutex.unlock();
   }
@@ -742,11 +741,13 @@ void BKE_image_free_old_buffers(Main *bmain)
         if (ibuf != nullptr) {
           /* GPU buffers: free when past timeout and image buffer is not used elsewhere. */
           bool freed_gpu = false;
-          if (ibuf->gpu.texture != nullptr && ibuf->refcounter == 0 &&
-              (ctime - ibuf->gpu.lastused > U.textimeout))
-          {
-            IMB_free_gpu_textures(ibuf);
-            freed_gpu = true;
+          if (ctime - ibuf->gpu.lastused > U.textimeout) {
+            if ((ibuf->gpu.texture || ibuf->gpu.flag & IMB_GPU_LOAD_FAILED) &&
+                ibuf->refcounter == 0)
+            {
+              IMB_free_gpu_textures(ibuf);
+              freed_gpu = true;
+            }
           }
 
           /* CPU buffers: free whole image buffer if past timeout, and image has not been
@@ -4888,13 +4889,17 @@ BLI_INLINE bool image_quick_test(Image *ima, const ImageUser *iuser)
 static ImBuf *image_acquire_ibuf(Image *ima,
                                  ImageUser *iuser,
                                  void **r_lock,
-                                 const bool ensure_host_buffer)
+                                 const bool ensure_host_buffer,
+                                 bool *r_load_failed)
 {
   ImBuf *ibuf = nullptr;
   int entry = 0, index = 0;
 
   if (r_lock) {
     *r_lock = nullptr;
+  }
+  if (r_load_failed) {
+    *r_load_failed = false;
   }
 
   /* quick reject tests */
@@ -4905,6 +4910,9 @@ static ImBuf *image_acquire_ibuf(Image *ima,
   bool is_cached_empty = false;
   ibuf = image_get_cached_ibuf(ima, iuser, &entry, &index, &is_cached_empty);
   if (is_cached_empty) {
+    if (r_load_failed) {
+      *r_load_failed = true;
+    }
     return nullptr;
   }
 
@@ -5027,14 +5035,14 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **r_lock)
 
 /* Identical to BKE_image_acquire_ibuf but passing false to the ensure_host_buffer argument for the
  * image_acquire_ibuf function. */
-ImBuf *BKE_image_acquire_ibuf_gpu(Image *ima, ImageUser *iuser, void **r_lock)
+ImBuf *BKE_image_acquire_ibuf_gpu(Image *ima, ImageUser *iuser, void **r_lock, bool *r_load_failed)
 {
   if (ima == nullptr) {
     return nullptr;
   }
 
   std::scoped_lock lock(ima->runtime->cache_mutex);
-  return image_acquire_ibuf(ima, iuser, r_lock, false);
+  return image_acquire_ibuf(ima, iuser, r_lock, false, r_load_failed);
 }
 
 static int get_multilayer_view_index(const Image &image,

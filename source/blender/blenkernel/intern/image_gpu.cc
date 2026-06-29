@@ -472,7 +472,7 @@ static void image_gpu_texture_try_partial_update(Image *image, ImageUser *iuser)
   PartialUpdateChecker<ImageTileData>::CollectResult changes = checker.collect_changes();
   switch (changes.get_result_code()) {
     case ePartialUpdateCollectResult::FullUpdateNeeded: {
-      BKE_image_free_gputextures(image);
+      BKE_image_free_gpu_texture_caches(image);
       break;
     }
 
@@ -515,6 +515,8 @@ static ImageGPUTextures image_get_gpu_texture_tiled(Image *ima,
       ima->id.name + 2, mapping_ibuf, false, false, false, true);
 
   if (try_only || (result.texture != nullptr && result.tile_mapping != nullptr)) {
+    IMB_freeImBuf(atlas_ibuf);
+    IMB_freeImBuf(mapping_ibuf);
     return result;
   }
 
@@ -579,6 +581,9 @@ static ImageGPUTextures image_get_gpu_texture_tiled(Image *ima,
   IMB_assign_gpu_texture(atlas_ibuf, atlas_tex);
   IMB_assign_gpu_texture(mapping_ibuf, mapping_tex);
 
+  IMB_freeImBuf(atlas_ibuf);
+  IMB_freeImBuf(mapping_ibuf);
+
   return result;
 }
 
@@ -601,8 +606,11 @@ static ImageGPUTextures image_get_gpu_texture_single(Image *ima,
 
   /* Acquire the image buffer. */
   void *lock = nullptr;
-  ImBuf *ibuf = BKE_image_acquire_ibuf_gpu(ima, iuser, use_viewers ? &lock : nullptr);
+  bool cpu_load_failed = false;
+  ImBuf *ibuf = BKE_image_acquire_ibuf_gpu(
+      ima, iuser, use_viewers ? &lock : nullptr, &cpu_load_failed);
 
+  bool gpu_load_failed = false;
   if (ibuf != nullptr && (!only_full_resolution || image_gpu_texture_fits_full_resolution(ibuf))) {
     /* Acquire a reference to the GPU texture. */
     const bool use_high_bitdepth = (ima->flag & IMA_HIGH_BITDEPTH);
@@ -620,13 +628,17 @@ static ImageGPUTextures image_get_gpu_texture_single(Image *ima,
       image_cache_free_inactive_frame_gpu_textures(ima, ibuf);
     }
     result.texture = tex;
+    gpu_load_failed = (tex == nullptr) && (ibuf->gpu.flag & IMB_GPU_LOAD_FAILED);
   }
 
   /* Release image buffer. */
   BKE_image_release_ibuf(ima, ibuf, lock);
 
-  /* Return error texture if failed to load. */
-  if (result.texture == nullptr && !try_only && !only_full_resolution) {
+  /* Return error texture if failed to load, including in try_only mode. This
+   * way the caller will not consider it as still needing to be loaded. */
+  if (result.texture == nullptr && (!try_only || cpu_load_failed || gpu_load_failed) &&
+      !only_full_resolution)
+  {
     image_gpu_log_load_error_once(ima, iuser);
     ImBuf *error_ibuf = image_gpu_error_imbuf_ensure();
     result.texture = IMB_acquire_gpu_texture(ima->id.name + 2, error_ibuf, false, false, false);
@@ -753,8 +765,16 @@ void BKE_image_free_gpu_udim_textures(Image *ima)
   image_udim_gpu_ibuf_remove(ima, IMA_INDEX_UDIM_TILE_MAPPING);
 }
 
-void BKE_image_free_gputextures(Image *ima)
+void BKE_image_free_gpu_texture_caches(Image *ima)
 {
+  /* For Viewer images, the GPU texture can be generated directly by the compositor
+   * without a CPU buffer, so it's not a cache and must be preserved. This is a
+   * crude check, for future more general GPU image buffer support ImBuf will need
+   * to carry this information. */
+  if (ima->source == IMA_SRC_VIEWER) {
+    return;
+  }
+
   if (ima->runtime->cache) {
     std::scoped_lock lock(ima->runtime->cache_mutex);
 
@@ -772,21 +792,21 @@ void BKE_image_free_gputextures(Image *ima)
   }
 }
 
-void BKE_image_free_all_gputextures(Main *bmain)
+void BKE_image_free_all_gpu_texture_caches(Main *bmain)
 {
   if (bmain) {
     for (Image &ima : bmain->images) {
-      BKE_image_free_gputextures(&ima);
+      BKE_image_free_gpu_texture_caches(&ima);
     }
   }
 }
 
-void BKE_image_free_anim_gputextures(Main *bmain)
+void BKE_image_free_anim_gpu_texture_caches(Main *bmain)
 {
   if (bmain) {
     for (Image &ima : bmain->images) {
       if (BKE_image_is_animated(&ima)) {
-        BKE_image_free_gputextures(&ima);
+        BKE_image_free_gpu_texture_caches(&ima);
       }
     }
   }
@@ -957,12 +977,12 @@ static void gpu_texture_update_from_ibuf(
     if (IMB_colormanagement_space_is_data(ibuf->byte_buffer.colorspace) && !scaled) {
       /* Not scaled Non-color data, just store buffer as is. */
     }
-    else if (IMB_colormanagement_space_is_srgb(ibuf->byte_buffer.colorspace) ||
+    else if (IMB_colormanagement_space_is_scene_linear_srgb(ibuf->byte_buffer.colorspace) ||
              IMB_colormanagement_space_is_scene_linear(ibuf->byte_buffer.colorspace) ||
              IMB_colormanagement_space_is_data(ibuf->byte_buffer.colorspace))
     {
-      /* sRGB or scene linear or scaled down non-color data, store as byte texture that the GPU
-       * can decode directly. */
+      /* scene linear + sRGB transfer function or scene linear or scaled down non-color data,
+       * store as byte texture that the GPU can decode directly. */
       rect = MEM_new_array_uninitialized<uchar>(4 * size_t(w) * size_t(h), __func__);
       if (rect == nullptr) {
         return;
@@ -1066,6 +1086,11 @@ void BKE_image_update_gputexture(Image *ima, ImageUser *iuser, int x, int y, int
 void BKE_image_update_gputexture_delayed(
     Image *ima, ImageTile *image_tile, ImBuf *ibuf, int x, int y, int w, int h)
 {
+  if (ibuf) {
+    /* Retry creating GPU texture if it failed before. */
+    IMB_clear_gpu_load_failed(ibuf);
+  }
+
   /* Check for full refresh. */
   if (ibuf != nullptr && ima->source != IMA_SRC_TILED && x == 0 && y == 0 && w == ibuf->x &&
       h == ibuf->y)

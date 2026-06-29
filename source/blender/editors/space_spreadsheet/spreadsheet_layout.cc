@@ -18,6 +18,8 @@
 #include "BKE_instances.hh"
 #include "BKE_lib_id.hh"
 
+#include "DEG_depsgraph_query.hh"
+
 #include "ED_outliner.hh"
 
 #include "NOD_geometry_nodes_bundle.hh"
@@ -26,7 +28,10 @@
 #include "spreadsheet_data_source_geometry.hh"
 #include "spreadsheet_layout.hh"
 
+#include "DNA_collection_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_sound_types.h"
+#include "DNA_vfont_types.h"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -342,32 +347,39 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       return;
     }
     if (type.is<Object *>()) {
-      Object *object = *value_ptr.get<Object *>();
-      if (object) {
-        const int icon = ED_outliner_icon_from_id(object->id);
-        uiDefIconTextBut(params.block,
-                         ui::ButtonType::Label,
-                         icon,
-                         BKE_id_name(object->id),
-                         params.xmin,
-                         params.ymin,
-                         params.width,
-                         params.height,
-                         nullptr,
-                         std::nullopt);
+      this->draw_data_block(params, *value_ptr.get<Object *>());
+      return;
+    }
+    if (type.is<Collection *>()) {
+      const Collection *collection = *value_ptr.get<Collection *>();
+      /* Using original collection because changing the color tag does not cause the eval copy to
+       * be updated. */
+      const Collection *orig_collection = DEG_get_original(collection);
+      if (orig_collection) {
+        int icon = ED_outliner_icon_from_id(orig_collection->id);
+        if (orig_collection->color_tag != COLLECTION_COLOR_NONE) {
+          icon = int(ICON_COLLECTION_COLOR_01) + int(orig_collection->color_tag);
+        }
+        this->draw_data_block(params, collection, icon);
+        return;
       }
-      else {
-        uiDefIconTextBut(params.block,
-                         ui::ButtonType::Label,
-                         ICON_OBJECT_DATA,
-                         "",
-                         params.xmin,
-                         params.ymin,
-                         params.width,
-                         params.height,
-                         nullptr,
-                         std::nullopt);
-      }
+      this->draw_data_block(params, collection);
+      return;
+    }
+    if (type.is<Material *>()) {
+      this->draw_data_block(params, *value_ptr.get<Material *>());
+      return;
+    }
+    if (type.is<VFont *>()) {
+      this->draw_data_block(params, *value_ptr.get<VFont *>());
+      return;
+    }
+    if (type.is<bSound *>()) {
+      this->draw_data_block(params, *value_ptr.get<bSound *>());
+      return;
+    }
+    if (type.is<Image *>()) {
+      this->draw_data_block(params, *value_ptr.get<Image *>());
       return;
     }
     if (type.is<bke::SocketValueVariant>()) {
@@ -564,6 +576,37 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
         MEM_delete_void);
   }
 
+  template<typename T>
+  void draw_data_block(const CellDrawParams &params,
+                       const T *id,
+                       const std::optional<int> icon_override = std::nullopt) const
+  {
+    if (!id) {
+      uiDefIconTextBut(params.block,
+                       ui::ButtonType::Label,
+                       icon_override.value_or(ui::icon_from_idcode(int(T::id_type))),
+                       "",
+                       params.xmin,
+                       params.ymin,
+                       params.width,
+                       params.height,
+                       nullptr,
+                       std::nullopt);
+      return;
+    }
+    const int icon = icon_override.value_or(ED_outliner_icon_from_id(id_cast<const ID &>(*id)));
+    uiDefIconTextBut(params.block,
+                     ui::ButtonType::Label,
+                     icon,
+                     BKE_id_name(id_cast<const ID &>(*id)),
+                     params.xmin,
+                     params.ymin,
+                     params.width,
+                     params.height,
+                     nullptr,
+                     std::nullopt);
+  }
+
   ui::Button *draw_undrawable(const CellDrawParams &params) const
   {
     ui::Button *but = uiDefIconTextBut(params.block,
@@ -634,23 +677,37 @@ float ColumnValues::fit_column_values_width_px(const std::optional<int64_t> &max
           [](const int value) { return fmt::format("{}", value); });
     }
     case SPREADSHEET_VALUE_TYPE_INT32: {
-      return estimate_max_column_width<int>(
+      return estimate_max_column_width<int>(get_min_width(3 * SPREADSHEET_WIDTH_UNIT),
+                                            fontid,
+                                            max_sample_size,
+                                            data_.typed<int>(),
+                                            [](const int value) {
+                                              char dst[BLI_STR_FORMAT_INT32_GROUPED_SIZE];
+                                              BLI_str_format_int_grouped(dst, value);
+                                              return std::string(dst);
+                                            });
+    }
+    case SPREADSHEET_VALUE_TYPE_INT64: {
+      const ColumnValueDisplayHint display_hint = this->display_hint();
+      return estimate_max_column_width<int64_t>(
           get_min_width(3 * SPREADSHEET_WIDTH_UNIT),
           fontid,
           max_sample_size,
-          data_.typed<int>(),
-          [](const int value) { return fmt::format("{}", value); });
-    }
-    case SPREADSHEET_VALUE_TYPE_INT64: {
-      return estimate_max_column_width<int64_t>(get_min_width(3 * SPREADSHEET_WIDTH_UNIT),
-                                                fontid,
-                                                max_sample_size,
-                                                data_.typed<int64_t>(),
-                                                [](const int64_t value) {
-                                                  char dst[BLI_STR_FORMAT_INT64_GROUPED_SIZE];
-                                                  BLI_str_format_int64_grouped(dst, value);
-                                                  return std::string(dst);
-                                                });
+          data_.typed<int64_t>(),
+          [display_hint](const int64_t value) {
+            switch (display_hint) {
+              case ColumnValueDisplayHint::Bytes: {
+                char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE];
+                BLI_str_format_byte_unit(dst, value, true);
+                return std::string(dst);
+              }
+              default: {
+                char dst[BLI_STR_FORMAT_INT64_GROUPED_SIZE];
+                BLI_str_format_int64_grouped(dst, value);
+                return std::string(dst);
+              }
+            }
+          });
     }
     case SPREADSHEET_VALUE_TYPE_FLOAT: {
       return estimate_max_column_width<float>(
@@ -731,7 +788,9 @@ float ColumnValues::fit_column_values_width_px(const std::optional<int64_t> &max
           max_sample_size,
           data_.typed<ColorGeometry4b>(),
           [](const ColorGeometry4b value) {
-            return fmt::format("{}  {}  {}  {}", value.r, value.g, value.b, value.a);
+            const ColorGeometry4f color = color::decode(value);
+            return fmt::format(
+                "{:.3f}  {:.3f}  {:.3f}  {:.3f}", color.r, color.g, color.b, color.a);
           });
     }
     case SPREADSHEET_VALUE_TYPE_QUATERNION: {

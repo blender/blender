@@ -113,7 +113,7 @@ void transform_translate_strip(Scene *evil_scene, Strip *strip, int delta)
   }
 
   offset_animdata(evil_scene, strip, delta);
-  Span<Strip *> effects = SEQ_lookup_effects_by_strip(evil_scene->ed, strip);
+  Span<Strip *> effects = lookup_effects_by_strip(evil_scene->ed, strip);
   strip_time_update_effects_strip_range(evil_scene, effects);
   time_update_meta_strip_range(evil_scene, lookup_meta_by_strip(evil_scene->ed, strip));
 }
@@ -126,7 +126,7 @@ bool transform_seqbase_shuffle_ex(ListBaseT<Strip> *seqbasep,
   const int orig_channel = test->channel;
   BLI_assert(ELEM(channel_delta, -1, 1));
 
-  strip_channel_set(test, test->channel + channel_delta);
+  test->channel_set(test->channel + channel_delta);
 
   const ListBaseT<SeqTimelineChannel> *channels = channels_displayed_get(editing_get(evil_scene));
   SeqTimelineChannel *channel = channel_get_by_index(channels, test->channel);
@@ -143,7 +143,7 @@ bool transform_seqbase_shuffle_ex(ListBaseT<Strip> *seqbasep,
       break;
     }
 
-    strip_channel_set(test, test->channel + channel_delta);
+    test->channel_set(test->channel + channel_delta);
     channel = channel_get_by_index(channels, test->channel);
   }
 
@@ -157,7 +157,7 @@ bool transform_seqbase_shuffle_ex(ListBaseT<Strip> *seqbasep,
       }
     }
 
-    strip_channel_set(test, orig_channel);
+    test->channel_set(orig_channel);
 
     new_frame = new_frame + (test->start - test->left_handle()); /* adjust by the startdisp */
     transform_translate_strip(evil_scene, test, new_frame - test->start);
@@ -579,11 +579,6 @@ void transform_offset_after_frame(Scene *scene,
       }
     }
   }
-}
-
-void strip_channel_set(Strip *strip, int channel)
-{
-  strip->channel = math::clamp(channel, 1, MAX_CHANNELS);
 }
 
 /** \} */

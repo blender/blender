@@ -592,9 +592,9 @@ void set_normal_texture_range(pxr::UsdShadeShader &usd_shader, const InputSpec &
 }
 
 /* Create USD Shade Material network from Blender viewport display settings. */
-static void create_usd_viewport_material(const USDExporterContext &usd_export_context,
-                                         const Material *material,
-                                         const pxr::UsdShadeMaterial &usd_material)
+void create_usd_viewport_material(const USDExporterContext &usd_export_context,
+                                  const Material *material,
+                                  const pxr::UsdShadeMaterial &usd_material)
 {
   /* Construct the shader. */
   pxr::SdfPath shader_path = usd_material.GetPath().AppendChild(usdtokens::preview_shader);

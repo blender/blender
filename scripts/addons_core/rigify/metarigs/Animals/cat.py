@@ -1340,7 +1340,7 @@ def create(obj):  # noqa
         pbone.rigify_parameters.connect_chain = True
     except AttributeError:
         pass
-    assign_bone_collection_refs(pbone.rigify_parameters, 'tweak', 'Face (Primary)')
+    assign_bone_collection_refs(pbone.rigify_parameters, 'tweak', 'Tail (Tweaks)')
     pbone = obj.pose.bones[bones['spine.001']]
     pbone.rigify_type = ''
     pbone.lock_location = (False, False, False)

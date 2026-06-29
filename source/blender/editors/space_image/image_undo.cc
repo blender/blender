@@ -327,8 +327,7 @@ static void ptile_restore_runtime_map(PaintTileMap *paint_tile_map)
                     tile_copy_size);
     }
 
-    /* Force OpenGL reload (maybe partial update will operate better?) */
-    BKE_image_free_gputextures(image);
+    BKE_image_partial_update_mark_full_update(image);
 
     if (ibuf->float_data()) {
       ibuf->userflags |= IB_RECT_INVALID; /* force recreate of char rect */
@@ -1010,7 +1009,7 @@ static void image_undosys_foreach_ID_ref(UndoStep *us_p,
 
 void ED_image_undosys_type(UndoType *ut)
 {
-  ut->name = "Image";
+  ut->identifier = "IMAGE";
   /* Note, we do not need the `poll` method overridden because of the `step_encode_init` callback
    * and exposed #ED_image_undo_push_begin/end calls. */
   ut->step_encode_init = image_undosys_step_encode_init;

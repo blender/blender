@@ -23,6 +23,11 @@ class TreeElementBoneCollectionBase final : public AbstractTreeElement {
  public:
   TreeElementBoneCollectionBase(TreeElement &legacy_te, bArmature &armature);
   void expand(SpaceOutliner & /*soops*/) const override;
+
+  std::optional<BIFIconID> get_icon() const override
+  {
+    return ICON_GROUP_BONE;
+  }
 };
 
 class TreeElementBoneCollection final : public AbstractTreeElement {
@@ -32,6 +37,11 @@ class TreeElementBoneCollection final : public AbstractTreeElement {
  public:
   TreeElementBoneCollection(TreeElement &legacy_te, bArmature &armature, BoneCollection &bcoll);
   void expand(SpaceOutliner & /*soops*/) const override;
+
+  std::optional<BIFIconID> get_icon() const override
+  {
+    return ICON_GROUP_BONE;
+  }
 };
 
 }  // namespace ed::outliner

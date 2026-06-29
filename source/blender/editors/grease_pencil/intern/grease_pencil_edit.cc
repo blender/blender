@@ -555,7 +555,7 @@ static wmOperatorStatus grease_pencil_delete_exec(bContext *C, wmOperator *op)
         changed = true;
       }
       else if (selection_domain == bke::AttrDomain::Point) {
-        curves = geometry::remove_points_and_split(curves, elements_to_delete);
+        curves = geometry::grease_pencil_remove_points_and_split(curves, elements_to_delete);
         info.drawing.tag_topology_changed();
         changed = true;
       }
@@ -2288,7 +2288,7 @@ static bool grease_pencil_separate_selected(bContext &C,
     /* Copy strokes to new CurvesGeometry. */
     drawing_dst->strokes_for_write() = bke::curves_copy_point_selection(
         curves_src, selected_points, {});
-    curves_src = geometry::remove_points_and_split(curves_src, selected_points);
+    curves_src = geometry::grease_pencil_remove_points_and_split(curves_src, selected_points);
 
     info.drawing.tag_topology_changed();
     drawing_dst->tag_topology_changed();
@@ -2715,7 +2715,7 @@ static wmOperatorStatus grease_pencil_copy_strokes_exec(bContext *C, wmOperator 
     }
     else if (selection_domain == bke::AttrDomain::Point) {
       const IndexMask selected_points = ed::curves::retrieve_selected_points(curves, memory);
-      copied_curves = geometry::remove_points_and_split(
+      copied_curves = geometry::grease_pencil_remove_points_and_split(
           curves, selected_points.complement(curves.points_range(), memory));
       num_elements_copied += copied_curves.points_num();
     }
@@ -4057,7 +4057,7 @@ static wmOperatorStatus grease_pencil_texture_gradient_exec(bContext *C, wmOpera
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
   }
 
-  return OPERATOR_RUNNING_MODAL;
+  return OPERATOR_FINISHED;
 }
 
 static wmOperatorStatus grease_pencil_texture_gradient_modal(bContext *C,

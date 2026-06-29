@@ -15,8 +15,9 @@
 #include "BLI_map.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_base_c.hh"
-#include "BLI_math_geom_c.hh"
-#include "BLI_math_matrix_c.hh"
+#include "BLI_math_geom.hh"
+#include "BLI_math_matrix.hh"
+#include "BLI_math_rotation.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_ordered_edge.hh"
@@ -1067,8 +1068,8 @@ static int edge_other_vert(const ExtendableMesh &emesh, int e, int v)
   return verts[0] == v ? verts[1] : verts[0];
 }
 
-/* Calculate coordinates of a point a distance d from v on e and return it in r_slideco. */
-static void slide_dist(const ExtendableMesh &emesh, int e, int v, float d, float r_slideco[3])
+/* Returns coordinates of a point a distance d from v along edge e. */
+static float3 slide_dist(const ExtendableMesh &emesh, int e, int v, float d)
 {
   float3 v_co = emesh.vert_position(v);
   float3 other_co = emesh.vert_position(geom::edge_other_vert(emesh, e, v));
@@ -1078,8 +1079,7 @@ static void slide_dist(const ExtendableMesh &emesh, int e, int v, float d, float
   if (d > len) {
     d = len - 50.0f * BEVEL_EPSILON_D;
   }
-  float3 res = v_co + dir * d;
-  copy_v3_v3(r_slideco, res);
+  return v_co + dir * d;
 }
 
 /* Is co not on the edge e? If not, return the closer end of e in ret_closer_v. */
@@ -1121,10 +1121,9 @@ static bool point_between_edges(
   dir1 = math::normalize(dir1);
   dir2 = math::normalize(dir2);
   dirco = math::normalize(dirco);
-  float ang11 = angle_normalized_v3v3(dir1, dir2);
-  float ang1co = angle_normalized_v3v3(dir1, dirco);
-  float3 no;
-  no = math::cross(dir1, dir2);
+  float ang11 = float(math::angle_between(dir1, dir2));
+  float ang1co = float(math::angle_between(dir1, dirco));
+  float3 no = math::cross(dir1, dir2);
   if (math::dot(no, emesh.src_face_normals[f]) < 0.0f) {
     ang11 = float(M_PI * 2.0) - ang11;
   }
@@ -1135,14 +1134,13 @@ static bool point_between_edges(
   return (ang11 - ang1co > -BEVEL_EPSILON_ANG);
 }
 
-static void offset_meet(const ExtendableMesh &emesh,
-                        EdgeHalf *e1,
-                        EdgeHalf *e2,
-                        int v,
-                        int f,
-                        bool edges_between,
-                        float meetco[3],
-                        const EdgeHalf *e_in_plane)
+static float3 offset_meet(const ExtendableMesh &emesh,
+                          EdgeHalf *e1,
+                          EdgeHalf *e2,
+                          int v,
+                          int f,
+                          bool edges_between,
+                          const EdgeHalf *e_in_plane)
 {
   float3 v_co = emesh.vert_position(v);
   /* `dir1` points from e1's far end toward `v`; `dir2` points from `v` away along e2.
@@ -1160,8 +1158,9 @@ static void offset_meet(const ExtendableMesh &emesh,
     dir2p = v_co - emesh.vert_position(geom::edge_other_vert(emesh, e2prev->e, v));
   }
 
-  float ang = angle_v3v3(dir1, dir2);
+  float ang = float(math::angle_between(math::normalize(dir1), math::normalize(dir2)));
   float3 norm_perp1;
+  float3 meetco;
   if (ang < BEVEL_EPSILON_ANG) {
     /* Special case: e1 and e2 are parallel; put offset point perp to both, from v.
      * Need to find a suitable plane.
@@ -1191,14 +1190,13 @@ static void offset_meet(const ExtendableMesh &emesh,
     norm_perp1 = math::normalize(math::cross(dir_sum, norm_v));
     float d = math::max(e1->offset_r, e2->offset_l);
     d = d / math::cos(ang / 2.0f);
-    float3 off1a = v_co + norm_perp1 * d;
-    copy_v3_v3(meetco, off1a);
+    meetco = v_co + norm_perp1 * d;
   }
   else if (math::abs(ang - float(M_PI)) < BEVEL_EPSILON_ANG) {
     /* Special case: e1 and e2 are anti-parallel, so bevel is into a zero-area face.
      * Just make the offset point on the common line, at offset distance from v. */
     float d = math::max(e1->offset_r, e2->offset_l);
-    slide_dist(emesh, e2->e, v, d, meetco);
+    meetco = slide_dist(emesh, e2->e, v, d);
   }
   else {
     /* Get normal to plane where meet point should be, using cross product instead of the face
@@ -1247,18 +1245,17 @@ static void offset_meet(const ExtendableMesh &emesh,
     norm_perp1 = math::normalize(math::cross(dir1, norm_v1));
     norm_perp2 = math::normalize(math::cross(dir2, norm_v2));
 
-    float off1a[3], off1b[3], off2a[3], off2b[3];
-    copy_v3_v3(off1a, v_co + norm_perp1 * e1->offset_r);
-    copy_v3_v3(off1b, float3(off1a[0], off1a[1], off1a[2]) + dir1);
-    copy_v3_v3(off2a, v_co + norm_perp2 * e2->offset_l);
-    copy_v3_v3(off2b, float3(off2a[0], off2a[1], off2a[2]) + dir2);
+    float3 off1a = v_co + norm_perp1 * e1->offset_r;
+    float3 off1b = off1a + dir1;
+    float3 off2a = v_co + norm_perp2 * e2->offset_l;
+    float3 off2b = off2a + dir2;
 
-    float isect2[3];
+    float3 isect2;
     /* Intersect the offset lines. */
-    int isect_kind = isect_line_line_v3(off1a, off1b, off2a, off2b, meetco, isect2);
+    int isect_kind = math::isect_line_line(off1a, off1b, off2a, off2b, meetco, isect2);
     if (isect_kind == 0) {
       /* Lines are collinear: we already tested for this, but with a different epsilon. */
-      copy_v3_v3(meetco, off1a);
+      meetco = off1a;
     }
     else {
       /* The lines intersect, but check that the intersection is at a reasonable place.
@@ -1267,30 +1264,28 @@ static void offset_meet(const ExtendableMesh &emesh,
        * the offset amount is > the edge length. */
       int closer_v;
       if (e1->offset_r == 0.0f && is_outside_edge(emesh, e1, meetco, &closer_v)) {
-        copy_v3_v3(meetco, emesh.vert_position(closer_v));
+        meetco = emesh.vert_position(closer_v);
       }
       if (e2->offset_l == 0.0f && is_outside_edge(emesh, e2, meetco, &closer_v)) {
-        copy_v3_v3(meetco, emesh.vert_position(closer_v));
+        meetco = emesh.vert_position(closer_v);
       }
       if (edges_between && e1->offset_r > 0.0f && e2->offset_l > 0.0f) {
         /* Try to drop meetco to a face between e1 and e2. */
         if (isect_kind == 2) {
           /* Lines didn't meet in 3D: get average of meetco and isect2. */
-          mid_v3_v3v3(meetco, meetco, isect2);
+          meetco = math::midpoint(meetco, isect2);
         }
         for (EdgeHalf *e_loop = e1; e_loop != e2; e_loop = e_loop->next) {
           int fnext = e_loop->fnext;
           if (fnext == -1) {
             continue;
           }
-          float plane[4];
           float3 no = emesh.src_face_normals[fnext];
-          plane_from_point_normal_v3(plane, v_co, no);
-          float dropco[3];
-          closest_to_plane_normalized_v3(dropco, plane, meetco);
+          float4 plane = math::plane_from_point_normal(v_co, no);
+          float3 dropco = math::closest_to_plane_normalized(plane, meetco);
           /* Don't drop to faces next to the in-plane edge. */
           if (e_in_plane) {
-            float ang = angle_v3v3(no, emesh.src_face_normals[e_in_plane->fnext]);
+            float ang = float(math::angle_between(no, emesh.src_face_normals[e_in_plane->fnext]));
             if ((math::abs(ang) < BEVEL_SMALL_ANG) ||
                 (math::abs(ang - float(M_PI)) < BEVEL_SMALL_ANG))
             {
@@ -1298,13 +1293,14 @@ static void offset_meet(const ExtendableMesh &emesh,
             }
           }
           if (point_between_edges(emesh, dropco, v, fnext, e_loop, e_loop->next)) {
-            copy_v3_v3(meetco, dropco);
+            meetco = dropco;
             break;
           }
         }
       }
     }
   }
+  return meetco;
 }
 
 /* -------------------------------------------------------------------- */
@@ -1380,31 +1376,25 @@ static void vmesh_copy_equiv_verts(VMesh *vm)
   }
 }
 
-/* Computes the centroid of the center polygon into `r_cent`. */
-static void vmesh_center(VMesh *vm, float r_cent[3])
+/* Returns the centroid of the center polygon of vm. */
+static float3 vmesh_center(VMesh *vm)
 {
   const int n = vm->count;
   const int ns2 = vm->seg / 2;
   if (vm->seg % 2) {
-    zero_v3(r_cent);
+    float3 cent(0.0f);
     for (int i = 0; i < n; i++) {
-      add_v3_v3(r_cent, mesh_vert(vm, i, ns2, ns2)->co);
+      cent += mesh_vert(vm, i, ns2, ns2)->co;
     }
-    mul_v3_fl(r_cent, 1.0f / float(n));
+    return cent * (1.0f / float(n));
   }
-  else {
-    copy_v3_v3(r_cent, mesh_vert(vm, 0, ns2, ns2)->co);
-  }
+  return mesh_vert(vm, 0, ns2, ns2)->co;
 }
 
-/* Sets co to the average of four NewVert positions. */
-static void avg4(
-    float co[3], const NewVert *v0, const NewVert *v1, const NewVert *v2, const NewVert *v3)
+/* Returns the average of four NewVert positions. */
+static float3 avg4(const NewVert *v0, const NewVert *v1, const NewVert *v2, const NewVert *v3)
 {
-  add_v3_v3v3(co, v0->co, v1->co);
-  add_v3_v3(co, v2->co);
-  add_v3_v3(co, v3->co);
-  mul_v3_fl(co, 0.25f);
+  return (v0->co + v1->co + v2->co + v3->co) * 0.25f;
 }
 
 /** \} */
@@ -1414,49 +1404,43 @@ static void avg4(
  * \{ */
 
 /** Returns true when `d1` and `d2` are parallel or anti-parallel. */
-static bool nearly_parallel(const float d1[3], const float d2[3])
+static bool nearly_parallel(const float3 &d1, const float3 &d2)
 {
-  const float ang = angle_v3v3(d1, d2);
-  return (fabsf(ang) < BEVEL_EPSILON_ANG) || (fabsf(ang - float(M_PI)) < BEVEL_EPSILON_ANG);
+  const float ang = float(math::angle_between(math::normalize(d1), math::normalize(d2)));
+  return (math::abs(ang) < BEVEL_EPSILON_ANG) ||
+         (math::abs(ang - float(M_PI)) < BEVEL_EPSILON_ANG);
 }
 
 /**
  * Builds a 4x4 matrix that maps the unit square to the triangle `(va, vmid, vb)`.
  * Returns false when the three points are collinear or degenerate.
  */
-static bool make_unit_square_map(const float va[3],
-                                 const float vmid[3],
-                                 const float vb[3],
-                                 float r_mat[4][4])
+static bool make_unit_square_map(const float3 &va,
+                                 const float3 &vmid,
+                                 const float3 &vb,
+                                 float4x4 &r_mat)
 {
-  float va_vmid[3], vb_vmid[3];
-  sub_v3_v3v3(va_vmid, vmid, va);
-  sub_v3_v3v3(vb_vmid, vmid, vb);
+  const float3 va_vmid = vmid - va;
+  const float3 vb_vmid = vmid - vb;
 
-  if (is_zero_v3(va_vmid) || is_zero_v3(vb_vmid)) {
+  if (math::is_zero(va_vmid) || math::is_zero(vb_vmid)) {
     return false;
   }
-  if (fabsf(angle_v3v3(va_vmid, vb_vmid) - float(M_PI)) <= BEVEL_EPSILON_ANG) {
+  if (math::abs(float(math::angle_between(math::normalize(va_vmid), math::normalize(vb_vmid))) -
+                float(M_PI)) <= BEVEL_EPSILON_ANG)
+  {
     return false;
   }
 
-  float vo[3], vd[3], vddir[3];
-  sub_v3_v3v3(vo, va, vb_vmid);
-  cross_v3_v3v3(vddir, vb_vmid, va_vmid);
-  normalize_v3(vddir);
-  add_v3_v3v3(vd, vo, vddir);
+  const float3 vo = va - vb_vmid;
+  const float3 vddir = math::normalize(math::cross(vb_vmid, va_vmid));
+  const float3 vd = vo + vddir;
 
-  sub_v3_v3v3(&r_mat[0][0], vmid, va);
-  r_mat[0][3] = 0.0f;
-  sub_v3_v3v3(&r_mat[1][0], vmid, vb);
-  r_mat[1][3] = 0.0f;
-  add_v3_v3v3(&r_mat[2][0], vmid, vd);
-  sub_v3_v3(&r_mat[2][0], va);
-  sub_v3_v3(&r_mat[2][0], vb);
-  r_mat[2][3] = 0.0f;
-  add_v3_v3v3(&r_mat[3][0], va, vb);
-  sub_v3_v3(&r_mat[3][0], vmid);
-  r_mat[3][3] = 1.0f;
+  /* Columns of the 4x4 map matrix (column-major, same layout as legacy float[4][4]). */
+  r_mat[0] = float4(vmid - va, 0.0f);
+  r_mat[1] = float4(vmid - vb, 0.0f);
+  r_mat[2] = float4(vmid + vd - va - vb, 0.0f);
+  r_mat[3] = float4(va + vb - vmid, 1.0f);
 
   return true;
 }
@@ -2080,12 +2064,12 @@ static int bevel_edge_order_extend(const ExtendableMesh &emesh,
 /* Fill in bv->edges with a good ordering of non-wire edges around bv->v.
  * Use only edges where wire_edges is not set (if edge beveling, others are wire).
  * first_e is a good edge to start with. */
-static BoundVert *add_new_bound_vert(BevVert *bv, const float co[3])
+static BoundVert *add_new_bound_vert(BevVert *bv, const float3 &co)
 {
   auto new_bv = std::make_unique<BoundVert>();
   BoundVert *v = new_bv.get();
   bv->owned_bound_verts.append(std::move(new_bv));
-  copy_v3_v3(v->nv.co, co);
+  v->nv.co = co;
   if (!bv->vmesh) {
     bv->vmesh = std::make_unique<VMesh>();
   }
@@ -2106,9 +2090,9 @@ static BoundVert *add_new_bound_vert(BevVert *bv, const float co[3])
   return v;
 }
 
-static void adjust_bound_vert(BoundVert *bndv, const float co[3])
+static void adjust_bound_vert(BoundVert *bndv, const float3 &co)
 {
-  copy_v3_v3(bndv->nv.co, co);
+  bndv->nv.co = co;
 }
 
 /* If a beveled edge has a seam (check_seam == true) or a sharp (check_sharp == true),
@@ -2232,8 +2216,10 @@ static void set_bound_vert_seams(const BevelState &state,
   }
 }
 
-static void offset_in_plane(
-    const ExtendableMesh &emesh, EdgeHalf *e, const float3 *plane_no, bool left, float r_co[3])
+static float3 offset_in_plane(const ExtendableMesh &emesh,
+                              EdgeHalf *e,
+                              const float3 *plane_no,
+                              bool left)
 {
   int v = e->is_rev ? emesh.src_edges[e->e][1] : emesh.src_edges[e->e][0];
   float3 v_co = emesh.vert_position(v);
@@ -2253,15 +2239,9 @@ static void offset_in_plane(
     }
   }
 
-  float3 fdir;
-  if (left) {
-    fdir = math::normalize(math::cross(dir, no));
-  }
-  else {
-    fdir = math::normalize(math::cross(no, dir));
-  }
-  float3 res = v_co + fdir * (left ? e->offset_l : e->offset_r);
-  copy_v3_v3(r_co, res);
+  float3 fdir = left ? math::normalize(math::cross(dir, no)) :
+                       math::normalize(math::cross(no, dir));
+  return v_co + fdir * (left ? e->offset_l : e->offset_r);
 }
 
 static void build_boundary_vertex_only(const BevelState &state, BevVert *bv, bool construct)
@@ -2271,8 +2251,7 @@ static void build_boundary_vertex_only(const BevelState &state, BevVert *bv, boo
   EdgeHalf *efirst = &bv->edges[0];
   EdgeHalf *e = efirst;
   do {
-    float co[3];
-    geom::slide_dist(state.emesh, e->e, bv->v, e->offset_l, co);
+    const float3 co = geom::slide_dist(state.emesh, e->e, bv->v, e->offset_l);
     if (construct) {
       BoundVert *v = add_new_bound_vert(bv, co);
       v->efirst = v->elast = e;
@@ -2313,77 +2292,76 @@ static void build_boundary_terminal_edge(const BevelState &state,
 {
   const ExtendableMesh &emesh = state.emesh;
   EdgeHalf *e = efirst;
-  float co[3];
   if (bv->edgecount == 2) {
     /* Only 2 edges in, so terminate the edge with an artificial vertex on the unbeveled edge. */
     const float3 *no = e->fprev != -1 ?
                            &emesh.src_face_normals[e->fprev] :
                            (e->fnext != -1 ? &emesh.src_face_normals[e->fnext] : nullptr);
-    offset_in_plane(emesh, e, no, true, co);
+    const float3 co1 = offset_in_plane(emesh, e, no, true);
     if (construct) {
-      BoundVert *bndv = add_new_bound_vert(bv, co);
+      BoundVert *bndv = add_new_bound_vert(bv, co1);
       bndv->efirst = bndv->elast = bndv->ebev = e;
       e->leftv = bndv;
     }
     else {
-      adjust_bound_vert(e->leftv, co);
+      adjust_bound_vert(e->leftv, co1);
     }
     no = e->fnext != -1 ? &emesh.src_face_normals[e->fnext] :
                           (e->fprev != -1 ? &emesh.src_face_normals[e->fprev] : nullptr);
-    offset_in_plane(emesh, e, no, false, co);
+    const float3 co2 = offset_in_plane(emesh, e, no, false);
     if (construct) {
-      BoundVert *bndv = add_new_bound_vert(bv, co);
+      BoundVert *bndv = add_new_bound_vert(bv, co2);
       bndv->efirst = bndv->elast = e;
       e->rightv = bndv;
     }
     else {
-      adjust_bound_vert(e->rightv, co);
+      adjust_bound_vert(e->rightv, co2);
     }
     /* Make artificial extra point along unbeveled edge, and form triangle. */
-    geom::slide_dist(emesh, e->next->e, bv->v, e->offset_l, co);
+    const float3 co_slide = geom::slide_dist(emesh, e->next->e, bv->v, e->offset_l);
     if (construct) {
-      BoundVert *bndv = add_new_bound_vert(bv, co);
+      BoundVert *bndv = add_new_bound_vert(bv, co_slide);
       bndv->efirst = bndv->elast = e->next;
       e->next->leftv = e->next->rightv = bndv;
       set_bound_vert_seams(state, bv, state.mark_seam, state.mark_sharp);
     }
     else {
-      adjust_bound_vert(e->next->leftv, co);
+      adjust_bound_vert(e->next->leftv, co_slide);
     }
   }
   else {
     /* More than 2 edges in. Put on-edge verts on all the other edges and join with the beveled
      * edge to make a poly or adj mesh, because e->prev has offset 0 and offset_meet will put
      * co on that edge. */
-    geom::offset_meet(emesh, e->prev, e, bv->v, e->fprev, false, co, nullptr);
+    const float3 co1 = geom::offset_meet(emesh, e->prev, e, bv->v, e->fprev, false, nullptr);
     if (construct) {
-      BoundVert *bndv = add_new_bound_vert(bv, co);
+      BoundVert *bndv = add_new_bound_vert(bv, co1);
       bndv->efirst = e->prev;
       bndv->elast = bndv->ebev = e;
       e->leftv = bndv;
       e->prev->leftv = e->prev->rightv = bndv;
     }
     else {
-      adjust_bound_vert(e->leftv, co);
+      adjust_bound_vert(e->leftv, co1);
     }
     e = e->next;
-    geom::offset_meet(emesh, e->prev, e, bv->v, e->fprev, false, co, nullptr);
+    const float3 co2 = geom::offset_meet(emesh, e->prev, e, bv->v, e->fprev, false, nullptr);
     if (construct) {
-      BoundVert *bndv = add_new_bound_vert(bv, co);
+      BoundVert *bndv = add_new_bound_vert(bv, co2);
       bndv->efirst = e->prev;
       bndv->elast = e;
       e->leftv = e->rightv = bndv;
       e->prev->rightv = bndv;
     }
     else {
-      adjust_bound_vert(e->leftv, co);
+      adjust_bound_vert(e->leftv, co2);
     }
     float d = efirst->offset_l_spec;
     if (!state.params.custom_profile_samples.is_empty() || state.params.shape < 0.25f) {
       d *= math::sqrt(2.0f);
     }
     for (e = e->next; e->next != efirst; e = e->next) {
-      geom::slide_dist(emesh, e->e, bv->v, d, co);
+      const float3 co = geom::slide_dist(emesh, e->e, bv->v, d);
       if (construct) {
         BoundVert *bndv = add_new_bound_vert(bv, co);
         bndv->efirst = bndv->elast = e;
@@ -2418,12 +2396,11 @@ static void build_boundary_terminal_edge(const BevelState &state,
         bool use_tri_fan = true;
         if (!state.params.custom_profile_samples.is_empty()) {
           BoundVert *bndv = efirst->leftv;
-          float profile_plane[4];
-          plane_from_point_normal_v3(
-              profile_plane, bndv->profile.plane_co, bndv->profile.plane_no);
+          float4 profile_plane = math::plane_from_point_normal(bndv->profile.plane_co,
+                                                               bndv->profile.plane_no);
           /* The extra BoundVert placed along the non-adjacent edge. */
           bndv = efirst->rightv->next;
-          if (dist_squared_to_plane_v3(bndv->nv.co, profile_plane) < geom::BEVEL_EPSILON_BIG) {
+          if (math::dist_squared_to_plane(bndv->nv.co, profile_plane) < geom::BEVEL_EPSILON_BIG) {
             use_tri_fan = false;
           }
         }
@@ -2457,7 +2434,7 @@ static EdgeHalf *next_bev(BevVert *bv, EdgeHalf *from_e)
 static bool nearly_parallel_normalized(const float3 &d1, const float3 &d2)
 {
   const float direction_dot = math::dot(d1, d2);
-  return fabsf(fabsf(direction_dot) - 1.0f) <= geom::BEVEL_EPSILON_ANG_DOT;
+  return math::abs(math::abs(direction_dot) - 1.0f) <= geom::BEVEL_EPSILON_ANG_DOT;
 }
 
 enum AngleKind { ANGLE_SMALLER, ANGLE_STRAIGHT, ANGLE_LARGER };
@@ -2564,12 +2541,12 @@ static void build_boundary(const BevelState &state, BevVert *bv, bool construct)
       between++;
     }
 
-    float co[3];
+    float3 co;
     if (between == 0) {
-      geom::offset_meet(emesh, e, e2, bv->v, e->fnext, false, co, nullptr);
+      co = geom::offset_meet(emesh, e, e2, bv->v, e->fnext, false, nullptr);
     }
     else {
-      geom::offset_meet(emesh, e, e2, bv->v, -1, true, co, nullptr);
+      co = geom::offset_meet(emesh, e, e2, bv->v, -1, true, nullptr);
     }
 
     if (construct) {
@@ -2629,7 +2606,7 @@ static void build_boundary(const BevelState &state, BevVert *bv, bool construct)
           /* Arc miter: v1 is the arc start, v3 carries the left bevel. Mirrors BMesh lines
            * 3720-3745. */
           v1->is_arc_start = true;
-          copy_v3_v3(v1->profile.middle, co);
+          v1->profile.middle = co;
           if (e->next == e2) {
             v1->elast = v1->efirst;
           }
@@ -2736,10 +2713,9 @@ static void adjust_miter_coords(const BevelState &state, BevVert *bv, EdgeHalf *
   BoundVert *v1prev = v1->prev;
   BoundVert *v3next = v3->next;
 
-  float co2[3];
-  copy_v3_v3(co2, v1->nv.co);
+  float3 co2 = v1->nv.co;
   if (v1->is_arc_start) {
-    copy_v3_v3(v1->profile.middle, co2);
+    v1->profile.middle = co2;
   }
 
   /* Fallback slide distance: offset divided by half-segment-count.
@@ -2748,30 +2724,19 @@ static void adjust_miter_coords(const BevelState &state, BevVert *bv, EdgeHalf *
 
   /* co1: intersection of the line through co2 in the direction of emiter->e
    * with the plane whose normal is that direction and which passes through v1prev. */
-  float co1[3], edge_dir[3], line_p[3];
   int vother = geom::edge_other_vert(state.emesh, emiter->e, bv->v);
-  sub_v3_v3v3(edge_dir,
-              static_cast<const float *>(state.emesh.src_positions[bv->v]),
-              static_cast<const float *>(state.emesh.src_positions[vother]));
-  normalize_v3(edge_dir);
-  madd_v3_v3v3fl(line_p, co2, edge_dir, d);
-  if (!isect_line_plane_v3(co1, co2, line_p, v1prev->nv.co, edge_dir)) {
-    copy_v3_v3(co1, line_p);
-  }
+  float3 edge_dir = math::normalize(state.emesh.src_positions[bv->v] -
+                                    state.emesh.src_positions[vother]);
+  float3 line_p = co2 + d * edge_dir;
+  float3 co1 = math::isect_line_plane(co2, line_p, v1prev->nv.co, edge_dir).value_or(line_p);
   adjust_bound_vert(v1, co1);
 
   /* co3: same idea but using the other side of the miter (edge of v3). */
-  float co3[3];
   EdgeHalf *emiter_other = v3->elast;
   vother = geom::edge_other_vert(state.emesh, emiter_other->e, bv->v);
-  sub_v3_v3v3(edge_dir,
-              static_cast<const float *>(state.emesh.src_positions[bv->v]),
-              static_cast<const float *>(state.emesh.src_positions[vother]));
-  normalize_v3(edge_dir);
-  madd_v3_v3v3fl(line_p, co2, edge_dir, d);
-  if (!isect_line_plane_v3(co3, co2, line_p, v3next->nv.co, edge_dir)) {
-    copy_v3_v3(co3, line_p);
-  }
+  edge_dir = math::normalize(state.emesh.src_positions[bv->v] - state.emesh.src_positions[vother]);
+  line_p = co2 + d * edge_dir;
+  float3 co3 = math::isect_line_plane(co2, line_p, v3next->nv.co, edge_dir).value_or(line_p);
   adjust_bound_vert(v3, co3);
 }
 
@@ -2787,8 +2752,7 @@ static void adjust_miter_inner_coords(const BevelState &state, BevVert *bv, Edge
       BoundVert *v3 = v->next;
       EdgeHalf *e = v->efirst;
       if (e != emiter) {
-        float edge_dir[3], co[3];
-        copy_v3_v3(co, v->nv.co);
+        float3 co = v->nv.co;
 
         /* Spread: use per-corner value from params if available; fall back to 0. */
         int corner = -1;
@@ -2807,19 +2771,15 @@ static void adjust_miter_inner_coords(const BevelState &state, BevVert *bv, Edge
                                  0.0f;
 
         int vother = geom::edge_other_vert(state.emesh, e->e, bv->v);
-        sub_v3_v3v3(edge_dir,
-                    static_cast<const float *>(state.emesh.src_positions[vother]),
-                    static_cast<const float *>(state.emesh.src_positions[bv->v]));
-        normalize_v3(edge_dir);
-        madd_v3_v3v3fl(v->nv.co, co, edge_dir, spread);
+        float3 edge_dir = math::normalize(state.emesh.src_positions[vother] -
+                                          state.emesh.src_positions[bv->v]);
+        v->nv.co = co + edge_dir * spread;
 
         e = v3->elast;
         vother = geom::edge_other_vert(state.emesh, e->e, bv->v);
-        sub_v3_v3v3(edge_dir,
-                    static_cast<const float *>(state.emesh.src_positions[vother]),
-                    static_cast<const float *>(state.emesh.src_positions[bv->v]));
-        normalize_v3(edge_dir);
-        madd_v3_v3v3fl(v3->nv.co, co, edge_dir, spread);
+        edge_dir = math::normalize(state.emesh.src_positions[vother] -
+                                   state.emesh.src_positions[bv->v]);
+        v3->nv.co = co + edge_dir * spread;
       }
       v = v3->next;
     }
@@ -3460,23 +3420,23 @@ static void set_profile_spacing(BevelState *bs, ProfileSpacing *pro_spacing, boo
 
 /* Find the closest point (`projco`) on edge `e_idx` to the line through `co_a` and `co_b`.
  * Mirrors BMesh's #project_to_edge. */
-static void project_to_edge(const ExtendableMesh &emesh,
-                            int e_idx,
-                            const float co_a[3],
-                            const float co_b[3],
-                            float projco[3])
+static float3 project_to_edge(const ExtendableMesh &emesh,
+                              int e_idx,
+                              const float3 &co_a,
+                              const float3 &co_b)
 {
   const int2 everts = emesh.edge_verts(e_idx);
-  float otherco[3];
-  if (!isect_line_line_v3(emesh.vert_position(everts[0]),
-                          emesh.vert_position(everts[1]),
-                          co_a,
-                          co_b,
-                          projco,
-                          otherco))
+  float3 projco, otherco;
+  if (!math::isect_line_line(emesh.vert_position(everts[0]),
+                             emesh.vert_position(everts[1]),
+                             co_a,
+                             co_b,
+                             projco,
+                             otherco))
   {
-    copy_v3_v3(projco, emesh.vert_position(everts[0]));
+    return emesh.vert_position(everts[0]);
   }
+  return projco;
 }
 
 /**
@@ -3490,109 +3450,102 @@ static void set_profile_params(const BevelState &state, const BevVert *bv, Bound
   Profile &pro = bndv->profile;
   const ExtendableMesh &emesh = state.emesh;
 
-  float start[3], end[3];
-  copy_v3_v3(start, bndv->nv.co);
-  copy_v3_v3(end, bndv->next->nv.co);
+  const float3 start = bndv->nv.co;
+  const float3 end = bndv->next->nv.co;
 
   if (e) {
     do_linear_interp = false;
     pro.super_r = state.pro_super_r;
     /* Projection direction is along the beveled edge. */
     const int2 everts = emesh.src_edges[e->e];
-    sub_v3_v3v3(pro.proj_dir, emesh.vert_position(everts[0]), emesh.vert_position(everts[1]));
+    pro.proj_dir = emesh.vert_position(everts[0]) - emesh.vert_position(everts[1]);
     if (e->is_rev) {
-      negate_v3(pro.proj_dir);
+      pro.proj_dir = -pro.proj_dir;
     }
-    normalize_v3(pro.proj_dir);
+    pro.proj_dir = math::normalize(pro.proj_dir);
 
     /* Middle = closest point on the edge line to the segment start-end. */
-    project_to_edge(emesh, e->e, start, end, pro.middle);
+    pro.middle = project_to_edge(emesh, e->e, start, end);
 
-    copy_v3_v3(pro.start, start);
-    copy_v3_v3(pro.end, end);
+    pro.start = start;
+    pro.end = end;
 
-    float d1[3], d2[3];
-    sub_v3_v3v3(d1, pro.middle, start);
-    sub_v3_v3v3(d2, pro.middle, end);
-    normalize_v3(d1);
-    normalize_v3(d2);
-    cross_v3_v3v3(pro.plane_no, d1, d2);
-    normalize_v3(pro.plane_no);
+    float3 d1 = math::normalize(float3(pro.middle) - start);
+    float3 d2 = math::normalize(float3(pro.middle) - end);
+    pro.plane_no = math::normalize(math::cross(d1, d2));
 
     if (geom::nearly_parallel(d1, d2)) {
       /* Start, middle, end are collinear. */
       const float3 v_co = emesh.src_positions[bv->v];
-      copy_v3_v3(pro.middle, v_co);
+      pro.middle = v_co;
 
       if (e->prev->is_bev && e->next->is_bev && bv->selcount >= 3) {
-        float d3[3], d4[3], co3[3], co4[3], meetco[3], isect2[3];
         const int2 eprev_verts = emesh.src_edges[e->prev->e];
         const int2 enext_verts = emesh.src_edges[e->next->e];
-        sub_v3_v3v3(d3, emesh.vert_position(eprev_verts[0]), emesh.vert_position(eprev_verts[1]));
-        sub_v3_v3v3(d4, emesh.vert_position(enext_verts[0]), emesh.vert_position(enext_verts[1]));
-        normalize_v3(d3);
-        normalize_v3(d4);
+        float3 d3 = math::normalize(emesh.vert_position(eprev_verts[0]) -
+                                    emesh.vert_position(eprev_verts[1]));
+        float3 d4 = math::normalize(emesh.vert_position(enext_verts[0]) -
+                                    emesh.vert_position(enext_verts[1]));
         if (geom::nearly_parallel(d3, d4)) {
-          mid_v3_v3v3(pro.middle, start, end);
+          pro.middle = math::midpoint(start, end);
           do_linear_interp = true;
         }
         else {
-          add_v3_v3v3(co3, start, d3);
-          add_v3_v3v3(co4, end, d4);
-          if (isect_line_line_v3(start, co3, end, co4, meetco, isect2) != 0) {
-            copy_v3_v3(pro.middle, meetco);
+          const float3 co3 = start + d3;
+          const float3 co4 = end + d4;
+          float3 meetco;
+          float3 isect2;
+          if (math::isect_line_line(start, co3, end, co4, meetco, isect2) != 0) {
+            pro.middle = meetco;
           }
           else {
-            mid_v3_v3v3(pro.middle, start, end);
+            pro.middle = math::midpoint(start, end);
             do_linear_interp = true;
           }
         }
       }
-      copy_v3_v3(pro.end, end);
-      sub_v3_v3v3(d1, pro.middle, start);
-      normalize_v3(d1);
-      sub_v3_v3v3(d2, pro.middle, end);
-      normalize_v3(d2);
-      cross_v3_v3v3(pro.plane_no, d1, d2);
-      normalize_v3(pro.plane_no);
+      pro.end = end;
+      d1 = math::normalize(float3(pro.middle) - start);
+      d2 = math::normalize(float3(pro.middle) - end);
+      pro.plane_no = math::normalize(math::cross(d1, d2));
       if (geom::nearly_parallel(d1, d2)) {
         do_linear_interp = true;
       }
       else {
-        copy_v3_v3(pro.plane_co, v_co);
-        copy_v3_v3(pro.proj_dir, pro.plane_no);
+        pro.plane_co = v_co;
+        pro.proj_dir = pro.plane_no;
       }
     }
-    copy_v3_v3(pro.plane_co, start);
+    pro.plane_co = start;
   }
   else if (bndv->is_arc_start) {
-    copy_v3_v3(pro.start, start);
-    copy_v3_v3(pro.end, end);
+    pro.start = start;
+    pro.end = end;
     pro.super_r = PRO_CIRCLE_R;
-    zero_v3(pro.plane_co);
-    zero_v3(pro.plane_no);
-    zero_v3(pro.proj_dir);
+    pro.plane_co = float3(0.0f);
+    pro.plane_no = float3(0.0f);
+    pro.proj_dir = float3(0.0f);
     do_linear_interp = false;
   }
   else if (state.params.affect_type == BevelAffect::Vertices) {
-    copy_v3_v3(pro.start, start);
-    copy_v3_v3(pro.middle, emesh.src_positions[bv->v]);
-    copy_v3_v3(pro.end, end);
+    pro.start = start;
+    pro.middle = emesh.src_positions[bv->v];
+    pro.end = end;
     pro.super_r = state.pro_super_r;
-    zero_v3(pro.plane_co);
-    zero_v3(pro.plane_no);
-    zero_v3(pro.proj_dir);
+    pro.plane_co = float3(0.0f);
+    pro.plane_no = float3(0.0f);
+    pro.proj_dir = float3(0.0f);
     do_linear_interp = false;
   }
 
   if (do_linear_interp) {
     pro.super_r = PRO_LINE_R;
-    copy_v3_v3(pro.start, start);
-    copy_v3_v3(pro.end, end);
-    mid_v3_v3v3(pro.middle, start, end);
-    zero_v3(pro.plane_co);
-    zero_v3(pro.plane_no);
-    zero_v3(pro.proj_dir);
+    pro.start = start;
+    pro.end = end;
+    pro.middle = math::midpoint(start, end);
+    pro.plane_co = float3(0.0f);
+    pro.plane_no = float3(0.0f);
+    pro.proj_dir = float3(0.0f);
   }
 }
 
@@ -3608,29 +3561,29 @@ static void move_profile_plane(BoundVert *bndv, const float3 bmvert_co)
   Profile &pro = bndv->profile;
 
   /* Only do this if projecting, and start, end, and proj_dir are not coplanar. */
-  if (is_zero_v3(pro.proj_dir)) {
+  if (math::is_zero(float3(pro.proj_dir))) {
     return;
   }
 
-  float d1[3], d2[3];
-  sub_v3_v3v3(d1, bmvert_co, pro.start);
-  normalize_v3(d1);
-  sub_v3_v3v3(d2, bmvert_co, pro.end);
-  normalize_v3(d2);
-  float no[3], no2[3], no3[3];
-  cross_v3_v3v3(no, d1, d2);
-  cross_v3_v3v3(no2, d1, pro.proj_dir);
-  cross_v3_v3v3(no3, d2, pro.proj_dir);
+  const float3 d1 = math::normalize(bmvert_co - float3(pro.start));
+  const float3 d2 = math::normalize(bmvert_co - float3(pro.end));
+  float3 no = math::cross(d1, d2);
+  float3 no2 = math::cross(d1, float3(pro.proj_dir));
+  float3 no3 = math::cross(d2, float3(pro.proj_dir));
 
-  if (normalize_v3(no) > geom::BEVEL_EPSILON_BIG && normalize_v3(no2) > geom::BEVEL_EPSILON_BIG &&
-      normalize_v3(no3) > geom::BEVEL_EPSILON_BIG)
+  float l1, l2, l3;
+  no = math::normalize_and_get_length(no, l1);
+  no2 = math::normalize_and_get_length(no2, l2);
+  no3 = math::normalize_and_get_length(no3, l3);
+
+  if (l1 > geom::BEVEL_EPSILON_BIG && l2 > geom::BEVEL_EPSILON_BIG && l3 > geom::BEVEL_EPSILON_BIG)
   {
-    const float dot2 = dot_v3v3(no, no2);
-    const float dot3 = dot_v3v3(no, no3);
-    if (fabsf(dot2) < (1.0f - geom::BEVEL_EPSILON_BIG) &&
-        fabsf(dot3) < (1.0f - geom::BEVEL_EPSILON_BIG))
+    const float dot2 = math::dot(no, no2);
+    const float dot3 = math::dot(no, no3);
+    if (math::abs(dot2) < (1.0f - geom::BEVEL_EPSILON_BIG) &&
+        math::abs(dot3) < (1.0f - geom::BEVEL_EPSILON_BIG))
     {
-      copy_v3_v3(pro.plane_no, no);
+      pro.plane_no = no;
     }
   }
 
@@ -3647,29 +3600,32 @@ static void move_profile_plane(BoundVert *bndv, const float3 bmvert_co)
 static void move_weld_profile_planes(BoundVert *bndv1, BoundVert *bndv2, const float3 v_co)
 {
   /* Only do this if projecting. */
-  if (is_zero_v3(bndv1->profile.proj_dir) || is_zero_v3(bndv2->profile.proj_dir)) {
+  if (math::is_zero(float3(bndv1->profile.proj_dir)) ||
+      math::is_zero(float3(bndv2->profile.proj_dir)))
+  {
     return;
   }
-  float d1[3], d2[3], no[3];
-  sub_v3_v3v3(d1, v_co, bndv1->nv.co);
-  sub_v3_v3v3(d2, v_co, bndv2->nv.co);
-  cross_v3_v3v3(no, d1, d2);
-  const float l1 = normalize_v3(no);
+  const float3 d1 = v_co - float3(bndv1->nv.co);
+  const float3 d2 = v_co - float3(bndv2->nv.co);
+  float3 no = math::cross(d1, d2);
+  float l1;
+  no = math::normalize_and_get_length(no, l1);
 
-  float no2[3], no3[3];
-  cross_v3_v3v3(no2, d1, bndv1->profile.proj_dir);
-  const float l2 = normalize_v3(no2);
-  cross_v3_v3v3(no3, d2, bndv2->profile.proj_dir);
-  const float l3 = normalize_v3(no3);
+  float3 no2 = math::cross(d1, float3(bndv1->profile.proj_dir));
+  float l2;
+  no2 = math::normalize_and_get_length(no2, l2);
+  float3 no3 = math::cross(d2, float3(bndv2->profile.proj_dir));
+  float l3;
+  no3 = math::normalize_and_get_length(no3, l3);
 
   if (l1 != 0.0f && (l2 != 0.0f || l3 != 0.0f)) {
-    const float dot1 = fabsf(dot_v3v3(no, no2));
-    const float dot2 = fabsf(dot_v3v3(no, no3));
-    if (fabsf(dot1 - 1.0f) > geom::BEVEL_EPSILON_D) {
-      copy_v3_v3(bndv1->profile.plane_no, no);
+    const float dot1 = math::abs(math::dot(no, no2));
+    const float dot2 = math::abs(math::dot(no, no3));
+    if (math::abs(dot1 - 1.0f) > geom::BEVEL_EPSILON_D) {
+      bndv1->profile.plane_no = no;
     }
-    if (fabsf(dot2 - 1.0f) > geom::BEVEL_EPSILON_D) {
-      copy_v3_v3(bndv2->profile.plane_no, no);
+    if (math::abs(dot2 - 1.0f) > geom::BEVEL_EPSILON_D) {
+      bndv2->profile.plane_no = no;
     }
   }
 
@@ -3682,7 +3638,7 @@ static void move_weld_profile_planes(BoundVert *bndv1, BoundVert *bndv2, const f
  * mapped from the 2D superellipse using the `map` matrix and projected along `proj_dir`.
  */
 static void calculate_profile_segments(const Profile &pro,
-                                       const float map[4][4],
+                                       const float4x4 &map,
                                        const bool use_map,
                                        const bool reversed,
                                        const int ns,
@@ -3691,36 +3647,34 @@ static void calculate_profile_segments(const Profile &pro,
                                        MutableSpan<float3> r_prof_co)
 {
   for (int k = 0; k <= ns; k++) {
-    float co[3];
+    float3 co;
     if (k == 0) {
-      copy_v3_v3(co, pro.start);
+      co = pro.start;
     }
     else if (k == ns) {
-      copy_v3_v3(co, pro.end);
+      co = pro.end;
     }
     else {
       if (use_map) {
-        const float p[3] = {
+        const float3 p = {
             reversed ? float(yvals[ns - k]) : float(xvals[k]),
             reversed ? float(xvals[ns - k]) : float(yvals[k]),
             0.0f,
         };
-        mul_v3_m4v3(co, map, p);
+        co = math::transform_point(map, p);
       }
       else {
-        interp_v3_v3v3(co, pro.start, pro.end, float(k) / float(ns));
+        co = math::interpolate(pro.start, pro.end, float(k) / float(ns));
       }
     }
     /* Project onto the profile plane along proj_dir. */
-    if (!is_zero_v3(pro.proj_dir)) {
-      float co2[3];
-      add_v3_v3v3(co2, co, pro.proj_dir);
-      if (!isect_line_plane_v3(r_prof_co[k], co, co2, pro.plane_co, pro.plane_no)) {
-        copy_v3_v3(r_prof_co[k], co);
-      }
+    if (!math::is_zero(float3(pro.proj_dir))) {
+      const float3 co2 = co + float3(pro.proj_dir);
+      r_prof_co[k] =
+          math::isect_line_plane(co, co2, float3(pro.plane_co), float3(pro.plane_no)).value_or(co);
     }
     else {
-      copy_v3_v3(r_prof_co[k], co);
+      r_prof_co[k] = co;
     }
   }
 }
@@ -3754,7 +3708,7 @@ static void calculate_profile(BevelState &state, BoundVert *bndv, bool reversed,
    * custom shape, but they still need to be mapped through the unit-square-to-3D transform,
    * so use_map must be true in that case. */
   bool use_map;
-  float map[4][4];
+  float4x4 map;
   if (state.params.custom_profile_samples.is_empty() && pro.super_r == PRO_LINE_R) {
     use_map = false;
   }
@@ -3791,22 +3745,18 @@ static void calculate_profile(BevelState &state, BoundVert *bndv, bool reversed,
  * When `nseg == params.segments`, indexes into `prof_co`;
  * otherwise uses the higher-resolution `prof_co_2` with sub-sampling.
  */
-static void get_profile_point(
-    const BevelState &state, const Profile *pro, int i, int nseg, float r_co[3])
+static float3 get_profile_point(const BevelState &state, const Profile *pro, int i, int nseg)
 {
   if (state.params.segments == 1) {
-    copy_v3_v3(r_co, i == 0 ? pro->start : pro->end);
-    return;
+    return (i == 0 ? pro->start : pro->end);
   }
   if (nseg == state.params.segments) {
     BLI_assert(!pro->prof_co.is_empty());
-    copy_v3_v3(r_co, pro->prof_co[i]);
+    return pro->prof_co[i];
   }
-  else {
-    BLI_assert(is_power_of_2_i(nseg) && nseg <= state.pro_spacing.seg_2);
-    const int subsample_spacing = state.pro_spacing.seg_2 / nseg;
-    copy_v3_v3(r_co, pro->prof_co_2[i * subsample_spacing]);
-  }
+  BLI_assert(is_power_of_2_i(nseg) && nseg <= state.pro_spacing.seg_2);
+  const int subsample_spacing = state.pro_spacing.seg_2 / nseg;
+  return pro->prof_co_2[i * subsample_spacing];
 }
 
 /**
@@ -3906,12 +3856,10 @@ static VMesh adj_vmesh(BevelState &state, BevVert *bv);
 static bool face_point_inside_test(const ExtendableMesh &emesh, const int f, const float3 co)
 {
   const float3 no = emesh.src_face_normals[f];
-  float axis_mat[3][3];
-  axis_dominant_v3_to_m3(axis_mat, no);
+  const float3x3 axis_mat = math::axis_dominant_to_m3(no);
 
   /* Project the test point. */
-  float co_2d[2];
-  mul_v2_m3v3(co_2d, axis_mat, co);
+  const float2 co_2d = float2(axis_mat * co);
 
   /* Project every corner of the face. */
   const OffsetIndices faces = emesh.src_faces;
@@ -3921,11 +3869,10 @@ static bool face_point_inside_test(const ExtendableMesh &emesh, const int f, con
   Array<float2, 16> projverts(face_verts.size());
   for (const int i : face_verts.index_range()) {
     const int vert = face_verts[i];
-    mul_v2_m3v3(projverts[i], axis_mat, positions[vert]);
+    projverts[i] = float2(axis_mat * positions[vert]);
   }
 
-  return isect_point_poly_v2(
-      co_2d, reinterpret_cast<const float (*)[2]>(projverts.data()), uint(face_verts.size()));
+  return math::isect_point_poly(co_2d, projverts);
 }
 
 /**
@@ -4004,8 +3951,7 @@ static float projected_boundary_area(const BevelState &state, BevVert *bv, const
   BLI_assert(vm != nullptr);
 
   const float3 no = emesh.src_face_normals[f];
-  float axis_mat[3][3];
-  axis_dominant_v3_to_m3(axis_mat, no);
+  const float3x3 axis_mat = math::axis_dominant_to_m3(no);
 
   int e1 = -1, e2 = -1;
   get_incident_edges(emesh, f, bv->v, &e1, &e2);
@@ -4017,27 +3963,26 @@ static float projected_boundary_area(const BevelState &state, BevVert *bv, const
   const Span<float3> positions = emesh.src_positions;
   const int2 &ev1 = emesh.src_edges[e1];
   const int2 &ev2 = emesh.src_edges[e2];
-  const float *e1v1 = positions[ev1[0]];
-  const float *e1v2 = positions[ev1[1]];
-  const float *e2v1 = positions[ev2[0]];
-  const float *e2v2 = positions[ev2[1]];
+  const float3 e1v1 = positions[ev1[0]];
+  const float3 e1v2 = positions[ev1[1]];
+  const float3 e2v1 = positions[ev2[0]];
+  const float3 e2v2 = positions[ev2[1]];
 
   const int count = vm->count;
   Array<float2, 16> proj_co(count);
   BoundVert *v = vm->boundstart;
   int i = 0;
   do {
-    const float *co = v->nv.co;
+    const float3 co = v->nv.co;
     if (ELEM(v, unsnapped[0], unsnapped[1], unsnapped[2])) {
-      mul_v2_m3v3(proj_co[i], axis_mat, co);
+      proj_co[i] = float2(axis_mat * co);
     }
     else {
-      float snap1[3], snap2[3];
-      closest_to_line_segment_v3(snap1, co, e1v1, e1v2);
-      closest_to_line_segment_v3(snap2, co, e2v1, e2v2);
-      const float d1_sq = len_squared_v3v3(snap1, co);
-      const float d2_sq = len_squared_v3v3(snap2, co);
-      mul_v2_m3v3(proj_co[i], axis_mat, d1_sq <= d2_sq ? snap1 : snap2);
+      const float3 snap1 = math::closest_to_line_segment(co, e1v1, e1v2);
+      const float3 snap2 = math::closest_to_line_segment(co, e2v1, e2v2);
+      const float d1_sq = math::dist_squared_to_line_segment(co, e1v1, e1v2);
+      const float d2_sq = math::dist_squared_to_line_segment(co, e2v1, e2v2);
+      proj_co[i] = float2(axis_mat * (d1_sq <= d2_sq ? snap1 : snap2));
     }
     ++i;
   } while ((v = v->next) != vm->boundstart);
@@ -4230,9 +4175,9 @@ static int find_closer_edge(const ExtendableMesh &emesh,
   BLI_assert(e1 >= 0 && e2 >= 0);
   const int2 ev1 = emesh.edge_verts(e1);
   const int2 ev2 = emesh.edge_verts(e2);
-  const float dsq1 = dist_squared_to_line_segment_v3(
+  const float dsq1 = math::dist_squared_to_line_segment(
       co, emesh.vert_position(ev1[0]), emesh.vert_position(ev1[1]));
-  const float dsq2 = dist_squared_to_line_segment_v3(
+  const float dsq2 = math::dist_squared_to_line_segment(
       co, emesh.vert_position(ev2[0]), emesh.vert_position(ev2[1]));
   return (dsq1 <= dsq2) ? e1 : e2;
 }
@@ -4578,22 +4523,21 @@ static void bevel_vert_two_edges(BevelState &state, BevVert *bv)
     BoundVert *bndv0 = vm->boundstart;
     Profile &pro = bndv0->profile;
     pro.super_r = state.pro_super_r;
-    copy_v3_v3(pro.start, geom::mesh_vert(vm, 0, 0, 0)->co);
-    copy_v3_v3(pro.end, geom::mesh_vert(vm, 1, 0, 0)->co);
-    copy_v3_v3(pro.middle, state.emesh.src_positions[bv->v]);
-    zero_v3(pro.plane_co);
-    zero_v3(pro.plane_no);
-    zero_v3(pro.proj_dir);
+    pro.start = geom::mesh_vert(vm, 0, 0, 0)->co;
+    pro.end = geom::mesh_vert(vm, 1, 0, 0)->co;
+    pro.middle = state.emesh.src_positions[bv->v];
+    pro.plane_co = float3(0.0f);
+    pro.plane_no = float3(0.0f);
+    pro.proj_dir = float3(0.0f);
     profile::calculate_profile(state, bndv0, false, false);
 
     for (int k = 1; k < ns; k++) {
-      float co[3];
-      profile::get_profile_point(state, &pro, k, ns, co);
-      const int nv = state.emesh.vert_create(float3(co), bv->v);
-      geom::mesh_vert(vm, 0, 0, k)->co = float3(co);
+      const float3 co = profile::get_profile_point(state, &pro, k, ns);
+      const int nv = state.emesh.vert_create(co, bv->v);
+      geom::mesh_vert(vm, 0, 0, k)->co = co;
       geom::mesh_vert(vm, 0, 0, k)->v = nv;
     }
-    copy_v3_v3(geom::mesh_vert(vm, 0, 0, ns)->co, geom::mesh_vert(vm, 1, 0, 0)->co);
+    geom::mesh_vert(vm, 0, 0, ns)->co = geom::mesh_vert(vm, 1, 0, 0)->co;
     geom::mesh_vert(vm, 0, 0, ns)->v = v2;
 
     /* Mirror to the second BoundVert arc (reversed). */
@@ -5182,8 +5126,8 @@ static void bevel_build_edge_polygons(BevelState &state, const int edge_index)
     return;
   }
 
-  BevVert *bv1 = state.vert_hash.lookup(v1_idx);
-  BevVert *bv2 = state.vert_hash.lookup(v2_idx);
+  BevVert *bv1 = state.vert_hash.lookup_default(v1_idx, nullptr);
+  BevVert *bv2 = state.vert_hash.lookup_default(v2_idx, nullptr);
   if (!bv1 || !bv2) {
     return;
   }
@@ -5456,7 +5400,7 @@ static void build_vmesh(BevelState &state, BevVert *bv)
   BoundVert *bndv = vm->boundstart;
   do {
     const int i = bndv->index;
-    copy_v3_v3(geom::mesh_vert(vm, i, 0, 0)->co, bndv->nv.co);
+    geom::mesh_vert(vm, i, 0, 0)->co = bndv->nv.co;
     geom::mesh_vert(vm, i, 0, 0)->v = state.emesh.vert_create(float3(bndv->nv.co), bv->v);
     bndv->nv.v = geom::mesh_vert(vm, i, 0, 0)->v;
 
@@ -5487,17 +5431,16 @@ static void build_vmesh(BevelState &state, BevVert *bv)
   do {
     const int i = bndv->index;
     /* Last arc vert shares with the next BoundVert's first. */
-    copy_v3_v3(geom::mesh_vert(vm, i, 0, ns)->co, bndv->next->nv.co);
+    geom::mesh_vert(vm, i, 0, ns)->co = bndv->next->nv.co;
     geom::mesh_vert(vm, i, 0, ns)->v = bndv->next->nv.v;
 
     if (vm->mesh_kind != MeshKind::Adj) {
       for (int k = 1; k < ns; k++) {
         if (bndv->ebev) {
-          float co[3];
-          profile::get_profile_point(state, &bndv->profile, k, ns, co);
-          copy_v3_v3(geom::mesh_vert(vm, i, 0, k)->co, co);
+          const float3 co = profile::get_profile_point(state, &bndv->profile, k, ns);
+          geom::mesh_vert(vm, i, 0, k)->co = co;
           if (!weld) {
-            geom::mesh_vert(vm, i, 0, k)->v = state.emesh.vert_create(float3(co), bv->v);
+            geom::mesh_vert(vm, i, 0, k)->v = state.emesh.vert_create(co, bv->v);
           }
         }
         else if (n == 2 && !bndv->ebev) {
@@ -5682,15 +5625,14 @@ static void fill_profile_fracs(const BevelState &state,
                                MutableSpan<float> frac,
                                const int ns)
 {
-  float co[3], nextco[3];
   frac[0] = 0.0f;
   float total = 0.0f;
-  copy_v3_v3(co, bndv->nv.co);
+  float3 co = bndv->nv.co;
   for (int k = 0; k < ns; k++) {
-    profile::get_profile_point(state, &bndv->profile, k + 1, ns, nextco);
-    total += len_v3v3(co, nextco);
+    const float3 nextco = profile::get_profile_point(state, &bndv->profile, k + 1, ns);
+    total += math::distance(co, nextco);
     frac[k + 1] = total;
-    copy_v3_v3(co, nextco);
+    co = nextco;
   }
   if (total > 0.0f) {
     for (int k = 1; k <= ns; k++) {
@@ -5755,21 +5697,21 @@ static VMesh interp_vmesh(const BevelState &state, VMesh &vm_in, int nseg)
           j_in--;
           restj = 1.0f + restj;
         }
-        float co[3];
+        float3 co;
         if (restj < geom::BEVEL_EPSILON_D && restk < geom::BEVEL_EPSILON_D) {
-          copy_v3_v3(co, geom::mesh_vert_canon(&vm_in, i, j_in, k_in)->co);
+          co = geom::mesh_vert_canon(&vm_in, i, j_in, k_in)->co;
         }
         else {
           const int j0inc = (restj < geom::BEVEL_EPSILON_D || j_in == ns_in) ? 0 : 1;
           const int k0inc = (restk < geom::BEVEL_EPSILON_D || k_in == ns_in) ? 0 : 1;
-          float quad[4][3];
-          copy_v3_v3(quad[0], geom::mesh_vert_canon(&vm_in, i, j_in, k_in)->co);
-          copy_v3_v3(quad[1], geom::mesh_vert_canon(&vm_in, i, j_in, k_in + k0inc)->co);
-          copy_v3_v3(quad[2], geom::mesh_vert_canon(&vm_in, i, j_in + j0inc, k_in + k0inc)->co);
-          copy_v3_v3(quad[3], geom::mesh_vert_canon(&vm_in, i, j_in + j0inc, k_in)->co);
-          interp_bilinear_quad_v3(quad, restk, restj, co);
+          float3 quad[4];
+          quad[0] = geom::mesh_vert_canon(&vm_in, i, j_in, k_in)->co;
+          quad[1] = geom::mesh_vert_canon(&vm_in, i, j_in, k_in + k0inc)->co;
+          quad[2] = geom::mesh_vert_canon(&vm_in, i, j_in + j0inc, k_in + k0inc)->co;
+          quad[3] = geom::mesh_vert_canon(&vm_in, i, j_in + j0inc, k_in)->co;
+          interp_bilinear_quad_v3(reinterpret_cast<float (*)[3]>(quad), restk, restj, co);
         }
-        copy_v3_v3(geom::mesh_vert(&vm_out, i, j, k)->co, co);
+        geom::mesh_vert(&vm_out, i, j, k)->co = co;
       }
     }
     bndv = bndv->next;
@@ -5777,9 +5719,7 @@ static VMesh interp_vmesh(const BevelState &state, VMesh &vm_in, int nseg)
     prev_new_frac = new_frac;
   }
   if (!odd) {
-    float center[3];
-    geom::vmesh_center(&vm_in, center);
-    copy_v3_v3(geom::mesh_vert(&vm_out, 0, nseg2, nseg2)->co, center);
+    geom::mesh_vert(&vm_out, 0, nseg2, nseg2)->co = geom::vmesh_center(&vm_in);
   }
   geom::vmesh_copy_equiv_verts(&vm_out);
   return vm_out;
@@ -5800,20 +5740,17 @@ static VMesh cubic_subdiv(const BevelState &state, VMesh &vm_in)
 
   /* Adjust even boundary vertices. */
   for (int i = 0; i < n_boundary; i++) {
-    copy_v3_v3(geom::mesh_vert(&vm_out, i, 0, 0)->co, geom::mesh_vert(&vm_in, i, 0, 0)->co);
+    geom::mesh_vert(&vm_out, i, 0, 0)->co = geom::mesh_vert(&vm_in, i, 0, 0)->co;
     for (int k = 1; k < ns_in; k++) {
-      float co[3];
-      copy_v3_v3(co, geom::mesh_vert(&vm_in, i, 0, k)->co);
+      float3 co = geom::mesh_vert(&vm_in, i, 0, k)->co;
       /* Smooth boundary (not for custom profile). */
       if (state.params.custom_profile_samples.is_empty()) {
-        float acc[3];
-        add_v3_v3v3(acc,
-                    geom::mesh_vert(&vm_in, i, 0, k - 1)->co,
-                    geom::mesh_vert(&vm_in, i, 0, k + 1)->co);
-        madd_v3_v3fl(acc, co, -2.0f);
-        madd_v3_v3fl(co, acc, -1.0f / 6.0f);
+        float3 acc = geom::mesh_vert(&vm_in, i, 0, k - 1)->co +
+                     geom::mesh_vert(&vm_in, i, 0, k + 1)->co;
+        acc += co * -2.0f;
+        co += acc * (-1.0f / 6.0f);
       }
-      copy_v3_v3(geom::mesh_vert_canon(&vm_out, i, 0, 2 * k)->co, co);
+      geom::mesh_vert_canon(&vm_out, i, 0, 2 * k)->co = co;
     }
   }
 
@@ -5821,17 +5758,14 @@ static VMesh cubic_subdiv(const BevelState &state, VMesh &vm_in)
   BoundVert *bndv = vm_out.boundstart;
   for (int i = 0; i < n_boundary; i++) {
     for (int k = 1; k < ns_out; k += 2) {
-      float co[3];
-      profile::get_profile_point(state, &bndv->profile, k, ns_out, co);
+      float3 co = profile::get_profile_point(state, &bndv->profile, k, ns_out);
       if (state.params.custom_profile_samples.is_empty()) {
-        float acc[3];
-        add_v3_v3v3(acc,
-                    geom::mesh_vert_canon(&vm_out, i, 0, k - 1)->co,
-                    geom::mesh_vert_canon(&vm_out, i, 0, k + 1)->co);
-        madd_v3_v3fl(acc, co, -2.0f);
-        madd_v3_v3fl(co, acc, -1.0f / 6.0f);
+        float3 acc = geom::mesh_vert_canon(&vm_out, i, 0, k - 1)->co +
+                     geom::mesh_vert_canon(&vm_out, i, 0, k + 1)->co;
+        acc += co * -2.0f;
+        co += acc * (-1.0f / 6.0f);
       }
-      copy_v3_v3(geom::mesh_vert_canon(&vm_out, i, 0, k)->co, co);
+      geom::mesh_vert_canon(&vm_out, i, 0, k)->co = co;
     }
     bndv = bndv->next;
   }
@@ -5840,7 +5774,7 @@ static VMesh cubic_subdiv(const BevelState &state, VMesh &vm_in)
   /* Copy adjusted boundary back into vm_in. */
   for (int i = 0; i < n_boundary; i++) {
     for (int k = 0; k < ns_in; k++) {
-      copy_v3_v3(geom::mesh_vert(&vm_in, i, 0, k)->co, geom::mesh_vert(&vm_out, i, 0, 2 * k)->co);
+      geom::mesh_vert(&vm_in, i, 0, k)->co = geom::mesh_vert(&vm_out, i, 0, 2 * k)->co;
     }
   }
   geom::vmesh_copy_equiv_verts(&vm_in);
@@ -5849,13 +5783,11 @@ static VMesh cubic_subdiv(const BevelState &state, VMesh &vm_in)
   for (int i = 0; i < n_boundary; i++) {
     for (int j = 0; j < ns_in2; j++) {
       for (int k = 0; k < ns_in2; k++) {
-        float co[3];
-        geom::avg4(co,
-                   geom::mesh_vert(&vm_in, i, j, k),
-                   geom::mesh_vert(&vm_in, i, j, k + 1),
-                   geom::mesh_vert(&vm_in, i, j + 1, k),
-                   geom::mesh_vert(&vm_in, i, j + 1, k + 1));
-        copy_v3_v3(geom::mesh_vert(&vm_out, i, 2 * j + 1, 2 * k + 1)->co, co);
+        geom::mesh_vert(&vm_out, i, 2 * j + 1, 2 * k + 1)->co = geom::avg4(
+            geom::mesh_vert(&vm_in, i, j, k),
+            geom::mesh_vert(&vm_in, i, j, k + 1),
+            geom::mesh_vert(&vm_in, i, j + 1, k),
+            geom::mesh_vert(&vm_in, i, j + 1, k + 1));
       }
     }
   }
@@ -5864,13 +5796,11 @@ static VMesh cubic_subdiv(const BevelState &state, VMesh &vm_in)
   for (int i = 0; i < n_boundary; i++) {
     for (int j = 0; j < ns_in2; j++) {
       for (int k = 1; k <= ns_in2; k++) {
-        float co[3];
-        geom::avg4(co,
-                   geom::mesh_vert(&vm_in, i, j, k),
-                   geom::mesh_vert(&vm_in, i, j + 1, k),
-                   geom::mesh_vert_canon(&vm_out, i, 2 * j + 1, 2 * k - 1),
-                   geom::mesh_vert_canon(&vm_out, i, 2 * j + 1, 2 * k + 1));
-        copy_v3_v3(geom::mesh_vert(&vm_out, i, 2 * j + 1, 2 * k)->co, co);
+        geom::mesh_vert(&vm_out, i, 2 * j + 1, 2 * k)->co = geom::avg4(
+            geom::mesh_vert(&vm_in, i, j, k),
+            geom::mesh_vert(&vm_in, i, j + 1, k),
+            geom::mesh_vert_canon(&vm_out, i, 2 * j + 1, 2 * k - 1),
+            geom::mesh_vert_canon(&vm_out, i, 2 * j + 1, 2 * k + 1));
       }
     }
   }
@@ -5879,13 +5809,11 @@ static VMesh cubic_subdiv(const BevelState &state, VMesh &vm_in)
   for (int i = 0; i < n_boundary; i++) {
     for (int j = 1; j < ns_in2; j++) {
       for (int k = 0; k < ns_in2; k++) {
-        float co[3];
-        geom::avg4(co,
-                   geom::mesh_vert(&vm_in, i, j, k),
-                   geom::mesh_vert(&vm_in, i, j, k + 1),
-                   geom::mesh_vert_canon(&vm_out, i, 2 * j - 1, 2 * k + 1),
-                   geom::mesh_vert_canon(&vm_out, i, 2 * j + 1, 2 * k + 1));
-        copy_v3_v3(geom::mesh_vert(&vm_out, i, 2 * j, 2 * k + 1)->co, co);
+        geom::mesh_vert(&vm_out, i, 2 * j, 2 * k + 1)->co = geom::avg4(
+            geom::mesh_vert(&vm_in, i, j, k),
+            geom::mesh_vert(&vm_in, i, j, k + 1),
+            geom::mesh_vert_canon(&vm_out, i, 2 * j - 1, 2 * k + 1),
+            geom::mesh_vert_canon(&vm_out, i, 2 * j + 1, 2 * k + 1));
       }
     }
   }
@@ -5896,21 +5824,17 @@ static VMesh cubic_subdiv(const BevelState &state, VMesh &vm_in)
   for (int i = 0; i < n_boundary; i++) {
     for (int j = 1; j < ns_in2; j++) {
       for (int k = 1; k <= ns_in2; k++) {
-        float co1[3], co2[3], co[3];
-        geom::avg4(co1,
-                   geom::mesh_vert_canon(&vm_out, i, 2 * j, 2 * k - 1),
-                   geom::mesh_vert_canon(&vm_out, i, 2 * j, 2 * k + 1),
-                   geom::mesh_vert_canon(&vm_out, i, 2 * j - 1, 2 * k),
-                   geom::mesh_vert_canon(&vm_out, i, 2 * j + 1, 2 * k));
-        geom::avg4(co2,
-                   geom::mesh_vert_canon(&vm_out, i, 2 * j - 1, 2 * k - 1),
-                   geom::mesh_vert_canon(&vm_out, i, 2 * j + 1, 2 * k - 1),
-                   geom::mesh_vert_canon(&vm_out, i, 2 * j - 1, 2 * k + 1),
-                   geom::mesh_vert_canon(&vm_out, i, 2 * j + 1, 2 * k + 1));
-        copy_v3_v3(co, co1);
-        madd_v3_v3fl(co, co2, beta_interior);
-        madd_v3_v3fl(co, geom::mesh_vert(&vm_in, i, j, k)->co, gamma_interior);
-        copy_v3_v3(geom::mesh_vert(&vm_out, i, 2 * j, 2 * k)->co, co);
+        const float3 co1 = geom::avg4(geom::mesh_vert_canon(&vm_out, i, 2 * j, 2 * k - 1),
+                                      geom::mesh_vert_canon(&vm_out, i, 2 * j, 2 * k + 1),
+                                      geom::mesh_vert_canon(&vm_out, i, 2 * j - 1, 2 * k),
+                                      geom::mesh_vert_canon(&vm_out, i, 2 * j + 1, 2 * k));
+        const float3 co2 = geom::avg4(geom::mesh_vert_canon(&vm_out, i, 2 * j - 1, 2 * k - 1),
+                                      geom::mesh_vert_canon(&vm_out, i, 2 * j + 1, 2 * k - 1),
+                                      geom::mesh_vert_canon(&vm_out, i, 2 * j - 1, 2 * k + 1),
+                                      geom::mesh_vert_canon(&vm_out, i, 2 * j + 1, 2 * k + 1));
+        const float3 co = co1 + co2 * beta_interior +
+                          geom::mesh_vert(&vm_in, i, j, k)->co * gamma_interior;
+        geom::mesh_vert(&vm_out, i, 2 * j, 2 * k)->co = co;
       }
     }
   }
@@ -5920,20 +5844,17 @@ static VMesh cubic_subdiv(const BevelState &state, VMesh &vm_in)
   /* Special center vertex (Sabin modification). */
   const float gamma_c = geom::sabin_gamma(n_boundary);
   const float beta_c = -gamma_c;
-  float co1[3], co2[3], co[3];
-  zero_v3(co1);
-  zero_v3(co2);
+  float3 co1(0.0f), co2(0.0f);
   for (int i = 0; i < n_boundary; i++) {
-    add_v3_v3(co1, geom::mesh_vert(&vm_out, i, ns_in, ns_in - 1)->co);
-    add_v3_v3(co2, geom::mesh_vert(&vm_out, i, ns_in - 1, ns_in - 1)->co);
-    add_v3_v3(co2, geom::mesh_vert(&vm_out, i, ns_in - 1, ns_in + 1)->co);
+    co1 += geom::mesh_vert(&vm_out, i, ns_in, ns_in - 1)->co;
+    co2 += geom::mesh_vert(&vm_out, i, ns_in - 1, ns_in - 1)->co;
+    co2 += geom::mesh_vert(&vm_out, i, ns_in - 1, ns_in + 1)->co;
   }
-  copy_v3_v3(co, co1);
-  mul_v3_fl(co, 1.0f / float(n_boundary));
-  madd_v3_v3fl(co, co2, beta_c / (2.0f * float(n_boundary)));
-  madd_v3_v3fl(co, geom::mesh_vert(&vm_in, 0, ns_in2, ns_in2)->co, gamma_c);
+  const float3 co = co1 * (1.0f / float(n_boundary)) +
+                    co2 * (beta_c / (2.0f * float(n_boundary))) +
+                    geom::mesh_vert(&vm_in, 0, ns_in2, ns_in2)->co * gamma_c;
   for (int i = 0; i < n_boundary; i++) {
-    copy_v3_v3(geom::mesh_vert(&vm_out, i, ns_in, ns_in)->co, co);
+    geom::mesh_vert(&vm_out, i, ns_in, ns_in)->co = co;
   }
 
   /* Restore final profile boundary. */
@@ -5941,11 +5862,10 @@ static VMesh cubic_subdiv(const BevelState &state, VMesh &vm_in)
   for (int i = 0; i < n_boundary; i++) {
     const int inext = (i + 1) % n_boundary;
     for (int k = 0; k <= ns_out; k++) {
-      float pco[3];
-      profile::get_profile_point(state, &bndv->profile, k, ns_out, pco);
-      copy_v3_v3(geom::mesh_vert(&vm_out, i, 0, k)->co, pco);
+      const float3 pco = profile::get_profile_point(state, &bndv->profile, k, ns_out);
+      geom::mesh_vert(&vm_out, i, 0, k)->co = pco;
       if (k >= ns_in && k < ns_out) {
-        copy_v3_v3(geom::mesh_vert(&vm_out, inext, ns_out - k, 0)->co, pco);
+        geom::mesh_vert(&vm_out, inext, ns_out - k, 0)->co = pco;
       }
     }
     bndv = bndv->next;
@@ -5959,23 +5879,23 @@ static VMesh cubic_subdiv(const BevelState &state, VMesh &vm_in)
  * When `r == PRO_CIRCLE_R` normalizes the vector; for the square cases snaps
  * to the nearest axis-aligned face. Only used for cube corner special cases.
  */
-static void snap_to_superellipsoid(float co[3], const float super_r, const bool midline)
+static void snap_to_superellipsoid(float3 &co, const float super_r, const bool midline)
 {
   const float r = super_r;
   if (r == profile::PRO_CIRCLE_R) {
-    normalize_v3(co);
+    co = math::normalize(co);
     return;
   }
 
-  float a = max_ff(0.0f, co[0]);
-  float b = max_ff(0.0f, co[1]);
-  float c = max_ff(0.0f, co[2]);
+  float a = math::max(0.0f, co[0]);
+  float b = math::max(0.0f, co[1]);
+  float c = math::max(0.0f, co[2]);
   float x = a, y = b, z = c;
   if (ELEM(r, profile::PRO_SQUARE_R, profile::PRO_SQUARE_IN_R)) {
-    BLI_assert(fabsf(z) < geom::BEVEL_EPSILON_D);
+    BLI_assert(math::abs(z) < geom::BEVEL_EPSILON_D);
     z = 0.0f;
-    x = min_ff(1.0f, x);
-    y = min_ff(1.0f, y);
+    x = math::min(1.0f, x);
+    y = math::min(1.0f, y);
     if (r == profile::PRO_SQUARE_R) {
       const float dx = 1.0f - x;
       const float dy = 1.0f - y;
@@ -6029,33 +5949,18 @@ static void snap_to_superellipsoid(float co[3], const float super_r, const bool 
  * tetrahedron formed by `va`, `vb`, `vc` (the three boundary verts) and `vd`
  * (the original beveled vertex). Same as BMesh's #make_unit_cube_map.
  */
-static void make_unit_cube_map(
-    const float va[3], const float vb[3], const float vc[3], const float vd[3], float r_mat[4][4])
+static float4x4 make_unit_cube_map(const float3 &va,
+                                   const float3 &vb,
+                                   const float3 &vc,
+                                   const float3 &vd)
 {
-  copy_v3_v3(r_mat[0], va);
-  sub_v3_v3(r_mat[0], vb);
-  sub_v3_v3(r_mat[0], vc);
-  add_v3_v3(r_mat[0], vd);
-  mul_v3_fl(r_mat[0], 0.5f);
-  r_mat[0][3] = 0.0f;
-  copy_v3_v3(r_mat[1], vb);
-  sub_v3_v3(r_mat[1], va);
-  sub_v3_v3(r_mat[1], vc);
-  add_v3_v3(r_mat[1], vd);
-  mul_v3_fl(r_mat[1], 0.5f);
-  r_mat[1][3] = 0.0f;
-  copy_v3_v3(r_mat[2], vc);
-  sub_v3_v3(r_mat[2], va);
-  sub_v3_v3(r_mat[2], vb);
-  add_v3_v3(r_mat[2], vd);
-  mul_v3_fl(r_mat[2], 0.5f);
-  r_mat[2][3] = 0.0f;
-  copy_v3_v3(r_mat[3], va);
-  add_v3_v3(r_mat[3], vb);
-  add_v3_v3(r_mat[3], vc);
-  sub_v3_v3(r_mat[3], vd);
-  mul_v3_fl(r_mat[3], 0.5f);
-  r_mat[3][3] = 1.0f;
+  float4x4 mat;
+  /* Columns of the 4x4 column-major matrix. */
+  mat[0] = float4((va - vb - vc + vd) * 0.5f, 0.0f);
+  mat[1] = float4((vb - va - vc + vd) * 0.5f, 0.0f);
+  mat[2] = float4((vc - va - vb + vd) * 0.5f, 0.0f);
+  mat[3] = float4((va + vb + vc - vd) * 0.5f, 1.0f);
+  return mat;
 }
 
 /**
@@ -6085,11 +5990,11 @@ static VMesh make_cube_corner_square(const int nseg)
         if (!geom::is_canon(&vm, i, j, k)) {
           continue;
         }
-        float co[3];
+        float3 co;
         co[i] = 1.0f;
         co[(i + 1) % 3] = float(k) * 2.0f / float(nseg);
         co[(i + 2) % 3] = float(j) * 2.0f / float(nseg);
-        copy_v3_v3(geom::mesh_vert(&vm, i, j, k)->co, co);
+        geom::mesh_vert(&vm, i, j, k)->co = co;
       }
     }
   }
@@ -6121,15 +6026,12 @@ static VMesh make_cube_corner_square_in(const int nseg)
 
   for (int i = 0; i < 3; i++) {
     for (int k = 0; k <= ns2; k++) {
-      float co[3];
+      float3 co(0.0f);
       co[i] = 1.0f - float(k) * b;
-      co[(i + 1) % 3] = 0.0f;
-      co[(i + 2) % 3] = 0.0f;
-      copy_v3_v3(geom::mesh_vert(&vm, i, 0, k)->co, co);
-      co[(i + 1) % 3] = 1.0f - float(k) * b;
-      co[(i + 2) % 3] = 0.0f;
+      geom::mesh_vert(&vm, i, 0, k)->co = co;
       co[i] = 0.0f;
-      copy_v3_v3(geom::mesh_vert(&vm, i, 0, nseg - k)->co, co);
+      co[(i + 1) % 3] = 1.0f - float(k) * b;
+      geom::mesh_vert(&vm, i, 0, nseg - k)->co = co;
     }
   }
   return vm;
@@ -6172,9 +6074,9 @@ static VMesh make_cube_corner_adj_vmesh(BevelState &state)
   BoundVert unit_bv[3] = {};
 
   for (int i = 0; i < 3; i++) {
-    float co_start[3] = {0.0f, 0.0f, 0.0f};
-    float co_end[3] = {0.0f, 0.0f, 0.0f};
-    float co_mid[3] = {0.0f, 0.0f, 0.0f};
+    float3 co_start(0.0f);
+    float3 co_end(0.0f);
+    float3 co_mid(0.0f);
     co_start[i] = 1.0f;
     co_end[(i + 1) % 3] = 1.0f;
     co_mid[i] = 1.0f;
@@ -6184,22 +6086,22 @@ static VMesh make_cube_corner_adj_vmesh(BevelState &state)
     unit_bv[i].next = &unit_bv[(i + 1) % 3];
     unit_bv[i].prev = &unit_bv[(i + 2) % 3];
     unit_bv[i].index = i;
-    copy_v3_v3(unit_bv[i].nv.co, co_start);
+    unit_bv[i].nv.co = co_start;
 
     /* Set up the profile for the arc from corner i to corner i+1. */
     Profile &pro = unit_bv[i].profile;
-    copy_v3_v3(pro.start, co_start);
-    copy_v3_v3(pro.end, co_end);
-    copy_v3_v3(pro.middle, co_mid);
-    copy_v3_v3(pro.plane_co, co_start);
-    cross_v3_v3v3(pro.plane_no, co_start, co_end);
-    copy_v3_v3(pro.proj_dir, pro.plane_no);
+    pro.start = co_start;
+    pro.end = co_end;
+    pro.middle = co_mid;
+    pro.plane_co = co_start;
+    pro.plane_no = math::normalize(math::cross(co_start, co_end));
+    pro.proj_dir = pro.plane_no;
     pro.super_r = r;
     pro.height = 0.0f;
     pro.special_params = false;
 
     /* Build the 2D→3D map and fill prof_co / prof_co_2. */
-    float map[4][4];
+    float4x4 map;
     const bool use_map = (r != profile::PRO_LINE_R) &&
                          geom::make_unit_square_map(pro.start, pro.middle, pro.end, map);
 
@@ -6236,26 +6138,24 @@ static VMesh make_cube_corner_adj_vmesh(BevelState &state)
   VMesh vm0 = new_adj_vmesh(3, 2, &unit_bv[0]);
 
   for (int i = 0; i < 3; i++) {
-    copy_v3_v3(geom::mesh_vert(&vm0, i, 0, 0)->co, unit_bv[i].nv.co);
+    geom::mesh_vert(&vm0, i, 0, 0)->co = unit_bv[i].nv.co;
     /* Sample the profile midpoint at k=1 out of seg=2. */
-    float pt[3];
-    profile::get_profile_point(state, &unit_bv[i].profile, 1, 2, pt);
-    copy_v3_v3(geom::mesh_vert(&vm0, i, 0, 1)->co, pt);
+    const float3 pt = profile::get_profile_point(state, &unit_bv[i].profile, 1, 2);
+    geom::mesh_vert(&vm0, i, 0, 1)->co = pt;
   }
 
   /* Center vertex: place it on the (1,1,1) diagonal scaled by 1/sqrt(3),
    * then adjust slightly based on super_r to match BMesh. */
-  float cen[3];
-  copy_v3_fl(cen, float(M_SQRT1_3));
+  float3 cen(float(M_SQRT1_3));
   if (nseg > 2) {
     if (r > 1.5f) {
-      mul_v3_fl(cen, 1.4f);
+      cen *= 1.4f;
     }
     else if (r < 0.75f) {
-      mul_v3_fl(cen, 0.6f);
+      cen *= 0.6f;
     }
   }
-  copy_v3_v3(geom::mesh_vert(&vm0, 0, 1, 1)->co, cen);
+  geom::mesh_vert(&vm0, 0, 1, 1)->co = cen;
   geom::vmesh_copy_equiv_verts(&vm0);
 
   /* Subdivide until seg >= nseg, then resample. */
@@ -6284,15 +6184,9 @@ static VMesh make_cube_corner_adj_vmesh(BevelState &state)
 /**
  * Copy whichever of `a` and `b` is closer to `v` into `r`.
  */
-static void closer_v3_v3v3v3(float r[3], const float a[3], const float b[3], const float v[3])
+static float3 closer_v3_v3v3v3(const float3 &a, const float3 &b, const float3 &v)
 {
-  if (math::distance_squared(float3(a), float3(v)) <= math::distance_squared(float3(b), float3(v)))
-  {
-    copy_v3_v3(r, a);
-  }
-  else {
-    copy_v3_v3(r, b);
-  }
+  return (math::distance_squared(a, v) <= math::distance_squared(b, v)) ? a : b;
 }
 
 /**
@@ -6312,7 +6206,7 @@ static BoundVert *pipe_test(const BevelState &state, BevVert *bv)
   /* Find v1, v2, v3 all with beveled edges, where v1 and v3 have collinear edges. */
   EdgeHalf *epipe = nullptr;
   BoundVert *v1 = vm->boundstart;
-  float dir1[3], dir3[3];
+  float3 dir1, dir3;
   do {
     BoundVert *v2 = v1->next;
     BoundVert *v3 = v2->next;
@@ -6322,11 +6216,9 @@ static BoundVert *pipe_test(const BevelState &state, BevVert *bv)
       const float3 co_v1 = state.emesh.src_positions[other_v1];
       const float3 co_v3 = state.emesh.src_positions[other_v3];
 
-      sub_v3_v3v3(dir1, bv_co, co_v1);
-      sub_v3_v3v3(dir3, co_v3, bv_co);
-      normalize_v3(dir1);
-      normalize_v3(dir3);
-      if (angle_normalized_v3v3(dir1, dir3) < geom::BEVEL_EPSILON_ANG) {
+      dir1 = math::normalize(bv_co - co_v1);
+      dir3 = math::normalize(co_v3 - bv_co);
+      if (float(math::angle_between(dir1, dir3)) < geom::BEVEL_EPSILON_ANG) {
         epipe = v1->ebev;
         break;
       }
@@ -6342,7 +6234,7 @@ static BoundVert *pipe_test(const BevelState &state, BevVert *bv)
     EdgeHalf *e = &bv->edges[i];
     if (e->fnext >= 0) {
       const float3 face_no = state.emesh.src_face_normals[e->fnext];
-      if (fabsf(dot_v3v3(dir1, face_no)) > geom::BEVEL_EPSILON_BIG) {
+      if (math::abs(math::dot(dir1, face_no)) > geom::BEVEL_EPSILON_BIG) {
         return nullptr;
       }
     }
@@ -6354,48 +6246,40 @@ static BoundVert *pipe_test(const BevelState &state, BevVert *bv)
  * Snap co to the closest point on the profile for vpipe projected onto the plane
  * containing co with normal in the direction of edge vpipe->ebev.
  */
-static void snap_to_pipe_profile(
-    const BevelState &state, BevVert *bv, BoundVert *vpipe, bool midline, float co[3])
+static float3 snap_to_pipe_profile(
+    const BevelState &state, BevVert *bv, BoundVert *vpipe, bool midline, const float3 &co)
 {
   Profile *pro = &vpipe->profile;
   EdgeHalf *e = vpipe->ebev;
 
-  if (compare_v3v3(pro->start, pro->end, geom::BEVEL_EPSILON_D)) {
-    copy_v3_v3(co, pro->start);
-    return;
+  if (math::is_equal(pro->start, pro->end, geom::BEVEL_EPSILON_D)) {
+    return pro->start;
   }
 
   /* Get a plane with the normal pointing along the beveled edge. */
-  float edir[3], plane[4];
   const int other_v = geom::edge_other_vert(state.emesh, e->e, bv->v);
   const float3 v_co = state.emesh.src_positions[bv->v];
   const float3 other_co = state.emesh.src_positions[other_v];
-  sub_v3_v3v3(edir, v_co, other_co);
-  plane_from_point_normal_v3(plane, co, edir);
+  const float3 edir = v_co - other_co;
+  const float4 plane = math::plane_from_point_normal(co, edir);
 
-  float start_plane[3], end_plane[3], middle_plane[3];
-  closest_to_plane_v3(start_plane, plane, pro->start);
-  closest_to_plane_v3(end_plane, plane, pro->end);
-  closest_to_plane_v3(middle_plane, plane, pro->middle);
+  const float3 start_plane = math::closest_to_plane(plane, pro->start);
+  const float3 end_plane = math::closest_to_plane(plane, pro->end);
+  const float3 middle_plane = math::closest_to_plane(plane, pro->middle);
 
-  float m[4][4], minv[4][4];
-  if (geom::make_unit_square_map(start_plane, middle_plane, end_plane, m) && invert_m4_m4(minv, m))
-  {
-    /* Transform co and project it onto superellipse. */
-    float p[3];
-    mul_v3_m4v3(p, minv, co);
-    snap_to_superellipsoid(p, pro->super_r, midline);
-
-    float snap[3];
-    mul_v3_m4v3(snap, m, p);
-    copy_v3_v3(co, snap);
+  float4x4 m;
+  if (geom::make_unit_square_map(start_plane, middle_plane, end_plane, m)) {
+    bool invert_ok;
+    const float4x4 minv = math::invert(m, invert_ok);
+    if (invert_ok) {
+      /* Transform co and project it onto superellipse. */
+      float3 p = math::transform_point(minv, co);
+      snap_to_superellipsoid(p, pro->super_r, midline);
+      return math::transform_point(m, p);
+    }
   }
-  else {
-    /* Planar case: just snap to line start_plane--end_plane. */
-    float p[3];
-    closest_to_line_segment_v3(p, co, start_plane, end_plane);
-    copy_v3_v3(co, p);
-  }
+  /* Planar case: just snap to line start_plane--end_plane. */
+  return math::closest_to_line_segment(co, start_plane, end_plane);
 }
 
 /**
@@ -6424,34 +6308,35 @@ static VMesh pipe_adj_vmesh(BevelState &state, BevVert *bv, BoundVert *vpipe)
         /* With a custom profile just copy the shape of the profile at each ring. */
         if (!state.params.custom_profile_samples.is_empty()) {
           /* Find both profile vertices that correspond to this point. */
-          float *profile_point_pipe1, *profile_point_pipe2, f;
+          float3 *profile_point_pipe1, *profile_point_pipe2;
+          float f;
           if (ELEM(i, ipipe1, ipipe2)) {
             if (n_bndv == 3 && i == ipipe1) {
               /* This part of the vmesh is the triangular corner between the two pipe profiles. */
               const int ring = std::max(j, k);
-              profile_point_pipe2 = geom::mesh_vert(&vm, i, 0, ring)->co;
-              profile_point_pipe1 = geom::mesh_vert(&vm, i, ring, 0)->co;
+              profile_point_pipe2 = &geom::mesh_vert(&vm, i, 0, ring)->co;
+              profile_point_pipe1 = &geom::mesh_vert(&vm, i, ring, 0)->co;
               /* End profile index increases with k on one side and j on the other. */
               f = ((k < j) ? std::min(j, k) : ((2.0f * ring) - j)) / (2.0f * ring);
             }
             else {
               /* This is part of either pipe profile boundvert area in the 4-way intersection. */
-              profile_point_pipe1 = geom::mesh_vert(&vm, i, 0, k)->co;
+              profile_point_pipe1 = &geom::mesh_vert(&vm, i, 0, k)->co;
               profile_point_pipe2 =
-                  geom::mesh_vert(&vm, (i == ipipe1) ? ipipe2 : ipipe1, 0, ns - k)->co;
+                  &geom::mesh_vert(&vm, (i == ipipe1) ? ipipe2 : ipipe1, 0, ns - k)->co;
               f = float(j) / float(ns); /* The ring index brings us closer to the other side. */
             }
           }
           else {
             /* The profile vertices are on both ends of each of the side profile's rings. */
-            profile_point_pipe1 = geom::mesh_vert(&vm, i, j, 0)->co;
-            profile_point_pipe2 = geom::mesh_vert(&vm, i, j, ns)->co;
+            profile_point_pipe1 = &geom::mesh_vert(&vm, i, j, 0)->co;
+            profile_point_pipe2 = &geom::mesh_vert(&vm, i, j, ns)->co;
             f = float(k) / float(ns); /* Ring runs along the pipe, so segment is used here. */
           }
 
           /* Place the vertex by interpolating between the two profile points using the factor. */
-          interp_v3_v3v3(
-              geom::mesh_vert(&vm, i, j, k)->co, profile_point_pipe1, profile_point_pipe2, f);
+          geom::mesh_vert(&vm, i, j, k)->co = math::interpolate(
+              *profile_point_pipe1, *profile_point_pipe2, f);
         }
         else {
           /* A tricky case is for the 'square' profiles and an even nseg: we want certain
@@ -6459,7 +6344,8 @@ static VMesh pipe_adj_vmesh(BevelState &state, BevVert *bv, BoundVert *vpipe)
           const bool even = (ns % 2) == 0;
           const bool midline = even && k == half_ns &&
                                ((i == 0 && j == half_ns) || ELEM(i, ipipe1, ipipe2));
-          snap_to_pipe_profile(state, bv, vpipe, midline, geom::mesh_vert(&vm, i, j, k)->co);
+          geom::mesh_vert(&vm, i, j, k)->co = snap_to_pipe_profile(
+              state, bv, vpipe, midline, geom::mesh_vert(&vm, i, j, k)->co);
         }
       }
     }
@@ -6487,8 +6373,8 @@ static VMesh square_out_adj_vmesh(BevelState &state, BevVert *bv)
   const int odd = ns % 2;
   float ns2inv = 1.0f / float(ns2);
   VMesh vm = new_adj_vmesh(n_bndv, ns, bv->vmesh->boundstart);
-  const int clstride = 3 * (ns2 + 1);
-  Array<float, 8> centerline(clstride * n_bndv);
+  const int clstride = ns2 + 1;
+  Array<float3, 8> centerline(clstride * n_bndv);
   Array<bool, 8> cset(n_bndv, false);
 
   const float3 bv_co = state.emesh.src_positions[bv->v];
@@ -6497,8 +6383,7 @@ static VMesh square_out_adj_vmesh(BevelState &state, BevVert *bv)
    * taking min-distance-to bv->v with position where next sector's offset line would meet. */
   BoundVert *bndv = vm.boundstart;
   for (int i = 0; i < n_bndv; i++) {
-    float bndco[3];
-    copy_v3_v3(bndco, bndv->nv.co);
+    const float3 bndco = bndv->nv.co;
     EdgeHalf *e1 = bndv->efirst;
     EdgeHalf *e2 = bndv->elast;
     AngleKind ang_kind = ANGLE_STRAIGHT;
@@ -6506,11 +6391,11 @@ static VMesh square_out_adj_vmesh(BevelState &state, BevVert *bv)
       ang_kind = edges_angle_kind(state.emesh, e1, e2, bv->v);
     }
     if (bndv->is_patch_start) {
-      mid_v3_v3v3(centerline.data() + clstride * i, bndv->nv.co, bndv->next->nv.co);
+      centerline[clstride * i] = math::midpoint(bndv->nv.co, bndv->next->nv.co);
       cset[i] = true;
       bndv = bndv->next;
       i++;
-      mid_v3_v3v3(centerline.data() + clstride * i, bndv->nv.co, bndv->next->nv.co);
+      centerline[clstride * i] = math::midpoint(bndv->nv.co, bndv->next->nv.co);
       cset[i] = true;
       bndv = bndv->next;
       i++;
@@ -6519,66 +6404,66 @@ static VMesh square_out_adj_vmesh(BevelState &state, BevVert *bv)
     else if (bndv->is_arc_start) {
       e1 = bndv->efirst;
       e2 = bndv->next->efirst;
-      copy_v3_v3(centerline.data() + clstride * i, bndv->profile.middle);
+      centerline[clstride * i] = bndv->profile.middle;
       bndv = bndv->next;
       cset[i] = true;
       i++;
       /* Leave cset[i] where it was - probably false, unless i == n - 1. */
     }
     else if (ang_kind == ANGLE_SMALLER) {
-      float dir1[3], dir2[3], co1[3], co2[3];
       const int e1_other_v = geom::edge_other_vert(state.emesh, e1->e, bv->v);
       const int e2_other_v = geom::edge_other_vert(state.emesh, e2->e, bv->v);
       const float3 e1_other_co = state.emesh.src_positions[e1_other_v];
       const float3 e2_other_co = state.emesh.src_positions[e2_other_v];
-      sub_v3_v3v3(dir1, bv_co, e1_other_co);
-      sub_v3_v3v3(dir2, bv_co, e2_other_co);
-      add_v3_v3v3(co1, bndco, dir1);
-      add_v3_v3v3(co2, bndco, dir2);
+      const float3 dir1 = float3(bv_co) - e1_other_co;
+      const float3 dir2 = float3(bv_co) - e2_other_co;
+      const float3 co1 = float3(bndco) + dir1;
+      const float3 co2 = float3(bndco) + dir2;
       /* Intersect e1 with line through bndv parallel to e2 to get v1co. */
-      float meet1[3], meet2[3];
-      int ikind = isect_line_line_v3(bv_co, e1_other_co, bndco, co2, meet1, meet2);
-      float v1co[3];
+      float3 meet1, meet2;
+      int ikind = math::isect_line_line(
+          float3(bv_co), e1_other_co, float3(bndco), co2, meet1, meet2);
+      float3 v1co;
       bool v1set;
       if (ikind == 0) {
         v1set = false;
       }
       else {
         /* If the lines are skew (ikind == 2), want meet1 which is on e1. */
-        copy_v3_v3(v1co, meet1);
+        v1co = meet1;
         v1set = true;
       }
       /* Intersect e2 with line through bndv parallel to e1 to get v2co. */
-      ikind = isect_line_line_v3(bv_co, e2_other_co, bndco, co1, meet1, meet2);
-      float v2co[3];
+      ikind = math::isect_line_line(float3(bv_co), e2_other_co, float3(bndco), co1, meet1, meet2);
+      float3 v2co;
       bool v2set;
       if (ikind == 0) {
         v2set = false;
       }
       else {
         v2set = true;
-        copy_v3_v3(v2co, meet1);
+        v2co = meet1;
       }
 
       /* We want on_edge[i] to be min dist to bv->v of v2co and the v1co of next iteration. */
-      float *on_edge_cur = centerline.data() + clstride * i;
+      float3 &on_edge_cur = centerline[clstride * i];
       int iprev = (i == 0) ? n_bndv - 1 : i - 1;
-      float *on_edge_prev = centerline.data() + clstride * iprev;
+      float3 &on_edge_prev = centerline[clstride * iprev];
       if (v2set) {
         if (cset[i]) {
-          closer_v3_v3v3v3(on_edge_cur, on_edge_cur, v2co, bv_co);
+          on_edge_cur = closer_v3_v3v3v3(on_edge_cur, v2co, bv_co);
         }
         else {
-          copy_v3_v3(on_edge_cur, v2co);
+          on_edge_cur = v2co;
           cset[i] = true;
         }
       }
       if (v1set) {
         if (cset[iprev]) {
-          closer_v3_v3v3v3(on_edge_prev, on_edge_prev, v1co, bv_co);
+          on_edge_prev = closer_v3_v3v3v3(on_edge_prev, v1co, bv_co);
         }
         else {
-          copy_v3_v3(on_edge_prev, v1co);
+          on_edge_prev = v1co;
           cset[iprev] = true;
         }
       }
@@ -6589,34 +6474,33 @@ static VMesh square_out_adj_vmesh(BevelState &state, BevVert *bv)
   bndv = vm.boundstart;
   for (int i = 0; i < n_bndv; i++) {
     if (!cset[i]) {
-      float *on_edge_cur = centerline.data() + clstride * i;
+      float3 &on_edge_cur = centerline[clstride * i];
       EdgeHalf *e1 = bndv->next->efirst;
-      float co1[3], co2[3];
-      copy_v3_v3(co1, bndv->nv.co);
-      copy_v3_v3(co2, bndv->next->nv.co);
+      float3 co1 = bndv->nv.co;
+      float3 co2 = bndv->next->nv.co;
       if (e1) {
         const int e1_other_v = geom::edge_other_vert(state.emesh, e1->e, bv->v);
         const float3 e1_other_co = state.emesh.src_positions[e1_other_v];
         if (bndv->prev->is_arc_start && bndv->next->is_arc_start) {
-          float meet1[3], meet2[3];
-          int ikind = isect_line_line_v3(bv_co, e1_other_co, co1, co2, meet1, meet2);
+          float3 meet1, meet2;
+          int ikind = math::isect_line_line(bv_co, e1_other_co, co1, co2, meet1, meet2);
           if (ikind != 0) {
-            copy_v3_v3(on_edge_cur, meet1);
+            on_edge_cur = meet1;
             cset[i] = true;
           }
         }
         else {
           if (bndv->prev->is_arc_start) {
-            closest_to_line_segment_v3(on_edge_cur, co1, bv_co, e1_other_co);
+            on_edge_cur = math::closest_to_line_segment(co1, bv_co, e1_other_co);
           }
           else {
-            closest_to_line_segment_v3(on_edge_cur, co2, bv_co, e1_other_co);
+            on_edge_cur = math::closest_to_line_segment(co2, bv_co, e1_other_co);
           }
           cset[i] = true;
         }
       }
       if (!cset[i]) {
-        mid_v3_v3v3(on_edge_cur, co1, co2);
+        on_edge_cur = math::midpoint(co1, co2);
         cset[i] = true;
       }
     }
@@ -6624,12 +6508,12 @@ static VMesh square_out_adj_vmesh(BevelState &state, BevVert *bv)
   }
 
   /* Fill in rest of center-lines by interpolation. */
-  float co1[3], co2[3];
-  copy_v3_v3(co2, bv_co);
+  const float3 co2 = bv_co;
   bndv = vm.boundstart;
   for (int i = 0; i < n_bndv; i++) {
     if (odd) {
-      float ang = 0.5f * angle_v3v3v3(bndv->nv.co, co1, bndv->next->nv.co);
+      float ang = 0.5f * float(math::angle_between(math::normalize(bndv->nv.co - co2),
+                                                   math::normalize(bndv->next->nv.co - co2)));
       float finalfrac;
       if (ang > geom::BEVEL_SMALL_ANG) {
         /* finalfrac is the length along arms of isosceles triangle with top angle 2*ang
@@ -6645,12 +6529,9 @@ static VMesh square_out_adj_vmesh(BevelState &state, BevVert *bv)
       ns2inv = 1.0f / (ns2 + finalfrac);
     }
 
-    float *p = centerline.data() + clstride * i;
-    copy_v3_v3(co1, p);
-    p += 3;
+    const float3 co1 = centerline[clstride * i];
     for (int j = 1; j <= ns2; j++) {
-      interp_v3_v3v3(p, co1, co2, j * ns2inv);
-      p += 3;
+      centerline[clstride * i + j] = math::interpolate(co1, co2, float(j) * ns2inv);
     }
     bndv = bndv->next;
   }
@@ -6658,19 +6539,19 @@ static VMesh square_out_adj_vmesh(BevelState &state, BevVert *bv)
   /* Coords of edges and mid or near-mid line. */
   bndv = vm.boundstart;
   for (int i = 0; i < n_bndv; i++) {
-    copy_v3_v3(co1, bndv->nv.co);
-    copy_v3_v3(co2, centerline.data() + clstride * (i == 0 ? n_bndv - 1 : i - 1));
+    const float3 co1 = bndv->nv.co;
+    const float3 &prev_cl = centerline[clstride * (i == 0 ? n_bndv - 1 : i - 1)];
     for (int j = 0; j < ns2 + odd; j++) {
-      interp_v3_v3v3(geom::mesh_vert(&vm, i, j, 0)->co, co1, co2, j * ns2inv);
+      geom::mesh_vert(&vm, i, j, 0)->co = math::interpolate(co1, prev_cl, float(j) * ns2inv);
     }
-    copy_v3_v3(co2, centerline.data() + clstride * i);
+    const float3 &cur_cl = centerline[clstride * i];
     for (int k = 1; k <= ns2; k++) {
-      interp_v3_v3v3(geom::mesh_vert(&vm, i, 0, k)->co, co1, co2, k * ns2inv);
+      geom::mesh_vert(&vm, i, 0, k)->co = math::interpolate(co1, cur_cl, float(k) * ns2inv);
     }
     bndv = bndv->next;
   }
   if (!odd) {
-    copy_v3_v3(geom::mesh_vert(&vm, 0, ns2, ns2)->co, bv_co);
+    geom::mesh_vert(&vm, 0, ns2, ns2)->co = bv_co;
   }
   geom::vmesh_copy_equiv_verts(&vm);
 
@@ -6680,25 +6561,24 @@ static VMesh square_out_adj_vmesh(BevelState &state, BevVert *bv)
     int im1 = (i == 0) ? n_bndv - 1 : i - 1;
     for (int j = 1; j < ns2 + odd; j++) {
       for (int k = 1; k <= ns2; k++) {
-        float meet1[3], meet2[3];
-        int ikind = isect_line_line_v3(geom::mesh_vert(&vm, i, 0, k)->co,
-                                       centerline.data() + clstride * im1 + 3 * k,
-                                       geom::mesh_vert(&vm, i, j, 0)->co,
-                                       centerline.data() + clstride * i + 3 * j,
-                                       meet1,
-                                       meet2);
+        float3 meet1, meet2;
+        int ikind = math::isect_line_line(geom::mesh_vert(&vm, i, 0, k)->co,
+                                          centerline[clstride * im1 + k],
+                                          geom::mesh_vert(&vm, i, j, 0)->co,
+                                          centerline[clstride * i + j],
+                                          meet1,
+                                          meet2);
         if (ikind == 0) {
           /* How can this happen? fall back on interpolation in one direction if it does. */
-          interp_v3_v3v3(geom::mesh_vert(&vm, i, j, k)->co,
-                         geom::mesh_vert(&vm, i, 0, k)->co,
-                         centerline.data() + clstride * im1 + 3 * k,
-                         j * ns2inv);
+          geom::mesh_vert(&vm, i, j, k)->co = math::interpolate(geom::mesh_vert(&vm, i, 0, k)->co,
+                                                                centerline[clstride * im1 + k],
+                                                                float(j) * ns2inv);
         }
         else if (ikind == 1) {
-          copy_v3_v3(geom::mesh_vert(&vm, i, j, k)->co, meet1);
+          geom::mesh_vert(&vm, i, j, k)->co = meet1;
         }
         else {
-          mid_v3_v3v3(geom::mesh_vert(&vm, i, j, k)->co, meet1, meet2);
+          geom::mesh_vert(&vm, i, j, k)->co = math::midpoint(meet1, meet2);
         }
       }
     }
@@ -6739,8 +6619,7 @@ static int tri_corner_test(const BevelState &state, const BevVert *bv)
     if (e.fprev >= 0 && e.fnext >= 0) {
       const float3 no_prev = emesh.src_face_normals[e.fprev];
       const float3 no_next = emesh.src_face_normals[e.fnext];
-      const float dot = math::dot(no_prev, no_next);
-      ang = acosf(math::clamp(dot, -1.0f, 1.0f));
+      ang = float(math::angle_between(no_prev, no_next));
       /* Negate for concave (the dihedral is > π). */
       if (math::dot(math::cross(no_prev, no_next),
                     emesh.src_positions[bv->v] - state.face_center(e.fprev)) < 0.0f)
@@ -6749,7 +6628,7 @@ static int tri_corner_test(const BevelState &state, const BevVert *bv)
       }
     }
 
-    const float absang = fabsf(ang);
+    const float absang = math::abs(ang);
     if (absang <= float(M_PI_4)) {
       in_plane_e++;
     }
@@ -6757,7 +6636,7 @@ static int tri_corner_test(const BevelState &state, const BevVert *bv)
       return -1;
     }
 
-    if (e.is_bev && !compare_ff(e.offset_l, offset, geom::BEVEL_EPSILON_D)) {
+    if (e.is_bev && math::abs(e.offset_l - offset) > geom::BEVEL_EPSILON_D) {
       return -1;
     }
     totang += ang;
@@ -6766,7 +6645,7 @@ static int tri_corner_test(const BevelState &state, const BevVert *bv)
   if (in_plane_e != bv->edgecount - 3) {
     return -1;
   }
-  const float angdiff = fabsf(fabsf(totang) - 3.0f * float(M_PI_2));
+  const float angdiff = math::abs(math::abs(totang) - 3.0f * float(M_PI_2));
   if ((state.pro_super_r == profile::PRO_SQUARE_R && angdiff > float(M_PI) / 16.0f) ||
       (angdiff > float(M_PI_4)))
   {
@@ -6785,16 +6664,14 @@ static int tri_corner_test(const BevelState &state, const BevVert *bv)
 static VMesh tri_corner_adj_vmesh(BevelState &state, BevVert *bv)
 {
   BoundVert *bndv = bv->vmesh->boundstart;
-  float co0[3], co1[3], co2[3];
-  copy_v3_v3(co0, bndv->nv.co);
+  const float3 co0 = bndv->nv.co;
   bndv = bndv->next;
-  copy_v3_v3(co1, bndv->nv.co);
+  const float3 co1 = bndv->nv.co;
   bndv = bndv->next;
-  copy_v3_v3(co2, bndv->nv.co);
+  const float3 co2 = bndv->nv.co;
 
-  float mat[4][4];
   const float3 v_co = state.emesh.src_positions[bv->v];
-  make_unit_cube_map(co0, co1, co2, v_co, mat);
+  const float4x4 mat = make_unit_cube_map(co0, co1, co2, v_co);
 
   VMesh vm = make_cube_corner_adj_vmesh(state);
   /* Set the correct BoundVert ring (the canonical helper builds with nullptr). */
@@ -6805,11 +6682,8 @@ static VMesh tri_corner_adj_vmesh(BevelState &state, BevVert *bv)
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j <= ns2; j++) {
       for (int k = 0; k <= ns; k++) {
-        float v[4];
-        copy_v3_v3(v, geom::mesh_vert(&vm, i, j, k)->co);
-        v[3] = 1.0f;
-        mul_m4_v4(mat, v);
-        copy_v3_v3(geom::mesh_vert(&vm, i, j, k)->co, v);
+        geom::mesh_vert(&vm, i, j, k)->co = math::transform_point(
+            mat, geom::mesh_vert(&vm, i, j, k)->co);
       }
     }
   }
@@ -6840,10 +6714,9 @@ static VMesh adj_vmesh(BevelState &state, BevVert *bv)
   float3 center(0.0f);
   BoundVert *bndv = vm0.boundstart;
   for (int i = 0; i < n_bndv; i++) {
-    copy_v3_v3(geom::mesh_vert(&vm0, i, 0, 0)->co, bndv->nv.co);
-    float pt[3];
-    profile::get_profile_point(state, &bndv->profile, 1, 2, pt);
-    copy_v3_v3(geom::mesh_vert(&vm0, i, 0, 1)->co, pt);
+    geom::mesh_vert(&vm0, i, 0, 0)->co = bndv->nv.co;
+    const float3 pt = profile::get_profile_point(state, &bndv->profile, 1, 2);
+    geom::mesh_vert(&vm0, i, 0, 1)->co = pt;
     center += float3(bndv->nv.co);
     bndv = bndv->next;
   }
@@ -6854,11 +6727,10 @@ static VMesh adj_vmesh(BevelState &state, BevVert *bv)
   const float3 center_dir = v_co - center;
   if (math::length_squared(center_dir) > geom::BEVEL_EPSILON_SQ) {
     const float fullness = state.pro_spacing.fullness;
-    float3 cen_co = center + center_dir * fullness;
-    copy_v3_v3(geom::mesh_vert(&vm0, 0, 1, 1)->co, cen_co);
+    geom::mesh_vert(&vm0, 0, 1, 1)->co = center + center_dir * fullness;
   }
   else {
-    copy_v3_v3(geom::mesh_vert(&vm0, 0, 1, 1)->co, center);
+    geom::mesh_vert(&vm0, 0, 1, 1)->co = center;
   }
   geom::vmesh_copy_equiv_verts(&vm0);
 
@@ -7091,25 +6963,22 @@ static float2 interp_uv_from_face(const ExtendableMesh &emesh,
   const IndexRange face_corners = src_faces[f_src];
 
   const float3 no = emesh.src_face_normals[f_src];
-  float axis_mat[3][3];
-  axis_dominant_v3_to_m3(axis_mat, no);
+  const float3x3 axis_mat = math::axis_dominant_to_m3(no);
 
   /* Project face corners to 2D. */
   Array<float2, 16> cos_2d(face_corners.size());
   const Span<int> face_verts = corner_verts.slice(face_corners);
   for (const int i : face_corners.index_range()) {
     const int vert = face_verts[i];
-    mul_v2_m3v3(cos_2d[i], axis_mat, positions[vert]);
+    cos_2d[i] = float2(axis_mat * positions[vert]);
   }
 
   /* Project destination point to 2D. */
-  float co_2d[2];
-  mul_v2_m3v3(co_2d, axis_mat, dst_co);
+  const float2 co_2d = float2(axis_mat * dst_co);
 
   /* Compute mean-value interpolation weights. */
   Array<float, 16> w(face_corners.size());
-  interp_weights_poly_v2(
-      w.data(), reinterpret_cast<float (*)[2]>(cos_2d.data()), face_corners.size(), co_2d);
+  math::interp_weights_poly(w, cos_2d, co_2d);
 
   /* Weighted sum of UV values. */
   float2 result(0.0f);
@@ -7164,7 +7033,7 @@ static void fill_new_corner_uvs(BevelState &state)
           const int2 ev = emesh.edge_verts(snap_e);
           const float3 ep0 = emesh.vert_position(ev[0]);
           const float3 ep1 = emesh.vert_position(ev[1]);
-          closest_to_line_segment_v3(co, co, ep0, ep1);
+          co = math::closest_to_line_segment(co, ep0, ep1);
         }
         dst_uvs[nc] = interp_uv_from_face(emesh, uv_vals, f_src, co);
       }
@@ -7770,8 +7639,10 @@ std::optional<Mesh *> mesh_bevel(const Mesh &src_mesh,
   /* Phase 1: construct BevVerts and build initial boundaries. */
   state.bevel_affected_vertices.foreach_index([&](const int v) {
     construct::bevel_vert_construct(state, v);
-    BevVert *bv = state.vert_hash.lookup(v);
-    construct::build_boundary(state, bv, true);
+    BevVert *bv = state.vert_hash.lookup_default(v, nullptr);
+    if (bv) {
+      construct::build_boundary(state, bv, true);
+    }
   });
 
 #ifdef DEBUG_TIME
@@ -7794,7 +7665,10 @@ std::optional<Mesh *> mesh_bevel(const Mesh &src_mesh,
 
   /* Phase 3: UV connectivity and vmesh construction (depends on final BoundVert positions). */
   state.bevel_affected_vertices.foreach_index([&](const int v) {
-    BevVert *bv = state.vert_hash.lookup(v);
+    BevVert *bv = state.vert_hash.lookup_default(v, nullptr);
+    if (!bv) {
+      return;
+    }
     construct::determine_uv_vert_connectivity(state, v);
     /* Record the number of new faces before build_vmesh so that all faces it creates can
      * be tagged as #NewFaceKind::VERTEX_FACE for the #BevelAttributeOutputs output field. */

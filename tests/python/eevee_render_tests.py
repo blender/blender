@@ -56,6 +56,7 @@ BLOCKLIST = [
     "osl_camera_cubemap.blend",
     "osl_camera_cubemap_auto_derivatives.blend",
     "osl_camera_offset_in_volume.blend",
+    "osl_camera_bevel.blend",
     # Extreme texture values interpolate differently on different GPUs.
     "image_log.blend",
     # Exhibit the LTC light leaking issue. To be enabeld back after fixing.
@@ -64,6 +65,8 @@ BLOCKLIST = [
     "light_path_is_camera_ray.blend",
     # Exhibit non-deterministic (to be fixed).
     "background_scene.blend",
+
+    ### Cycles only tests go here ###
 ]
 
 BLOCKLIST_METAL = [

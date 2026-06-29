@@ -310,7 +310,9 @@ float textbox_vertical_padding()
   return float(UI_UNIT_Y - fontstyle_height_max(UI_FSTYLE_WIDGET)) / 2.0f;
 }
 
-TextboxState *textbox_ensure_state(ARegion *region, StringRefNull idname)
+TextboxState *textbox_ensure_state(ARegion *region,
+                                   StringRefNull idname,
+                                   const int initial_visible_lines)
 {
   for (uiTextboxStateLink &link : region->textbox_states) {
     if (link.idname == idname) {
@@ -319,7 +321,7 @@ TextboxState *textbox_ensure_state(ARegion *region, StringRefNull idname)
   }
   uiTextboxStateLink *link = MEM_new<uiTextboxStateLink>(__func__);
   link->idname = BLI_strdupn(idname.data(), idname.size());
-  BLI_assert(link->state.visible_lines >= textbox_minimum_visible_lines);
+  link->state.visible_lines = std::max(initial_visible_lines, textbox_minimum_visible_lines);
   BLI_addtail(&region->textbox_states, link);
   return &link->state;
 }

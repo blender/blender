@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e899b48ea546')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-15 07:32+0000\n"
+"POT-Creation-Date: 2026-06-29 10:51+0000\n"
 "PO-Revision-Date: 2026-03-27 12:12+0000\n"
 "Last-Translator: kim nahyeong <weiing0123@ajou.ac.kr>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -15009,6 +15009,14 @@ msgid "Settings for the file selection in Asset Browser mode"
 msgstr "어셋 브라우저 모드에서 파일 선택에 대한 설정"
 
 
+msgid "Catalog"
+msgstr "카탈로그"
+
+
+msgid "Unassigned"
+msgstr "할당되지 않음"
+
+
 msgid "The UUID of the catalog shown in the browser"
 msgstr "브라우저에 표시된 카탈로그의 UUID함"
 
@@ -17745,6 +17753,10 @@ msgstr "도구 해더"
 
 msgid "XR"
 msgstr "XR"
+
+
+msgid "Scrubbing"
+msgstr "스크러빙"
 
 
 msgid "The space where the panel is going to be used in"
@@ -34531,10 +34543,6 @@ msgid "Do not follow drawing path or object rotation and keeps aligned with view
 msgstr "그리기 경로 또는오브젝트 회전을 따르지 않고 뷰포트와 정렬을 유지합니다"
 
 
-msgid "Additional rotation applied to dots and square texture of strokes. Only applies in texture shading mode."
-msgstr "스트로크의 점과 사각형 텍스처에 추가 회전이나 회전을 적용합니다. 텍스처 쉐이딩 모드에서만 적용함"
-
-
 msgid "Fill Color"
 msgstr "색상를 채우기"
 
@@ -34801,48 +34809,12 @@ msgid "Render Preview"
 msgstr "렌더링 미리보기"
 
 
-msgid "Track"
-msgstr "트랙"
-
-
-msgid "Math"
-msgstr "수학"
-
-
-msgid "Utilities"
-msgstr "유틸리티"
-
-
-msgid "Assign Material"
-msgstr "머티리얼을 할당"
-
-
-msgid "Read"
-msgstr "읽기"
-
-
-msgid "Sample"
-msgstr "샘플"
-
-
-msgid "Write"
-msgstr "쓰기"
-
-
-msgid "Primitives"
-msgstr "프리미티브"
-
-
 msgid "Mirror"
 msgstr "미러"
 
 
 msgid "Snap"
 msgstr "스냅"
-
-
-msgid "Rigid Body"
-msgstr "리지드 바디"
 
 
 msgid "UV Mapping"
@@ -34873,16 +34845,16 @@ msgid "View Regions"
 msgstr "뷰 지역"
 
 
+msgid "Math"
+msgstr "수학"
+
+
 msgid "Select More/Less"
 msgstr "선택 증가/감소"
 
 
-msgid "Gizmo"
-msgstr "기즈모"
-
-
-msgid "Instances"
-msgstr "인스턴스"
+msgid "Utilities"
+msgstr "유틸리티"
 
 
 msgid "Select Similar"
@@ -34901,16 +34873,104 @@ msgid "Select Loops"
 msgstr "루프를 선택"
 
 
+msgid "Assign Material"
+msgstr "머티리얼을 할당"
+
+
+msgid "Read"
+msgstr "읽기"
+
+
+msgid "Sample"
+msgstr "샘플"
+
+
+msgid "Write"
+msgstr "쓰기"
+
+
+msgid "Primitives"
+msgstr "프리미티브"
+
+
+msgid "Metaball"
+msgstr "메타볼"
+
+
+msgid "Light"
+msgstr "라이트"
+
+
+msgid "Light Probe"
+msgstr "라이트 프로브"
+
+
+msgid "Gizmo"
+msgstr "기즈모"
+
+
+msgid "Instances"
+msgstr "인스턴스"
+
+
+msgid "Add Image"
+msgstr "이미지를 추가"
+
+
+msgid "Relations"
+msgstr "관계"
+
+
+msgid "Rigid Body"
+msgstr "리지드 바디"
+
+
 msgid "Import"
 msgstr "가져오기"
+
+
+msgid "Apply"
+msgstr "적용"
+
+
+msgid "Track"
+msgstr "트랙"
+
+
+msgid "Quick Effects"
+msgstr "빠른 이펙트"
+
+
+msgid "Show/Hide"
+msgstr "표시/숨기기"
 
 
 msgid "Deprecated"
 msgstr "사용 중단"
 
 
-msgid "Relations"
-msgstr "관계"
+msgid "Clean Up"
+msgstr "정리"
+
+
+msgid "Asset"
+msgstr "에셋"
+
+
+msgid "Make Single User"
+msgstr "싱글 유저를 만들기"
+
+
+msgid "Convert"
+msgstr "변환"
+
+
+msgid "Link/Transfer Data"
+msgstr "데이터 연결/전송"
+
+
+msgid "Hooks"
+msgstr "후크"
 
 
 msgid "UV"
@@ -34921,68 +34981,20 @@ msgid "Vertex Group Locks"
 msgstr "버텍스 그룹 잠금"
 
 
-msgid "Metaball"
-msgstr "메타볼"
-
-
-msgid "Random Mask"
-msgstr "랜덤 마스크"
-
-
-msgid "Asset"
-msgstr "에셋"
-
-
-msgid "Show/Hide"
-msgstr "표시/숨기기"
-
-
-msgid "Apply"
-msgstr "적용"
-
-
-msgid "Link/Transfer Data"
-msgstr "데이터 연결/전송"
-
-
-msgid "Clean Up"
-msgstr "정리"
-
-
-msgid "Face Sets Init"
-msgstr "페이스 세트 초기화"
-
-
-msgid "Light Probe"
-msgstr "라이트 프로브"
-
-
-msgid "Light"
-msgstr "라이트"
-
-
-msgid "Add Image"
-msgstr "이미지를 추가"
+msgid "Trim/Add"
+msgstr "트림/추가"
 
 
 msgid "Sculpt Set Pivot"
 msgstr "스컬프트 설정 피벗"
 
 
-msgid "Hooks"
-msgstr "후크"
+msgid "Face Sets Init"
+msgstr "페이스 세트 초기화"
 
 
-msgid "Make Single User"
-msgstr "싱글 유저를 만들기"
-
-
-msgid "Quick Effects"
-msgstr "빠른 이펙트"
-
-
-msgid "Trim/Add"
-msgstr "트림/추가"
+msgid "Random Mask"
+msgstr "랜덤 마스크"
 
 
 msgid "Clear Transform"
@@ -35037,8 +35049,12 @@ msgid "Merge"
 msgstr "병합"
 
 
-msgid "Convert"
-msgstr "변환"
+msgid "Linked"
+msgstr "연결됨"
+
+
+msgid "Layout"
+msgstr "레이아웃"
 
 
 msgid "Special Characters"
@@ -35047,14 +35063,6 @@ msgstr "특수 문자"
 
 msgid "Kerning"
 msgstr "자간"
-
-
-msgid "Linked"
-msgstr "연결됨"
-
-
-msgid "Layout"
-msgstr "레이아웃"
 
 
 msgid "Bone Roll"
@@ -35071,6 +35079,10 @@ msgstr "키잉"
 
 msgid "Tracking"
 msgstr "트래킹"
+
+
+msgid "Creative"
+msgstr "크리에이티브"
 
 
 msgid "Pivot Point"
@@ -35091,10 +35103,6 @@ msgstr "오토마스킹"
 
 msgid "Face Sets Edit"
 msgstr "페이스 세트 편집"
-
-
-msgid "Creative"
-msgstr "크리에이티브"
 
 
 msgid "Keyframe Insert Pie"
@@ -35119,10 +35127,6 @@ msgstr "추가 -> 아마츄어 -> 메타 릭을 리깅함"
 
 msgid "Rigify Meta-Rigs"
 msgstr "메타-리그 리깅"
-
-
-msgid "Catalog"
-msgstr "카탈로그"
 
 
 msgid "Assets"
@@ -46343,17 +46347,9 @@ msgid "Divide Floor"
 msgstr "바닥 나누기"
 
 
-msgid "Divide and floor result, the largest integer smaller than or equal A"
-msgstr "나누기 및 바닥 결과, 가장 큰 정수는 A보다 작거나 같음"
-
-
 msgctxt "NodeTree"
 msgid "Divide Ceiling"
 msgstr "천장 나누기"
-
-
-msgid "Divide and ceil result, the smallest integer greater than or equal A"
-msgstr "나누기 및 상한 결과, A보다 크거나 같은 최소 정수"
 
 
 msgctxt "NodeTree"
@@ -57570,6 +57566,18 @@ msgid "+X to -X"
 msgstr "+X 에서 -X"
 
 
+msgid "Asset Library Identifier"
+msgstr "어셋 라이브러리 식별자"
+
+
+msgid "Asset Library Type"
+msgstr "어셋 라이브러리 유형"
+
+
+msgid "Relative Asset Identifier"
+msgstr "상대 어셋 식별자"
+
+
 msgid "Set this pose Action as active Action on the active Object"
 msgstr "이 포즈 액션을 활성 오브젝트의 활성 액션으로 설정"
 
@@ -57922,18 +57930,6 @@ msgstr "브러시 어셋 활성화"
 
 msgid "Activate a brush asset as current sculpt and paint tool"
 msgstr "브러시 어셋을 현재 스컬프트 및 페인트 도구로 활성화함"
-
-
-msgid "Asset Library Identifier"
-msgstr "어셋 라이브러리 식별자"
-
-
-msgid "Asset Library Type"
-msgstr "어셋 라이브러리 유형"
-
-
-msgid "Relative Asset Identifier"
-msgstr "상대 어셋 식별자"
 
 
 msgid "Switch between the current and assigned brushes on consecutive uses."
@@ -90370,6 +90366,26 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
+msgid "Selectability & Visibility"
+msgstr "선택성 및 가시성"
+
+
+msgid "Shadow Settings"
+msgstr "섀도우 설정"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO 설정"
+
+
+msgid "Cavity"
+msgstr "캐비티"
+
+
+msgid "Render Pass"
+msgstr "렌더 패스"
+
+
 msgid "Compositor"
 msgstr "컴포지터"
 
@@ -90488,26 +90504,6 @@ msgstr "활성 도구"
 
 msgid "View Lock"
 msgstr "뷰 잠금"
-
-
-msgid "Selectability & Visibility"
-msgstr "선택성 및 가시성"
-
-
-msgid "Shadow Settings"
-msgstr "섀도우 설정"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO 설정"
-
-
-msgid "Cavity"
-msgstr "캐비티"
-
-
-msgid "Render Pass"
-msgstr "렌더 패스"
 
 
 msgid "Import Settings"
@@ -91826,11 +91822,6 @@ msgstr "밀기"
 msgctxt "Operator"
 msgid "Roll"
 msgstr "롤"
-
-
-msgctxt "Operator"
-msgid "Bone Size"
-msgstr "뼈대 크기"
 
 
 msgctxt "Operator"
@@ -114661,16 +114652,6 @@ msgstr "3D 뷰 도구: 아마츄어 편집, 롤(폴백)"
 
 
 msgctxt "WindowManager"
-msgid "3D View Tool: Edit Armature, Bone Size"
-msgstr "3D 뷰 도구: 아마츄어, 뼈대 크기 편집"
-
-
-msgctxt "WindowManager"
-msgid "3D View Tool: Edit Armature, Bone Size (fallback)"
-msgstr "3D 뷰 도구: 아마츄어, 뼈대 크기 편집 (폴백)"
-
-
-msgctxt "WindowManager"
 msgid "3D View Tool: Edit Armature, Bone Envelope"
 msgstr "3D 뷰 도구: 아마츄어, 뼈대 봉투 편집"
 
@@ -124573,10 +124554,6 @@ msgid "Duplicate Marker to Scene"
 msgstr "마커를 씬에 복제"
 
 
-msgid "Scrubbing"
-msgstr "스크러빙"
-
-
 msgid "Limit to Frame Range"
 msgstr "프레임 범위 제한"
 
@@ -127939,10 +127916,6 @@ msgstr "이 지오메트리 유형에서 지원되지 않는 속성 도메인"
 
 msgid "The attribute name must not be empty"
 msgstr "속성 이름은 비어 있지 않아야 함"
-
-
-msgid "Attribute is required and cannot be removed"
-msgstr "속성은 필수이며 제거할 수 없음"
 
 
 msgid "Domain unsupported for \"%s\" attribute"
@@ -132975,10 +132948,6 @@ msgid "Loading Asset Libraries"
 msgstr "어셋 라이브러리 로드"
 
 
-msgid "Unassigned"
-msgstr "할당되지 않음"
-
-
 msgid ""
 "Modifier node group assets not assigned to a catalog.\n"
 "Catalogs can be assigned in the Asset Browser"
@@ -134405,24 +134374,12 @@ msgid "Object must be in object mode"
 msgstr "오브젝트는 오브젝트 모드에 있어야 함"
 
 
-msgid "Bake failed: no Fluid modifier found"
-msgstr "베이크 실패: 유체 모디파이어를 찾을 수 없음"
-
-
-msgid "Bake failed: invalid domain"
-msgstr "베이크 실패: 도메인이 잘못됨"
-
-
 msgid "Bake free failed: no Fluid modifier found"
 msgstr "베이크 프리 실패: 유체 모디파이어를 찾을 수 없음"
 
 
 msgid "Bake free failed: invalid domain"
 msgstr "베이크 자유 실패: 도메인이 잘못됨"
-
-
-msgid "Bake free failed: pending bake jobs found"
-msgstr "베이크 자유 실패: 보류중인 베이크 작업이 발견됨"
 
 
 msgid "Fluid: Empty cache path, reset to default '%s'"
@@ -136668,10 +136625,6 @@ msgstr "버트:%s | 페이스:%s | 트라이:%s"
 
 msgid " | Objects:%s/%s"
 msgstr " | 객체:%s/%s"
-
-
-msgid "Duration: %s (Frame %i/%i)"
-msgstr "지속 시간 %s (프레임 %i/%i)"
 
 
 msgid "Memory: %s"
@@ -140570,6 +140523,10 @@ msgstr "필수 기하학 속성의 이름을 수정할 수 없음"
 
 msgid "Attribute per point/vertex"
 msgstr "포인트/버텍스 속성"
+
+
+msgid "Attribute is required and cannot be removed"
+msgstr "속성은 필수이며 제거할 수 없음"
 
 
 msgid "Smooth the surface"
@@ -147285,6 +147242,14 @@ msgid "Font not specified"
 msgstr "폰트 지정되지 않음"
 
 
+msgid "Top Right"
+msgstr "오른쪽 상단"
+
+
+msgid "Bottom Left"
+msgstr "왼쪽 하단"
+
+
 msgid "Text Box Width"
 msgstr "텍스트 박스 너비"
 
@@ -147387,14 +147352,6 @@ msgstr "정확한 형태 사용함"
 
 msgid "Use exact geometry for most efficient packing (slowest)"
 msgstr "섬 패킹에 가장 효율적인 패킹 (가장 느림)"
-
-
-msgid "Bottom Left"
-msgstr "왼쪽 하단"
-
-
-msgid "Top Right"
-msgstr "오른쪽 상단"
 
 
 msgid "Faces to consider when packing islands"
@@ -149159,10 +149116,6 @@ msgid "unable to open the file"
 msgstr "파일을 열 수 없음"
 
 
-msgid "Save %u modified image(s)"
-msgstr "%u개의 수정된 이미지 저장함"
-
-
 msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"
 msgstr "보안 이유로 이 파일에서 Python 스크립트의 자동 실행이 비활성화되었습니다:"
 
@@ -150791,16 +150744,8 @@ msgid "Separate Cylindrical"
 msgstr "분리 원통형"
 
 
-msgid "Decompose into its cylindrical components."
-msgstr "원통형 성분으로 분해함"
-
-
 msgid "Separate Spherical"
 msgstr "분리 구형"
-
-
-msgid "Decompose into its spherical components."
-msgstr "구형 성분으로 분해함"
 
 
 msgid "Applies a brown tint to mimic vintage photo tones."
@@ -150903,10 +150848,6 @@ msgid "ID of each curve"
 msgstr "각 곡선의 ID"
 
 
-msgid "Index of each Curve"
-msgstr "각 곡선의 인덱스"
-
-
 msgid "Direction from root to tip of each curve"
 msgstr "각 곡선의 루트에서 끝까지의 방향"
 
@@ -150971,32 +150912,16 @@ msgid "Curve Segment"
 msgstr "곡선 세그먼트"
 
 
-msgid "Reads information each point's previous curve segment"
-msgstr "각 점의 이전 곡선 세그먼트 정보를 읽음"
-
-
 msgid "Neighbor Index"
 msgstr "이웃 인덱스"
-
-
-msgid "Index of previous neighboring point on segment"
-msgstr "세그먼트의 이전 이웃 점의 인덱스"
 
 
 msgid "Segment Direction"
 msgstr "세그먼트 방향"
 
 
-msgid "Direction from previous neighboring point on segment"
-msgstr "세그먼트의 이전 이웃 점 방향"
-
-
 msgid "Segment Length"
 msgstr "세그먼트 길이"
-
-
-msgid "Distance to previous point on curve"
-msgstr "곡선 상의 이전 점까지의 거리"
 
 
 msgid "Curve Tip"
@@ -151113,10 +151038,6 @@ msgstr "마지막 제외함"
 
 msgid "Exclude the last copy from randomization"
 msgstr "마지막 복사를 무작위화에서 제외함"
-
-
-msgid "Merge overlapping points by their distance. (Realize Instances must be enabled)"
-msgstr "겹치는 점들을 거리로 병합함. (인스턴스 실제화 기능이 활성화되어야 함)"
 
 
 msgid "Distance below which points will be merged"
@@ -151395,10 +151316,6 @@ msgid "Profile Resolution"
 msgstr "프로파일 해상도"
 
 
-msgid "Number of points on the profile circle. Also defines the round cap resolution"
-msgstr "튜브 프로파일 원 위의 점 수. 또한 둥근 캡 해상도를 정의함"
-
-
 msgid "Resample"
 msgstr "재샘플링"
 
@@ -151463,16 +151380,8 @@ msgid "UV Map Parameter U"
 msgstr "UV 맵 매개변수 U함"
 
 
-msgid "Method generate map's X coordinate along the main curve"
-msgstr "주요 곡선을 따라 지도의 X 좌표를 생성함"
-
-
 msgid "UV Map Parameter V"
 msgstr "UV 맵 매개변수 조정함"
-
-
-msgid "Method generate map's Y coordinate along the profile curve"
-msgstr "프로파일 곡선을 따라 지도의 Y 좌표를 생성함"
 
 
 msgid "No curve data in input"
@@ -151555,10 +151464,6 @@ msgid "Take reference geometry as input"
 msgstr "기준 기하학을 입력으로 취함"
 
 
-msgid "Input the geometry as an instance. (Further processing might require non-instance geometry)"
-msgstr "지오메트리를 인스턴스로 입력하십시오. (추가 처리에는 인스턴스가 아닌 지오메트리가 필요할 수 있음)"
-
-
 msgid "Collection to use as the input geometry"
 msgstr "입력 기하학으로 사용할 컬렉션함"
 
@@ -151575,20 +151480,12 @@ msgid "Transform the input relative to the main geometry"
 msgstr "입력을 주 기하학에 대해 변환함"
 
 
-msgid "Replace the incoming geometry with the selected input geometry"
-msgstr "선택된 입력 기하학으로 들어오는 기하학을 교체"
-
-
 msgid "Instance on Elements"
 msgstr "요소에 대한 인스턴스함"
 
 
 msgid "Create copies of referenced geometry on geometry elements"
 msgstr "참조된 기하 도형의 사본을 기하 요소에 생성함"
-
-
-msgid "Rotate instances based on the shape of the incoming geometry"
-msgstr "들어오는 기하형상에 따라 인스턴스 회전함"
 
 
 msgid "Instance geometry collection"
@@ -151621,10 +151518,6 @@ msgstr "인스턴스를 페이스 중심으로 이동함"
 
 msgid "Corner Offset Method"
 msgstr "모서리 오프셋 방법함"
-
-
-msgid "Method for direction of the offset along the corner"
-msgstr "오프셋 방향의 모서리 따라 이동 방법"
 
 
 msgid "Even Edge Distance"
@@ -151667,20 +151560,8 @@ msgid "Keep Surface"
 msgstr "표면 유지함"
 
 
-msgid "Keep the original incoming geometry and join it with the instance geometry"
-msgstr "원래 들어오는 기하 도형을 유지하고 인스턴스 기하 도형과 결합함"
-
-
-msgid "Specify which elements to use for instancing. (Floating point values result in a random selection)"
-msgstr "인스턴싱에 사용할 요소를 지정하세요. (실수 값은 무작위 선택을 결과로 함)"
-
-
 msgid "Instance geometry object"
 msgstr "인스턴스 지오메트리 오브젝트함"
-
-
-msgid "Choose child instances each element instead of instancing the entire geometry"
-msgstr "각 요소별로 자식 인스턴스를 선택함 대신 전체 지오메트리 인스턴싱함"
 
 
 msgid "Reset Transform"
@@ -151699,10 +151580,6 @@ msgid "Scale by Face Area"
 msgstr "면 면적에 따른 스케일함"
 
 
-msgid "Scale the instances based on the face area of the incoming geometry"
-msgstr "인입 기하의 면 넓이에 따라 인스턴스 크기 조정함"
-
-
 msgid "Scale by Face Area Multiplier"
 msgstr "면 면적 승수로 스케일함"
 
@@ -151711,16 +151588,8 @@ msgid "Multiply the instance scale with a factor to calibrate the considered fac
 msgstr "고려된 면 넓이를 조정하기 위해 인스턴스 스케일을 인수로 곱함"
 
 
-msgid "Distance to offset each instance along the normal of the incoming geometry"
-msgstr "각 인스턴스를 들어오는 기하 도형의 법선 방향으로 오프셋함"
-
-
 msgid "Configuration regarding the transformation of each instance"
 msgstr "각 인스턴스의 변환에 관한 설정"
-
-
-msgid "Pick Instance is on, but there is no instances to pick from. Falling back to use input as instance."
-msgstr "인스턴스 선택이 켜져 있지만 선택할 인스턴스가 없습니다. 입력을 인스턴스로 사용합니다."
 
 
 msgid "Is Edge Boundary"
@@ -151763,16 +151632,8 @@ msgid "Is UV Split"
 msgstr "uv 분할함"
 
 
-msgid "Returns a selection of edges that make up a seam in the provided UV data. A seam is defined as a discontinuity of the data between connected face corners"
-msgstr "제공된 UV 데이터에서 연결된 면 모서리 사이의 데이터 불연속성을 정의하는 가장자리 선택을 반환함. 가장자리는 연결된 면 모서리 사이의 불연속성을 구성함."
-
-
 msgid "Selection of edges that signify a discontinuity of the input vectors"
 msgstr "입력 벡터의 불연속성을 나타내는 에지 선택함"
-
-
-msgid "Vectors to compare between connected face corners of an egde for differences. (Supports 3D vectors)"
-msgstr "연결된 모서리의 면 사이의 벡터를 비교하여 차이를 확인함 (3D 벡터 지원)"
 
 
 msgid "Normal Selection"
@@ -151785,10 +151646,6 @@ msgstr "일반을 기준으로 선택함"
 
 msgid "Target direction to compare the normal to"
 msgstr "비교할 법선 방향을 지정함"
-
-
-msgid "Selection of elements with normals matching a target direction. (The normal is evaluated on the same domain as this selection output)"
-msgstr "선택된 요소들의 법선이 목표 방향과 일치함을 평가함 (동일 도메인에서 선택 출력과 동일)"
 
 
 msgid "Maximum angle between normal and target to include in the selection"
@@ -151935,10 +151792,6 @@ msgid "Configuration of the scattered instances"
 msgstr "산란된 인스턴스의 설정"
 
 
-msgid "Keep the original incoming geometry and join it with the scattered geometry"
-msgstr "원래 들어오는 기하 도형을 유지하고 흩어진 기하 도형과 합침"
-
-
 msgid "Additional masking applied after the initial scattering of instances"
 msgstr "추가 마스킹 후 초기 인스턴스 흩뿌림 적용함"
 
@@ -151977,10 +151830,6 @@ msgstr "각 로컬 축의 인스턴스 스케일"
 
 msgid "Scatter on Instances"
 msgstr "인스턴스에 흩뿌리기"
-
-
-msgid "Use instances contained in the incoming geometry as base for scattering"
-msgstr "입사 기하학에 포함된 인스턴스를 산란 기반으로 사용함"
 
 
 msgid "Which faces to scatter on"
@@ -152119,20 +151968,16 @@ msgid "Reads attachment information regarding a surface mesh"
 msgstr "표면 메시 관련 첨부 정보 읽음"
 
 
+msgid "Whether the stored attachment UV coordinate is valid"
+msgstr "저장된 부착 UV 좌표의 유효성 여부"
+
+
 msgid "Attachment UV"
 msgstr "부착 UV"
 
 
 msgid "Surface attachment UV coordinates stored on each curve"
 msgstr "각 곡선에 저장된 표면 부착 UV 좌표"
-
-
-msgid "Attachment is Valid"
-msgstr "부착 유효함"
-
-
-msgid "Whether the stored attachment UV coordinate is valid"
-msgstr "저장된 부착 UV 좌표의 유효성 여부"
 
 
 msgid "Surface geometry of the curve attachment"
@@ -152263,10 +152108,6 @@ msgid "Guide index map that was used for the operation"
 msgstr "작동에 사용된 가이드 인덱스 맵"
 
 
-msgid "Guide index map to be used. This input has priority"
-msgstr "사용할 가이드 인덱스 맵 (우선순위 있음)"
-
-
 msgid "Guide Map"
 msgstr "가이드 맵"
 
@@ -152387,10 +152228,6 @@ msgid "Random seed for the operation"
 msgstr "작동을 위한 무작위 시드"
 
 
-msgid "Shape of the influence along curves (0=constant, 0.5=linear)"
-msgstr "곡선을 따라 영향력의 형태 (0=상수, 0.5=선형)함"
-
-
 msgid "Tip Spread"
 msgstr "팁 퍼짐함"
 
@@ -152457,10 +152294,6 @@ msgstr "컬의 전체 반경"
 
 msgid "Amount of random offset per curve"
 msgstr "곡선당 랜덤 오프셋량"
-
-
-msgid "Random Seed for the operation"
-msgstr "랜덤 씨드를 사용함"
 
 
 msgid "Displace Hair Curves"
@@ -152661,10 +152494,6 @@ msgstr "각 곡선에 따른 노이즈 텍스처 스케일"
 
 msgid "Seed value for randomization"
 msgstr "랜덤화를 위한 시드 값"
-
-
-msgid "Shape of amount along each curve (0=constant, 0.5=linear)"
-msgstr "각 곡선별 양의 형태 (0=상수, 0.5=선형)"
 
 
 msgid "Interpolates existing guide curves on a surface mesh"

@@ -29,6 +29,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_shader_fx_types.h"
 #include "DNA_userdef_types.h"
 
 #include "DEG_depsgraph.hh"
@@ -3988,7 +3989,9 @@ void BKE_lib_override_library_main_resync(
       break;
     }
     if (new_scene) {
-      view_layer = BKE_view_layer_find(new_scene, view_layer->name);
+      if (view_layer) {
+        view_layer = BKE_view_layer_find(new_scene, view_layer->name);
+      }
       if (!view_layer) {
         view_layer = static_cast<ViewLayer *>(new_scene->view_layers.first);
       }
@@ -4180,12 +4183,22 @@ void BKE_lib_override_flag_subdata_local(ID &id)
       for (bConstraint &constraint : ob.constraints) {
         constraint.flag |= CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
       }
+      for (ShaderFxData &fx : ob.shader_fx) {
+        fx.flag |= eShaderFxFlag_OverrideLibrary_Local;
+      }
       if (ob.pose) {
         for (bPoseChannel &pose_bone : ob.pose->chanbase) {
           for (bConstraint &constraint : pose_bone.constraints) {
             constraint.flag |= CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
           }
         }
+      }
+      break;
+    }
+    case ID_AR: {
+      bArmature &arm = id_cast<bArmature &>(id);
+      for (BoneCollection *bcoll : arm.collections_span()) {
+        bcoll->flags |= BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL;
       }
       break;
     }

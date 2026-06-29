@@ -629,7 +629,8 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
                                             const pxr::UsdGeomMesh &usd_mesh,
                                             const MaterialFaceGroups &usd_face_groups)
 {
-  if (context.object->totcol == 0) {
+  const int totcol = BKE_object_material_count_eval(context.object);
+  if (totcol == 0) {
     return;
   }
 
@@ -639,8 +640,8 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
   bool mesh_material_bound = false;
   auto mesh_prim = usd_mesh.GetPrim();
   pxr::UsdShadeMaterialBindingAPI material_binding_api(mesh_prim);
-  for (int mat_num = 0; mat_num < context.object->totcol; mat_num++) {
-    Material *material = BKE_object_material_get(context.object, mat_num + 1);
+  for (int mat_num = 0; mat_num < totcol; mat_num++) {
+    Material *material = BKE_object_material_get_eval(context.object, mat_num + 1);
     if (material == nullptr) {
       continue;
     }
@@ -680,7 +681,7 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
     short material_number = face_group.key;
     const pxr::VtIntArray &face_indices = face_group.value;
 
-    Material *material = BKE_object_material_get(context.object, material_number + 1);
+    Material *material = BKE_object_material_get_eval(context.object, material_number + 1);
     if (material == nullptr) {
       continue;
     }

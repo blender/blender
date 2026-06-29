@@ -151,9 +151,8 @@ void USDLightWriter::do_write(HierarchyContext &context)
                 pxr::GfVec3f(light->r, light->g, light->b),
                 time,
                 usd_value_writer_);
-  set_attribute(usd_light_api.CreateEnableColorTemperatureAttr(
-                    pxr::VtValue(), (light->mode & LA_USE_TEMPERATURE) != 0),
-                true,
+  set_attribute(usd_light_api.CreateEnableColorTemperatureAttr(pxr::VtValue(), true),
+                (light->mode & LA_USE_TEMPERATURE) != 0,
                 time,
                 usd_value_writer_);
   set_attribute(usd_light_api.CreateColorTemperatureAttr(pxr::VtValue(), true),

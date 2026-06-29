@@ -41,9 +41,7 @@ static void node_shader_buts_normal_map(ui::Layout &layout, bContext *C, Pointer
   layout.prop(ptr, "convention", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
   if (RNA_enum_get(ptr, "space") == SHD_SPACE_TANGENT) {
-    if (BKE_scene_uses_cycles(CTX_data_scene(C))) {
-      layout.prop(ptr, "base", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-    }
+    layout.prop(ptr, "base", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
     PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
     Object *object = static_cast<Object *>(obptr.data);
@@ -104,6 +102,13 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
     GPU_link(mat, "color_invert_green_channel", newnormal, &newnormal);
   }
 
+  const char *input_fn_name = (nm->base == SHD_NORMAL_MAP_BASE_DISPLACED) ?
+                                  "input_normal_displaced" :
+                                  "input_normal_original";
+
+  GPUNodeLink *input_normal;
+  GPU_link(mat, input_fn_name, &input_normal);
+
   switch (nm->space) {
     case SHD_SPACE_TANGENT:
       GPU_material_flag_set(mat, GPU_MATFLAG_OBJECT_INFO);
@@ -114,6 +119,7 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
                GPU_attribute(mat, CD_TANGENT, nm->uv_map),
                strength,
                newnormal,
+               input_normal,
                &out[0].link);
       return true;
     case SHD_SPACE_OBJECT:

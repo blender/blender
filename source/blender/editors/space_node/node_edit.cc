@@ -516,7 +516,7 @@ float nearest_node_grid_coord(float co)
 {
   /* Size and location of nodes are independent of UI scale, so grid size should be independent of
    * UI scale as well. */
-  float grid_size = grid_size_get() / UI_SCALE_FAC;
+  float grid_size = NODE_GRID_UNIT;
   float rest = fmod(co, grid_size);
   float offset = rest - grid_size / 2 >= 0 ? grid_size : 0;
 

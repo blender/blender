@@ -3,7 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "util/system.h"
+#include "util/log.h"
 #include "util/string.h"
+
+#include <algorithm>
+#include <cstring>
 
 #ifdef _WIN32
 #  include <cstdio>
@@ -277,6 +281,31 @@ size_t system_max_open_files()
   struct rlimit limit = {};
   return (getrlimit(RLIMIT_NOFILE, &limit) == 0) ? limit.rlim_cur : SIZE_MAX;
 #endif
+}
+
+void system_max_open_files_ensure()
+{
+  /* The Windows maximum is 8192 open files. */
+  constexpr int max_open_files = 8192;
+  bool ok = true;
+
+#if defined(_WIN32)
+  if (_getmaxstdio() < max_open_files) {
+    ok = _setmaxstdio(max_open_files) == max_open_files;
+  }
+#else
+  struct rlimit limit = {};
+  ok = getrlimit(RLIMIT_NOFILE, &limit) == 0;
+  if (ok && limit.rlim_cur < rlim_t(max_open_files)) {
+    limit.rlim_cur = std::min(rlim_t(max_open_files), limit.rlim_max);
+    ok = setrlimit(RLIMIT_NOFILE, &limit) == 0;
+  }
+#endif
+
+  if (!ok) {
+    LOG_DEBUG << "Failed to ensure max open files is at least " << max_open_files << ": "
+              << strerror(errno);
+  }
 }
 
 CCL_NAMESPACE_END

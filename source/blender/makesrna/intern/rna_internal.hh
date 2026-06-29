@@ -219,6 +219,7 @@ void RNA_def_texture(BlenderRNA *brna);
 void RNA_def_timeline_marker(BlenderRNA *brna);
 void RNA_def_sound(BlenderRNA *brna);
 void RNA_def_ui(BlenderRNA *brna);
+void RNA_def_undo(BlenderRNA *brna);
 void RNA_def_usd(BlenderRNA *brna);
 void RNA_def_userdef(BlenderRNA *brna);
 void RNA_def_vfont(BlenderRNA *brna);

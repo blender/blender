@@ -53,16 +53,6 @@
 
 namespace blender {
 
-struct NodeInsertOfsData {
-  bNodeTree *ntree;
-  bNode *insert;      /* Inserted node. */
-  bNode *prev, *next; /* Previous/next node in the chain. */
-
-  wmTimer *anim_timer;
-
-  float offset_x; /* Offset to apply to node chain. */
-};
-
 namespace ed::space_node {
 
 static void clear_picking_highlight(ListBaseT<bNodeLink> *links)
@@ -2811,6 +2801,7 @@ void node_insert_on_link_flags(Main &bmain, SpaceNode &snode, bool is_new_node)
   bNode *to_node = old_link->tonode;
 
   const bool best_input_is_linked = best_input && best_input->is_directly_linked();
+  const bool old_link_muted = old_link->is_muted();
 
   if (best_output != nullptr) {
     /* Relink the "start" of the existing link to the newly inserted node. */
@@ -2826,20 +2817,22 @@ void node_insert_on_link_flags(Main &bmain, SpaceNode &snode, bool is_new_node)
     /* Don't change an existing link. */
     if (!best_input_is_linked) {
       /* Add a new link that connects the node on the left to the newly inserted node. */
-      bke::node_add_link(ntree, *from_node, *from_socket, *node_to_insert, *best_input);
+      bNodeLink &link_from = bke::node_add_link(
+          ntree, *from_node, *from_socket, *node_to_insert, *best_input);
+      bke::node_link_set_mute(ntree, link_from, old_link_muted);
     }
   }
 
   /* Set up insert offset data, it needs stuff from here. */
   if (U.uiflag & USER_NODE_AUTO_OFFSET) {
     BLI_assert(snode.runtime->iofsd == nullptr);
-    NodeInsertOfsData *iofsd = MEM_new_zeroed<NodeInsertOfsData>(__func__);
+    auto iofsd = std::make_unique<NodeInsertOfsData>();
 
     iofsd->insert = node_to_insert;
     iofsd->prev = from_node;
     iofsd->next = to_node;
 
-    snode.runtime->iofsd = iofsd;
+    snode.runtime->iofsd = std::move(iofsd);
   }
 
   BKE_main_ensure_invariants(bmain, ntree.id);
@@ -3133,7 +3126,7 @@ static wmOperatorStatus node_insert_offset_modal(bContext *C, wmOperator *op, co
       node->runtime->anim_ofsx = 0.0f;
     }
 
-    MEM_delete(iofsd);
+    delete iofsd;
 
     return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
   }
@@ -3148,9 +3141,8 @@ static wmOperatorStatus node_insert_offset_invoke(bContext *C,
                                                   const wmEvent *event)
 {
   const SpaceNode *snode = CTX_wm_space_node(C);
-  NodeInsertOfsData *iofsd = snode->runtime->iofsd;
-  snode->runtime->iofsd = nullptr;
-  op->customdata = iofsd;
+  NodeInsertOfsData *iofsd = snode->runtime->iofsd.get();
+  op->customdata = snode->runtime->iofsd.release();
 
   if (!iofsd || !iofsd->insert) {
     return OPERATOR_CANCELLED;
@@ -3163,7 +3155,7 @@ static wmOperatorStatus node_insert_offset_invoke(bContext *C,
   const bool offset_applied = node_link_insert_offset_ntree(
       iofsd, CTX_wm_region(C), event->mval, (snode->insert_ofs_dir == SNODE_INSERTOFS_DIR_RIGHT));
   if (!offset_applied) {
-    MEM_delete(iofsd);
+    delete iofsd;
     op->customdata = nullptr;
     return OPERATOR_CANCELLED;
   }

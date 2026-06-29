@@ -154,11 +154,17 @@ class BlenderGlTF():
                 for mesh in gltf.data.meshes:
                     mesh.blender_name = {}  # caches Blender mesh name
                     mesh.weight_animation_on_mesh = None  # For KHR_animation_pointer, weights on mesh
+                    if mesh.extras is not None:
+                        mesh.extras["gltf_tmp_data_animations"] = {}
 
             for cam in gltf.data.cameras if gltf.data.cameras is not None else []:
                 cam.animations = {}
+                if cam.extras is not None:
+                    cam.extras["gltf_tmp_data_animations"] = {}
 
             for mat in gltf.data.materials if gltf.data.materials is not None else []:
+                if mat.extras is not None:
+                    mat.extras["gltf_tmp_data_animations"] = {}
                 mat.animations = {}
                 if mat.normal_texture is not None:
                     mat.normal_texture.animations = {}
@@ -233,6 +239,12 @@ class BlenderGlTF():
                 light["animations"] = {}
                 if "spot" in light:
                     light["spot"]["animations"] = {}
+                if "extras" in light:
+                    light["extras"]["gltf_tmp_data_animations"] = {}
+
+            for node in gltf.data.nodes if gltf.data.nodes is not None else []:
+                if node.extras is not None:
+                    node.extras["gltf_tmp_data_animations"] = {}
 
         # Dispatch animation
         if gltf.data.animations:
@@ -322,6 +334,11 @@ class BlenderGlTF():
 
         # Manage KHR_materials_variants
         BlenderGlTF.manage_material_variants(gltf)
+
+        # Socket infos
+        # For any materials imported, we need to store the socket info,
+        # Because this may be used  for KHR_animation_pointer, to know which socket is animated
+        gltf.socket_infos = {}
 
     @staticmethod
     def dispatch_animation_pointer(gltf, anim, anim_idx, channel, channel_idx):
@@ -626,6 +643,45 @@ class BlenderGlTF():
                                     ].extensions["KHR_materials_iridescence"]["animations"][anim_idx] = []
             gltf.data.materials[int(pointer_tab[2])
                                 ].extensions["KHR_materials_iridescence"]["animations"][anim_idx].append(channel_idx)
+
+        # Extras on Node
+        if len(pointer_tab) == 5 and pointer_tab[1] == "nodes" and pointer_tab[3] == "extras":
+            if anim_idx not in gltf.data.nodes[int(pointer_tab[2])].extras.keys():
+                gltf.data.nodes[int(pointer_tab[2])].extras["gltf_tmp_data_animations"] = {}
+            gltf.data.nodes[int(pointer_tab[2])].extras["gltf_tmp_data_animations"][anim_idx] = []
+            gltf.data.nodes[int(pointer_tab[2])].extras["gltf_tmp_data_animations"][anim_idx].append(channel_idx)
+
+        # Extras on Mesh
+        if len(pointer_tab) == 5 and pointer_tab[1] == "meshes" and pointer_tab[3] == "extras":
+            if anim_idx not in gltf.data.meshes[int(pointer_tab[2])].extras.keys():
+                gltf.data.meshes[int(pointer_tab[2])].extras["gltf_tmp_data_animations"] = {}
+            gltf.data.meshes[int(pointer_tab[2])].extras["gltf_tmp_data_animations"][anim_idx] = []
+            gltf.data.meshes[int(pointer_tab[2])].extras["gltf_tmp_data_animations"][anim_idx].append(channel_idx)
+
+        # Extras on Material
+        if len(pointer_tab) == 5 and pointer_tab[1] == "materials" and pointer_tab[3] == "extras":
+            if anim_idx not in gltf.data.materials[int(pointer_tab[2])].extras.keys():
+                gltf.data.materials[int(pointer_tab[2])].extras["gltf_tmp_data_animations"] = {}
+            gltf.data.materials[int(pointer_tab[2])].extras["gltf_tmp_data_animations"][anim_idx] = []
+            gltf.data.materials[int(pointer_tab[2])].extras["gltf_tmp_data_animations"][anim_idx].append(channel_idx)
+
+        # Extras on Camera
+        if len(pointer_tab) == 5 and pointer_tab[1] == "cameras" and pointer_tab[3] == "extras":
+            if anim_idx not in gltf.data.cameras[int(pointer_tab[2])].extras.keys():
+                gltf.data.cameras[int(pointer_tab[2])].extras["gltf_tmp_data_animations"] = {}
+            gltf.data.cameras[int(pointer_tab[2])].extras["gltf_tmp_data_animations"][anim_idx] = []
+            gltf.data.cameras[int(pointer_tab[2])].extras["gltf_tmp_data_animations"][anim_idx].append(channel_idx)
+
+        # Extras on Light
+        if len(
+                pointer_tab) == 7 and pointer_tab[1] == "extensions" and pointer_tab[2] == "KHR_lights_punctual" and pointer_tab[3] == "lights" and pointer_tab[5] == "extras":
+            if anim_idx not in gltf.data.extensions["KHR_lights_punctual"]["lights"][int(pointer_tab[4])].keys():
+                gltf.data.extensions["KHR_lights_punctual"]["lights"][int(pointer_tab[4])]["extras"][
+                    "gltf_tmp_data_animations"] = {}
+            gltf.data.extensions["KHR_lights_punctual"]["lights"][int(pointer_tab[4])]["extras"][
+                "gltf_tmp_data_animations"][anim_idx] = []
+            gltf.data.extensions["KHR_lights_punctual"]["lights"][int(pointer_tab[4])]["extras"][
+                "gltf_tmp_data_animations"][anim_idx].append(channel_idx)
 
     @staticmethod
     def manage_material_variants(gltf):

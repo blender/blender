@@ -21,8 +21,12 @@
 namespace blender::nodes::node_geo_bevel_cc {
 
 static const EnumPropertyItem affect_items[] = {
-    {int(geometry::BevelAffect::Vertices), "VERTICES", 0, "Vertices", "Bevel affects vertices"},
-    {int(geometry::BevelAffect::Edges), "EDGES", 0, "Edges", "Bevel affects edges"},
+    {int(geometry::BevelAffect::Vertices),
+     "VERTICES",
+     0,
+     N_("Vertices"),
+     N_("Bevel affects vertices")},
+    {int(geometry::BevelAffect::Edges), "EDGES", 0, N_("Edges"), N_("Bevel affects edges")},
     {0, nullptr, 0, nullptr, nullptr}};
 
 static void node_declare(NodeDeclarationBuilder &b)

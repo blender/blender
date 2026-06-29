@@ -20,8 +20,16 @@ enum class Case {
 };
 
 static const EnumPropertyItem case_items[] = {
-    {int(Case::Uppercase), "UPPERCASE", 0, "Uppercase", "Convert all characters to uppercase"},
-    {int(Case::Lowercase), "LOWERCASE", 0, "Lowercase", "Convert all characters to lowercase"},
+    {int(Case::Uppercase),
+     "UPPERCASE",
+     0,
+     N_("Uppercase"),
+     N_("Convert all characters to uppercase")},
+    {int(Case::Lowercase),
+     "LOWERCASE",
+     0,
+     N_("Lowercase"),
+     N_("Convert all characters to lowercase")},
     {},
 };
 

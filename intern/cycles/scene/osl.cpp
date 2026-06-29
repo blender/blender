@@ -907,7 +907,7 @@ void OSLShaderManager::osl_image_handles(Device *device,
 
 OSLCompiler::OSLCompiler(OSL::ShadingSystem *ss, Scene *scene, Progress &progress, Device *device)
     : scene(scene),
-      progress(progress),
+      progress(&progress),
       services(static_cast<OSLRenderServices *>(ss->renderer())),
       ss(ss),
       device(device)

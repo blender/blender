@@ -34,9 +34,9 @@ ccl_device_inline bool triangle_intersect(KernelGlobals kg,
 {
   const int position_offset = kernel_data_fetch(objects, object).position_offset;
   const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
-  const float3 tri_a = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.x);
-  const float3 tri_b = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.y);
-  const float3 tri_c = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.z);
+  const float3 tri_a = kernel_data_fetch(tri_verts, position_offset + tri_vindex.x);
+  const float3 tri_b = kernel_data_fetch(tri_verts, position_offset + tri_vindex.y);
+  const float3 tri_c = kernel_data_fetch(tri_verts, position_offset + tri_vindex.z);
 
   float t;
   float u;
@@ -81,9 +81,9 @@ ccl_device_inline bool triangle_intersect_local(KernelGlobals kg,
 {
   const int position_offset = kernel_data_fetch(objects, object).position_offset;
   const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
-  const float3 tri_a = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.x);
-  const float3 tri_b = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.y);
-  const float3 tri_c = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.z);
+  const float3 tri_a = kernel_data_fetch(tri_verts, position_offset + tri_vindex.x);
+  const float3 tri_b = kernel_data_fetch(tri_verts, position_offset + tri_vindex.y);
+  const float3 tri_c = kernel_data_fetch(tri_verts, position_offset + tri_vindex.z);
 
   float t;
   float u;
@@ -129,9 +129,9 @@ ccl_device_inline float3 triangle_point_from_uv(KernelGlobals kg,
 {
   const int position_offset = kernel_data_fetch(objects, sd->object).position_offset;
   const uint3 tri_vindex = kernel_data_fetch(tri_vindex, isect_prim);
-  const float3 tri_a = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.x);
-  const float3 tri_b = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.y);
-  const float3 tri_c = kernel_data_fetch(attributes_float3, position_offset + tri_vindex.z);
+  const float3 tri_a = kernel_data_fetch(tri_verts, position_offset + tri_vindex.x);
+  const float3 tri_b = kernel_data_fetch(tri_verts, position_offset + tri_vindex.y);
+  const float3 tri_c = kernel_data_fetch(tri_verts, position_offset + tri_vindex.z);
 
   /* This appears to give slightly better precision than interpolating with w = (1 - u - v). */
   float3 P = tri_a + u * (tri_b - tri_a) + v * (tri_c - tri_a);

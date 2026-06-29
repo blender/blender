@@ -1323,7 +1323,7 @@ static void mesh_undosys_foreach_ID_ref(UndoStep *us_p,
 
 void ED_mesh_undosys_type(UndoType *ut)
 {
-  ut->name = "Edit Mesh";
+  ut->identifier = "EDIT_MESH";
   ut->poll = mesh_undosys_poll;
   ut->step_encode = mesh_undosys_step_encode;
   ut->step_decode = mesh_undosys_step_decode;

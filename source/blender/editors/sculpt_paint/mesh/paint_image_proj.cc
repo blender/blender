@@ -6373,7 +6373,7 @@ static wmOperatorStatus texture_paint_camera_project_exec(bContext *C, wmOperato
   project_image_refresh_tagged(&ps);
 
   for (a = 0; a < ps.image_tot; a++) {
-    BKE_image_free_gputextures(ps.projImages[a].ima);
+    BKE_image_partial_update_mark_full_update(ps.projImages[a].ima);
     WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ps.projImages[a].ima);
   }
 

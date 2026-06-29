@@ -1439,7 +1439,8 @@ bool BKE_object_supports_modifiers(const Object *ob)
               OB_LATTICE,
               OB_POINTCLOUD,
               OB_VOLUME,
-              OB_GREASE_PENCIL);
+              OB_GREASE_PENCIL,
+              OB_EMPTY);
 }
 
 bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
@@ -4147,16 +4148,16 @@ void BKE_object_protected_scale_set(Object *ob, const float scale[3])
 
 void BKE_object_protected_rotation_quaternion_set(Object *ob, const float quat[4])
 {
-  if ((ob->protectflag & OB_LOCK_ROTX) == 0) {
+  if ((ob->protectflag & OB_LOCK_ROTW) == 0) {
     ob->quat[0] = quat[0];
   }
-  if ((ob->protectflag & OB_LOCK_ROTY) == 0) {
+  if ((ob->protectflag & OB_LOCK_ROTX) == 0) {
     ob->quat[1] = quat[1];
   }
-  if ((ob->protectflag & OB_LOCK_ROTZ) == 0) {
+  if ((ob->protectflag & OB_LOCK_ROTY) == 0) {
     ob->quat[2] = quat[2];
   }
-  if ((ob->protectflag & OB_LOCK_ROTW) == 0) {
+  if ((ob->protectflag & OB_LOCK_ROTZ) == 0) {
     ob->quat[3] = quat[3];
   }
 }
@@ -4426,7 +4427,8 @@ const Mesh *BKE_object_get_editmesh_eval_cage(const Object *object)
   if (!edit_hints) {
     return nullptr;
   }
-  BLI_assert(edit_hints->mesh_cage->type() == bke::GeometryComponent::Type::Mesh);
+  BLI_assert(!edit_hints->mesh_cage ||
+             edit_hints->mesh_cage->type() == bke::GeometryComponent::Type::Mesh);
   const auto *mesh_component = static_cast<const MeshComponent *>(edit_hints->mesh_cage.get());
   if (!mesh_component) {
     return nullptr;
@@ -4451,7 +4453,8 @@ const Mesh *BKE_object_get_mesh_deform_eval(const Object *object)
   if (!edit_hints) {
     return nullptr;
   }
-  BLI_assert(edit_hints->mesh_deform->type() == bke::GeometryComponent::Type::Mesh);
+  BLI_assert(!edit_hints->mesh_deform ||
+             edit_hints->mesh_deform->type() == bke::GeometryComponent::Type::Mesh);
   const auto *mesh_component = static_cast<const MeshComponent *>(edit_hints->mesh_deform.get());
   if (!mesh_component) {
     return nullptr;

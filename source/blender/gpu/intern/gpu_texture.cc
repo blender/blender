@@ -34,20 +34,14 @@ Texture::Texture(const char *name)
     name_ = name;
   }
 
-  for (int i = 0; i < ARRAY_SIZE(fb_); i++) {
-    fb_[i] = nullptr;
-  }
-
   gpu_image_usage_flags_ = GPU_TEXTURE_USAGE_GENERAL;
 }
 
 Texture::~Texture()
 {
-  for (int i = 0; i < ARRAY_SIZE(fb_); i++) {
-    if (fb_[i] != nullptr) {
-      fb_[i]->attachment_remove(fb_attachment_[i]);
-    }
-  }
+  fb_attachments_.foreach_item(
+      [&](FrameBuffer *key, const GPUAttachmentType value) { key->attachment_remove(value); });
+  fb_attachments_.clear();
 
 #ifndef GPU_NO_USE_PY_REFERENCES
   if (this->py_ref) {
@@ -190,37 +184,22 @@ void Texture::usage_set(eGPUTextureUsage usage_flags)
 
 void Texture::attach_to(FrameBuffer *fb, GPUAttachmentType type)
 {
-  for (int i = 0; i < ARRAY_SIZE(fb_); i++) {
-    if (fb_[i] == fb) {
-      /* Already stores a reference */
-      if (fb_attachment_[i] != type) {
-        /* Ensure it's not attached twice to the same FrameBuffer. */
-        fb_[i]->attachment_remove(fb_attachment_[i]);
-        fb_attachment_[i] = type;
-      }
-      return;
-    }
+  GPUAttachmentType &current_type = fb_attachments_.lookup_or_add(fb, type);
+  if (current_type != type) {
+    fb->attachment_remove(current_type);
+    current_type = type;
   }
-  for (int i = 0; i < ARRAY_SIZE(fb_); i++) {
-    if (fb_[i] == nullptr) {
-      fb_attachment_[i] = type;
-      fb_[i] = fb;
-      return;
-    }
-  }
-  BLI_assert_msg(0, "GPU: Error: Texture: Not enough attachment");
 }
 
 void Texture::detach_from(FrameBuffer *fb)
 {
-  for (int i = 0; i < ARRAY_SIZE(fb_); i++) {
-    if (fb_[i] == fb) {
-      fb_[i]->attachment_remove(fb_attachment_[i]);
-      fb_[i] = nullptr;
-      return;
-    }
+  std::optional<GPUAttachmentType> type = fb_attachments_.pop_try(fb);
+  if (type.has_value()) {
+    fb->attachment_remove(*type);
   }
-  BLI_assert_msg(0, "GPU: Error: Texture: Framebuffer is not attached");
+  else {
+    BLI_assert_msg(0, "GPU: Error: Texture: Framebuffer is not attached");
+  };
 }
 
 void Texture::update(eGPUDataFormat format, const void *data)

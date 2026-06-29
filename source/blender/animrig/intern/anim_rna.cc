@@ -80,11 +80,36 @@ Vector<float> get_rna_values(PointerRNA *ptr, PropertyRNA *prop)
   return values;
 }
 
+constexpr const char *pose_bone_path_prefix = "pose.bones[\"";
+constexpr int pose_bone_path_prefix_length = std::char_traits<char>::length(pose_bone_path_prefix);
+
 std::string get_pose_bone_rna_path(const bPoseChannel &pose_bone)
 {
   char name_esc[sizeof(pose_bone.name) * 2];
   BLI_str_escape(name_esc, pose_bone.name, sizeof(name_esc));
-  return fmt::format("pose.bones[\"{}\"]", name_esc);
+  return fmt::format("{}{}\"]", pose_bone_path_prefix, name_esc);
+}
+
+std::optional<std::string> pose_bone_name_from_rna_path(const StringRefNull rna_path)
+{
+  if (rna_path.size() < pose_bone_path_prefix_length ||
+      !rna_path.startswith(pose_bone_path_prefix))
+  {
+    return std::nullopt;
+  }
+
+  const char *name_esc = rna_path.data() + pose_bone_path_prefix_length;
+  const char *name_esc_end = BLI_str_escape_find_quote(name_esc);
+  if (!name_esc_end) {
+    return std::nullopt;
+  }
+  char name[MAXBONENAME];
+  const size_t name_esc_len = size_t(name_esc_end - name_esc);
+  if (name_esc_len >= sizeof(name)) {
+    return std::nullopt;
+  }
+  BLI_str_unescape(name, name_esc, name_esc_len);
+  return name;
 }
 
 StringRefNull get_rotation_mode_path(const eRotationModes rotation_mode)

@@ -870,7 +870,8 @@ static void writestruct_at_address_nr(WriteData *wd,
                                       const int struct_nr,
                                       const int64_t nr,
                                       const void *adr,
-                                      const void *data)
+                                      const void *data,
+                                      const BlendStructWriterFn fn)
 {
   BLI_assert(struct_nr > 0 && struct_nr <= dna::sdna_struct_id_get_max());
 
@@ -899,11 +900,13 @@ static void writestruct_at_address_nr(WriteData *wd,
   DynamicStackBuffer<16 * 1024> buffer_owner(len_in_bytes, 64);
   const dna::pointers::StructInfo &struct_info =
       wd->stable_address_ids.sdna_pointers->get_for_struct(struct_nr);
-  const bool can_write_raw_runtime_data = struct_info.pointers.is_empty();
+
+  const bool needs_general_pointer_remap = !wd->use_memfile && !struct_info.pointers.is_empty();
+  const bool has_custom_fn = bool(fn);
+  const bool can_write_raw_runtime_data = !needs_general_pointer_remap && !has_custom_fn;
 
   if (can_write_raw_runtime_data) {
-    /* The passed in data contains no pointers, so it can be written without an additional copy.
-     */
+    /* The passed in data contains no pointers, so it can be written without an additional copy. */
     data_to_write = data;
   }
   else {
@@ -911,13 +914,28 @@ static void writestruct_at_address_nr(WriteData *wd,
     data_to_write = buffer;
     memcpy(buffer, data, len_in_bytes);
 
-    /* Overwrite pointers with their corresponding address identifiers. */
-    for (const int i : IndexRange(nr)) {
-      for (const dna::pointers::PointerInfo &pointer_info : struct_info.pointers) {
-        const int offset = i * struct_info.size_in_bytes + pointer_info.offset;
-        const void **p_ptr = reinterpret_cast<const void **>(POINTER_OFFSET(buffer, offset));
-        const void *p_ptr_address_id = get_address_id(*wd, *p_ptr);
-        *p_ptr = p_ptr_address_id;
+    /* Optionally allow custom modifications to the struct data before it is written. */
+    if (has_custom_fn) {
+      for (const int i : IndexRange(nr)) {
+        const int offset = i * struct_info.size_in_bytes;
+        BlendStructWriter struct_writer(
+            *wd,
+            struct_nr,
+            {static_cast<char *>(POINTER_OFFSET(buffer, offset)), struct_info.size_in_bytes});
+        fn(struct_writer);
+      }
+    }
+
+    /* When writing to file, use stable pointers for everything. */
+    if (needs_general_pointer_remap) {
+      /* Overwrite pointers with their corresponding address identifiers. */
+      for (const int i : IndexRange(nr)) {
+        for (const dna::pointers::PointerInfo &pointer_info : struct_info.pointers) {
+          const int offset = i * struct_info.size_in_bytes + pointer_info.offset;
+          const void **p_ptr = reinterpret_cast<const void **>(POINTER_OFFSET(buffer, offset));
+          const void *p_ptr_address_id = get_address_id(*wd, *p_ptr);
+          *p_ptr = p_ptr_address_id;
+        }
       }
     }
   }
@@ -942,10 +960,48 @@ static void writestruct_at_address_nr(WriteData *wd,
   mywrite(wd, data_to_write, size_t(bh.len));
 }
 
-static void writestruct_nr(
-    WriteData *wd, const int filecode, const int struct_nr, const int64_t nr, const void *adr)
+void BlendStructWriter::runtime_ptr(const int64_t offset)
 {
-  writestruct_at_address_nr(wd, filecode, struct_nr, nr, adr, adr);
+#ifndef NDEBUG
+  const dna::pointers::StructInfo &struct_info =
+      wd_->stable_address_ids.sdna_pointers->get_for_struct(struct_nr_);
+  BLI_assert(struct_info.has_pointer_at_offset(offset));
+#endif
+
+  data_.slice(offset, sizeof(void *)).fill(0);
+}
+
+void BlendStructWriter::generated_ptr(const int64_t offset)
+{
+  if (!wd_->use_memfile) {
+    /* When writing to file, all pointers are remapped to stable pointers. */
+    return;
+  }
+#ifndef NDEBUG
+  const dna::pointers::StructInfo &struct_info =
+      wd_->stable_address_ids.sdna_pointers->get_for_struct(struct_nr_);
+  BLI_assert(struct_info.has_pointer_at_offset(offset));
+#endif
+
+  /* In undo case, replace generated pointers by corresponding stable pointers. */
+  const void **p_ptr = reinterpret_cast<const void **>(POINTER_OFFSET(data_.data(), offset));
+  if (!*p_ptr) {
+    return;
+  }
+  /* Should exist if #BLO_write_generated_pointer_tag has been called before. */
+  BLI_assert(wd_->stable_address_ids.pointer_map.contains(*p_ptr));
+  const void *p_ptr_address_id = get_address_id(*wd_, *p_ptr);
+  *p_ptr = p_ptr_address_id;
+}
+
+static void writestruct_nr(WriteData *wd,
+                           const int filecode,
+                           const int struct_nr,
+                           const int64_t nr,
+                           const void *adr,
+                           const BlendStructWriterFn fn)
+{
+  writestruct_at_address_nr(wd, filecode, struct_nr, nr, adr, adr, fn);
 }
 
 static void write_raw_data_in_debug_file(WriteData *wd,
@@ -1028,12 +1084,13 @@ static void writedata(WriteData *wd, const int filecode, const size_t len, const
 static void writelist_nr(WriteData *wd,
                          const int filecode,
                          const int struct_nr,
-                         const ListBase *lb)
+                         const ListBase *lb,
+                         const BlendStructWriterFn fn)
 {
   const Link *link = static_cast<Link *>(lb->first);
 
   while (link) {
-    writestruct_nr(wd, filecode, struct_nr, 1, link);
+    writestruct_nr(wd, filecode, struct_nr, 1, link, fn);
     link = link->next;
   }
 }
@@ -1058,11 +1115,11 @@ static void writelist_id(WriteData *wd, const int filecode, const char *structna
 }
 #endif
 
-#define writestruct_at_address(wd, filecode, struct_id, nr, adr, data) \
-  writestruct_at_address_nr(wd, filecode, dna::sdna_struct_id_get<struct_id>(), nr, adr, data)
+#define writestruct_at_address(wd, filecode, struct_id, nr, adr, data, fn) \
+  writestruct_at_address_nr(wd, filecode, dna::sdna_struct_id_get<struct_id>(), nr, adr, data, fn)
 
-#define writestruct(wd, filecode, struct_id, nr, adr) \
-  writestruct_nr(wd, filecode, dna::sdna_struct_id_get<struct_id>(), nr, adr)
+#define writestruct(wd, filecode, struct_id, nr, adr, fn) \
+  writestruct_nr(wd, filecode, dna::sdna_struct_id_get<struct_id>(), nr, adr, fn)
 
 /** \} */
 
@@ -1159,7 +1216,7 @@ static void write_keymapitem(BlendWriter *writer, const wmKeyMapItem *kmi)
 
 static void write_userdef(BlendWriter *writer, const UserDef *userdef)
 {
-  writestruct(writer->wd, BLO_CODE_USER, UserDef, 1, userdef);
+  writestruct(writer->wd, BLO_CODE_USER, UserDef, 1, userdef, nullptr);
 
   for (const bTheme &btheme : userdef->themes) {
     writer->write_struct(&btheme);
@@ -1269,7 +1326,7 @@ static void write_id_placeholder(WriteData *wd, ID *id)
   /* Only copy required data for the placeholder ID. */
   BLO_Write_IDBuffer id_buffer{*id, wd->use_memfile, true};
 
-  writestruct_at_address(wd, ID_LINK_PLACEHOLDER, ID, 1, id, &id_buffer);
+  writestruct_at_address(wd, ID_LINK_PLACEHOLDER, ID, 1, id, &id_buffer, nullptr);
 
   mywrite_id_end(wd, id);
 }
@@ -1471,7 +1528,7 @@ static void write_global(WriteData *wd, const int fileflags, Main *mainvar)
   fg.build_commit_timestamp = 0;
   STRNCPY(fg.build_hash, "unknown");
 #endif
-  writestruct(wd, BLO_CODE_GLOB, FileGlobal, 1, &fg);
+  writestruct(wd, BLO_CODE_GLOB, FileGlobal, 1, &fg, nullptr);
 }
 
 /**
@@ -2098,71 +2155,84 @@ bool BLO_write_file_mem(Main *mainvar, MemFile *compare, MemFile *current, const
  * API to write chunks of data.
  */
 
-void BlendWriter::write_struct_by_name(const char *struct_name, const void *data)
+void BlendWriter::write_struct_by_name(const char *struct_name,
+                                       const void *data,
+                                       const BlendStructWriterFn fn)
 {
-  this->write_struct_array_by_name(struct_name, 1, data);
+  this->write_struct_array_by_name(struct_name, 1, data, fn);
 }
 
 void BlendWriter::write_struct_array_by_name(const char *struct_name,
                                              const int64_t array_size,
-                                             const void *data)
+                                             const void *data,
+                                             const BlendStructWriterFn fn)
 {
   int struct_id = this->struct_id_by_name(struct_name);
   if (struct_id == -1) [[unlikely]] {
     CLOG_ERROR(&LOG, "Can't find SDNA code <%s>", struct_name);
     return;
   }
-  this->write_struct_array_by_id(struct_id, array_size, data);
+  this->write_struct_array_by_id(struct_id, array_size, data, fn);
 }
 
-void BlendWriter::write_struct_by_id(const int struct_id, const void *data)
+void BlendWriter::write_struct_by_id(const int struct_id,
+                                     const void *data,
+                                     const BlendStructWriterFn fn)
 {
-  writestruct_nr(this->wd, BLO_CODE_DATA, struct_id, 1, data);
+  writestruct_nr(this->wd, BLO_CODE_DATA, struct_id, 1, data, fn);
 }
 
 void BlendWriter::write_struct_at_address_by_id(const int struct_id,
                                                 const void *address,
-                                                const void *data)
+                                                const void *data,
+                                                const BlendStructWriterFn fn)
 {
-  this->write_struct_at_address_by_id_with_filecode(BLO_CODE_DATA, struct_id, address, data);
+  this->write_struct_at_address_by_id_with_filecode(BLO_CODE_DATA, struct_id, address, data, fn);
 }
 
 void BlendWriter::write_struct_at_address_by_id_with_filecode(const int filecode,
                                                               const int struct_id,
                                                               const void *address,
-                                                              const void *data)
+                                                              const void *data,
+                                                              const BlendStructWriterFn fn)
 {
-  writestruct_at_address_nr(this->wd, filecode, struct_id, 1, address, data);
+  writestruct_at_address_nr(this->wd, filecode, struct_id, 1, address, data, fn);
 }
 
 void BlendWriter::write_struct_array_by_id(const int struct_id,
                                            const int64_t array_size,
-                                           const void *data)
+                                           const void *data,
+                                           const BlendStructWriterFn fn)
 {
-  writestruct_nr(this->wd, BLO_CODE_DATA, struct_id, array_size, data);
+  writestruct_nr(this->wd, BLO_CODE_DATA, struct_id, array_size, data, fn);
 }
 
 void BlendWriter::write_struct_array_at_address_by_id(const int struct_id,
                                                       const int64_t array_size,
                                                       const void *address,
-                                                      const void *data)
+                                                      const void *data,
+                                                      const BlendStructWriterFn fn)
 {
-  writestruct_at_address_nr(this->wd, BLO_CODE_DATA, struct_id, array_size, address, data);
+  writestruct_at_address_nr(this->wd, BLO_CODE_DATA, struct_id, array_size, address, data, fn);
 }
 
-void BlendWriter::write_struct_list_by_id(const int struct_id, const ListBase *list)
+void BlendWriter::write_struct_list_by_id(const int struct_id,
+                                          const ListBase *list,
+                                          const BlendStructWriterFn fn)
 {
-  writelist_nr(this->wd, BLO_CODE_DATA, struct_id, list);
+  writelist_nr(this->wd, BLO_CODE_DATA, struct_id, list, fn);
 }
 
-void BlendWriter::write_struct_list_by_name(const char *struct_name, ListBase *list)
+void BlendWriter::write_struct_list_by_name(const char *struct_name,
+                                            ListBase *list,
+                                            const BlendStructWriterFn fn)
 {
   int struct_id = this->struct_id_by_name(struct_name);
   if (struct_id == -1) [[unlikely]] {
     CLOG_ERROR(&LOG, "Can't find SDNA code <%s>", struct_name);
     return;
   }
-  this->write_struct_list_by_id(struct_id, list);
+  this->write_struct_list_by_id(struct_id, list, fn);
 }
 
 int BlendWriter::struct_id_by_name(const char *struct_name) const

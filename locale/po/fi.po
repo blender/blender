@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e899b48ea546')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-15 07:32+0000\n"
+"POT-Creation-Date: 2026-06-29 10:51+0000\n"
 "PO-Revision-Date: 2026-04-06 09:16+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -7236,36 +7236,20 @@ msgid "ID Type"
 msgstr "ID-tyyppi"
 
 
-msgid "Track"
-msgstr "Raide"
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
 
 
 msgid "Math"
 msgstr "Matematiikka"
 
 
-msgid "Utilities"
-msgstr "Työkalut"
-
-
-msgid "Read"
-msgstr "Lue"
-
-
-msgid "Write"
-msgstr "Kirjoita"
-
-
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
-
-
 msgid "Select More/Less"
 msgstr "Valitse enemmän/vähemmän"
 
 
-msgid "Instances"
-msgstr "Instanssit"
+msgid "Utilities"
+msgstr "Työkalut"
 
 
 msgid "Select Similar"
@@ -7280,40 +7264,56 @@ msgid "Select Loops"
 msgstr "Valitse silmukat"
 
 
-msgid "Import"
-msgstr "Tuo"
+msgid "Read"
+msgstr "Lue"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Write"
+msgstr "Kirjoita"
 
 
 msgid "Metaball"
 msgstr "Metapallo"
 
 
-msgid "Random Mask"
-msgstr "Satunnainen maski"
-
-
-msgid "Show/Hide"
-msgstr "Näytä/Piilota"
+msgid "Light"
+msgstr "Valo"
 
 
 msgid "Light Probe"
 msgstr "Valoluotain"
 
 
-msgid "Light"
-msgstr "Valo"
+msgid "Instances"
+msgstr "Instanssit"
 
 
 msgid "Add Image"
 msgstr "Lisää kuva"
 
 
+msgid "Import"
+msgstr "Tuo"
+
+
+msgid "Track"
+msgstr "Raide"
+
+
+msgid "Show/Hide"
+msgstr "Näytä/Piilota"
+
+
 msgid "Hooks"
 msgstr "Koukut"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Random Mask"
+msgstr "Satunnainen maski"
 
 
 msgid "Names"

@@ -1422,6 +1422,9 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
   axis_dominant_v3_to_m3(axis_mat, f->no);
 
 #define VERT_IN_ARRAY BM_ELEM_INTERNAL_TAG
+  /* Any destructive edits are going to render the UV selection dirty,
+   * the flags use here is acceptable. */
+#define EDGE_IS_NEW BM_ELEM_SELECT_UV
 
   group_arr = static_cast<EdgeGroupIsland **>(
       BLI_memarena_alloc(mem_arena, sizeof(*group_arr) * group_arr_len));
@@ -1615,14 +1618,16 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
 #endif
           {
             BMVert *v_end = vert_arr[index_other];
+            const int totedge_prev = bm->totedge;
             /* Doubles should not be present in the common case,
              * see the complex test file from: #150360. */
-            if ((edge_net_new[edge_net_new_index] = BM_edge_create(
-                     bm, v_origin, v_end, nullptr, BM_CREATE_NO_DOUBLE)))
-            {
+            BMEdge *e_new = edge_net_new[edge_net_new_index] = BM_edge_create(
+                bm, v_origin, v_end, nullptr, BM_CREATE_NO_DOUBLE);
+            if ((edge_net_new[edge_net_new_index] = e_new)) {
 #ifdef USE_PARTIAL_CONNECT
-              BM_elem_index_set(edge_net_new[edge_net_new_index], edge_net_new_index);
+              BM_elem_index_set(e_new, edge_net_new_index);
 #endif
+              BM_elem_flag_set(e_new, EDGE_IS_NEW, bm->totedge != totedge_prev);
               edge_net_new_index++;
               args.edge_arr_new_len++;
             }
@@ -1645,14 +1650,16 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
 #endif
           {
             BMVert *v_end = vert_arr[index_other];
+            const int totedge_prev = bm->totedge;
             /* Doubles should not be present in the common case,
              * see the complex test file from: #150360. */
-            if ((edge_net_new[edge_net_new_index] = BM_edge_create(
-                     bm, v_origin, v_end, nullptr, BM_CREATE_NO_DOUBLE)))
-            {
+            BMEdge *e_new = edge_net_new[edge_net_new_index] = BM_edge_create(
+                bm, v_origin, v_end, nullptr, BM_CREATE_NO_DOUBLE);
+            if ((edge_net_new[edge_net_new_index] = e_new)) {
 #ifdef USE_PARTIAL_CONNECT
-              BM_elem_index_set(edge_net_new[edge_net_new_index], edge_net_new_index);
+              BM_elem_index_set(e_new, edge_net_new_index);
 #endif
+              BM_elem_flag_set(e_new, EDGE_IS_NEW, bm->totedge != totedge_prev);
               edge_net_new_index++;
               args.edge_arr_new_len++;
             }
@@ -1708,10 +1715,17 @@ finally:
     } while ((tvp = tvp->next));
 
     /* Remove edges which have become doubles since splicing vertices together,
-     * its less trouble than detecting future-doubles on edge-creation. */
+     * its less trouble than detecting future-doubles on edge-creation.
+     *
+     * Only kill it when it was created here because an pre-existing edge may be
+     * part of a face which should not be removed as part of this isolated cleanup.
+     * Any other doubles which may exist are left as-is,
+     * the caller is responsible for them, see #160601. */
     for (uint i = edge_net_init_len; i < edge_net_new_len; i++) {
       while (BM_edge_find_double(edge_net_new[i])) {
-        BM_edge_kill(bm, edge_net_new[i]);
+        if (BM_elem_flag_test(edge_net_new[i], EDGE_IS_NEW)) {
+          BM_edge_kill(bm, edge_net_new[i]);
+        }
         edge_net_new_len--;
         if (i == edge_net_new_len) {
           break;
@@ -1725,12 +1739,13 @@ finally:
 #endif
 
   for (uint i = 0; i < edge_arr_len; i++) {
-    BM_elem_flag_disable(edge_arr[i], EDGE_NOT_IN_STACK);
+    BM_elem_flag_disable(edge_arr[i], EDGE_NOT_IN_STACK | EDGE_IS_NEW);
     BM_elem_flag_disable(edge_arr[i]->v1, VERT_NOT_IN_STACK);
     BM_elem_flag_disable(edge_arr[i]->v2, VERT_NOT_IN_STACK);
   }
 
 #undef VERT_IN_ARRAY
+#undef EDGE_IS_NEW
 #undef VERT_NOT_IN_STACK
 #undef EDGE_NOT_IN_STACK
 

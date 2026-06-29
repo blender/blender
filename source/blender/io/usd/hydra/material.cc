@@ -159,6 +159,14 @@ EmittedMaterial build_emitted_material(const PopulateContext &ctx, const Materia
     if (!usd_material) {
       CLOG_WARN(LOG_HYDRA_SCENE_INDEX, "MaterialX export failed for '%s'", material->id.name + 2);
     }
+    else {
+      /* Fall back to UsdPreviewSurface if MaterialX did not have a valid surface,
+       * matching USD export behavior. */
+      const pxr::UsdShadeOutput surface = usd_material.GetSurfaceOutput();
+      if (!surface || !surface.HasConnectedSource()) {
+        io::usd::create_usd_viewport_material(export_context, material, usd_material);
+      }
+    }
   }
   else
 #endif

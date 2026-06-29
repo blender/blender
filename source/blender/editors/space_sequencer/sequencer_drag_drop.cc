@@ -236,7 +236,7 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
   /* Check if there is a strip that would intersect with the new strip(s). */
   coords->is_intersecting = false;
   Strip dummy_strip{};
-  seq::strip_channel_set(&dummy_strip, coords->channel);
+  dummy_strip.channel_set(coords->channel);
   dummy_strip.start = coords->start_frame;
   dummy_strip.len = coords->strip_length;
   dummy_strip.speed_factor = 1.0f;
@@ -247,7 +247,7 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
   for (int i = 0; i < coords->num_channels && !coords->is_intersecting; i++) {
     coords->is_intersecting = seq::transform_test_overlap(
         scene, ed->current_strips(), &dummy_strip);
-    seq::strip_channel_set(&dummy_strip, dummy_strip.channel + 1);
+    dummy_strip.channel_set(dummy_strip.channel + 1);
   }
 
   return strip_len;

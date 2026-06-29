@@ -67,6 +67,8 @@ class BlenderCamera():
                 cam.clip_end = 1e12  # some big number
 
         pycamera.blender_object_data = cam  # Needed in case of KHR_animation_pointer
+        if pycamera.extras is not None:
+            pycamera.extras['blender_object_data'] = cam
 
         return cam
 

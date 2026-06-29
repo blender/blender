@@ -299,7 +299,7 @@ integrate_direct_light_shadow_init_common(KernelGlobals kg,
     INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, unlit_throughput) = unlit_throughput;
     INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, path_segment) = INTEGRATOR_STATE(
         state, guiding, path_segment);
-    INTEGRATOR_STATE(shadow_state, shadow_path, guiding_mis_weight) = 0.0f;
+    INTEGRATOR_STATE(shadow_state, shadow_path, guiding_light_linking_mis_weight) = 0.0f;
   }
 #endif
 
@@ -391,7 +391,9 @@ ccl_device
 
   /* Evaluate BSDF. */
   BsdfEval bsdf_eval ccl_optional_struct_init;
-  const float bsdf_pdf = surface_shader_bsdf_eval(kg, state, sd, ls.D, &bsdf_eval, ls.shader);
+  float avg_roughness_squared = 0.0f;
+  const float bsdf_pdf = surface_shader_bsdf_eval(
+      kg, state, sd, ls.D, &bsdf_eval, ls.shader, avg_roughness_squared);
 
   Ray ray ccl_optional_struct_init;
 
@@ -427,6 +429,12 @@ ccl_device
 
     /* Create shadow ray. */
     light_sample_to_surface_shadow_ray(kg, sd, &ls, &ray);
+
+#ifdef __RAY_DIFFERENTIALS__
+    /* Widen ray differences, with same logic as forward sampling to ensure
+     * both MIS strategies converge to the same result. */
+    ray.dD = bsdf_widen_dD(INTEGRATOR_STATE(state, ray, dD), avg_roughness_squared);
+#endif
   }
 
   if (ray.self.object != OBJECT_NONE) {
@@ -514,6 +522,8 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
   float bsdf_eta = 1.0f;
   float mis_pdf = 1.0f;
 
+  float bsdf_avg_roughness_squared = 0.0f;
+
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
   if (kernel_data.integrator.use_surface_guiding &&
       (kernel_data.kernel_features & KERNEL_FEATURE_PATH_GUIDING))
@@ -530,7 +540,8 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
                                                       &unguided_bsdf_pdf,
                                                       &bsdf_sampled_roughness,
                                                       &bsdf_eta,
-                                                      rng_state);
+                                                      rng_state,
+                                                      bsdf_avg_roughness_squared);
 
     if (bsdf_pdf == 0.0f || bsdf_eval_is_zero(&bsdf_eval)) {
       return LABEL_NONE;
@@ -549,7 +560,8 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
                                                &bsdf_wo,
                                                &bsdf_pdf,
                                                &bsdf_sampled_roughness,
-                                               &bsdf_eta);
+                                               &bsdf_eta,
+                                               bsdf_avg_roughness_squared);
 
     if (bsdf_pdf == 0.0f || bsdf_eval_is_zero(&bsdf_eval)) {
       return LABEL_NONE;
@@ -571,8 +583,11 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
     INTEGRATOR_STATE_WRITE(state, ray, tmax) = FLT_MAX;
 #ifdef __RAY_DIFFERENTIALS__
     INTEGRATOR_STATE_WRITE(state, ray, dP) = differential_make_compact(sd->dP);
-    INTEGRATOR_STATE_WRITE(state, ray, dD) = bsdf_widen_dD(INTEGRATOR_STATE(state, ray, dD),
-                                                           bsdf_sampled_roughness);
+
+    /* Widen ray differences, with same logic as NEE sampling to ensure
+     * both MIS strategies converge to the same result. */
+    const float dD = bsdf_widen_dD(INTEGRATOR_STATE(state, ray, dD), bsdf_avg_roughness_squared);
+    INTEGRATOR_STATE_WRITE(state, ray, dD) = dD;
 #endif
   }
 

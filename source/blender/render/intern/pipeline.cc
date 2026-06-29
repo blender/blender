@@ -1283,14 +1283,15 @@ static void do_render_compositor(Render *re)
         compositor::RenderContext compositor_render_context;
         compositor_render_context.is_animation_render = re->flag & R_ANIMATION;
         for (RenderView &rv : re->result->views) {
-          RE_compositor_execute(*re,
-                                *re->main,
-                                *re->pipeline_scene_eval,
-                                re->r,
-                                *ntree,
-                                rv.name,
-                                &compositor_render_context,
-                                needed_outputs);
+          RE_compositor_execute(render::CompositorInputData(*re,
+                                                            *re->main,
+                                                            *re->pipeline_scene_eval,
+                                                            re->r,
+                                                            *ntree,
+                                                            rv.name,
+                                                            &compositor_render_context,
+                                                            needed_outputs,
+                                                            false));
         }
         compositor_render_context.save_file_outputs(re->pipeline_scene_eval);
       }
@@ -1679,6 +1680,35 @@ static bool is_compositing_possible_on_gpu(Scene *scene, ReportList *reports)
   if (width > 8192 || height > 8192) {
     BKE_report(reports, RPT_ERROR, "Render size too large for GPU, use CPU compositor instead");
     return false;
+  }
+
+  return true;
+}
+
+bool RE_disable_save_output_allowed(const bool is_animation, Scene &scene, ReportList *reports)
+{
+  const bool save_output = (scene.r.mode & R_SAVE_OUTPUT) != 0;
+  const bool do_compositing = (scene.r.scemode & R_DOCOMP) != 0;
+  const bool do_sequencer = RE_seq_render_active(&scene, &scene.r);
+
+  if (is_animation && do_sequencer && !save_output) {
+    BKE_report(reports, RPT_ERROR, "Render output disabled in Output properties");
+    return false;
+  }
+
+  if (is_animation && !save_output && !do_compositing) {
+    BKE_report(reports, RPT_ERROR, "Render output and compositing disabled in Output properties");
+    return false;
+  }
+
+  if (is_animation && !save_output && do_compositing) {
+    if (!bke::compositor::node_tree_has_linked_file_output(scene.compositing_node_group)) {
+      BKE_report(reports,
+                 RPT_ERROR,
+                 "Render output disabled in Output properties and no active compositing File "
+                 "Output nodes");
+      return false;
+    }
   }
 
   return true;

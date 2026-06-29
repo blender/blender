@@ -756,17 +756,14 @@ bool BKE_fcurve_calc_range(const FCurve *fcu,
   return foundvert;
 }
 
-float *BKE_fcurves_calc_keyed_frames_ex(FCurve **fcurve_array,
-                                        int fcurve_array_len,
-                                        const float interval,
-                                        int *r_frames_len)
+Array<float> BKE_fcurves_calc_keyed_frames_ex(const Span<FCurve *> fcurve_array,
+                                              const float interval)
 {
   /* Use `1e-3f` as the smallest possible value since these are converted to integers
    * and we can be sure `MAXFRAME / 1e-3f < INT_MAX` as it's around half the size. */
   const double interval_db = max_ff(interval, 1e-3f);
   VectorSet<int> frames_unique;
-  for (int fcurve_index = 0; fcurve_index < fcurve_array_len; fcurve_index++) {
-    const FCurve *fcu = fcurve_array[fcurve_index];
+  for (FCurve *fcu : fcurve_array) {
     for (int i = 0; i < fcu->totvert; i++) {
       const BezTriple *bezt = &fcu->bezt[i];
       const double value = round(double(bezt->vec[1][0]) / interval_db);
@@ -776,23 +773,20 @@ float *BKE_fcurves_calc_keyed_frames_ex(FCurve **fcurve_array,
   }
 
   const size_t frames_len = frames_unique.size();
-  float *frames = MEM_new_array_uninitialized<float>(frames_len, __func__);
+  Array<float> frames(frames_len);
 
   for (const int i : frames_unique.index_range()) {
     const int value = frames_unique[i];
     frames[i] = double(value) * interval_db;
   }
 
-  qsort(frames, frames_len, sizeof(*frames), BLI_sortutil_cmp_float);
-  *r_frames_len = frames_len;
+  qsort(frames.data(), frames_len, sizeof(float), BLI_sortutil_cmp_float);
   return frames;
 }
 
-float *BKE_fcurves_calc_keyed_frames(FCurve **fcurve_array,
-                                     int fcurve_array_len,
-                                     int *r_frames_len)
+Array<float> BKE_fcurves_calc_keyed_frames(const Span<FCurve *> fcurve_array)
 {
-  return BKE_fcurves_calc_keyed_frames_ex(fcurve_array, fcurve_array_len, 1.0f, r_frames_len);
+  return BKE_fcurves_calc_keyed_frames_ex(fcurve_array, 1.0f);
 }
 
 /** \} */

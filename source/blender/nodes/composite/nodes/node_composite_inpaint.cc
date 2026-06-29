@@ -128,13 +128,14 @@ class InpaintOperation : public NodeOperation {
     parallel_for(domain.data_size, [&](const int2 texel) {
       /* Identify if any of the 8 neighbors around the center pixel are transparent. */
       bool has_transparent_neighbors = false;
+      constexpr float alpha_threshold = 1.0f - 1e-3f;
       for (int j = -1; j <= 1; j++) {
         for (int i = -1; i <= 1; i++) {
           int2 offset = int2(i, j);
 
           /* Exempt the center pixel. */
           if (offset != int2(0)) {
-            if (input.load_pixel_extended<Color>(texel + offset).a < 1.0f) {
+            if (input.load_pixel_extended<Color>(texel + offset).a < alpha_threshold) {
               has_transparent_neighbors = true;
               break;
             }
@@ -143,7 +144,7 @@ class InpaintOperation : public NodeOperation {
       }
 
       /* The pixels at the boundary are those that are opaque and have transparent neighbors. */
-      bool is_opaque = input.load_pixel<Color>(texel).a == 1.0f;
+      bool is_opaque = input.load_pixel<Color>(texel).a >= alpha_threshold;
       bool is_boundary_pixel = is_opaque && has_transparent_neighbors;
 
       /* Encode the boundary information in the format expected by the jump flooding algorithm. */

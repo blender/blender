@@ -16,6 +16,7 @@
 #include "util/path.h"
 #include "util/progress.h"
 #include "util/string.h"
+#include "util/system.h"
 #ifdef WITH_CYCLES_STANDALONE_GUI
 #  include "util/time.h"
 #  include "util/transform.h"
@@ -541,6 +542,7 @@ int main(const int argc, const char **argv)
 {
   log_init(nullptr);
   path_init();
+  system_max_open_files_ensure();
   options_parse(argc, argv);
 
 #ifdef WITH_CYCLES_STANDALONE_GUI

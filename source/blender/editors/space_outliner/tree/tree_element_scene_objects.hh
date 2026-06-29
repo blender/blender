@@ -23,6 +23,11 @@ class TreeElementSceneObjectsBase final : public AbstractTreeElement {
   TreeElementSceneObjectsBase(TreeElement &legacy_te, Scene &scene);
 
   void expand(SpaceOutliner & /*soops*/) const override;
+
+  std::optional<BIFIconID> get_icon() const override
+  {
+    return ICON_OUTLINER_OB_GROUP_INSTANCE;
+  }
 };
 
 }  // namespace ed::outliner

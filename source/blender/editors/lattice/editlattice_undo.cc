@@ -345,7 +345,7 @@ static void lattice_undosys_foreach_ID_ref(UndoStep *us_p,
 
 void ED_lattice_undosys_type(UndoType *ut)
 {
-  ut->name = "Edit Lattice";
+  ut->identifier = "EDIT_LATTICE";
   ut->poll = lattice_undosys_poll;
   ut->step_encode = lattice_undosys_step_encode;
   ut->step_decode = lattice_undosys_step_decode;

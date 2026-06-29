@@ -290,7 +290,7 @@ class USERPREF_PT_interface_translation(InterfacePanel, CenterAlignMixIn, Panel)
         col.prop(view, "use_translate_new_dataname", text="New Data")
 
         layout.prop(view, "date_format")
-        layout.prop(view, "time_format", text="Time")
+        layout.prop(view, "time_format", text="Time", text_ctxt=i18n_contexts.editor_preferences)
 
 
 class USERPREF_PT_interface_accessibility(InterfacePanel, CenterAlignMixIn, Panel):

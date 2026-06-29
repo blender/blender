@@ -11,7 +11,7 @@ from ..com.conversion import PBR_WATTS_TO_LUMENS
 from ..com.blender_default import LIGHTS
 from .cache import cached
 from . import light_spots as gltf2_blender_gather_light_spots
-from .material import search_node_tree
+from .material.search_node_tree import NodeTreeSearcher, NodeSocket, FilterByType
 
 
 @cached
@@ -50,7 +50,7 @@ def __gather_color(blender_lamp, export_settings) -> Optional[List[float]]:
 
     # Except for EEVEE, where the emission node is not taken into account (yet)
 
-    emission_node = __get_cycles_emission_node(blender_lamp)
+    emission_node = __get_cycles_emission_node(blender_lamp, export_settings)
 
     if bpy.context.scene.render.engine == 'BLENDER_EEVEE':
         emission_node = None  # EEVEE nodes are not taken into account (yet)
@@ -94,7 +94,7 @@ def __gather_color(blender_lamp, export_settings) -> Optional[List[float]]:
 
 
 def __gather_intensity(blender_lamp, blender_lamp_world_matrix, export_settings) -> Optional[float]:
-    emission_node = __get_cycles_emission_node(blender_lamp)
+    emission_node = __get_cycles_emission_node(blender_lamp, export_settings)
 
     if bpy.context.scene.render.engine == 'BLENDER_EEVEE':
         emission_node = None  # EEVEE nodes are not taken into account (yet)
@@ -102,9 +102,10 @@ def __gather_intensity(blender_lamp, blender_lamp_world_matrix, export_settings)
     if emission_node is not None:
         if blender_lamp.type != 'SUN':
             # When using cycles, the strength should be influenced by a LightFalloff node
-            result = search_node_tree.from_socket(
-                search_node_tree.NodeSocket(emission_node.inputs.get("Strength"), [blender_lamp.node_tree]),
-                search_node_tree.FilterByType(bpy.types.ShaderNodeLightFalloff)
+            result = NodeTreeSearcher.from_socket(
+                NodeSocket(emission_node.inputs.get("Strength"), [blender_lamp.node_tree]),
+                FilterByType(bpy.types.ShaderNodeLightFalloff),
+                export_settings
             )
             if result:
                 quadratic_falloff_node = result[0].shader_node
@@ -211,20 +212,21 @@ def __gather_extensions(blender_lamp, export_settings) -> Optional[dict]:
 
 def __gather_extras(blender_lamp, export_settings) -> Optional[Any]:
     if export_settings['gltf_extras']:
-        return generate_extras(blender_lamp)
+        return generate_extras(blender_lamp, 'lights', export_settings)
     return None
 
 
-def __get_cycles_emission_node(blender_lamp) -> Optional[bpy.types.ShaderNodeEmission]:
+def __get_cycles_emission_node(blender_lamp, export_settings) -> Optional[bpy.types.ShaderNodeEmission]:
     if blender_lamp.node_tree:
         for currentNode in blender_lamp.node_tree.nodes:
             is_shadernode_output = isinstance(currentNode, bpy.types.ShaderNodeOutputLight)
             if is_shadernode_output:
                 if not currentNode.is_active_output:
                     continue
-                result = search_node_tree.from_socket(
-                    search_node_tree.NodeSocket(currentNode.inputs.get("Surface"), [blender_lamp.node_tree]),
-                    search_node_tree.FilterByType(bpy.types.ShaderNodeEmission)
+                result = NodeTreeSearcher.from_socket(
+                    NodeSocket(currentNode.inputs.get("Surface"), [blender_lamp.node_tree]),
+                    FilterByType(bpy.types.ShaderNodeEmission),
+                    export_settings
                 )
                 if not result:
                     continue

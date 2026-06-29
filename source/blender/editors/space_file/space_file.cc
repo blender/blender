@@ -563,7 +563,8 @@ static void file_main_region_message_subscribe(const wmRegionMessageSubscribePar
         if (blender::asset_system::is_or_contains_remote_libraries(
                 asset_params->asset_library_ref))
         {
-          ED_fileselect_clear(CTX_wm_manager(C), sfile);
+          /* Calls #ED_fileselect_clear() for all open asset browsers. */
+          ed::asset::list::clear(&asset_params->asset_library_ref, C);
         }
       }
     };

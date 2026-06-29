@@ -57,6 +57,11 @@ bke::CurvesGeometry fit_poly_to_bezier_curves(const bke::CurvesGeometry &src_cur
   curve_selection.foreach_index(
       [&](const int64_t curve_i, const int64_t pos) {
         const IndexRange points = src_points_by_curve[curve_i];
+        if (points.size() < 2) {
+          dst_curve_sizes[curve_i] = points.size();
+          dst_curve_types[curve_i] = CURVE_TYPE_POLY;
+          return;
+        }
         const Span<float3> curve_positions = src_positions.slice(points);
         const bool is_cyclic = src_cyclic[curve_i];
         const float epsilon = thresholds[curve_i];

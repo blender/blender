@@ -809,7 +809,7 @@ ListDataSource::ListDataSource(nodes::GListPtr list) : list_(std::move(list)) {}
 void ListDataSource::foreach_default_column_ids(
     FunctionRef<void(const SpreadsheetColumnID &, bool is_extra)> fn) const
 {
-  if (list_->size() == 0) {
+  if (!list_ || list_->size() == 0) {
     return;
   }
 
@@ -822,6 +822,9 @@ void ListDataSource::foreach_default_column_ids(
 std::unique_ptr<ColumnValues> ListDataSource::get_column_values(
     const SpreadsheetColumnID &column_id) const
 {
+  if (!list_) {
+    return {};
+  }
   if (STREQ(column_id.name, "Value")) {
     return std::make_unique<ColumnValues>(IFACE_("Value"), list_->varray());
   }
@@ -830,6 +833,9 @@ std::unique_ptr<ColumnValues> ListDataSource::get_column_values(
 
 int ListDataSource::tot_rows() const
 {
+  if (!list_) {
+    return 0;
+  }
   return list_->size();
 }
 

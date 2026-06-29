@@ -188,14 +188,14 @@ TEST(math_geom_hh, DistSquaredToPlane)
   const float4 unit_plane(0, 0, 1, 0);
   const float3 pt(0, 0, 2);
   EXPECT_NEAR(dist_squared_to_plane_v3(&pt.x, reinterpret_cast<const float *>(&unit_plane)),
-              dist_squared_to_plane(unit_plane, pt),
+              dist_squared_to_plane(pt, unit_plane),
               1e-6f);
-  EXPECT_NEAR(4.0f, dist_squared_to_plane(unit_plane, pt), 1e-6f);
+  EXPECT_NEAR(4.0f, dist_squared_to_plane(pt, unit_plane), 1e-6f);
 
   /* Non-unit normal (0, 0, 2); same geometric plane, same result. */
   const float4 scaled_plane(0, 0, 2, 0);
   EXPECT_NEAR(dist_squared_to_plane_v3(&pt.x, reinterpret_cast<const float *>(&scaled_plane)),
-              dist_squared_to_plane(scaled_plane, pt),
+              dist_squared_to_plane(pt, scaled_plane),
               1e-6f);
 }
 

@@ -23,6 +23,11 @@ class TreeElementDriverBase final : public AbstractTreeElement {
   TreeElementDriverBase(TreeElement &legacy_te, AnimData &anim_data);
 
   void expand(SpaceOutliner &space_outliner) const override;
+
+  std::optional<BIFIconID> get_icon() const override
+  {
+    return ICON_DRIVER;
+  }
 };
 
 }  // namespace ed::outliner

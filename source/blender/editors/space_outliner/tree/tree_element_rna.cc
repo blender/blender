@@ -121,6 +121,21 @@ void TreeElementRNAStruct::expand(SpaceOutliner &space_outliner) const
   }
 }
 
+std::optional<BIFIconID> TreeElementRNAStruct::get_icon() const
+{
+  if (RNA_struct_is_ID(rna_ptr_.type)) {
+    ID *id = static_cast<ID *>(rna_ptr_.data);
+    if (id && GS(id->name) == ID_LI && id_cast<Library *>(id)->flag & LIBRARY_FLAG_IS_ARCHIVE) {
+      return ICON_PACKAGE;
+    }
+    else {
+      return RNA_struct_ui_icon(rna_ptr_.type);
+    }
+  }
+  else {
+    return RNA_struct_ui_icon(rna_ptr_.type);
+  }
+}
 /* -------------------------------------------------------------------- */
 /* RNA Property */
 

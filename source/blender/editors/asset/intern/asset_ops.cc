@@ -1795,6 +1795,15 @@ static wmOperatorStatus asset_download_exec(bContext *C, wmOperator *op)
   const asset_system::AssetRepresentation *asset =
       operator_asset_reference_props_get_asset_from_all_library(*C, *op->ptr, op->reports);
 
+  if (!asset) {
+    const std::string asset_relpath = RNA_string_get(op->ptr, "relative_asset_identifier");
+    BKE_reportf(op->reports,
+                RPT_ERROR,
+                "Asset could not be found (relative identifier: '%s')",
+                asset_relpath.c_str());
+    return OPERATOR_CANCELLED;
+  }
+
   if (!asset->needs_download()) {
     BKE_reportf(
         op->reports, RPT_ERROR, "Asset '%s' doesn't need downloading", asset->get_name().c_str());

@@ -17,38 +17,9 @@
 
 #include "DNA_session_uid_types.h"
 
-#include "BLI_hash.hh"
-
 namespace blender {
 
 /** Generate new UID which is unique throughout the Blender session. */
 SessionUID BLI_session_uid_generate();
-
-/** Check whether the UID is properly generated. */
-bool BLI_session_uid_is_generated(const SessionUID *uid);
-
-/** Check whether two UIDs are identical. */
-bool BLI_session_uid_is_equal(const SessionUID *lhs, const SessionUID *rhs);
-
-uint64_t BLI_session_uid_hash_uint64(const SessionUID *uid);
-
-/* Utility functions to make it possible to create set/map with UID as a key. */
-
-uint BLI_session_uid_ghash_hash(const void *uid_v);
-bool BLI_session_uid_ghash_compare(const void *lhs_v, const void *rhs_v);
-
-inline bool operator==(const SessionUID &lhs, const SessionUID &rhs)
-{
-  return BLI_session_uid_is_equal(&lhs, &rhs);
-}
-
-template<typename T> struct DefaultHash;
-
-template<> struct DefaultHash<SessionUID> {
-  uint64_t operator()(const SessionUID &value) const
-  {
-    return BLI_session_uid_hash_uint64(&value);
-  }
-};
 
 }  // namespace blender

@@ -456,11 +456,7 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
       return;
     }
     std::optional<FoundNestedNodeID> found_id = find_nested_node_id(user_data, node_.identifier);
-    if (!found_id) {
-      this->set_default_outputs(params);
-      return;
-    }
-    if (found_id->is_in_loop || found_id->is_in_closure) {
+    if (!found_id || found_id->is_in_loop || found_id->is_in_closure) {
       if (eval_log::NodeTreeLogger *tree_logger = local_user_data.try_get_tree_logger(user_data)) {
         const StringRefNull message = TIP_("Simulation must not be in a loop or closure");
         tree_logger->node_warnings.append(*tree_logger->allocator,
@@ -530,11 +526,12 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
   {
     Vector<SocketValueVariant> output_values = get_output_values_from_bake_values(
         simulation_items_, compute_context, data_block_map, std::move(prev_bake_values));
-
     Vector<SocketValueVariant> next_values = get_output_values_from_bake_values(
         simulation_items_, compute_context, data_block_map, std::move(next_bake_values));
-    for (const int i : simulation_items_.index_range()) {
-      geometry::mix_socket_values(output_values[i], next_values[i], mix_factor);
+    if (mix_factor != 0.0f) {
+      for (const int i : simulation_items_.index_range()) {
+        geometry::mix_socket_values(output_values[i], next_values[i], mix_factor);
+      }
     }
     for (const int i : simulation_items_.index_range()) {
       params.set_output(i, std::move(output_values[i]));

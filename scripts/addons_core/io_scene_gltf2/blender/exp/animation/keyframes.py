@@ -44,6 +44,9 @@ class Keyframe:
         self.__in_tangent = None
         self.__out_tangent = None
 
+    def set_id_type(self, id_type):
+        self.id_type = id_type
+
     def get_target_len(self):
         length = {
             "delta_location": 3,
@@ -56,7 +59,13 @@ class Keyframe:
             "rotation_quaternion": 4,
             "scale": 3,
             "value": self.__length_morph
-        }.get(self.target, 1)
+        }.get(self.target, None)
+
+        if length is None:
+            if self.id_type in ["MATERIAL", "NODETREE", "LIGHT"]:
+                return None
+            else:
+                length = 1
 
         return length
 
@@ -65,7 +74,10 @@ class Keyframe:
         # contain a complete Vector/ Quaternion --> use the array_index value of the keyframe to set components in such
         # structures
         # For SK, must contains all SK values
-        result = [0.0] * self.get_target_len()
+        len_ = self.get_target_len()
+        if len_ is None:
+            len_ = len(value)
+        result = [0.0] * len_
         for i, v in zip(self.__indices, value):
             result[i] = v
         return result

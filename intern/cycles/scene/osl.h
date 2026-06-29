@@ -198,7 +198,7 @@ class OSLCompiler {
 
   bool background;
   Scene *scene;
-  Progress &progress;
+  Progress *progress = nullptr;
   ShaderGraph *current_graph = nullptr;
 
  private:

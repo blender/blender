@@ -23,6 +23,11 @@ class TreeElementDeformGroupBase final : public AbstractTreeElement {
  public:
   TreeElementDeformGroupBase(TreeElement &legacy_te, Object &object);
   void expand(SpaceOutliner & /*soops*/) const override;
+
+  std::optional<BIFIconID> get_icon() const override
+  {
+    return ICON_GROUP_VERTEX;
+  }
 };
 
 class TreeElementDeformGroup final : public AbstractTreeElement {
@@ -32,6 +37,11 @@ class TreeElementDeformGroup final : public AbstractTreeElement {
 
  public:
   TreeElementDeformGroup(TreeElement &legacy_te, Object &object, bDeformGroup &defgroup);
+
+  std::optional<BIFIconID> get_icon() const override
+  {
+    return ICON_GROUP_VERTEX;
+  }
 };
 
 }  // namespace ed::outliner

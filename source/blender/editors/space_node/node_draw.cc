@@ -2018,6 +2018,7 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, ui::Block &blo
         0.0f,
         0.0f,
         panel_decl.description.c_str());
+    button_flag_disable(toggle_action_but, ui::BUT_UNDO);
     button_func_pushed_state_set(toggle_action_but, [&panel_state](const ui::Button &) {
       return panel_state.is_collapsed();
     });

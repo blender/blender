@@ -16,6 +16,10 @@ class TreeElementLinkedObject final : public AbstractTreeElement {
 
  public:
   TreeElementLinkedObject(TreeElement &legacy_te, ID &id);
+  std::optional<BIFIconID> get_icon() const override
+  {
+    return ICON_OBJECT_DATA;
+  }
 };
 
 }  // namespace blender::ed::outliner

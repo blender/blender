@@ -185,7 +185,7 @@ def __check_iridescence(json, export_settings):
                         animation_pointer_deleted = True
                     else:
                         channels_to_keep.append(channel)
-                        samplers_to_keep.append(anim['samplers'][channel_idx])
+                        samplers_to_keep.append(anim['samplers'][channel['sampler']])
                 anim['channels'] = channels_to_keep
                 anim['samplers'] = samplers_to_keep
             # If no more channel in this animation, we can remove the entire animation
@@ -528,7 +528,6 @@ def __should_include_json_value(key, value, export_settings):
             "KHR_materials_ior",
             "KHR_materials_iridescence",
             "KHR_materials_sheen",
-            "KHR_materials_specular",
             "KHR_materials_transmission",
             "KHR_materials_volume",
             "KHR_lights_punctual",

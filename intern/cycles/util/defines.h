@@ -118,9 +118,6 @@
 #  define util_assert(statement)
 #endif
 
-#define CONCAT_HELPER(a, ...) a##__VA_ARGS__
-#define CONCAT(a, ...) CONCAT_HELPER(a, __VA_ARGS__)
-
 #if (defined __KERNEL_METAL__) && (__METAL_VERSION__ >= 320)
 #  define __METAL_PRINTF__
 #endif

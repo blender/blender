@@ -6,12 +6,15 @@
 
 #include <pxr/usd/usdGeom/basisCurves.h>
 #include <pxr/usd/usdGeom/tokens.h>
+#include <pxr/usd/usdShade/materialBindingAPI.h>
 
+#include "BKE_material.hh"
 #include "BKE_particle.h"
 
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector_types.hh"
 
+#include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 
@@ -83,7 +86,33 @@ void USDHairWriter::do_write(HierarchyContext &context)
     write_id_properties(prim, psys->part->id, time);
   }
 
+  assign_material(context, curves, psys->part->omat);
+
   this->author_extent(curves, time);
+}
+
+void USDHairWriter::assign_material(const HierarchyContext &context,
+                                    const pxr::UsdGeomBasisCurves &curves,
+                                    const int material_slot)
+{
+  if (!usd_export_context_.export_params.export_materials) {
+    return;
+  }
+
+  Material *material = BKE_object_material_get_eval(context.object, material_slot);
+  if (material == nullptr) {
+    return;
+  }
+
+  pxr::UsdShadeMaterial usd_material = ensure_usd_material(context, material);
+  if (!usd_material) {
+    return;
+  }
+
+  auto curves_prim = curves.GetPrim();
+  pxr::UsdShadeMaterialBindingAPI binding(curves_prim);
+  binding.Bind(usd_material);
+  pxr::UsdShadeMaterialBindingAPI::Apply(curves_prim);
 }
 
 bool USDHairWriter::check_is_animated(const HierarchyContext & /*context*/) const

@@ -464,7 +464,10 @@ bool BKE_attribute_remove(AttributeOwner &owner, const StringRef name, ReportLis
     return false;
   }
   if (BKE_attribute_required(owner, name)) {
-    BKE_report(reports, RPT_ERROR, "Attribute is required and cannot be removed");
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Attribute '%s' is required and cannot be removed",
+                std::string(name).c_str());
     return false;
   }
 
@@ -725,6 +728,7 @@ std::optional<StringRefNull> BKE_attributes_active_name_get(AttributeOwner &owne
 
 void BKE_attributes_active_set(AttributeOwner &owner, const StringRef name)
 {
+  BLI_assert(bke::allow_procedural_attribute_access(name));
   if (owner.type() == AttributeOwnerType::Mesh) {
     const Mesh *mesh = owner.get_mesh();
     if (mesh->runtime->edit_mesh) {
@@ -764,6 +768,56 @@ int *BKE_attributes_active_index_p(AttributeOwner &owner)
     }
   }
   return nullptr;
+}
+
+void BKE_attributes_active_index_validate(AttributeOwner &owner)
+{
+  int *active_index = BKE_attributes_active_index_p(owner);
+  if (*active_index < 0) {
+    /* Mark none as active. */
+    *active_index = -1;
+    return;
+  }
+
+  const int attributes_num = BKE_attributes_length(owner, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL);
+  if (attributes_num == 0) {
+    /* Mark none as active. */
+    *active_index = -1;
+    return;
+  }
+
+  /* First try downwards. */
+  int index_check = *active_index;
+  while (index_check >= 0) {
+    if (index_check < attributes_num) {
+      std::optional<StringRef> attribute_name_check = BKE_attribute_from_index(
+          owner, index_check, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL);
+      if (attribute_name_check.has_value() &&
+          bke::allow_procedural_attribute_access(attribute_name_check.value()))
+      {
+        *active_index = index_check;
+        return;
+      }
+    }
+    index_check--;
+  }
+
+  /* Still not found? Try upwards. */
+  index_check = *active_index + 1;
+  while (index_check < attributes_num) {
+    std::optional<StringRef> attribute_name_check = BKE_attribute_from_index(
+        owner, index_check, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL);
+    if (attribute_name_check.has_value() &&
+        bke::allow_procedural_attribute_access(attribute_name_check.value()))
+    {
+      *active_index = index_check;
+      return;
+    }
+    index_check++;
+  }
+
+  /* Still not found? Mark none as active. */
+  *active_index = -1;
 }
 
 std::optional<StringRef> BKE_attribute_from_index(AttributeOwner &owner,

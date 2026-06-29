@@ -48,6 +48,8 @@ class TreeElementRNAStruct : public TreeElementRNACommon {
  public:
   TreeElementRNAStruct(TreeElement &legacy_te, PointerRNA &rna_ptr);
   void expand(SpaceOutliner &space_outliner) const override;
+
+  std::optional<BIFIconID> get_icon() const override;
 };
 
 /* -------------------------------------------------------------------- */

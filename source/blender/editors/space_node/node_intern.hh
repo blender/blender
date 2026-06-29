@@ -97,10 +97,10 @@ struct NodeAndSocket {
     return in_out == SOCK_OUT;
   }
 
-  const bNodeSocket &find_socket_in_node(const bNode &other_node) const;
-  bNodeSocket &find_socket_in_node(bNode &other_node) const;
+  const bNodeSocket *find_socket_in_node(const bNode &other_node) const;
+  bNodeSocket *find_socket_in_node(bNode &other_node) const;
 
-  const bNodeSocket &find_socket() const
+  const bNodeSocket *find_socket() const
   {
     return find_socket_in_node(this->node);
   }
@@ -174,10 +174,10 @@ struct MutableNodeAndSocket {
     return in_out == SOCK_OUT;
   }
 
-  const bNodeSocket &find_socket_in_node(const bNode &other_node) const;
-  bNodeSocket &find_socket_in_node(bNode &other_node) const;
+  const bNodeSocket *find_socket_in_node(const bNode &other_node) const;
+  bNodeSocket *find_socket_in_node(bNode &other_node) const;
 
-  bNodeSocket &find_socket() const
+  bNodeSocket *find_socket() const
   {
     return find_socket_in_node(this->node);
   }
@@ -266,6 +266,20 @@ struct bNodeLinkDrag {
   ui::View2DEdgePanData pan_data;
 };
 
+struct NodeInsertOfsData {
+  bNodeTree *ntree = nullptr;
+  /** Inserted node. */
+  bNode *insert = nullptr;
+  /** Previous/next node in the chain. */
+  bNode *prev = nullptr;
+  bNode *next = nullptr;
+
+  wmTimer *anim_timer = nullptr;
+
+  /** Offset to apply to node chain. */
+  float offset_x = 0.0f;
+};
+
 struct SpaceNode_Runtime {
   float aspect;
 
@@ -279,7 +293,7 @@ struct SpaceNode_Runtime {
 
   /* XXX hack for translate_attach op-macros to pass data from transform op to insert_offset op */
   /** Temporary data for node insert offset (in UI called Auto-offset). */
-  NodeInsertOfsData *iofsd;
+  std::unique_ptr<NodeInsertOfsData> iofsd;
 
   /**
    * Use this to store data for the displayed node tree. It has an entry for every distinct

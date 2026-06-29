@@ -58,8 +58,15 @@ static void strip_get_thumb_image_dimensions(const Strip *strip,
                                              float *r_image_width,
                                              float *r_image_height)
 {
-  float image_width = strip->data->stripdata->orig_width;
-  float image_height = strip->data->stripdata->orig_height;
+  float image_width = seq::THUMB_SIZE, image_height = seq::THUMB_SIZE;
+  if (ELEM(strip->type, STRIP_TYPE_IMAGE, STRIP_TYPE_MOVIE)) {
+    image_width = strip->data->stripdata->orig_width;
+    image_height = strip->data->stripdata->orig_height;
+  }
+  else if (strip->type == STRIP_TYPE_MOVIECLIP && strip->clip) {
+    image_width = strip->clip->lastsize[0];
+    image_height = strip->clip->lastsize[1];
+  }
 
   /* Fix the dimensions to be max SEQ_THUMB_SIZE for x or y. */
   float aspect_ratio = image_width / image_height;

@@ -318,8 +318,7 @@ void emit_hair_for_object(PopulateContext &ctx, Object *object, EmittedObject &e
     if (hair.curve_vertex_counts.empty()) {
       continue;
     }
-    /* TODO: Using only first material. Add support for multi-material. */
-    const CurvesMaterial mat = resolve_curves_material(ctx, object, 1);
+    const CurvesMaterial mat = resolve_curves_material(ctx, object, psys.part->omat);
     if (mat.material) {
       emitted.materials.append_non_duplicates(mat.material);
     }
@@ -351,7 +350,7 @@ void emit_hair_proto(PopulateContext &ctx, Object *source)
     if (hair.curve_vertex_counts.empty()) {
       continue;
     }
-    const CurvesMaterial mat = resolve_curves_material(ctx, source, 1);
+    const CurvesMaterial mat = resolve_curves_material(ctx, source, psys.part->omat);
 
     char ps_name[32];
     SNPRINTF(ps_name, "PS_%p", &psys);

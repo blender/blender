@@ -553,6 +553,10 @@ int main(int argc,
   CCL_implicit_sharing_init();
 #endif
 
+  /* Set max open files to better handle production files that may use many
+   * open geometry or texture cache file handles. After logging since it's used .*/
+  BLI_system_max_open_files_ensure();
+
   /* Must be initialized after #BKE_appdir_init to account for color-management paths. */
   IMB_init();
   /* Keep after #ARG_PASS_SETTINGS since debug flags are checked. */

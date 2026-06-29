@@ -25,6 +25,33 @@ struct SessionUID {
    * is used directly it will not be easy to find all places where partial access is used.
    */
   uint64_t uid_ = 0;
+
+#ifdef __cplusplus
+  friend bool operator==(const SessionUID &a, const SessionUID &b)
+  {
+    return a.uid_ == b.uid_;
+  }
+  uint64_t hash() const
+  {
+    return uid_;
+  }
+
+  /** Check whether the UID is properly generated. */
+  bool is_generated() const;
+#endif
 };
+
+#ifdef __cplusplus
+namespace detail {
+/* Special value which indicates the UID has not been assigned yet. */
+constexpr SessionUID SESSION_UID_NONE = {0};
+}  // namespace detail
+
+inline bool SessionUID::is_generated() const
+{
+  return *this != blender::detail::SESSION_UID_NONE;
+}
+
+#endif
 
 }  // namespace blender
