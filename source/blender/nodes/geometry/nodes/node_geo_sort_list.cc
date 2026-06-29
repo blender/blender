@@ -146,7 +146,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
   else if (selection_variant.is_list()) {
     auto fn = fn::FieldOperation::from(
-        std::make_shared<SampleIndexFunction>(weights_variant.extract<GListPtr>()),
+        std::make_shared<SampleIndexFunction>(selection_variant.extract<GListPtr>()),
         {fn::IndexFieldInput::get_field()});
     field_evaluator.set_selection(fn::Field<bool>(std::move(fn)));
   }
