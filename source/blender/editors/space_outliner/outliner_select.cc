@@ -207,7 +207,10 @@ void outliner_item_mode_toggle(bContext *C,
       do_outliner_item_mode_toggle_generic(C, tvc, base);
     }
     else if (tvc.ob_edit && OB_TYPE_SUPPORT_EDITMODE(ob->type)) {
-      do_outliner_item_editmode_toggle(C, tvc.scene, base);
+      /* Grease Pencil does not support multi-object editing yet. */
+      if (ob->type != OB_GREASE_PENCIL) {
+        do_outliner_item_editmode_toggle(C, tvc.scene, base);
+      }
     }
     else if (tvc.ob_pose && ob->type == OB_ARMATURE) {
       do_outliner_item_posemode_toggle(C, tvc.scene, base);
