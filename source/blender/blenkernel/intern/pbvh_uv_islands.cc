@@ -9,13 +9,13 @@
 #include "BLI_math_vector_c.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_ordered_edge.hh"
-#include "BLI_rect.hh"
 #include "BLI_task.hh"
 
 #include "BKE_mesh_mapping.hh"
 
 #include "PRF_profile.hh"
 
+#include "pbvh_pixels_rasterize.hh"
 #include "pbvh_uv_islands.hh"
 
 #include <atomic>
@@ -92,16 +92,6 @@ static int get_uv_loop(const MeshData &mesh_data, const int3 &tri, const int ver
   }
   BLI_assert_unreachable();
   return tri[0];
-}
-
-static rctf primitive_uv_bounds(const int3 &tri, const Span<float2> uv_map)
-{
-  rctf result;
-  BLI_rctf_init_minmax(&result);
-  for (const int loop : {tri[0], tri[1], tri[2]}) {
-    BLI_rctf_do_minmax_v(&result, uv_map[loop]);
-  }
-  return result;
 }
 
 /** \} */
@@ -1416,38 +1406,43 @@ static void add_uv_island(const MeshData &mesh_data,
                           int16_t island_index)
 {
   PRF_scope(ProfileCategory::Editor);
+  const float resolution_x = float(tile.mask_resolution.x);
+  const float resolution_y = float(tile.mask_resolution.y);
   for (const UVPrimitive &uv_primitive : uv_island.uv_primitives) {
     const int3 &tri = mesh_data.corner_tris[uv_primitive.primitive_i];
 
-    rctf uv_bounds = primitive_uv_bounds(tri, mesh_data.uv_map);
-    rcti buffer_bounds;
-    buffer_bounds.xmin = max_ii(
-        floor((uv_bounds.xmin - tile.udim_offset.x) * tile.mask_resolution.x), 0);
-    buffer_bounds.xmax = min_ii(
-        ceil((uv_bounds.xmax - tile.udim_offset.x) * tile.mask_resolution.x),
-        tile.mask_resolution.x - 1);
-    buffer_bounds.ymin = max_ii(
-        floor((uv_bounds.ymin - tile.udim_offset.y) * tile.mask_resolution.y), 0);
-    buffer_bounds.ymax = min_ii(
-        ceil((uv_bounds.ymax - tile.udim_offset.y) * tile.mask_resolution.y),
-        tile.mask_resolution.y - 1);
+    /* Transform UV coordinates to pixel space in the tile. */
+    const float2 uv0 = mesh_data.uv_map[tri[0]];
+    const float2 uv1 = mesh_data.uv_map[tri[1]];
+    const float2 uv2 = mesh_data.uv_map[tri[2]];
+    const float2 resolution = {resolution_x, resolution_y};
+    const float2 p0 = (uv0 - tile.udim_offset) * resolution;
+    const float2 p1 = (uv1 - tile.udim_offset) * resolution;
+    const float2 p2 = (uv2 - tile.udim_offset) * resolution;
 
-    for (int y = buffer_bounds.ymin; y < buffer_bounds.ymax + 1; y++) {
-      for (int x = buffer_bounds.xmin; x < buffer_bounds.xmax + 1; x++) {
-        float2 uv(float(x) / tile.mask_resolution.x, float(y) / tile.mask_resolution.y);
-        float3 weights;
-        barycentric_weights_v2(mesh_data.uv_map[tri[0]],
-                               mesh_data.uv_map[tri[1]],
-                               mesh_data.uv_map[tri[2]],
-                               uv + tile.udim_offset,
-                               weights);
-        if (!barycentric_inside_triangle_v2(weights)) {
-          continue;
+    /* Compute bounds within tile. */
+    const float2 pmin = math::min(math::min(p0, p1), p2);
+    const float2 pmax = math::max(math::max(p0, p1), p2);
+    const int xmin = max_ii(int(floorf(pmin.x)), 0);
+    const int xmax = min_ii(int(ceilf(pmax.x)), tile.mask_resolution.x - 1);
+    const int ymin = max_ii(int(floorf(pmin.y)), 0);
+    const int ymax = min_ii(int(ceilf(pmax.y)), tile.mask_resolution.y - 1);
+    if (xmin > xmax || ymin > ymax) {
+      continue;
+    }
+
+    /* Rasterize. */
+    const TriRasterizer rasterizer(p0, p1, p2);
+    float3 row_edge_vals = rasterizer.edge_values(xmin, ymin);
+    for (int y = ymin; y <= ymax; y++) {
+      float3 edge_vals = row_edge_vals;
+      for (int x = xmin; x <= xmax; x++) {
+        if (rasterizer.inside(edge_vals)) {
+          tile.mask[int64_t(tile.mask_resolution.x) * y + x] = island_index;
         }
-
-        uint64_t offset = tile.mask_resolution.x * y + x;
-        tile.mask[offset] = island_index;
+        edge_vals += rasterizer.dx_step;
       }
+      row_edge_vals += rasterizer.dy_step;
     }
   }
 }
