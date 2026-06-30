@@ -1337,18 +1337,21 @@ UVIslands::UVIslands(const MeshData &mesh_data)
 void UVIslands::extract_borders()
 {
   PRF_scope(ProfileCategory::Editor);
-  for (UVIsland &island : islands) {
-    island.extract_borders();
-  }
+  threading::parallel_for(islands.index_range(), 1, [&](const IndexRange range) {
+    for (const int64_t i : range) {
+      islands[i].extract_borders();
+    }
+  });
 }
 
 void UVIslands::extend_borders(const MeshData &mesh_data, const UVIslandsMask &islands_mask)
 {
   PRF_scope(ProfileCategory::Editor);
-  ushort index = 0;
-  for (UVIsland &island : islands) {
-    island.extend_border(mesh_data, islands_mask, index++);
-  }
+  threading::parallel_for(islands.index_range(), 1, [&](const IndexRange range) {
+    for (const int64_t i : range) {
+      islands[i].extend_border(mesh_data, islands_mask, short(i));
+    }
+  });
 }
 
 /** \} */
