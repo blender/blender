@@ -17,6 +17,9 @@
 #include "DNA_listBase.h"
 #include "DNA_space_enums.h"
 #include "DNA_space_types.h"
+
+#include "IMB_thumbs.hh"
+
 struct BlendHandle;
 namespace blender {
 
@@ -143,6 +146,7 @@ struct FileListEntryCache {
   /* Previews handling. */
   TaskPool *previews_pool = nullptr;
   ThreadQueue *previews_done = nullptr;
+  ThumbCancellationToken previews_cancel_token;
   /** Counter for previews that are not fully loaded and ready to display yet. So includes all
    * previews either in `previews_pool` or `previews_done`. #filelist_cache_previews_update() makes
    * previews in `preview_done` ready for display, so the counter is decremented there. */

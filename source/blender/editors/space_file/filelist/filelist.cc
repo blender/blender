@@ -547,6 +547,10 @@ static int filelist_intern_free_main_files(FileList *filelist)
 static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdata)
 {
   FileListEntryCache *cache = static_cast<FileListEntryCache *>(BLI_task_pool_user_data(pool));
+  if (cache->previews_cancel_token.is_cancelled()) {
+    return;
+  }
+
   FileListEntryPreviewTaskData *preview_taskdata = static_cast<FileListEntryPreviewTaskData *>(
       taskdata);
   FileListEntryPreview *preview = preview_taskdata->preview;
@@ -583,8 +587,10 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
   IMB_thumb_path_lock(preview->filepath);
   /* Always generate biggest preview size for now, it's simpler and avoids having to re-generate
    * in case user switch to a bigger preview size. */
-  ImBuf *imbuf = IMB_thumb_manage(preview->filepath, THB_LARGE, source);
+  ImBuf *imbuf = IMB_thumb_manage(
+      preview->filepath, THB_LARGE, source, &cache->previews_cancel_token);
   IMB_thumb_path_unlock(preview->filepath);
+
   if (imbuf) {
     preview->icon_id = BKE_icon_imbuf_create(imbuf);
   }
@@ -624,7 +630,8 @@ static void filelist_cache_preview_ensure_running(FileListEntryCache *cache)
 static void filelist_cache_previews_clear(FileListEntryCache *cache)
 {
   if (cache->previews_pool) {
-    BLI_task_pool_cancel(cache->previews_pool);
+    cache->previews_cancel_token.cancel();
+    BLI_task_pool_work_and_wait(cache->previews_pool);
 
     for (FileDirEntry &entry : cache->cached_entries) {
       entry.flags &= ~FILE_ENTRY_PREVIEW_LOADING;
@@ -643,6 +650,7 @@ static void filelist_cache_previews_clear(FileListEntryCache *cache)
       MEM_delete(preview);
     }
     cache->previews_todo_count = 0;
+    cache->previews_cancel_token.reset();
   }
 }
 
