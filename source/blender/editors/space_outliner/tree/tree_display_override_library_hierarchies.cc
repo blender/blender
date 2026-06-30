@@ -235,14 +235,11 @@ void OverrideIDHierarchyBuilder::build_hierarchy_for_ID_recursive(const ID &pare
       return FOREACH_BREAK;
     }
 
-    TreeElement *new_te = AbstractTreeDisplay::add_element(&space_outliner_,
-                                                           &te_to_expand.subtree,
-                                                           &id,
-                                                           nullptr,
-                                                           &te_to_expand,
-                                                           TSE_SOME_ID,
-                                                           0,
-                                                           false);
+    /* Shape Key isn't treated as ID in outliner, see #TreeElementShapeKeyBase. */
+    const eTreeStoreElemType type = GS(id.name) == ID_KE ? TSE_SHAPE_KEY_BASE : TSE_SOME_ID;
+
+    TreeElement *new_te = AbstractTreeDisplay::add_element(
+        &space_outliner_, &te_to_expand.subtree, &id, nullptr, &te_to_expand, type, 0, false);
 
     build_data.sibling_ids.add(&id);
 
