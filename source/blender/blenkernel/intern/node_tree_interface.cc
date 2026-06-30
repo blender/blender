@@ -895,7 +895,11 @@ using namespace blender::bke::node_interface;
 
 bke::bNodeSocketType *bNodeTreeInterfaceSocket::socket_typeinfo() const
 {
-  return bke::node_socket_type_find(socket_type);
+  bke::bNodeSocketType *value = bke::node_socket_type_find(socket_type);
+  if (!value) {
+    return &bke::NodeSocketTypeUndefined;
+  }
+  return value;
 }
 
 ColorGeometry4f bNodeTreeInterfaceSocket::socket_color() const
