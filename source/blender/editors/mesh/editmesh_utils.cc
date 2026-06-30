@@ -2000,8 +2000,8 @@ bool BMBVH_EdgeVisible(const BMBVHTree *tree,
   scale_point(co1, co2, 0.99);
   scale_point(co3, co2, 0.99);
 
-  /* OK, idea is to generate rays going from the camera origin to the
-   * three points on the edge (v1, mid, v2). */
+  /* OK, idea is to generate rays going from the three points on the edge (v1, mid, v2) to the
+   * camera origin. */
   sub_v3_v3v3(dir1, origin, co1);
   sub_v3_v3v3(dir2, origin, co2);
   sub_v3_v3v3(dir3, origin, co3);
