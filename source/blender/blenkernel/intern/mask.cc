@@ -30,7 +30,7 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_animsys.h"
+#include "BKE_animsys.hh"
 #include "BKE_curve.hh"
 #include "BKE_idtype.hh"
 

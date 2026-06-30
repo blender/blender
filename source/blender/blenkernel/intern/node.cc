@@ -56,7 +56,7 @@
 #include "IMB_imbuf.hh"
 
 #include "BKE_anim_data.hh"
-#include "BKE_animsys.h"
+#include "BKE_animsys.hh"
 #include "BKE_asset.hh"
 #include "BKE_bpath.hh"
 #include "BKE_colorband.hh"

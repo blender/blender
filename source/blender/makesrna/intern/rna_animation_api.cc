@@ -17,7 +17,7 @@
 
 #ifdef RNA_RUNTIME
 
-#  include "BKE_animsys.h"
+#  include "BKE_animsys.hh"
 #  include "BKE_context.hh"
 #  include "BKE_nla.hh"
 #  include "BKE_report.hh"

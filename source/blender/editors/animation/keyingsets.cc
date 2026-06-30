@@ -17,7 +17,7 @@
 
 #include "BLI_listbase.hh"
 
-#include "BKE_animsys.h"
+#include "BKE_animsys.hh"
 #include "BKE_context.hh"
 #include "BKE_report.hh"
 

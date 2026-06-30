@@ -30,7 +30,7 @@
 #include "BLI_sys_types.hh"
 
 #include "BKE_anim_visualization.h"
-#include "BKE_animsys.h"
+#include "BKE_animsys.hh"
 #include "BKE_attribute.hh"
 #include "BKE_colortools.hh"
 #include "BKE_curves.hh"

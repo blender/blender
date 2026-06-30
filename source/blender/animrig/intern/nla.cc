@@ -9,7 +9,7 @@
 #include "BLI_bit_vector.hh"
 #include "BLI_dynstr.hh"
 
-#include "BKE_animsys.h"
+#include "BKE_animsys.hh"
 #include "BKE_fcurve.hh"
 
 #include "RNA_access.hh"

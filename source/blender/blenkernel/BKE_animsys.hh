@@ -45,7 +45,7 @@ enum eKS_Settings : short;
 struct AnimationEvalContext {
   /* For drivers, so that they have access to the dependency graph and the current view layer. See
    * #77086. */
-  struct Depsgraph *depsgraph;
+  Depsgraph *depsgraph;
 
   /* FCurves and Drivers can be evaluated at a different time than the current scene time, for
    * example when evaluating NLA strips. This means that, even though the current time is stored in
@@ -53,7 +53,7 @@ struct AnimationEvalContext {
   float eval_time;
 };
 
-AnimationEvalContext BKE_animsys_eval_context_construct(struct Depsgraph *depsgraph,
+AnimationEvalContext BKE_animsys_eval_context_construct(Depsgraph *depsgraph,
                                                         float eval_time) ATTR_WARN_UNUSED_RESULT;
 AnimationEvalContext BKE_animsys_eval_context_construct_at(
     const AnimationEvalContext *anim_eval_context, float eval_time) ATTR_WARN_UNUSED_RESULT;
@@ -65,34 +65,34 @@ AnimationEvalContext BKE_animsys_eval_context_construct_at(
  * Used to create a new 'custom' KeyingSet for the user,
  * that will be automatically added to the stack.
  */
-struct KeyingSet *BKE_keyingset_add(ListBaseT<KeyingSet> *list,
-                                    const char idname[],
-                                    const char name[],
-                                    eKS_Settings flag,
-                                    eInsertKeyFlags keyingflag);
+KeyingSet *BKE_keyingset_add(ListBaseT<KeyingSet> *list,
+                             const char idname[],
+                             const char name[],
+                             eKS_Settings flag,
+                             eInsertKeyFlags keyingflag);
 
 /**
  * Add a path to a KeyingSet. Nothing is returned for now.
  * Checks are performed to ensure that destination is appropriate for the KeyingSet in question
  */
-struct KS_Path *BKE_keyingset_add_path(struct KeyingSet *ks,
-                                       struct ID *id,
-                                       const char group_name[],
-                                       const char rna_path[],
-                                       int array_index,
-                                       eKSP_Settings flag,
-                                       eKSP_Grouping groupmode);
+KS_Path *BKE_keyingset_add_path(KeyingSet *ks,
+                                ID *id,
+                                const char group_name[],
+                                const char rna_path[],
+                                int array_index,
+                                eKSP_Settings flag,
+                                eKSP_Grouping groupmode);
 
 /**
  * Find the destination matching the criteria given.
  * TODO: do we want some method to perform partial matches too?
  */
-struct KS_Path *BKE_keyingset_find_path(struct KeyingSet *ks,
-                                        struct ID *id,
-                                        const char group_name[],
-                                        const char rna_path[],
-                                        int array_index,
-                                        int group_mode);
+KS_Path *BKE_keyingset_find_path(KeyingSet *ks,
+                                 ID *id,
+                                 const char group_name[],
+                                 const char rna_path[],
+                                 int array_index,
+                                 int group_mode);
 
 /** Copy all KeyingSets in the given list. */
 void BKE_keyingsets_copy(ListBaseT<KeyingSet> *newlist, const ListBaseT<KeyingSet> *list);
@@ -101,20 +101,19 @@ void BKE_keyingsets_copy(ListBaseT<KeyingSet> *newlist, const ListBaseT<KeyingSe
  * Process the ID pointers inside a scene's keying-sets, in.
  * see `BKE_lib_query.hh` for details.
  */
-void BKE_keyingsets_foreach_id(struct LibraryForeachIDData *data,
-                               const ListBaseT<KeyingSet> *keyingsets);
+void BKE_keyingsets_foreach_id(LibraryForeachIDData *data, const ListBaseT<KeyingSet> *keyingsets);
 
 /** Free the given Keying Set path. */
-void BKE_keyingset_free_path(struct KeyingSet *ks, struct KS_Path *ksp);
+void BKE_keyingset_free_path(KeyingSet *ks, KS_Path *ksp);
 
 /** Free data for KeyingSet but not set itself. */
-void BKE_keyingset_free_paths(struct KeyingSet *ks);
+void BKE_keyingset_free_paths(KeyingSet *ks);
 
 /** Free all the KeyingSets in the given list. */
 void BKE_keyingsets_free(ListBaseT<KeyingSet> *list);
 
-void BKE_keyingsets_blend_write(struct BlendWriter *writer, ListBaseT<KeyingSet> *list);
-void BKE_keyingsets_blend_read_data(struct BlendDataReader *reader, ListBaseT<KeyingSet> *list);
+void BKE_keyingsets_blend_write(BlendWriter *writer, ListBaseT<KeyingSet> *list);
+void BKE_keyingsets_blend_read_data(BlendDataReader *reader, ListBaseT<KeyingSet> *list);
 
 /* ************************************* */
 /* Path Fixing API */
@@ -128,7 +127,7 @@ void BKE_keyingsets_blend_read_data(struct BlendDataReader *reader, ListBaseT<Ke
  * \note it is assumed that the structure we're replacing is `<prefix><["><name><"]>`
  * i.e. `pose.bones["Bone"]`.
  */
-char *BKE_animsys_fix_rna_path_rename(struct ID *owner_id,
+char *BKE_animsys_fix_rna_path_rename(ID *owner_id,
                                       char *old_path,
                                       const char *prefix,
                                       const char *oldName,
@@ -146,8 +145,8 @@ char *BKE_animsys_fix_rna_path_rename(struct ID *owner_id,
  * \note it is assumed that the structure we're replacing is `<prefix><["><name><"]>`
  * i.e. `pose.bones["Bone"]`.
  */
-void BKE_action_fix_paths_rename(struct ID *owner_id,
-                                 struct bAction *act,
+void BKE_action_fix_paths_rename(ID *owner_id,
+                                 bAction *act,
                                  int32_t /*slot_handle_t*/ slot_handle,
                                  const char *prefix,
                                  const char *oldName,
@@ -166,9 +165,9 @@ void BKE_action_fix_paths_rename(struct ID *owner_id,
  * [""] so that only exact matches are made. For example, the structure we're replacing is
  * `<prefix><["><name><"]>` i.e. `pose.bones["Bone"]`.
  */
-void BKE_animdata_fix_paths_rename(struct ID *owner_id,
-                                   struct AnimData *adt,
-                                   struct ID *ref_id,
+void BKE_animdata_fix_paths_rename(ID *owner_id,
+                                   AnimData *adt,
+                                   ID *ref_id,
                                    const char *prefix,
                                    const char *old_infix,
                                    const char *new_infix,
@@ -187,8 +186,8 @@ void BKE_animdata_fix_paths_rename(struct ID *owner_id,
  * [""] so that only exact matches are made. For example, the structure we're replacing is
  * `<prefix><["><name><"]>` i.e. `pose.bones["Bone"]`
  */
-void BKE_animdata_fix_paths_rename_all_ex(struct Main *bmain,
-                                          struct ID *ref_id,
+void BKE_animdata_fix_paths_rename_all_ex(Main *bmain,
+                                          ID *ref_id,
                                           const char *prefix,
                                           const char *old_infix,
                                           const char *new_infix,
@@ -198,7 +197,7 @@ void BKE_animdata_fix_paths_rename_all_ex(struct Main *bmain,
                                           bool infix_is_name);
 
 /** See #BKE_animdata_fix_paths_rename_all_ex */
-void BKE_animdata_fix_paths_rename_all(struct ID *ref_id,
+void BKE_animdata_fix_paths_rename_all(ID *ref_id,
                                        const char *prefix,
                                        const char *oldName,
                                        const char *newName);
@@ -209,14 +208,14 @@ void BKE_animdata_fix_paths_rename_all(struct ID *ref_id,
  *
  * Return true if any animation data was affected.
  */
-bool BKE_animdata_fix_paths_remove(struct ID *id, const char *prefix);
+bool BKE_animdata_fix_paths_remove(ID *id, const char *prefix);
 
 /**
  * Remove drivers that have an RNA path starting with `prefix`.
  *
  * \return true if any driver was removed.
  */
-bool BKE_animdata_driver_path_remove(struct ID *id, const char *prefix);
+bool BKE_animdata_driver_path_remove(ID *id, const char *prefix);
 
 /**
  * Remove all drivers from the given struct.
@@ -226,9 +225,7 @@ bool BKE_animdata_driver_path_remove(struct ID *id, const char *prefix);
  *
  * \return true if any driver was removed.
  */
-bool BKE_animdata_drivers_remove_for_rna_struct(struct ID &owner_id,
-                                                struct StructRNA &type,
-                                                void *data);
+bool BKE_animdata_drivers_remove_for_rna_struct(ID &owner_id, struct StructRNA &type, void *data);
 
 /* -------------------------------------- */
 
@@ -263,11 +260,11 @@ struct NlaKeyframingContext;
  * \param ptr: RNA pointer to the ID with the animation.
  * \return Keyframing context, or NULL if not necessary.
  */
-struct NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(
+NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(
     ListBaseT<NlaKeyframingContext> *cache,
-    struct PointerRNA *ptr,
-    struct AnimData *adt,
-    const struct AnimationEvalContext *anim_eval_context);
+    PointerRNA *ptr,
+    AnimData *adt,
+    const AnimationEvalContext *anim_eval_context);
 /**
  * Apply correction from the NLA context to the values about to be keyframed.
  *
@@ -283,12 +280,12 @@ struct NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(
  * which valid keying values were successfully computed.  In short, this is a
  * mask for the indices that can get keyed.
  */
-void BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
-                                           struct PointerRNA *prop_ptr,
-                                           struct PropertyRNA *prop,
+void BKE_animsys_nla_remap_keyframe_values(NlaKeyframingContext *context,
+                                           PointerRNA *prop_ptr,
+                                           PropertyRNA *prop,
                                            const MutableSpan<float> values,
                                            int index,
-                                           const struct AnimationEvalContext *anim_eval_context,
+                                           const AnimationEvalContext *anim_eval_context,
                                            bool *r_force_all,
                                            BitVector<> &r_values_mask);
 
@@ -310,11 +307,11 @@ enum eAnimData_Recalc {
   ADT_RECALC_ALL = (ADT_RECALC_DRIVERS | ADT_RECALC_ANIM),
 };
 
-bool BKE_animsys_rna_path_resolve(struct PointerRNA *ptr,
+bool BKE_animsys_rna_path_resolve(PointerRNA *ptr,
                                   const char *rna_path,
                                   int array_index,
-                                  struct PathResolvedRNA *r_result);
-bool BKE_animsys_read_from_rna_path(struct PathResolvedRNA *anim_rna, float *r_value);
+                                  PathResolvedRNA *r_result);
+bool BKE_animsys_read_from_rna_path(PathResolvedRNA *anim_rna, float *r_value);
 /**
  * Write the given value to a setting using RNA, and return success.
  *
@@ -322,7 +319,7 @@ bool BKE_animsys_read_from_rna_path(struct PathResolvedRNA *anim_rna, float *r_v
  * different from the property's current value. When true, this function will skip that check and
  * always call the RNA setter.
  */
-bool BKE_animsys_write_to_rna_path(struct PathResolvedRNA *anim_rna,
+bool BKE_animsys_write_to_rna_path(PathResolvedRNA *anim_rna,
                                    float value,
                                    bool force_write = false);
 
@@ -333,9 +330,9 @@ bool BKE_animsys_write_to_rna_path(struct PathResolvedRNA *anim_rna,
  * and that the flags for which parts of the animation-data settings need to be recalculated
  * have been set already by the depsgraph. Now, we use the recalculate.
  */
-void BKE_animsys_evaluate_animdata(struct ID *id,
-                                   struct AnimData *adt,
-                                   const struct AnimationEvalContext *anim_eval_context,
+void BKE_animsys_evaluate_animdata(ID *id,
+                                   AnimData *adt,
+                                   const AnimationEvalContext *anim_eval_context,
                                    eAnimData_Recalc recalc,
                                    bool flush_to_original);
 
@@ -347,9 +344,7 @@ void BKE_animsys_evaluate_animdata(struct ID *id,
  * 'local' (i.e. belonging in the nearest ID-block that setting is related to, not a
  * standard 'root') block are overridden by a larger 'user'
  */
-void BKE_animsys_evaluate_all_animation(struct Main *main,
-                                        struct Depsgraph *depsgraph,
-                                        float ctime);
+void BKE_animsys_evaluate_all_animation(Main *main, Depsgraph *depsgraph, float ctime);
 
 /* ------------ Specialized API --------------- */
 /* There are a few special tools which require these following functions. They are NOT to be used
@@ -362,39 +357,36 @@ void BKE_animsys_evaluate_all_animation(struct Main *main,
 /**
  * Evaluate Action (F-Curve Bag).
  */
-void animsys_evaluate_action(struct PointerRNA *ptr,
-                             struct bAction *act,
+void animsys_evaluate_action(PointerRNA *ptr,
+                             bAction *act,
                              int32_t action_slot_handle,
-                             const struct AnimationEvalContext *anim_eval_context,
+                             const AnimationEvalContext *anim_eval_context,
                              bool flush_to_original);
 
 /**
  * Evaluate action, and blend the result into the current values (instead of overwriting fully).
  */
-void animsys_blend_in_action(struct PointerRNA *ptr,
-                             struct bAction *act,
+void animsys_blend_in_action(PointerRNA *ptr,
+                             bAction *act,
                              int32_t action_slot_handle,
                              const AnimationEvalContext *anim_eval_context,
                              float blend_factor);
 
 /** Evaluate Action Group. */
-void animsys_evaluate_action_group(struct PointerRNA *ptr,
-                                   struct bAction *act,
-                                   struct bActionGroup *agrp,
-                                   const struct AnimationEvalContext *anim_eval_context);
+void animsys_evaluate_action_group(PointerRNA *ptr,
+                                   bAction *act,
+                                   bActionGroup *agrp,
+                                   const AnimationEvalContext *anim_eval_context);
 
 /* ************************************* */
 
 /* ------------ Evaluation API --------------- */
 
-void BKE_animsys_eval_animdata(struct Depsgraph *depsgraph, struct ID *id);
+void BKE_animsys_eval_animdata(Depsgraph *depsgraph, ID *id);
 void BKE_animsys_eval_driver_unshare(Depsgraph *depsgraph, ID *id);
-void BKE_animsys_eval_driver(struct Depsgraph *depsgraph,
-                             struct ID *id,
-                             int driver_index,
-                             struct FCurve *fcu_orig);
+void BKE_animsys_eval_driver(Depsgraph *depsgraph, ID *id, int driver_index, FCurve *fcu_orig);
 
-void BKE_animsys_update_driver_array(struct ID *id);
+void BKE_animsys_update_driver_array(ID *id);
 
 /* ************************************* */
 
