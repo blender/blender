@@ -425,17 +425,23 @@ void BM_mesh_edgeloops_calc_order(BMesh * /*bm*/,
                                   const bool use_normals)
 {
   ListBaseT<BMEdgeLoopStore> eloops_ordered = {nullptr};
-  BMEdgeLoopStore *el_store;
   float cent[3];
   int tot = 0;
   zero_v3(cent);
   /* assumes we calculated centers already */
-  for (el_store = static_cast<BMEdgeLoopStore *>(eloops->first); el_store;
-       el_store = el_store->next, tot++)
-  {
-    add_v3_v3(cent, el_store->co);
+  for (BMEdgeLoopStore &el_store : *eloops) {
+    if (!is_finite_v3(el_store.co)) [[unlikely]] {
+      continue;
+    }
+    add_v3_v3(cent, el_store.co);
+    tot += 1;
   }
-  mul_v3_fl(cent, 1.0f / float(tot));
+  if (tot > 0) {
+    mul_v3_fl(cent, 1.0f / float(tot));
+    if (!is_finite_v3(cent)) {
+      zero_v3(cent);
+    }
+  }
 
   /* Find the furthest out loop. */
   {
@@ -443,7 +449,8 @@ void BM_mesh_edgeloops_calc_order(BMesh * /*bm*/,
     float len_best_sq = -1.0f;
     for (BMEdgeLoopStore &el_store : *eloops) {
       const float len_sq = len_squared_v3v3(cent, el_store.co);
-      if (len_sq > len_best_sq) {
+      /* Null check to account for non-finite distances. */
+      if ((len_sq > len_best_sq) || (el_store_best == nullptr)) {
         len_best_sq = len_sq;
         el_store_best = &el_store;
       }
@@ -478,7 +485,8 @@ void BM_mesh_edgeloops_calc_order(BMesh * /*bm*/,
         len_sq = len_squared_v3v3(co, el_store.co);
       }
 
-      if (len_sq < len_best_sq) {
+      /* Null check to account for non-finite distances. */
+      if ((len_sq < len_best_sq) || (el_store_best == nullptr)) {
         len_best_sq = len_sq;
         el_store_best = &el_store;
       }
