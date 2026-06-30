@@ -238,54 +238,16 @@ UVVertex::UVVertex(const MeshData &mesh_data, const int loop)
   uv_vertex_init_flags(*this);
 }
 
-/**
- * Get a list containing the indices of mesh primitives (primitive of the input mesh), that
- * surround the given uv_vertex in uv-space.
- */
-static Vector<int> connecting_mesh_primitive_indices(const UVVertex &uv_vertex)
-{
-  Vector<int> primitives_around_uv_vertex;
-  for (const UVEdge *uv_edge : uv_vertex.uv_edges) {
-    for (const int uv_primitive_index : uv_edge->uv_primitive_indices) {
-      primitives_around_uv_vertex.append_non_duplicates(uv_primitive_index);
-    }
-  }
-  return primitives_around_uv_vertex;
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name UVEdge
  * \{ */
 
-bool UVEdge::has_shared_edge(const Span<float2> uv_map, const int loop_1, const int loop_2) const
-{
-  return (vertices[0]->uv == uv_map[loop_1] && vertices[1]->uv == uv_map[loop_2]) ||
-         (vertices[0]->uv == uv_map[loop_2] && vertices[1]->uv == uv_map[loop_1]);
-}
-
-bool UVEdge::has_shared_edge(const UVVertex &v1, const UVVertex &v2) const
-{
-  return (vertices[0]->uv == v1.uv && vertices[1]->uv == v2.uv) ||
-         (vertices[0]->uv == v2.uv && vertices[1]->uv == v1.uv);
-}
-
-bool UVEdge::has_shared_edge(const UVEdge &other) const
-{
-  return has_shared_edge(*other.vertices[0], *other.vertices[1]);
-}
-
 bool UVEdge::has_same_vertices(const int vert1, const int vert2) const
 {
   return (vertices[0]->vertex == vert1 && vertices[1]->vertex == vert2) ||
          (vertices[0]->vertex == vert2 && vertices[1]->vertex == vert1);
-}
-
-bool UVEdge::has_same_uv_vertices(const UVEdge &other) const
-{
-  return has_shared_edge(other) &&
-         has_same_vertices(other.vertices[0]->vertex, other.vertices[1]->vertex);
 }
 
 bool UVEdge::has_same_vertices(const int2 &edge) const
@@ -383,26 +345,6 @@ void UVIsland::append(const UVPrimitive &primitive)
   }
 }
 
-bool UVIsland::has_shared_edge(const UVPrimitive &primitive) const
-{
-  for (const UVPrimitive &prim : uv_primitives) {
-    if (prim.has_shared_edge(primitive)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-bool UVIsland::has_shared_edge(const MeshData &mesh_data, const int primitive_i) const
-{
-  for (const UVPrimitive &prim : uv_primitives) {
-    if (prim.has_shared_edge(mesh_data, primitive_i)) {
-      return true;
-    }
-  }
-  return false;
-}
-
 static UVPrimitive *add_primitive(const MeshData &mesh_data,
                                   UVIsland &uv_island,
                                   const int primitive_i)
@@ -490,8 +432,6 @@ static std::optional<UVBorderCorner> sharpest_border_corner(UVIsland &island)
 struct FanSegment {
   int primitive_index;
   int3 tri;
-  /* UVs order are already applied. So `uvs[0]` matches `primitive->vertices[vert_order[0]]`. */
-  float2 uvs[3];
   int vert_order[3];
 
   struct {
@@ -528,9 +468,6 @@ struct FanSegment {
     ss << " v1:" << mesh_data.corner_verts[tri[vert_order[0]]];
     ss << " v2:" << mesh_data.corner_verts[tri[vert_order[1]]];
     ss << " v3:" << mesh_data.corner_verts[tri[vert_order[2]]];
-    ss << " uv1:" << uvs[0];
-    ss << " uv2:" << uvs[1];
-    ss << " uv3:" << uvs[2];
     if (flags.found) {
       ss << " *found";
     }
@@ -609,36 +546,15 @@ struct Fan {
 
   void mark_already_added_segments(const UVVertex &uv_vertex)
   {
-    Vector<int> mesh_primitive_indices = connecting_mesh_primitive_indices(uv_vertex);
-
     /* Go over all fan edges to find if they can be found as primitive around the uv vertex. */
     for (FanSegment &fan_edge : segments) {
-      fan_edge.flags.found = mesh_primitive_indices.contains(fan_edge.primitive_index);
-    }
-  }
-
-  void init_uv_coordinates(const MeshData &mesh_data, UVVertex &uv_vertex)
-  {
-    for (FanSegment &fan_edge : segments) {
-      int other_v = mesh_data.corner_verts[fan_edge.tri[fan_edge.vert_order[0]]];
-      if (other_v == uv_vertex.vertex) {
-        other_v = mesh_data.corner_verts[fan_edge.tri[fan_edge.vert_order[1]]];
-      }
-
-      for (UVEdge *edge : uv_vertex.uv_edges) {
-        const UVVertex *other_uv_vertex = edge->get_other_uv_vertex(uv_vertex.vertex);
-        int64_t other_edge_v = other_uv_vertex->vertex;
-        if (other_v == other_edge_v) {
-          fan_edge.uvs[0] = uv_vertex.uv;
-          fan_edge.uvs[1] = other_uv_vertex->uv;
+      fan_edge.flags.found = false;
+      for (const UVEdge *uv_edge : uv_vertex.uv_edges) {
+        if (uv_edge->uv_primitive_indices.contains(fan_edge.primitive_index)) {
+          fan_edge.flags.found = true;
           break;
         }
       }
-    }
-
-    segments.last().uvs[2] = segments.first().uvs[1];
-    for (int i = 0; i < segments.size() - 1; i++) {
-      segments[i].uvs[2] = segments[i + 1].uvs[1];
     }
   }
 
@@ -893,7 +809,6 @@ static void extend_at_vert(const MeshData &mesh_data,
   if (!fan.flags.is_manifold) {
     return;
   }
-  fan.init_uv_coordinates(mesh_data, *uv_vertex);
   fan.mark_already_added_segments(*uv_vertex);
   int num_to_add = fan.count_edges_not_added();
 
@@ -1201,10 +1116,8 @@ void UVBorder::update_indexes(uint64_t border_index)
 {
   for (int64_t i = 0; i < edges.size(); i++) {
     int64_t prev = (i - 1 + edges.size()) % edges.size();
-    int64_t next = (i + 1) % edges.size();
     edges[i].prev_index = prev;
     edges[i].index = i;
-    edges[i].next_index = next;
     edges[i].border_index = border_index;
   }
 }
@@ -1274,47 +1187,6 @@ void UVBorderCorner::print_debug() const
 
 UVPrimitive::UVPrimitive(const int primitive_i) : primitive_i(primitive_i) {}
 
-Vector<std::pair<UVEdge *, UVEdge *>> UVPrimitive::shared_edges(UVPrimitive &other)
-{
-  Vector<std::pair<UVEdge *, UVEdge *>> result;
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
-      if (edges[i]->has_shared_edge(*other.edges[j])) {
-        result.append(std::pair<UVEdge *, UVEdge *>(edges[i], other.edges[j]));
-      }
-    }
-  }
-  return result;
-}
-
-bool UVPrimitive::has_shared_edge(const UVPrimitive &other) const
-{
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
-      if (edges[i]->has_shared_edge(*other.edges[j])) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-bool UVPrimitive::has_shared_edge(const MeshData &mesh_data, const int other_triangle_index) const
-{
-  for (const UVEdge *uv_edge : edges) {
-    const int3 &tri = mesh_data.corner_tris[other_triangle_index];
-    int loop_1 = tri[2];
-    for (int i = 0; i < 3; i++) {
-      int loop_2 = tri[i];
-      if (uv_edge->has_shared_edge(mesh_data.uv_map, loop_1, loop_2)) {
-        return true;
-      }
-      loop_1 = loop_2;
-    }
-  }
-  return false;
-}
-
 const UVVertex *UVPrimitive::get_uv_vertex(const MeshData &mesh_data,
                                            const uint8_t mesh_vert_index) const
 {
@@ -1382,17 +1254,6 @@ const UVVertex *UVPrimitive::get_other_uv_vertex(const UVVertex *v1, const UVVer
   }
   BLI_assert_unreachable();
   return nullptr;
-}
-
-UVBorder UVPrimitive::extract_border() const
-{
-  Vector<UVBorderEdge> border_edges;
-  for (UVEdge *edge : edges) {
-    /* TODO remove const cast. only needed for debugging ATM. */
-    UVBorderEdge border_edge(edge, const_cast<UVPrimitive *>(this));
-    border_edges.append(border_edge);
-  }
-  return *UVBorder::extract_from_edges(border_edges);
 }
 
 /** \} */
@@ -1464,13 +1325,6 @@ void UVIslands::extend_borders(const MeshData &mesh_data, const UVIslandsMask &i
   ushort index = 0;
   for (UVIsland &island : islands) {
     island.extend_border(mesh_data, islands_mask, index++);
-  }
-}
-
-void UVIslands::print_debug(const MeshData &mesh_data) const
-{
-  for (const UVIsland &island : islands) {
-    island.print_debug(mesh_data);
   }
 }
 

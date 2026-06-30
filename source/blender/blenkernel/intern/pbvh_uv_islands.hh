@@ -162,15 +162,11 @@ struct UVEdge {
   Vector<int, 2> uv_primitive_indices;
 
   UVVertex *get_other_uv_vertex(int vertex_index);
-  bool has_shared_edge(Span<float2> uv_map, int loop_1, int loop_2) const;
-  bool has_shared_edge(const UVEdge &other) const;
   bool has_same_vertices(const int2 &edge) const;
   bool is_border_edge() const;
 
  private:
-  bool has_shared_edge(const UVVertex &v1, const UVVertex &v2) const;
   bool has_same_vertices(int vert1, int vert2) const;
-  bool has_same_uv_vertices(const UVEdge &other) const;
 };
 
 struct UVPrimitive {
@@ -181,10 +177,6 @@ struct UVPrimitive {
   Vector<UVEdge *, 3> edges;
 
   explicit UVPrimitive(int primitive_i);
-
-  Vector<std::pair<UVEdge *, UVEdge *>> shared_edges(UVPrimitive &other);
-  bool has_shared_edge(const UVPrimitive &other) const;
-  bool has_shared_edge(const MeshData &mesh_data, int other_triangle_index) const;
 
   /**
    * Get the UVVertex in the order that the verts are ordered in the MeshPrimitive.
@@ -200,8 +192,6 @@ struct UVPrimitive {
 
   bool contains_uv_vertex(const UVVertex *uv_vertex) const;
   const UVVertex *get_other_uv_vertex(const UVVertex *v1, const UVVertex *v2) const;
-
-  UVBorder extract_border() const;
 };
 
 struct UVBorderEdge {
@@ -213,7 +203,6 @@ struct UVBorderEdge {
 
   int64_t index = -1;
   int64_t prev_index = -1;
-  int64_t next_index = -1;
   int64_t border_index = -1;
 
   explicit UVBorderEdge(UVEdge *edge, UVPrimitive *uv_primitive);
@@ -317,9 +306,6 @@ struct UVIsland {
   void append(const UVPrimitive &primitive);
 
  public:
-  bool has_shared_edge(const UVPrimitive &primitive) const;
-  bool has_shared_edge(const MeshData &mesh_data, int primitive_i) const;
-
   /** Print a python script to the console that generates a mesh representing this UVIsland. */
   void print_debug(const MeshData &mesh_data) const;
 };

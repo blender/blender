@@ -173,7 +173,6 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
     for (const int face : node.faces()) {
       for (const int tri : bke::mesh::face_triangles_range(mesh_data.faces, face)) {
         for (const UVPrimitiveLookup::Entry &entry : uv_prim_lookup.lookup[tri]) {
-          uv_islands::UVBorder uv_border = entry.uv_primitive->extract_border();
           float2 uvs[3] = {
               entry.uv_primitive->get_uv_vertex(mesh_data, 0)->uv - tile_offset,
               entry.uv_primitive->get_uv_vertex(mesh_data, 1)->uv - tile_offset,
