@@ -198,11 +198,19 @@ class Particles : Overlay {
         continue;
       }
 
+      const ParticleSettings *part = psys->part;
+      const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
+
+      if (ELEM(draw_as, PART_DRAW_NOT, PART_DRAW_OB, PART_DRAW_GR)) {
+        /* Skip early, before we try to create a handle, since we can't create these for ObjectRefs
+         * with instances. Objects and groups are realized by the Depsgraph as regular instances
+         * and therefore support instancing optimizations, but don't need to be handled here. */
+        continue;
+      }
+
       if (!handle.is_valid()) {
         handle = manager.resource_handle_for_psys(ob_ref, ob_ref.particles_matrix());
       }
-
-      const ParticleSettings *part = psys->part;
 
       auto set_color = [&](PassMain::Sub &sub) {
         /* NOTE(fclem): Is color even useful in our modern context? */
@@ -211,7 +219,6 @@ class Particles : Overlay {
       };
 
       gpu::Batch *geom = nullptr;
-      const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
       switch (draw_as) {
         case PART_DRAW_PATH:
           if ((state.is_wireframe_mode == false) && (part->draw_as == PART_DRAW_REND)) {
