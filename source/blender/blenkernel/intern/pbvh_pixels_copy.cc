@@ -558,30 +558,23 @@ void copy_pixels(bke::pbvh::Tree &pbvh,
 
   CopyPixelTile &tile = pixel_tile->get();
 
-  /* Gather groups to update based on modified seam tiles. */
-  Vector<IndexRange> active_groups;
+  /* Apply the pixel copies for groups whose seam tile was modified. */
   for (const auto item : tile.seam_tile_to_groups.items()) {
     BLI_assert(item.key < seam_tiles_modified.size());
-    if (seam_tiles_modified[item.key]) {
-      active_groups.append(item.value);
+    if (!seam_tiles_modified[item.key]) {
+      continue;
     }
+    const IndexRange group_range = item.value;
+
+    /* Push undo tiles affected by these groups before editing, just like painting. */
+    for (const CopyPixelGroup &group : tile.groups.as_span().slice(group_range)) {
+      push_undo_tiles(group.start_destination.x + 1,
+                      group.start_destination.x + group.num_deltas,
+                      group.start_destination.y);
+    }
+
+    tile.copy_pixels(*tile_buffer, group_range);
   }
-
-  /* Apply pixel copy for each group. */
-  threading::parallel_for(active_groups.index_range(), 1, [&](IndexRange range) {
-    for (const int64_t i : range) {
-      const IndexRange group_range = active_groups[i];
-
-      /* Push undo tiles affected by these group before editing, just like painting. */
-      for (const CopyPixelGroup &group : tile.groups.as_span().slice(group_range)) {
-        push_undo_tiles(group.start_destination.x + 1,
-                        group.start_destination.x + group.num_deltas,
-                        group.start_destination.y);
-      }
-
-      tile.copy_pixels(*tile_buffer, group_range);
-    }
-  });
 }
 
 }  // namespace blender::bke::pbvh::pixels
