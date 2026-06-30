@@ -21,10 +21,17 @@ template<typename T, int SizeX, int SizeY> struct NormalizedIntVec<T, 2, SizeX, 
   constexpr static bool is_signed = std::is_signed<T>();
   constexpr static T x_max = (1 << (SizeX - int(is_signed))) - 1;
   constexpr static T y_max = (1 << (SizeY - int(is_signed))) - 1;
-
+#if defined(_MSC_VER) && !defined(__clang__) && _MSC_VER >= 1944 && _MSC_VER < 1950
+  // Workaround for MSVC 17.14 ICE: use constexpr to indirectly reference size arguments
+  // Does not make a whole lot of sense, but it sidesteps the ICE.
+  constexpr static T SizeX_workaround = SizeX;
+  constexpr static T SizeY_workaround = SizeY;
+  T x : SizeX_workaround;
+  T y : SizeY_workaround;
+#else
   T x : SizeX;
   T y : SizeY;
-
+#endif
   NormalizedIntVec() = default;
   constexpr NormalizedIntVec(IntVecT value) : x(value.x), y(value.y) {}
 
@@ -57,11 +64,23 @@ struct NormalizedIntVec<T, 4, SizeX, SizeY, SizeZ, SizeW> {
   constexpr static T z_max = (1 << (SizeZ - int(is_signed))) - 1;
   constexpr static T w_max = (1 << (SizeW - int(is_signed))) - 1;
 
+#if defined(_MSC_VER) && !defined(__clang__) && _MSC_VER >= 1944 && _MSC_VER < 1950
+  // Workaround for MSVC 17.14 ICE: use constexpr to indirectly reference size arguments
+  // Does not make a whole lot of sense, but it sidesteps the ICE.
+  constexpr static T SizeX_workaround = SizeX;
+  constexpr static T SizeY_workaround = SizeY;
+  constexpr static T SizeZ_workaround = SizeZ;
+  constexpr static T SizeW_workaround = SizeW;
+  T x : SizeX_workaround;
+  T y : SizeY_workaround;
+  T z : SizeZ_workaround;
+  T w : SizeW_workaround;
+#else
   T x : SizeX;
   T y : SizeY;
   T z : SizeZ;
   T w : SizeW;
-
+#endif
   NormalizedIntVec() = default;
   constexpr NormalizedIntVec(IntVecT value) : x(value.x), y(value.y), z(value.z), w(value.w) {}
 
