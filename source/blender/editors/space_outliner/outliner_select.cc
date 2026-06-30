@@ -1338,14 +1338,19 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
       case ID_WO:
         context = BCONTEXT_WORLD;
         break;
-      case ID_KE:
-        context = BCONTEXT_DATA;
-        ptr = RNA_id_pointer_create(te->parent->store_elem->id);
-        break;
     }
   }
   else {
     switch (tselem->type) {
+      case TSE_SHAPE_KEY_BASE:
+      case TSE_SHAPE_KEY_BLOCK:
+        if (TreeElement *parent_te = outliner_search_back_te(te, ID_OB)) {
+          TreeStoreElem *parent_tselem = TREESTORE(parent_te);
+          Object *ob = id_cast<Object *>(parent_tselem->id);
+          ptr = RNA_id_pointer_create(static_cast<ID *>(ob->data));
+          context = BCONTEXT_DATA;
+        }
+        break;
       case TSE_DEFGROUP_BASE:
       case TSE_DEFGROUP:
         ptr = RNA_id_pointer_create(tselem->id);
