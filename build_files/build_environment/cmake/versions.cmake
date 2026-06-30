@@ -666,15 +666,6 @@ Copyright (c) 2003, 2007-14 Matteo Frigo.
 Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology
 ]=])
 
-set(ICONV_VERSION 1.16)
-set(ICONV_URI http://ftp.gnu.org/pub/gnu/libiconv/libiconv-${ICONV_VERSION}.tar.gz)
-set(ICONV_HASH 7d2a800b952942bb2880efb00cfd524c)
-set(ICONV_HASH_TYPE MD5)
-set(ICONV_FILE libiconv-${ICONV_VERSION}.tar.gz)
-set(ICONV_HOMEPAGE https://www.gnu.org/software/libiconv/)
-set(ICONV_LICENSE SPDX:LGPL-2.1-or-later)
-set(ICONV_COPYRIGHT "Copyright (C) 1998, 2022 Free Software Foundation, Inc.")
-
 set(SNDFILE_VERSION 1.2.2)
 set(SNDFILE_NAME libsndfile)
 set(SNDFILE_URI https://github.com/libsndfile/libsndfile/releases/download/1.2.2/libsndfile-${SNDFILE_VERSION}.tar.xz)
