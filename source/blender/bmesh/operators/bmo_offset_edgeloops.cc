@@ -184,11 +184,14 @@ void bmo_offset_edgeloops_exec(BMesh *bm, BMOperator *op)
 #endif
           {
             BMLoop *l_new;
-            BM_face_split(bm, l->f, l->prev, l->next, &l_new, nullptr, true);
-            BLI_assert(f_cmp == l->f);
-            BLI_assert(f_cmp != l_new->f);
-            UNUSED_VARS_NDEBUG(f_cmp);
-            BMO_edge_flag_enable(bm, l_new->e, ELE_NEW);
+            if (!BM_face_split_check_double_face(l->prev, l->next, 3) &&
+                (BM_face_split(bm, l->f, l->prev, l->next, &l_new, nullptr, true) != nullptr))
+            {
+              BLI_assert(f_cmp == l->f);
+              BLI_assert(f_cmp != l_new->f);
+              UNUSED_VARS_NDEBUG(f_cmp);
+              BMO_edge_flag_enable(bm, l_new->e, ELE_NEW);
+            }
           }
         }
         else if (l->f->len > 4) {
@@ -196,11 +199,15 @@ void bmo_offset_edgeloops_exec(BMesh *bm, BMOperator *op)
             if (BM_elem_index_get(l->next->v) == -1) {
               if (BM_elem_index_get(l->prev->prev->v) == -1) {
                 BMLoop *l_new;
-                BM_face_split(bm, l->f, l->prev->prev, l->next, &l_new, nullptr, true);
-                BLI_assert(f_cmp == l->f);
-                BLI_assert(f_cmp != l_new->f);
-                BMO_edge_flag_enable(bm, l_new->e, ELE_NEW);
-                BM_elem_flag_disable(l->f, BM_ELEM_TAG);
+                if (!BM_face_split_check_double_face(l->prev->prev, l->next, 4) &&
+                    (BM_face_split(bm, l->f, l->prev->prev, l->next, &l_new, nullptr, true) !=
+                     nullptr))
+                {
+                  BLI_assert(f_cmp == l->f);
+                  BLI_assert(f_cmp != l_new->f);
+                  BMO_edge_flag_enable(bm, l_new->e, ELE_NEW);
+                  BM_elem_flag_disable(l->f, BM_ELEM_TAG);
+                }
               }
               else {
                 /* walk backwards */
