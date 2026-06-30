@@ -19,7 +19,7 @@ namespace blender::gpu::render_graph {
 struct VKDrawIndirectData {
   VKPipelineDataGraphics graphics;
   VKVertexBufferBindings vertex_buffers;
-  VkBuffer indirect_buffer;
+  VKResourceWithHandle<VkBuffer> indirect_buffer;
   VkDeviceSize offset;
   uint32_t draw_count;
   uint32_t stride;

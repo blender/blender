@@ -18,7 +18,7 @@ namespace blender::gpu::render_graph {
  */
 struct VKDispatchIndirectData {
   VKPipelineData pipeline_data;
-  VkBuffer buffer;
+  VKResourceWithHandle<VkBuffer> buffer;
   VkDeviceSize offset;
 };
 

@@ -35,7 +35,7 @@ bool VKBuffer::create(size_t size_in_bytes,
                       const char *debug_name)
 {
   BLI_assert(!is_allocated());
-  BLI_assert(vk_buffer_ == VK_NULL_HANDLE);
+  BLI_assert(resource_.vk_handle == VK_NULL_HANDLE);
   BLI_assert(mapped_memory_ == nullptr);
   if (allocation_failed_) {
     return false;
@@ -98,7 +98,7 @@ bool VKBuffer::create(size_t size_in_bytes,
   }
 
   VkResult result = vmaCreateBuffer(
-      allocator, &create_info, &vma_create_info, &vk_buffer_, &allocation_, nullptr);
+      allocator, &create_info, &vma_create_info, &resource_.vk_handle, &allocation_, nullptr);
   if (result != VK_SUCCESS) {
     allocation_failed_ = true;
     size_in_bytes_ = 0;
@@ -106,10 +106,10 @@ bool VKBuffer::create(size_t size_in_bytes,
     return false;
   }
 
-  device.resources.add_buffer(vk_buffer_);
+  resource_.resource_handle = device.resources.add_buffer(resource_.vk_handle);
 
   if (debug_name) {
-    debug::object_label(vk_buffer_, debug_name);
+    debug::object_label(resource_.vk_handle, debug_name);
   }
 
   /* Check if the memory is mappable. Although the Vulkan specs allow to map any memory that is
@@ -145,7 +145,7 @@ void VKBuffer::update_render_graph(VKContext &context, void *data) const
 {
   BLI_assert(size_in_bytes_ <= 65536 && size_in_bytes_ % 4 == 0);
   render_graph::VKUpdateBufferNode::CreateInfo update_buffer = {};
-  update_buffer.dst_buffer = vk_buffer_;
+  update_buffer.dst_buffer = resource();
   update_buffer.data_size = size_in_bytes_;
   update_buffer.data = data;
   context.render_graph().add_node(update_buffer);
@@ -161,7 +161,7 @@ void VKBuffer::flush() const
 void VKBuffer::clear(VKContext &context, uint32_t clear_value)
 {
   render_graph::VKFillBufferNode::CreateInfo fill_buffer = {};
-  fill_buffer.vk_buffer = vk_buffer_;
+  fill_buffer.buffer = resource();
   fill_buffer.data = clear_value;
   fill_buffer.size = alloc_size_in_bytes_;
   context.render_graph().add_node(fill_buffer);
@@ -255,25 +255,25 @@ bool VKBuffer::free()
     unmap();
   }
 
-  VKDiscardPool::discard_pool_get().discard_buffer(vk_buffer_, allocation_);
+  VKDiscardPool::discard_pool_get().discard_buffer(resource_, allocation_);
 
   allocation_ = VK_NULL_HANDLE;
-  vk_buffer_ = VK_NULL_HANDLE;
+  resource_ = {};
 
   return true;
 }
 
 void VKBuffer::free_immediately(VKDevice &device)
 {
-  BLI_assert(vk_buffer_ != VK_NULL_HANDLE);
+  BLI_assert(resource_.vk_handle != VK_NULL_HANDLE);
   BLI_assert(allocation_ != VK_NULL_HANDLE);
   if (is_mapped()) {
     unmap();
   }
-  device.resources.remove_buffer(vk_buffer_);
-  vmaDestroyBuffer(device.mem_allocator_get(), vk_buffer_, allocation_);
+  device.resources.remove_buffer(resource_);
+  vmaDestroyBuffer(device.mem_allocator_get(), resource_, allocation_);
   allocation_ = VK_NULL_HANDLE;
-  vk_buffer_ = VK_NULL_HANDLE;
+  resource_ = {};
 }
 
 }  // namespace gpu

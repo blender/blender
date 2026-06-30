@@ -95,15 +95,12 @@ void VKResourceStateTracker::add_swapchain_image(VkImage vk_image, const char *n
             name);
 }
 
-void VKResourceStateTracker::add_buffer(VkBuffer vk_buffer, const char *name)
+ResourceHandle VKResourceStateTracker::add_buffer(VkBuffer vk_buffer, const char *name)
 {
   UNUSED_VARS_NDEBUG(name);
   std::scoped_lock lock(mutex);
-  BLI_assert_msg(!buffer_resources_.contains(vk_buffer),
-                 "Buffer resource is added twice to the render graph.");
   ResourceHandle handle = create_resource_slot();
   Resource &resource = resources_[handle];
-  buffer_resources_.add_new(vk_buffer, handle);
 
   resource = {
       .type = VKResourceType::BUFFER,
@@ -121,6 +118,7 @@ void VKResourceStateTracker::add_buffer(VkBuffer vk_buffer, const char *name)
 #ifdef VK_RESOURCE_STATE_TRACKER_VALIDATION
   validate();
 #endif
+  return handle;
 }
 
 /** \} */
@@ -143,20 +141,21 @@ void VKResourceStateTracker::update_image_layout(VkImage vk_image, VkImageLayout
 /** \name Remove resources
  * \{ */
 
-void VKResourceStateTracker::remove_buffer(VkBuffer vk_buffer)
+VkBuffer VKResourceStateTracker::remove_buffer(ResourceHandle buffer_handle)
 {
   std::scoped_lock lock(mutex);
-  ResourceHandle handle = buffer_resources_.pop(vk_buffer);
-  resources_[handle] = {
+  VkBuffer vk_buffer = get_buffer_resource(buffer_handle).buffer.vk_buffer;
+  resources_[buffer_handle] = {
       .type = VKResourceType::NONE,
       .buffer = {.vk_buffer = VK_NULL_HANDLE},
       .stamp = 0,
   };
-  unused_handles_.append(handle);
+  unused_handles_.append(buffer_handle);
 
 #ifdef VK_RESOURCE_STATE_TRACKER_VALIDATION
   validate();
 #endif
+  return vk_buffer;
 }
 
 void VKResourceStateTracker::remove_image(VkImage vk_image)
@@ -201,18 +200,17 @@ ResourceWithStamp VKResourceStateTracker::get_image_and_increase_stamp(VkImage v
   return get_and_increase_stamp(handle, resource);
 }
 
-ResourceWithStamp VKResourceStateTracker::get_buffer_and_increase_stamp(VkBuffer vk_buffer)
+ResourceWithStamp VKResourceStateTracker::get_buffer_and_increase_stamp(
+    ResourceHandle buffer_handle)
 {
-  ResourceHandle handle = buffer_resources_.lookup(vk_buffer);
-  Resource &resource = get_buffer_resource(handle);
-  return get_and_increase_stamp(handle, resource);
+  Resource &resource = get_buffer_resource(buffer_handle);
+  return get_and_increase_stamp(buffer_handle, resource);
 }
 
-ResourceWithStamp VKResourceStateTracker::get_buffer(VkBuffer vk_buffer) const
+ResourceWithStamp VKResourceStateTracker::get_buffer(ResourceHandle buffer_handle) const
 {
-  ResourceHandle handle = buffer_resources_.lookup(vk_buffer);
-  const Resource &resource = get_buffer_resource(handle);
-  return get_stamp(handle, resource);
+  const Resource &resource = get_buffer_resource(buffer_handle);
+  return get_stamp(buffer_handle, resource);
 }
 
 ResourceWithStamp VKResourceStateTracker::get_image(VkImage vk_image) const
@@ -258,7 +256,6 @@ void VKResourceStateTracker::debug_print() const
   std::ostream &os = std::cout;
   os << "VKResourceStateTracker\n";
   os << " resources=(" << resources_.size() << "/" << resources_.capacity() << ")\n";
-  os << " buffers=(" << buffer_resources_.size() << "/" << buffer_resources_.capacity() << ")\n";
   os << " images=(" << image_resources_.size() << "/" << image_resources_.capacity() << ")\n";
   os << " unused=(" << unused_handles_.size() << "/" << unused_handles_.capacity() << ")\n";
 }

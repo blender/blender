@@ -572,6 +572,41 @@ template<typename VKObjectType> union VkHandle {
   }
 };
 
+/**
+ * \brief Convenience wrapper for tracked resources.
+ */
+template<typename VKObjectType> struct VKTrackedHandle {
+  VKResourceWithHandle<VKObjectType> resource;
+
+ public:
+  VKTrackedHandle(uint64_t handle)
+  {
+    VkHandle<VKObjectType> to_vk_handle(handle);
+    resource.vk_handle = to_vk_handle;
+    resource.resource_handle = 0;
+  }
+
+  void set_resource_handle(uint64_t handle)
+  {
+    resource.resource_handle = handle;
+  }
+
+  operator VKResourceWithHandle<VKObjectType>() const
+  {
+    return resource;
+  }
+
+  operator VKObjectType() const
+  {
+    return resource.vk_handle;
+  }
+
+  uint64_t get_resource_handle() const
+  {
+    return resource.resource_handle;
+  }
+};
+
 static inline void submit(std::unique_ptr<VKRenderGraph> &render_graph,
                           std::unique_ptr<CommandBufferLog> &command_buffer)
 {

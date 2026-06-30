@@ -45,7 +45,7 @@ struct VKImageAccess {
 
 /** Struct describing the access to a buffer. */
 struct VKBufferAccess {
-  VkBuffer vk_buffer;
+  ResourceHandle handle;
   VkAccessFlags vk_access_flags;
 };
 

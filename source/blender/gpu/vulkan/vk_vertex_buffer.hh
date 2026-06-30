@@ -36,6 +36,10 @@ class VKVertexBuffer : public VertBuf {
   {
     return buffer_.vk_handle();
   }
+  const VKResourceWithHandle<VkBuffer> &resource() const
+  {
+    return buffer_.resource();
+  }
 
   VkDeviceAddress device_address_get() const
   {

@@ -14,10 +14,10 @@ TEST_P(VKRenderGraphTestRender, begin_clear_attachments_end_read_back)
 {
   VkHandle<VkImage> image(1u);
   VkHandle<VkImageView> image_view(2u);
-  VkHandle<VkBuffer> buffer(3u);
+  VKTrackedHandle<VkBuffer> buffer(3u);
 
   resources.add_image(image, false);
-  resources.add_buffer(buffer);
+  buffer.set_resource_handle(resources.add_buffer(buffer));
 
   {
     VKResourceAccessInfo access_info = {};

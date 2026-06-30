@@ -763,7 +763,7 @@ void VKBackend::compute_dispatch_indirect(StorageBuf *indirect_buf)
   render_graph::VKResourceAccessInfo &resources = context.reset_and_get_access_info();
   render_graph::VKDispatchIndirectNode::CreateInfo dispatch_indirect_info(resources);
   context.update_pipeline_data(dispatch_indirect_info.dispatch_indirect_node.pipeline_data);
-  dispatch_indirect_info.dispatch_indirect_node.buffer = indirect_buffer.vk_handle();
+  dispatch_indirect_info.dispatch_indirect_node.buffer = indirect_buffer.resource();
   dispatch_indirect_info.dispatch_indirect_node.offset = 0;
   context.render_graph().add_node(dispatch_indirect_info);
 }

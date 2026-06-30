@@ -45,7 +45,7 @@ VKBufferWithOffset VKBufferPool::append(Span<uint8_t> data)
     buffers_.append(std::move(new_buffer));
     buffer_offset_ = 0;
   }
-  VKBufferWithOffset result = {.buffer = buffers_.last()->vk_handle(), .offset = buffer_offset_};
+  VKBufferWithOffset result = {.buffer = buffers_.last()->resource(), .offset = buffer_offset_};
 
   /* Resize data_ when more space is needed than the default_buffer_size_. */
   if (buffer_offset_ + data.size() > data_.size()) {

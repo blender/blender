@@ -288,7 +288,7 @@ void VKTexture::read_sub(
     render_graph::VKCopyImageToBufferNode::CreateInfo copy_image_to_buffer = {};
     render_graph::VKCopyImageToBufferNode::Data &node_data = copy_image_to_buffer.node_data;
     node_data.src_image = vk_image_handle();
-    node_data.dst_buffer = staging_buffer.vk_handle();
+    node_data.dst_buffer = staging_buffer.resource();
     node_data.region.imageOffset.x = transfer_region.offset.x;
     node_data.region.imageOffset.y = transfer_region.offset.y;
     node_data.region.imageOffset.z = transfer_region.offset.z;
@@ -465,7 +465,7 @@ void VKTexture::update_sub(int mip,
   }
 
   VKBuffer staging_buffer;
-  VkBuffer vk_buffer = VK_NULL_HANDLE;
+  VKResourceWithHandle<VkBuffer> buffer = {};
   if (data) {
     staging_buffer.create(device_memory_size,
                           VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -475,7 +475,7 @@ void VKTexture::update_sub(int mip,
                           0.4f,
                           false,
                           "VKTexture::update_sub");
-    vk_buffer = staging_buffer.vk_handle();
+    buffer = staging_buffer.resource();
     /* Rows are sequentially stored, when unpack row length is 0, or equal to the extent width. In
      * other cases we unpack the rows to reduce the size of the staging buffer and data transfer.
      */
@@ -504,12 +504,12 @@ void VKTexture::update_sub(int mip,
   }
   else {
     BLI_assert(pixel_buffer);
-    vk_buffer = pixel_buffer->buffer_get().vk_handle();
+    buffer = pixel_buffer->buffer_get().resource();
   }
 
   render_graph::VKCopyBufferToImageNode::CreateInfo copy_buffer_to_image = {};
   render_graph::VKCopyBufferToImageNode::Data &node_data = copy_buffer_to_image.node_data;
-  node_data.src_buffer = vk_buffer;
+  node_data.src_buffer = buffer;
   node_data.dst_image = vk_image_handle();
   node_data.region.imageExtent.width = extent.x;
   node_data.region.imageExtent.height = extent.y;

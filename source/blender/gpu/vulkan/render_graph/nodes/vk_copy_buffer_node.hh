@@ -15,8 +15,8 @@ namespace blender::gpu::render_graph {
  * Information stored inside the render graph node. See `VKRenderGraphNode`.
  */
 struct VKCopyBufferData {
-  VkBuffer src_buffer;
-  VkBuffer dst_buffer;
+  VKResourceWithHandle<VkBuffer> src_buffer;
+  VKResourceWithHandle<VkBuffer> dst_buffer;
   VkBufferCopy region;
 };
 
@@ -61,7 +61,8 @@ class VKCopyBufferNode : public VKNodeInfo<VKNodeType::COPY_BUFFER,
                       Span<uint8_t> /*storage_push_constants*/,
                       VKBoundPipelines & /*r_bound_pipelines*/) override
   {
-    command_buffer.copy_buffer(data.src_buffer, data.dst_buffer, 1, &data.region);
+    command_buffer.copy_buffer(
+        data.src_buffer.vk_handle, data.dst_buffer.vk_handle, 1, &data.region);
   }
 };
 }  // namespace blender::gpu::render_graph

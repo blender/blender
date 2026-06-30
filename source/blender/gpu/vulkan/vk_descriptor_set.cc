@@ -71,7 +71,7 @@ void VKDescriptorSetTracker::update_resource_access_info_binding_uniform_buffer(
 {
   VKUniformBuffer &uniform_buffer = *state_manager.uniform_buffers_.get(resource_binding.binding);
   uniform_buffer.ensure_updated();
-  access_info.buffers.append({uniform_buffer.vk_handle(), resource_binding.access_mask});
+  access_info.buffers.append({uniform_buffer.resource(), resource_binding.access_mask});
 }
 
 void VKDescriptorSetTracker::update_resource_access_info_binding_storage_buffer(
@@ -81,43 +81,43 @@ void VKDescriptorSetTracker::update_resource_access_info_binding_storage_buffer(
 {
   const BindSpaceStorageBuffers::Elem &elem = state_manager.storage_buffers_.get(
       resource_binding.binding);
-  VkBuffer vk_buffer = VK_NULL_HANDLE;
+  VKResourceWithHandle<VkBuffer> resource = {0};
   switch (elem.resource_type) {
     case BindSpaceStorageBuffers::Type::IndexBuffer: {
       VKIndexBuffer *index_buffer = static_cast<VKIndexBuffer *>(elem.resource);
       index_buffer->ensure_updated();
-      vk_buffer = index_buffer->vk_handle();
+      resource = index_buffer->resource();
       break;
     }
     case BindSpaceStorageBuffers::Type::VertexBuffer: {
       VKVertexBuffer *vertex_buffer = static_cast<VKVertexBuffer *>(elem.resource);
       vertex_buffer->ensure_updated();
-      vk_buffer = vertex_buffer->vk_handle();
+      resource = vertex_buffer->resource();
       break;
     }
     case BindSpaceStorageBuffers::Type::UniformBuffer: {
       VKUniformBuffer *uniform_buffer = static_cast<VKUniformBuffer *>(elem.resource);
       uniform_buffer->ensure_updated();
-      vk_buffer = uniform_buffer->vk_handle();
+      resource = uniform_buffer->resource();
       break;
     }
     case BindSpaceStorageBuffers::Type::StorageBuffer: {
       VKStorageBuffer *storage_buffer = static_cast<VKStorageBuffer *>(elem.resource);
       storage_buffer->ensure_allocated();
-      vk_buffer = storage_buffer->vk_handle();
+      resource = storage_buffer->resource();
       break;
     }
     case BindSpaceStorageBuffers::Type::Buffer: {
       VKBuffer *buffer = static_cast<VKBuffer *>(elem.resource);
-      vk_buffer = buffer->vk_handle();
+      resource = buffer->resource();
       break;
     }
     case BindSpaceStorageBuffers::Type::Unused: {
       BLI_assert_unreachable();
     }
   }
-  if (vk_buffer != VK_NULL_HANDLE) {
-    access_info.buffers.append({vk_buffer, resource_binding.access_mask});
+  if (resource.vk_handle != VK_NULL_HANDLE) {
+    access_info.buffers.append({resource.resource_handle, resource_binding.access_mask});
   }
 }
 
@@ -147,7 +147,7 @@ void VKDescriptorSetTracker::update_resource_access_info_binding_sampler(
     case BindSpaceTextures::Type::VertexBuffer: {
       VKVertexBuffer &vertex_buffer = *static_cast<VKVertexBuffer *>(elem.resource);
       vertex_buffer.ensure_updated();
-      access_info.buffers.append({vertex_buffer.vk_handle(), resource_binding.access_mask});
+      access_info.buffers.append({vertex_buffer.resource(), resource_binding.access_mask});
       break;
     }
     case BindSpaceTextures::Type::Texture: {
@@ -155,7 +155,7 @@ void VKDescriptorSetTracker::update_resource_access_info_binding_sampler(
       if (texture->type_ == GPU_TEXTURE_BUFFER) {
         VKVertexBuffer &vertex_buffer = *texture->source_buffer_;
         vertex_buffer.ensure_updated();
-        access_info.buffers.append({vertex_buffer.vk_handle(), resource_binding.access_mask});
+        access_info.buffers.append({vertex_buffer.resource(), resource_binding.access_mask});
       }
       else {
         VKSubImageRange subimage = {};

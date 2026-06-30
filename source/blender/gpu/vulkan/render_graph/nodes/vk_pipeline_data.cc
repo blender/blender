@@ -111,10 +111,10 @@ void vk_vertex_buffer_bindings_build_links(VKResourceStateTracker &resources,
                                            VKRenderGraphLinks &links,
                                            const VKVertexBufferBindings &vertex_buffers)
 {
-  for (const VkBuffer vk_buffer :
-       Span<VkBuffer>(vertex_buffers.buffer, vertex_buffers.buffer_count))
+  for (const ResourceHandle resource_handle :
+       Span<ResourceHandle>(vertex_buffers.resource_handles, vertex_buffers.buffer_count))
   {
-    ResourceWithStamp resource = resources.get_buffer(vk_buffer);
+    ResourceWithStamp resource = resources.get_buffer(resource_handle);
     links.buffers.append({resource, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT});
   }
 }

@@ -20,7 +20,7 @@ struct VKDrawIndexedIndirectData {
   VKPipelineDataGraphics graphics;
   VKIndexBufferBinding index_buffer;
   VKVertexBufferBindings vertex_buffers;
-  VkBuffer indirect_buffer;
+  VKResourceWithHandle<VkBuffer> indirect_buffer;
   VkDeviceSize offset;
   uint32_t draw_count;
   uint32_t stride;

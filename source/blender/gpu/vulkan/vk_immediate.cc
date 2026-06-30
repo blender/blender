@@ -104,7 +104,7 @@ void VKImmediate::end()
 
 VKBufferWithOffset VKImmediate::active_buffer() const
 {
-  VKBufferWithOffset result = {active_buffer_->vk_handle(), buffer_offset_};
+  VKBufferWithOffset result = {active_buffer_->resource(), buffer_offset_};
   return result;
 }
 

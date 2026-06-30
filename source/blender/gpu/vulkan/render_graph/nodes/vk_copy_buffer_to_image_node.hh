@@ -15,7 +15,7 @@ namespace blender::gpu::render_graph {
  * Information stored inside the render graph node. See `VKRenderGraphNode`.
  */
 struct VKCopyBufferToImageData {
-  VkBuffer src_buffer;
+  VKResourceWithHandle<VkBuffer> src_buffer;
   VkImage dst_image;
   VkBufferImageCopy region;
 };

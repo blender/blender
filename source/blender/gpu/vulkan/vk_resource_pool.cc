@@ -65,10 +65,10 @@ void VKDiscardPool::discard_image_view(VkImageView vk_image_view)
   image_views_.append_timeline(timeline_, vk_image_view);
 }
 
-void VKDiscardPool::discard_buffer(VkBuffer vk_buffer, VmaAllocation vma_allocation)
+void VKDiscardPool::discard_buffer(ResourceHandle buffer_handle, VmaAllocation vma_allocation)
 {
   std::scoped_lock mutex(mutex_);
-  buffers_.append_timeline(timeline_, std::pair(vk_buffer, vma_allocation));
+  buffers_.append_timeline(timeline_, std::pair(buffer_handle, vma_allocation));
 }
 
 void VKDiscardPool::discard_buffer_view(VkBufferView vk_buffer_view)
@@ -121,11 +121,11 @@ void VKDiscardPool::destroy_discarded_resources(VKDevice &device, TimelineValue 
     vkDestroyBufferView(device.vk_handle(), vk_buffer_view, nullptr);
   });
 
-  buffers_.remove_old(current_timeline, [&](std::pair<VkBuffer, VmaAllocation> buffer_allocation) {
-    device.resources.remove_buffer(buffer_allocation.first);
-    vmaDestroyBuffer(
-        device.mem_allocator_get(), buffer_allocation.first, buffer_allocation.second);
-  });
+  buffers_.remove_old(
+      current_timeline, [&](std::pair<ResourceHandle, VmaAllocation> buffer_allocation) {
+        VkBuffer vk_buffer = device.resources.remove_buffer(buffer_allocation.first);
+        vmaDestroyBuffer(device.mem_allocator_get(), vk_buffer, buffer_allocation.second);
+      });
 
   pipelines_.remove_old(current_timeline, [&](VkPipeline vk_pipeline) {
     vkDestroyPipeline(device.vk_handle(), vk_pipeline, nullptr);

@@ -63,6 +63,21 @@ struct VKSubImageRange {
   uint32_t layer_count = VK_REMAINING_ARRAY_LAYERS;
 };
 
+using ResourceHandle = uint64_t;
+template<typename HandleType> struct VKResourceWithHandle {
+  ResourceHandle resource_handle = 0;
+  HandleType vk_handle = VK_NULL_HANDLE;
+
+  operator ResourceHandle() const
+  {
+    return resource_handle;
+  }
+  operator HandleType() const
+  {
+    return vk_handle;
+  }
+};
+
 VkImageAspectFlags to_vk_image_aspect_flag_bits(const TextureFormat format);
 VkImageAspectFlags to_vk_image_aspect_flag_bits(const GPUFrameBufferBits buffers);
 VkFormat to_vk_format(const TextureFormat format);

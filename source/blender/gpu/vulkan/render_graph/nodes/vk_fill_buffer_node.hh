@@ -15,7 +15,7 @@ namespace blender::gpu::render_graph {
  * Information stored inside the render graph node. See `VKRenderGraphNode`.
  */
 struct VKFillBufferData {
-  VkBuffer vk_buffer;
+  VKResourceWithHandle<VkBuffer> buffer;
   VkDeviceSize size;
   uint32_t data;
 };
@@ -46,7 +46,7 @@ class VKFillBufferNode : public VKNodeInfo<VKNodeType::FILL_BUFFER,
                    VKRenderGraphLinks &links,
                    const CreateInfo &create_info) override
   {
-    ResourceWithStamp resource = resources.get_buffer_and_increase_stamp(create_info.vk_buffer);
+    ResourceWithStamp resource = resources.get_buffer_and_increase_stamp(create_info.buffer);
     links.buffers.append({resource, VK_ACCESS_TRANSFER_WRITE_BIT});
   }
 
@@ -58,7 +58,7 @@ class VKFillBufferNode : public VKNodeInfo<VKNodeType::FILL_BUFFER,
                       Span<uint8_t> /*storage_push_constants*/,
                       VKBoundPipelines & /*r_bound_pipelines*/) override
   {
-    command_buffer.fill_buffer(data.vk_buffer, 0, data.size, data.data);
+    command_buffer.fill_buffer(data.buffer, 0, data.size, data.data);
   }
 };
 }  // namespace blender::gpu::render_graph

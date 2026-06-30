@@ -44,7 +44,7 @@ void VKBatch::draw(int vertex_first, int vertex_count, int instance_first, int i
     draw_indexed.node_data.vertex_offset = index_buffer->index_base_get();
     draw_indexed.node_data.first_instance = instance_first;
 
-    draw_indexed.node_data.index_buffer.buffer = index_buffer->vk_handle();
+    draw_indexed.node_data.index_buffer.buffer = index_buffer->resource();
     draw_indexed.node_data.index_buffer.index_type = index_buffer->vk_index_type();
     vao.bind(draw_indexed.node_data.vertex_buffers);
     context.update_pipeline_data(framebuffer, prim_type, vao, draw_indexed.node_data.graphics);
@@ -76,10 +76,10 @@ void VKBatch::multi_draw_indirect(StorageBuf *indirect_buf,
                                   const intptr_t stride)
 {
   VKStorageBuffer &indirect_buffer = *unwrap(unwrap(indirect_buf));
-  multi_draw_indirect(indirect_buffer.vk_handle(), count, offset, stride);
+  multi_draw_indirect(indirect_buffer, count, offset, stride);
 }
 
-void VKBatch::multi_draw_indirect(const VkBuffer indirect_buffer,
+void VKBatch::multi_draw_indirect(const VKStorageBuffer &indirect_buffer,
                                   const int count,
                                   const intptr_t offset,
                                   const intptr_t stride)
@@ -102,12 +102,12 @@ void VKBatch::multi_draw_indirect(const VkBuffer indirect_buffer,
   if (draw_indexed) {
     render_graph::VKDrawIndexedIndirectNode::CreateInfo draw_indexed_indirect(
         resource_access_info);
-    draw_indexed_indirect.node_data.indirect_buffer = indirect_buffer;
+    draw_indexed_indirect.node_data.indirect_buffer = indirect_buffer.resource();
     draw_indexed_indirect.node_data.offset = offset;
     draw_indexed_indirect.node_data.draw_count = count;
     draw_indexed_indirect.node_data.stride = stride;
 
-    draw_indexed_indirect.node_data.index_buffer.buffer = index_buffer->vk_handle();
+    draw_indexed_indirect.node_data.index_buffer.buffer = index_buffer->resource();
     draw_indexed_indirect.node_data.index_buffer.index_type = index_buffer->vk_index_type();
     vao.bind(draw_indexed_indirect.node_data.vertex_buffers);
     context.update_pipeline_data(
@@ -117,7 +117,7 @@ void VKBatch::multi_draw_indirect(const VkBuffer indirect_buffer,
   }
   else {
     render_graph::VKDrawIndirectNode::CreateInfo draw(resource_access_info);
-    draw.node_data.indirect_buffer = indirect_buffer;
+    draw.node_data.indirect_buffer = indirect_buffer.resource();
     draw.node_data.offset = offset;
     draw.node_data.draw_count = count;
     draw.node_data.stride = stride;

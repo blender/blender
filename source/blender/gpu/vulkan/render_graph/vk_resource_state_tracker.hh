@@ -42,8 +42,6 @@ class VKCommandBuilder;
 struct VKRenderGraphLink;
 class VKScheduler;
 
-using ResourceHandle = uint64_t;
-
 /**
  * ModificationStamp is used to track resource modifications.
  *
@@ -161,7 +159,6 @@ class VKResourceStateTracker {
   Vector<Resource> resources_;
   Vector<ResourceHandle> unused_handles_;
   Map<VkImage, ResourceHandle> image_resources_;
-  Map<VkBuffer, ResourceHandle> buffer_resources_;
 
  public:
   /**
@@ -180,7 +177,7 @@ class VKResourceStateTracker {
    * When a buffer is created in VKBuffer, it needs to be registered in the device resources so the
    * resource state can be tracked during its lifetime.
    */
-  void add_buffer(VkBuffer vk_buffer, const char *name = nullptr);
+  ResourceHandle add_buffer(VkBuffer vk_buffer, const char *name = nullptr);
 
   /**
    * Register an image resource.
@@ -227,7 +224,7 @@ class VKResourceStateTracker {
    * When a buffer is destroyed by calling `vmaDestroyBuffer`, a call to `remove_buffer` is needed
    * to unregister the resource from state tracking.
    */
-  void remove_buffer(VkBuffer vk_buffer);
+  VkBuffer remove_buffer(ResourceHandle buffer_handle);
 
   /**
    * Return the current stamp of the resource, and increase the stamp.
@@ -251,7 +248,7 @@ class VKResourceStateTracker {
    * This function is called when adding a node to the render graph, during building resource
    * dependencies. See `VKNodeInfo.build_links`
    */
-  ResourceWithStamp get_buffer_and_increase_stamp(VkBuffer vk_buffer);
+  ResourceWithStamp get_buffer_and_increase_stamp(ResourceHandle buffer_handle);
 
   /**
    * Return the current stamp of the resource.
@@ -261,7 +258,7 @@ class VKResourceStateTracker {
    * This function is called when adding a node to the render graph, during building resource
    * dependencies. See `VKNodeInfo.build_links`
    */
-  ResourceWithStamp get_buffer(VkBuffer vk_buffer) const;
+  ResourceWithStamp get_buffer(ResourceHandle buffer_handle) const;
 
   /**
    * Return the current stamp of the resource.
