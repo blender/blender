@@ -6,8 +6,10 @@
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector_c.hh"
+#include "BLI_offset_indices.hh"
 #include "BLI_ordered_edge.hh"
 #include "BLI_rect.hh"
+#include "BLI_task.hh"
 
 #include "PRF_profile.hh"
 
@@ -1330,18 +1332,28 @@ float UVBorderEdge::length() const
 UVIslands::UVIslands(const MeshData &mesh_data)
 {
   PRF_scope(ProfileCategory::Editor);
-  islands.reserve(mesh_data.uv_island_len);
 
-  for (const int64_t uv_island_id : IndexRange(mesh_data.uv_island_len)) {
-    islands.append_as(UVIsland());
-    UVIsland *uv_island = &islands.last();
-    uv_island->id = uv_island_id;
-    for (const int primitive_i : mesh_data.corner_tris.index_range()) {
-      if (mesh_data.uv_island_ids[primitive_i] == uv_island_id) {
-        add_primitive(mesh_data, *uv_island, primitive_i);
+  /* Group primitives by island. */
+  Array<int> island_tri_offset_data;
+  Array<int> island_tri_index_data;
+  const GroupedSpan<int> tris_by_island = offset_indices::build_groups_from_indices(
+      mesh_data.uv_island_ids,
+      mesh_data.uv_island_len,
+      island_tri_offset_data,
+      island_tri_index_data);
+
+  islands.resize(mesh_data.uv_island_len);
+
+  /* Add primitive to island. */
+  threading::parallel_for(islands.index_range(), 1, [&](const IndexRange range) {
+    for (const int64_t uv_island_id : range) {
+      UVIsland &uv_island = islands[uv_island_id];
+      uv_island.id = uv_island_id;
+      for (const int primitive_i : tris_by_island[uv_island_id]) {
+        add_primitive(mesh_data, uv_island, primitive_i);
       }
     }
-  }
+  });
 }
 
 void UVIslands::extract_borders()
