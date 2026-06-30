@@ -251,6 +251,15 @@ static bool vk_instance_create_for_platform_checks(VkInstance *r_instance)
 {
   vk_restrict_loader_layers();
 
+  VkResult vk_result = volkInitialize();
+  if (vk_result != VK_SUCCESS) {
+    CLOG_ERROR(&LOG,
+               "Error initializing Vulkan loader: VkResult=%d, most likely cannot find the Vulkan "
+               "Loader provided by GPU driver/OS.",
+               vk_result);
+    return false;
+  }
+
   /* Initialize an vulkan 1.2 instance. */
   VkApplicationInfo vk_application_info = {VK_STRUCTURE_TYPE_APPLICATION_INFO};
   vk_application_info.pApplicationName = "Blender";
@@ -277,6 +286,7 @@ bool VKBackend::is_supported()
     CLOG_WARN(&LOG, "Unable to initialize a Vulkan 1.2 instance.");
     return false;
   }
+  volkLoadInstanceOnly(vk_instance);
 
   /* Go over all the devices. */
   uint32_t physical_devices_count = 0;

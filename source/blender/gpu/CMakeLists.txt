@@ -460,6 +460,14 @@ endif()
 
 
 if(WITH_VULKAN_BACKEND)
+  list(APPEND INC
+    ../../../extern/volk
+    ../../../extern/vulkan_memory_allocator
+  )
+  list(APPEND INC_SYS
+    ${VULKAN_INCLUDE_DIRS}
+    ${SHADERC_INCLUDE_DIRS}
+  )
   list(APPEND SRC
     ${VULKAN_SRC}
   )
@@ -468,6 +476,9 @@ if(WITH_VULKAN_BACKEND)
     PRIVATE bf::extern::xxhash
     PRIVATE bf::dependencies::optional::vulkan
     PRIVATE bf::dependencies::optional::shaderc
+    ${SHADERC_LIBRARIES}
+    extern_volk
+    extern_vulkan_memory_allocator
   )
 
   add_definitions(-DWITH_VULKAN_BACKEND)

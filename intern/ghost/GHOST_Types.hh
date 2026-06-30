@@ -13,6 +13,7 @@
 #include <string>
 
 #ifdef WITH_VULKAN_BACKEND
+#  define VK_NO_PROTOTYPES
 #  include <vulkan/vulkan_core.h>
 VK_DEFINE_HANDLE(VmaAllocator)
 #endif

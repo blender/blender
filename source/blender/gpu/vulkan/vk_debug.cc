@@ -173,13 +173,13 @@ void VKDebuggingTools::deinit(VkInstance vk_instance)
 void object_label(VkObjectType vk_object_type, uint64_t object_handle, const char *name)
 {
   const VKDevice &device = VKBackend::get().device;
-  if (G.debug & G_DEBUG_GPU && device.functions.vkSetDebugUtilsObjectName && object_handle != 0) {
+  if (G.debug & G_DEBUG_GPU && volk::vkSetDebugUtilsObjectNameEXT && object_handle != 0) {
     VkDebugUtilsObjectNameInfoEXT info = {};
     info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
     info.objectType = vk_object_type;
     info.objectHandle = object_handle;
     info.pObjectName = name;
-    device.functions.vkSetDebugUtilsObjectName(device.vk_handle(), &info);
+    volk::vkSetDebugUtilsObjectNameEXT(device.vk_handle(), &info);
   }
 }
 
@@ -262,8 +262,7 @@ void VKDebuggingTools::init_messenger(VkInstance vk_instance)
     return;
   }
 
-  VKDevice &device = VKBackend::get().device;
-  if (!device.functions.vkCreateDebugUtilsMessenger) {
+  if (!volk::vkCreateDebugUtilsMessengerEXT) {
     return;
   }
 
@@ -280,7 +279,7 @@ void VKDebuggingTools::init_messenger(VkInstance vk_instance)
                             VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
   create_info.pfnUserCallback = messenger_callback;
   create_info.pUserData = this;
-  device.functions.vkCreateDebugUtilsMessenger(
+  volk::vkCreateDebugUtilsMessengerEXT(
       vk_instance, &create_info, nullptr, &vk_debug_utils_messenger);
 }
 
@@ -290,8 +289,7 @@ void VKDebuggingTools::destroy_messenger(VkInstance vk_instance)
     return;
   }
 
-  VKDevice &device = VKBackend::get().device;
-  device.functions.vkDestroyDebugUtilsMessenger(vk_instance, vk_debug_utils_messenger, nullptr);
+  volk::vkDestroyDebugUtilsMessengerEXT(vk_instance, vk_debug_utils_messenger, nullptr);
   vk_debug_utils_messenger = VK_NULL_HANDLE;
 }
 

@@ -156,9 +156,12 @@ class VKCommandBufferInterface {
 class VKCommandBufferWrapper : public VKCommandBufferInterface {
  private:
   VkCommandBuffer vk_command_buffer_ = VK_NULL_HANDLE;
+  const VolkDeviceTable *functions = nullptr;
 
  public:
-  VKCommandBufferWrapper(VkCommandBuffer vk_command_buffer, const VKExtensions &extensions);
+  VKCommandBufferWrapper(VkCommandBuffer vk_command_buffer,
+                         const VolkDeviceTable &functions,
+                         const VKExtensions &extensions);
 
   void begin_recording() override;
   void end_recording() override;

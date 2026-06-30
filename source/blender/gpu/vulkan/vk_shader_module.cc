@@ -45,7 +45,8 @@ void VKShaderModule::finalize(StringRefNull name)
   }
 
   const VKDevice &device = VKBackend::get().device;
-  vkCreateShaderModule(device.vk_handle(), &create_info, nullptr, &vk_shader_module);
+  device.functions.vkCreateShaderModule(
+      device.vk_handle(), &create_info, nullptr, &vk_shader_module);
   debug::object_label(vk_shader_module, name.c_str());
 }
 

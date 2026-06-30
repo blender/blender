@@ -58,7 +58,8 @@ VKImageView::VKImageView(VKTexture &texture, const VKImageViewInfo &info, String
   image_view_info.subresourceRange.layerCount = info.layer_range.size();
 
   const VKDevice &device = VKBackend::get().device;
-  vkCreateImageView(device.vk_handle(), &image_view_info, nullptr, &vk_image_view_);
+  device.functions.vkCreateImageView(
+      device.vk_handle(), &image_view_info, nullptr, &vk_image_view_);
   debug::object_label(vk_image_view_, name.c_str());
 }
 

@@ -103,7 +103,8 @@ void VKDevice::wait_for_timeline(TimelineValue timeline)
   }
   VkSemaphoreWaitInfo vk_semaphore_wait_info = {
       VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO, nullptr, 0, 1, &vk_timeline_semaphore_, &timeline};
-  VkResult wait_result = vkWaitSemaphores(vk_device_, &vk_semaphore_wait_info, UINT64_MAX);
+  VkResult wait_result = functions.vkWaitSemaphores(
+      vk_device_, &vk_semaphore_wait_info, UINT64_MAX);
   if (wait_result != VK_SUCCESS) {
     CLOG_ERROR(
         &LOG, "Vulkan: failed to wait for synchronization timeline [%s]", to_string(wait_result));
@@ -113,7 +114,7 @@ void VKDevice::wait_for_timeline(TimelineValue timeline)
 void VKDevice::wait_queue_idle()
 {
   std::scoped_lock lock(*queue_mutex_);
-  vkQueueWaitIdle(vk_queue_);
+  functions.vkQueueWaitIdle(vk_queue_);
 }
 
 render_graph::VKRenderGraph *VKDevice::render_graph_new()
@@ -140,7 +141,8 @@ void VKDevice::submission_runner(VKDevice *device)
       nullptr,
       VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
       device->vk_queue_family_};
-  vkCreateCommandPool(device->vk_device_, &vk_command_pool_create_info, nullptr, &vk_command_pool);
+  device->functions.vkCreateCommandPool(
+      device->vk_device_, &vk_command_pool_create_info, nullptr, &vk_command_pool);
 
   render_graph::VKScheduler scheduler;
   render_graph::VKCommandBuilder command_builder;
@@ -181,13 +183,13 @@ void VKDevice::submission_runner(VKDevice *device)
             vk_command_pool,
             VK_COMMAND_BUFFER_LEVEL_PRIMARY,
             10};
-        vkAllocateCommandBuffers(
+        device->functions.vkAllocateCommandBuffers(
             device->vk_device_, &vk_command_buffer_allocate_info, command_buffers_unused.data());
       };
 
       vk_command_buffer = command_buffers_unused.pop_last();
       command_buffer = std::make_optional<render_graph::VKCommandBufferWrapper>(
-          vk_command_buffer, device->extensions_);
+          vk_command_buffer, device->functions, device->extensions_);
       command_buffer->begin_recording();
     }
 
@@ -240,7 +242,8 @@ void VKDevice::submission_runner(VKDevice *device)
 
       {
         std::scoped_lock lock_queue(*device->queue_mutex_);
-        vkQueueSubmit(device->vk_queue_, 1, &vk_submit_info, submit_task->signal_fence);
+        device->functions.vkQueueSubmit(
+            device->vk_queue_, 1, &vk_submit_info, submit_task->signal_fence);
       }
       if (submit_task->wait_for_submission != nullptr) {
         std::unique_lock<Mutex> lock(submit_task->wait_for_submission->is_submitted_mutex);
@@ -263,16 +266,16 @@ void VKDevice::submission_runner(VKDevice *device)
   /* Clear command buffers and pool */
   {
     std::scoped_lock lock(*device->queue_mutex_);
-    vkDeviceWaitIdle(device->vk_device_);
+    device->functions.vkDeviceWaitIdle(device->vk_device_);
   }
   command_buffers_in_use.remove_old(UINT64_MAX, [&](VkCommandBuffer vk_command_buffer) {
     command_buffers_unused.append(vk_command_buffer);
   });
-  vkFreeCommandBuffers(device->vk_device_,
-                       vk_command_pool,
-                       command_buffers_unused.size(),
-                       command_buffers_unused.data());
-  vkDestroyCommandPool(device->vk_device_, vk_command_pool, nullptr);
+  device->functions.vkFreeCommandBuffers(device->vk_device_,
+                                         vk_command_pool,
+                                         command_buffers_unused.size(),
+                                         command_buffers_unused.data());
+  device->functions.vkDestroyCommandPool(device->vk_device_, vk_command_pool, nullptr);
   CLOG_TRACE(&LOG, "Submission runner finished");
 }
 
@@ -287,7 +290,8 @@ void VKDevice::init_submission_thread()
       VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO, nullptr, VK_SEMAPHORE_TYPE_TIMELINE, 0};
   VkSemaphoreCreateInfo vk_semaphore_create_info = {
       VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO, &vk_semaphore_type_create_info, 0};
-  vkCreateSemaphore(vk_device_, &vk_semaphore_create_info, nullptr, &vk_timeline_semaphore_);
+  functions.vkCreateSemaphore(
+      vk_device_, &vk_semaphore_create_info, nullptr, &vk_timeline_semaphore_);
 
   submission_thread_ = std::thread(VKDevice::submission_runner, this);
 }
@@ -309,7 +313,7 @@ void VKDevice::deinit_submission_thread()
   BLI_thread_queue_free(unused_render_graphs_);
   unused_render_graphs_ = nullptr;
 
-  vkDestroySemaphore(vk_device_, vk_timeline_semaphore_, nullptr);
+  functions.vkDestroySemaphore(vk_device_, vk_timeline_semaphore_, nullptr);
   vk_timeline_semaphore_ = VK_NULL_HANDLE;
 }
 

@@ -240,44 +240,7 @@ class VKDevice : public NonCopyable {
   /** Buffer to bind to unbound resource locations. */
   VKBuffer dummy_buffer;
 
-  /**
-   * This struct contains the functions pointer to extension provided functions.
-   */
-  struct {
-    /* Extension: VK_KHR_dynamic_rendering */
-    PFN_vkCmdBeginRendering vkCmdBeginRendering = nullptr;
-    PFN_vkCmdEndRendering vkCmdEndRendering = nullptr;
-
-    /* Extension: VK_EXT_debug_utils */
-    PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabel = nullptr;
-    PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabel = nullptr;
-    PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectName = nullptr;
-    PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessenger = nullptr;
-    PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessenger = nullptr;
-
-    /* Extension: VK_EXT_extended_dynamic_state */
-    PFN_vkCmdSetFrontFace vkCmdSetFrontFace = nullptr;
-
-    /* Extension: VK_EXT_vertex_input_dynamic_state */
-    PFN_vkCmdSetVertexInputEXT vkCmdSetVertexInput = nullptr;
-
-    /* Extension: VK_KHR_external_memory_fd */
-    PFN_vkGetMemoryFdKHR vkGetMemoryFd = nullptr;
-
-    /* Extension: VK_EXT_host_image_copy */
-    PFN_vkCopyMemoryToImageEXT vkCopyMemoryToImage = nullptr;
-    PFN_vkTransitionImageLayoutEXT vkTransitionImageLayout = nullptr;
-
-    /* Extension: VK_KHR_maintenance4 */
-    PFN_vkGetDeviceImageMemoryRequirements vkGetDeviceImageMemoryRequirements = nullptr;
-    PFN_vkGetDeviceBufferMemoryRequirements vkGetDeviceBufferMemoryRequirements = nullptr;
-
-#ifdef _WIN32
-    /* Extension: VK_KHR_external_memory_win32 */
-    PFN_vkGetMemoryWin32HandleKHR vkGetMemoryWin32Handle = nullptr;
-#endif
-
-  } functions;
+  VolkDeviceTable functions = {};
 
   VKMemoryPools vma_pools;
 
@@ -429,7 +392,7 @@ class VKDevice : public NonCopyable {
   {
     BLI_assert(vk_timeline_semaphore_ != VK_NULL_HANDLE);
     TimelineValue current_timeline;
-    VkResult result = vkGetSemaphoreCounterValue(
+    VkResult result = functions.vkGetSemaphoreCounterValue(
         vk_device_, vk_timeline_semaphore_, &current_timeline);
     UNUSED_VARS(result);
     BLI_assert_msg(

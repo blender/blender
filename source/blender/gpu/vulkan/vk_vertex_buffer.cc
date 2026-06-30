@@ -60,7 +60,8 @@ void VKVertexBuffer::ensure_buffer_view()
   buffer_view_info.range = buffer_.size_in_bytes();
 
   const VKDevice &device = VKBackend::get().device;
-  vkCreateBufferView(device.vk_handle(), &buffer_view_info, nullptr, &vk_buffer_view_);
+  device.functions.vkCreateBufferView(
+      device.vk_handle(), &buffer_view_info, nullptr, &vk_buffer_view_);
   debug::object_label(vk_buffer_view_, "VertexBufferView");
 }
 

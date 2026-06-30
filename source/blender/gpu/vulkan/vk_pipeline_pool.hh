@@ -271,11 +271,11 @@ template<typename PipelineInfo> class VKPipelineMap {
    *
    * \note Handle is passed to fix recursive inclusion of vk_device.hh
    */
-  void free_data(VkDevice vk_device)
+  void free_data(VkDevice vk_device, const volk::VolkDeviceTable &functions)
   {
     std::scoped_lock lock(mutex_);
     for (VkPipeline &vk_pipeline : pipelines_.values()) {
-      vkDestroyPipeline(vk_device, vk_pipeline, nullptr);
+      functions.vkDestroyPipeline(vk_device, vk_pipeline, nullptr);
     }
     pipelines_.clear();
   }
@@ -450,7 +450,7 @@ class VKPipelinePool : public NonCopyable {
    * Function is called just before the device is removed. This cannot be done in the destructor as
    * that would be called after the device is removed.
    */
-  void free_data();
+  void free_data(const VKDevice &device);
 
   /**
    * Read the static pipeline cache from cache file.

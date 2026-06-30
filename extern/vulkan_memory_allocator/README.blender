@@ -3,6 +3,8 @@ URL: https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator
 License: SPDX:MIT
 Copyright: "Copyright (c) 2017-2025 Advanced Micro Devices, Inc. All rights reserved."
 Upstream version: 1d8f600
-Local modifications: None
+Local modifications:
 
-
+- Added vk_mem_alloc_impl.cc for custom configuration.
+- Added volk configuration.
+- Use custom log format.

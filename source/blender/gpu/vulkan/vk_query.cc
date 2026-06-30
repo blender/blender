@@ -21,7 +21,7 @@ VKQueryPool::~VKQueryPool()
 
   while (!vk_query_pools_.is_empty()) {
     VkQueryPool vk_query_pool = vk_query_pools_.pop_last();
-    vkDestroyQueryPool(device.vk_handle(), vk_query_pool, nullptr);
+    device.functions.vkDestroyQueryPool(device.vk_handle(), vk_query_pool, nullptr);
   }
 }
 
@@ -54,7 +54,7 @@ void VKQueryPool::begin_query()
     create_info.queryCount = query_chunk_len_;
 
     VkQueryPool vk_query_pool = VK_NULL_HANDLE;
-    vkCreateQueryPool(device.vk_handle(), &create_info, nullptr, &vk_query_pool);
+    device.functions.vkCreateQueryPool(device.vk_handle(), &create_info, nullptr, &vk_query_pool);
     vk_query_pools_.append(vk_query_pool);
   }
   BLI_assert(pool_index < vk_query_pools_.size());
@@ -104,14 +104,14 @@ void VKQueryPool::get_occlusion_result(MutableSpan<uint32_t> r_values)
     VkQueryPool vk_query_pool = vk_query_pools_[pool_index];
     uint32_t *r_values_chunk = &r_values[pool_index * query_chunk_len_];
     uint32_t values_chunk_size = min_ii(queries_left, query_chunk_len_);
-    vkGetQueryPoolResults(device.vk_handle(),
-                          vk_query_pool,
-                          0,
-                          values_chunk_size,
-                          values_chunk_size * sizeof(uint32_t),
-                          r_values_chunk,
-                          sizeof(uint32_t),
-                          VK_QUERY_RESULT_WAIT_BIT);
+    device.functions.vkGetQueryPoolResults(device.vk_handle(),
+                                           vk_query_pool,
+                                           0,
+                                           values_chunk_size,
+                                           values_chunk_size * sizeof(uint32_t),
+                                           r_values_chunk,
+                                           sizeof(uint32_t),
+                                           VK_QUERY_RESULT_WAIT_BIT);
 
     queries_left = max_ii(queries_left - query_chunk_len_, 0);
     pool_index += 1;

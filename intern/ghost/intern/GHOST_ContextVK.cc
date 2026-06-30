@@ -6,22 +6,27 @@
  * \ingroup GHOST
  */
 
-#include "GHOST_ContextVK.hh"
-#include "GHOST_Types.hh"
 #include <vulkan/vulkan_core.h>
 
+#define VOLK_NAMESPACE
+#define VOLK_NO_DEVICE_PROTOTYPES
+#define VK_NO_PROTOTYPES
 #ifdef _WIN32
-#  include <vulkan/vulkan_win32.h>
+#  define VK_USE_PLATFORM_WIN32_KHR
 #elif defined(__APPLE__)
-#  include <vulkan/vulkan_metal.h>
-#else /* X11/WAYLAND. */
+#  define VK_USE_PLATFORM_METAL_EXT
+#else
 #  ifdef WITH_GHOST_X11
-#    include <vulkan/vulkan_xlib.h>
+#    define VK_USE_PLATFORM_XLIB_KHR
 #  endif
 #  ifdef WITH_GHOST_WAYLAND
-#    include <vulkan/vulkan_wayland.h>
+#    define VK_USE_PLATFORM_WAYLAND_KHR
 #  endif
 #endif
+#include "volk.h"
+
+#include "GHOST_ContextVK.hh"
+#include "GHOST_Types.hh"
 
 #include "vulkan/vk_ghost_api.hh"
 
@@ -70,35 +75,34 @@ static CLG_LogRef LOG = {"ghost.context"};
 /* -------------------------------------------------------------------- */
 /** \name Swap-chain resources
  * \{ */
-
-void GHOST_SwapchainImage::destroy(VkDevice vk_device)
+void GHOST_SwapchainImage::destroy(VkDevice vk_device, const VolkDeviceTable &functions)
 {
-  vkDestroySemaphore(vk_device, present_semaphore, nullptr);
+  functions.vkDestroySemaphore(vk_device, present_semaphore, nullptr);
   present_semaphore = VK_NULL_HANDLE;
   vk_image = VK_NULL_HANDLE;
 }
 
-void GHOST_FrameDiscard::destroy(VkDevice vk_device)
+void GHOST_FrameDiscard::destroy(VkDevice vk_device, const VolkDeviceTable &functions)
 {
   while (!swapchains.empty()) {
     VkSwapchainKHR vk_swapchain = swapchains.back();
     swapchains.pop_back();
-    vkDestroySwapchainKHR(vk_device, vk_swapchain, nullptr);
+    functions.vkDestroySwapchainKHR(vk_device, vk_swapchain, nullptr);
   }
   while (!semaphores.empty()) {
     VkSemaphore vk_semaphore = semaphores.back();
     semaphores.pop_back();
-    vkDestroySemaphore(vk_device, vk_semaphore, nullptr);
+    functions.vkDestroySemaphore(vk_device, vk_semaphore, nullptr);
   }
 }
 
-void GHOST_Frame::destroy(VkDevice vk_device)
+void GHOST_Frame::destroy(VkDevice vk_device, const VolkDeviceTable &functions)
 {
-  vkDestroyFence(vk_device, submission_fence, nullptr);
+  functions.vkDestroyFence(vk_device, submission_fence, nullptr);
   submission_fence = VK_NULL_HANDLE;
-  vkDestroySemaphore(vk_device, acquire_semaphore, nullptr);
+  functions.vkDestroySemaphore(vk_device, acquire_semaphore, nullptr);
   acquire_semaphore = VK_NULL_HANDLE;
-  discard_pile.destroy(vk_device);
+  discard_pile.destroy(vk_device, functions);
 }
 
 /** \} */
@@ -197,6 +201,7 @@ class GHOST_DeviceVK {
   GHOST_ExtensionsVK extensions;
 
   VkDevice vk_device = VK_NULL_HANDLE;
+  VolkDeviceTable functions = {};
 
   uint32_t generic_queue_family = 0;
   VkQueue generic_queue = VK_NULL_HANDLE;
@@ -228,7 +233,7 @@ class GHOST_DeviceVK {
         use_vk_ext_swapchain_colorspace(use_vk_ext_swapchain_colorspace)
   {
     properties.pNext = &properties_12;
-    vkGetPhysicalDeviceProperties2(vk_physical_device, &properties);
+    volk::vkGetPhysicalDeviceProperties2(vk_physical_device, &properties);
 
     features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
     features_11.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
@@ -237,7 +242,7 @@ class GHOST_DeviceVK {
     features_11.pNext = &features_12;
     features_12.pNext = &features_robustness2;
 
-    vkGetPhysicalDeviceFeatures2(vk_physical_device, &features);
+    volk::vkGetPhysicalDeviceFeatures2(vk_physical_device, &features);
     init_extensions();
   }
 
@@ -248,7 +253,7 @@ class GHOST_DeviceVK {
       vma_allocator = VK_NULL_HANDLE;
     }
     if (vk_device != VK_NULL_HANDLE) {
-      vkDestroyDevice(vk_device, nullptr);
+      functions.vkDestroyDevice(vk_device, nullptr);
       vk_device = VK_NULL_HANDLE;
     }
   }
@@ -256,11 +261,11 @@ class GHOST_DeviceVK {
   bool init_extensions()
   {
     uint32_t extensions_count;
-    VK_CHECK(vkEnumerateDeviceExtensionProperties(
+    VK_CHECK(volk::vkEnumerateDeviceExtensionProperties(
                  vk_physical_device, nullptr, &extensions_count, nullptr),
              false);
     extensions.extensions.resize(extensions_count);
-    VK_CHECK(vkEnumerateDeviceExtensionProperties(
+    VK_CHECK(volk::vkEnumerateDeviceExtensionProperties(
                  vk_physical_device, nullptr, &extensions_count, extensions.extensions.data()),
              false);
     return true;
@@ -270,17 +275,18 @@ class GHOST_DeviceVK {
   {
     if (vk_device) {
       std::scoped_lock lock(queue_mutex);
-      vkDeviceWaitIdle(vk_device);
+      functions.vkDeviceWaitIdle(vk_device);
     }
   }
 
   void init_generic_queue_family()
   {
     uint32_t queue_family_count = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(vk_physical_device, &queue_family_count, nullptr);
+    volk::vkGetPhysicalDeviceQueueFamilyProperties(
+        vk_physical_device, &queue_family_count, nullptr);
 
     vector<VkQueueFamilyProperties> queue_families(queue_family_count);
-    vkGetPhysicalDeviceQueueFamilyProperties(
+    volk::vkGetPhysicalDeviceQueueFamilyProperties(
         vk_physical_device, &queue_family_count, queue_families.data());
 
     generic_queue_family = 0;
@@ -299,7 +305,7 @@ class GHOST_DeviceVK {
 
   void init_generic_queue()
   {
-    vkGetDeviceQueue(vk_device, generic_queue_family, 0, &generic_queue);
+    functions.vkGetDeviceQueue(vk_device, generic_queue_family, 0, &generic_queue);
   }
 
   void init_memory_allocator(VkInstance vk_instance)
@@ -316,6 +322,9 @@ class GHOST_DeviceVK {
     if (extensions.is_enabled(VK_KHR_MAINTENANCE_4_EXTENSION_NAME)) {
       vma_allocator_create_info.flags |= VMA_ALLOCATOR_CREATE_KHR_MAINTENANCE4_BIT;
     }
+    VmaVulkanFunctions vma_vulkan_functions = {};
+    vmaImportVulkanFunctionsFromVolk(&vma_allocator_create_info, &vma_vulkan_functions);
+    vma_allocator_create_info.pVulkanFunctions = &vma_vulkan_functions;
     vmaCreateAllocator(&vma_allocator_create_info, &vma_allocator);
   }
 };
@@ -342,7 +351,7 @@ struct GHOST_InstanceVK {
   ~GHOST_InstanceVK()
   {
     device.reset();
-    vkDestroyInstance(vk_instance, nullptr);
+    volk::vkDestroyInstance(vk_instance, nullptr);
     vk_physical_device = VK_NULL_HANDLE;
     vk_instance = VK_NULL_HANDLE;
   }
@@ -350,9 +359,10 @@ struct GHOST_InstanceVK {
   bool init_extensions()
   {
     uint32_t extension_count = 0;
-    VK_CHECK(vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr), false);
+    VK_CHECK(volk::vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr),
+             false);
     extensions.extensions.resize(extension_count);
-    VK_CHECK(vkEnumerateInstanceExtensionProperties(
+    VK_CHECK(volk::vkEnumerateInstanceExtensionProperties(
                  nullptr, &extension_count, extensions.extensions.data()),
              false);
     return true;
@@ -378,7 +388,7 @@ struct GHOST_InstanceVK {
 
     };
 
-    VK_CHECK(vkCreateInstance(&vk_instance_create_info, nullptr, &vk_instance), false);
+    VK_CHECK(volk::vkCreateInstance(&vk_instance_create_info, nullptr, &vk_instance), false);
     return true;
   }
 
@@ -389,10 +399,10 @@ struct GHOST_InstanceVK {
     VkPhysicalDevice fallback_physical_device = VK_NULL_HANDLE;
 
     uint32_t device_count = 0;
-    vkEnumeratePhysicalDevices(vk_instance, &device_count, nullptr);
+    volk::vkEnumeratePhysicalDevices(vk_instance, &device_count, nullptr);
 
     vector<VkPhysicalDevice> physical_devices(device_count);
-    vkEnumeratePhysicalDevices(vk_instance, &device_count, physical_devices.data());
+    volk::vkEnumeratePhysicalDevices(vk_instance, &device_count, physical_devices.data());
 
     int best_device_score = -1;
     /* Index of the device in the full physical-device enumeration. Matches the trailing
@@ -755,8 +765,10 @@ struct GHOST_InstanceVK {
     }
 
     device_create_info.pNext = feature_struct_ptr[0];
-    VK_CHECK(vkCreateDevice(vk_physical_device, &device_create_info, nullptr, &device.vk_device),
-             GHOST_kFailure);
+    VK_CHECK(
+        volk::vkCreateDevice(vk_physical_device, &device_create_info, nullptr, &device.vk_device),
+        GHOST_kFailure);
+    volkLoadDeviceTable(&device.functions, device.vk_device);
     device.init_generic_queue();
     device.init_memory_allocator(vk_instance);
     return true;
@@ -852,7 +864,7 @@ GHOST_ContextVK::~GHOST_ContextVK()
     GHOST_InstanceVK &instance_vk = vulkan_instance.value();
     if (!instance_vk.device.has_value() || instance_vk.device->vk_device == VK_NULL_HANDLE) {
       if (surface_ != VK_NULL_HANDLE) {
-        vkDestroySurfaceKHR(instance_vk.vk_instance, surface_, nullptr);
+        volk::vkDestroySurfaceKHR(instance_vk.vk_instance, surface_, nullptr);
         surface_ = VK_NULL_HANDLE;
       }
       vulkan_instance.reset();
@@ -862,13 +874,13 @@ GHOST_ContextVK::~GHOST_ContextVK()
     GHOST_DeviceVK &device_vk = instance_vk.device.value();
     device_vk.wait_idle();
     for (VkFence fence : fence_pile_) {
-      vkDestroyFence(device_vk.vk_device, fence, nullptr);
+      device_vk.functions.vkDestroyFence(device_vk.vk_device, fence, nullptr);
     }
     fence_pile_.clear();
     destroySwapchain();
 
     if (surface_ != VK_NULL_HANDLE) {
-      vkDestroySurfaceKHR(instance_vk.vk_instance, surface_, nullptr);
+      volk::vkDestroySurfaceKHR(instance_vk.vk_instance, surface_, nullptr);
       surface_ = VK_NULL_HANDLE;
     }
 
@@ -910,12 +922,13 @@ GHOST_TSuccess GHOST_ContextVK::swapBufferAcquire()
    * still happen in parallel, but acquiring needs can only happen when the frame acquire semaphore
    * has been signaled and waited for. */
   if (submission_frame_data.submission_fence) {
-    vkWaitForFences(vk_device, 1, &submission_frame_data.submission_fence, true, UINT64_MAX);
+    device_vk.functions.vkWaitForFences(
+        vk_device, 1, &submission_frame_data.submission_fence, true, UINT64_MAX);
   }
   for (VkSwapchainKHR swapchain : submission_frame_data.discard_pile.swapchains) {
     this->destroySwapchainPresentFences(swapchain);
   }
-  submission_frame_data.discard_pile.destroy(vk_device);
+  submission_frame_data.discard_pile.destroy(vk_device, device_vk.functions);
 
   const bool use_hdr_swapchain = hdr_info_ &&
                                  (hdr_info_->wide_gamut_enabled || hdr_info_->hdr_enabled) &&
@@ -958,12 +971,13 @@ GHOST_TSuccess GHOST_ContextVK::swapBufferAcquire()
     while (swapchain_ != VK_NULL_HANDLE &&
            (ELEM(acquire_result, VK_ERROR_OUT_OF_DATE_KHR, VK_SUBOPTIMAL_KHR)))
     {
-      acquire_result = vkAcquireNextImageKHR(vk_device,
-                                             swapchain_,
-                                             UINT64_MAX,
-                                             submission_frame_data.acquire_semaphore,
-                                             VK_NULL_HANDLE,
-                                             &image_index);
+      acquire_result = device_vk.functions.vkAcquireNextImageKHR(
+          vk_device,
+          swapchain_,
+          UINT64_MAX,
+          submission_frame_data.acquire_semaphore,
+          VK_NULL_HANDLE,
+          &image_index);
       if (ELEM(acquire_result, VK_ERROR_OUT_OF_DATE_KHR, VK_SUBOPTIMAL_KHR)) {
         recreateSwapchain(use_hdr_swapchain);
       }
@@ -1007,7 +1021,7 @@ VkFence GHOST_ContextVK::getFence()
   GHOST_DeviceVK &device_vk = vulkan_instance->device.value();
   VkFence fence = VK_NULL_HANDLE;
   const VkFenceCreateInfo fence_create_info = {VK_STRUCTURE_TYPE_FENCE_CREATE_INFO};
-  vkCreateFence(device_vk.vk_device, &fence_create_info, nullptr, &fence);
+  device_vk.functions.vkCreateFence(device_vk.vk_device, &fence_create_info, nullptr, &fence);
   return fence;
 }
 
@@ -1023,10 +1037,10 @@ void GHOST_ContextVK::setPresentFence(VkSwapchainKHR swapchain, VkFence present_
     std::vector<VkFence>::iterator end = item.second.end();
     std::vector<VkFence>::iterator it = std::remove_if(
         item.second.begin(), item.second.end(), [&](const VkFence fence) {
-          if (vkGetFenceStatus(device_vk.vk_device, fence) == VK_NOT_READY) {
+          if (device_vk.functions.vkGetFenceStatus(device_vk.vk_device, fence) == VK_NOT_READY) {
             return false;
           }
-          vkResetFences(device_vk.vk_device, 1, &fence);
+          device_vk.functions.vkResetFences(device_vk.vk_device, 1, &fence);
           fence_pile_.push_back(fence);
           return true;
         });
@@ -1069,7 +1083,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBufferRelease()
   swap_chain_data.present_semaphore = swapchain_image.present_semaphore;
   swap_chain_data.sdr_scale = (hdr_info_) ? hdr_info_->sdr_white_level : 1.0f;
 
-  vkResetFences(vk_device, 1, &submission_frame_data.submission_fence);
+  device_vk.functions.vkResetFences(vk_device, 1, &submission_frame_data.submission_fence);
   if (swap_buffer_draw_callback_) {
     swap_buffer_draw_callback_(&swap_chain_data, true);
   }
@@ -1096,7 +1110,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBufferRelease()
 
       present_info.pNext = &fence_info;
     }
-    present_result = vkQueuePresentKHR(device_vk.generic_queue, &present_info);
+    present_result = device_vk.functions.vkQueuePresentKHR(device_vk.generic_queue, &present_info);
     this->setPresentFence(swapchain_, present_fence);
   }
   acquired_swapchain_image_index_.reset();
@@ -1244,9 +1258,10 @@ static GHOST_TSuccess selectPresentMode(const GHOST_TVSyncModes vsync,
                                         VkPresentModeKHR *r_presentMode)
 {
   uint32_t present_count;
-  vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &present_count, nullptr);
+  volk::vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &present_count, nullptr);
   vector<VkPresentModeKHR> presents(present_count);
-  vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &present_count, presents.data());
+  volk::vkGetPhysicalDeviceSurfacePresentModesKHR(
+      device, surface, &present_count, presents.data());
 
   if (vsync != GHOST_kVSyncModeUnset) {
     const bool vsync_off = (vsync == GHOST_kVSyncModeOff);
@@ -1293,9 +1308,10 @@ static bool selectSurfaceFormat(const VkPhysicalDevice physical_device,
                                 VkSurfaceFormatKHR &r_surfaceFormat)
 {
   uint32_t format_count;
-  vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface, &format_count, nullptr);
+  volk::vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface, &format_count, nullptr);
   vector<VkSurfaceFormatKHR> formats(format_count);
-  vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface, &format_count, formats.data());
+  volk::vkGetPhysicalDeviceSurfaceFormatsKHR(
+      physical_device, surface, &format_count, formats.data());
 
   array<VkSurfaceFormatKHR, 3> selection_order = {{
 #if defined(_WIN32) || defined(__APPLE__)
@@ -1324,7 +1340,8 @@ static bool selectSurfaceFormat(const VkPhysicalDevice physical_device,
 
 GHOST_TSuccess GHOST_ContextVK::initializeFrameData()
 {
-  VkDevice device = vulkan_instance.value().device.value().vk_device;
+  GHOST_DeviceVK &device_vk = vulkan_instance.value().device.value();
+  VkDevice device = device_vk.vk_device;
 
   const VkSemaphoreCreateInfo vk_semaphore_create_info = {
       VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO, nullptr, 0};
@@ -1333,7 +1350,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeFrameData()
   for (GHOST_SwapchainImage &swapchain_image : swapchain_images_) {
     /* VK_EXT_swapchain_maintenance1 reuses present semaphores. */
     if (swapchain_image.present_semaphore == VK_NULL_HANDLE) {
-      VK_CHECK(vkCreateSemaphore(
+      VK_CHECK(device_vk.functions.vkCreateSemaphore(
                    device, &vk_semaphore_create_info, nullptr, &swapchain_image.present_semaphore),
                GHOST_kFailure);
     }
@@ -1343,12 +1360,13 @@ GHOST_TSuccess GHOST_ContextVK::initializeFrameData()
     GHOST_Frame &frame_data = frame_data_[index];
     /* VK_EXT_swapchain_maintenance1 reuses acquire semaphores. */
     if (frame_data.acquire_semaphore == VK_NULL_HANDLE) {
-      VK_CHECK(vkCreateSemaphore(
+      VK_CHECK(device_vk.functions.vkCreateSemaphore(
                    device, &vk_semaphore_create_info, nullptr, &frame_data.acquire_semaphore),
                GHOST_kFailure);
     }
     if (frame_data.submission_fence == VK_NULL_HANDLE) {
-      VK_CHECK(vkCreateFence(device, &vk_fence_create_info, nullptr, &frame_data.submission_fence),
+      VK_CHECK(device_vk.functions.vkCreateFence(
+                   device, &vk_fence_create_info, nullptr, &frame_data.submission_fence),
                GHOST_kFailure);
     }
   }
@@ -1388,14 +1406,14 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain(bool use_hdr_swapchain)
   VkSurfaceCapabilitiesKHR capabilities = {};
 
   if (device_vk.use_vk_ext_swapchain_maintenance_1) {
-    VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilities2KHR(device_vk.vk_physical_device,
-                                                        &vk_physical_device_surface_info,
-                                                        &vk_surface_capabilities),
+    VK_CHECK(volk::vkGetPhysicalDeviceSurfaceCapabilities2KHR(device_vk.vk_physical_device,
+                                                              &vk_physical_device_surface_info,
+                                                              &vk_surface_capabilities),
              GHOST_kFailure);
     capabilities = vk_surface_capabilities.surfaceCapabilities;
   }
   else {
-    VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
+    VK_CHECK(volk::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
                  device_vk.vk_physical_device, surface_, &capabilities),
              GHOST_kFailure);
   }
@@ -1523,12 +1541,14 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain(bool use_hdr_swapchain)
   create_info.queueFamilyIndexCount = 0;
   create_info.pQueueFamilyIndices = nullptr;
 
-  VK_CHECK(vkCreateSwapchainKHR(device_vk.vk_device, &create_info, nullptr, &swapchain_),
+  VK_CHECK(device_vk.functions.vkCreateSwapchainKHR(
+               device_vk.vk_device, &create_info, nullptr, &swapchain_),
            GHOST_kFailure);
 
   /* image_count may not be what we requested! Getter for final value. */
   uint32_t actual_image_count = 0;
-  vkGetSwapchainImagesKHR(device_vk.vk_device, swapchain_, &actual_image_count, nullptr);
+  device_vk.functions.vkGetSwapchainImagesKHR(
+      device_vk.vk_device, swapchain_, &actual_image_count, nullptr);
   /* Some platforms require a minimum amount of render frames that is larger than we expect. When
    * that happens we should increase the number of frames in flight. We could also consider
    * splitting the frame in flight and image specific data. */
@@ -1539,7 +1559,7 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain(bool use_hdr_swapchain)
   }
   swapchain_images_.resize(actual_image_count);
   std::vector<VkImage> swapchain_images(actual_image_count);
-  vkGetSwapchainImagesKHR(
+  device_vk.functions.vkGetSwapchainImagesKHR(
       device_vk.vk_device, swapchain_, &actual_image_count, swapchain_images.data());
   for (int index = 0; index < actual_image_count; index++) {
     swapchain_images_[index].vk_image = swapchain_images[index];
@@ -1581,9 +1601,10 @@ void GHOST_ContextVK::destroySwapchainPresentFences(VkSwapchainKHR swapchain)
   GHOST_DeviceVK &device_vk = vulkan_instance.value().device.value();
   const std::vector<VkFence> &fences = present_fences_[swapchain];
   if (!fences.empty()) {
-    vkWaitForFences(device_vk.vk_device, fences.size(), fences.data(), VK_TRUE, UINT64_MAX);
+    device_vk.functions.vkWaitForFences(
+        device_vk.vk_device, fences.size(), fences.data(), VK_TRUE, UINT64_MAX);
     for (VkFence fence : fences) {
-      vkDestroyFence(device_vk.vk_device, fence, nullptr);
+      device_vk.functions.vkDestroyFence(device_vk.vk_device, fence, nullptr);
     }
   }
   present_fences_.erase(swapchain);
@@ -1595,18 +1616,18 @@ GHOST_TSuccess GHOST_ContextVK::destroySwapchain()
 
   if (swapchain_ != VK_NULL_HANDLE) {
     this->destroySwapchainPresentFences(swapchain_);
-    vkDestroySwapchainKHR(device_vk.vk_device, swapchain_, nullptr);
+    device_vk.functions.vkDestroySwapchainKHR(device_vk.vk_device, swapchain_, nullptr);
   }
   device_vk.wait_idle();
   for (GHOST_SwapchainImage &swapchain_image : swapchain_images_) {
-    swapchain_image.destroy(device_vk.vk_device);
+    swapchain_image.destroy(device_vk.vk_device, device_vk.functions);
   }
   swapchain_images_.clear();
   for (GHOST_Frame &frame_data : frame_data_) {
     for (VkSwapchainKHR swapchain : frame_data.discard_pile.swapchains) {
       this->destroySwapchainPresentFences(swapchain);
     }
-    frame_data.destroy(device_vk.vk_device);
+    frame_data.destroy(device_vk.vk_device, device_vk.functions);
   }
   frame_data_.clear();
 
@@ -1722,6 +1743,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
       vulkan_instance.reset();
       return GHOST_kFailure;
     }
+    volkLoadInstanceOnly(instance_vk.vk_instance);
   }
   GHOST_InstanceVK &instance_vk = vulkan_instance.value();
 
@@ -1732,16 +1754,16 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     surface_create_info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
     surface_create_info.hinstance = GetModuleHandle(nullptr);
     surface_create_info.hwnd = hwnd_;
-    VK_CHECK(
-        vkCreateWin32SurfaceKHR(instance_vk.vk_instance, &surface_create_info, nullptr, &surface_),
-        GHOST_kFailure);
+    VK_CHECK(volk::vkCreateWin32SurfaceKHR(
+                 instance_vk.vk_instance, &surface_create_info, nullptr, &surface_),
+             GHOST_kFailure);
 #elif defined(__APPLE__)
     VkMetalSurfaceCreateInfoEXT info = {};
     info.sType = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
     info.pNext = nullptr;
     info.flags = 0;
     info.pLayer = static_cast<CAMetalLayer *>(metal_layer_);
-    VK_CHECK(vkCreateMetalSurfaceEXT(instance_vk.vk_instance, &info, nullptr, &surface_),
+    VK_CHECK(volk::vkCreateMetalSurfaceEXT(instance_vk.vk_instance, &info, nullptr, &surface_),
              GHOST_kFailure);
 #else
     switch (platform_) {
@@ -1751,7 +1773,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
         surface_create_info.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
         surface_create_info.dpy = display_;
         surface_create_info.window = window_;
-        VK_CHECK(vkCreateXlibSurfaceKHR(
+        VK_CHECK(volk::vkCreateXlibSurfaceKHR(
                      instance_vk.vk_instance, &surface_create_info, nullptr, &surface_),
                  GHOST_kFailure);
         break;

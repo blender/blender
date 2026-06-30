@@ -107,7 +107,7 @@ void VKDiscardPool::destroy_discarded_resources(VKDevice &device, TimelineValue 
   swapchain_images_.remove_old(current_timeline,
                                [&](VkImage vk_image) { device.resources.remove_image(vk_image); });
   image_views_.remove_old(current_timeline, [&](VkImageView vk_image_view) {
-    vkDestroyImageView(device.vk_handle(), vk_image_view, nullptr);
+    device.functions.vkDestroyImageView(device.vk_handle(), vk_image_view, nullptr);
   });
 
   allocations_.remove_old(current_timeline, [&](VmaAllocation vma_allocation) {
@@ -118,7 +118,7 @@ void VKDiscardPool::destroy_discarded_resources(VKDevice &device, TimelineValue 
     vmaDestroyImage(device.mem_allocator_get(), image_allocation.first, image_allocation.second);
   });
   buffer_views_.remove_old(current_timeline, [&](VkBufferView vk_buffer_view) {
-    vkDestroyBufferView(device.vk_handle(), vk_buffer_view, nullptr);
+    device.functions.vkDestroyBufferView(device.vk_handle(), vk_buffer_view, nullptr);
   });
 
   buffers_.remove_old(
@@ -128,15 +128,15 @@ void VKDiscardPool::destroy_discarded_resources(VKDevice &device, TimelineValue 
       });
 
   pipelines_.remove_old(current_timeline, [&](VkPipeline vk_pipeline) {
-    vkDestroyPipeline(device.vk_handle(), vk_pipeline, nullptr);
+    device.functions.vkDestroyPipeline(device.vk_handle(), vk_pipeline, nullptr);
   });
 
   pipeline_layouts_.remove_old(current_timeline, [&](VkPipelineLayout vk_pipeline_layout) {
-    vkDestroyPipelineLayout(device.vk_handle(), vk_pipeline_layout, nullptr);
+    device.functions.vkDestroyPipelineLayout(device.vk_handle(), vk_pipeline_layout, nullptr);
   });
 
   shader_modules_.remove_old(current_timeline, [&](VkShaderModule vk_shader_module) {
-    vkDestroyShaderModule(device.vk_handle(), vk_shader_module, nullptr);
+    device.functions.vkDestroyShaderModule(device.vk_handle(), vk_shader_module, nullptr);
   });
 
   descriptor_pools_.remove_old(

@@ -88,9 +88,13 @@ if(WITH_VULKAN_BACKEND)
 
     intern/GHOST_ContextVK.hh
   )
+  list(APPEND INC_SYS
+    PUBLIC ${VULKAN_INCLUDE_DIRS}
+  )
   list(APPEND LIB
     PUBLIC bf::dependencies::optional::vulkan
     PRIVATE bf::extern::vulkan_memory_allocator
+    PRIVATE bf::extern::volk
   )
 
   add_definitions(-DWITH_VULKAN_BACKEND)

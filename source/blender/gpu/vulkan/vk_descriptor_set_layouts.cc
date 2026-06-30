@@ -46,10 +46,10 @@ VkDescriptorSetLayout VKDescriptorSetLayouts::get_or_create(const VKDescriptorSe
   vk_descriptor_set_layout_create_info_.pBindings = vk_descriptor_set_layout_bindings_.data();
 
   VkDescriptorSetLayout vk_descriptor_set_layout = VK_NULL_HANDLE;
-  vkCreateDescriptorSetLayout(device.vk_handle(),
-                              &vk_descriptor_set_layout_create_info_,
-                              nullptr,
-                              &vk_descriptor_set_layout);
+  device.functions.vkCreateDescriptorSetLayout(device.vk_handle(),
+                                               &vk_descriptor_set_layout_create_info_,
+                                               nullptr,
+                                               &vk_descriptor_set_layout);
   BLI_assert(vk_descriptor_set_layout != VK_NULL_HANDLE);
 
   vk_descriptor_set_layout_create_info_.bindingCount = 0;
@@ -85,7 +85,8 @@ void VKDescriptorSetLayouts::deinit()
   std::scoped_lock mutex(mutex_);
   const VKDevice &device = VKBackend::get().device;
   for (VkDescriptorSetLayout &vk_descriptor_set_layout : vk_descriptor_set_layouts_.values()) {
-    vkDestroyDescriptorSetLayout(device.vk_handle(), vk_descriptor_set_layout, nullptr);
+    device.functions.vkDestroyDescriptorSetLayout(
+        device.vk_handle(), vk_descriptor_set_layout, nullptr);
   }
   vk_descriptor_set_layouts_.clear();
 }

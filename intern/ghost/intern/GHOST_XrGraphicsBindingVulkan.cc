@@ -48,8 +48,8 @@ GHOST_XrGraphicsBindingVulkan::~GHOST_XrGraphicsBindingVulkan()
   }
 
   for (ImportedMemory &imported_memory : imported_memory_) {
-    vkDestroyImage(vk_device_, imported_memory.vk_image_xr, nullptr);
-    vkFreeMemory(vk_device_, imported_memory.vk_device_memory_xr, nullptr);
+    functions.vkDestroyImage(vk_device_, imported_memory.vk_image_xr, nullptr);
+    functions.vkFreeMemory(vk_device_, imported_memory.vk_device_memory_xr, nullptr);
   }
   imported_memory_.clear();
 
@@ -61,13 +61,13 @@ GHOST_XrGraphicsBindingVulkan::~GHOST_XrGraphicsBindingVulkan()
 
   /* Destroy command buffer */
   if (vk_command_buffer_ != VK_NULL_HANDLE) {
-    vkFreeCommandBuffers(vk_device_, vk_command_pool_, 1, &vk_command_buffer_);
+    functions.vkFreeCommandBuffers(vk_device_, vk_command_pool_, 1, &vk_command_buffer_);
     vk_command_buffer_ = VK_NULL_HANDLE;
   }
 
   /* Destroy command pool */
   if (vk_command_pool_ != VK_NULL_HANDLE) {
-    vkDestroyCommandPool(vk_device_, vk_command_pool_, nullptr);
+    functions.vkDestroyCommandPool(vk_device_, vk_command_pool_, nullptr);
     vk_command_pool_ = VK_NULL_HANDLE;
   }
 
@@ -75,7 +75,7 @@ GHOST_XrGraphicsBindingVulkan::~GHOST_XrGraphicsBindingVulkan()
 
   /* Destroy device */
   if (vk_device_ != VK_NULL_HANDLE) {
-    vkDestroyDevice(vk_device_, nullptr);
+    functions.vkDestroyDevice(vk_device_, nullptr);
     vk_device_ = VK_NULL_HANDLE;
   }
 
@@ -289,8 +289,9 @@ void GHOST_XrGraphicsBindingVulkan::initFromGhostContext(GHOST_Context &ghost_ct
   CHECK_XR(functions_.xrCreateVulkanDeviceKHR(
                instance, &xr_device_create_info, &vk_device_, &vk_result),
            "Unable to create an OpenXR compatible Vulkan logical device.");
+  volkLoadDeviceTable(&functions, vk_device_);
 
-  vkGetDeviceQueue(vk_device_, graphics_queue_family_, 0, &vk_queue_);
+  functions.vkGetDeviceQueue(vk_device_, graphics_queue_family_, 0, &vk_queue_);
 
   /* Command buffer pool */
   VkCommandPoolCreateInfo vk_command_pool_create_info = {
@@ -298,7 +299,8 @@ void GHOST_XrGraphicsBindingVulkan::initFromGhostContext(GHOST_Context &ghost_ct
       nullptr,
       VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
       graphics_queue_family_};
-  vkCreateCommandPool(vk_device_, &vk_command_pool_create_info, nullptr, &vk_command_pool_);
+  functions.vkCreateCommandPool(
+      vk_device_, &vk_command_pool_create_info, nullptr, &vk_command_pool_);
 
   /* Command buffer */
   VkCommandBufferAllocateInfo vk_command_buffer_allocate_info = {
@@ -307,7 +309,8 @@ void GHOST_XrGraphicsBindingVulkan::initFromGhostContext(GHOST_Context &ghost_ct
       vk_command_pool_,
       VK_COMMAND_BUFFER_LEVEL_PRIMARY,
       1};
-  vkAllocateCommandBuffers(vk_device_, &vk_command_buffer_allocate_info, &vk_command_buffer_);
+  functions.vkAllocateCommandBuffers(
+      vk_device_, &vk_command_buffer_allocate_info, &vk_command_buffer_);
 
   /* Select the best data transfer mode based on the OpenXR device and ContextVK. */
   data_transfer_mode_ = choseDataTransferMode();
@@ -320,6 +323,9 @@ void GHOST_XrGraphicsBindingVulkan::initFromGhostContext(GHOST_Context &ghost_ct
     allocator_create_info.physicalDevice = vk_physical_device_;
     allocator_create_info.device = vk_device_;
     allocator_create_info.instance = vk_instance_;
+    VmaVulkanFunctions vma_vulkan_functions = {};
+    vmaImportVulkanFunctionsFromVolk(&allocator_create_info, &vma_vulkan_functions);
+    allocator_create_info.pVulkanFunctions = &vma_vulkan_functions;
     vmaCreateAllocator(&allocator_create_info, &vma_allocator_);
   }
 
@@ -701,7 +707,7 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageCpu(
       nullptr,
       VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
       nullptr};
-  vkBeginCommandBuffer(vk_command_buffer, &vk_command_buffer_begin_info);
+  functions.vkBeginCommandBuffer(vk_command_buffer, &vk_command_buffer_begin_info);
 
   /* Transfer imported render result & swap-chain image (UNDEFINED -> GENERAL). */
   VkImageMemoryBarrier vk_image_memory_barrier = {VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -714,16 +720,16 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageCpu(
                                                   VK_QUEUE_FAMILY_IGNORED,
                                                   swapchain_image.image,
                                                   {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}};
-  vkCmdPipelineBarrier(vk_command_buffer,
-                       VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                       VK_PIPELINE_STAGE_TRANSFER_BIT,
-                       0,
-                       0,
-                       nullptr,
-                       0,
-                       nullptr,
-                       1,
-                       &vk_image_memory_barrier);
+  functions.vkCmdPipelineBarrier(vk_command_buffer,
+                                 VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                                 VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                 0,
+                                 0,
+                                 nullptr,
+                                 0,
+                                 nullptr,
+                                 1,
+                                 &vk_image_memory_barrier);
 
   /* Copy buffer to image */
   VkBufferImageCopy vk_buffer_image_copy = {
@@ -733,25 +739,25 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageCpu(
       {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
       {draw_info.ofsx, draw_info.ofsy, 0},
       {openxr_data.extent.width, openxr_data.extent.height, 1}};
-  vkCmdCopyBufferToImage(vk_command_buffer,
-                         vk_buffer_,
-                         swapchain_image.image,
-                         VK_IMAGE_LAYOUT_GENERAL,
-                         1,
-                         &vk_buffer_image_copy);
+  functions.vkCmdCopyBufferToImage(vk_command_buffer,
+                                   vk_buffer_,
+                                   swapchain_image.image,
+                                   VK_IMAGE_LAYOUT_GENERAL,
+                                   1,
+                                   &vk_buffer_image_copy);
 
   /* - End command recording */
-  vkEndCommandBuffer(vk_command_buffer);
+  functions.vkEndCommandBuffer(vk_command_buffer);
   /* - Submit command buffer to queue. */
   VkSubmitInfo vk_submit_info = {
       VK_STRUCTURE_TYPE_SUBMIT_INFO, nullptr, 0, nullptr, nullptr, 1, &vk_command_buffer};
-  vkQueueSubmit(vk_queue_, 1, &vk_submit_info, VK_NULL_HANDLE);
+  functions.vkQueueSubmit(vk_queue_, 1, &vk_submit_info, VK_NULL_HANDLE);
 
   /* - Wait until device is idle. */
-  vkQueueWaitIdle(vk_queue_);
+  functions.vkQueueWaitIdle(vk_queue_);
 
   /* - Reset command buffer for next eye/frame */
-  vkResetCommandBuffer(vk_command_buffer, 0);
+  functions.vkResetCommandBuffer(vk_command_buffer, 0);
 
   /* Release frame buffer image. */
   ghost_ctx_.openxr_release_framebuffer_image_callback_(&openxr_data);
@@ -808,8 +814,8 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageGpu(
   /* Create an image handle */
   if (openxr_data.gpu.new_handle) {
     if (imported_memory->vk_image_xr) {
-      vkDestroyImage(vk_device_, imported_memory->vk_image_xr, nullptr);
-      vkFreeMemory(vk_device_, imported_memory->vk_device_memory_xr, nullptr);
+      functions.vkDestroyImage(vk_device_, imported_memory->vk_image_xr, nullptr);
+      functions.vkFreeMemory(vk_device_, imported_memory->vk_device_memory_xr, nullptr);
       imported_memory->vk_device_memory_xr = VK_NULL_HANDLE;
       imported_memory->vk_image_xr = VK_NULL_HANDLE;
     }
@@ -846,11 +852,11 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageGpu(
                                        nullptr,
                                        VK_IMAGE_LAYOUT_UNDEFINED};
 
-    vkCreateImage(vk_device_, &vk_image_info, nullptr, &imported_memory->vk_image_xr);
+    functions.vkCreateImage(vk_device_, &vk_image_info, nullptr, &imported_memory->vk_image_xr);
 
     /* Get the memory requirements */
     VkMemoryRequirements vk_memory_requirements = {};
-    vkGetImageMemoryRequirements(
+    functions.vkGetImageMemoryRequirements(
         vk_device_, imported_memory->vk_image_xr, &vk_memory_requirements);
 
     /* Import the memory */
@@ -868,7 +874,7 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageGpu(
         VkMemoryAllocateInfo allocate_info = {VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
                                               &import_memory_info,
                                               vk_memory_requirements.size};
-        vkAllocateMemory(
+        functions.vkAllocateMemory(
             vk_device_, &allocate_info, nullptr, &imported_memory->vk_device_memory_xr);
         break;
       }
@@ -883,7 +889,7 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageGpu(
         VkMemoryAllocateInfo allocate_info = {VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
                                               &import_memory_info,
                                               vk_memory_requirements.size};
-        vkAllocateMemory(
+        functions.vkAllocateMemory(
             vk_device_, &allocate_info, nullptr, &imported_memory->vk_device_memory_xr);
 #endif
         break;
@@ -895,10 +901,10 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageGpu(
     }
 
     /* Bind the imported memory to the image. */
-    vkBindImageMemory(vk_device_,
-                      imported_memory->vk_image_xr,
-                      imported_memory->vk_device_memory_xr,
-                      openxr_data.gpu.memory_offset);
+    functions.vkBindImageMemory(vk_device_,
+                                imported_memory->vk_image_xr,
+                                imported_memory->vk_device_memory_xr,
+                                openxr_data.gpu.memory_offset);
   }
 
   /* Copy frame buffer image to swapchain image. */
@@ -910,7 +916,7 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageGpu(
       nullptr,
       VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
       nullptr};
-  vkBeginCommandBuffer(vk_command_buffer, &vk_command_buffer_begin_info);
+  functions.vkBeginCommandBuffer(vk_command_buffer, &vk_command_buffer_begin_info);
 
   /* Transfer imported render result & swap-chain image (UNDEFINED -> GENERAL). */
   VkImageMemoryBarrier vk_image_memory_barrier[] = {{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -933,16 +939,16 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageGpu(
                                                      VK_QUEUE_FAMILY_IGNORED,
                                                      swapchain_image.image,
                                                      {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}}};
-  vkCmdPipelineBarrier(vk_command_buffer,
-                       VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                       VK_PIPELINE_STAGE_TRANSFER_BIT,
-                       0,
-                       0,
-                       nullptr,
-                       0,
-                       nullptr,
-                       2,
-                       vk_image_memory_barrier);
+  functions.vkCmdPipelineBarrier(vk_command_buffer,
+                                 VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                                 VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                 0,
+                                 0,
+                                 nullptr,
+                                 0,
+                                 nullptr,
+                                 2,
+                                 vk_image_memory_barrier);
 
   /* Copy image to swap-chain. */
   VkImageCopy vk_image_copy = {{VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
@@ -950,13 +956,13 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageGpu(
                                {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
                                {draw_info.ofsx, draw_info.ofsy, 0},
                                {openxr_data.extent.width, openxr_data.extent.height, 1}};
-  vkCmdCopyImage(vk_command_buffer,
-                 imported_memory->vk_image_xr,
-                 VK_IMAGE_LAYOUT_GENERAL,
-                 swapchain_image.image,
-                 VK_IMAGE_LAYOUT_GENERAL,
-                 1,
-                 &vk_image_copy);
+  functions.vkCmdCopyImage(vk_command_buffer,
+                           imported_memory->vk_image_xr,
+                           VK_IMAGE_LAYOUT_GENERAL,
+                           swapchain_image.image,
+                           VK_IMAGE_LAYOUT_GENERAL,
+                           1,
+                           &vk_image_copy);
 
   /* Swap-chain needs to be in an VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL compatible layout. */
   VkImageMemoryBarrier vk_image_memory_barrier2 = {VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -969,29 +975,29 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageGpu(
                                                    VK_QUEUE_FAMILY_IGNORED,
                                                    swapchain_image.image,
                                                    {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}};
-  vkCmdPipelineBarrier(vk_command_buffer,
-                       VK_PIPELINE_STAGE_TRANSFER_BIT,
-                       VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                       0,
-                       0,
-                       nullptr,
-                       0,
-                       nullptr,
-                       1,
-                       &vk_image_memory_barrier2);
+  functions.vkCmdPipelineBarrier(vk_command_buffer,
+                                 VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                 VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                                 0,
+                                 0,
+                                 nullptr,
+                                 0,
+                                 nullptr,
+                                 1,
+                                 &vk_image_memory_barrier2);
 
   /* End command recording. */
-  vkEndCommandBuffer(vk_command_buffer);
+  functions.vkEndCommandBuffer(vk_command_buffer);
   /* Submit command buffer to queue. */
   VkSubmitInfo vk_submit_info = {
       VK_STRUCTURE_TYPE_SUBMIT_INFO, nullptr, 0, nullptr, nullptr, 1, &vk_command_buffer};
-  vkQueueSubmit(vk_queue_, 1, &vk_submit_info, VK_NULL_HANDLE);
+  functions.vkQueueSubmit(vk_queue_, 1, &vk_submit_info, VK_NULL_HANDLE);
 
   /* Wait until device is idle. */
-  vkQueueWaitIdle(vk_queue_);
+  functions.vkQueueWaitIdle(vk_queue_);
 
   /* Reset command buffer for next eye/frame. */
-  vkResetCommandBuffer(vk_command_buffer, 0);
+  functions.vkResetCommandBuffer(vk_command_buffer, 0);
 }
 
 /** \} */

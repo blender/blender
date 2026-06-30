@@ -564,7 +564,7 @@ VKMemoryExport VKTexture::export_memory(VkExternalMemoryHandleTypeFlagBits handl
                                                   allocation_info_.deviceMemory,
                                                   handle_type};
     int fd_handle = 0;
-    device.functions.vkGetMemoryFd(device.vk_handle(), &vk_memory_get_fd_info, &fd_handle);
+    device.functions.vkGetMemoryFdKHR(device.vk_handle(), &vk_memory_get_fd_info, &fd_handle);
     return {uint64_t(fd_handle), allocation_info_.size, allocation_info_.offset};
   }
 
@@ -576,7 +576,7 @@ VKMemoryExport VKTexture::export_memory(VkExternalMemoryHandleTypeFlagBits handl
         allocation_info_.deviceMemory,
         handle_type};
     HANDLE win32_handle = nullptr;
-    device.functions.vkGetMemoryWin32Handle(
+    device.functions.vkGetMemoryWin32HandleKHR(
         device.vk_handle(), &vk_memory_get_win32_handle_info, &win32_handle);
     return {uint64_t(win32_handle), allocation_info_.size, allocation_info_.offset};
   }

@@ -678,11 +678,11 @@ void VKDescriptorSetPoolUpdator::upload_descriptor_sets()
 
   /* Update the descriptor set on the device. */
   const VKDevice &device = VKBackend::get().device;
-  vkUpdateDescriptorSets(device.vk_handle(),
-                         vk_write_descriptor_sets_.size(),
-                         vk_write_descriptor_sets_.data(),
-                         0,
-                         nullptr);
+  device.functions.vkUpdateDescriptorSets(device.vk_handle(),
+                                          vk_write_descriptor_sets_.size(),
+                                          vk_write_descriptor_sets_.data(),
+                                          0,
+                                          nullptr);
 
   vk_descriptor_image_infos_.clear();
   vk_descriptor_buffer_infos_.clear();
