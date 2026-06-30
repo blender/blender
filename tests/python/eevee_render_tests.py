@@ -119,6 +119,53 @@ BLOCKLIST_NVIDIA_GL = [
 ]
 
 
+def uses_any_lit_material(scene):
+    import bpy
+
+    # Define what we consider a "lit" BSDF node type in Blender
+    lit_node_types = {
+        "BSDF_PRINCIPLED",
+        "BSDF_DIFFUSE",
+        "BSDF_GLOSSY",
+        "BSDF_GLASS",
+        "BSDF_ANISOTROPIC",
+        "BSDF_VELVET",
+        "BSDF_HAIR",
+        "BSDF_TOON",
+        "BSDF_TRANSLUCENT",
+        "BSDF_HAIR_PRINCIPLED",
+        "SUBSURFACE_SCATTERING",
+        "BSDF_HAIR_PRINCIPLED",
+        "VOLUME_SCATTER",
+        "PRINCIPLED_VOLUME",
+    }
+
+    scene_materials = set()
+
+    # Gather all materials used by objects in the current scene
+    for obj in scene.objects:
+        # Check if the object type can hold materials (Meshes, Curves, etc.)
+        if hasattr(obj.data, "materials"):
+            if not obj.data.materials:
+                return True  # No material slot, object uses the default material which is lit
+            for mat in obj.data.materials:
+                if mat is not None:
+                    scene_materials.add(mat)
+                else:
+                    return True  # Empty material slot, object uses the default material which is lit
+
+    for mat in scene_materials:
+        # Check if the material uses the node system
+        if mat.node_tree:
+            for node in mat.node_tree.nodes:
+                if node.type in lit_node_types:
+                    return True  # We found one, no need to check the rest of the nodes
+        else:
+            return True  # If use_nodes is False, Blender defaults to a basic lit surface
+
+    return False
+
+
 def setup():
     import bpy
 
@@ -130,6 +177,9 @@ def setup():
         skip_raytracing_setup = scene.get("EEVEE_skip_raytracing_setup", False)
         skip_shadow_setup = scene.get("EEVEE_skip_shadow_setup", False)
         skip_subsurface_setup = scene.get("EEVEE_skip_subsurface_setup", False)
+
+        if not uses_any_lit_material(scene):
+            skip_probes_setup = True
 
         # Enable Eevee features
         eevee = scene.eevee
