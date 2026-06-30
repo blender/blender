@@ -855,12 +855,18 @@ void tree_element_activate(bContext *C,
   }
 }
 
-static void tree_elemment_shapekey_active_set(bContext *C, Object &ob, TreeElement &te)
+static void tree_elemment_shapekey_active_set(bContext *C, TreeElement *te)
 {
-  PointerRNA object_ptr = RNA_pointer_create_discrete(&ob.id, RNA_Object, &ob);
-  PropertyRNA *prop = RNA_struct_find_property(&object_ptr, "active_shape_key_index");
-  RNA_property_int_set(&object_ptr, prop, te.index);
-  RNA_property_update(C, &object_ptr, prop);
+  TreeElement *parent_te = outliner_search_back_te(te, ID_OB);
+  TreeStoreElem *parent_tselem = TREESTORE(parent_te);
+  Object *ob = id_cast<Object *>(parent_tselem->id);
+
+  if (ob) {
+    PointerRNA object_ptr = RNA_pointer_create_discrete(&ob->id, RNA_Object, ob);
+    PropertyRNA *prop = RNA_struct_find_property(&object_ptr, "active_shape_key_index");
+    RNA_property_int_set(&object_ptr, prop, te->index);
+    RNA_property_update(C, &object_ptr, prop);
+  }
 }
 
 void tree_element_type_active_set(bContext *C,
@@ -925,7 +931,7 @@ void tree_element_type_active_set(bContext *C,
       tree_element_layer_collection_activate(C, te);
       break;
     case TSE_SHAPE_KEY_BLOCK:
-      tree_elemment_shapekey_active_set(C, *tvc.obact, *te);
+      tree_elemment_shapekey_active_set(C, te);
     default:
       break;
   }
@@ -1200,9 +1206,9 @@ eOLDrawState tree_element_active_state_get(const TreeViewContext &tvc,
   return OL_DRAWSEL_NONE;
 }
 
-static eOLDrawState tree_element_shapekey_state_get(const Object &ob, const TreeElement *te)
+static eOLDrawState tree_element_shapekey_state_get(const Object *ob, const TreeElement *te)
 {
-  if (ob.shapenr == te->index + 1) {
+  if (ob && (ob->shapenr == te->index + 1)) {
     return OL_DRAWSEL_NORMAL;
   }
   return OL_DRAWSEL_NONE;
@@ -1251,7 +1257,7 @@ eOLDrawState tree_element_type_active_state_get(const TreeViewContext &tvc,
     case TSE_BONE_COLLECTION:
       return tree_element_bone_collection_state_get(te, tselem);
     case TSE_SHAPE_KEY_BLOCK:
-      return tree_element_shapekey_state_get(*tvc.obact, te);
+      return tree_element_shapekey_state_get(tvc.obact, te);
     default:
       break;
   }
