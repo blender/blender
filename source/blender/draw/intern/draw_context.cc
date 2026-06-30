@@ -684,11 +684,15 @@ static bool supports_handle_ranges(DupliObject *dupli, Object *parent, const DRW
   }
 
   if (ob_type == OB_MESH) {
-    /* Hair drawing doesn't support handle ranges. */
     for (ParticleSystem &psys : ob->particlesystem) {
       const int draw_as = (psys.part->draw_as == PART_DRAW_REND) ? psys.part->ren_as :
                                                                    psys.part->draw_as;
-      if (draw_as == PART_DRAW_PATH && DRW_object_is_visible_psys_in_active_context(ob, &psys)) {
+      if (!ELEM(draw_as, PART_DRAW_NOT, PART_DRAW_OB, PART_DRAW_GR) &&
+          DRW_object_is_visible_psys_in_active_context(ob, &psys))
+      {
+        /* Particles don't support handle ranges.
+         * Objects and Group particles are the only exceptions,
+         * since they're generated as regular instances by the Depsgraph. */
         return false;
       }
     }
