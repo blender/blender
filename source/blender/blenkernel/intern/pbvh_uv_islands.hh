@@ -40,47 +40,6 @@ struct UVPrimitive;
 struct MeshData;
 struct UVVertex;
 
-class VertToEdgeMap {
-  Array<Vector<int>> edges_of_vert_;
-
- public:
-  VertToEdgeMap() = delete;
-  VertToEdgeMap(const int verts_num)
-  {
-    edges_of_vert_.reinitialize(verts_num);
-  }
-
-  void add(const int edge_i, const int v1, const int v2)
-  {
-    edges_of_vert_[v1].append(edge_i);
-    edges_of_vert_[v2].append(edge_i);
-  }
-  Span<int> operator[](const int vert_i) const
-  {
-    return edges_of_vert_[vert_i];
-  }
-};
-
-class EdgeToPrimitiveMap {
-  Array<Vector<int>> primitives_of_edge_;
-
- public:
-  EdgeToPrimitiveMap() = delete;
-  EdgeToPrimitiveMap(const int edges_num)
-  {
-    primitives_of_edge_.reinitialize(edges_num);
-  }
-
-  void add(const int primitive_i, const int edge_i)
-  {
-    primitives_of_edge_[edge_i].append(primitive_i);
-  }
-  Span<int> operator[](const int edge_i) const
-  {
-    return primitives_of_edge_[edge_i];
-  }
-};
-
 class TriangleToEdgeMap {
   Array<std::array<int, 3>> edges_of_triangle_;
 
@@ -113,10 +72,14 @@ struct MeshData {
   Span<float2> uv_map;
   Span<float3> vert_positions;
 
-  VertToEdgeMap vert_to_edge_map;
+  Array<int> vert_to_edge_offsets;
+  Array<int> vert_to_edge_indices;
+  GroupedSpan<int> vert_to_edge_map;
 
   Vector<int2> edges;
-  EdgeToPrimitiveMap edge_to_primitive_map;
+  Array<int> edge_to_primitive_offsets;
+  Array<int> edge_to_primitive_indices;
+  GroupedSpan<int> edge_to_primitive_map;
 
   TriangleToEdgeMap primitive_to_edge_map;
 

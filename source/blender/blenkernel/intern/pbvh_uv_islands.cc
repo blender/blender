@@ -12,6 +12,8 @@
 #include "BLI_rect.hh"
 #include "BLI_task.hh"
 
+#include "BKE_mesh_mapping.hh"
+
 #include "PRF_profile.hh"
 
 #include "pbvh_uv_islands.hh"
@@ -108,6 +110,29 @@ static rctf primitive_uv_bounds(const int3 &tri, const Span<float2> uv_map)
 /** \name MeshData
  * \{ */
 
+static GroupedSpan<int> build_edge_to_primitive_map(const TriangleToEdgeMap &prim_to_edge,
+                                                    const int edges_num,
+                                                    const int prims_num,
+                                                    Array<int> &r_offsets,
+                                                    Array<int> &r_indices)
+{
+  r_offsets = Array<int>(edges_num + 1, 0);
+  for (const int prim_i : IndexRange(prims_num)) {
+    for (const int edge_i : prim_to_edge[prim_i]) {
+      r_offsets[edge_i]++;
+    }
+  }
+  const OffsetIndices<int> offsets = offset_indices::accumulate_counts_to_offsets(r_offsets);
+  r_indices.reinitialize(offsets.total_size());
+  Array<int> pos(r_offsets.as_span().drop_back(1));
+  for (const int prim_i : IndexRange(prims_num)) {
+    for (const int edge_i : prim_to_edge[prim_i]) {
+      r_indices[pos[edge_i]++] = prim_i;
+    }
+  }
+  return {offsets, r_indices};
+}
+
 static void mesh_data_init_edges(MeshData &mesh_data)
 {
   mesh_data.edges.reserve(mesh_data.corner_tris.size() * 2);
@@ -124,7 +149,6 @@ static void mesh_data_init_edges(MeshData &mesh_data)
       const bool is_new_edge = eh.add({v1, v2}, edge_index);
       if (is_new_edge) {
         mesh_data.edges.append({v1, v2});
-        mesh_data.vert_to_edge_map.add(edge_index, v1, v2);
       }
       else {
         edge_index = eh.lookup({v1, v2});
@@ -134,13 +158,16 @@ static void mesh_data_init_edges(MeshData &mesh_data)
     }
     mesh_data.primitive_to_edge_map.add(tri_edges, tri_index);
   }
-  /* Build edge to neighboring triangle map. */
-  mesh_data.edge_to_primitive_map = EdgeToPrimitiveMap(mesh_data.edges.size());
-  for (const int prim_i : mesh_data.corner_tris.index_range()) {
-    for (const int edge_i : mesh_data.primitive_to_edge_map[prim_i]) {
-      mesh_data.edge_to_primitive_map.add(prim_i, edge_i);
-    }
-  }
+  mesh_data.vert_to_edge_map = mesh::build_vert_to_edge_map(mesh_data.edges,
+                                                            mesh_data.vert_positions.size(),
+                                                            mesh_data.vert_to_edge_offsets,
+                                                            mesh_data.vert_to_edge_indices);
+  mesh_data.edge_to_primitive_map = build_edge_to_primitive_map(
+      mesh_data.primitive_to_edge_map,
+      mesh_data.edges.size(),
+      mesh_data.corner_tris.size(),
+      mesh_data.edge_to_primitive_offsets,
+      mesh_data.edge_to_primitive_indices);
 }
 
 static int mesh_data_init_primitive_uv_island_ids(MeshData &mesh_data)
@@ -189,8 +216,6 @@ MeshData::MeshData(const OffsetIndices<int> faces,
       corner_verts(corner_verts),
       uv_map(uv_map),
       vert_positions(vert_positions),
-      vert_to_edge_map(vert_positions.size()),
-      edge_to_primitive_map(0),
       primitive_to_edge_map(corner_tris.size())
 {
   mesh_data_init(*this);
