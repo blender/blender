@@ -15,6 +15,7 @@
 
 #include <iostream>
 #include <optional>
+#include <queue>
 #include <sstream>
 
 namespace blender::bke::pbvh::uv_islands {
@@ -389,43 +390,8 @@ void UVIsland::extract_borders()
     if (!border->is_ccw()) {
       border->flip_order();
     }
-    borders.append(*border);
+    borders.append(std::move(*border));
   }
-}
-
-static std::optional<UVBorderCorner> sharpest_border_corner(UVBorder &border, float *r_angle)
-{
-  *r_angle = std::numeric_limits<float>::max();
-  std::optional<UVBorderCorner> result;
-  for (UVBorderEdge &edge : border.edges) {
-    const UVVertex *uv_vertex = edge.get_uv_vertex(0);
-    /* Only allow extending from tagged border vertices that have not been extended yet. During
-     * extending new borders are created, those are ignored as their is_border is set to false. */
-    if (!uv_vertex->flags.is_border || uv_vertex->flags.is_extended) {
-      continue;
-    }
-    float new_angle = border.outside_angle(edge);
-    if (new_angle < *r_angle) {
-      *r_angle = new_angle;
-      result = UVBorderCorner(&border.edges[edge.prev_index], &edge, new_angle);
-    }
-  }
-  return result;
-}
-
-static std::optional<UVBorderCorner> sharpest_border_corner(UVIsland &island)
-{
-  std::optional<UVBorderCorner> result;
-  float sharpest_angle = std::numeric_limits<float>::max();
-  for (UVBorder &border : island.borders) {
-    float new_angle;
-    std::optional<UVBorderCorner> new_result = sharpest_border_corner(border, &new_angle);
-    if (new_angle < sharpest_angle) {
-      sharpest_angle = new_angle;
-      result = new_result;
-    }
-  }
-  return result;
 }
 
 /** The inner edge of a fan. */
@@ -795,7 +761,9 @@ static void add_uv_primitive_fill(UVIsland &island,
 static void extend_at_vert(const MeshData &mesh_data,
                            UVIsland &island,
                            UVBorderCorner &corner,
-                           float min_uv_distance)
+                           float min_uv_distance,
+                           int64_t &order_counter,
+                           Vector<UVBorderEdge *> &r_modified)
 {
 
   int border_index = corner.first->border_index;
@@ -803,6 +771,8 @@ static void extend_at_vert(const MeshData &mesh_data,
   if (!corner.connected_in_mesh()) {
     return;
   }
+
+  UVBorderEdge *after_edge = corner.second->next;
 
   UVVertex *uv_vertex = corner.second->get_uv_vertex(0);
   Fan fan(mesh_data, uv_vertex->vertex);
@@ -870,6 +840,9 @@ static void extend_at_vert(const MeshData &mesh_data,
           corner.second->get_uv_vertex(1)->uv, center_uv);
       border_edge->reverse_order = border_edge->edge->vertices[1]->uv == center_uv;
     }
+
+    r_modified.append(corner.first);
+    r_modified.append(after_edge);
   }
   else {
     UVEdge *current_edge = corner.first->edge;
@@ -911,20 +884,24 @@ static void extend_at_vert(const MeshData &mesh_data,
       new_border_edges.append(new_border);
     }
 
-    int border_insert = corner.first->index;
-    border.remove(border_insert);
-
-    int border_next = corner.second->index;
-    if (border_next < border_insert) {
-      border_insert--;
+    /* Replace two border edges with new_border_edges in the linked list. */
+    corner.first->removed = true;
+    corner.second->removed = true;
+    UVBorderEdge *prev_edge = corner.first->prev;
+    for (UVBorderEdge &new_border : new_border_edges) {
+      border.edges_extend_border.append(new_border);
+      UVBorderEdge *new_edge = &border.edges_extend_border.last();
+      new_edge->border_index = border_index;
+      new_edge->order = order_counter++;
+      new_edge->removed = false;
+      new_edge->prev = prev_edge;
+      prev_edge->next = new_edge;
+      prev_edge = new_edge;
+      r_modified.append(new_edge);
     }
-    else {
-      border_next--;
-    }
-    border.remove(border_next);
-    border.edges.insert(border_insert, new_border_edges);
-
-    border.update_indexes(border_index);
+    prev_edge->next = after_edge;
+    after_edge->prev = prev_edge;
+    r_modified.append(after_edge);
   }
 }
 
@@ -950,23 +927,79 @@ void UVIsland::extend_border(const MeshData &mesh_data,
   PRF_scope(ProfileCategory::Editor);
   reset_extendability_flags(*this);
 
-  int64_t border_index = 0;
-  for (UVBorder &border : borders) {
-    border.update_indexes(border_index++);
+  /* Set up double linked list and stable order ID. */
+  int64_t order_counter = 0;
+  for (const int64_t border_index : borders.index_range()) {
+    borders[border_index].setup_links(border_index);
+    for (UVBorderEdge &border_edge : borders[border_index].edges) {
+      border_edge.order = order_counter++;
+    }
   }
-  while (true) {
-    std::optional<UVBorderCorner> extension_corner = sharpest_border_corner(*this);
-    if (!extension_corner.has_value()) {
-      break;
+
+  /* Process the border ordered from smallest to largest angle. On high poly meshes this
+   * border can be very long, so use priority queue to avoid quadratic time complexity. */
+  struct HeapEntry {
+    float angle;
+    UVBorderEdge *edge;
+
+    bool operator<(const HeapEntry &other) const
+    {
+      if (angle != other.angle) {
+        return angle > other.angle;
+      }
+      return edge->order > other.edge->order;
+    }
+  };
+  std::priority_queue<HeapEntry> queue;
+
+  /* Queue initial border edges. */
+  for (UVBorder &border : borders) {
+    for (UVBorderEdge &border_edge : border.edges) {
+      queue.push({border.outside_angle(border_edge), &border_edge});
+    }
+  }
+
+  /* Process border edges in order. */
+  Vector<UVBorderEdge *> modified_edges;
+  while (!queue.empty()) {
+    const HeapEntry entry = queue.top();
+    queue.pop();
+    UVBorderEdge *border_edge = entry.edge;
+    if (!border_edge->is_extendable()) {
+      continue;
     }
 
-    UVVertex *uv_vertex = extension_corner->second->get_uv_vertex(0);
+    UVVertex *uv_vertex = border_edge->get_uv_vertex(0);
+    UVBorder &border = borders[border_edge->border_index];
+
+    /* If the angle changed, re-queue with new larger angle. */
+    const float angle = border.outside_angle(*border_edge);
+    if (angle != entry.angle) {
+      BLI_assert(angle >= entry.angle);
+      queue.push({angle, border_edge});
+      continue;
+    }
+
+    UVBorderCorner extension_corner(border_edge->prev, border_edge, angle);
 
     /* Found corner is outside the mask, the corner should not be considered for extension. */
     const UVIslandsMask::Tile *tile = mask.find_tile(uv_vertex->uv);
     if (tile && tile->is_masked(island_index, uv_vertex->uv)) {
-      extend_at_vert(
-          mesh_data, *this, *extension_corner, tile->get_pixel_size_in_uv_space() * 2.0f);
+      modified_edges.clear();
+      extend_at_vert(mesh_data,
+                     *this,
+                     extension_corner,
+                     tile->get_pixel_size_in_uv_space() * 2.0f,
+                     order_counter,
+                     modified_edges);
+
+      /* Queue modified and newly generated edges. */
+      for (UVBorderEdge *modified_edge : modified_edges) {
+        if (modified_edge->is_extendable()) {
+          UVBorder &modified_border = borders[modified_edge->border_index];
+          queue.push({modified_border.outside_angle(*modified_edge), modified_edge});
+        }
+      }
     }
     /* Mark that the vert is extended. */
     uv_vertex->flags.is_extended = true;
@@ -1097,37 +1130,28 @@ bool UVBorder::is_ccw() const
 
 void UVBorder::flip_order()
 {
-  uint64_t border_index = edges.first().border_index;
   for (UVBorderEdge &edge : edges) {
     edge.reverse_order = !edge.reverse_order;
   }
   std::reverse(edges.begin(), edges.end());
-  update_indexes(border_index);
 }
 
 float UVBorder::outside_angle(const UVBorderEdge &edge) const
 {
-  const UVBorderEdge &prev = edges[edge.prev_index];
+  const UVBorderEdge &prev = *edge.prev;
   return M_PI - angle_signed_v2v2(prev.get_uv_vertex(1)->uv - prev.get_uv_vertex(0)->uv,
                                   edge.get_uv_vertex(1)->uv - edge.get_uv_vertex(0)->uv);
 }
 
-void UVBorder::update_indexes(uint64_t border_index)
+void UVBorder::setup_links(const int64_t border_index)
 {
-  for (int64_t i = 0; i < edges.size(); i++) {
-    int64_t prev = (i - 1 + edges.size()) % edges.size();
-    edges[i].prev_index = prev;
-    edges[i].index = i;
+  const int64_t n = edges.size();
+  for (int64_t i = 0; i < n; i++) {
+    edges[i].prev = &edges[(i - 1 + n) % n];
+    edges[i].next = &edges[(i + 1) % n];
     edges[i].border_index = border_index;
+    edges[i].removed = false;
   }
-}
-
-void UVBorder::remove(int64_t index)
-{
-  /* Could read the border_index from any border edge as they are consistent. */
-  uint64_t border_index = edges[0].border_index;
-  edges.remove(index);
-  update_indexes(border_index);
 }
 
 /** \} */
@@ -1281,6 +1305,15 @@ const UVVertex *UVBorderEdge::get_uv_vertex(int index) const
 const UVVertex *UVBorderEdge::get_other_uv_vertex() const
 {
   return uv_primitive->get_other_uv_vertex(edge->vertices[0], edge->vertices[1]);
+}
+
+bool UVBorderEdge::is_extendable() const
+{
+  if (removed) {
+    return false;
+  }
+  const UVVertex *uv_vertex = get_uv_vertex(0);
+  return uv_vertex->flags.is_border && !uv_vertex->flags.is_extended;
 }
 
 float UVBorderEdge::length() const

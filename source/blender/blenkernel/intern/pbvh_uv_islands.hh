@@ -201,9 +201,13 @@ struct UVBorderEdge {
   /* Should the vertices of the edge be evaluated in reverse order. */
   bool reverse_order = false;
 
-  int64_t index = -1;
-  int64_t prev_index = -1;
+  /* Previous and next edge, forming a double linked list. */
+  UVBorderEdge *prev = nullptr;
+  UVBorderEdge *next = nullptr;
+  bool removed = false;
   int64_t border_index = -1;
+  /* Stable ID for tie-break in the priority queue. */
+  int64_t order = -1;
 
   explicit UVBorderEdge(UVEdge *edge, UVPrimitive *uv_primitive);
 
@@ -214,6 +218,8 @@ struct UVBorderEdge {
    * Get the uv vertex from the primitive that is not part of the edge.
    */
   const UVVertex *get_other_uv_vertex() const;
+
+  bool is_extendable() const;
 
   float length() const;
 };
@@ -244,8 +250,10 @@ struct UVBorderCorner {
 };
 
 struct UVBorder {
-  /** Ordered list of UV Verts of the border of this island. */
+  /** Ordered list of UV Verts of the (original) border of this island. */
   Vector<UVBorderEdge> edges;
+  /* Edges added by border extension. */
+  VectorList<UVBorderEdge> edges_extend_border;
 
   /**
    * Check if the border is counter clock wise from its island.
@@ -262,12 +270,10 @@ struct UVBorder {
    */
   float outside_angle(const UVBorderEdge &edge) const;
 
-  void update_indexes(uint64_t border_index);
+  /** Setup prev and next pointers to turn edges into a linked list. */
+  void setup_links(int64_t border_index);
 
   static std::optional<UVBorder> extract_from_edges(Vector<UVBorderEdge> &edges);
-
-  /** Remove edge from the border. updates the indexes. */
-  void remove(int64_t index);
 };
 
 struct UVIsland {
