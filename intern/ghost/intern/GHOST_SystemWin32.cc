@@ -2601,26 +2601,38 @@ static uint *getClipboardImageDibV5(int *r_width, int *r_height)
   *r_width = width;
   *r_height = height;
 
-  DWORD ColorMasks[4];
-  ColorMasks[0] = bitmapV5Header->bV5RedMask ? bitmapV5Header->bV5RedMask : 0xff;
-  ColorMasks[1] = bitmapV5Header->bV5GreenMask ? bitmapV5Header->bV5GreenMask : 0xff00;
-  ColorMasks[2] = bitmapV5Header->bV5BlueMask ? bitmapV5Header->bV5BlueMask : 0xff0000;
-  ColorMasks[3] = bitmapV5Header->bV5AlphaMask ? bitmapV5Header->bV5AlphaMask : 0xff000000;
-
-  /* Bit shifts needed for the ColorMasks. */
-  DWORD ColorShifts[4];
-  for (int i = 0; i < 4; i++) {
-    _BitScanForward(&ColorShifts[i], ColorMasks[i]);
-  }
-
   uchar *source = (uchar *)buffer;
   uint *rgba = (uint *)malloc(uint64_t(width) * height * 4);
   uint8_t *target = (uint8_t *)rgba;
 
   if (bitmapV5Header->bV5Compression == BI_BITFIELDS && bitcount == 32) {
+    /* It is unclear from the MSDN documentation whether or not the 3 RGB mask values are always
+     * written as part of the main BITMAPV5HEADER header or if they are included after the
+     * structure. In reality there are applications (Windows Snipping Tool) that write both,
+     * and there are applications (Krita, Paint.NET) that only set the header values. Handle
+     * both by checking against our expected size. */
+    const SIZE_T mask_size = sizeof(DWORD) * 3;
+    const SIZE_T actual_size = GlobalSize(hGlobal);
+    const SIZE_T expected_size = offset + (SIZE_T(width) * height * 4);
+    if (expected_size == actual_size - mask_size) {
+      source += mask_size; /* Skip redundant color masks. */
+    }
+
+    DWORD ColorMasks[4];
+    ColorMasks[0] = bitmapV5Header->bV5RedMask ? bitmapV5Header->bV5RedMask : 0xff;
+    ColorMasks[1] = bitmapV5Header->bV5GreenMask ? bitmapV5Header->bV5GreenMask : 0xff00;
+    ColorMasks[2] = bitmapV5Header->bV5BlueMask ? bitmapV5Header->bV5BlueMask : 0xff0000;
+    ColorMasks[3] = bitmapV5Header->bV5AlphaMask ? bitmapV5Header->bV5AlphaMask : 0xff000000;
+
+    /* Bit shifts needed for the ColorMasks. */
+    DWORD ColorShifts[4];
+    for (int i = 0; i < 4; i++) {
+      _BitScanForward(&ColorShifts[i], ColorMasks[i]);
+    }
+
     for (int h = 0; h < height; h++) {
       for (int w = 0; w < width; w++, target += 4, source += 4) {
-        DWORD *pix = (DWORD *)source;
+        const DWORD *pix = (DWORD *)source;
         target[0] = uint8_t((*pix & ColorMasks[0]) >> ColorShifts[0]);
         target[1] = uint8_t((*pix & ColorMasks[1]) >> ColorShifts[1]);
         target[2] = uint8_t((*pix & ColorMasks[2]) >> ColorShifts[2]);
@@ -2631,7 +2643,7 @@ static uint *getClipboardImageDibV5(int *r_width, int *r_height)
   else if (bitmapV5Header->bV5Compression == BI_RGB && bitcount == 32) {
     for (int h = 0; h < height; h++) {
       for (int w = 0; w < width; w++, target += 4, source += 4) {
-        RGBQUAD *quad = (RGBQUAD *)source;
+        const RGBQUAD *quad = (RGBQUAD *)source;
         target[0] = uint8_t(quad->rgbRed);
         target[1] = uint8_t(quad->rgbGreen);
         target[2] = uint8_t(quad->rgbBlue);
@@ -2644,7 +2656,7 @@ static uint *getClipboardImageDibV5(int *r_width, int *r_height)
     int slack = bytes_per_row - (width * 3);
     for (int h = 0; h < height; h++, source += slack) {
       for (int w = 0; w < width; w++, target += 4, source += 3) {
-        RGBTRIPLE *triple = (RGBTRIPLE *)source;
+        const RGBTRIPLE *triple = (RGBTRIPLE *)source;
         target[0] = uint8_t(triple->rgbtRed);
         target[1] = uint8_t(triple->rgbtGreen);
         target[2] = uint8_t(triple->rgbtBlue);
