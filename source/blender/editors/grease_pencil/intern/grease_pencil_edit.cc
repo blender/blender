@@ -2193,24 +2193,6 @@ static const EnumPropertyItem prop_separate_modes[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static void remove_unused_materials(Main *bmain, Object *object)
-{
-  int actcol = object->actcol;
-  for (int slot = 1; slot <= object->totcol; slot++) {
-    while (slot <= object->totcol && !BKE_object_material_slot_used(object, slot)) {
-      object->actcol = slot;
-      if (!BKE_object_material_slot_remove(bmain, object)) {
-        break;
-      }
-
-      if (actcol >= slot) {
-        actcol--;
-      }
-    }
-  }
-  object->actcol = actcol;
-}
-
 static Object *duplicate_grease_pencil_object(Main *bmain,
                                               Scene *scene,
                                               ViewLayer *view_layer,
@@ -2321,7 +2303,7 @@ static bool grease_pencil_separate_selected(bContext &C,
                                      *BKE_object_material_len_p(&object_src),
                                      false);
 
-    remove_unused_materials(&bmain, object_dst);
+    BKE_object_material_remove_unused(&bmain, object_dst);
     DEG_id_tag_update(&grease_pencil_dst.id, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(&C, NC_OBJECT | ND_DRAW, &grease_pencil_dst);
   }
@@ -2397,7 +2379,7 @@ static bool grease_pencil_separate_layer(bContext &C,
                            src_to_dst_layer_indices.as_span(),
                            grease_pencil_dst.attributes_for_write());
 
-    remove_unused_materials(&bmain, object_dst);
+    BKE_object_material_remove_unused(&bmain, object_dst);
 
     DEG_id_tag_update(&grease_pencil_dst.id, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(&C, NC_OBJECT | ND_DRAW, &grease_pencil_dst);
@@ -2475,14 +2457,14 @@ static bool grease_pencil_separate_material(bContext &C,
                            src_to_dst_layer_indices.as_span(),
                            grease_pencil_dst.attributes_for_write());
 
-    remove_unused_materials(&bmain, object_dst);
+    BKE_object_material_remove_unused(&bmain, object_dst);
 
     DEG_id_tag_update(&grease_pencil_dst.id, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(&C, NC_OBJECT | ND_DRAW, &grease_pencil_dst);
   }
 
   if (changed) {
-    remove_unused_materials(&bmain, &object_src);
+    BKE_object_material_remove_unused(&bmain, &object_src);
   }
 
   return changed;
