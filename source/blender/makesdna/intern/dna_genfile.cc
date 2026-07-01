@@ -136,23 +136,12 @@ SDNA::~SDNA()
   MEM_SAFE_DELETE(this->structs);
   MEM_SAFE_DELETE(this->types_alignment);
 
-#ifdef WITH_DNA_GHASH
-  if (this->types_to_structs_map) {
-    BLI_ghash_free(this->types_to_structs_map, nullptr, nullptr);
-  }
-#endif
-
   if (this->mem_arena) {
     BLI_memarena_free(this->mem_arena);
   }
 
   MEM_SAFE_DELETE(this->alias.members);
   MEM_SAFE_DELETE(this->alias.types);
-#ifdef WITH_DNA_GHASH
-  if (this->alias.types_to_structs_map) {
-    BLI_ghash_free(this->alias.types_to_structs_map, nullptr, nullptr);
-  }
-#endif
 }
 
 int DNA_struct_size(const SDNA *sdna, int struct_index)
@@ -212,7 +201,7 @@ static int dna_struct_find_index_ex_impl(
     SDNA_Struct **const structs,
     const int structs_num,
 #ifdef WITH_DNA_GHASH
-    GHash *structs_map,
+    const Map<StringRef, int> &structs_map,
 #endif
     /* Regular args. */
     const char *str,
@@ -226,13 +215,9 @@ static int dna_struct_find_index_ex_impl(
   }
 
 #ifdef WITH_DNA_GHASH
-  {
-    void **struct_index_p = BLI_ghash_lookup_p(structs_map, str);
-    if (struct_index_p) {
-      const int struct_index = POINTER_AS_INT(*struct_index_p);
-      *struct_index_last = struct_index;
-      return struct_index;
-    }
+  if (const std::optional<int> struct_index = structs_map.lookup_try(str)) {
+    *struct_index_last = *struct_index;
+    return *struct_index;
   }
 #else
   {
@@ -252,9 +237,6 @@ int DNA_struct_find_index_without_alias_ex(const SDNA *sdna,
                                            const char *str,
                                            uint *struct_index_last)
 {
-#ifdef WITH_DNA_GHASH
-  BLI_assert(sdna->types_to_structs_map != nullptr);
-#endif
   return dna_struct_find_index_ex_impl(
       /* Expand SDNA. */
       sdna->types,
@@ -271,9 +253,6 @@ int DNA_struct_find_index_without_alias_ex(const SDNA *sdna,
 
 int DNA_struct_find_index_with_alias_ex(const SDNA *sdna, const char *str, uint *struct_index_last)
 {
-#ifdef WITH_DNA_GHASH
-  BLI_assert(sdna->alias.types_to_structs_map != nullptr);
-#endif
   return dna_struct_find_index_ex_impl(
       /* Expand SDNA. */
       sdna->alias.types,
@@ -328,9 +307,6 @@ static bool init_structDNA(SDNA *sdna, const char **r_error_message)
   sdna->types_size = nullptr;
   sdna->types_alignment = nullptr;
   sdna->structs = nullptr;
-#ifdef WITH_DNA_GHASH
-  sdna->types_to_structs_map = nullptr;
-#endif
 
   sdna->members = nullptr;
   sdna->members_array_num = nullptr;
@@ -338,7 +314,7 @@ static bool init_structDNA(SDNA *sdna, const char **r_error_message)
   sdna->mem_arena = nullptr;
 
   /* Lazy initialize. */
-  memset(&sdna->alias, 0, sizeof(sdna->alias));
+  sdna->alias = {};
 
   /* Struct DNA ('SDNA') */
   if (*data != MAKE_ID('S', 'D', 'N', 'A')) {
@@ -486,14 +462,12 @@ static bool init_structDNA(SDNA *sdna, const char **r_error_message)
 
 #ifdef WITH_DNA_GHASH
   {
-    /* create a ghash lookup to speed up */
-    sdna->types_to_structs_map = BLI_ghash_str_new_ex("init_structDNA gh", sdna->structs_num);
-
+    /* create a hash lookup to speed up */
+    sdna->types_to_structs_map.clear();
+    sdna->types_to_structs_map.reserve(sdna->structs_num);
     for (intptr_t struct_index = 0; struct_index < sdna->structs_num; struct_index++) {
       SDNA_Struct *struct_info = sdna->structs[struct_index];
-      BLI_ghash_insert(sdna->types_to_structs_map,
-                       (void *)sdna->types[struct_info->type_index],
-                       POINTER_FROM_INT(struct_index));
+      sdna->types_to_structs_map.add_new(sdna->types[struct_info->type_index], struct_index);
     }
   }
 #endif
@@ -1708,10 +1682,8 @@ static bool DNA_sdna_patch_struct(SDNA *sdna, const int struct_index, const char
   BLI_assert(DNA_struct_find_index_without_alias(DNA_sdna_current_get(), new_type_name) != -1);
   const SDNA_Struct *struct_info = sdna->structs[struct_index];
 #ifdef WITH_DNA_GHASH
-  BLI_ghash_remove(
-      sdna->types_to_structs_map, (void *)sdna->types[struct_info->type_index], nullptr, nullptr);
-  BLI_ghash_insert(
-      sdna->types_to_structs_map, (void *)new_type_name, POINTER_FROM_INT(struct_index));
+  sdna->types_to_structs_map.remove(sdna->types[struct_info->type_index]);
+  sdna->types_to_structs_map.add(new_type_name, struct_index);
 #endif
   sdna->types[struct_info->type_index] = new_type_name;
   return true;
@@ -1936,21 +1908,19 @@ void DNA_sdna_alias_data_ensure(SDNA *sdna)
 
 void DNA_sdna_alias_data_ensure_structs_map(SDNA *sdna)
 {
-  if (sdna->alias.types_to_structs_map) {
+  if (!sdna->alias.types_to_structs_map.is_empty()) {
     return;
   }
 
   DNA_sdna_alias_data_ensure(sdna);
 #ifdef WITH_DNA_GHASH
   /* create a ghash lookup to speed up */
-  GHash *type_to_struct_index_map = BLI_ghash_str_new_ex(__func__, sdna->structs_num);
+  sdna->alias.types_to_structs_map.clear();
+  sdna->alias.types_to_structs_map.reserve(sdna->structs_num);
   for (intptr_t struct_index = 0; struct_index < sdna->structs_num; struct_index++) {
     const SDNA_Struct *struct_info = sdna->structs[struct_index];
-    BLI_ghash_insert(type_to_struct_index_map,
-                     (void *)sdna->alias.types[struct_info->type_index],
-                     POINTER_FROM_INT(struct_index));
+    sdna->alias.types_to_structs_map.add(sdna->alias.types[struct_info->type_index], struct_index);
   }
-  sdna->alias.types_to_structs_map = type_to_struct_index_map;
 #else
   UNUSED_VARS(sdna);
 #endif

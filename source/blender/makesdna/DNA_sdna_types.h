@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "BLI_map.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_sys_types.hh"
 
 namespace blender {
@@ -21,7 +23,6 @@ namespace blender {
 #define SDNA_RAW_DATA_STRUCT_INDEX 0
 
 struct MemArena;
-struct GHash;
 
 #
 #
@@ -122,7 +123,7 @@ struct SDNA {
    *
    * Requires WITH_DNA_GHASH to be used for now.
    */
-  GHash *types_to_structs_map = nullptr;
+  Map<StringRef, int> types_to_structs_map;
 
   /**
    * Runtime versions of data stored in DNA, lazy initialized, only different when renaming is
@@ -138,7 +139,7 @@ struct SDNA {
     /** Aligned with #SDNA.members, same pointers when unchanged. */
     const char **members = nullptr;
     /** A version of #SDNA.types_to_structs_map that uses #SDNA.alias.types for its keys. */
-    GHash *types_to_structs_map = nullptr;
+    Map<StringRef, int> types_to_structs_map;
   } alias;
 
   /** Temporary memory currently only used for version patching DNA. */
