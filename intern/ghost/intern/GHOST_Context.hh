@@ -145,19 +145,19 @@ class GHOST_Context : public GHOST_IContext {
 
 #ifdef WITH_VULKAN_BACKEND
   /** \copydoc #GHOST_IContext::getVulkanHandles */
-  virtual GHOST_TSuccess getVulkanHandles(GHOST_VulkanHandles & /* r_handles */) override
+  GHOST_TSuccess getVulkanHandles(GHOST_VulkanHandles & /* r_handles */) override
   {
     return GHOST_kFailure;
   };
   /** \copydoc #GHOST_IContext::getVulkanSwapChainFormat */
-  virtual GHOST_TSuccess getVulkanSwapChainFormat(
+  GHOST_TSuccess getVulkanSwapChainFormat(
       GHOST_VulkanSwapChainData * /*r_swap_chain_data*/) override
   {
     return GHOST_kFailure;
   }
 
   /** \copydoc #GHOST_IContext::setVulkanSwapBuffersCallbacks */
-  virtual GHOST_TSuccess setVulkanSwapBuffersCallbacks(
+  GHOST_TSuccess setVulkanSwapBuffersCallbacks(
       std::function<void(const GHOST_VulkanSwapChainData *, bool)> /*swap_buffer_draw_callback*/,
       std::function<void(void)> /*swap_buffer_acquired_callback*/,
       std::function<void(GHOST_VulkanOpenXRData *)> /*openxr_acquire_framebuffer_image_callback*/,
