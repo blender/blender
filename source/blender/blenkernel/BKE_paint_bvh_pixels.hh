@@ -95,13 +95,13 @@ struct PixelNode {
 
   struct {
     /** Corresponding index into triangles */
-    Vector<int, 0> tri_indices;
+    Array<int, 0> tri_indices;
 
     /**
      * Per primitive affine map from image pixel coordinate to object space position:
      * P = pixel_to_position * (pixel_x, pixel_y, 1)
      */
-    Vector<float3x3, 0> pixel_to_position;
+    Array<float3x3, 0> pixel_to_position;
   } uv_primitives;
 
   PixelNode()
@@ -147,8 +147,8 @@ struct PixelNode {
   void clear_data()
   {
     tiles.clear();
-    uv_primitives.tri_indices.clear();
-    uv_primitives.pixel_to_position.clear();
+    uv_primitives.tri_indices.reinitialize(0);
+    uv_primitives.pixel_to_position.reinitialize(0);
   }
 };
 

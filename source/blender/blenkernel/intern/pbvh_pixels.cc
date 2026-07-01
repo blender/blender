@@ -209,9 +209,13 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
   BLI_assert(pixel_node.flags.rebuild || (pixel_node.uv_primitives.tri_indices.is_empty() &&
                                           pixel_node.uv_primitives.pixel_to_position.is_empty() &&
                                           pixel_node.tiles.is_empty()));
-  /* Assuming a quad mesh, we'll have at least 2 * faces entries */
-  pixel_node.uv_primitives.tri_indices.reserve(node.faces().size() * 2);
-  pixel_node.uv_primitives.pixel_to_position.reserve(node.faces().size() * 2);
+
+  Vector<int> tri_indices;
+  Vector<float3x3> pixel_to_position;
+
+  /* Assuming a quad mesh, we'll have at least 2 * faces entries. */
+  tri_indices.reserve(node.faces().size() * 2);
+  pixel_to_position.reserve(node.faces().size() * 2);
 
   const Span<int3> corner_tris = mesh_data.corner_tris;
   const Span<float2> uv_map = mesh_data.uv_map;
@@ -302,7 +306,7 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
             continue;
           }
 
-          const int uv_prim_index = pixel_node.uv_primitives.tri_indices.size();
+          const int uv_prim_index = tri_indices.size();
           const int64_t pixel_rows_num = tile_data.pixel_rows.size();
           extract_barycentric_pixels(tile_data,
                                      image_buffer,
@@ -319,9 +323,8 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
           if (tile_data.pixel_rows.size() == pixel_rows_num) {
             continue;
           }
-          pixel_node.uv_primitives.tri_indices.append(tri);
-          pixel_node.uv_primitives.pixel_to_position.append(
-              calc_pixel_to_position_map(mesh_data, tri, uvs, inv_w, inv_h));
+          tri_indices.append(tri);
+          pixel_to_position.append(calc_pixel_to_position_map(mesh_data, tri, uvs, inv_w, inv_h));
         }
       }
     }
@@ -333,11 +336,14 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
 
     build_pixel_row_runs(tile_data);
 
-    BLI_assert(pixel_node.uv_primitives.pixel_to_position.size() ==
-               pixel_node.uv_primitives.tri_indices.size());
+    BLI_assert(pixel_to_position.size() == tri_indices.size());
 
     pixel_node.tiles.append(tile_data);
   }
+
+  /* Assign to Array, to avoid wasting reserved space. */
+  pixel_node.uv_primitives.tri_indices = tri_indices.as_span();
+  pixel_node.uv_primitives.pixel_to_position = pixel_to_position.as_span();
 }
 
 /**
