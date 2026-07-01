@@ -7,9 +7,11 @@
 
 #pragma once
 
+#include "BLI_array.hh"
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_sys_types.hh"
+#include "BLI_vector.hh"
 
 namespace blender {
 
@@ -72,7 +74,7 @@ struct SDNA {
   /** Number of types. */
   int types_num = 0;
   /** Type names. */
-  const char **types = nullptr;
+  Array<const char *> types;
   /** Type lengths. */
   short *types_size = nullptr;
   /**
@@ -80,7 +82,7 @@ struct SDNA {
    * type may be lower in some cases. For example, the pointer alignment of a single char is at
    * least 8 bytes, but the alignment of the type itself is 1.
    */
-  int *types_alignment = nullptr;
+  Array<int> types_alignment;
   /* ***** End of SDNA types. ***** */
 
   /* ***** Start of SDNA structs. ***** */
@@ -90,31 +92,22 @@ struct SDNA {
    * NOTE: See comment above about SDNA types above for differences between structs and types
    * definitions.
    */
-  /** Number of struct definitions. */
-  int structs_num = 0;
   /** Information about structs and their members. */
-  SDNA_Struct **structs = nullptr;
+  Array<SDNA_Struct *, 0> structs;
   /* ***** End of SDNA structs. ***** */
 
   /* ***** Start of SDNA struct members. ***** */
   /** Total number of struct members. */
   int members_num = 0;
-  /**
-   * Contains the number of allocated items in both #members and #members_array_num arrays below.
-   *
-   * Typically same as #members_len, unless after versioning DNA info (these arrays are
-   * reallocated by chunks, see #DNA_sdna_patch_struct_member).
-   */
-  int members_num_alloc = 0;
   /** Struct member names. */
-  const char **members = nullptr;
+  Vector<const char *> members;
   /**
    * Aligned with #members. The total number of items in the array defined by the matching member,
    * if any, otherwise 1.
    *
    * Result of #DNA_member_array_num.
    */
-  short *members_array_num = nullptr;
+  Vector<short> members_array_num;
   /* ***** End of SDNA struct members. ***** */
 
   /**
@@ -135,9 +128,9 @@ struct SDNA {
    */
   struct {
     /** Aligned with #SDNA.types, same pointers when unchanged. */
-    const char **types = nullptr;
+    Array<const char *> types;
     /** Aligned with #SDNA.members, same pointers when unchanged. */
-    const char **members = nullptr;
+    Vector<const char *> members;
     /** A version of #SDNA.types_to_structs_map that uses #SDNA.alias.types for its keys. */
     Map<StringRef, int> types_to_structs_map;
   } alias;

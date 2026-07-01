@@ -81,7 +81,7 @@ TEST_F(SDNATest, basic)
 {
   ASSERT_NE(sdna, nullptr);
 
-  EXPECT_EQ(sdna->structs_num, 5);
+  EXPECT_EQ(sdna->structs.size(), 5);
 }
 
 TEST_F(SDNATest, index_without_alias)
