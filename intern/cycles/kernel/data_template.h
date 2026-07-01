@@ -136,6 +136,7 @@ KERNEL_STRUCT_MEMBER(film, int, pass_denoising_normal)
 KERNEL_STRUCT_MEMBER(film, int, pass_denoising_roughness)
 KERNEL_STRUCT_MEMBER(film, int, pass_denoising_depth)
 KERNEL_STRUCT_MEMBER(film, int, pass_denoising_backward_motion)
+KERNEL_STRUCT_MEMBER(film, int, pass_denoising_specular_motion)
 KERNEL_STRUCT_MEMBER(film, int, denoising_pass_options_flag)
 /* AOVs. */
 KERNEL_STRUCT_MEMBER(film, int, pass_aov_color)

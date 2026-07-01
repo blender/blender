@@ -786,6 +786,7 @@ static bool get_known_pass_type(blender::RenderPass &b_pass, PassType &type, Pas
   MAP_PASS("Denoising Roughness", PASS_DENOISING_ROUGHNESS, true);
   MAP_PASS("Denoising Depth", PASS_DENOISING_DEPTH, true);
   MAP_PASS("Denoising Backward Motion", PASS_DENOISING_BACKWARD_MOTION, true);
+  MAP_PASS("Denoising Specular Motion", PASS_DENOISING_SPECULAR_MOTION, true);
 
   MAP_PASS("Shadow Catcher", PASS_SHADOW_CATCHER, false);
   MAP_PASS("Noisy Shadow Catcher", PASS_SHADOW_CATCHER, true);
