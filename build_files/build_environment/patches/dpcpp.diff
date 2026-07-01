@@ -35,7 +35,7 @@ index 6c771c709..1e840ebfe 100644
 
  add_subdirectory(opencl-aot)
 diff --git a/sycl/cmake/modules/FetchUnifiedRuntime.cmake b/sycl/cmake/modules/FetchUnifiedRuntime.cmake
-index 33368f2b9..02d4cc106 100644
+index 33368f2b9..9b95ec123 100644
 --- a/sycl/cmake/modules/FetchUnifiedRuntime.cmake
 +++ b/sycl/cmake/modules/FetchUnifiedRuntime.cmake
 @@ -92,8 +92,12 @@ if(IS_DIRECTORY "${UR_INTREE_SOURCE_DIR}")
@@ -66,10 +66,46 @@ index 33368f2b9..02d4cc106 100644
 
    fetch_adapter_source(level_zero
      ${UNIFIED_RUNTIME_REPO}
-@@ -362,6 +370,15 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
-       -DUMF_LINK_HWLOC_STATICALLY:BOOL=${UMF_LINK_HWLOC_STATICALLY}
-       -DUMF_DISABLE_HWLOC:BOOL=${UMF_DISABLE_HWLOC}
+@@ -327,6 +335,31 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+   set(URD_BINARY_DIR ${CMAKE_BINARY_DIR}/unified-runtimed)
+   set(URD_INSTALL_DIR ${URD_BINARY_DIR}/install)
+
++  # Verify that required variables are available before forwarding them
++  # to the unified-runtimed sub-build. If any are missing, it means the
++  # parent build did not receive them (e.g., from Blender's dpcpp.cmake).
++  if(NOT DEFINED XPTIFW_PARALLEL_HASHMAP_HEADERS)
++    message(FATAL_ERROR "XPTIFW_PARALLEL_HASHMAP_HEADERS is not defined. Cannot forward to unified-runtimed sub-build.")
++  endif()
++  if(NOT DEFINED Python3_ROOT_DIR)
++    message(FATAL_ERROR "Python3_ROOT_DIR is not defined. Cannot forward to unified-runtimed sub-build.")
++  endif()
++  if(NOT DEFINED Python3_EXECUTABLE)
++    message(FATAL_ERROR "Python3_EXECUTABLE is not defined. Cannot forward to unified-runtimed sub-build.")
++  endif()
++  if(NOT DEFINED PYTHON_EXECUTABLE)
++    message(FATAL_ERROR "PYTHON_EXECUTABLE is not defined. Cannot forward to unified-runtimed sub-build.")
++  endif()
++  if(NOT DEFINED LEVEL_ZERO_LIBRARY)
++    message(FATAL_ERROR "LEVEL_ZERO_LIBRARY is not defined. Cannot forward to unified-runtimed sub-build.")
++  endif()
++  if(NOT DEFINED LEVEL_ZERO_INCLUDE_DIR)
++    message(FATAL_ERROR "LEVEL_ZERO_INCLUDE_DIR is not defined. Cannot forward to unified-runtimed sub-build.")
++  endif()
++  if(NOT DEFINED FETCHCONTENT_SOURCE_DIR_UNIFIED-MEMORY-FRAMEWORK)
++    message(FATAL_ERROR "FETCHCONTENT_SOURCE_DIR_UNIFIED-MEMORY-FRAMEWORK is not defined. Cannot forward to unified-runtimed sub-build.")
++  endif()
++
+   # This creates a subbuild which can be used in dependencies with the
+   # unified-runtimed target. It invokes the install-unified-runtime-libraries
+   # target to install the UR runtime libraries.
+@@ -364,6 +397,24 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
        -DSYCL_EMHASH_DIR:STRING=${SYCL_EMHASH_DIR}
+       # Enable d suffix in UMF
+       -DUMF_USE_DEBUG_POSTFIX:BOOL=ON
++      # Prevent network access during the debug sub-build. ExternalProject_Add
++      # uses a separate CMake invocation that does not inherit the parent cache,
++      # so FETCHCONTENT_FULLY_DISCONNECTED must be forwarded explicitly.
++      -DFETCHCONTENT_FULLY_DISCONNECTED:BOOL=ON
 +      # These variables must be explicitly forwarded to the inner ExternalProject
 +      # build on Windows because it uses a separate CMake invocation via
 +      # ExternalProject_Add, which does not inherit the parent's cache. Without
@@ -79,9 +115,14 @@ index 33368f2b9..02d4cc106 100644
 +      -DPython3_ROOT_DIR:STRING=${Python3_ROOT_DIR}
 +      -DPython3_EXECUTABLE:STRING=${Python3_EXECUTABLE}
 +      -DPYTHON_EXECUTABLE:STRING=${PYTHON_EXECUTABLE}
-       # Enable d suffix in UMF
-       -DUMF_USE_DEBUG_POSTFIX:BOOL=ON
++      -DLEVEL_ZERO_LIBRARY:STRING=${LEVEL_ZERO_LIBRARY}
++      -DLEVEL_ZERO_INCLUDE_DIR:STRING=${LEVEL_ZERO_INCLUDE_DIR}
++      -DUR_COMPUTE_RUNTIME_FETCH_REPO:BOOL=OFF
++      -DFETCHCONTENT_SOURCE_DIR_UNIFIED-MEMORY-FRAMEWORK:STRING=${FETCHCONTENT_SOURCE_DIR_UNIFIED-MEMORY-FRAMEWORK}
++      -DUMF_LEVEL_ZERO_INCLUDE_DIR:STRING=${LEVEL_ZERO_INCLUDE_DIR}
    )
+
+   # Copy the debug UR runtime libraries to <build>/bin & <build>/lib for use in
 diff --git a/sycl/source/detail/kernel_bundle_impl.hpp b/sycl/source/detail/kernel_bundle_impl.hpp
 index 932805444..9cd8f1a21 100644
 --- a/sycl/source/detail/kernel_bundle_impl.hpp
@@ -166,7 +207,33 @@ index d39f2dcd2..cf2978665 100644
  #include <umf_pools/disjoint_pool_config_parser.hpp>
 
  #include "common/ur_ref_count.hpp"
+diff --git a/unified-runtime/source/common/CMakeLists.txt b/unified-runtime/source/common/CMakeLists.txt
+index b7a5abac1..984a52ada 100644
+--- a/unified-runtime/source/common/CMakeLists.txt
++++ b/unified-runtime/source/common/CMakeLists.txt
+@@ -36,7 +36,10 @@ target_include_directories(ur_common PUBLIC
+     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+ )
 
+-message(STATUS "Download Unified Memory Framework from github.com")
++if(NOT DEFINED FETCHCONTENT_SOURCE_DIR_UNIFIED-MEMORY-FRAMEWORK AND NOT FETCHCONTENT_FULLY_DISCONNECTED)
++  message(STATUS "Download Unified Memory Framework from github.com")
++endif()
++
+ if (NOT DEFINED UMF_REPO)
+     set(UMF_REPO "https://github.com/oneapi-src/unified-memory-framework.git")
+ endif()
+@@ -49,7 +52,9 @@ if (NOT DEFINED UMF_TAG)
+     set(UMF_TAG v1.0.0-rc2)
+ endif()
+
+-message(STATUS "Will fetch Unified Memory Framework from ${UMF_REPO}")
++if(NOT DEFINED FETCHCONTENT_SOURCE_DIR_UNIFIED-MEMORY-FRAMEWORK AND NOT FETCHCONTENT_FULLY_DISCONNECTED)
++  message(STATUS "Will fetch Unified Memory Framework from ${UMF_REPO}")
++endif()
+
+ include(FetchContent)
+ FetchContent_Declare(unified-memory-framework
 diff --git a/xptifw/include/xpti_string_table.hpp b/xptifw/include/xpti_string_table.hpp
 index bd48df019..5106e7eb8 100644
 --- a/xptifw/include/xpti_string_table.hpp
@@ -181,15 +248,36 @@ index bd48df019..5106e7eb8 100644
  #include <atomic>
  #include <shared_mutex>
 diff --git a/xptifw/src/CMakeLists.txt b/xptifw/src/CMakeLists.txt
-index de2274129..fa575434d 100644
+index de2274129..61378929c 100644
 --- a/xptifw/src/CMakeLists.txt
 +++ b/xptifw/src/CMakeLists.txt
-@@ -18,7 +18,7 @@ FetchContent_Declare(parallel-hashmap
- FetchContent_GetProperties(parallel-hashmap)
- FetchContent_MakeAvailable(parallel-hashmap)
+@@ -8,17 +8,19 @@ if (NOT SYCL_EMHASH_DIR)
+   include(FetchEmhash)
+ endif()
+
+-set(PARALLEL_HASHMAP_REPO https://github.com/greg7mdp/parallel-hashmap.git)
+-message(STATUS "Will fetch parallel-hashmap from ${PARALLEL_HASHMAP_REPO}")
+-FetchContent_Declare(parallel-hashmap
+-  GIT_REPOSITORY    ${PARALLEL_HASHMAP_REPO}
+-  GIT_TAG           8a889d3699b3c09ade435641fb034427f3fd12b6
+-)
+-
+-FetchContent_GetProperties(parallel-hashmap)
+-FetchContent_MakeAvailable(parallel-hashmap)
++# XPTIFW_PARALLEL_HASHMAP_HEADERS is already set from from Blender's build system.
++if(NOT XPTIFW_PARALLEL_HASHMAP_HEADERS)
++  set(PARALLEL_HASHMAP_REPO https://github.com/greg7mdp/parallel-hashmap.git)
++  message(STATUS "Will fetch parallel-hashmap from ${PARALLEL_HASHMAP_REPO}")
++  FetchContent_Declare(parallel-hashmap
++    GIT_REPOSITORY    ${PARALLEL_HASHMAP_REPO}
++    GIT_TAG           8a889d3699b3c09ade435641fb034427f3fd12b6
++  )
 
 -set(XPTIFW_PARALLEL_HASHMAP_HEADERS "${parallel-hashmap_SOURCE_DIR}")
-+# XPTIFW_PARALLEL_HASHMAP_HEADERS is already set from from Blender's build system.
++  FetchContent_GetProperties(parallel-hashmap)
++  FetchContent_MakeAvailable(parallel-hashmap)
++  set(XPTIFW_PARALLEL_HASHMAP_HEADERS "${parallel-hashmap_SOURCE_DIR}")
++endif()
 
  file(GLOB SOURCES *.cpp)
 
