@@ -428,7 +428,9 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
     window_.contentView = view;
     window_.initialFirstResponder = view;
 
-    [window_ makeKeyAndOrderFront:nil];
+    if (state == GHOST_kWindowStateFullScreen) {
+      setState(GHOST_kWindowStateFullScreen);
+    }
 
     updateDrawingSize();
 
@@ -463,11 +465,9 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
       window_.collectionBehavior = NSWindowCollectionBehaviorFullScreenPrimary;
     }
 
-    if (state == GHOST_kWindowStateFullScreen) {
-      setState(GHOST_kWindowStateFullScreen);
-    }
-
     setNativePixelSize();
+
+    [window_ makeKeyAndOrderFront:nil];
   }
 }
 
