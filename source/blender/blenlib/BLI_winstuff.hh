@@ -82,6 +82,15 @@ bool BLI_windows_update_pinned_launcher(const char *launcher_path);
 bool BLI_windows_get_directx_driver_version(const wchar_t *deviceSubString,
                                             long long *r_driverVersion);
 
+/* Obtains the driver version and device ID for the device matching the passed LUID.
+ * The DXGI User Mode Driver (UMD) version is parsed to fit the Intel GPU driver "xxx.yyyy"
+ * (major.minor) versioning scheme. This function is used for obtaining this information in the
+ * OpenGL backend, which otherwise does not have access to this information. */
+bool BLI_windows_get_directx_intel_driver_info(uint64_t device_luid,
+                                               int *driver_version_minor,
+                                               int *driver_version_major,
+                                               uint32_t *device_id);
+
 /* Checks the version of the Windows build in the format "major.minor.build".
  * Example: 10.0.22000 corresponds to Windows 11 21H2. */
 bool BLI_windows_is_build_version_greater_or_equal(DWORD majorVersion,
