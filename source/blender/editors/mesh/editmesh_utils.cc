@@ -1952,10 +1952,14 @@ BMElem *EDBM_elem_from_index_any_multi(const Main &bmain,
 /** \name BMesh BVH API
  * \{ */
 
-static BMFace *edge_ray_cast(
-    const BMBVHTree *tree, const float co[3], const float dir[3], float *r_hitout, const BMEdge *e)
+static BMFace *edge_ray_cast(const BMBVHTree *tree,
+                             const float co[3],
+                             const float dir[3],
+                             float *r_hitout,
+                             const BMEdge *e,
+                             float *r_dist)
 {
-  BMFace *f = BKE_bmbvh_ray_cast(tree, co, dir, 0.0f, nullptr, r_hitout, nullptr);
+  BMFace *f = BKE_bmbvh_ray_cast(tree, co, dir, 0.0f, r_dist, r_hitout, nullptr);
 
   if (f && BM_edge_in_face(e, f)) {
     return nullptr;
@@ -2006,6 +2010,11 @@ bool BMBVH_EdgeVisible(const BMBVHTree *tree,
   sub_v3_v3v3(dir2, origin, co2);
   sub_v3_v3v3(dir3, origin, co3);
 
+  /* This prevents the ray shooting behind the camera. */
+  float dist1 = len_v3(dir1);
+  float dist2 = len_v3(dir2);
+  float dist3 = len_v3(dir3);
+
   normalize_v3_length(dir1, epsilon);
   normalize_v3_length(dir2, epsilon);
   normalize_v3_length(dir3, epsilon);
@@ -2021,11 +2030,11 @@ bool BMBVH_EdgeVisible(const BMBVHTree *tree,
   normalize_v3(dir3);
 
   /* do three samplings: left, middle, right */
-  f = edge_ray_cast(tree, co1, dir1, nullptr, e);
-  if (f && !edge_ray_cast(tree, co2, dir2, nullptr, e)) {
+  f = edge_ray_cast(tree, co1, dir1, nullptr, e, &dist1);
+  if (f && !edge_ray_cast(tree, co2, dir2, nullptr, e, &dist2)) {
     return true;
   }
-  if (f && !edge_ray_cast(tree, co3, dir3, nullptr, e)) {
+  if (f && !edge_ray_cast(tree, co3, dir3, nullptr, e, &dist3)) {
     return true;
   }
   if (!f) {
