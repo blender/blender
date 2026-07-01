@@ -688,7 +688,7 @@ class USDExportTest(AbstractUSDTest):
         usd_mat = pv.Get()[3]
         usd_values = [usd_mat[i][j] for i in range(0, 4) for j in range(0, 4)]
         expected = [0.4, 0.8, 1.2, 1.6] * 4
-        self.assertTrue(self.round_vector(usd_values), expected)
+        self.assertEqual(self.round_vector(usd_values), expected)
 
         prim = stage.GetPrimAtPath("/root/Curve_base/Curves/Curves")
 
