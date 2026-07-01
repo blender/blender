@@ -973,20 +973,31 @@ def dump_ocio_config(msgs, reports, settings):
             msgs, settings.DEFAULT_CONTEXT, display, msgsrc,
             reports, None, settings,
         )
-
         for view in config.getViews(display):
             msgsrc = "View name from OCIO display " + display
             process_msg(
                 msgs, settings.DEFAULT_CONTEXT, view, msgsrc,
                 reports, None, settings,
             )
-
             description = config.getDisplayViewDescription(display, view)
             msgsrc = "View description from OCIO display " + display
             process_msg(
                 msgs, settings.DEFAULT_CONTEXT, description, msgsrc,
                 reports, None, settings,
             )
+
+    for view_transform in config.getViewTransforms():
+        msgsrc = "View transform name from OCIO config"
+        process_msg(
+            msgs, settings.DEFAULT_CONTEXT, view_transform.getName(), msgsrc,
+            reports, None, settings,
+        )
+        description = config.getDisplayViewDescription(display, view)
+        msgsrc = "View transform description from OCIO config"
+        process_msg(
+            msgs, settings.DEFAULT_CONTEXT, view_transform.getDescription(), msgsrc,
+            reports, None, settings,
+        )
 
     for look in config.getLookNames():
         # Some looks include their view's name to have unique names,
