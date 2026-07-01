@@ -4218,6 +4218,27 @@ static wmOperatorStatus sequencer_strip_color_tag_set_exec(bContext *C, wmOperat
   return OPERATOR_FINISHED;
 }
 
+static std::string sequencer_strip_color_tag_set_get_name(wmOperatorType *ot,
+                                                          PointerRNA *properties)
+{
+  const int color = RNA_enum_get(properties, "color");
+  if (color == STRIP_COLOR_NONE) {
+    return TIP_("Remove Color Tag");
+  }
+  return CTX_IFACE_(ot->translation_context, ot->name);
+}
+
+static std::string sequencer_strip_color_tag_set_get_description(bContext * /*C*/,
+                                                                 wmOperatorType *ot,
+                                                                 PointerRNA *properties)
+{
+  const int color = RNA_enum_get(properties, "color");
+  if (color == STRIP_COLOR_NONE) {
+    return TIP_("Remove color tag from the selected strips");
+  }
+  return ot->description ? CTX_IFACE_(ot->translation_context, ot->description) : "";
+}
+
 void SEQUENCER_OT_strip_color_tag_set(wmOperatorType *ot)
 {
   /* Identifiers. */
@@ -4228,6 +4249,8 @@ void SEQUENCER_OT_strip_color_tag_set(wmOperatorType *ot)
   /* API callbacks. */
   ot->exec = sequencer_strip_color_tag_set_exec;
   ot->poll = sequencer_edit_poll;
+  ot->get_name = sequencer_strip_color_tag_set_get_name;
+  ot->get_description = sequencer_strip_color_tag_set_get_description;
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

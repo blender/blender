@@ -12,6 +12,8 @@
 #include "BLI_set.hh"
 #include "BLI_utildefines.hh"
 
+#include "BLT_translation.hh"
+
 #include "DNA_ID.h"
 #include "DNA_collection_types.h"
 #include "DNA_layer_types.h"
@@ -1655,6 +1657,27 @@ static wmOperatorStatus outliner_color_tag_set_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static std::string outliner_collection_color_tag_set_get_name(wmOperatorType *ot,
+                                                              PointerRNA *properties)
+{
+  const int color = RNA_enum_get(properties, "color");
+  if (color == COLLECTION_COLOR_NONE) {
+    return TIP_("Remove Color Tag");
+  }
+  return CTX_IFACE_(ot->translation_context, ot->name);
+}
+
+static std::string outliner_collection_color_tag_set_get_description(bContext * /*C*/,
+                                                                     wmOperatorType *ot,
+                                                                     PointerRNA *properties)
+{
+  const int color = RNA_enum_get(properties, "color");
+  if (color == COLLECTION_COLOR_NONE) {
+    return TIP_("Remove color tag from the selected collections");
+  }
+  return ot->description ? CTX_IFACE_(ot->translation_context, ot->description) : "";
+}
+
 void OUTLINER_OT_collection_color_tag_set(wmOperatorType *ot)
 {
   /* identifiers */
@@ -1665,6 +1688,8 @@ void OUTLINER_OT_collection_color_tag_set(wmOperatorType *ot)
   /* API callbacks. */
   ot->exec = outliner_color_tag_set_exec;
   ot->poll = ED_outliner_collections_editor_poll;
+  ot->get_name = outliner_collection_color_tag_set_get_name;
+  ot->get_description = outliner_collection_color_tag_set_get_description;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
