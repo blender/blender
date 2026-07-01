@@ -454,6 +454,7 @@ static bool init_structDNA(SDNA *sdna, const char **r_error_message)
 
   /* Safety check, to ensure that there is no multiple usages of a same struct index. */
   Set<short> struct_indices;
+  struct_indices.reserve(sdna->structs_num);
   sp = reinterpret_cast<short *>(data);
   for (int struct_index = 0; struct_index < sdna->structs_num; struct_index++) {
     /* NOTE: this is endianness-sensitive. */
