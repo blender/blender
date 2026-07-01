@@ -1122,7 +1122,9 @@ struct ScopeParser {
   {
     if (curr_node.type() == type) {
       IndexRange &range = parser.scope_ranges[curr_node.index_];
-      range.size = tok.index_ - range.start + 1;
+      if (tok.is_valid()) {
+        range.size = tok.index_ - range.start + 1;
+      }
       curr_node = curr_node.parent();
     }
   }
