@@ -213,8 +213,60 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
   pixel_node.uv_primitives.tri_indices.reserve(node.faces().size() * 2);
   pixel_node.uv_primitives.pixel_to_position.reserve(node.faces().size() * 2);
 
+  const Span<int3> corner_tris = mesh_data.corner_tris;
+  const Span<float2> uv_map = mesh_data.uv_map;
+
+  /* For multiple UDIM tiles, compute which ones this node overlaps with. */
+  const bool multi_tile = BLI_listbase_count(&image.tiles) > 1;
+  Vector<int2, 8> node_tiles;
+  if (multi_tile) {
+    int2 tiles_min(INT_MAX);
+    int2 tiles_max(INT_MIN);
+    for (ImageTile &tile : image.tiles) {
+      math::min_max(image::ImageTileWrapper(&tile).get_tile_offset(), tiles_min, tiles_max);
+    }
+
+    for (const int face : node.faces()) {
+      for (const int tri : bke::mesh::face_triangles_range(mesh_data.faces, face)) {
+        if (uv_prim_lookup.lookup[tri].is_empty()) {
+          continue;
+        }
+        float2 uv_min(FLT_MAX);
+        float2 uv_max(-FLT_MAX);
+        for (int i = 0; i < 3; i++) {
+          const float2 uv = uv_map[corner_tris[tri][i]];
+          uv_min = math::min(uv_min, uv);
+          uv_max = math::max(uv_max, uv);
+        }
+        /* Bound by UDIM tiles to guard against very large UV coordinates. */
+        const int2 tile_min = math::clamp(int2(math::floor(uv_min)), tiles_min, tiles_max);
+        const int2 tile_max = math::clamp(int2(math::floor(uv_max)), tiles_min, tiles_max);
+        for (int ty = tile_min.y; ty <= tile_max.y; ty++) {
+          for (int tx = tile_min.x; tx <= tile_max.x; tx++) {
+            node_tiles.append_non_duplicates(int2(tx, ty));
+          }
+        }
+      }
+    }
+  }
+
   for (ImageTile &tile : image.tiles) {
     image::ImageTileWrapper image_tile(&tile);
+    const int2 tile_offset_i = image_tile.get_tile_offset();
+    const float2 tile_offset = float2(tile_offset_i);
+
+    /* Skip UDIM tiles none of the node's primitives cover. */
+    if (multi_tile && !node_tiles.contains(tile_offset_i)) {
+      continue;
+    }
+
+    /* Skip UDIM tiles that have no mask. */
+    const uv_islands::UVIslandsMask::Tile *mask_tile = uv_masks.find_tile(tile_offset +
+                                                                          float2(0.5f, 0.5f));
+    if (mask_tile == nullptr) {
+      continue;
+    }
+
     image_user.tile = image_tile.get_tile_number();
     ImBuf *image_buffer = BKE_image_acquire_ibuf(&image, &image_user, nullptr);
     if (image_buffer == nullptr) {
@@ -225,11 +277,6 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
 
     UDIMTilePixels tile_data;
     tile_data.tile_number = image_tile.get_tile_number();
-    float2 tile_offset = float2(image_tile.get_tile_offset());
-
-    /* Lookup mask tile once per triangle, as each triangle belongs to one UDIM tile. */
-    const uv_islands::UVIslandsMask::Tile *mask_tile = uv_masks.find_tile(tile_offset +
-                                                                          float2(0.5f, 0.5f));
 
     for (const int face : node.faces()) {
       for (const int tri : bke::mesh::face_triangles_range(mesh_data.faces, face)) {
@@ -250,24 +297,31 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
           const float maxu = clamp_f(std::max({uvs[0].x, uvs[1].x, uvs[2].x}), 0.0f, 1.0f);
           const int maxx = min_ii(ceil(maxu * image_buffer->x), image_buffer->x);
 
+          /* Skip primitives that don't overlap this tile. */
+          if (minx >= maxx || miny >= maxy) {
+            continue;
+          }
+
           const int uv_prim_index = pixel_node.uv_primitives.tri_indices.size();
+          const int64_t pixel_rows_num = tile_data.pixel_rows.size();
+          extract_barycentric_pixels(tile_data,
+                                     image_buffer,
+                                     *mask_tile,
+                                     entry.uv_island_index,
+                                     uv_prim_index,
+                                     uvs,
+                                     minx,
+                                     miny,
+                                     maxx,
+                                     maxy);
+
+          /* Don't append primitive if no pixels where written to this tile. */
+          if (tile_data.pixel_rows.size() == pixel_rows_num) {
+            continue;
+          }
           pixel_node.uv_primitives.tri_indices.append(tri);
           pixel_node.uv_primitives.pixel_to_position.append(
               calc_pixel_to_position_map(mesh_data, tri, uvs, inv_w, inv_h));
-
-          /* Extract the pixels. */
-          if (mask_tile != nullptr) {
-            extract_barycentric_pixels(tile_data,
-                                       image_buffer,
-                                       *mask_tile,
-                                       entry.uv_island_index,
-                                       uv_prim_index,
-                                       uvs,
-                                       minx,
-                                       miny,
-                                       maxx,
-                                       maxy);
-          }
         }
       }
     }
