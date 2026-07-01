@@ -1450,11 +1450,14 @@ static void add_uv_island(const MeshData &mesh_data,
 void UVIslandsMask::add(const MeshData &mesh_data, const UVIslands &uv_islands)
 {
   PRF_scope(ProfileCategory::Editor);
-  for (Tile &tile : tiles) {
-    for (const int i : uv_islands.islands.index_range()) {
-      add_uv_island(mesh_data, tile, uv_islands.islands[i], i);
+
+  threading::parallel_for(IndexRange(tiles.size()), 1, [&](const IndexRange range) {
+    for (const int tile_index : range) {
+      for (const int i : uv_islands.islands.index_range()) {
+        add_uv_island(mesh_data, tiles[tile_index], uv_islands.islands[i], i);
+      }
     }
-  }
+  });
 }
 
 void UVIslandsMask::add_tile(const float2 udim_offset, ushort2 resolution)
