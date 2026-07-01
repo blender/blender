@@ -526,12 +526,12 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
         const int run_end = tile_data.pixel_row_run_starts[run_i + 1];
 
         /* Compute run position and size. */
-        const PackedPixelRow &first_row = tile_data.pixel_rows[run_begin];
-        const PackedPixelRow &last_row = tile_data.pixel_rows[run_end - 1];
-        const int run_y = int(first_row.start_image_coordinate.y);
-        const int run_x = int(first_row.start_image_coordinate.x);
-        const int run_size = int(last_row.start_image_coordinate.x) + int(last_row.num_pixels) -
-                             run_x;
+        const int run_x = int(tile_data.pixel_row_run_start_coords[run_i].x);
+        const int run_y = int(tile_data.pixel_row_run_start_coords[run_i].y);
+        int run_size = 0;
+        for (int k = run_begin; k < run_end; k++) {
+          run_size += int(tile_data.pixel_rows[k].num_pixels);
+        }
 
         /* Resize temporary data to match run size. */
         tls.factors.resize(run_size);
@@ -553,11 +553,11 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
           const int tri_row_size = int(tri_row.num_pixels);
 
           /* Use pixel to position mapping to compute 3D position. */
+          const int tri_row_x = run_x + tri_row_offset;
           const int uv_prim = tri_row.uv_primitive_index;
           const float3x3 &pixel_to_position = pixel_node.uv_primitives.pixel_to_position[uv_prim];
           const float3 P_delta = pixel_to_position[0];
-          const float3 P_start = P_delta * tri_row.start_image_coordinate.x +
-                                 pixel_to_position[1] * tri_row.start_image_coordinate.y +
+          const float3 P_start = P_delta * tri_row_x + pixel_to_position[1] * run_y +
                                  pixel_to_position[2];
 
           /* Quick bounds check. */

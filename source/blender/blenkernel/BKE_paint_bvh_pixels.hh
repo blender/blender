@@ -32,8 +32,6 @@ namespace blender::bke::pbvh::pixels {
  * Encode sequential pixels to reduce memory footprint.
  */
 struct PackedPixelRow {
-  /** Image coordinate starting of the first pixel. */
-  ushort2 start_image_coordinate;
   /** Number of sequential pixels encoded in this package. */
   ushort num_pixels;
   /** Reference to the pbvh triangle index. */
@@ -58,6 +56,9 @@ struct UDIMTilePixels {
 
   /** Offsets into #pixel_rows grouping it into contiguous runs for batch processing. */
   Vector<int> pixel_row_run_starts;
+
+  /** Image coordinate of the first pixel of each run. */
+  Vector<ushort2> pixel_row_run_start_coords;
 
   UDIMTilePixels()
   {

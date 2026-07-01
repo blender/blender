@@ -250,17 +250,23 @@ struct Rows {
   void mark_pixels_effected_by_brush(const PixelNodesTileData &nodes_tile_pixels)
   {
     for (const UDIMTilePixels &tile_pixels : nodes_tile_pixels) {
-      threading::parallel_for_each(
-          tile_pixels.pixel_rows, [&](const PackedPixelRow &encoded_pixels) {
-            for (int x = encoded_pixels.start_image_coordinate.x;
-                 x < encoded_pixels.start_image_coordinate.x + encoded_pixels.num_pixels;
-                 x++)
-            {
-              int64_t index = encoded_pixels.start_image_coordinate.y * resolution.x + x;
+      const int num_runs = tile_pixels.pixel_row_run_starts.size() - 1;
+      threading::parallel_for(IndexRange(num_runs), 64, [&](const IndexRange range) {
+        for (const int run_i : range) {
+          int x = tile_pixels.pixel_row_run_start_coords[run_i].x;
+          const int y = tile_pixels.pixel_row_run_start_coords[run_i].y;
+          const int run_begin = tile_pixels.pixel_row_run_starts[run_i];
+          const int run_end = tile_pixels.pixel_row_run_starts[run_i + 1];
+          for (int k = run_begin; k < run_end; k++) {
+            const int num_pixels = tile_pixels.pixel_rows[k].num_pixels;
+            for (int px = 0; px < num_pixels; px++, x++) {
+              int64_t index = int64_t(y) * resolution.x + x;
               pixels[index].type = PixelType::Brush;
               pixels[index].distance = 0.0f;
             }
-          });
+          }
+        }
+      });
     }
   }
 

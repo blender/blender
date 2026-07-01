@@ -80,7 +80,14 @@ static float3x3 calc_pixel_to_position_map(const uv_islands::MeshData &mesh_data
  */
 constexpr bool USE_WATERTIGHT_CHECK = false;
 
-static void extract_barycentric_pixels(UDIMTilePixels &tile_data,
+/** A pixel row with its image coordinate. Used while building before it is packed into runs. */
+struct BuildPixelRow {
+  ushort2 start_image_coordinate;
+  ushort num_pixels;
+  ushort uv_primitive_index;
+};
+
+static void extract_barycentric_pixels(Vector<BuildPixelRow> &build_rows,
                                        const ImBuf *image_buffer,
                                        const uv_islands::UVIslandsMask::Tile &mask_tile,
                                        const int uv_island_index,
@@ -105,7 +112,7 @@ static void extract_barycentric_pixels(UDIMTilePixels &tile_data,
 
   for (int y = miny; y < maxy; y++) {
     bool start_detected = false;
-    PackedPixelRow pixel_row;
+    BuildPixelRow pixel_row;
     pixel_row.uv_primitive_index = uv_primitive_index;
     pixel_row.num_pixels = 0;
     int x;
@@ -134,7 +141,7 @@ static void extract_barycentric_pixels(UDIMTilePixels &tile_data,
       continue;
     }
     pixel_row.num_pixels = x - pixel_row.start_image_coordinate.x;
-    tile_data.pixel_rows.append(pixel_row);
+    build_rows.append(pixel_row);
   }
 }
 
@@ -166,32 +173,41 @@ struct UVPrimitiveLookup {
   }
 };
 
-static void build_pixel_row_runs(UDIMTilePixels &tile_data)
+static void build_pixel_row_runs(Vector<BuildPixelRow> &build_rows, UDIMTilePixels &tile_data)
 {
-  const int n = tile_data.pixel_rows.size();
+  const int n = build_rows.size();
 
   /* Sort pixel rows by (y, x), to group contiguous pixel rows runs from adjacent triangles.
    * Stable sort for deterministic results with overlapping triangles. */
-  std::ranges::stable_sort(tile_data.pixel_rows,
-                           [](const PackedPixelRow &a, const PackedPixelRow &b) {
-                             if (a.start_image_coordinate.y != b.start_image_coordinate.y) {
-                               return a.start_image_coordinate.y < b.start_image_coordinate.y;
-                             }
-                             return a.start_image_coordinate.x < b.start_image_coordinate.x;
-                           });
-
-  /* Compute run starts. */
-  tile_data.pixel_row_run_starts.clear();
-  tile_data.pixel_row_run_starts.append(0);
-  for (int i = 1; i < n; i++) {
-    const PackedPixelRow &prev = tile_data.pixel_rows[i - 1];
-    const PackedPixelRow &cur = tile_data.pixel_rows[i];
-    const bool contiguous = cur.start_image_coordinate.y == prev.start_image_coordinate.y &&
-                            cur.start_image_coordinate.x ==
-                                prev.start_image_coordinate.x + prev.num_pixels;
-    if (!contiguous) {
-      tile_data.pixel_row_run_starts.append(i);
+  std::ranges::stable_sort(build_rows, [](const BuildPixelRow &a, const BuildPixelRow &b) {
+    if (a.start_image_coordinate.y != b.start_image_coordinate.y) {
+      return a.start_image_coordinate.y < b.start_image_coordinate.y;
     }
+    return a.start_image_coordinate.x < b.start_image_coordinate.x;
+  });
+
+  /* Build runs of packed rows from build rows. */
+  tile_data.pixel_rows.reserve(n);
+  tile_data.pixel_row_run_starts.clear();
+  tile_data.pixel_row_run_start_coords.clear();
+  for (const int i : build_rows.index_range()) {
+    const BuildPixelRow &build_row = build_rows[i];
+    if (i == 0) {
+      tile_data.pixel_row_run_starts.append(0);
+      tile_data.pixel_row_run_start_coords.append(build_row.start_image_coordinate);
+    }
+    else {
+      const BuildPixelRow &prev = build_rows[i - 1];
+      const bool contiguous = build_row.start_image_coordinate.y ==
+                                  prev.start_image_coordinate.y &&
+                              build_row.start_image_coordinate.x ==
+                                  prev.start_image_coordinate.x + prev.num_pixels;
+      if (!contiguous) {
+        tile_data.pixel_row_run_starts.append(i);
+        tile_data.pixel_row_run_start_coords.append(build_row.start_image_coordinate);
+      }
+    }
+    tile_data.pixel_rows.append({build_row.num_pixels, build_row.uv_primitive_index});
   }
   tile_data.pixel_row_run_starts.append(n);
 }
@@ -281,6 +297,7 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
 
     UDIMTilePixels tile_data;
     tile_data.tile_number = image_tile.get_tile_number();
+    Vector<BuildPixelRow> build_rows;
 
     for (const int face : node.faces()) {
       for (const int tri : bke::mesh::face_triangles_range(mesh_data.faces, face)) {
@@ -307,8 +324,8 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
           }
 
           const int uv_prim_index = tri_indices.size();
-          const int64_t pixel_rows_num = tile_data.pixel_rows.size();
-          extract_barycentric_pixels(tile_data,
+          const int64_t build_rows_num = build_rows.size();
+          extract_barycentric_pixels(build_rows,
                                      image_buffer,
                                      *mask_tile,
                                      entry.uv_island_index,
@@ -320,7 +337,7 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
                                      maxy);
 
           /* Don't append primitive if no pixels where written to this tile. */
-          if (tile_data.pixel_rows.size() == pixel_rows_num) {
+          if (build_rows.size() == build_rows_num) {
             continue;
           }
           tri_indices.append(tri);
@@ -330,11 +347,11 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
     }
     BKE_image_release_ibuf(&image, image_buffer, nullptr);
 
-    if (tile_data.pixel_rows.is_empty()) {
+    if (build_rows.is_empty()) {
       continue;
     }
 
-    build_pixel_row_runs(tile_data);
+    build_pixel_row_runs(build_rows, tile_data);
 
     BLI_assert(pixel_to_position.size() == tri_indices.size());
 
@@ -405,18 +422,26 @@ static void apply_watertight_check(Tree &pbvh, Image &image, ImageUser &image_us
         return;
       }
 
-      for (PackedPixelRow &pixel_row : tile_node_data->pixel_rows) {
-        int pixel_offset = pixel_row.start_image_coordinate.y * image_buffer->x +
-                           pixel_row.start_image_coordinate.x;
-        for (int x = 0; x < pixel_row.num_pixels; x++) {
-          if (data_float) {
-            copy_v4_fl(&data_float[pixel_offset * 4], 1.0);
+      const int num_runs = tile_node_data->pixel_row_run_starts.size() - 1;
+      for (int run_i = 0; run_i < num_runs; run_i++) {
+        int run_x = tile_node_data->pixel_row_run_start_coords[run_i].x;
+        const int run_y = tile_node_data->pixel_row_run_start_coords[run_i].y;
+        const int run_begin = tile_node_data->pixel_row_run_starts[run_i];
+        const int run_end = tile_node_data->pixel_row_run_starts[run_i + 1];
+        for (int k = run_begin; k < run_end; k++) {
+          const PackedPixelRow &pixel_row = tile_node_data->pixel_rows[k];
+          int pixel_offset = run_y * image_buffer->x + run_x;
+          for (int x = 0; x < pixel_row.num_pixels; x++) {
+            if (data_float) {
+              copy_v4_fl(&data_float[pixel_offset * 4], 1.0);
+            }
+            if (data_byte) {
+              uint8_t *dest = &data_byte[pixel_offset * 4];
+              dest[0] = dest[1] = dest[2] = dest[3] = 255;
+            }
+            pixel_offset += 1;
           }
-          if (data_byte) {
-            uint8_t *dest = &data_byte[pixel_offset * 4];
-            dest[0] = dest[1] = dest[2] = dest[3] = 255;
-          }
-          pixel_offset += 1;
+          run_x += pixel_row.num_pixels;
         }
       }
     });
