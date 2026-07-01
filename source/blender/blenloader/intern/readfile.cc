@@ -5972,13 +5972,13 @@ bool blo_read_array_impl(BlendDataReader *reader,
 }
 
 void *BLO_read_struct_by_name_array(BlendDataReader *reader,
-                                    const char *struct_name,
+                                    const StringRef struct_name,
                                     const int64_t items_num,
                                     const void *old_address)
 {
   const int struct_index = DNA_struct_find_with_alias(reader->fd->memsdna, struct_name);
-  BLI_assert(STREQ(DNA_struct_identifier(const_cast<SDNA *>(reader->fd->memsdna), struct_index),
-                   struct_name));
+  BLI_assert(DNA_struct_identifier(const_cast<SDNA *>(reader->fd->memsdna), struct_index) ==
+             struct_name);
   const size_t struct_size = size_t(DNA_struct_size(reader->fd->memsdna, struct_index));
   return blo_read_struct_impl(reader, old_address, struct_size * items_num);
 }

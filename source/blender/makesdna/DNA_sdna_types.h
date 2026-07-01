@@ -73,7 +73,7 @@ struct SDNA {
   /** Number of types. */
   int types_num = 0;
   /** Type names. */
-  Array<const char *> types;
+  Array<StringRef> types;
   /** Type lengths. */
   short *types_size = nullptr;
   /**
@@ -99,7 +99,7 @@ struct SDNA {
   /** Total number of struct members. */
   int members_num = 0;
   /** Struct member names. */
-  Vector<const char *> members;
+  Vector<StringRef> members;
   /**
    * Aligned with #members. The total number of items in the array defined by the matching member,
    * if any, otherwise 1.
@@ -127,9 +127,9 @@ struct SDNA {
    */
   struct {
     /** Aligned with #SDNA.types, same pointers when unchanged. */
-    Array<const char *> types;
+    Array<StringRef> types;
     /** Aligned with #SDNA.members, same pointers when unchanged. */
-    Vector<const char *> members;
+    Vector<StringRef> members;
     /** A version of #SDNA.types_to_structs_map that uses #SDNA.alias.types for its keys. */
     Map<StringRef, int> types_to_structs_map;
   } alias;
