@@ -1022,6 +1022,14 @@ def dump_ocio_config(msgs, reports, settings):
             msgs, settings.DEFAULT_CONTEXT, description, msgsrc,
             reports, None, settings,
         )
+        family = colorspace.getFamily()
+        family_separator = config.getFamilySeparator()
+        for family_part in family.split(family_separator):
+            msgsrc = "Colorspace family from OCIO config"
+            process_msg(
+                msgs, settings.DEFAULT_CONTEXT, family_part, msgsrc,
+                reports, None, settings,
+            )
 
 
 def dump_asset_messages(msgs, reports, settings):
