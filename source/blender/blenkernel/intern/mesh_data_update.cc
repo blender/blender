@@ -14,6 +14,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_array_utils.hh"
 #include "BLI_linklist.hh"
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix_c.hh"
@@ -471,25 +472,20 @@ static GeometrySet mesh_calc_modifiers(Depsgraph &depsgraph,
           if (need_mapping ||
               ((nextmask.vmask | nextmask.emask | nextmask.pmask) & CD_MASK_ORIGINDEX))
           {
-            /* calc */
-            CustomData_add_layer(&mesh->vert_data, CD_ORIGINDEX, CD_CONSTRUCT, mesh->verts_num);
-            CustomData_add_layer(&mesh->edge_data, CD_ORIGINDEX, CD_CONSTRUCT, mesh->edges_num);
-            CustomData_add_layer(&mesh->face_data, CD_ORIGINDEX, CD_CONSTRUCT, mesh->faces_num);
-
             /* Not worth parallelizing this,
              * gives less than 0.1% overall speedup in best of best cases... */
-            range_vn_i(static_cast<int *>(CustomData_get_layer_for_write(
-                           &mesh->vert_data, CD_ORIGINDEX, mesh->verts_num)),
-                       mesh->verts_num,
-                       0);
-            range_vn_i(static_cast<int *>(CustomData_get_layer_for_write(
-                           &mesh->edge_data, CD_ORIGINDEX, mesh->edges_num)),
-                       mesh->edges_num,
-                       0);
-            range_vn_i(static_cast<int *>(CustomData_get_layer_for_write(
-                           &mesh->face_data, CD_ORIGINDEX, mesh->faces_num)),
-                       mesh->faces_num,
-                       0);
+            array_utils::fill_index_range<int>(
+                {static_cast<int *>(CustomData_add_layer(
+                     &mesh->vert_data, CD_ORIGINDEX, CD_CONSTRUCT, mesh->verts_num)),
+                 mesh->verts_num});
+            array_utils::fill_index_range<int>(
+                {static_cast<int *>(CustomData_add_layer(
+                     &mesh->edge_data, CD_ORIGINDEX, CD_CONSTRUCT, mesh->edges_num)),
+                 mesh->edges_num});
+            array_utils::fill_index_range<int>(
+                {static_cast<int *>(CustomData_add_layer(
+                     &mesh->face_data, CD_ORIGINDEX, CD_CONSTRUCT, mesh->faces_num)),
+                 mesh->faces_num});
           }
         }
 

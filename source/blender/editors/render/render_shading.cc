@@ -23,6 +23,7 @@
 #include "DNA_space_types.h"
 #include "DNA_world_types.h"
 
+#include "BLI_array_utils.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_path_utils.hh"
@@ -648,7 +649,7 @@ static wmOperatorStatus material_slot_move_exec(bContext *C, wmOperator *op)
 
   slot_remap = MEM_new_array_uninitialized<uint>(ob->totcol, __func__);
 
-  range_vn_u(slot_remap, ob->totcol, 0);
+  array_utils::fill_index_range<uint>({slot_remap, ob->totcol});
 
   slot_remap[index_pair[0]] = index_pair[1];
   slot_remap[index_pair[1]] = index_pair[0];

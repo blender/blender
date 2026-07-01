@@ -841,26 +841,6 @@ float normalize_vn(float *array_tar, const int size)
   return normalize_vn_vn(array_tar, array_tar, size);
 }
 
-void range_vn_i(int *array_tar, const int size, const int start)
-{
-  int *array_pt = array_tar + (size - 1);
-  int j = start + (size - 1);
-  int i = size;
-  while (i--) {
-    *(array_pt--) = j--;
-  }
-}
-
-void range_vn_u(uint *array_tar, const int size, const uint start)
-{
-  uint *array_pt = array_tar + (size - 1);
-  uint j = start + uint(size - 1);
-  int i = size;
-  while (i--) {
-    *(array_pt--) = j--;
-  }
-}
-
 void range_vn_fl(float *array_tar, const int size, const float start, const float step)
 {
   float *array_pt = array_tar + (size - 1);

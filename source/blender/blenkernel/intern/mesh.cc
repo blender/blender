@@ -1617,7 +1617,7 @@ static void ensure_orig_index_layer(CustomData &data, const int size)
   }
   int *indices = static_cast<int *>(
       CustomData_add_layer(&data, CD_ORIGINDEX, CD_SET_DEFAULT, size));
-  range_vn_i(indices, size, 0);
+  array_utils::fill_index_range<int>({indices, size});
 }
 
 void BKE_mesh_ensure_default_orig_index_customdata(Mesh *mesh)
