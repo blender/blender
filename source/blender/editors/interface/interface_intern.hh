@@ -1029,6 +1029,12 @@ struct PopupBlockHandle {
   void (*cancel_func)(bContext *C, void *arg) = nullptr;
   void *popup_arg = nullptr;
 
+  /**
+   * The StructRNA type that owns this popup, this popup should be removed if this type gets
+   * unregistered.
+   */
+  StructRNA *srna_owner = nullptr;
+
   /** Store data for refreshing popups. */
   PopupBlockCreate popup_create_vars;
   /**

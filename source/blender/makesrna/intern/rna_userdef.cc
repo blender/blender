@@ -33,6 +33,8 @@
 
 #include "rna_internal.hh"
 
+#include "UI_interface_c.hh"
+
 #include "WM_api.hh"
 #include "WM_keymap.hh"
 #include "WM_types.hh"
@@ -1297,14 +1299,14 @@ static PointerRNA rna_Addon_preferences_get(PointerRNA *ptr)
   }
 }
 
-static bool rna_AddonPref_unregister(Main * /*bmain*/, StructRNA *type)
+static bool rna_AddonPref_unregister(Main *bmain, StructRNA *type)
 {
   bAddonPrefType *apt = static_cast<bAddonPrefType *>(RNA_struct_blender_type_get(type));
 
   if (!apt) {
     return false;
   }
-
+  ui::refresh_for_srna_unregister(bmain, type);
   RNA_struct_free_extension(type, &apt->rna_ext);
   RNA_struct_free(&RNA_blender_rna_get(), type);
 

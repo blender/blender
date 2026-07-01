@@ -22,6 +22,8 @@
 
 #include "rna_internal.hh"
 
+#include "UI_interface_c.hh"
+
 #include "RE_engine.h"
 
 namespace blender {
@@ -286,6 +288,7 @@ static bool rna_RenderEngine_unregister(Main *bmain, StructRNA *type)
   if (!et) {
     return false;
   }
+  ui::refresh_for_srna_unregister(bmain, type);
 
   /* Stop all renders in case we were using this one. */
   ED_render_engine_changed(bmain, false);
