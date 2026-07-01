@@ -183,7 +183,7 @@ static void colorspaces_menu_draw(const bContext *C, Menu *menu)
     colorspaces_menu_add_button(col,
                                 ptr,
                                 prop,
-                                IFACE_(IMB_colormanagement_colorspace_get_name(cs)),
+                                IMB_colormanagement_colorspace_get_name(cs),
                                 IFACE_(IMB_colormanagement_colorspace_get_name(cs)),
                                 TIP_(IMB_colormanagement_colorspace_get_description(cs)));
   }
