@@ -608,7 +608,7 @@ const EnumPropertyItem buttons_context_items[] = {
     {BCONTEXT_PARTICLE, "PARTICLES", ICON_PARTICLES, "Particles", "Particle Properties"},
     {BCONTEXT_PHYSICS, "PHYSICS", ICON_PHYSICS, "Physics", "Physics Properties"},
     {BCONTEXT_SHADERFX, "SHADERFX", ICON_SHADERFX, "Effects", "Visual Effects Properties"},
-    {BCONTEXT_STRIP, "STRIP", ICON_SEQ_SEQUENCER, "Strip", "Strip Properties"},
+    {BCONTEXT_STRIP, "STRIP", ICON_SEQ_STRIP, "Strip", "Strip Properties"},
     {BCONTEXT_STRIP_MODIFIER,
      "STRIP_MODIFIER",
      ICON_SEQ_STRIP_MODIFIER,
