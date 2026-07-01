@@ -4412,9 +4412,6 @@ const Mesh *BKE_object_get_editmesh_eval_cage(const Object *object)
   BLI_assert(!DEG_is_original(&object->id));
   BLI_assert(object->type == OB_MESH);
 
-  const Mesh &mesh = *id_cast<const Mesh *>(object->data);
-  BLI_assert(mesh.runtime->edit_mesh != nullptr);
-  UNUSED_VARS_NDEBUG(mesh);
   const GeometrySet *geometry_set = object->runtime->geometry_set_eval;
   if (!geometry_set) {
     return nullptr;
