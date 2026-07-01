@@ -143,21 +143,23 @@ static void sh_node_math_gather_link_searches(GatherLinkSearchOpParams &params)
     return;
   }
 
-  const bool is_geometry_node_tree = params.node_tree().type == NTREE_GEOMETRY;
+  const bool is_compare_node_supported = ELEM(
+      params.node_tree().type, NTREE_GEOMETRY, NTREE_COMPOSIT);
   const int weight = ELEM(params.other_socket().type, SOCK_FLOAT, SOCK_INT, SOCK_BOOLEAN) ? 0 : -1;
 
   for (const EnumPropertyItem *item = rna_enum_node_math_items; item->identifier != nullptr;
        item++)
   {
     if (item->name != nullptr && item->identifier[0] != '\0') {
-      const int gn_weight =
-          (is_geometry_node_tree &&
-           ELEM(item->value, NODE_MATH_COMPARE, NODE_MATH_GREATER_THAN, NODE_MATH_LESS_THAN)) ?
-              -1 :
-              weight;
+      if (is_compare_node_supported &&
+          ELEM(item->value, NODE_MATH_COMPARE, NODE_MATH_GREATER_THAN, NODE_MATH_LESS_THAN))
+      {
+        /* Hide compare operations from the Math node if the Compare node is supported. */
+        continue;
+      }
       params.add_item(CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, item->name),
                       SocketSearchOp{"Value"_ustr, NodeMathOperation(item->value)},
-                      gn_weight);
+                      weight);
     }
   }
 }
