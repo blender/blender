@@ -20,6 +20,8 @@
 #include "BLI_math_color_blend.hh"
 #include "BLI_math_color_c.hh"
 #include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_types.hh"
+#include "BLI_math_vector.hh"
 #ifdef DEBUG_PIXEL_NODES
 #  include "BLI_hash_c.hh"
 #endif
@@ -148,17 +150,17 @@ static void fetch_image_buffers(ImageData &image_data,
   }
 }
 
-static void calc_pixel_row_positions(const PackedPixelRowPosition &row_data,
+static void calc_pixel_row_positions(const float3 P_start,
+                                     const float3 P_delta,
                                      const MutableSpan<float3> positions,
                                      IndexRange range)
 {
   PRF_scope(ProfileCategory::Editor);
   BLI_assert(range.size() == positions.size());
 
-  const float3 delta = row_data.delta;
-  const float3 start = row_data.start + delta * range.start();
+  const float3 start = P_start + P_delta * range.start();
   for (const int i : positions.index_range()) {
-    positions[i] = start + delta * i;
+    positions[i] = start + P_delta * i;
   }
 }
 
@@ -465,11 +467,10 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
   const Span<float3> positions = bke::pbvh::vert_positions_eval(depsgraph, object);
 
   const Mesh &mesh = *id_cast<const Mesh *>(object.data);
-  BitVector<> brush_test = init_uv_primitives_brush_test(ss,
-                                                         mesh.corner_verts(),
-                                                         mesh.corner_tris(),
-                                                         pixel_node.uv_primitives.tri_indices,
-                                                         positions);
+  const Span<int> corner_verts = mesh.corner_verts();
+  const Span<int3> corner_tris = mesh.corner_tris();
+  BitVector<> brush_test = init_uv_primitives_brush_test(
+      ss, corner_verts, corner_tris, pixel_node.uv_primitives.tri_indices, positions);
 
   const PaintBlendSettings blend_settings(paint, brush, ss.cache->toggle_settings.invert);
 
@@ -551,13 +552,17 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
           const PackedPixelRow &tri_row = tile_data.pixel_rows[k];
           const int tri_row_size = int(tri_row.num_pixels);
 
-          const PackedPixelRowPosition &tri_row_positions = tile_data.pixel_row_positions[k];
+          /* Use pixel to position mapping to compute 3D position. */
+          const int uv_prim = tri_row.uv_primitive_index;
+          const float3x3 &pixel_to_position = pixel_node.uv_primitives.pixel_to_position[uv_prim];
+          const float3 P_delta = pixel_to_position[0];
+          const float3 P_start = P_delta * tri_row.start_image_coordinate.x +
+                                 pixel_to_position[1] * tri_row.start_image_coordinate.y +
+                                 pixel_to_position[2];
 
           /* Quick bounds check. */
           if (brush_test[tri_row.uv_primitive_index] &&
-              brush_bounds.intersects_segment(tri_row_positions.start,
-                                              tri_row_positions.start +
-                                                  tri_row_positions.delta * tri_row_size))
+              brush_bounds.intersects_segment(P_start, P_start + P_delta * tri_row_size))
           {
             /* Compute brush factors per triangle. */
             const MutableSpan<float> tri_factors = factors.slice(tri_row_offset, tri_row_size);
@@ -566,7 +571,7 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
             const MutableSpan<float> tri_distances = distances.slice(tri_row_offset, tri_row_size);
 
             tri_factors.fill(1.0f);
-            calc_pixel_row_positions(tri_row_positions, tri_positions, IndexRange(tri_row_size));
+            calc_pixel_row_positions(P_start, P_delta, tri_positions, IndexRange(tri_row_size));
             calc_brush_distances(
                 ss, tri_positions, eBrushFalloffShape(brush.falloff_shape), tri_distances);
             filter_distances_with_radius(cache.radius, tri_distances, tri_factors);

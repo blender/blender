@@ -15,6 +15,7 @@
 
 #include "BLI_listbase.hh"
 #include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_c.hh"
 
 #include "BKE_image_wrappers.hh"
@@ -36,29 +37,41 @@ namespace blender {
 namespace bke::pbvh::pixels {
 
 /**
- * Calculate the delta of two neighbor UV coordinates in the given image buffer.
+ * Compute affine map from image pixel coordinate to object space position:
  */
-static float2 calc_barycentric_delta(const float2 uvs[3],
-                                     const float2 start_uv,
-                                     const float2 end_uv)
+static float3x3 calc_pixel_to_position_map(const uv_islands::MeshData &mesh_data,
+                                           const int tri,
+                                           const float2 uvs[3],
+                                           const float inv_w,
+                                           const float inv_h)
 {
+  const int3 &corner_tri = mesh_data.corner_tris[tri];
+  const float3 v0 = mesh_data.vert_positions[mesh_data.corner_verts[corner_tri[0]]];
+  const float3 v1 = mesh_data.vert_positions[mesh_data.corner_verts[corner_tri[1]]];
+  const float3 v2 = mesh_data.vert_positions[mesh_data.corner_verts[corner_tri[2]]];
 
-  float3 start_barycentric;
-  barycentric_weights_v2(uvs[0], uvs[1], uvs[2], start_uv, start_barycentric);
-  float3 end_barycentric;
-  barycentric_weights_v2(uvs[0], uvs[1], uvs[2], end_uv, end_barycentric);
-  float3 barycentric = end_barycentric - start_barycentric;
-  return float2(barycentric.x, barycentric.y);
-}
+  /* Solve for coefficient so that:
+   * P = pixel_to_position * (pixel_x, pixel_y, 1) */
+  const float3 e0 = v0 - v2;
+  const float3 e1 = v1 - v2;
+  const float2 a = uvs[0] - uvs[2];
+  const float2 b = uvs[1] - uvs[2];
+  const float det = a.x * b.y - a.y * b.x;
+  if (det == 0.0f) {
+    /* Degenerate UV triangle. */
+    return float3x3(float3(0.0f), float3(0.0f), v2);
+  }
 
-static float2 calc_barycentric_delta_x(const ImBuf *image_buffer,
-                                       const float2 uvs[3],
-                                       const int x,
-                                       const int y)
-{
-  const float2 start_uv(float(x) / image_buffer->x, float(y) / image_buffer->y);
-  const float2 end_uv(float(x + 1) / image_buffer->x, float(y) / image_buffer->y);
-  return calc_barycentric_delta(uvs, start_uv, end_uv);
+  const float3 dP_du = (b.y * e0 - a.y * e1) / det;
+  const float3 dP_dv = (a.x * e1 - b.x * e0) / det;
+
+  /* Per-pixel steps, and the position at pixel (0, 0), i.e. uv (0.5 / w, 0.5 / h). */
+  const float3 delta_x = dP_du * inv_w;
+  const float3 delta_y = dP_dv * inv_h;
+  const float3 start_position = dP_du * (0.5f * inv_w - uvs[2].x) +
+                                dP_dv * (0.5f * inv_h - uvs[2].y) + v2;
+
+  return float3x3(delta_x, delta_y, start_position);
 }
 
 /**
@@ -111,10 +124,6 @@ static void extract_barycentric_pixels(UDIMTilePixels &tile_data,
       if (!start_detected && is_inside && is_masked) {
         start_detected = true;
         pixel_row.start_image_coordinate = ushort2(x, y);
-        float3 barycentric_weights;
-        const float2 uv(fx * inv_w, fy * inv_h);
-        barycentric_weights_v2(uvs[0], uvs[1], uvs[2], uv, barycentric_weights);
-        pixel_row.start_barycentric_coord = float2(barycentric_weights.x, barycentric_weights.y);
       }
       else if (start_detected && (!is_inside || !is_masked)) {
         break;
@@ -197,13 +206,12 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
                              PixelNode &pixel_node)
 {
   PRF_scope(ProfileCategory::Editor);
-  BLI_assert(pixel_node.flags.rebuild ||
-             (pixel_node.uv_primitives.tri_indices.is_empty() &&
-              pixel_node.uv_primitives.delta_barycentric_coords.is_empty() &&
-              pixel_node.tiles.is_empty()));
+  BLI_assert(pixel_node.flags.rebuild || (pixel_node.uv_primitives.tri_indices.is_empty() &&
+                                          pixel_node.uv_primitives.pixel_to_position.is_empty() &&
+                                          pixel_node.tiles.is_empty()));
   /* Assuming a quad mesh, we'll have at least 2 * faces entries */
   pixel_node.uv_primitives.tri_indices.reserve(node.faces().size() * 2);
-  pixel_node.uv_primitives.delta_barycentric_coords.reserve(node.faces().size() * 2);
+  pixel_node.uv_primitives.pixel_to_position.reserve(node.faces().size() * 2);
 
   for (ImageTile &tile : image.tiles) {
     image::ImageTileWrapper image_tile(&tile);
@@ -212,6 +220,8 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
     if (image_buffer == nullptr) {
       continue;
     }
+    const float inv_w = 1.0f / image_buffer->x;
+    const float inv_h = 1.0f / image_buffer->y;
 
     UDIMTilePixels tile_data;
     tile_data.tile_number = image_tile.get_tile_number();
@@ -242,8 +252,8 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
 
           const int uv_prim_index = pixel_node.uv_primitives.tri_indices.size();
           pixel_node.uv_primitives.tri_indices.append(tri);
-          pixel_node.uv_primitives.delta_barycentric_coords.append(
-              calc_barycentric_delta_x(image_buffer, uvs, minx, miny));
+          pixel_node.uv_primitives.pixel_to_position.append(
+              calc_pixel_to_position_map(mesh_data, tri, uvs, inv_w, inv_h));
 
           /* Extract the pixels. */
           if (mask_tile != nullptr) {
@@ -269,7 +279,7 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
 
     build_pixel_row_runs(tile_data);
 
-    BLI_assert(pixel_node.uv_primitives.delta_barycentric_coords.size() ==
+    BLI_assert(pixel_node.uv_primitives.pixel_to_position.size() ==
                pixel_node.uv_primitives.tri_indices.size());
 
     pixel_node.tiles.append(tile_data);
@@ -356,57 +366,6 @@ static void apply_watertight_check(Tree &pbvh, Image &image, ImageUser &image_us
   }
 }
 
-static float3 calc_pixel_position(const Span<float3> vert_positions,
-                                  const int3 &verts,
-                                  const float2 &bary_weight)
-{
-  const float3 weights(bary_weight.x, bary_weight.y, 1.0f - bary_weight.x - bary_weight.y);
-  float3 result;
-  interp_v3_v3v3v3(result,
-                   vert_positions[verts[0]],
-                   vert_positions[verts[1]],
-                   vert_positions[verts[2]],
-                   weights);
-  return result;
-}
-
-static void calc_node_pixel_row_positions(const uv_islands::MeshData &mesh_data,
-                                          PixelNode &pixel_node)
-{
-  for (UDIMTilePixels &tile_data : pixel_node.tiles) {
-    BLI_assert(tile_data.pixel_row_positions.is_empty() ||
-               tile_data.pixel_row_positions.size() == tile_data.pixel_rows.size());
-
-    if (tile_data.pixel_row_positions.size() == tile_data.pixel_rows.size()) {
-      continue;
-    }
-
-    tile_data.pixel_row_positions.resize(tile_data.pixel_rows.size());
-
-    for (const int i : tile_data.pixel_rows.index_range()) {
-      PackedPixelRow &pixel_row = tile_data.pixel_rows[i];
-
-      const int tri = pixel_node.uv_primitives.tri_indices[pixel_row.uv_primitive_index];
-      const int3 &corner_tri = mesh_data.corner_tris[tri];
-      const int3 verts(mesh_data.corner_verts[corner_tri[0]],
-                       mesh_data.corner_verts[corner_tri[1]],
-                       mesh_data.corner_verts[corner_tri[2]]);
-
-      const float3 start = calc_pixel_position(
-          mesh_data.vert_positions, verts, pixel_row.start_barycentric_coord);
-      const float3 next = calc_pixel_position(
-          mesh_data.vert_positions,
-          verts,
-          pixel_row.start_barycentric_coord +
-              pixel_node.uv_primitives.delta_barycentric_coords[pixel_row.uv_primitive_index]);
-      const float3 delta = next - start;
-
-      tile_data.pixel_row_positions[i].start = start;
-      tile_data.pixel_row_positions[i].delta = delta;
-    }
-  }
-}
-
 static bool update_pixels(const Depsgraph &depsgraph,
                           const Object &object,
                           Tree &pbvh,
@@ -479,9 +438,6 @@ static bool update_pixels(const Depsgraph &depsgraph,
                          pixel_nodes[i]);
       },
       exec_mode::grain_size(1));
-  nodes_to_update.foreach_index(
-      [&](const int i) { calc_node_pixel_row_positions(mesh_data, pixel_nodes[i]); },
-      exec_mode::grain_size(1));
   if (USE_WATERTIGHT_CHECK) {
     apply_watertight_check(pbvh, image, image_user);
   }
@@ -501,9 +457,9 @@ static bool update_pixels(const Depsgraph &depsgraph,
     int64_t rows_bytes = 0;
     int64_t num_pixels = 0;
     for (const PixelNode &pixel_node : pbvh.pixels_->nodes) {
+      rows_bytes += int64_t(pixel_node.uv_primitives.pixel_to_position.size()) * sizeof(float3x3);
       for (const UDIMTilePixels &tile : pixel_node.tiles) {
         rows_bytes += int64_t(tile.pixel_rows.size()) * sizeof(PackedPixelRow);
-        rows_bytes += int64_t(tile.pixel_row_positions.size()) * sizeof(PackedPixelRowPosition);
         for (const PackedPixelRow &row : tile.pixel_rows) {
           num_pixels += row.num_pixels;
         }

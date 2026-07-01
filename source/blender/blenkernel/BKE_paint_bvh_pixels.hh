@@ -11,6 +11,8 @@
 #include "BLI_array.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
+#include "BLI_math_base_c.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_rect.hh"
 #include "BLI_vector.hh"
@@ -30,19 +32,12 @@ namespace blender::bke::pbvh::pixels {
  * Encode sequential pixels to reduce memory footprint.
  */
 struct PackedPixelRow {
-  /** Barycentric coordinate of the first pixel. */
-  float2 start_barycentric_coord;
   /** Image coordinate starting of the first pixel. */
   ushort2 start_image_coordinate;
   /** Number of sequential pixels encoded in this package. */
   ushort num_pixels;
   /** Reference to the pbvh triangle index. */
   ushort uv_primitive_index;
-};
-
-struct PackedPixelRowPosition {
-  float3 start;
-  float3 delta;
 };
 
 /**
@@ -60,13 +55,6 @@ struct UDIMTilePixels {
   rcti dirty_region;
 
   Vector<PackedPixelRow> pixel_rows;
-
-  /**
-   * Encoded 3D position data corresponding to each element of `pixel_rows`.
-   *
-   * Needs to be re-calculated when underlying mesh position data changes.
-   */
-  Vector<PackedPixelRowPosition> pixel_row_positions;
 
   /** Offsets into #pixel_rows grouping it into contiguous runs for batch processing. */
   Vector<int> pixel_row_run_starts;
@@ -110,11 +98,10 @@ struct PixelNode {
     Vector<int, 0> tri_indices;
 
     /**
-     * Delta barycentric coordinates between 2 neighboring UVs in the U direction.
-     *
-     * Only the first two coordinates are stored. The third should be recalculated
+     * Per primitive affine map from image pixel coordinate to object space position:
+     * P = pixel_to_position * (pixel_x, pixel_y, 1)
      */
-    Vector<float2, 0> delta_barycentric_coords;
+    Vector<float3x3, 0> pixel_to_position;
   } uv_primitives;
 
   PixelNode()
@@ -161,7 +148,7 @@ struct PixelNode {
   {
     tiles.clear();
     uv_primitives.tri_indices.clear();
-    uv_primitives.delta_barycentric_coords.clear();
+    uv_primitives.pixel_to_position.clear();
   }
 };
 
