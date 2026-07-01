@@ -33,7 +33,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
-#include "DNA_genfile.h" /* for DNA_sdna_current_init() */
+#include "DNA_genfile.h"
 #include "DNA_windowmanager_types.h"
 
 #include "IMB_imbuf.hh"
@@ -60,7 +60,6 @@ void BlendfileLoadingBaseTest::SetUpTestCase()
   CLG_init();
   BLI_threadapi_init();
 
-  DNA_sdna_current_init();
   BKE_blender_globals_init();
 
   BKE_idtype_init();
@@ -97,7 +96,6 @@ void BlendfileLoadingBaseTest::TearDownTestCase()
 
   BLF_exit();
   DEG_free_node_types();
-  DNA_sdna_current_free();
   BLI_threadapi_exit();
 
   BKE_blender_atexit();

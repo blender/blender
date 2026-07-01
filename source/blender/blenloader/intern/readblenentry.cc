@@ -162,7 +162,7 @@ LinkNode *BLO_blendhandle_get_datablock_info(BlendHandle *bh,
 
   const bool is_library = (ofblocktype == ID_LI);
 
-  const int sdna_nr_preview_image = DNA_struct_find_with_alias(fd->filesdna, "PreviewImage");
+  const int sdna_nr_preview_image = DNA_struct_find_with_alias(fd->filesdna.get(), "PreviewImage");
 
   for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
     if (bhead->code == BLO_CODE_ENDB) {
@@ -276,7 +276,7 @@ PreviewImage *BLO_blendhandle_get_preview_for_id(BlendHandle *bh,
 {
   FileData *fd = reinterpret_cast<FileData *>(bh);
   bool looking = false;
-  const int sdna_preview_image = DNA_struct_find_with_alias(fd->filesdna, "PreviewImage");
+  const int sdna_preview_image = DNA_struct_find_with_alias(fd->filesdna.get(), "PreviewImage");
 
   for (BHead *bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
     if (bhead->code == BLO_CODE_DATA) {

@@ -124,37 +124,35 @@ namespace blender {
 
 /* ************************* DIV ********************** */
 
-void DNA_sdna_free(SDNA *sdna)
+SDNA::~SDNA()
 {
-  if (sdna->data_alloc) {
-    MEM_delete(sdna->data);
+  if (this->data_alloc) {
+    MEM_delete(this->data);
   }
 
-  MEM_SAFE_DELETE(sdna->members);
-  MEM_SAFE_DELETE(sdna->members_array_num);
-  MEM_SAFE_DELETE(sdna->types);
-  MEM_SAFE_DELETE(sdna->structs);
-  MEM_SAFE_DELETE(sdna->types_alignment);
+  MEM_SAFE_DELETE(this->members);
+  MEM_SAFE_DELETE(this->members_array_num);
+  MEM_SAFE_DELETE(this->types);
+  MEM_SAFE_DELETE(this->structs);
+  MEM_SAFE_DELETE(this->types_alignment);
 
 #ifdef WITH_DNA_GHASH
-  if (sdna->types_to_structs_map) {
-    BLI_ghash_free(sdna->types_to_structs_map, nullptr, nullptr);
+  if (this->types_to_structs_map) {
+    BLI_ghash_free(this->types_to_structs_map, nullptr, nullptr);
   }
 #endif
 
-  if (sdna->mem_arena) {
-    BLI_memarena_free(sdna->mem_arena);
+  if (this->mem_arena) {
+    BLI_memarena_free(this->mem_arena);
   }
 
-  MEM_SAFE_DELETE(sdna->alias.members);
-  MEM_SAFE_DELETE(sdna->alias.types);
+  MEM_SAFE_DELETE(this->alias.members);
+  MEM_SAFE_DELETE(this->alias.types);
 #ifdef WITH_DNA_GHASH
-  if (sdna->alias.types_to_structs_map) {
-    BLI_ghash_free(sdna->alias.types_to_structs_map, nullptr, nullptr);
+  if (this->alias.types_to_structs_map) {
+    BLI_ghash_free(this->alias.types_to_structs_map, nullptr, nullptr);
   }
 #endif
-
-  MEM_delete(sdna);
 }
 
 int DNA_struct_size(const SDNA *sdna, int struct_index)
@@ -556,13 +554,13 @@ static bool init_structDNA(SDNA *sdna, const char **r_error_message)
   return true;
 }
 
-SDNA *DNA_sdna_from_data(const void *data,
-                         const int data_len,
-                         bool data_alloc,
-                         const bool do_alias,
-                         const char **r_error_message)
+std::unique_ptr<SDNA> DNA_sdna_from_data(const void *data,
+                                         const int data_len,
+                                         bool data_alloc,
+                                         const bool do_alias,
+                                         const char **r_error_message)
 {
-  SDNA *sdna = MEM_new_uninitialized<SDNA>("sdna");
+  auto sdna = std::make_unique<SDNA>();
   const char *error_message = nullptr;
 
   sdna->data_size = data_len;
@@ -576,9 +574,9 @@ SDNA *DNA_sdna_from_data(const void *data,
   }
   sdna->data_alloc = data_alloc;
 
-  if (init_structDNA(sdna, &error_message)) {
+  if (init_structDNA(sdna.get(), &error_message)) {
     if (do_alias) {
-      DNA_sdna_alias_data_ensure_structs_map(sdna);
+      DNA_sdna_alias_data_ensure_structs_map(sdna.get());
     }
     return sdna;
   }
@@ -589,33 +587,15 @@ SDNA *DNA_sdna_from_data(const void *data,
   else {
     *r_error_message = error_message;
   }
-  DNA_sdna_free(sdna);
   return nullptr;
-}
-
-/**
- * Using a global is acceptable here,
- * the data is read-only and only changes between Blender versions.
- *
- * So it is safe to create once and reuse.
- */
-static SDNA *g_sdna = nullptr;
-
-void DNA_sdna_current_init()
-{
-  g_sdna = DNA_sdna_from_data(DNAstr, DNAlen, false, true, nullptr);
 }
 
 const SDNA *DNA_sdna_current_get()
 {
-  BLI_assert(g_sdna != nullptr);
-  return g_sdna;
-}
-
-void DNA_sdna_current_free()
-{
-  DNA_sdna_free(g_sdna);
-  g_sdna = nullptr;
+  /* This data is read-only and only changes between Blender versions, so it is safe to create once
+   * and reuse. */
+  static std::unique_ptr<SDNA> g_sdna = DNA_sdna_from_data(DNAstr, DNAlen, false, true, nullptr);
+  return g_sdna.get();
 }
 
 /* ******************** END READ DNA ********************** */

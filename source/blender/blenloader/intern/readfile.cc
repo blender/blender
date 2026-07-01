@@ -894,28 +894,28 @@ static bool read_file_dna(FileData *fd, const char **r_error_message)
       const bool do_alias = false; /* Postpone until after #blo_do_versions_dna runs. */
       fd->filesdna = DNA_sdna_from_data(&bhead[1], bhead->len, true, do_alias, r_error_message);
       if (fd->filesdna) {
-        blo_do_versions_dna(fd->filesdna, fd->fileversion, subversion);
+        blo_do_versions_dna(fd->filesdna.get(), fd->fileversion, subversion);
         /* Allow aliased lookups (must be after version patching DNA). */
-        DNA_sdna_alias_data_ensure_structs_map(fd->filesdna);
+        DNA_sdna_alias_data_ensure_structs_map(fd->filesdna.get());
 
-        fd->compflags = DNA_struct_get_compareflags(fd->filesdna, fd->memsdna);
+        fd->compflags = DNA_struct_get_compareflags(fd->filesdna.get(), fd->memsdna);
         fd->reconstruct_info = DNA_reconstruct_info_create(
-            fd->filesdna, fd->memsdna, fd->compflags);
+            fd->filesdna.get(), fd->memsdna, fd->compflags);
         /* used to retrieve ID names from (bhead+1) */
         fd->id_name_offset = DNA_struct_member_offset_by_name_with_alias(
-            fd->filesdna, "ID", "char", "name[]");
+            fd->filesdna.get(), "ID", "char", "name[]");
         BLI_assert(fd->id_name_offset != -1);
         fd->id_asset_data_offset = DNA_struct_member_offset_by_name_with_alias(
-            fd->filesdna, "ID", "AssetMetaData", "*asset_data");
+            fd->filesdna.get(), "ID", "AssetMetaData", "*asset_data");
         fd->id_flag_offset = DNA_struct_member_offset_by_name_with_alias(
-            fd->filesdna, "ID", "short", "flag");
+            fd->filesdna.get(), "ID", "short", "flag");
         fd->id_deep_hash_offset = DNA_struct_member_offset_by_name_with_alias(
-            fd->filesdna, "ID", "IDHash", "deep_hash");
+            fd->filesdna.get(), "ID", "IDHash", "deep_hash");
 
         fd->library_filepath_offset = DNA_struct_member_offset_by_name_with_alias(
-            fd->filesdna, "Library", "char", "filepath[]");
+            fd->filesdna.get(), "Library", "char", "filepath[]");
         fd->library_flag_offset = DNA_struct_member_offset_by_name_with_alias(
-            fd->filesdna, "Library", "ushort", "flag");
+            fd->filesdna.get(), "Library", "ushort", "flag");
 
         fd->filesubversion = subversion;
 
@@ -1371,9 +1371,6 @@ void blo_filedata_free(FileData *fd)
 #endif
   fd->file->close(fd->file);
 
-  if (fd->filesdna) {
-    DNA_sdna_free(fd->filesdna);
-  }
   if (fd->compflags) {
     MEM_delete(fd->compflags);
   }
@@ -1775,7 +1772,7 @@ static const char *get_alloc_name(FileData *fd,
   }();
 
   const std::string block_alloc_name = is_id_data ? id_alloc_names[id_type_index] : blockname;
-  const std::string struct_name = DNA_struct_identifier(fd->filesdna, bh->SDNAnr);
+  const std::string struct_name = DNA_struct_identifier(fd->filesdna.get(), bh->SDNAnr);
   keyT key{block_alloc_name + struct_name, bh->nr};
   if (!storage.contains(key)) {
     const std::string alloc_string = fmt::format(
@@ -1848,7 +1845,7 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname, const i
       }
       else {
         /* SDNA_CMP_EQUAL */
-        const int alignment = DNA_struct_alignment(fd->filesdna, bh->SDNAnr);
+        const int alignment = DNA_struct_alignment(fd->filesdna.get(), bh->SDNAnr);
         temp = MEM_new_uninitialized_aligned(bh->len, alignment, alloc_name);
 #ifdef USE_BHEAD_READ_ON_DEMAND
         if (BHEADN_FROM_BHEAD(bh)->has_data) {

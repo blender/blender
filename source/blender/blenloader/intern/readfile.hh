@@ -106,7 +106,7 @@ struct FileData {
   char relabase[FILE_MAX] = {};
 
   /** General reading variables. */
-  SDNA *filesdna = nullptr;
+  std::unique_ptr<SDNA> filesdna;
   const SDNA *memsdna = nullptr;
   /** Array of #eSDNA_StructCompare. */
   const char *compflags = nullptr;

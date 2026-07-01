@@ -51,13 +51,13 @@ struct SDNA_Struct {
 #
 struct SDNA {
   /** The 'encoded' data (full copy when #data_alloc is set, otherwise borrowed memory). */
-  const char *data;
+  const char *data = nullptr;
   /** Length of #data, in bytes. */
-  int data_size;
-  bool data_alloc;
+  int data_size = 0;
+  bool data_alloc = false;
 
   /** Size of a pointer in bytes. */
-  int pointer_size;
+  int pointer_size = 0;
 
   /* ***** Start of SDNA types. ***** */
   /**
@@ -69,17 +69,17 @@ struct SDNA {
    *     members of another struct which gets parsed first.
    */
   /** Number of types. */
-  int types_num;
+  int types_num = 0;
   /** Type names. */
-  const char **types;
+  const char **types = nullptr;
   /** Type lengths. */
-  short *types_size;
+  short *types_size = nullptr;
   /**
    * Alignment used when allocating pointers to this type. The actual minimum alignment of the
    * type may be lower in some cases. For example, the pointer alignment of a single char is at
    * least 8 bytes, but the alignment of the type itself is 1.
    */
-  int *types_alignment;
+  int *types_alignment = nullptr;
   /* ***** End of SDNA types. ***** */
 
   /* ***** Start of SDNA structs. ***** */
@@ -90,30 +90,30 @@ struct SDNA {
    * definitions.
    */
   /** Number of struct definitions. */
-  int structs_num;
+  int structs_num = 0;
   /** Information about structs and their members. */
-  SDNA_Struct **structs;
+  SDNA_Struct **structs = nullptr;
   /* ***** End of SDNA structs. ***** */
 
   /* ***** Start of SDNA struct members. ***** */
   /** Total number of struct members. */
-  int members_num;
+  int members_num = 0;
   /**
    * Contains the number of allocated items in both #members and #members_array_num arrays below.
    *
    * Typically same as #members_len, unless after versioning DNA info (these arrays are
    * reallocated by chunks, see #DNA_sdna_patch_struct_member).
    */
-  int members_num_alloc;
+  int members_num_alloc = 0;
   /** Struct member names. */
-  const char **members;
+  const char **members = nullptr;
   /**
    * Aligned with #members. The total number of items in the array defined by the matching member,
    * if any, otherwise 1.
    *
    * Result of #DNA_member_array_num.
    */
-  short *members_array_num;
+  short *members_array_num = nullptr;
   /* ***** End of SDNA struct members. ***** */
 
   /**
@@ -122,7 +122,7 @@ struct SDNA {
    *
    * Requires WITH_DNA_GHASH to be used for now.
    */
-  GHash *types_to_structs_map;
+  GHash *types_to_structs_map = nullptr;
 
   /**
    * Runtime versions of data stored in DNA, lazy initialized, only different when renaming is
@@ -134,15 +134,17 @@ struct SDNA {
    */
   struct {
     /** Aligned with #SDNA.types, same pointers when unchanged. */
-    const char **types;
+    const char **types = nullptr;
     /** Aligned with #SDNA.members, same pointers when unchanged. */
-    const char **members;
+    const char **members = nullptr;
     /** A version of #SDNA.types_to_structs_map that uses #SDNA.alias.types for its keys. */
-    GHash *types_to_structs_map;
+    GHash *types_to_structs_map = nullptr;
   } alias;
 
   /** Temporary memory currently only used for version patching DNA. */
-  MemArena *mem_arena;
+  MemArena *mem_arena = nullptr;
+
+  ~SDNA();
 };
 
 }  // namespace blender

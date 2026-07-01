@@ -74,15 +74,11 @@ enum eSDNA_StructCompare {
 /**
  * Constructs and returns a decoded SDNA structure from the given encoded SDNA data block.
  */
-struct SDNA *DNA_sdna_from_data(
+std::unique_ptr<SDNA> DNA_sdna_from_data(
     const void *data, int data_len, bool data_alloc, bool do_alias, const char **r_error_message);
-void DNA_sdna_free(struct SDNA *sdna);
 
 /* Access for current Blender versions SDNA. */
-void DNA_sdna_current_init();
-/* borrowed reference */
-const struct SDNA *DNA_sdna_current_get();
-void DNA_sdna_current_free();
+const SDNA *DNA_sdna_current_get();
 
 struct DNA_ReconstructInfo;
 /**
@@ -234,9 +230,9 @@ void DNA_sdna_alias_data_ensure_structs_map(struct SDNA *sdna);
 
 /* For versioning, avoid verbosity selecting between with/without alias versions of functions. */
 #ifdef DNA_GENFILE_VERSIONING_MACROS
-#  define DNA_struct_exists(sdna, str) DNA_struct_exists_with_alias(sdna, str)
+#  define DNA_struct_exists(sdna, str) DNA_struct_exists_with_alias(sdna.get(), str)
 #  define DNA_struct_member_exists(sdna, stype, vartype, name) \
-    DNA_struct_member_exists_with_alias(sdna, stype, vartype, name)
+    DNA_struct_member_exists_with_alias(sdna.get(), stype, vartype, name)
 #endif
 
 }  // namespace blender
