@@ -24,6 +24,8 @@
 #  include "BLI_hash_c.hh"
 #endif
 
+#include "DNA_mesh_types.h"
+
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 
@@ -161,7 +163,8 @@ static void calc_pixel_row_positions(const PackedPixelRowPosition &row_data,
 }
 
 static BitVector<> init_uv_primitives_brush_test(SculptSession &ss,
-                                                 const Span<int3> vert_tris,
+                                                 const Span<int> corner_verts,
+                                                 const Span<int3> corner_tris,
                                                  const Span<int> tri_indices,
                                                  const Span<float3> positions)
 {
@@ -172,11 +175,11 @@ static BitVector<> init_uv_primitives_brush_test(SculptSession &ss,
 
   BitVector<> brush_test(tri_indices.size());
   for (const int i : tri_indices.index_range()) {
-    const int3 verts = vert_tris[tri_indices[i]];
+    const int3 &tri = corner_tris[tri_indices[i]];
 
-    Bounds<float3> tri_bounds(positions[verts[0]]);
-    math::min_max(positions[verts[1]], tri_bounds.min, tri_bounds.max);
-    math::min_max(positions[verts[2]], tri_bounds.min, tri_bounds.max);
+    Bounds<float3> tri_bounds(positions[corner_verts[tri[0]]]);
+    math::min_max(positions[corner_verts[tri[1]]], tri_bounds.min, tri_bounds.max);
+    math::min_max(positions[corner_verts[tri[2]]], tri_bounds.min, tri_bounds.max);
 
     brush_test[i].set(
         isect_aabb_aabb_v3(brush_bounds.min, brush_bounds.max, tri_bounds.min, tri_bounds.max));
@@ -459,12 +462,14 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
   PRF_scope(ProfileCategory::Editor);
   SculptSession &ss = *object.runtime->sculpt_session;
   const StrokeCache &cache = *ss.cache;
-  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
-  PixelData &pbvh_data = bke::pbvh::pixels::data_get(pbvh);
   const Span<float3> positions = bke::pbvh::vert_positions_eval(depsgraph, object);
 
-  BitVector<> brush_test = init_uv_primitives_brush_test(
-      ss, pbvh_data.vert_tris, pixel_node.uv_primitives.tri_indices, positions);
+  const Mesh &mesh = *id_cast<const Mesh *>(object.data);
+  BitVector<> brush_test = init_uv_primitives_brush_test(ss,
+                                                         mesh.corner_verts(),
+                                                         mesh.corner_tris(),
+                                                         pixel_node.uv_primitives.tri_indices,
+                                                         positions);
 
   const PaintBlendSettings blend_settings(paint, brush, ss.cache->toggle_settings.invert);
 

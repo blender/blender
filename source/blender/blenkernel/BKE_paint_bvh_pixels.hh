@@ -343,9 +343,6 @@ struct PixelData {
     bool dirty : 1;
   } flags;
 
-  /* Per UVPRimitive contains the paint data. */
-  Array<int3> vert_tris;
-
   /** Per ImageTile the pixels to copy to fix non-manifold bleeding. */
   CopyPixelTiles tiles_copy_pixels;
 

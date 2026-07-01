@@ -129,16 +129,6 @@ static void extract_barycentric_pixels(UDIMTilePixels &tile_data,
   }
 }
 
-/** Update the geometry primitives of the pbvh. */
-static void update_geom_primitives(Tree &pbvh, const uv_islands::MeshData &mesh_data)
-{
-  PRF_scope(ProfileCategory::Editor);
-  PixelData &pbvh_data = data_get(pbvh);
-  pbvh_data.vert_tris.reinitialize(mesh_data.corner_tris.size());
-  bke::mesh::vert_tris_from_corner_tris(
-      mesh_data.corner_verts, mesh_data.corner_tris, pbvh_data.vert_tris);
-}
-
 struct UVPrimitiveLookup {
   struct Entry {
     uv_islands::UVPrimitive *uv_primitive;
@@ -367,11 +357,9 @@ static void apply_watertight_check(Tree &pbvh, Image &image, ImageUser &image_us
 }
 
 static float3 calc_pixel_position(const Span<float3> vert_positions,
-                                  const Span<int3> vert_tris,
-                                  const int tri_index,
+                                  const int3 &verts,
                                   const float2 &bary_weight)
 {
-  const int3 &verts = vert_tris[tri_index];
   const float3 weights(bary_weight.x, bary_weight.y, 1.0f - bary_weight.x - bary_weight.y);
   float3 result;
   interp_v3_v3v3v3(result,
@@ -383,7 +371,6 @@ static float3 calc_pixel_position(const Span<float3> vert_positions,
 }
 
 static void calc_node_pixel_row_positions(const uv_islands::MeshData &mesh_data,
-                                          const PixelData &pixel_data,
                                           PixelNode &pixel_node)
 {
   for (UDIMTilePixels &tile_data : pixel_node.tiles) {
@@ -399,15 +386,17 @@ static void calc_node_pixel_row_positions(const uv_islands::MeshData &mesh_data,
     for (const int i : tile_data.pixel_rows.index_range()) {
       PackedPixelRow &pixel_row = tile_data.pixel_rows[i];
 
+      const int tri = pixel_node.uv_primitives.tri_indices[pixel_row.uv_primitive_index];
+      const int3 &corner_tri = mesh_data.corner_tris[tri];
+      const int3 verts(mesh_data.corner_verts[corner_tri[0]],
+                       mesh_data.corner_verts[corner_tri[1]],
+                       mesh_data.corner_verts[corner_tri[2]]);
+
       const float3 start = calc_pixel_position(
-          mesh_data.vert_positions,
-          pixel_data.vert_tris,
-          pixel_node.uv_primitives.tri_indices[pixel_row.uv_primitive_index],
-          pixel_row.start_barycentric_coord);
+          mesh_data.vert_positions, verts, pixel_row.start_barycentric_coord);
       const float3 next = calc_pixel_position(
           mesh_data.vert_positions,
-          pixel_data.vert_tris,
-          pixel_node.uv_primitives.tri_indices[pixel_row.uv_primitive_index],
+          verts,
           pixel_row.start_barycentric_coord +
               pixel_node.uv_primitives.delta_barycentric_coords[pixel_row.uv_primitive_index]);
       const float3 delta = next - start;
@@ -473,8 +462,6 @@ static bool update_pixels(const Depsgraph &depsgraph,
   Array<uv_islands::UVIsland> islands = uv_islands::build_uv_islands(
       mesh_data, tris_by_island, uv_masks);
 
-  update_geom_primitives(pbvh, mesh_data);
-
   UVPrimitiveLookup uv_primitive_lookup(mesh_data.corner_tris.size(), islands);
 
   MutableSpan<MeshNode> nodes = pbvh.nodes<MeshNode>();
@@ -492,9 +479,8 @@ static bool update_pixels(const Depsgraph &depsgraph,
                          pixel_nodes[i]);
       },
       exec_mode::grain_size(1));
-  const PixelData &pixel_data = data_get(pbvh);
   nodes_to_update.foreach_index(
-      [&](const int i) { calc_node_pixel_row_positions(mesh_data, pixel_data, pixel_nodes[i]); },
+      [&](const int i) { calc_node_pixel_row_positions(mesh_data, pixel_nodes[i]); },
       exec_mode::grain_size(1));
   if (USE_WATERTIGHT_CHECK) {
     apply_watertight_check(pbvh, image, image_user);
