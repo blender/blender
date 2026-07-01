@@ -26,6 +26,8 @@
  * The PipeWireDevice class.
  */
 
+#include <string>
+
 #include <pipewire/pipewire.h>
 
 #include "devices/MixingThreadDevice.h"
