@@ -1097,6 +1097,9 @@ void create_trans_data(bContext *C, TransInfo *t)
     else if (t->data_type == &TransConvertType_SequencerImage) {
       t->obedit_type = -1;
     }
+    else if (t->data_type == &TransConvertType_NLA) {
+      t->obedit_type = -1;
+    }
     t->data_type->create_trans_data(C, t);
   }
 
