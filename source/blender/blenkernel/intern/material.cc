@@ -986,7 +986,7 @@ MaterialGPencilStyle *BKE_gpencil_material_settings(Object *ob, short act)
  * When materials are assigned, the active material must be in the range of `1..totcol`.
  * see #139182 for details.
  */
-static void object_material_active_index_sanitize(Object *ob)
+void BKE_object_material_active_index_sanitize(Object *ob)
 {
   if (ob->totcol && ob->actcol == 0) {
     ob->actcol = 1;
@@ -1056,7 +1056,7 @@ void BKE_object_materials_sync_length(Main *bmain, Object *ob, ID *id)
   else {
     /* Normal case: the use the obdata amount of materials slots to update the object's one. */
     BKE_object_material_resize(bmain, ob, *totcol, false);
-    object_material_active_index_sanitize(ob);
+    BKE_object_material_active_index_sanitize(ob);
   }
 }
 
@@ -1076,7 +1076,7 @@ void BKE_objects_materials_sync_length_all(Main *bmain, ID *id)
   {
     if (ob->data == id) {
       BKE_object_material_resize(bmain, ob, *totcol, false);
-      object_material_active_index_sanitize(ob);
+      BKE_object_material_active_index_sanitize(ob);
       processed_objects++;
       BLI_assert(processed_objects <= id->us && processed_objects > 0);
       if (processed_objects == id->us) {
@@ -1487,7 +1487,7 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
   }
 
   /* can happen on face selection in editmode */
-  object_material_active_index_sanitize(ob);
+  BKE_object_material_active_index_sanitize(ob);
 
   /* we delete the actcol */
   mao = (*matarar)[ob->actcol - 1];
@@ -1526,7 +1526,7 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
         obt->matbits[a - 1] = obt->matbits[a];
       }
       obt->totcol--;
-      object_material_active_index_sanitize(ob);
+      BKE_object_material_active_index_sanitize(ob);
 
       if (obt->totcol == 0) {
         MEM_delete(obt->mat);
@@ -1546,6 +1546,28 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
   }
 
   return true;
+}
+
+void BKE_object_material_remove_unused(Main *bmain, Object *ob)
+{
+  int actcol = ob->actcol;
+
+  for (int slot = 1; slot <= ob->totcol; slot++) {
+    while (slot <= ob->totcol && !BKE_object_material_slot_used(ob, slot)) {
+      ob->actcol = slot;
+
+      if (!BKE_object_material_slot_remove(bmain, ob)) {
+        break;
+      }
+
+      if (actcol >= slot) {
+        actcol--;
+      }
+    }
+  }
+
+  ob->actcol = actcol;
+  BKE_object_material_active_index_sanitize(ob);
 }
 
 static bNode *nodetree_uv_node_recursive(bNode *node)
