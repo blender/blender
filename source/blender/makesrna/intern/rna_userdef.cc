@@ -936,39 +936,7 @@ static const EnumPropertyItem *rna_UseDef_active_section_itemf(bContext * /*C*/,
                                                                bool *r_free)
 {
   UserDef *userdef = static_cast<UserDef *>(ptr->data);
-
-  const bool use_developer_ui = (userdef->flag & USER_DEVELOPER_UI) != 0;
-  const bool is_alpha = BKE_blender_version_is_alpha();
-
-  if (use_developer_ui && is_alpha) {
-    *r_free = false;
-    return rna_enum_preference_section_items;
-  }
-
-  EnumPropertyItem *items = nullptr;
-  int totitem = 0;
-
-  for (const EnumPropertyItem *it = rna_enum_preference_section_items; it->identifier != nullptr;
-       it++)
-  {
-    if (it->value == USER_SECTION_EXPERIMENTAL) {
-      if (is_alpha == false) {
-        continue;
-      }
-    }
-    else if (it->value == USER_SECTION_DEVELOPER_TOOLS) {
-      if (use_developer_ui == false) {
-        continue;
-      }
-    }
-
-    RNA_enum_item_add(&items, &totitem, it);
-  }
-
-  RNA_enum_item_end(&items, &totitem);
-
-  *r_free = true;
-  return items;
+  return BKE_preferences_active_section_itemf(userdef, r_free);
 }
 
 static PointerRNA rna_UserDef_view_get(PointerRNA *ptr)
