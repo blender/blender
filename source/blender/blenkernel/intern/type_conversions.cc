@@ -468,7 +468,7 @@ static ColorGeometry4b int8_to_byte_color(const int8_t &a)
 
 static float bool_to_float(const bool &a)
 {
-  return bool(a);
+  return float(a);
 }
 static int8_t bool_to_int8(const bool &a)
 {
