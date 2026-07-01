@@ -1539,7 +1539,7 @@ static void nurb_bpoint_direction_worldspace_get(Object *ob, Nurb *nu, BPoint *b
 }
 
 static void curve_nurb_selected_type_get(
-    Object *ob, Nurb *nu, const int type, KDTree<float> *tree_1d, KDTree<float3> *tree_3d)
+    Object *ob, Nurb *nu, const int type, Map<float, int> &points_1d, Map<float3, int> &points_3d)
 {
   float tree_entry[3] = {0.0f, 0.0f, 0.0f};
 
@@ -1567,11 +1567,15 @@ static void curve_nurb_selected_type_get(
             break;
           }
         }
-        if (tree_1d) {
-          kdtree_insert<float>(tree_1d, tree_index++, tree_entry[0]);
-        }
-        else {
-          kdtree_insert<float3>(tree_3d, tree_index++, tree_entry);
+
+        switch (type) {
+          case SIMCURHAND_RADIUS:
+          case SIMCURHAND_WEIGHT:
+            points_1d.add(tree_entry[0], tree_index++);
+            break;
+          case SIMCURHAND_DIRECTION:
+            points_3d.add(tree_entry, tree_index++);
+            break;
         }
       }
     }
@@ -1599,11 +1603,15 @@ static void curve_nurb_selected_type_get(
             break;
           }
         }
-        if (tree_1d) {
-          kdtree_insert<float>(tree_1d, tree_index++, tree_entry[0]);
-        }
-        else {
-          kdtree_insert<float3>(tree_3d, tree_index++, tree_entry);
+
+        switch (type) {
+          case SIMCURHAND_RADIUS:
+          case SIMCURHAND_WEIGHT:
+            points_1d.add(tree_entry[0], tree_index++);
+            break;
+          case SIMCURHAND_DIRECTION:
+            points_3d.add(tree_entry, tree_index++);
+            break;
         }
       }
     }
@@ -1733,33 +1741,28 @@ static wmOperatorStatus curve_select_similar_exec(bContext *C, wmOperator *op)
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
-  int tot_nurbs_selected_all = 0;
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       *bmain, scene, view_layer, CTX_wm_view3d(C));
 
+  bool anything_selected = false;
   for (Object *obedit : objects) {
     Curve *cu = id_cast<Curve *>(obedit->data);
-    tot_nurbs_selected_all += ED_curve_select_count(v3d, cu->editnurb);
+    if (!ED_curve_select_count(v3d, cu->editnurb)) {
+      continue;
+    }
+    anything_selected = true;
+    break;
   }
 
-  if (tot_nurbs_selected_all == 0) {
+  if (!anything_selected) {
     BKE_report(op->reports, RPT_ERROR, "No control point selected");
     return OPERATOR_CANCELLED;
   }
 
-  KDTree<float> *tree_1d = nullptr;
-  KDTree<float3> *tree_3d = nullptr;
-  short type_ref = 0;
+  Map<float, int> points_1d;
+  Map<float3, int> points_3d;
 
-  switch (optype) {
-    case SIMCURHAND_RADIUS:
-    case SIMCURHAND_WEIGHT:
-      tree_1d = kdtree_new<float>(tot_nurbs_selected_all);
-      break;
-    case SIMCURHAND_DIRECTION:
-      tree_3d = kdtree_new<float3>(tot_nurbs_selected_all);
-      break;
-  }
+  short type_ref = 0;
 
   /* Get type of selected control points. */
   for (Object *obedit : objects) {
@@ -1778,19 +1781,33 @@ static wmOperatorStatus curve_select_similar_exec(bContext *C, wmOperator *op)
         case SIMCURHAND_RADIUS:
         case SIMCURHAND_WEIGHT:
         case SIMCURHAND_DIRECTION:
-          curve_nurb_selected_type_get(obedit, &nu, optype, tree_1d, tree_3d);
+          curve_nurb_selected_type_get(obedit, &nu, optype, points_1d, points_3d);
           break;
       }
     }
   }
 
-  if (tree_1d != nullptr) {
-    kdtree_deduplicate<float>(tree_1d);
-    kdtree_balance<float>(tree_1d);
-  }
-  if (tree_3d != nullptr) {
-    kdtree_deduplicate<float3>(tree_3d);
-    kdtree_balance<float3>(tree_3d);
+  KDTree<float> *tree_1d = nullptr;
+  KDTree<float3> *tree_3d = nullptr;
+
+  switch (optype) {
+    case SIMCURHAND_RADIUS:
+    case SIMCURHAND_WEIGHT: {
+      tree_1d = kdtree_new<float>(points_1d.size());
+      for (const auto &[pos, index] : points_1d.items()) {
+        kdtree_insert(tree_1d, index, pos);
+      }
+      kdtree_balance<float>(tree_1d);
+      break;
+    }
+    case SIMCURHAND_DIRECTION: {
+      tree_3d = kdtree_new<float3>(points_3d.size());
+      for (const auto &[pos, index] : points_3d.items()) {
+        kdtree_insert(tree_3d, index, pos);
+      }
+      kdtree_balance<float3>(tree_3d);
+      break;
+    }
   }
 
   /* Select control points with desired type. */
