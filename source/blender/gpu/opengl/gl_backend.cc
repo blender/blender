@@ -544,25 +544,44 @@ static void detect_workarounds()
     GLContext::multi_bind_image_support = false;
   }
 
-  /* #107642, #120273 Windows Intel iGPU (multiple generations) incorrectly report that
-   * they support image binding. But when used it results into `GL_INVALID_OPERATION` with
-   * `internal format of texture N is not supported`. */
-  if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_OFFICIAL)) {
-    GLContext::multi_bind_image_support = false;
-  }
-
   if (G.debug & G_DEBUG_GPU_NO_TEXTURE_POOL) {
     GCaps.texture_pool_workaround = true;
   }
 
-  /* Disable texture pool on any Intel driver; glTextureView is inconsistently
-   * broken on Intel HD and newer integrated cards, and output of the vendor string doesn't
-   * differentiate e.g. an Arc V140 from an Arc B750 :( */
+#ifdef _WIN32
   if ((GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY) ||
        GPU_type_matches(GPU_DEVICE_INTEL_UHD, GPU_OS_ANY, GPU_DRIVER_ANY)))
   {
-    GCaps.texture_pool_workaround = true;
+    int driver_version_minor = 0, driver_version_major = 0;
+    GPUIntelGpuArch gpu_arch = GPUIntelGpuArch::Gen9AndOlder;
+    if (epoxy_has_gl_extension("GL_EXT_memory_object_win32")) {
+      uint64_t device_luid = 0;
+      glGetUnsignedBytevEXT(GL_DEVICE_LUID_EXT, reinterpret_cast<GLubyte *>(&device_luid));
+      uint32_t device_id = 0;
+      if (BLI_windows_get_directx_intel_driver_info(
+              device_luid, &driver_version_minor, &driver_version_major, &device_id))
+      {
+        gpu_arch = GPU_platform_get_intel_arch(device_id);
+      }
+    }
+
+    /* #107642, #120273 The legacy Intel 7-10th Gen Processsor iGPU driver incorrectly reports that
+     * image binding is supported. But when used it results in `GL_INVALID_OPERATION` with
+     * `internal format of texture N is not supported`. 101.5972 is the oldest checked driver where
+     * it was manually confirmed that this issue is no longer present on newer driver versions. */
+    if (driver_version_major < 101 || (driver_version_major == 101 && driver_version_minor < 5972))
+    {
+      GLContext::multi_bind_image_support = false;
+    }
+
+    /* glTextureView was fixed for Intel Xe2+ with driver version 101.8801. */
+    if (gpu_arch <= GPUIntelGpuArch::Gen12 || driver_version_major < 101 ||
+        (driver_version_major == 101 && driver_version_minor < 8801))
+    {
+      GCaps.texture_pool_workaround = true;
+    }
   }
+#endif
 
   /* Disable texture pool on closed source AMD driver; glTextureView
    * breaks frame-buffers for several formats. This is not an issue on Mesa. */
