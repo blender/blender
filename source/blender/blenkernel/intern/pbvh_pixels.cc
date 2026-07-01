@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <fmt/format.h>
+
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
@@ -428,27 +430,22 @@ static bool update_pixels(const Depsgraph &depsgraph,
 
 // #define DO_PRINT_STATISTICS
 #ifdef DO_PRINT_STATISTICS
-  /* Print some statistics about compression ratio. */
+  /* Print statistics about the pixel row encoding size. */
   {
-    int compressed_data_len = 0;
-    int num_pixels = 0;
-    for (int n = 0; n < pbvh->totnode; n++) {
-      Node *node = &pbvh->nodes[n];
-      if ((node->flag & Node::Leaf) == 0) {
-        continue;
-      }
-      NodeData *node_data = static_cast<NodeData *>(node->pixels.node_data);
-      for (const UDIMTilePixels &tile_data : node_data->tiles) {
-        compressed_data_len += tile_data.encoded_pixels.size() * sizeof(PackedPixelRow);
-        for (const PackedPixelRow &encoded_pixels : tile_data.encoded_pixels) {
-          num_pixels += encoded_pixels.num_pixels;
+    int64_t rows_bytes = 0;
+    int64_t num_pixels = 0;
+    for (const PixelNode &pixel_node : pbvh.pixels_->nodes) {
+      for (const UDIMTilePixels &tile : pixel_node.tiles) {
+        rows_bytes += int64_t(tile.pixel_rows.size()) * sizeof(PackedPixelRow);
+        for (const PackedPixelRow &row : tile.pixel_rows) {
+          num_pixels += row.num_pixels;
         }
       }
     }
-    printf("Encoded %lld pixels in %lld bytes (%f bytes per pixel)\n",
-           num_pixels,
-           compressed_data_len,
-           float(compressed_data_len) / num_pixels);
+    fmt::print("Encoded {} pixels in {} bytes ({} bytes per pixel)\n",
+               num_pixels,
+               rows_bytes,
+               double(rows_bytes) / double(num_pixels));
   }
 #endif
 
