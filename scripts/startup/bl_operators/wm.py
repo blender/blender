@@ -2802,7 +2802,7 @@ class WM_OT_batch_rename(Operator):
             None,
             ('BONE', "Bones", "", 'BONE_DATA', 14),
             ('NODE', "Nodes", "", 'NODETREE', 15),
-            ('SEQUENCE_STRIP', "Sequence Strips", "", 'SEQ_SEQUENCER', 16),
+            ('SEQUENCE_STRIP', "Sequence Strips", "", 'SEQ_STRIP', 16),
             ('ACTION_CLIP', "Action Clips", "", 'ACTION', 17),
             None,
             ('SCENE', "Scenes", "", 'SCENE_DATA', 18),

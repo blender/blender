@@ -29,7 +29,7 @@ tabs_attr_infos = (
     ("show_properties_bone_constraints", "Bone Constraints", 'CONSTRAINT_BONE'),
     ("show_properties_material", "Material", 'MATERIAL'),
     ("show_properties_texture", "Texture", 'TEXTURE'),
-    ("show_properties_strip", "Strip", 'SEQ_SEQUENCER'),
+    ("show_properties_strip", "Strip", 'SEQ_STRIP'),
     ("show_properties_strip_modifier", "Strip Modifiers", 'SEQ_STRIP_MODIFIER'),
 )
 

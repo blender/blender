@@ -94,7 +94,7 @@ class STRIP_PT_strip(StripButtonsPanel, Panel):
         elif strip_type == 'META':
             icon_header = 'SEQ_STRIP_META'
         else:
-            icon_header = 'SEQ_SEQUENCER'
+            icon_header = 'SEQ_STRIP'
 
         row = layout.row(align=True)
         row.use_property_decorate = False

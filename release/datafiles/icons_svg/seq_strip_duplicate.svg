@@ -1,1 +1,26 @@
-<svg height="1200" viewBox="0 0 1600 1200" width="1600" xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"><sodipodi:namedview pagecolor="#303030" showgrid="true"><inkscape:grid id="grid5" units="px" spacingx="100" spacingy="100" color="#4772b3" opacity="0.2" visible="true" /></sodipodi:namedview><g fill="#fff"><path d="m114.5 97c-.27613.000028-.49997.223869-.5.5v3c.00003.27613.22387.49997.5.5h10c.27613-.00003.49997-.22387.5-.5v-3c-.00003-.276131-.22387-.499972-.5-.5zm-3 6c-.27613.00003-.49997.22387-.5.5v3c.00003.27613.22387.49997.5.5h10c.27613-.00003.49997-.22387.5-.5v-3c-.00003-.27613-.22387-.49997-.5-.5z" transform="matrix(100 0 0 100 -11000 -9600)"/></g></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   height="1200"
+   viewBox="0 0 1600 1200"
+   width="1600"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     fill="#fff"
+     id="g1">
+    <path
+       id="path1"
+       style="display:inline;stroke:none;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:fill markers stroke;opacity:0.6"
+       d="M 111.5 103 C 111.22387 103.00003 111.00003 103.22387 111 103.5 L 111 106.5 C 111.00003 106.77613 111.22387 106.99997 111.5 107 L 121.5 107 C 121.77613 106.99997 121.99997 106.77613 122 106.5 L 122 103.5 C 121.99997 103.22387 121.77613 103.00003 121.5 103 L 111.5 103 z M 112 104 L 121 104 L 121 106 L 112 106 L 112 104 z "
+       transform="matrix(100,0,0,100,-11000,-9600)" />
+    <path
+       d="m 114.5,97 c -0.27613,2.8e-5 -0.49997,0.223869 -0.5,0.5 v 3 c 3e-5,0.27613 0.22387,0.49997 0.5,0.5 h 10 c 0.27613,-3e-5 0.49997,-0.22387 0.5,-0.5 v -3 c -3e-5,-0.276131 -0.22387,-0.499972 -0.5,-0.5 z"
+       transform="matrix(100,0,0,100,-11000,-9600)"
+       id="path2"
+       style="display:inline" />
+  </g>
+</svg>
