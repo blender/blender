@@ -10,6 +10,7 @@
 
 #include <utility>
 
+#include "BLI_linear_allocator.hh"
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_sys_types.hh"
@@ -68,7 +69,7 @@ bool DNA_member_id_match(const char *member_id,
  *
  * \return a renamed DNA full member, allocated from \a mem_arena.
  */
-char *DNA_member_id_rename(struct MemArena *mem_arena,
+char *DNA_member_id_rename(LinearAllocator<> &mem_arena,
                            const char *member_id_src,
                            int member_id_src_len,
                            const char *member_id_dst,

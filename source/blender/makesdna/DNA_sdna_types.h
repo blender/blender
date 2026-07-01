@@ -8,6 +8,7 @@
 #pragma once
 
 #include "BLI_array.hh"
+#include "BLI_linear_allocator.hh"
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_sys_types.hh"
@@ -23,8 +24,6 @@ namespace blender {
  * code would assume that the `0` value was raw data, so keep it at this value.
  */
 #define SDNA_RAW_DATA_STRUCT_INDEX 0
-
-struct MemArena;
 
 #
 #
@@ -136,7 +135,7 @@ struct SDNA {
   } alias;
 
   /** Temporary memory currently only used for version patching DNA. */
-  MemArena *mem_arena = nullptr;
+  LinearAllocator<> mem_arena;
 
   ~SDNA();
 };

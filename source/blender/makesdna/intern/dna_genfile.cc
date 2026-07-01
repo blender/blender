@@ -129,10 +129,6 @@ SDNA::~SDNA()
   if (this->data_alloc) {
     MEM_delete(this->data);
   }
-
-  if (this->mem_arena) {
-    BLI_memarena_free(this->mem_arena);
-  }
 }
 
 int DNA_struct_size(const SDNA *sdna, int struct_index)
@@ -292,8 +288,6 @@ static bool init_structDNA(SDNA *sdna, const char **r_error_message)
 
   /* Clear pointers in case of error. */
   sdna->types_size = nullptr;
-
-  sdna->mem_arena = nullptr;
 
   /* Lazy initialize. */
   sdna->alias = {};
@@ -1696,9 +1690,6 @@ static bool DNA_sdna_patch_struct_member(SDNA *sdna,
                             old_member_name_full,
                             &old_member_name_full_offset_start))
     {
-      if (sdna->mem_arena == nullptr) {
-        sdna->mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
-      }
       const char *new_member_name_full = DNA_member_id_rename(sdna->mem_arena,
                                                               old_member_name,
                                                               old_member_name_len,
@@ -1761,7 +1752,7 @@ static void sdna_expand_names(SDNA *sdna)
 
     const int array_size = sizeof(short) * 2 + sizeof(SDNA_StructMember) * struct_old->members_num;
     SDNA_Struct *struct_new = static_cast<SDNA_Struct *>(
-        BLI_memarena_alloc(sdna->mem_arena, array_size));
+        sdna->mem_arena.allocate(array_size, alignof(SDNA_Struct)));
     memcpy(struct_new, struct_old, array_size);
     sdna->structs[struct_index] = struct_new;
 
@@ -1815,10 +1806,6 @@ void DNA_sdna_alias_data_ensure(SDNA *sdna)
 
   /* We may want this to be optional later. */
   const bool use_legacy_hack = true;
-
-  if (sdna->mem_arena == nullptr) {
-    sdna->mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
-  }
 
   const DnaRenameMaps rename_maps = DNA_rename_maps_static_to_alias();
 

@@ -14,6 +14,7 @@
 
 #include "BLI_alloca.hh"
 #include "BLI_assert.hh"
+#include "BLI_linear_allocator.hh"
 #include "BLI_sys_types.hh"
 #include "BLI_utildefines.hh"
 
@@ -135,7 +136,7 @@ bool DNA_member_id_match(const char *member_id,
   return false;
 }
 
-char *DNA_member_id_rename(MemArena *mem_arena,
+char *DNA_member_id_rename(LinearAllocator<> &mem_arena,
                            const char *member_id_src,
                            const int member_id_src_len,
                            const char *member_id_dst,
@@ -151,8 +152,7 @@ char *DNA_member_id_rename(MemArena *mem_arena,
   UNUSED_VARS_NDEBUG(member_id_src);
 
   const int member_full_dst_len = (member_full_src_len - member_id_src_len) + member_id_dst_len;
-  char *member_full_dst = static_cast<char *>(
-      BLI_memarena_alloc(mem_arena, member_full_dst_len + 1));
+  char *member_full_dst = mem_arena.allocate_array<char>(member_full_dst_len + 1).data();
   uint i = 0;
   if (member_full_src_offset_len != 0) {
     memcpy(member_full_dst, member_full_src, member_full_src_offset_len);
