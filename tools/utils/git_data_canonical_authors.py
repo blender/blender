@@ -82,6 +82,7 @@ def canonical_author_map() -> dict[str, str]:
         "Ale\u0161 Jelov\u010dan <frogstomp>": (
             "Ale\u0161 Jelov\u010dan <33534+frogstomp@noreply.localhost>",
             "Ale\u0161 Jelov\u010dan <frogstomp@noreply.localhost>",
+            "frogstomp <ales.zurnal@gmail.com>",
             "frogstomp <email.frogstomp@gmail.com>",
         ),
         "Almaz Shinbay <almaz.shinbay@nu.edu.kz>": (

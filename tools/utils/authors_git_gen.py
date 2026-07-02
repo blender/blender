@@ -72,6 +72,7 @@ AUTHOR_DIRECTORIES_SKIP: tuple[bytes, ...] = (
 # Some projects prefer not to have their developers listed.
 author_exclude_individuals = {
     "Jason Fielder <jason-fielder@noreply.localhost>",  # `@apple.com` developer.
+    "LLM Assistant <llm-assistant>",  # Set as a co-author for some commits.
     "Michael B Johnson <wave@noreply.localhost>",  # `@apple.com` developer.
 }
 
