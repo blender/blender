@@ -1807,7 +1807,9 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 
   /* API callbacks. */
   ot->exec = make_links_data_exec;
-  ot->poll = ED_operator_object_active;
+  /* The object must not be in edit-mode because multiple objects in edit-mode
+   * sharing data is an invalid state which can cause crashes. See: #160956. */
+  ot->poll = ED_operator_object_active_objectmode;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
