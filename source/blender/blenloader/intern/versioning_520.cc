@@ -126,7 +126,8 @@ static void version_geometry_nodes_properties(FileData &fd,
       IDP_AddToGroup(
           group, bke::idprop::create("type", int(nodes::GeometryNodesInputType::Layer)).release());
       const StringRefNull layer_name = [&]() {
-        const IDProperty *layer_name = IDP_GetPropertyFromGroup(old_props, identifier);
+        const IDProperty *layer_name = IDP_GetPropertyTypeFromGroup(
+            old_props, identifier, IDP_STRING);
         if (layer_name) {
           return StringRefNull(IDP_string_get(layer_name));
         }
@@ -175,7 +176,7 @@ static void version_geometry_nodes_properties(FileData &fd,
       if (use_attribute_prop->type == IDP_INT) {
         use_attribute = bool(IDP_int_get(use_attribute_prop));
       }
-      else {
+      else if (use_attribute_prop->type == IDP_BOOLEAN) {
         use_attribute = bool(IDP_bool_get(use_attribute_prop));
       }
     }
@@ -184,8 +185,8 @@ static void version_geometry_nodes_properties(FileData &fd,
                                             nodes::GeometryNodesInputType::Value;
     IDP_AddToGroup(group, bke::idprop::create("type", int(input_type)).release());
     const StringRefNull attribute_name = [&]() {
-      const IDProperty *attribute_name = IDP_GetPropertyFromGroup(old_props,
-                                                                  identifier + "_attribute_name");
+      const IDProperty *attribute_name = IDP_GetPropertyTypeFromGroup(
+          old_props, identifier + "_attribute_name", IDP_STRING);
       if (attribute_name) {
         return StringRefNull(IDP_string_get(attribute_name));
       }
@@ -198,8 +199,8 @@ static void version_geometry_nodes_properties(FileData &fd,
   IDP_AddToGroup(system_props, outputs);
   for (const bNodeTreeInterfaceSocket *output : ntree.interface_outputs()) {
     const StringRef identifier = output->identifier;
-    IDProperty *old_name_prop = IDP_GetPropertyFromGroup(old_props,
-                                                         identifier + "_attribute_name");
+    IDProperty *old_name_prop = IDP_GetPropertyTypeFromGroup(
+        old_props, identifier + "_attribute_name", IDP_STRING);
     if (!old_name_prop) {
       continue;
     }

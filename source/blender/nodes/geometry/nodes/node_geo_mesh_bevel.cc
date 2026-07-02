@@ -96,7 +96,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(1)
       .description(
           "How many pieces is an edge beveled into, "
-          "or, for vertex bevels, the how many segments on the arcs between the edges.");
+          "or, for vertex bevels, how many segments on the arcs between the edges.");
   b.add_input<decl::Float>("Shape"_ustr)
       .default_value(0.5f)
       .min(0.0f)
