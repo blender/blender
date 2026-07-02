@@ -561,6 +561,12 @@ bool ED_operator_object_active(bContext *C)
   return ((ob != nullptr) && !ed_object_hidden(ob));
 }
 
+bool ED_operator_object_active_objectmode(bContext *C)
+{
+  Object *ob = ed::object::context_active_object(C);
+  return ((ob != nullptr) && !ed_object_hidden(ob) && (ob->mode == OB_MODE_OBJECT));
+}
+
 bool ED_operator_object_active_editable_ex(bContext *C, const Object *ob)
 {
   if (ob == nullptr) {
