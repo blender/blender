@@ -108,7 +108,7 @@ bool button_is_interactive_ex(const Button *but, const bool labeledit, const boo
       ELEM(but->emboss, EmbossType::None, EmbossType::NoneOrStatus) && !labeledit)
   {
     /* Make editable text buttons with no emboss interactive. */
-    if ((but->flag & BUT_TEXT_LABEL_STYLE) == 0) {
+    if (!static_cast<const ButtonText *>(but)->use_label_style) {
       return false;
     }
   }

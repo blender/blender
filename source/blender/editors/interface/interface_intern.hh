@@ -387,6 +387,8 @@ struct ButtonText : public Button {
    */
   std::function<void(StringRefNull new_name)> rename_full_func = nullptr;
   std::string rename_full_new;
+  /** Allow double click editing on text buttons with no emboss styled like labels. */
+  bool use_label_style = false;
 };
 
 /** Derived struct for #ButtonType::TextBox */

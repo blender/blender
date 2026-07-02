@@ -5401,6 +5401,12 @@ static int do_but_TEX(
         return WM_UI_HANDLER_BREAK;
       }
     }
+    else if (event->type == LEFTMOUSE && event->val == KM_DBL_CLICK &&
+             but->type == ButtonType::Text && static_cast<ButtonText *>(but)->use_label_style)
+    {
+      button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
+      return WM_UI_HANDLER_BREAK;
+    }
     else if (ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE) && (event->modifier & KM_CTRL)) {
       if (but->type == ButtonType::SearchMenu) {
         /* Disable value cycling for search buttons. This causes issues because the search data is
@@ -9055,12 +9061,6 @@ static int do_button(bContext *C, Block *block, Button *but, const wmEvent *even
 
     if (is_disabled) {
       return WM_UI_HANDLER_CONTINUE;
-    }
-
-    if (event->type == LEFTMOUSE && event->val == KM_DBL_CLICK && but->flag & BUT_TEXT_LABEL_STYLE)
-    {
-      button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
-      return WM_UI_HANDLER_BREAK;
     }
 
 #ifdef WITH_INPUT_NDOF
