@@ -1180,4 +1180,11 @@ template<> void Scene::delete_nodes(const set<Pass *> &nodes, const NodeOwner *o
   film->tag_modified();
 }
 
+/* Template instantiations so we don't have to inline functions. */
+template PointLight *Scene::create_light_node<PointLight>();
+template SpotLight *Scene::create_light_node<SpotLight>();
+template AreaLight *Scene::create_light_node<AreaLight>();
+template SunLight *Scene::create_light_node<SunLight>();
+template BackgroundLight *Scene::create_light_node<BackgroundLight>();
+
 CCL_NAMESPACE_END

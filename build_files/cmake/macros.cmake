@@ -1014,49 +1014,6 @@ function(get_blender_version)
 endfunction()
 
 
-# hacks to override initial project settings
-# these macros must be called directly before/after project(Blender)
-#
-# NOTE: must be a macro pair, `_pre` sets `_reset_standard_c*flags_rel`
-# variables that `_post` reads from the same scope, and `_post` modifies
-# `CMAKE_C/CXX_FLAGS_RELEASE` cache entries.
-macro(blender_project_hack_pre)
-  # ------------------
-  # GCC -O3 HACK START
-  # needed because O3 can cause problems but
-  # allow the builder to set O3 manually after.
-  if(DEFINED CMAKE_C_FLAGS_RELEASE)
-    set(_reset_standard_cflags_rel OFF)
-  else()
-    set(_reset_standard_cflags_rel ON)
-  endif()
-  if(DEFINED CMAKE_CXX_FLAGS_RELEASE)
-    set(_reset_standard_cxxflags_rel OFF)
-  else()
-    set(_reset_standard_cxxflags_rel ON)
-  endif()
-endmacro()
-
-
-macro(blender_project_hack_post)
-  # ----------------
-  # GCC -O3 HACK END
-  if(_reset_standard_cflags_rel)
-    string(REGEX REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}" CACHE STRING "" FORCE)
-    mark_as_advanced(CMAKE_C_FLAGS_RELEASE)
-  endif()
-
-  if(_reset_standard_cxxflags_rel)
-    string(REGEX REPLACE "-O3" "-O2" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}" CACHE STRING "" FORCE)
-    mark_as_advanced(CMAKE_CXX_FLAGS_RELEASE)
-  endif()
-
-  unset(_reset_standard_cflags_rel)
-  unset(_reset_standard_cxxflags_rel)
-endmacro()
-
 # pair of macros to allow libraries to be specify files to install, but to
 # only install them at the end so the directories don't get cleared with
 # the files in them. used by cycles to install addon.

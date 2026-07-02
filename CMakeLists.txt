@@ -69,20 +69,16 @@ if(POLICY CMP0177)
 endif()
 
 # -----------------------------------------------------------------------------
-# Load Blender's Local Macros
-
-include(build_files/cmake/macros.cmake)
-
-# -----------------------------------------------------------------------------
 # Initialize Project
-
-blender_project_hack_pre()
 
 project(Blender)
 
-blender_project_hack_post()
-
 enable_testing()
+
+# -----------------------------------------------------------------------------
+# Load Blender's Local Macros
+
+include(build_files/cmake/macros.cmake)
 
 # There are some circumstances where the git checkout doesn't grab
 # the files from LFS but produces small pointer files. The build system
