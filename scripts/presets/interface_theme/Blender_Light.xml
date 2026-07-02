@@ -335,7 +335,7 @@
             outline_sel="#2d2d2dff"
             inner="#1a1a1a00"
             inner_sel="#668cccff"
-            item="#ffffff33"
+            item="#ffffffcc"
             text="#1a1a1a"
             text_sel="#ffffff"
             show_shaded="FALSE"
@@ -576,7 +576,6 @@
     </graph_editor>
     <file_browser>
       <ThemeFileBrowser
-        selected_file="#5680c2"
         row_alternate="#ffffff0f"
         >
         <space>

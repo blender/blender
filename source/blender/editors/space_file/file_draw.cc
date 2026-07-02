@@ -396,15 +396,49 @@ static void file_draw_asset_tooltip_custom_func(bContext & /*C*/,
   ed::asset::asset_tooltip(*asset, tip);
 }
 
-static void draw_tile_background(const rcti *draw_rect, int colorid, int shade)
+static void draw_tile_background(const rcti *draw_rect, bool is_selected, bool is_highlighted)
 {
-  float color[4];
+  uiWidgetColors wcol = ui::theme::theme_get()->tui.wcol_list_item;
+  float color_background_1[4], color_background_2[4], color_outline[4];
+  const float roundness = wcol.roundness * U.widget_unit;
   rctf draw_rect_fl;
   BLI_rctf_rcti_copy(&draw_rect_fl, draw_rect);
 
-  ui::theme::get_color_shade_4fv(colorid, shade, color);
+  if (is_selected) {
+    rgba_uchar_to_float(color_background_1, wcol.inner_sel);
+    rgba_uchar_to_float(color_outline, wcol.outline_sel);
+    std::swap(wcol.shadetop, wcol.shadedown);
+  }
+  else {
+    rgba_uchar_to_float(color_background_1, wcol.inner);
+    rgba_uchar_to_float(color_outline, wcol.outline);
+  }
+
+  /* Gradient fill, if list_item is set to shaded in the theme. */
+  if (wcol.shaded == 0) {
+    copy_v4_v4(color_background_2, color_background_1);
+  }
+  else {
+    constexpr float inv_255 = 1.0f / 255.0f;
+    float color_base[3];
+    copy_v3_v3(color_base, color_background_1);
+
+    for (int i = 0; i < 3; i++) {
+      color_background_1[i] = std::clamp(color_base[i] + wcol.shadetop * inv_255, 0.0f, 1.0f);
+      color_background_2[i] = std::clamp(color_base[i] + wcol.shadedown * inv_255, 0.0f, 1.0f);
+    }
+  }
+
+  /* Hover effect. Force opacity of inner color at least 10%. */
+  if (is_highlighted) {
+    color_background_1[3] = std::min(color_background_1[3] + 0.1f, 1.0f);
+  }
+
+  color_background_2[3] = color_background_1[3];
+
   draw_roundbox_corner_set(ui::CNR_ALL);
-  ui::draw_roundbox_aa(&draw_rect_fl, true, 5.0f, color);
+  ui::draw_roundbox_4fv_ex(
+      &draw_rect_fl, color_background_1, color_background_2, 1.0f, color_outline, 1.0f, roundness);
 }
 
 static void file_but_enable_drag(ui::Button *but,
@@ -857,7 +891,8 @@ static void file_draw_special_image(const FileDirEntry *file,
     ui::theme::get_color_4fv(TH_ICON_FOLDER, document_img_col);
   }
   else {
-    ui::theme::get_color_4fv(TH_TEXT, document_img_col);
+    const uiWidgetColors wcol = ui::theme::theme_get()->tui.wcol_list_item;
+    rgba_uchar_to_float(document_img_col, wcol.item);
   }
 
   if (dimmed) {
@@ -955,22 +990,26 @@ static void file_draw_indicator_icons(const FileList *files,
   const bool is_link = (file->attributes & FILE_ATTR_ANY_LINK);
   const bool is_loading = filelist_file_is_preview_pending(files, file);
 
+  const uiWidgetColors wcol = ui::theme::theme_get()->tui.wcol_list_item;
+  const uchar *icon_color = wcol.item;
+  const uchar icon_color_lightness = srgb_to_grayscale_byte(icon_color);
+  const bool show_icon_border = (icon_color_lightness > 96);
+
   /* Don't draw these icons if the preview image is small. They are just indicators and shouldn't
    * cover the preview. */
   if (preview_icon_aspect < 2.0f) {
     const float icon_x = float(tile_draw_rect->xmin) + (3.0f * UI_SCALE_FAC);
     const float icon_y = float(tile_draw_rect->ymax) - layout->prv_border_y - layout->prv_h;
-    const uchar light[4] = {255, 255, 255, 255};
     if (is_offline) {
       /* Icon at bottom to indicate the file is offline. */
       ui::icon_draw_ex(icon_x,
                        icon_y,
                        ICON_INTERNET,
                        1.0f / UI_SCALE_FAC,
-                       0.6f,
+                       1.0f,
                        0.0f,
-                       light,
-                       true,
+                       icon_color,
+                       show_icon_border,
                        UI_NO_ICON_OVERLAY_TEXT);
     }
     else if (is_link) {
@@ -998,10 +1037,10 @@ static void file_draw_indicator_icons(const FileList *files,
                          icon_y,
                          file_type_icon,
                          1.0f / UI_SCALE_FAC,
-                         0.6f,
+                         1.0f,
                          0.0f,
-                         light,
-                         true,
+                         icon_color,
+                         show_icon_border,
                          UI_NO_ICON_OVERLAY_TEXT);
       }
     }
@@ -1010,7 +1049,6 @@ static void file_draw_indicator_icons(const FileList *files,
   {
     const float icon_x = float(tile_draw_rect->xmax) - (16.0f * UI_SCALE_FAC);
     const float icon_y = float(tile_draw_rect->ymax) - (20.0f * UI_SCALE_FAC);
-    const uchar light[4] = {255, 255, 255, 255};
 
     const bool is_current_main_data = filelist_file_get_id(file) != nullptr;
     if (is_current_main_data) {
@@ -1020,10 +1058,10 @@ static void file_draw_indicator_icons(const FileList *files,
                        icon_y,
                        ICON_CURRENT_FILE,
                        1.0f / UI_SCALE_FAC,
-                       0.6f,
+                       1.0f,
                        0.0f,
-                       light,
-                       true,
+                       icon_color,
+                       show_icon_border,
                        UI_NO_ICON_OVERLAY_TEXT);
     }
     else if ((file->typeflag & FILE_TYPE_ASSET_ONLINE) != 0) {
@@ -1031,10 +1069,10 @@ static void file_draw_indicator_icons(const FileList *files,
                        icon_y,
                        ICON_INTERNET,
                        1.0f / UI_SCALE_FAC,
-                       0.6f,
+                       1.0f,
                        0.0f,
-                       light,
-                       true,
+                       icon_color,
+                       show_icon_border,
                        UI_NO_ICON_OVERLAY_TEXT);
     }
     else if (file->asset &&
@@ -1045,10 +1083,10 @@ static void file_draw_indicator_icons(const FileList *files,
                        icon_y,
                        ICON_ERROR,
                        1.0f / UI_SCALE_FAC,
-                       0.6f,
+                       1.0f,
                        0.0f,
-                       light,
-                       true,
+                       icon_color,
+                       show_icon_border,
                        UI_NO_ICON_OVERLAY_TEXT);
     }
   }
@@ -1409,6 +1447,7 @@ void file_draw_list(const bContext *C, ARegion *region)
   ui::FontStyleAlign align;
   bool do_drag;
   uchar text_col[4];
+  const uiWidgetColors wcol = ui::theme::theme_get()->tui.wcol_list_item;
   const bool draw_columnheader = (params->display == FILE_VERTICALDISPLAY);
   const float thumb_icon_aspect = std::min(64.0f / float(params->thumbnail_size), 4.0f);
 
@@ -1469,8 +1508,6 @@ void file_draw_list(const bContext *C, ARegion *region)
 
   BLF_batch_draw_begin();
 
-  ui::theme::get_color_4ubv(TH_TEXT, text_col);
-
   const bool filelist_loading = !filelist_is_ready(files);
 
   for (i = offset; (i < numfiles) && (i < offset + numfiles_layout); i++) {
@@ -1488,14 +1525,13 @@ void file_draw_list(const bContext *C, ARegion *region)
     char path[FILE_MAX_LIBEXTRA];
     filelist_file_get_full_path(files, file, path);
 
-    if (!(file_selflag & FILE_SEL_EDITING)) {
-      if (file_selflag & (FILE_SEL_HIGHLIGHTED | FILE_SEL_SELECTED)) {
-        int colorid = (file_selflag & FILE_SEL_SELECTED) ? TH_HILITE : TH_BACK;
-        int shade = (file_selflag & FILE_SEL_HIGHLIGHTED) ? 35 : 0;
-        BLI_assert(i == 0 || !FILENAME_IS_CURRPAR(file->relpath));
+    const bool is_selected = file_selflag & FILE_SEL_SELECTED;
+    const bool is_highlighted = file_selflag & FILE_SEL_HIGHLIGHTED;
+    copy_v4_v4_uchar(text_col, is_selected ? wcol.text_sel : wcol.text);
 
-        draw_tile_background(&tile_draw_rect, colorid, shade);
-      }
+    if (!(file_selflag & FILE_SEL_EDITING)) {
+      BLI_assert(i == 0 || !FILENAME_IS_CURRPAR(file->relpath));
+      draw_tile_background(&tile_draw_rect, is_selected, is_highlighted);
     }
     draw_roundbox_corner_set(ui::CNR_NONE);
 
@@ -1551,7 +1587,6 @@ void file_draw_list(const bContext *C, ARegion *region)
             sfile, block, layout, file, path, &tile_draw_rect, file_type_icon);
       }
 
-      const bool is_highlighted = file_selflag & (FILE_SEL_HIGHLIGHTED | FILE_SEL_HIGHLIGHTED);
       if (is_highlighted && file->asset && file->asset->needs_download()) {
         file_add_asset_download_but(block, layout, file, &tile_draw_rect);
       }
@@ -1683,6 +1718,7 @@ void file_draw_list(const bContext *C, ARegion *region)
       }
     }
 
+    ui::theme::get_color_4ubv(TH_TEXT, text_col);
     if (params->display != FILE_IMGDISPLAY) {
       draw_details_columns(params, layout, file, &tile_draw_rect, text_col);
     }
