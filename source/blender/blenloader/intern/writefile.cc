@@ -966,6 +966,8 @@ void BlendStructWriter::runtime_ptr(const int64_t offset)
   const dna::pointers::StructInfo &struct_info =
       wd_->stable_address_ids.sdna_pointers->get_for_struct(struct_nr_);
   BLI_assert(struct_info.has_pointer_at_offset(offset));
+#else
+  UNUSED_VARS_NDEBUG(struct_nr_);
 #endif
 
   data_.slice(offset, sizeof(void *)).fill(0);
@@ -981,6 +983,8 @@ void BlendStructWriter::generated_ptr(const int64_t offset)
   const dna::pointers::StructInfo &struct_info =
       wd_->stable_address_ids.sdna_pointers->get_for_struct(struct_nr_);
   BLI_assert(struct_info.has_pointer_at_offset(offset));
+#else
+  UNUSED_VARS_NDEBUG(struct_nr_);
 #endif
 
   /* In undo case, replace generated pointers by corresponding stable pointers. */
