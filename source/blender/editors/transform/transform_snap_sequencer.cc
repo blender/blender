@@ -114,24 +114,6 @@ static VectorSet<Strip *> query_strip_sources_preview(const Scene *scene)
 /** \name Strip Targets
  * \{ */
 
-/* Add effect strips directly or indirectly connected to `strip_reference` to `collection`. */
-static void query_strip_effects_fn(Strip *strip_reference,
-                                   ListBaseT<Strip> *seqbase,
-                                   VectorSet<Strip *> &strips)
-{
-  if (strips.contains(strip_reference)) {
-    return; /* Strip is already in set, so all effects connected to it are as well. */
-  }
-  strips.add(strip_reference);
-
-  /* Find all strips connected to `strip_reference`. */
-  for (Strip &strip_test : *seqbase) {
-    if (seq::relation_is_effect_of_strip(&strip_test, strip_reference)) {
-      query_strip_effects_fn(&strip_test, seqbase, strips);
-    }
-  }
-}
-
 static VectorSet<Strip *> query_strip_targets_timeline(Scene *scene,
                                                        const Span<Strip *> strip_sources,
                                                        const bool drag_and_drop)
@@ -144,7 +126,7 @@ static VectorSet<Strip *> query_strip_targets_timeline(Scene *scene,
   /* Effects will always change position with strip to which they are connected and they don't
    * have to be selected. Remove such strips from `snap_targets` collection. */
   VectorSet effects_of_strip_sources = strip_sources;
-  seq::iterator_set_expand(seqbase, effects_of_strip_sources, query_strip_effects_fn);
+  seq::iterator_set_expand(ed, effects_of_strip_sources, seq::query_strip_direct_effect_chain);
   effects_of_strip_sources.remove_if(
       [&](Strip *strip) { return strip->is_effect() && !strip->is_effect_with_inputs(); });
 

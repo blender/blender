@@ -436,16 +436,16 @@ static void strip_transform_handle_overwrite_split(Scene *scene,
 /* Trim strips by adjusting handle position.
  * This is bit more complicated in case overlap happens on effect. */
 static void strip_transform_handle_overwrite_trim(Scene *scene,
-                                                  ListBaseT<Strip> *seqbasep,
                                                   const Strip *transformed,
                                                   Strip *target,
                                                   const eOvelapDescrition overlap)
 {
-  VectorSet targets = query_by_reference(target, seqbasep, query_strip_effect_chain);
+  Editing *ed = seq::editing_get(scene);
+  VectorSet targets = query_by_reference(target, ed, query_strip_effect_chain);
 
   /* Expand collection by adding all target's children, effects and their children. */
   if (target->is_effect()) {
-    iterator_set_expand(seqbasep, targets, query_strip_effect_chain);
+    iterator_set_expand(ed, targets, query_strip_effect_chain);
   }
 
   /* Trim all non effects, that have influence on effect length which is overlapping. */
@@ -490,7 +490,7 @@ static void strip_transform_handle_overwrite(Scene *scene,
         strip_transform_handle_overwrite_split(scene, seqbasep, transformed, target);
       }
       else if (ELEM(overlap, STRIP_OVERLAP_LEFT_SIDE, STRIP_OVERLAP_RIGHT_SIDE)) {
-        strip_transform_handle_overwrite_trim(scene, seqbasep, transformed, target, overlap);
+        strip_transform_handle_overwrite_trim(scene, transformed, target, overlap);
       }
     }
   }

@@ -18,6 +18,7 @@
 #include "SEQ_iterator.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_render.hh"
+#include "SEQ_sequencer.hh"
 
 namespace blender::seq {
 
@@ -67,27 +68,27 @@ void foreach_strip(ListBaseT<Strip> *seqbase, FunctionRef<bool(Strip *)> callbac
 }
 
 VectorSet<Strip *> query_by_reference(Strip *strip_reference,
-                                      ListBaseT<Strip> *seqbase,
+                                      Editing *ed,
                                       void strip_query_func(Strip *strip_reference,
-                                                            ListBaseT<Strip> *seqbase,
+                                                            Editing *ed,
                                                             VectorSet<Strip *> &strips))
 {
   VectorSet<Strip *> strips;
-  strip_query_func(strip_reference, seqbase, strips);
+  strip_query_func(strip_reference, ed, strips);
   return strips;
 }
 
-void iterator_set_expand(ListBaseT<Strip> *seqbase,
+void iterator_set_expand(Editing *ed,
                          VectorSet<Strip *> &strips,
                          void strip_query_func(Strip *strip,
-                                               ListBaseT<Strip> *seqbase,
+                                               Editing *ed,
                                                VectorSet<Strip *> &strips))
 {
   /* Collect expanded results for each sequence in provided VectorSet. */
   VectorSet<Strip *> query_matches;
 
   for (Strip *strip : strips) {
-    query_matches.add_multiple(query_by_reference(strip, seqbase, strip_query_func));
+    query_matches.add_multiple(query_by_reference(strip, ed, strip_query_func));
   }
 
   /* Merge all expanded results in provided VectorSet. */
@@ -261,9 +262,21 @@ VectorSet<Strip *> query_unselected_strips(ListBaseT<Strip> *seqbase)
   return strips;
 }
 
-void query_strip_effect_chain(Strip *strip,
-                              ListBaseT<Strip> *seqbase,
-                              VectorSet<Strip *> &r_strips)
+void query_strip_direct_effect_chain(Strip *strip, Editing *ed, VectorSet<Strip *> &r_strips)
+{
+  if (r_strips.contains(strip)) {
+    return; /* Strip is already in set, so all effects connected to it are as well. */
+  }
+  r_strips.add(strip);
+
+  /* Find all effect strips connected to #strip. */
+  Span<Strip *> effects = seq::lookup_effects_by_strip(ed, strip);
+  for (Strip *effect_strip : effects) {
+    query_strip_direct_effect_chain(effect_strip, ed, r_strips);
+  }
+}
+
+void query_strip_effect_chain(Strip *strip, Editing *ed, VectorSet<Strip *> &r_strips)
 {
   if (r_strips.contains(strip)) {
     return; /* Strip is already in set, so all effects connected to it are as well. */
@@ -274,23 +287,22 @@ void query_strip_effect_chain(Strip *strip,
   /* Find all input strips for `strip`. */
   if (strip->is_effect()) {
     if (strip->input1) {
-      query_strip_effect_chain(strip->input1, seqbase, r_strips);
+      query_strip_effect_chain(strip->input1, ed, r_strips);
     }
     if (strip->input2) {
-      query_strip_effect_chain(strip->input2, seqbase, r_strips);
+      query_strip_effect_chain(strip->input2, ed, r_strips);
     }
   }
 
   /* Find all effect strips that have `strip` as an input. */
-  for (Strip &strip_test : *seqbase) {
-    if (strip_test.input1 == strip || strip_test.input2 == strip) {
-      query_strip_effect_chain(&strip_test, seqbase, r_strips);
-    }
+  Span<Strip *> effects = seq::lookup_effects_by_strip(ed, strip);
+  for (Strip *effect_strip : effects) {
+    query_strip_effect_chain(effect_strip, ed, r_strips);
   }
 }
 
 void query_strip_connected_and_effect_chain(Strip *strip,
-                                            ListBaseT<Strip> *seqbase,
+                                            Editing *ed,
                                             VectorSet<Strip *> &r_strips)
 {
 
@@ -314,7 +326,7 @@ void query_strip_connected_and_effect_chain(Strip *strip,
     }
 
     VectorSet<Strip *> effect_chain;
-    query_strip_effect_chain(current, seqbase, effect_chain);
+    query_strip_effect_chain(current, ed, effect_chain);
     for (Strip *effect_strip : effect_chain) {
       if (!r_strips.contains(effect_strip)) {
         pending.append(effect_strip);
