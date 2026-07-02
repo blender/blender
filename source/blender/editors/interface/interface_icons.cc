@@ -1334,7 +1334,7 @@ static void icon_set_image(const bContext *C,
   }
 
   /* Check if the ID supports preview loading or rendering. */
-  if (!prv_img->runtime->deferred_loading_data && !ED_preview_id_is_supported(id)) {
+  if (!prv_img->runtime->deferred_loading_data && !ED_preview_id_render_is_supported(id)) {
     return;
   }
 
@@ -1916,12 +1916,12 @@ void icon_render_id(
   /* For objects, first try if a preview can created via the object data. */
   if (GS(id->name) == ID_OB) {
     Object *ob = id_cast<Object *>(id);
-    if (ED_preview_id_is_supported(static_cast<const ID *>(ob->data))) {
+    if (ED_preview_id_render_is_supported(static_cast<const ID *>(ob->data))) {
       id_to_render = ob->data;
     }
   }
 
-  if (!ED_preview_id_is_supported(id_to_render)) {
+  if (!ED_preview_id_render_is_supported(id_to_render)) {
     return;
   }
 
