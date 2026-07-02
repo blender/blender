@@ -231,6 +231,10 @@ def get_arguments(filepath, output_filepath, use_hwrt, osl, extra_args):
     if osl:
         args.extend(["--python-expr", "import bpy; bpy.context.scene.cycles.shading_system = True"])
 
+        # Workaround for #152968, issue with OSL and Vulkan on Windows.
+        if sys.platform == "win32":
+            args.extend(["--gpu-backend", "opengl"])
+
     args.extend(extra_args)
 
     if subject.startswith('bake'):
