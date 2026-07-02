@@ -232,6 +232,7 @@ if(WITH_GTESTS)
   set(TEST_SRC
     intern/geometry_nodes_bundle_tests.cc
     intern/node_iterator_tests.cc
+    intern/node_structure_type_inferencing_tests.cc
   )
   set(TEST_LIB
     ${LIB}
