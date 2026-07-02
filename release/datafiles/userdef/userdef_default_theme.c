@@ -229,7 +229,6 @@ const bTheme U_theme_default = {
       .text_sel = RGBA(0xffffffff),
       .roundness = 0.2f,
     },
-    .link = RGBA(0x6FA9E6ff),
     .wcol_state = {
       .error = RGBA(0x991616ff),
       .warning = RGBA(0xac8737ff),
@@ -256,6 +255,7 @@ const bTheme U_theme_default = {
     .transparent_checker_primary = RGBA(0x333333ff),
     .transparent_checker_secondary = RGBA(0x262626ff),
     .transparent_checker_size = 8,
+    .link = RGBA(0x6fa9e6ff),
     .icon_alpha = 1.0f,
     .icon_saturation = 0.5f,
     .widget_text_cursor = RGBA(0x71a8ffff),
