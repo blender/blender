@@ -2880,8 +2880,8 @@ class VIEW3D_MT_object(Menu):
         layout.separator()
 
         layout.operator_context = 'EXEC_REGION_WIN'
-        layout.operator("object.delete", text="Delete", icon='X').use_global = False
         layout.operator("object.delete", text="Delete Global").use_global = True
+        layout.operator("object.delete", text="Delete", icon='X').use_global = False
 
         layout.template_node_operator_asset_menu_items(catalog_path="Object")
 
