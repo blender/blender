@@ -223,6 +223,7 @@ static void sanitize_node_tree_interface_socket_identifiers(bNodeTree &node_tree
 {
   node_tree.ensure_interface_cache();
   Set<StringRef> all_identifiers;
+  Map<std::string, StringRefNull> identifier_map;
   for (bNodeTreeInterfaceItem *item : node_tree.interface_items()) {
     if (item->item_type == NodeTreeInterfaceItemType::Panel) {
       continue;
@@ -230,6 +231,7 @@ static void sanitize_node_tree_interface_socket_identifiers(bNodeTree &node_tree
     auto &socket = *bke::node_interface::get_item_as<bNodeTreeInterfaceSocket>(item);
     /* Socket identifiers are required to be valid RNA identifiers and unique. */
     if (!RNA_validate_identifier(socket.identifier, true)) {
+      std::string prev_identifier(socket.identifier);
       RNA_identifier_sanitize(socket.identifier, true);
       if (all_identifiers.contains(socket.identifier)) {
         std::string new_identifier = BLI_uniquename_cb(
@@ -239,8 +241,24 @@ static void sanitize_node_tree_interface_socket_identifiers(bNodeTree &node_tree
         MEM_SAFE_DELETE(socket.identifier);
         socket.identifier = BLI_strdup(new_identifier.c_str());
       }
+      identifier_map.add(std::move(prev_identifier), socket.identifier);
     }
     all_identifiers.add(socket.identifier);
+  }
+
+  /* Rename all the node socket identifiers that got changed in the interface. */
+  if (!identifier_map.is_empty()) {
+    for (bNode &node : node_tree.nodes) {
+      if (!(node.is_group_input() || node.is_group_output())) {
+        continue;
+      }
+      ListBaseT<bNodeSocket> sockets = node.is_group_output() ? node.inputs : node.outputs;
+      for (bNodeSocket &socket : sockets) {
+        if (identifier_map.contains(socket.identifier)) {
+          version_node_socket_identifier_set(socket, identifier_map.lookup(socket.identifier));
+        }
+      }
+    }
   }
 }
 
