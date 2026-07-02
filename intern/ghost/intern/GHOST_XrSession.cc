@@ -1054,18 +1054,18 @@ static void init_passthrough_extension_functions(XrInstance instance)
 
 void GHOST_XrSession::enablePassthrough()
 {
+  oxr_->passthrough_supported = false;
+
   if (!context_->isExtensionEnabled(XR_FB_PASSTHROUGH_EXTENSION_NAME)) {
-    oxr_->passthrough_supported = false;
     return;
   }
 
   if (oxr_->passthrough_layer.layerHandle != XR_NULL_HANDLE) {
-    return; /* Already initialized */
+    oxr_->passthrough_supported = true;
+    return; /* Already initialized. */
   }
 
   init_passthrough_extension_functions(context_->getInstance());
-
-  XrResult result;
 
   XrPassthroughCreateInfoFB passthrough_create_info = {};
   passthrough_create_info.type = XR_TYPE_PASSTHROUGH_CREATE_INFO_FB;
@@ -1073,9 +1073,10 @@ void GHOST_XrSession::enablePassthrough()
   passthrough_create_info.flags |= XR_PASSTHROUGH_IS_RUNNING_AT_CREATION_BIT_FB;
 
   XrPassthroughFB passthrough_handle;
-  result = g_xrCreatePassthroughFB(oxr_->session, &passthrough_create_info, &passthrough_handle);
+  CHECK_XR(g_xrCreatePassthroughFB(oxr_->session, &passthrough_create_info, &passthrough_handle),
+           "Failed to create passthrough handle.");
 
-  XrPassthroughLayerCreateInfoFB passthrough_layer_create_info;
+  XrPassthroughLayerCreateInfoFB passthrough_layer_create_info = {};
   passthrough_layer_create_info.type = XR_TYPE_PASSTHROUGH_LAYER_CREATE_INFO_FB;
   passthrough_layer_create_info.next = nullptr;
   passthrough_layer_create_info.passthrough = passthrough_handle;
@@ -1083,8 +1084,9 @@ void GHOST_XrSession::enablePassthrough()
   passthrough_layer_create_info.purpose = XR_PASSTHROUGH_LAYER_PURPOSE_RECONSTRUCTION_FB;
 
   XrPassthroughLayerFB passthrough_layer_handle;
-  result = g_xrCreatePassthroughLayerFB(
-      oxr_->session, &passthrough_layer_create_info, &passthrough_layer_handle);
+  CHECK_XR(g_xrCreatePassthroughLayerFB(
+               oxr_->session, &passthrough_layer_create_info, &passthrough_layer_handle),
+           "Failed to create passthrough layer handle.");
 
   g_xrPassthroughStartFB(passthrough_handle);
   g_xrPassthroughLayerResumeFB(passthrough_layer_handle);
@@ -1095,7 +1097,7 @@ void GHOST_XrSession::enablePassthrough()
   oxr_->passthrough_layer.space = XR_NULL_HANDLE;
   oxr_->passthrough_layer.layerHandle = passthrough_layer_handle;
 
-  oxr_->passthrough_supported = (result == XR_SUCCESS);
+  oxr_->passthrough_supported = true;
 }
 
 /** \} */ /* Meta Quest Passthrough */
