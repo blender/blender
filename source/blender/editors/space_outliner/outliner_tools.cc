@@ -3184,7 +3184,7 @@ static const EnumPropertyItem *outliner_id_operation_itemf(bContext *C,
       const SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
       const TreeElement *te = get_target_element(space_outliner);
       const TreeStoreElem *tselem = TREESTORE(te);
-      if (tselem && (GS(tselem->id->name) != ID_IM)) {
+      if (TSE_IS_REAL_ID(tselem) && tselem->id && (GS(tselem->id->name) != ID_IM)) {
         continue;
       }
     }
