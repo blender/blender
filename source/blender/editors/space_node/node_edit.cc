@@ -298,6 +298,7 @@ void ED_node_set_active(
               for (int i = 0; i < ma.tot_slots; i++) {
                 if (ma.texpaintslot[i].ima == image) {
                   ma.paint_active_slot = i;
+                  DEG_id_tag_update(&ma.id, ID_RECALC_SYNC_TO_EVAL);
                 }
               }
             }
