@@ -162,50 +162,6 @@ void VKResourceStateTracker::remove_image(VkImage vk_image)
 
 /** \} */
 
-ResourceWithStamp VKResourceStateTracker::get_stamp(ResourceHandle handle,
-                                                    const Resource &resource)
-{
-  ResourceWithStamp result;
-  result.handle = handle;
-  result.stamp = resource.stamp;
-  return result;
-}
-
-ResourceWithStamp VKResourceStateTracker::get_and_increase_stamp(ResourceHandle handle,
-                                                                 Resource &resource)
-{
-  ResourceWithStamp result = get_stamp(handle, resource);
-  resource.stamp += 1;
-  return result;
-}
-
-ResourceWithStamp VKResourceStateTracker::get_image_and_increase_stamp(VkImage vk_image)
-{
-  ResourceHandle handle = image_resources_.lookup(vk_image);
-  Resource &resource = get_image_resource(handle);
-  return get_and_increase_stamp(handle, resource);
-}
-
-ResourceWithStamp VKResourceStateTracker::get_buffer_and_increase_stamp(
-    ResourceHandle buffer_handle)
-{
-  Resource &resource = get_buffer_resource(buffer_handle);
-  return get_and_increase_stamp(buffer_handle, resource);
-}
-
-ResourceWithStamp VKResourceStateTracker::get_buffer(ResourceHandle buffer_handle) const
-{
-  const Resource &resource = get_buffer_resource(buffer_handle);
-  return get_stamp(buffer_handle, resource);
-}
-
-ResourceWithStamp VKResourceStateTracker::get_image(VkImage vk_image) const
-{
-  ResourceHandle handle = image_resources_.lookup(vk_image);
-  const Resource &resource = get_image_resource(handle);
-  return get_stamp(handle, resource);
-}
-
 void VKResourceStateTracker::debug_print() const
 {
   std::ostream &os = std::cout;
