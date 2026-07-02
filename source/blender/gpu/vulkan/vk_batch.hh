@@ -28,8 +28,11 @@ class VKBatch : public Batch {
                            intptr_t offset,
                            intptr_t stride);
 
-  VKVertexBuffer *vertex_buffer_get(int index);
-  VKIndexBuffer *index_buffer_get();
+  /** \brief Ensure that the index and vertex buffers are uploaded.  */
+  void ensure_data_uploaded() const;
+
+  VKVertexBuffer *vertex_buffer_get(int index) const;
+  VKIndexBuffer *index_buffer_get() const;
 };
 
 inline VKBatch *unwrap(Batch *batch)
@@ -37,14 +40,14 @@ inline VKBatch *unwrap(Batch *batch)
   return static_cast<VKBatch *>(batch);
 }
 
-inline VKVertexBuffer *VKBatch::vertex_buffer_get(int index)
+inline VKVertexBuffer *VKBatch::vertex_buffer_get(int index) const
 {
   return unwrap(verts_(index));
 }
 
-inline VKIndexBuffer *VKBatch::index_buffer_get()
+inline VKIndexBuffer *VKBatch::index_buffer_get() const
 {
-  return unwrap(unwrap(elem));
+  return unwrap(unwrap(elem_()));
 }
 
 }  // namespace blender::gpu

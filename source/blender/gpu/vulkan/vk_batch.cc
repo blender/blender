@@ -8,32 +8,43 @@
 
 #include "vk_batch.hh"
 
-#include "render_graph/nodes/vk_pipeline_data.hh"
 #include "vk_context.hh"
 #include "vk_framebuffer.hh"
 #include "vk_index_buffer.hh"
 #include "vk_state_manager.hh"
 #include "vk_storage_buffer.hh"
 #include "vk_vertex_attribute_object.hh"
-#include "vk_vertex_buffer.hh"
 
 namespace blender::gpu {
 
+void VKBatch::ensure_data_uploaded() const
+{
+  for (int index : IndexRange(GPU_BATCH_VBO_MAX_LEN)) {
+    VKVertexBuffer *vertex_buffer = vertex_buffer_get(index);
+    if (vertex_buffer) {
+      vertex_buffer->upload();
+    }
+  }
+  VKIndexBuffer *index_buffer = index_buffer_get();
+  if (index_buffer) {
+    index_buffer->upload_data();
+  }
+}
+
 void VKBatch::draw(int vertex_first, int vertex_count, int instance_first, int instance_count)
 {
+  ensure_data_uploaded();
+
   VKContext &context = *VKContext::get();
   render_graph::VKRenderGraph &graph = context.render_graph();
   render_graph::VKResourceAccessInfo &resource_access_info = context.reset_and_get_access_info();
+
   VKVertexAttributeObject vao;
   vao.update_bindings(context, *this);
 
   VKIndexBuffer *index_buffer = index_buffer_get();
   const bool draw_indexed = index_buffer != nullptr;
 
-  /* Upload geometry */
-  if (draw_indexed) {
-    index_buffer->upload_data();
-  }
   VKFrameBuffer &framebuffer = *context.active_framebuffer_get();
   framebuffer.rendering_ensure(context);
 
@@ -89,19 +100,18 @@ void VKBatch::multi_draw_indirect(const VKStorageBuffer &indirect_buffer,
                                   const intptr_t offset,
                                   const intptr_t stride)
 {
+  ensure_data_uploaded();
+
   VKContext &context = *VKContext::get();
   render_graph::VKRenderGraph &graph = context.render_graph();
   render_graph::VKResourceAccessInfo &resource_access_info = context.reset_and_get_access_info();
+
   VKVertexAttributeObject vao;
   vao.update_bindings(context, *this);
 
   VKIndexBuffer *index_buffer = index_buffer_get();
   const bool draw_indexed = index_buffer != nullptr;
 
-  /* Upload geometry */
-  if (draw_indexed) {
-    index_buffer->upload_data();
-  }
   VKFrameBuffer &framebuffer = *context.active_framebuffer_get();
   framebuffer.rendering_ensure(context);
 

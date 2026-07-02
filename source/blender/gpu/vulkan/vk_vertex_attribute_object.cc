@@ -229,7 +229,6 @@ void VKVertexAttributeObject::update_bindings(const GPUVertFormat &vertex_format
       vertex_input.bindings.append(vk_binding_descriptor);
       if (vertex_buffer) {
         add_vbo = true;
-        vertex_buffer->upload();
         buffers.append({vertex_buffer->resource(), buffer_offset});
       }
       if (immediate_vertex_buffer) {
