@@ -79,6 +79,10 @@ ScopedTimerAveraged::~ScopedTimerAveraged()
 
   min_time_ = std::min(duration, min_time_);
 
+  if (nth_samples_report_ && (total_count_ % *nth_samples_report_) != 0) {
+    return;
+  }
+
   fmt::memory_buffer buf;
   fmt::format_to(fmt::appender(buf), FMT_STRING("Timer '{}': (Average: "), name_);
   format_duration(rolling_average_, buf);
@@ -90,7 +94,9 @@ ScopedTimerAveraged::~ScopedTimerAveraged()
   format_duration(min_time_, buf);
   buf.append(StringRef(", Last: "));
   format_duration(duration, buf);
-  fmt::format_to(fmt::appender(buf), ", Samples: {})\n", total_count_);
+  fmt::format_to(fmt::appender(buf), ", Samples: {}, Total: ", total_count_);
+  format_duration(total_time_, buf);
+  buf.append(StringRef(")\n"));
   std::cout << StringRef(buf.data(), buf.size());
 }
 

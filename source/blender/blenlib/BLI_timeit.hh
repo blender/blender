@@ -46,18 +46,21 @@ class ScopedTimerAveraged {
   Nanoseconds &total_time_;
   Nanoseconds &min_time_;
   std::optional<int64_t> window_size_;
+  std::optional<int64_t> nth_samples_report_;
 
  public:
   ScopedTimerAveraged(std::string name,
                       int64_t &total_count,
                       Nanoseconds &total_time,
                       Nanoseconds &min_time,
-                      const std::optional<int64_t> window_size)
+                      const std::optional<int64_t> window_size,
+                      const std::optional<int64_t> nth_samples_report)
       : name_(std::move(name)),
         total_count_(total_count),
         total_time_(total_time),
         min_time_(min_time),
-        window_size_(window_size)
+        window_size_(window_size),
+        nth_samples_report_(nth_samples_report)
   {
     start_ = Clock::now();
   }
@@ -78,7 +81,18 @@ class ScopedTimerAveraged {
   static timeit::Nanoseconds total_time_; \
   static timeit::Nanoseconds min_time_ = timeit::Nanoseconds::max(); \
   timeit::ScopedTimerAveraged scoped_timer( \
-      name, total_count_, total_time_, min_time_, std::nullopt)
+      name, total_count_, total_time_, min_time_, std::nullopt, std::nullopt)
+
+/**
+ * Print the average and minimum runtime of the timer's scope, every nth samples.
+ * \warning This uses static variables, so it is not thread-safe.
+ */
+#define SCOPED_TIMER_AVERAGED_NTH_SAMPLES(name, nth_samples) \
+  static int64_t total_count_; \
+  static timeit::Nanoseconds total_time_; \
+  static timeit::Nanoseconds min_time_ = timeit::Nanoseconds::max(); \
+  timeit::ScopedTimerAveraged scoped_timer( \
+      name, total_count_, total_time_, min_time_, std::nullopt, nth_samples)
 
 /**
  * Print the rolling average and minimum runtime of the timer's scope.
@@ -88,4 +102,5 @@ class ScopedTimerAveraged {
   static int64_t total_count_; \
   static timeit::Nanoseconds total_time_; \
   static timeit::Nanoseconds min_time_ = timeit::Nanoseconds::max(); \
-  timeit::ScopedTimerAveraged scoped_timer(name, total_count_, total_time_, min_time_, window_size)
+  timeit::ScopedTimerAveraged scoped_timer( \
+      name, total_count_, total_time_, min_time_, window_size, std::nullopt)
