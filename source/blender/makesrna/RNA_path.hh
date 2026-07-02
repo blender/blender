@@ -17,10 +17,13 @@
 
 #include <optional>
 #include <string>
+#include <utility>
 
 #include "DNA_listBase.h"
 
 #include "RNA_types.hh"
+
+#include "BLI_string_ref.hh"
 
 namespace blender {
 
@@ -321,5 +324,27 @@ std::optional<std::string> RNA_path_struct_property_py(PointerRNA *ptr,
  *   some_prop[10]
  */
 std::string RNA_path_property_py(const PointerRNA *ptr, PropertyRNA *prop, int index);
+
+/**
+ * Generate RNA path keys matching the given infixes (or subscript if the infixes are empty),
+ * including the opening and closing braces (e.g. `["OldModifierName"]` and `["NewModifierName"]`).
+ *
+ * Typically used by code updating RNA paths after some sub-data (modifier, bone...) has been
+ * renamed or re-arranged inside a collection.
+ *
+ * \param old_infix Old string form of the renamed item identifier.
+ * \param new_infix New string form of the renamed item identifier.
+ * \param old_subscript Old numeric index of the renamed item identifier.
+ * \param new_subscript New numeric index of the renamed item identifier.
+ * \param infix_is_name Whether the given infixes are actual item names (need to be escaped and
+ * quoted) or not.
+ * \return A pair of old & new std::string keys.
+ */
+std::pair<std::string, std::string> RNA_generate_keys_for_path_rename(
+    const StringRefNull old_infix,
+    const StringRefNull new_infix,
+    int old_subscript,
+    int new_subscript,
+    bool infix_is_name);
 
 }  // namespace blender

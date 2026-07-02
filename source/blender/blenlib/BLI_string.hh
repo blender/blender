@@ -13,6 +13,7 @@
 #include <string>
 
 #include "BLI_compiler_attrs.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_utildefines.hh"
 
 namespace blender {
@@ -238,6 +239,7 @@ size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, size_t d
     ATTR_NONNULL(1, 2);
 
 /** Same as above, but returns an std::string. */
+std::string BLI_str_escape(StringRefNull str);
 std::string BLI_str_escape(const char *str);
 
 /**
