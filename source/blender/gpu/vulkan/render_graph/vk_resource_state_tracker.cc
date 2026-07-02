@@ -59,10 +59,6 @@ void VKResourceStateTracker::add_image(VkImage vk_image,
     resource.name = name;
   }
 #endif
-
-#ifdef VK_RESOURCE_STATE_TRACKER_VALIDATION
-  validate();
-#endif
 }
 
 void VKResourceStateTracker::add_image(VkImage vk_image,
@@ -115,9 +111,6 @@ ResourceHandle VKResourceStateTracker::add_buffer(VkBuffer vk_buffer, const char
   }
 #endif
 
-#ifdef VK_RESOURCE_STATE_TRACKER_VALIDATION
-  validate();
-#endif
   return handle;
 }
 
@@ -152,9 +145,6 @@ VkBuffer VKResourceStateTracker::remove_buffer(ResourceHandle buffer_handle)
   };
   unused_handles_.append(buffer_handle);
 
-#ifdef VK_RESOURCE_STATE_TRACKER_VALIDATION
-  validate();
-#endif
   return vk_buffer;
 }
 
@@ -168,10 +158,6 @@ void VKResourceStateTracker::remove_image(VkImage vk_image)
       .stamp = 0,
   };
   unused_handles_.append(handle);
-
-#ifdef VK_RESOURCE_STATE_TRACKER_VALIDATION
-  validate();
-#endif
 }
 
 /** \} */
@@ -219,37 +205,6 @@ ResourceWithStamp VKResourceStateTracker::get_image(VkImage vk_image) const
   const Resource &resource = get_image_resource(handle);
   return get_stamp(handle, resource);
 }
-
-#ifdef VK_RESOURCE_STATE_TRACKER_VALIDATION
-void VKResourceStateTracker::validate() const
-{
-  for (const Map<VkImage, ResourceHandle>::Item &item : image_resources_.items()) {
-    for (ResourceHandle buffer_handle : buffer_resources_.values()) {
-      BLI_assert(item.value != buffer_handle);
-    }
-    const Resource &resource = get_image_resource(item.value);
-    BLI_assert(resource.type == VKResourceType::IMAGE);
-  }
-
-  for (const Map<VkBuffer, ResourceHandle>::Item &item : buffer_resources_.items()) {
-    for (ResourceHandle image_handle : image_resources_.values()) {
-      BLI_assert(item.value != image_handle);
-    }
-    const Resource &resource = get_buffer_resource(item.value);
-    BLI_assert(resource.type == VKResourceType::BUFFER);
-  }
-  BLI_assert(
-      image_resources_.size() ==
-      std::ranges::count_if(resources_.begin(), resources_.end(), [](const Resource &resource) {
-        return resource.type == VKResourceType::IMAGE;
-      }));
-  BLI_assert(
-      buffer_resources_.size() ==
-      std::ranges::count_if(resources_.begin(), resources_.end(), [](const Resource &resource) {
-        return resource.type == VKResourceType::BUFFER;
-      }));
-}
-#endif
 
 void VKResourceStateTracker::debug_print() const
 {

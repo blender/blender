@@ -29,13 +29,6 @@
 
 #include "vk_common.hh"
 
-/**
- * Enable VK_RESOURCE_STATE_TRACKER_VALIDATION to perform a consistency check
- * on the state. The consistency check is time consuming and should only be
- * turned on when needed.
- */
-// #define VK_RESOURCE_STATE_TRACKER_VALIDATION
-
 namespace blender::gpu::render_graph {
 
 class VKCommandBuilder;
@@ -322,10 +315,6 @@ class VKResourceStateTracker {
     BLI_assert(resources_[resource_handle].type == VKResourceType::BUFFER);
     return resources_[resource_handle];
   }
-
-#ifdef VK_RESOURCE_STATE_TRACKER_VALIDATION
-  void validate() const;
-#endif
 };
 
 }  // namespace blender::gpu::render_graph
