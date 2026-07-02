@@ -80,22 +80,24 @@ void VKImmediate::end()
   }
   else {
     GPU_matrix_bind(context.shader);
+    render_graph::VKRenderGraph &graph = context.render_graph();
     render_graph::VKResourceAccessInfo &resource_access_info = context.reset_and_get_access_info();
     vertex_attributes_.update_bindings(*this);
     VKFrameBuffer &framebuffer = *context.active_framebuffer_get();
     framebuffer.rendering_ensure(context);
 
+    render_graph::VKNodeData<render_graph::VKDrawNode> node =
+        graph.alloc_node<render_graph::VKDrawNode>();
+    node.data.vertex_count = vertex_idx;
+    node.data.instance_count = 1;
+    node.data.first_vertex = 0;
+    node.data.first_instance = 0;
+
+    vertex_attributes_.bind(node.data.vertex_buffers);
+    context.update_pipeline_data(framebuffer, prim_type, vertex_attributes_, node.data.graphics);
+
     render_graph::VKDrawNode::CreateInfo draw(resource_access_info);
-    draw.node_data.vertex_count = vertex_idx;
-    draw.node_data.instance_count = 1;
-    draw.node_data.first_vertex = 0;
-    draw.node_data.first_instance = 0;
-
-    vertex_attributes_.bind(draw.node_data.vertex_buffers);
-    context.update_pipeline_data(
-        framebuffer, prim_type, vertex_attributes_, draw.node_data.graphics);
-
-    context.render_graph().add_node(draw);
+    node.finalize(graph, draw);
   }
 
   buffer_offset_ += current_subbuffer_len_;

@@ -24,31 +24,45 @@ struct VKDrawData {
   uint32_t instance_count;
   uint32_t first_vertex;
   uint32_t first_instance;
+
+  void reset()
+  {
+    graphics.reset();
+    vertex_buffers = {};
+    vertex_count = 0;
+    instance_count = 0;
+    first_vertex = 0;
+    first_instance = 0;
+  }
 };
 
 struct VKDrawCreateInfo {
-  VKDrawData node_data = {};
   const VKResourceAccessInfo &resources;
   VKDrawCreateInfo(const VKResourceAccessInfo &resources) : resources(resources) {}
 };
 
-class VKDrawNode : public VKNodeInfo<VKNodeType::DRAW,
-                                     VKDrawCreateInfo,
-                                     VKDrawData,
-                                     VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
-                                     VKResourceType::IMAGE | VKResourceType::BUFFER> {
+class VKDrawNode : public VKDrawNodeInfo<VKNodeType::DRAW,
+                                         VKDrawCreateInfo,
+                                         VKDrawData,
+                                         VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+                                         VKResourceType::IMAGE | VKResourceType::BUFFER> {
  public:
-  /**
-   * Update the node data with the data inside create_info.
-   *
-   * Has been implemented as a template to ensure all node specific data
-   * (`VK*Data`/`VK*CreateInfo`) types can be included in the same header file as the logic. The
-   * actual node data (`VKRenderGraphNode` includes all header files.)
-   */
-  template<typename Node, typename Storage>
-  static void set_node_data(Node &node, Storage &storage, const CreateInfo &create_info)
+  static void reset_data(Data &data)
   {
-    node.storage_index = storage.draw.append_and_get_index(create_info.node_data);
+    data.reset();
+  }
+
+  template<typename Storage>
+  static Data &alloc_node_data(Storage &storage, int64_t &r_storage_index)
+  {
+    Data &data = storage.draw.alloc(r_storage_index);
+    reset_data(data);
+    return data;
+  }
+
+  template<typename Storage> static Data &storage_data(Storage &storage, int64_t storage_index)
+  {
+    return storage.draw[storage_index];
   }
 
   /**
@@ -56,10 +70,11 @@ class VKDrawNode : public VKNodeInfo<VKNodeType::DRAW,
    */
   void build_links(VKResourceStateTracker &resources,
                    VKRenderGraphLinks &links,
-                   const CreateInfo &create_info) override
+                   const CreateInfo &create_info,
+                   Data &data) override
   {
     create_info.resources.build_links(resources, links);
-    vk_vertex_buffer_bindings_build_links(resources, links, create_info.node_data.vertex_buffers);
+    vk_vertex_buffer_bindings_build_links(resources, links, data.vertex_buffers);
   }
 
   /**

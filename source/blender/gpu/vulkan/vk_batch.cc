@@ -22,6 +22,7 @@ namespace blender::gpu {
 void VKBatch::draw(int vertex_first, int vertex_count, int instance_first, int instance_count)
 {
   VKContext &context = *VKContext::get();
+  render_graph::VKRenderGraph &graph = context.render_graph();
   render_graph::VKResourceAccessInfo &resource_access_info = context.reset_and_get_access_info();
   VKVertexAttributeObject vao;
   vao.update_bindings(context, *this);
@@ -37,31 +38,35 @@ void VKBatch::draw(int vertex_first, int vertex_count, int instance_first, int i
   framebuffer.rendering_ensure(context);
 
   if (draw_indexed) {
-    render_graph::VKDrawIndexedNode::CreateInfo draw_indexed(resource_access_info);
-    draw_indexed.node_data.index_count = vertex_count;
-    draw_indexed.node_data.instance_count = instance_count;
-    draw_indexed.node_data.first_index = index_buffer->index_start_get() + vertex_first;
-    draw_indexed.node_data.vertex_offset = index_buffer->index_base_get();
-    draw_indexed.node_data.first_instance = instance_first;
+    render_graph::VKNodeData<render_graph::VKDrawIndexedNode> node =
+        graph.alloc_node<render_graph::VKDrawIndexedNode>();
+    node.data.index_count = vertex_count;
+    node.data.instance_count = instance_count;
+    node.data.first_index = index_buffer->index_start_get() + vertex_first;
+    node.data.vertex_offset = index_buffer->index_base_get();
+    node.data.first_instance = instance_first;
 
-    draw_indexed.node_data.index_buffer.buffer = index_buffer->resource();
-    draw_indexed.node_data.index_buffer.index_type = index_buffer->vk_index_type();
-    vao.bind(draw_indexed.node_data.vertex_buffers);
-    context.update_pipeline_data(framebuffer, prim_type, vao, draw_indexed.node_data.graphics);
+    node.data.index_buffer.buffer = index_buffer->resource();
+    node.data.index_buffer.index_type = index_buffer->vk_index_type();
+    vao.bind(node.data.vertex_buffers);
+    context.update_pipeline_data(framebuffer, prim_type, vao, node.data.graphics);
 
-    context.render_graph().add_node(draw_indexed);
+    render_graph::VKDrawIndexedNode::CreateInfo create_info(resource_access_info);
+    node.finalize(graph, create_info);
   }
   else {
-    render_graph::VKDrawNode::CreateInfo draw(resource_access_info);
-    draw.node_data.vertex_count = vertex_count;
-    draw.node_data.instance_count = instance_count;
-    draw.node_data.first_vertex = vertex_first;
-    draw.node_data.first_instance = instance_first;
+    render_graph::VKNodeData<render_graph::VKDrawNode> node =
+        graph.alloc_node<render_graph::VKDrawNode>();
+    node.data.vertex_count = vertex_count;
+    node.data.instance_count = instance_count;
+    node.data.first_vertex = vertex_first;
+    node.data.first_instance = instance_first;
 
-    vao.bind(draw.node_data.vertex_buffers);
-    context.update_pipeline_data(framebuffer, prim_type, vao, draw.node_data.graphics);
+    vao.bind(node.data.vertex_buffers);
+    context.update_pipeline_data(framebuffer, prim_type, vao, node.data.graphics);
 
-    context.render_graph().add_node(draw);
+    render_graph::VKDrawNode::CreateInfo create_info(resource_access_info);
+    node.finalize(graph, create_info);
   }
 }
 
@@ -85,6 +90,7 @@ void VKBatch::multi_draw_indirect(const VKStorageBuffer &indirect_buffer,
                                   const intptr_t stride)
 {
   VKContext &context = *VKContext::get();
+  render_graph::VKRenderGraph &graph = context.render_graph();
   render_graph::VKResourceAccessInfo &resource_access_info = context.reset_and_get_access_info();
   VKVertexAttributeObject vao;
   vao.update_bindings(context, *this);
@@ -100,32 +106,34 @@ void VKBatch::multi_draw_indirect(const VKStorageBuffer &indirect_buffer,
   framebuffer.rendering_ensure(context);
 
   if (draw_indexed) {
-    render_graph::VKDrawIndexedIndirectNode::CreateInfo draw_indexed_indirect(
-        resource_access_info);
-    draw_indexed_indirect.node_data.indirect_buffer = indirect_buffer.resource();
-    draw_indexed_indirect.node_data.offset = offset;
-    draw_indexed_indirect.node_data.draw_count = count;
-    draw_indexed_indirect.node_data.stride = stride;
+    render_graph::VKNodeData<render_graph::VKDrawIndexedIndirectNode> node =
+        graph.alloc_node<render_graph::VKDrawIndexedIndirectNode>();
+    node.data.indirect_buffer = indirect_buffer.resource();
+    node.data.offset = offset;
+    node.data.draw_count = count;
+    node.data.stride = stride;
 
-    draw_indexed_indirect.node_data.index_buffer.buffer = index_buffer->resource();
-    draw_indexed_indirect.node_data.index_buffer.index_type = index_buffer->vk_index_type();
-    vao.bind(draw_indexed_indirect.node_data.vertex_buffers);
-    context.update_pipeline_data(
-        framebuffer, prim_type, vao, draw_indexed_indirect.node_data.graphics);
+    node.data.index_buffer.buffer = index_buffer->resource();
+    node.data.index_buffer.index_type = index_buffer->vk_index_type();
+    vao.bind(node.data.vertex_buffers);
+    context.update_pipeline_data(framebuffer, prim_type, vao, node.data.graphics);
 
-    context.render_graph().add_node(draw_indexed_indirect);
+    render_graph::VKDrawIndexedIndirectNode::CreateInfo create_info(resource_access_info);
+    node.finalize(graph, create_info);
   }
   else {
-    render_graph::VKDrawIndirectNode::CreateInfo draw(resource_access_info);
-    draw.node_data.indirect_buffer = indirect_buffer.resource();
-    draw.node_data.offset = offset;
-    draw.node_data.draw_count = count;
-    draw.node_data.stride = stride;
+    render_graph::VKNodeData<render_graph::VKDrawIndirectNode> node =
+        graph.alloc_node<render_graph::VKDrawIndirectNode>();
+    node.data.indirect_buffer = indirect_buffer.resource();
+    node.data.offset = offset;
+    node.data.draw_count = count;
+    node.data.stride = stride;
 
-    vao.bind(draw.node_data.vertex_buffers);
-    context.update_pipeline_data(framebuffer, prim_type, vao, draw.node_data.graphics);
+    vao.bind(node.data.vertex_buffers);
+    context.update_pipeline_data(framebuffer, prim_type, vao, node.data.graphics);
 
-    context.render_graph().add_node(draw);
+    render_graph::VKDrawIndirectNode::CreateInfo create_info(resource_access_info);
+    node.finalize(graph, create_info);
   }
 }
 

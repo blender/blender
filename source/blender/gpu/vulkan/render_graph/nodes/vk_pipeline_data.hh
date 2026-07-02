@@ -80,6 +80,12 @@ struct VKViewportData {
   {
     return !(*this == other);
   }
+
+  void reset()
+  {
+    viewports.clear();
+    scissors.clear();
+  }
 };
 
 struct VKPipelineDataGraphics {
@@ -89,6 +95,16 @@ struct VKPipelineDataGraphics {
   std::optional<float> line_width;
   std::optional<StencilState> stencil_state;
   std::optional<VkFrontFace> front_face;
+
+  void reset()
+  {
+    pipeline_data = {};
+    viewport.reset();
+    vertex_input_description.reset();
+    line_width.reset();
+    stencil_state.reset();
+    front_face.reset();
+  }
 };
 
 /** Resources bound for a compute/graphics pipeline. */

@@ -40,6 +40,53 @@ namespace blender::gpu::render_graph {
 using NodeHandle = uint64_t;
 
 /**
+ * Block-allocated storage for node data.
+ *
+ * Uses an index counter (`next`) instead of clear + append.
+ * On reset, only the counter resets to 0 (memory is preserved and reused).
+ * When storage is full, grows by 1024-element blocks.
+ */
+template<typename T, int BlockSize = 1024> struct VKNodeStorage {
+  Vector<T> data;
+  int64_t next = 0;
+
+  T &alloc(int64_t &r_index)
+  {
+    if (next >= data.size()) {
+      data.resize(data.size() + BlockSize);
+    }
+    int64_t index = next++;
+    r_index = index;
+    return data[index];
+  }
+
+  void reset()
+  {
+    next = 0;
+  }
+
+  T &operator[](int64_t index)
+  {
+    return data[index];
+  }
+
+  const T &operator[](int64_t index) const
+  {
+    return data[index];
+  }
+
+  int64_t size() const
+  {
+    return next;
+  }
+
+  int64_t capacity() const
+  {
+    return data.capacity();
+  }
+};
+
+/**
  * Node storage for nodes that uses large data structs.
  *
  * Some node structs are to large to store them as part of the node. The data are stored as a
@@ -54,10 +101,10 @@ struct VKRenderGraphStorage {
   Vector<VKCopyBufferToImageNode::Data, 1024> copy_buffer_to_image;
   Vector<VKCopyImageNode::Data, 1024> copy_image;
   Vector<VKCopyImageToBufferNode::Data, 1024> copy_image_to_buffer;
-  Vector<VKDrawNode::Data, 1024> draw;
-  Vector<VKDrawIndexedNode::Data, 1024> draw_indexed;
-  Vector<VKDrawIndexedIndirectNode::Data, 1024> draw_indexed_indirect;
-  Vector<VKDrawIndirectNode::Data, 1024> draw_indirect;
+  VKNodeStorage<VKDrawNode::Data> draw;
+  VKNodeStorage<VKDrawIndexedNode::Data> draw_indexed;
+  VKNodeStorage<VKDrawIndexedIndirectNode::Data> draw_indexed_indirect;
+  VKNodeStorage<VKDrawIndirectNode::Data> draw_indirect;
   Vector<uint8_t> push_constants;
 
   void reset()
@@ -68,10 +115,10 @@ struct VKRenderGraphStorage {
     copy_buffer_to_image.clear();
     copy_image.clear();
     copy_image_to_buffer.clear();
-    draw.clear();
-    draw_indexed.clear();
-    draw_indexed_indirect.clear();
-    draw_indirect.clear();
+    draw.reset();
+    draw_indexed.reset();
+    draw_indexed_indirect.reset();
+    draw_indirect.reset();
     push_constants.clear();
   }
 };
@@ -145,6 +192,44 @@ struct VKRenderGraphNode {
     int64_t buffer_index_start = links.buffers.size();
     int64_t image_index_start = links.images.size();
     node_info.build_links(resources, links, create_info);
+    this->links.buffers = IndexRange::from_begin_end(buffer_index_start, links.buffers.size());
+    this->links.images = IndexRange::from_begin_end(image_index_start, links.images.size());
+  }
+
+  /**
+   * Allocate node data in storage for the new draw node model.
+   *
+   * Sets the node type and returns a reference to the in-place data inside the render graph.
+   * Caller can then update the data directly, what will remove a copy later on.
+   * After the data is set, the caller needs to call finalize_node.
+   *
+   * Currently only implemented for Draw nodes as other nodes don't benefit from this pattern.
+   */
+  template<typename NodeInfo>
+  typename NodeInfo::Data &alloc_node_data(VKRenderGraphStorage &storage)
+  {
+    BLI_assert(type == VKNodeType::UNUSED);
+    type = NodeInfo::node_type;
+    return NodeInfo::alloc_node_data(storage, storage_index);
+  }
+
+  /**
+   * Finalize a node by building its resource links.
+   *
+   * To be called after the caller has written data into the storage slot
+   * obtained via alloc_node_data.
+   */
+  template<typename NodeInfo>
+  void finalize_node(VKRenderGraphStorage &storage,
+                     VKResourceStateTracker &resources,
+                     VKRenderGraphLinks &links,
+                     const typename NodeInfo::CreateInfo &create_info)
+  {
+    NodeInfo node_info;
+    int64_t buffer_index_start = links.buffers.size();
+    int64_t image_index_start = links.images.size();
+    node_info.build_links(
+        resources, links, create_info, NodeInfo::storage_data(storage, storage_index));
     this->links.buffers = IndexRange::from_begin_end(buffer_index_start, links.buffers.size());
     this->links.images = IndexRange::from_begin_end(image_index_start, links.images.size());
   }

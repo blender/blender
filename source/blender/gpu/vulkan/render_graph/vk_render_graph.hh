@@ -60,6 +60,20 @@
 
 namespace blender::gpu::render_graph {
 class VKScheduler;
+class VKRenderGraph;
+
+/**
+ * Holds a reference to a node data allocated via VKRenderGraph::alloc_node.
+ *
+ * Stores the node handle (for finalization) and a direct reference to the
+ * in-place data stored inside the render graph.
+ */
+template<typename NodeInfo> struct VKNodeData {
+  NodeHandle node_handle;
+  typename NodeInfo::Data &data;
+
+  void finalize(VKRenderGraph &render_graph, const typename NodeInfo::CreateInfo &create_info);
+};
 
 class VKRenderGraph : public NonCopyable {
   friend class VKCommandBuilder;
@@ -133,6 +147,48 @@ class VKRenderGraph : public NonCopyable {
    */
   VKRenderGraph(VKResourceStateTracker &resources);
 
+  /**
+   * Allocate a draw node in the render graph.
+   *
+   * Returns a reference to the in-place storage data that the caller can fill
+   * before calling finalize_node.
+   */
+  template<typename NodeInfo> VKNodeData<NodeInfo> alloc_node()
+  {
+    std::scoped_lock lock(resources_.mutex);
+    static VKRenderGraphNode node_template = {};
+    NodeHandle node_handle = nodes_.append_and_get_index(node_template);
+    VKRenderGraphNode &node = nodes_[node_handle];
+    typename NodeInfo::Data &data = node.alloc_node_data<NodeInfo>(storage_);
+    return {node_handle, data};
+  }
+
+  /**
+   * Finalize a draw node that was previously allocated via alloc_node.
+   *
+   * Builds resource links, records debug groups, etc.
+   */
+  template<typename NodeInfo>
+  void finalize_node(NodeHandle node_handle, const typename NodeInfo::CreateInfo &create_info)
+  {
+    std::scoped_lock lock(resources_.mutex);
+    VKRenderGraphNode &node = nodes_[node_handle];
+    BLI_assert(node.type == NodeInfo::node_type);
+
+    if (G.debug & G_DEBUG_GPU) {
+      if (!debug_.group_used) {
+        debug_.group_used = true;
+        debug_.used_groups.append(debug_.group_stack);
+      }
+      if (nodes_.size() > debug_.node_group_map.size()) {
+        debug_.node_group_map.resize(nodes_.size());
+      }
+      debug_.node_group_map[node_handle] = debug_.used_groups.size() - 1;
+    }
+
+    node.template finalize_node<NodeInfo>(storage_, resources_, links_, create_info);
+  }
+
  private:
   /**
    * Add a node to the render graph.
@@ -189,10 +245,6 @@ class VKRenderGraph : public NonCopyable {
   ADD_NODE(VKBlitImageNode)
   ADD_NODE(VKDispatchNode)
   ADD_NODE(VKDispatchIndirectNode)
-  ADD_NODE(VKDrawNode)
-  ADD_NODE(VKDrawIndexedNode)
-  ADD_NODE(VKDrawIndexedIndirectNode)
-  ADD_NODE(VKDrawIndirectNode)
   ADD_NODE(VKResetQueryPoolNode)
   ADD_NODE(VKUpdateBufferNode)
   ADD_NODE(VKUpdateMipmapsNode)
@@ -294,5 +346,12 @@ class VKRenderGraph : public NonCopyable {
 
  private:
 };
+
+template<typename NodeInfo>
+void VKNodeData<NodeInfo>::finalize(VKRenderGraph &render_graph,
+                                    const typename NodeInfo::CreateInfo &create_info)
+{
+  render_graph.finalize_node<NodeInfo>(node_handle, create_info);
+}
 
 }  // namespace blender::gpu::render_graph

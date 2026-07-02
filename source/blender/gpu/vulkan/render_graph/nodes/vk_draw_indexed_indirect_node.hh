@@ -24,32 +24,47 @@ struct VKDrawIndexedIndirectData {
   VkDeviceSize offset;
   uint32_t draw_count;
   uint32_t stride;
+
+  void reset()
+  {
+    graphics.reset();
+    index_buffer = {};
+    vertex_buffers = {};
+    indirect_buffer = {};
+    offset = 0;
+    draw_count = 0;
+    stride = 0;
+  }
 };
 
 struct VKDrawIndexedIndirectCreateInfo {
-  VKDrawIndexedIndirectData node_data = {};
   const VKResourceAccessInfo &resources;
   VKDrawIndexedIndirectCreateInfo(const VKResourceAccessInfo &resources) : resources(resources) {}
 };
 
 class VKDrawIndexedIndirectNode
-    : public VKNodeInfo<VKNodeType::DRAW_INDEXED_INDIRECT,
-                        VKDrawIndexedIndirectCreateInfo,
-                        VKDrawIndexedIndirectData,
-                        VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
-                        VKResourceType::IMAGE | VKResourceType::BUFFER> {
+    : public VKDrawNodeInfo<VKNodeType::DRAW_INDEXED_INDIRECT,
+                            VKDrawIndexedIndirectCreateInfo,
+                            VKDrawIndexedIndirectData,
+                            VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+                            VKResourceType::IMAGE | VKResourceType::BUFFER> {
  public:
-  /**
-   * Update the node data with the data inside create_info.
-   *
-   * Has been implemented as a template to ensure all node specific data
-   * (`VK*Data`/`VK*CreateInfo`) types can be included in the same header file as the logic. The
-   * actual node data (`VKRenderGraphNode` includes all header files.)
-   */
-  template<typename Node, typename Storage>
-  static void set_node_data(Node &node, Storage &storage, const CreateInfo &create_info)
+  static void reset_data(Data &data)
   {
-    node.storage_index = storage.draw_indexed_indirect.append_and_get_index(create_info.node_data);
+    data.reset();
+  }
+
+  template<typename Storage>
+  static Data &alloc_node_data(Storage &storage, int64_t &r_storage_index)
+  {
+    Data &data = storage.draw_indexed_indirect.alloc(r_storage_index);
+    reset_data(data);
+    return data;
+  }
+
+  template<typename Storage> static Data &storage_data(Storage &storage, int64_t storage_index)
+  {
+    return storage.draw_indexed_indirect[storage_index];
   }
 
   /**
@@ -57,16 +72,16 @@ class VKDrawIndexedIndirectNode
    */
   void build_links(VKResourceStateTracker &resources,
                    VKRenderGraphLinks &links,
-                   const CreateInfo &create_info) override
+                   const CreateInfo &create_info,
+                   Data &data) override
   {
     create_info.resources.build_links(resources, links);
-    if (create_info.node_data.index_buffer.buffer != VK_NULL_HANDLE) {
-      vk_index_buffer_binding_build_links(resources, links, create_info.node_data.index_buffer);
+    if (data.index_buffer.buffer != VK_NULL_HANDLE) {
+      vk_index_buffer_binding_build_links(resources, links, data.index_buffer);
     }
 
-    vk_vertex_buffer_bindings_build_links(resources, links, create_info.node_data.vertex_buffers);
-    ResourceWithStamp buffer_resource = resources.get_buffer(
-        create_info.node_data.indirect_buffer);
+    vk_vertex_buffer_bindings_build_links(resources, links, data.vertex_buffers);
+    ResourceWithStamp buffer_resource = resources.get_buffer(data.indirect_buffer);
     links.buffers.append({buffer_resource, VK_ACCESS_INDIRECT_COMMAND_READ_BIT});
   }
 
