@@ -16,6 +16,7 @@
 #include "GPU_state.hh"
 #include "GPU_texture.hh"
 
+#include "gpu_capabilities_private.hh"
 #include "gpu_context_private.hh"
 #include "gpu_shader_private.hh"
 #include "gpu_texture_private.hh"
@@ -111,10 +112,12 @@ static uint mipmap_dispatch_group_len(Texture &texture, int mip_start)
   }
 }
 
-static void update_mipmaps(Texture &texture, Shader &shader, int layer)
+static void update_mipmaps_layer(Texture &texture,
+                                 Shader &shader,
+                                 const int layer,
+                                 const TextureFormat view_format)
 {
   const int num_mipmaps = texture.mip_count();
-  const TextureFormat view_format = texture.format_get();
   Vector<Texture *, 16> views;
   for (int mipmap : IndexRange(num_mipmaps)) {
     views.append(GPU_texture_create_view(
@@ -146,7 +149,7 @@ static void update_mipmaps(Texture &texture, Shader &shader, int layer)
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
 }
 
-static void update_mipmaps(Texture &texture, Shader &shader)
+static void update_mipmaps(Texture &texture, Shader &shader, const TextureFormat write_format)
 {
   Context &context = *Context::get();
   Shader *prev_shader = context.shader;
@@ -154,11 +157,11 @@ static void update_mipmaps(Texture &texture, Shader &shader)
   Texture *texture_ptr = &texture;
   int layer_count = texture.layer_count();
   int mip_count = texture.mip_count();
-  const bool is_srgb = texture.format_flag_get() & GPU_FORMAT_SRGB;
   const bool is_layered = texture.type_get() & GPU_TEXTURE_ARRAY;
-  /* SRGB textures cannot be used with image load/store. Create a temp texture with mip0 in an
-   * non-srgb texture. */
-  if (is_srgb) {
+
+  /* When the texture format can not be written to directly, use a temporary texture. */
+  const bool use_temp_texture = write_format != texture.format_get();
+  if (use_temp_texture) {
     if (is_layered) {
       texture_ptr = GPU_texture_create_2d_array(__func__,
                                                 texture.width_get(),
@@ -185,10 +188,10 @@ static void update_mipmaps(Texture &texture, Shader &shader)
 
   GPU_shader_bind(&shader);
   for (int layer : IndexRange(layer_count)) {
-    update_mipmaps(*texture_ptr, shader, layer);
+    update_mipmaps_layer(*texture_ptr, shader, layer, write_format);
   }
 
-  if (is_srgb) {
+  if (use_temp_texture) {
     /* Copy result (mip1 and higher) to original texture and free temporary resources. */
     texture_ptr->copy_to(&texture, IndexRange::from_begin_end(1, mip_count));
     GPU_texture_free(texture_ptr);
@@ -243,10 +246,21 @@ void GPU_texture_update_mipmap_chain(Texture *tex)
   if (use_compute_shaders) {
     const TextureFormat texture_format = tex->format_get();
     const bool is_layered = tex->type_get() & GPU_TEXTURE_ARRAY;
-    Shader *shader = get_update_mipmap_shader(texture_format, is_layered);
+    /* For sRGB without direct write support, write into a temporary UNORM_8_8_8_8 texture. */
+    const TextureFormat write_format = ((tex->format_flag_get() & GPU_FORMAT_SRGB) &&
+                                        !GCaps.srgb_write_direct_support) ?
+                                           TextureFormat::UNORM_8_8_8_8 :
+                                           texture_format;
+    /* For sRGB with direct write support, the shader is that same as UNORM_8_8_8_8 and
+     * any conversion to/from sRGB happens automatically. */
+    const TextureFormat shader_format = ((tex->format_flag_get() & GPU_FORMAT_SRGB) &&
+                                         GCaps.srgb_write_direct_support) ?
+                                            TextureFormat::UNORM_8_8_8_8 :
+                                            texture_format;
+    Shader *shader = get_update_mipmap_shader(shader_format, is_layered);
     if (shader) {
       GPU_debug_group_begin("Update Mipmaps");
-      update_mipmaps(*tex, *shader);
+      update_mipmaps(*tex, *shader, write_format);
       GPU_debug_group_end();
       return;
     }

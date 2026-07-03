@@ -558,6 +558,11 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
 
   GCaps.geometry_shader_support = false;
 
+  /* Apple GPUs can write to an sRGB texture as a storage image directly, with the hardware doing
+   * the sRGB conversion. Use this for sRGB mipmap generation instead of a temporary non-sRGB
+   * texture. */
+  GCaps.srgb_write_direct_support = true;
+
   /* Compile shaders on performance cores but leave one free so UI is still responsive.
    * Also respect command line option to reduce number of threads. */
   GCaps.max_parallel_compilations = std::min(BLI_system_thread_count(),
