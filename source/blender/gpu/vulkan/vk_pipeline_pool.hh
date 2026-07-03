@@ -126,7 +126,7 @@ struct VKGraphicsInfo {
     /* Dynamic rendering */
     VkFormat depth_attachment_format;
     VkFormat stencil_attachment_format;
-    Vector<VkFormat> color_attachment_formats;
+    Vector<VkFormat, GPU_FB_MAX_COLOR_ATTACHMENT> color_attachment_formats;
 
     bool operator==(const FragmentOut &other) const
     {

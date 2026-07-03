@@ -54,7 +54,7 @@ struct VKGraphicsPipelineCreateInfoBuilder {
    * VkRenderingInputAttachmentIndexInfo to satisfy the input attachment index constraint.
    */
   VkRenderingInputAttachmentIndexInfo vk_rendering_input_attachment_index_info_;
-  Vector<VkFormat> dummy_color_attachment_formats_;
+  Vector<VkFormat, GPU_FB_MAX_COLOR_ATTACHMENT> dummy_color_attachment_formats_;
 
   /**
    * Initialize graphics pipeline create info and related structs for a full pipeline build.

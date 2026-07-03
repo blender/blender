@@ -31,7 +31,7 @@ class VKFrameBuffer : public FrameBuffer {
 
   VkFormat depth_attachment_format_ = VK_FORMAT_UNDEFINED;
   VkFormat stencil_attachment_format_ = VK_FORMAT_UNDEFINED;
-  Vector<VkFormat> color_attachment_formats_;
+  Vector<VkFormat, GPU_FB_MAX_COLOR_ATTACHMENT> color_attachment_formats_;
 
   Array<GPULoadStore, GPU_FB_MAX_ATTACHMENT> load_stores;
   Array<GPUAttachmentState, GPU_FB_MAX_ATTACHMENT> attachment_states_;
@@ -73,8 +73,8 @@ class VKFrameBuffer : public FrameBuffer {
                int dst_offset_x,
                int dst_offset_y) override;
   uint32_t viewport_size() const;
-  void vk_viewports_append(Vector<VkViewport> &r_viewports) const;
-  void vk_render_areas_append(Vector<VkRect2D> &r_render_areas) const;
+  void vk_viewports_append(Vector<VkViewport, GPU_MAX_VIEWPORTS> &r_viewports) const;
+  void vk_render_areas_append(Vector<VkRect2D, GPU_MAX_VIEWPORTS> &r_render_areas) const;
   void render_area_update(VkRect2D &render_area) const;
   VkFormat depth_attachment_format_get() const;
   VkFormat stencil_attachment_format_get() const;

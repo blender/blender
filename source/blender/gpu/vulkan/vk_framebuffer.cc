@@ -74,7 +74,7 @@ uint32_t VKFrameBuffer::viewport_size() const
   return this->multi_viewport_ ? GPU_MAX_VIEWPORTS : 1;
 }
 
-void VKFrameBuffer::vk_viewports_append(Vector<VkViewport> &r_viewports) const
+void VKFrameBuffer::vk_viewports_append(Vector<VkViewport, GPU_MAX_VIEWPORTS> &r_viewports) const
 {
   BLI_assert(r_viewports.is_empty());
   for (int64_t index : IndexRange(this->multi_viewport_ ? GPU_MAX_VIEWPORTS : 1)) {
@@ -115,7 +115,8 @@ void VKFrameBuffer::render_area_update(VkRect2D &render_area) const
 #endif
 }
 
-void VKFrameBuffer::vk_render_areas_append(Vector<VkRect2D> &r_render_areas) const
+void VKFrameBuffer::vk_render_areas_append(
+    Vector<VkRect2D, GPU_MAX_VIEWPORTS> &r_render_areas) const
 {
   BLI_assert(r_render_areas.is_empty());
   VkRect2D render_area;

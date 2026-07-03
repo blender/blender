@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "GPU_framebuffer.hh"
 #include "vk_vertex_input_description.hh"
 
 namespace blender::gpu::render_graph {
@@ -54,8 +55,8 @@ struct VKPipelineData {
  * draw nodes.
  */
 struct VKViewportData {
-  Vector<VkViewport> viewports;
-  Vector<VkRect2D> scissors;
+  Vector<VkViewport, GPU_MAX_VIEWPORTS> viewports;
+  Vector<VkRect2D, GPU_MAX_VIEWPORTS> scissors;
 
   bool operator==(const VKViewportData &other) const
   {

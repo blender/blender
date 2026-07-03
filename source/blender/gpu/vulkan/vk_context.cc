@@ -360,8 +360,8 @@ void VKContext::update_pipeline_data(const VKFrameBuffer &framebuffer,
                                      VK_FRONT_FACE_CLOCKWISE;
   }
 
-  VKVertexInputDescriptionPool::Key vertex_input_description_key =
-      device.vertex_input_descriptions.get_or_insert(vao.vertex_input);
+  VKVertexInputDescriptionPool::Key vertex_input_description_key = vao.ensure_vertex_input_key(
+      device.vertex_input_descriptions);
   if (extensions.vertex_input_dynamic_state) {
     r_pipeline_data.vertex_input_description = vertex_input_description_key;
   }

@@ -32,6 +32,7 @@ void VKVertexAttributeObject::clear()
   vertex_input.clear();
   vbos.clear();
   buffers.clear();
+  cached_vertex_input_key_ = VKVertexInputDescriptionPool::invalid_key;
 }
 
 VKVertexAttributeObject &VKVertexAttributeObject::operator=(const VKVertexAttributeObject &other)
@@ -41,6 +42,7 @@ VKVertexAttributeObject &VKVertexAttributeObject::operator=(const VKVertexAttrib
   }
 
   vertex_input = other.vertex_input;
+  cached_vertex_input_key_ = other.cached_vertex_input_key_;
 
   vbos.clear();
   vbos.extend(other.vbos);
@@ -241,6 +243,21 @@ void VKVertexAttributeObject::update_bindings(const GPUVertFormat &vertex_format
     BLI_assert(vertex_buffer != nullptr);
     vbos.append(vertex_buffer);
   }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Vertex input description key
+ * \{ */
+
+VKVertexInputDescriptionPool::Key VKVertexAttributeObject::ensure_vertex_input_key(
+    VKVertexInputDescriptionPool &pool)
+{
+  if (cached_vertex_input_key_ == VKVertexInputDescriptionPool::invalid_key) {
+    cached_vertex_input_key_ = pool.get_or_insert(vertex_input);
+  }
+  return cached_vertex_input_key_;
 }
 
 /** \} */
