@@ -1372,7 +1372,7 @@ static std::optional<std::string> rna_ImageFormatSettings_path(
 
                 const std::string identifier = FileOutputItemsAccessor::socket_identifier_for_item(
                     item);
-                const std::string escaped_identifier = BLI_str_escape(identifier.c_str());
+                const std::string escaped_identifier = BLI_str_escape(identifier);
                 return fmt::format("nodes[\"{}\"].file_output_items[\"{}\"].format",
                                    node_name_esc,
                                    escaped_identifier.c_str());

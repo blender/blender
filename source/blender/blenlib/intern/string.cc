@@ -329,14 +329,15 @@ char *BLI_vsprintfN(const char *__restrict format, va_list args)
 /** \name String Escape/Un-Escape
  * \{ */
 
-size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, const size_t dst_maxncpy)
+size_t BLI_str_escape(char *__restrict dst, StringRef src, const size_t dst_maxncpy)
 {
   BLI_assert(dst_maxncpy != 0);
   BLI_string_debug_size(dst, dst_maxncpy);
 
-  size_t len = 0;
-  for (; (len < dst_maxncpy) && (*src != '\0'); dst++, src++, len++) {
-    char c = *src;
+  size_t dst_len = 0;
+  int64_t src_idx = 0;
+  for (; (dst_len < dst_maxncpy) && (src_idx < src.size()); src_idx++, dst++, dst_len++) {
+    char c = src[src_idx];
     if (ELEM(c, '\\', '"') ||                       /* Use as-is. */
         ((c == '\t') && ((void)(c = 't'), true)) || /* Tab. */
         ((c == '\n') && ((void)(c = 'n'), true)) || /* Newline. */
@@ -345,36 +346,31 @@ size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, const si
         ((c == '\b') && ((void)(c = 'b'), true)) || /* Backspace. */
         ((c == '\f') && ((void)(c = 'f'), true)))   /* Form-feed. */
     {
-      if (len + 1 >= dst_maxncpy) [[unlikely]] {
+      if (dst_len + 1 >= dst_maxncpy) [[unlikely]] {
         /* Not enough space to escape. */
         break;
       }
       *dst++ = '\\';
-      len++;
+      dst_len++;
     }
     *dst = c;
   }
   *dst = '\0';
 
-  return len;
+  return dst_len;
 }
 
-std::string BLI_str_escape(StringRefNull str)
+std::string BLI_str_escape(StringRef str)
 {
+  if (str.is_empty()) {
+    return {};
+  }
   const size_t max_result_size = size_t(str.size()) * 2 + 1;
   std::string result;
   result.resize(max_result_size);
-  const size_t result_size = BLI_str_escape(result.data(), str.c_str(), max_result_size);
+  const size_t result_size = BLI_str_escape(result.data(), str, max_result_size);
   result.resize(result_size);
   return result;
-}
-
-std::string BLI_str_escape(const char *str)
-{
-  if (!str) {
-    return {};
-  }
-  return BLI_str_escape(StringRefNull(str));
 }
 
 BLI_INLINE bool str_unescape_pair(char c_next, char *r_out)

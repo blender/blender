@@ -7357,8 +7357,8 @@ std::string RNA_property_as_string(
       break;
     case PROP_STRING: {
       const std::string str_value = RNA_property_string_get(ptr, prop);
-      const std::string escaped = BLI_str_escape(str_value.c_str());
-      ss << fmt::format("\"{}\"", escaped.c_str());
+      const std::string escaped = BLI_str_escape(str_value);
+      ss << fmt::format("\"{}\"", escaped);
       break;
     }
     case PROP_ENUM: {
