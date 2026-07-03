@@ -627,6 +627,14 @@ void VKFrameBuffer::rendering_ensure_dynamic_rendering(VKContext &context,
     uint32_t layer_base = max_ii(attachment.layer, 0);
     GPUAttachmentState attachment_state = attachment_states_[color_attachment_index];
     VkFormat vk_format = to_vk_format(color_texture.device_format_get());
+    if (srgb_ && !enabled_srgb_) {
+      if (vk_format == VK_FORMAT_R8G8B8A8_SRGB) {
+        vk_format = VK_FORMAT_R8G8B8A8_UNORM;
+      }
+      if (vk_format == VK_FORMAT_R8G8B8_SRGB) {
+        vk_format = VK_FORMAT_R8G8B8_UNORM;
+      }
+    }
     if (attachment_state == GPU_ATTACHMENT_WRITE) {
       VKImageViewInfo image_view_info = {
           eImageViewUsage::Attachment,
@@ -634,12 +642,11 @@ void VKFrameBuffer::rendering_ensure_dynamic_rendering(VKContext &context,
                      layer_count != 1 ? max_ii(layer_count - layer_base, 1) : layer_count),
           IndexRange(attachment.mip, 1),
           {{'r', 'g', 'b', 'a'}},
-          false,
-          srgb_ && enabled_srgb_,
-          VKImageViewArrayed::DONT_CARE};
+          VKImageViewArrayed::DONT_CARE,
+          vk_format,
+          VK_IMAGE_ASPECT_COLOR_BIT};
       const VKImageView &image_view = color_texture.image_view_get(image_view_info);
       vk_image_view = image_view.vk_handle();
-      vk_format = image_view.vk_format();
     }
     attachment_info.imageView = vk_image_view;
     attachment_info.imageLayout = supports_local_read ? VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR :
@@ -689,13 +696,15 @@ void VKFrameBuffer::rendering_ensure_dynamic_rendering(VKContext &context,
     GPUAttachmentState attachment_state = attachment_states_[GPU_FB_DEPTH_ATTACHMENT];
     VkImageView depth_image_view = VK_NULL_HANDLE;
     if (attachment_state == GPU_ATTACHMENT_WRITE) {
-      VKImageViewInfo image_view_info = {eImageViewUsage::Attachment,
-                                         IndexRange(max_ii(attachment.layer, 0), 1),
-                                         IndexRange(attachment.mip, 1),
-                                         {{'r', 'g', 'b', 'a'}},
-                                         is_stencil_attachment,
-                                         false,
-                                         VKImageViewArrayed::DONT_CARE};
+      VKImageViewInfo image_view_info = {
+          eImageViewUsage::Attachment,
+          IndexRange(max_ii(attachment.layer, 0), 1),
+          IndexRange(attachment.mip, 1),
+          {{'r', 'g', 'b', 'a'}},
+          VKImageViewArrayed::DONT_CARE,
+          to_vk_format(depth_texture.device_format_get()),
+          is_stencil_attachment ? static_cast<VkImageAspectFlags>(VK_IMAGE_ASPECT_STENCIL_BIT) :
+                                  static_cast<VkImageAspectFlags>(VK_IMAGE_ASPECT_DEPTH_BIT)};
       depth_image_view = depth_texture.image_view_get(image_view_info).vk_handle();
     }
     VkFormat vk_format = (!extensions.dynamic_rendering_unused_attachments &&

@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "GPU_texture.hh"
 #include <typeinfo>
 
 #ifdef _WIN32

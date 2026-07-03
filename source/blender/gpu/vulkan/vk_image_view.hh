@@ -24,8 +24,6 @@ struct VKImageViewInfo {
     char swizzle[4];
     uint32_t swizzle_data;
   };
-  bool use_stencil;
-  bool use_srgb;
   /**
    * When binding an image to a shader it needs to match the operations used inside the shader.
    *
@@ -33,13 +31,15 @@ struct VKImageViewInfo {
    * arrayed will ensure the right image view is created.
    */
   VKImageViewArrayed arrayed;
+  VkFormat vk_format;
+  VkImageAspectFlags vk_image_aspects;
 
   bool operator==(const VKImageViewInfo &other) const
   {
     return usage == other.usage && layer_range == other.layer_range &&
            mip_range == other.mip_range && swizzle_data == other.swizzle_data &&
-           use_stencil == other.use_stencil && use_srgb == other.use_srgb &&
-           arrayed == other.arrayed;
+           arrayed == other.arrayed && vk_format == other.vk_format &&
+           vk_image_aspects == other.vk_image_aspects;
   }
 };
 

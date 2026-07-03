@@ -69,13 +69,6 @@ class VKTexture : public Texture {
   bool use_stencil_ = false;
 
   char swizzle_[4] = {'r', 'g', 'b', 'a'};
-  VKImageViewInfo image_view_info_ = {eImageViewUsage::ShaderBinding,
-                                      IndexRange(0, VK_REMAINING_ARRAY_LAYERS),
-                                      IndexRange(0, VK_REMAINING_MIP_LEVELS),
-                                      {{'r', 'g', 'b', 'a'}},
-                                      false,
-                                      false,
-                                      VKImageViewArrayed::DONT_CARE};
 
   /**
    * \brief Has this texture data.

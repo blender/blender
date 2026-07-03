@@ -8,6 +8,7 @@
 
 #include "BLI_utildefines.hh"
 
+#include "GPU_texture.hh"
 #include "vk_backend.hh"
 #include "vk_common.hh"
 
@@ -837,7 +838,7 @@ VkDescriptorType to_vk_descriptor_type(const shader::ShaderCreateInfo::Resource 
 
 VkImageCreateFlags to_vk_image_create(const GPUTextureType texture_type,
                                       const GPUTextureFormatFlag format_flag,
-                                      const eGPUTextureUsage usage)
+                                      eGPUTextureUsage usage)
 {
   VkImageCreateFlags result = 0;
 
@@ -847,6 +848,10 @@ VkImageCreateFlags to_vk_image_create(const GPUTextureType texture_type,
 
   /* sRGB textures needs to be mutable as they can be used as non-sRGB frame-buffer attachments. */
   if (usage & GPU_TEXTURE_USAGE_ATTACHMENT && format_flag & GPU_FORMAT_SRGB) {
+    result |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
+  }
+
+  if (usage & GPU_TEXTURE_USAGE_FORMAT_VIEW) {
     result |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
   }
 

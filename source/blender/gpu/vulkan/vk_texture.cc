@@ -10,22 +10,20 @@
 
 /* vk_common needs to be included first to ensure win32 vulkan API is fully initialized, before
  * working with it. */
+#include "GPU_texture.hh"
 #include "vk_common.hh"
 
 #include "vk_texture.hh"
 
+#include "vk_backend.hh"
 #include "vk_buffer.hh"
 #include "vk_context.hh"
 #include "vk_data_conversion.hh"
 #include "vk_framebuffer.hh"
 #include "vk_memory_layout.hh"
 #include "vk_pixel_buffer.hh"
-#include "vk_shader.hh"
-#include "vk_shader_interface.hh"
 #include "vk_state_manager.hh"
 #include "vk_vertex_buffer.hh"
-
-#include "BLI_math_vector.hh"
 
 #include "BKE_global.hh"
 
@@ -840,34 +838,40 @@ const VKImageView &VKTexture::image_view_get(const VKImageViewInfo &info)
 
 const VKImageView &VKTexture::image_view_get(VKImageViewArrayed arrayed, VKImageViewFlags flags)
 {
-  image_view_info_.mip_range = mip_map_range();
-  image_view_info_.use_srgb = true;
-  image_view_info_.use_stencil = use_stencil_;
-  image_view_info_.arrayed = arrayed;
-  image_view_info_.layer_range = layer_range();
+  const VkImageAspectFlags allowed_bits = VK_IMAGE_ASPECT_COLOR_BIT |
+                                          (use_stencil_ ? VK_IMAGE_ASPECT_STENCIL_BIT :
+                                                          VK_IMAGE_ASPECT_DEPTH_BIT);
+  VkFormat vk_format = to_vk_format(device_format_);
+  if (is_texture_view() && source_texture_->usage_get() & GPU_TEXTURE_USAGE_FORMAT_VIEW &&
+      format_ != source_texture_->format_)
+  {
+    vk_format = to_vk_format(format_);
+  }
+
+  VKImageViewInfo image_view_info = {eImageViewUsage::ShaderBinding,
+                                     layer_range(),
+                                     mip_map_range(),
+                                     {{'r', 'g', 'b', 'a'}},
+                                     arrayed,
+                                     vk_format,
+                                     to_vk_image_aspect_flag_bits(format_) & allowed_bits};
 
   if (arrayed == VKImageViewArrayed::NOT_ARRAYED) {
-    image_view_info_.layer_range = image_view_info_.layer_range.slice(
+    image_view_info.layer_range = image_view_info.layer_range.slice(
         0, ELEM(type_, GPU_TEXTURE_CUBE, GPU_TEXTURE_CUBE_ARRAY) ? 6 : 1);
   }
 
-  if (flag_is_set(flags, VKImageViewFlags::NO_SWIZZLING)) {
-    image_view_info_.swizzle[0] = 'r';
-    image_view_info_.swizzle[1] = 'g';
-    image_view_info_.swizzle[2] = 'b';
-    image_view_info_.swizzle[3] = 'a';
-  }
-  else {
-    image_view_info_.swizzle[0] = swizzle_[0];
-    image_view_info_.swizzle[1] = swizzle_[1];
-    image_view_info_.swizzle[2] = swizzle_[2];
-    image_view_info_.swizzle[3] = swizzle_[3];
+  if (!flag_is_set(flags, VKImageViewFlags::NO_SWIZZLING)) {
+    image_view_info.swizzle[0] = swizzle_[0];
+    image_view_info.swizzle[1] = swizzle_[1];
+    image_view_info.swizzle[2] = swizzle_[2];
+    image_view_info.swizzle[3] = swizzle_[3];
   }
 
   if (is_texture_view()) {
-    return source_texture_->image_view_get(image_view_info_);
+    return source_texture_->image_view_get(image_view_info);
   }
-  return image_view_get(image_view_info_);
+  return image_view_get(image_view_info);
 }
 
 /** \} */
