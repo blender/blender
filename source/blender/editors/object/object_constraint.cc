@@ -658,35 +658,41 @@ static bool edit_constraint_invoke_properties(bContext *C,
     return true;
   }
 
-  /* Check the custom data of panels under the mouse for a modifier. */
-  if (event != nullptr) {
-    PointerRNA *panel_ptr = ui::region_panel_custom_data_under_cursor(C, event);
-
-    if (!(panel_ptr == nullptr || RNA_pointer_is_null(panel_ptr))) {
-      if (RNA_struct_is_a(panel_ptr->type, RNA_Constraint)) {
-        con = static_cast<bConstraint *>(panel_ptr->data);
-        RNA_string_set(op->ptr, "constraint", con->name);
-        list = constraint_list_from_constraint(ob, con, nullptr);
-        RNA_enum_set(op->ptr,
-                     "owner",
-                     (&ob->constraints == list) ? EDIT_CONSTRAINT_OWNER_OBJECT :
-                                                  EDIT_CONSTRAINT_OWNER_BONE);
-
-        return true;
-      }
-
-      BLI_assert(r_retval != nullptr); /* We need the return value in this case. */
-      if (r_retval != nullptr) {
-        *r_retval = (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
-      }
-      return false;
+  if (event == nullptr) {
+    if (r_retval != nullptr) {
+      *r_retval = OPERATOR_CANCELLED;
     }
+    return false;
   }
 
-  if (r_retval != nullptr) {
-    *r_retval = OPERATOR_CANCELLED;
+  /* Check the custom data of panels under the mouse for an effect. */
+  PointerRNA *panel_ptr = ui::region_panel_custom_data_under_cursor(C, event);
+
+  if (panel_ptr == nullptr || RNA_pointer_is_null(panel_ptr)) {
+    /* The operators using this function can typically be called from UIs that aren't related to
+     * the constraints UI at all. So include #OPERATOR_PASS_THROUGH to not block events from
+     * reaching other operators/handlers. */
+    *r_retval = (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
+    return false;
   }
-  return false;
+
+  if (!RNA_struct_is_a(panel_ptr->type, RNA_Constraint)) {
+    /* Work around multiple operators using the same shortcut. The operators for the other
+     * stacks in the property editor use the same key, and will not run after these return
+     * OPERATOR_CANCELLED. */
+    *r_retval = (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
+    return false;
+  }
+
+  con = static_cast<bConstraint *>(panel_ptr->data);
+  RNA_string_set(op->ptr, "constraint", con->name);
+  list = constraint_list_from_constraint(ob, con, nullptr);
+  RNA_enum_set(op->ptr,
+               "owner",
+               (&ob->constraints == list) ? EDIT_CONSTRAINT_OWNER_OBJECT :
+                                            EDIT_CONSTRAINT_OWNER_BONE);
+
+  return true;
 }
 
 static bConstraint *edit_constraint_property_get(bContext *C, wmOperator *op, Object *ob, int type)
@@ -1454,7 +1460,7 @@ static wmOperatorStatus constraint_delete_invoke(bContext *C, wmOperator *op, co
 {
   wmOperatorStatus retval;
   if (!edit_constraint_invoke_properties(C, op, event, &retval)) {
-    return OPERATOR_CANCELLED;
+    return retval;
   }
   return constraint_delete_exec(C, op);
 }
@@ -1553,7 +1559,7 @@ static wmOperatorStatus constraint_apply_invoke(bContext *C, wmOperator *op, con
 {
   wmOperatorStatus retval;
   if (!edit_constraint_invoke_properties(C, op, event, &retval)) {
-    return OPERATOR_CANCELLED;
+    return retval;
   }
   return constraint_apply_exec(C, op);
 }
@@ -1638,7 +1644,7 @@ static wmOperatorStatus constraint_copy_invoke(bContext *C, wmOperator *op, cons
 {
   wmOperatorStatus retval;
   if (!edit_constraint_invoke_properties(C, op, event, &retval)) {
-    return OPERATOR_CANCELLED;
+    return retval;
   }
   return constraint_copy_exec(C, op);
 }
