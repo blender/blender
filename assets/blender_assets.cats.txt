@@ -66,3 +66,6 @@ c676fe02-8d25-49a1-b672-11aee0918221:Hair/Read:Hair-Read
 9dedc75a-afe5-472a-9e3f-a555a8df3dff:Hair/Utility:Hair-Utility
 63a83f9c-5a95-476a-9bd5-fcb72414ea0b:Hair/Write:Hair-Write
 689f4607-3a1d-4e2a-a49b-8166dad896ca:Geometry Nodes/Simulation:Geometry Nodes-Simulation
+f8291c19-ec70-4a53-82d5-40b68a0c3a86:Shading:Shading
+2571be08-e20a-48a8-80c8-26171509f863:Shading/Utilities:Shading-Utilities
+9cd554d5-1d8f-43dd-a2ab-41635557769b:Shading/Utilities/Vector:Shading-Utilities-Vector
