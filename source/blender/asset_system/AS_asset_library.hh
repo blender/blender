@@ -88,9 +88,13 @@ class AssetLibrary {
  protected:
   /* Changing this pointer should be protected using #catalog_service_mutex_. Note that changes
    * within the catalog service may still happen without the mutex being locked. They should be
-   * protected separately. */
-  std::unique_ptr<AssetCatalogService> catalog_service_;
-  std::recursive_mutex catalog_service_mutex_;
+   * protected separately.
+   *
+   * This is a #shared_ptr (rather than #unique_ptr) so that readers can keep the service alive
+   * while using it, even if another thread replaces #catalog_service_ in the meantime (which frees
+   * the previously referenced service). See #catalog_service_ptr(). */
+  std::shared_ptr<AssetCatalogService> catalog_service_;
+  mutable std::recursive_mutex catalog_service_mutex_;
 
   /** Assets owned by this library may be imported with a different method than set in
    * #import_method_ above, it's just a default. */
@@ -173,6 +177,15 @@ class AssetLibrary {
   virtual std::optional<StringRefNull> remote_url() const;
 
   AssetCatalogService &catalog_service() const;
+
+  /**
+   * Get shared ownership of the catalog service. Unlike #catalog_service(), this keeps the service
+   * alive for as long as the returned pointer is held, even if another thread replaces the
+   * library's catalog service in the meantime (e.g. a background catalog reload job). Use this
+   * instead of #catalog_service() when accessing the service from a thread that may run
+   * concurrently with such a replacement (e.g. the drawing/main thread while an asset read job is
+   * running). */
+  std::shared_ptr<AssetCatalogService> catalog_service_ptr() const;
 
   /**
    * Create a representation of an asset to be considered part of this library. Once the
