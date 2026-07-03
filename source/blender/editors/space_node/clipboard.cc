@@ -102,7 +102,7 @@ static int node_copy_local(bNodeTree &from_tree,
   }
 
   if (node_map.is_empty()) {
-    return false;
+    return 0;
   }
 
   for (bNode *new_node : node_map.values()) {
