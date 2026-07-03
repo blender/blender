@@ -159,8 +159,10 @@ static void update_mipmaps(Texture &texture, Shader &shader, const TextureFormat
   int mip_count = texture.mip_count();
   const bool is_layered = texture.type_get() & GPU_TEXTURE_ARRAY;
 
-  /* When the texture format can not be written to directly, use a temporary texture. */
-  const bool use_temp_texture = write_format != texture.format_get();
+  /* When the texture format can not be written to directly and we can't use a view
+   * to write it as another format, use a temporary texture. */
+  const bool use_temp_texture = write_format != texture.format_get() &&
+                                (texture.usage_get() & GPU_TEXTURE_USAGE_FORMAT_VIEW) == 0;
   if (use_temp_texture) {
     if (is_layered) {
       texture_ptr = GPU_texture_create_2d_array(__func__,
@@ -218,10 +220,19 @@ static void update_mipmaps(Texture &texture, Shader &shader, const TextureFormat
 
 using namespace blender::gpu;
 
-eGPUTextureUsage GPU_texture_mipmap_usage(TextureFormat /*format*/)
+eGPUTextureUsage GPU_texture_mipmap_usage(TextureFormat format)
 {
   /* Mipmaps generated with the compute shader need write support. */
-  return GPU_TEXTURE_USAGE_SHADER_WRITE;
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_WRITE;
+
+  /* If it's sRGB and we can't write directly to it, use a texture view to write through. */
+  if (format == TextureFormat::SRGBA_8_8_8_8) {
+    if (!GCaps.srgb_write_direct_support && GCaps.srgb_write_view_support) {
+      usage |= GPU_TEXTURE_USAGE_FORMAT_VIEW;
+    }
+  }
+
+  return usage;
 }
 
 void GPU_texture_update_mipmap_chain(Texture *tex)
@@ -246,7 +257,8 @@ void GPU_texture_update_mipmap_chain(Texture *tex)
   if (use_compute_shaders) {
     const TextureFormat texture_format = tex->format_get();
     const bool is_layered = tex->type_get() & GPU_TEXTURE_ARRAY;
-    /* For sRGB without direct write support, write into a temporary UNORM_8_8_8_8 texture. */
+    /* For sRGB without direct write support, write with a UNORM_8_8_8_8 format,
+     * either in a temporary texture or through a texture view. */
     const TextureFormat write_format = ((tex->format_flag_get() & GPU_FORMAT_SRGB) &&
                                         !GCaps.srgb_write_direct_support) ?
                                            TextureFormat::UNORM_8_8_8_8 :
