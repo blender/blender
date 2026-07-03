@@ -432,6 +432,8 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
       setState(GHOST_kWindowStateFullScreen);
     }
 
+    [window_ makeKeyAndOrderFront:nil];
+
     updateDrawingSize();
 
     setDrawingContextType(type);
@@ -466,8 +468,6 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
     }
 
     setNativePixelSize();
-
-    [window_ makeKeyAndOrderFront:nil];
   }
 }
 
