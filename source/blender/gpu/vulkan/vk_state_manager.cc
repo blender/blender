@@ -57,18 +57,21 @@ void VKStateManager::texture_bind(Texture *texture, GPUSamplerState sampler, int
 {
   textures_.bind(BindSpaceTextures::Type::Texture, texture, sampler, binding);
   is_dirty = true;
+  bindings_generation++;
 }
 
 void VKStateManager::texture_unbind(Texture *texture)
 {
   textures_.unbind(texture);
   is_dirty = true;
+  bindings_generation++;
 }
 
 void VKStateManager::texture_unbind_all()
 {
   textures_.unbind_all();
   is_dirty = true;
+  bindings_generation++;
 }
 
 void VKStateManager::image_bind(Texture *texture_, int binding)
@@ -76,6 +79,7 @@ void VKStateManager::image_bind(Texture *texture_, int binding)
   VKTexture *texture = unwrap(texture_);
   images_.bind(texture, binding, TextureWriteFormat(texture->format_get()), this);
   is_dirty = true;
+  bindings_generation++;
 }
 
 void VKStateManager::image_unbind(Texture *texture_)
@@ -83,6 +87,7 @@ void VKStateManager::image_unbind(Texture *texture_)
   VKTexture *texture = unwrap(texture_);
   images_.unbind(texture, this);
   is_dirty = true;
+  bindings_generation++;
 }
 
 void VKStateManager::image_unbind_all()
@@ -90,24 +95,28 @@ void VKStateManager::image_unbind_all()
   images_.unbind_all();
   image_formats.fill(TextureWriteFormat::Invalid);
   is_dirty = true;
+  bindings_generation++;
 }
 
 void VKStateManager::uniform_buffer_bind(VKUniformBuffer *uniform_buffer, int binding)
 {
   uniform_buffers_.bind(uniform_buffer, binding);
   is_dirty = true;
+  bindings_generation++;
 }
 
 void VKStateManager::uniform_buffer_unbind(VKUniformBuffer *uniform_buffer)
 {
   uniform_buffers_.unbind(uniform_buffer);
   is_dirty = true;
+  bindings_generation++;
 }
 
 void VKStateManager::uniform_buffer_unbind_all()
 {
   uniform_buffers_.unbind_all();
   is_dirty = true;
+  bindings_generation++;
 }
 
 void VKStateManager::texel_buffer_bind(VKVertexBuffer &vertex_buffer, int binding)
@@ -117,12 +126,14 @@ void VKStateManager::texel_buffer_bind(VKVertexBuffer &vertex_buffer, int bindin
                  GPUSamplerState::default_sampler(),
                  binding);
   is_dirty = true;
+  bindings_generation++;
 }
 
 void VKStateManager::texel_buffer_unbind(VKVertexBuffer &vertex_buffer)
 {
   textures_.unbind(&vertex_buffer);
   is_dirty = true;
+  bindings_generation++;
 }
 
 void VKStateManager::storage_buffer_bind(BindSpaceStorageBuffers::Type resource_type,
@@ -132,18 +143,21 @@ void VKStateManager::storage_buffer_bind(BindSpaceStorageBuffers::Type resource_
 {
   storage_buffers_.bind(resource_type, resource, binding, offset);
   is_dirty = true;
+  bindings_generation++;
 }
 
 void VKStateManager::storage_buffer_unbind(void *resource)
 {
   storage_buffers_.unbind(resource);
   is_dirty = true;
+  bindings_generation++;
 }
 
 void VKStateManager::storage_buffer_unbind_all()
 {
   storage_buffers_.unbind_all();
   is_dirty = true;
+  bindings_generation++;
 }
 
 }  // namespace blender::gpu

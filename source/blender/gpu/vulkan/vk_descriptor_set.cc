@@ -39,7 +39,23 @@ void VKDescriptorSetTracker::update_descriptor_set(VKContext &context,
     push_constants_buffer = shader.push_constants.update_uniform_buffer(context);
   }
 
-  update_resource_access_info(context, access_info, push_constants_buffer);
+  /* Reuse cached resource access info when bindings and shader haven't changed. */
+  const VKShaderInterface &shader_interface = shader.interface_get();
+  if (state_manager.bindings_generation == cached_access_info_generation_ &&
+      &shader_interface == cached_access_info_shader_interface_)
+  {
+    access_info.buffers.extend(cached_access_info_buffers_);
+    access_info.images.extend(cached_access_info_images_);
+  }
+  else {
+    update_resource_access_info(context, access_info, push_constants_buffer);
+    cached_access_info_generation_ = state_manager.bindings_generation;
+    cached_access_info_shader_interface_ = &shader_interface;
+    cached_access_info_buffers_.clear();
+    cached_access_info_images_.clear();
+    cached_access_info_buffers_.extend(access_info.buffers);
+    cached_access_info_images_.extend(access_info.images);
+  }
 
   /* Can we reuse previous descriptor set. */
   const VkDescriptorSetLayout shader_descriptor_set_layout = shader.vk_descriptor_set_layout_get();

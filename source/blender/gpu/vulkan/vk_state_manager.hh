@@ -225,6 +225,12 @@ class VKStateManager : public StateManager {
 
  public:
   bool is_dirty = false;
+  /**
+   * \brief Increasing generation counter bumped on every binding change.
+   *
+   * Used by update_resource_access_info when no bindings changed between draws.
+   */
+  uint64_t bindings_generation = 0;
 
   void apply_state() override;
   void force_state() override;
