@@ -175,13 +175,26 @@ float3 normal_unpack(float2 N_packed)
   return normalize(N);
 }
 
+/* Keep IOR 1.0 stable across 10-bit quantization. */
+#define closure_10bit_unit (1.0f / 1023.0f)
+#define ior_packed_lt_1_scale (511.0f * closure_10bit_unit)
+#define ior_packed_eq_1 (512.0f * closure_10bit_unit)
+#define ior_packed_gt_1_bias (510.0f * closure_10bit_unit)
+
 float ior_pack(float ior)
 {
-  return (ior > 1.0f) ? (1.0f - 0.5f / ior) : (0.5f * ior);
+  if (ior == 1.0f) {
+    return ior_packed_eq_1;
+  }
+  return (ior > 1.0f) ? (1.0f - ior_packed_gt_1_bias / ior) : (ior_packed_lt_1_scale * ior);
 }
 float ior_unpack(float ior_packed)
 {
-  return (ior_packed > 0.5f) ? (0.5f / (1.0f - ior_packed)) : (2.0f * ior_packed);
+  if (ior_packed == ior_packed_eq_1) {
+    return 1.0f;
+  }
+  return (ior_packed > ior_packed_eq_1) ? (ior_packed_gt_1_bias / (1.0f - ior_packed)) :
+                                          (ior_packed / ior_packed_lt_1_scale);
 }
 
 float thickness_pack(Thickness thickness)
