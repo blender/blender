@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "BKE_appdir.hh"
+#include "BKE_geometry_set.hh"
+#include "BKE_object_types.hh"
 #include "BKE_scene.hh"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_scene_types.h"
@@ -946,7 +948,10 @@ void BlenderSync::free_data_after_sync(blender::Depsgraph &b_depsgraph)
   {
     /* Grease pencil render requires all evaluated objects available as-is after Cycles is done
      * with its part. */
-    if (b_ob->type == blender::OB_GREASE_PENCIL) {
+    if (b_ob->type == blender::OB_GREASE_PENCIL ||
+        (b_ob->runtime->contained_geometry_types &
+         (1 << int(blender::bke::GeometryComponent::Type::GreasePencil))))
+    {
       continue;
     }
     BKE_object_free_caches(b_ob);
