@@ -29,6 +29,11 @@ using AttributeMask = uint16_t;
 class VKVertexAttributeObject {
  public:
   VKVertexInputDescription vertex_input;
+  /**
+   * Key from VKVertexInputDescriptionPool, cached to avoid repeated hash/lookup.
+   * Invalidated in clear(), populated by VKVertexAttributeObjectCache after update_bindings().
+   */
+  VKVertexInputDescriptionPool::Key vertex_input_key = VKVertexInputDescriptionPool::invalid_key;
 
   /* Used for batches. */
   Vector<VKVertexBuffer *> vbos;
@@ -38,6 +43,8 @@ class VKVertexAttributeObject {
   VKVertexAttributeObject();
   void clear();
 
+  void update_vertex_input_key(VKVertexInputDescriptionPool &pool);
+
   void bind(render_graph::VKVertexBufferBindings &r_vertex_buffer_bindings) const;
 
   /** Copy assignment operator. */
@@ -46,30 +53,9 @@ class VKVertexAttributeObject {
   void update_bindings(const VKContext &context, VKBatch &batch);
   void update_bindings(VKImmediate &immediate);
 
-  /**
-   * \brief Returns the VKVertexInputDescriptionPool key for the current vertex input
-   * description.
-   *
-   * The key is cached internally and only recomputed when the description actually changes (i.e.,
-   * after clear() is called by update_bindings()).
-   */
-  VKVertexInputDescriptionPool::Key ensure_vertex_input_key(VKVertexInputDescriptionPool &pool);
-
   void debug_print() const;
 
  private:
-  /**
-   * \brief Cached key from VKVertexInputDescriptionPool, to avoid repeated hash/lookup when
-   * bindings haven't changed.
-   *
-   * Invalidated in clear().
-   *
-   * Note currently it only saves a single recalc of the key, but when VKVertexAttributeObject
-   * caching is added the savings will be more.
-   */
-  VKVertexInputDescriptionPool::Key cached_vertex_input_key_ =
-      VKVertexInputDescriptionPool::invalid_key;
-
   /** Update unused bindings with a dummy binding. */
   void fill_unused_bindings(const VKShaderInterface &interface,
                             const AttributeMask occupied_attributes);

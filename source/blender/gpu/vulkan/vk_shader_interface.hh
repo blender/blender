@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <atomic>
+
 #include "BLI_array.hh"
 
 #include "gpu_shader_create_info.hh"
@@ -47,6 +49,15 @@ struct VKResourceBinding {
 };
 
 class VKShaderInterface : public ShaderInterface {
+ public:
+  using Key = uint64_t;
+
+  /**
+   * Unique id for identifying this shader interface. It is unique for the whole runtime of
+   * Blender.
+   */
+  Key id = 0;
+
  private:
   /** Binding information for each shader input. */
   Array<VKResourceBinding> resource_bindings_;
@@ -55,6 +66,8 @@ class VKShaderInterface : public ShaderInterface {
   VKPushConstants::Layout push_constants_layout_;
 
   shader::BuiltinBits shader_builtins_;
+
+  static std::atomic<Key> next_id_;
 
  public:
   VKShaderInterface() = default;

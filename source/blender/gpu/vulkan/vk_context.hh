@@ -24,7 +24,6 @@
 
 namespace blender::gpu {
 class VKFrameBuffer;
-class VKVertexAttributeObject;
 class VKBatch;
 class VKStateManager;
 class VKShader;
@@ -141,7 +140,7 @@ class VKContext : public Context, NonCopyable {
   void update_pipeline_data(render_graph::VKPipelineData &r_pipeline_data);
   void update_pipeline_data(const VKFrameBuffer &framebuffer,
                             GPUPrimType primitive,
-                            VKVertexAttributeObject &vao,
+                            VKVertexInputDescriptionPool::Key vertex_input_key,
                             render_graph::VKPipelineDataGraphics &r_pipeline_data);
 
   void sync_backbuffer();

@@ -10,6 +10,7 @@
 
 #include "vk_index_buffer.hh"
 #include "vk_storage_buffer.hh"
+#include "vk_vertex_attribute_object_cache.hh"
 #include "vk_vertex_buffer.hh"
 
 #include "GPU_batch.hh"
@@ -33,6 +34,17 @@ class VKBatch : public Batch {
 
   VKVertexBuffer *vertex_buffer_get(int index) const;
   VKIndexBuffer *index_buffer_get() const;
+
+ private:
+  /**
+   * \brief Get or create the vertex attribute object for the current shader.
+   *
+   * Checks GPU_BATCH_DIRTY, clears the cache if needed, and returns a cached or freshly
+   * created VKVertexAttributeObject.
+   */
+  const VKVertexAttributeObject &get_vertex_attribute_object(VKContext &context);
+
+  VKVertexAttributeObjectCache vao_cache_;
 };
 
 inline VKBatch *unwrap(Batch *batch)
