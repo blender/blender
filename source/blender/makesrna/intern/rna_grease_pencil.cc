@@ -352,7 +352,6 @@ static std::optional<std::string> tree_node_name_path(bke::greasepencil::TreeNod
 {
   using namespace bke::greasepencil;
   BLI_assert(!node.name().is_empty());
-  const size_t name_length = node.name().size();
   std::string name_esc = BLI_str_escape(node.name());
   return fmt::format("{}[\"{}\"]", prefix, name_esc);
 }
