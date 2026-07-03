@@ -2108,15 +2108,10 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
           continue;
         }
 
-        if (kmi.propvalue == TFM_MODAL_SNAP_INV_ON && kmi.val == KM_PRESS) {
-          if ((ELEM(kmi.type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY) && (event->modifier & KM_CTRL)) ||
-              (ELEM(kmi.type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY) &&
-               (event->modifier & KM_SHIFT)) ||
-              (ELEM(kmi.type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY) && (event->modifier & KM_ALT)) ||
-              ((kmi.type == EVT_OSKEY) && (event->modifier & KM_OSKEY)))
-          {
-            t->modifiers |= MOD_SNAP_INVERT;
-          }
+        if ((kmi.propvalue == TFM_MODAL_SNAP_INV_ON) &&
+            WM_event_modifier_flag_match_kmi_press(event->modifier, &kmi))
+        {
+          t->modifiers |= MOD_SNAP_INVERT;
           break;
         }
       }
@@ -2130,16 +2125,10 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
           continue;
         }
 
-        if (kmi.propvalue == TFM_MODAL_NODE_ATTACH_OFF && kmi.val == KM_PRESS) {
-          if ((ELEM(kmi.type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY) && (event->modifier & KM_CTRL)) ||
-              (ELEM(kmi.type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY) &&
-               (event->modifier & KM_SHIFT)) ||
-              (ELEM(kmi.type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY) && (event->modifier & KM_ALT)) ||
-              ((kmi.type == EVT_OSKEY) && (event->modifier & KM_OSKEY)) ||
-              ((kmi.type == EVT_HYPER) && (event->modifier & KM_HYPER)))
-          {
-            t->modifiers &= ~MOD_NODE_ATTACH;
-          }
+        if ((kmi.propvalue == TFM_MODAL_NODE_ATTACH_OFF) &&
+            WM_event_modifier_flag_match_kmi_press(event->modifier, &kmi))
+        {
+          t->modifiers &= ~MOD_NODE_ATTACH;
           break;
         }
       }
