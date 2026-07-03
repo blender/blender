@@ -9,16 +9,16 @@ if NOT "%1" == "" (
   )
 	if "%1" == "2019" (
     echo "Building for VS2019"
-    set VSVER=15.0
-    set VSVER_SHORT=15
-    set BuildDir=VS15
+    set VSVER=16.0
+    set VSVER_SHORT=16
+    set BuildDir=VS16
     goto par2
   )
 	if "%1" == "2022" (
     echo "Building for VS2022"
-    set VSVER=15.0
-    set VSVER_SHORT=15
-    set BuildDir=VS15
+    set VSVER=17.0
+    set VSVER_SHORT=17
+    set BuildDir=VS17
     goto par2
   )
   
