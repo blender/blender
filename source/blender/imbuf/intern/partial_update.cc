@@ -332,16 +332,24 @@ Changes IMB_partial_update_collect(ImBuf *ibuf, const int64_t last_changeset_id)
     return changes;
   }
 
-  /* Compute regions. */
+  /* Compute regions, rows of contiguous modified chunks are merged for efficiency. */
   for (int chunk_y = 0; chunk_y < changed->chunk_y_len; chunk_y++) {
-    for (int chunk_x = 0; chunk_x < changed->chunk_x_len; chunk_x++) {
+    int chunk_x = 0;
+    while (chunk_x < changed->chunk_x_len) {
       if (!changed->is_modified(chunk_x, chunk_y)) {
+        chunk_x++;
         continue;
       }
+
+      const int run_start_x = chunk_x;
+      while (chunk_x < changed->chunk_x_len && changed->is_modified(chunk_x, chunk_y)) {
+        chunk_x++;
+      }
+
       rcti region;
       BLI_rcti_init(&region,
-                    chunk_x * CHUNK_SIZE,
-                    min_ii((chunk_x + 1) * CHUNK_SIZE, ibuf->x),
+                    run_start_x * CHUNK_SIZE,
+                    min_ii(chunk_x * CHUNK_SIZE, ibuf->x),
                     chunk_y * CHUNK_SIZE,
                     min_ii((chunk_y + 1) * CHUNK_SIZE, ibuf->y));
       changes.updated_regions.append(region);
