@@ -62,6 +62,9 @@ class Context {
   /* True if the compositor should use GPU acceleration. */
   virtual bool use_gpu() const = 0;
 
+  /* Returns the hash of the currently active compute context. */
+  virtual const ComputeContextHash &get_active_compute_context_hash() const = 0;
+
   /* Get the strip that the compositing modifier is applied to. */
   virtual const Strip *get_strip() const;
 

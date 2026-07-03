@@ -14,6 +14,7 @@
 #include "BLI_string_ref.hh"
 
 #include "BKE_compositor.hh"
+#include "BKE_compute_contexts.hh"
 #include "BKE_context.hh"
 #include "BKE_cryptomatte.hh"
 #include "BKE_node.hh"
@@ -416,6 +417,55 @@ void add_depsgraph_relations(Scene &scene, DepsNodeHandle *compositor_output_dep
   if (evaluation_dependencies.time_dependent) {
     DEG_add_time_source_relation(compositor_output_depsgraph_node, "Time Source -> Compositor");
   }
+}
+
+/* Recursively search node groups to find the node group whose instance key matches the given
+ * active node group instance key, and returns it compute context hash. */
+static std::optional<ComputeContextHash> compute_active_compute_context_hash_recursive(
+    const bNodeTree &node_group,
+    const ComputeContext &compute_context,
+    const bNodeInstanceKey instance_key,
+    const bNodeInstanceKey active_node_group_instance_key)
+{
+  /* If this is the active node group, returns it hash.  */
+  if (active_node_group_instance_key == instance_key) {
+    return compute_context.hash();
+  }
+
+  /* Otherwise, we have to check node groups recursively. */
+  node_group.ensure_topology_cache();
+  for (const bNode *group_node : node_group.group_nodes()) {
+    if (!group_node->id || ID_MISSING(group_node->id)) {
+      continue;
+    }
+
+    const bNodeTree &child_node_group = *id_cast<const bNodeTree *>(group_node->id);
+    const bNodeInstanceKey child_instance_key = bke::node_instance_key(
+        instance_key, &node_group, group_node);
+    const bke::GroupNodeComputeContext child_compute_context(
+        &compute_context, group_node->identifier, &group_node->owner_tree());
+    std::optional<ComputeContextHash> hash = compute_active_compute_context_hash_recursive(
+        child_node_group,
+        child_compute_context,
+        child_instance_key,
+        active_node_group_instance_key);
+    if (hash.has_value()) {
+      return hash;
+    }
+  }
+
+  return std::nullopt;
+}
+
+ComputeContextHash compute_active_compute_context_hash(const Scene &scene,
+                                                       const bNodeTree &root_node_group)
+{
+  const bke::DataBlockComputeContext root_compute_context(nullptr, scene.id);
+  return compute_active_compute_context_hash_recursive(root_node_group,
+                                                       root_compute_context,
+                                                       bke::NODE_INSTANCE_KEY_BASE,
+                                                       root_node_group.active_viewer_key)
+      .value_or(root_compute_context.hash());
 }
 
 }  // namespace blender::bke::compositor

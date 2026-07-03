@@ -15,6 +15,7 @@
 
 #include "DNA_node_types.h"
 
+#include "BKE_compositor.hh"
 #include "BKE_cryptomatte.hh"
 #include "BKE_global.hh"
 #include "BKE_image.hh"
@@ -61,6 +62,8 @@ class Context : public compositor::Context {
  private:
   /* Input data. */
   CompositorInputData input_data_;
+  /* The hash of the active compute context. */
+  const ComputeContextHash active_compute_context_hash_;
 
   /* Cached GPU and CPU passes that the compositor took ownership of. Those had their reference
    * count incremented when accessed and need to be freed/have their reference count decremented
@@ -73,7 +76,10 @@ class Context : public compositor::Context {
 
  public:
   Context(compositor::StaticCacheManager &cache_manager, const CompositorInputData &input_data)
-      : compositor::Context(cache_manager), input_data_(input_data)
+      : compositor::Context(cache_manager),
+        input_data_(input_data),
+        active_compute_context_hash_(bke::compositor::compute_active_compute_context_hash(
+            input_data_.scene, input_data_.node_tree))
   {
   }
 
@@ -106,6 +112,11 @@ class Context : public compositor::Context {
   {
     return gpu_supported_ &&
            this->get_render_data().compositor_device == SCE_COMPOSITOR_DEVICE_GPU;
+  }
+
+  const ComputeContextHash &get_active_compute_context_hash() const override
+  {
+    return active_compute_context_hash_;
   }
 
   compositor::NodeGroupOutputTypes needed_outputs() const
@@ -686,12 +697,7 @@ class Context : public compositor::Context {
     const NodeGroupOutputTypes needed_outputs = this->needed_outputs();
     const bNodeTree &node_group = input_data_.node_tree;
     const bke::DataBlockComputeContext compute_context(nullptr, this->get_scene().id);
-    NodeGroupOperation node_group_operation(*this,
-                                            node_group,
-                                            needed_outputs,
-                                            node_group.active_viewer_key,
-                                            bke::NODE_INSTANCE_KEY_BASE,
-                                            compute_context);
+    NodeGroupOperation node_group_operation(*this, node_group, needed_outputs, compute_context);
 
     /* Set the reference count for the outputs, only the first color output is actually needed,
      * while the rest are ignored. */

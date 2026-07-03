@@ -14,6 +14,7 @@
 #include "DNA_vec_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_compositor.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
@@ -48,6 +49,9 @@ class Context : public compositor::Context {
   /* A pointer to the info message of the compositor engine. This is a char array of size
    * GPU_INFO_SIZE. The message is cleared prior to updating or evaluating the compositor. */
   char *info_message_;
+  /* The hash of the active compute context. */
+  const ComputeContextHash active_compute_context_hash_;
+
   /* Identified if the output of the viewer was written. */
   bool viewer_was_written_ = false;
 
@@ -56,7 +60,12 @@ class Context : public compositor::Context {
           const Main *main,
           const Scene *scene,
           char *info_message)
-      : compositor::Context(cache_manager), main_(main), scene_(scene), info_message_(info_message)
+      : compositor::Context(cache_manager),
+        main_(main),
+        scene_(scene),
+        info_message_(info_message),
+        active_compute_context_hash_(bke::compositor::compute_active_compute_context_hash(
+            *scene, *scene->compositing_node_group))
   {
     this->set_info_message("");
   }
@@ -74,6 +83,11 @@ class Context : public compositor::Context {
   bool use_gpu() const override
   {
     return true;
+  }
+
+  const ComputeContextHash &get_active_compute_context_hash() const override
+  {
+    return active_compute_context_hash_;
   }
 
   /* The viewport compositor does not support viewer outputs, so treat viewers as composite
@@ -339,12 +353,8 @@ class Context : public compositor::Context {
     using namespace compositor;
     const bNodeTree &node_group = *DRW_context_get()->scene->compositing_node_group;
     const bke::DataBlockComputeContext compute_context(nullptr, this->get_scene().id);
-    NodeGroupOperation node_group_operation(*this,
-                                            node_group,
-                                            this->needed_outputs(),
-                                            node_group.active_viewer_key,
-                                            bke::NODE_INSTANCE_KEY_BASE,
-                                            compute_context);
+    NodeGroupOperation node_group_operation(
+        *this, node_group, this->needed_outputs(), compute_context);
 
     /* Set the reference count for the outputs, only the first color output is actually needed,
      * while the rest are ignored. */

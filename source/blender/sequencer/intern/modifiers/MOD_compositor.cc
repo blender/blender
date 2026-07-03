@@ -19,6 +19,7 @@
 
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.hh"
+#include "BKE_compositor.hh"
 #include "BKE_context.hh"
 #include "BKE_idprop.hh"
 #include "BKE_node.hh"
@@ -242,6 +243,10 @@ class CompositorModifierContext : public CompositorContext {
   compositor::Result mask_;
   ImBuf *mask_buffer_ = nullptr;
   int timeline_frame_;
+
+  /* The hash of the active compute context. */
+  const ComputeContextHash active_compute_context_hash_;
+
   bool owns_mask_ = false;
   PointerRNA properties_ptr_;
 
@@ -254,7 +259,9 @@ class CompositorModifierContext : public CompositorContext {
         modifier_data_(modifier_data),
         image_buffer_(mod_context.result.image),
         mask_(*this, compositor::ResultType::Color, compositor::ResultPrecision::Full),
-        timeline_frame_(mod_context.timeline_frame)
+        timeline_frame_(mod_context.timeline_frame),
+        active_compute_context_hash_(bke::compositor::compute_active_compute_context_hash(
+            *render_data_.scene, *modifier_data_->node_group))
   {
     PointerRNA ptr = RNA_pointer_create_discrete(
         &mod_context.render_data.scene->id, RNA_SequencerCompositorModifierData, modifier_data);
@@ -270,6 +277,11 @@ class CompositorModifierContext : public CompositorContext {
       this->mask_.release();
       this->owns_mask_ = false;
     }
+  }
+
+  const ComputeContextHash &get_active_compute_context_hash() const override
+  {
+    return active_compute_context_hash_;
   }
 
   compositor::Domain get_compositing_domain() const override
@@ -293,12 +305,8 @@ class CompositorModifierContext : public CompositorContext {
     const bNodeTree &node_group = *DEG_get_evaluated<bNodeTree>(render_data_.depsgraph,
                                                                 modifier_data_->node_group);
     const bke::DataBlockComputeContext compute_context(nullptr, this->get_scene().id);
-    NodeGroupOperation node_group_operation(*this,
-                                            node_group,
-                                            this->needed_outputs(),
-                                            node_group.active_viewer_key,
-                                            bke::NODE_INSTANCE_KEY_BASE,
-                                            compute_context);
+    NodeGroupOperation node_group_operation(
+        *this, node_group, this->needed_outputs(), compute_context);
     set_output_refcount(node_group, node_group_operation);
 
     node_group.ensure_topology_cache();
