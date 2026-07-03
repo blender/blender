@@ -8,6 +8,7 @@
 
 #include "vk_descriptor_set_layouts.hh"
 #include "vk_backend.hh"
+#include "vk_memory_layout.hh"
 
 namespace blender::gpu {
 VKDescriptorSetLayouts::VKDescriptorSetLayouts()

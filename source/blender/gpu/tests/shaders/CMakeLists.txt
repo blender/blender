@@ -34,6 +34,7 @@ set(SRC_GLSL_COMP
   gpu_compute_ssbo_test.glsl
   gpu_compute_vbo_test.glsl
   gpu_push_constants_test.glsl
+  gpu_ray_query_test.glsl
   gpu_specialization_test.glsl
   gpu_texture_atomic_test.glsl
 )

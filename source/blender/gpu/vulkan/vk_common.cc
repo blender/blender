@@ -831,6 +831,8 @@ VkDescriptorType to_vk_descriptor_type(const shader::ShaderCreateInfo::Resource 
       return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
     case shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
       return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    case shader::ShaderCreateInfo::Resource::BindType::ACCELERATION_STRUCTURE:
+      return VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
   }
   BLI_assert_unreachable();
   return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;

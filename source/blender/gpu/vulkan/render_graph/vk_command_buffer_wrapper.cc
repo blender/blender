@@ -354,4 +354,14 @@ void VKCommandBufferWrapper::end_debug_utils_label()
   }
 }
 
+/* VK_KHR_ray_tracing */
+void VKCommandBufferWrapper::build_acceleration_structure(
+    const VkAccelerationStructureBuildGeometryInfoKHR *p_infos,
+    const VkAccelerationStructureBuildRangeInfoKHR *p_build_range_infos)
+{
+  const VKDevice &device = VKBackend::get().device;
+  device.functions.vkCmdBuildAccelerationStructuresKHR(
+      vk_command_buffer_, 1, p_infos, &p_build_range_infos);
+}
+
 }  // namespace blender::gpu::render_graph

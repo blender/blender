@@ -188,6 +188,7 @@ const char *GPU_shader_get_name(gpu::Shader *shader);
 int GPU_shader_get_ubo_binding(gpu::Shader *shader, const char *name);
 int GPU_shader_get_ssbo_binding(gpu::Shader *shader, const char *name);
 int GPU_shader_get_sampler_binding(gpu::Shader *shader, const char *name);
+int GPU_shader_get_tlas_binding(gpu::Shader *shader, const char *name);
 
 /**
  * Returns uniform location.

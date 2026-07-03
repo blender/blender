@@ -208,10 +208,17 @@ class VKDevice : public NonCopyable {
   VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT
       vk_physical_device_graphics_pipeline_library_properties_ = {
           VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_PROPERTIES_EXT};
+  VkPhysicalDeviceAccelerationStructurePropertiesKHR
+      vk_physical_device_acceleration_structure_properties_ = {
+          VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_PROPERTIES_KHR};
   /** Features support. */
   VkPhysicalDeviceFeatures vk_physical_device_features_ = {};
   VkPhysicalDeviceVulkan11Features vk_physical_device_vulkan_11_features_ = {};
   VkPhysicalDeviceVulkan12Features vk_physical_device_vulkan_12_features_ = {};
+  VkPhysicalDeviceAccelerationStructureFeaturesKHR
+      vk_physical_device_acceleration_structure_features_ = {
+          VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR,
+      };
   Array<VkExtensionProperties> device_extensions_;
 
   /** Functions of vk_ext_debugutils for this device/instance. */
@@ -276,6 +283,12 @@ class VKDevice : public NonCopyable {
     return vk_physical_device_graphics_pipeline_library_properties_;
   }
 
+  inline const VkPhysicalDeviceAccelerationStructurePropertiesKHR &
+  physical_device_acceleration_structure_properties_get()
+  {
+    return vk_physical_device_acceleration_structure_properties_;
+  }
+
   const VkPhysicalDeviceFeatures &physical_device_features_get() const
   {
     return vk_physical_device_features_;
@@ -289,6 +302,11 @@ class VKDevice : public NonCopyable {
   const VkPhysicalDeviceVulkan12Features &physical_device_vulkan_12_features_get() const
   {
     return vk_physical_device_vulkan_12_features_;
+  }
+  inline const VkPhysicalDeviceAccelerationStructureFeaturesKHR &
+  physical_device_acceleration_structure_features_get() const
+  {
+    return vk_physical_device_acceleration_structure_features_;
   }
 
   VkInstance instance_get() const
@@ -361,11 +379,11 @@ class VKDevice : public NonCopyable {
     return extensions_;
   }
 
-  std::string glsl_vertex_patch_get() const;
+  std::string glsl_vertex_patch_get(bool use_ray_query) const;
   std::string glsl_geometry_patch_get() const;
-  std::string glsl_fragment_patch_get() const;
-  std::string glsl_compute_patch_get() const;
-  shader::GeneratedSource extensions_define(StringRefNull stage_define) const;
+  std::string glsl_fragment_patch_get(bool use_ray_query) const;
+  std::string glsl_compute_patch_get(bool use_ray_query) const;
+  shader::GeneratedSource extensions_define(StringRefNull stage_define, bool use_ray_query) const;
 
   /* -------------------------------------------------------------------- */
   /** \name Render graph

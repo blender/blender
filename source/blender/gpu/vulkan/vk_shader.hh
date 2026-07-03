@@ -51,6 +51,7 @@ class VKShader : public Shader {
    * using `context.debug_pipeline_creation == true`.
    */
   bool has_precompiled_pipelines_ = false;
+  bool use_ray_query_ = false;
 
   /**
    * Maximum input attachment index used by this shader's subpass inputs.

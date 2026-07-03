@@ -24,6 +24,7 @@ enum class VKNodeType {
   BEGIN_QUERY,
   BEGIN_RENDERING,
   BLIT_IMAGE,
+  BUILD_ACCELERATION_STRUCTURE,
   CLEAR_ATTACHMENTS,
   CLEAR_COLOR_IMAGE,
   CLEAR_DEPTH_STENCIL_IMAGE,
@@ -57,6 +58,9 @@ BLI_INLINE std::ostream &operator<<(std::ostream &os, const VKNodeType node_type
       break;
     case VKNodeType::BEGIN_RENDERING:
       os << "BEGIN_RENDERING";
+      break;
+    case VKNodeType::BUILD_ACCELERATION_STRUCTURE:
+      os << "BUILD_ACCELERATION_STRUCTURE";
       break;
     case VKNodeType::END_QUERY:
       os << "END_QUERY";

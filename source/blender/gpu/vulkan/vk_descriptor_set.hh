@@ -105,6 +105,8 @@ class VKDescriptorSetUpdator {
                                     const VKResourceBinding &resource_binding);
   void bind_uniform_buffer_resource(const VKStateManager &state_manager,
                                     const VKResourceBinding &resource_binding);
+  void bind_acceleration_structure_resource(const VKStateManager &state_manager,
+                                            const VKResourceBinding &resource_binding);
   void bind_input_attachment_resource(const VKDevice &device,
                                       const VKStateManager &state_manager,
                                       const VKResourceBinding &resource_binding);
@@ -125,6 +127,9 @@ class VKDescriptorSetUpdator {
                           VkImageView vk_image_view,
                           VkImageLayout vk_image_layout,
                           VKDescriptorSet::Location location) = 0;
+  virtual void bind_acceleration_structure(VkDescriptorType vk_descriptor_type,
+                                           VkAccelerationStructureKHR vk_acceleration_structure,
+                                           VKDescriptorSet::Location location) = 0;
 };
 
 class VKDescriptorSetPoolUpdator : public VKDescriptorSetUpdator {
@@ -152,12 +157,18 @@ class VKDescriptorSetPoolUpdator : public VKDescriptorSetUpdator {
                   VkImageView vk_image_view,
                   VkImageLayout vk_image_layout,
                   VKDescriptorSet::Location location) override;
+  void bind_acceleration_structure(VkDescriptorType vk_descriptor_type,
+                                   VkAccelerationStructureKHR vk_acceleration_structure,
+                                   VKDescriptorSet::Location location) override;
 
  private:
   Vector<VkBufferView> vk_buffer_views_;
   Vector<VkDescriptorBufferInfo> vk_descriptor_buffer_infos_;
   Vector<VkDescriptorImageInfo> vk_descriptor_image_infos_;
   Vector<VkWriteDescriptorSet> vk_write_descriptor_sets_;
+  Vector<VkWriteDescriptorSetAccelerationStructureKHR>
+      vk_write_descrtiptor_sets_acceleration_structures_;
+  Vector<VkAccelerationStructureKHR> vk_acceleration_structures_;
 };
 
 class VKDescriptorSetTracker {
@@ -217,6 +228,10 @@ class VKDescriptorSetTracker {
       const VKResourceBinding &resource_binding,
       render_graph::VKResourceAccessInfo &access_info);
   static void update_resource_access_info_binding_input_attachment(
+      const VKStateManager &state_manager,
+      const VKResourceBinding &resource_binding,
+      render_graph::VKResourceAccessInfo &access_info);
+  static void update_resource_access_info_binding_acceleration_structure(
       const VKStateManager &state_manager,
       const VKResourceBinding &resource_binding,
       render_graph::VKResourceAccessInfo &access_info);

@@ -6,9 +6,11 @@
  * \ingroup gpu
  */
 
-#include "vk_descriptor_pools.hh"
+#include "GPU_capabilities.hh"
+
 #include "vk_backend.hh"
 #include "vk_context.hh"
+#include "vk_descriptor_pools.hh"
 #include "vk_device.hh"
 
 namespace blender::gpu {
@@ -50,6 +52,10 @@ void VKDescriptorPools::ensure_pool(const VKDevice &device)
       {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, POOL_SIZE_UNIFORM_BUFFER},
       {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, POOL_SIZE_UNIFORM_TEXEL_BUFFER},
       {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, POOL_SIZE_INPUT_ATTACHMENT}};
+  if (GPU_ray_query_support()) {
+    pool_sizes.append(
+        {VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, POOL_SIZE_ACCELERATION_STRUCTURE});
+  }
   VkDescriptorPoolCreateInfo pool_info = {};
   pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
   pool_info.maxSets = POOL_SIZE_DESCRIPTOR_SETS;

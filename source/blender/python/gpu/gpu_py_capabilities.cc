@@ -379,6 +379,22 @@ static PyObject *pygpu_max_work_group_size_get(PyObject * /*self*/, PyObject *ar
   return PyLong_FromLong(max_work_group_size);
 }
 
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_ray_query_support_get_doc,
+    ".. function:: ray_query_support_get()\n"
+    "\n"
+    "   Return whether GPU and the current backend supports Ray Queries (Hardware Raytracing).\n"
+    "\n"
+    "   :return: ray_query support available.\n"
+    "   :rtype: bool\n");
+static PyObject *pygpu_ray_query_support_get(PyObject * /*self*/)
+{
+  BPYGPU_IS_INIT_OR_ERROR_OBJ;
+
+  return PyBool_FromLong(GPU_ray_query_support());
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -477,6 +493,10 @@ static PyMethodDef pygpu_capabilities__tp_methods[] = {
         METH_VARARGS,
         pygpu_max_work_group_size_get_doc,
     },
+    {"ray_query_support_get",
+     reinterpret_cast<PyCFunction>(pygpu_ray_query_support_get),
+     METH_NOARGS,
+     pygpu_ray_query_support_get_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 

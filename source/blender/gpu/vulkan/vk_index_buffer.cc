@@ -6,6 +6,8 @@
  * \ingroup gpu
  */
 
+#include "gpu_capabilities_private.hh"
+
 #include "vk_index_buffer.hh"
 #include "vk_shader.hh"
 #include "vk_shader_interface.hh"
@@ -110,9 +112,17 @@ void VKIndexBuffer::strip_restart_indices()
 
 void VKIndexBuffer::allocate()
 {
+  VkBufferUsageFlags vk_buffer_usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
+                                       VK_BUFFER_USAGE_INDEX_BUFFER_BIT |
+                                       VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+                                       VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+  if (GCaps.ray_query_support) {
+    vk_buffer_usage |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR |
+                       VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+  }
+
   buffer_.create(size_get(),
-                 VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT |
-                     VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                 vk_buffer_usage,
                  VMA_MEMORY_USAGE_AUTO,
                  VmaAllocationCreateFlags(0),
                  0.8f,

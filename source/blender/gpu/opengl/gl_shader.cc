@@ -542,6 +542,9 @@ static void print_resource(std::ostream &os,
       os << res.storagebuf.name.str_no_array() << " { ";
       os << info.buffer_typename(res.storagebuf.type_name) << " " << res.storagebuf.name << "; };";
       break;
+    case ShaderCreateInfo::Resource::BindType::ACCELERATION_STRUCTURE:
+      BLI_assert_unreachable();
+      break;
   }
 }
 

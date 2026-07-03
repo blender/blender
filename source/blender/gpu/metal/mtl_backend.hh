@@ -69,6 +69,18 @@ class MTLBackend : public GPUBackend {
   UniformBuf *uniformbuf_alloc(size_t size, const char *name) override;
   StorageBuf *storagebuf_alloc(size_t size, GPUUsageType usage, const char *name) override;
   VertBuf *vertbuf_alloc() override;
+  TopLevelAS *tlas_alloc(const char * /*name*/) override
+  {
+    /* TODO: Implement Ray Queries support for Metal. */
+    BLI_assert_unreachable();
+    return nullptr;
+  }
+  BottomLevelAS *blas_alloc(const char * /*name*/) override
+  {
+    /* TODO: Implement Ray Queries support for Metal. */
+    BLI_assert_unreachable();
+    return nullptr;
+  }
   void shader_cache_dir_clear_old() override {}
 
   /* Render Frame Coordination. */

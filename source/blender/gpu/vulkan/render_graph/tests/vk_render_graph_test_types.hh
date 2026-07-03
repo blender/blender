@@ -506,6 +506,13 @@ class CommandBufferLog : public VKCommandBufferInterface {
 
   void begin_debug_utils_label(const VkDebugUtilsLabelEXT * /*vk_debug_utils_label*/) override {}
   void end_debug_utils_label() override {}
+
+  /* VK_KHR_ray_tracing */
+  void build_acceleration_structure(
+      const VkAccelerationStructureBuildGeometryInfoKHR * /*p_infos*/,
+      const VkAccelerationStructureBuildRangeInfoKHR * /*p_build_range_infos*/) override
+  {
+  }
 };
 
 class VKRenderGraphTest : public ::testing::Test {

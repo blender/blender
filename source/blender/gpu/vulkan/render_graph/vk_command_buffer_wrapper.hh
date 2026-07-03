@@ -151,6 +151,11 @@ class VKCommandBufferInterface {
   /* VK_EXT_debug_utils */
   virtual void begin_debug_utils_label(const VkDebugUtilsLabelEXT *vk_debug_utils_label) = 0;
   virtual void end_debug_utils_label() = 0;
+
+  /* VK_KHR_ray_tracing */
+  virtual void build_acceleration_structure(
+      const VkAccelerationStructureBuildGeometryInfoKHR *p_infos,
+      const VkAccelerationStructureBuildRangeInfoKHR *p_build_range_infos) = 0;
 };
 
 class VKCommandBufferWrapper : public VKCommandBufferInterface {
@@ -281,6 +286,11 @@ class VKCommandBufferWrapper : public VKCommandBufferInterface {
   void end_rendering() override;
   void begin_debug_utils_label(const VkDebugUtilsLabelEXT *vk_debug_utils_label) override;
   void end_debug_utils_label() override;
+
+  /* VK_KHR_ray_tracing */
+  void build_acceleration_structure(
+      const VkAccelerationStructureBuildGeometryInfoKHR *p_infos,
+      const VkAccelerationStructureBuildRangeInfoKHR *p_build_range_infos) override;
 };
 }  // namespace gpu::render_graph
 

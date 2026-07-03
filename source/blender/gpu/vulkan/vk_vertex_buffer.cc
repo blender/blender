@@ -8,6 +8,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "gpu_capabilities_private.hh"
+
 #include "vk_data_conversion.hh"
 #include "vk_shader.hh"
 #include "vk_shader_interface.hh"
@@ -210,6 +212,10 @@ void VKVertexBuffer::allocate()
                                        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
                                        VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT |
                                        VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+  if (GCaps.ray_query_support) {
+    vk_buffer_usage |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR |
+                       VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+  }
 
   buffer_.create(size_alloc_get(),
                  vk_buffer_usage,

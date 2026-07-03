@@ -53,6 +53,7 @@ void VKExtensions::log() const
              " - [%c] memory priority\n"
              " - [%c] pageable device local memory\n"
              " - [%c] shader stencil export\n"
+             " - [%c] ray queries\n"
              " - [%c] vertex input dynamic state",
              shader_output_viewport_index ? 'X' : ' ',
              shader_output_layer ? 'X' : ' ',
@@ -69,6 +70,7 @@ void VKExtensions::log() const
              memory_priority ? 'X' : ' ',
              pageable_device_local_memory ? 'X' : ' ',
              GPU_stencil_export_support() ? 'X' : ' ',
+             GPU_ray_query_support() ? 'X' : ' ',
              vertex_input_dynamic_state ? 'X' : ' ');
 }
 
@@ -202,6 +204,11 @@ void VKDevice::init_physical_device_properties()
     vk_physical_device_properties.pNext =
         &vk_physical_device_graphics_pipeline_library_properties_;
   }
+  if (supports_extension(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME)) {
+    vk_physical_device_acceleration_structure_properties_.pNext =
+        vk_physical_device_properties.pNext;
+    vk_physical_device_properties.pNext = &vk_physical_device_acceleration_structure_properties_;
+  }
 
   vkGetPhysicalDeviceProperties2(vk_physical_device_, &vk_physical_device_properties);
   vk_physical_device_properties_ = vk_physical_device_properties.properties;
@@ -226,6 +233,8 @@ void VKDevice::init_physical_device_features()
 
   features.pNext = &vk_physical_device_vulkan_11_features_;
   vk_physical_device_vulkan_11_features_.pNext = &vk_physical_device_vulkan_12_features_;
+  vk_physical_device_vulkan_12_features_.pNext =
+      &vk_physical_device_acceleration_structure_features_;
 
   vkGetPhysicalDeviceFeatures2(vk_physical_device_, &features);
   vk_physical_device_features_ = features.features;
@@ -265,11 +274,18 @@ void VKDevice::init_dummy_buffer()
   dummy_buffer.update_immediately(static_cast<void *>(data));
 }
 
-shader::GeneratedSource VKDevice::extensions_define(StringRefNull stage_define) const
+shader::GeneratedSource VKDevice::extensions_define(StringRefNull stage_define,
+                                                    bool use_ray_query) const
 {
   std::stringstream ss;
 
-  ss << "#version 450\n";
+  const bool requires_460 = use_ray_query;
+  if (requires_460) {
+    ss << "#version 460\n";
+  }
+  else {
+    ss << "#version 450\n";
+  }
   {
     /* Required extension. */
     ss << "#extension GL_ARB_shader_draw_parameters : enable\n";
@@ -293,35 +309,41 @@ shader::GeneratedSource VKDevice::extensions_define(StringRefNull stage_define) 
     ss << "#define gpu_BaryCoord gl_BaryCoordEXT\n";
     ss << "#define gpu_BaryCoordNoPersp gl_BaryCoordNoPerspEXT\n";
   }
+  if (use_ray_query) {
+    ss << "#extension GL_EXT_ray_query : enable\n";
+  }
   ss << stage_define;
 
   return shader::GeneratedSource{"gpu_shader_glsl_extension.glsl", {}, ss.str()};
 }
 
-std::string VKDevice::glsl_vertex_patch_get() const
+std::string VKDevice::glsl_vertex_patch_get(bool use_ray_query) const
 {
-  shader::GeneratedSourceList sources{extensions_define("#define GPU_VERTEX_SHADER\n")};
+  shader::GeneratedSourceList sources{
+      extensions_define("#define GPU_VERTEX_SHADER\n", use_ray_query)};
   return fmt::to_string(fmt::join(
       gpu_shader_dependency_get_resolved_source("gpu_shader_compat_glsl.glsl", sources), ""));
 }
 
 std::string VKDevice::glsl_geometry_patch_get() const
 {
-  shader::GeneratedSourceList sources{extensions_define("#define GPU_GEOMETRY_SHADER\n")};
+  shader::GeneratedSourceList sources{extensions_define("#define GPU_GEOMETRY_SHADER\n", false)};
   return fmt::to_string(fmt::join(
       gpu_shader_dependency_get_resolved_source("gpu_shader_compat_glsl.glsl", sources), ""));
 }
 
-std::string VKDevice::glsl_fragment_patch_get() const
+std::string VKDevice::glsl_fragment_patch_get(bool use_ray_query) const
 {
-  shader::GeneratedSourceList sources{extensions_define("#define GPU_FRAGMENT_SHADER\n")};
+  shader::GeneratedSourceList sources{
+      extensions_define("#define GPU_FRAGMENT_SHADER\n", use_ray_query)};
   return fmt::to_string(fmt::join(
       gpu_shader_dependency_get_resolved_source("gpu_shader_compat_glsl.glsl", sources), ""));
 }
 
-std::string VKDevice::glsl_compute_patch_get() const
+std::string VKDevice::glsl_compute_patch_get(bool use_ray_query) const
 {
-  shader::GeneratedSourceList sources{extensions_define("#define GPU_COMPUTE_SHADER\n")};
+  shader::GeneratedSourceList sources{
+      extensions_define("#define GPU_COMPUTE_SHADER\n", use_ray_query)};
   return fmt::to_string(fmt::join(
       gpu_shader_dependency_get_resolved_source("gpu_shader_compat_glsl.glsl", sources), ""));
 }

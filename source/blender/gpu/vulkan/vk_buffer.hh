@@ -121,9 +121,14 @@ class VKBuffer : public NonCopyable {
    */
   void *mapped_memory_get() const;
 
-  VkDeviceAddress device_address_get() const
+  inline VkDeviceAddress device_address_get() const
   {
     return vk_device_address;
+  }
+
+  inline bool has_device_address() const
+  {
+    return vk_device_address != 0;
   }
 
   /**

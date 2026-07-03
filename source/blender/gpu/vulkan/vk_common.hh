@@ -28,6 +28,7 @@
 #include "vk_mem_alloc.h"
 
 #include "GPU_index_buffer.hh"
+#include "GPU_ray_tracing.hh"
 #include "GPU_state.hh"
 #include "gpu_query.hh"
 #include "gpu_shader_create_info.hh"
@@ -76,6 +77,15 @@ template<typename HandleType> struct VKResourceWithHandle {
   operator HandleType() const
   {
     return vk_handle;
+  }
+
+  bool operator==(const VKResourceWithHandle<HandleType> &other) const
+  {
+    return other.resource_handle == resource_handle && other.vk_handle == vk_handle;
+  }
+  uint64_t hash() const
+  {
+    return get_default_hash(resource_handle, vk_handle);
   }
 };
 
