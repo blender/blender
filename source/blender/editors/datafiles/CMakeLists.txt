@@ -874,6 +874,12 @@ if(WITH_BLENDER)
       split_horizontal
       split_vertical
       spreadsheet
+      status_error
+      status_error_filled
+      status_info
+      status_info_filled
+      status_warning
+      status_warning_filled
       statusbar
       sticky_uvs_disable
       sticky_uvs_loc
