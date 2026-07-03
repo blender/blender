@@ -26,7 +26,6 @@ class VKStateManager;
 class VKDevice;
 class VKPushConstants;
 class VKShader;
-class VKShaderInterface;
 class VKDescriptorSetTracker;
 class VKVertexBuffer;
 
@@ -176,12 +175,6 @@ class VKDescriptorSetTracker {
 
   /* Last used layout to identify changes. */
   VkDescriptorSetLayout vk_descriptor_set_layout_ = VK_NULL_HANDLE;
-
-  /** Cache for resource access info, to avoid re-iterating all bindings when nothing changed. */
-  uint64_t cached_access_info_generation_ = UINT64_MAX;
-  const VKShaderInterface *cached_access_info_shader_interface_ = nullptr;
-  Vector<render_graph::VKBufferAccess> cached_access_info_buffers_;
-  Vector<render_graph::VKImageAccess> cached_access_info_images_;
 
  public:
   class VKDescriptorSetPoolUpdator descriptor_sets;
