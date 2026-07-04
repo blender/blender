@@ -2873,10 +2873,6 @@ void BKE_tracking_disable_channels(
       }
     }
   }
-
-  if (ibuf->float_data()) {
-    ibuf->userflags |= IB_RECT_INVALID;
-  }
 }
 
 /* --------------------------------------------------------------------

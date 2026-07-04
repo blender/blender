@@ -308,11 +308,6 @@ static void ptile_restore_runtime_map(PaintTileMap *paint_tile_map)
 
     BKE_image_partial_update_mark_full_update(image);
 
-    if (ibuf->float_data()) {
-      ibuf->userflags |= IB_RECT_INVALID; /* force recreate of char rect */
-    }
-    ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-
     BKE_image_release_ibuf(image, ibuf, nullptr);
   }
 }
@@ -579,11 +574,6 @@ static void uhandle_restore_list(ListBaseT<UndoImageHandle> *undo_handles, bool 
       BKE_image_mark_dirty(image, ibuf);
       /* TODO(@jbakker): only mark areas that are actually updated to improve performance. */
       BKE_image_partial_update_mark_full_update(image);
-
-      if (ibuf->float_data()) {
-        ibuf->userflags |= IB_RECT_INVALID; /* Force recreate of char `rect` */
-      }
-      ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 
       DEG_id_tag_update(&image->id, 0);
     }

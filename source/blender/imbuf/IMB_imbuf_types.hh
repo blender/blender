@@ -301,15 +301,11 @@ struct ImBuf {
 enum {
   /** image needs to be saved is not the same as filename */
   IB_BITMAPDIRTY = (1 << 1),
-  /** float buffer changed, needs recreation of byte rect */
-  IB_RECT_INVALID = (1 << 3),
-  /** either float or byte buffer changed */
-  IB_DISPLAY_BUFFER_INVALID = (1 << 4),
   /** image buffer is persistent in the memory and should never be removed from the cache */
-  IB_PERSISTENT = (1 << 5),
+  IB_PERSISTENT = (1 << 2),
   /** The image buffer is backed by a GPU texture storage but the host buffers either do not exist
    * or are out-dated and needs to read from the GPU texture. */
-  IB_HOST_BUFFER_INVALID = (1 << 6),
+  IB_HOST_BUFFER_INVALID = (1 << 3),
 };
 
 /** \} */

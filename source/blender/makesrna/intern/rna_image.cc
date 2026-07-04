@@ -681,7 +681,6 @@ static void rna_Image_pixels_set(PointerRNA *ptr, const float *values)
     /* NOTE: Do update from the set() because typically pixels.foreach_set() is used to update
      * the values, and it does not invoke the update(). */
 
-    ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
     IMB_free_gpu_textures(ibuf);
     BKE_image_mark_dirty(ima, ibuf);
 

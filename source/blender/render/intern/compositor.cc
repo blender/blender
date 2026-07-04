@@ -332,7 +332,6 @@ class Context : public compositor::Context {
                     viewer_result.cpu_data().data(),
                     size.x * size.y * 4 * sizeof(float));
       }
-      image_buffer->userflags |= IB_DISPLAY_BUFFER_INVALID;
     }
 
     if (!viewer_result.is_single_value()) {

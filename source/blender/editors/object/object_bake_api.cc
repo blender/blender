@@ -311,12 +311,7 @@ static bool write_internal_bake_pixels(Image *image,
     RE_bake_margin(ibuf, mask_buffer, margin, margin_type, mesh_eval, uv_layer, uv_offset);
   }
 
-  ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
   BKE_image_mark_dirty(image, ibuf);
-
-  if (ibuf->float_data()) {
-    ibuf->userflags |= IB_RECT_INVALID;
-  }
 
   BKE_image_release_ibuf(image, ibuf, nullptr);
 

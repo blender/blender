@@ -788,10 +788,6 @@ static void render_endjob(void *rjv)
     Image *ima = rj->image;
     ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &rj->iuser, &lock);
 
-    if (ibuf) {
-      ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-    }
-
     BKE_image_release_ibuf(ima, ibuf, lock);
   }
 
