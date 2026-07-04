@@ -749,6 +749,33 @@ void IMB_gpu_texture_apply_partial_update(gpu::Texture *tex,
   }
 }
 
+static void imb_gpu_texture_apply_partial_updates(ImBuf *ibuf, const bool use_premult)
+{
+  if (ibuf->byte_data() == nullptr && ibuf->float_data() == nullptr) {
+    return;
+  }
+
+  using imbuf::partial_update::Changes;
+  IMB_partial_update_flush(ibuf);
+  const int64_t new_changeset_id = IMB_partial_update_changeset_id_current();
+  const Changes changes = IMB_partial_update_collect(ibuf, ibuf->gpu.partial_update_changeset);
+  switch (changes.kind) {
+    case Changes::Kind::Full:
+      GPU_texture_free(ibuf->gpu.texture);
+      ibuf->gpu.texture = nullptr;
+      ibuf->gpu.flag = ImBufGPUFlag(0);
+      break;
+    case Changes::Kind::Partial:
+      IMB_gpu_texture_apply_partial_update(
+          ibuf->gpu.texture, ibuf, use_premult, changes, -1, int2(0), int2(0));
+      ibuf->gpu.partial_update_changeset = new_changeset_id;
+      break;
+    case Changes::Kind::None:
+      ibuf->gpu.partial_update_changeset = new_changeset_id;
+      break;
+  }
+}
+
 gpu::Texture *IMB_acquire_gpu_texture(const char *name,
                                       ImBuf *ibuf,
                                       bool use_high_bitdepth,
@@ -764,9 +791,12 @@ gpu::Texture *IMB_acquire_gpu_texture(const char *name,
 
   std::scoped_lock lock(ibuf->gpu.mutex);
   if (ibuf->gpu.texture != nullptr) {
-    ibuf->gpu.lastused = BLI_time_now_seconds_i();
-    GPU_texture_ref(ibuf->gpu.texture);
-    return ibuf->gpu.texture;
+    imb_gpu_texture_apply_partial_updates(ibuf, use_premult);
+    if (ibuf->gpu.texture != nullptr) {
+      ibuf->gpu.lastused = BLI_time_now_seconds_i();
+      GPU_texture_ref(ibuf->gpu.texture);
+      return ibuf->gpu.texture;
+    }
   }
   if (try_only) {
     return nullptr;

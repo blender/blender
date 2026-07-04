@@ -13,22 +13,23 @@
 #include "BLI_boxpack_2d.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_base.hh"
+#include "BLI_math_base_c.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_rect.hh"
 #include "BLI_string.hh"
 #include "BLI_time.hh"
 
 #include "DNA_image_types.h"
 
 #include "IMB_cache.hh"
-#include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
-#include "IMB_partial_update.hh"
 
 #include "BKE_image.hh"
 #include "BKE_image_gpu.hh"
 #include "BKE_main.hh"
+
+#include "IMB_partial_update.hh"
 
 #include "GPU_capabilities.hh"
 #include "GPU_texture.hh"
@@ -436,14 +437,19 @@ void BKE_image_free_gpu_fallback()
 /** \name Get GPU texture from Image
  * \{ */
 
-static void image_gpu_texture_try_partial_update(Image *image, ImageUser *iuser)
+static void image_gpu_atlas_try_partial_update(Image *image, ImageUser *iuser)
 {
-  ImBuf *atlas_ibuf = (image->source == IMA_SRC_TILED) ?
-                          image_udim_gpu_ibuf_get(image, IMA_INDEX_UDIM_ATLAS) :
-                          nullptr;
+  if (image->source != IMA_SRC_TILED) {
+    return;
+  }
+  ImBuf *atlas_ibuf = image_udim_gpu_ibuf_get(image, IMA_INDEX_UDIM_ATLAS);
+  if (atlas_ibuf == nullptr) {
+    return;
+  }
+  gpu::Texture *atlas_tex = atlas_ibuf->gpu.texture;
 
-  /* A tile whose changes can no longer be reconstructed forces a full rebuild of all textures.
-   * Existing partial uploads are then discarded, but this is rare (history exhausted). */
+  /* A tile whose changes can no longer be reconstructed forces a full atlas rebuild. Existing
+   * partial uploads are then discarded, but this is rare (history exhausted). */
   bool need_full_rebuild = false;
 
   ImageUser tile_user = {};
@@ -468,31 +474,22 @@ static void image_gpu_texture_try_partial_update(Image *image, ImageUser *iuser)
         case Changes::Kind::Full:
           need_full_rebuild = true;
           break;
-        case Changes::Kind::Partial: {
-          const bool store_premultiplied = BKE_image_has_gpu_texture_premultiplied_alpha(image,
-                                                                                         ibuf);
-          /* Regular texture. */
-          if (&tile == image->tiles.first && ibuf->gpu.texture != nullptr) {
-            IMB_gpu_texture_apply_partial_update(
-                ibuf->gpu.texture, ibuf, store_premultiplied, changes);
-          }
-          /* UDIM atlas texture. */
-          if (atlas_ibuf != nullptr && atlas_ibuf->gpu.texture != nullptr) {
-            const ImageTile_Runtime *tile_runtime = &tile.runtime;
-            IMB_gpu_texture_apply_partial_update(atlas_ibuf->gpu.texture,
+        case Changes::Kind::Partial:
+          if (atlas_tex != nullptr) {
+            const bool store_premultiplied = BKE_image_has_gpu_texture_premultiplied_alpha(image,
+                                                                                           ibuf);
+            IMB_gpu_texture_apply_partial_update(atlas_tex,
                                                  ibuf,
                                                  store_premultiplied,
                                                  changes,
-                                                 tile_runtime->tilearray_layer,
+                                                 tile.runtime.tilearray_layer,
                                                  int2(tile.runtime.tilearray_offset),
                                                  int2(tile.runtime.tilearray_size));
           }
           break;
-        }
         case Changes::Kind::None:
           break;
       }
-      ibuf->gpu.partial_update_changeset = new_changeset_id;
     }
     BKE_image_release_ibuf(image, ibuf, lock);
 
@@ -501,9 +498,8 @@ static void image_gpu_texture_try_partial_update(Image *image, ImageUser *iuser)
     }
   }
 
-  if (atlas_ibuf != nullptr) {
-    IMB_freeImBuf(atlas_ibuf);
-  }
+  atlas_ibuf->gpu.partial_update_changeset = new_changeset_id;
+  IMB_freeImBuf(atlas_ibuf);
 
   if (need_full_rebuild) {
     BKE_image_free_gpu_texture_caches(image);
@@ -551,6 +547,9 @@ static ImageGPUTextures image_get_gpu_texture_tiled(Image *ima,
     GPU_texture_free(result.tile_mapping);
     result.tile_mapping = nullptr;
   }
+
+  /* Get changeset ID that we will update to. */
+  const int64_t new_changeset_id = BKE_image_partial_update_flush(ima, nullptr);
 
   /* Acquire image buffer. */
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, nullptr);
@@ -602,6 +601,9 @@ static ImageGPUTextures image_get_gpu_texture_tiled(Image *ima,
   /* Assign to the image buffers, which takes the reference from creation. */
   IMB_assign_gpu_texture(atlas_ibuf, atlas_tex);
   IMB_assign_gpu_texture(mapping_ibuf, mapping_tex);
+
+  atlas_ibuf->gpu.partial_update_changeset = new_changeset_id;
+  mapping_ibuf->gpu.partial_update_changeset = new_changeset_id;
 
   IMB_freeImBuf(atlas_ibuf);
   IMB_freeImBuf(mapping_ibuf);
@@ -689,7 +691,7 @@ static ImageGPUTextures image_get_gpu_texture(Image *ima,
     return {};
   }
 
-  image_gpu_texture_try_partial_update(ima, iuser);
+  image_gpu_atlas_try_partial_update(ima, iuser);
 
   const bool tiled = (use_tile_mapping && ima->source == IMA_SRC_TILED);
   return tiled ?
