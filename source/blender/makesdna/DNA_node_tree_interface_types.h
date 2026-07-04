@@ -148,11 +148,7 @@ struct bNodeTreeInterfaceSocket {
   struct IDProperty *properties = nullptr;
 
   NodeSocketInterfaceStructureType structure_type = NodeSocketInterfaceStructureType::Auto;
-
-  /* Needed to ensure forward compatibility of PROP_PIXEL socket subtype. */
-  char is_pixel_socket_forward_compat = false;
-
-  char _pad[6] = {};
+  char _pad[7] = {};
 
 #ifdef __cplusplus
   bke::bNodeSocketType *socket_typeinfo() const;
