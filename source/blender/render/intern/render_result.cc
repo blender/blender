@@ -37,6 +37,7 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 #include "IMB_openexr.hh"
+#include "IMB_partial_update.hh"
 
 #include "GPU_texture.hh"
 
@@ -431,6 +432,7 @@ void RE_pass_set_buffer_data(RenderPass *pass, float *data)
   ImBuf *ibuf = RE_RenderPassEnsureImBuf(pass);
 
   ibuf->assign_float_data(data);
+  IMB_partial_update_mark_full(ibuf);
 }
 
 gpu::Texture *RE_pass_ensure_gpu_texture_cache(Render *re, RenderPass *rpass)
@@ -760,6 +762,13 @@ static void do_merge_tile(
 
 void render_result_merge(RenderResult *rr, RenderResult *rrpart)
 {
+  rcti tile_region;
+  BLI_rcti_init(&tile_region,
+                rrpart->tilerect.xmin,
+                rrpart->tilerect.xmin + rrpart->rectx,
+                rrpart->tilerect.ymin,
+                rrpart->tilerect.ymin + rrpart->recty);
+
   for (RenderLayer &rl : rr->layers) {
     RenderLayer *rlp = RE_GetRenderLayer(rrpart, rl.name);
 
@@ -787,6 +796,8 @@ void render_result_merge(RenderResult *rr, RenderResult *rrpart)
                       rpass->ibuf->float_data_for_write(),
                       rpassp->ibuf->float_data_for_write(),
                       rpass->channels);
+
+        IMB_partial_update_mark_region(rpass->ibuf, tile_region);
 
         /* manually get next render pass */
         rpassp = rpassp->next;
@@ -946,6 +957,9 @@ bool render_result_exr_file_read_path(RenderResult *rr,
   }
 
   IMB_exr_read_passes(exrhandle, requests);
+  for (const auto &request : requests) {
+    IMB_partial_update_mark_full(request.ibuf);
+  }
   IMB_exr_close(exrhandle);
 
   return true;
@@ -1126,6 +1140,8 @@ void RE_render_result_rect_from_ibuf(RenderResult *rr, const ImBuf *ibuf, const 
     /* Same things as above, old rectf can hang around from previous render. */
     IMB_free_float_pixels(rv_ibuf);
   }
+
+  IMB_partial_update_mark_full(rv_ibuf);
 }
 
 void render_result_rect_fill_zero(RenderResult *rr, const int view_id)
@@ -1137,6 +1153,7 @@ void render_result_rect_fill_zero(RenderResult *rr, const int view_id)
   if (!ibuf->float_data() && !ibuf->byte_data()) {
     ibuf->assign_byte_data(
         MEM_new_array_zeroed<uint8_t>(4 * size_t(rr->rectx) * size_t(rr->recty), __func__));
+    IMB_partial_update_mark_full(ibuf);
     return;
   }
 
@@ -1147,6 +1164,8 @@ void render_result_rect_fill_zero(RenderResult *rr, const int view_id)
   if (ibuf->byte_data()) {
     memset(ibuf->byte_data_for_write(), 0, 4 * rr->rectx * rr->recty);
   }
+
+  IMB_partial_update_mark_full(ibuf);
 }
 
 void render_result_rect_get_pixels(RenderResult *rr,

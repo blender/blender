@@ -10,10 +10,7 @@
 
 #include "BLI_map.hh"
 
-#include "IMB_partial_update.hh"
-
 struct Image;
-struct ImBuf;
 
 namespace blender {
 

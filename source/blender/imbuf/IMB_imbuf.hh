@@ -13,6 +13,7 @@
 
 #include "BLI_enum_flags.hh"
 #include "BLI_math_matrix_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 
@@ -555,11 +556,6 @@ void IMB_free_all_data(ImBuf *ibuf);
  * The ibuf can be nullptr, in which case the function does nothing.
  */
 void IMB_free_gpu_textures(ImBuf *ibuf);
-
-/**
- * Clear #IMB_GPU_LOAD_FAILED flag, to retry failed GPU texture creation.
- */
-void IMB_clear_gpu_load_failed(ImBuf *ibuf);
 
 /**
  * \brief Transform modes to use for IMB_transform function.

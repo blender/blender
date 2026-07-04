@@ -436,12 +436,7 @@ static void multiresbake_freejob(void *bkv)
   data = static_cast<MultiresBakerJobData *>(bkj->data.first);
   while (data) {
     next = data->next;
-
     /* delete here, since this delete will be called from main thread */
-    for (Image *image : data->images) {
-      BKE_image_partial_update_mark_full_update(image);
-    }
-
     MEM_delete(data);
     data = next;
   }

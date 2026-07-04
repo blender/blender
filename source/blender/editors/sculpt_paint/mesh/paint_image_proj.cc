@@ -13,6 +13,7 @@
 #include <cmath>
 #include <cstring>
 
+#include "IMB_imbuf_types.hh"
 #include "MEM_guardedalloc.h"
 
 #ifdef WIN32
@@ -41,6 +42,7 @@
 
 #include "IMB_imbuf.hh"
 #include "IMB_interp.hh"
+#include "IMB_partial_update.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
@@ -1870,7 +1872,7 @@ static int project_paint_undo_subtiles(const TileInfo *tinf, int tx, int ty)
       }
     }
 
-    BKE_image_mark_dirty(pjIma->ima, pjIma->ibuf);
+    IMB_mark_dirty(pjIma->ibuf);
     /* tile ready, publish */
     if (tinf->lock) {
       BLI_spin_lock(tinf->lock);
@@ -4846,7 +4848,7 @@ static bool project_image_refresh_tagged(ProjPaintState *ps)
         pr = &(projIma->partRedrawRect[i]);
         if (BLI_rcti_is_valid(&pr->dirty_region)) {
           set_imapaintpartial(pr);
-          imapaint_image_update(nullptr, projIma->ima, projIma->ibuf, &projIma->iuser, true);
+          imapaint_image_update(projIma->ibuf);
           redraw = true;
         }
 
@@ -6365,7 +6367,7 @@ static wmOperatorStatus texture_paint_camera_project_exec(bContext *C, wmOperato
   project_image_refresh_tagged(&ps);
 
   for (a = 0; a < ps.image_tot; a++) {
-    BKE_image_partial_update_mark_full_update(ps.projImages[a].ima);
+    IMB_partial_update_mark_full(ps.projImages[a].ibuf);
     WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ps.projImages[a].ima);
   }
 

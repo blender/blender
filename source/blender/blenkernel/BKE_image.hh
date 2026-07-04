@@ -572,7 +572,6 @@ float *BKE_image_get_float_pixels_for_frame(Image *image, int frame, int tile);
 /* Image modifications */
 
 bool BKE_image_is_dirty(Image *image);
-void BKE_image_mark_dirty(Image *image, ImBuf *ibuf);
 bool BKE_image_buffer_format_writable(ImBuf *ibuf);
 
 bool BKE_image_is_dirty_writable(Image *image, bool *r_is_writable);
@@ -614,21 +613,5 @@ RenderSlot *BKE_image_add_renderslot(Image *ima, const char *name);
 bool BKE_image_remove_renderslot(Image *ima, ImageUser *iuser, int slot);
 RenderSlot *BKE_image_get_renderslot(Image *ima, int index);
 bool BKE_image_clear_renderslot(Image *ima, ImageUser *iuser, int slot);
-
-/* --- image_partial_update.cc --- */
-
-/** \brief Mark a region of the image to update. */
-void BKE_image_partial_update_mark_region(Image *image,
-                                          const ImageTile *image_tile,
-                                          const ImBuf *image_buffer,
-                                          const rcti *updated_region);
-/** \brief Mark the whole image to be updated. */
-void BKE_image_partial_update_mark_full_update(Image *image);
-
-/**
- * \brief Variant of #BKE_image_partial_update_mark_full_update for callers
- * that already hold the image's cache mutex.
- */
-void BKE_image_partial_update_mark_full_update_cache_locked(Image *image);
 
 }  // namespace blender

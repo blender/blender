@@ -2212,8 +2212,6 @@ static wmOperatorStatus update_image_from_plane_marker_exec(bContext *C, wmOpera
   WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, plane_track->image);
 
-  BKE_image_partial_update_mark_full_update(plane_track->image);
-
   return OPERATOR_FINISHED;
 }
 

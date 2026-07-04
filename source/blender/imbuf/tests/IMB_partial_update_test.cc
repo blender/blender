@@ -256,8 +256,8 @@ TEST_F(IMBPartialUpdateTest, mark_multiple_chunks)
   const Changes changes = collect(image_buffer, changeset_id);
   EXPECT_EQ(changes.kind, Changes::Kind::Partial);
 
-  /* Each modified chunk is reported as a separate region. */
-  EXPECT_EQ(changes.updated_regions.size(), 4);
+  /* Contiguous modified chunks in a row are merged, and we get 2 regions from 4 chunks. */
+  EXPECT_EQ(changes.updated_regions.size(), 2);
   for (const rcti &changed : changes.updated_regions) {
     EXPECT_TRUE(BLI_rcti_isect(&changed, &region, nullptr));
   }

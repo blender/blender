@@ -836,35 +836,6 @@ void BKE_image_free_anim_gpu_texture_caches(Main *bmain)
 /** \name Paint Update
  * \{ */
 
-void BKE_image_update_gputexture(Image *ima, ImageUser *iuser, int x, int y, int w, int h)
-{
-  ImageTile *image_tile = BKE_image_get_tile_from_iuser(ima, iuser);
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, nullptr);
-  BKE_image_update_gputexture_delayed(ima, image_tile, ibuf, x, y, w, h);
-  BKE_image_release_ibuf(ima, ibuf, nullptr);
-}
-
-void BKE_image_update_gputexture_delayed(
-    Image *ima, ImageTile *image_tile, ImBuf *ibuf, int x, int y, int w, int h)
-{
-  if (ibuf) {
-    /* Retry creating GPU texture if it failed before. */
-    IMB_clear_gpu_load_failed(ibuf);
-  }
-
-  /* Check for full refresh. */
-  if (ibuf != nullptr && ima->source != IMA_SRC_TILED && x == 0 && y == 0 && w == ibuf->x &&
-      h == ibuf->y)
-  {
-    IMB_partial_update_mark_full(ibuf);
-  }
-  else {
-    rcti dirty_region;
-    BLI_rcti_init(&dirty_region, x, x + w, y, y + h);
-    BKE_image_partial_update_mark_region(ima, image_tile, ibuf, &dirty_region);
-  }
-}
-
 void BKE_image_paint_set_mipmap(Main *bmain, bool mipmap)
 {
   for (Image &ima : bmain->images) {

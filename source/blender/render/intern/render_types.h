@@ -191,7 +191,7 @@ struct RenderDisplay {
   void ensure_system_gpu_context();
   void *ensure_blender_gpu_context();
 
-  void display_update(RenderResult *render_result, rcti *rect);
+  void display_update(RenderResult *render_result);
   void current_scene_update(struct Scene *scene);
 
   void stats_draw(RenderStats *render_stats);
@@ -203,7 +203,7 @@ struct RenderDisplay {
   bool test_break();
 
   /* Callbacks */
-  void (*display_update_cb)(void *handle, RenderResult *rr, rcti *rect) = nullptr;
+  void (*display_update_cb)(void *handle, RenderResult *rr) = nullptr;
   void *duh = nullptr;
   void (*current_scene_update_cb)(void *handle, struct Scene *scene) = nullptr;
   void *suh = nullptr;

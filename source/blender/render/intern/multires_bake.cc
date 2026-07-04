@@ -98,6 +98,7 @@
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
+#include "IMB_partial_update.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -1628,7 +1629,8 @@ static void finish_images(MultiresBakeRender &bake,
                      bake.bake_margin_type,
                      baked_ibuf.uv_offset);
 
-    BKE_image_mark_dirty(image, ibuf);
+    IMB_partial_update_mark_full(ibuf);
+    IMB_mark_dirty(ibuf);
 
     BKE_image_release_ibuf(image, ibuf, nullptr);
     DEG_id_tag_update(&image->id, 0);

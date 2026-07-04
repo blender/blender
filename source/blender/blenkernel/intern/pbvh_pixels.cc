@@ -20,6 +20,8 @@
 #include "BKE_image_wrappers.hh"
 #include "BKE_paint.hh"
 
+#include "IMB_partial_update.hh"
+
 #include "PRF_profile.hh"
 
 #include "pbvh_intern.hh"
@@ -316,9 +318,10 @@ static void apply_watertight_check(Tree &pbvh, Image &image, ImageUser &image_us
         }
       }
     });
+    IMB_partial_update_mark_full(image_buffer);
+    IMB_mark_dirty(image_buffer);
     BKE_image_release_ibuf(&image, image_buffer, nullptr);
   }
-  BKE_image_partial_update_mark_full_update(&image);
 }
 
 static float3 calc_pixel_position(const Span<float3> vert_positions,
@@ -512,7 +515,7 @@ void mark_image_dirty(bke::pbvh::Node & /*node*/,
         continue;
       }
 
-      pixel_node.mark_region(tile, image, *image_tile, *image_buffer);
+      pixel_node.mark_region(tile, *image_buffer);
     }
     pixel_node.flags.dirty = false;
   }

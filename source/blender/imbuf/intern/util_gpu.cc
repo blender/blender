@@ -15,7 +15,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include <cmath>
 #include <mutex>
 
 #include "CLG_log.h"
@@ -832,16 +831,6 @@ void IMB_free_gpu_textures(ImBuf *ibuf)
     ibuf->gpu.texture = nullptr;
   }
   ibuf->gpu.flag = ImBufGPUFlag(0);
-}
-
-void IMB_clear_gpu_load_failed(ImBuf *ibuf)
-{
-  if (!ibuf) {
-    return;
-  }
-
-  std::scoped_lock lock(ibuf->gpu.mutex);
-  ibuf->gpu.flag &= ~IMB_GPU_LOAD_FAILED;
 }
 
 void IMB_assign_gpu_texture(ImBuf *ibuf, gpu::Texture *texture)

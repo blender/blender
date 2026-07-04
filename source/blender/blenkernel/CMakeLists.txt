@@ -152,7 +152,6 @@ set(SRC
   intern/image_format.cc
   intern/image_gen.cc
   intern/image_gpu.cc
-  intern/image_partial_update.cc
   intern/image_save.cc
   intern/instances.cc
   intern/instances_attributes.cc

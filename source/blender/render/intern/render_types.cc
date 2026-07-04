@@ -130,10 +130,10 @@ void *RenderDisplay::ensure_blender_gpu_context()
   return blender_gpu_context;
 }
 
-void RenderDisplay::display_update(RenderResult *render_result, rcti *rect)
+void RenderDisplay::display_update(RenderResult *render_result)
 {
   if (display_update_cb) {
-    display_update_cb(duh, render_result, rect);
+    display_update_cb(duh, render_result);
   }
 }
 

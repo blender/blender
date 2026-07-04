@@ -41,6 +41,7 @@
 #include "IMB_imbuf_types.hh"
 #include "IMB_metadata.hh"
 #include "IMB_openexr.hh"
+#include "IMB_partial_update.hh"
 
 #include "MOV_read.hh"
 
@@ -930,7 +931,8 @@ bool BKE_image_scale(Image *image, int width, int height, ImageUser *iuser)
 
   if (ibuf) {
     IMB_scale(ibuf, width, height, IMBScaleFilter::Box, false);
-    BKE_image_mark_dirty(image, ibuf);
+    IMB_partial_update_mark_full(ibuf);
+    IMB_mark_dirty(ibuf);
   }
 
   BKE_image_release_ibuf(image, ibuf, lock);
@@ -1500,7 +1502,7 @@ void BKE_image_replace_imbuf(Image *image, ImBuf *ibuf)
 
   /* Consider image dirty since its content can not be re-created unless the image is explicitly
    * saved. */
-  BKE_image_mark_dirty(image, ibuf);
+  IMB_mark_dirty(ibuf);
 }
 
 /** Pack image buffer to memory as PNG or EXR. */
@@ -3269,7 +3271,6 @@ static void image_tag_reload(Image *ima, ID *iuser_id, ImageUser *iuser, void *c
       /* Must copy image user changes to evaluated data-block. */
       DEG_id_tag_update(iuser_id, ID_RECALC_SYNC_TO_EVAL);
     }
-    BKE_image_partial_update_mark_full_update_cache_locked(ima);
   }
 }
 
@@ -3296,7 +3297,6 @@ static void image_free_tile(Image *ima, ImageTile *tile)
 {
   /* UDIM tiles are packed into an atlas for the GPU, so need to free all. */
   BKE_image_free_gpu_udim_textures(ima);
-  BKE_image_partial_update_mark_full_update_cache_locked(ima);
 
   if (BKE_image_is_multiview(ima)) {
     const int totviews = ima->views.count();
@@ -3421,7 +3421,6 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
         image_tag_frame_recalc(ima, nullptr, iuser, ima);
       }
       BKE_image_walk_all_users(bmain, ima, image_tag_frame_recalc);
-      BKE_image_partial_update_mark_full_update_cache_locked(ima);
 
       break;
 
@@ -3684,7 +3683,6 @@ ImageTile *BKE_image_add_tile(Image *ima, int tile_number, const char *label)
   }
 
   BKE_image_free_gpu_udim_textures(ima);
-  BKE_image_partial_update_mark_full_update_cache_locked(ima);
 
   return tile;
 }
@@ -3728,7 +3726,6 @@ void BKE_image_reassign_tile(Image *ima, ImageTile *tile, int new_tile_number)
   }
 
   BKE_image_free_gpu_udim_textures(ima);
-  BKE_image_partial_update_mark_full_update_cache_locked(ima);
 }
 
 static int tile_sort_cb(const void *a, const void *b)
@@ -4039,7 +4036,6 @@ RenderResult *BKE_image_acquire_renderresult(Scene *scene, Image *ima)
     }
     else {
       rr = BKE_image_get_renderslot(ima, ima->render_slot)->render;
-      BKE_image_partial_update_mark_full_update_cache_locked(ima);
     }
 
     /* set proper views */
@@ -5687,11 +5683,6 @@ bool BKE_image_is_dirty_writable(Image *image, bool *r_is_writable)
 bool BKE_image_is_dirty(Image *image)
 {
   return BKE_image_is_dirty_writable(image, nullptr);
-}
-
-void BKE_image_mark_dirty(Image * /*image*/, ImBuf *ibuf)
-{
-  ibuf->userflags |= IB_BITMAPDIRTY;
 }
 
 bool BKE_image_buffer_format_writable(ImBuf *ibuf)

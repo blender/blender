@@ -45,6 +45,9 @@ void IMB_partial_update_mark_region(ImBuf *ibuf, const rcti &region);
 /** Mark the full image CPU buffer as modified. */
 void IMB_partial_update_mark_full(ImBuf *ibuf);
 
+/** Mark image buffer as having unsaved changes. */
+void IMB_mark_dirty(ImBuf *ibuf);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

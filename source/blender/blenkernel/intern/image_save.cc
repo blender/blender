@@ -704,7 +704,6 @@ bool BKE_image_save(
 
   if (colorspace_changed) {
     BKE_image_signal(bmain, ima, nullptr, IMA_SIGNAL_COLORMANAGE);
-    BKE_image_partial_update_mark_full_update(ima);
   }
 
   return ok;

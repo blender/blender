@@ -329,6 +329,11 @@ void IMB_partial_update_mark_full(ImBuf *ibuf)
   tracker.mark_full_update();
 }
 
+void IMB_mark_dirty(ImBuf *ibuf)
+{
+  ibuf->userflags |= IB_BITMAPDIRTY;
+}
+
 void IMB_partial_update_flush(ImBuf *ibuf)
 {
   std::scoped_lock lock(ibuf->partial_update_mutex);

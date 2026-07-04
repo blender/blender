@@ -93,7 +93,7 @@ bool BKE_image_has_gpu_texture(Image *ima);
 
 /**
  * Free GPU textures to recreate them from CPU buffers or reduce memory usage.
- * Most code should use BKE_image_partial_update_mark instead when making changes
+ * Most code should use #IMB_partial_update_mark_full instead when making changes
  * to image CPU buffers.
  */
 void BKE_image_free_gpu_texture_caches(Image *ima);
@@ -103,20 +103,6 @@ void BKE_image_free_all_gpu_texture_caches(Main *bmain);
  * Same as #BKE_image_free_all_gputextures but only free animated images.
  */
 void BKE_image_free_anim_gpu_texture_caches(Main *bmain);
-
-/**
- * Partial update of texture for texture painting.
- * This is often much quicker than fully updating the texture for high resolution images.
- */
-void BKE_image_update_gputexture(Image *ima, ImageUser *iuser, int x, int y, int w, int h);
-
-/**
- * Mark areas on the #gpu::Texture that need to be updated. The areas are marked in chunks.
- * The next time the #gpu::Texture is used these tiles will be refreshed. This saves time
- * when writing to the same place multiple times during foreground rendering.
- */
-void BKE_image_update_gputexture_delayed(
-    Image *ima, ImageTile *image_tile, ImBuf *ibuf, int x, int y, int w, int h);
 
 /**
  * Flush partial update for all UDIM tiles and return new changeset ID that

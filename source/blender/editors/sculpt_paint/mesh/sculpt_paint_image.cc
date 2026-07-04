@@ -633,7 +633,7 @@ static void do_paint_pixels(const Depsgraph &depsgraph,
     }
 
     if (tile_data.flags.dirty) {
-      BKE_image_mark_dirty(image_data.image, image_buffer);
+      IMB_mark_dirty(image_buffer);
     }
     pixels_updated |= tile_data.flags.dirty;
   }

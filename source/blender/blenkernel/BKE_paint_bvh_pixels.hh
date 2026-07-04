@@ -22,6 +22,7 @@
 #include "BKE_paint_bvh.hh"
 
 #include "IMB_imbuf_types.hh"
+#include "IMB_partial_update.hh"
 
 namespace blender::bke::pbvh::pixels {
 
@@ -129,20 +130,17 @@ struct PixelNode {
     return nullptr;
   }
 
-  void mark_region(UDIMTilePixels &tile,
-                   Image &image,
-                   const image::ImageTileWrapper &image_tile,
-                   ImBuf &image_buffer)
+  void mark_region(UDIMTilePixels &tile, ImBuf &image_buffer)
   {
     if (tile.flags.dirty) {
       if (image_buffer.color_mode == ImColorMode::BW) {
         image_buffer.color_mode = ImColorMode::RGBA;
-        BKE_image_partial_update_mark_full_update(&image);
+        IMB_partial_update_mark_full(&image_buffer);
       }
       else {
-        BKE_image_partial_update_mark_region(
-            &image, image_tile.image_tile, &image_buffer, &tile.dirty_region);
+        IMB_partial_update_mark_region(&image_buffer, tile.dirty_region);
       }
+      IMB_mark_dirty(&image_buffer);
       tile.clear_dirty();
     }
   }

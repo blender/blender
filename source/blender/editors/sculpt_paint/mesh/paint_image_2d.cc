@@ -1711,7 +1711,7 @@ void paint_2d_redraw(const bContext *C, void *ps, bool final)
     if (s->tiles[i].need_redraw) {
       ImBuf *ibuf = BKE_image_acquire_ibuf(s->image, &s->tiles[i].iuser, nullptr);
 
-      imapaint_image_update(s->sima, s->image, ibuf, &s->tiles[i].iuser, false);
+      imapaint_image_update(ibuf);
 
       BKE_image_release_ibuf(s->image, ibuf, nullptr);
 
@@ -1731,10 +1731,6 @@ void paint_2d_redraw(const bContext *C, void *ps, bool final)
   }
 
   if (final) {
-    if (s->image && !(s->sima && s->sima->lock)) {
-      BKE_image_partial_update_mark_full_update(s->image);
-    }
-
     /* compositor listener deals with updating */
     WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, s->image);
     DEG_id_tag_update(&s->image->id, 0);
@@ -2032,7 +2028,7 @@ void paint_2d_bucket_fill(const bContext *C,
     BLI_stack_free(stack);
   }
 
-  imapaint_image_update(sima, ima, ibuf, iuser, false);
+  imapaint_image_update(ibuf);
   ED_imapaint_clear_partial_redraw();
 
   BKE_image_release_ibuf(ima, ibuf, nullptr);
@@ -2156,7 +2152,7 @@ void paint_2d_gradient_fill(
     }
   }
 
-  imapaint_image_update(sima, ima, ibuf, iuser, false);
+  imapaint_image_update(ibuf);
   ED_imapaint_clear_partial_redraw();
 
   BKE_image_release_ibuf(ima, ibuf, nullptr);

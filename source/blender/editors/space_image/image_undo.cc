@@ -29,6 +29,7 @@
 #include "BLI_math_base_c.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_mutex.hh"
+#include "BLI_rect.hh"
 #include "BLI_string.hh"
 #include "BLI_task.hh"
 #include "BLI_threads.hh"
@@ -43,6 +44,7 @@
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
+#include "IMB_partial_update.hh"
 
 #include "BKE_context.hh"
 #include "BKE_image.hh"
@@ -306,7 +308,13 @@ static void ptile_restore_runtime_map(PaintTileMap *paint_tile_map)
                     tile_copy_size);
     }
 
-    BKE_image_partial_update_mark_full_update(image);
+    rcti region;
+    BLI_rcti_init(&region,
+                  tile_pos.x,
+                  tile_pos.x + tile_copy_size.x,
+                  tile_pos.y,
+                  tile_pos.y + tile_copy_size.y);
+    IMB_partial_update_mark_region(ibuf, region);
 
     BKE_image_release_ibuf(image, ibuf, nullptr);
   }
@@ -571,9 +579,9 @@ static void uhandle_restore_list(ListBaseT<UndoImageHandle> *undo_handles, bool 
     }
 
     if (changed) {
-      BKE_image_mark_dirty(image, ibuf);
       /* TODO(@jbakker): only mark areas that are actually updated to improve performance. */
-      BKE_image_partial_update_mark_full_update(image);
+      IMB_partial_update_mark_full(ibuf);
+      IMB_mark_dirty(ibuf);
 
       DEG_id_tag_update(&image->id, 0);
     }
