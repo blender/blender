@@ -1277,10 +1277,10 @@ void transform_mode_rotation_axis_get(const TransInfo *t, float3 &r_axis)
   }
   else {
     r_axis = t->spacemtx[t->orient_axis];
-    /* For unconstrained rotation in the 3D viewport, flip the axis so the rotation direction
-     * matches the mouse movement in view space. */
+    /* For unconstrained rotation in the 3D viewport and UV editor, flip the axis so the rotation
+     * direction matches the mouse movement in view space. */
     if ((t->mode == TFM_ROTATION) && (t->con.mode & CON_APPLY) == 0 &&
-        (t->spacetype == SPACE_VIEW3D))
+        ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE))
     {
       r_axis = -r_axis;
     }
