@@ -537,6 +537,12 @@ void ED_gizmo_arrow3d_set_range_fac(wmGizmo *gz, const float range_fac)
   arrow->data.range_fac = range_fac;
 }
 
+void ED_gizmo_arrow3d_reset_offset(wmGizmo *gz)
+{
+  ArrowGizmo3D *arrow = reinterpret_cast<ArrowGizmo3D *>(gz);
+  arrow->data.offset = 0.0f;
+}
+
 static void GIZMO_GT_arrow_3d(wmGizmoType *gzt)
 {
   /* identifiers */
