@@ -1386,7 +1386,8 @@ void popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
   }
 
   PointerRNA prefs_ptr = RNA_pointer_create_discrete(nullptr, RNA_PreferencesSystem, &U);
-  layout.prop(&prefs_ptr, "show_panel_tabs_compact", UI_ITEM_NONE, "Compact Tabs", ICON_NONE);
+  layout.prop(
+      &prefs_ptr, "show_panel_tabs_compact", UI_ITEM_NONE, IFACE_("Compact Tabs"), ICON_NONE);
 
   popup_menu_end(C, pup);
 }
