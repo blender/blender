@@ -1308,7 +1308,7 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
   if (copy_handles_to_sel) {
     copy_to = seq::query_selected_strips(seq::active_seqbase_get(scene->ed));
     copy_to.remove(selection.strip1);
-    copy_to.remove_if([](Strip *strip) { return strip->is_effect(); });
+    copy_to.remove_if([](Strip *strip) { return strip->is_effect_with_inputs(); });
   }
 
   bool changed = false;
