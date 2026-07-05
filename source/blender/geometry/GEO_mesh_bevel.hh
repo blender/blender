@@ -17,7 +17,7 @@ struct Mesh;
 namespace blender::geometry {
 
 /** \warning Each of following enum values  are saved in files.
- * Currently, they also need to be in synch with values in bmesh_opdefines.h
+ * Currently, they also need to be in sync with values in bmesh_opdefines.h
  * and DNA_modifier_types.h. */
 enum class BevelAffect {
   Vertices = 0,
@@ -52,13 +52,15 @@ struct BevelParameters {
    * Endpoint values (index 0 and last) are always (1,0) and (0,1) so that
    * they align with the bevel strip corners, matching the #CurveProfile convention. */
   Array<float2> custom_profile_samples;
-  /** Blender units to offset eacjh end of each edge.
+  /**
+   * Blender units to offset each end of each edge.
    * A 4d Array of Arrays indexed by mesh edge id.
    * If affect_type is Edges or Faces, these are in order: source end (left, right), destination
    * end (left, right), viewed from the source end looking towards the destination end,
    * standing on the normal positive side.
    * If affect_type is Vertices, these are the amounts to move along each edge
-   * from the vertex, and only the first and third values are used. */
+   * from the vertex, and only the first and third values are used.
+   */
   std::array<Array<float>, 4> offsets;
   /** Per corner bool saying whether or not to miter at that corner. */
   Array<bool> miter;

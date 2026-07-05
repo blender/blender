@@ -86,7 +86,7 @@
 
 /* Fragment shader color input index for subpass input.
  * `sampler_type` is the type of image to bind to this (e.g. usampler2DArray).
- * It must be compatible with the framebuffer attachment type. */
+ * It must be compatible with the frame-buffer attachment type. */
 #  define subpass_input(index, sampler_type) maybe_unused
 
 /* Fragment shader output. */

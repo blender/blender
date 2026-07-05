@@ -193,7 +193,8 @@ static wmOperatorStatus vr_location_scouting_capture_review_invoke(bContext *C,
   op_data->cam_ob = BKE_id_new_nomain<Object>("ReviewCaptureCamera");
   op_data->cam_ob->type = OB_CAMERA;
 
-  /* Lock rotation to prevent user from exiting the review camera view. Re-using quadview flags. */
+  /* Lock rotation to prevent user from exiting the review camera view.
+   * Re-using quad-view flags. */
   rv3d->viewlock |= RV3D_LOCK_ROTATION;
 
   op_data->cam_data = BKE_id_new_nomain<Camera>("ReviewCaptureCameraData");

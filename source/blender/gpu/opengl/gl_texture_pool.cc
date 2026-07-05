@@ -102,7 +102,7 @@ Texture *GLTexturePool::acquire_texture_impl(int3 extent,
   if (match_index != -1) {
     texture_handle.texture = pool_[match_index].texture;
     pool_.remove_and_reorder(match_index);
-    /* Overide the usage. It doesn't really apply to OpenGL in practice, but `GPU_texture_usage`
+    /* Override the usage. It doesn't really apply to OpenGL in practice, but `GPU_texture_usage`
      * callers may still rely on it. */
     texture_handle.texture->usage_set(usage | GPU_TEXTURE_USAGE_FORMAT_VIEW);
   }

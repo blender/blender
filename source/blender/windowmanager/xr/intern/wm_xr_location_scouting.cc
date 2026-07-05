@@ -253,7 +253,7 @@ static bool wm_xr_viewfinder_get_capture_mat(const XrSessionSettings *settings,
   const float height_offset = (viewfinder_height / 2) * xr_ui_unit_fac * -1;
   const float viewfinder_vertical_offset = base_controller_offset + height_offset;
 
-  /* Obtain viewfinder capture mat from the choosen controller grip mat. */
+  /* Obtain viewfinder capture mat from the chosen controller grip mat. */
   float viewfinder_mat[4][4];
   copy_m4_m4(viewfinder_mat, viewfinder_controller->grip_mat);
   translate_m4(viewfinder_mat, 0.0f, 0.0f, viewfinder_vertical_offset);

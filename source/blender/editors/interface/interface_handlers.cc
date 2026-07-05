@@ -13312,7 +13312,7 @@ static bool popup_needs_update_for_unreg_srna_recursive(bContext *C,
       ED_region_tag_redraw(popup_block_handle->region);
       return false;
     }
-    /* This popup can't be refreshed, try to refesh parent popup. */
+    /* This popup can't be refreshed, try to refresh parent popup. */
     return true;
   }
 
@@ -13331,7 +13331,7 @@ static bool popup_needs_update_for_unreg_srna_recursive(bContext *C,
     return false;
   }
 
-  /* This popup can't be refreshed, try to refesh parent popup. */
+  /* This popup can't be refreshed, try to refresh parent popup. */
   return true;
 }
 

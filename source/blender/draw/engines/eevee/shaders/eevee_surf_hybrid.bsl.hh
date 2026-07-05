@@ -49,7 +49,7 @@ float4 closure_to_rgba_hybrid(Closure /*cl*/)
 
 #if defined(MAT_TRANSPARENT) && defined(MAT_SHADER_TO_RGBA)
   { /* Limit resource guard to this scope. */
-    /* clang-format off */ /* Multiline macro breaks error line counting. */
+    /* clang-format off */ /* Multi-line macro breaks error line counting. */
     [[resource_table]] eevee::LightprobeRenderData &lightprobes = resource_table_get(eevee::LightprobeRenderData);
     /* clang-format on */
     [[resource_table]] eevee::LightprobeSphereRenderData &lp_spheres = lightprobes.spheres;
@@ -199,7 +199,7 @@ void surf_hybrid([[resource_table]] PipelineConstants &pipe,
   /* ----- GBuffer output ----- */
 
   gbuffer::InputClosures gbuf_data;
-  /* Make sure we we do not read uninitialized data (see #159161). */
+  /* Make sure we do not read uninitialized data (see #159161). */
   if (pipe.closure_bin_count == 0) [[static_branch]] {
     gbuf_data.closure[0] = ClosureUndetermined{};
   }

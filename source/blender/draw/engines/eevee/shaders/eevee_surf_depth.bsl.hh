@@ -99,7 +99,7 @@ void surf_depth([[resource_table]] PipelineConstants &pipe,
 
   if constexpr (with_velocity) {
     if (pipe.use_velocity) [[static_branch]] {
-      /* clang-format off */ /* Multiline define messes up line index. */
+      /* clang-format off */ /* Multi-line define messes up line index. */
       [[resource_table]] const GeometryVelocity &geo_vel = resource_table_get(eevee::GeometryVelocity);
       /* clang-format on */
       [[resource_table]] const CameraVelocity &cam_vel = geo_vel.camera;

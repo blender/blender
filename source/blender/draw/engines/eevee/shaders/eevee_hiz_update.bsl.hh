@@ -47,7 +47,7 @@ struct Update {
 
   [[shared]] float local_depths[HIZ_GROUP_SIZE][HIZ_GROUP_SIZE];
 
-  /* Load values from the previous lod level. */
+  /* Load values from the previous LOD level. */
   float4 load_local_depths(int2 pixel)
   {
     pixel *= 2;

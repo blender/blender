@@ -48,7 +48,7 @@ uint64_t EmittedGeometryKey::hash() const
 
 static bool object_disables_geometry_sharing(Scene *scene, eEvaluationMode mode, Object *ob)
 {
-  /* Metaballs are merged together. */
+  /* Meta-balls are merged together. */
   if (ob->type == OB_MBALL) {
     return true;
   }

@@ -608,8 +608,8 @@ ImBuf *imb_thumbnail_jpeg(const char *filepath,
 /** \name Save JPG Image
  * \{ */
 
-/* libjpeg has a maximum comment/marker length of 65533, however it does not provide a definition
- * for that, so we hardcode it ourselves. */
+/* `libjpeg` has a maximum comment/marker length of 65533, however it does not provide a definition
+ * for that, so we hard-code it ourselves. */
 #define MAX_LIBJPEG_MARKER_LENGTH 65533
 
 static void write_jpeg(jpeg_compress_struct *cinfo, ImBuf *ibuf)
@@ -663,8 +663,8 @@ static void write_jpeg(jpeg_compress_struct *cinfo, ImBuf *ibuf)
          */
         text_len = BLI_snprintf_utf8_rlen(
             text, text_size, "Blender:%s:%s", prop.name, IDP_string_get(&prop));
-        /* Truncate the data if it does not fit in a single marker, as giving a buffer to libjpeg
-         * bigger that MAX_LIBJPEG_MARKER_LENGTH will result in the JPEG file not being written.
+        /* Truncate the data if it does not fit in a single marker, as giving a buffer to `libjpeg`
+         * bigger that #MAX_LIBJPEG_MARKER_LENGTH will result in the JPEG file not being written.
          * See #158751.
          */
         if (text_len > MAX_LIBJPEG_MARKER_LENGTH) {
