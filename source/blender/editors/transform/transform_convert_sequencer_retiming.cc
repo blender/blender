@@ -29,18 +29,16 @@
 
 namespace blender::ed::transform {
 
-/** Used for sequencer transform. */
+namespace {
+
+/** Used for sequencer retiming transform. */
 struct TransDataSeq {
   Strip *strip;
   int orig_timeline_frame;
   int key_index; /* Some actions may need to destroy original data, use index to access it. */
 };
 
-struct TransSeq {
-  TransDataSeq *tdseq;
-  /* Maximum delta allowed before clamping selected retiming keys. Always active. */
-  rcti offset_clamp;
-};
+}  // namespace
 
 static TransData *SeqToTransData(const Scene *scene,
                                  Strip *strip,
@@ -102,7 +100,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
 
   if ((custom_data->data != nullptr) && custom_data->use_free) {
     TransSeq *ts = static_cast<TransSeq *>(custom_data->data);
-    MEM_delete(ts->tdseq);
+    MEM_delete(static_cast<TransDataSeq *>(ts->tdseq));
     MEM_delete(ts);
     custom_data->data = nullptr;
   }

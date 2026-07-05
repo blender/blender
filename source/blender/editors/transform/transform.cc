@@ -798,6 +798,9 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
       if (t->spacetype != SPACE_SEQ) {
         return false;
       }
+      if (t->data_type == &TransConvertType_SequencerRetiming) {
+        return false;
+      }
       break;
   }
   return true;
