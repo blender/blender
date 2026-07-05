@@ -6,6 +6,7 @@
  * \ingroup imbuf
  */
 
+#include "BLI_array.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_mutex.hh"
@@ -131,6 +132,18 @@ bool IMB_gpu_get_compressed_format(const ImBuf *ibuf, gpu::TextureFormat *r_text
     return true;
   }
   return false;
+}
+
+/* Extract the first channel of an RGBA buffer into a single channel, for uploading grayscale. */
+template<typename T>
+static void imb_gpu_extract_first_channel(
+    const T *src, const int channels, const int stride, const int w, const int h, T *r_gray)
+{
+  for (int row = 0; row < h; row++) {
+    for (int col = 0; col < w; col++) {
+      r_gray[size_t(row) * w + col] = src[(size_t(row) * stride + col) * channels];
+    }
+  }
 }
 
 /* Returns an image buffer containing the data from the source buffer but suitable for uploading to
@@ -296,11 +309,12 @@ static ImBuf *get_gpu_texture_data(ImBuf *source_buffer,
     if (output_buffer->float_data()) {
       ImBuf *buffer = IMB_allocImBuf(output_buffer->x, output_buffer->y, ImBufFlags::Zero);
       IMB_alloc_float_pixels(buffer, 1);
-      const float *source_pixels = output_buffer->float_data();
-      float *target_pixels = buffer->float_data_for_write();
-      for (size_t i = 0; i < buffer_size; i++) {
-        target_pixels[i] = source_pixels[i * 4];
-      }
+      imb_gpu_extract_first_channel(output_buffer->float_data(),
+                                    output_buffer->channels,
+                                    output_buffer->x,
+                                    output_buffer->x,
+                                    output_buffer->y,
+                                    buffer->float_data_for_write());
       IMB_freeImBuf(output_buffer);
       output_buffer = buffer;
     }
@@ -308,11 +322,12 @@ static ImBuf *get_gpu_texture_data(ImBuf *source_buffer,
       ImBuf *buffer = IMB_allocImBuf(output_buffer->x, output_buffer->y, ImBufFlags::Zero);
       buffer->color_mode = ImColorMode::BW;
       buffer->assign_byte_data(MEM_new_array_uninitialized<uint8_t>(buffer_size, __func__));
-      const uint8_t *source_pixels = output_buffer->byte_data();
-      uint8_t *target_pixels = buffer->byte_data_for_write();
-      for (size_t i = 0; i < buffer_size; i++) {
-        target_pixels[i] = source_pixels[i * 4];
-      }
+      imb_gpu_extract_first_channel(output_buffer->byte_data(),
+                                    output_buffer->channels,
+                                    output_buffer->x,
+                                    output_buffer->x,
+                                    output_buffer->y,
+                                    buffer->byte_data_for_write());
       IMB_freeImBuf(output_buffer);
       output_buffer = buffer;
     }
@@ -547,7 +562,8 @@ static void gpu_texture_update_scaled(gpu::Texture *tex,
                                       const int *tile_offset,
                                       const int *tile_size,
                                       int w,
-                                      int h)
+                                      int h,
+                                      const bool is_grayscale)
 {
   ImBuf *ibuf;
   if (layer > -1) {
@@ -566,11 +582,26 @@ static void gpu_texture_update_scaled(gpu::Texture *tex,
     ibuf = update_do_scale(rect, rect_float, &x, &y, &w, &h, limit_w, limit_h, full_w, full_h);
   }
 
-  const void *data = ibuf->float_data() ? static_cast<const void *>(ibuf->float_data()) :
-                                          static_cast<const void *>(ibuf->byte_data());
-  eGPUDataFormat data_format = ibuf->float_data() ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
+  if (is_grayscale) {
+    if (ibuf->float_data()) {
+      Array<float> gray(int64_t(w) * int64_t(h));
+      imb_gpu_extract_first_channel(
+          ibuf->float_data(), ibuf->channels, ibuf->x, w, h, gray.data());
+      GPU_texture_update_sub(tex, GPU_DATA_FLOAT, gray.data(), x, y, math::max(layer, 0), w, h, 1);
+    }
+    else {
+      Array<uchar> gray(int64_t(w) * int64_t(h));
+      imb_gpu_extract_first_channel(ibuf->byte_data(), ibuf->channels, ibuf->x, w, h, gray.data());
+      GPU_texture_update_sub(tex, GPU_DATA_UBYTE, gray.data(), x, y, math::max(layer, 0), w, h, 1);
+    }
+  }
+  else {
+    const void *data = ibuf->float_data() ? static_cast<const void *>(ibuf->float_data()) :
+                                            static_cast<const void *>(ibuf->byte_data());
+    eGPUDataFormat data_format = ibuf->float_data() ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
 
-  GPU_texture_update_sub(tex, data_format, data, x, y, math::max(layer, 0), w, h, 1);
+    GPU_texture_update_sub(tex, data_format, data, x, y, math::max(layer, 0), w, h, 1);
+  }
 
   IMB_freeImBuf(ibuf);
 }
@@ -585,12 +616,29 @@ static void gpu_texture_update_unscaled(gpu::Texture *tex,
                                         int w,
                                         int h,
                                         int tex_stride,
-                                        int tex_offset)
+                                        int tex_offset,
+                                        int channels,
+                                        const bool is_grayscale)
 {
   if (layer > -1) {
     /* Shift to account for tile packing. */
     x += tile_offset.x;
     y += tile_offset.y;
+  }
+
+  if (is_grayscale) {
+    if (rect_float) {
+      Array<float> gray(int64_t(w) * int64_t(h));
+      imb_gpu_extract_first_channel(
+          rect_float + tex_offset, channels, tex_stride, w, h, gray.data());
+      GPU_texture_update_sub(tex, GPU_DATA_FLOAT, gray.data(), x, y, math::max(layer, 0), w, h, 1);
+    }
+    else {
+      Array<uchar> gray(int64_t(w) * int64_t(h));
+      imb_gpu_extract_first_channel(rect + tex_offset, channels, tex_stride, w, h, gray.data());
+      GPU_texture_update_sub(tex, GPU_DATA_UBYTE, gray.data(), x, y, math::max(layer, 0), w, h, 1);
+    }
+    return;
   }
 
   void *data = (rect_float) ? static_cast<void *>(rect_float + tex_offset) :
@@ -633,17 +681,20 @@ static void imb_gpu_texture_update_region(gpu::Texture *tex,
     h = ymax - y;
   }
 
+  const bool is_grayscale = GPU_texture_component_len(GPU_texture_format(tex)) == 1;
+
   /* Get texture data pointers. */
   float *rect_float = ibuf->float_data_for_write();
   uchar *rect = ibuf->byte_data_for_write();
   int tex_stride = ibuf->x;
   int tex_offset = ibuf->channels * (y * ibuf->x + x);
+  int src_channels = ibuf->channels;
 
   if (rect_float) {
     /* Float image is already in scene linear colorspace or non-color data by
      * convention, no colorspace conversion needed. But we do require 4 channels
      * currently. */
-    if (ibuf->channels != 4 || scaled || !store_premultiplied) {
+    if (src_channels != 4 || scaled || !store_premultiplied) {
       rect_float = MEM_new_array_uninitialized<float>(4 * size_t(w) * size_t(h), __func__);
       if (rect_float == nullptr) {
         return;
@@ -651,6 +702,7 @@ static void imb_gpu_texture_update_region(gpu::Texture *tex,
 
       tex_stride = w;
       tex_offset = 0;
+      src_channels = 4;
 
       IMB_colormanagement_imbuf_to_float_texture(
           rect_float, x, y, w, h, ibuf, store_premultiplied);
@@ -661,12 +713,14 @@ static void imb_gpu_texture_update_region(gpu::Texture *tex,
     if (IMB_colormanagement_space_is_data(ibuf->byte_buffer.colorspace) && !scaled) {
       /* Not scaled Non-color data, just store buffer as is. */
     }
-    else if (IMB_colormanagement_space_is_scene_linear_srgb(ibuf->byte_buffer.colorspace) ||
+    else if ((IMB_colormanagement_space_is_scene_linear_srgb(ibuf->byte_buffer.colorspace) &&
+              !is_grayscale) ||
              IMB_colormanagement_space_is_scene_linear(ibuf->byte_buffer.colorspace) ||
              IMB_colormanagement_space_is_data(ibuf->byte_buffer.colorspace))
     {
       /* scene linear + sRGB transfer function or scene linear or scaled down non-color data,
-       * store as byte texture that the GPU can decode directly. */
+       * store as byte texture that the GPU can decode directly. Grayscale sRGB is an exception
+       * that uses a float texture (see #imb_gpu_get_format), so it takes the float path below. */
       rect = MEM_new_array_uninitialized<uchar>(4 * size_t(w) * size_t(h), __func__);
       if (rect == nullptr) {
         return;
@@ -674,6 +728,7 @@ static void imb_gpu_texture_update_region(gpu::Texture *tex,
 
       tex_stride = w;
       tex_offset = 0;
+      src_channels = 4;
 
       /* Convert to scene linear with sRGB compression, and premultiplied for
        * correct texture interpolation. */
@@ -688,6 +743,7 @@ static void imb_gpu_texture_update_region(gpu::Texture *tex,
 
       tex_stride = w;
       tex_offset = 0;
+      src_channels = 4;
 
       IMB_colormanagement_imbuf_to_float_texture(
           rect_float, x, y, w, h, ibuf, store_premultiplied);
@@ -695,12 +751,34 @@ static void imb_gpu_texture_update_region(gpu::Texture *tex,
   }
 
   if (scaled) {
-    gpu_texture_update_scaled(
-        tex, rect, rect_float, ibuf->x, ibuf->y, x, y, layer, tile_offset, tile_size, w, h);
+    gpu_texture_update_scaled(tex,
+                              rect,
+                              rect_float,
+                              ibuf->x,
+                              ibuf->y,
+                              x,
+                              y,
+                              layer,
+                              tile_offset,
+                              tile_size,
+                              w,
+                              h,
+                              is_grayscale);
   }
   else {
-    gpu_texture_update_unscaled(
-        tex, rect, rect_float, x, y, layer, tile_offset, w, h, tex_stride, tex_offset);
+    gpu_texture_update_unscaled(tex,
+                                rect,
+                                rect_float,
+                                x,
+                                y,
+                                layer,
+                                tile_offset,
+                                w,
+                                h,
+                                tex_stride,
+                                tex_offset,
+                                src_channels,
+                                is_grayscale);
   }
 
   /* Free buffers if needed. */
