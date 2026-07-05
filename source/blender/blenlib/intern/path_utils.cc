@@ -1026,7 +1026,7 @@ bool BLI_path_frame_get(const char *path, int *r_frame, int *r_digits_len)
 
   *r_digits_len = digits_len;
 
-  /* Only consider numbers inside the range of valid framenumbers (ints). */
+  /* Only consider numbers inside the range of valid frame-numbers (ints). */
   /* No need to trim the string, `strtoll` ignores non-digits. */
   const long long num = strtoll(c, nullptr, 10);
   if (num > INT_MAX) {
@@ -1067,8 +1067,8 @@ void BLI_path_frame_strip(char *path, char *r_ext, const size_t ext_maxncpy)
     }
   }
   else {
-    /* Dont strip numbers outside the range of valid framenumbers (ints). So go back to where we
-     * were before finding the start of the number. */
+    /* Don't strip numbers outside the range of valid frame-numbers (ints).
+     * So go back to where we were before finding the start of the number. */
     c += digits_len;
   }
 

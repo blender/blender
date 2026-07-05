@@ -60,7 +60,8 @@ struct BevelParameters {
    * end (left, right), viewed from the source end looking towards the destination end,
    * standing on the normal positive side.
    * If affect_type is Vertices, these are the amounts to move along each edge
-   * from the vertex, and only the first and third values are used. */
+   * from the vertex, and only the first and third values are used.
+   */
   std::array<Array<float>, 4> offsets;
   /** Per corner bool saying whether or not to miter at that corner. */
   Array<bool> miter;

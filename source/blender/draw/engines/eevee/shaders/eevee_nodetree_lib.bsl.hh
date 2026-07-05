@@ -27,7 +27,7 @@
 
 uint resource_id_get()
 {
-  /* clang-format off */ /* Multiline macro mess the shader log line. */
+  /* clang-format off */ /* Multi-line macro mess the shader log line. */
   [[resource_table]] const eevee::PipelineConstants &pipe = resource_table_get(eevee::PipelineConstants);
   /* clang-format on */
   auto &interp_flat = interface_get(eevee_geom_iface_info, interp_flat);
@@ -40,7 +40,7 @@ uint resource_id_get()
 
 uint view_id_get()
 {
-  /* clang-format off */ /* Multiline macro mess the shader log line. */
+  /* clang-format off */ /* Multi-line macro mess the shader log line. */
   [[resource_table]] const eevee::PipelineConstants &pipe = resource_table_get(eevee::PipelineConstants);
   /* clang-format on */
   auto &interp_flat = interface_get(eevee_geom_iface_info, interp_flat);
@@ -287,7 +287,7 @@ float ambient_occlusion_eval([[maybe_unused]] float3 normal,
 {
   FRAGMENT_SHADER_CREATE_INFO(draw_view);
 
-  /* clang-format off */ /* Multiline macros would break line count. */
+  /* clang-format off */ /* Multi-line macros would break line count. */
   [[resource_table]] [[maybe_unused]] const eevee::Sampling &samp = resource_table_get(eevee::Sampling);
   [[resource_table]] [[maybe_unused]] const UtilityTexture &util_tx = resource_table_get(UtilityTexture);
   [[resource_table]] [[maybe_unused]] const eevee::HiZ &hiz = resource_table_get(eevee::HiZ);
