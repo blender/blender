@@ -448,9 +448,10 @@ static void image_gpu_atlas_try_partial_update(Image *image, ImageUser *iuser)
   }
   gpu::Texture *atlas_tex = atlas_ibuf->gpu.texture;
 
-  /* A tile whose changes can no longer be reconstructed forces a full atlas rebuild. Existing
-   * partial uploads are then discarded, but this is rare (history exhausted). */
+  /* A resized tile invalidates the atlas packing and forces a rebuild of all tiles. */
   bool need_full_rebuild = false;
+
+  bool need_mipmap_update = false;
 
   ImageUser tile_user = {};
   if (iuser != nullptr) {
@@ -469,11 +470,14 @@ static void image_gpu_atlas_try_partial_update(Image *image, ImageUser *iuser)
     void *lock;
     ImBuf *ibuf = BKE_image_acquire_ibuf(image, &tile_user, &lock);
     if (ibuf != nullptr) {
-      const Changes changes = IMB_partial_update_collect(ibuf, last_changeset_id);
+      Changes changes = IMB_partial_update_collect(ibuf, last_changeset_id);
       switch (changes.kind) {
-        case Changes::Kind::Full:
+        case Changes::Kind::Resized:
           need_full_rebuild = true;
           break;
+        case Changes::Kind::Full:
+          changes.updated_regions.append({0, ibuf->x, 0, ibuf->y});
+          [[fallthrough]];
         case Changes::Kind::Partial:
           if (atlas_tex != nullptr) {
             const bool store_premultiplied = BKE_image_has_gpu_texture_premultiplied_alpha(image,
@@ -485,6 +489,7 @@ static void image_gpu_atlas_try_partial_update(Image *image, ImageUser *iuser)
                                                  tile.runtime.tilearray_layer,
                                                  int2(tile.runtime.tilearray_offset),
                                                  int2(tile.runtime.tilearray_size));
+            need_mipmap_update |= !(ibuf->gpu.flag & IMB_GPU_DISABLE_MIPMAP_UPDATE);
           }
           break;
         case Changes::Kind::None:
@@ -496,6 +501,11 @@ static void image_gpu_atlas_try_partial_update(Image *image, ImageUser *iuser)
     if (need_full_rebuild) {
       break;
     }
+  }
+
+  if (need_mipmap_update && !need_full_rebuild) {
+    GPU_texture_update_mipmap_chain(atlas_tex);
+    atlas_ibuf->gpu.flag |= IMB_GPU_MIPMAP_COMPLETE;
   }
 
   atlas_ibuf->gpu.partial_update_changeset = new_changeset_id;

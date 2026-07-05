@@ -68,6 +68,8 @@ struct Changes {
     Partial,
     /** Full image buffer needs to be updated. */
     Full,
+    /** Image buffer resolution changed. */
+    Resized,
   };
 
   Kind kind = Kind::None;

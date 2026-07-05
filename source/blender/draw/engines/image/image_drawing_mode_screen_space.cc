@@ -104,6 +104,7 @@ void ScreenSpaceDrawingMode::update_textures(blender::Image *image, ImageUser *i
     const Changes changes = IMB_partial_update_collect(tile_buffer, last_changset_id);
     switch (changes.kind) {
       case Changes::Kind::Full:
+      case Changes::Kind::Resized:
         need_full_update = true;
         break;
       case Changes::Kind::Partial:

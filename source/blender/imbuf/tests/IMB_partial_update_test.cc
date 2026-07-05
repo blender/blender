@@ -83,6 +83,35 @@ TEST_F(IMBPartialUpdateTest, mark_update_global_order)
   IMB_freeImBuf(later);
 }
 
+TEST_F(IMBPartialUpdateTest, resize)
+{
+  int64_t changeset_id = -1;
+
+  /* Add some history. */
+  EXPECT_EQ(collect(image_buffer, changeset_id).kind, Changes::Kind::Full);
+  rcti region;
+  BLI_rcti_init(&region, 10, 20, 40, 50);
+  IMB_partial_update_mark_region(image_buffer, region);
+  EXPECT_EQ(collect(image_buffer, changeset_id).kind, Changes::Kind::Partial);
+
+  /* A consumer in sync at the old resolution. */
+  int64_t old_changeset_id = changeset_id;
+
+  /* Change resolution. and detect resize */
+  IMB_scale(image_buffer, 512, 512, IMBScaleFilter::Nearest);
+  EXPECT_EQ(collect(image_buffer, old_changeset_id).kind, Changes::Kind::Resized);
+  EXPECT_EQ(collect(image_buffer, old_changeset_id).kind, Changes::Kind::None);
+
+  /* Check resize is no longer detected. */
+  IMB_partial_update_mark_full(image_buffer);
+  EXPECT_EQ(collect(image_buffer, old_changeset_id).kind, Changes::Kind::Full);
+
+  /* Ensure resize followed by full is resize. */
+  IMB_scale(image_buffer, 256, 256, IMBScaleFilter::Nearest);
+  IMB_partial_update_mark_full(image_buffer);
+  EXPECT_EQ(collect(image_buffer, old_changeset_id).kind, Changes::Kind::Resized);
+}
+
 TEST_F(IMBPartialUpdateTest, mark_single_region)
 {
   int64_t changeset_id = -1;

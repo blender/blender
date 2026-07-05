@@ -184,6 +184,10 @@ struct Tracker {
   ChangesetID first_changeset_id = 0;
   /** Changeset id of the top changeset kept in #history. */
   ChangesetID last_changeset_id = 0;
+  /** Changeset id at which the buffer resolution last changed. */
+  ChangesetID last_resize_changeset_id = 0;
+  /** Buffer resolution the tracker last observed. */
+  int buffer_width = 0, buffer_height = 0;
 
   /** History of changesets. */
   Vector<Changeset> history;
@@ -197,10 +201,19 @@ struct Tracker {
 
   void update_resolution(const ImBuf *image_buffer)
   {
-    const bool has_modified_chunks = current_changeset.has_modified_chunks();
-    const bool resolution_changed = current_changeset.update_resolution(image_buffer);
-    if (has_modified_chunks && resolution_changed && !history.is_empty()) {
+    current_changeset.update_resolution(image_buffer);
+
+    if (buffer_width == image_buffer->x && buffer_height == image_buffer->y) {
+      return;
+    }
+
+    const bool had_resolution = buffer_width != 0 || buffer_height != 0;
+    buffer_width = image_buffer->x;
+    buffer_height = image_buffer->y;
+
+    if (had_resolution) {
       mark_full_update();
+      last_resize_changeset_id = last_changeset_id;
     }
   }
 
@@ -350,7 +363,9 @@ Changes IMB_partial_update_collect(ImBuf *ibuf, const int64_t last_changeset_id)
   Changes changes;
 
   if (last_changeset_id < tracker.first_changeset_id) {
-    changes.kind = Changes::Kind::Full;
+    const bool resized = tracker.last_resize_changeset_id != 0 &&
+                         last_changeset_id < tracker.last_resize_changeset_id;
+    changes.kind = resized ? Changes::Kind::Resized : Changes::Kind::Full;
     return changes;
   }
 
