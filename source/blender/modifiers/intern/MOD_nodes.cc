@@ -396,7 +396,7 @@ static void update_system_properties(Object &object, NodesModifierData &nmd)
   }
   PointerRNA properties_ptr = RNA_pointer_create_discrete(
       &object.id, RNA_NodesModifierProperties, &nmd);
-  RNA_sync_system_properties(properties_ptr, *nmd.modifier.system_properties);
+  RNA_ensure_and_sync_system_properties(properties_ptr, *nmd.modifier.system_properties);
 }
 
 void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
