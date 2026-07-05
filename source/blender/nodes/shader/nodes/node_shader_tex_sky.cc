@@ -44,7 +44,7 @@ static void node_shader_buts_tex_sky(ui::Layout &layout, bContext *C, PointerRNA
   else {
     Scene *scene = CTX_data_scene(C);
     if (BKE_scene_uses_blender_eevee(scene)) {
-      layout.label(RPT_("Sun disc not available in EEVEE"), ICON_ERROR);
+      layout.label(RPT_("Sun disc not available in EEVEE"), ICON_STATUS_ERROR);
     }
     layout.prop(ptr, "sun_disc", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 

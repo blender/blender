@@ -2213,7 +2213,7 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
     if (errors->is_empty()) {
       return;
     }
-    ui::Button *but = add_error_message_button(block, rect, ICON_ERROR, icon_offset);
+    ui::Button *but = add_error_message_button(block, rect, ICON_STATUS_ERROR, icon_offset);
     button_func_quick_tooltip_set(but, [errors = *errors](const ui::Button * /*but*/) {
       std::string tooltip;
       for (const int i : errors.index_range()) {
@@ -2477,7 +2477,7 @@ static Vector<NodeExtraInfoRow> node_get_extra_info(const bContext &C,
   if (node.typeinfo->deprecation_notice) {
     NodeExtraInfoRow row;
     row.text = IFACE_("Deprecated");
-    row.icon = ICON_INFO;
+    row.icon = ICON_STATUS_INFO;
     row.tooltip = TIP_(node.typeinfo->deprecation_notice);
     rows.append(std::move(row));
   }
@@ -2532,7 +2532,7 @@ static Vector<NodeExtraInfoRow> node_get_extra_info(const bContext &C,
       for (const StringRef message : node_log->debug_messages) {
         NodeExtraInfoRow row;
         row.text = message;
-        row.icon = ICON_INFO;
+        row.icon = ICON_STATUS_INFO;
         rows.append(std::move(row));
       }
     }
@@ -4482,7 +4482,7 @@ static void draw_link_errors(const bContext &C,
   block_emboss_set(&invalid_links_block, ui::EmbossType::None);
   ui::Button *but = uiDefIconBut(&invalid_links_block,
                                  ui::ButtonType::But,
-                                 ICON_ERROR,
+                                 ICON_STATUS_WARNING_FILLED,
                                  draw_position.x - icon_size / 2,
                                  draw_position.y - icon_size / 2,
                                  icon_size,

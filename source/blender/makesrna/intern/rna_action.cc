@@ -1358,7 +1358,7 @@ static void rna_def_dopesheet(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Only Show Errors",
                            "Only include F-Curves and drivers that are disabled or have errors");
-  RNA_def_property_ui_icon(prop, ICON_ERROR, 0);
+  RNA_def_property_ui_icon(prop, ICON_STATUS_ERROR, 0);
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(
       prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, "rna_Action_show_errors_update");

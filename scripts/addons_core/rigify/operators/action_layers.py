@@ -516,7 +516,7 @@ class DATA_PT_rigify_actions(Panel):
             row = layout.split(factor=0.4)
             row.separator()
             row.alert = True
-            row.label(text="Action not in list", icon='ERROR')
+            row.label(text="Action not in list", icon='STATUS_ERROR')
             return
 
         show_prop_name = 'show_action_' + trigger_prop[-1]
@@ -540,7 +540,7 @@ class DATA_PT_rigify_actions(Panel):
         if not target_rig:
             row = layout.row()
             row.alert = True
-            row.label(text="Cannot verify bone name without a generated rig", icon='ERROR')
+            row.label(text="Cannot verify bone name without a generated rig", icon='STATUS_ERROR')
 
         row = layout.row()
 
@@ -556,7 +556,7 @@ class DATA_PT_rigify_actions(Panel):
                 row.column()
                 row.alert = True
                 text = rpt_("Bone not found: {:s}").format(slot.subtarget)
-                row.label(text=text, translate=False, icon='ERROR')
+                row.label(text=text, translate=False, icon='STATUS_ERROR')
         else:
             row.prop(slot, 'subtarget', icon=bone_icon)
 
@@ -577,7 +577,7 @@ class DATA_PT_rigify_actions(Panel):
                 row.column()
                 row.alert = True
                 text = rpt_("Bone not found: {:s}").format(flipped_subtarget)
-                row.label(text=text, icon='ERROR', translate=False)
+                row.label(text=text, icon='STATUS_ERROR', translate=False)
 
         layout.prop(slot, 'frame_start', text="Frame Start")
         layout.prop(slot, 'frame_end', text="End")

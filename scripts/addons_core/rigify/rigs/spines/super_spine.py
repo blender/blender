@@ -117,7 +117,7 @@ def add_parameters(params):
 def parameters_ui(layout, params):
     """ Create the ui for the rig parameters."""
 
-    layout.label(text="Note: this combined rig is deprecated.", icon='INFO')
+    layout.label(text="Note: this combined rig is deprecated.", icon='STATUS_INFO')
 
     r = layout.row(align=True)
     r.prop(params, "use_head", toggle=True, text="Head")

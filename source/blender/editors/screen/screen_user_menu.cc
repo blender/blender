@@ -235,7 +235,7 @@ static void handle_operator_asset_reference_props(const bContext &C,
   if (ed::asset::operator_asset_reference_props_is_set(opptr)) {
     const bool loading_finished = all_loading_finished();
     if (!loading_finished) {
-      row.label(IFACE_("Loading Asset Libraries"), ICON_INFO);
+      row.label(IFACE_("Loading Asset Libraries"), ICON_STATUS_INFO);
       r_add_operator = false;
     }
     else {

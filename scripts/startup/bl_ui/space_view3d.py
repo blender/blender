@@ -8353,7 +8353,7 @@ class VIEW3D_PT_active_spline(Panel):
                     if col is None:
                         layout.separator()
                         col = layout.column(align=True)
-                    col.label(text=message, icon='INFO')
+                    col.label(text=message, icon='STATUS_INFO')
                 del col
 
 

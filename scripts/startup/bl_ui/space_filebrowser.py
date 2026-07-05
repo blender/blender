@@ -795,7 +795,7 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
         asset = context.asset
 
         if asset is None:
-            layout.label(text="No active asset", icon='INFO')
+            layout.label(text="No active asset", icon='STATUS_INFO')
             return
 
         prefs = context.preferences

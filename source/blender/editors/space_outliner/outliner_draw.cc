@@ -2441,7 +2441,7 @@ static void outliner_draw_warning_tree_element(ui::Block *block,
   block_emboss_set(block, ui::EmbossType::NoneOrStatus);
   ui::Button *but = uiDefIconBut(block,
                                  ui::ButtonType::IconToggle,
-                                 ICON_ERROR,
+                                 ICON_STATUS_WARNING,
                                  mode_column_offset,
                                  te_ys,
                                  UI_UNIT_X,

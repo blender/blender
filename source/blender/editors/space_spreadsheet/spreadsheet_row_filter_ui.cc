@@ -290,7 +290,7 @@ static void spreadsheet_filter_panel_draw(const bContext *C, Panel *panel)
     case SPREADSHEET_VALUE_TYPE_QUATERNION:
     case SPREADSHEET_VALUE_TYPE_FLOAT4X4:
     case SPREADSHEET_VALUE_TYPE_BUNDLE_ITEM:
-      layout.label(IFACE_("Unsupported column type"), ICON_ERROR);
+      layout.label(IFACE_("Unsupported column type"), ICON_STATUS_ERROR);
       break;
   }
 }

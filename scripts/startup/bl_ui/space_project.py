@@ -167,7 +167,7 @@ class PROJECT_PT_main_unset(Panel, CenterAlignMixIn):
             row.alignment = 'CENTER'
             row.label(
                 text="No active project.",
-                icon="INFO",
+                icon='STATUS_INFO',
             )
             col.separator()
 
@@ -189,7 +189,7 @@ class PROJECT_PT_main_unset(Panel, CenterAlignMixIn):
             row.alignment = 'CENTER'
             row.label(
                 text="No active project.",
-                icon="INFO",
+                icon='STATUS_INFO',
             )
             col.separator()
 

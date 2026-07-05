@@ -89,7 +89,7 @@ void shaderfx_panel_end(ui::Layout &layout, PointerRNA *ptr)
   ShaderFxData *fx = static_cast<ShaderFxData *>(ptr->data);
   if (fx->error) {
     ui::Layout &row = layout.row(false);
-    row.label(RPT_(fx->error), ICON_ERROR);
+    row.label(RPT_(fx->error), ICON_STATUS_ERROR);
   }
 }
 

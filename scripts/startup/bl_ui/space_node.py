@@ -627,7 +627,7 @@ class NODE_PT_geometry_node_tool_options(Panel):
         layout.prop(group, "node_tool_idname", text="Identifier")
         layout.template_node_operator_registration_errors(idname=group.node_tool_idname)
         if len(group.node_tool_idname) == 0:
-            layout.label(icon='ERROR', text="Missing operator identifier")
+            layout.label(icon='STATUS_ERROR', text="Missing operator identifier")
 
 
 class NODE_PT_node_color_presets(PresetPanel, Panel):

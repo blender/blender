@@ -92,7 +92,7 @@ void modifier_error_message_draw(ui::Layout &layout, PointerRNA *ptr)
   ModifierData *md = static_cast<ModifierData *>(ptr->data);
   if (md->error) {
     ui::Layout &row = layout.row(false);
-    row.label(RPT_(md->error), ICON_ERROR);
+    row.label(RPT_(md->error), ICON_STATUS_ERROR);
   }
 }
 

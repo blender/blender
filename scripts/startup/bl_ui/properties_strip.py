@@ -156,25 +156,25 @@ def draw_compositor_effect_node_group_errors(layout, node_tree, strip_input_num)
     if color_input_sockets_num < strip_input_num:
         layout.label(
             text=rpt_("Node group must have at least {:d} Color input(s).").format(strip_input_num),
-            icon='ERROR',
+            icon='STATUS_ERROR',
             translate=False,
         )
     if float_input_sockets_num == 0:
         layout.label(
             text=rpt_("Node group does not have an input of type Float. Fade is unused."),
-            icon='ERROR',
+            icon='STATUS_ERROR',
             translate=False,
         )
     if len(output_sockets) < 1:
         layout.label(
             text=rpt_("Node group must have an output."),
-            icon='ERROR',
+            icon='STATUS_ERROR',
             translate=False,
         )
     elif output_sockets[0].socket_type != 'NodeSocketColor':
         layout.label(
             text=rpt_("The first node group output must have the Color type."),
-            icon='ERROR',
+            icon='STATUS_ERROR',
             translate=False,
         )
 
@@ -308,7 +308,7 @@ class STRIP_PT_effect(StripButtonsPanel, Panel):
                         row.label(text="")
             else:
                 col.separator()
-                col.label(text="Two or more channels are needed below this strip", icon='INFO')
+                col.label(text="Two or more channels are needed below this strip", icon='STATUS_INFO')
 
         elif strip_type == 'TEXT':
             layout = self.layout

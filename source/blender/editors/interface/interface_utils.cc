@@ -635,13 +635,13 @@ int icon_from_id(const ID *id)
 int icon_from_report_type(int type)
 {
   if (type & RPT_ERROR_ALL) {
-    return ICON_CANCEL;
+    return ICON_STATUS_ERROR_FILLED;
   }
   if (type & RPT_WARNING_ALL) {
-    return ICON_ERROR;
+    return ICON_STATUS_WARNING_FILLED;
   }
   if (type & RPT_INFO_ALL) {
-    return ICON_INFO;
+    return ICON_STATUS_INFO_FILLED;
   }
   if (type & RPT_DEBUG_ALL) {
     return ICON_SYSTEM;
@@ -652,7 +652,7 @@ int icon_from_report_type(int type)
   if (type & RPT_OPERATOR) {
     return ICON_CHECKMARK;
   }
-  return ICON_INFO;
+  return ICON_STATUS_INFO_FILLED;
 }
 
 int icon_colorid_from_report_type(int type)

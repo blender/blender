@@ -315,7 +315,7 @@ class VIEW3D_PT_vr_viewport_feedback(VRButtonsPanel, Panel):
         view3d = context.space_data
 
         col = layout.column(align=True)
-        col.label(icon='ERROR', text="Note:")
+        col.label(icon='STATUS_WARNING', text="Note:")
         col.label(text="Settings here may have a significant")
         col.label(text="performance impact!")
 
@@ -340,7 +340,7 @@ class VIEW3D_PT_vr_info(VRButtonsPanel, Panel):
         import platform
         layout = self.layout
         missing_support_string = n_("Built without VR/OpenXR features")
-        layout.label(icon='ERROR', text=missing_support_string)
+        layout.label(icon='STATUS_ERROR', text=missing_support_string)
 
 
 classes = (

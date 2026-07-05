@@ -10,7 +10,7 @@ from bpy.types import (
 def rigid_body_warning(layout, text):
     row = layout.row(align=True)
     row.alignment = 'RIGHT'
-    row.label(text=text, icon='ERROR')
+    row.label(text=text, icon='STATUS_ERROR')
 
 
 class PHYSICS_PT_rigidbody_panel:
@@ -48,7 +48,7 @@ class PHYSICS_PT_rigid_body(PHYSICS_PT_rigidbody_panel, Panel):
             if parent.rigid_body.collision_shape == 'COMPOUND':
                 row = layout.row(align=True)
                 row.alignment = 'RIGHT'
-                row.label(text="This object is part of a compound shape", icon='INFO')
+                row.label(text="This object is part of a compound shape", icon='STATUS_INFO')
             else:
                 rigid_body_warning(layout, "Rigid Body cannot be child of a non compound Rigid Body")
             return

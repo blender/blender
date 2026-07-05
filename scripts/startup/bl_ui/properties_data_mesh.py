@@ -608,7 +608,12 @@ def draw_attribute_warnings(context, layout, attributes):
     if not colliding_names:
         return
 
-    layout.label(text=rpt_("Name collisions: ") + ", ".join(set(colliding_names)), icon='ERROR', translate=False)
+    layout.label(
+        text=rpt_("Name collisions: ") +
+        ", ".join(
+            set(colliding_names)),
+        icon='STATUS_WARNING',
+        translate=False)
 
 
 class ColorAttributesListBase:

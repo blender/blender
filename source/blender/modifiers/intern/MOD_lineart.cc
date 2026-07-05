@@ -334,7 +334,7 @@ static void edge_types_panel_draw(const bContext * /*C*/, Panel *panel)
 
   sub = &layout.column(false);
   if (use_cache && !is_first) {
-    sub->label(IFACE_("Type overlapping cached"), ICON_INFO);
+    sub->label(IFACE_("Type overlapping cached"), ICON_STATUS_INFO);
   }
   else {
     sub->prop(ptr,
@@ -361,7 +361,7 @@ static void options_light_reference_draw(const bContext * /*C*/, Panel *panel)
   layout.enabled_set(!is_baked);
 
   if (use_cache && !is_first) {
-    layout.label(RPT_("Cached from the first Line Art modifier."), ICON_INFO);
+    layout.label(RPT_("Cached from the first Line Art modifier."), ICON_STATUS_INFO);
     return;
   }
 
@@ -392,7 +392,7 @@ static void options_panel_draw(const bContext * /*C*/, Panel *panel)
   layout.enabled_set(!is_baked);
 
   if (use_cache && !is_first) {
-    layout.label(TIP_("Cached from the first Line Art modifier"), ICON_INFO);
+    layout.label(TIP_("Cached from the first Line Art modifier"), ICON_STATUS_INFO);
     return;
   }
 
@@ -430,7 +430,7 @@ static void occlusion_panel_draw(const bContext * /*C*/, Panel *panel)
   layout.enabled_set(!is_baked);
 
   if (!show_in_front) {
-    layout.label(TIP_("Object is not in front"), ICON_INFO);
+    layout.label(TIP_("Object is not in front"), ICON_STATUS_INFO);
   }
 
   ui::Layout &col = layout.column(false);
@@ -562,7 +562,7 @@ static void face_mark_panel_draw(const bContext * /*C*/, Panel *panel)
   layout.enabled_set(!is_baked);
 
   if (use_cache && !is_first) {
-    layout.label(TIP_("Cached from the first Line Art modifier"), ICON_INFO);
+    layout.label(TIP_("Cached from the first Line Art modifier"), ICON_STATUS_INFO);
     return;
   }
 
@@ -592,7 +592,7 @@ static void chaining_panel_draw(const bContext * /*C*/, Panel *panel)
   layout.enabled_set(!is_baked);
 
   if (use_cache && !is_first) {
-    layout.label(TIP_("Cached from the first Line Art modifier"), ICON_INFO);
+    layout.label(TIP_("Cached from the first Line Art modifier"), ICON_STATUS_INFO);
     return;
   }
 
@@ -631,7 +631,7 @@ static void vgroup_panel_draw(const bContext * /*C*/, Panel *panel)
   layout.enabled_set(!is_baked);
 
   if (use_cache && !is_first) {
-    layout.label(TIP_("Cached from the first Line Art modifier"), ICON_INFO);
+    layout.label(TIP_("Cached from the first Line Art modifier"), ICON_STATUS_INFO);
     return;
   }
 
@@ -691,7 +691,7 @@ static void composition_panel_draw(const bContext * /*C*/, Panel *panel)
   layout.prop(ptr, "use_image_boundary_trimming", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (show_in_front) {
-    layout.label(TIP_("Object is shown in front"), ICON_ERROR);
+    layout.label(TIP_("Object is shown in front"), ICON_STATUS_ERROR);
   }
 
   ui::Layout &col = layout.column(false);

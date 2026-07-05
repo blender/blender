@@ -402,7 +402,7 @@ class CYCLES_RENDER_PT_sampling_path_guiding(CyclesButtonsPanel, Panel):
             render_area = render_size_x * render_size_y
 
             if render_area > tile_area and render_size_x <= 8192 and render_size_y <= 8192:
-                layout.label(text="May work poorly with render tiling", icon='INFO')
+                layout.label(text="May work poorly with render tiling", icon='STATUS_INFO')
 
 
 class CYCLES_RENDER_PT_sampling_path_guiding_debug(CyclesDebugButtonsPanel, Panel):

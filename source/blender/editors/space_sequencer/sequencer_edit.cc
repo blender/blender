@@ -850,7 +850,7 @@ static void slip_draw_status(bContext *C, const wmOperator *op)
     status.opmodal(IFACE_("Clamp"), op->type, SLIP_MODAL_CLAMP_TOGGLE, data->clamp);
   }
   if (data->clamp_warning) {
-    status.item(TIP_("Not enough content to clamp strip(s)"), ICON_ERROR);
+    status.item(TIP_("Not enough content to clamp strip(s)"), ICON_STATUS_WARNING_FILLED);
   }
 }
 

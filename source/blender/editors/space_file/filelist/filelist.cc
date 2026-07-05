@@ -366,7 +366,7 @@ static int filelist_geticon_file_type_ex(const FileList *filelist,
     }
 
     if (file->attributes & FILE_ATTR_OFFLINE) {
-      return ICON_ERROR;
+      return ICON_STATUS_ERROR;
     }
     if (file->attributes & FILE_ATTR_TEMPORARY) {
       return ICON_FILE_CACHE;

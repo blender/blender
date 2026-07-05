@@ -122,10 +122,10 @@ static bool is_oidn_supported()
 static void node_draw_buttons(ui::Layout &layout, bContext * /*C*/, PointerRNA * /*ptr*/)
 {
 #ifndef WITH_OPENIMAGEDENOISE
-  layout.label(RPT_("Disabled. Built without OpenImageDenoise"), ICON_ERROR);
+  layout.label(RPT_("Disabled. Built without OpenImageDenoise"), ICON_STATUS_ERROR);
 #else
   if (!is_oidn_supported()) {
-    layout.label(RPT_("Disabled. Platform not supported"), ICON_ERROR);
+    layout.label(RPT_("Disabled. Platform not supported"), ICON_STATUS_ERROR);
   }
 #endif
 }

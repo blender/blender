@@ -576,7 +576,7 @@ void ED_slider_status_get(const tSlider *slider, WorkspaceStatus &status)
     status.item_bool(IFACE_("Overshoot"), slider->overshoot, ICON_EVENT_E);
   }
   else {
-    status.item(IFACE_("Overshoot Disabled"), ICON_INFO);
+    status.item(IFACE_("Overshoot Disabled"), ICON_STATUS_INFO);
   }
 
   status.item_bool(IFACE_("Precision"), slider->precision, ICON_EVENT_SHIFT);

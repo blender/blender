@@ -203,7 +203,7 @@ static void root_catalogs_draw(const bContext *C, Menu *menu)
   layout.separator();
 
   if (!loading_finished) {
-    layout.label(IFACE_("Loading Asset Libraries"), ICON_INFO);
+    layout.label(IFACE_("Loading Asset Libraries"), ICON_STATUS_INFO);
   }
 
   Set<std::string> all_builtin_menus = [&]() {

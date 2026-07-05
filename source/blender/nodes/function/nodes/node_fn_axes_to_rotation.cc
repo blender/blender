@@ -189,7 +189,7 @@ static void node_extra_info(NodeExtraInfoParams &params)
     NodeExtraInfoRow row;
     row.text = RPT_("Equal Axes");
     row.tooltip = TIP_("The primary and secondary axis have to be different");
-    row.icon = ICON_ERROR;
+    row.icon = ICON_STATUS_ERROR;
     params.rows.append(std::move(row));
   }
 }

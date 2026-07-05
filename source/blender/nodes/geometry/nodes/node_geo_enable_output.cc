@@ -133,7 +133,7 @@ static void node_extra_info(NodeExtraInfoParams &params)
       NodeExtraInfoRow row;
       row.text = RPT_("Invalid Output Link");
       row.tooltip = TIP_("This node should be linked to the group output node");
-      row.icon = ICON_ERROR;
+      row.icon = ICON_STATUS_ERROR;
       params.rows.append(std::move(row));
       return;
     }

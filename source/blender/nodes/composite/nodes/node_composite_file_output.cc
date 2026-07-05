@@ -266,7 +266,8 @@ static void output_path_layout(ui::Layout &layout,
   }
   else {
     for (const bke::path_templates::Error &error : path_errors) {
-      layout.label(BKE_path_template_error_to_string(error, image_path).c_str(), ICON_ERROR);
+      layout.label(BKE_path_template_error_to_string(error, image_path).c_str(),
+                   ICON_STATUS_ERROR);
     }
   }
 }
@@ -401,7 +402,7 @@ static void node_extra_info(NodeExtraInfoParams &parameters)
     NodeExtraInfoRow row;
     row.text = RPT_("Node Unsupported");
     row.tooltip = TIP_("The File Output node is only supported for scene compositing");
-    row.icon = ICON_ERROR;
+    row.icon = ICON_STATUS_ERROR;
     parameters.rows.append(std::move(row));
   }
 }

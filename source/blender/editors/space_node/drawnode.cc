@@ -905,7 +905,7 @@ static void node_socket_undefined_draw(bContext * /*C*/,
                                        PointerRNA * /*node_ptr*/,
                                        StringRef /*text*/)
 {
-  layout->label(IFACE_("Undefined Socket Type"), ICON_ERROR);
+  layout->label(IFACE_("Undefined Socket Type"), ICON_STATUS_ERROR);
 }
 
 static void node_socket_undefined_draw_color(bContext * /*C*/,
@@ -933,7 +933,7 @@ static void node_socket_undefined_interface_draw(ID * /*id*/,
                                                  bContext * /*C*/,
                                                  ui::Layout *layout)
 {
-  layout->label(IFACE_("Undefined Socket Type"), ICON_ERROR);
+  layout->label(IFACE_("Undefined Socket Type"), ICON_STATUS_ERROR);
 }
 
 /** \} */
@@ -1379,7 +1379,7 @@ static void std_node_socket_draw(
         }
       }
       else if (default_value->has_conflict()) {
-        layout->label(IFACE_("Menu Error"), ICON_ERROR);
+        layout->label(IFACE_("Menu Error"), ICON_STATUS_ERROR);
       }
       else {
         layout->label(IFACE_("Menu Undefined"), ICON_QUESTION);

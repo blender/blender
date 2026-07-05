@@ -79,7 +79,7 @@ class WORKSPACE_PT_addons(WorkSpaceButtonsPanel, Panel):
         )
         # Detect unused
         if unknown_addons:
-            layout.label(text="Unknown add-ons", icon='ERROR')
+            layout.label(text="Unknown add-ons", icon='STATUS_WARNING')
             col = layout.box().column(align=True)
             for addon_module_name in sorted(unknown_addons):
                 row = col.row()

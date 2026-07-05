@@ -353,7 +353,7 @@ class ControlLayersOption:
                 props.prop_name = self.refs_option
                 props.index = i
         else:
-            box.label(text="Use the plus button to add list entries", icon="INFO")
+            box.label(text="Use the plus button to add list entries", icon='STATUS_INFO')
 
     # Declarations for auto-completion
     FK: 'ControlLayersOption'

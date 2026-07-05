@@ -1209,16 +1209,16 @@ wmOperatorStatus WM_operator_confirm_message_ex(bContext *C,
     case ICON_NONE:
       alert_icon = ui::AlertIcon::None;
       break;
-    case ICON_ERROR:
+    case ICON_STATUS_WARNING_FILLED:
       alert_icon = ui::AlertIcon::Warning;
       break;
     case ICON_QUESTION:
       alert_icon = ui::AlertIcon::Question;
       break;
-    case ICON_CANCEL:
+    case ICON_STATUS_ERROR_FILLED:
       alert_icon = ui::AlertIcon::Error;
       break;
-    case ICON_INFO:
+    case ICON_STATUS_INFO_FILLED:
       alert_icon = ui::AlertIcon::Info;
       break;
   }
@@ -3800,7 +3800,7 @@ static wmOperatorStatus redraw_timer_exec(bContext *C, wmOperator *op)
 
     if (type == eRTAnimationPlay) {
       WorkspaceStatus status(C);
-      status.item(fmt::format("{} / {} {}", a + 1, iter, infostr), ICON_INFO);
+      status.item(fmt::format("{} / {} {}", a + 1, iter, infostr), ICON_STATUS_INFO);
     }
 
     redraw_timer_step(C, scene, depsgraph, win, area, region, type, cfra, a, iter);

@@ -194,7 +194,7 @@ class BaseGlueRig(BaseSkinRig, RelinkConstraintsMixin):
             col3.active = params.skin_glue_add_constraint != 'NONE'
             col3.prop(params, "skin_glue_add_constraint_influence", slider=True)
 
-        layout.label(text="All constraints are moved to the control bone.", icon='INFO')
+        layout.label(text="All constraints are moved to the control bone.", icon='STATUS_INFO')
 
         super().parameters_ui(layout, params)
 

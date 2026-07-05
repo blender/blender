@@ -798,7 +798,7 @@ static void draw_named_attributes_panel(ui::Layout &layout, Object &object, Node
       tree_log->used_named_attributes;
 
   if (usage_by_attribute.is_empty()) {
-    layout.label(RPT_("No named attributes used"), ICON_INFO);
+    layout.label(RPT_("No named attributes used"), ICON_STATUS_INFO);
     return;
   }
 

@@ -177,7 +177,7 @@ void draw_asset_menu_item(const asset_system::AssetRepresentation *asset,
 
   const int icon_local = asset->remote_file_status() ==
                                  asset_system::RemoteAssetFileStatus::NO_MATCH ?
-                             ICON_ERROR :
+                             ICON_STATUS_WARNING :
                              ICON_NONE;
   const int icon = asset->is_online_only() ? ICON_INTERNET : icon_local;
   PointerRNA props_ptr = row.op(

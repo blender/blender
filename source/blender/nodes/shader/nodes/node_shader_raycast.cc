@@ -133,7 +133,7 @@ static void node_extra_info(NodeExtraInfoParams &parameters)
   NodeExtraInfoRow row;
   row.text = RPT_("Attributes Not Supported");
   row.tooltip = TIP_("Accessing attributes is not supported by EEVEE renderer");
-  row.icon = ICON_ERROR;
+  row.icon = ICON_STATUS_ERROR;
   parameters.rows.append(std::move(row));
 }
 

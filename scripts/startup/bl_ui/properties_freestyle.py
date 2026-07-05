@@ -490,7 +490,7 @@ def draw_modifier_box_header(box, modifier):
 
 def draw_modifier_box_error(box, _modifier, message):
     row = box.row()
-    row.label(text=message, icon='ERROR')
+    row.label(text=message, icon='STATUS_ERROR')
 
 
 def draw_modifier_common(box, modifier):

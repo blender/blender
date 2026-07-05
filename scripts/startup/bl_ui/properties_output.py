@@ -551,7 +551,7 @@ class RENDER_PT_encoding_video(RenderOutputButtonsPanel, Panel):
 
         # HDR compatibility
         if view_settings.is_hdr and (not needs_codec or ffmpeg.codec not in {'H265', 'AV1'}):
-            layout.label(text="HDR needs H.265 or AV1", icon='ERROR')
+            layout.label(text="HDR needs H.265 or AV1", icon='STATUS_ERROR')
 
         # Color depth. List of codecs needs to be in sync with
         # `IMB_ffmpeg_valid_bit_depths` in source code.
@@ -561,7 +561,7 @@ class RENDER_PT_encoding_video(RenderOutputButtonsPanel, Panel):
 
         # HDR compatibility
         if view_settings.is_hdr and image_settings.color_depth not in {'10', '12'}:
-            layout.label(text="HDR needs 10 or 12 bits", icon='ERROR')
+            layout.label(text="HDR needs 10 or 12 bits", icon='STATUS_ERROR')
 
         # Color space
         split = layout.split(factor=0.4)

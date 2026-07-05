@@ -207,7 +207,7 @@ static void graph_panel_properties(const bContext *C, Panel *panel)
     }
     else {
       STRNCPY_UTF8(name, IFACE_("<invalid>"));
-      icon = ICON_ERROR;
+      icon = ICON_STATUS_ERROR;
     }
 
     /* icon */
@@ -583,7 +583,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
     if ((fcu->bezt == nullptr) && (fcu->modifiers.first)) {
       /* modifiers only - so no keyframes to be active */
       layout.label(RPT_("F-Curve only has F-Modifiers"), ICON_NONE);
-      layout.label(RPT_("See Modifiers panel below"), ICON_INFO);
+      layout.label(RPT_("See Modifiers panel below"), ICON_STATUS_INFO);
     }
     else if (fcu->fpt) {
       /* samples only */
@@ -653,10 +653,10 @@ static void driver_dvar_invalid_name_query_cb(bContext *C, DriverVar *dvar)
   ui::Layout &layout = *popup_menu_layout(pup);
 
   if (dvar->flag & DVAR_FLAG_INVALID_EMPTY) {
-    layout.label(RPT_("It cannot be left blank"), ICON_ERROR);
+    layout.label(RPT_("It cannot be left blank"), ICON_STATUS_ERROR);
   }
   if (dvar->flag & DVAR_FLAG_INVALID_START_NUM) {
-    layout.label(RPT_("It cannot start with a number"), ICON_ERROR);
+    layout.label(RPT_("It cannot start with a number"), ICON_STATUS_ERROR);
   }
   if (dvar->flag & DVAR_FLAG_INVALID_START_CHAR) {
     layout.label(RPT_("It cannot start with a special character,"
@@ -664,17 +664,17 @@ static void driver_dvar_invalid_name_query_cb(bContext *C, DriverVar *dvar)
                  ICON_NONE);
   }
   if (dvar->flag & DVAR_FLAG_INVALID_HAS_SPACE) {
-    layout.label(RPT_("It cannot contain spaces (e.g. 'a space')"), ICON_ERROR);
+    layout.label(RPT_("It cannot contain spaces (e.g. 'a space')"), ICON_STATUS_ERROR);
   }
   if (dvar->flag & DVAR_FLAG_INVALID_HAS_DOT) {
-    layout.label(RPT_("It cannot contain dots (e.g. 'a.dot')"), ICON_ERROR);
+    layout.label(RPT_("It cannot contain dots (e.g. 'a.dot')"), ICON_STATUS_ERROR);
   }
   if (dvar->flag & DVAR_FLAG_INVALID_HAS_SPECIAL) {
     layout.label(RPT_("It cannot contain special (non-alphabetical/numeric) characters"),
-                 ICON_ERROR);
+                 ICON_STATUS_ERROR);
   }
   if (dvar->flag & DVAR_FLAG_INVALID_PY_KEYWORD) {
-    layout.label(RPT_("It cannot be a reserved keyword in Python"), ICON_INFO);
+    layout.label(RPT_("It cannot be a reserved keyword in Python"), ICON_STATUS_WARNING);
   }
 
   popup_menu_end(C, pup);
@@ -981,14 +981,14 @@ static void graph_draw_driver_settings_panel(ui::Layout &layout,
 
     if (driver->flag & DRIVER_FLAG_PYTHON_BLOCKED) {
       /* TODO: Add button to enable? */
-      error_col.label(RPT_("Python restricted for security"), ICON_ERROR);
-      error_col.label(RPT_("Slow Python expression"), ICON_INFO);
+      error_col.label(RPT_("Python restricted for security"), ICON_STATUS_WARNING);
+      error_col.label(RPT_("Slow Python expression"), ICON_STATUS_INFO);
     }
     else if (driver->flag & DRIVER_FLAG_INVALID) {
-      error_col.label(RPT_("ERROR: Invalid Python expression"), ICON_CANCEL);
+      error_col.label(RPT_("ERROR: Invalid Python expression"), ICON_STATUS_ERROR);
     }
     else if (!BKE_driver_has_simple_expression(driver)) {
-      error_col.label(RPT_("Slow Python expression"), ICON_INFO);
+      error_col.label(RPT_("Slow Python expression"), ICON_STATUS_INFO);
     }
 
     /* Explicit bpy-references are evil. Warn about these to prevent errors */
@@ -998,10 +998,11 @@ static void graph_draw_driver_settings_panel(ui::Layout &layout,
 
       if (bpy_data_expr_error) {
         error_col.label(RPT_("TIP: Use variables instead of bpy.data paths (see below)"),
-                        ICON_ERROR);
+                        ICON_STATUS_WARNING);
       }
       if (bpy_ctx_expr_error) {
-        error_col.label(RPT_("TIP: bpy.context is not safe for renderfarm usage"), ICON_ERROR);
+        error_col.label(RPT_("TIP: bpy.context is not safe for renderfarm usage"),
+                        ICON_STATUS_WARNING);
       }
     }
   }
@@ -1010,7 +1011,7 @@ static void graph_draw_driver_settings_panel(ui::Layout &layout,
     ui::Layout &col = layout.column(true);
 
     if (driver->flag & DRIVER_FLAG_INVALID) {
-      col.label(RPT_("ERROR: Invalid target channel(s)"), ICON_ERROR);
+      col.label(RPT_("ERROR: Invalid target channel(s)"), ICON_STATUS_ERROR);
     }
 
     /* Warnings about a lack of variables
@@ -1020,11 +1021,11 @@ static void graph_draw_driver_settings_panel(ui::Layout &layout,
      *       property animation
      */
     if (driver->variables.is_empty()) {
-      col.label(RPT_("ERROR: Driver is useless without any inputs"), ICON_ERROR);
+      col.label(RPT_("ERROR: Driver is useless without any inputs"), ICON_STATUS_ERROR);
 
       if (!fcu->modifiers.is_empty()) {
-        col.label(RPT_("TIP: Use F-Curves for procedural animation instead"), ICON_INFO);
-        col.label(RPT_("F-Modifiers can generate curves for those too"), ICON_INFO);
+        col.label(RPT_("TIP: Use F-Curves for procedural animation instead"), ICON_STATUS_INFO);
+        col.label(RPT_("F-Modifiers can generate curves for those too"), ICON_STATUS_INFO);
       }
     }
   }
@@ -1107,7 +1108,7 @@ static void graph_draw_driver_settings_panel(ui::Layout &layout,
     if (dvar.flag & DVAR_FLAG_INVALID_NAME) {
       but = uiDefIconBut(block,
                          ui::ButtonType::But,
-                         ICON_ERROR,
+                         ICON_STATUS_ERROR,
                          290,
                          0,
                          UI_UNIT_X,
