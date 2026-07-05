@@ -27,6 +27,10 @@ struct rcti;
 struct ImageFormatData;
 struct Stereo3dFormat;
 
+namespace imbuf::partial_update {
+struct Changes;
+}
+
 /**
  * Module init/exit.
  */
@@ -664,6 +668,20 @@ void IMB_update_gpu_texture_sub(gpu::Texture *tex,
                                 int h,
                                 bool use_grayscale,
                                 bool use_premult);
+
+/**
+ * Update GPU texture from host buffer, changing just the subset that was modified.
+ *
+ * When #layer is specified, the corresponding layered texture is updated at the
+ * specified #tile_offset and #tile_size, for multiple tiles packed into one layer.
+ */
+void IMB_gpu_texture_apply_partial_update(gpu::Texture *tex,
+                                          ImBuf *ibuf,
+                                          bool store_premultiplied,
+                                          const imbuf::partial_update::Changes &changes,
+                                          int layer = -1,
+                                          int2 tile_offset = int2(0),
+                                          int2 tile_size = int2(0));
 
 void IMB_stereo3d_write_dimensions(
     char mode, bool is_squeezed, size_t width, size_t height, size_t *r_width, size_t *r_height);

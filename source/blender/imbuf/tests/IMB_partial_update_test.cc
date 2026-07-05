@@ -18,8 +18,10 @@ namespace blender::imbuf::partial_update::tests {
  * returned point, mirroring how a consumer persists its #changeset_id between collects. */
 static Changes collect(ImBuf *buffer, int64_t &changeset_id)
 {
+  IMB_partial_update_flush(buffer);
+  const int64_t new_changeset_id = IMB_partial_update_changeset_id_current();
   Changes changes = IMB_partial_update_collect(buffer, changeset_id);
-  changeset_id = changes.last_changeset_id;
+  changeset_id = new_changeset_id;
   return changes;
 }
 
@@ -38,6 +40,16 @@ class IMBPartialUpdateTest : public ::testing::Test {
     IMB_freeImBuf(image_buffer);
   }
 };
+
+TEST_F(IMBPartialUpdateTest, initial_full_update)
+{
+  /* Check that we get a single full update for a new image buffer. */
+  const int64_t last_changeset_id = -1;
+  IMB_partial_update_flush(image_buffer);
+  const int64_t new_changeset_id = IMB_partial_update_changeset_id_current();
+  EXPECT_EQ(IMB_partial_update_collect(image_buffer, last_changeset_id).kind, Changes::Kind::Full);
+  EXPECT_EQ(IMB_partial_update_collect(image_buffer, new_changeset_id).kind, Changes::Kind::None);
+}
 
 TEST_F(IMBPartialUpdateTest, mark_full_update)
 {

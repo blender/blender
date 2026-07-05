@@ -303,13 +303,18 @@ void IMB_partial_update_mark_full(ImBuf *ibuf)
   tracker.mark_full_update();
 }
 
+void IMB_partial_update_flush(ImBuf *ibuf)
+{
+  Tracker &tracker = tracker_ensure(ibuf);
+  tracker.update_resolution(ibuf);
+  tracker.ensure_empty_changeset();
+}
+
 Changes IMB_partial_update_collect(ImBuf *ibuf, const int64_t last_changeset_id)
 {
   Tracker &tracker = tracker_ensure(ibuf);
-  tracker.ensure_empty_changeset();
 
   Changes changes;
-  changes.last_changeset_id = std::max(tracker.last_changeset_id, last_changeset_id);
 
   if (last_changeset_id < tracker.first_changeset_id) {
     changes.kind = Changes::Kind::Full;

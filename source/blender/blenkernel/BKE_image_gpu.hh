@@ -11,6 +11,8 @@
  * #BKE_image.hh so non-GPU consumers don't pull GPU declarations in.
  */
 
+#include <cstdint>
+
 namespace blender {
 
 namespace gpu {
@@ -115,6 +117,12 @@ void BKE_image_update_gputexture(Image *ima, ImageUser *iuser, int x, int y, int
  */
 void BKE_image_update_gputexture_delayed(
     Image *ima, ImageTile *image_tile, ImBuf *ibuf, int x, int y, int w, int h);
+
+/**
+ * Flush partial update for all UDIM tiles and return new changeset ID that
+ * can be used for the next update collect.
+ */
+int64_t BKE_image_partial_update_flush(Image *ima, const ImageUser *iuser);
 
 /**
  * Called on entering and exiting texture paint mode, temporarily disabling/enabling

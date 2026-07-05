@@ -11,6 +11,18 @@
  *
  * Changes that happen over time are organized in changesets. Consumers of these changes store
  * a changeset ID, and can then query changes since the last changeset ID.
+ *
+ * Changeset IDs are global across image buffers, which makes it possible to track a single ID
+ * without a tight coupling to consumers as follows.
+ *
+ *   for each ibuf:
+ *     IMB_partial_update_flush(ibuf)
+ *   new_changest_id = IMB_partial_update_changeset_id_current()
+ *   for each ibuf:
+ *     changes = IMB_partial_update_collect(ibuf, last_changeset_id)
+ *     apply changes
+ *   last_changeset_id = new_changest_id
+ *
  */
 
 #pragma once
@@ -22,6 +34,22 @@
 struct ImBuf;
 
 namespace blender {
+
+/* -------------------------------------------------------------------- */
+/** \name Update marking API
+ * \{ */
+
+/** Mark a subset of the image CPU buffer as modified. */
+void IMB_partial_update_mark_region(ImBuf *ibuf, const rcti &region);
+
+/** Mark the full image CPU buffer as modified. */
+void IMB_partial_update_mark_full(ImBuf *ibuf);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Update collect API
+ * \{ */
 
 namespace imbuf::partial_update {
 
@@ -41,31 +69,27 @@ struct Changes {
 
   Kind kind = Kind::None;
 
-  /** New changeset ID after these changes, to use for the next collect. */
-  int64_t last_changeset_id = -1;
-
   /** Modified regions for partial image buffer change. */
   Vector<rcti> updated_regions;
 };
 
 }  // namespace imbuf::partial_update
 
-/** Mark a subset of the image CPU buffer as modified. */
-void IMB_partial_update_mark_region(ImBuf *ibuf, const rcti &region);
+/** Flush updates in an image buffer, must be called before #IMB_partial_update_collect. */
+void IMB_partial_update_flush(ImBuf *ibuf);
 
-/** Mark the full image CPU buffer as modified. */
-void IMB_partial_update_mark_full(ImBuf *ibuf);
-
-/** Collect the changes to an image buffer since #last_changeset_id. */
-imbuf::partial_update::Changes IMB_partial_update_collect(ImBuf *ibuf, int64_t last_changeset_id);
-
-/** Free the partial updaate storage. */
-void IMB_partial_update_free(ImBuf *ibuf);
+/* Current global changeset ID. */
+int64_t IMB_partial_update_changeset_id_current();
 
 /** Next global changeset ID. */
 int64_t IMB_partial_update_changeset_id_next();
 
-/* Current global changeset ID. */
-int64_t IMB_partial_update_changeset_id_current();
+/** Collect the changes to an image buffer since #last_changeset_id. */
+imbuf::partial_update::Changes IMB_partial_update_collect(ImBuf *ibuf, int64_t last_changeset_id);
+
+/** \} */
+
+/** Free the partial updaate storage. */
+void IMB_partial_update_free(ImBuf *ibuf);
 
 }  // namespace blender
