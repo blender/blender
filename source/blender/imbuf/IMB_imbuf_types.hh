@@ -226,6 +226,7 @@ struct ImBuf {
 
   /** Partial update tracking for GPU textures and image drawing. */
   imbuf::partial_update::Tracker *partial_update = nullptr;
+  Mutex partial_update_mutex;
 
   /** Resolution in pixels per meter. Multiply by `0.0254` for DPI. */
   double ppm[2] = {0.0, 0.0};

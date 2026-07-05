@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <mutex>
 #include <optional>
 
 #include "IMB_imbuf_types.hh"
@@ -9,6 +10,7 @@
 
 #include "BLI_bit_vector.hh"
 #include "BLI_math_base_c.hh"
+#include "BLI_mutex.hh"
 #include "BLI_rect.hh"
 #include "BLI_vector.hh"
 
@@ -270,8 +272,15 @@ struct Tracker {
 static Tracker &tracker_ensure(ImBuf *ibuf)
 {
   if (ibuf->partial_update == nullptr) {
-    Tracker *tracker = MEM_new<Tracker>(__func__, IMB_partial_update_changeset_id_next());
-    ibuf->partial_update = tracker;
+    /* Allocate new changeset ID for new tracker, needed to disambiguate two ImBufs that happened
+     * to be allocated at the same memory address.
+     *
+     * The GPU changeset ID is used if there is already a GPU texture, so GPU texture consumers
+     * do not get unnecessarily updated. */
+    const int64_t gpu_changeset_id = ibuf->gpu.partial_update_changeset;
+    const int64_t changeset_id = gpu_changeset_id >= 0 ? gpu_changeset_id :
+                                                         IMB_partial_update_changeset_id_next();
+    ibuf->partial_update = MEM_new<Tracker>(__func__, changeset_id);
   }
   return *ibuf->partial_update;
 }
@@ -279,6 +288,15 @@ static Tracker &tracker_ensure(ImBuf *ibuf)
 }  // namespace imbuf::partial_update
 
 using namespace imbuf::partial_update;
+
+/**
+ * Check if update tracking is needed, when either there is a tracker or a
+ * GPU texture exists. To avoid unnecessary memory/performance overhead.
+ */
+static bool imb_track_updates(const ImBuf *ibuf)
+{
+  return ibuf->partial_update != nullptr || ibuf->gpu.texture != nullptr;
+}
 
 int64_t IMB_partial_update_changeset_id_next()
 {
@@ -292,6 +310,10 @@ int64_t IMB_partial_update_changeset_id_current()
 
 void IMB_partial_update_mark_region(ImBuf *ibuf, const rcti &region)
 {
+  if (!imb_track_updates(ibuf)) {
+    return;
+  }
+  std::scoped_lock lock(ibuf->partial_update_mutex);
   Tracker &tracker = tracker_ensure(ibuf);
   tracker.update_resolution(ibuf);
   tracker.mark_region(region);
@@ -299,12 +321,17 @@ void IMB_partial_update_mark_region(ImBuf *ibuf, const rcti &region)
 
 void IMB_partial_update_mark_full(ImBuf *ibuf)
 {
+  if (!imb_track_updates(ibuf)) {
+    return;
+  }
+  std::scoped_lock lock(ibuf->partial_update_mutex);
   Tracker &tracker = tracker_ensure(ibuf);
   tracker.mark_full_update();
 }
 
 void IMB_partial_update_flush(ImBuf *ibuf)
 {
+  std::scoped_lock lock(ibuf->partial_update_mutex);
   Tracker &tracker = tracker_ensure(ibuf);
   tracker.update_resolution(ibuf);
   tracker.ensure_empty_changeset();
@@ -312,6 +339,7 @@ void IMB_partial_update_flush(ImBuf *ibuf)
 
 Changes IMB_partial_update_collect(ImBuf *ibuf, const int64_t last_changeset_id)
 {
+  std::scoped_lock lock(ibuf->partial_update_mutex);
   Tracker &tracker = tracker_ensure(ibuf);
 
   Changes changes;

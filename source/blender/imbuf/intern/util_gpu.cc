@@ -773,6 +773,8 @@ gpu::Texture *IMB_acquire_gpu_texture(const char *name,
     return nullptr;
   }
 
+  const int64_t changeset_id = IMB_partial_update_changeset_id_next();
+
   GPUTextureCreateFlags create_flags = GPUTextureCreateFlags::EnableMipmaps;
   if (use_high_bitdepth) {
     create_flags |= GPUTextureCreateFlags::HighBitDepth;
@@ -802,6 +804,7 @@ gpu::Texture *IMB_acquire_gpu_texture(const char *name,
     GPU_texture_mipmap_mode(tex, false, true);
   }
 
+  ibuf->gpu.partial_update_changeset = changeset_id;
   ibuf->gpu.texture = tex;
   ibuf->gpu.lastused = BLI_time_now_seconds_i();
   GPU_texture_ref(tex);
@@ -853,6 +856,7 @@ void IMB_assign_gpu_texture(ImBuf *ibuf, gpu::Texture *texture)
     ibuf->gpu.texture = nullptr;
   }
   ibuf->gpu.flag = ImBufGPUFlag(0);
+  ibuf->gpu.partial_update_changeset = IMB_partial_update_changeset_id_current();
   ibuf->gpu.texture = texture;
 }
 
