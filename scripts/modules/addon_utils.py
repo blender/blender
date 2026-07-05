@@ -394,7 +394,12 @@ def enable(module_name, *, default_set=False, persistent=False, refresh_handled=
         # NOTE: from now on, before returning None, `extensions_refresh()` must be called
         # to ensure wheels setup in anticipation for this extension being used are removed upon failure.
 
-    # reload if the mtime changes
+    # Reload if the `mtime` changes.
+    #
+    # NOTE(@ideasman42): This isn't intended to be comprehensive add-on change detection.
+    # Add-ons may use many files, depend on libraries, data-files etc.
+    # This is only intended to detect the add-on being fully replaced where checking the files `mtime` is sufficient.
+    # A more robust change detection is possible but adds overhead for situations users are unlikely to face.
     mod = sys.modules.get(module_name)
     # chances of the file _not_ existing are low, but it could be removed
 
