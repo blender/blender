@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2026 Blender Authors
 #
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 # macOS build environment setup for Blender dependencies
 # Combines: Homebrew, Xcode (with Metal Toolchain), CMake, brew packages
 set -euo pipefail
