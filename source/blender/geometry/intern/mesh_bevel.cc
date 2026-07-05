@@ -192,7 +192,7 @@ enum class NewFaceKind : uint8_t {
 /** Identifies the role of a newly created edge for the #BevelAttributeOutputs fields. */
 enum class NewEdgeKind : uint8_t {
   Other = 0,
-  /** Outermost edge of a bevel strip — adjacent to the surviving original geometry. */
+  /** Outermost edge of a bevel strip - adjacent to the surviving original geometry. */
   OuterEdge = 1,
   /** Mid-ring edge of a bevel strip (at `k = nseg / 2`, only when `nseg >= 2`). */
   MidEdge = 2,
@@ -322,7 +322,7 @@ class ExtendableMesh {
   }
 
   /* Override the `uv_seam` attribute for a new edge, independent of its example edge.
-   * `value` = 0 → force false, 1 → force true.  -1 (default) = inherit from example.
+   * `value` = 0 -> force false, 1 -> force true.  -1 (default) = inherit from example.
    * Applied after attribute gathering in #build_output_mesh. */
   void edge_set_seam_override(const int edge_index, int8_t value)
   {
@@ -620,7 +620,7 @@ int ExtendableMesh::face_create(const Span<int> verts, const int example_face)
     for (Vector<float2> &layer_uvs : new_corner_uvs_) {
       layer_uvs.append(float2(0.0f));
     }
-    /* Record v1 → new corner for the UV merge pass. */
+    /* Record v1 -> new corner for the UV merge pass. */
     new_vert_to_new_corners_.lookup_or_add_default(v1).append(nc);
   }
 
@@ -2133,13 +2133,13 @@ static void check_edge_data_seam_sharp_edges(const BevelState &state,
   auto hasnot = [&](const EdgeHalf *e) -> bool {
     if (check_seam) {
       if (uv_seam_attr.is_empty() || e->e < 0 || e->e >= int(uv_seam_attr.size())) {
-        return true; /* No uv_seam attribute → no seams. */
+        return true; /* No uv_seam attribute -> no seams. */
       }
       return !uv_seam_attr[e->e];
     }
     if (check_sharp) {
       if (sharp_edge_attr.is_empty() || e->e < 0 || e->e >= int(sharp_edge_attr.size())) {
-        return true; /* No sharp_edge attribute → no sharps. */
+        return true; /* No sharp_edge attribute -> no sharps. */
       }
       return !sharp_edge_attr[e->e];
     }
@@ -2563,7 +2563,7 @@ static void build_boundary(const BevelState &state, BevVert *bv, bool construct)
 
       /* Are we doing special mitering?
        * There can only be one outer (reflex) miter; `emiter` is set to its edge.
-       * Outer corners (ANGLE_LARGER) → patch miter; inner (ANGLE_SMALLER) → arc miter.
+       * Outer corners (ANGLE_LARGER) -> patch miter; inner (ANGLE_SMALLER) -> arc miter.
        * No miter is added when #edge_has_miter returns false for this edge. */
       const bool want_miter = edge_has_miter(state, e, bv->v);
       const bool do_outer_miter = (want_miter && !emiter && ang_kind == ANGLE_LARGER);
@@ -3367,7 +3367,7 @@ static void set_profile_spacing(BevelState *bs, ProfileSpacing *pro_spacing, boo
     r_xvals = Array<double>(n + 1);
     r_yvals = Array<double>(n + 1);
     for (const int i : IndexRange(n + 1)) {
-      /* Map output index i in [0, n] → source parameter t in [0, src_n]. */
+      /* Map output index i in [0, n] -> source parameter t in [0, src_n]. */
       const float t = float(i) * float(src_n) / float(n);
       const int lo = std::min(int(t), src_n - 1);
       const int hi = lo + 1;
@@ -3377,7 +3377,7 @@ static void set_profile_spacing(BevelState *bs, ProfileSpacing *pro_spacing, boo
       /* The GN curve uses (x=position-along-strip, y=profile-height) directly,
        * with x going from 0 (strip start) to 1 (strip end).  Unlike the legacy
        * CurveProfile widget (which stores path[0] at x=1 and path[last] at x=0,
-       * requiring an x↔y swap), the GN curve's coordinate space already matches
+       * requiring an x<->y swap), the GN curve's coordinate space already matches
        * what calculate_profile_segments expects, so no swap is needed. */
       r_xvals[i] = double(x);
       r_yvals[i] = double(y);
@@ -4057,7 +4057,7 @@ static int choose_rep_face(const BevelState &state, const Span<int> faces)
     value_vecs[fi][vi++] = 0.0f;
     /* 2: Material index. */
     value_vecs[fi][vi++] = mat_span.is_empty() ? 0.0f : float(mat_span[f]);
-    /* 3–5: Face center coordinates.  Lower z wins (matches BMesh's un-negated cent[2]). */
+    /* 3-5: Face center coordinates.  Lower z wins (matches BMesh's un-negated cent[2]). */
     const float3 cent = state.face_center(f);
     value_vecs[fi][vi++] = cent.z;
     value_vecs[fi][vi++] = cent.x;
@@ -4488,7 +4488,7 @@ static void bevel_build_trifan(BevelState &state, BevVert *bv)
   }
 
   /* Mirror BMesh: the fan apex is the last loop vertex of the polygon built by bevel_build_poly,
-   * which is BM_FACE_FIRST_LOOP(f)->prev->v — i.e. the last element in the ring. */
+   * which is BM_FACE_FIRST_LOOP(f)->prev->v - i.e. the last element in the ring. */
   const int n = int(ring.size());
   const int v_fan_idx = n - 1;
   const int v_fan = ring[v_fan_idx];
@@ -4636,7 +4636,7 @@ static void bevel_build_rings(BevelState &state, BevVert *bv)
         }
 
         /* Choose face rep and per-corner snap edges, mirroring BMesh's bevel_build_rings
-         * (lines 6063–6127 of bmesh_bevel.cc). */
+         * (lines 6063-6127 of bmesh_bevel.cc). */
         int face_rep = f;
         int se[4] = {-1, -1, -1, -1};
         /* Per-corner face reps (-1 = use face_rep fallback). */
@@ -5169,7 +5169,7 @@ static void bevel_build_edge_polygons(BevelState &state, const int edge_index)
   }
 
   /* Starting vertices at k=0 on bv1's end and k=nseg on bv2's end.
-   * bv2's ring is traversed in reverse (nseg→0), matching BMesh's use of e2->rightv as the
+   * bv2's ring is traversed in reverse (nseg->0), matching BMesh's use of e2->rightv as the
    * starting corner (e2->rightv corresponds to mesh_vert(vm2, i2, 0, nseg)).
    * Save the first-strip boundary verts (v1/v2 in the BMesh diagram) so that after the loop we
    * can look up the first outer long edge and set its example. */
@@ -5945,7 +5945,7 @@ static void snap_to_superellipsoid(float3 &co, const float super_r, const bool m
 }
 
 /**
- * Builds a 4x4 matrix that maps the unit cube (with vertices at ±1) to the
+ * Builds a 4x4 matrix that maps the unit cube (with vertices at +/- 1) to the
  * tetrahedron formed by `va`, `vb`, `vc` (the three boundary verts) and `vd`
  * (the original beveled vertex). Same as BMesh's #make_unit_cube_map.
  */
@@ -6055,7 +6055,7 @@ static VMesh make_cube_corner_adj_vmesh(BevelState &state)
   const float r = state.pro_super_r;
   const int nseg = state.params.segments;
 
-  /* Short-circuit for square profiles: the superellipsoid snap path below assumes z ≈ 0
+  /* Short-circuit for square profiles: the superellipsoid snap path below assumes z ~= 0
    * only for the general superellipse case; for the two square extremes BMesh calls
    * dedicated helpers that never invoke snap_to_superellipsoid. */
   if (state.params.custom_profile_samples.is_empty()) {
@@ -6100,7 +6100,7 @@ static VMesh make_cube_corner_adj_vmesh(BevelState &state)
     pro.height = 0.0f;
     pro.special_params = false;
 
-    /* Build the 2D→3D map and fill prof_co / prof_co_2. */
+    /* Build the 2D->3D map and fill prof_co / prof_co_2. */
     float4x4 map;
     const bool use_map = (r != profile::PRO_LINE_R) &&
                          geom::make_unit_square_map(pro.start, pro.middle, pro.end, map);
@@ -6591,7 +6591,7 @@ static VMesh square_out_adj_vmesh(BevelState &state, BevVert *bv)
 
 /**
  * Tests whether `bv` is a good candidate for the tri-corner cube-corner special case.
- * Returns 1 when it qualifies (3-vert, equal offsets, ~90° corner angles),
+ * Returns 1 when it qualifies (3-vert, equal offsets, ~90 degree corner angles),
  * 0 when the count is 3 but other conditions are not met,
  * and -1 when it definitely should not use this path.
  */
@@ -6620,7 +6620,7 @@ static int tri_corner_test(const BevelState &state, const BevVert *bv)
       const float3 no_prev = emesh.src_face_normals[e.fprev];
       const float3 no_next = emesh.src_face_normals[e.fnext];
       ang = float(math::angle_between(no_prev, no_next));
-      /* Negate for concave (the dihedral is > π). */
+      /* Negate for concave (the dihedral is > PI). */
       if (math::dot(math::cross(no_prev, no_next),
                     emesh.src_positions[bv->v] - state.face_center(e.fprev)) < 0.0f)
       {
@@ -7046,13 +7046,13 @@ static void fill_new_corner_uvs(BevelState &state)
  *
  * Mirrors what BMesh achieves via #update_uv_vert_map + #bevel_merge_uvs:
  *
- * 1. **Source corners at original vertices** — average source-corner UV values within each
+ * 1. **Source corners at original vertices** - average source-corner UV values within each
  *    pre-built #UVVertBucket (same as before).
  *
- * 2. **New corners at original vertices** — should not exist for correctly built bevel geometry
+ * 2. **New corners at original vertices** - should not exist for correctly built bevel geometry
  *    (bevel vertices are killed before output), but handled for safety via source-bucket lookup.
  *
- * 3. **New corners at new (profile-arc) vertices** — look up the arc vertex's parent bevel
+ * 3. **New corners at new (profile-arc) vertices** - look up the arc vertex's parent bevel
  *    vertex via #vert_bev_origin, then use that parent's UV bucket structure to group new
  *    corners.  New corners whose face representative's source corner at the parent vertex
  *    belongs to the same UV bucket get averaged together.  This correctly handles both
@@ -7085,7 +7085,7 @@ static void merge_uvs(BevelState &state)
     }
   }
 
-  /* Build a map: (original_face, original_vertex) → source corner index.
+  /* Build a map: (original_face, original_vertex) -> source corner index.
    * Used to look up which bucket a new corner's representative face corner at origin_v is in. */
   const OffsetIndices src_faces = emesh.src_faces;
   const Span<int> src_corner_verts = emesh.src_corner_verts;
@@ -7144,7 +7144,7 @@ static void merge_uvs(BevelState &state)
       }
 
       /* For each new corner, determine which bucket its face representative's source corner
-       * at origin_v belongs to.  Use a simple scan since bucket count is tiny (≤ valence). */
+       * at origin_v belongs to.  Use a simple scan since bucket count is tiny (valence). */
       for (const UVVertBucket &bucket : *buckets) {
         /* Collect new corners in this bucket: their face rep has a source corner at origin_v
          * that is in this bucket. */
@@ -7295,7 +7295,7 @@ static std::optional<Mesh *> build_output_mesh(const BevelState &state,
   const IndexMask src_survive_faces = IndexMask::from_bools(emesh.kill_faces_array(), memory)
                                           .complement(IndexMask(src_mesh.faces_num), memory);
 
-  /* Build old→new index maps for surviving original elements; -1 for killed entries. */
+  /* Build old->new index maps for surviving original elements; -1 for killed entries. */
   Array<int> src_vert_map(src_mesh.verts_num, -1);
   index_mask::build_reverse_map(src_survive_verts, src_vert_map.as_mutable_span());
   Array<int> src_edge_map(src_mesh.edges_num, -1);
@@ -7539,10 +7539,10 @@ static std::optional<Mesh *> build_output_mesh(const BevelState &state,
    * connected, `get_output_anonymous_attribute_id_if_needed` returns `std::nullopt` and no
    * memory is allocated or written here.
    *
-   * - vertex_face_id : Face domain — true for every new face tagged VERTEX_FACE.
-   * - edge_face_id   : Face domain — true for every new face tagged EDGE_FACE.
-   * - outer_edge_id  : Edge domain — true for the two outermost edges of each bevel strip.
-   * - mid_edge_id    : Edge domain — true for the mid-ring edge of each strip (nseg >= 2 only). */
+   * - vertex_face_id : Face domain - true for every new face tagged VERTEX_FACE.
+   * - edge_face_id   : Face domain - true for every new face tagged EDGE_FACE.
+   * - outer_edge_id  : Edge domain - true for the two outermost edges of each bevel strip.
+   * - mid_edge_id    : Edge domain - true for the mid-ring edge of each strip (nseg >= 2 only). */
   const BevelAttributeOutputs &ao = state.params.attribute_outputs;
 
   if (ao.vertex_face_id || ao.edge_face_id) {
