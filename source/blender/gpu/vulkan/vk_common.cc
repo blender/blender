@@ -838,6 +838,28 @@ VkDescriptorType to_vk_descriptor_type(const shader::ShaderCreateInfo::Resource 
   return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 }
 
+bool vk_need_extended_usage_for_storage_image(const eGPUTextureUsage usage,
+                                              const GPUTextureFormatFlag format_flag)
+{
+  /* sRGB textures are not directly writable as storage images. These need EXTENDED_USAGE to bind
+   * them as another format. */
+  return (usage & GPU_TEXTURE_USAGE_FORMAT_VIEW) && (format_flag & GPU_FORMAT_SRGB);
+}
+
+VkFormat vk_extended_usage_storage_image_format(const VkFormat format)
+{
+  /* sRGB textures are bound as UNORM 8 for storage images. */
+  switch (format) {
+    case VK_FORMAT_R8G8B8_SRGB:
+      return VK_FORMAT_R8G8B8_UNORM;
+    case VK_FORMAT_R8G8B8A8_SRGB:
+      return VK_FORMAT_R8G8B8A8_UNORM;
+    default:
+      break;
+  }
+  return format;
+}
+
 VkImageCreateFlags to_vk_image_create(const GPUTextureType texture_type,
                                       const GPUTextureFormatFlag format_flag,
                                       eGPUTextureUsage usage)
@@ -855,6 +877,13 @@ VkImageCreateFlags to_vk_image_create(const GPUTextureType texture_type,
 
   if (usage & GPU_TEXTURE_USAGE_FORMAT_VIEW) {
     result |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
+  }
+
+  /* The image's own format does not support storage usage, so it is bound as a storage image
+   * through a view with a different format. EXTENDED_USAGE lets the image keep the storage usage,
+   * by deferring the check to the view. The mutable format lets the view reinterpret the data. */
+  if (vk_need_extended_usage_for_storage_image(usage, format_flag)) {
+    result |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT;
   }
 
   return result;
@@ -898,8 +927,11 @@ VkImageUsageFlags to_vk_image_usage(const eGPUTextureUsage usage,
   }
 
   /* Disable some usages based on the given format flag to support more devices. */
-  if (format_flag & GPU_FORMAT_SRGB) {
-    /* NVIDIA devices don't create SRGB textures when it storage bit is set. */
+  if (format_flag & GPU_FORMAT_SRGB &&
+      !vk_need_extended_usage_for_storage_image(usage, format_flag))
+  {
+    /* NVIDIA devices don't create SRGB textures when the storage bit is set and
+     * EXTENDED_USAGE is not enabled. */
     result &= ~VK_IMAGE_USAGE_STORAGE_BIT;
   }
   if (format_flag & (GPU_FORMAT_DEPTH | GPU_FORMAT_STENCIL)) {

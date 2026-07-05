@@ -27,6 +27,7 @@ class VKPixelBuffer;
 enum class VKImageViewFlags {
   DEFAULT = 0,
   NO_SWIZZLING = 1 << 0,
+  FOR_STORAGE_IMAGE = 1 << 1,
 };
 ENUM_OPERATORS(VKImageViewFlags)
 
@@ -53,6 +54,7 @@ class VKTexture : public Texture {
    */
   VKVertexBuffer *source_buffer_ = nullptr;
   VkImage vk_image_ = VK_NULL_HANDLE;
+  VkImageUsageFlags vk_image_usage_ = 0;
   VmaAllocation allocation_ = VK_NULL_HANDLE;
   VmaAllocationInfo allocation_info_ = {};
 
@@ -134,6 +136,13 @@ class VKTexture : public Texture {
   TextureFormat device_format_get() const
   {
     return device_format_;
+  }
+
+  /** Vulkan usage flags the underlying image was created with. */
+  VkImageUsageFlags vk_image_usage_get() const
+  {
+    return is_texture_view() ? static_cast<VKTexture *>(source_texture_)->vk_image_usage_get() :
+                               vk_image_usage_;
   }
 
   /**
