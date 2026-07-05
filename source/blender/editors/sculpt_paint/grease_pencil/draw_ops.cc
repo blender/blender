@@ -1693,7 +1693,7 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
   }
 
   if (!did_create_fill) {
-    BKE_reportf(op.reports, RPT_ERROR, "Unable to fill unclosed areas");
+    BKE_report(op.reports, RPT_ERROR, "No fill created");
   }
 
   WM_cursor_modal_restore(&win);
