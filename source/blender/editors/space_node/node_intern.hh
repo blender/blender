@@ -275,9 +275,6 @@ struct NodeInsertOfsData {
   bNode *next = nullptr;
 
   wmTimer *anim_timer = nullptr;
-
-  /** Offset to apply to node chain. */
-  float offset_x = 0.0f;
 };
 
 struct SpaceNode_Runtime {
