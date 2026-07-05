@@ -33,7 +33,7 @@ struct State {
   /** Usage data of the previous time, to identify changes that require a full update. */
   ImageUsage last_usage;
 
-  PartialImageUpdater partial_update = {};
+  ScreenSpacePartialUpdate partial_update = {};
 
   View view = {"Image.View"};
   ShaderParameters sh_params;

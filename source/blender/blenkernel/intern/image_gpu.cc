@@ -24,10 +24,10 @@
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
+#include "IMB_partial_update.hh"
 
 #include "BKE_image.hh"
 #include "BKE_image_gpu.hh"
-#include "BKE_image_partial_update.hh"
 #include "BKE_main.hh"
 
 #include "GPU_capabilities.hh"
@@ -41,7 +41,7 @@ namespace blender {
 
 static CLG_LogRef LOG = {"image.gpu"};
 
-using namespace blender::bke::image::partial_update;
+using blender::imbuf::partial_update::Changes;
 
 /* Prototypes. */
 static void image_update_gputexture_ex(
@@ -440,51 +440,63 @@ void BKE_image_free_gpu_fallback()
 /** \name Get GPU texture from Image
  * \{ */
 
-static void image_gpu_texture_partial_update_changes_available(
-    Image *image, PartialUpdateChecker<ImageTileData>::CollectResult &changes)
-{
-  while (changes.get_next_change() == ePartialUpdateIterResult::ChangeAvailable) {
-    /* Calculate the clipping region with the tile buffer.
-     * TODO(jbakker): should become part of ImageTileData to deduplicate with image engine. */
-    rcti buffer_rect;
-    BLI_rcti_init(
-        &buffer_rect, 0, changes.tile_data.tile_buffer->x, 0, changes.tile_data.tile_buffer->y);
-    rcti clipped_update_region;
-    const bool has_overlap = BLI_rcti_isect(
-        &buffer_rect, &changes.changed_region.region, &clipped_update_region);
-    if (!has_overlap) {
-      continue;
-    }
-
-    image_update_gputexture_ex(image,
-                               changes.tile_data.tile,
-                               changes.tile_data.tile_buffer,
-                               clipped_update_region.xmin,
-                               clipped_update_region.ymin,
-                               BLI_rcti_size_x(&clipped_update_region),
-                               BLI_rcti_size_y(&clipped_update_region));
-  }
-}
-
 static void image_gpu_texture_try_partial_update(Image *image, ImageUser *iuser)
 {
-  PartialUpdateChecker<ImageTileData> checker(image, iuser, image->runtime->partial_update_user);
-  PartialUpdateChecker<ImageTileData>::CollectResult changes = checker.collect_changes();
-  switch (changes.get_result_code()) {
-    case ePartialUpdateCollectResult::FullUpdateNeeded: {
-      BKE_image_free_gpu_texture_caches(image);
-      break;
-    }
+  /* A tile whose changes can no longer be reconstructed forces a full rebuild of all textures.
+   * Existing partial uploads are then discarded, but this is rare (history exhausted). */
+  bool need_full_rebuild = false;
 
-    case ePartialUpdateCollectResult::PartialChangesDetected: {
-      image_gpu_texture_partial_update_changes_available(image, changes);
-      break;
-    }
+  ImageUser tile_user = {};
+  if (iuser != nullptr) {
+    tile_user = *iuser;
+  }
+  else {
+    tile_user.framenr = image->lastframe;
+  }
 
-    case ePartialUpdateCollectResult::NoChangesDetected: {
-      /* GPUTextures are up to date. */
+  for (ImageTile &tile : image->tiles) {
+    tile_user.tile = tile.tile_number;
+    void *lock;
+    ImBuf *ibuf = BKE_image_acquire_ibuf(image, &tile_user, &lock);
+    if (ibuf != nullptr) {
+      const Changes changes = IMB_partial_update_collect(ibuf, ibuf->gpu.partial_update_changeset);
+      switch (changes.kind) {
+        case Changes::Kind::Full:
+          need_full_rebuild = true;
+          break;
+        case Changes::Kind::Partial: {
+          rcti buffer_rect;
+          BLI_rcti_init(&buffer_rect, 0, ibuf->x, 0, ibuf->y);
+          for (const rcti &region : changes.updated_regions) {
+            rcti clipped;
+            if (!BLI_rcti_isect(&buffer_rect, &region, &clipped)) {
+              continue;
+            }
+            image_update_gputexture_ex(image,
+                                       &tile,
+                                       ibuf,
+                                       clipped.xmin,
+                                       clipped.ymin,
+                                       BLI_rcti_size_x(&clipped),
+                                       BLI_rcti_size_y(&clipped));
+          }
+          break;
+        }
+        case Changes::Kind::None:
+          break;
+      }
+      ibuf->gpu.partial_update_changeset = std::max(ibuf->gpu.partial_update_changeset,
+                                                    changes.last_changeset_id);
+    }
+    BKE_image_release_ibuf(image, ibuf, lock);
+
+    if (need_full_rebuild) {
       break;
     }
+  }
+
+  if (need_full_rebuild) {
+    BKE_image_free_gpu_texture_caches(image);
   }
 }
 
@@ -665,10 +677,6 @@ static ImageGPUTextures image_get_gpu_texture(Image *ima,
 {
   if (ima == nullptr) {
     return {};
-  }
-
-  if (ima->runtime->partial_update_user == nullptr) {
-    ima->runtime->partial_update_user = BKE_image_partial_update_create(ima);
   }
 
   image_gpu_texture_try_partial_update(ima, iuser);
@@ -1095,7 +1103,7 @@ void BKE_image_update_gputexture_delayed(
   if (ibuf != nullptr && ima->source != IMA_SRC_TILED && x == 0 && y == 0 && w == ibuf->x &&
       h == ibuf->y)
   {
-    BKE_image_partial_update_mark_full_update(ima);
+    IMB_partial_update_mark_full(ibuf);
   }
   else {
     rcti dirty_region;

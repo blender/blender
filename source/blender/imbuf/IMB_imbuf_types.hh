@@ -29,6 +29,10 @@ class Texture;
 }
 struct IDProperty;
 
+namespace imbuf::partial_update {
+struct Tracker;
+}
+
 namespace ocio {
 class ColorSpace;
 }
@@ -146,6 +150,9 @@ struct ImBufGPU {
   /** GPU buffer flags. */
   ImBufGPUFlag flag = ImBufGPUFlag(0);
 
+  /** Changeset tracking for partial update. */
+  int64_t partial_update_changeset = -1;
+
   /** Mutex guarding access to #texture, #lastused, and #flag. */
   blender::Mutex mutex;
 };
@@ -216,6 +223,9 @@ struct ImBuf {
 
   /** Image buffer on the GPU. */
   ImBufGPU gpu;
+
+  /** Partial update tracking for GPU textures and image drawing. */
+  imbuf::partial_update::Tracker *partial_update = nullptr;
 
   /** Resolution in pixels per meter. Multiply by `0.0254` for DPI. */
   double ppm[2] = {0.0, 0.0};

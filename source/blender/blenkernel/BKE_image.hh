@@ -44,8 +44,6 @@ struct ImbFormatOptions;
 struct Library;
 struct Main;
 struct Object;
-struct PartialUpdateRegister;
-struct PartialUpdateUser;
 struct RenderResult;
 struct RenderSlot;
 struct ReportList;
@@ -64,11 +62,6 @@ struct ImageRuntime {
   Mutex cache_mutex;
 
   ImBufCache *cache = nullptr;
-
-  /** Register containing partial updates. */
-  PartialUpdateRegister *partial_update_register = nullptr;
-  /** Partial update user for gpu::Textures stored inside the Image. */
-  PartialUpdateUser *partial_update_user = nullptr;
 
   /* The image's current update count. See deg::set_id_update_count for more information. */
   uint64_t update_count = 0;
@@ -623,20 +616,7 @@ RenderSlot *BKE_image_get_renderslot(Image *ima, int index);
 bool BKE_image_clear_renderslot(Image *ima, ImageUser *iuser, int slot);
 
 /* --- image_partial_update.cc --- */
-/** Image partial updates. */
-/**
- * \brief Create a new PartialUpdateUser. An Object that contains data to use partial updates.
- */
-PartialUpdateUser *BKE_image_partial_update_create(const Image *image);
 
-/**
- * \brief free a partial update user.
- */
-void BKE_image_partial_update_free(PartialUpdateUser *user);
-
-/* --- partial updater (image side) --- */
-
-void BKE_image_partial_update_register_free(Image *image);
 /** \brief Mark a region of the image to update. */
 void BKE_image_partial_update_mark_region(Image *image,
                                           const ImageTile *image_tile,
@@ -644,5 +624,11 @@ void BKE_image_partial_update_mark_region(Image *image,
                                           const rcti *updated_region);
 /** \brief Mark the whole image to be updated. */
 void BKE_image_partial_update_mark_full_update(Image *image);
+
+/**
+ * \brief Variant of #BKE_image_partial_update_mark_full_update for callers
+ * that already hold the image's cache mutex.
+ */
+void BKE_image_partial_update_mark_full_update_cache_locked(Image *image);
 
 }  // namespace blender

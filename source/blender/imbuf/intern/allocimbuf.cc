@@ -14,6 +14,7 @@
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
+#include "IMB_partial_update.hh"
 
 #include "IMB_colormanagement_intern.hh"
 #include "IMB_metadata.hh"
@@ -129,6 +130,7 @@ void IMB_freeImBuf(ImBuf *ibuf)
 
     IMB_free_all_data(ibuf);
     IMB_free_gpu_textures(ibuf);
+    IMB_partial_update_free(ibuf);
     MEM_delete(ibuf);
   }
 }
