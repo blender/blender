@@ -955,11 +955,7 @@ static wmOperatorStatus pose_slide_modal(bContext *C, wmOperator *op, const wmEv
 {
   tPoseSlideOp *pso = static_cast<tPoseSlideOp *>(op->customdata);
   wmWindow *win = CTX_wm_window(C);
-  bool do_pose_update = false;
-
-  const bool has_numinput = hasNumInput(&pso->num);
-
-  do_pose_update = ED_slider_modal(pso->slider, event);
+  bool do_pose_update = ED_slider_modal(pso->slider, event);
 
   switch (event->type) {
     case LEFTMOUSE: /* Confirm. */
@@ -1006,13 +1002,11 @@ static wmOperatorStatus pose_slide_modal(bContext *C, wmOperator *op, const wmEv
     }
 
     /* Factor Change... */
-    case MOUSEMOVE: /* Calculate new position. */
-    {
-      /* Only handle mouse-move if not doing numinput. */
-      if (has_numinput == false) {
-        /* Update pose to reflect the new values (see below). */
-        do_pose_update = true;
-      }
+    case MOUSEMOVE: {
+      /* `ED_slider_modal` already set `do_pose_update`. */
+      /* Reset numInput so the cursor movement can take over again. This allows to type in a number
+       * and then continue sliding around from there. */
+      initNumInput(&pso->num);
       break;
     }
     default: {
