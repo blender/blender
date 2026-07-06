@@ -172,6 +172,18 @@ int get_output_edge_index(const CDT_result<T> &out, int out_index_1, int out_ind
 }
 
 template<typename T>
+bool output_vert_is_intersection_and_has_edge_input_ids(const CDT_result<T> &out,
+                                                        int out_vert_index,
+                                                        int in_edge1_index,
+                                                        int in_edge2_index)
+{
+  return out_vert_index < int(out.vert_orig.size()) &&
+         out_vert_index < int(out.intersected_edges_orig.size()) &&
+         out.intersected_edges_orig[out_vert_index].first == in_edge1_index &&
+         out.intersected_edges_orig[out_vert_index].second == in_edge2_index;
+}
+
+template<typename T>
 bool output_edge_has_input_id(const CDT_result<T> &out, int out_edge_index, uint32_t in_edge_index)
 {
   return out_edge_index < int(out.edge_orig.size()) &&
@@ -3308,6 +3320,53 @@ template<typename T> void square_o_test()
   }
 }
 
+template<typename T> void intersection_simple_edge_ids_test()
+{
+  const char *spec = R"(4 2 0
+  0.0 0.0
+  2.0 2.0
+  0.0 2.0
+  2.0 0.0
+  0 1
+  2 3
+  )";
+  CDT_input<T> input = fill_input_from_string<T>(spec);
+  input.need_ids = true;
+  CDT_result<T> result = delaunay_2d_calc(input, CDT_CONSTRAINTS);
+  EXPECT_EQ(result.intersected_edges_orig.size(), 5);
+  EXPECT_TRUE(output_vert_is_intersection_and_has_edge_input_ids<T>(result, 4, 0, 1));
+  if (DO_DRAW) {
+    graph_draw<T>("Intersections Simple", result.vert, result.edge, result.face);
+  }
+}
+
+template<typename T> void intersection_squares_edge_ids_test()
+{
+  const char *spec = R"(8 0 2
+  0.0 0.0
+  1.0 0.0
+  1.0 1.0
+  0.0 1.0
+  0.2 0.2
+  0.2 1.2
+  1.2 1.2
+  1.2 0.2
+  0 1 2 3
+  4 5 6 7
+  )";
+  CDT_input<T> input = fill_input_from_string<T>(spec);
+  input.need_ids = true;
+  CDT_result<T> result = delaunay_2d_calc(input, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES);
+  EXPECT_EQ(result.intersected_edges_orig.size(), 10);
+  EXPECT_TRUE(output_vert_is_intersection_and_has_edge_input_ids<T>(
+      result, 8, result.face_edge_offset + 2, result.face_edge_offset + 4));
+  EXPECT_TRUE(output_vert_is_intersection_and_has_edge_input_ids<T>(
+      result, 9, result.face_edge_offset + 1, result.face_edge_offset + 7));
+  if (DO_DRAW) {
+    graph_draw<T>("Intersections Squares", result.vert, result.edge, result.face);
+  }
+}
+
 TEST(delaunay_d, Empty)
 {
   empty_test<double>();
@@ -3578,6 +3637,16 @@ TEST(delaunay_d, SquareO)
   square_o_test<double>();
 }
 
+TEST(delaunay_d, IntersectionSimpleEdgeIds)
+{
+  intersection_simple_edge_ids_test<double>();
+}
+
+TEST(delaunay_d, IntersectionSquaresEdgeIds)
+{
+  intersection_squares_edge_ids_test<double>();
+}
+
 #  ifdef WITH_GMP
 TEST(delaunay_m, Empty)
 {
@@ -3841,6 +3910,16 @@ TEST(delaunay_m, RepeatTri)
 TEST(delaunay_m, SharedSplitBoundary)
 {
   shared_split_boundary_test<mpq_class>();
+}
+
+TEST(delaunay_m, IntersectionSimpleEdgeIds)
+{
+  intersection_simple_edge_ids_test<mpq_class>();
+}
+
+TEST(delaunay_m, IntersectionSquaresEdgeIds)
+{
+  intersection_squares_edge_ids_test<mpq_class>();
 }
 #  endif
 #endif

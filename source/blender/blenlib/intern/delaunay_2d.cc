@@ -214,6 +214,8 @@ template<typename T> struct CDTVert {
   int merge_to_index{-1};
   /** Used by algorithms operating on CDT structures. */
   int visit_index{0};
+  /** If this vert is an intersection, which original edges were intersected? */
+  std::pair<int, int> intersected_edges{-1, -1};
 
   CDTVert() = default;
   explicit CDTVert(const VecBase<T, 2> &pt);
@@ -2137,6 +2139,16 @@ void add_edge_constraint(
       CDTEdge<T> *edge = cdt_state->cdt.split_edge(
           cd->in, cd->lambda, cdt_state->edge_winding_map, cdt_state->polygon_boundary_count_map);
       cd->vert = edge->symedges[0].vert;
+
+      /* Keep track of original edges for the intersection point. */
+      if (cdt_state->need_ids) {
+        uint32_t edge1_id = -1;
+        if (!cd->in->edge->input_ids.is_empty()) {
+          /* Use the first original edge. */
+          edge1_id = *cd->in->edge->input_ids.begin();
+        }
+        cd->vert->intersected_edges = {int(edge1_id), int(input_id)};
+      }
     }
   }
 
@@ -3198,6 +3210,7 @@ CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state, CDT_output_type output_typ
   result.vert = Array<VecBase<T, 2>>(nv);
   if (cdt_state->need_ids) {
     result.vert_orig = Array<Vector<uint32_t>>(nv);
+    result.intersected_edges_orig = Array<std::pair<int, int>>(nv, {-1, -1});
   }
   int i_out = 0;
   for (int i = 0; i < verts_size; ++i) {
@@ -3211,6 +3224,7 @@ CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state, CDT_output_type output_typ
         for (uint32_t vert : v->input_ids) {
           result.vert_orig[i_out].append(vert);
         }
+        result.intersected_edges_orig[i_out] = v->intersected_edges;
       }
       ++i_out;
     }

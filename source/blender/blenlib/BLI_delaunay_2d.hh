@@ -200,6 +200,12 @@ template<typename T> class CDT_result {
    *      and "b" will be a position within that face.
    */
   Array<Vector<uint32_t>> edge_orig;
+  /**
+   * For each output vert, if the output vert is an intersection,
+   * which original edges were intersected?
+   * Note: Indices follow the same encoding as edge_orig (see above).
+   */
+  Array<std::pair<int, int>> intersected_edges_orig;
   /** For each output face, which original faces does it overlap? */
   Array<Vector<uint32_t>> face_orig;
   /** Used to encode edge_orig (see above). */
