@@ -1670,11 +1670,19 @@ std::optional<bke::CurvesGeometry> delaunay_fill_strokes(
   auto get_tri_for_point = [&](const float2 &v) {
     for (const int tri_index : result.face.index_range()) {
       const Vector<int> &tri = result.face[tri_index];
-      if (isect_point_tri_v2(v,
-                             float2(result.vert[tri[0]]),
-                             float2(result.vert[tri[1]]),
-                             float2(result.vert[tri[2]])) != 0)
+      const float2 pos_0 = float2(result.vert[tri[0]]);
+      const float2 pos_1 = float2(result.vert[tri[1]]);
+      const float2 pos_2 = float2(result.vert[tri[2]]);
+
+      /* Skip triangles that have points too close together. */
+      if (math::almost_equal_relative(pos_0, pos_1, 1e-4f) ||
+          math::almost_equal_relative(pos_1, pos_2, 1e-4f) ||
+          math::almost_equal_relative(pos_2, pos_0, 1e-4f))
       {
+        continue;
+      }
+
+      if (isect_point_tri_v2(v, pos_0, pos_1, pos_2) != 0) {
         return tri_index;
       }
     }
