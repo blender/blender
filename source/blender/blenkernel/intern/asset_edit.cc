@@ -255,7 +255,10 @@ static AssetWeakReference asset_weak_reference_for_online_essentials(const short
 
   char relative_filepath[FILE_MAX];
   STRNCPY(relative_filepath, filepath);
-  BLI_path_rel(relative_filepath, asset_system::online_essentials_cache_directory_path().c_str());
+  char online_essentials_path[FILE_MAXDIR];
+  STRNCPY(online_essentials_path, asset_system::online_essentials_cache_directory_path().c_str());
+  BLI_path_slash_ensure(online_essentials_path, sizeof(online_essentials_path));
+  BLI_path_rel(relative_filepath, online_essentials_path);
   const char *asset_blend_path = relative_filepath + 2; /* Strip out // prefix. */
 
   AssetWeakReference weak_ref;
