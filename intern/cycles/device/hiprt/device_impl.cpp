@@ -592,27 +592,28 @@ void HIPRTDevice::build_blas(BVHHIPRT *bvh, Geometry *geom)
 {
   hiprtGeometryBuildInput geom_input = {};
 
+  hiprtBuildOptions options = {
+      .buildFlags = hiprtBuildFlagBitPreferHighQualityBuild,
+  };
+
   switch (geom->geometry_type) {
     case Geometry::MESH:
     case Geometry::VOLUME: {
       Mesh *mesh = static_cast<Mesh *>(geom);
-
       if (mesh->num_triangles() == 0) {
         return;
       }
-
       geom_input = prepare_triangle_blas(bvh, mesh);
       break;
     }
 
     case Geometry::HAIR: {
       Hair *const hair = static_cast<Hair *const>(geom);
-
       if (hair->num_segments() == 0) {
         return;
       }
-
       geom_input = prepare_curve_blas(bvh, hair);
+      options.buildFlags = hiprtBuildFlagBitPreferBalancedBuild;
       break;
     }
 
@@ -621,7 +622,6 @@ void HIPRTDevice::build_blas(BVHHIPRT *bvh, Geometry *geom)
       if (pointcloud->num_points() == 0) {
         return;
       }
-
       geom_input = prepare_point_blas(bvh, pointcloud);
       break;
     }
@@ -640,10 +640,6 @@ void HIPRTDevice::build_blas(BVHHIPRT *bvh, Geometry *geom)
   if (have_error()) {
     return;
   }
-
-  const hiprtBuildOptions options = {
-      .buildFlags = hiprtBuildFlagBitPreferBalancedBuild,
-  };
 
   size_t blas_scratch_buffer_size = 0;
   hiprtError rt_err = hiprtGetGeometryBuildTemporaryBufferSize(
