@@ -50,6 +50,8 @@ BLOCKLIST = [
     "transparent_shadow_limit_.*",
     # Redundant with transparent_shadow_hair.
     "transparent_shadow_hair_blur.blend",
+    # Unsupported feature. Renders differently on different backends due to hair transparency.
+    "transparent_shadow_hair_colored.blend",
     # Unsupported feature. Redundant tests. (except osl_camera_advanced which tests triangular bokeh)
     "osl_camera_advanced_manual_dof.blend",
     "osl_camera_advanced_manual_dof_138188.blend",

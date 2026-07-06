@@ -117,7 +117,7 @@ BVH_SHADOW_ALL_PAYLOAD_SUBCLASS(BVHShadowAllPayload, BVHPayload)
   /* Accumulated throughput of transparent curve intersections.
    * Curves are using special optimization by baking their transparency and handling it in the
    * filter function. */
-  float throughput = 1.0f;
+  float3 throughput = one_float3();
 };
 
 /* Filter intersection with possibly transparent surface.
@@ -170,7 +170,7 @@ ccl_device_forceinline bool bvh_shadow_all_anyhit_filter(
   const int shader_flags = intersection_get_shader_flags(kg, isect.prim, isect.type);
   if ((shader_flags & SD_HAS_TRANSPARENT_SHADOW) == 0) {
     /* No transparent shadows for the shader, all light is blocked, and we can stop immediately. */
-    payload.throughput = 0.0f;
+    payload.throughput = zero_float3();
     return false;
   }
 
@@ -206,7 +206,7 @@ ccl_device_forceinline bool bvh_shadow_all_anyhit_filter(
   if (payload.num_transparent_hits > payload.max_transparent_hits) {
     /* The maximum number of intersections has been reached, consider that all light has been
      * blocked. */
-    payload.throughput = 0.0f;
+    payload.throughput = zero_float3();
     return false;
   }
 
@@ -217,10 +217,10 @@ ccl_device_forceinline bool bvh_shadow_all_anyhit_filter(
       payload.throughput *= intersection_curve_shadow_transparency(
           kg, isect.object, isect.prim, isect.type, isect.u);
 
-      if (payload.throughput < CURVE_SHADOW_TRANSPARENCY_CUTOFF) {
+      if (reduce_max(payload.throughput) < CURVE_SHADOW_TRANSPARENCY_CUTOFF) {
         /* Light attenuated too much through the curve intersections, assume all light is blocked
          * and do early output. */
-        payload.throughput = 0.0f;
+        payload.throughput = zero_float3();
         return false;
       }
 

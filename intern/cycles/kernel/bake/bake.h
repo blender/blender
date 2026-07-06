@@ -17,6 +17,8 @@
 
 #include "kernel/util/colorspace.h"
 
+#include "util/types_rgbe.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device void kernel_displace_evaluate(KernelGlobals kg,
@@ -136,7 +138,7 @@ ccl_device void kernel_curve_shadow_transparency_evaluate(
   }
 
   /* Write output. */
-  output[offset] = clamp(average(surface_shader_transparency(&sd)), 0.0f, 1.0f);
+  output[offset] = rgb_to_rgbe(saturate(spectrum_to_rgb(surface_shader_transparency(&sd)))).f;
 #endif
 }
 
