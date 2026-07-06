@@ -502,7 +502,7 @@ static void print_resource(std::ostream &os,
      * handle more sampler declarations this way (as long as they're not actually used by the
      * shader). See #105661. */
   }
-  else if (GLContext::explicit_location_support) {
+  else {
     os << "layout(binding = " << res.slot;
     if (res.bind_type == ShaderCreateInfo::Resource::BindType::IMAGE) {
       os << ", " << to_string(res.image.format);
@@ -514,9 +514,6 @@ static void print_resource(std::ostream &os,
       os << ", std430";
     }
     os << ") ";
-  }
-  else if (res.bind_type == ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER) {
-    os << "layout(std140) ";
   }
 
   switch (res.bind_type) {
@@ -712,12 +709,7 @@ std::string GLShader::vertex_interface_declare(const ShaderCreateInfo &info) con
 
   /* Inputs. */
   for (const ShaderCreateInfo::VertIn &attr : info.vertex_inputs_) {
-    if (GLContext::explicit_location_support &&
-        /* Fix issue with AMDGPU-PRO + workbench_prepass_mesh_vert.glsl being quantized. */
-        GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL) == false)
-    {
-      ss << "layout(location = " << attr.index << ") ";
-    }
+    ss << "layout(location = " << attr.index << ") ";
     ss << "in " << to_string(attr.type) << " " << attr.name << ";\n";
   }
   /* Interfaces. */

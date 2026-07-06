@@ -605,7 +605,6 @@ GLint GLContext::max_ssbo_binds = 0;
 
 bool GLContext::debug_layer_support = false;
 bool GLContext::direct_state_access_support = false;
-bool GLContext::explicit_location_support = false;
 bool GLContext::framebuffer_fetch_support = false;
 bool GLContext::layered_rendering_support = false;
 bool GLContext::vertex_shader_viewport_index_support = false;
@@ -684,7 +683,6 @@ void GLBackend::capabilities_init()
                                    epoxy_has_gl_extension("GL_KHR_debug") ||
                                    epoxy_has_gl_extension("GL_ARB_debug_output");
   GLContext::direct_state_access_support = epoxy_has_gl_extension("GL_ARB_direct_state_access");
-  GLContext::explicit_location_support = epoxy_gl_version() >= 43;
   GLContext::framebuffer_fetch_support = epoxy_has_gl_extension("GL_EXT_shader_framebuffer_fetch");
   GLContext::texture_barrier_support = epoxy_has_gl_extension("GL_ARB_texture_barrier");
   GLContext::layered_rendering_support = epoxy_has_gl_extension(

@@ -437,18 +437,10 @@ GLShaderInterface::GLShaderInterface(GLuint program, const shader::ShaderCreateI
   /* Attributes */
   for (const ShaderCreateInfo::VertIn &attr : info.vertex_inputs_) {
     copy_input_name(input, attr.name, name_buffer_, name_buffer_offset);
-    if (true || !GLContext::explicit_location_support) {
-      input->location = input->binding = glGetAttribLocation(program, attr.name.c_str());
-    }
-    else {
-      input->location = input->binding = attr.index;
-    }
-    if (input->location != -1) {
-      enabled_attr_mask_ |= (1 << input->location);
-
-      /* Used in `GPU_shader_get_attribute_info`. */
-      attr_types_[input->location] = uint8_t(attr.type);
-    }
+    input->location = input->binding = attr.index;
+    enabled_attr_mask_ |= (1 << input->location);
+    /* Used in `GPU_shader_get_attribute_info`. */
+    attr_types_[input->location] = uint8_t(attr.type);
 
     input++;
   }
@@ -467,23 +459,12 @@ GLShaderInterface::GLShaderInterface(GLuint program, const shader::ShaderCreateI
   for (const ShaderCreateInfo::Resource &res : all_resources) {
     if (res.bind_type == ShaderCreateInfo::Resource::BindType::SAMPLER) {
       copy_input_name(input, res.sampler.name, name_buffer_, name_buffer_offset);
-      /* Until we make use of explicit uniform location or eliminate all
-       * sampler manually changing. */
-      if (true || !GLContext::explicit_location_support) {
-        input->location = glGetUniformLocation(program, res.sampler.name.c_str());
-        glUniform1i(input->location, res.slot);
-      }
       input->binding = res.slot;
       enabled_tex_mask_ |= (1ull << input->binding);
       input++;
     }
     else if (res.bind_type == ShaderCreateInfo::Resource::BindType::IMAGE) {
       copy_input_name(input, res.image.name, name_buffer_, name_buffer_offset);
-      /* Until we make use of explicit uniform location. */
-      if (true || !GLContext::explicit_location_support) {
-        input->location = glGetUniformLocation(program, res.image.name.c_str());
-        glUniform1i(input->location, res.slot);
-      }
       input->binding = res.slot;
       enabled_ima_mask_ |= (1 << input->binding);
       input++;
