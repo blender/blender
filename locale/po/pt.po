@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'b2d38940ccd4')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2026-06-29 10:51+0000\n"
-"PO-Revision-Date: 2026-06-26 19:07+0000\n"
+"POT-Creation-Date: 2026-07-06 08:37+0000\n"
+"PO-Revision-Date: 2026-07-05 04:12+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 5.16.2\n"
+"X-Generator: Weblate 2026.6.1\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Language: Portuguese\n"
 "X-Poedit-Country: PORTUGAL"
@@ -13447,7 +13447,7 @@ msgstr "Arco-íris automático"
 
 
 msgid "Cycle through the rainbow, trying to give each curve a unique color"
-msgstr "Recicla através das cores do arco-íris, tentando fornecer para cada curva, uma cor específica."
+msgstr "Percorrer Arco Íris, tentando fornecer para cada curva uma cor específica"
 
 
 msgid "Auto XYZ to RGB"
@@ -14359,10 +14359,6 @@ msgstr "Senoide normalizada"
 
 msgid "sin(x) / x"
 msgstr "seno (x) / x"
-
-
-msgid "Phase Multiple"
-msgstr "Multiplicador de Fase"
 
 
 msgid "Scale factor determining the 'speed' of the function"
@@ -15638,8 +15634,32 @@ msgid "Show only assets that are available on disk already (no internet access n
 msgstr "Mostrar apenas recursos que estão alojados localmente (não precisa de acesso à internet)"
 
 
+msgid "Catalog Visibility"
+msgstr "Visibilidade de Catálogos"
+
+
+msgid "Which assets to show based on catalog filter"
+msgstr "Que recursos mostrar com base no filtro de catálogos"
+
+
+msgid "Show assets from all catalogs"
+msgstr "Mostrar recursos de todos os catálogos"
+
+
 msgid "Catalog"
 msgstr "Catálogo"
+
+
+msgid "Show assets from the active catalog only"
+msgstr "Mostrar recursos apenas do catálogo activo"
+
+
+msgid "Unassigned"
+msgstr "Não Atribuídos"
+
+
+msgid "Show assets not assigned to any catalog"
+msgstr "Mostrar recursos não atribuídos a nenhum catálogos"
 
 
 msgid "The UUID of the catalog shown in the browser"
@@ -18426,6 +18446,10 @@ msgstr "Cabeçalho de Ferramentas"
 
 msgid "XR"
 msgstr "XR"
+
+
+msgid "Scrubbing"
+msgstr "Reproduzir áudio ao reposicionar"
 
 
 msgid "The space where the panel is going to be used in"
@@ -35899,114 +35923,6 @@ msgid "Editor menu containing buttons"
 msgstr "Menu de editor contendo botões"
 
 
-msgid "Render Preview"
-msgstr "Pré-Visualização da Render"
-
-
-msgid "Mirror"
-msgstr "Espelhar"
-
-
-msgid "Snap"
-msgstr "Atrair"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de Vista"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o activo"
-
-
-msgid "View Regions"
-msgstr "Regiões de Visualização"
-
-
-msgid "Math"
-msgstr "Matemática"
-
-
-msgid "Select More/Less"
-msgstr "Seleccionar mais ou menos"
-
-
-msgid "Utilities"
-msgstr "Utilidades"
-
-
-msgid "Select Similar"
-msgstr "Seleccionar por similaridades"
-
-
-msgid "Select All by Trait"
-msgstr "Seleccionar todos por características..."
-
-
-msgid "Select Linked"
-msgstr "Seleccionar vinculados(as)"
-
-
-msgid "Select Loops"
-msgstr "Seleccionar Circuitos"
-
-
-msgid "Assign Material"
-msgstr "Aplicar Material"
-
-
-msgid "Read"
-msgstr "Ler"
-
-
-msgid "Sample"
-msgstr "Amostrar"
-
-
-msgid "Write"
-msgstr "Escrever"
-
-
-msgid "Primitives"
-msgstr "Primitivas"
-
-
-msgid "Metaball"
-msgstr "Esfera-meta"
-
-
-msgid "Light"
-msgstr "Leve"
-
-
-msgid "Light Probe"
-msgstr "Sonda de Luz"
-
-
-msgid "Gizmo"
-msgstr "Manipulador"
-
-
-msgid "Instances"
-msgstr "Instâncias"
-
-
 msgid "Add Image"
 msgstr "Adicionar Imagem"
 
@@ -36019,8 +35935,8 @@ msgid "Rigid Body"
 msgstr "Corpo rígido"
 
 
-msgid "Import"
-msgstr "Importar"
+msgid "Render Preview"
+msgstr "Pré-Visualização da Render"
 
 
 msgid "Apply"
@@ -36037,10 +35953,6 @@ msgstr "Efeitos instantâneos"
 
 msgid "Show/Hide"
 msgstr "Mostrar ou ocultar"
-
-
-msgid "Deprecated"
-msgstr "Obsoleto"
 
 
 msgid "Clean Up"
@@ -36067,16 +35979,20 @@ msgid "Hooks"
 msgstr "Ganchos"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Vertex Group Locks"
 msgstr "Bloqueios de Grupos de Vértices"
 
 
+msgid "Math"
+msgstr "Matemática"
+
+
 msgid "Trim/Add"
 msgstr "Aparar/Adicionar"
+
+
+msgid "Utilities"
+msgstr "Utilidades"
 
 
 msgid "Add Primitive"
@@ -36115,12 +36031,28 @@ msgid "Names"
 msgstr "Nomes"
 
 
+msgid "Read"
+msgstr "Ler"
+
+
+msgid "Sample"
+msgstr "Amostrar"
+
+
+msgid "Write"
+msgstr "Escrever"
+
+
 msgid "Toggle Bone Options"
 msgstr "Alternar opções de ossos"
 
 
 msgid "Enable Bone Options"
 msgstr "Activar opções de ossos"
+
+
+msgid "Primitives"
+msgstr "Primitivas"
 
 
 msgid "Disable Bone Options"
@@ -36143,16 +36075,20 @@ msgid "Set Face Strength"
 msgstr "Definir Força das Faces"
 
 
+msgid "Gizmo"
+msgstr "Manipulador"
+
+
+msgid "Instances"
+msgstr "Instâncias"
+
+
 msgid "Merge"
 msgstr "Fundir"
 
 
-msgid "Linked"
-msgstr "Vinculando"
-
-
-msgid "Layout"
-msgstr "Organizar"
+msgid "Import"
+msgstr "Importar"
 
 
 msgid "Special Characters"
@@ -36163,28 +36099,28 @@ msgid "Kerning"
 msgstr "Kerning"
 
 
+msgid "Deprecated"
+msgstr "Obsoleto"
+
+
+msgid "Metaball"
+msgstr "Esfera-meta"
+
+
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Bone Roll"
 msgstr "Rolagem do osso"
 
 
-msgid "Adjust"
-msgstr "Ajustar"
-
-
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
-msgid "Tracking"
-msgstr "Rastreamento"
-
-
-msgid "Creative"
-msgstr "Criativo"
-
-
 msgid "Pivot Point"
 msgstr "Pontos de pivô"
+
+
+msgid "Snap"
+msgstr "Atrair"
 
 
 msgid "Proportional Editing Falloff"
@@ -36201,6 +36137,94 @@ msgstr "Auto Máscara"
 
 msgid "Face Sets Edit"
 msgstr "Edições de Conjuntos de Faces"
+
+
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de Vista"
+
+
+msgid "Linked"
+msgstr "Vinculando"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Layout"
+msgstr "Organizar"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o activo"
+
+
+msgid "View Regions"
+msgstr "Regiões de Visualização"
+
+
+msgid "Select More/Less"
+msgstr "Seleccionar mais ou menos"
+
+
+msgid "Select Similar"
+msgstr "Seleccionar por similaridades"
+
+
+msgid "Select All by Trait"
+msgstr "Seleccionar todos por características..."
+
+
+msgid "Select Linked"
+msgstr "Seleccionar vinculados(as)"
+
+
+msgid "Select Loops"
+msgstr "Seleccionar Circuitos"
+
+
+msgid "Adjust"
+msgstr "Ajustar"
+
+
+msgid "Keying"
+msgstr "Inserção de chaves"
+
+
+msgid "Tracking"
+msgstr "Rastreamento"
+
+
+msgid "Assign Material"
+msgstr "Aplicar Material"
+
+
+msgid "Creative"
+msgstr "Criativo"
+
+
+msgid "Light"
+msgstr "Leve"
+
+
+msgid "Light Probe"
+msgstr "Sonda de Luz"
 
 
 msgid "Keyframe Insert Pie"
@@ -51191,7 +51215,7 @@ msgstr "Aproximar dispersão volumétrica com base física"
 
 
 msgid "Random Walk"
-msgstr "Passeio Aleatório"
+msgstr "Random Walk (Caminho Aleatório)"
 
 
 msgid "Volumetric approximation to physically based volume scattering, using the scattering radius as specified"
@@ -51199,7 +51223,7 @@ msgstr "Aproximação volumétrica da dispersão de volume com base física, usa
 
 
 msgid "Random Walk (Skin)"
-msgstr "Percurso Aleatório (Pele)"
+msgstr "Random Walk (Pele)"
 
 
 msgid "Volumetric approximation to physically based volume scattering, with scattering radius automatically adjusted to match color textures. Designed for skin shading."
@@ -65213,15 +65237,15 @@ msgstr "Activa ou selecciona os ficheiros contidos nas margens."
 
 msgctxt "Operator"
 msgid "Walk Select/Deselect File"
-msgstr "Passagear (de)seleccionando ficheiros"
+msgstr "Caminhar Seleccionar/Desseleccionar Ficheiro"
 
 
 msgid "Select/Deselect files by walking through them"
-msgstr "Permite (de)seleccionar ficheiros delineando-os através da navegação."
+msgstr "Seleccionar/Desseleccionar ficheiros caminhando passo a passo sobre eles"
 
 
 msgid "Walk Direction"
-msgstr "Direcção do passageio"
+msgstr "Direcção de Caminhada"
 
 
 msgid "Select/Deselect element in this direction"
@@ -70790,10 +70814,6 @@ msgid "Radius of the circle"
 msgstr "Raio do círulo"
 
 
-msgid "Force of the tool"
-msgstr "Força da Ferramenta"
-
-
 msgid "Method used for fitting a circle to the vertices"
 msgstr "Método usado para ajustar círculo aos vértices"
 
@@ -71526,10 +71546,6 @@ msgstr "Planificar"
 
 msgid "Flatten vertices on a best-fitting plane"
 msgstr "Planificar vértices num plano mais adequado"
-
-
-msgid "Spacing effect factor"
-msgstr "Factor de Efeito de Espassamento"
 
 
 msgid "Plane on which vertices are flattened"
@@ -73291,6 +73307,10 @@ msgstr "Espaçar Circuitos Uniformemente"
 
 msgid "Space the vertices in a regular distribution on the loop"
 msgstr "Espaçar os vértices com distribuição regular no circuito"
+
+
+msgid "Spacing effect factor"
+msgstr "Factor de Efeito de Espassamento"
 
 
 msgid "Algorithm used for interpolation"
@@ -88221,6 +88241,43 @@ msgid "Focus Active Item"
 msgstr "Focar Item Activo"
 
 
+msgid "Bring active item into focus by scrolling the view"
+msgstr "Trazem item activo para enfoque enquadrando a vista"
+
+
+msgctxt "Operator"
+msgid "View Navigate"
+msgstr "Navegar Vista"
+
+
+msgid "Walk and select view items in given direction"
+msgstr "Andar e seleccionar itens da vista na direcção dada"
+
+
+msgid "Navigation Direction"
+msgstr "Direcção de Navegação"
+
+
+msgid "Direction in which to navigate and select next element."
+msgstr "Direcção na qual navegar e seleccionar o próximo elemento."
+
+
+msgid "Select item above the active"
+msgstr "Seleccionar item acima do activo"
+
+
+msgid "Select item below the active"
+msgstr "Seleccionar itens abaixo do actual"
+
+
+msgid "Collapse or walk towards left of the active item"
+msgstr "Colapsar ou caminhar em direcção à esquerda do item activo"
+
+
+msgid "Uncollapse or walk towards right of the active item"
+msgstr "Expandir ou caminhar em direcção à esquerda do item activo"
+
+
 msgctxt "Operator"
 msgid "Rename View Item"
 msgstr "Renomear a Item da Vista"
@@ -89544,6 +89601,14 @@ msgid "Prevent flipping UV's, flipping may lower distortion depending on the pos
 msgstr "Impedir inverter UVs, inversão pode distorcer dependendo da posição das fixações"
 
 
+msgid "Original Bounds"
+msgstr "Limites Originais"
+
+
+msgid "Unwrap islands into their original bounds, instead of re-packing"
+msgstr "Desembrulha ilhas dentro dos seus limites originais, em fez de re-arrumar"
+
+
 msgid "Use Subdivision Surface"
 msgstr "Usar Subdivisão de Superfície"
 
@@ -89917,7 +89982,7 @@ msgstr "Navegação da Vista (Andar/Voar)"
 
 
 msgid "Interactively navigate around the scene (uses the mode (walk/fly) preference)"
-msgstr "Permite a navegação interativa dentro da cena (usa as preferências do modo de voo ou caminhada)."
+msgstr "Navegar interactivamente pela cena. Usa a preferência de modo (voar/andar)."
 
 
 msgctxt "Operator"
@@ -90510,13 +90575,74 @@ msgid "Delete the selected VR landmark from the list"
 msgstr "Apagar o marco RV seleccionado da lista"
 
 
+msgid "Set the active Scene Camera settings from the selected VR Capture"
+msgstr "Definir a Câmara de Cena activa a partir de Captura RV seleccionada"
+
+
+msgid "Create a new Camera Object from the selected VR Capture"
+msgstr "Criar uma nova Câmara a partir da Captura RV seleccionada"
+
+
+msgid "Create a new Camera bound to a Marker from the selected VR Capture at the current frame"
+msgstr "Criar uma nova Câmara vinculada a um Marcador a partir da Captura RV seleccionada no fotograma actual"
+
+
+msgid "Browse Location Scouting Captures forward or backward"
+msgstr "Percorrer Capturas de Prospecção de Posição para a frente e para trás"
+
+
+msgid "Browse Backward"
+msgstr "Percorrer para Trás"
+
+
+msgctxt "Operator"
+msgid "Location Scouting Capture Review"
+msgstr "Avaliação de Captura de Prospecção de Posição"
+
+
+msgid "Interactively review Location Scouting VR Captures"
+msgstr "Avaliar Interactivamente Capturas de Prospecção de Posição RV"
+
+
+msgid "Remove the selected Location Scouting Capture"
+msgstr "Remover a Captura de Prospecção de Posição RV seleccionada"
+
+
+msgid "Apply the currently selected Viewfinder action (Zoom Control/Playback selection for now)"
+msgstr "Aplicar a acção do Visor actualmente seleccionada (Controlo de Aproximação/Selecção Reprodução por agora)"
+
+
+msgid "Is Up Action"
+msgstr "É Acção Para Cima"
+
+
+msgid "Create a VR Capture from the Viewfinder pose and mark it as selected"
+msgstr "Criar uma Captura RV a partir da Pose do Visor e marcar como seleccionada"
+
+
+msgid "Cycle the currently active Viewfinder action left or right"
+msgstr "Trocar a acção de visor actualmente activa para a esquerda ou para a direita"
+
+
+msgid "Cycle Left"
+msgstr "Trocar para a Esquerda"
+
+
+msgid "Cycle the currently active Viewfinder mode"
+msgstr "Trocar o modo de visualização actualmente activo no Visor"
+
+
+msgid "Swap user hand used to hold the Viewfinder"
+msgstr "Trocar mão do utilizador usada para segurar o Visor"
+
+
 msgctxt "Operator"
 msgid "Walk Navigation"
 msgstr "Navegação em caminhada"
 
 
 msgid "Interactively walk around the scene"
-msgstr "Permite a caminhada interativa dentro da cena."
+msgstr "Andar interactivamente pela cena"
 
 
 msgid "Zoom in/out in the view"
@@ -91216,6 +91342,14 @@ msgstr "Importar SVG como Grease Pencil"
 
 msgid "Import SVG into Grease Pencil"
 msgstr "Importar SVG para Grease Pencil"
+
+
+msgid "Center on Bounds"
+msgstr "Centrar nos Limites"
+
+
+msgid "Center the imported SVG on its bounding box"
+msgstr "Centrar o SVG importado dentro da sua caixa delimitadora"
 
 
 msgid "Resolution of the generated strokes"
@@ -94196,6 +94330,38 @@ msgid "Panel containing UI elements"
 msgstr "Painel contendo elementos do Interface do Utilizador"
 
 
+msgid "VR"
+msgstr "RV"
+
+
+msgid "VR Info"
+msgstr "Informação RV"
+
+
+msgid "glTF Variants"
+msgstr "Variantes glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Variantes de material glTF"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "Animações glTF"
+
+
+msgid "Active Tool"
+msgstr "Ferramenta Activa"
+
+
+msgid "View Lock"
+msgstr "Trancar Vista"
+
+
 msgid "Selectability & Visibility"
 msgstr "Selectividade e Visibilidade"
 
@@ -94302,38 +94468,6 @@ msgstr "Escala de Crescimento/Encolhimento de Curva"
 
 msgid "Viewport Debug"
 msgstr "Diagnóstico de Janela de Visualização"
-
-
-msgid "glTF Variants"
-msgstr "Variantes glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Variantes de material glTF"
-
-
-msgid "VR"
-msgstr "RV"
-
-
-msgid "VR Info"
-msgstr "Informação RV"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "Animações glTF"
-
-
-msgid "Active Tool"
-msgstr "Ferramenta Activa"
-
-
-msgid "View Lock"
-msgstr "Trancar Vista"
 
 
 msgid "Import Settings"
@@ -95450,7 +95584,7 @@ msgstr "Voar e Andar"
 
 
 msgid "Walk"
-msgstr "Caminhada"
+msgstr "Andar"
 
 
 msgid "Orbit & Pan"
@@ -98389,7 +98523,7 @@ msgstr "Qual método usar para a navegação na janela de visualização."
 
 
 msgid "Interactively walk or free navigate around the scene"
-msgstr "Permite navegar ou caminhar interativamente dentro da cena."
+msgstr "Andar interactivamente ou navegar livremente pela cena"
 
 
 msgid "Fly"
@@ -98781,7 +98915,7 @@ msgstr "Ampliar e reduz como se estivesse a redimensionar a vista, com movimento
 
 
 msgid "Walk Navigation"
-msgstr "Navegação em caminhada"
+msgstr "Navegação em Caminhada"
 
 
 msgid "Settings for walk navigation mode"
@@ -99638,10 +99772,6 @@ msgstr "Catalão (Català)"
 
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "Chinês (Simplificado) - 简体中文"
-
-
-msgid "Locale code: zh_HANS. Translation progress: 99%"
-msgstr "Código de língua: zh_HANS. Progresso de tradução: 99%"
 
 
 msgid "Chinese (Traditional) - 繁體中文"
@@ -123873,10 +124003,6 @@ msgstr "Copiando sistema de partículas para os seleccionados: %d concluído, %d
 
 msgid "No Rigid Body World to add Rigid Body Constraint to"
 msgstr "Sem ambiente (mundo) de \"Corpo rígido\" definido para adicionar uma restrição do tipo \"Corpo rígido\"."
-
-
-msgid "Object has no Rigid Body Constraint to remove"
-msgstr "Objecto não possui restrição do tipo \"Corpo rígido\" para remover."
 
 
 msgid "Object '%s' already has a Rigid Body Constraint"
