@@ -25,10 +25,9 @@ namespace blender::compositor {
  * flag. */
 enum class NodeGroupOutputTypes : uint8_t {
   None = 0,
-  GroupOutputNode = 1 << 0,
-  ViewerNode = 1 << 1,
-  FileOutputNode = 1 << 2,
-  NodePreviews = 1 << 3,
+  ViewerNode = 1 << 0,
+  FileOutputNode = 1 << 1,
+  NodePreviews = 1 << 2,
 };
 ENUM_OPERATORS(NodeGroupOutputTypes)
 

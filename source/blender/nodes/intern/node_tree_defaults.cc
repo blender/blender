@@ -144,33 +144,11 @@ void node_tree_composit_default_init(const bContext *C, bNodeTree *ntree)
   bke::node_set_active(*ntree, *in);
   in->flag &= ~NODE_PREVIEW;
 
-  bNode *reroute = bke::node_add_static_node(C, *ntree, NODE_REROUTE);
-  reroute->location[0] = 100.0f;
-  reroute->location[1] = 65.0f;
-
-  bNode *viewer = bke::node_add_static_node(C, *ntree, CMP_NODE_VIEWER);
-  viewer->location[0] = 200.0f;
-  viewer->location[1] = 20.0f;
-
-  /* Viewer and Composite nodes are linked to Render Layer's output image socket through a reroute
-   * node. */
   bke::node_add_link(*ntree,
                      *in,
                      *reinterpret_cast<bNodeSocket *>(in->outputs.first),
-                     *reroute,
-                     *reinterpret_cast<bNodeSocket *>(reroute->inputs.first));
-
-  bke::node_add_link(*ntree,
-                     *reroute,
-                     *reinterpret_cast<bNodeSocket *>(reroute->outputs.first),
                      *composite,
                      *reinterpret_cast<bNodeSocket *>(composite->inputs.first));
-
-  bke::node_add_link(*ntree,
-                     *reroute,
-                     *reinterpret_cast<bNodeSocket *>(reroute->outputs.first),
-                     *viewer,
-                     *reinterpret_cast<bNodeSocket *>(viewer->inputs.first));
 
   BKE_ntree_update_after_single_tree_change(*CTX_data_main(C), *ntree);
 }

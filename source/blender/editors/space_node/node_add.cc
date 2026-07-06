@@ -1874,31 +1874,11 @@ static void initialize_compositor_sequencer_node_group(const bContext *C,
   input_node->location[1] = 0.0f;
   bke::node_set_active(ntree, *input_node);
 
-  bNode *reroute = bke::node_add_static_node(C, ntree, NODE_REROUTE);
-  reroute->location[0] = 100.0f;
-  reroute->location[1] = -35.0f;
-
-  bNode *viewer = bke::node_add_static_node(C, ntree, CMP_NODE_VIEWER);
-  viewer->location[0] = 200.0f;
-  viewer->location[1] = -80.0f;
-
   bke::node_add_link(ntree,
                      *input_node,
                      *static_cast<bNodeSocket *>(input_node->outputs.first),
-                     *reroute,
-                     *static_cast<bNodeSocket *>(reroute->inputs.first));
-
-  bke::node_add_link(ntree,
-                     *reroute,
-                     *static_cast<bNodeSocket *>(reroute->outputs.first),
                      *output_node,
                      *static_cast<bNodeSocket *>(output_node->inputs.first));
-
-  bke::node_add_link(ntree,
-                     *reroute,
-                     *static_cast<bNodeSocket *>(reroute->outputs.first),
-                     *viewer,
-                     *static_cast<bNodeSocket *>(viewer->inputs.first));
 
   BKE_ntree_update_after_single_tree_change(*CTX_data_main(C), ntree);
 }

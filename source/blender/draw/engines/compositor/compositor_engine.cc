@@ -30,6 +30,7 @@
 #include "COM_node_group_operation.hh"
 #include "COM_realize_on_domain_operation.hh"
 #include "COM_result.hh"
+#include "COM_scheduler.hh"
 #include "COM_utilities.hh"
 
 #include "GPU_context.hh"
@@ -51,9 +52,6 @@ class Context : public compositor::Context {
   char *info_message_;
   /* The hash of the active compute context. */
   const ComputeContextHash active_compute_context_hash_;
-
-  /* Identified if the output of the viewer was written. */
-  bool viewer_was_written_ = false;
 
  public:
   Context(compositor::StaticCacheManager &cache_manager,
@@ -88,13 +86,6 @@ class Context : public compositor::Context {
   const ComputeContextHash &get_active_compute_context_hash() const override
   {
     return active_compute_context_hash_;
-  }
-
-  /* The viewport compositor does not support viewer outputs, so treat viewers as composite
-   * outputs. */
-  bool treat_viewer_as_group_output() const override
-  {
-    return true;
   }
 
   /* In case the viewport has no camera region or is an image render, the domain covers the entire
@@ -163,11 +154,6 @@ class Context : public compositor::Context {
 
   void write_output(const compositor::Result &result)
   {
-    /* Do not write the output if the viewer output was already written. */
-    if (viewer_was_written_) {
-      return;
-    }
-
     gpu::Texture *output = DRW_context_get()->viewport_texture_list_get()->color;
     if (result.is_single_value()) {
       GPU_texture_clear(output, GPU_DATA_FLOAT, result.get_single_value<compositor::Color>());
@@ -194,33 +180,31 @@ class Context : public compositor::Context {
     GPU_shader_unbind();
   }
 
-  void write_viewer(compositor::Result &viewer_result) override
+  void write_viewer(compositor::Result &result) override
   {
     using namespace compositor;
 
-    /* Realize the on the compositing domain if needed. */
+    /* Realize the result on the compositing domain if needed. */
     const Domain compositing_domain = this->get_compositing_domain();
     const InputDescriptor input_descriptor = {ResultType::Color,
                                               InputRealizationMode::OperationDomain};
     SimpleOperation *realization_operation = RealizeOnDomainOperation::construct_if_needed(
-        *this, viewer_result, input_descriptor, compositing_domain);
+        *this, result, input_descriptor, compositing_domain);
 
-    if (realization_operation) {
-      Result realize_input = this->create_result(ResultType::Color, viewer_result.precision());
-      realize_input.share_data(viewer_result);
-      realization_operation->map_input_to_result(&realize_input);
-      realization_operation->evaluate();
-
-      Result &realized_viewer_result = realization_operation->get_result();
-      this->write_output(realized_viewer_result);
-      realized_viewer_result.release();
-      viewer_was_written_ = true;
-      delete realization_operation;
+    if (!realization_operation) {
+      this->write_output(result);
       return;
     }
 
-    this->write_output(viewer_result);
-    viewer_was_written_ = true;
+    Result realize_input = this->create_result(result.type(), result.precision());
+    realize_input.share_data(result);
+    realization_operation->map_input_to_result(&realize_input);
+    realization_operation->evaluate();
+
+    Result &realized_result = realization_operation->get_result();
+    this->write_output(realized_result);
+    realized_result.release();
+    delete realization_operation;
   }
 
   compositor::Result get_invalid_pass()
@@ -344,17 +328,27 @@ class Context : public compositor::Context {
 
   compositor::NodeGroupOutputTypes needed_outputs() const
   {
-    return compositor::NodeGroupOutputTypes::GroupOutputNode |
-           compositor::NodeGroupOutputTypes::ViewerNode;
+    return compositor::NodeGroupOutputTypes::ViewerNode;
   }
 
   void evaluate()
   {
     using namespace compositor;
+    const NodeGroupOutputTypes needed_outputs = this->needed_outputs();
     const bNodeTree &node_group = *DRW_context_get()->scene->compositing_node_group;
-    const bke::DataBlockComputeContext compute_context(nullptr, this->get_scene().id);
+    const bke::DataBlockComputeContext base_compute_context(nullptr, this->get_scene().id);
     NodeGroupOperation node_group_operation(
-        *this, node_group, this->needed_outputs(), compute_context);
+        *this, node_group, needed_outputs, base_compute_context);
+
+    /* If the node group has no viewer node in the active context or the base context, and the
+     * context requires a viewer output, we use the group output as a viewer. */
+    const bool has_viewer =
+        has_viewer_node(node_group, base_compute_context, base_compute_context.hash()) ||
+        has_viewer_node(node_group, base_compute_context, this->get_active_compute_context_hash());
+    const bool needs_viewer_output = flag_is_set(needed_outputs, NodeGroupOutputTypes::ViewerNode);
+    const bool use_group_output_as_viewer = (!has_viewer && needs_viewer_output);
+
+    const bool is_group_output_needed = use_group_output_as_viewer;
 
     /* Set the reference count for the outputs, only the first color output is actually needed,
      * while the rest are ignored. */
@@ -363,7 +357,8 @@ class Context : public compositor::Context {
       const bool is_first_output = output_socket == node_group.interface_outputs().first();
       Result &output_result = node_group_operation.get_result(output_socket->identifier);
       const bool is_color = output_result.type() == ResultType::Color;
-      output_result.set_reference_count(is_first_output && is_color ? 1 : 0);
+      const bool is_needed = is_group_output_needed && is_first_output && is_color;
+      output_result.set_reference_count(is_needed ? 1 : 0);
     }
 
     /* Map the inputs to the operation. */
@@ -398,23 +393,10 @@ class Context : public compositor::Context {
         continue;
       }
 
-      /* Realize the output on the compositing domain if needed. */
-      const Domain compositing_domain = this->get_compositing_domain();
-      const InputDescriptor input_descriptor = {ResultType::Color,
-                                                InputRealizationMode::OperationDomain};
-      SimpleOperation *realization_operation = RealizeOnDomainOperation::construct_if_needed(
-          *this, output_result, input_descriptor, compositing_domain);
-      if (realization_operation) {
-        realization_operation->map_input_to_result(&output_result);
-        realization_operation->evaluate();
-        Result &realized_output_result = realization_operation->get_result();
-        this->write_output(realized_output_result);
-        realized_output_result.release();
-        delete realization_operation;
-        continue;
+      if (use_group_output_as_viewer) {
+        this->write_viewer(output_result);
       }
 
-      this->write_output(output_result);
       output_result.release();
     }
   }

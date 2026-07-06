@@ -24,4 +24,11 @@ struct Schedule {
  * traversal of dependencies based on a heuristic estimation of the number of needed buffers. */
 Schedule compute_schedule(NodeGroupOperation &node_group_operation);
 
+/* Checks if the given node group with the given compute context has an active Viewer node in it or
+ * in one of its descendants. Only nodes of node groups whose compute context match that of the
+ * given active compute context hash are considered active. */
+bool has_viewer_node(const bNodeTree &node_group,
+                     const ComputeContext &compute_context,
+                     const ComputeContextHash &active_compute_context_hash);
+
 }  // namespace blender::compositor

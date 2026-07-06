@@ -13,6 +13,7 @@
 #include "COM_algorithm_parallel_reduction.hh"
 #include "COM_ocio_color_space_conversion_shader.hh"
 #include "COM_realize_on_domain_operation.hh"
+#include "COM_scheduler.hh"
 #include "COM_utilities.hh"
 
 #include "GPU_state.hh"
@@ -135,31 +136,24 @@ void CompositorContext::write_viewer_impl(const compositor::Result &result, ImBu
   SimpleOperation *realization_operation = RealizeOnDomainOperation::construct_if_needed(
       *this, result, input_descriptor, result.domain());
 
-  if (realization_operation) {
-    Result realize_input = this->create_result(ResultType::Color, result.precision());
-    realize_input.share_data(result);
-    realization_operation->map_input_to_result(&realize_input);
-    realization_operation->evaluate();
-
-    Result &realized_viewer_result = realization_operation->get_result();
-    this->write_output(realized_viewer_result, image);
-    realized_viewer_result.release();
-    viewer_was_written_ = true;
-    delete realization_operation;
+  if (!realization_operation) {
+    this->write_output(result, image);
     return;
   }
 
-  this->write_output(result, image);
-  viewer_was_written_ = true;
+  Result realize_input = this->create_result(ResultType::Color, result.precision());
+  realize_input.share_data(result);
+  realization_operation->map_input_to_result(&realize_input);
+  realization_operation->evaluate();
+
+  Result &realized_result = realization_operation->get_result();
+  this->write_output(realized_result, image);
+  realized_result.release();
+  delete realization_operation;
 }
 
 void CompositorContext::write_output(const compositor::Result &result, ImBuf &image)
 {
-  /* Do not write the output if the viewer output was already written. */
-  if (viewer_was_written_) {
-    return;
-  }
-
   PRF_scope_with_name("SeqCompWriteOutput", ProfileCategory::Draw);
 
   if (result.is_single_value()) {
@@ -218,22 +212,7 @@ void CompositorContext::write_outputs(const bNodeTree &node_group,
       continue;
     }
 
-    /* Realize the output transforms if needed. */
-    const InputDescriptor input_descriptor = {ResultType::Color,
-                                              InputRealizationMode::OperationDomain};
-    SimpleOperation *realization_operation = RealizeOnDomainOperation::construct_if_needed(
-        *this, output_result, input_descriptor, output_result.domain());
-    if (realization_operation) {
-      realization_operation->map_input_to_result(&output_result);
-      realization_operation->evaluate();
-      Result &realized_output_result = realization_operation->get_result();
-      this->write_output(realized_output_result, output_image);
-      realized_output_result.release();
-      delete realization_operation;
-      continue;
-    }
-
-    this->write_output(output_result, output_image);
+    this->write_viewer_impl(output_result, output_image);
     output_result.release();
   }
 }
@@ -242,6 +221,19 @@ void CompositorContext::set_output_refcount(const bNodeTree &node_group,
                                             compositor::NodeGroupOperation &node_group_operation)
 {
   using namespace compositor;
+
+  /* If the node group has no viewer node in the active context or the base context, and the
+   * context requires a viewer output, we use the group output as a viewer. */
+  const bke::DataBlockComputeContext base_compute_context(nullptr, this->get_scene().id);
+  const bool has_viewer =
+      has_viewer_node(node_group, base_compute_context, base_compute_context.hash()) ||
+      has_viewer_node(node_group, base_compute_context, this->get_active_compute_context_hash());
+  const bool needs_viewer_output = flag_is_set(this->needed_outputs(),
+                                               NodeGroupOutputTypes::ViewerNode);
+  const bool use_group_output_as_viewer = (!has_viewer && needs_viewer_output);
+
+  const bool is_group_output_needed = render_data_.render || use_group_output_as_viewer;
+
   /* Set the reference count for the outputs, only the first color output is actually needed,
    * while the rest are ignored. */
   node_group.ensure_interface_cache();
@@ -249,7 +241,8 @@ void CompositorContext::set_output_refcount(const bNodeTree &node_group,
     const bool is_first_output = output_socket == node_group.interface_outputs().first();
     Result &output_result = node_group_operation.get_result(output_socket->identifier);
     const bool is_color = output_result.type() == ResultType::Color;
-    output_result.set_reference_count(is_first_output && is_color ? 1 : 0);
+    const bool is_needed = is_group_output_needed && is_first_output && is_color;
+    output_result.set_reference_count(is_needed ? 1 : 0);
   }
 }
 

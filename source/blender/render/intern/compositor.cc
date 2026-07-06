@@ -39,6 +39,7 @@
 #include "COM_realize_on_domain_operation.hh"
 #include "COM_render_context.hh"
 #include "COM_result.hh"
+#include "COM_scheduler.hh"
 
 #include "NOD_dependencies.hh"
 #include "NOD_eval_log.hh"
@@ -154,7 +155,7 @@ class Context : public compositor::Context {
     return compositor::Domain(this->get_render_size());
   }
 
-  void write_output(const compositor::Result &result)
+  void write_output_image(const compositor::Result &result)
   {
     Render *render = RE_GetSceneRender(&input_data_.scene);
     RenderResult *render_result = RE_AcquireResultWrite(render);
@@ -200,6 +201,31 @@ class Context : public compositor::Context {
 
     Image *image = BKE_image_ensure_viewer(G.main, IMA_TYPE_R_RESULT, "Render Result");
     BKE_image_partial_update_mark_full_update(image);
+  }
+
+  void write_output(compositor::Result &result)
+  {
+    using namespace compositor;
+
+    /* Realize the output on the compositing domain if needed. */
+    const Domain compositing_domain = this->get_compositing_domain();
+    const InputDescriptor input_descriptor = {ResultType::Color,
+                                              InputRealizationMode::OperationDomain};
+    SimpleOperation *realization_operation = RealizeOnDomainOperation::construct_if_needed(
+        *this, result, input_descriptor, compositing_domain);
+    if (!realization_operation) {
+      this->write_output_image(result);
+      return;
+    }
+
+    Result realize_input = this->create_result(result.type(), result.precision());
+    realize_input.share_data(result);
+    realization_operation->map_input_to_result(&realize_input);
+    realization_operation->evaluate();
+    Result &realized_result = realization_operation->get_result();
+    this->write_output_image(realized_result);
+    realized_result.release();
+    delete realization_operation;
   }
 
   bool should_cache_viewer_result()
@@ -368,20 +394,20 @@ class Context : public compositor::Context {
     SimpleOperation *realization_operation = RealizeOnDomainOperation::construct_if_needed(
         *this, viewer_result, input_descriptor, viewer_result.domain());
 
-    if (realization_operation) {
-      Result realize_input = this->create_result(ResultType::Color, viewer_result.precision());
-      realize_input.share_data(viewer_result);
-      realization_operation->map_input_to_result(&realize_input);
-      realization_operation->evaluate();
-
-      Result &realized_viewer_result = realization_operation->get_result();
-      this->write_viewer_image(realized_viewer_result);
-      realized_viewer_result.release();
-      delete realization_operation;
+    if (!realization_operation) {
+      this->write_viewer_image(viewer_result);
       return;
     }
 
-    this->write_viewer_image(viewer_result);
+    Result realize_input = this->create_result(ResultType::Color, viewer_result.precision());
+    realize_input.share_data(viewer_result);
+    realization_operation->map_input_to_result(&realize_input);
+    realization_operation->evaluate();
+
+    Result &realized_viewer_result = realization_operation->get_result();
+    this->write_viewer_image(realized_viewer_result);
+    realized_viewer_result.release();
+    delete realization_operation;
   }
 
   compositor::ResultType get_pass_data_type(const RenderPass *pass)
@@ -696,13 +722,22 @@ class Context : public compositor::Context {
     using namespace compositor;
     const NodeGroupOutputTypes needed_outputs = this->needed_outputs();
     const bNodeTree &node_group = input_data_.node_tree;
-    const bke::DataBlockComputeContext compute_context(nullptr, this->get_scene().id);
-    NodeGroupOperation node_group_operation(*this, node_group, needed_outputs, compute_context);
+    const bke::DataBlockComputeContext base_compute_context(nullptr, this->get_scene().id);
+    NodeGroupOperation node_group_operation(
+        *this, node_group, needed_outputs, base_compute_context);
+
+    /* If the node group has no viewer node in the active context or the base context, and the
+     * context requires a viewer output, we use the group output as a viewer. */
+    const bool has_viewer =
+        has_viewer_node(node_group, base_compute_context, base_compute_context.hash()) ||
+        has_viewer_node(node_group, base_compute_context, this->get_active_compute_context_hash());
+    const bool needs_viewer_output = flag_is_set(needed_outputs, NodeGroupOutputTypes::ViewerNode);
+    const bool use_group_output_as_viewer = (!has_viewer && needs_viewer_output);
+
+    const bool is_group_output_needed = this->render_context() || use_group_output_as_viewer;
 
     /* Set the reference count for the outputs, only the first color output is actually needed,
      * while the rest are ignored. */
-    const bool is_group_output_needed = flag_is_set(needed_outputs,
-                                                    NodeGroupOutputTypes::GroupOutputNode);
     node_group.ensure_interface_cache();
     for (const bNodeTreeInterfaceSocket *output_socket : node_group.interface_outputs()) {
       const bool is_first_output = output_socket == node_group.interface_outputs().first();
@@ -751,23 +786,14 @@ class Context : public compositor::Context {
         continue;
       }
 
-      /* Realize the output on the compositing domain if needed. */
-      const Domain compositing_domain = this->get_compositing_domain();
-      const InputDescriptor input_descriptor = {ResultType::Color,
-                                                InputRealizationMode::OperationDomain};
-      SimpleOperation *realization_operation = RealizeOnDomainOperation::construct_if_needed(
-          *this, output_result, input_descriptor, compositing_domain);
-      if (realization_operation) {
-        realization_operation->map_input_to_result(&output_result);
-        realization_operation->evaluate();
-        Result &realized_output_result = realization_operation->get_result();
-        this->write_output(realized_output_result);
-        realized_output_result.release();
-        delete realization_operation;
-        continue;
+      if (use_group_output_as_viewer) {
+        this->write_viewer(output_result);
       }
 
-      this->write_output(output_result);
+      if (this->render_context()) {
+        this->write_output(output_result);
+      }
+
       output_result.release();
     }
   }
