@@ -403,6 +403,7 @@ class NODE_MT_compositor_utilities_matrix_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "FunctionNodeMatrixDeterminant", label="Determinant")
         self.node_operator(layout, "FunctionNodeInvertMatrix")
         self.node_operator(layout, "FunctionNodeMatrixMultiply")
+        self.node_operator(layout, "FunctionNodeMatrixSVD")
         self.node_operator(layout, "FunctionNodeProjectPoint")
         self.node_operator(layout, "FunctionNodeSeparateMatrix")
         self.node_operator(layout, "FunctionNodeTransformDirection")

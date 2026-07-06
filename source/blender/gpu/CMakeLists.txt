@@ -691,6 +691,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_light_path.glsl
   shaders/material/gpu_shader_material_mapping.glsl
   shaders/material/gpu_shader_material_map_range.glsl
+  shaders/material/gpu_shader_material_matrix_svd.glsl
   shaders/material/gpu_shader_material_metallic.glsl
   shaders/material/gpu_shader_material_mix_color.glsl
   shaders/material/gpu_shader_material_mix_shader.glsl

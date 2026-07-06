@@ -5,6 +5,7 @@
 #include "BLI_math_solvers.hh"
 
 #include "node_function_util.hh"
+#include "node_shader_util.hh"
 
 namespace blender::nodes::node_fn_matrix_svd_cc {
 
@@ -53,15 +54,25 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
   builder.set_matching_fn(fn);
 }
 
+static int node_gpu_material(GPUMaterial *mat,
+                             bNode *node,
+                             bNodeExecData * /*execdata*/,
+                             GPUNodeStack *in,
+                             GPUNodeStack *out)
+{
+  return GPU_stack_link(mat, node, "matrix_svd", in, out);
+}
+
 static void node_register()
 {
   static bke::bNodeType ntype;
-  fn_node_type_base(&ntype, "FunctionNodeMatrixSVD"_ustr);
+  fn_cmp_node_type_base(&ntype, "FunctionNodeMatrixSVD"_ustr);
   ntype.ui_name = "Matrix SVD";
   ntype.ui_description = "Compute the singular value decomposition of the 3x3 part of a matrix";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.build_multi_function = node_build_multi_function;
+  ntype.gpu_fn = node_gpu_material;
   bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
