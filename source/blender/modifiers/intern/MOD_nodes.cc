@@ -444,8 +444,8 @@ static void try_add_side_effect_node(const ModifierEvalContext &ctx,
   }
   std::reverse(compute_context_vec.begin(), compute_context_vec.end());
 
-  const auto *modifier_compute_context = dynamic_cast<const bke::ModifierComputeContext *>(
-      compute_context_vec[1]);
+  const auto *modifier_compute_context =
+      dynamic_cast<const bke::GeometryNodesModifierComputeContext *>(compute_context_vec[1]);
   if (modifier_compute_context == nullptr) {
     return;
   }
@@ -673,7 +673,8 @@ static void find_side_effect_nodes_for_viewer_path(
   bke::ComputeContextCache compute_context_cache;
   const ComputeContext *object_context = &compute_context_cache.for_data_block(
       nullptr, parsed_path->object->id);
-  const ComputeContext *current = &compute_context_cache.for_modifier(object_context, nmd);
+  const ComputeContext *current = &compute_context_cache.for_geometry_nodes_modifier(
+      object_context, nmd);
   for (const ViewerPathElem *elem : parsed_path->node_path) {
     current = ed::viewer_path::compute_context_for_viewer_path_elem(
         *elem, compute_context_cache, current);
@@ -694,7 +695,8 @@ static void find_side_effect_nodes_for_nested_node(
   bke::ComputeContextCache compute_context_cache;
   const ComputeContext *object_context = &compute_context_cache.for_data_block(nullptr,
                                                                                ctx.object->id);
-  const ComputeContext *compute_context = &compute_context_cache.for_modifier(object_context, nmd);
+  const ComputeContext *compute_context = &compute_context_cache.for_geometry_nodes_modifier(
+      object_context, nmd);
 
   int nested_node_id = root_nested_node_id;
   const bNodeTree *tree = nmd.node_group;
@@ -1798,7 +1800,8 @@ static void modifyGeometry(ModifierData *md,
   call_data.side_effect_nodes = &side_effect_nodes;
 
   bke::DataBlockComputeContext data_block_compute_context{nullptr, ctx->object->id};
-  bke::ModifierComputeContext modifier_compute_context{&data_block_compute_context, *nmd};
+  bke::GeometryNodesModifierComputeContext modifier_compute_context{&data_block_compute_context,
+                                                                    *nmd};
 
   PointerRNA md_ptr = RNA_pointer_create_discrete(&ctx->object->id, RNA_NodesModifier, md);
   PointerRNA properties_ptr = RNA_pointer_get(&md_ptr, "properties");

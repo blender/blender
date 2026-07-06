@@ -402,8 +402,8 @@ static void foreach_active_gizmo_exposed_to_modifier(
       *nmd.node_group, scope, value_inferencer, compute_context_cache);
 
   const ComputeContext &object_context = compute_context_cache.for_data_block(nullptr, object.id);
-  const ComputeContext &root_compute_context = compute_context_cache.for_modifier(&object_context,
-                                                                                  nmd);
+  const ComputeContext &root_compute_context = compute_context_cache.for_geometry_nodes_modifier(
+      &object_context, nmd);
   for (auto &&item : tree.runtime->gizmo_propagation->gizmo_inputs_by_group_inputs.items()) {
     const ie::GroupInputElem &group_input_elem = item.key;
     if (item.value.is_empty()) {

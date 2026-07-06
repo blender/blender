@@ -934,7 +934,7 @@ NodeTreeLogger &NodesEvalLog::get_local_tree_logger(const ComputeContext &comput
               ->original_tree_session_uid;
     }
   }
-  else if (const auto *context = dynamic_cast<const bke::ModifierComputeContext *>(
+  else if (const auto *context = dynamic_cast<const bke::GeometryNodesModifierComputeContext *>(
                &compute_context))
   {
     if (const NodesModifierData *nmd = context->nmd()) {
@@ -1105,8 +1105,8 @@ const ViewerNodeLog *NodesEvalLog::find_viewer_node_log_for_path(const ViewerPat
   bke::ComputeContextCache compute_context_cache;
   const ComputeContext *object_context = &compute_context_cache.for_data_block(
       nullptr, parsed_path->object->id);
-  const ComputeContext *compute_context = &compute_context_cache.for_modifier(object_context,
-                                                                              *nmd);
+  const ComputeContext *compute_context = &compute_context_cache.for_geometry_nodes_modifier(
+      object_context, *nmd);
   for (const ViewerPathElem *elem : parsed_path->node_path) {
     compute_context = ed::viewer_path::compute_context_for_viewer_path_elem(
         *elem, compute_context_cache, compute_context);
