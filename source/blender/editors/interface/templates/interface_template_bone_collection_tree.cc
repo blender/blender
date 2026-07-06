@@ -34,10 +34,15 @@ using namespace blender::animrig;
 class BoneCollectionTreeView : public AbstractTreeView {
  protected:
   bArmature &armature_;
+  Object *armature_object_;
   Set<BoneCollection *> bcolls_with_selected_bones_;
 
  public:
-  explicit BoneCollectionTreeView(bArmature &armature);
+  /**
+   * `armature_object` can be a nullptr when the armature is pinned and the active object is not
+   * the one using it as data.
+   */
+  BoneCollectionTreeView(bArmature &armature, Object *armature_object);
   void build_tree() override;
 
   bool listen(const wmNotifier &notifier) const override;
@@ -377,7 +382,10 @@ class BoneCollectionItem : public AbstractTreeViewItem {
   }
 };
 
-BoneCollectionTreeView::BoneCollectionTreeView(bArmature &armature) : armature_(armature) {}
+BoneCollectionTreeView::BoneCollectionTreeView(bArmature &armature, Object *armature_object)
+    : armature_(armature), armature_object_(armature_object)
+{
+}
 
 void BoneCollectionTreeView::build_tree()
 {
@@ -424,17 +432,25 @@ void BoneCollectionTreeView::build_bcolls_with_selected_bones()
     }
     return;
   }
-
+  if (!armature_object_) {
+    /* Beyond this point we need the object that the armature is used by. */
+    return;
+  }
   /* Any other mode. */
-  ANIM_armature_foreach_bone(&armature_.bonebase, [&](const Bone *bone) {
-    if ((bone->flag & BONE_SELECTED) == 0) {
-      return;
+  for (bPoseChannel &pchan : armature_object_->pose->chanbase) {
+    /* Not using `animrig::bone_is_selected` because that would query for collection visibility
+     * which we don't care about here. */
+    if (!(pchan.flag & POSE_SELECTED_ALL)) {
+      continue;
     }
-
+    Bone *bone = pchan.bone_get(armature_);
+    if (!bone) {
+      continue;
+    }
     for (const BoneCollectionReference &ref : bone->runtime.collections) {
       bcolls_with_selected_bones_.add(ref.bcoll);
     }
-  });
+  }
 }
 
 BoneCollectionDragController::BoneCollectionDragController(BoneCollectionTreeView &tree_view,
@@ -470,13 +486,18 @@ void template_bone_collection_tree(Layout *layout, bContext *C)
     return;
   }
   BLI_assert(GS(armature->id.name) == ID_AR);
+  Object *armature_object = CTX_data_active_object(C);
+  if (armature_object && armature_object->data != &armature->id) {
+    /* With pinning, the armature may not be from the active object. */
+    armature_object = nullptr;
+  }
 
   Block *block = layout->block();
 
   AbstractTreeView *tree_view = block_add_view(
       *block,
       "Bone Collection Tree View",
-      std::make_unique<bonecollections::BoneCollectionTreeView>(*armature));
+      std::make_unique<bonecollections::BoneCollectionTreeView>(*armature, armature_object));
   tree_view->set_context_menu_title("Bone Collection");
   tree_view->set_default_rows(5);
 
