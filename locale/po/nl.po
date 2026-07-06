@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'b2d38940ccd4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-29 10:51+0000\n"
-"PO-Revision-Date: 2026-02-14 01:12+0000\n"
+"POT-Creation-Date: 2026-07-06 08:37+0000\n"
+"PO-Revision-Date: 2026-07-05 12:12+0000\n"
 "Last-Translator: Timo Hoetmer <timo@timohoetmer.nl>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
 "Language: nl\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.15.2"
+"X-Generator: Weblate 2026.6.1"
 
 
 msgid "Shader AOV"
@@ -452,6 +452,16 @@ msgstr "Licht"
 msgctxt "ID"
 msgid "Light Probe"
 msgstr "Licht Probe"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "Lijnstijl"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "Masker"
 
 
 msgctxt "ID"
@@ -5747,30 +5757,6 @@ msgid "Dots"
 msgstr "Stippen"
 
 
-msgid "Mirror"
-msgstr "Spiegel"
-
-
-msgid "Local View"
-msgstr "Lokale Scherm"
-
-
-msgid "Navigation"
-msgstr "Navigatie"
-
-
-msgid "Select Similar"
-msgstr "Selecteer Vergelijkbaar"
-
-
-msgid "Select Linked"
-msgstr "Selecteer Aaneengesloten"
-
-
-msgid "Light"
-msgstr "Licht"
-
-
 msgid "Add Image"
 msgstr "Voeg Afbeelding Toe"
 
@@ -5781,10 +5767,6 @@ msgstr "Relaties"
 
 msgid "Rigid Body"
 msgstr "Star Lichaam"
-
-
-msgid "Import"
-msgstr "Importeren"
 
 
 msgid "Quick Effects"
@@ -5811,12 +5793,40 @@ msgid "Names"
 msgstr "Namen"
 
 
+msgid "Import"
+msgstr "Importeren"
+
+
+msgid "Mirror"
+msgstr "Spiegel"
+
+
+msgid "Local View"
+msgstr "Lokale Scherm"
+
+
 msgid "Linked"
 msgstr "Gekoppeld"
 
 
+msgid "Navigation"
+msgstr "Navigatie"
+
+
 msgid "Layout"
 msgstr "Indeling"
+
+
+msgid "Select Similar"
+msgstr "Selecteer Vergelijkbaar"
+
+
+msgid "Select Linked"
+msgstr "Selecteer Aaneengesloten"
+
+
+msgid "Light"
+msgstr "Licht"
 
 
 msgctxt "MovieClip"
