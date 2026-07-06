@@ -53,7 +53,7 @@ struct bContext *BPY_context_get();
  * Set the global `bpy.context` for Python and make the GIL and environment ready
  * to call into Python.
  */
-extern void bpy_context_set(struct bContext *C, PyGILState_STATE *gilstate) ATTR_NONNULL(1);
+extern bool bpy_context_set(struct bContext *C, PyGILState_STATE *gilstate) ATTR_NONNULL(1);
 /**
  * A version of #bpy_context_set that allows `C` to be null.
  * Use this in rare cases where the context may not be available
@@ -64,7 +64,7 @@ extern void bpy_context_set(struct bContext *C, PyGILState_STATE *gilstate) ATTR
  *
  * Callers should note why they are not able to use `bpy_context_set`.
  */
-extern void bpy_context_set_allow_null(struct bContext *C, PyGILState_STATE *gilstate);
+extern bool bpy_context_set_allow_null(struct bContext *C, PyGILState_STATE *gilstate);
 /**
  * Context should be used but not now because it causes some bugs.
  */
