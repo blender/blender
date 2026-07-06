@@ -8,7 +8,6 @@
 
 #include "BLI_math_bits.hh"
 
-#include "gpu_shader_dependency_private.hh"
 #include "mtl_backend.hh"
 #include "mtl_shader_generate.hh"
 
@@ -743,6 +742,9 @@ static void generate_resource(GeneratedStreams &generated,
                       MTL_SSBO_SLOT_OFFSET + res.slot,
                       stage);
       break;
+    case ShaderCreateInfo::Resource::BindType::ACCELERATION_STRUCTURE:
+      BLI_assert_unreachable();
+      break;
   }
 }
 
@@ -1464,6 +1466,9 @@ uint32_t available_buffer_slots(const ShaderCreateInfo &info)
       case ShaderCreateInfo::Resource::BindType::SAMPLER:
       case ShaderCreateInfo::Resource::BindType::IMAGE:
         break;
+      case ShaderCreateInfo::Resource::BindType::ACCELERATION_STRUCTURE:
+        BLI_assert_unreachable();
+        break;
     };
   };
 
@@ -1526,6 +1531,9 @@ void patch_create_info_atomic_workaround(std::unique_ptr<PatchedShaderCreateInfo
         break;
       case ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
       case ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
+        break;
+      case ShaderCreateInfo::Resource::BindType::ACCELERATION_STRUCTURE:
+        BLI_assert_unreachable();
         break;
     }
   };

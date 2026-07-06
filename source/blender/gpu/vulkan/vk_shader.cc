@@ -8,8 +8,6 @@
 
 #include <sstream>
 
-#include "GPU_capabilities.hh"
-
 #include "vk_shader.hh"
 
 #include "vk_backend.hh"
@@ -19,7 +17,6 @@
 #include "vk_state_manager.hh"
 #include "vk_vertex_attribute_object.hh"
 
-#include "BLI_string_utils.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_global.hh"

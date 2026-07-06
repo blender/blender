@@ -7,7 +7,6 @@
 #include "vk_backend.hh"
 #include "vk_context.hh"
 #include "vk_index_buffer.hh"
-#include "vk_memory_layout.hh"
 #include "vk_state_manager.hh"
 #include "vk_vertex_buffer.hh"
 
@@ -38,7 +37,7 @@ VKTopLevelAS::VKTopLevelAS(const char *name) : TopLevelAS(name), max_primitive_c
       0,
       nullptr,
       nullptr,
-      0};
+      {0}};
 }
 
 VKTopLevelAS::~VKTopLevelAS()
@@ -228,7 +227,7 @@ void VKTopLevelAS::build()
       uint32_t(node_data.vk_acceleration_structure_geometries.size()),
       node_data.vk_acceleration_structure_geometries.data(),
       nullptr,
-      0};
+      {0}};
 
   /* Determine acceleration structure + scratch space */
   VkAccelerationStructureBuildSizesInfoKHR vk_acceleration_structure_build_sizes_info = {
@@ -342,7 +341,7 @@ VKBottomLevelAS::VKBottomLevelAS(const char *name) : BottomLevelAS(name)
       0,
       nullptr,
       nullptr,
-      0};
+      {0}};
 }
 
 VKBottomLevelAS::~VKBottomLevelAS()
@@ -404,15 +403,15 @@ void VKBottomLevelAS::add_geometry(IndexBuf &index_buffer_, VertBuf &vertex_buff
        nullptr,
        VK_GEOMETRY_TYPE_TRIANGLES_KHR,
        {
-           VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR,
-           nullptr,
-           vertex_format,
-           {vertex_buffer.device_address_get()},
-           vertex_buffer.format.stride,
-           vertex_buffer.vertex_len - 1,
-           index_buffer.vk_index_type(),
-           index_buffer.device_address_get(),
-           0,
+           {VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR,
+            nullptr,
+            vertex_format,
+            {vertex_buffer.device_address_get()},
+            vertex_buffer.format.stride,
+            vertex_buffer.vertex_len - 1,
+            index_buffer.vk_index_type(),
+            {index_buffer.device_address_get()},
+            {0}},
        },
        VK_GEOMETRY_OPAQUE_BIT_KHR});
   const uint32_t num_primitives = uint32_t(index_buffer.index_len_get() / 3);
@@ -445,7 +444,7 @@ void VKBottomLevelAS::build()
       uint32_t(node_data.vk_acceleration_structure_geometries.size()),
       node_data.vk_acceleration_structure_geometries.data(),
       nullptr,
-      0};
+      {0}};
 
   /* Determine acceleration structure + scratch space */
   VkAccelerationStructureBuildSizesInfoKHR vk_acceleration_structure_build_sizes_info = {
