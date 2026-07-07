@@ -27,6 +27,7 @@ struct ScrVert;
 struct WorkSpaceLayout;
 struct wmOperatorType;
 struct wmWindow;
+struct wmWindowManager;
 
 /* internal exports only */
 
@@ -254,6 +255,14 @@ void screen_geom_edge_aligned_merge(const wmWindow *win, ScrEdge *edge);
 int ed_screen_context(const bContext *C, const char *member, bContextDataResult *result);
 
 extern "C" const char *screen_context_dir[]; /* doc access */
+
+/* `screen_ops.cc` */
+
+/**
+ * Stop animation playback in the given screen.
+ * If there is no animation playing back in that screen, this is a no-op.
+ */
+void screen_stop_playback(Main *bmain, wmWindowManager *wm, wmWindow *win, bScreen *screen);
 
 /* `screendump.cc` */
 
