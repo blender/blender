@@ -952,12 +952,7 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
   CTX_wm_window_set(C, window);
 
   if (screen->animtimer) {
-    WM_event_timer_remove(wm, window, screen->animtimer);
-
-    Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-    Scene *scene = WM_window_get_active_scene(prevwin);
-    Scene *scene_eval = DEG_get_evaluated(depsgraph, scene);
-    BKE_sound_stop_scene(scene_eval);
+    screen_stop_playback(CTX_data_main(C), wm, window, screen);
   }
   screen->animtimer = nullptr;
   screen->scrubbing = false;
