@@ -2626,7 +2626,6 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
       case TSE_CONSTRAINT_BASE:
       case TSE_MODIFIER_BASE:
       case TSE_MODIFIER:
-      case TSE_RNA_STRUCT:
       case TSE_GPENCIL_EFFECT_BASE:
       case TSE_GPENCIL_EFFECT:
         data.drag_id = tselem->id;
