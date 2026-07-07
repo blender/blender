@@ -623,6 +623,7 @@ void HIPRTDevice::build_blas(BVHHIPRT *bvh, Geometry *geom)
         return;
       }
       geom_input = prepare_point_blas(bvh, pointcloud);
+      options.buildFlags = hiprtBuildFlagBitPreferBalancedBuild;
       break;
     }
 
