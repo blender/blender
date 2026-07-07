@@ -106,7 +106,6 @@ class AddPresetPerformance(AddPresetBase, Operator):
         "cycles.debug_use_compact_bvh",
         "cycles.debug_use_hair_bvh",
         "cycles.debug_bvh_time_steps",
-        "cycles.use_auto_tile",
         "cycles.tile_size",
     ]
 

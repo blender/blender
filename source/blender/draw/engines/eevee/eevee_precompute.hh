@@ -12,11 +12,15 @@
 
 #include "BLI_math_vector_types.hh"
 
-#include "eevee_shader_shared.hh"
+#include "eevee_precompute_shared.hh"
+
+#include "draw_manager.hh"
 
 #include <fstream>
 
 namespace blender::eevee {
+
+using namespace draw;
 
 /**
  * Create a look-up table of the specified type using GPU compute.

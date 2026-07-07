@@ -42,24 +42,24 @@ def draw_ui_list(
     """
     Draw a UIList with Add/Remove/Move buttons and a menu.
 
-    :arg layout: UILayout to draw the list in.
+    :param layout: UILayout to draw the list in.
     :type layout: :class:`UILayout`
-    :arg context: Blender context to get the list data from.
+    :param context: Blender context to get the list data from.
     :type context: :class:`Context`
-    :arg class_name: Name of the UIList class to draw. The default is the UIList class that ships with Blender.
+    :param class_name: Name of the UIList class to draw. The default is the UIList class that ships with Blender.
     :type class_name: str
-    :arg unique_id: Unique identifier to differentiate this from other UI lists.
+    :param unique_id: Unique identifier to differentiate this from other UI lists.
     :type unique_id: str
-    :arg list_path: Data path of the list relative to context, eg. "object.vertex_groups".
+    :param list_path: Data path of the list relative to context, eg. "object.vertex_groups".
     :type list_path: str
-    :arg active_index_path: Data path of the list active index integer relative to context,
+    :param active_index_path: Data path of the list active index integer relative to context,
        eg. "object.vertex_groups.active_index".
     :type active_index_path: str
-    :arg insertion_operators: Whether to draw Add/Remove buttons.
+    :param insertion_operators: Whether to draw Add/Remove buttons.
     :type insertion_operators: bool
-    :arg move_operators: Whether to draw Move Up/Down buttons.
+    :param move_operators: Whether to draw Move Up/Down buttons.
     :type move_operators: str
-    :arg menu_class_name: Identifier of a Menu that should be drawn as a drop-down.
+    :param menu_class_name: Identifier of a Menu that should be drawn as a drop-down.
     :type menu_class_name: str
 
     :returns: The right side column.
@@ -87,7 +87,7 @@ def draw_ui_list(
         **kwargs,
     )
 
-    col = row.column()
+    col = row.column(align=True)
 
     if insertion_operators:
         _draw_add_remove_buttons(
@@ -96,7 +96,7 @@ def draw_ui_list(
             active_index_path=active_index_path,
             list_length=len(list_to_draw),
         )
-        layout.separator()
+        col.separator()
 
     if menu_class_name:
         col.menu(menu_class_name, icon='DOWNARROW_HLT', text="")
@@ -126,9 +126,9 @@ def _draw_add_remove_buttons(
     props.list_path = list_path
     props.active_index_path = active_index_path
 
-    row = layout.row()
-    row.enabled = list_length > 0
-    props = row.operator(UILIST_OT_entry_remove.bl_idname, text="", icon='REMOVE')
+    col = layout.column(align=True)
+    col.enabled = list_length > 0
+    props = col.operator(UILIST_OT_entry_remove.bl_idname, text="", icon='REMOVE')
     props.list_path = list_path
     props.active_index_path = active_index_path
 
@@ -141,8 +141,6 @@ def _draw_move_buttons(
     list_length,
 ):
     """Draw the up/down arrows to move elements in the list."""
-    col = layout.column()
-    col.enabled = list_length > 1
     props = layout.operator(UILIST_OT_entry_move.bl_idname, text="", icon='TRIA_UP')
     props.direction = 'UP'
     props.list_path = list_path
@@ -229,8 +227,8 @@ class UILIST_OT_entry_move(GenericUIListOperator, Operator):
     direction: EnumProperty(
         name="Direction",
         items=(
-            ('UP', 'UP', 'UP'),
-            ('DOWN', 'DOWN', 'DOWN'),
+            ('UP', "Up", "Move the active entry up"),
+            ('DOWN', "Down", "Move the active entry down"),
         ),
         default='UP',
     )

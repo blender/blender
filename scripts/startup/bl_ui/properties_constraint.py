@@ -977,8 +977,35 @@ class ConstraintButtonsPanel:
 
         self.draw_influence(layout, con)
 
+    def draw_geometry_attribute(self, context):
+        layout = self.layout
+        con = self.get_constraint(context)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+
+        self.target_template(layout, con, False)
+        layout.prop(con, "apply_target_transform", text="Offset with Target Transform")
+
+        layout.prop(con, "attribute_name", text="Attribute Name")
+        layout.prop(con, "data_type", text="Data Type")
+        layout.prop(con, "domain", text="Domain")
+        layout.prop(con, "sample_index", text="Sample Index")
+
+        layout.separator()
+        layout.prop(con, "mix_mode", text="Mix Mode", text_ctxt=i18n_contexts.constraint)
+
+        if con.data_type == 'FLOAT4X4':
+            row = layout.row(heading="Enabled")
+            row.prop(con, "mix_loc", text="Location", toggle=True)
+            row.prop(con, "mix_rot", text="Rotation", toggle=True)
+            row.prop(con, "mix_scl", text="Scale", toggle=True)
+            row.label(icon='BLANK1')
+
+        self.draw_influence(layout, con)
 
 # Parent class for constraint sub-panels.
+
+
 class ConstraintButtonsSubPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -1148,7 +1175,7 @@ class ConstraintButtonsSubPanel:
 
         col = layout.column(align=True)
         col.prop(con, "action")
-        if con.action and con.action.is_action_layered:
+        if con.action:
             col.context_pointer_set("animated_id", con.id_data)
             col.template_search(
                 con, "action_slot",
@@ -1167,11 +1194,6 @@ class ConstraintButtonsSubPanel:
     def draw_transform_cache_velocity(self, context):
         self.draw_transform_cache_subpanel(
             context, self.layout.template_cache_file_velocity
-        )
-
-    def draw_transform_cache_procedural(self, context):
-        self.draw_transform_cache_subpanel(
-            context, self.layout.template_cache_file_procedural
         )
 
     def draw_transform_cache_time(self, context):
@@ -1614,22 +1636,6 @@ class BONE_PT_bTransformCacheConstraint_layers(BoneConstraintPanel, ConstraintBu
         self.draw_transform_cache_layers(context)
 
 
-class OBJECT_PT_bTransformCacheConstraint_procedural(ObjectConstraintPanel, ConstraintButtonsSubPanel, Panel):
-    bl_parent_id = "OBJECT_PT_bTransformCacheConstraint"
-    bl_label = "Render Procedural"
-
-    def draw(self, context):
-        self.draw_transform_cache_procedural(context)
-
-
-class BONE_PT_bTransformCacheConstraint_procedural(BoneConstraintPanel, ConstraintButtonsSubPanel, Panel):
-    bl_parent_id = "BONE_PT_bTransformCacheConstraint"
-    bl_label = "Render Procedural"
-
-    def draw(self, context):
-        self.draw_transform_cache_procedural(context)
-
-
 class OBJECT_PT_bTransformCacheConstraint_time(ObjectConstraintPanel, ConstraintButtonsSubPanel, Panel):
     bl_parent_id = "OBJECT_PT_bTransformCacheConstraint"
     bl_label = "Time"
@@ -1685,6 +1691,18 @@ class BONE_PT_bKinematicConstraint(BoneConstraintPanel, ConstraintButtonsPanel, 
     def draw(self, context):
         self.draw_kinematic(context)
 
+ # Geometry Attribute Constraint.
+
+
+class OBJECT_PT_bGeometryAttributeConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
+    def draw(self, context):
+        self.draw_geometry_attribute(context)
+
+
+class BONE_PT_bGeometryAttributeConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
+    def draw(self, context):
+        self.draw_geometry_attribute(context)
+
 
 classes = (
     # Object Panels
@@ -1721,11 +1739,12 @@ classes = (
     OBJECT_PT_bObjectSolverConstraint,
     OBJECT_PT_bTransformCacheConstraint,
     OBJECT_PT_bTransformCacheConstraint_time,
-    OBJECT_PT_bTransformCacheConstraint_procedural,
     OBJECT_PT_bTransformCacheConstraint_velocity,
     OBJECT_PT_bTransformCacheConstraint_layers,
     OBJECT_PT_bArmatureConstraint,
     OBJECT_PT_bArmatureConstraint_bones,
+    OBJECT_PT_bGeometryAttributeConstraint,
+
     # Bone panels
     BONE_PT_bChildOfConstraint,
     BONE_PT_bTrackToConstraint,
@@ -1761,11 +1780,11 @@ classes = (
     BONE_PT_bObjectSolverConstraint,
     BONE_PT_bTransformCacheConstraint,
     BONE_PT_bTransformCacheConstraint_time,
-    BONE_PT_bTransformCacheConstraint_procedural,
     BONE_PT_bTransformCacheConstraint_velocity,
     BONE_PT_bTransformCacheConstraint_layers,
     BONE_PT_bArmatureConstraint,
     BONE_PT_bArmatureConstraint_bones,
+    BONE_PT_bGeometryAttributeConstraint,
 )
 
 if __name__ == "__main__":  # only for live edit.

@@ -19,4 +19,7 @@ set(SRC
   ../../extern/renderdoc/include/renderdoc_app.h
 )
 
+set(LIB
+)
+
 blender_add_lib(bf_intern_renderdoc_dynload "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

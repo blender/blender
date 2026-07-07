@@ -30,20 +30,14 @@ class MATERIAL_UL_matslots_example(bpy.types.UIList):
         ob = data
         slot = item
         ma = slot.material
-        # draw_item must handle the three layout types... Usually 'DEFAULT' and 'COMPACT' can share the same code.
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            # You should always start your row layout by a label (icon + text), or a non-embossed text field,
-            # this will also make the row easily selectable in the list! The later also enables ctrl-click rename.
-            # We use icon_value of label, as our given icon is an integer value, not an enum ID.
-            # Note "data" names should never be translated!
-            if ma:
-                layout.prop(ma, "name", text="", emboss=False, icon_value=icon)
-            else:
-                layout.label(text="", translate=False, icon_value=icon)
-        # 'GRID' layout type should be as compact as possible (typically a single icon!).
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon_value=icon)
+        # You should always start your row layout by a label (icon + text), or a non-embossed text field,
+        # this will also make the row easily selectable in the list! The later also enables ctrl-click rename.
+        # We use icon_value of label, as our given icon is an integer value, not an enum ID.
+        # Note "data" names should never be translated!
+        if ma:
+            layout.prop(ma, "name", text="", emboss=False, icon_value=icon)
+        else:
+            layout.label(text="", translate=False, icon_value=icon)
 
 
 # And now we can use this list everywhere in Blender. Here is a small example panel.

@@ -11,16 +11,14 @@
  * - utility_tx
  */
 
-#include "infos/eevee_common_info.hh"
+#include "infos/eevee_common_infos.hh"
 
-SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
-
-#include "eevee_shadow_lib.glsl"
-
-#ifdef EEVEE_UTILITY_TX
+#include "eevee_utility_tx_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 float subsurface_transmittance_profile(float u)
 {
+  auto &utility_tx = sampler_get(eevee_utility_texture, utility_tx);
   return utility_tx_sample(utility_tx, float2(u, 0.0f), UTIL_SSS_TRANSMITTANCE_PROFILE_LAYER).r;
 }
 
@@ -38,5 +36,3 @@ float3 subsurface_transmission(float3 sss_radii, float thickness)
   translucency.z = (sss_radii.z > 0.0f) ? subsurface_transmittance_profile(channels_co.z) : 0.0f;
   return translucency;
 }
-
-#endif

@@ -65,10 +65,10 @@ void file_handler_remove(FileHandlerType *file_handler)
       });
 }
 
-blender::Vector<FileHandlerType *> file_handlers_poll_file_drop(
-    const bContext *C, const blender::Span<std::string> paths)
+Vector<FileHandlerType *> file_handlers_poll_file_drop(const bContext *C,
+                                                       const Span<std::string> paths)
 {
-  blender::Vector<std::string> path_extensions;
+  Vector<std::string> path_extensions;
   for (const std::string &path : paths) {
     const char *extension = BLI_path_extension(path.c_str());
     if (!extension) {
@@ -77,7 +77,7 @@ blender::Vector<FileHandlerType *> file_handlers_poll_file_drop(
     path_extensions.append_non_duplicates(extension);
   }
 
-  blender::Vector<FileHandlerType *> result;
+  Vector<FileHandlerType *> result;
   for (const std::unique_ptr<FileHandlerType> &file_handler_ptr : file_handlers()) {
     FileHandlerType &file_handler = *file_handler_ptr;
     const auto &file_extensions = file_handler.file_extensions;
@@ -104,10 +104,9 @@ blender::Vector<FileHandlerType *> file_handlers_poll_file_drop(
   return result;
 }
 
-blender::Vector<int64_t> FileHandlerType::filter_supported_paths(
-    const blender::Span<std::string> paths) const
+Vector<int64_t> FileHandlerType::filter_supported_paths(const Span<std::string> paths) const
 {
-  blender::Vector<int64_t> indices;
+  Vector<int64_t> indices;
 
   for (const int idx : paths.index_range()) {
     const char *extension = BLI_path_extension(paths[idx].c_str());

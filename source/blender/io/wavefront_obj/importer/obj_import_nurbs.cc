@@ -25,7 +25,7 @@
 
 namespace blender::io::obj {
 
-Curves *blender::io::obj::CurveFromGeometry::create_curve(const OBJImportParams &import_params)
+Curves *io::obj::CurveFromGeometry::create_curve(const OBJImportParams &import_params)
 {
   BLI_assert(!curve_geometry_.nurbs_element_.curv_indices.is_empty());
 
@@ -57,11 +57,11 @@ Object *CurveFromGeometry::create_curve_object(Main *bmain, const OBJImportParam
   /* Only one NURBS spline will be created in the curve object. */
   curve->actnu = 0;
 
-  Nurb *nurb = MEM_callocN<Nurb>(__func__);
+  Nurb *nurb = MEM_new<Nurb>(__func__);
   BLI_addtail(BKE_curve_nurbs_get(curve), nurb);
   this->create_nurbs(curve, import_params);
 
-  obj->data = curve;
+  obj->data = id_cast<ID *>(curve);
   transform_object(obj, import_params);
 
   return obj;
@@ -273,9 +273,9 @@ static bool detect_knot_mode_bezier_clamped(const int8_t degree,
   }
 
   /* Allow patterns:
-    O d ..
-    1 d d ..
-  */
+   * `O d` ..
+   * `1 d d` ..
+   */
   if (multiplicity[0] < order && (multiplicity[0] != 1 || multiplicity[1] < degree)) {
     return false;
   }
@@ -283,8 +283,8 @@ static bool detect_knot_mode_bezier_clamped(const int8_t degree,
   Span<int> mdegree_span = multiplicity.drop_front(1);
   if (multiplicity.size() == 2) {
     /* Single segment, allow patterns:
-     * O a
-     * where a > 0
+     * `O a`
+     * where `a > 0`
      */
     if (multiplicity.first() != order) {
       return false;
@@ -292,9 +292,9 @@ static bool detect_knot_mode_bezier_clamped(const int8_t degree,
   }
   else {
     /* Allow patterns:
-      .. d O+
-      .. d d 1
-    */
+     * .. `d O+`
+     * .. `d d 1`
+     */
     if (multiplicity.last() != order &&
         (multiplicity.last() == 1 && multiplicity.last(1) != degree))
     {

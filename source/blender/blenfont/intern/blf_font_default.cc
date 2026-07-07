@@ -21,6 +21,8 @@
 #  include "BLI_winstuff.h"
 #endif
 
+namespace blender {
+
 static int blf_load_font_default(const char *filename, const bool unique)
 {
   const std::optional<std::string> dir = BKE_appdir_folder_id(BLENDER_DATAFILES,
@@ -97,3 +99,5 @@ void BLF_load_font_stack()
   BLF_load_mono_default(false);
   blf_load_datafiles_dir();
 }
+
+}  // namespace blender

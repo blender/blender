@@ -19,7 +19,7 @@ class SubMenu(bpy.types.Menu):
         layout.operator("object.select_random", text="Random")
 
         # Access this operator as a sub-menu.
-        layout.operator_menu_enum("object.select_by_type", "type", text="Select All by Type...")
+        layout.operator_menu_enum("object.select_by_type", "type", text="Select All by Type")
 
         layout.separator()
 

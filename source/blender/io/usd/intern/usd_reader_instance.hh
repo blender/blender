@@ -5,10 +5,12 @@
 
 #include "usd_reader_xform.hh"
 
+namespace blender {
+
 struct Collection;
 struct Main;
 
-namespace blender::io::usd {
+namespace io::usd {
 
 /**
  * Convert a USD instanced prim to a blender collection instance.
@@ -44,4 +46,5 @@ class USDInstanceReader : public USDXformReader {
   pxr::SdfPath proto_path() const;
 };
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

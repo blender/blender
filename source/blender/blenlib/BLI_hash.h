@@ -10,6 +10,8 @@
 
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 /**
  * Jenkins Lookup3 Hash Functions.
  * Source: http://burtleburtle.net/bob/c/lookup3.c
@@ -76,12 +78,12 @@ BLI_INLINE unsigned int BLI_hash_string(const char *str)
 
 BLI_INLINE float BLI_hash_int_2d_to_float(uint32_t kx, uint32_t ky)
 {
-  return (float)BLI_hash_int_2d(kx, ky) / (float)0xFFFFFFFFu;
+  return float(BLI_hash_int_2d(kx, ky)) / float(0xFFFFFFFFu);
 }
 
 BLI_INLINE float BLI_hash_int_3d_to_float(uint32_t kx, uint32_t ky, uint32_t kz)
 {
-  return (float)BLI_hash_int_3d(kx, ky, kz) / (float)0xFFFFFFFFu;
+  return float(BLI_hash_int_3d(kx, ky, kz)) / float(0xFFFFFFFFu);
 }
 
 BLI_INLINE unsigned int BLI_hash_int(unsigned int k)
@@ -91,16 +93,18 @@ BLI_INLINE unsigned int BLI_hash_int(unsigned int k)
 
 BLI_INLINE float BLI_hash_int_01(unsigned int k)
 {
-  return (float)BLI_hash_int(k) * (1.0f / (float)0xFFFFFFFF);
+  return float(BLI_hash_int(k)) * (1.0f / float(0xFFFFFFFF));
 }
 
 BLI_INLINE void BLI_hash_pointer_to_color(const void *ptr, int *r, int *g, int *b)
 {
-  size_t val = (size_t)ptr;
+  size_t val = reinterpret_cast<size_t>(ptr);
   const size_t hash_a = BLI_hash_int(val & 0x0000ffff);
-  const size_t hash_b = BLI_hash_int((uint)((val & 0xffff0000) >> 16));
+  const size_t hash_b = BLI_hash_int(uint((val & 0xffff0000) >> 16));
   const size_t hash = hash_a ^ (hash_b + 0x9e3779b9 + (hash_a << 6) + (hash_a >> 2));
   *r = (hash & 0xff0000) >> 16;
   *g = (hash & 0x00ff00) >> 8;
   *b = hash & 0x0000ff;
 }
+
+}  // namespace blender

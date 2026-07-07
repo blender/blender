@@ -8,7 +8,6 @@ from ......io.com import gltf2_io
 from ......io.com import constants as gltf2_io_constants
 from ......io.exp import binary_data as gltf2_io_binary_data
 from ......io.exp.user_extensions import export_user_extensions
-from .....com.data_path import get_target_object_path
 from .....com import gltf2_blender_math
 from ....tree import VExportNode
 from ....cache import cached
@@ -102,7 +101,6 @@ def __convert_keyframes(obj_uuid: str, channel: str, keyframes, action_name: str
 
     is_yup = export_settings['gltf_yup']
 
-    object_path = get_target_object_path(channel)
     transform = mathutils.Matrix.Identity(4)
 
     need_rotation_correction = (
@@ -110,7 +108,6 @@ def __convert_keyframes(obj_uuid: str, channel: str, keyframes, action_name: str
         export_settings['gltf_lights'] and export_settings['vtree'].nodes[obj_uuid].blender_type == VExportNode.LIGHT)
 
     values = []
-    fps = (bpy.context.scene.render.fps * bpy.context.scene.render.fps_base)
     for keyframe in keyframes:
 
         # Transform the data and build gltf control points
@@ -126,7 +123,6 @@ def __convert_keyframes(obj_uuid: str, channel: str, keyframes, action_name: str
     # store the keyframe data in a binary buffer
     component_type = gltf2_io_constants.ComponentType.Float
     data_type = gltf2_io_constants.DataType.vec_type_from_num(len(keyframes[0].value))
-
 
     output = gather_accessor(
         gltf2_io_binary_data.BinaryData.from_list(values, component_type),
@@ -148,7 +144,7 @@ def __gather_interpolation(
         export_settings):
 
     if len(keyframes) > 2:
-        # keep STEP as STEP, other become the interpolation choosen by the user
+        # keep STEP as STEP, other become the interpolation chosen by the user
         return {
             "STEP": "STEP"
         }.get(node_channel_interpolation, export_settings['gltf_sampling_interpolation_fallback'])
@@ -156,7 +152,8 @@ def __gather_interpolation(
         if node_channel_is_animated is False:
             return "STEP"
         elif node_channel_interpolation == "CUBICSPLINE":
-            return export_settings['gltf_sampling_interpolation_fallback'] # We can't have a single keyframe with CUBICSPLINE
+            # We can't have a single keyframe with CUBICSPLINE
+            return export_settings['gltf_sampling_interpolation_fallback']
         else:
             return node_channel_interpolation
     else:

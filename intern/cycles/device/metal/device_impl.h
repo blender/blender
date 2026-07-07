@@ -77,10 +77,10 @@ class MetalDevice : public Device {
   std::recursive_mutex metal_mem_map_mutex;
 
   /* Bindless Textures */
-  bool is_texture(const TextureInfo &tex);
-  device_vector<TextureInfo> texture_info;
-  id<MTLBuffer> texture_bindings = nil;
-  std::vector<id<MTLResource>> texture_slot_map;
+  bool is_texture(const KernelImageInfo &info);
+  device_vector<KernelImageInfo> image_info;
+  id<MTLBuffer> image_bindings = nil;
+  std::vector<id<MTLResource>> image_slot_map;
 
   MetalPipelineType kernel_specialization_level = PSO_GENERIC;
 
@@ -124,7 +124,7 @@ class MetalDevice : public Device {
 
   bool load_kernels(const uint kernel_features) override;
 
-  void load_texture_info();
+  void load_image_info();
 
   void erase_allocation(device_memory &mem);
 
@@ -178,10 +178,10 @@ class MetalDevice : public Device {
   void global_alloc(device_memory &mem);
   void global_free(device_memory &mem);
 
-  void tex_alloc(device_texture &mem);
-  void tex_alloc_as_buffer(device_texture &mem);
-  void tex_copy_to(device_texture &mem);
-  void tex_free(device_texture &mem);
+  void image_alloc(device_image &mem);
+  void image_alloc_as_buffer(device_image &mem);
+  void image_copy_to(device_image &mem);
+  void image_free(device_image &mem);
 
   void flush_delayed_free_list();
 

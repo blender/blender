@@ -8,92 +8,14 @@
 #pragma once
 
 #include "DNA_ID.h"
-#include "DNA_defs.h"
+
+namespace blender {
+
+namespace bke {
+struct SoundRuntime;
+}  // namespace bke
 
 struct PackedFile;
-
-typedef struct bSound {
-#ifdef __cplusplus
-  /** See #ID_Type comment for why this is here. */
-  static constexpr ID_Type id_type = ID_SO;
-#endif
-
-  ID id;
-
-  /**
-   * The path to the sound file.
-   */
-  char filepath[/*FILE_MAX*/ 1024];
-
-  /**
-   * The packed file.
-   */
-  struct PackedFile *packedfile;
-
-  /**
-   * The handle for audaspace.
-   */
-  void *handle;
-
-  /**
-   * Deprecated; used for loading pre 2.5 files.
-   */
-  struct PackedFile *newpackedfile;
-  void *_pad0;
-
-  float volume;
-  float attenuation;
-  float pitch;
-  float min_gain;
-  float max_gain;
-  float distance;
-  short flags;
-  /** Runtime only, always reset in readfile. */
-  short tags;
-  char _pad[4];
-  double offset_time;
-
-  /* Unused currently. */
-  // int type;
-  // struct bSound *child_sound;
-
-  /**
-   * The audaspace handle for cache.
-   */
-  void *cache;
-
-  /**
-   * Waveform display data.
-   */
-  void *waveform;
-
-  /**
-   * The audaspace handle that should actually be played back.
-   * Should be cache if cache != NULL; otherwise its handle
-   */
-  void *playback_handle;
-
-  /** Spin-lock for asynchronous loading of sounds. */
-  void *spinlock;
-  /* XXX unused currently (SOUND_TYPE_LIMITER) */
-  // float start, end;
-
-  /* Description of Audio channels, as of #eSoundChannels. */
-  int audio_channels;
-
-  int samplerate;
-
-} bSound;
-
-/* XXX unused currently */
-#if 0
-typedef enum eSound_Type {
-  SOUND_TYPE_INVALID = -1,
-  SOUND_TYPE_FILE = 0,
-  SOUND_TYPE_BUFFER = 1,
-  SOUND_TYPE_LIMITER = 2,
-} eSound_Type;
-#endif
 
 /** #bSound.flags */
 enum {
@@ -105,9 +27,45 @@ enum {
   SOUND_FLAGS_MONO = (1 << 5),
 };
 
-/** #bSound.tags */
-enum {
-  /* Do not free/reset waveform on sound load, only used by undo code. */
-  SOUND_TAGS_WAVEFORM_NO_RELOAD = 1 << 0,
-  SOUND_TAGS_WAVEFORM_LOADING = (1 << 6),
+struct bSound {
+#ifdef __cplusplus
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_SO;
+#endif
+
+  ID id;
+
+  /**
+   * The path to the sound file.
+   */
+  char filepath[/*FILE_MAX*/ 1024] = "";
+
+  /**
+   * The packed file.
+   */
+  struct PackedFile *packedfile = nullptr;
+
+  /**
+   * Deprecated; used for loading pre 2.5 files.
+   */
+  struct PackedFile *newpackedfile = nullptr;
+  void *_pad0 = nullptr;
+
+  double offset_time = 0;
+  float volume = 0;
+  float attenuation = 0;
+  float pitch = 0;
+  float min_gain = 0;
+  float max_gain = 0;
+  float distance = 0;
+  /* Description of Audio channels, as of #eSoundChannels. */
+  int audio_channels = 0;
+  int samplerate = 0;
+  short flags = 0;
+  char _pad1[6] = {};
+
+  bke::SoundRuntime *runtime = nullptr;
+  void *_pad2 = nullptr;
 };
+
+}  // namespace blender

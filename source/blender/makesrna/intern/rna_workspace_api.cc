@@ -31,6 +31,8 @@
 #  include "WM_api.hh"
 #  include "WM_toolsystem.hh"
 
+namespace blender {
+
 static void rna_WorkSpaceTool_setup(ID *id,
                                     bToolRef *tref,
                                     bContext *C,
@@ -63,12 +65,12 @@ static void rna_WorkSpaceTool_setup(ID *id,
   STRNCPY(tref->idname_fallback, idname_fallback);
   STRNCPY(tref_rt.keymap_fallback, keymap_fallback);
 
-  WM_toolsystem_ref_set_from_runtime(C, (WorkSpace *)id, tref, &tref_rt, idname);
+  WM_toolsystem_ref_set_from_runtime(C, id_cast<WorkSpace *>(id), tref, &tref_rt, idname);
 }
 
 static void rna_WorkSpaceTool_refresh_from_context(ID *id, bToolRef *tref, Main *bmain)
 {
-  WM_toolsystem_ref_sync_from_context(bmain, (WorkSpace *)id, tref);
+  WM_toolsystem_ref_sync_from_context(bmain, id_cast<WorkSpace *>(id), tref);
 }
 
 static PointerRNA rna_WorkSpaceTool_operator_properties(bToolRef *tref,
@@ -102,7 +104,11 @@ static PointerRNA rna_WorkSpaceTool_gizmo_group_properties(bToolRef *tref,
   return PointerRNA_NULL;
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 void RNA_api_workspace(StructRNA *srna)
 {
@@ -183,5 +189,7 @@ void RNA_api_workspace_tool(StructRNA *srna)
   func = RNA_def_function(srna, "refresh_from_context", "rna_WorkSpaceTool_refresh_from_context");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
 }
+
+}  // namespace blender
 
 #endif

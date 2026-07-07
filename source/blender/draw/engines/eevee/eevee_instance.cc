@@ -8,6 +8,8 @@
  * An instance contains all structures needed to do a complete render.
  */
 
+#include "CLG_log.h"
+
 #include "BKE_global.hh"
 #include "BKE_object.hh"
 
@@ -18,7 +20,6 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "DNA_ID.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_modifier_types.h"
 
@@ -30,17 +31,19 @@
 
 #include "RE_pipeline.h"
 
-#include "eevee_engine.h"
 #include "eevee_instance.hh"
 
 #include "DNA_particle_types.h"
 
-#include "draw_common.hh"
 #include "draw_context_private.hh"
+#include "draw_debug.hh"
 #include "draw_view_data.hh"
 
 namespace blender::eevee {
 
+CLG_LogRef Instance::log = {"eevee"};
+
+void *Instance::debug_scope_render_frame = nullptr;
 void *Instance::debug_scope_render_sample = nullptr;
 void *Instance::debug_scope_irradiance_setup = nullptr;
 void *Instance::debug_scope_irradiance_sample = nullptr;
@@ -81,25 +84,29 @@ void Instance::init()
     }
 
     if (camera) {
-      rctf default_border;
-      BLI_rctf_init(&default_border, 0.0f, 1.0f, 0.0f, 1.0f);
-      bool is_default_border = BLI_rctf_compare(&scene->r.border, &default_border, 0.0f);
-      bool use_border = scene->r.mode & R_BORDER;
-      if (!is_default_border && use_border) {
-        rctf viewborder;
-        /* TODO(fclem) Might be better to get it from DRW. */
-        ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, false, &viewborder);
-        float viewborder_sizex = BLI_rctf_size_x(&viewborder);
-        float viewborder_sizey = BLI_rctf_size_y(&viewborder);
-        rect.xmin = floorf(viewborder.xmin + (scene->r.border.xmin * viewborder_sizex));
-        rect.ymin = floorf(viewborder.ymin + (scene->r.border.ymin * viewborder_sizey));
-        rect.xmax = floorf(viewborder.xmin + (scene->r.border.xmax * viewborder_sizex));
-        rect.ymax = floorf(viewborder.ymin + (scene->r.border.ymax * viewborder_sizey));
-        /* Clamp it to the viewport area. */
-        rect.xmin = max(rect.xmin, 0);
-        rect.ymin = max(rect.ymin, 0);
-        rect.xmax = min(rect.xmax, size.x);
-        rect.ymax = min(rect.ymax, size.y);
+      if (scene->r.mode & R_BORDER) {
+        if (draw_ctx->is_viewport_image_render()) {
+          rect.xmin = scene->r.border.xmin * size[0];
+          rect.ymin = scene->r.border.ymin * size[1];
+          rect.xmax = scene->r.border.xmax * size[0];
+          rect.ymax = scene->r.border.ymax * size[1];
+        }
+        else {
+          rctf viewborder;
+          /* TODO(fclem) Might be better to get it from DRW. */
+          ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, false, &viewborder);
+          float viewborder_sizex = BLI_rctf_size_x(&viewborder);
+          float viewborder_sizey = BLI_rctf_size_y(&viewborder);
+          rect.xmin = floorf(viewborder.xmin + (scene->r.border.xmin * viewborder_sizex));
+          rect.ymin = floorf(viewborder.ymin + (scene->r.border.ymin * viewborder_sizey));
+          rect.xmax = floorf(viewborder.xmin + (scene->r.border.xmax * viewborder_sizex));
+          rect.ymax = floorf(viewborder.ymin + (scene->r.border.ymax * viewborder_sizey));
+          /* Clamp it to the viewport area. */
+          rect.xmin = max(rect.xmin, 0);
+          rect.ymin = max(rect.ymin, 0);
+          rect.xmax = min(rect.xmax, size.x);
+          rect.ymax = min(rect.ymax, size.y);
+        }
       }
     }
     else if (v3d->flag2 & V3D_RENDER_BORDER) {
@@ -151,7 +158,6 @@ void Instance::init(const int2 &output_res,
   if (is_viewport()) {
     is_image_render = draw_ctx->is_image_render();
     is_viewport_image_render = draw_ctx->is_viewport_image_render();
-    is_viewport_compositor_enabled = draw_ctx->is_viewport_compositor_enabled();
     is_playback = draw_ctx->is_playback();
     is_navigating = draw_ctx->is_navigating();
     is_painting = draw_ctx->is_painting();
@@ -162,7 +168,12 @@ void Instance::init(const int2 &output_res,
     if (depsgraph_last_update_ != DEG_get_update_count(depsgraph)) {
       sampling.reset();
     }
-    if (assign_if_different(debug_mode, (eDebugMode)G.debug_value)) {
+    if (assign_if_different(is_viewport_compositor_enabled,
+                            draw_ctx->is_viewport_compositor_enabled()))
+    {
+      sampling.reset();
+    }
+    if (assign_if_different(debug_mode, eDebugMode(G.debug_value))) {
       sampling.reset();
     }
     if (output_res != film.display_extent_get()) {
@@ -263,7 +274,7 @@ void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
   update_eval_members();
 
   is_light_bake = true;
-  debug_mode = (eDebugMode)G.debug_value;
+  debug_mode = eDebugMode(G.debug_value);
   info_ = "";
 
   sampling.init(scene);
@@ -475,7 +486,7 @@ void Instance::render_sync()
   begin_sync();
 
   DRW_render_object_iter(
-      render, depsgraph, [this](blender::draw::ObjectRef &ob_ref, RenderEngine *, Depsgraph *) {
+      render, depsgraph, [this](draw::ObjectRef &ob_ref, RenderEngine *, Depsgraph *) {
         this->object_sync(ob_ref, *this->manager);
       });
 
@@ -547,6 +558,7 @@ void Instance::render_sample()
     sampling.step();
 
     capture_view.render_world();
+    lookdev.rotate_world();
     capture_view.render_probes();
 
     main_view.render();
@@ -590,15 +602,15 @@ void Instance::render_read_result(RenderLayer *render_layer, const char *view_na
   }
 
   /* AOVs. */
-  LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {
-    if ((aov->flag & AOV_CONFLICT) != 0) {
+  for (ViewLayerAOV &aov : view_layer->aovs) {
+    if ((aov.flag & AOV_CONFLICT) != 0) {
       continue;
     }
-    RenderPass *rp = RE_pass_find_by_name(render_layer, aov->name, view_name);
+    RenderPass *rp = RE_pass_find_by_name(render_layer, aov.name, view_name);
     if (!rp) {
       continue;
     }
-    float *result = film.read_aov(aov);
+    float *result = film.read_aov(&aov);
 
     if (result) {
       BLI_mutex_lock(&render->update_render_passes_mutex);
@@ -644,6 +656,9 @@ void Instance::render_frame(RenderEngine *engine, RenderLayer *render_layer, con
     }
     return;
   }
+
+  DebugScope debug_scope(debug_scope_render_frame, "EEVEE.render_frame");
+
   /* TODO: Break on RE_engine_test_break(engine) */
   while (!sampling.finished()) {
     this->render_sample();
@@ -657,9 +672,11 @@ void Instance::render_frame(RenderEngine *engine, RenderLayer *render_layer, con
       RE_engine_update_stats(engine, nullptr, re_info.c_str());
     }
 
-    /* Perform render step between samples to allow
-     * flushing of freed GPUBackend resources. */
-    if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
+    /* Metal: Perform render step between samples to allow flushing of freed GPUBackend resources.
+     * Vulkan: Perform render step between samples to avoid allocation of a high amount of command
+     * buffer memory that can eventually result in out-of-memory errors or a TDR when submitted as
+     * one large command buffer. */
+    if (ELEM(GPU_backend_get_type(), GPU_BACKEND_METAL, GPU_BACKEND_VULKAN)) {
       GPU_flush();
     }
     GPU_render_step();
@@ -821,16 +838,16 @@ void Instance::update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view
   CHECK_PASS_LEGACY(AO, SOCK_RGBA, 3, "RGB");
   CHECK_PASS_EEVEE(TRANSPARENT, SOCK_RGBA, 4, "RGBA");
 
-  LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {
-    if ((aov->flag & AOV_CONFLICT) != 0) {
+  for (ViewLayerAOV &aov : view_layer->aovs) {
+    if ((aov.flag & AOV_CONFLICT) != 0) {
       continue;
     }
-    switch (aov->type) {
+    switch (aov.type) {
       case AOV_TYPE_COLOR:
-        RE_engine_register_pass(engine, scene, view_layer, aov->name, 4, "RGBA", SOCK_RGBA);
+        RE_engine_register_pass(engine, scene, view_layer, aov.name, 4, "RGBA", SOCK_RGBA);
         break;
       case AOV_TYPE_VALUE:
-        RE_engine_register_pass(engine, scene, view_layer, aov->name, 1, "X", SOCK_FLOAT);
+        RE_engine_register_pass(engine, scene, view_layer, aov.name, 1, "X", SOCK_FLOAT);
         break;
       default:
         break;
@@ -885,6 +902,7 @@ void Instance::light_bake_irradiance(
   volume_probes.bake.init(probe);
 
   custom_pipeline_wrapper([&]() {
+    drw_debug_clear();
     this->render_sync();
     while ((materials.queued_shaders_count > 0) || (materials.queued_textures_count > 0)) {
       GPU_pass_cache_wait_for_all();
@@ -921,6 +939,9 @@ void Instance::light_bake_irradiance(
 
       DRW_submission_end();
     }
+
+    /* Avoid big setup job to be queued with the sampling commands. */
+    GPU_flush();
   });
 
   if (volume_probes.bake.should_break()) {
@@ -928,14 +949,26 @@ void Instance::light_bake_irradiance(
   }
 
   sampling.init(probe);
+
+  /* Start with 1 sample and progressively ramp up. */
+  float time_per_sample_ms_smooth = 16.0f;
+  double last_update_timestamp = BLI_time_now_seconds();
   while (!sampling.finished()) {
     context_wrapper([&]() {
       DebugScope debug_scope(debug_scope_irradiance_sample, "EEVEE.irradiance_sample");
 
-      /* Batch ray cast by pack of 16. Avoids too much overhead of the update function & context
-       * switch. */
-      /* TODO(fclem): Could make the number of iteration depend on the computation time. */
-      for (int i = 0; i < 16 && !sampling.finished(); i++) {
+      int remaining_samples = sampling.sample_count() - sampling.sample_index();
+      /* In background mode, assume we don't need as much interactivity. */
+      int time_budget_ms = G.background ? 32 : 16;
+      /* Batch ray cast. Avoids too much overhead of the context switch. */
+      int sample_count_in_batch = ceilf(time_budget_ms / max(0.1f, time_per_sample_ms_smooth));
+      /* Avoid batching too many rays, keep system responsive in case of bad values. */
+      sample_count_in_batch = min_iii(32, sample_count_in_batch, remaining_samples);
+
+      CLOG_INFO(&Instance::log, "IrradianceBake: Casting %d rays.", sample_count_in_batch);
+
+      double time_it_begin_ms = BLI_time_now_seconds() * 1000.0;
+      for (int i = 0; i < sample_count_in_batch && !sampling.finished(); i++) {
         sampling.step();
         {
           /* Critical section. Potential gpu::Shader concurrent usage. */
@@ -947,19 +980,29 @@ void Instance::light_bake_irradiance(
 
           DRW_submission_end();
         }
-      }
+      };
+      /* We use GPU_finish to take into account the GPU processing time. */
+      /* TODO(fclem): Could use timer queries to keep pipelining of GPU commands if that become a
+       * real bottleneck. */
+      GPU_finish();
+      double time_it_end_ms = BLI_time_now_seconds() * 1000.0;
 
-      LightProbeGridCacheFrame *cache_frame;
+      float time_per_sample_ms = float(time_it_end_ms - time_it_begin_ms) / sample_count_in_batch;
+      /* Exponential average. */
+      time_per_sample_ms_smooth = interpolate(time_per_sample_ms_smooth, time_per_sample_ms, 0.7f);
+
       if (sampling.finished()) {
-        cache_frame = volume_probes.bake.read_result_packed();
+        result_update(volume_probes.bake.read_result_packed(), 1.0f);
       }
       else {
-        /* TODO(fclem): Only do this read-back if needed. But it might be tricky to know when. */
-        cache_frame = volume_probes.bake.read_result_unpacked();
+        double time_since_last_update_ms = BLI_time_now_seconds() - last_update_timestamp;
+        /* Only readback every 1 second. This readback is relatively expensive. */
+        if (time_since_last_update_ms > 1.0) {
+          float progress = sampling.sample_index() / float(sampling.sample_count());
+          result_update(volume_probes.bake.read_result_unpacked(), progress);
+          last_update_timestamp = BLI_time_now_seconds();
+        }
       }
-
-      float progress = sampling.sample_index() / float(sampling.sample_count());
-      result_update(cache_frame, progress);
     });
 
     if (stop()) {

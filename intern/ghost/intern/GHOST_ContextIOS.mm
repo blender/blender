@@ -113,9 +113,11 @@ GHOST_ContextIOS::~GHOST_ContextIOS()
   }
 }
 
-GHOST_TSuccess GHOST_ContextIOS::swapBuffers()
+GHOST_TSuccess GHOST_ContextIOS::swapBufferRelease()
 {
-  metalSwapBuffers();
+  if (metal_view_) {
+    metalSwapBuffers();
+  }
   return GHOST_kSuccess;
 }
 

@@ -4,10 +4,11 @@
 
 #pragma once
 
-#include "infos/eevee_common_info.hh"
+#include "infos/eevee_common_infos.hh"
 
 #include "draw_shape_lib.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_constants_lib.glsl"
+#include "gpu_shader_math_vector_reduce_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
 /**
@@ -17,7 +18,7 @@
 int2 shadow_viewport_size_get(uint viewport_index)
 {
   /* TODO(fclem): Experiment with non squared viewports. */
-  return int2(1u << viewport_index);
+  return int2(int(1u << viewport_index));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -31,14 +32,14 @@ int shadow_tile_index(int2 tile)
 
 uint2 shadow_tile_coord(int tile_index)
 {
-  return uint2(tile_index % SHADOW_TILEMAP_RES, tile_index / SHADOW_TILEMAP_RES);
+  return uint2(uint(tile_index % SHADOW_TILEMAP_RES), uint(tile_index / SHADOW_TILEMAP_RES));
 }
 
 /* Return bottom left pixel position of the tile-map inside the tile-map atlas. */
 uint2 shadow_tilemap_start(int tilemap_index)
 {
-  return SHADOW_TILEMAP_RES *
-         uint2(tilemap_index % SHADOW_TILEMAP_PER_ROW, tilemap_index / SHADOW_TILEMAP_PER_ROW);
+  return SHADOW_TILEMAP_RES * uint2(uint(tilemap_index % SHADOW_TILEMAP_PER_ROW),
+                                    uint(tilemap_index / SHADOW_TILEMAP_PER_ROW));
 }
 
 uint2 shadow_tile_coord_in_atlas(uint2 tile, int tilemap_index)
@@ -128,7 +129,7 @@ ShadowSamplingTile shadow_tile_load(usampler2D tilemaps_tx, uint2 tile_co, int t
  */
 int shadow_directional_tilemap_index(LightData light, float3 lP)
 {
-  LightSunData sun = light_sun_data_get(light);
+  LightSunData sun = light.sun();
   int lvl;
   if (light.type == LIGHT_SUN) {
     /* We need to hide one tile worth of data to hide the moving transition. */
@@ -170,15 +171,13 @@ float shadow_directional_level_fractional(LightData light, float3 lP)
     /* The narrowing need to be stronger since the tile-map position is not rounded but floored. */
     constexpr float narrowing = float(SHADOW_TILEMAP_RES) / (float(SHADOW_TILEMAP_RES) - 2.5001f);
     /* Since we want half of the size, bias the level by -1. */
-    float clipmap_lod_min_minus_one = float(light_sun_data_get(light).clipmap_lod_min - 1);
+    float clipmap_lod_min_minus_one = float(light.sun().clipmap_lod_min - 1);
     float lod_min_half_size = exp2(clipmap_lod_min_minus_one);
     lod = length(lP.xy) * narrowing / lod_min_half_size;
     /* Apply cascade lod bias. Light bias is not supported here. */
     lod += clipmap_lod_min_minus_one;
   }
-  return clamp(lod,
-               float(light_sun_data_get(light).clipmap_lod_min),
-               float(light_sun_data_get(light).clipmap_lod_max));
+  return clamp(lod, float(light.sun().clipmap_lod_min), float(light.sun().clipmap_lod_max));
 }
 
 int shadow_directional_level(LightData light, float3 lP)
@@ -272,9 +271,7 @@ int2 shadow_decompress_grid_offset(eLightType light_type,
   if (light_type == LIGHT_SUN_ORTHO) {
     return shadow_cascade_grid_offset(offset_pos, level_relative);
   }
-  else {
-    return (offset_pos >> level_relative) - (offset_neg >> level_relative);
-  }
+  return (offset_pos >> level_relative) - (offset_neg >> level_relative);
 }
 
 /**
@@ -284,17 +281,15 @@ ShadowCoordinates shadow_directional_coordinates_at_level(LightData light, float
 {
   /* This difference needs to be less than 32 for the later shift to be valid.
    * This is ensured by `ShadowDirectional::clipmap_level_range()`. */
-  int level_relative = level - light_sun_data_get(light).clipmap_lod_min;
-  int lod_relative = (light.type == LIGHT_SUN_ORTHO) ? light_sun_data_get(light).clipmap_lod_min :
-                                                       level;
+  int level_relative = level - light.sun().clipmap_lod_min;
+  int lod_relative = (light.type == LIGHT_SUN_ORTHO) ? light.sun().clipmap_lod_min : level;
   /* Compute offset in tile. */
-  int2 clipmap_offset = shadow_decompress_grid_offset(
-      light.type,
-      light_sun_data_get(light).clipmap_base_offset_neg,
-      light_sun_data_get(light).clipmap_base_offset_pos,
-      level_relative);
+  int2 clipmap_offset = shadow_decompress_grid_offset(light.type,
+                                                      light.sun().clipmap_base_offset_neg,
+                                                      light.sun().clipmap_base_offset_pos,
+                                                      level_relative);
   /* UV in [0..1] range over the tilemap. */
-  float2 tilemap_uv = lP.xy - light_sun_data_get(light).clipmap_origin;
+  float2 tilemap_uv = lP.xy - light.sun().clipmap_origin;
   tilemap_uv *= exp2(float(-lod_relative));
   tilemap_uv -= float2(clipmap_offset) * (1.0f / float(SHADOW_TILEMAP_RES));
   tilemap_uv = saturate(tilemap_uv + 0.5f);
@@ -356,12 +351,10 @@ int shadow_punctual_face_index_get(float3 lL)
   if (all(greaterThan(aP.xx, aP.yz))) {
     return (lL.x > 0.0f) ? 1 : 2;
   }
-  else if (all(greaterThan(aP.yy, aP.xz))) {
+  if (all(greaterThan(aP.yy, aP.xz))) {
     return (lL.y > 0.0f) ? 3 : 4;
   }
-  else {
-    return (lL.z > 0.0f) ? 5 : 0;
-  }
+  return (lL.z > 0.0f) ? 5 : 0;
 }
 
 /**

@@ -76,6 +76,7 @@ struct AlphaOverEffectOp {
 };
 
 static ImBuf *do_alphaover_effect(const RenderData *context,
+                                  SeqRenderState * /*state*/,
                                   Strip * /*strip*/,
                                   float /*timeline_frame*/,
                                   float fac,
@@ -125,6 +126,7 @@ struct AlphaUnderEffectOp {
 };
 
 static ImBuf *do_alphaunder_effect(const RenderData *context,
+                                   SeqRenderState * /*state*/,
                                    Strip * /*strip*/,
                                    float /*timeline_frame*/,
                                    float fac,
@@ -148,9 +150,9 @@ static void apply_blend_function(
 {
   for (int64_t i = 0; i < size; i++) {
     T achannel = src2[3];
-    ((T *)src2)[3] = T(achannel * fac);
+    (static_cast<T *>(const_cast<T *>(src2)))[3] = T(achannel * fac);
     blend_function(dst, src1, src2);
-    ((T *)src2)[3] = achannel;
+    (static_cast<T *>(const_cast<T *>(src2)))[3] = achannel;
     dst[3] = src1[3];
     src1 += 4;
     src2 += 4;
@@ -325,6 +327,7 @@ struct BlendModeEffectOp {
 };
 
 static ImBuf *do_blend_mode_effect(const RenderData *context,
+                                   SeqRenderState * /*state*/,
                                    Strip *strip,
                                    float /*timeline_frame*/,
                                    float fac,
@@ -344,18 +347,22 @@ static ImBuf *do_blend_mode_effect(const RenderData *context,
 
 static void init_colormix_effect(Strip *strip)
 {
-  if (strip->effectdata) {
-    MEM_freeN(strip->effectdata);
-  }
-
-  ColorMixVars *data = MEM_callocN<ColorMixVars>("colormixvars");
+  ColorMixVars *data = MEM_new<ColorMixVars>("colormixvars");
   strip->effectdata = data;
-
   data->blend_effect = STRIP_BLEND_OVERLAY;
   data->factor = 1.0f;
 }
 
+static void free_colormix_effect(Strip *strip, const bool /*do_id_user*/)
+{
+  if (strip->effectdata) {
+    MEM_delete(static_cast<ColorMixVars *>(strip->effectdata));
+    strip->effectdata = nullptr;
+  }
+}
+
 static ImBuf *do_colormix_effect(const RenderData *context,
+                                 SeqRenderState * /*state*/,
                                  Strip *strip,
                                  float /*timeline_frame*/,
                                  float /*fac*/,
@@ -371,16 +378,6 @@ static ImBuf *do_colormix_effect(const RenderData *context,
   return dst;
 }
 
-static void copy_effect_default(Strip *dst, const Strip *src, const int /*flag*/)
-{
-  dst->effectdata = MEM_dupallocN(src->effectdata);
-}
-
-static void free_effect_default(Strip *strip, const bool /*do_id_user*/)
-{
-  MEM_SAFE_FREE(strip->effectdata);
-}
-
 void blend_mode_effect_get_handle(EffectHandle &rval)
 {
   rval.execute = do_blend_mode_effect;
@@ -390,8 +387,7 @@ void blend_mode_effect_get_handle(EffectHandle &rval)
 void color_mix_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_colormix_effect;
-  rval.free = free_effect_default;
-  rval.copy = copy_effect_default;
+  rval.free = free_colormix_effect;
   rval.execute = do_colormix_effect;
   rval.early_out = early_out_mul_input2;
 }

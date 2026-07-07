@@ -25,6 +25,8 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"image.read"};
 
 const char *imb_ext_image[] = {
@@ -48,6 +50,8 @@ const char *imb_ext_image[] = {
      * supported by various render engines texture caching systems.
      * These are typically TIFF or EXR images. See the tool `maketx` from OpenImageIO. */
     ".tx",
+    /* #IMB_FTYPE_AVIF */
+    ".avif",
 #ifdef WITH_IMAGE_OPENJPEG
     /* #IMB_FTYPE_JP2 */
     ".jp2",
@@ -184,3 +188,5 @@ bool IMB_test_image(const char *filepath)
 {
   return (IMB_test_image_type(filepath) != IMB_FTYPE_NONE);
 }
+
+}  // namespace blender

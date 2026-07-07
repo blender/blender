@@ -23,7 +23,7 @@ else()
 endif()
 
 # The installation directory's Python is the best one to use. However, it can only be there
-# after the install step, # which means that Python will never be there on a fresh system.
+# after the install step, which means that Python will never be there on a fresh system.
 # To suit different needs, the user can pass `-DTEST_PYTHON_EXE=/path/to/python` to CMake.
 if(NOT TEST_PYTHON_EXE)
   set(TEST_PYTHON_EXE ${PYTHON_EXECUTABLE})
@@ -54,7 +54,20 @@ endif()
 # Standard Blender arguments for running tests.
 # Specify exit code so that if a Python script error happens, the test fails.
 set(TEST_BLENDER_EXE_PARAMS
-  --background --factory-startup --debug-memory --debug-exit-on-error --python-exit-code 1
+  --background
+  --factory-startup
+  --debug-memory
+  --debug-exit-on-error
+  --python-exit-code 1
+)
+
+# The `TEST_BLENDER_EXE_PARAMS` list might be edited in some cases (see e.g. `add_blender_test_allow_error`).
+# This will break in case a parameter contains a `;` that should remain literal,
+# instead of being interpreted as a list item separator by CMake.
+# So this additional variable is always added after `TEST_BLENDER_EXE_PARAMS`, always as-is.
+set(TEST_BLENDER_EXE_PARAMS_NO_THUMB
+  # Python expression to disable thumbnails creation on blend-file saving.
+  --python-expr [=[import bpy\;bpy.context.preferences.filepaths.file_preview_type='NONE']=]
 )
 
 # Python CTests
@@ -71,7 +84,7 @@ endif()
 add_subdirectory(gtests)
 
 if(WITH_COMPILER_CODE_COVERAGE)
-  if(CMAKE_COMPILER_IS_GNUCC)
+  if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     set(COVERAGE_SCRIPT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/coverage/coverage.py)
 
     add_custom_target(coverage-report
@@ -106,7 +119,7 @@ if(WITH_COMPILER_CODE_COVERAGE)
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 18.1 OR
        (CMAKE_C_COMPILER_ID MATCHES "AppleClang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 17.0)
       )
-      # Available clang on 18.1+ only , Apple's compiler doesn't map 1:1 to clang
+      # Available clang on 18.1+ only, Apple's compiler doesn't map 1:1 to clang
       # versions so on apple we check for version 17+ which maps to clang
       # version 19.1.4, given this is somewhat unintuitive there is a handy table on
       # https://en.wikipedia.org/wiki/Xcode#Xcode_15.0_-_(since_visionOS_support)_2

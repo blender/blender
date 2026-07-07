@@ -20,10 +20,8 @@
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 
-#include "BKE_icons.h"
+#include "BKE_icons.hh"
 
-#include "BLI_ghash.h"
-#include "BLI_string.h"
 #ifndef NDEBUG
 #  include "BLI_threads.h"
 #endif
@@ -39,14 +37,24 @@
 
 #include "BKE_preview_image.hh"
 
-/* Not mutex-protected! */
-static GHash *gCachedPreviews = nullptr;
+namespace blender {
 
-namespace blender::bke {
+using CachedPreviewMap = Map<std::string, PreviewImage *>;
+
+/* Not mutex-protected! */
+static CachedPreviewMap &get_cached_previews_map()
+{
+  static CachedPreviewMap cached_previews_map;
+  return cached_previews_map;
+}
+
+namespace bke {
 
 struct PreviewDeferredLoadingData {
   std::string filepath;
   ThumbSource source;
+  /** See #BKE_previewimg_is_online(). */
+  bool is_online = false;
 };
 
 PreviewImageRuntime::PreviewImageRuntime() = default;
@@ -59,37 +67,65 @@ PreviewImageRuntime::PreviewImageRuntime(const PreviewImageRuntime &other)
 }
 PreviewImageRuntime::~PreviewImageRuntime() = default;
 
-}  // namespace blender::bke
+}  // namespace bke
 
 static PreviewImage *previewimg_deferred_create(const char *filepath, ThumbSource source)
 {
   PreviewImage *prv = BKE_previewimg_create();
-  prv->runtime->deferred_loading_data =
-      std::make_unique<blender::bke::PreviewDeferredLoadingData>();
+  prv->runtime->deferred_loading_data = std::make_unique<bke::PreviewDeferredLoadingData>();
   prv->runtime->deferred_loading_data->filepath = filepath;
   prv->runtime->deferred_loading_data->source = source;
   return prv;
 }
 
+static void previewimg_free_or_defer(PreviewImage **prv)
+{
+  if (*prv == nullptr) {
+    return;
+  }
+
+  BLI_assert(BLI_thread_is_main());
+
+  bool do_delete = true;
+
+  /* If a preview is still being rendered, tag it for deferred deletion in
+   * BKE_previewimg_render_end. */
+  for (int i = 0; i < NUM_ICON_SIZES; i++) {
+    if ((*prv)->runtime->tag[i] & PRV_TAG_DEFERRED_RENDERING) {
+      (*prv)->runtime->tag[i] |= PRV_TAG_DEFERRED_DELETE;
+      do_delete = false;
+    }
+  }
+
+  if (do_delete) {
+    BKE_previewimg_free(prv);
+  }
+  *prv = nullptr;
+}
+
 PreviewImage *BKE_previewimg_create()
 {
-  PreviewImage *prv = MEM_callocN<PreviewImage>(__func__);
+  PreviewImage *prv = MEM_new<PreviewImage>(__func__);
 
   for (int i = 0; i < NUM_ICON_SIZES; i++) {
     prv->flag[i] |= PRV_CHANGED;
     prv->changed_timestamp[i] = 0;
   }
 
-  prv->runtime = MEM_new<blender::bke::PreviewImageRuntime>(__func__);
+  prv->runtime = MEM_new<bke::PreviewImageRuntime>(__func__);
   return prv;
 }
 
 void BKE_previewimg_free(PreviewImage **prv)
 {
   if (prv && (*prv)) {
+    if ((*prv)->runtime->icon_id) {
+      BKE_icon_delete((*prv)->runtime->icon_id);
+    }
+
     for (int i = 0; i < NUM_ICON_SIZES; i++) {
       if ((*prv)->rect[i]) {
-        MEM_freeN((*prv)->rect[i]);
+        MEM_delete((*prv)->rect[i]);
       }
       if ((*prv)->runtime->gputexture[i]) {
         GPU_texture_free((*prv)->runtime->gputexture[i]);
@@ -97,38 +133,25 @@ void BKE_previewimg_free(PreviewImage **prv)
     }
 
     MEM_delete((*prv)->runtime);
-    MEM_freeN(*prv);
+    MEM_delete(*prv);
     *prv = nullptr;
   }
 }
 
-void BKE_preview_images_init()
-{
-  if (!gCachedPreviews) {
-    gCachedPreviews = BLI_ghash_str_new(__func__);
-  }
-}
+void BKE_preview_images_init() {}
 
 void BKE_preview_images_free()
 {
-  if (gCachedPreviews) {
-    BLI_ghash_free(gCachedPreviews, MEM_freeN, BKE_previewimg_freefunc);
-    gCachedPreviews = nullptr;
+  CachedPreviewMap &cache = get_cached_previews_map();
+  for (PreviewImage *prv : cache.values()) {
+    BKE_previewimg_free(&prv);
   }
-}
-
-void BKE_previewimg_freefunc(void *link)
-{
-  PreviewImage *prv = (PreviewImage *)link;
-  if (!prv) {
-    return;
-  }
-  BKE_previewimg_free(&prv);
+  cache.clear();
 }
 
 void BKE_previewimg_clear_single(PreviewImage *prv, enum eIconSizes size)
 {
-  MEM_SAFE_FREE(prv->rect[size]);
+  MEM_SAFE_DELETE(prv->rect[size]);
   if (prv->runtime->gputexture[size]) {
     GPU_texture_free(prv->runtime->gputexture[size]);
   }
@@ -141,7 +164,7 @@ void BKE_previewimg_clear_single(PreviewImage *prv, enum eIconSizes size)
 void BKE_previewimg_clear(PreviewImage *prv)
 {
   for (int i = 0; i < NUM_ICON_SIZES; i++) {
-    BKE_previewimg_clear_single(prv, (eIconSizes)i);
+    BKE_previewimg_clear_single(prv, eIconSizes(i));
   }
 }
 
@@ -151,13 +174,13 @@ PreviewImage *BKE_previewimg_copy(const PreviewImage *prv)
     return nullptr;
   }
 
-  PreviewImage *prv_img = MEM_mallocN<PreviewImage>(__func__);
-  *prv_img = blender::dna::shallow_copy(*prv);
-  prv_img->runtime = MEM_new<blender::bke::PreviewImageRuntime>(__func__, *prv->runtime);
+  PreviewImage *prv_img = MEM_new<PreviewImage>(__func__);
+  *prv_img = dna::shallow_copy(*prv);
+  prv_img->runtime = MEM_new<bke::PreviewImageRuntime>(__func__, *prv->runtime);
 
   for (int i = 0; i < NUM_ICON_SIZES; i++) {
     if (prv->rect[i]) {
-      prv_img->rect[i] = (uint *)MEM_dupallocN(prv->rect[i]);
+      prv_img->rect[i] = MEM_dupalloc(prv->rect[i]);
     }
     prv_img->runtime->gputexture[i] = nullptr;
   }
@@ -220,7 +243,7 @@ void BKE_previewimg_id_free(ID *id)
 {
   PreviewImage **prv_p = BKE_previewimg_id_get_p(id);
   if (prv_p) {
-    BKE_previewimg_free(prv_p);
+    previewimg_free_or_defer(prv_p);
   }
 }
 
@@ -244,9 +267,7 @@ void BKE_previewimg_id_custom_set(ID *id, const char *filepath)
   /* Thumbnail previews must use the deferred pipeline. But we force them to be immediately
    * generated here still. */
 
-  if (*prv) {
-    BKE_previewimg_deferred_release(*prv);
-  }
+  previewimg_free_or_defer(prv);
   *prv = previewimg_deferred_create(filepath, THB_SOURCE_IMAGE);
 
   /* Can't lazy-render the preview on access. ID previews are saved to files and we want them to be
@@ -263,43 +284,19 @@ bool BKE_previewimg_id_supports_jobs(const ID *id)
   return ELEM(GS(id->name), ID_OB, ID_MA, ID_TE, ID_LA, ID_WO, ID_IM, ID_BR, ID_GR, ID_SCE);
 }
 
-void BKE_previewimg_deferred_release(PreviewImage *prv)
-{
-  if (!prv) {
-    return;
-  }
-
-  if (prv->runtime->tag & PRV_TAG_DEFFERED_RENDERING) {
-    /* We cannot delete the preview while it is being loaded in another thread... */
-    prv->runtime->tag |= PRV_TAG_DEFFERED_DELETE;
-    return;
-  }
-  if (prv->runtime->icon_id) {
-    BKE_icon_delete(prv->runtime->icon_id);
-  }
-  BKE_previewimg_free(&prv);
-}
-
 PreviewImage *BKE_previewimg_cached_get(const char *name)
 {
   BLI_assert(BLI_thread_is_main());
-  return (PreviewImage *)BLI_ghash_lookup(gCachedPreviews, name);
+  return get_cached_previews_map().lookup_default_as(name, nullptr);
 }
 
 PreviewImage *BKE_previewimg_cached_ensure(const char *name)
 {
   BLI_assert(BLI_thread_is_main());
 
-  PreviewImage *prv = nullptr;
-  void **key_p, **prv_p;
-
-  if (!BLI_ghash_ensure_p_ex(gCachedPreviews, name, &key_p, &prv_p)) {
-    *key_p = BLI_strdup(name);
-    *prv_p = BKE_previewimg_create();
-  }
-  prv = *(PreviewImage **)prv_p;
+  PreviewImage *prv = get_cached_previews_map().lookup_or_add_cb_as(
+      name, [&]() { return BKE_previewimg_create(); });
   BLI_assert(prv);
-
   return prv;
 }
 
@@ -311,12 +308,13 @@ PreviewImage *BKE_previewimg_cached_thumbnail_read(const char *name,
   BLI_assert(BLI_thread_is_main());
 
   PreviewImage *prv = nullptr;
-  void **prv_p;
+  PreviewImage **prv_p;
 
-  prv_p = BLI_ghash_lookup_p(gCachedPreviews, name);
+  CachedPreviewMap &cache = get_cached_previews_map();
+  prv_p = cache.lookup_ptr_as(name);
 
   if (prv_p) {
-    prv = static_cast<PreviewImage *>(*prv_p);
+    prv = *prv_p;
     BLI_assert(prv);
     BLI_assert(prv->runtime->deferred_loading_data);
   }
@@ -344,24 +342,30 @@ PreviewImage *BKE_previewimg_cached_thumbnail_read(const char *name,
       *prv_p = prv;
     }
     else {
-      BLI_ghash_insert(gCachedPreviews, BLI_strdup(name), prv);
+      cache.add(name, prv);
     }
   }
 
   return prv;
 }
 
+PreviewImage *BKE_previewimg_online_thumbnail_read(const char *name,
+                                                   const char *dst_filepath,
+                                                   const bool force_update)
+{
+  PreviewImage *preview = BKE_previewimg_cached_thumbnail_read(
+      name, dst_filepath, THB_SOURCE_DIRECT, force_update);
+  preview->runtime->deferred_loading_data->is_online = true;
+
+  return preview;
+}
+
 void BKE_previewimg_cached_release(const char *name)
 {
   BLI_assert(BLI_thread_is_main());
-  if (!gCachedPreviews) {
-    /* Static cache was already freed including all contained previews. Can happen on shutdown. */
-    return;
-  }
-
-  PreviewImage *prv = (PreviewImage *)BLI_ghash_popkey(gCachedPreviews, name, MEM_freeN);
-
-  BKE_previewimg_deferred_release(prv);
+  CachedPreviewMap &cache = get_cached_previews_map();
+  PreviewImage *prv = cache.pop_default_as(name, nullptr);
+  previewimg_free_or_defer(&prv);
 }
 
 void BKE_previewimg_ensure(PreviewImage *prv, const int size)
@@ -378,8 +382,7 @@ void BKE_previewimg_ensure(PreviewImage *prv, const int size)
     return;
   }
 
-  const blender::bke::PreviewDeferredLoadingData &prv_deferred =
-      *prv->runtime->deferred_loading_data;
+  const bke::PreviewDeferredLoadingData &prv_deferred = *prv->runtime->deferred_loading_data;
   int icon_w, icon_h;
 
   ImBuf *thumb = IMB_thumb_manage(prv_deferred.filepath.c_str(), THB_LARGE, prv_deferred.source);
@@ -393,7 +396,8 @@ void BKE_previewimg_ensure(PreviewImage *prv, const int size)
   if (do_preview) {
     prv->w[ICON_SIZE_PREVIEW] = thumb->x;
     prv->h[ICON_SIZE_PREVIEW] = thumb->y;
-    prv->rect[ICON_SIZE_PREVIEW] = (uint *)MEM_dupallocN(thumb->byte_buffer.data);
+    prv->rect[ICON_SIZE_PREVIEW] = reinterpret_cast<unsigned int *>(
+        MEM_dupalloc<uint8_t>(thumb->byte_buffer.data));
     prv->flag[ICON_SIZE_PREVIEW] &= ~(PRV_CHANGED | PRV_USER_EDITED | PRV_RENDERING);
   }
   if (do_icon) {
@@ -412,19 +416,29 @@ void BKE_previewimg_ensure(PreviewImage *prv, const int size)
     IMB_scale(thumb, icon_w, icon_h, IMBScaleFilter::Box, false);
     prv->w[ICON_SIZE_ICON] = icon_w;
     prv->h[ICON_SIZE_ICON] = icon_h;
-    prv->rect[ICON_SIZE_ICON] = (uint *)MEM_dupallocN(thumb->byte_buffer.data);
+    prv->rect[ICON_SIZE_ICON] = reinterpret_cast<unsigned int *>(
+        MEM_dupalloc<uint8_t>(thumb->byte_buffer.data));
     prv->flag[ICON_SIZE_ICON] &= ~(PRV_CHANGED | PRV_USER_EDITED | PRV_RENDERING);
   }
   IMB_freeImBuf(thumb);
 }
 
-const char *BKE_previewimg_deferred_filepath_get(const PreviewImage *prv)
+bool BKE_previewimg_is_online(const PreviewImage *prv)
 {
   if (!prv->runtime->deferred_loading_data) {
-    return nullptr;
+    return false;
   }
 
-  return prv->runtime->deferred_loading_data->filepath.c_str();
+  return prv->runtime->deferred_loading_data->is_online;
+}
+
+std::optional<blender::StringRefNull> BKE_previewimg_deferred_filepath_get(const PreviewImage *prv)
+{
+  if (!prv->runtime->deferred_loading_data) {
+    return std::nullopt;
+  }
+
+  return prv->runtime->deferred_loading_data->filepath;
 }
 
 std::optional<int> BKE_previewimg_deferred_thumb_source_get(const PreviewImage *prv)
@@ -453,20 +467,87 @@ ImBuf *BKE_previewimg_to_imbuf(const PreviewImage *prv, const int size)
   return ima;
 }
 
-void BKE_previewimg_finish(PreviewImage *prv, const int size)
+void BKE_previewimg_render_start(PreviewImage *prv, const int size, const bool using_job)
 {
-  /* Previews may be calculated on a thread. */
-  atomic_fetch_and_and_int16(&prv->flag[size], ~PRV_RENDERING);
+  BLI_assert(BLI_thread_is_main());
+
+  prv->flag[size] |= PRV_RENDERING;
+  prv->runtime->tag[size] &= ~PRV_TAG_RESTART_RENDERING;
+
+  /* When rendering as a job in another thread, tag so that main thread will not
+   * free it and defer deletion to the job. */
+  if (using_job) {
+    prv->runtime->tag[size] |= PRV_TAG_DEFERRED_RENDERING;
+  }
+}
+
+void BKE_previewimg_render_end(PreviewImage *prv,
+                               const int size,
+                               const PreviewImageRenderEndStatus status)
+{
+  BLI_assert(BLI_thread_is_main());
+
+  bool do_delete = false;
+
+  prv->runtime->tag[size] &= ~PRV_TAG_DEFERRED_RENDERING;
+  if (status == PRV_RENDER_STATUS_FAILED) {
+    prv->runtime->tag[size] |= PRV_TAG_DEFERRED_INVALID;
+  }
+
+  /* When job is cancelled for e.g. undo, PRV_RENDERING remains so that
+   * it can resume when going back to that undo step. */
+  if (status != PRV_RENDER_STATUS_CANCELLED) {
+    prv->flag[size] &= ~PRV_RENDERING;
+  }
+
+  /* Check if we need to do deferred deletion and it's safe to do so. */
+  for (int i = 0; i < NUM_ICON_SIZES; i++) {
+    if (prv->runtime->tag[i] & PRV_TAG_DEFERRED_RENDERING) {
+      /* Another size is still rendering, */
+      return;
+    }
+    if (prv->runtime->tag[i] & PRV_TAG_DEFERRED_DELETE) {
+      /* Deferred deletion is needed. */
+      do_delete = true;
+    }
+  }
+
+  if (do_delete) {
+    BKE_previewimg_free(&prv);
+  }
+}
+
+bool BKE_previewimg_render_restart(PreviewImage *prv, const int size)
+{
+  BLI_assert(BLI_thread_is_main());
+
+  if (prv->flag[size] & PRV_USER_EDITED) {
+    /* Don't modify custom previews. */
+    return false;
+  }
+
+  if (prv->runtime->tag[size] & PRV_TAG_RESTART_RENDERING) {
+    prv->runtime->tag[size] &= ~PRV_TAG_RESTART_RENDERING;
+    return true;
+  }
+
+  return false;
+}
+
+bool BKE_previewimg_is_rendering(const PreviewImage *prv, const int size)
+{
+  return (prv->flag[size] & PRV_RENDERING);
 }
 
 bool BKE_previewimg_is_finished(const PreviewImage *prv, const int size)
 {
-  return (prv->flag[size] & PRV_RENDERING) == 0;
+  return !(prv->flag[size] & PRV_RENDERING) &&
+         !(prv->runtime->tag[size] & PRV_TAG_RESTART_RENDERING);
 }
 
-bool BKE_previewimg_is_invalid(const PreviewImage *prv)
+bool BKE_previewimg_is_invalid(const PreviewImage *prv, const int size)
 {
-  return (prv->runtime->tag & PRV_TAG_DEFFERED_INVALID) != 0;
+  return (prv->runtime->tag[size] & PRV_TAG_DEFERRED_INVALID) != 0;
 }
 
 void BKE_previewimg_blend_write(BlendWriter *writer, const PreviewImage *prv)
@@ -479,9 +560,9 @@ void BKE_previewimg_blend_write(BlendWriter *writer, const PreviewImage *prv)
     return;
   }
 
-  PreviewImage prv_copy = blender::dna::shallow_copy(*prv);
+  PreviewImage prv_copy = dna::shallow_copy(*prv);
   prv_copy.runtime = nullptr;
-  BLO_write_struct_at_address(writer, PreviewImage, prv, &prv_copy);
+  writer->write_struct_at_address(prv, &prv_copy);
   if (prv_copy.rect[0]) {
     BLO_write_uint32_array(writer, prv_copy.w[0] * prv_copy.h[0], prv_copy.rect[0]);
   }
@@ -496,17 +577,23 @@ void BKE_previewimg_blend_read(BlendDataReader *reader, PreviewImage *prv)
     return;
   }
 
-  prv->runtime = MEM_new<blender::bke::PreviewImageRuntime>(__func__);
+  prv->runtime = MEM_new<bke::PreviewImageRuntime>(__func__);
 
   for (int i = 0; i < NUM_ICON_SIZES; i++) {
     if (prv->rect[i]) {
       BLO_read_uint32_array(reader, prv->w[i] * prv->h[i], &prv->rect[i]);
     }
 
-    /* PRV_RENDERING is a runtime only flag currently, but don't mess with it on undo! It gets
-     * special handling in #memfile_undosys_restart_unfinished_id_previews() then. */
-    if (!BLO_read_data_is_undo(reader)) {
-      prv->flag[i] &= ~PRV_RENDERING;
+    /* PRV_RENDERING is a runtime only flag currently, but for undo indicates that we need
+     * to restart prevew renders. See ED_preview_restart_work. */
+    if (BLO_read_data_is_undo(reader)) {
+      if ((prv->flag[i] & PRV_RENDERING) && !(prv->flag[i] & PRV_USER_EDITED)) {
+        prv->runtime->tag[i] |= PRV_TAG_RESTART_RENDERING;
+        BLO_read_data_set_need_preview_render_restart(reader);
+      }
     }
+    prv->flag[i] &= ~PRV_RENDERING;
   }
 }
+
+}  // namespace blender

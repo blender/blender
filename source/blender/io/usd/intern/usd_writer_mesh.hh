@@ -9,13 +9,15 @@
 
 #include <pxr/usd/usdGeom/mesh.h>
 
+namespace blender {
+
 struct SubsurfModifierData;
 
-namespace blender::bke {
+namespace bke {
 class AttributeIter;
-}  // namespace blender::bke
+}  // namespace bke
 
-namespace blender::io::usd {
+namespace io::usd {
 
 struct USDMeshData;
 
@@ -51,7 +53,8 @@ class USDGenericMeshWriter : public USDAbstractWriter {
   void write_generic_data(const Mesh *mesh,
                           const pxr::UsdGeomMesh &usd_mesh,
                           const bke::AttributeIter &attr);
-  void write_uv_data(const pxr::UsdGeomMesh &usd_mesh,
+  void write_uv_data(const Mesh *mesh,
+                     const pxr::UsdGeomMesh &usd_mesh,
                      const bke::AttributeIter &attr,
                      StringRef active_uvmap_name);
 };
@@ -80,4 +83,5 @@ class USDMeshWriter : public USDGenericMeshWriter {
   void add_shape_key_weights_sample(const Object *obj);
 };
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

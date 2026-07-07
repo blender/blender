@@ -255,7 +255,7 @@ void ShadowPunctual::end_sync(Light &light)
         light.type, object_to_world, near, far, face, light.shadow_set_membership);
   }
 
-  light.local.tilemaps_count = tilemaps_needed;
+  light.local().tilemaps_count = tilemaps_needed;
   light.tilemap_index = tilemap_pool.tilemaps_data.size();
   for (ShadowTileMap *tilemap : tilemaps_) {
     /* Add shadow tile-maps grouped by lights to the GPU buffer. */
@@ -377,9 +377,9 @@ void ShadowDirectional::cascade_tilemaps_distribution(Light &light, const Camera
   /* Offset in tiles between the first and the last tile-maps. */
   int2 offset_vector = int2(round(farthest_tilemap_center / tile_size));
 
-  light.sun.clipmap_base_offset_neg = int2(0); /* Unused. */
-  light.sun.clipmap_base_offset_pos = (offset_vector * (1 << 16)) /
-                                      max_ii(levels_range.size() - 1, 1);
+  light.sun().clipmap_base_offset_neg = int2(0); /* Unused. */
+  light.sun().clipmap_base_offset_pos = (offset_vector * (1 << 16)) /
+                                        max_ii(levels_range.size() - 1, 1);
 
   /* \note cascade_level_range starts the range at the unique LOD to apply to all tile-maps. */
   int level = levels_range.first();
@@ -388,7 +388,7 @@ void ShadowDirectional::cascade_tilemaps_distribution(Light &light, const Camera
 
     /* Equal spacing between cascades layers since we want uniform shadow density. */
     int2 level_offset = origin_offset +
-                        shadow_cascade_grid_offset(light.sun.clipmap_base_offset_pos, i);
+                        shadow_cascade_grid_offset(light.sun().clipmap_base_offset_pos, i);
     tilemap->sync_orthographic(
         object_mat, level_offset, level, SHADOW_PROJECTION_CASCADE, light.shadow_set_membership);
 
@@ -397,14 +397,14 @@ void ShadowDirectional::cascade_tilemaps_distribution(Light &light, const Camera
     tilemap->set_updated();
   }
 
-  light.sun.clipmap_origin = float2(origin_offset) * tile_size;
+  light.sun().clipmap_origin = float2(origin_offset) * tile_size;
 
   light.type = LIGHT_SUN_ORTHO;
 
   /* Not really clip-maps, but this is in order to make #light_tilemap_max_get() work and determine
    * the scaling. */
-  light.sun.clipmap_lod_min = levels_range.first();
-  light.sun.clipmap_lod_max = levels_range.last();
+  light.sun().clipmap_lod_min = levels_range.first();
+  light.sun().clipmap_lod_max = levels_range.last();
 }
 
 /************************************************************************
@@ -472,8 +472,8 @@ void ShadowDirectional::clipmap_tilemaps_distribution(Light &light, const Camera
   }
 
   /* Number of levels is limited to 32 by `clipmap_level_range()` for this reason. */
-  light.sun.clipmap_base_offset_pos = pos_offset;
-  light.sun.clipmap_base_offset_neg = neg_offset;
+  light.sun().clipmap_base_offset_pos = pos_offset;
+  light.sun().clipmap_base_offset_neg = neg_offset;
 
   float tile_size_max = ShadowDirectional::tile_size_get(levels_range.last());
   int2 level_offset_max = tilemaps_[levels_range.size() - 1]->grid_offset;
@@ -487,10 +487,10 @@ void ShadowDirectional::clipmap_tilemaps_distribution(Light &light, const Camera
   light.object_to_world.y.w = location.y;
   light.object_to_world.z.w = location.z;
   /* Used as origin for the clipmap_base_offset trick. */
-  light.sun.clipmap_origin = float2(level_offset_max * tile_size_max);
+  light.sun().clipmap_origin = float2(level_offset_max * tile_size_max);
 
-  light.sun.clipmap_lod_min = levels_range.first();
-  light.sun.clipmap_lod_max = levels_range.last();
+  light.sun().clipmap_lod_min = levels_range.first();
+  light.sun().clipmap_lod_max = levels_range.last();
 }
 
 void ShadowDirectional::release_excess_tilemaps(const Light &light, const Camera &camera)
@@ -587,7 +587,7 @@ void ShadowModule::init()
     ShadowModule::shadow_technique = ShadowTechnique::ATOMIC_RASTER;
   }
 
-  ::Scene &scene = *inst_.scene;
+  blender::Scene &scene = *inst_.scene;
 
   global_lod_bias_ = (1.0f - scene.eevee.shadow_resolution_scale) * SHADOW_TILEMAP_LOD;
 
@@ -1282,7 +1282,7 @@ void ShadowModule::set_view(View &view, int2 extent)
 
   input_depth_extent_ = extent;
 
-  GPUFrameBuffer *prev_fb = GPU_framebuffer_active_get();
+  gpu::FrameBuffer *prev_fb = GPU_framebuffer_active_get();
 
   dispatch_depth_scan_size_ = int3(math::divide_ceil(extent, int2(SHADOW_DEPTH_SCAN_GROUP_SIZE)),
                                    1);
@@ -1378,7 +1378,7 @@ void ShadowModule::set_view(View &view, int2 extent)
       }
 
       GPU_framebuffer_multi_viewports_set(render_fb_,
-                                          reinterpret_cast<int(*)[4]>(multi_viewports_.data()));
+                                          reinterpret_cast<int (*)[4]>(multi_viewports_.data()));
 
       inst_.pipelines.shadow.render(shadow_multi_view_);
 
@@ -1399,7 +1399,7 @@ void ShadowModule::set_view(View &view, int2 extent)
   }
 }
 
-void ShadowModule::debug_draw(View &view, GPUFrameBuffer *view_fb)
+void ShadowModule::debug_draw(View &view, gpu::FrameBuffer *view_fb)
 {
   if (!ELEM(inst_.debug_mode,
             eDebugMode::DEBUG_SHADOW_TILEMAPS,

@@ -8,9 +8,13 @@
 
 #pragma once
 
+#include "BKE_sound.hh"
+
+namespace blender {
+
 struct bSound;
 
-namespace blender::deg {
+namespace deg {
 
 struct Depsgraph;
 
@@ -24,9 +28,10 @@ class SoundBackup {
   void init_from_sound(bSound *sound);
   void restore_to_sound(bSound *sound);
 
-  void *cache;
-  void *waveform;
-  void *playback_handle;
+  AUD_Sound cache;
+  AUD_Sound playback_handle;
+  Vector<float> *waveform;
 };
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

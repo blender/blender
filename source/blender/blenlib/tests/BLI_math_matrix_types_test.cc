@@ -115,7 +115,7 @@ TEST(math_matrix_types, TypeConversion)
 TEST(math_matrix_types, PointerArrayConversion)
 {
   float array[2][2] = {{1.0f, 2.0f}, {3.0f, 4.0f}};
-  float(*ptr)[2] = array;
+  float (*ptr)[2] = array;
   float2x2 m2(ptr);
   EXPECT_EQ(m2[0][0], 1.0f);
   EXPECT_EQ(m2[0][1], 2.0f);

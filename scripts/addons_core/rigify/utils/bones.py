@@ -302,7 +302,7 @@ def put_bone(obj: ArmatureObject, bone_name: str, pos: Optional[Vector], *,
 
 def disable_bbones(obj: ArmatureObject, bone_names: Iterable[str]):
     """Disables B-Bone segments on the specified bones."""
-    assert(obj.mode != 'EDIT')
+    assert obj.mode != 'EDIT'
     for bone in bone_names:
         obj.data.bones[bone].bbone_segments = 1
 
@@ -665,7 +665,7 @@ def compute_chain_x_axis(obj: ArmatureObject, bone_names: list[str]):
     """
     eb = obj.data.edit_bones
 
-    assert(len(bone_names) > 1)
+    assert len(bone_names) > 1
     first_bone = eb[bone_names[0]]
     last_bone = eb[bone_names[-1]]
 

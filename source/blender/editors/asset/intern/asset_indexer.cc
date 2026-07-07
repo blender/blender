@@ -36,9 +36,11 @@
 
 #include <sstream>
 
+namespace blender {
+
 static CLG_LogRef LOG = {"asset.index"};
 
-namespace blender::ed::asset::index {
+namespace ed::asset::index {
 
 using namespace blender::asset_system;
 using namespace blender::io::serialize;
@@ -144,7 +146,7 @@ static void add_id_name(DictionaryValue &result, const short idcode, const Strin
 {
   char idcode_prefix[2];
   /* Similar to `BKE_libblock_alloc`. */
-  *((short *)idcode_prefix) = idcode;
+  *(reinterpret_cast<short *>(idcode_prefix)) = idcode;
   std::string name_with_idcode = std::string(idcode_prefix, sizeof(idcode_prefix)) + name;
 
   result.append_str(ATTRIBUTE_ENTRIES_NAME, name_with_idcode);
@@ -176,8 +178,8 @@ static void init_value_from_file_indexer_entry(DictionaryValue &result,
 
   if (!BLI_listbase_is_empty(&asset_data.tags)) {
     ArrayValue &tags = *result.append_array(ATTRIBUTE_ENTRIES_TAGS);
-    LISTBASE_FOREACH (AssetTag *, tag, &asset_data.tags) {
-      tags.append_str(tag->name);
+    for (AssetTag &tag : asset_data.tags) {
+      tags.append_str(tag.name);
     }
   }
 
@@ -266,7 +268,7 @@ static int init_indexer_entries_from_value(FileIndexerEntries &indexer_entries,
 
   int num_entries_read = 0;
   for (const std::shared_ptr<Value> &element : entries->elements()) {
-    FileIndexerEntry *entry = MEM_callocN<FileIndexerEntry>(__func__);
+    FileIndexerEntry *entry = MEM_new_zeroed<FileIndexerEntry>(__func__);
     init_indexer_entry_from_value(*entry, *element->as_dictionary_value());
 
     BLI_linklist_prepend(&indexer_entries.entries, entry);
@@ -727,7 +729,7 @@ static void *init_user_data(const char *root_directory, size_t root_directory_ma
 
 static void free_user_data(void *user_data)
 {
-  MEM_delete((AssetLibraryIndex *)user_data);
+  MEM_delete(static_cast<AssetLibraryIndex *>(user_data));
 }
 
 static void filelist_finished(void *user_data)
@@ -752,4 +754,5 @@ constexpr FileIndexerType asset_indexer()
 
 const FileIndexerType file_indexer_asset = asset_indexer();
 
-}  // namespace blender::ed::asset::index
+}  // namespace ed::asset::index
+}  // namespace blender

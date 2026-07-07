@@ -6,5 +6,4 @@
 #define NANOSVG_ALL_COLOR_KEYWORDS
 
 #include <stdio.h>
-#include "BLI_utildefines.h"
 #include "nanosvg.h"

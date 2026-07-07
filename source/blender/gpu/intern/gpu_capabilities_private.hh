@@ -22,6 +22,7 @@ namespace blender::gpu {
 struct GPUCapabilities {
   int max_texture_size = 0;
   int max_texture_3d_size = 0;
+  uint32_t max_buffer_texture_size = 0;
   int max_texture_layers = 0;
   int max_textures = 0;
   int max_textures_vert = 0;
@@ -39,6 +40,7 @@ struct GPUCapabilities {
   int max_varying_floats = 0;
   int max_shader_storage_buffer_bindings = 0;
   int max_compute_shader_storage_blocks = 0;
+  size_t max_uniform_buffer_size = 0;
   size_t max_storage_buffer_size = 0;
   size_t storage_buffer_alignment = 256;
   int extensions_len = 0;
@@ -54,7 +56,6 @@ struct GPUCapabilities {
   /* OpenGL related workarounds. */
   bool depth_blitting_workaround = false;
   bool use_main_context_workaround = false;
-  bool broken_amd_driver = false;
   bool use_hq_normals_workaround = false;
   bool stencil_clasify_buffer_workaround = false;
 

@@ -23,20 +23,21 @@ static EnumPropertyItem mode_items[] = {
     {GEO_NODE_CURVE_RESAMPLE_EVALUATED,
      "EVALUATED",
      0,
-     "Evaluated",
-     "Output the input spline's evaluated points, based on the resolution attribute for NURBS "
-     "and Bézier splines. Poly splines are unchanged"},
+     N_("Evaluated"),
+     N_("Output the input spline's evaluated points, based on the resolution attribute for NURBS "
+        "and Bézier splines. Poly splines are unchanged")},
     {GEO_NODE_CURVE_RESAMPLE_COUNT,
      "COUNT",
      0,
-     "Count",
-     "Sample the specified number of points along each spline"},
+     N_("Count"),
+     N_("Sample the specified number of points along each spline")},
     {GEO_NODE_CURVE_RESAMPLE_LENGTH,
      "LENGTH",
      0,
-     "Length",
-     "Calculate the number of samples by splitting each spline into segments with the specified "
-     "length"},
+     N_("Length"),
+     N_("Calculate the number of samples by splitting each spline into segments with the "
+        "specified "
+        "length")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -51,6 +52,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>("Selection").default_value(true).field_on_all().hide_value();
   b.add_input<decl::Menu>("Mode")
       .static_items(mode_items)
+      .optional_label()
       .description("How to specify the amount of samples");
   b.add_input<decl::Int>("Count")
       .default_value(10)
@@ -66,14 +68,14 @@ static void node_declare(NodeDeclarationBuilder &b)
       .usage_by_single_menu(GEO_NODE_CURVE_RESAMPLE_LENGTH);
 }
 
-static void node_layout_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout_ex(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "keep_last_segment", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "keep_last_segment", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryCurveResample *data = MEM_callocN<NodeGeometryCurveResample>(__func__);
+  NodeGeometryCurveResample *data = MEM_new<NodeGeometryCurveResample>(__func__);
   data->keep_last_segment = true;
   node->storage = data;
 }
@@ -102,7 +104,7 @@ static void node_geo_exec(GeoNodeExecParams params)
           bke::curves_copy_parameters(*src_curves_id, *dst_curves_id);
           geometry.replace_curves(dst_curves_id);
         }
-        if (GreasePencil *grease_pencil = geometry_set.get_grease_pencil_for_write()) {
+        if (GreasePencil *grease_pencil = geometry.get_grease_pencil_for_write()) {
           using namespace blender::bke::greasepencil;
           for (const int layer_index : grease_pencil->layers().index_range()) {
             Drawing *drawing = grease_pencil->get_eval_drawing(grease_pencil->layer(layer_index));
@@ -134,7 +136,7 @@ static void node_geo_exec(GeoNodeExecParams params)
           bke::curves_copy_parameters(*src_curves_id, *dst_curves_id);
           geometry.replace_curves(dst_curves_id);
         }
-        if (GreasePencil *grease_pencil = geometry_set.get_grease_pencil_for_write()) {
+        if (GreasePencil *grease_pencil = geometry.get_grease_pencil_for_write()) {
           using namespace blender::bke::greasepencil;
           for (const int layer_index : grease_pencil->layers().index_range()) {
             Drawing *drawing = grease_pencil->get_eval_drawing(grease_pencil->layer(layer_index));
@@ -164,7 +166,7 @@ static void node_geo_exec(GeoNodeExecParams params)
           bke::curves_copy_parameters(*src_curves_id, *dst_curves_id);
           geometry.replace_curves(dst_curves_id);
         }
-        if (GreasePencil *grease_pencil = geometry_set.get_grease_pencil_for_write()) {
+        if (GreasePencil *grease_pencil = geometry.get_grease_pencil_for_write()) {
           using namespace blender::bke::greasepencil;
           for (const int layer_index : grease_pencil->layers().index_range()) {
             Drawing *drawing = grease_pencil->get_eval_drawing(grease_pencil->layer(layer_index));
@@ -199,7 +201,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeResampleCurve", GEO_NODE_RESAMPLE_CURVE);
   ntype.ui_name = "Resample Curve";
@@ -208,11 +210,11 @@ static void node_register()
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.draw_buttons_ex = node_layout_ex;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGeometryCurveResample", node_free_standard_storage, node_copy_standard_storage);
   ntype.initfunc = node_init;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

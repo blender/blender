@@ -41,7 +41,7 @@ find_path(OPENSUBDIV_INCLUDE_DIR
     include
 )
 
-set(_opensubdiv_LIBRARIES)
+set(_opensubdiv_LIBRARIES "")
 foreach(COMPONENT ${_opensubdiv_FIND_COMPONENTS})
   string(TOUPPER ${COMPONENT} UPPERCOMPONENT)
 

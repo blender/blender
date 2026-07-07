@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/compositor_glare_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_glare_streaks_accumulate)
+
 #include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()

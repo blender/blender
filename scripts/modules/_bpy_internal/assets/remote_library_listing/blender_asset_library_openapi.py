@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2025 Blender Authors
+# SPDX-FileCopyrightText: 2026 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
@@ -8,14 +8,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
 class Contact:
     name: str
-    url: Optional[str] = None
-    email: Optional[str] = None
+    url: str | None = None
+    email: str | None = None
 
 
 @dataclass

@@ -4,7 +4,7 @@
 
 # CVE Check requirements
 #
-# - A working installation of intels cve-bin-tool [1] has to be available in
+# - A working installation of Intel's cve-bin-tool [1] has to be available in
 #   your path
 #
 # - Not strictly required, but highly recommended is obtaining a NVD key from
@@ -24,7 +24,7 @@
 # Because not all deps are downloaded (ie python packages) but can still have a
 # xxx_CPE declared loop over all variables and look for variables ending in CPE.
 
-set(SBOMCONTENTS)
+set(SBOMCONTENTS "")
 get_cmake_property(_variableNames VARIABLES)
 foreach(_variableName ${_variableNames})
   if(_variableName MATCHES "CPE$")
@@ -48,7 +48,7 @@ configure_file(${CMAKE_SOURCE_DIR}/cmake/cve_check.csv.in ${CMAKE_CURRENT_BINARY
 # reported CVE's.
 #
 # cve-bin-tool takes data from the nist nvd database which rate limits
-# unauthenticated requests to 1 requests per 6 seconds making the database
+# unauthenticated requests to 1 request per 6 seconds making the database
 # download take "quite a bit" of time.
 #
 # When adding -DCVE_CHECK_NVD_KEY=your_api_key_here to your cmake invocation

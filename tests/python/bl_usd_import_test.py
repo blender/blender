@@ -8,7 +8,7 @@ import pathlib
 import sys
 import tempfile
 import unittest
-from pxr import Ar, Gf, Sdf, Usd, UsdGeom, UsdShade
+from pxr import Ar, Gf, Sdf, Usd, UsdGeom, UsdShade, UsdUI
 
 import bpy
 
@@ -58,12 +58,8 @@ class USDImportTest(AbstractUSDTest):
     def round_vector(vector, digits=5):
         return [round(c, digits) + 0 for c in vector]
 
-    def test_import_operator(self):
-        """Test running the import operator on valid and invalid files."""
-
-        infile = str(self.testdir / "usd_mesh_polygon_types.usda")
-        res = bpy.ops.wm.usd_import(filepath=infile)
-        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
+    def test_import_notfound(self):
+        """Test running the import operator on invalid files."""
 
         infile = str(self.testdir / "this_file_doesn't_exist.usda")
         # RPT_ERROR Reports from operators generate `RuntimeError` python exceptions.
@@ -72,24 +68,6 @@ class USDImportTest(AbstractUSDTest):
             self.assertEqual({'CANCELLED'}, res, "Was somehow able to import a non-existent USD file!")
         except RuntimeError as e:
             self.assertTrue(e.args[0].startswith("Error: USD Import: unable to open stage to read"))
-
-    def test_import_prim_hierarchy(self):
-        """Test importing a simple object hierarchy from a USDA file."""
-
-        infile = str(self.testdir / "prim-hierarchy.usda")
-
-        res = bpy.ops.wm.usd_import(filepath=infile)
-        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
-
-        objects = bpy.context.scene.collection.objects
-        self.assertEqual(5, len(objects), f"Test scene {infile} should have five objects; found {len(objects)}")
-
-        # Test the hierarchy.
-        self.assertIsNone(objects['World'].parent, "/World should not be parented.")
-        self.assertEqual(objects['World'], objects['Plane'].parent, "Plane should be child of /World")
-        self.assertEqual(objects['World'], objects['Plane_001'].parent, "Plane_001 should be a child of /World")
-        self.assertEqual(objects['World'], objects['Empty'].parent, "Empty should be a child of /World")
-        self.assertEqual(objects['Empty'], objects['Plane_002'].parent, "Plane_002 should be a child of /World")
 
     def test_import_xform_and_mesh_merged_false(self):
         """Test importing a simple object hierarchy (xform and mesh) from a USDA file."""
@@ -128,9 +106,11 @@ class USDImportTest(AbstractUSDTest):
         # Test topology counts.
         self.assertIn("m_degenerate", objects, "Scene does not contain object m_degenerate")
         mesh = objects["m_degenerate"].data
-        self.assertEqual(len(mesh.polygons), 0)
-        self.assertEqual(len(mesh.edges), 0)
-        self.assertEqual(len(mesh.vertices), 6)
+        self.assertEqual(len(mesh.polygons), 2)
+        self.assertEqual(len(mesh.edges), 10)
+        self.assertEqual(len(mesh.vertices), 20)
+        self.assertEqual(len(mesh.polygons[0].vertices), 5)
+        self.assertEqual(len(mesh.polygons[1].vertices), 5)
 
         self.assertIn("m_triangles", objects, "Scene does not contain object m_triangles")
         mesh = objects["m_triangles"].data
@@ -185,63 +165,6 @@ class USDImportTest(AbstractUSDTest):
             for face in range(0, 3):
                 verts = mesh.polygons[face].vertices
                 self.assertEqual(len(verts), expected[face], f"Unexpected data for {frame=} {face=}")
-
-    def test_import_mesh_uv_maps(self):
-        """Test importing meshes with udim UVs and multiple UV sets."""
-
-        infile = str(self.testdir / "usd_mesh_udim.usda")
-        res = bpy.ops.wm.usd_import(filepath=infile)
-        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
-
-        objects = bpy.context.scene.collection.objects
-        if "preview" in bpy.data.objects:
-            bpy.data.objects.remove(bpy.data.objects["preview"])
-        self.assertEqual(1, len(objects), f"File {infile} should contain one object, found {len(objects)}")
-
-        mesh = bpy.data.objects["uvmap_plane"].data
-        self.assertEqual(len(mesh.uv_layers), 2,
-                         f"Object uvmap_plane should have two uv layers, found {len(mesh.uv_layers)}")
-
-        expected_layer_names = {"udim_map", "uvmap"}
-        imported_layer_names = set(mesh.uv_layers.keys())
-        self.assertEqual(
-            expected_layer_names,
-            imported_layer_names,
-            f"Expected layer names ({expected_layer_names}) not found on uvmap_plane.")
-
-        def get_coords(data):
-            coords = [x.uv for x in uvmap]
-            return coords
-
-        def uv_min_max(data):
-            coords = get_coords(data)
-            uv_min_x = min([uv[0] for uv in coords])
-            uv_max_x = max([uv[0] for uv in coords])
-            uv_min_y = min([uv[1] for uv in coords])
-            uv_max_y = max([uv[1] for uv in coords])
-            return uv_min_x, uv_max_x, uv_min_y, uv_max_y
-
-        # Quick tests for point range.
-        uvmap = mesh.uv_layers["uvmap"].data
-        self.assertEqual(len(uvmap), 128)
-        min_x, max_x, min_y, max_y = uv_min_max(uvmap)
-        self.assertGreaterEqual(min_x, 0.0)
-        self.assertGreaterEqual(min_y, 0.0)
-        self.assertLessEqual(max_x, 1.0)
-        self.assertLessEqual(max_y, 1.0)
-
-        uvmap = mesh.uv_layers["udim_map"].data
-        self.assertEqual(len(uvmap), 128)
-        min_x, max_x, min_y, max_y = uv_min_max(uvmap)
-        self.assertGreaterEqual(min_x, 0.0)
-        self.assertGreaterEqual(min_y, 0.0)
-        self.assertLessEqual(max_x, 2.0)
-        self.assertLessEqual(max_y, 1.0)
-
-        # Make sure at least some points are in a udim tile.
-        coords = get_coords(uvmap)
-        coords = list(filter(lambda x: x[0] > 1.0, coords))
-        self.assertGreater(len(coords), 16)
 
     def test_import_mesh_subd(self):
         """Test importing meshes with subdivision attributes."""
@@ -452,7 +375,7 @@ class USDImportTest(AbstractUSDTest):
 
         mat = bpy.data.materials["Channel"]
         self.assert_all_nodes_present(
-            mat, ["Principled BSDF", "Image Texture", "Separate Color", "UV Map", "Material Output"])
+            mat, ["Principled BSDF", "Image Texture", "Separate Color", "Math", "UV Map", "Material Output"])
 
         mat = bpy.data.materials["ChannelClip_LessThan"]
         self.assert_all_nodes_present(
@@ -498,6 +421,68 @@ class USDImportTest(AbstractUSDTest):
         for mat_index in range(0, 4):
             face_indices = [i for i, d in enumerate(material_index_attr.data) if d.value == mat_index]
             self.assertEqual(len(face_indices), 4, f"Incorrect number of faces with material index {mat_index}")
+
+    def test_import_material_opacity(self):
+        """Validate correct import of Displacement information for the UsdPreviewSurface"""
+
+        # Use the existing materials test file to create the USD file
+        # for import. It is validated as part of the bl_usd_export test.
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_transmission.blend"))
+        testfile = str(self.tempdir / "usd_materials_transmission.usda")
+        res = bpy.ops.wm.usd_export(filepath=str(testfile), export_materials=True)
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {testfile}")
+
+        # Reload the empty file and import back in
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+        res = bpy.ops.wm.usd_import(filepath=testfile)
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {testfile}")
+
+        # Most shader graph validation should occur through the Hydra render test suite. Here we
+        # will only check some high-level criteria for each expected node graph.
+
+        mat = bpy.data.materials["MAT_transmission01"]
+        self.assertAlmostEqual(
+            mat.node_tree.nodes["Principled BSDF"].inputs["Transmission Weight"].default_value, 1.0)
+
+        mat = bpy.data.materials["MAT_transmission02"]
+        self.assertAlmostEqual(
+            mat.node_tree.nodes["Principled BSDF"].inputs["Transmission Weight"].default_value, 0.842)
+
+        expected_nodes = [
+            "Principled BSDF", "Image Texture", "UV Map", "Vector Math",
+            "Separate Color", "Math", "Material Output"]
+
+        mat = bpy.data.materials["MAT_transmission03"]
+        self.assert_all_nodes_present(mat, expected_nodes)
+        vector_math = mat.node_tree.nodes["Vector Math"]
+        separate_color = mat.node_tree.nodes["Separate Color"]
+        self.assertEqual(self.round_vector(vector_math.inputs[1].default_value), [-1, 1, 1])
+        self.assertEqual(self.round_vector(vector_math.inputs[2].default_value), [1, 0, 0])
+        self.assertEqual([o.is_linked for o in separate_color.outputs], [True, False, False])
+
+        mat = bpy.data.materials["MAT_transmission04"]
+        self.assert_all_nodes_present(mat, expected_nodes)
+        vector_math = mat.node_tree.nodes["Vector Math"]
+        separate_color = mat.node_tree.nodes["Separate Color"]
+        self.assertEqual(self.round_vector(vector_math.inputs[1].default_value), [-1, 0, 0])
+        self.assertEqual(self.round_vector(vector_math.inputs[2].default_value), [1, 0, 0])
+        self.assertEqual([o.is_linked for o in separate_color.outputs], [True, False, False])
+
+        mat = bpy.data.materials["MAT_transmission05"]
+        self.assert_all_nodes_present(mat, expected_nodes)
+        vector_math = mat.node_tree.nodes["Vector Math"]
+        separate_color = mat.node_tree.nodes["Separate Color"]
+        self.assertEqual(self.round_vector(vector_math.inputs[1].default_value), [1, -1, 1])
+        self.assertEqual(self.round_vector(vector_math.inputs[2].default_value), [0, 1, 0])
+        self.assertEqual([o.is_linked for o in separate_color.outputs], [False, True, False])
+
+        mat = bpy.data.materials["MAT_transmission06"]
+        self.assert_all_nodes_present(mat, expected_nodes)
+        vector_math = mat.node_tree.nodes["Vector Math"]
+        separate_color = mat.node_tree.nodes["Separate Color"]
+        self.assertEqual(self.round_vector(vector_math.inputs[1].default_value), [1, 1, -1])
+        self.assertEqual(self.round_vector(vector_math.inputs[2].default_value), [0, 0, 1])
+        self.assertEqual([o.is_linked for o in separate_color.outputs], [False, False, True])
 
     def test_import_material_displacement(self):
         """Validate correct import of Displacement information for the UsdPreviewSurface"""
@@ -581,7 +566,7 @@ class USDImportTest(AbstractUSDTest):
 
         assert_attribute(mat, "displayColor", "Color", "Base Color")
         assert_attribute(mat, "f_vec", "Vector", "Normal")
-        assert_attribute(mat, "f_float", "Fac", "Roughness")
+        assert_attribute(mat, "ns:f_float", "Fac", "Roughness")
 
     def test_import_material_node_graph(self):
         """Verify we can follow connections through NodeGraph defs."""
@@ -593,6 +578,75 @@ class USDImportTest(AbstractUSDTest):
         # If NodeGraph traversal is missing or broken, the Image Texture and UV Map nodes will be missing
         mat = bpy.data.materials["Material"]
         self.assert_all_nodes_present(mat, ["Principled BSDF", "Image Texture", "UV Map", "Material Output"])
+
+    def check_mat_data(self, mat_name, expected_users, expected_color, ob_names):
+        if expected_users < 0:
+            self.assertEqual(bpy.data.materials.find(mat_name), -1)
+            return
+
+        mat = bpy.data.materials[mat_name]
+        self.assertEqual(mat.users, expected_users)
+        self.assertEqual(mat.diffuse_color[0:3], expected_color)
+        for ob_name in ob_names:
+            mat_slot = bpy.data.objects[ob_name].material_slots[0]
+            self.assertEqual(mat_slot.name, mat_name, f"Object {ob_name} has incorrect material")
+
+    def test_import_material_collisions(self):
+        """Validate that material name collisions are properly handled"""
+
+        # Variation with multiple objects referencing the same common materials
+        testfile = str(self.testdir / "usd_materials_collision.usda")
+
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+        bpy.data.materials.new(name="Material").diffuse_color = (1, 0, 1, 1)
+        res = bpy.ops.wm.usd_import(filepath=testfile, mtl_name_collision_mode='MAKE_UNIQUE')
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {testfile}")
+
+        self.assertEqual(len(bpy.data.materials), 3)
+        self.check_mat_data("Material", 0, (1, 0, 1), [])
+        self.check_mat_data("Material.001", 3, (1, 0, 0), ["o1", "o3", "o5"])
+        self.check_mat_data("Material_001", 3, (0, 0, 1), ["o2", "o4", "o6"])
+
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+        bpy.data.materials.new(name="Material").diffuse_color = (1, 0, 1, 1)
+        res = bpy.ops.wm.usd_import(filepath=testfile, mtl_name_collision_mode='REFERENCE_EXISTING')
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {testfile}")
+
+        self.assertEqual(len(bpy.data.materials), 2)
+        self.check_mat_data("Material", 3, (1, 0, 1), ["o1", "o3", "o5"])
+        self.check_mat_data("Material.001", -1, (), [])
+        self.check_mat_data("Material_001", 3, (0, 0, 1), ["o2", "o4", "o6"])
+
+    def test_import_material_collisions2(self):
+        """Validate that material name collisions are properly handled"""
+
+        # Variation with multiple materials with the same name but under different paths
+        testfile = str(self.testdir / "usd_materials_collision2.usda")
+
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+        res = bpy.ops.wm.usd_import(filepath=testfile, mtl_name_collision_mode='MAKE_UNIQUE')
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {testfile}")
+
+        # Due to out of order reading, we know that there should be 3 materials, but we don't know
+        # which material(name) ended up on each object. The viewport color of the material should
+        # match what we expect though
+        self.assertEqual(len(bpy.data.materials), 3)
+        o1_mat_name = bpy.data.objects["o1"].material_slots[0].name
+        o2_mat_name = bpy.data.objects["o2"].material_slots[0].name
+        o3_mat_name = bpy.data.objects["o3"].material_slots[0].name
+        self.check_mat_data(o1_mat_name, 1, (1, 0, 0), ["o1"])
+        self.check_mat_data(o2_mat_name, 1, (0, 1, 0), ["o2"])
+        self.check_mat_data(o3_mat_name, 1, (0, 0, 1), ["o3"])
+
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+        res = bpy.ops.wm.usd_import(filepath=testfile, mtl_name_collision_mode='REFERENCE_EXISTING')
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {testfile}")
+
+        # Due to out of order reading, we know that there should be 1 material, but we don't know
+        # which color ended up "winning" during the Import process
+        self.assertEqual(len(bpy.data.materials), 1)
+        expected_color = bpy.data.materials["MaterialA"].diffuse_color[0:3]
+        self.check_mat_data("MaterialA", 3, expected_color, ["o1", "o2", "o3"])
 
     def test_import_shader_varname_with_connection(self):
         """Test importing USD shader where uv primvar is a connection"""
@@ -717,11 +771,11 @@ class USDImportTest(AbstractUSDTest):
         # Validate some simple aspects of the animated objects which prove that they're animating.
         ob_xform = bpy.data.objects["cube_anim_xform"]
         ob_xform_child = bpy.data.objects["cube_anim_child_mesh"]
-        ob_shapekeys = bpy.data.objects["cube_anim_keys"]
+        ob_shapekeys = bpy.data.objects["cube_anim_keys.001"]
         ob_arm = bpy.data.objects["column_anim_armature"]
         ob_arm2_side_a = bpy.data.objects["side_a"]
         ob_arm2_side_b = bpy.data.objects["side_b"]
-        self.assertEqual(bpy.data.objects["Armature"].animation_data.action.name, "ArmatureAction_001")
+        self.assertEqual(bpy.data.objects["Armature.001"].animation_data.action.name, "ArmatureAction_001")
 
         bpy.context.scene.frame_set(1)
         self.assertEqual(len(ob_xform.constraints), 1)
@@ -798,317 +852,6 @@ class USDImportTest(AbstractUSDTest):
         self.assertTrue(vol_filesequence.dimensions != dim_filesequence)
         self.assertTrue(vol_mesh2vol.dimensions != dim_mesh2vol)
         self.assertTrue(vol_sim.dimensions != dim_sim)
-
-    def test_import_usd_blend_shapes(self):
-        """Test importing USD blend shapes with animated weights."""
-
-        infile = str(self.testdir / "usd_blend_shape_test.usda")
-        res = bpy.ops.wm.usd_import(filepath=infile)
-        self.assertEqual({'FINISHED'}, res)
-
-        obj = bpy.data.objects["Plane"]
-
-        obj.active_shape_key_index = 1
-
-        key = obj.active_shape_key
-        self.assertEqual(key.name, "Key_1", "Unexpected shape key name")
-
-        # Verify the number of shape key points.
-        self.assertEqual(len(key.data), 4, "Unexpected number of shape key point")
-
-        # Verify shape key point coordinates
-
-        # Reference point values.
-        refs = ((-2.51, -1.92, 0.20), (0.86, -1.46, -0.1),
-                (-1.33, 1.29, .84), (1.32, 2.20, -0.42))
-
-        for i in range(4):
-            co = key.data[i].co
-            ref = refs[i]
-            # Compare coordinates.
-            for j in range(3):
-                self.assertAlmostEqual(co[j], ref[j], 2)
-
-        # Verify the shape key values.
-        bpy.context.scene.frame_set(1)
-        self.assertAlmostEqual(key.value, .002, 1)
-        bpy.context.scene.frame_set(30)
-        self.assertAlmostEqual(key.value, .900, 3)
-        bpy.context.scene.frame_set(60)
-        self.assertAlmostEqual(key.value, .100, 3)
-
-    def test_import_usd_skel_joints(self):
-        """Test importing USD animated skeleton joints."""
-
-        infile = str(self.testdir / "arm.usda")
-        res = bpy.ops.wm.usd_import(filepath=infile)
-        self.assertEqual({'FINISHED'}, res)
-
-        # Verify armature was imported.
-        arm_obj = bpy.data.objects["Skel"]
-        self.assertEqual(arm_obj.type, "ARMATURE", "'Skel' object is not an armature")
-
-        arm = arm_obj.data
-        bones = arm.bones
-
-        # Verify bone parenting.
-        self.assertIsNone(bones['Shoulder'].parent, "Shoulder bone should not be parented")
-        self.assertEqual(bones['Shoulder'], bones['Elbow'].parent, "Elbow bone should be child of Shoulder bone")
-        self.assertEqual(bones['Elbow'], bones['Hand'].parent, "Hand bone should be child of Elbow bone")
-
-        # Verify armature modifier was created on the mesh.
-        mesh_obj = bpy.data.objects['Arm']
-        # Get all the armature modifiers on the mesh.
-        arm_mods = [m for m in mesh_obj.modifiers if m.type == "ARMATURE"]
-        self.assertEqual(len(arm_mods), 1, "Didn't get expected armatrue modifier")
-        self.assertEqual(arm_mods[0].object, arm_obj, "Armature modifier does not reference the imported armature")
-
-        # Verify expected deform groups.
-        # There are 4 points in each group.
-        for i in range(4):
-            self.assertAlmostEqual(mesh_obj.vertex_groups['Hand'].weight(
-                i), 1.0, 2, "Unexpected weight for Hand deform vert")
-            self.assertAlmostEqual(mesh_obj.vertex_groups['Shoulder'].weight(
-                4 + i), 1.0, 2, "Unexpected weight for Shoulder deform vert")
-            self.assertAlmostEqual(mesh_obj.vertex_groups['Elbow'].weight(
-                8 + i), 1.0, 2, "Unexpected weight for Elbow deform vert")
-
-        action = bpy.data.actions['Anim1']
-
-        # Verify the Elbow joint rotation animation.
-        curve_path = 'pose.bones["Elbow"].rotation_quaternion'
-
-        # Quat W
-        f = action.fcurves.find(curve_path, index=0)
-        self.assertIsNotNone(f, "Couldn't find Elbow rotation quaternion W curve")
-        self.assertAlmostEqual(f.evaluate(0), 1.0, 2, "Unexpected value for rotation quaternion W curve at frame 0")
-        self.assertAlmostEqual(f.evaluate(10), 0.707, 2, "Unexpected value for rotation quaternion W curve at frame 10")
-
-        # Quat X
-        f = action.fcurves.find(curve_path, index=1)
-        self.assertIsNotNone(f, "Couldn't find Elbow rotation quaternion X curve")
-        self.assertAlmostEqual(f.evaluate(0), 0.0, 2, "Unexpected value for rotation quaternion X curve at frame 0")
-        self.assertAlmostEqual(f.evaluate(10), 0.707, 2, "Unexpected value for rotation quaternion X curve at frame 10")
-
-        # Quat Y
-        f = action.fcurves.find(curve_path, index=2)
-        self.assertIsNotNone(f, "Couldn't find Elbow rotation quaternion Y curve")
-        self.assertAlmostEqual(f.evaluate(0), 0.0, 2, "Unexpected value for rotation quaternion Y curve at frame 0")
-        self.assertAlmostEqual(f.evaluate(10), 0.0, 2, "Unexpected value for rotation quaternion Y curve at frame 10")
-
-        # Quat Z
-        f = action.fcurves.find(curve_path, index=3)
-        self.assertIsNotNone(f, "Couldn't find Elbow rotation quaternion Z curve")
-        self.assertAlmostEqual(f.evaluate(0), 0.0, 2, "Unexpected value for rotation quaternion Z curve at frame 0")
-        self.assertAlmostEqual(f.evaluate(10), 0.0, 2, "Unexpected value for rotation quaternion Z curve at frame 10")
-
-    def check_curve(self, blender_curve, usd_curve):
-        curve_type_map = {"linear": 1, "cubic-bezier": 2, "cubic-bspline": 3}
-        cyclic_map = {"nonperiodic": False, "periodic": True}
-
-        # Check correct spline count.
-        blender_spline_count = len(blender_curve.attributes["curve_type"].data)
-        usd_spline_count = len(usd_curve.GetCurveVertexCountsAttr().Get())
-        self.assertEqual(blender_spline_count, usd_spline_count)
-
-        # Check correct type of curve. All splines should have the same type and periodicity.
-        usd_curve_type = usd_curve.GetTypeAttr().Get()
-        usd_curve_type_basis = usd_curve_type
-        if usd_curve_type != "linear":
-            usd_curve_type_basis = usd_curve_type + "-" + usd_curve.GetBasisAttr().Get()
-        usd_cyclic = usd_curve.GetWrapAttr().Get()
-        expected_curve_type = curve_type_map[usd_curve_type_basis]
-        expected_cyclic = cyclic_map[usd_cyclic]
-
-        for i in range(0, blender_spline_count):
-            blender_curve_type = blender_curve.attributes["curve_type"].data[i].value
-            blender_cyclic = False
-            if "cyclic" in blender_curve.attributes:
-                blender_cyclic = blender_curve.attributes["cyclic"].data[i].value
-
-            self.assertEqual(blender_curve_type, expected_curve_type)
-            self.assertEqual(blender_cyclic, expected_cyclic)
-
-        # Check position data.
-        usd_positions = usd_curve.GetPointsAttr().Get()
-        blender_positions = blender_curve.attributes["position"].data
-
-        point_count = 0
-        if usd_curve_type_basis == "linear":
-            point_count = len(usd_positions)
-            self.assertEqual(len(blender_positions), point_count)
-        elif usd_curve_type_basis == "cubic-bezier":
-            control_point_count = 0
-            usd_vert_counts = usd_curve.GetCurveVertexCountsAttr().Get()
-            for i in range(0, usd_spline_count):
-                if usd_cyclic == "nonperiodic":
-                    control_point_count += (int(usd_vert_counts[i] / 3) + 1)
-                else:
-                    control_point_count += (int(usd_vert_counts[i] / 3))
-
-            point_count = control_point_count
-            self.assertEqual(len(blender_positions), point_count)
-        elif usd_curve_type_basis == "cubic-bspline":
-            point_count = len(usd_positions)
-            self.assertEqual(len(blender_positions), point_count)
-
-        # Check radius data. (note: the currently available bsplines have no radii)
-        if usd_curve_type_basis == "cubic-bspline":
-            return
-
-        usd_width_interpolation = usd_curve.GetWidthsInterpolation()
-        usd_radius = [w / 2 for w in usd_curve.GetWidthsAttr().Get()]
-        blender_radius = [r.value for r in blender_curve.attributes["radius"].data]
-        if usd_curve_type_basis == "linear":
-            if usd_width_interpolation == "constant":
-                usd_radius = usd_radius * point_count
-
-            for i in range(0, len(blender_radius)):
-                self.assertAlmostEqual(blender_radius[i], usd_radius[i], 2)
-
-        elif usd_curve_type_basis == "cubic-bezier":
-            if usd_width_interpolation == "constant":
-                usd_radius = usd_radius * point_count
-
-                for i in range(0, len(blender_radius)):
-                    self.assertAlmostEqual(blender_radius[i], usd_radius[i], 2)
-            elif usd_width_interpolation == "varying":
-                # Do a quick min/max sanity check instead of reimplementing width interpolation
-                usd_min = min(usd_radius)
-                usd_max = max(usd_radius)
-                blender_min = min(blender_radius)
-                blender_max = max(blender_radius)
-
-                self.assertAlmostEqual(blender_min, usd_min, 2)
-                self.assertAlmostEqual(blender_max, usd_max, 2)
-            elif usd_width_interpolation == "vertex":
-                # Do a quick check to ensure radius has been set at all
-                self.assertEqual(True, all([r > 0 and r < 1 for r in blender_radius]))
-
-    def test_import_curves_linear(self):
-        """Test importing linear curve variations."""
-
-        infile = str(self.testdir / "usd_curve_linear_all.usda")
-        res = bpy.ops.wm.usd_import(filepath=infile)
-        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
-
-        curves = [o for o in bpy.data.objects if o.type == 'CURVES']
-        self.assertEqual(8, len(curves), f"Test scene {infile} should have 8 curves; found {len(curves)}")
-
-        stage = Usd.Stage.Open(infile)
-
-        blender_curve = bpy.data.objects["linear_nonperiodic_single_constant"].data
-        usd_prim = stage.GetPrimAtPath("/root/linear_nonperiodic/single/linear_nonperiodic_single_constant")
-        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
-
-        blender_curve = bpy.data.objects["linear_nonperiodic_single_varying"].data
-        usd_prim = stage.GetPrimAtPath("/root/linear_nonperiodic/single/linear_nonperiodic_single_varying")
-        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
-
-        blender_curve = bpy.data.objects["linear_nonperiodic_multiple_constant"].data
-        usd_prim = stage.GetPrimAtPath("/root/linear_nonperiodic/multiple/linear_nonperiodic_multiple_constant")
-        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
-
-        blender_curve = bpy.data.objects["linear_nonperiodic_multiple_varying"].data
-        usd_prim = stage.GetPrimAtPath("/root/linear_nonperiodic/multiple/linear_nonperiodic_multiple_varying")
-        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
-
-        blender_curve = bpy.data.objects["linear_periodic_single_constant"].data
-        usd_prim = stage.GetPrimAtPath("/root/linear_periodic/single/linear_periodic_single_constant")
-        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
-
-        blender_curve = bpy.data.objects["linear_periodic_single_varying"].data
-        usd_prim = stage.GetPrimAtPath("/root/linear_periodic/single/linear_periodic_single_varying")
-        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
-
-        blender_curve = bpy.data.objects["linear_periodic_multiple_constant"].data
-        usd_prim = stage.GetPrimAtPath("/root/linear_periodic/multiple/linear_periodic_multiple_constant")
-        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
-
-        blender_curve = bpy.data.objects["linear_periodic_multiple_varying"].data
-        usd_prim = stage.GetPrimAtPath("/root/linear_periodic/multiple/linear_periodic_multiple_varying")
-        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
-
-    def test_import_curves_bezier(self):
-        """Test importing bezier curve variations."""
-
-        infile = str(self.testdir / "usd_curve_bezier_all.usda")
-        res = bpy.ops.wm.usd_import(filepath=infile)
-        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
-
-        curves = [o for o in bpy.data.objects if o.type == 'CURVES']
-        self.assertEqual(12, len(curves), f"Test scene {infile} should have 12 curves; found {len(curves)}")
-
-        stage = Usd.Stage.Open(infile)
-
-        blender_curve = bpy.data.objects["bezier_nonperiodic_single_constant"].data
-        usd_prim = stage.GetPrimAtPath("/root/bezier_nonperiodic/single/bezier_nonperiodic_single_constant")
-        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
-
-        blender_curve = bpy.data.objects["bezier_nonperiodic_single_varying"].data
-        usd_prim = stage.GetPrimAtPath("/root/bezier_nonperiodic/single/bezier_nonperiodic_single_varying")
-        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
-
-        blender_curve = bpy.data.objects["bezier_nonperiodic_single_vertex"].data
-        usd_prim = stage.GetPrimAtPath("/root/bezier_nonperiodic/single/bezier_nonperiodic_single_vertex")
-        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
-
-        blender_curve = bpy.data.objects["bezier_nonperiodic_multiple_constant"].data
-        usd_prim = stage.GetPrimAtPath("/root/bezier_nonperiodic/multiple/bezier_nonperiodic_multiple_constant")
-        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
-
-        blender_curve = bpy.data.objects["bezier_nonperiodic_multiple_varying"].data
-        usd_prim = stage.GetPrimAtPath("/root/bezier_nonperiodic/multiple/bezier_nonperiodic_multiple_varying")
-        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
-
-        blender_curve = bpy.data.objects["bezier_nonperiodic_multiple_vertex"].data
-        usd_prim = stage.GetPrimAtPath("/root/bezier_nonperiodic/multiple/bezier_nonperiodic_multiple_vertex")
-        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
-
-        blender_curve = bpy.data.objects["bezier_periodic_single_constant"].data
-        usd_prim = stage.GetPrimAtPath("/root/bezier_periodic/single/bezier_periodic_single_constant")
-        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
-
-        blender_curve = bpy.data.objects["bezier_periodic_single_varying"].data
-        usd_prim = stage.GetPrimAtPath("/root/bezier_periodic/single/bezier_periodic_single_varying")
-        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
-
-        blender_curve = bpy.data.objects["bezier_periodic_single_vertex"].data
-        usd_prim = stage.GetPrimAtPath("/root/bezier_periodic/single/bezier_periodic_single_vertex")
-        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
-
-        blender_curve = bpy.data.objects["bezier_periodic_multiple_constant"].data
-        usd_prim = stage.GetPrimAtPath("/root/bezier_periodic/multiple/bezier_periodic_multiple_constant")
-        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
-
-        blender_curve = bpy.data.objects["bezier_periodic_multiple_varying"].data
-        usd_prim = stage.GetPrimAtPath("/root/bezier_periodic/multiple/bezier_periodic_multiple_varying")
-        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
-
-        blender_curve = bpy.data.objects["bezier_periodic_multiple_vertex"].data
-        usd_prim = stage.GetPrimAtPath("/root/bezier_periodic/multiple/bezier_periodic_multiple_vertex")
-        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
-
-    def test_import_curves_bspline(self):
-        """Test importing bspline curve variations."""
-
-        # Use the existing hair test file to create the USD file
-        # for import. It is validated as part of the bl_usd_export test.
-        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_particle_hair.blend"))
-        testfile = str(self.tempdir / "usd_particle_hair.usda")
-        res = bpy.ops.wm.usd_export(filepath=testfile, export_hair=True, evaluation_mode="RENDER")
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {testfile}")
-
-        # Reload the empty file and import back in
-        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
-        res = bpy.ops.wm.usd_import(filepath=testfile)
-        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {testfile}")
-
-        stage = Usd.Stage.Open(testfile)
-
-        blender_curve = bpy.data.objects["ParticleSystem"].data
-        usd_prim = stage.GetPrimAtPath("/root/Sphere/ParticleSystem")
-        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
 
     def test_import_point_instancer(self):
         """Test importing a typical point instancer setup."""
@@ -1622,6 +1365,50 @@ class USDImportTest(AbstractUSDTest):
                     usd_test_data,
                     f"Frame {frame}: {name} test attributes do not match")
 
+    def test_import_point_ids(self):
+        """Validate we can import animated PointCloud IDs"""
+
+        # Use the existing IDs test file to create the USD file for import.
+        # It is validated as part of the bl_usd_export test.
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_point_ids.blend"))
+        for frame in range(1, 7):
+            bpy.context.scene.frame_set(frame)
+        bpy.context.scene.frame_set(1)
+
+        testfile = str(self.tempdir / "usd_point_ids.usda")
+        res = bpy.ops.wm.usd_export(filepath=testfile, export_animation=True, evaluation_mode="RENDER")
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {testfile}")
+
+        # Reload the empty file and import back in
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+        res = bpy.ops.wm.usd_import(filepath=testfile)
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {testfile}")
+
+        stage = Usd.Stage.Open(testfile)
+
+        #
+        # Validate Point Cloud data
+        #
+        blender_pointcloud = bpy.data.objects["PointCloud"]
+        usd_points = UsdGeom.Points(stage.GetPrimAtPath("/root/pointcloud1/PointCloud"))
+
+        # A MeshSequenceCache modifier should be present
+        self.assertTrue(len(blender_pointcloud.modifiers) == 1 and blender_pointcloud.modifiers[0].type ==
+                        'MESH_SEQUENCE_CACHE', f"{blender_pointcloud.name} has incorrect modifiers")
+
+        # Compare Blender and USD data against each other for every frame
+        for frame in range(1, 7):
+            bpy.context.scene.frame_set(frame)
+            depsgraph = bpy.context.evaluated_depsgraph_get()
+            blender_pointcloud = blender_pointcloud.evaluated_get(depsgraph)
+
+            # Check IDs
+            blender_id_data = [d.value for d in blender_pointcloud.data.attributes["id"].data]
+            usd_id_data = [d for d in usd_points.GetIdsAttr().Get(frame)]
+
+            name = usd_points.GetPath().GetParentPath().name
+            self.assertEqual(blender_id_data, usd_id_data, f"Frame {frame}: {name} IDs do not match")
+
     def test_import_shapes(self):
         """Test importing USD Shape prims with time-varying attributes."""
 
@@ -1632,16 +1419,16 @@ class USDImportTest(AbstractUSDTest):
         # Ensure we find the expected number of mesh objects
         blender_objects = [ob for ob in bpy.data.objects if ob.type == 'MESH']
         self.assertEqual(
-            9,
+            10,
             len(blender_objects),
-            f"Test scene {infile} should have 9 mesh objects; found {len(blender_objects)}")
+            f"Test scene {infile} should have 10 mesh objects; found {len(blender_objects)}")
 
         # A MeshSequenceCache modifier should be present on every imported object
         for ob in blender_objects:
             self.assertTrue(len(ob.modifiers) == 1 and ob.modifiers[0].type ==
                             'MESH_SEQUENCE_CACHE', f"{ob.name} has incorrect modifiers")
 
-        # Check that the shape with the color attribute properly updates and has correct values
+        # Check that the shapes with the color attributes properly update and have correct values
         def get_first_color_value(blender_object, frame):
             bpy.context.scene.frame_set(frame)
             depsgraph = bpy.context.evaluated_depsgraph_get()
@@ -1650,6 +1437,10 @@ class USDImportTest(AbstractUSDTest):
         self.assertEqual(self.round_vector(blender_color), [0.8, 1.0, 0.0, 1.0])
         blender_color = get_first_color_value(bpy.data.objects["capsule_color"], 2)
         self.assertEqual(self.round_vector(blender_color), [0.1, 0.8, 0.0, 1.0])
+        blender_color = get_first_color_value(bpy.data.objects["cube_color"], 1)
+        self.assertEqual(self.round_vector(blender_color), [1.0, 0.0, 0.0, 1.0])
+        blender_color = get_first_color_value(bpy.data.objects["cube_color"], 2)
+        self.assertEqual(self.round_vector(blender_color), [0.0, 1.0, 0.0, 1.0])
 
     def test_import_collection_creation(self):
         """Test that the 'create_collection' option functions correctly."""
@@ -1669,8 +1460,8 @@ class USDImportTest(AbstractUSDTest):
         self.assertEqual(len(bpy.data.collections), 2)
         self.assertEqual(bpy.data.collections["Usd Shapes Test"].users, 1)
         self.assertEqual(bpy.data.collections["Usd Shapes Test.001"].users, 1)
-        self.assertEqual(len(bpy.data.collections["Usd Shapes Test"].all_objects), 10)
-        self.assertEqual(len(bpy.data.collections["Usd Shapes Test.001"].all_objects), 10)
+        self.assertEqual(len(bpy.data.collections["Usd Shapes Test"].all_objects), 11)
+        self.assertEqual(len(bpy.data.collections["Usd Shapes Test.001"].all_objects), 11)
 
     def test_import_id_props(self):
         """Test importing object and data IDProperties."""
@@ -1854,12 +1645,12 @@ class USDImportTest(AbstractUSDTest):
         bpy.utils.unregister_class(GetPrimMapUsdImportHook)
 
         expected_prim_map = {
-            Sdf.Path('/Cube'): [bpy.data.objects["Cube.002"], bpy.data.meshes["Cube.002"]],
+            Sdf.Path('/Cube'): [bpy.data.objects["Cube"], bpy.data.meshes["Cube"]],
             Sdf.Path('/XformThenCube'): [bpy.data.objects["XformThenCube"]],
-            Sdf.Path('/XformThenCube/Cube'): [bpy.data.objects["Cube"], bpy.data.meshes["Cube"]],
+            Sdf.Path('/XformThenCube/Cube'): [bpy.data.objects["Cube.001"], bpy.data.meshes["Cube.001"]],
             Sdf.Path('/XformThenXformCube'): [bpy.data.objects["XformThenXformCube"]],
             Sdf.Path('/XformThenXformCube/XformIntermediate'): [bpy.data.objects["XformIntermediate"]],
-            Sdf.Path('/XformThenXformCube/XformIntermediate/Cube'): [bpy.data.objects["Cube.001"], bpy.data.meshes["Cube.001"]],
+            Sdf.Path('/XformThenXformCube/XformIntermediate/Cube'): [bpy.data.objects["Cube.002"], bpy.data.meshes["Cube.002"]],
             Sdf.Path('/Material'): [bpy.data.materials["Material"]],
         }
 
@@ -1872,12 +1663,12 @@ class USDImportTest(AbstractUSDTest):
         bpy.utils.unregister_class(GetPrimMapUsdImportHook)
 
         expected_prim_map = {
-            Sdf.Path('/Cube'): [bpy.data.objects["Cube.002"], bpy.data.meshes["Cube.002"]],
-            Sdf.Path('/XformThenCube'): [bpy.data.objects["Cube"]],
-            Sdf.Path('/XformThenCube/Cube'): [bpy.data.meshes["Cube"]],
+            Sdf.Path('/Cube'): [bpy.data.objects["Cube"], bpy.data.meshes["Cube"]],
+            Sdf.Path('/XformThenCube'): [bpy.data.objects["Cube.001"]],
+            Sdf.Path('/XformThenCube/Cube'): [bpy.data.meshes["Cube.001"]],
             Sdf.Path('/XformThenXformCube'): [bpy.data.objects["XformThenXformCube"]],
-            Sdf.Path('/XformThenXformCube/XformIntermediate'): [bpy.data.objects["Cube.001"]],
-            Sdf.Path('/XformThenXformCube/XformIntermediate/Cube'): [bpy.data.meshes["Cube.001"]],
+            Sdf.Path('/XformThenXformCube/XformIntermediate'): [bpy.data.objects["Cube.002"]],
+            Sdf.Path('/XformThenXformCube/XformIntermediate/Cube'): [bpy.data.meshes["Cube.002"]],
             Sdf.Path('/Material'): [bpy.data.materials["Material"]],
         }
 
@@ -1886,7 +1677,7 @@ class USDImportTest(AbstractUSDTest):
     def test_import_unit_scale(self):
         """Test importing a USD with 0.01 meters per unit."""
 
-        infile = str(self.testdir / "usd_curve_bezier_all.usda")
+        infile = str(self.testdir / "usd_shapes_test.usda")
         res = bpy.ops.wm.usd_import(filepath=infile, apply_unit_conversion_scale=True)
         self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
 
@@ -1897,7 +1688,7 @@ class USDImportTest(AbstractUSDTest):
         # Reimport with unit conversion scale off.
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
 
-        infile = str(self.testdir / "usd_curve_bezier_all.usda")
+        infile = str(self.testdir / "usd_shapes_test.usda")
         res = bpy.ops.wm.usd_import(filepath=infile, apply_unit_conversion_scale=False)
         self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
 
@@ -1937,7 +1728,6 @@ class USDImportTest(AbstractUSDTest):
 
     def test_material_import_usd_hook(self):
         """Test importing color from an mtlx shader."""
-
         bpy.utils.register_class(ImportMtlxColorUSDHook)
         bpy.ops.wm.usd_import(filepath=str(self.testdir / "usd_simple_mtlx.usda"))
         bpy.utils.unregister_class(ImportMtlxColorUSDHook)
@@ -1949,7 +1739,6 @@ class USDImportTest(AbstractUSDTest):
         # Check that a Principled BSDF shader with the expected Base Color input.
         # was created.
         mtl = bpy.data.materials["Material"]
-        self.assertTrue(mtl.use_nodes)
         bsdf = mtl.node_tree.nodes.get("Principled BSDF")
         self.assertIsNotNone(bsdf)
         base_color_input = bsdf.inputs['Base Color']
@@ -2002,6 +1791,62 @@ class USDImportTest(AbstractUSDTest):
 
         bpy.utils.unregister_class(ImportMtlxTextureUSDHook)
 
+    def test_import_accessibility(self):
+        """Test importing accessibility metadata as custom properties."""
+
+        # Create a simple USD file with accessibility metadata
+        usd_path = self.tempdir / "accessibility_test.usda"
+        stage = Usd.Stage.CreateNew(str(usd_path))
+
+        # Create a cube with accessibility metadata
+        prim = stage.DefinePrim("/root", "Xform")
+        stage.SetDefaultPrim(prim)
+
+        # Add default namespace
+        default_api = UsdUI.AccessibilityAPI.Apply(prim, "default")
+        label_attr = default_api.CreateLabelAttr()
+        label_attr.Set("Test Prim")
+        description_attr = default_api.CreateDescriptionAttr()
+        description_attr.Set("A test prim for import")
+        priority_attr = default_api.CreatePriorityAttr()
+        priority_attr.Set(UsdUI.Tokens.high)
+
+        # Add custom namespace
+        custom_api = UsdUI.AccessibilityAPI.Apply(prim, "alternate")
+        alt_label_attr = custom_api.CreateLabelAttr()
+        alt_label_attr.Set("Alternate Label")
+        alt_description_attr = custom_api.CreateDescriptionAttr()
+        alt_description_attr.Set("Alternate description")
+
+        stage.Save()
+
+        # Import the USD file
+        res = bpy.ops.wm.usd_import(filepath=str(usd_path))
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {usd_path}")
+
+        # Verify the imported object has the accessibility custom properties
+        xform = bpy.data.objects.get("root")
+        self.assertIsNotNone(xform, "root prim object should be imported")
+
+        label_key = label_attr.GetName()
+        description_key = description_attr.GetName()
+        priority_key = priority_attr.GetName()
+
+        self.assertIn(label_key, xform, "Default label should be imported")
+        self.assertEqual(xform[label_key], label_attr.Get())
+        self.assertIn(description_key, xform, "Default description should be imported")
+        self.assertEqual(xform[description_key], description_attr.Get())
+        self.assertIn(priority_key, xform, "Default priority should be imported")
+        self.assertEqual(xform[priority_key], priority_attr.Get())
+
+        alt_label_key = alt_label_attr.GetName()
+        alt_description_key = alt_description_attr.GetName()
+
+        self.assertIn(alt_label_key, xform, "Alternate label should be imported")
+        self.assertEqual(xform[alt_label_key], alt_label_attr.Get())
+        self.assertIn(alt_description_key, xform, "Alternate description should be imported")
+        self.assertEqual(xform[alt_description_key], alt_description_attr.Get())
+
 
 class USDImportComparisonTest(unittest.TestCase):
     @classmethod
@@ -2025,14 +1870,14 @@ class USDImportComparisonTest(unittest.TestCase):
         for input_file in input_files:
             input_file_path = pathlib.Path(input_file)
 
-            io_report.Report.side_to_print_single_line = 5
-            io_report.Report.side_to_print_multi_line = 3
+            # Print out more data to allow more attribute values to be validated (esp. Curves attributes)
+            io_report.Report.side_to_print_single_line = 10
+            io_report.Report.side_to_print_multi_line = 10
 
             CompareTestSupportHook.reset_config()
+
             if input_file_path.name in ("nurbs-gen-single.usda", "nurbs-gen-multiple.usda", "nurbs-custom.usda"):
                 CompareTestSupportHook.do_curve_rename = True
-                io_report.Report.side_to_print_single_line = 10
-                io_report.Report.side_to_print_multi_line = 10
 
             with self.subTest(input_file_path.stem):
                 bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
@@ -2112,11 +1957,12 @@ class ImportMtlxColorUSDHook(bpy.types.USDHook):
 
         # Add a Principled BSDF shader and set its 'Base Color' input to
         # the color we read from mtlx.
-        bl_material.use_nodes = True
         node_tree = bl_material.node_tree
+        assert node_tree
         nodes = node_tree.nodes
-        bsdf = nodes.get("Principled BSDF")
-        assert bsdf
+        bsdf = nodes.new("ShaderNodeBsdfPrincipled")
+        output = nodes.new("ShaderNodeOutputMaterial")
+        node_tree.links.new(bsdf.outputs["BSDF"], output.inputs["Surface"])
         color4 = [color[0], color[1], color[2], 1]
         ImportMtlxColorUSDHook.imported_color = color4
         bsdf.inputs['Base Color'].default_value = color4

@@ -29,25 +29,25 @@ namespace blender::seq {
 
 static void sound_equalizermodifier_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
-  PointerRNA *ptr = UI_panel_custom_data_get(panel);
+  ui::Layout &layout = *panel->layout;
+  PointerRNA *ptr = ui::panel_custom_data_get(panel);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  uiLayout &flow = layout->grid_flow(true, 0, true, false, false);
+  ui::Layout &flow = layout.grid_flow(true, 0, true, false, false);
   RNA_BEGIN (ptr, sound_eq, "graphics") {
     PointerRNA curve_mapping = RNA_pointer_get(&sound_eq, "curve_mapping");
     const float clip_min_x = RNA_float_get(&curve_mapping, "clip_min_x");
     const float clip_max_x = RNA_float_get(&curve_mapping, "clip_max_x");
 
-    uiLayout &col = flow.column(false);
-    uiLayout &split = col.split(0.4f, false);
+    ui::Layout &col = flow.column(false);
+    ui::Layout &split = col.split(0.4f, false);
     split.label(fmt::format("{:.2f}", clip_min_x), ICON_NONE);
     split.label("Hz", ICON_NONE);
     split.alignment_set(ui::LayoutAlign::Right);
     split.label(fmt::format("{:.2f}", clip_max_x), ICON_NONE);
-    uiTemplateCurveMapping(&col, &sound_eq, "curve_mapping", 0, false, true, true, false);
-    uiLayout &row = col.row(false);
+    template_curve_mapping(&col, &sound_eq, "curve_mapping", 0, false, true, true, false, false);
+    ui::Layout &row = col.row(false);
     row.alignment_set(ui::LayoutAlign::Center);
     row.label("dB", ICON_NONE);
   }
@@ -64,9 +64,9 @@ static void sound_equalizermodifier_write(BlendWriter *writer, const StripModifi
 {
   const SoundEqualizerModifierData *semd = reinterpret_cast<const SoundEqualizerModifierData *>(
       smd);
-  LISTBASE_FOREACH (EQCurveMappingData *, eqcmd, &semd->graphics) {
-    BLO_write_struct_by_name(writer, "EQCurveMappingData", eqcmd);
-    BKE_curvemapping_blend_write(writer, &eqcmd->curve_mapping);
+  for (EQCurveMappingData &eqcmd : semd->graphics) {
+    writer->write_struct_by_name("EQCurveMappingData", &eqcmd);
+    BKE_curvemapping_blend_write(writer, &eqcmd.curve_mapping);
   }
 }
 
@@ -74,8 +74,8 @@ static void sound_equalizermodifier_read(BlendDataReader *reader, StripModifierD
 {
   SoundEqualizerModifierData *semd = reinterpret_cast<SoundEqualizerModifierData *>(smd);
   BLO_read_struct_list(reader, EQCurveMappingData, &semd->graphics);
-  LISTBASE_FOREACH (EQCurveMappingData *, eqcmd, &semd->graphics) {
-    BKE_curvemapping_blend_read(reader, &eqcmd->curve_mapping);
+  for (EQCurveMappingData &eqcmd : semd->graphics) {
+    BKE_curvemapping_blend_read(reader, &eqcmd.curve_mapping);
   }
 }
 

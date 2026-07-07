@@ -35,7 +35,9 @@
 
 #include "BLT_translation.hh"
 
+#include "DNA_curve_types.h"
 #include "DNA_material_types.h"
+#include "DNA_object_types.h"
 
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
@@ -207,10 +209,10 @@ static void populate_curve_verts_for_bezier(const bke::CurvesGeometry &curves,
       verts.push_back(
           pxr::GfVec3f(positions[i_point][0], positions[i_point][1], positions[i_point][2]));
 
-      const blender::float3 right_handle = handles_r[i_point];
+      const float3 right_handle = handles_r[i_point];
       verts.push_back(pxr::GfVec3f(right_handle[0], right_handle[1], right_handle[2]));
 
-      const blender::float3 left_handle = handles_l[i_point + 1];
+      const float3 left_handle = handles_l[i_point + 1];
       verts.push_back(pxr::GfVec3f(left_handle[0], left_handle[1], left_handle[2]));
     }
 
@@ -222,10 +224,10 @@ static void populate_curve_verts_for_bezier(const bke::CurvesGeometry &curves,
      * the right handle of the last point and the left handle of the first point.
      */
     if (is_cyclic) {
-      const blender::float3 right_handle = handles_r[last_point_index];
+      const float3 right_handle = handles_r[last_point_index];
       verts.push_back(pxr::GfVec3f(right_handle[0], right_handle[1], right_handle[2]));
 
-      const blender::float3 left_handle = handles_l[start_point_index];
+      const float3 left_handle = handles_l[start_point_index];
       verts.push_back(pxr::GfVec3f(left_handle[0], left_handle[1], left_handle[2]));
     }
 
@@ -257,8 +259,14 @@ static void populate_curve_props_for_bezier(const bke::CurvesGeometry &curves,
 
   pxr::VtArray<int> segments(num_curves);
 
-  populate_curve_verts_for_bezier(
-      curves, positions, *handles_l, *handles_r, verts, control_point_counts, segments, is_cyclic);
+  populate_curve_verts_for_bezier(curves,
+                                  positions,
+                                  handles_l.value_or(Span<float3>{}),
+                                  handles_r.value_or(Span<float3>{}),
+                                  verts,
+                                  control_point_counts,
+                                  segments,
+                                  is_cyclic);
 
   populate_curve_widths(curves, widths);
   interpolation = get_curve_width_interpolation(
@@ -385,14 +393,13 @@ void USDCurvesWriter::set_writer_attributes(pxr::UsdGeomCurves &usd_curves,
   pxr::UsdAttribute attr_points = usd_curves.CreatePointsAttr(pxr::VtValue(), true);
   set_attribute(attr_points, verts, time, usd_value_writer_);
 
-  pxr::UsdAttribute attr_vertex_counts = usd_curves.CreateCurveVertexCountsAttr(pxr::VtValue(),
-                                                                                true);
-  set_attribute(attr_vertex_counts, control_point_counts, time, usd_value_writer_);
+  pxr::UsdAttribute attr_counts = usd_curves.CreateCurveVertexCountsAttr(pxr::VtValue(), true);
+  set_attribute(attr_counts, control_point_counts, time, usd_value_writer_);
 
-  if (!widths.empty()) {
-    pxr::UsdAttribute attr_widths = usd_curves.CreateWidthsAttr(pxr::VtValue(), true);
-    set_attribute(attr_widths, widths, time, usd_value_writer_);
+  pxr::UsdAttribute attr_widths = usd_curves.CreateWidthsAttr(pxr::VtValue(), true);
+  set_attribute(attr_widths, widths, time, usd_value_writer_);
 
+  if (!interpolation.IsEmpty()) {
     usd_curves.SetWidthsInterpolation(interpolation);
   }
 }
@@ -466,7 +473,7 @@ void USDCurvesWriter::write_generic_data(const bke::CurvesGeometry &curves,
 
   const pxr::UsdTimeCode time = get_export_time_code();
   const pxr::TfToken pv_name(
-      make_safe_name(attr.name, usd_export_context_.export_params.allow_unicode));
+      make_safe_primvar_name(attr.name, usd_export_context_.export_params.allow_unicode));
   const pxr::UsdGeomPrimvarsAPI pv_api = pxr::UsdGeomPrimvarsAPI(usd_curves);
 
   pxr::UsdGeomPrimvar pv_attr = pv_api.CreatePrimvar(pv_name, *pv_type, *pv_interp);
@@ -484,7 +491,7 @@ void USDCurvesWriter::write_uv_data(const bke::AttributeIter &attr,
 
   const pxr::UsdTimeCode time = get_export_time_code();
   const pxr::TfToken pv_name(
-      make_safe_name(attr.name, usd_export_context_.export_params.allow_unicode));
+      make_safe_primvar_name(attr.name, usd_export_context_.export_params.allow_unicode));
   const pxr::UsdGeomPrimvarsAPI pv_api = pxr::UsdGeomPrimvarsAPI(usd_curves);
 
   pxr::UsdGeomPrimvar pv_uv = pv_api.CreatePrimvar(
@@ -497,7 +504,7 @@ void USDCurvesWriter::write_velocities(const bke::CurvesGeometry &curves,
                                        const pxr::UsdGeomCurves &usd_curves)
 {
   const VArraySpan velocity = *curves.attributes().lookup<float3>("velocity",
-                                                                  blender::bke::AttrDomain::Point);
+                                                                  bke::AttrDomain::Point);
   if (velocity.is_empty()) {
     return;
   }
@@ -543,27 +550,27 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
 {
   Curves *curves_id;
   std::unique_ptr<Curves, std::function<void(Curves *)>> converted_curves;
+  int8_t curve_type_default = CURVE_TYPE_CATMULL_ROM;
 
   switch (context.object->type) {
     case OB_CURVES_LEGACY: {
-      const Curve *legacy_curve = static_cast<Curve *>(context.object->data);
+      const Curve *legacy_curve = id_cast<Curve *>(context.object->data);
       converted_curves = std::unique_ptr<Curves, std::function<void(Curves *)>>(
           bke::curve_legacy_to_curves(*legacy_curve), [](Curves *c) { BKE_id_free(nullptr, c); });
       curves_id = converted_curves.get();
+      curve_type_default = CURVE_TYPE_BEZIER;
       break;
     }
     case OB_CURVES:
-      curves_id = static_cast<Curves *>(context.object->data);
+      curves_id = id_cast<Curves *>(context.object->data);
       break;
     default:
       BLI_assert_unreachable();
       return;
   }
 
-  const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-  if (curves.is_empty()) {
-    return;
-  }
+  const bke::CurvesGeometry empty;
+  const bke::CurvesGeometry &curves = curves_id ? curves_id->geometry.wrap() : empty;
 
   const std::array<int, CURVE_TYPES_NUM> &curve_type_counts = curves.curve_type_counts();
   const int number_of_curve_types = std::count_if(curve_type_counts.begin(),
@@ -583,7 +590,10 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
   }
 
   const pxr::UsdTimeCode time = get_export_time_code();
-  const int8_t curve_type = curves.curve_types()[0];
+  const int8_t curve_type_fallback = first_frame_curve_type == -1 ? curve_type_default :
+                                                                    first_frame_curve_type;
+  const int8_t curve_type = curves.curves_num() > 0 ? curves.curve_types()[0] :
+                                                      curve_type_fallback;
 
   if (first_frame_curve_type == -1) {
     first_frame_curve_type = curve_type;
@@ -607,7 +617,7 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
     return;
   }
 
-  const bool is_cyclic = curves.cyclic().first();
+  const bool is_cyclic = curves.curves_num() > 0 ? curves.cyclic().first() : false;
   pxr::VtArray<pxr::GfVec3f> verts;
   pxr::VtIntArray control_point_counts;
   pxr::VtArray<float> widths;
@@ -680,8 +690,11 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
     this->write_custom_data(curves, *usd_curves);
   }
 
-  auto prim = usd_curves->GetPrim();
-  write_id_properties(prim, curves_id->id, time);
+  if (curves_id) {
+    const pxr::UsdPrim prim = usd_curves->GetPrim();
+    add_to_prim_map(prim.GetPath(), &curves_id->id);
+    write_id_properties(prim, curves_id->id, time);
+  }
 
   this->author_extent(*usd_curves, curves.bounds_min_max(), time);
 }

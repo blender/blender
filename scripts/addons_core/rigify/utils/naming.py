@@ -66,7 +66,7 @@ def insert_before_lr(name: str, text: str) -> str:
 def make_derived_name(name: str, subtype: str, suffix: Optional[str] = None):
     """ Replaces the name prefix, and optionally adds the suffix (before .LR if found).
     """
-    assert(subtype in _PREFIX_TABLE)
+    assert subtype in _PREFIX_TABLE
 
     parts = split_name(name)
     new_base = parts.base + (suffix or '')

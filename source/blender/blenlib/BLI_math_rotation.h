@@ -14,6 +14,8 @@
 
 #include "DNA_vec_types.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Quaternions
  * Stored in (w, x, y, z) order.
@@ -312,7 +314,7 @@ void sub_eul_euleul(float r_eul[3], float a[3], float b[3], short order);
 /* WARNING: must match the #eRotationModes in `DNA_action_types.h`
  * order matters - types are saved to file. */
 
-typedef enum eEulerRotationOrders {
+enum eEulerRotationOrders {
   EULER_ORDER_DEFAULT = 1, /* blender classic = XYZ */
   EULER_ORDER_XYZ = 1,
   EULER_ORDER_XZY,
@@ -321,7 +323,7 @@ typedef enum eEulerRotationOrders {
   EULER_ORDER_ZXY,
   EULER_ORDER_ZYX,
   /* There are 6 more entries with duplicate entries included. */
-} eEulerRotationOrders;
+};
 
 /**
  * Construct quaternion from Euler angles (in radians).
@@ -443,3 +445,5 @@ bool mat3_from_axis_conversion(
 bool mat3_from_axis_conversion_single(int src_axis, int dst_axis, float r_mat[3][3]);
 
 /** \} */
+
+}  // namespace blender

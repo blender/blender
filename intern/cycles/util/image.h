@@ -99,6 +99,26 @@ template<> inline half util_image_multiply_native(half a, half b)
   return float_to_half_image(half_to_float_image(a) * half_to_float_image(b));
 }
 
+/* Test if value is finite, in native data format. */
+template<typename T> inline T util_image_is_finite(T a);
+
+template<> inline float util_image_is_finite(const float a)
+{
+  return isfinite(a);
+}
+template<> inline uchar util_image_is_finite(const uchar /*a*/)
+{
+  return true;
+}
+template<> inline uint16_t util_image_is_finite(const uint16_t /*a*/)
+{
+  return true;
+}
+template<> inline half util_image_is_finite(half a)
+{
+  return half_is_finite(a);
+}
+
 CCL_NAMESPACE_END
 
 #include "util/image_impl.h"  // IWYU pragma: export

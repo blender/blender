@@ -227,7 +227,7 @@ class FieldOperation : public FieldNode {
   const mf::MultiFunction *function_;
 
   /** Inputs to the operation. */
-  blender::Vector<GField> inputs_;
+  Vector<GField> inputs_;
 
  public:
   FieldOperation(std::shared_ptr<const mf::MultiFunction> function, Vector<GField> inputs = {});
@@ -284,7 +284,7 @@ class FieldInput : public FieldNode {
                                          ResourceScope &scope) const = 0;
 
   virtual std::string socket_inspection_name() const;
-  blender::StringRef debug_name() const;
+  StringRef debug_name() const;
   const CPPType &cpp_type() const;
   Category category() const;
 
@@ -303,6 +303,9 @@ class FieldConstant : public FieldNode {
   const CPPType &output_cpp_type(int output_index) const override;
   const CPPType &type() const;
   GPointer value() const;
+
+  uint64_t hash() const override;
+  bool is_equal_to(const FieldNode &other) const override;
 };
 
 /**
@@ -430,7 +433,7 @@ class FieldEvaluator : NonMovable, NonCopyable {
     dst_varrays_.append({});
     output_pointer_infos_.append(OutputPointerInfo{
         varray_ptr, [](void *dst, const GVArray &varray, ResourceScope & /*scope*/) {
-          *(VArray<T> *)dst = varray.typed<T>();
+          *static_cast<VArray<T> *>(dst) = varray.typed<T>();
         }});
     return field_index;
   }
@@ -451,7 +454,7 @@ class FieldEvaluator : NonMovable, NonCopyable {
     return evaluated_varrays_[field_index];
   }
 
-  template<typename T> VArray<T> get_evaluated(const int field_index)
+  template<typename T> VArray<T> get_evaluated(const int field_index) const
   {
     return this->get_evaluated(field_index).typed<T>();
   }
@@ -464,6 +467,11 @@ class FieldEvaluator : NonMovable, NonCopyable {
    * some cases, so it must live at least as long as the returned mask.
    */
   IndexMask get_evaluated_as_mask(int field_index);
+
+  const IndexMask &evaluation_mask() const
+  {
+    return mask_;
+  }
 };
 
 /**

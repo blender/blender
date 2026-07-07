@@ -10,15 +10,18 @@
 
 #include "tree_element_id.hh"
 
+namespace blender {
+
 struct Library;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 class TreeElementIDLibrary final : public TreeElementID {
  public:
   TreeElementIDLibrary(TreeElement &legacy_te, Library &library);
 
-  blender::StringRefNull get_warning() const override;
+  StringRefNull get_warning() const override;
 };
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

@@ -55,10 +55,8 @@ template<typename T> static void bezier_generic_to_nurbs(const Span<T> src, Muta
 
 static void bezier_generic_to_nurbs(const GSpan src, GMutableSpan dst)
 {
-  bke::attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
-    using T = decltype(dummy);
-    bezier_generic_to_nurbs(src.typed<T>(), dst.typed<T>());
-  });
+  bke::attribute_math::to_static_type(
+      src.type(), [&]<typename T>() { bezier_generic_to_nurbs(src.typed<T>(), dst.typed<T>()); });
 }
 
 static void bezier_positions_to_nurbs(const Span<float3> src_positions,
@@ -147,8 +145,7 @@ static void nurbs_to_bezier_assign(const Span<T> src,
 
 static void nurbs_to_bezier_assign(const GSpan src, const KnotsMode knots_mode, GMutableSpan dst)
 {
-  bke::attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  bke::attribute_math::to_static_type(src.type(), [&]<typename T>() {
     nurbs_to_bezier_assign(src.typed<T>(), dst.typed<T>(), knots_mode);
   });
 }
@@ -303,7 +300,7 @@ static bke::CurvesGeometry convert_curves_to_bezier(const bke::CurvesGeometry &s
   MutableSpan<int8_t> dst_types_l = dst_curves.handle_types_left_for_write();
   MutableSpan<int8_t> dst_types_r = dst_curves.handle_types_right_for_write();
   Vector<bke::AttributeTransferData> generic_attributes = bke::retrieve_attributes_for_transfer(
-      src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, attribute_filter);
+      src_attributes, dst_attributes, {bke::AttrDomain::Point}, attribute_filter);
   Set<StringRef> attributes_to_skip = {
       "position", "handle_type_left", "handle_type_right", "handle_right", "handle_left"};
   if (!dst_curves.has_curve_with_type(CURVE_TYPE_NURBS)) {
@@ -483,7 +480,7 @@ static bke::CurvesGeometry convert_curves_to_nurbs(const bke::CurvesGeometry &sr
   MutableSpan<float3> dst_positions = dst_curves.positions_for_write();
   bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
   Vector<bke::AttributeTransferData> generic_attributes = bke::retrieve_attributes_for_transfer(
-      src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, attribute_filter);
+      src_attributes, dst_attributes, {bke::AttrDomain::Point}, attribute_filter);
   const Set<StringRef> attributes_to_skip = {"position",
                                              "handle_type_left",
                                              "handle_type_right",
@@ -543,7 +540,7 @@ static bke::CurvesGeometry convert_curves_to_nurbs(const bke::CurvesGeometry &sr
     else {
       VArraySpan<bool> cyclic{src_cyclic};
       MutableSpan<int8_t> knots_modes = dst_curves.nurbs_knots_modes_for_write();
-      selection.foreach_index(GrainSize(1024), [&](const int i) {
+      selection.foreach_index_optimized<int>(GrainSize(1024), [&](const int i) {
         knots_modes[i] = cyclic[i] ? NURBS_KNOT_MODE_NORMAL : NURBS_KNOT_MODE_ENDPOINT;
       });
     }
@@ -684,7 +681,7 @@ static bke::CurvesGeometry convert_curves_to_catmull_rom_or_poly(
   MutableSpan<float3> dst_positions = dst_curves.positions_for_write();
   bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
   Vector<bke::AttributeTransferData> generic_attributes = bke::retrieve_attributes_for_transfer(
-      src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, attribute_filter);
+      src_attributes, dst_attributes, {bke::AttrDomain::Point}, attribute_filter);
   const Set<StringRef> attributes_to_skip = {"position",
                                              "handle_type_left",
                                              "handle_type_right",

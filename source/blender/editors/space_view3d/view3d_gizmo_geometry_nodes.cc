@@ -47,7 +47,9 @@
 
 #include "view3d_intern.hh"
 
-namespace blender::ed::view3d::geometry_nodes_gizmos {
+namespace blender {
+
+namespace ed::view3d::geometry_nodes_gizmos {
 namespace geo_eval_log = nodes::geo_eval_log;
 using geo_eval_log::GeoTreeLog;
 
@@ -81,8 +83,8 @@ static ThemeColorID get_axis_theme_color_id(const int axis)
 static void get_axis_gizmo_colors(const int axis, float *r_color, float *r_color_hi)
 {
   const ThemeColorID theme_id = get_axis_theme_color_id(axis);
-  UI_GetThemeColor3fv(theme_id, r_color);
-  UI_GetThemeColor3fv(theme_id, r_color_hi);
+  ui::theme::get_color_3fv(theme_id, r_color);
+  ui::theme::get_color_3fv(theme_id, r_color_hi);
   r_color[3] = 0.6f;
   r_color_hi[3] = 1.0f;
 }
@@ -239,8 +241,8 @@ class LinearGizmo : public NodeGizmos {
 
     const ThemeColorID color_theme_id = get_gizmo_theme_color_id(
         GeometryNodeGizmoColor(storage.color_id));
-    UI_GetThemeColor3fv(color_theme_id, gizmo_->color);
-    UI_GetThemeColor3fv(TH_GIZMO_HI, gizmo_->color_hi);
+    ui::theme::get_color_3fv(color_theme_id, gizmo_->color);
+    ui::theme::get_color_3fv(TH_GIZMO_HI, gizmo_->color_hi);
   }
 
   bool update_transform(GizmosUpdateParams &params)
@@ -343,8 +345,8 @@ class DialGizmo : public NodeGizmos {
 
     const ThemeColorID color_theme_id = get_gizmo_theme_color_id(
         GeometryNodeGizmoColor(storage.color_id));
-    UI_GetThemeColor3fv(color_theme_id, gizmo_->color);
-    UI_GetThemeColor3fv(TH_GIZMO_HI, gizmo_->color_hi);
+    ui::theme::get_color_3fv(color_theme_id, gizmo_->color);
+    ui::theme::get_color_3fv(TH_GIZMO_HI, gizmo_->color_hi);
   }
 
   bool update_transform(GizmosUpdateParams &params)
@@ -774,7 +776,7 @@ struct GeoNodesObjectGizmoID {
   const Object *object_orig;
   bke::NodeGizmoID gizmo_id;
 
-  BLI_STRUCT_EQUALITY_OPERATORS_2(GeoNodesObjectGizmoID, object_orig, gizmo_id)
+  friend bool operator==(const GeoNodesObjectGizmoID &a, const GeoNodesObjectGizmoID &b) = default;
 
   uint64_t hash() const
   {
@@ -888,7 +890,9 @@ static bke::GeometrySet find_geometry_for_gizmo(const Object &object_eval,
     if (const geo_eval_log::ViewerNodeLog *viewer_log =
             nmd_orig.runtime->eval_log->find_viewer_node_log_for_path(viewer_path))
     {
-      return viewer_log->geometry;
+      if (const bke::GeometrySet *viewer_geometry = viewer_log->main_geometry()) {
+        return *viewer_geometry;
+      }
     }
   }
   return bke::object_get_evaluated_geometry_set(object_eval);
@@ -908,7 +912,7 @@ static bool WIDGETGROUP_geometry_nodes_poll(const bContext *C, wmGizmoGroupType 
 {
   ScrArea *area = CTX_wm_area(C);
   View3D *v3d = static_cast<View3D *>(area->spacedata.first);
-  if (v3d->gizmo_flag & V3D_GIZMO_HIDE_MODIFIER) {
+  if (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_MODIFIER)) {
     return false;
   }
   return true;
@@ -1104,7 +1108,7 @@ static void WIDGETGROUP_geometry_nodes_draw_prepare(const bContext * /*C*/,
 {
 }
 
-}  // namespace blender::ed::view3d::geometry_nodes_gizmos
+}  // namespace ed::view3d::geometry_nodes_gizmos
 
 void VIEW3D_GGT_geometry_nodes(wmGizmoGroupType *gzgt)
 {
@@ -1121,3 +1125,5 @@ void VIEW3D_GGT_geometry_nodes(wmGizmoGroupType *gzgt)
   gzgt->refresh = WIDGETGROUP_geometry_nodes_refresh;
   gzgt->draw_prepare = WIDGETGROUP_geometry_nodes_draw_prepare;
 }
+
+}  // namespace blender

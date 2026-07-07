@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 /* internal exports only */
 struct ARegion;
 struct ARegionType;
@@ -16,6 +18,7 @@ struct SpaceImage;
 struct bContext;
 struct bNodeTree;
 struct wmOperatorType;
+struct rctf;
 
 /* `space_image.cc` */
 
@@ -28,6 +31,7 @@ extern const char *image_context_dir[]; /* doc access */
 void draw_image_main_helpers(const bContext *C, ARegion *region);
 void draw_image_cache(const bContext *C, ARegion *region);
 void draw_image_sample_line(SpaceImage *sima);
+void draw_image_uv_custom_region(const ARegion *region, const rctf &custom_region);
 
 /* `image_ops.cc` */
 
@@ -100,3 +104,5 @@ void IMAGE_OT_tile_fill(wmOperatorType *ot);
  */
 ImageUser *ntree_get_active_iuser(bNodeTree *ntree);
 void image_buttons_register(ARegionType *art);
+
+}  // namespace blender

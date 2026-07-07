@@ -30,21 +30,21 @@ Vector<float> get_rna_values(PointerRNA *ptr, PropertyRNA *prop)
 
     switch (RNA_property_type(prop)) {
       case PROP_BOOLEAN: {
-        bool *tmp_bool = MEM_malloc_arrayN<bool>(length, __func__);
+        bool *tmp_bool = MEM_new_array_uninitialized<bool>(length, __func__);
         RNA_property_boolean_get_array(ptr, prop, tmp_bool);
         for (int i = 0; i < length; i++) {
           values.append(float(tmp_bool[i]));
         }
-        MEM_freeN(tmp_bool);
+        MEM_delete(tmp_bool);
         break;
       }
       case PROP_INT: {
-        int *tmp_int = MEM_malloc_arrayN<int>(length, __func__);
+        int *tmp_int = MEM_new_array_uninitialized<int>(length, __func__);
         RNA_property_int_get_array(ptr, prop, tmp_int);
         for (int i = 0; i < length; i++) {
           values.append(float(tmp_int[i]));
         }
-        MEM_freeN(tmp_int);
+        MEM_delete(tmp_int);
         break;
       }
       case PROP_FLOAT: {
@@ -127,11 +127,11 @@ Vector<RNAPath> get_keyable_id_property_paths(const PointerRNA &ptr)
 {
   IDProperty *properties;
 
-  if (ptr.type == &RNA_PoseBone) {
+  if (ptr.type == RNA_PoseBone) {
     const bPoseChannel *pchan = static_cast<bPoseChannel *>(ptr.data);
     properties = pchan->prop;
   }
-  else if (ptr.type == &RNA_Object) {
+  else if (ptr.type == RNA_Object) {
     const Object *ob = static_cast<Object *>(ptr.data);
     properties = ob->id.properties;
   }
@@ -144,11 +144,11 @@ Vector<RNAPath> get_keyable_id_property_paths(const PointerRNA &ptr)
     return {};
   }
 
-  blender::Vector<RNAPath> paths;
-  LISTBASE_FOREACH (const IDProperty *, id_prop, &properties->data.group) {
+  Vector<RNAPath> paths;
+  for (const IDProperty &id_prop : properties->data.group) {
     PointerRNA resolved_ptr;
     PropertyRNA *resolved_prop;
-    std::string path = id_prop->name;
+    std::string path = id_prop.name;
     /* Resolving the path twice, once as RNA property (without brackets, `"propname"`),
      * and once as ID property (with brackets, `["propname"]`).
      * This is required to support IDProperties that have been defined as part of an add-on.
@@ -160,14 +160,14 @@ Vector<RNAPath> get_keyable_id_property_paths(const PointerRNA &ptr)
      * catches that case. */
     if (!is_resolved || !RNA_property_is_runtime(resolved_prop)) {
       char name_escaped[MAX_IDPROP_NAME * 2];
-      BLI_str_escape(name_escaped, id_prop->name, sizeof(name_escaped));
+      BLI_str_escape(name_escaped, id_prop.name, sizeof(name_escaped));
       path = fmt::format("[\"{}\"]", name_escaped);
       is_resolved = RNA_path_resolve_property(&ptr, path.c_str(), &resolved_ptr, &resolved_prop);
     }
     if (!is_resolved) {
       continue;
     }
-    if (is_idproperty_keyable(id_prop, &resolved_ptr, resolved_prop)) {
+    if (is_idproperty_keyable(&id_prop, &resolved_ptr, resolved_prop)) {
       paths.append({path});
     }
   }

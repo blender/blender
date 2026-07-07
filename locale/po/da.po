@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'5a04f1d246f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 07:24+0000\n"
+"POT-Creation-Date: 2026-03-11 11:01+0000\n"
 "PO-Revision-Date: 2025-07-31 16:24+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
@@ -101,14 +101,6 @@ msgstr "Animation kanaler for slots"
 
 msgid "For each action slot, a list of animation channels that are meant for that slot"
 msgstr "For hver handlings slot, en liste af animation kanaler der er beregnet  for det slot"
-
-
-msgid "Action F-Curves"
-msgstr "Handlings F-kurver"
-
-
-msgid "Collection of action F-Curves. Note that this is a legacy API that is unaware of action slots, and will only consider the F-Curves for this action's first slot"
-msgstr "Samling af action F-kurver. Bemærk, at dette er en ældre API, der ikke er opmærksom på handlingspladser, og som kun vil overveje F-kurverne for denne handlings første plads"
 
 
 msgid "Action Group"
@@ -277,14 +269,6 @@ msgstr "Handlingsgruppen udvides i grafeditor"
 
 msgid "Pin in Graph Editor"
 msgstr "Fastgør i Graph Editor"
-
-
-msgid "Action Groups"
-msgstr "Handlingsgrupper"
-
-
-msgid "Collection of action groups"
-msgstr "Samling af handlingsgrupper"
 
 
 msgid "Action Layer"
@@ -711,10 +695,6 @@ msgid "Show only hotkeys that have this text in their name"
 msgstr "Vis kun genvejstaster, der har denne tekst i deres navn"
 
 
-msgid "Hide Mix nodes"
-msgstr "Skjul Mix-noder"
-
-
 msgid "When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specify whether to collapse them or show the full node with options expanded"
 msgstr "Når du slår noder sammen med genvejstasten Ctrl+Numpad0 (og lignende), skal du angive, om de skal skjules eller vise hele noden med udvidede muligheder"
 
@@ -773,14 +753,6 @@ msgstr "Vis genvejsliste"
 
 msgid "Expand this box into a list of all the hotkeys for functions in this addon"
 msgstr "Udvid denne boks til en liste over alle genvejstaster til funktioner i denne tilføjelse"
-
-
-msgid "Show Principled naming tags"
-msgstr "Vis principielle navngivningsmærker"
-
-
-msgid "Expand this box into a list of all naming tags for principled texture setup"
-msgstr "Udvid denne boks til en liste over alle navngivningsmærker til principiel teksturopsætning"
 
 
 msgid "Fribidi Library"
@@ -1299,10 +1271,6 @@ msgid "Video Sequencer"
 msgstr "Video Sequencer"
 
 
-msgid "Video editing tools"
-msgstr "Videoredigeringsværktøjer"
-
-
 msgid "Movie Clip Editor"
 msgstr "Editor til filmklip"
 
@@ -1485,10 +1453,6 @@ msgstr "Aktiv Edit Bone"
 
 msgid "Armatures active edit bone"
 msgstr "Armaturer aktive redigere knogle"
-
-
-msgid "Catalog Path"
-msgstr "Katalogsti"
 
 
 msgid "User Asset Libraries"
@@ -1728,8 +1692,112 @@ msgid "Space Type"
 msgstr "område type"
 
 
-msgid "The space where the asset shelf is going to be used in"
-msgstr "Det rum, hvor aktivhylden skal bruges i"
+msgid "Actions"
+msgstr "Handlinger"
+
+
+msgid "Armatures"
+msgstr "Armaturer"
+
+
+msgid "Brushes"
+msgstr "Pensler"
+
+
+msgid "Cache Files"
+msgstr "Cache filer"
+
+
+msgid "Cameras"
+msgstr "Kameraer"
+
+
+msgid "Curves"
+msgstr "Kurver"
+
+
+msgid "Hair Curves"
+msgstr "Hårkurver"
+
+
+msgid "Grease Pencil"
+msgstr "Grease Pencil"
+
+
+msgid "Collections"
+msgstr "Samlinger"
+
+
+msgid "Images"
+msgstr "Billeder"
+
+
+msgid "Lattices"
+msgstr "Gitter"
+
+
+msgid "Lights"
+msgstr "Lys"
+
+
+msgid "Light Probes"
+msgstr "Lyssonder"
+
+
+msgid "Masks"
+msgstr "Masker"
+
+
+msgid "Materials"
+msgstr "Materialer"
+
+
+msgid "Movie Clips"
+msgstr "Filmklip"
+
+
+msgid "Objects"
+msgstr "Objekter"
+
+
+msgid "Paint Curves"
+msgstr "Male kurver"
+
+
+msgid "Palettes"
+msgstr "Paletter"
+
+
+msgid "Point Clouds"
+msgstr "Punktskyer"
+
+
+msgid "Scenes"
+msgstr "Scener"
+
+
+msgid "Sounds"
+msgstr "Lyde"
+
+
+msgid "Speakers"
+msgstr "Højtalere"
+
+
+msgid "Texts"
+msgstr "Tekster"
+
+
+msgid "Textures"
+msgstr "Teksturer"
+
+
+msgid "Workspaces"
+msgstr "Arbejdsrum"
+
+
+msgid "Worlds"
+msgstr "Verdener"
 
 
 msgid "Preview Size"
@@ -1808,6 +1876,14 @@ msgid "32-bit integer"
 msgstr "32-bit heltal"
 
 
+msgid "Boolean"
+msgstr "Boolean"
+
+
+msgid "True or false"
+msgstr "Sandt eller falsk"
+
+
 msgid "Vector"
 msgstr "Vektor"
 
@@ -1820,12 +1896,20 @@ msgid "RGBA color with 32-bit floating-point values"
 msgstr "RGBA farver med 32-bit floating-point værdier"
 
 
-msgid "Byte Color"
-msgstr "Byte farve"
+msgid "Quaternion"
+msgstr "Kvaternion"
 
 
-msgid "RGBA color with 8-bit positive integer values"
-msgstr "RRGB farver med 8-bit positive intenger værdier"
+msgid "Floating point quaternion rotation"
+msgstr "Flydende komma quaternion rotation"
+
+
+msgid "4x4 Matrix"
+msgstr "4x4 Matrix"
+
+
+msgid "Floating point matrix"
+msgstr "Floating point matrix"
 
 
 msgid "String"
@@ -1834,22 +1918,6 @@ msgstr "Streng"
 
 msgid "Text string"
 msgstr "tekst string"
-
-
-msgid "Boolean"
-msgstr "Boolean"
-
-
-msgid "True or false"
-msgstr "Sandt eller falsk"
-
-
-msgid "2D Vector"
-msgstr "2D Vektor"
-
-
-msgid "2D vector with floating-point values"
-msgstr "2D vector med floating-point værdier"
 
 
 msgid "8-Bit Integer"
@@ -1876,20 +1944,20 @@ msgid "32-bit signed integer vector"
 msgstr "32-Bit signed integer vector"
 
 
-msgid "Quaternion"
-msgstr "Kvaternion"
+msgid "2D Vector"
+msgstr "2D Vektor"
 
 
-msgid "Floating point quaternion rotation"
-msgstr "Flydende komma quaternion rotation"
+msgid "2D vector with floating-point values"
+msgstr "2D vector med floating-point værdier"
 
 
-msgid "4x4 Matrix"
-msgstr "4x4 Matrix"
+msgid "Byte Color"
+msgstr "Byte farve"
 
 
-msgid "Floating point matrix"
-msgstr "Floating point matrix"
+msgid "RGBA color with 8-bit positive integer values"
+msgstr "RRGB farver med 8-bit positive intenger værdier"
 
 
 msgid "Domain"
@@ -2548,10 +2616,6 @@ msgid "Main data structure representing a .blend file and all its data-blocks"
 msgstr "Hoveddatastruktur, der repræsenterer en .blend-fil og alle dens datablokke"
 
 
-msgid "Actions"
-msgstr "Handlinger"
-
-
 msgid "Action data-blocks"
 msgstr "Handlingsdatablokke"
 
@@ -2564,48 +2628,24 @@ msgid "Annotation data-blocks (legacy Grease Pencil)"
 msgstr "Annotationsdatablokke (legacy Grease Pencil)"
 
 
-msgid "Armatures"
-msgstr "Armaturer"
-
-
 msgid "Armature data-blocks"
 msgstr "Skelet data-bloke"
-
-
-msgid "Brushes"
-msgstr "Pensler"
 
 
 msgid "Brush data-blocks"
 msgstr "Pensler data-blokke"
 
 
-msgid "Cache Files"
-msgstr "Cache filer"
-
-
 msgid "Cache Files data-blocks"
 msgstr "Cache-filer data-blokke"
-
-
-msgid "Cameras"
-msgstr "Kameraer"
 
 
 msgid "Camera data-blocks"
 msgstr "Kamera data-blokke"
 
 
-msgid "Collections"
-msgstr "Samlinger"
-
-
 msgid "Collection data-blocks"
 msgstr "Indsamling af data-blokke"
-
-
-msgid "Curves"
-msgstr "Kurver"
 
 
 msgid "Curve data-blocks"
@@ -2628,24 +2668,12 @@ msgid "Vector font data-blocks"
 msgstr "Vektor skrifttyper"
 
 
-msgid "Grease Pencil"
-msgstr "Grease Pencil"
-
-
 msgid "Grease Pencil data-blocks"
 msgstr "Grease Pencil datablokke"
 
 
-msgid "Hair Curves"
-msgstr "Hårkurver"
-
-
 msgid "Hair curve data-blocks"
 msgstr "Hårkurve datablokke"
-
-
-msgid "Images"
-msgstr "Billeder"
 
 
 msgid "Image data-blocks"
@@ -2668,10 +2696,6 @@ msgid "Has the current session been saved to disk as a .blend file"
 msgstr "Er den aktuelle session blevet gemt på disken som en .blend-fil"
 
 
-msgid "Lattices"
-msgstr "Gitter"
-
-
 msgid "Lattice data-blocks"
 msgstr "Gitter data-blokke"
 
@@ -2684,16 +2708,8 @@ msgid "Library data-blocks"
 msgstr "Biblioteksdatablokke"
 
 
-msgid "Light Probes"
-msgstr "Lyssonder"
-
-
 msgid "Light Probe data-blocks"
 msgstr "Light Probe datablokke"
-
-
-msgid "Lights"
-msgstr "Lys"
 
 
 msgid "Light data-blocks"
@@ -2708,16 +2724,8 @@ msgid "Line Style data-blocks"
 msgstr "Line Stil data-blokke"
 
 
-msgid "Masks"
-msgstr "Masker"
-
-
 msgid "Masks data-blocks"
 msgstr "Maske datablokke"
-
-
-msgid "Materials"
-msgstr "Materialer"
 
 
 msgid "Material data-blocks"
@@ -2732,10 +2740,6 @@ msgid "Metaball data-blocks"
 msgstr "Metaball data-blokke"
 
 
-msgid "Movie Clips"
-msgstr "Filmklip"
-
-
 msgid "Movie Clip data-blocks"
 msgstr "Filmklip data-blokke"
 
@@ -2748,24 +2752,12 @@ msgid "Node group data-blocks"
 msgstr "Node gruppe data-blokke"
 
 
-msgid "Objects"
-msgstr "Objekter"
-
-
 msgid "Object data-blocks"
 msgstr "Objektdatablokke"
 
 
-msgid "Paint Curves"
-msgstr "Male kurver"
-
-
 msgid "Paint Curves data-blocks"
 msgstr "Paint Curves datablokke"
-
-
-msgid "Palettes"
-msgstr "Paletter"
 
 
 msgid "Palette data-blocks"
@@ -2780,16 +2772,8 @@ msgid "Particle data-blocks"
 msgstr "Partikeldatablokke"
 
 
-msgid "Point Clouds"
-msgstr "Punktskyer"
-
-
 msgid "Point cloud data-blocks"
 msgstr "Punktsky data-blokke"
-
-
-msgid "Scenes"
-msgstr "Scener"
 
 
 msgid "Scene data-blocks"
@@ -2812,32 +2796,16 @@ msgid "Shape Key data-blocks"
 msgstr "Shape Key data-blokke"
 
 
-msgid "Sounds"
-msgstr "Lyde"
-
-
 msgid "Sound data-blocks"
 msgstr "Lyde data-blokke"
-
-
-msgid "Speakers"
-msgstr "Højtalere"
 
 
 msgid "Speaker data-blocks"
 msgstr "Højttaler data-blokke"
 
 
-msgid "Texts"
-msgstr "Tekster"
-
-
 msgid "Text data-blocks"
 msgstr "Tekstdatablokke"
-
-
-msgid "Textures"
-msgstr "Teksturer"
 
 
 msgid "Texture data-blocks"
@@ -2872,16 +2840,8 @@ msgid "Window manager data-blocks"
 msgstr "Window manager datablokke"
 
 
-msgid "Workspaces"
-msgstr "Arbejdsrum"
-
-
 msgid "Workspace data-blocks"
 msgstr "Workspace data-blokke"
-
-
-msgid "Worlds"
-msgstr "Verdener"
 
 
 msgid "World data-blocks"
@@ -3517,6 +3477,14 @@ msgid "Top"
 msgstr "Top"
 
 
+msgid "Text"
+msgstr "Tekst"
+
+
+msgid "Sound"
+msgstr "Lyd"
+
+
 msgid "Visibility"
 msgstr "Synlighed"
 
@@ -3535,10 +3503,6 @@ msgstr "Bibliotek tilsidesætter"
 
 msgid "Local"
 msgstr "Lokal"
-
-
-msgid "Direction"
-msgstr "Retning"
 
 
 msgid "Blur"
@@ -3598,10 +3562,6 @@ msgid "Pitch"
 msgstr "Toneleje"
 
 
-msgid "Sound"
-msgstr "Lyd"
-
-
 msgid "Blend"
 msgstr "Bland"
 
@@ -3642,6 +3602,10 @@ msgid "File format to save the rendered images as"
 msgstr "Filformat det fremkaldte billede skal gemmes i"
 
 
+msgid "Direction"
+msgstr "Retning"
+
+
 msgid "Keyboard"
 msgstr "Tastatur"
 
@@ -3656,10 +3620,6 @@ msgstr "Maksimal vinkel"
 
 msgid "Min Angle"
 msgstr "Minimum vinkel"
-
-
-msgid "Text"
-msgstr "Tekst"
 
 
 msgid "Key"
@@ -3890,10 +3850,6 @@ msgid "Gray Scale"
 msgstr "Gråskala"
 
 
-msgid "Timeline and playback controls"
-msgstr "Tidslinje og afspilnings kontroller"
-
-
 msgid "3D"
 msgstr "3d"
 
@@ -3916,10 +3872,6 @@ msgstr "Nøglebillede kant"
 
 msgid "Keyframe Border Selected"
 msgstr "Nøglebillede kant valgt"
-
-
-msgid "Face Dot Selected"
-msgstr "Overflade punkt valgt"
 
 
 msgid "Face Dot Size"
@@ -3974,12 +3926,12 @@ msgid "Motion"
 msgstr "Bevægelse"
 
 
-msgid "Fac"
-msgstr "Fak"
-
-
 msgid "Key Color"
 msgstr "Nøglefarve"
+
+
+msgid "Fac"
+msgstr "Fak"
 
 
 msgid "ID value"

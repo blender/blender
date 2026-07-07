@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <cstring>
+#include <fmt/format.h>
+#include <sstream>
 
 #include "BLI_listbase.h"
 #include "BLI_string_ref.hh"
@@ -29,8 +31,6 @@
 
 #include "spreadsheet_intern.hh"
 #include "spreadsheet_row_filter_ui.hh"
-
-#include <sstream>
 
 namespace blender::ed::spreadsheet {
 
@@ -65,6 +65,7 @@ static std::string value_string(const SpreadsheetRowFilter &row_filter,
   switch (data_type) {
     case SPREADSHEET_VALUE_TYPE_INT8:
     case SPREADSHEET_VALUE_TYPE_INT32:
+    case SPREADSHEET_VALUE_TYPE_INT64:
       return std::to_string(row_filter.value_int);
     case SPREADSHEET_VALUE_TYPE_FLOAT: {
       std::ostringstream result;
@@ -76,6 +77,13 @@ static std::string value_string(const SpreadsheetRowFilter &row_filter,
       std::ostringstream result;
       result << "(" << row_filter.value_int2[0] << ", " << row_filter.value_int2[1] << ")";
       return result.str();
+    }
+    case SPREADSHEET_VALUE_TYPE_INT32_3D: {
+      std::ostringstream result;
+      return fmt::format("({}, {}, {})",
+                         row_filter.value_int3[0],
+                         row_filter.value_int3[1],
+                         row_filter.value_int3[2]);
     }
     case SPREADSHEET_VALUE_TYPE_FLOAT2: {
       std::ostringstream result;
@@ -111,6 +119,7 @@ static std::string value_string(const SpreadsheetRowFilter &row_filter,
       return row_filter.value_string;
     case SPREADSHEET_VALUE_TYPE_QUATERNION:
     case SPREADSHEET_VALUE_TYPE_FLOAT4X4:
+    case SPREADSHEET_VALUE_TYPE_BUNDLE_ITEM:
     case SPREADSHEET_VALUE_TYPE_UNKNOWN:
       return "";
   }
@@ -135,23 +144,23 @@ static const SpreadsheetColumn *lookup_visible_column_for_filter(
 
 static void spreadsheet_filter_panel_draw_header(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  PointerRNA *filter_ptr = UI_panel_custom_data_get(panel);
-  const SpreadsheetRowFilter *filter = (SpreadsheetRowFilter *)filter_ptr->data;
+  PointerRNA *filter_ptr = ui::panel_custom_data_get(panel);
+  const SpreadsheetRowFilter *filter = static_cast<SpreadsheetRowFilter *>(filter_ptr->data);
   const StringRef column_name = filter->column_name;
-  const eSpreadsheetFilterOperation operation = (eSpreadsheetFilterOperation)filter->operation;
+  const eSpreadsheetFilterOperation operation = eSpreadsheetFilterOperation(filter->operation);
 
   const SpreadsheetColumn *column = lookup_visible_column_for_filter(*sspreadsheet, column_name);
   if (!(sspreadsheet->filter_flag & SPREADSHEET_FILTER_ENABLE) ||
       (column == nullptr && !column_name.is_empty()))
   {
-    layout->active_set(false);
+    layout.active_set(false);
   }
 
-  uiLayout *row = &layout->row(true);
+  ui::Layout *row = &layout.row(true);
   row->emboss_set(ui::EmbossType::None);
-  row->prop(filter_ptr, "enabled", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+  row->prop(filter_ptr, "enabled", ui::ITEM_R_ICON_ONLY, "", ICON_NONE);
 
   if (column_name.is_empty()) {
     row->label(IFACE_("Filter"), ICON_NONE);
@@ -160,7 +169,7 @@ static void spreadsheet_filter_panel_draw_header(const bContext *C, Panel *panel
     row->label(column_name.data(), ICON_NONE);
   }
   else {
-    const eSpreadsheetColumnValueType data_type = (eSpreadsheetColumnValueType)column->data_type;
+    const eSpreadsheetColumnValueType data_type = eSpreadsheetColumnValueType(column->data_type);
     std::stringstream ss;
     ss << column_name;
     ss << " ";
@@ -170,36 +179,36 @@ static void spreadsheet_filter_panel_draw_header(const bContext *C, Panel *panel
     row->label(ss.str(), ICON_NONE);
   }
 
-  row = &layout->row(true);
+  row = &layout.row(true);
   row->emboss_set(ui::EmbossType::None);
   const int current_index = BLI_findindex(&sspreadsheet->row_filters, filter);
   PointerRNA op_ptr = row->op("SPREADSHEET_OT_remove_row_filter_rule", "", ICON_X);
   RNA_int_set(&op_ptr, "index", current_index);
   /* Some padding so the X isn't too close to the drag icon. */
-  layout->separator(0.25f);
+  layout.separator(0.25f);
 }
 
 static void spreadsheet_filter_panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  PointerRNA *filter_ptr = UI_panel_custom_data_get(panel);
-  SpreadsheetRowFilter *filter = (SpreadsheetRowFilter *)filter_ptr->data;
+  PointerRNA *filter_ptr = ui::panel_custom_data_get(panel);
+  SpreadsheetRowFilter *filter = static_cast<SpreadsheetRowFilter *>(filter_ptr->data);
   const StringRef column_name = filter->column_name;
-  const eSpreadsheetFilterOperation operation = (eSpreadsheetFilterOperation)filter->operation;
+  const eSpreadsheetFilterOperation operation = eSpreadsheetFilterOperation(filter->operation);
 
   const SpreadsheetColumn *column = lookup_visible_column_for_filter(*sspreadsheet, column_name);
   if (!(sspreadsheet->filter_flag & SPREADSHEET_FILTER_ENABLE) ||
       !(filter->flag & SPREADSHEET_ROW_FILTER_ENABLED) ||
       (column == nullptr && !column_name.is_empty()))
   {
-    layout->active_set(false);
+    layout.active_set(false);
   }
 
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
 
-  layout->prop(filter_ptr, "column_name", UI_ITEM_NONE, IFACE_("Column"), ICON_NONE);
+  layout.prop(filter_ptr, "column_name", UI_ITEM_NONE, IFACE_("Column"), ICON_NONE);
 
   /* Don't draw settings for filters with no corresponding visible column. */
   if (column == nullptr || column_name.is_empty()) {
@@ -208,96 +217,102 @@ static void spreadsheet_filter_panel_draw(const bContext *C, Panel *panel)
 
   switch (static_cast<eSpreadsheetColumnValueType>(column->data_type)) {
     case SPREADSHEET_VALUE_TYPE_INT8:
-      layout->prop(filter_ptr, "operation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      layout->prop(filter_ptr, "value_int8", UI_ITEM_NONE, IFACE_("Value"), ICON_NONE);
+      layout.prop(filter_ptr, "operation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(filter_ptr, "value_int8", UI_ITEM_NONE, IFACE_("Value"), ICON_NONE);
       break;
     case SPREADSHEET_VALUE_TYPE_INT32:
-      layout->prop(filter_ptr, "operation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      layout->prop(filter_ptr, "value_int", UI_ITEM_NONE, IFACE_("Value"), ICON_NONE);
+    case SPREADSHEET_VALUE_TYPE_INT64:
+      layout.prop(filter_ptr, "operation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(filter_ptr, "value_int", UI_ITEM_NONE, IFACE_("Value"), ICON_NONE);
       break;
     case SPREADSHEET_VALUE_TYPE_INT32_2D:
-      layout->prop(filter_ptr, "operation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      layout->prop(filter_ptr, "value_int2", UI_ITEM_NONE, IFACE_("Value"), ICON_NONE);
+      layout.prop(filter_ptr, "operation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(filter_ptr, "value_int2", UI_ITEM_NONE, IFACE_("Value"), ICON_NONE);
+      break;
+    case SPREADSHEET_VALUE_TYPE_INT32_3D:
+      layout.prop(filter_ptr, "operation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(filter_ptr, "value_int3", UI_ITEM_NONE, IFACE_("Value"), ICON_NONE);
       break;
     case SPREADSHEET_VALUE_TYPE_FLOAT:
-      layout->prop(filter_ptr, "operation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      layout->prop(filter_ptr, "value_float", UI_ITEM_NONE, IFACE_("Value"), ICON_NONE);
+      layout.prop(filter_ptr, "operation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(filter_ptr, "value_float", UI_ITEM_NONE, IFACE_("Value"), ICON_NONE);
       if (operation == SPREADSHEET_ROW_FILTER_EQUAL) {
-        layout->prop(filter_ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+        layout.prop(filter_ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       }
       break;
     case SPREADSHEET_VALUE_TYPE_FLOAT2:
-      layout->prop(filter_ptr, "operation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      layout->prop(filter_ptr, "value_float2", UI_ITEM_NONE, IFACE_("Value"), ICON_NONE);
+      layout.prop(filter_ptr, "operation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(filter_ptr, "value_float2", UI_ITEM_NONE, IFACE_("Value"), ICON_NONE);
       if (operation == SPREADSHEET_ROW_FILTER_EQUAL) {
-        layout->prop(filter_ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+        layout.prop(filter_ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       }
       break;
     case SPREADSHEET_VALUE_TYPE_FLOAT3:
-      layout->prop(filter_ptr, "operation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      layout->prop(filter_ptr, "value_float3", UI_ITEM_NONE, IFACE_("Value"), ICON_NONE);
+      layout.prop(filter_ptr, "operation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(filter_ptr, "value_float3", UI_ITEM_NONE, IFACE_("Value"), ICON_NONE);
       if (operation == SPREADSHEET_ROW_FILTER_EQUAL) {
-        layout->prop(filter_ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+        layout.prop(filter_ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       }
       break;
     case SPREADSHEET_VALUE_TYPE_BOOL:
-      layout->prop(filter_ptr, "value_boolean", UI_ITEM_NONE, IFACE_("Value"), ICON_NONE);
+      layout.prop(filter_ptr, "value_boolean", UI_ITEM_NONE, IFACE_("Value"), ICON_NONE);
       break;
     case SPREADSHEET_VALUE_TYPE_INSTANCES:
-      layout->prop(filter_ptr, "value_string", UI_ITEM_NONE, IFACE_("Value"), ICON_NONE);
+      layout.prop(filter_ptr, "value_string", UI_ITEM_NONE, IFACE_("Value"), ICON_NONE);
       break;
     case SPREADSHEET_VALUE_TYPE_COLOR:
     case SPREADSHEET_VALUE_TYPE_BYTE_COLOR:
-      layout->prop(filter_ptr, "operation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      layout->prop(filter_ptr, "value_color", UI_ITEM_NONE, IFACE_("Value"), ICON_NONE);
+      layout.prop(filter_ptr, "operation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(filter_ptr, "value_color", UI_ITEM_NONE, IFACE_("Value"), ICON_NONE);
       if (operation == SPREADSHEET_ROW_FILTER_EQUAL) {
-        layout->prop(filter_ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+        layout.prop(filter_ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       }
       break;
     case SPREADSHEET_VALUE_TYPE_STRING:
-      layout->prop(filter_ptr, "value_string", UI_ITEM_NONE, IFACE_("Value"), ICON_NONE);
+      layout.prop(filter_ptr, "value_string", UI_ITEM_NONE, IFACE_("Value"), ICON_NONE);
       break;
     case SPREADSHEET_VALUE_TYPE_UNKNOWN:
     case SPREADSHEET_VALUE_TYPE_QUATERNION:
     case SPREADSHEET_VALUE_TYPE_FLOAT4X4:
-      layout->label(IFACE_("Unsupported column type"), ICON_ERROR);
+    case SPREADSHEET_VALUE_TYPE_BUNDLE_ITEM:
+      layout.label(IFACE_("Unsupported column type"), ICON_ERROR);
       break;
   }
 }
 
 static void spreadsheet_row_filters_layout(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
   ARegion *region = CTX_wm_region(C);
   bScreen *screen = CTX_wm_screen(C);
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  ListBase *row_filters = &sspreadsheet->row_filters;
+  ListBaseT<SpreadsheetRowFilter> *row_filters = &sspreadsheet->row_filters;
 
   if (!(sspreadsheet->filter_flag & SPREADSHEET_FILTER_ENABLE)) {
-    layout->active_set(false);
+    layout.active_set(false);
   }
 
-  layout->op("SPREADSHEET_OT_add_row_filter_rule", std::nullopt, ICON_ADD);
+  layout.op("SPREADSHEET_OT_add_row_filter_rule", std::nullopt, ICON_ADD);
 
-  const bool panels_match = UI_panel_list_matches_data(region, row_filters, filter_panel_id_fn);
+  const bool panels_match = ui::panel_list_matches_data(region, row_filters, filter_panel_id_fn);
 
   if (!panels_match) {
-    UI_panels_free_instanced(C, region);
-    LISTBASE_FOREACH (SpreadsheetRowFilter *, row_filter, row_filters) {
+    ui::panels_free_instanced(C, region);
+    for (SpreadsheetRowFilter &row_filter : *row_filters) {
       char panel_idname[MAX_NAME];
-      filter_panel_id_fn(row_filter, panel_idname);
+      filter_panel_id_fn(&row_filter, panel_idname);
 
       PointerRNA *filter_ptr = MEM_new<PointerRNA>("panel customdata");
       *filter_ptr = RNA_pointer_create_discrete(
-          &screen->id, &RNA_SpreadsheetRowFilter, row_filter);
+          &screen->id, RNA_SpreadsheetRowFilter, &row_filter);
 
-      UI_panel_add_instanced(C, region, &region->panels, panel_idname, filter_ptr);
+      ui::panel_add_instanced(C, region, &region->panels, panel_idname, filter_ptr);
     }
   }
   else {
     /* Assuming there's only one group of instanced panels, update the custom data pointers. */
-    Panel *panel_iter = (Panel *)region->panels.first;
-    LISTBASE_FOREACH (SpreadsheetRowFilter *, row_filter, row_filters) {
+    Panel *panel_iter = static_cast<Panel *>(region->panels.first);
+    for (SpreadsheetRowFilter &row_filter : *row_filters) {
 
       /* Move to the next instanced panel corresponding to the next filter. */
       while ((panel_iter->type == nullptr) || !(panel_iter->type->flag & PANEL_TYPE_INSTANCED)) {
@@ -307,8 +322,8 @@ static void spreadsheet_row_filters_layout(const bContext *C, Panel *panel)
 
       PointerRNA *filter_ptr = MEM_new<PointerRNA>("panel customdata");
       *filter_ptr = RNA_pointer_create_discrete(
-          &screen->id, &RNA_SpreadsheetRowFilter, row_filter);
-      UI_panel_custom_data_set(panel_iter, filter_ptr);
+          &screen->id, RNA_SpreadsheetRowFilter, &row_filter);
+      ui::panel_custom_data_set(panel_iter, filter_ptr);
 
       panel_iter = panel_iter->next;
     }
@@ -318,9 +333,9 @@ static void spreadsheet_row_filters_layout(const bContext *C, Panel *panel)
 static void filter_reorder(bContext *C, Panel *panel, int new_index)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  ListBase *row_filters = &sspreadsheet->row_filters;
-  PointerRNA *filter_ptr = UI_panel_custom_data_get(panel);
-  SpreadsheetRowFilter *filter = (SpreadsheetRowFilter *)filter_ptr->data;
+  ListBaseT<SpreadsheetRowFilter> *row_filters = &sspreadsheet->row_filters;
+  PointerRNA *filter_ptr = ui::panel_custom_data_get(panel);
+  SpreadsheetRowFilter *filter = static_cast<SpreadsheetRowFilter *>(filter_ptr->data);
 
   int current_index = BLI_findindex(row_filters, filter);
   BLI_assert(current_index >= 0);
@@ -331,16 +346,16 @@ static void filter_reorder(bContext *C, Panel *panel, int new_index)
 
 static short get_filter_expand_flag(const bContext * /*C*/, Panel *panel)
 {
-  PointerRNA *filter_ptr = UI_panel_custom_data_get(panel);
-  SpreadsheetRowFilter *filter = (SpreadsheetRowFilter *)filter_ptr->data;
+  PointerRNA *filter_ptr = ui::panel_custom_data_get(panel);
+  SpreadsheetRowFilter *filter = static_cast<SpreadsheetRowFilter *>(filter_ptr->data);
 
   return short(filter->flag) & SPREADSHEET_ROW_FILTER_UI_EXPAND;
 }
 
 static void set_filter_expand_flag(const bContext * /*C*/, Panel *panel, short expand_flag)
 {
-  PointerRNA *filter_ptr = UI_panel_custom_data_get(panel);
-  SpreadsheetRowFilter *filter = (SpreadsheetRowFilter *)filter_ptr->data;
+  PointerRNA *filter_ptr = ui::panel_custom_data_get(panel);
+  SpreadsheetRowFilter *filter = static_cast<SpreadsheetRowFilter *>(filter_ptr->data);
 
   SET_FLAG_FROM_TEST(filter->flag,
                      expand_flag & SPREADSHEET_ROW_FILTER_UI_EXPAND,
@@ -350,7 +365,7 @@ static void set_filter_expand_flag(const bContext * /*C*/, Panel *panel, short e
 void register_row_filter_panels(ARegionType &region_type)
 {
   {
-    PanelType *panel_type = MEM_callocN<PanelType>(__func__);
+    PanelType *panel_type = MEM_new_zeroed<PanelType>(__func__);
     STRNCPY_UTF8(panel_type->idname, "SPREADSHEET_PT_row_filters");
     STRNCPY_UTF8(panel_type->label, N_("Filters"));
     STRNCPY_UTF8(panel_type->category, "Filters");
@@ -361,7 +376,7 @@ void register_row_filter_panels(ARegionType &region_type)
   }
 
   {
-    PanelType *panel_type = MEM_callocN<PanelType>(__func__);
+    PanelType *panel_type = MEM_new_zeroed<PanelType>(__func__);
     STRNCPY_UTF8(panel_type->idname, "SPREADSHEET_PT_filter");
     STRNCPY_UTF8(panel_type->label, "");
     STRNCPY_UTF8(panel_type->category, "Filters");

@@ -10,6 +10,8 @@
 
 #include <Python.h>
 
+namespace blender {
+
 struct BPy_StructRNA;
 
 #if 0
@@ -19,3 +21,5 @@ struct BPy_StructRNA;
 
 [[nodiscard]] PyObject *pyrna_callback_classmethod_add(PyObject *self, PyObject *args);
 [[nodiscard]] PyObject *pyrna_callback_classmethod_remove(PyObject *self, PyObject *args);
+
+}  // namespace blender

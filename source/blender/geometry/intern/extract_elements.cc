@@ -254,7 +254,7 @@ Array<PointCloud *> extract_pointcloud_points(const PointCloud &pointcloud,
   mask.foreach_index(GrainSize(32), [&](const int point_i, const int element_i) {
     PointCloud *element = BKE_pointcloud_new_nomain(1);
     element->totcol = pointcloud.totcol;
-    element->mat = static_cast<Material **>(MEM_dupallocN(pointcloud.mat));
+    element->mat = MEM_dupalloc(pointcloud.mat);
 
     bke::gather_attributes(src_attributes,
                            AttrDomain::Point,
@@ -361,9 +361,9 @@ Array<bke::Instances *> extract_instances(const bke::Instances &instances,
     const bke::InstanceReference &old_reference = src_references[old_handle];
     const float4x4 &old_transform = src_transforms[instance_i];
 
-    Instances *element = new Instances();
-    const int new_handle = element->add_new_reference(old_reference);
-    element->add_instance(new_handle, old_transform);
+    Instances *element = new Instances(1);
+    element->reference_handles_for_write().first() = element->add_new_reference(old_reference);
+    element->transforms_for_write().first() = old_transform;
 
     bke::gather_attributes(src_attributes,
                            AttrDomain::Instance,
@@ -392,8 +392,7 @@ Array<GreasePencil *> extract_greasepencil_layers(const GreasePencil &grease_pen
 
   mask.foreach_index(GrainSize(32), [&](const int layer_i, const int element_i) {
     GreasePencil *element = BKE_grease_pencil_new_nomain();
-    element->material_array = static_cast<Material **>(
-        MEM_dupallocN(grease_pencil.material_array));
+    element->material_array = MEM_dupalloc(grease_pencil.material_array);
     element->material_array_num = grease_pencil.material_array_num;
 
     const Layer &src_layer = *src_layers[layer_i];
@@ -437,8 +436,7 @@ Array<GreasePencil *> extract_greasepencil_layer_points(
     const int curve_i = point_to_curve_map[point_i];
 
     GreasePencil *element = BKE_grease_pencil_new_nomain();
-    element->material_array = static_cast<Material **>(
-        MEM_dupallocN(grease_pencil.material_array));
+    element->material_array = MEM_dupalloc(grease_pencil.material_array);
     element->material_array_num = grease_pencil.material_array_num;
 
     Layer &new_layer = element->add_layer(src_layer.name());
@@ -494,8 +492,7 @@ Array<GreasePencil *> extract_greasepencil_layer_curves(
     const int points_num = src_points.size();
 
     GreasePencil *element = BKE_grease_pencil_new_nomain();
-    element->material_array = static_cast<Material **>(
-        MEM_dupallocN(grease_pencil.material_array));
+    element->material_array = MEM_dupalloc(grease_pencil.material_array);
     element->material_array_num = grease_pencil.material_array_num;
 
     Layer &new_layer = element->add_layer(src_layer.name());

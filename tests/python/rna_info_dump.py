@@ -97,7 +97,7 @@ def api_dump(use_properties=True, use_functions=True):
         data.insert(0, "# * properties *")
         return data
 
-    import rna_info
+    import _rna_info as rna_info
     struct = rna_info.BuildRNAInfo()[0]
     data = []
 

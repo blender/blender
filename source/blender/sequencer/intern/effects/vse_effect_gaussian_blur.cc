@@ -21,29 +21,24 @@ namespace blender::seq {
 
 static void init_gaussian_blur_effect(Strip *strip)
 {
-  if (strip->effectdata) {
-    MEM_freeN(strip->effectdata);
-  }
-
-  GaussianBlurVars *data = MEM_callocN<GaussianBlurVars>("gaussianblurvars");
+  GaussianBlurVars *data = MEM_new<GaussianBlurVars>("gaussianblurvars");
   strip->effectdata = data;
   data->size_x = 9.0f;
   data->size_y = 9.0f;
 }
 
+static void free_gaussian_blur_effect(Strip *strip, const bool /*do_id_user*/)
+{
+  if (strip->effectdata) {
+    GaussianBlurVars *data = static_cast<GaussianBlurVars *>(strip->effectdata);
+    MEM_delete(data);
+    strip->effectdata = nullptr;
+  }
+}
+
 static int num_inputs_gaussian_blur()
 {
   return 1;
-}
-
-static void free_gaussian_blur_effect(Strip *strip, const bool /*do_id_user*/)
-{
-  MEM_SAFE_FREE(strip->effectdata);
-}
-
-static void copy_gaussian_blur_effect(Strip *dst, const Strip *src, const int /*flag*/)
-{
-  dst->effectdata = MEM_dupallocN(src->effectdata);
 }
 
 static StripEarlyOut early_out_gaussian_blur(const Strip *strip, float /*fac*/)
@@ -139,14 +134,13 @@ static void gaussian_blur_y(const Span<float> gaussian,
 }
 
 static ImBuf *do_gaussian_blur_effect(const RenderData *context,
+                                      SeqRenderState * /*state*/,
                                       Strip *strip,
                                       float /*timeline_frame*/,
                                       float /*fac*/,
                                       ImBuf *ibuf1,
                                       ImBuf * /*ibuf2*/)
 {
-  using namespace blender;
-
   /* Create blur kernel weights. */
   const GaussianBlurVars *data = static_cast<const GaussianBlurVars *>(strip->effectdata);
 
@@ -229,7 +223,6 @@ void gaussian_blur_effect_get_handle(EffectHandle &rval)
   rval.init = init_gaussian_blur_effect;
   rval.num_inputs = num_inputs_gaussian_blur;
   rval.free = free_gaussian_blur_effect;
-  rval.copy = copy_gaussian_blur_effect;
   rval.early_out = early_out_gaussian_blur;
   rval.execute = do_gaussian_blur_effect;
 }

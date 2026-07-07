@@ -30,7 +30,7 @@ set(HEADER_SRC
 set(LIB
   cycles_scene
 
-  ${OSL_LIBRARIES}
+  PUBLIC bf::dependencies::optional::osl
   ${OPENIMAGEIO_LIBRARIES}
   ${PUGIXML_LIBRARIES}
 )

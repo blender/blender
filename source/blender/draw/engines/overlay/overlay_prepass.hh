@@ -43,7 +43,7 @@ class ImagePrepass : Overlay {
     ps_.draw(res.shapes.image_quad.get());
   }
 
-  void draw_on_render(GPUFrameBuffer *framebuffer, Manager &manager, View &view) final
+  void draw_on_render(gpu::FrameBuffer *framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
@@ -122,7 +122,7 @@ class Prepass : Overlay {
       pointcloud_ps_ = &sub;
     }
     {
-      auto &sub = ps_.sub("GreasePencil");
+      auto &sub = ps_.sub(RE_PASSNAME_GREASE_PENCIL);
       sub.shader_set(res.shaders->depth_grease_pencil.get());
       grease_pencil_ps_ = &sub;
     }
@@ -138,12 +138,12 @@ class Prepass : Overlay {
 
     ResourceHandleRange handle = {};
 
-    LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
-      if (!DRW_object_is_visible_psys_in_active_context(ob, psys)) {
+    for (ParticleSystem &psys : ob->particlesystem) {
+      if (!DRW_object_is_visible_psys_in_active_context(ob, &psys)) {
         continue;
       }
 
-      const ParticleSettings *part = psys->part;
+      const ParticleSettings *part = psys.part;
       const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
       switch (draw_as) {
         case PART_DRAW_PATH:
@@ -158,7 +158,7 @@ class Prepass : Overlay {
                                        res.select_id(ob_ref, part->omat << 16) :
                                        res.select_id(ob_ref);
 
-            gpu::Batch *geom = DRW_cache_particles_get_hair(ob, psys, nullptr);
+            gpu::Batch *geom = DRW_cache_particles_get_hair(ob, &psys, nullptr);
             mesh_ps_->draw(geom, handle, select_id.get());
             break;
           }
@@ -255,10 +255,14 @@ class Prepass : Overlay {
         geom_single = pointcloud_sub_pass_setup(*pointcloud_ps_, ob_ref.object);
         pass = pointcloud_ps_;
         break;
-      case OB_CURVES:
-        geom_single = curves_sub_pass_setup(*curves_ps_, state.scene, ob_ref.object);
+      case OB_CURVES: {
+        const char *error = nullptr;
+        /* The error string will always have been printed by the engine already.
+         * No need to display it twice. */
+        geom_single = curves_sub_pass_setup(*curves_ps_, state.scene, ob_ref.object, error);
         pass = curves_ps_;
         break;
+      }
       case OB_GREASE_PENCIL:
         if (!res.is_selection() && state.is_render_depth_available) {
           /* Disable during display, only enable for selection.

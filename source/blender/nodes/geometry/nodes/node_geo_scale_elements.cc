@@ -30,13 +30,13 @@ static const EnumPropertyItem scale_mode_items[] = {
     {GEO_NODE_SCALE_ELEMENTS_UNIFORM,
      "UNIFORM",
      ICON_NONE,
-     "Uniform",
-     "Scale elements by the same factor in every direction"},
+     N_("Uniform"),
+     N_("Scale elements by the same factor in every direction")},
     {GEO_NODE_SCALE_ELEMENTS_SINGLE_AXIS,
      "SINGLE_AXIS",
      ICON_NONE,
-     "Single Axis",
-     "Scale elements in a single direction"},
+     N_("Single Axis"),
+     N_("Scale elements in a single direction")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -60,7 +60,8 @@ static void node_declare(NodeDeclarationBuilder &b)
           "center is averaged");
   b.add_input<decl::Menu>("Scale Mode")
       .static_items(scale_mode_items)
-      .default_value(GEO_NODE_SCALE_ELEMENTS_UNIFORM);
+      .default_value(GEO_NODE_SCALE_ELEMENTS_UNIFORM)
+      .optional_label();
   b.add_input<decl::Vector>("Axis")
       .default_value({1.0f, 0.0f, 0.0f})
       .field_on_all()
@@ -68,9 +69,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       .usage_by_single_menu(GEO_NODE_SCALE_ELEMENTS_SINGLE_AXIS);
 };
 
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
+  layout.prop(ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -151,8 +152,8 @@ static Array<int> reverse_indices_in_groups(const Span<int> group_indices,
    * atomically by many threads in parallel. `calloc` can be measurably faster than a parallel fill
    * of zero. Alternatively the offsets could be copied and incremented directly, but the cost of
    * the copy is slightly higher than the cost of `calloc`. */
-  int *counts = MEM_calloc_arrayN<int>(offsets.size(), __func__);
-  BLI_SCOPED_DEFER([&]() { MEM_freeN(counts); })
+  int *counts = MEM_new_array_zeroed<int>(offsets.size(), __func__);
+  BLI_SCOPED_DEFER([&]() { MEM_delete(counts); })
   Array<int> results(group_indices.size());
   threading::parallel_for(group_indices.index_range(), 1024, [&](const IndexRange range) {
     for (const int64_t i : range) {
@@ -559,7 +560,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeScaleElements", GEO_NODE_SCALE_ELEMENTS);
   ntype.ui_name = "Scale Elements";
@@ -570,7 +571,7 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.draw_buttons = node_layout;
   ntype.initfunc = node_init;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

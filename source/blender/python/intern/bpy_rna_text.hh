@@ -10,5 +10,9 @@
 
 #include <Python.h>
 
+namespace blender {
+
 extern PyMethodDef BPY_rna_region_as_string_method_def;
 extern PyMethodDef BPY_rna_region_from_string_method_def;
+
+}  // namespace blender

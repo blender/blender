@@ -47,6 +47,7 @@ string string_hex(const uint8_t *data, const size_t size);
 string to_string(const char *str);
 string to_string(const float4 &v);
 string string_to_lower(const string &s);
+string string_remove_gpu_from_cpu_name(const string &s);
 
 /* Wide char strings are only used on Windows to deal with non-ASCII
  * characters in file names and such. No reason to use such strings

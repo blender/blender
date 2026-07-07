@@ -8,14 +8,18 @@
 
 #pragma once
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 class Texture;
 }
 struct GPUViewport;
 struct DRWContext;
 
-namespace blender::draw::color_management {
+namespace draw::color_management {
 
 void viewport_color_management_set(GPUViewport &viewport, DRWContext &draw_ctx);
 
-}  // namespace blender::draw::color_management
+}  // namespace draw::color_management
+
+}  // namespace blender

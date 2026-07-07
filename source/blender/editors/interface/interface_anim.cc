@@ -40,8 +40,10 @@
 
 #include "interface_intern.hh"
 
+namespace blender::ui {
+
 static FCurve *ui_but_get_fcurve(
-    uiBut *but, AnimData **adt, bAction **action, bool *r_driven, bool *r_special)
+    Button *but, AnimData **adt, bAction **action, bool *r_driven, bool *r_special)
 {
   /* for entire array buttons we check the first component, it's not perfect
    * but works well enough in typical cases */
@@ -57,11 +59,11 @@ static FCurve *ui_but_get_fcurve(
                                            r_special);
 }
 
-void ui_but_anim_flag(uiBut *but, const AnimationEvalContext *anim_eval_context)
+void button_anim_flag(Button *but, const AnimationEvalContext *anim_eval_context)
 {
   /* Clear the flags that this function might set. */
-  but->flag &= ~(UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN);
-  but->drawflag &= ~UI_BUT_ANIMATED_CHANGED;
+  but->flag &= ~(BUT_ANIMATED | BUT_ANIMATED_KEY | BUT_DRIVEN);
+  but->drawflag &= ~BUT_ANIMATED_CHANGED;
 
   /* NOTE: "special" is reserved for special F-Curves stored on the animation data
    *        itself (which are used to animate properties of the animation data).
@@ -77,7 +79,7 @@ void ui_but_anim_flag(uiBut *but, const AnimationEvalContext *anim_eval_context)
     return;
   }
   if (driven) {
-    but->flag |= UI_BUT_DRIVEN;
+    but->flag |= BUT_DRIVEN;
     return;
   }
 
@@ -86,7 +88,7 @@ void ui_but_anim_flag(uiBut *but, const AnimationEvalContext *anim_eval_context)
     return;
   }
 
-  but->flag |= UI_BUT_ANIMATED;
+  but->flag |= BUT_ANIMATED;
 
   /* #41525 - When the active action is a NLA strip being edited,
    * we need to correct the frame number to "look inside" the
@@ -97,8 +99,8 @@ void ui_but_anim_flag(uiBut *but, const AnimationEvalContext *anim_eval_context)
     cfra = BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
   }
 
-  if (blender::animrig::fcurve_frame_has_keyframe(fcu, cfra)) {
-    but->flag |= UI_BUT_ANIMATED_KEY;
+  if (animrig::fcurve_frame_has_keyframe(fcu, cfra)) {
+    but->flag |= BUT_ANIMATED_KEY;
   }
 
   /* This feature is not implemented at all for the NLA. However, if the NLA just consists of
@@ -106,8 +108,8 @@ void ui_but_anim_flag(uiBut *but, const AnimationEvalContext *anim_eval_context)
    * non-existent here. Note that this is mostly to play nice with stashed Actions, and doesn't
    * fully look at all the track & strip flags. */
   if (adt) {
-    LISTBASE_FOREACH (NlaTrack *, nla_track, &adt->nla_tracks) {
-      if (!(nla_track->flag & NLATRACK_MUTED)) {
+    for (NlaTrack &nla_track : adt->nla_tracks) {
+      if (!(nla_track.flag & NLATRACK_MUTED)) {
         /* Found a non-muted track, so this NLA is not purely for stashing Actions. */
         return;
       }
@@ -117,15 +119,15 @@ void ui_but_anim_flag(uiBut *but, const AnimationEvalContext *anim_eval_context)
   const AnimationEvalContext remapped_context = BKE_animsys_eval_context_construct_at(
       anim_eval_context, cfra);
   if (fcurve_is_changed(but->rnapoin, but->rnaprop, fcu, &remapped_context)) {
-    but->drawflag |= UI_BUT_ANIMATED_CHANGED;
+    but->drawflag |= BUT_ANIMATED_CHANGED;
   }
 }
 
-static uiBut *ui_but_anim_decorate_find_attached_button(uiButDecorator *but)
+static Button *ui_but_anim_decorate_find_attached_button(ButtonDecorator *but)
 {
-  uiBut *but_iter = nullptr;
+  Button *but_iter = nullptr;
 
-  BLI_assert(UI_but_is_decorator(but));
+  BLI_assert(button_is_decorator(but));
   BLI_assert(but->decorated_rnapoin.data && but->decorated_rnaprop);
   if (but->block->buttons.is_empty()) {
     return nullptr;
@@ -136,7 +138,7 @@ static uiBut *ui_but_anim_decorate_find_attached_button(uiButDecorator *but)
   do {
     but_iter = but->block->buttons[i].get();
     if (but_iter != but &&
-        ui_but_rna_equals_ex(
+        button_rna_equals_ex(
             but_iter, &but->decorated_rnapoin, but->decorated_rnaprop, but->decorated_rnaindex))
     {
       return but_iter;
@@ -147,14 +149,14 @@ static uiBut *ui_but_anim_decorate_find_attached_button(uiButDecorator *but)
   return nullptr;
 }
 
-void ui_but_anim_decorate_update_from_flag(uiButDecorator *but)
+void button_anim_decorate_update_from_flag(ButtonDecorator *but)
 {
   if (!but->decorated_rnapoin.data || !but->decorated_rnaprop) {
     /* Nothing to do. */
     return;
   }
 
-  const uiBut *but_anim = ui_but_anim_decorate_find_attached_button(but);
+  const Button *but_anim = ui_but_anim_decorate_find_attached_button(but);
 
   if (!but_anim) {
     printf("Could not find button with matching property to decorate (%s.%s)\n",
@@ -165,19 +167,19 @@ void ui_but_anim_decorate_update_from_flag(uiButDecorator *but)
 
   const int flag = but_anim->flag;
 
-  if (flag & UI_BUT_DRIVEN) {
+  if (flag & BUT_DRIVEN) {
     but->icon = ICON_DECORATE_DRIVER;
     but->toggle_keyframe_on_click = false;
   }
-  else if (flag & UI_BUT_ANIMATED_KEY) {
+  else if (flag & BUT_ANIMATED_KEY) {
     but->icon = ICON_DECORATE_KEYFRAME;
     but->toggle_keyframe_on_click = true;
   }
-  else if (flag & UI_BUT_ANIMATED) {
+  else if (flag & BUT_ANIMATED) {
     but->icon = ICON_DECORATE_ANIMATE;
     but->toggle_keyframe_on_click = true;
   }
-  else if (flag & UI_BUT_OVERRIDDEN) {
+  else if (flag & BUT_OVERRIDDEN) {
     but->icon = ICON_DECORATE_OVERRIDE;
     but->toggle_keyframe_on_click = false;
   }
@@ -186,11 +188,11 @@ void ui_but_anim_decorate_update_from_flag(uiButDecorator *but)
     but->toggle_keyframe_on_click = true;
   }
 
-  const int flag_copy = (UI_BUT_DISABLED | UI_BUT_INACTIVE);
+  const int flag_copy = (BUT_DISABLED | BUT_INACTIVE);
   but->flag = (but->flag & ~flag_copy) | (flag & flag_copy);
 }
 
-bool ui_but_anim_expression_get(uiBut *but, char *str, size_t str_maxncpy)
+bool button_anim_expression_get(Button *but, char *str, size_t str_maxncpy)
 {
   FCurve *fcu;
   ChannelDriver *driver;
@@ -212,7 +214,7 @@ bool ui_but_anim_expression_get(uiBut *but, char *str, size_t str_maxncpy)
   return false;
 }
 
-bool ui_but_anim_expression_set(uiBut *but, const char *str)
+bool button_anim_expression_set(Button *but, const char *str)
 {
   FCurve *fcu;
   ChannelDriver *driver;
@@ -247,7 +249,7 @@ bool ui_but_anim_expression_set(uiBut *but, const char *str)
   return false;
 }
 
-bool ui_but_anim_expression_create(uiBut *but, const char *str)
+bool button_anim_expression_create(Button *but, const char *str)
 {
   bContext *C = static_cast<bContext *>(but->block->evil_C);
   ID *id;
@@ -313,69 +315,60 @@ bool ui_but_anim_expression_create(uiBut *but, const char *str)
   return ok;
 }
 
-void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
+void button_anim_autokey(bContext *C, Button *but, Scene *scene, float cfra)
 {
-  blender::animrig::autokeyframe_property(
-      C, scene, &but->rnapoin, but->rnaprop, but->rnaindex, cfra, true);
+  animrig::autokeyframe_property(C, scene, &but->rnapoin, but->rnaprop, but->rnaindex, cfra, true);
 }
 
-void ui_but_anim_copy_driver(bContext *C)
+void button_anim_copy_driver(bContext *C)
 {
-  /* this operator calls UI_context_active_but_prop_get */
-  WM_operator_name_call(C,
-                        "ANIM_OT_copy_driver_button",
-                        blender::wm::OpCallContext::InvokeDefault,
-                        nullptr,
-                        nullptr);
+  /* this operator calls context_active_but_prop_get */
+  WM_operator_name_call(
+      C, "ANIM_OT_copy_driver_button", wm::OpCallContext::InvokeDefault, nullptr, nullptr);
 }
 
-void ui_but_anim_paste_driver(bContext *C)
+void button_anim_paste_driver(bContext *C)
 {
-  /* this operator calls UI_context_active_but_prop_get */
-  WM_operator_name_call(C,
-                        "ANIM_OT_paste_driver_button",
-                        blender::wm::OpCallContext::InvokeDefault,
-                        nullptr,
-                        nullptr);
+  /* this operator calls context_active_but_prop_get */
+  WM_operator_name_call(
+      C, "ANIM_OT_paste_driver_button", wm::OpCallContext::InvokeDefault, nullptr, nullptr);
 }
 
-void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void * /*arg_dummy*/)
+void button_anim_decorate_cb(bContext *C, void *arg_but, void * /*arg_dummy*/)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  uiButDecorator *but_decorate = static_cast<uiButDecorator *>(arg_but);
+  auto *but_decorate = static_cast<ButtonDecorator *>(arg_but);
   if (!but_decorate->toggle_keyframe_on_click) {
     return;
   }
 
-  uiBut *but_anim = ui_but_anim_decorate_find_attached_button(but_decorate);
+  Button *but_anim = ui_but_anim_decorate_find_attached_button(but_decorate);
   if (!but_anim) {
     return;
   }
 
   /* While click drag the active button may not be `but_decorate`, instead is the but where the
    * drag started, temporarily override `but_anim` as active. */
-  but_anim->flag |= UI_BUT_ACTIVE_OVERRIDE;
+  but_anim->flag |= BUT_ACTIVE_OVERRIDE;
   wm->op_undo_depth++;
 
-  if (but_anim->flag & UI_BUT_ANIMATED_KEY) {
-    PointerRNA props_ptr;
+  if (but_anim->flag & BUT_ANIMATED_KEY) {
     wmOperatorType *ot = WM_operatortype_find("ANIM_OT_keyframe_delete_button", false);
-    WM_operator_properties_create_ptr(&props_ptr, ot);
+    PointerRNA props_ptr = WM_operator_properties_create_ptr(ot);
     RNA_boolean_set(&props_ptr, "all", but_anim->rnaindex == -1);
-    WM_operator_name_call_ptr(
-        C, ot, blender::wm::OpCallContext::InvokeDefault, &props_ptr, nullptr);
+    WM_operator_name_call_ptr(C, ot, wm::OpCallContext::InvokeDefault, &props_ptr, nullptr);
     WM_operator_properties_free(&props_ptr);
   }
   else {
-    PointerRNA props_ptr;
     wmOperatorType *ot = WM_operatortype_find("ANIM_OT_keyframe_insert_button", false);
-    WM_operator_properties_create_ptr(&props_ptr, ot);
+    PointerRNA props_ptr = WM_operator_properties_create_ptr(ot);
     RNA_boolean_set(&props_ptr, "all", but_anim->rnaindex == -1);
-    WM_operator_name_call_ptr(
-        C, ot, blender::wm::OpCallContext::InvokeDefault, &props_ptr, nullptr);
+    WM_operator_name_call_ptr(C, ot, wm::OpCallContext::InvokeDefault, &props_ptr, nullptr);
     WM_operator_properties_free(&props_ptr);
   }
 
-  but_anim->flag &= ~UI_BUT_ACTIVE_OVERRIDE;
+  but_anim->flag &= ~BUT_ACTIVE_OVERRIDE;
   wm->op_undo_depth--;
 }
+
+}  // namespace blender::ui

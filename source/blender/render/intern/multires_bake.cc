@@ -103,7 +103,9 @@
 
 #include "RE_texture_margin.h"
 
-namespace blender::render {
+namespace blender {
+
+namespace render {
 namespace {
 
 namespace subdiv = bke::subdiv;
@@ -234,8 +236,7 @@ struct MeshArrays {
   {
     bke::AttributeAccessor attributes = mesh.attributes();
 
-    const StringRef active_uv_map = CustomData_get_active_layer_name(&mesh.corner_data,
-                                                                     CD_PROP_FLOAT2);
+    const StringRef active_uv_map = mesh.active_uv_map_name();
     vert_positions = mesh.vert_positions();
     vert_normals = mesh.vert_normals();
 
@@ -1058,7 +1059,7 @@ static Array<GridCoord> get_subdivided_corner_grid_coords(subdiv::Subdiv &subdiv
                                      const int /*num_edges*/,
                                      const int num_corners,
                                      const int /*num_faces*/,
-                                     const int * /*subdiv_face_offset*/) -> bool {
+                                     const Span<int> /*subdiv_face_offset*/) -> bool {
     SubdividedCornerGridCoordData *data = static_cast<SubdividedCornerGridCoordData *>(
         context->user_data);
     data->corner_grid_coords.reinitialize(num_corners);
@@ -1074,7 +1075,7 @@ static Array<GridCoord> get_subdivided_corner_grid_coords(subdiv::Subdiv &subdiv
                             const int coarse_face_index,
                             const int coarse_corner,
                             const int subdiv_corner_index,
-                            const int /*subdiv_vertex_index*/,
+                            const int /*subdiv_vert_index*/,
                             const int /*subdiv_edge_index*/) {
     SubdividedCornerGridCoordData *data = static_cast<SubdividedCornerGridCoordData *>(
         context->user_data);
@@ -1109,7 +1110,7 @@ static void rasterize_subdivided_face(const MultiresBaker &baker,
 {
   const IndexRange &face = mesh_arrays.faces[face_index];
 
-  /* This code operates with mesh with at leats one subdivision level applied. Such mesh only has
+  /* This code operates with mesh with at least one subdivision level applied. Such mesh only has
    * quad faces as per how subdivision works. */
   BLI_assert(face.size() == 4);
 
@@ -1123,15 +1124,15 @@ static void rasterize_subdivided_face(const MultiresBaker &baker,
 
   for (int i = 0; i < 4; ++i) {
     const int corner = face[i];
-    const int vertex = mesh_arrays.corner_verts[corner];
+    const int vert = mesh_arrays.corner_verts[corner];
 
     BLI_assert(corner_grid_coords[corner].grid_index == quad.grid_index);
     quad.grid_uvs[i] = corner_grid_coords[corner].uv;
 
     quad.tex_uvs[i] = mesh_arrays.uv_map[corner] - tile.uv_offset;
-    quad.positions[i] = mesh_arrays.vert_positions[vertex];
+    quad.positions[i] = mesh_arrays.vert_positions[vert];
     if (!quad.is_flat) {
-      quad.normals[i] = mesh_arrays.vert_normals[vertex];
+      quad.normals[i] = mesh_arrays.vert_normals[vert];
     }
 
     if (quad.has_uv_tangents) {
@@ -1314,7 +1315,7 @@ static Array<GridCoord> get_highres_mesh_loop_grid_coords(
                                      const int /*num_edges*/,
                                      const int num_corners,
                                      const int /*num_faces*/,
-                                     const int * /*subdiv_face_offset*/) -> bool {
+                                     const Span<int> /*subdiv_face_offset*/) -> bool {
     HighresCornerGridCoordData *data = static_cast<HighresCornerGridCoordData *>(
         context->user_data);
     data->corner_grid_coords.reinitialize(num_corners);
@@ -1330,7 +1331,7 @@ static Array<GridCoord> get_highres_mesh_loop_grid_coords(
                             const int bake_level_face_index,
                             const int /*bake_level_corner*/,
                             const int highres_corner_index,
-                            const int /*highres_vertex_index*/,
+                            const int /*highres_vert_index*/,
                             const int /*highres_edge_index*/) {
     HighresCornerGridCoordData *data = static_cast<HighresCornerGridCoordData *>(
         context->user_data);
@@ -1488,10 +1489,10 @@ static void bake_images(MultiresBakeRender &bake,
                         MultiresBakeResult &result)
 {
   for (Image *image : bake.images) {
-    LISTBASE_FOREACH (ImageTile *, image_tile, &image->tiles) {
+    for (ImageTile &image_tile : image->tiles) {
       ImageUser iuser;
       BKE_imageuser_default(&iuser);
-      iuser.tile = image_tile->tile_number;
+      iuser.tile = image_tile.tile_number;
 
       ImBuf *ibuf = BKE_image_acquire_ibuf(image, &iuser, nullptr);
       if (ibuf && ibuf->x > 0 && ibuf->y > 0) {
@@ -1500,14 +1501,14 @@ static void bake_images(MultiresBakeRender &bake,
         BakedImBuf &baked_ibuf = result.baked_ibufs.last();
         baked_ibuf.image = image;
         baked_ibuf.ibuf = ibuf;
-        baked_ibuf.uv_offset = get_tile_uv(*image, *image_tile);
+        baked_ibuf.uv_offset = get_tile_uv(*image, image_tile);
 
         ExtraBuffers &extra_buffers = baked_ibuf.extra_buffers;
         extra_buffers.mask_buffer.reinitialize(int64_t(ibuf->y) * ibuf->x);
         extra_buffers.mask_buffer.fill(FILTER_MASK_NULL);
 
         bake_single_image(
-            bake, bake_level_mesh, subdiv_ccg, *image, *image_tile, *ibuf, extra_buffers, result);
+            bake, bake_level_mesh, subdiv_ccg, *image, image_tile, *ibuf, extra_buffers, result);
       }
     }
   }
@@ -1575,10 +1576,12 @@ static void bake_ibuf_filter(ImBuf &ibuf,
   if (margin) {
     switch (margin_type) {
       case R_BAKE_ADJACENT_FACES: {
-        const char *active_uv_map = CustomData_get_active_layer_name(&bake_level_mesh.corner_data,
-                                                                     CD_PROP_FLOAT2);
-        RE_generate_texturemargin_adjacentfaces(
-            &ibuf, mask.data(), margin, &bake_level_mesh, active_uv_map, uv_offset);
+        RE_generate_texturemargin_adjacentfaces(&ibuf,
+                                                mask.data(),
+                                                margin,
+                                                &bake_level_mesh,
+                                                bake_level_mesh.active_uv_map_name(),
+                                                uv_offset);
         break;
       }
       default:
@@ -1697,7 +1700,7 @@ static Mesh *create_bake_level_mesh(const Mesh &base_mesh,
 /** \} */
 
 }  // namespace
-}  // namespace blender::render
+}  // namespace render
 
 void RE_multires_bake_images(MultiresBakeRender &bake)
 {
@@ -1725,3 +1728,5 @@ void RE_multires_bake_images(MultiresBakeRender &bake)
     BKE_id_free(nullptr, bake_level_mesh);
   }
 }
+
+}  // namespace blender

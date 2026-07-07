@@ -12,6 +12,8 @@
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
+namespace blender {
+
 bool BLI_temp_directory_path_copy_if_valid(char *tempdir,
                                            const size_t tempdir_maxncpy,
                                            const char *dirpath)
@@ -72,3 +74,5 @@ void BLI_temp_directory_path_get(char *tempdir, const size_t tempdir_maxncpy)
     BLI_strncpy(tempdir, "/tmp/", tempdir_maxncpy);
   }
 }
+
+}  // namespace blender

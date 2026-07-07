@@ -1,0 +1,70 @@
+diff -Naur eigen.base/Eigen/src/SparseCore/SparseDenseProduct.h external_eigen/Eigen/src/SparseCore/SparseDenseProduct.h
+--- eigen.base/Eigen/src/SparseCore/SparseDenseProduct.h	2026-01-12 11:46:25.135745600 -0800
++++ external_eigen/Eigen/src/SparseCore/SparseDenseProduct.h	2026-01-15 11:02:49.671711500 -0800
+@@ -13,6 +13,10 @@
+ // IWYU pragma: private
+ #include "./InternalHeaderCheck.h"
+ 
++#ifdef EIGEN_HAS_TBB
++#include <tbb/parallel_for.h>
++#endif
++
+ namespace Eigen {
+ 
+ namespace internal {
+@@ -49,6 +53,15 @@
+ #endif
+ 
+     for (Index c = 0; c < rhs.cols(); ++c) {
++#ifdef EIGEN_HAS_TBB
++    if(lhsEval.nonZerosEstimate() > 20000) {
++        tbb::parallel_for(tbb::blocked_range<Index>(0, n, 1024),
++          [&](const tbb::blocked_range<Index>& range) {
++            for(Index i=range.begin(); i<range.end(); ++i)
++              processRow(lhsEval,rhs,res,alpha,i,c);
++        });
++    } else
++#else
+ #ifdef EIGEN_HAS_OPENMP
+       // This 20000 threshold has been found experimentally on 2D and 3D Poisson problems.
+       // It basically represents the minimal amount of work to be done to be worth it.
+@@ -57,6 +70,7 @@
+         for (Index i = 0; i < n; ++i) processRow(lhsEval, rhs, res, alpha, i, c);
+       } else
+ #endif
++#endif
+       {
+         for (Index i = 0; i < n; ++i) processRow(lhsEval, rhs, res, alpha, i, c);
+       }
+@@ -123,14 +137,24 @@
+     Index n = lhs.rows();
+     LhsEval lhsEval(lhs);
+ 
+-#ifdef EIGEN_HAS_OPENMP
+-    Index threads = Eigen::nbThreads();
+-    // This 20000 threshold has been found experimentally on 2D and 3D Poisson problems.
+-    // It basically represents the minimal amount of work to be done to be worth it.
+-    if (threads > 1 && lhsEval.nonZerosEstimate() * rhs.cols() > 20000) {
+-#pragma omp parallel for schedule(dynamic, (n + threads * 4 - 1) / (threads * 4)) num_threads(threads)
+-      for (Index i = 0; i < n; ++i) processRow(lhsEval, rhs, res, alpha, i);
++#ifdef EIGEN_HAS_TBB
++    if(lhsEval.nonZerosEstimate()*rhs.cols() > 20000) {
++      tbb::parallel_for(tbb::blocked_range<Index>(0, n, 1024),
++        [&](const tbb::blocked_range<Index>& range) {
++          for(Index i=range.begin(); i<range.end(); ++i)
++            processRow(lhsEval,rhs,res,alpha,i);
++      });
+     } else
++#else
++	#ifdef EIGEN_HAS_OPENMP
++		Index threads = Eigen::nbThreads();
++		// This 20000 threshold has been found experimentally on 2D and 3D Poisson problems.
++		// It basically represents the minimal amount of work to be done to be worth it.
++		if (threads > 1 && lhsEval.nonZerosEstimate() * rhs.cols() > 20000) {
++	#pragma omp parallel for schedule(dynamic, (n + threads * 4 - 1) / (threads * 4)) num_threads(threads)
++		  for (Index i = 0; i < n; ++i) processRow(lhsEval, rhs, res, alpha, i);
++		} else
++	#endif
+ #endif
+     {
+       for (Index i = 0; i < n; ++i) processRow(lhsEval, rhs, res, alpha, i);

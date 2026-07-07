@@ -16,7 +16,7 @@ namespace blender::nodes {
  */
 struct RepeatItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeRepeatItem;
-  static StructRNA *item_srna;
+  static StructRNA **item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "GeometryNodeRepeatOutput";
   static constexpr bool has_type = true;
@@ -48,7 +48,7 @@ struct RepeatItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
 
   static void destruct_item(NodeRepeatItem *item)
   {
-    MEM_SAFE_FREE(item->name);
+    MEM_SAFE_DELETE(item->name);
   }
 
   static void blend_write_item(BlendWriter *writer, const ItemT &item);
@@ -66,37 +66,7 @@ struct RepeatItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
 
   static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int ntree_type)
   {
-    switch (ntree_type) {
-      case NTREE_GEOMETRY:
-        return ELEM(socket_type,
-                    SOCK_FLOAT,
-                    SOCK_VECTOR,
-                    SOCK_RGBA,
-                    SOCK_BOOLEAN,
-                    SOCK_ROTATION,
-                    SOCK_MATRIX,
-                    SOCK_INT,
-                    SOCK_STRING,
-                    SOCK_GEOMETRY,
-                    SOCK_OBJECT,
-                    SOCK_MATERIAL,
-                    SOCK_IMAGE,
-                    SOCK_COLLECTION,
-                    SOCK_BUNDLE,
-                    SOCK_CLOSURE);
-      case NTREE_SHADER:
-        return ELEM(socket_type,
-                    SOCK_FLOAT,
-                    SOCK_VECTOR,
-                    SOCK_RGBA,
-                    SOCK_SHADER,
-                    SOCK_BUNDLE,
-                    SOCK_CLOSURE,
-                    SOCK_INT);
-      default:
-        BLI_assert_unreachable();
-        return false;
-    }
+    return bke::node_tree_type_supports_socket_type_static(ntree_type, socket_type);
   }
 
   static void init_with_socket_type_and_name(bNode &node,

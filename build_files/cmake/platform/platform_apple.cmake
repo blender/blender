@@ -42,10 +42,11 @@ if(WITH_APPLE_CROSSPLATFORM)
   #       (Set DPXR_ENABLE_METAL_SUPPORT=ON in usd.cmake for WITH_APPLE_CROSSPLATFORM platform)
   set(WITH_HYDRA  OFF CACHE BOOL "Auto disabled due to lack of HgI/Hydra Storm for Metal on iOS" FORCE)
   set(WITH_CYCLES_OSL OFF CACHE BOOL "Support for build time compilation of OSL Shaders not supported yet on iOS" FORCE)
+  set(WITH_XR_OPENXR OFF CACHE BOOL "Auto disabled due to lack of openxr support" FORCE)
 
   # --- Cross compile host tools ----
 
-  # Enable cross-compiled tools (glsl_preprocess, makesdna, makesrna etc.)
+  # Enable cross-compiled tools (shader_tool, makesdna, makesrna etc.)
   set(WITH_CROSSCOMPILED_TOOLS ON CACHE BOOL "" FORCE)
 
   # Fetch Cmake arguments for host build process, ensuring these are consistent with what is
@@ -68,7 +69,7 @@ if(WITH_APPLE_CROSSPLATFORM)
     endif()
   endforeach()
 
-  message(STATUS " \n---------------------------\n CROSS COMPILE TOOLS:\n\nDetect CMake configuration for host-tools-build (datatoc, datatoc_icon, makesdna, makesrna, msgformat, glsl_preprocess) \n\nInheriting CMAKE_ARGS:\n${CMAKE_ARGS}\n")
+  message(STATUS " \n---------------------------\n CROSS COMPILE TOOLS:\n\nDetect CMake configuration for host-tools-build (datatoc, datatoc_icon, makesdna, makesrna, msgformat, shader_tool) \n\nInheriting CMAKE_ARGS:\n${CMAKE_ARGS}\n")
 
 
   # Run host build process to ensure host tools are up to date. (creating build_darwin_tools folder)
@@ -83,6 +84,8 @@ if(WITH_APPLE_CROSSPLATFORM)
   # That might still be a better option though. See "debug_size_" in BLI_vector.hh for an example of this.
   set(CMAKE_TOOLS_ARGS "${CMAKE_TOOLS_ARGS} -DCMAKE_C_FLAGS=\"-DWITH_CROSSCOMPILED_TOOLS -DWITH_APPLE_CROSSPLATFORM\"")
   set(CMAKE_TOOLS_ARGS "${CMAKE_TOOLS_ARGS} -DCMAKE_CXX_FLAGS=\"-DWITH_CROSSCOMPILED_TOOLS -DWITH_APPLE_CROSSPLATFORM\"")
+  # Explicitly set paths for BLAS and LAPACK.
+  set(CMAKE_TOOLS_ARGS "${CMAKE_TOOLS_ARGS} -DBLA_VENDOR=Apple -DBLAS_Accelerate_LIBRARY=/System/Library/Frameworks/Accelerate.framework -DLAPACK_Accelerate_LIBRARY=/System/Library/Frameworks/Accelerate.framework")
 
   get_filename_component(CMAKE_BIN_DIRECTORY "${CMAKE_COMMAND}" DIRECTORY)
   add_custom_target(blender_cross_tools_compile
@@ -99,29 +102,29 @@ if(WITH_APPLE_CROSSPLATFORM)
   add_executable(msgfmt IMPORTED GLOBAL)
   add_executable(datatoc IMPORTED GLOBAL)
   #add_executable(datatoc_icon IMPORTED GLOBAL)
-  add_executable(glsl_preprocess IMPORTED GLOBAL)
+  add_executable(shader_tool IMPORTED GLOBAL)
   add_dependencies(makesdna blender_cross_tools_compile)
   add_dependencies(makesrna blender_cross_tools_compile)
   add_dependencies(msgfmt blender_cross_tools_compile)
   add_dependencies(datatoc blender_cross_tools_compile)
   #add_dependencies(datatoc_icon blender_cross_tools_compile)
-  add_dependencies(glsl_preprocess blender_cross_tools_compile)
+  add_dependencies(shader_tool blender_cross_tools_compile)
   message(STATUS "Host tools will be generated in: ${CROSSCOMPILE_TOOLDIR}")
   set_property(TARGET makesdna PROPERTY IMPORTED_LOCATION "${CROSSCOMPILE_TOOLDIR}/bin/makesdna")
   set_property(TARGET makesrna PROPERTY IMPORTED_LOCATION "${CROSSCOMPILE_TOOLDIR}/bin/makesrna")
   set_property(TARGET msgfmt PROPERTY IMPORTED_LOCATION "${CROSSCOMPILE_TOOLDIR}/bin/msgfmt")
   set_property(TARGET datatoc PROPERTY IMPORTED_LOCATION "${CROSSCOMPILE_TOOLDIR}/bin/datatoc")
   #set_property(TARGET datatoc_icon PROPERTY IMPORTED_LOCATION "${CROSSCOMPILE_TOOLDIR}/bin/datatoc_icon")
-  set_property(TARGET glsl_preprocess PROPERTY IMPORTED_LOCATION "${CROSSCOMPILE_TOOLDIR}/bin/glsl_preprocess")
+  set_property(TARGET shader_tool PROPERTY IMPORTED_LOCATION "${CROSSCOMPILE_TOOLDIR}/bin/shader_tool")
   message(STATUS "makesdna: ${CROSSCOMPILE_TOOLDIR}/bin/makesdna")
   message(STATUS "makesrna: ${CROSSCOMPILE_TOOLDIR}/bin/makesrna")
   message(STATUS "msgfmt: ${CROSSCOMPILE_TOOLDIR}/bin/msgfmt")
   message(STATUS "datatoc: ${CROSSCOMPILE_TOOLDIR}/bin/datatoc")
   #message(STATUS "datatoc_icon: ${CROSSCOMPILE_TOOLDIR}/bin/datatoc_icon")
-  message(STATUS "glsl_preprocess: ${CROSSCOMPILE_TOOLDIR}/bin/glsl_preprocess")
+  message(STATUS "shader_tool: ${CROSSCOMPILE_TOOLDIR}/bin/shader_tool")
   message(STATUS "\n---------------------------\n")
 else()
-  # Disable cross-compiled tools (glsl_preprocess, makesdna, makesrna etc.) if building on host.
+  # Disable cross-compiled tools (shader_tool, makesdna, makesrna etc.) if building on host.
   set(WITH_CROSSCOMPILED_TOOLS OFF CACHE BOOL "" FORCE)
 endif()
 
@@ -207,12 +210,21 @@ else()
   # When building for iOS we use the MacOS version of Python from the macos libs dir
   set(CROSSCOMPILE_HOST_LIBDIR "${CMAKE_SOURCE_DIR}/lib/macos_arm64")
   if(NOT PYTHON_VERSION)
-	# IOS_FIXME: This is not great why is PYTHON_VERSION not defined here?
-	message("WARNING Manually defining Python Version to 3.11 for iOS build")
-	set(PYTHON_EXECUTABLE "${CROSSCOMPILE_HOST_LIBDIR}/python/bin/python3.11")
+    set(PYTHON_VERSION 3.13)
+    # IOS_FIXME: This is not great why is PYTHON_VERSION not defined here?
+    message("WARNING Manually defining Python Version to 3.13 for iOS build")
+    set(PYTHON_EXECUTABLE "${CROSSCOMPILE_HOST_LIBDIR}/python/bin/python3.13")
   else()
     set(PYTHON_EXECUTABLE "${CROSSCOMPILE_HOST_LIBDIR}/python/bin/python${PYTHON_VERSION}")
   endif()
+
+  set(PYTHON_INCLUDE_DIR "${LIBDIR}/python/include/python${PYTHON_VERSION}")
+  set(PYTHON_LIBPATH "${LIBDIR}/python/lib")
+
+  set(PYTHON_LIBRARIES
+    "${LIBDIR}/python/lib/libpython${PYTHON_VERSION}.a"
+  )
+
   if(NOT EXISTS ${PYTHON_EXECUTABLE})
     message(
       FATAL_ERROR
@@ -333,10 +345,12 @@ add_bundled_libraries(imath/lib)
 if(WITH_CODEC_FFMPEG)
   set(FFMPEG_ROOT_DIR ${LIBDIR}/ffmpeg)
   set(FFMPEG_FIND_COMPONENTS
-    avcodec avdevice avformat avutil
+    avcodec avdevice avfilter avformat avutil
     mp3lame ogg opus swresample swscale
     theora theoradec theoraenc vorbis vorbisenc
     vorbisfile vpx x264)
+  # Frameworks required by libavfilter, using legacy macOS CGL
+  string(APPEND PLATFORM_LINKFLAGS " -framework CoreImage -framework OpenGL")
   if(EXISTS ${LIBDIR}/ffmpeg/lib/libaom.a)
     list(APPEND FFMPEG_FIND_COMPONENTS aom)
   endif()
@@ -371,7 +385,6 @@ if(WITH_APPLE_CROSSPLATFORM)
   set(PLATFORM_LINKFLAGS
     "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework UIKit -framework AudioToolbox -framework CoreAudio -framework Metal -framework MetalKit -framework QuartzCore -framework ImageIO -framework GameController -framework CoreGraphics"
   )
-  list(APPEND PLATFORM_LINKLIBS "${LIBDIR}/libb2/lib/libb2.a")
 else()
   set(PLATFORM_LINKFLAGS
     "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Cocoa -framework Carbon -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework Metal -framework QuartzCore"
@@ -388,6 +401,11 @@ else()
     string(APPEND PLATFORM_LINKFLAGS " -F/Library/Frameworks -weak_framework jackmp")
   endif()
 
+  if(WITH_VULKAN_BACKEND)
+    find_package(ShaderC REQUIRED)
+    find_package(Vulkan REQUIRED)
+  endif()
+
   if(WITH_SDL)
     find_package(SDL2)
     set(SDL_INCLUDE_DIR ${SDL2_INCLUDE_DIRS})
@@ -400,16 +418,6 @@ else()
     endif()
   endif()
 endif()
-
-if(WITH_OPENCOLLADA)
-  find_package(OpenCOLLADA)
-  find_library(PCRE_LIBRARIES NAMES pcre HINTS ${LIBDIR}/opencollada/lib)
-  find_library(XML2_LIBRARIES NAMES xml2 HINTS ${LIBDIR}/opencollada/lib)
-  print_found_status("PCRE" "${PCRE_LIBRARIES}")
-  print_found_status("XML2" "${XML2_LIBRARIES}")
-endif()
-
-list(APPEND PLATFORM_LINKLIBS c++)
 
 set(EPOXY_ROOT_DIR ${LIBDIR}/epoxy)
 if(NOT WITH_APPLE_CROSSPLATFORM)
@@ -425,45 +433,13 @@ find_package(JPEG REQUIRED)
 set(TIFF_ROOT ${LIBDIR}/tiff)
 find_package(TIFF REQUIRED)
 
+set(fmt_ROOT ${LIBDIR}/fmt)
+find_package(fmt REQUIRED)
+
 if(WITH_IMAGE_WEBP)
   set(WEBP_ROOT_DIR ${LIBDIR}/webp)
   find_package(WebP REQUIRED)
 endif()
-
-# With Blender 4.4 libraries there is no more Boost. This code is only
-# here until we can reasonably assume everyone has upgraded to them.
-if(WITH_BOOST)
-  if(DEFINED LIBDIR AND NOT EXISTS "${LIBDIR}/boost")
-    set(WITH_BOOST OFF)
-    set(BOOST_LIBRARIES)
-    set(BOOST_PYTHON_LIBRARIES)
-    set(BOOST_INCLUDE_DIR)
-  endif()
-endif()
-
-if(WITH_BOOST)
-  set(Boost_NO_BOOST_CMAKE ON)
-  set(Boost_ROOT ${LIBDIR}/boost)
-  set(Boost_NO_SYSTEM_PATHS ON)
-  set(_boost_FIND_COMPONENTS)
-  if(WITH_USD AND USD_PYTHON_SUPPORT)
-    list(APPEND _boost_FIND_COMPONENTS python${PYTHON_VERSION_NO_DOTS})
-  endif()
-  set(Boost_NO_WARN_NEW_VERSIONS ON)
-  find_package(Boost COMPONENTS ${_boost_FIND_COMPONENTS})
-
-  # Boost Python is the only library Blender directly depends on, though USD headers.
-  if(WITH_USD AND USD_PYTHON_SUPPORT)
-    set(BOOST_PYTHON_LIBRARIES ${Boost_PYTHON${PYTHON_VERSION_NO_DOTS}_LIBRARY})
-  endif()
-  set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
-  set(BOOST_DEFINITIONS)
-
-  mark_as_advanced(Boost_LIBRARIES)
-  mark_as_advanced(Boost_INCLUDE_DIRS)
-  unset(_boost_FIND_COMPONENTS)
-endif()
-add_bundled_libraries(boost/lib)
 
 if(WITH_CODEC_FFMPEG)
   string(APPEND PLATFORM_LINKFLAGS " -liconv") # ffmpeg needs it !
@@ -494,7 +470,9 @@ if(WITH_OPENVDB)
   else()
     unset(BLOSC_LIBRARIES CACHE)
   endif()
-  set(OPENVDB_DEFINITIONS)
+  if(OPENVDB_FOUND)
+    set(OPENVDB_DEFINITIONS "")
+  endif()
 endif()
 add_bundled_libraries(openvdb/lib)
 
@@ -502,8 +480,9 @@ if(WITH_NANOVDB)
   find_package(NanoVDB)
 endif()
 
-if(WITH_CPU_SIMD AND SUPPORT_NEON_BUILD)
-  find_package(sse2neon)
+test_neon_support()
+if(SUPPORTS_NEON_BUILD)
+  find_package(sse2neon REQUIRED)
 endif()
 
 if(WITH_LLVM)
@@ -524,6 +503,8 @@ if(WITH_CYCLES AND WITH_CYCLES_OSL)
   find_package(OSL 1.13.4 REQUIRED)
 endif()
 add_bundled_libraries(osl/lib)
+# OSL dependency
+add_bundled_libraries(openjph/lib)
 
 if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
   find_package(Embree 3.8.0 REQUIRED)
@@ -586,6 +567,10 @@ if(WITH_OPENAL)
   find_package(OpenAL REQUIRED)
 endif()
 
+if(WITH_RUBBERBAND)
+  find_package(Rubberband REQUIRED)
+endif()
+
 if(WITH_CYCLES AND WITH_CYCLES_PATH_GUIDING)
   find_package(openpgl QUIET)
   if(openpgl_FOUND)
@@ -597,6 +582,13 @@ if(WITH_CYCLES AND WITH_CYCLES_PATH_GUIDING)
     message(STATUS "OpenPGL not found, disabling WITH_CYCLES_PATH_GUIDING")
   endif()
 endif()
+
+find_package(Eigen3 REQUIRED CONFIG)
+
+if (WITH_LIBMV)
+  find_package(Ceres REQUIRED CONFIG)
+endif()
+add_bundled_libraries(ceres/lib)
 
 set(ZSTD_ROOT_DIR ${LIBDIR}/zstd)
 find_package(Zstd REQUIRED)
@@ -637,7 +629,12 @@ string(APPEND PLATFORM_LINKFLAGS
   " -Wl,-unexported_symbols_list,'${PLATFORM_SYMBOLS_MAP}'"
 )
 
-if(${XCODE_VERSION} VERSION_GREATER_EQUAL 15.0)
+if(${XCODE_VERSION} VERSION_EQUAL 15.0)
+  # V4.5 specific workaround: Enforce the legacy Xcode linker to avoid incorrect
+  # assembly generation caused by known bugs in the modern linker shipped with
+  # Xcode 15.0. See issue #148792 for details.
+  string(APPEND PLATFORM_LINKFLAGS " -Wl,-ld_classic")
+elseif(${XCODE_VERSION} VERSION_GREATER_EQUAL 15.0)
   if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64" AND WITH_LEGACY_MACOS_X64_LINKER)
     # Silence "no platform load command found in <static library>, assuming: macOS".
     #
@@ -647,11 +644,11 @@ if(${XCODE_VERSION} VERSION_GREATER_EQUAL 15.0)
     # Silence "ld: warning: ignoring duplicate libraries".
     #
     # The warning is introduced with Xcode 15 and is triggered when the same library
-    # is passed to the linker ultiple times. This situation could happen with either
+    # is passed to the linker multiple times. This situation could happen with either
     # cyclic libraries, or some transitive dependencies where CMake might decide to
     # pass library to the linker multiple times to force it re-scan symbols. It is
-    # not neeed for Xcode linker to ensure all symbols from library are used and it
-    # is corrected in CMake 3.29:
+    # not necessary for Xcode linker to ensure all symbols from library are used and
+    # it is corrected in CMake 3.29:
     #    https://gitlab.kitware.com/cmake/cmake/-/issues/25297
     string(APPEND PLATFORM_LINKFLAGS " -Xlinker -no_warn_duplicate_libraries")
   endif()
@@ -702,7 +699,7 @@ if(PLATFORM_BUNDLED_LIBRARIES)
     list(APPEND CMAKE_INSTALL_RPATH "@loader_path/../Resources/lib")
   endif()
 
-  # For binaries that are built but not installed (like makesdan or tests), we add
+  # For binaries that are built but not installed (like makesdna or tests), we add
   # the original directory of all shared libraries to the rpath. This is needed because
   # these can be in different folders, and because the build and install folder may be
   # different.

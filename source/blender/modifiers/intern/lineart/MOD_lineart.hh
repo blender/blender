@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
 #include "BLI_linklist.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector.h"
@@ -19,9 +20,19 @@
 #include <algorithm>
 #include <cmath>
 
+namespace blender {
+
+struct Depsgraph;
 struct LineartBoundingArea;
 struct LineartEdge;
+struct LineartEdgeChain;
+struct LineartEdgeChainItem;
+struct LineartEdgeSegment;
+struct LineartElementLinkNode;
+struct LineartShadowSegment;
+struct LineartStaticMemPoolNode;
 struct LineartVert;
+struct LinkData;
 struct Mesh;
 struct Object;
 
@@ -29,7 +40,7 @@ struct LineartModifierRuntime {
   /* This list is constructed during `update_depsgraph()` call, and stays valid until the next
    * update. This way line art can load objects from this list instead of iterating over all
    * objects that may or may not have finished evaluating. */
-  blender::Set<const Object *> object_dependencies;
+  Set<const Object *> object_dependencies;
 };
 
 struct LineartStaticMemPoolNode {
@@ -40,7 +51,7 @@ struct LineartStaticMemPoolNode {
 };
 
 struct LineartStaticMemPool {
-  ListBase pools;
+  ListBaseT<LineartStaticMemPoolNode> pools;
   SpinLock lock_mem;
 };
 
@@ -92,7 +103,7 @@ enum eLineArtElementNodeFlag {
   LRT_ELEMENT_NO_INTERSECTION = (1 << 2),
   LRT_ELEMENT_INTERSECTION_DATA = (1 << 3),
 };
-ENUM_OPERATORS(eLineArtElementNodeFlag, LRT_ELEMENT_INTERSECTION_DATA);
+ENUM_OPERATORS(eLineArtElementNodeFlag);
 
 struct LineartElementLinkNode {
   LineartElementLinkNode *next, *prev;
@@ -135,7 +146,7 @@ struct LineartShadowEdge {
   LineartEdge *e_ref;
   LineartEdge *e_ref_light_contour;
   LineartEdgeSegment *es_ref; /* Only for 3rd stage casting. */
-  ListBase shadow_segments;
+  ListBaseT<LineartShadowSegment> shadow_segments;
 };
 
 enum eLineartShadowSegmentFlag {
@@ -176,7 +187,7 @@ struct LineartEdge {
    * reprojection, So we can easily find out the line which results come from. */
   LineartTriangle *t1, *t2;
 
-  ListBase segments;
+  ListBaseT<LineartEdgeSegment> segments;
   int8_t min_occ;
 
   /** Also for line type determination on chaining. */
@@ -211,7 +222,7 @@ struct LineartEdge {
 
 struct LineartEdgeChain {
   LineartEdgeChain *next, *prev;
-  ListBase chain;
+  ListBaseT<LineartEdgeChainItem> chain;
 
   /** Calculated before draw command. */
   float length;
@@ -326,14 +337,14 @@ struct LineartData {
 
   struct _geom {
 
-    ListBase vertex_buffer_pointers;
-    ListBase line_buffer_pointers;
-    ListBase triangle_buffer_pointers;
+    ListBaseT<LineartElementLinkNode> vertex_buffer_pointers;
+    ListBaseT<LineartElementLinkNode> line_buffer_pointers;
+    ListBaseT<LineartElementLinkNode> triangle_buffer_pointers;
 
     /** This one's memory is not from main pool and is free()ed after culling stage. */
-    ListBase triangle_adjacent_pointers;
+    ListBaseT<LineartElementLinkNode> triangle_adjacent_pointers;
 
-    ListBase intersecting_vertex_buffer;
+    ListBaseT<LineartElementLinkNode> intersecting_vertex_buffer;
 
   } geom;
 
@@ -424,27 +435,27 @@ struct LineartData {
   LineartShadowEdge *shadow_edges;
   int shadow_edges_count;
 
-  ListBase chains;
+  ListBaseT<LineartEdgeChain> chains;
 
-  ListBase wasted_cuts;
-  ListBase wasted_shadow_cuts;
+  ListBaseT<LineartEdgeSegment> wasted_cuts;
+  ListBaseT<LineartShadowSegment> wasted_shadow_cuts;
   SpinLock lock_cuts;
   SpinLock lock_task;
 };
 
 struct LineartCache {
-  blender::ed::greasepencil::LineartLimitInfo LimitInfo;
+  ed::greasepencil::LineartLimitInfo LimitInfo;
   /** Separate memory pool for chain data and shadow, this goes to the cache, so when we free the
    * main pool, chains and shadows will still be available. */
   LineartStaticMemPool chain_data_pool;
   LineartStaticMemPool shadow_data_pool;
 
   /** A copy of ld->chains so we have that data available after ld has been destroyed. */
-  ListBase chains;
+  ListBaseT<LineartEdgeChain> chains;
 
   /** Shadow-computed feature lines from original meshes to be matched with the second load of
    * meshes thus providing lit/shade info in the second run of line art. */
-  ListBase shadow_elns;
+  ListBaseT<LineartElementLinkNode> shadow_elns;
 
   /** Cache only contains edge types specified in this variable. */
   uint16_t all_enabled_edge_types;
@@ -536,7 +547,7 @@ struct LineartObjectLoadTaskInfo {
   LineartObjectInfo *pending;
   /* Used to spread the load across several threads. This can not overflow. */
   uint64_t total_faces;
-  ListBase *shadow_elns;
+  ListBaseT<LineartElementLinkNode> *shadow_elns;
 };
 
 /**
@@ -572,10 +583,10 @@ struct LineartBoundingArea {
 
   SpinLock lock;
 
-  ListBase lp;
-  ListBase rp;
-  ListBase up;
-  ListBase bp;
+  ListBaseT<LinkData> lp;
+  ListBaseT<LinkData> rp;
+  ListBaseT<LinkData> up;
+  ListBaseT<LinkData> bp;
 
   uint32_t triangle_count;
   uint32_t max_triangle_count;
@@ -588,7 +599,7 @@ struct LineartBoundingArea {
   LineartEdge **linked_lines;
 
   /** Reserved for image space reduction && multi-thread chaining. */
-  ListBase linked_chains;
+  ListBaseT<LineartChainRegisterEntry> linked_chains;
 };
 
 #define LRT_TILE(tile, r, c, CCount) tile[r * CCount + c]
@@ -604,10 +615,10 @@ struct LineartBoundingArea {
 #define LRT_MIN3_INDEX_ABC(x, y, z) (x < y ? (x < z ? a : (y < z ? b : c)) : (y < z ? b : c))
 
 #define DBL_LOOSER 1e-5
-#define LRT_DOUBLE_CLOSE_LOOSER(a, b) (((a) + DBL_LOOSER) >= (b) && ((a)-DBL_LOOSER) <= (b))
-#define LRT_DOUBLE_CLOSE_ENOUGH(a, b) (((a) + DBL_EDGE_LIM) >= (b) && ((a)-DBL_EDGE_LIM) <= (b))
+#define LRT_DOUBLE_CLOSE_LOOSER(a, b) (((a) + DBL_LOOSER) >= (b) && ((a) - DBL_LOOSER) <= (b))
+#define LRT_DOUBLE_CLOSE_ENOUGH(a, b) (((a) + DBL_EDGE_LIM) >= (b) && ((a) - DBL_EDGE_LIM) <= (b))
 #define LRT_DOUBLE_CLOSE_ENOUGH_TRI(a, b) \
-  (((a) + DBL_TRIANGLE_LIM) >= (b) && ((a)-DBL_TRIANGLE_LIM) <= (b))
+  (((a) + DBL_TRIANGLE_LIM) >= (b) && ((a) - DBL_TRIANGLE_LIM) <= (b))
 
 #define LRT_CLOSE_LOOSER_v3(a, b) \
   (LRT_DOUBLE_CLOSE_LOOSER(a[0], b[0]) && LRT_DOUBLE_CLOSE_LOOSER(a[1], b[1]) && \
@@ -870,7 +881,6 @@ BLI_INLINE int lineart_line_isec_2d_ignore_line2pos(const double a1[2],
 
 struct bGPDframe;
 struct bGPDlayer;
-struct Depsgraph;
 struct LineartGpencilModifierData;
 struct GreasePencilLineartModifierData;
 struct LineartData;
@@ -921,13 +931,13 @@ LineartBoundingArea *MOD_lineart_get_parent_bounding_area(LineartData *ld, doubl
  */
 LineartBoundingArea *MOD_lineart_get_bounding_area(LineartData *ld, double x, double y);
 
-namespace blender::bke::greasepencil {
+namespace bke::greasepencil {
 class Drawing;
 }
 void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
-                                     const blender::float4x4 &mat,
+                                     const float4x4 &mat,
                                      Depsgraph *depsgraph,
-                                     blender::bke::greasepencil::Drawing &drawing,
+                                     bke::greasepencil::Drawing &drawing,
                                      int8_t source_type,
                                      Object *source_object,
                                      Collection *source_collection,
@@ -954,3 +964,5 @@ float MOD_lineart_chain_compute_length(LineartEdgeChain *ec);
 
 LineartCache *MOD_lineart_init_cache();
 void MOD_lineart_clear_cache(LineartCache **lc);
+
+}  // namespace blender

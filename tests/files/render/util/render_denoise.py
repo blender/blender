@@ -13,7 +13,7 @@ def denoise(context):
 
     filepath = bpy.data.filepath
 
-    output_filepath = filepath + ".output.exr"
+    output_filepath = scene.render.filepath + ".output.exr"
 
     if os.path.basename(filepath).find("merge") != -1:
         # Merge Images

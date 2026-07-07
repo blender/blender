@@ -908,20 +908,20 @@ static void fill_sphere_data(int nrings,
     }
     for (int r = 1; r < nrings; ++r) {
       double theta = r * delta_theta;
-      double r_sin_theta;
-      double r_cos_theta;
+      double radius_sin_theta;
+      double radius_cos_theta;
       if (nrings_even && r == half_nrings) {
         /* theta = pi/2. */
-        r_sin_theta = radius;
-        r_cos_theta = 0.0;
+        radius_sin_theta = radius;
+        radius_cos_theta = 0.0;
       }
       else {
-        r_sin_theta = radius * sin(theta);
-        r_cos_theta = radius * cos(theta);
+        radius_sin_theta = radius * sin(theta);
+        radius_cos_theta = radius * cos(theta);
       }
-      double x = r_sin_theta * cos_phi + center[0];
-      double y = r_sin_theta * sin_phi + center[1];
-      double z = r_cos_theta + center[2];
+      double x = radius_sin_theta * cos_phi + center[0];
+      double y = radius_sin_theta * sin_phi + center[1];
+      double z = radius_cos_theta + center[2];
       const Vert *v = arena->add_or_find_vert(mpq3(x, y, z), vid++);
       vert[vert_index_fn(s, r)] = v;
     }
@@ -1017,8 +1017,7 @@ static void spheresphere_test(int nrings, double y_offset, bool use_self)
   }
   else {
     int nf = sphere_tris_num;
-    out = trimesh_nary_intersect(
-        mesh, 2, [nf](int t) { return t < nf ? 0 : 1; }, false, &arena);
+    out = trimesh_nary_intersect(mesh, 2, [nf](int t) { return t < nf ? 0 : 1; }, false, &arena);
   }
   double time_intersect = BLI_time_now_seconds();
   std::cout << "Create time: " << time_create - time_start << "\n";
@@ -1162,8 +1161,7 @@ static void spheregrid_test(int nrings, int grid_level, double z_offset, bool us
   }
   else {
     int nf = sphere_tris_num;
-    out = trimesh_nary_intersect(
-        mesh, 2, [nf](int t) { return t < nf ? 0 : 1; }, false, &arena);
+    out = trimesh_nary_intersect(mesh, 2, [nf](int t) { return t < nf ? 0 : 1; }, false, &arena);
   }
   double time_intersect = BLI_time_now_seconds();
   std::cout << "Create time: " << time_create - time_start << "\n";
@@ -1231,8 +1229,7 @@ static void gridgrid_test(int x_level_1,
   }
   else {
     int nf = grid_tris_1_num;
-    out = trimesh_nary_intersect(
-        mesh, 2, [nf](int t) { return t < nf ? 0 : 1; }, false, &arena);
+    out = trimesh_nary_intersect(mesh, 2, [nf](int t) { return t < nf ? 0 : 1; }, false, &arena);
   }
   double time_intersect = BLI_time_now_seconds();
   std::cout << "Create time: " << time_create - time_start << "\n";

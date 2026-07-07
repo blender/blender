@@ -10,7 +10,11 @@
 
 #include "DNA_vec_types.h"
 
+namespace blender {
+
 struct ARegion;
+struct Scene;
+struct ViewLayer;
 
 /* ----------------------------------------------------- */
 
@@ -112,6 +116,10 @@ enum {
    */
   AZONE_REGION,
   /**
+   * Widget at the very center of the 3D Viewport Quad View for resizing.
+   */
+  AZONE_REGION_QUAD,
+  /**
    * Used when in editor full-screen draw a corner to return to normal mode.
    */
   AZONE_FULLSCREEN,
@@ -121,3 +129,5 @@ enum {
    */
   AZONE_REGION_SCROLL,
 };
+
+}  // namespace blender

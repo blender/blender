@@ -52,17 +52,19 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Menu>("UV Smooth")
       .static_items(rna_enum_subdivision_uv_smooth_items)
       .default_value(SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES)
+      .optional_label()
       .description("Controls how smoothing is applied to UVs");
   b.add_input<decl::Menu>("Boundary Smooth")
       .static_items(rna_enum_subdivision_boundary_smooth_items)
       .default_value(SUBSURF_BOUNDARY_SMOOTH_ALL)
+      .optional_label()
       .description("Controls how open boundaries are smoothed");
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   /* Still used for forward compatibility. */
-  node->storage = MEM_callocN<NodeGeometrySubdivisionSurface>(__func__);
+  node->storage = MEM_new<NodeGeometrySubdivisionSurface>(__func__);
 }
 
 #ifdef WITH_OPENSUBDIV
@@ -148,6 +150,9 @@ static Mesh *mesh_subsurf_calc(const Mesh *mesh,
 
   bke::subdiv::Subdiv *subdiv = bke::subdiv::new_from_mesh(&subdiv_settings, mesh);
   if (!subdiv) {
+    if (mesh_copy) {
+      BKE_id_free(nullptr, mesh_copy);
+    }
     return nullptr;
   }
 
@@ -211,7 +216,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeSubdivisionSurface", GEO_NODE_SUBDIVISION_SURFACE);
   ntype.ui_name = "Subdivision Surface";
@@ -223,11 +228,11 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.initfunc = node_init;
   bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
-  blender::bke::node_type_storage(ntype,
-                                  "NodeGeometrySubdivisionSurface",
-                                  node_free_standard_storage,
-                                  node_copy_standard_storage);
-  blender::bke::node_register_type(ntype);
+  bke::node_type_storage(ntype,
+                         "NodeGeometrySubdivisionSurface",
+                         node_free_standard_storage,
+                         node_copy_standard_storage);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

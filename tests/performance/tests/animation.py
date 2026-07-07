@@ -15,10 +15,12 @@ def _run(args):
 
     while elapsed_time < 10.0:
         scene = bpy.context.scene
-        for i in range(scene.frame_start, scene.frame_end + 1):
-            scene.frame_set(i)
+        f = scene.frame_current + 1
 
-        num_frames += scene.frame_end + 1 - scene.frame_start
+        if f >= scene.frame_end:
+            f = scene.frame_start
+        scene.frame_set(f)
+        num_frames += 1
         elapsed_time = time.time() - start_time
 
     time_per_frame = elapsed_time / num_frames

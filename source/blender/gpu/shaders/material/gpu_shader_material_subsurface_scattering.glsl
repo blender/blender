@@ -2,6 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "gpu_shader_math_vector_safe_lib.glsl"
+
+[[node]]
 void node_subsurface_scattering(float4 color,
                                 float scale,
                                 float3 radius,
@@ -10,7 +13,7 @@ void node_subsurface_scattering(float4 color,
                                 float anisotropy,
                                 float3 N,
                                 float weight,
-                                out Closure result)
+                                Closure &result)
 {
   color = max(color, float4(0.0f));
   ior = max(ior, 1e-5f);

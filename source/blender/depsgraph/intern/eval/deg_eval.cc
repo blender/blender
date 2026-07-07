@@ -86,7 +86,7 @@ struct DepsgraphEvalState {
 
 void evaluate_node(const DepsgraphEvalState *state, OperationNode *operation_node)
 {
-  ::Depsgraph *depsgraph = reinterpret_cast<::Depsgraph *>(state->graph);
+  blender::Depsgraph *depsgraph = reinterpret_cast<blender::Depsgraph *>(state->graph);
 
   /* Sanity checks. */
   BLI_assert_msg(!operation_node->is_noop(), "NOOP nodes should not actually be scheduled");
@@ -110,7 +110,7 @@ void evaluate_node(const DepsgraphEvalState *state, OperationNode *operation_nod
 void deg_task_run_func(TaskPool *pool, void *taskdata)
 {
   void *userdata_v = BLI_task_pool_user_data(pool);
-  DepsgraphEvalState *state = (DepsgraphEvalState *)userdata_v;
+  DepsgraphEvalState *state = static_cast<DepsgraphEvalState *>(userdata_v);
 
   /* Evaluate node. */
   OperationNode *operation_node = reinterpret_cast<OperationNode *>(taskdata);
@@ -155,7 +155,7 @@ void calculate_pending_parents_for_node(const DepsgraphEvalState *state, Operati
   }
   for (Relation *rel : node->inlinks) {
     if (rel->from->type == NodeType::OPERATION && (rel->flag & RELATION_FLAG_CYCLIC) == 0) {
-      OperationNode *from = (OperationNode *)rel->from;
+      OperationNode *from = static_cast<OperationNode *>(rel->from);
       /* TODO(sergey): This is how old layer system was checking for the
        * calculation, but how is it possible that visible object depends
        * on an invisible? This is something what is prohibited after
@@ -265,7 +265,8 @@ void schedule_node(DepsgraphEvalState *state,
     return;
   }
   /* Actually schedule the node. */
-  bool is_scheduled = atomic_fetch_and_or_uint8((uint8_t *)&node->scheduled, uint8_t(true));
+  bool is_scheduled = atomic_fetch_and_or_uint8(reinterpret_cast<uint8_t *>(&node->scheduled),
+                                                uint8_t(true));
   if (!is_scheduled) {
     if (node->is_noop()) {
       /* Clear flags to avoid affecting subsequent update propagation.
@@ -295,7 +296,7 @@ void schedule_children(DepsgraphEvalState *state,
                        const FunctionRef<void(OperationNode *node)> schedule_fn)
 {
   for (Relation *rel : node->outlinks) {
-    OperationNode *child = (OperationNode *)rel->to;
+    OperationNode *child = static_cast<OperationNode *>(rel->to);
     BLI_assert(child->type == NodeType::OPERATION);
     if (child->scheduled) {
       /* Happens when having cyclic dependencies. */

@@ -17,7 +17,7 @@
  * execute the vertex shader code on each of the input primitive's vertices.
  */
 
-#include "infos/workbench_shadow_info.hh"
+#include "infos/workbench_shadow_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(workbench_shadow_common)
 

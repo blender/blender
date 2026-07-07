@@ -313,39 +313,3 @@ int2 bool_to_int2(bool value)
 {
   return int2(value);
 }
-
-/* --------------------------------------------------------------------
- * GPUMatrial-specific implicit conversion functions.
- *
- * Those should have the same interface and names as the macros in gpu_shader_codegen_lib.glsl
- * since the GPUMaterial compiler inserts those hard coded names. */
-
-float float_from_vec4(float4 vector, float3 luminance_coefficients)
-{
-  return color_to_float(vector, luminance_coefficients);
-}
-
-float float_from_vec3(float3 vector)
-{
-  return dot(vector, float3(1.0f)) / 3.0f;
-}
-
-float3 vec3_from_vec4(float4 vector)
-{
-  return vector.rgb;
-}
-
-float3 vec3_from_float(float value)
-{
-  return float3(value);
-}
-
-float4 vec4_from_vec3(float3 vector)
-{
-  return float4(vector, 1.0f);
-}
-
-float4 vec4_from_float(float value)
-{
-  return float4(float3(value), 1.0f);
-}

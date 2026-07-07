@@ -27,11 +27,13 @@
 #include <optional>
 #include <type_traits>
 
+namespace blender {
+
 namespace usdtokens {
 inline const pxr::TfToken displayColor("displayColor", pxr::TfToken::Immortal);
 }
 
-namespace blender::io::usd {
+namespace io::usd {
 
 namespace detail {
 
@@ -271,4 +273,5 @@ void copy_primvar_to_blender_attribute(const pxr::UsdGeomPrimvar &primvar,
                                        const OffsetIndices<int> face_indices,
                                        bke::MutableAttributeAccessor attributes);
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

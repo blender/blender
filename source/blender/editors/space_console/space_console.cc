@@ -9,6 +9,8 @@
 #include <cstdio>
 #include <cstring>
 
+#include "DNA_space_types.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
@@ -34,6 +36,8 @@
 
 #include "console_intern.hh" /* own include */
 
+namespace blender {
+
 /* ******************** default callbacks for console space ***************** */
 
 static SpaceLink *console_create(const ScrArea * /*area*/, const Scene * /*scene*/)
@@ -41,7 +45,7 @@ static SpaceLink *console_create(const ScrArea * /*area*/, const Scene * /*scene
   ARegion *region;
   SpaceConsole *sconsole;
 
-  sconsole = MEM_callocN<SpaceConsole>("initconsole");
+  sconsole = MEM_new<SpaceConsole>("initconsole");
   sconsole->spacetype = SPACE_CONSOLE;
 
   sconsole->lheight = 14;
@@ -70,13 +74,13 @@ static SpaceLink *console_create(const ScrArea * /*area*/, const Scene * /*scene
   /* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
   // region->v2d.keepzoom = (V2D_KEEPASPECT|V2D_LIMITZOOM);
 
-  return (SpaceLink *)sconsole;
+  return reinterpret_cast<SpaceLink *>(sconsole);
 }
 
 /* Doesn't free the space-link itself. */
 static void console_free(SpaceLink *sl)
 {
-  SpaceConsole *sc = (SpaceConsole *)sl;
+  SpaceConsole *sc = reinterpret_cast<SpaceConsole *>(sl);
 
   while (sc->scrollback.first) {
     console_scrollback_free(sc, static_cast<ConsoleLine *>(sc->scrollback.first));
@@ -92,7 +96,7 @@ static void console_init(wmWindowManager * /*wm*/, ScrArea * /*area*/) {}
 
 static SpaceLink *console_duplicate(SpaceLink *sl)
 {
-  SpaceConsole *sconsolen = static_cast<SpaceConsole *>(MEM_dupallocN(sl));
+  SpaceConsole *sconsolen = MEM_dupalloc(reinterpret_cast<SpaceConsole *>(sl));
 
   /* clear or remove stuff from old */
 
@@ -100,18 +104,18 @@ static SpaceLink *console_duplicate(SpaceLink *sl)
   BLI_listbase_clear(&sconsolen->scrollback);
   BLI_listbase_clear(&sconsolen->history);
 
-  return (SpaceLink *)sconsolen;
+  return reinterpret_cast<SpaceLink *>(sconsolen);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
 static void console_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
-  ListBase *lb;
+  ListBaseT<wmDropBox> *lb;
 
   const float prev_y_min = region->v2d.cur.ymin; /* so re-sizing keeps the cursor visible */
 
-  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
+  view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
   /* always keep the bottom part of the view aligned, less annoying */
   if (prev_y_min != region->v2d.cur.ymin) {
@@ -139,8 +143,8 @@ static void console_main_region_init(wmWindowManager *wm, ARegion *region)
 static void console_cursor(wmWindow *win, ScrArea * /*area*/, ARegion *region)
 {
   int wmcursor = WM_CURSOR_TEXT_EDIT;
-  const wmEvent *event = win->eventstate;
-  if (UI_view2d_mouse_in_scrollers(region, &region->v2d, event->xy)) {
+  const wmEvent *event = win->runtime->eventstate;
+  if (ui::view2d_mouse_in_scrollers(region, &region->v2d, event->xy)) {
     wmcursor = WM_CURSOR_DEFAULT;
   }
 
@@ -192,7 +196,7 @@ static void console_drop_string_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *
 /* this region dropbox definition */
 static void console_dropboxes()
 {
-  ListBase *lb = WM_dropboxmap_find("Console", SPACE_CONSOLE, RGN_TYPE_WINDOW);
+  ListBaseT<wmDropBox> *lb = WM_dropboxmap_find("Console", SPACE_CONSOLE, RGN_TYPE_WINDOW);
 
   WM_dropbox_add(
       lb, "CONSOLE_OT_insert", console_drop_id_poll, console_drop_id_copy, nullptr, nullptr);
@@ -215,18 +219,18 @@ static void console_main_region_draw(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
 
   if (BLI_listbase_is_empty(&sc->scrollback)) {
-    WM_operator_name_call((bContext *)C,
+    WM_operator_name_call(const_cast<bContext *>(C),
                           "CONSOLE_OT_banner",
-                          blender::wm::OpCallContext::ExecDefault,
+                          wm::OpCallContext::ExecDefault,
                           nullptr,
                           nullptr);
   }
 
   /* clear and setup matrix */
-  UI_ThemeClearColor(TH_BACK);
+  ui::theme::frame_buffer_clear(TH_BACK);
 
   /* Works best with no view2d matrix set. */
-  UI_view2d_view_ortho(v2d);
+  ui::view2d_view_ortho(v2d);
 
   /* data... */
 
@@ -234,10 +238,10 @@ static void console_main_region_draw(const bContext *C, ARegion *region)
   console_textview_main(sc, region);
 
   /* reset view matrix */
-  UI_view2d_view_restore(C);
+  ui::view2d_view_restore(C);
 
   /* scrollers */
-  UI_view2d_scrollers_draw(v2d, nullptr);
+  ui::view2d_scrollers_draw(v2d, nullptr);
 }
 
 static void console_operatortypes()
@@ -312,7 +316,7 @@ static void console_main_region_listener(const wmRegionListenerParams *params)
 
 static void console_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
-  SpaceConsole *sconsole = (SpaceConsole *)sl;
+  SpaceConsole *sconsole = reinterpret_cast<SpaceConsole *>(sl);
 
   BLO_read_struct_list(reader, ConsoleLine, &sconsole->scrollback);
   BLO_read_struct_list(reader, ConsoleLine, &sconsole->history);
@@ -320,29 +324,29 @@ static void console_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   /* Comma expressions, (e.g. expr1, expr2, expr3) evaluate each expression,
    * from left to right.  the right-most expression sets the result of the comma
    * expression as a whole. */
-  LISTBASE_FOREACH_MUTABLE (ConsoleLine *, cl, &sconsole->history) {
-    BLO_read_char_array(reader, size_t(cl->len) + 1, &cl->line);
-    if (cl->line) {
+  for (ConsoleLine &cl : sconsole->history.items_mutable()) {
+    BLO_read_char_array(reader, size_t(cl.len) + 1, &cl.line);
+    if (cl.line) {
       /* The allocated length is not written, so reset here. */
-      cl->len_alloc = cl->len + 1;
+      cl.len_alloc = cl.len + 1;
     }
     else {
-      BLI_remlink(&sconsole->history, cl);
-      MEM_freeN(cl);
+      BLI_remlink(&sconsole->history, &cl);
+      MEM_delete(&cl);
     }
   }
 }
 
 static void console_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
-  SpaceConsole *con = (SpaceConsole *)sl;
+  SpaceConsole *con = reinterpret_cast<SpaceConsole *>(sl);
 
-  LISTBASE_FOREACH (ConsoleLine *, cl, &con->history) {
+  for (ConsoleLine &cl : con->history) {
     /* 'len_alloc' is invalid on write, set from 'len' on read */
-    BLO_write_struct(writer, ConsoleLine, cl);
-    BLO_write_char_array(writer, size_t(cl->len) + 1, cl->line);
+    writer->write_struct(&cl);
+    BLO_write_char_array(writer, size_t(cl.len) + 1, cl.line);
   }
-  BLO_write_struct(writer, SpaceConsole, sl);
+  writer->write_struct_cast<SpaceConsole>(sl);
 }
 
 void ED_spacetype_console()
@@ -364,7 +368,7 @@ void ED_spacetype_console()
   st->blend_write = console_space_blend_write;
 
   /* regions: main window */
-  art = MEM_callocN<ARegionType>("spacetype console region");
+  art = MEM_new_zeroed<ARegionType>("spacetype console region");
   art->regionid = RGN_TYPE_WINDOW;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D;
 
@@ -377,7 +381,7 @@ void ED_spacetype_console()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
-  art = MEM_callocN<ARegionType>("spacetype console region");
+  art = MEM_new_zeroed<ARegionType>("spacetype console region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
@@ -389,3 +393,5 @@ void ED_spacetype_console()
 
   BKE_spacetype_register(std::move(st));
 }
+
+}  // namespace blender

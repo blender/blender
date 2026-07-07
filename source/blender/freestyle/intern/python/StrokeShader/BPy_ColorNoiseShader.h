@@ -18,8 +18,8 @@ extern PyTypeObject ColorNoiseShader_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&ColorNoiseShader_Type))
 
 /*---------------------------Python BPy_ColorNoiseShader structure definition----------*/
-typedef struct {
+struct BPy_ColorNoiseShader {
   BPy_StrokeShader py_ss;
-} BPy_ColorNoiseShader;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

@@ -288,75 +288,8 @@ class POSELIB_OT_pose_asset_select_bones(PoseAssetUser, Operator):
         return tip_("Deselect those bones that are used in this pose")
 
 
-class POSELIB_OT_convert_old_poselib(Operator):
-    bl_idname = "poselib.convert_old_poselib"
-    bl_label = "Convert Legacy Pose Library"
-    bl_description = "Create a pose asset for each pose marker in the current action"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    @classmethod
-    def poll(cls, context: Context) -> bool:
-        action = context.object and context.object.animation_data and context.object.animation_data.action
-        if not action:
-            cls.poll_message_set("Active object has no Action")
-            return False
-        if not action.pose_markers:
-            cls.poll_message_set(tip_("Action %r is not a legacy pose library") % action.name)
-            return False
-        return True
-
-    def execute(self, context: Context) -> Set[str]:
-        from . import conversion
-
-        old_poselib = context.object.animation_data.action
-        new_actions = conversion.convert_old_poselib(old_poselib)
-
-        if not new_actions:
-            self.report({'ERROR'}, "Unable to convert to pose assets")
-            return {'CANCELLED'}
-
-        self.report({'INFO'}, tip_("Converted %d poses to pose assets") % len(new_actions))
-        return {'FINISHED'}
-
-
-class POSELIB_OT_convert_old_object_poselib(Operator):
-    bl_idname = "poselib.convert_old_object_poselib"
-    bl_label = "Convert Legacy Pose Library"
-    bl_description = "Create a pose asset for each pose marker in this legacy pose library data-block"
-
-    # Mark this one as "internal", as it converts `context.object.pose_library`
-    # instead of its current animation Action.
-    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
-
-    @classmethod
-    def poll(cls, context: Context) -> bool:
-        action = context.object and context.object.pose_library
-        if not action:
-            cls.poll_message_set("Active object has no pose library Action")
-            return False
-        if not action.pose_markers:
-            cls.poll_message_set(tip_("Action %r is not a legacy pose library") % action.name)
-            return False
-        return True
-
-    def execute(self, context: Context) -> Set[str]:
-        from . import conversion
-
-        old_poselib = context.object.pose_library
-        new_actions = conversion.convert_old_poselib(old_poselib)
-
-        if not new_actions:
-            self.report({'ERROR'}, "Unable to convert to pose assets")
-            return {'CANCELLED'}
-
-        self.report({'INFO'}, tip_("Converted %d poses to pose assets") % len(new_actions))
-        return {'FINISHED'}
-
-
 classes = (
     ASSET_OT_assign_action,
-    POSELIB_OT_convert_old_poselib,
-    POSELIB_OT_convert_old_object_poselib,
     POSELIB_OT_copy_as_asset,
     POSELIB_OT_paste_asset,
     POSELIB_OT_pose_asset_select_bones,

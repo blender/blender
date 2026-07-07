@@ -5,10 +5,11 @@
 #pragma once
 
 #include "eevee_bxdf_lib.glsl"
-#include "eevee_thickness_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_safe_lib.glsl"
+#include "gpu_shader_ray_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 /* -------------------------------------------------------------------- */
 /** \name Diffuse BSDF
@@ -50,8 +51,6 @@ LightProbeRay bxdf_diffuse_lightprobe(float3 N)
   return probe;
 }
 
-#ifdef EEVEE_UTILITY_TX
-
 ClosureLight bxdf_diffuse_light(ClosureUndetermined cl)
 {
   ClosureLight light;
@@ -61,8 +60,6 @@ ClosureLight bxdf_diffuse_light(ClosureUndetermined cl)
   light.type = LIGHT_DIFFUSE;
   return light;
 }
-
-#endif
 
 /** \} */
 
@@ -133,8 +130,6 @@ Ray bxdf_translucent_ray_amend(ClosureUndetermined cl, float3 V, Ray ray, float 
   return ray;
 }
 
-#ifdef EEVEE_UTILITY_TX
-
 ClosureLight bxdf_translucent_light(ClosureUndetermined cl, float3 V, float thickness)
 {
   /* A translucent sphere lit by a light outside the sphere transmits the
@@ -148,10 +143,8 @@ ClosureLight bxdf_translucent_light(ClosureUndetermined cl, float3 V, float thic
   light.ltc_mat = float4(
       1.0f, 0.0f, 0.0f, 1.0f); /* No transform, just plain cosine distribution. */
   light.N = -cl.N;
-  light.type = (thickness > 0.0f) ? LIGHT_TRANSLUCENT_WITH_THICKNESS : LIGHT_DIFFUSE;
+  light.type = (thickness != 0.0f) ? LIGHT_TRANSLUCENT_WITH_THICKNESS : LIGHT_DIFFUSE;
   return light;
 }
-
-#endif
 
 /** \} */

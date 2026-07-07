@@ -8,4 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 void ED_operatortypes_sculpt_curves();
+
+}  // namespace blender

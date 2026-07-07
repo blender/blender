@@ -9,7 +9,7 @@
  * are then tagged to avoid re-evaluation by screen trace.
  */
 
-#include "infos/eevee_tracing_info.hh"
+#include "infos/eevee_tracing_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_ray_trace_planar)
 

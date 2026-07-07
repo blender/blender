@@ -18,6 +18,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* target chunk size: 64kb */
 #define CHUNK_SIZE_DEFAULT (1 << 16)
 /* ensure we get at least this many elems per chunk */
@@ -28,7 +30,7 @@ struct QueueChunk {
   char data[0];
 };
 
-struct _GSQueue {
+struct GSQueue {
   QueueChunk *chunk_first;  /* first active chunk to pop from */
   QueueChunk *chunk_last;   /* last active chunk to push onto */
   QueueChunk *chunk_free;   /* free chunks to reuse */
@@ -41,12 +43,14 @@ struct _GSQueue {
 
 static void *queue_get_first_elem(GSQueue *queue)
 {
-  return ((char *)(queue)->chunk_first->data) + ((queue)->elem_size * (queue)->chunk_first_index);
+  return (static_cast<char *>((queue)->chunk_first->data)) +
+         ((queue)->elem_size * (queue)->chunk_first_index);
 }
 
 static void *queue_get_last_elem(GSQueue *queue)
 {
-  return ((char *)(queue)->chunk_last->data) + ((queue)->elem_size * (queue)->chunk_last_index);
+  return (static_cast<char *>((queue)->chunk_last->data)) +
+         ((queue)->elem_size * (queue)->chunk_last_index);
 }
 
 /**
@@ -71,7 +75,7 @@ static size_t queue_chunk_elem_max_calc(const size_t elem_size, size_t chunk_siz
 
 GSQueue *BLI_gsqueue_new(const size_t elem_size)
 {
-  GSQueue *queue = MEM_callocN<GSQueue>("BLI_gsqueue_new");
+  GSQueue *queue = MEM_new_zeroed<GSQueue>("BLI_gsqueue_new");
 
   queue->chunk_elem_max = queue_chunk_elem_max_calc(elem_size, CHUNK_SIZE_DEFAULT);
   queue->elem_size = elem_size;
@@ -85,7 +89,7 @@ static void queue_free_chunk(QueueChunk *data)
 {
   while (data) {
     QueueChunk *data_next = data->next;
-    MEM_freeN(data);
+    MEM_delete(data);
     data = data_next;
   }
 }
@@ -94,7 +98,7 @@ void BLI_gsqueue_free(GSQueue *queue)
 {
   queue_free_chunk(queue->chunk_first);
   queue_free_chunk(queue->chunk_free);
-  MEM_freeN(queue);
+  MEM_delete(queue);
 }
 
 void BLI_gsqueue_push(GSQueue *queue, const void *item)
@@ -109,8 +113,8 @@ void BLI_gsqueue_push(GSQueue *queue, const void *item)
       queue->chunk_free = chunk->next;
     }
     else {
-      chunk = static_cast<QueueChunk *>(
-          MEM_mallocN(sizeof(*chunk) + (queue->elem_size * queue->chunk_elem_max), __func__));
+      chunk = static_cast<QueueChunk *>(MEM_new_uninitialized(
+          sizeof(*chunk) + (queue->elem_size * queue->chunk_elem_max), __func__));
     }
 
     chunk->next = nullptr;
@@ -164,3 +168,5 @@ bool BLI_gsqueue_is_empty(const GSQueue *queue)
 {
   return (queue->chunk_first == nullptr);
 }
+
+}  // namespace blender

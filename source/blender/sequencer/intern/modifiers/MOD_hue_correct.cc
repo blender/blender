@@ -26,7 +26,7 @@ namespace blender::seq {
 
 static void hue_correct_init_data(StripModifierData *smd)
 {
-  HueCorrectModifierData *hcmd = (HueCorrectModifierData *)smd;
+  HueCorrectModifierData *hcmd = reinterpret_cast<HueCorrectModifierData *>(smd);
   int c;
 
   BKE_curvemapping_set_defaults(&hcmd->curve_mapping, 1, 0.0f, 0.0f, 1.0f, 1.0f, HD_AUTO);
@@ -35,7 +35,7 @@ static void hue_correct_init_data(StripModifierData *smd)
   for (c = 0; c < 3; c++) {
     CurveMap *cuma = &hcmd->curve_mapping.cm[c];
     BKE_curvemap_reset(
-        cuma, &hcmd->curve_mapping.clipr, hcmd->curve_mapping.preset, CURVEMAP_SLOPE_POSITIVE);
+        cuma, &hcmd->curve_mapping.clipr, hcmd->curve_mapping.preset, CurveMapSlopeType::Positive);
   }
   /* use wrapping for all hue correct modifiers */
   hcmd->curve_mapping.flag |= CUMA_USE_WRAPPING;
@@ -45,15 +45,15 @@ static void hue_correct_init_data(StripModifierData *smd)
 
 static void hue_correct_free_data(StripModifierData *smd)
 {
-  HueCorrectModifierData *hcmd = (HueCorrectModifierData *)smd;
+  HueCorrectModifierData *hcmd = reinterpret_cast<HueCorrectModifierData *>(smd);
 
   BKE_curvemapping_free_data(&hcmd->curve_mapping);
 }
 
 static void hue_correct_copy_data(StripModifierData *target, StripModifierData *smd)
 {
-  HueCorrectModifierData *hcmd = (HueCorrectModifierData *)smd;
-  HueCorrectModifierData *hcmd_target = (HueCorrectModifierData *)target;
+  HueCorrectModifierData *hcmd = reinterpret_cast<HueCorrectModifierData *>(smd);
+  HueCorrectModifierData *hcmd_target = reinterpret_cast<HueCorrectModifierData *>(target);
 
   BKE_curvemapping_copy_data(&hcmd_target->curve_mapping, &hcmd->curve_mapping);
 }
@@ -61,70 +61,71 @@ static void hue_correct_copy_data(StripModifierData *target, StripModifierData *
 struct HueCorrectApplyOp {
   const CurveMapping *curve_mapping;
 
-  template<typename ImageT, typename MaskT>
-  void apply(ImageT *image, const MaskT *mask, IndexRange size)
+  template<typename ImageT, typename MaskSampler>
+  void apply(ImageT *image, MaskSampler &mask, int image_x, IndexRange y_range)
   {
-    for ([[maybe_unused]] int64_t i : size) {
-      /* NOTE: arguably incorrect usage of "raw" values, should be un-premultiplied.
-       * Not changing behavior for now, but would be good to fix someday. */
-      float4 input = load_pixel_raw(image);
-      float4 result;
-      result.w = input.w;
+    image += y_range.first() * image_x * 4;
+    for (int64_t y : y_range) {
+      mask.begin_row(y);
+      for ([[maybe_unused]] int64_t x : IndexRange(image_x)) {
+        /* NOTE: arguably incorrect usage of "raw" values, should be un-premultiplied.
+         * Not changing behavior for now, but would be good to fix someday. */
+        float4 input = load_pixel_raw(image);
+        float4 result;
+        result.w = input.w;
 
-      float3 hsv;
-      rgb_to_hsv(input.x, input.y, input.z, &hsv.x, &hsv.y, &hsv.z);
+        float3 hsv;
+        rgb_to_hsv(input.x, input.y, input.z, &hsv.x, &hsv.y, &hsv.z);
 
-      /* adjust hue, scaling returned default 0.5 up to 1 */
-      float f;
-      f = BKE_curvemapping_evaluateF(this->curve_mapping, 0, hsv.x);
-      hsv.x += f - 0.5f;
+        /* adjust hue, scaling returned default 0.5 up to 1 */
+        float f;
+        f = BKE_curvemapping_evaluateF(this->curve_mapping, 0, hsv.x);
+        hsv.x += f - 0.5f;
 
-      /* adjust saturation, scaling returned default 0.5 up to 1 */
-      f = BKE_curvemapping_evaluateF(this->curve_mapping, 1, hsv.x);
-      hsv.y *= (f * 2.0f);
+        /* adjust saturation, scaling returned default 0.5 up to 1 */
+        f = BKE_curvemapping_evaluateF(this->curve_mapping, 1, hsv.x);
+        hsv.y *= (f * 2.0f);
 
-      /* adjust value, scaling returned default 0.5 up to 1 */
-      f = BKE_curvemapping_evaluateF(this->curve_mapping, 2, hsv.x);
-      hsv.z *= (f * 2.0f);
+        /* adjust value, scaling returned default 0.5 up to 1 */
+        f = BKE_curvemapping_evaluateF(this->curve_mapping, 2, hsv.x);
+        hsv.z *= (f * 2.0f);
 
-      hsv.x = hsv.x - floorf(hsv.x); /* mod 1.0 */
-      hsv.y = math::clamp(hsv.y, 0.0f, 1.0f);
+        hsv.x = hsv.x - floorf(hsv.x); /* mod 1.0 */
+        hsv.y = math::clamp(hsv.y, 0.0f, 1.0f);
 
-      /* convert back to rgb */
-      hsv_to_rgb(hsv.x, hsv.y, hsv.z, &result.x, &result.y, &result.z);
+        /* convert back to rgb */
+        hsv_to_rgb(hsv.x, hsv.y, hsv.z, &result.x, &result.y, &result.z);
 
-      apply_and_advance_mask(input, result, mask);
-      store_pixel_raw(result, image);
-      image += 4;
+        mask.apply_mask(input, result);
+        store_pixel_raw(result, image);
+        image += 4;
+      }
     }
   }
 };
 
-static void hue_correct_apply(const StripScreenQuad & /*quad*/,
-                              StripModifierData *smd,
-                              ImBuf *ibuf,
-                              ImBuf *mask)
+static void hue_correct_apply(ModifierApplyContext &context, StripModifierData *smd, ImBuf *mask)
 {
-  HueCorrectModifierData *hcmd = (HueCorrectModifierData *)smd;
+  HueCorrectModifierData *hcmd = reinterpret_cast<HueCorrectModifierData *>(smd);
 
   BKE_curvemapping_init(&hcmd->curve_mapping);
 
   HueCorrectApplyOp op;
   op.curve_mapping = &hcmd->curve_mapping;
-  apply_modifier_op(op, ibuf, mask);
+  apply_modifier_op(op, context.image, mask, context.transform);
 }
 
 static void hue_correct_panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
-  PointerRNA *ptr = UI_panel_custom_data_get(panel);
+  ui::Layout &layout = *panel->layout;
+  PointerRNA *ptr = ui::panel_custom_data_get(panel);
 
-  uiTemplateCurveMapping(layout, ptr, "curve_mapping", 'h', false, false, false, false);
+  template_curve_mapping(&layout, ptr, "curve_mapping", 'h', false, false, false, false, false);
 
-  if (uiLayout *mask_input_layout = layout->panel_prop(
+  if (ui::Layout *mask_input_layout = layout.panel_prop(
           C, ptr, "open_mask_input_panel", IFACE_("Mask Input")))
   {
-    draw_mask_input_type_settings(C, mask_input_layout, ptr);
+    draw_mask_input_type_settings(C, *mask_input_layout, ptr);
   }
 }
 

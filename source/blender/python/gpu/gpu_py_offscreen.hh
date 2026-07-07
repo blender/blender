@@ -12,10 +12,13 @@
 
 #include "BLI_compiler_attrs.h"
 
+namespace blender {
+
 struct GPUOffScreen;
 struct GPUViewport;
 
 extern PyTypeObject BPyGPUOffScreen_Type;
+extern PyTypeObject PyGPUOffscreenStackContext_Type;
 
 #define BPyGPUOffScreen_Check(v) (Py_TYPE(v) == &BPyGPUOffScreen_Type)
 
@@ -26,3 +29,5 @@ struct BPyGPUOffScreen {
 };
 
 [[nodiscard]] PyObject *BPyGPUOffScreen_CreatePyObject(GPUOffScreen *ofs) ATTR_NONNULL(1);
+
+}  // namespace blender

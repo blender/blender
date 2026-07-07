@@ -20,27 +20,64 @@ NODE_STORAGE_FUNCS(NodeCombSepColor)
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>("Red").default_value(0.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
-  b.add_input<decl::Float>("Green").default_value(0.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
-  b.add_input<decl::Float>("Blue").default_value(0.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("Red")
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR)
+      .label_fn([](bNode node) {
+        switch (node_storage(node).mode) {
+          case NODE_COMBSEP_COLOR_RGB:
+          default:
+            return IFACE_("Red");
+          case NODE_COMBSEP_COLOR_HSV:
+          case NODE_COMBSEP_COLOR_HSL:
+            return IFACE_("Hue");
+        }
+      });
+  b.add_input<decl::Float>("Green")
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR)
+      .label_fn([](bNode node) {
+        switch (node_storage(node).mode) {
+          case NODE_COMBSEP_COLOR_RGB:
+          default:
+            return IFACE_("Green");
+          case NODE_COMBSEP_COLOR_HSV:
+          case NODE_COMBSEP_COLOR_HSL:
+            return IFACE_("Saturation");
+        }
+      });
+  b.add_input<decl::Float>("Blue")
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR)
+      .label_fn([](bNode node) {
+        switch (node_storage(node).mode) {
+          case NODE_COMBSEP_COLOR_RGB:
+          default:
+            return IFACE_("Blue");
+          case NODE_COMBSEP_COLOR_HSV:
+            return CTX_IFACE_(BLT_I18NCONTEXT_COLOR, "Value");
+          case NODE_COMBSEP_COLOR_HSL:
+            return IFACE_("Lightness");
+        }
+      });
   b.add_input<decl::Float>("Alpha").default_value(1.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
   b.add_output<decl::Color>("Color");
 };
 
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
-}
-
-static void node_update(bNodeTree * /*tree*/, bNode *node)
-{
-  const NodeCombSepColor &storage = node_storage(*node);
-  node_combsep_color_label(&node->inputs, (NodeCombSepColorMode)storage.mode);
+  layout.prop(ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeCombSepColor *data = MEM_callocN<NodeCombSepColor>(__func__);
+  NodeCombSepColor *data = MEM_new<NodeCombSepColor>(__func__);
   data->mode = NODE_COMBSEP_COLOR_RGB;
   node->storage = data;
 }
@@ -53,10 +90,10 @@ static const mf::MultiFunction *get_multi_function(const bNode &bnode)
       "RGB", [](float r, float g, float b, float a) { return ColorGeometry4f(r, g, b, a); });
   static auto hsva_fn = mf::build::SI4_SO<float, float, float, float, ColorGeometry4f>(
       "HSV", [](float h, float s, float v, float a) {
-        ColorGeometry4f r_color;
-        hsv_to_rgb(h, s, v, &r_color.r, &r_color.g, &r_color.b);
-        r_color.a = a;
-        return r_color;
+        ColorGeometry4f color;
+        hsv_to_rgb(h, s, v, &color.r, &color.g, &color.b);
+        color.a = a;
+        return color;
       });
   static auto hsla_fn = mf::build::SI4_SO<float, float, float, float, ColorGeometry4f>(
       "HSL", [](float h, float s, float l, float a) {
@@ -97,21 +134,22 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   fn_node_type_base(&ntype, "FunctionNodeCombineColor", FN_NODE_COMBINE_COLOR);
   ntype.ui_name = "Combine Color";
+  ntype.ui_description =
+      "Combine four channels into a single color, based on a particular color model";
   ntype.enum_name_legacy = "COMBINE_COLOR";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
-  ntype.updatefunc = node_update;
   ntype.initfunc = node_init;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeCombSepColor", node_free_standard_storage, node_copy_standard_storage);
   ntype.build_multi_function = node_build_multi_function;
   ntype.draw_buttons = node_layout;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

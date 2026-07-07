@@ -18,8 +18,8 @@ extern PyTypeObject ExternalContourUP1D_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&ExternalContourUP1D_Type))
 
 /*---------------------------Python BPy_ExternalContourUP1D structure definition----------*/
-typedef struct {
+struct BPy_ExternalContourUP1D {
   BPy_UnaryPredicate1D py_up1D;
-} BPy_ExternalContourUP1D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

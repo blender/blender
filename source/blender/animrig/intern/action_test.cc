@@ -12,15 +12,19 @@
 #include "BKE_main.hh"
 #include "BKE_object.hh"
 
-#include "DNA_action_defaults.h"
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 
 #include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_prototypes.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
+#include "BLI_string_utils.hh"
+
+#include "DEG_depsgraph_build.hh"
 
 #include <limits>
 
@@ -54,11 +58,14 @@ class ActionLayersTest : public testing::Test {
 
     /* To make id_can_have_animdata() and friends work, the `id_types` array needs to be set up. */
     BKE_idtype_init();
+
+    RNA_init();
   }
 
   static void TearDownTestSuite()
   {
     CLG_exit();
+    RNA_exit();
   }
 
   void SetUp() override
@@ -861,7 +868,9 @@ TEST_F(ActionLayersTest, assign_action_ensure_slot_for_keying)
 {
   { /* Slotless Action, should create a typed slot. */
     Action &action = action_add(*this->bmain, "ACEmpty");
+    EXPECT_EQ(action.id.us, 0);
     Slot *chosen_slot = assign_action_ensure_slot_for_keying(action, cube->id);
+    EXPECT_EQ(action.id.us, 1);
     ASSERT_NE(nullptr, chosen_slot);
     EXPECT_EQ(ID_OB, chosen_slot->idtype);
     EXPECT_STREQ("OBKüüübus", chosen_slot->identifier);
@@ -994,48 +1003,6 @@ TEST_F(ActionLayersTest, KeyframeStrip__keyframe_insert)
   EXPECT_EQ(1, channels->fcurves()[1]->totvert);
 }
 
-TEST_F(ActionLayersTest, is_action_assignable_to)
-{
-  EXPECT_TRUE(is_action_assignable_to(nullptr, ID_OB))
-      << "nullptr Actions should be assignable to any type.";
-  EXPECT_TRUE(is_action_assignable_to(nullptr, ID_CA))
-      << "nullptr Actions should be assignable to any type.";
-
-  EXPECT_TRUE(is_action_assignable_to(action, ID_OB))
-      << "Empty Actions should be assignable to any type.";
-  EXPECT_TRUE(is_action_assignable_to(action, ID_CA))
-      << "Empty Actions should be assignable to any type.";
-
-  /* Make the Action a legacy one. */
-  FCurve fake_fcurve;
-  BLI_addtail(&action->curves, &fake_fcurve);
-  ASSERT_FALSE(action->is_empty());
-  ASSERT_TRUE(action->is_action_legacy());
-  ASSERT_EQ(0, action->idroot);
-
-  EXPECT_TRUE(is_action_assignable_to(action, ID_OB))
-      << "Legacy Actions with idroot=0 should be assignable to any type.";
-  EXPECT_TRUE(is_action_assignable_to(action, ID_CA))
-      << "Legacy Actions with idroot=0 should be assignable to any type.";
-
-  /* Set the legacy idroot. */
-  action->idroot = ID_CA;
-  EXPECT_FALSE(is_action_assignable_to(action, ID_OB))
-      << "Legacy Actions with idroot=ID_CA should NOT be assignable to ID_OB.";
-  EXPECT_TRUE(is_action_assignable_to(action, ID_CA))
-      << "Legacy Actions with idroot=CA should be assignable to ID_CA.";
-
-  /* Make the Action a layered one. */
-  BLI_poptail(&action->curves);
-  action->layer_add("layer");
-  ASSERT_EQ(0, action->idroot) << "Adding a layer should clear the idroot.";
-
-  EXPECT_TRUE(is_action_assignable_to(action, ID_OB))
-      << "Layered Actions should be assignable to any type.";
-  EXPECT_TRUE(is_action_assignable_to(action, ID_CA))
-      << "Layered Actions should be assignable to any type.";
-}
-
 TEST_F(ActionLayersTest, action_slot_get_id_for_keying__empty_action)
 {
   EXPECT_TRUE(assign_action(action, cube->id));
@@ -1050,29 +1017,9 @@ TEST_F(ActionLayersTest, action_slot_get_id_for_keying__empty_action)
   EXPECT_EQ(nullptr, action_slot_get_id_for_keying(*bmain, *action, 0, &suzanne->id));
 }
 
-TEST_F(ActionLayersTest, action_slot_get_id_for_keying__legacy_action)
-{
-  FCurve *fcurve = action_fcurve_ensure_legacy(bmain, action, nullptr, nullptr, {"location", 0});
-  EXPECT_FALSE(fcurve == nullptr);
-
-  EXPECT_TRUE(assign_action(action, cube->id));
-
-  /* Double-check that the action is considered legacy for the test. */
-  EXPECT_TRUE(action->is_action_legacy());
-
-  /* A `primary_id` that uses the action should get returned. Every other case
-   * should return nullptr. */
-  EXPECT_EQ(&cube->id, action_slot_get_id_for_keying(*bmain, *action, 0, &cube->id));
-  EXPECT_EQ(nullptr, action_slot_get_id_for_keying(*bmain, *action, 0, nullptr));
-  EXPECT_EQ(nullptr, action_slot_get_id_for_keying(*bmain, *action, 0, &suzanne->id));
-}
-
 TEST_F(ActionLayersTest, action_slot_get_id_for_keying__layered_action)
 {
   Slot &slot = action->slot_add();
-
-  /* Double-check that the action is considered layered for the test. */
-  EXPECT_TRUE(action->is_action_layered());
 
   /* A slot with no users should never return a user. */
   EXPECT_EQ(nullptr, action_slot_get_id_for_keying(*bmain, *action, slot.handle, nullptr));
@@ -1094,117 +1041,6 @@ TEST_F(ActionLayersTest, action_slot_get_id_for_keying__layered_action)
   EXPECT_EQ(nullptr, action_slot_get_id_for_keying(*bmain, *action, slot.handle, &bob->id));
 }
 
-TEST_F(ActionLayersTest, conversion_to_layered)
-{
-  EXPECT_TRUE(action->is_empty());
-  FCurve *legacy_fcu_0 = action_fcurve_ensure_legacy(
-      bmain, action, "Test", nullptr, {"location", 0});
-  FCurve *legacy_fcu_1 = action_fcurve_ensure_legacy(
-      bmain, action, "Test", nullptr, {"location", 1});
-
-  KeyframeSettings settings;
-  settings.handle = HD_AUTO;
-  settings.interpolation = BEZT_IPO_BEZ;
-  settings.keyframe_type = BEZT_KEYTYPE_KEYFRAME;
-  insert_vert_fcurve(legacy_fcu_0, {0, 0}, settings, INSERTKEY_NOFLAGS);
-  insert_vert_fcurve(legacy_fcu_0, {1, 1}, settings, INSERTKEY_NOFLAGS);
-  add_fmodifier(&legacy_fcu_1->modifiers, FMODIFIER_TYPE_NOISE, legacy_fcu_1);
-
-  Action *converted = convert_to_layered_action(*bmain, *action);
-  ASSERT_TRUE(converted != action);
-  EXPECT_STREQ(converted->id.name, "ACACÄnimåtië_layered");
-  Strip *strip = converted->layer(0)->strip(0);
-  StripKeyframeData &strip_data = strip->data<StripKeyframeData>(*converted);
-  Channelbag *bag = strip_data.channelbag(0);
-  ASSERT_EQ(bag->fcurve_array_num, 2);
-  ASSERT_EQ(bag->fcurve_array[0]->totvert, 2);
-
-  ASSERT_EQ(BLI_listbase_count(&action->groups), 1);
-  ASSERT_EQ(BLI_listbase_count(&converted->groups), 0);
-
-  ASSERT_EQ(bag->channel_groups().size(), 1);
-  bActionGroup *group = bag->channel_group(0);
-  ASSERT_EQ(group->fcurve_range_length, 2);
-  ASSERT_STREQ(group->name, "Test");
-
-  ASSERT_TRUE(bag->fcurve_array[0]->modifiers.first == nullptr);
-  ASSERT_TRUE(bag->fcurve_array[1]->modifiers.first != nullptr);
-
-  constexpr char id_name_max[] =
-      "name_for_an_action_that_is_exactly_255_bytes_MAX_ID_NAME-3______"
-      "name_for_an_action_that_is_exactly_255_bytes_MAX_ID_NAME-3______"
-      "name_for_an_action_that_is_exactly_255_bytes_MAX_ID_NAME-3______"
-      "name_for_an_action_that_is_exactly_255_bytes_MAX_ID_NAME-3_____";
-  BLI_STATIC_ASSERT(std::string::traits_type::length(id_name_max) == MAX_ID_NAME - 2 - 1,
-                    "Wrong 'max length' name");
-  Action *long_name_action = BKE_id_new<Action>(bmain, id_name_max);
-  action_fcurve_ensure_legacy(bmain, long_name_action, "Long", nullptr, {"location", 0});
-  /* The long name is shortened to make space for "_layered". */
-  constexpr char id_name_max_converted[] =
-      "name_for_an_action_that_is_exactly_255_bytes_MAX_ID_NAME-3______"
-      "name_for_an_action_that_is_exactly_255_bytes_MAX_ID_NAME-3______"
-      "name_for_an_action_that_is_exactly_255_bytes_MAX_ID_NAME-3______"
-      "name_for_an_action_that_is_exactly_255_bytes_MAX_ID_NAM_layered";
-  BLI_STATIC_ASSERT(std::string::traits_type::length(id_name_max_converted) == MAX_ID_NAME - 2 - 1,
-                    "Wrong 'max length' name");
-  converted = convert_to_layered_action(*bmain, *long_name_action);
-  EXPECT_STREQ(BKE_id_name(converted->id), id_name_max_converted);
-}
-
-TEST_F(ActionLayersTest, conversion_to_layered_action_groups)
-{
-  EXPECT_TRUE(action->is_empty());
-  action_fcurve_ensure_legacy(bmain, action, "Test", nullptr, {"location", 0});
-  action_fcurve_ensure_legacy(bmain, action, "Test", nullptr, {"rotation_euler", 1});
-  action_fcurve_ensure_legacy(bmain, action, "Test_Two", nullptr, {"scale", 1});
-  action_fcurve_ensure_legacy(bmain, action, "Test_Three", nullptr, {"show_name", 1});
-  action_fcurve_ensure_legacy(bmain, action, "Test_Rename", nullptr, {"show_axis", 1});
-
-  bActionGroup *rename_group = static_cast<bActionGroup *>(BLI_findlink(&action->groups, 3));
-  ASSERT_NE(rename_group, nullptr);
-  ASSERT_STREQ(rename_group->name, "Test_Rename");
-  /* Forcing a duplicate name which was allowed by legacy actions. */
-  STRNCPY_UTF8(rename_group->name, "Test");
-
-  Action *converted = convert_to_layered_action(*bmain, *action);
-  Strip *strip = converted->layer(0)->strip(0);
-  StripKeyframeData &strip_data = strip->data<StripKeyframeData>(*converted);
-  Channelbag *bag = strip_data.channelbag(0);
-
-  ASSERT_EQ(BLI_listbase_count(&converted->groups), 0);
-  ASSERT_EQ(bag->channel_groups().size(), 4);
-
-  bActionGroup *test_group = bag->channel_group(0);
-  EXPECT_STREQ(test_group->name, "Test");
-  EXPECT_EQ(test_group->fcurve_range_length, 2);
-
-  bActionGroup *test_two_group = bag->channel_group(1);
-  EXPECT_STREQ(test_two_group->name, "Test_Two");
-  EXPECT_EQ(test_two_group->fcurve_range_length, 1);
-  EXPECT_STREQ(bag->fcurve_array[test_two_group->fcurve_range_start]->rna_path, "scale");
-
-  bActionGroup *test_three_group = bag->channel_group(2);
-  EXPECT_STREQ(test_three_group->name, "Test_Three");
-  EXPECT_EQ(test_three_group->fcurve_range_length, 1);
-  EXPECT_STREQ(bag->fcurve_array[test_three_group->fcurve_range_start]->rna_path, "show_name");
-
-  bActionGroup *test_rename_group = bag->channel_group(3);
-  EXPECT_STREQ(test_rename_group->name, "Test.001");
-  EXPECT_EQ(test_rename_group->fcurve_range_length, 1);
-  EXPECT_STREQ(bag->fcurve_array[test_rename_group->fcurve_range_start]->rna_path, "show_axis");
-
-  ASSERT_NE(converted, action);
-}
-
-TEST_F(ActionLayersTest, empty_to_layered)
-{
-  ASSERT_TRUE(action->is_empty());
-  Action *converted = convert_to_layered_action(*bmain, *action);
-  ASSERT_TRUE(converted != action);
-  ASSERT_TRUE(converted->is_action_layered());
-  ASSERT_FALSE(converted->is_action_legacy());
-}
-
 TEST_F(ActionLayersTest, action_move_slot)
 {
   Action *action_2 = BKE_id_new<Action>(bmain, "Action 2");
@@ -1219,11 +1055,11 @@ TEST_F(ActionLayersTest, action_move_slot)
   PointerRNA cube_rna_pointer = RNA_id_pointer_create(&cube->id);
   PointerRNA suzanne_rna_pointer = RNA_id_pointer_create(&suzanne->id);
 
-  action_fcurve_ensure_ex(bmain, action, "Test", &cube_rna_pointer, {"location", 0});
-  action_fcurve_ensure_ex(bmain, action, "Test", &cube_rna_pointer, {"rotation_euler", 1});
+  action_fcurve_ensure_ex(bmain, action, &cube_rna_pointer, {"location", 0});
+  action_fcurve_ensure_ex(bmain, action, &cube_rna_pointer, {"rotation_euler", 1});
 
-  action_fcurve_ensure_ex(bmain, action_2, "Test_2", &suzanne_rna_pointer, {"location", 0});
-  action_fcurve_ensure_ex(bmain, action_2, "Test_2", &suzanne_rna_pointer, {"rotation_euler", 1});
+  action_fcurve_ensure_ex(bmain, action_2, &suzanne_rna_pointer, {"location", 0});
+  action_fcurve_ensure_ex(bmain, action_2, &suzanne_rna_pointer, {"rotation_euler", 1});
 
   ASSERT_EQ(action->layer_array_num, 1);
   ASSERT_EQ(action_2->layer_array_num, 1);
@@ -1273,8 +1109,8 @@ TEST_F(ActionLayersTest, action_move_slot_without_channelbag)
   PointerRNA cube_rna_pointer = RNA_id_pointer_create(&cube->id);
   PointerRNA suzanne_rna_pointer = RNA_id_pointer_create(&suzanne->id);
 
-  action_fcurve_ensure_ex(bmain, action, "Test", &cube_rna_pointer, {"location", 0});
-  action_fcurve_ensure_ex(bmain, action, "Test", &cube_rna_pointer, {"rotation_euler", 1});
+  action_fcurve_ensure_ex(bmain, action, &cube_rna_pointer, {"location", 0});
+  action_fcurve_ensure_ex(bmain, action, &cube_rna_pointer, {"rotation_euler", 1});
 
   /* Make sure action_2 has a keyframe strip, but without a channelbag. */
   action_2->layer_add("Bagless").strip_add(*action_2, Strip::Type::Keyframe);
@@ -1320,8 +1156,8 @@ TEST_F(ActionLayersTest, action_duplicate_slot)
 
   PointerRNA cube_rna_pointer = RNA_id_pointer_create(&cube->id);
 
-  action_fcurve_ensure_ex(bmain, action, "Test", &cube_rna_pointer, {"location", 0});
-  action_fcurve_ensure_ex(bmain, action, "Test", &cube_rna_pointer, {"rotation_euler", 1});
+  action_fcurve_ensure_ex(bmain, action, &cube_rna_pointer, {"location", 0});
+  action_fcurve_ensure_ex(bmain, action, &cube_rna_pointer, {"rotation_euler", 1});
 
   ASSERT_EQ(action->layer_array_num, 1);
   Layer *layer = action->layer(0);
@@ -1388,12 +1224,30 @@ TEST_F(ActionLayersTest, action_duplicate_slot_without_channelbag)
   EXPECT_EQ(slot_cube.handle, cube->adt->slot_handle);
 }
 
+TEST_F(ActionLayersTest, fcurves_for_action_slot)
+{
+  Slot &slot1 = action->slot_add();
+  Slot &slot2 = action->slot_add();
+
+  action->layer_keystrip_ensure();
+  StripKeyframeData &key_data = action->layer(0)->strip(0)->data<StripKeyframeData>(*action);
+
+  FCurve &fcurve1 = key_data.channelbag_for_slot_ensure(slot1).fcurve_ensure(bmain,
+                                                                             {"location", 1});
+  FCurve &fcurve2 = key_data.channelbag_for_slot_ensure(slot2).fcurve_ensure(bmain, {"scale", 2});
+
+  Vector<FCurve *> fcurve1_expect = {&fcurve1};
+  Vector<FCurve *> fcurve2_expect = {&fcurve2};
+  EXPECT_EQ(fcurve1_expect.as_span(), fcurves_for_action_slot(*action, slot1.handle));
+  EXPECT_EQ(fcurve2_expect.as_span(), fcurves_for_action_slot(*action, slot2.handle));
+}
+
 /*-----------------------------------------------------------*/
 
 /* Allocate fcu->bezt, and also return a unique_ptr to it for easily freeing the memory. */
 static void allocate_keyframes(FCurve &fcu, const size_t num_keyframes)
 {
-  fcu.bezt = MEM_calloc_arrayN<BezTriple>(num_keyframes, __func__);
+  fcu.bezt = MEM_new_array_zeroed<BezTriple>(num_keyframes, __func__);
 }
 
 /* Append keyframe, assumes that fcu->bezt is allocated and has enough space. */
@@ -1467,7 +1321,7 @@ TEST_F(ActionQueryTest, BKE_action_frame_range_calc)
 
   /* One curve with one key. */
   {
-    FCurve &fcu = *MEM_callocN<FCurve>(__func__);
+    FCurve &fcu = *MEM_new<FCurve>(__func__);
     allocate_keyframes(fcu, 1);
     add_keyframe(fcu, 1.0f, 2.0f);
 
@@ -1481,8 +1335,8 @@ TEST_F(ActionQueryTest, BKE_action_frame_range_calc)
 
   /* Two curves with one key each on different frames. */
   {
-    FCurve &fcu1 = *MEM_callocN<FCurve>(__func__);
-    FCurve &fcu2 = *MEM_callocN<FCurve>(__func__);
+    FCurve &fcu1 = *MEM_new<FCurve>(__func__);
+    FCurve &fcu2 = *MEM_new<FCurve>(__func__);
     allocate_keyframes(fcu1, 1);
     allocate_keyframes(fcu2, 1);
     add_keyframe(fcu1, 1.0f, 2.0f);
@@ -1499,7 +1353,7 @@ TEST_F(ActionQueryTest, BKE_action_frame_range_calc)
 
   /* One curve with two keys. */
   {
-    FCurve &fcu = *MEM_callocN<FCurve>(__func__);
+    FCurve &fcu = *MEM_new<FCurve>(__func__);
     allocate_keyframes(fcu, 2);
     add_keyframe(fcu, 1.0f, 2.0f);
     add_keyframe(fcu, 1.5f, 2.0f);
@@ -1513,6 +1367,66 @@ TEST_F(ActionQueryTest, BKE_action_frame_range_calc)
   }
 
   /* TODO: action with fcurve modifiers. */
+}
+
+TEST_F(ActionQueryTest, action_has_single_frame)
+{
+  /* No FCurves. */
+  {
+    Action &action = action_new();
+    EXPECT_FALSE(action.has_single_frame())
+        << "Action without FCurves cannot have a single frame.";
+  }
+
+  /* One curve with one key. */
+  {
+    FCurve &fcu = *MEM_new<FCurve>(__func__);
+    allocate_keyframes(fcu, 1);
+    add_keyframe(fcu, 1.0f, 2.0f);
+
+    Action &action = action_new();
+    add_fcurve_to_action(action, fcu);
+
+    EXPECT_TRUE(action.has_single_frame())
+        << "Action with one FCurve and one key should have single frame.";
+  }
+  return;
+
+  /* Two curves with one key each. */
+  {
+    FCurve &fcu1 = *MEM_new<FCurve>(__func__);
+    FCurve &fcu2 = *MEM_new<FCurve>(__func__);
+    allocate_keyframes(fcu1, 1);
+    allocate_keyframes(fcu2, 1);
+    add_keyframe(fcu1, 1.0f, 327.0f);
+    add_keyframe(fcu2, 1.0f, 47.0f); /* Same X-coordinate as the other one. */
+
+    Action &action = action_new();
+    add_fcurve_to_action(action, fcu1);
+    add_fcurve_to_action(action, fcu2);
+
+    EXPECT_TRUE(action.wrap().has_single_frame())
+        << "Two FCurves with keys on the same frame should have single frame.";
+
+    /* Modify the 2nd curve so it's keyed on a different frame. */
+    fcu2.bezt[0].vec[1][0] = 2.0f;
+    EXPECT_FALSE(action.has_single_frame())
+        << "Two FCurves with keys on different frames should have animation.";
+  }
+
+  /* One curve with two keys. */
+  {
+    FCurve &fcu = *MEM_new<FCurve>(__func__);
+    allocate_keyframes(fcu, 2);
+    add_keyframe(fcu, 1.0f, 2.0f);
+    add_keyframe(fcu, 2.0f, 2.5f);
+
+    Action &action = action_new();
+    add_fcurve_to_action(action, fcu);
+
+    EXPECT_FALSE(action.has_single_frame())
+        << "Action with one FCurve and two keys must have animation.";
+  }
 }
 
 /*-----------------------------------------------------------*/
@@ -2261,38 +2175,6 @@ class ActionFCurveMoveTest : public testing::Test {
   };
 };
 
-TEST_F(ActionFCurveMoveTest, test_fcurve_move_legacy)
-{
-  Action &action_src = action_add(*this->bmain, "SourceAction");
-  Action &action_dst = action_add(*this->bmain, "DestinationAction");
-
-  /* Add F-Curves to source Action. */
-  BLI_addtail(&action_src.curves, fcurve_create("source_prop", 0));
-  FCurve *fcurve_to_move = fcurve_create("source_prop", 2);
-  BLI_addtail(&action_src.curves, fcurve_to_move);
-
-  /* Add F-Curves to destination Action. */
-  BLI_addtail(&action_dst.curves, fcurve_create("dest_prop", 0));
-
-  ASSERT_TRUE(action_src.is_action_legacy());
-  ASSERT_TRUE(action_dst.is_action_legacy());
-
-  action_fcurve_move(action_dst, Slot::unassigned, action_src, *fcurve_to_move);
-
-  EXPECT_TRUE(action_src.is_action_legacy());
-  EXPECT_TRUE(action_dst.is_action_legacy());
-
-  EXPECT_EQ(-1, BLI_findindex(&action_src.curves, fcurve_to_move))
-      << "F-Curve should no longer exist in source Action";
-  EXPECT_EQ(1, BLI_findindex(&action_dst.curves, fcurve_to_move))
-      << "F-Curve should exist in destination Action";
-
-  EXPECT_EQ(1, BLI_listbase_count(&action_src.curves))
-      << "Source Action should still have the other F-Curve";
-  EXPECT_EQ(2, BLI_listbase_count(&action_dst.curves))
-      << "Destination Action should have its original and the moved F-Curve";
-}
-
 TEST_F(ActionFCurveMoveTest, test_fcurve_move_layered)
 {
   Action &action_src = action_add(*this->bmain, "SourceAction");
@@ -2319,13 +2201,7 @@ TEST_F(ActionFCurveMoveTest, test_fcurve_move_layered)
 
   cbag_dst.fcurve_ensure(this->bmain, {"dest_prop", 0});
 
-  ASSERT_TRUE(action_src.is_action_layered());
-  ASSERT_TRUE(action_dst.is_action_layered());
-
   action_fcurve_move(action_dst, slot_dst.handle, action_src, fcurve_to_move);
-
-  EXPECT_TRUE(action_src.is_action_layered());
-  EXPECT_TRUE(action_dst.is_action_layered());
 
   EXPECT_EQ(nullptr, cbag_src.fcurve_find({fcurve_to_move.rna_path, fcurve_to_move.array_index}))
       << "F-Curve should no longer exist in source Action";

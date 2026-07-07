@@ -205,7 +205,7 @@ class VIEW3D_OT_cursor_to_vr_landmark(Operator):
             lm_pos = lm.base_pose_location
         scene.cursor.location = lm_pos
 
-        return{'FINISHED'}
+        return {'FINISHED'}
 
 
 class VIEW3D_OT_add_camera_from_vr_landmark(Operator):
@@ -290,6 +290,7 @@ class VIEW3D_GT_vr_camera_cone(Gizmo):
                 (aspect[0], -aspect[1], -1.0),
                 (aspect[0], aspect[1], -1.0),
                 (-aspect[0], aspect[1], -1.0),
+                (-aspect[0], -aspect[1], -1.0),
             )
             lines_shape_verts = (
                 (0.0, 0.0, 0.0),
@@ -303,7 +304,7 @@ class VIEW3D_GT_vr_camera_cone(Gizmo):
             )
 
             self.frame_shape = self.new_custom_shape(
-                'LINE_LOOP', frame_shape_verts)
+                'LINE_STRIP', frame_shape_verts)
             self.lines_shape = self.new_custom_shape(
                 'LINES', lines_shape_verts)
 

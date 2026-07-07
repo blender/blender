@@ -15,6 +15,8 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
+namespace blender {
+
 template<typename T>
 static void rotate_pixels(const int degrees,
                           const int size_x,
@@ -23,7 +25,6 @@ static void rotate_pixels(const int degrees,
                           T *dst_pixels,
                           const int channels)
 {
-  using namespace blender;
   threading::parallel_for(IndexRange(size_y), 256, [&](const IndexRange y_range) {
     const T *src_pixel = src_pixels + y_range.first() * size_x * channels;
     if (degrees == 90) {
@@ -71,7 +72,7 @@ bool IMB_rotate_orthogonal(ImBuf *ibuf, int degrees)
   if (ibuf->float_buffer.data) {
     const int channels = ibuf->channels;
     const float *src_pixels = ibuf->float_buffer.data;
-    float *dst_pixels = MEM_malloc_arrayN<float>(
+    float *dst_pixels = MEM_new_array_uninitialized<float>(
         size_t(channels) * size_t(size_x) * size_t(size_y), __func__);
     rotate_pixels<float>(degrees, size_x, size_y, src_pixels, dst_pixels, ibuf->channels);
     IMB_assign_float_buffer(ibuf, dst_pixels, IB_TAKE_OWNERSHIP);
@@ -81,7 +82,8 @@ bool IMB_rotate_orthogonal(ImBuf *ibuf, int degrees)
   }
   else if (ibuf->byte_buffer.data) {
     const uchar *src_pixels = ibuf->byte_buffer.data;
-    uchar *dst_pixels = MEM_malloc_arrayN<uchar>(4 * size_t(size_x) * size_t(size_y), __func__);
+    uchar *dst_pixels = MEM_new_array_uninitialized<uchar>(4 * size_t(size_x) * size_t(size_y),
+                                                           __func__);
     rotate_pixels<uchar>(degrees, size_x, size_y, src_pixels, dst_pixels, 4);
     IMB_assign_byte_buffer(ibuf, dst_pixels, IB_TAKE_OWNERSHIP);
   }
@@ -105,9 +107,9 @@ void IMB_flipy(ImBuf *ibuf)
 
     const size_t stride = x_size * sizeof(int);
 
-    top = (uint *)ibuf->byte_buffer.data;
+    top = reinterpret_cast<uint *>(ibuf->byte_buffer.data);
     bottom = top + ((y_size - 1) * x_size);
-    line = MEM_malloc_arrayN<uint>(x_size, "linebuf");
+    line = MEM_new_array_uninitialized<uint>(x_size, "linebuf");
 
     y_size >>= 1;
 
@@ -119,7 +121,7 @@ void IMB_flipy(ImBuf *ibuf)
       top += x_size;
     }
 
-    MEM_freeN(line);
+    MEM_delete(line);
   }
 
   if (ibuf->float_buffer.data) {
@@ -132,7 +134,7 @@ void IMB_flipy(ImBuf *ibuf)
 
     topf = ibuf->float_buffer.data;
     bottomf = topf + 4 * ((y_size - 1) * x_size);
-    linef = MEM_malloc_arrayN<float>(4 * x_size, "linebuf");
+    linef = MEM_new_array_uninitialized<float>(4 * x_size, "linebuf");
 
     y_size >>= 1;
 
@@ -144,7 +146,7 @@ void IMB_flipy(ImBuf *ibuf)
       topf += 4 * x_size;
     }
 
-    MEM_freeN(linef);
+    MEM_delete(linef);
   }
 }
 
@@ -161,7 +163,7 @@ void IMB_flipx(ImBuf *ibuf)
   y = ibuf->y;
 
   if (ibuf->byte_buffer.data) {
-    uint *rect = (uint *)ibuf->byte_buffer.data;
+    uint *rect = reinterpret_cast<uint *>(ibuf->byte_buffer.data);
     for (yi = y - 1; yi >= 0; yi--) {
       const size_t x_offset = size_t(x) * yi;
       for (xr = x - 1, xl = 0; xr >= xl; xr--, xl++) {
@@ -183,3 +185,5 @@ void IMB_flipx(ImBuf *ibuf)
     }
   }
 }
+
+}  // namespace blender

@@ -9,11 +9,11 @@
  * Equivalent of `CurvesGeometry::evaluated_positions()`.
  */
 
-#include "draw_curves_info.hh"
+#include "draw_curves_infos.hh"
 
 #include "gpu_shader_attribute_load_lib.glsl"
-#include "gpu_shader_math_base_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_matrix_transform_lib.glsl"
+#include "gpu_shader_math_safe_lib.glsl"
 #include "gpu_shader_offset_indices_lib.glsl"
 
 /* We workaround the lack of function pointers by using different type to overload the attribute
@@ -21,13 +21,6 @@
 struct InterpPosition {
   /* Position, Radius. */
   float4 data;
-
-  METAL_CONSTRUCTOR_1(InterpPosition, float4, data)
-
-  static InterpPosition zero()
-  {
-    return InterpPosition(float4(0));
-  }
 };
 
 /** Input Load. */
@@ -42,7 +35,7 @@ template<> InterpPosition input_load<InterpPosition>(int point_index)
   const auto &transform = push_constant_get(draw_curves_interpolate_position, transform);
   const auto &positions = buffer_get(draw_curves_interpolate_position, positions_buf);
   InterpPosition interp;
-  interp.data.xyz = gpu_attr_load_float3(positions, int2(3, 0), point_index);
+  interp.data.xyz = gpu_attr_load_float3(positions, int2(3, 0), uint(point_index));
   interp.data.w = buffer_get(draw_curves_interpolate_position, radii_buf)[point_index];
   /* Bake object transform for legacy hair particle. */
   interp.data.xyz = transform_point(transform, interp.data.xyz);
@@ -117,7 +110,7 @@ template<> float output_load<float>(int evaluated_point_index)
 void output_write(int evaluated_point_index, InterpPosition interp)
 {
   /* Clamp radius to 0 to avoid negative radius due to interpolation. */
-  interp.data.w = max(0.0, interp.data.w);
+  interp.data.w = max(0.0f, interp.data.w);
   buffer_get(draw_curves_interpolate_position,
              evaluated_positions_radii_buf)[evaluated_point_index] = interp.data;
 }
@@ -262,7 +255,8 @@ void evaluate_curve(const IndexRange points,
   const uint curve_resolution = curves_resolution_buf[curve_index];
   const bool is_curve_cyclic = curve_cyclic_get(curve_index);
 
-  for (uint i = 0; i < evaluated_points.size(); i++) {
+  const uint evaluated_points_count = uint(evaluated_points.size());
+  for (uint i = 0; i < evaluated_points_count; i++) {
     const int evaluated_point_id = evaluated_points.start() + int(i);
     const uint point_id = i / curve_resolution;
     const float parameter = float(i % curve_resolution) / float(curve_resolution);
@@ -311,8 +305,8 @@ template<> void evaluate_segment<InterpPosition>(const int2 points, const IndexR
   InterpPosition p1 = input_load<InterpPosition>(points.y);
 
   const float3 point_0 = p0.data.xyz;
-  const float3 point_1 = gpu_attr_load_float3(handles_right, int2(3, 0), points.x);
-  const float3 point_2 = gpu_attr_load_float3(handles_left, int2(3, 0), points.y);
+  const float3 point_1 = gpu_attr_load_float3(handles_right, int2(3, 0), uint(points.x));
+  const float3 point_2 = gpu_attr_load_float3(handles_left, int2(3, 0), uint(points.y));
   const float3 point_3 = p1.data.xyz;
 
   const float rad_0 = p0.data.w;
@@ -349,7 +343,7 @@ template void evaluate_segment<float4>(int2, IndexRange);
 
 IndexRange per_curve_point_offsets_range(const IndexRange points, const int curve_index)
 {
-  return IndexRange(curve_index + points.start(), points.size() + 1);
+  return {curve_index + points.start(), points.size() + 1};
 }
 
 int2 get_points(uint point_id, IndexRange points, const bool cyclic)
@@ -380,7 +374,7 @@ void evaluate_curve(const IndexRange points,
     const IndexRange segment_range = offset_indices::load_range_from_buffer(bezier_offsets_buf,
                                                                             offsets.start() + i);
     const IndexRange evaluated_segment_range = evaluated_points.slice(segment_range);
-    const int2 point_ids = get_points(i, points, is_curve_cyclic);
+    const int2 point_ids = get_points(uint(i), points, is_curve_cyclic);
 
     evaluate_segment<InterpType>(point_ids, evaluated_segment_range);
   }
@@ -449,8 +443,8 @@ void evaluate_curve(const IndexRange points,
   const bool is_curve_cyclic = curve_cyclic_get(curve_index);
 
   /* Recover original points range without closing cyclic point. */
-  const IndexRange evaluated_points = IndexRange(evaluated_points_padded.start(),
-                                                 evaluated_points_padded.size() - int(use_cyclic));
+  const IndexRange evaluated_points{evaluated_points_padded.start(),
+                                    evaluated_points_padded.size() - int(use_cyclic)};
 
   const int start_indices_range_start = basis_cache_start;
   const int weights_range_start = basis_cache_start + evaluated_points.size();
@@ -465,7 +459,7 @@ void evaluate_curve(const IndexRange points,
     output_set_zero<InterpType>(evaluated_point_index);
     float total_weight = 0.0f;
 
-    const IndexRange point_weights = IndexRange(weights_range_start + i * order, order);
+    const IndexRange point_weights{weights_range_start + i * order, order};
     const int start_index = floatBitsToInt(basis_cache_buf[start_indices_range_start + i]);
 
     for (int j = 0; j < point_weights.size(); j++) {
@@ -524,8 +518,8 @@ template<typename InterpType> void evaluate_curve()
       evaluated_points_by_curve_buf, curve_index);
 
   if (use_cyclic) {
-    evaluated_points = IndexRange(evaluated_points.start() + curve_index,
-                                  evaluated_points.size() + 1);
+    evaluated_points = IndexRange{evaluated_points.start() + curve_index,
+                                  evaluated_points.size() + 1};
   }
 
   if (CurveType(evaluated_type) == CURVE_TYPE_CATMULL_ROM) {

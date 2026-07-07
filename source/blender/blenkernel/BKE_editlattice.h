@@ -8,8 +8,12 @@
 
 #pragma once
 
+namespace blender {
+
 struct Object;
 
 void BKE_editlattice_free(struct Object *ob);
 void BKE_editlattice_make(struct Object *obedit);
 void BKE_editlattice_load(struct Object *obedit);
+
+}  // namespace blender

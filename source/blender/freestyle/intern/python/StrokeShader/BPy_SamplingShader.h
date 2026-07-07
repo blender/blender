@@ -18,8 +18,8 @@ extern PyTypeObject SamplingShader_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&SamplingShader_Type))
 
 /*---------------------------Python BPy_SamplingShader structure definition----------*/
-typedef struct {
+struct BPy_SamplingShader {
   BPy_StrokeShader py_ss;
-} BPy_SamplingShader;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

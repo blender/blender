@@ -27,6 +27,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 // #define DEBUG_PRINT
 
 /* Alloc number for depths */
@@ -106,7 +108,7 @@ struct DepthBufCache {
 static DepthBufCache *depth_buf_malloc(uint rect_len)
 {
   DepthBufCache *rect = static_cast<DepthBufCache *>(
-      MEM_mallocN(sizeof(DepthBufCache) + sizeof(depth_t) * rect_len, __func__));
+      MEM_new_uninitialized(sizeof(DepthBufCache) + sizeof(depth_t) * rect_len, __func__));
   rect->id = SELECT_ID_NONE;
   return rect;
 }
@@ -229,7 +231,7 @@ struct GPUPickState {
   /** Cache on initialization. */
   GPUSelectBuffer *buffer;
   /** Mode of this operation. */
-  eGPUSelectMode mode;
+  GPUSelectMode mode;
 
   /** GPU drawing, never use when `is_cached == true`. */
   struct {
@@ -266,7 +268,7 @@ struct GPUPickState {
     SubRectStride sub_rect;
 
     /** List of #DepthBufCache, sized of 'src.clip_rect'. */
-    ListBase bufs;
+    ListBaseT<DepthBufCache> bufs;
   } cache;
 
   /** Picking methods. */
@@ -287,13 +289,13 @@ struct GPUPickState {
   /** Previous state to restore after drawing. */
   int viewport[4];
   int scissor[4];
-  eGPUWriteMask write_mask;
-  eGPUDepthTest depth_test;
+  GPUWriteMask write_mask;
+  GPUDepthTest depth_test;
 };
 
 static GPUPickState g_pick_state{};
 
-void gpu_select_pick_begin(GPUSelectBuffer *buffer, const rcti *input, eGPUSelectMode mode)
+void gpu_select_pick_begin(GPUSelectBuffer *buffer, const rcti *input, GPUSelectMode mode)
 {
   GPUPickState *ps = &g_pick_state;
 
@@ -367,14 +369,13 @@ void gpu_select_pick_begin(GPUSelectBuffer *buffer, const rcti *input, eGPUSelec
   }
 
   if (mode == GPU_SELECT_PICK_ALL) {
-    ps->all.hits = static_cast<DepthID *>(
-        MEM_mallocN(sizeof(*ps->all.hits) * ALLOC_DEPTHS, __func__));
+    ps->all.hits = MEM_new_array_uninitialized<DepthID>(ALLOC_DEPTHS, __func__);
     ps->all.hits_len = 0;
     ps->all.hits_len_alloc = ALLOC_DEPTHS;
   }
   else {
     /* Set to 0xff for #SELECT_ID_NONE. */
-    ps->nearest.rect_id = MEM_malloc_arrayN<uint>(ps->dst.rect_len, __func__);
+    ps->nearest.rect_id = MEM_new_array_uninitialized<uint>(ps->dst.rect_len, __func__);
     memset(ps->nearest.rect_id, 0xff, sizeof(uint) * ps->dst.rect_len);
   }
 }
@@ -422,7 +423,7 @@ static void gpu_select_load_id_pass_all(const DepthBufCache *rect_curr)
   if (UNLIKELY(ps->all.hits_len == ps->all.hits_len_alloc)) {
     ps->all.hits_len_alloc += ALLOC_DEPTHS;
     ps->all.hits = static_cast<DepthID *>(
-        MEM_reallocN(ps->all.hits, ps->all.hits_len_alloc * sizeof(*ps->all.hits)));
+        MEM_realloc_uninitialized(ps->all.hits, ps->all.hits_len_alloc * sizeof(*ps->all.hits)));
   }
   DepthID *d = &ps->all.hits[ps->all.hits_len++];
   d->id = id;
@@ -486,7 +487,7 @@ bool gpu_select_pick_load_id(uint id, bool end)
     }
 
     const uint rect_len = ps->src.rect_len;
-    GPUFrameBuffer *fb = GPU_framebuffer_active_get();
+    gpu::FrameBuffer *fb = GPU_framebuffer_active_get();
     GPU_framebuffer_read_depth(
         fb, UNPACK4(ps->gpu.clip_readpixels), GPU_DATA_UINT, ps->gpu.rect_depth_test->buf);
     /* Perform initial check since most cases the array remains unchanged. */
@@ -587,8 +588,7 @@ uint gpu_select_pick_end()
 
     /* Over allocate (unlikely we have as many depths as pixels). */
     uint depth_data_len_first_pass = 0;
-    depth_data = static_cast<DepthID *>(
-        MEM_mallocN(ps->dst.rect_len * sizeof(*depth_data), __func__));
+    depth_data = MEM_new_array_uninitialized<DepthID>(ps->dst.rect_len, __func__);
 
     /* Partially de-duplicating copy,
      * when contiguous ID's are found - update their closest depth.
@@ -670,16 +670,16 @@ uint gpu_select_pick_end()
     hits++;
   }
 
-  MEM_freeN(depth_data);
+  MEM_delete(depth_data);
 
-  MEM_SAFE_FREE(ps->gpu.rect_depth);
-  MEM_SAFE_FREE(ps->gpu.rect_depth_test);
+  MEM_SAFE_DELETE(ps->gpu.rect_depth);
+  MEM_SAFE_DELETE(ps->gpu.rect_depth_test);
 
   if (g_pick_state.mode == GPU_SELECT_PICK_ALL) {
     /* 'hits' already freed as 'depth_data' */
   }
   else {
-    MEM_freeN(ps->nearest.rect_id);
+    MEM_delete(ps->nearest.rect_id);
     ps->nearest.rect_id = nullptr;
   }
 
@@ -731,19 +731,19 @@ void gpu_select_pick_cache_load_id()
 #ifdef DEBUG_PRINT
   printf("%s (building depth from cache)\n", __func__);
 #endif
-  LISTBASE_FOREACH (DepthBufCache *, rect_depth, &ps->cache.bufs) {
-    if (rect_depth->next != nullptr) {
+  for (DepthBufCache &rect_depth : ps->cache.bufs) {
+    if (rect_depth.next != nullptr) {
       /* We know the buffers differ, but this sub-region may not.
        * Double check before adding an id-pass. */
       if (g_pick_state.mode == GPU_SELECT_PICK_ALL) {
-        if (depth_buf_subrect_depth_any(rect_depth->next, &ps->cache.sub_rect)) {
-          gpu_select_load_id_pass_all(rect_depth->next);
+        if (depth_buf_subrect_depth_any(rect_depth.next, &ps->cache.sub_rect)) {
+          gpu_select_load_id_pass_all(rect_depth.next);
         }
       }
       else {
-        if (depth_buf_subrect_depth_any_filled(rect_depth, rect_depth->next, &ps->cache.sub_rect))
+        if (depth_buf_subrect_depth_any_filled(&rect_depth, rect_depth.next, &ps->cache.sub_rect))
         {
-          gpu_select_load_id_pass_nearest(rect_depth, rect_depth->next);
+          gpu_select_load_id_pass_nearest(&rect_depth, rect_depth.next);
         }
       }
     }
@@ -751,3 +751,5 @@ void gpu_select_pick_cache_load_id()
 }
 
 /** \} */
+
+}  // namespace blender

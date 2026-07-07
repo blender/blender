@@ -63,7 +63,7 @@ void SubPassTransition::execute() const
 {
   /* TODO(fclem): Require framebuffer bind to always be part of the pass so that we can track it
    * inside RecordingState. */
-  GPUFrameBuffer *framebuffer = GPU_framebuffer_active_get();
+  gpu::FrameBuffer *framebuffer = GPU_framebuffer_active_get();
   /* Unpack to the real enum type. */
   const GPUAttachmentState states[9] = {
       GPUAttachmentState(depth_state),
@@ -284,14 +284,14 @@ void Barrier::execute() const
 
 void Clear::execute() const
 {
-  GPUFrameBuffer *fb = GPU_framebuffer_active_get();
-  GPU_framebuffer_clear(fb, (eGPUFrameBufferBits)clear_channels, color, depth, stencil);
+  gpu::FrameBuffer *fb = GPU_framebuffer_active_get();
+  GPU_framebuffer_clear(fb, GPUFrameBufferBits(clear_channels), color, depth, stencil);
 }
 
 void ClearMulti::execute() const
 {
-  GPUFrameBuffer *fb = GPU_framebuffer_active_get();
-  GPU_framebuffer_multi_clear(fb, (const float(*)[4])colors);
+  gpu::FrameBuffer *fb = GPU_framebuffer_active_get();
+  GPU_framebuffer_multi_clear(fb, reinterpret_cast<const float (*)[4]>(colors));
 }
 
 void StateSet::execute(RecordingState &recording_state) const
@@ -318,26 +318,8 @@ void StateSet::execute(RecordingState &recording_state) const
     GPU_clip_control_unit_range(false);
   }
 
-  if (new_state & DRW_STATE_SHADOW_OFFSET) {
-    GPU_shadow_offset(true);
-  }
-  else {
-    GPU_shadow_offset(false);
-  }
-
   /* TODO: this should be part of shader state. */
   GPU_clip_distances(recording_state.clip_plane_count);
-
-  if (new_state & DRW_STATE_IN_FRONT_SELECT) {
-    /* XXX `GPU_depth_range` is not a perfect solution
-     * since very distant geometries can still be occluded.
-     * Also the depth test precision of these geometries is impaired.
-     * However, it solves the selection for the vast majority of cases. */
-    GPU_depth_range(0.0f, 0.01f);
-  }
-  else {
-    GPU_depth_range(0.0f, 1.0f);
-  }
 
   if (new_state & DRW_STATE_PROGRAM_POINT_SIZE) {
     GPU_program_point_size(true);
@@ -587,11 +569,9 @@ std::string DrawMulti::serialize(const std::string &line_prefix) const
                                         multi_draw_buf->prototype_count_);
 
   /* This emulates the GPU sorting but without the unstable draw order. */
-  std::sort(
-      prototypes.begin(), prototypes.end(), [](const DrawPrototype &a, const DrawPrototype &b) {
-        return (a.group_id < b.group_id) ||
-               (a.group_id == b.group_id && a.res_index > b.res_index);
-      });
+  std::ranges::sort(prototypes, [](const DrawPrototype &a, const DrawPrototype &b) {
+    return (a.group_id < b.group_id) || (a.group_id == b.group_id && a.res_index > b.res_index);
+  });
 
   /* Compute prefix sum to have correct offsets. */
   uint prefix_sum = 0u;
@@ -669,19 +649,19 @@ std::string Barrier::serialize() const
 std::string Clear::serialize() const
 {
   std::stringstream ss;
-  if (eGPUFrameBufferBits(clear_channels) & GPU_COLOR_BIT) {
+  if (GPUFrameBufferBits(clear_channels) & GPU_COLOR_BIT) {
     ss << "color=" << color;
-    if (eGPUFrameBufferBits(clear_channels) & (GPU_DEPTH_BIT | GPU_STENCIL_BIT)) {
+    if (GPUFrameBufferBits(clear_channels) & (GPU_DEPTH_BIT | GPU_STENCIL_BIT)) {
       ss << ", ";
     }
   }
-  if (eGPUFrameBufferBits(clear_channels) & GPU_DEPTH_BIT) {
+  if (GPUFrameBufferBits(clear_channels) & GPU_DEPTH_BIT) {
     ss << "depth=" << depth;
-    if (eGPUFrameBufferBits(clear_channels) & GPU_STENCIL_BIT) {
+    if (GPUFrameBufferBits(clear_channels) & GPU_STENCIL_BIT) {
       ss << ", ";
     }
   }
-  if (eGPUFrameBufferBits(clear_channels) & GPU_STENCIL_BIT) {
+  if (GPUFrameBufferBits(clear_channels) & GPU_STENCIL_BIT) {
     ss << "stencil=0b" << std::bitset<8>(stencil) << ")";
   }
   return std::string(".clear(") + ss.str() + ")";

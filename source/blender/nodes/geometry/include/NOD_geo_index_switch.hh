@@ -16,7 +16,7 @@ namespace blender::nodes {
  */
 struct IndexSwitchItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = IndexSwitchItem;
-  static StructRNA *item_srna;
+  static StructRNA **item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "GeometryNodeIndexSwitch";
   static constexpr bool has_type = false;

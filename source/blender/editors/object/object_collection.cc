@@ -61,15 +61,15 @@ static const EnumPropertyItem *collection_object_active_itemf(bContext *C,
                                                               PropertyRNA * /*prop*/,
                                                               bool *r_free)
 {
+  if (C == nullptr) {
+    return rna_enum_dummy_NULL_items;
+  }
+
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Object *ob;
   EnumPropertyItem *item = nullptr, item_tmp = {0};
   int totitem = 0;
-
-  if (C == nullptr) {
-    return rna_enum_dummy_NULL_items;
-  }
 
   ob = context_object(C);
 
@@ -95,7 +95,7 @@ static const EnumPropertyItem *collection_object_active_itemf(bContext *C,
     collection = nullptr;
     while ((collection = BKE_collection_object_find(bmain, scene, collection, ob))) {
       item_tmp.identifier = item_tmp.name = collection->id.name + 2;
-      item_tmp.icon = UI_icon_color_from_collection(collection);
+      item_tmp.icon = ui::icon_color_from_collection(collection);
       item_tmp.value = i;
       RNA_enum_item_add(&item, &totitem, &item_tmp);
       i++;
@@ -446,8 +446,7 @@ void COLLECTION_OT_create(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_string(
-      ot->srna, "name", "Collection", MAX_ID_NAME - 2, "Name", "Name of the new collection");
+  RNA_def_string(ot->srna, "name", nullptr, MAX_ID_NAME - 2, "Name", "Name of the new collection");
 }
 
 static bool collection_exporter_common_check(const Collection *collection)
@@ -476,7 +475,6 @@ static bool collection_export_all_poll(bContext *C)
 
 static wmOperatorStatus collection_exporter_add_exec(bContext *C, wmOperator *op)
 {
-  using namespace blender;
   Collection *collection = CTX_data_collection(C);
 
   char name[MAX_ID_NAME - 2]; /* id name */
@@ -525,7 +523,7 @@ static void COLLECTION_OT_exporter_add(wmOperatorType *ot)
 static wmOperatorStatus collection_exporter_remove_exec(bContext *C, wmOperator *op)
 {
   Collection *collection = CTX_data_collection(C);
-  ListBase *exporters = &collection->exporters;
+  ListBaseT<CollectionExport> *exporters = &collection->exporters;
 
   int index = RNA_int_get(op->ptr, "index");
   CollectionExport *data = static_cast<CollectionExport *>(BLI_findlink(exporters, index));
@@ -549,7 +547,7 @@ static wmOperatorStatus collection_exporter_remove_invoke(bContext *C,
                                                           const wmEvent * /*event*/)
 {
   return WM_operator_confirm_ex(
-      C, op, IFACE_("Remove exporter?"), nullptr, IFACE_("Delete"), ALERT_ICON_NONE, false);
+      C, op, IFACE_("Remove exporter?"), nullptr, IFACE_("Delete"), ui::AlertIcon::None, false);
 }
 
 static void COLLECTION_OT_exporter_remove(wmOperatorType *ot)
@@ -572,7 +570,6 @@ static void COLLECTION_OT_exporter_remove(wmOperatorType *ot)
 
 static wmOperatorStatus collection_exporter_move_exec(bContext *C, wmOperator *op)
 {
-  using namespace blender;
   Collection *collection = CTX_data_collection(C);
   const int dir = RNA_enum_get(op->ptr, "direction");
   const int from = collection->active_exporter_index;
@@ -622,7 +619,6 @@ static wmOperatorStatus collection_exporter_export(bContext *C,
                                                    Collection *collection,
                                                    const bool report_success)
 {
-  using namespace blender;
   bke::FileHandlerType *fh = bke::file_handler_find(data->fh_idname);
   if (!fh) {
     BKE_reportf(op->reports, RPT_ERROR, "File handler '%s' not found", data->fh_idname);
@@ -692,7 +688,7 @@ static wmOperatorStatus collection_exporter_export(bContext *C,
 static wmOperatorStatus collection_exporter_export_exec(bContext *C, wmOperator *op)
 {
   Collection *collection = CTX_data_collection(C);
-  ListBase *exporters = &collection->exporters;
+  ListBaseT<CollectionExport> *exporters = &collection->exporters;
 
   int index = RNA_int_get(op->ptr, "index");
   CollectionExport *data = static_cast<CollectionExport *>(BLI_findlink(exporters, index));
@@ -730,11 +726,11 @@ static wmOperatorStatus collection_export(bContext *C,
                                           Collection *collection,
                                           CollectionExportStats &stats)
 {
-  ListBase *exporters = &collection->exporters;
+  ListBaseT<CollectionExport> *exporters = &collection->exporters;
   int files_num = 0;
 
-  LISTBASE_FOREACH (CollectionExport *, data, exporters) {
-    if (collection_exporter_export(C, op, data, collection, false) != OPERATOR_FINISHED) {
+  for (CollectionExport &data : *exporters) {
+    if (collection_exporter_export(C, op, &data, collection, false) != OPERATOR_FINISHED) {
       /* Do not continue calling exporters if we encounter one that fails. */
       return OPERATOR_CANCELLED;
     }
@@ -800,8 +796,8 @@ static wmOperatorStatus collection_export_recursive(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  LISTBASE_FOREACH (LayerCollection *, child, &layer_collection->layer_collections) {
-    if (collection_export_recursive(C, op, child, stats) != OPERATOR_FINISHED) {
+  for (LayerCollection &child : layer_collection->layer_collections) {
+    if (collection_export_recursive(C, op, &child, stats) != OPERATOR_FINISHED) {
       return OPERATOR_CANCELLED;
     }
   }
@@ -814,8 +810,8 @@ static wmOperatorStatus wm_collection_export_all_exec(bContext *C, wmOperator *o
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   CollectionExportStats stats;
-  LISTBASE_FOREACH (LayerCollection *, layer_collection, &view_layer->layer_collections) {
-    if (collection_export_recursive(C, op, layer_collection, stats) != OPERATOR_FINISHED) {
+  for (LayerCollection &layer_collection : view_layer->layer_collections) {
+    if (collection_export_recursive(C, op, &layer_collection, stats) != OPERATOR_FINISHED) {
       return OPERATOR_CANCELLED;
     }
   }
@@ -850,27 +846,26 @@ static void WM_OT_collection_export_all(wmOperatorType *ot)
 
 static void collection_exporter_menu_draw(const bContext * /*C*/, Menu *menu)
 {
-  using namespace blender;
-  uiLayout *layout = menu->layout;
+  ui::Layout &layout = *menu->layout;
 
   /* Add all file handlers capable of being exported to the menu. */
   bool at_least_one = false;
   for (const auto &fh : bke::file_handlers()) {
     if (WM_operatortype_find(fh->export_operator, true)) {
-      PointerRNA op_ptr = layout->op("COLLECTION_OT_exporter_add", fh->label, ICON_NONE);
+      PointerRNA op_ptr = layout.op("COLLECTION_OT_exporter_add", fh->label, ICON_NONE);
       RNA_string_set(&op_ptr, "name", fh->idname);
       at_least_one = true;
     }
   }
 
   if (!at_least_one) {
-    layout->label(IFACE_("No file handlers available"), ICON_NONE);
+    layout.label(IFACE_("No file handlers available"), ICON_NONE);
   }
 }
 
 void collection_exporter_register()
 {
-  MenuType *mt = MEM_callocN<MenuType>(__func__);
+  MenuType *mt = MEM_new_zeroed<MenuType>(__func__);
   STRNCPY_UTF8(mt->idname, "COLLECTION_MT_exporter_add");
   STRNCPY_UTF8(mt->label, N_("Add Exporter"));
   mt->draw = collection_exporter_menu_draw;
@@ -1004,7 +999,7 @@ static wmOperatorStatus collection_remove_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Object *ob = context_object(C);
   Collection *collection = static_cast<Collection *>(
-      CTX_data_pointer_get_type(C, "collection", &RNA_Collection).data);
+      CTX_data_pointer_get_type(C, "collection", RNA_Collection).data);
 
   if (!ob || !collection) {
     return OPERATOR_CANCELLED;
@@ -1112,7 +1107,7 @@ static wmOperatorStatus select_grouped_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   Collection *collection = static_cast<Collection *>(
-      CTX_data_pointer_get_type(C, "collection", &RNA_Collection).data);
+      CTX_data_pointer_get_type(C, "collection", RNA_Collection).data);
 
   if (!collection) {
     return OPERATOR_CANCELLED;

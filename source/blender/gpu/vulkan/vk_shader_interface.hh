@@ -84,7 +84,7 @@ class VKShaderInterface : public ShaderInterface {
 
   bool is_point_shader() const
   {
-    return (shader_builtins_ & shader::BuiltinBits::POINT_SIZE) == shader::BuiltinBits::POINT_SIZE;
+    return flag_is_set(shader_builtins_, shader::BuiltinBits::POINT_SIZE);
   }
 
   const Span<VKResourceBinding> resource_bindings_get() const

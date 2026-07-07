@@ -299,12 +299,12 @@ static void initBend(TransInfo *t, wmOperator * /*op*/)
   }
   calculateCenterLocal(t, t->center_global);
 
-  data = MEM_callocN<BendCustomData>(__func__);
+  data = MEM_new_zeroed<BendCustomData>(__func__);
 
   curs = t->scene->cursor.location;
   copy_v3_v3(data->warp_sta, curs);
   ED_view3d_win_to_3d(
-      (View3D *)t->area->spacedata.first, t->region, curs, t->mval, data->warp_end);
+      static_cast<View3D *>(t->area->spacedata.first), t->region, curs, t->mval, data->warp_end);
 
   copy_v3_v3(data->warp_nor, t->viewinv[2]);
   normalize_v3(data->warp_nor);

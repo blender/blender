@@ -7,3 +7,4 @@ if(WITH_FREESTYLE)
 endif()
 
 add_subdirectory(intern)
+add_subdirectory(tests)

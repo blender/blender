@@ -92,7 +92,7 @@ DUPLICATE_IGNORE = {
 
 
 def check_duplicates():
-    import rna_info
+    import _rna_info as rna_info
 
     DUPLICATE_IGNORE_FOUND = set()
     DUPLICATE_ACCEPT_FOUND = set()

@@ -8,6 +8,8 @@
 
 #include "intern/bpy_rna.hh"
 
+namespace blender {
+
 /** \file
  * \ingroup pythonintern
  */
@@ -25,3 +27,5 @@ extern char pyrna_struct_driver_remove_doc[];
                                                      PyObject *kw);
 [[nodiscard]] PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args);
 [[nodiscard]] PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args);
+
+}  // namespace blender

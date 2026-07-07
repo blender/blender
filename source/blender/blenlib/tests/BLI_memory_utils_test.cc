@@ -12,7 +12,7 @@
 namespace blender::tests {
 
 class TestBaseClass {
-  virtual void mymethod(){};
+  virtual void mymethod() {};
 };
 
 class TestChildClass : public TestBaseClass {

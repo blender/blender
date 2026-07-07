@@ -6,12 +6,15 @@
  * \ingroup draw
  */
 
+#pragma once
+
+#include "GPU_shader_shared_utils.hh"
+
 #ifndef GPU_SHADER
-#  include "BLI_span.hh"
-#  include "GPU_shader_shared_utils.hh"
-
+namespace blender::gpu {
+class Batch;
+}
 namespace blender::draw::command {
-
 #endif
 
 /* -------------------------------------------------------------------- */
@@ -22,7 +25,7 @@ namespace blender::draw::command {
  * A DrawGroup allow to split the command stream into batch-able chunks of commands with
  * the same render state.
  */
-struct DrawGroup {
+struct [[host_shared]] DrawGroup {
   /** Index of next #DrawGroup from the same header. */
   uint next;
 
@@ -55,16 +58,7 @@ struct DrawGroup {
 
   /* CPU specific region of the struct. Should be kept constant after recording.
    * Can be used by GPU but needs to be initialized by GPU before usage. */
-#ifdef GPU_SHADER
-  uint _cpu_reserved_1;
-  uint _cpu_reserved_2;
-
-  uint _cpu_reserved_3;
-  uint _cpu_reserved_4;
-  uint _cpu_reserved_5;
-  uint _cpu_reserved_6;
-
-#else
+#ifndef GPU_SHADER
   struct {
     /* Specific range of vertex to draw from the #gpu::Batch. */
     uint32_t vertex_first;
@@ -78,6 +72,14 @@ struct DrawGroup {
     gpu::Batch *gpu_batch;
     uint64_t _cpu_pad0;
   } desc;
+#else
+  uint _cpu_reserved_1;
+  uint _cpu_reserved_2;
+
+  uint _cpu_reserved_3;
+  uint _cpu_reserved_4;
+  uint _cpu_reserved_5;
+  uint _cpu_reserved_6;
 #endif
 };
 BLI_STATIC_ASSERT_ALIGN(DrawGroup, 16)
@@ -87,7 +89,7 @@ BLI_STATIC_ASSERT_ALIGN(DrawGroup, 16)
  * converted into #DrawCommand on GPU after visibility and compaction. Multiple
  * #DrawPrototype might get merged into the same final #DrawCommand.
  */
-struct DrawPrototype {
+struct [[host_shared]] DrawPrototype {
   /* Reference to parent DrawGroup to get the gpu::Batch vertex / instance count. */
   uint group_id;
   /* Resource handle associated with this call. Also reference visibility. */
@@ -97,7 +99,6 @@ struct DrawPrototype {
   /* Number of instances. */
   uint instance_len;
 };
-BLI_STATIC_ASSERT_ALIGN(DrawPrototype, 16)
 
 /** \} */
 

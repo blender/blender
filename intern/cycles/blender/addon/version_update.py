@@ -101,7 +101,7 @@ def do_versions(self):
         library_versions.setdefault(library.version, []).append(library)
 
     # Do versioning per library, since they might have different versions.
-    max_need_versioning = (4, 2, 52)
+    max_need_versioning = (5, 0, 77)
     for version, libraries in library_versions.items():
         if version > max_need_versioning:
             continue
@@ -110,6 +110,13 @@ def do_versions(self):
         for scene in bpy.data.scenes:
             if scene.library not in libraries:
                 continue
+
+            # Auto tiling is always enabled now
+            if version <= (5, 0, 77):
+                cscene = scene.cycles
+                if not cscene.use_auto_tile:
+                    cscene.use_auto_tile = True
+                    cscene.tile_size = 8192
 
             # Clamp Direct/Indirect separation in 270
             if version <= (2, 70, 0):

@@ -4,7 +4,11 @@
 
 #pragma once
 
-#include "draw_object_infos_info.hh"
+#include "draw_object_infos_infos.hh"
+
+#include "gpu_shader_math_constants_lib.glsl"
+#include "gpu_shader_math_matrix_conversion_lib.glsl"
+#include "gpu_shader_math_matrix_transform_lib.glsl"
 
 /**
  * Library to create hairs dynamically from control points.
@@ -12,17 +16,6 @@
  * but does more ALU work per vertex. This also reduces the amount
  * of data the CPU has to precompute and transfer for each update.
  */
-
-#include "gpu_shader_math_matrix_lib.glsl"
-
-/* Avoid including hair functionality for shaders and materials which do not require hair.
- * Required to prevent compilation failure for missing shader inputs and uniforms when hair library
- * is included via other libraries. These are only specified in the ShaderCreateInfo when needed.
- */
-#ifdef CURVES_SHADER
-#  ifndef DRW_HAIR_INFO
-#    error Ensure createInfo includes draw_hair.
-#  endif
 
 namespace curves {
 
@@ -189,7 +182,7 @@ Point point_get(uint vertex_id)
   pt.curve_id = indirection.curve_id;
   pt.curve_segment = indirection.curve_segment;
 
-  float4 pos_rad = point_position_and_radius_get(pt.point_id);
+  float4 pos_rad = point_position_and_radius_get(uint(pt.point_id));
 
   bool restart_strip = indirection.is_end_of_curve || segment.is_end_of_segment;
   pt.P = (restart_strip) ? float3(NAN_FLT) : pos_rad.xyz;
@@ -198,14 +191,14 @@ Point point_get(uint vertex_id)
 
   if (pt.curve_segment == 0) {
     /* Hair root. */
-    pt.T = point_position_get(pt.point_id + 1) - pt.P;
+    pt.T = point_position_get(uint(pt.point_id + 1)) - pt.P;
   }
   else if (indirection.is_cyclic_point) {
     /* Cyclic end point must match start point. */
-    pt.T = point_position_get(pt.point_id - pt.curve_segment + 1) - pt.P;
+    pt.T = point_position_get(uint(pt.point_id - pt.curve_segment + 1)) - pt.P;
   }
   else {
-    pt.T = pt.P - point_position_get(pt.point_id - 1);
+    pt.T = pt.P - point_position_get(uint(pt.point_id - 1));
   }
   return pt;
 }
@@ -280,5 +273,3 @@ float3 get_curve_root_pos(const int point_id, const int curve_segment)
 }
 
 }  // namespace curves
-
-#endif

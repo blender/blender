@@ -71,8 +71,8 @@ class AttributeViewer : Overlay {
 
     if (ob_ref.preview_instance_index() >= 0) {
       const auto &instances =
-          *ob_ref.preview_base_geometry()->get_component<blender::bke::InstancesComponent>();
-      if (const std::optional<blender::bke::AttributeMetaData> meta_data =
+          *ob_ref.preview_base_geometry()->get_component<bke::InstancesComponent>();
+      if (const std::optional<bke::AttributeMetaData> meta_data =
               instances.attributes()->lookup_meta_data(".viewer"))
       {
         if (attribute_type_supports_viewer_overlay(meta_data->data_type)) {
@@ -136,7 +136,7 @@ class AttributeViewer : Overlay {
         break;
       }
       case OB_POINTCLOUD: {
-        auto &sub = *pointcloud_sub_;
+        auto &sub = *instance_sub_;
         gpu::Batch *batch = pointcloud_sub_pass_setup(sub, &object, nullptr);
         sub.push_constant("ucolor", float4(color));
         sub.draw(batch, manager.unique_handle(ob_ref));
@@ -220,7 +220,7 @@ class AttributeViewer : Overlay {
         break;
       }
       case OB_CURVES: {
-        ::Curves &curves_id = DRW_object_get_data_for_drawing<::Curves>(object);
+        blender::Curves &curves_id = DRW_object_get_data_for_drawing<blender::Curves>(object);
         const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
         if (const std::optional<bke::AttributeMetaData> meta_data =
                 curves.attributes().lookup_meta_data(".viewer"))
@@ -232,7 +232,10 @@ class AttributeViewer : Overlay {
                 &curves_id, ".viewer", is_point_domain, is_valid);
             if (is_valid) {
               auto &sub = *curves_sub_;
-              gpu::Batch *batch = curves_sub_pass_setup(sub, state.scene, ob_ref.object);
+              const char *error = nullptr;
+              /* The error string will always have been printed by the engine already.
+               * No need to display it twice. */
+              gpu::Batch *batch = curves_sub_pass_setup(sub, state.scene, ob_ref.object, error);
               sub.push_constant("opacity", opacity);
               sub.push_constant("is_point_domain", is_point_domain);
               sub.bind_texture("color_tx", texture);

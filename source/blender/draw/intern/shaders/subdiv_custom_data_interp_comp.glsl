@@ -20,7 +20,7 @@ struct Vertex {
   float vertex_data[DIMENSIONS];
 };
 
-void clear(inout Vertex v)
+void clear(Vertex &v)
 {
   for (int i = 0; i < DIMENSIONS; i++) {
     v.vertex_data[i] = 0.0f;
@@ -58,7 +58,7 @@ Vertex read_vertex(uint index)
 #else
   uint base_index = index * DIMENSIONS;
   for (int i = 0; i < DIMENSIONS; i++) {
-    result.vertex_data[i] = src_data[base_index + i];
+    result.vertex_data[i] = src_data[base_index + uint(i)];
   }
 #endif
   return result;
@@ -85,20 +85,20 @@ void write_vertex(uint index, Vertex v)
     dst_data[base_index] = 0;
   }
 #elif defined(GPU_COMP_I32)
-  uint base_index = shader_data.dst_offset + index * DIMENSIONS;
+  uint base_index = uint(shader_data.dst_offset) + index * DIMENSIONS;
   for (int i = 0; i < DIMENSIONS; i++) {
     dst_data[base_index + i] = int(round(v.vertex_data[i]));
   }
 #else
-  uint base_index = shader_data.dst_offset + index * DIMENSIONS;
+  uint base_index = uint(shader_data.dst_offset) + index * DIMENSIONS;
 #  ifdef NORMALIZE
-  vec3 value = vec3(v.vertex_data[0], v.vertex_data[1], v.vertex_data[2]);
+  float3 value = float3(v.vertex_data[0], v.vertex_data[1], v.vertex_data[2]);
   value = normalize(value);
   v.vertex_data[0] = value.x;
   v.vertex_data[1] = value.y;
   v.vertex_data[2] = value.z;
 #  endif
-  for (int i = 0; i < DIMENSIONS; i++) {
+  for (uint i = 0; i < DIMENSIONS; i++) {
     dst_data[base_index + i] = v.vertex_data[i];
   }
 #endif
@@ -115,7 +115,7 @@ Vertex interp_vertex(Vertex v0, Vertex v1, Vertex v2, Vertex v3, float2 uv)
   return result;
 }
 
-void add_with_weight(inout Vertex v0, Vertex v1, float weight)
+void add_with_weight(Vertex &v0, Vertex v1, float weight)
 {
   for (int i = 0; i < DIMENSIONS; i++) {
     v0.vertex_data[i] += v1.vertex_data[i] * weight;
@@ -165,7 +165,7 @@ void main()
 
   /* Find which coarse polygon we came from. */
   uint coarse_face = coarse_face_index_from_subdiv_quad_index(quad_index,
-                                                              shader_data.coarse_face_count);
+                                                              uint(shader_data.coarse_face_count));
   uint loop_start = get_loop_start(coarse_face);
 
   /* Find the number of vertices for the coarse polygon. */

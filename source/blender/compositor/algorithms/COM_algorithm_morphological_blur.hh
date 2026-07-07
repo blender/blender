@@ -6,9 +6,8 @@
 
 #include <cstdint>
 
+#include "BLI_math_filter.hh"
 #include "BLI_math_vector_types.hh"
-
-#include "DNA_scene_types.h"
 
 #include "COM_context.hh"
 #include "COM_result.hh"
@@ -36,6 +35,6 @@ void morphological_blur(
     Result &output,
     const float2 &radius,
     const MorphologicalBlurOperation operation = MorphologicalBlurOperation::Erode,
-    const int filter_type = R_FILTER_GAUSS);
+    const math::FilterKernel filter_type = math::FilterKernel::Gauss);
 
 }  // namespace blender::compositor

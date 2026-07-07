@@ -12,6 +12,8 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 #define SIZE 1024
 
 static void range_fl(float *array_tar, const int size)
@@ -40,7 +42,7 @@ TEST(heap, One)
 
   heap = BLI_heap_new();
 
-  BLI_heap_insert(heap, 0.0f, (void *)in);
+  BLI_heap_insert(heap, 0.0f, const_cast<char *>(in));
   EXPECT_FALSE(BLI_heap_is_empty(heap));
   EXPECT_EQ(BLI_heap_len(heap), 1);
   EXPECT_EQ(in, BLI_heap_pop_min(heap));
@@ -81,7 +83,7 @@ TEST(heap, RangeRemove)
 {
   const int items_total = SIZE;
   Heap *heap = BLI_heap_new();
-  HeapNode **nodes = MEM_malloc_arrayN<HeapNode *>(size_t(items_total), __func__);
+  HeapNode **nodes = MEM_new_array_uninitialized<HeapNode *>(size_t(items_total), __func__);
   for (int in = 0; in < items_total; in++) {
     nodes[in] = BLI_heap_insert(heap, float(in), POINTER_FROM_INT(in));
   }
@@ -94,7 +96,7 @@ TEST(heap, RangeRemove)
   }
   EXPECT_TRUE(BLI_heap_is_empty(heap));
   BLI_heap_free(heap, nullptr);
-  MEM_freeN(nodes);
+  MEM_delete(nodes);
 }
 
 TEST(heap, Duplicates)
@@ -114,7 +116,7 @@ TEST(heap, Duplicates)
 static void random_heap_helper(const int items_total, const int random_seed)
 {
   Heap *heap = BLI_heap_new();
-  float *values = MEM_malloc_arrayN<float>(size_t(items_total), __func__);
+  float *values = MEM_new_array_uninitialized<float>(size_t(items_total), __func__);
   range_fl(values, items_total);
   BLI_array_randomize(values, sizeof(float), items_total, random_seed);
   for (int i = 0; i < items_total; i++) {
@@ -125,7 +127,7 @@ static void random_heap_helper(const int items_total, const int random_seed)
   }
   EXPECT_TRUE(BLI_heap_is_empty(heap));
   BLI_heap_free(heap, nullptr);
-  MEM_freeN(values);
+  MEM_delete(values);
 }
 
 TEST(heap, Rand1)
@@ -145,7 +147,7 @@ TEST(heap, ReInsertSimple)
 {
   const int items_total = SIZE;
   Heap *heap = BLI_heap_new();
-  HeapNode **nodes = MEM_malloc_arrayN<HeapNode *>(size_t(items_total), __func__);
+  HeapNode **nodes = MEM_new_array_uninitialized<HeapNode *>(size_t(items_total), __func__);
   for (int in = 0; in < items_total; in++) {
     nodes[in] = BLI_heap_insert(heap, float(in), POINTER_FROM_INT(in));
   }
@@ -159,13 +161,13 @@ TEST(heap, ReInsertSimple)
 
   EXPECT_TRUE(BLI_heap_is_empty(heap));
   BLI_heap_free(heap, nullptr);
-  MEM_freeN(nodes);
+  MEM_delete(nodes);
 }
 
 static void random_heap_reinsert_helper(const int items_total, const int random_seed)
 {
   Heap *heap = BLI_heap_new();
-  HeapNode **nodes = MEM_malloc_arrayN<HeapNode *>(size_t(items_total), __func__);
+  HeapNode **nodes = MEM_new_array_uninitialized<HeapNode *>(size_t(items_total), __func__);
   for (int in = 0; in < items_total; in++) {
     nodes[in] = BLI_heap_insert(heap, float(in), POINTER_FROM_INT(in));
   }
@@ -184,7 +186,7 @@ static void random_heap_reinsert_helper(const int items_total, const int random_
   }
   EXPECT_TRUE(BLI_heap_is_empty(heap));
   BLI_heap_free(heap, nullptr);
-  MEM_freeN(nodes);
+  MEM_delete(nodes);
 }
 
 TEST(heap, ReInsertRandom1)
@@ -207,3 +209,5 @@ TEST(heap, ReInsertRandom2048)
 {
   random_heap_reinsert_helper(2048, 5321);
 }
+
+}  // namespace blender

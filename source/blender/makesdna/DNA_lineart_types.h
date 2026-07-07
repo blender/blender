@@ -8,15 +8,14 @@
  * \ingroup DNA
  */
 
-#include "DNA_ID.h"
-#include "DNA_listBase.h"
+namespace blender {
 
 /* Notice that we need to have this file although no struct defines.
  * Edge flags and usage flags are used by with scene/object/gpencil modifier bits, and those values
  * needs to stay consistent throughout. */
 
 /** These flags are used for 1 time calculation, not stroke selection afterwards. */
-typedef enum eLineartMainFlags {
+enum eLineartMainFlags {
   MOD_LINEART_INTERSECTION_AS_CONTOUR = (1 << 0),
   MOD_LINEART_EVERYTHING_AS_CONTOUR = (1 << 1),
   MOD_LINEART_ALLOW_DUPLI_OBJECTS = (1 << 2),
@@ -40,9 +39,9 @@ typedef enum eLineartMainFlags {
   MOD_LINEART_USE_IMAGE_BOUNDARY_TRIMMING = (1 << 20),
   MOD_LINEART_CHAIN_PRESERVE_DETAILS = (1 << 22),
   MOD_LINEART_SHADOW_USE_SILHOUETTE = (1 << 24),
-} eLineartMainFlags;
+};
 
-typedef enum eLineartEdgeFlag {
+enum eLineartEdgeFlag {
   MOD_LINEART_EDGE_FLAG_EDGE_MARK = (1 << 0),
   MOD_LINEART_EDGE_FLAG_CONTOUR = (1 << 1),
   MOD_LINEART_EDGE_FLAG_CREASE = (1 << 2),
@@ -70,8 +69,10 @@ typedef enum eLineartEdgeFlag {
   MOD_LINEART_EDGE_FLAG_INHIBIT = (1 << 14),
   /** For discarding duplicated edge types in culling stage. */
   MOD_LINEART_EDGE_FLAG_NEXT_IS_DUPLICATION = (1 << 15),
-} eLineartEdgeFlag;
+};
 
 #define MOD_LINEART_EDGE_FLAG_ALL_TYPE 0x01ff
 #define MOD_LINEART_EDGE_FLAG_INIT_TYPE 0x37 /* Without material & light contour */
 #define MOD_LINEART_EDGE_FLAG_TYPE_MAX_BITS 7
+
+}  // namespace blender

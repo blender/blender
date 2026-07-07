@@ -14,7 +14,7 @@
 #include "BKE_bpath.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
-#include "BKE_icons.h"
+#include "BKE_icons.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_preferences.h"
@@ -94,12 +94,12 @@ static IDVecStats asset_operation_get_id_vec_stats_from_ids(const Span<PointerRN
 
 static const char *asset_operation_unsupported_type_msg(const bool is_single)
 {
-  const char *msg_single =
-      "Data-block does not support asset operations - must be "
-      "a " ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_UI_STRING;
-  const char *msg_multiple =
-      "No data-block selected that supports asset operations - select at least "
-      "one " ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_UI_STRING;
+  const char *msg_single = N_(
+      "Data-block does not support asset operations - must be a "
+      "Brush, Collection, Node Group, Object, Pose Action, Scene, or World");
+  const char *msg_multiple = N_(
+      "No data-block selected that supports asset operations - select at least one "
+      "Brush, Collection, Node Group, Object, Pose Action, Scene, or World");
   return is_single ? msg_single : msg_multiple;
 }
 
@@ -291,7 +291,9 @@ void AssetClearHelper::reportResults(const bContext *C, ReportList &reports) con
   if (!wasSuccessful()) {
     /* Dedicated error message for when there is an active asset detected, but it's not an ID local
      * to this file. Helps users better understanding what's going on. */
-    if (AssetRepresentationHandle *active_asset = CTX_wm_asset(C); !active_asset->is_local_id()) {
+    if (asset_system::AssetRepresentation *active_asset = CTX_wm_asset(C);
+        !active_asset->is_local_id())
+    {
       BKE_report(&reports,
                  RPT_ERROR,
                  "No asset data-blocks from the current file selected (assets must be stored in "
@@ -1077,7 +1079,8 @@ static void generate_previewimg_from_buffer(ID *id, const ImBuf *image_buffer)
 
     ImBuf *scaled_imbuf = IMB_scale_into_new(
         image_buffer, width, height, IMBScaleFilter::Nearest, false);
-    preview_image->rect[size_type] = (uint *)MEM_dupallocN(scaled_imbuf->byte_buffer.data);
+    preview_image->rect[size_type] = reinterpret_cast<uint *>(
+        MEM_dupalloc(scaled_imbuf->byte_buffer.data));
     preview_image->w[size_type] = width;
     preview_image->h[size_type] = height;
     preview_image->flag[size_type] |= PRV_USER_EDITED;
@@ -1104,7 +1107,7 @@ static ImBuf *take_screenshot_crop(bContext *C, const rcti &crop_rect)
 
   /* Validate rectangle. */
   if (!BLI_rcti_is_valid(&safe_rect)) {
-    MEM_freeN(dumprect);
+    MEM_delete(dumprect);
     return nullptr;
   }
 
@@ -1190,6 +1193,7 @@ static wmOperatorStatus screenshot_preview_exec(bContext *C, wmOperator *op)
                                                   false,
                                                   nullptr,
                                                   nullptr,
+                                                  false,
                                                   err_out);
 
     /* Convert crop rect into the space relative to the area. */
@@ -1208,7 +1212,7 @@ static wmOperatorStatus screenshot_preview_exec(bContext *C, wmOperator *op)
     }
   }
 
-  const AssetRepresentationHandle *asset_handle = CTX_wm_asset(C);
+  const asset_system::AssetRepresentation *asset_handle = CTX_wm_asset(C);
   BLI_assert_msg(asset_handle != nullptr, "This is ensured by poll");
   AssetWeakReference asset_reference = asset_handle->make_weak_reference();
 
@@ -1263,19 +1267,19 @@ static void screenshot_preview_draw(const wmWindow *window, void *operator_data)
   float4 mask_color = {1, 1, 1, 0.25};
   const int2 win_size = WM_window_native_pixel_size(window);
   const rctf mask_rect_bottom = {0, float(win_size.x), 0, screenshot_rect.ymin};
-  UI_draw_roundbox_aa(&mask_rect_bottom, true, 0, mask_color);
+  ui::draw_roundbox_aa(&mask_rect_bottom, true, 0, mask_color);
   const rctf mask_rect_top = {0, float(win_size.x), screenshot_rect.ymax, float(win_size.y)};
-  UI_draw_roundbox_aa(&mask_rect_top, true, 0, mask_color);
+  ui::draw_roundbox_aa(&mask_rect_top, true, 0, mask_color);
   const rctf mask_rect_left = {
       0, screenshot_rect.xmin, screenshot_rect.ymin, screenshot_rect.ymax};
-  UI_draw_roundbox_aa(&mask_rect_left, true, 0, mask_color);
+  ui::draw_roundbox_aa(&mask_rect_left, true, 0, mask_color);
   const rctf mask_rect_right = {
       screenshot_rect.xmax, float(win_size.x), screenshot_rect.ymin, screenshot_rect.ymax};
-  UI_draw_roundbox_aa(&mask_rect_right, true, 0, mask_color);
+  ui::draw_roundbox_aa(&mask_rect_right, true, 0, mask_color);
 
   float4 color;
-  UI_GetThemeColor4fv(TH_EDITOR_BORDER, color);
-  UI_draw_roundbox_aa(&screenshot_rect, false, 0, color);
+  ui::theme::get_color_4fv(TH_EDITOR_BORDER, color);
+  ui::draw_roundbox_aa(&screenshot_rect, false, 0, color);
 }
 
 static void screenshot_preview_exit(bContext *C, wmOperator *op)
@@ -1284,7 +1288,7 @@ static void screenshot_preview_exit(bContext *C, wmOperator *op)
   WM_cursor_modal_restore(win);
   ScreenshotOperatorData *data = static_cast<ScreenshotOperatorData *>(op->customdata);
   WM_draw_cb_exit(win, data->draw_handle);
-  MEM_freeN(data);
+  MEM_delete(data);
   ED_workspace_status_text(C, nullptr);
 }
 
@@ -1435,7 +1439,7 @@ static wmOperatorStatus screenshot_preview_invoke(bContext *C,
   wmWindow *win = CTX_wm_window(C);
   WM_cursor_modal_set(win, WM_CURSOR_CROSS);
 
-  op->customdata = MEM_callocN(sizeof(ScreenshotOperatorData), __func__);
+  op->customdata = MEM_new_zeroed<ScreenshotOperatorData>(__func__);
   ScreenshotOperatorData *data = static_cast<ScreenshotOperatorData *>(op->customdata);
   data->draw_handle = WM_draw_cb_activate(win, screenshot_preview_draw, data);
   data->is_mouse_down = false;
@@ -1458,7 +1462,7 @@ static bool screenshot_preview_poll(bContext *C)
     return false;
   }
 
-  const AssetRepresentationHandle *asset_handle = CTX_wm_asset(C);
+  const asset_system::AssetRepresentation *asset_handle = CTX_wm_asset(C);
   if (!asset_handle) {
     CTX_wm_operator_poll_msg_set(C, "No selected asset");
     return false;
@@ -1466,9 +1470,7 @@ static bool screenshot_preview_poll(bContext *C)
   if (asset_handle->is_local_id()) {
     return WM_operator_winactive(C);
   }
-
-  std::string lib_path = asset_handle->full_library_path();
-  if (StringRef(lib_path).endswith(BLENDER_ASSET_FILE_SUFFIX)) {
+  if (asset_handle->is_potentially_editable_asset_blend()) {
     return true;
   }
 

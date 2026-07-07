@@ -16,6 +16,8 @@
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 struct ListBase;
 
 /* ------------------------------------------------------------------------- */
@@ -24,7 +26,7 @@ struct ListBase;
 
 /**
  * string with all instances of substr_old replaced with substr_new,
- * Returns a copy of the c-string \a str into a newly #MEM_mallocN'd
+ * Returns a copy of the c-string \a str into a newly #MEM_new_uninitialized'd
  * and returns it.
  *
  * \note A rather wasteful string-replacement utility, though this shall do for now.
@@ -43,9 +45,17 @@ char *BLI_string_replaceN(const char *__restrict str,
 /**
  * In-place replacement all occurrences of needle in haystack with other.
  */
-void BLI_string_replace(std::string &haystack,
-                        blender::StringRef needle,
-                        blender::StringRef other);
+void BLI_string_replace(std::string &haystack, StringRef needle, StringRef other);
+
+/**
+ * Prepend positive numeric strings with a figure space character (U+2007) for
+ * their width to be aligned with negative numbers. Useful for proportional fonts
+ * where a regular space does not have the same width as a minus sign character.
+ *
+ * \param str: The numeric string to pad (unchanged if starts with '-')
+ * \return The padded string with figure space prepended if positive
+ */
+std::string BLI_string_pad_number_sign(blender::StringRef str);
 
 /**
  * In-place replace every \a src to \a dst in \a str.
@@ -99,9 +109,7 @@ size_t BLI_string_replace_range(
  */
 size_t BLI_string_split_name_number(const char *name, char delim, char *r_name_left, int *r_number)
     ATTR_NONNULL(1, 3, 4);
-blender::StringRef BLI_string_split_name_number(const blender::StringRef name_full,
-                                                char delim,
-                                                int &r_number);
+StringRef BLI_string_split_name_number(const StringRef name_full, char delim, int &r_number);
 bool BLI_string_is_decimal(const char *string) ATTR_NONNULL(1);
 
 /**
@@ -157,7 +165,7 @@ size_t BLI_string_flip_side_name(char *name_dst,
  * \param name: Name to be ensured unique
  * \param name_maxncpy: Maximum length of name area
  */
-void BLI_uniquename_cb(blender::FunctionRef<bool(blender::StringRefNull)> unique_check,
+void BLI_uniquename_cb(FunctionRef<bool(StringRefNull)> unique_check,
                        const char *defname,
                        char delim,
                        char *name,
@@ -176,9 +184,9 @@ void BLI_uniquename_cb(blender::FunctionRef<bool(blender::StringRefNull)> unique
  * \note Contrary to the other functions with the same name, this function does
  * not directly set the unique name. That is the responsibility of the caller.
  */
-std::string BLI_uniquename_cb(blender::FunctionRef<bool(blender::StringRef)> unique_check,
+std::string BLI_uniquename_cb(FunctionRef<bool(StringRef)> unique_check,
                               char delim,
-                              blender::StringRef name);
+                              StringRef name);
 /**
  * Ensures that the specified block has a unique name within the containing list,
  * incrementing its numeric suffix as necessary.
@@ -190,7 +198,7 @@ std::string BLI_uniquename_cb(blender::FunctionRef<bool(blender::StringRef)> uni
  * \param name_offset: Offset of name within block structure
  * \param name_maxncpy: Maximum length of name area
  */
-void BLI_uniquename(const struct ListBase *list,
+void BLI_uniquename(const ListBase *list,
                     void *vlink,
                     const char *defname,
                     char delim,
@@ -553,3 +561,5 @@ BLI_INLINE char *_BLI_string_join_by_sep_charN_11(_BLI_STRING_ARGS_10)
 /** \} */
 
 #undef _BLI_STRING_ARGS_0
+
+}  // namespace blender

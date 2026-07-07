@@ -45,11 +45,14 @@
 
 #include "IMB_colormanagement.hh"
 
-#include "curves_sculpt_intern.hh"
-#include "paint_hide.hh"
 #include "paint_intern.hh"
-#include "paint_mask.hh"
-#include "sculpt_intern.hh"
+
+#include "curves/sculpt_intern.hh"
+#include "mesh/paint_hide.hh"
+#include "mesh/paint_mask.hh"
+#include "mesh/sculpt_intern.hh"
+
+namespace blender {
 
 static wmOperatorStatus brush_scale_size_exec(bContext *C, wmOperator *op)
 {
@@ -343,15 +346,15 @@ static wmOperatorStatus palette_sort_exec(bContext *C, wmOperator *op)
   const int totcol = BLI_listbase_count(&palette->colors);
 
   if (totcol > 0) {
-    color_array = MEM_calloc_arrayN<tPaletteColorHSV>(totcol, __func__);
+    color_array = MEM_new_array<tPaletteColorHSV>(totcol, __func__);
     /* Put all colors in an array. */
     int t = 0;
-    LISTBASE_FOREACH (PaletteColor *, color, &palette->colors) {
+    for (PaletteColor &color : palette->colors) {
       float h, s, v;
-      rgb_to_hsv(color->color[0], color->color[1], color->color[2], &h, &s, &v);
+      rgb_to_hsv(color.color[0], color.color[1], color.color[2], &h, &s, &v);
       col_elm = &color_array[t];
-      copy_v3_v3(col_elm->rgb, color->color);
-      col_elm->value = color->value;
+      copy_v3_v3(col_elm->rgb, color.color);
+      col_elm->value = color.value;
       col_elm->h = h;
       col_elm->s = s;
       col_elm->v = v;
@@ -372,8 +375,8 @@ static wmOperatorStatus palette_sort_exec(bContext *C, wmOperator *op)
     }
 
     /* Clear old color swatches. */
-    LISTBASE_FOREACH_MUTABLE (PaletteColor *, color, &palette->colors) {
-      BKE_palette_color_remove(palette, color);
+    for (PaletteColor &color : palette->colors.items_mutable()) {
+      BKE_palette_color_remove(palette, &color);
     }
 
     /* Recreate swatches sorted. */
@@ -388,7 +391,7 @@ static wmOperatorStatus palette_sort_exec(bContext *C, wmOperator *op)
 
   /* Free memory. */
   if (totcol > 0) {
-    MEM_SAFE_FREE(color_array);
+    MEM_SAFE_DELETE(color_array);
   }
 
   WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, nullptr);
@@ -483,7 +486,7 @@ static wmOperatorStatus palette_join_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  palette_join = (Palette *)BKE_libblock_find_name(bmain, ID_PAL, name);
+  palette_join = id_cast<Palette *>(BKE_libblock_find_name(bmain, ID_PAL, name));
   if (palette_join == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -491,11 +494,11 @@ static wmOperatorStatus palette_join_exec(bContext *C, wmOperator *op)
   const int totcol = BLI_listbase_count(&palette_join->colors);
 
   if (totcol > 0) {
-    LISTBASE_FOREACH (PaletteColor *, color, &palette_join->colors) {
+    for (PaletteColor &color : palette_join->colors) {
       PaletteColor *palcol = BKE_palette_color_add(palette);
       if (palcol) {
-        copy_v3_v3(palcol->color, color->color);
-        palcol->value = color->value;
+        copy_v3_v3(palcol->color, color.color);
+        palcol->value = color.value;
         done = true;
       }
     }
@@ -503,8 +506,8 @@ static wmOperatorStatus palette_join_exec(bContext *C, wmOperator *op)
 
   if (done) {
     /* Clear old color swatches. */
-    LISTBASE_FOREACH_MUTABLE (PaletteColor *, color, &palette_join->colors) {
-      BKE_palette_color_remove(palette_join, color);
+    for (PaletteColor &color : palette_join->colors.items_mutable()) {
+      BKE_palette_color_remove(palette_join, &color);
     }
 
     /* Notifier. */
@@ -621,7 +624,7 @@ static wmOperatorStatus stencil_control_invoke(bContext *C, wmOperator *op, cons
     }
   }
 
-  scd = MEM_mallocN<StencilControlData>(__func__);
+  scd = MEM_new_uninitialized<StencilControlData>(__func__);
   scd->mask = mask;
   scd->br = br;
 
@@ -651,7 +654,7 @@ static void stencil_control_cancel(bContext * /*C*/, wmOperator *op)
 {
   StencilControlData *scd = static_cast<StencilControlData *>(op->customdata);
   stencil_restore(scd);
-  MEM_freeN(scd);
+  MEM_delete(scd);
 }
 
 static void stencil_control_calculate(StencilControlData *scd, const int mval[2])
@@ -715,7 +718,7 @@ static wmOperatorStatus stencil_control_modal(bContext *C, wmOperator *op, const
   StencilControlData *scd = static_cast<StencilControlData *>(op->customdata);
 
   if (event->type == scd->launch_event && event->val == KM_RELEASE) {
-    MEM_freeN(scd);
+    MEM_delete(scd);
     WM_event_add_notifier(C, NC_WINDOW, nullptr);
     return OPERATOR_FINISHED;
   }
@@ -772,7 +775,7 @@ static bool stencil_control_poll(bContext *C)
   Paint *paint;
   Brush *br;
 
-  if (!blender::ed::sculpt_paint::paint_supports_texture(mode)) {
+  if (!ed::sculpt_paint::paint_supports_texture(mode)) {
     return false;
   }
 
@@ -990,8 +993,6 @@ void ED_operatortypes_paint()
 
   /* brush */
   WM_operatortype_append(BRUSH_OT_scale_size);
-  WM_operatortype_append(BRUSH_OT_curve_preset);
-  WM_operatortype_append(BRUSH_OT_sculpt_curves_falloff_preset);
   WM_operatortype_append(BRUSH_OT_stencil_control);
   WM_operatortype_append(BRUSH_OT_stencil_fit_image_aspect);
   WM_operatortype_append(BRUSH_OT_stencil_reset_transform);
@@ -1036,6 +1037,7 @@ void ED_operatortypes_paint()
   WM_operatortype_append(PAINT_OT_vert_select_linked_pick);
   WM_operatortype_append(PAINT_OT_vert_select_more);
   WM_operatortype_append(PAINT_OT_vert_select_less);
+  WM_operatortype_append(PAINT_OT_vert_select_loop);
 
   /* vertex */
   WM_operatortype_append(PAINT_OT_vertex_paint_toggle);
@@ -1115,6 +1117,9 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
   /* paint stroke */
   keymap = paint_stroke_modal_keymap(keyconf);
   WM_modalkeymap_assign(keymap, "SCULPT_OT_brush_stroke");
+  WM_modalkeymap_assign(keymap, "PAINT_OT_vertex_paint");
+  WM_modalkeymap_assign(keymap, "PAINT_OT_weight_paint");
+  WM_modalkeymap_assign(keymap, "PAINT_OT_image_paint");
 
   /* Curves Sculpt mode. */
   keymap = WM_keymap_ensure(keyconf, "Sculpt Curves", SPACE_EMPTY, RGN_TYPE_WINDOW);
@@ -1123,3 +1128,5 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
   /* sculpt expand. */
   expand::modal_keymap(keyconf);
 }
+
+}  // namespace blender

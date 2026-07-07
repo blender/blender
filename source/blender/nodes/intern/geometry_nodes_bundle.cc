@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "BKE_node_socket_value.hh"
 #include "BLI_cpp_type.hh"
@@ -14,33 +15,67 @@
 
 namespace blender::nodes {
 
-bool BundleSignature::matches_exactly(const BundleSignature &other) const
+bool operator==(const BundleSignature &a, const BundleSignature &b)
 {
-  if (items.size() != other.items.size()) {
-    return false;
-  }
-  for (const Item &item : items) {
-    if (std::none_of(other.items.begin(), other.items.end(), [&](const Item &other_item) {
-          return item.key == other_item.key;
-        }))
-    {
-      return false;
-    }
-  }
-  return true;
+  return a.items.as_span() == b.items.as_span();
 }
 
-bool BundleSignature::all_matching_exactly(const Span<BundleSignature> signatures)
+bool operator!=(const BundleSignature &a, const BundleSignature &b)
 {
-  if (signatures.is_empty()) {
-    return true;
+  return !(a == b);
+}
+
+void BundleSignature::set_auto_structure_types()
+{
+  for (const BundleSignature::Item &item : this->items) {
+    const_cast<BundleSignature::Item &>(item).structure_type =
+        NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO;
   }
-  for (const BundleSignature &signature : signatures.drop_front(1)) {
-    if (!signatures[0].matches_exactly(signature)) {
-      return false;
+}
+
+bool Bundle::is_valid_key(const StringRef key)
+{
+  if (key.is_empty()) {
+    return false;
+  }
+  if (key != key.trim()) {
+    /* Keys must not have leading or trailing white-space. This simplifies potentially using these
+     * keys in expressions later on (or even just have a comma separated list of keys). */
+    return false;
+  }
+  return key.find_first_of(Bundle::forbidden_key_chars) == StringRef::not_found;
+}
+
+bool Bundle::is_valid_path(const StringRef path)
+{
+  return split_path(path).has_value();
+}
+
+std::optional<Vector<StringRef>> Bundle::split_path(const StringRef path)
+{
+  if (path.is_empty()) {
+    return std::nullopt;
+  }
+  Vector<StringRef> path_elems;
+  StringRef remaining = path;
+  while (!remaining.is_empty()) {
+    const int sep = remaining.find_first_of('/');
+    if (sep == StringRef::not_found) {
+      const StringRef key = remaining;
+      if (!is_valid_key(key)) {
+        return std::nullopt;
+      }
+      path_elems.append(key);
+      break;
     }
+    const StringRef key = remaining.substr(0, sep);
+    if (!is_valid_key(key)) {
+      return std::nullopt;
+    }
+    path_elems.append(key);
+    remaining = remaining.substr(sep + 1);
   }
-  return true;
+  return path_elems;
 }
 
 BundlePtr Bundle::create()
@@ -48,15 +83,10 @@ BundlePtr Bundle::create()
   return BundlePtr(MEM_new<Bundle>(__func__));
 }
 
-[[maybe_unused]] static bool is_valid_key(const StringRef key)
-{
-  return key.find('/') == StringRef::not_found;
-}
-
 void Bundle::add_new(const StringRef key, const BundleItemValue &value)
 {
   BLI_assert(is_valid_key(key));
-  items_.append(StoredItem{std::move(key), value});
+  items_.add_new_as(key, value);
 }
 
 void Bundle::add_override(const StringRef key, const BundleItemValue &value)
@@ -74,34 +104,31 @@ bool Bundle::add(const StringRef key, const BundleItemValue &value)
   return true;
 }
 
+static BundleItemValue create_nested_bundle_item()
+{
+  static const bke::bNodeSocketType *bundle_socket_type = bke::node_socket_type_find_static(
+      SOCK_BUNDLE);
+  return {
+      BundleItemSocketValue{bundle_socket_type, bke::SocketValueVariant::From(Bundle::create())}};
+}
+
 void Bundle::add_path_override(const StringRef path, const BundleItemValue &value)
 {
-  BLI_assert(!path.is_empty());
-  BLI_assert(!path.endswith("/"));
-  BLI_assert(this->is_mutable());
-  const int sep = path.find_first_of('/');
-  if (sep == StringRef::not_found) {
-    const StringRef key = path;
-    this->remove(key);
-    this->add_new(key, value);
-    return;
+  BLI_assert(is_valid_path(path));
+  const Vector<StringRef> path_elems = *split_path(path);
+  Bundle *current = this;
+  for (const StringRef path_elem : path_elems.as_span().drop_back(1)) {
+    BundleItemValue &item = current->items_.lookup_or_add_cb_as(
+        path_elem, [&]() { return create_nested_bundle_item(); });
+    BundlePtr *child_bundle_ptr = item.as_pointer<BundlePtr>();
+    if (!child_bundle_ptr || !*child_bundle_ptr) {
+      /* Override the items content with a new bundle. */
+      item = create_nested_bundle_item();
+      child_bundle_ptr = item.as_pointer<BundlePtr>();
+    }
+    current = &child_bundle_ptr->ensure_mutable_inplace();
   }
-  const StringRef first_part = path.substr(0, sep);
-  BundlePtr child_bundle = this->lookup<BundlePtr>(first_part).value_or(nullptr);
-  if (!child_bundle) {
-    child_bundle = Bundle::create();
-  }
-  this->remove(first_part);
-  if (!child_bundle->is_mutable()) {
-    child_bundle = child_bundle->copy();
-  }
-  child_bundle->tag_ensured_mutable();
-  const_cast<Bundle &>(*child_bundle).add_path_override(path.substr(sep + 1), value);
-  bke::SocketValueVariant child_bundle_value = bke::SocketValueVariant::From(
-      std::move(child_bundle));
-  this->add(
-      first_part,
-      BundleItemSocketValue{bke::node_socket_type_find_static(SOCK_BUNDLE), child_bundle_value});
+  current->items_.add_overwrite_as(path_elems.last(), value);
 }
 
 bool Bundle::add_path(StringRef path, const BundleItemValue &value)
@@ -119,14 +146,28 @@ void Bundle::add_path_new(StringRef path, const BundleItemValue &value)
   this->add_path_override(path, value);
 }
 
+Bundle &Bundle::ensure_nested_bundle(const StringRef path)
+{
+  BundlePtr *bundle_ptr = this->lookup_path_for_write_ptr<BundlePtr>(path);
+  if (bundle_ptr && *bundle_ptr) {
+    return bundle_ptr->ensure_mutable_inplace();
+  }
+  BundlePtr new_bundle = Bundle::create();
+  Bundle &new_bundle_ref = new_bundle.ensure_mutable_inplace();
+  this->add_path_override(path, std::move(new_bundle));
+  return new_bundle_ref;
+}
+
 const BundleItemValue *Bundle::lookup(const StringRef key) const
 {
-  for (const StoredItem &item : items_) {
-    if (item.key == key) {
-      return &item.value;
-    }
-  }
-  return nullptr;
+  BLI_assert(is_valid_key(key));
+  return items_.lookup_ptr_as(key);
+}
+
+BundleItemValue *Bundle::lookup(const StringRef key)
+{
+  BLI_assert(is_valid_key(key));
+  return items_.lookup_ptr_as(key);
 }
 
 const BundleItemValue *Bundle::lookup_path(const Span<StringRef> path) const
@@ -147,57 +188,127 @@ const BundleItemValue *Bundle::lookup_path(const Span<StringRef> path) const
   return child_bundle->lookup_path(path.drop_front(1));
 }
 
-static Vector<StringRef> split_path(const StringRef path)
-{
-  Vector<StringRef> path_elems;
-  StringRef remaining = path;
-  while (!remaining.is_empty()) {
-    const int sep = remaining.find_first_of('/');
-    if (sep == StringRef::not_found) {
-      path_elems.append(remaining);
-      break;
-    }
-    path_elems.append(remaining.substr(0, sep));
-    remaining = remaining.substr(sep + 1);
-  }
-  return path_elems;
-}
-
 const BundleItemValue *Bundle::lookup_path(const StringRef path) const
 {
-  const Vector<StringRef> path_elems = split_path(path);
+  BLI_assert(is_valid_path(path));
+  const Vector<StringRef> path_elems = *split_path(path);
   return this->lookup_path(path_elems);
+}
+
+BundleItemValue *Bundle::lookup_path_for_write(Span<StringRef> path)
+{
+  BLI_assert(!path.is_empty());
+  const StringRef first_elem = path[0];
+  BundleItemValue *item = this->lookup(first_elem);
+  if (!item) {
+    return nullptr;
+  }
+  if (path.size() == 1) {
+    return item;
+  }
+  BundlePtr *child_bundle_ptr = item->as_pointer<BundlePtr>();
+  if (!child_bundle_ptr) {
+    return nullptr;
+  }
+  if (!*child_bundle_ptr) {
+    return nullptr;
+  }
+  Bundle &child_bundle = child_bundle_ptr->ensure_mutable_inplace();
+  return child_bundle.lookup_path_for_write(path.drop_front(1));
+}
+
+BundleItemValue *Bundle::lookup_path_for_write(StringRef path)
+{
+  BLI_assert(is_valid_path(path));
+  const Vector<StringRef> path_elems = *split_path(path);
+  return this->lookup_path_for_write(path_elems);
+}
+
+void Bundle::merge(const Bundle &other)
+{
+  for (const auto &item : other.items_.items()) {
+    this->add(item.key, item.value);
+  }
+}
+
+void Bundle::merge_override(const Bundle &other)
+{
+  for (const auto &item : other.items_.items()) {
+    this->add_override(item.key, item.value);
+  }
+}
+
+void Bundle::ensure_owns_direct_data()
+{
+  for (const auto &item : items_.items()) {
+    if (auto *socket_value = std::get_if<BundleItemSocketValue>(&item.value.value)) {
+      socket_value->value.ensure_owns_direct_data();
+    }
+  }
+}
+
+bool Bundle::owns_direct_data() const
+{
+  for (const auto &item : items_.items()) {
+    if (const auto *socket_value = std::get_if<BundleItemSocketValue>(&item.value.value)) {
+      if (!socket_value->value.owns_direct_data()) {
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 BundlePtr Bundle::copy() const
 {
   BundlePtr copy_ptr = Bundle::create();
   Bundle &copy = const_cast<Bundle &>(*copy_ptr);
-  for (const StoredItem &item : items_) {
-    copy.add_new(item.key, item.value);
-  }
+  copy.items_ = items_;
   return copy_ptr;
 }
 
 bool Bundle::remove(const StringRef key)
 {
   BLI_assert(is_valid_key(key));
-  const int removed_num = items_.remove_if([&key](StoredItem &item) { return item.key == key; });
-  return removed_num >= 1;
+  return items_.remove_as(key);
+}
+
+bool Bundle::remove_path(const StringRef path)
+{
+  BLI_assert(is_valid_path(path));
+  const Vector<StringRef> path_elems = *split_path(path);
+  return this->remove_path(path_elems);
+}
+
+bool Bundle::remove_path(const Span<StringRef> path)
+{
+  BLI_assert(this->is_mutable());
+  BLI_assert(!path.is_empty());
+  if (!this->contains_path(path)) {
+    return false;
+  }
+  Bundle *current = this;
+  for (const StringRef path_elem : path.drop_back(1)) {
+    BundleItemValue &item = current->items_.lookup_as(path_elem);
+    BundlePtr *child_bundle_ptr = item.as_pointer<BundlePtr>();
+    current = &child_bundle_ptr->ensure_mutable_inplace();
+  }
+  current->items_.remove_contained_as(path.last());
+  return true;
 }
 
 bool Bundle::contains(const StringRef key) const
 {
   BLI_assert(is_valid_key(key));
-  for (const StoredItem &item : items_) {
-    if (item.key == key) {
-      return true;
-    }
-  }
-  return false;
+  return items_.contains_as(key);
 }
 
 bool Bundle::contains_path(const StringRef path) const
+{
+  return this->lookup_path(path) != nullptr;
+}
+
+bool Bundle::contains_path(const Span<StringRef> path) const
 {
   return this->lookup_path(path) != nullptr;
 }
@@ -212,29 +323,108 @@ void Bundle::delete_self()
   MEM_delete(this);
 }
 
-BundleSignature BundleSignature::from_combine_bundle_node(const bNode &node)
+void Bundle::clear()
+{
+  items_.clear();
+}
+
+void Bundle::count_memory(MemoryCounter &memory) const
+{
+  for (const auto &item : items_.items()) {
+    if (const auto *socket_value = std::get_if<BundleItemSocketValue>(&item.value.value)) {
+      socket_value->value.count_memory(memory);
+    }
+  }
+}
+
+NodeSocketInterfaceStructureType get_structure_type_for_bundle_signature(
+    const bNodeSocket &socket,
+    const NodeSocketInterfaceStructureType stored_structure_type,
+    const bool allow_auto_structure_type)
+{
+  if (stored_structure_type != NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
+    return stored_structure_type;
+  }
+  if (allow_auto_structure_type) {
+    return NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO;
+  }
+  return NodeSocketInterfaceStructureType(socket.runtime->inferred_structure_type);
+}
+
+void BundleSignature::add(std::string key, const eNodeSocketDatatype socket_type)
+{
+  const bke::bNodeSocketType *stype = bke::node_socket_type_find_static(socket_type);
+  BLI_assert(stype);
+  items.add({std::move(key), stype});
+}
+
+BundleSignature BundleSignature::from_combine_bundle_node(const bNode &node,
+                                                          const bool allow_auto_structure_type)
 {
   BLI_assert(node.is_type("NodeCombineBundle"));
   const auto &storage = *static_cast<const NodeCombineBundle *>(node.storage);
   BundleSignature signature;
   for (const int i : IndexRange(storage.items_num)) {
     const NodeCombineBundleItem &item = storage.items[i];
+    const bNodeSocket &socket = node.input_socket(i);
     if (const bke::bNodeSocketType *stype = bke::node_socket_type_find_static(item.socket_type)) {
-      signature.items.add({item.name, stype});
+      const NodeSocketInterfaceStructureType structure_type =
+          get_structure_type_for_bundle_signature(
+              socket,
+              NodeSocketInterfaceStructureType(item.structure_type),
+              allow_auto_structure_type);
+      signature.items.add({item.name, stype, structure_type});
     }
   }
   return signature;
 }
 
-BundleSignature BundleSignature::from_separate_bundle_node(const bNode &node)
+BundleSignature BundleSignature::from_separate_bundle_node(const bNode &node,
+                                                           const bool allow_auto_structure_type)
 {
   BLI_assert(node.is_type("NodeSeparateBundle"));
   const auto &storage = *static_cast<const NodeSeparateBundle *>(node.storage);
   BundleSignature signature;
   for (const int i : IndexRange(storage.items_num)) {
     const NodeSeparateBundleItem &item = storage.items[i];
+    const bNodeSocket &socket = node.output_socket(i);
     if (const bke::bNodeSocketType *stype = bke::node_socket_type_find_static(item.socket_type)) {
-      signature.items.add({item.name, stype});
+      const NodeSocketInterfaceStructureType structure_type =
+          get_structure_type_for_bundle_signature(
+              socket,
+              NodeSocketInterfaceStructureType(item.structure_type),
+              allow_auto_structure_type);
+      signature.items.add({item.name, stype, structure_type});
+    }
+  }
+  return signature;
+}
+
+bool LinkedBundleSignatures::has_type_definition() const
+{
+  for (const Item &item : this->items) {
+    if (item.is_signature_definition) {
+      return true;
+    }
+  }
+  return false;
+}
+
+std::optional<BundleSignature> LinkedBundleSignatures::get_merged_signature() const
+{
+  BundleSignature signature;
+  for (const Item &src_signature : this->items) {
+    for (const BundleSignature::Item &item : src_signature.signature.items) {
+      if (!signature.items.add(item)) {
+        const BundleSignature::Item &existing_item = *signature.items.lookup_key_ptr_as(item.key);
+        if (item.type->type != existing_item.type->type) {
+          return std::nullopt;
+        }
+        if (existing_item.structure_type != item.structure_type) {
+          const_cast<BundleSignature::Item &>(existing_item).structure_type =
+              NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_DYNAMIC;
+        }
+      }
     }
   }
   return signature;

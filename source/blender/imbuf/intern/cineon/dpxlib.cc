@@ -24,6 +24,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 /*
  * For debug purpose
  */
@@ -123,8 +125,8 @@ static void fillDpxMainHeader(LogImageFile *dpx,
 LogImageFile *dpxOpen(const uchar *byteStuff, int fromMemory, size_t bufferSize)
 {
   DpxMainHeader header;
-  LogImageFile *dpx = MEM_mallocN<LogImageFile>(__func__);
-  const char *filepath = (const char *)byteStuff;
+  LogImageFile *dpx = MEM_new_uninitialized<LogImageFile>(__func__);
+  const char *filepath = reinterpret_cast<const char *>(byteStuff);
   int i;
 
   if (dpx == nullptr) {
@@ -156,8 +158,8 @@ LogImageFile *dpxOpen(const uchar *byteStuff, int fromMemory, size_t bufferSize)
     dpx->memBufferSize = 0;
   }
   else {
-    dpx->memBuffer = (uchar *)byteStuff;
-    dpx->memCursor = (uchar *)byteStuff;
+    dpx->memBuffer = const_cast<uchar *>(byteStuff);
+    dpx->memCursor = const_cast<uchar *>(byteStuff);
     dpx->memBufferSize = bufferSize;
   }
 
@@ -422,7 +424,7 @@ LogImageFile *dpxCreate(const char *filepath,
   const char *shortFilename = nullptr;
   uchar pad[6044];
 
-  LogImageFile *dpx = MEM_mallocN<LogImageFile>(__func__);
+  LogImageFile *dpx = MEM_new_uninitialized<LogImageFile>(__func__);
   if (dpx == nullptr) {
     if (verbose) {
       printf("DPX: Failed to malloc dpx file structure.\n");
@@ -544,3 +546,5 @@ LogImageFile *dpxCreate(const char *filepath,
 
   return dpx;
 }
+
+}  // namespace blender

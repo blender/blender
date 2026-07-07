@@ -27,10 +27,10 @@ def add_object_align_init(context, operator):
     """
     Return a matrix using the operator settings and view context.
 
-    :arg context: The context to use.
+    :param context: The context to use.
     :type context: :class:`bpy.types.Context`
-    :arg operator: The operator, checked for location and rotation properties.
-    :type operator: :class:`bpy.types.Operator`
+    :param operator: The operator, checked for location and rotation properties.
+    :type operator: :class:`bpy.types.Operator` | None
     :return: the matrix from the context and settings.
     :rtype: :class:`mathutils.Matrix`
     """
@@ -87,14 +87,14 @@ def object_data_add(context, obdata, operator=None, name=None):
     Add an object using the view context and preference to initialize the
     location, rotation and layer.
 
-    :arg context: The context to use.
+    :param context: The context to use.
     :type context: :class:`bpy.types.Context`
-    :arg obdata: Valid object data to used for the new object or None.
+    :param obdata: Valid object data to be used for the new object or None.
     :type obdata: :class:`bpy.types.ID` | None
-    :arg operator: The operator, checked for location and rotation properties.
-    :type operator: :class:`bpy.types.Operator`
-    :arg name: Optional name
-    :type name: str
+    :param operator: The operator, checked for location and rotation properties.
+    :type operator: :class:`bpy.types.Operator` | None
+    :param name: Optional name
+    :type name: str | None
     :return: the newly created object in the scene.
     :rtype: :class:`bpy.types.Object`
     """
@@ -139,6 +139,10 @@ def object_data_add(context, obdata, operator=None, name=None):
             if uv_act is not None:
                 uv_new.name = uv_act.name
 
+        # Copy the active object's active material into the primitive with no materials.
+        if len(obj_act.data.materials) > 0 and len(obdata.materials) == 0:
+            obdata.materials.append(obj_act.active_material)
+
         bpy.ops.object.join()  # join into the active.
         if obdata:
             bpy.data.meshes.remove(obdata)
@@ -163,6 +167,7 @@ def object_data_add(context, obdata, operator=None, name=None):
 
 class AddObjectHelper:
     def align_update_callback(self, _context):
+        """Update callback for the align property, resets rotation for world alignment."""
         if self.align == 'WORLD':
             self.rotation.zero()
 
@@ -187,13 +192,26 @@ class AddObjectHelper:
 
     @classmethod
     def poll(cls, context):
+        """
+        Check the scene is not linked from a library.
+
+        :param context: The context.
+        :type context: :class:`bpy.types.Context`
+        :return: True when the scene is local (not linked from a library).
+        :rtype: bool
+        """
         return context.scene.library is None
 
 
 def object_add_grid_scale(context):
     """
     Return scale which should be applied on object
-    data to align it to grid scale
+    data to align it to grid scale.
+
+    :param context: The context.
+    :type context: :class:`bpy.types.Context`
+    :return: The grid scale.
+    :rtype: float
     """
 
     space_data = context.space_data
@@ -206,7 +224,12 @@ def object_add_grid_scale(context):
 
 def object_add_grid_scale_apply_operator(operator, context):
     """
-    Scale an operators distance values by the grid size.
+    Scale an operator's distance values by the grid size.
+
+    :param operator: The operator to scale.
+    :type operator: :class:`bpy.types.Operator`
+    :param context: The context.
+    :type context: :class:`bpy.types.Context`
     """
     # This is a Python version of the C++ function `WM_operator_view3d_unit_defaults`.
     grid_scale = object_add_grid_scale(context)
@@ -234,11 +257,11 @@ def world_to_camera_view(scene, obj, coord):
     Takes shift-x/y, lens angle and sensor size into account
     as well as perspective/ortho projections.
 
-    :arg scene: Scene to use for frame size.
+    :param scene: Scene to use for frame size.
     :type scene: :class:`bpy.types.Scene`
-    :arg obj: Camera object.
+    :param obj: Camera object.
     :type obj: :class:`bpy.types.Object`
-    :arg coord: World space location.
+    :param coord: World space location.
     :type coord: :class:`mathutils.Vector`
     :return: a vector where X and Y map to the view plane and
        Z is the depth on the view axis.
@@ -272,11 +295,12 @@ def object_report_if_active_shape_key_is_locked(obj, operator):
 
     If the object has no shape keys, there is nothing to lock, and the function returns False.
 
-    :arg obj: Object to check.
+    :param obj: Object to check.
     :type obj: :class:`bpy.types.Object`
-    :arg operator: Currently running operator to report the error through. Use None to suppress emitting the message.
-    :type operator: :class:`bpy.types.Operator`
+    :param operator: Currently running operator to report the error through. Use None to suppress emitting the message.
+    :type operator: :class:`bpy.types.Operator` | None
     :return: True if the shape key was locked.
+    :rtype: bool
     """
     key = obj.active_shape_key
 

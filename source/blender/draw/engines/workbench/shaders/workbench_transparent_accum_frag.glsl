@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/workbench_prepass_info.hh"
+#include "infos/workbench_prepass_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(workbench_prepass)
 FRAGMENT_SHADER_CREATE_INFO(workbench_transparent_accum)
@@ -68,16 +68,17 @@ void main()
   color = workbench_image_color(uv_interp);
 #endif
 
+  float3 shaded_color;
 #ifdef WORKBENCH_LIGHTING_MATCAP
-  float3 shaded_color = get_matcap_lighting(matcap_tx, color, N, I);
+  shaded_color = get_matcap_lighting(matcap_tx, color, N, I);
 #endif
 
 #ifdef WORKBENCH_LIGHTING_STUDIO
-  float3 shaded_color = get_world_lighting(color, _roughness, metallic, N, I);
+  shaded_color = get_world_lighting(color, _roughness, metallic, N, I);
 #endif
 
 #ifdef WORKBENCH_LIGHTING_FLAT
-  float3 shaded_color = color;
+  shaded_color = color;
 #endif
 
   shaded_color *= get_shadow(N, force_shadowing);

@@ -9,6 +9,7 @@
 #include "BLI_array.hh"
 #include "BLI_array_utils.hh"
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_span.hh"
 
 #include "DNA_pointcloud_types.h"
@@ -23,6 +24,7 @@
 
 #include "transform.hh"
 #include "transform_convert.hh"
+#include "transform_snap.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Curve/Surfaces Transform Creation
@@ -57,7 +59,7 @@ static void createTransPointCloudVerts(bContext * /*C*/, TransInfo *t)
 
   for (const int i : trans_data_contrainers.index_range()) {
     TransDataContainer &tc = trans_data_contrainers[i];
-    PointCloud &pointcloud = *static_cast<PointCloud *>(tc.obedit->data);
+    PointCloud &pointcloud = *id_cast<PointCloud *>(tc.obedit->data);
     bke::MutableAttributeAccessor attributes = pointcloud.attributes_for_write();
     PointCloudTransformData &transform_data = *create_transform_custom_data(tc.custom.type);
     const VArray selection_attr = *attributes.lookup_or_default<bool>(
@@ -75,7 +77,7 @@ static void createTransPointCloudVerts(bContext * /*C*/, TransInfo *t)
       continue;
     }
 
-    tc.data = MEM_calloc_arrayN<TransData>(tc.data_len, __func__);
+    tc.data = MEM_new_array_zeroed<TransData>(tc.data_len, __func__);
     MutableSpan<TransData> tc_data = MutableSpan(tc.data, tc.data_len);
 
     transform_data.positions.reinitialize(tc.data_len);
@@ -126,11 +128,15 @@ static void createTransPointCloudVerts(bContext * /*C*/, TransInfo *t)
 
 static void recalcData_pointcloud(TransInfo *t)
 {
+  if (t->state != TRANS_CANCEL) {
+    transform_snap_project_individual_apply(t);
+  }
+
   const Span<TransDataContainer> trans_data_contrainers(t->data_container, t->data_container_len);
   for (const TransDataContainer &tc : trans_data_contrainers) {
     const PointCloudTransformData &transform_data = *static_cast<PointCloudTransformData *>(
         tc.custom.type.data);
-    PointCloud &pointcloud = *static_cast<PointCloud *>(tc.obedit->data);
+    PointCloud &pointcloud = *id_cast<PointCloud *>(tc.obedit->data);
     if (t->mode == TFM_CURVE_SHRINKFATTEN) {
       array_utils::scatter(
           transform_data.radii.as_span(), transform_data.selection, pointcloud.radius_for_write());

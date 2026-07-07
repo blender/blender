@@ -15,7 +15,7 @@
  * - Color * Weight, Weight, Occlusion 'CoC' Depth (mean and variance)
  */
 
-#include "infos/eevee_depth_of_field_info.hh"
+#include "infos/eevee_depth_of_field_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_gather)
 

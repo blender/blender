@@ -20,7 +20,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .supports_field()
       .description("Edges used to split faces into separate groups");
   b.add_output<decl::Int>("Face Group ID")
-      .dependent_field()
+      .field_source_reference_all()
       .description("Index of the face group inside each boundary edge region");
 }
 
@@ -101,7 +101,7 @@ static void geo_node_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeEdgesToFaceGroups", GEO_NODE_EDGES_TO_FACE_GROUPS);
   ntype.ui_name = "Edges to Face Groups";
@@ -111,7 +111,7 @@ static void node_register()
   ntype.geometry_node_execute = geo_node_exec;
   ntype.declare = node_declare;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

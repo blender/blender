@@ -17,8 +17,8 @@ extern PyTypeObject TrueBP1D_Type;
 #define BPy_TrueBP1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&TrueBP1D_Type))
 
 /*---------------------------Python BPy_TrueBP1D structure definition----------*/
-typedef struct {
+struct BPy_TrueBP1D {
   BPy_BinaryPredicate1D py_bp1D;
-} BPy_TrueBP1D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

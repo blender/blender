@@ -69,9 +69,9 @@ class ShadingView {
 
  public:
   ShadingView(Instance &inst, const char *name, const float4x4 &face_matrix)
-      : inst_(inst), name_(name), face_matrix_(face_matrix), render_view_(name){};
+      : inst_(inst), name_(name), face_matrix_(face_matrix), render_view_(name) {};
 
-  ~ShadingView(){};
+  ~ShadingView() {};
 
   void init();
 

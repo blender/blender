@@ -132,14 +132,14 @@ class MyCustomNode(MyCustomTreeNode, Node):
         return "I am a custom node"
 
 
-# Add custom nodes to the Add menu.
+# Add custom nodes to the Add & Swap menu.
 def draw_add_menu(self, context):
     layout = self.layout
     if context.space_data.tree_type != MyCustomTree.bl_idname:
         # Avoid adding nodes to built-in node tree
         return
     # Add nodes to the layout. Can use submenus, separators, etc. as in any other menu.
-    node_add_menu.add_node_type(layout, "CustomNodeType")
+    self.node_operator(layout, "CustomNodeType")
 
 
 classes = (
@@ -156,10 +156,12 @@ def register():
         register_class(cls)
 
     bpy.types.NODE_MT_add.append(draw_add_menu)
+    bpy.types.NODE_MT_swap.append(draw_add_menu)
 
 
 def unregister():
     bpy.types.NODE_MT_add.remove(draw_add_menu)
+    bpy.types.NODE_MT_swap.remove(draw_add_menu)
 
     from bpy.utils import unregister_class
     for cls in reversed(classes):

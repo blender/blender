@@ -16,11 +16,11 @@
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Matrix multiplication
  * \{ */
-
-namespace blender {
 
 template<> float4x4 operator*(const float4x4 &a, const float4x4 &b)
 {
@@ -118,11 +118,9 @@ template double2x2 operator*(const double2x2 &a, const double2x2 &b);
 template double3x3 operator*(const double3x3 &a, const double3x3 &b);
 template double4x4 operator*(const double4x4 &a, const double4x4 &b);
 
-}  // namespace blender
-
 /** \} */
 
-namespace blender::math {
+namespace math {
 
 /* -------------------------------------------------------------------- */
 /** \name Determinant
@@ -654,4 +652,5 @@ void transform_points(const float4x4 &transform,
   }
 }
 
-}  // namespace blender::math
+}  // namespace math
+}  // namespace blender

@@ -13,6 +13,8 @@
 struct AVFrame;
 struct SwsContext;
 
+namespace blender {
+
 /**
  * Gets a `libswscale` context for given size and format parameters.
  * After you're done using the context, call #ffmpeg_sws_release_context
@@ -45,5 +47,7 @@ void ffmpeg_sws_release_context(SwsContext *ctx);
 void ffmpeg_sws_scale_frame(SwsContext *ctx, AVFrame *dst, const AVFrame *src);
 
 void ffmpeg_sws_exit();
+
+}  // namespace blender
 
 #endif /* WITH_FFMPEG */

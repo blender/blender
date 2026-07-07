@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/gpencil_info.hh"
+#include "infos/gpencil_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(gpencil_antialiasing_stage_1)
 
@@ -10,6 +10,11 @@ FRAGMENT_SHADER_CREATE_INFO(gpencil_antialiasing_stage_1)
 
 void main()
 {
+  float4 offset[3];
+  offset[0] = offset0;
+  offset[1] = offset1;
+  offset[2] = offset2;
+
 #if SMAA_STAGE == 0
   /* Detect edges in color and revealage buffer. */
   out_edges = SMAALumaEdgeDetectionPS(uvs, offset, color_tx);

@@ -13,7 +13,7 @@
 
 #include "BKE_camera.h"
 
-#include "eevee_shader_shared.hh"
+#include "eevee_camera_shared.hh"
 
 namespace blender::eevee {
 
@@ -114,8 +114,8 @@ class Camera {
   bool camera_changed_ = false;
 
  public:
-  Camera(Instance &inst, CameraData &data) : inst_(inst), data_(data){};
-  ~Camera(){};
+  Camera(Instance &inst, CameraData &data) : inst_(inst), data_(data) {};
+  ~Camera() {};
 
   void init();
   void sync();

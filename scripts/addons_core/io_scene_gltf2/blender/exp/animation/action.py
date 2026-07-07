@@ -31,7 +31,7 @@ class ActionsData:
 
     def add_action(self, action, force_new_action=False):
         if force_new_action:
-            action.active = False # If we force a new action, it is not active (but in NLA or broadcasted)
+            action.active = False  # If we force a new action, it is not active (but in NLA or broadcasted)
             if id(action.action) not in self.actions.keys():
                 self.actions[id(action.action)] = []
             self.actions[id(action.action)].append(action)
@@ -200,7 +200,8 @@ def _align_frame_start(reference_frame_start, frame, export_settings):
     if export_settings['gltf_frame_step'] == 1:
         return frame
 
-    return reference_frame_start + export_settings['gltf_frame_step'] * ceil((frame - reference_frame_start) / export_settings['gltf_frame_step'])
+    return reference_frame_start + export_settings['gltf_frame_step'] * \
+        ceil((frame - reference_frame_start) / export_settings['gltf_frame_step'])
 
 
 def prepare_actions_range(export_settings):
@@ -251,7 +252,7 @@ def prepare_actions_range(export_settings):
                         fcurves = chanelbag.fcurves if chanelbag else []
                         start_frame = int(min([c.range()[0] for c in fcurves]))
                         end_frame = int(max([c.range()[1] for c in fcurves]))
-                    except:
+                    except Exception as _e:
                         pass
 
                 export_settings['ranges'][obj_uuid][blender_action.name] = {}
@@ -264,7 +265,8 @@ def prepare_actions_range(export_settings):
                     start_frame = max(bpy.context.scene.frame_start, start_frame)
                     end_frame = min(bpy.context.scene.frame_end, end_frame)
 
-                export_settings['ranges'][obj_uuid][blender_action.name]['start'] = _align_frame_start(start_frame_reference, start_frame, export_settings)
+                export_settings['ranges'][obj_uuid][blender_action.name]['start'] = _align_frame_start(
+                    start_frame_reference, start_frame, export_settings)
                 export_settings['ranges'][obj_uuid][blender_action.name]['end'] = end_frame
 
                 if start_frame_reference is None:
@@ -273,7 +275,8 @@ def prepare_actions_range(export_settings):
                     # Recheck all actions to align to this frame
                     for obj_uuid_tmp in export_settings['ranges'].keys():
                         for action_name_tmp in export_settings['ranges'][obj_uuid_tmp].keys():
-                            export_settings['ranges'][obj_uuid_tmp][action_name_tmp]['start'] = _align_frame_start(start_frame_reference, export_settings['ranges'][obj_uuid_tmp][action_name_tmp]['start'], export_settings)
+                            export_settings['ranges'][obj_uuid_tmp][action_name_tmp]['start'] = _align_frame_start(
+                                start_frame_reference, export_settings['ranges'][obj_uuid_tmp][action_name_tmp]['start'], export_settings)
 
                 if export_settings['gltf_negative_frames'] == "SLIDE":
                     if track is not None:
@@ -311,7 +314,8 @@ def prepare_actions_range(export_settings):
 
                 if type_ == "KEY" and export_settings['gltf_bake_animation']:
                     export_settings['ranges'][obj_uuid][obj_uuid] = {}
-                    export_settings['ranges'][obj_uuid][obj_uuid]['start'] = _align_frame_start(start_frame_reference, bpy.context.scene.frame_start, export_settings)
+                    export_settings['ranges'][obj_uuid][obj_uuid]['start'] = _align_frame_start(
+                        start_frame_reference, bpy.context.scene.frame_start, export_settings)
                     export_settings['ranges'][obj_uuid][obj_uuid]['end'] = bpy.context.scene.frame_end
 
                 # For baking drivers
@@ -321,7 +325,8 @@ def prepare_actions_range(export_settings):
                         if obj_dr not in export_settings['ranges']:
                             export_settings['ranges'][obj_dr] = {}
                         export_settings['ranges'][obj_dr][obj_uuid + "_" + blender_action.name] = {}
-                        export_settings['ranges'][obj_dr][obj_uuid + "_" + blender_action.name]['start'] = _align_frame_start(start_frame_reference, start_frame, export_settings)
+                        export_settings['ranges'][obj_dr][obj_uuid + "_" + blender_action.name]['start'] = _align_frame_start(
+                            start_frame_reference, start_frame, export_settings)
                         export_settings['ranges'][obj_dr][obj_uuid + "_" + blender_action.name]['end'] = end_frame
 
         if len(blender_actions) == 0 and export_settings['gltf_bake_animation']:
@@ -329,7 +334,8 @@ def prepare_actions_range(export_settings):
             # In case of baking animation, we will use scene frame range
             # Will be calculated later if max range. Can be set here if scene frame range
             export_settings['ranges'][obj_uuid][obj_uuid] = {}
-            export_settings['ranges'][obj_uuid][obj_uuid]['start'] = _align_frame_start(start_frame_reference, bpy.context.scene.frame_start, export_settings)
+            export_settings['ranges'][obj_uuid][obj_uuid]['start'] = _align_frame_start(
+                start_frame_reference, bpy.context.scene.frame_start, export_settings)
             export_settings['ranges'][obj_uuid][obj_uuid]['end'] = bpy.context.scene.frame_end
 
             # For baking drivers
@@ -339,8 +345,8 @@ def prepare_actions_range(export_settings):
                     if obj_dr not in export_settings['ranges']:
                         export_settings['ranges'][obj_dr] = {}
                     export_settings['ranges'][obj_dr][obj_uuid + "_" + obj_uuid] = {}
-                    export_settings['ranges'][obj_dr][obj_uuid + "_" +
-                                                      obj_uuid]['start'] = _align_frame_start(start_frame_reference, bpy.context.scene.frame_start, export_settings)
+                    export_settings['ranges'][obj_dr][obj_uuid + "_" + obj_uuid]['start'] = _align_frame_start(
+                        start_frame_reference, bpy.context.scene.frame_start, export_settings)
                     export_settings['ranges'][obj_dr][obj_uuid + "_" + obj_uuid]['end'] = bpy.context.scene.frame_end
 
     if (export_settings['gltf_negative_frames'] == "SLIDE"
@@ -462,7 +468,7 @@ def gather_action_animations(obj_uuid: int,
         # This way, we can evaluate drivers on shape keys, and bake them
         drivers = get_sk_drivers(obj_uuid, export_settings)
         if drivers:
-            # So ... Let's create some costum properties and the armature
+            # So ... Let's create some custom properties and the armature
             # First, retrieve the armature object
             for mesh_uuid in drivers:
                 _, channels = get_driver_on_shapekey(mesh_uuid, export_settings)
@@ -471,7 +477,7 @@ def gather_action_animations(obj_uuid: int,
                     if channel is None:
                         continue
                     if blender_object.animation_data is None or blender_object.animation_data.drivers is None:
-                        # There is no animation on the armature, so no need to crate driver
+                        # There is no animation on the armature, so no need to create driver
                         # But, we need to copy the current value of the shape key to the custom property
                         blender_object["gltf_" + mesh_uuid][idx] = blender_object.data.shape_keys.key_blocks[channel.data_path.split('"')[
                             1]].value
@@ -521,7 +527,7 @@ def gather_action_animations(obj_uuid: int,
                             slot,
                             track_name,
                             on_type)
-                    except:
+                    except Exception as _e:
                         error = "Action is readonly. Please check NLA editor"
                         export_settings['log'].warning(
                             "Animation '{}' could not be exported. Cause: {}".format(
@@ -602,7 +608,8 @@ def gather_action_animations(obj_uuid: int,
                     if channels:
                         all_channels.extend(channels)
                 else:
-                    channels = gather_action_sk_sampled(obj_uuid, blender_action, slot.slot.identifier, None, export_settings)
+                    channels = gather_action_sk_sampled(
+                        obj_uuid, blender_action, slot.slot.identifier, None, export_settings)
                     if channels:
                         all_channels.extend(channels)
             else:
@@ -617,20 +624,23 @@ def gather_action_animations(obj_uuid: int,
                     all_channels.extend(channels)
                 for (obj_uuid, type_, prop, bone) in to_be_sampled:
                     if type_ == "BONE":
-                        channel = gather_sampled_bone_channel( #TODOSLOT
+                        channel = gather_sampled_bone_channel(  # TODOSLOT
                             obj_uuid,
                             bone,
                             prop,
                             blender_action.name,
                             slot.slot.identifier,
                             True,
-                            get_gltf_interpolation(export_settings['gltf_sampling_interpolation_fallback'], export_settings),
+                            get_gltf_interpolation(
+                                export_settings['gltf_sampling_interpolation_fallback'], export_settings),
                             export_settings)
                     elif type_ == "OBJECT":
                         channel = gather_sampled_object_channel(
-                            obj_uuid, prop, blender_action.name, slot.slot.identifier, True, get_gltf_interpolation(export_settings['gltf_sampling_interpolation_fallback'], export_settings), export_settings)
+                            obj_uuid, prop, blender_action.name, slot.slot.identifier, True, get_gltf_interpolation(
+                                export_settings['gltf_sampling_interpolation_fallback'], export_settings), export_settings)
                     elif type_ == "SK":
-                        channel = gather_sampled_sk_channel(obj_uuid, blender_action.name, slot.slot.identifier, export_settings)
+                        channel = gather_sampled_sk_channel(
+                            obj_uuid, blender_action.name, slot.slot.identifier, export_settings)
                     elif type_ == "EXTRA":  # TODOSLOT slot-3
                         channel = None
                     else:
@@ -652,7 +662,8 @@ def gather_action_animations(obj_uuid: int,
                     all_channels)
 
             # If we are in a SK animation (without any TRS animation), and we need to bake
-            if len([a for a in blender_actions.values() if len([s for s in a.slots if s.target_id_type == "OBJECT"]) != 0]) == 0 and slot.target_id_type == "KEY":
+            if len([a for a in blender_actions.values() if len(
+                    [s for s in a.slots if s.target_id_type == "OBJECT"]) != 0]) == 0 and slot.target_id_type == "KEY":
                 if export_settings['gltf_bake_animation'] is True and export_settings['gltf_force_sampling'] is True:
                     # We also have to check if this is a skinned mesh, because we don't have to force animation baking on this case
                     # (skinned meshes TRS must be ignored, says glTF specification)
@@ -676,7 +687,8 @@ def gather_action_animations(obj_uuid: int,
                     ignore_sk = False
                     if export_settings['vtree'].nodes[obj_uuid].parent_uuid is not None \
                             and export_settings['vtree'].nodes[export_settings['vtree'].nodes[obj_uuid].parent_uuid].blender_type == VExportNode.ARMATURE:
-                        obj_drivers = get_sk_drivers(export_settings['vtree'].nodes[obj_uuid].parent_uuid, export_settings)
+                        obj_drivers = get_sk_drivers(
+                            export_settings['vtree'].nodes[obj_uuid].parent_uuid, export_settings)
                         if obj_uuid in obj_drivers:
                             ignore_sk = True
 
@@ -716,7 +728,8 @@ def gather_action_animations(obj_uuid: int,
                     if not (track_name.startswith("NlaTrack") or track_name.startswith("[Action Stash]")):
                         if track_name not in tracks.keys():
                             tracks[track_name] = []
-                        tracks[track_name].append(offset + len(animations) - 1)  # Store index of animation in animations
+                        # Store index of animation in animations
+                        tracks[track_name].append(offset + len(animations) - 1)
             elif export_settings['gltf_merge_animation'] == "ACTION":
                 if action_data.name not in tracks.keys():
                     tracks[action_data.name] = []
@@ -724,7 +737,8 @@ def gather_action_animations(obj_uuid: int,
             elif export_settings['gltf_merge_animation'] == "NONE":
                 pass  # Nothing to store, we are not going to merge animations
             else:
-                pass  # This should not happen (or the developer added a new option, and forget to take it into account here)
+                # This should not happen (or the developer added a new option, and forget to take it into account here)
+                pass
 
 
 # Restoring current situation
@@ -739,7 +753,8 @@ def gather_action_animations(obj_uuid: int,
                 if blender_object.animation_data.action is not None:
                     blender_object.animation_data.action_slot = None
                 blender_object.animation_data.action = None
-            elif blender_object.animation_data.action.name != current_action.name:  # TODO action name is not unique (library)
+            # TODO action name is not unique (library)
+            elif blender_object.animation_data.action.name != current_action.name:
                 # Restore action that was active at start of exporting
                 reset_bone_matrix(blender_object, export_settings)
                 blender_object.animation_data.action = current_action
@@ -814,7 +829,10 @@ def __get_blender_actions(obj_uuid: str,
             else:
                 # Store Action info
                 new_action = ActionData(blender_object.animation_data.action)
-                new_action.add_slot(blender_object.animation_data.action_slot, blender_object.animation_data.action_slot.target_id_type, None)  # Active action => No track
+                new_action.add_slot(
+                    blender_object.animation_data.action_slot,
+                    blender_object.animation_data.action_slot.target_id_type,
+                    None)  # Active action => No track
                 actions.add_action(new_action)
 
         # Collect associated strips from NLA tracks.
@@ -837,6 +855,13 @@ def __get_blender_actions(obj_uuid: str,
                     if hasattr(bpy.data.scenes[0], "gltf_action_filter") and id(strip.action) in [
                             id(item.action) for item in bpy.data.scenes[0].gltf_action_filter if item.keep is False]:
                         continue  # We ignore this action
+
+                    # Check that a slot is assigned to the strip
+                    if strip.action_slot is None:
+                        export_settings['log'].warning(
+                            "Strip '{}' on track '{}' has no action slot assigned, and will be ignored.".format(
+                                strip.name, track.name))
+                        continue
 
                     # Store Action info
                     new_action = ActionData(strip.action)
@@ -865,7 +890,8 @@ def __get_blender_actions(obj_uuid: str,
             else:
                 # Store Action info
                 new_action = ActionData(blender_object.data.shape_keys.animation_data.action)
-                new_action.add_slot(blender_object.data.shape_keys.animation_data.action_slot, blender_object.data.shape_keys.animation_data.action_slot.target_id_type, None)
+                new_action.add_slot(blender_object.data.shape_keys.animation_data.action_slot,
+                                    blender_object.data.shape_keys.animation_data.action_slot.target_id_type, None)
                 actions.add_action(new_action)
 
         if export_settings['gltf_animation_mode'] == "ACTIONS":
@@ -903,7 +929,7 @@ def __get_blender_actions(obj_uuid: str,
                 for act in bpy.data.actions:
                     already_added_action = False
 
-                    # For the assigned action, we aleady have the slot
+                    # For the assigned action, we already have the slot
                     if act == blender_object.animation_data.action:
                         continue
 

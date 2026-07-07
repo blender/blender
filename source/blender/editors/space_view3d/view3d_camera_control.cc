@@ -41,6 +41,8 @@
 
 #include "view3d_intern.hh" /* own include */
 
+namespace blender {
+
 struct View3DCameraControl {
 
   /* -------------------------------------------------------------------- */
@@ -115,7 +117,7 @@ View3DCameraControl *ED_view3d_cameracontrol_acquire(Depsgraph *depsgraph,
 {
   View3DCameraControl *vctrl;
 
-  vctrl = MEM_callocN<View3DCameraControl>(__func__);
+  vctrl = MEM_new_zeroed<View3DCameraControl>(__func__);
 
   /* Store context */
   vctrl->ctx_scene = scene;
@@ -131,7 +133,7 @@ View3DCameraControl *ED_view3d_cameracontrol_acquire(Depsgraph *depsgraph,
   /* check for flying ortho camera - which we can't support well
    * we _could_ also check for an ortho camera but this is easier */
   if ((rv3d->persp == RV3D_CAMOB) && (rv3d->is_persp == false)) {
-    ((Camera *)v3d->camera->data)->type = CAM_PERSP;
+    (id_cast<Camera *>(v3d->camera->data))->type = CAM_PERSP;
     vctrl->is_ortho_cam = true;
   }
 
@@ -327,7 +329,7 @@ void ED_view3d_cameracontrol_release(View3DCameraControl *vctrl, const bool rest
     rv3d->dist = vctrl->dist_backup;
   }
   else if (vctrl->persp_backup == RV3D_CAMOB) { /* camera */
-    DEG_id_tag_update((ID *)view3d_cameracontrol_object(vctrl), ID_RECALC_TRANSFORM);
+    DEG_id_tag_update(id_cast<ID *>(view3d_cameracontrol_object(vctrl)), ID_RECALC_TRANSFORM);
 
     /* always, is set to zero otherwise */
     copy_v3_v3(rv3d->ofs, vctrl->ofs_backup);
@@ -341,12 +343,14 @@ void ED_view3d_cameracontrol_release(View3DCameraControl *vctrl, const bool rest
   }
 
   if (vctrl->is_ortho_cam) {
-    ((Camera *)v3d->camera->data)->type = CAM_ORTHO;
+    (id_cast<Camera *>(v3d->camera->data))->type = CAM_ORTHO;
   }
 
   if (vctrl->obtfm) {
-    MEM_freeN(vctrl->obtfm);
+    BKE_object_tfm_free(vctrl->obtfm);
   }
 
-  MEM_freeN(vctrl);
+  MEM_delete(vctrl);
 }
+
+}  // namespace blender

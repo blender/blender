@@ -15,6 +15,8 @@
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
 
+namespace blender {
+
 #ifndef __MATH_COLOR_BLEND_INLINE_C__
 #  define __MATH_COLOR_BLEND_INLINE_C__
 
@@ -47,10 +49,10 @@ MINLINE void blend_color_mix_byte(uchar dst[4], const uchar src1[4], const uchar
     tmp[2] = (mt * src1[3] * src1[2]) + (t * 255 * src2[2]);
     tmp[3] = (mt * src1[3]) + (t * 255);
 
-    dst[0] = (uchar)divide_round_i(tmp[0], tmp[3]);
-    dst[1] = (uchar)divide_round_i(tmp[1], tmp[3]);
-    dst[2] = (uchar)divide_round_i(tmp[2], tmp[3]);
-    dst[3] = (uchar)divide_round_i(tmp[3], 255);
+    dst[0] = uchar(divide_round_i(tmp[0], tmp[3]));
+    dst[1] = uchar(divide_round_i(tmp[1], tmp[3]));
+    dst[2] = uchar(divide_round_i(tmp[2], tmp[3]));
+    dst[3] = uchar(divide_round_i(tmp[3], 255));
   }
   else {
     /* no op */
@@ -69,9 +71,9 @@ MINLINE void blend_color_add_byte(uchar dst[4], const uchar src1[4], const uchar
     tmp[1] = (src1[1] * 255) + (src2[1] * t);
     tmp[2] = (src1[2] * 255) + (src2[2] * t);
 
-    dst[0] = (uchar)min_ii(divide_round_i(tmp[0], 255), 255);
-    dst[1] = (uchar)min_ii(divide_round_i(tmp[1], 255), 255);
-    dst[2] = (uchar)min_ii(divide_round_i(tmp[2], 255), 255);
+    dst[0] = uchar(min_ii(divide_round_i(tmp[0], 255), 255));
+    dst[1] = uchar(min_ii(divide_round_i(tmp[1], 255), 255));
+    dst[2] = uchar(min_ii(divide_round_i(tmp[2], 255), 255));
     dst[3] = src1[3];
   }
   else {
@@ -91,9 +93,9 @@ MINLINE void blend_color_sub_byte(uchar dst[4], const uchar src1[4], const uchar
     tmp[1] = (src1[1] * 255) - (src2[1] * t);
     tmp[2] = (src1[2] * 255) - (src2[2] * t);
 
-    dst[0] = (uchar)max_ii(divide_round_i(tmp[0], 255), 0);
-    dst[1] = (uchar)max_ii(divide_round_i(tmp[1], 255), 0);
-    dst[2] = (uchar)max_ii(divide_round_i(tmp[2], 255), 0);
+    dst[0] = uchar(max_ii(divide_round_i(tmp[0], 255), 0));
+    dst[1] = uchar(max_ii(divide_round_i(tmp[1], 255), 0));
+    dst[2] = uchar(max_ii(divide_round_i(tmp[2], 255), 0));
     dst[3] = src1[3];
   }
   else {
@@ -114,9 +116,9 @@ MINLINE void blend_color_mul_byte(uchar dst[4], const uchar src1[4], const uchar
     tmp[1] = (mt * src1[1] * 255) + (t * src1[1] * src2[1]);
     tmp[2] = (mt * src1[2] * 255) + (t * src1[2] * src2[2]);
 
-    dst[0] = (uchar)divide_round_i(tmp[0], 255 * 255);
-    dst[1] = (uchar)divide_round_i(tmp[1], 255 * 255);
-    dst[2] = (uchar)divide_round_i(tmp[2], 255 * 255);
+    dst[0] = uchar(divide_round_i(tmp[0], 255 * 255));
+    dst[1] = uchar(divide_round_i(tmp[1], 255 * 255));
+    dst[2] = uchar(divide_round_i(tmp[2], 255 * 255));
     dst[3] = src1[3];
   }
   else {
@@ -137,9 +139,9 @@ MINLINE void blend_color_lighten_byte(uchar dst[4], const uchar src1[4], const u
     tmp[1] = (mt * src1[1]) + (t * max_ii(src1[1], src2[1]));
     tmp[2] = (mt * src1[2]) + (t * max_ii(src1[2], src2[2]));
 
-    dst[0] = (uchar)divide_round_i(tmp[0], 255);
-    dst[1] = (uchar)divide_round_i(tmp[1], 255);
-    dst[2] = (uchar)divide_round_i(tmp[2], 255);
+    dst[0] = uchar(divide_round_i(tmp[0], 255));
+    dst[1] = uchar(divide_round_i(tmp[1], 255));
+    dst[2] = uchar(divide_round_i(tmp[2], 255));
     dst[3] = src1[3];
   }
   else {
@@ -160,9 +162,9 @@ MINLINE void blend_color_darken_byte(uchar dst[4], const uchar src1[4], const uc
     tmp[1] = (mt * src1[1]) + (t * min_ii(src1[1], src2[1]));
     tmp[2] = (mt * src1[2]) + (t * min_ii(src1[2], src2[2]));
 
-    dst[0] = (uchar)divide_round_i(tmp[0], 255);
-    dst[1] = (uchar)divide_round_i(tmp[1], 255);
-    dst[2] = (uchar)divide_round_i(tmp[2], 255);
+    dst[0] = uchar(divide_round_i(tmp[0], 255));
+    dst[1] = uchar(divide_round_i(tmp[1], 255));
+    dst[2] = uchar(divide_round_i(tmp[2], 255));
     dst[3] = src1[3];
   }
   else {
@@ -180,7 +182,7 @@ MINLINE void blend_color_erase_alpha_byte(uchar dst[4], const uchar src1[4], con
     dst[0] = src1[0];
     dst[1] = src1[1];
     dst[2] = src1[2];
-    dst[3] = (uchar)max_ii(src1[3] - divide_round_i(t * src2[3], 255), 0);
+    dst[3] = uchar(max_ii(src1[3] - divide_round_i(t * src2[3], 255), 0));
   }
   else {
     /* no op */
@@ -197,7 +199,7 @@ MINLINE void blend_color_add_alpha_byte(uchar dst[4], const uchar src1[4], const
     dst[0] = src1[0];
     dst[1] = src1[1];
     dst[2] = src1[2];
-    dst[3] = (uchar)min_ii(src1[3] + divide_round_i(t * src2[3], 255), 255);
+    dst[3] = uchar(min_ii(src1[3] + divide_round_i(t * src2[3], 255), 255));
   }
   else {
     /* no op */
@@ -207,7 +209,7 @@ MINLINE void blend_color_add_alpha_byte(uchar dst[4], const uchar src1[4], const
 
 MINLINE void blend_color_overlay_byte(uchar dst[4], const uchar src1[4], const uchar src2[4])
 {
-  const int fac = (int)src2[3];
+  const int fac = int(src2[3]);
   if (fac != 0) {
     const int mfac = 255 - fac;
     int i = 3;
@@ -221,7 +223,7 @@ MINLINE void blend_color_overlay_byte(uchar dst[4], const uchar src1[4], const u
       else {
         temp = (2 * src1[i] * src2[i]) >> 8;
       }
-      dst[i] = (uchar)min_ii((temp * fac + src1[i] * mfac) / 255, 255);
+      dst[i] = uchar(min_ii((temp * fac + src1[i] * mfac) / 255, 255));
     }
   }
   else {
@@ -232,7 +234,7 @@ MINLINE void blend_color_overlay_byte(uchar dst[4], const uchar src1[4], const u
 
 MINLINE void blend_color_hardlight_byte(uchar dst[4], const uchar src1[4], const uchar src2[4])
 {
-  const int fac = (int)src2[3];
+  const int fac = int(src2[3]);
   if (fac != 0) {
     const int mfac = 255 - fac;
     int i = 3;
@@ -246,7 +248,7 @@ MINLINE void blend_color_hardlight_byte(uchar dst[4], const uchar src1[4], const
       else {
         temp = (2 * src2[i] * src1[i]) >> 8;
       }
-      dst[i] = (uchar)min_ii((temp * fac + src1[i] * mfac) / 255, 255);
+      dst[i] = uchar(min_ii((temp * fac + src1[i] * mfac) / 255, 255));
     }
   }
   else {
@@ -264,7 +266,7 @@ MINLINE void blend_color_burn_byte(uchar dst[4], const uchar src1[4], const ucha
 
     while (i--) {
       const int temp = (src2[i] == 0) ? 0 : max_ii(255 - ((255 - src1[i]) * 255) / src2[i], 0);
-      dst[i] = (uchar)((temp * fac + src1[i] * mfac) / 255);
+      dst[i] = uchar((temp * fac + src1[i] * mfac) / 255);
     }
   }
   else {
@@ -282,7 +284,7 @@ MINLINE void blend_color_linearburn_byte(uchar dst[4], const uchar src1[4], cons
 
     while (i--) {
       const int temp = max_ii(src1[i] + src2[i] - 255, 0);
-      dst[i] = (uchar)((temp * fac + src1[i] * mfac) / 255);
+      dst[i] = uchar((temp * fac + src1[i] * mfac) / 255);
     }
   }
   else {
@@ -300,7 +302,7 @@ MINLINE void blend_color_dodge_byte(uchar dst[4], const uchar src1[4], const uch
 
     while (i--) {
       const int temp = (src2[i] == 255) ? 255 : min_ii((src1[i] * 255) / (255 - src2[i]), 255);
-      dst[i] = (uchar)((temp * fac + src1[i] * mfac) / 255);
+      dst[i] = uchar((temp * fac + src1[i] * mfac) / 255);
     }
   }
   else {
@@ -318,7 +320,7 @@ MINLINE void blend_color_screen_byte(uchar dst[4], const uchar src1[4], const uc
 
     while (i--) {
       const int temp = max_ii(255 - (((255 - src1[i]) * (255 - src2[i])) / 255), 0);
-      dst[i] = (uchar)((temp * fac + src1[i] * mfac) / 255);
+      dst[i] = uchar((temp * fac + src1[i] * mfac) / 255);
     }
   }
   else {
@@ -329,7 +331,7 @@ MINLINE void blend_color_screen_byte(uchar dst[4], const uchar src1[4], const uc
 
 MINLINE void blend_color_softlight_byte(uchar dst[4], const uchar src1[4], const uchar src2[4])
 {
-  const float fac = (float)(src2[3]) / 255.0f;
+  const float fac = float(src2[3]) / 255.0f;
   if (fac != 0) {
     const float mfac = 1.0f - fac;
     int i = 3;
@@ -337,8 +339,8 @@ MINLINE void blend_color_softlight_byte(uchar dst[4], const uchar src1[4], const
     while (i--) {
       /* Using "Pegtop" formula: dst = (1 - 2b) * a^2 + 2ab where a=bottom and b=top color.
        * See https://en.wikipedia.org/wiki/Blend_modes */
-      const float src1val = (float)(src1[i]) / 255.0f;
-      const float src2val = (float)(src2[i]) / 255.0f;
+      const float src1val = float(src1[i]) / 255.0f;
+      const float src2val = float(src2[i]) / 255.0f;
       float screen = 1.0f - (1.0f - src1val) * (1.0f - src2val);
       float soft_light = ((1.0f - src1val) * src2val + screen) * src1val;
       dst[i] = round_fl_to_uchar_clamp((src1val * mfac + soft_light * fac) * 255.0f);
@@ -366,7 +368,7 @@ MINLINE void blend_color_pinlight_byte(uchar dst[4], const uchar src1[4], const 
       else {
         temp = min_ii(2 * src2[i], src1[i]);
       }
-      dst[i] = (uchar)((min_ii(temp, 255) * fac + src1[i] * mfac) / 255);
+      dst[i] = uchar((min_ii(temp, 255) * fac + src1[i] * mfac) / 255);
     }
   }
   else {
@@ -391,7 +393,7 @@ MINLINE void blend_color_linearlight_byte(uchar dst[4], const uchar src1[4], con
       else {
         temp = max_ii(src1[i] + 2 * src2[i] - 255, 0);
       }
-      dst[i] = (uchar)((temp * fac + src1[i] * mfac) / 255);
+      dst[i] = uchar((temp * fac + src1[i] * mfac) / 255);
     }
   }
   else {
@@ -422,7 +424,7 @@ MINLINE void blend_color_vividlight_byte(uchar dst[4], const uchar src1[4], cons
       else {
         temp = max_ii(255 - ((255 - src1[i]) * 255 / (2 * src2[i])), 0);
       }
-      dst[i] = (uchar)((temp * fac + src1[i] * mfac) / 255);
+      dst[i] = uchar((temp * fac + src1[i] * mfac) / 255);
     }
   }
   else {
@@ -440,7 +442,7 @@ MINLINE void blend_color_difference_byte(uchar dst[4], const uchar src1[4], cons
 
     while (i--) {
       const int temp = abs(src1[i] - src2[i]);
-      dst[i] = (uchar)((temp * fac + src1[i] * mfac) / 255);
+      dst[i] = uchar((temp * fac + src1[i] * mfac) / 255);
     }
   }
   else {
@@ -458,7 +460,7 @@ MINLINE void blend_color_exclusion_byte(uchar dst[4], const uchar src1[4], const
 
     while (i--) {
       const int temp = 127 - min_ii(((2 * (src1[i] - 127) * (src2[i] - 127)) / 255), 127);
-      dst[i] = (uchar)((temp * fac + src1[i] * mfac) / 255);
+      dst[i] = uchar((temp * fac + src1[i] * mfac) / 255);
     }
   }
   else {
@@ -483,9 +485,9 @@ MINLINE void blend_color_color_byte(uchar dst[4], const uchar src1[4], const uch
 
     hsv_to_rgb(h1, s1, v1, &r, &g, &b);
 
-    dst[0] = (uchar)(((int)(r * 255.0f) * fac + src1[0] * mfac) / 255);
-    dst[1] = (uchar)(((int)(g * 255.0f) * fac + src1[1] * mfac) / 255);
-    dst[2] = (uchar)(((int)(b * 255.0f) * fac + src1[2] * mfac) / 255);
+    dst[0] = uchar((int(r * 255.0f) * fac + src1[0] * mfac) / 255);
+    dst[1] = uchar((int(g * 255.0f) * fac + src1[1] * mfac) / 255);
+    dst[2] = uchar((int(b * 255.0f) * fac + src1[2] * mfac) / 255);
   }
   else {
     /* no op */
@@ -508,9 +510,9 @@ MINLINE void blend_color_hue_byte(uchar dst[4], const uchar src1[4], const uchar
 
     hsv_to_rgb(h1, s1, v1, &r, &g, &b);
 
-    dst[0] = (uchar)(((int)(r * 255.0f) * fac + src1[0] * mfac) / 255);
-    dst[1] = (uchar)(((int)(g * 255.0f) * fac + src1[1] * mfac) / 255);
-    dst[2] = (uchar)(((int)(b * 255.0f) * fac + src1[2] * mfac) / 255);
+    dst[0] = uchar((int(r * 255.0f) * fac + src1[0] * mfac) / 255);
+    dst[1] = uchar((int(g * 255.0f) * fac + src1[1] * mfac) / 255);
+    dst[2] = uchar((int(b * 255.0f) * fac + src1[2] * mfac) / 255);
   }
   else {
     /* no op */
@@ -535,9 +537,9 @@ MINLINE void blend_color_saturation_byte(uchar dst[4], const uchar src1[4], cons
 
     hsv_to_rgb(h1, s1, v1, &r, &g, &b);
 
-    dst[0] = (uchar)(((int)(r * 255.0f) * fac + src1[0] * mfac) / 255);
-    dst[1] = (uchar)(((int)(g * 255.0f) * fac + src1[1] * mfac) / 255);
-    dst[2] = (uchar)(((int)(b * 255.0f) * fac + src1[2] * mfac) / 255);
+    dst[0] = uchar((int(r * 255.0f) * fac + src1[0] * mfac) / 255);
+    dst[1] = uchar((int(g * 255.0f) * fac + src1[1] * mfac) / 255);
+    dst[2] = uchar((int(b * 255.0f) * fac + src1[2] * mfac) / 255);
   }
   else {
     /* no op */
@@ -560,9 +562,9 @@ MINLINE void blend_color_luminosity_byte(uchar dst[4], const uchar src1[4], cons
 
     hsv_to_rgb(h1, s1, v1, &r, &g, &b);
 
-    dst[0] = (uchar)(((int)(r * 255.0f) * fac + src1[0] * mfac) / 255);
-    dst[1] = (uchar)(((int)(g * 255.0f) * fac + src1[1] * mfac) / 255);
-    dst[2] = (uchar)(((int)(b * 255.0f) * fac + src1[2] * mfac) / 255);
+    dst[0] = uchar((int(r * 255.0f) * fac + src1[0] * mfac) / 255);
+    dst[1] = uchar((int(g * 255.0f) * fac + src1[1] * mfac) / 255);
+    dst[2] = uchar((int(b * 255.0f) * fac + src1[2] * mfac) / 255);
   }
   else {
     /* no op */
@@ -577,15 +579,15 @@ MINLINE void blend_color_interpolate_byte(uchar dst[4],
 {
   /* do color interpolation, but in pre-multiplied space so that RGB colors
    * from zero alpha regions have no influence */
-  const int t = (int)(255 * ft);
+  const int t = int(255 * ft);
   const int mt = 255 - t;
   int tmp = (mt * src1[3] + t * src2[3]);
 
   if (tmp > 0) {
-    dst[0] = (uchar)divide_round_i(mt * src1[0] * src1[3] + t * src2[0] * src2[3], tmp);
-    dst[1] = (uchar)divide_round_i(mt * src1[1] * src1[3] + t * src2[1] * src2[3], tmp);
-    dst[2] = (uchar)divide_round_i(mt * src1[2] * src1[3] + t * src2[2] * src2[3], tmp);
-    dst[3] = (uchar)divide_round_i(tmp, 255);
+    dst[0] = uchar(divide_round_i(mt * src1[0] * src1[3] + t * src2[0] * src2[3], tmp));
+    dst[1] = uchar(divide_round_i(mt * src1[1] * src1[3] + t * src2[1] * src2[3], tmp));
+    dst[2] = uchar(divide_round_i(mt * src1[2] * src1[3] + t * src2[2] * src2[3], tmp));
+    dst[3] = uchar(divide_round_i(tmp, 255));
   }
   else {
     copy_v4_v4_uchar(dst, src1);
@@ -1130,3 +1132,5 @@ MINLINE void blend_color_interpolate_float(float dst[4],
 #  undef EPS_ALPHA
 
 #endif /* __MATH_COLOR_BLEND_INLINE_C__ */
+
+}  // namespace blender

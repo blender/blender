@@ -20,15 +20,13 @@
 #include "BKE_shrinkwrap.hh"
 #include "BKE_subdiv_ccg.hh"
 
-using blender::float3;
-using blender::MutableSpan;
-using blender::Span;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Runtime Struct Utils
  * \{ */
 
-namespace blender::bke {
+namespace bke {
 
 static void free_mesh_eval(MeshRuntime &mesh_runtime)
 {
@@ -109,11 +107,10 @@ static void try_tag_verts_no_face_none(const Mesh &mesh)
   });
 }
 
-}  // namespace blender::bke
+}  // namespace bke
 
-blender::Span<int> Mesh::corner_to_face_map() const
+Span<int> Mesh::corner_to_face_map() const
 {
-  using namespace blender;
   this->runtime->corner_to_face_map_cache.ensure([&](Array<int> &r_data) {
     const OffsetIndices faces = this->faces();
     r_data = bke::mesh::build_corner_to_face_map(faces);
@@ -121,9 +118,8 @@ blender::Span<int> Mesh::corner_to_face_map() const
   return this->runtime->corner_to_face_map_cache.data();
 }
 
-blender::OffsetIndices<int> Mesh::vert_to_face_map_offsets() const
+OffsetIndices<int> Mesh::vert_to_face_map_offsets() const
 {
-  using namespace blender;
   this->runtime->vert_to_face_offset_cache.ensure([&](Array<int> &r_data) {
     r_data = Array<int>(this->verts_num + 1, 0);
     offset_indices::build_reverse_offsets(this->corner_verts(), r_data);
@@ -131,9 +127,8 @@ blender::OffsetIndices<int> Mesh::vert_to_face_map_offsets() const
   return OffsetIndices<int>(this->runtime->vert_to_face_offset_cache.data());
 }
 
-blender::GroupedSpan<int> Mesh::vert_to_face_map() const
+GroupedSpan<int> Mesh::vert_to_face_map() const
 {
-  using namespace blender;
   const OffsetIndices offsets = this->vert_to_face_map_offsets();
   this->runtime->vert_to_face_map_cache.ensure([&](Array<int> &r_data) {
     r_data.reinitialize(this->corners_num);
@@ -153,9 +148,8 @@ blender::GroupedSpan<int> Mesh::vert_to_face_map() const
   return {offsets, this->runtime->vert_to_face_map_cache.data()};
 }
 
-blender::GroupedSpan<int> Mesh::vert_to_corner_map() const
+GroupedSpan<int> Mesh::vert_to_corner_map() const
 {
-  using namespace blender;
   const OffsetIndices offsets = this->vert_to_face_map_offsets();
   this->runtime->vert_to_corner_map_cache.ensure([&](Array<int> &r_data) {
     r_data = bke::mesh::build_vert_to_corner_indices(this->corner_verts(), offsets);
@@ -163,7 +157,7 @@ blender::GroupedSpan<int> Mesh::vert_to_corner_map() const
   return {offsets, this->runtime->vert_to_corner_map_cache.data()};
 }
 
-const blender::bke::LooseVertCache &Mesh::loose_verts() const
+const bke::LooseVertCache &Mesh::loose_verts() const
 {
   using namespace blender::bke;
   this->runtime->loose_verts_cache.ensure([&](LooseVertCache &r_data) {
@@ -174,7 +168,7 @@ const blender::bke::LooseVertCache &Mesh::loose_verts() const
   return this->runtime->loose_verts_cache.data();
 }
 
-const blender::bke::LooseVertCache &Mesh::verts_no_face() const
+const bke::LooseVertCache &Mesh::verts_no_face() const
 {
   using namespace blender::bke;
   this->runtime->verts_no_face_cache.ensure([&](LooseVertCache &r_data) {
@@ -190,7 +184,7 @@ bool Mesh::no_overlapping_topology() const
   return this->flag & ME_NO_OVERLAPPING_TOPOLOGY;
 }
 
-const blender::bke::LooseEdgeCache &Mesh::loose_edges() const
+const bke::LooseEdgeCache &Mesh::loose_edges() const
 {
   using namespace blender::bke;
   this->runtime->loose_edges_cache.ensure([&](LooseEdgeCache &r_data) {
@@ -227,7 +221,7 @@ void Mesh::tag_overlapping_none()
   this->flag |= ME_NO_OVERLAPPING_TOPOLOGY;
 }
 
-namespace blender::bke {
+namespace bke {
 
 void TrianglesCache::freeze()
 {
@@ -254,22 +248,22 @@ void TrianglesCache::tag_dirty()
   }
 }
 
-}  // namespace blender::bke
+}  // namespace bke
 
-blender::Span<blender::int3> Mesh::corner_tris() const
+Span<int3> Mesh::corner_tris() const
 {
-  this->runtime->corner_tris_cache.data.ensure([&](blender::Array<blender::int3> &r_data) {
+  this->runtime->corner_tris_cache.data.ensure([&](Array<int3> &r_data) {
     const Span<float3> positions = this->vert_positions();
-    const blender::OffsetIndices faces = this->faces();
+    const OffsetIndices faces = this->faces();
     const Span<int> corner_verts = this->corner_verts();
 
     r_data.reinitialize(poly_to_tri_count(faces.size(), corner_verts.size()));
 
     if (BKE_mesh_face_normals_are_dirty(this)) {
-      blender::bke::mesh::corner_tris_calc(positions, faces, corner_verts, r_data);
+      bke::mesh::corner_tris_calc(positions, faces, corner_verts, r_data);
     }
     else {
-      blender::bke::mesh::corner_tris_calc_with_normals(
+      bke::mesh::corner_tris_calc_with_normals(
           positions, faces, corner_verts, this->face_normals(), r_data);
     }
   });
@@ -277,10 +271,9 @@ blender::Span<blender::int3> Mesh::corner_tris() const
   return this->runtime->corner_tris_cache.data.data();
 }
 
-blender::Span<int> Mesh::corner_tri_faces() const
+Span<int> Mesh::corner_tri_faces() const
 {
-  using namespace blender;
-  this->runtime->corner_tri_faces_cache.ensure([&](blender::Array<int> &r_data) {
+  this->runtime->corner_tri_faces_cache.ensure([&](Array<int> &r_data) {
     const OffsetIndices faces = this->faces();
     r_data.reinitialize(poly_to_tri_count(faces.size(), this->corners_num));
     bke::mesh::corner_tris_calc_face_indices(faces, r_data);
@@ -297,7 +290,7 @@ int BKE_mesh_runtime_corner_tris_len(const Mesh *mesh)
 void BKE_mesh_runtime_ensure_edit_data(Mesh *mesh)
 {
   if (!mesh->runtime->edit_data) {
-    mesh->runtime->edit_data = std::make_unique<blender::bke::EditMeshData>();
+    mesh->runtime->edit_data = std::make_unique<bke::EditMeshData>();
   }
 }
 
@@ -335,7 +328,7 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
   mesh->runtime->subsurf_face_dot_tags.clear_and_shrink();
   mesh->runtime->subsurf_optimal_display_edges.clear_and_shrink();
   mesh->runtime->spatial_groups.reset();
-  mesh->flag &= ~ME_NO_OVERLAPPING_TOPOLOGY;
+  mesh->flag &= ~(ME_NO_OVERLAPPING_TOPOLOGY | ME_FLAG_UV_SELECT_SYNC_VALID);
 }
 
 void Mesh::tag_edges_split()
@@ -445,7 +438,7 @@ void Mesh::tag_material_index_changed()
 /* Draw Engine */
 
 void (*BKE_mesh_batch_cache_dirty_tag_cb)(Mesh *mesh, eMeshBatchDirtyMode mode) = nullptr;
-void (*BKE_mesh_batch_cache_free_cb)(void *batch_cache) = nullptr;
+void (*BKE_mesh_batch_cache_free_cb)(draw::MeshBatchCache *batch_cache) = nullptr;
 
 void BKE_mesh_batch_cache_dirty_tag(Mesh *mesh, eMeshBatchDirtyMode mode)
 {
@@ -460,77 +453,11 @@ void BKE_mesh_batch_cache_dirty_tag(Mesh *mesh, eMeshBatchDirtyMode mode)
     BKE_mesh_batch_cache_dirty_tag_cb(mesh_eval, mode);
   }
 }
-void BKE_mesh_batch_cache_free(void *batch_cache)
+void BKE_mesh_batch_cache_free(draw::MeshBatchCache *batch_cache)
 {
   BKE_mesh_batch_cache_free_cb(batch_cache);
 }
 
 /** \} */
 
-/* -------------------------------------------------------------------- */
-/** \name Mesh Runtime Validation
- * \{ */
-
-#ifndef NDEBUG
-
-bool BKE_mesh_runtime_is_valid(Mesh *mesh_eval)
-{
-  const bool do_verbose = true;
-  const bool do_fixes = false;
-
-  bool is_valid = true;
-  bool changed = true;
-
-  if (do_verbose) {
-    printf("MESH: %s\n", mesh_eval->id.name + 2);
-  }
-
-  MutableSpan<float3> positions = mesh_eval->vert_positions_for_write();
-  MutableSpan<blender::int2> edges = mesh_eval->edges_for_write();
-  Span<int> face_offsets = mesh_eval->face_offsets();
-  Span<int> corner_verts = mesh_eval->corner_verts();
-  MutableSpan<int> corner_edges = mesh_eval->corner_edges_for_write();
-
-  is_valid &= BKE_mesh_validate_all_customdata(
-      &mesh_eval->vert_data,
-      mesh_eval->verts_num,
-      &mesh_eval->edge_data,
-      mesh_eval->edges_num,
-      &mesh_eval->corner_data,
-      mesh_eval->corners_num,
-      &mesh_eval->face_data,
-      mesh_eval->faces_num,
-      false, /* setting mask here isn't useful, gives false positives */
-      do_verbose,
-      do_fixes,
-      &changed);
-
-  MDeformVert *dverts = static_cast<MDeformVert *>(
-      CustomData_get_layer_for_write(&mesh_eval->vert_data, CD_MDEFORMVERT, mesh_eval->verts_num));
-  is_valid &= BKE_mesh_validate_arrays(
-      mesh_eval,
-      reinterpret_cast<float(*)[3]>(positions.data()),
-      positions.size(),
-      edges.data(),
-      edges.size(),
-      static_cast<MFace *>(CustomData_get_layer_for_write(
-          &mesh_eval->fdata_legacy, CD_MFACE, mesh_eval->totface_legacy)),
-      mesh_eval->totface_legacy,
-      corner_verts.data(),
-      corner_edges.data(),
-      corner_verts.size(),
-      face_offsets.data(),
-      mesh_eval->faces_num,
-      dverts,
-      do_verbose,
-      do_fixes,
-      &changed);
-
-  BLI_assert(changed == false);
-
-  return is_valid;
-}
-
-#endif /* !NDEBUG */
-
-/** \} */
+}  // namespace blender

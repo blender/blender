@@ -19,9 +19,11 @@
 
 #include "intern/eval/deg_eval_runtime_backup_modifier.h"
 
+namespace blender {
+
 struct Object;
 
-namespace blender::deg {
+namespace deg {
 
 struct Depsgraph;
 
@@ -50,4 +52,5 @@ class ObjectRuntimeBackup {
   Map<SessionUID, bPoseChannel_Runtime> pose_channel_runtime_data;
 };
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

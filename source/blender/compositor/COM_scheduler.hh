@@ -4,22 +4,25 @@
 
 #pragma once
 
+#include "BLI_set.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_vector_set.hh"
 
-#include "NOD_derived_node_tree.hh"
-
 #include "COM_context.hh"
+#include "COM_node_group_operation.hh"
 
 namespace blender::compositor {
 
-using namespace nodes::derived_node_tree_types;
-
-/* A type representing the ordered set of nodes defining the schedule of node execution. */
-using Schedule = VectorSet<DNode>;
-
-/* Computes the execution schedule of the node tree. This is essentially a post-order depth first
- * traversal of the node tree from the output node to the leaf input nodes, with informed order of
- * traversal of dependencies based on a heuristic estimation of the number of needed buffers. */
-Schedule compute_schedule(const Context &context, const DerivedNodeTree &tree);
+/* Computes the execution schedule of the node group with the given instance key, assuming the
+ * active node group has the given active instance key. Only outputs types and node group outputs
+ * that are need are computed. This is essentially a post-order depth first traversal of the node
+ * tree from the needed output nodes to the leaf input nodes, with informed order of traversal of
+ * dependencies based on a heuristic estimation of the number of needed buffers. */
+VectorSet<const bNode *> compute_schedule(const Context &context,
+                                          const bNodeTree &node_group,
+                                          const NodeGroupOutputTypes needed_outputs_types,
+                                          const Set<StringRef> &needed_outputs,
+                                          const bNodeInstanceKey instance_key,
+                                          const bNodeInstanceKey active_node_group_instance_key);
 
 }  // namespace blender::compositor

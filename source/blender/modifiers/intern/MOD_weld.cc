@@ -21,7 +21,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -43,11 +42,7 @@
 
 #include "GEO_mesh_merge_by_distance.hh"
 
-using blender::Array;
-using blender::IndexMask;
-using blender::IndexMaskMemory;
-using blender::Span;
-using blender::Vector;
+namespace blender {
 
 static Span<MDeformVert> get_vertex_group(const Mesh &mesh, const int defgrp_index)
 {
@@ -63,7 +58,7 @@ static IndexMask selected_indices_from_vertex_group(Span<MDeformVert> vertex_gro
                                                     IndexMaskMemory &memory)
 {
   return IndexMask::from_predicate(
-      vertex_group.index_range(), blender::GrainSize(512), memory, [&](const int i) {
+      vertex_group.index_range(), GrainSize(512), memory, [&](const int i) {
         return (BKE_defvert_find_weight(&vertex_group[i], index) > 0.0f) != invert;
       });
 }
@@ -91,22 +86,21 @@ static std::optional<Mesh *> calculate_weld(const Mesh &mesh, const WeldModifier
       IndexMaskMemory memory;
       const IndexMask selected_indices = selected_indices_from_vertex_group(
           vertex_group, defgrp_index, invert, memory);
-      return blender::geometry::mesh_merge_by_distance_all(
+      return geometry::mesh_merge_by_distance_all(
           mesh, IndexMask(selected_indices), wmd.merge_dist);
     }
-    return blender::geometry::mesh_merge_by_distance_all(
-        mesh, IndexMask(mesh.verts_num), wmd.merge_dist);
+    return geometry::mesh_merge_by_distance_all(mesh, IndexMask(mesh.verts_num), wmd.merge_dist);
   }
   if (wmd.mode == MOD_WELD_MODE_CONNECTED) {
     const bool only_loose_edges = (wmd.flag & MOD_WELD_LOOSE_EDGES) != 0;
     if (!vertex_group.is_empty()) {
       Array<bool> selection = selection_array_from_vertex_group(
           vertex_group, defgrp_index, invert);
-      return blender::geometry::mesh_merge_by_distance_connected(
+      return geometry::mesh_merge_by_distance_connected(
           mesh, selection, wmd.merge_dist, only_loose_edges);
     }
     Array<bool> selection(mesh.verts_num, true);
-    return blender::geometry::mesh_merge_by_distance_connected(
+    return geometry::mesh_merge_by_distance_connected(
         mesh, selection, wmd.merge_dist, only_loose_edges);
   }
 
@@ -127,16 +121,13 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, 
 
 static void init_data(ModifierData *md)
 {
-  WeldModifierData *wmd = (WeldModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(wmd, DNA_struct_default_get(WeldModifierData), modifier);
+  WeldModifierData *wmd = reinterpret_cast<WeldModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(wmd, modifier);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  WeldModifierData *wmd = (WeldModifierData *)md;
+  WeldModifierData *wmd = reinterpret_cast<WeldModifierData *>(md);
 
   /* Ask for vertex-groups if we need them. */
   if (wmd->defgrp_name[0] != '\0') {
@@ -146,18 +137,18 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
   int weld_mode = RNA_enum_get(ptr, "mode");
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "merge_threshold", UI_ITEM_NONE, IFACE_("Distance"), ICON_NONE);
+  layout.prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "merge_threshold", UI_ITEM_NONE, IFACE_("Distance"), ICON_NONE);
   if (weld_mode == MOD_WELD_MODE_CONNECTED) {
-    layout->prop(ptr, "loose_edges", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "loose_edges", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
@@ -207,3 +198,5 @@ ModifierTypeInfo modifierType_Weld = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

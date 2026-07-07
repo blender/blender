@@ -14,11 +14,13 @@
 
 #include "tree_element.hh"
 
+namespace blender {
+
 struct ID;
 struct IDOverrideLibraryProperty;
 struct IDOverrideLibraryPropertyOperation;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 struct TreeElementOverridesData {
   ID &id;
@@ -88,4 +90,5 @@ class TreeElementOverridesPropertyOperation final : public TreeElementOverridesP
   std::optional<PointerRNA> get_collection_ptr() const;
 };
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

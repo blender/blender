@@ -35,7 +35,9 @@
 
 #include "WM_api.hh"
 
-namespace blender::ed::greasepencil {
+namespace blender {
+
+namespace ed::greasepencil {
 
 void set_selected_frames_type(bke::greasepencil::Layer &layer,
                               const eBezTriple_KeyframeType key_type)
@@ -74,7 +76,7 @@ bool snap_selected_frames(GreasePencil &grease_pencil,
                           const eEditKeyframes_Snap mode)
 {
   bool changed = false;
-  blender::Map<int, int> frame_number_destinations;
+  Map<int, int> frame_number_destinations;
   for (auto [frame_number, frame] : layer.frames().items()) {
     if (!frame.is_selected()) {
       continue;
@@ -232,8 +234,8 @@ void select_frames_at(bke::greasepencil::LayerGroup &layer_group,
                       const int frame_number,
                       const short select_mode)
 {
-  LISTBASE_FOREACH_BACKWARD (GreasePencilLayerTreeNode *, node_, &layer_group.children) {
-    bke::greasepencil::TreeNode &node = node_->wrap();
+  for (GreasePencilLayerTreeNode &node_ : layer_group.children.items_reversed()) {
+    bke::greasepencil::TreeNode &node = node_.wrap();
     if (node.is_group()) {
       select_frames_at(node.as_group(), frame_number, select_mode);
     }
@@ -290,8 +292,8 @@ void select_frames_region(KeyframeEditData *ked,
     }
   }
   else if (node.is_group()) {
-    LISTBASE_FOREACH_BACKWARD (GreasePencilLayerTreeNode *, node_, &node.as_group().children) {
-      select_frames_region(ked, node_->wrap(), tool, select_mode);
+    for (GreasePencilLayerTreeNode &node_ : node.as_group().children.items_reversed()) {
+      select_frames_region(ked, node_.wrap(), tool, select_mode);
     }
   }
 }
@@ -311,8 +313,8 @@ void select_frames_range(bke::greasepencil::TreeNode &node,
     }
   }
   else if (node.is_group()) {
-    LISTBASE_FOREACH_BACKWARD (GreasePencilLayerTreeNode *, node_, &node.as_group().children) {
-      select_frames_range(node_->wrap(), min, max, select_mode);
+    for (GreasePencilLayerTreeNode &node_ : node.as_group().children.items_reversed()) {
+      select_frames_range(node_.wrap(), min, max, select_mode);
     }
   }
 }
@@ -321,10 +323,10 @@ static void append_frame_to_key_edit_data(KeyframeEditData *ked,
                                           const int frame_number,
                                           const GreasePencilFrame &frame)
 {
-  CfraElem *ce = MEM_callocN<CfraElem>(__func__);
+  CfraElem *ce = MEM_new_zeroed<CfraElem>(__func__);
   ce->cfra = float(frame_number);
   ce->sel = frame.is_selected();
-  BLI_addtail(&ked->list, ce);
+  BLI_addtail(&ked->cfra_elem_list, ce);
 }
 
 void create_keyframe_edit_data_selected_frames_list(KeyframeEditData *ked,
@@ -346,7 +348,7 @@ bool ensure_active_keyframe(const Scene &scene,
                             bool &r_inserted_keyframe)
 {
   const int current_frame = scene.r.cfra;
-  if (!layer.has_drawing_at(current_frame) && !blender::animrig::is_autokey_on(&scene)) {
+  if (!layer.has_drawing_at(current_frame) && !animrig::is_autokey_on(&scene)) {
     return false;
   }
 
@@ -357,7 +359,7 @@ bool ensure_active_keyframe(const Scene &scene,
   const bool has_previous_key = previous_key_frame_start.has_value();
   const bool needs_new_drawing = is_first || !has_previous_key ||
                                  (previous_key_frame_start < current_frame);
-  if (blender::animrig::is_autokey_on(&scene) && needs_new_drawing) {
+  if (animrig::is_autokey_on(&scene) && needs_new_drawing) {
     const bool use_additive_drawing = (scene.toolsettings->gpencil_flags &
                                        GP_TOOL_FLAG_RETAIN_LAST) != 0;
     if (has_previous_key && (use_additive_drawing || duplicate_previous_key)) {
@@ -380,7 +382,7 @@ static wmOperatorStatus insert_blank_frame_exec(bContext *C, wmOperator *op)
   using namespace blender::bke::greasepencil;
   Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   const int current_frame = scene->r.cfra;
   const bool all_layers = RNA_boolean_get(op->ptr, "all_layers");
   const int duration = RNA_int_get(op->ptr, "duration");
@@ -468,13 +470,13 @@ static bool curves_geometry_is_equal(const bke::CurvesGeometry &curves_a,
   const AttributeAccessor attributes_a = curves_a.attributes();
   const AttributeAccessor attributes_b = curves_b.attributes();
 
-  const Set<StringRefNull> ids_a = attributes_a.all_ids();
-  const Set<StringRefNull> ids_b = attributes_b.all_ids();
-  if (ids_a != ids_b) {
+  const Set<StringRefNull> names_a = attributes_a.all_names();
+  const Set<StringRefNull> names_b = attributes_b.all_names();
+  if (names_a != names_b) {
     return false;
   }
 
-  for (const StringRef id : ids_a) {
+  for (const StringRef id : names_a) {
     GAttributeReader attrs_a = attributes_a.lookup(id);
     GAttributeReader attrs_b = attributes_b.lookup(id);
 
@@ -488,9 +490,7 @@ static bool curves_geometry_is_equal(const bke::CurvesGeometry &curves_a,
 
     bool attributes_are_equal = true;
 
-    attribute_math::convert_to_static_type(attrs_a.varray.type(), [&](auto dummy) {
-      using T = decltype(dummy);
-
+    attribute_math::to_static_type(attrs_a.varray.type(), [&]<typename T>() {
       const VArray attributes_a = attrs_a.varray.typed<T>();
       const VArray attributes_b = attrs_b.varray.typed<T>();
 
@@ -509,7 +509,7 @@ static wmOperatorStatus frame_clean_duplicate_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::bke::greasepencil;
   Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   const bool selected = RNA_boolean_get(op->ptr, "selected");
 
   bool changed = false;
@@ -619,20 +619,20 @@ bool grease_pencil_copy_keyframes(bAnimContext *ac, KeyframeClipboard &clipboard
 
   /* Filter data. */
   const int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS);
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   ANIM_animdata_filter(
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+  for (bAnimListElem &ale : anim_data) {
     /* This function only deals with grease pencil layer frames.
      * This check is needed in the case of a call from the main dope-sheet. */
-    if (ale->type != ANIMTYPE_GREASE_PENCIL_LAYER) {
+    if (ale.type != ANIMTYPE_GREASE_PENCIL_LAYER) {
       continue;
     }
 
-    GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale->id);
-    Layer *layer = reinterpret_cast<Layer *>(ale->data);
+    GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale.id);
+    Layer *layer = reinterpret_cast<Layer *>(ale.data);
     Vector<KeyframeClipboard::DrawingBufferItem> buf;
     FramesMapKeyT layer_first_frame = std::numeric_limits<int>::max();
     FramesMapKeyT layer_last_frame = std::numeric_limits<int>::min();
@@ -703,25 +703,36 @@ bool grease_pencil_paste_keyframes(bAnimContext *ac,
 
   const int offset = calculate_offset(offset_mode, ac->scene->r.cfra, clipboard);
 
-  const int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS |
-                      ANIMFILTER_FOREDIT | ANIMFILTER_SEL);
-  ListBase anim_data = {nullptr, nullptr};
-
-  ANIM_animdata_filter(
-      ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
-
   /* Check if single channel in buffer (disregard names if so). */
   const bool from_single_channel = clipboard.copy_buffer.size() == 1;
+  bool match_names = !from_single_channel;
 
-  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
+  /* Only paste into selected layers. */
+  int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS |
+                ANIMFILTER_FOREDIT | ANIMFILTER_SEL);
+  ANIM_animdata_filter(
+      ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
+  if (BLI_listbase_is_empty(&anim_data)) {
+    /* If no layers are selected at all, make even unselected layers "targets" for pasting. */
+    filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS |
+              ANIMFILTER_FOREDIT);
+    ANIM_animdata_filter(
+        ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
+    /* In this case, always match names though (otherwise we would paste from a single channel into
+     * all others). */
+    match_names = true;
+  }
+
+  for (bAnimListElem &ale : anim_data) {
     /* Only deal with GPlayers (case of calls from general dope-sheet). */
-    if (ale->type != ANIMTYPE_GREASE_PENCIL_LAYER) {
+    if (ale.type != ANIMTYPE_GREASE_PENCIL_LAYER) {
       continue;
     }
-    GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale->id);
-    Layer &layer = *reinterpret_cast<Layer *>(ale->data);
+    GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale.id);
+    Layer &layer = *reinterpret_cast<Layer *>(ale.data);
     const std::string layer_name = layer.name();
-    if (!from_single_channel && !clipboard.copy_buffer.contains(layer_name)) {
+    if (match_names && !clipboard.copy_buffer.contains(layer_name)) {
       continue;
     }
     const KeyframeClipboard::LayerBufferItem layer_buffer =
@@ -801,7 +812,7 @@ static wmOperatorStatus grease_pencil_frame_duplicate_exec(bContext *C, wmOperat
   using namespace blender::bke::greasepencil;
   Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   const bool only_active = !RNA_boolean_get(op->ptr, "all");
   const int current_frame = scene->r.cfra;
   bool changed = false;
@@ -862,7 +873,7 @@ static wmOperatorStatus grease_pencil_active_frame_delete_exec(bContext *C, wmOp
   using namespace blender::bke::greasepencil;
   Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   const bool only_active = !RNA_boolean_get(op->ptr, "all");
   const int current_frame = scene->r.cfra;
   bool changed = false;
@@ -923,7 +934,7 @@ static bool grease_pencil_active_breakdown_frame_poll(bContext *C)
   const Scene &scene = *CTX_data_scene(C);
 
   /* Ensure that there is a breakdown keyframe visible at the current frame. */
-  const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob.data);
+  const GreasePencil &grease_pencil = *id_cast<GreasePencil *>(ob.data);
   if (const bke::greasepencil::Layer *active_layer = grease_pencil.get_active_layer()) {
     const GreasePencilFrame *frame = active_layer->frame_at(scene.r.cfra);
     if (frame && frame->type == BEZT_KEYTYPE_BREAKDOWN) {
@@ -938,7 +949,7 @@ static wmOperatorStatus grease_pencil_delete_breakdown_frames_exec(bContext *C,
 {
   const Object &ob = *CTX_data_active_object(C);
   const Scene &scene = *CTX_data_scene(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob.data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(ob.data);
   bke::greasepencil::Layer *active_layer = grease_pencil.get_active_layer();
   const int current_frame = active_layer->start_frame_at(scene.r.cfra).value();
 
@@ -993,7 +1004,7 @@ static void GREASE_PENCIL_OT_delete_breakdown(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-}  // namespace blender::ed::greasepencil
+}  // namespace ed::greasepencil
 
 void ED_operatortypes_grease_pencil_frames()
 {
@@ -1004,3 +1015,5 @@ void ED_operatortypes_grease_pencil_frames()
   WM_operatortype_append(GREASE_PENCIL_OT_active_frame_delete);
   WM_operatortype_append(GREASE_PENCIL_OT_delete_breakdown);
 }
+
+}  // namespace blender

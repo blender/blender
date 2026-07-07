@@ -310,23 +310,14 @@ TEST_F(VKRenderGraphTestCompute, dispatch_indirect_read_back)
   dispatch_indirect_info.dispatch_indirect_node.offset = 0;
   render_graph->add_node(dispatch_indirect_info);
   submit(render_graph, this->command_buffer);
-  EXPECT_EQ(4, log.size());
-  EXPECT_EQ(
-      "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, "
-      "dst_stage_mask=VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT" +
-          endl() +
-          " - buffer_barrier(src_access_mask=, "
-          "dst_access_mask=VK_ACCESS_INDIRECT_COMMAND_READ_BIT, buffer=0x2, offset=0, "
-          "size=18446744073709551615)" +
-          endl() + ")",
-      log[0]);
+  EXPECT_EQ(3, log.size());
   EXPECT_EQ("bind_pipeline(pipeline_bind_point=VK_PIPELINE_BIND_POINT_COMPUTE, pipeline=0x3)",
-            log[1]);
+            log[0]);
   EXPECT_EQ(
       "bind_descriptor_sets(pipeline_bind_point=VK_PIPELINE_BIND_POINT_COMPUTE, layout=0x4, "
       "p_descriptor_sets=0x5)",
-      log[2]);
-  EXPECT_EQ("dispatch_indirect(buffer=0x2, offset=0)", log[3]);
+      log[1]);
+  EXPECT_EQ("dispatch_indirect(buffer=0x2, offset=0)", log[2]);
 }
 
 TEST_F(VKRenderGraphTestCompute, dispatch_indirect_dispatch_indirect_read_back)
@@ -365,24 +356,15 @@ TEST_F(VKRenderGraphTestCompute, dispatch_indirect_dispatch_indirect_read_back)
     render_graph->add_node(dispatch_indirect_info);
   }
   submit(render_graph, this->command_buffer);
-  EXPECT_EQ(6, log.size());
+  EXPECT_EQ(5, log.size());
 
-  EXPECT_EQ(
-      "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, "
-      "dst_stage_mask=VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT" +
-          endl() +
-          " - buffer_barrier(src_access_mask=, "
-          "dst_access_mask=VK_ACCESS_INDIRECT_COMMAND_READ_BIT, buffer=0x2, offset=0, "
-          "size=18446744073709551615)" +
-          endl() + ")",
-      log[0]);
   EXPECT_EQ("bind_pipeline(pipeline_bind_point=VK_PIPELINE_BIND_POINT_COMPUTE, pipeline=0x3)",
-            log[1]);
+            log[0]);
   EXPECT_EQ(
       "bind_descriptor_sets(pipeline_bind_point=VK_PIPELINE_BIND_POINT_COMPUTE, layout=0x4, "
       "p_descriptor_sets=0x5)",
-      log[2]);
-  EXPECT_EQ("dispatch_indirect(buffer=0x2, offset=0)", log[3]);
+      log[1]);
+  EXPECT_EQ("dispatch_indirect(buffer=0x2, offset=0)", log[2]);
   EXPECT_EQ(
       "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT, "
       "VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, "
@@ -392,8 +374,8 @@ TEST_F(VKRenderGraphTestCompute, dispatch_indirect_dispatch_indirect_read_back)
           "dst_access_mask=VK_ACCESS_SHADER_WRITE_BIT, buffer=0x1, offset=0, "
           "size=18446744073709551615)" +
           endl() + ")",
-      log[4]);
-  EXPECT_EQ("dispatch_indirect(buffer=0x2, offset=12)", log[5]);
+      log[3]);
+  EXPECT_EQ("dispatch_indirect(buffer=0x2, offset=12)", log[4]);
 }
 
 }  // namespace blender::gpu::render_graph

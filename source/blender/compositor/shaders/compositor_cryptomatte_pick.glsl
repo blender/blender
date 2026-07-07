@@ -22,6 +22,10 @@
  * Except we put the identifier in the red channel by convention instead of the suggested blue
  * channel. */
 
+#include "infos/compositor_cryptomatte_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_cryptomatte_pick)
+
 #include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()
@@ -30,7 +34,7 @@ void main()
 
   /* Each layer stores two ranks, each rank contains a pair, the identifier and the coverage of
    * the entity identified by the identifier. */
-  float2 first_rank = texture_load(first_layer_tx, texel + lower_bound).xy;
+  float2 first_rank = texture_load(first_layer_tx, texel).xy;
   float id_of_first_rank = first_rank.x;
 
   /* There is no logic to this, we just compute arbitrary compressed versions of the identifier in

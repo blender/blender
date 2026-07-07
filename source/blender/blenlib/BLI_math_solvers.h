@@ -10,6 +10,8 @@
 
 #include "BLI_math_inline.h"
 
+namespace blender {
+
 #ifdef BLI_MATH_GCC_WARN_PRAGMA
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wredundant-decls"
@@ -107,3 +109,5 @@ bool BLI_newton3d_solve(Newton3D_DeltaFunc func_delta,
 #endif
 
 /** \} */
+
+}  // namespace blender

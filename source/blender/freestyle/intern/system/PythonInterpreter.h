@@ -32,7 +32,7 @@ class PythonInterpreter : public Interpreter {
     _language = "Python";
   }
 
-  void setContext(bContext *C)
+  void setContext(blender::bContext *C)
   {
     _context = C;
   }
@@ -44,7 +44,7 @@ class PythonInterpreter : public Interpreter {
     bool ok = BPY_run_filepath(_context, fn, nullptr);
 #else
     bool ok;
-    Text *text = BKE_text_load(&_freestyle_bmain, fn, G_MAIN->filepath);
+    blender::Text *text = BKE_text_load(&_freestyle_bmain, fn, blender::G.main->filepath);
     if (text) {
       ok = BPY_run_text(_context, text, nullptr, false);
       BKE_id_delete(&_freestyle_bmain, text);
@@ -75,9 +75,9 @@ class PythonInterpreter : public Interpreter {
     return 0;
   }
 
-  int interpretText(struct Text *text, const string &name)
+  int interpretText(struct blender::Text *text, const string &name)
   {
-    if (!BPY_run_text(_context, text, nullptr, false)) {
+    if (!blender::BPY_run_text(_context, text, nullptr, false)) {
       cerr << "\nError executing Python script from PythonInterpreter::interpretText" << endl;
       cerr << "Name: " << name << endl;
       return 1;
@@ -91,8 +91,8 @@ class PythonInterpreter : public Interpreter {
   }
 
  private:
-  bContext *_context = nullptr;
-  Main _freestyle_bmain = {};
+  blender::bContext *_context = nullptr;
+  blender::Main _freestyle_bmain = {};
 };
 
 } /* namespace Freestyle */

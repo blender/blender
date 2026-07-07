@@ -138,7 +138,7 @@ class CurvePointIterator : public Interface0DIteratorNested {
     return *this;
   }
 
-  // comparibility
+  // comparability
   virtual bool operator==(const Interface0DIteratorNested &b) const
   {
     const CurvePointIterator *it_exact = dynamic_cast<const CurvePointIterator *>(&b);

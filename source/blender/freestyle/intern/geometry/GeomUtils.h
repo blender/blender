@@ -58,12 +58,12 @@ template<class T> real distPointSegment(const T &P, const T &A, const T &B)
 // Non-templated procedures
 //
 /////////////////////////////////////////////////////////////////////////////
-typedef enum {
+enum intersection_test {
   DONT_INTERSECT,
   DO_INTERSECT,
   COLINEAR,
   COINCIDENT,
-} intersection_test;
+};
 
 intersection_test intersect2dSeg2dSeg(const Vec2r &p1,
                                       const Vec2r &p2,  // first segment

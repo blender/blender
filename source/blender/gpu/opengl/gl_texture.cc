@@ -6,9 +6,11 @@
  * \ingroup gpu
  */
 
+#include <cstdint>
 #include <string>
 
 #include "BLI_assert.h"
+#include "BLI_math_half.hh"
 #include "BLI_string.h"
 
 #include "DNA_userdef_types.h"
@@ -18,6 +20,7 @@
 #include "GPU_platform.hh"
 
 #include "GPU_vertex_buffer.hh" /* TODO: should be `gl_vertex_buffer.hh`. */
+#include "MEM_guardedalloc.h"
 #include "gl_backend.hh"
 #include "gl_debug.hh"
 #include "gl_state.hh"
@@ -40,7 +43,7 @@ GLTexture::GLTexture(const char *name) : Texture(name)
 GLTexture::~GLTexture()
 {
   if (framebuffer_) {
-    GPU_framebuffer_free(wrap(framebuffer_));
+    GPU_framebuffer_free(framebuffer_);
   }
   GLContext *ctx = GLContext::get();
   if (ctx != nullptr && is_bound_) {
@@ -48,7 +51,7 @@ GLTexture::~GLTexture()
     ctx->state_manager->texture_unbind(this);
     ctx->state_manager->image_unbind(this);
   }
-  GLContext::tex_free(tex_id_);
+  GLContext::texture_free(tex_id_);
 }
 
 bool GLTexture::init_internal()
@@ -88,7 +91,7 @@ bool GLTexture::init_internal()
     glTexParameteri(target_, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   }
 
-  debug::object_label(GL_TEXTURE, tex_id_, name_);
+  debug::object_label(GL_TEXTURE, tex_id_, name_.c_str());
   return true;
 }
 
@@ -109,7 +112,7 @@ bool GLTexture::init_internal(VertBuf *vbo)
     glTexBuffer(target_, internal_format, gl_vbo->vbo_id_);
   }
 
-  debug::object_label(GL_TEXTURE, tex_id_, name_);
+  debug::object_label(GL_TEXTURE, tex_id_, name_.c_str());
 
   return true;
 }
@@ -132,7 +135,7 @@ bool GLTexture::init_internal(gpu::Texture *src,
                 layer_offset,
                 this->layer_count());
 
-  debug::object_label(GL_TEXTURE, tex_id_, name_);
+  debug::object_label(GL_TEXTURE, tex_id_, name_.c_str());
 
   /* Stencil view support. */
   if (ELEM(format_, TextureFormat::SFLOAT_32_DEPTH_UINT_8)) {
@@ -186,8 +189,12 @@ void GLTexture::update_sub_direct_state_access(
   has_pixels_ = true;
 }
 
-void GLTexture::update_sub(
-    int mip, int offset[3], int extent[3], eGPUDataFormat type, const void *data)
+void GLTexture::update_sub(int mip,
+                           int offset[3],
+                           int extent[3],
+                           eGPUDataFormat type,
+                           const void *data,
+                           const uint unpack_row_length)
 {
   BLI_assert(validate_data_format(format_, type));
   BLI_assert(data != nullptr);
@@ -195,6 +202,75 @@ void GLTexture::update_sub(
   if (mip >= mipmaps_) {
     debug::raise_gl_error("Updating a miplvl on a texture too small to have this many levels.");
     return;
+  }
+
+  /* If `unpack_row_length` is 0, rows are sequentially stored. Otherwise we unpack data
+   * into a staging block, so the half conversion below doesn't happen on the full input. */
+  const bool do_texture_unpack = !ELEM(unpack_row_length, 0, extent[0]);
+
+  /* Unpack `data` if `unpack_row_length` is set. */
+  std::unique_ptr<uint8_t, MEM_smart_ptr_deleter<uint8_t>> unpack_buffer = nullptr;
+  if (do_texture_unpack) {
+    BLI_assert_msg(!(format_flag_ & GPU_FORMAT_COMPRESSED),
+                   "Compressed data with unpack_row_length != 0 is not supported.");
+    BLI_assert_msg(extent[2] <= 1,
+                   "3D texture data with unpack_row_length != 0 is not supported.");
+
+    size_t src_row_stride = unpack_row_length * to_bytesize(format_, type);
+    size_t dst_row_stride = max_ii(extent[0], 1) * to_bytesize(format_, type);
+    size_t dst_total_count = dst_row_stride * max_ii(extent[1], 1) * max_ii(extent[2], 1);
+
+    /* Allocate buffer to size necessary for gather */
+    unpack_buffer.reset(
+        static_cast<uint8_t *>(MEM_new_uninitialized_aligned(dst_total_count, 128, __func__)));
+
+    /* Strided loop; we advance source and destination pointers separately during a gather. */
+    const uint8_t *src_ptr = static_cast<const uint8_t *>(data);
+    uint8_t *dst_ptr = unpack_buffer.get();
+    for (int y = 0; y < max_ii(extent[1], 1); ++y) {
+      std::memcpy(dst_ptr, src_ptr, dst_row_stride);
+      src_ptr += src_row_stride;
+      dst_ptr += dst_row_stride;
+    }
+
+    /* Replace the 'data' ptr with `unpack_buffer`,
+     * which has lifetime in the function scope. */
+    data = unpack_buffer.get();
+  }
+
+  /* If `data` is float and target storage is half, convert to half */
+  std::unique_ptr<uint16_t, MEM_smart_ptr_deleter<uint16_t>> clamped_half_buffer = nullptr;
+  if (type == GPU_DATA_FLOAT && is_half_float(format_)) {
+    size_t dst_pixel_count = max_ii(extent[0], 1) * max_ii(extent[1], 1) * max_ii(extent[2], 1);
+    size_t dst_total_count = to_component_len(format_) * dst_pixel_count;
+
+    /* Allocate buffer to size necessary for conversion.. */
+    clamped_half_buffer.reset(static_cast<uint16_t *>(
+        MEM_new_uninitialized_aligned(sizeof(uint16_t) * dst_total_count, 128, __func__)));
+
+    Span<float> src(static_cast<const float *>(data), dst_total_count);
+    MutableSpan<uint16_t> dst(static_cast<uint16_t *>(clamped_half_buffer.get()), dst_total_count);
+
+    constexpr int64_t chunk_size = 4 * 1024 * 1024;
+    threading::parallel_for(IndexRange(dst_total_count), chunk_size, [&](const IndexRange range) {
+      /* Doing float to half conversion manually to avoid implementation specific behavior
+       * regarding Inf and NaNs. Use make finite version to avoid unexpected black pixels on
+       * certain implementation. For platform parity we clamp these infinite values to finite
+       * values. */
+      math::float_to_half_make_finite_array(
+          src.slice(range).data(), dst.slice(range).data(), range.size());
+    });
+
+    /* Replace the 'data' ptr with `clamped_half_buffer`,
+     * which has lifetime in the function scope. */
+    data = clamped_half_buffer.get();
+    type = GPU_DATA_HALF_FLOAT;
+
+    /* If the `data` ptr was previously replaced by `unpack_buffer`,
+     * clear `unpack_buffer` as it is no longer necessary. */
+    if (do_texture_unpack) {
+      unpack_buffer.reset(nullptr);
+    }
   }
 
   const int dimensions = this->dimensions_count();
@@ -266,7 +342,7 @@ void GLTexture::update_sub(int offset[3],
   GLContext::state_manager_active_get()->texture_bind_temp(this);
 
   /* Bind pixel buffer for source data. */
-  GLint pix_buf_handle = (GLint)GPU_pixel_buffer_get_native_handle(pixbuf).handle;
+  GLint pix_buf_handle = GLint(GPU_pixel_buffer_get_native_handle(pixbuf).handle);
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pix_buf_handle);
 
   switch (dimensions) {
@@ -331,7 +407,7 @@ void GLTexture::clear(eGPUDataFormat data_format, const void *data)
    * "pixel data" to exist which is then uploaded CPU -> GPU at bind
    * time. */
 
-  GPUFrameBuffer *prev_fb = GPU_framebuffer_active_get();
+  gpu::FrameBuffer *prev_fb = GPU_framebuffer_active_get();
 
   FrameBuffer *fb = this->framebuffer_get();
   fb->bind(true);
@@ -375,7 +451,7 @@ void *GLTexture::read(int mip, eGPUDataFormat type)
 
   /* AMD Pro driver have a bug that write 8 bytes past buffer size
    * if the texture is big. (see #66573) */
-  void *data = MEM_mallocN(texture_size + 8, "GPU_texture_read");
+  void *data = MEM_new_uninitialized(texture_size + 8, "GPU_texture_read");
 
   GLenum gl_format = to_gl_data_format(
       format_ == TextureFormat::SFLOAT_32_DEPTH_UINT_8 ? TextureFormat::SFLOAT_32_DEPTH : format_);
@@ -388,7 +464,7 @@ void *GLTexture::read(int mip, eGPUDataFormat type)
     GLContext::state_manager_active_get()->texture_bind_temp(this);
     if (type_ == GPU_TEXTURE_CUBE) {
       size_t cube_face_size = texture_size / 6;
-      char *pdata = (char *)data;
+      char *pdata = static_cast<char *>(data);
       for (int i = 0; i < 6; i++, pdata += cube_face_size) {
         glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, mip, gl_format, gl_type, pdata);
       }
@@ -408,10 +484,10 @@ void *GLTexture::read(int mip, eGPUDataFormat type)
 
 void GLTexture::swizzle_set(const char swizzle[4])
 {
-  GLint gl_swizzle[4] = {(GLint)swizzle_to_gl(swizzle[0]),
-                         (GLint)swizzle_to_gl(swizzle[1]),
-                         (GLint)swizzle_to_gl(swizzle[2]),
-                         (GLint)swizzle_to_gl(swizzle[3])};
+  GLint gl_swizzle[4] = {GLint(swizzle_to_gl(swizzle[0])),
+                         GLint(swizzle_to_gl(swizzle[1])),
+                         GLint(swizzle_to_gl(swizzle[2])),
+                         GLint(swizzle_to_gl(swizzle[3]))};
   if (GLContext::direct_state_access_support) {
     glTextureParameteriv(tex_id_, GL_TEXTURE_SWIZZLE_RGBA, gl_swizzle);
   }
@@ -456,7 +532,7 @@ FrameBuffer *GLTexture::framebuffer_get()
     return framebuffer_;
   }
   BLI_assert(!(type_ & GPU_TEXTURE_1D));
-  framebuffer_ = unwrap(GPU_framebuffer_create(name_));
+  framebuffer_ = GPU_framebuffer_create(name_.c_str());
   framebuffer_->attachment_set(this->attachment_type(0), GPU_ATTACHMENT_TEXTURE(this));
   has_pixels_ = true;
   return framebuffer_;
@@ -735,7 +811,7 @@ void GLTexture::check_feedback_loop()
         SNPRINTF(msg,
                  "Feedback loop: Trying to bind a texture (%s) with mip range %d-%d but mip %d is "
                  "attached to the active framebuffer (%s)",
-                 name_,
+                 name_.c_str(),
                  mip_min_,
                  mip_max_,
                  attachment.mip,
@@ -745,13 +821,6 @@ void GLTexture::check_feedback_loop()
       return;
     }
   }
-}
-
-uint GLTexture::gl_bindcode_get() const
-{
-  /* TODO(fclem): Legacy. Should be removed at some point. */
-
-  return tex_id_;
 }
 
 /* -------------------------------------------------------------------- */

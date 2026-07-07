@@ -9,6 +9,8 @@
 #include "BLI_endian_switch.h"
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 struct FileReader;
 
 struct BHead {
@@ -128,3 +130,5 @@ inline uint32_t uint32_from_uint64_ptr(uint64_t ptr)
   ptr >>= 3;
   return uint32_t(ptr);
 }
+
+}  // namespace blender

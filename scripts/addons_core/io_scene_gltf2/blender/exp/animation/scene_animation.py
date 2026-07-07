@@ -129,7 +129,7 @@ def gather_scene_animations(export_settings):
                 continue
 
             if export_settings['gltf_animation_mode'] == "NLA_TRACKS" and export_settings['gltf_apply'] is True:
-                blender_material = export_settings['material_identifiers'][blender_id]
+                blender_material = export_settings['material_identifiers'][mat]
             else:
                 blender_material = [m for m in bpy.data.materials if id(m) == mat][0]
 
@@ -164,7 +164,7 @@ def gather_scene_animations(export_settings):
             if len(export_settings['KHR_animation_pointer']['lights'][light]['paths']) == 0:
                 continue
 
-            blender_light = [l for l in bpy.data.lights if id(l) == light][0]
+            blender_light = [alight for alight in bpy.data.lights if id(alight) == light][0]
 
             export_settings['ranges'][id(blender_light)] = {}
             export_settings['ranges'][id(blender_light)][id(blender_light)] = {'start': start_frame, 'end': end_frame}
@@ -196,7 +196,7 @@ def gather_scene_animations(export_settings):
             if len(export_settings['KHR_animation_pointer']['cameras'][cam]['paths']) == 0:
                 continue
 
-            blender_camera = [l for l in bpy.data.cameras if id(l) == cam][0]
+            blender_camera = [camera for camera in bpy.data.cameras if id(camera) == cam][0]
 
             export_settings['ranges'][id(blender_camera)] = {}
             export_settings['ranges'][id(blender_camera)][id(blender_camera)] = {'start': start_frame, 'end': end_frame}

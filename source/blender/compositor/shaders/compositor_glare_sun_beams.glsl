@@ -2,9 +2,14 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/compositor_glare_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_glare_sun_beams_shared)
+
 #include "gpu_shader_common_hash.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
 #include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_safe_lib.glsl"
 
 /* Returns an index for a position along the path between the texel and the source.
  *

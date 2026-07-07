@@ -187,6 +187,9 @@ void duplicate_points(bke::CurvesGeometry &curves, const IndexMask &mask)
 
   /* Transfer curve and point attributes. */
   attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.storage_type == bke::AttrStorageType::Single) {
+      return;
+    }
     bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(iter.name);
     if (!attribute) {
       return;
@@ -274,6 +277,9 @@ void duplicate_curves(bke::CurvesGeometry &curves, const IndexMask &mask)
   curves.resize(points_by_curve.total_size(), curves.curves_num());
 
   attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.storage_type == bke::AttrStorageType::Single) {
+      return;
+    }
     bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(iter.name);
     switch (iter.domain) {
       case bke::AttrDomain::Point:
@@ -398,7 +404,7 @@ static bke::CurvesGeometry copy_data_to_geometry(const bke::CurvesGeometry &src_
   for (auto &attribute : bke::retrieve_attributes_for_transfer(
            src_attributes,
            dst_attributes,
-           ATTR_DOMAIN_MASK_POINT,
+           {bke::AttrDomain::Point},
            bke::attribute_filter_from_skip_ref(
                ed::curves::get_curves_selection_attribute_names(src_curves))))
   {
@@ -665,38 +671,44 @@ void resize_curves(bke::CurvesGeometry &curves,
   dst_curves.resize(dst_curves.offsets().last(), dst_curves.curves_num());
 
   /* Copy point attributes and default initialize newly added point ranges. */
-  const bke::AttrDomain domain(bke::AttrDomain::Point);
   const OffsetIndices<int> src_offsets = curves.points_by_curve();
   const OffsetIndices<int> dst_offsets = dst_curves.points_by_curve();
   const bke::AttributeAccessor src_attributes = curves.attributes();
   bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
   src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
-    if (iter.domain != domain || bke::attribute_name_is_anonymous(iter.name)) {
+    if (iter.domain != bke::AttrDomain::Point) {
       return;
     }
-    const GVArraySpan src = *iter.get(domain);
+    const GVArray src = *iter.get();
     const CPPType &type = src.type();
+    const CommonVArrayInfo info = src.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      const bke::AttributeInitValue init(GPointer(type, info.data));
+      if (dst_attributes.add(iter.name, iter.domain, iter.data_type, init)) {
+        return;
+      }
+    }
     bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-        iter.name, domain, iter.data_type);
+        iter.name, iter.domain, iter.data_type);
     if (!dst) {
       return;
     }
-
+    const GVArraySpan src_span(src);
     curves_to_resize.foreach_index(GrainSize(512), [&](const int curve_i) {
       const IndexRange src_points = src_offsets[curve_i];
       const IndexRange dst_points = dst_offsets[curve_i];
       if (dst_points.size() < src_points.size()) {
         const int src_excees = src_points.size() - dst_points.size();
-        dst.span.slice(dst_points).copy_from(src.slice(src_points.drop_back(src_excees)));
+        dst.span.slice(dst_points).copy_from(src_span.slice(src_points.drop_back(src_excees)));
       }
       else {
         const int dst_excees = dst_points.size() - src_points.size();
-        dst.span.slice(dst_points.drop_back(dst_excees)).copy_from(src.slice(src_points));
+        dst.span.slice(dst_points.drop_back(dst_excees)).copy_from(src_span.slice(src_points));
         GMutableSpan dst_end_slice = dst.span.slice(dst_points.take_back(dst_excees));
         type.value_initialize_n(dst_end_slice.data(), dst_end_slice.size());
       }
     });
-    array_utils::copy_group_to_group(src_offsets, dst_offsets, curves_to_copy, src, dst.span);
+    array_utils::copy_group_to_group(src_offsets, dst_offsets, curves_to_copy, src_span, dst.span);
     dst.finish();
   });
 

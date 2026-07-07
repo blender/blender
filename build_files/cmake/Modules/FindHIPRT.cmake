@@ -34,7 +34,7 @@ find_path(HIPRT_INCLUDE_DIR
     include
 )
 
-set(HIPRT_VERSION)
+set(HIPRT_VERSION "")
 
 if(HIPRT_INCLUDE_DIR)
   file(STRINGS "${HIPRT_INCLUDE_DIR}/hiprt/hiprt.h" _hiprt_version

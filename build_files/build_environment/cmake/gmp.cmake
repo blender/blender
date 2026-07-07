@@ -64,7 +64,7 @@ else()
 endif()
 
 if(UNIX)
-  if(NOT (APPLE AND BLENDER_PLATFORN_ARM))
+  if(NOT (APPLE AND BLENDER_PLATFORM_ARM))
     set(GMP_OPTIONS ${GMP_OPTIONS} --with-pic)
   endif()
   if(NOT (APPLE OR BLENDER_PLATFORM_ARM))
@@ -126,14 +126,16 @@ endif()
 if(WIN32)
   # gmpxx is somewhat special, it builds on top of the C style gmp library but exposes C++ bindings
   # given the C++ ABI between MSVC and mingw is not compatible, we need to build the bindings
-  # with MSVC, while GMP can only be build with mingw.
+  # with MSVC, while GMP can only be built with mingw.
   ExternalProject_Add(external_gmpxx
     URL file://${PACKAGE_DIR}/${GMP_FILE}
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
     URL_HASH ${GMP_HASH_TYPE}=${GMP_HASH}
     PREFIX ${BUILD_DIR}/gmpxx
 
-    PATCH_COMMAND COMMAND
+    # Intentionally empty, COMMAND is used but it must follow a PATCH_COMMAND.
+    PATCH_COMMAND
+    COMMAND
       ${CMAKE_COMMAND} -E copy
         ${PATCH_DIR}/cmakelists_gmpxx.txt
         ${BUILD_DIR}/gmpxx/src/external_gmpxx/CMakeLists.txt &&

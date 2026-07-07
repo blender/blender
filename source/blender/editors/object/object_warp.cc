@@ -16,6 +16,8 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 
+#include "DEG_depsgraph_query.hh"
+
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
@@ -159,6 +161,7 @@ static wmOperatorStatus object_warp_verts_exec(bContext *C, wmOperator *op)
   const float offset_angle = RNA_float_get(op->ptr, "offset_angle");
 
   TransVertStore tvs = {nullptr};
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *obedit = CTX_data_edit_object(C);
 
   /* typically from 'rv3d' and 3d cursor */
@@ -175,7 +178,10 @@ static wmOperatorStatus object_warp_verts_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  ED_transverts_create_from_obedit(&tvs, obedit, TM_ALL_JOINTS | TM_SKIP_HANDLES);
+  if (ED_transverts_check_obedit(obedit)) {
+    const Object *obedit_eval = DEG_get_evaluated(depsgraph, obedit);
+    ED_transverts_create_from_obedit(&tvs, obedit_eval, TM_ALL_JOINTS | TM_SKIP_HANDLES);
+  }
   if (tvs.transverts == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -184,7 +190,7 @@ static wmOperatorStatus object_warp_verts_exec(bContext *C, wmOperator *op)
   {
     PropertyRNA *prop_viewmat = RNA_struct_find_property(op->ptr, "viewmat");
     if (RNA_property_is_set(op->ptr, prop_viewmat)) {
-      RNA_property_float_get_array(op->ptr, prop_viewmat, (float *)viewmat);
+      RNA_property_float_get_array(op->ptr, prop_viewmat, reinterpret_cast<float *>(viewmat));
     }
     else {
       RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -196,7 +202,7 @@ static wmOperatorStatus object_warp_verts_exec(bContext *C, wmOperator *op)
         unit_m4(viewmat);
       }
 
-      RNA_property_float_set_array(op->ptr, prop_viewmat, (float *)viewmat);
+      RNA_property_float_set_array(op->ptr, prop_viewmat, reinterpret_cast<float *>(viewmat));
     }
   }
 

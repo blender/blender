@@ -151,7 +151,7 @@ class orientedViewEdgeIterator : public Iterator {
     return tmp;
   }
 
-  // comparibility
+  // comparability
   /** operator != */
   virtual bool operator!=(const orientedViewEdgeIterator &b) const
   {

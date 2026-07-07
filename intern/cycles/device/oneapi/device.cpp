@@ -28,8 +28,9 @@ bool device_oneapi_init()
 
   /* NOTE(@nsirgien): we need to enable JIT cache from here and
    * right now this cache policy is controlled by env. variables. */
-  /* NOTE(hallade) we also disable use of copy engine as it
-   * improves stability as of intel/LLVM SYCL-nightly/20220529.
+  /* NOTE(@xavierh-intel) we enable the use of copy engine, incl. for fill
+   * operations as it lowers the overhead from zeCommandListAppendMemoryFill
+   * when running paths_array kernels on Linux+A750.
    * All these env variable can be set beforehand by end-users and
    * will in that case -not- be overwritten. */
   /* By default, enable only Level-Zero and if all devices are allowed, also CUDA and HIP.
@@ -53,8 +54,11 @@ bool device_oneapi_init()
   if (getenv("ZES_ENABLE_SYSMAN") == nullptr) {
     _putenv_s("ZES_ENABLE_SYSMAN", "1");
   }
-  if (getenv("SYCL_PI_LEVEL_ZERO_USE_COPY_ENGINE") == nullptr) {
-    _putenv_s("SYCL_PI_LEVEL_ZERO_USE_COPY_ENGINE", "0");
+  if (getenv("UR_L0_USE_COPY_ENGINE") == nullptr) {
+    _putenv_s("UR_L0_USE_COPY_ENGINE", "1");
+  }
+  if (getenv("UR_L0_USE_COPY_ENGINE_FOR_FILL") == nullptr) {
+    _putenv_s("UR_L0_USE_COPY_ENGINE_FOR_FILL", "1");
   }
 #  elif __linux__
   setenv("SYCL_CACHE_PERSISTENT", "1", false);
@@ -67,7 +71,8 @@ bool device_oneapi_init()
   }
   /* SYSMAN is needed for free_memory queries. */
   setenv("ZES_ENABLE_SYSMAN", "1", false);
-  setenv("SYCL_PI_LEVEL_ZERO_USE_COPY_ENGINE", "0", false);
+  setenv("UR_L0_USE_COPY_ENGINE", "1", false);
+  setenv("UR_L0_USE_COPY_ENGINE_FOR_FILL", "1", false);
 #  endif
 
   return true;

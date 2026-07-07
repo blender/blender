@@ -50,7 +50,7 @@ class Chain : public Curve {
   /** Destructor. */
   virtual ~Chain()
   {
-    // only the last splitted deletes this id
+    // only the last split deletes this id
     if (_splittingId) {
       if (*_splittingId == _Id) {
         delete _splittingId;

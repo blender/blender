@@ -13,9 +13,11 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"gpu.vulkan"};
 
-namespace blender::gpu {
+namespace gpu {
 
 VKBuffer::~VKBuffer()
 {
@@ -26,8 +28,7 @@ VKBuffer::~VKBuffer()
 
 bool VKBuffer::create(size_t size_in_bytes,
                       VkBufferUsageFlags buffer_usage,
-                      VkMemoryPropertyFlags required_flags,
-                      VkMemoryPropertyFlags preferred_flags,
+                      VmaMemoryUsage vma_memory_usage,
                       VmaAllocationCreateFlags allocation_flags,
                       float priority,
                       bool export_memory)
@@ -79,25 +80,15 @@ bool VKBuffer::create(size_t size_in_bytes,
   VmaAllocationCreateInfo vma_create_info = {};
   vma_create_info.flags = allocation_flags;
   vma_create_info.priority = priority;
-  vma_create_info.requiredFlags = required_flags;
-  vma_create_info.preferredFlags = preferred_flags;
-  vma_create_info.usage = VMA_MEMORY_USAGE_AUTO;
+  vma_create_info.usage = vma_memory_usage;
 
   if (export_memory) {
     create_info.pNext = &external_memory_create_info;
-#ifdef _WIN32
-    external_memory_create_info.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
-#else
-    external_memory_create_info.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
-#endif
+    external_memory_create_info.handleTypes = vk_external_memory_handle_type();
+
     /* Dedicated allocation for zero offset. */
     vma_create_info.flags |= VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
-    vma_create_info.pool = device.vma_pools.external_memory;
-  }
-
-  const bool use_descriptor_buffer = device.extensions_get().descriptor_buffer;
-  if (use_descriptor_buffer) {
-    create_info.usage |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+    vma_create_info.pool = device.vma_pools.external_memory_pixel_buffer.pool;
   }
 
   VkResult result = vmaCreateBuffer(
@@ -111,15 +102,16 @@ bool VKBuffer::create(size_t size_in_bytes,
 
   device.resources.add_buffer(vk_buffer_);
 
-  if (use_descriptor_buffer) {
-    VkBufferDeviceAddressInfo vk_buffer_device_address_info = {
-        VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO, nullptr, vk_buffer_};
-    vk_device_address = vkGetBufferDeviceAddress(device.vk_handle(),
-                                                 &vk_buffer_device_address_info);
-  }
-
-  vmaGetAllocationMemoryProperties(allocator, allocation_, &vk_memory_property_flags_);
-  if (vk_memory_property_flags_ & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
+  /* Check if the memory is mappable. Although the Vulkan specs allow to map any memory that is
+   * host visible, VMA checks for specific host access flags.
+   *
+   * Source:
+   * https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/memory_mapping.html
+   */
+  const bool is_mappable = bool(allocation_flags &
+                                (VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT |
+                                 VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT));
+  if (is_mappable) {
     return map();
   }
 
@@ -260,4 +252,5 @@ void VKBuffer::free_immediately(VKDevice &device)
   vk_buffer_ = VK_NULL_HANDLE;
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

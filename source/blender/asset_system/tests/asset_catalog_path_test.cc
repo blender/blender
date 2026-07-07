@@ -132,7 +132,7 @@ TEST(AssetCatalogPathTest, hashable)
   std::set<AssetCatalogPath> path_std_set;
   path_std_set.insert(path);
 
-  blender::Set<AssetCatalogPath> path_blender_set;
+  Set<AssetCatalogPath> path_blender_set;
   path_blender_set.add(path);
 }
 

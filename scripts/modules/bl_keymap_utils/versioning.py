@@ -30,6 +30,13 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
         for km_name, _km_params, km_items_data in keyconfig_data:
             if km_name == "Transform Modal Map":
                 return km_items_data
+        return None
+
+    def get_ui_keymap():
+        for km_name, _km_params, km_items_data in keyconfig_data:
+            if km_name == "User Interface":
+                return km_items_data
+        return None
 
     def remove_properties(op_prop_map):
         nonlocal keyconfig_data
@@ -168,8 +175,11 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
 
         if km_items_data := get_transform_modal_map():
             def use_alt_navigate():
-                km_item = next((i for i in km_items_data["items"] if i[0] ==
-                                "PROPORTIONAL_SIZE" and i[1]["type"] == 'TRACKPADPAN'), None)
+                km_item = next(
+                    (i for i in km_items_data["items"] if i[0] ==
+                     "PROPORTIONAL_SIZE" and i[1]["type"] == 'TRACKPADPAN'),
+                    None,
+                )
                 if km_item:
                     return "alt" not in km_item[1] or km_item[1]["alt"] is False
 
@@ -277,5 +287,50 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
                             "data_path_secondary", ".".join((*updated_path_elements, secondary_path_identifier)))
                         item_prop["properties"][toggle_path_index] = (
                             "use_secondary", ".".join((*updated_path_elements, toggle_path_identifier)))
+
+    if keyconfig_version < (5, 1, 6):
+        has_view_select = False
+        has_view_scroll = False
+
+        if km_ui_items_data := get_ui_keymap():
+            for (item_op, _item_event, _item_prop) in km_ui_items_data["items"]:
+                if item_op == "ui.view_item_select":
+                    has_view_select = True
+                if item_op == "ui.view_scroll":
+                    has_view_scroll = True
+
+            if not has_view_select:
+                if not has_copy:
+                    keyconfig_data = copy.deepcopy(keyconfig_data)
+                    has_copy = True
+                    km_ui_items_data = get_ui_keymap()
+
+                select_items = [
+                    ("ui.view_item_select", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
+                    ("ui.view_item_select", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True},
+                     {"properties": [("extend", True)]}),
+                    ("ui.view_item_select", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
+                     {"properties": [("range_select", True)]}),
+                ]
+
+                km_ui_items_data["items"].extend(select_items)
+
+            if not has_view_scroll:
+                if not has_copy:
+                    keyconfig_data = copy.deepcopy(keyconfig_data)
+                    has_copy = True
+                    km_ui_items_data = get_ui_keymap()
+
+                scroll_items = [
+                    ("ui.view_scroll", {"type": 'WHEELUPMOUSE', "value": 'ANY'}, None),
+                    ("ui.view_scroll", {"type": 'WHEELDOWNMOUSE', "value": 'ANY'}, None),
+                    ("ui.view_scroll", {"type": 'TRACKPADPAN', "value": 'ANY'}, None),
+                ]
+                km_ui_items_data["items"].extend(scroll_items)
+        else:
+            print("Error versioning keymap: Missing \"User Interface\" keymap")
+
+    if keyconfig_version < (5, 1, 11):
+        rename_keymap({"Grease Pencil Paint Mode": "Grease Pencil Draw Mode"})
 
     return keyconfig_data

@@ -23,17 +23,21 @@ namespace blender::nodes::node_geo_volume_to_mesh_cc {
 NODE_STORAGE_FUNCS(NodeGeometryVolumeToMesh)
 
 static EnumPropertyItem resolution_mode_items[] = {
-    {VOLUME_TO_MESH_RESOLUTION_MODE_GRID, "GRID", 0, "Grid", "Use resolution of the volume grid"},
+    {VOLUME_TO_MESH_RESOLUTION_MODE_GRID,
+     "GRID",
+     0,
+     CTX_N_(BLT_I18NCONTEXT_COUNTABLE, "Grid"),
+     N_("Use resolution of the volume grid")},
     {VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_AMOUNT,
      "VOXEL_AMOUNT",
      0,
-     "Amount",
-     "Desired number of voxels along one axis"},
+     CTX_N_(BLT_I18NCONTEXT_COUNTABLE, "Amount"),
+     N_("Desired number of voxels along one axis")},
     {VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_SIZE,
      "VOXEL_SIZE",
      0,
-     "Size",
-     "Desired voxel side length"},
+     CTX_N_(BLT_I18NCONTEXT_COUNTABLE, "Size"),
+     N_("Desired voxel side length")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -46,7 +50,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Volume to convert to a mesh");
   b.add_input<decl::Menu>("Resolution Mode")
       .static_items(resolution_mode_items)
-      .description("How the voxel size is specified");
+      .optional_label()
+      .description("How the voxel size is specified")
+      .translation_context(BLT_I18NCONTEXT_COUNTABLE);
   b.add_input<decl::Float>("Voxel Size")
       .default_value(0.3f)
       .min(0.01f)
@@ -66,7 +72,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   /* Still used for forward compatibility. */
-  node->storage = MEM_callocN<NodeGeometryVolumeToMesh>(__func__);
+  node->storage = MEM_new<NodeGeometryVolumeToMesh>(__func__);
 }
 
 #ifdef WITH_OPENVDB
@@ -205,7 +211,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeVolumeToMesh", GEO_NODE_VOLUME_TO_MESH);
   ntype.ui_name = "Volume to Mesh";
@@ -213,12 +219,12 @@ static void node_register()
   ntype.enum_name_legacy = "VOLUME_TO_MESH";
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGeometryVolumeToMesh", node_free_standard_storage, node_copy_standard_storage);
-  blender::bke::node_type_size(ntype, 170, 120, 700);
+  bke::node_type_size(ntype, 170, 120, 700);
   ntype.initfunc = node_init;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

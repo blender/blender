@@ -10,6 +10,8 @@
 
 #include <Python.h>
 
+namespace blender {
+
 struct BPy_IDGroup_Iter;
 struct ID;
 struct IDProperty;
@@ -102,3 +104,22 @@ struct BPy_IDGroup_View {
 void IDProp_Init_Types();
 
 [[nodiscard]] PyObject *BPyInit_idprop();
+
+/**
+ * Create an IDProperty from a Python object.
+ *
+ * \param prop_exists: pre-existing IDProperty to populate with the value. Can be `nullptr` to
+ * allocate a new IDProperty.
+ * \param name: the name of the IDProperty. Only used when creating a new IDProperty.
+ * \param ob: the Python object to convert.
+ * \param do_conversion: when there is a pre-existing IDProperty, whether the Python object's value
+ * should be converted to its type (if not the same type already).
+ * \param can_create: whether the function is allowed to create a new property. If this is `false`
+ * and `prop_exists` is `nullptr`, this function is a no-op.
+ *
+ * \return the existing/created IDProperty if the value was set on it, and `nullptr` otherwise.
+ */
+IDProperty *BPy_IDProperty_FromPyObject(
+    IDProperty *prop_exist, const char *name, PyObject *ob, bool do_conversion, bool can_create);
+
+}  // namespace blender

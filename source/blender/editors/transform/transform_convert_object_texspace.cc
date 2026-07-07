@@ -48,7 +48,7 @@ static void createTransTexspace(bContext * /*C*/, TransInfo *t)
     return;
   }
 
-  id = static_cast<ID *>(ob->data);
+  id = ob->data;
   if (id == nullptr || !ELEM(GS(id->name), ID_ME, ID_CU_LEGACY, ID_MB)) {
     BKE_report(t->reports, RPT_ERROR, "Unsupported object type for texture space transform");
     return;
@@ -63,8 +63,8 @@ static void createTransTexspace(bContext * /*C*/, TransInfo *t)
     BLI_assert(t->data_container_len == 1);
     TransDataContainer *tc = t->data_container;
     tc->data_len = 1;
-    td = tc->data = MEM_callocN<TransData>("TransTexspace");
-    td_ext = tc->data_ext = MEM_callocN<TransDataExtension>("TransTexspace");
+    td = tc->data = MEM_new_zeroed<TransData>("TransTexspace");
+    td_ext = tc->data_ext = MEM_new_zeroed<TransDataExtension>("TransTexspace");
   }
 
   td->flag = TD_SELECTED;

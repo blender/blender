@@ -373,6 +373,51 @@ class Image : public IDSocketDeclaration {
   Image();
 };
 
+class Font : public IDSocketDeclaration {
+ public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_FONT;
+
+  using Builder = IDSocketDeclarationBuilder<Font>;
+
+  Font();
+};
+
+class Scene : public IDSocketDeclaration {
+ public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_SCENE;
+
+  using Builder = IDSocketDeclarationBuilder<Scene>;
+
+  Scene();
+};
+
+class Text : public IDSocketDeclaration {
+ public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_TEXT_ID;
+
+  using Builder = IDSocketDeclarationBuilder<Text>;
+
+  Text();
+};
+
+class Mask : public IDSocketDeclaration {
+ public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_MASK;
+
+  using Builder = IDSocketDeclarationBuilder<Mask>;
+
+  Mask();
+};
+
+class Sound : public IDSocketDeclaration {
+ public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_SOUND;
+
+  using Builder = IDSocketDeclarationBuilder<Sound>;
+
+  Sound();
+};
+
 class ShaderBuilder;
 
 class Shader : public SocketDeclaration {
@@ -642,6 +687,16 @@ inline Collection::Collection() : IDSocketDeclaration("NodeSocketCollection") {}
 inline Texture::Texture() : IDSocketDeclaration("NodeSocketTexture") {}
 
 inline Image::Image() : IDSocketDeclaration("NodeSocketImage") {}
+
+inline Font::Font() : IDSocketDeclaration("NodeSocketFont") {}
+
+inline Scene::Scene() : IDSocketDeclaration("NodeSocketScene") {}
+
+inline Text::Text() : IDSocketDeclaration("NodeSocketText") {}
+
+inline Mask::Mask() : IDSocketDeclaration("NodeSocketMask") {}
+
+inline Sound::Sound() : IDSocketDeclaration("NodeSocketSound") {}
 
 /** \} */
 

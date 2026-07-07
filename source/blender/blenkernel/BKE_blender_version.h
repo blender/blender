@@ -3,7 +3,10 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
+#include <stdbool.h>
 #include <stddef.h>
+
+namespace blender {
 
 /** \file
  * \ingroup bke
@@ -17,17 +20,18 @@
  */
 
 /** Blender major and minor version. */
-#define BLENDER_VERSION 500
+#define BLENDER_VERSION 501
 /** Blender patch version for bug-fix releases. */
-#define BLENDER_VERSION_PATCH 0
+#define BLENDER_VERSION_PATCH 2
 /** Blender release cycle stage: alpha/beta/rc/release. */
-#define BLENDER_VERSION_CYCLE alpha
+#define BLENDER_VERSION_CYCLE release
 /** Blender release type suffix. LTS or blank. */
 #define BLENDER_VERSION_SUFFIX
 
 /* Blender file format version. */
 #define BLENDER_FILE_VERSION BLENDER_VERSION
-#define BLENDER_FILE_SUBVERSION 76
+
+#define BLENDER_FILE_SUBVERSION 30
 
 /* Minimum Blender version that supports reading file written with the current
  * version. Older Blender versions will test this and cancel loading the file, showing a warning to
@@ -65,3 +69,5 @@ void BKE_blender_version_blendfile_string_from_values(char *str_buff,
                                                       const size_t str_buff_maxncpy,
                                                       const short file_version,
                                                       const short file_subversion);
+
+}  // namespace blender

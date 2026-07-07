@@ -52,6 +52,12 @@ def _create_armature():
     return armature_obj
 
 
+def _first_channelbag(action: bpy.types.Action) -> bpy.types.ActionChannelbag:
+    """Return the first Channelbag of the Action."""
+    assert isinstance(action, bpy.types.Action)
+    return action.layers[0].strips[0].channelbags[0]
+
+
 class CreateAssetTest(unittest.TestCase):
 
     _library_folder = None
@@ -82,8 +88,8 @@ class CreateAssetTest(unittest.TestCase):
         self._armature_object.pose.bones[_BONE_NAME_1].location = (1, 1, 2)
         self._armature_object.pose.bones[_BONE_NAME_2].location = (-1, 0, 0)
 
-        self._armature_object.pose.bones[_BONE_NAME_1].bone.select = True
-        self._armature_object.pose.bones[_BONE_NAME_2].bone.select = False
+        self._armature_object.pose.bones[_BONE_NAME_1].select = True
+        self._armature_object.pose.bones[_BONE_NAME_2].select = False
 
         self._armature_object.pose.bones[_BONE_NAME_1].keyframe_insert('["bool_test"]')
         self._armature_object.pose.bones[_BONE_NAME_1].keyframe_insert('["float_test"]')
@@ -109,8 +115,9 @@ class CreateAssetTest(unittest.TestCase):
             # string_test is not here because it should not be keyed.
         }
         expected_pose_values.update(_BBONE_VALUES)
-        self.assertEqual(len(pose_action.fcurves), 26)
-        for fcurve in pose_action.fcurves:
+        pose_channelbag = _first_channelbag(pose_action)
+        self.assertEqual(len(pose_channelbag.fcurves), 26)
+        for fcurve in pose_channelbag.fcurves:
             self.assertTrue(
                 fcurve.data_path in expected_pose_values,
                 "Only the selected bone should be in the pose asset")
@@ -123,8 +130,8 @@ class CreateAssetTest(unittest.TestCase):
         self._armature_object.pose.bones[_BONE_NAME_1].location = (1, 1, 2)
         self._armature_object.pose.bones[_BONE_NAME_2].location = (-1, 0, 0)
 
-        self._armature_object.pose.bones[_BONE_NAME_1].bone.select = True
-        self._armature_object.pose.bones[_BONE_NAME_2].bone.select = False
+        self._armature_object.pose.bones[_BONE_NAME_1].select = True
+        self._armature_object.pose.bones[_BONE_NAME_2].select = False
 
         self._armature_object.pose.bones[_BONE_NAME_1].keyframe_insert('["bool_test"]')
         self._armature_object.pose.bones[_BONE_NAME_1].keyframe_insert('["float_test"]')
@@ -158,8 +165,9 @@ class CreateAssetTest(unittest.TestCase):
             # string_test is not here because it should not be keyed.
         }
         expected_pose_values.update(_BBONE_VALUES)
-        self.assertEqual(len(pose_action.fcurves), 26)
-        for fcurve in pose_action.fcurves:
+        pose_channelbag = _first_channelbag(pose_action)
+        self.assertEqual(len(pose_channelbag.fcurves), 26)
+        for fcurve in pose_channelbag.fcurves:
             self.assertTrue(
                 fcurve.data_path in expected_pose_values,
                 "Only the selected bone should be in the pose asset")
@@ -173,8 +181,8 @@ class CreateAssetTest(unittest.TestCase):
         self._armature_object.pose.bones[_BONE_NAME_1].location = (1, 1, 2)
         self._armature_object.pose.bones[_BONE_NAME_2].location = (-1, 0, 0)
 
-        self._armature_object.pose.bones[_BONE_NAME_1].bone.select = True
-        self._armature_object.pose.bones[_BONE_NAME_2].bone.select = False
+        self._armature_object.pose.bones[_BONE_NAME_1].select = True
+        self._armature_object.pose.bones[_BONE_NAME_2].select = False
 
         self.assertEqual(len(bpy.data.actions), 0)
         bpy.ops.poselib.create_pose_asset(
@@ -193,8 +201,9 @@ class CreateAssetTest(unittest.TestCase):
             # The custom properties are not keyed, thus they should not be in the pose asset.
         }
         expected_pose_values.update(_BBONE_VALUES)
-        self.assertEqual(len(pose_action.fcurves), 24)
-        for fcurve in pose_action.fcurves:
+        pose_channelbag = _first_channelbag(pose_action)
+        self.assertEqual(len(pose_channelbag.fcurves), 24)
+        for fcurve in pose_channelbag.fcurves:
             self.assertTrue(
                 fcurve.data_path in expected_pose_values,
                 "Only the selected bone should be in the pose asset")

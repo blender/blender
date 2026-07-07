@@ -12,7 +12,6 @@
 
 #include "BLO_read_write.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -41,10 +40,7 @@ static void init_data(ModifierData *md)
 {
   GreasePencilWeightAngleModifierData *gpmd =
       reinterpret_cast<GreasePencilWeightAngleModifierData *>(md);
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(gpmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(GreasePencilWeightAngleModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(gpmd, modifier);
   modifier::greasepencil::init_influence_data(&gpmd->influence, false);
 }
 
@@ -69,7 +65,8 @@ static void free_data(ModifierData *md)
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  GreasePencilWeightAngleModifierData *mmd = (GreasePencilWeightAngleModifierData *)md;
+  GreasePencilWeightAngleModifierData *mmd =
+      reinterpret_cast<GreasePencilWeightAngleModifierData *>(md);
 
   return (mmd->target_vgname[0] == '\0');
 }
@@ -87,7 +84,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
   const GreasePencilWeightAngleModifierData *mmd =
       reinterpret_cast<const GreasePencilWeightAngleModifierData *>(md);
 
-  BLO_write_struct(writer, GreasePencilWeightAngleModifierData, mmd);
+  writer->write_struct(mmd);
   modifier::greasepencil::write_influence_data(writer, &mmd->influence);
 }
 
@@ -99,7 +96,7 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
 }
 
 static bool target_vertex_group_available(const StringRefNull name,
-                                          const ListBase &vertex_group_names)
+                                          const ListBaseT<bDeformGroup> &vertex_group_names)
 {
   const int def_nr = BKE_defgroup_name_index(&vertex_group_names, name);
   if (def_nr < 0) {
@@ -222,36 +219,35 @@ static void modify_geometry_set(ModifierData *md,
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *row, *sub;
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  row = &layout->row(true);
-  row->prop_search(ptr, "target_vertex_group", &ob_ptr, "vertex_groups", std::nullopt, ICON_NONE);
+  ui::Layout &row = layout.row(true);
+  row.prop_search(ptr, "target_vertex_group", &ob_ptr, "vertex_groups", std::nullopt, ICON_NONE);
 
-  sub = &row->row(true);
+  ui::Layout &sub = row.row(true);
   bool has_output = RNA_string_length(ptr, "target_vertex_group") != 0;
-  sub->use_property_decorate_set(false);
-  sub->active_set(has_output);
-  sub->prop(ptr, "use_invert_output", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
+  sub.use_property_decorate_set(false);
+  sub.active_set(has_output);
+  sub.prop(ptr, "use_invert_output", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 
-  layout->prop(ptr, "angle", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "axis", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "space", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "angle", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "axis", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "space", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  layout->prop(ptr, "minimum_weight", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "use_multiply", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "minimum_weight", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "use_multiply", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  if (uiLayout *influence_panel = layout->panel_prop(
+  if (ui::Layout *influence_panel = layout.panel_prop(
           C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
-    modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_vertex_group_settings(C, influence_panel, ptr);
+    modifier::greasepencil::draw_layer_filter_settings(C, *influence_panel, ptr);
+    modifier::greasepencil::draw_material_filter_settings(C, *influence_panel, ptr);
+    modifier::greasepencil::draw_vertex_group_settings(C, *influence_panel, ptr);
   }
 
   modifier_error_message_draw(layout, ptr);
@@ -261,8 +257,6 @@ static void panel_register(ARegionType *region_type)
 {
   modifier_panel_register(region_type, eModifierType_GreasePencilWeightAngle, panel_draw);
 }
-
-}  // namespace blender
 
 ModifierTypeInfo modifierType_GreasePencilWeightAngle = {
     /*idname*/ "GreasePencilWeightAngleModifier",
@@ -276,26 +270,28 @@ ModifierTypeInfo modifierType_GreasePencilWeightAngle = {
         eModifierTypeFlag_EnableInEditmode | eModifierTypeFlag_SupportsMapping,
     /*icon*/ ICON_MOD_VERTEX_WEIGHT,
 
-    /*copy_data*/ blender::copy_data,
+    /*copy_data*/ copy_data,
 
     /*deform_verts*/ nullptr,
     /*deform_matrices*/ nullptr,
     /*deform_verts_EM*/ nullptr,
     /*deform_matrices_EM*/ nullptr,
     /*modify_mesh*/ nullptr,
-    /*modify_geometry_set*/ blender::modify_geometry_set,
+    /*modify_geometry_set*/ modify_geometry_set,
 
-    /*init_data*/ blender::init_data,
+    /*init_data*/ init_data,
     /*required_data_mask*/ nullptr,
-    /*free_data*/ blender::free_data,
-    /*is_disabled*/ blender::is_disabled,
+    /*free_data*/ free_data,
+    /*is_disabled*/ is_disabled,
     /*update_depsgraph*/ nullptr,
     /*depends_on_time*/ nullptr,
     /*depends_on_normals*/ nullptr,
-    /*foreach_ID_link*/ blender::foreach_ID_link,
+    /*foreach_ID_link*/ foreach_ID_link,
     /*foreach_tex_link*/ nullptr,
     /*free_runtime_data*/ nullptr,
-    /*panel_register*/ blender::panel_register,
-    /*blend_write*/ blender::blend_write,
-    /*blend_read*/ blender::blend_read,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ blend_write,
+    /*blend_read*/ blend_read,
 };
+
+}  // namespace blender

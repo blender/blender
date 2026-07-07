@@ -22,13 +22,13 @@
 #include "wm_gizmo_intern.hh"
 #include "wm_gizmo_wmapi.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name GizmoGroup Type Append
  *
  * \note This follows conventions from #WM_operatortype_find #WM_operatortype_append & friends.
  * \{ */
-
-using blender::StringRef;
 
 static auto &get_gizmo_group_type_map()
 {
@@ -38,7 +38,7 @@ static auto &get_gizmo_group_type_map()
       return StringRef(value->idname);
     }
   };
-  static blender::CustomIDVectorSet<wmGizmoGroupType *, IDNameGetter> map;
+  static CustomIDVectorSet<wmGizmoGroupType *, IDNameGetter> map;
   return map;
 }
 
@@ -64,8 +64,8 @@ wmGizmoGroupType *WM_gizmogrouptype_find(const StringRef idname, bool quiet)
 
 static wmGizmoGroupType *wm_gizmogrouptype_append__begin()
 {
-  wmGizmoGroupType *gzgt = MEM_callocN<wmGizmoGroupType>("gizmogrouptype");
-  gzgt->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_GizmoGroupProperties);
+  wmGizmoGroupType *gzgt = MEM_new_zeroed<wmGizmoGroupType>("gizmogrouptype");
+  gzgt->srna = RNA_def_struct_ptr(&RNA_blender_rna_get(), "", RNA_GizmoGroupProperties);
 #if 0
   /* Set the default i18n context now, so that opfunc can redefine it if needed! */
   RNA_def_struct_translation_context(ot->srna, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
@@ -78,7 +78,7 @@ static void wm_gizmogrouptype_append__end(wmGizmoGroupType *gzgt)
   BLI_assert(gzgt->name != nullptr);
   BLI_assert(gzgt->idname != nullptr);
 
-  RNA_def_struct_identifier(&BLENDER_RNA, gzgt->srna, gzgt->idname);
+  RNA_def_struct_identifier(&RNA_blender_rna_get(), gzgt->srna, gzgt->idname);
 
   gzgt->type_update_flag |= WM_GIZMOMAPTYPE_KEYMAP_INIT;
 
@@ -130,10 +130,10 @@ static void gizmogrouptype_free(wmGizmoGroupType *gzgt)
 {
   /* Python gizmo group, allocates its own string. */
   if (gzgt->rna_ext.srna) {
-    MEM_freeN(gzgt->idname);
+    MEM_delete(gzgt->idname);
   }
 
-  MEM_freeN(gzgt);
+  MEM_delete(gzgt);
 }
 
 void WM_gizmo_group_type_free_ptr(wmGizmoGroupType *gzgt)
@@ -174,3 +174,5 @@ void wm_gizmogrouptype_init()
 }
 
 /** \} */
+
+}  // namespace blender

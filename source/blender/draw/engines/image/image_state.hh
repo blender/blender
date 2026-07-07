@@ -27,7 +27,7 @@ namespace blender::image_engine {
 using namespace blender::draw;
 
 struct State {
-  ::Image *image = nullptr;
+  blender::Image *image = nullptr;
   /** Usage data of the previous time, to identify changes that require a full update. */
   ImageUsage last_usage;
 

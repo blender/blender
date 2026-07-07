@@ -29,6 +29,8 @@
 
 #include "bpy_rna.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Parsing Utility Functions
  *
@@ -49,10 +51,10 @@ static int py_rna_gizmo_parse(PyObject *o, void *p)
 {
   /* No type checking (this is `self` not a user defined argument). */
   BLI_assert(BPy_StructRNA_Check(o));
-  BLI_assert(RNA_struct_is_a(((const BPy_StructRNA *)o)->ptr->type, &RNA_Gizmo));
+  BLI_assert(RNA_struct_is_a(((const BPy_StructRNA *)o)->ptr->type, RNA_Gizmo));
 
   wmGizmo **gz_p = static_cast<wmGizmo **>(p);
-  *gz_p = static_cast<wmGizmo *>(((const BPy_StructRNA *)o)->ptr->data);
+  *gz_p = static_cast<wmGizmo *>((reinterpret_cast<const BPy_StructRNA *>(o))->ptr->data);
   return 1;
 }
 
@@ -309,25 +311,26 @@ static void py_rna_gizmo_handler_free_cb(const wmGizmo * /*gz*/, wmGizmoProperty
   }
   PyGILState_Release(gilstate);
 
-  MEM_freeN(data);
+  MEM_delete(data);
 }
 
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_gizmo_target_set_handler_doc,
-    ".. method:: target_set_handler(target, get, set, range=None):\n"
+    ".. method:: target_set_handler(target, get, set, range=None)\n"
     "\n"
     "   Assigns callbacks to a gizmos property.\n"
     "\n"
-    "   :arg target: Target property name.\n"
+    "   :param target: Target property name.\n"
     "   :type target: str\n"
-    "   :arg get: Function that returns the value for this property (single value or sequence).\n"
+    "   :param get: Function that returns the value for this property "
+    "(single value or sequence).\n"
     "   :type get: Callable[[], float | Sequence[float]]\n"
-    "   :arg set: Function that takes a single value argument and applies it.\n"
+    "   :param set: Function that takes a single value argument and applies it.\n"
     "   :type set: Callable[[tuple[float, ...]], Any]\n"
-    "   :arg range: Function that returns a (min, max) tuple for gizmos that use a range. "
+    "   :param range: Function that returns a (min, max) tuple for gizmos that use a range. "
     "The returned value is not used.\n"
-    "   :type range: callable\n");
+    "   :type range: Callable[[], tuple[float, float]] | None\n");
 static PyObject *bpy_gizmo_target_set_handler(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   struct {
@@ -343,7 +346,6 @@ static PyObject *bpy_gizmo_target_set_handler(PyObject * /*self*/, PyObject *arg
    * (see: rna_wm_gizmo_api.cc). conventions should match. */
   static const char *const _keywords[] = {"self", "target", "get", "set", "range", nullptr};
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
       "O&" /* `self` */
       "O&" /* `target` */
       "|$" /* Optional keyword only arguments. */
@@ -379,6 +381,10 @@ static PyObject *bpy_gizmo_target_set_handler(PyObject * /*self*/, PyObject *arg
   gz = params.gz_with_target_type.gz;
   gz_prop_type = params.gz_with_target_type.gz_prop_type;
 
+  if (params.py_fn_slots[BPY_GIZMO_FN_SLOT_RANGE_GET] == Py_None) {
+    params.py_fn_slots[BPY_GIZMO_FN_SLOT_RANGE_GET] = nullptr;
+  }
+
   {
     const int slots_required = 2;
     const int slots_start = 2;
@@ -396,7 +402,7 @@ static PyObject *bpy_gizmo_target_set_handler(PyObject * /*self*/, PyObject *arg
     }
   }
 
-  data = MEM_callocN<BPyGizmoHandlerUserData>(__func__);
+  data = MEM_new_zeroed<BPyGizmoHandlerUserData>(__func__);
 
   for (int i = 0; i < BPY_GIZMO_FN_SLOT_LEN; i++) {
     data->fn_slots[i] = params.py_fn_slots[i];
@@ -428,11 +434,11 @@ fail:
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_gizmo_target_get_value_doc,
-    ".. method:: target_get_value(target):\n"
+    ".. method:: target_get_value(target)\n"
     "\n"
     "   Get the value of this target property.\n"
     "\n"
-    "   :arg target: Target property name.\n"
+    "   :param target: Target property name.\n"
     "   :type target: str\n"
     "   :return: The value of the target property as a value or array based on the target type.\n"
     "   :rtype: float | tuple[float, ...]\n");
@@ -446,7 +452,6 @@ static PyObject *bpy_gizmo_target_get_value(PyObject * /*self*/, PyObject *args,
 
   static const char *const _keywords[] = {"self", "target", nullptr};
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
       "O&" /* `self` */
       "O&" /* `target` */
       ":target_get_value",
@@ -499,11 +504,11 @@ fail:
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_gizmo_target_set_value_doc,
-    ".. method:: target_set_value(target):\n"
+    ".. method:: target_set_value(target)\n"
     "\n"
     "   Set the value of this target property.\n"
     "\n"
-    "   :arg target: Target property name.\n"
+    "   :param target: Target property name.\n"
     "   :type target: str\n");
 static PyObject *bpy_gizmo_target_set_value(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
@@ -517,7 +522,6 @@ static PyObject *bpy_gizmo_target_set_value(PyObject * /*self*/, PyObject *args,
 
   static const char *const _keywords[] = {"self", "target", "value", nullptr};
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
       "O&" /* `self` */
       "O&" /* `target` */
       "O"  /* `value` */
@@ -586,11 +590,11 @@ fail:
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_gizmo_target_get_range_doc,
-    ".. method:: target_get_range(target):\n"
+    ".. method:: target_get_range(target)\n"
     "\n"
     "   Get the range for this target property.\n"
     "\n"
-    "   :arg target: Target property name.\n"
+    "   :param target: Target property name.\n"
     "   :return: The range of this property (min, max).\n"
     "   :rtype: tuple[float, float]\n");
 static PyObject *bpy_gizmo_target_get_range(PyObject * /*self*/, PyObject *args, PyObject *kw)
@@ -603,7 +607,6 @@ static PyObject *bpy_gizmo_target_get_range(PyObject * /*self*/, PyObject *args,
 
   static const char *const _keywords[] = {"self", "target", nullptr};
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
       "O&" /* `self` */
       "O&" /* `target` */
       ":target_get_range",
@@ -668,20 +671,20 @@ bool BPY_rna_gizmo_module(PyObject *mod_par)
   static PyMethodDef method_def_array[] = {
       /* Gizmo Target Property Define API */
       {"target_set_handler",
-       (PyCFunction)bpy_gizmo_target_set_handler,
+       reinterpret_cast<PyCFunction>(bpy_gizmo_target_set_handler),
        METH_VARARGS | METH_KEYWORDS,
        bpy_gizmo_target_set_handler_doc},
       /* Gizmo Target Property Access API */
       {"target_get_value",
-       (PyCFunction)bpy_gizmo_target_get_value,
+       reinterpret_cast<PyCFunction>(bpy_gizmo_target_get_value),
        METH_VARARGS | METH_KEYWORDS,
        bpy_gizmo_target_get_value_doc},
       {"target_set_value",
-       (PyCFunction)bpy_gizmo_target_set_value,
+       reinterpret_cast<PyCFunction>(bpy_gizmo_target_set_value),
        METH_VARARGS | METH_KEYWORDS,
        bpy_gizmo_target_set_value_doc},
       {"target_get_range",
-       (PyCFunction)bpy_gizmo_target_get_range,
+       reinterpret_cast<PyCFunction>(bpy_gizmo_target_get_range),
        METH_VARARGS | METH_KEYWORDS,
        bpy_gizmo_target_get_range_doc},
       /* no sentinel needed. */
@@ -699,6 +702,7 @@ bool BPY_rna_gizmo_module(PyObject *mod_par)
     PyMethodDef *m = &method_def_array[i];
     PyObject *func = PyCFunction_New(m, nullptr);
     PyObject *func_inst = PyInstanceMethod_New(func);
+    Py_DECREF(func);
     char name_prefix[128];
     PyOS_snprintf(name_prefix, sizeof(name_prefix), "_rna_gizmo_%s", m->ml_name);
     /* TODO: return a type that binds nearly to a method. */
@@ -709,3 +713,5 @@ bool BPY_rna_gizmo_module(PyObject *mod_par)
 }
 
 /** \} */
+
+}  // namespace blender

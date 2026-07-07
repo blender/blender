@@ -21,9 +21,11 @@
 #include "BLI_span.hh"
 #include "BLI_task.hh"
 
+#include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_bvhutils.hh"
+#include "BKE_deform.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_remesh_voxel.hh" /* own include */
 #include "BKE_mesh_sample.hh"
@@ -43,12 +45,7 @@
 #  include "quadriflow_capi.hpp"
 #endif
 
-using blender::Array;
-using blender::float3;
-using blender::IndexRange;
-using blender::int3;
-using blender::MutableSpan;
-using blender::Span;
+namespace blender {
 
 #ifdef WITH_QUADRIFLOW
 static Mesh *remesh_quadriflow(const Mesh *input_mesh,
@@ -60,7 +57,6 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
                                void (*update_cb)(void *, float progress, int *cancel),
                                void *update_cb_data)
 {
-  using namespace blender;
   using namespace blender::bke;
   const Span<float3> input_positions = input_mesh->vert_positions();
   const Span<int> input_corner_verts = input_mesh->corner_verts();
@@ -98,8 +94,8 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
 
   if (qrd.out_totfaces == 0) {
     /* Meshing failed */
-    MEM_freeN(qrd.out_faces);
-    MEM_freeN(qrd.out_verts);
+    MEM_delete(qrd.out_faces);
+    MEM_delete(qrd.out_verts);
     return nullptr;
   }
 
@@ -109,7 +105,7 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
   MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
-  blender::offset_indices::fill_constant_group_size(4, 0, face_offsets);
+  offset_indices::fill_constant_group_size(4, 0, face_offsets);
 
   mesh->vert_positions_for_write().copy_from(
       Span(reinterpret_cast<float3 *>(qrd.out_verts), qrd.out_totverts));
@@ -124,8 +120,8 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
 
   mesh_calc_edges(*mesh, false, false);
 
-  MEM_freeN(qrd.out_faces);
-  MEM_freeN(qrd.out_verts);
+  MEM_delete(qrd.out_faces);
+  MEM_delete(qrd.out_verts);
 
   return mesh;
 }
@@ -198,13 +194,16 @@ static Mesh *remesh_voxel_volume_to_mesh(const openvdb::FloatGrid::Ptr level_set
                                          const float adaptivity,
                                          const bool relax_disoriented_triangles)
 {
-  using namespace blender;
   using namespace blender::bke;
   std::vector<openvdb::Vec3s> vertices;
   std::vector<openvdb::Vec4I> quads;
   std::vector<openvdb::Vec3I> tris;
   openvdb::tools::volumeToMesh<openvdb::FloatGrid>(
       *level_set_grid, vertices, tris, quads, isovalue, adaptivity, relax_disoriented_triangles);
+
+  if (vertices.size() == 0 || quads.size() + tris.size() == 0) {
+    return nullptr;
+  }
 
   Mesh *mesh = BKE_mesh_new_nomain(
       vertices.size(), 0, quads.size() + tris.size(), quads.size() * 4 + tris.size() * 3);
@@ -214,8 +213,8 @@ static Mesh *remesh_voxel_volume_to_mesh(const openvdb::FloatGrid::Ptr level_set
 
   const int triangle_loop_start = quads.size() * 4;
   if (!face_offsets.is_empty()) {
-    blender::offset_indices::fill_constant_group_size(4, 0, face_offsets.take_front(quads.size()));
-    blender::offset_indices::fill_constant_group_size(
+    offset_indices::fill_constant_group_size(4, 0, face_offsets.take_front(quads.size()));
+    offset_indices::fill_constant_group_size(
         3, triangle_loop_start, face_offsets.drop_front(quads.size()));
   }
 
@@ -266,7 +265,9 @@ Mesh *BKE_mesh_remesh_voxel(const Mesh *mesh,
   }
   openvdb::FloatGrid::Ptr level_set = remesh_voxel_level_set_create(mesh, transform);
   Mesh *result = remesh_voxel_volume_to_mesh(level_set, isovalue, adaptivity, false);
-  BKE_mesh_copy_parameters(result, mesh);
+  if (result != nullptr) {
+    BKE_mesh_copy_parameters(result, mesh);
+  }
   return result;
 #else
   UNUSED_VARS(mesh, voxel_size, adaptivity, isovalue, object, modifier_data);
@@ -294,7 +295,9 @@ Mesh *BKE_mesh_remesh_voxel(const Mesh *mesh,
   }
   openvdb::FloatGrid::Ptr level_set = remesh_voxel_level_set_create(mesh, transform);
   Mesh *result = remesh_voxel_volume_to_mesh(level_set, isovalue, adaptivity, false);
-  BKE_mesh_copy_parameters(result, mesh);
+  if (result != nullptr) {
+    BKE_mesh_copy_parameters(result, mesh);
+  }
   return result;
 #else
   UNUSED_VARS(mesh, voxel_size, adaptivity, isovalue, reports);
@@ -302,7 +305,7 @@ Mesh *BKE_mesh_remesh_voxel(const Mesh *mesh,
 #endif
 }
 
-namespace blender::bke {
+namespace bke {
 
 static void calc_edge_centers(const Span<float3> positions,
                               const Span<int2> edges,
@@ -505,6 +508,8 @@ static void gather_attributes(const Span<StringRef> ids,
 
 void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
 {
+  MutableAttributeAccessor dst_attributes = dst.attributes_for_write();
+
   /* Gather attributes to transfer for each domain. This makes it possible to skip
    * building index maps and even the main BVH tree if there are no attributes. */
   const AttributeAccessor src_attributes = src.attributes();
@@ -515,6 +520,16 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
   src_attributes.foreach_attribute([&](const AttributeIter &iter) {
     if (ELEM(iter.name, "position", ".edge_verts", ".corner_vert", ".corner_edge")) {
       return;
+    }
+    if (iter.storage_type == bke::AttrStorageType::Single) {
+      const GVArray src_attr = *iter.get();
+      const CommonVArrayInfo info = src_attr.common_info();
+      if (info.type == CommonVArrayInfo::Type::Single) {
+        const bke::AttributeInitValue init(GPointer(src_attr.type(), info.data));
+        if (dst_attributes.add(iter.name, iter.domain, iter.data_type, init)) {
+          return;
+        }
+      }
     }
     switch (iter.domain) {
       case AttrDomain::Point:
@@ -562,8 +577,6 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
   const OffsetIndices dst_faces = dst.faces();
   const Span<int> dst_corner_verts = dst.corner_verts();
 
-  MutableAttributeAccessor dst_attributes = dst.attributes_for_write();
-
   if (!point_ids.is_empty() || !corner_ids.is_empty()) {
     Array<int> vert_nearest_tris(dst_positions.size());
     find_nearest_tris_parallel(dst_positions, bvhtree, vert_nearest_tris);
@@ -572,6 +585,10 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
       Array<int> map(dst.verts_num);
       find_nearest_verts(
           src_positions, src_corner_verts, src_corner_tris, dst_positions, vert_nearest_tris, map);
+      /* Copy vertex group names (otherwise `MeshVertexGroupsAttributeProvider` wont find them -
+       * and these would show up as regular attributes afterwards). "vertex_group_active_index" is
+       * taken care of via #BKE_mesh_copy_parameters(). */
+      BKE_defgroup_copy_list(&dst.vertex_group_names, &src.vertex_group_names);
       gather_attributes(point_ids, src_attributes, AttrDomain::Point, map, dst_attributes);
     }
 
@@ -621,9 +638,15 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
   if (src.default_color_attribute) {
     BKE_id_attributes_default_color_set(&dst.id, src.default_color_attribute);
   }
+  if (!src.active_uv_map_name().is_empty()) {
+    dst.uv_maps_active_set(src.active_uv_map_name());
+  }
+  if (!src.default_uv_map_name().is_empty()) {
+    dst.uv_maps_default_set(src.default_uv_map_name());
+  }
 }
 
-}  // namespace blender::bke
+}  // namespace bke
 
 Mesh *BKE_mesh_remesh_voxel_fix_poles(const Mesh *mesh)
 {
@@ -730,3 +753,5 @@ Mesh *BKE_mesh_remesh_voxel_fix_poles(const Mesh *mesh)
   BM_mesh_free(bm);
   return result;
 }
+
+}  // namespace blender

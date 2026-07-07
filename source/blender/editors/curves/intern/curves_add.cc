@@ -46,12 +46,12 @@ static bool has_surface_deformation_node(const bNodeTree &ntree)
 
 static bool has_surface_deformation_node(const Object &curves_ob)
 {
-  LISTBASE_FOREACH (const ModifierData *, md, &curves_ob.modifiers) {
-    if (md->type != eModifierType_Nodes) {
+  for (const ModifierData &md : curves_ob.modifiers) {
+    if (md.type != eModifierType_Nodes) {
       continue;
     }
-    const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
-    if (nmd->node_group == nullptr) {
+    const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(&md);
+    if (nmd->node_group == nullptr || ID_MISSING(nmd->node_group)) {
       continue;
     }
     if (has_surface_deformation_node(*nmd->node_group)) {
@@ -76,7 +76,7 @@ void ensure_surface_deformation_node_exists(bContext &C, Object &curves_ob)
   nmd.node_group = bke::node_tree_add_tree(bmain, DATA_("Surface Deform"), "GeometryNodeTree");
 
   if (!nmd.node_group->geometry_node_asset_traits) {
-    nmd.node_group->geometry_node_asset_traits = MEM_callocN<GeometryNodeAssetTraits>(__func__);
+    nmd.node_group->geometry_node_asset_traits = MEM_new<GeometryNodeAssetTraits>(__func__);
   }
 
   nmd.node_group->geometry_node_asset_traits->flag |= GEO_NODE_ASSET_MODIFIER;

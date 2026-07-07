@@ -17,7 +17,7 @@ namespace blender::nodes {
 
 struct MenuSwitchItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeEnumItem;
-  static StructRNA *item_srna;
+  static StructRNA **item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "GeometryNodeMenuSwitch";
   static constexpr bool has_type = false;
@@ -52,8 +52,8 @@ struct MenuSwitchItemsAccessor : public socket_items::SocketItemsAccessorDefault
 
   static void destruct_item(NodeEnumItem *item)
   {
-    MEM_SAFE_FREE(item->name);
-    MEM_SAFE_FREE(item->description);
+    MEM_SAFE_DELETE(item->name);
+    MEM_SAFE_DELETE(item->description);
   }
 
   static void blend_write_item(BlendWriter *writer, const ItemT &item);

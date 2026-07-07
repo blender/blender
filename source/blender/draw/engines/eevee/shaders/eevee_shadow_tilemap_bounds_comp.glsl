@@ -10,13 +10,12 @@
  * their range changes.
  */
 
-#include "infos/eevee_shadow_info.hh"
+#include "infos/eevee_shadow_pipeline_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_shadow_tilemap_bounds)
 
-#include "draw_intersect_lib.glsl"
+#include "draw_shape_lib.glsl"
 #include "eevee_light_iter_lib.glsl"
-#include "eevee_shadow_tilemap_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
 shared int global_min;

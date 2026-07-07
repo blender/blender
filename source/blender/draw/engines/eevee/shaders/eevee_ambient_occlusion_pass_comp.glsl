@@ -2,12 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/eevee_ambient_occlusion_info.hh"
+#include "infos/eevee_ambient_occlusion_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_ambient_occlusion_pass)
 
 #include "eevee_horizon_scan_eval_lib.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
+#include "eevee_utility_tx_lib.glsl"
 
 void main()
 {
@@ -30,7 +30,8 @@ void main()
   float3 N = imageLoad(in_normal_img, int3(texel, in_normal_img_layer_index)).xyz;
   float3 vN = drw_normal_world_to_view(N);
 
-  float4 noise = utility_tx_fetch(utility_tx, float2(texel), UTIL_BLUE_NOISE_LAYER);
+  auto &lut_tx = sampler_get(eevee_utility_texture, utility_tx);
+  float4 noise = utility_tx_fetch(lut_tx, float2(texel), UTIL_BLUE_NOISE_LAYER);
   noise = fract(noise + sampling_rng_3D_get(SAMPLING_AO_U).xyzx);
 
   HorizonScanResult scan = horizon_scan_eval(vP,

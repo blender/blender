@@ -13,12 +13,14 @@
 
 #pragma once
 
-#include "BLI_utildefines.h"
+#include "BLI_enum_flags.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_listBase.h"
 
 #include "RNA_types.hh"
+
+namespace blender {
 
 struct IDProperty;
 struct wmGizmo;
@@ -45,7 +47,7 @@ enum eWM_GizmoFlagState {
   WM_GIZMO_STATE_MODAL = (1 << 1),
   WM_GIZMO_STATE_SELECT = (1 << 2),
 };
-ENUM_OPERATORS(eWM_GizmoFlagState, WM_GIZMO_STATE_SELECT)
+ENUM_OPERATORS(eWM_GizmoFlagState)
 
 /**
  * #wmGizmo.flag
@@ -90,7 +92,7 @@ enum eWM_GizmoFlag {
   /** Push an undo step after each use of the gizmo. */
   WM_GIZMO_NEEDS_UNDO = (1 << 13),
 };
-ENUM_OPERATORS(eWM_GizmoFlag, WM_GIZMO_NEEDS_UNDO);
+ENUM_OPERATORS(eWM_GizmoFlag);
 
 /**
  * #wmGizmoGroupType.flag
@@ -156,7 +158,7 @@ enum eWM_GizmoFlagGroupTypeFlag {
   WM_GIZMOGROUPTYPE_VR_REDRAWS = (1 << 10),
 };
 
-ENUM_OPERATORS(eWM_GizmoFlagGroupTypeFlag, WM_GIZMOGROUPTYPE_VR_REDRAWS);
+ENUM_OPERATORS(eWM_GizmoFlagGroupTypeFlag);
 
 /**
  * #wmGizmoGroup.init_flag
@@ -166,7 +168,7 @@ enum eWM_GizmoFlagGroupInitFlag {
   WM_GIZMOGROUP_INIT_SETUP = (1 << 0),
   WM_GIZMOGROUP_INIT_REFRESH = (1 << 1),
 };
-ENUM_OPERATORS(eWM_GizmoFlagGroupInitFlag, WM_GIZMOGROUP_INIT_REFRESH)
+ENUM_OPERATORS(eWM_GizmoFlagGroupInitFlag)
 
 /**
  * #wmGizmoMapType.type_update_flag
@@ -181,7 +183,7 @@ enum eWM_GizmoFlagMapTypeUpdateFlag {
    * So we need to keep track of keymap initialization separately. */
   WM_GIZMOMAPTYPE_KEYMAP_INIT = (1 << 2),
 };
-ENUM_OPERATORS(eWM_GizmoFlagMapTypeUpdateFlag, WM_GIZMOMAPTYPE_KEYMAP_INIT)
+ENUM_OPERATORS(eWM_GizmoFlagMapTypeUpdateFlag)
 
 /* -------------------------------------------------------------------- */
 /* #wmGizmo. */
@@ -199,7 +201,11 @@ enum eWM_GizmoFlagTweak {
   WM_GIZMO_TWEAK_SNAP = (1 << 1),
 };
 
+}  // namespace blender
+
 #include "wm_gizmo_fn.hh"
+
+namespace blender {
 
 struct wmGizmoOpElem {
   wmOperatorType *type = nullptr;
@@ -279,13 +285,13 @@ struct wmGizmo {
 
   /** Operator to spawn when activating the gizmo (overrides property editing),
    * an array of items (aligned with #wmGizmo.highlight_part). */
-  blender::Vector<wmGizmoOpElem, 4> op_data;
+  Vector<wmGizmoOpElem, 4> op_data;
 
   IDProperty *properties;
 
   /* TODO: Once wmGizmo itself gets an actual constructor, this can most likely become a
-   * `blender::Array`, since length is defined by the gizmo type. */
-  blender::Vector<wmGizmoProperty, 0> target_properties;
+   * `Array`, since length is defined by the gizmo type. */
+  Vector<wmGizmoProperty, 0> target_properties;
 
   /** Redraw tag. */
   bool do_draw;
@@ -310,6 +316,7 @@ struct wmGizmoProperty {
     wmGizmoPropertyFnSet value_set_fn = nullptr;
     wmGizmoPropertyFnRangeGet range_get_fn = nullptr;
     wmGizmoPropertyFnFree free_fn = nullptr;
+    wmGizmoPropertyFnForeachRNAProp foreach_rna_prop_fn = nullptr;
     void *user_data = nullptr;
   } custom_func = {};
 };
@@ -403,7 +410,7 @@ struct wmGizmoType {
   /** RNA integration. */
   ExtensionRNA rna_ext;
 
-  ListBase target_property_defs;
+  ListBaseT<wmGizmoPropertyType> target_property_defs;
   int target_property_defs_len;
 };
 
@@ -477,7 +484,7 @@ struct wmGizmoGroup {
   wmGizmoGroup *next, *prev;
 
   wmGizmoGroupType *type;
-  ListBase gizmos;
+  ListBaseT<wmGizmo> gizmos;
 
   wmGizmoMap *parent_gzmap;
 
@@ -515,3 +522,5 @@ enum eWM_GizmoFlagMapDrawStep {
   WM_GIZMOMAP_DRAWSTEP_3D,
 };
 #define WM_GIZMOMAP_DRAWSTEP_MAX 2
+
+}  // namespace blender

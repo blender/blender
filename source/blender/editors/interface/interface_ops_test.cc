@@ -15,6 +15,7 @@
 #include "DNA_anim_types.h"
 
 #include "RNA_access.hh"
+#include "RNA_define.hh"
 #include "RNA_prototypes.hh"
 
 #include "BLI_listbase.h"
@@ -31,7 +32,7 @@
 #include "CLG_log.h"
 #include "testing/testing.h"
 
-namespace blender::interface::tests {
+namespace blender::ui::tests {
 
 class CopyDriversToSelected : public testing::Test {
  public:
@@ -55,6 +56,8 @@ class CopyDriversToSelected : public testing::Test {
 
     /* To make id_can_have_animdata() and friends work, the `id_types` array needs to be set up. */
     BKE_idtype_init();
+
+    RNA_init();
   }
 
   static void TearDownTestSuite()
@@ -69,11 +72,11 @@ class CopyDriversToSelected : public testing::Test {
     cube = BKE_object_add_only_object(bmain, OB_EMPTY, "OBCube");
     suzanne = BKE_object_add_only_object(bmain, OB_EMPTY, "OBSuzanne");
 
-    cube_ptr = RNA_pointer_create_discrete(&cube->id, &RNA_Object, &cube->id);
+    cube_ptr = RNA_pointer_create_discrete(&cube->id, RNA_Object, &cube->id);
     cube_quaternion_prop = RNA_struct_find_property(&cube_ptr, "rotation_quaternion");
     cube_rotation_mode_prop = RNA_struct_find_property(&cube_ptr, "rotation_mode");
 
-    suzanne_ptr = RNA_pointer_create_discrete(&suzanne->id, &RNA_Object, &suzanne->id);
+    suzanne_ptr = RNA_pointer_create_discrete(&suzanne->id, RNA_Object, &suzanne->id);
     suzanne_quaternion_prop = RNA_struct_find_property(&suzanne_ptr, "rotation_quaternion");
     suzanne_rotation_mode_prop = RNA_struct_find_property(&suzanne_ptr, "rotation_mode");
 
@@ -109,10 +112,10 @@ class CopyDriversToSelected : public testing::Test {
     STRNCPY_UTF8(suzanne_rotation_mode_driver->driver->expression, "4");
 
     /* Add animation to cube's fourth quaternion element. */
-    PointerRNA cube_ptr = RNA_pointer_create_discrete(&cube->id, &RNA_Object, &cube->id);
+    PointerRNA cube_ptr = RNA_pointer_create_discrete(&cube->id, RNA_Object, &cube->id);
     bAction *act = animrig::id_action_ensure(bmain, &cube->id);
     FCurve *fcu = animrig::action_fcurve_ensure_ex(
-        bmain, act, "Object Transforms", &cube_ptr, {"rotation_quaternion", 3});
+        bmain, act, &cube_ptr, {"rotation_quaternion", 3});
     animrig::KeyframeSettings keyframe_settings = {BEZT_KEYTYPE_KEYFRAME, HD_AUTO, BEZT_IPO_BEZ};
     insert_vert_fcurve(fcu, {1.0, 1.0}, keyframe_settings, INSERTKEY_NOFLAGS);
   }
@@ -120,6 +123,7 @@ class CopyDriversToSelected : public testing::Test {
   void TearDown() override
   {
     BKE_main_free(bmain);
+    RNA_exit();
   }
 };
 
@@ -287,4 +291,4 @@ TEST_F(CopyDriversToSelected, paste_property_drivers)
   }
 }
 
-}  // namespace blender::interface::tests
+}  // namespace blender::ui::tests

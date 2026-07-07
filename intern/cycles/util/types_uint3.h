@@ -47,7 +47,7 @@ struct packed_uint3 {
   ccl_device_inline_method packed_uint3() = default;
 
   ccl_device_inline_method packed_uint3(const uint px, const uint py, const uint pz)
-      : x(px), y(py), z(pz){};
+      : x(px), y(py), z(pz) {};
 
   ccl_device_inline_method packed_uint3(const uint3 &a) : x(a.x), y(a.y), z(a.z) {}
 

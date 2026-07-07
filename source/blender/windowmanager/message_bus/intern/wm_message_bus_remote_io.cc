@@ -19,6 +19,8 @@
 #include "WM_types.hh"
 #include "message_bus/intern/wm_message_bus_intern.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------------- */
 
 static uint wm_msg_remote_io_gset_hash(const void *key_p)
@@ -41,14 +43,14 @@ static void *wm_msg_remote_io_gset_key_duplicate(const void *key_p)
 {
   const wmMsgSubscribeKey_RemoteIO *key_src = static_cast<const wmMsgSubscribeKey_RemoteIO *>(
       key_p);
-  wmMsgSubscribeKey_RemoteIO *key = MEM_dupallocN<wmMsgSubscribeKey_RemoteIO>(__func__, *key_src);
+  wmMsgSubscribeKey_RemoteIO *key = MEM_new<wmMsgSubscribeKey_RemoteIO>(__func__, *key_src);
   key->msg.params.remote_url = BLI_strdup(key_src->msg.params.remote_url);
   return key;
 }
 static void wm_msg_remote_io_gset_key_free(void *key_p)
 {
   wmMsgSubscribeKey_RemoteIO *key = static_cast<wmMsgSubscribeKey_RemoteIO *>(key_p);
-  MEM_freeN(key->msg.params.remote_url);
+  MEM_delete(key->msg.params.remote_url);
   wmMsgSubscribeValueLink *msg_lnk_next;
   for (wmMsgSubscribeValueLink *msg_lnk =
            static_cast<wmMsgSubscribeValueLink *>(key->head.values.first);
@@ -57,14 +59,15 @@ static void wm_msg_remote_io_gset_key_free(void *key_p)
   {
     msg_lnk_next = msg_lnk->next;
     BLI_remlink(&key->head.values, msg_lnk);
-    MEM_freeN(msg_lnk);
+    MEM_delete(msg_lnk);
   }
-  MEM_freeN(key);
+  MEM_delete(key);
 }
 
 static void wm_msg_remote_io_repr(FILE *stream, const wmMsgSubscribeKey *msg_key)
 {
-  const wmMsgSubscribeKey_RemoteIO *m = (wmMsgSubscribeKey_RemoteIO *)msg_key;
+  const wmMsgSubscribeKey_RemoteIO *m = reinterpret_cast<wmMsgSubscribeKey_RemoteIO *>(
+      const_cast<wmMsgSubscribeKey *>(msg_key));
   fprintf(stream,
           "<wmMsg_RemoteIO %p, "
           "id='%s', "
@@ -104,14 +107,14 @@ void WM_msg_publish_remote_io_params(wmMsgBus *mbus, const wmMsgParams_RemoteIO 
   }
 }
 
-void WM_msg_publish_remote_io(wmMsgBus *mbus, const blender::StringRef remote_url)
+void WM_msg_publish_remote_io(wmMsgBus *mbus, const StringRef remote_url)
 {
   wmMsgParams_RemoteIO params{};
   params.remote_url = BLI_strdupn(remote_url.data(), remote_url.size());
   WM_msg_publish_remote_io_params(mbus, &params);
 
   /* Value was copied into the publish key. */
-  MEM_freeN(params.remote_url);
+  MEM_delete(params.remote_url);
 }
 
 void WM_msg_subscribe_remote_io_params(wmMsgBus *mbus,
@@ -131,7 +134,7 @@ void WM_msg_subscribe_remote_io_params(wmMsgBus *mbus,
 }
 
 void WM_msg_subscribe_remote_io(wmMsgBus *mbus,
-                                const blender::StringRef remote_url,
+                                const StringRef remote_url,
                                 const wmMsgSubscribeValue *msg_val_params,
                                 const char *id_repr)
 {
@@ -140,5 +143,7 @@ void WM_msg_subscribe_remote_io(wmMsgBus *mbus,
   WM_msg_subscribe_remote_io_params(mbus, &params, msg_val_params, id_repr);
 
   /* Value was copied into the subscribe key. */
-  MEM_freeN(params.remote_url);
+  MEM_delete(params.remote_url);
 }
+
+}  // namespace blender

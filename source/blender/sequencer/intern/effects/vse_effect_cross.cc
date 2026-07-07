@@ -45,7 +45,8 @@ struct CrossEffectOp {
 };
 
 static ImBuf *do_cross_effect(const RenderData *context,
-                              Strip * /*seq*/,
+                              SeqRenderState * /*state*/,
+                              Strip * /*strip*/,
                               float /*timeline_frame*/,
                               float fac,
                               ImBuf *src1,
@@ -98,7 +99,8 @@ struct GammaCrossEffectOp {
 };
 
 static ImBuf *do_gammacross_effect(const RenderData *context,
-                                   Strip * /*seq*/,
+                                   SeqRenderState * /*state*/,
+                                   Strip * /*strip*/,
                                    float /*timeline_frame*/,
                                    float fac,
                                    ImBuf *src1,
@@ -115,13 +117,11 @@ void cross_effect_get_handle(EffectHandle &rval)
 {
   rval.execute = do_cross_effect;
   rval.early_out = early_out_fade;
-  rval.get_default_fac = get_default_fac_fade;
 }
 
 void gamma_cross_effect_get_handle(EffectHandle &rval)
 {
   rval.early_out = early_out_fade;
-  rval.get_default_fac = get_default_fac_fade;
   rval.execute = do_gammacross_effect;
 }
 

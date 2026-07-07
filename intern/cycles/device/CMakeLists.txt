@@ -6,7 +6,8 @@ set(INC
   ..
 )
 
-set(INC_SYS )
+set(INC_SYS
+)
 
 if(WITH_CYCLES_DEVICE_OPTIX OR WITH_CYCLES_DEVICE_CUDA)
   if(NOT WITH_CUDA_DYNLOAD)
@@ -77,6 +78,8 @@ set(SRC_ONEAPI
   oneapi/device_impl.h
   oneapi/device.cpp
   oneapi/device.h
+  oneapi/graphics_interop.cpp
+  oneapi/graphics_interop.h
   oneapi/queue.cpp
   oneapi/queue.h
 )
@@ -172,18 +175,15 @@ if(WITH_CYCLES_DEVICE_METAL)
 endif()
 
 if(WITH_CYCLES_DEVICE_ONEAPI)
-  if(WITH_CYCLES_ONEAPI_HOST_TASK_EXECUTION)
-    add_definitions(-DWITH_ONEAPI_SYCL_HOST_TASK)
-  endif()
   if(WITH_CYCLES_ONEAPI_BINARIES)
     set(cycles_kernel_oneapi_lib_suffix "_aot")
   else()
     set(cycles_kernel_oneapi_lib_suffix "_jit")
   endif()
   if(WIN32)
-    set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/../kernel/cycles_kernel_oneapi${cycles_kernel_oneapi_lib_suffix}.lib)
+    set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/../kernel/device/oneapi/cycles_kernel_oneapi${cycles_kernel_oneapi_lib_suffix}.lib)
   else()
-    set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/../kernel/libcycles_kernel_oneapi${cycles_kernel_oneapi_lib_suffix}.so)
+    set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/../kernel/device/oneapi/libcycles_kernel_oneapi${cycles_kernel_oneapi_lib_suffix}.so)
   endif()
   list(APPEND LIB
     ${cycles_kernel_oneapi_lib}
@@ -195,6 +195,33 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   list(APPEND INC_SYS
     ${SYCL_INCLUDE_DIR}
   )
+
+  # Test for the presence of sycl::ext::oneapi::experimental::unmap_external_linear_memory (necessary for interop).
+  # https://github.com/intel/llvm/blob/sycl/sycl/doc/extensions/experimental/sycl_ext_oneapi_bindless_images.asciidoc
+  include(CheckCXXSourceCompiles)
+  set(CMAKE_REQUIRED_INCLUDES "${SYCL_INCLUDE_DIR}")
+  set(CMAKE_REQUIRED_LIBRARIES "${SYCL_LIBRARIES}")
+  check_cxx_source_compiles("
+      #include <sycl/ext/oneapi/bindless_images.hpp>
+      int main()
+      {
+          sycl::queue sycl_queue{sycl::gpu_selector_v};
+          sycl::ext::oneapi::experimental::unmap_external_linear_memory(nullptr, sycl_queue);
+      }
+  " SYCL_UNMAP_EXTERNAL_LINEAR_MEMORY_SUPPORTED)
+  if (SYCL_UNMAP_EXTERNAL_LINEAR_MEMORY_SUPPORTED)
+    foreach(FILE ${SRC_ONEAPI})
+      set_source_files_properties(
+          ${FILE} PROPERTIES COMPILE_DEFINITIONS "SYCL_LINEAR_MEMORY_INTEROP_AVAILABLE"
+      )
+    endforeach()
+  else()
+    message(WARNING
+      "The installed SYCL version does not support unmap_external_linear_memory. "
+      "Upgrade to oneAPI >= 2025.3 or DPC++ >= 6.2 to support Vulkan-oneAPI interoperability.")
+  endif()
+  unset(CMAKE_REQUIRED_INCLUDES)
+  unset(CMAKE_REQUIRED_LIBRARIES)
 endif()
 
 if(WITH_OPENIMAGEDENOISE)
@@ -205,7 +232,7 @@ endif()
 
 if(WITH_CYCLES_OSL)
   list(APPEND LIB
-    ${OSL_LIBRARIES}
+    bf::dependencies::optional::osl
   )
 endif()
 

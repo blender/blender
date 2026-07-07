@@ -164,7 +164,7 @@ static gpu::IndexBufPtr extract_edituv_tris_mesh(const MeshRenderData &mr,
 
 gpu::IndexBufPtr extract_edituv_tris(const MeshRenderData &mr, const bool edit_uvs)
 {
-  const bool sync_selection = edit_uvs ? (mr.toolsettings->uv_flag & UV_FLAG_SYNC_SELECT) : false;
+  const bool sync_selection = edit_uvs ? (mr.toolsettings->uv_flag & UV_FLAG_SELECT_SYNC) : false;
   if (mr.extract_type == MeshExtractType::BMesh) {
     return extract_edituv_tris_bm(mr, sync_selection);
   }
@@ -244,7 +244,7 @@ static gpu::IndexBufPtr extract_edituv_tris_subdiv_mesh(const MeshRenderData &mr
 gpu::IndexBufPtr extract_edituv_tris_subdiv(const MeshRenderData &mr,
                                             const DRWSubdivCache &subdiv_cache)
 {
-  const bool sync_selection = (mr.toolsettings->uv_flag & UV_FLAG_SYNC_SELECT) != 0;
+  const bool sync_selection = (mr.toolsettings->uv_flag & UV_FLAG_SELECT_SYNC) != 0;
   if (mr.extract_type == MeshExtractType::BMesh) {
     return extract_edituv_tris_subdiv_bm(mr, subdiv_cache, sync_selection);
   }
@@ -369,7 +369,7 @@ gpu::IndexBufPtr extract_edituv_lines(const MeshRenderData &mr, const UvExtracti
       sync_selection = true;
       break;
     case UvExtractionMode::Edit:
-      sync_selection = ((mr.toolsettings->uv_flag & UV_FLAG_SYNC_SELECT) != 0);
+      sync_selection = ((mr.toolsettings->uv_flag & UV_FLAG_SELECT_SYNC) != 0);
       break;
     case UvExtractionMode::Selection:
       sync_selection = false;
@@ -484,7 +484,7 @@ gpu::IndexBufPtr extract_edituv_lines_subdiv(const MeshRenderData &mr,
       sync_selection = true;
       break;
     case UvExtractionMode::Edit:
-      sync_selection = ((mr.toolsettings->uv_flag & UV_FLAG_SYNC_SELECT) != 0);
+      sync_selection = ((mr.toolsettings->uv_flag & UV_FLAG_SELECT_SYNC) != 0);
       break;
     case UvExtractionMode::Selection:
       sync_selection = false;
@@ -551,7 +551,7 @@ static void extract_edituv_points_mesh(const MeshRenderData &mr,
 
 gpu::IndexBufPtr extract_edituv_points(const MeshRenderData &mr)
 {
-  const bool sync_selection = (mr.toolsettings->uv_flag & UV_FLAG_SYNC_SELECT) != 0;
+  const bool sync_selection = (mr.toolsettings->uv_flag & UV_FLAG_SELECT_SYNC) != 0;
 
   GPUIndexBufBuilder builder;
   GPU_indexbuf_init(&builder, GPU_PRIM_POINTS, mr.corners_num, mr.corners_num);
@@ -621,7 +621,7 @@ static void extract_edituv_points_subdiv_mesh(const MeshRenderData &mr,
 gpu::IndexBufPtr extract_edituv_points_subdiv(const MeshRenderData &mr,
                                               const DRWSubdivCache &subdiv_cache)
 {
-  const bool sync_selection = (mr.toolsettings->uv_flag & UV_FLAG_SYNC_SELECT) != 0;
+  const bool sync_selection = (mr.toolsettings->uv_flag & UV_FLAG_SELECT_SYNC) != 0;
 
   GPUIndexBufBuilder builder;
   GPU_indexbuf_init(
@@ -692,7 +692,7 @@ static gpu::IndexBufPtr extract_edituv_face_dots_mesh(const MeshRenderData &mr,
 
 gpu::IndexBufPtr extract_edituv_face_dots(const MeshRenderData &mr)
 {
-  const bool sync_selection = (mr.toolsettings->uv_flag & UV_FLAG_SYNC_SELECT) != 0;
+  const bool sync_selection = (mr.toolsettings->uv_flag & UV_FLAG_SELECT_SYNC) != 0;
   if (mr.extract_type == MeshExtractType::BMesh) {
     return extract_edituv_face_dots_bm(mr, sync_selection);
   }

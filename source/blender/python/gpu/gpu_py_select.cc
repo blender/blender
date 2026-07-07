@@ -23,6 +23,8 @@
 #include "gpu_py.hh"
 #include "gpu_py_select.hh" /* Own include. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Methods
  * \{ */
@@ -34,8 +36,8 @@ PyDoc_STRVAR(
     "\n"
     "   Set the selection ID.\n"
     "\n"
-    "   :arg id: Number (32-bit uint).\n"
-    "   :type select: int\n");
+    "   :param id: Number (32-bit uint).\n"
+    "   :type id: int\n");
 static PyObject *pygpu_select_load_id(PyObject * /*self*/, PyObject *value)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
@@ -56,7 +58,7 @@ static PyObject *pygpu_select_load_id(PyObject * /*self*/, PyObject *value)
 
 static PyMethodDef pygpu_select__tp_methods[] = {
     /* Manage Stack */
-    {"load_id", (PyCFunction)pygpu_select_load_id, METH_O, pygpu_select_load_id_doc},
+    {"load_id", static_cast<PyCFunction>(pygpu_select_load_id), METH_O, pygpu_select_load_id_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 
@@ -86,3 +88,5 @@ PyObject *bpygpu_select_init()
 }
 
 /** \} */
+
+}  // namespace blender

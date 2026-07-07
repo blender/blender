@@ -2,15 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
-#include "BLI_math_base.hh"
-#include "BLI_math_numbers.hh"
-
-#include "UI_interface_layout.hh"
-#include "UI_resources.hh"
+#include <numbers>
 
 #include "GPU_shader.hh"
 
@@ -19,11 +11,9 @@
 
 #include "node_composite_util.hh"
 
-/* **************** SPLIT NODE ******************** */
-
 namespace blender::nodes::node_composite_split_cc {
 
-static void cmp_node_split_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Vector>("Position")
       .dimensions(2)
@@ -33,7 +23,7 @@ static void cmp_node_split_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .description("Line position where the image should be split");
   b.add_input<decl::Float>("Rotation")
-      .default_value(math::numbers::pi_v<float> / 4.0f)
+      .default_value(std::numbers::pi_v<float> / 4.0f)
       .subtype(PROP_ANGLE)
       .description("Line angle where the image should be split");
 
@@ -80,7 +70,7 @@ class SplitOperation : public NodeOperation {
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     first_image.unbind_as_texture();
     second_image.unbind_as_texture();
@@ -101,41 +91,37 @@ class SplitOperation : public NodeOperation {
     const float2 normal = {-math::sin(rotation), math::cos(rotation)};
     const float2 line_point = this->get_position(domain);
 
-    parallel_for(domain.size, [&](const int2 texel) {
+    parallel_for(domain.data_size, [&](const int2 texel) {
       const float2 direction_to_line_point = line_point - float2(texel);
       const float projection = math::dot(normal, direction_to_line_point);
       const bool is_below_line = projection <= 0;
       output_image.store_pixel(texel,
-                               is_below_line ? first_image.load_pixel<float4, true>(texel) :
-                                               second_image.load_pixel<float4, true>(texel));
+                               is_below_line ? first_image.load_pixel<Color, true>(texel) :
+                                               second_image.load_pixel<Color, true>(texel));
     });
   }
 
   float2 get_position(const Domain &domain)
   {
     const float2 relative_position =
-        this->get_input("Position").get_single_value_default(float2(0.5f, 0.5f));
-    return float2(domain.size) * relative_position;
+        this->get_input("Position").get_single_value_default<float2>();
+    return float2(domain.data_size) * relative_position;
   }
 
   math::AngleRadian get_rotation()
   {
-    return this->get_input("Rotation").get_single_value_default(0.0f);
+    return this->get_input("Rotation").get_single_value_default<float>();
   }
 };
 
-static NodeOperation *get_compositor_operation(Context &context, DNode node)
+static NodeOperation *get_compositor_operation(Context &context, const bNode &node)
 {
   return new SplitOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_split_cc
-
-static void register_node_type_cmp_split()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_composite_split_cc;
-
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeSplit", CMP_NODE_SPLIT);
   ntype.ui_name = "Split";
@@ -144,12 +130,12 @@ static void register_node_type_cmp_split()
       "node";
   ntype.enum_name_legacy = "SPLIT";
   ntype.nclass = NODE_CLASS_CONVERTER;
-  ntype.declare = file_ns::cmp_node_split_declare;
+  ntype.declare = node_declare;
   ntype.flag |= NODE_PREVIEW;
-  ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.get_compositor_operation = get_compositor_operation;
 
-  ntype.no_muting = true;
-
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_split)
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_composite_split_cc

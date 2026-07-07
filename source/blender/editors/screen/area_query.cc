@@ -8,6 +8,8 @@
  * Query functions for area/region.
  */
 
+#include "BKE_screen.hh"
+
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_utildefines.h"
@@ -17,6 +19,8 @@
 #include "UI_interface.hh"
 #include "UI_view2d.hh"
 
+namespace blender {
+
 bool ED_region_overlap_isect_x(const ARegion *region, const int event_x)
 {
   BLI_assert(region->overlap);
@@ -24,8 +28,11 @@ bool ED_region_overlap_isect_x(const ARegion *region, const int event_x)
   if (region->v2d.mask.xmin == region->v2d.mask.xmax) {
     return false;
   }
-  return BLI_rctf_isect_x(&region->v2d.tot,
-                          UI_view2d_region_to_view_x(&region->v2d, event_x - region->winrct.xmin));
+  if ((event_x < region->winrct.xmin) || (event_x > region->winrct.xmax)) {
+    return false;
+  }
+  return BLI_rctf_isect_x(
+      &region->v2d.tot, ui::view2d_region_to_view_x(&region->v2d, event_x - region->winrct.xmin));
 }
 
 bool ED_region_overlap_isect_y(const ARegion *region, const int event_y)
@@ -35,8 +42,11 @@ bool ED_region_overlap_isect_y(const ARegion *region, const int event_y)
   if (region->v2d.mask.ymin == region->v2d.mask.ymax) {
     return false;
   }
-  return BLI_rctf_isect_y(&region->v2d.tot,
-                          UI_view2d_region_to_view_y(&region->v2d, event_y - region->winrct.ymin));
+  if ((event_y < region->winrct.ymin) || (event_y > region->winrct.ymax)) {
+    return false;
+  }
+  return BLI_rctf_isect_y(
+      &region->v2d.tot, ui::view2d_region_to_view_y(&region->v2d, event_y - region->winrct.ymin));
 }
 
 bool ED_region_overlap_isect_xy(const ARegion *region, const int event_xy[2])
@@ -47,9 +57,12 @@ bool ED_region_overlap_isect_xy(const ARegion *region, const int event_xy[2])
 
 bool ED_region_overlap_isect_any_xy(const ScrArea *area, const int event_xy[2])
 {
-  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    if (ED_region_is_overlap(area->spacetype, region->regiontype)) {
-      if (ED_region_overlap_isect_xy(region, event_xy)) {
+  for (ARegion &region : area->regionbase) {
+    if (!region.runtime->visible) {
+      continue;
+    }
+    if (ED_region_is_overlap(area->spacetype, region.regiontype)) {
+      if (ED_region_overlap_isect_xy(&region, event_xy)) {
         return true;
       }
     }
@@ -60,8 +73,8 @@ bool ED_region_overlap_isect_any_xy(const ScrArea *area, const int event_xy[2])
 bool ED_region_panel_category_gutter_calc_rect(const ARegion *region, rcti *r_region_gutter)
 {
   *r_region_gutter = region->winrct;
-  if (UI_panel_category_is_visible(region)) {
-    const int category_tabs_width = round_fl_to_int(UI_view2d_scale_get_x(&region->v2d) *
+  if (ui::panel_category_tabs_is_visible(region)) {
+    const int category_tabs_width = round_fl_to_int(ui::view2d_scale_get_x(&region->v2d) *
                                                     UI_PANEL_CATEGORY_MARGIN_WIDTH);
     const int alignment = RGN_ALIGN_ENUM_FROM_MASK(region->alignment);
 
@@ -97,9 +110,12 @@ bool ED_region_overlap_isect_x_with_margin(const ARegion *region,
   if (region->v2d.mask.xmin == region->v2d.mask.xmax) {
     return false;
   }
-  int region_x = event_x - region->winrct.xmin;
-  return ((region->v2d.tot.xmin <= UI_view2d_region_to_view_x(&region->v2d, region_x + margin)) &&
-          (region->v2d.tot.xmax >= UI_view2d_region_to_view_x(&region->v2d, region_x - margin)));
+  if ((event_x < region->winrct.xmin) || (event_x > region->winrct.xmax)) {
+    return false;
+  }
+  const int region_x = event_x - region->winrct.xmin;
+  return ((region->v2d.tot.xmin <= ui::view2d_region_to_view_x(&region->v2d, region_x + margin)) &&
+          (region->v2d.tot.xmax >= ui::view2d_region_to_view_x(&region->v2d, region_x - margin)));
 }
 
 bool ED_region_overlap_isect_y_with_margin(const ARegion *region,
@@ -111,9 +127,12 @@ bool ED_region_overlap_isect_y_with_margin(const ARegion *region,
   if (region->v2d.mask.ymin == region->v2d.mask.ymax) {
     return false;
   }
-  int region_y = event_y - region->winrct.ymin;
-  return ((region->v2d.tot.ymin <= UI_view2d_region_to_view_y(&region->v2d, region_y + margin)) &&
-          (region->v2d.tot.ymax >= UI_view2d_region_to_view_y(&region->v2d, region_y - margin)));
+  if ((event_y < region->winrct.ymin) || (event_y > region->winrct.ymax)) {
+    return false;
+  }
+  const int region_y = event_y - region->winrct.ymin;
+  return (region->v2d.tot.ymin <= ui::view2d_region_to_view_y(&region->v2d, region_y + margin)) &&
+         (region->v2d.tot.ymax >= ui::view2d_region_to_view_y(&region->v2d, region_y - margin));
 }
 
 bool ED_region_overlap_isect_xy_with_margin(const ARegion *region,
@@ -136,7 +155,7 @@ bool ED_region_contains_xy(const ARegion *region, const int event_xy[2])
         /* Header. */
         rcti rect;
         BLI_rcti_init_pt_radius(&rect, event_xy, overlap_margin);
-        if (UI_region_but_find_rect_over(region, &rect) == nullptr) {
+        if (ui::region_but_find_rect_over(region, &rect) == nullptr) {
           return false;
         }
       }
@@ -182,27 +201,29 @@ ARegion *ED_area_find_region_xy_visual(const ScrArea *area,
   }
 
   /* Check overlapped regions first. */
-  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    if (!region->overlap) {
+  for (ARegion &region : area->regionbase) {
+    if (!region.overlap) {
       continue;
     }
-    if (ELEM(regiontype, RGN_TYPE_ANY, region->regiontype)) {
-      if (ED_region_contains_xy(region, event_xy)) {
-        return region;
+    if (ELEM(regiontype, RGN_TYPE_ANY, region.regiontype)) {
+      if (ED_region_contains_xy(&region, event_xy)) {
+        return &region;
       }
     }
   }
   /* Now non-overlapping ones. */
-  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    if (region->overlap) {
+  for (ARegion &region : area->regionbase) {
+    if (region.overlap) {
       continue;
     }
-    if (ELEM(regiontype, RGN_TYPE_ANY, region->regiontype)) {
-      if (ED_region_contains_xy(region, event_xy)) {
-        return region;
+    if (ELEM(regiontype, RGN_TYPE_ANY, region.regiontype)) {
+      if (ED_region_contains_xy(&region, event_xy)) {
+        return &region;
       }
     }
   }
 
   return nullptr;
 }
+
+}  // namespace blender

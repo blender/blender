@@ -56,7 +56,7 @@ class CONSOLE_MT_view(Menu):
 
 
 class CONSOLE_MT_language(Menu):
-    bl_label = "Languages..."
+    bl_label = "Languages"
 
     def draw(self, _context):
         import sys
@@ -64,11 +64,11 @@ class CONSOLE_MT_language(Menu):
         layout = self.layout
         layout.column()
 
-        # Collect modules with `console_*.execute`.
+        # Collect modules with `_console_*.execute`.
         languages = []
         for modname, mod in sys.modules.items():
-            if modname.startswith("console_") and hasattr(mod, "execute"):
-                languages.append(modname.split("_", 1)[-1])
+            if modname.startswith("_console_") and hasattr(mod, "execute"):
+                languages.append(modname.split("_", 2)[-1])
 
         languages.sort()
 

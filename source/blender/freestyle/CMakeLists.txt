@@ -538,10 +538,8 @@ set(LIB
   PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   bf_python_mathutils
-
-  ${PYTHON_LINKFLAGS}
-  ${PYTHON_LIBRARIES}
   PRIVATE bf::render
+  PRIVATE bf::dependencies::optional::python
 )
 
 set(INC
@@ -556,7 +554,6 @@ set(INC
 )
 
 set(INC_SYS
-  ${PYTHON_INCLUDE_DIRS}
 )
 
 add_definitions(-DWITH_FREESTYLE)
@@ -568,12 +565,6 @@ endif()
 if(WITH_PYTHON_SAFETY)
   # For bpy_rna.hh access.
   add_definitions(-DWITH_PYTHON_SAFETY)
-endif()
-
-if(WIN32)
-  list(APPEND INC_SYS
-    ${PTHREADS_INC}
-  )
 endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")

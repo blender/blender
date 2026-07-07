@@ -16,111 +16,106 @@
 #include "BLI_assert.h"
 #include "BLI_compiler_typecheck.h"
 
-/** Workaround to forward-declare C++ type in C header. */
-#ifdef __cplusplus
-#  include <type_traits>
+#include <cstring>
+#include <type_traits>
 
-namespace blender::bke {
+namespace blender {
+
+namespace bke::id {
+struct ID_Runtime;
+}
+namespace bke {
 struct PreviewImageRuntime;
 }
-namespace blender::bke::library {
+namespace bke::idprop {
+struct IDPropertyGroupChildrenSet;
+}
+namespace bke::library {
 struct LibraryRuntime;
 }
-using PreviewImageRuntimeHandle = blender::bke::PreviewImageRuntime;
-using LibraryRuntimeHandle = blender::bke::library::LibraryRuntime;
-#else
-typedef struct PreviewImageRuntimeHandle PreviewImageRuntimeHandle;
-typedef struct LibraryRuntimeHandle LibraryRuntimeHandle;
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 struct FileData;
 struct GHash;
 struct ID;
-struct ID_Readfile_Data;
 struct Library;
 struct PackedFile;
 struct UniqueName_Map;
-struct Depsgraph;
 
-typedef struct IDPropertyUIData {
+struct IDPropertyUIData {
   /** Tool-tip / property description pointer. Owned by the #IDProperty. */
-  char *description;
+  char *description = nullptr;
   /** RNA `subtype`, used for every type except string properties (#PropertySubType). */
-  int rna_subtype;
+  int rna_subtype = 0;
 
-  char _pad[4];
-} IDPropertyUIData;
+  char _pad[4] = {};
+};
 
 /* DNA version of #EnumPropertyItem. */
-typedef struct IDPropertyUIDataEnumItem {
+struct IDPropertyUIDataEnumItem {
   /* Unique identifier, used for string lookup. */
-  char *identifier;
+  char *identifier = nullptr;
   /* UI name of the item. */
-  char *name;
+  char *name = nullptr;
   /* Optional description. */
-  char *description;
+  char *description = nullptr;
   /* Unique integer value, should never change. */
-  int value;
+  int value = 0;
   /* Optional icon. */
-  int icon;
-} IDPropertyUIDataEnumItem;
+  int icon = 0;
+};
 
 /* IDP_UI_DATA_TYPE_INT */
-typedef struct IDPropertyUIDataInt {
+struct IDPropertyUIDataInt {
   IDPropertyUIData base;
-  int *default_array; /* Only for array properties. */
-  int default_array_len;
+  int *default_array = nullptr; /* Only for array properties. */
+  int default_array_len = 0;
 
-  int min;
-  int max;
-  int soft_min;
-  int soft_max;
-  int step;
-  int default_value;
+  int min = 0;
+  int max = 0;
+  int soft_min = 0;
+  int soft_max = 0;
+  int step = 0;
+  int default_value = 0;
 
-  int enum_items_num;
-  IDPropertyUIDataEnumItem *enum_items;
-} IDPropertyUIDataInt;
+  int enum_items_num = 0;
+  IDPropertyUIDataEnumItem *enum_items = nullptr;
+};
 
 /** For #IDP_UI_DATA_TYPE_BOOLEAN Use `int8_t` because DNA does not support `bool`. */
-typedef struct IDPropertyUIDataBool {
+struct IDPropertyUIDataBool {
   IDPropertyUIData base;
-  int8_t *default_array; /* Only for array properties. */
-  int default_array_len;
-  char _pad[3];
+  int8_t *default_array = nullptr; /* Only for array properties. */
+  int default_array_len = 0;
+  char _pad[3] = {};
 
-  int8_t default_value;
-} IDPropertyUIDataBool;
+  int8_t default_value = 0;
+};
 
 /** For #IDP_UI_DATA_TYPE_FLOAT */
-typedef struct IDPropertyUIDataFloat {
+struct IDPropertyUIDataFloat {
   IDPropertyUIData base;
-  double *default_array; /* Only for array properties. */
-  int default_array_len;
-  char _pad[4];
+  double *default_array = nullptr; /* Only for array properties. */
+  int default_array_len = 0;
+  char _pad[4] = {};
 
-  float step;
-  int precision;
+  float step = 0;
+  int precision = 0;
 
-  double min;
-  double max;
-  double soft_min;
-  double soft_max;
-  double default_value;
-} IDPropertyUIDataFloat;
+  double min = 0;
+  double max = 0;
+  double soft_min = 0;
+  double soft_max = 0;
+  double default_value = 0;
+};
 
 /** For #IDP_UI_DATA_TYPE_STRING */
-typedef struct IDPropertyUIDataString {
+struct IDPropertyUIDataString {
   IDPropertyUIData base;
-  char *default_value;
-} IDPropertyUIDataString;
+  char *default_value = nullptr;
+};
 
 /** For #IDP_UI_DATA_TYPE_ID. */
-typedef struct IDPropertyUIDataID {
+struct IDPropertyUIDataID {
   IDPropertyUIData base;
   /**
    * #ID_Type. With python-defined properties, this type is not enforced. A value of `0` means any
@@ -129,31 +124,36 @@ typedef struct IDPropertyUIDataID {
    * However, when defined/edited from the UI (Custom Properties panel), it must/will be defined,
    * as generic 'Any ID type' selection is a TODO UI-wise.
    */
-  short id_type;
-  char _pad[6];
-} IDPropertyUIDataID;
+  short id_type = 0;
+  char _pad[6] = {};
+};
 
-typedef struct IDPropertyData {
-  void *pointer;
-  ListBase group;
+struct IDPropertyData {
+  void *pointer = nullptr;
+  ListBaseT<struct IDProperty> group = {nullptr, nullptr};
+  /**
+   * Allows constant time lookup by name of the children in this group. This may be null if the
+   * group is empty. The order may not be exactly the same as in #group.
+   */
+  bke::idprop::IDPropertyGroupChildrenSet *children_map = nullptr;
   /** NOTE: a `double` is written into two 32bit integers. */
-  int val, val2;
-} IDPropertyData;
+  int val = 0, val2 = 0;
+};
 
-typedef struct IDProperty {
-  struct IDProperty *next, *prev;
+struct IDProperty {
+  struct IDProperty *next = nullptr, *prev = nullptr;
   /** #eIDPropertyType */
-  char type;
+  char type = 0;
   /**
    * #eIDPropertySubType when `type` is #IDP_STRING.
    * #eIDPropertyType for all other types.
    */
-  char subtype;
+  char subtype = 0;
   /** #IDP_FLAG_GHOST and others. */
-  short flag;
-  char name[/*MAX_IDPROP_NAME*/ 64];
+  short flag = 0;
+  char name[/*MAX_IDPROP_NAME*/ 64] = "";
 
-  char _pad0[4];
+  char _pad0[4] = {};
 
   /** NOTE: alignment for 64 bits. */
   IDPropertyData data;
@@ -162,16 +162,16 @@ typedef struct IDProperty {
    * Array length, and importantly string length + 1.
    * the idea is to be able to reuse array reallocation functions on strings.
    */
-  int len;
+  int len = 0;
   /**
    * Strings and arrays are both buffered, though the buffer isn't saved.
    * `totallen` is total length of allocated array/string, including a buffer.
    * \note the buffering is mild; see #IDP_ResizeIDPArray for details.
    */
-  int totallen;
+  int totallen = 0;
 
-  IDPropertyUIData *ui_data;
-} IDProperty;
+  IDPropertyUIData *ui_data = nullptr;
+};
 
 #define MAX_IDPROP_NAME 64
 #define DEFAULT_ALLOC_FOR_NULL_STRINGS 64
@@ -180,16 +180,16 @@ typedef struct IDProperty {
 
 /* Static ID override structs. */
 
-typedef struct IDOverrideLibraryPropertyOperation {
-  struct IDOverrideLibraryPropertyOperation *next, *prev;
+struct IDOverrideLibraryPropertyOperation {
+  struct IDOverrideLibraryPropertyOperation *next = nullptr, *prev = nullptr;
 
   /* Type of override. */
-  short operation;
-  short flag;
+  short operation = 0;
+  short flag = 0;
 
   /** Runtime, tags are common to both #IDOverrideProperty and #IDOverridePropertyOperation. */
-  short tag;
-  char _pad0[2];
+  short tag = 0;
+  char _pad0[2] = {};
 
   /* Sub-item references, if needed (for arrays or collections only).
    * We need both reference and local values to allow e.g. insertion into RNA collections
@@ -201,16 +201,16 @@ typedef struct IDOverrideLibraryPropertyOperation {
    * NOTE: For insertion operations in RNA collections, reference may not actually exist in the
    * linked reference data. It is used to identify the anchor of the insertion operation (i.e. the
    * item after or before which the new local item should be inserted), in the local override. */
-  char *subitem_reference_name;
-  char *subitem_local_name;
-  int subitem_reference_index;
-  int subitem_local_index;
+  char *subitem_reference_name = nullptr;
+  char *subitem_local_name = nullptr;
+  int subitem_reference_index = 0;
+  int subitem_local_index = 0;
   /** Additional pointer to an ID. Only used and relevant when the related RNA collection stores ID
    * pointers, to help disambiguate cases where several IDs from different libraries have the exact
    * same name. */
-  struct ID *subitem_reference_id;
-  struct ID *subitem_local_id;
-} IDOverrideLibraryPropertyOperation;
+  struct ID *subitem_reference_id = nullptr;
+  struct ID *subitem_local_id = nullptr;
+};
 
 /* IDOverrideLibraryPropertyOperation->operation. */
 enum {
@@ -253,30 +253,30 @@ enum {
 };
 
 /** A single overridden property, contain all operations on this one. */
-typedef struct IDOverrideLibraryProperty {
-  struct IDOverrideLibraryProperty *next, *prev;
+struct IDOverrideLibraryProperty {
+  struct IDOverrideLibraryProperty *next = nullptr, *prev = nullptr;
 
   /**
    * Path from ID to overridden property.
    * *Does not* include indices/names for final arrays/collections items.
    */
-  char *rna_path;
+  char *rna_path = nullptr;
 
   /**
-   * List of overriding operations (IDOverrideLibraryPropertyOperation) applied to this property.
+   * List of overriding operations applied to this property.
    * Recreated as part of the diffing, so do not store any of these elsewhere.
    */
-  ListBase operations;
+  ListBaseT<IDOverrideLibraryPropertyOperation> operations = {nullptr, nullptr};
 
   /**
    * Runtime, tags are common to both IDOverrideLibraryProperty and
    * IDOverrideLibraryPropertyOperation. */
-  short tag;
-  char _pad[2];
+  short tag = 0;
+  char _pad[2] = {};
 
   /** The property type matching the rna_path. */
-  unsigned int rna_prop_type;
-} IDOverrideLibraryProperty;
+  unsigned int rna_prop_type = 0;
+};
 
 /* IDOverrideLibraryProperty->tag and IDOverrideLibraryPropertyOperation->tag. */
 enum {
@@ -289,10 +289,10 @@ enum {
 
 #
 #
-typedef struct IDOverrideLibraryRuntime {
-  struct GHash *rna_path_to_override_properties;
-  uint tag;
-} IDOverrideLibraryRuntime;
+struct IDOverrideLibraryRuntime {
+  struct GHash *rna_path_to_override_properties = nullptr;
+  uint tag = 0;
+};
 
 /* IDOverrideLibraryRuntime->tag. */
 enum {
@@ -319,11 +319,10 @@ enum {
 };
 
 /* Main container for all overriding data info of a data-block. */
-typedef struct IDOverrideLibrary {
+struct IDOverrideLibrary {
   /** Reference linked ID which this one overrides. */
-  struct ID *reference;
-  /** List of IDOverrideLibraryProperty structs. */
-  ListBase properties;
+  struct ID *reference = nullptr;
+  ListBaseT<IDOverrideLibraryProperty> properties = {nullptr, nullptr};
 
   /**
    * Override hierarchy root ID. Usually the actual root of the hierarchy, but not always
@@ -331,13 +330,13 @@ typedef struct IDOverrideLibrary {
    *
    * All liboverrides of a same hierarchy (e.g. a character collection) share the same root.
    */
-  struct ID *hierarchy_root;
+  struct ID *hierarchy_root = nullptr;
 
-  IDOverrideLibraryRuntime *runtime;
+  IDOverrideLibraryRuntime *runtime = nullptr;
 
-  unsigned int flag;
-  char _pad_1[4];
-} IDOverrideLibrary;
+  unsigned int flag = 0;
+  char _pad_1[4] = {};
+};
 
 /* IDOverrideLibrary->flag */
 enum {
@@ -370,47 +369,47 @@ enum {
   ID_REMAP_IS_USER_ONE_SKIPPED = 1 << 1,
 };
 
-/** Status used and counters created during id-remapping. */
-typedef struct ID_Runtime_Remap {
-  /** Status during ID remapping. */
-  int status;
-  /** During ID remapping the number of skipped use cases that refcount the data-block. */
-  int skipped_refcounted;
-  /**
-   * During ID remapping the number of direct use cases that could be remapped
-   * (e.g. obdata when in edit mode).
-   */
-  int skipped_direct;
-  /** During ID remapping, the number of indirect use cases that could not be remapped. */
-  int skipped_indirect;
-} ID_Runtime_Remap;
+struct IDHash {
+  char data[16] = "";
 
-typedef struct ID_Runtime {
-  ID_Runtime_Remap remap;
-  /**
-   * The depsgraph that owns this data block. This is only set on data-blocks which are
-   * copied-on-eval by the depsgraph. Additional data-blocks created during depsgraph evaluation
-   * are not owned by any specific depsgraph and thus this pointer is null for those.
-   */
-  struct Depsgraph *depsgraph;
+#ifdef __cplusplus
+  uint64_t hash() const
+  {
+    return *reinterpret_cast<const uint64_t *>(this->data);
+  }
 
-  /**
-   * This data is only allocated & used during the readfile process. After that, the memory is
-   * freed and the pointer set to `nullptr`.
-   */
-  struct ID_Readfile_Data *readfile_data;
-} ID_Runtime;
+  static constexpr IDHash get_null()
+  {
+    return {};
+  }
+  bool is_null() const
+  {
+    return *this == IDHash::get_null();
+  }
 
-typedef struct ID {
+  friend bool operator==(const IDHash &a, const IDHash &b)
+  {
+    return memcmp(a.data, b.data, sizeof(a.data)) == 0;
+  }
+
+  friend bool operator!=(const IDHash &a, const IDHash &b)
+  {
+    return !(a == b);
+  }
+
+#endif
+};
+
+struct ID {
   /* There's a nasty circular dependency here.... 'void *' to the rescue! I
    * really wonder why this is needed. */
-  void *next, *prev;
-  struct ID *newid;
+  void *next = nullptr, *prev = nullptr;
+  struct ID *newid = nullptr;
 
-  struct Library *lib;
+  struct Library *lib = nullptr;
 
   /** If the ID is an asset, this pointer is set. Owning pointer. */
-  struct AssetMetaData *asset_data;
+  struct AssetMetaData *asset_data = nullptr;
 
   /**
    * Main identifier for this data-block. Must be unique within the ID name-space (defined by its
@@ -419,20 +418,20 @@ typedef struct ID {
    * The first two bytes are always the #ID_Type code of the data-block's type.
    *
    * One critical usage is to reference external linked data. */
-  char name[/*MAX_ID_NAME*/ 258];
+  char name[/*MAX_ID_NAME*/ 258] = "";
 
   /**
    * ID_FLAG_... flags report on status of the data-block this ID belongs to
    * (persistent, saved to and read from .blend).
    */
-  short flag;
+  short flag = 0;
   /**
    * ID_TAG_... tags (runtime only, cleared at read time).
    */
-  int tag;
-  int us;
-  int icon_id;
-  unsigned int recalc;
+  int tag = 0;
+  int us = 0;
+  int icon_id = 0;
+  unsigned int recalc = 0;
   /**
    * Used by undo code. recalc_after_undo_push contains the changes between the
    * last undo push and the current state. This is accumulated as IDs are tagged
@@ -442,20 +441,32 @@ typedef struct ID {
    * recalc_after_undo_push at the time of the undo push. This means it can be
    * used to find the changes between undo states.
    */
-  unsigned int recalc_up_to_undo_push;
-  unsigned int recalc_after_undo_push;
+  unsigned int recalc_up_to_undo_push = 0;
+  unsigned int recalc_after_undo_push = 0;
 
   /**
    * A session-wide unique identifier for a given ID, that remain the same across potential
    * re-allocations (e.g. due to undo/redo steps).
    */
-  unsigned int session_uid;
+  unsigned int session_uid = 0;
+
+  /**
+   * This is only available on packed linked data-blocks. It is a hash of the contents the
+   * data-block including all its dependencies. It is computed when first packing the data-block
+   * and is not changed afterwards. It can be used to detect that packed data-blocks in two
+   * separate .blend files are the same.
+   *
+   * Two data-blocks with the same deep hash are assumed to be interchangeable, but not necessarily
+   * exactly the same. For example, it's possible to change node positions on packed data-blocks
+   * without changing the deep hash.
+   */
+  IDHash deep_hash;
 
   /**
    * User-defined custom properties storage. Typically Accessed through the 'dict' syntax from
    * Python.
    */
-  IDProperty *properties;
+  IDProperty *properties = nullptr;
 
   /**
    * System-defined custom properties storage. Used to store data dynamically defined either by
@@ -464,19 +475,19 @@ typedef struct ID {
    * Typically accessed through RNA paths (`C.object.my_dynamic_float_property = 33.3`), when
    * wrapped/defined by RNA.
    */
-  IDProperty *system_properties;
+  IDProperty *system_properties = nullptr;
 
-  void *_pad1;
+  void *_pad1 = nullptr;
 
   /** Reference linked ID which this one overrides. */
-  IDOverrideLibrary *override_library;
+  IDOverrideLibrary *override_library = nullptr;
 
   /**
    * Only set for data-blocks which are coming from copy-on-evaluation, points to
    * the original version of it.
    * Also used temporarily during memfile undo to keep a reference to old ID when found.
    */
-  struct ID *orig_id;
+  struct ID *orig_id = nullptr;
 
   /**
    * Holds the #PyObject reference to the ID (initialized on demand).
@@ -493,7 +504,7 @@ typedef struct ID {
    *   that references this ID (the bones of an armature or the modifiers of an object for
    *   example).
    */
-  void *py_instance;
+  void *py_instance = nullptr;
 
   /**
    * Weak reference to an ID in a given library file, used to allow re-using already appended data
@@ -501,15 +512,25 @@ typedef struct ID {
    *
    * May be NULL.
    */
-  struct LibraryWeakReference *library_weak_reference;
+  struct LibraryWeakReference *library_weak_reference = nullptr;
 
-  struct ID_Runtime runtime;
-} ID;
+  /**
+   * Allocated runtime data, never written on disk or in undo steps.
+   *
+   * _Always_ valid for code handling IDs managed by the `BKE_lib_id` API.
+   *
+   * Internal low-level implementation of ID creation/copying/deletion, and code handling IDs
+   * themselves in non-standard ways (mainly the CoW IDs in depsgraph, and some temporary IDs in
+   * readfile) may have to manage this pointer themselves (see also #BKE_libblock_runtime_ensure
+   * and #BKE_libblock_free_runtime_data).
+   */
+  bke::id::ID_Runtime *runtime = nullptr;
+};
 
 /**
  * For each library file used, a Library struct is added to Main.
  */
-typedef struct Library {
+struct Library {
 #ifdef __cplusplus
   /** See #ID_Type comment for why this is here. */
   static constexpr ID_Type id_type = ID_LI;
@@ -517,17 +538,51 @@ typedef struct Library {
 
   ID id;
   /** Path name used for reading, can be relative and edited in the outliner. */
-  char filepath[/*FILE_MAX*/ 1024];
+  char filepath[/*FILE_MAX*/ 1024] = "";
 
-  struct PackedFile *packedfile;
+  /** Flags defining specific characteristics of a library. See #LibraryFlag. */
+  uint16_t flag = 0;
+  /** #LibraryRuntime::tag need to be preserved in undo (memfile) case (#eLibrary_Tag). */
+  uint16_t undo_runtime_tag = 0;
+  char _pad[4] = {};
+
+  /**
+   * For archive library only (#LIBRARY_FLAG_IS_ARCHIVE): The main library owning it.
+   *
+   * `archive_parent_library` and `packedfile` should never be both non-null in a same Library ID.
+   */
+  struct Library *archive_parent_library = nullptr;
+
+  /**
+   * Packed blend-file of the library, nullptr if not packed.
+   *
+   * \note Individual IDs may be packed even if the entire library is not packed.
+   *
+   * `archive_parent_library` and `packedfile` should never be both non-null in a same Library ID.
+   */
+  struct PackedFile *packedfile = nullptr;
 
   /**
    * Runtime only data, never written in blendfile.
    *
    * Typically allocated when creating a new Library or reading it from a blendfile.
    */
-  LibraryRuntimeHandle *runtime;
-} Library;
+  bke::library::LibraryRuntime *runtime = nullptr;
+
+  void *_pad2 = nullptr;
+};
+
+/**
+ * #Library.flag
+ *
+ * Some of these flags define a 'virtual' library, which may not be an actual blendfile, store
+ * 'archived' embedded data, etc. IDs contained in these virtual libraries are _not_ managed by
+ * regular linking code.
+ */
+enum LibraryFlag {
+  /** The library is an 'archive' that only contains embedded linked data. */
+  LIBRARY_FLAG_IS_ARCHIVE = 1 << 0,
+};
 
 /**
  * A weak library/ID reference for local data that has been appended, to allow re-using that local
@@ -539,15 +594,15 @@ typedef struct Library {
  * NOTE: There should always be only one single ID in current Main matching a given linked
  * reference.
  */
-typedef struct LibraryWeakReference {
+struct LibraryWeakReference {
   /**  Expected to match a `Library.filepath`. */
-  char library_filepath[/*FILE_MAX*/ 1024];
+  char library_filepath[/*FILE_MAX*/ 1024] = "";
 
   /** May be different from the current local ID name. */
-  char library_id_name[/*MAX_ID_NAME*/ 258];
+  char library_id_name[/*MAX_ID_NAME*/ 258] = "";
 
-  char _pad[2];
-} LibraryWeakReference;
+  char _pad[2] = {};
+};
 
 /* PreviewImage.flag */
 enum ePreviewImage_Flag {
@@ -561,41 +616,43 @@ enum ePreviewImage_Flag {
 /* PreviewImage.tag */
 enum {
   /** Deferred preview is being loaded. */
-  PRV_TAG_DEFFERED_RENDERING = (1 << 1),
+  PRV_TAG_DEFERRED_RENDERING = (1 << 1),
   /** Deferred preview should be deleted asap. */
-  PRV_TAG_DEFFERED_DELETE = (1 << 2),
+  PRV_TAG_DEFERRED_DELETE = (1 << 2),
   /** This deferred preview could not be loaded (e.g. not found on disk). */
-  PRV_TAG_DEFFERED_INVALID = (1 << 3),
+  PRV_TAG_DEFERRED_INVALID = (1 << 3),
+  /* Rendering was interrupted and needs restart. */
+  PRV_TAG_RESTART_RENDERING = (1 << 4),
 };
 
 /**
  * This type allows shallow copies. Use #BKE_previewimg_free() to release contained resources.
  * Don't call this for shallow copies (or the original instance will have dangling pointers).
  */
-typedef struct PreviewImage {
+struct PreviewImage {
   DNA_DEFINE_CXX_METHODS(PreviewImage)
   /* All values of 2 are really NUM_ICON_SIZES */
-  unsigned int w[2];
-  unsigned int h[2];
-  short flag[2];
-  short changed_timestamp[2];
-  unsigned int *rect[2];
+  unsigned int w[2] = {};
+  unsigned int h[2] = {};
+  short flag[2] = {};
+  short changed_timestamp[2] = {};
+  unsigned int *rect[2] = {};
 
-  PreviewImageRuntimeHandle *runtime;
-} PreviewImage;
+  bke::PreviewImageRuntime *runtime = nullptr;
+};
 
 /**
  * Amount of 'fake user' usages of this ID.
  * Always 0 or 1.
  */
-#define ID_FAKE_USERS(id) ((((const ID *)id)->flag & ID_FLAG_FAKEUSER) ? 1 : 0)
+#define ID_FAKE_USERS(id) ((id_cast<const ID *>(id)->flag & ID_FLAG_FAKEUSER) ? 1 : 0)
 /**
  * Amount of defined 'extra' shallow, runtime-only usages of this ID (typically from UI).
  * Always 0 or 1.
  *
  * \warning May not actually be part of the total #ID.us count, see #ID_EXTRA_REAL_USERS.
  */
-#define ID_EXTRA_USERS(id) (((const ID *)id)->tag & ID_TAG_EXTRAUSER ? 1 : 0)
+#define ID_EXTRA_USERS(id) (id_cast<const ID *>(id)->tag & ID_TAG_EXTRAUSER ? 1 : 0)
 /**
  * Amount of real 'extra' shallow, runtime-only usages of this ID (typically from UI).
  * Always 0 or 1.
@@ -604,12 +661,12 @@ typedef struct PreviewImage {
  * May be 0 even if there are some 'extra' usages of this ID,
  * when there are also other 'normal' reference-counting usages of it.
  */
-#define ID_EXTRA_REAL_USERS(id) (((const ID *)id)->tag & ID_TAG_EXTRAUSER_SET ? 1 : 0)
+#define ID_EXTRA_REAL_USERS(id) (id_cast<const ID *>(id)->tag & ID_TAG_EXTRAUSER_SET ? 1 : 0)
 /**
  * Amount of real usages of this ID (i.e. excluding the 'fake user' one, but including a potential
  * 'extra' shallow/runtime usage).
  */
-#define ID_REAL_USERS(id) (((const ID *)id)->us - ID_FAKE_USERS(id))
+#define ID_REAL_USERS(id) (id_cast<const ID *>(id)->us - ID_FAKE_USERS(id))
 /**
  * Amount of 'normal' reference-counting usages of this ID
  * (i.e. excluding the 'fake user' one, and a potential 'extra' shallow/runtime usage).
@@ -619,50 +676,60 @@ typedef struct PreviewImage {
 #define ID_CHECK_UNDO(id) (!ELEM(GS((id)->name), ID_SCR, ID_WM, ID_WS, ID_BR))
 
 #define ID_BLEND_PATH(_bmain, _id) \
-  ((_id)->lib ? (_id)->lib->runtime->filepath_abs : BKE_main_blendfile_path((_bmain)))
+  ((_id)->lib ? BKE_main_blendfile_path_from_library(*(_id)->lib) : \
+                BKE_main_blendfile_path((_bmain)))
 #define ID_BLEND_PATH_FROM_GLOBAL(_id) \
-  ((_id)->lib ? (_id)->lib->runtime->filepath_abs : BKE_main_blendfile_path_from_global())
+  ((_id)->lib ? BKE_main_blendfile_path_from_library(*(_id)->lib) : \
+                BKE_main_blendfile_path_from_global())
 
-#define ID_MISSING(_id) ((((const ID *)(_id))->tag & ID_TAG_MISSING) != 0)
+#define ID_MISSING(_id) ((id_cast<const ID *>(_id)->tag & ID_TAG_MISSING) != 0)
 
-#define ID_IS_LINKED(_id) (((const ID *)(_id))->lib != NULL)
+#define ID_IS_LINKED(_id) (id_cast<const ID *>(_id)->lib != NULL)
+/**
+ * Indicates that this ID is linked but also packed into the current .blend file. Note that this
+ * just means that this specific ID and its dependencies are packed, not the entire library. So
+ * this is separate from #Library::packedfile.
+ */
+#define ID_IS_PACKED(_id) (ID_IS_LINKED(_id) && ((_id)->flag & ID_FLAG_LINKED_AND_PACKED))
 
 #define ID_TYPE_SUPPORTS_ASSET_EDITABLE(id_type) \
   ELEM(id_type, ID_BR, ID_TE, ID_NT, ID_IM, ID_PC, ID_MA)
 
 #define ID_IS_EDITABLE(_id) \
-  ((((const ID *)(_id))->lib == NULL) || \
-   ((((const ID *)(_id))->lib->runtime->tag & LIBRARY_ASSET_EDITABLE) && \
-    ID_TYPE_SUPPORTS_ASSET_EDITABLE(GS((((const ID *)(_id))->name)))))
+  ((id_cast<const ID *>(_id)->lib == NULL) || \
+   ((id_cast<const ID *>(_id)->lib->runtime->tag & LIBRARY_ASSET_EDITABLE) && \
+    ID_TYPE_SUPPORTS_ASSET_EDITABLE(GS(id_cast<const ID *>(_id)->name))))
 
 /* Note that these are fairly high-level checks, should be used at user interaction level, not in
  * BKE_library_override typically (especially due to the check on ID_TAG_EXTERN). */
 #define ID_IS_OVERRIDABLE_LIBRARY_HIERARCHY(_id) \
   (ID_IS_LINKED(_id) && !ID_MISSING(_id) && \
-   (BKE_idtype_get_info_from_id((const ID *)(_id))->flags & IDTYPE_FLAGS_NO_LIBLINKING) == 0 && \
-   !ELEM(GS(((ID *)(_id))->name), ID_SCE))
+   (BKE_idtype_get_info_from_id(id_cast<const ID *>(_id))->flags & IDTYPE_FLAGS_NO_LIBLINKING) == \
+       0 && \
+   !ELEM(GS((id_cast<const ID *>(_id))->name), ID_SCE))
 #define ID_IS_OVERRIDABLE_LIBRARY(_id) \
-  (ID_IS_OVERRIDABLE_LIBRARY_HIERARCHY((_id)) && (((const ID *)(_id))->tag & ID_TAG_EXTERN) != 0)
+  (ID_IS_OVERRIDABLE_LIBRARY_HIERARCHY((_id)) && \
+   (id_cast<const ID *>(_id)->tag & ID_TAG_EXTERN) != 0)
 
 /* NOTE: The three checks below do not take into account whether given ID is linked or not (when
  * chaining overrides over several libraries). User must ensure the ID is not linked itself
  * currently. */
 /* TODO: add `_EDITABLE` versions of those macros (that would check if ID is linked or not)? */
 #define ID_IS_OVERRIDE_LIBRARY_REAL(_id) \
-  (((const ID *)(_id))->override_library != NULL && \
-   ((const ID *)(_id))->override_library->reference != NULL)
+  (id_cast<const ID *>(_id)->override_library != NULL && \
+   id_cast<const ID *>(_id)->override_library->reference != NULL)
 
 #define ID_IS_OVERRIDE_LIBRARY_VIRTUAL(_id) \
-  ((((const ID *)(_id))->flag & ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE) != 0)
+  ((id_cast<const ID *>(_id)->flag & ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE) != 0)
 
 #define ID_IS_OVERRIDE_LIBRARY(_id) \
   (ID_IS_OVERRIDE_LIBRARY_REAL(_id) || ID_IS_OVERRIDE_LIBRARY_VIRTUAL(_id))
 
 #define ID_IS_OVERRIDE_LIBRARY_HIERARCHY_ROOT(_id) \
   (!ID_IS_OVERRIDE_LIBRARY_REAL(_id) || \
-   ((ID *)(_id))->override_library->hierarchy_root == ((ID *)(_id)))
+   (id_cast<ID *>(_id))->override_library->hierarchy_root == (id_cast<ID *>(_id)))
 
-#define ID_IS_ASSET(_id) (((const ID *)(_id))->asset_data != NULL)
+#define ID_IS_ASSET(_id) (id_cast<const ID *>(_id)->asset_data != NULL)
 
 /* Check whether datablock type is covered by copy-on-evaluation. */
 #define ID_TYPE_USE_COPY_ON_EVAL(_id_type) \
@@ -682,9 +749,9 @@ typedef struct PreviewImage {
 #define GS(a) (CHECK_TYPE_ANY(a, char *, const char *), (ID_Type)(*((const short *)(a))))
 
 #define ID_NEW_SET(_id, _idn) \
-  (((ID *)(_id))->newid = (ID *)(_idn), \
-   ((ID *)(_id))->newid->tag |= ID_TAG_NEW, \
-   (void *)((ID *)(_id))->newid)
+  (((id_cast<ID *>)(_id))->newid = (id_cast<ID *>)(_idn), \
+   ((id_cast<ID *>)(_id))->newid->tag |= ID_TAG_NEW, \
+   ((id_cast<ID *>)(_id))->newid)
 #define ID_NEW_REMAP(a) \
   if ((a) && (a)->id.newid) { \
     *(void **)&(a) = (a)->id.newid; \
@@ -725,6 +792,11 @@ enum {
    * so it must be treated as dirty.
    */
   ID_FLAG_CLIPBOARD_MARK = 1 << 14,
+  /**
+   * Indicates that this linked ID is packed into the current .blend file. This should never be set
+   * on local ID (without)one with a null `ID::lib` pointer).
+   */
+  ID_FLAG_LINKED_AND_PACKED = 1 << 15,
 };
 
 /**
@@ -964,12 +1036,18 @@ enum {
  * either have of very short lifetime (not expected to exist across undo steps), or are info that
  * will be re-generated when reading undo steps.
  *
+ * Linked/local tags also need to be preserved, since the addition of more complex 'linked data'
+ * modes & handlings (e.g. packed linked data are handled like local IDs when it comes to
+ * read/write of blend-files).
+ *
  * However a few of these need to be explicitly preserved across undo steps.
  */
-#define ID_TAG_KEEP_ON_UNDO (ID_TAG_EXTRAUSER | ID_TAG_MISSING | ID_TAG_RUNTIME)
+#define ID_TAG_KEEP_ON_UNDO \
+  (ID_TAG_EXTRAUSER | ID_TAG_MISSING | ID_TAG_RUNTIME | ID_TAG_LOCAL | ID_TAG_EXTERN | \
+   ID_TAG_INDIRECT)
 
 /* Tag given ID for an update in all the dependency graphs. */
-typedef enum IDRecalcFlag {
+enum IDRecalcFlag {
   /***************************************************************************
    * Individual update tags, this is what ID gets tagged for update with. */
 
@@ -1114,7 +1192,7 @@ typedef enum IDRecalcFlag {
   ID_RECALC_PSYS_ALL = (ID_RECALC_PSYS_REDO | ID_RECALC_PSYS_RESET | ID_RECALC_PSYS_CHILD |
                         ID_RECALC_PSYS_PHYS),
 
-} IDRecalcFlag;
+};
 
 /* To filter ID types (filter_id). 64 bit to fit all types. */
 #define FILTER_ID_AC (1ULL << 0)
@@ -1199,7 +1277,7 @@ typedef enum IDRecalcFlag {
  * required to address all remaining relationship cases.
  * See e.g. how #BKE_library_unused_linked_data_set_tag is doing this.
  */
-typedef enum eID_Index {
+enum eID_Index {
   /* Special case: Library, should never ever depend on any other type. */
   INDEX_ID_LI = 0,
 
@@ -1278,16 +1356,12 @@ typedef enum eID_Index {
 
   /* Special values, keep last. */
   INDEX_ID_NULL,
-} eID_Index;
+};
 
 #define INDEX_ID_MAX (INDEX_ID_NULL + 1)
 
 #ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
-namespace blender::dna {
+namespace dna {
 namespace detail {
 template<typename, typename = void> struct has_ID_member : std::false_type {};
 template<typename T> struct has_ID_member<T, std::void_t<decltype(&T::id)>> : std::true_type {};
@@ -1309,16 +1383,14 @@ template<typename T> constexpr bool has_ID_as_first_member()
 template<typename T>
 constexpr bool is_ID_v = detail::has_ID_as_first_member<T>() || std::is_same_v<T, ID>;
 
-}  // namespace blender::dna
-
-namespace blender {
+}  // namespace dna
 
 namespace dna::detail {
 template<typename Dst, typename Src, typename SrcRuntime>
 constexpr void id_cast_assert([[maybe_unused]] SrcRuntime *src)
 {
-  static_assert(blender::dna::is_ID_v<Src>);
-  static_assert(blender::dna::is_ID_v<Dst>);
+  static_assert(dna::is_ID_v<Src>);
+  static_assert(dna::is_ID_v<Dst>);
   if constexpr (std::is_same_v<Src, ID> && !std::is_same_v<Dst, ID>) {
     /* Runtime check for when converting from #ID to subtype like #Object. */
     BLI_assert(src == nullptr || GS(src->name) == Dst::id_type);
@@ -1358,5 +1430,6 @@ template<typename Dst, typename Src> inline Dst id_cast(Src &&id)
   return reinterpret_cast<Dst>(id);
 }
 
-}  // namespace blender
 #endif
+
+}  // namespace blender

@@ -22,7 +22,8 @@
 #include <string.h>
 #include <sys/stat.h>
 
-static DynamicLibrary hiprt_lib;
+static DynamicLibrary hip_lib = nullptr;
+static DynamicLibrary hiprt_lib = nullptr;
 
 #define HIPRT_LIBRARY_FIND(name) \
   name = (t##name *)dynamic_library_find(hiprt_lib, #name);
@@ -64,6 +65,12 @@ static void hipewHipRtExit(void)
     dynamic_library_close(hiprt_lib);
     hiprt_lib = NULL;
   }
+
+  if (hip_lib != NULL) {
+    /* Ignore errors. */
+    dynamic_library_close(hip_lib);
+    hip_lib = NULL;
+  }
 }
 
 bool hiprtewInit()
@@ -84,11 +91,26 @@ bool hiprtewInit()
 #ifdef _WIN32
   const char *hiprt_paths[] = {"hiprt64.dll", NULL};
 #else
+  /* The current version of HIP-RT requires libamdhip64.so which Fedora puts
+   * in a separate package than libamdhip64.so.6 as required by HIP. For now
+   * check for the existence of this, in a future update we'll make HIP-RT
+   * consistent and this code can be removed. */
+  const char* hip_paths[] = {"libamdhip64.so",
+                             "/opt/rocm/lib/libamdhip64.so",
+                             "/opt/rocm/hip/lib/libamdhip64.so",
+                             NULL};
+
+  hip_lib = dynamic_library_open_find(hip_paths);
+  if (!hip_lib) {
+    return false;
+  }
+
   /* libhiprt is installed to the bin subfolder by default, so we include it
    * in our search path. */
   const char *hiprt_paths[] = {"libhiprt64.so",
                                "/opt/rocm/lib/libhiprt64.so",
                                "/opt/rocm/bin/libhiprt64.so", NULL};
+
 #endif
 
   hiprt_lib = dynamic_library_open_find(hiprt_paths);

@@ -1,0 +1,355 @@
+==== Curves(new): 12
+- Curve 'bspline_nonperiodic_multiple_constant' splines:4 control-points:34
+  - attr 'curve_type' INT8 CURVE
+    - 3 3 3 3 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 4 4 4 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (-0.500, 0.000, 0.276)
+    - (-0.276, 0.000, 0.500)
+    - (0.000, 0.000, 0.500)
+    - (1.000, 0.000, 0.000)
+    - (1.000, 0.000, 0.276)
+    - (1.268, 0.000, 0.649)
+    - (1.500, 0.000, 0.500)
+    - (2.115, 0.000, 0.104)
+    - (2.115, 0.000, -0.104)
+      ...
+    - (4.500, 0.000, 0.500)
+    - (4.680, 0.000, 0.426)
+    - (4.363, 0.000, 0.139)
+    - (4.501, 0.000, 0.001)
+    - (4.639, 0.000, -0.137)
+    - (4.926, 0.000, 0.180)
+    - (5.000, 0.000, 0.000)
+    - (5.105, 0.000, -0.255)
+    - (4.776, 0.000, -0.500)
+    - (4.500, 0.000, -0.500)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 ... 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 
+
+- Curve 'bspline_nonperiodic_multiple_varying' splines:4 control-points:34
+  - attr 'curve_type' INT8 CURVE
+    - 3 3 3 3 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 4 4 4 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (-0.500, 0.000, 0.276)
+    - (-0.276, 0.000, 0.500)
+    - (0.000, 0.000, 0.500)
+    - (1.000, 0.000, 0.000)
+    - (1.000, 0.000, 0.276)
+    - (1.268, 0.000, 0.649)
+    - (1.500, 0.000, 0.500)
+    - (2.115, 0.000, 0.104)
+    - (2.115, 0.000, -0.104)
+      ...
+    - (4.500, 0.000, 0.500)
+    - (4.680, 0.000, 0.426)
+    - (4.363, 0.000, 0.139)
+    - (4.501, 0.000, 0.001)
+    - (4.639, 0.000, -0.137)
+    - (4.926, 0.000, 0.180)
+    - (5.000, 0.000, 0.000)
+    - (5.105, 0.000, -0.255)
+    - (4.776, 0.000, -0.500)
+    - (4.500, 0.000, -0.500)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.175 0.100 0.100 ... 0.200 0.250 0.150 0.100 0.150 0.250 0.200 0.175 0.100 0.100 
+
+- Curve 'bspline_nonperiodic_multiple_vertex' splines:4 control-points:34
+  - attr 'curve_type' INT8 CURVE
+    - 3 3 3 3 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 4 4 4 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (-0.500, 0.000, 0.276)
+    - (-0.276, 0.000, 0.500)
+    - (0.000, 0.000, 0.500)
+    - (1.000, 0.000, 0.000)
+    - (1.000, 0.000, 0.276)
+    - (1.268, 0.000, 0.649)
+    - (1.500, 0.000, 0.500)
+    - (2.115, 0.000, 0.104)
+    - (2.115, 0.000, -0.104)
+      ...
+    - (4.500, 0.000, 0.500)
+    - (4.680, 0.000, 0.426)
+    - (4.363, 0.000, 0.139)
+    - (4.501, 0.000, 0.001)
+    - (4.639, 0.000, -0.137)
+    - (4.926, 0.000, 0.180)
+    - (5.000, 0.000, 0.000)
+    - (5.105, 0.000, -0.255)
+    - (4.776, 0.000, -0.500)
+    - (4.500, 0.000, -0.500)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.150 0.150 0.100 0.100 0.150 0.150 0.175 0.150 0.150 ... 0.175 0.100 0.100 0.075 0.100 0.100 0.175 0.150 0.150 0.100 
+
+- Curve 'bspline_nonperiodic_single_constant' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (-0.500, 0.000, 0.276)
+    - (-0.276, 0.000, 0.500)
+    - (0.000, 0.000, 0.500)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.100 0.100 0.100 
+
+- Curve 'bspline_nonperiodic_single_varying' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (-0.500, 0.000, 0.276)
+    - (-0.276, 0.000, 0.500)
+    - (0.000, 0.000, 0.500)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.100 0.100 0.100 
+
+- Curve 'bspline_nonperiodic_single_vertex' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (-0.500, 0.000, 0.276)
+    - (-0.276, 0.000, 0.500)
+    - (0.000, 0.000, 0.500)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.150 0.150 0.100 
+
+- Curve 'bspline_periodic_multiple_constant' splines:4 control-points:42
+  - attr 'curve_type' INT8 CURVE
+    - 3 3 3 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 1 1 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 4 4 4 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (-0.500, 0.000, 0.276)
+    - (-0.276, 0.000, 0.500)
+    - (0.000, 0.000, 0.500)
+    - (1.242, 0.000, 0.500)
+    - (-0.500, 0.000, -1.242)
+    - (1.000, 0.000, 0.000)
+    - (1.000, 0.000, 0.276)
+    - (1.268, 0.000, 0.649)
+    - (1.500, 0.000, 0.500)
+      ...
+    - (4.363, 0.000, 0.139)
+    - (4.501, 0.000, 0.001)
+    - (4.639, 0.000, -0.137)
+    - (4.926, 0.000, 0.180)
+    - (5.000, 0.000, 0.000)
+    - (5.105, 0.000, -0.255)
+    - (4.776, 0.000, -0.500)
+    - (4.500, 0.000, -0.500)
+    - (4.224, 0.000, -0.500)
+    - (4.000, 0.000, -0.276)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 ... 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 0.100 
+
+- Curve 'bspline_periodic_multiple_varying' splines:4 control-points:42
+  - attr 'curve_type' INT8 CURVE
+    - 3 3 3 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 1 1 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 4 4 4 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (-0.500, 0.000, 0.276)
+    - (-0.276, 0.000, 0.500)
+    - (0.000, 0.000, 0.500)
+    - (1.242, 0.000, 0.500)
+    - (-0.500, 0.000, -1.242)
+    - (1.000, 0.000, 0.000)
+    - (1.000, 0.000, 0.276)
+    - (1.268, 0.000, 0.649)
+    - (1.500, 0.000, 0.500)
+      ...
+    - (4.363, 0.000, 0.139)
+    - (4.501, 0.000, 0.001)
+    - (4.639, 0.000, -0.137)
+    - (4.926, 0.000, 0.180)
+    - (5.000, 0.000, 0.000)
+    - (5.105, 0.000, -0.255)
+    - (4.776, 0.000, -0.500)
+    - (4.500, 0.000, -0.500)
+    - (4.224, 0.000, -0.500)
+    - (4.000, 0.000, -0.276)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.050 0.050 0.150 0.050 0.050 0.100 0.050 0.050 0.050 ... 0.050 0.150 0.150 0.150 0.150 0.050 0.050 0.050 0.050 0.050 
+
+- Curve 'bspline_periodic_multiple_vertex' splines:4 control-points:42
+  - attr 'curve_type' INT8 CURVE
+    - 3 3 3 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 1 1 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 4 4 4 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (-0.500, 0.000, 0.276)
+    - (-0.276, 0.000, 0.500)
+    - (0.000, 0.000, 0.500)
+    - (1.242, 0.000, 0.500)
+    - (-0.500, 0.000, -1.242)
+    - (1.000, 0.000, 0.000)
+    - (1.000, 0.000, 0.276)
+    - (1.268, 0.000, 0.649)
+    - (1.500, 0.000, 0.500)
+      ...
+    - (4.363, 0.000, 0.139)
+    - (4.501, 0.000, 0.001)
+    - (4.639, 0.000, -0.137)
+    - (4.926, 0.000, 0.180)
+    - (5.000, 0.000, 0.000)
+    - (5.105, 0.000, -0.255)
+    - (4.776, 0.000, -0.500)
+    - (4.500, 0.000, -0.500)
+    - (4.224, 0.000, -0.500)
+    - (4.000, 0.000, -0.276)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.050 0.050 0.150 0.050 0.050 0.100 0.050 0.050 0.050 ... 0.050 0.150 0.150 0.150 0.150 0.050 0.050 0.050 0.050 0.050 
+
+- Curve 'bspline_periodic_single_constant' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (-0.500, 0.000, 0.276)
+    - (-0.276, 0.000, 0.500)
+    - (0.000, 0.000, 0.500)
+    - (1.242, 0.000, 0.500)
+    - (-0.500, 0.000, -1.242)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.100 0.100 0.100 0.100 0.100 
+
+- Curve 'bspline_periodic_single_varying' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (-0.500, 0.000, 0.276)
+    - (-0.276, 0.000, 0.500)
+    - (0.000, 0.000, 0.500)
+    - (1.242, 0.000, 0.500)
+    - (-0.500, 0.000, -1.242)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.025 0.025 0.100 0.025 0.025 
+
+- Curve 'bspline_periodic_single_vertex' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 1 
+  - attr 'nurbs_order' INT8 CURVE
+    - 4 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (-0.500, 0.000, 0.276)
+    - (-0.276, 0.000, 0.500)
+    - (0.000, 0.000, 0.500)
+    - (1.242, 0.000, 0.500)
+    - (-0.500, 0.000, -1.242)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.025 0.025 0.100 0.025 0.025 
+
+==== Objects: 19
+- Obj 'bspline_nonperiodic' EMPTY par:'root'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bspline_nonperiodic_multiple_constant' CURVES data:'bspline_nonperiodic_multiple_constant' par:'multiple'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bspline_nonperiodic_multiple_varying' CURVES data:'bspline_nonperiodic_multiple_varying' par:'multiple'
+  - pos 0.000, 0.000, 1.250
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bspline_nonperiodic_multiple_vertex' CURVES data:'bspline_nonperiodic_multiple_vertex' par:'multiple'
+  - pos 0.000, 0.000, 2.500
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bspline_nonperiodic_single_constant' CURVES data:'bspline_nonperiodic_single_constant' par:'single'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bspline_nonperiodic_single_varying' CURVES data:'bspline_nonperiodic_single_varying' par:'single'
+  - pos 0.000, 0.000, 1.250
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bspline_nonperiodic_single_vertex' CURVES data:'bspline_nonperiodic_single_vertex' par:'single'
+  - pos 0.000, 0.000, 2.500
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bspline_periodic' EMPTY par:'root'
+  - pos 0.000, 0.000, 4.250
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bspline_periodic_multiple_constant' CURVES data:'bspline_periodic_multiple_constant' par:'multiple.001'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bspline_periodic_multiple_varying' CURVES data:'bspline_periodic_multiple_varying' par:'multiple.001'
+  - pos 0.000, 0.000, 1.250
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bspline_periodic_multiple_vertex' CURVES data:'bspline_periodic_multiple_vertex' par:'multiple.001'
+  - pos 0.000, 0.000, 2.500
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bspline_periodic_single_constant' CURVES data:'bspline_periodic_single_constant' par:'single.001'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bspline_periodic_single_varying' CURVES data:'bspline_periodic_single_varying' par:'single.001'
+  - pos 0.000, 0.000, 1.250
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bspline_periodic_single_vertex' CURVES data:'bspline_periodic_single_vertex' par:'single.001'
+  - pos 0.000, 0.000, 2.500
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'multiple' EMPTY par:'bspline_nonperiodic'
+  - pos 2.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'multiple.001' EMPTY par:'bspline_periodic'
+  - pos 2.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'root' EMPTY
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'single' EMPTY par:'bspline_nonperiodic'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'single.001' EMPTY par:'bspline_periodic'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

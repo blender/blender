@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/overlay_volume_info.hh"
+#include "infos/overlay_volume_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(overlay_volume_velocity_mac)
 
@@ -14,32 +14,32 @@ VERTEX_SHADER_CREATE_INFO(overlay_volume_velocity_mac)
  * TODO: port this to a color ramp. */
 float3 weight_to_color(float weight)
 {
-  float3 r_rgb = float3(0.0f);
+  float3 rgb = float3(0.0f);
   float blend = ((weight / 2.0f) + 0.5f);
 
   if (weight <= 0.25f) { /* blue->cyan */
-    r_rgb.g = blend * weight * 4.0f;
-    r_rgb.b = blend;
+    rgb.g = blend * weight * 4.0f;
+    rgb.b = blend;
   }
   else if (weight <= 0.50f) { /* cyan->green */
-    r_rgb.g = blend;
-    r_rgb.b = blend * (1.0f - ((weight - 0.25f) * 4.0f));
+    rgb.g = blend;
+    rgb.b = blend * (1.0f - ((weight - 0.25f) * 4.0f));
   }
   else if (weight <= 0.75f) { /* green->yellow */
-    r_rgb.r = blend * ((weight - 0.50f) * 4.0f);
-    r_rgb.g = blend;
+    rgb.r = blend * ((weight - 0.50f) * 4.0f);
+    rgb.g = blend;
   }
   else if (weight <= 1.0f) { /* yellow->red */
-    r_rgb.r = blend;
-    r_rgb.g = blend * (1.0f - ((weight - 0.75f) * 4.0f));
+    rgb.r = blend;
+    rgb.g = blend * (1.0f - ((weight - 0.75f) * 4.0f));
   }
   else {
     /* exceptional value, unclamped or nan,
      * avoid uninitialized memory use */
-    r_rgb = float3(1.0f, 0.0f, 1.0f);
+    rgb = float3(1.0f, 0.0f, 1.0f);
   }
 
-  return r_rgb;
+  return rgb;
 }
 
 float3x3 rotation_from_vector(float3 v)

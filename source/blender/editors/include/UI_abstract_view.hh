@@ -35,15 +35,15 @@
 
 #include "WM_types.hh"
 
+namespace blender {
+
 struct bContext;
-struct uiBlock;
-struct uiButViewItem;
-struct uiLayout;
-struct ViewLink;
 struct wmNotifier;
 
-namespace blender::ui {
+namespace ui {
 
+struct ViewLink;
+struct ButtonViewItem;
 class AbstractViewItem;
 class AbstractViewItemDragController;
 
@@ -52,9 +52,11 @@ enum class ViewScrollDirection {
   DOWN,
 };
 
+struct Layout;
+
 class AbstractView {
   friend class AbstractViewItem;
-  friend struct ::ViewLink;
+  friend struct ViewLink;
 
   bool is_reconstructed_ = false;
   /**
@@ -99,7 +101,7 @@ class AbstractView {
    */
   virtual bool begin_filtering(const bContext &C) const;
 
-  virtual void draw_overlays(const ARegion &region, const uiBlock &block) const;
+  virtual void draw_overlays(const ARegion &region, const Block &block) const;
 
   virtual void foreach_view_item(FunctionRef<void(AbstractViewItem &)> iter_fn) const = 0;
 
@@ -141,7 +143,7 @@ class AbstractView {
   MutableSpan<char> get_rename_buffer();
   /**
    * Get the rectangle containing all the view items that are in the layout, in button space.
-   * Updated as part of #UI_block_end(), before that it's unset.
+   * Updated as part of #block_end(), before that it's unset.
    */
   std::optional<rcti> get_bounds() const;
 
@@ -176,7 +178,7 @@ class AbstractView {
    * #AbstractViewItem.update_from_old().
    * After this, reconstruction is complete (see #is_reconstructed()).
    */
-  void update_from_old(uiBlock &new_block);
+  void update_from_old(Block &new_block);
   /**
    * Check if the view is fully (re-)constructed. That means, both the build function and
    * #update_from_old() have finished.
@@ -198,10 +200,11 @@ class AbstractViewItem {
    */
   AbstractView *view_ = nullptr;
   /** See #view_item_button() */
-  uiButViewItem *view_item_but_ = nullptr;
+  ui::ButtonViewItem *view_item_but_ = nullptr;
   bool is_activatable_ = true;
   bool is_interactive_ = true;
   bool is_active_ = false;
+  /** Only change using #set_selected() so overrides can sync changes to data. */
   bool is_selected_ = false;
   bool is_renaming_ = false;
   /** See #is_search_highlight(). */
@@ -216,6 +219,8 @@ class AbstractViewItem {
    * children currently.
    */
   bool is_always_collapsible_ = false;
+  /** See #select_on_click_set(). */
+  bool select_on_click_ = false;
   /** See #always_reactivate_on_click(). */
   bool reactivate_on_click_ = false;
   /** See #activate_for_context_menu_set(). */
@@ -224,7 +229,7 @@ class AbstractViewItem {
  public:
   virtual ~AbstractViewItem() = default;
 
-  virtual void build_context_menu(bContext &C, uiLayout &column) const;
+  virtual void build_context_menu(bContext &C, Layout &column) const;
 
   /**
    * Like #activate() but does not call #on_activate(). Use it to reflect changes in the active
@@ -300,11 +305,11 @@ class AbstractViewItem {
   AbstractView &get_view() const;
 
   /**
-   * Get the view item button (button of type #ButType::ViewItem) created for this item. Every
+   * Get the view item button (button of type #ButtonType::ViewItem) created for this item. Every
    * visible item gets one during the layout building. Items that are not visible may not have one,
    * so null is a valid return value.
    */
-  uiButViewItem *view_item_button() const;
+  ui::ButtonViewItem *view_item_button() const;
 
   /** Disable the interacting with this item, meaning the buttons drawn will be disabled and there
    * will be no mouse hover feedback for the view row. */
@@ -312,6 +317,13 @@ class AbstractViewItem {
   bool is_interactive() const;
 
   void disable_activatable();
+  /**
+   * Configure this view item to only select/activate on mouse-click (i.e. when the mouse is
+   * pressed and released without much movement in-between); the default is to select/activate on
+   * mouse-press.
+   */
+  void select_on_click_set();
+  bool is_select_on_click() const;
   /** Call #on_activate() on every click on the item, even when the item was active before. */
   void always_reactivate_on_click();
   /** Call #on_activate() when spawning a context menu. Otherwise the item will only be highlighted
@@ -355,6 +367,7 @@ class AbstractViewItem {
   void rename_apply(const bContext &C);
 
   virtual void delete_item(bContext *C);
+  virtual void on_filter();
 
  protected:
   AbstractViewItem() = default;
@@ -394,7 +407,7 @@ class AbstractViewItem {
    * renaming to work. This button is meant to appear temporarily. It is removed when renaming is
    * done.
    */
-  void add_rename_button(uiBlock &block);
+  void add_rename_button(Block &block);
 };
 
 /* ---------------------------------------------------------------------- */
@@ -418,8 +431,10 @@ class AbstractViewItemDragController {
   /**
    * Called when beginning to drag. Also called when #get_drag_type() doesn't return a value, so an
    * arbitrary action can be executed.
+   * \param item: The item this drag controller was created from. It's passed so it doesn't have to
+   *        be stored (especially as non-const).
    */
-  virtual void on_drag_start(bContext &C);
+  virtual void on_drag_start(bContext &C, ui::AbstractViewItem &item);
 
   /** Request the view the item is registered for as type #ViewType. Throws a `std::bad_cast`
    * exception if the view is not of the requested type. */
@@ -435,4 +450,5 @@ template<class ViewType> ViewType &AbstractViewItemDragController::get_view() co
 
 /** \} */
 
-}  // namespace blender::ui
+}  // namespace ui
+}  // namespace blender

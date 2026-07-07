@@ -37,6 +37,8 @@
 
 #include "atomic_ops.h"
 
+namespace blender {
+
 /**
  * Basic Thread Control API
  * ========================
@@ -51,7 +53,7 @@
  *
  * \code{.c}
  *
- *   ListBase lb;
+ *   ListBaseT<ThreadSlot> lb;
  *   int max_threads = 2;
  *   int cont = 1;
  *
@@ -118,7 +120,7 @@ void BLI_threadapi_init()
 
 void BLI_threadapi_exit() {}
 
-void BLI_threadpool_init(ListBase *threadbase, void *(*do_thread)(void *), int tot)
+void BLI_threadpool_init(ListBaseT<ThreadSlot> *threadbase, void *(*do_thread)(void *), int tot)
 {
   int a;
 
@@ -133,7 +135,7 @@ void BLI_threadpool_init(ListBase *threadbase, void *(*do_thread)(void *), int t
     }
 
     for (a = 0; a < tot; a++) {
-      ThreadSlot *tslot = MEM_callocN<ThreadSlot>("threadslot");
+      ThreadSlot *tslot = MEM_new_zeroed<ThreadSlot>("threadslot");
       BLI_addtail(threadbase, tslot);
       tslot->do_thread = do_thread;
       tslot->avail = 1;
@@ -143,12 +145,12 @@ void BLI_threadpool_init(ListBase *threadbase, void *(*do_thread)(void *), int t
   atomic_fetch_and_add_u(&thread_levels, 1);
 }
 
-int BLI_available_threads(ListBase *threadbase)
+int BLI_available_threads(ListBaseT<ThreadSlot> *threadbase)
 {
   int counter = 0;
 
-  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
-    if (tslot->avail) {
+  for (ThreadSlot &tslot : *threadbase) {
+    if (tslot.avail) {
       counter++;
     }
   }
@@ -156,12 +158,12 @@ int BLI_available_threads(ListBase *threadbase)
   return counter;
 }
 
-int BLI_threadpool_available_thread_index(ListBase *threadbase)
+int BLI_threadpool_available_thread_index(ListBaseT<ThreadSlot> *threadbase)
 {
   int counter = 0;
 
-  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
-    if (tslot->avail) {
+  for (ThreadSlot &tslot : *threadbase) {
+    if (tslot.avail) {
       return counter;
     }
     ++counter;
@@ -172,7 +174,7 @@ int BLI_threadpool_available_thread_index(ListBase *threadbase)
 
 static void *tslot_thread_start(void *tslot_p)
 {
-  ThreadSlot *tslot = (ThreadSlot *)tslot_p;
+  ThreadSlot *tslot = static_cast<ThreadSlot *>(tslot_p);
   return tslot->do_thread(tslot->callerdata);
 }
 
@@ -181,57 +183,57 @@ int BLI_thread_is_main()
   return pthread_equal(pthread_self(), mainid);
 }
 
-void BLI_threadpool_insert(ListBase *threadbase, void *callerdata)
+void BLI_threadpool_insert(ListBaseT<ThreadSlot> *threadbase, void *callerdata)
 {
-  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
-    if (tslot->avail) {
-      tslot->avail = 0;
-      tslot->callerdata = callerdata;
-      pthread_create(&tslot->pthread, nullptr, tslot_thread_start, tslot);
+  for (ThreadSlot &tslot : *threadbase) {
+    if (tslot.avail) {
+      tslot.avail = 0;
+      tslot.callerdata = callerdata;
+      pthread_create(&tslot.pthread, nullptr, tslot_thread_start, &tslot);
       return;
     }
   }
   printf("ERROR: could not insert thread slot\n");
 }
 
-void BLI_threadpool_remove(ListBase *threadbase, void *callerdata)
+void BLI_threadpool_remove(ListBaseT<ThreadSlot> *threadbase, void *callerdata)
 {
-  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
-    if (tslot->callerdata == callerdata) {
-      pthread_join(tslot->pthread, nullptr);
-      tslot->callerdata = nullptr;
-      tslot->avail = 1;
+  for (ThreadSlot &tslot : *threadbase) {
+    if (tslot.callerdata == callerdata) {
+      pthread_join(tslot.pthread, nullptr);
+      tslot.callerdata = nullptr;
+      tslot.avail = 1;
     }
   }
 }
 
-void BLI_threadpool_remove_index(ListBase *threadbase, int index)
+void BLI_threadpool_remove_index(ListBaseT<ThreadSlot> *threadbase, int index)
 {
   int counter = 0;
 
-  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
-    if (counter == index && tslot->avail == 0) {
-      pthread_join(tslot->pthread, nullptr);
-      tslot->callerdata = nullptr;
-      tslot->avail = 1;
+  for (ThreadSlot &tslot : *threadbase) {
+    if (counter == index && tslot.avail == 0) {
+      pthread_join(tslot.pthread, nullptr);
+      tslot.callerdata = nullptr;
+      tslot.avail = 1;
       break;
     }
     ++counter;
   }
 }
 
-void BLI_threadpool_clear(ListBase *threadbase)
+void BLI_threadpool_clear(ListBaseT<ThreadSlot> *threadbase)
 {
-  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
-    if (tslot->avail == 0) {
-      pthread_join(tslot->pthread, nullptr);
-      tslot->callerdata = nullptr;
-      tslot->avail = 1;
+  for (ThreadSlot &tslot : *threadbase) {
+    if (tslot.avail == 0) {
+      pthread_join(tslot.pthread, nullptr);
+      tslot.callerdata = nullptr;
+      tslot.avail = 1;
     }
   }
 }
 
-void BLI_threadpool_end(ListBase *threadbase)
+void BLI_threadpool_end(ListBaseT<ThreadSlot> *threadbase)
 {
 
   /* Only needed if there's actually some stuff to end
@@ -240,9 +242,9 @@ void BLI_threadpool_end(ListBase *threadbase)
     return;
   }
 
-  LISTBASE_FOREACH (ThreadSlot *, tslot, threadbase) {
-    if (tslot->avail == 0) {
-      pthread_join(tslot->pthread, nullptr);
+  for (ThreadSlot &tslot : *threadbase) {
+    if (tslot.avail == 0) {
+      pthread_join(tslot.pthread, nullptr);
     }
   }
   BLI_freelistN(threadbase);
@@ -364,7 +366,7 @@ void BLI_mutex_end(ThreadMutex *mutex)
 
 ThreadMutex *BLI_mutex_alloc()
 {
-  ThreadMutex *mutex = MEM_callocN<ThreadMutex>("ThreadMutex");
+  ThreadMutex *mutex = MEM_new_zeroed<ThreadMutex>("ThreadMutex");
   BLI_mutex_init(mutex);
   return mutex;
 }
@@ -372,7 +374,7 @@ ThreadMutex *BLI_mutex_alloc()
 void BLI_mutex_free(ThreadMutex *mutex)
 {
   BLI_mutex_end(mutex);
-  MEM_freeN(mutex);
+  MEM_delete(mutex);
 }
 
 /* Spin Locks */
@@ -486,7 +488,7 @@ void BLI_rw_mutex_end(ThreadRWMutex *mutex)
 
 ThreadRWMutex *BLI_rw_mutex_alloc()
 {
-  ThreadRWMutex *mutex = MEM_callocN<ThreadRWMutex>("ThreadRWMutex");
+  ThreadRWMutex *mutex = MEM_new_zeroed<ThreadRWMutex>("ThreadRWMutex");
   BLI_rw_mutex_init(mutex);
   return mutex;
 }
@@ -494,7 +496,7 @@ ThreadRWMutex *BLI_rw_mutex_alloc()
 void BLI_rw_mutex_free(ThreadRWMutex *mutex)
 {
   BLI_rw_mutex_end(mutex);
-  MEM_freeN(mutex);
+  MEM_delete(mutex);
 }
 
 /* Ticket Mutex Lock */
@@ -509,7 +511,7 @@ struct TicketMutex {
 
 TicketMutex *BLI_ticket_mutex_alloc()
 {
-  TicketMutex *ticket = MEM_callocN<TicketMutex>("TicketMutex");
+  TicketMutex *ticket = MEM_new_zeroed<TicketMutex>("TicketMutex");
 
   pthread_cond_init(&ticket->cond, nullptr);
   pthread_mutex_init(&ticket->mutex, nullptr);
@@ -521,7 +523,7 @@ void BLI_ticket_mutex_free(TicketMutex *ticket)
 {
   pthread_mutex_destroy(&ticket->mutex);
   pthread_cond_destroy(&ticket->cond);
-  MEM_freeN(ticket);
+  MEM_delete(ticket);
 }
 
 static bool ticket_mutex_lock(TicketMutex *ticket, const bool check_recursive)
@@ -681,7 +683,7 @@ static void check_finalization(ThreadQueue *queue)
   }
 }
 
-void BLI_thread_queue_cancel_work(ThreadQueue *queue, uint64_t work_id)
+bool BLI_thread_queue_cancel_work(ThreadQueue *queue, uint64_t work_id)
 {
   pthread_mutex_lock(&queue->mutex);
 
@@ -707,6 +709,8 @@ void BLI_thread_queue_cancel_work(ThreadQueue *queue, uint64_t work_id)
   }
 
   pthread_mutex_unlock(&queue->mutex);
+
+  return found;
 }
 
 void *BLI_thread_queue_pop(ThreadQueue *queue)
@@ -872,3 +876,5 @@ void BLI_thread_queue_wait_finish(ThreadQueue *queue)
 
   pthread_mutex_unlock(&queue->mutex);
 }
+
+}  // namespace blender

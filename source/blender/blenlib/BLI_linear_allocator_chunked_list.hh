@@ -11,7 +11,6 @@
 #include <array>
 
 #include "BLI_linear_allocator.hh"
-#include "BLI_struct_equality_utils.hh"
 #include "BLI_utility_mixins.hh"
 
 namespace blender::linear_allocator {
@@ -141,7 +140,7 @@ template<typename T, int64_t SegmentCapacity = 4> class ChunkedList : NonCopyabl
       return *segment_->values[index_];
     }
 
-    BLI_STRUCT_EQUALITY_OPERATORS_2(ConstIterator, segment_, index_)
+    friend bool operator==(const ConstIterator &a, const ConstIterator &b) = default;
   };
 
   class MutableIterator {
@@ -167,7 +166,7 @@ template<typename T, int64_t SegmentCapacity = 4> class ChunkedList : NonCopyabl
       return *segment_->values[index_];
     }
 
-    BLI_STRUCT_EQUALITY_OPERATORS_2(MutableIterator, segment_, index_)
+    friend bool operator==(const MutableIterator &a, const MutableIterator &b) = default;
   };
 
   ConstIterator begin() const

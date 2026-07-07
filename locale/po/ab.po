@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'5a04f1d246f1')\n"
 "Report-Msgid-Bugs-To: \n"
 "PO-Revision-Date: 2025-07-23 15:29+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
@@ -71,6 +71,10 @@ msgid "Empty"
 msgstr "Аҭацәы"
 
 
+msgid "Texts"
+msgstr "Аҳәоуқәа"
+
+
 msgid "Edge"
 msgstr "Акьыԥшь"
 
@@ -81,10 +85,6 @@ msgstr "Ахаҿы"
 
 msgid "Object"
 msgstr "Амаҭәар"
-
-
-msgid "Texts"
-msgstr "Аҳәоуқәа"
 
 
 msgid "Main Images"
@@ -119,8 +119,8 @@ msgid "Curve"
 msgstr "Архәара"
 
 
-msgid "Difference"
-msgstr "Аиԥшымра"
+msgid "View"
+msgstr "Аԥшра"
 
 
 msgid "Armature"
@@ -141,10 +141,6 @@ msgstr "Ахырхага"
 
 msgid "Plane"
 msgstr "Аҟьаҟьа"
-
-
-msgid "View"
-msgstr "Аԥшра"
 
 
 msgid "Render"
@@ -181,6 +177,10 @@ msgstr "Алгара"
 
 msgid "Start"
 msgstr "Алагара"
+
+
+msgid "Text"
+msgstr "Аҳәоу"
 
 
 msgid "Window"
@@ -266,24 +266,24 @@ msgid "3D Cursor"
 msgstr "3Д Ахырхага"
 
 
+msgid "Difference"
+msgstr "Аиԥшымра"
+
+
 msgid "Metaball"
 msgstr "Метампыл"
+
+
+msgid "Keying"
+msgstr " Аиҭаганҵа"
 
 
 msgid "Light"
 msgstr "Алашара"
 
 
-msgid "Text"
-msgstr "Аҳәоу"
-
-
 msgid "Marker"
 msgstr "Ашьҭа"
-
-
-msgid "Keying"
-msgstr " Аиҭаганҵа"
 
 
 msgid "File"
@@ -292,6 +292,11 @@ msgstr "Ашәҟәы"
 
 msgid "Help"
 msgstr "Аилыркаа"
+
+
+msgctxt "Operator"
+msgid "Lattice"
+msgstr "Аҭыџьеихац"
 
 
 msgid "Intersect"
@@ -501,11 +506,6 @@ msgstr "Абжьы Ахыҵхырҭа"
 msgctxt "Operator"
 msgid "Armature"
 msgstr "Абаҩ"
-
-
-msgctxt "Operator"
-msgid "Lattice"
-msgstr "Аҭыџьеихац"
 
 
 msgctxt "Action"

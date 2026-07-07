@@ -72,7 +72,7 @@ class Cell {
 
 class GridVisitor {
  public:
-  virtual ~GridVisitor(){};  // soc
+  virtual ~GridVisitor() {};  // soc
 
   virtual void discoverCell(Cell * /*cell*/) {}
 
@@ -382,7 +382,7 @@ class Grid {
 
 class VirtualOccludersSet {
  public:
-  VirtualOccludersSet(Grid &_grid) : grid(_grid){};
+  VirtualOccludersSet(Grid &_grid) : grid(_grid) {};
   Polygon3r *begin();
   Polygon3r *next();
   Polygon3r *next(bool stopOnNewCell);

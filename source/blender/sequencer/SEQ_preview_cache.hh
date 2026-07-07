@@ -12,22 +12,31 @@
 
 #pragma once
 
+namespace blender {
+
 struct Scene;
 
-namespace blender::gpu {
+namespace gpu {
 class Texture;
 }
 
-namespace blender::seq {
+namespace seq {
 
-gpu::Texture *preview_cache_get_gpu_texture(Scene *scene, int timeline_frame);
-void preview_cache_set_gpu_texture(Scene *scene, int timeline_frame, gpu::Texture *texture);
-gpu::Texture *preview_cache_get_gpu_display_texture(Scene *scene, int timeline_frame);
+gpu::Texture *preview_cache_get_gpu_texture(
+    Scene *scene, int timeline_frame, int display_channel, int width, int height);
+void preview_cache_set_gpu_texture(Scene *scene,
+                                   int timeline_frame,
+                                   int display_channel,
+                                   gpu::Texture *texture);
+gpu::Texture *preview_cache_get_gpu_display_texture(
+    Scene *scene, int timeline_frame, int display_channel, int width, int height);
 void preview_cache_set_gpu_display_texture(Scene *scene,
                                            int timeline_frame,
+                                           int display_channel,
                                            gpu::Texture *texture);
 
 void preview_cache_invalidate(Scene *scene);
 void preview_cache_destroy(Scene *scene);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

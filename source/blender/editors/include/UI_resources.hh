@@ -10,6 +10,8 @@
 
 #include "BLI_assert.h"
 
+namespace blender {
+
 struct bTheme;
 
 /* Define icon enum. */
@@ -78,13 +80,12 @@ enum ThemeColorID {
   TH_PANEL_OUTLINE,
   TH_PANEL_ACTIVE,
 
-  TH_BUTBACK,
-
   TH_SHADE1,
   TH_SHADE2,
   TH_HILITE,
 
   TH_GRID,
+  TH_GRID_MAJOR,
   TH_WIRE,
   TH_WIRE_INNER,
   TH_WIRE_EDIT,
@@ -104,7 +105,6 @@ enum ThemeColorID {
   TH_EDGE,
   TH_EDGE_SELECT, /* Stands for edge selection, not edge select mode. */
   TH_EDGE_MODE_SELECT,
-  TH_EDGE_SEAM,
   TH_FACE,
   TH_FACE_SELECT, /* Stands for face selection, not face select mode. */
   TH_FACE_MODE_SELECT,
@@ -114,12 +114,12 @@ enum ThemeColorID {
   TH_NORMAL,
   TH_VNORMAL,
   TH_LNORMAL,
-  TH_FACE_DOT,
   TH_FACEDOT_SIZE,
   TH_CFRAME,
   TH_FRAME_BEFORE,
   TH_FRAME_AFTER,
   TH_TIME_SCRUB_BACKGROUND,
+  TH_TIME_SCRUB_TEXT,
   TH_TIME_MARKER_LINE,
   TH_TIME_MARKER_LINE_SELECTED,
   TH_TIME_GP_KEYFRAME,
@@ -140,8 +140,6 @@ enum ThemeColorID {
   TH_HANDLE_SEL_ALIGN,
   TH_HANDLE_SEL_AUTOCLAMP,
 
-  TH_ACTIVE_SPLINE,
-
   TH_SYNTAX_B,
   TH_SYNTAX_V,
   TH_SYNTAX_R,
@@ -159,7 +157,9 @@ enum ThemeColorID {
 
   TH_STRIP,
   TH_STRIP_SELECT,
-  TH_TRACK_SELECT,
+
+  TH_CHANNEL,
+  TH_CHANNEL_SELECT,
 
   TH_LONGKEY,
   TH_LONGKEY_SELECT,
@@ -186,6 +186,7 @@ enum ThemeColorID {
   TH_EMPTY,
 
   TH_NODE,
+  TH_NODE_OUTLINE,
   TH_NODE_INPUT,
   TH_NODE_OUTPUT,
   TH_NODE_COLOR,
@@ -233,13 +234,13 @@ enum ThemeColorID {
   TH_SEQ_TEXT_CURSOR,
   TH_SEQ_SELECTED_TEXT,
 
-  TH_EDGE_SHARP,
   TH_EDITMESH_ACTIVE,
 
   TH_HANDLE_VERTEX,
   TH_HANDLE_VERTEX_SELECT,
   TH_HANDLE_VERTEX_SIZE,
 
+  TH_GP_WIRE_EDIT,
   TH_GP_VERTEX,
   TH_GP_VERTEX_SELECT,
   TH_GP_VERTEX_SIZE,
@@ -247,10 +248,10 @@ enum ThemeColorID {
   TH_DOPESHEET_CHANNELOB,
   TH_DOPESHEET_CHANNELSUBOB,
   TH_DOPESHEET_IPOLINE,
+  TH_DOPESHEET_IPOCONST,
+  TH_DOPESHEET_IPOOTHER,
 
   TH_PREVIEW_BACK,
-
-  TH_EDGE_CREASE,
 
   TH_DRAWEXTRA_EDGELEN,
   TH_DRAWEXTRA_EDGEANG,
@@ -281,13 +282,7 @@ enum ThemeColorID {
   TH_STITCH_PREVIEW_UNSTITCHABLE,
   TH_STITCH_PREVIEW_ACTIVE,
 
-  TH_PAINT_CURVE_HANDLE,
-  TH_PAINT_CURVE_PIVOT,
-
   TH_UV_SHADOW,
-
-  TH_FREESTYLE_EDGE_MARK,
-  TH_FREESTYLE_FACE_MARK,
 
   TH_MATCH,            /* highlight color for search matches */
   TH_SELECT_HIGHLIGHT, /* highlight color for selected outliner item */
@@ -299,9 +294,10 @@ enum ThemeColorID {
 
   TH_SKIN_ROOT,
 
-  TH_ANIM_ACTIVE,        /* active action */
-  TH_ANIM_INACTIVE,      /* no active action */
-  TH_ANIM_PREVIEW_RANGE, /* preview range overlay */
+  TH_ANIM_ACTIVE,            /* active action */
+  TH_ANIM_INACTIVE,          /* no active action */
+  TH_ANIM_PREVIEW_RANGE,     /* preview range overlay */
+  TH_ANIM_SCENE_STRIP_RANGE, /* scene strip range overlay */
 
   TH_ICON_SCENE,
   TH_ICON_COLLECTION,
@@ -371,9 +367,14 @@ enum ThemeColorID {
   TH_METADATA_BG,
   TH_METADATA_TEXT,
 
-  TH_EDGE_BEVEL,
-  TH_VERTEX_BEVEL,
+  TH_BEVEL,
+  TH_CREASE,
+  TH_SEAM,
+  TH_SHARP,
+  TH_FREESTYLE,
 };
+
+namespace ui::theme {
 
 /* Specific defines per space should have higher define values. */
 
@@ -387,141 +388,146 @@ struct bThemeState {
 /**
  * Get individual values, not scaled.
  */
-float UI_GetThemeValuef(int colorid);
+float get_value_f(int colorid);
 /**
  * Get individual values, not scaled.
  */
-int UI_GetThemeValue(int colorid);
+int get_value(int colorid);
 
-/* Versions of #UI_GetThemeValue & #UI_GetThemeValuef, which take a space-type */
+/* Versions of #get_value & #get_value_f, which take a space-type */
 
-float UI_GetThemeValueTypef(int colorid, int spacetype);
-int UI_GetThemeValueType(int colorid, int spacetype);
+float get_value_type_f(int colorid, int spacetype);
+int get_value_type(int colorid, int spacetype);
 
 /**
  * Get three color values, scaled to 0.0-1.0 range.
  */
-void UI_GetThemeColor3fv(int colorid, float col[3]);
-void UI_GetThemeColorBlend3ubv(int colorid1, int colorid2, float fac, unsigned char col[3]);
-void UI_GetThemeColorBlend3f(int colorid1, int colorid2, float fac, float r_col[3]);
-void UI_GetThemeColorBlend4f(int colorid1, int colorid2, float fac, float r_col[4]);
+void get_color_3fv(int colorid, float col[3]);
+void get_color_blend_3ubv(int colorid1, int colorid2, float fac, unsigned char col[3]);
+void get_color_blend_3f(int colorid1, int colorid2, float fac, float r_col[3]);
+void get_color_blend_4f(int colorid1, int colorid2, float fac, float r_col[4]);
 /**
  * Get the color, range 0.0-1.0, complete with shading offset.
  */
-void UI_GetThemeColorShade3fv(int colorid, int offset, float col[3]);
-void UI_GetThemeColorShade3ubv(int colorid, int offset, unsigned char col[3]);
-void UI_GetThemeColorShade4ubv(int colorid, int offset, unsigned char col[4]);
+void get_color_shade_3fv(int colorid, int offset, float col[3]);
+void get_color_shade_3ubv(int colorid, int offset, unsigned char col[3]);
+void get_color_shade_4ubv(int colorid, int offset, unsigned char col[4]);
 
 /**
  * Get three color values, range 0-255,
  * complete with shading offset for the RGB components and blending.
  */
-void UI_GetThemeColorBlendShade3ubv(
+void get_color_blend_shade_3ubv(
     int colorid1, int colorid2, float fac, int offset, unsigned char col[3]);
 
 /**
  * Get four color values, scaled to 0.0-1.0 range.
  */
-void UI_GetThemeColor4fv(int colorid, float col[4]);
+void get_color_4fv(int colorid, float col[4]);
 
 /**
  * Get four color values from specified space type, scaled to 0.0-1.0 range.
  */
-void UI_GetThemeColorType4fv(int colorid, int spacetype, float col[4]);
+void get_color_type_4fv(int colorid, int spacetype, float col[4]);
 
 /**
  * Get four color values, range 0.0-1.0, complete with shading offset for the RGB components.
  */
-void UI_GetThemeColorShade4fv(int colorid, int offset, float col[4]);
-void UI_GetThemeColorShadeAlpha4fv(int colorid, int coloffset, int alphaoffset, float col[4]);
+void get_color_shade_4fv(int colorid, int offset, float col[4]);
+void get_color_shade_alpha_4fv(int colorid, int coloffset, int alphaoffset, float col[4]);
 
 /**
  * Get four color values ranged between 0 and 255; includes the alpha channel.
  */
-void UI_GetThemeColorShadeAlpha4ubv(int colorid,
-                                    int coloffset,
-                                    int alphaoffset,
-                                    unsigned char col[4]);
+void get_color_shade_alpha_4ubv(int colorid, int coloffset, int alphaoffset, unsigned char col[4]);
 
 /**
  * Get four color values, range 0.0-1.0,
  * complete with shading offset for the RGB components and blending.
  */
-void UI_GetThemeColorBlendShade3fv(
-    int colorid1, int colorid2, float fac, int offset, float col[3]);
-void UI_GetThemeColorBlendShade4fv(
-    int colorid1, int colorid2, float fac, int offset, float col[4]);
+void get_color_blend_shade_3fv(int colorid1, int colorid2, float fac, int offset, float col[3]);
+void get_color_blend_shade_4fv(int colorid1, int colorid2, float fac, int offset, float col[4]);
 
 /**
  * Get the 3 or 4 byte values.
  */
-void UI_GetThemeColor3ubv(int colorid, unsigned char col[3]);
+void get_color_3ubv(int colorid, unsigned char col[3]);
 /**
  * Get the color, in char pointer.
  */
-void UI_GetThemeColor4ubv(int colorid, unsigned char col[4]);
+void get_color_4ubv(int colorid, unsigned char col[4]);
 
 /**
  * Get a theme color from specified space type.
  */
-void UI_GetThemeColorType3fv(int colorid, int spacetype, float col[3]);
-void UI_GetThemeColorType3ubv(int colorid, int spacetype, unsigned char col[3]);
-void UI_GetThemeColorType4ubv(int colorid, int spacetype, unsigned char col[4]);
+void get_color_type_3fv(int colorid, int spacetype, float col[3]);
+void get_color_type_3ubv(int colorid, int spacetype, unsigned char col[3]);
+void get_color_type_4ubv(int colorid, int spacetype, unsigned char col[4]);
 
 /**
  * Get theme color for coloring monochrome icons.
  */
-bool UI_GetIconThemeColor4ubv(int colorid, unsigned char col[4]);
+bool get_icon_color_4ubv(int colorid, unsigned char col[4]);
 
 /**
- * Shade a 3 byte color (same as UI_GetColorPtrBlendShade3ubv with 0.0 factor).
+ * Get four color values, range 0.0-1.0, blended between two other float color pointers,
+ * complete with offset for the alpha component.
  */
-void UI_GetColorPtrShade3ubv(const unsigned char cp[3], int offset, unsigned char r_col[3]);
+void get_color_blend_alpha_4fv(
+    const float cp1[4], const float cp2[4], float fac, float alphaoffset, float r_col[4]);
+
+/**
+ * Shade a 3 byte color (same as get_color_blend_shade_3ubv with 0.0 factor).
+ */
+void get_color_shade_3ubv(const unsigned char cp[3], int offset, unsigned char r_col[3]);
 
 /**
  * Get a 3 byte color, blended and shaded between two other char color pointers.
  */
-void UI_GetColorPtrBlendShade3ubv(const unsigned char cp1[3],
-                                  const unsigned char cp2[3],
-                                  float fac,
-                                  int offset,
-                                  unsigned char r_col[3]);
+void get_color_blend_shade_3ubv(const unsigned char cp1[3],
+                                const unsigned char cp2[3],
+                                float fac,
+                                int offset,
+                                unsigned char r_col[3]);
 
 /**
  * Sets the font color
- * (for anything fancy use UI_GetThemeColor[Fancy] then BLF_color).
+ * (for anything fancy use GetThemeColor[Fancy] then BLF_color).
  */
-void UI_FontThemeColor(int fontid, int colorid);
+void font_theme_color_set(int fontid, int colorid);
 
 /**
  * Clear the frame-buffer using the input colorid.
  */
-void UI_ThemeClearColor(int colorid);
+void frame_buffer_clear(int colorid);
 
 /**
  * Internal (blender) usage only, for init and set active.
  */
-void UI_SetTheme(int spacetype, int regionid);
+void theme_set(int spacetype, int regionid);
 
 /**
  * Get current theme.
  */
-bTheme *UI_GetTheme();
+bTheme *theme_get();
 
 /**
  * For the rare case we need to temp swap in a different theme (off-screen render).
  */
-void UI_Theme_Store(bThemeState *theme_state);
-void UI_Theme_Restore(const bThemeState *theme_state);
+void theme_store(bThemeState *theme_state);
+void theme_restore(const bThemeState *theme_state);
 
 /**
  * Return shadow width outside menus and popups.
  */
-int UI_ThemeMenuShadowWidth();
+int get_menu_shadow_width();
 
 /**
  * Only for buttons in theme editor!
  */
-const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid);
+const unsigned char *get_color_ptr(bTheme *btheme, int spacetype, int colorid);
 
-void UI_make_axis_color(const unsigned char col[3], char axis, unsigned char r_col[3]);
+void make_axis_color(const unsigned char col[3], char axis, unsigned char r_col[3]);
+
+}  // namespace ui::theme
+}  // namespace blender

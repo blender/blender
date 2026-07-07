@@ -71,6 +71,26 @@ REPO_LOCAL_PRIVATE_DIR = ".blender_ext"
 
 URL_KNOWN_PREFIX = ("http://", "https://", "file://")
 
+# Extension types supported by this version of Blender.
+# Unknown types are skipped, allowing repositories to contain future extension types.
+PKG_MANIFEST_TYPE_SUPPORTED = {"add-on", "theme"}
+
+
+def pkg_manifest_skip_for_future_compat(item: dict[str, Any]) -> bool:
+    """
+    Return True if this item should be skipped for forward compatibility.
+
+    This allows repositories to contain extensions for future Blender versions
+    without causing errors in older versions.
+    Items with unknown types are silently skipped rather than treated as invalid.
+    """
+    # NOTE: this currently checks the type but it is intended for any future changes
+    # we don't want to hard fail on.
+    if (value := item.get("type")) is not None:
+        return value not in PKG_MANIFEST_TYPE_SUPPORTED
+    return False
+
+
 MESSAGE_TYPES = {
     # Status report about what is being done.
     'STATUS',
@@ -141,43 +161,6 @@ ${body}
 </body>
 </html>
 '''
-
-
-# -----------------------------------------------------------------------------
-# Workarounds
-
-def _worlaround_win32_ssl_cert_failure() -> None:
-    # Applies workaround by `pukkandan` on GITHUB at run-time:
-    # See: https://github.com/python/cpython/pull/91740
-    import ssl
-
-    class SSLContext_DUMMY(ssl.SSLContext):
-        def _load_windows_store_certs(self, storename: str, purpose: ssl.Purpose) -> bytearray:
-            # WIN32 only.
-            enum_certificates = getattr(ssl, "enum_certificates", None)
-            assert callable(enum_certificates)
-            certs = bytearray()
-            try:
-                for cert, encoding, trust in enum_certificates(storename):
-                    try:
-                        self.load_verify_locations(cadata=cert)
-                    except ssl.SSLError:
-                        # warnings.warn("Bad certificate in Windows certificate store")
-                        pass
-                    else:
-                        # CA certs are never PKCS#7 encoded
-                        if encoding == "x509_asn":
-                            if trust is True or purpose.oid in trust:
-                                certs.extend(cert)
-            except PermissionError:
-                # warnings.warn("unable to enumerate Windows certificate store")
-                pass
-            # NOTE(@ideasman42): Python never uses this return value internally.
-            # Keep it for consistency.
-            return certs
-
-    # pylint: disable-next=protected-access
-    ssl.SSLContext._load_windows_store_certs = SSLContext_DUMMY._load_windows_store_certs  # type: ignore
 
 
 # -----------------------------------------------------------------------------
@@ -439,7 +422,11 @@ class PkgServerRepoConfig(NamedTuple):
 def path_to_url(path: str) -> str:
     from urllib.parse import urljoin
     from urllib.request import pathname2url
-    return urljoin("file:", pathname2url(path))
+    # Python 3.14+: pathname2url returns '///path' (RFC 8089), use 'file://' base.
+    file_prefix = "file://" if sys.version_info >= (3, 14) else "file:"
+    result = urljoin(file_prefix, pathname2url(path))
+    assert result.startswith('file:///')
+    return result
 
 
 def path_from_url(path: str) -> str:
@@ -573,13 +560,7 @@ def rmtree_with_fallback_or_error(
     # so use it's callback that raises a link error and remove the link in that case.
     errors = []
 
-    # *DEPRECATED* 2024/07/01 Remove when 3.11 is dropped.
-    if sys.version_info >= (3, 12):
-        shutil.rmtree(path, onexc=lambda *args: errors.append(args))
-    else:
-        # Ignore as the deprecated logic is only used for older Python versions.
-        # pylint: disable-next=deprecated-argument
-        shutil.rmtree(path, onerror=lambda *args: errors.append((args[0], args[1], args[2][1])))
+    shutil.rmtree(path, onexc=lambda *args: errors.append(args))
 
     # Happy path (for practically all cases).
     if not errors:
@@ -712,7 +693,7 @@ def build_paths_expand_iter(
             filepath = filepath.replace("/", "\\")
 
         # Avoid `os.path.join(path, filepath)` because `path` is ignored `filepath` is an absolute path.
-        # In the contest of declaring build paths we *never* want to reference an absolute directory
+        # In the context of declaring build paths we *never* want to reference an absolute directory
         # such as `C:\path` or `/tmp/path`.
         yield (
             "{:s}{:s}{:s}".format(path_strip, os.sep, filepath.lstrip(os.sep)),
@@ -971,9 +952,9 @@ def pkg_server_repo_config_from_toml_and_validate(
         if not isinstance(item, dict):
             return "blocklist contains non dictionary item, found ({:s})".format(str(type(item)))
         if not isinstance(value := item.get("id"), str):
-            return "blocklist items must have have a string typed \"id\" entry, found {:s}".format(str(type(value)))
+            return "blocklist items must have a string typed \"id\" entry, found {:s}".format(str(type(value)))
         if not isinstance(value := item.get("reason"), str):
-            return "blocklist items must have have a string typed \"reason\" entry, found {:s}".format(str(type(value)))
+            return "blocklist items must have a string typed \"reason\" entry, found {:s}".format(str(type(value)))
 
     return PkgServerRepoConfig(
         schema_version=field_schema_version,
@@ -1092,7 +1073,7 @@ def zipfile_make_root_directory(
         filename = member.filename
         if not filename.startswith(root_dir):
             continue
-        # Ensure the path is not _ony_ the directory (can happen for some ZIP files).
+        # Ensure the path is not _only_ the directory (can happen for some ZIP files).
         if not (filename := filename[len(root_dir):]):
             continue
 
@@ -1126,7 +1107,7 @@ class PathPatternMatch:
     #   to delimit on `/` which is necessary for `gitignore` style matching.
     #   So `/` are replaced with newlines, then REGEX multi-line logic is used
     #   to delimit the separators.
-    # - This is used for building packages, so it doesn't have to to especially fast,
+    # - This is used for building packages, so it doesn't have to be especially fast,
     #   although it shouldn't cause noticeable delays at build time.
     # - The test is located in: `../cli/test_path_pattern_match.py`
 
@@ -1261,7 +1242,7 @@ class PathPatternMatch:
             pattern = "\\A" + pattern
 
         if only_directory:
-            # Ensure this only ever matches a directly.
+            # Ensure this only ever matches a directory.
             pattern = pattern + "[\\n/]"
         else:
             # Ensure this isn't part of a longer string.
@@ -1556,7 +1537,7 @@ def pkg_manifest_validate_terse_description_or_error(value: str) -> str | None:
     elif value[-1] in {")", "]", "}"}:
         pass  # Allow closing brackets (sometimes used to mention formats).
     else:
-        return "alpha-numeric suffix expected, the string must not end with punctuation"
+        return "alphanumeric suffix expected, the string must not end with punctuation"
     return None
 
 
@@ -1648,7 +1629,7 @@ def pkg_manifest_tags_valid_or_error(
 # - When building packages.
 # - When validating packages from the command line.
 #
-# However manifests from severs that don't adhere to strict rules are not prevented from loading.
+# However manifests from servers that don't adhere to strict rules are not prevented from loading.
 
 # pylint: disable-next=useless-return
 def pkg_manifest_validate_field_nop(
@@ -1746,7 +1727,7 @@ def pkg_manifest_validate_field_idname(value: str, strict: bool) -> str | None:
 def pkg_manifest_validate_field_type(value: str, strict: bool) -> str | None:
     _ = strict
     # NOTE: add "keymap" in the future.
-    value_expected = {"add-on", "theme"}
+    value_expected = PKG_MANIFEST_TYPE_SUPPORTED
     if value not in value_expected:
         return "Expected to be one of [{:s}], found {!r}".format(", ".join(value_expected), value)
     return None
@@ -1809,7 +1790,7 @@ def pkg_manifest_validate_field_copyright(
             if not year_valid:
                 return "at index {:d} must be a number or two numbers separated by \"-\"".format(i)
             if not name.strip():
-                return "at index {:d} name may not be empty".format(i)
+                return "at index {:d} copyright name must be non-empty".format(i)
         return None
     else:
         return pkg_manifest_validate_field_any_list_of_non_empty_strings(value, strict)
@@ -1843,7 +1824,7 @@ def pkg_manifest_validate_field_permissions(
             if not isinstance(item_key, str):
                 return "key \"{:s}\" must be a string not a {:s}".format(str(item_key), str(type(item_key)))
             if item_key not in keys_valid:
-                return "value of \"{:s}\" must be a value in {!r}".format(item_key, tuple(keys_valid))
+                return "key \"{:s}\" must be one of {!r}".format(item_key, tuple(keys_valid))
 
             # Validate the value.
             if not isinstance(item_value, str):
@@ -1863,7 +1844,7 @@ def pkg_manifest_validate_field_permissions(
             # Historic beta convention, keep for compatibility.
             for i, item in enumerate(value):
                 if not isinstance(item, str):
-                    return "Expected item at index {:d} to be an int not a {:s}".format(i, str(type(item)))
+                    return "Expected item at index {:d} to be a string not a {:s}".format(i, str(type(item)))
         else:
             # The caller doesn't allow this.
             assert False, "internal error, disallowed type"
@@ -1921,14 +1902,14 @@ def pkg_manifest_validate_field_wheels(
 
     for wheel in value:
         if "\"" in wheel:
-            return "wheel paths most not contain quotes, found {!r}".format(wheel)
+            return "wheel paths must not contain quotes, found {!r}".format(wheel)
         if "\\" in wheel:
             return "wheel paths must use forward slashes, found {!r}".format(wheel)
 
         if (error := pkg_manifest_validate_field_any_non_empty_string_stripped_no_control_chars(
                 wheel, True,
         )) is not None:
-            return "wheel paths detected: {:s}, found {!r}".format(error, wheel)
+            return "wheel path error: {:s}, found {!r}".format(error, wheel)
 
         wheel_filename = os.path.basename(wheel)
         if not wheel_filename.lower().endswith(".whl"):
@@ -2276,8 +2257,8 @@ def python_versions_from_wheel_python_tag(python_tag: str) -> set[tuple[int] | t
             versions.add(version)
         else:
             return (
-                "wheel filename version prefix failed to be extracted "
-                "found \"{:s}\" int \"{:s}\", expected a value in ({:s})"
+                "wheel filename version prefix not recognized, "
+                "found \"{:s}\" in \"{:s}\", expected a value in ({:s})"
             ).format(
                 version_prefix,
                 python_tag,
@@ -2308,7 +2289,7 @@ def python_versions_from_wheel_abi_tag(
 
 def python_versions_from_wheel(wheel_filename: str) -> set[tuple[int] | tuple[int, int]] | str:
     """
-    Extract a set of Python versions from a list of wheels or return an error string.
+    Extract a set of Python versions from a wheel or return an error string.
     """
     wheel_filename_split = wheel_filename.split("-")
 
@@ -2464,10 +2445,14 @@ def repository_filter_skip(
     reporting errors if the user attempts to install an extension which isn't compatible with their system.
     """
 
+    # Skip unknown extension types (allows repositories to contain future extension types).
+    if pkg_manifest_skip_for_future_compat(item):
+        return True
+
     if (platforms := item.get("platforms")) is not None:
         if not isinstance(platforms, list):
             # Possibly noisy, but this should *not* be happening on a regular basis.
-            error_fn(TypeError("platforms is not a list, found a: {:s}".format(str(type(platforms)))))
+            error_fn(TypeError("platforms is not a list, found: {:s}".format(str(type(platforms)))))
         elif platforms and (filter_platform not in platforms):
             if skip_message_fn is not None:
                 skip_message_fn("This platform ({:s}) isn't one of ({:s})".format(
@@ -2480,7 +2465,7 @@ def repository_filter_skip(
         if (python_versions := item.get("python_versions")) is not None:
             if not isinstance(python_versions, list):
                 # Possibly noisy, but this should *not* be happening on a regular basis.
-                error_fn(TypeError("python_versions is not a list, found a: {:s}".format(str(type(python_versions)))))
+                error_fn(TypeError("python_versions is not a list, found: {:s}".format(str(type(python_versions)))))
             elif python_versions:
                 ok = True
                 python_versions_as_set: set[str] = set()
@@ -2591,7 +2576,7 @@ def python_version_parse_or_error(version: str) -> tuple[int, int, int] | str:
 
 def blender_version_parse_any_or_error(version: Any) -> tuple[int, int, int] | str:
     if not isinstance(version, str):
-        return "blender version should be a string, found a: {:s}".format(str(type(version)))
+        return "blender version should be a string, found: {:s}".format(str(type(version)))
 
     result = blender_version_parse_or_error(version)
     assert isinstance(result, (tuple, str))
@@ -2605,7 +2590,7 @@ def url_request_headers_create(*, accept_json: bool, user_agent: str, access_tok
         headers["Accept"] = "application/json"
 
     if user_agent:
-        # Typically: `Blender/4.2.0 (Linux x84_64; cycle=alpha)`.
+        # Typically: `Blender/4.2.0 (Linux x86_64; cycle=alpha)`.
         headers["User-Agent"] = user_agent
 
     if access_token:
@@ -2657,6 +2642,10 @@ def repo_json_is_valid_or_error(filepath: str) -> str | None:
             return "Expected key at index {:d} to be an identifier, \"{:s}\" failed: {:s}".format(
                 i, pkg_idname, error_msg,
             )
+
+        # Skip unknown extension types (allows repositories to contain future extension types).
+        if pkg_manifest_skip_for_future_compat(item):
+            continue
 
         if (error_msg := pkg_manifest_is_valid_or_error(item, from_repo=True, strict=False)) is not None:
             return "Error at index {:d}: {:s}".format(i, error_msg)
@@ -2919,7 +2908,7 @@ def toml_from_filepath_or_error(filepath: str) -> dict[str, Any] | str:
 
 def repo_local_private_dir(*, local_dir: str) -> str:
     """
-    Ensure the repos hidden directory exists.
+    Ensure the repositories hidden directory exists.
     """
     return os.path.join(local_dir, REPO_LOCAL_PRIVATE_DIR)
 
@@ -2930,7 +2919,7 @@ def repo_local_private_dir_ensure(
         error_fn: Callable[[Exception], None],
 ) -> str | None:
     """
-    Ensure the repos hidden directory exists.
+    Ensure the repositories hidden directory exists.
     """
     local_private_dir = repo_local_private_dir(local_dir=local_dir)
     if not os.path.isdir(local_private_dir):
@@ -3250,7 +3239,7 @@ def generic_arg_server_generate_repo_config(subparse: argparse.ArgumentParser) -
             "   id = \"my_example_package\"\n"
             "   reason = \"Explanation for why this extension was blocked\"\n"
             "   [[blocklist]]\n"
-            "   id = \"other_extenison\"\n"
+            "   id = \"other_extension\"\n"
             "   reason = \"Another reason for why this is blocked\"\n"
             "\n"
         ),
@@ -3440,7 +3429,7 @@ def generic_arg_package_source_dir(subparse: argparse.ArgumentParser) -> None:
         help=(
             "The package source directory containing a ``{:s}`` manifest.\n"
             "\n"
-            "Default's to the current directory."
+            "Defaults to the current directory."
         ).format(PKG_MANIFEST_FILENAME_TOML),
     )
 
@@ -3454,7 +3443,7 @@ def generic_arg_package_output_dir(subparse: argparse.ArgumentParser) -> None:
         help=(
             "The package output directory.\n"
             "\n"
-            "Default's to the current directory."
+            "Defaults to the current directory."
         ),
     )
 
@@ -3970,7 +3959,7 @@ class subcmd_client:
             return False
 
         if isinstance((repo_gen_dict := pkg_repo_data_from_json_or_error(result_dict)), str):
-            msglog.fatal_error("unexpected contants in JSON {:s}".format(repo_gen_dict))
+            msglog.fatal_error("unexpected contents in JSON {:s}".format(repo_gen_dict))
             return False
         del result_dict
 
@@ -4051,7 +4040,7 @@ class subcmd_client:
 
                 manifest = pkg_manifest_from_zipfile_and_validate(zip_fh, archive_subdir, strict=False)
                 if isinstance(manifest, str):
-                    msglog.error("Failed to load manifest from: {:s}".format(manifest))
+                    msglog.error("Failed to load manifest: {:s} from {:s}".format(manifest, filepath_archive))
                     return False
 
                 if manifest_compare is not None:
@@ -4153,7 +4142,7 @@ class subcmd_client:
             try:
                 os.rename(filepath_local_pkg_temp, filepath_local_pkg)
             except Exception as ex:
-                msglog.error("Failed to rename directory, causing unexpected removal \"{:s}\": {:s}".format(
+                msglog.error("Failed to rename directory for \"{:s}\": {:s}".format(
                     manifest.id,
                     str(ex),
                 ))
@@ -4684,7 +4673,13 @@ class subcmd_author:
 
         # Manifest & wheels.
         if build_paths_extra:
-            build_paths.extend(build_paths_expand_iter(pkg_source_dir, build_paths_extra))
+            build_paths.extend(build_paths_expand_iter(
+                pkg_source_dir,
+                # When "paths" is set, paths after `build_paths_extra_skip_index` have been added,
+                # see: `PkgManifest_Build.from_dict_all_errors`.
+                build_paths_extra if manifest_build.paths is None else
+                build_paths_extra[:build_paths_extra_skip_index],
+            ))
 
         if manifest_build.paths is not None:
             build_paths.extend(build_paths_expand_iter(pkg_source_dir, manifest_build.paths))
@@ -5003,7 +4998,7 @@ class subcmd_author:
                     return False
 
             # NOTE: this is arguably *not* manifest validation, the check could be refactored out.
-            # Currently we always want to check both and it's useful to do that while the informatio
+            # Currently we always want to check both and it's useful to do that while the information is loaded.
             expected_files = []
             if manifest.type == "add-on":
                 if archive_subdir:
@@ -5670,9 +5665,6 @@ def main(
     if "--version" in sys.argv:
         sys.stdout.write("{:s}\n".format(VERSION))
         return 0
-
-    if (sys.platform == "win32") and (sys.version_info < (3, 12, 6)):
-        _worlaround_win32_ssl_cert_failure()
 
     parser = argparse_create(
         args_internal=args_internal,

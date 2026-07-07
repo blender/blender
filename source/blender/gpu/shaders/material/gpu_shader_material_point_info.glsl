@@ -4,7 +4,8 @@
 
 #include "gpu_shader_common_hash.glsl"
 
-void node_point_info(out float3 position, out float radius, out float random)
+[[node]]
+void node_point_info(float3 &position, float &radius, float &random)
 {
 #ifdef MAT_GEOM_POINTCLOUD
   /* EEVEE-Next case. */

@@ -13,6 +13,8 @@
 
 #include "BLI_math_base.h"
 
+namespace blender {
+
 MINLINE float safe_divide(float a, float b);
 MINLINE float safe_modf(float a, float b);
 MINLINE float safe_logf(float a, float base);
@@ -21,6 +23,8 @@ MINLINE float safe_inverse_sqrtf(float a);
 MINLINE float safe_asinf(float a);
 MINLINE float safe_acosf(float a);
 MINLINE float safe_powf(float base, float exponent);
+
+}  // namespace blender
 
 #if BLI_MATH_DO_INLINE
 #  include "intern/math_base_safe_inline.cc"  // IWYU pragma: export

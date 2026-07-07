@@ -15,9 +15,12 @@ body {
 	--color-api-name: #e87d0d;
 }
 
-/* Increase the width of "On this page" region. */
-.main > .toc-drawer {
-	width: auto;
+/* Increase the width of "On this page" region,
+ * but not when it's being "hidden" by being pushed 15em off the right edge. */
+@media (width > 82em) {
+	.toc-drawer {
+		width: auto;
+	}
 }
 
 h1,

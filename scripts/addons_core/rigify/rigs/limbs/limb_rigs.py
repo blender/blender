@@ -30,6 +30,7 @@ from mathutils import Vector
 
 from bpy.app.translations import pgettext_iface as iface_
 
+
 class SegmentEntry(NamedTuple):
     org: str                 # ORG bone
     org_idx: int             # Index in the ORG chain
@@ -708,7 +709,7 @@ class BaseLimbRig(BaseRig):
 
     def rig_hide_pole_control(self, name: str):
         self.make_driver(
-            self.get_bone(name).bone, "hide",
+            self.get_bone(name), "hide",
             variables=[(self.prop_bone, 'pole_vector')], polynomial=[1.0, -1.0],
         )
 

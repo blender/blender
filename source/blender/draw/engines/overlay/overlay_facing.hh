@@ -82,7 +82,7 @@ class Facing : Overlay {
       }
     }
     else {
-      blender::gpu::Batch *geom = DRW_cache_object_surface_get(ob_ref.object);
+      gpu::Batch *geom = DRW_cache_object_surface_get(ob_ref.object);
       if (geom) {
         ps_.draw(geom, manager.unique_handle(ob_ref));
       }

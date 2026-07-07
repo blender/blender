@@ -2,41 +2,39 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+if(WITH_APPLE_CROSSPLATFORM)
+  # Use cross-compiled host ISPC
+  set(ISPC_EXECUTABLE_PATH ${CMAKE_DEPS_CROSSCOMPILE_BUILDDIR}/deps_arm64/Release/ispc/bin/ispc)
+  if(NOT EXISTS ${ISPC_EXECUTABLE_PATH})
+    message(FATAL_ERROR "Could not find cross-compiled ISPC executable at: ${ISPC_EXECUTABLE_PATH}. Please ensure host dependencies are built before attempting to build for ios.")
+  endif()
+else()
+  set(ISPC_EXECUTABLE_PATH ${LIBDIR}/ispc/bin/ispc)
+endif()
+
 set(OIDN_EXTRA_ARGS
   -DCMAKE_BUILD_TYPE=Release
   -DOIDN_APPS=OFF
   -DTBB_ROOT=${LIBDIR}/tbb
-  
+  -DISPC_EXECUTABLE=${ISPC_EXECUTABLE_PATH}
   -DOIDN_FILTER_RTLIGHTMAP=OFF
   -DPython_EXECUTABLE=${PYTHON_BINARY}
 )
 if(APPLE)
+  set(OIDN_EXTRA_ARGS
+    ${OIDN_EXTRA_ARGS}
+    -DOIDN_DEVICE_METAL=ON
+  )
   if(WITH_APPLE_CROSSPLATFORM)
-    # Use cross-compiled host ISPC
-    set(ISPC_EXECUTABLE_PATH ${CMAKE_DEPS_CROSSCOMPILE_BUILDDIR}/deps_arm64/Release/ispc/bin/ispc)
-    if( NOT EXISTS ${ISPC_EXECUTABLE_PATH})
-      message(FATAL_ERROR "Could not find cross-compiled ISPC executable at: ${ISPC_EXECUTABLE_PATH}. Please ensure host dependencies are built before attempting to build for ios.")
-    endif()
-
-    # TODO: Enable OIDN_DEVICE_METAL for cross-platform builds.
-    set(OIDN_EXTRA_ARGS
-      ${OIDN_EXTRA_ARGS}
-      -DISPC_EXECUTABLE=${ISPC_EXECUTABLE_PATH}
-    )
-  else()
-    set(OIDN_EXTRA_ARGS
-      ${OIDN_EXTRA_ARGS}
-      -DISPC_EXECUTABLE=${LIBDIR}/ispc/bin/ispc
-      -DOIDN_DEVICE_METAL=ON
+    list(APPEND OIDN_EXTRA_ARGS
+      -DOIDN_DEVICE_CPU=OFF
     )
   endif()
-
 else()
   set(OIDN_EXTRA_ARGS
     ${OIDN_EXTRA_ARGS}
     -DOIDN_DEVICE_CPU=ON
     -DLEVEL_ZERO_ROOT=${LIBDIR}/level-zero
-    -DISPC_EXECUTABLE=${LIBDIR}/ispc/bin/ispc
   )
 
   # x64 platforms support SyCL and HIP, ARM64 doesn't
@@ -63,6 +61,15 @@ if(WIN32 AND NOT BLENDER_PLATFORM_ARM)
     -DCMAKE_C_COMPILER=${LIBDIR}/dpcpp/bin/clang.exe
     -DCMAKE_DEBUG_POSTFIX=_d
   )
+  if(DEFINED ENV{ROCM_PATH})
+    # Older ROCM shipped a /bin/hipconfig (no extension) and oidn
+    # uses it to validate a valid rocm folder, given this file
+    # is no longer shipped work around it for now by passing the
+    # path ourselves, so we don't have to rely on their find rocm
+    # functionality.
+    cmake_path(CONVERT $ENV{ROCM_PATH} TO_CMAKE_PATH_LIST ROCM_PATH NORMALIZE)
+    list(APPEND OIDN_EXTRA_ARGS -DROCM_PATH=${ROCM_PATH})
+  endif()
   set(OIDN_CMAKE_FLAGS ${DEFAULT_CLANG_CMAKE_FLAGS}
     -DCMAKE_CXX_COMPILER=${LIBDIR}/dpcpp/bin/clang++.exe
     -DCMAKE_C_COMPILER=${LIBDIR}/dpcpp/bin/clang.exe
@@ -81,7 +88,7 @@ else()
   set(OIDN_CMAKE_FLAGS ${DEFAULT_CMAKE_FLAGS})
 endif()
 
-set(ODIN_PATCH_COMMAND
+set(OIDN_PATCH_COMMAND
   ${PATCH_CMD} --verbose -p 1 -N -d
   ${BUILD_DIR}/openimagedenoise/src/external_openimagedenoise <
   ${PATCH_DIR}/oidn.diff
@@ -90,7 +97,7 @@ set(ODIN_PATCH_COMMAND
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   # Replace `attrib.memoryType` with `attrib.type`.
   # See: https://github.com/ROCm/HIP/pull/2164
-  set(ODIN_PATCH_COMMAND ${ODIN_PATCH_COMMAND} &&
+  set(OIDN_PATCH_COMMAND ${OIDN_PATCH_COMMAND} &&
     sed -i "s/(attrib\\.memoryType)/(attrib.type)/g"
     ${BUILD_DIR}/openimagedenoise/src/external_openimagedenoise/devices/hip/hip_device.cpp
   )
@@ -108,11 +115,11 @@ ExternalProject_Add(external_openimagedenoise
     ${OIDN_CMAKE_FLAGS}
     ${OIDN_EXTRA_ARGS}
 
-  PATCH_COMMAND ${ODIN_PATCH_COMMAND}
+  PATCH_COMMAND ${OIDN_PATCH_COMMAND}
   INSTALL_DIR ${LIBDIR}/openimagedenoise
 )
 
-unset(ODIN_PATCH_COMMAND)
+unset(OIDN_PATCH_COMMAND)
 
 add_dependencies(
   external_openimagedenoise

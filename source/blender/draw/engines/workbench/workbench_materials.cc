@@ -7,6 +7,9 @@
 #include "BLI_ghash.h"
 #include "BLI_hash.h"
 #include "BLI_math_color.h"
+
+#include "IMB_colormanagement.hh"
+
 /* get_image */
 #include "BKE_node_legacy_types.hh"
 #include "DNA_material_types.h"
@@ -16,7 +19,7 @@
 
 namespace blender::workbench {
 
-Material::Material(::Object &ob, bool random)
+Material::Material(blender::Object &ob, bool random)
 {
   if (random) {
     uint hash = BLI_ghashutil_strhash_p_murmur(ob.id.name);
@@ -25,6 +28,7 @@ Material::Material(::Object &ob, bool random)
     }
     float3 hsv = float3(BLI_hash_int_01(hash), 0.5f, 0.8f);
     hsv_to_rgb_v(hsv, base_color);
+    IMB_colormanagement_rec709_to_scene_linear(base_color, base_color);
   }
   else {
     base_color = ob.color;
@@ -34,9 +38,9 @@ Material::Material(::Object &ob, bool random)
 
 MaterialTexture::MaterialTexture(Object *ob, int material_index)
 {
-  const ::bNode *node = nullptr;
+  const blender::bNode *node = nullptr;
 
-  ::Image *image = nullptr;
+  blender::Image *image = nullptr;
   ImageUser *user = nullptr;
   ED_object_get_active_image(ob, material_index + 1, &image, &user, &node, nullptr);
   if (!node || !image) {
@@ -85,7 +89,7 @@ MaterialTexture::MaterialTexture(Object *ob, int material_index)
   name = image->id.name;
 }
 
-MaterialTexture::MaterialTexture(::Image *image, ImageUser *user /* = nullptr */)
+MaterialTexture::MaterialTexture(blender::Image *image, ImageUser *user /* = nullptr */)
 {
   gpu = BKE_image_get_gpu_material_texture(image, user, true);
   premultiplied = image->alpha_mode == IMA_ALPHA_PREMUL;

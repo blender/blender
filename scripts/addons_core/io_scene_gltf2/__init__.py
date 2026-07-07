@@ -7,7 +7,7 @@ bl_info = {
     # This is now displayed as the maintainer, so show the foundation.
     # "author": "Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein", # Original Authors
     'author': "Blender Foundation, Khronos Group",
-    "version": (5, 0, 17),
+    "version": (5, 1, 20),
     'blender': (4, 4, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -56,6 +56,7 @@ from bpy.props import (StringProperty,
                        CollectionProperty)
 from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper, ExportHelper, poll_file_object_drop
+from bpy.app.translations import pgettext_n as n_
 
 
 #
@@ -129,27 +130,28 @@ def on_export_action_filter_changed(self, context):
                 item.action = action
 
     else:
-        bpy.data.scenes[0].gltf_action_filter.clear()
-        del bpy.types.Scene.gltf_action_filter
-        del bpy.types.Scene.gltf_action_filter_active
+        if hasattr(bpy.data.scenes[0], 'gltf_action_filter'):
+            bpy.data.scenes[0].gltf_action_filter.clear()
+            del bpy.types.Scene.gltf_action_filter
+            del bpy.types.Scene.gltf_action_filter_active
 
 
 def get_format_items(scene, context):
 
-    items = (('GLB', 'glTF Binary (.glb)',
-              'Exports a single file, with all data packed in binary form. '
-              'Most efficient and portable, but more difficult to edit later'),
-             ('GLTF_SEPARATE', 'glTF Separate (.gltf + .bin + textures)',
-              'Exports multiple files, with separate JSON, binary and texture data. '
-              'Easiest to edit later'))
+    items = (('GLB', n_('glTF Binary (.glb)'),
+              n_('Exports a single file, with all data packed in binary form. '
+                 'Most efficient and portable, but more difficult to edit later')),
+             ('GLTF_SEPARATE', n_('glTF Separate (.gltf + .bin + textures)'),
+              n_('Exports multiple files, with separate JSON, binary and texture data. '
+                 'Easiest to edit later')))
 
     addon_preferences = bpy.context.preferences.addons['io_scene_gltf2'].preferences
     if addon_preferences and addon_preferences.allow_embedded_format:
         # At initialization, the preferences are not yet loaded
         # The second line check is needed until the PR is merge in Blender, for github CI tests
-        items += (('GLTF_EMBEDDED', 'glTF Embedded (.gltf)',
-                   'Exports a single file, with all data packed in JSON. '
-                   'Less efficient than binary, but easier to edit later'
+        items += (('GLTF_EMBEDDED', n_('glTF Embedded (.gltf)'),
+                   n_('Exports a single file, with all data packed in JSON. '
+                      'Less efficient than binary, but easier to edit later')
                    ),)
 
     return items
@@ -497,8 +499,8 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
              'Placeholder',
              'Do not export materials, but write multiple primitive groups per mesh, keeping material slot information'),
             ('VIEWPORT',
-            'Viewport',
-            'Export minimal materials as defined in Viewport display properties'),
+             'Viewport',
+             'Export minimal materials as defined in Viewport display properties'),
             ('NONE',
              'No export',
              'Do not export materials, and combine mesh primitive groups, losing material slot information')),
@@ -687,7 +689,7 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         name='Sampling Interpolation Fallback',
         items=(('LINEAR', 'Linear', 'Linear interpolation between keyframes'),
                ('STEP', 'Step', 'No interpolation between keyframes'),
-        ),
+               ),
         description='Interpolation fallback for sampled animations, when the property is not keyed',
         default='LINEAR'
     )
@@ -1083,7 +1085,6 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
     def execute(self, context):
         import os
         import datetime
-        import logging
         from .io.exp.user_extensions import export_user_extensions
         from .io.com.debug import Log
         from .blender.exp import export as gltf2_blender_export
@@ -1104,7 +1105,6 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
             if not hasattr(context.scene, "gltf_action_filter") and self.export_action_filter:
                 bpy.types.Scene.gltf_action_filter = bpy.props.CollectionProperty(type=GLTF2_filter_action)
                 bpy.types.Scene.gltf_action_filter_active = bpy.props.IntProperty()
-
 
         # Get log level from parameters
         # If not set, get it from Blender app debug value
@@ -1537,10 +1537,12 @@ def export_panel_data_material(layout, operator):
         if operator.export_image_format in ["AUTO", "JPEG", "WEBP"]:
             col.prop(operator, 'export_image_quality')
         col = body.column()
-        col.active = operator.export_image_format != "WEBP" and not operator.export_materials in ['PLACEHOLDER', 'NONE', 'VIEWPORT']
+        col.active = operator.export_image_format != "WEBP" and operator.export_materials not in [
+            'PLACEHOLDER', 'NONE', 'VIEWPORT']
         col.prop(operator, "export_image_add_webp")
         col = body.column()
-        col.active = operator.export_image_format != "WEBP" and not operator.export_materials in ['PLACEHOLDER', 'NONE', 'VIEWPORT']
+        col.active = operator.export_image_format != "WEBP" and operator.export_materials not in [
+            'PLACEHOLDER', 'NONE', 'VIEWPORT']
         col.prop(operator, "export_image_webp_fallback")
 
         header, sub_body = body.panel("GLTF_export_data_material_unused", default_closed=True)
@@ -1825,6 +1827,7 @@ def export_panel_gltfpack(layout, operator):
         col.prop(operator, 'export_gltfpack_noq')
         col.prop(operator, 'export_gltfpack_kn')
 
+
 def export_panel_user_extension(context, layout):
     for draw in exporter_extension_layout_draw.values():
         draw(context, layout)
@@ -2080,6 +2083,7 @@ def import_mesh_panel(layout, operator):
         body.prop(operator, 'merge_vertices')
         body.prop(operator, 'import_merge_material_slots')
 
+
 def import_bone_panel(layout, operator):
     header, body = layout.panel("GLTF_import_bone", default_closed=False)
     header.label(text="Bones & Skin")
@@ -2099,6 +2103,7 @@ def import_ux_panel(layout, operator):
         if operator.import_scene_as_collection is True:
             body.prop(operator, 'import_select_created_objects')
         body.prop(operator, 'import_scene_extras')
+
 
 def import_texture_panel(layout, operator):
     header, body = layout.panel("GLTF_import_texture", default_closed=False)

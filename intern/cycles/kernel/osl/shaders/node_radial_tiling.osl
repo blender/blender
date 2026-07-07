@@ -1,0 +1,54 @@
+/* SPDX-FileCopyrightText: 2024-2025 Blender Authors
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
+
+#include "node_math.h"
+#include "stdcycles.h"
+#include "vector2.h"
+#include "vector4.h"
+
+#define vector3 point
+
+/* Define macro flags for code adaption. */
+#define ADAPT_TO_OSL
+
+/* The rounded polygon calculation functions are defined in node_radial_tiling_shared.h. */
+#include "node_radial_tiling_shared.h"
+
+/* Undefine macro flags used for code adaption. */
+#undef ADAPT_TO_OSL
+
+shader node_radial_tiling(int use_normalize = 0,
+                          vector3 Vector = P,
+                          float Sides = 5.0,
+                          float Roundness = 0.0,
+                          output vector3 SegmentCoordinates = vector3(0.0, 0.0, 0.0),
+                          output float SegmentID = 0.0,
+                          output float SegmentWidth = 0.0,
+                          output float SegmentRotation = 0.0)
+{
+  /* isconnected() returns 2 when output socket is connected. */
+  int calculate_r_gon_parameter_field = int(isconnected(SegmentCoordinates) != 0);
+  int calculate_segment_id = int(isconnected(SegmentID) != 0);
+  int calculate_max_unit_parameter = int(isconnected(SegmentWidth) != 0);
+  int calculate_x_axis_A_angle_bisector = int(isconnected(SegmentRotation) != 0);
+
+  if (calculate_r_gon_parameter_field || calculate_max_unit_parameter ||
+      calculate_x_axis_A_angle_bisector)
+  {
+    vector4 out_variables = calculate_out_variables(calculate_r_gon_parameter_field,
+                                                    calculate_max_unit_parameter,
+                                                    use_normalize,
+                                                    max(Sides, 2.0),
+                                                    clamp(Roundness, 0.0, 1.0),
+                                                    vector2(Vector.x, Vector.y));
+
+    SegmentCoordinates = vector3(out_variables.y, out_variables.x, 0.0);
+    SegmentWidth = out_variables.z;
+    SegmentRotation = out_variables.w;
+  }
+
+  if (calculate_segment_id) {
+    SegmentID = calculate_out_segment_id(max(Sides, 2.0), vector2(Vector.x, Vector.y));
+  }
+}

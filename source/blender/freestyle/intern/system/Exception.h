@@ -15,10 +15,10 @@ namespace Freestyle {
 
 class Exception {
  public:
-  typedef enum {
+  enum exception_type {
     NO_EXCEPTION,
     UNDEFINED,
-  } exception_type;
+  };
 
   static int getException()
   {

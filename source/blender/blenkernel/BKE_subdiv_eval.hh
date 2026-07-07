@@ -10,12 +10,12 @@
 
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
-
-struct Mesh;
 struct OpenSubdiv_EvaluatorCache;
 struct OpenSubdiv_EvaluatorSettings;
+namespace blender {
 
-namespace blender::bke::subdiv {
+struct Mesh;
+namespace bke::subdiv {
 
 struct Subdiv;
 
@@ -64,8 +64,7 @@ void eval_limit_point_and_normal(
     Subdiv *subdiv, int ptex_face_index, float u, float v, float3 &r_P, float3 &r_N);
 
 /** Evaluate smoothly interpolated vertex data (such as ORCO). */
-void eval_vertex_data(
-    Subdiv *subdiv, int ptex_face_index, float u, float v, float r_vertex_data[]);
+void eval_vert_data(Subdiv *subdiv, int ptex_face_index, float u, float v, float r_vert_data[]);
 
 /** Evaluate face-varying layer (such as UV). */
 void eval_face_varying(Subdiv *subdiv,
@@ -94,4 +93,5 @@ void eval_displacement(Subdiv *subdiv,
 /** Evaluate point on a limit surface with displacement applied to it. */
 float3 eval_final_point(Subdiv *subdiv, int ptex_face_index, float u, float v);
 
-}  // namespace blender::bke::subdiv
+}  // namespace bke::subdiv
+}  // namespace blender

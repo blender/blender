@@ -15,6 +15,7 @@
 #include "BLI_task.hh"
 
 #include "GEO_foreach_geometry.hh"
+#include "GEO_join_geometries.hh"
 
 #include "node_geometry_util.hh"
 
@@ -23,8 +24,23 @@ namespace blender::nodes::node_geo_curve_fill_cc {
 NODE_STORAGE_FUNCS(NodeGeometryCurveFill)
 
 static const EnumPropertyItem mode_items[] = {
-    {GEO_NODE_CURVE_FILL_MODE_TRIANGULATED, "TRIANGLES", 0, "Triangles", ""},
-    {GEO_NODE_CURVE_FILL_MODE_NGONS, "NGONS", 0, "N-gons", ""},
+    {GEO_NODE_CURVE_FILL_MODE_TRIANGULATED, "TRIANGLES", 0, N_("Triangles"), ""},
+    {GEO_NODE_CURVE_FILL_MODE_NGONS, "NGONS", 0, N_("N-gons"), ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+/* See #CDT_output_type in BLI_delaunay_2d.hh for winding rule details. */
+static const EnumPropertyItem fill_rule_items[] = {
+    {GEO_NODE_CURVE_FILL_RULE_EVEN_ODD,
+     "EVEN_ODD",
+     0,
+     N_("Even-Odd"),
+     N_("Alternate inside/outside based on crossing count")},
+    {GEO_NODE_CURVE_FILL_RULE_NON_ZERO,
+     "NON_ZERO",
+     0,
+     N_("Non-Zero"),
+     N_("Overlapping curves with the same winding direction are filled as a union")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -41,14 +57,20 @@ static void node_declare(NodeDeclarationBuilder &b)
           "An index used to group curves together. Filling is done separately for each group");
   b.add_input<decl::Menu>("Mode")
       .static_items(mode_items)
-      .default_value(GEO_NODE_CURVE_FILL_MODE_TRIANGULATED);
+      .default_value(GEO_NODE_CURVE_FILL_MODE_TRIANGULATED)
+      .optional_label();
+  b.add_input<decl::Menu>("Fill Rule")
+      .static_items(fill_rule_items)
+      .default_value(GEO_NODE_CURVE_FILL_RULE_EVEN_ODD)
+      .optional_label()
+      .description("Rule used to determine which regions are inside or outside");
   b.add_output<decl::Geometry>("Mesh").propagate_all_instance_attributes();
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   /* Still used for forward compatibility. */
-  node->storage = MEM_callocN<NodeGeometryCurveFill>(__func__);
+  node->storage = MEM_new<NodeGeometryCurveFill>(__func__);
 }
 
 static void fill_curve_vert_indices(const OffsetIndices<int> offsets,
@@ -246,11 +268,38 @@ static Mesh *cdts_to_mesh(const Span<meshintersect::CDT_result<double>> results)
 
 static void curve_fill_calculate(GeometrySet &geometry_set,
                                  const GeometryNodeCurveFillMode mode,
+                                 const GeometryNodeCurveFillRule fill_rule,
                                  const Field<int> &group_index)
 {
-  const CDT_output_type output_type = (mode == GEO_NODE_CURVE_FILL_MODE_NGONS) ?
-                                          CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES :
-                                          CDT_INSIDE_WITH_HOLES;
+  /* Determine CDT output type based on mode and fill rule. */
+  CDT_output_type output_type;
+  if (mode == GEO_NODE_CURVE_FILL_MODE_NGONS) {
+    output_type = CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES;
+    switch (fill_rule) {
+      case GEO_NODE_CURVE_FILL_RULE_NON_ZERO: {
+        output_type = CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES_NONZERO;
+        break;
+      }
+      case GEO_NODE_CURVE_FILL_RULE_EVEN_ODD: {
+        /* Default, already set. */
+        break;
+      }
+    }
+  }
+  else {
+    /* Triangulated mode. */
+    output_type = CDT_INSIDE_WITH_HOLES;
+    switch (fill_rule) {
+      case GEO_NODE_CURVE_FILL_RULE_NON_ZERO: {
+        output_type = CDT_INSIDE_WITH_HOLES_NONZERO;
+        break;
+      }
+      case GEO_NODE_CURVE_FILL_RULE_EVEN_ODD: {
+        /* Default, already set. */
+        break;
+      }
+    }
+  }
   if (geometry_set.has_curves()) {
     const Curves &curves_id = *geometry_set.get_curves();
     const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
@@ -281,26 +330,27 @@ static void curve_fill_calculate(GeometrySet &geometry_set,
       mesh_by_layer[layer_index] = cdts_to_mesh(results);
     }
     if (!mesh_by_layer.is_empty()) {
-      InstancesComponent &instances_component =
-          geometry_set.get_component_for_write<InstancesComponent>();
-      bke::Instances *instances = instances_component.get_for_write();
-      if (instances == nullptr) {
-        instances = new bke::Instances();
-        instances_component.replace(instances);
-      }
-      for (Mesh *mesh : mesh_by_layer) {
+      auto instances = std::make_unique<bke::Instances>(mesh_by_layer.size());
+      MutableSpan<int> handles = instances->reference_handles_for_write();
+      instances->transforms_for_write().fill(float4x4::identity());
+      for (const int i : mesh_by_layer.index_range()) {
+        Mesh *mesh = mesh_by_layer[i];
         if (!mesh) {
           /* Add an empty reference so the number of layers and instances match.
            * This makes it easy to reconstruct the layers afterwards and keep their attributes.
            * Although in this particular case we don't propagate the attributes. */
-          const int handle = instances->add_reference(bke::InstanceReference());
-          instances->add_instance(handle, float4x4::identity());
+          handles[i] = instances->add_reference(bke::InstanceReference());
           continue;
         }
         GeometrySet temp_set = GeometrySet::from_mesh(mesh);
-        const int handle = instances->add_reference(bke::InstanceReference{temp_set});
-        instances->add_instance(handle, float4x4::identity());
+        handles[i] = instances->add_reference(bke::InstanceReference{temp_set});
       }
+      auto &dst_component = geometry_set.get_component_for_write<InstancesComponent>();
+      GeometrySet new_instances = geometry::join_geometries(
+          {GeometrySet::from_instances(dst_component.release()),
+           GeometrySet::from_instances(std::move(instances))},
+          {});
+      dst_component.replace(new_instances.get_component_for_write<InstancesComponent>().release());
     }
     geometry_set.replace_grease_pencil(nullptr);
   }
@@ -311,9 +361,10 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   Field<int> group_index = params.extract_input<Field<int>>("Group ID");
   const GeometryNodeCurveFillMode mode = params.extract_input<GeometryNodeCurveFillMode>("Mode");
+  const auto fill_rule = params.extract_input<GeometryNodeCurveFillRule>("Fill Rule");
 
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry) {
-    curve_fill_calculate(geometry, mode, group_index);
+    curve_fill_calculate(geometry, mode, fill_rule, group_index);
   });
 
   params.set_output("Mesh", std::move(geometry_set));
@@ -321,7 +372,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(&ntype, "GeometryNodeFillCurve", GEO_NODE_FILL_CURVE);
   ntype.ui_name = "Fill Curve";
   ntype.ui_description =
@@ -329,11 +380,11 @@ static void node_register()
   ntype.enum_name_legacy = "FILL_CURVE";
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.initfunc = node_init;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGeometryCurveFill", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

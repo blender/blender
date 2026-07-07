@@ -21,7 +21,7 @@ namespace blender::bke::subdiv {
 int topology_num_fvar_layers_get(const Subdiv *subdiv)
 {
 #ifdef WITH_OPENSUBDIV
-  const blender::opensubdiv::TopologyRefinerImpl *topology_refiner = subdiv->topology_refiner;
+  const opensubdiv::TopologyRefinerImpl *topology_refiner = subdiv->topology_refiner;
   return topology_refiner->base_level().GetNumFVarChannels();
 #else
   UNUSED_VARS(subdiv);

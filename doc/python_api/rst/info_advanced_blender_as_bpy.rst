@@ -27,7 +27,7 @@ Possible uses include:
 - Image processing using Blender's compositor.
 - Video editing (using Blender's sequencer).
 - 3D file conversion.
-- Development, accessing ``bpy`` from Python IDE's and debugging tools for example.
+- Development, accessing ``bpy`` from Python IDEs and debugging tools for example.
 - Automation.
 
 
@@ -38,10 +38,10 @@ For the most part using Blender as a Python module is equivalent to running a sc
 (passing the command-line arguments ``--background`` or ``-b``),
 however there are some differences to be aware of.
 
-.. Sorted alphabetically as there isn't an especially a logical order to show them.
+.. Sorted alphabetically as there isn't especially a logical order to show them.
 
 Blender's Executable Access
-   The attribute :class:`bpy.app.binary_path` defaults to an empty string.
+   The attribute :attr:`bpy.app.binary_path` defaults to an empty string.
 
    If you wish to point this to the location of a known executable you may set the value.
 
@@ -60,11 +60,11 @@ Blender's Executable Access
          print("Unable to find blender!")
 
 Blender's Internal Modules
-   There are many modules included with Blender such as :mod:`gpu` and :mod:`mathuils`.
+   There are many modules included with Blender such as :mod:`gpu` and :mod:`mathutils`.
    It's important that these are imported after ``bpy`` or they will not be found.
 
 Command Line Arguments Unsupported
-   Functionality controlled by command line arguments (shown by calling ``blender --help`` aren't accessible).
+   Functionality controlled by command line arguments (shown by calling ``blender --help``) isn't accessible.
 
    Typically this isn't such a limitation although there are some command line arguments that don't have
    equivalents in Blender's Python API (``--threads`` and ``--log`` for example).
@@ -86,10 +86,10 @@ Startup and Preferences
 
    If you wish to start from an empty file use: ``bpy.ops.wm.read_factory_settings(use_empty=True)``.
 
-   The users startup and preferences are ignored to prevent your local configuration from impacting scripts behavior.
+   The user's startup and preferences are ignored to prevent your local configuration from impacting script behavior.
    The Python module behaves as if ``--factory-startup`` was passed as a command line argument.
 
-   The users preferences and startup can be loaded using operators:
+   The user's preferences and startup can be loaded using operators:
 
    .. code-block:: python
 
@@ -116,7 +116,7 @@ Single Blend File Restriction
    .. hint::
 
       As with the application it's possible to start multiple instances,
-      each with their own ``bpy`` and therefor Blender state.
+      each with their own ``bpy`` and therefore Blender state.
       Python provides the ``multiprocessing`` module to make communicating with sub-processes more convenient.
 
       In some cases the library API may be an alternative to starting separate processes,

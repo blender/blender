@@ -14,7 +14,7 @@ TEST_F(VKRenderGraphTestPresent, transfer_and_present)
 {
   VkHandle<VkImage> back_buffer(1u);
 
-  resources.add_image(back_buffer, 1);
+  resources.add_image(back_buffer, false);
   {
     render_graph::VKSynchronizationNode::CreateInfo synchronization = {};
     synchronization.vk_image = back_buffer;
@@ -44,7 +44,7 @@ TEST_F(VKRenderGraphTestPresent, clear_and_present)
 {
   VkHandle<VkImage> back_buffer(1u);
 
-  resources.add_image(back_buffer, 1);
+  resources.add_image(back_buffer, false);
 
   VKClearColorImageNode::CreateInfo clear_color_image = {};
   clear_color_image.vk_image = back_buffer;

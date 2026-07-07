@@ -12,11 +12,13 @@
 
 #include "bmesh.hh"
 
+namespace blender {
+
 /**
  * \return Whether attributes with the given name are stored in special flags or fields in BMesh
  * rather than in the regular custom data blocks.
  */
-bool BM_attribute_stored_in_bmesh_builtin(blender::StringRef name);
+bool BM_attribute_stored_in_bmesh_builtin(StringRef name);
 
 struct CustomData_MeshMasks;
 struct Main;
@@ -103,3 +105,5 @@ void BM_mesh_bm_to_me_compact(BMesh &bm,
                               Mesh &mesh,
                               const CustomData_MeshMasks *mask,
                               bool add_mesh_attributes);
+
+}  // namespace blender

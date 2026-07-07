@@ -9,7 +9,6 @@ Pose Library - usage functions.
 from typing import Set
 import re
 import bpy
-from bpy_extras import anim_utils
 
 from bpy.types import (
     Action,
@@ -41,6 +40,8 @@ def _find_best_slot(action: Action, object: Object) -> ActionSlot | None:
 
 
 def select_bones(arm_object: Object, action: Action, *, select: bool, flipped: bool) -> None:
+    from bpy_extras import anim_utils
+
     pose = arm_object.pose
     if not pose:
         return
@@ -75,7 +76,7 @@ def select_bones(arm_object: Object, action: Action, *, select: bool, flipped: b
         except KeyError:
             continue
 
-        pose_bone.bone.select = select
+        pose_bone.select = select
 
 
 if __name__ == '__main__':

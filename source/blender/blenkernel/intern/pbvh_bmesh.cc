@@ -25,25 +25,11 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"sculpt.bmesh"};
 
-namespace blender::bke::pbvh {
-
-/**
- * Ensure we don't have dirty tags for the edge queue, and that they are left cleared.
- * (slow, even for debug mode, so leave disabled for now).
- */
-#if 0
-#  if !defined(NDEBUG)
-#    define USE_EDGEQUEUE_TAG_VERIFY
-#  endif
-#endif
-
-// #define USE_VERIFY
-
-#ifdef USE_VERIFY
-static void pbvh_bmesh_verify(Tree *pbvh);
-#endif
+namespace bke::pbvh {
 
 /* TODO: choose leaf limit better. */
 constexpr int leaf_limit = 400;
@@ -692,36 +678,6 @@ struct EdgeQueueContext {
 #define EDGE_QUEUE_DISABLE(e) \
   BM_elem_flag_disable((CHECK_TYPE_INLINE(e, BMEdge *), e), BM_ELEM_TAG)
 
-#ifdef USE_EDGEQUEUE_TAG_VERIFY
-/* simply check no edges are tagged
- * (it's a requirement that edges enter and leave a clean tag state) */
-static void pbvh_bmesh_edge_tag_verify(Tree *pbvh)
-{
-  for (int n = 0; n < pbvh->totnode; n++) {
-    Node *node = &pbvh->nodes_[n];
-    if (node->bm_faces_) {
-      GSetIterator gs_iter;
-      GSET_ITER (gs_iter, node->bm_faces_) {
-        BMFace *f = BLI_gsetIterator_getKey(&gs_iter);
-        BMEdge *e_tri[3];
-        BMLoop *l_iter;
-
-        BLI_assert(f->len == 3);
-        l_iter = BM_FACE_FIRST_LOOP(f);
-        e_tri[0] = l_iter->e;
-        l_iter = l_iter->next;
-        e_tri[1] = l_iter->e;
-        l_iter = l_iter->next;
-        e_tri[2] = l_iter->e;
-
-        BLI_assert((EDGE_QUEUE_TEST(e_tri[0]) == false) && (EDGE_QUEUE_TEST(e_tri[1]) == false) &&
-                   (EDGE_QUEUE_TEST(e_tri[2]) == false));
-      }
-    }
-  }
-}
-#endif
-
 static bool edge_queue_tri_in_sphere(const EdgeQueue *queue, BMFace *f)
 {
   std::array<BMVert *, 3> v_tri;
@@ -1015,10 +971,6 @@ static void long_edge_queue_create(const EdgeQueueContext *eq_ctx,
     eq_ctx->queue->edge_queue_tri_in_range = edge_queue_tri_in_sphere;
   }
 
-#ifdef USE_EDGEQUEUE_TAG_VERIFY
-  pbvh_bmesh_edge_tag_verify(pbvh);
-#endif
-
   for (BMeshNode &node : nodes) {
     /* Check leaf nodes marked for topology update. */
     if ((node.flag_ & Node::Leaf) && (node.flag_ & Node::UpdateTopology) &&
@@ -1273,10 +1225,6 @@ static bool pbvh_bmesh_subdivide_long_edges(const EdgeQueueContext *eq_ctx,
     pbvh_bmesh_split_edge(
         eq_ctx, bm, nodes, node_changed, cd_vert_node_offset, cd_face_node_offset, bm_log, e);
   }
-
-#ifdef USE_EDGEQUEUE_TAG_VERIFY
-  pbvh_bmesh_edge_tag_verify(pbvh);
-#endif
 
   CLOG_DEBUG(&LOG, "Long edge subdivision took %f seconds.", BLI_time_now_seconds() - start_time);
 
@@ -2334,10 +2282,6 @@ bool bmesh_update_topology(BMesh &bm,
     }
   }
 
-#ifdef USE_VERIFY
-  pbvh_bmesh_verify(pbvh);
-#endif
-
   return modified;
 }
 
@@ -2362,14 +2306,13 @@ static void copy_original_vert(BMLog *log, BMeshNode *node, BMVert *v, int i, bo
   node->orig_verts_[i] = v;
 }
 
-}  // namespace blender::bke::pbvh
+}  // namespace bke::pbvh
 
 void BKE_pbvh_bmesh_node_save_orig(BMesh *bm,
                                    BMLog *log,
-                                   blender::bke::pbvh::BMeshNode *node,
+                                   bke::pbvh::BMeshNode *node,
                                    bool use_original)
 {
-  using namespace blender;
   /* Skip if original coords/triangles are already saved. */
   if (!node->orig_tris_.is_empty()) {
     return;
@@ -2416,9 +2359,8 @@ void BKE_pbvh_bmesh_node_save_orig(BMesh *bm,
   }
 }
 
-void BKE_pbvh_bmesh_after_stroke(BMesh &bm, blender::bke::pbvh::Tree &pbvh)
+void BKE_pbvh_bmesh_after_stroke(BMesh &bm, bke::pbvh::Tree &pbvh)
 {
-  using namespace blender;
   const int cd_vert_node_offset = CustomData_get_offset_named(
       &bm.vdata, CD_PROP_INT32, ".sculpt_dyntopo_node_id_vertex");
   const int cd_face_node_offset = CustomData_get_offset_named(
@@ -2446,248 +2388,24 @@ void BKE_pbvh_bmesh_after_stroke(BMesh &bm, blender::bke::pbvh::Tree &pbvh)
   update_mask_bmesh(bm, node_mask, pbvh);
 }
 
-void BKE_pbvh_node_mark_topology_update(blender::bke::pbvh::Node &node)
+void BKE_pbvh_node_mark_topology_update(bke::pbvh::Node &node)
 {
-  node.flag_ |= blender::bke::pbvh::Node::UpdateTopology;
+  node.flag_ |= bke::pbvh::Node::UpdateTopology;
 }
 
-const blender::Set<BMVert *, 0> &BKE_pbvh_bmesh_node_unique_verts(
-    blender::bke::pbvh::BMeshNode *node)
+const Set<BMVert *, 0> &BKE_pbvh_bmesh_node_unique_verts(bke::pbvh::BMeshNode *node)
 {
   return node->bm_unique_verts_;
 }
 
-const blender::Set<BMVert *, 0> &BKE_pbvh_bmesh_node_other_verts(
-    blender::bke::pbvh::BMeshNode *node)
+const Set<BMVert *, 0> &BKE_pbvh_bmesh_node_other_verts(bke::pbvh::BMeshNode *node)
 {
   return node->bm_other_verts_;
 }
 
-const blender::Set<BMFace *, 0> &BKE_pbvh_bmesh_node_faces(blender::bke::pbvh::BMeshNode *node)
+const Set<BMFace *, 0> &BKE_pbvh_bmesh_node_faces(bke::pbvh::BMeshNode *node)
 {
   return node->bm_faces_;
 }
 
-/****************************** Debugging *****************************/
-
-#if 0
-
-static void pbvh_bmesh_print(Tree *pbvh)
-{
-  fprintf(stderr, "\npbvh=%p\n", pbvh);
-  fprintf(stderr, "bm_face_to_node:\n");
-
-  BMIter iter;
-  BMFace *f;
-  BM_ITER_MESH (f, &iter, pbvh->header.bm, BM_FACES_OF_MESH) {
-    fprintf(
-        stderr, "  %d -> %d\n", BM_elem_index_get(f), pbvh_bmesh_node_index_from_face(pbvh, f));
-  }
-
-  fprintf(stderr, "bm_vert_to_node:\n");
-  BMVert *v;
-  BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_FACES_OF_MESH) {
-    fprintf(
-        stderr, "  %d -> %d\n", BM_elem_index_get(v), pbvh_bmesh_node_index_from_vert(pbvh, v));
-  }
-
-  for (int n = 0; n < pbvh->totnode; n++) {
-    Node *node = &pbvh->nodes_[n];
-    if (!(node->flag & Node::Leaf)) {
-      continue;
-    }
-
-    GSetIterator gs_iter;
-    fprintf(stderr, "node %d\n  faces:\n", n);
-    GSET_ITER (gs_iter, node->bm_faces_)
-      fprintf(stderr, "    %d\n", BM_elem_index_get((BMFace *)BLI_gsetIterator_getKey(&gs_iter)));
-    fprintf(stderr, "  unique verts:\n");
-    GSET_ITER (gs_iter, node->bm_unique_verts_)
-      fprintf(stderr, "    %d\n", BM_elem_index_get((BMVert *)BLI_gsetIterator_getKey(&gs_iter)));
-    fprintf(stderr, "  other verts:\n");
-    GSET_ITER (gs_iter, node->bm_other_verts_)
-      fprintf(stderr, "    %d\n", BM_elem_index_get((BMVert *)BLI_gsetIterator_getKey(&gs_iter)));
-  }
-}
-
-static void print_flag_factors(int flag)
-{
-  printf("flag=0x%x:\n", flag);
-  for (int i = 0; i < 32; i++) {
-    if (flag & (1 << i)) {
-      printf("  %d (1 << %d)\n", 1 << i, i);
-    }
-  }
-}
-#endif
-
-#ifdef USE_VERIFY
-
-static void pbvh_bmesh_verify(Tree *pbvh)
-{
-  /* Build list of faces & verts to lookup. */
-  GSet *faces_all = BLI_gset_ptr_new_ex(__func__, pbvh->header.bm->totface);
-  BMIter iter;
-
-  {
-    BMFace *f;
-    BM_ITER_MESH (f, &iter, pbvh->header.bm, BM_FACES_OF_MESH) {
-      BLI_assert(BM_ELEM_CD_GET_INT(f, cd_face_node_offset) != DYNTOPO_NODE_NONE);
-      BLI_gset_insert(faces_all, f);
-    }
-  }
-
-  GSet *verts_all = BLI_gset_ptr_new_ex(__func__, pbvh->header.bm->totvert);
-  {
-    BMVert *v;
-    BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
-      if (BM_ELEM_CD_GET_INT(v, cd_vert_node_offset) != DYNTOPO_NODE_NONE) {
-        BLI_gset_insert(verts_all, v);
-      }
-    }
-  }
-
-  /* Check vert/face counts. */
-  {
-    int totface = 0, totvert = 0;
-    for (int i = 0; i < pbvh->totnode; i++) {
-      Node *n = &pbvh->nodes_[i];
-      totface += n->bm_faces_.is_empty() ? n->bm_faces_.size() : 0;
-      totvert += n->bm_unique_verts_ ? n->bm_unique_verts_.size() : 0;
-    }
-
-    BLI_assert(totface == BLI_gset_len(faces_all));
-    BLI_assert(totvert == BLI_gset_len(verts_all));
-  }
-
-  {
-    BMFace *f;
-    BM_ITER_MESH (f, &iter, pbvh->header.bm, BM_FACES_OF_MESH) {
-      BMIter bm_iter;
-      BMVert *v;
-      Node *n = pbvh_bmesh_node_lookup(pbvh, f);
-
-      /* Check that the face's node is a leaf. */
-      BLI_assert(n->flag & Node::Leaf);
-
-      /* Check that the face's node knows it owns the face. */
-      BLI_assert(n->bm_faces_.contains(f));
-
-      /* Check the face's vertices... */
-      BM_ITER_ELEM (v, &bm_iter, f, BM_VERTS_OF_FACE) {
-        Node *nv;
-
-        /* Check that the vertex is in the node. */
-        BLI_assert(BLI_gset_haskey(n->bm_unique_verts_, v) ^
-                   BLI_gset_haskey(n->bm_other_verts_, v));
-
-        /* Check that the vertex has a node owner. */
-        nv = pbvh_bmesh_node_lookup(pbvh, v);
-
-        /* Check that the vertex's node knows it owns the vert. */
-        BLI_assert(BLI_gset_haskey(nv->bm_unique_verts_, v));
-
-        /* Check that the vertex isn't duplicated as an 'other' vert. */
-        BLI_assert(!BLI_gset_haskey(nv->bm_other_verts_, v));
-      }
-    }
-  }
-
-  /* Check verts */
-  {
-    BMVert *v;
-    BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
-      /* Vertex isn't tracked. */
-      if (BM_ELEM_CD_GET_INT(v, cd_vert_node_offset) == DYNTOPO_NODE_NONE) {
-        continue;
-      }
-
-      Node *n = pbvh_bmesh_node_lookup(pbvh, v);
-
-      /* Check that the vert's node is a leaf. */
-      BLI_assert(n->flag & Node::Leaf);
-
-      /* Check that the vert's node knows it owns the vert. */
-      BLI_assert(BLI_gset_haskey(n->bm_unique_verts_, v));
-
-      /* Check that the vertex isn't duplicated as an 'other' vert. */
-      BLI_assert(!BLI_gset_haskey(n->bm_other_verts_, v));
-
-      /* Check that the vert's node also contains one of the vert's adjacent faces. */
-      bool found = false;
-      BMIter bm_iter;
-      BMFace *f = nullptr;
-      BM_ITER_ELEM (f, &bm_iter, v, BM_FACES_OF_VERT) {
-        if (pbvh_bmesh_node_lookup(pbvh, f) == n) {
-          found = true;
-          break;
-        }
-      }
-      BLI_assert(found || f == nullptr);
-
-#  if 1
-      /* total freak stuff, check if node exists somewhere else */
-      /* Slow */
-      for (int i = 0; i < pbvh->totnode; i++) {
-        Node *n_other = &pbvh->nodes_[i];
-        if ((n != n_other) && (n_other->bm_unique_verts_)) {
-          BLI_assert(!BLI_gset_haskey(n_other->bm_unique_verts_, v));
-        }
-      }
-#  endif
-    }
-  }
-
-#  if 0
-  /* check that every vert belongs somewhere */
-  /* Slow */
-  BM_ITER_MESH (vi, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
-    bool has_unique = false;
-    for (int i = 0; i < pbvh->totnode; i++) {
-      Node *n = &pbvh->nodes_[i];
-      if ((n->bm_unique_verts_ != nullptr) && BLI_gset_haskey(n->bm_unique_verts_, vi)) {
-        has_unique = true;
-      }
-    }
-    BLI_assert(has_unique);
-    vert_count++;
-  }
-
-  /* If totvert differs from number of verts inside the hash. hash-totvert is checked above. */
-  BLI_assert(vert_count == pbvh->header.bm->totvert);
-#  endif
-
-  /* Check that node elements are recorded in the top level */
-  for (int i = 0; i < pbvh->totnode; i++) {
-    Node *n = &pbvh->nodes_[i];
-    if (n->flag & Node::Leaf) {
-      GSetIterator gs_iter;
-
-      for (BMFace *f : n->bm_faces_) {
-        Node *n_other = pbvh_bmesh_node_lookup(pbvh, f);
-        BLI_assert(n == n_other);
-        BLI_assert(BLI_gset_haskey(faces_all, f));
-      }
-
-      GSET_ITER (gs_iter, n->bm_unique_verts_) {
-        BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
-        Node *n_other = pbvh_bmesh_node_lookup(pbvh, v);
-        BLI_assert(!BLI_gset_haskey(n->bm_other_verts_, v));
-        BLI_assert(n == n_other);
-        BLI_assert(BLI_gset_haskey(verts_all, v));
-      }
-
-      GSET_ITER (gs_iter, n->bm_other_verts_) {
-        BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
-        /* this happens sometimes and seems harmless */
-        // BLI_assert(!BM_vert_face_check(v));
-        BLI_assert(BLI_gset_haskey(verts_all, v));
-      }
-    }
-  }
-
-  BLI_gset_free(faces_all, nullptr);
-  BLI_gset_free(verts_all, nullptr);
-}
-
-#endif
+}  // namespace blender

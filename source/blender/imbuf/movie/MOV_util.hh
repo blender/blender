@@ -10,6 +10,8 @@
 
 #include "DNA_scene_types.h"
 
+namespace blender {
+
 struct FFMpegCodecData;
 struct ImageFormatData;
 struct RenderData;
@@ -50,3 +52,5 @@ int MOV_codec_valid_bit_depths(IMB_Ffmpeg_Codec_ID codec_id);
  * related settings in render data.
  */
 void MOV_validate_output_settings(RenderData *rd, const ImageFormatData *imf);
+
+}  // namespace blender

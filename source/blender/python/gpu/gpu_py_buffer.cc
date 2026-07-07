@@ -5,7 +5,7 @@
 /** \file
  * \ingroup bpygpu
  *
- * This file defines the gpu.state API.
+ * This file defines the gpu.types.Buffer API.
  *
  * - Use `bpygpu_` for local API.
  * - Use `BPyGPU` for public API.
@@ -26,6 +26,8 @@
 #include "gpu_py.hh"
 
 #include "gpu_py_buffer.hh"
+
+namespace blender {
 
 #define PYGPU_BUFFER_PROTOCOL
 #define MAX_DIMENSIONS 64
@@ -146,12 +148,12 @@ static BPyGPUBuffer *pygpu_buffer_make_from_data(PyObject *parent,
                                                  const Py_ssize_t *shape,
                                                  void *buf)
 {
-  BPyGPUBuffer *buffer = (BPyGPUBuffer *)_PyObject_GC_New(&BPyGPU_BufferType);
+  BPyGPUBuffer *buffer = reinterpret_cast<BPyGPUBuffer *>(_PyObject_GC_New(&BPyGPU_BufferType));
 
   buffer->parent = nullptr;
   buffer->format = format;
   buffer->shape_len = shape_len;
-  buffer->shape = MEM_malloc_arrayN<Py_ssize_t>(size_t(shape_len), "BPyGPUBuffer shape");
+  buffer->shape = MEM_new_array_uninitialized<Py_ssize_t>(size_t(shape_len), "BPyGPUBuffer shape");
   memcpy(buffer->shape, shape, sizeof(*buffer->shape) * size_t(shape_len));
   buffer->buf.as_void = buf;
 
@@ -193,11 +195,12 @@ static PyObject *pygpu_buffer__sq_item(BPyGPUBuffer *self, Py_ssize_t i)
       offset *= self->shape[j];
     }
 
-    return (PyObject *)pygpu_buffer_make_from_data((PyObject *)self,
-                                                   eGPUDataFormat(self->format),
-                                                   self->shape_len - 1,
-                                                   self->shape + 1,
-                                                   self->buf.as_byte + offset);
+    return reinterpret_cast<PyObject *>(
+        pygpu_buffer_make_from_data(reinterpret_cast<PyObject *>(self),
+                                    eGPUDataFormat(self->format),
+                                    self->shape_len - 1,
+                                    self->shape + 1,
+                                    self->buf.as_byte + offset));
   }
 
   return nullptr;
@@ -215,6 +218,15 @@ static PyObject *pygpu_buffer_to_list(BPyGPUBuffer *self)
   return list;
 }
 
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_buffer_to_list_doc,
+    ".. method:: to_list()\n"
+    "\n"
+    "   Return the buffer as a list.\n"
+    "\n"
+    "   :return: The buffer as a list.\n"
+    "   :rtype: list\n");
 static PyObject *pygpu_buffer_to_list_recursive(BPyGPUBuffer *self)
 {
   PyObject *list;
@@ -227,7 +239,7 @@ static PyObject *pygpu_buffer_to_list_recursive(BPyGPUBuffer *self)
       /* "BPyGPUBuffer *sub_tmp" is a temporary object created just to be read for nested lists.
        * That is why it is decremented/freed soon after.
        * TODO: For efficiency, avoid creating #BPyGPUBuffer when creating nested lists. */
-      BPyGPUBuffer *sub_tmp = (BPyGPUBuffer *)pygpu_buffer__sq_item(self, i);
+      BPyGPUBuffer *sub_tmp = reinterpret_cast<BPyGPUBuffer *>(pygpu_buffer__sq_item(self, i));
       PyList_SET_ITEM(list, i, pygpu_buffer_to_list_recursive(sub_tmp));
       Py_DECREF(sub_tmp);
     }
@@ -265,8 +277,8 @@ static int pygpu_buffer_dimensions_set(BPyGPUBuffer *self, PyObject *value, void
   }
 
   if (shape_len != self->shape_len) {
-    MEM_freeN(self->shape);
-    self->shape = MEM_malloc_arrayN<Py_ssize_t>(size_t(shape_len), __func__);
+    MEM_delete(self->shape);
+    self->shape = MEM_new_array_uninitialized<Py_ssize_t>(size_t(shape_len), __func__);
   }
 
   self->shape_len = shape_len;
@@ -296,10 +308,10 @@ static void pygpu_buffer__tp_dealloc(BPyGPUBuffer *self)
     Py_CLEAR(self->parent);
   }
   else if (self->buf.as_void) {
-    MEM_freeN(self->buf.as_void);
+    MEM_delete_void(self->buf.as_void);
   }
 
-  MEM_freeN(self->shape);
+  MEM_delete(self->shape);
 
   PyObject_GC_Del(self);
 }
@@ -424,7 +436,7 @@ static PyObject *pygpu_buffer__tp_new(PyTypeObject * /*type*/, PyObject *args, P
     }
   }
 
-  return (PyObject *)buffer;
+  return reinterpret_cast<PyObject *>(buffer);
 }
 
 static int pygpu_buffer__tp_is_gc(BPyGPUBuffer *self)
@@ -464,7 +476,7 @@ static int pygpu_buffer__sq_ass_item(BPyGPUBuffer *self, Py_ssize_t i, PyObject 
   }
 
   if (self->shape_len != 1) {
-    BPyGPUBuffer *row = (BPyGPUBuffer *)pygpu_buffer__sq_item(self, i);
+    BPyGPUBuffer *row = reinterpret_cast<BPyGPUBuffer *>(pygpu_buffer__sq_item(self, i));
 
     if (row) {
       const int ret = pygpu_buffer_ass_slice(row, 0, self->shape[1], v);
@@ -571,9 +583,9 @@ static int pygpu_buffer__mp_ass_subscript(BPyGPUBuffer *self, PyObject *item, Py
 
 static PyMethodDef pygpu_buffer__tp_methods[] = {
     {"to_list",
-     (PyCFunction)pygpu_buffer_to_list_recursive,
+     reinterpret_cast<PyCFunction>(pygpu_buffer_to_list_recursive),
      METH_NOARGS,
-     "return the buffer as a list"},
+     pygpu_buffer_to_list_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 
@@ -587,20 +599,20 @@ static PyMethodDef pygpu_buffer__tp_methods[] = {
 
 static PyGetSetDef pygpu_buffer_getseters[] = {
     {"dimensions",
-     (getter)pygpu_buffer_dimensions_get,
-     (setter)pygpu_buffer_dimensions_set,
+     reinterpret_cast<getter>(pygpu_buffer_dimensions_get),
+     reinterpret_cast<setter>(pygpu_buffer_dimensions_set),
      nullptr,
      nullptr},
     {nullptr, nullptr, nullptr, nullptr, nullptr},
 };
 
 static PySequenceMethods pygpu_buffer__tp_as_sequence = {
-    /*sq_length*/ (lenfunc)pygpu_buffer__sq_length,
+    /*sq_length*/ reinterpret_cast<lenfunc>(pygpu_buffer__sq_length),
     /*sq_concat*/ nullptr,
     /*sq_repeat*/ nullptr,
-    /*sq_item*/ (ssizeargfunc)pygpu_buffer__sq_item,
+    /*sq_item*/ reinterpret_cast<ssizeargfunc>(pygpu_buffer__sq_item),
     /*was_sq_slice*/ nullptr, /* DEPRECATED. Handled by #pygpu_buffer__sq_item. */
-    /*sq_ass_item*/ (ssizeobjargproc)pygpu_buffer__sq_ass_item,
+    /*sq_ass_item*/ reinterpret_cast<ssizeobjargproc>(pygpu_buffer__sq_ass_item),
     /*was_sq_ass_slice*/ nullptr, /* DEPRECATED. Handled by #pygpu_buffer__sq_ass_item. */
     /*sq_contains*/ nullptr,
     /*sq_inplace_concat*/ nullptr,
@@ -608,9 +620,9 @@ static PySequenceMethods pygpu_buffer__tp_as_sequence = {
 };
 
 static PyMappingMethods pygpu_buffer__tp_as_mapping = {
-    /*mp_length*/ (lenfunc)pygpu_buffer__sq_length,
-    /*mp_subscript*/ (binaryfunc)pygpu_buffer__mp_subscript,
-    /*mp_ass_subscript*/ (objobjargproc)pygpu_buffer__mp_ass_subscript,
+    /*mp_length*/ reinterpret_cast<lenfunc>(pygpu_buffer__sq_length),
+    /*mp_subscript*/ reinterpret_cast<binaryfunc>(pygpu_buffer__mp_subscript),
+    /*mp_ass_subscript*/ reinterpret_cast<objobjargproc>(pygpu_buffer__mp_ass_subscript),
 };
 
 #ifdef PYGPU_BUFFER_PROTOCOL
@@ -635,20 +647,21 @@ static int pygpu_buffer__bf_getbuffer(BPyGPUBuffer *self, Py_buffer *view, int f
 
   memset(view, 0, sizeof(*view));
 
-  view->obj = (PyObject *)self;
+  view->obj = reinterpret_cast<PyObject *>(self);
   view->buf = self->buf.as_void;
   view->len = bpygpu_Buffer_size(self);
   view->readonly = 0;
   view->itemsize = GPU_texture_dataformat_size(eGPUDataFormat(self->format));
   if (flags & PyBUF_FORMAT) {
-    view->format = (char *)pygpu_buffer_formatstr(eGPUDataFormat(self->format));
+    view->format = const_cast<char *>(pygpu_buffer_formatstr(eGPUDataFormat(self->format)));
   }
   if (flags & PyBUF_ND) {
     view->ndim = self->shape_len;
     view->shape = self->shape;
   }
   if (flags & PyBUF_STRIDES) {
-    view->strides = MEM_malloc_arrayN<Py_ssize_t>(size_t(view->ndim), "BPyGPUBuffer strides");
+    view->strides = MEM_new_array_uninitialized<Py_ssize_t>(size_t(view->ndim),
+                                                            "BPyGPUBuffer strides");
     pygpu_buffer_strides_calc(
         eGPUDataFormat(self->format), view->ndim, view->shape, view->strides);
   }
@@ -661,12 +674,12 @@ static int pygpu_buffer__bf_getbuffer(BPyGPUBuffer *self, Py_buffer *view, int f
 
 static void pygpu_buffer__bf_releasebuffer(PyObject * /*exporter*/, Py_buffer *view)
 {
-  MEM_SAFE_FREE(view->strides);
+  MEM_SAFE_DELETE(view->strides);
 }
 
 static PyBufferProcs pygpu_buffer__tp_as_buffer = {
-    /*bf_getbuffer*/ (getbufferproc)pygpu_buffer__bf_getbuffer,
-    /*bf_releasebuffer*/ (releasebufferproc)pygpu_buffer__bf_releasebuffer,
+    /*bf_getbuffer*/ reinterpret_cast<getbufferproc>(pygpu_buffer__bf_getbuffer),
+    /*bf_releasebuffer*/ static_cast<releasebufferproc>(pygpu_buffer__bf_releasebuffer),
 };
 #endif
 
@@ -677,26 +690,25 @@ PyDoc_STRVAR(
     "\n"
     "   For Python access to GPU functions requiring a pointer.\n"
     "\n"
-    "   :arg format: Format type to interpret the buffer.\n"
-    "      Possible values are ``FLOAT``, ``INT``, ``UINT``, ``UBYTE``, ``UINT_24_8`` & "
-    "``10_11_11_REV``.\n"
+    "   :param format: Format type to interpret the buffer.\n"
     "      ``UINT_24_8`` is deprecated, use ``FLOAT`` instead.\n"
-    "   :type format: str\n"
-    "   :arg dimensions: Array describing the dimensions.\n"
-    "   :type dimensions: int\n"
-    "   :arg data: Optional data array.\n"
+    "   :type format: " PYDOC_DATAFORMAT_LITERAL
+    "\n"
+    "   :param dimensions: Array describing the dimensions.\n"
+    "   :type dimensions: int | Sequence[int]\n"
+    "   :param data: Optional data array.\n"
     "   :type data: Buffer | Sequence[float] | Sequence[int]\n");
 PyTypeObject BPyGPU_BufferType = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Buffer",
     /*tp_basicsize*/ sizeof(BPyGPUBuffer),
     /*tp_itemsize*/ 0,
-    /*tp_dealloc*/ (destructor)pygpu_buffer__tp_dealloc,
+    /*tp_dealloc*/ reinterpret_cast<destructor>(pygpu_buffer__tp_dealloc),
     /*tp_vectorcall_offset*/ 0,
     /*tp_getattr*/ nullptr,
     /*tp_setattr*/ nullptr,
     /*tp_compare*/ nullptr,
-    /*tp_repr*/ (reprfunc)pygpu_buffer__tp_repr,
+    /*tp_repr*/ reinterpret_cast<reprfunc>(pygpu_buffer__tp_repr),
     /*tp_as_number*/ nullptr,
     /*tp_as_sequence*/ &pygpu_buffer__tp_as_sequence,
     /*tp_as_mapping*/ &pygpu_buffer__tp_as_mapping,
@@ -712,8 +724,8 @@ PyTypeObject BPyGPU_BufferType = {
 #endif
     /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
     /*tp_doc*/ pygpu_buffer__tp_doc,
-    /*tp_traverse*/ (traverseproc)pygpu_buffer__tp_traverse,
-    /*tp_clear*/ (inquiry)pygpu_buffer__tp_clear,
+    /*tp_traverse*/ reinterpret_cast<traverseproc>(pygpu_buffer__tp_traverse),
+    /*tp_clear*/ reinterpret_cast<inquiry>(pygpu_buffer__tp_clear),
     /*tp_richcompare*/ nullptr,
     /*tp_weaklistoffset*/ 0,
     /*tp_iter*/ nullptr,
@@ -730,7 +742,7 @@ PyTypeObject BPyGPU_BufferType = {
     /*tp_alloc*/ nullptr,
     /*tp_new*/ pygpu_buffer__tp_new,
     /*tp_free*/ nullptr,
-    /*tp_is_gc*/ (inquiry)pygpu_buffer__tp_is_gc,
+    /*tp_is_gc*/ reinterpret_cast<inquiry>(pygpu_buffer__tp_is_gc),
     /*tp_bases*/ nullptr,
     /*tp_mro*/ nullptr,
     /*tp_cache*/ nullptr,
@@ -762,10 +774,12 @@ BPyGPUBuffer *BPyGPU_Buffer_CreatePyObject(const int format,
 {
   if (buffer == nullptr) {
     size_t size = pygpu_buffer_calc_size(format, shape_len, shape);
-    buffer = MEM_callocN(size, "BPyGPUBuffer buffer");
+    buffer = MEM_new_zeroed(size, "BPyGPUBuffer buffer");
   }
 
   return pygpu_buffer_make_from_data(nullptr, eGPUDataFormat(format), shape_len, shape, buffer);
 }
 
 /** \} */
+
+}  // namespace blender

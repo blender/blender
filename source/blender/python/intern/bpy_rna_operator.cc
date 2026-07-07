@@ -19,6 +19,8 @@
 
 #include "bpy_rna_operator.hh" /* Own include, #BPY_rna_operator_poll_message_set_method_def. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Operator `poll_message_set` Method
  * \{ */
@@ -91,9 +93,9 @@ PyDoc_STRVAR(
     "   When message is callable, "
     "additional user defined positional arguments are passed to the message function.\n"
     "\n"
-    "   :arg message: The message or a function that returns the message.\n"
+    "   :param message: The message or a function that returns the message.\n"
     "   :type message: str | Callable[..., str | None]\n"
-    "   :arg args: A sequence of arguments to pass to ``message``, if it's a callable, "
+    "   :param args: A sequence of arguments to pass to ``message``, if it's a callable, "
     "otherwise argument is not available.\n"
     "   :type args: Any\n");
 static PyObject *BPY_rna_operator_poll_message_set(PyObject * /*self*/, PyObject *args)
@@ -138,9 +140,11 @@ static PyObject *BPY_rna_operator_poll_message_set(PyObject * /*self*/, PyObject
 
 PyMethodDef BPY_rna_operator_poll_message_set_method_def = {
     "poll_message_set",
-    (PyCFunction)BPY_rna_operator_poll_message_set,
+    static_cast<PyCFunction>(BPY_rna_operator_poll_message_set),
     METH_VARARGS | METH_STATIC,
     BPY_rna_operator_poll_message_set_doc,
 };
 
 /** \} */
+
+}  // namespace blender

@@ -35,7 +35,7 @@
  * belong to shadow pages not being updated in this pass are discarded.
  **/
 
-#include "infos/eevee_shadow_info.hh"
+#include "infos/eevee_shadow_pipeline_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_shadow_page_tile_clear)
 

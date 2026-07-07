@@ -28,7 +28,8 @@ class CompositorDepsgraphRelationBuilder : public DepsgraphRelationBuilder {
 
 }  // namespace
 
-CompositorBuilderPipeline::CompositorBuilderPipeline(::Depsgraph *graph, bNodeTree *nodetree)
+CompositorBuilderPipeline::CompositorBuilderPipeline(blender::Depsgraph *graph,
+                                                     bNodeTree *nodetree)
     : AbstractBuilderPipeline(graph), nodetree_(nodetree)
 {
   deg_graph_->is_render_pipeline_depsgraph = true;

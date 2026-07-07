@@ -11,17 +11,18 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_defaults.h"
 #include "DNA_movieclip_types.h"
 
-#include "BKE_movieclip.h"
-#include "BKE_tracking.h"
+#include "BKE_movieclip.hh"
+#include "BKE_tracking.hh"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "libmv-capi.h"
-#include "tracking_private.h"
+#include "tracking_private.hh"
+
+namespace blender {
 
 /* **** utility functions for tracking **** */
 
@@ -76,7 +77,7 @@ static float *track_get_search_floatbuf(ImBuf *ibuf,
   width = searchibuf->x;
   height = searchibuf->y;
 
-  gray_pixels = MEM_calloc_arrayN<float>(width * height, "tracking floatBuf");
+  gray_pixels = MEM_new_array_zeroed<float>(width * height, "tracking floatBuf");
 
   if (searchibuf->float_buffer.data) {
     float_rgba_to_gray(
@@ -101,7 +102,7 @@ static float *track_get_search_floatbuf(ImBuf *ibuf,
  */
 static ImBuf *tracking_context_get_frame_ibuf(MovieClip *clip,
                                               MovieClipUser *user,
-                                              int clip_flag,
+                                              MovieClipFlag clip_flag,
                                               int framenr)
 {
   ImBuf *ibuf;
@@ -109,7 +110,7 @@ static ImBuf *tracking_context_get_frame_ibuf(MovieClip *clip,
 
   new_user.framenr = BKE_movieclip_remap_clip_to_scene_frame(clip, framenr);
 
-  ibuf = BKE_movieclip_get_ibuf_flag(clip, &new_user, clip_flag, MOVIECLIP_CACHE_SKIP);
+  ibuf = BKE_movieclip_get_ibuf_flag(clip, &new_user, clip_flag, MovieClipCacheFlag::SkipCache);
 
   return ibuf;
 }
@@ -117,7 +118,7 @@ static ImBuf *tracking_context_get_frame_ibuf(MovieClip *clip,
 /* Get image buffer for previous marker's keyframe. */
 static ImBuf *tracking_context_get_keyframed_ibuf(MovieClip *clip,
                                                   MovieClipUser *user,
-                                                  int clip_flag,
+                                                  MovieClipFlag clip_flag,
                                                   MovieTrackingTrack *track,
                                                   int curfra,
                                                   bool backwards,
@@ -141,7 +142,7 @@ static ImBuf *tracking_context_get_keyframed_ibuf(MovieClip *clip,
 /* Get image buffer which is used as reference for track. */
 static ImBuf *tracking_context_get_reference_ibuf(MovieClip *clip,
                                                   MovieClipUser *user,
-                                                  int clip_flag,
+                                                  MovieClipFlag clip_flag,
                                                   MovieTrackingTrack *track,
                                                   int curfra,
                                                   bool backwards,
@@ -261,7 +262,7 @@ static bool configure_and_run_tracker(ImBuf *destination_ibuf,
                               dst_pixel_x,
                               dst_pixel_y);
 
-  MEM_freeN(patch_new);
+  MEM_delete(patch_new);
 
   return tracked;
 }
@@ -304,9 +305,9 @@ void BKE_tracking_refine_marker(MovieClip *clip,
   float *search_area, *mask = nullptr;
   int frame_width, frame_height;
   int search_area_height, search_area_width;
-  int clip_flag = clip->flag & MCLIP_TIMECODE_FLAGS;
+  MovieClipFlag clip_flag = MovieClipFlag(clip->flag & MCLIP_TIMECODE_FLAGS);
   int reference_framenr;
-  MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
+  MovieClipUser user = {};
   double dst_pixel_x[5], dst_pixel_y[5];
   bool tracked;
 
@@ -332,7 +333,8 @@ void BKE_tracking_refine_marker(MovieClip *clip,
   }
 
   /* Destination image buffer has got frame number corresponding to refining marker. */
-  destination_ibuf = BKE_movieclip_get_ibuf_flag(clip, &user, clip_flag, MOVIECLIP_CACHE_SKIP);
+  destination_ibuf = BKE_movieclip_get_ibuf_flag(
+      clip, &user, clip_flag, MovieClipCacheFlag::SkipCache);
   if (destination_ibuf == nullptr) {
     IMB_freeImBuf(reference_ibuf);
     return;
@@ -368,10 +370,12 @@ void BKE_tracking_refine_marker(MovieClip *clip,
   }
 
   /* Free memory used for refining */
-  MEM_freeN(search_area);
+  MEM_delete(search_area);
   if (mask) {
-    MEM_freeN(mask);
+    MEM_delete(mask);
   }
   IMB_freeImBuf(reference_ibuf);
   IMB_freeImBuf(destination_ibuf);
 }
+
+}  // namespace blender

@@ -154,7 +154,7 @@ real SilhouetteGeomEngine::ImageToWorldParameter(FEdge *fe, real t)
   GeomUtils::fromWorldToCamera(Bw, Bc, _modelViewMatrix);
   Vec3r ABc = Bc - Ac;
 #if 0
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Ac " << Ac << endl;
     cout << "Bc " << Bc << endl;
     cout << "ABc " << ABc << endl;
@@ -265,12 +265,12 @@ real SilhouetteGeomEngine::ImageToWorldParameter(FEdge *fe, real t)
       }
     }
 #if 0
-    if (G.debug & G_DEBUG_FREESTYLE) {
+    if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "SilhouetteGeomEngine::ImageToWorldParameter(): #iters = " << i
            << ", dist = " << dist << "\n";
     }
 #endif
-    if (i == max_iters && G.debug & G_DEBUG_FREESTYLE) {
+    if (i == max_iters && blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "SilhouetteGeomEngine::ImageToWorldParameter(): reached to max_iters (dist = "
            << dist << ")\n";
     }

@@ -17,7 +17,9 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
+#include "BKE_idtype.hh"
 #include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
@@ -26,6 +28,7 @@
 #include "BKE_report.hh"
 
 #include "BLI_math_vector.h"
+#include "BLI_string.h"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -211,6 +214,34 @@ bool mode_set_ex(bContext *C, eObjectMode mode, bool use_undo, ReportList *repor
   }
 
   if (ob->mode != mode) {
+    /* Give more specific error messages for cases that are known to fail (like linked and packed
+     * object-data). */
+    if (ob->data && !ID_IS_EDITABLE(ob->data)) {
+      const ID &obdata_id = *ob->data;
+      char obdata_idtype_name_lower[MAX_ID_NAME];
+      STRNCPY(obdata_idtype_name_lower, BKE_idtype_idcode_to_name(GS(obdata_id.name)));
+      BLI_str_tolower_ascii(obdata_idtype_name_lower, strlen(obdata_idtype_name_lower));
+
+      if (ID_IS_PACKED(ob->data)) {
+        BKE_reportf(reports,
+                    RPT_ERROR,
+                    "The '%s' %s data-block is packed and not editable. Use \"Make Local\" to "
+                    "make it editable.",
+                    BKE_id_name(obdata_id),
+                    obdata_idtype_name_lower);
+        return false;
+      }
+      if (ID_IS_LINKED(ob->data)) {
+        BKE_reportf(reports,
+                    RPT_ERROR,
+                    "The '%s' %s data-block is linked and not editable. Use \"Make Local\" to "
+                    "make it editable.",
+                    BKE_id_name(obdata_id),
+                    obdata_idtype_name_lower);
+        return false;
+      }
+    }
+
     BKE_reportf(reports, RPT_ERROR, "Unable to execute '%s', error changing modes", ot->name);
     return false;
   }
@@ -241,7 +272,9 @@ static bool ed_object_mode_generic_exit_ex(
     }
   }
   else if (ob->mode & OB_MODE_VERTEX_PAINT) {
-    if (ob->sculpt && (ob->sculpt->mode_type == OB_MODE_VERTEX_PAINT)) {
+    if (ob->runtime->sculpt_session &&
+        (ob->runtime->sculpt_session->mode_type == OB_MODE_VERTEX_PAINT))
+    {
       if (only_test) {
         return true;
       }
@@ -249,7 +282,9 @@ static bool ed_object_mode_generic_exit_ex(
     }
   }
   else if (ob->mode & OB_MODE_WEIGHT_PAINT) {
-    if (ob->sculpt && (ob->sculpt->mode_type == OB_MODE_WEIGHT_PAINT)) {
+    if (ob->runtime->sculpt_session &&
+        (ob->runtime->sculpt_session->mode_type == OB_MODE_WEIGHT_PAINT))
+    {
       if (only_test) {
         return true;
       }
@@ -257,7 +292,8 @@ static bool ed_object_mode_generic_exit_ex(
     }
   }
   else if (ob->mode & OB_MODE_SCULPT) {
-    if (ob->sculpt && (ob->sculpt->mode_type == OB_MODE_SCULPT)) {
+    if (ob->runtime->sculpt_session && (ob->runtime->sculpt_session->mode_type == OB_MODE_SCULPT))
+    {
       if (only_test) {
         return true;
       }
@@ -373,7 +409,8 @@ void mode_generic_exit(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *
 
 bool mode_generic_has_data(Depsgraph *depsgraph, const Object *ob)
 {
-  return ed_object_mode_generic_exit_ex(nullptr, depsgraph, nullptr, (Object *)ob, true);
+  return ed_object_mode_generic_exit_ex(
+      nullptr, depsgraph, nullptr, const_cast<Object *>(ob), true);
 }
 
 /** \} */

@@ -8,8 +8,12 @@
 
 #pragma once
 
+#include "BLI_math_constants.h"
+
 #include "DNA_ID.h"
 #include "DNA_defs.h"
+
+namespace blender {
 
 #ifndef MAX_MTEX
 #  define MAX_MTEX 18
@@ -17,80 +21,6 @@
 
 struct AnimData;
 struct bNodeTree;
-
-typedef struct Light {
-#ifdef __cplusplus
-  DNA_DEFINE_CXX_METHODS(Light)
-  /** See #ID_Type comment for why this is here. */
-  static constexpr ID_Type id_type = ID_LA;
-#endif
-
-  ID id;
-  /** Animation data (must be immediately after id for utilities to use it). */
-  struct AnimData *adt;
-
-  /* Type and flags. */
-  short type, flag;
-  int mode;
-
-  /* Color, temperature and energy. */
-  float r, g, b;
-  float temperature;
-  float energy;
-  float exposure;
-
-  /* Point light. */
-  float radius;
-
-  /* Spot Light. */
-  float spotsize;
-  float spotblend;
-
-  /* Area light. */
-  short area_shape;
-  short _pad1;
-  float area_size;
-  float area_sizey;
-  float area_sizez;
-  float area_spread;
-
-  /* Sun light. */
-  float sun_angle;
-
-  /* Nodes. */
-  short pr_texture, use_nodes;
-
-  /* Eevee */
-  float clipsta;
-  float clipend_deprecated;
-
-  float cascade_max_dist;
-  float cascade_exponent;
-  float cascade_fade;
-  int cascade_count;
-
-  float diff_fac;
-  float spec_fac;
-  float transmission_fac;
-  float volume_fac;
-
-  float att_dist;
-  float shadow_filter_radius;
-  float shadow_maximum_resolution;
-  float shadow_jitter_overblur;
-
-  /* Preview */
-  struct PreviewImage *preview;
-
-  /* Nodes */
-  struct bNodeTree *nodetree;
-
-  /* Deprecated. */
-  float energy_deprecated DNA_DEPRECATED;
-  float _pad2;
-} Light;
-
-/* **************** LIGHT ********************* */
 
 /** #Light::flag */
 enum {
@@ -165,3 +95,78 @@ enum {
   LA_AREA_DISK = 4,
   LA_AREA_ELLIPSE = 5,
 };
+
+struct Light {
+#ifdef __cplusplus
+  DNA_DEFINE_CXX_METHODS(Light)
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_LA;
+#endif
+
+  ID id;
+  /** Animation data (must be immediately after id for utilities to use it). */
+  struct AnimData *adt = nullptr;
+
+  /* Type and flags. */
+  short type = 0, flag = 0;
+  int mode = LA_SHADOW | LA_USE_SOFT_FALLOFF;
+
+  /* Color, temperature and energy. */
+  float r = 1.0f, g = 1.0f, b = 1.0f;
+  float temperature = 6500.0f;
+  float energy = 10.0f;
+  float exposure = 0;
+
+  /* Point light. */
+  float radius = 0;
+
+  /* Spot Light. */
+  float spotsize = DEG2RADF(45.0f);
+  float spotblend = 0.15f;
+
+  /* Area light. */
+  short area_shape = 0;
+  short _pad1 = {};
+  float area_size = 0.25f;
+  float area_sizey = 0.25f;
+  float area_sizez = 0.25f;
+  float area_spread = DEG2RADF(180.0f);
+
+  /* Sun light. */
+  float sun_angle = DEG2RADF(0.526f);
+
+  /* Nodes. */
+  short pr_texture = 0;
+  DNA_DEPRECATED short use_nodes = 0;
+
+  /* Eevee */
+  float clipsta = 0.05f;
+  float clipend_deprecated = 0;
+
+  float cascade_max_dist = 200.0f;
+  float cascade_exponent = 0.8f;
+  float cascade_fade = 0.1f;
+  int cascade_count = 4;
+
+  float diff_fac = 1.0f;
+  float spec_fac = 1.0f;
+  float transmission_fac = 1.0f;
+  float volume_fac = 1.0f;
+
+  float att_dist = 40.0f;
+  float shadow_filter_radius = 1.0f;
+  float shadow_maximum_resolution = 0.001f;
+  float shadow_jitter_overblur = 10.0f;
+
+  /* Preview */
+  struct PreviewImage *preview = nullptr;
+
+  /* Nodes */
+  struct bNodeTree *nodetree = nullptr;
+
+  /* Deprecated. */
+  DNA_DEPRECATED float energy_deprecated = 10.0f;
+  float _pad2 = 0.0f;
+};
+
+}  // namespace blender

@@ -13,11 +13,11 @@
 /* NOTE: Was initially used to get proper enumerator types, but this makes
  * it tricky to compile without OpenSubdiv. */
 /* #include "opensubdiv_converter_capi.hh" */
+struct OpenSubdiv_Converter;
+namespace blender {
 
 struct Mesh;
-struct OpenSubdiv_Converter;
-
-namespace blender::bke::subdiv {
+namespace bke::subdiv {
 
 struct Settings;
 
@@ -39,4 +39,5 @@ int converter_vtx_boundary_interpolation_from_settings(const Settings *settings)
  * without breaking compilation without OpenSubdiv. */
 int converter_fvar_linear_from_settings(const Settings *settings);
 
-}  // namespace blender::bke::subdiv
+}  // namespace bke::subdiv
+}  // namespace blender

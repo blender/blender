@@ -13,19 +13,22 @@
 
 #include "IMB_imbuf_enums.h"
 
-#ifdef WITH_FFMPEG
-
-extern "C" {
-#  include <libavutil/rational.h>
-}
-
 struct AVFormatContext;
 struct AVCodecContext;
 struct AVCodec;
 struct AVFrame;
 struct AVPacket;
 struct SwsContext;
+
+#ifdef WITH_FFMPEG
+
+extern "C" {
+#  include <libavutil/rational.h>
+}
+
 #endif
+
+namespace blender {
 
 struct IDProperty;
 struct MovieIndex;
@@ -96,3 +99,5 @@ struct MovieReader {
 
   IDProperty *metadata = nullptr;
 };
+
+}  // namespace blender

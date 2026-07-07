@@ -12,6 +12,7 @@
 /************************/
 /* Blender Noise Module */
 /************************/
+#include <time.h>
 
 #include <Python.h>
 
@@ -25,6 +26,8 @@
 
 #include "mathutils.hh"
 #include "mathutils_noise.hh"
+
+namespace blender {
 
 /*-----------------------------------------*/
 /* 'mersenne twister' random number generator */
@@ -146,17 +149,17 @@ static float frand()
 /*------------------------------------------------------------*/
 
 #define BPY_NOISE_BASIS_ENUM_DOC \
-  "   :arg noise_basis: A noise basis string.\n" \
+  "   :param noise_basis: A noise basis string.\n" \
   "   :type noise_basis: Literal['BLENDER', 'PERLIN_ORIGINAL', 'PERLIN_NEW', " \
   "'VORONOI_F1', 'VORONOI_F2', " \
   "'VORONOI_F3', 'VORONOI_F4', 'VORONOI_F2F1', 'VORONOI_CRACKLE', " \
-  "'CELLNOISE'].\n"
+  "'CELLNOISE']\n"
 
 #define BPY_NOISE_METRIC_ENUM_DOC \
-  "   :arg distance_metric: A distance metric string.\n" \
+  "   :param distance_metric: A distance metric string.\n" \
   "   :type distance_metric: Literal['DISTANCE', 'DISTANCE_SQUARED', 'MANHATTAN', " \
   "'CHEBYCHEV', " \
-  "'MINKOVSKY', 'MINKOVSKY_HALF', 'MINKOVSKY_FOUR'].\n"
+  "'MINKOVSKY', 'MINKOVSKY_HALF', 'MINKOVSKY_FOUR']\n"
 
 /* Noise basis enum */
 #define DEFAULT_NOISE_TYPE TEX_STDPERLIN
@@ -299,7 +302,7 @@ PyDoc_STRVAR(
     "\n"
     "   Returns a unit vector with random entries.\n"
     "\n"
-    "   :arg size: The size of the vector to be produced, in the range [2, 4].\n"
+    "   :param size: The size of the vector to be produced, in the range [2, 4].\n"
     "   :type size: int\n"
     "   :return: The random unit vector.\n"
     "   :rtype: :class:`mathutils.Vector`\n");
@@ -310,7 +313,8 @@ static PyObject *M_Noise_random_unit_vector(PyObject * /*self*/, PyObject *args,
   float norm = 2.0f;
   int vec_num = 3;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kw, "|$i:random_unit_vector", (char **)kwlist, &vec_num))
+  if (!PyArg_ParseTupleAndKeywords(
+          args, kw, "|$i:random_unit_vector", const_cast<char **>(kwlist), &vec_num))
   {
     return nullptr;
   }
@@ -335,7 +339,7 @@ PyDoc_STRVAR(
     "\n"
     "   Returns a vector with random entries in the range (-1, 1).\n"
     "\n"
-    "   :arg size: The size of the vector to be produced.\n"
+    "   :param size: The size of the vector to be produced, must be 2 or greater.\n"
     "   :type size: int\n"
     "   :return: The random vector.\n"
     "   :rtype: :class:`mathutils.Vector`\n");
@@ -345,7 +349,9 @@ static PyObject *M_Noise_random_vector(PyObject * /*self*/, PyObject *args, PyOb
   float *vec = nullptr;
   int vec_num = 3;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kw, "|$i:random_vector", (char **)kwlist, &vec_num)) {
+  if (!PyArg_ParseTupleAndKeywords(
+          args, kw, "|$i:random_vector", const_cast<char **>(kwlist), &vec_num))
+  {
     return nullptr;
   }
 
@@ -366,9 +372,9 @@ PyDoc_STRVAR(
     M_Noise_seed_set_doc,
     ".. function:: seed_set(seed, /)\n"
     "\n"
-    "   Sets the random seed used for random_unit_vector, and random.\n"
+    "   Sets the random seed used for random_unit_vector, random_vector, and random.\n"
     "\n"
-    "   :arg seed: Seed used for the random generator.\n"
+    "   :param seed: Seed used for the random generator.\n"
     "      When seed is zero, the current time will be used instead.\n"
     "   :type seed: int\n");
 static PyObject *M_Noise_seed_set(PyObject * /*self*/, PyObject *args)
@@ -388,7 +394,7 @@ PyDoc_STRVAR(
     "\n"
     "   Returns noise value from the noise basis at the position specified.\n"
     "\n"
-    "   :arg position: The position to evaluate the selected noise function.\n"
+    "   :param position: The position to evaluate the selected noise function.\n"
     "   :type position: :class:`mathutils.Vector`\n" BPY_NOISE_BASIS_ENUM_DOC
     "   :return: The noise value.\n"
     "   :rtype: float\n");
@@ -401,7 +407,7 @@ static PyObject *M_Noise_noise(PyObject * /*self*/, PyObject *args, PyObject *kw
   int noise_basis_enum = DEFAULT_NOISE_TYPE;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kw, "O|$s:noise", (char **)kwlist, &value, &noise_basis_str))
+          args, kw, "O|$s:noise", const_cast<char **>(kwlist), &value, &noise_basis_str))
   {
     return nullptr;
   }
@@ -431,7 +437,7 @@ PyDoc_STRVAR(
     "\n"
     "   Returns the noise vector from the noise basis at the specified position.\n"
     "\n"
-    "   :arg position: The position to evaluate the selected noise function.\n"
+    "   :param position: The position to evaluate the selected noise function.\n"
     "   :type position: :class:`mathutils.Vector`\n" BPY_NOISE_BASIS_ENUM_DOC
     "   :return: The noise vector.\n"
     "   :rtype: :class:`mathutils.Vector`\n");
@@ -444,7 +450,7 @@ static PyObject *M_Noise_noise_vector(PyObject * /*self*/, PyObject *args, PyObj
   int noise_basis_enum = DEFAULT_NOISE_TYPE;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kw, "O|$s:noise_vector", (char **)kwlist, &value, &noise_basis_str))
+          args, kw, "O|$s:noise_vector", const_cast<char **>(kwlist), &value, &noise_basis_str))
   {
     return nullptr;
   }
@@ -475,16 +481,16 @@ PyDoc_STRVAR(
     "\n"
     "   Returns the turbulence value from the noise basis at the specified position.\n"
     "\n"
-    "   :arg position: The position to evaluate the selected noise function.\n"
+    "   :param position: The position to evaluate the selected noise function.\n"
     "   :type position: :class:`mathutils.Vector`\n"
-    "   :arg octaves: The number of different noise frequencies used.\n"
+    "   :param octaves: The number of different noise frequencies used.\n"
     "   :type octaves: int\n"
-    "   :arg hard: Specifies whether returned turbulence is hard (sharp transitions) or "
+    "   :param hard: Specifies whether returned turbulence is hard (sharp transitions) or "
     "soft (smooth transitions).\n"
     "   :type hard: bool\n" BPY_NOISE_BASIS_ENUM_DOC
-    "   :arg amplitude_scale: The amplitude scaling factor.\n"
+    "   :param amplitude_scale: The amplitude scaling factor.\n"
     "   :type amplitude_scale: float\n"
-    "   :arg frequency_scale: The frequency scaling factor\n"
+    "   :param frequency_scale: The frequency scaling factor.\n"
     "   :type frequency_scale: float\n"
     "   :return: The turbulence value.\n"
     "   :rtype: float\n");
@@ -501,7 +507,7 @@ static PyObject *M_Noise_turbulence(PyObject * /*self*/, PyObject *args, PyObjec
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
                                    "Oii|$sff:turbulence",
-                                   (char **)kwlist,
+                                   const_cast<char **>(kwlist),
                                    &value,
                                    &oct,
                                    &hd,
@@ -536,16 +542,16 @@ PyDoc_STRVAR(
     "\n"
     "   Returns the turbulence vector from the noise basis at the specified position.\n"
     "\n"
-    "   :arg position: The position to evaluate the selected noise function.\n"
+    "   :param position: The position to evaluate the selected noise function.\n"
     "   :type position: :class:`mathutils.Vector`\n"
-    "   :arg octaves: The number of different noise frequencies used.\n"
+    "   :param octaves: The number of different noise frequencies used.\n"
     "   :type octaves: int\n"
-    "   :arg hard: Specifies whether returned turbulence is hard (sharp transitions) or "
+    "   :param hard: Specifies whether returned turbulence is hard (sharp transitions) or "
     "soft (smooth transitions).\n"
     "   :type hard: bool\n" BPY_NOISE_BASIS_ENUM_DOC
-    "   :arg amplitude_scale: The amplitude scaling factor.\n"
+    "   :param amplitude_scale: The amplitude scaling factor.\n"
     "   :type amplitude_scale: float\n"
-    "   :arg frequency_scale: The frequency scaling factor\n"
+    "   :param frequency_scale: The frequency scaling factor.\n"
     "   :type frequency_scale: float\n"
     "   :return: The turbulence vector.\n"
     "   :rtype: :class:`mathutils.Vector`\n");
@@ -562,7 +568,7 @@ static PyObject *M_Noise_turbulence_vector(PyObject * /*self*/, PyObject *args, 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
                                    "Oii|$sff:turbulence_vector",
-                                   (char **)kwlist,
+                                   const_cast<char **>(kwlist),
                                    &value,
                                    &oct,
                                    &hd,
@@ -601,14 +607,14 @@ PyDoc_STRVAR(
     "   Returns the fractal Brownian motion (fBm) noise value from the noise basis at the "
     "specified position.\n"
     "\n"
-    "   :arg position: The position to evaluate the selected noise function.\n"
+    "   :param position: The position to evaluate the selected noise function.\n"
     "   :type position: :class:`mathutils.Vector`\n"
-    "   :arg H: The fractal increment factor.\n"
+    "   :param H: The fractal increment parameter.\n"
     "   :type H: float\n"
-    "   :arg lacunarity: The gap between successive frequencies.\n"
+    "   :param lacunarity: The gap between successive frequencies.\n"
     "   :type lacunarity: float\n"
-    "   :arg octaves: The number of different noise frequencies used.\n"
-    "   :type octaves: int\n" BPY_NOISE_BASIS_ENUM_DOC
+    "   :param octaves: The number of different noise frequencies used.\n"
+    "   :type octaves: float\n" BPY_NOISE_BASIS_ENUM_DOC
     "   :return: The fractal Brownian motion noise value.\n"
     "   :rtype: float\n");
 static PyObject *M_Noise_fractal(PyObject * /*self*/, PyObject *args, PyObject *kw)
@@ -620,8 +626,15 @@ static PyObject *M_Noise_fractal(PyObject * /*self*/, PyObject *args, PyObject *
   float H, lac, oct;
   int noise_basis_enum = DEFAULT_NOISE_TYPE;
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kw, "Offf|$s:fractal", (char **)kwlist, &value, &H, &lac, &oct, &noise_basis_str))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kw,
+                                   "Offf|$s:fractal",
+                                   const_cast<char **>(kwlist),
+                                   &value,
+                                   &H,
+                                   &lac,
+                                   &oct,
+                                   &noise_basis_str))
   {
     return nullptr;
   }
@@ -651,14 +664,14 @@ PyDoc_STRVAR(
     "\n"
     "   Returns multifractal noise value from the noise basis at the specified position.\n"
     "\n"
-    "   :arg position: The position to evaluate the selected noise function.\n"
+    "   :param position: The position to evaluate the selected noise function.\n"
     "   :type position: :class:`mathutils.Vector`\n"
-    "   :arg H: The fractal increment factor.\n"
+    "   :param H: Determines the highest fractal dimension.\n"
     "   :type H: float\n"
-    "   :arg lacunarity: The gap between successive frequencies.\n"
+    "   :param lacunarity: The gap between successive frequencies.\n"
     "   :type lacunarity: float\n"
-    "   :arg octaves: The number of different noise frequencies used.\n"
-    "   :type octaves: int\n" BPY_NOISE_BASIS_ENUM_DOC
+    "   :param octaves: The number of different noise frequencies used.\n"
+    "   :type octaves: float\n" BPY_NOISE_BASIS_ENUM_DOC
     "   :return: The multifractal noise value.\n"
     "   :rtype: float\n");
 static PyObject *M_Noise_multi_fractal(PyObject * /*self*/, PyObject *args, PyObject *kw)
@@ -673,7 +686,7 @@ static PyObject *M_Noise_multi_fractal(PyObject * /*self*/, PyObject *args, PyOb
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
                                    "Offf|$s:multi_fractal",
-                                   (char **)kwlist,
+                                   const_cast<char **>(kwlist),
                                    &value,
                                    &H,
                                    &lac,
@@ -709,20 +722,20 @@ PyDoc_STRVAR(
     "   Returns variable lacunarity noise value, a distorted variety of noise, from "
     "noise type 1 distorted by noise type 2 at the specified position.\n"
     "\n"
-    "   :arg position: The position to evaluate the selected noise function.\n"
+    "   :param position: The position to evaluate the selected noise function.\n"
     "   :type position: :class:`mathutils.Vector`\n"
-    "   :arg distortion: The amount of distortion.\n"
+    "   :param distortion: The amount of distortion.\n"
     "   :type distortion: float\n"
-    "   :arg noise_type1: A noise type string.\n"
+    "   :param noise_type1: A noise type string.\n"
     "   :type noise_type1: Literal['BLENDER', 'PERLIN_ORIGINAL', 'PERLIN_NEW', "
     "'VORONOI_F1', 'VORONOI_F2', "
     "'VORONOI_F3', 'VORONOI_F4', 'VORONOI_F2F1', 'VORONOI_CRACKLE', "
-    "'CELLNOISE'].\n"
-    "   :arg noise_type2: A noise type string.\n"
+    "'CELLNOISE']\n"
+    "   :param noise_type2: A noise type string.\n"
     "   :type noise_type2: Literal['BLENDER', 'PERLIN_ORIGINAL', 'PERLIN_NEW', "
     "'VORONOI_F1', 'VORONOI_F2', "
     "'VORONOI_F3', 'VORONOI_F4', 'VORONOI_F2F1', 'VORONOI_CRACKLE', "
-    "'CELLNOISE'].\n"
+    "'CELLNOISE']\n"
     "   :return: The variable lacunarity noise value.\n"
     "   :rtype: float\n");
 static PyObject *M_Noise_variable_lacunarity(PyObject * /*self*/, PyObject *args, PyObject *kw)
@@ -737,7 +750,7 @@ static PyObject *M_Noise_variable_lacunarity(PyObject * /*self*/, PyObject *args
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
                                    "Of|$ss:variable_lacunarity",
-                                   (char **)kwlist,
+                                   const_cast<char **>(kwlist),
                                    &value,
                                    &d,
                                    &noise_type1_str,
@@ -781,15 +794,15 @@ PyDoc_STRVAR(
     "\n"
     "   Returns the heterogeneous terrain value from the noise basis at the specified position.\n"
     "\n"
-    "   :arg position: The position to evaluate the selected noise function.\n"
+    "   :param position: The position to evaluate the selected noise function.\n"
     "   :type position: :class:`mathutils.Vector`\n"
-    "   :arg H: The fractal dimension of the roughest areas.\n"
+    "   :param H: The fractal dimension of the roughest areas.\n"
     "   :type H: float\n"
-    "   :arg lacunarity: The gap between successive frequencies.\n"
+    "   :param lacunarity: The gap between successive frequencies.\n"
     "   :type lacunarity: float\n"
-    "   :arg octaves: The number of different noise frequencies used.\n"
-    "   :type octaves: int\n"
-    "   :arg offset: The height of the terrain above 'sea level'.\n"
+    "   :param octaves: The number of different noise frequencies used.\n"
+    "   :type octaves: float\n"
+    "   :param offset: The height of the terrain above 'sea level'.\n"
     "   :type offset: float\n" BPY_NOISE_BASIS_ENUM_DOC
     "   :return: The heterogeneous terrain value.\n"
     "   :rtype: float\n");
@@ -805,7 +818,7 @@ static PyObject *M_Noise_hetero_terrain(PyObject * /*self*/, PyObject *args, PyO
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
                                    "Offff|$s:hetero_terrain",
-                                   (char **)kwlist,
+                                   const_cast<char **>(kwlist),
                                    &value,
                                    &H,
                                    &lac,
@@ -841,17 +854,17 @@ PyDoc_STRVAR(
     "\n"
     "   Returns hybrid multifractal value from the noise basis at the specified position.\n"
     "\n"
-    "   :arg position: The position to evaluate the selected noise function.\n"
+    "   :param position: The position to evaluate the selected noise function.\n"
     "   :type position: :class:`mathutils.Vector`\n"
-    "   :arg H: The fractal dimension of the roughest areas.\n"
+    "   :param H: The fractal dimension of the roughest areas.\n"
     "   :type H: float\n"
-    "   :arg lacunarity: The gap between successive frequencies.\n"
+    "   :param lacunarity: The gap between successive frequencies.\n"
     "   :type lacunarity: float\n"
-    "   :arg octaves: The number of different noise frequencies used.\n"
-    "   :type octaves: int\n"
-    "   :arg offset: The height of the terrain above 'sea level'.\n"
+    "   :param octaves: The number of different noise frequencies used.\n"
+    "   :type octaves: float\n"
+    "   :param offset: The height of the terrain above 'sea level'.\n"
     "   :type offset: float\n"
-    "   :arg gain: Scaling applied to the values.\n"
+    "   :param gain: Scaling applied to the values.\n"
     "   :type gain: float\n" BPY_NOISE_BASIS_ENUM_DOC
     "   :return: The hybrid multifractal value.\n"
     "   :rtype: float\n");
@@ -867,7 +880,7 @@ static PyObject *M_Noise_hybrid_multi_fractal(PyObject * /*self*/, PyObject *arg
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
                                    "Offfff|$s:hybrid_multi_fractal",
-                                   (char **)kwlist,
+                                   const_cast<char **>(kwlist),
                                    &value,
                                    &H,
                                    &lac,
@@ -906,17 +919,17 @@ PyDoc_STRVAR(
     "\n"
     "   Returns ridged multifractal value from the noise basis at the specified position.\n"
     "\n"
-    "   :arg position: The position to evaluate the selected noise function.\n"
+    "   :param position: The position to evaluate the selected noise function.\n"
     "   :type position: :class:`mathutils.Vector`\n"
-    "   :arg H: The fractal dimension of the roughest areas.\n"
+    "   :param H: The fractal dimension of the roughest areas.\n"
     "   :type H: float\n"
-    "   :arg lacunarity: The gap between successive frequencies.\n"
+    "   :param lacunarity: The gap between successive frequencies.\n"
     "   :type lacunarity: float\n"
-    "   :arg octaves: The number of different noise frequencies used.\n"
-    "   :type octaves: int\n"
-    "   :arg offset: The height of the terrain above 'sea level'.\n"
+    "   :param octaves: The number of different noise frequencies used.\n"
+    "   :type octaves: float\n"
+    "   :param offset: The height of the terrain above 'sea level'.\n"
     "   :type offset: float\n"
-    "   :arg gain: Scaling applied to the values.\n"
+    "   :param gain: Scaling applied to the values.\n"
     "   :type gain: float\n" BPY_NOISE_BASIS_ENUM_DOC
     "   :return: The ridged multifractal value.\n"
     "   :rtype: float\n");
@@ -932,7 +945,7 @@ static PyObject *M_Noise_ridged_multi_fractal(PyObject * /*self*/, PyObject *arg
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
                                    "Offfff|$s:ridged_multi_fractal",
-                                   (char **)kwlist,
+                                   const_cast<char **>(kwlist),
                                    &value,
                                    &H,
                                    &lac,
@@ -970,9 +983,9 @@ PyDoc_STRVAR(
     "\n"
     "   Returns a list of distances to the four closest features and their locations.\n"
     "\n"
-    "   :arg position: The position to evaluate the selected noise function.\n"
+    "   :param position: The position to evaluate the selected noise function.\n"
     "   :type position: :class:`mathutils.Vector`\n" BPY_NOISE_METRIC_ENUM_DOC
-    "   :arg exponent: The exponent for Minkowski distance metric.\n"
+    "   :param exponent: The exponent for Minkowski distance metric.\n"
     "   :type exponent: float\n"
     "   :return: A list of distances to the four closest features and their locations.\n"
     "   :rtype: list[list[float] | list[:class:`mathutils.Vector`]]\n");
@@ -991,7 +1004,7 @@ static PyObject *M_Noise_voronoi(PyObject * /*self*/, PyObject *args, PyObject *
   int i;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kw, "O|$sf:voronoi", (char **)kwlist, &value, &metric_str, &me))
+          args, kw, "O|$sf:voronoi", const_cast<char **>(kwlist), &value, &metric_str, &me))
   {
     return nullptr;
   }
@@ -1028,7 +1041,7 @@ PyDoc_STRVAR(
     "\n"
     "   Returns cell noise value at the specified position.\n"
     "\n"
-    "   :arg position: The position to evaluate the selected noise function.\n"
+    "   :param position: The position to evaluate the cell noise at.\n"
     "   :type position: :class:`mathutils.Vector`\n"
     "   :return: The cell noise value.\n"
     "   :rtype: float\n");
@@ -1055,7 +1068,7 @@ PyDoc_STRVAR(
     "\n"
     "   Returns cell noise vector at the specified position.\n"
     "\n"
-    "   :arg position: The position to evaluate the selected noise function.\n"
+    "   :param position: The position to evaluate the cell noise at.\n"
     "   :type position: :class:`mathutils.Vector`\n"
     "   :return: The cell noise vector.\n"
     "   :rtype: :class:`mathutils.Vector`\n");
@@ -1087,53 +1100,65 @@ static PyObject *M_Noise_cell_vector(PyObject * /*self*/, PyObject *args)
 #endif
 
 static PyMethodDef M_Noise_methods[] = {
-    {"seed_set", (PyCFunction)M_Noise_seed_set, METH_VARARGS, M_Noise_seed_set_doc},
-    {"random", (PyCFunction)M_Noise_random, METH_NOARGS, M_Noise_random_doc},
+    {"seed_set", static_cast<PyCFunction>(M_Noise_seed_set), METH_VARARGS, M_Noise_seed_set_doc},
+    {"random", reinterpret_cast<PyCFunction>(M_Noise_random), METH_NOARGS, M_Noise_random_doc},
     {"random_unit_vector",
-     (PyCFunction)M_Noise_random_unit_vector,
+     reinterpret_cast<PyCFunction>(M_Noise_random_unit_vector),
      METH_VARARGS | METH_KEYWORDS,
      M_Noise_random_unit_vector_doc},
     {"random_vector",
-     (PyCFunction)M_Noise_random_vector,
+     reinterpret_cast<PyCFunction>(M_Noise_random_vector),
      METH_VARARGS | METH_KEYWORDS,
      M_Noise_random_vector_doc},
-    {"noise", (PyCFunction)M_Noise_noise, METH_VARARGS | METH_KEYWORDS, M_Noise_noise_doc},
+    {"noise",
+     reinterpret_cast<PyCFunction>(M_Noise_noise),
+     METH_VARARGS | METH_KEYWORDS,
+     M_Noise_noise_doc},
     {"noise_vector",
-     (PyCFunction)M_Noise_noise_vector,
+     reinterpret_cast<PyCFunction>(M_Noise_noise_vector),
      METH_VARARGS | METH_KEYWORDS,
      M_Noise_noise_vector_doc},
     {"turbulence",
-     (PyCFunction)M_Noise_turbulence,
+     reinterpret_cast<PyCFunction>(M_Noise_turbulence),
      METH_VARARGS | METH_KEYWORDS,
      M_Noise_turbulence_doc},
     {"turbulence_vector",
-     (PyCFunction)M_Noise_turbulence_vector,
+     reinterpret_cast<PyCFunction>(M_Noise_turbulence_vector),
      METH_VARARGS | METH_KEYWORDS,
      M_Noise_turbulence_vector_doc},
-    {"fractal", (PyCFunction)M_Noise_fractal, METH_VARARGS | METH_KEYWORDS, M_Noise_fractal_doc},
+    {"fractal",
+     reinterpret_cast<PyCFunction>(M_Noise_fractal),
+     METH_VARARGS | METH_KEYWORDS,
+     M_Noise_fractal_doc},
     {"multi_fractal",
-     (PyCFunction)M_Noise_multi_fractal,
+     reinterpret_cast<PyCFunction>(M_Noise_multi_fractal),
      METH_VARARGS | METH_KEYWORDS,
      M_Noise_multi_fractal_doc},
     {"variable_lacunarity",
-     (PyCFunction)M_Noise_variable_lacunarity,
+     reinterpret_cast<PyCFunction>(M_Noise_variable_lacunarity),
      METH_VARARGS | METH_KEYWORDS,
      M_Noise_variable_lacunarity_doc},
     {"hetero_terrain",
-     (PyCFunction)M_Noise_hetero_terrain,
+     reinterpret_cast<PyCFunction>(M_Noise_hetero_terrain),
      METH_VARARGS | METH_KEYWORDS,
      M_Noise_hetero_terrain_doc},
     {"hybrid_multi_fractal",
-     (PyCFunction)M_Noise_hybrid_multi_fractal,
+     reinterpret_cast<PyCFunction>(M_Noise_hybrid_multi_fractal),
      METH_VARARGS | METH_KEYWORDS,
      M_Noise_hybrid_multi_fractal_doc},
     {"ridged_multi_fractal",
-     (PyCFunction)M_Noise_ridged_multi_fractal,
+     reinterpret_cast<PyCFunction>(M_Noise_ridged_multi_fractal),
      METH_VARARGS | METH_KEYWORDS,
      M_Noise_ridged_multi_fractal_doc},
-    {"voronoi", (PyCFunction)M_Noise_voronoi, METH_VARARGS | METH_KEYWORDS, M_Noise_voronoi_doc},
-    {"cell", (PyCFunction)M_Noise_cell, METH_VARARGS, M_Noise_cell_doc},
-    {"cell_vector", (PyCFunction)M_Noise_cell_vector, METH_VARARGS, M_Noise_cell_vector_doc},
+    {"voronoi",
+     reinterpret_cast<PyCFunction>(M_Noise_voronoi),
+     METH_VARARGS | METH_KEYWORDS,
+     M_Noise_voronoi_doc},
+    {"cell", static_cast<PyCFunction>(M_Noise_cell), METH_VARARGS, M_Noise_cell_doc},
+    {"cell_vector",
+     static_cast<PyCFunction>(M_Noise_cell_vector),
+     METH_VARARGS,
+     M_Noise_cell_vector_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 
@@ -1172,3 +1197,5 @@ PyMODINIT_FUNC PyInit_mathutils_noise()
 
   return submodule;
 }
+
+}  // namespace blender

@@ -212,7 +212,7 @@ static void initToSphere(TransInfo *t, wmOperator * /*op*/)
 
   t->num.val_flag[0] |= NUM_NULL_ONE | NUM_NO_NEGATIVE;
 
-  ToSphereInfo *data = MEM_callocN<ToSphereInfo>(__func__);
+  ToSphereInfo *data = MEM_new_zeroed<ToSphereInfo>(__func__);
   t->custom.mode.data = data;
   t->custom.mode.use_free = true;
 

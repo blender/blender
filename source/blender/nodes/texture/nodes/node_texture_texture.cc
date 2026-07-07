@@ -17,20 +17,22 @@
 
 #include "RE_texture.h"
 
-static blender::bke::bNodeSocketTemplate inputs[] = {
+namespace blender {
+
+static bke::bNodeSocketTemplate inputs[] = {
     {SOCK_RGBA, N_("Color1"), 1.0f, 1.0f, 1.0f, 1.0f},
     {SOCK_RGBA, N_("Color2"), 0.0f, 0.0f, 0.0f, 1.0f},
     {-1, ""},
 };
 
-static blender::bke::bNodeSocketTemplate outputs[] = {
+static bke::bNodeSocketTemplate outputs[] = {
     {SOCK_RGBA, N_("Color")},
     {-1, ""},
 };
 
 static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
-  Tex *nodetex = (Tex *)node->id;
+  Tex *nodetex = id_cast<Tex *>(node->id);
   static float red[] = {1, 0, 0, 1};
   static float white[] = {1, 1, 1, 1};
   float co[3];
@@ -73,15 +75,17 @@ static void exec(void *data,
 
 void register_node_type_tex_texture()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   tex_node_type_base(&ntype, "TextureNodeTexture", TEX_NODE_TEXTURE);
   ntype.ui_name = "Texture";
   ntype.enum_name_legacy = "TEXTURE";
   ntype.nclass = NODE_CLASS_INPUT;
-  blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
+  bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.exec_fn = exec;
   ntype.flag |= NODE_PREVIEW;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

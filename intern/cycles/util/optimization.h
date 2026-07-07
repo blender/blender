@@ -19,6 +19,9 @@
 #  elif defined(__x86_64__) || defined(_M_X64)
 
 /* SSE4.2 is our minimum requirement for x86-64 CPUs, so auto enable */
+#    define __KERNEL_SSE__
+#    define __KERNEL_SSE2__
+#    define __KERNEL_SSE3__
 #    define __KERNEL_SSE42__
 /* no SSE4.2 kernel on x86-64, part of regular kernel */
 #    ifdef WITH_KERNEL_AVX2

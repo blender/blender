@@ -14,7 +14,7 @@
 
 #include "DRW_render.hh"
 
-#include "eevee_shader_shared.hh"
+#include "eevee_renderbuffers_shared.hh"
 
 namespace blender::eevee {
 
@@ -32,6 +32,8 @@ class RenderBuffers {
 
   // TextureFromPool mist_tx; /* Derived from depth_tx during accumulation. */
   TextureFromPool vector_tx;
+  TextureFromPool object_id_tx;
+  TextureFromPool prepass_normal_tx;
   TextureFromPool cryptomatte_tx;
   /* TODO(fclem): Use texture from pool once they support texture array. */
   Texture rp_color_tx;
@@ -43,7 +45,7 @@ class RenderBuffers {
   int2 extent_;
 
  public:
-  RenderBuffers(Instance &inst, RenderBuffersInfoData &data) : data(data), inst_(inst){};
+  RenderBuffers(Instance &inst, RenderBuffersInfoData &data) : data(data), inst_(inst) {};
 
   /** WARNING: RenderBuffers and Film use different storage types for AO and Shadow. */
   static ePassStorageType pass_storage_type(eViewLayerEEVEEPassType pass_type)

@@ -30,7 +30,6 @@ set(SRC
   editmesh_knife.cc
   editmesh_knife_project.cc
   editmesh_loopcut.cc
-  editmesh_mask_extract.cc
   editmesh_path.cc
   editmesh_polybuild.cc
   editmesh_preselect_edgering.cc
@@ -44,6 +43,7 @@ set(SRC
   editmesh_undo.cc
   editmesh_utils.cc
   mesh_data.cc
+  mesh_join.cc
   mesh_mirror.cc
   mesh_ops.cc
   meshtools.cc
@@ -60,7 +60,6 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::draw
-  PRIVATE bf::extern::fmtlib
   PRIVATE bf::functions
   PRIVATE bf::geometry
   PRIVATE bf::gpu

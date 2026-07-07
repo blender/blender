@@ -1,0 +1,13 @@
+diff --git a/pxr/imaging/hio/OpenEXRImage.cpp b/pxr/imaging/hio/OpenEXRImage.cpp
+index 443bc0b0c..4449c2fd0 100644
+--- a/pxr/imaging/hio/OpenEXRImage.cpp
++++ b/pxr/imaging/hio/OpenEXRImage.cpp
+@@ -762,8 +762,6 @@ bool Hio_OpenEXRImage::_OpenForReading(std::string const &filename,
+     }
+ 
+     if (_exrReader.numMipLevels <= mip) {
+-        TF_DIAGNOSTIC_WARNING("In image \"%s\" mip level %d does not exist",
+-                        filename.c_str(), mip);
+         return false;
+     }
+     

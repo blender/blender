@@ -8,13 +8,15 @@
 
 #include "BKE_volume_grid_fwd.hh"
 
+namespace blender {
+
 struct Volume;
 
 /** \file
  * \ingroup geo
  */
 
-namespace blender::geometry {
+namespace geometry {
 
 #ifdef WITH_OPENVDB
 
@@ -33,4 +35,5 @@ bke::VolumeGrid<float> points_to_sdf_grid(Span<float3> positions,
                                           float voxel_size);
 
 #endif
-}  // namespace blender::geometry
+}  // namespace geometry
+}  // namespace blender

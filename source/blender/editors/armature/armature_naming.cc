@@ -51,14 +51,16 @@
 
 #include "armature_intern.hh"
 
-using namespace blender;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Unique Bone Name Utility (Edit Mode)
  * \{ */
 
 /* NOTE: there's a ed_armature_bone_unique_name() too! */
-static bool editbone_unique_check(ListBase *ebones, const StringRefNull name, EditBone *bone)
+static bool editbone_unique_check(ListBaseT<EditBone> *ebones,
+                                  const StringRefNull name,
+                                  EditBone *bone)
 {
   if (bone) {
     /* This indicates that there is a bone to ignore. This means ED_armature_ebone_find_name()
@@ -75,13 +77,13 @@ static bool editbone_unique_check(ListBase *ebones, const StringRefNull name, Ed
   return dupli && dupli != bone;
 }
 
-void ED_armature_ebone_unique_name(ListBase *ebones, char *name, EditBone *bone)
+void ED_armature_ebone_unique_name(ListBaseT<EditBone> *ebones, char *name, EditBone *bone)
 {
   BLI_uniquename_cb(
       [&](const StringRefNull check_name) {
         return editbone_unique_check(ebones, check_name, bone);
       },
-      DATA_("Bone"),
+      DATA_(animrig::bone_default_name),
       '.',
       name,
       sizeof(bone->name));
@@ -99,7 +101,7 @@ static void ed_armature_bone_unique_name(bArmature *arm, char *name)
       [&](const StringRefNull check_name) {
         return BKE_armature_find_bone_name(arm, check_name.c_str()) != nullptr;
       },
-      DATA_("Bone"),
+      DATA_(animrig::bone_default_name),
       '.',
       name,
       sizeof(Bone::name));
@@ -111,33 +113,51 @@ static void ed_armature_bone_unique_name(bArmature *arm, char *name)
 /** \name Bone Renaming (Object & Edit Mode API)
  * \{ */
 
-/* helper call for armature_bone_rename */
-static void constraint_bone_name_fix(Object *ob,
-                                     ListBase *conlist,
+/**
+ * Helper call for `armature_bone_rename()`.
+ *
+ * \param rename_ob: The object whose bone was renamed.
+ * \param constraint_ob: The object that owns the constraints in `conlist`.
+ */
+static void constraint_bone_name_fix(Object *rename_ob,
+                                     Object *constraint_ob,
+                                     ListBaseT<bConstraint> *conlist,
                                      const char *oldname,
                                      const char *newname)
 {
-  LISTBASE_FOREACH (bConstraint *, curcon, conlist) {
-    ListBase targets = {nullptr, nullptr};
+  for (bConstraint &curcon : *conlist) {
+    ListBaseT<bConstraintTarget> targets = {nullptr, nullptr};
 
     /* constraint targets */
-    if (BKE_constraint_targets_get(curcon, &targets)) {
-      LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
-        if (ct->tar == ob) {
-          if (STREQ(ct->subtarget, oldname)) {
-            STRNCPY_UTF8(ct->subtarget, newname);
+    if (BKE_constraint_targets_get(&curcon, &targets)) {
+      for (bConstraintTarget &ct : targets) {
+        if (ct.tar == rename_ob) {
+          if (STREQ(ct.subtarget, oldname)) {
+            STRNCPY_UTF8(ct.subtarget, newname);
           }
         }
       }
 
-      BKE_constraint_targets_flush(curcon, &targets, false);
+      BKE_constraint_targets_flush(&curcon, &targets, false);
     }
 
-    /* action constraints */
-    if (curcon->type == CONSTRAINT_TYPE_ACTION) {
-      bActionConstraint *actcon = static_cast<bActionConstraint *>(curcon->data);
-      BKE_action_fix_paths_rename(
-          &ob->id, actcon->act, "pose.bones", oldname, newname, 0, 0, true);
+    /* Actions from action constraints.
+     *
+     * We only rename channels in the action if the action constraint and the
+     * bone rename are from the same object. This is because the action of an
+     * action constraint animates the constrained object/bone, it does not
+     * animate the constraint target. */
+    if (curcon.type == CONSTRAINT_TYPE_ACTION && constraint_ob == rename_ob) {
+      bActionConstraint *actcon = static_cast<bActionConstraint *>(curcon.data);
+      BKE_action_fix_paths_rename(&rename_ob->id,
+                                  actcon->act,
+                                  actcon->action_slot_handle,
+                                  "pose.bones",
+                                  oldname,
+                                  newname,
+                                  0,
+                                  0,
+                                  true);
     }
   }
 }
@@ -202,7 +222,7 @@ void ED_armature_bone_rename(Main *bmain,
     {
 
       /* we have the object using the armature */
-      if (arm == ob->data) {
+      if (id_cast<const ID *>(arm) == ob->data) {
         Object *cob;
 
         /* Rename the pose channel, if it exists */
@@ -232,18 +252,18 @@ void ED_armature_bone_rename(Main *bmain,
              cob = static_cast<Object *>(cob->id.next))
         {
           if (cob->constraints.first) {
-            constraint_bone_name_fix(ob, &cob->constraints, oldname, newname);
+            constraint_bone_name_fix(ob, cob, &cob->constraints, oldname, newname);
           }
           if (cob->pose) {
-            LISTBASE_FOREACH (bPoseChannel *, pchan, &cob->pose->chanbase) {
-              constraint_bone_name_fix(ob, &pchan->constraints, oldname, newname);
+            for (bPoseChannel &pchan : cob->pose->chanbase) {
+              constraint_bone_name_fix(ob, cob, &pchan.constraints, oldname, newname);
             }
           }
         }
       }
 
       /* See if an object is parented to this armature */
-      if (ob->parent && (ob->parent->data == arm)) {
+      if (ob->parent && (ob->parent->data == id_cast<const ID *>(arm))) {
         if (ob->partype == PARBONE) {
           /* bone name in object */
           if (STREQ(ob->parsubstr, oldname)) {
@@ -262,7 +282,7 @@ void ED_armature_bone_rename(Main *bmain,
                             newname);
           /* Not renaming vertex group could cause bone to bind to other vertex group, in this case
            * deformation could change, so we tag this object for depsgraph update. */
-          DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_GEOMETRY);
+          DEG_id_tag_update(ob->data, ID_RECALC_GEOMETRY);
         }
         else if (bDeformGroup *dg = BKE_object_defgroup_find_name(ob, oldname)) {
           STRNCPY_UTF8(dg->name, newname);
@@ -272,17 +292,17 @@ void ED_armature_bone_rename(Main *bmain,
             BKE_grease_pencil_vgroup_name_update(ob, oldname, dg->name);
           }
 
-          DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_GEOMETRY);
+          DEG_id_tag_update(ob->data, ID_RECALC_GEOMETRY);
         }
       }
 
       /* fix modifiers that might be using this name */
-      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-        switch (md->type) {
+      for (ModifierData &md : ob->modifiers) {
+        switch (md.type) {
           case eModifierType_Hook: {
-            HookModifierData *hmd = reinterpret_cast<HookModifierData *>(md);
+            HookModifierData *hmd = reinterpret_cast<HookModifierData *>(&md);
 
-            if (hmd->object && (hmd->object->data == arm)) {
+            if (hmd->object && (hmd->object->data == id_cast<const ID *>(arm))) {
               if (STREQ(hmd->subtarget, oldname)) {
                 STRNCPY_UTF8(hmd->subtarget, newname);
               }
@@ -290,14 +310,14 @@ void ED_armature_bone_rename(Main *bmain,
             break;
           }
           case eModifierType_UVWarp: {
-            UVWarpModifierData *umd = reinterpret_cast<UVWarpModifierData *>(md);
+            UVWarpModifierData *umd = reinterpret_cast<UVWarpModifierData *>(&md);
 
-            if (umd->object_src && (umd->object_src->data == arm)) {
+            if (umd->object_src && (umd->object_src->data == id_cast<const ID *>(arm))) {
               if (STREQ(umd->bone_src, oldname)) {
                 STRNCPY_UTF8(umd->bone_src, newname);
               }
             }
-            if (umd->object_dst && (umd->object_dst->data == arm)) {
+            if (umd->object_dst && (umd->object_dst->data == id_cast<const ID *>(arm))) {
               if (STREQ(umd->bone_dst, oldname)) {
                 STRNCPY_UTF8(umd->bone_dst, newname);
               }
@@ -311,8 +331,10 @@ void ED_armature_bone_rename(Main *bmain,
 
       /* fix camera focus */
       if (ob->type == OB_CAMERA) {
-        Camera *cam = static_cast<Camera *>(ob->data);
-        if ((cam->dof.focus_object != nullptr) && (cam->dof.focus_object->data == arm)) {
+        Camera *cam = id_cast<Camera *>(ob->data);
+        if ((cam->dof.focus_object != nullptr) &&
+            (cam->dof.focus_object->data == id_cast<const ID *>(arm)))
+        {
           if (STREQ(cam->dof.focus_subtarget, oldname)) {
             STRNCPY_UTF8(cam->dof.focus_subtarget, newname);
             DEG_id_tag_update(&cam->id, ID_RECALC_SYNC_TO_EVAL);
@@ -321,8 +343,7 @@ void ED_armature_bone_rename(Main *bmain,
       }
 
       if (ob->type == OB_GREASE_PENCIL) {
-        using namespace blender;
-        GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
+        GreasePencil &grease_pencil = *id_cast<GreasePencil *>(ob->data);
         for (bke::greasepencil::Layer *layer : grease_pencil.layers_for_write()) {
           Object *parent = layer->parent;
           if (parent == nullptr) {
@@ -345,8 +366,7 @@ void ED_armature_bone_rename(Main *bmain,
     /* XXX: the ID here is for armatures,
      * but most bone drivers are actually on the object instead. */
     {
-
-      BKE_animdata_fix_paths_rename_all(&arm->id, "pose.bones", oldname, newname);
+      BKE_animdata_fix_paths_rename_all(&arm->id, "bones", oldname, newname);
     }
 
     /* correct view locking */
@@ -356,11 +376,11 @@ void ED_armature_bone_rename(Main *bmain,
            screen = static_cast<bScreen *>(screen->id.next))
       {
         /* add regions */
-        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-          LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-            if (sl->spacetype == SPACE_VIEW3D) {
-              View3D *v3d = reinterpret_cast<View3D *>(sl);
-              if (v3d->ob_center && v3d->ob_center->data == arm) {
+        for (ScrArea &area : screen->areabase) {
+          for (SpaceLink &sl : area.spacedata) {
+            if (sl.spacetype == SPACE_VIEW3D) {
+              View3D *v3d = reinterpret_cast<View3D *>(&sl);
+              if (v3d->ob_center && v3d->ob_center->data == id_cast<const ID *>(arm)) {
                 if (STREQ(v3d->ob_center_bone, oldname)) {
                   STRNCPY_UTF8(v3d->ob_center_bone, newname);
                 }
@@ -387,18 +407,18 @@ struct BoneFlipNameData {
 
 void ED_armature_bones_flip_names(Main *bmain,
                                   bArmature *arm,
-                                  ListBase *bones_names,
+                                  ListBaseT<LinkData> *bones_names,
                                   const bool do_strip_numbers)
 {
-  ListBase bones_names_conflicts = {nullptr};
+  ListBaseT<BoneFlipNameData> bones_names_conflicts = {nullptr};
   BoneFlipNameData *bfn;
 
   /* First pass: generate flip names, and blindly rename.
    * If rename did not yield expected result,
    * store both bone's name and expected flipped one into temp list for second pass. */
-  LISTBASE_FOREACH (LinkData *, link, bones_names) {
+  for (LinkData &link : *bones_names) {
     char name_flip[MAXBONENAME];
-    char *name = static_cast<char *>(link->data);
+    char *name = static_cast<char *>(link.data);
 
     /* WARNING: if do_strip_numbers is set, expect completely mismatched names in cases like
      * Bone.R, Bone.R.001, Bone.R.002, etc. */
@@ -418,8 +438,8 @@ void ED_armature_bones_flip_names(Main *bmain,
    * Note that if the other bone was not selected, its name was not flipped,
    * so conflict remains and that second rename simply generates a new numbered alternative name.
    */
-  LISTBASE_FOREACH (BoneFlipNameData *, bfn, &bones_names_conflicts) {
-    ED_armature_bone_rename(bmain, arm, bfn->name, bfn->name_flip);
+  for (BoneFlipNameData &bfn : bones_names_conflicts) {
+    ED_armature_bone_rename(bmain, arm, bfn.name, bfn.name_flip);
   }
 }
 
@@ -441,21 +461,21 @@ static wmOperatorStatus armature_flip_names_exec(bContext *C, wmOperator *op)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *ob : objects) {
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = id_cast<bArmature *>(ob->data);
 
     /* Paranoia check. */
     if (ob_active->pose == nullptr) {
       continue;
     }
 
-    ListBase bones_names = {nullptr};
+    ListBaseT<LinkData> bones_names = {nullptr};
 
-    LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
-      if (blender::animrig::bone_is_selected(arm, ebone)) {
-        BLI_addtail(&bones_names, BLI_genericNodeN(ebone->name));
+    for (EditBone &ebone : *arm->edbo) {
+      if (animrig::bone_is_selected(arm, &ebone)) {
+        BLI_addtail(&bones_names, BLI_genericNodeN(ebone.name));
 
         if (arm->flag & ARM_MIRROR_EDIT) {
-          EditBone *flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
+          EditBone *flipbone = ED_armature_ebone_get_mirrored(arm->edbo, &ebone);
           if ((flipbone) && !(flipbone->flag & BONE_SELECTED)) {
             BLI_addtail(&bones_names, BLI_genericNodeN(flipbone->name));
           }
@@ -525,7 +545,7 @@ static wmOperatorStatus armature_autoside_names_exec(bContext *C, wmOperator *op
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
   for (Object *ob : objects) {
-    bArmature *arm = static_cast<bArmature *>(ob->data);
+    bArmature *arm = id_cast<bArmature *>(ob->data);
     bool changed = false;
 
     /* Paranoia checks. */
@@ -533,13 +553,13 @@ static wmOperatorStatus armature_autoside_names_exec(bContext *C, wmOperator *op
       continue;
     }
 
-    LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
-      if (EBONE_EDITABLE(ebone)) {
+    for (EditBone &ebone : *arm->edbo) {
+      if (EBONE_EDITABLE(&ebone)) {
 
         /* We first need to do the flipped bone, then the original one.
          * Otherwise we can't find the flipped one because of the bone name change. */
         if (arm->flag & ARM_MIRROR_EDIT) {
-          EditBone *flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
+          EditBone *flipbone = ED_armature_ebone_get_mirrored(arm->edbo, &ebone);
           if ((flipbone) && !(flipbone->flag & BONE_SELECTED)) {
             STRNCPY_UTF8(newname, flipbone->name);
             if (bone_autoside_name(newname, 1, axis, flipbone->head[axis], flipbone->tail[axis])) {
@@ -549,9 +569,9 @@ static wmOperatorStatus armature_autoside_names_exec(bContext *C, wmOperator *op
           }
         }
 
-        STRNCPY_UTF8(newname, ebone->name);
-        if (bone_autoside_name(newname, 1, axis, ebone->head[axis], ebone->tail[axis])) {
-          ED_armature_bone_rename(bmain, arm, ebone->name, newname);
+        STRNCPY_UTF8(newname, ebone.name);
+        if (bone_autoside_name(newname, 1, axis, ebone.head[axis], ebone.tail[axis])) {
+          ED_armature_bone_rename(bmain, arm, ebone.name, newname);
           changed = true;
         }
       }
@@ -565,6 +585,10 @@ static wmOperatorStatus armature_autoside_names_exec(bContext *C, wmOperator *op
 
     /* Since we renamed stuff... */
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA | NA_RENAME, ob->data);
+
+    /* Update animation channels */
+    WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, ob->data);
 
     /* NOTE: notifier might evolve. */
     WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
@@ -601,3 +625,5 @@ void ARMATURE_OT_autoside_names(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

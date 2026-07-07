@@ -51,6 +51,8 @@
 #include "util/Buffer.h"
 #include "Exception.h"
 
+#include "fx/Echo.h"
+
 #ifdef WITH_CONVOLUTION
 #include "fx/BinauralSound.h"
 #include "fx/ConvolverSound.h"
@@ -172,7 +174,7 @@ AUD_API const char* AUD_Sound_write(AUD_Sound* sound, const char* filename, AUD_
 		DeviceSpecs specs;
 		specs.specs = reader->getSpecs();
 
-		if((rate != RATE_INVALID) && (specs.rate != rate))
+		if((rate != double(RATE_INVALID)) && (specs.rate != rate))
 		{
 			specs.rate = rate;
 			reader = std::make_shared<JOSResampleReader>(reader, rate);
@@ -782,7 +784,22 @@ AUD_API AUD_Sound* AUD_Sound_Binaural(AUD_Sound* sound, AUD_HRTF* hrtfs, AUD_Sou
 		return nullptr;
 	}
 }
+#endif
 
+AUD_API AUD_Sound* AUD_Sound_Echo(AUD_Sound* sound, float delay, float feedback, float mix, bool resetBuffer)
+{
+	assert(sound);
+	try
+	{
+		return new AUD_Sound(new Echo(*sound, delay, feedback, mix, resetBuffer));
+	}
+	catch(Exception&)
+	{
+		return nullptr;
+	}
+}
+
+#ifdef WITH_CONVOLUTION
 AUD_API AUD_Sound* AUD_Sound_equalize(AUD_Sound* sound, float *definition, int size, float maxFreqEq, int sizeConversion)
 {
 	assert(sound);
@@ -792,7 +809,6 @@ AUD_API AUD_Sound* AUD_Sound_equalize(AUD_Sound* sound, float *definition, int s
 	AUD_Sound *equalizer=new AUD_Sound(new Equalizer(*sound, buf, size, maxFreqEq, sizeConversion));
 	return equalizer;
 }
-
 #endif
 
 #ifdef WITH_RUBBERBAND
@@ -853,6 +869,12 @@ AUD_API void AUD_Sound_animateableTimeStretchPitchScale_setFPS(AUD_Sound* sound,
 {
 	assert(sound);
 	dynamic_cast<AnimateableTimeStretchPitchScale*>(sound->get())->setFPS(value);
+}
+
+AUD_API bool AUD_Sound_isAnimateableTimeStretchPitchScale(AUD_Sound* sound)
+{
+	assert(sound);
+	return dynamic_cast<AnimateableTimeStretchPitchScale*>(sound->get()) != nullptr;
 }
 
 #endif

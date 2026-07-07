@@ -44,7 +44,9 @@ template<typename T> void object_label(T vk_object_type, const StringRefNull nam
   memset(label, 0, label_size);
   static int stats = 0;
   SNPRINTF(label, "%s_%d", name.c_str(), stats++);
-  object_label(to_vk_object_type(vk_object_type), (uint64_t)vk_object_type, (const char *)label);
+  object_label(to_vk_object_type(vk_object_type),
+               uint64_t(vk_object_type),
+               const_cast<const char *>(label));
 };
 
 /**

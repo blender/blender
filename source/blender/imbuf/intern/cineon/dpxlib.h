@@ -14,6 +14,8 @@
 
 #include "logImageCore.h"
 
+namespace blender {
+
 #define DPX_FILE_MAGIC 0x53445058
 #define DPX_UNDEFINED_U8 0xFF
 #define DPX_UNDEFINED_U16 0xFFFF
@@ -140,3 +142,5 @@ LogImageFile *dpxCreate(const char *filepath,
                         int referenceBlack,
                         float gamma,
                         const char *creator);
+
+}  // namespace blender

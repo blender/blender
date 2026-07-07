@@ -118,7 +118,7 @@ class MATERIAL_PT_gpencil_strokecolor(GPMaterialButtonsPanel, Panel):
         ma = context.material
         if ma is not None and ma.grease_pencil is not None:
             gpcolor = ma.grease_pencil
-            self.layout.prop(gpcolor, "show_stroke", text="")
+            self.layout.enabled = not gpcolor.lock
 
     def draw(self, context):
         layout = self.layout
@@ -163,7 +163,7 @@ class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
     def draw_header(self, context):
         ma = context.material
         gpcolor = ma.grease_pencil
-        self.layout.prop(gpcolor, "show_fill", text="")
+        self.layout.enabled = not gpcolor.lock
 
     def draw(self, context):
         layout = self.layout

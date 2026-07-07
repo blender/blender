@@ -29,13 +29,13 @@ static EnumPropertyItem interpolation_items[] = {
     {GEO_NODE_RAYCAST_INTERPOLATED,
      "INTERPOLATED",
      0,
-     "Interpolated",
-     "Interpolate the attribute from the corners of the hit face"},
+     N_("Interpolated"),
+     N_("Interpolate the attribute from the corners of the hit face")},
     {GEO_NODE_RAYCAST_NEAREST,
      "NEAREST",
      0,
-     "Nearest",
-     "Use the attribute value of the closest mesh element"},
+     N_("Nearest"),
+     N_("Use the attribute value of the closest mesh element")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -54,41 +54,47 @@ static void node_declare(NodeDeclarationBuilder &b)
   }
   b.add_input<decl::Menu>("Interpolation")
       .static_items(interpolation_items)
+      .optional_label()
       .description("Mapping from the target geometry to hit points");
 
-  b.add_input<decl::Vector>("Source Position")
-      .implicit_field(NODE_DEFAULT_INPUT_POSITION_FIELD)
-      .structure_type(StructureType::Dynamic);
-  b.add_input<decl::Vector>("Ray Direction")
-      .default_value({0.0f, 0.0f, -1.0f})
-      .supports_field()
-      .structure_type(StructureType::Dynamic);
-  b.add_input<decl::Float>("Ray Length")
-      .default_value(100.0f)
-      .min(0.0f)
-      .subtype(PROP_DISTANCE)
-      .supports_field()
-      .structure_type(StructureType::Dynamic);
+  const int source_position = b.add_input<decl::Vector>("Source Position")
+                                  .implicit_field(NODE_DEFAULT_INPUT_POSITION_FIELD)
+                                  .structure_type(StructureType::Dynamic)
+                                  .index();
+  const int ray_direction = b.add_input<decl::Vector>("Ray Direction")
+                                .default_value({0.0f, 0.0f, -1.0f})
+                                .supports_field()
+                                .structure_type(StructureType::Dynamic)
+                                .index();
+  const int ray_length = b.add_input<decl::Float>("Ray Length")
+                             .default_value(100.0f)
+                             .min(0.0f)
+                             .subtype(PROP_DISTANCE)
+                             .supports_field()
+                             .structure_type(StructureType::Dynamic)
+                             .index();
 
-  b.add_output<decl::Bool>("Is Hit").dependent_field({2, 3, 4});
-  b.add_output<decl::Vector>("Hit Position").dependent_field({2, 3, 4});
-  b.add_output<decl::Vector>("Hit Normal").dependent_field({2, 3, 4});
-  b.add_output<decl::Float>("Hit Distance").dependent_field({2, 3, 4});
+  const Vector<int> field_dependencys({source_position, ray_direction, ray_length});
+
+  b.add_output<decl::Bool>("Is Hit").dependent_field(field_dependencys);
+  b.add_output<decl::Vector>("Hit Position").dependent_field(field_dependencys);
+  b.add_output<decl::Vector>("Hit Normal").dependent_field(field_dependencys);
+  b.add_output<decl::Float>("Hit Distance").dependent_field(field_dependencys);
 
   if (node != nullptr) {
     const eCustomDataType data_type = eCustomDataType(node_storage(*node).data_type);
-    b.add_output(data_type, "Attribute").dependent_field({2, 3, 4});
+    b.add_output(data_type, "Attribute").dependent_field(field_dependencys);
   }
 }
 
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
+  layout.prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryRaycast *data = MEM_callocN<NodeGeometryRaycast>(__func__);
+  NodeGeometryRaycast *data = MEM_new<NodeGeometryRaycast>(__func__);
   data->data_type = CD_PROP_FLOAT;
   node->storage = data;
 }
@@ -243,48 +249,105 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  static auto normalize_fn = mf::build::SI1_SO<float3, float3>(
-      "Normalize",
-      [](const float3 &v) { return math::normalize(v); },
-      mf::build::exec_presets::AllSpanOrSingle());
-  auto direction_op = FieldOperation::from(normalize_fn,
-                                           {params.extract_input<Field<float3>>("Ray Direction")});
+  std::string error_message;
 
-  auto op = FieldOperation::from(std::make_unique<RaycastFunction>(target),
-                                 {params.extract_input<Field<float3>>("Source Position"),
-                                  Field<float3>(direction_op),
-                                  params.extract_input<Field<float>>("Ray Length")});
+  bke::SocketValueVariant normalized_direction;
+  {
+    auto ray_direction = params.extract_input<bke::SocketValueVariant>("Ray Direction");
 
-  Field<float3> hit_position(op, 1);
-  params.set_output("Is Hit", Field<bool>(op, 0));
+    static auto normalize_fn = mf::build::SI1_SO<float3, float3>(
+        "Normalize",
+        [](const float3 &v) { return math::normalize(v); },
+        mf::build::exec_presets::AllSpanOrSingle());
+
+    if (!execute_multi_function_on_value_variant(normalize_fn,
+                                                 {&ray_direction},
+                                                 {&normalized_direction},
+                                                 params.user_data(),
+                                                 error_message))
+    {
+      params.set_default_remaining_outputs();
+      params.error_message_add(NodeWarningType::Error, std::move(error_message));
+      return;
+    }
+  }
+
+  auto position = params.extract_input<bke::SocketValueVariant>("Source Position");
+  auto ray_length = params.extract_input<bke::SocketValueVariant>("Ray Length");
+
+  bke::SocketValueVariant is_hit;
+  bke::SocketValueVariant hit_position;
+  bke::SocketValueVariant hit_normal;
+  bke::SocketValueVariant hit_distance;
+  bke::SocketValueVariant triangle_index;
+  if (!execute_multi_function_on_value_variant(
+          std::make_unique<RaycastFunction>(target),
+          {&position, &normalized_direction, &ray_length},
+          {&is_hit, &hit_position, &hit_normal, &hit_distance, &triangle_index},
+          params.user_data(),
+          error_message))
+  {
+    params.set_default_remaining_outputs();
+    params.error_message_add(NodeWarningType::Error, std::move(error_message));
+    return;
+  }
+
+  params.set_output("Is Hit", std::move(is_hit));
   params.set_output("Hit Position", hit_position);
-  params.set_output("Hit Normal", Field<float3>(op, 2));
-  params.set_output("Hit Distance", Field<float>(op, 3));
+  params.set_output("Hit Normal", std::move(hit_normal));
+  params.set_output("Hit Distance", std::move(hit_distance));
 
   if (!params.output_is_required("Attribute")) {
     return;
   }
 
   GField field = params.extract_input<GField>("Attribute");
-  Field<int> triangle_index(op, 4);
-  Field<float3> bary_weights;
+  bke::SocketValueVariant bary_weights;
+  bke::SocketValueVariant triangle_index_copy = triangle_index;
   switch (mapping) {
     case GEO_NODE_RAYCAST_INTERPOLATED:
-      bary_weights = Field<float3>(FieldOperation::from(
-          std::make_shared<bke::mesh_surface_sample::BaryWeightFromPositionFn>(target),
-          {hit_position, triangle_index}));
+      if (!execute_multi_function_on_value_variant(
+              std::make_shared<bke::mesh_surface_sample::BaryWeightFromPositionFn>(target),
+              {&hit_position, &triangle_index_copy},
+              {&bary_weights},
+              params.user_data(),
+              error_message))
+      {
+        params.set_default_remaining_outputs();
+        params.error_message_add(NodeWarningType::Error, std::move(error_message));
+        return;
+      }
       break;
     case GEO_NODE_RAYCAST_NEAREST:
-      bary_weights = Field<float3>(FieldOperation::from(
-          std::make_shared<bke::mesh_surface_sample::CornerBaryWeightFromPositionFn>(target),
-          {hit_position, triangle_index}));
+      if (!execute_multi_function_on_value_variant(
+              std::make_shared<bke::mesh_surface_sample::CornerBaryWeightFromPositionFn>(target),
+              {&hit_position, &triangle_index_copy},
+              {&bary_weights},
+              params.user_data(),
+              error_message))
+      {
+        params.set_default_remaining_outputs();
+        params.error_message_add(NodeWarningType::Error, std::move(error_message));
+        return;
+      }
       break;
   }
-  auto sample_op = FieldOperation::from(
-      std::make_shared<bke::mesh_surface_sample::BaryWeightSampleFn>(std::move(target),
-                                                                     std::move(field)),
-      {triangle_index, bary_weights});
-  params.set_output("Attribute", GField(sample_op));
+
+  bke::SocketValueVariant sampled_atribute;
+  if (!execute_multi_function_on_value_variant(
+          std::make_shared<bke::mesh_surface_sample::BaryWeightSampleFn>(std::move(target),
+                                                                         std::move(field)),
+          {&triangle_index, &bary_weights},
+          {&sampled_atribute},
+          params.user_data(),
+          error_message))
+  {
+    params.set_default_remaining_outputs();
+    params.error_message_add(NodeWarningType::Error, std::move(error_message));
+    return;
+  }
+
+  params.set_output("Attribute", std::move(sampled_atribute));
 }
 
 static void node_rna(StructRNA *srna)
@@ -301,7 +364,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeRaycast", GEO_NODE_RAYCAST);
   ntype.ui_name = "Raycast";
@@ -312,13 +375,13 @@ static void node_register()
   ntype.nclass = NODE_CLASS_GEOMETRY;
   bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
   ntype.initfunc = node_init;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGeometryRaycast", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
   ntype.gather_link_search_ops = node_gather_link_searches;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

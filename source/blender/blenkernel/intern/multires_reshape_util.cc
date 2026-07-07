@@ -10,6 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -30,13 +31,15 @@
 
 #include "DEG_depsgraph_query.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Construct/destruct reshape context
  * \{ */
 
-blender::bke::subdiv::Subdiv *multires_reshape_create_subdiv(Depsgraph *depsgraph,
-                                                             /*const*/ Object *object,
-                                                             const MultiresModifierData *mmd)
+bke::subdiv::Subdiv *multires_reshape_create_subdiv(Depsgraph *depsgraph,
+                                                    /*const*/ Object *object,
+                                                    const MultiresModifierData *mmd)
 {
   using namespace blender::bke;
   Mesh *base_mesh;
@@ -47,7 +50,7 @@ blender::bke::subdiv::Subdiv *multires_reshape_create_subdiv(Depsgraph *depsgrap
     base_mesh = mesh_get_eval_deform(depsgraph, scene_eval, object_eval, &CD_MASK_BAREMESH);
   }
   else {
-    base_mesh = (Mesh *)object->data;
+    base_mesh = id_cast<Mesh *>(object->data);
   }
 
   subdiv::Settings subdiv_settings;
@@ -70,7 +73,7 @@ static void context_zero(MultiresReshapeContext *reshape_context)
 
 static void context_init_lookup(MultiresReshapeContext *reshape_context)
 {
-  const blender::OffsetIndices faces = reshape_context->base_faces;
+  const OffsetIndices faces = reshape_context->base_faces;
 
   reshape_context->face_start_grid_index.reinitialize(faces.size());
   int num_grids = 0;
@@ -115,8 +118,7 @@ static void context_init_common(MultiresReshapeContext *reshape_context)
   BLI_assert(reshape_context->subdiv != nullptr);
   BLI_assert(reshape_context->base_mesh != nullptr);
 
-  reshape_context->face_ptex_offset = blender::bke::subdiv::face_ptex_offset_get(
-      reshape_context->subdiv);
+  reshape_context->face_ptex_offset = bke::subdiv::face_ptex_offset_get(reshape_context->subdiv);
 
   context_init_lookup(reshape_context);
   context_init_grid_pointers(reshape_context);
@@ -149,7 +151,7 @@ bool multires_reshape_context_create_from_base_mesh(MultiresReshapeContext *resh
 
   const bool use_render_params = false;
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Mesh *base_mesh = (Mesh *)object->data;
+  Mesh *base_mesh = id_cast<Mesh *>(object->data);
 
   reshape_context->depsgraph = depsgraph;
   reshape_context->object = object;
@@ -170,12 +172,11 @@ bool multires_reshape_context_create_from_base_mesh(MultiresReshapeContext *resh
 
   reshape_context->reshape.level = multires_get_level(
       scene_eval, object, mmd, use_render_params, true);
-  reshape_context->reshape.grid_size = blender::bke::subdiv::grid_size_from_level(
+  reshape_context->reshape.grid_size = bke::subdiv::grid_size_from_level(
       reshape_context->reshape.level);
 
   reshape_context->top.level = mmd->totlvl;
-  reshape_context->top.grid_size = blender::bke::subdiv::grid_size_from_level(
-      reshape_context->top.level);
+  reshape_context->top.grid_size = bke::subdiv::grid_size_from_level(reshape_context->top.level);
 
   context_init_common(reshape_context);
 
@@ -187,13 +188,12 @@ bool multires_reshape_context_create_from_object(MultiresReshapeContext *reshape
                                                  Object *object,
                                                  MultiresModifierData *mmd)
 {
-  using namespace blender;
   using namespace blender::bke;
   context_zero(reshape_context);
 
   const bool use_render_params = false;
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Mesh *base_mesh = (Mesh *)object->data;
+  Mesh *base_mesh = id_cast<Mesh *>(object->data);
 
   reshape_context->depsgraph = depsgraph;
   reshape_context->object = object;
@@ -201,6 +201,12 @@ bool multires_reshape_context_create_from_object(MultiresReshapeContext *reshape
 
   reshape_context->base_mesh = base_mesh;
   reshape_context->base_positions = base_mesh->vert_positions();
+  /* TODO: The following check can be replaced by ShapeKeyData struct member `basis_key_active`
+   * found in `sculpt_intern.hh`.*/
+  if (base_mesh->key && object->shapenr > 0) {
+    KeyBlock *kb = base_mesh->key->refkey;
+    reshape_context->basis_shape_key = kb;
+  }
   reshape_context->base_edges = base_mesh->edges();
   reshape_context->base_faces = base_mesh->faces();
   reshape_context->base_corner_verts = base_mesh->corner_verts();
@@ -221,7 +227,7 @@ bool multires_reshape_context_create_from_object(MultiresReshapeContext *reshape
   reshape_context->top.grid_size = subdiv::grid_size_from_level(reshape_context->top.level);
 
   const bke::AttributeAccessor attributes = base_mesh->attributes();
-  reshape_context->cd_vertex_crease = *attributes.lookup<float>("crease_vert", AttrDomain::Point);
+  reshape_context->cd_vert_crease = *attributes.lookup<float>("crease_vert", AttrDomain::Point);
   reshape_context->cd_edge_crease = *attributes.lookup<float>("crease_edge", AttrDomain::Edge);
 
   context_init_common(reshape_context);
@@ -247,12 +253,11 @@ bool multires_reshape_context_create_from_ccg(MultiresReshapeContext *reshape_co
   reshape_context->need_free_subdiv = false;
 
   reshape_context->reshape.level = subdiv_ccg->level;
-  reshape_context->reshape.grid_size = blender::bke::subdiv::grid_size_from_level(
+  reshape_context->reshape.grid_size = bke::subdiv::grid_size_from_level(
       reshape_context->reshape.level);
 
   reshape_context->top.level = top_level;
-  reshape_context->top.grid_size = blender::bke::subdiv::grid_size_from_level(
-      reshape_context->top.level);
+  reshape_context->top.grid_size = bke::subdiv::grid_size_from_level(reshape_context->top.level);
 
   context_init_common(reshape_context);
 
@@ -264,7 +269,7 @@ bool multires_reshape_context_create_from_modifier(MultiresReshapeContext *resha
                                                    MultiresModifierData *mmd,
                                                    int top_level)
 {
-  blender::bke::subdiv::Subdiv *subdiv = multires_reshape_create_subdiv(nullptr, object, mmd);
+  bke::subdiv::Subdiv *subdiv = multires_reshape_create_subdiv(nullptr, object, mmd);
 
   const bool result = multires_reshape_context_create_from_subdiv(
       reshape_context, object, mmd, subdiv, top_level);
@@ -277,14 +282,13 @@ bool multires_reshape_context_create_from_modifier(MultiresReshapeContext *resha
 bool multires_reshape_context_create_from_subdiv(MultiresReshapeContext *reshape_context,
                                                  Object *object,
                                                  MultiresModifierData *mmd,
-                                                 blender::bke::subdiv::Subdiv *subdiv,
+                                                 bke::subdiv::Subdiv *subdiv,
                                                  int top_level)
 {
-  using namespace blender;
   using namespace blender::bke;
   context_zero(reshape_context);
 
-  Mesh *base_mesh = (Mesh *)object->data;
+  Mesh *base_mesh = id_cast<Mesh *>(object->data);
 
   reshape_context->mmd = mmd;
   reshape_context->base_mesh = base_mesh;
@@ -295,7 +299,7 @@ bool multires_reshape_context_create_from_subdiv(MultiresReshapeContext *reshape
   reshape_context->base_corner_edges = base_mesh->corner_edges();
 
   const bke::AttributeAccessor attributes = base_mesh->attributes();
-  reshape_context->cd_vertex_crease = *attributes.lookup<float>("crease_vert", AttrDomain::Point);
+  reshape_context->cd_vert_crease = *attributes.lookup<float>("crease_vert", AttrDomain::Point);
 
   reshape_context->subdiv = subdiv;
   reshape_context->need_free_subdiv = false;
@@ -325,16 +329,16 @@ void multires_reshape_free_original_grids(MultiresReshapeContext *reshape_contex
   for (int grid_index = 0; grid_index < num_grids; grid_index++) {
     if (orig_mdisps != nullptr) {
       MDisps *orig_grid = &orig_mdisps[grid_index];
-      MEM_SAFE_FREE(orig_grid->disps);
+      MEM_SAFE_DELETE(orig_grid->disps);
     }
     if (orig_grid_paint_masks != nullptr) {
       GridPaintMask *orig_paint_mask_grid = &orig_grid_paint_masks[grid_index];
-      MEM_SAFE_FREE(orig_paint_mask_grid->data);
+      MEM_SAFE_DELETE(orig_paint_mask_grid->data);
     }
   }
 
-  MEM_SAFE_FREE(orig_mdisps);
-  MEM_SAFE_FREE(orig_grid_paint_masks);
+  MEM_SAFE_DELETE(orig_mdisps);
+  MEM_SAFE_DELETE(orig_grid_paint_masks);
 
   reshape_context->orig.mdisps = nullptr;
   reshape_context->orig.grid_paint_masks = nullptr;
@@ -343,7 +347,7 @@ void multires_reshape_free_original_grids(MultiresReshapeContext *reshape_contex
 void multires_reshape_context_free(MultiresReshapeContext *reshape_context)
 {
   if (reshape_context->need_free_subdiv) {
-    blender::bke::subdiv::free(reshape_context->subdiv);
+    bke::subdiv::free(reshape_context->subdiv);
   }
 
   multires_reshape_free_original_grids(reshape_context);
@@ -402,17 +406,15 @@ PTexCoord multires_reshape_grid_coord_to_ptex(const MultiresReshapeContext *resh
                                                                    grid_coord->grid_index);
 
   float corner_u, corner_v;
-  blender::bke::subdiv::grid_uv_to_ptex_face_uv(
-      grid_coord->u, grid_coord->v, &corner_u, &corner_v);
+  bke::subdiv::grid_uv_to_ptex_face_uv(grid_coord->u, grid_coord->v, &corner_u, &corner_v);
 
   const int face_index = multires_reshape_grid_to_face_index(reshape_context,
                                                              grid_coord->grid_index);
   const int corner = multires_reshape_grid_to_corner(reshape_context, grid_coord->grid_index);
   if (multires_reshape_is_quad_face(reshape_context, face_index)) {
     float grid_u, grid_v;
-    blender::bke::subdiv::ptex_face_uv_to_grid_uv(corner_u, corner_v, &grid_u, &grid_v);
-    blender::bke::subdiv::rotate_grid_to_quad(
-        corner, grid_u, grid_v, &ptex_coord.u, &ptex_coord.v);
+    bke::subdiv::ptex_face_uv_to_grid_uv(corner_u, corner_v, &grid_u, &grid_v);
+    bke::subdiv::rotate_grid_to_quad(corner, grid_u, grid_v, &ptex_coord.u, &ptex_coord.v);
   }
   else {
     ptex_coord.u = corner_u;
@@ -432,7 +434,7 @@ GridCoord multires_reshape_ptex_coord_to_grid(const MultiresReshapeContext *resh
 
   int corner_delta;
   if (multires_reshape_is_quad_face(reshape_context, face_index)) {
-    corner_delta = blender::bke::subdiv::rotate_quad_to_corner(
+    corner_delta = bke::subdiv::rotate_quad_to_corner(
         ptex_coord->u, ptex_coord->v, &grid_coord.u, &grid_coord.v);
   }
   else {
@@ -442,8 +444,7 @@ GridCoord multires_reshape_ptex_coord_to_grid(const MultiresReshapeContext *resh
   }
   grid_coord.grid_index = start_grid_index + corner_delta;
 
-  blender::bke::subdiv::ptex_face_uv_to_grid_uv(
-      grid_coord.u, grid_coord.v, &grid_coord.u, &grid_coord.v);
+  bke::subdiv::ptex_face_uv_to_grid_uv(grid_coord.u, grid_coord.v, &grid_coord.u, &grid_coord.v);
 
   return grid_coord;
 }
@@ -451,9 +452,9 @@ GridCoord multires_reshape_ptex_coord_to_grid(const MultiresReshapeContext *resh
 void multires_reshape_tangent_matrix_for_corner(const MultiresReshapeContext *reshape_context,
                                                 const int face_index,
                                                 const int corner,
-                                                const blender::float3 &dPdu,
-                                                const blender::float3 &dPdv,
-                                                blender::float3x3 &r_tangent_matrix)
+                                                const float3 &dPdu,
+                                                const float3 &dPdv,
+                                                float3x3 &r_tangent_matrix)
 {
   /* For a quad faces we would need to flip the tangent, since they will use
    * use different coordinates within displacement grid compared to the ptex face. */
@@ -474,7 +475,7 @@ ReshapeGridElement multires_reshape_grid_element_for_grid_coord(
 
   if (reshape_context->mdisps != nullptr) {
     MDisps *displacement_grid = &reshape_context->mdisps[grid_coord->grid_index];
-    grid_element.displacement = reinterpret_cast<blender::float3 *>(
+    grid_element.displacement = reinterpret_cast<float3 *>(
         displacement_grid->disps[grid_element_index]);
   }
 
@@ -502,7 +503,7 @@ ReshapeConstGridElement multires_reshape_orig_grid_element_for_grid_coord(
   if (mdisps != nullptr) {
     const MDisps *displacement_grid = &mdisps[grid_coord->grid_index];
     if (displacement_grid->disps != nullptr) {
-      const int grid_size = blender::bke::subdiv::grid_size_from_level(displacement_grid->level);
+      const int grid_size = bke::subdiv::grid_size_from_level(displacement_grid->level);
       const int grid_x = lround(grid_coord->u * (grid_size - 1));
       const int grid_y = lround(grid_coord->v * (grid_size - 1));
       const int grid_element_index = grid_y * grid_size + grid_x;
@@ -514,7 +515,7 @@ ReshapeConstGridElement multires_reshape_orig_grid_element_for_grid_coord(
   if (grid_paint_masks != nullptr) {
     const GridPaintMask *paint_mask_grid = &grid_paint_masks[grid_coord->grid_index];
     if (paint_mask_grid->data != nullptr) {
-      const int grid_size = blender::bke::subdiv::grid_size_from_level(paint_mask_grid->level);
+      const int grid_size = bke::subdiv::grid_size_from_level(paint_mask_grid->level);
       const int grid_x = lround(grid_coord->u * (grid_size - 1));
       const int grid_y = lround(grid_coord->v * (grid_size - 1));
       const int grid_element_index = grid_y * grid_size + grid_x;
@@ -534,14 +535,14 @@ ReshapeConstGridElement multires_reshape_orig_grid_element_for_grid_coord(
 void multires_reshape_evaluate_base_mesh_limit_at_grid(
     const MultiresReshapeContext *reshape_context,
     const GridCoord *grid_coord,
-    blender::float3 &r_P,
-    blender::float3x3 &r_tangent_matrix)
+    float3 &r_P,
+    float3x3 &r_tangent_matrix)
 {
-  blender::float3 dPdu;
-  blender::float3 dPdv;
+  float3 dPdu;
+  float3 dPdv;
   const PTexCoord ptex_coord = multires_reshape_grid_coord_to_ptex(reshape_context, grid_coord);
-  blender::bke::subdiv::Subdiv *subdiv = reshape_context->subdiv;
-  blender::bke::subdiv::eval_limit_point_and_derivatives(
+  bke::subdiv::Subdiv *subdiv = reshape_context->subdiv;
+  bke::subdiv::eval_limit_point_and_derivatives(
       subdiv, ptex_coord.ptex_face_index, ptex_coord.u, ptex_coord.v, r_P, dPdu, dPdv);
 
   const int face_index = multires_reshape_grid_to_face_index(reshape_context,
@@ -559,11 +560,11 @@ void multires_reshape_evaluate_base_mesh_limit_at_grid(
 
 static void allocate_displacement_grid(MDisps *displacement_grid, const int level)
 {
-  const int grid_size = blender::bke::subdiv::grid_size_from_level(level);
+  const int grid_size = bke::subdiv::grid_size_from_level(level);
   const int grid_area = grid_size * grid_size;
-  float(*disps)[3] = MEM_calloc_arrayN<float[3]>(grid_area, "multires disps");
+  float (*disps)[3] = MEM_new_array_zeroed<float[3]>(grid_area, "multires disps");
   if (displacement_grid->disps != nullptr) {
-    MEM_freeN(displacement_grid->disps);
+    MEM_delete(displacement_grid->disps);
   }
   /* TODO(sergey): Preserve data on the old level. */
   displacement_grid->disps = disps;
@@ -597,7 +598,7 @@ static void ensure_mask_grids(Mesh *mesh, const int level)
     return;
   }
   const int num_grids = mesh->corners_num;
-  const int grid_size = blender::bke::subdiv::grid_size_from_level(level);
+  const int grid_size = bke::subdiv::grid_size_from_level(level);
   const int grid_area = grid_size * grid_size;
   for (int grid_index = 0; grid_index < num_grids; grid_index++) {
     GridPaintMask *grid_paint_mask = &grid_paint_masks[grid_index];
@@ -606,10 +607,10 @@ static void ensure_mask_grids(Mesh *mesh, const int level)
     }
     grid_paint_mask->level = level;
     if (grid_paint_mask->data) {
-      MEM_freeN(grid_paint_mask->data);
+      MEM_delete(grid_paint_mask->data);
     }
     /* TODO(sergey): Preserve data on the old level. */
-    grid_paint_mask->data = MEM_calloc_arrayN<float>(grid_area, "gpm.data");
+    grid_paint_mask->data = MEM_new_array_zeroed<float>(grid_area, "gpm.data");
   }
 }
 
@@ -630,10 +631,10 @@ void multires_reshape_store_original_grids(MultiresReshapeContext *reshape_conte
   const MDisps *mdisps = reshape_context->mdisps;
   const GridPaintMask *grid_paint_masks = reshape_context->grid_paint_masks;
 
-  MDisps *orig_mdisps = static_cast<MDisps *>(MEM_dupallocN(mdisps));
+  MDisps *orig_mdisps = MEM_dupalloc(mdisps);
   GridPaintMask *orig_grid_paint_masks = nullptr;
   if (grid_paint_masks != nullptr) {
-    orig_grid_paint_masks = static_cast<GridPaintMask *>(MEM_dupallocN(grid_paint_masks));
+    orig_grid_paint_masks = MEM_dupalloc(grid_paint_masks);
   }
 
   const int num_grids = reshape_context->num_grids;
@@ -644,13 +645,12 @@ void multires_reshape_store_original_grids(MultiresReshapeContext *reshape_conte
      * Reshape process will ensure all grids are on top level, but that happens on separate set of
      * grids which eventually replaces original one. */
     if (orig_grid->disps != nullptr) {
-      orig_grid->disps = static_cast<float(*)[3]>(MEM_dupallocN(orig_grid->disps));
+      orig_grid->disps = MEM_dupalloc(orig_grid->disps);
     }
     if (orig_grid_paint_masks != nullptr) {
       GridPaintMask *orig_paint_mask_grid = &orig_grid_paint_masks[grid_index];
       if (orig_paint_mask_grid->data != nullptr) {
-        orig_paint_mask_grid->data = static_cast<float *>(
-            MEM_dupallocN(orig_paint_mask_grid->data));
+        orig_paint_mask_grid->data = MEM_dupalloc(orig_paint_mask_grid->data);
       }
     }
   }
@@ -681,7 +681,7 @@ static void foreach_grid_face_coordinate_task(void *__restrict userdata_v,
 
   const MultiresReshapeContext *reshape_context = data->reshape_context;
 
-  const blender::OffsetIndices faces = reshape_context->base_faces;
+  const OffsetIndices faces = reshape_context->base_faces;
   const int grid_size = data->grid_size;
   const float grid_size_1_inv = 1.0f / (float(grid_size) - 1.0f);
 
@@ -712,7 +712,7 @@ static void foreach_grid_coordinate(const MultiresReshapeContext *reshape_contex
 {
   ForeachGridCoordinateTaskData data;
   data.reshape_context = reshape_context;
-  data.grid_size = blender::bke::subdiv::grid_size_from_level(level);
+  data.grid_size = bke::subdiv::grid_size_from_level(level);
   data.grid_size_1_inv = 1.0f / (float(data.grid_size) - 1.0f);
   data.callback = callback;
   data.callback_userdata_v = userdata_v;
@@ -732,19 +732,19 @@ static void object_grid_element_to_tangent_displacement(
     const GridCoord *grid_coord,
     void * /*userdata_v*/)
 {
-  blender::float3 P;
-  blender::float3x3 tangent_matrix;
+  float3 P;
+  float3x3 tangent_matrix;
   multires_reshape_evaluate_base_mesh_limit_at_grid(
       reshape_context, grid_coord, P, tangent_matrix);
 
-  const blender::float3x3 inv_tangent_matrix = blender::math::invert(tangent_matrix);
+  const float3x3 inv_tangent_matrix = math::invert(tangent_matrix);
 
   ReshapeGridElement grid_element = multires_reshape_grid_element_for_grid_coord(reshape_context,
                                                                                  grid_coord);
 
-  blender::float3 D = *grid_element.displacement - P;
+  float3 D = *grid_element.displacement - P;
 
-  blender::float3 tangent_D = blender::math::transform_direction(inv_tangent_matrix, D);
+  float3 tangent_D = math::transform_direction(inv_tangent_matrix, D);
 
   *grid_element.displacement = tangent_D;
 }
@@ -771,15 +771,14 @@ static void assign_final_coords_from_mdisps(const MultiresReshapeContext *reshap
                                             const GridCoord *grid_coord,
                                             void * /*userdata_v*/)
 {
-  blender::float3 P;
-  blender::float3x3 tangent_matrix;
+  float3 P;
+  float3x3 tangent_matrix;
   multires_reshape_evaluate_base_mesh_limit_at_grid(
       reshape_context, grid_coord, P, tangent_matrix);
 
   ReshapeGridElement grid_element = multires_reshape_grid_element_for_grid_coord(reshape_context,
                                                                                  grid_coord);
-  const blender::float3 D = blender::math::transform_direction(tangent_matrix,
-                                                               *grid_element.displacement);
+  const float3 D = math::transform_direction(tangent_matrix, *grid_element.displacement);
 
   *grid_element.displacement = P + D;
 }
@@ -795,16 +794,15 @@ static void assign_final_elements_from_orig_mdisps(const MultiresReshapeContext 
                                                    const GridCoord *grid_coord,
                                                    void * /*userdata_v*/)
 {
-  blender::float3 P;
-  blender::float3x3 tangent_matrix;
+  float3 P;
+  float3x3 tangent_matrix;
   multires_reshape_evaluate_base_mesh_limit_at_grid(
       reshape_context, grid_coord, P, tangent_matrix);
 
   const ReshapeConstGridElement orig_grid_element =
       multires_reshape_orig_grid_element_for_grid_coord(reshape_context, grid_coord);
 
-  blender::float3 D = blender::math::transform_direction(tangent_matrix,
-                                                         orig_grid_element.displacement);
+  float3 D = math::transform_direction(tangent_matrix, orig_grid_element.displacement);
 
   ReshapeGridElement grid_element = multires_reshape_grid_element_for_grid_coord(reshape_context,
                                                                                  grid_coord);
@@ -825,3 +823,5 @@ void multires_reshape_assign_final_elements_from_orig_mdisps(
 }
 
 /** \} */
+
+}  // namespace blender

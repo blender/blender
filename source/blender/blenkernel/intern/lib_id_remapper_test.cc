@@ -11,9 +11,11 @@
 
 #include "DNA_ID.h"
 
+namespace blender {
+
 using namespace blender::bke::id;
 
-namespace blender::bke::id::tests {
+namespace bke::id::tests {
 
 TEST(lib_id_remapper, unavailable)
 {
@@ -109,4 +111,5 @@ TEST(lib_id_remapper, unassign_when_mapped_to_self)
   EXPECT_EQ(idp, nullptr);
 }
 
-}  // namespace blender::bke::id::tests
+}  // namespace bke::id::tests
+}  // namespace blender

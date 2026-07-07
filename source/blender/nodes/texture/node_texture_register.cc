@@ -6,6 +6,8 @@
 
 #include "node_texture_register.hh"
 
+namespace blender {
+
 void register_texture_nodes()
 {
   register_node_tree_type_tex();
@@ -46,3 +48,5 @@ void register_texture_nodes()
   register_node_type_tex_valtorgb();
   register_node_type_tex_viewer();
 }
+
+}  // namespace blender

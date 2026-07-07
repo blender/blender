@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/overlay_edit_mode_info.hh"
+#include "infos/overlay_edit_mode_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(overlay_edit_particle_strand)
 
@@ -36,9 +36,11 @@ void main()
     final_color = float4(weight_to_rgb(selection), 1.0f);
   }
   else {
-    float4 use_color = use_grease_pencil ? theme.colors.gpencil_vertex_select :
-                                           theme.colors.vert_select;
-    final_color = mix(theme.colors.wire_edit, use_color, selection);
+    float4 wire_color = use_grease_pencil ? theme.colors.gpencil_wire_edit :
+                                            theme.colors.wire_edit;
+    float4 selection_color = use_grease_pencil ? theme.colors.gpencil_vertex_select :
+                                                 theme.colors.vert_select;
+    final_color = mix(wire_color, selection_color, selection);
   }
 
   view_clipping_distances(world_pos);

@@ -15,6 +15,8 @@
 
 #include <cstdint>
 
+namespace blender {
+
 /** #wmEvent.customdata type. */
 enum {
   EVT_DATA_TIMER = 2,
@@ -50,32 +52,32 @@ enum wmEventType : int16_t {
 #define _EVT_MOUSE_MIN 0x0001
 
   /* MOUSE: 0x000x, 0x001x. */
-  LEFTMOUSE = 0x0001,
-  MIDDLEMOUSE = 0x0002,
-  RIGHTMOUSE = 0x0003,
-  MOUSEMOVE = 0x0004,
+  LEFTMOUSE = 0x0001,   /* 1 */
+  MIDDLEMOUSE = 0x0002, /* 2 */
+  RIGHTMOUSE = 0x0003,  /* 3 */
+  MOUSEMOVE = 0x0004,   /* 4 */
   /* Extra mouse buttons. */
-  BUTTON4MOUSE = 0x0007,
-  BUTTON5MOUSE = 0x0008,
+  BUTTON4MOUSE = 0x0007, /* 7 */
+  BUTTON5MOUSE = 0x0008, /* 8 */
   /* More mouse buttons - can't use 9 and 10 here (wheel). */
-  BUTTON6MOUSE = 0x0012,
-  BUTTON7MOUSE = 0x0013,
+  BUTTON6MOUSE = 0x0012, /* 18 */
+  BUTTON7MOUSE = 0x0013, /* 19 */
   /* Extra trackpad gestures (check #WM_EVENT_IS_CONSECUTIVE to detect motion events). */
-  MOUSEPAN = 0x000e,
-  MOUSEZOOM = 0x000f,
-  MOUSEROTATE = 0x0010,
-  MOUSESMARTZOOM = 0x0017,
+  MOUSEPAN = 0x000e,       /* 14 */
+  MOUSEZOOM = 0x000f,      /* 15 */
+  MOUSEROTATE = 0x0010,    /* 13 */
+  MOUSESMARTZOOM = 0x0017, /* 23 */
 
   /* Defaults from ghost. */
-  WHEELUPMOUSE = 0x000a,
-  WHEELDOWNMOUSE = 0x000b,
+  WHEELUPMOUSE = 0x000a,   /* 10 */
+  WHEELDOWNMOUSE = 0x000b, /* 11 */
   /* Mapped based on #USER_WHEELZOOMDIR. */
-  WHEELINMOUSE = 0x000c,
-  WHEELOUTMOUSE = 0x000d,
+  WHEELINMOUSE = 0x000c,  /* 12 */
+  WHEELOUTMOUSE = 0x000d, /* 13 */
   /* Successive MOUSEMOVE's are converted to this, so we can easily
    * ignore all but the most recent MOUSEMOVE (for better performance),
    * paint and drawing tools however will want to handle these. */
-  INBETWEEN_MOUSEMOVE = 0x0011,
+  INBETWEEN_MOUSEMOVE = 0x0011, /* 17 */
   /* Horizontal scrolling events. */
   WHEELLEFTMOUSE = 0x0014,  /* 20 */
   WHEELRIGHTMOUSE = 0x0015, /* 21 */
@@ -84,21 +86,21 @@ enum wmEventType : int16_t {
 #define _EVT_MOUSE_MAX 0x0015 /* 21 */
 
   /* IME event, GHOST_kEventImeCompositionStart in ghost. */
-  WM_IME_COMPOSITE_START = 0x0016,
+  WM_IME_COMPOSITE_START = 0x0016, /* 22 */
   /* 0x0017 is MOUSESMARTZOOM. */
   /* IME event, GHOST_kEventImeComposition in ghost. */
-  WM_IME_COMPOSITE_EVENT = 0x0018,
+  WM_IME_COMPOSITE_EVENT = 0x0018, /* 24 */
   /* IME event, GHOST_kEventImeCompositionEnd in ghost. */
-  WM_IME_COMPOSITE_END = 0x0019,
+  WM_IME_COMPOSITE_END = 0x0019, /* 25 */
 
   /* Tablet/Pen Specific Events. */
-  TABLET_STYLUS = 0x001a,
-  TABLET_ERASER = 0x001b,
+  TABLET_STYLUS = 0x001a, /* 26 */
+  TABLET_ERASER = 0x001b, /* 27 */
 
 /* *** Start of keyboard codes. *** */
 
 /* Minimum keyboard value (inclusive). */
-#define _EVT_KEYBOARD_MIN 0x0020
+#define _EVT_KEYBOARD_MIN 0x0020 /* 32 */
 
   /* Standard keyboard.
    * - 0x0020 to 0x00ff [#_EVT_KEYBOARD_MIN to #_EVT_KEYBOARD_MAX] inclusive - for keys.
@@ -375,9 +377,10 @@ enum wmEventType : int16_t {
 
   /* Action-zones, tweak, gestures: 0x500x, 0x501x
    * Keep in sync with #IS_EVENT_ACTIONZONE(...). */
-  EVT_ACTIONZONE_AREA = 0x5000,       /* 20480 */
-  EVT_ACTIONZONE_REGION = 0x5001,     /* 20481 */
-  EVT_ACTIONZONE_FULLSCREEN = 0x5011, /* 20497 */
+  EVT_ACTIONZONE_AREA = 0x5000,        /* 20480 */
+  EVT_ACTIONZONE_REGION = 0x5001,      /* 20481 */
+  EVT_ACTIONZONE_REGION_QUAD = 0x5002, /* 20482 */
+  EVT_ACTIONZONE_FULLSCREEN = 0x5011,  /* 20497 */
 
   /* NOTE: these values are saved in key-map files, do not change them but just add new ones. */
 
@@ -460,7 +463,11 @@ enum wmEventType : int16_t {
   ((event_type) >= _NDOF_BUTTON_MIN && (event_type) <= _NDOF_BUTTON_MAX)
 
 #define IS_EVENT_ACTIONZONE(event_type) \
-  ELEM(event_type, EVT_ACTIONZONE_AREA, EVT_ACTIONZONE_REGION, EVT_ACTIONZONE_FULLSCREEN)
+  ELEM(event_type, \
+       EVT_ACTIONZONE_AREA, \
+       EVT_ACTIONZONE_REGION, \
+       EVT_ACTIONZONE_REGION_QUAD, \
+       EVT_ACTIONZONE_FULLSCREEN)
 
 /** Test whether event type is acceptable as hotkey (excluding modifiers). */
 #define ISHOTKEY(event_type) \
@@ -503,7 +510,10 @@ bool WM_event_type_mask_test(int event_type, enum eEventType_Mask mask);
 
 /* Gestures. */
 
-/* File select. */
+/**
+ * File selector.
+ * When #wmEvent::type is #EVT_FILESELECT, this value is stored in #wmEvent::val.
+ */
 enum {
   EVT_FILESELECT_FULL_OPEN = 1,
   EVT_FILESELECT_EXEC = 2,
@@ -555,3 +565,5 @@ enum {
 };
 
 /** \} */
+
+}  // namespace blender

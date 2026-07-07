@@ -165,7 +165,7 @@ class TestMulti(unittest.TestCase, TestPathMatch_MixIn):
 
         self.assertEqual(*self.match_paths_for_cmp([(False, "test/data.csv")], pattern))
 
-    def test_negate_spesific(self) -> None:
+    def test_negate_specific(self) -> None:
         pattern = PathPatternMatch([
             "data.*",
             "!/test/data.csv",

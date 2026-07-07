@@ -18,7 +18,7 @@ namespace blender {
 #ifdef WITH_TBB
 
 /**
- * blender::Mutex should be used as the default mutex in Blender. It implements a subset of the API
+ * Mutex should be used as the default mutex in Blender. It implements a subset of the API
  * of std::mutex but has overall better guaranteed properties. It can be used with RAII helpers
  * like std::lock_guard. However, it is not compatible with e.g. std::condition_variable. So one
  * still has to use std::mutex for that case.

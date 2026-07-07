@@ -35,4 +35,13 @@ int BuilderMap::get_ID_tag(ID *id) const
   return id_tags_.lookup_default(id, 0);
 }
 
+Set<const ID *> BuilderMap::get_ids() const
+{
+  Set<const ID *> result;
+  for (const ID *id : id_tags_.keys()) {
+    result.add(id);
+  }
+  return result;
+}
+
 }  // namespace blender::deg

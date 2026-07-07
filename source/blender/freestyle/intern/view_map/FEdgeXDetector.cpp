@@ -174,7 +174,7 @@ void FEdgeXDetector::computeCurvatures(WXVertex *vertex)
    * (i.e., WVertex::_EdgeList is empty), which causes a crash due to
    * a subsequent call of `WVertex::_EdgeList.front()`. */
   if (vertex->GetEdges().empty()) {
-    if (G.debug & G_DEBUG_FREESTYLE) {
+    if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       printf("Warning: WVertex %d has no associated edges.\n", vertex->GetId());
     }
     return;

@@ -1,26 +1,20 @@
-diff -Naur ispc-1.17.0.org/CMakeLists.txt ispc-1.17.0/CMakeLists.txt
---- ispc-1.17.0.org/CMakeLists.txt	2022-01-15 01:35:15 -0700
-+++ ispc-1.17.0/CMakeLists.txt	2022-02-12 12:44:24 -0700
-@@ -443,7 +447,7 @@
+diff -Naur ispc-1.17.0.org/cmake/GenerateBuiltins.cmake ispc-1.17.0/cmake/GenerateBuiltins.cmake
+--- ispc-1.17.0.org/cmake/GenerateBuiltins.cmake	2022-01-15 01:35:15 -0700
++++ ispc-1.17.0/cmake/GenerateBuiltins.cmake	2022-02-12 12:44:24 -0700
+@@ -271,6 +271,8 @@
  
- # Include directories
- target_include_directories(${PROJECT_NAME} PRIVATE
--                           ${LLVM_INCLUDE_DIRS}
-+                           ${LLVM_INCLUDE_DIRS} ${CLANG_INCLUDE_DIRS}
-                            ${XE_DEPS_DIR}/include
-                            ${CMAKE_CURRENT_SOURCE_DIR}/src
-                            ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR})
-@@ -607,7 +607,7 @@
-                  NAMES
-                     "${CMAKE_STATIC_LIBRARY_PREFIX}${clangLib}${CMAKE_STATIC_LIBRARY_SUFFIX}"
-                     clang-cpp
--                 HINTS ${LLVM_LIBRARY_DIRS})
-+                 HINTS ${LLVM_LIBRARY_DIRS} ${CLANG_LIBRARY_DIR})
-     if (NOT ${${clangLib}Path} IN_LIST CLANG_LIBRARY_FULL_PATH_LIST)
-         list(APPEND CLANG_LIBRARY_FULL_PATH_LIST ${${clangLib}Path})
-     endif()
-@@ -546,6 +550,29 @@
-     endif()
+     if ("${bit}" STREQUAL "32" AND ${generic_arch} STREQUAL "x86")
+         set(arch "i686")
++		  # Blender: disable 32bit due to build issues on Linux and being unnecessary.
++        set(SKIP ON)
+     elseif ("${bit}" STREQUAL "64" AND ${generic_arch} STREQUAL "x86")
+         set(arch "x86_64")
+     elseif ("${bit}" STREQUAL "32" AND ${generic_arch} STREQUAL "arm")
+
+--- a/CMakeLists.txt	2024-02-04 22:12:13
++++ b/CMakeLists.txt	2024-02-05 09:54:41
+@@ -119,6 +119,29 @@
+     set(ISPC_LIBRARY_JIT OFF CACHE BOOL "Build ISPC as a library with JIT capabilities" FORCE)
  endif()
  
 +# Link against libstdc++.a which must be provided to the linker after
@@ -47,65 +41,96 @@ diff -Naur ispc-1.17.0.org/CMakeLists.txt ispc-1.17.0/CMakeLists.txt
 +endif()
 +
  # Build target for utility checking host ISA
- if (ISPC_INCLUDE_UTILS)
-     add_executable(check_isa "")
-diff -Naur ispc-1.17.0.org/cmake/GenerateBuiltins.cmake ispc-1.17.0/cmake/GenerateBuiltins.cmake
---- ispc-1.17.0.org/cmake/GenerateBuiltins.cmake	2022-01-15 01:35:15 -0700
-+++ ispc-1.17.0/cmake/GenerateBuiltins.cmake	2022-02-12 12:44:24 -0700
-@@ -124,6 +124,8 @@
+ # This target should be defined before the inclusion of FindLLVM.cmake because
+ # we want to build check_isa without LLVM installed.
+@@ -669,7 +692,7 @@
  
-     if ("${bit}" STREQUAL "32" AND ${arch} STREQUAL "x86")
-         set(target_arch "i686")
-+        # Blender: disable 32bit due to build issues on Linux and being unnecessary.
-+        set(SKIP ON)
-     elseif ("${bit}" STREQUAL "64" AND ${arch} STREQUAL "x86")
-         set(target_arch "x86_64")
-     elseif ("${bit}" STREQUAL "32" AND ${arch} STREQUAL "arm")
+ # Include directories
+ list(APPEND INCLUDE_DIRECTORIES
+-    ${LLVM_INCLUDE_DIRS}
++    ${LLVM_INCLUDE_DIRS}  ${CLANG_INCLUDE_DIRS}
+     ${XE_DEPS_DIR}/include
+     ${CMAKE_CURRENT_SOURCE_DIR}/src
+     ${CMAKE_CURRENT_SOURCE_DIR}/src/include
+@@ -791,12 +814,12 @@
+     endif()
+ endif()
+ 
+-if (ISPC_STATIC_STDCXX_LINK OR ISPC_STATIC_LINK)
+-    list(APPEND LINK_OPTIONS_PUBLIC
+-        -static-libgcc
+-        -static-libstdc++
+-    )
+-endif()
++#if (ISPC_STATIC_STDCXX_LINK OR ISPC_STATIC_LINK)
++#    list(APPEND LINK_OPTIONS_PUBLIC
++#        -static-libgcc
++#        -static-libstdc++
++#    )
++#endif()
+ 
+ if (ISPC_USE_ASAN)
+     list(APPEND LINK_OPTIONS_PUBLIC -fsanitize=address)
+@@ -996,6 +1019,20 @@
+     add_ispc_slim(ispc-slim)
+     configure_ispc_obj(generic-target)
+
++     set_target_properties(ispc-slim PROPERTIES
++        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin"
++     )
++
++    if(DEFINED ISPC_HOST_SLIM_BINARY AND EXISTS "${ISPC_HOST_SLIM_BINARY}")
++        add_custom_command(TARGET ispc-slim POST_BUILD
++            COMMAND ${CMAKE_COMMAND} -E rm -f $<TARGET_FILE:ispc-slim>
++            COMMAND ${CMAKE_COMMAND} -E copy
++                ${ISPC_HOST_SLIM_BINARY}
++                $<TARGET_FILE:ispc-slim>
++            COMMENT "Replacing iOS ispc-slim with darwin host binary"
++        )
++    endif()
++
+     add_executable(ispc src/main.cpp src/binary_composite.cpp)
+     configure_ispc_exe(ispc)
+     target_link_libraries(ispc ${LINK_LIBRARIES} builtin stdlib optimization common frontend generic-target)
 
 --- a/src/ispc_version.h	2023-06-17 02:10:13
 +++ b/src/ispc_version.h	2023-06-17 11:25:26
-@@ -42,6 +42,14 @@
- #define ISPC_VERSION "1.17.0"
- #include <llvm/Config/llvm-config.h>
+@@ -24,6 +24,14 @@
+ #define OLDEST_SUPPORTED_LLVM ISPC_LLVM_18_1
+ #define LATEST_SUPPORTED_LLVM ISPC_LLVM_22_0
  
++
 +#undef LLVM_VERSION_MAJOR
 +#undef LLVM_VERSION_MINOR
 +#undef LLVM_VERSION_PATCH
++#define LLVM_VERSION_MAJOR 20
++#define LLVM_VERSION_MINOR 1
++#define LLVM_VERSION_PATCH 8
 +
-+#define LLVM_VERSION_MAJOR 17
-+#define LLVM_VERSION_MINOR 0
-+#define LLVM_VERSION_PATCH 0
-+
- #define ISPC_LLVM_VERSION (LLVM_VERSION_MAJOR * 10000 + LLVM_VERSION_MINOR * 100)
- 
- #define ISPC_LLVM_10_0 100000
+ #ifdef __ispc__xstr
+ #undef __ispc__xstr
+ #endif
 
---- a/CMakeLists.txt	2024-02-04 22:12:13
-+++ b/CMakeLists.txt	2024-02-05 09:54:41
-@@ -580,12 +580,11 @@
-     target_link_options(${PROJECT_NAME}
-         PUBLIC "SHELL: -z noexecstack"
-                "SHELL: -z relro"
--               "SHELL: -z now"
--               "SHELL: -Wl,--gc-sections")
-+               "SHELL: -z now")
- endif()
+--- a/cmake/Stdlib.cmake
++++ b/cmake/Stdlib.cmake
+@@ -55,7 +55,7 @@
  
- if (ISPC_STATIC_STDCXX_LINK OR ISPC_STATIC_LINK)
--    target_link_options(${PROJECT_NAME} PUBLIC -static-libgcc -static-libstdc++)
-+    #target_link_options(${PROJECT_NAME} PUBLIC -static-libgcc -static-libstdc++)
- endif()
- 
- if (ISPC_USE_ASAN)
+     add_custom_command(
+         OUTPUT ${bc}
+-        COMMAND ${ispc_name} -I ${SRC_INCLUDE_FOLDER} --nostdlib --gen-stdlib --target=${target_for_file} --arch=${canon_arch} --target-os=${canon_os} stdlib/stdlib.ispc --emit-llvm -o ${bc}
++        COMMAND $<TARGET_FILE:${ispc_name}> -I ${SRC_INCLUDE_FOLDER} --nostdlib --gen-stdlib --target=${target_for_file} --arch=${canon_arch} --target-os=${canon_os} stdlib/stdlib.ispc --emit-llvm -o ${bc}
+         DEPENDS ${ispc_name} ${STDLIB_ISPC_FILES}
+         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+     )
 
---- a/CMakeLists.txt	2024-02-04 22:12:13
-+++ b/CMakeLists.txt	2024-02-05 09:54:41
-@@ -634,7 +634,7 @@
-     target_link_libraries(${PROJECT_NAME} version.lib shlwapi.lib odbc32.lib odbccp32.lib)
- else()
-     if (ISPC_STATIC_LINK)
--        target_link_libraries(${PROJECT_NAME} pthread tinfo.a curses.a)
-+        target_link_libraries(${PROJECT_NAME} pthread )
-     else()
-         find_package(Curses REQUIRED)
-         if (CURSES_EXTRA_LIBRARY)
+--- a/cmake/CommonStdlibBuiltins.cmake
++++ b/cmake/CommonStdlibBuiltins.cmake
+@@ -198,7 +198,7 @@
+     # Generate bitcode
+     add_custom_command(
+         OUTPUT ${bc}
+-        COMMAND ${ispc_name} -I ${include} --enable-llvm-intrinsics --nostdlib --gen-stdlib
++        COMMAND $<TARGET_FILE:${ispc_name}> -I ${include} --enable-llvm-intrinsics --nostdlib --gen-stdlib
+                 --target=${target} --arch=${arch} --target-os=${fixed_os} --emit-llvm
+                 -o ${bc} ${input_ispc} -DBUILD_OS=${OS_UP} -DRUNTIME=${bit}
+         DEPENDS ${ispc_name} ${input_ispc}

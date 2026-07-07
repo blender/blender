@@ -1,4 +1,4 @@
-==== Curves(new): 5
+==== Curves(new): 11
 - Curve 'C53Custom' splines:1 control-points:5
   - attr 'curve_type' INT8 CURVE
     - 3 
@@ -102,7 +102,73 @@
   - attr 'radius' FLOAT POINT
     - 0.005 0.010 0.015 0.020 0.025 0.030 
 
-==== Objects: 5
+- Curve 'nurbs_bad_count1' splines:0 control-points:0
+
+- Curve 'nurbs_bad_order' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 0 
+  - attr 'nurbs_order' INT8 CURVE
+    - 2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+- Curve 'nurbs_counts_but_no_points' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, 0.000)
+    - (0.000, 0.000, 0.000)
+    - (0.000, 0.000, 0.000)
+    - (0.000, 0.000, 0.000)
+
+- Curve 'nurbs_counts_but_too_few_points' splines:1 control-points:6
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 4 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.600, 0.000, 0.000)
+    - (-0.200, 0.900, 0.000)
+    - (0.200, 0.800, 0.000)
+    - (0.000, 0.000, 0.000)
+    - (0.000, 0.000, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.005 0.005 0.005 0.005 0.005 
+
+- Curve 'nurbs_empty_frame' splines:0 control-points:0
+
+- Curve 'nurbs_missing_knots' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 3 
+  - attr 'cyclic' BOOLEAN CURVE
+    - 0 
+  - attr 'knots_mode' INT8 CURVE
+    - 0 
+  - attr 'nurbs_order' INT8 CURVE
+    - 3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.700, 0.000)
+    - (-0.333, 0.000, 0.000)
+    - (0.333, 0.900, 0.000)
+    - (1.000, 0.800, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.005 0.010 0.015 0.020 
+
+==== Objects: 11
 - Obj 'C53Custom' CURVES data:'C53Custom'
   - pos 4.000, 1.000, 0.000
   - rot 0.000, 0.000, 0.000 (XYZ)
@@ -121,6 +187,32 @@
   - scl 1.000, 1.000, 1.000
 - Obj 'NC64Custom' CURVES data:'NC64Custom'
   - pos 0.000, 2.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'nurbs_bad_count1' CURVES data:'nurbs_bad_count1'
+  - pos 8.000, 1.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'nurbs_bad_order' CURVES data:'nurbs_bad_order'
+  - pos 8.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'nurbs_counts_but_no_points' CURVES data:'nurbs_counts_but_no_points'
+  - pos 10.000, 1.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'nurbs_counts_but_too_few_points' CURVES data:'nurbs_counts_but_too_few_points'
+  - pos 10.000, 2.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'nurbs_empty_frame' CURVES data:'nurbs_empty_frame'
+  - pos 10.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 1 modifiers
+    - MESH_SEQUENCE_CACHE 'MeshSequenceCache'
+- Obj 'nurbs_missing_knots' CURVES data:'nurbs_missing_knots'
+  - pos 8.000, 2.000, 0.000
   - rot 0.000, 0.000, 0.000 (XYZ)
   - scl 1.000, 1.000, 1.000
 

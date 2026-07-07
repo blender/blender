@@ -6,6 +6,7 @@
  * \ingroup freestyle
  */
 
+#include "intern/blender_interface/BlenderStrokeRenderer.h"
 extern "C" {
 #include <Python.h>
 }
@@ -201,7 +202,7 @@ void Controller::setPassZ(float *buf, int width, int height)
   app_canvas->setPassZ(buf, width, height);
 }
 
-void Controller::setContext(bContext *C)
+void Controller::setContext(blender::bContext *C)
 {
   PythonInterpreter *py_inter = dynamic_cast<PythonInterpreter *>(_inter);
   py_inter->setContext(C);
@@ -219,7 +220,9 @@ bool Controller::hitViewMapCache()
   return false;
 }
 
-int Controller::LoadMesh(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
+int Controller::LoadMesh(blender::Render *re,
+                         blender::ViewLayer *view_layer,
+                         blender::Depsgraph *depsgraph)
 {
   BlenderFileLoader loader(re, view_layer, depsgraph);
 
@@ -230,14 +233,14 @@ int Controller::LoadMesh(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph
   NodeGroup *blenderScene = loader.Load();
 
   if (blenderScene == nullptr) {
-    if (G.debug & G_DEBUG_FREESTYLE) {
+    if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "Cannot load scene" << endl;
     }
     return 1;
   }
 
   if (blenderScene->numberOfChildren() < 1) {
-    if (G.debug & G_DEBUG_FREESTYLE) {
+    if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "Empty scene" << endl;
     }
     blenderScene->destroy();
@@ -246,7 +249,7 @@ int Controller::LoadMesh(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph
   }
 
   real duration = _Chrono.stop();
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Scene loaded" << endl;
     printf("Mesh cleaning    : %lf\n", duration);
     printf("View map cache   : %s\n", _EnableViewMapCache ? "enabled" : "disabled");
@@ -277,7 +280,7 @@ int Controller::LoadMesh(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph
   if (_EnableViewMapCache) {
 
     NodeCamera *cam;
-    if (g_freestyle.proj[3][3] != 0.0) {
+    if (blender::g_freestyle.proj[3][3] != 0.0) {
       cam = new NodeOrthographicCamera;
     }
     else {
@@ -286,7 +289,7 @@ int Controller::LoadMesh(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph
     double proj[16];
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
-        proj[i * 4 + j] = g_freestyle.proj[i][j];
+        proj[i * 4 + j] = blender::g_freestyle.proj[i][j];
       }
     }
     cam->setProjectionMatrix(proj);
@@ -296,7 +299,7 @@ int Controller::LoadMesh(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph
     sceneHashFunc.reset();
     // blenderScene->accept(sceneHashFunc);
     _RootNode->accept(sceneHashFunc);
-    if (G.debug & G_DEBUG_FREESTYLE) {
+    if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "Scene hash       : " << sceneHashFunc.toString() << endl;
     }
     if (hitViewMapCache()) {
@@ -316,7 +319,7 @@ int Controller::LoadMesh(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph
   _winged_edge = wx_builder.getWingedEdge();
 
   duration = _Chrono.stop();
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     printf("WEdge building   : %lf\n", duration);
   }
 
@@ -342,7 +345,7 @@ int Controller::LoadMesh(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph
   _Scene3dBBox = _RootNode->bbox();
 
   _bboxDiag = (_RootNode->bbox().getMax() - _RootNode->bbox().getMin()).norm();
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Triangles nb     : " << _SceneNumFaces << " imported, " << _winged_edge->getNumFaces()
          << " retained" << endl;
     cout << "Bounding Box     : " << _bboxDiag << endl;
@@ -469,47 +472,47 @@ void Controller::ComputeViewMap()
   // Restore the context of view:
   // we need to perform all these operations while the
   // 3D context is on.
-  Vec3f vp(UNPACK3(g_freestyle.viewpoint));
+  Vec3f vp(UNPACK3(blender::g_freestyle.viewpoint));
 
 #if 0
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "mv" << endl;
   }
 #endif
   real mv[4][4];
   for (int i = 0; i < 4; i++) {
     for (int j = 0; j < 4; j++) {
-      mv[i][j] = g_freestyle.mv[i][j];
+      mv[i][j] = blender::g_freestyle.mv[i][j];
 #if 0
-      if (G.debug & G_DEBUG_FREESTYLE) {
+      if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
         cout << mv[i][j] << " ";
       }
 #endif
     }
 #if 0
-    if (G.debug & G_DEBUG_FREESTYLE) {
+    if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       cout << endl;
     }
 #endif
   }
 
 #if 0
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "\nproj" << endl;
   }
 #endif
   real proj[4][4];
   for (int i = 0; i < 4; i++) {
     for (int j = 0; j < 4; j++) {
-      proj[i][j] = g_freestyle.proj[i][j];
+      proj[i][j] = blender::g_freestyle.proj[i][j];
 #if 0
-      if (G.debug & G_DEBUG_FREESTYLE) {
+      if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
         cout << proj[i][j] << " ";
       }
 #endif
     }
 #if 0
-    if (G.debug & G_DEBUG_FREESTYLE) {
+    if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       cout << endl;
     }
 #endif
@@ -517,11 +520,11 @@ void Controller::ComputeViewMap()
 
   int viewport[4];
   for (int i = 0; i < 4; i++) {
-    viewport[i] = g_freestyle.viewport[i];
+    viewport[i] = blender::g_freestyle.viewport[i];
   }
 
 #if 0
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "\nfocal:" << _pView->GetFocalLength() << endl << endl;
   }
 #endif
@@ -529,7 +532,7 @@ void Controller::ComputeViewMap()
   // Flag the WXEdge structure for silhouette edge detection:
   //----------------------------------------------------------
 
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "\n===  Detecting silhouette edges  ===" << endl;
   }
   _Chrono.start();
@@ -547,7 +550,7 @@ void Controller::ComputeViewMap()
   edgeDetector.processShapes(*_winged_edge);
 
   real duration = _Chrono.stop();
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     printf("Feature lines    : %lf\n", duration);
   }
 
@@ -575,7 +578,7 @@ void Controller::ComputeViewMap()
   sTesselator3d.setNature(_edgeTesselationNature);
 #endif
 
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "\n===  Building the view map  ===" << endl;
   }
   _Chrono.start();
@@ -584,7 +587,7 @@ void Controller::ComputeViewMap()
       *_winged_edge, _VisibilityAlgo, _EPSILON, _Scene3dBBox, _SceneNumFaces);
   _ViewMap->setScene3dBBox(_Scene3dBBox);
 
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     printf("ViewMap edge count : %i\n", _ViewMap->viewedges_size());
   }
 
@@ -599,7 +602,7 @@ void Controller::ComputeViewMap()
 #endif
 
   duration = _Chrono.stop();
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     printf("ViewMap building : %lf\n", duration);
   }
 
@@ -681,7 +684,7 @@ void Controller::ComputeSteerableViewMap()
     pm = offscreenBuffer.renderPixmap(_pView->width(), _pView->height());
 
     if (pm.isNull()) {
-      if (G.debug & G_DEBUG_FREESTYLE) {
+      if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
         cout << "BuildViewMap Warning: couldn't render the steerable ViewMap" << endl;
       }
     }
@@ -744,25 +747,25 @@ void Controller::toggleVisibilityAlgo()
 void Controller::setVisibilityAlgo(int algo)
 {
   switch (algo) {
-    case FREESTYLE_ALGO_REGULAR:
+    case blender::FREESTYLE_ALGO_REGULAR:
       _VisibilityAlgo = ViewMapBuilder::ray_casting;
       break;
-    case FREESTYLE_ALGO_FAST:
+    case blender::FREESTYLE_ALGO_FAST:
       _VisibilityAlgo = ViewMapBuilder::ray_casting_fast;
       break;
-    case FREESTYLE_ALGO_VERYFAST:
+    case blender::FREESTYLE_ALGO_VERYFAST:
       _VisibilityAlgo = ViewMapBuilder::ray_casting_very_fast;
       break;
-    case FREESTYLE_ALGO_CULLED_ADAPTIVE_TRADITIONAL:
+    case blender::FREESTYLE_ALGO_CULLED_ADAPTIVE_TRADITIONAL:
       _VisibilityAlgo = ViewMapBuilder::ray_casting_culled_adaptive_traditional;
       break;
-    case FREESTYLE_ALGO_ADAPTIVE_TRADITIONAL:
+    case blender::FREESTYLE_ALGO_ADAPTIVE_TRADITIONAL:
       _VisibilityAlgo = ViewMapBuilder::ray_casting_adaptive_traditional;
       break;
-    case FREESTYLE_ALGO_CULLED_ADAPTIVE_CUMULATIVE:
+    case blender::FREESTYLE_ALGO_CULLED_ADAPTIVE_CUMULATIVE:
       _VisibilityAlgo = ViewMapBuilder::ray_casting_culled_adaptive_cumulative;
       break;
-    case FREESTYLE_ALGO_ADAPTIVE_CUMULATIVE:
+    case blender::FREESTYLE_ALGO_ADAPTIVE_CUMULATIVE:
       _VisibilityAlgo = ViewMapBuilder::ray_casting_adaptive_cumulative;
       break;
   }
@@ -772,24 +775,24 @@ int Controller::getVisibilityAlgo()
 {
   switch (_VisibilityAlgo) {
     case ViewMapBuilder::ray_casting:
-      return FREESTYLE_ALGO_REGULAR;
+      return blender::FREESTYLE_ALGO_REGULAR;
     case ViewMapBuilder::ray_casting_fast:
-      return FREESTYLE_ALGO_FAST;
+      return blender::FREESTYLE_ALGO_FAST;
     case ViewMapBuilder::ray_casting_very_fast:
-      return FREESTYLE_ALGO_VERYFAST;
+      return blender::FREESTYLE_ALGO_VERYFAST;
     case ViewMapBuilder::ray_casting_culled_adaptive_traditional:
-      return FREESTYLE_ALGO_CULLED_ADAPTIVE_TRADITIONAL;
+      return blender::FREESTYLE_ALGO_CULLED_ADAPTIVE_TRADITIONAL;
     case ViewMapBuilder::ray_casting_adaptive_traditional:
-      return FREESTYLE_ALGO_ADAPTIVE_TRADITIONAL;
+      return blender::FREESTYLE_ALGO_ADAPTIVE_TRADITIONAL;
     case ViewMapBuilder::ray_casting_culled_adaptive_cumulative:
-      return FREESTYLE_ALGO_CULLED_ADAPTIVE_CUMULATIVE;
+      return blender::FREESTYLE_ALGO_CULLED_ADAPTIVE_CUMULATIVE;
     case ViewMapBuilder::ray_casting_adaptive_cumulative:
-      return FREESTYLE_ALGO_ADAPTIVE_CUMULATIVE;
+      return blender::FREESTYLE_ALGO_ADAPTIVE_CUMULATIVE;
   }
 
   // ray_casting_adaptive_traditional is the most exact replacement
   // for legacy code
-  return FREESTYLE_ALGO_ADAPTIVE_TRADITIONAL;
+  return blender::FREESTYLE_ALGO_ADAPTIVE_TRADITIONAL;
 }
 
 void Controller::setViewMapCache(bool iBool)
@@ -868,14 +871,14 @@ int Controller::DrawStrokes()
     return 0;
   }
 
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "\n===  Stroke drawing  ===" << endl;
   }
   _Chrono.start();
   _Canvas->Draw();
   real d = _Chrono.stop();
   int strokeCount = _Canvas->getStrokeCount();
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Strokes generation  : " << d << endl;
     cout << "Stroke count  : " << strokeCount << endl;
   }
@@ -889,7 +892,7 @@ void Controller::ResetRenderCount()
   _render_count = 0;
 }
 
-Render *Controller::RenderStrokes(Render *re, bool render)
+blender::Render *Controller::RenderStrokes(blender::Render *re, bool render)
 {
   int totmesh = 0;
   _Chrono.start();
@@ -899,13 +902,13 @@ Render *Controller::RenderStrokes(Render *re, bool render)
     totmesh = blenderRenderer->GenerateScene();
   }
   real d = _Chrono.stop();
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Temporary scene generation: " << d << endl;
   }
   _Chrono.start();
-  Render *freestyle_render = blenderRenderer->RenderScene(re, render);
+  blender::Render *freestyle_render = blenderRenderer->RenderScene(re, render);
   d = _Chrono.stop();
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Stroke rendering  : " << d << endl;
 
     uintptr_t mem_in_use = MEM_get_memory_in_use();
@@ -923,7 +926,7 @@ Render *Controller::RenderStrokes(Render *re, bool render)
 
 void Controller::InsertStyleModule(uint index, const char *iFileName)
 {
-  if (!BLI_path_extension_check(iFileName, ".py")) {
+  if (!blender::BLI_path_extension_check(iFileName, ".py")) {
     cerr << "Error: Cannot load \"" << string(iFileName) << "\", unknown extension" << endl;
     return;
   }
@@ -938,7 +941,7 @@ void Controller::InsertStyleModule(uint index, const char *iName, const char *iB
   _Canvas->InsertStyleModule(index, sm);
 }
 
-void Controller::InsertStyleModule(uint index, const char *iName, Text *iText)
+void Controller::InsertStyleModule(uint index, const char *iName, blender::Text *iText)
 {
   StyleModule *sm = new BlenderStyleModule(iText, iName, _inter);
   _Canvas->InsertStyleModule(index, sm);

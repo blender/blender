@@ -7,6 +7,7 @@
  */
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 #include <iostream>
 
 #include "BLI_array.hh"
@@ -591,6 +592,11 @@ IndexMask IndexMask::from_bools(const VArray<bool> &bools, IndexMaskMemory &memo
   return IndexMask::from_bools(bools.index_range(), bools, memory);
 }
 
+IndexMask IndexMask::from_bools_inverse(const Span<bool> bools, IndexMaskMemory &memory)
+{
+  return IndexMask::from_bools_inverse(bools.index_range(), bools, memory);
+}
+
 IndexMask IndexMask::from_bools_inverse(const VArray<bool> &bools, IndexMaskMemory &memory)
 {
   return IndexMask::from_bools_inverse(bools.index_range(), bools, memory);
@@ -741,7 +747,7 @@ IndexMask IndexMask::from_initializers(const Span<Initializer> initializers,
   }
   Vector<int64_t> values_vec;
   values_vec.extend(values.begin(), values.end());
-  std::sort(values_vec.begin(), values_vec.end());
+  std::ranges::sort(values_vec);
   return IndexMask::from_indices(values_vec.as_span(), memory);
 }
 
@@ -784,8 +790,7 @@ void IndexMask::to_bools(MutableSpan<bool> r_bools) const
 {
   BLI_assert(r_bools.size() >= this->min_array_size());
   r_bools.fill(false);
-  this->foreach_index_optimized<int64_t>(GrainSize(2048),
-                                         [&](const int64_t i) { r_bools[i] = true; });
+  index_mask::masked_fill(r_bools, true, *this);
 }
 
 Vector<IndexRange> IndexMask::to_ranges() const

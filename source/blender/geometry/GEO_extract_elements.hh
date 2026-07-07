@@ -9,16 +9,18 @@
 #include "BLI_array.hh"
 #include "BLI_index_mask_fwd.hh"
 
+namespace blender {
+
 struct Mesh;
 struct PointCloud;
 struct Curves;
 struct GreasePencil;
 
-namespace blender::bke {
+namespace bke {
 class Instances;
 }
 
-namespace blender::geometry {
+namespace geometry {
 
 Array<Mesh *> extract_mesh_vertices(const Mesh &mesh,
                                     const IndexMask &mask,
@@ -64,4 +66,5 @@ Array<GreasePencil *> extract_greasepencil_layer_curves(
     const IndexMask &mask,
     const bke::AttributeFilter &attribute_filter);
 
-}  // namespace blender::geometry
+}  // namespace geometry
+}  // namespace blender

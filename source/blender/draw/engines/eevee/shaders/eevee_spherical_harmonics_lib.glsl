@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_vector_reduce_lib.glsl"
+#include "gpu_shader_math_vector_safe_lib.glsl"
 
 /* -------------------------------------------------------------------- */
 /** \name Spherical Harmonics Functions
@@ -211,14 +212,14 @@ SphericalHarmonicL2 spherical_harmonics_swizzle_wwww(SphericalHarmonicL2 sh)
 
 void spherical_harmonics_L0_encode_signal_sample(float3 direction,
                                                  float4 amplitude,
-                                                 inout SphericalHarmonicBandL0 r_L0)
+                                                 SphericalHarmonicBandL0 &r_L0)
 {
   r_L0.M0 += spherical_harmonics_L0_M0(direction) * amplitude;
 }
 
 void spherical_harmonics_L1_encode_signal_sample(float3 direction,
                                                  float4 amplitude,
-                                                 inout SphericalHarmonicBandL1 r_L1)
+                                                 SphericalHarmonicBandL1 &r_L1)
 {
   r_L1.Mn1 += spherical_harmonics_L1_Mn1(direction) * amplitude;
   r_L1.M0 += spherical_harmonics_L1_M0(direction) * amplitude;
@@ -227,7 +228,7 @@ void spherical_harmonics_L1_encode_signal_sample(float3 direction,
 
 void spherical_harmonics_L2_encode_signal_sample(float3 direction,
                                                  float4 amplitude,
-                                                 inout SphericalHarmonicBandL2 r_L2)
+                                                 SphericalHarmonicBandL2 &r_L2)
 {
   r_L2.Mn2 += spherical_harmonics_L2_Mn2(direction) * amplitude;
   r_L2.Mn1 += spherical_harmonics_L2_Mn1(direction) * amplitude;
@@ -238,14 +239,14 @@ void spherical_harmonics_L2_encode_signal_sample(float3 direction,
 
 void spherical_harmonics_encode_signal_sample(float3 direction,
                                               float4 amplitude,
-                                              inout SphericalHarmonicL0 sh)
+                                              SphericalHarmonicL0 &sh)
 {
   spherical_harmonics_L0_encode_signal_sample(direction, amplitude, sh.L0);
 }
 
 void spherical_harmonics_encode_signal_sample(float3 direction,
                                               float4 amplitude,
-                                              inout SphericalHarmonicL1 sh)
+                                              SphericalHarmonicL1 &sh)
 {
   spherical_harmonics_L0_encode_signal_sample(direction, amplitude, sh.L0);
   spherical_harmonics_L1_encode_signal_sample(direction, amplitude, sh.L1);
@@ -253,7 +254,7 @@ void spherical_harmonics_encode_signal_sample(float3 direction,
 
 void spherical_harmonics_encode_signal_sample(float3 direction,
                                               float4 amplitude,
-                                              inout SphericalHarmonicL2 sh)
+                                              SphericalHarmonicL2 &sh)
 {
   spherical_harmonics_L0_encode_signal_sample(direction, amplitude, sh.L0);
   spherical_harmonics_L1_encode_signal_sample(direction, amplitude, sh.L1);
@@ -441,11 +442,8 @@ SphericalHarmonicL1 spherical_harmonics_unpack(float4 L0_L1_a,
   return sh;
 }
 
-void spherical_harmonics_pack(SphericalHarmonicL1 sh,
-                              out float4 L0_L1_a,
-                              out float4 L0_L1_b,
-                              out float4 L0_L1_c,
-                              out float4 L0_L1_vis)
+void spherical_harmonics_pack(
+    SphericalHarmonicL1 sh, float4 &L0_L1_a, float4 &L0_L1_b, float4 &L0_L1_c, float4 &L0_L1_vis)
 {
   L0_L1_a.xyz = sh.L0.M0.xyz;
   L0_L1_b.xyz = sh.L1.Mn1.xyz;
@@ -720,16 +718,27 @@ SphericalHarmonicL1 spherical_harmonics_decompress(SphericalHarmonicL1 sh)
 
 SphericalHarmonicL1 spherical_harmonics_dering(SphericalHarmonicL1 sh)
 {
+  float L0_weight = 0.282094792f;
+  float L1_weight = 0.488602512f;
+  /* Multiply by lambert convolution weight (see #spherical_harmonics_evaluate_lambert). */
+  L1_weight *= (2.0f / 3.0f);
+  /* Add some bias to avoid too much unrealistic contrast. */
+  L1_weight += 0.05f;
+
   /* Convert coefficients to per channel column. */
-  float4x4 m = transpose(float4x4(sh.L0.M0, sh.L1.Mn1, sh.L1.M0, sh.L1.Mp1));
-  /* Find maximum value the L1 band can contain that doesn't exhibit ringing artifacts. */
-  float fac_r = abs(m[0].x) / max(1e-8f, reduce_max(abs(m[0].yzw)));
-  float fac_g = abs(m[1].x) / max(1e-8f, reduce_max(abs(m[1].yzw)));
-  float fac_b = abs(m[2].x) / max(1e-8f, reduce_max(abs(m[2].yzw)));
-  /* Find the factor for the biggest component. We don't want to have color drift. */
-  float fac = reduce_min(float3(fac_r, fac_g, fac_b));
+  const float4x4 m = transpose(float4x4(max(abs(sh.L0.M0) * L0_weight, float4(1e-8f)),
+                                        abs(sh.L1.Mn1),
+                                        abs(sh.L1.M0),
+                                        abs(sh.L1.Mp1)));
+
   /* Multiply by each band's weight. */
-  fac *= 0.282094792f / 0.488602512f;
+  /* Find maximum value the L1 band can contain that doesn't exhibit ringing artifacts. */
+  float fac_r = m[0].x / max(1e-8f, length(m[0].yzw) * L1_weight);
+  float fac_g = m[1].x / max(1e-8f, length(m[1].yzw) * L1_weight);
+  float fac_b = m[2].x / max(1e-8f, length(m[2].yzw) * L1_weight);
+  /* Choose the factor for the component with higher directionality and apply it on all component.
+   * Otherwise this can result in color drifting. */
+  float fac = reduce_min(float3(fac_r, fac_g, fac_b));
 
   if (fac > 1.0f) {
     return sh;

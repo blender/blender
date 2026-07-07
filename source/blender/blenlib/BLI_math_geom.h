@@ -11,6 +11,8 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_math_inline.h"
 
+namespace blender {
+
 #ifdef BLI_MATH_GCC_WARN_PRAGMA
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wredundant-decls"
@@ -1378,6 +1380,8 @@ float geodesic_distance_propagate_across_triangle(
     const float v0[3], const float v1[3], const float v2[3], float dist1, float dist2);
 
 /** \} */
+
+}  // namespace blender
 
 /* -------------------------------------------------------------------- */
 /** \name Inline Definitions

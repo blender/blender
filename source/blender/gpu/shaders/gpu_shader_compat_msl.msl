@@ -1,0 +1,107 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+/**
+ * Special header for mapping commonly defined tokens to API-specific variations.
+ * Where possible, this will adhere closely to base GLSL, where semantics are the same.
+ * However, host code shader code may need modifying to support types where necessary variations
+ * exist between APIs but are not expressed through the source. (e.g. distinction between depth2d
+ * and texture2d types in metal).
+ */
+
+#pragma once
+
+#include "gpu_shader_msl_atomic.msl"
+#include "gpu_shader_msl_attribute.msl"
+#include "gpu_shader_msl_builtin.msl"
+#include "gpu_shader_msl_image.msl"
+#include "gpu_shader_msl_matrix.msl"
+#include "gpu_shader_msl_matrix_legacy.msl"
+#include "gpu_shader_msl_sampler.msl"
+#include "gpu_shader_msl_string.msl"
+#include "gpu_shader_msl_types.msl"
+#include "gpu_shader_msl_types_legacy.msl"
+
+/* Suppress unhelpful shader compiler warnings. */
+#pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wcomment"
+
+/* Wrapper needs to be last. */
+#include "gpu_shader_msl_wrapper.msl"
+
+/* Array syntax compatibility. */
+/* clang-format off */
+#define float_array(...) { __VA_ARGS__ }
+#define float2_array(...) { __VA_ARGS__ }
+#define float3_array(...) { __VA_ARGS__ }
+#define float4_array(...) { __VA_ARGS__ }
+#define int_array(...) { __VA_ARGS__ }
+#define int2_array(...) { __VA_ARGS__ }
+#define int3_array(...) { __VA_ARGS__ }
+#define int4_array(...) { __VA_ARGS__ }
+#define uint_array(...) { __VA_ARGS__ }
+#define uint2_array(...) { __VA_ARGS__ }
+#define uint3_array(...) { __VA_ARGS__ }
+#define uint4_array(...) { __VA_ARGS__ }
+#define bool_array(...) { __VA_ARGS__ }
+#define bool2_array(...) { __VA_ARGS__ }
+#define bool3_array(...) { __VA_ARGS__ }
+#define bool4_array(...) { __VA_ARGS__ }
+#define ARRAY_T(type)
+#define ARRAY_V(...) {__VA_ARGS__}
+/* clang-format on */
+
+#define SHADER_LIBRARY_CREATE_INFO(a)
+#define VERTEX_SHADER_CREATE_INFO(a)
+#define FRAGMENT_SHADER_CREATE_INFO(a)
+#define COMPUTE_SHADER_CREATE_INFO(a)
+
+#define ATTR_FALLTHROUGH
+
+#define in
+#define out thread
+#define inout thread
+#define _in_sta
+#define _in_end
+#define _out_sta (&
+#define _out_end )
+#define _inout_sta (&
+#define _inout_end )
+/* References (inout and out).
+ * Less verbose that the above for reading processed code. */
+#define _ref(_type, _var) thread _type(&_var)
+/* Constructor / initializer. */
+#define _ctor(_type) \
+  _type \
+  {
+#define _rotc() }
+
+#define shared threadgroup
+#define _shared_sta (&
+#define _shared_end )
+
+float4 texelFetchExtend(sampler2D samp, int2 texel, int lvl)
+{
+  texel = clamp(texel, int2(0), textureSize(samp, lvl).xy - 1);
+  return texelFetch(samp, texel, lvl);
+}
+
+/* Resource accessor. */
+#define specialization_constant_get(create_info, _res) _res
+#define shared_variable_get(create_info, _res) _res
+#define push_constant_get(create_info, _res) _res
+#define interface_get(create_info, _res) _res
+#define attribute_get(create_info, _res) _res
+#define buffer_get(create_info, _res) _res
+#define sampler_get(create_info, _res) _res
+#define image_get(create_info, _res) _res
+#define srt_access(create_info, _res) access_##create_info##_##_res()
+
+/* Stage agnostic builtin function.
+ * MSL allow mixing shader stages inside the same source file.
+ * Leaving the calls untouched makes sure we catch invalid usage during CI testing. */
+#define gpu_discard_fragment() discard
+#define gpu_dfdx(x) dFdx(x)
+#define gpu_dfdy(x) dFdy(x)
+#define gpu_fwidth(x) fwidth(x)

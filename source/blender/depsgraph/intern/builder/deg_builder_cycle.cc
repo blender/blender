@@ -23,9 +23,11 @@
 #include "intern/depsgraph.hh"
 #include "intern/depsgraph_relation.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"depsgraph"};
 
-namespace blender::deg {
+namespace deg {
 
 namespace {
 
@@ -64,7 +66,7 @@ inline void set_node_visited_state(Node *node, eCyclicCheckVisitedState state)
 
 inline eCyclicCheckVisitedState get_node_visited_state(Node *node)
 {
-  return (eCyclicCheckVisitedState)(node->custom_flags & 0x3);
+  return eCyclicCheckVisitedState(node->custom_flags & 0x3);
 }
 
 inline void set_node_num_visited_children(Node *node, int num_children)
@@ -139,7 +141,7 @@ Relation *select_relation_to_murder(Relation *relation, StackEntry *cycle_start_
     return relation;
   }
   StackEntry *current = cycle_start_entry;
-  OperationNode *to_node = (OperationNode *)relation->to;
+  OperationNode *to_node = static_cast<OperationNode *>(relation->to);
   while (current->node != to_node) {
     if (check_relation_can_murder(current->via_relation)) {
       return current->via_relation;
@@ -161,7 +163,7 @@ void solve_cycles(CyclesSolverState *state)
     for (int i = num_visited; i < node->outlinks.size(); i++) {
       Relation *rel = node->outlinks[i];
       if (rel->to->type == NodeType::OPERATION) {
-        OperationNode *to = (OperationNode *)rel->to;
+        OperationNode *to = static_cast<OperationNode *>(rel->to);
         eCyclicCheckVisitedState to_state = get_node_visited_state(to);
         if (to_state == NODE_IN_STACK) {
           std::string cycle_str = "  " + to->full_identifier() + " depends on\n  " +
@@ -215,4 +217,5 @@ void deg_graph_detect_cycles(Depsgraph *graph)
   }
 }
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

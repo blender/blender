@@ -25,6 +25,8 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"addon"};
 
 /* -------------------------------------------------------------------- */
@@ -33,16 +35,16 @@ static CLG_LogRef LOG = {"addon"};
 
 bAddon *BKE_addon_new()
 {
-  bAddon *addon = MEM_callocN<bAddon>("bAddon");
+  bAddon *addon = MEM_new<bAddon>("bAddon");
   return addon;
 }
 
-bAddon *BKE_addon_find(const ListBase *addon_list, const char *module)
+bAddon *BKE_addon_find(const ListBaseT<bAddon> *addon_list, const char *module)
 {
   return static_cast<bAddon *>(BLI_findstring(addon_list, module, offsetof(bAddon, module)));
 }
 
-bAddon *BKE_addon_ensure(ListBase *addon_list, const char *module)
+bAddon *BKE_addon_ensure(ListBaseT<bAddon> *addon_list, const char *module)
 {
   bAddon *addon = BKE_addon_find(addon_list, module);
   if (addon == nullptr) {
@@ -53,7 +55,7 @@ bAddon *BKE_addon_ensure(ListBase *addon_list, const char *module)
   return addon;
 }
 
-bool BKE_addon_remove_safe(ListBase *addon_list, const char *module)
+bool BKE_addon_remove_safe(ListBaseT<bAddon> *addon_list, const char *module)
 {
   bAddon *addon = static_cast<bAddon *>(
       BLI_findstring(addon_list, module, offsetof(bAddon, module)));
@@ -70,7 +72,7 @@ void BKE_addon_free(bAddon *addon)
   if (addon->prop) {
     IDP_FreeProperty(addon->prop);
   }
-  MEM_freeN(addon);
+  MEM_delete(addon);
 }
 
 /** \} */
@@ -111,7 +113,7 @@ void BKE_addon_pref_type_add(bAddonPrefType *apt)
 
 void BKE_addon_pref_type_remove(const bAddonPrefType *apt)
 {
-  BLI_ghash_remove(global_addonpreftype_hash, apt->idname, nullptr, MEM_freeN);
+  BLI_ghash_remove(global_addonpreftype_hash, apt->idname, nullptr, MEM_delete_void);
 }
 
 void BKE_addon_pref_type_init()
@@ -122,8 +124,10 @@ void BKE_addon_pref_type_init()
 
 void BKE_addon_pref_type_free()
 {
-  BLI_ghash_free(global_addonpreftype_hash, nullptr, MEM_freeN);
+  BLI_ghash_free(global_addonpreftype_hash, nullptr, MEM_delete_void);
   global_addonpreftype_hash = nullptr;
 }
 
 /** \} */
+
+}  // namespace blender

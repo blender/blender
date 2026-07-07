@@ -22,52 +22,6 @@
 namespace blender::eevee {
 
 /* -------------------------------------------------------------------- */
-/** \name Default Material
- *
- * \{ */
-
-DefaultSurfaceNodeTree::DefaultSurfaceNodeTree()
-{
-  bNodeTree *ntree = bke::node_tree_add_tree(nullptr, "Shader Nodetree", ntreeType_Shader->idname);
-  bNode *bsdf = bke::node_add_static_node(nullptr, *ntree, SH_NODE_BSDF_PRINCIPLED);
-  bNode *output = bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_MATERIAL);
-  bNodeSocket *bsdf_out = bke::node_find_socket(*bsdf, SOCK_OUT, "BSDF");
-  bNodeSocket *output_in = bke::node_find_socket(*output, SOCK_IN, "Surface");
-  bke::node_add_link(*ntree, *bsdf, *bsdf_out, *output, *output_in);
-  bke::node_set_active(*ntree, *output);
-
-  color_socket_ =
-      (bNodeSocketValueRGBA *)bke::node_find_socket(*bsdf, SOCK_IN, "Base Color")->default_value;
-  metallic_socket_ =
-      (bNodeSocketValueFloat *)bke::node_find_socket(*bsdf, SOCK_IN, "Metallic")->default_value;
-  roughness_socket_ =
-      (bNodeSocketValueFloat *)bke::node_find_socket(*bsdf, SOCK_IN, "Roughness")->default_value;
-  specular_socket_ = (bNodeSocketValueFloat *)bke::node_find_socket(
-                         *bsdf, SOCK_IN, "Specular IOR Level")
-                         ->default_value;
-  ntree_ = ntree;
-}
-
-DefaultSurfaceNodeTree::~DefaultSurfaceNodeTree()
-{
-  bke::node_tree_free_embedded_tree(ntree_);
-  MEM_SAFE_FREE(ntree_);
-}
-
-bNodeTree *DefaultSurfaceNodeTree::nodetree_get(::Material *ma)
-{
-  /* WARNING: This function is not threadsafe. Which is not a problem for the moment. */
-  copy_v3_fl3(color_socket_->value, ma->r, ma->g, ma->b);
-  metallic_socket_->value = ma->metallic;
-  roughness_socket_->value = ma->roughness;
-  specular_socket_->value = ma->spec;
-
-  return ntree_;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Material
  *
  * \{ */
@@ -75,17 +29,15 @@ bNodeTree *DefaultSurfaceNodeTree::nodetree_get(::Material *ma)
 MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
 {
   {
-    diffuse_mat = BKE_id_new_nomain<::Material>("EEVEE default diffuse");
-    bNodeTree *ntree = bke::node_tree_add_tree_embedded(
-        nullptr, &diffuse_mat->id, "Shader Nodetree", ntreeType_Shader->idname);
-    diffuse_mat->use_nodes = true;
+    diffuse_mat = BKE_id_new_nomain<blender::Material>("EEVEE default diffuse");
+    bNodeTree *ntree = diffuse_mat->nodetree;
     diffuse_mat->surface_render_method = MA_SURFACE_METHOD_FORWARD;
 
     /* Use 0.18 as it is close to middle gray. Middle gray is typically defined as 18% reflectance
      * of visible light and commonly used for VFX balls. */
     bNode *bsdf = bke::node_add_static_node(nullptr, *ntree, SH_NODE_BSDF_DIFFUSE);
     bNodeSocket *base_color = bke::node_find_socket(*bsdf, SOCK_IN, "Color");
-    copy_v3_fl(((bNodeSocketValueRGBA *)base_color->default_value)->value, 0.18f);
+    copy_v3_fl((static_cast<bNodeSocketValueRGBA *>(base_color->default_value))->value, 0.18f);
 
     bNode *output = bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_MATERIAL);
 
@@ -98,17 +50,15 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
     bke::node_set_active(*ntree, *output);
   }
   {
-    metallic_mat = BKE_id_new_nomain<::Material>("EEVEE default metal");
-    bNodeTree *ntree = bke::node_tree_add_tree_embedded(
-        nullptr, &metallic_mat->id, "Shader Nodetree", ntreeType_Shader->idname);
-    metallic_mat->use_nodes = true;
+    metallic_mat = BKE_id_new_nomain<blender::Material>("EEVEE default metal");
+    bNodeTree *ntree = metallic_mat->nodetree;
     metallic_mat->surface_render_method = MA_SURFACE_METHOD_FORWARD;
 
     bNode *bsdf = bke::node_add_static_node(nullptr, *ntree, SH_NODE_BSDF_GLOSSY);
     bNodeSocket *base_color = bke::node_find_socket(*bsdf, SOCK_IN, "Color");
-    copy_v3_fl(((bNodeSocketValueRGBA *)base_color->default_value)->value, 1.0f);
+    copy_v3_fl((static_cast<bNodeSocketValueRGBA *>(base_color->default_value))->value, 1.0f);
     bNodeSocket *roughness = bke::node_find_socket(*bsdf, SOCK_IN, "Roughness");
-    ((bNodeSocketValueFloat *)roughness->default_value)->value = 0.0f;
+    (static_cast<bNodeSocketValueFloat *>(roughness->default_value))->value = 0.0f;
 
     bNode *output = bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_MATERIAL);
 
@@ -121,21 +71,20 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
     bke::node_set_active(*ntree, *output);
   }
   {
-    default_surface = reinterpret_cast<::Material *>(BKE_id_copy_ex(
+    default_surface = reinterpret_cast<blender::Material *>(BKE_id_copy_ex(
         nullptr, &BKE_material_default_surface()->id, nullptr, LIB_ID_COPY_LOCALIZE));
-    default_volume = reinterpret_cast<::Material *>(BKE_id_copy_ex(
+    default_volume = reinterpret_cast<blender::Material *>(BKE_id_copy_ex(
         nullptr, &BKE_material_default_volume()->id, nullptr, LIB_ID_COPY_LOCALIZE));
   }
   {
-    error_mat_ = BKE_id_new_nomain<::Material>("EEVEE default error");
-    bNodeTree *ntree = bke::node_tree_add_tree_embedded(
-        nullptr, &error_mat_->id, "Shader Nodetree", ntreeType_Shader->idname);
-    error_mat_->use_nodes = true;
+    error_mat_ = BKE_id_new_nomain<blender::Material>("EEVEE default error");
+    bNodeTree *ntree = error_mat_->nodetree;
 
     /* Use emission and output material to be compatible with both World and Material. */
     bNode *bsdf = bke::node_add_static_node(nullptr, *ntree, SH_NODE_EMISSION);
     bNodeSocket *color = bke::node_find_socket(*bsdf, SOCK_IN, "Color");
-    copy_v3_fl3(((bNodeSocketValueRGBA *)color->default_value)->value, 1.0f, 0.0f, 1.0f);
+    copy_v3_fl3(
+        (static_cast<bNodeSocketValueRGBA *>(color->default_value))->value, 1.0f, 0.0f, 1.0f);
 
     bNode *output = bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_MATERIAL);
 
@@ -177,7 +126,7 @@ void MaterialModule::begin_sync()
 
 void MaterialModule::queue_texture_loading(GPUMaterial *material)
 {
-  ListBase textures = GPU_material_textures(material);
+  ListBaseT<GPUMaterialTexture> textures = GPU_material_textures(material);
   for (GPUMaterialTexture *tex : ListBaseWrapper<GPUMaterialTexture>(textures)) {
     if (tex->ima) {
       const bool use_tile_mapping = tex->tiled_mapping_name[0];
@@ -246,20 +195,19 @@ void MaterialModule::end_sync()
 }
 
 MaterialPass MaterialModule::material_pass_get(Object *ob,
-                                               ::Material *blender_mat,
+                                               blender::Material *blender_mat,
                                                eMaterialPipeline pipeline_type,
                                                eMaterialGeometry geometry_type,
                                                eMaterialProbe probe_capture)
 {
-  bNodeTree *ntree = (blender_mat->use_nodes && blender_mat->nodetree != nullptr) ?
-                         blender_mat->nodetree :
-                         default_surface_ntree_.nodetree_get(blender_mat);
+  bNodeTree *ntree = (blender_mat->nodetree != nullptr) ? blender_mat->nodetree :
+                                                          default_surface->nodetree;
 
   /* We can't defer compilation in viewport image render, since we can't re-sync.(See #130235) */
   bool use_deferred_compilation = !inst_.is_viewport_image_render;
 
   const bool is_volume = ELEM(pipeline_type, MAT_PIPE_VOLUME_OCCUPANCY, MAT_PIPE_VOLUME_MATERIAL);
-  ::Material *default_mat = is_volume ? default_volume : default_surface;
+  blender::Material *default_mat = is_volume ? default_volume : default_surface;
 
   MaterialPass matpass = MaterialPass();
   matpass.gpumat = inst_.shaders.material_shader_get(
@@ -345,7 +293,7 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
 }
 
 Material &MaterialModule::material_sync(Object *ob,
-                                        ::Material *blender_mat,
+                                        blender::Material *blender_mat,
                                         eMaterialGeometry geometry_type,
                                         bool has_motion)
 {
@@ -518,9 +466,9 @@ Material &MaterialModule::material_sync(Object *ob,
   return mat;
 }
 
-::Material *MaterialModule::material_from_slot(Object *ob, int slot)
+blender::Material *MaterialModule::material_from_slot(Object *ob, int slot)
 {
-  ::Material *ma = BKE_object_material_get_eval(ob, slot + 1);
+  blender::Material *ma = BKE_object_material_get_eval(ob, slot + 1);
   if (ma == nullptr) {
     if (ob->type == OB_VOLUME) {
       return BKE_material_default_volume();
@@ -538,7 +486,8 @@ MaterialArray &MaterialModule::material_array_get(Object *ob, bool has_motion)
   const int materials_len = BKE_object_material_used_with_fallback_eval(*ob);
 
   for (auto i : IndexRange(materials_len)) {
-    ::Material *blender_mat = (material_override) ? material_override : material_from_slot(ob, i);
+    blender::Material *blender_mat = (material_override) ? material_override :
+                                                           material_from_slot(ob, i);
     Material &mat = material_sync(ob, blender_mat, to_material_geometry(ob), has_motion);
     /* \note Perform a whole copy since next material_sync() can move the Material memory location
      * (i.e: because of its container growing) */
@@ -553,8 +502,8 @@ Material &MaterialModule::material_get(Object *ob,
                                        int mat_nr,
                                        eMaterialGeometry geometry_type)
 {
-  ::Material *blender_mat = (material_override) ? material_override :
-                                                  material_from_slot(ob, mat_nr);
+  blender::Material *blender_mat = (material_override) ? material_override :
+                                                         material_from_slot(ob, mat_nr);
   Material &mat = material_sync(ob, blender_mat, geometry_type, has_motion);
   return mat;
 }
@@ -562,11 +511,12 @@ Material &MaterialModule::material_get(Object *ob,
 ShaderGroups MaterialModule::default_materials_load(bool block_until_ready)
 {
   bool shaders_are_ready = true;
-  auto request_shader = [&](::Material *mat, eMaterialPipeline pipeline, eMaterialGeometry geom) {
-    GPUMaterial *gpu_mat = inst_.shaders.material_shader_get(
-        mat, mat->nodetree, pipeline, geom, !block_until_ready, nullptr);
-    shaders_are_ready = shaders_are_ready && GPU_material_status(gpu_mat) == GPU_MAT_SUCCESS;
-  };
+  auto request_shader =
+      [&](blender::Material *mat, eMaterialPipeline pipeline, eMaterialGeometry geom) {
+        GPUMaterial *gpu_mat = inst_.shaders.material_shader_get(
+            mat, mat->nodetree, pipeline, geom, !block_until_ready, nullptr);
+        shaders_are_ready = shaders_are_ready && GPU_material_status(gpu_mat) == GPU_MAT_SUCCESS;
+      };
 
   request_shader(default_surface, MAT_PIPE_PREPASS_DEFERRED, MAT_GEOM_MESH);
   request_shader(default_surface, MAT_PIPE_PREPASS_DEFERRED_VELOCITY, MAT_GEOM_MESH);

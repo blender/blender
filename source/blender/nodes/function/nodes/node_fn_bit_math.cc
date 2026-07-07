@@ -14,9 +14,11 @@
 
 #include "node_function_util.hh"
 
+namespace blender {
+
 static_assert(-1 == ~0, "Two's complement must be used for bitwise operations.");
 
-namespace blender::nodes::node_fn_bit_math_cc {
+namespace nodes::node_fn_bit_math_cc {
 
 enum BitMathOperation : int16_t {
   And = 0,
@@ -82,9 +84,9 @@ static void node_declare(NodeDeclarationBuilder &b)
   }
 };
 
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "operation", UI_ITEM_NONE, "", ICON_NONE);
+  layout.prop(ptr, "operation", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 class SocketSearchOp {
@@ -110,10 +112,12 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   const bool is_integer = params.other_socket().type == SOCK_INT;
   const int weight = is_integer ? 0 : -1;
 
+  const StringRef socket_name = (params.in_out() == SOCK_OUT) ? "Value" : "A";
+
   for (const auto &item : bit_math_operation_items) {
     if (item.name != nullptr && item.identifier[0] != '\0') {
       params.add_item(
-          IFACE_(item.name), SocketSearchOp{"A", BitMathOperation(item.value)}, weight);
+          IFACE_(item.name), SocketSearchOp{socket_name, BitMathOperation(item.value)}, weight);
     }
   }
 }
@@ -143,8 +147,7 @@ static const mf::MultiFunction *get_multi_function(const bNode &bnode)
       "Or", [](int a, int b) { return a | b; }, exec_preset);
   static auto xor_fn = mf::build::SI2_SO<int, int, int>(
       "Xor", [](int a, int b) { return a ^ b; }, exec_preset);
-  static auto not_fn = mf::build::SI1_SO<int, int>(
-      "Not", [](int a) { return ~a; }, exec_preset);
+  static auto not_fn = mf::build::SI1_SO<int, int>("Not", [](int a) { return ~a; }, exec_preset);
   static auto shift_fn = mf::build::SI2_SO<int, int, int>(
       "Shift",
       [](int a, int b) {
@@ -204,7 +207,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   fn_node_type_base(&ntype, "FunctionNodeBitMath");
   ntype.ui_name = "Bit Math";
@@ -216,9 +219,11 @@ static void node_register()
   ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.ui_description = "Perform bitwise operations on 32-bit integers";
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
   node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 
-}  // namespace blender::nodes::node_fn_bit_math_cc
+}  // namespace nodes::node_fn_bit_math_cc
+
+}  // namespace blender

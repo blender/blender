@@ -4,17 +4,20 @@
 
 #pragma once
 
+#include "DNA_listBase.h"
+
 #include "BLI_span.hh"
+
+namespace blender {
 
 /** \file
  * \ingroup sequencer
  */
 
-struct ListBase;
 struct Scene;
 struct Strip;
 
-namespace blender::seq {
+namespace seq {
 
 void strip_update_sound_bounds_recursive(const Scene *scene, Strip *strip_meta);
 
@@ -29,21 +32,20 @@ struct GapInfo {
  * Find first gap between strips after initial_frame and describe it by filling data of r_gap_info
  *
  * \param scene: Scene in which strips are located.
- * \param seqbase: ListBase in which strips are located.
+ * \param seqbase: List in which strips are located.
  * \param initial_frame: frame on timeline from where gaps are searched for.
  * \param r_gap_info: data structure describing gap, that will be filled in by this function.
  */
 void seq_time_gap_info_get(const Scene *scene,
-                           ListBase *seqbase,
+                           ListBaseT<Strip> *seqbase,
                            int initial_frame,
                            GapInfo *r_gap_info);
 void strip_time_effect_range_set(const Scene *scene, Strip *strip);
 /**
  * Update strip `startdisp` and `enddisp` (n-input effects have no length to calculate these).
  */
-void strip_time_update_effects_strip_range(const Scene *scene, blender::Span<Strip *> effects);
-void strip_time_translate_handles(const Scene *scene, Strip *strip, const int offset);
-float strip_time_media_playback_rate_factor_get(const Scene *scene, const Strip *strip);
+void strip_time_update_effects_strip_range(const Scene *scene, Span<Strip *> effects);
 float strip_retiming_evaluate(const Strip *strip, const float frame_index);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

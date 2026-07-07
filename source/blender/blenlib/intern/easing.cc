@@ -12,6 +12,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* blend if (amplitude < fabsf(change) */
 #define USE_ELASTIC_BLEND
 
@@ -359,3 +361,5 @@ float BLI_easing_sine_ease_in_out(float time, float begin, float change, float d
 {
   return -change / 2 * (cosf(float(M_PI) * time / duration) - 1) + begin;
 }
+
+}  // namespace blender

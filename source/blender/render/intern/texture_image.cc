@@ -35,6 +35,8 @@
 
 #include "texture_common.h"
 
+namespace blender {
+
 static void boxsample(ImBuf *ibuf,
                       float minx,
                       float miny,
@@ -685,7 +687,7 @@ static int ibuf_get_color_clip(float col[4], ImBuf *ibuf, int x, int y, int extf
       x = std::max(x, 0); /* TXF alpha: clip = 1; } */
       if (x >= ibuf->x) {
         x = ibuf->x - 1;
-      }                   /* TXF alpha: clip = 1; } */
+      } /* TXF alpha: clip = 1; } */
       y = std::max(y, 0); /* TXF alpha: clip = 1; } */
       if (y >= ibuf->y) {
         y = ibuf->y - 1;
@@ -723,7 +725,7 @@ struct ReadEWAData {
 
 static void ewa_read_pixel_cb(void *userdata, int x, int y, float result[4])
 {
-  ReadEWAData *data = (ReadEWAData *)userdata;
+  ReadEWAData *data = static_cast<ReadEWAData *>(userdata);
   ibuf_get_color_clip(result, data->ibuf, x, y, data->AFD->extflag);
 }
 
@@ -786,3 +788,5 @@ void ibuf_sample(ImBuf *ibuf, float fx, float fy, float dx, float dy, float resu
 
   copy_v4_v4(result, texres.trgba);
 }
+
+}  // namespace blender

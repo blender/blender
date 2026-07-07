@@ -17,8 +17,8 @@ extern PyTypeObject GetZF0D_Type;
 #define BPy_GetZF0D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetZF0D_Type))
 
 /*---------------------------Python BPy_GetZF0D structure definition----------*/
-typedef struct {
+struct BPy_GetZF0D {
   BPy_UnaryFunction0DDouble py_uf0D_double;
-} BPy_GetZF0D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

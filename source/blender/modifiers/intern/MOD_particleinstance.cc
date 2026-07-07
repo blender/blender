@@ -18,11 +18,11 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_customdata.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
@@ -41,18 +41,17 @@
 
 #include "MOD_ui_common.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
-  ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(pimd, modifier));
-
-  MEMCPY_STRUCT_AFTER(pimd, DNA_struct_default_get(ParticleInstanceModifierData), modifier);
+  ParticleInstanceModifierData *pimd = reinterpret_cast<ParticleInstanceModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(pimd, modifier);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
+  ParticleInstanceModifierData *pimd = reinterpret_cast<ParticleInstanceModifierData *>(md);
 
   if (pimd->index_layer_name[0] != '\0' || pimd->value_layer_name[0] != '\0') {
     r_cddata_masks->lmask |= CD_MASK_PROP_BYTE_COLOR;
@@ -61,7 +60,7 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 
 static bool is_disabled(const Scene *scene, ModifierData *md, bool use_render_params)
 {
-  ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
+  ParticleInstanceModifierData *pimd = reinterpret_cast<ParticleInstanceModifierData *>(md);
   ParticleSystem *psys;
 
   /* The object type check is only needed here in case we have a placeholder
@@ -81,9 +80,9 @@ static bool is_disabled(const Scene *scene, ModifierData *md, bool use_render_pa
   /* If the psys modifier is disabled we cannot use its data.
    * First look up the psys modifier from the object, then check if it is enabled.
    */
-  LISTBASE_FOREACH (ModifierData *, ob_md, &pimd->ob->modifiers) {
-    if (ob_md->type == eModifierType_ParticleSystem) {
-      ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)ob_md;
+  for (ModifierData &ob_md : pimd->ob->modifiers) {
+    if (ob_md.type == eModifierType_ParticleSystem) {
+      ParticleSystemModifierData *psmd = reinterpret_cast<ParticleSystemModifierData *>(&ob_md);
       if (psmd->psys == psys) {
         int required_mode;
 
@@ -94,7 +93,7 @@ static bool is_disabled(const Scene *scene, ModifierData *md, bool use_render_pa
           required_mode = eModifierMode_Realtime;
         }
 
-        if (!BKE_modifier_is_enabled(scene, ob_md, required_mode)) {
+        if (!BKE_modifier_is_enabled(scene, &ob_md, required_mode)) {
           return true;
         }
 
@@ -108,7 +107,7 @@ static bool is_disabled(const Scene *scene, ModifierData *md, bool use_render_pa
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
+  ParticleInstanceModifierData *pimd = reinterpret_cast<ParticleInstanceModifierData *>(md);
   if (pimd->ob != nullptr) {
     DEG_add_object_relation(
         ctx->node, pimd->ob, DEG_OB_COMP_TRANSFORM, "Particle Instance Modifier");
@@ -119,9 +118,9 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
+  ParticleInstanceModifierData *pimd = reinterpret_cast<ParticleInstanceModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&pimd->ob, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&pimd->ob), IDWALK_CB_NOP);
 }
 
 static bool particle_skip(ParticleInstanceModifierData *pimd, ParticleSystem *psys, int p)
@@ -178,7 +177,7 @@ static bool particle_skip(ParticleInstanceModifierData *pimd, ParticleSystem *ps
   return true;
 }
 
-static void store_float_in_vcol(blender::ColorGeometry4b *vcol, float float_value)
+static void store_float_in_vcol(ColorGeometry4b *vcol, float float_value)
 {
   const uchar value = unit_float_to_uchar_clamp(float_value);
   vcol->r = vcol->g = vcol->b = value;
@@ -187,9 +186,8 @@ static void store_float_in_vcol(blender::ColorGeometry4b *vcol, float float_valu
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  using namespace blender;
   Mesh *result;
-  ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
+  ParticleInstanceModifierData *pimd = reinterpret_cast<ParticleInstanceModifierData *>(md);
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
   ParticleSimulationData sim;
   ParticleSystem *psys = nullptr;
@@ -197,7 +195,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   int totvert, faces_num, totloop, totedge;
   int maxvert, maxpoly, maxloop, maxedge, part_end = 0, part_start;
   int k, p, p_skip;
-  short track = ctx->object->trackflag % 3, trackneg, axis = pimd->axis;
+  const uint track = uint(ctx->object->trackflag) % 3;
+  short trackneg, axis = pimd->axis;
   float max_co = 0.0, min_co = 0.0, temp_co[3];
   float *size = nullptr;
   float spacemat[4][4];
@@ -245,7 +244,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   if (pimd->flag & eParticleInstanceFlag_UseSize) {
     float *si;
-    si = size = MEM_calloc_arrayN<float>(part_end, __func__);
+    si = size = MEM_new_array_zeroed<float>(part_end, __func__);
 
     if (pimd->flag & eParticleInstanceFlag_Parents) {
       for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++, si++) {
@@ -302,7 +301,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   psys_sim_data_init(&sim);
 
   if (psys->flag & (PSYS_HAIR_DONE | PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED) {
-    if (const std::optional<blender::Bounds<blender::float3>> bounds = mesh->bounds_min_max()) {
+    if (const std::optional<Bounds<float3>> bounds = mesh->bounds_min_max()) {
       min_co = bounds->min[track];
       max_co = bounds->max[track];
     }
@@ -310,28 +309,34 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   result = BKE_mesh_new_nomain_from_template(mesh, maxvert, maxedge, maxpoly, maxloop);
 
-  const blender::OffsetIndices orig_faces = mesh->faces();
-  const blender::Span<int> orig_corner_verts = mesh->corner_verts();
-  const blender::Span<int> orig_corner_edges = mesh->corner_edges();
-  blender::MutableSpan<blender::float3> positions = result->vert_positions_for_write();
-  blender::MutableSpan<blender::int2> edges = result->edges_for_write();
-  blender::MutableSpan<int> face_offsets = result->face_offsets_for_write();
-  blender::MutableSpan<int> corner_verts = result->corner_verts_for_write();
-  blender::MutableSpan<int> corner_edges = result->corner_edges_for_write();
-  blender::bke::MutableAttributeAccessor attributes = result->attributes_for_write();
+  const OffsetIndices orig_faces = mesh->faces();
+  const Span<int> orig_corner_verts = mesh->corner_verts();
+  const Span<int> orig_corner_edges = mesh->corner_edges();
+  MutableSpan<float3> positions = result->vert_positions_for_write();
+  MutableSpan<int2> edges = result->edges_for_write();
+  MutableSpan<int> face_offsets = result->face_offsets_for_write();
+  MutableSpan<int> corner_verts = result->corner_verts_for_write();
+  MutableSpan<int> corner_edges = result->corner_edges_for_write();
+  bke::MutableAttributeAccessor attributes = result->attributes_for_write();
   bke::SpanAttributeWriter mloopcols_index =
       attributes.lookup_or_add_for_write_span<ColorGeometry4b>(pimd->index_layer_name,
                                                                bke::AttrDomain::Corner);
   bke::SpanAttributeWriter mloopcols_value =
       attributes.lookup_or_add_for_write_span<ColorGeometry4b>(pimd->value_layer_name,
                                                                bke::AttrDomain::Corner);
+
+  bke::LegacyMeshInterpolator vert_interp(*mesh, *result, bke::AttrDomain::Point);
+  bke::LegacyMeshInterpolator edge_interp(*mesh, *result, bke::AttrDomain::Edge);
+  bke::LegacyMeshInterpolator face_interp(*mesh, *result, bke::AttrDomain::Face);
+  bke::LegacyMeshInterpolator corner_interp(*mesh, *result, bke::AttrDomain::Corner);
+
   int *vert_part_index = nullptr;
   float *vert_part_value = nullptr;
   if (mloopcols_index) {
-    vert_part_index = MEM_calloc_arrayN<int>(maxvert, "vertex part index array");
+    vert_part_index = MEM_new_array_zeroed<int>(maxvert, "vertex part index array");
   }
   if (mloopcols_value) {
-    vert_part_value = MEM_calloc_arrayN<float>(maxvert, "vertex part value array");
+    vert_part_value = MEM_new_array_zeroed<float>(maxvert, "vertex part value array");
   }
 
   for (p = part_start, p_skip = 0; p < part_end; p++) {
@@ -349,7 +354,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
       ParticleKey state;
       int vindex = p_skip * totvert + k;
 
-      CustomData_copy_data(&mesh->vert_data, &result->vert_data, k, vindex, 1);
+      vert_interp.copy(k, vindex, 1);
 
       if (vert_part_index != nullptr) {
         vert_part_index[vindex] = p;
@@ -468,8 +473,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     }
 
     /* Create edges and adjust edge vertex indices. */
-    CustomData_copy_data(&mesh->edge_data, &result->edge_data, 0, p_skip * totedge, totedge);
-    blender::int2 *edge = &edges[p_skip * totedge];
+    edge_interp.copy(0, p_skip * totedge, totedge);
+    int2 *edge = &edges[p_skip * totedge];
     for (k = 0; k < totedge; k++, edge++) {
       (*edge)[0] += p_skip * totvert;
       (*edge)[1] += p_skip * totvert;
@@ -477,9 +482,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
     /* create faces and loops */
     for (k = 0; k < faces_num; k++) {
-      const blender::IndexRange in_face = orig_faces[k];
+      const IndexRange in_face = orig_faces[k];
 
-      CustomData_copy_data(&mesh->face_data, &result->face_data, k, p_skip * faces_num + k, 1);
+      face_interp.copy(k, p_skip * faces_num + k, 1);
       const int dst_face_start = in_face.start() + p_skip * totloop;
       face_offsets[p_skip * faces_num + k] = dst_face_start;
 
@@ -488,8 +493,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
         int dst_corner_i = dst_face_start;
         int j = in_face.size();
 
-        CustomData_copy_data(
-            &mesh->corner_data, &result->corner_data, in_face.start(), dst_face_start, j);
+        corner_interp.copy(in_face.start(), dst_face_start, j);
         for (; j; j--, orig_corner_i++, dst_corner_i++) {
           corner_verts[dst_corner_i] = orig_corner_verts[orig_corner_i] + (p_skip * totvert);
           corner_edges[dst_corner_i] = orig_corner_edges[orig_corner_i] + (p_skip * totedge);
@@ -512,11 +516,11 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   psys_sim_data_free(&sim);
 
   if (size) {
-    MEM_freeN(size);
+    MEM_delete(size);
   }
 
-  MEM_SAFE_FREE(vert_part_index);
-  MEM_SAFE_FREE(vert_part_value);
+  MEM_SAFE_DELETE(vert_part_index);
+  MEM_SAFE_DELETE(vert_part_value);
 
   mloopcols_index.finish();
   mloopcols_value.finish();
@@ -526,101 +530,102 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *row;
-  uiLayout *layout = panel->layout;
-  const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
+  ui::Layout &layout = *panel->layout;
+  const ui::eUI_Item_Flag toggles_flag = ui::ITEM_R_TOGGLE | ui::ITEM_R_FORCE_BLANK_DECORATE;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   PointerRNA particle_obj_ptr = RNA_pointer_get(ptr, "object");
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (!RNA_pointer_is_null(&particle_obj_ptr)) {
-    layout->prop_search(ptr,
-                        "particle_system",
-                        &particle_obj_ptr,
-                        "particle_systems",
-                        IFACE_("Particle System"),
-                        ICON_NONE);
+    layout.prop_search(ptr,
+                       "particle_system",
+                       &particle_obj_ptr,
+                       "particle_systems",
+                       IFACE_("Particle System"),
+                       ICON_NONE);
   }
   else {
-    layout->prop(ptr, "particle_system_index", UI_ITEM_NONE, IFACE_("Particle System"), ICON_NONE);
+    layout.prop(ptr, "particle_system_index", UI_ITEM_NONE, IFACE_("Particle System"), ICON_NONE);
   }
 
-  layout->separator();
+  layout.separator();
 
-  row = &layout->row(true, IFACE_("Create Instances"));
+  ui::Layout *row = &layout.row(true, IFACE_("Create Instances"));
   row->prop(ptr, "use_normal", toggles_flag, std::nullopt, ICON_NONE);
   row->prop(ptr, "use_children", toggles_flag, std::nullopt, ICON_NONE);
   row->prop(ptr, "use_size", toggles_flag, std::nullopt, ICON_NONE);
 
-  row = &layout->row(true, IFACE_("Show"));
+  row = &layout.row(true, IFACE_("Show"));
   row->prop(ptr, "show_alive", toggles_flag, std::nullopt, ICON_NONE);
   row->prop(ptr, "show_dead", toggles_flag, std::nullopt, ICON_NONE);
   row->prop(ptr, "show_unborn", toggles_flag, std::nullopt, ICON_NONE);
 
-  layout->prop(ptr, "particle_amount", UI_ITEM_NONE, IFACE_("Amount"), ICON_NONE);
-  layout->prop(ptr, "particle_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
+  layout.prop(ptr,
+              "particle_amount",
+              UI_ITEM_NONE,
+              CTX_IFACE_(BLT_I18NCONTEXT_COUNTABLE, "Amount"),
+              ICON_NONE);
+  layout.prop(ptr, "particle_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
 
-  layout->separator();
+  layout.separator();
 
-  layout->prop(ptr, "space", UI_ITEM_NONE, IFACE_("Coordinate Space"), ICON_NONE);
-  row = &layout->row(true);
-  row->prop(ptr, "axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "space", UI_ITEM_NONE, IFACE_("Coordinate Space"), ICON_NONE);
+  row = &layout.row(true);
+  row->prop(ptr, "axis", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   modifier_error_message_draw(layout, ptr);
 }
 
 static void path_panel_draw_header(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->prop(ptr, "use_path", UI_ITEM_NONE, IFACE_("Create Along Paths"), ICON_NONE);
+  layout.prop(ptr, "use_path", UI_ITEM_NONE, IFACE_("Create Along Paths"), ICON_NONE);
 }
 
 static void path_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *col;
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->active_set(RNA_boolean_get(ptr, "use_path"));
+  layout.active_set(RNA_boolean_get(ptr, "use_path"));
 
-  col = &layout->column(true);
-  col->prop(ptr, "position", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
-  col->prop(ptr, "random_position", UI_ITEM_R_SLIDER, IFACE_("Random"), ICON_NONE);
-  col = &layout->column(true);
-  col->prop(ptr, "rotation", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
-  col->prop(ptr, "random_rotation", UI_ITEM_R_SLIDER, IFACE_("Random"), ICON_NONE);
+  ui::Layout *col = &layout.column(true);
+  col->prop(ptr, "position", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  col->prop(ptr, "random_position", ui::ITEM_R_SLIDER, IFACE_("Random"), ICON_NONE);
+  col = &layout.column(true);
+  col->prop(ptr, "rotation", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  col->prop(ptr, "random_rotation", ui::ITEM_R_SLIDER, IFACE_("Random"), ICON_NONE);
 
-  layout->prop(ptr, "use_preserve_shape", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "use_preserve_shape", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void layers_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *col;
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  col = &layout->column(false);
-  col->prop_search(
+  ui::Layout &col = layout.column(false);
+  col.prop_search(
       ptr, "index_layer_name", &obj_data_ptr, "vertex_colors", IFACE_("Index"), ICON_NONE);
-  col->prop_search(
+  col.prop_search(
       ptr, "value_layer_name", &obj_data_ptr, "vertex_colors", IFACE_("Value"), ICON_NONE);
 }
 
@@ -670,3 +675,5 @@ ModifierTypeInfo modifierType_ParticleInstance = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

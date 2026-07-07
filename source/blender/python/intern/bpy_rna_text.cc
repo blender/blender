@@ -12,6 +12,8 @@
 
 #include <Python.h>
 
+#include <optional>
+
 #include "MEM_guardedalloc.h"
 
 #include "WM_api.hh"
@@ -22,6 +24,8 @@
 
 #include "bpy_rna.hh"
 #include "bpy_rna_text.hh" /* Declare #BPY_rna_region_as_string_method_def. */
+
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Data structures.
@@ -43,45 +47,60 @@ struct TextRegion {
 /** \name Text Editor Get / Set region text API
  * \{ */
 
+/**
+ * Converter for `O&` that accepts a `((ii)(ii))` tuple or `None`.
+ */
+static int py_parse_optional_region(PyObject *o, void *p)
+{
+  std::optional<TextRegion> *region_p = static_cast<std::optional<TextRegion> *>(p);
+  if (o == Py_None) {
+    region_p->reset();
+    return 1;
+  }
+  TextRegion region;
+  if (!PyArg_Parse(o, "((ii)(ii))", &region.curl, &region.curc, &region.sell, &region.selc)) {
+    return 0;
+  }
+  *region_p = region;
+  return 1;
+}
+
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_rna_region_as_string_doc,
     ".. method:: region_as_string(*, range=None)\n"
     "\n"
-    "   :arg range: The region of text to be returned, "
+    "   :param range: The region of text to be returned, "
     "defaulting to the selection when no range is passed.\n"
     "      Each int pair represents a line and column: "
     "((start_line, start_column), (end_line, end_column))\n"
     "      The values match Python's slicing logic "
     "(negative values count backwards from the end, the end value is not inclusive).\n"
-    "   :type range: tuple[tuple[int, int], tuple[int, int]]\n"
+    "   :type range: tuple[tuple[int, int], tuple[int, int]] | None\n"
     "   :return: The specified region as a string.\n"
     "   :rtype: str\n");
 /* Receive a Python Tuple as parameter to represent the region range. */
 static PyObject *bpy_rna_region_as_string(PyObject *self, PyObject *args, PyObject *kwds)
 {
-  BPy_StructRNA *pyrna = (BPy_StructRNA *)self;
+  BPy_StructRNA *pyrna = reinterpret_cast<BPy_StructRNA *>(self);
   Text *text = static_cast<Text *>(pyrna->ptr->data);
   /* Parse the region range. */
-  TextRegion region;
+  std::optional<TextRegion> region;
 
   static const char *_keywords[] = {"range", nullptr};
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
-      "|$"         /* Optional keyword only arguments. */
-      "((ii)(ii))" /* `range` */
+      "|$" /* Optional keyword only arguments. */
+      "O&" /* `range` */
       ":region_as_string",
       _keywords,
       nullptr,
   };
-  if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kwds, &_parser, &region.curl, &region.curc, &region.sell, &region.selc))
-  {
+  if (!_PyArg_ParseTupleAndKeywordsFast(args, kwds, &_parser, py_parse_optional_region, &region)) {
     return nullptr;
   }
 
-  if (kwds && PyDict_GET_SIZE(kwds) > 0) {
-    txt_sel_set(text, region.curl, region.curc, region.sell, region.selc);
+  if (region) {
+    txt_sel_set(text, region->curl, region->curc, region->sell, region->selc);
   }
 
   /* Return an empty string if there is no selection. */
@@ -90,7 +109,7 @@ static PyObject *bpy_rna_region_as_string(PyObject *self, PyObject *args, PyObje
   }
   char *buf = txt_sel_to_buf(text, nullptr);
   PyObject *sel_text = PyUnicode_FromString(buf);
-  MEM_freeN(buf);
+  MEM_delete(buf);
   /* Return the selected text. */
   return sel_text;
 }
@@ -107,7 +126,7 @@ static PyObject *bpy_rna_region_as_string(PyObject *self, PyObject *args, PyObje
 
 PyMethodDef BPY_rna_region_as_string_method_def = {
     "region_as_string",
-    (PyCFunction)bpy_rna_region_as_string,
+    reinterpret_cast<PyCFunction>(bpy_rna_region_as_string),
     METH_VARARGS | METH_KEYWORDS,
     bpy_rna_region_as_string_doc,
 };
@@ -125,50 +144,42 @@ PyDoc_STRVAR(
     bpy_rna_region_from_string_doc,
     ".. method:: region_from_string(body, /, *, range=None)\n"
     "\n"
-    "   :arg body: The text to be inserted.\n"
+    "   :param body: The text to be inserted.\n"
     "   :type body: str\n"
-    "   :arg range: The region of text to be returned, "
+    "   :param range: The region of text to be returned, "
     "defaulting to the selection when no range is passed.\n"
     "      Each int pair represents a line and column: "
     "((start_line, start_column), (end_line, end_column))\n"
     "      The values match Python's slicing logic "
     "(negative values count backwards from the end, the end value is not inclusive).\n"
-    "   :type range: tuple[tuple[int, int], tuple[int, int]]\n");
+    "   :type range: tuple[tuple[int, int], tuple[int, int]] | None\n");
 static PyObject *bpy_rna_region_from_string(PyObject *self, PyObject *args, PyObject *kwds)
 {
-  BPy_StructRNA *pyrna = (BPy_StructRNA *)self;
+  BPy_StructRNA *pyrna = reinterpret_cast<BPy_StructRNA *>(self);
   Text *text = static_cast<Text *>(pyrna->ptr->data);
 
   /* Parse the region range. */
   const char *buf;
   Py_ssize_t buf_len;
-  TextRegion region;
+  std::optional<TextRegion> region;
 
   static const char *_keywords[] = {"", "range", nullptr};
   static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
-      "s#"         /* `buf` (positional). */
-      "|$"         /* Optional keyword only arguments. */
-      "((ii)(ii))" /* `range` */
+      "s#" /* `buf` (positional). */
+      "|$" /* Optional keyword only arguments. */
+      "O&" /* `range` */
       ":region_from_string",
       _keywords,
       nullptr,
   };
-  if (!_PyArg_ParseTupleAndKeywordsFast(args,
-                                        kwds,
-                                        &_parser,
-                                        &buf,
-                                        &buf_len,
-                                        &region.curl,
-                                        &region.curc,
-                                        &region.sell,
-                                        &region.selc))
+  if (!_PyArg_ParseTupleAndKeywordsFast(
+          args, kwds, &_parser, &buf, &buf_len, py_parse_optional_region, &region))
   {
     return nullptr;
   }
 
-  if (kwds && PyDict_GET_SIZE(kwds) > 0) {
-    txt_sel_set(text, region.curl, region.curc, region.sell, region.selc);
+  if (region) {
+    txt_sel_set(text, region->curl, region->curc, region->sell, region->selc);
   }
 
   /* Set the selected text. */
@@ -191,7 +202,7 @@ static PyObject *bpy_rna_region_from_string(PyObject *self, PyObject *args, PyOb
 
 PyMethodDef BPY_rna_region_from_string_method_def = {
     "region_from_string",
-    (PyCFunction)bpy_rna_region_from_string,
+    reinterpret_cast<PyCFunction>(bpy_rna_region_from_string),
     METH_VARARGS | METH_KEYWORDS,
     bpy_rna_region_from_string_doc,
 };
@@ -205,3 +216,5 @@ PyMethodDef BPY_rna_region_from_string_method_def = {
 #endif
 
 /** \} */
+
+}  // namespace blender

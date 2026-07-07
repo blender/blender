@@ -110,42 +110,42 @@ class BrushCurvesTest(unittest.TestCase):
         # Note, depending on if the tests are run with asserts enabled or not, the test may fail before this point
         # inside blender itself.
         all_valid = all([not math.isinf(pos) and not math.isnan(pos) for pos in position_data])
-        self.assertTrue(all_valid, "All position componentes should be rational values")
+        self.assertTrue(all_valid, "All position components should be rational values")
 
     def test_smooth_preset_curve_creates_valid_stroke(self):
-        bpy.context.tool_settings.sculpt.brush.curve_preset = 'SMOOTH'
+        bpy.context.tool_settings.sculpt.brush.curve_distance_falloff_preset = 'SMOOTH'
         self._check_stroke()
 
     def test_smoother_preset_curve_creates_valid_stroke(self):
-        bpy.context.tool_settings.sculpt.brush.curve_preset = 'SMOOTHER'
+        bpy.context.tool_settings.sculpt.brush.curve_distance_falloff_preset = 'SMOOTHER'
         self._check_stroke()
 
     def test_sphere_preset_curve_creates_valid_stroke(self):
-        bpy.context.tool_settings.sculpt.brush.curve_preset = 'SPHERE'
+        bpy.context.tool_settings.sculpt.brush.curve_distance_falloff_preset = 'SPHERE'
         self._check_stroke()
 
     def test_root_preset_curve_creates_valid_stroke(self):
-        bpy.context.tool_settings.sculpt.brush.curve_preset = 'ROOT'
+        bpy.context.tool_settings.sculpt.brush.curve_distance_falloff_preset = 'ROOT'
         self._check_stroke()
 
     def test_sharp_preset_curve_creates_valid_stroke(self):
-        bpy.context.tool_settings.sculpt.brush.curve_preset = 'SHARP'
+        bpy.context.tool_settings.sculpt.brush.curve_distance_falloff_preset = 'SHARP'
         self._check_stroke()
 
     def test_linear_preset_curve_creates_valid_stroke(self):
-        bpy.context.tool_settings.sculpt.brush.curve_preset = 'LIN'
+        bpy.context.tool_settings.sculpt.brush.curve_distance_falloff_preset = 'LIN'
         self._check_stroke()
 
     def test_sharper_preset_curve_creates_valid_stroke(self):
-        bpy.context.tool_settings.sculpt.brush.curve_preset = 'POW4'
+        bpy.context.tool_settings.sculpt.brush.curve_distance_falloff_preset = 'POW4'
         self._check_stroke()
 
     def test_inverse_square_preset_curve_creates_valid_stroke(self):
-        bpy.context.tool_settings.sculpt.brush.curve_preset = 'INVSQUARE'
+        bpy.context.tool_settings.sculpt.brush.curve_distance_falloff_preset = 'INVSQUARE'
         self._check_stroke()
 
     def test_constant_preset_curve_creates_valid_stroke(self):
-        bpy.context.tool_settings.sculpt.brush.curve_preset = 'CONSTANT'
+        bpy.context.tool_settings.sculpt.brush.curve_distance_falloff_preset = 'CONSTANT'
         self._check_stroke()
 
 

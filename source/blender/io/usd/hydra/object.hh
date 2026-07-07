@@ -17,7 +17,13 @@
 #include "id.hh"
 #include "material.hh"
 
-namespace blender::io::hydra {
+namespace blender {
+
+struct Material;
+
+namespace io::hydra {
+
+class HydraSceneDelegate;
 
 class ObjectData : public IdData {
  public:
@@ -42,6 +48,9 @@ class ObjectData : public IdData {
   virtual pxr::SdfPath material_id() const;
   virtual pxr::SdfPath material_id(pxr::SdfPath const &id) const;
   virtual void available_materials(Set<pxr::SdfPath> &paths) const;
+  virtual bool double_sided(pxr::SdfPath const &id) const;
+  virtual pxr::HdCullStyle cull_style(pxr::SdfPath const &id) const;
+  virtual MaterialData *get_material_data(pxr::SdfPath const &id) const;
 
  protected:
   virtual void write_transform();
@@ -53,4 +62,5 @@ using ObjectDataMap = Map<pxr::SdfPath, std::unique_ptr<ObjectData>>;
 
 pxr::GfMatrix4d gf_matrix_from_transform(const float m[4][4]);
 
-}  // namespace blender::io::hydra
+}  // namespace io::hydra
+}  // namespace blender

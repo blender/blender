@@ -64,7 +64,7 @@ def _create_array(data, length, array_type, array_stride, array_byteswap):
     """Create an array from FBX data."""
     # If size of the data does not match the expected size of the array, then something is wrong with the code or the
     # FBX file.
-    assert(length * array_stride == len(data))
+    assert length * array_stride == len(data)
 
     data_array = array.array(array_type, data)
     if array_byteswap and _IS_BIG_ENDIAN:
@@ -186,7 +186,7 @@ def read_elem(read, tell, use_namedtuple, decompress_array_func, tell_file_offse
         # the OS every time its tell() function is called. This is about 10 times slower than the tell() function of
         # BytesIO objects, so reading chunks of bytes from the file into memory at once and exposing them through
         # BytesIO can give better performance. We know the total size of each element's subtree so can read entire
-        # subtrees into memory at a time.
+        # sub-trees into memory at a time.
         # The "Objects" element's subtree, however, usually makes up most of the file, so we specifically avoid reading
         # all its sub-elements into memory at once to reduce memory requirements at the cost of slightly worse
         # performance when memory is not a concern.

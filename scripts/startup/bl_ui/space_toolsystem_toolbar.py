@@ -12,7 +12,14 @@
 # so avoid making changes all over the place.
 
 import bpy
-from bpy.types import Panel
+
+from bpy.types import (
+    Panel,
+)
+from bpy.app.translations import (
+    pgettext_iface as iface_,
+    pgettext_tip as tip_,
+)
 
 from bl_ui.space_toolsystem_common import (
     ToolSelectPanelHelper,
@@ -21,7 +28,6 @@ from bl_ui.space_toolsystem_common import (
 from bl_ui.properties_paint_common import (
     BrushAssetShelf,
 )
-from bpy.app.translations import pgettext_tip as tip_
 
 
 def kmi_to_string_or_none(kmi):
@@ -1339,7 +1345,7 @@ class _defs_edit_curves:
     def pen():
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("curves.pen")
-            layout.prop(props, "radius")
+            layout.prop(props, "size")
         return dict(
             idname="builtin.pen",
             label="Pen",
@@ -1939,9 +1945,10 @@ class _defs_vertex_paint:
         if context is None:
             return True
         ob = context.active_object
-        return (ob and ob.type == 'MESH' and
-                (ob.data.use_paint_mask or
-                 ob.data.use_paint_mask_vertex))
+        return (
+            ob and ob.type == 'MESH' and
+            (ob.data.use_paint_mask or ob.data.use_paint_mask_vertex)
+        )
 
     @ToolDef.from_fn
     def blur():
@@ -2100,7 +2107,7 @@ class _defs_weight_paint:
                 weight = context.tool_settings.weight_paint.brush.weight
             else:
                 return
-            layout.label(text="Weight: {:.3f}".format(weight))
+            layout.label(text=iface_("Weight: {:.3f}").format(weight), translate=False)
         return dict(
             idname="builtin.sample_weight",
             label="Sample Weight",
@@ -2445,7 +2452,7 @@ class _defs_grease_pencil_edit:
     def pen():
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("grease_pencil.pen")
-            layout.prop(props, "radius")
+            layout.prop(props, "size")
 
             layout.separator()
             tool_settings = context.tool_settings
@@ -2827,7 +2834,7 @@ class _defs_image_uv_sculpt:
         def draw_cursor(context, tool, xy):
             from gpu_extras.presets import draw_circle_2d
             uv_sculpt = context.scene.tool_settings.uv_sculpt
-            radius = uv_sculpt.size
+            radius = uv_sculpt.size / 2
             draw_circle_2d(xy, (1.0,) * 4, radius)
 
         return dict(
@@ -2855,7 +2862,7 @@ class _defs_image_uv_sculpt:
         def draw_cursor(context, tool, xy):
             from gpu_extras.presets import draw_circle_2d
             uv_sculpt = context.scene.tool_settings.uv_sculpt
-            radius = uv_sculpt.size
+            radius = uv_sculpt.size / 2
             draw_circle_2d(xy, (1.0,) * 4, radius)
 
         return dict(
@@ -2880,7 +2887,7 @@ class _defs_image_uv_sculpt:
         def draw_cursor(context, tool, xy):
             from gpu_extras.presets import draw_circle_2d
             uv_sculpt = context.scene.tool_settings.uv_sculpt
-            radius = uv_sculpt.size
+            radius = uv_sculpt.size / 2
             draw_circle_2d(xy, (1.0,) * 4, radius)
 
         return dict(
@@ -3179,6 +3186,13 @@ class _defs_sequencer_generic:
             props = tool.operator_properties("sequencer.split")
             row = layout.row()
             row.prop(props, "type", expand=True)
+
+            layout.separator()
+
+            props = tool.operator_properties("sequencer.box_blade")
+            layout.prop(props, "remove_gaps", expand=True)
+            layout.prop(props, "ignore_selection", expand=True)
+            layout.prop(props, "ignore_connections", expand=True)
         return dict(
             idname="builtin.blade",
             label="Blade",

@@ -13,9 +13,11 @@
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
-BLI_INLINE void BKE_multires_construct_tangent_matrix(blender::float3x3 &tangent_matrix,
-                                                      const blender::float3 &dPdu,
-                                                      const blender::float3 &dPdv,
+namespace blender {
+
+BLI_INLINE void BKE_multires_construct_tangent_matrix(float3x3 &tangent_matrix,
+                                                      const float3 &dPdu,
+                                                      const float3 &dPdv,
                                                       const int corner)
 {
   if (corner == 0) {
@@ -37,9 +39,11 @@ BLI_INLINE void BKE_multires_construct_tangent_matrix(blender::float3x3 &tangent
   else {
     BLI_assert_msg(0, "Unhandled corner index");
   }
-  tangent_matrix.z_axis() = blender::math::cross(dPdu, dPdv);
+  tangent_matrix.z_axis() = math::cross(dPdu, dPdv);
 
-  tangent_matrix.x_axis() = blender::math::normalize(tangent_matrix.x_axis());
-  tangent_matrix.y_axis() = blender::math::normalize(tangent_matrix.y_axis());
-  tangent_matrix.z_axis() = blender::math::normalize(tangent_matrix.z_axis());
+  tangent_matrix.x_axis() = math::normalize(tangent_matrix.x_axis());
+  tangent_matrix.y_axis() = math::normalize(tangent_matrix.y_axis());
+  tangent_matrix.z_axis() = math::normalize(tangent_matrix.z_axis());
 }
+
+}  // namespace blender

@@ -285,6 +285,8 @@ class GreasePencilStrokePointSlice(SliceHelper):
     ("cyclic", "cyclic", 'BOOLEAN', False, "The closed state for this stroke."),
     ("material_index", "material_index", 'INT', 0,
      "The index of the material for this stroke."),
+    ("fill_id", "fill_id", 'INT', 0, "The fill id of this stroke."),
+    ("hide_stroke", "hide_stroke", 'BOOLEAN', False, "The stroke visibility state."),
     ("softness", "softness", 'FLOAT', 0.0,
      "Used by the renderer to generate a soft gradient from the stroke center line to the edges."),
     ("start_cap", "start_cap", 'INT8', 0, "The type of start cap of this stroke."),
@@ -328,7 +330,9 @@ class GreasePencilStroke(AttributeGetterSetter):
         previous_end = self._points_end_index
         new_size = self._points_end_index - self._points_start_index + count
         self._drawing.resize_strokes(
-            sizes=[new_size], indices=[self._curve_index])
+            sizes=[new_size],
+            indices=[self._curve_index],
+        )
         self._points_end_index = self._points_start_index + new_size
         return GreasePencilStrokePointSlice(self._drawing, self._curve_index, previous_end, self._points_end_index)
 
@@ -341,7 +345,9 @@ class GreasePencilStroke(AttributeGetterSetter):
         if new_size < 1:
             new_size = 1
         self._drawing.resize_strokes(
-            sizes=[new_size], indices=[self._curve_index])
+            sizes=[new_size],
+            indices=[self._curve_index],
+        )
         self._points_end_index = self._points_start_index + new_size
 
     @property

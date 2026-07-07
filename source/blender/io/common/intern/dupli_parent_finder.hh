@@ -17,15 +17,14 @@ namespace blender::io {
 class DupliParentFinder final {
  private:
   /* To check whether an Object * is instanced by this duplicator. */
-  blender::Set<const Object *> dupli_set_;
+  Set<const Object *> dupli_set_;
 
   /* To find the DupliObject given its Persistent ID. */
-  using PIDToDupliMap = blender::Map<const PersistentID, const DupliObject *>;
+  using PIDToDupliMap = Map<const PersistentID, const DupliObject *>;
   PIDToDupliMap pid_to_dupli_;
 
   /* Mapping from instancer PID to duplis instanced by it. */
-  using InstancerPIDToDuplisMap =
-      blender::Map<const PersistentID, blender::Set<const DupliObject *>>;
+  using InstancerPIDToDuplisMap = Map<const PersistentID, Set<const DupliObject *>>;
   InstancerPIDToDuplisMap instancer_pid_to_duplis_;
 
  public:

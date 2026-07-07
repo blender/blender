@@ -17,6 +17,10 @@
  *                   |                   |
  */
 
+#include "infos/compositor_double_edge_mask_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_double_edge_mask_compute_gradient)
+
 #include "gpu_shader_compositor_jump_flooding_lib.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
 

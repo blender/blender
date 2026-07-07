@@ -103,7 +103,7 @@ template<typename Key> class GValueMap {
     GMutablePointer value = values_.lookup_as(key);
     BLI_assert(value.is_type<T>());
     BLI_assert(value.get() != nullptr);
-    return *(const T *)value.get();
+    return *static_cast<const T *>(value.get());
   }
 
   template<typename ForwardKey> bool contains(const ForwardKey &key) const

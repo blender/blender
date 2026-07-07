@@ -8,6 +8,9 @@
 #include "BLI_array_utils.hh"
 #include "BLI_utildefines.h"
 #include "BLI_utildefines_stack.h"
+#include "BLI_virtual_array.hh"
+
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /* tests */
@@ -243,10 +246,8 @@ TEST(array_utils, DeduplicateOrdered3)
 
 #undef DEDUPLICATE_ORDERED_TEST
 
-static void find_all_ranges_test(const blender::Span<bool> data,
-                                 const blender::Span<blender::IndexRange> data_cmp)
+static void find_all_ranges_test(const Span<bool> data, const Span<IndexRange> data_cmp)
 {
-  using namespace blender;
   Vector<IndexRange> ranges = array_utils::find_all_ranges(data, true);
   EXPECT_EQ(ranges.size(), data_cmp.size());
   EXPECT_EQ_ARRAY(data_cmp.data(), ranges.as_span().data(), data_cmp.size());
@@ -254,7 +255,6 @@ static void find_all_ranges_test(const blender::Span<bool> data,
 
 TEST(array_utils, FindAllRanges1)
 {
-  using namespace blender;
   const std::array data = {false};
   Vector<IndexRange> ranges = array_utils::find_all_ranges(Span(data.data(), data.size()), true);
   EXPECT_EQ(ranges.size(), 0);
@@ -262,7 +262,6 @@ TEST(array_utils, FindAllRanges1)
 
 TEST(array_utils, FindAllRanges2)
 {
-  using namespace blender;
   const std::array data = {true, true, true};
   const std::array data_cmp = {IndexRange(0, 3)};
   find_all_ranges_test(data, data_cmp);
@@ -270,7 +269,6 @@ TEST(array_utils, FindAllRanges2)
 
 TEST(array_utils, FindAllRanges3)
 {
-  using namespace blender;
   const std::array data = {true, false};
   const std::array data_cmp = {IndexRange(0, 1)};
   find_all_ranges_test(data, data_cmp);
@@ -278,7 +276,6 @@ TEST(array_utils, FindAllRanges3)
 
 TEST(array_utils, FindAllRanges4)
 {
-  using namespace blender;
   const std::array data = {false, true};
   const std::array data_cmp = {IndexRange(1, 1)};
   find_all_ranges_test(data, data_cmp);
@@ -286,8 +283,42 @@ TEST(array_utils, FindAllRanges4)
 
 TEST(array_utils, FindAllRanges5)
 {
-  using namespace blender;
   const std::array data = {true, false, false, true, true, false, true};
   const std::array data_cmp = {IndexRange(0, 1), IndexRange(3, 2), IndexRange(6, 1)};
   find_all_ranges_test(data, data_cmp);
 }
+
+static void find_max_element_test(const VArray<int> &values,
+                                  const std::optional<int64_t> expect_index)
+{
+  const std::optional<int64_t> result_index = array_utils::max_element_index(values);
+  EXPECT_TRUE(result_index.has_value() == expect_index.has_value());
+  if (result_index.has_value() && expect_index.has_value()) {
+    EXPECT_EQ(result_index.value(), expect_index.value());
+  }
+}
+
+TEST(array_utils, FindMaxElement1)
+{
+  find_max_element_test(VArray<int>::from_span({}), std::nullopt);
+}
+
+TEST(array_utils, FindMaxElement2)
+{
+  const std::array data{1};
+  find_max_element_test(VArray<int>::from_span(data), 0);
+}
+
+TEST(array_utils, FindMaxElement3)
+{
+  const std::array data{1, 2, 2, 1};
+  find_max_element_test(VArray<int>::from_span(data), 1);
+}
+
+TEST(array_utils, FindMaxElement4)
+{
+  /* Inverted parabola with roots 0 and 9 and a peak at (x = 4.5, y = 20.25). */
+  find_max_element_test(VArray<int>::from_func(10, [](const int x) { return -x * x + 9 * x; }), 4);
+}
+
+}  // namespace blender

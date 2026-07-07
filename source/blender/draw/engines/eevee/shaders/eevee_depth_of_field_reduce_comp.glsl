@@ -15,12 +15,13 @@
  * - Gather input color (whole mip chain), Scatter rect list, Signed CoC (whole mip chain).
  */
 
-#include "infos/eevee_depth_of_field_info.hh"
+#include "infos/eevee_depth_of_field_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_reduce)
 
 #include "eevee_depth_of_field_lib.glsl"
-#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_safe_lib.glsl"
+#include "gpu_shader_math_vector_reduce_lib.glsl"
 
 /* NOTE: Do not compare alpha as it is not scattered by the scatter pass. */
 float dof_scatter_neighborhood_rejection(float3 color)
@@ -80,9 +81,8 @@ float fast_luma(float3 color)
   return (2.0f * color.g) + color.r + color.b;
 }
 
-#define cache_size (gl_WorkGroupSize.x)
-shared float4 color_cache[cache_size][cache_size];
-shared float coc_cache[cache_size][cache_size];
+shared float4 color_cache[gl_WorkGroupSize.x][gl_WorkGroupSize.x];
+shared float coc_cache[gl_WorkGroupSize.x][gl_WorkGroupSize.x];
 
 void store_color_cache(uint2 coord, float4 value)
 {

@@ -27,7 +27,7 @@ struct NodeGizmoID {
   ComputeContextHash compute_context_hash;
   int node_id;
 
-  BLI_STRUCT_EQUALITY_OPERATORS_2(NodeGizmoID, compute_context_hash, node_id)
+  friend bool operator==(const NodeGizmoID &a, const NodeGizmoID &b) = default;
 
   uint64_t hash() const
   {

@@ -173,6 +173,9 @@ void HdCyclesCurves::PopulatePrimvars(HdSceneDelegate *sceneDelegate)
       if (desc.role == HdPrimvarRoleTokens->textureCoordinate) {
         std = ATTR_STD_UV;
       }
+      else if (desc.name == HdTokens->normals && interpolation.first == HdInterpolationVertex) {
+        std = ATTR_STD_VERTEX_NORMAL;
+      }
       else if (desc.name == HdTokens->displayColor &&
                interpolation.first == HdInterpolationConstant)
       {
@@ -186,7 +189,11 @@ void HdCyclesCurves::PopulatePrimvars(HdSceneDelegate *sceneDelegate)
       if ((std != ATTR_STD_NONE && _geom->need_attribute(scene, std)) ||
           _geom->need_attribute(scene, name))
       {
-        ApplyPrimvars(_geom->attributes, name, value, interpolation.second, std);
+        AttributeElement elem = interpolation.second;
+        if (std == ATTR_STD_VERTEX_NORMAL) {
+          elem = ATTR_ELEMENT_CURVE_KEY_NORMAL;
+        }
+        ApplyPrimvars(_geom->attributes, name, value, elem, std);
       }
     }
   }

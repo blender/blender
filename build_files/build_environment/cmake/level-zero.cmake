@@ -10,6 +10,7 @@ ExternalProject_Add(external_level-zero
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${LEVEL_ZERO_HASH_TYPE}=${LEVEL_ZERO_HASH}
   PREFIX ${BUILD_DIR}/level-zero
+  CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
 
   PATCH_COMMAND ${PATCH_CMD} -p 1 -d
     ${BUILD_DIR}/level-zero/src/external_level-zero <

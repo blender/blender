@@ -21,7 +21,9 @@
 
 #include "gpu_framebuffer_private.hh"
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 
 /* -------------------------------------------------------------------- */
 /** \name Constructor / Destructor
@@ -149,8 +151,9 @@ void FrameBuffer::subpass_transition(const GPUAttachmentState depth_attachment_s
       set_color_attachment_bit(type, color_attachment_states[i] == GPU_ATTACHMENT_WRITE);
     }
     else {
+      set_color_attachment_bit(type, false);
       BLI_assert(i >= color_attachment_states.size() ||
-                 color_attachment_states[i] == GPU_ATTACHMENT_IGNORE);
+                 color_attachment_states[i] != GPU_ATTACHMENT_READ);
     }
   }
 
@@ -208,70 +211,69 @@ uint FrameBuffer::get_bits_per_pixel()
 
 /** \} */
 
-}  // namespace blender::gpu
+}  // namespace gpu
 
 /* -------------------------------------------------------------------- */
 /** \name C-API
  * \{ */
 
-using namespace blender;
 using namespace blender::gpu;
 
-GPUFrameBuffer *GPU_framebuffer_create(const char *name)
+gpu::FrameBuffer *GPU_framebuffer_create(const char *name)
 {
   /* We generate the FB object later at first use in order to
    * create the frame-buffer in the right opengl context. */
-  return wrap(GPUBackend::get()->framebuffer_alloc(name));
+  return GPUBackend::get()->framebuffer_alloc(name);
 }
 
-void GPU_framebuffer_free(GPUFrameBuffer *fb)
+void GPU_framebuffer_free(gpu::FrameBuffer *fb)
 {
-  delete unwrap(fb);
+  delete fb;
 }
 
-const char *GPU_framebuffer_get_name(GPUFrameBuffer *fb)
+const char *GPU_framebuffer_get_name(gpu::FrameBuffer *fb)
 {
-  return unwrap(fb)->name_get();
+  return fb->name_get();
 }
 
 /* ---------- Binding ----------- */
 
-void GPU_framebuffer_bind(GPUFrameBuffer *fb)
+void GPU_framebuffer_bind(gpu::FrameBuffer *fb)
 {
   const bool enable_srgb = true;
   /* Disable custom loadstore and bind. */
-  unwrap(fb)->set_use_explicit_loadstore(false);
-  unwrap(fb)->bind(enable_srgb);
+  fb->set_use_explicit_loadstore(false);
+  fb->bind(enable_srgb);
 }
 
-void GPU_framebuffer_bind_loadstore(GPUFrameBuffer *fb,
+void GPU_framebuffer_bind_loadstore(gpu::FrameBuffer *fb,
                                     const GPULoadStore *load_store_actions,
                                     uint actions_len)
 {
   const bool enable_srgb = true;
   /* Bind with explicit loadstore state */
-  unwrap(fb)->set_use_explicit_loadstore(true);
-  unwrap(fb)->bind(enable_srgb);
+  fb->set_use_explicit_loadstore(true);
+  fb->bind(enable_srgb);
 
   /* Update load store */
-  unwrap(fb)->load_store_config_array(load_store_actions, actions_len);
+  fb->load_store_config_array(load_store_actions, actions_len);
 }
 
-void GPU_framebuffer_subpass_transition_array(GPUFrameBuffer *fb,
+void GPU_framebuffer_subpass_transition_array(gpu::FrameBuffer *fb,
                                               const GPUAttachmentState *attachment_states,
                                               uint attachment_len)
 {
-  unwrap(fb)->subpass_transition(
-      attachment_states[0], Span<GPUAttachmentState>(attachment_states + 1, attachment_len - 1));
+  fb->subpass_transition(attachment_states[0],
+                         Span<GPUAttachmentState>(attachment_states + 1, attachment_len - 1));
 }
 
-void GPU_framebuffer_bind_no_srgb(GPUFrameBuffer *fb)
+void GPU_framebuffer_bind_no_srgb(gpu::FrameBuffer *fb)
 {
   const bool enable_srgb = false;
-  unwrap(fb)->bind(enable_srgb);
+  fb->bind(enable_srgb);
 }
 
-void GPU_backbuffer_bind(eGPUBackBuffer back_buffer_type)
+void GPU_backbuffer_bind(GPUBackBuffer back_buffer_type)
 {
   Context *ctx = Context::get();
 
@@ -288,73 +290,68 @@ void GPU_framebuffer_restore()
   Context::get()->back_left->bind(false);
 }
 
-GPUFrameBuffer *GPU_framebuffer_active_get()
+gpu::FrameBuffer *GPU_framebuffer_active_get()
 {
   Context *ctx = Context::get();
-  return wrap(ctx ? ctx->active_fb : nullptr);
+  return ctx ? ctx->active_fb : nullptr;
 }
 
-GPUFrameBuffer *GPU_framebuffer_back_get()
+gpu::FrameBuffer *GPU_framebuffer_back_get()
 {
   Context *ctx = Context::get();
-  return wrap(ctx ? ctx->back_left : nullptr);
+  return ctx ? ctx->back_left : nullptr;
 }
 
-bool GPU_framebuffer_bound(GPUFrameBuffer *gpu_fb)
+bool GPU_framebuffer_bound(gpu::FrameBuffer *gpu_fb)
 {
   return (gpu_fb == GPU_framebuffer_active_get());
 }
 
 /* ---------- Attachment Management ----------- */
 
-bool GPU_framebuffer_check_valid(GPUFrameBuffer *gpu_fb, char err_out[256])
+bool GPU_framebuffer_check_valid(gpu::FrameBuffer *gpu_fb, char err_out[256])
 {
-  return unwrap(gpu_fb)->check(err_out);
+  return gpu_fb->check(err_out);
 }
 
-static void gpu_framebuffer_texture_attach_ex(GPUFrameBuffer *gpu_fb,
+static void gpu_framebuffer_texture_attach_ex(gpu::FrameBuffer *gpu_fb,
                                               GPUAttachment attachment,
                                               int slot)
 {
   Texture *tex = reinterpret_cast<Texture *>(attachment.tex);
   GPUAttachmentType type = tex->attachment_type(slot);
-  unwrap(gpu_fb)->attachment_set(type, attachment);
+  gpu_fb->attachment_set(type, attachment);
 }
 
-void GPU_framebuffer_texture_attach(GPUFrameBuffer *fb,
-                                    blender::gpu::Texture *tex,
-                                    int slot,
-                                    int mip)
+void GPU_framebuffer_texture_attach(gpu::FrameBuffer *fb, gpu::Texture *tex, int slot, int mip)
 {
   GPUAttachment attachment = GPU_ATTACHMENT_TEXTURE_MIP(tex, mip);
   gpu_framebuffer_texture_attach_ex(fb, attachment, slot);
 }
 
 void GPU_framebuffer_texture_layer_attach(
-    GPUFrameBuffer *fb, blender::gpu::Texture *tex, int slot, int layer, int mip)
+    gpu::FrameBuffer *fb, gpu::Texture *tex, int slot, int layer, int mip)
 {
   GPUAttachment attachment = GPU_ATTACHMENT_TEXTURE_LAYER_MIP(tex, layer, mip);
   gpu_framebuffer_texture_attach_ex(fb, attachment, slot);
 }
 
 void GPU_framebuffer_texture_cubeface_attach(
-    GPUFrameBuffer *fb, blender::gpu::Texture *tex, int slot, int face, int mip)
+    gpu::FrameBuffer *fb, gpu::Texture *tex, int slot, int face, int mip)
 {
   GPUAttachment attachment = GPU_ATTACHMENT_TEXTURE_CUBEFACE_MIP(tex, face, mip);
   gpu_framebuffer_texture_attach_ex(fb, attachment, slot);
 }
 
-void GPU_framebuffer_texture_detach(GPUFrameBuffer *fb, blender::gpu::Texture *tex)
+void GPU_framebuffer_texture_detach(gpu::FrameBuffer *fb, gpu::Texture *tex)
 {
-  tex->detach_from(unwrap(fb));
+  tex->detach_from(fb);
 }
 
-void GPU_framebuffer_config_array(GPUFrameBuffer *gpu_fb,
+void GPU_framebuffer_config_array(gpu::FrameBuffer *fb,
                                   const GPUAttachment *config,
                                   int config_len)
 {
-  FrameBuffer *fb = unwrap(gpu_fb);
-
   const GPUAttachment &depth_attachment = config[0];
   Span<GPUAttachment> color_attachments(config + 1, config_len - 1);
 
@@ -380,77 +377,84 @@ void GPU_framebuffer_config_array(GPUFrameBuffer *gpu_fb,
   }
 }
 
-void GPU_framebuffer_default_size(GPUFrameBuffer *gpu_fb, int width, int height)
+void GPU_framebuffer_default_size(gpu::FrameBuffer *gpu_fb, int width, int height)
 {
-  unwrap(gpu_fb)->default_size_set(width, height);
+  gpu_fb->default_size_set(width, height);
+}
+
+int2 GPU_framebuffer_extent_get(gpu::FrameBuffer *gpu_fb)
+{
+  return gpu_fb->size_get();
 }
 
 /* ---------- Viewport & Scissor Region ----------- */
 
-void GPU_framebuffer_viewport_set(GPUFrameBuffer *gpu_fb, int x, int y, int width, int height)
+void GPU_framebuffer_viewport_set(gpu::FrameBuffer *gpu_fb, int x, int y, int width, int height)
 {
   int viewport_rect[4] = {x, y, width, height};
-  unwrap(gpu_fb)->viewport_set(viewport_rect);
+  gpu_fb->viewport_set(viewport_rect);
 }
 
-void GPU_framebuffer_multi_viewports_set(GPUFrameBuffer *gpu_fb,
+void GPU_framebuffer_multi_viewports_set(gpu::FrameBuffer *gpu_fb,
                                          const int viewport_rects[GPU_MAX_VIEWPORTS][4])
 {
-  unwrap(gpu_fb)->viewport_multi_set(viewport_rects);
+  gpu_fb->viewport_multi_set(viewport_rects);
 }
 
-void GPU_framebuffer_viewport_get(GPUFrameBuffer *gpu_fb, int r_viewport[4])
+void GPU_framebuffer_viewport_get(gpu::FrameBuffer *gpu_fb, int r_viewport[4])
 {
-  unwrap(gpu_fb)->viewport_get(r_viewport);
+  gpu_fb->viewport_get(r_viewport);
 }
 
-void GPU_framebuffer_viewport_reset(GPUFrameBuffer *gpu_fb)
+void GPU_framebuffer_viewport_reset(gpu::FrameBuffer *gpu_fb)
 {
-  unwrap(gpu_fb)->viewport_reset();
+  gpu_fb->viewport_reset();
 }
 
 /* ---------- Frame-buffer Operations ----------- */
 
-void GPU_framebuffer_clear(GPUFrameBuffer *gpu_fb,
-                           eGPUFrameBufferBits buffers,
+void GPU_framebuffer_clear(gpu::FrameBuffer *gpu_fb,
+                           GPUFrameBufferBits buffers,
                            const float clear_col[4],
                            float clear_depth,
                            uint clear_stencil)
 {
-  BLI_assert_msg(unwrap(gpu_fb)->get_use_explicit_loadstore() == false,
+  BLI_assert_msg(gpu_fb->get_use_explicit_loadstore() == false,
                  "Using GPU_framebuffer_clear_* functions in conjunction with custom load-store "
                  "state via GPU_framebuffer_bind_ex is invalid.");
-  unwrap(gpu_fb)->clear(buffers, clear_col, clear_depth, clear_stencil);
+  gpu_fb->clear(buffers, clear_col, clear_depth, clear_stencil);
 }
 
-void GPU_framebuffer_clear_color(GPUFrameBuffer *fb, const float clear_col[4])
+void GPU_framebuffer_clear_color(gpu::FrameBuffer *fb, const float clear_col[4])
 {
   GPU_framebuffer_clear(fb, GPU_COLOR_BIT, clear_col, 0.0f, 0x00);
 }
 
-void GPU_framebuffer_clear_depth(GPUFrameBuffer *fb, float clear_depth)
+void GPU_framebuffer_clear_depth(gpu::FrameBuffer *fb, float clear_depth)
 {
   GPU_framebuffer_clear(fb, GPU_DEPTH_BIT, nullptr, clear_depth, 0x00);
 }
 
-void GPU_framebuffer_clear_color_depth(GPUFrameBuffer *fb,
+void GPU_framebuffer_clear_color_depth(gpu::FrameBuffer *fb,
                                        const float clear_col[4],
                                        float clear_depth)
 {
   GPU_framebuffer_clear(fb, GPU_COLOR_BIT | GPU_DEPTH_BIT, clear_col, clear_depth, 0x00);
 }
 
-void GPU_framebuffer_clear_stencil(GPUFrameBuffer *fb, uint clear_stencil)
+void GPU_framebuffer_clear_stencil(gpu::FrameBuffer *fb, uint clear_stencil)
 {
   GPU_framebuffer_clear(fb, GPU_STENCIL_BIT, nullptr, 0.0f, clear_stencil);
 }
 
-void GPU_framebuffer_clear_depth_stencil(GPUFrameBuffer *fb, float clear_depth, uint clear_stencil)
+void GPU_framebuffer_clear_depth_stencil(gpu::FrameBuffer *fb,
+                                         float clear_depth,
+                                         uint clear_stencil)
 {
   GPU_framebuffer_clear(fb, GPU_DEPTH_BIT | GPU_STENCIL_BIT, nullptr, clear_depth, clear_stencil);
 }
 
-void GPU_framebuffer_clear_color_depth_stencil(GPUFrameBuffer *fb,
+void GPU_framebuffer_clear_color_depth_stencil(gpu::FrameBuffer *fb,
                                                const float clear_col[4],
                                                float clear_depth,
                                                uint clear_stencil)
@@ -459,12 +463,12 @@ void GPU_framebuffer_clear_color_depth_stencil(GPUFrameBuffer *fb,
       fb, GPU_COLOR_BIT | GPU_DEPTH_BIT | GPU_STENCIL_BIT, clear_col, clear_depth, clear_stencil);
 }
 
-void GPU_framebuffer_multi_clear(GPUFrameBuffer *fb, const float (*clear_colors)[4])
+void GPU_framebuffer_multi_clear(gpu::FrameBuffer *fb, const float (*clear_colors)[4])
 {
-  BLI_assert_msg(unwrap(fb)->get_use_explicit_loadstore() == false,
+  BLI_assert_msg(fb->get_use_explicit_loadstore() == false,
                  "Using GPU_framebuffer_clear_* functions in conjunction with custom load-store "
                  "state via GPU_framebuffer_bind_ex is invalid.");
-  unwrap(fb)->clear_multi(clear_colors);
+  fb->clear_multi(clear_colors);
 }
 
 void GPU_clear_color(float red, float green, float blue, float alpha)
@@ -486,13 +490,13 @@ void GPU_clear_depth(float depth)
 }
 
 void GPU_framebuffer_read_depth(
-    GPUFrameBuffer *fb, int x, int y, int w, int h, eGPUDataFormat format, void *data)
+    gpu::FrameBuffer *fb, int x, int y, int w, int h, eGPUDataFormat format, void *data)
 {
   int rect[4] = {x, y, w, h};
-  unwrap(fb)->read(GPU_DEPTH_BIT, format, rect, 1, 1, data);
+  fb->read(GPU_DEPTH_BIT, format, rect, 1, 1, data);
 }
 
-void GPU_framebuffer_read_color(GPUFrameBuffer *fb,
+void GPU_framebuffer_read_color(gpu::FrameBuffer *fb,
                                 int x,
                                 int y,
                                 int w,
@@ -503,7 +507,7 @@ void GPU_framebuffer_read_color(GPUFrameBuffer *fb,
                                 void *data)
 {
   int rect[4] = {x, y, w, h};
-  unwrap(fb)->read(GPU_COLOR_BIT, format, rect, channels, slot, data);
+  fb->read(GPU_COLOR_BIT, format, rect, channels, slot, data);
 }
 
 void GPU_frontbuffer_read_color(
@@ -514,20 +518,18 @@ void GPU_frontbuffer_read_color(
 }
 
 /* TODO(fclem): port as texture operation. */
-void GPU_framebuffer_blit(GPUFrameBuffer *gpu_fb_read,
+void GPU_framebuffer_blit(gpu::FrameBuffer *fb_read,
                           int read_slot,
-                          GPUFrameBuffer *gpu_fb_write,
+                          gpu::FrameBuffer *fb_write,
                           int write_slot,
-                          eGPUFrameBufferBits blit_buffers)
+                          GPUFrameBufferBits blit_buffers)
 {
-  FrameBuffer *fb_read = unwrap(gpu_fb_read);
-  FrameBuffer *fb_write = unwrap(gpu_fb_write);
   BLI_assert(blit_buffers != 0);
 
   FrameBuffer *prev_fb = Context::get()->active_fb;
 
 #ifndef NDEBUG
-  blender::gpu::Texture *read_tex, *write_tex;
+  gpu::Texture *read_tex, *write_tex;
   if (blit_buffers & (GPU_DEPTH_BIT | GPU_STENCIL_BIT)) {
     read_tex = fb_read->depth_tex();
     write_tex = fb_write->depth_tex();
@@ -555,15 +557,15 @@ void GPU_framebuffer_blit(GPUFrameBuffer *gpu_fb_read,
 }
 
 #ifndef GPU_NO_USE_PY_REFERENCES
-void **GPU_framebuffer_py_reference_get(GPUFrameBuffer *fb)
+void **GPU_framebuffer_py_reference_get(gpu::FrameBuffer *fb)
 {
-  return unwrap(fb)->py_ref;
+  return fb->py_ref;
 }
 
-void GPU_framebuffer_py_reference_set(GPUFrameBuffer *fb, void **py_ref)
+void GPU_framebuffer_py_reference_set(gpu::FrameBuffer *fb, void **py_ref)
 {
-  BLI_assert(py_ref == nullptr || unwrap(fb)->py_ref == nullptr);
-  unwrap(fb)->py_ref = py_ref;
+  BLI_assert(py_ref == nullptr || fb->py_ref == nullptr);
+  fb->py_ref = py_ref;
 }
 #endif
 
@@ -578,18 +580,18 @@ void GPU_framebuffer_py_reference_set(GPUFrameBuffer *fb, void **py_ref)
 #define FRAMEBUFFER_STACK_DEPTH 16
 
 static struct {
-  GPUFrameBuffer *framebuffers[FRAMEBUFFER_STACK_DEPTH];
+  gpu::FrameBuffer *framebuffers[FRAMEBUFFER_STACK_DEPTH];
   uint top;
 } FrameBufferStack = {{nullptr}};
 
-void GPU_framebuffer_push(GPUFrameBuffer *fb)
+void GPU_framebuffer_push(gpu::FrameBuffer *fb)
 {
   BLI_assert(FrameBufferStack.top < FRAMEBUFFER_STACK_DEPTH);
   FrameBufferStack.framebuffers[FrameBufferStack.top] = fb;
   FrameBufferStack.top++;
 }
 
-GPUFrameBuffer *GPU_framebuffer_pop()
+gpu::FrameBuffer *GPU_framebuffer_pop()
 {
   BLI_assert(FrameBufferStack.top > 0);
   FrameBufferStack.top--;
@@ -617,17 +619,17 @@ struct GPUOffScreen {
 
   struct {
     Context *ctx;
-    GPUFrameBuffer *fb;
+    gpu::FrameBuffer *fb;
   } framebuffers[MAX_CTX_FB_LEN];
 
-  blender::gpu::Texture *color;
-  blender::gpu::Texture *depth;
+  gpu::Texture *color;
+  gpu::Texture *depth;
 };
 
 /**
  * Returns the correct frame-buffer for the current context.
  */
-static GPUFrameBuffer *gpu_offscreen_fb_get(GPUOffScreen *ofs)
+static gpu::FrameBuffer *gpu_offscreen_fb_get(GPUOffScreen *ofs)
 {
   Context *ctx = Context::get();
   BLI_assert(ctx);
@@ -668,12 +670,12 @@ static GPUFrameBuffer *gpu_offscreen_fb_get(GPUOffScreen *ofs)
 GPUOffScreen *GPU_offscreen_create(int width,
                                    int height,
                                    bool with_depth_buffer,
-                                   blender::gpu::TextureFormat format,
+                                   gpu::TextureFormat format,
                                    eGPUTextureUsage usage,
                                    bool clear,
                                    char err_out[256])
 {
-  GPUOffScreen *ofs = MEM_callocN<GPUOffScreen>(__func__);
+  GPUOffScreen *ofs = MEM_new_zeroed<GPUOffScreen>(__func__);
 
   /* Sometimes areas can have 0 height or width and this will
    * create a 1D texture which we don't want. */
@@ -692,13 +694,13 @@ GPUOffScreen *GPU_offscreen_create(int width,
                                        width,
                                        height,
                                        1,
-                                       blender::gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8,
+                                       gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8,
                                        depth_usage,
                                        nullptr);
   }
 
   if ((with_depth_buffer && !ofs->depth) || !ofs->color) {
-    const char error[] = "blender::gpu::Texture: Texture allocation failed.";
+    const char error[] = "gpu::Texture: Texture allocation failed.";
     if (err_out) {
       BLI_strncpy(err_out, error, 256);
     }
@@ -709,7 +711,7 @@ GPUOffScreen *GPU_offscreen_create(int width,
     return nullptr;
   }
 
-  GPUFrameBuffer *fb = gpu_offscreen_fb_get(ofs);
+  gpu::FrameBuffer *fb = gpu_offscreen_fb_get(ofs);
 
   /* check validity at the very end! */
   if (!GPU_framebuffer_check_valid(fb, err_out)) {
@@ -747,21 +749,21 @@ void GPU_offscreen_free(GPUOffScreen *offscreen)
     GPU_texture_free(offscreen->depth);
   }
 
-  MEM_freeN(offscreen);
+  MEM_delete(offscreen);
 }
 
 void GPU_offscreen_bind(GPUOffScreen *offscreen, bool save)
 {
   if (save) {
-    GPUFrameBuffer *fb = GPU_framebuffer_active_get();
+    gpu::FrameBuffer *fb = GPU_framebuffer_active_get();
     GPU_framebuffer_push(fb);
   }
-  unwrap(gpu_offscreen_fb_get(offscreen))->bind(false);
+  gpu_offscreen_fb_get(offscreen)->bind(false);
 }
 
 void GPU_offscreen_unbind(GPUOffScreen * /*offscreen*/, bool restore)
 {
-  GPUFrameBuffer *fb = nullptr;
+  gpu::FrameBuffer *fb = nullptr;
   if (restore) {
     fb = GPU_framebuffer_pop();
   }
@@ -777,7 +779,7 @@ void GPU_offscreen_unbind(GPUOffScreen * /*offscreen*/, bool restore)
 void GPU_offscreen_draw_to_screen(GPUOffScreen *offscreen, int x, int y)
 {
   Context *ctx = Context::get();
-  FrameBuffer *ofs_fb = unwrap(gpu_offscreen_fb_get(offscreen));
+  FrameBuffer *ofs_fb = gpu_offscreen_fb_get(offscreen);
   ofs_fb->blit_to(GPU_COLOR_BIT, 0, ctx->active_fb, 0, x, y);
 }
 
@@ -789,7 +791,7 @@ void GPU_offscreen_read_color_region(
   BLI_assert(x + w <= GPU_texture_width(offscreen->color));
   BLI_assert(y + h <= GPU_texture_height(offscreen->color));
 
-  GPUFrameBuffer *ofs_fb = gpu_offscreen_fb_get(offscreen);
+  gpu::FrameBuffer *ofs_fb = gpu_offscreen_fb_get(offscreen);
   GPU_framebuffer_read_color(ofs_fb, x, y, w, h, 4, 0, format, r_data);
 }
 
@@ -813,20 +815,20 @@ int GPU_offscreen_height(const GPUOffScreen *offscreen)
   return GPU_texture_height(offscreen->color);
 }
 
-blender::gpu::Texture *GPU_offscreen_color_texture(const GPUOffScreen *offscreen)
+gpu::Texture *GPU_offscreen_color_texture(const GPUOffScreen *offscreen)
 {
   return offscreen->color;
 }
 
-blender::gpu::TextureFormat GPU_offscreen_format(const GPUOffScreen *offscreen)
+gpu::TextureFormat GPU_offscreen_format(const GPUOffScreen *offscreen)
 {
   return GPU_texture_format(offscreen->color);
 }
 
 void GPU_offscreen_viewport_data_get(GPUOffScreen *offscreen,
-                                     GPUFrameBuffer **r_fb,
-                                     blender::gpu::Texture **r_color,
-                                     blender::gpu::Texture **r_depth)
+                                     gpu::FrameBuffer **r_fb,
+                                     gpu::Texture **r_color,
+                                     gpu::Texture **r_depth)
 {
   *r_fb = gpu_offscreen_fb_get(offscreen);
   *r_color = offscreen->color;
@@ -834,3 +836,5 @@ void GPU_offscreen_viewport_data_get(GPUOffScreen *offscreen,
 }
 
 /** \} */
+
+}  // namespace blender

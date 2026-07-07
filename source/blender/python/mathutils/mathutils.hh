@@ -15,6 +15,8 @@
 #include "BLI_array.hh"
 #include "BLI_vector.hh"
 
+namespace blender {
+
 struct DynStr;
 
 extern char BaseMathObject_is_wrapped_doc[];
@@ -69,12 +71,16 @@ struct BaseMathObject {
   BASE_MATH_MEMBERS(data);
 };
 
+}  // namespace blender
+
 /* types */
 #include "mathutils_Color.hh"       // IWYU pragma: export
 #include "mathutils_Euler.hh"       // IWYU pragma: export
 #include "mathutils_Matrix.hh"      // IWYU pragma: export
 #include "mathutils_Quaternion.hh"  // IWYU pragma: export
 #include "mathutils_Vector.hh"      // IWYU pragma: export
+
+namespace blender {
 
 /* avoid checking all types */
 #define BaseMathObject_CheckExact(v) (Py_TYPE(v)->tp_dealloc == (destructor)BaseMathObject_dealloc)
@@ -224,7 +230,7 @@ void _BaseMathObject_RaiseNotFrozenExc(const BaseMathObject *self);
  */
 [[nodiscard]] bool mathutils_array_parse_alloc_viseq(PyObject *value,
                                                      const char *error_prefix,
-                                                     blender::Array<blender::Vector<int>> &r_data);
+                                                     Array<Vector<int>> &r_data);
 [[nodiscard]] int mathutils_any_to_rotmat(float rmat[3][3],
                                           PyObject *value,
                                           const char *error_prefix);
@@ -264,3 +270,5 @@ void _BaseMathObject_RaiseNotFrozenExc(const BaseMathObject *self);
 /* dynstr as python string utility functions, frees 'ds'! */
 [[nodiscard]] PyObject *mathutils_dynstr_to_py(struct DynStr *ds);
 #endif
+
+}  // namespace blender

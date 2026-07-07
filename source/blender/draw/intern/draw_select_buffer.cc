@@ -19,6 +19,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_rect.h"
 
+#include "DNA_layer_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
@@ -35,8 +36,7 @@
 
 #include "../engines/select/select_engine.hh"
 
-using blender::int2;
-using blender::Span;
+namespace blender {
 
 bool SELECTID_Context::is_dirty(Depsgraph *depsgraph, RegionView3D *rv3d)
 {
@@ -46,7 +46,7 @@ bool SELECTID_Context::is_dirty(Depsgraph *depsgraph, RegionView3D *rv3d)
   /* Check if the viewport has changed.
    * This can happen when triggering the selection operator *while* playing back animation and
    * looking through an animated camera. */
-  if (!blender::math::is_equal(this->persmat, blender::float4x4(rv3d->persmat), FLT_EPSILON)) {
+  if (!math::is_equal(this->persmat, float4x4(rv3d->persmat), FLT_EPSILON)) {
     return true;
   }
   /* Check if any of the drawn objects have been transformed.
@@ -67,7 +67,7 @@ bool SELECTID_Context::is_dirty(Depsgraph *depsgraph, RegionView3D *rv3d)
 uint *DRW_select_buffer_read(
     Depsgraph *depsgraph, ARegion *region, View3D *v3d, const rcti *rect, uint *r_buf_len)
 {
-  uint *r_buf = nullptr;
+  uint *buf = nullptr;
   uint buf_len = 0;
 
   /* Clamp rect. */
@@ -97,9 +97,9 @@ uint *DRW_select_buffer_read(
 
       /* Read the UI32 pixels. */
       buf_len = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
-      r_buf = MEM_malloc_arrayN<uint>(buf_len, __func__);
+      buf = MEM_new_array_uninitialized<uint>(buf_len, __func__);
 
-      GPUFrameBuffer *select_id_fb = DRW_engine_select_framebuffer_get();
+      gpu::FrameBuffer *select_id_fb = DRW_engine_select_framebuffer_get();
       GPU_framebuffer_bind(select_id_fb);
       GPU_framebuffer_read_color(select_id_fb,
                                  rect_clamp.xmin,
@@ -109,11 +109,11 @@ uint *DRW_select_buffer_read(
                                  1,
                                  0,
                                  GPU_DATA_UINT,
-                                 r_buf);
+                                 buf);
 
       if (!BLI_rcti_compare(rect, &rect_clamp)) {
         /* The rect has been clamped so we need to realign the buffer and fill in the blanks */
-        GPU_select_buffer_stride_realign(rect, &rect_clamp, r_buf);
+        GPU_select_buffer_stride_realign(rect, &rect_clamp, buf);
       }
     }
 
@@ -125,7 +125,7 @@ uint *DRW_select_buffer_read(
     *r_buf_len = buf_len;
   }
 
-  return r_buf;
+  return buf;
 }
 
 /** \} */
@@ -165,7 +165,7 @@ uint *DRW_select_buffer_bitmap_from_rect(
     }
     buf_iter++;
   }
-  MEM_freeN(buf);
+  MEM_delete(buf);
 
   if (r_bitmap_len) {
     *r_bitmap_len = bitmap_len;
@@ -212,7 +212,7 @@ uint *DRW_select_buffer_bitmap_from_circle(Depsgraph *depsgraph,
       }
     }
   }
-  MEM_freeN(buf);
+  MEM_delete(buf);
 
   if (r_bitmap_len) {
     *r_bitmap_len = bitmap_len;
@@ -284,8 +284,8 @@ uint *DRW_select_buffer_bitmap_from_poly(Depsgraph *depsgraph,
     buf_iter++;
     i++;
   }
-  MEM_freeN(buf);
-  MEM_freeN(buf_mask);
+  MEM_delete(buf);
+  MEM_delete(buf_mask);
 
   if (r_bitmap_len) {
     *r_bitmap_len = bitmap_len;
@@ -321,7 +321,7 @@ uint DRW_select_buffer_sample_point(Depsgraph *depsgraph,
   if (buf) {
     BLI_assert(0 != buf_len);
     ret = buf[0];
-    MEM_freeN(buf);
+    MEM_delete(buf);
   }
 
   return ret;
@@ -337,7 +337,7 @@ struct SelectReadData {
 static bool select_buffer_test_fn(const void *__restrict value, void *__restrict userdata)
 {
   SelectReadData *data = static_cast<SelectReadData *>(userdata);
-  uint hit_id = *(uint *)value;
+  uint hit_id = *static_cast<uint *>(const_cast<void *>(value));
   if (hit_id && hit_id >= data->id_min && hit_id < data->id_max) {
     /* Start at 1 to confirm. */
     data->val_ptr = value;
@@ -387,7 +387,7 @@ uint DRW_select_buffer_find_nearest_to_point(Depsgraph *depsgraph,
     *dist = uint(abs(hit_y - center_yx[0]) + abs(hit_x - center_yx[1]));
   }
 
-  MEM_freeN(buf);
+  MEM_delete(buf);
   return data.r_index;
 }
 
@@ -463,7 +463,7 @@ uint DRW_select_buffer_context_offset_for_object_elem(Depsgraph *depsgraph,
  * \{ */
 
 void DRW_select_buffer_context_create(Depsgraph *depsgraph,
-                                      const blender::Span<Base *> bases,
+                                      const Span<Base *> bases,
                                       short select_mode)
 {
   SELECTID_Context *select_ctx = DRW_select_engine_context_get();
@@ -476,7 +476,9 @@ void DRW_select_buffer_context_create(Depsgraph *depsgraph,
   }
 
   select_ctx->select_mode = select_mode;
-  select_ctx->persmat = blender::float4x4::zero();
+  select_ctx->persmat = float4x4::zero();
 }
 
 /** \} */
+
+}  // namespace blender

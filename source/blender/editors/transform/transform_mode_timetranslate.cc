@@ -98,14 +98,14 @@ static void applyTimeTranslateValue(TransInfo *t, const float deltax)
 
 static void applyTimeTranslate(TransInfo *t)
 {
-  View2D *v2d = (View2D *)t->view;
+  View2D *v2d = static_cast<View2D *>(t->view);
   char str[UI_MAX_DRAW_STR];
 
   /* Calculate translation amount from mouse movement - in 'time-grid space'. */
   if (t->flag & T_MODAL) {
     float cval[2], sval[2];
-    UI_view2d_region_to_view(v2d, t->mval[0], t->mval[0], &cval[0], &cval[1]);
-    UI_view2d_region_to_view(v2d, t->mouse.imval[0], t->mouse.imval[0], &sval[0], &sval[1]);
+    ui::view2d_region_to_view(v2d, t->mval[0], t->mval[0], &cval[0], &cval[1]);
+    ui::view2d_region_to_view(v2d, t->mouse.imval[0], t->mouse.imval[0], &sval[0], &sval[1]);
 
     /* We only need to calculate effect for time (#applyTimeTranslate only needs that). */
     t->values[0] = cval[0] - sval[0];

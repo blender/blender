@@ -34,8 +34,6 @@ set(INC_SYS
   ../../extern/mantaflow/helper/util
   ../../extern/mantaflow/helper/pwrapper
   ../../extern/mantaflow/preprocessed
-  ${PYTHON_INCLUDE_DIRS}
-  ${ZLIB_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -58,10 +56,8 @@ set(LIB
   PRIVATE bf::dependencies::optional::openvdb
   PRIVATE bf::dependencies::optional::tbb
   extern_mantaflow
-
-  ${PYTHON_LINKFLAGS}
-  ${PYTHON_LIBRARIES}
-  ${ZLIB_LIBRARIES}
+  PRIVATE bf::dependencies::optional::python
+  PRIVATE bf::dependencies::zlib
 )
 
 blender_add_lib(bf_intern_mantaflow "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

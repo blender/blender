@@ -11,8 +11,8 @@ when the user is in Edit-Mode, where the mesh data is available but out of sync 
 In this situation you can...
 
 - Exit Edit-Mode before running the tool.
-- Explicitly update the mesh by calling :class:`bmesh.types.BMesh.to_mesh`.
-- Modify the script to support working on the edit-mode data directly, see: :mod:`bmesh.from_edit_mesh`.
+- Explicitly update the mesh by calling :meth:`bmesh.types.BMesh.to_mesh`.
+- Modify the script to support working on the edit-mode data directly, see: :func:`bmesh.from_edit_mesh`.
 - Report the context as incorrect and only allow the script to run outside Edit-Mode.
 
 

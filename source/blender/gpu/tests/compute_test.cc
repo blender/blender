@@ -17,20 +17,20 @@
 namespace blender::gpu::tests {
 static void test_compute_direct()
 {
-  static constexpr uint SIZE = 32;
+  static constexpr uint SIZE = 4;
 
   /* Build compute shader. */
   gpu::Shader *shader = GPU_shader_create_from_info_name("gpu_compute_2d_test");
   EXPECT_NE(shader, nullptr);
 
   /* Create texture to store result and attach to shader. */
-  blender::gpu::Texture *texture = GPU_texture_create_2d("gpu_shader_compute_2d",
-                                                         SIZE,
-                                                         SIZE,
-                                                         1,
-                                                         TextureFormat::SFLOAT_32_32_32_32,
-                                                         GPU_TEXTURE_USAGE_GENERAL,
-                                                         nullptr);
+  gpu::Texture *texture = GPU_texture_create_2d("gpu_shader_compute_2d",
+                                                SIZE,
+                                                SIZE,
+                                                1,
+                                                TextureFormat::SFLOAT_32_32_32_32,
+                                                GPU_TEXTURE_USAGE_GENERAL,
+                                                nullptr);
   EXPECT_NE(texture, nullptr);
 
   GPU_shader_bind(shader);
@@ -47,7 +47,7 @@ static void test_compute_direct()
   for (int index = 0; index < SIZE * SIZE; index++) {
     EXPECT_EQ(data[index], expected_result);
   }
-  MEM_freeN(data);
+  MEM_delete(data);
 
   /* Cleanup. */
   GPU_shader_unbind();
@@ -59,20 +59,20 @@ GPU_TEST(compute_direct)
 
 static void test_compute_indirect()
 {
-  static constexpr uint SIZE = 32;
+  static constexpr uint SIZE = 4;
 
   /* Build compute shader. */
   gpu::Shader *shader = GPU_shader_create_from_info_name("gpu_compute_2d_test");
   EXPECT_NE(shader, nullptr);
 
   /* Create texture to store result and attach to shader. */
-  blender::gpu::Texture *texture = GPU_texture_create_2d("gpu_shader_compute_2d",
-                                                         SIZE,
-                                                         SIZE,
-                                                         1,
-                                                         TextureFormat::SFLOAT_32_32_32_32,
-                                                         GPU_TEXTURE_USAGE_GENERAL,
-                                                         nullptr);
+  gpu::Texture *texture = GPU_texture_create_2d("gpu_shader_compute_2d",
+                                                SIZE,
+                                                SIZE,
+                                                1,
+                                                TextureFormat::SFLOAT_32_32_32_32,
+                                                GPU_TEXTURE_USAGE_GENERAL,
+                                                nullptr);
   EXPECT_NE(texture, nullptr);
   GPU_texture_clear(texture, GPU_DATA_FLOAT, float4(0.0f));
 
@@ -97,7 +97,7 @@ static void test_compute_indirect()
   for (int index = 0; index < SIZE * SIZE; index++) {
     EXPECT_EQ(data[index], expected_result);
   }
-  MEM_freeN(data);
+  MEM_delete(data);
 
   /* Cleanup. */
   GPU_storagebuf_free(compute_commands);

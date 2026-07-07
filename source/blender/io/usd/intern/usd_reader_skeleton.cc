@@ -18,7 +18,7 @@ void USDSkeletonReader::create_object(Main *bmain)
   bArmature *arm = BKE_armature_add(bmain, name_.c_str());
 
   object_ = BKE_object_add_only_object(bmain, OB_ARMATURE, name_.c_str());
-  object_->data = arm;
+  object_->data = id_cast<ID *>(arm);
 }
 
 void USDSkeletonReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)

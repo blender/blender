@@ -14,6 +14,15 @@
 
 namespace blender::nodes {
 
+class ListFieldContext : public FieldContext {
+ public:
+  ListFieldContext() = default;
+
+  GVArray get_varray_for_input(const FieldInput &field_input,
+                               const IndexMask &mask,
+                               ResourceScope & /*scope*/) const override;
+};
+
 void execute_multi_function_on_value_variant__list(const MultiFunction &fn,
                                                    const Span<SocketValueVariant *> input_values,
                                                    const Span<SocketValueVariant *> output_values,

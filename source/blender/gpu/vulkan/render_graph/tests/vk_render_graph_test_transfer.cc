@@ -104,8 +104,8 @@ TEST_F(VKRenderGraphTestTransfer, clear_clear_copy_and_read_back)
   VkHandle<VkImage> dst_image(2u);
   VkHandle<VkBuffer> staging_buffer(3u);
 
-  resources.add_image(src_image, 1);
-  resources.add_image(dst_image, 1);
+  resources.add_image(src_image, false);
+  resources.add_image(dst_image, false);
   resources.add_buffer(staging_buffer);
   VkClearColorValue color_white = {};
   color_white.float32[0] = 1.0f;
@@ -245,8 +245,8 @@ TEST_F(VKRenderGraphTestTransfer, clear_blit_copy_and_read_back)
   VkHandle<VkImage> dst_image(2u);
   VkHandle<VkBuffer> staging_buffer(3u);
 
-  resources.add_image(src_image, 1);
-  resources.add_image(dst_image, 1);
+  resources.add_image(src_image, false);
+  resources.add_image(dst_image, false);
   resources.add_buffer(staging_buffer);
   VkClearColorValue color_black = {};
   color_black.float32[0] = 0.0f;
@@ -339,6 +339,28 @@ TEST_F(VKRenderGraphTestTransfer, clear_blit_copy_and_read_back)
           endl() + "    x=0, y=0, z=0  , image_extent=" + endl() +
           "    width=0, height=0, depth=0  )" + endl() + ")",
       log[5]);
+}
+
+/**
+ * Modify a previous added copy buffer command.
+ */
+TEST_F(VKRenderGraphTestTransfer, copy_buffer_modify_data)
+{
+  VkHandle<VkBuffer> buffer_src(1u);
+  VkHandle<VkBuffer> buffer_dst(2u);
+
+  resources.add_buffer(buffer_src);
+  resources.add_buffer(buffer_dst);
+  VKCopyBufferNode::CreateInfo copy_buffer = {buffer_src, buffer_dst, {0, 0, 32}};
+  NodeHandle copy_buffer_handle = render_graph->add_node(copy_buffer);
+  VKCopyBufferNode::Data &copy_buffer_data = render_graph->get_node_data(copy_buffer_handle);
+  copy_buffer_data.region.size = 64;
+  submit(render_graph, command_buffer);
+
+  EXPECT_EQ(1, log.size());
+  EXPECT_EQ("copy_buffer(src_buffer=0x1, dst_buffer=0x2" + endl() +
+                " - region(src_offset=0, dst_offset=0, size=64)" + endl() + ")",
+            log[0]);
 }
 
 }  // namespace blender::gpu::render_graph

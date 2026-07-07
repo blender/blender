@@ -16,7 +16,7 @@
 
 namespace blender::ed::outliner {
 
-TreeElementActionSlot::TreeElementActionSlot(TreeElement &legacy_te, blender::animrig::Slot &slot)
+TreeElementActionSlot::TreeElementActionSlot(TreeElement &legacy_te, animrig::Slot &slot)
     : AbstractTreeElement(legacy_te)
 {
   legacy_te.name = &slot.identifier[2];

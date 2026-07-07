@@ -17,12 +17,18 @@
 
 #include "NOD_multi_function.hh"
 
-namespace blender::nodes::node_shader_mix_rgb_cc {
+namespace blender {
+
+namespace nodes::node_shader_mix_rgb_cc {
 
 static void sh_node_mix_rgb_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>("Fac").default_value(0.5f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("Factor", "Fac")
+      .default_value(0.5f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
   b.add_input<decl::Color>("Color1").default_value({0.5f, 0.5f, 0.5f, 1.0f});
   b.add_input<decl::Color>("Color2").default_value({0.5f, 0.5f, 0.5f, 1.0f});
   b.add_output<decl::Color>("Color");
@@ -137,7 +143,8 @@ class MixRGBFunction : public mf::MultiFunction {
     });
 
     if (clamp_) {
-      mask.foreach_index([&](const int64_t i) { clamp_v3(results[i], 0.0f, 1.0f); });
+      mask.foreach_index_optimized<int64_t>(
+          [&](const int64_t i) { clamp_v4(results[i], 0.0f, 1.0f); });
     }
   }
 };
@@ -150,13 +157,13 @@ static void sh_node_mix_rgb_build_multi_function(NodeMultiFunctionBuilder &build
   builder.construct_and_set_matching_fn<MixRGBFunction>(clamp, mix_type);
 }
 
-}  // namespace blender::nodes::node_shader_mix_rgb_cc
+}  // namespace nodes::node_shader_mix_rgb_cc
 
 void register_node_type_sh_mix_rgb()
 {
-  namespace file_ns = blender::nodes::node_shader_mix_rgb_cc;
+  namespace file_ns = nodes::node_shader_mix_rgb_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   common_node_type_base(&ntype, "ShaderNodeMixRGB", SH_NODE_MIX_RGB_LEGACY);
   ntype.ui_name = "Mix (Legacy)";
@@ -168,5 +175,7 @@ void register_node_type_sh_mix_rgb()
   ntype.gpu_fn = file_ns::gpu_shader_mix_rgb;
   ntype.build_multi_function = file_ns::sh_node_mix_rgb_build_multi_function;
   ntype.gather_link_search_ops = nullptr;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

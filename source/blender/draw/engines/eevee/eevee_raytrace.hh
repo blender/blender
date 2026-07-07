@@ -12,13 +12,16 @@
 
 #include "DNA_scene_types.h"
 
+#include "DRW_gpu_wrapper.hh"
 #include "DRW_render.hh"
 
-#include "eevee_shader_shared.hh"
+#include "eevee_raytrace_shared.hh"
 
 namespace blender::eevee {
 
 class Instance;
+
+using RayTraceTileBuf = draw::StorageArrayBuffer<uint, 1024, true>;
 
 /* -------------------------------------------------------------------- */
 /** \name Ray-tracing Buffers
@@ -34,8 +37,8 @@ struct RayTraceBuffer {
   /** Set of buffers that need to be allocated for each ray type. */
   struct DenoiseBuffer {
     /* Persistent history buffers. */
-    Texture radiance_history_tx = {"radiance_tx"};
-    Texture variance_history_tx = {"variance_tx"};
+    TextureFromPool radiance_history_tx = {"radiance_tx"};
+    TextureFromPool variance_history_tx = {"variance_tx"};
     /* Map of tiles that were processed inside the history buffer. */
     Texture tilemask_history_tx = {"tilemask_tx"};
     /** Perspective matrix for which the history buffers were recorded. */
@@ -90,13 +93,13 @@ class RayTraceResultTexture {
   /** Value of `result_->tx_` that can be referenced in advance. */
   gpu::Texture *tx_ = nullptr;
   /** History buffer to swap the temporary texture that does not need to be released. */
-  Texture *history_ = nullptr;
+  TextureFromPool *history_ = nullptr;
 
  public:
   RayTraceResultTexture() = default;
-  RayTraceResultTexture(TextureFromPool &result) : result_(result.ptr()), tx_(result){};
-  RayTraceResultTexture(TextureFromPool &result, Texture &history)
-      : result_(result.ptr()), tx_(result), history_(history.ptr()){};
+  RayTraceResultTexture(TextureFromPool &result) : result_(result.ptr()), tx_(result) {};
+  RayTraceResultTexture(TextureFromPool &result, TextureFromPool &history)
+      : result_(result.ptr()), tx_(result), history_(history.ptr()) {};
 
   operator gpu::Texture *() const
   {
@@ -112,10 +115,11 @@ class RayTraceResultTexture {
   void release()
   {
     if (history_) {
-      /* Swap after last use. */
+      /* Swap after last use, retain history until next cycle. */
       TextureFromPool::swap(*result_, *history_);
+      history_->retain();
     }
-    /* NOTE: This releases the previous history. */
+    /* Release previous history. */
     result_->release();
   }
 };
@@ -235,7 +239,7 @@ class RayTraceModule {
   RayTraceData &data_;
 
  public:
-  RayTraceModule(Instance &inst, RayTraceData &data) : inst_(inst), data_(data){};
+  RayTraceModule(Instance &inst, RayTraceData &data) : inst_(inst), data_(data) {};
 
   void init();
 
@@ -275,7 +279,7 @@ class RayTraceModule {
   RayTraceResult alloc_dummy(RayTraceBuffer &rt_buffer);
 
   void debug_pass_sync();
-  void debug_draw(View &view, GPUFrameBuffer *view_fb);
+  void debug_draw(View &view, gpu::FrameBuffer *view_fb);
 
   bool use_raytracing() const
   {

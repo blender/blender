@@ -201,7 +201,7 @@ PyDoc_STRVAR(
     ":type: str\n");
 static PyObject *SShape_name_get(BPy_SShape *self, void * /*closure*/)
 {
-  return PyC_UnicodeFromStdStr(self->ss->getName());
+  return blender::PyC_UnicodeFromStdStr(self->ss->getName());
 }
 
 static int SShape_name_set(BPy_SShape *self, PyObject *value, void * /*closure*/)

@@ -26,6 +26,8 @@
 #  include "BLI_bit_span.hh"
 #  include "BLI_string.h"
 
+namespace blender {
+
 void rna_BlendImportContextLibrary_filepath_get(PointerRNA *ptr, char *value)
 {
   BlendfileLinkAppendContextLibrary *ctx_lib = static_cast<BlendfileLinkAppendContextLibrary *>(
@@ -65,7 +67,7 @@ int rna_BlendImportContextItem_id_type_get(PointerRNA *ptr)
 
 struct RNABlendImportContextItemLibrariesIterator {
   BlendfileLinkAppendContextItem *ctx_item;
-  blender::bits::BitIterator iter;
+  bits::BitIterator iter;
   int iter_index;
 };
 
@@ -74,7 +76,7 @@ void rna_BlendImportContextItem_libraries_begin(CollectionPropertyIterator *iter
   BlendfileLinkAppendContextItem *ctx_item = static_cast<BlendfileLinkAppendContextItem *>(
       ptr->data);
 
-  const blender::BitVector<> &libraries = ctx_item->libraries;
+  const BitVector<> &libraries = ctx_item->libraries;
   RNABlendImportContextItemLibrariesIterator *libs_iter =
       MEM_new<RNABlendImportContextItemLibrariesIterator>(
           __func__, RNABlendImportContextItemLibrariesIterator{ctx_item, libraries.begin(), 0});
@@ -114,7 +116,7 @@ PointerRNA rna_BlendImportContextItem_libraries_get(CollectionPropertyIterator *
 
   BlendfileLinkAppendContextLibrary &ctx_lib =
       libs_iter->ctx_item->lapp_context->libraries[libs_iter->iter_index];
-  return RNA_pointer_create_with_parent(iter->parent, &RNA_BlendImportContextLibrary, &ctx_lib);
+  return RNA_pointer_create_with_parent(iter->parent, RNA_BlendImportContextLibrary, &ctx_lib);
 }
 
 int rna_BlendImportContextItem_libraries_len(PointerRNA *ptr)
@@ -124,7 +126,7 @@ int rna_BlendImportContextItem_libraries_len(PointerRNA *ptr)
 
   /* Count amount of enabled libraries in the item's bitmask. */
   int count = 0;
-  for (const blender::BitRef &bit : ctx_item->libraries) {
+  for (const BitRef &bit : ctx_item->libraries) {
     if (bit) {
       count++;
     }
@@ -213,7 +215,7 @@ PointerRNA rna_BlendImportContext_import_items_get(CollectionPropertyIterator *i
       static_cast<RNABlendImportContextItemsIterator *>(iter->internal.custom);
 
   BlendfileLinkAppendContextItem &ctx_item = *items_iter->iter;
-  return RNA_pointer_create_with_parent(iter->parent, &RNA_BlendImportContextItem, &ctx_item);
+  return RNA_pointer_create_with_parent(iter->parent, RNA_BlendImportContextItem, &ctx_item);
 }
 
 int rna_BlendImportContext_import_items_len(PointerRNA *ptr)
@@ -234,7 +236,11 @@ int rna_BlendImportContext_process_stage_get(PointerRNA *ptr)
   return int(ctx->process_stage);
 }
 
+}  // namespace blender
+
 #else /* RNA_RUNTIME */
+
+namespace blender {
 
 static void rna_def_blendfile_import_library(BlenderRNA *brna)
 {
@@ -554,5 +560,7 @@ void RNA_def_blendfile_import(BlenderRNA *brna)
   rna_def_blendfile_import_item(brna);
   rna_def_blendfile_import_context(brna);
 }
+
+}  // namespace blender
 
 #endif /* RNA_RUNTIME */

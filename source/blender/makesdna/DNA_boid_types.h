@@ -10,7 +10,9 @@
 
 #include "DNA_listBase.h"
 
-typedef enum eBoidRuleType {
+namespace blender {
+
+enum eBoidRuleType {
   eBoidRuleType_None = 0,
   /** go to goal assigned object or loudest assigned signal source */
   eBoidRuleType_Goal = 1,
@@ -28,17 +30,7 @@ typedef enum eBoidRuleType {
   eBoidRuleType_AverageSpeed = 7,
   /** go to closest enemy and attack when in range */
   eBoidRuleType_Fight = 8,
-#if 0
-  /** go to enemy closest to target and attack when in range */
-  eBoidRuleType_Protect = 9,
-  /** find a deflector move to its other side from closest enemy */
-  eBoidRuleType_Hide = 10,
-  /** move along a assigned curve or closest curve in a group */
-  eBoidRuleType_FollowPath = 11,
-  /** move next to a deflector object's in direction of its tangent */
-  eBoidRuleType_FollowWall = 12,
-#endif
-} eBoidRuleType;
+};
 
 /* boidrule->flag */
 enum {
@@ -46,161 +38,35 @@ enum {
   BOIDRULE_IN_AIR = 1 << 2,
   BOIDRULE_ON_LAND = 1 << 3,
 };
-typedef struct BoidRule {
-  struct BoidRule *next, *prev;
-  int type, flag;
-  char name[32];
-} BoidRule;
+
+#define BRULE_LEADER_IN_LINE (1 << 0)
+
+#define BOIDSTATE_CURRENT 1
+
 enum {
   BRULE_GOAL_AVOID_PREDICT = 1 << 0,
   BRULE_GOAL_AVOID_ARRIVE = 1 << 1,
   BRULE_GOAL_AVOID_SIGNAL = 1 << 2,
 };
-typedef struct BoidRuleGoalAvoid {
-  BoidRule rule;
-  struct Object *ob;
-  int options;
-  float fear_factor;
 
-  /* signals */
-  int signal_id, channels;
-} BoidRuleGoalAvoid;
 enum {
   BRULE_ACOLL_WITH_BOIDS = 1 << 0,
   BRULE_ACOLL_WITH_DEFLECTORS = 1 << 1,
 };
-typedef struct BoidRuleAvoidCollision {
-  BoidRule rule;
-  int options;
-  float look_ahead;
-} BoidRuleAvoidCollision;
-#define BRULE_LEADER_IN_LINE (1 << 0)
-typedef struct BoidRuleFollowLeader {
-  BoidRule rule;
-  struct Object *ob;
-  float loc[3], oloc[3];
-  float cfra, distance;
-  int options, queue_size;
-} BoidRuleFollowLeader;
-typedef struct BoidRuleAverageSpeed {
-  BoidRule rule;
-  float wander, level, speed;
-  char _pad0[4];
-} BoidRuleAverageSpeed;
-typedef struct BoidRuleFight {
-  BoidRule rule;
-  float distance, flee_distance;
-} BoidRuleFight;
 
-typedef enum eBoidMode {
+enum eBoidMode {
   eBoidMode_InAir = 0,
   eBoidMode_OnLand = 1,
   eBoidMode_Climbing = 2,
   eBoidMode_Falling = 3,
   eBoidMode_Liftoff = 4,
-} eBoidMode;
+};
 
-typedef struct BoidData {
-  float health, acc[3];
-  short state_id, mode;
-} BoidData;
-
-/* Planned for near future. */
-// typedef enum BoidConditionMode {
-//  eBoidConditionType_Then = 0,
-//  eBoidConditionType_And = 1,
-//  eBoidConditionType_Or = 2,
-//  NUM_BOID_CONDITION_MODES
-//} BoidConditionMode;
-// typedef enum BoidConditionType {
-//  eBoidConditionType_None = 0,
-//  eBoidConditionType_Signal = 1,
-//  eBoidConditionType_NoSignal = 2,
-//  eBoidConditionType_HealthBelow = 3,
-//  eBoidConditionType_HealthAbove = 4,
-//  eBoidConditionType_See = 5,
-//  eBoidConditionType_NotSee = 6,
-//  eBoidConditionType_StateTime = 7,
-//  eBoidConditionType_Touching = 8,
-//  NUM_BOID_CONDITION_TYPES
-//} BoidConditionType;
-// typedef struct BoidCondition {
-//  struct BoidCondition *next, *prev;
-//  int state_id;
-//  short type, mode;
-//  float threshold, probability;
-//
-//  /* signals */
-//  int signal_id, channels;
-//} BoidCondition;
-
-typedef enum eBoidRulesetType {
+enum eBoidRulesetType {
   eBoidRulesetType_Fuzzy = 0,
   eBoidRulesetType_Random = 1,
   eBoidRulesetType_Average = 2,
-} eBoidRulesetType;
-#define BOIDSTATE_CURRENT 1
-typedef struct BoidState {
-  struct BoidState *next, *prev;
-  ListBase rules;
-  ListBase conditions;
-  ListBase actions;
-  char name[32];
-  int id, flag;
-
-  /* rules */
-  int ruleset_type;
-  float rule_fuzziness;
-
-  /* signal */
-  int signal_id, channels;
-  float volume, falloff;
-} BoidState;
-
-/* Planned for near future. */
-// typedef struct BoidSignal {
-//  struct BoidSignal *next, *prev;
-//  float loc[3];
-//  float volume, falloff;
-//  int id;
-//} BoidSignal;
-// typedef struct BoidSignalDefine {
-//  struct BoidSignalDefine *next, *prev;
-//  int id, _pad[4];
-//  char name[32];
-//} BoidSignalDefine;
-
-// typedef struct BoidSimulationData {
-//  ListBase signal_defines;/* list of defined signals */
-//  ListBase signals[20];   /* gathers signals from all channels */
-//  struct KDTree_3d *signaltrees[20];
-//  char channel_names[20][32];
-//  int last_signal_id;     /* used for incrementing signal ids */
-//  int flag;               /* switches for drawing stuff */
-//} BoidSimulationData;
-
-typedef struct BoidSettings {
-  int options, last_state_id;
-
-  float landing_smoothness, height;
-  float banking, pitch;
-
-  float health, aggression;
-  float strength, accuracy, range;
-
-  /* flying related */
-  float air_min_speed, air_max_speed;
-  float air_max_acc, air_max_ave;
-  float air_personal_space;
-
-  /* walk/run related */
-  float land_jump_speed, land_max_speed;
-  float land_max_acc, land_max_ave;
-  float land_personal_space;
-  float land_stick_force;
-
-  struct ListBase states;
-} BoidSettings;
+};
 
 /** #BoidSettings::options */
 enum {
@@ -209,10 +75,90 @@ enum {
   BOID_ALLOW_CLIMB = 1 << 2,
 };
 
-/* boidrule->options */
-// #define BOID_RULE_FOLLOW_LINE     (1 << 0)        /* follow leader */
-// #define BOID_RULE_PREDICT         (1 << 1)        /* goal/avoid */
-// #define BOID_RULE_ARRIVAL         (1 << 2)        /* goal */
-// #define BOID_RULE_LAND            (1 << 3)        /* goal */
-// #define BOID_RULE_WITH_BOIDS      (1 << 4)        /* avoid collision */
-// #define BOID_RULE_WITH_DEFLECTORS (1 << 5)    /* avoid collision */
+struct BoidRule {
+  struct BoidRule *next = nullptr, *prev = nullptr;
+  int type = 0, flag = 0;
+  char name[32] = "";
+};
+
+struct BoidRuleGoalAvoid {
+  BoidRule rule;
+  struct Object *ob = nullptr;
+  int options = 0;
+  float fear_factor = 0;
+
+  /* signals */
+  int signal_id = 0, channels = 0;
+};
+
+struct BoidRuleAvoidCollision {
+  BoidRule rule;
+  int options = 0;
+  float look_ahead = 0;
+};
+
+struct BoidRuleFollowLeader {
+  BoidRule rule;
+  struct Object *ob = nullptr;
+  float loc[3] = {}, oloc[3] = {};
+  float cfra = 0, distance = 0;
+  int options = 0, queue_size = 0;
+};
+
+struct BoidRuleAverageSpeed {
+  BoidRule rule;
+  float wander = 0, level = 0, speed = 0;
+  char _pad0[4] = {};
+};
+
+struct BoidRuleFight {
+  BoidRule rule;
+  float distance = 0, flee_distance = 0;
+};
+
+struct BoidData {
+  float health = 0, acc[3] = {};
+  short state_id = 0, mode = 0;
+};
+
+struct BoidState {
+  struct BoidState *next = nullptr, *prev = nullptr;
+  ListBaseT<BoidRule> rules = {nullptr, nullptr};
+  ListBase conditions = {nullptr, nullptr};
+  ListBase actions = {nullptr, nullptr};
+  char name[32] = "";
+  int id = 0, flag = 0;
+
+  /* rules */
+  int ruleset_type = 0;
+  float rule_fuzziness = 0;
+
+  /* signal */
+  int signal_id = 0, channels = 0;
+  float volume = 0, falloff = 0;
+};
+
+struct BoidSettings {
+  int options = 0, last_state_id = 0;
+
+  float landing_smoothness = 0, height = 0;
+  float banking = 0, pitch = 0;
+
+  float health = 0, aggression = 0;
+  float strength = 0, accuracy = 0, range = 0;
+
+  /* flying related */
+  float air_min_speed = 0, air_max_speed = 0;
+  float air_max_acc = 0, air_max_ave = 0;
+  float air_personal_space = 0;
+
+  /* walk/run related */
+  float land_jump_speed = 0, land_max_speed = 0;
+  float land_max_acc = 0, land_max_ave = 0;
+  float land_personal_space = 0;
+  float land_stick_force = 0;
+
+  ListBaseT<BoidState> states = {nullptr, nullptr};
+};
+
+}  // namespace blender

@@ -19,6 +19,8 @@
 
 #include "BLT_translation.hh"
 
+namespace blender {
+
 using Alembic::AbcGeom::CameraSample;
 using Alembic::AbcGeom::ICamera;
 using Alembic::AbcGeom::ICompoundProperty;
@@ -26,7 +28,7 @@ using Alembic::AbcGeom::IFloatProperty;
 using Alembic::AbcGeom::ISampleSelector;
 using Alembic::AbcGeom::kWrapExisting;
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 AbcCameraReader::AbcCameraReader(const Alembic::Abc::IObject &object, ImportSettings &settings)
     : AbcObjectReader(object, settings)
@@ -99,7 +101,8 @@ void AbcCameraReader::readObjectData(Main *bmain, const ISampleSelector &sample_
   bcam->dof.aperture_fstop = float(cam_sample.getFStop());
 
   m_object = BKE_object_add_only_object(bmain, OB_CAMERA, m_object_name.c_str());
-  m_object->data = bcam;
+  m_object->data = id_cast<ID *>(bcam);
 }
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

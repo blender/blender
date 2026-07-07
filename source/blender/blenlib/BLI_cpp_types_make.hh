@@ -20,16 +20,16 @@ inline VectorCPPType::VectorCPPType(TypeTag<ValueType> /*value_type*/)
   this->register_self();
 }
 
-}  // namespace blender
-
 /** Create a new #VectorCPPType that can be accessed through `VectorCPPType::get<T>()`. */
 #define BLI_VECTOR_CPP_TYPE_MAKE(VALUE_TYPE) \
-  BLI_CPP_TYPE_MAKE(blender::Vector<VALUE_TYPE>, CPPTypeFlags::None) \
-  template<> const blender::VectorCPPType &blender::VectorCPPType::get_impl<VALUE_TYPE>() \
+  BLI_CPP_TYPE_MAKE(Vector<VALUE_TYPE>, CPPTypeFlags::None) \
+  template<> const VectorCPPType &VectorCPPType::get_impl<VALUE_TYPE>() \
   { \
-    static blender::VectorCPPType type{blender::TypeTag<VALUE_TYPE>{}}; \
+    static VectorCPPType type{TypeTag<VALUE_TYPE>{}}; \
     return type; \
   }
 
 /** Register a #VectorCPPType created with #BLI_VECTOR_CPP_TYPE_MAKE. */
-#define BLI_VECTOR_CPP_TYPE_REGISTER(VALUE_TYPE) blender::VectorCPPType::get<VALUE_TYPE>()
+#define BLI_VECTOR_CPP_TYPE_REGISTER(VALUE_TYPE) VectorCPPType::get<VALUE_TYPE>()
+
+}  // namespace blender

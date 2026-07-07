@@ -29,7 +29,7 @@ namespace blender::ui {
 
 void grease_pencil_layer_search_add_items(const StringRef str,
                                           const Span<const std::string *> layer_names,
-                                          uiSearchItems &seach_items,
+                                          SearchItems &seach_items,
                                           const bool is_first)
 {
   static std::string dummy_str;
@@ -44,7 +44,7 @@ void grease_pencil_layer_search_add_items(const StringRef str,
     }
     if (!contained) {
       dummy_str = str;
-      UI_search_item_add(&seach_items, str, &dummy_str, ICON_NONE, 0, 0);
+      search_item_add(&seach_items, str, &dummy_str, ICON_NONE, 0, 0);
     }
   }
 
@@ -52,22 +52,21 @@ void grease_pencil_layer_search_add_items(const StringRef str,
     /* Allow clearing the text field when the string is empty, but not on the first pass,
      * or opening a layer name field for the first time would show this search item. */
     dummy_str = str;
-    UI_search_item_add(&seach_items, str, &dummy_str, ICON_X, 0, 0);
+    search_item_add(&seach_items, str, &dummy_str, ICON_X, 0, 0);
   }
 
   /* Don't filter when the menu is first opened, but still run the search
    * so the items are in the same order they will appear in while searching. */
   const StringRef string = is_first ? "" : str;
 
-  ui::string_search::StringSearch<const std::string> search;
+  string_search::StringSearch<const std::string> search;
   for (const std::string *name : layer_names) {
     search.add(*name, name);
   }
 
   const Vector<const std::string *> filtered_names = search.query(string);
   for (const std::string *name : filtered_names) {
-    if (!UI_search_item_add(&seach_items, *name, (void *)name, ICON_NONE, UI_BUT_HAS_SEP_CHAR, 0))
-    {
+    if (!search_item_add(&seach_items, *name, (void *)name, ICON_NONE, BUT_HAS_SEP_CHAR, 0)) {
       break;
     }
   }

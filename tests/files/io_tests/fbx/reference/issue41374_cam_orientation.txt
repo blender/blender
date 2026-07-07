@@ -2,6 +2,14 @@
 - Mesh 'Suzanne' vtx:507 face:500 loop:1968 edge:1005
     - 46 0 2 44 3 ... 389 504 322 320 390 
     - 0/46 0/2 2/44 44/46 1/3 ... 496/500 313/505 314/506 321/503 322/504 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
   - attr 'position' FLOAT_VECTOR POINT
     - (0.438, -0.766, 0.164)
     - (-0.438, -0.766, 0.164)
@@ -12,14 +20,6 @@
     - (-0.859, 0.383, 0.383)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 1 1 1 1 1 ... 1 1 1 1 1 
-  - attr 'custom_normal' INT16_2D CORNER
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-      ...
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
 
 ==== Objects: 8
 - Obj 'Camera' CAMERA data:'Camera'

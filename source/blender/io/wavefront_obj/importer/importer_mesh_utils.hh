@@ -13,10 +13,12 @@
 #include "BLI_vector.hh"
 #include <string>
 
+namespace blender {
+
 struct Object;
 struct OBJImportParams;
 
-namespace blender::io::obj {
+namespace io::obj {
 
 /**
  * Given an invalid face (with holes or duplicated vertex indices),
@@ -38,4 +40,5 @@ void transform_object(Object *object, const OBJImportParams &import_params);
 
 std::string get_geometry_name(const std::string &full_name, char separator);
 
-}  // namespace blender::io::obj
+}  // namespace io::obj
+}  // namespace blender

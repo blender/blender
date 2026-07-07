@@ -25,6 +25,8 @@
 #define BLI_STR_UTF8_SUPERSCRIPT_3 "\xc2\xb3"
 /** u00D7: `×`. */
 #define BLI_STR_UTF8_MULTIPLICATION_SIGN "\xc3\x97"
+/** u2007: ` ` FIGURE SPACE (numeric width space) */
+#define BLI_STR_UTF8_FIGURE_SPACE "\xe2\x80\x87"
 /** u2014: `—` */
 #define BLI_STR_UTF8_EM_DASH "\xe2\x80\x94"
 /** u2022: `•` */

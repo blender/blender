@@ -105,11 +105,7 @@ static void initCurveShrinkFatten(TransInfo *t, wmOperator * /*op*/)
     /* For cases where only one point on the curve is being transformed and the radius of that
      * point is zero [that is actually only checked for in #applyCurveShrinkFatten()], use the
      * factor to multiply the offset of the ratio and allow scaling. Note that for bezier curves, 3
-     * TransData equals 1 point in most cases. Handles (as opposed to control points) have their
-     * #TransData.val set to nullptr (set in #createTransCurveVerts() /
-     * #curve_populate_trans_data_structs() since we only want to apply values to _control points_
-     * [this is again checked for in #applyCurveShrinkFatten()]. Only calculate the scale_factor if
-     * we are working on a control point. */
+     * TransData equals 1 point in most cases. */
     bool use_scaling_factor = false;
     if (t->data_len_all == 1) {
       /* Either a single control point of a non-bezier curve or single handle of a bezier curve
@@ -122,18 +118,15 @@ static void initCurveShrinkFatten(TransInfo *t, wmOperator * /*op*/)
        * different for Curve vs. Curves (Curves have the control point first, Curve has it in the
        * middle), so check this explicitly. */
       TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_OK(t);
-      TransData td_0 = tc->data[0];
-      TransData td_1 = tc->data[1];
-      TransData td_2 = tc->data[2];
 
       if (t->data_type == &TransConvertType_Curve) {
-        use_scaling_factor = td_0.val == nullptr && td_1.val != nullptr && td_2.val == nullptr;
+        use_scaling_factor = tc->data[1].val != nullptr;
       }
       else if (ELEM(t->data_type,
                     &curves::TransConvertType_Curves,
                     &greasepencil::TransConvertType_GreasePencil))
       {
-        use_scaling_factor = td_0.val != nullptr && td_1.val == nullptr && td_2.val == nullptr;
+        use_scaling_factor = tc->data[0].val != nullptr;
       }
     }
 

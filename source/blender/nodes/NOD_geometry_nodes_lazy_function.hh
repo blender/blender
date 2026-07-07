@@ -35,12 +35,13 @@
 
 #include "BKE_bake_items.hh"
 #include "BKE_node_tree_zones.hh"
+namespace blender {
 
-struct Object;
 struct Depsgraph;
+struct Object;
 struct Scene;
 
-namespace blender::nodes {
+namespace nodes {
 
 using lf::LazyFunction;
 using mf::MultiFunction;
@@ -345,11 +346,12 @@ struct GeometryNodeLazyFunctionGraphMapping {
   MultiValueMap<const lf::Socket *, const bNodeSocket *> bsockets_by_lf_socket_map;
   /**
    * Mappings for some special node types. Generally, this mapping does not exist for all node
-   * types, so better have more specialized mappings for now.
+   * types, so better have more specialized mappings for now. The key is the identifier if a node.
    */
-  Map<const bNode *, const lf::FunctionNode *> group_node_map;
-  Map<const bNode *, const lf::FunctionNode *> possible_side_effect_node_map;
-  Map<const bke::bNodeTreeZone *, const lf::FunctionNode *> zone_node_map;
+  Map<int, const lf::FunctionNode *> group_node_map;
+  Map<int, const lf::FunctionNode *> possible_side_effect_node_map;
+  /** Key is the identifier of the zone output node. */
+  Map<int, const lf::FunctionNode *> zone_node_map;
 
   /* Indexed by #bNodeSocket::index_in_all_outputs. */
   Array<int> lf_input_index_for_output_bsocket_usage;
@@ -413,6 +415,21 @@ struct GeometryNodesLazyFunctionGraphInfo {
    * Contains resources that need to be freed when the graph is not needed anymore.
    */
   ResourceScope scope;
+  /**
+   * Owned copy of the tree to evaluate. This allows the original tree to be freed without making
+   * the execution graph invalid. This is very common because many changes to a node tree trigger a
+   * new depsgraph-copy but not a new evaluation (since the output has not changed).
+   *
+   * Without an extra copy, one could not output fields/closures to other objects without having
+   * those become dangling on trivial tree changes.
+   */
+  std::shared_ptr<const bNodeTree> tree;
+  /**
+   * Session UID of the original tree in Main that this is based on. Used to map evaluated data
+   * back to the original tree later on.
+   */
+  uint32_t original_tree_session_uid;
+
   GeometryNodesGroupFunction function;
   /**
    * The actual lazy-function graph.
@@ -445,6 +462,8 @@ std::unique_ptr<LazyFunction> get_menu_switch_node_lazy_function(
     const bNode &node, GeometryNodesLazyFunctionGraphInfo &lf_graph_info);
 std::unique_ptr<LazyFunction> get_menu_switch_node_socket_usage_lazy_function(const bNode &node);
 std::unique_ptr<LazyFunction> get_warning_node_lazy_function(const bNode &node);
+std::unique_ptr<LazyFunction> get_enable_output_node_lazy_function(
+    const bNode &node, GeometryNodesLazyFunctionGraphInfo &own_lf_graph_info);
 
 /**
  * Outputs the default value of each output socket that has not been output yet. This needs the
@@ -470,8 +489,8 @@ std::optional<FoundNestedNodeID> find_nested_node_id(const GeoNodesUserData &use
  * generated already, nothing is done. Under some circumstances a valid graph cannot be created. In
  * those cases null is returned.
  */
-const GeometryNodesLazyFunctionGraphInfo *ensure_geometry_nodes_lazy_function_graph(
-    const bNodeTree &btree);
+const std::shared_ptr<const GeometryNodesLazyFunctionGraphInfo> &
+ensure_geometry_nodes_lazy_function_graph(const bNodeTree &btree);
 
 /**
  * Utility to measure the time that is spend in a specific compute context during geometry nodes
@@ -586,11 +605,13 @@ LazyFunction &build_foreach_geometry_element_zone_lazy_function(ResourceScope &s
                                                                 ZoneBuildInfo &zone_info,
                                                                 const ZoneBodyFunction &body_fn);
 
-LazyFunction &build_closure_zone_lazy_function(ResourceScope &scope,
-                                               const bNodeTree &btree,
-                                               const bke::bNodeTreeZone &zone,
-                                               ZoneBuildInfo &zone_info,
-                                               const ZoneBodyFunction &body_fn);
+LazyFunction &build_closure_zone_lazy_function(
+    ResourceScope &scope,
+    const bNodeTree &btree,
+    const bke::bNodeTreeZone &zone,
+    ZoneBuildInfo &zone_info,
+    const ZoneBodyFunction &body_fn,
+    std::shared_ptr<GeometryNodesLazyFunctionGraphInfo> &lf_graph_info);
 
 struct EvaluateClosureFunctionIndices {
   struct {
@@ -639,4 +660,5 @@ void report_from_multi_function(const mf::Context &context,
                                 NodeWarningType type,
                                 std::string message);
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

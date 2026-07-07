@@ -10,14 +10,16 @@
 
 #include "DNA_ID.h"
 
-struct GSet;
+#include "BLI_set.hh"
+
+namespace blender {
 
 /* CacheFile::type */
-typedef enum {
+enum eCacheFileType {
   CACHEFILE_TYPE_ALEMBIC = 1,
   CACHEFILE_TYPE_USD = 2,
   CACHE_FILE_TYPE_INVALID = 0,
-} eCacheFileType;
+};
 
 /* CacheFile::flag */
 enum {
@@ -32,24 +34,8 @@ enum {
 };
 #endif
 
-/* Representation of an object's path inside the archive.
- * Note that this is not a file path. */
-typedef struct CacheObjectPath {
-  struct CacheObjectPath *next, *prev;
-
-  char path[4096];
-} CacheObjectPath;
-
 /* CacheFileLayer::flag */
 enum { CACHEFILE_LAYER_HIDDEN = (1 << 0) };
-
-typedef struct CacheFileLayer {
-  struct CacheFileLayer *next, *prev;
-
-  char filepath[/*FILE_MAX*/ 1024];
-  int flag;
-  int _pad;
-} CacheFileLayer;
 
 /* CacheFile::velocity_unit
  * Determines what temporal unit is used to interpret velocity vectors for motion blur effects. */
@@ -58,67 +44,75 @@ enum {
   CACHEFILE_VELOCITY_UNIT_SECOND,
 };
 
-typedef struct CacheFile {
+/* Representation of an object's path inside the archive.
+ * Note that this is not a file path. */
+struct CacheObjectPath {
+  struct CacheObjectPath *next = nullptr, *prev = nullptr;
+
+  char path[4096] = "";
+};
+
+struct CacheFileLayer {
+  struct CacheFileLayer *next = nullptr, *prev = nullptr;
+
+  char filepath[/*FILE_MAX*/ 1024] = "";
+  int flag = 0;
+  int _pad = {};
+};
+
+struct CacheReader;
+using CacheFileHandleReaderSet = Set<CacheReader **>;
+
+struct CacheFile {
 #ifdef __cplusplus
   /** See #ID_Type comment for why this is here. */
   static constexpr ID_Type id_type = ID_CF;
 #endif
 
   ID id;
-  struct AnimData *adt;
+  struct AnimData *adt = nullptr;
 
   /** Paths of the objects inside of the archive referenced by this CacheFile. */
-  ListBase object_paths;
+  ListBaseT<CacheObjectPath> object_paths = {nullptr, nullptr};
 
-  ListBase layers;
+  ListBaseT<CacheFileLayer> layers = {nullptr, nullptr};
 
-  char filepath[/*FILE_MAX*/ 1024];
+  char filepath[/*FILE_MAX*/ 1024] = "";
 
-  char is_sequence;
-  char forward_axis;
-  char up_axis;
-  char override_frame;
+  char is_sequence = false;
+  char forward_axis = 0;
+  char up_axis = 0;
+  char override_frame = false;
 
-  float scale;
+  float scale = 1.0f;
   /** The frame/time to lookup in the cache file. */
-  float frame;
+  float frame = 0.0f;
   /** The frame offset to subtract. */
-  float frame_offset;
-
-  char _pad[4];
+  float frame_offset = 0;
 
   /** Animation flag. */
-  short flag;
+  short flag = 0;
 
   /* eCacheFileType enum. */
-  char type;
+  char type = 0;
 
-  /**
-   * Do not load data from the cache file and display objects in the scene as boxes, Cycles will
-   * load objects directly from the CacheFile. Other render engines which can load Alembic data
-   * directly can take care of rendering it themselves.
-   */
-  char use_render_procedural;
-
-  char _pad1[3];
-
-  /** Enable data prefetching when using the Cycles Procedural. */
-  char use_prefetch;
-
-  /** Size in megabytes for the prefetch cache used by the Cycles Procedural. */
-  int prefetch_cache_size;
+  char _pad1[1] = {};
 
   /** Index of the currently selected layer in the UI, starts at 1. */
-  int active_layer;
+  int active_layer = 0;
 
-  char _pad2[3];
+  char _pad2[3] = {};
 
-  char velocity_unit;
+  char velocity_unit = 0;
   /* Name of the velocity property in the archive. */
-  char velocity_name[64];
+  char velocity_name[64] = "";
+
+  char _pad3[4] = {};
 
   /* Runtime */
-  struct CacheArchiveHandle *handle;
-  char handle_filepath[/*FILE_MAX*/ 1024];
-  struct GSet *handle_readers;
-} CacheFile;
+  struct CacheArchiveHandle *handle = nullptr;
+  char handle_filepath[/*FILE_MAX*/ 1024] = "";
+  CacheFileHandleReaderSet *handle_readers = nullptr;
+};
+
+}  // namespace blender

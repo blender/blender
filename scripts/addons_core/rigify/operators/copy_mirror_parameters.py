@@ -8,7 +8,7 @@ import importlib
 
 from ..utils.layers import REFS_TOGGLE_SUFFIX, REFS_LIST_SUFFIX, is_collection_ref_list_prop, copy_ref_list
 from ..utils.naming import Side, get_name_base_and_sides, mirror_name
-from ..utils.misc import property_to_python
+from ..utils.misc import propgroup_to_dict, assign_rna_properties
 
 from ..utils.rig import get_rigify_type, get_rigify_params
 from ..rig_lists import get_rig_class
@@ -140,33 +140,36 @@ def copy_rigify_params(from_bone: bpy.types.PoseBone, to_bone: bpy.types.PoseBon
 
     if match_type and rig_type != from_type:
         return False
-    else:
-        rig_type = to_bone.rigify_type = from_type
 
-    # Delete any previously-existing parameters, before copying in the new ones.
-    # Direct assignment to this property, as happens in the code below, is only
-    # possible when there is no pre-existing value. See #135233 for more info.
-    if 'rigify_parameters' in to_bone:
-        del to_bone['rigify_parameters']
+    rig_type = to_bone.rigify_type = from_type
+    if not rig_type:
+        return False
 
-    from_params = from_bone.get('rigify_parameters')
-    if from_params and rig_type:
-        param_dict = property_to_python(from_params)
+    from_params: bpy.types.RigifyParameters = from_bone.rigify_parameters
+    if not from_params:
+        # TODO: check whether this can even happen, given that every bone has this RNA property.
+        return False
 
-        if x_mirror:
-            to_bone['rigify_parameters'] = recursive_mirror(param_dict)
+    # Simple case first: without mirroring, just copy the parameters.
+    if not x_mirror:
+        assign_rna_properties(to_bone.rigify_parameters, from_bone.rigify_parameters)
+        return True
 
-            # Bone collection references must be mirrored specially
-            from_params_typed = get_rigify_params(from_bone)
-            to_params_typed = get_rigify_params(to_bone)
+    # For compatibility with the already-existing recursive_mirror(dict)
+    # function, round-trip the parameters through a dictionary.
+    param_dict: dict[str, object] = propgroup_to_dict(from_params)
+    mirrored_dict: dict[str, object] = recursive_mirror(param_dict)  # type: ignore
+    assign_rna_properties(to_bone.rigify_parameters, mirrored_dict)
 
-            for prop_name in param_dict.keys():
-                if prop_name.endswith(REFS_LIST_SUFFIX):
-                    ref_list = getattr(from_params_typed, prop_name)
-                    if is_collection_ref_list_prop(ref_list):
-                        copy_ref_list(getattr(to_params_typed, prop_name), ref_list, mirror=True)
-        else:
-            to_bone['rigify_parameters'] = param_dict
+    # Bone collection references must be mirrored specially
+    from_params_typed = get_rigify_params(from_bone)
+    to_params_typed = get_rigify_params(to_bone)
+
+    for prop_name in param_dict.keys():
+        if prop_name.endswith(REFS_LIST_SUFFIX):
+            ref_list = getattr(from_params_typed, prop_name)
+            if is_collection_ref_list_prop(ref_list):
+                copy_ref_list(getattr(to_params_typed, prop_name), ref_list, mirror=True)
 
     return True
 
@@ -204,7 +207,7 @@ class POSE_OT_rigify_mirror_parameters(bpy.types.Operator):
             if not flip_bone:
                 # Bones without an opposite will just be ignored.
                 continue
-            if flip_bone != pb and flip_bone.bone.select:
+            if flip_bone != pb and flip_bone.select:
                 message = rpt_("Bone {:s} selected on both sides, mirroring would be ambiguous, "
                                "aborting. Only select the left or right side, not both").format(pb.name)
                 self.report({'ERROR'}, message)

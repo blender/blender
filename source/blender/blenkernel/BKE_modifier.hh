@@ -7,17 +7,20 @@
  * \ingroup bke
  */
 #include "BLI_compiler_attrs.h"
+#include "BLI_enum_flags.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_span.hh"
 
 #include "BKE_lib_query.hh" /* For LibraryForeachIDCallbackFlag. */
 
+#include "DNA_customdata_types.h"
+#include "DNA_listBase.h"
 #include "DNA_modifier_types.h" /* Needed for all enum type definitions. */
 
-#include "DNA_customdata_types.h"
+namespace blender {
 
-namespace blender::bke {
+namespace bke {
 struct GeometrySet;
 }
 struct ARegionType;
@@ -30,7 +33,6 @@ struct DepsNodeHandle;
 struct Depsgraph;
 struct ID;
 struct IDTypeForeachColorFunctionCallback;
-struct ListBase;
 struct Main;
 struct Mesh;
 struct ModifierData;
@@ -129,7 +131,7 @@ enum ModifierTypeFlag {
   /** Accepts #GreasePencil data input. */
   eModifierTypeFlag_AcceptsGreasePencil = (1 << 12),
 };
-ENUM_OPERATORS(ModifierTypeFlag, eModifierTypeFlag_AcceptsGreasePencil)
+ENUM_OPERATORS(ModifierTypeFlag)
 
 using IDWalkFunc = void (*)(void *user_data,
                             Object *ob,
@@ -164,7 +166,7 @@ enum ModifierApplyFlag {
    */
   MOD_APPLY_TO_ORIGINAL = 1 << 4,
 };
-ENUM_OPERATORS(ModifierApplyFlag, MOD_APPLY_TO_ORIGINAL);
+ENUM_OPERATORS(ModifierApplyFlag);
 
 struct ModifierUpdateDepsgraphContext {
   Scene *scene;
@@ -201,8 +203,12 @@ struct ModifierTypeInfo {
   /** The size of the modifier data type, used by allocation. */
   int struct_size;
 
-  /** StructRNA of this modifier. This is typically something like `RNA_*Modifier`. */
-  StructRNA *srna;
+  /**
+   * StructRNA of this modifier. This is typically something like `RNA_*Modifier`.
+   * Use a pointer to the struct pointer because #ModifierTypeInfo is statically initialized, when
+   * the corresponding `StructRNA` pointers aren't set yet.
+   */
+  StructRNA **srna;
 
   ModifierTypeType type;
   ModifierTypeFlag flags;
@@ -230,7 +236,7 @@ struct ModifierTypeInfo {
   void (*deform_verts)(ModifierData *md,
                        const ModifierEvalContext *ctx,
                        Mesh *mesh,
-                       blender::MutableSpan<blender::float3> positions);
+                       MutableSpan<float3> positions);
 
   /**
    * Like deform_matrices_EM but called from object mode (for supporting modifiers in sculpt mode).
@@ -238,8 +244,8 @@ struct ModifierTypeInfo {
   void (*deform_matrices)(ModifierData *md,
                           const ModifierEvalContext *ctx,
                           Mesh *mesh,
-                          blender::MutableSpan<blender::float3> positions,
-                          blender::MutableSpan<blender::float3x3> matrices);
+                          MutableSpan<float3> positions,
+                          MutableSpan<float3x3> matrices);
   /**
    * Like deform_verts but called during edit-mode if supported. The \a mesh argument might be a
    * wrapper around edit BMesh data.
@@ -248,15 +254,15 @@ struct ModifierTypeInfo {
                           const ModifierEvalContext *ctx,
                           const BMEditMesh *em,
                           Mesh *mesh,
-                          blender::MutableSpan<blender::float3> positions);
+                          MutableSpan<float3> positions);
 
   /** Set deform matrix per vertex for crazy-space correction. */
   void (*deform_matrices_EM)(ModifierData *md,
                              const ModifierEvalContext *ctx,
                              const BMEditMesh *em,
                              Mesh *mesh,
-                             blender::MutableSpan<blender::float3> positions,
-                             blender::MutableSpan<blender::float3x3> matrices);
+                             MutableSpan<float3> positions,
+                             MutableSpan<float3x3> matrices);
 
   /********************* Non-deform modifier functions *********************/
 
@@ -280,7 +286,7 @@ struct ModifierTypeInfo {
    */
   void (*modify_geometry_set)(ModifierData *md,
                               const ModifierEvalContext *ctx,
-                              blender::bke::GeometrySet *geometry_set);
+                              bke::GeometrySet *geometry_set);
 
   /********************* Optional functions *********************/
 
@@ -410,7 +416,7 @@ struct ModifierTypeInfo {
   void (*foreach_cache)(
       Object *object,
       ModifierData *md,
-      blender::FunctionRef<void(const IDCacheKey &cache_key, void **cache_p, uint flags)> fn);
+      FunctionRef<void(const IDCacheKey &cache_key, void **cache_p, uint flags)> fn);
 
   /**
    * Iterate over all working space colors.
@@ -448,7 +454,7 @@ void BKE_modifier_free(ModifierData *md);
  */
 void BKE_modifier_remove_from_list(Object *ob, ModifierData *md);
 
-void BKE_modifier_unique_name(ListBase *modifiers, ModifierData *md);
+void BKE_modifier_unique_name(ListBaseT<ModifierData> *modifiers, ModifierData *md);
 
 ModifierData *BKE_modifier_copy_ex(const ModifierData *md, int flag);
 
@@ -545,9 +551,16 @@ bool BKE_modifiers_uses_multires(Object *ob);
 bool BKE_modifiers_uses_armature(Object *ob, bArmature *arm);
 bool BKE_modifiers_is_correctable_deformed(const Scene *scene, Object *ob);
 void BKE_modifier_free_temporary_data(ModifierData *md);
+/**
+ * Add a modifier at the end of the stack, but respect if there are modifiers which are "pinned to
+ * last" (put the new modifier before then). Also take into account that some modifiers can only be
+ * added after "only-deforming" modifiers (but need to stay before e.g. "generating" modifiers).
+ * Shares logic with #object_modifier_check_move_after().
+ */
+void BKE_modifiers_add_at_end_if_possible(Object *ob, ModifierData *new_md);
 
 struct CDMaskLink {
-  CDMaskLink *next;
+  CDMaskLink *next = nullptr;
   CustomData_MeshMasks mask;
 };
 
@@ -611,13 +624,13 @@ Mesh *BKE_modifier_modify_mesh(ModifierData *md, const ModifierEvalContext *ctx,
 bool BKE_modifier_deform_verts(ModifierData *md,
                                const ModifierEvalContext *ctx,
                                Mesh *mesh,
-                               blender::MutableSpan<blender::float3> positions);
+                               MutableSpan<float3> positions);
 
 void BKE_modifier_deform_vertsEM(ModifierData *md,
                                  const ModifierEvalContext *ctx,
                                  const BMEditMesh *em,
                                  Mesh *mesh,
-                                 blender::MutableSpan<blender::float3> positions);
+                                 MutableSpan<float3> positions);
 
 /**
  * Get evaluated mesh for other evaluated object, which is used as an operand for the modifier,
@@ -627,10 +640,14 @@ void BKE_modifier_deform_vertsEM(ModifierData *md,
  */
 Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(Object *ob_eval);
 
-void BKE_modifier_blend_write(BlendWriter *writer, const ID *id_owner, ListBase *modbase);
-void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object *ob);
+void BKE_modifier_blend_write(BlendWriter *writer,
+                              const ID *id_owner,
+                              ListBaseT<ModifierData> *modbase);
+void BKE_modifier_blend_read_data(BlendDataReader *reader,
+                                  ListBaseT<ModifierData> *lb,
+                                  Object *ob);
 
-namespace blender::bke {
+namespace bke {
 
 /**
  * A convenience class that can be used to set `ModifierData::execution_time` based on the lifetime
@@ -646,4 +663,5 @@ class ScopedModifierTimer {
   ~ScopedModifierTimer();
 };
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

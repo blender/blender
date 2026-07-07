@@ -22,8 +22,90 @@ vector sky_spherical_coordinates(vector dir)
   return vector(acos(dir[2]), atan2(dir[0], dir[1]), 0);
 }
 
+/* Preetham */
+float sky_perez_function(float lam[9], float theta, float gamma)
+{
+  float ctheta = cos(theta);
+  float cgamma = cos(gamma);
+
+  return (1.0 + lam[0] * exp(lam[1] / ctheta)) *
+         (1.0 + lam[2] * exp(lam[3] * gamma) + lam[4] * cgamma * cgamma);
+}
+
+color sky_radiance_preetham(normal dir,
+                            float sunphi,
+                            float suntheta,
+                            color radiance,
+                            float config_x[9],
+                            float config_y[9],
+                            float config_z[9])
+{
+  /* convert vector to spherical coordinates */
+  vector spherical = sky_spherical_coordinates(dir);
+  float theta = spherical[0];
+  float phi = spherical[1];
+
+  /* angle between sun direction and dir */
+  float gamma = sky_angle_between(theta, phi, suntheta, sunphi);
+
+  /* clamp theta to horizon */
+  theta = min(theta, M_PI_2 - 0.001);
+
+  /* compute xyY color space values */
+  float x = radiance[1] * sky_perez_function(config_y, theta, gamma);
+  float y = radiance[2] * sky_perez_function(config_z, theta, gamma);
+  float Y = radiance[0] * sky_perez_function(config_x, theta, gamma);
+
+  /* convert to RGB */
+  color xyz = xyY_to_xyz(x, y, Y);
+  return xyz_to_rgb(xyz[0], xyz[1], xyz[2]);
+}
+
+/* Hosek / Wilkie */
+float sky_radiance_internal(float config[9], float theta, float gamma)
+{
+  float ctheta = cos(theta);
+  float cgamma = cos(gamma);
+
+  float expM = exp(config[4] * gamma);
+  float rayM = cgamma * cgamma;
+  float mieM = (1.0 + rayM) / pow((1.0 + config[8] * config[8] - 2.0 * config[8] * cgamma), 1.5);
+  float zenith = sqrt(ctheta);
+
+  return (1.0 + config[0] * exp(config[1] / (ctheta + 0.01))) *
+         (config[2] + config[3] * expM + config[5] * rayM + config[6] * mieM + config[7] * zenith);
+}
+
+color sky_radiance_hosek(normal dir,
+                         float sunphi,
+                         float suntheta,
+                         color radiance,
+                         float config_x[9],
+                         float config_y[9],
+                         float config_z[9])
+{
+  /* convert vector to spherical coordinates */
+  vector spherical = sky_spherical_coordinates(dir);
+  float theta = spherical[0];
+  float phi = spherical[1];
+
+  /* angle between sun direction and dir */
+  float gamma = sky_angle_between(theta, phi, suntheta, sunphi);
+
+  /* clamp theta to horizon */
+  theta = min(theta, M_PI_2 - 0.001);
+
+  /* compute xyz color space values */
+  float x = sky_radiance_internal(config_x, theta, gamma) * radiance[0];
+  float y = sky_radiance_internal(config_y, theta, gamma) * radiance[1];
+  float z = sky_radiance_internal(config_z, theta, gamma) * radiance[2];
+
+  /* convert to RGB and adjust strength */
+  return xyz_to_rgb(x, y, z) * (M_2PI / 683);
+}
+
 /* Nishita improved */
-vector geographical_to_direction(float lat, float lon)
+vector spherical_to_direction(float lat, float lon)
 {
   return vector(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat));
 }
@@ -33,93 +115,68 @@ float precise_angle(vector a, vector b)
   return 2.0 * atan2(length(a - b), length(a + b));
 }
 
-color sky_radiance_nishita(vector dir, float nishita_data[10], string filename)
+float signx(float x)
 {
-  /* definitions */
-  float sun_elevation = nishita_data[6];
-  float sun_rotation = nishita_data[7];
-  float angular_diameter = nishita_data[8];
-  float sun_intensity = nishita_data[9];
-  int sun_disc = angular_diameter > 0;
-  float alpha = 1.0;
-  color xyz;
-  /* convert dir to spherical coordinates */
-  vector direction = sky_spherical_coordinates(dir);
-
-  /* render above the horizon */
-  if (dir[2] >= 0.0) {
-    /* definitions */
-    vector sun_dir = geographical_to_direction(sun_elevation, sun_rotation + M_PI_2);
-    float sun_dir_angle = precise_angle(dir, sun_dir);
-    float half_angular = angular_diameter * 0.5;
-    float dir_elevation = M_PI_2 - direction[0];
-
-    /* If the ray is inside the sun disc, render it, otherwise render the sky.
-     * Alternatively, ignore the sun if we're evaluating the background texture. */
-    if (sun_dir_angle < half_angular && sun_disc == 1 && raytype("importance_bake") != 1) {
-      /* get 2 pixels data */
-      color pixel_bottom = color(nishita_data[0], nishita_data[1], nishita_data[2]);
-      color pixel_top = color(nishita_data[3], nishita_data[4], nishita_data[5]);
-      float y;
-
-      /* sun interpolation */
-      if (sun_elevation - half_angular > 0.0) {
-        if ((sun_elevation + half_angular) > 0.0) {
-          y = ((dir_elevation - sun_elevation) / angular_diameter) + 0.5;
-          xyz = mix(pixel_bottom, pixel_top, y) * sun_intensity;
-        }
-      }
-      else {
-        if (sun_elevation + half_angular > 0.0) {
-          y = dir_elevation / (sun_elevation + half_angular);
-          xyz = mix(pixel_bottom, pixel_top, y) * sun_intensity;
-        }
-      }
-      /* limb darkening, coefficient is 0.6f */
-      float angle_fraction = sun_dir_angle / half_angular;
-      float limb_darkening = (1.0 - 0.6 * (1.0 - sqrt(1.0 - angle_fraction * angle_fraction)));
-      xyz *= limb_darkening;
-    }
-    /* sky */
-    else {
-      /* sky interpolation */
-      float x = (direction[1] + M_PI + sun_rotation) / M_2PI;
-      /* more pixels toward horizon compensation */
-      float y = 1.0 - sqrt(dir_elevation / M_PI_2);
-      if (x > 1.0) {
-        x = x - 1.0;
-      }
-      xyz = (color)texture(filename, x, y, "wrap", "clamp", "interp", "linear", "alpha", alpha);
-    }
+  if (x < 0.0) {
+    return -1.0;
   }
-  /* ground */
+  else if (x > 0.0) {
+    return 1.0;
+  }
   else {
-    if (dir[2] < -0.4) {
-      xyz = color(0, 0, 0);
-    }
-    else {
-      /* black ground fade */
-      float mul = pow(1.0 + dir[2] * 2.5, 3.0);
-      /* interpolation */
-      float x = (direction[1] + M_PI + sun_rotation) / M_2PI;
-      float y = 1.5;
-      if (x > 1.0) {
-        x = x - 1.0;
-      }
-      xyz = (color)texture(
-                filename, x, y, "wrap", "periodic", "interp", "linear", "alpha", alpha) *
-            mul;
-    }
+    return 0.0;
   }
-  /* convert to RGB */
-  return xyz_to_rgb(xyz[0], xyz[1], xyz[2]);
+}
+
+color sky_radiance_nishita(vector dir, float sky_data[11], string filename, string sky_type)
+{
+  /* Get 2 pixels data */
+  color pixel_bottom = color(sky_data[0], sky_data[1], sky_data[2]);
+  color pixel_top = color(sky_data[3], sky_data[4], sky_data[5]);
+  float sun_elevation = sky_data[6];
+  float sun_rotation = sky_data[7];
+  float angular_diameter = sky_data[8];
+  float sun_intensity = sky_data[9];
+  float earth_intersection_angle = sky_data[10];
+  int sun_disc = angular_diameter > 0;
+  vector sun_dir = spherical_to_direction(sun_elevation, sun_rotation + M_PI_2);
+  float sun_dir_angle = precise_angle(dir, sun_dir);
+  float half_angular = angular_diameter * 0.5;
+  float alpha = 1.0;
+  color rgb_sun = color(0.0, 0.0, 0.0);
+  vector direction = sky_spherical_coordinates(dir);
+  float dir_elevation = M_PI_2 - direction[0];
+
+  /* If the ray is inside the Sun disc and is not occluded by Earth's surface, render it, otherwise
+   * render the sky. Alternatively, ignore the Sun if we're evaluating the background texture. */
+  if (sun_dir_angle < half_angular && sun_disc == 1 && raytype("importance_bake") != 1 &&
+      dir_elevation > earth_intersection_angle)
+  {
+    float y = ((dir_elevation - sun_elevation) / angular_diameter) + 0.5;
+    color xyz = mix(pixel_bottom, pixel_top, y);
+    /* Limb darkening, coefficient is 0.6 */
+    float angle_fraction = sun_dir_angle / half_angular;
+    float limb_darkening = (1.0 - 0.6 * (1.0 - sqrt(1.0 - angle_fraction * angle_fraction)));
+    rgb_sun = xyz_to_rgb(xyz[0], xyz[1], xyz[2]) * limb_darkening;
+  }
+  float x = (direction[1] + M_PI + sun_rotation) / M_2PI;
+  if (x > 1.0) {
+    x = x - 1.0;
+  }
+  /* Undo the non-linear transformation from the sky LUT */
+  float dir_elevation_abs = (dir_elevation < 0.0) ? -dir_elevation : dir_elevation;
+  float y = 1.0 - (sqrt(dir_elevation_abs / M_PI_2) * signx(dir_elevation) * 0.5 + 0.5);
+  color xyz = (color)texture(filename, x, y, "wrap", "clamp", "interp", "linear", "alpha", alpha);
+  color rgb_sky = xyz_to_rgb(xyz[0], xyz[1], xyz[2]);
+
+  return rgb_sun * sun_intensity + rgb_sky;
 }
 
 shader node_sky_texture(
     int use_mapping = 0,
     matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
     vector Vector = P,
-    string sky_type = "nishita_improved",
+    string sky_type = "multiple_scattering",
     float theta = 0.0,
     float phi = 0.0,
     string filename = "",
@@ -127,7 +184,7 @@ shader node_sky_texture(
     float config_x[9] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
     float config_y[9] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
     float config_z[9] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-    float nishita_data[10] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+    float nishita_data[11] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
     output color Color = color(0.0, 0.0, 0.0))
 {
   vector p = Vector;
@@ -135,5 +192,10 @@ shader node_sky_texture(
   if (use_mapping)
     p = transform(mapping, p);
 
-  Color = sky_radiance_nishita(p, nishita_data, filename);
+  if (sky_type == "hosek_wilkie")
+    Color = sky_radiance_hosek(p, phi, theta, radiance, config_x, config_y, config_z);
+  else if (sky_type == "preetham")
+    Color = sky_radiance_preetham(p, phi, theta, radiance, config_x, config_y, config_z);
+  else
+    Color = sky_radiance_nishita(p, nishita_data, filename, sky_type);
 }

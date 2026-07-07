@@ -4,7 +4,10 @@
 
 import bpy
 from bpy.types import Menu, Panel
-from bpy.app.translations import contexts as i18n_contexts
+from bpy.app.translations import (
+    pgettext_n as n_,
+    contexts as i18n_contexts,
+)
 
 
 class TIME_PT_playhead_snapping(Panel):
@@ -36,22 +39,29 @@ class TIME_PT_playhead_snapping(Panel):
 
 def playback_controls(layout, context):
     st = context.space_data
-    is_sequencer = st.type == 'SEQUENCE_EDITOR' and st.view_type == 'SEQUENCER'
+    is_sequencer = st.type == 'SEQUENCE_EDITOR'
+    is_timeline = st.type == 'DOPESHEET_EDITOR' and st.mode == 'TIMELINE'
 
     scene = context.scene if not is_sequencer else context.sequencer_scene
-    tool_settings = context.tool_settings
+    tool_settings = scene.tool_settings if scene else None
     screen = context.screen
 
-    row = layout.row(align=True)
-    row.popover(
+    if not scene:
+        return
+
+    layout.popover(
         panel="TIME_PT_playback",
         text="Playback",
     )
-    row.popover(
-        panel="TIME_PT_keyframing_settings",
-        text="Keying",
-        text_ctxt=i18n_contexts.id_windowmanager,
-    )
+
+    if tool_settings and not is_timeline:
+        # The Keyframe settings are not exposed in the Timeline view.
+        icon_keytype = 'KEYTYPE_{:s}_VEC'.format(tool_settings.keyframe_type)
+        layout.popover(
+            panel="TIME_PT_keyframing_settings",
+            text_ctxt=i18n_contexts.id_windowmanager,
+            icon=icon_keytype,
+        )
 
     if is_sequencer:
         layout.prop(context.workspace, "use_scene_time_sync", text="Sync Scene Time")
@@ -91,10 +101,17 @@ def playback_controls(layout, context):
     row.operator("screen.keyframe_jump", text="", icon='NEXT_KEYFRAME').next = True
     row.operator("screen.frame_jump", text="", icon='FF').end = True
 
+    # Time jump
     row = layout.row(align=True)
-    row.prop(tool_settings, "use_snap_playhead", text="")
-    sub = row.row(align=True)
-    sub.popover(panel="TIME_PT_playhead_snapping", text="")
+    row.operator("screen.time_jump", text="", icon='FRAME_PREV').backward = True
+    row.operator("screen.time_jump", text="", icon='FRAME_NEXT').backward = False
+    row.popover(panel="TIME_PT_jump", text="")
+
+    if tool_settings:
+        row = layout.row(align=True)
+        row.prop(tool_settings, "use_snap_playhead", text="")
+        sub = row.row(align=True)
+        sub.popover(panel="TIME_PT_playhead_snapping", text="")
 
     layout.separator_spacer()
 
@@ -119,48 +136,16 @@ def playback_controls(layout, context):
             sub.prop(scene, "frame_preview_end", text="End")
 
 
-class TIME_MT_editor_menus(Menu):
-    bl_idname = "TIME_MT_editor_menus"
-    bl_label = ""
-
-    def draw(self, context):
-        layout = self.layout
-        horizontal = (layout.direction == 'VERTICAL')
-        st = context.space_data
-        if horizontal:
-            row = layout.row()
-            sub = row.row(align=True)
-        else:
-            sub = layout
-
-        sub.menu("TIME_MT_view")
-        if st.show_markers:
-            sub.menu("TIME_MT_marker")
-
-
-class TIME_MT_marker(Menu):
-    bl_label = "Marker"
-
-    def draw(self, context):
-        layout = self.layout
-
-        marker_menu_generic(layout, context)
-
-
 class TIME_MT_view(Menu):
     bl_label = "View"
 
     def draw(self, context):
         layout = self.layout
-
         scene = context.scene
         st = context.space_data
-
         layout.prop(st, "show_region_hud")
         layout.prop(st, "show_region_channels")
         layout.separator()
-
-        # NOTE: "action" now, since timeline is in the dopesheet editor, instead of as own editor
         layout.operator("action.view_all")
         if context.scene.use_preview_range:
             layout.operator("anim.scene_range_frame", text="Frame Preview Range")
@@ -168,19 +153,15 @@ class TIME_MT_view(Menu):
             layout.operator("anim.scene_range_frame", text="Frame Scene Range")
         layout.operator("action.view_frame")
         layout.separator()
-
         layout.prop(st, "show_markers")
         layout.prop(st, "show_seconds")
         layout.prop(st, "show_locked_time")
         layout.separator()
-
         layout.prop(scene, "show_keys_from_selected_only")
         layout.prop(st.dopesheet, "show_only_errors")
         layout.separator()
-
         layout.menu("DOPESHEET_MT_cache")
         layout.separator()
-
         layout.menu("INFO_MT_area")
 
 
@@ -284,6 +265,24 @@ class TIME_PT_keyframing_settings(TimelinePanelButtons, Panel):
     bl_label = "Keyframing Settings"
     bl_options = {'HIDE_HEADER'}
     bl_region_type = 'HEADER'
+    bl_description = "Active keying set and keyframing settings"
+
+    def draw_header(self, context):
+        st = context.space_data
+        is_sequencer = st.type == 'SEQUENCE_EDITOR' and st.view_type == 'SEQUENCER'
+        scene = context.scene if not is_sequencer else context.sequencer_scene
+        if scene.keying_sets_all.active:
+            self.bl_label = scene.keying_sets_all.active.bl_label
+            if scene.keying_sets_all.active.bl_label in scene.keying_sets:
+                # Do not translate, this keying set is user-defined.
+                self.bl_translation_context = i18n_contexts.no_translation
+            else:
+                # Use the keying set's translation context (default).
+                self.bl_translation_context = scene.keying_sets_all.active.bl_rna.translation_context
+        else:
+            # Use a custom translation context to differentiate from compositing keying.
+            self.bl_label = n_("Keying", i18n_contexts.id_windowmanager)
+            self.bl_translation_context = i18n_contexts.id_windowmanager
 
     def draw(self, context):
         layout = self.layout
@@ -329,15 +328,33 @@ class TIME_PT_auto_keyframing(TimelinePanelButtons, Panel):
             col.prop(tool_settings, "use_record_with_nla", text="Layered Recording")
 
 
+class TIME_PT_jump(TimelinePanelButtons, Panel):
+    bl_label = "Time Jump"
+    bl_options = {'HIDE_HEADER'}
+    bl_region_type = 'HEADER'
+    bl_ui_units_x = 10
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        st = context.space_data
+        is_sequencer = st.type == 'SEQUENCE_EDITOR' and st.view_type == 'SEQUENCER'
+        scene = context.scene if not is_sequencer else context.sequencer_scene
+
+        layout.prop(scene, "time_jump_unit", expand=True, text="Jump Unit")
+        layout.prop(scene, "time_jump_delta", text="Delta")
+
+
 ###################################
 
 classes = (
-    TIME_MT_editor_menus,
-    TIME_MT_marker,
     TIME_MT_view,
     TIME_PT_playback,
     TIME_PT_keyframing_settings,
     TIME_PT_auto_keyframing,
+    TIME_PT_jump,
     TIME_PT_playhead_snapping,
 )
 

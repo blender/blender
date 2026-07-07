@@ -81,9 +81,9 @@ static bool add_gpu_lut_1D2D(internal::GPUTextures &textures,
     return false;
   }
 
-  blender::gpu::TextureFormat format = (channel == GpuShaderCreator::TEXTURE_RGB_CHANNEL) ?
-                                           blender::gpu::TextureFormat::SFLOAT_16_16_16 :
-                                           blender::gpu::TextureFormat::SFLOAT_16;
+  gpu::TextureFormat format = (channel == GpuShaderCreator::TEXTURE_RGB_CHANNEL) ?
+                                  gpu::TextureFormat::SFLOAT_16_16_16 :
+                                  gpu::TextureFormat::SFLOAT_16;
 
   internal::GPULutTexture lut;
   /* There does not appear to be an explicit way to check if a texture is 1D or 2D.
@@ -135,7 +135,7 @@ static bool add_gpu_lut_3D(internal::GPUTextures &textures,
                                       edgelen,
                                       edgelen,
                                       1,
-                                      blender::gpu::TextureFormat::SFLOAT_16_16_16,
+                                      gpu::TextureFormat::SFLOAT_16_16_16,
                                       GPU_TEXTURE_USAGE_SHADER_READ,
                                       values);
   if (lut.texture == nullptr) {
@@ -261,7 +261,10 @@ void LibOCIOGPUShaderBinder::construct_scene_linear_shader(
   }
 
   construct_shader_for_processors(
-      display_shader, processor_to_scene_linear, nullptr, {{"USE_TO_SCENE_LINEAR_ONLY", ""}});
+      display_shader,
+      processor_to_scene_linear,
+      nullptr,
+      {{"USE_TO_SCENE_LINEAR_ONLY", ""}, {"OUTPUT_PREMULTIPLIED", ""}});
 }
 
 }  // namespace blender::ocio

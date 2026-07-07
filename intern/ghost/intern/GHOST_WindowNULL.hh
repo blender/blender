@@ -72,9 +72,9 @@ class GHOST_WindowNULL : public GHOST_Window {
   {
     return "untitled";
   }
-  GHOST_TSuccess setPath(const char * /*filepath*/) override
+  void setPath(const char * /*filepath*/) override
   {
-    return GHOST_kFailure;
+    /* Pass. */
   }
   void getWindowBounds(GHOST_Rect &bounds) const override
   {
@@ -105,7 +105,7 @@ class GHOST_WindowNULL : public GHOST_Window {
     outX = inX;
     outY = inY;
   }
-  GHOST_TSuccess swapBuffers() override
+  GHOST_TSuccess swapBufferRelease() override
   {
     return GHOST_kFailure;
   }

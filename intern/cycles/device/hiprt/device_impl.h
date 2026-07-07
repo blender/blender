@@ -35,16 +35,16 @@ class HIPRTDevice : public HIPDevice {
 
   ~HIPRTDevice() override;
   unique_ptr<DeviceQueue> gpu_queue_create() override;
-  string compile_kernel_get_common_cflags(const uint kernel_features) override;
-  string compile_kernel(const uint kernel_features,
-                        const char *name,
-                        const char *base = "hiprt") override;
+  string compile_kernel_get_common_cflags(const uint kernel_features);
+  string compile_kernel(const uint kernel_features, const char *name, const char *base = "hiprt");
 
   bool load_kernels(const uint kernel_features) override;
 
   void const_copy_to(const char *name, void *host, const size_t size) override;
 
   void build_bvh(BVH *bvh, Progress &progress, bool refit) override;
+
+  void release_bvh(BVH *bvh) override;
 
   hiprtContext get_hiprt_context()
   {
@@ -65,14 +65,24 @@ class HIPRTDevice : public HIPDevice {
                         const vector<Object *> &objects,
                         hiprtBuildOptions options,
                         bool refit);
+  void free_bvh_memory_delayed();
 
   hiprtContext hiprt_context;
+  hipModule_t hiprt_module_;
+
   hiprtScene scene;
   hiprtFuncTable functions_table;
 
   thread_mutex hiprt_mutex;
   size_t scratch_buffer_size;
   device_vector<char> scratch_buffer;
+
+  /* This vector tracks the hiprt_geom members of BVHRT so that device memory
+   * can be managed/released in HIPRTDevice.
+   * Even if synchronization occurs before memory release, a GPU job may still
+   * launch between synchronization and release, potentially causing the GPU
+   * to access unmapped memory. */
+  vector<hiprtGeometry> stale_bvh;
 
   /* Is this scene using motion blur? Note there might exist motion data even if
    * motion blur is disabled, for render passes. */

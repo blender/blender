@@ -10,14 +10,17 @@
 
 #include "fbx_import_util.hh"
 
+namespace blender {
+
 struct FBXImportParams;
 struct Main;
 
-namespace blender::io::fbx {
+namespace io::fbx {
 
 void import_meshes(Main &bmain,
                    const ufbx_scene &fbx,
                    FbxElementMapping &mapping,
                    const FBXImportParams &params);
 
-}  // namespace blender::io::fbx
+}  // namespace io::fbx
+}  // namespace blender

@@ -6,6 +6,7 @@
 
 #include "BKE_type_conversions.hh"
 #include "BKE_volume_grid.hh"
+#include "BKE_volume_grid_process.hh"
 #include "BKE_volume_openvdb.hh"
 
 #include "NOD_rna_define.hh"
@@ -55,9 +56,6 @@ static std::optional<eNodeSocketDatatype> node_type_for_socket_type(const bNodeS
 
 static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
 {
-  if (!USER_EXPERIMENTAL_TEST(&U, use_new_volume_nodes)) {
-    return;
-  }
   const std::optional<eNodeSocketDatatype> node_type = node_type_for_socket_type(
       params.other_socket());
   if (!node_type) {
@@ -94,64 +92,20 @@ static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
   }
 }
 
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
-}
-
-static void node_init(bNodeTree * /*tree*/, bNode *node)
-{
-  node->custom1 = SOCK_FLOAT;
+  layout.prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 #ifdef WITH_OPENVDB
 
-template<typename T>
-void sample_grid(const bke::OpenvdbGridType<T> &grid,
-                 const Span<int> x,
-                 const Span<int> y,
-                 const Span<int> z,
-                 const IndexMask &mask,
-                 MutableSpan<T> dst)
-{
-  using GridType = bke::OpenvdbGridType<T>;
-  using GridValueT = typename GridType::ValueType;
-  using AccessorT = typename GridType::ConstAccessor;
-  using TraitsT = typename bke::VolumeGridTraits<T>;
-  AccessorT accessor = grid.getConstAccessor();
-
-  mask.foreach_index([&](const int64_t i) {
-    GridValueT value = accessor.getValue(openvdb::Coord(x[i], y[i], z[i]));
-    dst[i] = TraitsT::to_blender(value);
-  });
-}
-
-template<typename Fn> void convert_to_static_type(const VolumeGridType type, const Fn &fn)
-{
-  switch (type) {
-    case VOLUME_GRID_BOOLEAN:
-      fn(bool());
-      break;
-    case VOLUME_GRID_FLOAT:
-      fn(float());
-      break;
-    case VOLUME_GRID_INT:
-      fn(int());
-      break;
-    case VOLUME_GRID_MASK:
-      fn(bool());
-      break;
-    case VOLUME_GRID_VECTOR_FLOAT:
-      fn(float3());
-      break;
-    default:
-      break;
-  }
-}
-
 class SampleGridIndexFunction : public mf::MultiFunction {
   bke::GVolumeGrid grid_;
   mf::Signature signature_;
+  VolumeGridType grid_type_;
+  /** Avoid accessing grid in #call function to avoid overhead for each multi-function call. */
+  bke::VolumeTreeAccessToken tree_token_;
+  const openvdb::GridBase *grid_base_ = nullptr;
 
  public:
   SampleGridIndexFunction(bke::GVolumeGrid grid) : grid_(std::move(grid))
@@ -167,6 +121,9 @@ class SampleGridIndexFunction : public mf::MultiFunction {
     builder.single_input<int>("Z");
     builder.single_output("Value", *cpp_type);
     this->set_signature(&signature_);
+
+    grid_base_ = &grid_->grid(tree_token_);
+    grid_type_ = grid_->grid_type();
   }
 
   void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const final
@@ -176,11 +133,7 @@ class SampleGridIndexFunction : public mf::MultiFunction {
     const VArraySpan<int> z = params.readonly_single_input<int>(2, "Z");
     GMutableSpan dst = params.uninitialized_single_output(3, "Value");
 
-    bke::VolumeTreeAccessToken tree_token;
-    convert_to_static_type(grid_->grid_type(), [&](auto dummy) {
-      using T = decltype(dummy);
-      sample_grid<T>(grid_.typed<T>().grid(tree_token), x, y, z, mask, dst.typed<T>());
-    });
+    bke::volume_grid::sample_tree_indices(grid_type_, grid_base_->baseTree(), x, y, z, mask, dst);
   }
 };
 
@@ -189,41 +142,39 @@ class SampleGridIndexFunction : public mf::MultiFunction {
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
-  const bNode &node = params.node();
-  const eNodeSocketDatatype data_type = eNodeSocketDatatype(node.custom1);
-
   bke::GVolumeGrid grid = params.extract_input<bke::GVolumeGrid>("Grid");
   if (!grid) {
     params.set_default_remaining_outputs();
     return;
   }
 
-  auto fn = std::make_shared<SampleGridIndexFunction>(std::move(grid));
-  auto op = FieldOperation::from(std::move(fn),
-                                 {params.extract_input<Field<int>>("X"),
-                                  params.extract_input<Field<int>>("Y"),
-                                  params.extract_input<Field<int>>("Z")});
+  auto x = params.extract_input<bke::SocketValueVariant>("X");
+  auto y = params.extract_input<bke::SocketValueVariant>("Y");
+  auto z = params.extract_input<bke::SocketValueVariant>("Z");
 
-  const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
-  const CPPType &output_type = *bke::socket_type_to_geo_nodes_base_cpp_type(data_type);
-  const GField output_field = conversions.try_convert(fn::GField(std::move(op)), output_type);
-  params.set_output("Value", std::move(output_field));
+  std::string error_message;
+  bke::SocketValueVariant output_value;
+  if (!execute_multi_function_on_value_variant(
+          std::make_shared<SampleGridIndexFunction>(std::move(grid)),
+          {&x, &y, &z},
+          {&output_value},
+          params.user_data(),
+          error_message))
+  {
+    params.set_default_remaining_outputs();
+    params.error_message_add(NodeWarningType::Error, std::move(error_message));
+    return;
+  }
 
+  params.set_output("Value", std::move(output_value));
 #else
   node_geo_exec_with_missing_openvdb(params);
 #endif
 }
 
-static const EnumPropertyItem *data_type_filter_fn(bContext * /*C*/,
-                                                   PointerRNA * /*ptr*/,
-                                                   PropertyRNA * /*prop*/,
-                                                   bool *r_free)
+static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  *r_free = true;
-  return enum_items_filter(
-      rna_enum_node_socket_data_type_items, [](const EnumPropertyItem &item) -> bool {
-        return ELEM(item.value, SOCK_FLOAT, SOCK_INT, SOCK_BOOLEAN, SOCK_VECTOR);
-      });
+  node->custom1 = SOCK_FLOAT;
 }
 
 static void node_rna(StructRNA *srna)
@@ -235,25 +186,25 @@ static void node_rna(StructRNA *srna)
                     rna_enum_node_socket_data_type_items,
                     NOD_inline_enum_accessors(custom1),
                     SOCK_FLOAT,
-                    data_type_filter_fn);
+                    grid_socket_type_items_filter_fn);
 }
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeSampleGridIndex", GEO_NODE_SAMPLE_GRID_INDEX);
   ntype.ui_name = "Sample Grid Index";
   ntype.ui_description = "Retrieve volume grid values at specific voxels";
   ntype.enum_name_legacy = "SAMPLE_GRID_INDEX";
-  ntype.nclass = NODE_CLASS_CONVERTER;
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   ntype.gather_link_search_ops = node_gather_link_search_ops;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

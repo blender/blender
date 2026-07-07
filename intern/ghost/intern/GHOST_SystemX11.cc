@@ -154,6 +154,7 @@ GHOST_SystemX11::GHOST_SystemX11()
   GHOST_INTERN_ATOM(_MOTIF_WM_HINTS);
   GHOST_INTERN_ATOM(TARGETS);
   GHOST_INTERN_ATOM(STRING);
+  GHOST_INTERN_ATOM(C_STRING);
   GHOST_INTERN_ATOM(COMPOUND_TEXT);
   GHOST_INTERN_ATOM(TEXT);
   GHOST_INTERN_ATOM(CLIPBOARD);
@@ -313,9 +314,9 @@ uint64_t GHOST_SystemX11::ms_from_input_time(Time timestamp) const
     timestamp_prev = timestamp;
   }
 
-  if (UNLIKELY(timestamp < timestamp_prev)) {
+  if (timestamp < timestamp_prev) [[unlikely]] {
     /* Only rollover if this is within a reasonable range. */
-    if (UNLIKELY(timestamp_prev - timestamp > UINT32_MAX / 2)) {
+    if (timestamp_prev - timestamp > UINT32_MAX / 2) [[unlikely]] {
       timestamp_offset += uint64_t(UINT32_MAX) + 1;
     }
   }
@@ -390,7 +391,7 @@ GHOST_IWindow *GHOST_SystemX11::createWindow(const char *title,
       /* Store the pointer to the window */
       window_manager_->addWindow(window);
       window_manager_->setActiveWindow(window);
-      pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window));
+      pushEvent(std::make_unique<GHOST_Event>(getMilliSeconds(), GHOST_kEventWindowSize, window));
     }
     else {
       delete window;
@@ -714,12 +715,12 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
               for (int i = 0; i < int(ARRAY_SIZE(modifiers)); i++) {
                 KeyCode kc = XKeysymToKeycode(display_, modifiers[i]);
                 if (kc != 0 && ((xevent.xkeymap.key_vector[kc >> 3] >> (kc & 7)) & 1) != 0) {
-                  pushEvent(new GHOST_EventKey(event_ms,
-                                               GHOST_kEventKeyDown,
-                                               window,
-                                               ghost_key_from_keysym(modifiers[i]),
-                                               false,
-                                               nullptr));
+                  pushEvent(std::make_unique<GHOST_EventKey>(event_ms,
+                                                             GHOST_kEventKeyDown,
+                                                             window,
+                                                             ghost_key_from_keysym(modifiers[i]),
+                                                             false,
+                                                             nullptr));
                 }
               }
             }
@@ -791,7 +792,7 @@ static bool checkTabletProximity(Display *display, XDevice *device)
 void GHOST_SystemX11::processEvent(XEvent *xe)
 {
   GHOST_WindowX11 *window = findGhostWindow(xe->xany.window);
-  GHOST_Event *g_event = nullptr;
+  std::unique_ptr<GHOST_Event> g_event = nullptr;
 
   /* Detect auto-repeat. */
   bool is_repeat = false;
@@ -917,7 +918,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
         /* Event has no timestamp. */
         const uint64_t event_ms = getMilliSeconds();
 
-        g_event = new GHOST_Event(event_ms, GHOST_kEventWindowUpdate, window);
+        g_event = std::make_unique<GHOST_Event>(event_ms, GHOST_kEventWindowUpdate, window);
       }
       break;
     }
@@ -997,21 +998,21 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
           setCursorPosition(x_new, y_new); /* wrap */
         }
         else {
-          g_event = new GHOST_EventCursor(event_ms,
-                                          GHOST_kEventCursorMove,
-                                          window,
-                                          xme.x_root + x_accum,
-                                          xme.y_root + y_accum,
-                                          window->GetTabletData());
+          g_event = std::make_unique<GHOST_EventCursor>(event_ms,
+                                                        GHOST_kEventCursorMove,
+                                                        window,
+                                                        xme.x_root + x_accum,
+                                                        xme.y_root + y_accum,
+                                                        window->GetTabletData());
         }
       }
       else {
-        g_event = new GHOST_EventCursor(event_ms,
-                                        GHOST_kEventCursorMove,
-                                        window,
-                                        xme.x_root,
-                                        xme.y_root,
-                                        window->GetTabletData());
+        g_event = std::make_unique<GHOST_EventCursor>(event_ms,
+                                                      GHOST_kEventCursorMove,
+                                                      window,
+                                                      xme.x_root,
+                                                      xme.y_root,
+                                                      window->GetTabletData());
       }
       break;
     }
@@ -1222,7 +1223,8 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
         }
       }
 
-      g_event = new GHOST_EventKey(event_ms, type, window, gkey, is_repeat, utf8_buf);
+      g_event = std::make_unique<GHOST_EventKey>(
+          event_ms, type, window, gkey, is_repeat, utf8_buf);
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
       /* When using IM for some languages such as Japanese,
@@ -1245,9 +1247,10 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
             break;
           }
           /* Enqueue previous character. */
-          pushEvent(g_event);
+          pushEvent(std::move(g_event));
 
-          g_event = new GHOST_EventKey(event_ms, type, window, gkey, is_repeat, &utf8_buf[i]);
+          g_event = std::make_unique<GHOST_EventKey>(
+              event_ms, type, window, gkey, is_repeat, &utf8_buf[i]);
         }
       }
 
@@ -1270,13 +1273,15 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       /* process wheel mouse events and break, only pass on press events */
       if (xbe.button == Button4) {
         if (xbe.type == ButtonPress) {
-          g_event = new GHOST_EventWheel(event_ms, window, GHOST_kEventWheelAxisVertical, 1);
+          g_event = std::make_unique<GHOST_EventWheel>(
+              event_ms, window, GHOST_kEventWheelAxisVertical, 1);
         }
         break;
       }
       if (xbe.button == Button5) {
         if (xbe.type == ButtonPress) {
-          g_event = new GHOST_EventWheel(event_ms, window, GHOST_kEventWheelAxisVertical, -1);
+          g_event = std::make_unique<GHOST_EventWheel>(
+              event_ms, window, GHOST_kEventWheelAxisVertical, -1);
         }
         break;
       }
@@ -1310,7 +1315,8 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
         break;
       }
 
-      g_event = new GHOST_EventButton(event_ms, type, window, gbmask, window->GetTabletData());
+      g_event = std::make_unique<GHOST_EventButton>(
+          event_ms, type, window, gbmask, window->GetTabletData());
       break;
     }
 
@@ -1320,7 +1326,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       /* Event has no timestamp. */
       const uint64_t event_ms = getMilliSeconds();
 
-      g_event = new GHOST_Event(event_ms, GHOST_kEventWindowSize, window);
+      g_event = std::make_unique<GHOST_Event>(event_ms, GHOST_kEventWindowSize, window);
       break;
     }
 
@@ -1350,14 +1356,15 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       }
 #endif
 
-      g_event = new GHOST_Event(getMilliSeconds(), gtype, window);
+      g_event = std::make_unique<GHOST_Event>(getMilliSeconds(), gtype, window);
       break;
     }
     case ClientMessage: {
       XClientMessageEvent &xcme = xe->xclient;
 
       if (((Atom)xcme.data.l[0]) == atom_.WM_DELETE_WINDOW) {
-        g_event = new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowClose, window);
+        g_event = std::make_unique<GHOST_Event>(
+            getMilliSeconds(), GHOST_kEventWindowClose, window);
       }
       else if (((Atom)xcme.data.l[0]) == atom_.WM_TAKE_FOCUS) {
         XWindowAttributes attr;
@@ -1418,12 +1425,12 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       const XCrossingEvent &xce = xe->xcrossing;
       const uint64_t event_ms = ms_from_input_time(xce.time);
       if (xce.mode == NotifyNormal) {
-        g_event = new GHOST_EventCursor(event_ms,
-                                        GHOST_kEventCursorMove,
-                                        window,
-                                        xce.x_root,
-                                        xce.y_root,
-                                        window->GetTabletData());
+        g_event = std::make_unique<GHOST_EventCursor>(event_ms,
+                                                      GHOST_kEventCursorMove,
+                                                      window,
+                                                      xce.x_root,
+                                                      xce.y_root,
+                                                      window->GetTabletData());
       }
 
 #if 0
@@ -1598,7 +1605,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
   }
 
   if (g_event) {
-    pushEvent(g_event);
+    pushEvent(std::move(g_event));
   }
 }
 
@@ -1819,7 +1826,9 @@ GHOST_TCapabilityFlag GHOST_SystemX11::getCapabilities() const
           /* No support yet for RGBA mouse cursors. */
           GHOST_kCapabilityCursorRGBA |
           /* No support yet for dynamic cursor generation. */
-          GHOST_kCapabilityCursorGenerator));
+          GHOST_kCapabilityCursorGenerator |
+          /* No support for window path meta-data. */
+          GHOST_kCapabilityWindowPath));
 }
 
 void GHOST_SystemX11::addDirtyWindow(GHOST_WindowX11 *bad_wind)
@@ -1836,13 +1845,13 @@ bool GHOST_SystemX11::generateWindowExposeEvents()
   bool anyProcessed = false;
 
   for (; w_start != w_end; ++w_start) {
-    const GHOST_Event *g_event = new GHOST_Event(
+    auto g_event = std::make_unique<GHOST_Event>(
         getMilliSeconds(), GHOST_kEventWindowUpdate, *w_start);
 
     (*w_start)->validate();
 
     if (g_event) {
-      pushEvent(g_event);
+      pushEvent(std::move(g_event));
       anyProcessed = true;
     }
   }
@@ -2622,7 +2631,7 @@ GHOST_TSuccess GHOST_SystemX11::pushDragDropEvent(GHOST_TEventType eventType,
   /* Caller has no timestamp. */
   const uint64_t event_ms = system->getMilliSeconds();
 
-  return system->pushEvent(new GHOST_EventDragnDrop(
+  return system->pushEvent(std::make_unique<GHOST_EventDragnDrop>(
       event_ms, eventType, draggedObjectType, window, mouseX, mouseY, data));
 }
 #endif

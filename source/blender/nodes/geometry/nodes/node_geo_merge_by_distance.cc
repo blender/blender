@@ -19,13 +19,13 @@ static EnumPropertyItem mode_items[] = {
     {GEO_NODE_MERGE_BY_DISTANCE_MODE_ALL,
      "ALL",
      0,
-     "All",
-     "Merge all close selected points, whether or not they are connected"},
+     N_("All"),
+     N_("Merge all close selected points, whether or not they are connected")},
     {GEO_NODE_MERGE_BY_DISTANCE_MODE_CONNECTED,
      "CONNECTED",
      0,
-     "Connected",
-     "Only merge mesh vertices along existing edges. This method can be much faster"},
+     N_("Connected"),
+     N_("Only merge mesh vertices along existing edges. This method can be much faster")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -38,14 +38,14 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Point cloud or mesh to merge points of");
   b.add_output<decl::Geometry>("Geometry").propagate_all().align_with_previous();
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
-  b.add_input<decl::Menu>("Mode").static_items(mode_items);
+  b.add_input<decl::Menu>("Mode").static_items(mode_items).optional_label();
   b.add_input<decl::Float>("Distance").default_value(0.001f).min(0.0f).subtype(PROP_DISTANCE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   /* Still used for forward compatibility. */
-  node->storage = MEM_callocN<NodeGeometryMergeByDistance>(__func__);
+  node->storage = MEM_new<NodeGeometryMergeByDistance>(__func__);
 }
 
 static PointCloud *pointcloud_merge_by_distance(const PointCloud &src_points,
@@ -135,7 +135,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeMergeByDistance", GEO_NODE_MERGE_BY_DISTANCE);
   ntype.ui_name = "Merge by Distance";
@@ -143,13 +143,13 @@ static void node_register()
   ntype.enum_name_legacy = "MERGE_BY_DISTANCE";
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.initfunc = node_init;
-  blender::bke::node_type_storage(ntype,
-                                  "NodeGeometryMergeByDistance",
-                                  node_free_standard_storage,
-                                  node_copy_standard_storage);
+  bke::node_type_storage(ntype,
+                         "NodeGeometryMergeByDistance",
+                         node_free_standard_storage,
+                         node_copy_standard_storage);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

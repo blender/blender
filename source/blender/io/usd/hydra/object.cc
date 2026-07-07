@@ -113,15 +113,42 @@ pxr::VtValue ObjectData::get_data(pxr::SdfPath const & /*id*/, pxr::TfToken cons
 
 pxr::SdfPath ObjectData::material_id() const
 {
+  return material_id(prim_id);
+}
+
+pxr::SdfPath ObjectData::material_id(pxr::SdfPath const &id) const
+{
+  MaterialData *mat_data = get_material_data(id);
+  if (mat_data) {
+    return mat_data->prim_id;
+  }
   return pxr::SdfPath();
 }
 
-pxr::SdfPath ObjectData::material_id(pxr::SdfPath const & /*id*/) const
+void ObjectData::available_materials(Set<pxr::SdfPath> & /*paths*/) const {}
+
+bool ObjectData::double_sided(pxr::SdfPath const &id) const
 {
-  return material_id();
+  MaterialData *mat_data = get_material_data(id);
+  if (mat_data) {
+    return mat_data->double_sided;
+  }
+  return true;
 }
 
-void ObjectData::available_materials(Set<pxr::SdfPath> & /*paths*/) const {}
+pxr::HdCullStyle ObjectData::cull_style(pxr::SdfPath const &id) const
+{
+  MaterialData *mat_data = get_material_data(id);
+  if (mat_data) {
+    return mat_data->cull_style();
+  }
+  return pxr::HdCullStyle::HdCullStyleNothing;
+}
+
+MaterialData *ObjectData::get_material_data(pxr::SdfPath const & /*id*/) const
+{
+  return nullptr;
+}
 
 void ObjectData::write_transform()
 {

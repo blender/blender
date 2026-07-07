@@ -13,17 +13,13 @@
 
 namespace blender::gpu::render_graph {
 
-VKRenderGraph::VKRenderGraph(VKResourceStateTracker &resources) : resources_(resources)
-{
-  submission_id.reset();
-}
+VKRenderGraph::VKRenderGraph(VKResourceStateTracker &resources) : resources_(resources) {}
 
 void VKRenderGraph::reset()
 {
 #if 0
   memstats();
 #endif
-  submission_id.next();
 
   links_.clear_and_shrink();
   for (VKRenderGraphNode &node : nodes_) {
@@ -68,9 +64,7 @@ void VKRenderGraph::memstats() const
 void VKRenderGraph::debug_group_begin(const char *name, const ColorTheme4f &color)
 {
   ColorTheme4f useColor = color;
-  if ((color == blender::gpu::debug::GPU_DEBUG_GROUP_COLOR_DEFAULT) &&
-      (debug_.group_stack.size() > 0))
-  {
+  if ((color == gpu::debug::GPU_DEBUG_GROUP_COLOR_DEFAULT) && (debug_.group_stack.size() > 0)) {
     useColor = debug_.groups[debug_.group_stack.last()].color;
   }
   DebugGroupNameID name_id = debug_.groups.index_of_or_add({std::string(name), useColor});

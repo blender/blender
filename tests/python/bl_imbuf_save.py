@@ -18,6 +18,7 @@ args = None
 
 TEMPLATE_RGBA08 = "template-rgba08.png"
 TEMPLATE_RGBA32 = "template-rgba32.exr"
+TEMPLATE_HIGH_VALUES = "extreme_values/template-high-values.exr"
 
 
 class ImBufTest(AbstractImBufTest):
@@ -31,7 +32,7 @@ class ImBufTest(AbstractImBufTest):
     def _load_template_image(self, name, template_name):
         image_path = str(self.test_dir.joinpath(template_name))
         bpy.ops.image.open(filepath=image_path)
-        img = bpy.data.images[template_name]
+        img = bpy.data.images[pathlib.Path(template_name).name]
         img.name = name
         return img
 
@@ -45,8 +46,9 @@ class ImBufTest(AbstractImBufTest):
         for s in settings:
             if s == "color_depth":
                 name += str(settings[s]).rjust(2, '0') + "-"
-            # do not embed exr quality into test file name
-            elif not (s == "quality" and ext == "exr"):
+            # do not embed exr quality into test file name unless it is DWAA/DWAB
+            elif not (s == "quality" and ext == "exr" and
+                      settings.get("exr_codec") not in ("DWAA", "DWAB")):
                 name += str(settings[s]) + "-"
 
             setattr(image_settings, s, settings[s])
@@ -59,6 +61,7 @@ class ImBufTest(AbstractImBufTest):
         loaders = {
             "rgba08": lambda name: self._load_template_image(name, TEMPLATE_RGBA08),
             "rgba32": lambda name: self._load_template_image(name, TEMPLATE_RGBA32),
+            "high-values": lambda name: self._load_template_image(name, TEMPLATE_HIGH_VALUES),
         }
 
         # Load the template image and assign it the image name
@@ -129,6 +132,9 @@ class ImBufSaveTest(ImBufTest):
         self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "32", "exr_codec": "DWAB", "quality": 97})
         self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "32", "exr_codec": "DWAA", "quality": 97})
         self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGBA", "color_depth": "32", "exr_codec": "ZIP"})
+        self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "16", "exr_codec": "HTJ2K"})
+        self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "HTJ2K"})
+        self.check(src="rgba08", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGBA", "color_depth": "32", "exr_codec": "HTJ2K"})
 
         self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "16", "exr_codec": "ZIP"})
         self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "DWAA", "quality": 97})
@@ -136,6 +142,18 @@ class ImBufSaveTest(ImBufTest):
         self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "32", "exr_codec": "DWAB", "quality": 97})
         self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "32", "exr_codec": "DWAA", "quality": 97})
         self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGBA", "color_depth": "32", "exr_codec": "ZIP"})
+        self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "BW", "color_depth": "16", "exr_codec": "HTJ2K"})
+        self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "HTJ2K"})
+        self.check(src="rgba32", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGBA", "color_depth": "32", "exr_codec": "HTJ2K"})
+
+    def test_save_exr_dwa_high_values(self):
+        self.skip_if_format_missing("OPENEXR")
+
+        # Tests for correct clamping of values that exceed HALF_MAX.
+        self.check(src="high-values", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "DWAA", "quality": 100})
+        self.check(src="high-values", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "DWAA", "quality": 90})
+        self.check(src="high-values", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "DWAA", "quality": 75})
+        self.check(src="high-values", ext="exr", settings={"file_format": "OPEN_EXR", "color_mode": "RGB", "color_depth": "16", "exr_codec": "DWAA", "quality": 50})
 
     def test_save_hdr(self):
         self.check(src="rgba08", ext="hdr", settings={"file_format": "HDR", "color_mode": "BW"})
@@ -245,10 +263,24 @@ class ImBufSaveTest(ImBufTest):
 
         self.check(src="rgba08", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGB", "quality": 90})
         self.check(src="rgba08", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGBA", "quality": 90})
+        self.check(src="rgba08", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGB", "quality": 100})
+        self.check(src="rgba08", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGBA", "quality": 100})
 
-        # Note: These 2 variations are problematic on MacOS ARM64 (#105006)
-        # self.check(src="rgba32", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGB", "quality": 70})
-        # self.check(src="rgba32", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGBA", "quality": 70})
+        self.check(src="rgba32", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGB", "quality": 70})
+        self.check(src="rgba32", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGBA", "quality": 70})
+        self.check(src="rgba32", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGB", "quality": 100})
+        self.check(src="rgba32", ext="webp", settings={"file_format": "WEBP", "color_mode": "RGBA", "quality": 100})
+
+    def test_save_avif(self):
+        self.check(src="rgba08", ext="avif", settings={"file_format": "AVIF", "color_mode": "RGB", "color_depth": "8", "quality": 90})
+        self.check(src="rgba08", ext="avif", settings={"file_format": "AVIF", "color_mode": "RGBA", "color_depth": "8", "quality": 90})
+        self.check(src="rgba08", ext="avif", settings={"file_format": "AVIF", "color_mode": "RGB", "color_depth": "10", "quality": 90})
+        self.check(src="rgba08", ext="avif", settings={"file_format": "AVIF", "color_mode": "RGB", "color_depth": "12", "quality": 90})
+
+        self.check(src="rgba32", ext="avif", settings={"file_format": "AVIF", "color_mode": "RGB", "color_depth": "8", "quality": 70})
+        self.check(src="rgba32", ext="avif", settings={"file_format": "AVIF", "color_mode": "RGBA", "color_depth": "8", "quality": 70})
+        self.check(src="rgba32", ext="avif", settings={"file_format": "AVIF", "color_mode": "RGB", "color_depth": "10", "quality": 70})
+        self.check(src="rgba32", ext="avif", settings={"file_format": "AVIF", "color_mode": "RGB", "color_depth": "12", "quality": 70})
 # autopep8: on
 
 

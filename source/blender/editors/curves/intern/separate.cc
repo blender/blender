@@ -37,7 +37,7 @@ static wmOperatorStatus separate_exec(bContext *C, wmOperator * /*op*/)
 
   VectorSet<Curves *> src_curves;
   for (Base *base_src : bases) {
-    src_curves.add(static_cast<Curves *>(base_src->object->data));
+    src_curves.add(id_cast<Curves *>(base_src->object->data));
   }
 
   /* Modify new curves and generate new curves in parallel. */
@@ -91,7 +91,7 @@ static wmOperatorStatus separate_exec(bContext *C, wmOperator * /*op*/)
 
   /* Skip processing objects with no selected elements. */
   bases.remove_if([&](Base *base) {
-    Curves *curves = static_cast<Curves *>(base->object->data);
+    Curves *curves = id_cast<Curves *>(base->object->data);
     return dst_curves[src_curves.index_of(curves)] == nullptr;
   });
 
@@ -101,14 +101,14 @@ static wmOperatorStatus separate_exec(bContext *C, wmOperator * /*op*/)
 
   /* Add new objects for the new curves. */
   for (Base *base_src : bases) {
-    Curves *src = static_cast<Curves *>(base_src->object->data);
+    Curves *src = id_cast<Curves *>(base_src->object->data);
     Curves *dst = dst_curves[src_curves.index_of(src)];
 
     Base *base_dst = object::add_duplicate(
         bmain, scene, view_layer, base_src, eDupli_ID_Flags(U.dupflag) & USER_DUP_ACT);
     Object *object_dst = base_dst->object;
     object_dst->mode = OB_MODE_OBJECT;
-    object_dst->data = dst;
+    object_dst->data = id_cast<ID *>(dst);
 
     DEG_id_tag_update(&src->id, ID_RECALC_GEOMETRY);
     DEG_id_tag_update(&dst->id, ID_RECALC_GEOMETRY);

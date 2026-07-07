@@ -28,10 +28,11 @@
 #ifdef WITH_MATERIALX
 #  include "materialx/node_parser.h"  // IWYU pragma: export
 #else
-#  define NODE_SHADER_MATERIALX_BEGIN \
-    blender::bke::NodeMaterialXFunction node_shader_materialx = nullptr;
+#  define NODE_SHADER_MATERIALX_BEGIN bke::NodeMaterialXFunction node_shader_materialx = nullptr;
 #  define NODE_SHADER_MATERIALX_END
 #endif
+
+namespace blender {
 
 struct bContext;
 struct bNodeExecContext;
@@ -40,13 +41,16 @@ struct GPUNodeLink;
 struct GPUNodeStack;
 struct GPUMaterial;
 
-bool sh_node_poll_default(const blender::bke::bNodeType *ntype,
+bool sh_node_poll_default(const bke::bNodeType *ntype,
                           const bNodeTree *ntree,
                           const char **r_disabled_hint);
-void sh_node_type_base(blender::bke::bNodeType *ntype,
+void sh_node_type_base(bke::bNodeType *ntype,
                        std::string idname,
                        std::optional<int16_t> legacy_type = std::nullopt);
-void common_node_type_base(blender::bke::bNodeType *ntype,
+void sh_geo_node_type_base(bke::bNodeType *ntype,
+                           std::string idname,
+                           std::optional<int16_t> legacy_type = std::nullopt);
+void common_node_type_base(bke::bNodeType *ntype,
                            std::string idname,
                            std::optional<int16_t> legacy_type = std::nullopt);
 bool line_style_shader_nodes_poll(const bContext *C);
@@ -62,7 +66,7 @@ struct XYZ_to_RGB /* Transposed #imbuf_xyz_to_rgb, passed as 3x vec3. */
   float r[3], g[3], b[3];
 };
 
-void node_gpu_stack_from_data(GPUNodeStack *gs, int type, bNodeStack *ns);
+void node_gpu_stack_from_data(GPUNodeStack *gs, bNodeSocket *socket, bNodeStack *ns);
 void node_data_from_gpu_stack(bNodeStack *ns, GPUNodeStack *gs);
 void node_shader_gpu_bump_tex_coord(GPUMaterial *mat, bNode *node, GPUNodeLink **link);
 void node_shader_gpu_default_tex_coord(GPUMaterial *mat, bNode *node, GPUNodeLink **link);
@@ -89,3 +93,9 @@ void get_XYZ_to_RGB_for_gpu(XYZ_to_RGB *data);
 bool node_socket_not_zero(const GPUNodeStack &socket);
 bool node_socket_not_white(const GPUNodeStack &socket);
 bool node_socket_not_black(const GPUNodeStack &socket);
+
+/* Link search callback that ignores the "Weight" socket in shader nodes.
+ * These sockets are never available and must be ignored to avoid invalid link operations. */
+void search_link_ops_for_shader_bsdf_node(nodes::GatherLinkSearchOpParams &params);
+
+}  // namespace blender

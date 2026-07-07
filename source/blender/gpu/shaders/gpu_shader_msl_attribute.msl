@@ -1,0 +1,14 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+/* Common Metal header to be included in all compiled Metal shaders.
+ * Both native MSL shaders and GLSL shaders. */
+
+#pragma once
+
+using namespace metal;
+
+/* Default Point Size.
+ * Unused if function constant not set. */
+constant float MTL_global_pointsize [[function_constant(1)]];

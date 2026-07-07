@@ -13,42 +13,12 @@ namespace blender::nodes {
 inline bool socket_type_supported_in_bundle(const eNodeSocketDatatype socket_type,
                                             const int ntree_type)
 {
-  switch (ntree_type) {
-    case NTREE_GEOMETRY:
-      return ELEM(socket_type,
-                  SOCK_FLOAT,
-                  SOCK_VECTOR,
-                  SOCK_RGBA,
-                  SOCK_BOOLEAN,
-                  SOCK_ROTATION,
-                  SOCK_MATRIX,
-                  SOCK_INT,
-                  SOCK_STRING,
-                  SOCK_GEOMETRY,
-                  SOCK_OBJECT,
-                  SOCK_MATERIAL,
-                  SOCK_IMAGE,
-                  SOCK_COLLECTION,
-                  SOCK_BUNDLE,
-                  SOCK_CLOSURE);
-    case NTREE_SHADER:
-      return ELEM(socket_type,
-                  SOCK_FLOAT,
-                  SOCK_VECTOR,
-                  SOCK_RGBA,
-                  SOCK_SHADER,
-                  SOCK_BUNDLE,
-                  SOCK_CLOSURE,
-                  SOCK_INT);
-    default:
-      BLI_assert_unreachable();
-      return false;
-  }
+  return bke::node_tree_type_supports_socket_type_static(ntree_type, socket_type);
 }
 
 struct CombineBundleItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeCombineBundleItem;
-  static StructRNA *item_srna;
+  static StructRNA **item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "NodeCombineBundle";
   static constexpr bool has_type = true;
@@ -82,7 +52,7 @@ struct CombineBundleItemsAccessor : public socket_items::SocketItemsAccessorDefa
 
   static void destruct_item(ItemT *item)
   {
-    MEM_SAFE_FREE(item->name);
+    MEM_SAFE_DELETE(item->name);
   }
 
   static void blend_write_item(BlendWriter *writer, const ItemT &item);
@@ -124,7 +94,7 @@ struct CombineBundleItemsAccessor : public socket_items::SocketItemsAccessorDefa
 
 struct SeparateBundleItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeSeparateBundleItem;
-  static StructRNA *item_srna;
+  static StructRNA **item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "NodeSeparateBundle";
   static constexpr bool has_type = true;
@@ -158,7 +128,7 @@ struct SeparateBundleItemsAccessor : public socket_items::SocketItemsAccessorDef
 
   static void destruct_item(ItemT *item)
   {
-    MEM_SAFE_FREE(item->name);
+    MEM_SAFE_DELETE(item->name);
   }
 
   static void blend_write_item(BlendWriter *writer, const ItemT &item);

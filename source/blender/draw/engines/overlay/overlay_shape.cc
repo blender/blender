@@ -102,21 +102,6 @@ static const std::array<float3, 6> bone_octahedral_verts{
     {0.0f, 1.0f, 0.0f},
 };
 
-/**
- * NOTE: This is not the correct normals.
- * The correct smooth normals for the equator vertices should be
- * {+-0.943608f * M_SQRT1_2, -0.331048f, +-0.943608f * M_SQRT1_2}
- * but it creates problems for outlines when bones are scaled.
- */
-static const std::array<float3, 6> bone_octahedral_smooth_normals{
-    float3{0.0f, -1.0f, 0.0f},
-    {float(M_SQRT1_2), 0.0f, float(M_SQRT1_2)},
-    {float(M_SQRT1_2), 0.0f, -float(M_SQRT1_2)},
-    {-float(M_SQRT1_2), 0.0f, -float(M_SQRT1_2)},
-    {-float(M_SQRT1_2), 0.0f, float(M_SQRT1_2)},
-    {0.0f, 1.0f, 0.0f},
-};
-
 static const std::array<uint2, 12> bone_octahedral_wire_lines = {
     uint2{0, 1},
     {1, 5},
@@ -220,7 +205,7 @@ static Vector<float2> ring_vertices(const float radius,
                                     const bool half = false)
 {
   Vector<float2> verts;
-  const float full = (half ? 1.0f : 2.0f) * math::numbers::pi;
+  const float full = (half ? 1.0f : 2.0f) * std::numbers::pi;
   for (const int angle_i : IndexRange(segments + (half ? 1 : 0))) {
     const float angle = (full * angle_i) / segments;
     verts.append(radius * float2(math::cos(angle), math::sin(angle)));
@@ -770,14 +755,14 @@ ShapeCache::ShapeCache()
       float2(-1.0f, -1.0f) * axis_marker_scale,
       float2(-1.0f, 1.0f) * axis_marker_scale,
 #else /* diamond */
-      float2(-1.0f, 0.0f) * axis_marker_scale,
-      float2(0.0f, 1.0f) * axis_marker_scale,
-      float2(0.0f, 1.0f) * axis_marker_scale,
-      float2(1.0f, 0.0f) * axis_marker_scale,
-      float2(1.0f, 0.0f) * axis_marker_scale,
-      float2(0.0f, -1.0f) * axis_marker_scale,
-      float2(0.0f, -1.0f) * axis_marker_scale,
-      float2(-1.0f, 0.0f) * axis_marker_scale,
+        float2(-1.0f, 0.0f) * axis_marker_scale,
+        float2(0.0f, 1.0f) * axis_marker_scale,
+        float2(0.0f, 1.0f) * axis_marker_scale,
+        float2(1.0f, 0.0f) * axis_marker_scale,
+        float2(1.0f, 0.0f) * axis_marker_scale,
+        float2(0.0f, -1.0f) * axis_marker_scale,
+        float2(0.0f, -1.0f) * axis_marker_scale,
+        float2(-1.0f, 0.0f) * axis_marker_scale,
 #endif
     };
 
@@ -970,7 +955,7 @@ ShapeCache::ShapeCache()
     verts.append({{0.0f, 0.0f, 0.0f}, VCLASS_NONE});
     /* Cone silhouette */
     for (const int angle_i : IndexRange(circle_nsegments + 1)) {
-      const float angle = (2.0f * math::numbers::pi * angle_i) / circle_nsegments;
+      const float angle = (2.0f * std::numbers::pi * angle_i) / circle_nsegments;
       const float s = sinf(-angle);
       const float c = cosf(-angle);
       verts.append({{s, c, -1.0f}, VCLASS_LIGHT_SPOT_SHAPE});
@@ -1329,16 +1314,17 @@ ShapeCache::ShapeCache()
   }
   /* cursor circle */
   {
-    const int segments = 16;
-
-    const float red[3] = {1.0f, 0.0f, 0.0f};
-    const float white[3] = {1.0f, 1.0f, 1.0f};
+    const int segments = 12;
+    const float radius = 0.5f;
+    const float color_primary[3] = {1.0f, 0.0f, 0.0f};
+    const float color_secondary[3] = {1.0f, 1.0f, 1.0f};
 
     Vector<VertexWithColor> verts;
 
     for (int i = 0; i < segments + 1; i++) {
       float angle = float(2 * M_PI) * (float(i) / float(segments));
-      verts.append({0.5f * float3(cosf(angle), sinf(angle), 0.0f), (i % 2 == 0) ? red : white});
+      verts.append({radius * float3(cosf(angle), sinf(angle), 0.0f),
+                    (i % 2 == 0) ? color_secondary : color_primary});
     }
 
     cursor_circle = BatchPtr(GPU_batch_create_ex(
@@ -1346,22 +1332,38 @@ ShapeCache::ShapeCache()
   }
   /* cursor lines */
   {
-    const float f5 = 0.25f;
-    const float f20 = 1.0f;
+    const float outer_limit = 1.0f;
+    const float color_limit = 0.85f;
+    const float inner_limit = 0.25f;
+    const std::array<int, 3> axis_theme = {TH_AXIS_X, TH_AXIS_Y, TH_AXIS_Z};
 
     float crosshair_color[3];
-    UI_GetThemeColor3fv(TH_VIEW_OVERLAY, crosshair_color);
 
     Vector<VertexWithColor> verts;
 
     for (int i = 0; i < 3; i++) {
       float3 axis(0.0f);
       axis[i] = 1.0f;
-      verts.append({f5 * axis, crosshair_color});
-      verts.append({f20 * axis, crosshair_color});
+      /* Draw the positive axes. */
+      ui::theme::get_color_3fv(axis_theme[i], crosshair_color);
+      verts.append({outer_limit * axis, crosshair_color});
+      verts.append({color_limit * axis, crosshair_color});
+
+      /* Inner crosshair. */
+      ui::theme::get_color_3fv(TH_VIEW_OVERLAY, crosshair_color);
+      verts.append({color_limit * axis, crosshair_color});
+      verts.append({inner_limit * axis, crosshair_color});
+
+      /* Draw the negative axis a little darker and desaturated. */
       axis[i] = -1.0f;
-      verts.append({f5 * axis, crosshair_color});
-      verts.append({f20 * axis, crosshair_color});
+      ui::theme::get_color_blend_shade_3fv(axis_theme[i], TH_WHITE, .25f, -60, crosshair_color);
+      verts.append({outer_limit * axis, crosshair_color});
+      verts.append({color_limit * axis, crosshair_color});
+
+      /* Inner crosshair. */
+      ui::theme::get_color_3fv(TH_VIEW_OVERLAY, crosshair_color);
+      verts.append({color_limit * axis, crosshair_color});
+      verts.append({inner_limit * axis, crosshair_color});
     }
 
     cursor_lines = BatchPtr(

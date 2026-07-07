@@ -16,15 +16,14 @@
 
 #include "IMB_imbuf.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_tracking_types.h"
 
 #include "GPU_shader.hh"
 #include "GPU_storage_buffer.hh"
 
-#include "BKE_movieclip.h"
-#include "BKE_tracking.h"
+#include "BKE_movieclip.hh"
+#include "BKE_tracking.hh"
 
 #include "COM_context.hh"
 #include "COM_keying_screen.hh"
@@ -72,20 +71,20 @@ static void compute_marker_points(MovieClip *movie_clip,
     return;
   }
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &movie_tracking_object->tracks) {
-    const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, movie_clip_user.framenr);
+  for (MovieTrackingTrack &track : movie_tracking_object->tracks) {
+    const MovieTrackingMarker *marker = BKE_tracking_marker_get(&track, movie_clip_user.framenr);
     if (marker->flag & MARKER_DISABLED) {
       continue;
     }
 
     /* Skip out of bound markers since they have no corresponding color. */
-    const float2 position = float2(marker->pos) + float2(track->offset);
+    const float2 position = float2(marker->pos) + float2(track.offset);
     if (math::clamp(position, float2(0.0f), float2(1.0f)) != position) {
       continue;
     }
 
     ImBuf *pattern_image_buffer = BKE_tracking_get_pattern_imbuf(
-        image_buffer, track, marker, true, false);
+        image_buffer, &track, marker, true, false);
     if (!pattern_image_buffer) {
       continue;
     }
@@ -117,7 +116,7 @@ static void compute_marker_points(MovieClip *movie_clip,
 /* Get a MovieClipUser with an initialized clip frame number. */
 static MovieClipUser get_movie_clip_user(Context &context, MovieClip *movie_clip)
 {
-  MovieClipUser movie_clip_user = *DNA_struct_default_get(MovieClipUser);
+  MovieClipUser movie_clip_user = {};
   const int scene_frame = context.get_frame_number();
   const int clip_frame = BKE_movieclip_remap_scene_to_clip_frame(movie_clip, scene_frame);
   BKE_movieclip_user_set_frame(&movie_clip_user, clip_frame);
@@ -189,7 +188,7 @@ void KeyingScreen::compute_gpu(Context &context,
 
   this->result.bind_as_image(shader, "output_img");
 
-  compute_dispatch_threads_at_least(shader, this->result.domain().size);
+  compute_dispatch_threads_at_least(shader, this->result.domain().data_size);
 
   this->result.unbind_as_image();
   GPU_storagebuf_unbind(positions_ssbo);
@@ -205,7 +204,7 @@ void KeyingScreen::compute_cpu(const float smoothness,
                                const Vector<float4> &marker_colors)
 {
   float squared_shape_parameter = math::square(1.0f / smoothness);
-  const int2 size = this->result.domain().size;
+  const int2 size = this->result.domain().data_size;
   parallel_for(size, [&](const int2 texel) {
     float2 normalized_pixel_location = (float2(texel) + float2(0.5f)) / float2(size);
 
@@ -226,7 +225,7 @@ void KeyingScreen::compute_cpu(const float smoothness,
     }
     weighted_sum /= sum_of_weights;
 
-    this->result.store_pixel(texel, weighted_sum);
+    this->result.store_pixel(texel, Color(weighted_sum));
   });
 }
 

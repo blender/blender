@@ -10,9 +10,11 @@
 
 #include "BLI_span.hh"
 
+namespace blender {
+
 struct Main;
 
-namespace blender::deg {
+namespace deg {
 
 struct Depsgraph;
 
@@ -20,4 +22,5 @@ void register_graph(Depsgraph *depsgraph);
 void unregister_graph(Depsgraph *depsgraph);
 Span<Depsgraph *> get_all_registered_graphs(Main *bmain);
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

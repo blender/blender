@@ -20,7 +20,7 @@ namespace {
 
 /* Mapping from ID.name to set of export hierarchy path. Duplicated objects can be exported
  * multiple times with different export paths, hence the set. */
-using used_writers = blender::Map<std::string, blender::Set<std::string>>;
+using used_writers = Map<std::string, Set<std::string>>;
 
 class TestHierarchyWriter : public AbstractHierarchyWriter {
  public:

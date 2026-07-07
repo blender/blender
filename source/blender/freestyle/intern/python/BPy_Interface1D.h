@@ -22,11 +22,11 @@ extern PyTypeObject Interface1D_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&Interface1D_Type))
 
 /*---------------------------Python BPy_Interface1D structure definition----------*/
-typedef struct {
+struct BPy_Interface1D {
   PyObject_HEAD
   Freestyle::Interface1D *if1D;
   bool borrowed; /* true if *if1D is a borrowed object */
-} BPy_Interface1D;
+};
 
 /*---------------------------Python BPy_Interface1D visible prototypes-----------*/
 

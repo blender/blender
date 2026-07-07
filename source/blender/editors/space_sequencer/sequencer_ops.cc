@@ -6,8 +6,6 @@
  * \ingroup spseq
  */
 
-#include <cstdlib>
-
 #include "DNA_space_types.h"
 
 #include "WM_api.hh"
@@ -25,6 +23,7 @@ void sequencer_operatortypes()
 {
   /* `sequencer_edit.cc` */
   WM_operatortype_append(SEQUENCER_OT_split);
+  WM_operatortype_append(SEQUENCER_OT_box_blade);
   WM_operatortype_append(SEQUENCER_OT_slip);
   WM_operatortype_append(SEQUENCER_OT_mute);
   WM_operatortype_append(SEQUENCER_OT_unmute);

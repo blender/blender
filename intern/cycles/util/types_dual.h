@@ -11,7 +11,7 @@
 CCL_NAMESPACE_BEGIN
 
 template<class T> struct dual {
-  T val, dx, dy;
+  T val = T(), dx = T(), dy = T();
   dual() = default;
   ccl_device_inline_method explicit dual(const T val) : val(val) {}
   ccl_device_inline_method dual(const T val, const T dx, const T dy) : val(val), dx(dx), dy(dy) {}

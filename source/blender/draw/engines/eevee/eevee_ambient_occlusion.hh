@@ -14,9 +14,13 @@
 
 #pragma once
 
-#include "eevee_shader_shared.hh"
+#include "draw_pass.hh"
+
+#include "eevee_raytrace_shared.hh"
 
 namespace blender::eevee {
+
+using namespace draw;
 
 class Instance;
 
@@ -36,8 +40,8 @@ class AmbientOcclusion {
   PassSimple render_pass_ps_ = {"AO Render Pass"};
 
  public:
-  AmbientOcclusion(Instance &inst, AOData &data) : inst_(inst), data_(data){};
-  ~AmbientOcclusion(){};
+  AmbientOcclusion(Instance &inst, AOData &data) : inst_(inst), data_(data) {};
+  ~AmbientOcclusion() {};
 
   void init();
 

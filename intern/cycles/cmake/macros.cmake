@@ -20,7 +20,7 @@ macro(cycles_add_library target library_deps)
   # CMake have a native way of dealing with this, which is specifying what build type the
   # libraries are provided for:
   #
-  #   target_link_libraries(tagret optimized|debug|general <libraries>)
+  #   target_link_libraries(target optimized|debug|general <libraries>)
   #
   # The build type is to be provided as a separate argument to the function.
   #
@@ -28,22 +28,22 @@ macro(cycles_add_library target library_deps)
   #
   #   set(FOO_LIBRARIES optimized libfoo.lib debug libfoo_d.lib)
   #
-  # Complications starts with a single argument for library_deps: all the elements are being
+  # Complications start with a single argument for library_deps: all the elements are being
   # put to a list: "${FOO_LIBRARIES}" will become "optimized;libfoo.lib;debug;libfoo_d.lib".
-  # This makes it impossible to pass it as-is to target_link_libraries sine it will treat
+  # This makes it impossible to pass it as-is to target_link_libraries since it will treat
   # this argument as a list of libraries to be linked against, causing missing libraries
   # for optimized.lib.
   #
   # What this code does it traverses library_deps and extracts information about whether
   # library is to provided as general, debug or optimized. This is a little state machine which
-  # keeps track of whiuch build type library is to provided for:
+  # keeps track of which build type library is to provided for:
   #
   # - If "debug" or "optimized" word is found, the next element in the list is expected to be
   #   a library which will be passed to target_link_libraries() under corresponding build type.
   #
   # - If there is no "debug" or "optimized" used library is specified for all build types.
   #
-  # NOTE: If separated libraries for debug and release ar eneeded every library is the list are
+  # NOTE: If separated libraries for debug and release are needed every library is the list are
   # to be prefixed explicitly.
   #
   # Use: "optimized libfoo optimized libbar debug libfoo_d debug libbar_d"
@@ -71,6 +71,12 @@ macro(cycles_add_library target library_deps)
     endforeach()
   endif()
 
+  # On windows vcpkg goes out of its way to make its libs the preferred
+  # libs, and needs to be explicitly be told not to do that.
+  if(WIN32)
+    set_target_properties(${target} PROPERTIES VS_GLOBAL_VcpkgEnabled "false")
+  endif()
+
   cycles_set_solution_folder(${target})
 endmacro()
 
@@ -86,7 +92,7 @@ macro(cycles_external_libraries_append libraries)
     endif()
   endif()
   if(WITH_CYCLES_OSL)
-    list(APPEND ${libraries} ${OSL_LIBRARIES})
+    list(APPEND ${libraries} bf::dependencies::optional::osl)
   endif()
   if(WITH_CYCLES_EMBREE)
     list(APPEND ${libraries} ${EMBREE_LIBRARIES})
@@ -118,9 +124,6 @@ macro(cycles_external_libraries_append libraries)
       endif()
     endif()
   endif()
-  if(WITH_ALEMBIC)
-    list(APPEND ${libraries} ${ALEMBIC_LIBRARIES})
-  endif()
   if(WITH_PATH_GUIDING)
     list(APPEND ${libraries} ${OPENPGL_LIBRARIES})
   endif()
@@ -131,18 +134,17 @@ macro(cycles_external_libraries_append libraries)
     list(APPEND ${libraries} "-lm -lc -lutil")
   endif()
   list(APPEND ${libraries}
-    ${OPENIMAGEIO_LIBRARIES}
+    bf::dependencies::openimageio
     ${PNG_LIBRARIES}
     ${JPEG_LIBRARIES}
     ${TIFF_LIBRARY}
     ${OPENJPEG_LIBRARIES}
-    ${OPENEXR_LIBRARIES}
-    ${OPENEXR_LIBRARIES} # For circular dependencies between libs.
+    bf::dependencies::optional::openexr
     ${PUGIXML_LIBRARIES}
-    ${PYTHON_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${CMAKE_DL_LIBS}
   )
+  list(APPEND ${libraries} bf::dependencies::optional::python)
 
   if(DEFINED PTHREADS_LIBRARIES)
     list(APPEND ${libraries}
@@ -169,7 +171,7 @@ macro(cycles_external_libraries_append libraries)
   if(UNIX AND NOT APPLE)
     if(CYCLES_STANDALONE_REPOSITORY)
       list(APPEND ${libraries} extern_libc_compat)
-      # Hack to solve linking order issue where external libs depend on
+      # Hack to solve linking order issue where external libs depend
       # on our compatibility lib.
       list(APPEND ${libraries} $<TARGET_FILE:extern_libc_compat>)
     else()

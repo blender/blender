@@ -39,13 +39,19 @@ class TestHelper(unittest.TestCase):
             if not inst_attr_id.startswith("test_"):
                 continue
             inst_attr = getattr(self, inst_attr_id)
-            if callable(inst_attr):
+            if not callable(inst_attr):
+                continue
+
+            self.setUp()
+            try:
                 inst_attr()
+            finally:
+                self.tearDown()
 
 
 class TestBlendLibLinkHelper(TestHelper):
     """
-    Generate relatively complex data layout accross several blendfiles.
+    Generate relatively complex data layout across several blendfiles.
 
     Useful for testing link/append/etc., but also data relationships e.g.
     """
@@ -77,10 +83,11 @@ class TestBlendLibLinkHelper(TestHelper):
 
         ma = bpy.data.materials.new("LibMaterial")
         ma.use_fake_user = True
-        ma.use_nodes = True
+        out_node = ma.node_tree.nodes.new("ShaderNodeOutputMaterial")
+        bsdf_node = ma.node_tree.nodes.new("ShaderNodeBsdfPrincipled")
+        ma.node_tree.links.new(bsdf_node.outputs["BSDF"], out_node.inputs["Surface"])
         teximage_node = ma.node_tree.nodes.new("ShaderNodeTexImage")
         teximage_node.image = im
-        bsdf_node = ma.node_tree.nodes["Principled BSDF"]
         ma.node_tree.links.new(bsdf_node.inputs["Base Color"], teximage_node.outputs["Color"])
 
     def gen_library_data_(self):
@@ -172,6 +179,55 @@ class TestBlendLibLinkHelper(TestHelper):
 
         me = bpy.data.meshes[0]
         me.materials.append(ma)
+
+        output_dir = self.args.output_dir
+        self.ensure_path(output_dir)
+        # Take care to keep the name unique so multiple test jobs can run at once.
+        output_lib_path = os.path.join(output_dir, self.unique_blendfile_name("blendlib_indirect_main"))
+
+        bpy.ops.wm.save_as_mainfile(filepath=output_lib_path, check_existing=False, compress=False)
+
+        return output_lib_path
+
+    def init_lib_data_packed_indirect_lib(self):
+        output_dir = self.args.output_dir
+        self.ensure_path(output_dir)
+
+        # Create an indirect library containing a material, and an image texture.
+        self.reset_blender()
+
+        self.gen_indirect_library_data_()
+
+        # Take care to keep the name unique so multiple test jobs can run at once.
+        output_lib_path = os.path.join(output_dir, self.unique_blendfile_name("blendlib_indirect_material"))
+
+        bpy.ops.wm.save_as_mainfile(filepath=output_lib_path, check_existing=False, compress=False)
+
+        # Create a main library containing object etc., and linking material from indirect library.
+        self.reset_blender()
+
+        self.gen_library_data_()
+
+        link_dir = os.path.join(output_lib_path, "Material")
+        bpy.ops.wm.link(directory=link_dir, filename="LibMaterial")
+
+        ma = bpy.data.pack_linked_ids_hierarchy(bpy.data.materials[0])
+
+        me = bpy.data.meshes[0]
+        me.materials.append(ma)
+
+        bpy.ops.outliner.orphans_purge()
+
+        self.assertEqual(len(bpy.data.materials), 1)
+        self.assertTrue(bpy.data.materials[0].is_linked_packed)
+
+        self.assertEqual(len(bpy.data.images), 1)
+        self.assertTrue(bpy.data.images[0].is_linked_packed)
+
+        self.assertEqual(len(bpy.data.libraries), 2)
+        self.assertFalse(bpy.data.libraries[0].is_archive)
+        self.assertTrue(bpy.data.libraries[1].is_archive)
+        self.assertIn(bpy.data.libraries[1].name, bpy.data.libraries[0].archive_libraries)
 
         output_dir = self.args.output_dir
         self.ensure_path(output_dir)

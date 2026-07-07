@@ -14,7 +14,9 @@
 
 #pragma once
 
-#include "BLI_utildefines.h"
+#include "BLI_enum_flags.hh"
+
+namespace blender {
 
 struct ID;
 struct Main;
@@ -23,7 +25,12 @@ struct ReportList;
 /** \name Core `foreach_path` API.
  * \{ */
 
-/** Flags controlling the behavior of the generic BPath API. */
+/**
+ * Flags controlling the behavior of the generic BPath API.
+ *
+ * Note: these are referred to by `rna_enum_file_path_foreach_flag_items`, so make sure that any
+ * new enum items are added there too.
+ */
 enum eBPathForeachFlag {
   /**
    * Ensures the `absolute_base_path` member of #BPathForeachPathData is initialized properly with
@@ -35,7 +42,10 @@ enum eBPathForeachFlag {
   BKE_BPATH_FOREACH_PATH_SKIP_LINKED = (1 << 1),
   /** Skip paths when their matching data is packed. */
   BKE_BPATH_FOREACH_PATH_SKIP_PACKED = (1 << 2),
-  /** Resolve tokens within a virtual filepath to a single, concrete, filepath. */
+  /**
+   * Resolve tokens within a virtual filepath to a single, concrete, filepath. Currently only used
+   * for UDIM tiles.
+   */
   BKE_BPATH_FOREACH_PATH_RESOLVE_TOKEN = (1 << 3),
   /**
    * Skip weak reference paths. Those paths are typically 'nice to have' extra information, but are
@@ -53,7 +63,7 @@ enum eBPathForeachFlag {
 
   /**
    * Skip paths where a single dir is used with an array of files, eg. sequence strip images or
-   * point-caches. In this case only use the first file path is processed.
+   * point-caches. In this case only the first file path is processed.
    *
    * This is needed for directory manipulation callbacks which might otherwise modify the same
    * directory multiple times.
@@ -65,7 +75,7 @@ enum eBPathForeachFlag {
    */
   BKE_BPATH_FOREACH_PATH_RELOAD_EDITED = (1 << 9),
 };
-ENUM_OPERATORS(eBPathForeachFlag, BKE_BPATH_FOREACH_PATH_RELOAD_EDITED)
+ENUM_OPERATORS(eBPathForeachFlag)
 
 struct BPathForeachPathData;
 
@@ -242,3 +252,5 @@ void BKE_bpath_list_restore(Main *bmain, eBPathForeachFlag flag, void *path_list
 void BKE_bpath_list_free(void *path_list_handle);
 
 /** \} */
+
+}  // namespace blender

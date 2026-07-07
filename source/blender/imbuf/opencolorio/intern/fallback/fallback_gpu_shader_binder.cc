@@ -93,7 +93,10 @@ void FallbackGPUShaderBinder::construct_scene_linear_shader(
 
   const std::string fragment_source = generate_scene_linear_fragment_source(display_shader);
 
-  if (!create_gpu_shader(display_shader, fragment_source, {{"USE_TO_SCENE_LINEAR_ONLY", ""}})) {
+  if (!create_gpu_shader(display_shader,
+                         fragment_source,
+                         {{"USE_TO_SCENE_LINEAR_ONLY", ""}, {"OUTPUT_PREMULTIPLIED", ""}}))
+  {
     display_shader.is_valid = false;
   }
 }

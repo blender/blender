@@ -62,12 +62,13 @@ class Cursor : Overlay {
           state.region, cursor->location, pixel_coord, V3D_PROJ_TEST_CLIP_NEAR);
       if (status != V3D_PROJ_RET_OK) {
         /* Clipped. */
+        enabled_ = false;
         return;
       }
     }
     else {
-      const SpaceImage *sima = (SpaceImage *)state.space_data;
-      UI_view2d_view_to_region(
+      const SpaceImage *sima = reinterpret_cast<const SpaceImage *>(state.space_data);
+      ui::view2d_view_to_region(
           &state.region->v2d, sima->cursor[0], sima->cursor[1], &pixel_coord[0], &pixel_coord[1]);
     }
 
@@ -93,6 +94,8 @@ class Cursor : Overlay {
      * So make sure it is set otherwise it can be in undefined state (see #136911). */
     pass.push_constant("gpu_attr_0_fetch_int", false);
     pass.push_constant("gpu_attr_1_fetch_unorm8", false);
+    pass.push_constant("gpu_attr_0_len", 3);
+    pass.push_constant("gpu_attr_1_len", 3);
     /* See `polyline_draw_workaround`. */
     int3 vert_stride_count_line = {2, 9999 /* Doesn't matter. */, 0};
     int3 vert_stride_count_circle = {1, 9999 /* Doesn't matter. */, 0};
@@ -107,13 +110,12 @@ class Cursor : Overlay {
       float4x4 mvp_lines = float4x4(state.rv3d->winmat) * float4x4(state.rv3d->viewmat) *
                            cursor_mat;
 
-      /* Render line first to avoid Z fighting. */
-      pass.push_constant("ModelViewProjectionMatrix", mvp_lines);
-      pass.push_constant("gpu_vert_stride_count_offset", vert_stride_count_line);
-      pass.draw_expand(res.shapes.cursor_lines.get(), GPU_PRIM_TRIS, 2, 1);
       pass.push_constant("ModelViewProjectionMatrix", mvp);
       pass.push_constant("gpu_vert_stride_count_offset", vert_stride_count_circle);
       pass.draw_expand(res.shapes.cursor_circle.get(), GPU_PRIM_TRIS, 2, 1);
+      pass.push_constant("ModelViewProjectionMatrix", mvp_lines);
+      pass.push_constant("gpu_vert_stride_count_offset", vert_stride_count_line);
+      pass.draw_expand(res.shapes.cursor_lines.get(), GPU_PRIM_TRIS, 2, 1);
     }
     else {
       pass.push_constant("ModelViewProjectionMatrix", mvp);
@@ -181,14 +183,14 @@ class Cursor : Overlay {
 
   static bool is_cursor_visible_2d(const State &state)
   {
-    SpaceInfo *space_data = (SpaceInfo *)state.space_data;
-    if (space_data == nullptr) {
+    SpaceLink *space_link = const_cast<SpaceLink *>(state.space_data);
+    if (space_link == nullptr) {
       return false;
     }
-    if (space_data->spacetype != SPACE_IMAGE) {
+    if (space_link->spacetype != SPACE_IMAGE) {
       return false;
     }
-    SpaceImage *sima = (SpaceImage *)space_data;
+    SpaceImage *sima = reinterpret_cast<SpaceImage *>(space_link);
     switch (sima->mode) {
       case SI_MODE_VIEW:
         return false;

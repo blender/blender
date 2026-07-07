@@ -9,6 +9,8 @@
 #include "BLI_endian_switch.h"
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 void BLI_endian_switch_int16_array(short *val, const int size)
 {
   if (size > 0) {
@@ -88,3 +90,5 @@ void BLI_endian_switch_double_array(double *val, const int size)
     }
   }
 }
+
+}  // namespace blender

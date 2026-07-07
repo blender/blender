@@ -12,10 +12,12 @@
 #include "BLI_sys_types.h"
 #include "BLI_vector.hh"
 
+namespace blender {
+
 struct rcti;
 
 /** Flags for mode of operation. */
-enum eGPUSelectMode {
+enum GPUSelectMode {
   GPU_SELECT_INVALID = 0,
   GPU_SELECT_ALL = 1,
   /* gpu_select_query */
@@ -42,7 +44,7 @@ struct GPUSelectResult {
   unsigned int depth;
 };
 
-using GPUSelectStorage = blender::Vector<GPUSelectResult, 2500>;
+using GPUSelectStorage = Vector<GPUSelectResult, 2500>;
 struct GPUSelectBuffer {
   GPUSelectStorage storage;
 };
@@ -50,18 +52,13 @@ struct GPUSelectBuffer {
 /**
  * Initialize and provide buffer for results.
  */
-void GPU_select_begin(GPUSelectBuffer *buffer,
-                      const rcti *input,
-                      eGPUSelectMode mode,
-                      int oldhits);
+void GPU_select_begin(GPUSelectBuffer *buffer, const rcti *input, GPUSelectMode mode, int oldhits);
 /**
  * Initialize and provide buffer for results.
  * Uses the new Select-Next engine if enabled.
  */
-void GPU_select_begin_next(GPUSelectBuffer *buffer,
-                           const rcti *input,
-                           eGPUSelectMode mode,
-                           int oldhits);
+void GPU_select_begin_next(
+    GPUSelectBuffer *buffer, const rcti *input, int radius, GPUSelectMode mode, int oldhits);
 /**
  * Loads a new selection id and ends previous query, if any.
  * In second pass of selection it also returns
@@ -94,10 +91,11 @@ void GPU_select_cache_end();
  *
  * Note that comparing depth as uint is fine.
  */
-const GPUSelectResult *GPU_select_buffer_near(const blender::Span<GPUSelectResult> hit_results);
-uint GPU_select_buffer_remove_by_id(blender::MutableSpan<GPUSelectResult> hit_results,
-                                    uint select_id);
+const GPUSelectResult *GPU_select_buffer_near(const Span<GPUSelectResult> hit_results);
+uint GPU_select_buffer_remove_by_id(MutableSpan<GPUSelectResult> hit_results, uint select_id);
 /**
  * Part of the solution copied from `rect_subregion_stride_calc`.
  */
 void GPU_select_buffer_stride_realign(const rcti *src, const rcti *dst, uint *r_buf);
+
+}  // namespace blender

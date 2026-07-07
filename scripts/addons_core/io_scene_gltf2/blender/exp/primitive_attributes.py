@@ -5,7 +5,7 @@
 import numpy as np
 from math import ceil
 
-from ...io.com import gltf2_io, constants as gltf2_io_constants, debug as gltf2_io_debug
+from ...io.com import gltf2_io, constants as gltf2_io_constants
 from ...io.exp import binary_data as gltf2_io_binary_data
 from ...io.exp.user_extensions import export_user_extensions
 from .accessors import array_to_accessor

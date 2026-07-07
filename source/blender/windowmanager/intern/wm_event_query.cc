@@ -31,6 +31,8 @@
 
 #include "RNA_enum_types.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Event Printing
  * \{ */
@@ -129,7 +131,7 @@ void WM_event_print(const wmEvent *event)
         event->xy[1],
         BLI_str_utf8_size_or_error(event->utf8_buf),
         event->utf8_buf,
-        (const void *)event);
+        static_cast<const void *>(event));
 
 #ifdef WITH_INPUT_NDOF
     if (ISNDOF(event->type)) {
@@ -508,8 +510,7 @@ int WM_userdef_event_type_from_keymap_type(int kmitype)
 
 #ifdef WITH_INPUT_NDOF
 
-static blender::float3 event_ndof_translation_get_with_sign(const wmNDOFMotionData &ndof,
-                                                            const float sign)
+static float3 event_ndof_translation_get_with_sign(const wmNDOFMotionData &ndof, const float sign)
 {
   int ndof_flag = U.ndof_flag;
   int x = 0, y = 1, z = 2;
@@ -525,8 +526,7 @@ static blender::float3 event_ndof_translation_get_with_sign(const wmNDOFMotionDa
   };
 }
 
-static blender::float3 event_ndof_rotation_get_with_sign(const wmNDOFMotionData &ndof,
-                                                         const float sign)
+static float3 event_ndof_rotation_get_with_sign(const wmNDOFMotionData &ndof, const float sign)
 {
   int ndof_flag = U.ndof_flag;
   int x = 0, y = 1, z = 2;
@@ -542,24 +542,24 @@ static blender::float3 event_ndof_rotation_get_with_sign(const wmNDOFMotionData 
   };
 }
 
-blender::float3 WM_event_ndof_translation_get_for_navigation(const wmNDOFMotionData &ndof)
+float3 WM_event_ndof_translation_get_for_navigation(const wmNDOFMotionData &ndof)
 {
   const float sign = (U.ndof_navigation_mode == NDOF_NAVIGATION_MODE_OBJECT) ? -1.0f : 1.0f;
   return event_ndof_translation_get_with_sign(ndof, sign);
 }
 
-blender::float3 WM_event_ndof_rotation_get_for_navigation(const wmNDOFMotionData &ndof)
+float3 WM_event_ndof_rotation_get_for_navigation(const wmNDOFMotionData &ndof)
 {
   const float sign = (U.ndof_navigation_mode == NDOF_NAVIGATION_MODE_OBJECT) ? -1.0f : 1.0f;
   return event_ndof_rotation_get_with_sign(ndof, sign);
 }
 
-blender::float3 WM_event_ndof_translation_get(const wmNDOFMotionData &ndof)
+float3 WM_event_ndof_translation_get(const wmNDOFMotionData &ndof)
 {
   return event_ndof_translation_get_with_sign(ndof, 1.0f);
 }
 
-blender::float3 WM_event_ndof_rotation_get(const wmNDOFMotionData &ndof)
+float3 WM_event_ndof_rotation_get(const wmNDOFMotionData &ndof)
 {
   return event_ndof_rotation_get_with_sign(ndof, 1.0f);
 }
@@ -567,13 +567,13 @@ blender::float3 WM_event_ndof_rotation_get(const wmNDOFMotionData &ndof)
 float WM_event_ndof_rotation_get_axis_angle_for_navigation(const wmNDOFMotionData &ndof,
                                                            float axis[3])
 {
-  const blender::float3 rvec = WM_event_ndof_rotation_get_for_navigation(ndof);
+  const float3 rvec = WM_event_ndof_rotation_get_for_navigation(ndof);
   return normalize_v3_v3(axis, rvec);
 }
 
 float WM_event_ndof_rotation_get_axis_angle(const wmNDOFMotionData &ndof, float axis[3])
 {
-  const blender::float3 rvec = WM_event_ndof_rotation_get(ndof);
+  const float3 rvec = WM_event_ndof_rotation_get(ndof);
   return normalize_v3_v3(axis, rvec);
 }
 
@@ -694,3 +694,5 @@ bool WM_event_is_ime_switch(const wmEvent *event)
 #endif
 
 /** \} */
+
+}  // namespace blender

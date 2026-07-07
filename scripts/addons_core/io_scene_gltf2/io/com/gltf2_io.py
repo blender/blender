@@ -18,8 +18,6 @@
 import sys
 import traceback
 
-from ...io.com import debug as gltf2_io_debug
-
 
 def from_int(x):
     assert isinstance(x, int) and not isinstance(x, bool)

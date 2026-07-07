@@ -14,6 +14,8 @@
 
 #include "BLI_noise.h" /* Own include. */
 
+namespace blender {
+
 /* local */
 static float noise3_perlin(const float vec[3]);
 // static float turbulence_perlin(const float point[3], float lofreq, float hifreq);
@@ -762,7 +764,7 @@ static const float g_perlin_data_v3[512 + 2][3] = {
 static float noise3_perlin(const float vec[3])
 {
   const char *p = g_perlin_data_ub;
-  const float(*g)[3] = g_perlin_data_v3;
+  const float (*g)[3] = g_perlin_data_v3;
   int bx0, bx1, by0, by1, bz0, bz1, b00, b10, b01, b11;
   float rx0, rx1, ry0, ry1, rz0, rz1, sx, sy, sz, a, b, c, d, t, u, v;
   const float *q;
@@ -1689,3 +1691,5 @@ float BLI_noise_mg_variable_lacunarity(
 }
 
 /** \} */
+
+}  // namespace blender

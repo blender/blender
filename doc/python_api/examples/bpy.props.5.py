@@ -20,7 +20,7 @@ set or returned, but do not control how/where that data is stored.
 .. note::
 
    It is possible to define both ``get``/``set`` and ``get_transform``/``set_transform`` callbacks
-   for a same property. In practice however, this should rarely be needed, as most 'transform'
+   for the same property. In practice however, this should rarely be needed, as most 'transform'
    operation can also happen within a ``get``/``set`` callback.
 
 .. warning::

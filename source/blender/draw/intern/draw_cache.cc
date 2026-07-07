@@ -558,10 +558,7 @@ void drw_batch_cache_generate_requested_evaluated_mesh_or_curve(Object *ob, Task
 void drw_batch_cache_generate_requested_delayed(Object *ob)
 {
   DRWContext &draw_ctx = drw_get();
-  if (draw_ctx.delayed_extraction == nullptr) {
-    draw_ctx.delayed_extraction = BLI_gset_ptr_new(__func__);
-  }
-  BLI_gset_add(draw_ctx.delayed_extraction, ob);
+  draw_ctx.delayed_extraction.add(ob);
 }
 
 void DRW_batch_cache_free_old(Object *ob, int ctime)

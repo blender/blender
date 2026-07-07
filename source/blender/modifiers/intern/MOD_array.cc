@@ -20,13 +20,13 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_anim_path.h"
 #include "BKE_attribute.hh"
+#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_curve.hh"
 #include "BKE_customdata.hh"
 #include "BKE_lib_id.hh"
@@ -49,15 +49,12 @@
 
 #include "GEO_mesh_merge_by_distance.hh"
 
-using namespace blender;
+namespace blender {
 
 static void init_data(ModifierData *md)
 {
-  ArrayModifierData *amd = (ArrayModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(amd, modifier));
-
-  MEMCPY_STRUCT_AFTER(amd, DNA_struct_default_get(ArrayModifierData), modifier);
+  ArrayModifierData *amd = reinterpret_cast<ArrayModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(amd, modifier);
 
   /* Open the first sub-panel by default,
    * it corresponds to Relative offset which is enabled too. */
@@ -66,17 +63,17 @@ static void init_data(ModifierData *md)
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  ArrayModifierData *amd = (ArrayModifierData *)md;
+  ArrayModifierData *amd = reinterpret_cast<ArrayModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&amd->start_cap, IDWALK_CB_NOP);
-  walk(user_data, ob, (ID **)&amd->end_cap, IDWALK_CB_NOP);
-  walk(user_data, ob, (ID **)&amd->curve_ob, IDWALK_CB_NOP);
-  walk(user_data, ob, (ID **)&amd->offset_ob, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&amd->start_cap), IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&amd->end_cap), IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&amd->curve_ob), IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&amd->offset_ob), IDWALK_CB_NOP);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  ArrayModifierData *amd = (ArrayModifierData *)md;
+  ArrayModifierData *amd = reinterpret_cast<ArrayModifierData *>(md);
   bool need_transform_dependency = false;
   if (amd->start_cap != nullptr) {
     DEG_add_object_relation(
@@ -166,10 +163,10 @@ static void dm_mvert_map_doubles(int *doubles_map,
   source_end = source_start + source_verts_num;
 
   /* build array of MVerts to be tested for merging */
-  SortVertsElem *sorted_verts_target = MEM_malloc_arrayN<SortVertsElem>(size_t(target_verts_num),
-                                                                        __func__);
-  SortVertsElem *sorted_verts_source = MEM_malloc_arrayN<SortVertsElem>(size_t(source_verts_num),
-                                                                        __func__);
+  SortVertsElem *sorted_verts_target = MEM_new_array_uninitialized<SortVertsElem>(
+      size_t(target_verts_num), __func__);
+  SortVertsElem *sorted_verts_source = MEM_new_array_uninitialized<SortVertsElem>(
+      size_t(source_verts_num), __func__);
 
   /* Copy target vertices index and cos into SortVertsElem array */
   svert_from_mvert(sorted_verts_target, vert_positions, target_start, target_end);
@@ -264,8 +261,8 @@ static void dm_mvert_map_doubles(int *doubles_map,
     doubles_map[sve_source->vertex_num] = best_target_vertex;
   }
 
-  MEM_freeN(sorted_verts_source);
-  MEM_freeN(sorted_verts_target);
+  MEM_delete(sorted_verts_source);
+  MEM_delete(sorted_verts_target);
 }
 
 static void mesh_merge_transform(Mesh *result,
@@ -283,22 +280,26 @@ static void mesh_merge_transform(Mesh *result,
                                  int remap_len,
                                  MutableSpan<float3> dst_vert_normals)
 {
-  using namespace blender;
   int *index_orig;
   int i;
   int2 *edge;
-  const blender::Span<int> cap_face_offsets = cap_mesh->face_offsets();
-  blender::MutableSpan<float3> result_positions = result->vert_positions_for_write();
-  blender::MutableSpan<int2> result_edges = result->edges_for_write();
-  blender::MutableSpan<int> result_face_offsets = result->face_offsets_for_write();
-  blender::MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
-  blender::MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
+  const Span<int> cap_face_offsets = cap_mesh->face_offsets();
+  MutableSpan<float3> result_positions = result->vert_positions_for_write();
+  MutableSpan<int2> result_edges = result->edges_for_write();
+  MutableSpan<int> result_face_offsets = result->face_offsets_for_write();
+  MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
+  MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
+  bke::MutableAttributeAccessor result_attributes = result->attributes_for_write();
 
-  CustomData_copy_data(&cap_mesh->vert_data, &result->vert_data, 0, cap_verts_index, cap_nverts);
-  CustomData_copy_data(&cap_mesh->edge_data, &result->edge_data, 0, cap_edges_index, cap_nedges);
-  CustomData_copy_data(
-      &cap_mesh->corner_data, &result->corner_data, 0, cap_loops_index, cap_nloops);
-  CustomData_copy_data(&cap_mesh->face_data, &result->face_data, 0, cap_faces_index, cap_nfaces);
+  bke::LegacyMeshInterpolator vert_interp(*cap_mesh, *result, bke::AttrDomain::Point);
+  bke::LegacyMeshInterpolator edge_interp(*cap_mesh, *result, bke::AttrDomain::Edge);
+  bke::LegacyMeshInterpolator face_interp(*cap_mesh, *result, bke::AttrDomain::Face);
+  bke::LegacyMeshInterpolator corner_interp(*cap_mesh, *result, bke::AttrDomain::Corner);
+
+  vert_interp.copy(0, cap_verts_index, cap_nverts);
+  edge_interp.copy(0, cap_edges_index, cap_nedges);
+  face_interp.copy(0, cap_faces_index, cap_nfaces);
+  corner_interp.copy(0, cap_loops_index, cap_nloops);
 
   for (i = 0; i < cap_nverts; i++) {
     mul_m4_v3(cap_offset, result_positions[cap_verts_index + i]);
@@ -339,7 +340,6 @@ static void mesh_merge_transform(Mesh *result,
   if (const VArray cap_material_indices = *cap_attributes.lookup<int>("material_index",
                                                                       bke::AttrDomain::Face))
   {
-    bke::MutableAttributeAccessor result_attributes = result->attributes_for_write();
     bke::SpanAttributeWriter<int> result_material_indices =
         result_attributes.lookup_or_add_for_write_span<int>("material_index",
                                                             bke::AttrDomain::Face);
@@ -382,8 +382,6 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
    * merging start/end caps into the empty mesh. Avoid an early return here as it can cause
    * problems if the expected custom-data layers don't exist in the resulting mesh,
    * see: #107353, #132991. */
-
-  using namespace blender;
 
   int2 *edge;
   int i, j, c, count;
@@ -559,23 +557,28 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   /* Initialize a result dm */
   result = BKE_mesh_new_nomain_from_template(
       mesh, result_nverts, result_nedges, result_nfaces, result_nloops);
-  blender::MutableSpan<float3> result_positions = result->vert_positions_for_write();
-  blender::MutableSpan<int2> result_edges = result->edges_for_write();
-  blender::MutableSpan<int> result_face_offsets = result->face_offsets_for_write();
-  blender::MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
-  blender::MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
+  MutableSpan<float3> result_positions = result->vert_positions_for_write();
+  MutableSpan<int2> result_edges = result->edges_for_write();
+  MutableSpan<int> result_face_offsets = result->face_offsets_for_write();
+  MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
+  MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
+  bke::MutableAttributeAccessor result_attributes = result->attributes_for_write();
 
   if (use_merge) {
     /* Will need full_doubles_map for handling merge */
-    full_doubles_map = MEM_malloc_arrayN<int>(size_t(result_nverts), __func__);
+    full_doubles_map = MEM_new_array_uninitialized<int>(size_t(result_nverts), __func__);
     copy_vn_i(full_doubles_map, result_nverts, -1);
   }
 
   /* copy customdata to original geometry */
-  CustomData_copy_data(&mesh->vert_data, &result->vert_data, 0, 0, chunk_nverts);
-  CustomData_copy_data(&mesh->edge_data, &result->edge_data, 0, 0, chunk_nedges);
-  CustomData_copy_data(&mesh->corner_data, &result->corner_data, 0, 0, chunk_nloops);
-  CustomData_copy_data(&mesh->face_data, &result->face_data, 0, 0, chunk_nfaces);
+  bke::LegacyMeshInterpolator vert_interp(*mesh, *result, bke::AttrDomain::Point);
+  bke::LegacyMeshInterpolator edge_interp(*mesh, *result, bke::AttrDomain::Edge);
+  bke::LegacyMeshInterpolator face_interp(*mesh, *result, bke::AttrDomain::Face);
+  bke::LegacyMeshInterpolator corner_interp(*mesh, *result, bke::AttrDomain::Corner);
+  vert_interp.copy(0, 0, chunk_nverts);
+  edge_interp.copy(0, 0, chunk_nedges);
+  face_interp.copy(0, 0, chunk_nfaces);
+  corner_interp.copy(0, 0, chunk_nloops);
 
   result_face_offsets.take_front(mesh->faces_num).copy_from(mesh->face_offsets().drop_back(1));
 
@@ -584,7 +587,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   first_chunk_nverts = chunk_nverts;
 
   unit_m4(current_offset);
-  blender::Span<blender::float3> src_vert_normals;
+  Span<float3> src_vert_normals;
   Vector<float3> dst_vert_normals;
   if (!use_recalc_normals) {
     src_vert_normals = mesh->vert_normals();
@@ -596,11 +599,10 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
 
   for (c = 1; c < count; c++) {
     /* copy customdata to new geometry */
-    CustomData_copy_data(&mesh->vert_data, &result->vert_data, 0, c * chunk_nverts, chunk_nverts);
-    CustomData_copy_data(&mesh->edge_data, &result->edge_data, 0, c * chunk_nedges, chunk_nedges);
-    CustomData_copy_data(
-        &mesh->corner_data, &result->corner_data, 0, c * chunk_nloops, chunk_nloops);
-    CustomData_copy_data(&mesh->face_data, &result->face_data, 0, c * chunk_nfaces, chunk_nfaces);
+    vert_interp.copy(0, c * chunk_nverts, chunk_nverts);
+    edge_interp.copy(0, c * chunk_nedges, chunk_nedges);
+    face_interp.copy(0, c * chunk_nfaces, chunk_nfaces);
+    corner_interp.copy(0, c * chunk_nloops, chunk_nloops);
 
     /* recalculate cumulative offset here */
     mul_m4_m4m4(current_offset, current_offset, offset);
@@ -687,10 +689,11 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
 
   /* handle UVs */
   if (chunk_nloops > 0 && is_zero_v2(amd->uv_offset) == false) {
-    const int totuv = CustomData_number_of_layers(&result->corner_data, CD_PROP_FLOAT2);
-    for (i = 0; i < totuv; i++) {
-      blender::float2 *uv_map = static_cast<blender::float2 *>(CustomData_get_layer_n_for_write(
-          &result->corner_data, CD_PROP_FLOAT2, i, result->corners_num));
+    const VectorSet<StringRefNull> uv_map_names = result->uv_map_names();
+    for (i = 0; i < uv_map_names.size(); i++) {
+      bke::SpanAttributeWriter uv_map_attr = result_attributes.lookup_for_write_span<float2>(
+          uv_map_names[i]);
+      float2 *uv_map = uv_map_attr.span.data();
       uv_map += chunk_nloops;
       for (c = 1; c < count; c++) {
         const float uv_offset[2] = {
@@ -703,6 +706,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
           (*uv_map)[1] += uv_offset[1];
         }
       }
+      uv_map_attr.finish();
     }
   }
 
@@ -816,7 +820,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   /* done capping */
 
   if (!dst_vert_normals.is_empty()) {
-    blender::bke::mesh_vert_normals_assign(*result, std::move(dst_vert_normals));
+    bke::mesh_vert_normals_assign(*result, std::move(dst_vert_normals));
   }
 
   /* Handle merging */
@@ -846,14 +850,14 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
           *tmp, MutableSpan<int>{full_doubles_map, result->verts_num}, tot_doubles, false);
       BKE_id_free(nullptr, tmp);
     }
-    MEM_freeN(full_doubles_map);
+    MEM_delete(full_doubles_map);
   }
 
   if (vgroup_start_cap_remap) {
-    MEM_freeN(vgroup_start_cap_remap);
+    MEM_delete(vgroup_start_cap_remap);
   }
   if (vgroup_end_cap_remap) {
-    MEM_freeN(vgroup_end_cap_remap);
+    MEM_delete(vgroup_end_cap_remap);
   }
 
   return result;
@@ -861,13 +865,13 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  ArrayModifierData *amd = (ArrayModifierData *)md;
+  ArrayModifierData *amd = reinterpret_cast<ArrayModifierData *>(md);
   return arrayModifier_doArray(amd, ctx, mesh);
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  ArrayModifierData *amd = (ArrayModifierData *)md;
+  ArrayModifierData *amd = reinterpret_cast<ArrayModifierData *>(md);
 
   /* The object type check is only needed here in case we have a placeholder
    * object assigned (because the library containing the curve/mesh is missing).
@@ -890,24 +894,24 @@ static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_re
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "fit_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "fit_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   int fit_type = RNA_enum_get(ptr, "fit_type");
   if (fit_type == MOD_ARR_FIXEDCOUNT) {
-    layout->prop(ptr, "count", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "count", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else if (fit_type == MOD_ARR_FITLENGTH) {
-    layout->prop(ptr, "fit_length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "fit_length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else if (fit_type == MOD_ARR_FITCURVE) {
-    layout->prop(ptr, "curve", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "curve", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   modifier_error_message_draw(layout, ptr);
@@ -915,48 +919,48 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void relative_offset_header_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->prop(ptr, "use_relative_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "use_relative_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void relative_offset_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  uiLayout *col = &layout->column(false);
+  ui::Layout &col = layout.column(false);
 
-  col->active_set(RNA_boolean_get(ptr, "use_relative_offset"));
-  col->prop(ptr, "relative_offset_displace", UI_ITEM_NONE, IFACE_("Factor"), ICON_NONE);
+  col.active_set(RNA_boolean_get(ptr, "use_relative_offset"));
+  col.prop(ptr, "relative_offset_displace", UI_ITEM_NONE, IFACE_("Factor"), ICON_NONE);
 }
 
 static void constant_offset_header_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->prop(ptr, "use_constant_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "use_constant_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void constant_offset_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  uiLayout *col = &layout->column(false);
+  ui::Layout &col = layout.column(false);
 
-  col->active_set(RNA_boolean_get(ptr, "use_constant_offset"));
-  col->prop(ptr, "constant_offset_displace", UI_ITEM_NONE, IFACE_("Distance"), ICON_NONE);
+  col.active_set(RNA_boolean_get(ptr, "use_constant_offset"));
+  col.prop(ptr, "constant_offset_displace", UI_ITEM_NONE, IFACE_("Distance"), ICON_NONE);
 }
 
 /**
@@ -964,77 +968,75 @@ static void constant_offset_draw(const bContext * /*C*/, Panel *panel)
  */
 static void object_offset_header_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->prop(ptr, "use_object_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "use_object_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void object_offset_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  uiLayout *col = &layout->column(false);
+  ui::Layout &col = layout.column(false);
 
-  col->active_set(RNA_boolean_get(ptr, "use_object_offset"));
-  col->prop(ptr, "offset_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
+  col.active_set(RNA_boolean_get(ptr, "use_object_offset"));
+  col.prop(ptr, "offset_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
 }
 
 static void symmetry_panel_header_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->prop(ptr, "use_merge_vertices", UI_ITEM_NONE, IFACE_("Merge"), ICON_NONE);
+  layout.prop(ptr, "use_merge_vertices", UI_ITEM_NONE, IFACE_("Merge"), ICON_NONE);
 }
 
 static void symmetry_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  uiLayout *col = &layout->column(false);
-  col->active_set(RNA_boolean_get(ptr, "use_merge_vertices"));
-  col->prop(ptr, "merge_threshold", UI_ITEM_NONE, IFACE_("Distance"), ICON_NONE);
-  col->prop(
+  ui::Layout &col = layout.column(false);
+  col.active_set(RNA_boolean_get(ptr, "use_merge_vertices"));
+  col.prop(ptr, "merge_threshold", UI_ITEM_NONE, IFACE_("Distance"), ICON_NONE);
+  col.prop(
       ptr, "use_merge_vertices_cap", UI_ITEM_NONE, IFACE_("First and Last Copies"), ICON_NONE);
 }
 
 static void uv_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *col;
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  col = &layout->column(true);
-  col->prop(ptr, "offset_u", UI_ITEM_R_EXPAND, IFACE_("Offset U"), ICON_NONE);
-  col->prop(ptr, "offset_v", UI_ITEM_R_EXPAND, IFACE_("V"), ICON_NONE);
+  ui::Layout &col = layout.column(true);
+  col.prop(ptr, "offset_u", ui::ITEM_R_EXPAND, IFACE_("Offset U"), ICON_NONE);
+  col.prop(ptr, "offset_v", ui::ITEM_R_EXPAND, IFACE_("V"), ICON_NONE);
 }
 
 static void caps_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *col;
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  col = &layout->column(false);
-  col->prop(ptr, "start_cap", UI_ITEM_NONE, IFACE_("Cap Start"), ICON_NONE);
-  col->prop(ptr, "end_cap", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
+  ui::Layout &col = layout.column(false);
+  col.prop(ptr, "start_cap", UI_ITEM_NONE, IFACE_("Cap Start"), ICON_NONE);
+  col.prop(ptr, "end_cap", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)
@@ -1097,3 +1099,5 @@ ModifierTypeInfo modifierType_Array = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

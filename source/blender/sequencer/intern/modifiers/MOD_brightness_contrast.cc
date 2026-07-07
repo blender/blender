@@ -16,7 +16,6 @@
 #include "DNA_sequence_types.h"
 
 #include "SEQ_modifier.hh"
-#include "SEQ_modifiertypes.hh"
 
 #include "UI_interface.hh"
 #include "UI_interface_layout.hh"
@@ -29,31 +28,34 @@ struct BrightContrastApplyOp {
   float mul;
   float add;
 
-  template<typename ImageT, typename MaskT>
-  void apply(ImageT *image, const MaskT *mask, IndexRange size)
+  template<typename ImageT, typename MaskSampler>
+  void apply(ImageT *image, MaskSampler &mask, int image_x, IndexRange y_range)
   {
-    for ([[maybe_unused]] int64_t i : size) {
-      /* NOTE: arguably incorrect usage of "raw" values, should be un-premultiplied.
-       * Not changing behavior for now, but would be good to fix someday. */
-      float4 input = load_pixel_raw(image);
+    image += y_range.first() * image_x * 4;
+    for (int64_t y : y_range) {
+      mask.begin_row(y);
+      for ([[maybe_unused]] int64_t x : IndexRange(image_x)) {
+        /* NOTE: arguably incorrect usage of "raw" values, should be un-premultiplied.
+         * Not changing behavior for now, but would be good to fix someday. */
+        float4 input = load_pixel_raw(image);
 
-      float4 result;
-      result = input * this->mul + this->add;
-      result.w = input.w;
+        float4 result;
+        result = input * this->mul + this->add;
+        result.w = input.w;
 
-      apply_and_advance_mask(input, result, mask);
-      store_pixel_raw(result, image);
-      image += 4;
+        mask.apply_mask(input, result);
+        store_pixel_raw(result, image);
+        image += 4;
+      }
     }
   }
 };
 
-static void brightcontrast_apply(const StripScreenQuad & /*quad*/,
+static void brightcontrast_apply(ModifierApplyContext &context,
                                  StripModifierData *smd,
-                                 ImBuf *ibuf,
                                  ImBuf *mask)
 {
-  const BrightContrastModifierData *bcmd = (BrightContrastModifierData *)smd;
+  const BrightContrastModifierData *bcmd = reinterpret_cast<BrightContrastModifierData *>(smd);
 
   BrightContrastApplyOp op;
 
@@ -75,23 +77,23 @@ static void brightcontrast_apply(const StripScreenQuad & /*quad*/,
     op.add = op.mul * brightness + delta;
   }
 
-  apply_modifier_op(op, ibuf, mask);
+  apply_modifier_op(op, context.image, mask, context.transform);
 }
 
 static void brightcontrast_panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
-  PointerRNA *ptr = UI_panel_custom_data_get(panel);
+  ui::Layout &layout = *panel->layout;
+  PointerRNA *ptr = ui::panel_custom_data_get(panel);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "bright", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "contrast", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "bright", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "contrast", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  if (uiLayout *mask_input_layout = layout->panel_prop(
+  if (ui::Layout *mask_input_layout = layout.panel_prop(
           C, ptr, "open_mask_input_panel", IFACE_("Mask Input")))
   {
-    draw_mask_input_type_settings(C, mask_input_layout, ptr);
+    draw_mask_input_type_settings(C, *mask_input_layout, ptr);
   }
 }
 

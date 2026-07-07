@@ -34,6 +34,7 @@ typedef struct libmv_CameraIntrinsicsOptions {
 
   // Nuke distortion model.
   double nuke_k1, nuke_k2;
+  double nuke_p1, nuke_p2;
 
   // Brown-Conrady distortion model.
   double brown_k1, brown_k2, brown_k3, brown_k4;

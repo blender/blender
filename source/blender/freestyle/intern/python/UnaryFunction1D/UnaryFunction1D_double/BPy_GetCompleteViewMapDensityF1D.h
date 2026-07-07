@@ -19,8 +19,8 @@ extern PyTypeObject GetCompleteViewMapDensityF1D_Type;
 
 /*---------------------------Python BPy_GetCompleteViewMapDensityF1D structure
  * definition----------*/
-typedef struct {
+struct BPy_GetCompleteViewMapDensityF1D {
   BPy_UnaryFunction1DDouble py_uf1D_double;
-} BPy_GetCompleteViewMapDensityF1D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

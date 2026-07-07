@@ -6,7 +6,9 @@
 
 #include "GPU_state.hh"
 
-#include "BLI_utildefines.h"
+#include "BLI_enum_flags.hh"
+
+namespace blender {
 
 /** \file
  * \ingroup draw
@@ -22,7 +24,7 @@
  * The Write Stencil, Stencil test, Depth test and Blend state options are mutual exclusive
  * therefore they aren't ordered as a bit mask.
  */
-typedef enum : uint32_t {
+enum DRWState : uint32_t {
   /** To be used for compute passes. */
   DRW_STATE_NO_DRAW = 0,
   /** Write mask */
@@ -63,25 +65,24 @@ typedef enum : uint32_t {
   DRW_STATE_BLEND_CUSTOM = (9 << 11),
   DRW_STATE_LOGIC_INVERT = (10 << 11),
   DRW_STATE_BLEND_ALPHA_UNDER_PREMUL = (11 << 11),
+  DRW_STATE_BLEND_TRANSPARENCY = (12 << 11),
 
   /* See GPU_clip_control_unit_range. */
-  DRW_STATE_CLIP_CONTROL_UNIT_RANGE = (1 << 26),
-  DRW_STATE_IN_FRONT_SELECT = (1 << 27),
-  DRW_STATE_SHADOW_OFFSET = (1 << 28),
+  DRW_STATE_CLIP_CONTROL_UNIT_RANGE = (1 << 28),
   DRW_STATE_CLIP_PLANES = (1 << 29),
   DRW_STATE_FIRST_VERTEX_CONVENTION = (1 << 30),
   /** DO NOT USE. Assumed always enabled. Only used internally. */
   DRW_STATE_PROGRAM_POINT_SIZE = (1u << 31),
-} DRWState;
-
-ENUM_OPERATORS(DRWState, DRW_STATE_PROGRAM_POINT_SIZE);
+};
+ENUM_OPERATORS(DRWState);
 
 #define DRW_STATE_DEFAULT \
   (DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL)
 #define DRW_STATE_BLEND_ENABLED \
   (DRW_STATE_BLEND_ADD | DRW_STATE_BLEND_ADD_FULL | DRW_STATE_BLEND_ALPHA | \
    DRW_STATE_BLEND_ALPHA_PREMUL | DRW_STATE_BLEND_BACKGROUND | DRW_STATE_BLEND_OIT | \
-   DRW_STATE_BLEND_MUL | DRW_STATE_BLEND_SUB | DRW_STATE_BLEND_CUSTOM | DRW_STATE_LOGIC_INVERT)
+   DRW_STATE_BLEND_MUL | DRW_STATE_BLEND_SUB | DRW_STATE_BLEND_CUSTOM | DRW_STATE_LOGIC_INVERT | \
+   DRW_STATE_BLEND_ALPHA_UNDER_PREMUL | DRW_STATE_BLEND_TRANSPARENCY)
 #define DRW_STATE_RASTERIZER_ENABLED \
   (DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_STENCIL | \
    DRW_STATE_WRITE_STENCIL_SHADOW_PASS | DRW_STATE_WRITE_STENCIL_SHADOW_FAIL)
@@ -94,15 +95,15 @@ ENUM_OPERATORS(DRWState, DRW_STATE_PROGRAM_POINT_SIZE);
   (DRW_STATE_WRITE_STENCIL | DRW_STATE_WRITE_STENCIL_SHADOW_PASS | \
    DRW_STATE_WRITE_STENCIL_SHADOW_FAIL)
 
-namespace blender::draw {
+namespace draw {
 
 /* -------------------------------------------------------------------- */
 /** \name DRWState to GPU state conversion
  * \{ */
 
-static inline eGPUWriteMask to_write_mask(DRWState state)
+static inline GPUWriteMask to_write_mask(DRWState state)
 {
-  eGPUWriteMask write_mask = GPU_WRITE_NONE;
+  GPUWriteMask write_mask = GPU_WRITE_NONE;
   if (state & DRW_STATE_WRITE_DEPTH) {
     write_mask |= GPU_WRITE_DEPTH;
   }
@@ -115,7 +116,7 @@ static inline eGPUWriteMask to_write_mask(DRWState state)
   return write_mask;
 }
 
-static inline eGPUFaceCullTest to_face_cull_test(DRWState state)
+static inline GPUFaceCullTest to_face_cull_test(DRWState state)
 {
   switch (state & (DRW_STATE_CULL_BACK | DRW_STATE_CULL_FRONT)) {
     case DRW_STATE_CULL_BACK:
@@ -127,7 +128,7 @@ static inline eGPUFaceCullTest to_face_cull_test(DRWState state)
   }
 }
 
-static inline eGPUDepthTest to_depth_test(DRWState state)
+static inline GPUDepthTest to_depth_test(DRWState state)
 {
   switch (state & DRW_STATE_DEPTH_TEST_ENABLED) {
     case DRW_STATE_DEPTH_LESS:
@@ -147,7 +148,7 @@ static inline eGPUDepthTest to_depth_test(DRWState state)
   }
 }
 
-static inline eGPUStencilOp to_stencil_op(DRWState state)
+static inline GPUStencilOp to_stencil_op(DRWState state)
 {
   switch (state & DRW_STATE_WRITE_STENCIL_ENABLED) {
     case DRW_STATE_WRITE_STENCIL:
@@ -161,7 +162,7 @@ static inline eGPUStencilOp to_stencil_op(DRWState state)
   }
 }
 
-static inline eGPUStencilTest to_stencil_test(DRWState state)
+static inline GPUStencilTest to_stencil_test(DRWState state)
 {
   switch (state & DRW_STATE_STENCIL_TEST_ENABLED) {
     case DRW_STATE_STENCIL_ALWAYS:
@@ -175,7 +176,7 @@ static inline eGPUStencilTest to_stencil_test(DRWState state)
   }
 }
 
-static inline eGPUBlend to_blend(DRWState state)
+static inline GPUBlend to_blend(DRWState state)
 {
   switch (state & DRW_STATE_BLEND_ENABLED) {
     case DRW_STATE_BLEND_ADD:
@@ -200,12 +201,14 @@ static inline eGPUBlend to_blend(DRWState state)
       return GPU_BLEND_INVERT;
     case DRW_STATE_BLEND_ALPHA_UNDER_PREMUL:
       return GPU_BLEND_ALPHA_UNDER_PREMUL;
+    case DRW_STATE_BLEND_TRANSPARENCY:
+      return GPU_BLEND_TRANSPARENCY;
     default:
       return GPU_BLEND_NONE;
   }
 }
 
-static inline eGPUProvokingVertex to_provoking_vertex(DRWState state)
+static inline GPUProvokingVertex to_provoking_vertex(DRWState state)
 {
   switch (state & DRW_STATE_FIRST_VERTEX_CONVENTION) {
     case DRW_STATE_FIRST_VERTEX_CONVENTION:
@@ -217,4 +220,6 @@ static inline eGPUProvokingVertex to_provoking_vertex(DRWState state)
 
 /** \} */
 
-};  // namespace blender::draw
+};  // namespace draw
+
+}  // namespace blender

@@ -11,9 +11,11 @@
 #include "DRW_render.hh"
 #include "RE_engine.h"
 
+namespace blender {
+
 extern RenderEngineType DRW_engine_viewport_eevee_type;
 
-namespace blender::eevee {
+namespace eevee {
 
 struct Engine : public DrawEngine::Pointer {
   DrawEngine *create_instance() final;
@@ -21,4 +23,5 @@ struct Engine : public DrawEngine::Pointer {
   static void free_static();
 };
 
-}  // namespace blender::eevee
+}  // namespace eevee
+}  // namespace blender

@@ -8,10 +8,14 @@
 
 #pragma once
 
+namespace blender {
+
 struct wmOperatorType;
 
 void WM_OT_fbx_import(wmOperatorType *ot);
 
-namespace blender::ed::io {
+namespace ed::io {
 void fbx_file_handler_add();
 }
+
+}  // namespace blender

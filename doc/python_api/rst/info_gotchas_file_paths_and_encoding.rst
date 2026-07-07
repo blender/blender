@@ -21,7 +21,7 @@ When the data block may be from an external blend-file pass the library argument
    >>> bpy.path.abspath(image.filepath, library=image.library)
 
 
-These returns the absolute path which can be used with native Python modules.
+This returns the absolute path which can be used with native Python modules.
 
 
 Unicode Problems

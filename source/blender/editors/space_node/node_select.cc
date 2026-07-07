@@ -10,24 +10,36 @@
 #include <cstdlib>
 #include <fmt/format.h>
 
+#include "DNA_collection_types.h"
+#include "DNA_image_types.h"
+#include "DNA_mask_types.h"
+#include "DNA_material_types.h"
 #include "DNA_node_types.h"
+#include "DNA_object_types.h"
+#include "DNA_sound_types.h"
+#include "DNA_text_types.h"
+#include "DNA_vfont_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_lasso_2d.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
+#include "BLI_resource_scope.hh"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
+#include "BKE_idtype.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_main_invariants.hh"
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
+#include "BKE_screen.hh"
 #include "BKE_viewer_path.hh"
 #include "BKE_workspace.hh"
 
@@ -49,6 +61,10 @@
 
 #include "DEG_depsgraph.hh"
 
+#include "BLT_translation.hh"
+
+#include "NOD_geometry_nodes_log.hh"
+
 #include "node_intern.hh" /* own include */
 
 namespace blender::ed::space_node {
@@ -68,14 +84,14 @@ static bool has_workbench_in_texture_color(const wmWindowManager *wm,
                                            const Scene *scene,
                                            const Object *ob)
 {
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    if (win->scene != scene) {
+  for (wmWindow &win : wm->windows) {
+    if (win.scene != scene) {
       continue;
     }
-    const bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      if (area->spacetype == SPACE_VIEW3D) {
-        const View3D *v3d = (const View3D *)area->spacedata.first;
+    const bScreen *screen = BKE_workspace_active_screen_get(win.workspace_hook);
+    for (ScrArea &area : screen->areabase) {
+      if (area.spacetype == SPACE_VIEW3D) {
+        const View3D *v3d = static_cast<const View3D *>(area.spacedata.first);
 
         if (ED_view3d_has_workbench_in_texture_color(scene, ob, v3d)) {
           return true;
@@ -126,7 +142,7 @@ static bool node_frame_select_isect_mouse(const SpaceNode &snode,
   return false;
 }
 
-static bNode *node_under_mouse_select(const SpaceNode &snode, const float2 mouse)
+bNode *node_under_mouse_get(const SpaceNode &snode, const float2 mouse)
 {
   for (bNode *node : tree_draw_order_calc_nodes_reversed(*snode.edittree)) {
     switch (node->type_legacy) {
@@ -149,7 +165,7 @@ static bNode *node_under_mouse_select(const SpaceNode &snode, const float2 mouse
 
 static bool is_position_over_node_or_socket(SpaceNode &snode, ARegion &region, const float2 &mouse)
 {
-  if (node_under_mouse_select(snode, mouse)) {
+  if (node_under_mouse_get(snode, mouse)) {
     return true;
   }
   if (node_find_indicated_socket(snode, region, mouse, SOCK_IN | SOCK_OUT)) {
@@ -167,7 +183,7 @@ static bool is_event_over_node_or_socket(const bContext &C, const wmEvent &event
   WM_event_drag_start_mval(&event, &region, mval);
 
   float2 mouse;
-  UI_view2d_region_to_view(&region.v2d, mval.x, mval.y, &mouse.x, &mouse.y);
+  ui::view2d_region_to_view(&region.v2d, mval.x, mval.y, &mouse.x, &mouse.y);
   return is_position_over_node_or_socket(snode, region, mouse);
 }
 
@@ -189,14 +205,14 @@ void node_socket_deselect(bNode *node, bNodeSocket &sock, const bool deselect_no
     bool sel = false;
 
     /* if no selected sockets remain, also deselect the node */
-    LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
-      if (input->flag & SELECT) {
+    for (bNodeSocket &input : node->inputs) {
+      if (input.flag & SELECT) {
         sel = true;
         break;
       }
     }
-    LISTBASE_FOREACH (bNodeSocket *, output, &node->outputs) {
-      if (output->flag & SELECT) {
+    for (bNodeSocket &output : node->outputs) {
+      if (output.flag & SELECT) {
         sel = true;
         break;
       }
@@ -237,14 +253,14 @@ void node_deselect_all_input_sockets(bNodeTree &node_tree, const bool deselect_n
   for (bNode *node : node_tree.all_nodes()) {
     bool sel = false;
 
-    LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-      socket->flag &= ~SELECT;
+    for (bNodeSocket &socket : node->inputs) {
+      socket.flag &= ~SELECT;
     }
 
     /* If no selected sockets remain, also deselect the node. */
     if (deselect_nodes) {
-      LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-        if (socket->flag & SELECT) {
+      for (bNodeSocket &socket : node->outputs) {
+        if (socket.flag & SELECT) {
           sel = true;
           break;
         }
@@ -267,14 +283,14 @@ void node_deselect_all_output_sockets(bNodeTree &node_tree, const bool deselect_
   for (bNode *node : node_tree.all_nodes()) {
     bool sel = false;
 
-    LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-      socket->flag &= ~SELECT;
+    for (bNodeSocket &socket : node->outputs) {
+      socket.flag &= ~SELECT;
     }
 
     /* if no selected sockets remain, also deselect the node */
     if (deselect_nodes) {
-      LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-        if (socket->flag & SELECT) {
+      for (bNodeSocket &socket : node->inputs) {
+        if (socket.flag & SELECT) {
           sel = true;
           break;
         }
@@ -512,6 +528,75 @@ void node_select_single(bContext &C, bNode &node)
   WM_event_add_notifier(&C, NC_NODE | NA_SELECTED, nullptr);
 }
 
+static const bNodeSocket *find_socket_at_mouse_y(const Span<const bNodeSocket *> sockets,
+                                                 const float view_y)
+{
+  const bNodeSocket *best_socket = nullptr;
+  float best_distance = FLT_MAX;
+  for (const bNodeSocket *socket : sockets) {
+    if (!socket->is_icon_visible()) {
+      continue;
+    }
+    const float socket_y = socket->runtime->location.y;
+    const float distance = math::distance(socket_y, view_y);
+    if (distance < best_distance) {
+      best_distance = distance;
+      best_socket = socket;
+    }
+  }
+  return best_socket;
+}
+
+static void activate_interface_socket(bNodeTree &tree, bNodeTreeInterfaceSocket &io_socket)
+{
+  bNodeTreeInterfacePanel &io_panel = *tree.tree_interface.find_item_parent(io_socket.item, true);
+  bNodeTreeInterfaceItem *item_to_activate = nullptr;
+  if (io_panel.header_toggle_socket() == &io_socket) {
+    item_to_activate = &io_panel.item;
+  }
+  else {
+    item_to_activate = &io_socket.item;
+  }
+  tree.tree_interface.foreach_item([&](bNodeTreeInterfaceItem &item) {
+    item.set_selected(false);
+    return true;
+  });
+  tree.tree_interface.active_item_set(item_to_activate);
+}
+
+static void handle_group_input_node_selection(bNodeTree &tree,
+                                              const bNode &group_input_node,
+                                              const float2 &cursor)
+{
+
+  tree.ensure_topology_cache();
+  tree.ensure_interface_cache();
+  const bNodeSocket *indicated_socket = find_socket_at_mouse_y(
+      group_input_node.output_sockets().drop_back(1), cursor.y);
+  if (!indicated_socket) {
+    return;
+  }
+  const int group_input_i = indicated_socket->index();
+  bNodeTreeInterfaceSocket &io_socket = *tree.interface_inputs()[group_input_i];
+  activate_interface_socket(tree, io_socket);
+}
+
+static void handle_group_output_node_selection(bNodeTree &tree,
+                                               const bNode &group_output_node,
+                                               const float2 &cursor)
+{
+  tree.ensure_topology_cache();
+  tree.ensure_interface_cache();
+  const bNodeSocket *indicated_socket = find_socket_at_mouse_y(
+      group_output_node.input_sockets().drop_back(1), cursor.y);
+  if (!indicated_socket) {
+    return;
+  }
+  const int group_output_i = indicated_socket->index();
+  bNodeTreeInterfaceSocket &io_socket = *tree.interface_outputs()[group_output_i];
+  activate_interface_socket(tree, io_socket);
+}
+
 static bool node_mouse_select(bContext *C,
                               wmOperator *op,
                               const int2 mval,
@@ -536,7 +621,7 @@ static bool node_mouse_select(bContext *C,
 
   /* Get mouse coordinates in view2d space. */
   float2 cursor;
-  UI_view2d_region_to_view(&region.v2d, mval.x, mval.y, &cursor.x, &cursor.y);
+  ui::view2d_region_to_view(&region.v2d, mval.x, mval.y, &cursor.x, &cursor.y);
 
   /* First do socket selection, these generally overlap with nodes. */
   if (socket_select) {
@@ -597,7 +682,7 @@ static bool node_mouse_select(bContext *C,
   if (!sock) {
 
     /* Find the closest visible node. */
-    node = node_under_mouse_select(snode, cursor);
+    node = node_under_mouse_get(snode, cursor);
     found = (node != nullptr);
     node_was_selected = node && (node->flag & SELECT);
 
@@ -632,6 +717,13 @@ static bool node_mouse_select(bContext *C,
           /* Doesn't make sense for picking. */
           BLI_assert_unreachable();
           break;
+      }
+
+      if (node->is_group_input()) {
+        handle_group_input_node_selection(node_tree, *node, cursor);
+      }
+      if (node->is_group_output()) {
+        handle_group_output_node_selection(node_tree, *node, cursor);
       }
 
       changed = true;
@@ -769,9 +861,9 @@ static wmOperatorStatus node_box_select_exec(bContext *C, wmOperator *op)
   rctf rectf;
 
   WM_operator_properties_border_to_rctf(op, &rectf);
-  UI_view2d_region_to_view_rctf(&region.v2d, &rectf, &rectf);
+  ui::view2d_region_to_view_rctf(&region.v2d, &rectf, &rectf);
 
-  const eSelectOp sel_op = (eSelectOp)RNA_enum_get(op->ptr, "mode");
+  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     node_deselect_all(node_tree);
@@ -870,8 +962,8 @@ static wmOperatorStatus node_circleselect_exec(bContext *C, wmOperator *op)
   float zoom = float(BLI_rcti_size_x(&region->winrct)) / BLI_rctf_size_x(&region->v2d.cur);
 
   const eSelectOp sel_op = ED_select_op_modal(
-      (eSelectOp)RNA_enum_get(op->ptr, "mode"),
-      WM_gesture_is_modal_first((const wmGesture *)op->customdata));
+      eSelectOp(RNA_enum_get(op->ptr, "mode")),
+      WM_gesture_is_modal_first(static_cast<const wmGesture *>(op->customdata)));
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     node_deselect_all(node_tree);
@@ -882,7 +974,7 @@ static wmOperatorStatus node_circleselect_exec(bContext *C, wmOperator *op)
   y = RNA_int_get(op->ptr, "y");
   radius = RNA_int_get(op->ptr, "radius");
 
-  UI_view2d_region_to_view(&region->v2d, x, y, &offset.x, &offset.y);
+  ui::view2d_region_to_view(&region->v2d, x, y, &offset.x, &offset.y);
 
   for (bNode *node : node_tree.all_nodes()) {
     switch (node->type_legacy) {
@@ -983,7 +1075,7 @@ static bool do_lasso_select_node(bContext *C, const Span<int2> mcoords, eSelectO
          * nodes - would prevent selection of other nodes inside that frame. */
         rctf rectf;
         BLI_rctf_rcti_copy(&rectf, &rect);
-        UI_view2d_region_to_view_rctf(&region->v2d, &rectf, &rectf);
+        ui::view2d_region_to_view_rctf(&region->v2d, &rectf, &rectf);
         const rctf frame_inside = node_frame_rect_inside(*snode, *node);
         if (BLI_rctf_isect(&rectf, &node->runtime->draw_bounds, nullptr) &&
             !BLI_rctf_inside_rctf(&frame_inside, &rectf))
@@ -999,7 +1091,7 @@ static bool do_lasso_select_node(bContext *C, const Span<int2> mcoords, eSelectO
                                BLI_rctf_cent_y(&node->runtime->draw_bounds)};
 
         /* marker in screen coords */
-        if (UI_view2d_view_to_region_clip(
+        if (ui::view2d_view_to_region_clip(
                 &region->v2d, center.x, center.y, &screen_co.x, &screen_co.y) &&
             BLI_rcti_isect_pt(&rect, screen_co.x, screen_co.y) &&
             BLI_lasso_is_point_inside(mcoords, screen_co.x, screen_co.y, INT_MAX))
@@ -1028,7 +1120,7 @@ static wmOperatorStatus node_lasso_select_exec(bContext *C, wmOperator *op)
     return OPERATOR_PASS_THROUGH;
   }
 
-  const eSelectOp sel_op = (eSelectOp)RNA_enum_get(op->ptr, "mode");
+  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
 
   do_lasso_select_node(C, mcoords, sel_op);
 
@@ -1316,7 +1408,7 @@ void NODE_OT_select_same_type_step(wmOperatorType *ot)
 /** \name Find Node by Name Operator
  * \{ */
 
-static std::string node_find_create_label(const bNodeTree &ntree, const bNode &node)
+static std::string node_find_create_node_label(const bNodeTree &ntree, const bNode &node)
 {
   std::string label = bke::node_label(ntree, node);
   if (label == node.name) {
@@ -1325,28 +1417,179 @@ static std::string node_find_create_label(const bNodeTree &ntree, const bNode &n
   return fmt::format("{} ({})", label, node.name);
 }
 
+static std::string node_find_create_group_input_label(const bNode &node, const bNodeSocket &socket)
+{
+  return fmt::format("{}: \"{}\" ({})", TIP_("Input"), socket.name, node.name);
+}
+
+static std::string node_find_create_string_value(const bNode &node, const StringRef str)
+{
+  return fmt::format("{}: \"{}\" ({})", TIP_("String"), str, node.name);
+}
+
+static std::string node_find_create_warning(const bNode &node,
+                                            const nodes::geo_eval_log::NodeWarning warning)
+{
+  return fmt::format(
+      "{}: \"{}\" ({})", nodes::node_warning_type_name(warning.type), warning.message, node.name);
+}
+
+static std::string node_find_create_data_block_value(const bNode &node, const ID &id)
+{
+  const IDTypeInfo *type = BKE_idtype_get_info_from_id(&id);
+  BLI_assert(type);
+  StringRef type_name = TIP_(type->name);
+  if (GS(id.name) == ID_NT) {
+    type_name = TIP_("Node Group");
+  }
+  return fmt::format("{}: \"{}\" ({})", type_name, BKE_id_name(id), node.name);
+}
+
 /* Generic search invoke. */
 static void node_find_update_fn(const bContext *C,
                                 void * /*arg*/,
                                 const char *str,
-                                uiSearchItems *items,
+                                ui::SearchItems *items,
                                 const bool /*is_first*/)
 {
+  Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
+  nodes::geo_eval_log::ContextualGeoTreeLogs tree_logs =
+      nodes::geo_eval_log::GeoNodesLog::get_contextual_tree_logs(*snode);
+  tree_logs.foreach_tree_log(
+      [&](nodes::geo_eval_log::GeoTreeLog &log) { log.ensure_node_warnings(*bmain); });
 
-  ui::string_search::StringSearch<bNode> search;
+  struct Item {
+    bNode *node;
+    std::string search_str;
+  };
+
+  ui::string_search::StringSearch<Item> search;
+  ResourceScope scope;
+
+  auto add_data_block_item = [&](bNode &node, const ID *id) {
+    if (!id) {
+      return;
+    }
+    const StringRef search_str = scope.add_value(node_find_create_data_block_value(node, *id));
+    search.add(search_str, &scope.construct<Item>(Item{&node, search_str}));
+  };
 
   const bNodeTree &ntree = *snode->edittree;
+  ntree.ensure_topology_cache();
   for (bNode *node : snode->edittree->all_nodes()) {
-    const std::string name = node_find_create_label(ntree, *node);
-    search.add(name, node);
+    const StringRef name = scope.add_value(node_find_create_node_label(ntree, *node));
+    search.add(name, &scope.construct<Item>(Item{node, name}));
+
+    if (node->is_type("FunctionNodeInputString")) {
+      const auto *storage = static_cast<const NodeInputString *>(node->storage);
+      const StringRef value_str = storage->string;
+      if (!value_str.is_empty()) {
+        const StringRef search_str = scope.add_value(
+            node_find_create_string_value(*node, value_str));
+        search.add(search_str, &scope.construct<Item>(Item{node, search_str}));
+      }
+    }
+    if (node->is_group_input()) {
+      for (const bNodeSocket *socket : node->output_sockets().drop_back(1)) {
+        if (!socket->is_directly_linked()) {
+          continue;
+        }
+        const StringRef search_str = scope.add_value(
+            node_find_create_group_input_label(*node, *socket));
+        search.add(search_str, &scope.construct<Item>(Item{node, search_str}));
+      }
+    }
+    if (node->id) {
+      /* Avoid showing referenced node group data-blocks twice. */
+      const bool skip_data_block =
+          node->is_group() &&
+          StringRef(bke::node_label(ntree, *node)).find(BKE_id_name(*node->id)) !=
+              StringRef::not_found;
+      if (!skip_data_block) {
+        add_data_block_item(*node, node->id);
+      }
+    }
+    if (nodes::geo_eval_log::GeoTreeLog *tree_log = tree_logs.get_main_tree_log(*node)) {
+      if (nodes::geo_eval_log::GeoNodeLog *node_log = tree_log->nodes.lookup_ptr(node->identifier))
+      {
+        for (const nodes::geo_eval_log::NodeWarning &warning : node_log->warnings) {
+          const StringRef search_str = scope.add_value(node_find_create_warning(*node, warning));
+          search.add(search_str, &scope.construct<Item>(Item{node, search_str}));
+        }
+      }
+    }
+
+    for (const bNodeSocket *socket : node->input_sockets()) {
+      switch (socket->type) {
+        case SOCK_STRING: {
+          if (socket->is_logically_linked()) {
+            continue;
+          }
+          const bNodeSocketValueString *value =
+              socket->default_value_typed<bNodeSocketValueString>();
+          const StringRef value_str = value->value;
+          if (!value_str.is_empty()) {
+            const StringRef search_str = scope.add_value(
+                node_find_create_string_value(*node, value_str));
+            search.add(search_str, &scope.construct<Item>(Item{node, search_str}));
+          }
+          break;
+        }
+        case SOCK_OBJECT: {
+          add_data_block_item(
+              *node, id_cast<ID *>(socket->default_value_typed<bNodeSocketValueObject>()->value));
+          break;
+        }
+        case SOCK_MATERIAL: {
+          add_data_block_item(
+              *node,
+              id_cast<ID *>(socket->default_value_typed<bNodeSocketValueMaterial>()->value));
+          break;
+        }
+        case SOCK_COLLECTION: {
+          add_data_block_item(
+              *node,
+              id_cast<ID *>(socket->default_value_typed<bNodeSocketValueCollection>()->value));
+          break;
+        }
+        case SOCK_IMAGE: {
+          add_data_block_item(
+              *node, id_cast<ID *>(socket->default_value_typed<bNodeSocketValueImage>()->value));
+          break;
+        }
+        case SOCK_FONT: {
+          add_data_block_item(
+              *node, id_cast<ID *>(socket->default_value_typed<bNodeSocketValueFont>()->value));
+          break;
+        }
+        case SOCK_SCENE: {
+          add_data_block_item(
+              *node, id_cast<ID *>(socket->default_value_typed<bNodeSocketValueScene>()->value));
+          break;
+        }
+        case SOCK_TEXT_ID: {
+          add_data_block_item(
+              *node, id_cast<ID *>(socket->default_value_typed<bNodeSocketValueText>()->value));
+          break;
+        }
+        case SOCK_MASK: {
+          add_data_block_item(
+              *node, id_cast<ID *>(socket->default_value_typed<bNodeSocketValueMask>()->value));
+          break;
+        }
+        case SOCK_SOUND: {
+          add_data_block_item(
+              *node, id_cast<ID *>(socket->default_value_typed<bNodeSocketValueSound>()->value));
+          break;
+        }
+      }
+    }
   }
 
-  const Vector<bNode *> filtered_nodes = search.query(str);
-
-  for (bNode *node : filtered_nodes) {
-    const std::string name = node_find_create_label(ntree, *node);
-    if (!UI_search_item_add(items, name, node, ICON_NONE, 0, 0)) {
+  const Vector<Item *> filtered_items = search.query(str);
+  for (const Item *item : filtered_items) {
+    if (!search_item_add(items, item->search_str, item->node, ICON_NONE, 0, 0)) {
       break;
     }
   }
@@ -1355,7 +1598,7 @@ static void node_find_update_fn(const bContext *C,
 static void node_find_exec_fn(bContext *C, void * /*arg1*/, void *arg2)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
-  bNode *active = (bNode *)arg2;
+  bNode *active = static_cast<bNode *>(arg2);
 
   if (active) {
     ARegion *region = CTX_wm_region(C);
@@ -1367,33 +1610,42 @@ static void node_find_exec_fn(bContext *C, void * /*arg1*/, void *arg2)
   }
 }
 
-static uiBlock *node_find_menu(bContext *C, ARegion *region, void *arg_optype)
+static ui::Block *node_find_menu(bContext *C, ARegion *region, void *arg_optype)
 {
   static char search[256] = "";
-  uiBlock *block;
-  uiBut *but;
-  wmOperatorType *optype = (wmOperatorType *)arg_optype;
+  ui::Block *block;
+  ui::Button *but;
+  wmOperatorType *optype = static_cast<wmOperatorType *>(arg_optype);
 
-  block = UI_block_begin(C, region, "_popup", ui::EmbossType::Emboss);
-  UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_SEARCH_MENU);
-  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+  block = block_begin(C, region, "_popup", ui::EmbossType::Emboss);
+  block_flag_enable(block, ui::BLOCK_LOOP | ui::BLOCK_MOVEMOUSE_QUIT | ui::BLOCK_SEARCH_MENU);
+  block_theme_style_set(block, ui::BLOCK_THEME_STYLE_POPUP);
 
-  const int box_width = UI_searchbox_size_x_guess(C, node_find_update_fn, nullptr);
+  const int box_width = ui::searchbox_size_x_guess(C, node_find_update_fn, nullptr);
 
   but = uiDefSearchBut(
-      block, search, 0, ICON_VIEWZOOM, sizeof(search), 0, 0, box_width, UI_UNIT_Y, "");
-  UI_but_func_search_set(
+      block, search, ICON_VIEWZOOM, sizeof(search), 0, 0, box_width, UI_UNIT_Y, "");
+  button_func_search_set(
       but, nullptr, node_find_update_fn, optype, false, nullptr, node_find_exec_fn, nullptr);
-  UI_but_flag_enable(but, UI_BUT_ACTIVATE_ON_INIT);
+  button_flag_enable(but, ui::BUT_ACTIVATE_ON_INIT);
 
   /* Fake button holds space for search items. */
-  const int height = UI_searchbox_size_y() - UI_SEARCHBOX_BOUNDS;
-  uiDefBut(
-      block, ButType::Label, 0, "", 0, -height, box_width, height, nullptr, 0, 0, std::nullopt);
+  const int height = ui::searchbox_size_y() - UI_SEARCHBOX_BOUNDS;
+  uiDefBut(block,
+           ui::ButtonType::Label,
+           "",
+           0,
+           -height,
+           box_width,
+           height,
+           nullptr,
+           0,
+           0,
+           std::nullopt);
 
   /* Move it downwards, mouse over button. */
   std::array<int, 2> bounds_offset = {0, -UI_UNIT_Y};
-  UI_block_bounds_set_popup(block, UI_SEARCHBOX_BOUNDS, bounds_offset.data());
+  block_bounds_set_popup(block, UI_SEARCHBOX_BOUNDS, bounds_offset.data());
 
   return block;
 }
@@ -1402,7 +1654,7 @@ static wmOperatorStatus node_find_node_invoke(bContext *C,
                                               wmOperator *op,
                                               const wmEvent * /*event*/)
 {
-  UI_popup_block_invoke(C, node_find_menu, op->type, nullptr);
+  ui::popup_block_invoke(C, node_find_menu, op->type, nullptr);
   return OPERATOR_CANCELLED;
 }
 

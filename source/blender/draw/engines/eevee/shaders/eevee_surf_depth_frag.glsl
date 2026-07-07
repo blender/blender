@@ -6,8 +6,11 @@
  * Depth shader that can stochastically discard transparent pixel.
  */
 
-#include "infos/eevee_material_info.hh"
+#include "infos/eevee_geom_infos.hh"
+#include "infos/eevee_nodetree_infos.hh"
+#include "infos/eevee_surf_depth_infos.hh"
 
+FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree)
 FRAGMENT_SHADER_CREATE_INFO(eevee_clip_plane)
 FRAGMENT_SHADER_CREATE_INFO(eevee_geom_mesh)
 FRAGMENT_SHADER_CREATE_INFO(eevee_surf_depth)
@@ -69,4 +72,8 @@ void main()
   out_velocity = velocity_surface(interp.P + motion.prev, interp.P, interp.P + motion.next);
   out_velocity = velocity_pack(out_velocity);
 #endif
+
+  /* Always written, but may be optimized out by frame-buffer/subpass setup. */
+  out_normal.rgb = normalize(interp.N) * 0.5f + 0.5f;
+  out_object_id = drw_resource_id() & 0xFFFF;
 }

@@ -7,9 +7,11 @@
 
 #include "usd_writer_abstract.hh"
 
+namespace blender {
+
 struct Volume;
 
-namespace blender::io::usd {
+namespace io::usd {
 
 /* Writer for writing OpenVDB assets to UsdVolVolume. Volume data is stored in separate `.vdb`
  * files which are referenced in USD file. */
@@ -34,4 +36,5 @@ class USDVolumeWriter : public USDAbstractWriter {
       const std::string &vdb_file_path) const;
 };
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

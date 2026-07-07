@@ -25,6 +25,8 @@
 #ifndef LIBMV_NUMERIC_NUMERIC_H
 #define LIBMV_NUMERIC_NUMERIC_H
 
+#include <cassert>
+
 #include <Eigen/Cholesky>
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>

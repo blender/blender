@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array_utils.hh"
-#include "BLI_kdtree.h"
+#include "BLI_kdtree.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_task.hh"
 
@@ -28,18 +28,18 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
 
   /* Create the KD tree based on only the selected points, to speed up merge detection and
    * balancing. */
-  KDTree_3d *tree = BLI_kdtree_3d_new(selection.size());
-  selection.foreach_index_optimized<int64_t>(
-      [&](const int64_t i, const int64_t pos) { BLI_kdtree_3d_insert(tree, pos, positions[i]); });
-  BLI_kdtree_3d_balance(tree);
+  KDTree_3d *tree = kdtree_3d_new(selection.size());
+  selection.foreach_index(
+      [&](const int64_t i, const int64_t pos) { kdtree_3d_insert(tree, pos, positions[i]); });
+  kdtree_3d_balance(tree);
 
   /* Find the duplicates in the KD tree. Because the tree only contains the selected points, the
    * resulting indices are indices into the selection, rather than indices of the source point
    * cloud. */
   Array<int> selection_merge_indices(selection.size(), -1);
-  const int duplicate_count = BLI_kdtree_3d_calc_duplicates_fast(
+  const int duplicate_count = kdtree_3d_calc_duplicates_fast(
       tree, merge_distance, false, selection_merge_indices.data());
-  BLI_kdtree_3d_free(tree);
+  kdtree_3d_free(tree);
 
   /* Create the new point cloud and add it to a temporary component for the attribute API. */
   const int dst_size = src_size - duplicate_count;
@@ -103,11 +103,14 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
     point_merge_counts[dst_index]++;
   }
 
-  Set<StringRefNull> attribute_ids = src_attributes.all_ids();
+  Set<StringRefNull> attribute_names = src_attributes.all_names();
 
   /* Transfer the ID attribute if it exists, using the ID of the first merged point. */
-  if (attribute_ids.contains("id")) {
-    VArraySpan<int> src = *src_attributes.lookup_or_default<int>("id", bke::AttrDomain::Point, 0);
+  bke::GAttributeReader src_id_attribute = src_attributes.lookup("id");
+  if (src_id_attribute && src_id_attribute.domain == bke::AttrDomain::Point &&
+      src_id_attribute.varray.type().is<int>())
+  {
+    VArraySpan<int> src = src_id_attribute.varray.typed<int>();
     bke::SpanAttributeWriter<int> dst = dst_attributes.lookup_or_add_for_write_only_span<int>(
         "id", bke::AttrDomain::Point);
 
@@ -118,18 +121,27 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
     });
 
     dst.finish();
-    attribute_ids.remove_contained("id");
+    attribute_names.remove_contained("id");
   }
 
   /* Transfer all other attributes. */
-  for (const StringRef id : attribute_ids) {
+  for (const StringRef id : attribute_names) {
     if (attribute_filter.allow_skip(id)) {
       continue;
     }
 
     bke::GAttributeReader src_attribute = src_attributes.lookup(id);
-    bke::attribute_math::convert_to_static_type(src_attribute.varray.type(), [&](auto dummy) {
-      using T = decltype(dummy);
+    const bke::AttrType type = bke::cpp_type_to_attribute_type(src_attribute.varray.type());
+
+    const CommonVArrayInfo info = src_attribute.varray.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      const bke::AttributeInitValue init(GPointer(src_attribute.varray.type(), info.data));
+      if (dst_attributes.add(id, bke::AttrDomain::Point, type, init)) {
+        continue;
+      }
+    }
+
+    bke::attribute_math::to_static_type(type, [&]<typename T>() {
       if constexpr (!std::is_void_v<bke::attribute_math::DefaultMixer<T>>) {
         bke::SpanAttributeWriter<T> dst_attribute =
             dst_attributes.lookup_or_add_for_write_only_span<T>(id, bke::AttrDomain::Point);

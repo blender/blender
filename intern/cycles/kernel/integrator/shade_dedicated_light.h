@@ -14,37 +14,34 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __SHADOW_LINKING__
 
-ccl_device_inline bool shadow_linking_light_sample_from_intersection(
-    KernelGlobals kg,
-    const ccl_private Intersection &ccl_restrict isect,
-    const ccl_private Ray &ccl_restrict ray,
-    const float3 N,
-    const uint32_t path_flag,
-    ccl_private LightSample *ccl_restrict ls)
+ccl_device_inline LightEval
+shadow_linking_light_eval_from_intersection(KernelGlobals kg,
+                                            const ccl_private Intersection &ccl_restrict isect,
+                                            const ccl_private Ray &ccl_restrict ray,
+                                            const float3 N,
+                                            const uint32_t path_flag)
 {
-  const int lamp = isect.prim;
-
-  const ccl_global KernelLight *klight = &kernel_data_fetch(lights, lamp);
+  const ccl_global KernelLight *klight = &kernel_data_fetch(lights, isect.prim);
   const LightType type = LightType(klight->type);
 
-  if (type == LIGHT_DISTANT) {
-    return distant_light_sample_from_intersection(kg, ray.D, lamp, ls);
-  }
-
-  return light_sample_from_intersection(kg, &isect, ray.P, ray.D, N, path_flag, ls);
+  return (type == LIGHT_DISTANT) ?
+             distant_light_eval_from_intersection(klight, ray.D) :
+             light_eval_from_intersection(kg, &isect, ray.P, ray.D, N, path_flag);
 }
 
 ccl_device_inline float shadow_linking_light_sample_mis_weight(KernelGlobals kg,
                                                                IntegratorState state,
                                                                const uint32_t path_flag,
-                                                               const ccl_private LightSample *ls,
+                                                               const int light_id,
+                                                               const float light_sample_pdf,
                                                                const float3 P)
 {
-  if (ls->type == LIGHT_DISTANT) {
-    return light_sample_mis_weight_forward_distant(kg, state, path_flag, ls);
+  if (kernel_data_fetch(lights, light_id).type == LIGHT_DISTANT) {
+    return light_sample_mis_weight_forward_distant(
+        kg, state, path_flag, light_id, light_sample_pdf);
   }
 
-  return light_sample_mis_weight_forward_lamp(kg, state, path_flag, ls, P);
+  return light_sample_mis_weight_forward_lamp(kg, state, path_flag, light_id, light_sample_pdf, P);
 }
 
 /* Setup ray for the shadow path.
@@ -75,49 +72,48 @@ ccl_device bool shadow_linking_shade_light(KernelGlobals kg,
                                            IntegratorState state,
                                            ccl_private Ray &ccl_restrict ray,
                                            ccl_private Intersection &ccl_restrict isect,
-                                           ccl_private ShaderData *emission_sd,
-                                           ccl_private Spectrum &ccl_restrict bsdf_spectrum,
+                                           ccl_private float &ccl_restrict light_weight,
                                            ccl_private float &mis_weight,
-                                           ccl_private int &ccl_restrict light_group)
+                                           ccl_private int &ccl_restrict light_group,
+                                           ccl_private int &ccl_restrict shader_id)
 {
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
   const float3 N = INTEGRATOR_STATE(state, path, mis_origin_n);
-  LightSample ls ccl_optional_struct_init;
-  const bool use_light_sample = shadow_linking_light_sample_from_intersection(
-      kg, isect, ray, N, path_flag, &ls);
-  if (!use_light_sample) {
+  const LightEval light_eval = shadow_linking_light_eval_from_intersection(
+      kg, isect, ray, N, path_flag);
+  if (light_eval.eval_fac == 0.0f) {
     /* No light to be sampled, so no direct light contribution either. */
     return false;
   }
 
-  const Spectrum light_eval = light_sample_shader_eval(kg, state, emission_sd, &ls, ray.time);
-  if (is_zero(light_eval)) {
-    return false;
-  }
+  const ccl_global KernelLight *klight = &kernel_data_fetch(lights, isect.prim);
 
-  if (!is_light_shader_visible_to_path(ls.shader, path_flag)) {
+  if (!is_light_shader_visible_to_path(klight->shader_id, path_flag)) {
     return false;
   }
 
   /* MIS weighting. */
-  mis_weight = shadow_linking_light_sample_mis_weight(kg, state, path_flag, &ls, ray.P);
+  mis_weight = shadow_linking_light_sample_mis_weight(
+      kg, state, path_flag, isect.prim, light_eval.pdf, ray.P);
 
-  bsdf_spectrum = light_eval * mis_weight *
-                  INTEGRATOR_STATE(state, shadow_link, dedicated_light_weight);
-  light_group = ls.group;
+  light_weight = light_eval.eval_fac * mis_weight *
+                 INTEGRATOR_STATE(state, shadow_link, dedicated_light_weight);
+  light_group = object_lightgroup(kg, klight->object_id);
+  shader_id = klight->shader_id;
 
   return true;
 }
 
 ccl_device bool shadow_linking_shade_surface_emission(KernelGlobals kg,
                                                       IntegratorState state,
-                                                      ccl_private ShaderData *emission_sd,
-                                                      ccl_global float *ccl_restrict render_buffer,
-                                                      ccl_private Spectrum &ccl_restrict
-                                                          bsdf_spectrum,
+                                                      ccl_private float &ccl_restrict light_weight,
                                                       ccl_private float &mis_weight,
-                                                      ccl_private int &ccl_restrict light_group)
+                                                      ccl_private int &ccl_restrict light_group,
+                                                      ccl_private int &ccl_restrict shader_id)
 {
+  ShaderDataTinyStorage emission_sd_storage;
+  ccl_private ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
+
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
   integrate_surface_shader_setup(kg, state, emission_sd);
@@ -128,26 +124,16 @@ ccl_device bool shadow_linking_shade_surface_emission(KernelGlobals kg,
   }
 #  endif
 
-  surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT>(
-      kg, state, emission_sd, render_buffer, path_flag | PATH_RAY_EMISSION);
-
-  if ((emission_sd->flag & SD_EMISSION) == 0) {
-    return false;
-  }
-
-  const Spectrum L = surface_shader_emission(emission_sd);
-
   mis_weight = light_sample_mis_weight_forward_surface(kg, state, path_flag, emission_sd);
 
-  bsdf_spectrum = L * mis_weight * INTEGRATOR_STATE(state, shadow_link, dedicated_light_weight);
+  light_weight = mis_weight * INTEGRATOR_STATE(state, shadow_link, dedicated_light_weight);
   light_group = object_lightgroup(kg, emission_sd->object);
+  shader_id = emission_sd->shader;
 
   return true;
 }
 
-ccl_device void shadow_linking_shade(KernelGlobals kg,
-                                     IntegratorState state,
-                                     ccl_global float *ccl_restrict render_buffer)
+ccl_device void shadow_linking_shade(KernelGlobals kg, IntegratorState state)
 {
   /* Read intersection from integrator state into local memory. */
   Intersection isect ccl_optional_struct_init;
@@ -157,29 +143,33 @@ ccl_device void shadow_linking_shade(KernelGlobals kg,
   Ray ray ccl_optional_struct_init;
   integrator_state_read_ray(state, &ray);
 
-  ShaderDataTinyStorage emission_sd_storage;
-  ccl_private ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
-
-  Spectrum bsdf_spectrum;
+  float light_weight = 0.0f;
   float mis_weight = 1.0f;
   int light_group = LIGHTGROUP_NONE;
+  int shader_id = SHADER_NONE;
 
   if (isect.type == PRIMITIVE_LAMP) {
     if (!shadow_linking_shade_light(
-            kg, state, ray, isect, emission_sd, bsdf_spectrum, mis_weight, light_group))
+            kg, state, ray, isect, light_weight, mis_weight, light_group, shader_id))
     {
       return;
     }
   }
   else {
     if (!shadow_linking_shade_surface_emission(
-            kg, state, emission_sd, render_buffer, bsdf_spectrum, mis_weight, light_group))
+            kg, state, light_weight, mis_weight, light_group, shader_id))
     {
       return;
     }
   }
 
-  if (is_zero(bsdf_spectrum)) {
+  /* Evaluate constant part of light shader, rest will optionally be done in another kernel. */
+  Spectrum light_eval;
+  const bool is_constant_light_shader = light_sample_shader_eval_nee_constant(
+      kg, shader_id, isect.prim, isect.type == PRIMITIVE_LAMP, light_eval);
+  light_eval *= light_weight;
+
+  if (is_zero(light_eval)) {
     return;
   }
 
@@ -187,7 +177,7 @@ ccl_device void shadow_linking_shade(KernelGlobals kg,
 
   /* Branch off shadow kernel. */
   IntegratorShadowState shadow_state = integrate_direct_light_shadow_init_common(
-      kg, state, &ray, bsdf_spectrum, light_group, 0);
+      kg, state, &ray, light_eval, light_group, 0, is_constant_light_shader);
 
   /* The light is accumulated from the shade_surface kernel, which will make the clamping decision
    * based on the actual value of the bounce. For the dedicated shadow ray we want to follow the
@@ -223,12 +213,12 @@ ccl_device void shadow_linking_shade(KernelGlobals kg,
 
 ccl_device void integrator_shade_dedicated_light(KernelGlobals kg,
                                                  IntegratorState state,
-                                                 ccl_global float *ccl_restrict render_buffer)
+                                                 ccl_global float *ccl_restrict /*render_buffer*/)
 {
   PROFILING_INIT(kg, PROFILING_SHADE_DEDICATED_LIGHT);
 
 #ifdef __SHADOW_LINKING__
-  shadow_linking_shade(kg, state, render_buffer);
+  shadow_linking_shade(kg, state);
 
   /* Restore self-intersection check primitives in the main state before returning to the
    * intersect_closest() state. */

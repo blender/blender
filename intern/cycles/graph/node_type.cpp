@@ -6,14 +6,20 @@
 
 #include "util/log.h"
 #include "util/transform.h"
+#include "util/types_float3.h"
 
 CCL_NAMESPACE_BEGIN
 
 /* Node Socket Type */
 
-size_t SocketType::size() const
+size_t SocketType::storage_size() const
 {
-  return size(type);
+  return size(type, false);
+}
+
+size_t SocketType::packed_size() const
+{
+  return size(type, true);
 }
 
 bool SocketType::is_array() const
@@ -21,7 +27,7 @@ bool SocketType::is_array() const
   return (type >= BOOLEAN_ARRAY);
 }
 
-size_t SocketType::size(Type type)
+size_t SocketType::size(Type type, bool packed)
 {
   switch (type) {
     case UNDEFINED:
@@ -39,13 +45,10 @@ size_t SocketType::size(Type type)
     case UINT64:
       return sizeof(uint64_t);
     case COLOR:
-      return sizeof(float3);
     case VECTOR:
-      return sizeof(float3);
     case POINT:
-      return sizeof(float3);
     case NORMAL:
-      return sizeof(float3);
+      return (packed) ? sizeof(packed_float3) : sizeof(float3);
     case POINT2:
       return sizeof(float2);
     case CLOSURE:
@@ -204,6 +207,8 @@ const SocketType *NodeType::find_output(ustring name) const
 
 /* Node Type Registry */
 
+thread_mutex NodeType::types_mutex_;
+
 unordered_map<ustring, NodeType> &NodeType::types()
 {
   static unordered_map<ustring, NodeType> _types;
@@ -213,6 +218,9 @@ unordered_map<ustring, NodeType> &NodeType::types()
 NodeType *NodeType::add(const char *name_, CreateFunc create_, Type type_, const NodeType *base_)
 {
   const ustring name(name_);
+
+  /* Types can be lazily registered from multiple threads. */
+  thread_scoped_lock lock(types_mutex_);
 
   if (types().find(name) != types().end()) {
     LOG_ERROR << "Node type " << name_ << " registered twice";
@@ -230,6 +238,7 @@ NodeType *NodeType::add(const char *name_, CreateFunc create_, Type type_, const
 
 const NodeType *NodeType::find(ustring name)
 {
+  thread_scoped_lock lock(types_mutex_);
   const unordered_map<ustring, NodeType>::iterator it = types().find(name);
   return (it == types().end()) ? nullptr : &it->second;
 }

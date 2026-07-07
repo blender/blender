@@ -14,7 +14,10 @@
 #include "BKE_preferences.h"
 #include "BKE_preview_image.hh"
 
+#include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
+
+#include "BLT_translation.hh"
 
 #include "UI_interface_c.hh"
 #include "UI_interface_icons.hh"
@@ -29,22 +32,22 @@
 namespace blender::ed::asset {
 
 void asset_tooltip(const asset_system::AssetRepresentation &asset,
-                   uiTooltipData &tip,
+                   ui::TooltipData &tip,
                    const bool include_name)
 {
   if (include_name) {
-    UI_tooltip_text_field_add(tip, asset.get_name(), {}, UI_TIP_STYLE_HEADER, UI_TIP_LC_MAIN);
-    UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL, false);
+    tooltip_text_field_add(tip, asset.get_name(), {}, ui::TIP_STYLE_HEADER, ui::TIP_LC_MAIN);
+    tooltip_text_field_add(tip, {}, {}, ui::TIP_STYLE_SPACER, ui::TIP_LC_NORMAL, false);
   }
 
   const AssetMetaData &meta_data = asset.get_metadata();
   if (meta_data.description) {
-    UI_tooltip_text_field_add(tip, meta_data.description, {}, UI_TIP_STYLE_HEADER, UI_TIP_LC_MAIN);
+    tooltip_text_field_add(tip, meta_data.description, {}, ui::TIP_STYLE_HEADER, ui::TIP_LC_MAIN);
   }
 
   switch (asset.owner_asset_library().library_type()) {
     case ASSET_LIBRARY_CUSTOM: {
-      UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL, false);
+      tooltip_text_field_add(tip, {}, {}, ui::TIP_STYLE_SPACER, ui::TIP_LC_NORMAL, false);
 
       const std::string full_blend_path = asset.full_library_path();
 
@@ -52,22 +55,22 @@ void asset_tooltip(const asset_system::AssetRepresentation &asset,
       BLI_path_split_dir_file(full_blend_path.c_str(), dir, sizeof(dir), file, sizeof(file));
 
       if (file[0]) {
-        UI_tooltip_text_field_add(tip, file, {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_MAIN);
+        tooltip_text_field_add(tip, file, {}, ui::TIP_STYLE_NORMAL, ui::TIP_LC_MAIN);
       }
       if (dir[0]) {
-        UI_tooltip_text_field_add(tip, dir, {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_MAIN);
+        tooltip_text_field_add(tip, dir, {}, ui::TIP_STYLE_NORMAL, ui::TIP_LC_MAIN);
       }
       break;
     }
     case ASSET_LIBRARY_LOCAL:
-      UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL, false);
-      UI_tooltip_text_field_add(
-          tip, "Asset Library: Current File", {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_VALUE);
+      tooltip_text_field_add(tip, {}, {}, ui::TIP_STYLE_SPACER, ui::TIP_LC_NORMAL, false);
+      tooltip_text_field_add(
+          tip, TIP_("Asset Library: Current File"), {}, ui::TIP_STYLE_NORMAL, ui::TIP_LC_VALUE);
       break;
     case ASSET_LIBRARY_ESSENTIALS:
-      UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL, false);
-      UI_tooltip_text_field_add(
-          tip, "Asset Library: Essentials", {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_VALUE);
+      tooltip_text_field_add(tip, {}, {}, ui::TIP_STYLE_SPACER, ui::TIP_LC_NORMAL, false);
+      tooltip_text_field_add(
+          tip, TIP_("Asset Library: Essentials"), {}, ui::TIP_STYLE_NORMAL, ui::TIP_LC_VALUE);
       break;
     default:
       /* Intentionally empty. */
@@ -78,7 +81,7 @@ void asset_tooltip(const asset_system::AssetRepresentation &asset,
 BIFIconID asset_preview_icon_id(const asset_system::AssetRepresentation &asset)
 {
   if (const PreviewImage *preview = asset.get_preview()) {
-    if (!BKE_previewimg_is_invalid(preview)) {
+    if (!BKE_previewimg_is_invalid(preview, ICON_SIZE_ICON)) {
       return preview->runtime->icon_id;
     }
   }
@@ -94,7 +97,7 @@ BIFIconID asset_preview_or_icon(const asset_system::AssetRepresentation &asset)
   }
 
   /* Preview image not found or invalid. Use type icon. */
-  return UI_icon_from_idcode(asset.get_id_type());
+  return ui::icon_from_idcode(asset.get_id_type());
 }
 
 const bUserAssetLibrary *get_asset_library_from_opptr(PointerRNA &ptr)
@@ -108,6 +111,31 @@ AssetLibraryReference get_asset_library_ref_from_opptr(PointerRNA &ptr)
 {
   const int enum_value = RNA_enum_get(&ptr, "asset_library_reference");
   return asset::library_reference_from_enum_value(enum_value);
+}
+
+std::optional<AssetLibraryReference> get_user_library_ref_for_save(
+    const asset_system::AssetLibrary *preferred_library)
+{
+  std::optional<AssetLibraryReference> preferred_library_ref =
+      preferred_library ? preferred_library->library_reference() : std::nullopt;
+  BLI_assert(!preferred_library || bool(preferred_library_ref));
+
+  if (preferred_library_ref &&
+      !ELEM(preferred_library_ref->type, ASSET_LIBRARY_ALL, ASSET_LIBRARY_ESSENTIALS))
+  {
+    return preferred_library_ref;
+  }
+
+  /* Fallback to the first enabled user library. */
+  for (const bUserAssetLibrary &asset_library : U.asset_libraries) {
+    if (asset_library.flag & ASSET_LIBRARY_DISABLED) {
+      continue;
+    }
+    return asset::user_library_to_library_ref(asset_library);
+  }
+
+  /* No enabled user asset library found. */
+  return {};
 }
 
 void visit_library_catalogs_catalog_for_search(
@@ -128,8 +156,9 @@ void visit_library_catalogs_catalog_for_search(
     }
   }
 
-  const asset_system::AssetCatalogTree &full_tree = library->catalog_service().catalog_tree();
-  full_tree.foreach_item([&](const asset_system::AssetCatalogTreeItem &item) {
+  const std::shared_ptr<const asset_system::AssetCatalogTree> full_tree =
+      library->catalog_service().catalog_tree();
+  full_tree->foreach_item([&](const asset_system::AssetCatalogTreeItem &item) {
     visit_fn(StringPropertySearchVisitParams{item.catalog_path().str(), std::nullopt});
   });
 }

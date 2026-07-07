@@ -12,6 +12,7 @@
 
 #include "BLI_hash_mm2a.hh"
 #include "BLI_listbase.h"
+#include "BLI_set.hh"
 #include "BLI_vector.hh"
 
 #include "GPU_material.hh"
@@ -41,14 +42,9 @@ struct GPUCodegenCreateInfo : ShaderCreateInfo {
   StageInterfaceInfo *interface_generated = nullptr;
   /** Optional name buffer containing names referenced by StringRefNull. */
   NameBuffer name_buffer;
-  /** Copy of the GPUMaterial name, to prevent dangling pointers. */
-  std::string info_name_;
 
-  GPUCodegenCreateInfo(const char *name) : ShaderCreateInfo(name), info_name_(name)
-  {
-    /* Base class is always initialized first, so we need to update the name_ pointer here. */
-    name_ = info_name_.c_str();
-  };
+  GPUCodegenCreateInfo(const char *name) : ShaderCreateInfo(name) {};
+
   ~GPUCodegenCreateInfo()
   {
     MEM_delete(interface_generated);
@@ -65,7 +61,7 @@ class GPUCodegen {
  private:
   uint32_t hash_ = 0;
   BLI_HashMurmur2A hm2a_;
-  ListBase ubo_inputs_ = {nullptr, nullptr};
+  ListBaseT<LinkData> ubo_inputs_ = {nullptr, nullptr};
   GPUInput *cryptomatte_input_ = nullptr;
 
   /** Cache parameters for complexity heuristic. */
@@ -82,7 +78,6 @@ class GPUCodegen {
   void generate_uniform_buffer();
   void generate_attribs();
   void generate_resources();
-  void generate_library();
 
   uint32_t hash_get() const
   {
@@ -96,11 +91,13 @@ class GPUCodegen {
  private:
   void set_unique_ids();
 
-  void node_serialize(std::stringstream &eval_ss, const GPUNode *node);
-  std::string graph_serialize(eGPUNodeTag tree_tag,
-                              GPUNodeLink *output_link,
-                              const char *output_default = nullptr);
-  std::string graph_serialize(eGPUNodeTag tree_tag);
+  void node_serialize(Set<StringRefNull> &used_libraries,
+                      std::stringstream &eval_ss,
+                      const GPUNode *node);
+  GPUGraphOutput graph_serialize(GPUNodeTag tree_tag,
+                                 GPUNodeLink *output_link,
+                                 const char *output_default = nullptr);
+  GPUGraphOutput graph_serialize(GPUNodeTag tree_tag);
 };
 
 }  // namespace blender::gpu::shader

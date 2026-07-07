@@ -9,16 +9,15 @@ from ..search_node_tree import \
     get_const_from_default_value_socket, \
     get_socket, \
     get_factor_from_socket, \
-    get_const_from_socket, \
     NodeSocket, \
     get_socket_from_gltf_material_node
 
 
 def export_emission_factor(blender_material, export_settings):
-    emissive_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, "Emissive")
+    emissive_socket = get_socket(blender_material.node_tree, "Emissive")
     if emissive_socket.socket is None:
         emissive_socket = get_socket_from_gltf_material_node(
-            blender_material.node_tree, blender_material.use_nodes, "EmissiveFactor")
+            blender_material.node_tree, "EmissiveFactor")
     if emissive_socket is not None and isinstance(emissive_socket.socket, bpy.types.NodeSocket):
         if export_settings['gltf_image_format'] != "NONE":
             factor, path = get_factor_from_socket(emissive_socket, kind='RGB')
@@ -80,10 +79,10 @@ def export_emission_factor(blender_material, export_settings):
 
 
 def export_emission_texture(blender_material, export_settings):
-    emissive = get_socket(blender_material.node_tree, blender_material.use_nodes, "Emissive")
+    emissive = get_socket(blender_material.node_tree, "Emissive")
     if emissive.socket is None:
         emissive = get_socket_from_gltf_material_node(
-            blender_material.node_tree, blender_material.use_nodes, "Emissive")
+            blender_material.node_tree, "Emissive")
     emissive_texture, uvmap_info, udim_info, _ = gltf2_blender_gather_texture_info.gather_texture_info(
         emissive, (emissive,), export_settings)
 

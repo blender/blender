@@ -18,8 +18,8 @@ extern PyTypeObject ReadMapPixelF0D_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&ReadMapPixelF0D_Type))
 
 /*---------------------------Python BPy_ReadMapPixelF0D structure definition----------*/
-typedef struct {
+struct BPy_ReadMapPixelF0D {
   BPy_UnaryFunction0DFloat py_uf0D_float;
-} BPy_ReadMapPixelF0D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

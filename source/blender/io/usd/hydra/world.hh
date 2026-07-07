@@ -4,15 +4,13 @@
 
 #pragma once
 
-#include <pxr/base/gf/matrix4d.h>
-#include <pxr/base/tf/staticTokens.h>
-#include <pxr/base/vt/value.h>
-#include <pxr/usd/sdf/assetPath.h>
 #include <pxr/usd/sdf/path.h>
 
 #include "light.hh"
 
 namespace blender::io::hydra {
+
+class HydraSceneDelegate;
 
 class WorldData : public LightData {
  public:

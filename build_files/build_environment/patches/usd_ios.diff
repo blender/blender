@@ -1,15 +1,3 @@
-diff -Naur orig/cmake/defaults/Packages.cmake external_usd/cmake/defaults/Packages.cmake
---- orig/cmake/defaults/Packages.cmake	2022-10-27 12:56:33 -0600
-+++ external_usd/cmake/defaults/Packages.cmake	2022-10-27 13:05:08 -0600
-@@ -129,7 +129,7 @@
- endif()
- 
- # --TBB
--find_package(TBB REQUIRED COMPONENTS tbb)
-+find_package(TBB)
- add_definitions(${TBB_DEFINITIONS})
- 
- # --math
 diff -Naur orig/cmake/defaults/msvcdefaults.cmake external_usd/cmake/defaults/msvcdefaults.cmake
 --- orig/cmake/defaults/msvcdefaults.cmake	2022-10-27 12:56:33 -0600
 +++ external_usd/cmake/defaults/msvcdefaults.cmake	2022-10-27 13:05:08 -0600
@@ -176,36 +164,24 @@ diff -Naur a/cmake/defaults/Packages.cmake b/cmake/defaults/Packages.cmake
 
 --- a/pxr/usd/usdMtlx/CMakeLists.txt	2025-05-09 14:22:52.000000000 
 +++ b/pxr/usd/usdMtlx/CMakeLists.txt	2025-05-09 15:26:15.000000000 
-@@ -2,12 +2,13 @@
- set(PXR_PACKAGE usdMtlx)
- 
- if (MATERIALX_STDLIB_DIR)
-     add_definitions(-DPXR_MATERIALX_STDLIB_DIR="${MATERIALX_STDLIB_DIR}")
+@@ -38,6 +38,7 @@
+     endif()
  endif()
  
 +# Remove MaterialXCore and MaterialXFormat from iOS builds as we build a monolithic MaterialX
  pxr_library(usdMtlx
      INCLUDE_SCHEMA_FILES
  
-     LIBRARIES
-         arch
-         gf
-@@ -18,14 +19,12 @@
-         vt
-         usd
-         usdGeom
+@@ -53,8 +54,7 @@
          usdShade
          usdUI
          usdUtils
 -        MaterialXCore
 -        MaterialXFormat
++        MaterialX
  
      CPPFILES
          discovery.cpp
-         parser.cpp
- 
-     PRIVATE_CLASSES
-
 
 --- a/pxr/imaging/hdMtlx/CMakeLists.txt	2025-05-09 14:22:51.000000000 
 +++ b/pxr/imaging/hdMtlx/CMakeLists.txt	2025-05-09 15:28:17.000000000 

@@ -29,6 +29,7 @@ struct PassInfo {
   bool use_filter = false;
   bool use_exposure = false;
   bool is_written = true;
+  float scale = 1.0f;
   PassType divide_type = PASS_NONE;
   PassType direct_type = PASS_NONE;
   PassType indirect_type = PASS_NONE;

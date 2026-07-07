@@ -292,5 +292,4 @@ void copy_custom_knots(const bke::CurvesGeometry &src_curves,
 }
 
 }  // namespace nurbs
-
 }  // namespace blender::bke::curves

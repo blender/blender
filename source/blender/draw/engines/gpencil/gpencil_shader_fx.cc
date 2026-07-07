@@ -579,35 +579,35 @@ void Instance::vfx_sync(Object *ob, tObject *tgp_ob)
 
   /* If simplify enabled, nothing more to do. */
   if (!this->simplify_fx) {
-    LISTBASE_FOREACH (ShaderFxData *, fx, &ob->shader_fx) {
-      if (effect_is_active(fx, is_edit_mode, this->is_viewport)) {
-        switch (fx->type) {
+    for (ShaderFxData &fx : ob->shader_fx) {
+      if (effect_is_active(&fx, is_edit_mode, this->is_viewport)) {
+        switch (fx.type) {
           case eShaderFxType_Blur:
-            vfx_blur_sync((BlurShaderFxData *)fx, ob, tgp_ob);
+            vfx_blur_sync(reinterpret_cast<BlurShaderFxData *>(&fx), ob, tgp_ob);
             break;
           case eShaderFxType_Colorize:
-            vfx_colorize_sync((ColorizeShaderFxData *)fx, ob, tgp_ob);
+            vfx_colorize_sync(reinterpret_cast<ColorizeShaderFxData *>(&fx), ob, tgp_ob);
             break;
           case eShaderFxType_Flip:
-            vfx_flip_sync((FlipShaderFxData *)fx, ob, tgp_ob);
+            vfx_flip_sync(reinterpret_cast<FlipShaderFxData *>(&fx), ob, tgp_ob);
             break;
           case eShaderFxType_Pixel:
-            vfx_pixelize_sync((PixelShaderFxData *)fx, ob, tgp_ob);
+            vfx_pixelize_sync(reinterpret_cast<PixelShaderFxData *>(&fx), ob, tgp_ob);
             break;
           case eShaderFxType_Rim:
-            vfx_rim_sync((RimShaderFxData *)fx, ob, tgp_ob);
+            vfx_rim_sync(reinterpret_cast<RimShaderFxData *>(&fx), ob, tgp_ob);
             break;
           case eShaderFxType_Shadow:
-            vfx_shadow_sync((ShadowShaderFxData *)fx, ob, tgp_ob);
+            vfx_shadow_sync(reinterpret_cast<ShadowShaderFxData *>(&fx), ob, tgp_ob);
             break;
           case eShaderFxType_Glow:
-            vfx_glow_sync((GlowShaderFxData *)fx, ob, tgp_ob);
+            vfx_glow_sync(reinterpret_cast<GlowShaderFxData *>(&fx), ob, tgp_ob);
             break;
           case eShaderFxType_Swirl:
-            vfx_swirl_sync((SwirlShaderFxData *)fx, ob, tgp_ob);
+            vfx_swirl_sync(reinterpret_cast<SwirlShaderFxData *>(&fx), ob, tgp_ob);
             break;
           case eShaderFxType_Wave:
-            vfx_wave_sync((WaveShaderFxData *)fx, ob, tgp_ob);
+            vfx_wave_sync(reinterpret_cast<WaveShaderFxData *>(&fx), ob, tgp_ob);
             break;
           default:
             break;

@@ -227,7 +227,7 @@ class edge_iterator_base : public IteratorBase<Traits, InputIteratorTag_Traits> 
     return tmp;
   }
 
-  // comparibility
+  // comparability
   virtual bool operator!=(const Self &b) const
   {
     if (_Nature & Nature::T_VERTEX) {
@@ -466,7 +466,7 @@ class edge_iterator_base : public IteratorBase<Traits, BidirectionalIteratorTag_
     return tmp;
   }
 
-  // comparibility
+  // comparability
   virtual bool operator!=(const Self &b) const
   {
     return (_ViewEdge != b._ViewEdge);
@@ -586,7 +586,7 @@ class fedge_iterator_base : public IteratorBase<Traits, BidirectionalIteratorTag
     return tmp;
   }
 
-  // comparibility
+  // comparability
   virtual bool operator!=(const Self &b) const
   {
     return (_FEdge != b._FEdge);
@@ -730,7 +730,7 @@ class vertex_iterator_base : public IteratorBase<Traits, BidirectionalIteratorTa
     return tmp;
   }
 
-  // comparibility
+  // comparability
   virtual bool operator!=(const Self &b) const
   {
     return (_SVertex != b._SVertex);

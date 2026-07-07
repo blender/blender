@@ -19,6 +19,8 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"image.gpu"};
 
 /* gpu ibuf utils */
@@ -57,7 +59,7 @@ static bool imb_is_grayscale_texture_format_compatible(const ImBuf *ibuf)
 static void imb_gpu_get_format(const ImBuf *ibuf,
                                bool high_bitdepth,
                                bool use_grayscale,
-                               blender::gpu::TextureFormat *r_texture_format)
+                               gpu::TextureFormat *r_texture_format)
 {
   const bool float_rect = (ibuf->float_buffer.data != nullptr);
   const bool is_grayscale = use_grayscale && imb_is_grayscale_texture_format_compatible(ibuf);
@@ -66,28 +68,28 @@ static void imb_gpu_get_format(const ImBuf *ibuf,
     /* Float. */
     const bool use_high_bitdepth = (!(ibuf->foptions.flag & OPENEXR_HALF) && high_bitdepth);
     *r_texture_format = is_grayscale ?
-                            (use_high_bitdepth ? blender::gpu::TextureFormat::SFLOAT_32 :
-                                                 blender::gpu::TextureFormat::SFLOAT_16) :
-                            (use_high_bitdepth ? blender::gpu::TextureFormat::SFLOAT_32_32_32_32 :
-                                                 blender::gpu::TextureFormat::SFLOAT_16_16_16_16);
+                            (use_high_bitdepth ? gpu::TextureFormat::SFLOAT_32 :
+                                                 gpu::TextureFormat::SFLOAT_16) :
+                            (use_high_bitdepth ? gpu::TextureFormat::SFLOAT_32_32_32_32 :
+                                                 gpu::TextureFormat::SFLOAT_16_16_16_16);
   }
   else {
     if (IMB_colormanagement_space_is_data(ibuf->byte_buffer.colorspace) ||
         IMB_colormanagement_space_is_scene_linear(ibuf->byte_buffer.colorspace))
     {
       /* Non-color data or scene linear, just store buffer as is. */
-      *r_texture_format = (is_grayscale) ? blender::gpu::TextureFormat::UNORM_8 :
-                                           blender::gpu::TextureFormat::UNORM_8_8_8_8;
+      *r_texture_format = (is_grayscale) ? gpu::TextureFormat::UNORM_8 :
+                                           gpu::TextureFormat::UNORM_8_8_8_8;
     }
     else if (IMB_colormanagement_space_is_srgb(ibuf->byte_buffer.colorspace)) {
       /* sRGB, store as byte texture that the GPU can decode directly. */
-      *r_texture_format = (is_grayscale) ? blender::gpu::TextureFormat::SFLOAT_16 :
-                                           blender::gpu::TextureFormat::SRGBA_8_8_8_8;
+      *r_texture_format = (is_grayscale) ? gpu::TextureFormat::SFLOAT_16 :
+                                           gpu::TextureFormat::SRGBA_8_8_8_8;
     }
     else {
       /* Other colorspace, store as half float texture to avoid precision loss. */
-      *r_texture_format = (is_grayscale) ? blender::gpu::TextureFormat::SFLOAT_16 :
-                                           blender::gpu::TextureFormat::SFLOAT_16_16_16_16;
+      *r_texture_format = (is_grayscale) ? gpu::TextureFormat::SFLOAT_16 :
+                                           gpu::TextureFormat::SFLOAT_16_16_16_16;
     }
   }
 }
@@ -98,8 +100,7 @@ static const char *imb_gpu_get_swizzle(const ImBuf *ibuf)
 }
 
 /* Return false if no suitable format was found. */
-static bool IMB_gpu_get_compressed_format(const ImBuf *ibuf,
-                                          blender::gpu::TextureFormat *r_texture_format)
+bool IMB_gpu_get_compressed_format(const ImBuf *ibuf, gpu::TextureFormat *r_texture_format)
 {
   /* For DDS we only support data, scene linear and sRGB. Converting to
    * different colorspace would break the compression. */
@@ -107,16 +108,16 @@ static bool IMB_gpu_get_compressed_format(const ImBuf *ibuf,
                          !IMB_colormanagement_space_is_scene_linear(ibuf->byte_buffer.colorspace));
 
   if (ibuf->dds_data.fourcc == FOURCC_DXT1) {
-    *r_texture_format = (use_srgb) ? blender::gpu::TextureFormat::SRGB_DXT1 :
-                                     blender::gpu::TextureFormat::SNORM_DXT1;
+    *r_texture_format = (use_srgb) ? gpu::TextureFormat::SRGB_DXT1 :
+                                     gpu::TextureFormat::SNORM_DXT1;
   }
   else if (ibuf->dds_data.fourcc == FOURCC_DXT3) {
-    *r_texture_format = (use_srgb) ? blender::gpu::TextureFormat::SRGB_DXT3 :
-                                     blender::gpu::TextureFormat::SNORM_DXT3;
+    *r_texture_format = (use_srgb) ? gpu::TextureFormat::SRGB_DXT3 :
+                                     gpu::TextureFormat::SNORM_DXT3;
   }
   else if (ibuf->dds_data.fourcc == FOURCC_DXT5) {
-    *r_texture_format = (use_srgb) ? blender::gpu::TextureFormat::SRGB_DXT5 :
-                                     blender::gpu::TextureFormat::SNORM_DXT5;
+    *r_texture_format = (use_srgb) ? gpu::TextureFormat::SRGB_DXT5 :
+                                     gpu::TextureFormat::SNORM_DXT5;
   }
   else {
     return false;
@@ -138,8 +139,8 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
 {
   bool is_float_rect = (ibuf->float_buffer.data != nullptr);
   const bool is_grayscale = allow_grayscale && imb_is_grayscale_texture_format_compatible(ibuf);
-  void *data_rect = (is_float_rect) ? (void *)ibuf->float_buffer.data :
-                                      (void *)ibuf->byte_buffer.data;
+  void *data_rect = (is_float_rect) ? static_cast<void *>(ibuf->float_buffer.data) :
+                                      static_cast<void *>(ibuf->byte_buffer.data);
   bool freedata = false;
 
   if (is_float_rect) {
@@ -147,7 +148,8 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
      * convention, no colorspace conversion needed. But we do require 4 channels
      * currently. */
     if (ibuf->channels != 4 || !store_premultiplied) {
-      data_rect = MEM_malloc_arrayN<float>(4 * size_t(ibuf->x) * size_t(ibuf->y), __func__);
+      data_rect = MEM_new_array_uninitialized<float>(4 * size_t(ibuf->x) * size_t(ibuf->y),
+                                                     __func__);
       *r_freedata = freedata = true;
 
       if (data_rect == nullptr) {
@@ -155,7 +157,7 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
       }
 
       IMB_colormanagement_imbuf_to_float_texture(
-          (float *)data_rect, 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
+          static_cast<float *>(data_rect), 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
     }
   }
   else {
@@ -170,9 +172,9 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
              IMB_colormanagement_space_is_scene_linear(ibuf->byte_buffer.colorspace))
     {
       /* sRGB or scene linear, store as byte texture that the GPU can decode directly. */
-      data_rect = MEM_mallocN((is_grayscale ? sizeof(float[4]) : sizeof(uchar[4])) *
-                                  IMB_get_pixel_count(ibuf),
-                              __func__);
+      data_rect = MEM_new_uninitialized((is_grayscale ? sizeof(float[4]) : sizeof(uchar[4])) *
+                                            IMB_get_pixel_count(ibuf),
+                                        __func__);
       *r_freedata = freedata = true;
 
       if (data_rect == nullptr) {
@@ -187,17 +189,18 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
       if (is_grayscale) {
         /* Convert to byte buffer to then pack as half floats reducing the buffer size by half. */
         IMB_colormanagement_imbuf_to_float_texture(
-            (float *)data_rect, 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
+            static_cast<float *>(data_rect), 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
         is_float_rect = true;
       }
       else {
         IMB_colormanagement_imbuf_to_byte_texture(
-            (uchar *)data_rect, 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
+            static_cast<uchar *>(data_rect), 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
       }
     }
     else {
       /* Other colorspace, store as float texture to avoid precision loss. */
-      data_rect = MEM_malloc_arrayN<float>(4 * size_t(ibuf->x) * size_t(ibuf->y), __func__);
+      data_rect = MEM_new_array_uninitialized<float>(4 * size_t(ibuf->x) * size_t(ibuf->y),
+                                                     __func__);
       *r_freedata = freedata = true;
       is_float_rect = true;
 
@@ -211,23 +214,23 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
        * zero alpha areas, and appears generally closer to what game engines that we
        * want to be compatible with do. */
       IMB_colormanagement_imbuf_to_float_texture(
-          (float *)data_rect, 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
+          static_cast<float *>(data_rect), 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
     }
   }
 
   if (do_rescale) {
-    const uint8_t *rect = (is_float_rect) ? nullptr : (uint8_t *)data_rect;
-    const float *rect_float = (is_float_rect) ? (float *)data_rect : nullptr;
+    const uint8_t *rect = (is_float_rect) ? nullptr : static_cast<uint8_t *>(data_rect);
+    const float *rect_float = (is_float_rect) ? static_cast<float *>(data_rect) : nullptr;
 
     ImBuf *scale_ibuf = IMB_allocFromBuffer(rect, rect_float, ibuf->x, ibuf->y, 4);
     IMB_scale(scale_ibuf, UNPACK2(rescale_size), IMBScaleFilter::Box, false);
 
     if (freedata) {
-      MEM_freeN(data_rect);
+      MEM_delete_void(data_rect);
     }
 
-    data_rect = (is_float_rect) ? (void *)scale_ibuf->float_buffer.data :
-                                  (void *)scale_ibuf->byte_buffer.data;
+    data_rect = (is_float_rect) ? static_cast<void *>(scale_ibuf->float_buffer.data) :
+                                  static_cast<void *>(scale_ibuf->byte_buffer.data);
     *r_freedata = freedata = true;
     /* Steal the rescaled buffer to avoid double free. */
     (void)IMB_steal_byte_buffer(scale_ibuf);
@@ -240,7 +243,7 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
     void *src_rect = data_rect;
 
     if (freedata == false) {
-      data_rect = MEM_mallocN(
+      data_rect = MEM_new_uninitialized(
           (is_float_rect ? sizeof(float) : sizeof(uchar)) * IMB_get_pixel_count(ibuf), __func__);
       *r_freedata = freedata = true;
     }
@@ -253,12 +256,12 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
                                       size_t(ibuf->x) * size_t(ibuf->y);
     if (is_float_rect) {
       for (size_t i = 0; i < buffer_size; i++) {
-        ((float *)data_rect)[i] = ((float *)src_rect)[i * 4];
+        (static_cast<float *>(data_rect))[i] = (static_cast<float *>(src_rect))[i * 4];
       }
     }
     else {
       for (size_t i = 0; i < buffer_size; i++) {
-        ((uchar *)data_rect)[i] = ((uchar *)src_rect)[i * 4];
+        (static_cast<uchar *>(data_rect))[i] = (static_cast<uchar *>(src_rect))[i * 4];
       }
     }
   }
@@ -267,18 +270,18 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
   return data_rect;
 }
 
-blender::gpu::Texture *IMB_touch_gpu_texture(const char *name,
-                                             ImBuf *ibuf,
-                                             int w,
-                                             int h,
-                                             int layers,
-                                             bool use_high_bitdepth,
-                                             bool use_grayscale)
+gpu::Texture *IMB_touch_gpu_texture(const char *name,
+                                    ImBuf *ibuf,
+                                    int w,
+                                    int h,
+                                    int layers,
+                                    bool use_high_bitdepth,
+                                    bool use_grayscale)
 {
-  blender::gpu::TextureFormat tex_format;
+  gpu::TextureFormat tex_format;
   imb_gpu_get_format(ibuf, use_high_bitdepth, use_grayscale, &tex_format);
 
-  blender::gpu::Texture *tex;
+  gpu::Texture *tex;
   if (layers > 0) {
     tex = GPU_texture_create_2d_array(
         name, w, h, layers, 9999, tex_format, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
@@ -293,7 +296,7 @@ blender::gpu::Texture *IMB_touch_gpu_texture(const char *name,
   return tex;
 }
 
-void IMB_update_gpu_texture_sub(blender::gpu::Texture *tex,
+void IMB_update_gpu_texture_sub(gpu::Texture *tex,
                                 ImBuf *ibuf,
                                 int x,
                                 int y,
@@ -307,7 +310,7 @@ void IMB_update_gpu_texture_sub(blender::gpu::Texture *tex,
   const bool do_rescale = (ibuf->x != w || ibuf->y != h);
   const int size[2] = {w, h};
 
-  blender::gpu::TextureFormat tex_format;
+  gpu::TextureFormat tex_format;
   imb_gpu_get_format(ibuf, use_high_bitdepth, use_grayscale, &tex_format);
 
   bool freebuf = false;
@@ -320,16 +323,16 @@ void IMB_update_gpu_texture_sub(blender::gpu::Texture *tex,
   GPU_texture_update_sub(tex, data_format, data, x, y, z, w, h, 1);
 
   if (freebuf) {
-    MEM_freeN(data);
+    MEM_delete_void(data);
   }
 }
 
-blender::gpu::Texture *IMB_create_gpu_texture(const char *name,
-                                              ImBuf *ibuf,
-                                              bool use_high_bitdepth,
-                                              bool use_premult)
+gpu::Texture *IMB_create_gpu_texture(const char *name,
+                                     ImBuf *ibuf,
+                                     bool use_high_bitdepth,
+                                     bool use_premult)
 {
-  blender::gpu::Texture *tex = nullptr;
+  gpu::Texture *tex = nullptr;
   int size[2] = {GPU_texture_size_with_limit(ibuf->x), GPU_texture_size_with_limit(ibuf->y)};
   bool do_rescale = (ibuf->x != size[0]) || (ibuf->y != size[1]);
 
@@ -344,7 +347,7 @@ blender::gpu::Texture *IMB_create_gpu_texture(const char *name,
   }
 
   if (ibuf->ftype == IMB_FTYPE_DDS) {
-    blender::gpu::TextureFormat compressed_format;
+    gpu::TextureFormat compressed_format;
     if (!IMB_gpu_get_compressed_format(ibuf, &compressed_format)) {
       CLOG_WARN(&LOG, "Unable to find a suitable DXT compression");
     }
@@ -377,7 +380,7 @@ blender::gpu::Texture *IMB_create_gpu_texture(const char *name,
     CLOG_WARN(&LOG, "Falling back to uncompressed (%s, %ix%i).", name, ibuf->x, ibuf->y);
   }
 
-  blender::gpu::TextureFormat tex_format;
+  gpu::TextureFormat tex_format;
   imb_gpu_get_format(ibuf, use_high_bitdepth, true, &tex_format);
 
   bool freebuf = false;
@@ -401,17 +404,17 @@ blender::gpu::Texture *IMB_create_gpu_texture(const char *name,
   GPU_texture_anisotropic_filter(tex, true);
 
   if (freebuf) {
-    MEM_freeN(data);
+    MEM_delete_void(data);
   }
 
   return tex;
 }
 
-blender::gpu::TextureFormat IMB_gpu_get_texture_format(const ImBuf *ibuf,
-                                                       bool high_bitdepth,
-                                                       bool use_grayscale)
+gpu::TextureFormat IMB_gpu_get_texture_format(const ImBuf *ibuf,
+                                              bool high_bitdepth,
+                                              bool use_grayscale)
 {
-  blender::gpu::TextureFormat gpu_texture_format;
+  gpu::TextureFormat gpu_texture_format;
   imb_gpu_get_format(ibuf, high_bitdepth, use_grayscale, &gpu_texture_format);
   return gpu_texture_format;
 }
@@ -433,3 +436,5 @@ void IMB_gpu_clamp_half_float(ImBuf *image_buffer)
     rect_float[i] = clamp_f(rect_float[i], half_min, half_max);
   }
 }
+
+}  // namespace blender

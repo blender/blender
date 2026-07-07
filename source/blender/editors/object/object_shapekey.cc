@@ -22,12 +22,14 @@
 
 #include "BLT_translation.hh"
 
+#include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_context.hh"
+#include "BKE_curve.hh"
 #include "BKE_key.hh"
 #include "BKE_lattice.hh"
 #include "BKE_library.hh"
@@ -62,14 +64,14 @@ bool shape_key_report_if_locked(const Object *obedit, ReportList *reports)
 
   switch (obedit->type) {
     case OB_MESH:
-      key_block = ED_mesh_get_edit_shape_key(static_cast<Mesh *>(obedit->data));
+      key_block = ED_mesh_get_edit_shape_key(id_cast<Mesh *>(obedit->data));
       break;
     case OB_SURF:
     case OB_CURVES_LEGACY:
-      key_block = ED_curve_get_edit_shape_key(static_cast<Curve *>(obedit->data));
+      key_block = ED_curve_get_edit_shape_key(id_cast<Curve *>(obedit->data));
       break;
     case OB_LATTICE:
-      key_block = ED_lattice_get_edit_shape_key(static_cast<Lattice *>(obedit->data));
+      key_block = ED_lattice_get_edit_shape_key(id_cast<Lattice *>(obedit->data));
       break;
     default:
       return false;
@@ -104,8 +106,8 @@ static bool object_is_any_shape_key_locked(Object *ob)
   const Key *key = BKE_key_from_object(ob);
 
   if (key) {
-    LISTBASE_FOREACH (const KeyBlock *, kb, &key->block) {
-      if (kb->flag & KEYBLOCK_LOCKED_SHAPE) {
+    for (const KeyBlock &kb : key->block) {
+      if (kb.flag & KEYBLOCK_LOCKED_SHAPE) {
         return true;
       }
     }
@@ -160,10 +162,101 @@ static void object_shape_key_add(bContext *C, Object *ob, const bool from_mix)
 /** \name Remove Shape Key Function
  * \{ */
 
+void shape_key_mirror(
+    Object *ob, KeyBlock *kb, const bool use_topology, int &totmirr, int &totfail)
+{
+  char *tag_elem = MEM_new_array_zeroed<char>(kb->totelem, "shape_key_mirror");
+
+  if (ob->type == OB_MESH) {
+    Mesh *mesh = id_cast<Mesh *>(ob->data);
+    int i1, i2;
+    float *fp1, *fp2;
+    float tvec[3];
+
+    ED_mesh_mirror_spatial_table_begin(ob, nullptr, nullptr);
+
+    for (i1 = 0; i1 < mesh->verts_num; i1++) {
+      i2 = mesh_get_x_mirror_vert(ob, nullptr, i1, use_topology);
+      if (i2 == i1) {
+        fp1 = (static_cast<float *>(kb->data)) + i1 * 3;
+        fp1[0] = -fp1[0];
+        tag_elem[i1] = 1;
+        totmirr++;
+      }
+      else if (i2 != -1) {
+        if (tag_elem[i1] == 0 && tag_elem[i2] == 0) {
+          fp1 = (static_cast<float *>(kb->data)) + i1 * 3;
+          fp2 = (static_cast<float *>(kb->data)) + i2 * 3;
+
+          copy_v3_v3(tvec, fp1);
+          copy_v3_v3(fp1, fp2);
+          copy_v3_v3(fp2, tvec);
+
+          /* flip x axis */
+          fp1[0] = -fp1[0];
+          fp2[0] = -fp2[0];
+          totmirr++;
+        }
+        tag_elem[i1] = tag_elem[i2] = 1;
+      }
+      else {
+        totfail++;
+      }
+    }
+
+    ED_mesh_mirror_spatial_table_end(ob);
+  }
+  else if (ob->type == OB_LATTICE) {
+    const Lattice *lt = id_cast<const Lattice *>(ob->data);
+    int i1, i2;
+    float *fp1, *fp2;
+    int u, v, w;
+    /* half but found up odd value */
+    const int pntsu_half = (lt->pntsu / 2) + (lt->pntsu % 2);
+
+    /* Currently edit-mode isn't supported by mesh so ignore here for now too. */
+#if 0
+      if (lt->editlatt) {
+        lt = lt->editlatt->latt;
+      }
+#endif
+
+    for (w = 0; w < lt->pntsw; w++) {
+      for (v = 0; v < lt->pntsv; v++) {
+        for (u = 0; u < pntsu_half; u++) {
+          int u_inv = (lt->pntsu - 1) - u;
+          float tvec[3];
+          if (u == u_inv) {
+            i1 = BKE_lattice_index_from_uvw(lt, u, v, w);
+            fp1 = (static_cast<float *>(kb->data)) + i1 * 3;
+            fp1[0] = -fp1[0];
+            totmirr++;
+          }
+          else {
+            i1 = BKE_lattice_index_from_uvw(lt, u, v, w);
+            i2 = BKE_lattice_index_from_uvw(lt, u_inv, v, w);
+
+            fp1 = (static_cast<float *>(kb->data)) + i1 * 3;
+            fp2 = (static_cast<float *>(kb->data)) + i2 * 3;
+
+            copy_v3_v3(tvec, fp1);
+            copy_v3_v3(fp1, fp2);
+            copy_v3_v3(fp2, tvec);
+            fp1[0] = -fp1[0];
+            fp2[0] = -fp2[0];
+            totmirr++;
+          }
+        }
+      }
+    }
+  }
+
+  MEM_delete(tag_elem);
+}
+
 static bool object_shape_key_mirror(
     bContext *C, Object *ob, int *r_totmirr, int *r_totfail, bool use_topology)
 {
-  KeyBlock *kb;
   Key *key;
   int totmirr = 0, totfail = 0;
 
@@ -174,96 +267,8 @@ static bool object_shape_key_mirror(
     return false;
   }
 
-  kb = static_cast<KeyBlock *>(BLI_findlink(&key->block, ob->shapenr - 1));
-
-  if (kb) {
-    char *tag_elem = MEM_calloc_arrayN<char>(kb->totelem, "shape_key_mirror");
-
-    if (ob->type == OB_MESH) {
-      Mesh *mesh = static_cast<Mesh *>(ob->data);
-      int i1, i2;
-      float *fp1, *fp2;
-      float tvec[3];
-
-      ED_mesh_mirror_spatial_table_begin(ob, nullptr, nullptr);
-
-      for (i1 = 0; i1 < mesh->verts_num; i1++) {
-        i2 = mesh_get_x_mirror_vert(ob, nullptr, i1, use_topology);
-        if (i2 == i1) {
-          fp1 = ((float *)kb->data) + i1 * 3;
-          fp1[0] = -fp1[0];
-          tag_elem[i1] = 1;
-          totmirr++;
-        }
-        else if (i2 != -1) {
-          if (tag_elem[i1] == 0 && tag_elem[i2] == 0) {
-            fp1 = ((float *)kb->data) + i1 * 3;
-            fp2 = ((float *)kb->data) + i2 * 3;
-
-            copy_v3_v3(tvec, fp1);
-            copy_v3_v3(fp1, fp2);
-            copy_v3_v3(fp2, tvec);
-
-            /* flip x axis */
-            fp1[0] = -fp1[0];
-            fp2[0] = -fp2[0];
-            totmirr++;
-          }
-          tag_elem[i1] = tag_elem[i2] = 1;
-        }
-        else {
-          totfail++;
-        }
-      }
-
-      ED_mesh_mirror_spatial_table_end(ob);
-    }
-    else if (ob->type == OB_LATTICE) {
-      const Lattice *lt = static_cast<const Lattice *>(ob->data);
-      int i1, i2;
-      float *fp1, *fp2;
-      int u, v, w;
-      /* half but found up odd value */
-      const int pntsu_half = (lt->pntsu / 2) + (lt->pntsu % 2);
-
-      /* Currently edit-mode isn't supported by mesh so ignore here for now too. */
-#if 0
-      if (lt->editlatt) {
-        lt = lt->editlatt->latt;
-      }
-#endif
-
-      for (w = 0; w < lt->pntsw; w++) {
-        for (v = 0; v < lt->pntsv; v++) {
-          for (u = 0; u < pntsu_half; u++) {
-            int u_inv = (lt->pntsu - 1) - u;
-            float tvec[3];
-            if (u == u_inv) {
-              i1 = BKE_lattice_index_from_uvw(lt, u, v, w);
-              fp1 = ((float *)kb->data) + i1 * 3;
-              fp1[0] = -fp1[0];
-              totmirr++;
-            }
-            else {
-              i1 = BKE_lattice_index_from_uvw(lt, u, v, w);
-              i2 = BKE_lattice_index_from_uvw(lt, u_inv, v, w);
-
-              fp1 = ((float *)kb->data) + i1 * 3;
-              fp2 = ((float *)kb->data) + i2 * 3;
-
-              copy_v3_v3(tvec, fp1);
-              copy_v3_v3(fp1, fp2);
-              copy_v3_v3(fp2, tvec);
-              fp1[0] = -fp1[0];
-              fp2[0] = -fp2[0];
-              totmirr++;
-            }
-          }
-        }
-      }
-    }
-
-    MEM_freeN(tag_elem);
+  if (KeyBlock *kb = static_cast<KeyBlock *>(BLI_findlink(&key->block, ob->shapenr - 1))) {
+    shape_key_mirror(ob, kb, use_topology, totmirr, totfail);
   }
 
   *r_totmirr = totmirr;
@@ -284,7 +289,7 @@ static bool object_shape_key_mirror(
 static bool shape_key_poll(bContext *C)
 {
   Object *ob = context_object(C);
-  ID *data = static_cast<ID *>((ob) ? ob->data : nullptr);
+  ID *data = (ob) ? ob->data : nullptr;
 
   return (ob != nullptr && ID_IS_EDITABLE(ob) && !ID_IS_OVERRIDE_LIBRARY(ob) && data != nullptr &&
           ID_IS_EDITABLE(data) && !ID_IS_OVERRIDE_LIBRARY(data));
@@ -414,35 +419,34 @@ static wmOperatorStatus shape_key_remove_exec(bContext *C, wmOperator *op)
     }
 
     if (RNA_boolean_get(op->ptr, "apply_mix")) {
-      float *arr = BKE_key_evaluate_object_ex(
-          ob, nullptr, nullptr, 0, static_cast<ID *>(ob->data));
-      MEM_freeN(arr);
+      float *arr = BKE_key_evaluate_object_ex(ob, nullptr, nullptr, 0, std::nullopt, ob->data);
+      MEM_delete(arr);
     }
     changed = BKE_object_shapekey_free(bmain, ob);
   }
   else {
     int num_selected_but_locked = 0;
     /* This could be moved into a function of its own at some point. Right now it's only used here,
-     * though, since its inner structure is taylored for allowing shapekey deletion. */
+     * though, since its inner structure is tailored for allowing shapekey deletion. */
     Key &key = *BKE_key_from_object(ob);
-    LISTBASE_FOREACH_MUTABLE (KeyBlock *, kb, &key.block) {
+    for (KeyBlock &kb : key.block.items_mutable()) {
       /* Always try to find the keyblock again, as the previous one may have been deleted. For
        * the same reason, ob->shapenr has to be re-evaluated on every loop iteration. */
-      const int cur_index = BLI_findindex(&key.block, kb);
-      if (!shape_key_is_selected(*ob, *kb, cur_index)) {
+      const int cur_index = BLI_findindex(&key.block, &kb);
+      if (!shape_key_is_selected(*ob, kb, cur_index)) {
         continue;
       }
-      if (kb->flag & KEYBLOCK_LOCKED_SHAPE) {
+      if (kb.flag & KEYBLOCK_LOCKED_SHAPE) {
         num_selected_but_locked++;
         continue;
       }
 
-      changed |= BKE_object_shapekey_remove(bmain, ob, kb);
+      changed |= BKE_object_shapekey_remove(bmain, ob, &kb);
 
       /* When `BKE_object_shapekey_remove()` deletes the active shapekey, the active shapekeyindex
        * is updated as well. It usually decrements, which means that even when the same index is
        * re-visited, we don't see the active one any more. However, when the basis key (index=0) is
-       * deleted AND there are keys remaning, the active index remains set to 0, and so every
+       * deleted AND there are keys remaining, the active index remains set to 0, and so every
        * iteration sees "the active shapekey", effectively deleting all of them. */
       if (cur_index == 0) {
         ob->shapenr = 0;
@@ -543,8 +547,8 @@ static wmOperatorStatus shape_key_clear_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
-    kb->curval = clamp_f(0.0f, kb->slidermin, kb->slidermax);
+  for (KeyBlock &kb : key->block) {
+    kb.curval = clamp_f(0.0f, kb.slidermin, kb.slidermax);
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -580,8 +584,8 @@ static wmOperatorStatus shape_key_retime_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
-    kb->pos = cfra;
+  for (KeyBlock &kb : key->block) {
+    kb.pos = cfra;
     cfra += 0.1f;
   }
 
@@ -785,13 +789,13 @@ static wmOperatorStatus shape_key_lock_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  LISTBASE_FOREACH (KeyBlock *, kb, &keys->block) {
+  for (KeyBlock &kb : keys->block) {
     switch (action) {
       case SHAPE_KEY_LOCK:
-        kb->flag |= KEYBLOCK_LOCKED_SHAPE;
+        kb.flag |= KEYBLOCK_LOCKED_SHAPE;
         break;
       case SHAPE_KEY_UNLOCK:
-        kb->flag &= ~KEYBLOCK_LOCKED_SHAPE;
+        kb.flag &= ~KEYBLOCK_LOCKED_SHAPE;
         break;
       default:
         BLI_assert(0);
@@ -893,6 +897,25 @@ static wmOperatorStatus shape_key_make_basis_exec(bContext *C, wmOperator * /*op
   new_basis_key->relative = 0;
   old_basis_key->relative = 0;
 
+  /* Apply new basis key on original data. This is needed so that creating new shape-keys will
+   * start from the new basis shape. */
+  switch (ob->type) {
+    case OB_MESH: {
+      Mesh *mesh = id_cast<Mesh *>(ob->data);
+      BKE_keyblock_convert_to_mesh(new_basis_key, mesh->vert_positions_for_write());
+      break;
+    }
+    case OB_CURVES_LEGACY:
+    case OB_SURF:
+      BKE_keyblock_convert_to_curve(new_basis_key,
+                                    id_cast<Curve *>(ob->data),
+                                    BKE_curve_nurbs_get(id_cast<Curve *>(ob->data)));
+      break;
+    case OB_LATTICE:
+      BKE_keyblock_convert_to_lattice(new_basis_key, id_cast<Lattice *>(ob->data));
+      break;
+  }
+
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
@@ -913,6 +936,127 @@ void OBJECT_OT_shape_key_make_basis(wmOperatorType *ot)
   ot->exec = shape_key_make_basis_exec;
 
   /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Shape Key Make Basis Operator
+ * \{ */
+
+static bool shape_key_apply_to_basis_poll(bContext *C)
+{
+  if (!shape_key_exists_poll(C)) {
+    return false;
+  }
+
+  Object *ob = context_object(C);
+  if (ob->type != OB_MESH) {
+    return false;
+  }
+  /* 0 = nothing active, 1 = basis key active. */
+  return ob->shapenr > 1;
+}
+
+static void add_arrays(const MutableSpan<float3> a, const Span<float3> b)
+{
+  BLI_assert(a.size() == b.size());
+  threading::parallel_for(a.index_range(), 2048, [&](const IndexRange range) {
+    for (const int i : range) {
+      a[i] += b[i];
+    }
+  });
+}
+
+static wmOperatorStatus shape_key_apply_to_basis_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  Object *ob = CTX_data_active_object(C);
+  Key *key = BKE_key_from_object(ob);
+  KeyBlock *basis_key = static_cast<KeyBlock *>(key->block.first);
+  MutableSpan<float3> basis_data(static_cast<float3 *>(basis_key->data), basis_key->totelem);
+  Mesh &mesh = id_cast<Mesh &>(*ob->data);
+
+  MutableSpan<float3> positions = mesh.vert_positions_for_write();
+
+  int locked_count = 0;
+  Array<bool> keys_to_process(BLI_listbase_count(&key->block), false);
+  for (const auto [i, kb] : key->block.enumerate()) {
+    if (!shape_key_is_selected(*ob, kb, i)) {
+      continue;
+    }
+    if (kb.flag & KEYBLOCK_LOCKED_SHAPE) {
+      locked_count++;
+      continue;
+    }
+    keys_to_process[i] = true;
+  }
+
+  if (locked_count != 0) {
+    BKE_reportf(op->reports, RPT_INFO, "Skipped %d locked shape keys", locked_count);
+  }
+
+  if (!keys_to_process.as_span().contains(true)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  int totelem_dummy;
+  BKE_key_evaluate_object_ex(ob,
+                             &totelem_dummy,
+                             positions.cast<float>().data(),
+                             sizeof(float3) * positions.size(),
+                             keys_to_process,
+                             nullptr);
+
+  Array<float3> translations(positions.size());
+  for (const int i : positions.index_range()) {
+    translations[i] = positions[i] - basis_data[i];
+  }
+
+  basis_data.copy_from(positions);
+
+  Set<KeyBlock *> processed_keys;
+  for (const auto [i, kb] : key->block.enumerate()) {
+    if (keys_to_process[i]) {
+      processed_keys.add_new(&kb);
+    }
+  }
+  for (KeyBlock *kb : processed_keys) {
+    BKE_object_shapekey_remove(bmain, ob, kb);
+  }
+
+  if (const std::optional<Array<bool>> dependent = BKE_keyblock_get_dependent_keys(key, 0)) {
+    for (const auto [i, kb] : key->block.enumerate()) {
+      if (&kb == basis_key) {
+        continue;
+      }
+      if (!(*dependent)[i]) {
+        continue;
+      }
+      MutableSpan<float3> kb_data(static_cast<float3 *>(kb.data), kb.totelem);
+      add_arrays(kb_data, translations);
+    }
+  }
+
+  /* Make the basis key active. */
+  ob->shapenr = 1;
+
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+
+  return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_shape_key_apply_to_basis(wmOperatorType *ot)
+{
+  ot->name = "Apply to Basis Key";
+  ot->idname = "OBJECT_OT_shape_key_apply_to_basis";
+  ot->description = "Apply deformations of selected shape keys to the basis key, removing them";
+
+  ot->poll = shape_key_apply_to_basis_poll;
+  ot->exec = shape_key_apply_to_basis_exec;
+
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 

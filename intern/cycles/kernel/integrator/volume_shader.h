@@ -226,8 +226,8 @@ ccl_device float volume_shader_phase_eval(const ccl_private ShaderData *sd,
   return phase_pdf;
 }
 
-ccl_device float volume_shader_phase_eval(KernelGlobals kg,
-                                          IntegratorState state,
+ccl_device float volume_shader_phase_eval(ccl_attr_maybe_unused KernelGlobals kg,
+                                          ccl_attr_maybe_unused IntegratorState state,
                                           const ccl_private ShaderData *sd,
                                           const ccl_private ShaderVolumePhases *phases,
                                           const float3 wo,

@@ -10,14 +10,16 @@
 
 #pragma once
 
+#include "DRW_gpu_wrapper.hh"
 #include "DRW_render.hh"
 #include "GPU_capabilities.hh"
-
 #include "GPU_platform.hh"
-#include "eevee_material.hh"
-#include "eevee_shader_shared.hh"
+
+#include "eevee_defines.hh"
 
 namespace blender::eevee {
+
+using namespace draw;
 
 class Instance;
 
@@ -161,12 +163,10 @@ struct GBuffer {
     data_count = max_ii(closure_fb_layer_count, data_count);
     normal_count = max_ii(normal_fb_layer_count, normal_count);
 
-    dummy_header_tx_.ensure_2d_array(
-        gpu::TextureFormat::UINT_32, int2(1), 1, GPU_TEXTURE_USAGE_SHADER_WRITE);
-    dummy_closure_tx_.ensure_2d_array(
-        gpu::TextureFormat::UNORM_10_10_10_2, int2(1), 1, GPU_TEXTURE_USAGE_SHADER_WRITE);
-    dummy_normal_tx_.ensure_2d_array(
-        gpu::TextureFormat::UNORM_16_16, int2(1), 1, GPU_TEXTURE_USAGE_SHADER_WRITE);
+    eGPUTextureUsage dummy_use = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE;
+    dummy_header_tx_.ensure_2d_array(gpu::TextureFormat::UINT_32, int2(1), 1, dummy_use);
+    dummy_closure_tx_.ensure_2d_array(gpu::TextureFormat::UNORM_10_10_10_2, int2(1), 1, dummy_use);
+    dummy_normal_tx_.ensure_2d_array(gpu::TextureFormat::UNORM_16_16, int2(1), 1, dummy_use);
 
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
                              GPU_TEXTURE_USAGE_ATTACHMENT;

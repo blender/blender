@@ -502,6 +502,45 @@ class ActionConstraintTest(AbstractConstraintTests):
         )))
 
 
+class GeometryAttributeConstraintTest(AbstractConstraintTests):
+    layer_collection = "Geometry Attribute"
+
+    def test_mix_modes(self):
+        owner = bpy.context.scene.objects["Geometry Attribute.owner"]
+        con = owner.constraints["Geometry Attribute"]
+        con.apply_target_transform = False
+
+        # This should produce the matrix as stored in the geometry attribute.
+        con.mix_mode = 'REPLACE'
+        self.matrix_test(owner.name, Matrix(
+            ((0.32139378786087036, -0.41721203923225403, 0.8500824570655823, -1.0),
+             (0.5566704273223877, 0.809456467628479, 0.18681080639362335, -1.0),
+             (-0.7660444378852844, 0.41317591071128845, 0.49240389466285706, 0.0),
+             (0.0, 0.0, 0.0, 1.0))),
+        )
+
+        con.mix_mode = 'BEFORE_SPLIT'
+        self.matrix_test(owner.name, Matrix(
+            ((0.32139378786087036, -0.41721203923225403, 0.8500824570655823, -0.8999999761581421),
+             (0.5566704273223877, 0.809456467628479, 0.18681080639362335, -0.800000011920929),
+             (-0.7660444378852844, 0.41317591071128845, 0.49240389466285706, 0.30000001192092896),
+             (0.0, 0.0, 0.0, 1.0))),
+        )
+
+    def test_apply_target_transform(self):
+        owner = bpy.context.scene.objects["Geometry Attribute.owner"]
+        con = owner.constraints["Geometry Attribute"]
+        con.apply_target_transform = True
+
+        con.mix_mode = 'REPLACE'
+        self.matrix_test(owner.name, Matrix(
+            ((0.5681133270263672, -0.2360532432794571, 0.788369357585907, -0.923704206943512),
+             (0.3527687191963196, 0.9353533983230591, 0.02585163712501526, -0.5034461617469788),
+             (-0.7435062527656555, 0.26342537999153137, 0.6146588921546936, 0.012183472514152527),
+             (0.0, 0.0, 0.0, 1.0))),
+        )
+
+
 def main():
     global args
     import argparse

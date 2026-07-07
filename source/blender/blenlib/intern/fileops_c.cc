@@ -49,6 +49,8 @@
 #include "BLI_sys_types.h" /* For `intptr_t` support. */
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 /** Sizes above this must be allocated. */
 #define FILE_MAX_STATIC_BUF 256
 
@@ -137,7 +139,7 @@ int64_t BLI_read(int fd, void *buf, size_t nbytes)
     }
 
     /* If this is reached, fewer bytes were read than were requested. */
-    buf = (void *)(((char *)buf) + nbytes_read);
+    buf = static_cast<void *>((static_cast<char *>(buf)) + nbytes_read);
     nbytes_read_total += nbytes_read;
     nbytes -= nbytes_read;
   }
@@ -181,7 +183,7 @@ size_t BLI_file_zstd_from_mem_at_pos(
   ZSTD_inBuffer input = {buf, len, 0};
 
   size_t out_len = ZSTD_CStreamOutSize();
-  void *out_buf = MEM_mallocN(out_len, __func__);
+  std::byte *out_buf = MEM_new_array_uninitialized<std::byte>(out_len, __func__);
   size_t total_written = 0;
 
   /* Compress block and write it out until the input has been consumed. */
@@ -211,7 +213,7 @@ size_t BLI_file_zstd_from_mem_at_pos(
     total_written += output.pos;
   }
 
-  MEM_freeN(out_buf);
+  MEM_delete(out_buf);
   ZSTD_freeCCtx(ctx);
 
   return ZSTD_isError(ret) ? 0 : total_written;
@@ -224,7 +226,7 @@ size_t BLI_file_unzstd_to_mem_at_pos(void *buf, size_t len, FILE *file, size_t f
   ZSTD_DCtx *ctx = ZSTD_createDCtx();
 
   size_t in_len = ZSTD_DStreamInSize();
-  void *in_buf = MEM_mallocN(in_len, __func__);
+  std::byte *in_buf = MEM_new_array_uninitialized<std::byte>(in_len, __func__);
   ZSTD_inBuffer input = {in_buf, in_len, 0};
 
   ZSTD_outBuffer output = {buf, len, 0};
@@ -248,7 +250,7 @@ size_t BLI_file_unzstd_to_mem_at_pos(void *buf, size_t len, FILE *file, size_t f
     }
   }
 
-  MEM_freeN(in_buf);
+  MEM_delete(in_buf);
   ZSTD_freeDCtx(ctx);
 
   return ZSTD_isError(ret) ? 0 : output.pos;
@@ -278,7 +280,7 @@ bool BLI_file_magic_is_zstd(const char header[4])
    * For more details, see https://github.com/facebook/zstd/blob/dev/doc/zstd_compression_format.md
    */
 
-  uint32_t magic = *((uint32_t *)header);
+  uint32_t magic = *(reinterpret_cast<uint32_t *>(const_cast<char *>(header)));
   if (magic == 0xFD2FB528) {
     return true;
   }
@@ -346,10 +348,10 @@ bool BLI_file_touch(const char *filepath)
  *
  * If the directory already exists, this function is a no-op.
  *
- * \param dirname The directory to create.
- * \param len The number of bytes of 'dirname' to use as path to create. This
- * makes the recursive call possible without doing string duplication for each
- * parent directory.
+ * \param dirname: The directory to create.
+ * \param len: The number of bytes of `dirname` to use as path to create.
+ * This makes the recursive call possible without doing string duplication
+ * for each parent directory.
  */
 static bool dir_create_recursive(const char *dirname, const int len)
 {
@@ -362,7 +364,7 @@ static bool dir_create_recursive(const char *dirname, const int len)
                  "Paths containing \"..\" components must be normalized first!");
 
   bool ret = true;
-  char *dirname_parent_end = (char *)BLI_path_parent_dir_end(dirname, len);
+  char *dirname_parent_end = const_cast<char *>(BLI_path_parent_dir_end(dirname, len));
   if (dirname_parent_end) {
     const char dirname_parent_end_value = *dirname_parent_end;
     *dirname_parent_end = '\0';
@@ -426,7 +428,7 @@ bool BLI_dir_create_recursive(const char *dirname)
 
   size_t len = strlen(dirname);
   if (len >= sizeof(dirname_static_buf)) {
-    dirname_mut = MEM_calloc_arrayN<char>(len + 1, __func__);
+    dirname_mut = MEM_new_array_zeroed<char>(len + 1, __func__);
   }
   memcpy(dirname_mut, dirname, len + 1);
 
@@ -443,7 +445,7 @@ bool BLI_dir_create_recursive(const char *dirname)
   BLI_assert(memcmp(dirname, dirname_mut, len) == 0);
 
   if (dirname_mut != dirname_static_buf) {
-    MEM_freeN(dirname_mut);
+    MEM_delete(dirname_mut);
   }
 
   return ret;
@@ -808,7 +810,7 @@ static const char *path_destination_ensure_filename(const char *path_src,
       size_t buf_size_needed = path_dst_len + strlen(filename_src) + 1;
       char *path_dst_with_filename = (buf_size_needed <= buf_size) ?
                                          buf :
-                                         MEM_calloc_arrayN<char>(buf_size_needed, __func__);
+                                         MEM_new_array_zeroed<char>(buf_size_needed, __func__);
       BLI_string_join(path_dst_with_filename, buf_size_needed, path_dst, filename_src);
       return path_dst_with_filename;
     }
@@ -836,7 +838,7 @@ int BLI_path_move(const char *path_src, const char *path_dst)
   }
 
   if (!ELEM(path_dst_with_filename, path_dst_buf, path_dst)) {
-    MEM_freeN(path_dst_with_filename);
+    MEM_delete(path_dst_with_filename);
   }
 
   return err;
@@ -861,7 +863,7 @@ int BLI_copy(const char *path_src, const char *path_dst)
   }
 
   if (!ELEM(path_dst_with_filename, path_dst_buf, path_dst)) {
-    MEM_freeN(path_dst_with_filename);
+    MEM_delete(path_dst_with_filename);
   }
 
   return err;
@@ -1411,7 +1413,7 @@ static int copy_single_file(const char *from, const char *to)
       need_free = 0;
     }
     else {
-      link_buffer = MEM_calloc_arrayN<char>(st.st_size + 2, "copy_single_file link_buffer");
+      link_buffer = MEM_new_array_zeroed<char>(st.st_size + 2, "copy_single_file link_buffer");
       need_free = 1;
     }
 
@@ -1420,7 +1422,7 @@ static int copy_single_file(const char *from, const char *to)
       perror("readlink");
 
       if (need_free) {
-        MEM_freeN(link_buffer);
+        MEM_delete(link_buffer);
       }
 
       return RecursiveOp_Callback_Error;
@@ -1431,13 +1433,13 @@ static int copy_single_file(const char *from, const char *to)
     if (symlink(link_buffer, to)) {
       perror("symlink");
       if (need_free) {
-        MEM_freeN(link_buffer);
+        MEM_delete(link_buffer);
       }
       return RecursiveOp_Callback_Error;
     }
 
     if (need_free) {
-      MEM_freeN(link_buffer);
+      MEM_delete(link_buffer);
     }
 
     return RecursiveOp_Callback_OK;
@@ -1534,11 +1536,11 @@ static const char *path_destination_ensure_filename(const char *path_src,
       const size_t buf_size_needed = strlen(path_dst) + 1 + strlen(filename_src) + 1;
       char *path_dst_with_filename = (buf_size_needed <= buf_size) ?
                                          buf :
-                                         MEM_calloc_arrayN<char>(buf_size_needed, __func__);
+                                         MEM_new_array_zeroed<char>(buf_size_needed, __func__);
       BLI_path_join(path_dst_with_filename, buf_size_needed, path_dst, filename_src);
       path_dst = path_dst_with_filename;
     }
-    MEM_freeN(path_src_no_slash);
+    MEM_delete(path_src_no_slash);
   }
   return path_dst;
 }
@@ -1554,7 +1556,7 @@ int BLI_copy(const char *path_src, const char *path_dst)
       path_src, path_dst_with_filename, copy_callback_pre, copy_single_file, nullptr);
 
   if (!ELEM(path_dst_with_filename, path_dst_buf, path_dst)) {
-    MEM_freeN(path_dst_with_filename);
+    MEM_delete(path_dst_with_filename);
   }
 
   return ret;
@@ -1568,3 +1570,5 @@ int BLI_create_symlink(const char *path_src, const char *path_dst)
 #  endif
 
 #endif
+
+}  // namespace blender

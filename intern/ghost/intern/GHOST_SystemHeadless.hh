@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "../GHOST_Types.h"
+#include "../GHOST_Types.hh"
 #include "GHOST_System.hh"
 #include "GHOST_WindowNULL.hh"
 
@@ -78,7 +78,9 @@ class GHOST_SystemHeadless : public GHOST_System {
             /* Wrap. */
             GHOST_kCapabilityCursorGenerator |
             /* Wrap. */
-            GHOST_kCapabilityMultiMonitorPlacement)
+            GHOST_kCapabilityMultiMonitorPlacement |
+            /* Wrap. */
+            GHOST_kCapabilityWindowPath)
 
     );
   }

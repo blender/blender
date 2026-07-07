@@ -17,6 +17,7 @@ class PreferencesOnDiskAssetLibrary : public OnDiskAssetLibrary {
   PreferencesOnDiskAssetLibrary(StringRef name = "", StringRef root_path = "");
 
   std::optional<AssetLibraryReference> library_reference() const override;
+  bool is_enabled() const override;
 };
 
 }  // namespace blender::asset_system

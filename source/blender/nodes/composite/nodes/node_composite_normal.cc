@@ -2,10 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -19,11 +15,9 @@
 
 #include "node_composite_util.hh"
 
-/* **************** NORMAL  ******************** */
-
 namespace blender::nodes::node_composite_normal_cc {
 
-static void cmp_node_normal_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_output<decl::Vector>("Normal")
@@ -53,29 +47,27 @@ static int node_gpu_material(GPUMaterial *material,
   return GPU_link(material, "set_vector", GPU_uniform(normal), &outputs->link);
 }
 
-static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+static void node_build_multi_function(nodes::NodeMultiFunctionBuilder &builder)
 {
   const float3 normal = get_normal(builder.node());
   builder.construct_and_set_matching_fn<mf::CustomMF_Constant<float3>>(normal);
 }
 
-}  // namespace blender::nodes::node_composite_normal_cc
-
-static void register_node_type_cmp_normal()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_composite_normal_cc;
-
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeNormal", CMP_NODE_NORMAL);
   ntype.ui_name = "Normal";
   ntype.ui_description = "Input normalized normal values to other nodes in the tree";
   ntype.enum_name_legacy = "NORMAL";
   ntype.nclass = NODE_CLASS_INPUT;
-  ntype.declare = file_ns::cmp_node_normal_declare;
-  ntype.gpu_fn = file_ns::node_gpu_material;
-  ntype.build_multi_function = file_ns::node_build_multi_function;
+  ntype.declare = node_declare;
+  ntype.gpu_fn = node_gpu_material;
+  ntype.build_multi_function = node_build_multi_function;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_normal)
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_composite_normal_cc

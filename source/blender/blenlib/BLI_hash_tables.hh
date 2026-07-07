@@ -185,12 +185,12 @@ template<typename Key, Key EmptyValue, Key RemovedValue> struct TemplatedKeyInfo
 template<typename Pointer> struct PointerKeyInfo {
   static Pointer get_empty()
   {
-    return (Pointer)UINTPTR_MAX;
+    return Pointer(UINTPTR_MAX);
   }
 
   static void remove(Pointer &pointer)
   {
-    pointer = (Pointer)(UINTPTR_MAX - 1);
+    pointer = Pointer(UINTPTR_MAX - 1);
   }
 
   static bool is_empty(Pointer pointer)
@@ -266,9 +266,9 @@ class HashTableStats {
       total_collisions_ += collisions;
     }
 
-    average_collisions_ = (size_ == 0) ? 0 : (float)total_collisions_ / (float)size_;
-    load_factor_ = (float)size_ / (float)capacity_;
-    removed_load_factor_ = (float)removed_amount_ / (float)capacity_;
+    average_collisions_ = (size_ == 0) ? 0 : float(total_collisions_) / float(size_);
+    load_factor_ = float(size_) / float(capacity_);
+    removed_load_factor_ = float(removed_amount_) / float(capacity_);
   }
 
   void print(const char *name) const;

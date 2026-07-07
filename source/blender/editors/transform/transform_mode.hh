@@ -12,17 +12,18 @@
 #include "ED_transform.hh"
 
 #include "transform.hh"
-
-struct BMVert;
-struct LinkNode;
 struct TransData;
 struct TransDataContainer;
 struct TransInfo;
+namespace blender {
+
+struct BMVert;
+struct LinkNode;
 struct bContext;
 struct wmOperator;
 struct wmEvent;
 
-namespace blender::ed::transform {
+namespace ed::transform {
 
 struct TransModeInfo {
   int flags; /* #eTFlag. */
@@ -233,4 +234,5 @@ extern TransModeInfo TransMode_translate;
 extern TransModeInfo TransMode_vertslide;
 void transform_mode_vert_slide_reproject_input(TransInfo *t);
 
-}  // namespace blender::ed::transform
+}  // namespace ed::transform
+}  // namespace blender

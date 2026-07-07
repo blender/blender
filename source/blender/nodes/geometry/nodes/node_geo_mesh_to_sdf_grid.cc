@@ -45,6 +45,10 @@ static void node_geo_exec(GeoNodeExecParams params)
       mesh->corner_tris(),
       params.extract_input<float>("Voxel Size"),
       std::max(1, params.extract_input<int>("Band Width")));
+  if (!grid) {
+    params.set_default_remaining_outputs();
+    return;
+  }
   params.set_output("SDF Grid", std::move(grid));
 #else
   node_geo_exec_with_missing_openvdb(params);
@@ -53,7 +57,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeMeshToSDFGrid", GEO_NODE_MESH_TO_SDF_GRID);
   ntype.ui_name = "Mesh to SDF Grid";
@@ -62,8 +66,7 @@ static void node_register()
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  ntype.gather_link_search_ops = search_link_ops_for_volume_grid_node;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

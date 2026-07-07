@@ -5,7 +5,6 @@
 #include "scene/shader_nodes.h"
 #include "kernel/svm/types.h"
 #include "kernel/types.h"
-#include "scene/colorspace.h"
 #include "scene/constant_fold.h"
 #include "scene/film.h"
 #include "scene/image.h"
@@ -17,18 +16,22 @@
 #include "scene/scene.h"
 #include "scene/svm.h"
 
-#include "sky_model.h"
+#include "sky_hosek.h"
+#include "sky_nishita.h"
 
 #include "util/color.h"
-
+#include "util/colorspace.h"
 #include "util/log.h"
 #include "util/math_base.h"
+#include "util/string.h"
 #include "util/transform.h"
 
 #include "kernel/svm/color_util.h"
 #include "kernel/svm/mapping_util.h"
 #include "kernel/svm/math_util.h"
 #include "kernel/svm/ramp_util.h"
+
+#include <mutex>
 
 CCL_NAMESPACE_BEGIN
 
@@ -264,7 +267,7 @@ NODE_DEFINE(ImageTextureNode)
 
 ImageTextureNode::ImageTextureNode() : ImageSlotTextureNode(get_node_type())
 {
-  colorspace = u_colorspace_raw;
+  colorspace = u_colorspace_scene_linear;
   animated = false;
 }
 
@@ -379,7 +382,7 @@ void ImageTextureNode::compile(SVMCompiler &compiler)
 
   /* All tiles have the same metadata. */
   const ImageMetaData metadata = handle.metadata();
-  const bool compress_as_srgb = metadata.compress_as_srgb;
+  const bool compress_as_srgb = metadata.is_compressible_as_srgb;
 
   const int vector_offset = tex_mapping.compile_begin(compiler, vector_in);
   uint flags = 0;
@@ -459,12 +462,12 @@ void ImageTextureNode::compile(OSLCompiler &compiler)
 
   const ImageMetaData metadata = handle.metadata();
   const bool is_float = metadata.is_float();
-  const bool compress_as_srgb = metadata.compress_as_srgb;
+  const bool compress_as_srgb = metadata.is_compressible_as_srgb;
   const ustring known_colorspace = metadata.colorspace;
 
   if (handle.svm_slot() == -1) {
     compiler.parameter_texture(
-        "filename", filename, compress_as_srgb ? u_colorspace_raw : known_colorspace);
+        "filename", filename, compress_as_srgb ? u_colorspace_scene_linear : known_colorspace);
   }
   else {
     compiler.parameter_texture("filename", handle);
@@ -533,7 +536,7 @@ NODE_DEFINE(EnvironmentTextureNode)
 
 EnvironmentTextureNode::EnvironmentTextureNode() : ImageSlotTextureNode(get_node_type())
 {
-  colorspace = u_colorspace_raw;
+  colorspace = u_colorspace_scene_linear;
   animated = false;
 }
 
@@ -580,7 +583,7 @@ void EnvironmentTextureNode::compile(SVMCompiler &compiler)
   }
 
   const ImageMetaData metadata = handle.metadata();
-  const bool compress_as_srgb = metadata.compress_as_srgb;
+  const bool compress_as_srgb = metadata.is_compressible_as_srgb;
 
   const int vector_offset = tex_mapping.compile_begin(compiler, vector_in);
   uint flags = 0;
@@ -611,12 +614,12 @@ void EnvironmentTextureNode::compile(OSLCompiler &compiler)
 
   const ImageMetaData metadata = handle.metadata();
   const bool is_float = metadata.is_float();
-  const bool compress_as_srgb = metadata.compress_as_srgb;
+  const bool compress_as_srgb = metadata.is_compressible_as_srgb;
   const ustring known_colorspace = metadata.colorspace;
 
   if (handle.svm_slot() == -1) {
     compiler.parameter_texture(
-        "filename", filename, compress_as_srgb ? u_colorspace_raw : known_colorspace);
+        "filename", filename, compress_as_srgb ? u_colorspace_scene_linear : known_colorspace);
   }
   else {
     compiler.parameter_texture("filename", handle);
@@ -632,17 +635,135 @@ void EnvironmentTextureNode::compile(OSLCompiler &compiler)
 
 /* Sky Texture */
 
+static float2 sky_spherical_coordinates(const float3 dir)
+{
+  return make_float2(acosf(dir.z), atan2f(dir.x, dir.y));
+}
+
 struct SunSky {
   /* sun direction in spherical and cartesian */
   float theta, phi;
 
   /* Parameter */
   float radiance_x, radiance_y, radiance_z;
-  float config_x[9], config_y[9], config_z[9], nishita_data[10];
+  float config_x[9], config_y[9], config_z[9], nishita_data[11];
 };
+
+/* Preetham model */
+static float sky_perez_function(const float lam[6], float theta, const float gamma)
+{
+  return (1.0f + lam[0] * expf(lam[1] / cosf(theta))) *
+         (1.0f + lam[2] * expf(lam[3] * gamma) + lam[4] * cosf(gamma) * cosf(gamma));
+}
+
+static void sky_texture_precompute_preetham(SunSky *sunsky,
+                                            const float3 dir,
+                                            const float turbidity)
+{
+  /*
+   * We re-use the SunSky struct of the new model, to avoid extra variables
+   * zenith_Y/x/y is now radiance_x/y/z
+   * perez_Y/x/y is now config_x/y/z
+   */
+
+  const float2 spherical = sky_spherical_coordinates(dir);
+  const float theta = spherical.x;
+  const float phi = spherical.y;
+
+  sunsky->theta = theta;
+  sunsky->phi = phi;
+
+  const float theta2 = theta * theta;
+  const float theta3 = theta2 * theta;
+  const float T = turbidity;
+  const float T2 = T * T;
+
+  const float chi = (4.0f / 9.0f - T / 120.0f) * (M_PI_F - 2.0f * theta);
+  sunsky->radiance_x = (4.0453f * T - 4.9710f) * tanf(chi) - 0.2155f * T + 2.4192f;
+  sunsky->radiance_x *= 0.06f;
+
+  sunsky->radiance_y = (0.00166f * theta3 - 0.00375f * theta2 + 0.00209f * theta) * T2 +
+                       (-0.02903f * theta3 + 0.06377f * theta2 - 0.03202f * theta + 0.00394f) * T +
+                       (0.11693f * theta3 - 0.21196f * theta2 + 0.06052f * theta + 0.25886f);
+
+  sunsky->radiance_z = (0.00275f * theta3 - 0.00610f * theta2 + 0.00317f * theta) * T2 +
+                       (-0.04214f * theta3 + 0.08970f * theta2 - 0.04153f * theta + 0.00516f) * T +
+                       (0.15346f * theta3 - 0.26756f * theta2 + 0.06670f * theta + 0.26688f);
+
+  sunsky->config_x[0] = (0.1787f * T - 1.4630f);
+  sunsky->config_x[1] = (-0.3554f * T + 0.4275f);
+  sunsky->config_x[2] = (-0.0227f * T + 5.3251f);
+  sunsky->config_x[3] = (0.1206f * T - 2.5771f);
+  sunsky->config_x[4] = (-0.0670f * T + 0.3703f);
+
+  sunsky->config_y[0] = (-0.0193f * T - 0.2592f);
+  sunsky->config_y[1] = (-0.0665f * T + 0.0008f);
+  sunsky->config_y[2] = (-0.0004f * T + 0.2125f);
+  sunsky->config_y[3] = (-0.0641f * T - 0.8989f);
+  sunsky->config_y[4] = (-0.0033f * T + 0.0452f);
+
+  sunsky->config_z[0] = (-0.0167f * T - 0.2608f);
+  sunsky->config_z[1] = (-0.0950f * T + 0.0092f);
+  sunsky->config_z[2] = (-0.0079f * T + 0.2102f);
+  sunsky->config_z[3] = (-0.0441f * T - 1.6537f);
+  sunsky->config_z[4] = (-0.0109f * T + 0.0529f);
+
+  /* unused for old sky model */
+  for (int i = 5; i < 9; i++) {
+    sunsky->config_x[i] = 0.0f;
+    sunsky->config_y[i] = 0.0f;
+    sunsky->config_z[i] = 0.0f;
+  }
+
+  sunsky->radiance_x /= sky_perez_function(sunsky->config_x, 0, theta);
+  sunsky->radiance_y /= sky_perez_function(sunsky->config_y, 0, theta);
+  sunsky->radiance_z /= sky_perez_function(sunsky->config_z, 0, theta);
+}
+
+/* Hosek / Wilkie */
+static void sky_texture_precompute_hosek(SunSky *sunsky,
+                                         const float3 dir,
+                                         float turbidity,
+                                         const float ground_albedo)
+{
+  /* Calculate Sun Direction and save coordinates */
+  const float2 spherical = sky_spherical_coordinates(dir);
+  float theta = spherical.x;
+  const float phi = spherical.y;
+
+  /* Clamp Turbidity */
+  turbidity = clamp(turbidity, 0.0f, 10.0f);
+
+  /* Clamp to Horizon */
+  theta = clamp(theta, 0.0f, M_PI_2_F);
+
+  sunsky->theta = theta;
+  sunsky->phi = phi;
+
+  const float solarElevation = M_PI_2_F - theta;
+
+  /* Initialize Sky Model */
+  SKY_ArHosekSkyModelState *sky_state;
+  sky_state = SKY_arhosek_xyz_skymodelstate_alloc_init(
+      (double)turbidity, (double)ground_albedo, (double)solarElevation);
+
+  /* Copy values from sky_state to SunSky */
+  for (int i = 0; i < 9; ++i) {
+    sunsky->config_x[i] = (float)sky_state->configs[0][i];
+    sunsky->config_y[i] = (float)sky_state->configs[1][i];
+    sunsky->config_z[i] = (float)sky_state->configs[2][i];
+  }
+  sunsky->radiance_x = (float)sky_state->radiances[0];
+  sunsky->radiance_y = (float)sky_state->radiances[1];
+  sunsky->radiance_z = (float)sky_state->radiances[2];
+
+  /* Free sky_state */
+  SKY_arhosekskymodelstate_free(sky_state);
+}
 
 /* Nishita improved */
 static void sky_texture_precompute_nishita(SunSky *sunsky,
+                                           bool multiple_scattering,
                                            bool sun_disc,
                                            const float sun_size,
                                            const float sun_intensity,
@@ -650,15 +771,31 @@ static void sky_texture_precompute_nishita(SunSky *sunsky,
                                            const float sun_rotation,
                                            const float altitude,
                                            const float air_density,
-                                           const float dust_density)
+                                           const float aerosol_density,
+                                           const float ozone_density)
 {
-  /* sample 2 sun pixels */
+  /* Sample 2 Sun pixels */
   float pixel_bottom[3];
   float pixel_top[3];
-  SKY_nishita_skymodel_precompute_sun(
-      sun_elevation, sun_size, altitude, air_density, dust_density, pixel_bottom, pixel_top);
 
-  /* send data to svm_sky */
+  if (multiple_scattering) {
+    SKY_multiple_scattering_precompute_sun(sun_elevation,
+                                           sun_size,
+                                           altitude,
+                                           air_density,
+                                           aerosol_density,
+                                           ozone_density,
+                                           pixel_bottom,
+                                           pixel_top);
+  }
+  else {
+    SKY_single_scattering_precompute_sun(
+        sun_elevation, sun_size, altitude, air_density, aerosol_density, pixel_bottom, pixel_top);
+  }
+
+  float earth_intersection_angle = SKY_earth_intersection_angle(altitude);
+
+  /* Send data to sky.h */
   sunsky->nishita_data[0] = pixel_bottom[0];
   sunsky->nishita_data[1] = pixel_bottom[1];
   sunsky->nishita_data[2] = pixel_bottom[2];
@@ -669,46 +806,41 @@ static void sky_texture_precompute_nishita(SunSky *sunsky,
   sunsky->nishita_data[7] = sun_rotation;
   sunsky->nishita_data[8] = sun_disc ? sun_size : -1.0f;
   sunsky->nishita_data[9] = sun_intensity;
+  sunsky->nishita_data[10] = -earth_intersection_angle;
 }
 
 float SkyTextureNode::get_sun_average_radiance()
 {
-  const float clamped_altitude = clamp(altitude, 1.0f, 59999.0f);
   const float angular_diameter = get_sun_size();
-
   float pix_bottom[3];
   float pix_top[3];
-  SKY_nishita_skymodel_precompute_sun(sun_elevation,
-                                      angular_diameter,
-                                      clamped_altitude,
-                                      air_density,
-                                      dust_density,
-                                      pix_bottom,
-                                      pix_top);
 
-  /* Approximate the direction's elevation as the sun's elevation. */
-  const float dir_elevation = sun_elevation;
-  const float half_angular = angular_diameter / 2.0f;
-  const float3 pixel_bottom = make_float3(pix_bottom[0], pix_bottom[1], pix_bottom[2]);
-  const float3 pixel_top = make_float3(pix_top[0], pix_top[1], pix_top[2]);
-
-  /* Same code as in the sun evaluation shader. */
-  float3 xyz = make_float3(0.0f, 0.0f, 0.0f);
-  float y = 0.0f;
-  if (sun_elevation - half_angular > 0.0f) {
-    if (sun_elevation + half_angular > 0.0f) {
-      y = ((dir_elevation - sun_elevation) / angular_diameter) + 0.5f;
-      xyz = interp(pixel_bottom, pixel_top, y) * sun_intensity;
-    }
+  if (sky_type == NODE_SKY_SINGLE_SCATTERING) {
+    SKY_single_scattering_precompute_sun(sun_elevation,
+                                         angular_diameter,
+                                         altitude,
+                                         air_density,
+                                         aerosol_density,
+                                         pix_bottom,
+                                         pix_top);
   }
   else {
-    if (sun_elevation + half_angular > 0.0f) {
-      y = dir_elevation / (sun_elevation + half_angular);
-      xyz = interp(pixel_bottom, pixel_top, y) * sun_intensity;
-    }
+    SKY_multiple_scattering_precompute_sun(sun_elevation,
+                                           angular_diameter,
+                                           altitude,
+                                           air_density,
+                                           aerosol_density,
+                                           ozone_density,
+                                           pix_bottom,
+                                           pix_top);
   }
 
-  /* We first approximate the sun's contribution by
+  /* Sample center of Sun. */
+  const float3 pixel_bottom = make_float3(pix_bottom[0], pix_bottom[1], pix_bottom[2]);
+  const float3 pixel_top = make_float3(pix_top[0], pix_top[1], pix_top[2]);
+  float3 xyz = interp(pixel_bottom, pixel_top, 0.5f) * sun_intensity;
+
+  /* We first approximate the Sun's contribution by
    * multiplying the evaluated point by the square of the angular diameter.
    * Then we scale the approximation using a piecewise function (determined empirically). */
   float sun_contribution = average(xyz) * sqr(angular_diameter);
@@ -736,26 +868,31 @@ float SkyTextureNode::get_sun_average_radiance()
 NODE_DEFINE(SkyTextureNode)
 {
   NodeType *type = NodeType::add("sky_texture", create, NodeType::SHADER);
-
   TEXTURE_MAPPING_DEFINE(SkyTextureNode);
-
   static NodeEnum type_enum;
-  type_enum.insert("nishita_improved", NODE_SKY_NISHITA);
-  SOCKET_ENUM(sky_type, "Type", type_enum, NODE_SKY_NISHITA);
+  type_enum.insert("preetham", NODE_SKY_PREETHAM);
+  type_enum.insert("hosek_wilkie", NODE_SKY_HOSEK);
+  type_enum.insert("single_scattering", NODE_SKY_SINGLE_SCATTERING);
+  type_enum.insert("multiple_scattering", NODE_SKY_MULTIPLE_SCATTERING);
+  SOCKET_ENUM(sky_type, "Type", type_enum, NODE_SKY_MULTIPLE_SCATTERING);
 
+  /* Nishita parameters. */
   SOCKET_BOOLEAN(sun_disc, "Sun Disc", true);
   SOCKET_FLOAT(sun_size, "Sun Size", 0.009512f);
   SOCKET_FLOAT(sun_intensity, "Sun Intensity", 1.0f);
   SOCKET_FLOAT(sun_elevation, "Sun Elevation", 15.0f * M_PI_F / 180.0f);
   SOCKET_FLOAT(sun_rotation, "Sun Rotation", 0.0f);
-  SOCKET_FLOAT(altitude, "Altitude", 1.0f);
+  SOCKET_FLOAT(altitude, "Altitude", 100.0f);
   SOCKET_FLOAT(air_density, "Air", 1.0f);
-  SOCKET_FLOAT(dust_density, "Dust", 1.0f);
+  SOCKET_FLOAT(aerosol_density, "Aerosol", 1.0f);
   SOCKET_FLOAT(ozone_density, "Ozone", 1.0f);
-
   SOCKET_IN_POINT(vector, "Vector", zero_float3(), SocketType::LINK_TEXTURE_GENERATED);
-
   SOCKET_OUT_COLOR(color, "Color");
+
+  /* Legacy parameters. */
+  SOCKET_VECTOR(sun_direction, "Sun Direction", make_float3(0.0f, 0.0f, 1.0f));
+  SOCKET_FLOAT(turbidity, "Turbidity", 2.2f);
+  SOCKET_FLOAT(ground_albedo, "Ground Albedo", 0.3f);
 
   return type;
 }
@@ -764,7 +901,7 @@ SkyTextureNode::SkyTextureNode() : TextureNode(get_node_type()) {}
 
 void SkyTextureNode::simplify_settings(Scene * /* scene */)
 {
-  /* Patch sun position so users are able to animate the daylight cycle while keeping the shading
+  /* Patch Sun position so users are able to animate the daylight cycle while keeping the shading
    * code simple. */
   float new_sun_elevation = sun_elevation;
   float new_sun_rotation = sun_rotation;
@@ -791,56 +928,107 @@ void SkyTextureNode::simplify_settings(Scene * /* scene */)
 
   sun_elevation = new_sun_elevation;
   sun_rotation = new_sun_rotation;
+
+  if (is_modified()) {
+    handle.clear();
+  }
 }
 
 void SkyTextureNode::compile(SVMCompiler &compiler)
 {
   ShaderInput *vector_in = input("Vector");
   ShaderOutput *color_out = output("Color");
+  SunSky sunsky = {};
 
-  SunSky sunsky;
-  /* Clamp altitude to reasonable values.
-   * Below 1m causes numerical issues and above 60km is space. */
-  const float clamped_altitude = clamp(altitude, 1.0f, 59999.0f);
+  if (sky_type == NODE_SKY_PREETHAM) {
+    sky_texture_precompute_preetham(&sunsky, sun_direction, turbidity);
+  }
+  else if (sky_type == NODE_SKY_HOSEK) {
+    sky_texture_precompute_hosek(&sunsky, sun_direction, turbidity, ground_albedo);
+  }
+  else {
+    sky_texture_precompute_nishita(&sunsky,
+                                   sky_type == NODE_SKY_MULTIPLE_SCATTERING,
+                                   sun_disc,
+                                   get_sun_size(),
+                                   sun_intensity,
+                                   sun_elevation,
+                                   sun_rotation,
+                                   altitude,
+                                   air_density,
+                                   aerosol_density,
+                                   ozone_density);
+    /* Sky texture image parameters */
+    ImageManager *image_manager = compiler.scene->image_manager.get();
+    ImageParams impar;
+    impar.interpolation = INTERPOLATION_LINEAR;
+    impar.extension = EXTENSION_EXTEND;
 
-  sky_texture_precompute_nishita(&sunsky,
-                                 sun_disc,
-                                 get_sun_size(),
-                                 sun_intensity,
-                                 sun_elevation,
-                                 sun_rotation,
-                                 clamped_altitude,
-                                 air_density,
-                                 dust_density);
-  /* precomputed texture image parameters */
-  ImageManager *image_manager = compiler.scene->image_manager.get();
-  ImageParams impar;
-  impar.interpolation = INTERPOLATION_LINEAR;
-  impar.extension = EXTENSION_EXTEND;
-
-  /* precompute sky texture */
-  if (handle.empty()) {
-    unique_ptr<SkyLoader> loader = make_unique<SkyLoader>(
-        sun_elevation, clamped_altitude, air_density, dust_density, ozone_density);
-    handle = image_manager->add_image(std::move(loader), impar);
+    /* Precompute sky texture */
+    if (handle.empty()) {
+      unique_ptr<SkyLoader> loader = make_unique<SkyLoader>(sky_type ==
+                                                                NODE_SKY_MULTIPLE_SCATTERING,
+                                                            sun_elevation,
+                                                            altitude,
+                                                            air_density,
+                                                            aerosol_density,
+                                                            ozone_density);
+      handle = image_manager->add_image(std::move(loader), impar);
+    }
   }
 
   const int vector_offset = tex_mapping.compile_begin(compiler, vector_in);
 
   compiler.stack_assign(color_out);
   compiler.add_node(NODE_TEX_SKY, vector_offset, compiler.stack_assign(color_out), sky_type);
-  compiler.add_node(__float_as_uint(sunsky.nishita_data[0]),
-                    __float_as_uint(sunsky.nishita_data[1]),
-                    __float_as_uint(sunsky.nishita_data[2]),
-                    __float_as_uint(sunsky.nishita_data[3]));
-  compiler.add_node(__float_as_uint(sunsky.nishita_data[4]),
-                    __float_as_uint(sunsky.nishita_data[5]),
-                    __float_as_uint(sunsky.nishita_data[6]),
-                    __float_as_uint(sunsky.nishita_data[7]));
-  compiler.add_node(__float_as_uint(sunsky.nishita_data[8]),
-                    __float_as_uint(sunsky.nishita_data[9]),
-                    handle.svm_slot(),
-                    0);
+  if (sky_type == NODE_SKY_PREETHAM || sky_type == NODE_SKY_HOSEK) {
+    compiler.add_node(__float_as_uint(sunsky.phi),
+                      __float_as_uint(sunsky.theta),
+                      __float_as_uint(sunsky.radiance_x),
+                      __float_as_uint(sunsky.radiance_y));
+    compiler.add_node(__float_as_uint(sunsky.radiance_z),
+                      __float_as_uint(sunsky.config_x[0]),
+                      __float_as_uint(sunsky.config_x[1]),
+                      __float_as_uint(sunsky.config_x[2]));
+    compiler.add_node(__float_as_uint(sunsky.config_x[3]),
+                      __float_as_uint(sunsky.config_x[4]),
+                      __float_as_uint(sunsky.config_x[5]),
+                      __float_as_uint(sunsky.config_x[6]));
+    compiler.add_node(__float_as_uint(sunsky.config_x[7]),
+                      __float_as_uint(sunsky.config_x[8]),
+                      __float_as_uint(sunsky.config_y[0]),
+                      __float_as_uint(sunsky.config_y[1]));
+    compiler.add_node(__float_as_uint(sunsky.config_y[2]),
+                      __float_as_uint(sunsky.config_y[3]),
+                      __float_as_uint(sunsky.config_y[4]),
+                      __float_as_uint(sunsky.config_y[5]));
+    compiler.add_node(__float_as_uint(sunsky.config_y[6]),
+                      __float_as_uint(sunsky.config_y[7]),
+                      __float_as_uint(sunsky.config_y[8]),
+                      __float_as_uint(sunsky.config_z[0]));
+    compiler.add_node(__float_as_uint(sunsky.config_z[1]),
+                      __float_as_uint(sunsky.config_z[2]),
+                      __float_as_uint(sunsky.config_z[3]),
+                      __float_as_uint(sunsky.config_z[4]));
+    compiler.add_node(__float_as_uint(sunsky.config_z[5]),
+                      __float_as_uint(sunsky.config_z[6]),
+                      __float_as_uint(sunsky.config_z[7]),
+                      __float_as_uint(sunsky.config_z[8]));
+  }
+  else {
+    compiler.add_node(__float_as_uint(sunsky.nishita_data[0]),
+                      __float_as_uint(sunsky.nishita_data[1]),
+                      __float_as_uint(sunsky.nishita_data[2]),
+                      __float_as_uint(sunsky.nishita_data[3]));
+    compiler.add_node(__float_as_uint(sunsky.nishita_data[4]),
+                      __float_as_uint(sunsky.nishita_data[5]),
+                      __float_as_uint(sunsky.nishita_data[6]),
+                      __float_as_uint(sunsky.nishita_data[7]));
+    compiler.add_node(__float_as_uint(sunsky.nishita_data[8]),
+                      __float_as_uint(sunsky.nishita_data[9]),
+                      __float_as_uint(sunsky.nishita_data[10]),
+                      handle.svm_slot());
+  }
 
   tex_mapping.compile_end(compiler, vector_in, vector_offset);
 }
@@ -848,32 +1036,45 @@ void SkyTextureNode::compile(SVMCompiler &compiler)
 void SkyTextureNode::compile(OSLCompiler &compiler)
 {
   tex_mapping.compile(compiler);
+  SunSky sunsky = {};
 
-  SunSky sunsky;
-  /* Clamp altitude to reasonable values.
-   * Below 1m causes numerical issues and above 60km is space. */
-  const float clamped_altitude = clamp(altitude, 1.0f, 59999.0f);
+  if (sky_type == NODE_SKY_PREETHAM) {
+    sky_texture_precompute_preetham(&sunsky, sun_direction, turbidity);
+  }
+  else if (sky_type == NODE_SKY_HOSEK) {
+    sky_texture_precompute_hosek(&sunsky, sun_direction, turbidity, ground_albedo);
+  }
+  else {
+    sky_texture_precompute_nishita(&sunsky,
+                                   sky_type == NODE_SKY_MULTIPLE_SCATTERING,
+                                   sun_disc,
+                                   get_sun_size(),
+                                   sun_intensity,
+                                   sun_elevation,
+                                   sun_rotation,
+                                   altitude,
+                                   air_density,
+                                   aerosol_density,
+                                   ozone_density);
+    /* Sky texture image parameters */
+    ImageManager *image_manager = compiler.scene->image_manager.get();
+    ImageParams impar;
+    impar.interpolation = INTERPOLATION_LINEAR;
+    impar.extension = EXTENSION_EXTEND;
 
-  sky_texture_precompute_nishita(&sunsky,
-                                 sun_disc,
-                                 get_sun_size(),
-                                 sun_intensity,
-                                 sun_elevation,
-                                 sun_rotation,
-                                 clamped_altitude,
-                                 air_density,
-                                 dust_density);
-  /* precomputed texture image parameters */
-  ImageManager *image_manager = compiler.scene->image_manager.get();
-  ImageParams impar;
-  impar.interpolation = INTERPOLATION_LINEAR;
-  impar.extension = EXTENSION_EXTEND;
+    /* Precompute sky texture */
+    {
+      unique_ptr<SkyLoader> loader = make_unique<SkyLoader>(sky_type ==
+                                                                NODE_SKY_MULTIPLE_SCATTERING,
+                                                            sun_elevation,
+                                                            altitude,
+                                                            air_density,
+                                                            aerosol_density,
+                                                            ozone_density);
+      handle = image_manager->add_image(std::move(loader), impar);
+    }
 
-  /* precompute sky texture */
-  if (handle.empty()) {
-    unique_ptr<SkyLoader> loader = make_unique<SkyLoader>(
-        sun_elevation, clamped_altitude, air_density, dust_density, ozone_density);
-    handle = image_manager->add_image(std::move(loader), impar);
+    compiler.parameter_texture("filename", handle);
   }
 
   compiler.parameter(this, "sky_type");
@@ -884,8 +1085,7 @@ void SkyTextureNode::compile(OSLCompiler &compiler)
   compiler.parameter_array("config_x", sunsky.config_x, 9);
   compiler.parameter_array("config_y", sunsky.config_y, 9);
   compiler.parameter_array("config_z", sunsky.config_z, 9);
-  compiler.parameter_array("nishita_data", sunsky.nishita_data, 10);
-  compiler.parameter_texture("filename", handle);
+  compiler.parameter_array("nishita_data", sunsky.nishita_data, 11);
   compiler.add(this, "node_sky_texture");
 }
 
@@ -1812,61 +2012,63 @@ void RGBToBWNode::compile(OSLCompiler &compiler)
 
 /* Convert */
 
-const NodeType *ConvertNode::node_types[ConvertNode::MAX_TYPE][ConvertNode::MAX_TYPE];
-bool ConvertNode::initialized = ConvertNode::register_types();
+const NodeType *(&ConvertNode::get_node_types())[ConvertNode::MAX_TYPE][ConvertNode::MAX_TYPE]
+{
+  static const NodeType *node_types[MAX_TYPE][MAX_TYPE];
+  static std::once_flag node_types_flag;
+
+  std::call_once(node_types_flag, [&] {
+    const int num_types = 8;
+    const SocketType::Type types[num_types] = {SocketType::FLOAT,
+                                               SocketType::INT,
+                                               SocketType::COLOR,
+                                               SocketType::VECTOR,
+                                               SocketType::POINT,
+                                               SocketType::NORMAL,
+                                               SocketType::STRING,
+                                               SocketType::CLOSURE};
+
+    for (size_t i = 0; i < num_types; i++) {
+      const SocketType::Type from = types[i];
+      const ustring from_name(SocketType::type_name(from));
+      const ustring from_value_name("value_" + from_name.string());
+
+      for (size_t j = 0; j < num_types; j++) {
+        const SocketType::Type to = types[j];
+        const ustring to_name(SocketType::type_name(to));
+        const ustring to_value_name("value_" + to_name.string());
+
+        const string node_name = "convert_" + from_name.string() + "_to_" + to_name.string();
+        NodeType *type = NodeType::add(node_name.c_str(), create, NodeType::SHADER);
+
+        type->register_input(from_value_name,
+                             from_value_name,
+                             from,
+                             SOCKET_OFFSETOF(ConvertNode, value_float),
+                             SocketType::zero_default_value(),
+                             nullptr,
+                             nullptr,
+                             SocketType::LINKABLE);
+        type->register_output(to_value_name, to_value_name, to);
+
+        assert(from < MAX_TYPE);
+        assert(to < MAX_TYPE);
+
+        node_types[from][to] = type;
+      }
+    }
+  });
+
+  return node_types;
+}
 
 unique_ptr<Node> ConvertNode::create(const NodeType *type)
 {
   return make_unique<ConvertNode>(type->inputs[0].type, type->outputs[0].type);
 }
 
-bool ConvertNode::register_types()
-{
-  const int num_types = 8;
-  const SocketType::Type types[num_types] = {SocketType::FLOAT,
-                                             SocketType::INT,
-                                             SocketType::COLOR,
-                                             SocketType::VECTOR,
-                                             SocketType::POINT,
-                                             SocketType::NORMAL,
-                                             SocketType::STRING,
-                                             SocketType::CLOSURE};
-
-  for (size_t i = 0; i < num_types; i++) {
-    const SocketType::Type from = types[i];
-    const ustring from_name(SocketType::type_name(from));
-    const ustring from_value_name("value_" + from_name.string());
-
-    for (size_t j = 0; j < num_types; j++) {
-      const SocketType::Type to = types[j];
-      const ustring to_name(SocketType::type_name(to));
-      const ustring to_value_name("value_" + to_name.string());
-
-      const string node_name = "convert_" + from_name.string() + "_to_" + to_name.string();
-      NodeType *type = NodeType::add(node_name.c_str(), create, NodeType::SHADER);
-
-      type->register_input(from_value_name,
-                           from_value_name,
-                           from,
-                           SOCKET_OFFSETOF(ConvertNode, value_float),
-                           SocketType::zero_default_value(),
-                           nullptr,
-                           nullptr,
-                           SocketType::LINKABLE);
-      type->register_output(to_value_name, to_value_name, to);
-
-      assert(from < MAX_TYPE);
-      assert(to < MAX_TYPE);
-
-      node_types[from][to] = type;
-    }
-  }
-
-  return true;
-}
-
 ConvertNode::ConvertNode(SocketType::Type from_, SocketType::Type to_, bool autoconvert)
-    : ShaderNode(node_types[from_][to_])
+    : ShaderNode(get_node_types()[from_][to_])
 {
   from = from_;
   to = to_;
@@ -1938,7 +2140,7 @@ void ConvertNode::constant_fold(const ConstantFolder &folder)
     ShaderNode *prev = in->link->parent;
 
     /* no-op conversion of A to B to A */
-    if (prev->type == node_types[to][from]) {
+    if (prev->type == get_node_types()[to][from]) {
       ShaderInput *prev_in = prev->inputs[0];
 
       if (SocketType::is_float3(from) && (to == SocketType::FLOAT || SocketType::is_float3(to)) &&
@@ -2145,6 +2347,9 @@ NODE_DEFINE(MetallicBsdfNode)
   SOCKET_IN_FLOAT(anisotropy, "Anisotropy", 0.0f);
   SOCKET_IN_FLOAT(rotation, "Rotation", 0.0f);
 
+  SOCKET_IN_FLOAT(thin_film_thickness, "Thin Film Thickness", 0.0f);
+  SOCKET_IN_FLOAT(thin_film_ior, "Thin Film IOR", 1.33f);
+
   SOCKET_OUT_CLOSURE(BSDF, "BSDF");
 
   return type;
@@ -2192,6 +2397,9 @@ void MetallicBsdfNode::compile(SVMCompiler &compiler)
                                      compiler.stack_assign(input("Extinction")) :
                                      compiler.stack_assign(input("Edge Tint"));
 
+  const int thin_film_thickness_offset = compiler.stack_assign(input("Thin Film Thickness"));
+  const int thin_film_ior_offset = compiler.stack_assign(input("Thin Film IOR"));
+
   ShaderInput *roughness_in = input("Roughness");
   ShaderInput *anisotropy_in = input("Anisotropy");
 
@@ -2210,7 +2418,7 @@ void MetallicBsdfNode::compile(SVMCompiler &compiler)
       normal_offset,
       compiler.encode_uchar4(
           base_color_ior_offset, edge_tint_k_offset, rotation_offset, tangent_offset),
-      distribution);
+      compiler.encode_uchar4(distribution, thin_film_thickness_offset, thin_film_ior_offset));
 }
 
 void MetallicBsdfNode::compile(OSLCompiler &compiler)
@@ -2256,7 +2464,8 @@ GlossyBsdfNode::GlossyBsdfNode() : BsdfNode(get_node_type())
 bool GlossyBsdfNode::is_isotropic()
 {
   ShaderInput *anisotropy_input = input("Anisotropy");
-  /* Keep in sync with the thresholds in OSL's node_glossy_bsdf and SVM's svm_node_closure_bsdf. */
+  /* Keep in sync with the thresholds in OSL's node_glossy_bsdf and SVM's svm_node_closure_bsdf.
+   */
   return (!anisotropy_input->link && fabsf(anisotropy) <= 1e-4f);
 }
 
@@ -5813,6 +6022,24 @@ void AttributeNode::attributes(Shader *shader, AttributeRequestSet *attributes)
       !alpha_out->links.empty())
   {
     attributes->add_standard(attribute);
+
+    /* Request UV if we asked for one of the attributes computed from it.
+     * Ideally this would be handled at a more generic level. */
+    const AttributeStandard std = Attribute::name_standard(attribute.c_str());
+    if (std == ATTR_STD_UV_TANGENT || std == ATTR_STD_UV_TANGENT_SIGN ||
+        std == ATTR_STD_UV_TANGENT_UNDISPLACED || std == ATTR_STD_UV_TANGENT_SIGN_UNDISPLACED)
+    {
+      attributes->add(ATTR_STD_UV);
+    }
+    else {
+      const char *suffixes[] = {
+          ".tangent_sign", ".tangent", ".undisplaced_tangent", ".undisplaced_tangent_sign"};
+      for (const char *suffix : suffixes) {
+        if (string_endswith(attribute, suffix)) {
+          attributes->add(attribute.substr(0, attribute.size() - strlen(suffix)));
+        }
+      }
+    }
   }
 
   if (shader->has_volume) {
@@ -6436,9 +6663,6 @@ OutputAOVNode::OutputAOVNode() : ShaderNode(get_node_type())
 void OutputAOVNode::simplify_settings(Scene *scene)
 {
   offset = scene->film->get_aov_offset(scene, name.string(), is_color);
-  if (offset == -1) {
-    offset = scene->film->get_aov_offset(scene, name.string(), is_color);
-  }
 
   if (offset == -1 || is_color) {
     input("Value")->disconnect();
@@ -6626,6 +6850,7 @@ NODE_DEFINE(VectorMathNode)
   type_enum.insert("normalize", NODE_VECTOR_MATH_NORMALIZE);
 
   type_enum.insert("snap", NODE_VECTOR_MATH_SNAP);
+  type_enum.insert("round", NODE_VECTOR_MATH_ROUND);
   type_enum.insert("floor", NODE_VECTOR_MATH_FLOOR);
   type_enum.insert("ceil", NODE_VECTOR_MATH_CEIL);
   type_enum.insert("modulo", NODE_VECTOR_MATH_MODULO);
@@ -7370,6 +7595,16 @@ NODE_DEFINE(NormalMapNode)
   space_enum.insert("blender_world", NODE_NORMAL_MAP_BLENDER_WORLD);
   SOCKET_ENUM(space, "Space", space_enum, NODE_NORMAL_MAP_TANGENT);
 
+  static NodeEnum convention_enum;
+  convention_enum.insert("opengl", NODE_NORMAL_MAP_CONVENTION_OPENGL);
+  convention_enum.insert("directx", NODE_NORMAL_MAP_CONVENTION_DIRECTX);
+  SOCKET_ENUM(convention, "Convention", convention_enum, NODE_NORMAL_MAP_CONVENTION_OPENGL);
+
+  static NodeEnum base_enum;
+  base_enum.insert("original", NODE_NORMAL_MAP_BASE_ORIGINAL);
+  base_enum.insert("displaced", NODE_NORMAL_MAP_BASE_DISPLACED);
+  SOCKET_ENUM(base, "Base", base_enum, NODE_NORMAL_MAP_BASE_ORIGINAL);
+
   SOCKET_STRING(attribute, "Attribute", ustring());
 
   SOCKET_IN_FLOAT(strength, "Strength", 1.0f);
@@ -7388,16 +7623,29 @@ void NormalMapNode::attributes(Shader *shader, AttributeRequestSet *attributes)
     if (attribute.empty()) {
       /* We don't need the UV ourselves, but we need to compute the tangent from it. */
       attributes->add(ATTR_STD_UV);
-      attributes->add(ATTR_STD_UV_TANGENT_UNDISPLACED);
-      attributes->add(ATTR_STD_UV_TANGENT_SIGN_UNDISPLACED);
+      if (base == NODE_NORMAL_MAP_BASE_DISPLACED) {
+        attributes->add(ATTR_STD_UV_TANGENT);
+        attributes->add(ATTR_STD_UV_TANGENT_SIGN);
+      }
+      else {
+        attributes->add(ATTR_STD_UV_TANGENT_UNDISPLACED);
+        attributes->add(ATTR_STD_UV_TANGENT_SIGN_UNDISPLACED);
+        attributes->add(ATTR_STD_NORMAL_UNDISPLACED);
+      }
     }
     else {
       attributes->add(attribute);
-      attributes->add(ustring((string(attribute.c_str()) + ".undisplaced_tangent").c_str()));
-      attributes->add(ustring((string(attribute.c_str()) + ".undisplaced_tangent_sign").c_str()));
+      if (base == NODE_NORMAL_MAP_BASE_DISPLACED) {
+        attributes->add(ustring((string(attribute.c_str()) + ".tangent").c_str()));
+        attributes->add(ustring((string(attribute.c_str()) + ".tangent_sign").c_str()));
+      }
+      else {
+        attributes->add(ustring((string(attribute.c_str()) + ".undisplaced_tangent").c_str()));
+        attributes->add(
+            ustring((string(attribute.c_str()) + ".undisplaced_tangent_sign").c_str()));
+        attributes->add(ATTR_STD_NORMAL_UNDISPLACED);
+      }
     }
-
-    attributes->add(ATTR_STD_NORMAL_UNDISPLACED);
   }
 
   ShaderNode::attributes(shader, attributes);
@@ -7413,22 +7661,44 @@ void NormalMapNode::compile(SVMCompiler &compiler)
 
   if (space == NODE_NORMAL_MAP_TANGENT) {
     if (attribute.empty()) {
-      attr = compiler.attribute(ATTR_STD_UV_TANGENT_UNDISPLACED);
-      attr_sign = compiler.attribute(ATTR_STD_UV_TANGENT_SIGN_UNDISPLACED);
+      if (base == NODE_NORMAL_MAP_BASE_DISPLACED) {
+        attr = compiler.attribute(ATTR_STD_UV_TANGENT);
+        attr_sign = compiler.attribute(ATTR_STD_UV_TANGENT_SIGN);
+      }
+      else {
+        attr = compiler.attribute(ATTR_STD_UV_TANGENT_UNDISPLACED);
+        attr_sign = compiler.attribute(ATTR_STD_UV_TANGENT_SIGN_UNDISPLACED);
+      }
     }
     else {
-      attr = compiler.attribute(
-          ustring((string(attribute.c_str()) + ".undisplaced_tangent").c_str()));
-      attr_sign = compiler.attribute(
-          ustring((string(attribute.c_str()) + ".undisplaced_tangent_sign").c_str()));
+      if (base == NODE_NORMAL_MAP_BASE_DISPLACED) {
+        attr = compiler.attribute(ustring((string(attribute.c_str()) + ".tangent").c_str()));
+        attr_sign = compiler.attribute(
+            ustring((string(attribute.c_str()) + ".tangent_sign").c_str()));
+      }
+      else {
+        attr = compiler.attribute(
+            ustring((string(attribute.c_str()) + ".undisplaced_tangent").c_str()));
+        attr_sign = compiler.attribute(
+            ustring((string(attribute.c_str()) + ".undisplaced_tangent_sign").c_str()));
+      }
     }
+  }
+
+  /* Pack space, convention and base flags into byte 3 of node.y. */
+  int flags = space;
+  if (convention == NODE_NORMAL_MAP_CONVENTION_DIRECTX) {
+    flags |= NODE_NORMAL_MAP_FLAG_DIRECTX;
+  }
+  if (base == NODE_NORMAL_MAP_BASE_ORIGINAL) {
+    flags |= NODE_NORMAL_MAP_FLAG_ORIGINAL;
   }
 
   compiler.add_node(NODE_NORMAL_MAP,
                     compiler.encode_uchar4(compiler.stack_assign(color_in),
                                            compiler.stack_assign(strength_in),
                                            compiler.stack_assign(normal_out),
-                                           space),
+                                           flags),
                     attr,
                     attr_sign);
 }
@@ -7436,21 +7706,86 @@ void NormalMapNode::compile(SVMCompiler &compiler)
 void NormalMapNode::compile(OSLCompiler &compiler)
 {
   if (space == NODE_NORMAL_MAP_TANGENT) {
+    std::string attr_name, attr_sign_name;
+
     if (attribute.empty()) {
-      compiler.parameter("attr_name", ustring("geom:undisplaced_tangent"));
-      compiler.parameter("attr_sign_name", ustring("geom:undisplaced_tangent_sign"));
+      if (base == NODE_NORMAL_MAP_BASE_DISPLACED) {
+        attr_name = "geom:tangent";
+        attr_sign_name = "geom:tangent_sign";
+      }
+      else {
+        attr_name = "geom:undisplaced_tangent";
+        attr_sign_name = "geom:undisplaced_tangent_sign";
+      }
     }
     else {
-      compiler.parameter("attr_name",
-                         ustring((string(attribute.c_str()) + ".undisplaced_tangent").c_str()));
-      compiler.parameter(
-          "attr_sign_name",
-          ustring((string(attribute.c_str()) + ".undisplaced_tangent_sign").c_str()));
+      if (base == NODE_NORMAL_MAP_BASE_DISPLACED) {
+        attr_name = string(attribute.c_str()) + ".tangent";
+        attr_sign_name = string(attribute.c_str()) + ".tangent_sign";
+      }
+      else {
+        attr_name = string(attribute.c_str()) + ".undisplaced_tangent";
+        attr_sign_name = string(attribute.c_str()) + ".undisplaced_tangent_sign";
+      }
     }
+
+    compiler.parameter("attr_name", attr_name.c_str());
+    compiler.parameter("attr_sign_name", attr_sign_name.c_str());
   }
 
   compiler.parameter(this, "space");
+  compiler.parameter(this, "convention");
+  compiler.parameter(this, "base");
   compiler.add(this, "node_normal_map");
+}
+
+/* Radial Tiling */
+
+NODE_DEFINE(RadialTilingNode)
+{
+  NodeType *type = NodeType::add("radial_tiling", create, NodeType::SHADER);
+
+  SOCKET_BOOLEAN(use_normalize, "Normalize", false);
+  SOCKET_IN_POINT(vector, "Vector", zero_float3());
+  SOCKET_IN_FLOAT(r_gon_sides, "Sides", 5.0f);
+  SOCKET_IN_FLOAT(r_gon_roundness, "Roundness", 0.0f);
+
+  SOCKET_OUT_POINT(segment_coordinates, "Segment Coordinates");
+  SOCKET_OUT_FLOAT(segment_id, "Segment ID");
+  SOCKET_OUT_FLOAT(max_unit_parameter, "Segment Width");
+  SOCKET_OUT_FLOAT(x_axis_A_angle_bisector, "Segment Rotation");
+
+  return type;
+}
+
+RadialTilingNode::RadialTilingNode() : ShaderNode(get_node_type()) {}
+
+void RadialTilingNode::compile(SVMCompiler &compiler)
+{
+  ShaderInput *vector_in = input("Vector");
+  ShaderInput *r_gon_sides_in = input("Sides");
+  ShaderInput *r_gon_roundness_in = input("Roundness");
+
+  ShaderOutput *segment_coordinates_out = output("Segment Coordinates");
+  ShaderOutput *segment_id_out = output("Segment ID");
+  ShaderOutput *max_unit_parameter_out = output("Segment Width");
+  ShaderOutput *x_axis_A_angle_bisector_out = output("Segment Rotation");
+
+  compiler.add_node(NODE_RADIAL_TILING,
+                    use_normalize,
+                    compiler.encode_uchar4(compiler.stack_assign(vector_in),
+                                           compiler.stack_assign(r_gon_sides_in),
+                                           compiler.stack_assign(r_gon_roundness_in),
+                                           compiler.stack_assign(segment_coordinates_out)),
+                    compiler.encode_uchar4(compiler.stack_assign(segment_id_out),
+                                           compiler.stack_assign(max_unit_parameter_out),
+                                           compiler.stack_assign(x_axis_A_angle_bisector_out)));
+}
+
+void RadialTilingNode::compile(OSLCompiler &compiler)
+{
+  compiler.parameter(this, "use_normalize");
+  compiler.add(this, "node_radial_tiling");
 }
 
 /* Tangent */
@@ -7736,6 +8071,58 @@ void VectorDisplacementNode::compile(OSLCompiler &compiler)
 
   compiler.parameter(this, "space");
   compiler.add(this, "node_vector_displacement");
+}
+
+/* Raycast */
+
+NODE_DEFINE(RaycastNode)
+{
+  NodeType *type = NodeType::add("raycast", create, NodeType::SHADER);
+
+  SOCKET_IN_POINT(position, "Position", zero_float3(), SocketType::LINK_POSITION);
+  SOCKET_IN_NORMAL(direction, "Direction", zero_float3(), SocketType::LINK_NORMAL);
+  SOCKET_IN_FLOAT(length, "Length", 1.0f);
+
+  SOCKET_OUT_FLOAT(is_hit, "Is Hit");
+  SOCKET_OUT_FLOAT(is_self_hit, "Self Hit");
+  SOCKET_OUT_FLOAT(hit_distance, "Hit Distance");
+  SOCKET_OUT_POINT(hit_position, "Hit Position");
+  SOCKET_OUT_NORMAL(hit_normal, "Hit Normal");
+
+  SOCKET_BOOLEAN(only_local, "Only Local", false);
+
+  return type;
+}
+
+RaycastNode::RaycastNode() : ShaderNode(get_node_type()) {}
+
+void RaycastNode::compile(SVMCompiler &compiler)
+{
+  ShaderInput *position_in = input("Position");
+  ShaderInput *direction_in = input("Direction");
+  ShaderInput *length_in = input("Length");
+  ShaderOutput *is_hit_out = output("Is Hit");
+  ShaderOutput *is_self_hit_out = output("Self Hit");
+  ShaderOutput *hit_distance_out = output("Hit Distance");
+  ShaderOutput *hit_position_out = output("Hit Position");
+  ShaderOutput *hit_normal_out = output("Hit Normal");
+
+  compiler.add_node(NODE_RAYCAST,
+                    compiler.encode_uchar4(compiler.stack_assign(position_in),
+                                           compiler.stack_assign(direction_in),
+                                           compiler.stack_assign(length_in),
+                                           compiler.stack_assign(is_hit_out)),
+                    compiler.encode_uchar4(compiler.stack_assign(is_self_hit_out),
+                                           compiler.stack_assign(hit_distance_out),
+                                           compiler.stack_assign(hit_position_out),
+                                           compiler.stack_assign(hit_normal_out)),
+                    only_local);
+}
+
+void RaycastNode::compile(OSLCompiler &compiler)
+{
+  compiler.parameter(this, "only_local");
+  compiler.add(this, "node_raycast");
 }
 
 CCL_NAMESPACE_END

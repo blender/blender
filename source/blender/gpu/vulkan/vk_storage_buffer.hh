@@ -25,6 +25,7 @@ class VKStorageBuffer : public StorageBuf {
 
   /** Staging buffer that is used when doing an async read-back. */
   VKStagingBuffer *async_read_buffer_ = nullptr;
+  VkDeviceSize offset_ = 0;
 
  public:
   VKStorageBuffer(size_t size, GPUUsageType usage, const char *name);
@@ -37,7 +38,7 @@ class VKStorageBuffer : public StorageBuf {
   void copy_sub(VertBuf *src, uint dst_offset, uint src_offset, uint copy_size) override;
   void read(void *data) override;
   void async_flush_to_host() override;
-  void sync_as_indirect_buffer() override{/* No-Op. */};
+  void sync_as_indirect_buffer() override { /* No-Op. */ };
 
   VkBuffer vk_handle() const
   {
@@ -51,6 +52,10 @@ class VKStorageBuffer : public StorageBuf {
   int64_t size_in_bytes() const
   {
     return buffer_.size_in_bytes();
+  }
+  VkDeviceSize offset_get() const
+  {
+    return offset_;
   }
 
   void ensure_allocated();

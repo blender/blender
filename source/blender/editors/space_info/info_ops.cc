@@ -38,6 +38,8 @@
 
 #include "info_intern.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Pack Blend File Libraries Operator
  * \{ */
@@ -93,7 +95,7 @@ static wmOperatorStatus unpack_libraries_invoke(bContext *C,
                                 IFACE_("Restore Packed Linked Data to Their Original Locations"),
                                 IFACE_("Will create directories so that all paths are valid."),
                                 IFACE_("Unpack"),
-                                ALERT_ICON_INFO,
+                                ui::AlertIcon::Info,
                                 false);
 }
 
@@ -185,7 +187,7 @@ static wmOperatorStatus pack_all_invoke(bContext *C, wmOperator *op, const wmEve
         IFACE_("Pack all used external files into this .blend file"),
         IFACE_("Warning: Some images are modified and these changes will be lost."),
         IFACE_("Pack"),
-        ALERT_ICON_WARNING,
+        ui::AlertIcon::Warning,
         false);
   }
 
@@ -255,8 +257,6 @@ static wmOperatorStatus unpack_all_exec(bContext *C, wmOperator *op)
 static wmOperatorStatus unpack_all_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   Main *bmain = CTX_data_main(C);
-  uiPopupMenu *pup;
-  uiLayout *layout;
 
   const PackedFileCount count = BKE_packedfile_count_all(bmain);
 
@@ -269,13 +269,13 @@ static wmOperatorStatus unpack_all_invoke(bContext *C, wmOperator *op, const wmE
   const std::string title = fmt::format(
       fmt::runtime(IFACE_("Unpack - Files: {}, Bakes: {}")), count.individual_files, count.bakes);
 
-  pup = UI_popup_menu_begin(C, title.c_str(), ICON_NONE);
-  layout = UI_popup_menu_layout(pup);
+  ui::PopupMenu *pup = ui::popup_menu_begin(C, title.c_str(), ICON_NONE);
+  ui::Layout &layout = *popup_menu_layout(pup);
 
-  layout->operator_context_set(blender::wm::OpCallContext::ExecDefault);
-  layout->op_enum("FILE_OT_unpack_all", "method");
+  layout.operator_context_set(wm::OpCallContext::ExecDefault);
+  layout.op_enum("FILE_OT_unpack_all", "method");
 
-  UI_popup_menu_end(C, pup);
+  popup_menu_end(C, pup);
 
   return OPERATOR_INTERFACE;
 }
@@ -360,20 +360,17 @@ static wmOperatorStatus unpack_item_exec(bContext *C, wmOperator *op)
 
 static wmOperatorStatus unpack_item_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  uiPopupMenu *pup;
-  uiLayout *layout;
+  ui::PopupMenu *pup = ui::popup_menu_begin(C, IFACE_("Unpack"), ICON_NONE);
+  ui::Layout &layout = *popup_menu_layout(pup);
 
-  pup = UI_popup_menu_begin(C, IFACE_("Unpack"), ICON_NONE);
-  layout = UI_popup_menu_layout(pup);
+  layout.operator_context_set(wm::OpCallContext::ExecDefault);
+  layout.op_enum(op->type->idname,
+                 "method",
+                 static_cast<IDProperty *>(op->ptr->data),
+                 wm::OpCallContext::ExecRegionWin,
+                 UI_ITEM_NONE);
 
-  layout->operator_context_set(blender::wm::OpCallContext::ExecDefault);
-  layout->op_enum(op->type->idname,
-                  "method",
-                  static_cast<IDProperty *>(op->ptr->data),
-                  blender::wm::OpCallContext::ExecRegionWin,
-                  UI_ITEM_NONE);
-
-  UI_popup_menu_end(C, pup);
+  popup_menu_end(C, pup);
 
   return OPERATOR_INTERFACE;
 }
@@ -611,7 +608,7 @@ static wmOperatorStatus update_reports_display_invoke(bContext *C,
   }
 
   wmWindowManager *wm = CTX_wm_manager(C);
-  ReportTimerInfo *rti = (ReportTimerInfo *)reports->reporttimer->customdata;
+  ReportTimerInfo *rti = static_cast<ReportTimerInfo *>(reports->reporttimer->customdata);
   const float flash_timeout = FLASH_TIMEOUT;
   bool send_notifier = false;
 
@@ -675,3 +672,5 @@ void INFO_OT_reports_display_update(wmOperatorType *ot)
 /* report operators */
 
 /** \} */
+
+}  // namespace blender

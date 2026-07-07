@@ -13,6 +13,8 @@
 
 #include "BLI_bitmap.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 
 struct BLI_AStarGNLink {
@@ -23,7 +25,7 @@ struct BLI_AStarGNLink {
 };
 
 struct BLI_AStarGNode {
-  struct ListBase neighbor_links;
+  ListBaseT<LinkData> neighbor_links;
 
   void *custom_data;
 };
@@ -144,3 +146,5 @@ bool BLI_astar_graph_solve(BLI_AStarGraph *as_graph,
                            astar_f_cost f_cost_cb,
                            BLI_AStarSolution *r_solution,
                            int max_steps);
+
+}  // namespace blender

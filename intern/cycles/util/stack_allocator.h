@@ -12,8 +12,7 @@
 CCL_NAMESPACE_BEGIN
 
 /* Stack allocator for the use with STL. */
-template<int SIZE, typename T> class ccl_try_align(16) StackAllocator
-{
+template<int SIZE, typename T> class ccl_try_align(16) StackAllocator {
  public:
   using size_type = size_t;
   using difference_type = ptrdiff_t;
@@ -47,7 +46,7 @@ template<int SIZE, typename T> class ccl_try_align(16) StackAllocator
       util_guarded_mem_alloc(size);
       T *mem;
 #ifdef WITH_BLENDER_GUARDEDALLOC
-      mem = (T *)MEM_mallocN_aligned(size, 16, "Cycles Alloc");
+      mem = (T *)MEM_new_uninitialized_aligned(size, 16, "Cycles Alloc");
 #else
       mem = (T *)malloc(size);
 #endif
@@ -61,7 +60,7 @@ template<int SIZE, typename T> class ccl_try_align(16) StackAllocator
     return mem;
   }
 
-  void deallocate(T * p, const size_t n)
+  void deallocate(T *p, const size_t n)
   {
     if (p == nullptr) {
       return;
@@ -69,7 +68,7 @@ template<int SIZE, typename T> class ccl_try_align(16) StackAllocator
     if (p < data_ || p >= data_ + SIZE) {
       util_guarded_mem_free(n * sizeof(T));
 #ifdef WITH_BLENDER_GUARDEDALLOC
-      MEM_freeN(static_cast<void *>(p));
+      MEM_delete_void(static_cast<void *>(p));
 #else
       free(p);
 #endif
@@ -80,7 +79,7 @@ template<int SIZE, typename T> class ccl_try_align(16) StackAllocator
 
   /* Address of an reference. */
 
-  T *address(T & x) const
+  T *address(T &x) const
   {
     return &x;
   }
@@ -92,14 +91,14 @@ template<int SIZE, typename T> class ccl_try_align(16) StackAllocator
 
   /* Object construction/destruction. */
 
-  void construct(T * p, const T &val)
+  void construct(T *p, const T &val)
   {
     if (p != nullptr) {
       new (p) T(val);
     }
   }
 
-  void destroy(T * p)
+  void destroy(T *p)
   {
     p->~T();
   }

@@ -10,7 +10,12 @@
 
 #pragma once
 
+struct CLG_LogRef;
+
+namespace blender {
+
 /* bpy_interface.cc */
 
-extern struct CLG_LogRef *BPY_LOG_RNA;
-extern struct CLG_LogRef *BPY_LOG_CONTEXT;
+extern CLG_LogRef *BPY_LOG_RNA;
+
+}  // namespace blender

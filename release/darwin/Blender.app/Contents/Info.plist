@@ -55,6 +55,12 @@
 	<string>NSApplication</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>A Blender extension wants to access your microphone.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>A Blender extension wants to access your camera.</string>
+	<key>NSAudioCaptureUsageDescription</key>
+	<string>A Blender extension wants to capture your system audio.</string>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>

@@ -14,6 +14,8 @@
 
 #include "render_intern.hh" /* own include */
 
+namespace blender {
+
 /***************************** render ***********************************/
 
 void ED_operatortypes_render()
@@ -83,3 +85,5 @@ void ED_operatortypes_render()
   /* `render_opengl.cc` */
   WM_operatortype_append(RENDER_OT_opengl);
 }
+
+}  // namespace blender

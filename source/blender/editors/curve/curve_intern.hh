@@ -10,6 +10,11 @@
 
 #include "BLI_sys_types.h"
 
+#include "DNA_curve_types.h"
+#include "DNA_listBase.h"
+
+namespace blender {
+
 /* internal exports only */
 struct BPoint;
 struct Base;
@@ -17,7 +22,6 @@ struct BezTriple;
 struct Curve;
 struct EditNurb;
 struct GHash;
-struct ListBase;
 struct Nurb;
 struct Object;
 struct View3D;
@@ -148,13 +152,13 @@ void CURVE_OT_match_texture_space(wmOperatorType *ot);
 
 /* exported for editcurve_undo.cc */
 
-GHash *ED_curve_keyindex_hash_duplicate(GHash *keyindex);
+CVKeyIndexMap *ED_curve_keyindex_hash_duplicate(CVKeyIndexMap *keyindex);
 void ED_curve_keyindex_update_nurb(EditNurb *editnurb, Nurb *nu, Nurb *newnu);
 
 /* exported for `editcurve_pen.cc` */
 
 int ed_editcurve_addvert(Curve *cu, EditNurb *editnurb, View3D *v3d, const float location_init[3]);
-bool curve_toggle_cyclic(View3D *v3d, ListBase *editnurb, int direction);
+bool curve_toggle_cyclic(View3D *v3d, ListBaseT<Nurb> *editnurb, int direction);
 void ed_dissolve_bez_segment(BezTriple *bezt_prev,
                              BezTriple *bezt_next,
                              const Nurb *nu,
@@ -163,7 +167,10 @@ void ed_dissolve_bez_segment(BezTriple *bezt_prev,
                              const uint span_step[2]);
 
 /* helper functions */
-void ed_editnurb_translate_flag(ListBase *editnurb, uint8_t flag, const float vec[3], bool is_2d);
+void ed_editnurb_translate_flag(ListBaseT<Nurb> *editnurb,
+                                uint8_t flag,
+                                const float vec[3],
+                                bool is_2d);
 /**
  * Only for #OB_SURF.
  */
@@ -241,3 +248,5 @@ void CURVE_OT_draw(wmOperatorType *ot);
 
 void CURVE_OT_pen(wmOperatorType *ot);
 wmKeyMap *curve_pen_modal_keymap(wmKeyConfig *keyconf);
+
+}  // namespace blender

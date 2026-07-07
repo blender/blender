@@ -16,9 +16,9 @@
 
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
-#include "BKE_mask.h"
-#include "BKE_movieclip.h"
-#include "BKE_tracking.h"
+#include "BKE_mask.hh"
+#include "BKE_movieclip.hh"
+#include "BKE_tracking.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -33,9 +33,10 @@
 #include "ED_mask.hh"
 
 #include "UI_resources.hh"
-#include "UI_view2d.hh"
 
 #include "clip_intern.hh" /* own include */
+
+namespace blender {
 
 bool clip_graph_value_visible(SpaceClip *sc, eClipCurveValueSource value_source)
 {
@@ -257,17 +258,17 @@ void clip_graph_tracking_values_iterate(SpaceClip *sc,
   MovieClip *clip = ED_space_clip_get_clip(sc);
   const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (!include_hidden && (track->flag & TRACK_HIDDEN) != 0) {
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    if (!include_hidden && (track.flag & TRACK_HIDDEN) != 0) {
       continue;
     }
 
-    if (selected_only && !TRACK_SELECTED(track)) {
+    if (selected_only && !TRACK_SELECTED(&track)) {
       continue;
     }
 
     clip_graph_tracking_values_iterate_track(
-        sc, track, userdata, func, segment_start, segment_end);
+        sc, &track, userdata, func, segment_start, segment_end);
   }
 }
 
@@ -280,17 +281,17 @@ void clip_graph_tracking_iterate(SpaceClip *sc,
   MovieClip *clip = ED_space_clip_get_clip(sc);
   const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (!include_hidden && (track->flag & TRACK_HIDDEN) != 0) {
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    if (!include_hidden && (track.flag & TRACK_HIDDEN) != 0) {
       continue;
     }
 
-    if (selected_only && !TRACK_SELECTED(track)) {
+    if (selected_only && !TRACK_SELECTED(&track)) {
       continue;
     }
 
-    for (int i = 0; i < track->markersnr; i++) {
-      MovieTrackingMarker *marker = &track->markers[i];
+    for (int i = 0; i < track.markersnr; i++) {
+      MovieTrackingMarker *marker = &track.markers[i];
 
       if (marker->flag & MARKER_DISABLED) {
         continue;
@@ -411,15 +412,15 @@ static bool selected_tracking_boundbox(SpaceClip *sc, float min[2], float max[2]
 
   ED_space_clip_get_size(sc, &width, &height);
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (TRACK_VIEW_SELECTED(sc, track)) {
-      MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    if (TRACK_VIEW_SELECTED(sc, &track)) {
+      MovieTrackingMarker *marker = BKE_tracking_marker_get(&track, framenr);
 
       if (marker) {
         float pos[3];
 
-        pos[0] = marker->pos[0] + track->offset[0];
-        pos[1] = marker->pos[1] + track->offset[1];
+        pos[0] = marker->pos[0] + track.offset[0];
+        pos[1] = marker->pos[1] + track.offset[1];
         pos[2] = 0.0f;
 
         /* undistortion happens for normalized coords */
@@ -449,11 +450,11 @@ static bool tracking_has_selection(SpaceClip *space_clip)
   const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
   const int framenr = ED_space_clip_get_clip_frame_number(space_clip);
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (!TRACK_VIEW_SELECTED(space_clip, track)) {
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    if (!TRACK_VIEW_SELECTED(space_clip, &track)) {
       continue;
     }
-    const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+    const MovieTrackingMarker *marker = BKE_tracking_marker_get(&track, framenr);
     if (marker != nullptr) {
       return true;
     }
@@ -469,15 +470,15 @@ static bool mask_has_selection(const bContext *C)
     return false;
   }
 
-  LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
-    if (mask_layer->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
+  for (MaskLayer &mask_layer : mask->masklayers) {
+    if (mask_layer.visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
-    LISTBASE_FOREACH (MaskSpline *, spline, &mask_layer->splines) {
-      for (int i = 0; i < spline->tot_point; i++) {
-        const MaskSplinePoint *point = &spline->points[i];
+    for (MaskSpline &spline : mask_layer.splines) {
+      for (int i = 0; i < spline.tot_point; i++) {
+        const MaskSplinePoint *point = &spline.points[i];
         const BezTriple *bezt = &point->bezt;
-        if (!MASKPOINT_ISSEL_ANY(point)) {
+        if (!BKE_mask_point_selected(point)) {
           continue;
         }
         if (bezt->f2 & SELECT) {
@@ -501,17 +502,14 @@ static bool mask_has_selection(const bContext *C)
   return false;
 }
 
-static bool selected_boundbox(const bContext *C,
-                              float min[2],
-                              float max[2],
-                              bool handles_as_control_point)
+static bool selected_boundbox(const bContext *C, float min[2], float max[2], bool handles_as_knot)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   if (sc->mode == SC_MODE_TRACKING) {
     return selected_tracking_boundbox(sc, min, max);
   }
 
-  if (ED_mask_selected_minmax(C, min, max, handles_as_control_point)) {
+  if (ED_mask_selected_minmax(C, min, max, handles_as_knot, false)) {
     MovieClip *clip = ED_space_clip_get_clip(sc);
     int width, height;
     ED_space_clip_get_size(sc, &width, &height);
@@ -540,8 +538,8 @@ bool clip_view_calculate_view_selection(
 
   /* NOTE: The `fit` argument is set to truth when doing "View to Selected" operator, and it set to
    * false when this function is used for Lock-to-Selection functionality. When locking to
-   * selection the handles are to use control point position. So we can derive the
-   * `handles_as_control_point` from `fit`.
+   * selection the handles are to use the knot position.
+   * So we can derive `handles_as_knot` from `fit`.
    *
    * TODO(sergey): Make such decision more explicit. Maybe pass use-case for the calculation to
    * tell operator from lock-to-selection apart. */
@@ -600,3 +598,5 @@ bool clip_view_has_locked_selection(const bContext *C)
 
   return mask_has_selection(C);
 }
+
+}  // namespace blender

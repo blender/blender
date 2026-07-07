@@ -113,7 +113,7 @@ static void initialize_volume_component_from_points(GeoNodeExecParams &params,
   Volume *volume = BKE_id_new_nomain<Volume>(nullptr);
 
   const float density = params.get_input<float>("Density");
-  blender::geometry::fog_volume_grid_add_from_points(
+  geometry::fog_volume_grid_add_from_points(
       volume, "density", positions, radii, voxel_size, density);
 
   r_geometry_set.keep_only({GeometryComponent::Type::Volume, GeometryComponent::Type::Edit});
@@ -128,13 +128,14 @@ static EnumPropertyItem resolution_mode_items[] = {
     {GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_AMOUNT,
      "VOXEL_AMOUNT",
      0,
-     "Amount",
-     "Specify the approximate number of voxels along the diagonal"},
+     CTX_N_(BLT_I18NCONTEXT_COUNTABLE, "Amount"),
+     N_("Specify the approximate number of voxels along the diagonal")},
     {GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_SIZE,
      "VOXEL_SIZE",
      0,
-     "Size",
-     "Specify the voxel side length"},
+
+     CTX_N_(BLT_I18NCONTEXT_COUNTABLE, "Size"),
+     N_("Specify the voxel side length")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -145,7 +146,9 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("Density").default_value(1.0f).min(0.0f);
   b.add_input<decl::Menu>("Resolution Mode")
       .static_items(resolution_mode_items)
-      .description("How the voxel size is specified");
+      .optional_label()
+      .description("How the voxel size is specified")
+      .translation_context(BLT_I18NCONTEXT_COUNTABLE);
   b.add_input<decl::Float>("Voxel Size")
       .default_value(0.3f)
       .min(0.01f)
@@ -166,7 +169,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   /* Still used for forward compatibility. */
-  node->storage = MEM_callocN<NodeGeometryPointsToVolume>(__func__);
+  node->storage = MEM_new<NodeGeometryPointsToVolume>(__func__);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -184,20 +187,20 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodePointsToVolume", GEO_NODE_POINTS_TO_VOLUME);
   ntype.ui_name = "Points to Volume";
   ntype.ui_description = "Generate a fog volume sphere around every point";
   ntype.enum_name_legacy = "POINTS_TO_VOLUME";
   ntype.nclass = NODE_CLASS_GEOMETRY;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGeometryPointsToVolume", node_free_standard_storage, node_copy_standard_storage);
   bke::node_type_size(ntype, 170, 120, 700);
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

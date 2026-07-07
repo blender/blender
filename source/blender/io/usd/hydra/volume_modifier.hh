@@ -4,11 +4,15 @@
 
 #pragma once
 
-#include "DNA_fluid_types.h"
-
 #include "volume.hh"
 
-namespace blender::io::hydra {
+namespace blender {
+
+struct FluidModifierData;
+struct Object;
+
+namespace io::hydra {
+class HydraSceneDelegate;
 
 class VolumeModifierData : public VolumeData {
 
@@ -30,4 +34,5 @@ class VolumeModifierData : public VolumeData {
   const FluidModifierData *modifier_;
 };
 
-}  // namespace blender::io::hydra
+}  // namespace io::hydra
+}  // namespace blender

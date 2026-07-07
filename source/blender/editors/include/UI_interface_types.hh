@@ -8,10 +8,15 @@
 
 #include "BLI_string_ref.hh"
 
+namespace blender {
+
 struct bContext;
-struct uiLayout;
-struct uiBut;
-struct uiTooltipData;
+
+namespace ui {
+struct Block;
+struct Button;
+struct Layout;
+struct TooltipData;
 
 /* names */
 #define UI_MAX_DRAW_STR 550
@@ -20,22 +25,22 @@ struct uiTooltipData;
 
 /* Menu Callbacks */
 
-using uiMenuCreateFunc = void (*)(bContext *C, uiLayout *layout, void *arg1);
-using uiMenuHandleFunc = void (*)(bContext *C, void *arg, int event);
+using MenuCreateFunc = void (*)(bContext *C, Layout *layout, void *arg1);
+using MenuHandleFunc = void (*)(bContext *C, void *arg, int event);
 
 /**
  * Used for cycling menu values without opening the menu (Ctrl-Wheel).
  * \param direction: forward or backwards [1 / -1].
- * \param arg1: `uiBut.poin` (as with #uiMenuCreateFunc).
+ * \param arg1: `Button.poin` (as with #MenuCreateFunc).
  * \return true when the button was changed.
  */
-using uiMenuStepFunc = bool (*)(bContext *C, int direction, void *arg1);
+using MenuStepFunc = bool (*)(bContext *C, int direction, void *arg1);
 
-using uiCopyArgFunc = void *(*)(const void *arg);
-using uiFreeArgFunc = void (*)(void *arg);
+using CopyArgFunc = void *(*)(const void *arg);
+using FreeArgFunc = void (*)(void *arg);
 
 /** Must return an allocated string. */
-using uiButToolTipFunc = std::string (*)(bContext *C, void *argN, blender::StringRef tip);
+using ButtonToolTipFunc = std::string (*)(bContext *C, void *argN, StringRef tip);
 
 /**
  * \param data: The tooltip data to be filled.
@@ -43,9 +48,13 @@ using uiButToolTipFunc = std::string (*)(bContext *C, void *argN, blender::Strin
  *   is shared across multiple buttons but there still needs to be some customization per button.
  *   Mostly useful when using #uiLayoutSetTooltipCustomFunc.
  */
-using uiButToolTipCustomFunc = void (*)(bContext &C, uiTooltipData &data, uiBut *but, void *argN);
+using ButtonToolTipCustomFunc = void (*)(bContext &C, TooltipData &data, Button *but, void *argN);
 
-namespace blender::ocio {
+}  // namespace ui
+
+namespace ocio {
 class Display;
-}  // namespace blender::ocio
-using ColorManagedDisplay = blender::ocio::Display;
+}  // namespace ocio
+using ColorManagedDisplay = ocio::Display;
+
+}  // namespace blender

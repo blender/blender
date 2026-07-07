@@ -10,11 +10,15 @@
 
 #include <Python.h>
 
+#include <optional>
 #include <string>
+#include <type_traits>
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_span.hh"
 #include "BLI_sys_types.h"
+
+namespace blender {
 
 /** Useful to print Python objects while debugging. */
 void PyC_ObSpit(const char *name, PyObject *var);
@@ -43,6 +47,17 @@ void PyC_StackSpit();
  * where a full multi-line stack-trace isn't needed and doesn't format well in the status-bar.
  */
 [[nodiscard]] PyObject *PyC_ExceptionBuffer_Simple() ATTR_RETURNS_NONNULL;
+
+/**
+ * Get exit code `sys.exit(..)` was called with.
+ */
+[[nodiscard]] std::optional<int> PyC_ExceptionSystemExitCode();
+
+/**
+ * If the current exception is `SystemExit`, capture the exit code and return true.
+ * Otherwise return false;
+ */
+bool PyC_Err_CaptureSystemExitCode();
 
 [[nodiscard]] PyObject *PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...);
 [[nodiscard]] PyObject *PyC_FrozenSetFromStrings(const char **strings);
@@ -204,6 +219,17 @@ void PyC_RunQuicky(const char *filepath, int n, ...) ATTR_NONNULL(1);
 [[nodiscard]] PyObject *PyC_MainModule_Backup();
 void PyC_MainModule_Restore(PyObject *main_mod);
 
+/**
+ * Add a module to `sys.modules` using the module's `__name__` as the key.
+ *
+ * Equivalent to: `sys.modules[module.__name__] = module`.
+ *
+ * \param sys_modules: The result of #PyImport_GetModuleDict().
+ * \param module: The module to add.
+ * \return 0 on success, -1 on error.
+ */
+int PyC_Module_AddToSysModules(PyObject *sys_modules, PyObject *module);
+
 [[nodiscard]] bool PyC_IsInterpreterActive();
 
 /**
@@ -282,6 +308,81 @@ void PyC_StdFilesFlush();
  */
 [[nodiscard]] int PyC_ParseBool(PyObject *o, void *p);
 
+/**
+ * Use with PyArg_ParseTuple's "O&" formatting.
+ *
+ * A version of `O!` that also accepts None (setting the pointer to nullptr).
+ */
+struct PyC_TypeOrNone {
+  PyTypeObject *type;
+  PyObject **value_p;
+};
+[[nodiscard]] int PyC_ParseTypeOrNone(PyObject *o, void *p);
+
+/**
+ * Use with PyArg_ParseTuple's "O&" formatting.
+ *
+ * A version of `i` that also accepts None (leaving the `std::optional<int>` empty).
+ */
+[[nodiscard]] int PyC_ParseOptionalInt(PyObject *o, void *p);
+
+/**
+ * Use with PyArg_ParseTuple's "O&" formatting.
+ *
+ * A version of `d` that also accepts None (leaving the `std::optional<double>` empty).
+ */
+[[nodiscard]] int PyC_ParseOptionalDouble(PyObject *o, void *p);
+
+/**
+ * Use with PyArg_ParseTuple's "O&" formatting.
+ *
+ * A version of `f` that also accepts None (leaving the `std::optional<float>` empty).
+ */
+[[nodiscard]] int PyC_ParseOptionalFloat(PyObject *o, void *p);
+
+/**
+ * Use with PyArg_ParseTuple's "O&" formatting.
+ *
+ * A version of `I` that also accepts None (leaving the `std::optional<uint>` empty).
+ */
+[[nodiscard]] int PyC_ParseOptionalUInt(PyObject *o, void *p);
+
+/**
+ * Use with PyArg_ParseTuple's "O&" formatting.
+ *
+ * A version of #PyC_ParseBool that also accepts None
+ * (leaving the `std::optional<bool>` empty).
+ */
+[[nodiscard]] int PyC_ParseOptionalBool(PyObject *o, void *p);
+
+/**
+ * Cast a pointer of a PyObject-derived type to `PyObject *`.
+ *
+ * A type-safe alternative to the C/Python API's `_PyObject_CAST` which is
+ * a plain C-style cast without any validation. This verifies at compile time
+ * that `T::ob_base` is `PyObject` or `PyVarObject` (from `PyObject_HEAD`
+ * or `PyObject_VAR_HEAD`).
+ */
+template<typename T> inline PyObject *PyC_Object_CAST(T *value)
+{
+  static_assert(std::is_same_v<decltype(T::ob_base), PyObject> ||
+                    std::is_same_v<decltype(T::ob_base), PyVarObject>,
+                "Type must use PyObject_HEAD or PyObject_VAR_HEAD");
+  return reinterpret_cast<PyObject *>(value);
+}
+
+/** A version of #PyC_Object_CAST that casts `T**` to `PyObject **`. */
+template<typename T> inline PyObject **PyC_Object_ptr_CAST(T **value_p)
+{
+  static_assert(std::is_same_v<decltype(T::ob_base), PyObject> ||
+                    std::is_same_v<decltype(T::ob_base), PyVarObject>,
+                "Type must use PyObject_HEAD or PyObject_VAR_HEAD");
+  return reinterpret_cast<PyObject **>(value_p);
+}
+
+/** Initializer for #PyC_TypeOrNone, validates PyObject compatibility at compile time. */
+#define PyC_TYPE_OR_NONE_INIT(py_type, value_p) {(py_type), PyC_Object_ptr_CAST(value_p)}
+
 struct PyC_StringEnumItems {
   int value;
   const char *id;
@@ -357,15 +458,11 @@ struct PyC_StringEnum {
 /* inline so type signatures match as expected */
 [[nodiscard]] Py_LOCAL_INLINE(int32_t) PyC_Long_AsI32(PyObject *value)
 {
-#if PY_VERSION_HEX < 0x030d0000 /* <3.13 */
-  return (int32_t)_PyLong_AsInt(value);
-#else
-  return (int32_t)PyLong_AsInt(value);
-#endif
+  return int32_t(PyLong_AsInt(value));
 }
 [[nodiscard]] Py_LOCAL_INLINE(int64_t) PyC_Long_AsI64(PyObject *value)
 {
-  return (int64_t)PyLong_AsLongLong(value);
+  return int64_t(PyLong_AsLongLong(value));
 }
 
 /* utils for format string in `struct` module style syntax */
@@ -380,23 +477,33 @@ struct PyC_StringEnum {
  */
 [[nodiscard]] PyObject *PyC_UnicodeFromStdStr(const std::string &str);
 
-[[nodiscard]] inline PyObject *PyC_Tuple_Pack_F32(const blender::Span<float> values)
+[[nodiscard]] inline PyObject *PyC_Tuple_Pack_F32(const Span<float> values)
 {
   return PyC_Tuple_PackArray_F32(values.data(), values.size());
 }
-[[nodiscard]] inline PyObject *PyC_Tuple_Pack_F64(const blender::Span<double> values)
+[[nodiscard]] inline PyObject *PyC_Tuple_Pack_F64(const Span<double> values)
 {
   return PyC_Tuple_PackArray_F64(values.data(), values.size());
 }
-[[nodiscard]] inline PyObject *PyC_Tuple_Pack_I32(const blender::Span<int> values)
+[[nodiscard]] inline PyObject *PyC_Tuple_Pack_I32(const Span<int> values)
 {
   return PyC_Tuple_PackArray_I32(values.data(), values.size());
 }
-[[nodiscard]] inline PyObject *PyC_Tuple_Pack_I32FromBool(const blender::Span<int> values)
+[[nodiscard]] inline PyObject *PyC_Tuple_Pack_I32FromBool(const Span<int> values)
 {
   return PyC_Tuple_PackArray_I32FromBool(values.data(), values.size());
 }
-[[nodiscard]] inline PyObject *PyC_Tuple_Pack_Bool(const blender::Span<bool> values)
+[[nodiscard]] inline PyObject *PyC_Tuple_Pack_Bool(const Span<bool> values)
 {
   return PyC_Tuple_PackArray_Bool(values.data(), values.size());
 }
+
+/**
+ * Check that all keys in `dict` are Python strings.
+ *
+ * Use this to validate keyword arguments from `tp_call` which,
+ * unlike regular Python function calls, does not enforce string keys.
+ */
+[[nodiscard]] bool PyC_Dict_CheckKeysAreStrings(PyObject *dict);
+
+}  // namespace blender

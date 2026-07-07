@@ -9,8 +9,6 @@
 #include "BLI_index_range.hh"
 #include "BLI_math_base.hh"
 
-#include "RE_pipeline.h"
-
 #include "COM_context.hh"
 #include "COM_result.hh"
 #include "COM_symmetric_separable_blur_weights.hh"
@@ -21,7 +19,8 @@ namespace blender::compositor {
  * Symmetric Separable Blur Weights Key.
  */
 
-SymmetricSeparableBlurWeightsKey::SymmetricSeparableBlurWeightsKey(int type, float radius)
+SymmetricSeparableBlurWeightsKey::SymmetricSeparableBlurWeightsKey(math::FilterKernel type,
+                                                                   float radius)
     : type(type), radius(radius)
 {
 }
@@ -42,20 +41,20 @@ bool operator==(const SymmetricSeparableBlurWeightsKey &a,
  */
 
 SymmetricSeparableBlurWeights::SymmetricSeparableBlurWeights(Context &context,
-                                                             int type,
+                                                             math::FilterKernel type,
                                                              float radius)
     : result(context.create_result(ResultType::Float))
 {
   /* The size of filter is double the radius plus 1, but since the filter is symmetric, we only
    * compute half of it and no doubling happens. We add 1 to make sure the filter size is always
    * odd and there is a center weight. */
-  const int size = math::ceil(radius) + 1;
-  this->result.allocate_texture(Domain(int2(size, 1)), false, ResultStorageType::CPU);
+  this->result.allocate_texture(
+      Domain(int2(math::ceil(radius) + 1, 1)), false, ResultStorageType::CPU);
 
   float sum = 0.0f;
 
   /* First, compute the center weight. */
-  const float center_weight = RE_filter_value(type, 0.0f);
+  const float center_weight = math::filter_kernel_value(type, 0.0f);
   this->result.store_pixel(int2(0, 0), center_weight);
   sum += center_weight;
 
@@ -63,14 +62,14 @@ SymmetricSeparableBlurWeights::SymmetricSeparableBlurWeights(Context &context,
    * weight to the sum of weights because the filter is symmetric and we only loop over half of
    * it. Skip the center weight already computed by dropping the front index. */
   const float scale = radius > 0.0f ? 1.0f / radius : 0.0f;
-  for (const int i : IndexRange(size).drop_front(1)) {
-    const float weight = RE_filter_value(type, i * scale);
+  for (const int i : IndexRange(this->result.domain().data_size.x).drop_front(1)) {
+    const float weight = math::filter_kernel_value(type, i * scale);
     this->result.store_pixel(int2(i, 0), weight);
     sum += weight * 2.0f;
   }
 
   /* Finally, normalize the weights. */
-  for (const int i : IndexRange(size)) {
+  for (const int i : IndexRange(this->result.domain().data_size.x)) {
     const int2 texel = int2(i, 0);
     this->result.store_pixel(texel, this->result.load_pixel<float>(texel) / sum);
   }
@@ -103,7 +102,9 @@ void SymmetricSeparableBlurWeightsContainer::reset()
   }
 }
 
-Result &SymmetricSeparableBlurWeightsContainer::get(Context &context, int type, float radius)
+Result &SymmetricSeparableBlurWeightsContainer::get(Context &context,
+                                                    math::FilterKernel type,
+                                                    float radius)
 {
   const SymmetricSeparableBlurWeightsKey key(type, radius);
 

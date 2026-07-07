@@ -74,6 +74,7 @@ struct OSLTraceData {
   bool setup;
   bool init;
   bool hit;
+  bool self_hit;
 };
 
 /* thread key for thread specific data lookup */

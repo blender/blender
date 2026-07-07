@@ -10,10 +10,12 @@
 
 #include "BLI_path_utils.hh"
 
+namespace blender {
+
 struct PointCloud;
 struct ReportList;
 
-namespace blender::io::csv {
+namespace io::csv {
 
 struct CSVImportParams {
   /** Full path to the source CSV file to import. */
@@ -25,4 +27,5 @@ struct CSVImportParams {
 
 PointCloud *import_csv_as_pointcloud(const CSVImportParams &import_params);
 
-}  // namespace blender::io::csv
+}  // namespace io::csv
+}  // namespace blender

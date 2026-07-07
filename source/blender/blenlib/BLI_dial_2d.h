@@ -33,9 +33,13 @@
  * \endcode
  */
 
-typedef struct Dial Dial;
+namespace blender {
+
+struct Dial;
 
 Dial *BLI_dial_init(const float start_position[2], float threshold);
 void BLI_dial_free(Dial *dial);
 
 float BLI_dial_angle(Dial *dial, const float current_position[2]);
+
+}  // namespace blender

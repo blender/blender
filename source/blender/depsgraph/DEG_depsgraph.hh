@@ -32,6 +32,8 @@
 
 #include "DNA_ID.h"
 
+namespace blender {
+
 /* Dependency Graph */
 struct Depsgraph;
 
@@ -290,3 +292,5 @@ void DEG_debug_print_eval_time(Depsgraph *depsgraph,
                                float time);
 
 /** \} */
+
+}  // namespace blender

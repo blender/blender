@@ -55,6 +55,11 @@ class AssetCatalogDefinitionFile {
    */
   bool write_to_disk(const CatalogFilePath &dest_file_path) const;
 
+  /**
+   * Returns whether this file exists on disk.
+   */
+  bool exists_on_disk() const;
+
   bool contains(CatalogID catalog_id) const;
   /** Add a catalog, overwriting the one with the same catalog ID. */
   void add_overwrite(AssetCatalog *catalog);

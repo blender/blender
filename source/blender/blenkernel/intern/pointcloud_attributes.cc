@@ -7,7 +7,6 @@
 #include "BKE_attribute_storage.hh"
 #include "BKE_pointcloud.hh"
 
-#include "attribute_access_intern.hh"
 #include "attribute_storage_access.hh"
 
 namespace blender::bke {
@@ -48,6 +47,12 @@ static const auto &builtin_attributes()
   return attributes;
 }
 
+static const auto &array_storage_required()
+{
+  static Set<StringRef> attributes{"position"};
+  return attributes;
+}
+
 static constexpr AttributeAccessorFunctions get_pointcloud_accessor_functions()
 {
   AttributeAccessorFunctions fn{};
@@ -68,6 +73,15 @@ static constexpr AttributeAccessorFunctions get_pointcloud_accessor_functions()
   fn.get_builtin_default = [](const void * /*owner*/, StringRef name) -> GPointer {
     const AttrBuiltinInfo &info = builtin_attributes().lookup(name);
     return info.default_value;
+  };
+  fn.lookup_meta_data = [](const void *owner, StringRef name) -> std::optional<AttributeMetaData> {
+    const PointCloud &pointcloud = *static_cast<const PointCloud *>(owner);
+    const AttributeStorage &storage = pointcloud.attribute_storage.wrap();
+    const Attribute *attr = storage.lookup(name);
+    if (!attr) {
+      return std::nullopt;
+    }
+    return AttributeMetaData{attr->domain(), attr->data_type()};
   };
   fn.lookup = [](const void *owner, const StringRef name) -> GAttributeReader {
     const PointCloud &pointcloud = *static_cast<const PointCloud *>(owner);
@@ -92,16 +106,19 @@ static constexpr AttributeAccessorFunctions get_pointcloud_accessor_functions()
                             const AttributeAccessor &accessor) {
     const PointCloud &pointcloud = *static_cast<const PointCloud *>(owner);
     const AttributeStorage &storage = pointcloud.attribute_storage.wrap();
-    storage.foreach_with_stop([&](const Attribute &attribute) {
+    for (const Attribute &attribute : storage) {
       const auto get_fn = [&]() {
         return attribute_to_reader(attribute, AttrDomain::Point, pointcloud.totpoint);
       };
       AttributeIter iter(attribute.name(), attribute.domain(), attribute.data_type(), get_fn);
       iter.is_builtin = builtin_attributes().contains(attribute.name());
+      iter.storage_type = attribute.storage_type();
       iter.accessor = &accessor;
       fn(iter);
-      return !iter.is_stopped();
-    });
+      if (iter.is_stopped()) {
+        break;
+      }
+    }
   };
   fn.lookup_validator = [](const void * /*owner*/, const StringRef name) -> AttributeValidator {
     const AttrBuiltinInfo *info = builtin_attributes().lookup_ptr(name);
@@ -153,7 +170,28 @@ static constexpr AttributeAccessorFunctions get_pointcloud_accessor_functions()
     if (storage.lookup(name)) {
       return false;
     }
-    storage.add(name, domain, type, attribute_init_to_data(type, domain_size, initializer));
+    Attribute::DataVariant data = attribute_init_to_data(
+        type, domain_size, initializer, array_storage_required().contains(name));
+    storage.add(name, domain, type, std::move(data));
+    if (initializer.type != AttributeInit::Type::Construct) {
+      if (const std::optional<AttrUpdateOnChange> fn = changed_tags().lookup_try(name)) {
+        (*fn)(owner);
+      }
+    }
+    return true;
+  };
+  fn.assign_data = [](void *owner, StringRef name, const AttributeInit &initializer) {
+    PointCloud &pointcloud = *static_cast<PointCloud *>(owner);
+    AttributeStorage &storage = pointcloud.attribute_storage.wrap();
+    Attribute *attr = storage.lookup(name);
+    if (!attr) {
+      return false;
+    }
+    Attribute::DataVariant data = attribute_init_to_data(attr->data_type(),
+                                                         pointcloud.totpoint,
+                                                         initializer,
+                                                         array_storage_required().contains(name));
+    attr->assign_data(std::move(data));
     if (initializer.type != AttributeInit::Type::Construct) {
       if (const std::optional<AttrUpdateOnChange> fn = changed_tags().lookup_try(name)) {
         (*fn)(owner);

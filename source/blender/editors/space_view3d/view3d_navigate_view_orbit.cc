@@ -20,6 +20,8 @@
 
 #include "view3d_navigate.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name View Orbit Operator
  *
@@ -167,3 +169,5 @@ const ViewOpsType ViewOpsType_orbit = {
     /*init_fn*/ nullptr,
     /*apply_fn*/ nullptr,
 };
+
+}  // namespace blender

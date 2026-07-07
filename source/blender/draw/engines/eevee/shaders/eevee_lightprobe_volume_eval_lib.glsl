@@ -74,7 +74,7 @@ float3 lightprobe_volume_grid_bias_sample_coord(VolumeProbeData grid_data,
    * "Multi-Scale Global Illumination in Quantum Break"
    * by Ari Silvennoinen and Ville Timonen.
    *
-   * “Dynamic Diffuse Global Illumination with Ray-Traced Irradiance Fields”
+   * "Dynamic Diffuse Global Illumination with Ray-Traced Irradiance Fields"
    * by Morgan McGuire.
    */
   float trilinear_weights[8];

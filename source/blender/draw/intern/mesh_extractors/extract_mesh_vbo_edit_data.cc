@@ -116,17 +116,19 @@ static void extract_edit_data_mesh(const MeshRenderData &mr, MutableSpan<EditLoo
   MutableSpan loose_edge_data = vbo_data.slice(mr.corners_num, mr.loose_edges.size() * 2);
   MutableSpan loose_vert_data = vbo_data.take_back(mr.loose_verts.size());
 
+  const BMUVOffsets uv_offsets_none = BMUVOFFSETS_NONE;
   const OffsetIndices faces = mr.faces;
   const Span<int> corner_verts = mr.corner_verts;
   const Span<int> corner_edges = mr.corner_edges;
   threading::parallel_for(faces.index_range(), 2048, [&](const IndexRange range) {
     for (const int face : range) {
+      EditLoopData face_value = {};
+      if (const BMFace *bm_face = bm_original_face_get(mr, face)) {
+        mesh_render_data_face_flag(mr, bm_face, uv_offsets_none, face_value);
+      }
       for (const int corner : faces[face]) {
         EditLoopData &value = corners_data[corner];
-        value = {};
-        if (const BMFace *bm_face = bm_original_face_get(mr, face)) {
-          mesh_render_data_face_flag(mr, bm_face, {-1, -1, -1, -1}, value);
-        }
+        value = face_value;
         if (const BMVert *bm_vert = bm_original_vert_get(mr, corner_verts[corner])) {
           mesh_render_data_vert_flag(mr, bm_vert, value);
         }
@@ -179,18 +181,20 @@ static void extract_edit_data_bm(const MeshRenderData &mr, MutableSpan<EditLoopD
   MutableSpan loose_vert_data = vbo_data.take_back(mr.loose_verts.size());
 
   const BMesh &bm = *mr.bm;
+  const BMUVOffsets uv_offsets_none = BMUVOFFSETS_NONE;
 
   threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
     for (const int face_index : range) {
       const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
+      EditLoopData face_value = {};
+      mesh_render_data_face_flag(mr, &face, uv_offsets_none, face_value);
       const BMLoop *loop = BM_FACE_FIRST_LOOP(&face);
       for ([[maybe_unused]] const int i : IndexRange(face.len)) {
         const int index = BM_elem_index_get(loop);
         EditLoopData &value = corners_data[index];
-        value = {};
-        mesh_render_data_face_flag(mr, &face, {-1, -1, -1, -1}, corners_data[index]);
-        mesh_render_data_edge_flag(mr, loop->e, corners_data[index]);
-        mesh_render_data_vert_flag(mr, loop->v, corners_data[index]);
+        value = face_value;
+        mesh_render_data_edge_flag(mr, loop->e, value);
+        mesh_render_data_vert_flag(mr, loop->v, value);
         loop = loop->next;
       }
     }
@@ -239,6 +243,7 @@ static void extract_edit_subdiv_data_mesh(const MeshRenderData &mr,
                                           const DRWSubdivCache &subdiv_cache,
                                           MutableSpan<EditLoopData> vbo_data)
 {
+  const BMUVOffsets uv_offsets_none = BMUVOFFSETS_NONE;
   const int corners_num = subdiv_cache.num_subdiv_loops;
   const int loose_edges_num = mr.loose_edges.size();
   const int verts_per_edge = subdiv_verts_per_coarse_edge(subdiv_cache);
@@ -254,13 +259,14 @@ static void extract_edit_subdiv_data_mesh(const MeshRenderData &mr,
   threading::parallel_for(IndexRange(subdiv_cache.num_subdiv_quads), 2048, [&](IndexRange range) {
     for (const int subdiv_quad : range) {
       const int coarse_face = subdiv_loop_face_index[subdiv_quad * 4];
+
+      EditLoopData face_value = {};
+      if (const BMFace *bm_face = bm_original_face_get(mr, coarse_face)) {
+        mesh_render_data_face_flag(mr, bm_face, uv_offsets_none, face_value);
+      }
       for (const int subdiv_corner : IndexRange(subdiv_quad * 4, 4)) {
         EditLoopData &value = corners_data[subdiv_corner];
-        value = {};
-
-        if (const BMFace *bm_face = bm_original_face_get(mr, coarse_face)) {
-          mesh_render_data_face_flag(mr, bm_face, {-1, -1, -1, -1}, value);
-        }
+        value = face_value;
 
         const int vert_origindex = subdiv_loop_vert_index[subdiv_corner];
         if (vert_origindex != -1) {
@@ -317,6 +323,7 @@ static void extract_edit_subdiv_data_bm(const MeshRenderData &mr,
                                         const DRWSubdivCache &subdiv_cache,
                                         MutableSpan<EditLoopData> vbo_data)
 {
+  const BMUVOffsets uv_offsets_none = BMUVOFFSETS_NONE;
   const int corners_num = subdiv_cache.num_subdiv_loops;
   const int loose_edges_num = mr.loose_edges.size();
   const int verts_per_edge = subdiv_verts_per_coarse_edge(subdiv_cache);
@@ -333,11 +340,13 @@ static void extract_edit_subdiv_data_bm(const MeshRenderData &mr,
     for (const int subdiv_quad : range) {
       const int coarse_face = subdiv_loop_face_index[subdiv_quad * 4];
       const BMFace *bm_face = BM_face_at_index(&bm, coarse_face);
+
+      EditLoopData face_value = {};
+      mesh_render_data_face_flag(mr, bm_face, uv_offsets_none, face_value);
+
       for (const int subdiv_corner : IndexRange(subdiv_quad * 4, 4)) {
         EditLoopData &value = corners_data[subdiv_corner];
-        value = {};
-
-        mesh_render_data_face_flag(mr, bm_face, {-1, -1, -1, -1}, value);
+        value = face_value;
 
         const int vert_origindex = subdiv_loop_vert_index[subdiv_corner];
         if (vert_origindex != -1) {

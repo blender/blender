@@ -30,7 +30,7 @@ cmake ../blender
 # make blender, will take some time
 make -j$(nproc)
 
-# link the binary to blenders source directory to run quickly
+# link the binary to Blender's source directory to run quickly
 ln -s ~/blender-git/build-cmake/bin/blender ~/blender-git/blender/blender.bin
 
 # useful info

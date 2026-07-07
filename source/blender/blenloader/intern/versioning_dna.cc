@@ -12,6 +12,8 @@
 
 #include "readfile.hh"
 
+namespace blender {
+
 void blo_do_versions_dna(SDNA *sdna, const int versionfile, const int subversionfile)
 {
 #define DNA_VERSION_ATLEAST(ver, subver) \
@@ -22,7 +24,6 @@ void blo_do_versions_dna(SDNA *sdna, const int versionfile, const int subversion
      * between October 2016, and November 2017 (>=280.0 and < 280.2). */
     if (versionfile >= 280) {
       DNA_sdna_patch_struct_by_name(sdna, "SceneLayer", "ViewLayer");
-      DNA_sdna_patch_struct_by_name(sdna, "SceneLayerEngineData", "ViewLayerEngineData");
       DNA_sdna_patch_struct_member_by_name(
           sdna, "FileGlobal", "cur_render_layer", "cur_view_layer");
       DNA_sdna_patch_struct_member_by_name(
@@ -62,3 +63,5 @@ void blo_do_versions_dna(SDNA *sdna, const int versionfile, const int subversion
 
 #undef DNA_VERSION_ATLEAST
 }
+
+}  // namespace blender

@@ -16,9 +16,9 @@ static EnumPropertyItem mode_items[] = {
     {GEO_NODE_TRANSFORM_MODE_COMPONENTS,
      "COMPONENTS",
      0,
-     "Components",
-     "Provide separate location, rotation and scale"},
-    {GEO_NODE_TRANSFORM_MODE_MATRIX, "MATRIX", 0, "Matrix", "Use a transformation matrix"},
+     N_("Components"),
+     N_("Provide separate location, rotation and scale")},
+    {GEO_NODE_TRANSFORM_MODE_MATRIX, "MATRIX", 0, N_("Matrix"), N_("Use a transformation matrix")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -33,6 +33,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>("Geometry").propagate_all().align_with_previous();
   b.add_input<decl::Menu>("Mode")
       .static_items(mode_items)
+      .optional_label()
       .description("How the transformation is specified");
   b.add_input<decl::Vector>("Translation")
       .subtype(PROP_TRANSLATION)
@@ -47,7 +48,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static bool use_translate(const math::Quaternion &rotation, const float3 scale)
 {
-  if (math::angle_of(rotation).radian() > 1e-7f) {
+  if (math::length_squared(rotation.imaginary_part()) > 1e-10f) {
     return false;
   }
   if (compare_ff(scale.x, 1.0f, 1e-9f) != 1 || compare_ff(scale.y, 1.0f, 1e-9f) != 1 ||
@@ -105,7 +106,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void register_node()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(&ntype, "GeometryNodeTransform", GEO_NODE_TRANSFORM_GEOMETRY);
   ntype.ui_name = "Transform Geometry";
   ntype.ui_description = "Translate, rotate or scale the geometry";
@@ -113,7 +114,7 @@ static void register_node()
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(register_node)
 

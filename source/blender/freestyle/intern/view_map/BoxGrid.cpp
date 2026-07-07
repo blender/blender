@@ -58,7 +58,7 @@ BoxGrid::Iterator::Iterator(BoxGrid &grid, Vec3r &center, real /*epsilon*/)
   // Find target cell
   _cell = grid.findCell(_target);
 #if BOX_GRID_LOGGING
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Searching for occluders of edge centered at " << _target << " in cell ["
          << 1_cell->boundary[0] << ", " << _cell->boundary[1] << ", " << _cell->boundary[2] << ", "
          << _cell->boundary[3] << "] (" << _cell->faces.size() << " occluders)" << endl;
@@ -80,24 +80,24 @@ BoxGrid::BoxGrid(OccluderSource &source,
     : _viewpoint(viewpoint), _enableQI(enableQI)
 {
   // Generate Cell structure
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Generate Cell structure" << endl;
   }
   assignCells(source, density, viewMap);
 
   // Fill Cells
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Distribute occluders" << endl;
   }
   distributePolygons(source);
 
   // Reorganize Cells
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Reorganize cells" << endl;
   }
   reorganizeCells();
 
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Ready to use BoxGrid" << endl;
   }
 }
@@ -113,7 +113,7 @@ void BoxGrid::assignCells(OccluderSource & /*source*/,
   _cellsY = density.cellsY();
   _cellOrigin[0] = density.cellOrigin(0);
   _cellOrigin[1] = density.cellOrigin(1);
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Using " << _cellsX << "x" << _cellsY << " cells of size " << _cellSize << " square."
          << endl;
     cout << "Cell origin: " << _cellOrigin[0] << ", " << _cellOrigin[1] << endl;
@@ -175,7 +175,7 @@ void BoxGrid::distributePolygons(OccluderSource &source)
     }
     ++nFaces;
   }
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Distributed " << nFaces << " occluders. Retained " << nKeptFaces << "." << endl;
   }
 }

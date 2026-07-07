@@ -12,10 +12,12 @@
 
 #include "tree_element.hh"
 
+namespace blender {
+
 struct Strip;
 struct StripData;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 class TreeElementStrip : public AbstractTreeElement {
   Strip &strip_;
@@ -48,4 +50,5 @@ class TreeElementStripDuplicate : public AbstractTreeElement {
   Strip &get_strip() const;
 };
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

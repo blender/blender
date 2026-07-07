@@ -283,7 +283,7 @@ bool BlenderSubprocess::create(Span<StringRefNull> args)
 
   Vector<char *> char_args;
   for (StringRefNull arg : args) {
-    char_args.append((char *)arg.data());
+    char_args.append(const_cast<char *>(arg.data()));
   }
   char_args.append(nullptr);
 

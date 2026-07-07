@@ -25,6 +25,7 @@
  * see if the increased compile time and binary size is worth it.
  */
 
+#include <functional>
 #include <optional>
 
 #include "BLI_any.hh"
@@ -527,14 +528,14 @@ template<typename T> struct VArrayAnyExtraInfo {
      * #get_varray function is required. */
     if constexpr (std::is_base_of_v<VArrayImpl<T>, StorageT>) {
       return {[](const void *buffer) {
-        return static_cast<const VArrayImpl<T> *>((const StorageT *)buffer);
+        return static_cast<const VArrayImpl<T> *>(static_cast<const StorageT *>(buffer));
       }};
     }
     else if constexpr (std::is_same_v<StorageT, const VArrayImpl<T> *>) {
-      return {[](const void *buffer) { return *(const StorageT *)buffer; }};
+      return {[](const void *buffer) { return *static_cast<const StorageT *>(buffer); }};
     }
     else if constexpr (std::is_same_v<StorageT, std::shared_ptr<const VArrayImpl<T>>>) {
-      return {[](const void *buffer) { return ((const StorageT *)buffer)->get(); }};
+      return {[](const void *buffer) { return (static_cast<const StorageT *>(buffer))->get(); }};
     }
     else {
       BLI_assert_unreachable();
@@ -561,7 +562,7 @@ template<typename T> class VArrayCommon {
    * Other virtual array implementations are typically stored as #std::shared_ptr. That works even
    * when the implementation itself is not copyable and makes copying #VArrayCommon cheaper.
    */
-  using Storage = Any<blender::detail::VArrayAnyExtraInfo<T>, 24, 8>;
+  using Storage = Any<detail::VArrayAnyExtraInfo<T>, 24, 8>;
 
   /**
    * Pointer to the currently contained virtual array implementation. This is allowed to be null.
@@ -914,6 +915,15 @@ template<typename T> class VArray : public VArrayCommon<T> {
   }
 
   /**
+   * Same as #from_func, but uses a std::function instead of a template. This is slower, but
+   * requires less code generation. Therefore this should be used in non-performance critical code.
+   */
+  static VArray from_std_func(const int64_t size, std::function<T(int64_t index)> get_func)
+  {
+    return VArray::from_func(size, get_func);
+  }
+
+  /**
    * Construct a new virtual array for an existing span with a mapping function. This does not take
    * ownership of the span.
    */
@@ -1074,7 +1084,7 @@ template<typename T> class VMutableArray : public VArrayCommon<T> {
   {
     /* This cast is valid by the invariant that a #VMutableArray->impl_ is always a
      * #VMutableArrayImpl. */
-    return (VMutableArrayImpl<T> *)this->impl_;
+    return reinterpret_cast<VMutableArrayImpl<T> *>(const_cast<VArrayImpl<T> *>((this->impl_)));
   }
 };
 

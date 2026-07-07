@@ -12,8 +12,11 @@ set(INC_SYS
 
 set(SRC
   aligned_malloc.cpp
+  colorspace.cpp
   debug.cpp
+  guarded_allocator.cpp
   ies.cpp
+  image_metadata.cpp
   log.cpp
   math_cdf.cpp
   md5.cpp
@@ -33,6 +36,8 @@ set(SRC
 )
 
 set(LIB
+  PUBLIC bf::dependencies::openimageio
+  PRIVATE bf::dependencies::jpeg
   ${TBB_LIBRARIES}
   ${ZSTD_LIBRARIES}
 )
@@ -45,13 +50,13 @@ set(SRC_HEADERS
   atomic.h
   boundbox.h
   color.h
+  colorspace.h
   concurrent_set.h
   concurrent_vector.h
   debug.h
   defines.h
   deque.h
   disjoint_set.h
-  guarded_allocator.cpp
   guarded_allocator.h
   guiding.h
   half.h
@@ -59,6 +64,7 @@ set(SRC_HEADERS
   ies.h
   image.h
   image_impl.h
+  image_metadata.h
   list.h
   log.h
   map.h
@@ -89,6 +95,7 @@ set(SRC_HEADERS
   projection.h
   projection_inverse.h
   queue.h
+  random_access_iterator_mixin.h
   rect.h
   set.h
   simd.h
@@ -100,7 +107,6 @@ set(SRC_HEADERS
   system.h
   task.h
   tbb.h
-  texture.h
   thread.h
   time.h
   transform.h
@@ -110,10 +116,12 @@ set(SRC_HEADERS
   types_float3.h
   types_float4.h
   types_float8.h
+  types_image.h
   types_int2.h
   types_int3.h
   types_int4.h
   types_int8.h
+  types_normal.h
   types_spectrum.h
   types_rgbe.h
   types_uchar2.h
@@ -147,6 +155,16 @@ if(WITH_OPENVDB)
   # This works around the issue described in #120317 and https://github.com/AcademySoftwareFoundation/openvdb/pull/1786
   if(MSVC_CLANG)
     set_source_files_properties(openvdb.cpp PROPERTIES COMPILE_FLAGS -fno-delayed-template-parsing)
+  endif()
+endif()
+
+if(WITH_OPENCOLORIO)
+  add_definitions(-DWITH_OCIO)
+  list(APPEND LIB
+    bf::dependencies::optional::opencolorio
+  )
+  if(WIN32 AND NOT USD_OVERRIDE_OPENCOLORIO)
+    add_definitions(-DOpenColorIO_SKIP_IMPORTS)
   endif()
 endif()
 

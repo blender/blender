@@ -5,14 +5,14 @@
 #pragma once
 
 #include "draw_view_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_matrix_transform_lib.glsl"
 
 /**
  * Return the corresponding list index in the `list_start_buf` for a given world position.
  * It will clamp any coordinate outside valid bounds to nearest list.
  * Also return the surfel sorting value as `r_ray_distance`.
  */
-int surfel_list_index_get(int2 ray_grid_size, float3 P, out float r_ray_distance)
+int surfel_list_index_get(int2 ray_grid_size, float3 P, float &r_ray_distance)
 {
   float3 ssP = drw_point_world_to_screen(P);
   r_ray_distance = -ssP.z;

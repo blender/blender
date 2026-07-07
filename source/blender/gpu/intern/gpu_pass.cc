@@ -24,7 +24,8 @@
 #include <mutex>
 #include <string>
 
-using namespace blender;
+namespace blender {
+
 using namespace blender::gpu::shader;
 
 static bool gpu_pass_validate(GPUCodegenCreateInfo *create_info);
@@ -37,9 +38,9 @@ struct GPUPass {
   static inline std::atomic<uint64_t> compilation_counts = 0;
 
   GPUCodegenCreateInfo *create_info = nullptr;
-  BatchHandle compilation_handle = 0;
-  std::atomic<blender::gpu::Shader *> shader = nullptr;
-  std::atomic<eGPUPassStatus> status = GPU_PASS_QUEUED;
+  AsyncCompilationHandle compilation_handle = 0;
+  std::atomic<gpu::Shader *> shader = nullptr;
+  std::atomic<GPUPassStatus> status = GPU_PASS_QUEUED;
   /* Orphaned GPUPasses gets freed by the garbage collector. */
   std::atomic<int> refcount = 1;
   double creation_timestamp = 0.0f;
@@ -74,8 +75,7 @@ struct GPUPass {
     GPUShaderCreateInfo *base_info = reinterpret_cast<GPUShaderCreateInfo *>(create_info);
 
     if (deferred_compilation) {
-      compilation_handle = GPU_shader_batch_create_from_infos(
-          Span<GPUShaderCreateInfo *>(&base_info, 1), compilation_priority());
+      compilation_handle = GPU_shader_async_compilation(base_info, compilation_priority());
     }
     else {
       shader = GPU_shader_create_from_info(base_info);
@@ -86,7 +86,7 @@ struct GPUPass {
   ~GPUPass()
   {
     if (compilation_handle) {
-      GPU_shader_batch_cancel(compilation_handle);
+      GPU_shader_async_compilation_cancel(compilation_handle);
     }
     else {
       BLI_assert(create_info == nullptr || (is_optimization_pass && status == GPU_PASS_QUEUED));
@@ -105,13 +105,13 @@ struct GPUPass {
     BLI_assert_msg(create_info, "GPUPass::finalize_compilation() called more than once.");
 
     if (compilation_handle) {
-      shader = GPU_shader_batch_finalize(compilation_handle).first();
+      shader = GPU_shader_async_compilation_finalize(compilation_handle);
     }
 
     compilation_timestamp = ++compilation_counts;
 
     if (!shader && !gpu_pass_validate(create_info)) {
-      fprintf(stderr, "blender::gpu::Shader: error: too many samplers in shader.\n");
+      fprintf(stderr, "gpu::Shader: error: too many samplers in shader.\n");
     }
 
     status = shader ? GPU_PASS_SUCCESS : GPU_PASS_FAILED;
@@ -129,7 +129,7 @@ struct GPUPass {
   void update_compilation(double timestamp)
   {
     if (compilation_handle) {
-      if (GPU_shader_batch_is_ready(compilation_handle)) {
+      if (GPU_shader_async_compilation_is_ready(compilation_handle)) {
         finalize_compilation();
       }
     }
@@ -138,8 +138,7 @@ struct GPUPass {
     {
       BLI_assert(is_optimization_pass);
       GPUShaderCreateInfo *base_info = reinterpret_cast<GPUShaderCreateInfo *>(create_info);
-      compilation_handle = GPU_shader_batch_create_from_infos(
-          Span<GPUShaderCreateInfo *>(&base_info, 1), compilation_priority());
+      compilation_handle = GPU_shader_async_compilation(base_info, compilation_priority());
     }
   }
 
@@ -158,7 +157,7 @@ struct GPUPass {
   }
 };
 
-eGPUPassStatus GPU_pass_status(GPUPass *pass)
+GPUPassStatus GPU_pass_status(GPUPass *pass)
 {
   return pass->status;
 }
@@ -172,7 +171,7 @@ bool GPU_pass_should_optimize(GPUPass *pass)
   return (GPU_backend_get_type() == GPU_BACKEND_METAL) && pass->should_optimize;
 }
 
-blender::gpu::Shader *GPU_pass_shader_get(GPUPass *pass)
+gpu::Shader *GPU_pass_shader_get(GPUPass *pass)
 {
   return pass->shader;
 }
@@ -221,6 +220,17 @@ class GPUPassCache {
   std::mutex mutex_;
 
  public:
+  ~GPUPassCache()
+  {
+    /* Pause to prevent new compilations to start while we are cancelling them. */
+    GPU_shader_compiler_pause();
+    for (int i : IndexRange(GPU_MAT_ENGINE_MAX)) {
+      passes_[i][0].clear();
+      passes_[i][1].clear();
+    }
+    GPU_shader_compiler_resume();
+  }
+
   void add(eGPUMaterialEngine engine,
            GPUCodegen &codegen,
            bool deferred_compilation,
@@ -307,7 +317,7 @@ void GPU_pass_cache_update()
 
 void GPU_pass_cache_wait_for_all()
 {
-  GPU_shader_batch_wait_for_all();
+  GPU_shader_compiler_wait_for_all();
   g_cache->update();
 }
 
@@ -383,7 +393,6 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
   /* The shader is not compiled, continue generating the shader strings. */
   codegen.generate_attribs();
   codegen.generate_resources();
-  codegen.generate_library();
 
   /* Make engine add its own code and implement the generated functions. */
   finalize_source_cb(thunk, material, &codegen.output);
@@ -396,3 +405,5 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
 }
 
 /** \} */
+
+}  // namespace blender

@@ -9,7 +9,7 @@
 
 namespace blender::deg {
 
-ViewLayerBuilderPipeline::ViewLayerBuilderPipeline(::Depsgraph *graph)
+ViewLayerBuilderPipeline::ViewLayerBuilderPipeline(blender::Depsgraph *graph)
     : AbstractBuilderPipeline(graph)
 {
 }

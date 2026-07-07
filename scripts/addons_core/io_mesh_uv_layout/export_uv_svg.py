@@ -40,13 +40,13 @@ def draw_polygons(tile, face_data, width, height, opacity):
 
         for uv in uvs:
             x, y = uv[0] - tile[0], 1.0 - uv[1] + tile[1]
-            yield f'{x*width:.3f},{y*height:.3f} '
+            yield f'{x * width:.3f},{y * height:.3f} '
         yield '" />\n'
 
 
 def get_color_string(color):
     r, g, b = color
-    return f"rgb({round(r*255)}, {round(g*255)}, {round(b*255)})"
+    return f"rgb({round(r * 255)}, {round(g * 255)}, {round(b * 255)})"
 
 
 def footer():

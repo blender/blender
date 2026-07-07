@@ -7,6 +7,7 @@
  */
 
 #include "BLI_bounds.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_rect.h"
 
 #include "DRW_render.hh"
@@ -34,7 +35,7 @@ void Camera::init()
   CameraData &data = data_;
 
   if (camera_eval && camera_eval->type == OB_CAMERA) {
-    const ::Camera *cam = reinterpret_cast<const ::Camera *>(camera_eval->data);
+    const blender::Camera *cam = reinterpret_cast<const blender::Camera *>(camera_eval->data);
     switch (cam->type) {
       default:
       case CAM_PERSP:
@@ -75,8 +76,9 @@ void Camera::init()
   float overscan = 0.0f;
   if ((inst_.scene->eevee.flag & SCE_EEVEE_OVERSCAN) && (inst_.drw_view || inst_.render)) {
     overscan = inst_.scene->eevee.overscan / 100.0f;
-    if (inst_.drw_view && (inst_.rv3d->dist == 0.0f || v3d_camera_params_get().lens == 0.0f)) {
-      /* In these cases we need to use the v3d winmat as-is. */
+    if (inst_.is_custom_matrix()) {
+      /* If using a custom matrix (XR and some offscreen render paths)
+       * we need to use the v3d winmat as-is. */
       overscan = 0.0f;
     }
   }
@@ -136,9 +138,15 @@ void Camera::sync()
     data.viewmat = inst_.drw_view->viewmat();
     data.viewinv = inst_.drw_view->viewinv();
 
-    CameraParams params = v3d_camera_params_get();
+    if (inst_.is_custom_matrix()) {
+      /* If using a custom matrix (XR and some offscreen render paths)
+       * we need to use the v3d winmat as-is. */
+      data.winmat = inst_.drw_view->winmat();
+      data.wininv = inst_.drw_view->wininv();
+    }
+    else {
+      CameraParams params = v3d_camera_params_get();
 
-    if (inst_.rv3d->dist > 0.0f && params.lens > 0.0f) {
       BKE_camera_params_compute_viewplane(&params, UNPACK2(display_extent), 1.0f, 1.0f);
 
       BLI_assert(BLI_rctf_size_x(&params.viewplane) > 0.0f);
@@ -152,17 +160,6 @@ void Camera::sync()
                                      params.viewplane,
                                      overscan_,
                                      data.winmat.ptr());
-    }
-    else {
-      /* Can happen for the case of XR or if `rv3d->dist == 0`.
-       * In this case the produced winmat is degenerate. So just revert to the input matrix. */
-      data.winmat = inst_.drw_view->winmat();
-    }
-
-    if (isnan(data.winmat.w.x)) {
-      /* Can happen in weird corner case (see #134320).
-       * Simply fall back to something that we can render with. */
-      data.winmat = math::projection::orthographic(0.01f, 0.01f, 0.01f, 0.01f, -1000.0f, +1000.0f);
     }
   }
   else if (inst_.render) {
@@ -195,7 +192,7 @@ void Camera::sync()
 
   is_camera_object_ = false;
   if (camera_eval && camera_eval->type == OB_CAMERA) {
-    const ::Camera *cam = reinterpret_cast<const ::Camera *>(camera_eval->data);
+    const blender::Camera *cam = reinterpret_cast<const blender::Camera *>(camera_eval->data);
     data.clip_near = cam->clip_start;
     data.clip_far = cam->clip_end;
 #if 0 /* TODO(fclem): Make fisheye properties inside blender. */

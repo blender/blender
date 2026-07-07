@@ -28,6 +28,8 @@
 
 #include "BKE_deform.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Curve Deform Internal Utilities
  * \{ */
@@ -62,7 +64,7 @@ static void init_curve_deform(const Object *ob_curve, const Object *ob_target, C
 static bool calc_curve_deform(
     const Object *ob_curve, float co[3], const short axis, const CurveDeform *cd, float r_quat[4])
 {
-  const Curve *cu = static_cast<const Curve *>(ob_curve->data);
+  const Curve *cu = id_cast<const Curve *>(ob_curve->data);
   float fac, loc[4], dir[3], new_quat[4], radius;
   short index;
   const bool is_neg_axis = (axis > 2);
@@ -217,7 +219,7 @@ static void curve_deform_coords_impl(const Object *ob_curve,
     return;
   }
 
-  cu = static_cast<Curve *>(ob_curve->data);
+  cu = id_cast<Curve *>(ob_curve->data);
 
   init_curve_deform(ob_curve, ob_target, &cd);
 
@@ -440,3 +442,5 @@ void BKE_curve_deform_co(const Object *ob_curve,
 }
 
 /** \} */
+
+}  // namespace blender

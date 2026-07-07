@@ -27,7 +27,7 @@ Attribute::Attribute(ustring name,
          type == TypeNormal || type == TypeMatrix || type == TypeFloat2 || type == TypeFloat4 ||
          type == TypeRGBA);
 
-  if (element == ATTR_ELEMENT_VOXEL) {
+  if (element & ATTR_ELEMENT_VOXEL) {
     buffer.resize(sizeof(ImageHandle));
     new (buffer.data()) ImageHandle();
   }
@@ -39,7 +39,7 @@ Attribute::Attribute(ustring name,
 Attribute::~Attribute()
 {
   /* For voxel data, we need to free the image handle. */
-  if (element == ATTR_ELEMENT_VOXEL && !buffer.empty()) {
+  if (element & ATTR_ELEMENT_VOXEL && !buffer.empty()) {
     ImageHandle &handle = data_voxel();
     handle.~ImageHandle();
   }
@@ -47,7 +47,7 @@ Attribute::~Attribute()
 
 void Attribute::resize(Geometry *geom, AttributePrimitive prim, bool reserve_only)
 {
-  if (element != ATTR_ELEMENT_VOXEL) {
+  if (!(element & ATTR_ELEMENT_VOXEL)) {
     if (reserve_only) {
       buffer.reserve(buffer_size(geom, prim));
     }
@@ -59,7 +59,7 @@ void Attribute::resize(Geometry *geom, AttributePrimitive prim, bool reserve_onl
 
 void Attribute::resize(const size_t num_elements)
 {
-  if (element != ATTR_ELEMENT_VOXEL) {
+  if (!(element & ATTR_ELEMENT_VOXEL)) {
     buffer.resize(num_elements * data_sizeof(), 0);
   }
 }
@@ -120,6 +120,20 @@ void Attribute::add(const float3 &f)
   modified = true;
 }
 
+void Attribute::add(const packed_normal &f)
+{
+  assert(data_sizeof() == sizeof(packed_normal));
+
+  char *data = (char *)&f;
+  const size_t size = sizeof(f);
+
+  for (size_t i = 0; i < size; i++) {
+    buffer.push_back(data[i]);
+  }
+
+  modified = true;
+}
+
 void Attribute::add(const Transform &f)
 {
   assert(data_sizeof() == sizeof(Transform));
@@ -165,11 +179,14 @@ void Attribute::set_data_from(Attribute &&other)
 
 size_t Attribute::data_sizeof() const
 {
-  if (element == ATTR_ELEMENT_VOXEL) {
+  if (element & ATTR_ELEMENT_VOXEL) {
     return sizeof(ImageHandle);
   }
-  if (element == ATTR_ELEMENT_CORNER_BYTE) {
+  if (element & ATTR_ELEMENT_IS_BYTE) {
     return sizeof(uchar4);
+  }
+  if (element & ATTR_ELEMENT_IS_NORMAL) {
+    return sizeof(packed_normal);
   }
   if (type == TypeFloat) {
     return sizeof(float);
@@ -202,6 +219,7 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
       size = 1;
       break;
     case ATTR_ELEMENT_VERTEX:
+    case ATTR_ELEMENT_VERTEX_NORMAL:
       if (geom->is_mesh() || geom->is_volume()) {
         Mesh *mesh = static_cast<Mesh *>(geom);
         if (prim == ATTR_PRIM_SUBD) {
@@ -217,6 +235,7 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
       }
       break;
     case ATTR_ELEMENT_VERTEX_MOTION:
+    case ATTR_ELEMENT_VERTEX_NORMAL_MOTION:
       if (geom->is_mesh()) {
         Mesh *mesh = static_cast<Mesh *>(geom);
         DCHECK_GT(mesh->get_motion_steps(), 0);
@@ -245,6 +264,8 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
       break;
     case ATTR_ELEMENT_CORNER:
     case ATTR_ELEMENT_CORNER_BYTE:
+    case ATTR_ELEMENT_CORNER_NORMAL:
+    case ATTR_ELEMENT_CORNER_NORMAL_MOTION:
       if (geom->is_mesh()) {
         Mesh *mesh = static_cast<Mesh *>(geom);
         if (prim == ATTR_PRIM_SUBD) {
@@ -252,6 +273,9 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
         }
         else {
           size = mesh->num_triangles() * 3;
+        }
+        if (element & ATTR_ELEMENT_IS_MOTION) {
+          size *= (mesh->get_motion_steps() - 1);
         }
       }
       break;
@@ -262,12 +286,14 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
       }
       break;
     case ATTR_ELEMENT_CURVE_KEY:
+    case ATTR_ELEMENT_CURVE_KEY_NORMAL:
       if (geom->is_hair()) {
         Hair *hair = static_cast<Hair *>(geom);
         size = hair->get_curve_keys().size();
       }
       break;
     case ATTR_ELEMENT_CURVE_KEY_MOTION:
+    case ATTR_ELEMENT_CURVE_KEY_NORMAL_MOTION:
       if (geom->is_hair()) {
         Hair *hair = static_cast<Hair *>(geom);
         DCHECK_GT(hair->get_motion_steps(), 0);
@@ -309,6 +335,7 @@ const char *Attribute::standard_name(AttributeStandard std)
 {
   switch (std) {
     case ATTR_STD_VERTEX_NORMAL:
+    case ATTR_STD_CORNER_NORMAL:
       return "N";
     case ATTR_STD_UV:
       return "uv";
@@ -335,6 +362,7 @@ const char *Attribute::standard_name(AttributeStandard std)
     case ATTR_STD_MOTION_VERTEX_POSITION:
       return "motion_P";
     case ATTR_STD_MOTION_VERTEX_NORMAL:
+    case ATTR_STD_MOTION_CORNER_NORMAL:
       return "motion_N";
     case ATTR_STD_PARTICLE:
       return "particle";
@@ -398,8 +426,12 @@ AttributeStandard Attribute::name_standard(const char *name)
 
 AttrKernelDataType Attribute::kernel_type(const Attribute &attr)
 {
-  if (attr.element == ATTR_ELEMENT_CORNER) {
+  if (attr.element & ATTR_ELEMENT_IS_BYTE) {
     return AttrKernelDataType::UCHAR4;
+  }
+
+  if (attr.element & ATTR_ELEMENT_IS_NORMAL) {
+    return AttrKernelDataType::NORMAL;
   }
 
   if (attr.type == TypeFloat) {
@@ -517,8 +549,10 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
   if (geometry->is_mesh()) {
     switch (std) {
       case ATTR_STD_VERTEX_NORMAL:
+        attr = add(name, TypeNormal, ATTR_ELEMENT_VERTEX_NORMAL);
+        break;
       case ATTR_STD_NORMAL_UNDISPLACED:
-        attr = add(name, TypeNormal, ATTR_ELEMENT_VERTEX);
+        attr = add(name, TypeNormal, ATTR_ELEMENT_VERTEX_NORMAL);
         break;
       case ATTR_STD_UV:
         attr = add(name, TypeFloat2, ATTR_ELEMENT_CORNER);
@@ -543,7 +577,13 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
         attr = add(name, TypePoint, ATTR_ELEMENT_VERTEX_MOTION);
         break;
       case ATTR_STD_MOTION_VERTEX_NORMAL:
-        attr = add(name, TypeNormal, ATTR_ELEMENT_VERTEX_MOTION);
+        attr = add(name, TypeNormal, ATTR_ELEMENT_VERTEX_NORMAL_MOTION);
+        break;
+      case ATTR_STD_CORNER_NORMAL:
+        attr = add(name, TypeNormal, ATTR_ELEMENT_CORNER_NORMAL);
+        break;
+      case ATTR_STD_MOTION_CORNER_NORMAL:
+        attr = add(name, TypeNormal, ATTR_ELEMENT_CORNER_NORMAL_MOTION);
         break;
       case ATTR_STD_PTEX_FACE_ID:
         attr = add(name, TypeFloat, ATTR_ELEMENT_FACE);
@@ -590,7 +630,10 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
   else if (geometry->is_volume()) {
     switch (std) {
       case ATTR_STD_VERTEX_NORMAL:
-        attr = add(name, TypeNormal, ATTR_ELEMENT_VERTEX);
+        attr = add(name, TypeNormal, ATTR_ELEMENT_VERTEX_NORMAL);
+        break;
+      case ATTR_STD_CORNER_NORMAL:
+        attr = add(name, TypeNormal, ATTR_ELEMENT_CORNER_NORMAL);
         break;
       case ATTR_STD_VOLUME_DENSITY:
       case ATTR_STD_VOLUME_FLAME:
@@ -615,7 +658,10 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
   else if (geometry->is_hair()) {
     switch (std) {
       case ATTR_STD_VERTEX_NORMAL:
-        attr = add(name, TypeNormal, ATTR_ELEMENT_CURVE_KEY);
+        attr = add(name, TypeNormal, ATTR_ELEMENT_CURVE_KEY_NORMAL);
+        break;
+      case ATTR_STD_MOTION_VERTEX_NORMAL:
+        attr = add(name, TypeNormal, ATTR_ELEMENT_CURVE_KEY_NORMAL_MOTION);
         break;
       case ATTR_STD_UV:
         attr = add(name, TypeFloat2, ATTR_ELEMENT_CURVE);
@@ -749,7 +795,7 @@ void AttributeSet::clear(bool preserve_voxel_data)
     list<Attribute>::iterator it;
 
     for (it = attributes.begin(); it != attributes.end();) {
-      if (it->element == ATTR_ELEMENT_VOXEL || it->std == ATTR_STD_GENERATED_TRANSFORM) {
+      if ((it->element & ATTR_ELEMENT_VOXEL) || it->std == ATTR_STD_GENERATED_TRANSFORM) {
         it++;
       }
       else {
@@ -797,15 +843,8 @@ void AttributeSet::clear_modified()
 
 void AttributeSet::tag_modified(const Attribute &attr)
 {
-  /* Some attributes are not stored in the various kernel attribute arrays
-   * (DeviceScene::attribute_*), so the modified flags are only set if the associated standard
-   * corresponds to an attribute which will be stored in the kernel's attribute arrays. */
-  const bool modifies_device_array = (attr.std != ATTR_STD_VERTEX_NORMAL);
-
-  if (modifies_device_array) {
-    const AttrKernelDataType kernel_type = Attribute::kernel_type(attr);
-    modified_flag |= (1u << kernel_type);
-  }
+  const AttrKernelDataType kernel_type = Attribute::kernel_type(attr);
+  modified_flag |= (1u << kernel_type);
 }
 
 bool AttributeSet::modified(AttrKernelDataType kernel_type) const

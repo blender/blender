@@ -664,7 +664,7 @@ TEST(BKE_fcurve, sort_time_fcurve_stability)
   FCurve *fcu = testcurve_with_duplicates();
   ASSERT_EQ(fcu->totvert, 10);
 
-  sort_time_fcurve(fcu);
+  sort_time_fcurve(*fcu);
 
   /* The sorting should be stable, i.e. retain the original order when the
    * X-coordinates are identical. */
@@ -687,7 +687,7 @@ TEST(BKE_fcurve, BKE_fcurve_deduplicate_keys)
 {
   FCurve *fcu = testcurve_with_duplicates();
   ASSERT_EQ(fcu->totvert, 10);
-  sort_time_fcurve(fcu);
+  sort_time_fcurve(*fcu);
 
   BKE_fcurve_deduplicate_keys(fcu);
   ASSERT_GE(fcu->totvert, 6); /* Protect against out-of-bounds access. */
@@ -713,7 +713,7 @@ TEST(BKE_fcurve, BKE_fcurve_deduplicate_keys_edge_cases)
   set_key(fcu, 8, 327.16f, 1);
   set_key(fcu, 9, 327.16f, 2);
 
-  sort_time_fcurve(fcu);
+  sort_time_fcurve(*fcu);
 
   BKE_fcurve_deduplicate_keys(fcu);
   ASSERT_EQ(fcu->totvert, 4);
@@ -738,7 +738,7 @@ TEST(BKE_fcurve, BKE_fcurve_deduplicate_keys_prefer_whole_frames)
   set_key(fcu, 5, 47.0f, 2.0f);
   set_key(fcu, 6, 47.0f + BEZT_BINARYSEARCH_THRESH, 3.0f);
 
-  sort_time_fcurve(fcu);
+  sort_time_fcurve(*fcu);
 
   BKE_fcurve_deduplicate_keys(fcu);
   ASSERT_EQ(fcu->totvert, 6);

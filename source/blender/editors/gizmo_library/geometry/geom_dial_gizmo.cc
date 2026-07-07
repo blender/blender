@@ -8,6 +8,8 @@
 
 #include "../gizmo_geometry.h"
 
+namespace blender {
+
 static const float verts[][3] = {
     {1.034000, 0.000000, 0.000000},    {1.017000, 0.000000, 0.029445},
     {0.983000, 0.000000, 0.029445},    {0.966000, 0.000000, 0.000000},
@@ -277,3 +279,5 @@ GizmoGeomInfo wm_gizmo_geom_data_dial = {
     /*normals*/ normals,
     /*indices*/ indices,
 };
+
+}  // namespace blender

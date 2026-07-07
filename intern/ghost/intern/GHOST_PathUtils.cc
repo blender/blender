@@ -14,7 +14,7 @@
 
 #include "GHOST_Debug.hh"
 #include "GHOST_PathUtils.hh"
-#include "GHOST_Types.h"
+#include "GHOST_Types.hh"
 
 /* Based on: https://stackoverflow.com/a/2766963/432509 */
 

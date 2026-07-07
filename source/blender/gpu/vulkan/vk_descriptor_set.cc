@@ -15,7 +15,11 @@
 #include "vk_texture.hh"
 #include "vk_vertex_buffer.hh"
 
+#include "CLG_log.h"
+
 namespace blender::gpu {
+
+static CLG_LogRef LOG = {"gpu.vulkan"};
 
 void VKDescriptorSetTracker::update_descriptor_set(VKContext &context,
                                                    render_graph::VKResourceAccessInfo &access_info,
@@ -24,36 +28,258 @@ void VKDescriptorSetTracker::update_descriptor_set(VKContext &context,
   VKShader &shader = *unwrap(context.shader);
   VKStateManager &state_manager = context.state_manager_get();
 
+  update_resource_access_info(context, access_info);
+
   /* Can we reuse previous descriptor set. */
-  if (!state_manager.is_dirty &&
-      !assign_if_different(vk_descriptor_set_layout_, shader.vk_descriptor_set_layout_get()) &&
+  const VkDescriptorSetLayout shader_descriptor_set_layout = shader.vk_descriptor_set_layout_get();
+  if (!state_manager.is_dirty && vk_descriptor_set_layout_ == shader_descriptor_set_layout &&
       shader.push_constants.layout_get().storage_type_get() !=
           VKPushConstants::StorageType::UNIFORM_BUFFER)
   {
     return;
   }
+  vk_descriptor_set_layout_ = shader_descriptor_set_layout;
   state_manager.is_dirty = false;
 
   VKDevice &device = VKBackend::get().device;
   VkDescriptorSetLayout vk_descriptor_set_layout = shader.vk_descriptor_set_layout_get();
-  VKDescriptorSetUpdator *updator = &descriptor_sets;
-  if (device.extensions_get().descriptor_buffer) {
-    updator = &descriptor_buffers;
-  }
-  updator->allocate_new_descriptor_set(
+  descriptor_sets.allocate_new_descriptor_set(
       device, context, shader, vk_descriptor_set_layout, r_pipeline_data);
-  updator->bind_shader_resources(device, state_manager, shader, access_info);
+  descriptor_sets.bind_shader_resources(device, state_manager, shader);
 }
+
+/* -------------------------------------------------------------------- */
+/** \name Update resource access info
+ * \{ */
+
+void VKDescriptorSetTracker::update_resource_access_info_binding_uniform_buffer(
+    const VKStateManager &state_manager,
+    const VKResourceBinding &resource_binding,
+    render_graph::VKResourceAccessInfo &access_info)
+{
+  VKUniformBuffer &uniform_buffer = *state_manager.uniform_buffers_.get(resource_binding.binding);
+  uniform_buffer.ensure_updated();
+  access_info.buffers.append({uniform_buffer.vk_handle(), resource_binding.access_mask});
+}
+
+void VKDescriptorSetTracker::update_resource_access_info_binding_storage_buffer(
+    const VKStateManager &state_manager,
+    const VKResourceBinding &resource_binding,
+    render_graph::VKResourceAccessInfo &access_info)
+{
+  const BindSpaceStorageBuffers::Elem &elem = state_manager.storage_buffers_.get(
+      resource_binding.binding);
+  VkBuffer vk_buffer = VK_NULL_HANDLE;
+  switch (elem.resource_type) {
+    case BindSpaceStorageBuffers::Type::IndexBuffer: {
+      VKIndexBuffer *index_buffer = static_cast<VKIndexBuffer *>(elem.resource);
+      index_buffer->ensure_updated();
+      vk_buffer = index_buffer->vk_handle();
+      break;
+    }
+    case BindSpaceStorageBuffers::Type::VertexBuffer: {
+      VKVertexBuffer *vertex_buffer = static_cast<VKVertexBuffer *>(elem.resource);
+      vertex_buffer->ensure_updated();
+      vk_buffer = vertex_buffer->vk_handle();
+      break;
+    }
+    case BindSpaceStorageBuffers::Type::UniformBuffer: {
+      VKUniformBuffer *uniform_buffer = static_cast<VKUniformBuffer *>(elem.resource);
+      uniform_buffer->ensure_updated();
+      vk_buffer = uniform_buffer->vk_handle();
+      break;
+    }
+    case BindSpaceStorageBuffers::Type::StorageBuffer: {
+      VKStorageBuffer *storage_buffer = static_cast<VKStorageBuffer *>(elem.resource);
+      storage_buffer->ensure_allocated();
+      vk_buffer = storage_buffer->vk_handle();
+      break;
+    }
+    case BindSpaceStorageBuffers::Type::Buffer: {
+      VKBuffer *buffer = static_cast<VKBuffer *>(elem.resource);
+      vk_buffer = buffer->vk_handle();
+      break;
+    }
+    case BindSpaceStorageBuffers::Type::Unused: {
+      BLI_assert_unreachable();
+    }
+  }
+  if (vk_buffer != VK_NULL_HANDLE) {
+    access_info.buffers.append({vk_buffer, resource_binding.access_mask});
+  }
+}
+
+void VKDescriptorSetTracker::update_resource_access_info_binding_sampler(
+    const VKStateManager &state_manager,
+    const VKResourceBinding &resource_binding,
+    render_graph::VKResourceAccessInfo &access_info)
+{
+  const BindSpaceTextures::Elem *elem_ptr = state_manager.textures_.get(resource_binding.binding);
+  if (!elem_ptr || elem_ptr->resource == nullptr) {
+    /* Unbound resource. */
+    if (bool(G.debug & G_DEBUG_GPU)) {
+      VKContext &context = *VKContext::get();
+      const VKShader &shader = *static_cast<const VKShader *>(context.shader);
+      const VKShaderInterface &interface = shader.interface_get();
+      const ShaderInput &shader_input = *interface.texture_get(resource_binding.binding);
+      CLOG_ERROR(&LOG,
+                 "Missing Texture bind at slot %d : %s > %s",
+                 shader_input.binding,
+                 shader.name_get().c_str(),
+                 interface.input_name_get(&shader_input));
+    }
+    return;
+  }
+  const BindSpaceTextures::Elem &elem = *elem_ptr;
+  switch (elem.resource_type) {
+    case BindSpaceTextures::Type::VertexBuffer: {
+      VKVertexBuffer &vertex_buffer = *static_cast<VKVertexBuffer *>(elem.resource);
+      vertex_buffer.ensure_updated();
+      access_info.buffers.append({vertex_buffer.vk_handle(), resource_binding.access_mask});
+      break;
+    }
+    case BindSpaceTextures::Type::Texture: {
+      VKTexture *texture = static_cast<VKTexture *>(elem.resource);
+      if (texture->type_ == GPU_TEXTURE_BUFFER) {
+        VKVertexBuffer &vertex_buffer = *texture->source_buffer_;
+        vertex_buffer.ensure_updated();
+        access_info.buffers.append({vertex_buffer.vk_handle(), resource_binding.access_mask});
+      }
+      else {
+        access_info.images.append({texture->vk_image_handle(),
+                                   resource_binding.access_mask,
+                                   to_vk_image_aspect_flag_bits(texture->device_format_get()),
+                                   {}});
+      }
+      break;
+    }
+    case BindSpaceTextures::Type::Unused: {
+      BLI_assert_unreachable();
+    }
+  }
+}
+
+void VKDescriptorSetTracker::update_resource_access_info_binding_image(
+    const VKStateManager &state_manager,
+    const VKResourceBinding &resource_binding,
+    render_graph::VKResourceAccessInfo &access_info)
+{
+  VKTexture &texture = *state_manager.images_.get(resource_binding.binding);
+  VKSubImageRange subimage = {};
+  if (texture.is_texture_view()) {
+    IndexRange layer_range = texture.layer_range();
+    IndexRange mipmap_range = texture.mip_map_range();
+    subimage = {uint32_t(mipmap_range.start()),
+                uint32_t(mipmap_range.size()),
+                uint32_t(layer_range.start()),
+                uint32_t(layer_range.size())};
+  }
+  access_info.images.append({texture.vk_image_handle(),
+                             resource_binding.access_mask,
+                             to_vk_image_aspect_flag_bits(texture.device_format_get()),
+                             subimage});
+}
+
+void VKDescriptorSetTracker::update_resource_access_info_binding_input_attachment(
+    const VKStateManager &state_manager,
+    const VKResourceBinding &resource_binding,
+    render_graph::VKResourceAccessInfo &access_info)
+{
+  const VKDevice &device = VKBackend::get().device;
+  VKTexture *texture = nullptr;
+  if (device.extensions_get().dynamic_rendering_local_read) {
+    texture = static_cast<VKTexture *>(state_manager.images_.get(resource_binding.binding));
+  }
+  else {
+    texture = static_cast<VKTexture *>(
+        state_manager.textures_.get(resource_binding.binding)->resource);
+  }
+
+  BLI_assert(texture);
+  VkImage vk_image = texture->vk_image_handle();
+  if (vk_image != VK_NULL_HANDLE) {
+    VKSubImageRange subimage = {};
+    if (texture->is_texture_view()) {
+      IndexRange layer_range = texture->layer_range();
+      IndexRange mipmap_range = texture->mip_map_range();
+      subimage = {uint32_t(mipmap_range.start()),
+                  uint32_t(mipmap_range.size()),
+                  uint32_t(layer_range.start()),
+                  uint32_t(layer_range.size())};
+    }
+
+    access_info.images.append({texture->vk_image_handle(),
+                               resource_binding.access_mask,
+                               to_vk_image_aspect_flag_bits(texture->device_format_get()),
+                               subimage});
+  }
+}
+
+void VKDescriptorSetTracker::update_resource_access_info_binding(
+    const VKStateManager &state_manager,
+    const VKResourceBinding &resource_binding,
+    render_graph::VKResourceAccessInfo &access_info)
+{
+  switch (resource_binding.bind_type) {
+    case VKBindType::UNIFORM_BUFFER: {
+      update_resource_access_info_binding_uniform_buffer(
+          state_manager, resource_binding, access_info);
+      break;
+    }
+
+    case VKBindType::STORAGE_BUFFER: {
+      update_resource_access_info_binding_storage_buffer(
+          state_manager, resource_binding, access_info);
+      break;
+    }
+
+    case VKBindType::SAMPLER: {
+      update_resource_access_info_binding_sampler(state_manager, resource_binding, access_info);
+      break;
+    }
+
+    case VKBindType::IMAGE: {
+      update_resource_access_info_binding_image(state_manager, resource_binding, access_info);
+      break;
+    }
+
+    case VKBindType::INPUT_ATTACHMENT: {
+      update_resource_access_info_binding_input_attachment(
+          state_manager, resource_binding, access_info);
+      break;
+    }
+  }
+}
+
+void VKDescriptorSetTracker::update_resource_access_info(
+    VKContext &context, render_graph::VKResourceAccessInfo &access_info)
+{
+  VKShader &shader = *unwrap(context.shader);
+  VKStateManager &state_manager = context.state_manager_get();
+  const VKShaderInterface &shader_interface = shader.interface_get();
+
+  for (const VKResourceBinding &resource_binding : shader_interface.resource_bindings_get()) {
+    if (resource_binding.binding == -1) {
+      continue;
+    }
+    update_resource_access_info_binding(state_manager, resource_binding, access_info);
+  }
+
+  /* Bind uniform push constants to descriptor set. */
+  if (shader.push_constants.layout_get().storage_type_get() ==
+      VKPushConstants::StorageType::UNIFORM_BUFFER)
+  {
+    shader.push_constants.update_uniform_buffer();
+    const VKUniformBuffer &uniform_buffer = *shader.push_constants.uniform_buffer_get().get();
+    access_info.buffers.append({uniform_buffer.vk_handle(), VK_ACCESS_UNIFORM_READ_BIT});
+  }
+}
+
+/** \} */
 
 void VKDescriptorSetTracker::upload_descriptor_sets()
 {
-  VKDevice &device = VKBackend::get().device;
-  if (device.extensions_get().descriptor_buffer) {
-    descriptor_buffers.upload_descriptor_sets();
-  }
-  else {
-    descriptor_sets.upload_descriptor_sets();
-  }
+  descriptor_sets.upload_descriptor_sets();
   vk_descriptor_set_layout_ = VK_NULL_HANDLE;
 }
 
@@ -62,8 +288,7 @@ void VKDescriptorSetTracker::upload_descriptor_sets()
  * \{ */
 
 void VKDescriptorSetUpdator::bind_image_resource(const VKStateManager &state_manager,
-                                                 const VKResourceBinding &resource_binding,
-                                                 render_graph::VKResourceAccessInfo &access_info)
+                                                 const VKResourceBinding &resource_binding)
 {
   VKTexture &texture = *state_manager.images_.get(resource_binding.binding);
   bind_image(
@@ -72,39 +297,22 @@ void VKDescriptorSetUpdator::bind_image_resource(const VKStateManager &state_man
       texture.image_view_get(resource_binding.arrayed, VKImageViewFlags::NO_SWIZZLING).vk_handle(),
       VK_IMAGE_LAYOUT_GENERAL,
       resource_binding.location);
-  /* Update access info. */
-  uint32_t layer_base = 0;
-  uint32_t layer_count = VK_REMAINING_ARRAY_LAYERS;
-  if (resource_binding.arrayed == VKImageViewArrayed::ARRAYED && texture.is_texture_view()) {
-    IndexRange layer_range = texture.layer_range();
-    layer_base = layer_range.start();
-    layer_count = layer_range.size();
-  }
-  access_info.images.append({texture.vk_image_handle(),
-                             resource_binding.access_mask,
-                             to_vk_image_aspect_flag_bits(texture.device_format_get()),
-                             layer_base,
-                             layer_count});
 }
 
 void VKDescriptorSetUpdator::bind_texture_resource(const VKDevice &device,
                                                    const VKStateManager &state_manager,
-                                                   const VKResourceBinding &resource_binding,
-                                                   render_graph::VKResourceAccessInfo &access_info)
+                                                   const VKResourceBinding &resource_binding)
 {
   const BindSpaceTextures::Elem *elem_ptr = state_manager.textures_.get(resource_binding.binding);
-  if (!elem_ptr) {
+  if (!elem_ptr || elem_ptr->resource == nullptr) {
     /* Unbound resource. */
-    BLI_assert_unreachable();
     return;
   }
   const BindSpaceTextures::Elem &elem = *elem_ptr;
   switch (elem.resource_type) {
     case BindSpaceTextures::Type::VertexBuffer: {
       VKVertexBuffer &vertex_buffer = *static_cast<VKVertexBuffer *>(elem.resource);
-      vertex_buffer.ensure_updated();
       bind_texel_buffer(vertex_buffer, resource_binding.location);
-      access_info.buffers.append({vertex_buffer.vk_handle(), resource_binding.access_mask});
       break;
     }
     case BindSpaceTextures::Type::Texture: {
@@ -114,9 +322,7 @@ void VKDescriptorSetUpdator::bind_texture_resource(const VKDevice &device,
          * bound as texel buffers. */
         /* TODO: Investigate if this can be improved in the API. */
         VKVertexBuffer &vertex_buffer = *texture->source_buffer_;
-        vertex_buffer.ensure_updated();
         bind_texel_buffer(vertex_buffer, resource_binding.location);
-        access_info.buffers.append({vertex_buffer.vk_handle(), resource_binding.access_mask});
       }
       else {
         const VKSampler &sampler = device.samplers().get(elem.sampler);
@@ -126,11 +332,6 @@ void VKDescriptorSetUpdator::bind_texture_resource(const VKDevice &device,
                        .vk_handle(),
                    VK_IMAGE_LAYOUT_GENERAL,
                    resource_binding.location);
-        access_info.images.append({texture->vk_image_handle(),
-                                   resource_binding.access_mask,
-                                   to_vk_image_aspect_flag_bits(texture->device_format_get()),
-                                   0,
-                                   VK_REMAINING_ARRAY_LAYERS});
       }
       break;
     }
@@ -143,8 +344,7 @@ void VKDescriptorSetUpdator::bind_texture_resource(const VKDevice &device,
 void VKDescriptorSetUpdator::bind_input_attachment_resource(
     const VKDevice &device,
     const VKStateManager &state_manager,
-    const VKResourceBinding &resource_binding,
-    render_graph::VKResourceAccessInfo &access_info)
+    const VKResourceBinding &resource_binding)
 {
   const bool supports_local_read = device.extensions_get().dynamic_rendering_local_read;
   if (supports_local_read) {
@@ -157,14 +357,6 @@ void VKDescriptorSetUpdator::bind_input_attachment_resource(
                    .vk_handle(),
                VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR,
                resource_binding.location);
-    VkImage vk_image = texture->vk_image_handle();
-    if (vk_image != VK_NULL_HANDLE) {
-      access_info.images.append({texture->vk_image_handle(),
-                                 resource_binding.access_mask,
-                                 to_vk_image_aspect_flag_bits(texture->device_format_get()),
-                                 0,
-                                 VK_REMAINING_ARRAY_LAYERS});
-    }
   }
   else {
     const BindSpaceTextures::Elem *elem_ptr = state_manager.textures_.get(
@@ -185,65 +377,47 @@ void VKDescriptorSetUpdator::bind_input_attachment_resource(
         texture->image_view_get(resource_binding.arrayed, VKImageViewFlags::DEFAULT).vk_handle(),
         VK_IMAGE_LAYOUT_GENERAL,
         resource_binding.location);
-    VkImage vk_image = texture->vk_image_handle();
-    if (vk_image != VK_NULL_HANDLE) {
-      access_info.images.append({vk_image,
-                                 resource_binding.access_mask,
-                                 to_vk_image_aspect_flag_bits(texture->device_format_get()),
-                                 0,
-                                 VK_REMAINING_ARRAY_LAYERS});
-    }
   }
 }
 
 void VKDescriptorSetUpdator::bind_storage_buffer_resource(
-    const VKStateManager &state_manager,
-    const VKResourceBinding &resource_binding,
-    render_graph::VKResourceAccessInfo &access_info)
+    const VKStateManager &state_manager, const VKResourceBinding &resource_binding)
 {
   const BindSpaceStorageBuffers::Elem &elem = state_manager.storage_buffers_.get(
       resource_binding.binding);
   VkBuffer vk_buffer = VK_NULL_HANDLE;
   VkDeviceSize vk_device_size = 0;
-  VkDeviceAddress vk_device_address = 0;
   switch (elem.resource_type) {
     case BindSpaceStorageBuffers::Type::IndexBuffer: {
       VKIndexBuffer *index_buffer = static_cast<VKIndexBuffer *>(elem.resource);
-      index_buffer->ensure_updated();
       vk_buffer = index_buffer->vk_handle();
-      vk_device_size = index_buffer->size_get();
-      vk_device_address = index_buffer->device_address_get();
+      /* Using the allocated size of the buffer as conservative depth shader can read additional
+       * bytes when there are an uneven number of indices. */
+      vk_device_size = index_buffer->allocated_size_get() - elem.offset;
       break;
     }
     case BindSpaceStorageBuffers::Type::VertexBuffer: {
       VKVertexBuffer *vertex_buffer = static_cast<VKVertexBuffer *>(elem.resource);
-      vertex_buffer->ensure_updated();
       vk_buffer = vertex_buffer->vk_handle();
-      vk_device_size = vertex_buffer->size_used_get();
-      vk_device_address = vertex_buffer->device_address_get();
+      vk_device_size = vertex_buffer->size_used_get() - elem.offset;
       break;
     }
     case BindSpaceStorageBuffers::Type::UniformBuffer: {
       VKUniformBuffer *uniform_buffer = static_cast<VKUniformBuffer *>(elem.resource);
-      uniform_buffer->ensure_updated();
       vk_buffer = uniform_buffer->vk_handle();
-      vk_device_size = uniform_buffer->size_in_bytes();
-      vk_device_address = uniform_buffer->device_address_get();
+      vk_device_size = uniform_buffer->size_in_bytes() - elem.offset;
       break;
     }
     case BindSpaceStorageBuffers::Type::StorageBuffer: {
       VKStorageBuffer *storage_buffer = static_cast<VKStorageBuffer *>(elem.resource);
-      storage_buffer->ensure_allocated();
       vk_buffer = storage_buffer->vk_handle();
-      vk_device_size = storage_buffer->size_in_bytes();
-      vk_device_address = storage_buffer->device_address_get();
+      vk_device_size = storage_buffer->usage_size_get();
       break;
     }
     case BindSpaceStorageBuffers::Type::Buffer: {
       VKBuffer *buffer = static_cast<VKBuffer *>(elem.resource);
       vk_buffer = buffer->vk_handle();
-      vk_device_size = buffer->size_in_bytes();
-      vk_device_address = buffer->device_address_get();
+      vk_device_size = buffer->size_in_bytes() - elem.offset;
       break;
     }
     case BindSpaceStorageBuffers::Type::Unused: {
@@ -253,54 +427,40 @@ void VKDescriptorSetUpdator::bind_storage_buffer_resource(
 
   bind_buffer(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
               vk_buffer,
-              vk_device_address,
               elem.offset,
-              vk_device_size - elem.offset,
+              vk_device_size,
               resource_binding.location);
-  if (vk_buffer != VK_NULL_HANDLE) {
-    access_info.buffers.append({vk_buffer, resource_binding.access_mask});
-  }
 }
 
 void VKDescriptorSetUpdator::bind_uniform_buffer_resource(
-    const VKStateManager &state_manager,
-    const VKResourceBinding &resource_binding,
-    render_graph::VKResourceAccessInfo &access_info)
+    const VKStateManager &state_manager, const VKResourceBinding &resource_binding)
 {
   VKUniformBuffer &uniform_buffer = *state_manager.uniform_buffers_.get(resource_binding.binding);
-  uniform_buffer.ensure_updated();
   bind_buffer(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
               uniform_buffer.vk_handle(),
-              uniform_buffer.device_address_get(),
               0,
               uniform_buffer.size_in_bytes(),
               resource_binding.location);
-  access_info.buffers.append({uniform_buffer.vk_handle(), resource_binding.access_mask});
 }
 
-void VKDescriptorSetUpdator::bind_push_constants(VKPushConstants &push_constants,
-                                                 render_graph::VKResourceAccessInfo &access_info)
+void VKDescriptorSetUpdator::bind_push_constants(VKPushConstants &push_constants)
 {
   if (push_constants.layout_get().storage_type_get() !=
       VKPushConstants::StorageType::UNIFORM_BUFFER)
   {
     return;
   }
-  push_constants.update_uniform_buffer();
   const VKUniformBuffer &uniform_buffer = *push_constants.uniform_buffer_get().get();
   bind_buffer(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
               uniform_buffer.vk_handle(),
-              uniform_buffer.device_address_get(),
               0,
               uniform_buffer.size_in_bytes(),
               push_constants.layout_get().descriptor_set_location_get());
-  access_info.buffers.append({uniform_buffer.vk_handle(), VK_ACCESS_UNIFORM_READ_BIT});
 }
 
 void VKDescriptorSetUpdator::bind_shader_resources(const VKDevice &device,
                                                    const VKStateManager &state_manager,
-                                                   VKShader &shader,
-                                                   render_graph::VKResourceAccessInfo &access_info)
+                                                   VKShader &shader)
 {
   const VKShaderInterface &shader_interface = shader.interface_get();
   for (const VKResourceBinding &resource_binding : shader_interface.resource_bindings_get()) {
@@ -310,29 +470,29 @@ void VKDescriptorSetUpdator::bind_shader_resources(const VKDevice &device,
 
     switch (resource_binding.bind_type) {
       case VKBindType::UNIFORM_BUFFER:
-        bind_uniform_buffer_resource(state_manager, resource_binding, access_info);
+        bind_uniform_buffer_resource(state_manager, resource_binding);
         break;
 
       case VKBindType::STORAGE_BUFFER:
-        bind_storage_buffer_resource(state_manager, resource_binding, access_info);
+        bind_storage_buffer_resource(state_manager, resource_binding);
         break;
 
       case VKBindType::SAMPLER:
-        bind_texture_resource(device, state_manager, resource_binding, access_info);
+        bind_texture_resource(device, state_manager, resource_binding);
         break;
 
       case VKBindType::IMAGE:
-        bind_image_resource(state_manager, resource_binding, access_info);
+        bind_image_resource(state_manager, resource_binding);
         break;
 
       case VKBindType::INPUT_ATTACHMENT:
-        bind_input_attachment_resource(device, state_manager, resource_binding, access_info);
+        bind_input_attachment_resource(device, state_manager, resource_binding);
         break;
     }
   }
 
   /* Bind uniform push constants to descriptor set. */
-  bind_push_constants(shader.push_constants, access_info);
+  bind_push_constants(shader.push_constants);
 }
 
 /** \} */
@@ -357,7 +517,6 @@ void VKDescriptorSetPoolUpdator::allocate_new_descriptor_set(
 
 void VKDescriptorSetPoolUpdator::bind_buffer(VkDescriptorType vk_descriptor_type,
                                              VkBuffer vk_buffer,
-                                             VkDeviceAddress /*vk_device_address*/,
                                              VkDeviceSize buffer_offset,
                                              VkDeviceSize size_in_bytes,
                                              VKDescriptorSet::Location location)
@@ -508,167 +667,6 @@ void VKDescriptorSetPoolUpdator::upload_descriptor_sets()
   vk_descriptor_buffer_infos_.clear();
   vk_buffer_views_.clear();
   vk_write_descriptor_sets_.clear();
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name VKDescriptorBufferUpdator
- * \{ */
-
-void VKDescriptorBufferUpdator::allocate_new_descriptor_set(
-    VKDevice &device,
-    VKContext & /*context*/,
-    VKShader & /*shader*/,
-    VkDescriptorSetLayout vk_descriptor_set_layout,
-    render_graph::VKPipelineData &r_pipeline_data)
-{
-  /* Use descriptor buffer. */
-  descriptor_set_head = descriptor_set_tail;
-  layout = device.descriptor_set_layouts_get().descriptor_buffer_layout_get(
-      vk_descriptor_set_layout);
-
-  /* Ensure if there is still place left in the current buffer. */
-  if (buffers.is_empty() ||
-      layout.size > buffers.last().get()->size_in_bytes() - descriptor_set_head)
-  {
-    const VkDeviceSize default_buffer_size = 8 * 1024 * 1024;
-    buffers.append(std::make_unique<VKBuffer>());
-    VKBuffer *buffer = buffers.last().get();
-    buffer->create(default_buffer_size,
-                   VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT |
-                       VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT,
-                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-                   0,
-                   VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
-                   0.8f);
-    debug::object_label(buffer->vk_handle(), "DescriptorBuffer");
-    descriptor_buffer_data = static_cast<uint8_t *>(buffer->mapped_memory_get());
-    descriptor_buffer_device_address = buffer->device_address_get();
-    descriptor_buffer_offset = 0;
-    descriptor_set_head = 0;
-    descriptor_set_tail = 0;
-  }
-
-  descriptor_set_tail = descriptor_set_head + layout.size;
-
-  /* Update the current descriptor buffer and its offset to point to the active descriptor set. */
-  descriptor_buffer_offset = descriptor_set_head;
-
-  r_pipeline_data.descriptor_buffer_device_address = descriptor_buffer_device_address;
-  r_pipeline_data.descriptor_buffer_offset = descriptor_buffer_offset;
-}
-
-void VKDescriptorBufferUpdator::bind_buffer(VkDescriptorType vk_descriptor_type,
-                                            VkBuffer /*vk_buffer*/,
-                                            VkDeviceAddress vk_device_address,
-                                            VkDeviceSize buffer_offset,
-                                            VkDeviceSize size_in_bytes,
-                                            VKDescriptorSet::Location location)
-{
-  BLI_assert(vk_device_address != 0);
-  VKDevice &device = VKBackend::get().device;
-  const VkPhysicalDeviceDescriptorBufferPropertiesEXT &vk_descriptor_buffer_properties =
-      device.physical_device_descriptor_buffer_properties_get();
-  VkDescriptorAddressInfoEXT descriptor_address_info = {
-      VK_STRUCTURE_TYPE_DESCRIPTOR_ADDRESS_INFO_EXT,
-      nullptr,
-      vk_device_address + buffer_offset,
-      size_in_bytes};
-
-  VkDescriptorGetInfoEXT vk_descriptor_get_info{
-      VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT, nullptr, vk_descriptor_type};
-  VkDeviceSize descriptor_size = 0;
-  switch (vk_descriptor_type) {
-    case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
-      vk_descriptor_get_info.data.pUniformBuffer = &descriptor_address_info;
-      descriptor_size = vk_descriptor_buffer_properties.uniformBufferDescriptorSize;
-      break;
-
-    case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
-      vk_descriptor_get_info.data.pStorageBuffer = &descriptor_address_info;
-      descriptor_size = vk_descriptor_buffer_properties.storageBufferDescriptorSize;
-      break;
-
-    default:
-      BLI_assert_unreachable();
-  }
-
-  uint8_t *descriptor_ptr = get_descriptor_binding_ptr(location);
-  device.functions.vkGetDescriptor(
-      device.vk_handle(), &vk_descriptor_get_info, descriptor_size, descriptor_ptr);
-}
-
-void VKDescriptorBufferUpdator::bind_texel_buffer(VKVertexBuffer &vertex_buffer,
-                                                  const VKDescriptorSet::Location location)
-{
-  VkDeviceAddress vk_device_address = vertex_buffer.device_address_get();
-  BLI_assert(vk_device_address != 0);
-  VKDevice &device = VKBackend::get().device;
-  const VkPhysicalDeviceDescriptorBufferPropertiesEXT &vk_descriptor_buffer_properties =
-      device.physical_device_descriptor_buffer_properties_get();
-  VkDescriptorAddressInfoEXT descriptor_address_info = {
-      VK_STRUCTURE_TYPE_DESCRIPTOR_ADDRESS_INFO_EXT,
-      nullptr,
-      vk_device_address,
-      vertex_buffer.size_used_get(),
-      vertex_buffer.to_vk_format()};
-
-  VkDescriptorGetInfoEXT vk_descriptor_get_info{
-      VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT, nullptr, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER};
-  vk_descriptor_get_info.data.pUniformTexelBuffer = &descriptor_address_info;
-  VkDeviceSize descriptor_size = vk_descriptor_buffer_properties.uniformTexelBufferDescriptorSize;
-
-  uint8_t *descriptor_ptr = get_descriptor_binding_ptr(location);
-  device.functions.vkGetDescriptor(
-      device.vk_handle(), &vk_descriptor_get_info, descriptor_size, descriptor_ptr);
-}
-
-void VKDescriptorBufferUpdator::bind_image(VkDescriptorType vk_descriptor_type,
-                                           VkSampler vk_sampler,
-                                           VkImageView vk_image_view,
-                                           VkImageLayout vk_image_layout,
-                                           VKDescriptorSet::Location location)
-{
-  VKDevice &device = VKBackend::get().device;
-  const VkPhysicalDeviceDescriptorBufferPropertiesEXT &vk_descriptor_buffer_properties =
-      device.physical_device_descriptor_buffer_properties_get();
-  VkDescriptorImageInfo vk_descriptor_image_info = {vk_sampler, vk_image_view, vk_image_layout};
-  VkDescriptorGetInfoEXT vk_descriptor_get_info{
-      VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT, nullptr, vk_descriptor_type};
-  VkDeviceSize descriptor_size = 0;
-  switch (vk_descriptor_type) {
-    case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
-      vk_descriptor_get_info.data.pCombinedImageSampler = &vk_descriptor_image_info;
-      descriptor_size = vk_descriptor_buffer_properties.combinedImageSamplerDescriptorSize;
-      break;
-
-    case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
-      vk_descriptor_get_info.data.pStorageImage = &vk_descriptor_image_info;
-      descriptor_size = vk_descriptor_buffer_properties.storageImageDescriptorSize;
-      break;
-
-    case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
-      vk_descriptor_get_info.data.pInputAttachmentImage = &vk_descriptor_image_info;
-      descriptor_size = vk_descriptor_buffer_properties.inputAttachmentDescriptorSize;
-      break;
-
-    default:
-      BLI_assert_unreachable();
-  }
-
-  uint8_t *descriptor_ptr = get_descriptor_binding_ptr(location);
-  device.functions.vkGetDescriptor(
-      device.vk_handle(), &vk_descriptor_get_info, descriptor_size, descriptor_ptr);
-}
-
-void VKDescriptorBufferUpdator::upload_descriptor_sets()
-{
-  /* Buffers have already been updated. only need to discard the buffers. */
-  buffers.clear();
-  descriptor_buffer_data = nullptr;
-  descriptor_buffer_device_address = 0;
-  descriptor_buffer_offset = 0;
 }
 
 /** \} */

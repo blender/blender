@@ -69,7 +69,13 @@ def rna_idprop_value_item_type(value):
 
 
 def rna_idprop_ui_prop_default_set(item, prop, value):
-    ui_data = item.id_properties_ui(prop)
+    # NOTE: the internal check to know if a property supports UI is not exposed.
+    # Use an exception here and assert this isn't catching unrelated errors.
+    try:
+        ui_data = item.id_properties_ui(prop)
+    except TypeError as ex:
+        assert ex.args and ("does not support UI data" in ex.args[0])
+        return
     ui_data.update(default=value)
 
 

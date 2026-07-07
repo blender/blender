@@ -41,7 +41,7 @@ static void morphological_distance_gpu(Context &context,
   output.allocate_texture(input.domain());
   output.bind_as_image(shader, "output_img");
 
-  compute_dispatch_threads_at_least(shader, input.domain().size);
+  compute_dispatch_threads_at_least(shader, input.domain().data_size);
 
   GPU_shader_unbind();
   output.unbind_as_image();
@@ -66,7 +66,7 @@ static void morphological_distance_cpu(const Result &input,
     }
   };
 
-  const int2 image_size = input.domain().size;
+  const int2 image_size = input.domain().data_size;
 
   const int radius_squared = math::square(structuring_element_radius);
 

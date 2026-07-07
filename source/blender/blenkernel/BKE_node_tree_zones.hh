@@ -15,7 +15,8 @@
 #include "BLI_map.hh"
 #include "BLI_vector.hh"
 
-namespace blender::bke {
+namespace blender {
+namespace bke {
 
 class bNodeTreeZones;
 
@@ -111,9 +112,11 @@ class bNodeTreeZones {
 
 const bNodeTreeZones *get_tree_zones(const bNodeTree &tree);
 
-}  // namespace blender::bke
+}  // namespace bke
 
-inline const blender::bke::bNodeTreeZones *bNodeTree::zones() const
+inline const bke::bNodeTreeZones *bNodeTree::zones() const
 {
-  return blender::bke::get_tree_zones(*this);
+  return bke::get_tree_zones(*this);
 }
+
+}  // namespace blender

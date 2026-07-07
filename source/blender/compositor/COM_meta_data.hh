@@ -4,6 +4,8 @@
 
 #include <string>
 
+#include "BLI_map.hh"
+
 #pragma once
 
 namespace blender::compositor {
@@ -31,6 +33,8 @@ struct MetaData {
   /* Stores Cryptomatte meta data. This will only be initialized for results that represent
    * Cryptomatte information. See the CryptomatteMetaData structure for more information. */
   CryptomatteMetaData cryptomatte;
+  /* Stores custom meta-data fields. */
+  Map<std::string, std::string> fields;
 
   /* Identifies if the result represents a Cryptomatte layer. This is identified based on whether
    * the Cryptomatte meta data are initialized. */

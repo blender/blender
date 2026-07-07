@@ -12,6 +12,8 @@
 #include "IMB_filetype.hh"
 #include "IMB_imbuf_types.hh"
 
+namespace blender {
+
 OIIO_NAMESPACE_USING
 using namespace blender::imbuf;
 
@@ -30,7 +32,7 @@ ImBuf *imb_load_png(const uchar *mem, size_t size, int flags, ImFileColorSpace &
   ImBuf *ibuf = imb_oiio_read(ctx, config, r_colorspace, spec);
   if (ibuf) {
     if (spec.format == TypeDesc::UINT16) {
-      ibuf->flags |= PNG_16BIT;
+      ibuf->foptions.flag |= PNG_16BIT;
     }
   }
 
@@ -65,3 +67,5 @@ bool imb_save_png(ImBuf *ibuf, const char *filepath, int flags)
 
   return imb_oiio_write(ctx, filepath, file_spec);
 }
+
+}  // namespace blender

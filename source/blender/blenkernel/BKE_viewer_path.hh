@@ -28,11 +28,13 @@
 
 #include "DNA_viewer_path_types.h"
 
+namespace blender {
+
 struct BlendWriter;
 struct BlendDataReader;
 struct LibraryForeachIDData;
 
-namespace blender::bke::id {
+namespace bke::id {
 class IDRemapper;
 }
 
@@ -51,8 +53,7 @@ uint64_t BKE_viewer_path_hash(const ViewerPath &viewer_path);
 void BKE_viewer_path_blend_write(BlendWriter *writer, const ViewerPath *viewer_path);
 void BKE_viewer_path_blend_read_data(BlendDataReader *reader, ViewerPath *viewer_path);
 void BKE_viewer_path_foreach_id(LibraryForeachIDData *data, ViewerPath *viewer_path);
-void BKE_viewer_path_id_remap(ViewerPath *viewer_path,
-                              const blender::bke::id::IDRemapper &mappings);
+void BKE_viewer_path_id_remap(ViewerPath *viewer_path, const bke::id::IDRemapper &mappings);
 
 ViewerPathElem *BKE_viewer_path_elem_new(ViewerPathElemType type);
 IDViewerPathElem *BKE_viewer_path_elem_new_id();
@@ -70,3 +71,5 @@ bool BKE_viewer_path_elem_equal(const ViewerPathElem *a,
                                 ViewerPathEqualFlag flag = ViewerPathEqualFlag(0));
 uint64_t BKE_viewer_path_elem_hash(const ViewerPathElem &elem);
 void BKE_viewer_path_elem_free(ViewerPathElem *elem);
+
+}  // namespace blender

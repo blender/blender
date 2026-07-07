@@ -29,7 +29,7 @@ Tests:
   Test the command line program, "blender_ext.py" Blender is not used.
 
 - test_blender
-  Test blender (currenlty only some limited tests).
+  Test blender (currently only some limited tests).
 
 - test_cli_blender
   Runs tests that access & manipulate extensions via the command line.

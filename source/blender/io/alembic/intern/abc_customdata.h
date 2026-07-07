@@ -17,10 +17,14 @@
 #include <Alembic/AbcGeom/GeometryScope.h>
 #include <Alembic/AbcGeom/OGeomParam.h>
 
+#include "BKE_attribute.hh"
+
 #include <cstdint>
 #include <map>
 #include <string>
 #include <vector>
+
+namespace blender {
 
 struct CustomData;
 struct Mesh;
@@ -28,7 +32,7 @@ struct Mesh;
 using Alembic::Abc::ICompoundProperty;
 using Alembic::Abc::OCompoundProperty;
 using Alembic::Abc::V3fArraySamplePtr;
-namespace blender::io::alembic {
+namespace io::alembic {
 
 struct UVSample {
   std::vector<Imath::V2f> uvs;
@@ -45,16 +49,13 @@ struct CDStreamConfig {
   float3 *positions = nullptr;
   int totvert = 0;
 
-  float2 *uv_map = nullptr;
-
-  CustomData *loopdata = nullptr;
+  bke::SpanAttributeWriter<float2> uv_map;
 
   bool pack_uvs = false;
 
   /* TODO(kevin): might need a better way to handle adding and/or updating
    * custom data such that it updates the custom data holder and its pointers properly. */
   Mesh *mesh = nullptr;
-  void *(*add_customdata_cb)(Mesh *mesh, const char *name, int data_type) = nullptr;
 
   Alembic::Abc::chrono_t time = 0.0;
   int timesample_index = 0;
@@ -81,7 +82,7 @@ struct CDStreamConfig {
  * Returns the name of the UV layer.
  *
  * For now the active layer is used, maybe needs a better way to choose this. */
-const char *get_uv_sample(UVSample &sample, const CDStreamConfig &config, CustomData *data);
+const char *get_uv_sample(UVSample &sample, const CDStreamConfig &config, const Mesh &mesh);
 
 void write_generated_coordinates(const OCompoundProperty &prop, CDStreamConfig &config);
 
@@ -95,7 +96,7 @@ void read_generated_coordinates(const ICompoundProperty &prop,
 
 void write_custom_data(const OCompoundProperty &prop,
                        CDStreamConfig &config,
-                       CustomData *data,
+                       const Mesh &mesh,
                        int data_type);
 
 void read_custom_data(const std::string &iobject_full_name,
@@ -121,4 +122,5 @@ AbcUvScope get_uv_scope(const Alembic::AbcGeom::GeometryScope scope,
                         const CDStreamConfig &config,
                         const Alembic::AbcGeom::UInt32ArraySamplePtr &indices);
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

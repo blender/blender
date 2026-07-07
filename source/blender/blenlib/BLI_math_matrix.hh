@@ -267,7 +267,7 @@ template<typename MatT> [[nodiscard]] MatT orthogonalize(const MatT &mat, const 
 
 /**
  * Construct a transformation that is pivoted around the given origin point. So for instance,
- * from_origin_transform<MatT>(from_rotation(numbers::pi * 0.5), float2(0.0f, 2.0f))
+ * from_origin_transform<MatT>(from_rotation(std::numbers::pi * 0.5), float2(0.0f, 2.0f))
  * will construct a transformation representing a 90 degree rotation around the point (0, 2).
  */
 template<typename MatT, typename VectorT>
@@ -958,7 +958,7 @@ template<typename T> QuaternionBase<T> normalized_to_quat_fast(const MatBase<T, 
    * BLI_ASSERT_UNIT_QUAT(), so it's likely that even after a few more
    * transformations the quaternion will still be considered unit-ish. */
   const T q_len_squared = q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w;
-  const T threshold = 0.0002f /* #BLI_ASSERT_UNIT_EPSILON */ * 3;
+  const T threshold = 0.0002f /* #BLI_ASSERT_UNIT_EPSILON */;
   if (math::abs(q_len_squared - 1.0f) >= threshold) {
     const T q_len_inv = 1.0 / math::sqrt(q_len_squared);
     q.x *= q_len_inv;
@@ -1049,10 +1049,10 @@ MatBase<T, NumCol, NumRow> from_rotation(const QuaternionBase<T> &rotation)
 {
   using MatT = MatBase<T, NumCol, NumRow>;
   using DoublePrecision = typename TypeTraits<T>::DoublePrecision;
-  const DoublePrecision q0 = numbers::sqrt2 * DoublePrecision(rotation.w);
-  const DoublePrecision q1 = numbers::sqrt2 * DoublePrecision(rotation.x);
-  const DoublePrecision q2 = numbers::sqrt2 * DoublePrecision(rotation.y);
-  const DoublePrecision q3 = numbers::sqrt2 * DoublePrecision(rotation.z);
+  const DoublePrecision q0 = std::numbers::sqrt2 * DoublePrecision(rotation.w);
+  const DoublePrecision q1 = std::numbers::sqrt2 * DoublePrecision(rotation.x);
+  const DoublePrecision q2 = std::numbers::sqrt2 * DoublePrecision(rotation.y);
+  const DoublePrecision q3 = std::numbers::sqrt2 * DoublePrecision(rotation.z);
 
   const DoublePrecision qda = q0 * q1;
   const DoublePrecision qdb = q0 * q2;
@@ -1808,7 +1808,7 @@ extern template float4x4 perspective(
 
 /**
  * Transform normal vectors, maintaining their unit length status, but implementing some
- * optimizations for identity matrics and uniform scaling.
+ * optimizations for identity matrix and uniform scaling.
  */
 void transform_normals(const float3x3 &transform, MutableSpan<float3> normals);
 void transform_normals(Span<float3> src, const float3x3 &transform, MutableSpan<float3> dst);

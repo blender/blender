@@ -5,8 +5,10 @@
 #pragma once
 
 #include "BKE_node.hh"
-
 #include "BKE_node_socket_value.hh"
+
+#include "BLI_memory_counter_fwd.hh"
+
 #include "NOD_geometry_nodes_bundle_fwd.hh"
 #include "NOD_geometry_nodes_values.hh"
 
@@ -42,6 +44,12 @@ struct BundleItemValue {
   template<typename T>
   std::optional<T> as_socket_value(const bke::bNodeSocketType &socket_type) const;
   template<typename T> std::optional<T> as() const;
+
+  /**
+   * Get a pointer to the underlying stored single value.
+   */
+  template<typename T> T *as_pointer();
+  template<typename T> const T *as_pointer() const;
 };
 
 /**
@@ -51,13 +59,10 @@ struct BundleItemValue {
  */
 class Bundle : public ImplicitSharingMixin {
  public:
-  struct StoredItem {
-    std::string key;
-    BundleItemValue value;
-  };
+  using BundleItemMap = Map<std::string, BundleItemValue>;
 
  private:
-  Vector<StoredItem> items_;
+  BundleItemMap items_;
 
  public:
   static BundlePtr create();
@@ -75,26 +80,61 @@ class Bundle : public ImplicitSharingMixin {
   template<typename T> void add_path_override(StringRef path, T value);
 
   bool remove(StringRef key);
+  bool remove_path(StringRef path);
+  bool remove_path(Span<StringRef> path);
   bool contains(StringRef key) const;
   bool contains_path(StringRef path) const;
+  bool contains_path(Span<StringRef> path) const;
 
   const BundleItemValue *lookup(StringRef key) const;
+  BundleItemValue *lookup(StringRef key);
   const BundleItemValue *lookup_path(Span<StringRef> path) const;
   const BundleItemValue *lookup_path(StringRef path) const;
+  BundleItemValue *lookup_path_for_write(Span<StringRef> path);
+  BundleItemValue *lookup_path_for_write(StringRef path);
   template<typename T> std::optional<T> lookup(StringRef key) const;
+  template<typename T> std::optional<T> lookup_path(Span<StringRef> path) const;
   template<typename T> std::optional<T> lookup_path(StringRef path) const;
+  template<typename T> T *lookup_ptr(StringRef key);
+  template<typename T> const T *lookup_ptr(StringRef key) const;
+  template<typename T> const T *lookup_path_ptr(StringRef path) const;
+  template<typename T> const T *lookup_path_ptr(Span<StringRef> path) const;
+  template<typename T> T *lookup_path_for_write_ptr(StringRef path);
+  template<typename T> T *lookup_path_for_write_ptr(Span<StringRef> path);
+
+  Bundle &ensure_nested_bundle(StringRef path);
+
+  void merge(const Bundle &other);
+  void merge_override(const Bundle &other);
 
   bool is_empty() const;
   int64_t size() const;
 
-  Span<StoredItem> items() const;
+  void clear();
+
+  /** Also see #GeometrySet.ensure_owns_direct_data. */
+  void ensure_owns_direct_data();
+  bool owns_direct_data() const;
+
+  BundleItemMap::ItemIterator items() const;
+  BundleItemMap::MutableItemIterator items();
 
   BundlePtr copy() const;
 
   void delete_self() override;
 
+  void count_memory(MemoryCounter &memory) const;
+
   /** Create the combined path by inserting '/' between each element. */
   static std::string combine_path(const Span<StringRef> path);
+
+  /* Disallow certain characters so that we can use them to e.g. build a bundle path or
+   * expressions referencing multiple bundle items. We might not need all of them in the future,
+   * but better reserve them now while we still can. */
+  static constexpr StringRefNull forbidden_key_chars = "/*&|\"^~!,{}()+$#@[];:?<>.-%\\=";
+  static bool is_valid_key(const StringRef key);
+  static bool is_valid_path(const StringRef path);
+  static std::optional<Vector<StringRef>> split_path(const StringRef path);
 };
 
 template<typename T>
@@ -114,6 +154,26 @@ inline std::optional<T> BundleItemValue::as_socket_value(
     return converted_value->get<T>();
   }
   return std::nullopt;
+}
+
+template<typename T> inline T *BundleItemValue::as_pointer()
+{
+  return const_cast<T *>(std::as_const(*this).as_pointer<T>());
+}
+template<typename T> inline const T *BundleItemValue::as_pointer() const
+{
+  const BundleItemSocketValue *socket_value = std::get_if<BundleItemSocketValue>(&this->value);
+  if (!socket_value) {
+    return nullptr;
+  }
+  if (!socket_value->value.is_single()) {
+    return nullptr;
+  }
+  const GPointer ptr = socket_value->value.get_single_ptr();
+  if (!ptr.is_type<T>()) {
+    return nullptr;
+  }
+  return ptr.get<T>();
 }
 
 template<typename T> inline const bke::bNodeSocketType *socket_type_info_by_static_type()
@@ -162,6 +222,14 @@ template<typename T> inline std::optional<T> BundleItemValue::as() const
     sharing_info->add_user();
     return ImplicitSharingPtr<SharingInfoT>{converted_value};
   }
+  else if constexpr (std::is_same_v<T, bke::SocketValueVariant>) {
+    if (const BundleItemSocketValue *socket_value = std::get_if<BundleItemSocketValue>(
+            &this->value))
+    {
+      return socket_value->value;
+    }
+    return std::nullopt;
+  }
   else if constexpr (std::is_same_v<T, ListPtr>) {
     const BundleItemSocketValue *socket_value = std::get_if<BundleItemSocketValue>(&this->value);
     if (!socket_value) {
@@ -183,6 +251,51 @@ template<typename T> inline std::optional<T> BundleItemValue::as() const
 template<typename T> inline std::optional<T> Bundle::lookup(const StringRef key) const
 {
   const BundleItemValue *item = this->lookup(key);
+  if (!item) {
+    return std::nullopt;
+  }
+  return item->as<T>();
+}
+
+template<typename T> inline T *Bundle::lookup_ptr(const StringRef key)
+{
+  BundleItemValue *item = this->lookup(key);
+  return item ? item->as_pointer<T>() : nullptr;
+}
+
+template<typename T> inline const T *Bundle::lookup_path_ptr(const StringRef path) const
+{
+  const BundleItemValue *item = this->lookup_path(path);
+  return item ? item->as_pointer<T>() : nullptr;
+}
+
+template<typename T> inline const T *Bundle::lookup_path_ptr(const Span<StringRef> path) const
+{
+  const BundleItemValue *item = this->lookup_path(path);
+  return item ? item->as_pointer<T>() : nullptr;
+}
+
+template<typename T> inline const T *Bundle::lookup_ptr(const StringRef key) const
+{
+  const BundleItemValue *item = this->lookup(key);
+  return item ? item->as_pointer<T>() : nullptr;
+}
+
+template<typename T> inline T *Bundle::lookup_path_for_write_ptr(const Span<StringRef> path)
+{
+  BundleItemValue *item = this->lookup_path_for_write(path);
+  return item ? item->as_pointer<T>() : nullptr;
+}
+
+template<typename T> inline T *Bundle::lookup_path_for_write_ptr(const StringRef path)
+{
+  BundleItemValue *item = this->lookup_path_for_write(path);
+  return item ? item->as_pointer<T>() : nullptr;
+}
+
+template<typename T> inline std::optional<T> Bundle::lookup_path(const Span<StringRef> path) const
+{
+  const BundleItemValue *item = this->lookup_path(path);
   if (!item) {
     return std::nullopt;
   }
@@ -251,9 +364,14 @@ template<typename T> inline void Bundle::add_path_override(const StringRef path,
   });
 }
 
-inline Span<Bundle::StoredItem> Bundle::items() const
+inline Bundle::BundleItemMap::ItemIterator Bundle::items() const
 {
-  return items_;
+  return items_.items();
+}
+
+inline Bundle::BundleItemMap::MutableItemIterator Bundle::items()
+{
+  return items_.items();
 }
 
 inline bool Bundle::is_empty() const

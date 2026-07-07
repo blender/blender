@@ -17,8 +17,8 @@ extern PyTypeObject DensityF1D_Type;
 #define BPy_DensityF1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&DensityF1D_Type))
 
 /*---------------------------Python BPy_DensityF1D structure definition----------*/
-typedef struct {
+struct BPy_DensityF1D {
   BPy_UnaryFunction1DDouble py_uf1D_double;
-} BPy_DensityF1D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

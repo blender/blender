@@ -172,8 +172,10 @@ class MASK_PT_point:
 
         if mask and sc.mode == 'MASK':
             mask_layer_active = mask.layers.active
-            return (mask_layer_active and
-                    mask_layer_active.splines.active_point)
+            return (
+                mask_layer_active and
+                mask_layer_active.splines.active_point
+            )
 
         return False
 

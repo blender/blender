@@ -7,7 +7,6 @@
 
 #include "DNA_grease_pencil_types.h"
 
-#include "attribute_access_intern.hh"
 #include "attribute_storage_access.hh"
 
 namespace blender::bke::greasepencil {
@@ -24,6 +23,12 @@ static const auto &builtin_attributes()
     Map<StringRef, AttrBuiltinInfo> map;
     return map;
   }();
+  return attributes;
+}
+
+static const auto &array_storage_required()
+{
+  static Set<StringRef> attributes{};
   return attributes;
 }
 
@@ -56,6 +61,15 @@ static AttributeAccessorFunctions get_grease_pencil_accessor_functions()
     const AttrBuiltinInfo &info = builtin_attributes().lookup(name);
     return info.default_value;
   };
+  fn.lookup_meta_data = [](const void *owner, StringRef name) -> std::optional<AttributeMetaData> {
+    const GreasePencil &grease_pencil = *static_cast<const GreasePencil *>(owner);
+    const AttributeStorage &storage = grease_pencil.attribute_storage.wrap();
+    const Attribute *attr = storage.lookup(name);
+    if (!attr) {
+      return std::nullopt;
+    }
+    return AttributeMetaData{attr->domain(), attr->data_type()};
+  };
   fn.adapt_domain = [](const void * /*owner*/,
                        const GVArray &varray,
                        const AttrDomain from_domain,
@@ -70,17 +84,20 @@ static AttributeAccessorFunctions get_grease_pencil_accessor_functions()
                             const AttributeAccessor &accessor) {
     const GreasePencil &grease_pencil = *static_cast<const GreasePencil *>(owner);
     const AttributeStorage &storage = grease_pencil.attribute_storage.wrap();
-    storage.foreach_with_stop([&](const Attribute &attribute) {
+    for (const Attribute &attribute : storage) {
       const auto get_fn = [&]() {
         const int domain_size = get_domain_size(owner, AttrDomain::Layer);
         return attribute_to_reader(attribute, AttrDomain::Layer, domain_size);
       };
       AttributeIter iter(attribute.name(), attribute.domain(), attribute.data_type(), get_fn);
       iter.is_builtin = builtin_attributes().contains(attribute.name());
+      iter.storage_type = attribute.storage_type();
       iter.accessor = &accessor;
       fn(iter);
-      return !iter.is_stopped();
-    });
+      if (iter.is_stopped()) {
+        break;
+      }
+    }
   };
   fn.lookup_validator = [](const void * /*owner*/, const StringRef name) -> AttributeValidator {
     const AttrBuiltinInfo *info = builtin_attributes().lookup_ptr(name);
@@ -133,7 +150,28 @@ static AttributeAccessorFunctions get_grease_pencil_accessor_functions()
     if (storage.lookup(name)) {
       return false;
     }
-    storage.add(name, domain, type, attribute_init_to_data(type, domain_size, initializer));
+    const bool array = array_storage_required().contains(name);
+    Attribute::DataVariant data = attribute_init_to_data(type, domain_size, initializer, array);
+    storage.add(name, domain, type, std::move(data));
+    if (initializer.type != AttributeInit::Type::Construct) {
+      if (const std::optional<AttrUpdateOnChange> fn = changed_tags().lookup_try(name)) {
+        (*fn)(owner);
+      }
+    }
+    return true;
+  };
+  fn.assign_data = [](void *owner, StringRef name, const AttributeInit &initializer) {
+    GreasePencil &grease_pencil = *static_cast<GreasePencil *>(owner);
+    AttributeStorage &storage = grease_pencil.attribute_storage.wrap();
+    Attribute *attr = storage.lookup(name);
+    if (!attr) {
+      return false;
+    }
+    Attribute::DataVariant data = attribute_init_to_data(attr->data_type(),
+                                                         get_domain_size(owner, attr->domain()),
+                                                         initializer,
+                                                         array_storage_required().contains(name));
+    attr->assign_data(std::move(data));
     if (initializer.type != AttributeInit::Type::Construct) {
       if (const std::optional<AttrUpdateOnChange> fn = changed_tags().lookup_try(name)) {
         (*fn)(owner);

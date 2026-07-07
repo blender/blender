@@ -58,9 +58,9 @@ void CurvesData::remove()
 
 void CurvesData::update()
 {
-  const Object *object = (const Object *)id;
+  const Object *object = id_cast<const Object *>(id);
   pxr::HdDirtyBits bits = pxr::HdChangeTracker::Clean;
-  if ((id->recalc & ID_RECALC_GEOMETRY) || (((ID *)object->data)->recalc & ID_RECALC_GEOMETRY)) {
+  if ((id->recalc & ID_RECALC_GEOMETRY) || ((object->data)->recalc & ID_RECALC_GEOMETRY)) {
     init();
     bits = pxr::HdChangeTracker::AllDirty;
   }
@@ -95,12 +95,9 @@ pxr::VtValue CurvesData::get_data(pxr::TfToken const &key) const
   return pxr::VtValue();
 }
 
-pxr::SdfPath CurvesData::material_id() const
+MaterialData *CurvesData::get_material_data(pxr::SdfPath const & /*id*/) const
 {
-  if (!mat_data_) {
-    return pxr::SdfPath();
-  }
-  return mat_data_->prim_id;
+  return mat_data_;
 }
 
 void CurvesData::available_materials(Set<pxr::SdfPath> &paths) const
@@ -142,7 +139,7 @@ pxr::HdPrimvarDescriptorVector CurvesData::primvar_descriptors(
 
 void CurvesData::write_materials()
 {
-  const Object *object = (const Object *)id;
+  const Object *object = id_cast<const Object *>(id);
   const Material *mat = nullptr;
   /* TODO: Using only first material. Add support for multi-material. */
   if (BKE_object_material_count_eval(object) > 0) {
@@ -153,8 +150,8 @@ void CurvesData::write_materials()
 
 void CurvesData::write_curves()
 {
-  Object *object = (Object *)id;
-  Curves *curves_id = (Curves *)object->data;
+  Object *object = id_cast<Object *>(const_cast<ID *>(id));
+  Curves *curves_id = id_cast<Curves *>(object->data);
   const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
 
   curve_vertex_counts_.resize(curves.curves_num());
@@ -232,7 +229,7 @@ void HairData::write_curves()
   uvs_.clear();
   uvs_.reserve(particle_system_->totpart);
 
-  Object *object = (Object *)id;
+  Object *object = id_cast<Object *>(const_cast<ID *>(id));
   float scale = particle_system_->part->rad_scale *
                 (std::abs(object->object_to_world().ptr()[0][0]) +
                  std::abs(object->object_to_world().ptr()[1][1]) +
@@ -265,7 +262,7 @@ void HairData::write_curves()
       ParticleSystemModifierData *psmd = psys_get_modifier(object, particle_system_);
       int num = ELEM(pa.num_dmcache, DMCACHE_ISCHILD, DMCACHE_NOTFOUND) ? pa.num : pa.num_dmcache;
 
-      float r_uv[2] = {0.0f, 0.0f};
+      float uv[2] = {0.0f, 0.0f};
       if (ELEM(psmd->psys->part->from, PART_FROM_FACE, PART_FROM_VOLUME) &&
           !ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD))
       {
@@ -276,10 +273,10 @@ void HairData::write_curves()
 
         if (mface && mtface) {
           mtface += num;
-          psys_interpolate_uvs(mtface, mface->v4, pa.fuv, r_uv);
+          psys_interpolate_uvs(mtface, mface->v4, pa.fuv, uv);
         }
       }
-      uvs_.push_back(pxr::GfVec2f(r_uv[0], r_uv[1]));
+      uvs_.push_back(pxr::GfVec2f(uv[0], uv[1]));
     }
   }
 }

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "draw_view_info.hh"
+#include "draw_view_infos.hh"
 
 #include "draw_view_lib.glsl"
 
@@ -30,7 +30,7 @@ uint drw_resource_id_raw()
 #  endif
   return id;
 
-#elif defined(GPU_FRAGMENT_SHADER) || defined(GPU_LIBRARY_SHADER)
+#elif (defined(GPU_FRAGMENT_SHADER) || defined(GPU_LIBRARY_SHADER)) && defined(RESOURCE_ID_VARYING)
   return drw_ResourceID_iface.resource_index;
 #endif
   return 0;

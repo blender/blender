@@ -12,8 +12,33 @@
 
 #include "../generic/py_capi_utils.hh"
 
+namespace blender {
+
 extern struct PyC_StringEnumItems bpygpu_primtype_items[];
 extern struct PyC_StringEnumItems bpygpu_dataformat_items[];
+
+/* Doc-string Literal types for shared enums. */
+
+#define PYDOC_PRIMTYPE_LITERAL \
+  "Literal[" \
+  "'POINTS', " \
+  "'LINES', " \
+  "'TRIS', " \
+  "'LINE_STRIP', " \
+  "'LINE_LOOP', " \
+  "'TRI_STRIP', " \
+  "'TRI_FAN', " \
+  "'LINES_ADJ', " \
+  "'TRIS_ADJ', " \
+  "'LINE_STRIP_ADJ']"
+#define PYDOC_DATAFORMAT_LITERAL \
+  "Literal[" \
+  "'FLOAT', " \
+  "'INT', " \
+  "'UINT', " \
+  "'UBYTE', " \
+  "'UINT_24_8', " \
+  "'10_11_11_REV']"
 
 [[nodiscard]] bool bpygpu_is_init_or_error();
 
@@ -27,3 +52,5 @@ extern struct PyC_StringEnumItems bpygpu_dataformat_items[];
     return -1; \
   } \
   ((void)0)
+
+}  // namespace blender

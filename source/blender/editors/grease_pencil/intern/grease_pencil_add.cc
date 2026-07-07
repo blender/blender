@@ -26,104 +26,72 @@ struct ColorTemplate {
   const char *name;
   float line[4];
   float fill[4];
-  bool show_stroke;
-  bool show_fill;
 };
 
 static const ColorTemplate gp_stroke_material_black = {
     N_("Black"),
     {0.0f, 0.0f, 0.0f, 1.0f},
-    {0.0f, 0.0f, 0.0f, 0.0f},
-    true,
-    false,
+    {0.0f, 0.0f, 0.0f, 1.0f},
 };
 
 static const ColorTemplate gp_stroke_material_white = {
     N_("White"),
     {1.0f, 1.0f, 1.0f, 1.0f},
-    {0.0f, 0.0f, 0.0f, 0.0f},
-    true,
-    false,
+    {1.0f, 1.0f, 1.0f, 1.0f},
 };
 
 static const ColorTemplate gp_stroke_material_red = {
     N_("Red"),
     {1.0f, 0.0f, 0.0f, 1.0f},
-    {0.0f, 0.0f, 0.0f, 0.0f},
-    true,
-    false,
+    {1.0f, 0.0f, 0.0f, 1.0f},
 };
 
 static const ColorTemplate gp_stroke_material_green = {
     N_("Green"),
     {0.0f, 1.0f, 0.0f, 1.0f},
-    {0.0f, 0.0f, 0.0f, 0.0f},
-    true,
-    false,
+    {0.0f, 1.0f, 0.0f, 1.0f},
 };
 
 static const ColorTemplate gp_stroke_material_blue = {
     N_("Blue"),
     {0.0f, 0.0f, 1.0f, 1.0f},
-    {0.0f, 0.0f, 0.0f, 0.0f},
-    true,
-    false,
+    {0.0f, 0.0f, 1.0f, 1.0f},
 };
 
 static const ColorTemplate gp_fill_material_grey = {
     N_("Grey"),
-    {0.358f, 0.358f, 0.358f, 1.0f},
     {0.5f, 0.5f, 0.5f, 1.0f},
-    false,
-    true,
+    {0.5f, 0.5f, 0.5f, 1.0f},
 };
 
 static const ColorTemplate gp_monkey_material_black = {
     N_("Black"),
     {0.0f, 0.0f, 0.0f, 1.0f},
-    {0.0f, 0.0f, 0.0f, 0.0f},
-    true,
-    false,
+    {0.0f, 0.0f, 0.0f, 1.0f},
 };
 
 static const ColorTemplate gp_monkey_material_skin = {
     N_("Skin"),
-    {0.733f, 0.569f, 0.361f, 1.0f},
     {0.745f, 0.502f, 0.278f, 1.0f},
-    false,
-    true,
+    {0.745f, 0.502f, 0.278f, 1.0f},
 };
 
 static const ColorTemplate gp_monkey_material_skin_light = {
     N_("Skin_light"),
     {0.914f, 0.827f, 0.635f, 1.0f},
-    {0.913f, 0.828f, 0.637f, 0.0f},
-    true,
-    false,
+    {0.914f, 0.827f, 0.635f, 1.0f},
 };
 
 static const ColorTemplate gp_monkey_material_skin_shadow = {
     N_("Skin_shadow"),
     {0.322f, 0.29f, 0.224f, 0.5f},
-    {0.32f, 0.29f, 0.223f, 0.3f},
-    true,
-    false,
+    {0.322f, 0.29f, 0.224f, 0.5f},
 };
 
 static const ColorTemplate gp_monkey_material_eyes = {
     N_("Eyes"),
-    {0.553f, 0.39f, 0.266f, 0.0f},
     {0.847f, 0.723f, 0.599f, 1.0f},
-    false,
-    true,
-};
-
-static const ColorTemplate gp_monkey_material_pupils = {
-    N_("Pupils"),
-    {0.0f, 0.0f, 0.0f, 0.0f},
-    {0.0f, 0.0f, 0.0f, 1.0f},
-    false,
-    true,
+    {0.847f, 0.723f, 0.599f, 1.0f},
 };
 
 static std::array<float3, 175> stroke_positions({
@@ -1121,9 +1089,6 @@ static int add_material_from_template(Main &bmain, Object &ob, const ColorTempla
   copy_v4_v4(ma->gp_style->fill_rgba, pct.fill);
   srgb_to_linearrgb_v4(ma->gp_style->fill_rgba, ma->gp_style->fill_rgba);
 
-  SET_FLAG_FROM_TEST(ma->gp_style->flag, pct.show_stroke, GP_MATERIAL_STROKE_SHOW);
-  SET_FLAG_FROM_TEST(ma->gp_style->flag, pct.show_fill, GP_MATERIAL_FILL_SHOW);
-
   return index;
 }
 
@@ -1132,10 +1097,12 @@ static bke::CurvesGeometry create_drawing_data(const Span<float3> positions,
                                                const Span<float> opacities,
                                                const Span<int> offsets,
                                                const Span<int> materials,
+                                               const Span<bool> hide_strokes,
+                                               const Span<int> fill_ids,
                                                const float4x4 &matrix)
 {
-  using namespace blender::bke;
-  CurvesGeometry curves(offsets.last(), offsets.size() - 1);
+  using namespace bke;
+  bke::CurvesGeometry curves(offsets.last(), offsets.size() - 1);
   curves.offsets_for_write().copy_from(offsets);
 
   curves.fill_curve_types(CURVE_TYPE_POLY);
@@ -1164,6 +1131,20 @@ static bke::CurvesGeometry create_drawing_data(const Span<float3> positions,
       "material_index", AttrDomain::Curve);
   stroke_materials.span.copy_from(materials);
 
+  if (!hide_strokes.is_empty()) {
+    SpanAttributeWriter<bool> hide_stroke = attributes.lookup_or_add_for_write_span<bool>(
+        "hide_stroke", AttrDomain::Curve);
+    hide_stroke.span.copy_from(hide_strokes);
+    hide_stroke.finish();
+  }
+
+  if (!fill_ids.is_empty()) {
+    SpanAttributeWriter<int> fill_id = attributes.lookup_or_add_for_write_span<int>(
+        "fill_id", AttrDomain::Curve);
+    fill_id.span.copy_from(fill_ids);
+    fill_id.finish();
+  }
+
   point_radii.finish();
   point_opacities.finish();
 
@@ -1176,7 +1157,7 @@ static bke::CurvesGeometry create_drawing_data(const Span<float3> positions,
 void create_blank(Main &bmain, Object &object, const int frame_number)
 {
   using namespace blender::bke::greasepencil;
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
 
   int material_index = add_material_from_template(bmain, object, gp_stroke_material_black);
   object.actcol = material_index + 1;
@@ -1189,7 +1170,7 @@ void create_blank(Main &bmain, Object &object, const int frame_number)
 void create_stroke(Main &bmain, Object &object, const float4x4 &matrix, const int frame_number)
 {
   using namespace blender::bke::greasepencil;
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
 
   int material_index = add_material_from_template(bmain, object, gp_stroke_material_black);
   add_material_from_template(bmain, object, gp_stroke_material_white);
@@ -1207,8 +1188,14 @@ void create_stroke(Main &bmain, Object &object, const float4x4 &matrix, const in
   Drawing &drawing_lines = *grease_pencil.insert_frame(layer_lines, frame_number);
   grease_pencil.insert_frame(layer_color, frame_number);
 
-  drawing_lines.strokes_for_write() = create_drawing_data(
-      stroke_positions, stroke_radii, stroke_opacities, {0, 175}, {material_index}, matrix);
+  drawing_lines.strokes_for_write() = create_drawing_data(stroke_positions,
+                                                          stroke_radii,
+                                                          stroke_opacities,
+                                                          {0, 175},
+                                                          {material_index},
+                                                          {},
+                                                          {},
+                                                          matrix);
   drawing_lines.tag_topology_changed();
 }
 
@@ -1216,11 +1203,10 @@ void create_suzanne(Main &bmain, Object &object, const float4x4 &matrix, const i
 {
   /* Original model created by Matias Mendiola. */
   using namespace blender::bke::greasepencil;
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
 
   int color_black = add_material_from_template(bmain, object, gp_monkey_material_black);
   int color_eyes = add_material_from_template(bmain, object, gp_monkey_material_eyes);
-  int color_pupils = add_material_from_template(bmain, object, gp_monkey_material_pupils);
   int color_skin = add_material_from_template(bmain, object, gp_monkey_material_skin);
   int color_skin_light = add_material_from_template(bmain, object, gp_monkey_material_skin_light);
   int color_skin_shadow = add_material_from_template(
@@ -1237,8 +1223,8 @@ void create_suzanne(Main &bmain, Object &object, const float4x4 &matrix, const i
       color_black,
       color_black,
       color_black,
-      color_pupils,
-      color_pupils,
+      color_black,
+      color_black,
       color_black,
       color_black,
       color_black,
@@ -1260,6 +1246,27 @@ void create_suzanne(Main &bmain, Object &object, const float4x4 &matrix, const i
       color_skin_shadow,
   });
 
+  const std::array<bool, 15> monkey_line_hide_strokes({false,
+                                                       false,
+                                                       false,
+                                                       false,
+                                                       false,
+                                                       false,
+                                                       false,
+                                                       false,
+                                                       false,
+                                                       true,
+                                                       true,
+                                                       false,
+                                                       false,
+                                                       false,
+                                                       false});
+  const std::array<int, 15> monkey_line_fill_ids({0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0});
+
+  const std::array<bool, 13> monkey_fill_hide_strokes(
+      {true, false, false, false, false, false, false, false, true, false, true, false, false});
+  const std::array<int, 13> monkey_fill_fill_ids({1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 3, 0, 0});
+
   Layer &layer_fills = grease_pencil.add_layer(DATA_("Fills"));
   Layer &layer_lines = grease_pencil.add_layer(DATA_("Lines"));
   grease_pencil.set_active_layer(&layer_lines);
@@ -1272,12 +1279,16 @@ void create_suzanne(Main &bmain, Object &object, const float4x4 &matrix, const i
                                                           monkey_line_opacities,
                                                           monkey_line_offsets,
                                                           monkey_line_materials,
+                                                          monkey_line_hide_strokes,
+                                                          monkey_line_fill_ids,
                                                           matrix);
   drawing_fills.strokes_for_write() = create_drawing_data(monkey_fill_positions,
                                                           monkey_fill_radii,
                                                           monkey_fill_opacities,
                                                           monkey_fill_offsets,
                                                           monkey_fill_materials,
+                                                          monkey_fill_hide_strokes,
+                                                          monkey_fill_fill_ids,
                                                           matrix);
   drawing_lines.tag_topology_changed();
   drawing_fills.tag_topology_changed();

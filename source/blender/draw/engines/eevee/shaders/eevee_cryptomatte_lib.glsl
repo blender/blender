@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "infos/eevee_film_info.hh"
+#include "infos/eevee_film_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_film)
 
@@ -48,7 +48,7 @@ void cryptomatte_clear_samples(FilmSample dst)
 void cryptomatte_store_film_sample(FilmSample dst,
                                    int cryptomatte_layer_id,
                                    float2 crypto_sample,
-                                   out float4 out_color)
+                                   float4 &out_color)
 {
   if (crypto_sample.y == 0.0f) {
     return;

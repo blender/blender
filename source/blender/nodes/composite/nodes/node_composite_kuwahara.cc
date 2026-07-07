@@ -2,15 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
 #include <limits>
 
 #include "BLI_math_base.hh"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_math_numbers.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -27,20 +22,29 @@
 namespace blender::nodes::node_composite_kuwahara_cc {
 
 static const EnumPropertyItem type_items[] = {
-    {CMP_NODE_KUWAHARA_CLASSIC, "CLASSIC", 0, "Classic", "Fast but less accurate variation"},
+    {CMP_NODE_KUWAHARA_CLASSIC,
+     "CLASSIC",
+     0,
+     N_("Classic"),
+     N_("Fast but less accurate variation")},
     {CMP_NODE_KUWAHARA_ANISOTROPIC,
      "ANISOTROPIC",
      0,
-     "Anisotropic",
-     "Accurate but slower variation"},
+     N_("Anisotropic"),
+     N_("Accurate but slower variation")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static void cmp_node_kuwahara_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .hide_value()
       .structure_type(StructureType::Dynamic);
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic).align_with_previous();
+
   b.add_input<decl::Float>("Size")
       .default_value(6.0f)
       .min(0.0f)
@@ -48,7 +52,8 @@ static void cmp_node_kuwahara_declare(NodeDeclarationBuilder &b)
       .structure_type(StructureType::Dynamic);
   b.add_input<decl::Menu>("Type")
       .default_value(CMP_NODE_KUWAHARA_ANISOTROPIC)
-      .static_items(type_items);
+      .static_items(type_items)
+      .optional_label();
 
   b.add_input<decl::Int>("Uniformity")
       .default_value(4)
@@ -80,14 +85,12 @@ static void cmp_node_kuwahara_declare(NodeDeclarationBuilder &b)
       .usage_by_single_menu(CMP_NODE_KUWAHARA_CLASSIC)
       .description(
           "Uses a more precise but slower method. Use if the output contains undesirable noise.");
-
-  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
-static void node_composit_init_kuwahara(bNodeTree * /*ntree*/, bNode *node)
+static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, kept for forward compatibility. */
-  NodeKuwaharaData *data = MEM_callocN<NodeKuwaharaData>(__func__);
+  NodeKuwaharaData *data = MEM_new<NodeKuwaharaData>(__func__);
   node->storage = data;
 }
 
@@ -161,7 +164,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     input_image.unbind_as_texture();
     output_image.unbind_as_image();
@@ -182,8 +185,12 @@ class ConvertKuwaharaOperation : public NodeOperation {
     Result &output = this->get_result("Image");
     output.allocate_texture(domain);
 
-    this->compute_classic<false>(
-        &this->get_input("Image"), nullptr, nullptr, this->get_input("Size"), output, domain.size);
+    this->compute_classic<false>(&this->get_input("Image"),
+                                 nullptr,
+                                 nullptr,
+                                 this->get_input("Size"),
+                                 output,
+                                 domain.data_size);
   }
 
   void execute_classic_summed_area_table()
@@ -229,7 +236,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     table.unbind_as_texture();
     squared_table.unbind_as_texture();
@@ -252,7 +259,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
     output.allocate_texture(domain);
 
     this->compute_classic<true>(
-        nullptr, &table, &squared_table, this->get_input("Size"), output, domain.size);
+        nullptr, &table, &squared_table, this->get_input("Size"), output, domain.data_size);
   }
 
   /* If UseSummedAreaTable is true, then `table` and `squared_table` should be provided while
@@ -297,7 +304,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
         else {
           for (int j = 0; j <= radius; j++) {
             for (int i = 0; i <= radius; i++) {
-              float4 color = input->load_pixel_zero<float4>(texel + int2(i, j) * sign);
+              float4 color = float4(input->load_pixel_zero<Color>(texel + int2(i, j) * sign));
               mean_of_color_of_quadrants[q] += color;
               mean_of_squared_color_of_quadrants[q] += color * color;
             }
@@ -323,7 +330,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
         }
       }
 
-      output.store_pixel(texel, mean_color_of_chosen_quadrant);
+      output.store_pixel(texel, Color(mean_color_of_chosen_quadrant));
     });
   }
 
@@ -335,7 +342,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
   void execute_anisotropic()
   {
     Result structure_tensor = compute_structure_tensor();
-    Result smoothed_structure_tensor = context().create_result(ResultType::Color);
+    Result smoothed_structure_tensor = context().create_result(ResultType::Float4);
     symmetric_separable_blur(
         context(), structure_tensor, smoothed_structure_tensor, float2(this->get_uniformity()));
     structure_tensor.release();
@@ -376,7 +383,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     input.unbind_as_texture();
     structure_tensor.unbind_as_texture();
@@ -420,7 +427,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
      *  filtering." 2011.
      */
 
-    parallel_for(domain.size, [&](const int2 texel) {
+    parallel_for(domain.data_size, [&](const int2 texel) {
       /* The structure tensor is encoded in a float4 using a column major storage order, as can be
        * seen in the compute_structure_tensor_cpu method. */
       float4 encoded_structure_tensor = structure_tensor.load_pixel<float4>(texel);
@@ -454,7 +461,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
 
       float radius = math::max(0.0f, size.load_pixel<float, true>(texel));
       if (radius == 0.0f) {
-        output.store_pixel(texel, input.load_pixel<float4>(texel));
+        output.store_pixel(texel, input.load_pixel<Color>(texel));
         return;
       }
 
@@ -501,7 +508,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
        * later in the code. */
       const int number_of_sectors = 8;
       float sector_center_overlap_parameter = 2.0f / radius;
-      float sector_envelope_angle = ((3.0f / 2.0f) * math::numbers::pi_v<float>) /
+      float sector_envelope_angle = ((3.0f / 2.0f) * std::numbers::pi_v<float>) /
                                     number_of_sectors;
       float cross_sector_overlap_parameter = (sector_center_overlap_parameter +
                                               math::cos(sector_envelope_angle)) /
@@ -519,7 +526,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
        * and weight separately first. Luckily, the zero coordinates of the center pixel zeros out
        * most of the complex computations below, and it can easily be shown that the weight for the
        * center pixel in all sectors is simply (1 / number_of_sectors). */
-      float4 center_color = input.load_pixel<float4>(texel);
+      float4 center_color = float4(input.load_pixel<Color>(texel));
       float4 center_color_squared = center_color * center_color;
       float center_weight = 1.0f / number_of_sectors;
       float4 weighted_center_color = center_color * center_weight;
@@ -579,7 +586,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
 
           /* Then we rotate the disk point by 45 degrees, which is a simple expression involving a
            * constant as can be demonstrated by applying a 45 degree rotation matrix. */
-          float2 rotated_disk_point = (1.0f / math::numbers::sqrt2) *
+          float2 rotated_disk_point = (1.0f / std::numbers::sqrt2) *
                                       float2(disk_point.x - disk_point.y,
                                              disk_point.x + disk_point.y);
 
@@ -604,13 +611,12 @@ class ConvertKuwaharaOperation : public NodeOperation {
           float sector_weights_sum = sector_weights[0] + sector_weights[1] + sector_weights[2] +
                                      sector_weights[3] + sector_weights[4] + sector_weights[5] +
                                      sector_weights[6] + sector_weights[7];
-          float radial_gaussian_weight = math::exp(-math::numbers::pi *
-                                                   disk_point_length_squared) /
+          float radial_gaussian_weight = math::exp(-std::numbers::pi * disk_point_length_squared) /
                                          sector_weights_sum;
 
           /* Load the color of the pixel and its mirrored pixel and compute their square. */
-          float4 upper_color = input.load_pixel_extended<float4>(texel + int2(i, j));
-          float4 lower_color = input.load_pixel_extended<float4>(texel - int2(i, j));
+          float4 upper_color = float4(input.load_pixel_extended<Color>(texel + int2(i, j)));
+          float4 lower_color = float4(input.load_pixel_extended<Color>(texel - int2(i, j)));
           float4 upper_color_squared = upper_color * upper_color;
           float4 lower_color_squared = lower_color * lower_color;
 
@@ -665,7 +671,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
         weighted_sum /= sum_of_weights;
       }
 
-      output.store_pixel(texel, weighted_sum);
+      output.store_pixel(texel, Color(weighted_sum));
     });
   }
 
@@ -687,11 +693,11 @@ class ConvertKuwaharaOperation : public NodeOperation {
     input.bind_as_texture(shader, "input_tx");
 
     const Domain domain = compute_domain();
-    Result structure_tensor = context().create_result(ResultType::Color);
+    Result structure_tensor = context().create_result(ResultType::Float4);
     structure_tensor.allocate_texture(domain);
     structure_tensor.bind_as_image(shader, "structure_tensor_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     input.unbind_as_texture();
     structure_tensor.unbind_as_image();
@@ -705,7 +711,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
     const Result &input = this->get_input("Image");
 
     const Domain domain = this->compute_domain();
-    Result structure_tensor_image = context().create_result(ResultType::Color);
+    Result structure_tensor_image = context().create_result(ResultType::Float4);
     structure_tensor_image.allocate_texture(domain);
 
     /* Computes the structure tensor of the image using a Dirac delta window function as described
@@ -716,27 +722,27 @@ class ConvertKuwaharaOperation : public NodeOperation {
      *
      * The structure tensor should then be smoothed using a Gaussian function to eliminate high
      * frequency details. */
-    parallel_for(domain.size, [&](const int2 texel) {
+    parallel_for(domain.data_size, [&](const int2 texel) {
       /* The weight kernels of the filter optimized for rotational symmetry described in section
        * "3.2.1 Gradient Calculation". */
       const float corner_weight = 0.182f;
       const float center_weight = 1.0f - 2.0f * corner_weight;
 
       float3 x_partial_derivative =
-          input.load_pixel_extended<float4>(texel + int2(-1, 1)).xyz() * -corner_weight +
-          input.load_pixel_extended<float4>(texel + int2(-1, 0)).xyz() * -center_weight +
-          input.load_pixel_extended<float4>(texel + int2(-1, -1)).xyz() * -corner_weight +
-          input.load_pixel_extended<float4>(texel + int2(1, 1)).xyz() * corner_weight +
-          input.load_pixel_extended<float4>(texel + int2(1, 0)).xyz() * center_weight +
-          input.load_pixel_extended<float4>(texel + int2(1, -1)).xyz() * corner_weight;
+          float4(input.load_pixel_extended<Color>(texel + int2(-1, 1))).xyz() * -corner_weight +
+          float4(input.load_pixel_extended<Color>(texel + int2(-1, 0))).xyz() * -center_weight +
+          float4(input.load_pixel_extended<Color>(texel + int2(-1, -1))).xyz() * -corner_weight +
+          float4(input.load_pixel_extended<Color>(texel + int2(1, 1))).xyz() * corner_weight +
+          float4(input.load_pixel_extended<Color>(texel + int2(1, 0))).xyz() * center_weight +
+          float4(input.load_pixel_extended<Color>(texel + int2(1, -1))).xyz() * corner_weight;
 
       float3 y_partial_derivative =
-          input.load_pixel_extended<float4>(texel + int2(-1, 1)).xyz() * corner_weight +
-          input.load_pixel_extended<float4>(texel + int2(0, 1)).xyz() * center_weight +
-          input.load_pixel_extended<float4>(texel + int2(1, 1)).xyz() * corner_weight +
-          input.load_pixel_extended<float4>(texel + int2(-1, -1)).xyz() * -corner_weight +
-          input.load_pixel_extended<float4>(texel + int2(0, -1)).xyz() * -center_weight +
-          input.load_pixel_extended<float4>(texel + int2(1, -1)).xyz() * -corner_weight;
+          float4(input.load_pixel_extended<Color>(texel + int2(-1, 1))).xyz() * corner_weight +
+          float4(input.load_pixel_extended<Color>(texel + int2(0, 1))).xyz() * center_weight +
+          float4(input.load_pixel_extended<Color>(texel + int2(1, 1))).xyz() * corner_weight +
+          float4(input.load_pixel_extended<Color>(texel + int2(-1, -1))).xyz() * -corner_weight +
+          float4(input.load_pixel_extended<Color>(texel + int2(0, -1))).xyz() * -center_weight +
+          float4(input.load_pixel_extended<Color>(texel + int2(1, -1))).xyz() * -corner_weight;
 
       float dxdx = math::dot(x_partial_derivative, x_partial_derivative);
       float dxdy = math::dot(x_partial_derivative, y_partial_derivative);
@@ -791,45 +797,39 @@ class ConvertKuwaharaOperation : public NodeOperation {
 
   int get_high_precision()
   {
-    return this->get_input("High Precision").get_single_value_default(false);
+    return this->get_input("High Precision").get_single_value_default<bool>();
   }
 
   int get_uniformity()
   {
-    return math::max(0, this->get_input("Uniformity").get_single_value_default(4));
+    return math::max(0, this->get_input("Uniformity").get_single_value_default<int>());
   }
 
   float get_sharpness()
   {
-    return math::clamp(this->get_input("Sharpness").get_single_value_default(1.0f), 0.0f, 1.0f);
+    return math::clamp(this->get_input("Sharpness").get_single_value_default<float>(), 0.0f, 1.0f);
   }
 
   float get_eccentricity()
   {
-    return math::clamp(this->get_input("Eccentricity").get_single_value_default(1.0f), 0.0f, 2.0f);
+    return math::clamp(
+        this->get_input("Eccentricity").get_single_value_default<float>(), 0.0f, 2.0f);
   }
 
   CMPNodeKuwahara get_type()
   {
-    const Result &input = this->get_input("Type");
-    const MenuValue default_menu_value = MenuValue(CMP_NODE_KUWAHARA_ANISOTROPIC);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return static_cast<CMPNodeKuwahara>(menu_value.value);
+    return CMPNodeKuwahara(this->get_input("Type").get_single_value_default<MenuValue>().value);
   }
 };
 
-static NodeOperation *get_compositor_operation(Context &context, DNode node)
+static NodeOperation *get_compositor_operation(Context &context, const bNode &node)
 {
   return new ConvertKuwaharaOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_kuwahara_cc
-
-static void register_node_type_cmp_kuwahara()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_composite_kuwahara_cc;
-
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeKuwahara", CMP_NODE_KUWAHARA);
   ntype.ui_name = "Kuwahara";
@@ -837,13 +837,15 @@ static void register_node_type_cmp_kuwahara()
       "Apply smoothing filter that preserves edges, for stylized and painterly effects";
   ntype.enum_name_legacy = "KUWAHARA";
   ntype.nclass = NODE_CLASS_OP_FILTER;
-  ntype.declare = file_ns::cmp_node_kuwahara_declare;
-  ntype.initfunc = file_ns::node_composit_init_kuwahara;
-  blender::bke::node_type_storage(
+  ntype.declare = node_declare;
+  ntype.initfunc = node_init;
+  bke::node_type_storage(
       ntype, "NodeKuwaharaData", node_free_standard_storage, node_copy_standard_storage);
-  ntype.get_compositor_operation = file_ns::get_compositor_operation;
-  blender::bke::node_type_size(ntype, 150, 140, NODE_DEFAULT_MAX_WIDTH);
+  ntype.get_compositor_operation = get_compositor_operation;
+  bke::node_type_size(ntype, 150, 140, NODE_DEFAULT_MAX_WIDTH);
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_kuwahara)
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_composite_kuwahara_cc

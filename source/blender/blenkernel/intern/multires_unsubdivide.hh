@@ -11,6 +11,8 @@
 #include "BLI_span.hh"
 #include "BLI_virtual_array.hh"
 
+namespace blender {
+
 struct BMesh;
 struct Mesh;
 struct MDisps;
@@ -54,8 +56,8 @@ struct MultiresUnsubdivideContext {
 
   /* Private data. */
   BMesh *bm_original_mesh = nullptr;
-  blender::Span<int> loop_to_face_map;
-  blender::VArraySpan<int> base_to_orig_vmap;
+  Span<int> loop_to_face_map;
+  VArraySpan<int> base_to_orig_vmap;
 };
 
 /* --------------------------------------------------------------------
@@ -73,3 +75,5 @@ void multires_unsubdivide_context_free(MultiresUnsubdivideContext *context);
 
 /* Rebuilds all subdivision to the level 0 base mesh. */
 bool multires_unsubdivide_to_basemesh(MultiresUnsubdivideContext *context);
+
+}  // namespace blender

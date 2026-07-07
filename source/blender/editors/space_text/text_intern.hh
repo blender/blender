@@ -10,6 +10,8 @@
 
 #include "DNA_vec_types.h"
 
+namespace blender {
+
 /* Internal exports only. */
 
 struct ARegion;
@@ -180,7 +182,7 @@ void TEXT_OT_autocomplete(wmOperatorType *ot);
 
 extern "C" const char *text_context_dir[]; /* Doc access. */
 
-namespace blender::ed::text {
+namespace ed::text {
 struct SpaceText_Runtime {
 
   /** Actual line height, scaled by DPI. */
@@ -212,4 +214,5 @@ struct SpaceText_Runtime {
   /** Cache for faster drawing. */
   void *drawcache = nullptr;
 };
-}  // namespace blender::ed::text
+}  // namespace ed::text
+}  // namespace blender

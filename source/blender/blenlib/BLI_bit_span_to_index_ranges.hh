@@ -106,7 +106,7 @@ inline void bits_to_index_ranges(const BitSpan bits, IndexRangesBuilder<IntT> &b
     int64_t int_i = 0;
 
 /* Checking for chunks of 0 bits can be speedup using intrinsics quite significantly. */
-#if BLI_HAVE_SSE2
+#if BLI_HAVE_SSE4
     for (; int_i + 1 < ints_to_check; int_i += 2) {
       /* Loads the next 128 bit. */
       const __m128i group = _mm_loadu_si128(reinterpret_cast<const __m128i *>(start + int_i));

@@ -22,7 +22,9 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
-#define HEAP_PARENT(i) (((i)-1) >> 1)
+namespace blender {
+
+#define HEAP_PARENT(i) (((i) - 1) >> 1)
 
 /* -------------------------------------------------------------------- */
 /** \name HeapSimple Internal Structs
@@ -50,7 +52,7 @@ static void heapsimple_down(HeapSimple *heap, uint start_i, const HeapSimpleNode
 #if 1
   /* The compiler isn't smart enough to realize that all computations
    * using index here can be modified to work with byte offset. */
-  uint8_t *const tree_buf = (uint8_t *)heap->tree;
+  uint8_t *const tree_buf = reinterpret_cast<uint8_t *>(heap->tree);
 
 #  define OFFSET(i) (i * uint(sizeof(HeapSimpleNode)))
 #  define NODE(offset) (*(HeapSimpleNode *)(tree_buf + (offset)))
@@ -138,11 +140,11 @@ static void heapsimple_up(HeapSimple *heap, uint i, float active_val, void *acti
 
 HeapSimple *BLI_heapsimple_new_ex(uint reserve_num)
 {
-  HeapSimple *heap = MEM_callocN<HeapSimple>(__func__);
+  HeapSimple *heap = MEM_new_zeroed<HeapSimple>(__func__);
   /* ensure we have at least one so we can keep doubling it */
   heap->size = 0;
   heap->bufsize = std::max(1u, reserve_num);
-  heap->tree = MEM_calloc_arrayN<HeapSimpleNode>(heap->bufsize, "BLIHeapSimpleTree");
+  heap->tree = MEM_new_array_zeroed<HeapSimpleNode>(heap->bufsize, "BLIHeapSimpleTree");
   return heap;
 }
 
@@ -159,8 +161,8 @@ void BLI_heapsimple_free(HeapSimple *heap, HeapSimpleFreeFP ptrfreefp)
     }
   }
 
-  MEM_freeN(heap->tree);
-  MEM_freeN(heap);
+  MEM_delete(heap->tree);
+  MEM_delete(heap);
 }
 
 void BLI_heapsimple_clear(HeapSimple *heap, HeapSimpleFreeFP ptrfreefp)
@@ -179,7 +181,7 @@ void BLI_heapsimple_insert(HeapSimple *heap, float value, void *ptr)
   if (UNLIKELY(heap->size >= heap->bufsize)) {
     heap->bufsize *= 2;
     heap->tree = static_cast<HeapSimpleNode *>(
-        MEM_reallocN(heap->tree, heap->bufsize * sizeof(*heap->tree)));
+        MEM_realloc_uninitialized(heap->tree, heap->bufsize * sizeof(*heap->tree)));
   }
 
   heapsimple_up(heap, heap->size++, value, ptr);
@@ -216,3 +218,5 @@ void *BLI_heapsimple_pop_min(HeapSimple *heap)
 }
 
 /** \} */
+
+}  // namespace blender

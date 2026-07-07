@@ -14,9 +14,11 @@
 #include "BLI_bounds_types.hh"
 #include "BLI_math_vector_types.hh"
 
+namespace blender {
+
 struct BMEditMesh;
 
-namespace blender::bke {
+namespace bke {
 
 struct EditMeshData {
   /**
@@ -42,15 +44,14 @@ struct EditMeshData {
   Array<float3> face_centers;
 };
 
-}  // namespace blender::bke
+}  // namespace bke
 
-blender::Span<blender::float3> BKE_editmesh_cache_ensure_face_normals(
-    BMEditMesh &em, blender::bke::EditMeshData &emd);
-blender::Span<blender::float3> BKE_editmesh_cache_ensure_vert_normals(
-    BMEditMesh &em, blender::bke::EditMeshData &emd);
+Span<float3> BKE_editmesh_cache_ensure_face_normals(BMEditMesh &em, bke::EditMeshData &emd);
+Span<float3> BKE_editmesh_cache_ensure_vert_normals(BMEditMesh &em, bke::EditMeshData &emd);
 
-blender::Span<blender::float3> BKE_editmesh_cache_ensure_face_centers(
-    BMEditMesh &em, blender::bke::EditMeshData &emd);
+Span<float3> BKE_editmesh_cache_ensure_face_centers(BMEditMesh &em, bke::EditMeshData &emd);
 
-std::optional<blender::Bounds<blender::float3>> BKE_editmesh_cache_calc_minmax(
-    const BMEditMesh &em, const blender::bke::EditMeshData &emd);
+std::optional<Bounds<float3>> BKE_editmesh_cache_calc_minmax(const BMEditMesh &em,
+                                                             const bke::EditMeshData &emd);
+
+}  // namespace blender

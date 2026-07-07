@@ -13,9 +13,9 @@
 
 /* Standalone for inclusion in binaries other than Blender. */
 #  ifdef USE_STANDALONE
-#    define MEM_mallocN(size, str) ((void)str, malloc(size))
-#    define MEM_callocN(size, str) ((void)str, calloc(size, 1))
-#    define MEM_freeN(ptr) free(ptr)
+#    define MEM_new_uninitialized(size, str) ((void)str, malloc(size))
+#    define MEM_new_zeroed(size, str) ((void)str, calloc(size, 1))
+#    define MEM_delete(ptr) free(ptr)
 #  else
 #    include "MEM_guardedalloc.h"
 #  endif
@@ -58,7 +58,7 @@ DIR *opendir(const char *path)
   if ((GetFileAttributesW(path_16) & FILE_ATTRIBUTE_DIRECTORY) &&
       ((path_len = strlen(path)) < (sizeof(newd->path) - PATH_SUFFIX_LEN)))
   {
-    newd = MEM_mallocN<DIR>("opendir");
+    newd = MEM_new_uninitialized<DIR>("opendir");
     newd->handle = INVALID_HANDLE_VALUE;
     memcpy(newd->path, path, path_len);
     memcpy(newd->path + path_len, PATH_SUFFIX, PATH_SUFFIX_LEN + 1);
@@ -73,26 +73,26 @@ DIR *opendir(const char *path)
   return newd;
 }
 
-static char *BLI_alloc_utf_8_from_16(wchar_t *in16, size_t add)
+static char *bli_alloc_utf_8_from_16(wchar_t *in16, size_t add)
 {
   size_t bsize = count_utf_8_from_16(in16);
   char *out8 = nullptr;
   if (!bsize) {
     return nullptr;
   }
-  out8 = MEM_malloc_arrayN<char>(bsize + add, "UTF-8 String");
+  out8 = MEM_new_array_uninitialized<char>(bsize + add, "UTF-8 String");
   conv_utf_16_to_8(in16, out8, bsize);
   return out8;
 }
 
-static wchar_t *UNUSED_FUNCTION(BLI_alloc_utf16_from_8)(char *in8, size_t add)
+static wchar_t *UNUSED_FUNCTION(bli_alloc_utf16_from_8)(char *in8, size_t add)
 {
   size_t bsize = count_utf_16_from_8(in8);
   wchar_t *out16 = nullptr;
   if (!bsize) {
     return nullptr;
   }
-  out16 = MEM_malloc_arrayN<wchar_t>(bsize + add, "UTF-16 String");
+  out16 = MEM_new_array_uninitialized<wchar_t>(bsize + add, "UTF-16 String");
   conv_utf_8_to_16(in8, out16, bsize);
   return out16;
 }
@@ -100,7 +100,7 @@ static wchar_t *UNUSED_FUNCTION(BLI_alloc_utf16_from_8)(char *in8, size_t add)
 struct dirent *readdir(DIR *dp)
 {
   if (dp->direntry.d_name) {
-    MEM_freeN(dp->direntry.d_name);
+    MEM_delete(dp->direntry.d_name);
     dp->direntry.d_name = nullptr;
   }
 
@@ -112,12 +112,12 @@ struct dirent *readdir(DIR *dp)
       return nullptr;
     }
 
-    dp->direntry.d_name = BLI_alloc_utf_8_from_16(dp->data.cFileName, 0);
+    dp->direntry.d_name = bli_alloc_utf_8_from_16(dp->data.cFileName, 0);
 
     return &dp->direntry;
   }
   else if (FindNextFileW(dp->handle, &(dp->data))) {
-    dp->direntry.d_name = BLI_alloc_utf_8_from_16(dp->data.cFileName, 0);
+    dp->direntry.d_name = bli_alloc_utf_8_from_16(dp->data.cFileName, 0);
 
     return &dp->direntry;
   }
@@ -129,13 +129,13 @@ struct dirent *readdir(DIR *dp)
 int closedir(DIR *dp)
 {
   if (dp->direntry.d_name) {
-    MEM_freeN(dp->direntry.d_name);
+    MEM_delete(dp->direntry.d_name);
   }
   if (dp->handle != INVALID_HANDLE_VALUE) {
     FindClose(dp->handle);
   }
 
-  MEM_freeN(dp);
+  MEM_delete(dp);
 
   return 0;
 }

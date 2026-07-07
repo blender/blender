@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/compositor_keying_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_keying_extract_chroma)
+
 #include "gpu_shader_common_color_utils.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
 

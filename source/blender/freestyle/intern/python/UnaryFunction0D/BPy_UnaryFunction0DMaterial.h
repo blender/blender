@@ -20,10 +20,10 @@ extern PyTypeObject UnaryFunction0DMaterial_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryFunction0DMaterial_Type))
 
 /*---------------------------Python BPy_UnaryFunction0DMaterial structure definition----------*/
-typedef struct {
+struct BPy_UnaryFunction0DMaterial {
   BPy_UnaryFunction0D py_uf0D;
   Freestyle::UnaryFunction0D<Freestyle::FrsMaterial> *uf0D_material;
-} BPy_UnaryFunction0DMaterial;
+};
 
 /*---------------------------Python BPy_UnaryFunction0DMaterial visible prototypes-----------*/
 int UnaryFunction0DMaterial_Init(PyObject *module);

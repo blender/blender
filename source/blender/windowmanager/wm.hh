@@ -8,17 +8,24 @@
 
 #pragma once
 
+#include <optional>
+
 #include "BLI_compiler_attrs.h"
 
 #include "BLI_math_vector_types.hh"
 
+#include "DNA_windowmanager_enums.h"
+
+#include "gizmo/wm_gizmo_wmapi.hh"
+
+namespace blender {
+
+struct wmDrag;
 struct wmOperator;
 struct wmTimer;
 struct wmWindow;
 struct wmWindowManager;
 struct Main;
-
-#include "gizmo/wm_gizmo_wmapi.hh"
 
 struct wmPaintCursor {
   wmPaintCursor *next, *prev;
@@ -26,10 +33,7 @@ struct wmPaintCursor {
   void *customdata;
 
   bool (*poll)(bContext *C);
-  void (*draw)(bContext *C,
-               const blender::int2 &xy,
-               const blender::float2 &tilt,
-               void *customdata);
+  void (*draw)(bContext *C, const int2 &xy, const float2 &tilt, void *customdata);
 
   short space_type;
   short region_type;
@@ -69,6 +73,13 @@ void wm_operatortype_free();
  */
 void wm_window_keymap(wmKeyConfig *keyconf);
 void wm_operatortypes_register();
+
+/**
+ * Check if any of the dragged assets points to an existing file on disk.
+ *
+ * Checks the file system, so don't call too often.
+ */
+std::optional<bool> wm_drag_asset_path_exists(const wmDrag *drag);
 
 /* `wm_gesture.cc` */
 
@@ -130,3 +141,5 @@ void wm_open_init_load_ui(wmOperator *op, bool use_prefs);
  * Return true if the script auto-execution should be cleared based on #WM_file_autoexec_init.
  */
 bool wm_open_init_use_scripts(wmOperator *op, bool use_prefs) ATTR_WARN_UNUSED_RESULT;
+
+}  // namespace blender

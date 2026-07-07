@@ -10,7 +10,7 @@
  * - tilemaps_tx
  */
 
-#include "infos/eevee_deferred_info.hh"
+#include "infos/eevee_deferred_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_deferred_thickness_amend)
 
@@ -20,15 +20,14 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_deferred_thickness_amend)
 #include "eevee_light_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "eevee_shadow_tracing_lib.glsl"
-#include "eevee_thickness_lib.glsl"
 
 void thickness_from_shadow_single(uint l_idx,
                                   const bool is_directional,
                                   float3 P,
                                   float3 Ng,
                                   float gbuffer_thickness,
-                                  inout float thickness_accum,
-                                  inout float weight_accum)
+                                  float &thickness_accum,
+                                  float &weight_accum)
 {
   LightData light = light_buf[l_idx];
 
@@ -125,8 +124,8 @@ void main()
   gbuffer::Header header = gbuffer::Header::from_data(
       texelFetch(gbuf_header_tx, int3(texel, 0), 0).r);
 
-  uchar data_layer = header.closure_len();
-  float2 data_packed = imageLoad(gbuf_normal_img, int3(texel, data_layer)).rg;
+  uchar data_layer = uniform_buf.pipeline.gbuffer_additional_data_layer_id;
+  float2 data_packed = imageLoad(gbuf_normal_img, int3(texel, int(data_layer))).rg;
   float gbuffer_thickness = gbuffer::thickness_unpack(data_packed.x);
   if (gbuffer_thickness == 0.0f) {
     return;
@@ -139,6 +138,6 @@ void main()
 
   if ((shadow_thickness < abs(gbuffer_thickness))) {
     data_packed.x = gbuffer::thickness_pack(sign(gbuffer_thickness) * shadow_thickness);
-    imageStore(gbuf_normal_img, int3(texel, data_layer), float4(data_packed, 0.0f, 0.0f));
+    imageStore(gbuf_normal_img, int3(texel, int(data_layer)), float4(data_packed, 0.0f, 0.0f));
   }
 }

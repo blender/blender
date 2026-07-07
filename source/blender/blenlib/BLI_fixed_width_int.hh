@@ -337,16 +337,18 @@ inline void generic_unsigned_mul(T *__restrict dst, const T *a, const T *b)
   }
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((!std::is_void_v<double_uint_type<T>>))>
+template<typename T, int Size>
 inline UIntF<T, Size> operator+(const UIntF<T, Size> &a, const UIntF<T, Size> &b)
+  requires(!std::is_void_v<double_uint_type<T>>)
 {
   UIntF<T, Size> result;
   generic_add<T, double_uint_type<T>, Size>(result.v.data(), a.v.data(), b.v.data());
   return result;
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((!std::is_void_v<double_uint_type<T>>))>
+template<typename T, int Size>
 inline IntF<T, Size> operator+(const IntF<T, Size> &a, const IntF<T, Size> &b)
+  requires(!std::is_void_v<double_uint_type<T>>)
 {
   IntF<T, Size> result;
   generic_add<T, double_uint_type<T>, Size>(result.v.data(), a.v.data(), b.v.data());
@@ -369,8 +371,9 @@ inline IntF<T, Size> operator-(const IntF<T, Size> &a, const IntF<T, Size> &b)
   return result;
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((!std::is_void_v<double_uint_type<T>>))>
+template<typename T, int Size>
 inline UIntF<T, Size> operator*(const UIntF<T, Size> &a, const UIntF<T, Size> &b)
+  requires(!std::is_void_v<double_uint_type<T>>)
 {
   UIntF<T, Size> result;
   generic_unsigned_mul<T, double_uint_type<T>, Size>(result.v.data(), a.v.data(), b.v.data());
@@ -400,8 +403,9 @@ template<typename T, int Size> inline bool is_zero(const IntF<T, Size> &a)
   return result;
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((!std::is_void_v<double_uint_type<T>>))>
+template<typename T, int Size>
 inline IntF<T, Size> operator*(const IntF<T, Size> &a, const IntF<T, Size> &b)
+  requires(!std::is_void_v<double_uint_type<T>>)
 {
   using UIntF = UIntF<T, Size>;
   using IntF = IntF<T, Size>;

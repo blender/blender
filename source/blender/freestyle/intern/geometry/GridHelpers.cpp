@@ -24,10 +24,10 @@ void GridHelpers::getDefaultViewProscenium(real viewProscenium[4])
   // Only intended for exposing possible artifacts along or outside the proscenium edge during
   // debugging.
   const real borderZone = 0.0;
-  viewProscenium[0] = g_freestyle.viewport[2] * (borderZone - bufferZone);
-  viewProscenium[1] = g_freestyle.viewport[2] * (1.0f - borderZone + bufferZone);
-  viewProscenium[2] = g_freestyle.viewport[3] * (borderZone - bufferZone);
-  viewProscenium[3] = g_freestyle.viewport[3] * (1.0f - borderZone + bufferZone);
+  viewProscenium[0] = blender::g_freestyle.viewport[2] * (borderZone - bufferZone);
+  viewProscenium[1] = blender::g_freestyle.viewport[2] * (1.0f - borderZone + bufferZone);
+  viewProscenium[2] = blender::g_freestyle.viewport[3] * (borderZone - bufferZone);
+  viewProscenium[3] = blender::g_freestyle.viewport[3] * (1.0f - borderZone + bufferZone);
 }
 
 GridHelpers::Transform::~Transform() = default;

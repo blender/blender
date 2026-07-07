@@ -224,7 +224,7 @@ LIST_OF_OFFICIAL_BLENDER_VERSIONS = (
     # 4.x.
     '4.0', '4.1', '4.2', '4.3', '4.4', '4.5',
     # 5.x.
-    '5.0',
+    '5.0', '5.1', '5.2',
 )
 
 # Catch duplicates
@@ -326,7 +326,8 @@ class CommitInfo:
         # E.g. Fix `blender/blender-manual#NUMBER`, will be picked out for processing.
         match = re.findall(r'\s#+(\d+)', command_output)
         if match:
-            return match
+            # Remove duplicates reports.
+            return list(dict.fromkeys(match))
         return []
 
     def get_backports(self, dict_of_backports: dict[str, list[str]]) -> None:
@@ -766,7 +767,7 @@ def organize_commits(list_of_commits: list[CommitInfo]) -> dict[str, dict[str, l
     return dict_of_sorted_commits
 
 
-def print_list_of_commits(title: str, dict_of_commits: dict[str, list[CommitInfo]]) -> None:
+def gather_list_of_commits_to_print(title: str, dict_of_commits: dict[str, list[CommitInfo]]) -> str:
     commits_message = ""
     number_of_commits = 0
     unknown_module_commit_message = ""
@@ -789,33 +790,47 @@ def print_list_of_commits(title: str, dict_of_commits: dict[str, list[CommitInfo
                 commits_message += printed_line
 
     if number_of_commits != 0:
-        print(f"{title} {number_of_commits}")
-        print(commits_message)
-        print(unknown_module_commit_message)
-        print("\n\n\n")
+        return f"""{title} {number_of_commits}
+        {commits_message}
+        {unknown_module_commit_message}"""
+    return ""
 
 
 # ---
 
 def print_release_notes(list_of_commits: list[CommitInfo]) -> None:
+    def print_with_spacer(info_to_print: str) -> None:
+        if len(info_to_print) > 0:
+            print(info_to_print)
+            # Print spacer
+            print("\n\n\n")
+
     dict_of_sorted_commits = organize_commits(list_of_commits)
 
-    print_list_of_commits("Commits that fixed old issues:", dict_of_sorted_commits[FIXED_OLD_ISSUE])
+    print_with_spacer(
+        gather_list_of_commits_to_print(
+            "Commits that fixed old issues:",
+            dict_of_sorted_commits[FIXED_OLD_ISSUE]))
 
-    print_list_of_commits(
-        "Revert commits. Add overrides to https://projects.blender.org/blender/blender/issues/137983:",
-        dict_of_sorted_commits[REVERT])
+    print_with_spacer(
+        gather_list_of_commits_to_print(
+            "Revert commits. Add overrides to https://projects.blender.org/blender/blender/issues/137983:",
+            dict_of_sorted_commits[REVERT]))
 
-    print_list_of_commits("Commits that need manual sorting:", dict_of_sorted_commits[NEEDS_MANUAL_SORTING])
+    print_with_spacer(
+        gather_list_of_commits_to_print(
+            "Commits that need manual sorting:",
+            dict_of_sorted_commits[NEEDS_MANUAL_SORTING]))
 
-    print_list_of_commits(
-        "Commits that need a override in https://projects.blender.org/blender/blender/issues/137983 as they claim to fix a PR:",
-        dict_of_sorted_commits[FIXED_PR])
+    print_with_spacer(
+        gather_list_of_commits_to_print(
+            "Commits that need a override in https://projects.blender.org/blender/blender/issues/137983 as they claim to fix a PR:",
+            dict_of_sorted_commits[FIXED_PR]))
 
-    print_list_of_commits("Ignored commits:", dict_of_sorted_commits[IGNORED])
+    print_with_spacer(gather_list_of_commits_to_print("Ignored commits:", dict_of_sorted_commits[IGNORED]))
 
     # Currently disabled as this information isn't particularly useful.
-    # print_list_of_commits(dict_of_sorted_commits[FIXED_NEW_ISSUE])
+    # print(gather_list_of_commits_to_print(dict_of_sorted_commits[FIXED_NEW_ISSUE]))
 
     print(r"""What to do with this output:
     - Go through every commit in the "Commits that need manual sorting" section and:

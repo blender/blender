@@ -23,7 +23,7 @@ else:
         CollectionProperty,
     )
     from . import settings
-    from bl_i18n_utils import utils as utils_i18n
+    from _bl_i18n_utils import utils as utils_i18n
 
 from bpy.app.translations import pgettext_iface as iface_
 

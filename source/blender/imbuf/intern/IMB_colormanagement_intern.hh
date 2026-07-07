@@ -8,18 +8,17 @@
 
 #pragma once
 
-#include "BLI_math_matrix_types.hh"
-#include "BLI_math_vector_types.hh"
-#include "DNA_listBase.h"
+namespace blender {
 
-namespace blender::ocio {
+namespace ocio {
 class ColorSpace;
 class CPUProcessor;
-}  // namespace blender::ocio
+}  // namespace ocio
 
-using ColorSpace = blender::ocio::ColorSpace;
+using ColorSpace = ocio::ColorSpace;
 
 struct ImBuf;
+enum class ColorManagedFileOutput;
 
 #define MAX_COLORSPACE_NAME 64
 
@@ -34,4 +33,8 @@ const ColorSpace *colormanage_colorspace_get_named(const char *name);
 const ColorSpace *colormanage_colorspace_get_roled(int role);
 
 void colormanage_imbuf_set_default_spaces(ImBuf *ibuf);
-void colormanage_imbuf_make_linear(ImBuf *ibuf, const char *from_colorspace);
+void colormanage_imbuf_make_linear(ImBuf *ibuf,
+                                   const char *from_colorspace,
+                                   ColorManagedFileOutput output);
+
+}  // namespace blender

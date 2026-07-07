@@ -8,6 +8,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_scene.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -16,7 +17,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes::node_shader_normal_map_cc {
+namespace blender {
+
+namespace nodes::node_shader_normal_map_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -32,11 +35,16 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>("Normal");
 }
 
-static void node_shader_buts_normal_map(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_shader_buts_normal_map(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
-  layout->prop(ptr, "space", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "space", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "convention", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
   if (RNA_enum_get(ptr, "space") == SHD_SPACE_TANGENT) {
+    if (BKE_scene_uses_cycles(CTX_data_scene(C))) {
+      layout.prop(ptr, "base", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    }
+
     PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
     Object *object = static_cast<Object *>(obptr.data);
 
@@ -45,19 +53,19 @@ static void node_shader_buts_normal_map(uiLayout *layout, bContext *C, PointerRN
 
       if (depsgraph) {
         Object *object_eval = DEG_get_evaluated(depsgraph, object);
-        PointerRNA dataptr = RNA_id_pointer_create(static_cast<ID *>(object_eval->data));
-        layout->prop_search(ptr, "uv_map", &dataptr, "uv_layers", "", ICON_GROUP_UVS);
+        PointerRNA dataptr = RNA_id_pointer_create(object_eval->data);
+        layout.prop_search(ptr, "uv_map", &dataptr, "uv_layers", "", ICON_GROUP_UVS);
         return;
       }
     }
 
-    layout->prop(ptr, "uv_map", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    layout.prop(ptr, "uv_map", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   }
 }
 
 static void node_shader_init_normal_map(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeShaderNormalMap *attr = MEM_callocN<NodeShaderNormalMap>("NodeShaderNormalMap");
+  NodeShaderNormalMap *attr = MEM_new<NodeShaderNormalMap>("NodeShaderNormalMap");
   node->storage = attr;
 }
 
@@ -73,29 +81,16 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
   if (in[0].link) {
     strength = in[0].link;
   }
-  else if (node->runtime->original) {
-    bNodeSocket *socket = static_cast<bNodeSocket *>(
-        BLI_findlink(&node->runtime->original->inputs, 0));
-    bNodeSocketValueFloat *socket_data = static_cast<bNodeSocketValueFloat *>(
-        socket->default_value);
-    strength = GPU_uniform(&socket_data->value);
-  }
   else {
-    strength = GPU_constant(in[0].vec);
+    strength = GPU_uniform(in[0].vec);
   }
 
   GPUNodeLink *newnormal;
   if (in[1].link) {
     newnormal = in[1].link;
   }
-  else if (node->runtime->original) {
-    bNodeSocket *socket = static_cast<bNodeSocket *>(
-        BLI_findlink(&node->runtime->original->inputs, 1));
-    bNodeSocketValueRGBA *socket_data = static_cast<bNodeSocketValueRGBA *>(socket->default_value);
-    newnormal = GPU_uniform(socket_data->value);
-  }
   else {
-    newnormal = GPU_constant(in[1].vec);
+    newnormal = GPU_uniform(in[1].vec);
   }
 
   const char *color_to_normal_fnc_name = "color_to_normal_new_shading";
@@ -104,6 +99,11 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
   }
 
   GPU_link(mat, color_to_normal_fnc_name, newnormal, &newnormal);
+
+  if (nm->convention == SHD_NORMAL_MAP_CONVENTION_DIRECTX) {
+    GPU_link(mat, "color_invert_green_channel", newnormal, &newnormal);
+  }
+
   switch (nm->space) {
     case SHD_SPACE_TANGENT:
       GPU_material_flag_set(mat, GPU_MATFLAG_OBJECT_INFO);
@@ -138,6 +138,11 @@ NODE_SHADER_MATERIALX_BEGIN
   NodeShaderNormalMap *normal_map_node = static_cast<NodeShaderNormalMap *>(node_->storage);
   NodeItem color = get_input_value("Color", NodeItem::Type::Vector3);
   NodeItem strength = get_input_value("Strength", NodeItem::Type::Float);
+
+  if (normal_map_node->convention == SHD_NORMAL_MAP_CONVENTION_DIRECTX) {
+    NodeItem green_mask = val(MaterialX::Vector3(1.0f, -1.0f, 1.0f));
+    color = color * green_mask;
+  }
 
 #  if MATERIALX_MAJOR_VERSION <= 1 && MATERIALX_MINOR_VERSION <= 38
   std::string space;
@@ -184,14 +189,14 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_normal_map_cc
+}  // namespace nodes::node_shader_normal_map_cc
 
 /* node type definition */
 void register_node_type_sh_normal_map()
 {
-  namespace file_ns = blender::nodes::node_shader_normal_map_cc;
+  namespace file_ns = nodes::node_shader_normal_map_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeNormalMap", SH_NODE_NORMAL_MAP);
   ntype.ui_name = "Normal Map";
@@ -202,12 +207,14 @@ void register_node_type_sh_normal_map()
   ntype.nclass = NODE_CLASS_OP_VECTOR;
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_normal_map;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Middle);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
   ntype.initfunc = file_ns::node_shader_init_normal_map;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeShaderNormalMap", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::gpu_shader_normal_map;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

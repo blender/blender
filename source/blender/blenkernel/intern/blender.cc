@@ -53,6 +53,8 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 Global G;
 UserDef U;
 
@@ -84,10 +86,10 @@ void BKE_blender_free()
   BKE_callback_global_finalize();
 
   IMB_moviecache_destruct();
-  blender::seq::fontmap_clear();
+  seq::fontmap_clear();
   MOV_exit();
 
-  blender::bke::node_system_exit();
+  bke::node_system_exit();
 }
 
 /** \} */
@@ -276,7 +278,7 @@ static void keymap_item_free(wmKeyMapItem *kmi)
 
 void BKE_blender_userdef_data_swap(UserDef *userdef_a, UserDef *userdef_b)
 {
-  blender::dna::shallow_swap(*userdef_a, *userdef_b);
+  dna::shallow_swap(*userdef_a, *userdef_b);
 }
 
 void BKE_blender_userdef_data_set(UserDef *userdef)
@@ -288,7 +290,7 @@ void BKE_blender_userdef_data_set(UserDef *userdef)
 void BKE_blender_userdef_data_set_and_free(UserDef *userdef)
 {
   BKE_blender_userdef_data_set(userdef);
-  MEM_freeN(userdef);
+  MEM_delete(userdef);
 }
 
 static void userdef_free_keymaps(UserDef *userdef)
@@ -297,25 +299,25 @@ static void userdef_free_keymaps(UserDef *userdef)
        km = km_next)
   {
     km_next = km->next;
-    LISTBASE_FOREACH (wmKeyMapDiffItem *, kmdi, &km->diff_items) {
-      if (kmdi->add_item) {
-        keymap_item_free(kmdi->add_item);
-        MEM_freeN(kmdi->add_item);
+    for (wmKeyMapDiffItem &kmdi : km->diff_items) {
+      if (kmdi.add_item) {
+        keymap_item_free(kmdi.add_item);
+        MEM_delete(kmdi.add_item);
       }
-      if (kmdi->remove_item) {
-        keymap_item_free(kmdi->remove_item);
-        MEM_freeN(kmdi->remove_item);
+      if (kmdi.remove_item) {
+        keymap_item_free(kmdi.remove_item);
+        MEM_delete(kmdi.remove_item);
       }
     }
 
-    LISTBASE_FOREACH (wmKeyMapItem *, kmi, &km->items) {
-      keymap_item_free(kmi);
+    for (wmKeyMapItem &kmi : km->items) {
+      keymap_item_free(&kmi);
     }
 
     BLI_freelistN(&km->diff_items);
     BLI_freelistN(&km->items);
 
-    MEM_freeN(km);
+    MEM_delete(km);
   }
   BLI_listbase_clear(&userdef->user_keymaps);
 }
@@ -329,7 +331,7 @@ static void userdef_free_keyconfig_prefs(UserDef *userdef)
   {
     kpt_next = kpt->next;
     IDP_FreeProperty(kpt->prop);
-    MEM_freeN(kpt);
+    MEM_delete(kpt);
   }
   BLI_listbase_clear(&userdef->user_keyconfig_prefs);
 }
@@ -341,7 +343,7 @@ static void userdef_free_user_menus(UserDef *userdef)
   {
     um_next = um->next;
     BKE_blender_user_menu_item_free_list(&um->items);
-    MEM_freeN(um);
+    MEM_delete(um);
   }
 }
 
@@ -369,8 +371,8 @@ void BKE_blender_userdef_data_free(UserDef *userdef, bool clear_fonts)
   userdef_free_addons(userdef);
 
   if (clear_fonts) {
-    LISTBASE_FOREACH (uiFont *, font, &userdef->uifonts) {
-      BLF_unload_id(font->blf_id);
+    for (uiFont &font : userdef->uifonts) {
+      BLF_unload_id(font.blf_id);
     }
     BLF_default_set(-1);
   }
@@ -379,16 +381,15 @@ void BKE_blender_userdef_data_free(UserDef *userdef, bool clear_fonts)
   BLI_freelistN(&userdef->script_directories);
   BLI_freelistN(&userdef->asset_libraries);
 
-  LISTBASE_FOREACH_MUTABLE (bUserExtensionRepo *, repo_ref, &userdef->extension_repos) {
-    MEM_SAFE_FREE(repo_ref->access_token);
-    MEM_freeN(repo_ref);
+  for (bUserExtensionRepo &repo_ref : userdef->extension_repos.items_mutable()) {
+    MEM_SAFE_DELETE(repo_ref.access_token);
+    MEM_delete(&repo_ref);
   }
   BLI_listbase_clear(&userdef->extension_repos);
 
-  LISTBASE_FOREACH_MUTABLE (bUserAssetShelfSettings *, settings, &userdef->asset_shelves_settings)
-  {
-    BKE_asset_catalog_path_list_free(settings->enabled_catalog_paths);
-    MEM_freeN(settings);
+  for (bUserAssetShelfSettings &settings : userdef->asset_shelves_settings.items_mutable()) {
+    BKE_asset_catalog_path_list_free(settings.enabled_catalog_paths);
+    MEM_delete(&settings);
   }
   BLI_listbase_clear(&userdef->asset_shelves_settings);
 
@@ -469,7 +470,7 @@ void BKE_blender_userdef_app_template_data_set(UserDef *userdef)
 void BKE_blender_userdef_app_template_data_set_and_free(UserDef *userdef)
 {
   BKE_blender_userdef_app_template_data_set(userdef);
-  MEM_freeN(userdef);
+  MEM_delete(userdef);
 }
 
 /** \} */
@@ -477,7 +478,7 @@ void BKE_blender_userdef_app_template_data_set_and_free(UserDef *userdef)
 /* -------------------------------------------------------------------- */
 /** \name Blender's AtExit
  *
- * \note Don't use MEM_mallocN so functions can be registered at any time.
+ * \note Don't use MEM_new_uninitialized so functions can be registered at any time.
  * \{ */
 
 static struct AtExitData {
@@ -527,3 +528,5 @@ void BKE_blender_atexit()
 }
 
 /** \} */
+
+}  // namespace blender

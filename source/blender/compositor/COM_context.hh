@@ -4,14 +4,13 @@
 
 #pragma once
 
-#include <cstdint>
-
 #include "BLI_bounds_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
 
 #include "DNA_scene_types.h"
 
+#include "DNA_sequence_types.h"
 #include "GPU_shader.hh"
 
 #include "COM_domain.hh"
@@ -23,61 +22,41 @@
 
 namespace blender::compositor {
 
-/* Enumerates the possible outputs that the compositor can compute. */
-enum class OutputTypes : uint8_t {
-  None = 0,
-  Composite = 1 << 0,
-  Viewer = 1 << 1,
-  FileOutput = 1 << 2,
-  Previews = 1 << 3,
-};
-ENUM_OPERATORS(OutputTypes, OutputTypes::Previews)
-
 /* ------------------------------------------------------------------------------------------------
  * Context
  *
  * A Context is an abstract class that is implemented by the caller of the evaluator to provide the
  * necessary data and functionalities for the correct operation of the evaluator. This includes
- * providing input data like render passes and the active scene, as well as references to the data
- * where the output of the evaluator will be written. Finally, the class have an instance of a
- * static resource manager for acquiring cached resources efficiently. */
+ * providing input data like render passes and the active scene, as well as callbacks to write the
+ * outputs of the compositor. Finally, the class have a reference to a static resource manager for
+ * acquiring cached resources efficiently. */
 class Context {
  private:
   /* A static cache manager that can be used to acquire cached resources for the compositor
    * efficiently. */
-  StaticCacheManager cache_manager_;
+  StaticCacheManager &cache_manager_;
 
  public:
+  Context(StaticCacheManager &cache_manager);
+
   /* Get the compositing scene. */
   virtual const Scene &get_scene() const = 0;
 
-  /* Get the node tree used for compositing. */
-  virtual const bNodeTree &get_node_tree() const = 0;
+  /* Returns the domain that the inputs and outputs of the context will be in. */
+  virtual Domain get_compositing_domain() const = 0;
 
-  /* Returns all output types that should be computed. */
-  virtual OutputTypes needed_outputs() const = 0;
-
-  /* Get the rectangular region representing the area of the input that the compositor will operate
-   * on. Conversely, the compositor will only update the region of the output that corresponds to
-   * the compositing region. In the base case, the compositing region covers the entirety of the
-   * render region. In other cases, the compositing region might be a subset of the render region.
-   * Callers should check the validity of the region through is_valid_compositing_region(), since
-   * the region can be zero sized. */
-  virtual Bounds<int2> get_compositing_region() const = 0;
-
-  /* Get the result where the result of the compositor should be written. */
-  virtual Result get_output() = 0;
-
-  /* Get the result where the result of the compositor viewer should be written, given the domain
-   * of the result to be viewed, its precision, and whether the output is a non-color data image
-   * that should be displayed without view transform. */
-  virtual Result get_viewer_output(Domain domain, bool is_data, ResultPrecision precision) = 0;
-
-  /* Get the result where the given input is stored. */
-  virtual Result get_input(const Scene *scene, int view_layer, const char *name) = 0;
+  /* Write the result of the compositor viewer. */
+  virtual void write_viewer(Result &viewer_result) = 0;
 
   /* True if the compositor should use GPU acceleration. */
   virtual bool use_gpu() const = 0;
+
+  /* Get the strip that the compositing modifier is applied to. */
+  virtual const Strip *get_strip() const;
+
+  /* Get the pass with the given name in the given view layer and scene. Freeing the pass is the
+   * caller's responsibility. */
+  virtual Result get_pass(const Scene *scene, int view_layer, const char *name);
 
   /* Get the render settings for compositing. This could be different from scene->r render settings
    * in case the render size or other settings needs to be overwritten. */
@@ -95,9 +74,9 @@ class Context {
    * appropriate place, which can be directly in the UI or just logged to the output stream. */
   virtual void set_info_message(StringRef message) const;
 
-  /* True if the compositor should treat viewers as composite outputs because it has no concept of
-   * or support for viewers. */
-  virtual bool treat_viewer_as_compositor_output() const;
+  /* True if the compositor should treat viewer nodes as group output nodes because it has no
+   * concept of or support for viewers. */
+  virtual bool treat_viewer_as_group_output() const;
 
   /* Populates the given meta data from the render stamp information of the given render pass. */
   virtual void populate_meta_data_for_pass(const Scene *scene,
@@ -121,19 +100,6 @@ class Context {
   /* Returns true if the compositor evaluation is canceled and that the evaluator should stop
    * executing as soon as possible. */
   virtual bool is_canceled() const;
-
-  /* Resets the context's internal structures like the cache manager. This should be called before
-   * every evaluation. */
-  void reset();
-
-  /* Get the size of the compositing region. See get_compositing_region(). The output size is
-   * sanitized such that it is at least 1 in both dimensions. However, the developer is expected to
-   * gracefully handled zero sizes regions by checking the is_valid_compositing_region method. */
-  int2 get_compositing_region_size() const;
-
-  /* Returns true if the compositing region has a valid size, that is, has at least one pixel in
-   * both dimensions, returns false otherwise. */
-  bool is_valid_compositing_region() const;
 
   /* Get the normalized render percentage of the active scene. */
   float get_render_percentage() const;

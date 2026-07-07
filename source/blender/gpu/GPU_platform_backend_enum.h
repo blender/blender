@@ -8,11 +8,15 @@
 
 #pragma once
 
+namespace blender {
+
 /** NOTE: Keep in sync with eUserPref_GPUBackendType. */
-enum eGPUBackendType {
+enum GPUBackendType {
   GPU_BACKEND_NONE = 0,
   GPU_BACKEND_OPENGL = 1 << 0,
   GPU_BACKEND_METAL = 1 << 1,
   GPU_BACKEND_VULKAN = 1 << 3,
   GPU_BACKEND_ANY = 0xFFFFFFFFu
 };
+
+}  // namespace blender

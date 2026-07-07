@@ -10,8 +10,6 @@
 
 #include "UI_abstract_view.hh"
 
-using namespace blender;
-
 namespace blender::ui {
 
 void AbstractView::register_item(AbstractViewItem &item)
@@ -42,15 +40,15 @@ const AbstractViewItem *AbstractView::search_highlight_item() const
   return found_item;
 }
 
-void AbstractView::update_from_old(uiBlock &new_block)
+void AbstractView::update_from_old(Block &new_block)
 {
-  uiBlock *old_block = new_block.oldblock;
+  Block *old_block = new_block.oldblock;
   if (!old_block) {
     is_reconstructed_ = true;
     return;
   }
 
-  AbstractView *old_view = ui_block_view_find_matching_in_old_block(new_block, *this);
+  AbstractView *old_view = block_view_find_matching_in_old_block(new_block, *this);
   if (old_view == nullptr) {
     /* Initial construction, nothing to update. */
     is_reconstructed_ = true;
@@ -121,7 +119,7 @@ bool AbstractView::begin_filtering(const bContext & /*C*/) const
   return false;
 }
 
-void AbstractView::draw_overlays(const ARegion & /*region*/, const uiBlock & /*block*/) const
+void AbstractView::draw_overlays(const ARegion & /*region*/, const Block & /*block*/) const
 {
   /* Nothing by default. */
 }
@@ -170,6 +168,13 @@ void AbstractView::filter(std::optional<StringRef> filter_str)
   this->foreach_view_item([&](AbstractViewItem &item) {
     item.is_filtered_visible_ = is_empty ||
                                 item.should_be_filtered_visible(StringRefNull(*filter_str));
+
+    if (!is_empty) {
+      /* Allow view types to hook into the filtering. For example tree views ensure matching
+       * children have their parents visible and uncollapsed. If the search query is empty, all
+       * items are visible by default, and nothing has to be done. */
+      item.on_filter();
+    }
 
     if (filter_changed) {
       item.is_highlighted_search_ = false;

@@ -113,6 +113,11 @@ const ColorSpace *FallbackConfig::get_color_space_by_interop_id(StringRefNull in
   return nullptr;
 }
 
+const ColorSpace *FallbackConfig::get_color_space_for_hdr_image(StringRefNull name) const
+{
+  return get_color_space(name);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

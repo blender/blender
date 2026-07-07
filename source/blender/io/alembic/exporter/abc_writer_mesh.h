@@ -13,9 +13,11 @@
 #include <Alembic/AbcGeom/OPolyMesh.h>
 #include <Alembic/AbcGeom/OSubD.h>
 
+namespace blender {
+
 struct ModifierData;
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 /* Writer for Alembic geometry. Does not assume the object is a mesh object. */
 class ABCGenericMeshWriter : public ABCAbstractWriter {
@@ -73,4 +75,5 @@ class ABCMeshWriter : public ABCGenericMeshWriter {
   Mesh *get_export_mesh(Object *object_eval, bool &r_needsfree) override;
 };
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

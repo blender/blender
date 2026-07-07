@@ -208,8 +208,8 @@ static inline void polar_svd(const Eigen::PlainObjectBase<DerivedA> &A,
                              Eigen::PlainObjectBase<DerivedV> &V)
 {
   using namespace std;
-  Eigen::JacobiSVD<DerivedA> svd;
-  svd.compute(A, Eigen::ComputeFullU | Eigen::ComputeFullV);
+  Eigen::JacobiSVD<DerivedA, Eigen::ComputeFullU | Eigen::ComputeFullV> svd;
+  svd.compute(A);
   U = svd.matrixU();
   V = svd.matrixV();
   S = svd.singularValues();

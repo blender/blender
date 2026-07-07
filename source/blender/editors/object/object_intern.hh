@@ -12,6 +12,8 @@
 
 #include "RNA_types.hh"
 
+namespace blender {
+
 struct bContext;
 struct ModifierData;
 struct Object;
@@ -19,7 +21,7 @@ struct StructRNA;
 struct wmOperator;
 struct wmOperatorType;
 
-namespace blender::ed::object {
+namespace ed::object {
 
 /* add hook menu */
 enum eObject_Hook_Add_Mode {
@@ -115,6 +117,7 @@ void OBJECT_OT_select_same_collection(wmOperatorType *ot);
 /* object_add.cc */
 
 void OBJECT_OT_add(wmOperatorType *ot);
+void OBJECT_OT_lattice_add_to_selected(wmOperatorType *ot);
 void OBJECT_OT_add_named(wmOperatorType *ot);
 void OBJECT_OT_transform_to_mouse(wmOperatorType *ot);
 void OBJECT_OT_metaball_add(wmOperatorType *ot);
@@ -327,6 +330,7 @@ void OBJECT_OT_shape_key_mirror(wmOperatorType *ot);
 void OBJECT_OT_shape_key_move(wmOperatorType *ot);
 void OBJECT_OT_shape_key_lock(wmOperatorType *ot);
 void OBJECT_OT_shape_key_make_basis(wmOperatorType *ot);
+void OBJECT_OT_shape_key_apply_to_basis(wmOperatorType *ot);
 
 /* `object_collection.cc` */
 
@@ -383,4 +387,5 @@ void modifier_register_use_selected_objects_prop(wmOperatorType *ot);
 /* object_visual_geometry_to_objects.cc */
 void OBJECT_OT_visual_geometry_to_objects(wmOperatorType *ot);
 
-}  // namespace blender::ed::object
+}  // namespace ed::object
+}  // namespace blender

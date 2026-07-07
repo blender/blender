@@ -54,13 +54,15 @@
 
 #include "image_intern.hh"
 
+namespace blender {
+
 static void draw_render_info(
     const bContext *C, Scene *scene, Image *ima, ARegion *region, float zoomx, float zoomy)
 {
   Render *re = RE_GetSceneRender(scene);
   Scene *stats_scene = ED_render_job_get_scene(C);
   if (stats_scene == nullptr) {
-    stats_scene = CTX_data_scene(C);
+    stats_scene = scene;
   }
 
   RenderResult *rr = BKE_image_acquire_renderresult(stats_scene, ima);
@@ -79,14 +81,14 @@ static void draw_render_info(
     if (total_tiles) {
       /* find window pixel coordinates of origin */
       int x, y;
-      UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
+      ui::view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
 
       GPU_matrix_push();
       GPU_matrix_translate_2f(x, y);
       GPU_matrix_scale_2f(zoomx, zoomy);
 
       uint pos = GPU_vertformat_attr_add(
-          immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+          immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
       immUniformThemeColor(TH_FACE_SELECT);
 
@@ -139,8 +141,7 @@ void ED_image_draw_info(Scene *scene,
 
   GPU_blend(GPU_BLEND_ALPHA);
 
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* noisy, high contrast make impossible to read if lower alpha is used. */
@@ -302,8 +303,7 @@ void ED_image_draw_info(Scene *scene,
                 ymin + 0.85f * UI_UNIT_Y);
 
   /* BLF uses immediate mode too, so we must reset our vertex format */
-  pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   if (channels == 4) {
@@ -346,8 +346,7 @@ void ED_image_draw_info(Scene *scene,
   immUnbindProgram();
 
   /* draw outline */
-  pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor3ub(128, 128, 128);
   imm_draw_box_wire_2d(pos, color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
@@ -412,8 +411,7 @@ void draw_image_sample_line(SpaceImage *sima)
     Histogram *hist = &sima->sample_line_hist;
 
     GPUVertFormat *format = immVertexFormat();
-    uint shdr_dashed_pos = GPU_vertformat_attr_add(
-        format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+    uint shdr_dashed_pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
 
     immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
 
@@ -448,6 +446,14 @@ void draw_image_main_helpers(const bContext *C, ARegion *region)
     float zoomx, zoomy;
     ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
     draw_render_info(C, sima->iuser.scene, ima, region, zoomx, zoomy);
+  }
+
+  if (sima->mode == SI_MODE_UV) {
+    const Scene *scene = CTX_data_scene(C);
+    const ToolSettings *ts = scene->toolsettings;
+    if (ts->uv_flag & UV_FLAG_CUSTOM_REGION) {
+      draw_image_uv_custom_region(region, ts->uv_custom_region);
+    }
   }
 }
 
@@ -505,14 +511,15 @@ void draw_image_cache(const bContext *C, ARegion *region)
   ED_region_cache_draw_background(region);
 
   /* Draw cached segments. */
-  if (image != nullptr && image->cache != nullptr &&
+  if (image != nullptr && image->runtime->cache != nullptr &&
       ELEM(image->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE))
   {
     int num_segments = 0;
     int *points = nullptr;
 
     std::scoped_lock lock(image->runtime->cache_mutex);
-    IMB_moviecache_get_cache_segments(image->cache, IMB_PROXY_NONE, 0, &num_segments, &points);
+    IMB_moviecache_get_cache_segments(
+        image->runtime->cache, IMB_PROXY_NONE, 0, &num_segments, &points);
 
     ED_region_cache_draw_cached_segments(
         region, num_segments, points, sfra + sima->iuser.offset, efra + sima->iuser.offset);
@@ -523,8 +530,7 @@ void draw_image_cache(const bContext *C, ARegion *region)
   /* Draw current frame. */
   x = (cfra - sfra) / (efra - sfra + 1) * region->winx;
 
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformThemeColor(TH_CFRAME);
   immRectf(pos, x, region_bottom, x + ceilf(framelen), region_bottom + 8 * UI_SCALE_FAC);
@@ -606,3 +612,32 @@ float ED_space_image_increment_snap_value(const int grid_dimensions,
   /* Fallback */
   return grid_steps[0];
 }
+
+void draw_image_uv_custom_region(const ARegion *region, const rctf &custom_region)
+{
+  const uint shdr_pos = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
+
+  GPU_line_width(1.0f);
+
+  immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
+
+  float viewport_size[4];
+  GPU_viewport_size_get_f(viewport_size);
+  immUniform2f("viewport_size", viewport_size[2] / UI_SCALE_FAC, viewport_size[3] / UI_SCALE_FAC);
+
+  immUniform1i("colors_len", 0); /* "simple" mode */
+  immUniform4f("color", 1.0f, 0.25f, 0.25f, 1.0f);
+  immUniform1f("dash_width", 6.0f);
+  immUniform1f("udash_factor", 0.5f);
+  rcti region_rect;
+
+  ui::view2d_view_to_region_rcti(&region->v2d, &custom_region, &region_rect);
+
+  imm_draw_box_wire_2d(
+      shdr_pos, region_rect.xmin, region_rect.ymin, region_rect.xmax, region_rect.ymax);
+
+  immUnbindProgram();
+}
+
+}  // namespace blender

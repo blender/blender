@@ -15,9 +15,11 @@
 
 #include "BKE_object.hh"
 
+namespace blender {
+
 using Alembic::Abc::ISampleSelector;
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 AbcEmptyReader::AbcEmptyReader(const Alembic::Abc::IObject &object, ImportSettings &settings)
     : AbcObjectReader(object, settings)
@@ -63,4 +65,5 @@ void AbcEmptyReader::readObjectData(Main *bmain, const ISampleSelector & /*sampl
   m_object->data = nullptr;
 }
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

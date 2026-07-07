@@ -139,7 +139,7 @@ def init_vnodes(gltf):
             add_nodes_to_scene(idx_scene, child)
 
     for idx_scene, scene in enumerate(gltf.data.scenes or []):
-        for node in scene.nodes:
+        for node in scene.nodes or []:
             add_nodes_to_scene(idx_scene, node)
 
     # Create a map of all scene / blender collections
@@ -155,7 +155,6 @@ def init_vnodes(gltf):
             gltf.blender_scenes[idx_scene] = new_scene
         else:
             gltf.blender_scenes[idx_scene] = bpy.context.scene
-
 
     # If we have only 1 scene, we can use the active collection
     # If we have multiple scenes, we create a collection for each scene (as child of active collection)
@@ -176,8 +175,7 @@ def init_vnodes(gltf):
                 if idx_scene == gltf.data.scene:
                     gltf.blender_collections[idx_scene] = gltf.active_collection
                 # No collection creation, so no linking
-                # Link between glTF scence and blender scene is already done
-
+                # Link between glTF scene and blender scene is already done
 
     # Check if we have orphan nodes
     orphan_nodes = [node for node in gltf.vnodes if len(gltf.vnodes[node].scenes) == 0]
@@ -188,7 +186,6 @@ def init_vnodes(gltf):
         gltf.active_collection.children.link(orphan_collection)
         # Add the collection to the map
         gltf.blender_collections[None] = orphan_collection
-
 
     # Inserting a root node will simplify things.
     roots = [id for id in gltf.vnodes if gltf.vnodes[id].parent is None]
@@ -201,15 +198,16 @@ def init_vnodes(gltf):
 
 
 def manage_gpu_instancing(gltf, vnode, i, ext, mesh_id):
+    attrs = ext.get('attributes', {})
 
-    trans_list = BinaryData.get_data_from_accessor(gltf, ext['attributes'].get('TRANSLATION', None)) \
-        if ext['attributes'].get('TRANSLATION', None) is not None else None
+    trans_list = BinaryData.get_data_from_accessor(gltf, attrs.get('TRANSLATION', None)) \
+        if attrs.get('TRANSLATION', None) is not None else None
 
-    rot_list = BinaryData.get_data_from_accessor(gltf, ext['attributes'].get('ROTATION', None)) \
-        if ext['attributes'].get('ROTATION', None) is not None else None
+    rot_list = BinaryData.get_data_from_accessor(gltf, attrs.get('ROTATION', None)) \
+        if attrs.get('ROTATION', None) is not None else None
 
-    scale_list = BinaryData.get_data_from_accessor(gltf, ext['attributes'].get('SCALE', None)) \
-        if ext['attributes'].get('SCALE', None) is not None else None
+    scale_list = BinaryData.get_data_from_accessor(gltf, attrs.get('SCALE', None)) \
+        if attrs.get('SCALE', None) is not None else None
 
     # Retrieve the first available attribute to get the number of children
     val = next((elem for elem in [

@@ -2,8 +2,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/compositor_bokeh_image_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_bokeh_image)
+
 #include "gpu_shader_compositor_texture_utilities.glsl"
 #include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_constants_lib.glsl"
 
 /* Get the 2D vertex position of the vertex with the given index in the regular polygon
  * representing this bokeh. The polygon is rotated by the rotation amount and have a unit

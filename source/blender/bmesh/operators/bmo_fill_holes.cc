@@ -13,6 +13,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 void bmo_holes_fill_exec(BMesh *bm, BMOperator *op)
 {
   BMOperator op_attr;
@@ -64,3 +66,5 @@ void bmo_holes_fill_exec(BMesh *bm, BMOperator *op)
   }
   BMO_op_finish(bm, &op_attr);
 }
+
+}  // namespace blender

@@ -10,6 +10,8 @@
 
 #include "utils.hh"
 
+#include "DNA_userdef_types.h"
+
 #include "AS_essentials_library.hh"
 #include "essentials_library.hh"
 
@@ -18,9 +20,13 @@ namespace blender::asset_system {
 EssentialsAssetLibrary::EssentialsAssetLibrary()
     : OnDiskAssetLibrary(ASSET_LIBRARY_ESSENTIALS,
                          {},
-                         utils::normalize_directory_path(essentials_directory_path()))
+                         utils::normalize_directory_path(essentials_directory_path()),
+                         AssetCatalogService::read_only_tag{})
 {
-  import_method_ = ASSET_IMPORT_APPEND_REUSE;
+  import_method_ = ASSET_IMPORT_PACK;
+  if (U.experimental.no_data_block_packing) {
+    import_method_ = ASSET_IMPORT_APPEND_REUSE;
+  }
 }
 
 std::optional<AssetLibraryReference> EssentialsAssetLibrary::library_reference() const
@@ -29,6 +35,14 @@ std::optional<AssetLibraryReference> EssentialsAssetLibrary::library_reference()
   library_ref.custom_library_index = -1;
   library_ref.type = ASSET_LIBRARY_ESSENTIALS;
   return library_ref;
+}
+
+void EssentialsAssetLibrary::update_default_import_method()
+{
+  import_method_ = ASSET_IMPORT_PACK;
+  if (U.experimental.no_data_block_packing) {
+    import_method_ = ASSET_IMPORT_APPEND_REUSE;
+  }
 }
 
 StringRefNull essentials_directory_path()

@@ -10,7 +10,7 @@
  * Dispatched as 1 thread per irradiance probe sample.
  */
 
-#include "infos/eevee_lightprobe_volume_info.hh"
+#include "infos/eevee_lightprobe_volume_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_volume_ray)
 
@@ -21,10 +21,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_volume_ray)
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
-void irradiance_capture(float3 L,
-                        float3 irradiance,
-                        float visibility,
-                        inout SphericalHarmonicL1 sh)
+void irradiance_capture(float3 L, float3 irradiance, float visibility, SphericalHarmonicL1 &sh)
 {
   float3 lL = transform_direction(capture_info_buf.irradiance_grid_world_to_local_rotation, L);
 
@@ -35,7 +32,7 @@ void irradiance_capture(float3 L,
   spherical_harmonics_encode_signal_sample(lL, float4(irradiance, visibility), sh);
 }
 
-void irradiance_capture_surfel(Surfel surfel, float3 P, inout SphericalHarmonicL1 sh)
+void irradiance_capture_surfel(Surfel surfel, float3 P, SphericalHarmonicL1 &sh)
 {
   float3 L = safe_normalize(surfel.position - P);
   bool facing = dot(-L, surfel.normal) > 0.0f;
@@ -56,19 +53,19 @@ void irradiance_capture_surfel(Surfel surfel, float3 P, inout SphericalHarmonicL
   irradiance_capture(L, irradiance_vis.rgb, irradiance_vis.a, sh);
 }
 
-void validity_capture_surfel(Surfel surfel, float3 P, inout float validity)
+void validity_capture_surfel(Surfel surfel, float3 P, float &validity)
 {
   float3 L = safe_normalize(surfel.position - P);
   bool facing = surfel.double_sided || dot(-L, surfel.normal) > 0.0f;
   validity += float(facing);
 }
 
-void validity_capture_world(float3 L, inout float validity)
+void validity_capture_world(float3 L, float &validity)
 {
   validity += 1.0f;
 }
 
-void irradiance_capture_world(float3 L, inout SphericalHarmonicL1 sh)
+void irradiance_capture_world(float3 L, SphericalHarmonicL1 &sh)
 {
   float3 radiance = float3(0.0f);
   float visibility = 0.0f;
@@ -113,12 +110,18 @@ void main()
   /* Walk the ray to get which surfels the irradiance sample is between. */
   int surfel_prev = -1;
   int surfel_next = list_start_buf[list_index];
-  for (; surfel_next > -1; surfel_next = surfel_buf[surfel_next].next) {
+  /* Avoid spinning for eternity. */
+  for (int i = 0; i < 9999; i++) {
+    if (surfel_next <= -1) {
+      break;
+    }
     /* Reminder: List is sorted with highest value first. */
     if (surfel_buf[surfel_next].ray_distance < irradiance_sample_ray_distance) {
       break;
     }
     surfel_prev = surfel_next;
+    surfel_next = surfel_buf[surfel_next].next;
+    assert(surfel_prev != surfel_next);
   }
 
   float3 sky_L = drw_world_incident_vector(P);
@@ -142,20 +145,32 @@ void main()
     Surfel surfel = surfel_buf[surfel_next];
     irradiance_capture_surfel(surfel, P, sh);
     validity_capture_surfel(surfel, P, validity);
+#if 0 /* For debugging the volume rays list. */
+    drw_debug_line(surfel.position, P, float4(0, 1, 0, 1), drw_debug_persistent_lifetime);
+#endif
   }
   else {
     irradiance_capture_world(-sky_L, sh);
     validity_capture_world(-sky_L, validity);
+#if 0 /* For debugging the volume rays list. */
+    drw_debug_line(P - sky_L, P, float4(0, 1, 1, 1), drw_debug_persistent_lifetime);
+#endif
   }
 
   if (surfel_prev > -1) {
     Surfel surfel = surfel_buf[surfel_prev];
     irradiance_capture_surfel(surfel, P, sh);
     validity_capture_surfel(surfel, P, validity);
+#if 0 /* For debugging the volume rays list. */
+    drw_debug_line(surfel.position, P, float4(1, 0, 1, 1), drw_debug_persistent_lifetime);
+#endif
   }
   else {
     irradiance_capture_world(sky_L, sh);
     validity_capture_world(sky_L, validity);
+#if 0 /* For debugging the volume rays list. */
+    drw_debug_line(P + sky_L, P, float4(1, 1, 0, 1), drw_debug_persistent_lifetime);
+#endif
   }
 
   /* Normalize for storage. We accumulated 2 samples. */

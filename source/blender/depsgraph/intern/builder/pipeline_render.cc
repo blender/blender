@@ -28,7 +28,8 @@ class RenderDepsgraphRelationBuilder : public DepsgraphRelationBuilder {
 
 }  // namespace
 
-RenderBuilderPipeline::RenderBuilderPipeline(::Depsgraph *graph) : AbstractBuilderPipeline(graph)
+RenderBuilderPipeline::RenderBuilderPipeline(blender::Depsgraph *graph)
+    : AbstractBuilderPipeline(graph)
 {
   deg_graph_->is_render_pipeline_depsgraph = true;
 }

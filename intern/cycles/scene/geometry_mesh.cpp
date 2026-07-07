@@ -65,12 +65,10 @@ void GeometryManager::device_update_mesh(Device * /*unused*/,
 
     packed_float3 *tri_verts = dscene->tri_verts.alloc(vert_size);
     uint *tri_shader = dscene->tri_shader.alloc(tri_size);
-    packed_float3 *vnormal = dscene->tri_vnormal.alloc(vert_size);
     packed_uint3 *tri_vindex = dscene->tri_vindex.alloc(tri_size);
 
     const bool copy_all_data = dscene->tri_shader.need_realloc() ||
-                               dscene->tri_vindex.need_realloc() ||
-                               dscene->tri_vnormal.need_realloc();
+                               dscene->tri_vindex.need_realloc();
 
     for (Geometry *geom : scene->geometry) {
       if (geom->is_mesh() || geom->is_volume()) {
@@ -80,10 +78,6 @@ void GeometryManager::device_update_mesh(Device * /*unused*/,
             mesh->triangles_is_modified() || copy_all_data)
         {
           mesh->pack_shaders(scene, &tri_shader[mesh->prim_offset]);
-        }
-
-        if (mesh->verts_is_modified() || copy_all_data) {
-          mesh->pack_normals(&vnormal[mesh->vert_offset]);
         }
 
         if (mesh->verts_is_modified() || mesh->triangles_is_modified() || copy_all_data) {
@@ -101,7 +95,6 @@ void GeometryManager::device_update_mesh(Device * /*unused*/,
 
     dscene->tri_verts.copy_to_device_if_modified();
     dscene->tri_shader.copy_to_device_if_modified();
-    dscene->tri_vnormal.copy_to_device_if_modified();
     dscene->tri_vindex.copy_to_device_if_modified();
   }
 

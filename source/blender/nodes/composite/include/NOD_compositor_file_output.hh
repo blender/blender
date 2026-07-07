@@ -21,7 +21,7 @@ namespace blender::nodes {
 
 struct FileOutputItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeCompositorFileOutputItem;
-  static StructRNA *item_srna;
+  static StructRNA **item_srna;
   static constexpr StringRefNull node_idname = "CompositorNodeOutputFile";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
@@ -59,7 +59,7 @@ struct FileOutputItemsAccessor : public socket_items::SocketItemsAccessorDefault
 
   static void destruct_item(NodeCompositorFileOutputItem *item)
   {
-    MEM_SAFE_FREE(item->name);
+    MEM_SAFE_DELETE(item->name);
     BKE_image_format_free(&item->format);
   }
 
@@ -109,7 +109,7 @@ struct FileOutputItemsAccessor : public socket_items::SocketItemsAccessorDefault
     socket_items::set_item_name_and_make_unique<FileOutputItemsAccessor>(node, item, name);
 
     item.save_as_render = true;
-    BKE_image_format_init(&item.format, false);
+    BKE_image_format_init(&item.format);
     BKE_image_format_update_color_space_for_type(&item.format);
   }
 

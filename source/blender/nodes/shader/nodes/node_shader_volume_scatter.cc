@@ -11,7 +11,9 @@
 
 #include "BKE_node_runtime.hh"
 
-namespace blender::nodes::node_shader_volume_scatter_cc {
+namespace blender {
+
+namespace nodes::node_shader_volume_scatter_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -26,32 +28,37 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR)
       .description(
           "Directionality of the scattering. Zero is isotropic, negative is backward, "
-          "positive is forward");
+          "positive is forward")
+      .make_available([](bNode &node) { node.custom1 = SHD_PHASE_HENYEY_GREENSTEIN; });
   b.add_input<decl::Float>("IOR")
       .default_value(1.33f)
       .min(1.0f)
       .max(2.0f)
       .subtype(PROP_FACTOR)
-      .description("Index Of Refraction of the scattering particles");
+      .description("Index Of Refraction of the scattering particles")
+      .make_available([](bNode &node) { node.custom1 = SHD_PHASE_FOURNIER_FORAND; });
   b.add_input<decl::Float>("Backscatter")
       .default_value(0.1f)
       .min(0.0f)
       .max(0.5f)
       .subtype(PROP_FACTOR)
-      .description("Fraction of light that is scattered backwards");
-  b.add_input<decl::Float>("Alpha").default_value(0.5f).min(0.0f).max(500.0f);
+      .description("Fraction of light that is scattered backwards")
+      .make_available([](bNode &node) { node.custom1 = SHD_PHASE_FOURNIER_FORAND; });
+  b.add_input<decl::Float>("Alpha").default_value(0.5f).min(0.0f).max(500.0f).make_available(
+      [](bNode &node) { node.custom1 = SHD_PHASE_DRAINE; });
   b.add_input<decl::Float>("Diameter")
       .default_value(20.0f)
       .min(0.0f)
       .max(50.0f)
-      .description("Diameter of the water droplets, in micrometers");
+      .description("Diameter of the water droplets, in micrometers")
+      .make_available([](bNode &node) { node.custom1 = SHD_PHASE_MIE; });
   b.add_input<decl::Float>("Weight").available(false);
   b.add_output<decl::Shader>("Volume").translation_context(BLT_I18NCONTEXT_ID_ID);
 }
 
-static void node_shader_buts_scatter(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_shader_buts_scatter(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "phase", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "phase", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 static void node_shader_init_scatter(bNodeTree * /*ntree*/, bNode *node)
@@ -63,20 +70,19 @@ static void node_shader_update_scatter(bNodeTree *ntree, bNode *node)
 {
   const int phase_function = node->custom1;
 
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    if (STR_ELEM(sock->name, "IOR", "Backscatter")) {
+  for (bNodeSocket &sock : node->inputs) {
+    if (STR_ELEM(sock.name, "IOR", "Backscatter")) {
+      bke::node_set_socket_availability(*ntree, sock, phase_function == SHD_PHASE_FOURNIER_FORAND);
+    }
+    else if (STR_ELEM(sock.name, "Anisotropy")) {
       bke::node_set_socket_availability(
-          *ntree, *sock, phase_function == SHD_PHASE_FOURNIER_FORAND);
+          *ntree, sock, ELEM(phase_function, SHD_PHASE_HENYEY_GREENSTEIN, SHD_PHASE_DRAINE));
     }
-    else if (STR_ELEM(sock->name, "Anisotropy")) {
-      bke::node_set_socket_availability(
-          *ntree, *sock, ELEM(phase_function, SHD_PHASE_HENYEY_GREENSTEIN, SHD_PHASE_DRAINE));
+    else if (STR_ELEM(sock.name, "Alpha")) {
+      bke::node_set_socket_availability(*ntree, sock, phase_function == SHD_PHASE_DRAINE);
     }
-    else if (STR_ELEM(sock->name, "Alpha")) {
-      bke::node_set_socket_availability(*ntree, *sock, phase_function == SHD_PHASE_DRAINE);
-    }
-    else if (STR_ELEM(sock->name, "Diameter")) {
-      bke::node_set_socket_availability(*ntree, *sock, phase_function == SHD_PHASE_MIE);
+    else if (STR_ELEM(sock.name, "Diameter")) {
+      bke::node_set_socket_availability(*ntree, sock, phase_function == SHD_PHASE_MIE);
     }
   }
 }
@@ -98,14 +104,14 @@ static int node_shader_gpu_volume_scatter(GPUMaterial *mat,
 #undef SOCK_COLOR_ID
 #undef SOCK_DENSITY_ID
 
-}  // namespace blender::nodes::node_shader_volume_scatter_cc
+}  // namespace nodes::node_shader_volume_scatter_cc
 
 /* node type definition */
 void register_node_type_sh_volume_scatter()
 {
-  namespace file_ns = blender::nodes::node_shader_volume_scatter_cc;
+  namespace file_ns = nodes::node_shader_volume_scatter_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeVolumeScatter", SH_NODE_VOLUME_SCATTER);
   ntype.ui_name = "Volume Scatter";
@@ -114,12 +120,15 @@ void register_node_type_sh_volume_scatter()
   ntype.enum_name_legacy = "VOLUME_SCATTER";
   ntype.nclass = NODE_CLASS_SHADER;
   ntype.declare = file_ns::node_declare;
+  ntype.gather_link_search_ops = search_link_ops_for_shader_bsdf_node;
   ntype.add_ui_poll = object_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_shader_buts_scatter;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Middle);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
   ntype.initfunc = file_ns::node_shader_init_scatter;
   ntype.gpu_fn = file_ns::node_shader_gpu_volume_scatter;
   ntype.updatefunc = file_ns::node_shader_update_scatter;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

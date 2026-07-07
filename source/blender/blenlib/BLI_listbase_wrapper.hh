@@ -7,7 +7,7 @@
 /** \file
  * \ingroup bli
  *
- * `blender::ListBaseWrapper` is a typed wrapper for the #ListBase struct. That makes it safer and
+ * `ListBaseWrapper` is a typed wrapper for the #ListBase struct. That makes it safer and
  * more convenient to use in C++ in some cases. However, if you find yourself iterating over a
  * linked list a lot, consider to convert it into a vector for further processing. This improves
  * performance and debug-ability.
@@ -125,4 +125,4 @@ template<typename T> Vector<T *> listbase_to_vector(const ListBase &list)
   return vector;
 }
 
-} /* namespace blender */
+}  // namespace blender

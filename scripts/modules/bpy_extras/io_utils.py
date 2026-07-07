@@ -60,6 +60,15 @@ class ExportHelper:
     check_extension = True
 
     def invoke(self, context, _event):
+        """
+        Invoke the file selector for exporting, setting a default filepath
+        based on the current blend file name.
+
+        :param context: The context.
+        :type context: :class:`bpy.types.Context`
+        :return: The operator return value.
+        :rtype: set[str]
+        """
         import os
         if not self.filepath:
             blend_filepath = context.blend_data.filepath
@@ -74,6 +83,12 @@ class ExportHelper:
         return {'RUNNING_MODAL'}
 
     def check(self, _context):
+        """
+        Validate the filepath and axis conversion settings.
+
+        :return: True when a property was updated.
+        :rtype: bool
+        """
         import os
         change_ext = False
         change_axis = _check_axis_conversion(self)
@@ -105,10 +120,30 @@ class ImportHelper:
     )
 
     def invoke(self, context, _event):
+        """
+        Invoke the file selector for importing.
+
+        :param context: The context.
+        :type context: :class:`bpy.types.Context`
+        :return: The operator return value.
+        :rtype: set[str]
+        """
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
     def invoke_popup(self, context, confirm_text=""):
+        """
+        Invoke as a popup confirmation dialog when a filepath is already set,
+        otherwise fall back to the file selector.
+
+        :param context: The context.
+        :type context: :class:`bpy.types.Context`
+        :param confirm_text: Label for the confirm button,
+           defaults to the operator label.
+        :type confirm_text: str
+        :return: The operator return value.
+        :rtype: set[str]
+        """
         if self.properties.is_property_set("filepath"):
             title = self.filepath
             if len(self.files) > 1:
@@ -121,12 +156,22 @@ class ImportHelper:
                 confirm_text = iface_(self.bl_label, i18n_contexts.operator_default)
 
             return context.window_manager.invoke_props_dialog(
-                self, confirm_text=confirm_text, title=title, translate=False)
+                self,
+                confirm_text=confirm_text,
+                title=title,
+                translate=False,
+            )
 
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
     def check(self, _context):
+        """
+        Validate axis conversion settings.
+
+        :return: True when a property was updated.
+        :rtype: bool
+        """
         return _check_axis_conversion(self)
 
 
@@ -134,12 +179,25 @@ def orientation_helper(axis_forward='Y', axis_up='Z'):
     """
     A decorator for import/export classes, generating properties needed by the axis conversion system and IO helpers,
     with specified default values (axes).
+
+    :param axis_forward: The default forward axis.
+    :type axis_forward: Literal['X', 'Y', 'Z', '-X', '-Y', '-Z']
+    :param axis_up: The default up axis.
+    :type axis_up: Literal['X', 'Y', 'Z', '-X', '-Y', '-Z']
+    :return: A class decorator.
+    :rtype: Callable[[type], type]
     """
+
     def wrapper(cls):
-        # Without that, we may end up adding those fields to some **parent** class' __annotations__ property
-        # (like the ImportHelper or ExportHelper ones)! See #58772.
-        if "__annotations__" not in cls.__dict__:
-            setattr(cls, "__annotations__", {})
+        # Python 3.14+ (PEP 649): This workaround is no longer needed because annotations
+        # are lazily evaluated. Accessing `cls.__annotations__` always returns a dict
+        # specific to that class (never the parent's), so adding items is safe.
+        import sys
+        if sys.version_info < (3, 14):
+            # Without this, we may end up adding those fields to some **parent** class'
+            # `__annotations__` property (like the ImportHelper or ExportHelper ones)! See #58772.
+            if "__annotations__" not in cls.__dict__:
+                setattr(cls, "__annotations__", {})
 
         def _update_axis_forward(self, _context):
             if self.axis_forward[-1] == self.axis_up[-1]:
@@ -298,8 +356,19 @@ _axis_convert_num = {'X': 0, 'Y': 1, 'Z': 2, '-X': 3, '-Y': 4, '-Z': 5}
 
 def axis_conversion(from_forward='Y', from_up='Z', to_forward='Y', to_up='Z'):
     """
-    Each argument us an axis in ['X', 'Y', 'Z', '-X', '-Y', '-Z']
+    Each argument is an axis
     where the first 2 are a source and the second 2 are the target.
+
+    :param from_forward: Source forward axis.
+    :type from_forward: Literal['X', 'Y', 'Z', '-X', '-Y', '-Z']
+    :param from_up: Source up axis.
+    :type from_up: Literal['X', 'Y', 'Z', '-X', '-Y', '-Z']
+    :param to_forward: Target forward axis.
+    :type to_forward: Literal['X', 'Y', 'Z', '-X', '-Y', '-Z']
+    :param to_up: Target up axis.
+    :type to_up: Literal['X', 'Y', 'Z', '-X', '-Y', '-Z']
+    :return: The conversion matrix.
+    :rtype: :class:`mathutils.Matrix`
     """
     from mathutils import Matrix
     from functools import reduce
@@ -308,8 +377,7 @@ def axis_conversion(from_forward='Y', from_up='Z', to_forward='Y', to_up='Z'):
         return Matrix().to_3x3()
 
     if from_forward[-1] == from_up[-1] or to_forward[-1] == to_up[-1]:
-        raise Exception("Invalid axis arguments passed, "
-                        "cannot use up/forward on the same axis")
+        raise Exception("Invalid axis arguments passed, cannot use up/forward on the same axis")
 
     value = reduce(
         int.__or__,
@@ -332,11 +400,11 @@ def axis_conversion_ensure(operator, forward_attr, up_attr):
     Function to ensure an operator has valid axis conversion settings, intended
     to be used from :class:`bpy.types.Operator.check`.
 
-    :arg operator: the operator to access axis attributes from.
+    :param operator: the operator to access axis attributes from.
     :type operator: :class:`bpy.types.Operator`
-    :arg forward_attr: attribute storing the forward axis
+    :param forward_attr: attribute storing the forward axis
     :type forward_attr: str
-    :arg up_attr: attribute storing the up axis
+    :param up_attr: attribute storing the up axis
     :type up_attr: str
     :return: True if the value was modified.
     :rtype: bool
@@ -363,9 +431,9 @@ def create_derived_objects(depsgraph, objects):
     """
     This function takes a sequence of objects, returning their instances.
 
-    :arg depsgraph: The evaluated depsgraph.
+    :param depsgraph: The evaluated depsgraph.
     :type depsgraph: :class:`bpy.types.Depsgraph`
-    :arg objects: A sequencer of objects.
+    :param objects: A sequence of objects.
     :type objects: Sequence[:class:`bpy.types.Object`]
     :return: A dictionary where each key is an object from ``objects``,
        values are lists of (object, matrix) tuples representing instances.
@@ -395,6 +463,14 @@ def create_derived_objects(depsgraph, objects):
 
 
 def unpack_list(list_of_tuples):
+    """
+    Flatten a sequence of tuples into a single list.
+
+    :param list_of_tuples: A sequence of tuples to unpack.
+    :type list_of_tuples: Sequence[tuple]
+    :return: A flat list of all values.
+    :rtype: list
+    """
     flat_list = []
     flat_list_extend = flat_list.extend  # a tiny bit faster
     for t in list_of_tuples:
@@ -404,6 +480,15 @@ def unpack_list(list_of_tuples):
 
 # same as above except that it adds 0 for triangle faces
 def unpack_face_list(list_of_tuples):
+    """
+    Unpack a list of faces (triangles or quads) into a flat list,
+    padding triangles with a zero to fit into groups of four.
+
+    :param list_of_tuples: A sequence of face index tuples (3 or 4 elements each).
+    :type list_of_tuples: Sequence[tuple[int, ...]]
+    :return: A flat list of face indices, padded with zeros.
+    :rtype: list[int]
+    """
     # allocate the entire list
     flat_ls = [0] * (len(list_of_tuples) * 4)
     i = 0
@@ -425,6 +510,11 @@ def poll_file_object_drop(context):
     """
     A default implementation for FileHandler poll_drop methods. Allows for both the 3D Viewport and
     the Outliner (in ViewLayer display mode) to be targets for file drag and drop.
+
+    :param context: The context.
+    :type context: :class:`bpy.types.Context`
+    :return: Whether the drop target is valid.
+    :rtype: bool
     """
     area = context.area
     if not area:
@@ -465,24 +555,23 @@ def path_reference(
     Return a filepath relative to a destination directory, for use with
     exporters.
 
-    :arg filepath: the file path to return,
+    :param filepath: the file path to return,
        supporting blenders relative '//' prefix.
     :type filepath: str
-    :arg base_src: the directory the *filepath* is relative too
+    :param base_src: the directory the *filepath* is relative to
        (normally the blend file).
     :type base_src: str
-    :arg base_dst: the directory the *filepath* will be referenced from
+    :param base_dst: the directory the *filepath* will be referenced from
        (normally the export path).
     :type base_dst: str
-    :arg mode: the method used get the path in
-       ['AUTO', 'ABSOLUTE', 'RELATIVE', 'MATCH', 'STRIP', 'COPY']
-    :type mode: str
-    :arg copy_subdir: the subdirectory of *base_dst* to use when mode='COPY'.
+    :param mode: the method used to reference the path.
+    :type mode: Literal['AUTO', 'ABSOLUTE', 'RELATIVE', 'MATCH', 'STRIP', 'COPY']
+    :param copy_subdir: the subdirectory of *base_dst* to use when mode='COPY'.
     :type copy_subdir: str
-    :arg copy_set: collect from/to pairs when mode='COPY',
+    :param copy_set: collect from/to pairs when mode='COPY',
        pass to *path_reference_copy* when exporting is done.
-    :type copy_set: set[tuple[str, str]]
-    :arg library: The library this path is relative to.
+    :type copy_set: set[tuple[str, str]] | None
+    :param library: The library this path is relative to.
     :type library: :class:`bpy.types.Library` | None
     :return: the new filepath.
     :rtype: str
@@ -497,9 +586,10 @@ def path_reference(
     elif mode == 'MATCH':
         mode = 'RELATIVE' if is_relative else 'ABSOLUTE'
     elif mode == 'AUTO':
-        mode = ('RELATIVE'
-                if bpy.path.is_subdir(filepath_abs, base_dst)
-                else 'ABSOLUTE')
+        mode = (
+            'RELATIVE' if bpy.path.is_subdir(filepath_abs, base_dst) else
+            'ABSOLUTE'
+        )
     elif mode == 'COPY':
         subdir_abs = os.path.normpath(base_dst)
         if copy_subdir:
@@ -531,9 +621,9 @@ def path_reference_copy(copy_set, report=print):
     """
     Execute copying files of path_reference
 
-    :arg copy_set: set of (from, to) pairs to copy.
+    :param copy_set: set of (from, to) pairs to copy.
     :type copy_set: set[tuple[str, str]]
-    :arg report: function used for reporting warnings, takes a string argument.
+    :param report: function used for reporting warnings, takes a string argument.
     :type report: Callable[[str], None]
     """
     if not copy_set:
@@ -568,22 +658,26 @@ def unique_name(key, name, name_dict, name_max=-1, clean_func=None, sep="."):
     Helper function for storing unique names which may have special characters
     stripped and restricted to a maximum length.
 
-    :arg key: Unique item this name belongs to, name_dict[key] will be reused
+    :param key: Unique item this name belongs to, name_dict[key] will be reused
        when available.
        This can be the object, mesh, material, etc instance itself.
        Any hashable object associated with the *name*.
     :type key: Any
-    :arg name: The name used to create a unique value in *name_dict*.
+    :param name: The name used to create a unique value in *name_dict*.
     :type name: str
-    :arg name_dict: This is used to cache namespace to ensure no collisions
+    :param name_dict: This is used to cache namespace to ensure no collisions
        occur, this should be an empty dict initially and only modified by this
        function.
-    :type name_dict: dict
-    :arg clean_func: Function to call on *name* before creating a unique value.
-    :type clean_func: function
-    :arg sep: Separator to use when between the name and a number when a
+    :type name_dict: dict[Any, str]
+    :param name_max: Maximum length of the name. When ``-1`` the name is unlimited.
+    :type name_max: int
+    :param clean_func: Function to call on *name* before creating a unique value.
+    :type clean_func: Callable[[str], str] | None
+    :param sep: Separator to use when between the name and a number when a
        duplicate name is found.
     :type sep: str
+    :return: A unique name.
+    :rtype: str
     """
     name_new = name_dict.get(key)
     if name_new is None:

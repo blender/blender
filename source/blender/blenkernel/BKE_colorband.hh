@@ -7,6 +7,8 @@
  * \ingroup bke
  */
 
+namespace blender {
+
 struct CBData;
 struct ColorBand;
 struct IDTypeForeachColorFunctionCallback;
@@ -27,3 +29,5 @@ bool BKE_colorband_element_remove(ColorBand *coba, int index);
 void BKE_colorband_update_sort(ColorBand *coba);
 void BKE_colorband_foreach_working_space_color(ColorBand *coba,
                                                const IDTypeForeachColorFunctionCallback &fn);
+
+}  // namespace blender

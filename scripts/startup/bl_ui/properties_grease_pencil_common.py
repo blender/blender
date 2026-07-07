@@ -179,22 +179,17 @@ class GreasePencilBrushFalloff:
 
             col = layout.column(align=True)
             if context.region.type == 'TOOL_HEADER':
-                col.prop(brush, "curve_preset", expand=True)
+                col.prop(brush, "curve_distance_falloff_preset", expand=True)
             else:
-                row = col.row(align=True)
-                col.prop(brush, "curve_preset", text="")
+                col.prop(brush, "curve_distance_falloff_preset", text="")
 
-            if brush.curve_preset == 'CUSTOM':
-                layout.template_curve_mapping(brush, "curve", brush=True, use_negative_slope=True)
-
-                col = layout.column(align=True)
-                row = col.row(align=True)
-                row.operator("brush.curve_preset", icon='SMOOTHCURVE', text="").shape = 'SMOOTH'
-                row.operator("brush.curve_preset", icon='SPHERECURVE', text="").shape = 'ROUND'
-                row.operator("brush.curve_preset", icon='ROOTCURVE', text="").shape = 'ROOT'
-                row.operator("brush.curve_preset", icon='SHARPCURVE', text="").shape = 'SHARP'
-                row.operator("brush.curve_preset", icon='LINCURVE', text="").shape = 'LINE'
-                row.operator("brush.curve_preset", icon='NOCURVE', text="").shape = 'MAX'
+            if brush.curve_distance_falloff_preset == 'CUSTOM':
+                layout.template_curve_mapping(
+                    brush, "curve_distance_falloff",
+                    brush=True,
+                    use_negative_slope=True,
+                    show_presets=True,
+                )
 
 
 class GREASE_PENCIL_MT_move_to_layer(Menu):
@@ -202,6 +197,13 @@ class GREASE_PENCIL_MT_move_to_layer(Menu):
 
     def draw(self, context):
         layout = self.layout
+
+        if layout.operator_context == 'EXEC_REGION_WIN':
+            layout.operator_context = 'INVOKE_REGION_WIN'
+            layout.operator("WM_OT_search_single_menu", text="Search...",
+                            icon='VIEWZOOM').menu_idname = "GREASE_PENCIL_MT_move_to_layer"
+            layout.separator()
+
         layout.operator_context = 'INVOKE_REGION_WIN'
         grease_pencil = context.active_object.data
 
@@ -358,7 +360,7 @@ class AnnotationDataPanel:
                 lock_label = iface_("Frame: {:d} ({:s})").format(gpl.active_frame.frame_number, lock_status)
             else:
                 lock_label = iface_("Lock Frame")
-            row.prop(gpl, "lock_frame", text=lock_label, icon='UNLOCKED')
+            row.prop(gpl, "lock_frame", text=lock_label, icon='UNLOCKED', translate=False)
             row.operator("gpencil.annotation_active_frame_delete", text="", icon='X')
 
 
@@ -478,7 +480,7 @@ class GreasePencilMaterialsPanel:
                     row.operator("grease_pencil.stroke_material_set", text="Assign")
                     row.operator("grease_pencil.material_select", text="Select").deselect = False
                     row.operator("grease_pencil.material_select", text="Deselect").deselect = True
-        # stroke color
+
             ma = None
             if is_view3d and brush is not None:
                 gp_settings = brush.gpencil_settings
@@ -494,9 +496,9 @@ class GreasePencilMaterialsPanel:
             if is_view3d and ma is not None and ma.grease_pencil is not None:
                 gpcolor = ma.grease_pencil
                 col = layout.column(align=True)
-                if gpcolor.show_stroke and gpcolor.stroke_style == 'SOLID':
+                if gpcolor.stroke_style == 'SOLID':
                     col.prop(gpcolor, "color", text="Stroke Color")
-                if gpcolor.show_fill and gpcolor.fill_style == 'SOLID':
+                if gpcolor.fill_style == 'SOLID':
                     col.prop(gpcolor, "fill_color", text="Fill Color")
 
         else:

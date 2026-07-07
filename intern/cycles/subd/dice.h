@@ -44,7 +44,7 @@ class EdgeDice {
   int *mesh_shader = nullptr;
   bool *mesh_smooth = nullptr;
   float3 *mesh_P = nullptr;
-  float3 *mesh_N = nullptr;
+  packed_normal *mesh_N = nullptr;
   float *mesh_ptex_face_id = nullptr;
   float2 *mesh_ptex_uv = nullptr;
 

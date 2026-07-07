@@ -26,11 +26,12 @@
 #include <algorithm> /* For `min/max`. */
 #include <cstring>
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name IndexBufBuilder
  * \{ */
 
-using namespace blender;
 using namespace blender::gpu;
 
 void GPU_indexbuf_init_ex(GPUIndexBufBuilder *builder,
@@ -66,7 +67,7 @@ void GPU_indexbuf_init_ex(GPUIndexBufBuilder *builder,
   builder->restart_index_value = RESTART_INDEX;
 #endif
   builder->uses_restart_indices = false;
-  builder->data = MEM_malloc_arrayN<uint>(builder->max_index_len, "IndexBuf data");
+  builder->data = MEM_new_array_uninitialized<uint>(builder->max_index_len, "IndexBuf data");
 }
 
 void GPU_indexbuf_init(GPUIndexBufBuilder *builder,
@@ -92,7 +93,7 @@ void GPU_indexbuf_init_build_on_device(IndexBuf *elem, uint index_len)
   elem_->init_build_on_device(index_len);
 }
 
-blender::MutableSpan<uint32_t> GPU_indexbuf_get_data(GPUIndexBufBuilder *builder)
+MutableSpan<uint32_t> GPU_indexbuf_get_data(GPUIndexBufBuilder *builder)
 {
   return {builder->data, builder->max_index_len};
 }
@@ -255,7 +256,7 @@ IndexBuf *GPU_indexbuf_build_curves_on_device(GPUPrimType prim_type,
   }
   bool tris = (prim_type == GPU_PRIM_TRIS);
   bool lines = (prim_type == GPU_PRIM_LINES);
-  blender::gpu::Shader *shader = GPU_shader_get_builtin_shader(
+  gpu::Shader *shader = GPU_shader_get_builtin_shader(
       tris ? GPU_SHADER_INDEXBUF_TRIS :
              (lines ? GPU_SHADER_INDEXBUF_LINES : GPU_SHADER_INDEXBUF_POINTS));
   GPU_shader_bind(shader);
@@ -286,12 +287,12 @@ IndexBuf *GPU_indexbuf_build_curves_on_device(GPUPrimType prim_type,
 /** \name Creation & Deletion
  * \{ */
 
-namespace blender::gpu {
+namespace gpu {
 
 IndexBuf::~IndexBuf()
 {
   if (!is_subrange_) {
-    MEM_SAFE_FREE(data_);
+    MEM_SAFE_DELETE_VOID(data_);
   }
 }
 
@@ -379,8 +380,8 @@ void IndexBuf::squeeze_indices_short(uint min_idx,
 {
   /* data will never be *larger* than builder->data...
    * converting in place to avoid extra allocation */
-  uint16_t *ushort_idx = (uint16_t *)data_;
-  const uint32_t *uint_idx = (uint32_t *)data_;
+  uint16_t *ushort_idx = static_cast<uint16_t *>(data_);
+  const uint32_t *uint_idx = static_cast<uint32_t *>(data_);
 
   if (max_idx >= 0xFFFF) {
     index_base_ = min_idx;
@@ -410,7 +411,7 @@ void IndexBuf::squeeze_indices_short(uint min_idx,
   }
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
 
 /** \} */
 
@@ -489,7 +490,7 @@ IndexBuf *GPU_indexbuf_build_from_memory(const GPUPrimType prim_type,
   const uint32_t indices_num = data_len * indices_per_primitive(prim_type);
   /* TODO: The need for this copy is meant to be temporary. The data should be uploaded directly to
    * the GPU here rather than copied to an array owned by the IBO first. */
-  uint32_t *copy = MEM_malloc_arrayN<uint32_t>(indices_num, __func__);
+  uint32_t *copy = MEM_new_array_uninitialized<uint32_t>(indices_num, __func__);
   threading::memory_bandwidth_bound_task(sizeof(uint32_t) * indices_num * 2, [&]() {
     array_utils::copy(Span(data, indices_num), MutableSpan(copy, indices_num));
   });
@@ -542,3 +543,5 @@ void GPU_indexbuf_update_sub(IndexBuf *elem, uint start, uint len, const void *d
 }
 
 /** \} */
+
+}  // namespace blender

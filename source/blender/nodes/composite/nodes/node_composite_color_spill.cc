@@ -2,60 +2,78 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup cmpnodes
- */
-
 #include "BLI_math_vector_types.hh"
 
 #include "FN_multi_function_builder.hh"
 
 #include "NOD_multi_function.hh"
 
-#include "RNA_access.hh"
-
-#include "UI_interface_layout.hh"
-#include "UI_resources.hh"
-
 #include "GPU_material.hh"
+
+#include "COM_result.hh"
 
 #include "node_composite_util.hh"
 
-/* ******************* Color Spill Suppression ********************************* */
-
 namespace blender::nodes::node_composite_color_spill_cc {
 
-NODE_STORAGE_FUNCS(NodeColorspill)
+enum class RGBChannel : uint8_t {
+  R = 0,
+  G = 1,
+  B = 2,
+};
 
-static void cmp_node_color_spill_declare(NodeDeclarationBuilder &b)
+static const EnumPropertyItem rgb_channel_items[] = {
+    {int(RGBChannel::R), "R", 0, "R", ""},
+    {int(RGBChannel::G), "G", 0, "G", ""},
+    {int(RGBChannel::B), "B", 0, "B", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static const EnumPropertyItem limit_method_items[] = {
+    {CMP_NODE_COLOR_SPILL_LIMIT_ALGORITHM_SINGLE,
+     "SINGLE",
+     0,
+     N_("Single"),
+     N_("Limit by a single channel")},
+    {CMP_NODE_COLOR_SPILL_LIMIT_ALGORITHM_AVERAGE,
+     "AVERAGE",
+     0,
+     N_("Average"),
+     N_("Limit by the average of the other two channels")},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.use_custom_socket_order();
 
   b.add_output<decl::Color>("Image");
 
-  b.add_layout([](uiLayout *layout, bContext * /*C*/, PointerRNA *ptr) {
-    layout->label(IFACE_("Despill Channel:"), ICON_NONE);
-    uiLayout *row = &layout->row(false);
-    row->prop(
-        ptr, "channel", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-
-    uiLayout *col = &layout->column(false);
-    col->prop(ptr, "limit_method", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-
-    if (RNA_enum_get(ptr, "limit_method") == 0) {
-      col->label(IFACE_("Limiting Channel:"), ICON_NONE);
-      row = &col->row(false);
-      row->prop(ptr,
-                "limit_channel",
-                UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
-                std::nullopt,
-                ICON_NONE);
-    }
-  });
-
   b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Float>("Fac").default_value(1.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("Factor", "Fac")
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Menu>("Spill Channel")
+      .default_value(RGBChannel::G)
+      .static_items(rgb_channel_items)
+      .expanded()
+      .translation_context(BLT_I18NCONTEXT_COLOR)
+      .optional_label();
+  b.add_input<decl::Menu>("Limit Method")
+      .default_value(CMP_NODE_COLOR_SPILL_LIMIT_ALGORITHM_SINGLE)
+      .static_items(limit_method_items)
+      .expanded()
+      .optional_label();
+  b.add_input<decl::Menu>("Limit Channel")
+      .default_value(RGBChannel::R)
+      .static_items(rgb_channel_items)
+      .expanded()
+      .translation_context(BLT_I18NCONTEXT_COLOR)
+      .optional_label()
+      .usage_by_menu("Limit Method", CMP_NODE_COLOR_SPILL_LIMIT_ALGORITHM_SINGLE);
   b.add_input<decl::Float>("Limit Strength")
       .default_value(1.0f)
       .subtype(PROP_FACTOR)
@@ -76,54 +94,13 @@ static void cmp_node_color_spill_declare(NodeDeclarationBuilder &b)
       .description("Specifies the spilling strength of each color channel");
 }
 
-static void node_composit_init_color_spill(bNodeTree * /*ntree*/, bNode *node)
+static void node_init(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeColorspill *ncs = MEM_callocN<NodeColorspill>(__func__);
-  node->storage = ncs;
-  node->custom2 = CMP_NODE_COLOR_SPILL_LIMIT_ALGORITHM_SINGLE;
-  node->custom1 = 2; /* green channel */
-  ncs->limchan = 0;  /* limit by red */
+  /* Unused, but allocated for forward compatibility. */
+  node->storage = MEM_new<NodeColorspill>(__func__);
 }
 
 using namespace blender::compositor;
-
-/* Get the index of the channel used for spilling. */
-static int get_spill_channel(const bNode &node)
-{
-  return node.custom1 - 1;
-}
-
-static CMPNodeColorSpillLimitAlgorithm get_limit_algorithm(const bNode &node)
-{
-  return static_cast<CMPNodeColorSpillLimitAlgorithm>(node.custom2);
-}
-
-/* Get the index of the channel used for limiting. */
-static int get_limit_channel(const bNode &node)
-{
-  return node_storage(node).limchan;
-}
-
-/* Get the indices of the channels used to compute the limit value. We always assume the limit
- * algorithm is Average, if it is a single limit channel, store it in both limit channels,
- * because the average of two identical values is the same value. */
-static int2 get_limit_channels(const bNode &node)
-{
-  int2 limit_channels;
-  if (get_limit_algorithm(node) == CMP_NODE_COLOR_SPILL_LIMIT_ALGORITHM_AVERAGE) {
-    /* If the algorithm is Average, store the indices of the other two channels other than the
-     * spill channel. */
-    limit_channels[0] = (get_spill_channel(node) + 1) % 3;
-    limit_channels[1] = (get_spill_channel(node) + 2) % 3;
-  }
-  else {
-    /* If the algorithm is Single, store the index of the limit channel in both channels. */
-    limit_channels[0] = get_limit_channel(node);
-    limit_channels[1] = get_limit_channel(node);
-  }
-
-  return limit_channels;
-}
 
 static int node_gpu_material(GPUMaterial *material,
                              bNode *node,
@@ -131,20 +108,28 @@ static int node_gpu_material(GPUMaterial *material,
                              GPUNodeStack *inputs,
                              GPUNodeStack *outputs)
 {
-  const float spill_channel = get_spill_channel(*node);
-  const float2 limit_channels = float2(get_limit_channels(*node));
-
-  return GPU_stack_link(material,
-                        node,
-                        "node_composite_color_spill",
-                        inputs,
-                        outputs,
-                        GPU_constant(&spill_channel),
-                        GPU_constant(limit_channels));
+  return GPU_stack_link(material, node, "node_composite_color_spill", inputs, outputs);
 }
 
-static float3 compute_spill_scale(const bool &use_spill_strength,
-                                  const float4 &spill_strength,
+/* Compute the indices of the channels used to compute the limit value. We always assume the limit
+ * algorithm is Average, if it is a single limit channel, store it in both limit channels, because
+ * the average of two identical values is the same value. */
+static int2 compute_limit_channels(const CMPNodeColorSpillLimitAlgorithm limit_method,
+                                   const int spill_channel,
+                                   const int limit_channel)
+{
+  /* If the algorithm is Average, store the indices of the other two channels other than the spill
+   * channel. */
+  if (limit_method == CMP_NODE_COLOR_SPILL_LIMIT_ALGORITHM_AVERAGE) {
+    return int2((spill_channel + 1) % 3, (spill_channel + 2) % 3);
+  }
+
+  /* If the algorithm is Single, store the index of the limit channel in both channels. */
+  return int2(limit_channel);
+}
+
+static float3 compute_spill_scale(const bool use_spill_strength,
+                                  const float4 spill_strength,
                                   const int spill_channel)
 {
   if (use_spill_strength) {
@@ -158,36 +143,54 @@ static float3 compute_spill_scale(const bool &use_spill_strength,
   return scale;
 }
 
-static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+static float4 color_spill(const float4 color,
+                          const float factor,
+                          const int spill_channel,
+                          const CMPNodeColorSpillLimitAlgorithm limit_method,
+                          const int limit_channel,
+                          const float limit_scale,
+                          const bool use_spill_strength,
+                          const float4 spill_strength)
 {
-  const int spill_channel = get_spill_channel(builder.node());
-  const float2 limit_channels = float2(get_limit_channels(builder.node()));
-
-  builder.construct_and_set_matching_fn_cb([=]() {
-    return mf::build::SI5_SO<float4, float, float, bool, float4, float4>(
-        "Color Spill",
-        [=](const float4 &color,
-            const float &factor,
-            const float &limit_scale,
-            const bool &use_spill_strength,
-            const float4 &spill_strength) -> float4 {
-          float average_limit = (color[limit_channels.x] + color[limit_channels.y]) / 2.0f;
-          float map = factor * color[spill_channel] - limit_scale * average_limit;
-          float3 spill_scale = compute_spill_scale(
-              use_spill_strength, spill_strength, spill_channel);
-          return float4(map > 0.0f ? color.xyz() + spill_scale * map : color.xyz(), color.w);
-        },
-        mf::build::exec_presets::SomeSpanOrSingle<0>());
-  });
+  const int2 limit_channels = compute_limit_channels(limit_method, spill_channel, limit_channel);
+  const float average_limit = (color[limit_channels.x] + color[limit_channels.y]) / 2.0f;
+  const float map = factor * color[spill_channel] - limit_scale * average_limit;
+  const float3 spill_scale = compute_spill_scale(
+      use_spill_strength, spill_strength, spill_channel);
+  return float4(map > 0.0f ? color.xyz() + spill_scale * map : color.xyz(), color.w);
 }
 
-}  // namespace blender::nodes::node_composite_color_spill_cc
+using compositor::Color;
 
-static void register_node_type_cmp_color_spill()
+static void node_build_multi_function(nodes::NodeMultiFunctionBuilder &builder)
 {
-  namespace file_ns = blender::nodes::node_composite_color_spill_cc;
+  static auto function =
+      mf::build::SI8_SO<Color, float, MenuValue, MenuValue, MenuValue, float, bool, Color, Color>(
+          "Color Spill",
+          [=](const Color &color,
+              const float &factor,
+              const MenuValue spill_channel,
+              const MenuValue limit_method,
+              const MenuValue limit_channel,
+              const float &limit_scale,
+              const bool &use_spill_strength,
+              const Color &spill_strength) -> Color {
+            return Color(color_spill(float4(color),
+                                     factor,
+                                     spill_channel.value,
+                                     CMPNodeColorSpillLimitAlgorithm(limit_method.value),
+                                     limit_channel.value,
+                                     limit_scale,
+                                     use_spill_strength,
+                                     float4(spill_strength)));
+          },
+          mf::build::exec_presets::SomeSpanOrSingle<0>());
+  builder.set_matching_fn(function);
+}
 
-  static blender::bke::bNodeType ntype;
+static void node_register()
+{
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeColorSpill", CMP_NODE_COLOR_SPILL);
   ntype.ui_name = "Color Spill";
@@ -196,14 +199,16 @@ static void register_node_type_cmp_color_spill()
       "others";
   ntype.enum_name_legacy = "COLOR_SPILL";
   ntype.nclass = NODE_CLASS_MATTE;
-  ntype.declare = file_ns::cmp_node_color_spill_declare;
-  ntype.initfunc = file_ns::node_composit_init_color_spill;
-  blender::bke::node_type_storage(
+  ntype.declare = node_declare;
+  ntype.initfunc = node_init;
+  bke::node_type_storage(
       ntype, "NodeColorspill", node_free_standard_storage, node_copy_standard_storage);
-  ntype.gpu_fn = file_ns::node_gpu_material;
-  ntype.build_multi_function = file_ns::node_build_multi_function;
-  blender::bke::node_type_size(ntype, 160, 140, NODE_DEFAULT_MAX_WIDTH);
+  ntype.gpu_fn = node_gpu_material;
+  ntype.build_multi_function = node_build_multi_function;
+  bke::node_type_size(ntype, 160, 140, NODE_DEFAULT_MAX_WIDTH);
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_color_spill)
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_composite_color_spill_cc

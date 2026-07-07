@@ -25,11 +25,69 @@
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_create_info_private.hh"
 #include "gpu_shader_dependency_private.hh"
+#include "gpu_shader_private.hh"
 #include "gpu_testing.hh"
 
-namespace blender::gpu::tests {
+/* GTest expects operator<< and Print to be defined in the same namespace as the type itself. */
+static std::ostream &operator<<(std::ostream &os, const TestOutput &test_output)
+{
+  os << "expect: " << testing::PrintToString(test_output.expect) << "\n";
+  os << "result: " << testing::PrintToString(test_output.result) << "\n";
+  os << "status: " << test_output.status;
+  os << ", line: " << test_output.line;
+  os << ", type: " << test_output.type;
+  return os;
+}
+
+namespace blender {
+
+namespace gpu::tests {
 
 using namespace blender::gpu::shader;
+
+/* This test should contain pure GLSL source as this is what we are expecting from the Python API.
+ * Make sure to keep it in sync with the Python API. */
+static void test_shader_python_compute()
+{
+  using namespace shader;
+
+  ShaderCreateInfo create_info("pyGPU_Shader");
+  create_info.image(0,
+                    TextureFormat::SFLOAT_16_16_16_16,
+                    Qualifier::write,
+                    ImageReadWriteType::image2D,
+                    "test_img");
+  create_info.local_group_size(16, 16, 1);
+  create_info.compute_source_generated =
+      R"(void main(){imageStore(test_img, ivec2(gl_GlobalInvocationID.xy), vec4(0));})";
+
+  gpu::Shader *shader = GPU_shader_create_from_info_python(
+      reinterpret_cast<GPUShaderCreateInfo *>(&create_info));
+  EXPECT_NE(shader, nullptr);
+
+  GPU_shader_free(shader);
+}
+GPU_TEST(shader_python_compute)
+
+/* This test should contain pure GLSL source as this is what we are expecting from the Python API.
+ * Make sure to keep it in sync with the Python API. */
+static void test_shader_python_graphic()
+{
+  using namespace shader;
+
+  ShaderCreateInfo create_info("pyGPU_Shader");
+  create_info.vertex_in(0, Type::float4_t, "vert_in");
+  create_info.fragment_out(0, Type::float4_t, "frag_out");
+  create_info.vertex_source_generated = R"(void main(){gl_Position = vert_in;})";
+  create_info.fragment_source_generated = R"(void main() { frag_out = gl_FragCoord; })";
+
+  gpu::Shader *shader = GPU_shader_create_from_info_python(
+      reinterpret_cast<GPUShaderCreateInfo *>(&create_info));
+  EXPECT_NE(shader, nullptr);
+
+  GPU_shader_free(shader);
+}
+GPU_TEST(shader_python_graphic)
 
 static void test_shader_compute_2d()
 {
@@ -41,13 +99,13 @@ static void test_shader_compute_2d()
   EXPECT_NE(shader, nullptr);
 
   /* Create texture to store result and attach to shader. */
-  blender::gpu::Texture *texture = GPU_texture_create_2d("gpu_shader_compute_2d",
-                                                         SIZE,
-                                                         SIZE,
-                                                         1,
-                                                         TextureFormat::SFLOAT_32_32_32_32,
-                                                         GPU_TEXTURE_USAGE_GENERAL,
-                                                         nullptr);
+  gpu::Texture *texture = GPU_texture_create_2d("gpu_shader_compute_2d",
+                                                SIZE,
+                                                SIZE,
+                                                1,
+                                                TextureFormat::SFLOAT_32_32_32_32,
+                                                GPU_TEXTURE_USAGE_GENERAL,
+                                                nullptr);
   EXPECT_NE(texture, nullptr);
 
   GPU_shader_bind(shader);
@@ -66,7 +124,7 @@ static void test_shader_compute_2d()
     EXPECT_FLOAT_EQ(data[index * 4 + 2], 0.2f);
     EXPECT_FLOAT_EQ(data[index * 4 + 3], 1.0f);
   }
-  MEM_freeN(data);
+  MEM_delete(data);
 
   /* Cleanup. */
   GPU_shader_unbind();
@@ -85,12 +143,12 @@ static void test_shader_compute_1d()
   EXPECT_NE(shader, nullptr);
 
   /* Construct Texture. */
-  blender::gpu::Texture *texture = GPU_texture_create_1d("gpu_shader_compute_1d",
-                                                         SIZE,
-                                                         1,
-                                                         TextureFormat::SFLOAT_32_32_32_32,
-                                                         GPU_TEXTURE_USAGE_GENERAL,
-                                                         nullptr);
+  gpu::Texture *texture = GPU_texture_create_1d("gpu_shader_compute_1d",
+                                                SIZE,
+                                                1,
+                                                TextureFormat::SFLOAT_32_32_32_32,
+                                                GPU_TEXTURE_USAGE_GENERAL,
+                                                nullptr);
   EXPECT_NE(texture, nullptr);
 
   GPU_shader_bind(shader);
@@ -112,7 +170,7 @@ static void test_shader_compute_1d()
     EXPECT_FLOAT_EQ(data[index * 4 + 2], expected_value);
     EXPECT_FLOAT_EQ(data[index * 4 + 3], expected_value);
   }
-  MEM_freeN(data);
+  MEM_delete(data);
 
   /* Cleanup. */
   GPU_shader_unbind();
@@ -246,6 +304,126 @@ static void test_shader_ssbo_binding()
 }
 GPU_TEST(shader_ssbo_binding)
 
+#ifdef WITH_METAL_BACKEND
+static void test_shader_sampler_argument_buffer_binding()
+{
+  gpu::Shader *shader = GPU_shader_create_from_info_name("gpu_sampler_arg_buf_test");
+  EXPECT_NE(shader, nullptr);
+
+  gpu::StorageBuf *ssbo = GPU_storagebuf_create(sizeof(float) * 4 * 18);
+
+  GPU_storagebuf_bind(ssbo, GPU_shader_get_ssbo_binding(shader, "data_out"));
+
+  float4 tx_data(-1.0f, 1.0f, 2.0f, 3.0f);
+  gpu::Texture *tex = GPU_texture_create_2d(
+      "tx", 1, 1, 1, TextureFormat::SFLOAT_32_32_32_32, GPU_TEXTURE_USAGE_SHADER_READ, &tx_data.x);
+
+  GPU_texture_bind(tex, GPU_shader_get_sampler_binding(shader, "tex_1"));
+  GPU_texture_bind(tex, GPU_shader_get_sampler_binding(shader, "tex_2"));
+  GPU_texture_bind(tex, GPU_shader_get_sampler_binding(shader, "tex_3"));
+  GPU_texture_bind(tex, GPU_shader_get_sampler_binding(shader, "tex_4"));
+  GPU_texture_bind(tex, GPU_shader_get_sampler_binding(shader, "tex_5"));
+  GPU_texture_bind(tex, GPU_shader_get_sampler_binding(shader, "tex_6"));
+  GPU_texture_bind(tex, GPU_shader_get_sampler_binding(shader, "tex_7"));
+  GPU_texture_bind(tex, GPU_shader_get_sampler_binding(shader, "tex_8"));
+  GPU_texture_bind(tex, GPU_shader_get_sampler_binding(shader, "tex_9"));
+  GPU_texture_bind(tex, GPU_shader_get_sampler_binding(shader, "tex_10"));
+  GPU_texture_bind(tex, GPU_shader_get_sampler_binding(shader, "tex_11"));
+  GPU_texture_bind(tex, GPU_shader_get_sampler_binding(shader, "tex_12"));
+  GPU_texture_bind(tex, GPU_shader_get_sampler_binding(shader, "tex_13"));
+  GPU_texture_bind(tex, GPU_shader_get_sampler_binding(shader, "tex_14"));
+  GPU_texture_bind(tex, GPU_shader_get_sampler_binding(shader, "tex_15"));
+  GPU_texture_bind(tex, GPU_shader_get_sampler_binding(shader, "tex_16"));
+  GPU_texture_bind(tex, GPU_shader_get_sampler_binding(shader, "tex_17"));
+  GPU_texture_bind(tex, GPU_shader_get_sampler_binding(shader, "tex_18"));
+
+  gpu::FrameBuffer *fb = GPU_framebuffer_create("test_fb");
+  GPU_framebuffer_default_size(fb, 1, 1);
+  GPU_framebuffer_bind(fb);
+
+  Batch *batch = GPU_batch_create_procedural(GPU_PRIM_POINTS, 3);
+
+  GPU_batch_set_shader(batch, shader);
+  GPU_batch_draw(batch);
+
+  GPU_batch_discard(batch);
+
+  GPU_finish();
+
+  float4 data[18];
+  GPU_storagebuf_read(ssbo, &data);
+
+  for (int index = 0; index < 18; index++) {
+    EXPECT_EQ(data[index], tx_data);
+  }
+
+  /* Cleanup. */
+  GPU_shader_unbind();
+  GPU_framebuffer_free(fb);
+  GPU_storagebuf_free(ssbo);
+  GPU_texture_free(tex);
+  GPU_shader_free(shader);
+}
+GPU_TEST(shader_sampler_argument_buffer_binding)
+#endif
+
+static void test_shader_texture_atomic()
+{
+  gpu::Shader *shader = GPU_shader_create_from_info_name("gpu_texture_atomic_test");
+  EXPECT_NE(shader, nullptr);
+
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
+                           GPU_TEXTURE_USAGE_ATOMIC;
+  uint32_t tx_data[4] = {0u, 0u, 0u, 0u};
+  gpu::Texture *tex_2d = GPU_texture_create_2d(
+      "tex_2d", 1, 1, 1, TextureFormat::UINT_32, usage, nullptr);
+  gpu::Texture *tex_2d_array = GPU_texture_create_2d_array(
+      "tex_2d_array", 1, 1, 2, 1, TextureFormat::UINT_32, usage, nullptr);
+  gpu::Texture *tex_3d = GPU_texture_create_3d(
+      "tex_3d", 1, 1, 2, 1, TextureFormat::UINT_32, usage, nullptr);
+
+  GPU_texture_clear(tex_2d, eGPUDataFormat::GPU_DATA_UINT, &tx_data[0]);
+  GPU_texture_clear(tex_2d_array, eGPUDataFormat::GPU_DATA_UINT, &tx_data[0]);
+  GPU_texture_clear(tex_3d, eGPUDataFormat::GPU_DATA_UINT, &tx_data[0]);
+
+  GPU_texture_image_bind(tex_2d, GPU_shader_get_sampler_binding(shader, "img_atomic_2D"));
+  GPU_texture_image_bind(tex_2d_array,
+                         GPU_shader_get_sampler_binding(shader, "img_atomic_2D_array"));
+  GPU_texture_image_bind(tex_3d, GPU_shader_get_sampler_binding(shader, "img_atomic_3D"));
+
+  gpu::StorageBuf *ssbo = GPU_storagebuf_create(sizeof(uint32_t) * 5);
+  GPU_storagebuf_bind(ssbo, GPU_shader_get_ssbo_binding(shader, "data_out"));
+
+  GPU_shader_bind(shader);
+  GPU_shader_uniform_1b(shader, "write_phase", true);
+  GPU_compute_dispatch(shader, 1, 1, 1);
+  GPU_memory_barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
+
+  /* We can't host read atomic texture. So we do a manual read phase to a SSBO. */
+  GPU_shader_uniform_1b(shader, "write_phase", false);
+  GPU_compute_dispatch(shader, 1, 1, 1);
+  GPU_memory_barrier(GPU_BARRIER_BUFFER_UPDATE);
+  GPU_finish();
+
+  uint32_t data[5];
+  GPU_storagebuf_read(ssbo, &data);
+
+  EXPECT_EQ(data[0], 0xFFFFFFFFu);
+  EXPECT_EQ(data[1], 0xFFFFFFFFu);
+  EXPECT_EQ(data[2], 0xFFFFFFFFu);
+  EXPECT_EQ(data[3], 0xFFFFFFFFu);
+  EXPECT_EQ(data[4], 0xFFFFFFFFu);
+
+  /* Cleanup. */
+  GPU_texture_free(tex_2d);
+  GPU_texture_free(tex_2d_array);
+  GPU_texture_free(tex_3d);
+  GPU_storagebuf_free(ssbo);
+  GPU_shader_unbind();
+  GPU_shader_free(shader);
+}
+GPU_TEST(shader_texture_atomic)
+
 static std::string print_test_data(const TestOutputRawData &raw, TestType type)
 {
   std::stringstream ss;
@@ -324,7 +502,7 @@ static std::string print_test_data(const TestOutputRawData &raw, TestType type)
 static StringRef print_test_line(StringRefNull test_src, int64_t test_line)
 {
   /* Start at line one like the line report scheme.
-   * However, the our preprocessor adds a line directive at the top of the file. Skip it. */
+   * However, our preprocessor adds a line directive at the top of the file. Skip it. */
   int64_t line = 1 - 1;
   int64_t last_pos = 0;
   int64_t pos = 0;
@@ -339,14 +517,16 @@ static StringRef print_test_line(StringRefNull test_src, int64_t test_line)
   return "";
 }
 
-static void gpu_shader_lib_test(const char *test_src_name, const char *additional_info = nullptr)
+static void gpu_shader_lib_test(StringRefNull test_src_name, const char *additional_info = nullptr)
 {
   using namespace shader;
 
   GPU_render_begin();
 
-  ShaderCreateInfo create_info(test_src_name);
-  create_info.fragment_source(test_src_name);
+  std::string create_info_name = test_src_name.substr(0, test_src_name.find('.'));
+
+  ShaderCreateInfo create_info(create_info_name.c_str());
+  create_info.compute_source(test_src_name);
   create_info.additional_info("gpu_shader_test");
   if (additional_info) {
     create_info.additional_info(additional_info);
@@ -366,49 +546,38 @@ static void gpu_shader_lib_test(const char *test_src_name, const char *additiona
     pos += sizeof("EXPECT_");
   }
 
-  int test_output_px_len = divide_ceil_u(sizeof(TestOutput), 4 * 4);
+  gpu::StorageBuf *output_buf = GPU_storagebuf_create(test_count * sizeof(TestOutput));
 
-  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  blender::gpu::Texture *tex = GPU_texture_create_2d(
-      "tx", test_output_px_len, test_count, 1, TextureFormat::UINT_32_32_32_32, usage, nullptr);
-  GPUFrameBuffer *fb = GPU_framebuffer_create("test_fb");
-  GPU_framebuffer_ensure_config(&fb, {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(tex)});
-  GPU_framebuffer_bind(fb);
+  GPU_storagebuf_clear(output_buf, 0xFFFFFFFFu);
+  GPU_storagebuf_bind(output_buf, 0);
 
-  Batch *batch = GPU_batch_create_procedural(GPU_PRIM_TRIS, 3);
-
-  GPU_batch_set_shader(batch, shader);
-  GPU_batch_draw(batch);
-
-  GPU_batch_discard(batch);
+  GPU_compute_dispatch(shader, 1, 1, 1);
 
   GPU_finish();
 
-  TestOutput *test_data = (TestOutput *)GPU_texture_read(tex, GPU_DATA_UINT, 0);
-  Span<TestOutput> tests(test_data, test_count);
+  blender::Vector<TestOutput> tests;
+  tests.resize(test_count);
+  GPU_storagebuf_read(output_buf, tests.data());
 
   for (const TestOutput &test : tests) {
     if (ELEM(test.status, TEST_STATUS_NONE, TEST_STATUS_PASSED)) {
       continue;
     }
     if (test.status == TEST_STATUS_FAILED) {
-      ADD_FAILURE_AT(test_src_name, test.line)
+      ADD_FAILURE_AT(test_src_name.c_str(), test.line)
           << "Value of: " << print_test_line(test_src, test.line) << "\n"
           << "  Actual: " << print_test_data(test.expect, TestType(test.type)) << "\n"
           << "Expected: " << print_test_data(test.result, TestType(test.type)) << "\n";
     }
     else {
-      BLI_assert_unreachable();
+      ADD_FAILURE() << "Unexpected test status " << test.status << ", test output:\n" << test;
     }
   }
-
-  MEM_freeN(test_data);
 
   /* Cleanup. */
   GPU_shader_unbind();
   GPU_shader_free(shader);
-  GPU_framebuffer_free(fb);
-  GPU_texture_free(tex);
+  GPU_storagebuf_free(output_buf);
 
   GPU_render_end();
 }
@@ -422,15 +591,274 @@ GPU_TEST(math_lib)
 static void test_eevee_lib()
 {
   /* TODO(fclem): Not passing currently. Need to be updated. */
-  // gpu_shader_lib_test("eevee_shadow_test.glsl", "eevee_shared");
+  // gpu_shader_lib_test("eevee_shadow_test.glsl", "eevee_tests_data");
   gpu_shader_lib_test("eevee_occupancy_test.glsl");
   gpu_shader_lib_test("eevee_horizon_scan_test.glsl");
 #ifndef __APPLE__ /* PSOs fail to compile on Mac. Try to port them to compute shader to see if it \
                    * fixes the issue. */
-  gpu_shader_lib_test("eevee_gbuffer_normal_test.glsl", "eevee_shared");
-  gpu_shader_lib_test("eevee_gbuffer_closure_test.glsl", "eevee_shared");
+  gpu_shader_lib_test("eevee_gbuffer_normal_test.glsl", "eevee_tests_data");
+  gpu_shader_lib_test("eevee_gbuffer_closure_test.glsl", "eevee_tests_data");
 #endif
 }
 GPU_TEST(eevee_lib)
 
-}  // namespace blender::gpu::tests
+static void test_shader_preprocessor()
+{
+  {
+    std::string input = R"(
+# if 1
+#  define drw_view_id 0
+# else
+uint drw_view_id = 0;
+# endif
+    )";
+    std::string expect = R"(
+
+
+
+
+
+    )";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    std::string input = R"(
+#define SMAATexturePass2D(tex) tex
+#define mad(a, b, c) (a * b + c)
+mad(-(255.0f / 127.0f), SMAASearchLength(SMAATexturePass2D(searchTex), e, 0.0f), 3.25f);
+)";
+    std::string expect = R"(
+
+
+(-(255.0f / 127.0f) * SMAASearchLength(searchTex, e, 0.0f) + 3.25f);
+)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    std::string input = R"(
+#define A() B
+A)";
+    std::string expect = R"(
+
+A)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    std::string input = R"(
+#define A(a, b)  C(a[b])[(b)]
+#define B(a, b) (A(a, b) != 0u)
+B(foo, bar);
+)";
+    std::string expect = R"(
+
+
+(C(foo[bar])[(bar)] != 0u);
+)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    std::string input = R"(
+#define B2 5
+#define A(a,b) a##b
+#define B(a,b) a ## b
+#define C 3
+#define D(a,b) B(a,b)
+A( , )
+A(,2)
+A(1, )
+A(1,2)
+A(B,2)
+B(B,2)
+B(C,2)
+D(C,2)
+)";
+    std::string expect = R"(
+
+
+
+
+
+  
+2
+1 
+12
+5
+5
+C2
+32
+)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    std::string input = R"(
+#define A
+#if defined(A) && !defined ( B ) && defined A && !defined  B 
+High there!
+#endif
+)";
+    std::string expect = R"(
+
+
+High there!
+
+)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    /* Undefined identifier should evaluated to 0. */
+    std::string input = R"(
+#if !A
+A
+#endif
+)";
+    std::string expect = R"(
+
+A
+
+)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    /* Infinite recursion. */
+    std::string input = R"(
+#define X (X + 1)
+X
+)";
+    std::string expect = R"(
+
+(X + 1)
+)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    /* Arguments must be expanded before substitution. */
+    std::string input = R"(
+#define ESCAPE(x) x
+#define STR(x) x
+#define NAME shader_func
+STR(ESCAPE(NAME))
+)";
+    /* STR(ESCAPE(NAME)) -> STR(shader_func) -> "shader_func" */
+    std::string expect = R"(
+
+
+
+shader_func
+)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    /* Commas inside parentheses should not split macro arguments. */
+    std::string input = R"(
+#define GLSL_FUNC(a, b) a = b;
+GLSL_FUNC(vec3(0.0, 1.0, 0.0), color)
+)";
+    std::string expect = R"(
+
+vec3(0.0, 1.0, 0.0) = color;
+)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    /* PITFALL: Pasting an empty argument. */
+    std::string input = R"(
+#define CONCAT(a, b) a##b
+CONCAT(prefix_, )
+CONCAT(, _suffix)
+)";
+    std::string expect = R"(
+
+prefix_ 
+_suffix
+)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    /* PITFALL: Evaluation of complex logical expressions and nested #if. */
+    std::string input = R"(
+#define VERSION 2
+#if (VERSION == 1 + 1) && (UNDEFINED_VAR == 0)
+  #if 0
+    Inside nested false
+  #else
+    Success
+  #endif
+#else
+Success
+#endif
+)";
+    std::string expect = R"(
+
+
+
+
+
+    Success
+
+
+
+
+)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    std::string input = R"(
+#define saturate(a) clamp(a, 0.0f, 1.0f)
+float s = saturate(pow5f(1.0f - saturate(HV)));
+)";
+    std::string expect = R"(
+
+float s = clamp(pow5f(1.0f - clamp(HV, 0.0f, 1.0f)), 0.0f, 1.0f);
+)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+  {
+    std::string input = R"(
+#define POINTS
+H
+#if defined(POINTS)
+I
+#else
+J
+#  if !defined(SELECT_ENABLE)
+K
+#  endif
+P
+#endif
+Q
+)";
+    std::string expect = R"(
+
+H
+
+I
+
+
+
+
+
+
+
+Q
+)";
+    std::string result = blender::gpu::Shader::run_preprocessor(input);
+    EXPECT_EQ(expect, result);
+  }
+}
+GPU_TEST(shader_preprocessor)
+
+}  // namespace gpu::tests
+}  // namespace blender

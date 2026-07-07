@@ -32,6 +32,9 @@ DEF_ENUM(rna_enum_curve_fit_method_items)
 DEF_ENUM(rna_enum_mesh_select_mode_items)
 DEF_ENUM(rna_enum_mesh_select_mode_uv_items)
 DEF_ENUM(rna_enum_mesh_delimit_mode_items)
+DEF_ENUM(rna_enum_mesh_walk_delimit_edge_loop_items)
+DEF_ENUM(rna_enum_mesh_walk_delimit_edge_ring_items)
+DEF_ENUM(rna_enum_mesh_walk_delimit_face_loop_items)
 DEF_ENUM(rna_enum_space_graph_mode_items)
 DEF_ENUM(rna_enum_space_file_browse_mode_items)
 DEF_ENUM(rna_enum_space_sequencer_view_type_items)
@@ -41,6 +44,7 @@ DEF_ENUM(rna_enum_space_image_mode_all_items)
 DEF_ENUM(rna_enum_space_action_mode_items)
 DEF_ENUM(rna_enum_fileselect_params_sort_items)
 DEF_ENUM(rna_enum_region_type_items)
+DEF_ENUM(rna_enum_region_panel_category_items)
 DEF_ENUM(rna_enum_object_modifier_type_items)
 DEF_ENUM(rna_enum_constraint_type_items)
 DEF_ENUM(rna_enum_boidrule_type_items)
@@ -148,8 +152,6 @@ DEF_ENUM(rna_enum_rigidbody_constraint_type_items)
 
 DEF_ENUM(rna_enum_object_axis_items)
 
-DEF_ENUM(rna_enum_render_pass_type_items)
-
 DEF_ENUM(rna_enum_bake_pass_type_items)
 DEF_ENUM(rna_enum_bake_pass_filter_type_items)
 
@@ -186,7 +188,6 @@ DEF_ENUM(rna_enum_node_math_items)
 DEF_ENUM(rna_enum_mapping_type_items)
 DEF_ENUM(rna_enum_node_vec_math_items)
 DEF_ENUM(rna_enum_node_boolean_math_items)
-DEF_ENUM(rna_enum_node_float_compare_items)
 DEF_ENUM(rna_enum_node_compare_operation_items)
 DEF_ENUM(rna_enum_node_integer_math_items)
 DEF_ENUM(rna_enum_node_float_to_int_items)
@@ -225,6 +226,7 @@ DEF_ENUM(rna_enum_context_mode_items)
 DEF_ENUM(rna_enum_preference_section_items)
 
 DEF_ENUM(rna_enum_attribute_type_items)
+DEF_ENUM(rna_enum_attr_storage_type_items)
 DEF_ENUM(rna_enum_color_attribute_type_items)
 DEF_ENUM(rna_enum_attribute_type_with_auto_items)
 DEF_ENUM(rna_enum_attribute_domain_items)
@@ -284,6 +286,9 @@ DEF_ENUM(rna_enum_nla_mode_blend_items)
 DEF_ENUM(rna_enum_keyblock_type_items)
 
 DEF_ENUM(rna_enum_asset_library_type_items)
+
+/* Defined in source/blender/python/intern/bpy_rna_id_collection.cc */
+DEF_ENUM(rna_enum_file_path_foreach_flag_items)
 
 #endif
 

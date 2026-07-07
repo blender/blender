@@ -12,11 +12,13 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_utility_mixins.hh"
 
+namespace blender {
+
 struct ColorManagedViewSettings;
 struct ColorManagedDisplaySettings;
 struct ImBuf;
 
-namespace blender::ed::vse {
+namespace ed::vse {
 
 struct ScopeHistogram {
   /* LDR (0..1) range is covered by this many bins. */
@@ -62,4 +64,5 @@ struct SeqScopes : public NonCopyable {
   void cleanup();
 };
 
-}  // namespace blender::ed::vse
+}  // namespace ed::vse
+}  // namespace blender

@@ -8,9 +8,11 @@
  * Converted and adapted from HLSL to GLSL by Clément Foucault
  */
 
-#include "infos/workbench_effect_dof_info.hh"
+#include "infos/workbench_effect_dof_infos.hh"
 
 #include "draw_view_lib.glsl"
+#include "gpu_shader_math_safe_lib.glsl"
+#include "gpu_shader_math_vector_reduce_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 #include "workbench_effect_dof_lib.glsl"
 
@@ -36,7 +38,10 @@ void main()
   depths.z = texelFetch(scene_depth_tx, texel.zy, 0).x;
   depths.w = texelFetch(scene_depth_tx, texel.xw, 0).x;
 
-  float4 zdepths = dof_linear_depth(depths);
+  float4 zdepths = float4(drw_depth_screen_to_view(depths.x),
+                          drw_depth_screen_to_view(depths.y),
+                          drw_depth_screen_to_view(depths.z),
+                          drw_depth_screen_to_view(depths.w));
   float4 cocs_near = dof_calculate_coc(zdepths);
   float4 cocs_far = -cocs_near;
 

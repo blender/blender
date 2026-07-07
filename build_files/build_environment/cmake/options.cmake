@@ -6,13 +6,13 @@ if(WIN32)
   option(ENABLE_MSYS2 "Enable building of ffmpeg/libsndfile/fftw3/gmp by installing msys2" ON)
   option(MSYS2_USE_UPSTREAM_PACKAGES "Use upstream packages to bootstrap msys2, when OFF the blender mirror will be used" OFF)
 endif()
-option(FORCE_CHECK_HASH "Force a check of all hashses during CMake the configure phase" OFF)
+option(FORCE_CHECK_HASH "Force a check of all hashes during CMake the configure phase" OFF)
 
 cmake_host_system_information(RESULT NUM_CORES QUERY NUMBER_OF_LOGICAL_CORES)
 set(MAKE_THREADS ${NUM_CORES} CACHE STRING "Number of threads to run make with")
 
-# Any python module building with setup.py cannot use multiple theads on windows
-# as they will try to write to the same .pdb file simultaniously which causes
+# Any python module building with setup.py cannot use multiple threads on windows
+# as they will try to write to the same .pdb file simultaneously which causes
 # build errors.
 if(WIN32)
   set(PYTHON_MAKE_THREADS 1)
@@ -80,7 +80,10 @@ if(WIN32)
     # Some deps with warnings as error aren't quite ready for dealing with the new 2017 warnings.
     set(COMMON_MSVC_FLAGS "/Wv:18")
   endif()
-  string(APPEND COMMON_MSVC_FLAGS " /bigobj")
+  string(APPEND COMMON_MSVC_FLAGS " /bigobj /experimental:deterministic /utf-8")
+  if(NOT BLENDER_PLATFORM_WINDOWS_ARM) #x64
+    string(APPEND COMMON_MSVC_FLAGS " /arch:SSE4.2")
+  endif()
   # To keep MSVC from oversubscribing the CPU, force it to single threaded mode
   # msbuild/ninja will queue as many compile units as there are cores, no need for
   # MSVC to be internally threading as well.
@@ -100,7 +103,7 @@ if(WIN32)
   else()
     set(BLENDER_CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /D PLATFORM_WINDOWS /D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS /MTd  ${COMMON_MSVC_FLAGS} /Zi /Ob0 /Od /RTC1 /DPSAPI_VERSION=2 /DTINYFORMAT_ALLOW_WCHAR_STRINGS")
   endif()
-  set(BLENDER_CMAKE_CXX_FLAGS_MINSIZEREL "/MD /${COMMON_MSVC_FLAGS} /D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS /O1 /Ob1 /D NDEBUG  /D PLATFORM_WINDOWS /DPSAPI_VERSION=2 /DTINYFORMAT_ALLOW_WCHAR_STRINGS")
+  set(BLENDER_CMAKE_CXX_FLAGS_MINSIZEREL "/MD ${COMMON_MSVC_FLAGS} /D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS /O1 /Ob1 /D NDEBUG  /D PLATFORM_WINDOWS /DPSAPI_VERSION=2 /DTINYFORMAT_ALLOW_WCHAR_STRINGS")
   set(BLENDER_CMAKE_CXX_FLAGS_RELEASE "/MD ${COMMON_MSVC_FLAGS} /D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS /O2 /Ob2 /D NDEBUG /D PLATFORM_WINDOWS /DPSAPI_VERSION=2 /DTINYFORMAT_ALLOW_WCHAR_STRINGS")
   set(BLENDER_CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MD ${COMMON_MSVC_FLAGS} /D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS /Zi /O2 /Ob1 /D NDEBUG /D PLATFORM_WINDOWS /DPSAPI_VERSION=2 /DTINYFORMAT_ALLOW_WCHAR_STRINGS")
 
@@ -119,7 +122,7 @@ if(WIN32)
   if(WITH_OPTIMIZED_DEBUG)
     set(BLENDER_CLANG_CMAKE_CXX_FLAGS_DEBUG "${COMMON_CLANG_FLAGS} -Xclang --dependent-lib=msvcrtd -D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS -O2 -D_DEBUG -DPLATFORM_WINDOWS -DPSAPI_VERSION=2 -DTINYFORMAT_ALLOW_WCHAR_STRINGS")
   else()
-    set(BLENDER_CLANG_CMAKE_CXX_FLAGS_DEBUG "${COMMON_CLANG_FLAG} -Xclang --dependent-lib=msvcrtd -D_DEBUG -DPLATFORM_WINDOWS -D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS -g -DPSAPI_VERSION=2 -DTINYFORMAT_ALLOW_WCHAR_STRINGS")
+    set(BLENDER_CLANG_CMAKE_CXX_FLAGS_DEBUG "${COMMON_CLANG_FLAGS} -Xclang --dependent-lib=msvcrtd -D_DEBUG -DPLATFORM_WINDOWS -D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS -g -DPSAPI_VERSION=2 -DTINYFORMAT_ALLOW_WCHAR_STRINGS")
   endif()
   set(BLENDER_CLANG_CMAKE_CXX_FLAGS_MINSIZEREL "${COMMON_CLANG_FLAGS} -Xclang --dependent-lib=msvcrt -D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS -O2 -DNDEBUG  -DPLATFORM_WINDOWS -DPSAPI_VERSION=2 -DTINYFORMAT_ALLOW_WCHAR_STRINGS")
   set(BLENDER_CLANG_CMAKE_CXX_FLAGS_RELEASE "${COMMON_CLANG_FLAGS} -Xclang --dependent-lib=msvcrt -D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS -O2 -DNDEBUG -DPLATFORM_WINDOWS -DPSAPI_VERSION=2 -DTINYFORMAT_ALLOW_WCHAR_STRINGS")
@@ -135,11 +138,10 @@ if(WIN32)
     -DCMAKE_CXX_FLAGS_MINSIZEREL=${BLENDER_CLANG_CMAKE_CXX_FLAGS_MINSIZEREL}
     -DCMAKE_CXX_FLAGS_RELEASE=${BLENDER_CLANG_CMAKE_CXX_FLAGS_RELEASE}
     -DCMAKE_CXX_FLAGS_RELWITHDEBINFO=${BLENDER_CLANG_CMAKE_CXX_FLAGS_RELWITHDEBINFO}
-    -DCMAKE_CXX_STANDARD=17
+    -DCMAKE_CXX_STANDARD=20
   )
 
-  set(PLATFORM_FLAGS)
-  set(PLATFORM_CXX_FLAGS)
+  set(PLATFORM_FLAGS "")
 
   if(BLENDER_PLATFORM_ARM)
     # In some cases on ARM64 (unsure why), dep builds using the "Ninja" generator appear to use
@@ -157,7 +159,7 @@ if(WIN32)
       -DCMAKE_RC_COMPILER=${CMAKE_RC_COMPILER}
     )
   else()
-    set(PLATFORM_CMAKE_FLAGS)
+    set(PLATFORM_CMAKE_FLAGS "")
   endif()
 
   set(MINGW_PATH ${DOWNLOAD_DIR}/msys2/msys64/)
@@ -165,8 +167,8 @@ if(WIN32)
   set(PERL_SHELL ${DOWNLOAD_DIR}/perl/portableshell.bat)
   set(MINGW_HOST x86_64-w64-mingw32)
 
-  set(MINGW_CFLAGS)
-  set(MINGW_LDFLAGS)
+  set(MINGW_CFLAGS "")
+  set(MINGW_LDFLAGS "")
 
   # some build systems like meson will respect the *nix like environment vars
   # like CFLAGS and LDFlags but will still build with the MSVC compiler, so for
@@ -260,10 +262,10 @@ else()
 
       # Set Crossplatform Apple-arm64 specific cmake flags with SDKs.
       set(PLATFORM_CFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} ${APPLE_OS_MINVERSION_CFLAG} -Wno-declaration-after-statement -arch ${CMAKE_OSX_ARCHITECTURES}")
-      set(PLATFORM_CXXFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} ${APPLE_OS_MINVERSION_CFLAG} -std=c++17 -stdlib=libc++ -arch ${CMAKE_OSX_ARCHITECTURES}")
-      set(PLATFORM_LDFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} ${APPLE_OS_MINVERSION_CFLAG} -arch ${CMAKE_OSX_ARCHITECTURES}")
+      set(PLATFORM_CXXFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} ${APPLE_OS_MINVERSION_CFLAG} -std=c++20 -stdlib=libc++ -arch ${CMAKE_OSX_ARCHITECTURES}")
+      set(PLATFORM_LDFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} ${APPLE_OS_MINVERSION_CFLAG} -arch ${CMAKE_OSX_ARCHITECTURES} -headerpad_max_install_names")
       # Apple ARM64 target.
-      set(PLATFORM_BUILD_TARGET --build=aarch64-apple-darwin20.0.0) 
+      set(PLATFORM_BUILD_TARGET --build=aarch64-apple-darwin20.0.0)
 
       set(DCMAKE_FIND_ROOT_PATH
         ${DCMAKE_FIND_ROOT_PATH}
@@ -307,12 +309,12 @@ else()
 
       # Locate system installaton of pkgconfig
       include(FindPkgConfig)
-      
+
       # Prepare Meson cross file
       # Note: Cmake will issue a developer warning about the use of triple quotes but the code seems OK.
       set(MESON_APPLE_CONFIGURATION_FILE ${BUILD_DIR}/apple_cp/meson_apple_cross_config.ini)
       set(MESON_APPLE_CP_CONTENTS
-        """
+        "" "
         [binaries]
         c = 'clang'
         cpp = 'clang++'
@@ -321,7 +323,8 @@ else()
         ar = 'ar'
         strip = 'strip'
         ld = 'ld'
-        pkgconfig = 'pkg-config'
+        pkg-config = 'pkg-config'
+        cython = '${CMAKE_DEPS_CROSSCOMPILE_BUILDDIR}/deps_arm64/Release/python/bin/cython'
 
         [built-in options]
         c_args = [
@@ -357,21 +360,21 @@ else()
           '-arch', 'arm64',
           '-isysroot', '${CMAKE_OSX_SYSROOT}',
           '${APPLE_OS_MINVERSION_CFLAG}']
-        
+
         [host_machine]
         system = 'darwin'
         cpu_family = 'aarch64'
         cpu = 'arm64'
         endian = 'little'
-        """
+        " ""
       )
       file(WRITE ${MESON_APPLE_CONFIGURATION_FILE} ${MESON_APPLE_CP_CONTENTS})
-      
+
     else()
       # MacOS flags
       set(PLATFORM_CFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} ${APPLE_OS_MINVERSION_CFLAG} -arch ${CMAKE_OSX_ARCHITECTURES}")
-      set(PLATFORM_CXXFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} ${APPLE_OS_MINVERSION_CFLAG} -std=c++17 -stdlib=libc++ -arch ${CMAKE_OSX_ARCHITECTURES}")
-    set(PLATFORM_LDFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET} -arch ${CMAKE_OSX_ARCHITECTURES}")
+      set(PLATFORM_CXXFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} ${APPLE_OS_MINVERSION_CFLAG} -std=c++20 -stdlib=libc++ -arch ${CMAKE_OSX_ARCHITECTURES}")
+      set(PLATFORM_LDFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET} -arch ${CMAKE_OSX_ARCHITECTURES} -headerpad_max_install_names")
       if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64")
         set(PLATFORM_BUILD_TARGET --build=x86_64-apple-darwin19.0.0) # OS X 10.13
       else()
@@ -391,9 +394,9 @@ else()
     endif()
 
     set(PLATFORM_CFLAGS "-fPIC")
-    set(PLATFORM_CXXFLAGS "-std=c++17 -fPIC")
-    set(PLATFORM_LDFLAGS)
-    set(PLATFORM_BUILD_TARGET)
+    set(PLATFORM_CXXFLAGS "-std=c++20 -fPIC")
+    set(PLATFORM_LDFLAGS "")
+    set(PLATFORM_BUILD_TARGET "")
     set(PLATFORM_CMAKE_FLAGS -DCMAKE_INSTALL_LIBDIR=lib)
   endif()
 
@@ -437,8 +440,8 @@ set(DEFAULT_CMAKE_FLAGS
   -DCMAKE_CXX_FLAGS_DEBUG=${BLENDER_CMAKE_CXX_FLAGS_DEBUG}
   -DCMAKE_CXX_FLAGS_MINSIZEREL=${BLENDER_CMAKE_CXX_FLAGS_MINSIZEREL}
   -DCMAKE_CXX_FLAGS_RELEASE=${BLENDER_CMAKE_CXX_FLAGS_RELEASE}
-  -DCMAKE_CXX_FLAGS_RELWITHDEBINFO=${CMAKE_CXX_FLAGS_RELWITHDEBINFO}
-  -DCMAKE_CXX_STANDARD=17
+  -DCMAKE_CXX_FLAGS_RELWITHDEBINFO=${BLENDER_CMAKE_CXX_FLAGS_RELWITHDEBINFO}
+  -DCMAKE_CXX_STANDARD=20
   ${PLATFORM_CMAKE_FLAGS}
 )
 

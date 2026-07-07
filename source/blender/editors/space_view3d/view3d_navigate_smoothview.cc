@@ -25,6 +25,8 @@
 #include "view3d_intern.hh"
 #include "view3d_navigate.hh" /* Own include. */
 
+namespace blender {
+
 static void view3d_smoothview_apply_with_interp(
     bContext *C, View3D *v3d, RegionView3D *rv3d, const bool use_autokey, const float factor);
 
@@ -56,11 +58,11 @@ void ED_view3d_smooth_view_undo_begin(bContext *C, const ScrArea *area)
    * NOTE: It doesn't matter if the actual object being manipulated is the camera or not. */
   camera->id.tag &= ~ID_TAG_DOIT;
 
-  LISTBASE_FOREACH (const ARegion *, region, &area->regionbase) {
-    if (region->regiontype != RGN_TYPE_WINDOW) {
+  for (const ARegion &region : area->regionbase) {
+    if (region.regiontype != RGN_TYPE_WINDOW) {
       continue;
     }
-    const RegionView3D *rv3d = static_cast<const RegionView3D *>(region->regiondata);
+    const RegionView3D *rv3d = static_cast<const RegionView3D *>(region.regiondata);
     if (ED_view3d_camera_lock_undo_test(v3d, rv3d, C)) {
       camera->id.tag |= ID_TAG_DOIT;
       break;
@@ -96,13 +98,13 @@ void ED_view3d_smooth_view_undo_end(bContext *C,
 
   /* An undo push should be performed. */
   bool is_interactive = false;
-  LISTBASE_FOREACH (const ARegion *, region, &area->regionbase) {
-    if (region->regiontype != RGN_TYPE_WINDOW) {
+  for (const ARegion &region : area->regionbase) {
+    if (region.regiontype != RGN_TYPE_WINDOW) {
       continue;
     }
-    const RegionView3D *rv3d = static_cast<const RegionView3D *>(region->regiondata);
+    const RegionView3D *rv3d = static_cast<const RegionView3D *>(region.regiondata);
     if (ED_view3d_camera_lock_undo_test(v3d, rv3d, C)) {
-      region_camera = region;
+      region_camera = &region;
       if (rv3d->sms) {
         is_interactive = true;
       }
@@ -334,7 +336,7 @@ void ED_view3d_smooth_view_ex(
       /* Use orthographic if we move from an orthographic view to an orthographic camera. */
       Object *ob_camera_eval = DEG_get_evaluated(depsgraph, sview->camera);
       rv3d->persp = ((rv3d->is_persp == false) && (ob_camera_eval->type == OB_CAMERA) &&
-                     (static_cast<Camera *>(ob_camera_eval->data)->type == CAM_ORTHO)) ?
+                     (id_cast<Camera *>(ob_camera_eval->data)->type == CAM_ORTHO)) ?
                         RV3D_ORTHO :
                         RV3D_PERSP;
     }
@@ -347,7 +349,7 @@ void ED_view3d_smooth_view_ex(
 
     /* Keep track of running timer! */
     if (rv3d->sms == nullptr) {
-      rv3d->sms = MEM_mallocN<SmoothView3DStore>("smoothview v3d");
+      rv3d->sms = MEM_new_uninitialized<SmoothView3DStore>("smoothview v3d");
     }
     *rv3d->sms = sms;
     if (rv3d->smooth_timer) {
@@ -473,7 +475,7 @@ static void view3d_smoothview_apply_and_finish_ex(wmWindowManager *wm,
     rv3d->view_axis_roll = sms->org_view_axis_roll;
   }
 
-  MEM_freeN(rv3d->sms);
+  MEM_delete(rv3d->sms);
   rv3d->sms = nullptr;
 
   WM_event_timer_remove(wm, win, rv3d->smooth_timer);
@@ -622,7 +624,9 @@ void VIEW3D_OT_smoothview(wmOperatorType *ot)
 
 void view3d_smooth_free(RegionView3D *rv3d)
 {
-  MEM_SAFE_FREE(rv3d->sms);
+  MEM_SAFE_DELETE(rv3d->sms);
 }
 
 /** \} */
+
+}  // namespace blender

@@ -23,7 +23,7 @@ endif()
 
 if(NOT LLVM_ROOT_DIR)
   if(DEFINED LLVM_VERSION)
-    message(running llvm-config-${LLVM_VERSION})
+    message(STATUS "Running llvm-config-${LLVM_VERSION}")
     find_program(LLVM_CONFIG llvm-config-${LLVM_VERSION})
   endif()
   if(NOT LLVM_CONFIG)
@@ -87,7 +87,7 @@ set(_clang_FIND_COMPONENTS
   clangBasic
 )
 
-set(_clang_LIBRARIES)
+set(_clang_LIBRARIES "")
 foreach(COMPONENT ${_clang_FIND_COMPONENTS})
   string(TOUPPER ${COMPONENT} UPPERCOMPONENT)
 

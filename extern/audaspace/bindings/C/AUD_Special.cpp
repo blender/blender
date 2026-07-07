@@ -200,7 +200,7 @@ AUD_API AUD_Handle* AUD_pauseAfter(AUD_Handle* handle, double seconds)
 	return nullptr;
 }
 
-AUD_API int AUD_readSound(AUD_Sound* sound, float* buffer, int length, int samples_per_second, short* interrupt)
+AUD_API int AUD_readSound(AUD_Sound* sound, float* buffer, int length, int samples_per_second, bool* interrupt)
 {
 	DeviceSpecs specs;
 	float* buf;

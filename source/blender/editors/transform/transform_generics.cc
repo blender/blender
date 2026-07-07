@@ -12,6 +12,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_rand.h"
@@ -25,7 +26,7 @@
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
-#include "BKE_mask.h"
+#include "BKE_mask.hh"
 #include "BKE_modifier.hh"
 #include "BKE_paint.hh"
 #include "BKE_screen.hh"
@@ -69,10 +70,10 @@ static void *t_view_get(TransInfo *t)
 {
   if (t->spacetype == SPACE_VIEW3D) {
     View3D *v3d = static_cast<View3D *>(t->area->spacedata.first);
-    return (void *)v3d;
+    return static_cast<void *>(v3d);
   }
   if (t->region) {
-    return (void *)&t->region->v2d;
+    return static_cast<void *>(&t->region->v2d);
   }
   return nullptr;
 }
@@ -169,8 +170,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   /* Many kinds of transform only use a single handle. */
   if (t->data_container == nullptr) {
-    t->data_container = static_cast<TransDataContainer *>(
-        MEM_callocN(sizeof(*t->data_container), __func__));
+    t->data_container = MEM_new_zeroed<TransDataContainer>(__func__);
     t->data_container_len = 1;
   }
 
@@ -275,7 +275,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     if ((object_mode & OB_MODE_ALL_PAINT) || (object_mode & OB_MODE_SCULPT_CURVES)) {
       Paint *paint = BKE_paint_get_active_from_context(C);
       Brush *brush = (paint) ? BKE_paint_brush(paint) : nullptr;
-      if (brush && (brush->flag & BRUSH_CURVE)) {
+      if (brush && (brush->stroke_method == BRUSH_STROKE_CURVE)) {
         t->options |= CTX_PAINT_CURVE;
       }
     }
@@ -308,7 +308,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     else if (sima->mode == SI_MODE_PAINT) {
       Paint *paint = &sce->toolsettings->imapaint.paint;
       Brush *brush = (paint) ? BKE_paint_brush(paint) : nullptr;
-      if (brush && (brush->flag & BRUSH_CURVE)) {
+      if (brush && (brush->stroke_method == BRUSH_STROKE_CURVE)) {
         t->options |= CTX_PAINT_CURVE;
       }
     }
@@ -595,7 +595,9 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
           else if (t->options & CTX_MASK) {
             use_prop_edit = ts->proportional_mask;
           }
-          else if (obact && obact->mode == OB_MODE_OBJECT) {
+          else if (object_mode == OB_MODE_OBJECT) {
+            /* No active object means #TransConvertType_Object [see #convert_type_get()], so use
+             * tool-setting for *object*. */
             use_prop_edit = ts->proportional_objects;
           }
           else {
@@ -692,13 +694,13 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     wmWindowManager *wm = CTX_wm_manager(C);
     wmKeyMap *keymap = WM_keymap_active(wm, op->type->modalkeymap);
     const wmKeyMapItem *kmi_passthrough = nullptr;
-    LISTBASE_FOREACH (const wmKeyMapItem *, kmi, &keymap->items) {
-      if (kmi->flag & KMI_INACTIVE) {
+    for (const wmKeyMapItem &kmi : keymap->items) {
+      if (kmi.flag & KMI_INACTIVE) {
         continue;
       }
 
-      if (kmi->propvalue == TFM_MODAL_PASSTHROUGH_NAVIGATE) {
-        kmi_passthrough = kmi;
+      if (kmi.propvalue == TFM_MODAL_PASSTHROUGH_NAVIGATE) {
+        kmi_passthrough = &kmi;
         break;
       }
     }
@@ -731,7 +733,7 @@ static void freeTransCustomData(TransInfo *t, TransDataContainer *tc, TransCusto
     BLI_assert(custom_data->data == nullptr);
   }
   else if ((custom_data->data != nullptr) && custom_data->use_free) {
-    MEM_freeN(custom_data->data);
+    MEM_delete_void(custom_data->data);
     custom_data->data = nullptr;
   }
   /* In case modes are switched in the same transform session. */
@@ -787,20 +789,20 @@ void postTrans(bContext *C, TransInfo *t)
         TransData *td = tc->data;
         for (int a = 0; a < tc->data_len; a++, td++) {
           if (td->flag & TD_BEZTRIPLE) {
-            MEM_freeN(td->hdata);
+            MEM_delete(td->hdata);
           }
         }
       }
-      MEM_freeN(tc->data);
+      MEM_delete(tc->data);
 
-      MEM_SAFE_FREE(tc->data_mirror);
-      MEM_SAFE_FREE(tc->data_ext);
-      MEM_SAFE_FREE(tc->data_2d);
-      MEM_SAFE_FREE(tc->sorted_index_map);
+      MEM_SAFE_DELETE(tc->data_mirror);
+      MEM_SAFE_DELETE(tc->data_ext);
+      MEM_SAFE_DELETE(tc->data_2d);
+      MEM_SAFE_DELETE(tc->sorted_index_map);
     }
   }
 
-  MEM_SAFE_FREE(t->data_container);
+  MEM_SAFE_DELETE(t->data_container);
   t->data_container = nullptr;
 
   BLI_freelistN(&t->tsnap.points);
@@ -818,7 +820,7 @@ void postTrans(bContext *C, TransInfo *t)
   }
 
   if (t->mouse.data) {
-    MEM_freeN(t->mouse.data);
+    MEM_delete_void(t->mouse.data);
   }
 
   if (t->rng != nullptr) {
@@ -848,7 +850,7 @@ static void transdata_restore_basic(TransDataBasic *td_basic)
 
 static void restoreElement(TransData *td)
 {
-  transdata_restore_basic((TransDataBasic *)td);
+  transdata_restore_basic(static_cast<TransDataBasic *>(td));
 
   if (td->flag & TD_BEZTRIPLE) {
     *(td->hdata->h1) = td->hdata->ih1;
@@ -869,7 +871,7 @@ void restoreTransObjects(TransInfo *t)
     }
 
     for (tdm = tc->data_mirror; tdm < tc->data_mirror + tc->data_mirror_len; tdm++) {
-      transdata_restore_basic((TransDataBasic *)tdm);
+      transdata_restore_basic(static_cast<TransDataBasic *>(tdm));
     }
 
     if (tc->data_ext) {
@@ -957,17 +959,17 @@ void calculateCenterCursor2D(TransInfo *t, float r_center[2])
   const float *cursor = nullptr;
 
   if (t->spacetype == SPACE_IMAGE) {
-    SpaceImage *sima = (SpaceImage *)t->area->spacedata.first;
+    SpaceImage *sima = static_cast<SpaceImage *>(t->area->spacedata.first);
     cursor = sima->cursor;
   }
   if (t->spacetype == SPACE_SEQ) {
-    SpaceSeq *sseq = (SpaceSeq *)t->area->spacedata.first;
+    SpaceSeq *sseq = static_cast<SpaceSeq *>(t->area->spacedata.first);
     const float2 cursor_pixel = seq::image_preview_unit_to_px(t->scene, sseq->cursor);
     copy_v2_v2(cursor_local_buf, cursor_pixel);
     cursor = cursor_local_buf;
   }
   else if (t->spacetype == SPACE_CLIP) {
-    SpaceClip *space_clip = (SpaceClip *)t->area->spacedata.first;
+    SpaceClip *space_clip = static_cast<SpaceClip *>(t->area->spacedata.first);
     cursor = space_clip->cursor;
   }
 
@@ -976,11 +978,11 @@ void calculateCenterCursor2D(TransInfo *t, float r_center[2])
       float co[2];
 
       if (t->spacetype == SPACE_IMAGE) {
-        SpaceImage *sima = (SpaceImage *)t->area->spacedata.first;
+        SpaceImage *sima = static_cast<SpaceImage *>(t->area->spacedata.first);
         BKE_mask_coord_from_image(sima->image, &sima->iuser, co, cursor);
       }
       else if (t->spacetype == SPACE_CLIP) {
-        SpaceClip *space_clip = (SpaceClip *)t->area->spacedata.first;
+        SpaceClip *space_clip = static_cast<SpaceClip *>(t->area->spacedata.first);
         BKE_mask_coord_from_movieclip(space_clip->clip, &space_clip->user, co, cursor);
       }
       else {
@@ -992,8 +994,8 @@ void calculateCenterCursor2D(TransInfo *t, float r_center[2])
     }
     else if (t->options & CTX_PAINT_CURVE) {
       if (t->spacetype == SPACE_IMAGE) {
-        r_center[0] = UI_view2d_view_to_region_x(&t->region->v2d, cursor[0]);
-        r_center[1] = UI_view2d_view_to_region_y(&t->region->v2d, cursor[1]);
+        r_center[0] = ui::view2d_view_to_region_x(&t->region->v2d, cursor[0]);
+        r_center[1] = ui::view2d_view_to_region_y(&t->region->v2d, cursor[1]);
       }
     }
     else {
@@ -1005,7 +1007,7 @@ void calculateCenterCursor2D(TransInfo *t, float r_center[2])
 
 void calculateCenterCursorGraph2D(TransInfo *t, float r_center[2])
 {
-  SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
+  SpaceGraph *sipo = static_cast<SpaceGraph *>(t->area->spacedata.first);
   Scene *scene = t->scene;
 
   /* Cursor is combination of current frame, and graph-editor cursor value. */
@@ -1045,13 +1047,15 @@ void calculateCenterMedian(TransInfo *t, float r_center[3])
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     float center[3];
     for (int i = 0; i < tc->data_len; i++) {
-      if (transdata_center_global_get(tc, (TransDataBasic *)&tc->data[i], center)) {
+      if (transdata_center_global_get(tc, static_cast<TransDataBasic *>(&tc->data[i]), center)) {
         add_v3_v3(partial, center);
         total++;
       }
     }
     for (int i = 0; i < tc->data_mirror_len; i++) {
-      if (transdata_center_global_get(tc, (TransDataBasic *)&tc->data_mirror[i], center)) {
+      if (transdata_center_global_get(
+              tc, static_cast<TransDataBasic *>(&tc->data_mirror[i]), center))
+      {
         add_v3_v3(partial, center);
         total++;
       }
@@ -1071,13 +1075,15 @@ void calculateCenterBound(TransInfo *t, float r_center[3])
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     float center[3];
     for (int i = 0; i < tc->data_len; i++) {
-      if (transdata_center_global_get(tc, (TransDataBasic *)&tc->data[i], center)) {
+      if (transdata_center_global_get(tc, static_cast<TransDataBasic *>(&tc->data[i]), center)) {
         minmax_v3v3_v3(min, max, center);
         changed = true;
       }
     }
     for (int i = 0; i < tc->data_mirror_len; i++) {
-      if (transdata_center_global_get(tc, (TransDataBasic *)&tc->data_mirror[i], center)) {
+      if (transdata_center_global_get(
+              tc, static_cast<TransDataBasic *>(&tc->data_mirror[i]), center))
+      {
         minmax_v3v3_v3(min, max, center);
         changed = true;
       }
@@ -1095,6 +1101,12 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
   if (t->spacetype != SPACE_VIEW3D) {
     return false;
   }
+  /* The cursor has no active object concept. Return false so the "active" center isn't used
+   * in contexts where it doesn't make sense ("Active Snap Base" for e.g.), See: #151283. */
+  if (t->options & CTX_CURSOR) {
+    return false;
+  }
+
   if (tc->obedit) {
     if (object::calc_active_center_for_editmode(tc->obedit, select_only, r_center)) {
       mul_m4_v3(tc->obedit->object_to_world().ptr(), r_center);
@@ -1312,7 +1324,9 @@ void calculatePropRatio(TransInfo *t)
               td->factor = dist * dist;
               break;
             case PROP_SMOOTH:
-              td->factor = 3.0f * dist * dist - 2.0f * dist * dist * dist;
+              /* Float imprecision can cause a `dist` approaching 1.0
+               * to assign `td->factor` exceeding 1.0. See #147530. */
+              td->factor = std::min(1.0f, 3.0f * dist * dist - 2.0f * dist * dist * dist);
               break;
             case PROP_ROOT:
               td->factor = sqrtf(dist);
@@ -1341,6 +1355,8 @@ void calculatePropRatio(TransInfo *t)
               td->factor = 1;
               break;
           }
+          /* An assert here likely means clamping is needed. */
+          BLI_assert(td->factor <= 1.0f);
         }
       }
     }
@@ -1510,6 +1526,35 @@ Object *transform_object_deform_pose_armature_get(const TransInfo *t, Object *ob
     }
   }
   return nullptr;
+}
+
+std::optional<float3> mouse_delta_to_world_dir(const TransInfo *t, const float2 &delta)
+{
+  if (math::is_zero(delta)) {
+    return std::nullopt;
+  }
+  float3 dir;
+
+  if (t->spacetype == SPACE_VIEW3D) {
+    if (!(t->region && t->region->regiondata)) {
+      return std::nullopt;
+    }
+
+    const RegionView3D *rv3d = static_cast<const RegionView3D *>(t->region->regiondata);
+    dir = (float4x4(rv3d->viewinv) * float4(delta, 0.0f, 0.0f)).xyz();
+  }
+  else {
+    /* In 2D views (UV Editor), use the mouse movement directly on the XY plane. */
+    dir = float3(delta.x, delta.y, 0.0f);
+  }
+
+  dir = math::normalize(dir);
+  /* Skip zero length results after transform. */
+  if (math::is_zero(dir)) {
+    return std::nullopt;
+  }
+
+  return dir;
 }
 
 }  // namespace blender::ed::transform

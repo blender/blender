@@ -16,6 +16,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 void bmo_unsubdivide_exec(BMesh *bm, BMOperator *op)
 {
   /* - `BMVert.flag & BM_ELEM_TAG`: Shows we touched this vert.
@@ -26,7 +28,7 @@ void bmo_unsubdivide_exec(BMesh *bm, BMOperator *op)
   const int iterations = max_ii(1, BMO_slot_int_get(op->slots_in, "iterations"));
 
   BMOpSlot *vinput = BMO_slot_get(op->slots_in, "verts");
-  BMVert **vinput_arr = (BMVert **)vinput->data.buf;
+  BMVert **vinput_arr = reinterpret_cast<BMVert **>(vinput->data.buf);
   int v_index;
 
   /* tag verts */
@@ -41,3 +43,5 @@ void bmo_unsubdivide_exec(BMesh *bm, BMOperator *op)
   /* do all the real work here */
   BM_mesh_decimate_unsubdivide_ex(bm, iterations, true);
 }
+
+}  // namespace blender

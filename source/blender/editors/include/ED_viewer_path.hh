@@ -14,19 +14,24 @@
 
 #include "DNA_viewer_path_types.h"
 
+namespace blender {
+
 struct Main;
 struct SpaceNode;
 struct bNode;
 struct bContext;
 struct Object;
 
-namespace blender::ed::viewer_path {
+namespace ed::viewer_path {
 
 /**
  * Activates the given node in the context provided by the editor. This indirectly updates all
  * non-pinned viewer paths in other editors (spreadsheet and 3d view).
  */
-void activate_geometry_node(Main &bmain, SpaceNode &snode, bNode &node);
+void activate_geometry_node(Main &bmain,
+                            SpaceNode &snode,
+                            bNode &node,
+                            std::optional<int> item_identifier = std::nullopt);
 
 /**
  * Returns the object referenced by the viewer path. This only returns something if the viewer path
@@ -42,7 +47,7 @@ struct ViewerPathForGeometryNodesViewer {
   /** #ModifierData.persistent_uid. */
   int modifier_uid;
   /** Contains only group node and simulation zone elements. */
-  blender::Vector<const ViewerPathElem *> node_path;
+  Vector<const ViewerPathElem *> node_path;
   int32_t viewer_node_id;
 };
 
@@ -98,4 +103,6 @@ UpdateActiveGeometryNodesViewerResult update_active_geometry_nodes_viewer(const 
 [[nodiscard]] ViewerPathElem *viewer_path_elem_for_compute_context(
     const ComputeContext &compute_context);
 
-}  // namespace blender::ed::viewer_path
+}  // namespace ed::viewer_path
+
+}  // namespace blender

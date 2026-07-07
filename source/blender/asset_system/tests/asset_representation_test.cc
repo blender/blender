@@ -7,7 +7,13 @@
 
 #include "AS_asset_representation.hh"
 
+#include "BKE_lib_id.hh"
+#include "BKE_main.hh"
+
 #include "DNA_asset_types.h"
+#include "DNA_object_types.h"
+
+#include "ED_asset_mark_clear.hh"
 
 #include "BLI_string.h"
 
@@ -39,7 +45,35 @@ class AssetRepresentationTest : public AssetLibraryTestBase {
                 .add_external_asset(relative_path, "Some asset name", 0, std::move(dummy_metadata))
                 .lock();
   }
+
+  AssetRepresentation &add_dummy_id_asset(AssetLibrary &library, ID &id)
+  {
+    /* Ensure ID is marked as asset (no-op if already marked). */
+    ed::asset::mark_id(&id);
+
+    return *library.add_local_id_asset(id).lock();
+  }
 };
+
+TEST_F(AssetRepresentationTest, library_relative_identifier__id_name_change)
+{
+  Main *bmain = BKE_main_new();
+  Object *object = BKE_id_new<Object>(bmain, "Before rename");
+
+  AssetLibrary *library = get_builtin_library_from_type(ASSET_LIBRARY_LOCAL);
+
+  AssetRepresentation &asset = add_dummy_id_asset(*library, object->id);
+
+  EXPECT_EQ(asset.library_relative_identifier(), "Object" SEP_STR "Before rename");
+
+  BKE_id_rename(*bmain, object->id, "Renamed!");
+  EXPECT_EQ(asset.library_relative_identifier(), "Object" SEP_STR "Renamed!");
+
+  BKE_id_rename(*bmain, object->id, "Name/With\\Slashes/");
+  EXPECT_EQ(asset.library_relative_identifier(), "Object" SEP_STR "Name/With\\Slashes/");
+
+  BKE_main_free(bmain);
+}
 
 TEST_F(AssetRepresentationTest, weak_reference__current_file)
 {
@@ -67,6 +101,42 @@ TEST_F(AssetRepresentationTest, weak_reference__custom_library)
     EXPECT_STREQ(weak_ref.asset_library_identifier, "My custom lib");
     EXPECT_STREQ(weak_ref.relative_asset_identifier, "path/to/an/asset");
   }
+}
+
+/* Test if new weak references the ID name changes. */
+TEST_F(AssetRepresentationTest, weak_reference__id_name_change)
+{
+  Main *bmain = BKE_main_new();
+  Object *object = BKE_id_new<Object>(bmain, "Before rename");
+
+  AssetLibrary *library = get_builtin_library_from_type(ASSET_LIBRARY_LOCAL);
+
+  AssetRepresentation &asset = add_dummy_id_asset(*library, object->id);
+
+  {
+    AssetWeakReference weak_ref = asset.make_weak_reference();
+    EXPECT_EQ(weak_ref.asset_library_type, ASSET_LIBRARY_LOCAL);
+    EXPECT_STREQ(weak_ref.asset_library_identifier, nullptr);
+    EXPECT_STREQ(weak_ref.relative_asset_identifier, "Object" SEP_STR "Before rename");
+  }
+
+  BKE_id_rename(*bmain, object->id, "Renamed!");
+  {
+    AssetWeakReference weak_ref = asset.make_weak_reference();
+    EXPECT_EQ(weak_ref.asset_library_type, ASSET_LIBRARY_LOCAL);
+    EXPECT_STREQ(weak_ref.asset_library_identifier, nullptr);
+    EXPECT_STREQ(weak_ref.relative_asset_identifier, "Object" SEP_STR "Renamed!");
+  }
+
+  BKE_id_rename(*bmain, object->id, "Name/With\\Slashes/");
+  {
+    AssetWeakReference weak_ref = asset.make_weak_reference();
+    EXPECT_EQ(weak_ref.asset_library_type, ASSET_LIBRARY_LOCAL);
+    EXPECT_STREQ(weak_ref.asset_library_identifier, nullptr);
+    EXPECT_STREQ(weak_ref.relative_asset_identifier, "Object" SEP_STR "Name/With\\Slashes/");
+  }
+
+  BKE_main_free(bmain);
 }
 
 TEST_F(AssetRepresentationTest, weak_reference__compare)

@@ -9,10 +9,12 @@
 #include <pxr/usd/usdLux/domeLight.h>
 #include <pxr/usd/usdLux/domeLight_1.h>
 
+namespace blender {
+
 struct Main;
 struct Scene;
 
-namespace blender::io::usd {
+namespace io::usd {
 
 class USDDomeLightReader : public USDPrimReader {
 
@@ -32,8 +34,9 @@ class USDDomeLightReader : public USDPrimReader {
   /* Until Blender supports DomeLight objects natively, use a separate create_object overload that
    * allows the caller to pass in the required Scene data. */
 
-  void create_object(Main * /*bmain*/) override{};
+  void create_object(Main * /*bmain*/) override {};
   void create_object(Scene *scene, Main *bmain);
 };
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

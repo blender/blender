@@ -11,10 +11,7 @@
 #include "GPU_batch.hh"
 #include "gl_shader_interface.hh"
 
-namespace blender {
-namespace gpu {
-
-namespace GLVertArray {
+namespace blender::gpu::GLVertArray {
 
 /**
  * Update the Attribute Binding of the currently bound VAO.
@@ -29,7 +26,4 @@ void update_bindings(const GLuint vao,
                      const GPUVertFormat *format,
                      const ShaderInterface *interface);
 
-}  // namespace GLVertArray
-
-}  // namespace gpu
-}  // namespace blender
+}  // namespace blender::gpu::GLVertArray

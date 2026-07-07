@@ -1,0 +1,60 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_shader_compat.hh"
+#endif
+
+#include "gpu_shader_create_info.hh"
+
+GPU_SHADER_CREATE_INFO(compositor_z_combine_simple_image)
+LOCAL_GROUP_SIZE(16, 16)
+PUSH_CONSTANT(bool, use_alpha)
+SAMPLER(0, sampler2D, first_tx)
+SAMPLER(1, sampler2D, first_z_tx)
+SAMPLER(2, sampler2D, second_tx)
+SAMPLER(3, sampler2D, second_z_tx)
+IMAGE(0, SFLOAT_16_16_16_16, write, image2D, combined_img)
+COMPUTE_SOURCE("compositor_z_combine_simple_image.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(compositor_z_combine_simple_depth)
+LOCAL_GROUP_SIZE(16, 16)
+SAMPLER(0, sampler2D, first_z_tx)
+SAMPLER(1, sampler2D, second_z_tx)
+IMAGE(0, SFLOAT_16, write, image2D, combined_z_img)
+COMPUTE_SOURCE("compositor_z_combine_simple_depth.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(compositor_z_combine_compute_mask)
+LOCAL_GROUP_SIZE(16, 16)
+SAMPLER(0, sampler2D, first_z_tx)
+SAMPLER(1, sampler2D, second_z_tx)
+IMAGE(0, SFLOAT_16, write, image2D, mask_img)
+COMPUTE_SOURCE("compositor_z_combine_compute_mask.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(compositor_z_combine_from_mask_image)
+LOCAL_GROUP_SIZE(16, 16)
+PUSH_CONSTANT(bool, use_alpha)
+SAMPLER(0, sampler2D, first_tx)
+SAMPLER(2, sampler2D, second_tx)
+SAMPLER(4, sampler2D, mask_tx)
+IMAGE(0, SFLOAT_16_16_16_16, write, image2D, combined_img)
+COMPUTE_SOURCE("compositor_z_combine_from_mask_image.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(compositor_z_combine_from_mask_depth)
+LOCAL_GROUP_SIZE(16, 16)
+SAMPLER(0, sampler2D, first_z_tx)
+SAMPLER(1, sampler2D, second_z_tx)
+IMAGE(0, SFLOAT_16, write, image2D, combined_z_img)
+COMPUTE_SOURCE("compositor_z_combine_from_mask_depth.glsl")
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()

@@ -19,8 +19,8 @@ extern PyTypeObject EqualToChainingTimeStampUP1D_Type;
 
 /*---------------------------Python BPy_EqualToChainingTimeStampUP1D structure
  * definition----------*/
-typedef struct {
+struct BPy_EqualToChainingTimeStampUP1D {
   BPy_UnaryPredicate1D py_up1D;
-} BPy_EqualToChainingTimeStampUP1D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

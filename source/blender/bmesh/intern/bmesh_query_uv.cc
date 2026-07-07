@@ -17,13 +17,14 @@
 
 #include "bmesh.hh"
 
+namespace blender {
+
 BMUVOffsets BM_uv_map_offsets_from_layer(const BMesh *bm, const int layer)
 {
-  using namespace blender;
-  using namespace blender::bke;
+  using namespace bke;
   const int layer_index = CustomData_get_layer_index_n(&bm->ldata, CD_PROP_FLOAT2, layer);
   if (layer_index == -1) {
-    return {-1, -1, -1, -1};
+    return BMUVOFFSETS_NONE;
   }
 
   const StringRef name = bm->ldata.layers[layer_index].name;
@@ -31,10 +32,6 @@ BMUVOffsets BM_uv_map_offsets_from_layer(const BMesh *bm, const int layer)
 
   BMUVOffsets offsets;
   offsets.uv = bm->ldata.layers[layer_index].offset;
-  offsets.select_vert = CustomData_get_offset_named(
-      &bm->ldata, CD_PROP_BOOL, BKE_uv_map_vert_select_name_get(name, buffer));
-  offsets.select_edge = CustomData_get_offset_named(
-      &bm->ldata, CD_PROP_BOOL, BKE_uv_map_edge_select_name_get(name, buffer));
   offsets.pin = CustomData_get_offset_named(
       &bm->ldata, CD_PROP_BOOL, BKE_uv_map_pin_name_get(name, buffer));
 
@@ -45,7 +42,7 @@ BMUVOffsets BM_uv_map_offsets_get(const BMesh *bm)
 {
   const int layer = CustomData_get_active_layer(&bm->ldata, CD_PROP_FLOAT2);
   if (layer == -1) {
-    return {-1, -1, -1, -1};
+    return BMUVOFFSETS_NONE;
   }
   return BM_uv_map_offsets_from_layer(bm, layer);
 }
@@ -121,7 +118,7 @@ void BM_face_uv_calc_center_median(const BMFace *f, const int cd_loop_uv_offset,
 
 float BM_face_uv_calc_cross(const BMFace *f, const int cd_loop_uv_offset)
 {
-  blender::Array<blender::float2, BM_DEFAULT_NGON_STACK_SIZE> uvs(f->len);
+  Array<float2, BM_DEFAULT_NGON_STACK_SIZE> uvs(f->len);
   const BMLoop *l_iter;
   const BMLoop *l_first;
   int i = 0;
@@ -129,7 +126,7 @@ float BM_face_uv_calc_cross(const BMFace *f, const int cd_loop_uv_offset)
   do {
     uvs[i++] = BM_ELEM_CD_GET_FLOAT2_P(l_iter, cd_loop_uv_offset);
   } while ((l_iter = l_iter->next) != l_first);
-  return cross_poly_v2(reinterpret_cast<const float(*)[2]>(uvs.data()), f->len);
+  return cross_poly_v2(reinterpret_cast<const float (*)[2]>(uvs.data()), f->len);
 }
 
 void BM_face_uv_minmax(const BMFace *f, float min[2], float max[2], const int cd_loop_uv_offset)
@@ -196,7 +193,7 @@ bool BM_edge_uv_share_vert_check(const BMEdge *e,
 
 bool BM_face_uv_point_inside_test(const BMFace *f, const float co[2], const int cd_loop_uv_offset)
 {
-  blender::Array<blender::float2, BM_DEFAULT_NGON_STACK_SIZE> projverts(f->len);
+  Array<float2, BM_DEFAULT_NGON_STACK_SIZE> projverts(f->len);
 
   BMLoop *l_iter;
   int i;
@@ -207,5 +204,7 @@ bool BM_face_uv_point_inside_test(const BMFace *f, const float co[2], const int 
     projverts[i] = BM_ELEM_CD_GET_FLOAT2_P(l_iter, cd_loop_uv_offset);
   }
 
-  return isect_point_poly_v2(co, reinterpret_cast<const float(*)[2]>(projverts.data()), f->len);
+  return isect_point_poly_v2(co, reinterpret_cast<const float (*)[2]>(projverts.data()), f->len);
 }
+
+}  // namespace blender

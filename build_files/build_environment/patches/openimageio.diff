@@ -13,11 +13,42 @@ diff -Naur orig/CMakeLists.txt external_openimageio/CMakeLists.txt
 diff -Naur orig/src/cmake/compiler.cmake external_openimageio/src/cmake/compiler.cmake
 --- orig/src/cmake/compiler.cmake	2020-05-10 21:43:52 -0600
 +++ external_openimageio/src/cmake/compiler.cmake	2020-05-13 17:02:54 -0600
-@@ -188,6 +189,7 @@
+@@ -204,6 +204,7 @@ if (MSVC)
      add_compile_definitions (_CRT_NONSTDC_NO_WARNINGS)
      add_compile_definitions (_SCL_SECURE_NO_WARNINGS)
      add_compile_definitions (JAS_WIN_MSVC_BUILD)
 +    add_compile_definitions (OPJ_STATIC)
+     # https://github.com/AcademySoftwareFoundation/OpenImageIO/issues/4641#issuecomment-2725013661
+     add_compile_definitions (_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
  endif (MSVC)
+diff -Naur OpenImageIO-3.1.7.0/src/cmake/externalpackages.cmake external_openimageio/src/cmake/externalpackages.cmake
+--- OpenImageIO-3.1.7.0/src/cmake/externalpackages.cmake	2025-11-01 00:47:41.000000000 -0700
++++ external_openimageio/src/cmake/externalpackages.cmake	2025-11-13 16:54:00.826831400 -0800
+@@ -164,7 +164,8 @@
+ # For HEIF/HEIC/AVIF formats
+ checked_find_package (Libheif VERSION_MIN 1.11
+                       RECOMMEND_MIN 1.16
+-                      RECOMMEND_MIN_REASON "for orientation support")
++                      RECOMMEND_MIN_REASON "for orientation support" 
++                      PREFER_CONFIG)
  
- if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD"
+ checked_find_package (LibRaw
+                       VERSION_MIN 0.20.0
+diff -Naur OpenImageIO-3.1.7.0/src/heif.imageio/CMakeLists.txt external_openimageio/src/heif.imageio/CMakeLists.txt
+--- OpenImageIO-3.1.7.0/src/heif.imageio/CMakeLists.txt	2025-11-01 00:47:41.000000000 -0700
++++ external_openimageio/src/heif.imageio/CMakeLists.txt	2025-11-13 16:59:13.920763100 -0800
+@@ -24,10 +24,12 @@
+             message ("${ColorReset}")
+         endif()
+     endif()
+-
++    if (TARGET heif)
++        set (HEIF_TARGET heif)
++    endif()
+     add_oiio_plugin (heifinput.cpp heifoutput.cpp
+                      INCLUDE_DIRS ${LIBHEIF_INCLUDES}
+-                     LINK_LIBRARIES ${LIBHEIF_LIBRARIES}
++                     LINK_LIBRARIES ${LIBHEIF_LIBRARIES} ${HEIF_TARGET}
+                      DEFINITIONS "USE_HEIF=1")
+ else ()
+     message (WARNING "heif plugin will not be built")

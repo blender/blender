@@ -441,7 +441,7 @@ class DATA_PT_grease_pencil_animation(DataButtonsPanel, PropertiesAnimationMixin
 
 class DATA_PT_grease_pencil_custom_props(DataButtonsPanel, PropertyPanel, Panel):
     _context_path = "object.data"
-    _property_type = bpy.types.GreasePencilv3
+    _property_type = bpy.types.GreasePencil
 
 
 class GREASE_PENCIL_UL_attributes(UIList):

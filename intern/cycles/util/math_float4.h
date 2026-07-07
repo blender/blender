@@ -73,6 +73,15 @@ ccl_device_inline float4 operator*(float f, const float4 a)
   return a * f;
 }
 
+ccl_device_inline float4 operator/(const float f, const float4 a)
+{
+#  ifdef __KERNEL_SSE__
+  return float4(_mm_div_ps(_mm_set1_ps(f), a.m128));
+#  else
+  return make_float4(f / a.x, f / a.y, f / a.z, f / a.w);
+#  endif
+}
+
 ccl_device_inline float4 operator/(const float4 a, const float f)
 {
   return a * (1.0f / f);
@@ -160,6 +169,15 @@ ccl_device_inline int4 operator>=(const float4 a, const float4 b)
   return int4(_mm_castps_si128(_mm_cmpge_ps(a.m128, b.m128)));
 #  else
   return make_int4(a.x >= b.x, a.y >= b.y, a.z >= b.z, a.w >= b.w);
+#  endif
+}
+
+ccl_device_inline int4 operator>(const float4 a, const float4 b)
+{
+#  ifdef __KERNEL_SSE__
+  return int4(_mm_castps_si128(_mm_cmpgt_ps(a.m128, b.m128)));
+#  else
+  return make_int4(a.x > b.x, a.y > b.y, a.z > b.z, a.w > b.w);
 #  endif
 }
 

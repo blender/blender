@@ -22,6 +22,8 @@
 
 #pragma comment(lib, "shlwapi.lib")
 
+using namespace blender;
+
 /**
  * This thumbnail provider implements #IInitializeWithStream to enable being hosted
  * in an isolated process for robustness.
@@ -104,7 +106,7 @@ struct StreamReader {
 
 static int64_t stream_read(FileReader *reader, void *buffer, size_t size)
 {
-  StreamReader *stream = (StreamReader *)reader;
+  StreamReader *stream = reinterpret_cast<StreamReader *>(reader);
 
   ULONG readsize;
   stream->_pStream->Read(buffer, size, &readsize);
@@ -115,7 +117,7 @@ static int64_t stream_read(FileReader *reader, void *buffer, size_t size)
 
 static off64_t stream_seek(FileReader *reader, off64_t offset, int whence)
 {
-  StreamReader *stream = (StreamReader *)reader;
+  StreamReader *stream = reinterpret_cast<StreamReader *>(reader);
 
   DWORD origin = STREAM_SEEK_SET;
   switch (whence) {
@@ -137,7 +139,7 @@ static off64_t stream_seek(FileReader *reader, off64_t offset, int whence)
 
 static void stream_close(FileReader *reader)
 {
-  StreamReader *stream = (StreamReader *)reader;
+  StreamReader *stream = reinterpret_cast<StreamReader *>(reader);
   delete stream;
 }
 

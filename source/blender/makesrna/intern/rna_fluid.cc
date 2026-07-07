@@ -44,12 +44,14 @@
 
 #  include "manta_fluid_API.h"
 
+namespace blender {
+
 static void rna_Fluid_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   DEG_id_tag_update(ptr->owner_id, ID_RECALC_GEOMETRY);
 
   /* Needed for liquid domain objects */
-  Object *ob = (Object *)ptr->owner_id;
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 }
 
@@ -235,7 +237,7 @@ static void rna_Fluid_parts_delete(Main *bmain, PointerRNA *ptr, int ptype)
 
 static bool rna_Fluid_parts_exists(PointerRNA *ptr, int ptype)
 {
-  Object *ob = (Object *)ptr->owner_id;
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   ParticleSystem *psys;
 
   for (psys = static_cast<ParticleSystem *>(ob->particlesystem.first); psys; psys = psys->next) {
@@ -248,9 +250,9 @@ static bool rna_Fluid_parts_exists(PointerRNA *ptr, int ptype)
 
 static void rna_Fluid_flip_parts_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->owner_id;
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   FluidModifierData *fmd;
-  fmd = (FluidModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
+  fmd = reinterpret_cast<FluidModifierData *>(BKE_modifiers_findby_type(ob, eModifierType_Fluid));
   bool exists = rna_Fluid_parts_exists(ptr, PART_FLUID_FLIP);
 
   /* Only create a particle system in liquid domain mode.
@@ -276,9 +278,9 @@ static void rna_Fluid_flip_parts_update(Main *bmain, Scene *scene, PointerRNA *p
 
 static void rna_Fluid_spray_parts_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->owner_id;
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   FluidModifierData *fmd;
-  fmd = (FluidModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
+  fmd = reinterpret_cast<FluidModifierData *>(BKE_modifiers_findby_type(ob, eModifierType_Fluid));
   bool exists = rna_Fluid_parts_exists(ptr, PART_FLUID_SPRAY);
 
   if (ob->type == OB_MESH && !exists) {
@@ -294,9 +296,9 @@ static void rna_Fluid_spray_parts_update(Main *bmain, Scene * /*scene*/, Pointer
 
 static void rna_Fluid_bubble_parts_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->owner_id;
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   FluidModifierData *fmd;
-  fmd = (FluidModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
+  fmd = reinterpret_cast<FluidModifierData *>(BKE_modifiers_findby_type(ob, eModifierType_Fluid));
   bool exists = rna_Fluid_parts_exists(ptr, PART_FLUID_BUBBLE);
 
   if (ob->type == OB_MESH && !exists) {
@@ -316,9 +318,9 @@ static void rna_Fluid_bubble_parts_update(Main *bmain, Scene * /*scene*/, Pointe
 
 static void rna_Fluid_foam_parts_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->owner_id;
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   FluidModifierData *fmd;
-  fmd = (FluidModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
+  fmd = reinterpret_cast<FluidModifierData *>(BKE_modifiers_findby_type(ob, eModifierType_Fluid));
   bool exists = rna_Fluid_parts_exists(ptr, PART_FLUID_FOAM);
 
   if (ob->type == OB_MESH && !exists) {
@@ -334,9 +336,9 @@ static void rna_Fluid_foam_parts_update(Main *bmain, Scene * /*scene*/, PointerR
 
 static void rna_Fluid_tracer_parts_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->owner_id;
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   FluidModifierData *fmd;
-  fmd = (FluidModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
+  fmd = reinterpret_cast<FluidModifierData *>(BKE_modifiers_findby_type(ob, eModifierType_Fluid));
   bool exists = rna_Fluid_parts_exists(ptr, PART_FLUID_TRACER);
 
   if (ob->type == OB_MESH && !exists) {
@@ -356,9 +358,9 @@ static void rna_Fluid_tracer_parts_update(Main *bmain, Scene * /*scene*/, Pointe
 
 static void rna_Fluid_combined_export_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->owner_id;
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   FluidModifierData *fmd;
-  fmd = (FluidModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
+  fmd = reinterpret_cast<FluidModifierData *>(BKE_modifiers_findby_type(ob, eModifierType_Fluid));
 
   if (fmd->domain->sndparticle_combined_export == SNDPARTICLE_COMBINED_EXPORT_OFF) {
     rna_Fluid_parts_delete(bmain, ptr, PART_FLUID_SPRAYFOAM);
@@ -491,43 +493,43 @@ static void rna_Fluid_combined_export_update(Main *bmain, Scene *scene, PointerR
 
 static void rna_Fluid_cache_startframe_set(PointerRNA *ptr, int value)
 {
-  FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
+  FluidDomainSettings *settings = static_cast<FluidDomainSettings *>(ptr->data);
   BKE_fluid_cache_startframe_set(settings, value);
 }
 
 static void rna_Fluid_cache_endframe_set(PointerRNA *ptr, int value)
 {
-  FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
+  FluidDomainSettings *settings = static_cast<FluidDomainSettings *>(ptr->data);
   BKE_fluid_cache_endframe_set(settings, value);
 }
 
 static void rna_Fluid_cachetype_mesh_set(PointerRNA *ptr, int value)
 {
-  FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
+  FluidDomainSettings *settings = static_cast<FluidDomainSettings *>(ptr->data);
   BKE_fluid_cachetype_mesh_set(settings, value);
 }
 
 static void rna_Fluid_cachetype_data_set(PointerRNA *ptr, int value)
 {
-  FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
+  FluidDomainSettings *settings = static_cast<FluidDomainSettings *>(ptr->data);
   BKE_fluid_cachetype_data_set(settings, value);
 }
 
 static void rna_Fluid_cachetype_particle_set(PointerRNA *ptr, int value)
 {
-  FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
+  FluidDomainSettings *settings = static_cast<FluidDomainSettings *>(ptr->data);
   BKE_fluid_cachetype_particle_set(settings, value);
 }
 
 static void rna_Fluid_cachetype_noise_set(PointerRNA *ptr, int value)
 {
-  FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
+  FluidDomainSettings *settings = static_cast<FluidDomainSettings *>(ptr->data);
   BKE_fluid_cachetype_noise_set(settings, value);
 }
 
 static void rna_Fluid_cachetype_set(PointerRNA *ptr, int value)
 {
-  FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
+  FluidDomainSettings *settings = static_cast<FluidDomainSettings *>(ptr->data);
 
   if (value != settings->cache_type) {
     settings->cache_type = value;
@@ -537,13 +539,14 @@ static void rna_Fluid_cachetype_set(PointerRNA *ptr, int value)
 
 static void rna_Fluid_guide_parent_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
 {
-  FluidDomainSettings *fds = (FluidDomainSettings *)ptr->data;
-  Object *par = (Object *)value.data;
+  FluidDomainSettings *fds = static_cast<FluidDomainSettings *>(ptr->data);
+  Object *par = static_cast<Object *>(value.data);
 
   FluidModifierData *fmd_par = nullptr;
 
   if (par != nullptr) {
-    fmd_par = (FluidModifierData *)BKE_modifiers_findby_type(par, eModifierType_Fluid);
+    fmd_par = reinterpret_cast<FluidModifierData *>(
+        BKE_modifiers_findby_type(par, eModifierType_Fluid));
     if (fmd_par && fmd_par->domain) {
       fds->guide_parent = static_cast<Object *>(value.data);
       copy_v3_v3_int(fds->guide_res, fmd_par->domain->res);
@@ -605,7 +608,7 @@ static const EnumPropertyItem *rna_Fluid_cachetype_volume_itemf(bContext * /*C*/
 #  endif
 
   /* Support for deprecated `.raw` format. */
-  FluidDomainSettings *fds = (FluidDomainSettings *)ptr->data;
+  FluidDomainSettings *fds = static_cast<FluidDomainSettings *>(ptr->data);
   if (fds->cache_data_format == FLUID_DOMAIN_FILE_RAW ||
       fds->cache_noise_format == FLUID_DOMAIN_FILE_RAW)
   {
@@ -645,7 +648,7 @@ static const EnumPropertyItem *rna_Fluid_cachetype_particle_itemf(bContext * /*C
 
 static void rna_Fluid_cache_directory_set(PointerRNA *ptr, const char *value)
 {
-  FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
+  FluidDomainSettings *settings = static_cast<FluidDomainSettings *>(ptr->data);
 
   if (STREQ(settings->cache_directory, value)) {
     return;
@@ -663,7 +666,7 @@ static const EnumPropertyItem *rna_Fluid_cobafield_itemf(bContext * /*C*/,
                                                          PropertyRNA * /*prop*/,
                                                          bool *r_free)
 {
-  FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
+  FluidDomainSettings *settings = static_cast<FluidDomainSettings *>(ptr->data);
 
   EnumPropertyItem *item = nullptr;
   EnumPropertyItem tmp = {0, "", 0, "", ""};
@@ -816,7 +819,7 @@ static const EnumPropertyItem *rna_Fluid_data_depth_itemf(bContext * /*C*/,
                                                           PropertyRNA * /*prop*/,
                                                           bool *r_free)
 {
-  FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
+  FluidDomainSettings *settings = static_cast<FluidDomainSettings *>(ptr->data);
 
   EnumPropertyItem *item = nullptr;
   EnumPropertyItem tmp = {0, "", 0, "", ""};
@@ -853,16 +856,16 @@ static const EnumPropertyItem *rna_Fluid_data_depth_itemf(bContext * /*C*/,
 
 static void rna_Fluid_domaintype_set(PointerRNA *ptr, int value)
 {
-  FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
-  Object *ob = (Object *)ptr->owner_id;
+  FluidDomainSettings *settings = static_cast<FluidDomainSettings *>(ptr->data);
+  Object *ob = id_cast<Object *>(ptr->owner_id);
   BKE_fluid_domain_type_set(ob, settings, value);
   BKE_fluid_fields_sanitize(settings);
 }
 
 static std::optional<std::string> rna_FluidDomainSettings_path(const PointerRNA *ptr)
 {
-  const FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
-  const ModifierData *md = (ModifierData *)settings->fmd;
+  const FluidDomainSettings *settings = static_cast<FluidDomainSettings *>(ptr->data);
+  const ModifierData *md = reinterpret_cast<ModifierData *>(settings->fmd);
   char name_esc[sizeof(md->name) * 2];
 
   BLI_str_escape(name_esc, md->name, sizeof(name_esc));
@@ -871,8 +874,8 @@ static std::optional<std::string> rna_FluidDomainSettings_path(const PointerRNA 
 
 static std::optional<std::string> rna_FluidFlowSettings_path(const PointerRNA *ptr)
 {
-  const FluidFlowSettings *settings = (FluidFlowSettings *)ptr->data;
-  const ModifierData *md = (ModifierData *)settings->fmd;
+  const FluidFlowSettings *settings = static_cast<FluidFlowSettings *>(ptr->data);
+  const ModifierData *md = reinterpret_cast<ModifierData *>(settings->fmd);
   char name_esc[sizeof(md->name) * 2];
 
   BLI_str_escape(name_esc, md->name, sizeof(name_esc));
@@ -881,8 +884,8 @@ static std::optional<std::string> rna_FluidFlowSettings_path(const PointerRNA *p
 
 static std::optional<std::string> rna_FluidEffectorSettings_path(const PointerRNA *ptr)
 {
-  const FluidEffectorSettings *settings = (FluidEffectorSettings *)ptr->data;
-  const ModifierData *md = (ModifierData *)settings->fmd;
+  const FluidEffectorSettings *settings = static_cast<FluidEffectorSettings *>(ptr->data);
+  const ModifierData *md = reinterpret_cast<ModifierData *>(settings->fmd);
   char name_esc[sizeof(md->name) * 2];
 
   BLI_str_escape(name_esc, md->name, sizeof(name_esc));
@@ -975,6 +978,10 @@ static void rna_FluidModifier_density_grid_get(PointerRNA *ptr, float *values)
   int size = rna_FluidModifier_grid_get_length(ptr, length);
   float *density;
 
+  if (size == 0) {
+    return;
+  }
+
   BLI_rw_mutex_lock(static_cast<ThreadRWMutex *>(fds->fluid_mutex), THREAD_LOCK_READ);
 
   if (fds->flags & FLUID_DOMAIN_USE_NOISE && fds->fluid) {
@@ -997,6 +1004,10 @@ static void rna_FluidModifier_velocity_grid_get(PointerRNA *ptr, float *values)
   float *vx, *vy, *vz;
   int i;
 
+  if (size == 0) {
+    return;
+  }
+
   BLI_rw_mutex_lock(static_cast<ThreadRWMutex *>(fds->fluid_mutex), THREAD_LOCK_READ);
 
   vx = manta_get_velocity_x(fds->fluid);
@@ -1017,6 +1028,10 @@ static void rna_FluidModifier_color_grid_get(PointerRNA *ptr, float *values)
   FluidDomainSettings *fds = (FluidDomainSettings *)ptr->data;
   int length[RNA_MAX_ARRAY_DIMENSION];
   int size = rna_FluidModifier_grid_get_length(ptr, length);
+
+  if (size == 0) {
+    return;
+  }
 
   BLI_rw_mutex_lock(static_cast<ThreadRWMutex *>(fds->fluid_mutex), THREAD_LOCK_READ);
 
@@ -1052,6 +1067,10 @@ static void rna_FluidModifier_flame_grid_get(PointerRNA *ptr, float *values)
   int size = rna_FluidModifier_grid_get_length(ptr, length);
   float *flame;
 
+  if (size == 0) {
+    return;
+  }
+
   BLI_rw_mutex_lock(static_cast<ThreadRWMutex *>(fds->fluid_mutex), THREAD_LOCK_READ);
 
   if (fds->flags & FLUID_DOMAIN_USE_NOISE && fds->fluid) {
@@ -1078,6 +1097,10 @@ static void rna_FluidModifier_heat_grid_get(PointerRNA *ptr, float *values)
   int size = rna_FluidModifier_heat_grid_get_length(ptr, length);
   float *heat;
 
+  if (size == 0) {
+    return;
+  }
+
   BLI_rw_mutex_lock(static_cast<ThreadRWMutex *>(fds->fluid_mutex), THREAD_LOCK_READ);
 
   heat = manta_smoke_get_heat(fds->fluid);
@@ -1101,6 +1124,10 @@ static void rna_FluidModifier_temperature_grid_get(PointerRNA *ptr, float *value
   int length[RNA_MAX_ARRAY_DIMENSION];
   int size = rna_FluidModifier_grid_get_length(ptr, length);
   float *flame;
+
+  if (size == 0) {
+    return;
+  }
 
   BLI_rw_mutex_lock(static_cast<ThreadRWMutex *>(fds->fluid_mutex), THREAD_LOCK_READ);
 
@@ -1132,31 +1159,31 @@ static void rna_FluidModifier_temperature_grid_get(PointerRNA *ptr, float *value
 
 static void rna_FluidFlow_density_vgroup_get(PointerRNA *ptr, char *value)
 {
-  FluidFlowSettings *flow = (FluidFlowSettings *)ptr->data;
+  FluidFlowSettings *flow = static_cast<FluidFlowSettings *>(ptr->data);
   rna_object_vgroup_name_index_get(ptr, value, flow->vgroup_density);
 }
 
 static int rna_FluidFlow_density_vgroup_length(PointerRNA *ptr)
 {
-  FluidFlowSettings *flow = (FluidFlowSettings *)ptr->data;
+  FluidFlowSettings *flow = static_cast<FluidFlowSettings *>(ptr->data);
   return rna_object_vgroup_name_index_length(ptr, flow->vgroup_density);
 }
 
 static void rna_FluidFlow_density_vgroup_set(PointerRNA *ptr, const char *value)
 {
-  FluidFlowSettings *flow = (FluidFlowSettings *)ptr->data;
+  FluidFlowSettings *flow = static_cast<FluidFlowSettings *>(ptr->data);
   rna_object_vgroup_name_index_set(ptr, value, &flow->vgroup_density);
 }
 
 static void rna_FluidFlow_uvlayer_set(PointerRNA *ptr, const char *value)
 {
-  FluidFlowSettings *flow = (FluidFlowSettings *)ptr->data;
+  FluidFlowSettings *flow = static_cast<FluidFlowSettings *>(ptr->data);
   rna_object_uvlayer_name_set(ptr, value, flow->uvlayer_name, sizeof(flow->uvlayer_name));
 }
 
 static void rna_Fluid_use_color_ramp_set(PointerRNA *ptr, bool value)
 {
-  FluidDomainSettings *fds = (FluidDomainSettings *)ptr->data;
+  FluidDomainSettings *fds = static_cast<FluidDomainSettings *>(ptr->data);
 
   fds->use_coba = value;
 
@@ -1167,7 +1194,7 @@ static void rna_Fluid_use_color_ramp_set(PointerRNA *ptr, bool value)
 
 static void rna_Fluid_flowsource_set(PointerRNA *ptr, int value)
 {
-  FluidFlowSettings *settings = (FluidFlowSettings *)ptr->data;
+  FluidFlowSettings *settings = static_cast<FluidFlowSettings *>(ptr->data);
 
   if (value != settings->source) {
     settings->source = value;
@@ -1179,7 +1206,7 @@ static const EnumPropertyItem *rna_Fluid_flowsource_itemf(bContext * /*C*/,
                                                           PropertyRNA * /*prop*/,
                                                           bool *r_free)
 {
-  FluidFlowSettings *settings = (FluidFlowSettings *)ptr->data;
+  FluidFlowSettings *settings = static_cast<FluidFlowSettings *>(ptr->data);
 
   EnumPropertyItem *item = nullptr;
   EnumPropertyItem tmp = {0, "", 0, "", ""};
@@ -1209,7 +1236,7 @@ static const EnumPropertyItem *rna_Fluid_flowsource_itemf(bContext * /*C*/,
 
 static void rna_Fluid_flowtype_set(PointerRNA *ptr, int value)
 {
-  FluidFlowSettings *settings = (FluidFlowSettings *)ptr->data;
+  FluidFlowSettings *settings = static_cast<FluidFlowSettings *>(ptr->data);
 
   if (value != settings->type) {
     short prev_value = settings->type;
@@ -1229,7 +1256,11 @@ static void rna_Fluid_flowtype_set(PointerRNA *ptr, int value)
   }
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_fluid_domain_settings(BlenderRNA *brna)
 {
@@ -3001,5 +3032,7 @@ void RNA_def_fluid(BlenderRNA *brna)
   rna_def_fluid_flow_settings(brna);
   rna_def_fluid_effector_settings(brna);
 }
+
+}  // namespace blender
 
 #endif

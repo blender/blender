@@ -14,9 +14,11 @@
 
 #include "intern/builder/deg_builder_relations.h"
 
+namespace blender {
+
 struct FCurve;
 
-namespace blender::deg {
+namespace deg {
 
 /* Helper class for determining which relations are needed between driver evaluation nodes. */
 class DriverDescriptor {
@@ -70,4 +72,5 @@ class DriverDescriptor {
  */
 bool data_path_maybe_shared(const ID &id, StringRef data_path);
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

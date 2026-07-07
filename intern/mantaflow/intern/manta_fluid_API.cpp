@@ -9,6 +9,8 @@
 #include "manta_fluid_API.h"
 #include "MANTA_main.h"
 
+namespace blender {
+
 /* Fluid functions */
 MANTA *manta_init(int *res, struct FluidModifierData *fmd)
 {
@@ -753,3 +755,5 @@ float manta_liquid_get_snd_particle_velocity_z_at(MANTA *liquid, int i)
 {
   return liquid->getSndParticleVelocityZAt(i);
 }
+
+}  // namespace blender

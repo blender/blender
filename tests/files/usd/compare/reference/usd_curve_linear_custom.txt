@@ -1,0 +1,52 @@
+==== Curves(new): 4
+- Curve 'linear_bad_count0' splines:0 control-points:0
+
+- Curve 'linear_counts_but_no_points' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 1 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, 0.000)
+    - (0.000, 0.000, 0.000)
+    - (0.000, 0.000, 0.000)
+    - (0.000, 0.000, 0.000)
+
+- Curve 'linear_counts_but_too_few_points' splines:1 control-points:7
+  - attr 'curve_type' INT8 CURVE
+    - 1 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (-0.500, 0.000, 0.276)
+    - (-0.276, 0.000, 0.500)
+    - (0.000, 0.000, 0.500)
+    - (0.000, 0.000, 0.000)
+    - (0.000, 0.000, 0.000)
+    - (0.000, 0.000, 0.000)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.100 0.100 0.100 0.100 0.100 0.100 
+
+- Curve 'linear_empty_frame' splines:0 control-points:0
+
+==== Objects: 5
+- Obj 'linear_bad_count0' CURVES data:'linear_bad_count0' par:'root'
+  - pos 2.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'linear_counts_but_no_points' CURVES data:'linear_counts_but_no_points' par:'root'
+  - pos 0.000, 0.000, 1.250
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'linear_counts_but_too_few_points' CURVES data:'linear_counts_but_too_few_points' par:'root'
+  - pos 0.000, 0.000, 2.500
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'linear_empty_frame' CURVES data:'linear_empty_frame' par:'root'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 1 modifiers
+    - MESH_SEQUENCE_CACHE 'MeshSequenceCache'
+- Obj 'root' EMPTY
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

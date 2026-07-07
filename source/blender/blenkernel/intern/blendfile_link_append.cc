@@ -31,6 +31,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_set.hh"
+#include "BLI_stack.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
@@ -63,6 +64,8 @@
 #include "BKE_blendfile_link_append.hh"
 
 #include "BLO_writefile.hh"
+
+namespace blender {
 
 static CLG_LogRef LOG = {"lib.link_append"};
 
@@ -104,7 +107,7 @@ static BlendHandle *link_append_context_library_blohandle_ensure(
     lib_context.bf_reports.reports = reports;
   }
 
-  const blender::StringRefNull libname = lib_context.path;
+  const StringRefNull libname = lib_context.path;
   BlendHandle *blo_handle = lib_context.blo_handle;
   if (blo_handle == nullptr) {
     if (libname == BLO_EMBEDDED_STARTUP_BLEND) {
@@ -209,7 +212,7 @@ BlendfileLinkAppendContextItem *BKE_blendfile_link_append_context_item_add(
 
   item.name = idname;
   item.idcode = idcode;
-  item.libraries = blender::BitVector<>(lapp_context->libraries.size(), false);
+  item.libraries = BitVector<>(lapp_context->libraries.size(), false);
 
   item.new_id = nullptr;
   item.action = LINK_APPEND_ACT_UNSET;
@@ -262,8 +265,8 @@ int BKE_blendfile_link_append_context_item_idtypes_from_library_add(
       BKE_blendfile_link_append_context_item_library_index_enable(
           lapp_context, item, library_index);
 
-      MEM_freeN(id_name);
-      MEM_freeN(id_names_list);
+      MEM_delete(id_name);
+      MEM_delete(id_names_list);
     }
 
     id_num += id_names_num;
@@ -332,8 +335,8 @@ short BKE_blendfile_link_append_context_item_idcode_get(
 
 void BKE_blendfile_link_append_context_item_foreach(
     BlendfileLinkAppendContext *lapp_context,
-    blender::FunctionRef<bool(BlendfileLinkAppendContext *lapp_context,
-                              BlendfileLinkAppendContextItem *item)> callback_function,
+    FunctionRef<bool(BlendfileLinkAppendContext *lapp_context,
+                     BlendfileLinkAppendContextItem *item)> callback_function,
     const eBlendfileLinkAppendForeachItemFlag flag)
 {
   for (BlendfileLinkAppendContextItem &item : lapp_context->items) {
@@ -358,7 +361,7 @@ void BKE_blendfile_link_append_context_init_done(BlendfileLinkAppendContext *lap
 {
   BLI_assert(lapp_context->process_stage == BlendfileLinkAppendContext::ProcessStage::Init);
 
-  PointerRNA ctx_ptr = RNA_pointer_create_discrete(nullptr, &RNA_BlendImportContext, lapp_context);
+  PointerRNA ctx_ptr = RNA_pointer_create_discrete(nullptr, RNA_BlendImportContext, lapp_context);
   PointerRNA *pointers[1] = {&ctx_ptr};
   BKE_callback_exec(lapp_context->params->bmain, pointers, 1, BKE_CB_EVT_BLENDIMPORT_PRE);
 }
@@ -373,7 +376,7 @@ void BKE_blendfile_link_append_context_finalize(BlendfileLinkAppendContext *lapp
 
   BKE_main_ensure_invariants(*lapp_context->params->bmain);
 
-  PointerRNA ctx_ptr = RNA_pointer_create_discrete(nullptr, &RNA_BlendImportContext, lapp_context);
+  PointerRNA ctx_ptr = RNA_pointer_create_discrete(nullptr, RNA_BlendImportContext, lapp_context);
   PointerRNA *pointers[1] = {&ctx_ptr};
   BKE_callback_exec(lapp_context->params->bmain, pointers, 1, BKE_CB_EVT_BLENDIMPORT_POST);
 }
@@ -395,29 +398,10 @@ struct LooseDataInstantiateContext {
 
 static bool object_in_any_scene(Main *bmain, Object *ob)
 {
-  LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {
+  for (Scene &sce : bmain->scenes) {
     /* #BKE_scene_has_object checks bases cache of the scenes' view-layer, not actual content of
      * their collections. */
-    if (BKE_collection_has_object_recursive(sce->master_collection, ob)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-static bool object_in_any_collection(Main *bmain, Object *ob)
-{
-  LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
-    if (BKE_collection_has_object(collection, ob)) {
-      return true;
-    }
-  }
-
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    if (scene->master_collection != nullptr &&
-        BKE_collection_has_object(scene->master_collection, ob))
-    {
+    if (BKE_collection_has_object_recursive(sce.master_collection, ob)) {
       return true;
     }
   }
@@ -427,8 +411,8 @@ static bool object_in_any_collection(Main *bmain, Object *ob)
 
 static bool collection_instantiated_by_any_object(Main *bmain, Collection *collection)
 {
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    if (ob->type == OB_EMPTY && ob->instance_collection == collection) {
+  for (Object &ob : bmain->objects) {
+    if (ob.type == OB_EMPTY && ob.instance_collection == collection) {
       return true;
     }
   }
@@ -564,10 +548,10 @@ static void loose_data_instantiate_obdata_preprocess(
     Object *ob = reinterpret_cast<Object *>(id);
     Object *new_ob = reinterpret_cast<Object *>(id->newid);
     if (ob->data != nullptr) {
-      (static_cast<ID *>(ob->data))->tag &= ~ID_TAG_DOIT;
+      ob->data->tag &= ~ID_TAG_DOIT;
     }
     if (new_ob != nullptr && new_ob->data != nullptr) {
-      (static_cast<ID *>(new_ob->data))->tag &= ~ID_TAG_DOIT;
+      new_ob->data->tag &= ~ID_TAG_DOIT;
     }
   }
 }
@@ -623,7 +607,7 @@ static void loose_data_instantiate_collection_process(
      * NOTE: We only check object directly into that collection, not recursively into its
      * children.
      */
-    Collection *collection = (Collection *)id;
+    Collection *collection = id_cast<Collection *>(id);
     /* The collection could be linked/appended together with an Empty object instantiating it,
      * better not instantiate the collection in the view-layer in that case.
      *
@@ -637,8 +621,8 @@ static void loose_data_instantiate_collection_process(
      * This avoids cluttering the view-layers, user can instantiate themselves specific collections
      * or objects easily from the Outliner if needed. */
     if (!do_add_collection && do_append && !collection_is_instantiated) {
-      LISTBASE_FOREACH (CollectionObject *, coll_ob, &collection->gobject) {
-        Object *ob = coll_ob->ob;
+      for (CollectionObject &coll_ob : collection->gobject) {
+        Object *ob = coll_ob.ob;
         if (!object_in_any_scene(bmain, ob)) {
           do_add_collection = true;
           break;
@@ -726,6 +710,75 @@ static void loose_data_instantiate_collection_process(
   }
 }
 
+static void loose_data_gather_instanciated_objects_for_viewlayer(
+    const Scene &scene, ViewLayer &view_layer, Set<Object *> &r_instanciated_objects)
+{
+  BKE_view_layer_synced_ensure(&scene, &view_layer);
+
+  Stack<Collection *> instance_collections;
+  Set<Collection *> known_instance_collections;
+
+  FOREACH_OBJECT_BEGIN (&scene, &view_layer, ob_iter) {
+    r_instanciated_objects.add(ob_iter);
+    Collection *instance_collection = ob_iter->instance_collection;
+    if (instance_collection && !known_instance_collections.contains(instance_collection)) {
+      instance_collections.push_as(instance_collection);
+      known_instance_collections.add_new(instance_collection);
+    }
+  }
+  FOREACH_OBJECT_END;
+
+  /* Instanced collections may instance other collections. So we need to accumulate and process all
+   * these instanced collections recursively. */
+  while (!instance_collections.is_empty()) {
+    Collection *instance_collection = instance_collections.pop();
+    BLI_assert(known_instance_collections.contains(instance_collection));
+    FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (instance_collection, ob_coll_iter) {
+      r_instanciated_objects.add(ob_coll_iter);
+      if (ob_coll_iter->instance_collection &&
+          !known_instance_collections.contains(ob_coll_iter->instance_collection))
+      {
+        instance_collections.push_as(ob_coll_iter->instance_collection);
+        known_instance_collections.add_new(ob_coll_iter->instance_collection);
+      }
+    }
+    FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+  }
+}
+
+static void loose_data_gather_instanciated_objects(
+    LooseDataInstantiateContext &instantiate_context, Set<Object *> &instanciated_objects)
+{
+  BlendfileLinkAppendContext *lapp_context = instantiate_context.lapp_context;
+  const Scene *scene = lapp_context->params->context.scene;
+  ViewLayer *view_layer = lapp_context->params->context.view_layer;
+
+  /* Linked/appended objects only need to be instantiated if they are not already in the current
+   * view layer, either:
+   * - Directly instantiated there (i.e. in one of the view layer instantiated collections).
+   * - Indirectly instanciated (i.e. being in a collection that is object-instanciated).
+   */
+  loose_data_gather_instanciated_objects_for_viewlayer(*scene, *view_layer, instanciated_objects);
+
+  /* When linking or appending a whole Scene, typically its objects are already instantiated there,
+   * so no need to instantiate them in the active Scene.
+   *
+   * See also #153986. */
+  for (BlendfileLinkAppendContextItem &item : lapp_context->items) {
+    if (!item.new_id) {
+      continue;
+    }
+    if (GS(item.new_id->name) != ID_SCE) {
+      continue;
+    }
+    Scene &scene_iter = *id_cast<Scene *>(item.new_id);
+    for (ViewLayer &view_layer_iter : scene_iter.view_layers) {
+      loose_data_gather_instanciated_objects_for_viewlayer(
+          scene_iter, view_layer_iter, instanciated_objects);
+    }
+  }
+}
+
 static void loose_data_instantiate_object_process(LooseDataInstantiateContext *instantiate_context)
 {
   BlendfileLinkAppendContext *lapp_context = instantiate_context->lapp_context;
@@ -742,6 +795,9 @@ static void loose_data_instantiate_object_process(LooseDataInstantiateContext *i
   bool object_set_active = false;
 
   const bool is_linking = (lapp_context->params->flag & FILE_LINK) != 0;
+
+  Set<Object *> instanciated_objects;
+  loose_data_gather_instanciated_objects(*instantiate_context, instanciated_objects);
 
   /* NOTE: For objects we only view_layer-instantiate duplicated objects that are not yet used
    * anywhere. */
@@ -762,9 +818,9 @@ static void loose_data_instantiate_object_process(LooseDataInstantiateContext *i
       continue;
     }
 
-    Object *ob = (Object *)id;
+    Object *ob = id_cast<Object *>(id);
 
-    if (object_in_any_collection(bmain, ob)) {
+    if (instanciated_objects.contains(ob)) {
       continue;
     }
 
@@ -784,6 +840,10 @@ static void loose_data_instantiate_object_process(LooseDataInstantiateContext *i
                                                      v3d,
                                                      lapp_context->params->flag,
                                                      object_set_active);
+
+    /* Instancing an object may also instance implicitely others, so we need to update the set
+     * everytime. */
+    loose_data_gather_instanciated_objects(*instantiate_context, instanciated_objects);
   }
 }
 
@@ -820,7 +880,7 @@ static void loose_data_instantiate_obdata_process(LooseDataInstantiateContext *i
     Object *ob = BKE_object_add_only_object(bmain, type, id->name + 2);
     ob->data = id;
     id_us_plus(id);
-    BKE_object_materials_sync_length(bmain, ob, static_cast<ID *>(ob->data));
+    BKE_object_materials_sync_length(bmain, ob, ob->data);
 
     loose_data_instantiate_object_base_instance_init(bmain,
                                                      active_collection,
@@ -906,7 +966,7 @@ static void new_id_to_item_mapping_create(BlendfileLinkAppendContext &lapp_conte
  *
  * Returns false if further processing should be skipped. */
 static bool foreach_libblock_link_append_common_processing(
-    LibraryIDLinkCallbackData *cb_data, blender::FunctionRef<LibraryIDLinkCallback> callback)
+    LibraryIDLinkCallbackData *cb_data, FunctionRef<LibraryIDLinkCallback> callback)
 {
   if (cb_data->cb_flag & (IDWALK_CB_EMBEDDED | IDWALK_CB_EMBEDDED_NOT_OWNING | IDWALK_CB_INTERNAL |
                           IDWALK_CB_LOOPBACK))
@@ -945,6 +1005,78 @@ static bool foreach_libblock_link_append_common_processing(
   }
 
   return true;
+}
+
+/** \} */
+
+/** \name Library packing code.
+ * \{ */
+
+void BKE_blendfile_link_pack(BlendfileLinkAppendContext *lapp_context, ReportList * /*reports*/)
+{
+  Main *bmain = lapp_context->params->bmain;
+
+  new_id_to_item_mapping_create(*lapp_context);
+
+  /* Find all newly linked data-blocks, these will need to be deleted after they have been
+   * successfully packed, to avoid keeping lots of unused linked IDs around.
+   *
+   * Also add them to the items list, such that they can be checked, and removed from the deletion
+   * set in case packing fails. */
+  Set<ID *> linked_ids_to_delete;
+
+  ID *id_iter;
+  FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+    if (!ID_IS_LINKED(id_iter) || ID_IS_PACKED(id_iter) ||
+        (id_iter->tag & ID_TAG_PRE_EXISTING) != 0)
+    {
+      continue;
+    }
+
+    linked_ids_to_delete.add(id_iter);
+
+    BlendfileLinkAppendContextItem *item = lapp_context->new_id_to_item.lookup_default(id_iter,
+                                                                                       nullptr);
+    if (item == nullptr) {
+      item = BKE_blendfile_link_append_context_item_add(
+          lapp_context, BKE_id_name(*id_iter), GS(id_iter->name), nullptr);
+      item->new_id = id_iter;
+      item->source_library = id_iter->lib;
+      /* Since we did not have an item for that ID yet, we know user did not select it
+       * explicitly, it was rather linked indirectly. This info is important for
+       * instantiation of collections.
+       */
+      item->tag |= LINK_APPEND_TAG_INDIRECT;
+      item->action = LINK_APPEND_ACT_UNSET;
+      new_id_to_item_mapping_add(*lapp_context, id_iter, *item);
+    }
+  }
+  FOREACH_MAIN_ID_END;
+
+  for (BlendfileLinkAppendContextItem &item : lapp_context->items) {
+    ID *id = item.new_id;
+    if (id == nullptr) {
+      continue;
+    }
+    BLI_assert(ID_IS_LINKED(id));
+    if (!(ID_IS_PACKED(id) || (id->newid && ID_IS_PACKED(id->newid)))) {
+      /* No yet packed. */
+      bke::library::pack_linked_id_hierarchy(*bmain, *id);
+    }
+    /* Calling code may want to access newly packed embedded IDs from the link/append context
+     * items. */
+    if (id->newid) {
+      item.new_id = id->newid;
+    }
+
+    /* If packing failed for a linked ID, do not delete its linked version. */
+    if (!ID_IS_PACKED(item.new_id) && linked_ids_to_delete.contains(id)) {
+      linked_ids_to_delete.remove(id);
+    }
+  }
+  BKE_main_id_newptr_and_tag_clear(bmain);
+
+  BKE_id_multi_delete(bmain, linked_ids_to_delete);
 }
 
 /** \} */
@@ -1082,7 +1214,7 @@ static void blendfile_append_define_actions(BlendfileLinkAppendContext &lapp_con
 
   /* In case of non-recursive appending, gather a set of all 'original' libraries (i.e. libraries
    * containing data that was explicitly selected by the user). */
-  blender::Set<Library *> direct_libraries;
+  Set<Library *> direct_libraries;
   if (!do_recursive) {
     for (BlendfileLinkAppendContextItem &item : lapp_context.items) {
       ID *id = item.new_id;
@@ -1641,7 +1773,7 @@ void BKE_blendfile_override(BlendfileLinkAppendContext *lapp_context,
   const bool do_use_exisiting_liboverrides = (flags &
                                               BKE_LIBLINK_OVERRIDE_USE_EXISTING_LIBOVERRIDES) != 0;
 
-  blender::Map<ID *, ID *> linked_ids_to_local_liboverrides;
+  Map<ID *, ID *> linked_ids_to_local_liboverrides;
   if (do_use_exisiting_liboverrides) {
     ID *id_iter;
     FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
@@ -1701,12 +1833,11 @@ void BKE_blendfile_override(BlendfileLinkAppendContext *lapp_context,
 /** \name Library relocating code.
  * \{ */
 
-static void blendfile_library_relocate_id_remap_prepare(
-    id::IDRemapper &remapper,
-    blender::Map<ID *, ID *> &old_owner_id_to_shapekey,
-    ID *old_id,
-    ID *new_id,
-    const bool do_reload)
+static void blendfile_library_relocate_id_remap_prepare(id::IDRemapper &remapper,
+                                                        Map<ID *, ID *> &old_owner_id_to_shapekey,
+                                                        ID *old_id,
+                                                        ID *new_id,
+                                                        const bool do_reload)
 {
   BLI_assert(old_id);
   if (do_reload) {
@@ -1721,34 +1852,33 @@ static void blendfile_library_relocate_id_remap_prepare(
                old_id->us,
                new_id->us);
     remapper.add(old_id, new_id);
-  }
 
-  /* Usual special code for ShapeKeys snowflakes...
-   *
-   * NOTE: Unfortunately, actual reasons for why the old shapekeys needs to be removed from their
-   * old owner ID was not documented in the initial commit. Suspect it's related to the fact that
-   * the old ID should not end up using the new shapekeys? */
-  Key **old_key_p = BKE_key_from_id_p(old_id);
-  if (old_key_p == nullptr) {
-    return;
-  }
-  Key *old_key = *old_key_p;
-  Key *new_key = BKE_key_from_id(new_id);
-  if (old_key != nullptr) {
-    old_owner_id_to_shapekey.add(old_id, &old_key->id);
-    *old_key_p = nullptr;
-    id_us_min(&old_key->id);
-    remapper.add(&old_key->id, &new_key->id);
+    /* Usual special code for ShapeKeys snowflakes...
+     *
+     * NOTE: Unfortunately, actual reasons for why the old shapekeys needs to be removed from their
+     * old owner ID was not documented in the initial commit. Suspect it's related to the fact that
+     * the old ID should not end up using the new shapekeys? */
+    Key **old_key_p = BKE_key_from_id_p(old_id);
+    if (old_key_p == nullptr) {
+      return;
+    }
+    Key *old_key = *old_key_p;
+    Key *new_key = BKE_key_from_id(new_id);
+    if (old_key != nullptr) {
+      old_owner_id_to_shapekey.add(old_id, &old_key->id);
+      *old_key_p = nullptr;
+      id_us_min(&old_key->id);
+      remapper.add(&old_key->id, &new_key->id);
+    }
   }
 }
 
-static void blendfile_library_relocate_id_remap_finalize(
-    Main *bmain,
-    blender::Map<ID *, ID *> &old_owner_id_to_shapekey,
-    ID *old_id,
-    ID *new_id,
-    ReportList *reports,
-    const bool do_reload)
+static void blendfile_library_relocate_id_remap_finalize(Main *bmain,
+                                                         Map<ID *, ID *> &old_owner_id_to_shapekey,
+                                                         ID *old_id,
+                                                         ID *new_id,
+                                                         ReportList *reports,
+                                                         const bool do_reload)
 {
   /* Restore old shapekey pointer in old id (see also
    * #blendfile_library_relocate_id_remap_prepare above). */
@@ -1833,7 +1963,7 @@ static void blendfile_library_relocate_id_remap(BlendfileLinkAppendContext &lapp
   Main *bmain = lapp_context.params->bmain;
 
   id::IDRemapper remapper;
-  blender::Map<ID *, ID *> old_owner_id_to_shapekey;
+  Map<ID *, ID *> old_owner_id_to_shapekey;
 
   for (BlendfileLinkAppendContextItem &item : lapp_context.items) {
     ID *old_id = static_cast<ID *>(item.userdata);
@@ -1875,7 +2005,7 @@ static void blendfile_relocate_postprocess_cleanup(BlendfileLinkAppendContext &l
 {
   Main &bmain = *lapp_context.params->bmain;
 
-  blender::Set<ID *> ids_to_delete = {};
+  Set<ID *> ids_to_delete = {};
   ID *id_iter;
 
   /* Delete all no more used old IDs. */
@@ -1949,13 +2079,18 @@ static void blendfile_relocate_postprocess_cleanup(BlendfileLinkAppendContext &l
   ids_to_delete.clear();
 
   /* Get rid of no more used libraries... */
-  ListBase *libraries = which_libbase(&bmain, ID_LI);
-  LISTBASE_FOREACH (ID *, id_iter, libraries) {
-    ids_to_delete.add(id_iter);
+  ListBaseT<ID> *libraries = which_libbase(&bmain, ID_LI);
+  for (ID &id_iter : *libraries) {
+    ids_to_delete.add(&id_iter);
   }
   FOREACH_MAIN_ID_BEGIN (&bmain, id_iter) {
     if (id_iter->lib) {
       ids_to_delete.remove(&id_iter->lib->id);
+      /* If the used library is an archive one, its owner 'normal' library is also used. */
+      if (id_iter->lib->archive_parent_library) {
+        BLI_assert(id_iter->lib->flag & LIBRARY_FLAG_IS_ARCHIVE);
+        ids_to_delete.remove(&id_iter->lib->archive_parent_library->id);
+      }
     }
   }
   FOREACH_MAIN_ID_END;
@@ -1965,7 +2100,7 @@ static void blendfile_relocate_postprocess_cleanup(BlendfileLinkAppendContext &l
 /** Update and resync as needed liboverrides. */
 static void blendfile_relocate_postprocess_liboverrides(
     BlendfileLinkAppendContext &lapp_context,
-    const blender::Map<Library *, Library *> &new_to_old_libraries_map,
+    const Map<Library *, Library *> &new_to_old_libraries_map,
     ReportList *reports)
 {
   Main &bmain = *lapp_context.params->bmain;
@@ -2059,7 +2194,8 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
   /* Since some IDs have been removed from Main, trying to rebuild collections hierarchy should not
    * happen. It has to be done manually below once removed IDs have been added back to Main. Also
    * see #136432. */
-  lapp_context->params->flag |= BLO_LIBLINK_COLLECTION_NO_HIERARCHY_REBUILD;
+  BKE_blendfile_link_append_context_flag_set(
+      lapp_context, BLO_LIBLINK_COLLECTION_NO_HIERARCHY_REBUILD, true);
 
   BKE_blendfile_link_append_context_init_done(lapp_context);
 
@@ -2095,7 +2231,7 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
 
   /* Mapping from old to new libraries, needed to allow liboverride resync to map properly old and
    * new data. */
-  blender::Map<Library *, Library *> new_to_old_libraries_map;
+  Map<Library *, Library *> new_to_old_libraries_map;
 
   for (BlendfileLinkAppendContextItem &item : lapp_context->items) {
     ID *old_id = static_cast<ID *>(item.userdata);
@@ -2156,7 +2292,7 @@ void BKE_blendfile_id_relocate(BlendfileLinkAppendContext &lapp_context, ReportL
 
   /* Mapping from old to new libraries, needed to allow liboverride resync to map properly old and
    * new data. */
-  blender::Map<Library *, Library *> new_to_old_libraries_map{};
+  Map<Library *, Library *> new_to_old_libraries_map{};
 
   /* The first item should be the root of the relocation, and the only one containing a non-null
    * `userdata`. */
@@ -2197,3 +2333,5 @@ void BKE_blendfile_id_relocate(BlendfileLinkAppendContext &lapp_context, ReportL
 }
 
 /** \} */
+
+}  // namespace blender

@@ -78,16 +78,18 @@ static wmOperatorStatus volume_import_exec(bContext *C, wmOperator *op)
   const bool is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
   bool imported = false;
 
-  ListBase ranges = ED_image_filesel_detect_sequences(BKE_main_blendfile_path(bmain), op, false);
-  LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
-    char filepath[FILE_MAX];
-    BLI_path_split_file_part(range->filepath, filepath, sizeof(filepath));
-    BLI_path_extension_strip(filepath);
+  const char *blendfile_path = BKE_main_blendfile_path(bmain);
+  ListBaseT<ImageFrameRange> ranges = ED_image_filesel_detect_sequences(
+      blendfile_path, blendfile_path, op, false);
+  for (ImageFrameRange &range : ranges) {
+    char filename[FILE_MAX];
+    BLI_path_split_file_part(range.filepath, filename, sizeof(filename));
+    BLI_path_extension_strip(filename);
 
-    Object *object = object_volume_add(C, op, filepath);
-    Volume *volume = (Volume *)object->data;
+    Object *object = object_volume_add(C, op, filename);
+    Volume *volume = id_cast<Volume *>(object->data);
 
-    STRNCPY(volume->filepath, range->filepath);
+    STRNCPY(volume->filepath, range.filepath);
     if (is_relative_path) {
       BLI_path_rel(volume->filepath, BKE_main_blendfile_path(bmain));
     }
@@ -96,7 +98,7 @@ static wmOperatorStatus volume_import_exec(bContext *C, wmOperator *op)
       BKE_reportf(op->reports,
                   RPT_WARNING,
                   "Volume \"%s\" failed to load: %s",
-                  filepath,
+                  filename,
                   BKE_volume_grids_error_msg(volume));
       BKE_id_delete(bmain, &object->id);
       BKE_id_delete(bmain, &volume->id);
@@ -106,7 +108,7 @@ static wmOperatorStatus volume_import_exec(bContext *C, wmOperator *op)
       BKE_reportf(op->reports,
                   RPT_WARNING,
                   "Volume \"%s\" contains points, only voxel grids are supported",
-                  filepath);
+                  filename);
       BKE_id_delete(bmain, &object->id);
       BKE_id_delete(bmain, &volume->id);
       continue;
@@ -114,10 +116,10 @@ static wmOperatorStatus volume_import_exec(bContext *C, wmOperator *op)
 
     /* Set sequence parameters after trying to load the first frame, for file validation we want
      * to use a consistent frame rather than whatever corresponds to the current scene frame. */
-    volume->is_sequence = (range->length > 1);
-    volume->frame_duration = (volume->is_sequence) ? range->length : 0;
+    volume->is_sequence = (range.length > 1);
+    volume->frame_duration = (volume->is_sequence) ? range.length : 0;
     volume->frame_start = 1;
-    volume->frame_offset = (volume->is_sequence) ? range->offset - 1 : 0;
+    volume->frame_offset = (volume->is_sequence) ? range.offset - 1 : 0;
 
     if (BKE_volume_is_y_up(volume)) {
       object->rot[0] += M_PI_2;
@@ -127,7 +129,7 @@ static wmOperatorStatus volume_import_exec(bContext *C, wmOperator *op)
 
     imported = true;
 
-    BLI_freelistN(&range->frames);
+    BLI_freelistN(&range.frames);
   }
   BLI_freelistN(&ranges);
 

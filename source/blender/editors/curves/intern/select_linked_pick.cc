@@ -36,7 +36,7 @@ static ClosestCurveDataBlock find_closest_curve(const Depsgraph &depsgraph,
         ClosestCurveDataBlock new_closest = init;
         for (Base *base : bases.slice(range)) {
           Object &curves_ob = *base->object;
-          Curves &curves_id = *static_cast<Curves *>(curves_ob.data);
+          Curves &curves_id = *id_cast<Curves *>(curves_ob.data);
           bke::crazyspace::GeometryDeformation deformation =
               bke::crazyspace::get_evaluated_curves_deformation(depsgraph, curves_ob);
           const bke::CurvesGeometry &curves = curves_id.geometry.wrap();

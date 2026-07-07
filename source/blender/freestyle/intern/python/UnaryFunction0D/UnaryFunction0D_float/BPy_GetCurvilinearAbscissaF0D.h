@@ -18,8 +18,8 @@ extern PyTypeObject GetCurvilinearAbscissaF0D_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetCurvilinearAbscissaF0D_Type))
 
 /*---------------------------Python BPy_GetCurvilinearAbscissaF0D structure definition----------*/
-typedef struct {
+struct BPy_GetCurvilinearAbscissaF0D {
   BPy_UnaryFunction0DFloat py_uf0D_float;
-} BPy_GetCurvilinearAbscissaF0D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

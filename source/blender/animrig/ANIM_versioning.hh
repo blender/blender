@@ -9,17 +9,23 @@
  * in the versioning_xxx.cc files, but some is broken out and placed here.
  */
 
+#include "BLI_function_ref.hh"
+#include "BLI_vector.hh"
+
+namespace blender {
+
 struct bAction;
 struct BlendFileReadReport;
 struct ID;
 struct Main;
 struct ReportList;
+struct FCurve;
 
-namespace blender::animrig {
+namespace animrig {
 class Action;
 }
 
-namespace blender::animrig::versioning {
+namespace animrig::versioning {
 
 /**
  * Return whether an action is layered (as opposed to legacy).
@@ -27,13 +33,6 @@ namespace blender::animrig::versioning {
  * This will return false for both Animato and pre-Animato actions. It is used
  * during file read and versioning to determine how forward-compatible and
  * legacy data should be handled.
- *
- * NOTE: this is semi-duplicated from `Action::is_action_layered()`, but with
- * tweaks to also recognize ultra-legacy (pre-Animato) data. Because this needs access to
- * deprecated DNA fields, which is ok here in the versioning code, the other "is this legacy or
- * layered?" functions do not check for pre-Animato data.
- *
- * \see Action::is_action_layered()
  */
 bool action_is_layered(const bAction &dna_action);
 
@@ -78,4 +77,32 @@ void tag_action_user_for_slotted_actions_conversion(ID &animated_id);
  */
 void convert_legacy_action_assignments(Main &bmain, ReportList *reports);
 
-}  // namespace blender::animrig::versioning
+/**
+ * Reconstruct channel pointers.
+ * Assumes that the groups referred to by the FCurves are already in act->groups.
+ * Reorders the main channel list to match group order.
+ *
+ * Only used in versioning code since this only works with legacy actions which
+ * no longer exist in new files.
+ */
+void action_groups_reconstruct(bAction *act);
+
+/**
+ * This should only be used on legacy actions (i.e. not layered) in versioning code from
+ * before 4.4.0. Anything after that should use `BKE_fcurves_id_cb`.
+ */
+void fcurves_id_cb(ID *id, const FunctionRef<void(ID *, FCurve *)> func);
+/**
+ * This should only be used on legacy actions (i.e. not layered) in versioning code from
+ * before 4.4.0. Anything after that should use `BKE_fcurves_main_cb`.
+ */
+void fcurves_main_cb(Main *bmain, const FunctionRef<void(ID *, FCurve *)> func);
+
+/**
+ * Return all FCurves of the given legacy action. This will return an empty Vector for layered
+ * actions.
+ */
+Vector<FCurve *> fcurves_for_legacy_action(bAction *action);
+
+}  // namespace animrig::versioning
+}  // namespace blender

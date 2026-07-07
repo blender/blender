@@ -19,9 +19,9 @@
 
 #include "BKE_context.hh"
 #include "BKE_image.hh"
-#include "BKE_movieclip.h"
+#include "BKE_movieclip.hh"
 #include "BKE_report.hh"
-#include "BKE_tracking.h"
+#include "BKE_tracking.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -44,6 +44,8 @@
 
 #include "clip_intern.hh"
 #include "tracking_ops_intern.hh"
+
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Add Marker Operator
@@ -229,22 +231,21 @@ static wmOperatorStatus delete_track_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
+  MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
   bool changed = false;
 
   /* Delete selected plane tracks. */
-  LISTBASE_FOREACH_MUTABLE (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks)
-  {
-    if (PLANE_TRACK_VIEW_SELECTED(plane_track)) {
-      clip_delete_plane_track(C, clip, plane_track);
+  for (MovieTrackingPlaneTrack &plane_track : tracking_object->plane_tracks.items_mutable()) {
+    if (PLANE_TRACK_VIEW_SELECTED(&plane_track)) {
+      clip_delete_plane_track(C, clip, &plane_track);
       changed = true;
     }
   }
 
   /* Remove selected point tracks (they'll also be removed from planes which uses them). */
-  LISTBASE_FOREACH_MUTABLE (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (TRACK_VIEW_SELECTED(sc, track)) {
-      clip_delete_track(C, clip, track);
+  for (MovieTrackingTrack &track : tracking_object->tracks.items_mutable()) {
+    if (TRACK_VIEW_SELECTED(sc, &track)) {
+      clip_delete_track(C, clip, &track);
       changed = true;
     }
   }
@@ -264,7 +265,7 @@ static wmOperatorStatus delete_track_invoke(bContext *C, wmOperator *op, const w
                                   IFACE_("Delete selected tracks?"),
                                   nullptr,
                                   IFACE_("Delete"),
-                                  ALERT_ICON_NONE,
+                                  ui::AlertIcon::None,
                                   false);
   }
   return delete_track_exec(C, op);
@@ -301,28 +302,27 @@ static wmOperatorStatus delete_marker_exec(bContext *C, wmOperator * /*op*/)
   const int framenr = ED_space_clip_get_clip_frame_number(sc);
   bool changed = false;
 
-  LISTBASE_FOREACH_MUTABLE (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (TRACK_VIEW_SELECTED(sc, track)) {
-      MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(track, framenr);
+  for (MovieTrackingTrack &track : tracking_object->tracks.items_mutable()) {
+    if (TRACK_VIEW_SELECTED(sc, &track)) {
+      MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(&track, framenr);
       if (marker != nullptr) {
-        clip_delete_marker(C, clip, track, marker);
+        clip_delete_marker(C, clip, &track, marker);
         changed = true;
       }
     }
   }
 
-  LISTBASE_FOREACH_MUTABLE (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks)
-  {
-    if (PLANE_TRACK_VIEW_SELECTED(plane_track)) {
-      MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get_exact(plane_track,
+  for (MovieTrackingPlaneTrack &plane_track : tracking_object->plane_tracks.items_mutable()) {
+    if (PLANE_TRACK_VIEW_SELECTED(&plane_track)) {
+      MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get_exact(&plane_track,
                                                                                    framenr);
       if (plane_marker != nullptr) {
-        if (plane_track->markersnr == 1) {
-          BKE_tracking_plane_track_free(plane_track);
-          BLI_freelinkN(&tracking_object->plane_tracks, plane_track);
+        if (plane_track.markersnr == 1) {
+          BKE_tracking_plane_track_free(&plane_track);
+          BLI_freelinkN(&tracking_object->plane_tracks, &plane_track);
         }
         else {
-          BKE_tracking_plane_marker_delete(plane_track, framenr);
+          BKE_tracking_plane_marker_delete(&plane_track, framenr);
         }
         changed = true;
       }
@@ -346,7 +346,7 @@ static wmOperatorStatus delete_marker_invoke(bContext *C,
                                   IFACE_("Delete marker for current frame from selected tracks?"),
                                   nullptr,
                                   IFACE_("Delete"),
-                                  ALERT_ICON_NONE,
+                                  ui::AlertIcon::None,
                                   false);
   }
   return delete_marker_exec(C, op);
@@ -411,13 +411,13 @@ static SlideMarkerData *create_slide_marker_data(SpaceClip *sc,
                                                  MovieTrackingTrack *track,
                                                  MovieTrackingMarker *marker,
                                                  const wmEvent *event,
-                                                 int area,
+                                                 eTrackArea area,
                                                  int corner,
                                                  eSlideAction action,
                                                  int width,
                                                  int height)
 {
-  SlideMarkerData *data = MEM_callocN<SlideMarkerData>("slide marker data");
+  SlideMarkerData *data = MEM_new_zeroed<SlideMarkerData>("slide marker data");
   int framenr = ED_space_clip_get_clip_frame_number(sc);
 
   marker = BKE_tracking_marker_ensure(track, framenr);
@@ -497,7 +497,7 @@ static bool slide_check_corners(float (*corners)[2])
 }
 
 static MovieTrackingTrack *tracking_marker_check_slide(
-    bContext *C, const float co[2], int *r_area, eSlideAction *r_action, int *r_corner)
+    bContext *C, const float co[2], eTrackArea *r_area, eSlideAction *r_action, int *r_corner)
 {
   SpaceClip *space_clip = CTX_wm_space_clip(C);
 
@@ -584,7 +584,8 @@ static SlideMarkerData *slide_marker_customdata(bContext *C, const wmEvent *even
   SlideMarkerData *customdata = nullptr;
   int framenr = ED_space_clip_get_clip_frame_number(sc);
   eSlideAction action;
-  int area, corner;
+  eTrackArea area;
+  int corner;
 
   ED_space_clip_get_size(sc, &width, &height);
 
@@ -653,10 +654,10 @@ static void apply_mouse_slide(bContext *C, SlideMarkerData *data)
     const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
     const int framenr = ED_space_clip_get_clip_frame_number(sc);
 
-    LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
-      if ((plane_track->flag & PLANE_TRACK_AUTOKEY) == 0) {
-        if (BKE_tracking_plane_track_has_point_track(plane_track, data->track)) {
-          BKE_tracking_track_plane_from_existing_motion(plane_track, framenr);
+    for (MovieTrackingPlaneTrack &plane_track : tracking_object->plane_tracks) {
+      if ((plane_track.flag & PLANE_TRACK_AUTOKEY) == 0) {
+        if (BKE_tracking_plane_track_has_point_track(&plane_track, data->track)) {
+          BKE_tracking_track_plane_from_existing_motion(&plane_track, framenr);
         }
       }
     }
@@ -666,16 +667,16 @@ static void apply_mouse_slide(bContext *C, SlideMarkerData *data)
 static void free_slide_data(SlideMarkerData *data)
 {
   if (data->old_markers != nullptr) {
-    MEM_freeN(data->old_markers);
+    MEM_delete(data->old_markers);
   }
-  MEM_freeN(data);
+  MEM_delete(data);
 }
 
 static wmOperatorStatus slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
 
-  SlideMarkerData *data = (SlideMarkerData *)op->customdata;
+  SlideMarkerData *data = static_cast<SlideMarkerData *>(op->customdata);
   float dx, dy, mdelta[2];
 
   switch (event->type) {
@@ -890,9 +891,9 @@ static wmOperatorStatus clear_track_path_exec(bContext *C, wmOperator *op)
     }
   }
   else {
-    LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-      if (TRACK_VIEW_SELECTED(sc, track)) {
-        BKE_tracking_track_path_clear(track, framenr, action);
+    for (MovieTrackingTrack &track : tracking_object->tracks) {
+      if (TRACK_VIEW_SELECTED(sc, &track)) {
+        BKE_tracking_track_path_clear(&track, framenr, action);
       }
     }
   }
@@ -962,9 +963,9 @@ static wmOperatorStatus disable_markers_exec(bContext *C, wmOperator *op)
   const int action = RNA_enum_get(op->ptr, "action");
   const int framenr = ED_space_clip_get_clip_frame_number(sc);
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
-      MovieTrackingMarker *marker = BKE_tracking_marker_ensure(track, framenr);
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    if (TRACK_VIEW_SELECTED(sc, &track) && (track.flag & TRACK_LOCKED) == 0) {
+      MovieTrackingMarker *marker = BKE_tracking_marker_ensure(&track, framenr);
       switch (action) {
         case MARKER_OP_DISABLE:
           marker->flag |= MARKER_DISABLED;
@@ -1026,12 +1027,12 @@ static wmOperatorStatus hide_tracks_exec(bContext *C, wmOperator *op)
   const int unselected = RNA_boolean_get(op->ptr, "unselected");
 
   /* Hide point tracks. */
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (unselected == 0 && TRACK_VIEW_SELECTED(sc, track)) {
-      track->flag |= TRACK_HIDDEN;
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    if (unselected == 0 && TRACK_VIEW_SELECTED(sc, &track)) {
+      track.flag |= TRACK_HIDDEN;
     }
-    else if (unselected == 1 && !TRACK_VIEW_SELECTED(sc, track)) {
-      track->flag |= TRACK_HIDDEN;
+    else if (unselected == 1 && !TRACK_VIEW_SELECTED(sc, &track)) {
+      track.flag |= TRACK_HIDDEN;
     }
   }
 
@@ -1041,12 +1042,12 @@ static wmOperatorStatus hide_tracks_exec(bContext *C, wmOperator *op)
   }
 
   /* Hide place tracks. */
-  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
-    if (unselected == 0 && plane_track->flag & SELECT) {
-      plane_track->flag |= PLANE_TRACK_HIDDEN;
+  for (MovieTrackingPlaneTrack &plane_track : tracking_object->plane_tracks) {
+    if (unselected == 0 && plane_track.flag & SELECT) {
+      plane_track.flag |= PLANE_TRACK_HIDDEN;
     }
-    else if (unselected == 1 && (plane_track->flag & SELECT) == 0) {
-      plane_track->flag |= PLANE_TRACK_HIDDEN;
+    else if (unselected == 1 && (plane_track.flag & SELECT) == 0) {
+      plane_track.flag |= PLANE_TRACK_HIDDEN;
     }
   }
 
@@ -1092,13 +1093,13 @@ static wmOperatorStatus hide_tracks_clear_exec(bContext *C, wmOperator * /*op*/)
   const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
 
   /* Unhide point tracks. */
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    track->flag &= ~TRACK_HIDDEN;
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    track.flag &= ~TRACK_HIDDEN;
   }
 
   /* Unhide plane tracks. */
-  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
-    plane_track->flag &= ~PLANE_TRACK_HIDDEN;
+  for (MovieTrackingPlaneTrack &plane_track : tracking_object->plane_tracks) {
+    plane_track.flag &= ~PLANE_TRACK_HIDDEN;
   }
 
   BKE_tracking_dopesheet_tag_update(&clip->tracking);
@@ -1244,13 +1245,13 @@ static wmOperatorStatus join_tracks_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  blender::Set<MovieTrackingPlaneTrack *> point_tracks;
+  Set<MovieTrackingPlaneTrack *> point_tracks;
 
-  LISTBASE_FOREACH_MUTABLE (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (TRACK_VIEW_SELECTED(sc, track) && track != active_track) {
-      BKE_tracking_tracks_join(tracking, active_track, track);
+  for (MovieTrackingTrack &track : tracking_object->tracks.items_mutable()) {
+    if (TRACK_VIEW_SELECTED(sc, &track) && &track != active_track) {
+      BKE_tracking_tracks_join(tracking, active_track, &track);
 
-      if (track->flag & TRACK_USE_2D_STAB) {
+      if (track.flag & TRACK_USE_2D_STAB) {
         update_stabilization = true;
         if ((active_track->flag & TRACK_USE_2D_STAB) == 0) {
           active_track->flag |= TRACK_USE_2D_STAB;
@@ -1260,7 +1261,7 @@ static wmOperatorStatus join_tracks_exec(bContext *C, wmOperator *op)
         }
         BLI_assert(0 <= stabilization->tot_track);
       }
-      if (track->flag & TRACK_USE_2D_STAB_ROT) {
+      if (track.flag & TRACK_USE_2D_STAB_ROT) {
         update_stabilization = true;
         if ((active_track->flag & TRACK_USE_2D_STAB_ROT) == 0) {
           active_track->flag |= TRACK_USE_2D_STAB_ROT;
@@ -1271,17 +1272,17 @@ static wmOperatorStatus join_tracks_exec(bContext *C, wmOperator *op)
         BLI_assert(0 <= stabilization->tot_rot_track);
       }
 
-      LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
-        if (BKE_tracking_plane_track_has_point_track(plane_track, track)) {
-          BKE_tracking_plane_track_replace_point_track(plane_track, track, active_track);
-          if ((plane_track->flag & PLANE_TRACK_AUTOKEY) == 0) {
-            point_tracks.add(plane_track);
+      for (MovieTrackingPlaneTrack &plane_track : tracking_object->plane_tracks) {
+        if (BKE_tracking_plane_track_has_point_track(&plane_track, &track)) {
+          BKE_tracking_plane_track_replace_point_track(&plane_track, &track, active_track);
+          if ((plane_track.flag & PLANE_TRACK_AUTOKEY) == 0) {
+            point_tracks.add(&plane_track);
           }
         }
       }
 
-      BKE_tracking_track_free(track);
-      BLI_freelinkN(&tracking_object->tracks, track);
+      BKE_tracking_track_free(&track);
+      BLI_freelinkN(&tracking_object->tracks, &track);
     }
   }
 
@@ -1366,7 +1367,7 @@ static wmOperatorStatus average_tracks_exec(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 
   /* Free memory. */
-  MEM_freeN(source_tracks);
+  MEM_delete(source_tracks);
 
   return OPERATOR_FINISHED;
 }
@@ -1433,17 +1434,17 @@ static wmOperatorStatus lock_tracks_exec(bContext *C, wmOperator *op)
   const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
   const int action = RNA_enum_get(op->ptr, "action");
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (TRACK_VIEW_SELECTED(sc, track)) {
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    if (TRACK_VIEW_SELECTED(sc, &track)) {
       switch (action) {
         case TRACK_ACTION_LOCK:
-          track->flag |= TRACK_LOCKED;
+          track.flag |= TRACK_LOCKED;
           break;
         case TRACK_ACTION_UNLOCK:
-          track->flag &= ~TRACK_LOCKED;
+          track.flag &= ~TRACK_LOCKED;
           break;
         case TRACK_ACTION_TOGGLE:
-          track->flag ^= TRACK_LOCKED;
+          track.flag ^= TRACK_LOCKED;
           break;
       }
     }
@@ -1552,12 +1553,12 @@ static wmOperatorStatus track_copy_color_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (TRACK_VIEW_SELECTED(sc, track) && track != active_track) {
-      track->flag &= ~TRACK_CUSTOMCOLOR;
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    if (TRACK_VIEW_SELECTED(sc, &track) && &track != active_track) {
+      track.flag &= ~TRACK_CUSTOMCOLOR;
       if (active_track->flag & TRACK_CUSTOMCOLOR) {
-        copy_v3_v3(track->color, active_track->color);
-        track->flag |= TRACK_CUSTOMCOLOR;
+        copy_v3_v3(track.color, active_track->color);
+        track.flag |= TRACK_CUSTOMCOLOR;
       }
     }
   }
@@ -1598,7 +1599,7 @@ static bool is_track_clean(MovieTrackingTrack *track, int frames, int del)
   int markersnr = track->markersnr;
 
   if (del) {
-    new_markers = MEM_calloc_arrayN<MovieTrackingMarker>(markersnr, "track cleaned markers");
+    new_markers = MEM_new_array<MovieTrackingMarker>(markersnr, "track cleaned markers");
   }
 
   for (int a = 0; a < markersnr; a++) {
@@ -1682,14 +1683,14 @@ static bool is_track_clean(MovieTrackingTrack *track, int frames, int del)
   }
 
   if (del) {
-    MEM_freeN(track->markers);
+    MEM_delete(track->markers);
 
     if (count) {
       track->markers = new_markers;
     }
     else {
       track->markers = nullptr;
-      MEM_freeN(new_markers);
+      MEM_delete(new_markers);
     }
 
     track->markersnr = count;
@@ -1705,40 +1706,41 @@ static wmOperatorStatus clean_tracks_exec(bContext *C, wmOperator *op)
   MovieTracking *tracking = &clip->tracking;
   MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
   int frames = RNA_int_get(op->ptr, "frames");
-  int action = RNA_enum_get(op->ptr, "action");
+  TrackingCleanAction action = TrackingCleanAction(RNA_enum_get(op->ptr, "action"));
   float error = RNA_float_get(op->ptr, "error");
 
-  if (error && action == TRACKING_CLEAN_DELETE_SEGMENT) {
-    action = TRACKING_CLEAN_DELETE_TRACK;
+  if (error && action == TrackingCleanAction::DeleteSegment) {
+    action = TrackingCleanAction::DeleteTrack;
   }
 
-  LISTBASE_FOREACH_MUTABLE (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if ((track->flag & TRACK_HIDDEN) == 0 && (track->flag & TRACK_LOCKED) == 0) {
+  for (MovieTrackingTrack &track : tracking_object->tracks.items_mutable()) {
+    if ((track.flag & TRACK_HIDDEN) == 0 && (track.flag & TRACK_LOCKED) == 0) {
       bool ok;
 
-      ok = is_track_clean(track, frames, action == TRACKING_CLEAN_DELETE_SEGMENT) &&
-           ((error == 0.0f) || (track->flag & TRACK_HAS_BUNDLE) == 0 || (track->error < error));
+      ok = is_track_clean(&track, frames, action == TrackingCleanAction::DeleteSegment) &&
+           ((error == 0.0f) || (track.flag & TRACK_HAS_BUNDLE) == 0 || (track.error < error));
 
       if (!ok) {
-        if (action == TRACKING_CLEAN_SELECT) {
-          BKE_tracking_track_flag_set(track, TRACK_AREA_ALL, SELECT);
+        if (action == TrackingCleanAction::Select) {
+          BKE_tracking_track_flag_set(&track, TRACK_AREA_ALL, SELECT);
         }
-        else if (action == TRACKING_CLEAN_DELETE_TRACK) {
-          if (track == tracking_object->active_track) {
+        else if (action == TrackingCleanAction::DeleteTrack) {
+          if (&track == tracking_object->active_track) {
             tracking_object->active_track = nullptr;
           }
-          BKE_tracking_track_free(track);
-          BLI_freelinkN(&tracking_object->tracks, track);
-          track = nullptr;
+          BKE_tracking_track_free(&track);
+          BLI_freelinkN(&tracking_object->tracks, &track);
+          continue;
         }
 
         /* Happens when all tracking segments are not long enough. */
-        if (track && track->markersnr == 0) {
-          if (track == tracking_object->active_track) {
+        if (track.markersnr == 0) {
+          if (&track == tracking_object->active_track) {
             tracking_object->active_track = nullptr;
           }
-          BKE_tracking_track_free(track);
-          BLI_freelinkN(&tracking_object->tracks, track);
+          BKE_tracking_track_free(&track);
+          BLI_freelinkN(&tracking_object->tracks, &track);
+          continue;
         }
       }
     }
@@ -1775,9 +1777,13 @@ static wmOperatorStatus clean_tracks_invoke(bContext *C, wmOperator *op, const w
 void CLIP_OT_clean_tracks(wmOperatorType *ot)
 {
   static const EnumPropertyItem actions_items[] = {
-      {TRACKING_CLEAN_SELECT, "SELECT", 0, "Select", "Select unclean tracks"},
-      {TRACKING_CLEAN_DELETE_TRACK, "DELETE_TRACK", 0, "Delete Track", "Delete unclean tracks"},
-      {TRACKING_CLEAN_DELETE_SEGMENT,
+      {int(TrackingCleanAction::Select), "SELECT", 0, "Select", "Select unclean tracks"},
+      {int(TrackingCleanAction::DeleteTrack),
+       "DELETE_TRACK",
+       0,
+       "Delete Track",
+       "Delete unclean tracks"},
+      {int(TrackingCleanAction::DeleteSegment),
        "DELETE_SEGMENTS",
        0,
        "Delete Segments",
@@ -1990,14 +1996,14 @@ static void keyframe_set_flag(bContext *C, bool set)
   const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
   const int framenr = ED_space_clip_get_clip_frame_number(sc);
 
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-    if (TRACK_VIEW_SELECTED(sc, track)) {
+  for (MovieTrackingTrack &track : tracking_object->tracks) {
+    if (TRACK_VIEW_SELECTED(sc, &track)) {
       if (set) {
-        MovieTrackingMarker *marker = BKE_tracking_marker_ensure(track, framenr);
+        MovieTrackingMarker *marker = BKE_tracking_marker_ensure(&track, framenr);
         marker->flag &= ~MARKER_TRACKED;
       }
       else {
-        MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(track, framenr);
+        MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(&track, framenr);
         if (marker != nullptr) {
           marker->flag |= MARKER_TRACKED;
         }
@@ -2005,23 +2011,23 @@ static void keyframe_set_flag(bContext *C, bool set)
     }
   }
 
-  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
-    if (PLANE_TRACK_VIEW_SELECTED(plane_track)) {
+  for (MovieTrackingPlaneTrack &plane_track : tracking_object->plane_tracks) {
+    if (PLANE_TRACK_VIEW_SELECTED(&plane_track)) {
       if (set) {
-        MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_ensure(plane_track,
+        MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_ensure(&plane_track,
                                                                                   framenr);
         if (plane_marker->flag & PLANE_MARKER_TRACKED) {
           plane_marker->flag &= ~PLANE_MARKER_TRACKED;
-          BKE_tracking_track_plane_from_existing_motion(plane_track, plane_marker->framenr);
+          BKE_tracking_track_plane_from_existing_motion(&plane_track, plane_marker->framenr);
         }
       }
       else {
-        MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get_exact(plane_track,
+        MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get_exact(&plane_track,
                                                                                      framenr);
         if (plane_marker) {
           if ((plane_marker->flag & PLANE_MARKER_TRACKED) == 0) {
             plane_marker->flag |= PLANE_MARKER_TRACKED;
-            BKE_tracking_retrack_plane_from_existing_motion_at_segment(plane_track,
+            BKE_tracking_retrack_plane_from_existing_motion_at_segment(&plane_track,
                                                                        plane_marker->framenr);
           }
         }
@@ -2228,3 +2234,5 @@ void CLIP_OT_update_image_from_plane_marker(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

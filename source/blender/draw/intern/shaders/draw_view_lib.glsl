@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "draw_view_info.hh"
+#include "draw_view_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(draw_view)
 
@@ -28,6 +28,12 @@ bool drw_view_is_perspective()
 float3 drw_view_forward()
 {
   return drw_view().viewinv[2].xyz;
+}
+
+/* Returns the view up vector. */
+float3 drw_view_up()
+{
+  return drw_view().viewinv[1].xyz;
 }
 
 /* Returns the view origin. */

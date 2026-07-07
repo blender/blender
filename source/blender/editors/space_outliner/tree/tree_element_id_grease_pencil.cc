@@ -33,11 +33,9 @@ void TreeElementIDGreasePencil::expand(SpaceOutliner & /*space_outliner*/) const
 
 void TreeElementIDGreasePencil::expand_layer_tree() const
 {
-  LISTBASE_FOREACH_BACKWARD (
-      GreasePencilLayerTreeNode *, child, &grease_pencil_.root_group().children)
-  {
+  for (GreasePencilLayerTreeNode &child : grease_pencil_.root_group().children.items_reversed()) {
     add_element(
-        &legacy_te_.subtree, &grease_pencil_.id, child, &legacy_te_, TSE_GREASE_PENCIL_NODE, 0);
+        &legacy_te_.subtree, &grease_pencil_.id, &child, &legacy_te_, TSE_GREASE_PENCIL_NODE, 0);
   }
 }
 

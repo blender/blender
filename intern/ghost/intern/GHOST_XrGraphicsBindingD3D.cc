@@ -77,35 +77,27 @@ GHOST_XrGraphicsBindingD3D::~GHOST_XrGraphicsBindingD3D()
   }
 }
 
+bool GHOST_XrGraphicsBindingD3D::loadExtensionFunctions(XrInstance instance)
+{
+#define LOAD_FUNCTION(fn_ptr, name) \
+  if (XR_FAILED(xrGetInstanceProcAddr(instance, #name, (PFN_xrVoidFunction *)&fn_ptr))) { \
+    return false; \
+  }
+
+  LOAD_FUNCTION(xrGetD3D11GraphicsRequirementsKHR_, xrGetD3D11GraphicsRequirementsKHR);
+
+#undef LOAD_FUNCTION
+  return true;
+}
+
 bool GHOST_XrGraphicsBindingD3D::checkVersionRequirements(
     GHOST_Context & /*ghost_ctx*/, /* Remember: This is the OpenGL context! */
     XrInstance instance,
     XrSystemId system_id,
     std::string *r_requirement_info) const
 {
-  static PFN_xrGetD3D11GraphicsRequirementsKHR s_xrGetD3D11GraphicsRequirementsKHR_fn = nullptr;
-  // static XrInstance s_instance = XR_NULL_HANDLE;
   XrGraphicsRequirementsD3D11KHR gpu_requirements = {XR_TYPE_GRAPHICS_REQUIREMENTS_D3D11_KHR};
-
-  /* Although it would seem reasonable that the PROC address would not change if the instance was
-   * the same, in testing, repeated calls to #xrGetInstanceProcAddress() with the same instance
-   * can still result in changes so the workaround is to simply set the function pointer every
-   * time (trivializing its 'static' designation). */
-  // if (instance != s_instance) {
-  // s_instance = instance;
-  s_xrGetD3D11GraphicsRequirementsKHR_fn = nullptr;
-  //}
-  if (!s_xrGetD3D11GraphicsRequirementsKHR_fn &&
-      XR_FAILED(
-          xrGetInstanceProcAddr(instance,
-                                "xrGetD3D11GraphicsRequirementsKHR",
-                                (PFN_xrVoidFunction *)&s_xrGetD3D11GraphicsRequirementsKHR_fn)))
-  {
-    s_xrGetD3D11GraphicsRequirementsKHR_fn = nullptr;
-    return false;
-  }
-
-  s_xrGetD3D11GraphicsRequirementsKHR_fn(instance, system_id, &gpu_requirements);
+  xrGetD3D11GraphicsRequirementsKHR_(instance, system_id, &gpu_requirements);
 
   if (r_requirement_info) {
     std::ostringstream strstream;
@@ -139,13 +131,13 @@ std::optional<int64_t> GHOST_XrGraphicsBindingD3D::chooseSwapchainFormat(
         DXGI_FORMAT_R10G10B10A2_UNORM,
         DXGI_FORMAT_R16G16B16A16_UNORM,
 #endif
-    DXGI_FORMAT_R16G16B16A16_FLOAT,
+      DXGI_FORMAT_R16G16B16A16_FLOAT,
 #if 1
-    DXGI_FORMAT_R10G10B10A2_UNORM,
-    DXGI_FORMAT_R16G16B16A16_UNORM,
+      DXGI_FORMAT_R10G10B10A2_UNORM,
+      DXGI_FORMAT_R16G16B16A16_UNORM,
 #endif
-    DXGI_FORMAT_R8G8B8A8_UNORM,
-    DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
+      DXGI_FORMAT_R8G8B8A8_UNORM,
+      DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
   };
 
   std::optional result = choose_swapchain_format_from_candidates(gpu_binding_formats,
@@ -200,7 +192,7 @@ bool GHOST_XrGraphicsBindingD3D::needsUpsideDownDrawing(GHOST_Context &) const
   return ghost_d3d_ctx_->isUpsideDown();
 }
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name OpenGL-Direct3D bridge
@@ -260,7 +252,7 @@ void GHOST_XrGraphicsBindingOpenGLD3D::submitToSwapchainImage(
 #endif
 }
 
-/* \} */
+/** \} */
 
 #ifdef WITH_VULKAN_BACKEND
 
@@ -331,6 +323,6 @@ void GHOST_XrGraphicsBindingVulkanD3D::submitToSwapchainImage(
   ghost_ctx_.openxr_release_framebuffer_image_callback_(&openxr_data);
 }
 
-/* \} */
+/** \} */
 
 #endif

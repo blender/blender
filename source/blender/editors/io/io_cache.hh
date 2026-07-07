@@ -8,6 +8,8 @@
  * \ingroup editor/io
  */
 
+namespace blender {
+
 struct wmOperatorType;
 
 void CACHEFILE_OT_open(wmOperatorType *ot);
@@ -16,3 +18,5 @@ void CACHEFILE_OT_reload(wmOperatorType *ot);
 void CACHEFILE_OT_layer_add(wmOperatorType *ot);
 void CACHEFILE_OT_layer_remove(wmOperatorType *ot);
 void CACHEFILE_OT_layer_move(wmOperatorType *ot);
+
+}  // namespace blender

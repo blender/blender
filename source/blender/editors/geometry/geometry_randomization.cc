@@ -33,8 +33,8 @@ static wmOperatorStatus geometry_randomization_exec(bContext *C, wmOperator *op)
 
   G.randomize_geometry_element_order = RNA_boolean_get(op->ptr, "value");
 
-  LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-    DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
+  for (Object &object : bmain->objects) {
+    DEG_id_tag_update(&object.id, ID_RECALC_GEOMETRY);
   }
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
   return OPERATOR_FINISHED;

@@ -13,6 +13,8 @@
 
 #include "bmesh_class.hh"
 
+namespace blender {
+
 struct LinkNode;
 
 struct BMCalcPathParams {
@@ -40,3 +42,5 @@ LinkNode *BM_mesh_calc_path_face(BMesh *bm,
                                  const BMCalcPathParams *params,
                                  bool (*filter_fn)(BMFace *, void *),
                                  void *user_data) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2, 3, 5);
+
+}  // namespace blender

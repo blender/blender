@@ -310,7 +310,7 @@ PyDoc_STRVAR(
     ":type: str\n");
 static PyObject *ViewShape_name_get(BPy_ViewShape *self, void * /*closure*/)
 {
-  return PyC_UnicodeFromStdStr(self->vs->getName());
+  return blender::PyC_UnicodeFromStdStr(self->vs->getName());
 }
 
 PyDoc_STRVAR(
@@ -321,7 +321,7 @@ PyDoc_STRVAR(
     ":type: str, or None if the ViewShape is not part of a library.\n");
 static PyObject *ViewShape_library_path_get(BPy_ViewShape *self, void * /*closure*/)
 {
-  return PyC_UnicodeFromStdStr(self->vs->getLibraryPath());
+  return blender::PyC_UnicodeFromStdStr(self->vs->getLibraryPath());
 }
 
 PyDoc_STRVAR(

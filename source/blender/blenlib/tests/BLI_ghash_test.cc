@@ -10,6 +10,8 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 #define TESTCASE_SIZE 10000
 
 /* Only keeping this in case here, for now. */
@@ -209,3 +211,5 @@ TEST(ghash, Pop)
 
   BLI_ghash_free(ghash, nullptr, nullptr);
 }
+
+}  // namespace blender

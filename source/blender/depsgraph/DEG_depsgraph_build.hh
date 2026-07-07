@@ -15,18 +15,22 @@
 /* ************************************************* */
 
 /* Dependency Graph */
-struct Depsgraph;
+
+namespace blender {
 
 /* ------------------------------------------------ */
 
 struct CacheFile;
 struct Collection;
 struct CustomData_MeshMasks;
+struct Depsgraph;
+struct DepsNodeHandle;
 struct ID;
 struct Main;
 struct Object;
 struct Scene;
 struct bNodeTree;
+struct VFont;
 
 /* Graph Building -------------------------------- */
 
@@ -60,7 +64,7 @@ void DEG_graph_build_from_collection(Depsgraph *graph, Collection *collection);
 /**
  * Builds the minimal dependency graph needed for evaluation of the given IDs.
  */
-void DEG_graph_build_from_ids(Depsgraph *graph, blender::Span<ID *> ids);
+void DEG_graph_build_from_ids(Depsgraph *graph, Span<ID *> ids);
 
 /** Tag relations from the given graph for update. */
 void DEG_graph_tag_relations_update(Depsgraph *graph);
@@ -79,8 +83,6 @@ void DEG_relations_tag_update(Main *bmain);
  * as a symbolic reference to the current DepsNode.
  * All relations will be defined in reference to that node.
  */
-struct DepsNodeHandle;
-
 enum eDepsSceneComponentType {
   /* Parameters Component - Default when nothing else fits
    * (i.e. just SDNA property setting). */
@@ -151,6 +153,7 @@ void DEG_add_object_cache_relation(DepsNodeHandle *handle,
                                    CacheFile *cache_file,
                                    eDepsObjectComponentType component,
                                    const char *description);
+void DEG_add_vfont_relation(DepsNodeHandle *handle, VFont *vfont, const char *description);
 /**
  * Adds relation from #DEG_OPCODE_GENERIC_DATABLOCK_UPDATE of a given ID.
  * Is used for such entities as textures and images.
@@ -186,3 +189,5 @@ Depsgraph *DEG_get_graph_from_handle(DepsNodeHandle *node_handle);
 bool DEG_object_has_geometry_component(Object *object);
 
 /* ************************************************ */
+
+}  // namespace blender

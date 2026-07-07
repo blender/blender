@@ -12,6 +12,8 @@
 
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 /**
  * Compute MD5 message digest for 'len' bytes beginning at 'buffer'.
  * The result is always in little endian byte order,
@@ -27,3 +29,5 @@ void *BLI_hash_md5_buffer(const char *buffer, size_t len, void *resblock);
 int BLI_hash_md5_stream(FILE *stream, void *resblock);
 
 char *BLI_hash_md5_to_hexdigest(const void *resblock, char r_hex_digest[33]);
+
+}  // namespace blender

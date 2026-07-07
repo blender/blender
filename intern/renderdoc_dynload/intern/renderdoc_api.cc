@@ -70,6 +70,7 @@ void Renderdoc::load()
     RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_1_2, (void **)&renderdoc_api_);
   }
 #endif
+  state_ = (renderdoc_api_) ? State::LOADED : State::NOT_FOUND;
 }
 
 }  // namespace renderdoc::api

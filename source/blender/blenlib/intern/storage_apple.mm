@@ -16,6 +16,8 @@
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
+namespace blender {
+
 /* Extended file attribute used by OneDrive to mark placeholder files. */
 static const char *ONEDRIVE_RECALLONOPEN_ATTRIBUTE = "com.microsoft.OneDrive.RecallOnOpen";
 
@@ -137,22 +139,29 @@ eFileAttributes BLI_file_attributes(const char *path)
     const bool is_offline = test_file_is_offline(path);
 
     if (is_offline) {
-      resourceKeys = @[ NSURLIsAliasFileKey, NSURLIsHiddenKey ];
+      resourceKeys = @[ NSURLIsSymbolicLinkKey, NSURLIsAliasFileKey, NSURLIsHiddenKey ];
     }
     else {
-      resourceKeys =
-          @[ NSURLIsAliasFileKey, NSURLIsHiddenKey, NSURLIsReadableKey, NSURLIsWritableKey ];
+      resourceKeys = @[
+        NSURLIsSymbolicLinkKey,
+        NSURLIsAliasFileKey,
+        NSURLIsHiddenKey,
+        NSURLIsReadableKey,
+        NSURLIsWritableKey
+      ];
     }
 
     NSDictionary *resourceKeyValues = [fileURL resourceValuesForKeys:resourceKeys error:nil];
 
-    const bool is_alias = [resourceKeyValues[(void)(@"@%"), NSURLIsAliasFileKey] boolValue];
-    const bool is_hidden = [resourceKeyValues[(void)(@"@%"), NSURLIsHiddenKey] boolValue];
-    const bool is_readable = is_offline ||
-                             [resourceKeyValues[(void)(@"@%"), NSURLIsReadableKey] boolValue];
-    const bool is_writable = is_offline ||
-                             [resourceKeyValues[(void)(@"@%"), NSURLIsWritableKey] boolValue];
+    const bool is_symlink = [resourceKeyValues[NSURLIsSymbolicLinkKey] boolValue];
+    const bool is_alias = [resourceKeyValues[NSURLIsAliasFileKey] boolValue] && !is_symlink;
+    const bool is_hidden = [resourceKeyValues[NSURLIsHiddenKey] boolValue];
+    const bool is_readable = is_offline || [resourceKeyValues[NSURLIsReadableKey] boolValue];
+    const bool is_writable = is_offline || [resourceKeyValues[NSURLIsWritableKey] boolValue];
 
+    if (is_symlink) {
+      ret |= FILE_ATTR_SYMLINK;
+    }
     if (is_alias) {
       ret |= FILE_ATTR_ALIAS;
     }
@@ -200,3 +209,5 @@ bool BLI_change_working_dir(const char *dir)
     return false;
   }
 }
+
+}  // namespace blender

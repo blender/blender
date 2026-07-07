@@ -68,6 +68,39 @@ class TestCurves(unittest.TestCase):
         self.assertTrue(self.curves.attributes["a" * 100].name == "a" * 100)
 
 
+class TestMesh(unittest.TestCase):
+    def setUp(self):
+        self.mesh = bpy.data.meshes.new("test")
+        self.mesh.vertices.add(10)
+
+    def tearDown(self):
+        bpy.data.meshes.remove(self.mesh)
+        del self.mesh
+
+    def test_set_active_color_attribute_if_empty(self):
+        self.assertTrue(self.mesh.attributes.active_color_name == "")
+        self.assertTrue(self.mesh.attributes.default_color_name == "")
+
+        self.mesh.attributes.new("a", 'FLOAT_COLOR', 'POINT')
+        self.assertTrue(self.mesh.attributes.active_color_name == "a")
+        self.assertTrue(self.mesh.attributes.default_color_name == "a")
+
+        self.mesh.attributes.new("b", 'FLOAT_COLOR', 'POINT')
+        self.assertTrue(self.mesh.attributes.active_color_name == "a")
+        self.assertTrue(self.mesh.attributes.default_color_name == "a")
+
+    def test_set_active_uv_map_if_empty(self):
+        self.assertTrue(self.mesh.uv_layers.active is None)
+
+        self.mesh.attributes.new("a", 'FLOAT2', 'CORNER')
+        self.assertTrue(self.mesh.uv_layers.active is not None)
+        self.assertTrue(self.mesh.uv_layers.active.name == "a")
+
+        self.mesh.attributes.new("b", 'FLOAT2', 'CORNER')
+        self.assertTrue(self.mesh.uv_layers.active is not None)
+        self.assertTrue(self.mesh.uv_layers.active.name == "a")
+
+
 if __name__ == '__main__':
     import sys
     sys.argv = [__file__] + (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])

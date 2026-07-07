@@ -37,13 +37,13 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>("Color")
       .default_value(ColorGeometry4f(1.0f, 1.0f, 1.0f, 1.0f))
       .field_on_all()
-      .hide_label();
+      .optional_label();
   b.add_input<decl::Float>("Opacity").default_value(1.0f).min(0.0f).max(1.0f).field_on_all();
 }
 
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
+  layout.prop(ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
 }
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
@@ -73,7 +73,7 @@ static void node_geo_exec(GeoNodeExecParams params)
           continue;
         }
         bke::CurvesGeometry &curves = drawing->strokes_for_write();
-        const int64_t domain_size = curves.attributes().domain_size(domain);
+        bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
         const bke::GreasePencilLayerFieldContext layer_field_context(
             *grease_pencil, domain, layer_index);
@@ -82,12 +82,9 @@ static void node_geo_exec(GeoNodeExecParams params)
          * to initialize the attribute manually.
          * TODO: Avoid doing this if the selection is false. */
         if (!curves.attributes().contains(opacity_attr_name)) {
-          curves.attributes_for_write().add<float>(
-              opacity_attr_name,
-              domain,
-              bke::AttributeInitVArray(VArray<float>::from_single(1.0f, domain_size)));
+          attributes.add<float>(opacity_attr_name, domain, bke::AttributeInitValue(1.0f));
         }
-        bke::try_capture_fields_on_geometry(curves.attributes_for_write(),
+        bke::try_capture_fields_on_geometry(attributes,
                                             layer_field_context,
                                             {color_attr_name, opacity_attr_name},
                                             domain,
@@ -121,7 +118,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeSetGreasePencilColor");
   ntype.ui_name = "Set Grease Pencil Color";
@@ -132,7 +129,7 @@ static void node_register()
   ntype.initfunc = node_init;
   ntype.draw_buttons = node_layout;
   bke::node_type_size(ntype, 170, 120, NODE_DEFAULT_MAX_WIDTH);
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

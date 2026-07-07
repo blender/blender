@@ -10,11 +10,13 @@
 
 #include "GEO_fit_curves.hh"
 
+namespace blender {
+
 extern "C" {
 #include "curve_fit_nd.h"
 }
 
-namespace blender::geometry {
+namespace geometry {
 
 bke::CurvesGeometry fit_poly_to_bezier_curves(const bke::CurvesGeometry &src_curves,
                                               const IndexMask &curve_selection,
@@ -80,7 +82,7 @@ bke::CurvesGeometry fit_poly_to_bezier_curves(const bke::CurvesGeometry &src_cur
                                       nullptr :
                                       reinterpret_cast<uint *>(src_corners.data());
 
-    const uint8_t flag = CURVE_FIT_CALC_HIGH_QUALIY | ((is_cyclic) ? CURVE_FIT_CALC_CYCLIC : 0);
+    const uint8_t flag = CURVE_FIT_CALC_HIGH_QUALITY | ((is_cyclic) ? CURVE_FIT_CALC_CYCLIC : 0);
 
     float *cubic_array = nullptr;
     uint32_t *orig_index_map = nullptr;
@@ -274,4 +276,5 @@ bke::CurvesGeometry fit_poly_to_bezier_curves(const bke::CurvesGeometry &src_cur
   return dst_curves;
 }
 
-}  // namespace blender::geometry
+}  // namespace geometry
+}  // namespace blender

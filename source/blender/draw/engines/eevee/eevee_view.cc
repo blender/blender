@@ -71,6 +71,8 @@ void ShadingView::sync()
   }
 
   main_view_.sync(viewmat, winmat);
+
+  inst_.uniform_data.data.pipeline.is_main_view_inverted = main_view_.is_inverted();
 }
 
 void ShadingView::render()
@@ -93,8 +95,13 @@ void ShadingView::render()
 
   combined_fb_.ensure(GPU_ATTACHMENT_TEXTURE(rbufs.depth_tx),
                       GPU_ATTACHMENT_TEXTURE(rbufs.combined_tx));
-  prepass_fb_.ensure(GPU_ATTACHMENT_TEXTURE(rbufs.depth_tx),
-                     GPU_ATTACHMENT_TEXTURE(rbufs.vector_tx));
+
+  const bool with_raycast = inst_.pipelines.has_raycast;
+  prepass_fb_.ensure(
+      GPU_ATTACHMENT_TEXTURE(rbufs.depth_tx),
+      with_raycast ? GPU_ATTACHMENT_TEXTURE(rbufs.prepass_normal_tx) : GPU_ATTACHMENT_NONE,
+      with_raycast ? GPU_ATTACHMENT_TEXTURE(rbufs.object_id_tx) : GPU_ATTACHMENT_NONE,
+      GPU_ATTACHMENT_TEXTURE(rbufs.vector_tx));
 
   GBuffer &gbuf = inst_.gbuffer;
   gbuf.acquire(extent_,
@@ -111,10 +118,14 @@ void ShadingView::render()
 
   /* If camera has any motion, compute motion vector in the film pass. Otherwise, we avoid float
    * precision issue by setting the motion of all static geometry to 0. */
+  /* TODO: Clear using GPU_framebuffer. */
   float4 clear_velocity = float4(inst_.velocity.camera_has_motion() ? VELOCITY_INVALID : 0.0f);
+  GPU_texture_clear(rbufs.vector_tx, GPU_DATA_FLOAT, &clear_velocity);
+  if (with_raycast) {
+    rbufs.object_id_tx.clear(uint4(0));
+    rbufs.prepass_normal_tx.clear(float4(0.0f));
+  }
 
-  GPU_framebuffer_bind(prepass_fb_);
-  GPU_framebuffer_clear_color(prepass_fb_, clear_velocity);
   /* Alpha stores transmittance. So start at 1. */
   float4 clear_color = {0.0f, 0.0f, 0.0f, 1.0f};
   GPU_framebuffer_bind(combined_fb_);
@@ -144,11 +155,12 @@ void ShadingView::render()
 
   inst_.volume.draw_compute(main_view_, extent_);
 
+  inst_.volume.draw_resolve(main_view_);
+
   inst_.ambient_occlusion.render_pass(render_view_);
 
-  inst_.pipelines.forward.render(render_view_, prepass_fb_, combined_fb_, extent_);
-
-  render_transparent_pass(rbufs);
+  inst_.pipelines.forward.render(
+      render_view_, rbufs.depth_tx, prepass_fb_, transparent_fb_, combined_fb_, extent_);
 
   inst_.lights.debug_draw(render_view_, combined_fb_);
   inst_.hiz_buffer.debug_draw(render_view_, combined_fb_);
@@ -164,20 +176,6 @@ void ShadingView::render()
   postfx_tx_.release();
 
   GPU_debug_group_end();
-}
-
-void ShadingView::render_transparent_pass(RenderBuffers &rbufs)
-{
-  if (rbufs.data.transparent_id != -1) {
-    transparent_fb_.ensure(
-        GPU_ATTACHMENT_TEXTURE(rbufs.depth_tx),
-        GPU_ATTACHMENT_TEXTURE_LAYER(rbufs.rp_color_tx, rbufs.data.transparent_id));
-    /* Alpha stores transmittance. So start at 1. */
-    float4 clear_color = {0.0f, 0.0f, 0.0f, 1.0f};
-    GPU_framebuffer_bind(transparent_fb_);
-    GPU_framebuffer_clear_color(transparent_fb_, clear_color);
-    inst_.pipelines.forward.render(render_view_, prepass_fb_, transparent_fb_, rbufs.extent_get());
-  }
 }
 
 gpu::Texture *ShadingView::render_postfx(gpu::Texture *input_tx)
@@ -298,23 +296,50 @@ void CaptureView::render_world()
   GPU_debug_group_begin("World.Capture");
 
   if (update_info->do_render) {
-    for (int face : IndexRange(6)) {
-      float4x4 view_m4 = cubeface_mat(face);
-      float4x4 win_m4 = math::projection::perspective(-update_info->clipping_distances.x,
-                                                      update_info->clipping_distances.x,
-                                                      -update_info->clipping_distances.x,
-                                                      update_info->clipping_distances.x,
-                                                      update_info->clipping_distances.x,
-                                                      update_info->clipping_distances.y);
-      view.sync(view_m4, win_m4);
+    auto render_cubemap = [&](RayPipelineType ray_type) {
+      if (assign_if_different(inst_.pipelines.data.ray_type, ray_type)) {
+        inst_.uniform_data.push_update();
+      }
 
-      combined_fb_.ensure(GPU_ATTACHMENT_NONE,
-                          GPU_ATTACHMENT_TEXTURE_CUBEFACE(inst_.sphere_probes.cubemap_tx_, face));
-      GPU_framebuffer_bind(combined_fb_);
-      inst_.pipelines.world.render(view);
+      for (int face : IndexRange(6)) {
+        float4x4 view_m4 = cubeface_mat(face);
+        float4x4 win_m4 = math::projection::perspective(-update_info->clipping_distances.x,
+                                                        update_info->clipping_distances.x,
+                                                        -update_info->clipping_distances.x,
+                                                        update_info->clipping_distances.x,
+                                                        update_info->clipping_distances.x,
+                                                        update_info->clipping_distances.y);
+        view.sync(view_m4, win_m4);
+
+        combined_fb_.ensure(
+            GPU_ATTACHMENT_NONE,
+            GPU_ATTACHMENT_TEXTURE_CUBEFACE(inst_.sphere_probes.cubemap_tx_, face));
+        GPU_framebuffer_bind(combined_fb_);
+        inst_.pipelines.world.render(view);
+      }
+    };
+
+    if (inst_.pipelines.world.use_lightpath_node()) {
+      render_cubemap(RAY_TYPE_DIFFUSE);
+      inst_.sphere_probes.remap_to_octahedral_projection(
+          update_info->atlas_coord, false, true, WORLD_SUN_DIFFUSE);
+
+      render_cubemap(RAY_TYPE_GLOSSY);
+      inst_.sphere_probes.remap_to_octahedral_projection(
+          update_info->atlas_coord, true, false, WORLD_SUN_GLOSSY);
+    }
+    else {
+      render_cubemap(RAY_TYPE_GLOSSY);
+      inst_.sphere_probes.remap_to_octahedral_projection(
+          update_info->atlas_coord, true, true, WORLD_SUN_COMBINED);
     }
 
-    inst_.sphere_probes.remap_to_octahedral_projection(update_info->atlas_coord, true);
+    /* All volume probe that needs to composite the world probe need to be updated. */
+    inst_.volume_probes.update_world_irradiance();
+  }
+
+  if (assign_if_different(inst_.pipelines.data.ray_type, RAY_TYPE_CAMERA)) {
+    inst_.uniform_data.push_update();
   }
 
   GPU_debug_group_end();
@@ -327,17 +352,26 @@ void CaptureView::render_probes()
   while (const auto update_info = inst_.sphere_probes.probe_update_info_pop()) {
     GPU_debug_group_begin("Probe.Capture");
 
-    if (!inst_.pipelines.data.is_sphere_probe) {
-      inst_.pipelines.data.is_sphere_probe = true;
+    if (assign_if_different(inst_.pipelines.data.ray_type, RAY_TYPE_GLOSSY)) {
       inst_.uniform_data.push_update();
     }
 
     int2 extent = int2(update_info->cube_target_extent);
-    inst_.render_buffers.acquire(extent);
+    RenderBuffers &rbufs = inst_.render_buffers;
+    rbufs.acquire(extent);
 
-    inst_.render_buffers.vector_tx.clear(float4(0.0f));
-    prepass_fb.ensure(GPU_ATTACHMENT_TEXTURE(inst_.render_buffers.depth_tx),
-                      GPU_ATTACHMENT_TEXTURE(inst_.render_buffers.vector_tx));
+    const bool with_raycast = inst_.pipelines.has_raycast;
+    prepass_fb.ensure(
+        GPU_ATTACHMENT_TEXTURE(rbufs.depth_tx),
+        with_raycast ? GPU_ATTACHMENT_TEXTURE(rbufs.prepass_normal_tx) : GPU_ATTACHMENT_NONE,
+        with_raycast ? GPU_ATTACHMENT_TEXTURE(rbufs.object_id_tx) : GPU_ATTACHMENT_NONE,
+        GPU_ATTACHMENT_TEXTURE(rbufs.vector_tx));
+
+    rbufs.vector_tx.clear(float4(0.0f));
+    if (with_raycast) {
+      rbufs.object_id_tx.clear(uint4(0));
+      rbufs.prepass_normal_tx.clear(float4(0.0f));
+    }
 
     inst_.gbuffer.acquire(extent,
                           inst_.pipelines.probe.header_layer_count(),
@@ -374,11 +408,10 @@ void CaptureView::render_probes()
     inst_.render_buffers.release();
     inst_.gbuffer.release();
     GPU_debug_group_end();
-    inst_.sphere_probes.remap_to_octahedral_projection(update_info->atlas_coord, false);
+    inst_.sphere_probes.remap_to_octahedral_projection(update_info->atlas_coord, true, false);
   }
 
-  if (inst_.pipelines.data.is_sphere_probe) {
-    inst_.pipelines.data.is_sphere_probe = false;
+  if (assign_if_different(inst_.pipelines.data.ray_type, RAY_TYPE_CAMERA)) {
     inst_.uniform_data.push_update();
   }
 }
@@ -391,7 +424,7 @@ void CaptureView::render_probes()
 
 void LookdevView::render()
 {
-  if (!inst_.lookdev.enabled_) {
+  if (!inst_.lookdev.use_reference_spheres_) {
     return;
   }
   GPU_debug_group_begin("Lookdev");

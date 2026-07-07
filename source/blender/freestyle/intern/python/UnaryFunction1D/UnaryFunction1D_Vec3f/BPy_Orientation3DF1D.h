@@ -18,8 +18,8 @@ extern PyTypeObject Orientation3DF1D_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&Orientation3DF1D_Type))
 
 /*---------------------------Python BPy_Orientation3DF1D structure definition----------*/
-typedef struct {
+struct BPy_Orientation3DF1D {
   BPy_UnaryFunction1DVec3f py_uf1D_vec3f;
-} BPy_Orientation3DF1D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

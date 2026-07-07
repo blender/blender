@@ -20,7 +20,8 @@
  * without dealing with none-closures.
  */
 
-#include "infos/eevee_common_info.hh"
+#include "gpu_shader_math_vector_reduce_lib.glsl"
+#include "infos/eevee_common_infos.hh"
 
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
@@ -285,7 +286,7 @@ float3 geometry_normal_unpack(uint data, float3 N)
 
 /**
  * The GBuffer is polymorphic and its content varies from pixel to pixel.
- * The header contains some common informations and the layout of the GBuffer content.
+ * The header contains some common information and layout of the GBuffer content.
  */
 struct Header {
 #define GBUFFER_NORMAL_BITS_SHIFT 12u
@@ -433,7 +434,7 @@ struct Header {
 
   uchar closure_len() const
   {
-    return reduce_add(int3(not(this->empty_bins())));
+    return uchar(reduce_add(int3(not(this->empty_bins()))));
   }
 
   uchar normal_len() const
@@ -489,8 +490,6 @@ struct Header {
 struct AdditionalInfo {
   float thickness;
 
-  METAL_CONSTRUCTOR_1(AdditionalInfo, float, thickness)
-
   static float2 pack(float thickness)
   {
     return float2(thickness_pack(thickness), 0.0f /* UNUSED */);
@@ -498,7 +497,7 @@ struct AdditionalInfo {
 
   static AdditionalInfo unpack(float2 data)
   {
-    return AdditionalInfo(thickness_unpack(data.x));
+    return {thickness_unpack(data.x)};
   }
 };
 

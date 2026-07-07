@@ -60,6 +60,7 @@ def main() -> int:
     func_lines: list[str] = []
 
     # Add forward declaration to avoid warning.
+    func_lines.append("namespace blender {")
     func_lines.append(f"void {function_to_generate}();")
     func_lines.append(f"void {function_to_generate}()")
     func_lines.append("{")
@@ -106,6 +107,7 @@ def main() -> int:
                 func_lines.append(f"  {namespace_str}::{auto_run_name}();")
 
     func_lines.append("}")
+    func_lines.append("}  // namespace blender")
 
     # Write the generated code if it changed. If the newly generated code is the same as before,
     # don't overwrite the existing file to avoid unnecessary rebuilds.

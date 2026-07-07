@@ -7,7 +7,7 @@
 /** \file
  * \ingroup bli
  *
- * This file contains different slot types that are supposed to be used with blender::Set.
+ * This file contains different slot types that are supposed to be used with Set.
  *
  * Every slot type has to be able to hold a value of the Key type and state information.
  * A set slot has three possible states: empty, occupied and removed.
@@ -312,7 +312,15 @@ template<typename Key, typename KeyInfo> class IntrusiveSetSlot {
   bool contains(const ForwardKey &key, const IsEqual &is_equal, const uint64_t /*hash*/) const
   {
     BLI_assert(KeyInfo::is_not_empty_or_removed(key));
-    return is_equal(key_, key);
+    if constexpr (std::is_same_v<std::decay_t<IsEqual>, DefaultEquality<Key>>) {
+      return is_equal(key_, key);
+    }
+    else {
+      if (KeyInfo::is_not_empty_or_removed(key_)) {
+        return is_equal(key_, key);
+      }
+      return false;
+    }
   }
 
   template<typename ForwardKey> void occupy(ForwardKey &&key, const uint64_t /*hash*/)

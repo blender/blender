@@ -69,6 +69,9 @@ ccl_device void svm_vector_math(ccl_private float *value,
     case NODE_VECTOR_MATH_SNAP:
       *vector = floor(safe_divide(a, b)) * b;
       break;
+    case NODE_VECTOR_MATH_ROUND:
+      *vector = floor(a + 0.5f);
+      break;
     case NODE_VECTOR_MATH_FLOOR:
       *vector = floor(a);
       break;

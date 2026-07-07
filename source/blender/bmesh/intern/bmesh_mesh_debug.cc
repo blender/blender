@@ -25,6 +25,8 @@
 
 #  include "BLI_dynstr.h"
 
+namespace blender {
+
 char *BM_mesh_debug_info(BMesh *bm)
 {
   DynStr *dynstr = BLI_dynstr_new();
@@ -33,7 +35,7 @@ char *BM_mesh_debug_info(BMesh *bm)
   const char *indent8 = "        ";
 
   BLI_dynstr_append(dynstr, "{\n");
-  BLI_dynstr_appendf(dynstr, "    'ptr': '%p',\n", (void *)bm);
+  BLI_dynstr_appendf(dynstr, "    'ptr': '%p',\n", static_cast<void *>(bm));
   BLI_dynstr_appendf(dynstr, "    'totvert': %d,\n", bm->totvert);
   BLI_dynstr_appendf(dynstr, "    'totedge': %d,\n", bm->totedge);
   BLI_dynstr_appendf(dynstr, "    'totface': %d,\n", bm->totface);
@@ -66,7 +68,9 @@ void BM_mesh_debug_print(BMesh *bm)
   char *str = BM_mesh_debug_info(bm);
   puts(str);
   fflush(stdout);
-  MEM_freeN(str);
+  MEM_delete(str);
 }
+
+}  // namespace blender
 
 #endif /* !NDEBUG */

@@ -14,6 +14,8 @@
 
 #include "bmesh_class.hh"
 
+namespace blender {
+
 /**
  * Parameters used to determine which kinds of data needs to be generated.
  */
@@ -35,8 +37,8 @@ struct BMPartialUpdate_Params {
  *   setting them to dirty values between updates will slow down normal recalculation.
  */
 struct BMPartialUpdate {
-  blender::Vector<BMVert *> verts;
-  blender::Vector<BMFace *> faces;
+  Vector<BMVert *> verts;
+  Vector<BMFace *> faces;
 
   /** Store the parameters used in creation so invalid use can be asserted. */
   BMPartialUpdate_Params params = {};
@@ -47,10 +49,7 @@ struct BMPartialUpdate {
  * Operate on everything that's tagged as well as connected geometry.
  */
 [[nodiscard]] BMPartialUpdate *BM_mesh_partial_create_from_verts(
-    BMesh &bm,
-    const BMPartialUpdate_Params &params,
-    blender::BitSpan verts_mask,
-    int verts_mask_count);
+    BMesh &bm, const BMPartialUpdate_Params &params, BitSpan verts_mask, int verts_mask_count);
 
 /**
  * All Connected, operate on all faces that have both tagged and un-tagged vertices.
@@ -58,10 +57,7 @@ struct BMPartialUpdate {
  * Reduces computations when transforming isolated regions.
  */
 [[nodiscard]] BMPartialUpdate *BM_mesh_partial_create_from_verts_group_single(
-    BMesh &bm,
-    const BMPartialUpdate_Params &params,
-    blender::BitSpan verts_mask,
-    int verts_mask_count);
+    BMesh &bm, const BMPartialUpdate_Params &params, BitSpan verts_mask, int verts_mask_count);
 
 /**
  * All Connected, operate on all faces that have vertices in the same group.
@@ -83,9 +79,8 @@ struct BMPartialUpdate {
  * \param verts_group_count: The number of non-zero values in `verts_groups`.
  */
 [[nodiscard]] BMPartialUpdate *BM_mesh_partial_create_from_verts_group_multi(
-    BMesh &bm,
-    const BMPartialUpdate_Params &params,
-    blender::Span<int> verts_group,
-    int verts_group_count);
+    BMesh &bm, const BMPartialUpdate_Params &params, Span<int> verts_group, int verts_group_count);
 
 void BM_mesh_partial_destroy(BMPartialUpdate *bmpinfo) ATTR_NONNULL(1);
+
+}  // namespace blender

@@ -14,7 +14,7 @@ namespace blender::gpu {
 
 void VKDiscardPool::deinit(VKDevice &device)
 {
-  destroy_discarded_resources(device, true);
+  destroy_discarded_resources(device, UINT64_MAX);
 }
 
 void VKDiscardPool::move_data(VKDiscardPool &src_pool, TimelineValue timeline)
@@ -26,8 +26,6 @@ void VKDiscardPool::move_data(VKDiscardPool &src_pool, TimelineValue timeline)
   src_pool.shader_modules_.update_timeline(timeline);
   src_pool.pipelines_.update_timeline(timeline);
   src_pool.pipeline_layouts_.update_timeline(timeline);
-  src_pool.framebuffers_.update_timeline(timeline);
-  src_pool.render_passes_.update_timeline(timeline);
   src_pool.descriptor_pools_.update_timeline(timeline);
   buffer_views_.extend(std::move(src_pool.buffer_views_));
   buffers_.extend(std::move(src_pool.buffers_));
@@ -36,8 +34,6 @@ void VKDiscardPool::move_data(VKDiscardPool &src_pool, TimelineValue timeline)
   shader_modules_.extend(std::move(src_pool.shader_modules_));
   pipelines_.extend(std::move(src_pool.pipelines_));
   pipeline_layouts_.extend(std::move(src_pool.pipeline_layouts_));
-  framebuffers_.extend(std::move(src_pool.framebuffers_));
-  render_passes_.extend(std::move(src_pool.render_passes_));
   descriptor_pools_.extend(std::move(src_pool.descriptor_pools_));
 }
 
@@ -81,18 +77,6 @@ void VKDiscardPool::discard_pipeline_layout(VkPipelineLayout vk_pipeline_layout)
   pipeline_layouts_.append_timeline(timeline_, vk_pipeline_layout);
 }
 
-void VKDiscardPool::discard_framebuffer(VkFramebuffer vk_framebuffer)
-{
-  std::scoped_lock mutex(mutex_);
-  framebuffers_.append_timeline(timeline_, vk_framebuffer);
-}
-
-void VKDiscardPool::discard_render_pass(VkRenderPass vk_render_pass)
-{
-  std::scoped_lock mutex(mutex_);
-  render_passes_.append_timeline(timeline_, vk_render_pass);
-}
-
 void VKDiscardPool::discard_descriptor_pool_for_reuse(VkDescriptorPool vk_descriptor_pool,
                                                       VKDescriptorPools *descriptor_pools)
 {
@@ -100,10 +84,9 @@ void VKDiscardPool::discard_descriptor_pool_for_reuse(VkDescriptorPool vk_descri
   descriptor_pools_.append_timeline(timeline_, std::pair(vk_descriptor_pool, descriptor_pools));
 }
 
-void VKDiscardPool::destroy_discarded_resources(VKDevice &device, bool force)
+void VKDiscardPool::destroy_discarded_resources(VKDevice &device, TimelineValue current_timeline)
 {
   std::scoped_lock mutex(mutex_);
-  TimelineValue current_timeline = force ? UINT64_MAX : device.submission_finished_timeline_get();
 
   image_views_.remove_old(current_timeline, [&](VkImageView vk_image_view) {
     vkDestroyImageView(device.vk_handle(), vk_image_view, nullptr);
@@ -135,14 +118,6 @@ void VKDiscardPool::destroy_discarded_resources(VKDevice &device, bool force)
     vkDestroyShaderModule(device.vk_handle(), vk_shader_module, nullptr);
   });
 
-  framebuffers_.remove_old(current_timeline, [&](VkFramebuffer vk_framebuffer) {
-    vkDestroyFramebuffer(device.vk_handle(), vk_framebuffer, nullptr);
-  });
-
-  render_passes_.remove_old(current_timeline, [&](VkRenderPass vk_render_pass) {
-    vkDestroyRenderPass(device.vk_handle(), vk_render_pass, nullptr);
-  });
-
   descriptor_pools_.remove_old(
       current_timeline, [&](std::pair<VkDescriptorPool, VKDescriptorPools *> descriptor_pool) {
         descriptor_pool.second->recycle(descriptor_pool.first);
@@ -163,6 +138,40 @@ VKDiscardPool &VKDiscardPool::discard_pool_get()
   else {
     return device.orphaned_data;
   }
+}
+
+std::ostream &operator<<(std::ostream &os, const VKDiscardPool &discard_pool)
+{
+  if (discard_pool.images_.is_empty() && discard_pool.buffers_.is_empty() &&
+      discard_pool.image_views_.is_empty() && discard_pool.buffer_views_.is_empty() &&
+      discard_pool.shader_modules_.is_empty() && discard_pool.pipeline_layouts_.is_empty() &&
+      discard_pool.descriptor_pools_.is_empty())
+  {
+    return os;
+  }
+  os << "  Discardable resources: ";
+  if (!discard_pool.images_.is_empty()) {
+    os << "VkImage=" << discard_pool.images_.size() << " ";
+  }
+  if (!discard_pool.image_views_.is_empty()) {
+    os << "VkImageView=" << discard_pool.image_views_.size() << " ";
+  }
+  if (!discard_pool.buffers_.is_empty()) {
+    os << "VkBuffer=" << discard_pool.buffers_.size() << " ";
+  }
+  if (!discard_pool.buffer_views_.is_empty()) {
+    os << "VkBufferViews=" << discard_pool.buffer_views_.size() << " ";
+  }
+  if (!discard_pool.shader_modules_.is_empty()) {
+    os << "VkShaderModule=" << discard_pool.shader_modules_.size() << " ";
+  }
+  if (!discard_pool.pipeline_layouts_.is_empty()) {
+    os << "VkPipelineLayout=" << discard_pool.pipeline_layouts_.size() << " ";
+  }
+  if (!discard_pool.descriptor_pools_.is_empty()) {
+    os << "VkDescriptorPool=" << discard_pool.descriptor_pools_.size();
+  }
+  return os;
 }
 
 }  // namespace blender::gpu

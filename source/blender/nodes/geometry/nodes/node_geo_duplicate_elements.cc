@@ -36,8 +36,12 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry").description("Geometry to duplicate elements of");
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
-  b.add_input<decl::Int>("Amount").min(0).default_value(1).field_on_all().description(
-      "The number of duplicates to create for each element");
+  b.add_input<decl::Int>("Amount")
+      .min(0)
+      .default_value(1)
+      .field_on_all()
+      .description("The number of duplicates to create for each element")
+      .translation_context(BLT_I18NCONTEXT_COUNTABLE);
 
   b.add_output<decl::Geometry>("Geometry")
       .propagate_all()
@@ -49,14 +53,14 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryDuplicateElements *data = MEM_callocN<NodeGeometryDuplicateElements>(__func__);
+  NodeGeometryDuplicateElements *data = MEM_new<NodeGeometryDuplicateElements>(__func__);
   data->domain = int8_t(AttrDomain::Point);
   node->storage = data;
 }
 
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
+  layout.prop(ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 struct IndexAttributes {
@@ -138,6 +142,12 @@ static void copy_stable_id_point(const OffsetIndices<int> offsets,
   if (!src_attribute) {
     return;
   }
+  if (!ELEM(src_attribute.domain, AttrDomain::Point, AttrDomain::Instance)) {
+    return;
+  }
+  if (!src_attribute.varray.type().is<int>()) {
+    return;
+  }
   SpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span<int>(
       "id", AttrDomain::Point);
   if (!dst_attribute) {
@@ -172,7 +182,7 @@ static void copy_curve_attributes_without_id(const bke::CurvesGeometry &src_curv
   for (auto &attribute : bke::retrieve_attributes_for_transfer(
            src_curves.attributes(),
            dst_curves.attributes_for_write(),
-           ATTR_DOMAIN_MASK_ALL,
+           {bke::AttrDomain::Point, bke::AttrDomain::Curve},
            bke::attribute_filter_with_skip_ref(attribute_filter, {"id"})))
   {
     switch (attribute.meta_data.domain) {
@@ -181,8 +191,7 @@ static void copy_curve_attributes_without_id(const bke::CurvesGeometry &src_curv
             curve_offsets, selection, attribute.src, attribute.dst.span);
         break;
       case AttrDomain::Point:
-        bke::attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
-          using T = decltype(dummy);
+        bke::attribute_math::to_static_type(attribute.src.type(), [&]<typename T>() {
           const Span<T> src = attribute.src.typed<T>();
           MutableSpan<T> dst = attribute.dst.span.typed<T>();
           selection.foreach_index(
@@ -217,6 +226,13 @@ static void copy_stable_id_curves(const bke::CurvesGeometry &src_curves,
   if (!src_attribute) {
     return;
   }
+  if (src_attribute.domain != AttrDomain::Point) {
+    return;
+  }
+  if (!src_attribute.varray.type().is<int>()) {
+    return;
+  }
+
   SpanAttributeWriter dst_attribute =
       dst_curves.attributes_for_write().lookup_or_add_for_write_only_span<int>("id",
                                                                                AttrDomain::Point);
@@ -234,7 +250,8 @@ static void copy_stable_id_curves(const bke::CurvesGeometry &src_curves,
       GrainSize(512), [&](const int64_t i_src_curve, const int64_t i_selection) {
         const Span<int> curve_src = src.slice(src_points_by_curve[i_src_curve]);
         const IndexRange duplicates_range = offsets[i_selection];
-        for (const int i_duplicate : IndexRange(offsets[i_selection].size()).drop_front(1)) {
+        dst.slice(dst_points_by_curve[duplicates_range.first()]).copy_from(curve_src);
+        for (const int i_duplicate : duplicates_range.index_range().drop_front(1)) {
           const int i_dst_curve = duplicates_range[i_duplicate];
           copy_hashed_ids(curve_src, i_duplicate, dst.slice(dst_points_by_curve[i_dst_curve]));
         }
@@ -382,7 +399,10 @@ static void copy_face_attributes_without_id(const Span<int> edge_mapping,
   for (auto &attribute : bke::retrieve_attributes_for_transfer(
            src_attributes,
            dst_attributes,
-           ATTR_DOMAIN_MASK_ALL,
+           {bke::AttrDomain::Point,
+            bke::AttrDomain::Edge,
+            bke::AttrDomain::Face,
+            bke::AttrDomain::Corner},
            bke::attribute_filter_with_skip_ref(
                attribute_filter, {"id", ".corner_vert", ".corner_edge", ".edge_verts"})))
   {
@@ -424,6 +444,12 @@ static void copy_stable_id_faces(const Mesh &mesh,
 {
   GAttributeReader src_attribute = src_attributes.lookup("id");
   if (!src_attribute) {
+    return;
+  }
+  if (src_attribute.domain != AttrDomain::Point) {
+    return;
+  }
+  if (!src_attribute.varray.type().is<int>()) {
     return;
   }
   SpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span<int>(
@@ -584,7 +610,7 @@ static void copy_edge_attributes_without_id(const Span<int> point_mapping,
   for (auto &attribute : bke::retrieve_attributes_for_transfer(
            src_attributes,
            dst_attributes,
-           ATTR_DOMAIN_MASK_POINT | ATTR_DOMAIN_MASK_EDGE,
+           {bke::AttrDomain::Point, bke::AttrDomain::Edge},
            bke::attribute_filter_with_skip_ref(attribute_filter, {"id", ".edge_verts"})))
   {
     switch (attribute.meta_data.domain) {
@@ -615,6 +641,12 @@ static void copy_stable_id_edges(const Mesh &mesh,
 {
   GAttributeReader src_attribute = src_attributes.lookup("id");
   if (!src_attribute) {
+    return;
+  }
+  if (src_attribute.domain != AttrDomain::Point) {
+    return;
+  }
+  if (!src_attribute.varray.type().is<int>()) {
     return;
   }
   SpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span<int>(
@@ -767,11 +799,10 @@ static bke::CurvesGeometry duplicate_points_CurvesGeometry(
   for (auto &attribute : bke::retrieve_attributes_for_transfer(
            src_curves.attributes(),
            new_curves.attributes_for_write(),
-           ATTR_DOMAIN_MASK_CURVE,
+           {bke::AttrDomain::Curve},
            bke::attribute_filter_with_skip_ref(attribute_filter, {"id"})))
   {
-    bke::attribute_math::convert_to_static_type(attribute.src.type(), [&](auto dummy) {
-      using T = decltype(dummy);
+    bke::attribute_math::to_static_type(attribute.src.type(), [&]<typename T>() {
       const Span<T> src = attribute.src.typed<T>();
       MutableSpan<T> dst = attribute.dst.span.typed<T>();
       selection.foreach_index(GrainSize(512), [&](const int64_t index, const int64_t i_selection) {
@@ -1116,18 +1147,21 @@ static void duplicate_instances(GeometrySet &geometry_set,
     return;
   }
 
-  std::unique_ptr<bke::Instances> dst_instances = std::make_unique<bke::Instances>();
+  const Span<bke::InstanceReference> src_references = src_instances.references();
+  const Span<int> src_handles = src_instances.reference_handles();
 
-  dst_instances->resize(duplicates.total_size());
+  auto dst_instances = std::make_unique<bke::Instances>(duplicates.total_size());
+
+  MutableSpan<int> handles = dst_instances->reference_handles_for_write();
   selection.foreach_index([&](const int i_src, const int i_dst) {
     const IndexRange range = duplicates[i_dst];
     if (range.is_empty()) {
       return;
     }
-    const int old_handle = src_instances.reference_handles()[i_src];
-    const bke::InstanceReference reference = src_instances.references()[old_handle];
+    const int old_handle = src_handles[i_src];
+    const bke::InstanceReference reference = src_references[old_handle];
     const int new_handle = dst_instances->add_reference(reference);
-    dst_instances->reference_handles_for_write().slice(range).fill(new_handle);
+    handles.slice(range).fill(new_handle);
   });
 
   bke::gather_attributes_to_groups(
@@ -1147,7 +1181,7 @@ static void duplicate_instances(GeometrySet &geometry_set,
                                      duplicates);
   }
 
-  geometry_set = GeometrySet::from_instances(dst_instances.release());
+  geometry_set = GeometrySet::from_instances(std::move(dst_instances));
 }
 
 /** \} */
@@ -1246,22 +1280,22 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(&ntype, "GeometryNodeDuplicateElements", GEO_NODE_DUPLICATE_ELEMENTS);
   ntype.ui_name = "Duplicate Elements";
   ntype.ui_description = "Generate an arbitrary number copies of each selected input element";
   ntype.enum_name_legacy = "DUPLICATE_ELEMENTS";
   ntype.nclass = NODE_CLASS_GEOMETRY;
-  blender::bke::node_type_storage(ntype,
-                                  "NodeGeometryDuplicateElements",
-                                  node_free_standard_storage,
-                                  node_copy_standard_storage);
+  bke::node_type_storage(ntype,
+                         "NodeGeometryDuplicateElements",
+                         node_free_standard_storage,
+                         node_copy_standard_storage);
 
   ntype.initfunc = node_init;
   ntype.draw_buttons = node_layout;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

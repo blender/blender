@@ -22,11 +22,7 @@
 /* interface */
 #include "mikktspace.hh"
 
-using blender::Array;
-using blender::float3;
-using blender::float4;
-using blender::Span;
-using blender::StringRef;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Tangent Space Calculation
@@ -97,7 +93,7 @@ struct SGLSLEditMeshToTangent {
   {
     const BMLoop *l = GetLoop(face_num, vert_index);
     if (has_uv()) {
-      const float *uv = (const float *)BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+      const float *uv = static_cast<const float *> BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
       return mikk::float3(uv[0], uv[1], 1.0f);
     }
     const float *orco_p = orco[BM_elem_index_get(l->v)];
@@ -160,7 +156,7 @@ static void calc_face_as_quad_map(
     /* Over allocate, since we don't know how many ngon or quads we have. */
 
     /* map fake face index to looptri */
-    face_as_quad_map = MEM_malloc_arrayN<int>(size_t(totface), __func__);
+    face_as_quad_map = MEM_new_array_uninitialized<int>(size_t(totface), __func__);
     int i, j;
     for (i = 0, j = 0; j < totface; i++, j++) {
       face_as_quad_map[i] = j;
@@ -185,7 +181,6 @@ Array<Array<float4>> BKE_editmesh_uv_tangents_calc(BMEditMesh *em,
                                                    const Span<float3> corner_normals,
                                                    const Span<StringRef> uv_names)
 {
-  using namespace blender;
   if (em->looptris.is_empty()) {
     return {};
   }
@@ -223,14 +218,14 @@ Array<Array<float4>> BKE_editmesh_uv_tangents_calc(BMEditMesh *em,
 
       mesh2tangent.looptris = em->looptris;
       result[n].reinitialize(bm->totloop);
-      mesh2tangent.tangent = reinterpret_cast<float(*)[4]>(result[n].data());
+      mesh2tangent.tangent = reinterpret_cast<float (*)[4]>(result[n].data());
 
       mikk::Mikktspace<SGLSLEditMeshToTangent> mikk(mesh2tangent);
       mikk.genTangSpace();
     }
   });
 
-  MEM_SAFE_FREE(face_as_quad_map);
+  MEM_SAFE_DELETE(face_as_quad_map);
 
   return result;
 }
@@ -275,13 +270,15 @@ Array<float4> BKE_editmesh_orco_tangents_calc(BMEditMesh *em,
   mesh2tangent.orco = vert_orco;
 
   mesh2tangent.looptris = em->looptris;
-  mesh2tangent.tangent = reinterpret_cast<float(*)[4]>(result.data());
+  mesh2tangent.tangent = reinterpret_cast<float (*)[4]>(result.data());
   mikk::Mikktspace<SGLSLEditMeshToTangent> mikk(mesh2tangent);
   mikk.genTangSpace();
 
-  MEM_SAFE_FREE(face_as_quad_map);
+  MEM_SAFE_DELETE(face_as_quad_map);
 
   return result;
 }
 
 /** \} */
+
+}  // namespace blender

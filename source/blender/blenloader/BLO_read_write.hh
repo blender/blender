@@ -30,23 +30,112 @@
 
 #pragma once
 
+#include "DNA_ID.h"
+#include "DNA_listBase.h"
 #include "DNA_sdna_type_ids.hh"
 
 #include "BLI_function_ref.hh"
 #include "BLI_implicit_sharing.hh"
+#include "BLI_map.hh"
 #include "BLI_memory_utils.hh"
 
 namespace blender {
+
 class ImplicitSharingInfo;
-}
-struct BlendDataReader;
 struct BlendFileReadReport;
 struct BlendLibReader;
-struct BlendWriter;
 struct ID;
 struct ListBase;
 struct Main;
+struct WriteData;
+struct FileData;
 enum eReportType : uint16_t;
+
+struct BlendWriter {
+  WriteData *wd = nullptr;
+
+  void write_struct_by_name(const char *struct_name, const void *data);
+  void write_struct_by_id(int struct_id, const void *data);
+  void write_struct_at_address_by_id(int struct_id, const void *address, const void *data);
+  void write_struct_at_address_by_id_with_filecode(int filecode,
+                                                   int struct_id,
+                                                   const void *address,
+                                                   const void *data);
+  void write_struct_array_by_name(const char *struct_name, int64_t array_size, const void *data);
+  void write_struct_array_by_id(int struct_id, int64_t array_size, const void *data);
+  void write_struct_array_at_address_by_id(int struct_id,
+                                           int64_t array_size,
+                                           const void *address,
+                                           const void *data);
+  void write_struct_list_by_name(const char *struct_name, ListBase *list);
+  void write_struct_list_by_id(int struct_id, const ListBase *list);
+
+  int struct_id_by_name(const char *struct_name) const;
+
+  template<typename T> void write_struct(const T *data)
+  {
+    this->write_struct_by_id(dna::sdna_struct_id_get<T>(), data);
+  }
+
+  template<typename T> void write_struct_cast(const void *data)
+  {
+    this->write_struct_by_id(dna::sdna_struct_id_get<T>(), data);
+  }
+
+  template<typename T> void write_struct_at_address(const void *address, const T *data)
+  {
+    this->write_struct_at_address_by_id(dna::sdna_struct_id_get<T>(), address, data);
+  }
+
+  template<typename T> void write_struct_at_address_cast(const void *address, const void *data)
+  {
+    this->write_struct_at_address_by_id(dna::sdna_struct_id_get<T>(), address, data);
+  }
+
+  template<typename T> void write_struct_array(const int64_t array_size, const T *data)
+  {
+    this->write_struct_array_by_id(dna::sdna_struct_id_get<T>(), array_size, data);
+  }
+
+  template<typename T> void write_struct_array_cast(const int64_t array_size, const void *data)
+  {
+    this->write_struct_array_by_id(dna::sdna_struct_id_get<T>(), array_size, data);
+  }
+
+  template<typename T>
+  void write_struct_array_at_address(const int64_t array_size, const void *address, const T *data)
+  {
+    this->write_struct_array_at_address_by_id(
+        dna::sdna_struct_id_get<T>(), array_size, address, data);
+  }
+
+  template<typename T> void write_struct_list(const ListBaseT<T> *list)
+  {
+    this->write_struct_list_by_id(dna::sdna_struct_id_get<T>(), list);
+  }
+
+  template<typename T> void write_id_struct(const void *id_address, const T *id)
+  {
+    this->write_struct_at_address_by_id_with_filecode(
+        GS(id_cast<const ID *>(id)->name), dna::sdna_struct_id_get<T>(), id_address, id);
+  }
+};
+
+struct BlendDataReader {
+  /** Pointer to private #FileData in readfile.cc. */
+  FileData *fd = nullptr;
+
+  /**
+   * The key is the old address id referencing shared data that's written to a file, typically an
+   * array. The corresponding value is the shared data at run-time.
+   */
+  Map<uint64_t, ImplicitSharingInfoAndData> shared_data_by_stored_address;
+};
+
+struct BlendLibReader {
+  FileData *fd;
+  Main *main;
+};
 
 /* -------------------------------------------------------------------- */
 /** \name Blend Write API
@@ -65,7 +154,7 @@ enum eReportType : uint16_t;
  * - Run-time Name: The name is provided as `const char *`.
  * - Compile-time Name: The name is provided at compile time. This is more efficient.
  * - Struct ID: Every DNA struct type has an integer ID that can be queried with
- *   #BLO_get_struct_id_by_name. Providing this ID can be a useful optimization when many
+ *   #BlendWriter::struct_id_by_name. Providing this ID can be a useful optimization when many
  *   structs of the same type are stored AND if those structs are not in a continuous array.
  *
  * Often only a single instance of a struct is written at once. However, sometimes it is necessary
@@ -84,82 +173,6 @@ enum eReportType : uint16_t;
  * \{ */
 
 /**
- * Mapping between names and ids.
- */
-int BLO_get_struct_id_by_name(const BlendWriter *writer, const char *struct_name);
-
-/**
- * Write single struct.
- */
-void BLO_write_struct_by_name(BlendWriter *writer, const char *struct_name, const void *data_ptr);
-void BLO_write_struct_by_id(BlendWriter *writer, int struct_id, const void *data_ptr);
-#define BLO_write_struct(writer, struct_name, data_ptr) \
-  BLO_write_struct_by_id(writer, blender::dna::sdna_struct_id_get<struct_name>(), data_ptr)
-
-/**
- * Write single struct at address.
- */
-void BLO_write_struct_at_address_by_id(BlendWriter *writer,
-                                       int struct_id,
-                                       const void *address,
-                                       const void *data_ptr);
-#define BLO_write_struct_at_address(writer, struct_name, address, data_ptr) \
-  BLO_write_struct_at_address_by_id( \
-      writer, blender::dna::sdna_struct_id_get<struct_name>(), address, data_ptr)
-
-/**
- * Write single struct at address and specify a file-code.
- */
-void BLO_write_struct_at_address_by_id_with_filecode(
-    BlendWriter *writer, int filecode, int struct_id, const void *address, const void *data_ptr);
-#define BLO_write_struct_at_address_with_filecode( \
-    writer, filecode, struct_name, address, data_ptr) \
-  BLO_write_struct_at_address_by_id_with_filecode( \
-      writer, filecode, blender::dna::sdna_struct_id_get<struct_name>(), address, data_ptr)
-
-/**
- * Write struct array.
- */
-void BLO_write_struct_array_by_name(BlendWriter *writer,
-                                    const char *struct_name,
-                                    int64_t array_size,
-                                    const void *data_ptr);
-void BLO_write_struct_array_by_id(BlendWriter *writer,
-                                  int struct_id,
-                                  int64_t array_size,
-                                  const void *data_ptr);
-#define BLO_write_struct_array(writer, struct_name, array_size, data_ptr) \
-  BLO_write_struct_array_by_id( \
-      writer, blender::dna::sdna_struct_id_get<struct_name>(), array_size, data_ptr)
-
-/**
- * Write struct array at address.
- */
-void BLO_write_struct_array_at_address_by_id(BlendWriter *writer,
-                                             int struct_id,
-                                             int64_t array_size,
-                                             const void *address,
-                                             const void *data_ptr);
-#define BLO_write_struct_array_at_address(writer, struct_name, array_size, address, data_ptr) \
-  BLO_write_struct_array_at_address_by_id( \
-      writer, blender::dna::sdna_struct_id_get<struct_name>(), array_size, address, data_ptr)
-
-/**
- * Write struct list.
- */
-void BLO_write_struct_list_by_name(BlendWriter *writer, const char *struct_name, ListBase *list);
-void BLO_write_struct_list_by_id(BlendWriter *writer, int struct_id, const ListBase *list);
-#define BLO_write_struct_list(writer, struct_name, list_ptr) \
-  BLO_write_struct_list_by_id(writer, blender::dna::sdna_struct_id_get<struct_name>(), list_ptr)
-
-/**
- * Write id struct.
- */
-void blo_write_id_struct(BlendWriter *writer, int struct_id, const void *id_address, const ID *id);
-#define BLO_write_id_struct(writer, struct_name, id_address, id) \
-  blo_write_id_struct(writer, blender::dna::sdna_struct_id_get<struct_name>(), id_address, id)
-
-/**
  * Specific code to prepare IDs to be written.
  *
  * Required for writing properly embedded IDs currently.
@@ -170,7 +183,7 @@ void blo_write_id_struct(BlendWriter *writer, int struct_id, const void *id_addr
 struct BLO_Write_IDBuffer {
  private:
   static constexpr int static_size = 8192;
-  blender::DynamicStackBuffer<static_size> buffer_;
+  DynamicStackBuffer<static_size> buffer_;
 
  public:
   BLO_Write_IDBuffer(ID &id, bool is_undo, bool is_placeholder);
@@ -222,6 +235,10 @@ void BLO_write_string(BlendWriter *writer, const char *data_ptr);
  * user count of the sharing-info is increased making the data immutable. The provided callback
  * should serialize the potentially shared data. It is only called when necessary.
  *
+ * This should be called before the data is referenced in other written data (there is an assert
+ * that checks for this). If that's not possible, at least #BLO_write_shared_tag needs to be called
+ * before the pointer is first written.
+ *
  * \param approximate_size_in_bytes: Used to be able to approximate how large the undo step is in
  * total.
  * \param write_fn: Use the #BlendWrite to serialize the potentially shared data.
@@ -229,8 +246,13 @@ void BLO_write_string(BlendWriter *writer, const char *data_ptr);
 void BLO_write_shared(BlendWriter *writer,
                       const void *data,
                       size_t approximate_size_in_bytes,
-                      const blender::ImplicitSharingInfo *sharing_info,
-                      blender::FunctionRef<void()> write_fn);
+                      const ImplicitSharingInfo *sharing_info,
+                      FunctionRef<void()> write_fn);
+
+/**
+ * Needs to be called if the pointer is somewhere written before the call to #BLO_write_shared.
+ */
+void BLO_write_shared_tag(BlendWriter *writer, const void *data);
 
 /**
  * Sometimes different data is written depending on whether the file is saved to disk or used for
@@ -254,10 +276,10 @@ bool BLO_write_is_undo(BlendWriter *writer);
  * Examples of matching calls:
  *
  * \code{.c}
- * BLO_write_struct(writer, ClothSimSettings, clmd->sim_parms);
+ * writer->write_struct(clmd->sim_parms);
  * BLO_read_struct(reader, ClothSimSettings, &clmd->sim_parms);
  *
- * BLO_write_struct_list(writer, TimeMarker, &action->markers);
+ * writer->write_struct_list(&action->markers);
  * BLO_read_struct_list(reader, TimeMarker, &action->markers);
  *
  * BLO_write_int32_array(writer, hmd->totindex, hmd->indexar);
@@ -307,7 +329,7 @@ void *BLO_read_struct_array_with_size(BlendDataReader *reader,
  * Similar to #BLO_read_struct_array_with_size, but can use a (DNA) type name instead of the type
  * itself to find the expected data size.
  *
- * Somewhat mirrors #BLO_write_struct_array_by_name.
+ * Somewhat mirrors #BlendWriter::write_struct_array_by_name.
  */
 void *BLO_read_struct_by_name_array(BlendDataReader *reader,
                                     const char *struct_name,
@@ -347,22 +369,21 @@ void BLO_read_string(BlendDataReader *reader, const char **ptr_p);
 
 /* Misc. */
 
-blender::ImplicitSharingInfoAndData blo_read_shared_impl(
+ImplicitSharingInfoAndData blo_read_shared_impl(
     BlendDataReader *reader,
     const void **ptr_p,
-    blender::FunctionRef<const blender::ImplicitSharingInfo *()> read_fn);
+    FunctionRef<const ImplicitSharingInfo *()> read_fn);
 
 /**
  * Check if there is any shared data for the given data pointer. If yes, return the existing
  * sharing-info. If not, call the provided function to actually read the data now.
  */
 template<typename T>
-const blender::ImplicitSharingInfo *BLO_read_shared(
-    BlendDataReader *reader,
-    T **data_ptr,
-    blender::FunctionRef<const blender::ImplicitSharingInfo *()> read_fn)
+const ImplicitSharingInfo *BLO_read_shared(BlendDataReader *reader,
+                                           T **data_ptr,
+                                           FunctionRef<const ImplicitSharingInfo *()> read_fn)
 {
-  blender::ImplicitSharingInfoAndData shared_data = blo_read_shared_impl(
+  ImplicitSharingInfoAndData shared_data = blo_read_shared_impl(
       reader, (const void **)data_ptr, read_fn);
   /* Need const-cast here, because not all DNA members that reference potentially shared data are
    * const yet. */
@@ -376,6 +397,7 @@ void BLO_read_data_globmap_add(BlendDataReader *reader, void *oldaddr, void *new
 void BLO_read_glob_list(BlendDataReader *reader, ListBase *list);
 BlendFileReadReport *BLO_read_data_reports(BlendDataReader *reader);
 struct Library *BLO_read_data_current_library(BlendDataReader *reader);
+void BLO_read_data_set_need_preview_render_restart(BlendDataReader *reader);
 
 /** \} */
 
@@ -437,3 +459,5 @@ void BLO_reportf_wrap(BlendFileReadReport *reports, eReportType type, const char
     ATTR_PRINTF_FORMAT(3, 4);
 
 /** \} */
+
+}  // namespace blender

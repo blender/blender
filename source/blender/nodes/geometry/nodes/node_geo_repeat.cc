@@ -26,10 +26,12 @@
 #include "node_geometry_util.hh"
 #include "shader/node_shader_util.hh"
 
-namespace blender::nodes::node_geo_repeat_cc {
+namespace blender {
+
+namespace nodes::node_geo_repeat_cc {
 
 /** Shared between repeat zone input and output node. */
-static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_node_ptr)
+static void node_layout_ex(ui::Layout &layout, bContext *C, PointerRNA *current_node_ptr)
 {
   bNodeTree &ntree = *reinterpret_cast<bNodeTree *>(current_node_ptr->owner_id);
   bNode *current_node = static_cast<bNode *>(current_node_ptr->data);
@@ -47,9 +49,9 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
   }
   bNode &output_node = const_cast<bNode &>(*zone->output_node());
   PointerRNA output_node_ptr = RNA_pointer_create_discrete(
-      current_node_ptr->owner_id, &RNA_Node, &output_node);
+      current_node_ptr->owner_id, RNA_Node, &output_node);
 
-  if (uiLayout *panel = layout->panel(C, "repeat_items", false, IFACE_("Repeat Items"))) {
+  if (ui::Layout *panel = layout.panel(C, "repeat_items", false, IFACE_("Repeat Items"))) {
     socket_items::ui::draw_items_list_with_operators<RepeatItemsAccessor>(
         C, panel, ntree, output_node);
     socket_items::ui::draw_active_item_props<RepeatItemsAccessor>(
@@ -60,7 +62,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
         });
   }
 
-  layout->prop(&output_node_ptr, "inspection_index", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(&output_node_ptr, "inspection_index", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 namespace repeat_input_node {
@@ -89,7 +91,7 @@ static void node_declare(NodeDeclarationBuilder &b)
         const std::string identifier = RepeatItemsAccessor::socket_identifier_for_item(item);
         auto &input_decl = b.add_input(socket_type, name, identifier)
                                .socket_name_ptr(
-                                   &tree->id, RepeatItemsAccessor::item_srna, &item, "name");
+                                   &tree->id, *RepeatItemsAccessor::item_srna, &item, "name");
         auto &output_decl = b.add_output(socket_type, name, identifier).align_with_previous();
         if (socket_type_supports_fields(socket_type)) {
           input_decl.supports_field();
@@ -108,7 +110,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryRepeatInput *data = MEM_callocN<NodeGeometryRepeatInput>(__func__);
+  NodeGeometryRepeatInput *data = MEM_new<NodeGeometryRepeatInput>(__func__);
   /* Needs to be initialized for the node to work. */
   data->output_node_id = 0;
   node->storage = data;
@@ -132,10 +134,20 @@ static bool node_insert_link(bke::NodeInsertLinkParams &params)
       params.ntree, params.node, *output_node, params.link);
 }
 
+static int node_shader_fn(GPUMaterial *mat,
+                          bNode *node,
+                          bNodeExecData * /*execdata*/,
+                          GPUNodeStack *in,
+                          GPUNodeStack *out)
+{
+  int zone_id = node_storage(*node).output_node_id;
+  return GPU_stack_link_zone(mat, node, "REPEAT_BEGIN", in, out, zone_id, false, 1, 1);
+}
+
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
-  common_node_type_base(&ntype, "GeometryNodeRepeatInput", GEO_NODE_REPEAT_INPUT);
+  static bke::bNodeType ntype;
+  sh_geo_node_type_base(&ntype, "GeometryNodeRepeatInput", GEO_NODE_REPEAT_INPUT);
   ntype.ui_name = "Repeat Input";
   ntype.enum_name_legacy = "REPEAT_INPUT";
   ntype.nclass = NODE_CLASS_INTERFACE;
@@ -146,9 +158,10 @@ static void node_register()
   ntype.insert_link = node_insert_link;
   ntype.no_muting = true;
   ntype.draw_buttons_ex = node_layout_ex;
-  blender::bke::node_type_storage(
+  ntype.gpu_fn = node_shader_fn;
+  bke::node_type_storage(
       ntype, "NodeGeometryRepeatInput", node_free_standard_storage, node_copy_standard_storage);
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 
@@ -173,7 +186,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       const std::string identifier = RepeatItemsAccessor::socket_identifier_for_item(item);
       auto &input_decl = b.add_input(socket_type, name, identifier)
                              .socket_name_ptr(
-                                 &tree->id, RepeatItemsAccessor::item_srna, &item, "name");
+                                 &tree->id, *RepeatItemsAccessor::item_srna, &item, "name");
       auto &output_decl = b.add_output(socket_type, name, identifier).align_with_previous();
       if (socket_type_supports_fields(socket_type)) {
         input_decl.supports_field();
@@ -191,12 +204,12 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree *tree, bNode *node)
 {
-  NodeGeometryRepeatOutput *data = MEM_callocN<NodeGeometryRepeatOutput>(__func__);
+  NodeGeometryRepeatOutput *data = MEM_new<NodeGeometryRepeatOutput>(__func__);
 
   data->next_identifier = 0;
 
   if (tree->type == NTREE_GEOMETRY) {
-    data->items = MEM_calloc_arrayN<NodeRepeatItem>(1, __func__);
+    data->items = MEM_new_array<NodeRepeatItem>(1, __func__);
     data->items[0].name = BLI_strdup(DATA_("Geometry"));
     data->items[0].socket_type = SOCK_GEOMETRY;
     data->items[0].identifier = data->next_identifier++;
@@ -209,13 +222,13 @@ static void node_init(bNodeTree *tree, bNode *node)
 static void node_free_storage(bNode *node)
 {
   socket_items::destruct_array<RepeatItemsAccessor>(*node);
-  MEM_freeN(node->storage);
+  MEM_delete(reinterpret_cast<NodeGeometryRepeatOutput *>(node->storage));
 }
 
 static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const bNode *src_node)
 {
   const NodeGeometryRepeatOutput &src_storage = node_storage(*src_node);
-  auto *dst_storage = MEM_dupallocN<NodeGeometryRepeatOutput>(__func__, src_storage);
+  auto *dst_storage = MEM_new<NodeGeometryRepeatOutput>(__func__, dna::shallow_copy(src_storage));
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<RepeatItemsAccessor>(*src_node, *dst_node);
@@ -281,10 +294,20 @@ static void node_blend_read(bNodeTree & /*tree*/, bNode &node, BlendDataReader &
   socket_items::blend_read_data<RepeatItemsAccessor>(&reader, node);
 }
 
+static int node_shader_fn(GPUMaterial *mat,
+                          bNode *node,
+                          bNodeExecData * /*execdata*/,
+                          GPUNodeStack *in,
+                          GPUNodeStack *out)
+{
+  int zone_id = node->identifier;
+  return GPU_stack_link_zone(mat, node, "REPEAT_END", in, out, zone_id, true, 0, 0);
+}
+
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
-  common_node_type_base(&ntype, "GeometryNodeRepeatOutput", GEO_NODE_REPEAT_OUTPUT);
+  static bke::bNodeType ntype;
+  sh_geo_node_type_base(&ntype, "GeometryNodeRepeatOutput", GEO_NODE_REPEAT_OUTPUT);
   ntype.ui_name = "Repeat Output";
   ntype.enum_name_legacy = "REPEAT_OUTPUT";
   ntype.nclass = NODE_CLASS_INTERFACE;
@@ -298,19 +321,19 @@ static void node_register()
   ntype.register_operators = node_operators;
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
-  blender::bke::node_type_storage(
-      ntype, "NodeGeometryRepeatOutput", node_free_storage, node_copy_storage);
-  blender::bke::node_register_type(ntype);
+  ntype.gpu_fn = node_shader_fn;
+  bke::node_type_storage(ntype, "NodeGeometryRepeatOutput", node_free_storage, node_copy_storage);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 
 }  // namespace repeat_output_node
 
-}  // namespace blender::nodes::node_geo_repeat_cc
+}  // namespace nodes::node_geo_repeat_cc
 
-namespace blender::nodes {
+namespace nodes {
 
-StructRNA *RepeatItemsAccessor::item_srna = &RNA_RepeatItem;
+StructRNA **RepeatItemsAccessor::item_srna = &RNA_RepeatItem;
 
 void RepeatItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {
@@ -322,14 +345,16 @@ void RepeatItemsAccessor::blend_read_data_item(BlendDataReader *reader, ItemT &i
   BLO_read_string(reader, &item.name);
 }
 
-}  // namespace blender::nodes
+}  // namespace nodes
 
-blender::Span<NodeRepeatItem> NodeGeometryRepeatOutput::items_span() const
+Span<NodeRepeatItem> NodeGeometryRepeatOutput::items_span() const
 {
-  return blender::Span<NodeRepeatItem>(items, items_num);
+  return Span<NodeRepeatItem>(items, items_num);
 }
 
-blender::MutableSpan<NodeRepeatItem> NodeGeometryRepeatOutput::items_span()
+MutableSpan<NodeRepeatItem> NodeGeometryRepeatOutput::items_span()
 {
-  return blender::MutableSpan<NodeRepeatItem>(items, items_num);
+  return MutableSpan<NodeRepeatItem>(items, items_num);
 }
+
+}  // namespace blender

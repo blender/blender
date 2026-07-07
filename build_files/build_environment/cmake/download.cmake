@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 ## Update and uncomment this in the release branch
-# set(BLENDER_VERSION 3.1)
+set(BLENDER_VERSION 5.0)
 
 function(download_source dep)
   set(TARGET_FILE ${${dep}_FILE})
@@ -17,7 +17,7 @@ function(download_source dep)
     set(TARGET_URI https://projects.blender.org/blender/lib-source/media/branch/main/${TARGET_FILE})
   endif()
   # Validate all required variables are set and give an explicit error message
-  # rather than CMake erroring out later on with a more ambigious error.
+  # rather than CMake erroring out later on with a more ambiguous error.
   if(NOT DEFINED TARGET_FILE)
     message(FATAL_ERROR "${dep}_FILE variable not set")
   endif()
@@ -61,7 +61,7 @@ function(download_source dep)
     # building a release package and one of the packages
     # is missing or incorrect.
     #
-    # For regular platform maintenaince this is not needed
+    # For regular platform maintenance this is not needed
     # since the actual build of the dep will notify the
     # platform maintainer if there is a problem with the
     # source package and refuse to build.
@@ -96,7 +96,6 @@ download_source(OPENIMAGEIO)
 download_source(TIFF)
 download_source(OSL)
 download_source(PYTHON)
-download_source(LIBB2)
 download_source(TBB)
 download_source(OPENVDB)
 download_source(CYTHON)
@@ -118,7 +117,6 @@ download_source(ICONV)
 download_source(SNDFILE)
 download_source(WEBP)
 download_source(SPNAV)
-download_source(JEMALLOC)
 download_source(XML2)
 download_source(YAMLCPP)
 download_source(EXPAT)
@@ -139,7 +137,6 @@ download_source(NASM)
 download_source(XR_OPENXR_SDK)
 download_source(WL_PROTOCOLS)
 download_source(WAYLAND)
-download_source(WAYLAND_LIBDECOR)
 download_source(WAYLAND_WESTON)
 download_source(ISPC)
 download_source(GMP)
@@ -159,10 +156,11 @@ download_source(DPCPP)
 download_source(VCINTRINSICS)
 download_source(OPENCLHEADERS)
 download_source(ICDLOADER)
-download_source(MP11)
+download_source(EMHASH)
 download_source(DPCPP_SPIRV_HEADERS)
 download_source(UNIFIED_RUNTIME)
 download_source(UNIFIED_MEMORY_FRAMEWORK)
+download_source(PARALLEL_HASHMAP)
 download_source(IGC)
 download_source(IGC_LLVM)
 download_source(IGC_OPENCL_CLANG)
@@ -190,3 +188,10 @@ download_source(DEFLATE)
 download_source(HIPRT)
 download_source(NANOBIND)
 download_source(MANIFOLD)
+download_source(RUBBERBAND)
+download_source(OPENJPH)
+download_source(THORVG)
+download_source(LIBHEIF)
+download_source(ABSEIL)
+download_source(EIGEN)
+download_source(CERES)

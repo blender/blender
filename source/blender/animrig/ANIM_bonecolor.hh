@@ -16,13 +16,15 @@
 
 #include "DNA_armature_types.h"
 
+namespace blender {
+
 struct bPoseChannel;
 struct ThemeWireColor;
 
-namespace blender::animrig {
+namespace animrig {
 
 /** C++ wrapper for the DNA BoneColor struct. */
-class BoneColor : public ::BoneColor {
+class BoneColor : public blender::BoneColor {
  public:
   BoneColor();
   BoneColor(const BoneColor &other);
@@ -30,7 +32,7 @@ class BoneColor : public ::BoneColor {
 
   const ThemeWireColor *effective_color() const;
 
-  /* Support for storing in a #blender::Set<BoneColor>. */
+  /* Support for storing in a #Set<BoneColor>. */
   bool operator==(const BoneColor &other) const;
   bool operator!=(const BoneColor &other) const;
   uint64_t hash() const;
@@ -44,4 +46,6 @@ class BoneColor : public ::BoneColor {
  */
 const BoneColor &ANIM_bonecolor_posebone_get(const bPoseChannel *pose_bone);
 
-};  // namespace blender::animrig
+};  // namespace animrig
+
+}  // namespace blender

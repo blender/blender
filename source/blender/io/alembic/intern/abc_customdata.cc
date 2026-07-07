@@ -7,7 +7,9 @@
  */
 
 #include "abc_customdata.h"
+#include "BLI_color_types.hh"
 #include "abc_axis_conversion.h"
+#include "abc_util.h"
 
 #include <Alembic/Abc/ICompoundProperty.h>
 #include <Alembic/Abc/ISampleSelector.h>
@@ -27,9 +29,12 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 
+#include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
+
+namespace blender {
 
 /* NOTE: for now only UVs and Vertex Colors are supported for streaming.
  * Although Alembic only allows for a single UV layer per {I|O}Schema, and does
@@ -48,7 +53,7 @@ using Alembic::Abc::V2fArraySample;
 using Alembic::AbcGeom::OC4fGeomParam;
 using Alembic::AbcGeom::OV2fGeomParam;
 using Alembic::AbcGeom::OV3fGeomParam;
-namespace blender::io::alembic {
+namespace io::alembic {
 
 /* ORCO, Generated Coordinates, and Reference Points ("Pref") are all terms for the same thing.
  * Other applications (Maya, Houdini) write these to a property called "Pref". */
@@ -57,14 +62,8 @@ static const std::string propNameOriginalCoordinates("Pref");
 static void get_uvs(const CDStreamConfig &config,
                     std::vector<Imath::V2f> &uvs,
                     std::vector<uint32_t> &uvidx,
-                    const void *cd_data)
+                    const Span<float2> uv_map_array)
 {
-  const float2 *uv_map_array = static_cast<const float2 *>(cd_data);
-
-  if (!uv_map_array) {
-    return;
-  }
-
   const OffsetIndices faces = config.mesh->faces();
   int *corner_verts = config.corner_verts;
 
@@ -76,7 +75,7 @@ static void get_uvs(const CDStreamConfig &config,
     /* Iterate in reverse order to match exported polygons. */
     for (const int i : faces.index_range()) {
       const IndexRange face = faces[i];
-      const float2 *loopuv = uv_map_array + face.start() + face.size();
+      const float2 *loopuv = uv_map_array.data() + face.start() + face.size();
 
       for (int j = 0; j < face.size(); j++, count++) {
         loopuv--;
@@ -95,7 +94,7 @@ static void get_uvs(const CDStreamConfig &config,
     for (const int i : faces.index_range()) {
       const IndexRange face = faces[i];
       int *face_verts = corner_verts + face.start() + face.size();
-      const float2 *loopuv = uv_map_array + face.start() + face.size();
+      const float2 *loopuv = uv_map_array.data() + face.start() + face.size();
 
       for (int j = 0; j < face.size(); j++) {
         face_verts--;
@@ -125,19 +124,20 @@ static void get_uvs(const CDStreamConfig &config,
   }
 }
 
-const char *get_uv_sample(UVSample &sample, const CDStreamConfig &config, CustomData *data)
+const char *get_uv_sample(UVSample &sample, const CDStreamConfig &config, const Mesh &mesh)
 {
-  const int active_uvlayer = CustomData_get_active_layer(data, CD_PROP_FLOAT2);
-
-  if (active_uvlayer < 0) {
+  const StringRefNull name = mesh.active_uv_map_name();
+  if (name.is_empty()) {
+    return "";
+  }
+  const VArraySpan uv_map = *mesh.attributes().lookup<float2>(name, bke::AttrDomain::Corner);
+  if (uv_map.is_empty()) {
     return "";
   }
 
-  const void *cd_data = CustomData_get_layer_n(data, CD_PROP_FLOAT2, active_uvlayer);
+  get_uvs(config, sample.uvs, sample.indices, uv_map);
 
-  get_uvs(config, sample.uvs, sample.indices, cd_data);
-
-  return CustomData_get_layer_name(data, CD_PROP_FLOAT2, active_uvlayer);
+  return name.c_str();
 }
 
 /* Convention to write UVs:
@@ -147,8 +147,8 @@ const char *get_uv_sample(UVSample &sample, const CDStreamConfig &config, Custom
  */
 static void write_uv(const OCompoundProperty &prop,
                      CDStreamConfig &config,
-                     const void *data,
-                     const char *name)
+                     const Span<float2> data,
+                     const std::string &uv_map_name)
 {
   std::vector<uint32_t> indices;
   std::vector<Imath::V2f> uvs;
@@ -159,11 +159,10 @@ static void write_uv(const OCompoundProperty &prop,
     return;
   }
 
-  std::string uv_map_name(name);
   OV2fGeomParam param = config.abc_uv_maps[uv_map_name];
 
   if (!param.valid()) {
-    param = OV2fGeomParam(prop, name, true, kFacevaryingScope, 1);
+    param = OV2fGeomParam(prop, uv_map_name, true, kFacevaryingScope, 1);
   }
   OV2fGeomParam::Sample sample(V2fArraySample(&uvs.front(), uvs.size()),
                                UInt32ArraySample(&indices.front(), indices.size()),
@@ -213,7 +212,7 @@ static void get_cols(const CDStreamConfig &config,
 static void write_mcol(const OCompoundProperty &prop,
                        CDStreamConfig &config,
                        const void *data,
-                       const char *name)
+                       const std::string &vcol_name)
 {
   std::vector<uint32_t> indices;
   std::vector<Imath::C4f> buffer;
@@ -224,11 +223,10 @@ static void write_mcol(const OCompoundProperty &prop,
     return;
   }
 
-  std::string vcol_name(name);
   OC4fGeomParam param = config.abc_vertex_colors[vcol_name];
 
   if (!param.valid()) {
-    param = OC4fGeomParam(prop, name, true, kFacevaryingScope, 1);
+    param = OC4fGeomParam(prop, vcol_name, true, kFacevaryingScope, 1);
   }
 
   OC4fGeomParam::Sample sample(C4fArraySample(&buffer.front(), buffer.size()),
@@ -249,7 +247,7 @@ void write_generated_coordinates(const OCompoundProperty &prop, CDStreamConfig &
     /* Data not available, so don't even bother creating an Alembic property for it. */
     return;
   }
-  const float(*orcodata)[3] = static_cast<const float(*)[3]>(customdata);
+  const float (*orcodata)[3] = static_cast<const float (*)[3]>(customdata);
 
   /* Convert 3D vertices from float[3] z=up to V3f y=up. */
   std::vector<Imath::V3f> coords(config.totvert);
@@ -262,7 +260,7 @@ void write_generated_coordinates(const OCompoundProperty &prop, CDStreamConfig &
   /* ORCOs are always stored in the normalized 0..1 range in Blender, but Alembic stores them
    * unnormalized, so we need to unnormalize (invert transform) them. */
   BKE_mesh_orco_verts_transform(
-      mesh, reinterpret_cast<float(*)[3]>(coords.data()), mesh->verts_num, true);
+      mesh, reinterpret_cast<float (*)[3]>(coords.data()), mesh->verts_num, true);
 
   if (!config.abc_orco.valid()) {
     /* Create the Alembic property and keep a reference so future frames can reuse it. */
@@ -275,33 +273,33 @@ void write_generated_coordinates(const OCompoundProperty &prop, CDStreamConfig &
 
 void write_custom_data(const OCompoundProperty &prop,
                        CDStreamConfig &config,
-                       CustomData *data,
+                       const Mesh &mesh,
                        int data_type)
 {
-  eCustomDataType cd_data_type = eCustomDataType(data_type);
-
-  if (!CustomData_has_layer(data, cd_data_type)) {
-    return;
-  }
-
-  const int active_layer = CustomData_get_active_layer(data, cd_data_type);
-  const int tot_layers = CustomData_number_of_layers(data, cd_data_type);
-
-  for (int i = 0; i < tot_layers; i++) {
-    const void *cd_data = CustomData_get_layer_n(data, cd_data_type, i);
-    const char *name = CustomData_get_layer_name(data, cd_data_type, i);
-
-    if (cd_data_type == CD_PROP_FLOAT2) {
-      /* Already exported. */
-      if (i == active_layer) {
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  if (data_type == CD_PROP_FLOAT2) {
+    const StringRef active_uv_name = mesh.active_uv_map_name();
+    for (const StringRefNull name : mesh.uv_map_names()) {
+      if (name == active_uv_name) {
+        /* Already exported. */
         continue;
       }
-
-      write_uv(prop, config, cd_data, name);
+      const VArraySpan uv_map = *attributes.lookup<float2>(name, bke::AttrDomain::Corner);
+      write_uv(prop, config, uv_map, get_valid_abc_name(name.c_str()));
     }
-    else if (cd_data_type == CD_PROP_BYTE_COLOR) {
-      write_mcol(prop, config, cd_data, name);
-    }
+  }
+  else if (data_type == CD_PROP_BYTE_COLOR) {
+    mesh.attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
+      if (iter.data_type != bke::AttrType::ColorByte) {
+        return;
+      }
+      if (iter.domain != bke::AttrDomain::Corner) {
+        return;
+      }
+      const VArraySpan attr = *attributes.lookup<ColorGeometry4b>(iter.name,
+                                                                  bke::AttrDomain::Corner);
+      write_mcol(prop, config, attr.data(), get_valid_abc_name(iter.name.c_str()));
+    });
   }
 }
 
@@ -318,14 +316,13 @@ using Alembic::AbcGeom::IV2fGeomParam;
 using Alembic::AbcGeom::IV3fGeomParam;
 
 static void read_uvs(const CDStreamConfig &config,
-                     void *data,
+                     MutableSpan<float2> uv_map,
                      const AbcUvScope uv_scope,
                      const Alembic::AbcGeom::V2fArraySamplePtr &uvs,
                      const UInt32ArraySamplePtr &indices)
 {
   const OffsetIndices faces = config.mesh->faces();
   const int *corner_verts = config.corner_verts;
-  float2 *uv_map = static_cast<float2 *>(data);
 
   uint uv_index, loop_index, rev_loop_index;
 
@@ -416,9 +413,9 @@ static void read_custom_data_mcols(const std::string &iobject_full_name,
   BLI_assert(c3f_ptr || c4f_ptr);
 
   /* Read the vertex colors */
-  void *cd_data = config.add_customdata_cb(
-      config.mesh, prop_header.getName().c_str(), CD_PROP_BYTE_COLOR);
-  MCol *cfaces = static_cast<MCol *>(cd_data);
+  bke::MutableAttributeAccessor attributes = config.mesh->attributes_for_write();
+  bke::SpanAttributeWriter attr = attributes.lookup_or_add_for_write_span<ColorGeometry4b>(
+      prop_header.getName(), bke::AttrDomain::Corner);
   const OffsetIndices faces = config.mesh->faces();
   const int *corner_verts = config.corner_verts;
 
@@ -434,14 +431,12 @@ static void read_custom_data_mcols(const std::string &iobject_full_name,
 
   for (const int i : faces.index_range()) {
     const IndexRange face = faces[i];
-    MCol *cface = &cfaces[face.start() + face.size()];
-    const int *face_verts = &corner_verts[face.start() + face.size()];
+    int corner = face.start() + face.size();
 
     for (int j = 0; j < face.size(); j++, face_index++) {
-      cface--;
-      face_verts--;
+      corner--;
 
-      color_index = is_facevarying ? face_index : *face_verts;
+      color_index = is_facevarying ? face_index : corner_verts[corner];
       if (use_dual_indexing) {
         color_index = (*indices)[color_index];
       }
@@ -457,10 +452,10 @@ static void read_custom_data_mcols(const std::string &iobject_full_name,
           continue;
         }
         const Imath::C3f &color = (*c3f_ptr)[color_index];
-        cface->a = unit_float_to_uchar_clamp(color[0]);
-        cface->r = unit_float_to_uchar_clamp(color[1]);
-        cface->g = unit_float_to_uchar_clamp(color[2]);
-        cface->b = 255;
+        attr.span[corner].r = unit_float_to_uchar_clamp(color[0]);
+        attr.span[corner].g = unit_float_to_uchar_clamp(color[1]);
+        attr.span[corner].b = unit_float_to_uchar_clamp(color[2]);
+        attr.span[corner].a = 255;
       }
       else {
         bool is_mcols_out_of_bounds = false;
@@ -474,13 +469,15 @@ static void read_custom_data_mcols(const std::string &iobject_full_name,
           continue;
         }
         const Imath::C4f &color = (*c4f_ptr)[color_index];
-        cface->a = unit_float_to_uchar_clamp(color[0]);
-        cface->r = unit_float_to_uchar_clamp(color[1]);
-        cface->g = unit_float_to_uchar_clamp(color[2]);
-        cface->b = unit_float_to_uchar_clamp(color[3]);
+        attr.span[corner].r = unit_float_to_uchar_clamp(color[0]);
+        attr.span[corner].g = unit_float_to_uchar_clamp(color[1]);
+        attr.span[corner].b = unit_float_to_uchar_clamp(color[2]);
+        attr.span[corner].a = unit_float_to_uchar_clamp(color[3]);
       }
     }
   }
+
+  attr.finish();
 }
 
 static void read_custom_data_uvs(const ICompoundProperty &prop,
@@ -505,10 +502,13 @@ static void read_custom_data_uvs(const ICompoundProperty &prop,
     return;
   }
 
-  void *cd_data = config.add_customdata_cb(
-      config.mesh, prop_header.getName().c_str(), CD_PROP_FLOAT2);
+  bke::MutableAttributeAccessor attributes = config.mesh->attributes_for_write();
+  bke::SpanAttributeWriter uv_map = attributes.lookup_or_add_for_write_span<float2>(
+      prop_header.getName(), bke::AttrDomain::Corner);
 
-  read_uvs(config, cd_data, uv_scope, sample.getVals(), uvs_indices);
+  read_uvs(config, uv_map.span, uv_scope, sample.getVals(), uvs_indices);
+
+  uv_map.finish();
 }
 
 void read_velocity(const V3fArraySamplePtr &velocities,
@@ -522,16 +522,16 @@ void read_velocity(const V3fArraySamplePtr &velocities,
     return;
   }
 
-  AttributeOwner owner = AttributeOwner::from_id(&config.mesh->id);
-  CustomDataLayer *velocity_layer = BKE_attribute_new(
-      owner, "velocity", CD_PROP_FLOAT3, bke::AttrDomain::Point, nullptr);
-  float(*velocity)[3] = (float(*)[3])velocity_layer->data;
-
+  bke::MutableAttributeAccessor attributes = config.mesh->attributes_for_write();
+  bke::SpanAttributeWriter attr = attributes.lookup_or_add_for_write_span<float3>(
+      "velocity", bke::AttrDomain::Point);
+  MutableSpan<float3> velocity = attr.span;
   for (int i = 0; i < num_velocity_vectors; i++) {
     const Imath::V3f &vel_in = (*velocities)[i];
     copy_zup_from_yup(velocity[i], vel_in.getValue());
     mul_v3_fl(velocity[i], velocity_scale);
   }
+  attr.finish();
 }
 
 void read_generated_coordinates(const ICompoundProperty &prop,
@@ -572,7 +572,7 @@ void read_generated_coordinates(const ICompoundProperty &prop,
     cd_data = CustomData_add_layer(&mesh->vert_data, CD_ORCO, CD_CONSTRUCT, totvert);
   }
 
-  float(*orcodata)[3] = static_cast<float(*)[3]>(cd_data);
+  float (*orcodata)[3] = static_cast<float (*)[3]>(cd_data);
   for (int vertex_idx = 0; vertex_idx < totvert; ++vertex_idx) {
     const Imath::V3f &abc_coords = (*abc_orco)[vertex_idx];
     copy_zup_from_yup(orcodata[vertex_idx], abc_coords.getValue());
@@ -635,4 +635,5 @@ AbcUvScope get_uv_scope(const Alembic::AbcGeom::GeometryScope scope,
   return ABC_UV_SCOPE_NONE;
 }
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

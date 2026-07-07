@@ -17,7 +17,11 @@
 
 #include "BKE_attribute.h"
 
+#include "BLT_translation.hh"
+
 #include "WM_types.hh"
+
+namespace blender {
 
 const EnumPropertyItem rna_enum_curves_type_items[] = {
     {CURVE_TYPE_CATMULL_ROM, "CATMULL_ROM", 0, "Catmull Rom", ""},
@@ -55,21 +59,24 @@ const EnumPropertyItem rna_enum_curve_normal_mode_items[] = {
     {NORMAL_MODE_MINIMUM_TWIST,
      "MINIMUM_TWIST",
      ICON_NONE,
-     "Minimum Twist",
-     "Calculate normals with the smallest twist around the curve tangent across the whole curve"},
+     N_("Minimum Twist"),
+     N_("Calculate normals with the smallest twist around the curve tangent across the whole "
+        "curve")},
     {NORMAL_MODE_Z_UP,
      "Z_UP",
      ICON_NONE,
-     "Z Up",
-     "Calculate normals perpendicular to the Z axis and the curve tangent. If a series of points "
-     "is vertical, the X axis is used."},
+     N_("Z Up"),
+     N_("Calculate normals perpendicular to the Z axis and the curve tangent. If a series of "
+        "points is vertical, the X axis is used.")},
     {NORMAL_MODE_FREE,
      "FREE",
      ICON_NONE,
-     "Free",
-     "Use the stored custom normal attribute as the final normals"},
+     N_("Free"),
+     N_("Use the stored custom normal attribute as the final normals")},
     {0, nullptr, 0, nullptr, nullptr},
 };
+
+}  // namespace blender
 
 #ifdef RNA_RUNTIME
 
@@ -88,6 +95,8 @@ const EnumPropertyItem rna_enum_curve_normal_mode_items[] = {
 
 #  include "WM_api.hh"
 #  include "WM_types.hh"
+
+namespace blender {
 
 static Curves *rna_curves(const PointerRNA *ptr)
 {
@@ -119,25 +128,25 @@ static bool rna_Curves_curve_offset_data_lookup_int(PointerRNA *ptr, int index, 
     return false;
   }
   rna_pointer_create_with_ancestors(
-      *ptr, &RNA_IntAttributeValue, &curves->geometry.wrap().offsets_for_write()[index], *r_ptr);
+      *ptr, RNA_IntAttributeValue, &curves->geometry.wrap().offsets_for_write()[index], *r_ptr);
   return true;
 }
 
 static float (*get_curves_positions_for_write(Curves &curves))[3]
 {
-  return reinterpret_cast<float(*)[3]>(curves.geometry.wrap().positions_for_write().data());
+  return reinterpret_cast<float (*)[3]>(curves.geometry.wrap().positions_for_write().data());
 }
 
 static const float (*get_curves_positions(const Curves &curves))[3]
 {
-  return reinterpret_cast<const float(*)[3]>(curves.geometry.wrap().positions().data());
+  return reinterpret_cast<const float (*)[3]>(curves.geometry.wrap().positions().data());
 }
 
 static int rna_CurvePoint_index_get_const(const PointerRNA *ptr)
 {
   const Curves *curves = rna_curves(ptr);
-  const float(*co)[3] = static_cast<float(*)[3]>(ptr->data);
-  const float(*positions)[3] = get_curves_positions(*curves);
+  const float (*co)[3] = static_cast<float (*)[3]>(ptr->data);
+  const float (*positions)[3] = get_curves_positions(*curves);
   return int(co - positions);
 }
 
@@ -166,7 +175,7 @@ static bool rna_Curves_curves_lookup_int(PointerRNA *ptr, int index, PointerRNA 
     return false;
   }
   rna_pointer_create_with_ancestors(
-      *ptr, &RNA_CurveSlice, &curves->geometry.wrap().offsets_for_write()[index], *r_ptr);
+      *ptr, RNA_CurveSlice, &curves->geometry.wrap().offsets_for_write()[index], *r_ptr);
   return true;
 }
 
@@ -183,7 +192,7 @@ bool rna_Curves_position_data_lookup_int(PointerRNA *ptr, int index, PointerRNA 
     return false;
   }
   rna_pointer_create_with_ancestors(*ptr,
-                                    &RNA_FloatVectorAttributeValue,
+                                    RNA_FloatVectorAttributeValue,
                                     &get_curves_positions_for_write(*curves)[index],
                                     *r_ptr);
   return true;
@@ -218,7 +227,6 @@ static void rna_CurvePoint_location_set(PointerRNA *ptr, const float value[3])
 
 static float rna_CurvePoint_radius_get(PointerRNA *ptr)
 {
-  using namespace blender;
   const Curves *curves = rna_curves(ptr);
   const bke::AttributeAccessor attributes = curves->geometry.wrap().attributes();
   const VArray radii = *attributes.lookup_or_default<float>(
@@ -228,7 +236,6 @@ static float rna_CurvePoint_radius_get(PointerRNA *ptr)
 
 static void rna_CurvePoint_radius_set(PointerRNA *ptr, float value)
 {
-  using namespace blender;
   Curves *curves = rna_curves(ptr);
   bke::MutableAttributeAccessor attributes = curves->geometry.wrap().attributes_for_write();
   bke::AttributeWriter radii = attributes.lookup_or_add_for_write<float>("radius",
@@ -251,7 +258,7 @@ bool rna_Curves_points_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
     return false;
   }
   rna_pointer_create_with_ancestors(
-      *ptr, &RNA_CurvePoint, &get_curves_positions_for_write(*curves)[index], *r_ptr);
+      *ptr, RNA_CurvePoint, &get_curves_positions_for_write(*curves)[index], *r_ptr);
   return true;
 }
 
@@ -289,15 +296,15 @@ static void rna_CurveSlice_points_begin(CollectionPropertyIterator *iter, Pointe
   Curves *curves = rna_curves(ptr);
   const int offset = rna_CurveSlice_first_point_index_get(ptr);
   const int size = rna_CurveSlice_points_length_get(ptr);
-  float(*positions)[3] = get_curves_positions_for_write(*curves);
-  float(*co)[3] = positions + offset;
+  float (*positions)[3] = get_curves_positions_for_write(*curves);
+  float (*co)[3] = positions + offset;
   rna_iterator_array_begin(iter, ptr, co, sizeof(float[3]), size, 0, nullptr);
 }
 
 static void rna_Curves_normals_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   Curves *curves = rna_curves(ptr);
-  float(*positions)[3] = blender::ed::curves::point_normals_array_create(curves);
+  float (*positions)[3] = ed::curves::point_normals_array_create(curves);
   const int size = curves->geometry.point_num;
   rna_iterator_array_begin(iter, ptr, positions, sizeof(float[3]), size, true, nullptr);
 }
@@ -321,7 +328,11 @@ void rna_Curves_update_draw(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr
   }
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_curves_point(BlenderRNA *brna)
 {
@@ -577,5 +588,7 @@ void RNA_def_curves(BlenderRNA *brna)
   rna_def_curves_curve(brna);
   rna_def_curves(brna);
 }
+
+}  // namespace blender
 
 #endif

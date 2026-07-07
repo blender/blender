@@ -20,8 +20,8 @@ extern PyTypeObject BlenderTextureShader_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&BlenderTextureShader_Type))
 
 /*---------------------------Python BPy_BlenderTextureShader structure definition-----------*/
-typedef struct {
+struct BPy_BlenderTextureShader {
   BPy_StrokeShader py_ss;
-} BPy_BlenderTextureShader;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

@@ -6,7 +6,6 @@
  * \ingroup modifiers
  */
 
-#include "DNA_defaults.h"
 #include "DNA_modifier_types.h"
 
 #include "BKE_curves.hh"
@@ -46,10 +45,7 @@ namespace blender {
 static void init_data(ModifierData *md)
 {
   auto *mmd = reinterpret_cast<GreasePencilArrayModifierData *>(md);
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(mmd, DNA_struct_default_get(GreasePencilArrayModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(mmd, modifier);
   modifier::greasepencil::init_influence_data(&mmd->influence, false);
 }
 
@@ -73,7 +69,7 @@ static void free_data(ModifierData *md)
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   auto *mmd = reinterpret_cast<GreasePencilArrayModifierData *>(md);
-  walk(user_data, ob, (ID **)&mmd->object, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&mmd->object), IDWALK_CB_NOP);
   modifier::greasepencil::foreach_influence_ID_link(&mmd->influence, ob, walk, user_data);
 }
 
@@ -168,16 +164,20 @@ static bke::CurvesGeometry create_array_copies(const Object &ob,
   bke::GeometrySet base_geo = bke::GeometrySet::from_curves(base_curves_id);
   bke::GeometrySet filtered_geo = bke::GeometrySet::from_curves(filtered_curves_id);
 
-  std::unique_ptr<bke::Instances> instances = std::make_unique<bke::Instances>();
+  auto instances = std::make_unique<bke::Instances>(mmd.count);
   const int base_handle = instances->add_reference(bke::InstanceReference{base_geo});
   const int filtered_handle = instances->add_reference(bke::InstanceReference{filtered_geo});
 
   /* Always add untouched original curves. */
-  instances->add_instance(base_handle, float4x4::identity());
+  MutableSpan<int> handles = instances->reference_handles_for_write();
+  MutableSpan<float4x4> transforms = instances->transforms_for_write();
+
+  handles.first() = base_handle;
+  transforms.first() = float4x4::identity();
 
   float3 size(0.0f);
   if (mmd.flag & MOD_GREASE_PENCIL_ARRAY_USE_RELATIVE) {
-    std::optional<blender::Bounds<float3>> bounds = filtered_curves.bounds_min_max();
+    std::optional<Bounds<float3>> bounds = filtered_curves.bounds_min_max();
     if (bounds.has_value()) {
       size = bounds.value().max - bounds.value().min;
       /* Need a minimum size (for flat drawings). */
@@ -207,14 +207,17 @@ static bke::CurvesGeometry create_array_copies(const Object &ob,
 
     current_offset *= get_rand_matrix(mmd, ob, elem_id);
 
-    instances->add_instance(filtered_handle, current_offset);
+    handles[elem_id] = filtered_handle;
+    transforms[elem_id] = current_offset;
   }
 
   geometry::RealizeInstancesOptions options;
   options.keep_original_ids = true;
   options.realize_instance_attributes = false; /* Should this be true? */
   bke::GeometrySet result_geo = geometry::realize_instances(
-      bke::GeometrySet::from_instances(instances.release()), options);
+                                    bke::GeometrySet::from_instances(std::move(instances)),
+                                    options)
+                                    .geometry;
   return std::move(result_geo.get_curves_for_write()->geometry.wrap());
 }
 
@@ -276,38 +279,38 @@ static void modify_geometry_set(ModifierData *md,
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "count", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "replace_material", UI_ITEM_NONE, IFACE_("Material Override"), ICON_NONE);
-  PanelLayout relative_offset_layout = layout->panel_prop_with_bool_header(
+  layout.prop(ptr, "count", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "replace_material", UI_ITEM_NONE, IFACE_("Material Override"), ICON_NONE);
+  ui::PanelLayout relative_offset_layout = layout.panel_prop_with_bool_header(
       C, ptr, "open_relative_offset_panel", ptr, "use_relative_offset", IFACE_("Relative Offset"));
-  if (uiLayout *sub = relative_offset_layout.body) {
-    uiLayout *col = &sub->column(false);
-    col->active_set(RNA_boolean_get(ptr, "use_relative_offset"));
-    col->prop(ptr, "relative_offset", UI_ITEM_NONE, IFACE_("Factor"), ICON_NONE);
+  if (ui::Layout *sub = relative_offset_layout.body) {
+    ui::Layout &col = sub->column(false);
+    col.active_set(RNA_boolean_get(ptr, "use_relative_offset"));
+    col.prop(ptr, "relative_offset", UI_ITEM_NONE, IFACE_("Factor"), ICON_NONE);
   }
-  PanelLayout constant_offset_layout = layout->panel_prop_with_bool_header(
+  ui::PanelLayout constant_offset_layout = layout.panel_prop_with_bool_header(
       C, ptr, "open_constant_offset_panel", ptr, "use_constant_offset", IFACE_("Constant Offset"));
-  if (uiLayout *sub = constant_offset_layout.body) {
-    uiLayout *col = &sub->column(false);
-    col->active_set(RNA_boolean_get(ptr, "use_constant_offset"));
-    col->prop(ptr, "constant_offset", UI_ITEM_NONE, IFACE_("Distance"), ICON_NONE);
+  if (ui::Layout *sub = constant_offset_layout.body) {
+    ui::Layout &col = sub->column(false);
+    col.active_set(RNA_boolean_get(ptr, "use_constant_offset"));
+    col.prop(ptr, "constant_offset", UI_ITEM_NONE, IFACE_("Distance"), ICON_NONE);
   }
-  PanelLayout object_offset_layout = layout->panel_prop_with_bool_header(
+  ui::PanelLayout object_offset_layout = layout.panel_prop_with_bool_header(
       C, ptr, "open_object_offset_panel", ptr, "use_object_offset", IFACE_("Object Offset"));
-  if (uiLayout *sub = object_offset_layout.body) {
-    uiLayout *col = &sub->column(false);
-    col->active_set(RNA_boolean_get(ptr, "use_object_offset"));
-    col->prop(ptr, "offset_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
+  if (ui::Layout *sub = object_offset_layout.body) {
+    ui::Layout &col = sub->column(false);
+    col.active_set(RNA_boolean_get(ptr, "use_object_offset"));
+    col.prop(ptr, "offset_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
   }
 
-  if (uiLayout *sub = layout->panel_prop(C, ptr, "open_randomize_panel", IFACE_("Randomize"))) {
+  if (ui::Layout *sub = layout.panel_prop(C, ptr, "open_randomize_panel", IFACE_("Randomize"))) {
     sub->use_property_split_set(true);
     sub->prop(ptr, "random_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
     sub->prop(ptr, "random_rotation", UI_ITEM_NONE, IFACE_("Rotation"), ICON_NONE);
@@ -316,11 +319,11 @@ static void panel_draw(const bContext *C, Panel *panel)
     sub->prop(ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (uiLayout *influence_panel = layout->panel_prop(
+  if (ui::Layout *influence_panel = layout.panel_prop(
           C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
-    modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);
+    modifier::greasepencil::draw_layer_filter_settings(C, *influence_panel, ptr);
+    modifier::greasepencil::draw_material_filter_settings(C, *influence_panel, ptr);
   }
 
   modifier_error_message_draw(layout, ptr);
@@ -335,7 +338,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 {
   const auto *mmd = reinterpret_cast<const GreasePencilArrayModifierData *>(md);
 
-  BLO_write_struct(writer, GreasePencilArrayModifierData, mmd);
+  writer->write_struct(mmd);
   modifier::greasepencil::write_influence_data(writer, &mmd->influence);
 }
 
@@ -345,8 +348,6 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
 
   modifier::greasepencil::read_influence_data(reader, &mmd->influence);
 }
-
-}  // namespace blender
 
 ModifierTypeInfo modifierType_GreasePencilArray = {
     /*idname*/ "GreasePencilArrayModifier",
@@ -359,26 +360,28 @@ ModifierTypeInfo modifierType_GreasePencilArray = {
         eModifierTypeFlag_EnableInEditmode | eModifierTypeFlag_SupportsMapping,
     /*icon*/ ICON_MOD_ARRAY,
 
-    /*copy_data*/ blender::copy_data,
+    /*copy_data*/ copy_data,
 
     /*deform_verts*/ nullptr,
     /*deform_matrices*/ nullptr,
     /*deform_verts_EM*/ nullptr,
     /*deform_matrices_EM*/ nullptr,
     /*modify_mesh*/ nullptr,
-    /*modify_geometry_set*/ blender::modify_geometry_set,
+    /*modify_geometry_set*/ modify_geometry_set,
 
-    /*init_data*/ blender::init_data,
+    /*init_data*/ init_data,
     /*required_data_mask*/ nullptr,
-    /*free_data*/ blender::free_data,
+    /*free_data*/ free_data,
     /*is_disabled*/ nullptr,
-    /*update_depsgraph*/ blender::update_depsgraph,
+    /*update_depsgraph*/ update_depsgraph,
     /*depends_on_time*/ nullptr,
     /*depends_on_normals*/ nullptr,
-    /*foreach_ID_link*/ blender::foreach_ID_link,
+    /*foreach_ID_link*/ foreach_ID_link,
     /*foreach_tex_link*/ nullptr,
     /*free_runtime_data*/ nullptr,
-    /*panel_register*/ blender::panel_register,
-    /*blend_write*/ blender::blend_write,
-    /*blend_read*/ blender::blend_read,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ blend_write,
+    /*blend_read*/ blend_read,
 };
+
+}  // namespace blender

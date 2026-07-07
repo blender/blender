@@ -14,7 +14,7 @@
 namespace blender {
 
 /**
- * A generic span. It behaves just like a blender::Span<T>, but the type is only known at run-time.
+ * A generic span. It behaves just like a Span<T>, but the type is only known at run-time.
  */
 class GSpan {
  protected:
@@ -139,7 +139,7 @@ class GSpan {
 };
 
 /**
- * A generic mutable span. It behaves just like a blender::MutableSpan<T>, but the type is only
+ * A generic mutable span. It behaves just like a MutableSpan<T>, but the type is only
  * known at run-time.
  */
 class GMutableSpan {

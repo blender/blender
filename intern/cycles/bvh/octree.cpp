@@ -16,6 +16,8 @@
 #  include <openvdb/tools/FindActiveValues.h>
 #endif
 
+#include <fstream>
+
 CCL_NAMESPACE_BEGIN
 
 __forceinline int Octree::flatten_index(int x, int y, int z) const

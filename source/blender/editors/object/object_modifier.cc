@@ -11,12 +11,12 @@
 
 #include "CLG_log.h"
 
+#include "DNA_defs.h"
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_array_utils.hh"
 #include "DNA_curve_types.h"
-#include "DNA_defaults.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_material_types.h"
@@ -28,6 +28,7 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_bitmap.h"
+#include "BLI_implicit_sharing.hh"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -119,7 +120,7 @@ static void object_force_modifier_update_for_bind(Depsgraph *depsgraph, Object *
   Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
   BKE_object_eval_reset(ob_eval);
   if (ob->type == OB_MESH) {
-    Mesh *mesh_eval = blender::bke::mesh_create_eval_final(
+    Mesh *mesh_eval = bke::mesh_create_eval_final(
         depsgraph, scene_eval, ob_eval, &CD_MASK_DERIVEDMESH);
     BKE_id_free(nullptr, mesh_eval);
   }
@@ -158,7 +159,7 @@ ModifierData *modifier_add(
     ReportList *reports, Main *bmain, Scene *scene, Object *ob, const char *name, int type)
 {
   ModifierData *new_md = nullptr;
-  const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)type);
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(type));
 
   /* Check compatibility of modifier [#25291, #50373]. */
   if (!BKE_object_support_modifier_type_check(ob, type)) {
@@ -167,7 +168,7 @@ ModifierData *modifier_add(
   }
 
   if (mti->flags & eModifierTypeFlag_Single) {
-    if (BKE_modifiers_findby_type(ob, (ModifierType)type)) {
+    if (BKE_modifiers_findby_type(ob, ModifierType(type))) {
       BKE_report(reports, RPT_WARNING, "Only one modifier of this type is allowed");
       return nullptr;
     }
@@ -183,28 +184,7 @@ ModifierData *modifier_add(
     /* get new modifier data to add */
     new_md = BKE_modifier_new(type);
 
-    ModifierData *next_md = nullptr;
-    LISTBASE_FOREACH_BACKWARD (ModifierData *, md, &ob->modifiers) {
-      if (md->flag & eModifierFlag_PinLast) {
-        next_md = md;
-      }
-      else {
-        break;
-      }
-    }
-    if (mti->flags & eModifierTypeFlag_RequiresOriginalData) {
-      next_md = static_cast<ModifierData *>(ob->modifiers.first);
-
-      while (next_md && BKE_modifier_get_info((ModifierType)next_md->type)->type ==
-                            ModifierTypeType::OnlyDeform)
-      {
-        if (next_md->next && (next_md->next->flag & eModifierFlag_PinLast) != 0) {
-          break;
-        }
-        next_md = next_md->next;
-      }
-    }
-    BLI_insertlinkbefore(&ob->modifiers, next_md, new_md);
+    BKE_modifiers_add_at_end_if_possible(ob, new_md);
     BKE_modifiers_persistent_uid_init(*ob, *new_md);
 
     if (name) {
@@ -212,7 +192,6 @@ ModifierData *modifier_add(
     }
 
     /* make sure modifier data has unique name */
-
     BKE_modifier_unique_name(&ob->modifiers, new_md);
 
     /* special cases */
@@ -234,16 +213,17 @@ ModifierData *modifier_add(
     }
     else if (type == eModifierType_Multires) {
       /* set totlvl from existing MDISPS layer if object already had it */
-      multiresModifier_set_levels_from_disps((MultiresModifierData *)new_md, ob);
+      multiresModifier_set_levels_from_disps(reinterpret_cast<MultiresModifierData *>(new_md), ob);
 
       if (ob->mode & OB_MODE_SCULPT) {
         /* ensure that grid paint mask layer is created */
-        BKE_sculpt_mask_layers_ensure(nullptr, nullptr, ob, (MultiresModifierData *)new_md);
+        BKE_sculpt_mask_layers_ensure(
+            nullptr, nullptr, ob, reinterpret_cast<MultiresModifierData *>(new_md));
       }
     }
     else if (type == eModifierType_Skin) {
       /* ensure skin-node customdata exists */
-      BKE_mesh_ensure_skin_customdata(static_cast<Mesh *>(ob->data));
+      BKE_mesh_ensure_skin_customdata(id_cast<Mesh *>(ob->data));
     }
   }
 
@@ -259,8 +239,8 @@ ModifierData *modifier_add(
  * the modifier pointed to be 'exclude', otherwise returns false. */
 static bool object_has_modifier(const Object *ob, const ModifierData *exclude, ModifierType type)
 {
-  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-    if ((md != exclude) && (md->type == type)) {
+  for (ModifierData &md : ob->modifiers) {
+    if ((&md != exclude) && (md.type == type)) {
       return true;
     }
   }
@@ -274,7 +254,7 @@ bool iter_other(Main *bmain,
                 bool (*callback)(Object *ob, void *callback_data),
                 void *callback_data)
 {
-  ID *ob_data_id = static_cast<ID *>(orig_ob->data);
+  ID *ob_data_id = orig_ob->data;
   int users = ob_data_id->us;
 
   if (ob_data_id->flag & ID_FLAG_FAKEUSER) {
@@ -307,18 +287,18 @@ bool iter_other(Main *bmain,
 
 static bool object_has_modifier_cb(Object *ob, void *data)
 {
-  ModifierType type = *((ModifierType *)data);
+  ModifierType type = *(static_cast<ModifierType *>(data));
 
   return object_has_modifier(ob, nullptr, type);
 }
 
 bool multires_update_totlevels(Object *ob, void *totlevel_v)
 {
-  int totlevel = *((char *)totlevel_v);
+  int totlevel = *(static_cast<char *>(totlevel_v));
 
-  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-    if (md->type == eModifierType_Multires) {
-      multires_set_tot_level(ob, (MultiresModifierData *)md, totlevel);
+  for (ModifierData &md : ob->modifiers) {
+    if (md.type == eModifierType_Multires) {
+      multires_set_tot_level(ob, reinterpret_cast<MultiresModifierData *>(&md), totlevel);
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     }
   }
@@ -347,7 +327,8 @@ static bool object_modifier_remove(
 
   /* special cases */
   if (md->type == eModifierType_ParticleSystem) {
-    object_remove_particle_system(bmain, scene, ob, ((ParticleSystemModifierData *)md)->psys);
+    object_remove_particle_system(
+        bmain, scene, ob, (reinterpret_cast<ParticleSystemModifierData *>(md))->psys);
     return true;
   }
 
@@ -370,7 +351,7 @@ static bool object_modifier_remove(
   else if (md->type == eModifierType_Multires) {
     /* Delete MDisps layer if not used by another multires modifier */
     if (object_modifier_safe_to_delete(bmain, ob, md, eModifierType_Multires)) {
-      multires_customdata_delete(static_cast<Mesh *>(ob->data));
+      multires_customdata_delete(id_cast<Mesh *>(ob->data));
     }
   }
   else if (md->type == eModifierType_Skin) {
@@ -386,7 +367,7 @@ static bool object_modifier_remove(
     ob->mode &= ~OB_MODE_PARTICLE_EDIT;
   }
 
-  BKE_animdata_drivers_remove_for_rna_struct(ob->id, RNA_Modifier, md);
+  BKE_animdata_drivers_remove_for_rna_struct(ob->id, *RNA_Modifier, md);
 
   BKE_modifier_remove_from_list(ob, md);
   BKE_modifier_free(md);
@@ -442,10 +423,10 @@ static bool object_modifier_check_move_before(ReportList *reports,
     if (md->flag & eModifierFlag_PinLast && !(md_prev->flag & eModifierFlag_PinLast)) {
       return false;
     }
-    const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
     if (mti->type != ModifierTypeType::OnlyDeform) {
-      const ModifierTypeInfo *nmti = BKE_modifier_get_info((ModifierType)md_prev->type);
+      const ModifierTypeInfo *nmti = BKE_modifier_get_info(ModifierType(md_prev->type));
 
       if (nmti->flags & eModifierTypeFlag_RequiresOriginalData) {
         BKE_report(reports, error_type, "Cannot move above a modifier requiring original data");
@@ -480,10 +461,10 @@ static bool object_modifier_check_move_after(ReportList *reports,
     if (md_next->flag & eModifierFlag_PinLast && !(md->flag & eModifierFlag_PinLast)) {
       return false;
     }
-    const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
     if (mti->flags & eModifierTypeFlag_RequiresOriginalData) {
-      const ModifierTypeInfo *nmti = BKE_modifier_get_info((ModifierType)md_next->type);
+      const ModifierTypeInfo *nmti = BKE_modifier_get_info(ModifierType(md_next->type));
 
       if (nmti->type != ModifierTypeType::OnlyDeform) {
         BKE_report(reports, error_type, "Cannot move beyond a non-deforming modifier");
@@ -594,7 +575,7 @@ bool modifier_copy_to_object(Main *bmain,
                              Object *ob_dst,
                              ReportList *reports)
 {
-  const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
   BLI_assert(ob_src != ob_dst);
 
@@ -609,7 +590,7 @@ bool modifier_copy_to_object(Main *bmain,
   }
 
   if (mti->flags & eModifierTypeFlag_Single) {
-    if (BKE_modifiers_findby_type(ob_dst, (ModifierType)md->type)) {
+    if (BKE_modifiers_findby_type(ob_dst, ModifierType(md->type))) {
       BKE_reportf(reports,
                   RPT_WARNING,
                   "Modifier can only be added once to object '%s'",
@@ -627,7 +608,7 @@ bool modifier_copy_to_object(Main *bmain,
     return false;
   }
 
-  WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob_dst);
+  WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_ADDED, ob_dst);
   DEG_id_tag_update(&ob_dst->id, ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
   DEG_relations_tag_update(bmain);
   return true;
@@ -650,7 +631,7 @@ bool convert_psys_to_mesh(ReportList * /*reports*/,
     return false;
   }
 
-  ParticleSystem *psys_orig = ((ParticleSystemModifierData *)md)->psys;
+  ParticleSystem *psys_orig = (reinterpret_cast<ParticleSystemModifierData *>(md))->psys;
   ParticleSettings *part = psys_orig->part;
 
   if (part->ren_as != PART_DRAW_PATH) {
@@ -743,7 +724,7 @@ bool convert_psys_to_mesh(ReportList * /*reports*/,
   select_vert.finish();
 
   Object *obn = BKE_object_add(bmain, scene, view_layer, OB_MESH, nullptr);
-  BKE_mesh_nomain_to_mesh(mesh, static_cast<Mesh *>(obn->data), obn);
+  BKE_mesh_nomain_to_mesh(mesh, id_cast<Mesh *>(obn->data), obn);
 
   DEG_relations_tag_update(bmain);
 
@@ -755,28 +736,28 @@ static void add_shapekey_layers(Mesh &mesh_dest, const Mesh &mesh_src)
   if (!mesh_src.key) {
     return;
   }
-  int i;
-  LISTBASE_FOREACH_INDEX (const KeyBlock *, kb, &mesh_src.key->block, i) {
+
+  for (const auto [i, kb] : mesh_src.key->block.enumerate()) {
     void *array;
-    if (mesh_src.verts_num != kb->totelem) {
+    if (mesh_src.verts_num != kb.totelem) {
       CLOG_ERROR(&LOG,
                  "vertex size mismatch (Mesh '%s':%d != KeyBlock '%s':%d)",
                  mesh_src.id.name + 2,
                  mesh_src.verts_num,
-                 kb->name,
-                 kb->totelem);
-      array = MEM_calloc_arrayN<float[3]>(mesh_src.verts_num, __func__);
+                 kb.name,
+                 kb.totelem);
+      array = MEM_new_array_zeroed<float[3]>(mesh_src.verts_num, __func__);
     }
     else {
-      array = MEM_malloc_arrayN<float[3]>(size_t(mesh_src.verts_num), __func__);
-      memcpy(array, kb->data, sizeof(float[3]) * size_t(mesh_src.verts_num));
+      array = MEM_new_array_uninitialized<float[3]>(size_t(mesh_src.verts_num), __func__);
+      memcpy(array, kb.data, sizeof(float[3]) * size_t(mesh_src.verts_num));
     }
 
     CustomData_add_layer_with_data(
         &mesh_dest.vert_data, CD_SHAPEKEY, array, mesh_dest.verts_num, nullptr);
     const int ci = CustomData_get_layer_index_n(&mesh_dest.vert_data, CD_SHAPEKEY, i);
 
-    mesh_dest.vert_data.layers[ci].uid = kb->uid;
+    mesh_dest.vert_data.layers[ci].uid = kb.uid;
   }
 }
 
@@ -883,7 +864,7 @@ static bool modifier_apply_shape(Main *bmain,
                                  Object *ob,
                                  ModifierData *md_eval)
 {
-  const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md_eval->type);
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md_eval->type));
 
   if (mti->is_disabled && mti->is_disabled(scene, md_eval, false)) {
     BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
@@ -901,7 +882,7 @@ static bool modifier_apply_shape(Main *bmain,
    * we can look into supporting them. */
 
   if (ob->type == OB_MESH) {
-    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    Mesh *mesh = id_cast<Mesh *>(ob->data);
     Key *key = mesh->key;
 
     if (!BKE_modifier_is_same_topology(md_eval) || mti->type == ModifierTypeType::NonGeometrical) {
@@ -922,7 +903,7 @@ static bool modifier_apply_shape(Main *bmain,
     }
 
     if (key == nullptr) {
-      key = mesh->key = BKE_key_add(bmain, (ID *)mesh);
+      key = mesh->key = BKE_key_add(bmain, id_cast<ID *>(mesh));
       key->type = KEY_RELATIVE;
       /* if that was the first key block added, then it was the basis.
        * Initialize it with the mesh, and add another for the modifier */
@@ -1015,7 +996,7 @@ static bool apply_grease_pencil_for_modifier_all_keyframes(Depsgraph *depsgraph,
   for (const int key : layer_indices_to_apply_per_frame.keys()) {
     sorted_frame_times[i++] = key;
   }
-  std::sort(sorted_frame_times.begin(), sorted_frame_times.end());
+  std::ranges::sort(sorted_frame_times);
 
   const int prev_frame = int(DEG_get_ctime(depsgraph));
   bool changed = false;
@@ -1071,7 +1052,7 @@ static bool modifier_apply_obdata(ReportList *reports,
                                   ModifierData *md_eval,
                                   const bool do_all_keyframes)
 {
-  const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md_eval->type);
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md_eval->type));
 
   if (mti->is_disabled && mti->is_disabled(scene, md_eval, false)) {
     BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
@@ -1079,7 +1060,7 @@ static bool modifier_apply_obdata(ReportList *reports,
   }
 
   if (ob->type == OB_MESH) {
-    Mesh *mesh = static_cast<Mesh *>(ob->data);
+    Mesh *mesh = id_cast<Mesh *>(ob->data);
     MultiresModifierData *mmd = find_multires_modifier_before(scene, md_eval);
 
     if (mesh->key && mti->type != ModifierTypeType::NonGeometrical) {
@@ -1132,8 +1113,8 @@ static bool modifier_apply_obdata(ReportList *reports,
   }
   else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     Object *object_eval = DEG_get_evaluated(depsgraph, ob);
-    Curve *curve = static_cast<Curve *>(ob->data);
-    Curve *curve_eval = static_cast<Curve *>(object_eval->data);
+    Curve *curve = id_cast<Curve *>(ob->data);
+    Curve *curve_eval = id_cast<Curve *>(object_eval->data);
     ModifierEvalContext mectx = {depsgraph, object_eval, MOD_APPLY_TO_ORIGINAL};
 
     if (ELEM(mti->type, ModifierTypeType::Constructive, ModifierTypeType::Nonconstructive)) {
@@ -1156,7 +1137,7 @@ static bool modifier_apply_obdata(ReportList *reports,
   }
   else if (ob->type == OB_LATTICE) {
     Object *object_eval = DEG_get_evaluated(depsgraph, ob);
-    Lattice *lattice = static_cast<Lattice *>(ob->data);
+    Lattice *lattice = id_cast<Lattice *>(ob->data);
     ModifierEvalContext mectx = {depsgraph, object_eval, MOD_APPLY_TO_ORIGINAL};
 
     if (ELEM(mti->type, ModifierTypeType::Constructive, ModifierTypeType::Nonconstructive)) {
@@ -1171,7 +1152,7 @@ static bool modifier_apply_obdata(ReportList *reports,
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
   else if (ob->type == OB_CURVES) {
-    Curves &curves = *static_cast<Curves *>(ob->data);
+    Curves &curves = *id_cast<Curves *>(ob->data);
     if (mti->modify_geometry_set == nullptr) {
       BLI_assert_unreachable();
       return false;
@@ -1196,7 +1177,7 @@ static bool modifier_apply_obdata(ReportList *reports,
     BKE_object_material_from_eval_data(bmain, ob, &curves_eval.id);
   }
   else if (ob->type == OB_POINTCLOUD) {
-    PointCloud &points = *static_cast<PointCloud *>(ob->data);
+    PointCloud &points = *id_cast<PointCloud *>(ob->data);
     if (mti->modify_geometry_set == nullptr) {
       BLI_assert_unreachable();
       return false;
@@ -1227,7 +1208,7 @@ static bool modifier_apply_obdata(ReportList *reports,
       BKE_report(reports, RPT_ERROR, "Cannot apply this modifier to Grease Pencil geometry");
       return false;
     }
-    GreasePencil &grease_pencil_orig = *static_cast<GreasePencil *>(ob->data);
+    GreasePencil &grease_pencil_orig = *id_cast<GreasePencil *>(ob->data);
     bool success = false;
     if (do_all_keyframes) {
       /* The function #apply_grease_pencil_for_modifier_all_keyframes will retrieve
@@ -1256,12 +1237,12 @@ static bool modifier_apply_obdata(ReportList *reports,
 
   /* lattice modifier can be applied to particle system too */
   if (ob->particlesystem.first) {
-    LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
-      if (psys->part->type != PART_HAIR) {
+    for (ParticleSystem &psys : ob->particlesystem) {
+      if (psys.part->type != PART_HAIR) {
         continue;
       }
 
-      psys_apply_hair_lattice(depsgraph, scene, ob, psys);
+      psys_apply_hair_lattice(depsgraph, scene, ob, &psys);
     }
   }
 
@@ -1363,7 +1344,7 @@ bool modifier_copy(
 {
   if (md->type == eModifierType_ParticleSystem) {
     ModifierData *nmd = object_copy_particle_system(
-        bmain, scene, ob, ((ParticleSystemModifierData *)md)->psys);
+        bmain, scene, ob, (reinterpret_cast<ParticleSystemModifierData *>(md))->psys);
     BLI_remlink(&ob->modifiers, nmd);
     BLI_insertlinkafter(&ob->modifiers, md, nmd);
     BKE_object_modifier_set_active(ob, nmd);
@@ -1427,7 +1408,7 @@ static wmOperatorStatus modifier_add_exec(bContext *C, wmOperator *op)
       continue;
     }
     changed = true;
-    WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+    WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER | NA_ADDED, ob);
   }
   if (!changed) {
     return OPERATOR_CANCELLED;
@@ -1452,7 +1433,7 @@ static const EnumPropertyItem *modifier_add_itemf(bContext *C,
                                                   PropertyRNA * /*prop*/,
                                                   bool *r_free)
 {
-  Object *ob = context_active_object(C);
+  Object *ob = (C) ? context_active_object(C) : nullptr;
 
   if (!ob) {
     return rna_enum_object_modifier_type_items;
@@ -1466,7 +1447,7 @@ static const EnumPropertyItem *modifier_add_itemf(bContext *C,
     const EnumPropertyItem *md_item = &rna_enum_object_modifier_type_items[a];
 
     if (md_item->identifier[0]) {
-      const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md_item->value);
+      const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md_item->value));
 
       if (mti->flags & eModifierTypeFlag_NoUserAdd) {
         continue;
@@ -1536,7 +1517,7 @@ bool edit_modifier_poll_generic(bContext *C,
 {
   Main *bmain = CTX_data_main(C);
   PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", rna_type);
-  Object *ob = (ptr.owner_id) ? (Object *)ptr.owner_id : context_active_object(C);
+  Object *ob = (ptr.owner_id) ? id_cast<Object *>(ptr.owner_id) : context_active_object(C);
   ModifierData *mod = static_cast<ModifierData *>(ptr.data); /* May be nullptr. */
 
   if (mod == nullptr && ob != nullptr) {
@@ -1569,14 +1550,14 @@ bool edit_modifier_poll_generic(bContext *C,
 
 static bool edit_modifier_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_Modifier, 0, true, false);
+  return edit_modifier_poll_generic(C, RNA_Modifier, 0, true, false);
 }
 
 /* Used by operators performing actions allowed also on modifiers from the overridden linked object
  * (not only from added 'local' ones). */
 static bool edit_modifier_liboverride_allowed_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_Modifier, 0, true, true);
+  return edit_modifier_poll_generic(C, RNA_Modifier, 0, true, true);
 }
 
 void edit_modifier_properties(wmOperatorType *ot)
@@ -1607,7 +1588,7 @@ bool edit_modifier_invoke_properties(bContext *C, wmOperator *op)
     return true;
   }
 
-  PointerRNA ctx_ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
+  PointerRNA ctx_ptr = CTX_data_pointer_get_type(C, "modifier", RNA_Modifier);
   if (ctx_ptr.data != nullptr) {
     ModifierData *md = static_cast<ModifierData *>(ctx_ptr.data);
     RNA_string_set(op->ptr, "modifier", md->name);
@@ -1638,20 +1619,23 @@ static bool edit_modifier_invoke_properties_with_hover(bContext *C,
   }
 
   /* Note that the context pointer is *not* the active modifier, it is set in UI layouts. */
-  PointerRNA ctx_ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
+  PointerRNA ctx_ptr = CTX_data_pointer_get_type(C, "modifier", RNA_Modifier);
   if (ctx_ptr.data != nullptr) {
     ModifierData *md = static_cast<ModifierData *>(ctx_ptr.data);
     RNA_string_set(op->ptr, "modifier", md->name);
     return true;
   }
 
-  PointerRNA *panel_ptr = UI_region_panel_custom_data_under_cursor(C, event);
+  PointerRNA *panel_ptr = ui::region_panel_custom_data_under_cursor(C, event);
   if (panel_ptr == nullptr || RNA_pointer_is_null(panel_ptr)) {
-    *r_retval = OPERATOR_CANCELLED;
+    /* The operators using this function can typically be called from UIs that aren't related to
+     * the modifiers UI at all. So include #OPERATOR_PASS_THROUGH to not block events from reaching
+     * other operators/handlers. */
+    *r_retval = (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
     return false;
   }
 
-  if (!RNA_struct_is_a(panel_ptr->type, &RNA_Modifier)) {
+  if (!RNA_struct_is_a(panel_ptr->type, RNA_Modifier)) {
     /* Work around multiple operators using the same shortcut. The operators for the other
      * stacks in the property editor use the same key, and will not run after these return
      * OPERATOR_CANCELLED. */
@@ -1708,7 +1692,7 @@ static wmOperatorStatus modifier_remove_exec(bContext *C, wmOperator *op)
 
     changed = true;
 
-    WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+    WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER | NA_REMOVED, ob);
 
     /* if cloth/softbody was removed, particle mode could be cleared */
     if (mode_orig & OB_MODE_PARTICLE_EDIT) {
@@ -1960,13 +1944,14 @@ void OBJECT_OT_modifier_move_to_index(wmOperatorType *ot)
 
 static bool modifier_apply_poll(bContext *C)
 {
-  if (!edit_modifier_poll_generic(C, &RNA_Modifier, 0, false, false)) {
+  if (!edit_modifier_poll_generic(C, RNA_Modifier, 0, false, false)) {
     return false;
   }
 
   Scene *scene = CTX_data_scene(C);
-  PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
-  Object *ob = (ptr.owner_id != nullptr) ? (Object *)ptr.owner_id : context_active_object(C);
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", RNA_Modifier);
+  Object *ob = (ptr.owner_id != nullptr) ? id_cast<Object *>(ptr.owner_id) :
+                                           context_active_object(C);
   ModifierData *md = static_cast<ModifierData *>(ptr.data); /* May be nullptr. */
 
   if (ID_IS_OVERRIDE_LIBRARY(ob) || ((ob->data != nullptr) && ID_IS_OVERRIDE_LIBRARY(ob->data))) {
@@ -2019,7 +2004,7 @@ static wmOperatorStatus modifier_apply_exec_ex(bContext *C,
       continue;
     }
 
-    const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
     if (do_single_user && ID_REAL_USERS(ob->data) > 1) {
       single_obdata_user_make(bmain, scene, ob);
@@ -2045,7 +2030,7 @@ static wmOperatorStatus modifier_apply_exec_ex(bContext *C,
     if (ob->type == OB_MESH && do_merge_customdata &&
         ELEM(mti->type, ModifierTypeType::Constructive, ModifierTypeType::Nonconstructive))
     {
-      BKE_mesh_merge_customdata_for_apply_modifier((Mesh *)ob->data);
+      BKE_mesh_merge_customdata_for_apply_modifier(id_cast<Mesh *>(ob->data));
     }
 
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -2077,8 +2062,9 @@ static wmOperatorStatus modifier_apply_invoke(bContext *C, wmOperator *op, const
 {
   wmOperatorStatus retval;
   if (edit_modifier_invoke_properties_with_hover(C, op, event, &retval)) {
-    PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
-    Object *ob = (ptr.owner_id != nullptr) ? (Object *)ptr.owner_id : context_active_object(C);
+    PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", RNA_Modifier);
+    Object *ob = (ptr.owner_id != nullptr) ? id_cast<Object *>(ptr.owner_id) :
+                                             context_active_object(C);
 
     if ((ob->data != nullptr) && ID_REAL_USERS(ob->data) > 1) {
       PropertyRNA *prop = RNA_struct_find_property(op->ptr, "single_user");
@@ -2092,7 +2078,7 @@ static wmOperatorStatus modifier_apply_invoke(bContext *C, wmOperator *op, const
             IFACE_("Apply Modifier"),
             IFACE_("Make data single-user, apply modifier, and remove it from the list."),
             IFACE_("Apply"),
-            ALERT_ICON_WARNING,
+            ui::AlertIcon::Warning,
             false);
       }
     }
@@ -2279,7 +2265,7 @@ static wmOperatorStatus modifier_copy_exec(bContext *C, wmOperator *op)
     changed = true;
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     DEG_relations_tag_update(bmain);
-    WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+    WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER | NA_ADDED, ob);
   }
 
   if (!changed) {
@@ -2416,8 +2402,8 @@ static wmOperatorStatus modifier_copy_to_selected_invoke(bContext *C,
 
 static bool modifier_copy_to_selected_poll(bContext *C)
 {
-  PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
-  Object *obact = (ptr.owner_id) ? (Object *)ptr.owner_id : context_active_object(C);
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", RNA_Modifier);
+  Object *obact = (ptr.owner_id) ? id_cast<Object *>(ptr.owner_id) : context_active_object(C);
   ModifierData *md = static_cast<ModifierData *>(ptr.data);
 
   /* This just mirrors the check in #BKE_object_copy_modifier,
@@ -2494,8 +2480,8 @@ static wmOperatorStatus object_modifiers_copy_exec(bContext *C, wmOperator *op)
     if (object == active_object) {
       continue;
     }
-    LISTBASE_FOREACH (const ModifierData *, md, &active_object->modifiers) {
-      if (modifier_copy_to_object(bmain, scene, active_object, md, object, op->reports)) {
+    for (const ModifierData &md : active_object->modifiers) {
+      if (modifier_copy_to_object(bmain, scene, active_object, &md, object, op->reports)) {
         WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER | NA_ADDED, object);
       }
     }
@@ -2547,7 +2533,7 @@ void OBJECT_OT_modifiers_copy_to_selected(wmOperatorType *ot)
 
 static void modifier_skin_customdata_delete(Object *ob)
 {
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
     BM_data_layer_free(em->bm, &em->bm->vdata, CD_MVERT_SKIN);
   }
@@ -2558,18 +2544,18 @@ static void modifier_skin_customdata_delete(Object *ob)
 
 static bool skin_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_SkinModifier, (1 << OB_MESH), false, false);
+  return edit_modifier_poll_generic(C, RNA_SkinModifier, (1 << OB_MESH), false, false);
 }
 
 static bool skin_edit_poll(bContext *C)
 {
   Object *ob = CTX_data_edit_object(C);
   return (ob != nullptr &&
-          edit_modifier_poll_generic(C, &RNA_SkinModifier, (1 << OB_MESH), true, false) &&
+          edit_modifier_poll_generic(C, RNA_SkinModifier, (1 << OB_MESH), true, false) &&
           !ID_IS_OVERRIDE_LIBRARY(ob) && !ID_IS_OVERRIDE_LIBRARY(ob->data));
 }
 
-static void skin_root_clear(BMVert *bm_vert, GSet *visited, const int cd_vert_skin_offset)
+static void skin_root_clear(BMVert *bm_vert, Set<BMVert *> &visited, const int cd_vert_skin_offset)
 {
   BMEdge *bm_edge;
   BMIter bm_iter;
@@ -2577,7 +2563,7 @@ static void skin_root_clear(BMVert *bm_vert, GSet *visited, const int cd_vert_sk
   BM_ITER_ELEM (bm_edge, &bm_iter, bm_vert, BM_EDGES_OF_VERT) {
     BMVert *v2 = BM_edge_other_vert(bm_edge, bm_vert);
 
-    if (BLI_gset_add(visited, v2)) {
+    if (visited.add(v2)) {
       MVertSkin *vs = static_cast<MVertSkin *>(BM_ELEM_CD_GET_VOID_P(v2, cd_vert_skin_offset));
 
       /* clear vertex root flag and add to visited set */
@@ -2594,16 +2580,16 @@ static wmOperatorStatus skin_root_mark_exec(bContext *C, wmOperator * /*op*/)
   BMEditMesh *em = BKE_editmesh_from_object(ob);
   BMesh *bm = em->bm;
 
-  GSet *visited = BLI_gset_ptr_new(__func__);
+  Set<BMVert *> visited;
 
-  BKE_mesh_ensure_skin_customdata(static_cast<Mesh *>(ob->data));
+  BKE_mesh_ensure_skin_customdata(id_cast<Mesh *>(ob->data));
 
   const int cd_vert_skin_offset = CustomData_get_offset(&bm->vdata, CD_MVERT_SKIN);
 
   BMVert *bm_vert;
   BMIter bm_iter;
   BM_ITER_MESH (bm_vert, &bm_iter, bm, BM_VERTS_OF_MESH) {
-    if (BM_elem_flag_test(bm_vert, BM_ELEM_SELECT) && BLI_gset_add(visited, bm_vert)) {
+    if (BM_elem_flag_test(bm_vert, BM_ELEM_SELECT) && visited.add(bm_vert)) {
       MVertSkin *vs = static_cast<MVertSkin *>(
           BM_ELEM_CD_GET_VOID_P(bm_vert, cd_vert_skin_offset));
 
@@ -2614,8 +2600,6 @@ static wmOperatorStatus skin_root_mark_exec(bContext *C, wmOperator * /*op*/)
       skin_root_clear(bm_vert, visited, cd_vert_skin_offset);
     }
   }
-
-  BLI_gset_free(visited, nullptr);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
@@ -2774,8 +2758,8 @@ static void skin_armature_bone_create(Object *skin_ob,
     /* add bDeformGroup */
     bDeformGroup *dg = BKE_object_defgroup_add_name(skin_ob, bone->name);
     if (dg != nullptr) {
-      blender::ed::object::vgroup_vert_add(skin_ob, dg, parent_v, 1, WEIGHT_REPLACE);
-      blender::ed::object::vgroup_vert_add(skin_ob, dg, v, 1, WEIGHT_REPLACE);
+      ed::object::vgroup_vert_add(skin_ob, dg, parent_v, 1, WEIGHT_REPLACE);
+      ed::object::vgroup_vert_add(skin_ob, dg, v, 1, WEIGHT_REPLACE);
     }
 
     skin_armature_bone_create(skin_ob, positions, edges, arm, edges_visited, emap, bone, v);
@@ -2784,14 +2768,14 @@ static void skin_armature_bone_create(Object *skin_ob,
 
 static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, Object *skin_ob)
 {
-  Mesh *mesh = static_cast<Mesh *>(skin_ob->data);
+  Mesh *mesh = id_cast<Mesh *>(skin_ob->data);
   const Span<float3> me_positions = mesh->vert_positions();
   const Span<int2> me_edges = mesh->edges();
 
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Object *ob_eval = DEG_get_evaluated(depsgraph, skin_ob);
 
-  const Mesh *me_eval_deform = blender::bke::mesh_get_eval_deform(
+  const Mesh *me_eval_deform = bke::mesh_get_eval_deform(
       depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);
   const Span<float3> positions_eval = me_eval_deform->vert_positions();
 
@@ -2802,11 +2786,11 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
   ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
   Object *arm_ob = BKE_object_add(bmain, scene, view_layer, OB_ARMATURE, nullptr);
   BKE_object_transform_copy(arm_ob, skin_ob);
-  bArmature *arm = static_cast<bArmature *>(arm_ob->data);
+  bArmature *arm = id_cast<bArmature *>(arm_ob->data);
   ANIM_armature_bonecoll_show_all(arm);
   arm_ob->dtx |= OB_DRAW_IN_FRONT;
   arm->drawtype = ARM_DRAW_TYPE_STICK;
-  arm->edbo = MEM_callocN<ListBase>("edbo armature");
+  arm->edbo = MEM_new_zeroed<ListBaseT<EditBone>>("edbo armature");
 
   MVertSkin *mvert_skin = static_cast<MVertSkin *>(
       CustomData_get_layer_for_write(&mesh->vert_data, CD_MVERT_SKIN, mesh->verts_num));
@@ -2844,7 +2828,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
     }
   }
 
-  MEM_freeN(edges_visited);
+  MEM_delete(edges_visited);
 
   ED_armature_from_edit(bmain, arm);
   ED_armature_edit_free(arm);
@@ -2857,7 +2841,7 @@ static wmOperatorStatus skin_armature_create_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *ob = CTX_data_active_object(C);
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   ModifierData *skin_md;
 
   if (!CustomData_has_layer(&mesh->vert_data, CD_MVERT_SKIN)) {
@@ -2869,7 +2853,8 @@ static wmOperatorStatus skin_armature_create_exec(bContext *C, wmOperator *op)
   Object *arm_ob = modifier_skin_armature_create(depsgraph, bmain, ob);
 
   /* add a modifier to connect the new armature to the mesh */
-  ArmatureModifierData *arm_md = (ArmatureModifierData *)BKE_modifier_new(eModifierType_Armature);
+  ArmatureModifierData *arm_md = reinterpret_cast<ArmatureModifierData *>(
+      BKE_modifier_new(eModifierType_Armature));
   if (arm_md) {
     skin_md = edit_modifier_property_get(op, ob, eModifierType_Skin);
     BLI_insertlinkafter(&ob->modifiers, skin_md, arm_md);
@@ -2919,7 +2904,7 @@ void OBJECT_OT_skin_armature_create(wmOperatorType *ot)
 
 static bool correctivesmooth_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_CorrectiveSmoothModifier, 0, true, false);
+  return edit_modifier_poll_generic(C, RNA_CorrectiveSmoothModifier, 0, true, false);
 }
 
 static wmOperatorStatus correctivesmooth_bind_exec(bContext *C, wmOperator *op)
@@ -2927,8 +2912,8 @@ static wmOperatorStatus correctivesmooth_bind_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   Object *ob = context_active_object(C);
-  CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)edit_modifier_property_get(
-      op, ob, eModifierType_CorrectiveSmooth);
+  CorrectiveSmoothModifierData *csmd = reinterpret_cast<CorrectiveSmoothModifierData *>(
+      edit_modifier_property_get(op, ob, eModifierType_CorrectiveSmooth));
 
   if (!csmd) {
     return OPERATOR_CANCELLED;
@@ -2941,8 +2926,8 @@ static wmOperatorStatus correctivesmooth_bind_exec(bContext *C, wmOperator *op)
 
   const bool is_bind = (csmd->bind_coords != nullptr);
 
-  MEM_SAFE_FREE(csmd->bind_coords);
-  MEM_SAFE_FREE(csmd->delta_cache.deltas);
+  implicit_sharing::free_shared_data(&csmd->bind_coords, &csmd->bind_coords_sharing_info);
+  MEM_SAFE_DELETE(csmd->delta_cache.deltas);
 
   if (is_bind) {
     /* toggle off */
@@ -2950,8 +2935,8 @@ static wmOperatorStatus correctivesmooth_bind_exec(bContext *C, wmOperator *op)
   }
   else {
     /* Signal to modifier to recalculate. */
-    CorrectiveSmoothModifierData *csmd_eval = (CorrectiveSmoothModifierData *)
-        BKE_modifier_get_evaluated(depsgraph, ob, &csmd->modifier);
+    CorrectiveSmoothModifierData *csmd_eval = reinterpret_cast<CorrectiveSmoothModifierData *>(
+        BKE_modifier_get_evaluated(depsgraph, ob, &csmd->modifier));
     csmd_eval->bind_coords_num = uint(-1);
 
     /* Force modifier to run, it will call binding routine
@@ -3000,29 +2985,29 @@ void OBJECT_OT_correctivesmooth_bind(wmOperatorType *ot)
 
 static bool meshdeform_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_MeshDeformModifier, 0, true, false);
+  return edit_modifier_poll_generic(C, RNA_MeshDeformModifier, 0, true, false);
 }
 
 static wmOperatorStatus meshdeform_bind_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *ob = context_active_object(C);
-  MeshDeformModifierData *mmd = (MeshDeformModifierData *)edit_modifier_property_get(
-      op, ob, eModifierType_MeshDeform);
+  MeshDeformModifierData *mmd = reinterpret_cast<MeshDeformModifierData *>(
+      edit_modifier_property_get(op, ob, eModifierType_MeshDeform));
 
   if (mmd == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
   if (mmd->bindcagecos != nullptr) {
-    MEM_SAFE_FREE(mmd->bindcagecos);
-    MEM_SAFE_FREE(mmd->dyngrid);
-    MEM_SAFE_FREE(mmd->dyninfluences);
-    MEM_SAFE_FREE(mmd->bindinfluences);
-    MEM_SAFE_FREE(mmd->bindoffsets);
-    MEM_SAFE_FREE(mmd->dynverts);
-    MEM_SAFE_FREE(mmd->bindweights); /* Deprecated */
-    MEM_SAFE_FREE(mmd->bindcos);     /* Deprecated */
+    implicit_sharing::free_shared_data(&mmd->bindcagecos, &mmd->bindcagecos_sharing_info);
+    implicit_sharing::free_shared_data(&mmd->dyngrid, &mmd->dyngrid_sharing_info);
+    implicit_sharing::free_shared_data(&mmd->dyninfluences, &mmd->dyninfluences_sharing_info);
+    implicit_sharing::free_shared_data(&mmd->bindinfluences, &mmd->bindinfluences_sharing_info);
+    implicit_sharing::free_shared_data(&mmd->bindoffsets, &mmd->bindoffsets_sharing_info);
+    implicit_sharing::free_shared_data(&mmd->dynverts, &mmd->dynverts_sharing_info);
+    MEM_SAFE_DELETE(mmd->bindweights); /* Deprecated */
+    MEM_SAFE_DELETE(mmd->bindcos);     /* Deprecated */
     mmd->verts_num = 0;
     mmd->cage_verts_num = 0;
     mmd->influences_num = 0;
@@ -3030,8 +3015,8 @@ static wmOperatorStatus meshdeform_bind_exec(bContext *C, wmOperator *op)
   else {
     /* Force modifier to run, it will call binding routine
      * (this has to happen outside of depsgraph evaluation). */
-    MeshDeformModifierData *mmd_eval = (MeshDeformModifierData *)BKE_modifier_get_evaluated(
-        depsgraph, ob, &mmd->modifier);
+    MeshDeformModifierData *mmd_eval = reinterpret_cast<MeshDeformModifierData *>(
+        BKE_modifier_get_evaluated(depsgraph, ob, &mmd->modifier));
     mmd_eval->bindfunc = ED_mesh_deform_bind_callback;
     object_force_modifier_bind_simple_options(depsgraph, ob, &mmd->modifier);
     mmd_eval->bindfunc = nullptr;
@@ -3077,14 +3062,14 @@ void OBJECT_OT_meshdeform_bind(wmOperatorType *ot)
 
 static bool explode_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_ExplodeModifier, 0, true, false);
+  return edit_modifier_poll_generic(C, RNA_ExplodeModifier, 0, true, false);
 }
 
 static wmOperatorStatus explode_refresh_exec(bContext *C, wmOperator *op)
 {
   Object *ob = context_active_object(C);
-  ExplodeModifierData *emd = (ExplodeModifierData *)edit_modifier_property_get(
-      op, ob, eModifierType_Explode);
+  ExplodeModifierData *emd = reinterpret_cast<ExplodeModifierData *>(
+      edit_modifier_property_get(op, ob, eModifierType_Explode));
 
   if (!emd) {
     return OPERATOR_CANCELLED;
@@ -3131,7 +3116,7 @@ void OBJECT_OT_explode_refresh(wmOperatorType *ot)
 
 static bool ocean_bake_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_OceanModifier, 0, true, false);
+  return edit_modifier_poll_generic(C, RNA_OceanModifier, 0, true, false);
 }
 
 struct OceanBakeJob {
@@ -3186,7 +3171,7 @@ static void oceanbake_startjob(void *customdata, wmJobWorkerStatus *worker_statu
 
   G.is_break = false; /* XXX shared with render - replace with job 'stop' switch */
 
-  BKE_ocean_bake(oj->ocean, oj->och, oceanbake_update, (void *)oj);
+  BKE_ocean_bake(oj->ocean, oj->och, oceanbake_update, static_cast<void *>(oj));
 
   worker_status->do_update = true;
   worker_status->stop = false;
@@ -3212,8 +3197,8 @@ static wmOperatorStatus ocean_bake_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Object *ob = context_active_object(C);
-  OceanModifierData *omd = (OceanModifierData *)edit_modifier_property_get(
-      op, ob, eModifierType_Ocean);
+  OceanModifierData *omd = reinterpret_cast<OceanModifierData *>(
+      edit_modifier_property_get(op, ob, eModifierType_Ocean));
   Scene *scene = CTX_data_scene(C);
   const bool free = RNA_boolean_get(op->ptr, "free");
 
@@ -3238,7 +3223,7 @@ static wmOperatorStatus ocean_bake_exec(bContext *C, wmOperator *op)
                                          omd->foam_fade,
                                          omd->resolution);
 
-  och->time = MEM_malloc_arrayN<float>(och->duration, "foam bake time");
+  och->time = MEM_new_array_uninitialized<float>(och->duration, "foam bake time");
 
   int cfra = scene->r.cfra;
 
@@ -3253,7 +3238,8 @@ static wmOperatorStatus ocean_bake_exec(bContext *C, wmOperator *op)
 
     const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
                                                                                       f);
-    BKE_animsys_evaluate_animdata((ID *)ob, ob->adt, &anim_eval_context, ADT_RECALC_ANIM, false);
+    BKE_animsys_evaluate_animdata(
+        id_cast<ID *>(ob), ob->adt, &anim_eval_context, ADT_RECALC_ANIM, false);
 
     och->time[i] = omd->time;
     i++;
@@ -3286,7 +3272,7 @@ static wmOperatorStatus ocean_bake_exec(bContext *C, wmOperator *op)
                               "Simulating ocean...",
                               WM_JOB_PROGRESS,
                               WM_JOB_TYPE_OBJECT_SIM_OCEAN);
-  OceanBakeJob *oj = MEM_callocN<OceanBakeJob>("ocean bake job");
+  OceanBakeJob *oj = MEM_new_zeroed<OceanBakeJob>("ocean bake job");
   oj->owner = ob;
   oj->ocean = ocean;
   oj->och = och;
@@ -3334,15 +3320,15 @@ void OBJECT_OT_ocean_bake(wmOperatorType *ot)
 
 static bool laplaciandeform_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_LaplacianDeformModifier, 0, false, false);
+  return edit_modifier_poll_generic(C, RNA_LaplacianDeformModifier, 0, false, false);
 }
 
 static wmOperatorStatus laplaciandeform_bind_exec(bContext *C, wmOperator *op)
 {
   Object *ob = context_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)edit_modifier_property_get(
-      op, ob, eModifierType_LaplacianDeform);
+  LaplacianDeformModifierData *lmd = reinterpret_cast<LaplacianDeformModifierData *>(
+      edit_modifier_property_get(op, ob, eModifierType_LaplacianDeform));
 
   if (lmd == nullptr) {
     return OPERATOR_CANCELLED;
@@ -3355,8 +3341,8 @@ static wmOperatorStatus laplaciandeform_bind_exec(bContext *C, wmOperator *op)
     lmd->flag |= MOD_LAPLACIANDEFORM_BIND;
   }
 
-  LaplacianDeformModifierData *lmd_eval = (LaplacianDeformModifierData *)
-      BKE_modifier_get_evaluated(depsgraph, ob, &lmd->modifier);
+  LaplacianDeformModifierData *lmd_eval = reinterpret_cast<LaplacianDeformModifierData *>(
+      BKE_modifier_get_evaluated(depsgraph, ob, &lmd->modifier));
   lmd_eval->flag = lmd->flag;
 
   /* Force modifier to run, it will call binding routine
@@ -3367,10 +3353,13 @@ static wmOperatorStatus laplaciandeform_bind_exec(bContext *C, wmOperator *op)
    * happening for binding or not. So we copy all the required data here. */
   lmd->verts_num = lmd_eval->verts_num;
   if (lmd_eval->vertexco == nullptr) {
-    MEM_SAFE_FREE(lmd->vertexco);
+    implicit_sharing::free_shared_data(&lmd->vertexco, &lmd->vertexco_sharing_info);
   }
   else {
-    lmd->vertexco = static_cast<float *>(MEM_dupallocN(lmd_eval->vertexco));
+    implicit_sharing::copy_shared_pointer(lmd_eval->vertexco,
+                                          lmd_eval->vertexco_sharing_info,
+                                          &lmd->vertexco,
+                                          &lmd->vertexco_sharing_info);
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -3413,15 +3402,15 @@ void OBJECT_OT_laplaciandeform_bind(wmOperatorType *ot)
 
 static bool surfacedeform_bind_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_SurfaceDeformModifier, 0, true, false);
+  return edit_modifier_poll_generic(C, RNA_SurfaceDeformModifier, 0, true, false);
 }
 
 static wmOperatorStatus surfacedeform_bind_exec(bContext *C, wmOperator *op)
 {
   Object *ob = context_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)edit_modifier_property_get(
-      op, ob, eModifierType_SurfaceDeform);
+  SurfaceDeformModifierData *smd = reinterpret_cast<SurfaceDeformModifierData *>(
+      edit_modifier_property_get(op, ob, eModifierType_SurfaceDeform));
 
   if (smd == nullptr) {
     return OPERATOR_CANCELLED;
@@ -3434,8 +3423,8 @@ static wmOperatorStatus surfacedeform_bind_exec(bContext *C, wmOperator *op)
     smd->flags |= MOD_SDEF_BIND;
   }
 
-  SurfaceDeformModifierData *smd_eval = (SurfaceDeformModifierData *)BKE_modifier_get_evaluated(
-      depsgraph, ob, &smd->modifier);
+  SurfaceDeformModifierData *smd_eval = reinterpret_cast<SurfaceDeformModifierData *>(
+      BKE_modifier_get_evaluated(depsgraph, ob, &smd->modifier));
   smd_eval->flags = smd->flags;
 
   /* Force modifier to run, it will call binding routine
@@ -3490,7 +3479,8 @@ static wmOperatorStatus geometry_nodes_input_attribute_toggle_exec(bContext *C, 
 
   char modifier_name[MAX_NAME];
   RNA_string_get(op->ptr, "modifier_name", modifier_name);
-  NodesModifierData *nmd = (NodesModifierData *)BKE_modifiers_findby_name(ob, modifier_name);
+  NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(
+      BKE_modifiers_findby_name(ob, modifier_name));
   if (nmd == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -3505,10 +3495,10 @@ static wmOperatorStatus geometry_nodes_input_attribute_toggle_exec(bContext *C, 
   }
 
   if (use_attribute->type == IDP_INT) {
-    IDP_Int(use_attribute) = !IDP_Int(use_attribute);
+    IDP_int_set(use_attribute, !IDP_int_get(use_attribute));
   }
   else if (use_attribute->type == IDP_BOOLEAN) {
-    IDP_Bool(use_attribute) = !IDP_Bool(use_attribute);
+    IDP_bool_set(use_attribute, !IDP_bool_get(use_attribute));
   }
   else {
     return OPERATOR_CANCELLED;
@@ -3550,14 +3540,14 @@ static wmOperatorStatus geometry_node_tree_copy_assign_exec(bContext *C, wmOpera
     return OPERATOR_CANCELLED;
   }
 
-  NodesModifierData *nmd = (NodesModifierData *)md;
+  NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
   bNodeTree *tree = nmd->node_group;
-  if (tree == nullptr) {
+  if (tree == nullptr || ID_MISSING(tree)) {
     return OPERATOR_CANCELLED;
   }
 
-  bNodeTree *new_tree = (bNodeTree *)BKE_id_copy_ex(
-      bmain, &tree->id, nullptr, LIB_ID_COPY_ACTIONS | LIB_ID_COPY_DEFAULT);
+  bNodeTree *new_tree = id_cast<bNodeTree *>(
+      BKE_id_copy_ex(bmain, &tree->id, nullptr, LIB_ID_COPY_ACTIONS | LIB_ID_COPY_DEFAULT));
 
   nmd->flag &= ~NODES_MODIFIER_HIDE_DATABLOCK_SELECTOR;
 
@@ -3577,8 +3567,9 @@ static wmOperatorStatus geometry_node_tree_copy_assign_exec(bContext *C, wmOpera
 
 void OBJECT_OT_geometry_node_tree_copy_assign(wmOperatorType *ot)
 {
-  ot->name = "Copy Geometry Node Group";
-  ot->description = "Copy the active geometry node group and assign it to the active modifier";
+  ot->name = "New Geometry Node Group";
+  ot->description =
+      "Duplicate the active geometry node group and assign it to the active modifier";
   ot->idname = "OBJECT_OT_geometry_node_tree_copy_assign";
 
   ot->exec = geometry_node_tree_copy_assign_exec;
@@ -3595,7 +3586,7 @@ void OBJECT_OT_geometry_node_tree_copy_assign(wmOperatorType *ot)
 
 static bool dash_modifier_segment_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_GreasePencilDashModifierData, 0, false, false);
+  return edit_modifier_poll_generic(C, RNA_GreasePencilDashModifierData, 0, false, false);
 }
 
 static wmOperatorStatus dash_modifier_segment_add_exec(bContext *C, wmOperator *op)
@@ -3608,8 +3599,8 @@ static wmOperatorStatus dash_modifier_segment_add_exec(bContext *C, wmOperator *
     return OPERATOR_CANCELLED;
   }
 
-  GreasePencilDashModifierSegment *new_segments =
-      MEM_malloc_arrayN<GreasePencilDashModifierSegment>(dmd->segments_num + 1, __func__);
+  GreasePencilDashModifierSegment *new_segments = MEM_new_array<GreasePencilDashModifierSegment>(
+      dmd->segments_num + 1, __func__);
 
   const int new_active_index = std::clamp(dmd->segment_active_index + 1, 0, dmd->segments_num);
   if (dmd->segments_num != 0) {
@@ -3625,9 +3616,7 @@ static wmOperatorStatus dash_modifier_segment_add_exec(bContext *C, wmOperator *
 
   /* Create the new segment. */
   GreasePencilDashModifierSegment *ds = &new_segments[new_active_index];
-  memcpy(ds,
-         DNA_struct_default_get(GreasePencilDashModifierSegment),
-         sizeof(GreasePencilDashModifierSegment));
+  *ds = GreasePencilDashModifierSegment();
   BLI_uniquename_cb(
       [&](const StringRef name) {
         for (const GreasePencilDashModifierSegment &ds : dmd->segments()) {
@@ -3640,7 +3629,7 @@ static wmOperatorStatus dash_modifier_segment_add_exec(bContext *C, wmOperator *
       '.',
       ds->name);
 
-  MEM_SAFE_FREE(dmd->segments_array);
+  MEM_SAFE_DELETE(dmd->segments_array);
   dmd->segments_array = new_segments;
   dmd->segments_num++;
   dmd->segment_active_index = new_active_index;
@@ -3831,7 +3820,7 @@ void OBJECT_OT_grease_pencil_dash_modifier_segment_move(wmOperatorType *ot)
 
 static bool time_modifier_segment_poll(bContext *C)
 {
-  return edit_modifier_poll_generic(C, &RNA_GreasePencilTimeModifier, 0, false, false);
+  return edit_modifier_poll_generic(C, RNA_GreasePencilTimeModifier, 0, false, false);
 }
 
 static wmOperatorStatus time_modifier_segment_add_exec(bContext *C, wmOperator *op)
@@ -3844,8 +3833,8 @@ static wmOperatorStatus time_modifier_segment_add_exec(bContext *C, wmOperator *
     return OPERATOR_CANCELLED;
   }
 
-  GreasePencilTimeModifierSegment *new_segments =
-      MEM_malloc_arrayN<GreasePencilTimeModifierSegment>(tmd->segments_num + 1, __func__);
+  GreasePencilTimeModifierSegment *new_segments = MEM_new_array<GreasePencilTimeModifierSegment>(
+      tmd->segments_num + 1, __func__);
 
   const int new_active_index = std::clamp(tmd->segment_active_index + 1, 0, tmd->segments_num);
   if (tmd->segments_num != 0) {
@@ -3861,9 +3850,7 @@ static wmOperatorStatus time_modifier_segment_add_exec(bContext *C, wmOperator *
 
   /* Create the new segment. */
   GreasePencilTimeModifierSegment *segment = &new_segments[new_active_index];
-  memcpy(segment,
-         DNA_struct_default_get(GreasePencilTimeModifierSegment),
-         sizeof(GreasePencilTimeModifierSegment));
+  *segment = GreasePencilTimeModifierSegment();
   BLI_uniquename_cb(
       [&](const StringRef name) {
         for (const GreasePencilTimeModifierSegment &segment : tmd->segments()) {
@@ -3876,7 +3863,7 @@ static wmOperatorStatus time_modifier_segment_add_exec(bContext *C, wmOperator *
       '.',
       segment->name);
 
-  MEM_SAFE_FREE(tmd->segments_array);
+  MEM_SAFE_DELETE(tmd->segments_array);
   tmd->segments_array = new_segments;
   tmd->segments_num++;
   tmd->segment_active_index++;

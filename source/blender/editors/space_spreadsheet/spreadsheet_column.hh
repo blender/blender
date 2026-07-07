@@ -9,21 +9,20 @@
 #include "BLI_hash.hh"
 
 namespace blender {
+
 template<> struct DefaultHash<SpreadsheetColumnID> {
   uint64_t operator()(const SpreadsheetColumnID &column_id) const
   {
     return get_default_hash(StringRef(column_id.name));
   }
 };
-}  // namespace blender
 
 inline bool operator==(const SpreadsheetColumnID &a, const SpreadsheetColumnID &b)
 {
-  using blender::StringRef;
   return StringRef(a.name) == StringRef(b.name);
 }
 
-namespace blender::ed::spreadsheet {
+namespace ed::spreadsheet {
 
 struct SpreadsheetColumnRuntime {
   /** Coordinates of the left and right edges of the column in view space. */
@@ -46,4 +45,5 @@ void spreadsheet_column_free(SpreadsheetColumn *column);
 void spreadsheet_column_blend_write(BlendWriter *writer, const SpreadsheetColumn *column);
 void spreadsheet_column_blend_read(BlendDataReader *reader, SpreadsheetColumn *column);
 
-}  // namespace blender::ed::spreadsheet
+}  // namespace ed::spreadsheet
+}  // namespace blender

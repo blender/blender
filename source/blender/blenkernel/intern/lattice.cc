@@ -16,6 +16,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -24,7 +25,6 @@
 #define DNA_DEPRECATED_ALLOW
 
 #include "DNA_curve_types.h"
-#include "DNA_defaults.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_meshdata_types.h"
@@ -43,22 +43,16 @@
 
 #include "BLO_read_write.hh"
 
-using blender::Array;
-using blender::float3;
-using blender::float4x4;
-using blender::MutableSpan;
-using blender::Span;
+namespace blender {
 
 static void lattice_init_data(ID *id)
 {
-  Lattice *lattice = (Lattice *)id;
+  Lattice *lattice = id_cast<Lattice *>(id);
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(lattice, id));
+  INIT_DEFAULT_STRUCT_AFTER(lattice, id);
 
-  MEMCPY_STRUCT_AFTER(lattice, DNA_struct_default_get(Lattice), id);
-
-  lattice->def = MEM_callocN<BPoint>("lattvert"); /* temporary */
-  BKE_lattice_resize(lattice, 2, 2, 2, nullptr);  /* creates a uniform lattice */
+  lattice->def = MEM_new_zeroed<BPoint>("lattvert"); /* temporary */
+  BKE_lattice_resize(lattice, 2, 2, 2, nullptr);     /* creates a uniform lattice */
 }
 
 static void lattice_copy_data(Main *bmain,
@@ -67,10 +61,10 @@ static void lattice_copy_data(Main *bmain,
                               const ID *id_src,
                               const int flag)
 {
-  Lattice *lattice_dst = (Lattice *)id_dst;
-  const Lattice *lattice_src = (const Lattice *)id_src;
+  Lattice *lattice_dst = id_cast<Lattice *>(id_dst);
+  const Lattice *lattice_src = id_cast<const Lattice *>(id_src);
 
-  lattice_dst->def = static_cast<BPoint *>(MEM_dupallocN(lattice_src->def));
+  lattice_dst->def = MEM_dupalloc(lattice_src->def);
 
   if (lattice_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
     BKE_id_copy_in_lib(bmain,
@@ -85,7 +79,8 @@ static void lattice_copy_data(Main *bmain,
 
   if (lattice_src->dvert) {
     int tot = lattice_src->pntsu * lattice_src->pntsv * lattice_src->pntsw;
-    lattice_dst->dvert = MEM_malloc_arrayN<MDeformVert>(size_t(tot), "Lattice MDeformVert");
+    lattice_dst->dvert = MEM_new_array_uninitialized<MDeformVert>(size_t(tot),
+                                                                  "Lattice MDeformVert");
     BKE_defvert_array_copy(lattice_dst->dvert, lattice_src->dvert, tot);
   }
 
@@ -95,13 +90,13 @@ static void lattice_copy_data(Main *bmain,
 
 static void lattice_free_data(ID *id)
 {
-  Lattice *lattice = (Lattice *)id;
+  Lattice *lattice = id_cast<Lattice *>(id);
 
   BKE_lattice_batch_cache_free(lattice);
 
   BLI_freelistN(&lattice->vertex_group_names);
 
-  MEM_SAFE_FREE(lattice->def);
+  MEM_SAFE_DELETE(lattice->def);
   if (lattice->dvert) {
     BKE_defvert_array_free(lattice->dvert, lattice->pntsu * lattice->pntsv * lattice->pntsw);
     lattice->dvert = nullptr;
@@ -110,14 +105,14 @@ static void lattice_free_data(ID *id)
     Lattice *editlt = lattice->editlatt->latt;
 
     if (editlt->def) {
-      MEM_freeN(editlt->def);
+      MEM_delete(editlt->def);
     }
     if (editlt->dvert) {
       BKE_defvert_array_free(editlt->dvert, lattice->pntsu * lattice->pntsv * lattice->pntsw);
     }
 
-    MEM_freeN(editlt);
-    MEM_freeN(lattice->editlatt);
+    MEM_delete(editlt);
+    MEM_delete(lattice->editlatt);
     lattice->editlatt = nullptr;
   }
 }
@@ -130,18 +125,18 @@ static void lattice_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static void lattice_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  Lattice *lt = (Lattice *)id;
+  Lattice *lt = id_cast<Lattice *>(id);
 
   /* Clean up, important in undo case to reduce false detection of changed datablocks. */
   lt->editlatt = nullptr;
   lt->batch_cache = nullptr;
 
   /* write LibData */
-  BLO_write_id_struct(writer, Lattice, id_address, &lt->id);
+  writer->write_id_struct(id_address, lt);
   BKE_id_blend_write(writer, &lt->id);
 
   /* direct data */
-  BLO_write_struct_array(writer, BPoint, lt->pntsu * lt->pntsv * lt->pntsw, lt->def);
+  writer->write_struct_array(lt->pntsu * lt->pntsv * lt->pntsw, lt->def);
 
   BKE_defbase_blend_write(writer, &lt->vertex_group_names);
   BKE_defvert_blend_write(writer, lt->pntsu * lt->pntsv * lt->pntsw, lt->dvert);
@@ -149,7 +144,7 @@ static void lattice_blend_write(BlendWriter *writer, ID *id, const void *id_addr
 
 static void lattice_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  Lattice *lt = (Lattice *)id;
+  Lattice *lt = id_cast<Lattice *>(id);
   BLO_read_struct_array(reader, BPoint, lt->pntsu * lt->pntsv * lt->pntsw, &lt->def);
 
   BLO_read_struct_array(reader, MDeformVert, lt->pntsu * lt->pntsv * lt->pntsw, &lt->dvert);
@@ -294,8 +289,8 @@ void BKE_lattice_resize(Lattice *lt, int u_new, int v_new, int w_new, Object *lt
     }
   }
 
-  vert_coords = MEM_malloc_arrayN<float[3]>(size_t(u_new) * size_t(v_new) * size_t(w_new),
-                                            "tmp_vcos");
+  vert_coords = MEM_new_array_uninitialized<float[3]>(
+      size_t(u_new) * size_t(v_new) * size_t(w_new), "tmp_vcos");
 
   calc_lat_fudu(lt->flag, u_new, &fu, &du);
   calc_lat_fudu(lt->flag, v_new, &fv, &dv);
@@ -371,9 +366,9 @@ void BKE_lattice_resize(Lattice *lt, int u_new, int v_new, int w_new, Object *lt
   lt->pntsw = w_new;
 
   lt->actbp = LT_ACTBP_NONE;
-  MEM_freeN(lt->def);
-  lt->def = MEM_calloc_arrayN<BPoint>(size_t(lt->pntsu) * size_t(lt->pntsv) * size_t(lt->pntsw),
-                                      "lattice bp");
+  MEM_delete(lt->def);
+  lt->def = MEM_new_array_zeroed<BPoint>(size_t(lt->pntsu) * size_t(lt->pntsv) * size_t(lt->pntsw),
+                                         "lattice bp");
 
   bp = lt->def;
 
@@ -381,7 +376,7 @@ void BKE_lattice_resize(Lattice *lt, int u_new, int v_new, int w_new, Object *lt
     copy_v3_v3(bp->vec, vert_coords[i]);
   }
 
-  MEM_freeN(vert_coords);
+  MEM_delete(vert_coords);
 }
 
 Lattice *BKE_lattice_add(Main *bmain, const char *name)
@@ -391,6 +386,15 @@ Lattice *BKE_lattice_add(Main *bmain, const char *name)
   lt = BKE_id_new<Lattice>(bmain, name);
 
   return lt;
+}
+
+void BKE_lattice_params_copy(Lattice *lt_dst, const Lattice *lt_src)
+{
+  lt_dst->typeu = lt_src->typeu;
+  lt_dst->typev = lt_src->typev;
+  lt_dst->typew = lt_src->typew;
+  lt_dst->flag = lt_src->flag;
+  STRNCPY(lt_dst->vgroup, lt_src->vgroup);
 }
 
 static BPoint *latt_bp(Lattice *lt, int u, int v, int w)
@@ -515,10 +519,10 @@ void BKE_lattice_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   BKE_object_free_derived_caches(ob);
   if (ob->runtime->curve_cache == nullptr) {
-    ob->runtime->curve_cache = MEM_callocN<CurveCache>("CurveCache for lattice");
+    ob->runtime->curve_cache = MEM_new_zeroed<CurveCache>("CurveCache for lattice");
   }
 
-  Lattice *lt = static_cast<Lattice *>(ob->data);
+  Lattice *lt = id_cast<Lattice *>(ob->data);
   VirtualModifierData virtual_modifier_data;
   ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data);
   Array<float3> vert_coords;
@@ -559,7 +563,7 @@ void BKE_lattice_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
   Lattice *lt_eval = BKE_object_get_evaluated_lattice(ob);
   if (lt_eval == nullptr) {
-    BKE_id_copy_ex(nullptr, &lt->id, (ID **)&lt_eval, LIB_ID_COPY_LOCALIZE);
+    BKE_id_copy_ex(nullptr, &lt->id, reinterpret_cast<ID **>(&lt_eval), LIB_ID_COPY_LOCALIZE);
     BKE_object_eval_assign_data(ob, &lt_eval->id, true);
   }
 
@@ -608,7 +612,7 @@ void BKE_lattice_center_median(Lattice *lt, float cent[3])
   mul_v3_fl(cent, 1.0f / float(numVerts));
 }
 
-std::optional<blender::Bounds<blender::float3>> BKE_lattice_minmax(const Lattice *lt)
+std::optional<Bounds<float3>> BKE_lattice_minmax(const Lattice *lt)
 {
   int i, numVerts;
 
@@ -620,12 +624,12 @@ std::optional<blender::Bounds<blender::float3>> BKE_lattice_minmax(const Lattice
     return std::nullopt;
   }
 
-  blender::float3 min = lt->def[0].vec;
-  blender::float3 max = lt->def[0].vec;
+  float3 min = lt->def[0].vec;
+  float3 max = lt->def[0].vec;
   for (i = 0; i < numVerts; i++) {
     minmax_v3v3_v3(min, max, lt->def[i].vec);
   }
-  return blender::Bounds<blender::float3>{min, max};
+  return Bounds<float3>{min, max};
 }
 
 void BKE_lattice_transform(Lattice *lt, const float mat[4][4], bool do_keys)
@@ -639,9 +643,9 @@ void BKE_lattice_transform(Lattice *lt, const float mat[4][4], bool do_keys)
   }
 
   if (do_keys && lt->key) {
-    LISTBASE_FOREACH (KeyBlock *, kb, &lt->key->block) {
-      float *fp = static_cast<float *>(kb->data);
-      for (i = kb->totelem; i--; fp += 3) {
+    for (KeyBlock &kb : lt->key->block) {
+      float *fp = static_cast<float *>(kb.data);
+      for (i = kb.totelem; i--; fp += 3) {
         mul_m4_v3(mat, fp);
       }
     }
@@ -667,9 +671,9 @@ void BKE_lattice_translate(Lattice *lt, const float offset[3], bool do_keys)
   }
 
   if (do_keys && lt->key) {
-    LISTBASE_FOREACH (KeyBlock *, kb, &lt->key->block) {
-      float *fp = static_cast<float *>(kb->data);
-      for (i = kb->totelem; i--; fp += 3) {
+    for (KeyBlock &kb : lt->key->block) {
+      float *fp = static_cast<float *>(kb.data);
+      for (i = kb.totelem; i--; fp += 3) {
         add_v3_v3(fp, offset);
       }
     }
@@ -713,3 +717,5 @@ void BKE_lattice_batch_cache_free(Lattice *lt)
     BKE_lattice_batch_cache_free_cb(lt);
   }
 }
+
+}  // namespace blender

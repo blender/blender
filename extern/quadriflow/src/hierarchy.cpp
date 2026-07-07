@@ -8,6 +8,14 @@
 #include "localsat.hpp"
 #include "pcg32/pcg32.h"
 #ifdef WITH_TBB
+/* This is curently broken pss isn't ready for the TBB version we use disable 
+ * this for now since WITH_TBB was seemingly never enabled for this translation 
+ * unit, the only reason it is getting it now is due to the modernisation of 
+ * our dependencies, and it's now comming in from the bf::dependencies::eigen 
+ * dependency. */ 
+#  undef WITH_TBB 
+#endif
+#ifdef WITH_TBB
 #  include "tbb/tbb.h"
 #  include "pss/parallel_stable_sort.h"
 #endif

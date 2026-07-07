@@ -30,13 +30,13 @@ static const EnumPropertyItem mode_items[] = {
     {GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM,
      "DENSITY_RANDOM",
      0,
-     "Random",
-     "Distribute points randomly inside of the volume"},
+     N_("Random"),
+     N_("Distribute points randomly inside of the volume")},
     {GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_GRID,
      "DENSITY_GRID",
      0,
-     "Grid",
-     "Distribute the points in a grid pattern inside of the volume"},
+     N_("Grid"),
+     N_("Distribute the points in a grid pattern inside of the volume")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -48,6 +48,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Volume with fog grids that points are scattered in");
   b.add_input<decl::Menu>("Mode")
       .static_items(mode_items)
+      .optional_label()
       .description("Method to use for scattering points");
   b.add_input<decl::Float>("Density")
       .default_value(1.0f)
@@ -79,26 +80,22 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   /* Still used for forward compatibility. */
-  node->storage = MEM_callocN<NodeGeometryDistributePointsInVolume>(__func__);
+  node->storage = MEM_new<NodeGeometryDistributePointsInVolume>(__func__);
 }
 
 #ifdef WITH_OPENVDB
 /* Implements the interface required by #openvdb::tools::NonUniformPointScatter. */
 class PositionsVDBWrapper {
  private:
-  float3 offset_fix_;
   Vector<float3> &vector_;
 
  public:
-  PositionsVDBWrapper(Vector<float3> &vector, const float3 offset_fix)
-      : offset_fix_(offset_fix), vector_(vector)
-  {
-  }
+  PositionsVDBWrapper(Vector<float3> &vector) : vector_(vector) {}
   PositionsVDBWrapper(const PositionsVDBWrapper &wrapper) = default;
 
   void add(const openvdb::Vec3R &pos)
   {
-    vector_.append(float3(float(pos[0]), float(pos[1]), float(pos[2])) + offset_fix_);
+    vector_.append(float3(float(pos[0]), float(pos[1]), float(pos[2])));
   }
 };
 
@@ -115,12 +112,8 @@ static void point_scatter_density_random(const openvdb::FloatGrid &grid,
                                          const int seed,
                                          Vector<float3> &r_positions)
 {
-  /* Offset points by half a voxel so that grid points are aligned with world grid points. */
-  const float3 offset_fix = {0.5f * float(grid.voxelSize().x()),
-                             0.5f * float(grid.voxelSize().y()),
-                             0.5f * float(grid.voxelSize().z())};
   /* Setup and call into OpenVDB's point scatter API. */
-  PositionsVDBWrapper vdb_position_wrapper = PositionsVDBWrapper(r_positions, offset_fix);
+  PositionsVDBWrapper vdb_position_wrapper = PositionsVDBWrapper(r_positions);
   RNGType random_generator(seed);
   NonUniformPointScatterVDB point_scatter(vdb_position_wrapper, density, random_generator);
   point_scatter(grid);
@@ -167,7 +160,7 @@ static void point_scatter_density_grid(const openvdb::FloatGrid &grid,
         for (double z = start.z(); z < box_max.z(); z += abs_spacing_z) {
           /* Transform with grid matrix and add point. */
           const openvdb::Vec3d idx_pos(x, y, z);
-          const openvdb::Vec3d local_pos = grid.indexToWorld(idx_pos + half_voxel);
+          const openvdb::Vec3d local_pos = grid.indexToWorld(idx_pos);
           r_positions.append({float(local_pos.x()), float(local_pos.y()), float(local_pos.z())});
         }
       }
@@ -233,11 +226,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     PointCloud *pointcloud = BKE_pointcloud_new_nomain(positions.size());
     bke::MutableAttributeAccessor point_attributes = pointcloud->attributes_for_write();
     pointcloud->positions_for_write().copy_from(positions);
-    bke::SpanAttributeWriter<float> point_radii =
-        point_attributes.lookup_or_add_for_write_only_span<float>("radius", AttrDomain::Point);
-
-    point_radii.span.fill(0.05f);
-    point_radii.finish();
+    point_attributes.add<float>("radius", bke::AttrDomain::Point, bke::AttributeInitValue(0.05f));
 
     geometry::debug_randomize_point_order(pointcloud);
 
@@ -254,22 +243,22 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(
       &ntype, "GeometryNodeDistributePointsInVolume", GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME);
   ntype.ui_name = "Distribute Points in Volume";
   ntype.ui_description = "Generate points inside a volume";
   ntype.enum_name_legacy = "DISTRIBUTE_POINTS_IN_VOLUME";
   ntype.nclass = NODE_CLASS_GEOMETRY;
-  blender::bke::node_type_storage(ntype,
-                                  "NodeGeometryDistributePointsInVolume",
-                                  node_free_standard_storage,
-                                  node_copy_standard_storage);
+  bke::node_type_storage(ntype,
+                         "NodeGeometryDistributePointsInVolume",
+                         node_free_standard_storage,
+                         node_copy_standard_storage);
   ntype.initfunc = node_init;
-  blender::bke::node_type_size(ntype, 170, 100, 320);
+  bke::node_type_size(ntype, 170, 100, 320);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

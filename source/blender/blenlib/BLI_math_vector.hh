@@ -197,6 +197,29 @@ template<typename T, int Size>
   return result;
 }
 
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> floored_mod(const VecBase<T, Size> &a,
+                                                  const VecBase<T, Size> &b)
+{
+  VecBase<T, Size> result;
+  for (int i = 0; i < Size; i++) {
+    BLI_assert(b[i] != 0);
+    result[i] = math::floored_mod(a[i], b[i]);
+  }
+  return result;
+}
+
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> floored_mod(const VecBase<T, Size> &a, const T &b)
+{
+  BLI_assert(b != 0);
+  VecBase<T, Size> result;
+  for (int i = 0; i < Size; i++) {
+    result[i] = math::floored_mod(a[i], b);
+  }
+  return result;
+}
+
 /**
  * Return the value of x raised to the y power.
  * The result is undefined if x < 0 or if x = 0 and y <= 0.

@@ -7,11 +7,12 @@
 
 /* Step 4 : Apply final integration on top of the scene color. */
 
-#include "infos/eevee_volume_info.hh"
+#include "infos/eevee_volume_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_volume_resolve)
 
 #include "eevee_volume_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 void main()
 {

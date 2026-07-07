@@ -10,8 +10,8 @@ from queue import SimpleQueue
 
 # For debugging/profiling purposes, can be modified at runtime to force single-threaded execution.
 _MULTITHREADING_ENABLED = True
-# The concurrent.futures module may not work or may not be available on WebAssembly platforms wasm32-emscripten and
-# wasm32-wasi.
+# The concurrent.futures module may not work or may not be available
+# on WebAssembly platforms WASM32-EMSCRIPTEN and WASM32-WASI.
 try:
     from concurrent.futures import ThreadPoolExecutor
 except ModuleNotFoundError:
@@ -30,12 +30,12 @@ else:
 
 
 def get_cpu_count():
-    """Get the number of cpus assigned to the current process if that information is available on this system.
-    If not available, get the total number of cpus.
-    If the cpu count is indeterminable, it is assumed that there is only 1 cpu available."""
+    """Get the number of CPUs assigned to the current process if that information is available on this system.
+    If not available, get the total number of CPUs.
+    If the CPU count is indeterminable, it is assumed that there is only 1 cpu available."""
     sched_getaffinity = getattr(os, "sched_getaffinity", None)
     if sched_getaffinity is not None:
-        # Return the number of cpus assigned to the current process.
+        # Return the number of CPUs assigned to the current process.
         return len(sched_getaffinity(0))
     count = os.cpu_count()
     return count if count is not None else 1
@@ -43,7 +43,7 @@ def get_cpu_count():
 
 class MultiThreadedTaskConsumer:
     """Helper class that encapsulates everything needed to run a function on separate threads, with a single-threaded
-    fallback if multithreading is not available.
+    fallback if multi-threading is not available.
 
     Lower overhead than typical use of ThreadPoolExecutor because no Future objects are returned, which makes this class
     more suitable to running many smaller tasks.
@@ -61,7 +61,7 @@ class MultiThreadedTaskConsumer:
         # It's recommended to use MultiThreadedTaskConsumer.new_cpu_bound_cm() instead of creating new instances
         # directly.
         # __init__ should only be called after checking _MULTITHREADING_ENABLED.
-        assert(_MULTITHREADING_ENABLED)
+        assert _MULTITHREADING_ENABLED
         # The function that will be called on separate threads to consume tasks.
         self._consumer_function = consumer_function
         # All the threads share a single queue. This is a simplistic approach, but it is unlikely to be problematic
@@ -97,7 +97,7 @@ class MultiThreadedTaskConsumer:
 
         Any task that fails with an exception will cause all task consumer threads to stop.
 
-        The maximum number of threads used matches the number of cpus available up to a maximum of `hard_max_threads`.
+        The maximum number of threads used matches the number of CPUs available up to a maximum of `hard_max_threads`.
         `hard_max_threads`'s default of 32 matches ThreadPoolExecutor's default behavior.
 
         The maximum number of threads used is decreased by `other_cpu_bound_threads_in_use`. Defaulting to `1`, assuming

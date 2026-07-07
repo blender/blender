@@ -9,7 +9,7 @@
  *
  * Template for matrix types.
  *
- * The `blender::MatBase<T, NumCol, NumRow>` is a Row x Col matrix (in mathematical notation) laid
+ * The `MatBase<T, NumCol, NumRow>` is a Row x Col matrix (in mathematical notation) laid
  * out as column major in memory.
  *
  * This class overloads `+, -, *` and `+=, -=, *=` mathematical operators.
@@ -18,17 +18,17 @@
  * `Vector<R> * MatBase<C,R>` the vector product with the **transposed** matrix.
  * `MatBase<C,R> * MatBase<R,C>` and `MatBase<C,R> *= MatBase<R,C>` the matrix multiplication.
  *
- * The `blender::MatView` allows working on a subset of a matrix without having to move the data
+ * The `MatView` allows working on a subset of a matrix without having to move the data
  * around. It can be obtained using the `MatBase.view<NumCol, NumRow>()`. It is const by default if
- * the matrix type is. Otherwise, a `blender::MutableMatView` is returned.
+ * the matrix type is. Otherwise, a `MutableMatView` is returned.
  *
- * A `blender::MutableMatView`. It is mostly the same as `blender::MatView`, but can to be
+ * A `MutableMatView`. It is mostly the same as `MatView`, but can to be
  * modified.
  *
  * This allow working with any number type `T` (`float, double, mpq, ...`)
  * and to use these types in shared shader files (code compiled in both C++ and Shader language).
  * To this end, only low level constructors are defined inside the class itself and every
- * function working on matrices are defined outside of the class in the `blender::math` namespace.
+ * function working on matrices are defined outside of the class in the `math` namespace.
  */
 
 #include <ostream>
@@ -72,7 +72,7 @@ template<
     /* Alignment in bytes. Do not align matrices whose size is not a multiple of 4 component.
      * This is in order to avoid padding when using arrays of matrices. */
     int Alignment = (((NumCol * NumRow) % 4 == 0) ? 4 : 1) * sizeof(T)>
-struct alignas(Alignment) MatBase : public vec_struct_base<VecBase<T, NumRow>, NumCol> {
+struct alignas(Alignment) MatBase : public vec_struct_base<VecBase<T, NumRow>, NumCol, false> {
 
   using base_type = T;
   using vec3_type = VecBase<T, 3>;
@@ -85,24 +85,23 @@ struct alignas(Alignment) MatBase : public vec_struct_base<VecBase<T, NumRow>, N
 
   MatBase() = default;
 
-/* Workaround issue with template BLI_ENABLE_IF((Size == 2)) not working. */
-#define BLI_ENABLE_IF_MAT(_size, _test) int S = _size, BLI_ENABLE_IF((S _test))
-
-  template<BLI_ENABLE_IF_MAT(NumCol, == 2)> MatBase(col_type _x, col_type _y)
+  MatBase(col_type _x, col_type _y)
+    requires(NumCol == 2)
   {
     (*this)[0] = _x;
     (*this)[1] = _y;
   }
 
-  template<BLI_ENABLE_IF_MAT(NumCol, == 3)> MatBase(col_type _x, col_type _y, col_type _z)
+  MatBase(col_type _x, col_type _y, col_type _z)
+    requires(NumCol == 3)
   {
     (*this)[0] = _x;
     (*this)[1] = _y;
     (*this)[2] = _z;
   }
 
-  template<BLI_ENABLE_IF_MAT(NumCol, == 4)>
   MatBase(col_type _x, col_type _y, col_type _z, col_type _w)
+    requires(NumCol == 4)
   {
     (*this)[0] = _x;
     (*this)[1] = _y;
@@ -136,8 +135,6 @@ struct alignas(Alignment) MatBase : public vec_struct_base<VecBase<T, NumRow>, N
     }
   }
 
-#undef BLI_ENABLE_IF_MAT
-
   /** Conversion from pointers (from C-style vectors). */
 
   explicit MatBase(const T *ptr)
@@ -145,7 +142,9 @@ struct alignas(Alignment) MatBase : public vec_struct_base<VecBase<T, NumRow>, N
     unroll<NumCol>([&](auto i) { (*this)[i] = reinterpret_cast<const col_type *>(ptr)[i]; });
   }
 
-  template<typename U, BLI_ENABLE_IF((std::is_convertible_v<U, T>))> explicit MatBase(const U *ptr)
+  template<typename U>
+  explicit MatBase(const U *ptr)
+    requires(std::is_convertible_v<U, T>)
   {
     unroll<NumCol>([&](auto i) { (*this)[i] = ptr[i]; });
   }
@@ -525,7 +524,7 @@ struct MatView : NonCopyable, NonMovable {
 
   /** Allow wrapping C-style matrices using view. IMPORTANT: Alignment of src needs to match. */
   explicit MatView(const float (*src)[SrcNumRow])
-      : MatView(*reinterpret_cast<const SrcMatT *>(&src[0][0])){};
+      : MatView(*reinterpret_cast<const SrcMatT *>(&src[0][0])) {};
 
   /** Array access. */
 
@@ -720,11 +719,11 @@ struct MutableMatView
  public:
   MutableMatView() = delete;
 
-  MutableMatView(SrcMatT &src) : MatViewT(const_cast<const SrcMatT &>(src)){};
+  MutableMatView(SrcMatT &src) : MatViewT(const_cast<const SrcMatT &>(src)) {};
 
   /** Allow wrapping C-style matrices using view. IMPORTANT: Alignment of src needs to match. */
   explicit MutableMatView(float src[SrcNumCol][SrcNumRow])
-      : MutableMatView(*reinterpret_cast<SrcMatT *>(&src[0][0])){};
+      : MutableMatView(*reinterpret_cast<SrcMatT *>(&src[0][0])) {};
 
   /** Array access. */
 

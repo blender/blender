@@ -17,9 +17,11 @@
 
 #include <functional>
 
+namespace blender {
+
 struct Depsgraph;
 
-namespace blender::deg::sync_writeback {
+namespace deg::sync_writeback {
 
 /**
  * Add a writeback task during depsgraph evaluation. The given function is called after depsgraph
@@ -28,4 +30,5 @@ namespace blender::deg::sync_writeback {
  */
 void add(Depsgraph &depsgraph, std::function<void()> fn);
 
-}  // namespace blender::deg::sync_writeback
+}  // namespace deg::sync_writeback
+}  // namespace blender

@@ -25,11 +25,11 @@ class NodePerspectiveCamera;
 
 class NodeCamera : public Node {
  public:
-  typedef enum {
+  enum CameraType {
     PERSPECTIVE,
     ORTHOGRAPHIC,
     GENERIC,
-  } CameraType;
+  };
 
   /** Default matrices: Identity for both projection and modelview. */
   NodeCamera(CameraType camera_type = GENERIC);

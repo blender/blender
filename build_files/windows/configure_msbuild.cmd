@@ -48,14 +48,14 @@ if NOT EXIST %BUILD_DIR%\nul (
 if "%MUST_CLEAN%"=="1" (
 	echo Cleaning %BUILD_DIR%
 	msbuild ^
-		%BUILD_DIR%\Blender.sln ^
+		%BUILD_DIR%\Blender.%VS_SLN_EXT% ^
 		/target:clean ^
 		/property:Configuration=%BUILD_TYPE% ^
 		/verbosity:minimal ^
 		/p:platform=%MSBUILD_PLATFORM%
 )
 
-if NOT EXIST %BUILD_DIR%\Blender.sln set MUST_CONFIGURE=1
+if NOT EXIST %BUILD_DIR%\Blender.%VS_SLN_EXT% set MUST_CONFIGURE=1
 if "%NOBUILD%"=="1" set MUST_CONFIGURE=1
 
 if "%MUST_CONFIGURE%"=="1" (

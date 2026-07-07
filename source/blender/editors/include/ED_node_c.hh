@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 struct ARegion;
 struct ID;
 struct Main;
@@ -18,11 +20,11 @@ struct View2D;
 struct bContext;
 struct bNode;
 struct bNodeTree;
-namespace blender::bke {
+namespace bke {
 struct bNodeTreeType;
 struct bNodeType;
 struct bNodeSocketType;
-}  // namespace blender::bke
+}  // namespace bke
 
 #define NODE_GRID_STEP_SIZE (20.0f * UI_SCALE_FAC) /* Based on the grid nodes snap to. */
 #define NODE_EDGE_PAN_INSIDE_PAD 2
@@ -31,10 +33,6 @@ struct bNodeSocketType;
 #define NODE_EDGE_PAN_MAX_SPEED 26 /* In UI units per second, slower than default. */
 #define NODE_EDGE_PAN_DELAY 0.5f
 #define NODE_EDGE_PAN_ZOOM_INFLUENCE 0.5f
-
-/* `clipboard.cc` */
-
-void ED_node_clipboard_free();
 
 /* `space_node.cc` */
 
@@ -58,37 +56,22 @@ void ED_node_set_active_viewer_key(SpaceNode *snode);
 /* `drawnode.cc` */
 
 void ED_node_init_butfuncs();
-void ED_init_custom_node_type(blender::bke::bNodeType *ntype);
-void ED_init_custom_node_socket_type(blender::bke::bNodeSocketType *stype);
-void ED_init_standard_node_socket_type(blender::bke::bNodeSocketType *stype);
-void ED_init_node_socket_type_virtual(blender::bke::bNodeSocketType *stype);
+void ED_init_custom_node_type(bke::bNodeType *ntype);
+void ED_init_custom_node_socket_type(bke::bNodeSocketType *stype);
+void ED_init_standard_node_socket_type(bke::bNodeSocketType *stype);
+void ED_init_node_socket_type_virtual(bke::bNodeSocketType *stype);
 void ED_node_sample_set(const float col[4]);
 void ED_node_type_draw_color(const char *idname, float *r_color);
 
 /* `node_edit.cc` */
 
-void ED_node_set_tree_type(SpaceNode *snode, blender::bke::bNodeTreeType *typeinfo);
+void ED_node_set_tree_type(SpaceNode *snode, bke::bNodeTreeType *typeinfo);
 bool ED_node_is_compositor(const SpaceNode *snode);
 bool ED_node_is_shader(SpaceNode *snode);
 bool ED_node_is_texture(SpaceNode *snode);
-bool ED_node_is_geometry(SpaceNode *snode);
+bool ED_node_is_geometry(const SpaceNode *snode);
 bool ED_node_supports_preview(SpaceNode *snode);
 
-/**
- * Assumes nothing being done in ntree yet, sets the default in/out node.
- * Called from shading buttons or header.
- */
-void ED_node_shader_default(const bContext *C, ID *id);
-
-/**
- * Initializes an empty compositing node tree with default nodes.
- */
-void ED_node_composit_default_init(const bContext *C, bNodeTree *ntree);
-/**
- * Assumes nothing being done in ntree yet, sets the default in/out node.
- * Called from compositing buttons or header.
- */
-void ED_node_composit_default(const bContext *C, Scene *scene);
 /**
  * Assumes nothing being done in ntree yet, sets the default in/out node.
  * Called from shading buttons or header.
@@ -99,13 +82,9 @@ void ED_node_set_active(
     Main *bmain, SpaceNode *snode, bNodeTree *ntree, bNode *node, bool *r_active_texture_changed);
 
 /**
- * \param scene_owner: is the owner of the job,
- * we don't use it for anything else currently so could also be a void pointer,
- * but for now keep it an 'Scene' for consistency.
- *
- * \note only call from spaces `refresh` callbacks, not direct! - use with care.
+ * Launch a compositor job for the scene of the given context.
  */
-void ED_node_composite_job(const bContext *C, bNodeTree *nodetree, Scene *scene_owner);
+void ED_node_compositor_job(const bContext *C);
 
 /* `node_ops.cc` */
 
@@ -124,3 +103,5 @@ bool ED_space_node_get_position(
  */
 bool ED_space_node_color_sample(
     Main *bmain, SpaceNode *snode, ARegion *region, const int mval[2], float r_col[3]);
+
+}  // namespace blender

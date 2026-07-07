@@ -75,6 +75,8 @@ struct dirent *readdir(DIR *dp);
 int closedir(DIR *dp);
 const char *dirname(char *path);
 
+namespace blender {
+
 /* Windows utility functions. */
 
 bool BLI_windows_is_store_install(void);
@@ -147,3 +149,5 @@ enum class QoSPrecedence {
  * \param qos_precedence: The precedence of the caller (higher wins).
  */
 void BLI_windows_process_set_qos(QoSMode qos_mode, QoSPrecedence qos_precedence);
+
+}  // namespace blender

@@ -13,6 +13,8 @@
 #include "bmesh_class.hh"
 #include "intern/bmesh_operator_api.hh"
 
+namespace blender {
+
 void BM_mesh_triangulate(BMesh *bm,
                          int quad_method,
                          int ngon_method,
@@ -21,3 +23,5 @@ void BM_mesh_triangulate(BMesh *bm,
                          BMOperator *op,
                          BMOpSlot *slot_facemap_out,
                          BMOpSlot *slot_facemap_double_out);
+
+}  // namespace blender

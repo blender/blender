@@ -16,18 +16,20 @@
 #include <string>
 #include <vector>
 
+namespace blender {
+
 struct CacheFile;
 struct Main;
 struct Mesh;
 struct Object;
 
-namespace blender::bke {
+namespace bke {
 struct GeometrySet;
 }
 
 using Alembic::AbcCoreAbstract::chrono_t;
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 struct ImportSettings {
   bool blender_archive_version_prior_44 = false;
@@ -165,4 +167,5 @@ class AbcObjectReader {
 
 Imath::M44d get_matrix(const Alembic::AbcGeom::IXformSchema &schema, chrono_t time);
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

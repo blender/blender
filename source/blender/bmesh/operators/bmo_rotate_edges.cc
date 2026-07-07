@@ -18,6 +18,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 #define EDGE_OUT 1
 #define FACE_MARK 1
 
@@ -88,8 +90,7 @@ static void bm_rotate_edges_shared(
     BMesh *bm, BMOperator *op, short check_flag, const bool use_ccw, const int edges_len)
 {
   Heap *heap = BLI_heap_new_ex(edges_len);
-  HeapNode **eheap_table = static_cast<HeapNode **>(
-      MEM_mallocN(sizeof(*eheap_table) * edges_len, __func__));
+  HeapNode **eheap_table = MEM_new_array_uninitialized<HeapNode *>(edges_len, __func__);
 
   BMEdge **edges = reinterpret_cast<BMEdge **>(
       BMO_SLOT_AS_BUFFER(BMO_slot_get(op->slots_in, "edges")));
@@ -204,7 +205,7 @@ static void bm_rotate_edges_shared(
               const int e_iter_index = BM_elem_index_get(e_iter);
               if ((e_iter_index != -1) && (eheap_table[e_iter_index] == nullptr)) {
                 /* Once freed, they cannot be accessed via connected geometry. */
-                BLI_assert((eheap_table[e_iter_index] != edge_free_id));
+                BLI_assert(eheap_table[e_iter_index] != edge_free_id);
                 if (BM_edge_rotate_check(e_iter)) {
                   /* Previously degenerate, now valid. */
                   float cost = bm_edge_calc_rotate_cost(e_iter);
@@ -225,7 +226,7 @@ static void bm_rotate_edges_shared(
   }
 
   BLI_heap_free(heap, nullptr);
-  MEM_freeN(eheap_table);
+  MEM_delete(eheap_table);
 }
 
 void bmo_rotate_edges_exec(BMesh *bm, BMOperator *op)
@@ -266,3 +267,5 @@ void bmo_rotate_edges_exec(BMesh *bm, BMOperator *op)
 
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, EDGE_OUT);
 }
+
+}  // namespace blender

@@ -18,6 +18,8 @@
 
 #include "AUD_Types.h"
 
+#include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -53,10 +55,10 @@ extern AUD_API AUD_Handle* AUD_pauseAfter(AUD_Handle* handle, double seconds);
  * \param buffer The buffer to write to. Must have a size of 3*4*length.
  * \param length How many samples to read from the sound.
  * \param samples_per_second How many samples to read per second of the sound.
- * \param interrupt Must point to a short that equals 0. If it is set to a non-zero value, the method will be interrupted and return 0.
+ * \param interrupt Must point to a bool that equals false. If it is set to true, the method will be interrupted and return 0.
  * \return How many samples really have been read. Always <= length.
  */
-extern AUD_API int AUD_readSound(AUD_Sound* sound, float* buffer, int length, int samples_per_second, short* interrupt);
+extern AUD_API int AUD_readSound(AUD_Sound* sound, float* buffer, int length, int samples_per_second, bool* interrupt);
 
 /**
  * Mixes a sound down into a file.

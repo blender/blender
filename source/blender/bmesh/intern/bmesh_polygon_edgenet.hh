@@ -8,6 +8,8 @@
 
 #include "bmesh_class.hh"
 
+namespace blender {
+
 /** \file
  * \ingroup bmesh
  */
@@ -20,11 +22,8 @@
  * - Customdata calculations aren't efficient
  *   (need to calculate weights for each vert).
  */
-bool BM_face_split_edgenet(BMesh *bm,
-                           BMFace *f,
-                           BMEdge **edge_net,
-                           int edge_net_len,
-                           blender::Vector<BMFace *> *r_face_arr);
+bool BM_face_split_edgenet(
+    BMesh *bm, BMFace *f, BMEdge **edge_net, int edge_net_len, Vector<BMFace *> *r_face_arr);
 
 /**
  * For when the edge-net has holes in it-this connects them.
@@ -43,3 +42,5 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
                                            BMEdge ***r_edge_net_new,
                                            uint *r_edge_net_new_len) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 2, 3, 6, 7, 8);
+
+}  // namespace blender

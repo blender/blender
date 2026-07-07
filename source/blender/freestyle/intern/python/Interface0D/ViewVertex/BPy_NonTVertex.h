@@ -19,9 +19,9 @@ extern PyTypeObject NonTVertex_Type;
 #define BPy_NonTVertex_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&NonTVertex_Type))
 
 /*---------------------------Python BPy_NonTVertex structure definition----------*/
-typedef struct {
+struct BPy_NonTVertex {
   BPy_ViewVertex py_vv;
   Freestyle::NonTVertex *ntv;
-} BPy_NonTVertex;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

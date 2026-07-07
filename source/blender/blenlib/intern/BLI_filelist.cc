@@ -42,6 +42,8 @@
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 
+namespace blender {
+
 /*
  * Ordering function for sorting lists of files/directories. Returns -1 if
  * entry1 belongs before entry2, 0 if they are equal, 1 if they should be swapped.
@@ -108,6 +110,7 @@ struct BuildDirCtx {
  */
 static void bli_builddir(BuildDirCtx *dir_ctx, const char *dirname)
 {
+  BLI_assert(!BLI_path_is_rel(dirname));
   DIR *dir = opendir(dirname);
   if (UNLIKELY(dir == nullptr)) {
     fprintf(stderr,
@@ -117,7 +120,7 @@ static void bli_builddir(BuildDirCtx *dir_ctx, const char *dirname)
     return;
   }
 
-  ListBase dirbase = {nullptr, nullptr};
+  ListBaseT<dirlink> dirbase = {nullptr, nullptr};
   int newnum = 0;
   const dirent *fname;
   bool has_current = false, has_parent = false;
@@ -134,7 +137,7 @@ static void bli_builddir(BuildDirCtx *dir_ctx, const char *dirname)
   }
 
   while ((fname = readdir(dir)) != nullptr) {
-    dirlink *const dlink = (dirlink *)malloc(sizeof(dirlink));
+    dirlink *const dlink = static_cast<dirlink *>(malloc(sizeof(dirlink)));
     if (dlink != nullptr) {
       dlink->name = BLI_strdup(fname->d_name);
       if (FILENAME_IS_PARENT(dlink->name)) {
@@ -153,7 +156,7 @@ static void bli_builddir(BuildDirCtx *dir_ctx, const char *dirname)
 
     STRNCPY(pardir, dirname);
     if (BLI_path_parent_dir(pardir) && (BLI_access(pardir, R_OK) == 0)) {
-      dirlink *const dlink = (dirlink *)malloc(sizeof(dirlink));
+      dirlink *const dlink = static_cast<dirlink *>(malloc(sizeof(dirlink)));
       if (dlink != nullptr) {
         dlink->name = BLI_strdup(FILENAME_PARENT);
         BLI_addhead(&dirbase, dlink);
@@ -162,7 +165,7 @@ static void bli_builddir(BuildDirCtx *dir_ctx, const char *dirname)
     }
   }
   if (!has_current) {
-    dirlink *const dlink = (dirlink *)malloc(sizeof(dirlink));
+    dirlink *const dlink = static_cast<dirlink *>(malloc(sizeof(dirlink)));
     if (dlink != nullptr) {
       dlink->name = BLI_strdup(FILENAME_CURRENT);
       BLI_addhead(&dirbase, dlink);
@@ -172,19 +175,19 @@ static void bli_builddir(BuildDirCtx *dir_ctx, const char *dirname)
 
   if (newnum) {
     if (dir_ctx->files) {
-      void *const tmp = MEM_reallocN(dir_ctx->files,
-                                     (dir_ctx->files_num + newnum) * sizeof(direntry));
+      void *const tmp = MEM_realloc_uninitialized(
+          dir_ctx->files, (dir_ctx->files_num + newnum) * sizeof(direntry));
       if (tmp) {
-        dir_ctx->files = (direntry *)tmp;
+        dir_ctx->files = static_cast<direntry *>(tmp);
       }
       else { /* Reallocation may fail. */
-        MEM_freeN(dir_ctx->files);
+        MEM_delete(dir_ctx->files);
         dir_ctx->files = nullptr;
       }
     }
 
     if (dir_ctx->files == nullptr) {
-      dir_ctx->files = MEM_malloc_arrayN<direntry>(size_t(newnum), __func__);
+      dir_ctx->files = MEM_new_array_uninitialized<direntry>(size_t(newnum), __func__);
     }
 
     if (UNLIKELY(dir_ctx->files == nullptr)) {
@@ -192,7 +195,7 @@ static void bli_builddir(BuildDirCtx *dir_ctx, const char *dirname)
       dir_ctx->files_num = 0;
     }
     else {
-      dirlink *dlink = (dirlink *)dirbase.first;
+      dirlink *dlink = static_cast<dirlink *>(dirbase.first);
       direntry *file = &dir_ctx->files[dir_ctx->files_num];
 
       while (dlink) {
@@ -215,7 +218,7 @@ static void bli_builddir(BuildDirCtx *dir_ctx, const char *dirname)
       qsort(dir_ctx->files,
             dir_ctx->files_num,
             sizeof(direntry),
-            (int (*)(const void *, const void *))direntry_cmp);
+            reinterpret_cast<int (*)(const void *, const void *)>(direntry_cmp));
     }
 
     BLI_freelist(&dirbase);
@@ -239,7 +242,7 @@ uint BLI_filelist_dir_contents(const char *dirname, direntry **r_filelist)
   else {
     /* Keep Blender happy. Blender stores this in a variable
      * where 0 has special meaning..... */
-    *r_filelist = MEM_mallocN<direntry>(__func__);
+    *r_filelist = MEM_new_uninitialized<direntry>(__func__);
   }
 
   return dir_ctx.files_num;
@@ -406,10 +409,10 @@ void BLI_filelist_entry_duplicate(direntry *dst, const direntry *src)
 {
   *dst = *src;
   if (dst->relname) {
-    dst->relname = static_cast<char *>(MEM_dupallocN(src->relname));
+    dst->relname = MEM_dupalloc(src->relname);
   }
   if (dst->path) {
-    dst->path = static_cast<char *>(MEM_dupallocN(src->path));
+    dst->path = MEM_dupalloc(src->path);
   }
 }
 
@@ -419,7 +422,7 @@ void BLI_filelist_duplicate(direntry **dest_filelist,
 {
   uint i;
 
-  *dest_filelist = MEM_malloc_arrayN<direntry>(size_t(nrentries), __func__);
+  *dest_filelist = MEM_new_array_uninitialized<direntry>(size_t(nrentries), __func__);
   for (i = 0; i < nrentries; i++) {
     const direntry *src = &src_filelist[i];
     direntry *dst = &(*dest_filelist)[i];
@@ -430,10 +433,10 @@ void BLI_filelist_duplicate(direntry **dest_filelist,
 void BLI_filelist_entry_free(direntry *entry)
 {
   if (entry->relname) {
-    MEM_freeN(entry->relname);
+    MEM_delete(entry->relname);
   }
   if (entry->path) {
-    MEM_freeN(entry->path);
+    MEM_delete(entry->path);
   }
 }
 
@@ -445,6 +448,8 @@ void BLI_filelist_free(direntry *filelist, const uint nrentries)
   }
 
   if (filelist != nullptr) {
-    MEM_freeN(filelist);
+    MEM_delete(filelist);
   }
 }
+
+}  // namespace blender

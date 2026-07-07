@@ -11,37 +11,29 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
-#include "IMB_imbuf.hh"
-
 #include "effects.hh"
 
 namespace blender::seq {
 
 static void init_solid_color(Strip *strip)
 {
+  SolidColorVars *data = MEM_new<SolidColorVars>("solidcolor");
+  strip->effectdata = data;
+  data->col[0] = data->col[1] = data->col[2] = 0.5;
+}
+
+static void free_solid_color(Strip *strip, const bool /*do_id_user*/)
+{
   if (strip->effectdata) {
-    MEM_freeN(strip->effectdata);
+    SolidColorVars *data = static_cast<SolidColorVars *>(strip->effectdata);
+    MEM_delete(data);
+    strip->effectdata = nullptr;
   }
-
-  SolidColorVars *cv = MEM_callocN<SolidColorVars>("solidcolor");
-  strip->effectdata = cv;
-
-  cv->col[0] = cv->col[1] = cv->col[2] = 0.5;
 }
 
 static int num_inputs_color()
 {
   return 0;
-}
-
-static void free_solid_color(Strip *strip, const bool /*do_id_user*/)
-{
-  MEM_SAFE_FREE(strip->effectdata);
-}
-
-static void copy_solid_color(Strip *dst, const Strip *src, const int /*flag*/)
-{
-  dst->effectdata = MEM_dupallocN(src->effectdata);
 }
 
 static StripEarlyOut early_out_color(const Strip * /*strip*/, float /*fac*/)
@@ -50,16 +42,16 @@ static StripEarlyOut early_out_color(const Strip * /*strip*/, float /*fac*/)
 }
 
 static ImBuf *do_solid_color(const RenderData *context,
+                             SeqRenderState * /*state*/,
                              Strip *strip,
                              float /*timeline_frame*/,
                              float /*fac*/,
                              ImBuf *ibuf1,
                              ImBuf *ibuf2)
 {
-  using namespace blender;
   ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2);
 
-  SolidColorVars *cv = (SolidColorVars *)strip->effectdata;
+  SolidColorVars *cv = static_cast<SolidColorVars *>(strip->effectdata);
 
   threading::parallel_for(IndexRange(out->y), 64, [&](const IndexRange y_range) {
     if (out->byte_buffer.data) {
@@ -101,9 +93,8 @@ void solid_color_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_solid_color;
   rval.num_inputs = num_inputs_color;
-  rval.early_out = early_out_color;
   rval.free = free_solid_color;
-  rval.copy = copy_solid_color;
+  rval.early_out = early_out_color;
   rval.execute = do_solid_color;
 }
 

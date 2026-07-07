@@ -12,6 +12,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 void BLI_linklist_lockfree_init(LockfreeLinkList *list)
 {
   list->dummy_node.next = nullptr;
@@ -51,15 +53,18 @@ void BLI_linklist_lockfree_insert(LockfreeLinkList *list, LockfreeLinkNode *node
   node->next = nullptr;
   do {
     tail_node = list->tail;
-    keep_working = (atomic_cas_ptr((void **)&tail_node->next, nullptr, node) != nullptr);
+    keep_working = (atomic_cas_ptr(reinterpret_cast<void **>(&tail_node->next), nullptr, node) !=
+                    nullptr);
     if (keep_working) {
-      atomic_cas_ptr((void **)&list->tail, tail_node, tail_node->next);
+      atomic_cas_ptr(reinterpret_cast<void **>(&list->tail), tail_node, tail_node->next);
     }
   } while (keep_working);
-  atomic_cas_ptr((void **)&list->tail, tail_node, node);
+  atomic_cas_ptr(reinterpret_cast<void **>(&list->tail), tail_node, node);
 }
 
 LockfreeLinkNode *BLI_linklist_lockfree_begin(LockfreeLinkList *list)
 {
   return list->head->next;
 }
+
+}  // namespace blender

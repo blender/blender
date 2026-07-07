@@ -14,6 +14,7 @@
 
 #include "BKE_appdir.hh"
 #include "BKE_callbacks.hh"
+#include "BKE_idtype.hh"
 
 #include "BLI_fileops.h"
 #include "BLI_path_utils.hh"
@@ -22,13 +23,15 @@
 
 #include "testing/testing.h"
 
-namespace blender::asset_system {
+namespace blender {
+
+namespace asset_system {
 class AssetCatalogTree;
 class AssetCatalogTreeItem;
 class AssetCatalogPath;
-}  // namespace blender::asset_system
+}  // namespace asset_system
 
-namespace blender::asset_system::tests {
+namespace asset_system::tests {
 
 /**
  * Functionality to setup and access directories on disk within which asset library related testing
@@ -43,6 +46,7 @@ class AssetLibraryTestBase : public testing::Test {
   {
     testing::Test::SetUpTestSuite();
     CLG_init();
+    BKE_idtype_init();
     /* Current File library needs this. */
     BKE_callback_global_init();
   }
@@ -176,4 +180,6 @@ inline void AssetCatalogTreeTestFunctions::expect_tree_item_child_items(
   });
 }
 
-}  // namespace blender::asset_system::tests
+}  // namespace asset_system::tests
+
+}  // namespace blender

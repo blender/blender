@@ -211,10 +211,9 @@ static bke::GSpanAttributeWriter &selection_attribute_writer_by_name(
   return selections[0];
 }
 
-void foreach_selection_attribute_writer(
-    bke::CurvesGeometry &curves,
-    bke::AttrDomain selection_domain,
-    blender::FunctionRef<void(bke::GSpanAttributeWriter &selection)> fn)
+void foreach_selection_attribute_writer(bke::CurvesGeometry &curves,
+                                        bke::AttrDomain selection_domain,
+                                        FunctionRef<void(bke::GSpanAttributeWriter &selection)> fn)
 {
   Vector<bke::GSpanAttributeWriter> selection_writers = init_selection_writers(curves,
                                                                                selection_domain);
@@ -329,19 +328,14 @@ bke::GSpanAttributeWriter ensure_selection_attribute(bke::CurvesGeometry &curves
     selection_attr.finish();
     attributes.remove(attribute_name);
   }
-  const int domain_size = attributes.domain_size(selection_domain);
   switch (create_type) {
     case bke::AttrType::Bool:
-      attributes.add(attribute_name,
-                     selection_domain,
-                     bke::AttrType::Bool,
-                     bke::AttributeInitVArray(VArray<bool>::from_single(true, domain_size)));
+      attributes.add(
+          attribute_name, selection_domain, bke::AttrType::Bool, bke::AttributeInitValue(true));
       break;
     case bke::AttrType::Float:
-      attributes.add(attribute_name,
-                     selection_domain,
-                     bke::AttrType::Float,
-                     bke::AttributeInitVArray(VArray<float>::from_single(1.0f, domain_size)));
+      attributes.add(
+          attribute_name, selection_domain, bke::AttrType::Float, bke::AttributeInitValue(1.0f));
       break;
     default:
       BLI_assert_unreachable();
@@ -556,39 +550,48 @@ void select_alternate(bke::CurvesGeometry &curves,
   }
 
   const OffsetIndices points_by_curve = curves.points_by_curve();
-  bke::GSpanAttributeWriter selection = ensure_selection_attribute(
-      curves, bke::AttrDomain::Point, bke::AttrType::Bool);
   const VArray<bool> cyclic = curves.cyclic();
+  Vector<bke::GSpanAttributeWriter> selection_writers = init_selection_writers(
+      curves, bke::AttrDomain::Point);
 
-  MutableSpan<bool> selection_typed = selection.span.typed<bool>();
   curves_mask.foreach_index([&](const int64_t curve) {
     const IndexRange points = points_by_curve[curve];
-    if (!has_anything_selected(selection.span.slice(points))) {
+
+    bool anything_selected = false;
+
+    for (bke::GSpanAttributeWriter &writer : selection_writers) {
+      const bool writer_has_anything_selected = has_anything_selected(writer.span.slice(points));
+      anything_selected = anything_selected || writer_has_anything_selected;
+    }
+    if (!anything_selected) {
       return;
     }
 
-    const int half_of_size = points.size() / 2;
-    const IndexRange selected = points.shift(deselect_ends ? 1 : 0);
-    const IndexRange deselected = points.shift(deselect_ends ? 0 : 1);
-    for (const int i : IndexRange(half_of_size)) {
-      const int index = i * 2;
-      selection_typed[selected[index]] = true;
-      selection_typed[deselected[index]] = false;
-    }
+    for (bke::GSpanAttributeWriter &writer : selection_writers) {
+      MutableSpan<bool> selection_typed = writer.span.typed<bool>();
 
-    selection_typed[points.first()] = !deselect_ends;
-    const bool end_parity_to_selected = bool(points.size() % 2);
-    const bool selected_end = cyclic[curve] || end_parity_to_selected;
-    selection_typed[points.last()] = !deselect_ends && selected_end;
+      const int half_of_size = points.size() / 2;
+      const IndexRange selected = points.shift(deselect_ends ? 1 : 0);
+      const IndexRange deselected = points.shift(deselect_ends ? 0 : 1);
+      for (const int i : IndexRange(half_of_size)) {
+        const int index = i * 2;
+        selection_typed[selected[index]] = true;
+        selection_typed[deselected[index]] = false;
+      }
 
-    /* Selected last one require to deselect pre-last one point which is not first. */
-    const IndexRange curve_body = points.drop_front(1).drop_back(1);
-    if (!deselect_ends && cyclic[curve] && !curve_body.is_empty()) {
-      selection_typed[curve_body.last()] = false;
+      selection_typed[points.first()] = !deselect_ends;
+      const bool end_parity_to_selected = bool(points.size() % 2);
+      const bool selected_end = cyclic[curve] || end_parity_to_selected;
+      selection_typed[points.last()] = !deselect_ends && selected_end;
+      /* Selected last one require to deselect pre-last one point which is not first. */
+      const IndexRange curve_body = points.drop_front(1).drop_back(1);
+      if (!deselect_ends && cyclic[curve] && !curve_body.is_empty()) {
+        selection_typed[curve_body.last()] = false;
+      }
     }
   });
 
-  selection.finish();
+  finish_attribute_writers(selection_writers);
 }
 
 void select_alternate(bke::CurvesGeometry &curves, const bool deselect_ends)

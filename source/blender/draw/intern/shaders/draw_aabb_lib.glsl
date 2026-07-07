@@ -30,7 +30,7 @@ AABB aabb_init_min_max()
   return aabb;
 }
 
-void aabb_merge(inout AABB aabb, float3 v)
+void aabb_merge(AABB &aabb, float3 v)
 {
   aabb.min = min(aabb.min, v);
   aabb.max = max(aabb.max, v);
@@ -48,7 +48,7 @@ bool aabb_intersect(AABB a, AABB b)
  * Compute intersect intersection volume of \a a and \a b.
  * Return true if the resulting volume is not empty.
  */
-bool aabb_clip(AABB a, AABB b, out AABB c)
+bool aabb_clip(AABB a, AABB b, AABB &c)
 {
   c.min = max(a.min, b.min);
   c.max = min(a.max, b.max);

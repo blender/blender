@@ -18,6 +18,8 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"image.write"};
 
 bool IMB_save_image(ImBuf *ibuf, const char *filepath, const int flags)
@@ -51,3 +53,5 @@ bool IMB_save_image(ImBuf *ibuf, const char *filepath, const int flags)
 
   return type->save(ibuf, filepath, flags);
 }
+
+}  // namespace blender

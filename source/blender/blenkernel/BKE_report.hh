@@ -11,14 +11,16 @@
 #include <cstdio>
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_enum_flags.hh"
 #include "BLI_mutex.hh"
-#include "BLI_utildefines.h"
 
 #include "DNA_listBase.h"
 
-struct wmTimer;
-
 struct CLG_LogRef;
+
+namespace blender {
+
+struct wmTimer;
 
 /**
  * Reporting Information and Errors.
@@ -41,7 +43,7 @@ enum eReportType : uint16_t {
   RPT_ERROR_INVALID_CONTEXT = (1 << 7),
   RPT_ERROR_OUT_OF_MEMORY = (1 << 8),
 };
-ENUM_OPERATORS(eReportType, RPT_ERROR_OUT_OF_MEMORY)
+ENUM_OPERATORS(eReportType)
 
 #define RPT_DEBUG_ALL (RPT_DEBUG)
 #define RPT_INFO_ALL (RPT_INFO)
@@ -72,7 +74,7 @@ struct Report {
 };
 
 struct ReportList {
-  ListBase list;
+  ListBaseT<Report> list;
   /** #eReportType. */
   int printlevel;
   /** #eReportType. */
@@ -153,3 +155,5 @@ const char *BKE_report_type_str(eReportType type);
 
 bool BKE_report_write_file_fp(FILE *fp, ReportList *reports, const char *header);
 bool BKE_report_write_file(const char *filepath, ReportList *reports, const char *header);
+
+}  // namespace blender

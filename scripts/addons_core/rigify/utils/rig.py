@@ -296,7 +296,7 @@ def upgrade_metarig_layers(metarig: ArmatureObject):
                     if show:
                         coll = coll_table.get(i)
                         uid = ensure_collection_uid(coll) if coll else i
-                        name = coll.name if coll else f"Layer {i+1}"
+                        name = coll.name if coll else f"Layer {i + 1}"
                         entries.append({"uid": uid, "name": name})
 
                 params[prop_name[:-7] + REFS_LIST_SUFFIX] = entries

@@ -11,10 +11,12 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 
+namespace blender {
+
 struct ReportList;
 struct Mesh;
 
-namespace blender::bke::mesh {
+namespace bke::mesh {
 
 /**
  * Compute simplified tangent space normals, i.e.
@@ -56,4 +58,5 @@ Array<float4> calc_orco_tangents(Span<float3> vert_positions,
                                  Span<float3> corner_normals,
                                  Span<float3> vert_orco);
 
-}  // namespace blender::bke::mesh
+}  // namespace bke::mesh
+}  // namespace blender

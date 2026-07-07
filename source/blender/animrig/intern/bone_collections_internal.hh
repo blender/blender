@@ -11,10 +11,12 @@
 
 #pragma once
 
+namespace blender {
+
 struct bArmature;
 struct BoneCollection;
 
-namespace blender::animrig::internal {
+namespace animrig::internal {
 
 /**
  * Move a block of BoneCollections in the Armature's `collections_array`, from
@@ -68,4 +70,5 @@ void bonecolls_debug_list(const bArmature *armature);
  */
 void bonecoll_unassign_and_free(bArmature *armature, BoneCollection *bcoll);
 
-}  // namespace blender::animrig::internal
+}  // namespace animrig::internal
+}  // namespace blender

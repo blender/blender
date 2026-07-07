@@ -18,10 +18,10 @@ extern PyTypeObject UnaryFunction0DFloat_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryFunction0DFloat_Type))
 
 /*---------------------------Python BPy_UnaryFunction0DFloat structure definition----------*/
-typedef struct {
+struct BPy_UnaryFunction0DFloat {
   BPy_UnaryFunction0D py_uf0D;
   Freestyle::UnaryFunction0D<float> *uf0D_float;
-} BPy_UnaryFunction0DFloat;
+};
 
 /*---------------------------Python BPy_UnaryFunction0DFloat visible prototypes-----------*/
 int UnaryFunction0DFloat_Init(PyObject *module);

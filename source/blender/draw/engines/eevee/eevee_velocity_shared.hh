@@ -1,0 +1,61 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+/**
+ * Shared code between host and client code-bases.
+ */
+
+#pragma once
+
+#include "GPU_shader_shared_utils.hh"
+
+#ifndef GPU_SHADER
+namespace blender::eevee {
+#endif
+
+#define VELOCITY_INVALID 512.0
+
+enum [[host_shared]] eVelocityStep : uint32_t {
+  STEP_PREVIOUS,
+  STEP_NEXT,
+  STEP_CURRENT,
+};
+
+struct [[host_shared]] VelocityObjectIndex {
+  /** Offset inside #VelocityObjectBuf for each time-step. Indexed using eVelocityStep. */
+  packed_int3 ofs;
+  /** Temporary index to copy this to the #VelocityIndexBuf. */
+  uint resource_id;
+
+#ifndef GPU_SHADER
+  VelocityObjectIndex() : ofs(-1, -1, -1), resource_id(-1) {};
+#endif
+};
+
+struct [[host_shared]] VelocityGeometryIndex {
+  /** Offset inside #VelocityGeometryBuf for each time-step. Indexed using eVelocityStep. */
+  packed_int3 ofs;
+  /** If true, compute deformation motion blur. */
+  bool32_t do_deform;
+  /**
+   * Length of data inside #VelocityGeometryBuf for each time-step.
+   * Indexed using eVelocityStep.
+   */
+  packed_int3 len;
+
+  int _pad0;
+
+#ifndef GPU_SHADER
+  VelocityGeometryIndex() : ofs(-1, -1, -1), do_deform(false), len(-1, -1, -1), _pad0(1) {};
+#endif
+};
+
+struct [[host_shared]] VelocityIndex {
+  struct VelocityObjectIndex obj;
+  struct VelocityGeometryIndex geo;
+};
+
+#ifndef GPU_SHADER
+}  // namespace blender::eevee
+#endif

@@ -8,12 +8,14 @@
  * \ingroup sequencer
  */
 
-#include <cstddef>
+#include <cstdlib>
+
+namespace blender {
 
 struct MovieReader;
 struct Scene;
 
-namespace blender::seq {
+namespace seq {
 
 void seq_anim_add_suffix(Scene *scene, MovieReader *anim, int view_id);
 void seq_multiview_name(
@@ -23,4 +25,5 @@ void seq_multiview_name(
  */
 int seq_num_files(Scene *scene, char views_format, bool is_multiview);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

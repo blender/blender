@@ -20,7 +20,7 @@ namespace blender::nodes::node_fn_string_to_value_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::String>("String").hide_label();
+  b.add_input<decl::String>("String").optional_label();
 
   const bNode *node = b.node_or_null();
   if (node != nullptr) {
@@ -79,7 +79,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     }
   }
   else if (params.in_out() == SOCK_OUT) {
-    if (socket_type == SOCK_INT || socket_type == SOCK_BOOLEAN) {
+    if (ELEM(socket_type, SOCK_INT, SOCK_BOOLEAN)) {
       params.add_item(IFACE_("Value"), [](LinkSearchOpParams &params) {
         bNode &node = params.add_node("FunctionNodeStringToValue");
         node.custom1 = SOCK_INT;
@@ -103,9 +103,9 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-static void node_layout(uiLayout *layout, bContext *, PointerRNA *ptr)
+static void node_layout(ui::Layout &layout, bContext *, PointerRNA *ptr)
 {
-  layout->prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
+  layout.prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_rna(StructRNA *srna)
@@ -126,17 +126,18 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   fn_node_type_base(&ntype, "FunctionNodeStringToValue");
   ntype.ui_name = "String to Value";
+  ntype.ui_description = "Derive a numeric value from a given string representation";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   ntype.draw_buttons = node_layout;
   ntype.build_multi_function = node_build_multi_function;
   ntype.gather_link_search_ops = node_gather_link_searches;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

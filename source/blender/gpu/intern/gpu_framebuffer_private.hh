@@ -15,7 +15,9 @@
 
 #include "GPU_framebuffer.hh"
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 class Texture;
 }
 
@@ -61,7 +63,7 @@ inline GPUAttachmentType &operator--(GPUAttachmentType &a)
   return a;
 }
 
-namespace blender::gpu {
+namespace gpu {
 
 #ifndef NDEBUG
 #  define DEBUG_NAME_LEN 64
@@ -104,7 +106,7 @@ class FrameBuffer {
 
   virtual void bind(bool enabled_srgb) = 0;
   virtual bool check(char err_out[256]) = 0;
-  virtual void clear(eGPUFrameBufferBits buffers,
+  virtual void clear(GPUFrameBufferBits buffers,
                      const float clear_col[4],
                      float clear_depth,
                      uint clear_stencil) = 0;
@@ -115,14 +117,14 @@ class FrameBuffer {
 
   virtual void attachment_set_loadstore_op(GPUAttachmentType type, GPULoadStore ls) = 0;
 
-  virtual void read(eGPUFrameBufferBits planes,
+  virtual void read(GPUFrameBufferBits planes,
                     eGPUDataFormat format,
                     const int area[4],
                     int channel_len,
                     int slot,
                     void *r_data) = 0;
 
-  virtual void blit_to(eGPUFrameBufferBits planes,
+  virtual void blit_to(GPUFrameBufferBits planes,
                        int src_slot,
                        FrameBuffer *dst,
                        int dst_slot,
@@ -158,6 +160,12 @@ class FrameBuffer {
     width_ = width;
     height_ = height;
     dirty_state_ = true;
+  }
+
+  /** \brief Get the size of the framebuffer. */
+  int2 size_get() const
+  {
+    return int2(width_, height_);
   }
 
   /* Sets the size for frame-buffer with no attachments. */
@@ -251,12 +259,12 @@ class FrameBuffer {
     return attachments_[GPU_FB_DEPTH_STENCIL_ATTACHMENT];
   }
 
-  blender::gpu::Texture *depth_tex() const
+  gpu::Texture *depth_tex() const
   {
     return depth_attachment().tex;
   };
 
-  blender::gpu::Texture *color_tex(int slot) const
+  gpu::Texture *color_tex(int slot) const
   {
     return attachments_[GPU_FB_COLOR_ATTACHMENT0 + slot].tex;
   };
@@ -282,20 +290,7 @@ class FrameBuffer {
   }
 };
 
-/* Syntactic sugar. */
-static inline GPUFrameBuffer *wrap(FrameBuffer *framebuffer)
-{
-  return reinterpret_cast<GPUFrameBuffer *>(framebuffer);
-}
-static inline FrameBuffer *unwrap(GPUFrameBuffer *framebuffer)
-{
-  return reinterpret_cast<FrameBuffer *>(framebuffer);
-}
-static inline const FrameBuffer *unwrap(const GPUFrameBuffer *framebuffer)
-{
-  return reinterpret_cast<const FrameBuffer *>(framebuffer);
-}
-
 #undef DEBUG_NAME_LEN
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

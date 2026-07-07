@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "DNA_scene_types.h"
+#include "BLI_math_filter.hh"
 
 #include "COM_context.hh"
 #include "COM_result.hh"
@@ -23,11 +23,12 @@ namespace blender::compositor {
  * Technically, variable size blur can't be computed separably, however, assuming a sufficiently
  * smooth radius field, the results can be visually pleasing, so this can be used a more performant
  * variable size blur if the quality is satisfactory. */
-void symmetric_separable_blur_variable_size(Context &context,
-                                            const Result &input,
-                                            const Result &radius,
-                                            Result &output,
-                                            const int weights_resolution = 128,
-                                            const int filter_type = R_FILTER_GAUSS);
+void symmetric_separable_blur_variable_size(
+    Context &context,
+    const Result &input,
+    const Result &radius,
+    Result &output,
+    const int weights_resolution = 128,
+    const math::FilterKernel filter_type = math::FilterKernel::Gauss);
 
 }  // namespace blender::compositor

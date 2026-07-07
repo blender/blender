@@ -12,6 +12,8 @@
 #include <ostream>
 #include <type_traits>
 
+#include "BLI_build_config.h"
+#include "BLI_math_vector_swizzle.hh"
 #include "BLI_math_vector_unroll.hh"
 #include "BLI_utildefines.h"
 
@@ -25,21 +27,157 @@ using as_uint_type = std::conditional_t<sizeof(T) == sizeof(uint8_t), uint8_t,
                      std::conditional_t<sizeof(T) == sizeof(uint64_t), uint64_t, void>>>>;
 /* clang-format on */
 
-template<typename T, int Size> struct vec_struct_base {
+template<typename T, int Size, bool is_trivial_type> struct vec_struct_base {
   std::array<T, Size> values;
 };
 
-template<typename T> struct vec_struct_base<T, 2> {
+template<typename T> struct vec_struct_base<T, 1, false> {
+  T x;
+};
+
+template<typename T> struct vec_struct_base<T, 2, false> : VecSwizzleFunc<T, 2> {
   T x, y;
 };
 
-template<typename T> struct vec_struct_base<T, 3> {
+template<typename T> struct vec_struct_base<T, 3, false> : VecSwizzleFunc<T, 3> {
   T x, y, z;
 };
 
-template<typename T> struct vec_struct_base<T, 4> {
+template<typename T> struct vec_struct_base<T, 4, false> : VecSwizzleFunc<T, 4> {
   T x, y, z, w;
 };
+
+/**
+ * Avoid warning caused by anonymous struct in unions.
+ */
+#if COMPILER_GCC
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wpedantic"
+#elif COMPILER_CLANG
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
+#  pragma clang diagnostic ignored "-Wnested-anon-types"
+#elif COMPILER_MSVC
+#  pragma warning(push)
+#  pragma warning(disable : 4201)  // nonstandard extension used : nameless struct/union
+#endif
+
+template<typename T> struct vec_struct_base<T, 1, true> {
+  union {
+#ifndef NDEBUG
+    /* Easier to read inside a debugger. */
+    std::array<T, 1> debug_values_;
+#endif
+    T x;
+    /* Nesting to avoid readability issues inside a debugger. */
+    X_SWIZZLES;
+  };
+};
+
+template<typename T> struct vec_struct_base<T, 2, true> {
+  union {
+#ifndef NDEBUG
+    /* Easier to read inside a debugger. */
+    std::array<T, 2> debug_values_;
+#endif
+    struct {
+      T x;
+      union {
+        struct {
+          /* This still needs to be wrapped in a struct to avoid a MSVC 16.5+ bug. */
+          T y;
+        };
+        Y_SWIZZLES;
+      };
+    };
+    /* Nesting to avoid readability issues inside a debugger. */
+    union {
+      X_SWIZZLES;
+      XY_SWIZZLES;
+    };
+  };
+};
+
+template<typename T> struct vec_struct_base<T, 3, true> {
+  union {
+#ifndef NDEBUG
+    /* Easier to read inside a debugger. */
+    std::array<T, 3> debug_values_;
+#endif
+    struct {
+      T x;
+      union {
+        struct {
+          T y;
+          union {
+            struct {
+              /* This still needs to be wrapped in a struct to avoid a MSVC 16.5+ bug. */
+              T z;
+            };
+            Z_SWIZZLES;
+          };
+        };
+        Y_SWIZZLES;
+        YZ_SWIZZLES;
+      };
+    };
+    /* Nesting to avoid readability issues inside a debugger. */
+    union {
+      X_SWIZZLES;
+      XY_SWIZZLES;
+      XYZ_SWIZZLES;
+    };
+  };
+};
+
+template<typename T> struct vec_struct_base<T, 4, true> {
+  union {
+#ifndef NDEBUG
+    /* Useful for debugging. */
+    std::array<T, 4> debug_values_;
+#endif
+    struct {
+      T x;
+      union {
+        struct {
+          T y;
+          union {
+            struct {
+              T z;
+              union {
+                struct {
+                  /* This still needs to be wrapped in a struct to avoid a MSVC 16.5+ bug. */
+                  T w;
+                };
+                W_SWIZZLES;
+              };
+            };
+            Z_SWIZZLES;
+            ZW_SWIZZLES;
+          };
+        };
+        Y_SWIZZLES;
+        YZ_SWIZZLES;
+        YZW_SWIZZLES;
+      };
+    };
+    /* Nesting to avoid readability issues inside a debugger. */
+    union {
+      X_SWIZZLES;
+      XY_SWIZZLES;
+      XYZ_SWIZZLES;
+      XYZW_SWIZZLES;
+    };
+  };
+};
+
+#if COMPILER_GCC
+#  pragma GCC diagnostic pop
+#elif COMPILER_CLANG
+#  pragma clang diagnostic pop
+#elif COMPILER_MSVC
+#  pragma warning(pop)
+#endif
 
 namespace math {
 
@@ -63,13 +201,11 @@ template<typename T> uint64_t vector_hash(const T &vec)
 
 }  // namespace math
 
-template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> {
+template<typename T, int Size>
+struct VecBase : public vec_struct_base<T, Size, std::is_trivial_v<T>> {
 
   BLI_STATIC_ASSERT(alignof(T) <= sizeof(T),
                     "VecBase is not compatible with aligned type for now.");
-
-/* Workaround issue with template BLI_ENABLE_IF((Size == 2)) not working. */
-#define BLI_ENABLE_IF_VEC(_size, _test) int S = _size, BLI_ENABLE_IF((S _test))
 
   static constexpr int type_length = Size;
 
@@ -78,37 +214,56 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
 
   VecBase() = default;
 
-  template<BLI_ENABLE_IF_VEC(Size, > 1)> explicit VecBase(T value)
+#if defined(__GNUC__)
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wdeprecated-copy"
+#endif
+
+  /** Make assignment on swizzle result an error. */
+  VecBase &operator=(const VecBase &) & = default;
+
+#if defined(__GNUC__)
+#  pragma GCC diagnostic pop
+#endif
+
+  explicit VecBase(T value)
+    requires(Size > 1)
   {
     for (int i = 0; i < Size; i++) {
       (*this)[i] = value;
     }
   }
 
-  template<typename U, BLI_ENABLE_IF((std::is_convertible_v<U, T>))>
-  explicit VecBase(U value) : VecBase(T(value))
+  template<typename U>
+  explicit VecBase(U value)
+    requires(std::is_convertible_v<U, T>)
+      : VecBase(T(value))
   {
   }
 
-  template<BLI_ENABLE_IF_VEC(Size, == 1)> VecBase(T _x)
+  constexpr VecBase(T _x)
+    requires(Size == 1)
   {
     this->x = _x;
   }
 
-  template<BLI_ENABLE_IF_VEC(Size, == 2)> VecBase(T _x, T _y)
+  constexpr VecBase(T _x, T _y)
+    requires(Size == 2)
   {
     this->x = _x;
     this->y = _y;
   }
 
-  template<BLI_ENABLE_IF_VEC(Size, == 3)> VecBase(T _x, T _y, T _z)
+  constexpr VecBase(T _x, T _y, T _z)
+    requires(Size == 3)
   {
     this->x = _x;
     this->y = _y;
     this->z = _z;
   }
 
-  template<BLI_ENABLE_IF_VEC(Size, == 4)> VecBase(T _x, T _y, T _z, T _w)
+  constexpr VecBase(T _x, T _y, T _z, T _w)
+    requires(Size == 4)
   {
     this->x = _x;
     this->y = _y;
@@ -118,43 +273,59 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
 
   /** Mixed scalar-vector constructors. */
 
-  template<typename U, BLI_ENABLE_IF_VEC(Size, == 3)>
-  constexpr VecBase(const VecBase<U, 2> &xy, T z) : VecBase(T(xy.x), T(xy.y), z)
+  template<typename U>
+  constexpr VecBase(const VecBase<U, 2> &xy, T z)
+    requires(Size == 3)
+      : VecBase(T(xy.x), T(xy.y), z)
   {
   }
 
-  template<typename U, BLI_ENABLE_IF_VEC(Size, == 3)>
-  constexpr VecBase(T x, const VecBase<U, 2> &yz) : VecBase(x, T(yz.x), T(yz.y))
+  template<typename U>
+  constexpr VecBase(T x, const VecBase<U, 2> &yz)
+    requires(Size == 3)
+      : VecBase(x, T(yz.x), T(yz.y))
   {
   }
 
-  template<typename U, BLI_ENABLE_IF_VEC(Size, == 4)>
-  VecBase(VecBase<U, 3> xyz, T w) : VecBase(T(xyz.x), T(xyz.y), T(xyz.z), T(w))
+  template<typename U>
+  VecBase(VecBase<U, 3> xyz, T w)
+    requires(Size == 4)
+      : VecBase(T(xyz.x), T(xyz.y), T(xyz.z), T(w))
   {
   }
 
-  template<typename U, BLI_ENABLE_IF_VEC(Size, == 4)>
-  VecBase(T x, VecBase<U, 3> yzw) : VecBase(T(x), T(yzw.x), T(yzw.y), T(yzw.z))
+  template<typename U>
+  VecBase(T x, VecBase<U, 3> yzw)
+    requires(Size == 4)
+      : VecBase(T(x), T(yzw.x), T(yzw.y), T(yzw.z))
   {
   }
 
-  template<typename U, typename V, BLI_ENABLE_IF_VEC(Size, == 4)>
-  VecBase(VecBase<U, 2> xy, VecBase<V, 2> zw) : VecBase(T(xy.x), T(xy.y), T(zw.x), T(zw.y))
+  template<typename U, typename V>
+  VecBase(VecBase<U, 2> xy, VecBase<V, 2> zw)
+    requires(Size == 4)
+      : VecBase(T(xy.x), T(xy.y), T(zw.x), T(zw.y))
   {
   }
 
-  template<typename U, BLI_ENABLE_IF_VEC(Size, == 4)>
-  VecBase(VecBase<U, 2> xy, T z, T w) : VecBase(T(xy.x), T(xy.y), T(z), T(w))
+  template<typename U>
+  VecBase(VecBase<U, 2> xy, T z, T w)
+    requires(Size == 4)
+      : VecBase(T(xy.x), T(xy.y), T(z), T(w))
   {
   }
 
-  template<typename U, BLI_ENABLE_IF_VEC(Size, == 4)>
-  VecBase(T x, VecBase<U, 2> yz, T w) : VecBase(T(x), T(yz.x), T(yz.y), T(w))
+  template<typename U>
+  VecBase(T x, VecBase<U, 2> yz, T w)
+    requires(Size == 4)
+      : VecBase(T(x), T(yz.x), T(yz.y), T(w))
   {
   }
 
-  template<typename U, BLI_ENABLE_IF_VEC(Size, == 4)>
-  VecBase(T x, T y, VecBase<U, 2> zw) : VecBase(T(x), T(y), T(zw.x), T(zw.y))
+  template<typename U>
+  VecBase(T x, T y, VecBase<U, 2> zw)
+    requires(Size == 4)
+      : VecBase(T(x), T(y), T(zw.x), T(zw.y))
   {
   }
 
@@ -163,52 +334,21 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
    * from a smaller one) by deleting all copy constructors accepting smaller vectors
    * as source.
    */
-  template<typename U, int OtherSize, BLI_ENABLE_IF(OtherSize < Size)>
-  VecBase(const VecBase<U, OtherSize> &other) = delete;
+  template<typename U, int OtherSize>
+  VecBase(const VecBase<U, OtherSize> &other)
+    requires(OtherSize < Size)
+  = delete;
 
   /** Masking. */
 
-  template<typename U, int OtherSize, BLI_ENABLE_IF(OtherSize > Size)>
+  template<typename U, int OtherSize>
   explicit VecBase(const VecBase<U, OtherSize> &other)
+    requires(OtherSize > Size)
   {
     for (int i = 0; i < Size; i++) {
       (*this)[i] = T(other[i]);
     }
   }
-
-  /** Swizzling. */
-
-  template<BLI_ENABLE_IF_VEC(Size, >= 2)> VecBase<T, 2> xy() const
-  {
-    return *reinterpret_cast<const VecBase<T, 2> *>(this);
-  }
-
-  template<BLI_ENABLE_IF_VEC(Size, >= 3)> VecBase<T, 2> yz() const
-  {
-    return *reinterpret_cast<const VecBase<T, 2> *>(&((*this)[1]));
-  }
-
-  template<BLI_ENABLE_IF_VEC(Size, >= 4)> VecBase<T, 2> zw() const
-  {
-    return *reinterpret_cast<const VecBase<T, 2> *>(&((*this)[2]));
-  }
-
-  template<BLI_ENABLE_IF_VEC(Size, >= 3)> VecBase<T, 3> xyz() const
-  {
-    return *reinterpret_cast<const VecBase<T, 3> *>(this);
-  }
-
-  template<BLI_ENABLE_IF_VEC(Size, >= 4)> VecBase<T, 3> yzw() const
-  {
-    return *reinterpret_cast<const VecBase<T, 3> *>(&((*this)[1]));
-  }
-
-  template<BLI_ENABLE_IF_VEC(Size, >= 4)> VecBase<T, 4> xyzw() const
-  {
-    return *reinterpret_cast<const VecBase<T, 4> *>(this);
-  }
-
-#undef BLI_ENABLE_IF_VEC
 
   /** Conversion from pointers (from C-style vectors). */
 
@@ -225,7 +365,9 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
     BLI_UNROLL_MATH_VEC_OP_INIT_INDEX(ptr);
   }
 
-  template<typename U, BLI_ENABLE_IF((std::is_convertible_v<U, T>))> explicit VecBase(const U *ptr)
+  template<typename U>
+  explicit VecBase(const U *ptr)
+    requires(std::is_convertible_v<U, T>)
   {
     BLI_UNROLL_MATH_VEC_OP_INIT_INDEX(ptr);
   }
@@ -270,10 +412,6 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
     BLI_assert(index < Size);
     return reinterpret_cast<T *>(this)[index];
   }
-
-  /** Internal Operators Macro. */
-
-#define BLI_INT_OP(_T) template<typename U = _T, BLI_ENABLE_IF((std::is_integral_v<U>))>
 
   /** Arithmetic operators. */
 
@@ -395,131 +533,156 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
 
   /** Binary operators. */
 
-  BLI_INT_OP(T) friend VecBase operator&(const VecBase &a, const VecBase &b)
+  friend VecBase operator&(const VecBase &a, const VecBase &b)
+    requires(std::is_integral_v<T>)
   {
     BLI_UNROLL_MATH_VEC_OP_VEC_VEC(&, a, b);
   }
 
-  BLI_INT_OP(T) friend VecBase operator&(const VecBase &a, T b)
+  friend VecBase operator&(const VecBase &a, T b)
+    requires(std::is_integral_v<T>)
   {
     BLI_UNROLL_MATH_VEC_OP_VEC_SCALAR(&, a, b);
   }
 
-  BLI_INT_OP(T) friend VecBase operator&(T a, const VecBase &b)
+  friend VecBase operator&(T a, const VecBase &b)
+    requires(std::is_integral_v<T>)
   {
     BLI_UNROLL_MATH_VEC_OP_SCALAR_VEC(&, a, b);
   }
 
-  BLI_INT_OP(T) VecBase &operator&=(T b) &
+  VecBase &operator&=(T b) &
+    requires(std::is_integral_v<T>)
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_SCALAR(&=, b);
   }
 
-  BLI_INT_OP(T) VecBase &operator&=(const VecBase &b) &
+  VecBase &operator&=(const VecBase &b) &
+    requires(std::is_integral_v<T>)
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_VEC(&=, b);
   }
 
-  BLI_INT_OP(T) friend VecBase operator|(const VecBase &a, const VecBase &b)
+  friend VecBase operator|(const VecBase &a, const VecBase &b)
+    requires(std::is_integral_v<T>)
   {
     BLI_UNROLL_MATH_VEC_OP_VEC_VEC(|, a, b);
   }
 
-  BLI_INT_OP(T) friend VecBase operator|(const VecBase &a, T b)
+  friend VecBase operator|(const VecBase &a, T b)
+    requires(std::is_integral_v<T>)
   {
     BLI_UNROLL_MATH_VEC_OP_VEC_SCALAR(|, a, b);
   }
 
-  BLI_INT_OP(T) friend VecBase operator|(T a, const VecBase &b)
+  friend VecBase operator|(T a, const VecBase &b)
+    requires(std::is_integral_v<T>)
   {
     BLI_UNROLL_MATH_VEC_OP_SCALAR_VEC(|, a, b);
   }
 
-  BLI_INT_OP(T) VecBase &operator|=(T b) &
+  VecBase &operator|=(T b) &
+    requires(std::is_integral_v<T>)
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_SCALAR(|=, b);
   }
 
-  BLI_INT_OP(T) VecBase &operator|=(const VecBase &b) &
+  VecBase &operator|=(const VecBase &b) &
+    requires(std::is_integral_v<T>)
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_VEC(|=, b);
   }
 
-  BLI_INT_OP(T) friend VecBase operator^(const VecBase &a, const VecBase &b)
+  friend VecBase operator^(const VecBase &a, const VecBase &b)
+    requires(std::is_integral_v<T>)
   {
     BLI_UNROLL_MATH_VEC_OP_VEC_VEC(^, a, b);
   }
 
-  BLI_INT_OP(T) friend VecBase operator^(const VecBase &a, T b)
+  friend VecBase operator^(const VecBase &a, T b)
+    requires(std::is_integral_v<T>)
   {
     BLI_UNROLL_MATH_VEC_OP_VEC_SCALAR(^, a, b);
   }
 
-  BLI_INT_OP(T) friend VecBase operator^(T a, const VecBase &b)
+  friend VecBase operator^(T a, const VecBase &b)
+    requires(std::is_integral_v<T>)
   {
     BLI_UNROLL_MATH_VEC_OP_SCALAR_VEC(^, a, b);
   }
 
-  BLI_INT_OP(T) VecBase &operator^=(T b) &
+  VecBase &operator^=(T b) &
+    requires(std::is_integral_v<T>)
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_SCALAR(^=, b);
   }
 
-  BLI_INT_OP(T) VecBase &operator^=(const VecBase &b) &
+  VecBase &operator^=(const VecBase &b) &
+    requires(std::is_integral_v<T>)
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_VEC(^=, b);
   }
 
-  BLI_INT_OP(T) friend VecBase operator~(const VecBase &a)
+  friend VecBase operator~(const VecBase &a)
+    requires(std::is_integral_v<T>)
   {
     BLI_UNROLL_MATH_VEC_OP_VEC(~, a);
   }
 
   /** Bit-shift operators. */
 
-  BLI_INT_OP(T) friend VecBase operator<<(const VecBase &a, const VecBase &b)
+  friend VecBase operator<<(const VecBase &a, const VecBase &b)
+    requires(std::is_integral_v<T>)
   {
     BLI_UNROLL_MATH_VEC_OP_VEC_VEC(<<, a, b);
   }
 
-  BLI_INT_OP(T) friend VecBase operator<<(const VecBase &a, T b)
+  friend VecBase operator<<(const VecBase &a, T b)
+    requires(std::is_integral_v<T>)
   {
     BLI_UNROLL_MATH_VEC_OP_VEC_SCALAR(<<, a, b);
   }
 
-  BLI_INT_OP(T) VecBase &operator<<=(T b) &
+  VecBase &operator<<=(T b) &
+    requires(std::is_integral_v<T>)
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_SCALAR(<<=, b);
   }
 
-  BLI_INT_OP(T) VecBase &operator<<=(const VecBase &b) &
+  VecBase &operator<<=(const VecBase &b) &
+    requires(std::is_integral_v<T>)
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_VEC(<<=, b);
   }
 
-  BLI_INT_OP(T) friend VecBase operator>>(const VecBase &a, const VecBase &b)
+  friend VecBase operator>>(const VecBase &a, const VecBase &b)
+    requires(std::is_integral_v<T>)
   {
     BLI_UNROLL_MATH_VEC_OP_VEC_VEC(>>, a, b);
   }
 
-  BLI_INT_OP(T) friend VecBase operator>>(const VecBase &a, T b)
+  friend VecBase operator>>(const VecBase &a, T b)
+    requires(std::is_integral_v<T>)
   {
     BLI_UNROLL_MATH_VEC_OP_VEC_SCALAR(>>, a, b);
   }
 
-  BLI_INT_OP(T) VecBase &operator>>=(T b) &
+  VecBase &operator>>=(T b) &
+    requires(std::is_integral_v<T>)
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_SCALAR(>>=, b);
   }
 
-  BLI_INT_OP(T) VecBase &operator>>=(const VecBase &b) &
+  VecBase &operator>>=(const VecBase &b) &
+    requires(std::is_integral_v<T>)
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_VEC(>>=, b);
   }
 
   /** Modulo operators. */
 
-  BLI_INT_OP(T) friend VecBase operator%(const VecBase &a, const VecBase &b)
+  friend VecBase operator%(const VecBase &a, const VecBase &b)
+    requires(std::is_integral_v<T>)
   {
     for (int i = 0; i < Size; i++) {
       BLI_assert(b[i] != T(0));
@@ -527,21 +690,21 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
     BLI_UNROLL_MATH_VEC_OP_VEC_VEC(%, a, b);
   }
 
-  BLI_INT_OP(T) friend VecBase operator%(const VecBase &a, T b)
+  friend VecBase operator%(const VecBase &a, T b)
+    requires(std::is_integral_v<T>)
   {
     BLI_assert(b != 0);
     BLI_UNROLL_MATH_VEC_OP_VEC_SCALAR(%, a, b);
   }
 
-  BLI_INT_OP(T) friend VecBase operator%(T a, const VecBase &b)
+  friend VecBase operator%(T a, const VecBase &b)
+    requires(std::is_integral_v<T>)
   {
     for (int i = 0; i < Size; i++) {
       BLI_assert(b[i] != T(0));
     }
     BLI_UNROLL_MATH_VEC_OP_SCALAR_VEC(%, a, b);
   }
-
-#undef BLI_INT_OP
 
   /** Compare. */
 
@@ -590,13 +753,13 @@ template<typename T> struct AssertUnitEpsilon {
 
 }  // namespace math
 
-using char2 = blender::VecBase<int8_t, 2>;
-using char3 = blender::VecBase<int8_t, 3>;
-using char4 = blender::VecBase<int8_t, 4>;
+using char2 = VecBase<int8_t, 2>;
+using char3 = VecBase<int8_t, 3>;
+using char4 = VecBase<int8_t, 4>;
 
-using uchar2 = blender::VecBase<uint8_t, 2>;
-using uchar3 = blender::VecBase<uint8_t, 3>;
-using uchar4 = blender::VecBase<uint8_t, 4>;
+using uchar2 = VecBase<uint8_t, 2>;
+using uchar3 = VecBase<uint8_t, 3>;
+using uchar4 = VecBase<uint8_t, 4>;
 
 using int2 = VecBase<int32_t, 2>;
 using int3 = VecBase<int32_t, 3>;
@@ -606,13 +769,13 @@ using uint2 = VecBase<uint32_t, 2>;
 using uint3 = VecBase<uint32_t, 3>;
 using uint4 = VecBase<uint32_t, 4>;
 
-using short2 = blender::VecBase<int16_t, 2>;
-using short3 = blender::VecBase<int16_t, 3>;
-using short4 = blender::VecBase<int16_t, 4>;
+using short2 = VecBase<int16_t, 2>;
+using short3 = VecBase<int16_t, 3>;
+using short4 = VecBase<int16_t, 4>;
 
 using ushort2 = VecBase<uint16_t, 2>;
-using ushort3 = blender::VecBase<uint16_t, 3>;
-using ushort4 = blender::VecBase<uint16_t, 4>;
+using ushort3 = VecBase<uint16_t, 3>;
+using ushort4 = VecBase<uint16_t, 4>;
 
 using float1 = VecBase<float, 1>;
 using float2 = VecBase<float, 2>;

@@ -102,11 +102,9 @@ class ShaderWrapper:
             dst_node.width = min(dst_node.width, self._col_size - 20)
         return loc
 
-    def __init__(self, material, is_readonly=True, use_nodes=True):
+    def __init__(self, material, is_readonly=True):
         self.is_readonly = is_readonly
         self.material = material
-        if not is_readonly:
-            self.use_nodes = use_nodes
         self.update()
 
     def update(self):  # Should be re-implemented by children classes...
@@ -115,19 +113,7 @@ class ShaderWrapper:
         self._textures = {}
         self._grid_locations = set()
 
-    def use_nodes_get(self):
-        return self.material.use_nodes
-
-    @_set_check
-    def use_nodes_set(self, val):
-        self.material.use_nodes = val
-        self.update()
-
-    use_nodes = property(use_nodes_get, use_nodes_set)
-
     def node_texcoords_get(self):
-        if not self.use_nodes:
-            return None
         if self._node_texcoords is ...:
             # Running only once, trying to find a valid texcoords node.
             for n in self.material.node_tree.nodes:
@@ -173,17 +159,13 @@ class PrincipledBSDFWrapper(ShaderWrapper):
 
     NODES_LIST = ShaderWrapper.NODES_LIST + NODES_LIST
 
-    def __init__(self, material, is_readonly=True, use_nodes=True):
-        super(PrincipledBSDFWrapper, self).__init__(material, is_readonly, use_nodes)
+    def __init__(self, material, is_readonly=True):
+        super(PrincipledBSDFWrapper, self).__init__(material, is_readonly)
 
     def update(self):
         super(PrincipledBSDFWrapper, self).update()
 
-        if not self.use_nodes:
-            return
-
         tree = self.material.node_tree
-
         nodes = tree.nodes
         links = tree.links
 
@@ -237,7 +219,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
         self._node_texcoords = ...
 
     def node_normalmap_get(self):
-        if not self.use_nodes or self.node_principled_bsdf is None:
+        if self.node_principled_bsdf is None:
             return None
         node_principled = self.node_principled_bsdf
         if self._node_normalmap is ...:
@@ -268,7 +250,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     # Base Color.
 
     def base_color_get(self):
-        if not self.use_nodes or self.node_principled_bsdf is None:
+        if self.node_principled_bsdf is None:
             return self.material.diffuse_color
         return rgba_to_rgb(self.node_principled_bsdf.inputs["Base Color"].default_value)
 
@@ -277,13 +259,13 @@ class PrincipledBSDFWrapper(ShaderWrapper):
         color = values_clamp(color, 0.0, 1.0)
         color = rgb_to_rgba(color)
         self.material.diffuse_color = color
-        if self.use_nodes and self.node_principled_bsdf is not None:
+        if self.node_principled_bsdf is not None:
             self.node_principled_bsdf.inputs["Base Color"].default_value = color
 
     base_color = property(base_color_get, base_color_set)
 
     def base_color_texture_get(self):
-        if not self.use_nodes or self.node_principled_bsdf is None:
+        if self.node_principled_bsdf is None:
             return None
         return ShaderImageTextureWrapper(
             self, self.node_principled_bsdf,
@@ -297,7 +279,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     # Specular.
 
     def specular_get(self):
-        if not self.use_nodes or self.node_principled_bsdf is None:
+        if self.node_principled_bsdf is None:
             return self.material.specular_intensity
         return self.node_principled_bsdf.inputs["Specular IOR Level"].default_value
 
@@ -305,14 +287,14 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     def specular_set(self, value):
         value = values_clamp(value, 0.0, 1.0)
         self.material.specular_intensity = value
-        if self.use_nodes and self.node_principled_bsdf is not None:
+        if self.node_principled_bsdf is not None:
             self.node_principled_bsdf.inputs["Specular IOR Level"].default_value = value
 
     specular = property(specular_get, specular_set)
 
     # Will only be used as gray-scale one...
     def specular_texture_get(self):
-        if not self.use_nodes or self.node_principled_bsdf is None:
+        if self.node_principled_bsdf is None:
             return None
         return ShaderImageTextureWrapper(
             self, self.node_principled_bsdf,
@@ -327,7 +309,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     # Specular Tint.
 
     def specular_tint_get(self):
-        if not self.use_nodes or self.node_principled_bsdf is None:
+        if self.node_principled_bsdf is None:
             return Color((0.0, 0.0, 0.0))
         return rgba_to_rgb(self.node_principled_bsdf.inputs["Specular Tint"].default_value)
 
@@ -335,13 +317,13 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     def specular_tint_set(self, color):
         color = values_clamp(color, 0.0, 1.0)
         color = rgb_to_rgba(color)
-        if self.use_nodes and self.node_principled_bsdf is not None:
+        if self.node_principled_bsdf is not None:
             self.node_principled_bsdf.inputs["Specular Tint"].default_value = color
 
     specular_tint = property(specular_tint_get, specular_tint_set)
 
     def specular_tint_texture_get(self):
-        if not self.use_nodes or self.node_principled_bsdf is None:
+        if self.node_principled_bsdf is None:
             return None
         return ShaderImageTextureWrapper(
             self, self.node_principled_bsdf,
@@ -355,7 +337,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     # Roughness (also sort of inverse of specular hardness...).
 
     def roughness_get(self):
-        if not self.use_nodes or self.node_principled_bsdf is None:
+        if self.node_principled_bsdf is None:
             return self.material.roughness
         return self.node_principled_bsdf.inputs["Roughness"].default_value
 
@@ -363,14 +345,14 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     def roughness_set(self, value):
         value = values_clamp(value, 0.0, 1.0)
         self.material.roughness = value
-        if self.use_nodes and self.node_principled_bsdf is not None:
+        if self.node_principled_bsdf is not None:
             self.node_principled_bsdf.inputs["Roughness"].default_value = value
 
     roughness = property(roughness_get, roughness_set)
 
     # Will only be used as gray-scale one...
     def roughness_texture_get(self):
-        if not self.use_nodes or self.node_principled_bsdf is None:
+        if self.node_principled_bsdf is None:
             return None
         return ShaderImageTextureWrapper(
             self, self.node_principled_bsdf,
@@ -385,7 +367,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     # Metallic (a.k.a reflection, mirror).
 
     def metallic_get(self):
-        if not self.use_nodes or self.node_principled_bsdf is None:
+        if self.node_principled_bsdf is None:
             return self.material.metallic
         return self.node_principled_bsdf.inputs["Metallic"].default_value
 
@@ -393,14 +375,14 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     def metallic_set(self, value):
         value = values_clamp(value, 0.0, 1.0)
         self.material.metallic = value
-        if self.use_nodes and self.node_principled_bsdf is not None:
+        if self.node_principled_bsdf is not None:
             self.node_principled_bsdf.inputs["Metallic"].default_value = value
 
     metallic = property(metallic_get, metallic_set)
 
     # Will only be used as gray-scale one...
     def metallic_texture_get(self):
-        if not self.use_nodes or self.node_principled_bsdf is None:
+        if self.node_principled_bsdf is None:
             return None
         return ShaderImageTextureWrapper(
             self, self.node_principled_bsdf,
@@ -415,21 +397,21 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     # Transparency settings.
 
     def ior_get(self):
-        if not self.use_nodes or self.node_principled_bsdf is None:
+        if self.node_principled_bsdf is None:
             return 1.0
         return self.node_principled_bsdf.inputs["IOR"].default_value
 
     @_set_check
     def ior_set(self, value):
         value = values_clamp(value, 0.0, 1000.0)
-        if self.use_nodes and self.node_principled_bsdf is not None:
+        if self.node_principled_bsdf is not None:
             self.node_principled_bsdf.inputs["IOR"].default_value = value
 
     ior = property(ior_get, ior_set)
 
     # Will only be used as gray-scale one...
     def ior_texture_get(self):
-        if not self.use_nodes or self.node_principled_bsdf is None:
+        if self.node_principled_bsdf is None:
             return None
         return ShaderImageTextureWrapper(
             self, self.node_principled_bsdf,
@@ -441,21 +423,21 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     ior_texture = property(ior_texture_get)
 
     def transmission_get(self):
-        if not self.use_nodes or self.node_principled_bsdf is None:
+        if self.node_principled_bsdf is None:
             return 0.0
         return self.node_principled_bsdf.inputs["Transmission Weight"].default_value
 
     @_set_check
     def transmission_set(self, value):
         value = values_clamp(value, 0.0, 1.0)
-        if self.use_nodes and self.node_principled_bsdf is not None:
+        if self.node_principled_bsdf is not None:
             self.node_principled_bsdf.inputs["Transmission Weight"].default_value = value
 
     transmission = property(transmission_get, transmission_set)
 
     # Will only be used as gray-scale one...
     def transmission_texture_get(self):
-        if not self.use_nodes or self.node_principled_bsdf is None:
+        if self.node_principled_bsdf is None:
             return None
         return ShaderImageTextureWrapper(
             self, self.node_principled_bsdf,
@@ -467,21 +449,21 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     transmission_texture = property(transmission_texture_get)
 
     def alpha_get(self):
-        if not self.use_nodes or self.node_principled_bsdf is None:
+        if self.node_principled_bsdf is None:
             return 1.0
         return self.node_principled_bsdf.inputs["Alpha"].default_value
 
     @_set_check
     def alpha_set(self, value):
         value = values_clamp(value, 0.0, 1.0)
-        if self.use_nodes and self.node_principled_bsdf is not None:
+        if self.node_principled_bsdf is not None:
             self.node_principled_bsdf.inputs["Alpha"].default_value = value
 
     alpha = property(alpha_get, alpha_set)
 
     # Will only be used as gray-scale one...
     def alpha_texture_get(self):
-        if not self.use_nodes or self.node_principled_bsdf is None:
+        if self.node_principled_bsdf is None:
             return None
         return ShaderImageTextureWrapper(
             self, self.node_principled_bsdf,
@@ -497,13 +479,13 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     # Emission color.
 
     def emission_color_get(self):
-        if not self.use_nodes or self.node_principled_bsdf is None:
+        if self.node_principled_bsdf is None:
             return Color((0.0, 0.0, 0.0))
         return rgba_to_rgb(self.node_principled_bsdf.inputs["Emission Color"].default_value)
 
     @_set_check
     def emission_color_set(self, color):
-        if self.use_nodes and self.node_principled_bsdf is not None:
+        if self.node_principled_bsdf is not None:
             color = values_clamp(color, 0.0, 1000000.0)
             color = rgb_to_rgba(color)
             self.node_principled_bsdf.inputs["Emission Color"].default_value = color
@@ -511,7 +493,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     emission_color = property(emission_color_get, emission_color_set)
 
     def emission_color_texture_get(self):
-        if not self.use_nodes or self.node_principled_bsdf is None:
+        if self.node_principled_bsdf is None:
             return None
         return ShaderImageTextureWrapper(
             self, self.node_principled_bsdf,
@@ -522,20 +504,20 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     emission_color_texture = property(emission_color_texture_get)
 
     def emission_strength_get(self):
-        if not self.use_nodes or self.node_principled_bsdf is None:
+        if self.node_principled_bsdf is None:
             return 1.0
         return self.node_principled_bsdf.inputs["Emission Strength"].default_value
 
     @_set_check
     def emission_strength_set(self, value):
         value = values_clamp(value, 0.0, 1000000.0)
-        if self.use_nodes and self.node_principled_bsdf is not None:
+        if self.node_principled_bsdf is not None:
             self.node_principled_bsdf.inputs["Emission Strength"].default_value = value
 
     emission_strength = property(emission_strength_get, emission_strength_set)
 
     def emission_strength_texture_get(self):
-        if not self.use_nodes or self.node_principled_bsdf is None:
+        if self.node_principled_bsdf is None:
             return None
         return ShaderImageTextureWrapper(
             self, self.node_principled_bsdf,
@@ -550,20 +532,20 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     # Normal map.
 
     def normalmap_strength_get(self):
-        if not self.use_nodes or self.node_normalmap is None:
+        if self.node_normalmap is None:
             return 0.0
         return self.node_normalmap.inputs["Strength"].default_value
 
     @_set_check
     def normalmap_strength_set(self, value):
         value = values_clamp(value, 0.0, 10.0)
-        if self.use_nodes and self.node_normalmap is not None:
+        if self.node_normalmap is not None:
             self.node_normalmap.inputs["Strength"].default_value = value
 
     normalmap_strength = property(normalmap_strength_get, normalmap_strength_set)
 
     def normalmap_texture_get(self):
-        if not self.use_nodes or self.node_normalmap is None:
+        if self.node_normalmap is None:
             return None
         return ShaderImageTextureWrapper(
             self, self.node_normalmap,
@@ -609,8 +591,10 @@ class ShaderImageTextureWrapper:
         owner_shader._textures[(node_dst, socket_dst)] = instance
         return instance
 
-    def __init__(self, owner_shader: ShaderWrapper, node_dst, socket_dst, grid_row_diff=0,
-                 use_alpha=False, colorspace_is_data=..., colorspace_name=...):
+    def __init__(
+            self, owner_shader: ShaderWrapper, node_dst, socket_dst, grid_row_diff=0,
+            use_alpha=False, colorspace_is_data=..., colorspace_name=...,
+    ):
         self.owner_shader = owner_shader
         self.is_readonly = owner_shader.is_readonly
         self.node_dst = node_dst
@@ -797,8 +781,10 @@ class ShaderImageTextureWrapper:
             # Find potential existing link into image's Vector input.
             socket_dst = self.node_image.inputs["Vector"]
             # If not already existing, we need to create texcoords -> mapping link (from UV).
-            socket_src = (socket_dst.links[0].from_socket if socket_dst.is_linked
-                          else self.owner_shader.node_texcoords.outputs['UV'])
+            socket_src = (
+                socket_dst.links[0].from_socket if socket_dst.is_linked
+                else self.owner_shader.node_texcoords.outputs['UV']
+            )
 
             tree = self.owner_shader.material.node_tree
             node_mapping = tree.nodes.new(type='ShaderNodeMapping')

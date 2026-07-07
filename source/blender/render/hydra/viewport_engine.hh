@@ -16,7 +16,7 @@ namespace blender::render::hydra {
 
 class DrawTexture {
  private:
-  blender::gpu::Texture *texture_ = nullptr;
+  gpu::Texture *texture_ = nullptr;
   gpu::Batch *batch_;
 
  public:
@@ -24,10 +24,8 @@ class DrawTexture {
   ~DrawTexture();
 
   void create_from_buffer(pxr::HdRenderBuffer *buffer);
-  void draw(gpu::Shader *shader,
-            const pxr::GfVec4d &viewport,
-            blender::gpu::Texture *tex = nullptr);
-  blender::gpu::Texture *texture() const;
+  void draw(gpu::Shader *shader, const pxr::GfVec4d &viewport, gpu::Texture *tex = nullptr);
+  gpu::Texture *texture() const;
 
  private:
 };

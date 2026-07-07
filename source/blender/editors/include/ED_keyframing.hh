@@ -11,6 +11,8 @@
 #include "DNA_anim_types.h"
 #include "RNA_types.hh"
 
+namespace blender {
+
 struct ID;
 struct Main;
 struct Scene;
@@ -27,10 +29,10 @@ struct EnumPropertyItem;
 struct PointerRNA;
 struct PropertyRNA;
 
-namespace blender::animrig {
+namespace animrig {
 enum class ModifyKeyReturn;
 enum class ModifyKeyMode;
-}  // namespace blender::animrig
+}  // namespace animrig
 
 /* -------------------------------------------------------------------- */
 /** \name Key-Framing Management
@@ -68,19 +70,18 @@ void ED_keyframes_add(FCurve *fcu, int num_keys_to_add);
  */
 int ANIM_scene_get_keyingset_index(Scene *scene, KeyingSet *keyingset);
 
-void ANIM_keyingset_visit_for_search(
-    const bContext *C,
-    PointerRNA *ptr,
-    PropertyRNA *prop,
-    const char *edit_text,
-    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
+void ANIM_keyingset_visit_for_search(const bContext *C,
+                                     PointerRNA *ptr,
+                                     PropertyRNA *prop,
+                                     const char *edit_text,
+                                     FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
 
 void ANIM_keyingset_visit_for_search_no_poll(
     const bContext *C,
     PointerRNA *ptr,
     PropertyRNA *prop,
     const char *edit_text,
-    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
+    FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
 
 /**
  * Dynamically populate an enum of Keying Sets.
@@ -117,8 +118,6 @@ bool ANIM_keyingset_context_ok_poll(bContext *C, KeyingSet *keyingset);
 enum eCreateDriverFlags {
   /** create drivers with a default variable for nicer UI */
   CREATEDRIVER_WITH_DEFAULT_DVAR = (1 << 0),
-  /** Create drivers with Generator FModifier (for backwards compatibility). */
-  CREATEDRIVER_WITH_FMODIFIER = (1 << 1),
 };
 
 /** Heuristic to use for connecting target properties to driven ones */
@@ -151,8 +150,6 @@ enum eDriverFCurveCreationMode {
   DRIVER_FCURVE_LOOKUP_ONLY = 0,
   /** Add with keyframes, for visual tweaking. */
   DRIVER_FCURVE_KEYFRAMES = 1,
-  /** Add with generator, for script backwards compatibility. */
-  DRIVER_FCURVE_GENERATOR = 2,
   /** Add without data, for pasting. */
   DRIVER_FCURVE_EMPTY = 3
 };
@@ -205,6 +202,9 @@ int ANIM_add_driver_with_target(ReportList *reports,
  * \brief Main Driver Management API calls.
  *
  * Add a new driver for the specified property on the given ID block
+ *
+ * \param flag: is of type #eCreateDriverFlags. Passing the flag as 0 is also an option which will
+ * create a driver without a variable.
  */
 int ANIM_add_driver(
     ReportList *reports, ID *id, const char rna_path[], int array_index, short flag, int type);
@@ -222,13 +222,13 @@ bool ANIM_remove_driver(ID *id, const char rna_path[], int array_index);
 
 /**
  * Clear copy-paste buffer for drivers.
- * \note This function frees any MEM_calloc'ed copy/paste buffer data.
+ * \note This function frees any allocated copy/paste buffer data.
  */
 void ANIM_drivers_copybuf_free();
 
 /**
  * Clear copy-paste buffer for driver variable sets.
- * \note This function frees any MEM_calloc'ed copy/paste buffer data.
+ * \note This function frees any allocated copy/paste buffer data.
  */
 void ANIM_driver_vars_copybuf_free();
 
@@ -299,3 +299,5 @@ bool fcurve_is_changed(PointerRNA ptr,
                        const AnimationEvalContext *anim_eval_context);
 
 /** \} */
+
+}  // namespace blender

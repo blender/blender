@@ -12,9 +12,11 @@
 
 #include "BKE_action.hh"
 
+namespace blender {
+
 struct AnimData;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 class TreeElementAnimData final : public AbstractTreeElement {
   AnimData &anim_data_;
@@ -31,4 +33,5 @@ class TreeElementAnimData final : public AbstractTreeElement {
   void expand_NLA_tracks() const;
 };
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

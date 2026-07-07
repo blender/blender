@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/workbench_effect_antialiasing_info.hh"
+#include "infos/workbench_effect_antialiasing_infos.hh"
 
 /* Adjust according to SMAA_STAGE for C++ compilation. */
 FRAGMENT_SHADER_CREATE_INFO(workbench_smaa_stage_1)
@@ -11,6 +11,10 @@ FRAGMENT_SHADER_CREATE_INFO(workbench_smaa_stage_1)
 
 void main()
 {
+  float4 offset[3];
+  offset[0] = offset0;
+  offset[1] = offset1;
+  offset[2] = offset2;
 #if SMAA_STAGE == 0
   /* Detect edges in color and revealage buffer. */
   out_edges = SMAALumaEdgeDetectionPS(uvs, offset, color_tx);
@@ -34,7 +38,7 @@ void main()
   }
   out_color /= taa_accumulated_weight;
   /* Exit log2 space used for Anti-aliasing. */
-  out_color = exp2(out_color) - 1.0f;
+  out_color.rgb = exp2(out_color.rgb) - 1.0f;
 
   /* Avoid float precision issue. */
   if (out_color.a > 0.999f) {

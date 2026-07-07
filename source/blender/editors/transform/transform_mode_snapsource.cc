@@ -66,7 +66,7 @@ static void snapsource_end(TransInfo *t)
   t->mouse.post = customdata->mouse_prev.post;
   t->mouse.use_virtual_mval = customdata->mouse_prev.use_virtual_mval;
 
-  MEM_freeN(customdata);
+  MEM_delete(customdata);
 
   transform_gizmo_3d_model_from_constraint_and_mode_set(t);
   tranform_snap_source_restore_context(t);
@@ -112,6 +112,8 @@ static void snapsource_confirm(TransInfo *t)
   snapsource_end(t);
   transform_input_reset(t, mval);
 
+  /* Avoid premature transform confirmation from snap source clicks. */
+  t->flag &= ~T_RELEASE_CONFIRM;
   /* Remote individual snap projection since this mode does not use the new `snap_source`. */
   t->tsnap.mode &= ~(SCE_SNAP_INDIVIDUAL_PROJECT | SCE_SNAP_INDIVIDUAL_NEAREST);
 }
@@ -181,8 +183,7 @@ void transform_mode_snap_source_init(TransInfo *t, wmOperator * /*op*/)
     transform_mode_init(t, nullptr, TFM_TRANSLATION);
   }
 
-  SnapSouceCustomData *customdata = static_cast<SnapSouceCustomData *>(
-      MEM_callocN(sizeof(*customdata), __func__));
+  SnapSouceCustomData *customdata = MEM_new_zeroed<SnapSouceCustomData>(__func__);
   customdata->mode_info_prev = t->mode_info;
 
   customdata->target_operation_prev = t->tsnap.target_operation;
@@ -221,7 +222,7 @@ void transform_mode_snap_source_init(TransInfo *t, wmOperator * /*op*/)
   }
 
   if (t->data_type == &TransConvertType_Mesh) {
-    blender::ed::transform::snap_object_context_set_editmesh_callbacks(
+    ed::transform::snap_object_context_set_editmesh_callbacks(
         t->tsnap.object_context, nullptr, nullptr, nullptr, nullptr);
   }
 
@@ -242,7 +243,7 @@ void transform_mode_snap_source_init(TransInfo *t, wmOperator * /*op*/)
 #ifdef REMOVE_GIZMO
   wmGizmo *gz = WM_gizmomap_get_modal(t->region->runtime->gizmo_map);
   if (gz) {
-    const wmEvent *event = CTX_wm_window(t->context)->eventstate;
+    const wmEvent *event = CTX_wm_window(t->context)->runtime->eventstate;
 #  ifdef RESET_TRANSFORMATION
     wmGizmoFnModal modal_fn = gz->custom_modal ? gz->custom_modal : gz->type->modal;
     if (modal_fn) {

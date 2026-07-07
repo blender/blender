@@ -8,16 +8,21 @@
 
 #pragma once
 
-struct ListBase;
+#include "DNA_listBase.h"
+
+namespace blender {
+
 struct wmOperatorType;
 
 /* size of string buffers used for animation channel displayed names */
 #define ANIM_CHAN_NAME_SIZE 256
 
+struct KeyingSet;
+
 /* KeyingSets/Keyframing Interface ------------- */
 
 /** List of builtin KeyingSets (defined in `blender/animrig/keyingsets.cc`). */
-extern ListBase builtin_keyingsets;
+extern ListBaseT<KeyingSet> builtin_keyingsets;
 
 /* Operator Define Prototypes ------------------- */
 
@@ -105,12 +110,14 @@ void ANIM_OT_paste_driver_button(wmOperatorType *ot);
 /** \name Pose Asset operators
  * \{ */
 
-namespace blender::ed::animrig {
+namespace ed::animrig {
 
 void POSELIB_OT_create_pose_asset(wmOperatorType *ot);
 void POSELIB_OT_asset_modify(wmOperatorType *ot);
 void POSELIB_OT_asset_delete(wmOperatorType *ot);
 void POSELIB_OT_screenshot_preview(wmOperatorType *ot);
-}  // namespace blender::ed::animrig
+}  // namespace ed::animrig
 
 /** \} */
+
+}  // namespace blender

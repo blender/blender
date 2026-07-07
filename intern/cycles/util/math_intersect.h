@@ -221,6 +221,34 @@ ccl_device_forceinline bool ray_triangle_intersect(const float3 ray_P,
   return true;
 }
 
+ccl_device_forceinline float2 ray_triangle_uv(const float3 ray_P,
+                                              const float3 ray_D,
+                                              const float3 tri_a,
+                                              const float3 tri_b,
+                                              const float3 tri_c)
+{
+  /* Matches ray_triangle-intersect, for an intersection known to exist. */
+
+  /* Calculate vertices relative to ray origin. */
+  const float3 v0 = tri_a - ray_P;
+  const float3 v1 = tri_b - ray_P;
+  const float3 v2 = tri_c - ray_P;
+
+  /* Calculate triangle edges. */
+  const float3 e0 = v2 - v0;
+  const float3 e1 = v0 - v1;
+  const float3 e2 = v1 - v2;
+
+  /* Compute barycentric coordinates. */
+  const float U = ray_triangle_dot(ray_triangle_cross(e0, v2 + v0), ray_D);
+  const float V = ray_triangle_dot(ray_triangle_cross(e1, v0 + v1), ray_D);
+  const float W = ray_triangle_dot(ray_triangle_cross(e2, v1 + v2), ray_D);
+  const float UVW = U + V + W;
+
+  const float rcp_uvw = (fabsf(UVW) < 1e-18f) ? 0.0f : ray_triangle_reciprocal(UVW);
+  return make_float2(clamp(U * rcp_uvw, 0.0f, 1.0f), clamp(V * rcp_uvw, 0.0f, 1.0f));
+}
+
 ccl_device_forceinline bool ray_triangle_intersect_self(const float3 ray_P,
                                                         const float3 ray_D,
                                                         const float3 verts[3])

@@ -23,7 +23,7 @@ The JSON data is formatted into a list of nested lists of 4 items:
 Where each list may be empty, and the items in
 the subtree are formatted the same way.
 
-data_types is a string, aligned with data that spesifies a type
+data_types is a string, aligned with data that specifies a type
 for each property.
 
 The types are as follows:
@@ -99,7 +99,7 @@ def unpack_array(read, array_type, array_stride, array_byteswap):
     elif encoding == 1:
         data = zlib.decompress(data)
 
-    assert(length * array_stride == len(data))
+    assert length * array_stride == len(data)
 
     data_array = array.array(array_type, data)
     if array_byteswap and _IS_BIG_ENDIAN:
@@ -133,8 +133,8 @@ read_data_dict = {
 def init_version(fbx_version):
     global _BLOCK_SENTINEL_LENGTH, _BLOCK_SENTINEL_DATA, read_fbx_elem_uint
 
-    assert(_BLOCK_SENTINEL_LENGTH == ...)
-    assert(_BLOCK_SENTINEL_DATA == ...)
+    assert _BLOCK_SENTINEL_LENGTH == ...
+    assert _BLOCK_SENTINEL_DATA == ...
 
     if fbx_version < 7500:
         _BLOCK_SENTINEL_LENGTH = 13
@@ -253,7 +253,7 @@ parse_bin.__dict__.update(
 
 # ----------------------------------------------------------------------------
 # JSON Converter
-# from pyfbx import parse_bin, data_types
+# from PyFBX import parse_bin, data_types
 import json
 import array
 

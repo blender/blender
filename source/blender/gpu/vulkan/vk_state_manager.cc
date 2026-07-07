@@ -29,7 +29,7 @@ void VKStateManager::force_state()
   /* Intentionally empty. State is polled during pipeline creation and is always forced. */
 }
 
-void VKStateManager::issue_barrier(eGPUBarrier barrier_bits)
+void VKStateManager::issue_barrier(GPUBarrier barrier_bits)
 {
   /**
    * Workaround for EEVEE ThicknessFromShadow shader.
@@ -110,15 +110,6 @@ void VKStateManager::uniform_buffer_unbind_all()
   is_dirty = true;
 }
 
-void VKStateManager::unbind_from_all_namespaces(void *resource)
-{
-  uniform_buffers_.unbind(resource);
-  storage_buffers_.unbind(resource);
-  images_.unbind(resource, this);
-  textures_.unbind(resource);
-  is_dirty = true;
-}
-
 void VKStateManager::texel_buffer_bind(VKVertexBuffer &vertex_buffer, int binding)
 {
   textures_.bind(BindSpaceTextures::Type::VertexBuffer,
@@ -153,16 +144,6 @@ void VKStateManager::storage_buffer_unbind_all()
 {
   storage_buffers_.unbind_all();
   is_dirty = true;
-}
-
-void VKStateManager::texture_unpack_row_length_set(uint len)
-{
-  texture_unpack_row_length_ = len;
-}
-
-uint VKStateManager::texture_unpack_row_length_get() const
-{
-  return texture_unpack_row_length_;
 }
 
 }  // namespace blender::gpu

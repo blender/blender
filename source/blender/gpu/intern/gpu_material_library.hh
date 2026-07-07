@@ -9,12 +9,13 @@
 
 #pragma once
 
+#include "BLI_set.hh"
 #include "GPU_material.hh"
+
+namespace blender {
 
 #define MAX_FUNCTION_NAME 64
 #define MAX_PARAMETER 36
-
-struct GSet;
 
 enum GPUFunctionQual {
   FUNCTION_QUAL_IN,
@@ -24,11 +25,14 @@ enum GPUFunctionQual {
 
 struct GPUFunction {
   char name[MAX_FUNCTION_NAME];
-  eGPUType paramtype[MAX_PARAMETER];
+  GPUType paramtype[MAX_PARAMETER];
   GPUFunctionQual paramqual[MAX_PARAMETER];
   int totparam;
   /* TODO(@fclem): Clean that void pointer. */
   void *source; /* GPUSource */
 };
 
-GPUFunction *gpu_material_library_use_function(GSet *used_libraries, const char *name);
+GPUFunction *gpu_material_library_get_function(const char *name);
+void gpu_material_library_use_function(Set<StringRefNull> &used_libraries, const char *name);
+
+}  // namespace blender

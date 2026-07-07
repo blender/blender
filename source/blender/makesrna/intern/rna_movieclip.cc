@@ -15,7 +15,7 @@
 
 #include "rna_internal.hh"
 
-#include "BKE_movieclip.h"
+#include "BKE_movieclip.hh"
 
 #include "WM_types.hh"
 
@@ -35,16 +35,18 @@
 
 #  include "SEQ_relations.hh"
 
+namespace blender {
+
 static void rna_MovieClip_reload_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  MovieClip *clip = (MovieClip *)ptr->owner_id;
+  MovieClip *clip = id_cast<MovieClip *>(ptr->owner_id);
 
   DEG_id_tag_update(&clip->id, ID_RECALC_SOURCE);
 }
 
 static void rna_MovieClip_size_get(PointerRNA *ptr, int *values)
 {
-  MovieClip *clip = (MovieClip *)ptr->owner_id;
+  MovieClip *clip = id_cast<MovieClip *>(ptr->owner_id);
 
   values[0] = clip->lastsize[0];
   values[1] = clip->lastsize[1];
@@ -52,15 +54,15 @@ static void rna_MovieClip_size_get(PointerRNA *ptr, int *values)
 
 static float rna_MovieClip_fps_get(PointerRNA *ptr)
 {
-  MovieClip *clip = (MovieClip *)ptr->owner_id;
+  MovieClip *clip = id_cast<MovieClip *>(ptr->owner_id);
   return BKE_movieclip_get_fps(clip);
 }
 
 static void rna_MovieClip_use_proxy_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  MovieClip *clip = (MovieClip *)ptr->owner_id;
+  MovieClip *clip = id_cast<MovieClip *>(ptr->owner_id);
   BKE_movieclip_clear_cache(clip);
-  blender::seq::relations_invalidate_movieclip_strips(bmain, clip);
+  seq::relations_invalidate_movieclip_strips(bmain, clip);
 }
 
 static void rna_MovieClipUser_proxy_render_settings_update(Main *bmain,
@@ -68,28 +70,28 @@ static void rna_MovieClipUser_proxy_render_settings_update(Main *bmain,
                                                            PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
-  MovieClipUser *user = (MovieClipUser *)ptr->data;
+  MovieClipUser *user = static_cast<MovieClipUser *>(ptr->data);
 
   /* when changing render settings of space clip user
    * clear cache for clip, so all the memory is available
    * for new render settings
    */
   if (GS(id->name) == ID_SCR) {
-    bScreen *screen = (bScreen *)id;
+    bScreen *screen = id_cast<bScreen *>(id);
     ScrArea *area;
     SpaceLink *sl;
 
     for (area = static_cast<ScrArea *>(screen->areabase.first); area; area = area->next) {
       for (sl = static_cast<SpaceLink *>(area->spacedata.first); sl; sl = sl->next) {
         if (sl->spacetype == SPACE_CLIP) {
-          SpaceClip *sc = (SpaceClip *)sl;
+          SpaceClip *sc = reinterpret_cast<SpaceClip *>(sl);
 
           if (&sc->user == user) {
             MovieClip *clip = ED_space_clip_get_clip(sc);
 
             if (clip && (clip->flag & MCLIP_USE_PROXY)) {
               BKE_movieclip_clear_cache(clip);
-              blender::seq::relations_invalidate_movieclip_strips(bmain, clip);
+              seq::relations_invalidate_movieclip_strips(bmain, clip);
             }
 
             break;
@@ -111,7 +113,7 @@ static PointerRNA rna_MovieClip_metadata_get(MovieClip *clip)
     return PointerRNA_NULL;
   }
 
-  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, &RNA_IDPropertyWrapPtr, metadata);
+  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, RNA_IDPropertyWrapPtr, metadata);
   return ptr;
 }
 
@@ -131,7 +133,11 @@ static std::optional<std::string> rna_MovieClipUser_path(const PointerRNA *ptr)
   return "";
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_movieclip_proxy(BlenderRNA *brna)
 {
@@ -355,6 +361,7 @@ static void rna_def_movieclip(BlenderRNA *brna)
   RNA_def_property_array(prop, 2);
   RNA_def_property_range(prop, 0.1f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.1f, 5000.0f, 1, 2);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
       prop, "Display Aspect", "Display Aspect for this clip, does not affect rendering");
   RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, nullptr);
@@ -442,5 +449,7 @@ void RNA_def_movieclip(BlenderRNA *brna)
   rna_def_movieclipUser(brna);
   rna_def_movieClipScopes(brna);
 }
+
+}  // namespace blender
 
 #endif

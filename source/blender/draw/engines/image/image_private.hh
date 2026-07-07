@@ -15,6 +15,8 @@
 #include "image_state.hh"
 #include "image_texture_info.hh"
 
+namespace blender {
+
 /* Forward declarations */
 extern "C" {
 struct Image;
@@ -22,7 +24,7 @@ struct Image;
 
 /* *********** LISTS *********** */
 
-namespace blender::image_engine {
+namespace image_engine {
 
 /**
  * Abstract class for a drawing mode of the image engine.
@@ -34,9 +36,11 @@ class AbstractDrawingMode {
  public:
   virtual ~AbstractDrawingMode() = default;
   virtual void begin_sync() const = 0;
-  virtual void image_sync(::Image *image, ::ImageUser *iuser) const = 0;
+  virtual void image_sync(blender::Image *image, blender::ImageUser *iuser) const = 0;
   virtual void draw_viewport() const = 0;
   virtual void draw_finish() const = 0;
 };
 
-}  // namespace blender::image_engine
+}  // namespace image_engine
+
+}  // namespace blender

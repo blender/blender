@@ -8,6 +8,7 @@
 
 #include "BKE_context.hh"
 
+#include "BLI_fnmatch.h"
 #include "BLI_listbase.h"
 
 #include "WM_api.hh"
@@ -92,8 +93,12 @@ void AbstractViewItem::activate_for_context_menu(bContext &C)
 
 void AbstractViewItem::deactivate()
 {
+  if (is_active_) {
+    /* Deselect only active item, otherwise selection state before active item is cleared, see:
+     * !150891 */
+    is_selected_ = false;
+  }
   is_active_ = false;
-  is_selected_ = false;
 }
 
 std::optional<bool> AbstractViewItem::should_be_selected() const
@@ -122,7 +127,7 @@ void AbstractViewItem::change_state_delayed()
     }
     else if (is_active_) {
       is_active_ = false;
-      is_selected_ = false;
+      this->set_selected(false);
     }
   }
   if (std::optional<bool> is_selected = should_be_selected()) {
@@ -192,18 +197,18 @@ void AbstractViewItem::end_renaming()
   view.end_renaming();
 }
 
-static AbstractViewItem *find_item_from_rename_button(const uiBut &rename_but)
+static AbstractViewItem *find_item_from_rename_button(const Button &rename_but)
 {
   /* A minimal sanity check, can't do much more here. */
-  BLI_assert(rename_but.type == ButType::Text && rename_but.poin);
+  BLI_assert(rename_but.type == ButtonType::Text && rename_but.poin);
 
-  for (const std::unique_ptr<uiBut> &but : rename_but.block->buttons) {
-    if (but->type != ButType::ViewItem) {
+  for (const std::unique_ptr<Button> &but : rename_but.block->buttons) {
+    if (but->type != ButtonType::ViewItem) {
       continue;
     }
 
-    uiButViewItem *view_item_but = (uiButViewItem *)but.get();
-    AbstractViewItem *item = reinterpret_cast<AbstractViewItem *>(view_item_but->view_item);
+    ButtonViewItem *view_item_but = static_cast<ButtonViewItem *>(but.get());
+    AbstractViewItem *item = view_item_but->view_item;
     const AbstractView &view = item->get_view();
 
     if (item->is_renaming() && (view.get_rename_buffer().data() == rename_but.poin)) {
@@ -216,38 +221,37 @@ static AbstractViewItem *find_item_from_rename_button(const uiBut &rename_but)
 
 static void rename_button_fn(bContext *C, void *arg, char * /*origstr*/)
 {
-  const uiBut *rename_but = static_cast<uiBut *>(arg);
+  const Button *rename_but = static_cast<Button *>(arg);
   AbstractViewItem *item = find_item_from_rename_button(*rename_but);
   BLI_assert(item);
   item->rename_apply(*C);
 }
 
-void AbstractViewItem::add_rename_button(uiBlock &block)
+void AbstractViewItem::add_rename_button(Block &block)
 {
   AbstractView &view = this->get_view();
-  uiBut *rename_but = uiDefBut(&block,
-                               ButType::Text,
-                               1,
-                               "",
-                               0,
-                               0,
-                               UI_UNIT_X * 10,
-                               UI_UNIT_Y,
-                               view.get_rename_buffer().data(),
-                               1.0f,
-                               view.get_rename_buffer().size(),
-                               "");
+  Button *rename_but = uiDefBut(&block,
+                                ButtonType::Text,
+                                "",
+                                0,
+                                0,
+                                UI_UNIT_X * 10,
+                                UI_UNIT_Y,
+                                view.get_rename_buffer().data(),
+                                1.0f,
+                                view.get_rename_buffer().size(),
+                                "");
 
   /* Gotta be careful with what's passed to the `arg1` here. Any view data will be freed once the
    * callback is executed. */
-  UI_but_func_rename_set(rename_but, rename_button_fn, rename_but);
-  UI_but_flag_disable(rename_but, UI_BUT_UNDO);
+  button_func_rename_set(rename_but, rename_button_fn, rename_but);
+  button_flag_disable(rename_but, BUT_UNDO);
 
   const bContext *evil_C = reinterpret_cast<bContext *>(block.evil_C);
   ARegion *region = CTX_wm_region_popup(evil_C) ? CTX_wm_region_popup(evil_C) :
                                                   CTX_wm_region(evil_C);
   /* Returns false if the button was removed. */
-  if (UI_but_active_only(evil_C, region, &block, rename_but) == false) {
+  if (button_active_only(evil_C, region, &block, rename_but) == false) {
     end_renaming();
   }
 }
@@ -257,13 +261,18 @@ void AbstractViewItem::delete_item(bContext * /*C*/)
   /* No deletion by default. Needs type specific implementation. */
 }
 
+void AbstractViewItem::on_filter()
+{
+  /* No action by default. Needs type specific implementation. */
+}
+
 /** \} */
 
 /* ---------------------------------------------------------------------- */
 /** \name Context Menu
  * \{ */
 
-void AbstractViewItem::build_context_menu(bContext & /*C*/, uiLayout & /*column*/) const
+void AbstractViewItem::build_context_menu(bContext & /*C*/, Layout & /*column*/) const
 {
   /* No context menu by default. */
 }
@@ -274,9 +283,10 @@ void AbstractViewItem::build_context_menu(bContext & /*C*/, uiLayout & /*column*
 /** \name Filtering
  * \{ */
 
-bool AbstractViewItem::should_be_filtered_visible(const StringRefNull /*filter_string*/) const
+bool AbstractViewItem::should_be_filtered_visible(const StringRefNull filter_string) const
 {
-  return true;
+  StringRef name = this->get_rename_string();
+  return fnmatch(filter_string.c_str(), name.data(), FNM_CASEFOLD) == 0;
 }
 
 bool AbstractViewItem::is_filtered_visible() const
@@ -310,7 +320,7 @@ std::optional<std::string> AbstractViewItem::debug_name() const
 
 AbstractViewItemDragController::AbstractViewItemDragController(AbstractView &view) : view_(view) {}
 
-void AbstractViewItemDragController::on_drag_start(bContext & /*C*/)
+void AbstractViewItemDragController::on_drag_start(bContext & /*C*/, AbstractViewItem & /*item*/)
 {
   /* Do nothing by default. */
 }
@@ -330,7 +340,7 @@ AbstractView &AbstractViewItem::get_view() const
   return *view_;
 }
 
-uiButViewItem *AbstractViewItem::view_item_button() const
+ButtonViewItem *AbstractViewItem::view_item_button() const
 {
   return view_item_but_;
 }
@@ -338,6 +348,16 @@ uiButViewItem *AbstractViewItem::view_item_button() const
 void AbstractViewItem::disable_activatable()
 {
   is_activatable_ = false;
+}
+
+void AbstractViewItem::select_on_click_set()
+{
+  select_on_click_ = true;
+}
+
+bool AbstractViewItem::is_select_on_click() const
+{
+  return select_on_click_;
 }
 
 void AbstractViewItem::always_reactivate_on_click()
@@ -381,13 +401,9 @@ bool AbstractViewItem::is_search_highlight() const
 
 /** \} */
 
-}  // namespace blender::ui
-
 /* ---------------------------------------------------------------------- */
 /** \name C-API
  * \{ */
-
-namespace blender::ui {
 
 /**
  * Helper class to provide a higher level public (C-)API. Has access to private/protected view item
@@ -410,42 +426,38 @@ class ViewItemAPIWrapper {
   }
 };
 
-}  // namespace blender::ui
-
-using namespace blender::ui;
-
-bool UI_view_item_matches(const AbstractViewItem &a, const AbstractViewItem &b)
+bool view_item_matches(const AbstractViewItem &a, const AbstractViewItem &b)
 {
   return ViewItemAPIWrapper::matches(a, b);
 }
 
-void ui_view_item_swap_button_pointers(AbstractViewItem &a, AbstractViewItem &b)
+void view_item_swap_button_pointers(AbstractViewItem &a, AbstractViewItem &b)
 {
   ViewItemAPIWrapper::swap_button_pointers(a, b);
 }
 
-bool UI_view_item_can_rename(const AbstractViewItem &item)
+bool view_item_can_rename(const AbstractViewItem &item)
 {
   const AbstractView &view = item.get_view();
   return !view.is_renaming() && item.supports_renaming();
 }
 
-void UI_view_item_begin_rename(AbstractViewItem &item)
+void view_item_begin_rename(AbstractViewItem &item)
 {
   item.begin_renaming();
 }
 
-bool UI_view_item_supports_drag(const AbstractViewItem &item)
+bool view_item_supports_drag(const AbstractViewItem &item)
 {
   return item.create_drag_controller() != nullptr;
 }
 
-bool UI_view_item_popup_keep_open(const AbstractViewItem &item)
+bool view_item_popup_keep_open(const AbstractViewItem &item)
 {
   return item.get_view().get_popup_keep_open();
 }
 
-bool UI_view_item_drag_start(bContext &C, AbstractViewItem &item)
+bool view_item_drag_start(bContext &C, AbstractViewItem &item)
 {
   const std::unique_ptr<AbstractViewItemDragController> drag_controller =
       item.create_drag_controller();
@@ -457,13 +469,11 @@ bool UI_view_item_drag_start(bContext &C, AbstractViewItem &item)
     WM_event_start_drag(
         &C, ICON_NONE, *drag_type, drag_controller->create_drag_data(), WM_DRAG_FREE_DATA);
   }
-  drag_controller->on_drag_start(C);
-
-  /* Make sure the view item is highlighted as active when dragging from it. This is useful user
-   * feedback. */
-  item.set_state_active();
+  drag_controller->on_drag_start(C, item);
 
   return true;
 }
 
 /** \} */
+
+}  // namespace blender::ui

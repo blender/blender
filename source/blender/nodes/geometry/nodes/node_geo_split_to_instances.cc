@@ -40,11 +40,11 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("The group ID of each group instance");
 }
 
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
-  layout->prop(ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
+  layout.prop(ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void ensure_group_geometries(Map<int, std::unique_ptr<GeometrySet>> &geometry_by_group_id,
@@ -244,8 +244,7 @@ static void split_instance_groups(const InstancesComponent &component,
       const IndexMask &mask = split_groups.group_masks[group_index];
       const int group_id = split_groups.group_ids[group_index];
 
-      bke::Instances *group_instances = new bke::Instances();
-      group_instances->resize(mask.size());
+      auto group_instances = std::make_unique<bke::Instances>(mask.size());
 
       for (const bke::InstanceReference &reference : src_instances.references()) {
         group_instances->add_reference(reference);
@@ -260,7 +259,7 @@ static void split_instance_groups(const InstancesComponent &component,
       group_instances->remove_unused_references();
 
       GeometrySet &group_geometry = *geometry_by_group_id.lookup(group_id);
-      group_geometry.replace_instances(group_instances);
+      group_geometry.replace_instances(group_instances.release());
     }
   });
 }
@@ -309,10 +308,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         component, selection_field, group_id_field, attribute_filter, geometry_by_group_id);
   }
 
-  bke::Instances *dst_instances = new bke::Instances();
-  GeometrySet dst_geometry = GeometrySet::from_instances(dst_instances);
-  const int total_groups_num = geometry_by_group_id.size();
-  dst_instances->resize(total_groups_num);
+  auto dst_instances = std::make_unique<bke::Instances>(geometry_by_group_id.size());
 
   std::optional<std::string> dst_group_id_attribute_id =
       params.get_output_anonymous_attribute_id_if_needed("Group ID");
@@ -334,9 +330,11 @@ static void node_geo_exec(GeoNodeExecParams params)
     dst_instances->add_reference(std::move(group_geometry));
   }
 
-  dst_geometry.name = src_geometry.name;
+  geometry::debug_randomize_instance_order(dst_instances.get());
 
-  geometry::debug_randomize_instance_order(dst_instances);
+  GeometrySet dst_geometry = GeometrySet::from_instances(std::move(dst_instances));
+  dst_geometry.name = src_geometry.name;
+  dst_geometry.copy_bundle_from(src_geometry);
 
   params.set_output("Instances", std::move(dst_geometry));
 }
@@ -354,7 +352,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(&ntype, "GeometryNodeSplitToInstances", GEO_NODE_SPLIT_TO_INSTANCES);
   ntype.ui_name = "Split to Instances";
   ntype.ui_description = "Create separate geometries containing the elements from the same group";
@@ -363,7 +361,7 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   ntype.draw_buttons = node_layout;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

@@ -4,45 +4,11 @@
 
 /* Blender OpenColorIO implementation */
 
-/* -------------------------------------------------------------------- */
-/** \name Hardcoded color space conversion for fallback implementation
- *
- * NOTE: It is tempting to include gpu_shader_common_color_utils.glsl, but it should not be done
- * here as that header is intended to be used from the node shaders, and the source processor does
- * much more than simply including the file (it also follows some implicit dependencies that is
- * undesired here, and might break since we do not use node shaders here.
- * \{ */
+#include "ocio_shader_shared.hh"
 
-float srgb_to_linear_rgb(float color)
-{
-  if (color < 0.04045f) {
-    return (color < 0.0f) ? 0.0f : color * (1.0f / 12.92f);
-  }
-  return pow((color + 0.055f) * (1.0f / 1.055f), 2.4f);
-}
+#include "gpu_shader_create_info.hh"
 
-float3 srgb_to_linear_rgb(float3 color)
-{
-  return float3(
-      srgb_to_linear_rgb(color.r), srgb_to_linear_rgb(color.g), srgb_to_linear_rgb(color.b));
-}
-
-float linear_rgb_to_srgb(float color)
-{
-  if (color < 0.0031308f) {
-    return (color < 0.0f) ? 0.0f : color * 12.92f;
-  }
-
-  return 1.055f * pow(color, 1.0f / 2.4f) - 0.055f;
-}
-
-float3 linear_rgb_to_srgb(float3 color)
-{
-  return float3(
-      linear_rgb_to_srgb(color.r), linear_rgb_to_srgb(color.g), linear_rgb_to_srgb(color.b));
-}
-
-/** \} */
+#include "gpu_shader_display_transform_lib.glsl"
 
 /* -------------------------------------------------------------------- */
 /** \name Curve Mapping Implementation
@@ -180,12 +146,6 @@ float4 apply_dither(float4 col, uint2 uv)
 /** \name Main Processing
  * \{ */
 
-/* Prototypes: Implementation is generated and defined after. */
-#ifndef GPU_METAL /* Forward declaration invalid in MSL. */
-float4 OCIO_to_scene_linear(float4 pixel);
-float4 OCIO_to_display(float4 pixel);
-#endif
-
 float4 OCIO_ProcessColor(float4 col, float4 col_overlay)
 {
 #ifdef USE_CURVE_MAPPING
@@ -238,8 +198,19 @@ float4 OCIO_ProcessColor(float4 col, float4 col_overlay)
   }
 
   if (parameters.dither > 0.0) {
-    uint2 texel = get_pixel_coord(image_texture, texCoord_interp.st);
+    uint2 texel = get_pixel_coord(image_texture, texCoord_interp.xy);
     col = apply_dither(col, texel);
+  }
+#endif
+
+#ifdef OUTPUT_PREMULTIPLIED
+  /* Note: do not premultiply with a=0 when input image was already
+   * premultiplied; we want to preserve pure emissive colors (#141013).
+   * However for straight alpha images do premultiply; in some cases
+   * their fully transparent regions contain garbage RGB data
+   * (#150156) and they can't express "pure emissive" colors anyway. */
+  if (col.a < 1.0 && !(parameters.use_predivide && col.a <= 0.0)) {
+    col.rgb *= col.a;
   }
 #endif
 
@@ -250,8 +221,8 @@ float4 OCIO_ProcessColor(float4 col, float4 col_overlay)
 
 void main()
 {
-  float4 col = texture(image_texture, texCoord_interp.st);
-  float4 col_overlay = texture(overlay_texture, texCoord_interp.st);
+  float4 col = texture(image_texture, texCoord_interp.xy);
+  float4 col_overlay = texture(overlay_texture, texCoord_interp.xy);
 
   fragColor = OCIO_ProcessColor(col, col_overlay);
 }

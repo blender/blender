@@ -18,7 +18,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_context.hh"
-#include "BKE_tracking.h"
+#include "BKE_tracking.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -37,6 +37,8 @@
 #include "UI_view2d.hh"
 
 #include "clip_intern.hh" /* own include */
+
+namespace blender {
 
 /******************** common graph-editing utilities ********************/
 
@@ -67,7 +69,7 @@ struct SelectUserData {
 
 static void toggle_selection_cb(void *userdata, MovieTrackingMarker *marker)
 {
-  SelectUserData *data = (SelectUserData *)userdata;
+  SelectUserData *data = static_cast<SelectUserData *>(userdata);
 
   switch (data->action) {
     case SEL_SELECT:
@@ -190,8 +192,8 @@ static bool mouse_select_knot(bContext *C, const float co[2], bool extend)
     if (userdata.marker) {
       int x1, y1, x2, y2;
 
-      if (UI_view2d_view_to_region_clip(v2d, co[0], co[1], &x1, &y1) &&
-          UI_view2d_view_to_region_clip(v2d, userdata.min_co[0], userdata.min_co[1], &x2, &y2) &&
+      if (ui::view2d_view_to_region_clip(v2d, co[0], co[1], &x1, &y1) &&
+          ui::view2d_view_to_region_clip(v2d, userdata.min_co[0], userdata.min_co[1], &x2, &y2) &&
           (abs(x2 - x1) <= delta && abs(y2 - y1) <= delta))
       {
         if (!extend) {
@@ -310,7 +312,7 @@ static wmOperatorStatus select_invoke(bContext *C, wmOperator *op, const wmEvent
   ARegion *region = CTX_wm_region(C);
   float co[2];
 
-  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+  ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
   RNA_float_set_array(op->ptr, "location", co);
 
   return select_exec(C, op);
@@ -366,13 +368,13 @@ static void box_select_cb(void *userdata,
                           int scene_framenr,
                           float val)
 {
-  BoxSelectuserData *data = (BoxSelectuserData *)userdata;
+  BoxSelectuserData *data = static_cast<BoxSelectuserData *>(userdata);
   if (!ELEM(value_source, CLIP_VALUE_SOURCE_SPEED_X, CLIP_VALUE_SOURCE_SPEED_Y)) {
     return;
   }
 
   if (BLI_rctf_isect_pt(&data->rect, scene_framenr, val)) {
-    int flag = 0;
+    TrackingMarkerFlag flag = TrackingMarkerFlag(0);
 
     if (value_source == CLIP_VALUE_SOURCE_SPEED_X) {
       flag = MARKER_GRAPH_SEL_X;
@@ -411,7 +413,7 @@ static wmOperatorStatus box_select_graph_exec(bContext *C, wmOperator *op)
 
   /* get rectangle from operator */
   WM_operator_properties_border_to_rctf(op, &rect);
-  UI_view2d_region_to_view_rctf(&region->v2d, &rect, &userdata.rect);
+  ui::view2d_region_to_view_rctf(&region->v2d, &rect, &userdata.rect);
 
   userdata.changed = false;
   userdata.select = !RNA_boolean_get(op->ptr, "deselect");
@@ -540,7 +542,7 @@ static wmOperatorStatus delete_curve_invoke(bContext *C, wmOperator *op, const w
                                   IFACE_("Delete track corresponding to the selected curve?"),
                                   nullptr,
                                   IFACE_("Delete"),
-                                  ALERT_ICON_NONE,
+                                  ui::AlertIcon::None,
                                   false);
   }
   return delete_curve_exec(C, op);
@@ -618,7 +620,7 @@ static void view_all_cb(void *userdata,
                         int /*scene_framenr*/,
                         float val)
 {
-  ViewAllUserData *data = (ViewAllUserData *)userdata;
+  ViewAllUserData *data = static_cast<ViewAllUserData *>(userdata);
 
   data->min = std::min(val, data->min);
   data->max = std::max(val, data->max);
@@ -780,3 +782,5 @@ void CLIP_OT_graph_disable_markers(wmOperatorType *ot)
   /* properties */
   RNA_def_enum(ot->srna, "action", actions_items, 0, "Action", "Disable action to execute");
 }
+
+}  // namespace blender

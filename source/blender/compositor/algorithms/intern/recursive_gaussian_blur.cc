@@ -15,7 +15,7 @@
 namespace blender::compositor {
 
 /* Compute the Gaussian sigma from the radius, where the radius is in pixels. Blender's filter is
- * truncated at |x| > 3 * sigma as can be seen in the R_FILTER_GAUSS case of the RE_filter_value
+ * truncated at |x| > 3 * sigma as can be seen in the Gauss case of the filter_kernel_value
  * function, so we divide by three to get the approximate sigma value. Further, ensure the radius
  * is at least 1 since recursive Gaussian implementations can't handle zero radii. */
 static float2 compute_sigma_from_radius(float2 radius)

@@ -10,6 +10,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 int pow_i(int base, int exp)
 {
   int result = 1;
@@ -79,3 +81,5 @@ float ceil_power_of_10(float f)
   }
   return 0.0f;
 }
+
+}  // namespace blender

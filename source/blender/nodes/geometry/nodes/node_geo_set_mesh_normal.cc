@@ -50,12 +50,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   }
 }
 
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
   const bNode &node = *static_cast<const bNode *>(ptr->data);
-  layout->prop(ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
+  layout.prop(ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
   if (Mode(node.custom1) == Mode::Free) {
-    layout->prop(ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
+    layout.prop(ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
   }
 }
 
@@ -96,6 +96,11 @@ static void node_geo_exec(GeoNodeExecParams params)
           if (edge_values.is_empty()) {
             attributes.remove("sharp_edge");
           }
+          else if (edge_values.size() == mesh->edges_num) {
+            attributes.remove("sharp_edge");
+            attributes.add<bool>(
+                "sharp_edge", bke::AttrDomain::Edge, bke::AttributeInitValue(true));
+          }
           else {
             bke::SpanAttributeWriter attr = attributes.lookup_or_add_for_write_only_span<bool>(
                 "sharp_edge", bke::AttrDomain::Edge);
@@ -104,6 +109,11 @@ static void node_geo_exec(GeoNodeExecParams params)
           }
           if (face_values.is_empty()) {
             attributes.remove("sharp_face");
+          }
+          else if (face_values.size() == mesh->faces_num) {
+            attributes.remove("sharp_face");
+            attributes.add<bool>(
+                "sharp_face", bke::AttrDomain::Face, bke::AttributeInitValue(true));
           }
           else {
             bke::SpanAttributeWriter attr = attributes.lookup_or_add_for_write_only_span<bool>(
@@ -211,7 +221,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(&ntype, "GeometryNodeSetMeshNormal");
   ntype.ui_name = "Set Mesh Normal";
   ntype.ui_description = "Store a normal vector for each mesh element";
@@ -221,7 +231,7 @@ static void node_register()
   ntype.initfunc = node_init;
   ntype.draw_buttons = node_layout;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

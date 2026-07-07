@@ -1,21 +1,8 @@
-diff --git a/cmake/defaults/Packages.cmake b/cmake/defaults/Packages.cmake
-index 2bb1f30d0..adcc7422e 100644
---- a/cmake/defaults/Packages.cmake
-+++ b/cmake/defaults/Packages.cmake
-@@ -152,7 +152,7 @@ endif()
- 
- 
- # --TBB
--find_package(TBB REQUIRED COMPONENTS tbb)
-+find_package(TBB)
- add_definitions(${TBB_DEFINITIONS})
- 
- # --math
 diff --git a/cmake/defaults/msvcdefaults.cmake b/cmake/defaults/msvcdefaults.cmake
-index 0f7fb7ef6..a467341ed 100644
+index f5780c0db..9b5d5c68c 100644
 --- a/cmake/defaults/msvcdefaults.cmake
 +++ b/cmake/defaults/msvcdefaults.cmake
-@@ -140,9 +140,6 @@ _add_define("WIN32_LEAN_AND_MEAN")
+@@ -126,9 +126,6 @@ _add_define("WIN32_LEAN_AND_MEAN")
  # for all translation units.
  set(_PXR_CXX_FLAGS "${_PXR_CXX_FLAGS} /bigobj")
  
@@ -25,49 +12,11 @@ index 0f7fb7ef6..a467341ed 100644
  # Enable multiprocessor builds.
  set(_PXR_CXX_FLAGS "${_PXR_CXX_FLAGS} /MP")
  set(_PXR_CXX_FLAGS "${_PXR_CXX_FLAGS} /Gm-")
-diff --git a/pxr/base/arch/defines.h b/pxr/base/arch/defines.h
-index cb6ad44c5..c6c1a604b 100644
---- a/pxr/base/arch/defines.h
-+++ b/pxr/base/arch/defines.h
-@@ -49,7 +49,8 @@
- #if defined(i386) || defined(__i386__) || defined(__x86_64__) || \
-     defined(_M_IX86) || defined(_M_X64)
- #define ARCH_CPU_INTEL
--#elif defined(__arm__) || defined(__aarch64__) || defined(_M_ARM)
-+#elif defined(__arm__) || defined(__aarch64__) || defined(_M_ARM) || \
-+    defined(_M_ARM64)
- #define ARCH_CPU_ARM
- #endif
- 
-@@ -57,7 +58,8 @@
- // Bits
- //
- 
--#if defined(__x86_64__) || defined(__aarch64__) || defined(_M_X64)
-+#if defined(__x86_64__) || defined(__aarch64__) || defined(_M_X64) || \
-+    defined(_M_ARM64)
- #define ARCH_BITS_64
- #else
- #error "Unsupported architecture.  x86_64 or ARM64 required."
 diff --git a/pxr/base/arch/timing.h b/pxr/base/arch/timing.h
-index d78598a84..2f44a5f89 100644
+index 2907195c0..7f8c6097c 100644
 --- a/pxr/base/arch/timing.h
 +++ b/pxr/base/arch/timing.h
-@@ -69,7 +69,13 @@ ArchGetTickTime()
-     return __rdtsc();
- #elif defined (ARCH_CPU_ARM)
-     uint64_t result;
-+    #if defined(ARCH_COMPILER_MSVC)
-+    // MSVC does not support inline assembly on ARM64 platforms
-+    // 0x5F02 == ARM64_CNTVCT - manually calculated value avoids <windows.h>
-+    result = _ReadStatusReg(0x5F02);
-+    #else
-     __asm __volatile("mrs	%0, CNTVCT_EL0" : "=&r" (result));
-+    #endif
-     return result;
- #else
- #error Unknown architecture.
-@@ -84,6 +90,10 @@ ArchGetTickTime()
+@@ -77,6 +77,10 @@ ArchGetTickTime()
  inline uint64_t
  ArchGetStartTickTime()
  {
@@ -76,9 +25,9 @@ index d78598a84..2f44a5f89 100644
 +
 +#if 0
      uint64_t t;
- #if defined (ARCH_OS_DARWIN)
-     return ArchGetTickTime();
-@@ -116,6 +126,7 @@ ArchGetStartTickTime()
+ #if defined (ARCH_OS_DARWIN) || defined(ARCH_OS_WASM_VM) || \
+     (defined (ARCH_CPU_ARM) && defined (ARCH_COMPILER_MSVC))
+@@ -110,6 +114,7 @@ ArchGetStartTickTime()
  #error "Unsupported architecture."
  #endif
    return t;
@@ -86,7 +35,7 @@ index d78598a84..2f44a5f89 100644
  }
  
  /// Get a "stop" tick time for measuring an interval of time.  See
-@@ -125,6 +136,10 @@ ArchGetStartTickTime()
+@@ -119,6 +124,10 @@ ArchGetStartTickTime()
  inline uint64_t
  ArchGetStopTickTime()
  {
@@ -95,9 +44,9 @@ index d78598a84..2f44a5f89 100644
 +
 +#if 0
      uint64_t t;
- #if defined (ARCH_OS_DARWIN)
-     return ArchGetTickTime();
-@@ -155,11 +170,11 @@ ArchGetStopTickTime()
+ #if defined (ARCH_OS_DARWIN) || defined(ARCH_OS_WASM_VM) || \
+     (defined (ARCH_CPU_ARM) && defined (ARCH_COMPILER_MSVC))
+@@ -150,11 +159,11 @@ ArchGetStopTickTime()
  #error "Unsupported architecture."
  #endif
    return t;
@@ -113,7 +62,7 @@ index d78598a84..2f44a5f89 100644
  /// A simple timer class for measuring an interval of time using the
  /// ArchTickTimer facilities.
 diff --git a/pxr/imaging/hioOpenVDB/CMakeLists.txt b/pxr/imaging/hioOpenVDB/CMakeLists.txt
-index e32762cea..d2c08d3da 100644
+index c94b63c5a..b3bcae4eb 100644
 --- a/pxr/imaging/hioOpenVDB/CMakeLists.txt
 +++ b/pxr/imaging/hioOpenVDB/CMakeLists.txt
 @@ -20,6 +20,12 @@ else()
@@ -143,10 +92,10 @@ index 53c026689..e99a5ac17 100644
  )
  
 diff --git a/cmake/macros/Private.cmake b/cmake/macros/Private.cmake
-index f0bc34ed8..c39db4bc4 100644
+index 6fe1134c1..1d6586fff 100644
 --- a/cmake/macros/Private.cmake
 +++ b/cmake/macros/Private.cmake
-@@ -979,7 +979,7 @@ function(_pxr_python_module NAME)
+@@ -992,7 +992,7 @@ function(_pxr_python_module NAME)
          return()
      endif()
 

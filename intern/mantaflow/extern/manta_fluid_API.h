@@ -6,14 +6,9 @@
  * \ingroup intern_mantaflow
  */
 
-#ifndef MANTA_API_H
-#define MANTA_API_H
-
 #include <cstddef>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+namespace blender {
 
 struct MANTA;
 
@@ -200,8 +195,4 @@ float manta_liquid_get_snd_particle_velocity_x_at(struct MANTA *liquid, int i);
 float manta_liquid_get_snd_particle_velocity_y_at(struct MANTA *liquid, int i);
 float manta_liquid_get_snd_particle_velocity_z_at(struct MANTA *liquid, int i);
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* MANTA_API_H_ */
+}  // namespace blender

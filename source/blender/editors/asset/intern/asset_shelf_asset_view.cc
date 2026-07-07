@@ -63,8 +63,8 @@ class AssetViewItem : public ui::PreviewGridItem {
   AssetViewItem(asset_system::AssetRepresentation &asset_, StringRef identifier, StringRef label);
 
   void disable_asset_drag();
-  void build_grid_tile(const bContext &C, uiLayout &layout) const override;
-  void build_context_menu(bContext &C, uiLayout &column) const override;
+  void build_grid_tile(const bContext &C, ui::Layout &layout) const override;
+  void build_context_menu(bContext &C, ui::Layout &column) const override;
   std::optional<bool> should_be_active() const override;
   void on_activate(bContext &C) override;
   bool should_be_filtered_visible(StringRefNull filter_string) const override;
@@ -80,7 +80,7 @@ class AssetDragController : public ui::AbstractViewItemDragController {
 
   std::optional<eWM_DragDataType> get_drag_type() const override;
   void *create_drag_data() const override;
-  void on_drag_start(bContext &C) override;
+  void on_drag_start(bContext &C, ui::AbstractViewItem &item) override;
 };
 
 AssetView::AssetView(const AssetLibraryReference &library_ref, const AssetShelf &shelf)
@@ -104,7 +104,8 @@ void AssetView::build_items()
   }
 
   list::iterate(library_ref_, [&](asset_system::AssetRepresentation &asset) {
-    if (shelf_.type->asset_poll && !shelf_.type->asset_poll(shelf_.type, &asset)) {
+    if (!shelf::type_asset_poll(*shelf_.type, asset)) {
+      /* Skip this asset. */
       return true;
     }
 
@@ -124,6 +125,12 @@ void AssetView::build_items()
     if (shelf_.type->flag & ASSET_SHELF_TYPE_FLAG_NO_ASSET_DRAG) {
       item.disable_asset_drag();
     }
+    if (!shelf_.type->drag_operator.empty()) {
+      /* For now always select/activate items on click instead of press when there's a drag
+       * operator set. Important for pose library blending. Maybe we want to make this an explicit
+       * option of the asset shelf instead. */
+      item.select_on_click_set();
+    }
     /* Make sure every click calls the #bl_activate_operator. We might want to add a flag to
      * enable/disable this. Or we only call #bl_activate_operator when an item becomes active, and
      * add a #bl_click_operator for repeated execution on every click. So far it seems like every
@@ -140,8 +147,8 @@ void AssetView::build_items()
 bool AssetView::begin_filtering(const bContext &C) const
 {
   const ScrArea *area = CTX_wm_area(&C);
-  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    if (UI_textbutton_activate_rna(&C, region, &shelf_, "search_filter")) {
+  for (ARegion &region : area->regionbase) {
+    if (ui::textbutton_activate_rna(&C, &region, &shelf_, "search_filter")) {
       return true;
     }
   }
@@ -192,7 +199,7 @@ void AssetViewItem::disable_asset_drag()
 
 /**
  * Needs freeing with #WM_operator_properties_free() (will be done by button if passed to that) and
- * #MEM_freeN().
+ * #MEM_delete().
  */
 static std::optional<wmOperatorCallParams> create_asset_operator_params(
     const StringRefNull op_name, const asset_system::AssetRepresentation &asset)
@@ -205,41 +212,40 @@ static std::optional<wmOperatorCallParams> create_asset_operator_params(
     return {};
   }
 
-  PointerRNA *op_props = MEM_new<PointerRNA>(__func__);
-  WM_operator_properties_create_ptr(op_props, ot);
+  PointerRNA *op_props = MEM_new<PointerRNA>(__func__, WM_operator_properties_create_ptr(ot));
   asset::operator_asset_reference_props_set(asset, *op_props);
   return wmOperatorCallParams{ot, op_props, wm::OpCallContext::InvokeRegionWin};
 }
 
-void AssetViewItem::build_grid_tile(const bContext & /*C*/, uiLayout &layout) const
+void AssetViewItem::build_grid_tile(const bContext & /*C*/, ui::Layout &layout) const
 {
   const AssetView &asset_view = reinterpret_cast<const AssetView &>(this->get_view());
   const AssetShelfType &shelf_type = *asset_view.shelf_.type;
 
-  PointerRNA asset_ptr = RNA_pointer_create_discrete(nullptr, &RNA_AssetRepresentation, &asset_);
-  UI_but_context_ptr_set(
-      layout.block(), reinterpret_cast<uiBut *>(view_item_but_), "asset", &asset_ptr);
+  PointerRNA asset_ptr = RNA_pointer_create_discrete(nullptr, RNA_AssetRepresentation, &asset_);
+  button_context_ptr_set(
+      layout.block(), reinterpret_cast<ui::Button *>(view_item_but_), "asset", &asset_ptr);
 
-  uiBut *item_but = reinterpret_cast<uiBut *>(this->view_item_button());
+  ui::Button *item_but = reinterpret_cast<ui::Button *>(this->view_item_button());
   if (std::optional<wmOperatorCallParams> activate_op = create_asset_operator_params(
           shelf_type.activate_operator, asset_))
   {
     /* Attach the operator, but don't call it through the button. We call it using
      * #on_activate(). */
-    UI_but_operator_set(item_but, activate_op->optype, activate_op->opcontext, activate_op->opptr);
-    UI_but_operator_set_never_call(item_but);
+    button_operator_set(item_but, activate_op->optype, activate_op->opcontext, activate_op->opptr);
+    button_operator_set_never_call(item_but);
 
     MEM_delete(activate_op->opptr);
   }
   const ui::GridViewStyle &style = this->get_view().get_style();
   /* Increase background draw size slightly, so highlights are well visible behind previews with an
    * opaque background. */
-  UI_but_view_item_draw_size_set(
+  button_view_item_draw_size_set(
       item_but, style.tile_width + 2 * U.pixelsize, style.tile_height + 2 * U.pixelsize);
 
-  UI_but_func_tooltip_custom_set(
+  button_func_tooltip_custom_set(
       item_but,
-      [](bContext & /*C*/, uiTooltipData &tip, uiBut * /*but*/, void *argN) {
+      [](bContext & /*C*/, ui::TooltipData &tip, ui::Button * /*but*/, void *argN) {
         const asset_system::AssetRepresentation *asset =
             static_cast<const asset_system::AssetRepresentation *>(argN);
         asset_tooltip(*asset, tip);
@@ -266,12 +272,12 @@ void AssetViewItem::build_grid_tile(const bContext & /*C*/, uiLayout &layout) co
   ui::PreviewGridItem::build_grid_tile_button(layout, preview_id);
 }
 
-void AssetViewItem::build_context_menu(bContext &C, uiLayout &column) const
+void AssetViewItem::build_context_menu(bContext &C, ui::Layout &column) const
 {
   const AssetView &asset_view = dynamic_cast<const AssetView &>(this->get_view());
   const AssetShelfType &shelf_type = *asset_view.shelf_.type;
   if (shelf_type.draw_context_menu) {
-    shelf_type.draw_context_menu(&C, &shelf_type, &asset_, &column);
+    shelf_type.draw_context_menu(&C, &shelf_type, &asset_, column);
   }
 }
 
@@ -334,7 +340,7 @@ static std::string filter_string_get(const AssetShelf &shelf)
   return search_string;
 }
 
-void build_asset_view(uiLayout &layout,
+void build_asset_view(ui::Layout &layout,
                       const AssetLibraryReference &library_ref,
                       const AssetShelf &shelf,
                       const bContext &C)
@@ -355,8 +361,8 @@ void build_asset_view(uiLayout &layout,
   asset_view->set_catalog_filter(catalog_filter_from_shelf_settings(shelf.settings, *library));
   asset_view->set_tile_size(tile_width, tile_height);
 
-  uiBlock *block = layout.block();
-  ui::AbstractGridView *grid_view = UI_block_add_view(
+  ui::Block *block = layout.block();
+  ui::AbstractGridView *grid_view = block_add_view(
       *block, "asset shelf asset view", std::move(asset_view));
   grid_view->set_context_menu_title("Asset Shelf");
 
@@ -385,7 +391,7 @@ std::optional<eWM_DragDataType> AssetDragController::get_drag_type() const
   return asset_.is_local_id() ? WM_DRAG_ID : WM_DRAG_ASSET;
 }
 
-void AssetDragController::on_drag_start(bContext &C)
+void AssetDragController::on_drag_start(bContext &C, ui::AbstractViewItem &item)
 {
   const AssetView &asset_view = this->get_view<AssetView>();
   const AssetShelfType &shelf_type = *asset_view.shelf_.type;
@@ -396,6 +402,14 @@ void AssetDragController::on_drag_start(bContext &C)
     WM_operator_name_call_ptr(&C, drag_op->optype, drag_op->opcontext, drag_op->opptr, nullptr);
     WM_operator_properties_free(drag_op->opptr);
     MEM_delete(drag_op->opptr);
+
+    /* Display as active so it's clear which item is being operated on. #activate() would trigger
+     * the activation operator. We really don't want this for poses, since dragging shouldn't fully
+     * apply a pose, but trigger interactive pose blending instead.
+     *
+     * Messing with the active state could cause problems, in that case a separate highlighting
+     * feature might make sense (so e.g. dragged from assets get an outline). */
+    item.set_state_active();
   }
 }
 
@@ -406,8 +420,11 @@ void *AssetDragController::create_drag_data() const
     return static_cast<void *>(local_id);
   }
 
-  const eAssetImportMethod import_method = asset_.get_import_method().value_or(
-      ASSET_IMPORT_APPEND_REUSE);
+  eAssetImportMethod import_method = asset_.get_import_method().value_or(ASSET_IMPORT_PACK);
+  if (U.experimental.no_data_block_packing && import_method == ASSET_IMPORT_PACK) {
+    import_method = ASSET_IMPORT_APPEND_REUSE;
+  }
+
   AssetImportSettings import_settings{};
   import_settings.method = import_method;
   import_settings.use_instance_collections = false;

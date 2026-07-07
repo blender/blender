@@ -1,0 +1,83 @@
+Fix OSL cmake files using absolute include directory path in
+their .cmake target files
+
+diff --git a/src/liboslcomp/CMakeLists.txt b/src/liboslcomp/CMakeLists.txt
+index 261168c5..0a9343dd 100644
+--- a/src/liboslcomp/CMakeLists.txt
++++ b/src/liboslcomp/CMakeLists.txt
+@@ -17,9 +17,8 @@ endif ()
+ FLEX_BISON (osllex.l oslgram.y osl lib_src compiler_headers)
+ 
+ add_library (${local_lib} ${lib_src})
+-target_include_directories(${local_lib}
+-    PUBLIC
+-        ${CMAKE_INSTALL_FULL_INCLUDEDIR}
++target_include_directories(${local_lib} INTERFACE
++	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+     )
+ target_link_libraries (${local_lib}
+     PUBLIC
+diff --git a/src/liboslexec/CMakeLists.txt b/src/liboslexec/CMakeLists.txt
+index 8b9cfccd..4ea75927 100644
+--- a/src/liboslexec/CMakeLists.txt
++++ b/src/liboslexec/CMakeLists.txt
+@@ -510,11 +510,9 @@ foreach(batched_target ${BATCHED_TARGET_LIST})
+     endforeach(target_src)
+     
+     add_library ( ${batched_target_lib} MODULE ${TARGET_LIB_SOURCES} )
+-      
+-    target_include_directories (${batched_target_lib}
+-        PUBLIC
+-            ${CMAKE_INSTALL_FULL_INCLUDEDIR}
+-            ${IMATH_INCLUDES}
++
++    target_include_directories (${batched_target_lib} INTERFACE
++	    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+         PRIVATE
+             ${ROBINMAP_INCLUDES}
+         )
+@@ -531,10 +529,8 @@ foreach(batched_target ${BATCHED_TARGET_LIST})
+ endforeach(batched_target)
+ 
+ add_library (${local_lib} ${lib_src})
+-target_include_directories (${local_lib}
+-    PUBLIC
+-        ${CMAKE_INSTALL_FULL_INCLUDEDIR}
+-        ${IMATH_INCLUDES}
++target_include_directories(${local_lib} INTERFACE
++	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+     PRIVATE
+         "${CMAKE_SOURCE_DIR}/src/liboslcomp"
+         ${ROBINMAP_INCLUDES}
+diff --git a/src/liboslnoise/CMakeLists.txt b/src/liboslnoise/CMakeLists.txt
+index 23bd4114..d5a84199 100644
+--- a/src/liboslnoise/CMakeLists.txt
++++ b/src/liboslnoise/CMakeLists.txt
+@@ -8,9 +8,8 @@ set (liboslnoise_srcs gabornoise.cpp simplexnoise.cpp)
+ #file ( GLOB compiler_headers "../liboslexec/*.h" )
+ 
+ add_library (${local_lib} ${liboslnoise_srcs})
+-target_include_directories (${local_lib}
+-    PUBLIC
+-        ${CMAKE_INSTALL_FULL_INCLUDEDIR}
++target_include_directories(${local_lib} INTERFACE
++	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+     PRIVATE
+         ../liboslexec)
+ target_include_directories (${local_lib}  BEFORE PRIVATE ${OpenImageIO_INCLUDES})
+diff --git a/src/liboslquery/CMakeLists.txt b/src/liboslquery/CMakeLists.txt
+index 70a25259..d3522a37 100644
+--- a/src/liboslquery/CMakeLists.txt
++++ b/src/liboslquery/CMakeLists.txt
+@@ -9,9 +9,8 @@ file (GLOB compiler_headers "../liboslexec/*.h")
+ FLEX_BISON (../liboslexec/osolex.l ../liboslexec/osogram.y oso lib_src compiler_headers)
+ 
+ add_library (${local_lib} ${lib_src})
+-target_include_directories (${local_lib}
+-    PUBLIC
+-        ${CMAKE_INSTALL_FULL_INCLUDEDIR}
++target_include_directories(${local_lib} INTERFACE
++	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+     PRIVATE
+         ../liboslexec)
+ target_link_libraries (${local_lib}

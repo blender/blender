@@ -41,14 +41,17 @@ class PDFExporter : public GreasePencilExporter {
                                   const bke::greasepencil::Drawing &drawing);
 
   bool create_document();
-  bool add_page();
+  bool add_page(Scene &scene);
 
-  void write_stroke_to_polyline(const float4x4 &transform,
-                                const Span<float3> positions,
-                                const bool cyclic,
-                                const ColorGeometry4f &color,
-                                const float opacity,
-                                std::optional<float> width);
+  void write_path(const float4x4 &transform,
+                  Span<float3> positions,
+                  const OffsetIndices<int> points_by_curve,
+                  const Span<int> shape,
+                  const VArray<bool> &cyclic,
+                  const VArray<int8_t> &types,
+                  const ColorGeometry4f &color,
+                  const float opacity,
+                  std::optional<float> width);
   bool write_to_file(StringRefNull filepath);
 };
 
@@ -66,7 +69,7 @@ bool PDFExporter::export_scene(Scene &scene, StringRefNull filepath)
       const int frame_number = scene.r.cfra;
 
       this->prepare_render_params(scene, frame_number);
-      this->add_page();
+      this->add_page(scene);
       this->export_grease_pencil_objects(frame_number);
       result = this->write_to_file(filepath);
       break;
@@ -81,7 +84,7 @@ bool PDFExporter::export_scene(Scene &scene, StringRefNull filepath)
         }
         const int orig_frame = scene.r.cfra;
         for (int frame_number = scene.r.sfra; frame_number <= scene.r.efra; frame_number++) {
-          GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob_eval.data);
+          GreasePencil &grease_pencil = *id_cast<GreasePencil *>(ob_eval.data);
           if (only_selected && !this->is_selected_frame(grease_pencil, frame_number)) {
             continue;
           }
@@ -90,7 +93,7 @@ bool PDFExporter::export_scene(Scene &scene, StringRefNull filepath)
           BKE_scene_graph_update_for_newframe(context_.depsgraph);
 
           this->prepare_render_params(scene, frame_number);
-          this->add_page();
+          this->add_page(scene);
           this->export_grease_pencil_objects(frame_number);
         }
 
@@ -121,7 +124,7 @@ void PDFExporter::export_grease_pencil_objects(const int frame_number)
     /* Use evaluated version to get strokes with modifiers. */
     const Object *ob_eval = DEG_get_evaluated(context_.depsgraph, ob);
     BLI_assert(ob_eval->type == OB_GREASE_PENCIL);
-    const GreasePencil *grease_pencil_eval = static_cast<const GreasePencil *>(ob_eval->data);
+    const GreasePencil *grease_pencil_eval = id_cast<const GreasePencil *>(ob_eval->data);
 
     for (const bke::greasepencil::Layer *layer : grease_pencil_eval->layers()) {
       if (!layer->is_visible()) {
@@ -145,20 +148,23 @@ void PDFExporter::export_grease_pencil_layer(const Object &object,
 
   const float4x4 layer_to_world = layer.to_world_space(object);
 
-  auto write_stroke = [&](const Span<float3> positions,
-                          const Span<float3> /*positions_left*/,
-                          const Span<float3> /*positions_right*/,
-                          const bool cyclic,
-                          const int8_t /*type*/,
-                          const ColorGeometry4f &color,
-                          const float opacity,
-                          const std::optional<float> width,
-                          const bool /*round_cap*/,
-                          const bool /*is_outline*/) {
-    write_stroke_to_polyline(layer_to_world, positions, cyclic, color, opacity, width);
+  auto write_shape = [&](const Span<float3> positions,
+                         const Span<float3> /*positions_left*/,
+                         const Span<float3> /*positions_right*/,
+                         const OffsetIndices<int> points_by_curve,
+                         const Span<int> shape,
+                         const VArray<bool> &cyclic,
+                         const VArray<int8_t> &types,
+                         const ColorGeometry4f &color,
+                         const float opacity,
+                         const std::optional<float> width,
+                         const bool /*round_cap*/,
+                         const bool /*is_outline*/) {
+    write_path(
+        layer_to_world, positions, points_by_curve, shape, cyclic, types, color, opacity, width);
   };
 
-  foreach_stroke_in_layer(object, layer, drawing, write_stroke);
+  foreach_shape_in_layer(object, layer, drawing, write_shape);
 }
 
 bool PDFExporter::create_document()
@@ -175,7 +181,10 @@ bool PDFExporter::create_document()
   return true;
 }
 
-bool PDFExporter::add_page()
+constexpr double meter_to_inches_factor = 1000.0 / 25.4;
+constexpr double default_pdf_ppi = 72.0;
+
+bool PDFExporter::add_page(Scene &scene)
 {
   page_ = HPDF_AddPage(pdf_);
   if (!pdf_) {
@@ -183,24 +192,37 @@ bool PDFExporter::add_page()
     return false;
   }
 
+  /* Pixels per meter. */
+  double2 ppm;
+  BKE_scene_ppm_get(&scene.r, ppm);
+
+  /* Covert pixels per meter to pixels per inch. */
+  double2 ppi = ppm / meter_to_inches_factor;
+
+  double2 scale_factor = default_pdf_ppi / ppi;
+  HPDF_Page_Concat(page_, scale_factor.x, 0.0f, 0.0f, scale_factor.y, 0.0f, 0.0f);
+
   if (camera_persmat_) {
-    HPDF_Page_SetWidth(page_, camera_rect_.size().x);
-    HPDF_Page_SetHeight(page_, camera_rect_.size().y);
+    HPDF_Page_SetWidth(page_, camera_rect_.size().x * scale_factor.x);
+    HPDF_Page_SetHeight(page_, camera_rect_.size().y * scale_factor.y);
   }
   else {
-    HPDF_Page_SetWidth(page_, screen_rect_.size().x);
-    HPDF_Page_SetHeight(page_, screen_rect_.size().y);
+    HPDF_Page_SetWidth(page_, screen_rect_.size().x * scale_factor.x);
+    HPDF_Page_SetHeight(page_, screen_rect_.size().y * scale_factor.y);
   }
 
   return true;
 }
 
-void PDFExporter::write_stroke_to_polyline(const float4x4 &transform,
-                                           const Span<float3> positions,
-                                           const bool cyclic,
-                                           const ColorGeometry4f &color,
-                                           const float opacity,
-                                           const std::optional<float> width)
+void PDFExporter::write_path(const float4x4 &transform,
+                             const Span<float3> positions,
+                             const OffsetIndices<int> points_by_curve,
+                             const Span<int> shape,
+                             const VArray<bool> &cyclic,
+                             const VArray<int8_t> & /*types*/,
+                             const ColorGeometry4f &color,
+                             const float opacity,
+                             std::optional<float> width)
 {
   if (width) {
     HPDF_Page_SetLineJoin(page_, HPDF_ROUND_JOIN);
@@ -232,17 +254,22 @@ void PDFExporter::write_stroke_to_polyline(const float4x4 &transform,
     HPDF_Page_SetExtGState(page_, gstate);
   }
 
-  for (const int i : positions.index_range()) {
-    const float2 screen_co = this->project_to_screen(transform, positions[i]);
-    if (i == 0) {
-      HPDF_Page_MoveTo(page_, screen_co.x, screen_co.y);
+  for (const int curve_i : shape) {
+    const IndexRange points = points_by_curve[curve_i];
+    const Span<float3> curve_pos = positions.slice(points);
+
+    for (const int i : curve_pos.index_range()) {
+      const float2 screen_co = this->project_to_screen(transform, curve_pos[i]);
+      if (i == 0) {
+        HPDF_Page_MoveTo(page_, screen_co.x, screen_co.y);
+      }
+      else {
+        HPDF_Page_LineTo(page_, screen_co.x, screen_co.y);
+      }
     }
-    else {
-      HPDF_Page_LineTo(page_, screen_co.x, screen_co.y);
+    if (cyclic[curve_i]) {
+      HPDF_Page_ClosePath(page_);
     }
-  }
-  if (cyclic) {
-    HPDF_Page_ClosePath(page_);
   }
 
   if (width) {

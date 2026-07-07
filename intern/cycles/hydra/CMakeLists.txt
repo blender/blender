@@ -10,17 +10,13 @@ set(INC
   ..
 )
 set(INC_SYS
-  ${USD_INCLUDE_DIRS}
-  ${Epoxy_INCLUDE_DIRS}
-  ${PYTHON_INCLUDE_DIRS}
 )
 
 set(LIB
   cycles_scene
   cycles_session
   cycles_graph
-  ${Epoxy_LIBRARIES}
-  ${BOOST_PYTHON_LIBRARIES}
+  bf::dependencies::epoxy
 )
 cycles_external_libraries_append(LIB)
 
@@ -105,7 +101,9 @@ target_compile_definitions(cycles_hydra
 
 target_link_libraries(cycles_hydra
   PUBLIC
-  ${USD_LIBRARIES}
+  bf::dependencies::openimageio
+  bf::dependencies::optional::usd
+  bf::dependencies::optional::python
   PRIVATE
   ${LIB}
 )
@@ -173,7 +171,7 @@ if(WITH_CYCLES_HYDRA_RENDER_DELEGATE)
   set(PLUG_INFO_ROOT "..")
 
   if(WITH_CYCLES_BLENDER)
-    # Full path not yet know at this point and RELATIVE_PATH requires
+    # Full path not yet known at this point and RELATIVE_PATH requires
     # absolute path as input. So just set manually.
     set(PLUG_INFO_LIBRARY_PATH "../${HdCyclesPluginName}${CMAKE_SHARED_LIBRARY_SUFFIX}")
     set(PLUG_INFO_RESOURCE_PATH "../..")

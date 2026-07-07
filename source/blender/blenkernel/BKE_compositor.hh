@@ -12,11 +12,13 @@
 
 #include "BLI_set.hh"
 
+namespace blender {
+
 struct Scene;
 struct ViewLayer;
 struct bContext;
 
-namespace blender::bke::compositor {
+namespace bke::compositor {
 
 /* Get the set of all passes used by the compositor for the given view layer, identified by their
  * pass names. This might be a superset of the passes actually supported by the render engine, in
@@ -27,4 +29,5 @@ Set<std::string> get_used_passes(const Scene &scene, const ViewLayer *view_layer
  * DRWContext::is_viewport_compositor_enabled but checks all 3D views. */
 bool is_viewport_compositor_used(const bContext &context);
 
-}  // namespace blender::bke::compositor
+}  // namespace bke::compositor
+}  // namespace blender

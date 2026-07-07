@@ -237,9 +237,9 @@ static wmOperatorStatus light_linking_unlink_from_collection_exec(bContext *C, w
 {
   Main *bmain = CTX_data_main(C);
 
-  ID *id = static_cast<ID *>(CTX_data_pointer_get_type(C, "id", &RNA_ID).data);
+  ID *id = static_cast<ID *>(CTX_data_pointer_get_type(C, "id", RNA_ID).data);
   Collection *collection = static_cast<Collection *>(
-      CTX_data_pointer_get_type(C, "collection", &RNA_Collection).data);
+      CTX_data_pointer_get_type(C, "collection", RNA_Collection).data);
 
   if (!id || !collection) {
     return OPERATOR_PASS_THROUGH;

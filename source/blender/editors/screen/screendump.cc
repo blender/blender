@@ -44,11 +44,13 @@
 
 #include "screen_intern.hh"
 
+namespace blender {
+
 struct ScreenshotData {
-  uint8_t *dumprect;
-  int dumpsx, dumpsy;
-  rcti crop;
-  bool use_crop;
+  uint8_t *dumprect = nullptr;
+  int dumpsx = 0, dumpsy = 0;
+  rcti crop = {};
+  bool use_crop = false;
 
   ImageFormatData im_format;
 };
@@ -66,7 +68,7 @@ static int screenshot_data_create(bContext *C, wmOperator *op, ScrArea *area)
   uint8_t *dumprect = WM_window_pixels_read(C, win, dumprect_size);
 
   if (dumprect) {
-    ScreenshotData *scd = MEM_callocN<ScreenshotData>("screenshot");
+    ScreenshotData *scd = MEM_new<ScreenshotData>("screenshot");
 
     scd->dumpsx = dumprect_size[0];
     scd->dumpsy = dumprect_size[1];
@@ -75,7 +77,7 @@ static int screenshot_data_create(bContext *C, wmOperator *op, ScrArea *area)
       scd->crop = area->totrct;
     }
 
-    BKE_image_format_init(&scd->im_format, false);
+    BKE_image_format_init(&scd->im_format);
 
     op->customdata = scd;
 
@@ -91,9 +93,9 @@ static void screenshot_data_free(wmOperator *op)
 
   if (scd) {
     if (scd->dumprect) {
-      MEM_freeN(scd->dumprect);
+      MEM_delete(scd->dumprect);
     }
-    MEM_freeN(scd);
+    MEM_delete(scd);
     op->customdata = nullptr;
   }
 }
@@ -210,23 +212,23 @@ static bool screenshot_draw_check_prop(PointerRNA * /*ptr*/,
 
 static void screenshot_draw(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
+  ui::Layout &layout = *op->layout;
   ScreenshotData *scd = static_cast<ScreenshotData *>(op->customdata);
 
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
 
   /* image template */
-  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, &RNA_ImageFormatSettings, &scd->im_format);
-  uiTemplateImageSettings(layout, C, &ptr, false);
+  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, RNA_ImageFormatSettings, &scd->im_format);
+  uiTemplateImageSettings(&layout, C, &ptr, false);
 
   /* main draw call */
-  uiDefAutoButsRNA(layout,
+  uiDefAutoButsRNA(&layout,
                    op->ptr,
                    screenshot_draw_check_prop,
                    nullptr,
                    nullptr,
-                   UI_BUT_LABEL_ALIGN_NONE,
+                   ui::BUT_LABEL_ALIGN_NONE,
                    false);
 }
 
@@ -279,3 +281,5 @@ void SCREEN_OT_screenshot_area(wmOperatorType *ot)
 
   ot->flag = OPTYPE_DEPENDS_ON_CURSOR;
 }
+
+}  // namespace blender

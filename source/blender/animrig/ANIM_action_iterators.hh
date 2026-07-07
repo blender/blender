@@ -13,17 +13,21 @@
 #include "BLI_function_ref.hh"
 #include "DNA_action_types.h"
 
+namespace blender {
+
 struct FCurve;
-namespace blender::animrig {
+struct PointerRNA;
+struct PropertyRNA;
+namespace animrig {
 class Action;
 class Layer;
 class Strip;
 class Channelbag;
-}  // namespace blender::animrig
+}  // namespace animrig
 
-namespace blender::animrig {
+namespace animrig {
 
-using slot_handle_t = decltype(::ActionSlot::handle);
+using slot_handle_t = decltype(blender::ActionSlot::handle);
 
 /**
  * Iterates over all FCurves of the Action and executes the callback on it.
@@ -33,14 +37,24 @@ void foreach_fcurve_in_action(Action &action, FunctionRef<void(FCurve &fcurve)> 
 
 /**
  * Iterates over all FCurves of the given slot handle in the Action and executes the callback on
- * it. Works on layered and legacy actions. When the action is legacy, the slot handle will be
- * ignored.
+ * it. This includes data that may be locked. If you want to limit this to editable data only use
+ * `foreach_fcurve_in_action_slot_editable`.
+ *
+ * \note This could almost take a `const Action &` except for the fact that we do need to iterate
+ * all FCurves in an editable way sometimes, e.g. for the pose library code.
  *
  * \note Use lambdas to have access to specific data in the callback.
  */
 void foreach_fcurve_in_action_slot(Action &action,
                                    slot_handle_t handle,
                                    FunctionRef<void(FCurve &fcurve)> callback);
+
+/**
+ * Like `foreach_fcurve_in_action_slot` except any data that is not editable is skipped.
+ */
+void foreach_fcurve_in_action_slot_editable(Action &action,
+                                            slot_handle_t handle,
+                                            FunctionRef<void(FCurve &fcurve)> callback);
 
 /**
  * Call the given callback for each Action + Slot that this ID uses.
@@ -71,9 +85,9 @@ bool foreach_action_slot_use(
  * necessarily the direct action & slot of that ID: they can also be the action
  * & slot of an Action Constraint or NLA Strip owned by the ID.
  *
- * \see blender::animrig::generic_assign_action
- * \see blender::animrig::generic_assign_action_slot
- * \see blender::animrig::generic_assign_action_slot_handle
+ * \see animrig::generic_assign_action
+ * \see animrig::generic_assign_action_slot
+ * \see animrig::generic_assign_action_slot_handle
  */
 bool foreach_action_slot_use_with_references(
     ID &animated_id,
@@ -104,4 +118,5 @@ bool foreach_action_slot_use_with_rna(ID &animated_id,
                                                        PropertyRNA &action_slot_prop,
                                                        char *last_slot_identifier)> callback);
 
-}  // namespace blender::animrig
+}  // namespace animrig
+}  // namespace blender

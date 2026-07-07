@@ -29,7 +29,7 @@ class AssetCatalogDefinitionFile;
 class AssetCatalogFilter;
 class AssetCatalogTree;
 
-using CatalogID = bUUID;
+using CatalogID = UUID;
 using CatalogPathComponent = std::string;
 /* Would be nice to be able to use `std::filesystem::path` for this, but it's currently not
  * available on the minimum macOS target version. */
@@ -44,7 +44,7 @@ class AssetCatalogService {
   /**
    * Cached catalog tree storage. Lazy-created by #AssetCatalogService::catalog_tree().
    */
-  std::unique_ptr<AssetCatalogTree> catalog_tree_;
+  std::shared_ptr<AssetCatalogTree> catalog_tree_;
   std::recursive_mutex catalog_tree_mutex_;
 
   Vector<std::unique_ptr<AssetCatalogCollection>> undo_snapshots_;
@@ -61,7 +61,8 @@ class AssetCatalogService {
 
   struct read_only_tag {};
 
-  explicit AssetCatalogService(const CatalogFilePath &asset_library_root = {});
+  explicit AssetCatalogService(const CatalogFilePath &asset_library_root = {},
+                               std::optional<read_only_tag> read_only_tag = std::nullopt);
   explicit AssetCatalogService(read_only_tag);
 
   /**
@@ -71,7 +72,7 @@ class AssetCatalogService {
    *
    * This "dirty" state is tracked per catalog, so that it's possible to gracefully load changes
    * from disk. Any catalog with unsaved changes will not be overwritten by on-disk changes. */
-  void tag_has_unsaved_changes(AssetCatalog *edited_catalog);
+  void tag_has_unsaved_changes(AssetCatalog *edited_catalog = nullptr);
   bool has_unsaved_changes() const;
 
   /**
@@ -159,8 +160,15 @@ class AssetCatalogService {
    */
   AssetCatalogFilter create_catalog_filter(CatalogID active_catalog_id) const;
 
-  /** Create a catalog with some sensible auto-generated catalog ID.
-   * The catalog will be saved to the default catalog file. */
+  /**
+   * Create a catalog with some sensible auto-generated catalog ID.
+   * The catalog will be saved to the default catalog file.
+   *
+   * NOTE: this does NOT mark the catalog service itself as 'has changes'. The caller is
+   * responsible for that.
+   *
+   * \see #tag_has_unsaved_changes()
+   */
   AssetCatalog *create_catalog(const AssetCatalogPath &catalog_path);
 
   /**
@@ -182,7 +190,7 @@ class AssetCatalogService {
   /**
    * May be called from multiple threads.
    */
-  const AssetCatalogTree &catalog_tree();
+  std::shared_ptr<const AssetCatalogTree> catalog_tree();
 
   /** Return true only if there are no catalogs known. */
   bool is_empty() const;
@@ -228,6 +236,11 @@ class AssetCatalogService {
    * will be removed from a CDF when saved to disk.
    *
    * This is a lower-level function than #prune_catalogs_by_path.
+   *
+   * NOTE: this does NOT mark the catalog service itself as 'has changes'. The caller is
+   * responsible for that.
+   *
+   * \see #tag_has_unsaved_changes()
    */
   void delete_catalog_by_id_soft(CatalogID catalog_id);
 

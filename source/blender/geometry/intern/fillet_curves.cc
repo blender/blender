@@ -491,7 +491,7 @@ static bke::CurvesGeometry fillet_curves(const bke::CurvesGeometry &src_curves,
   for (auto &attribute : bke::retrieve_attributes_for_transfer(
            src_attributes,
            dst_attributes,
-           ATTR_DOMAIN_MASK_POINT,
+           {bke::AttrDomain::Point},
            bke::attribute_filter_with_skip_ref(attribute_filter,
                                                {"position",
                                                 "handle_type_left",

@@ -11,7 +11,7 @@
 #define V3D_SHADING_OBJECT_COLOR 4
 #define V3D_SHADING_RANDOM_COLOR 1
 
-float4x4 extract_matrix_packed_data(float4x4 mat, out float4 dataA, out float4 dataB)
+float4x4 extract_matrix_packed_data(float4x4 mat, float4 &dataA, float4 &dataB)
 {
   constexpr float div = 1.0f / 255.0f;
   int a = int(mat[0][3]);

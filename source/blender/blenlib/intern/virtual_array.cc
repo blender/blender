@@ -10,7 +10,11 @@
 
 #include <iostream>
 
-void blender::internal::print_mutable_varray_span_warning()
+namespace blender {
+
+void internal::print_mutable_varray_span_warning()
 {
   std::cout << "Warning: Call `save()` to make sure that changes persist in all cases.\n";
 }
+
+}  // namespace blender

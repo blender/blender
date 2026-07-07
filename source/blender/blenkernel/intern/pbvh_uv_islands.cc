@@ -106,30 +106,26 @@ static void mesh_data_init_edges(MeshData &mesh_data)
   mesh_data.edges.reserve(mesh_data.corner_tris.size() * 2);
   Map<OrderedEdge, int> eh;
   eh.reserve(mesh_data.corner_tris.size() * 3);
-  for (int64_t i = 0; i < mesh_data.corner_tris.size(); i++) {
-    const int3 &tri = mesh_data.corner_tris[i];
-    Vector<int, 3> edges;
+  for (int64_t tri_index = 0; tri_index < mesh_data.corner_tris.size(); tri_index++) {
+    const int3 &tri = mesh_data.corner_tris[tri_index];
+    Vector<int, 3> tri_edges;
     for (int j = 0; j < 3; j++) {
       int v1 = mesh_data.corner_verts[tri[j]];
       int v2 = mesh_data.corner_verts[tri[(j + 1) % 3]];
 
-      int64_t edge_index;
-      eh.add_or_modify(
-          {v1, v2},
-          [&](int *value) {
-            edge_index = mesh_data.edges.size();
-            *value = edge_index + 1;
-            mesh_data.edges.append({v1, v2});
-            mesh_data.vert_to_edge_map.add(edge_index, v1, v2);
-          },
-          [&](int *value) {
-            edge_index = *value - 1;
-            *value = edge_index;
-          });
+      int64_t edge_index = mesh_data.edges.size();
+      const bool is_new_edge = eh.add({v1, v2}, edge_index);
+      if (is_new_edge) {
+        mesh_data.edges.append({v1, v2});
+        mesh_data.vert_to_edge_map.add(edge_index, v1, v2);
+      }
+      else {
+        edge_index = eh.lookup({v1, v2});
+      }
 
-      edges.append(edge_index);
+      tri_edges.append(edge_index);
     }
-    mesh_data.primitive_to_edge_map.add(edges, i);
+    mesh_data.primitive_to_edge_map.add(tri_edges, tri_index);
   }
   /* Build edge to neighboring triangle map. */
   mesh_data.edge_to_primitive_map = EdgeToPrimitiveMap(mesh_data.edges.size());
@@ -569,6 +565,10 @@ struct Fan {
     int previous_primitive = stop_primitive;
     while (true) {
       bool stop = false;
+      if (!mesh_data.is_edge_manifold(current_edge)) {
+        flags.is_manifold = false;
+        break;
+      }
       for (const int other_primitive_i : mesh_data.edge_to_primitive_map[current_edge]) {
         if (stop) {
           break;
@@ -1141,6 +1141,7 @@ std::optional<UVBorder> UVBorder::extract_from_edges(Vector<UVBorderEdge> &edges
   float2 first_uv = starting_border_edge->get_uv_vertex(0)->uv;
   float2 current_uv = starting_border_edge->get_uv_vertex(1)->uv;
   while (current_uv != first_uv) {
+    bool edge_added = false;
     for (UVBorderEdge &border_edge : edges) {
       if (border_edge.tag == true) {
         continue;
@@ -1152,12 +1153,18 @@ std::optional<UVBorder> UVBorder::extract_from_edges(Vector<UVBorderEdge> &edges
           border_edge.tag = true;
           current_uv = border_edge.get_uv_vertex(1)->uv;
           border.edges.append(border_edge);
+          edge_added = true;
           break;
         }
       }
       if (i != 2) {
         break;
       }
+    }
+    if (!edge_added) {
+      /* TODO Add a user-facing warning to notify users that the model's UVs are invalid for
+       * texture painting and should be fixed for optimal results. */
+      break;
     }
   }
   return border;

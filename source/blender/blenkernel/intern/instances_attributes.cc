@@ -4,7 +4,6 @@
 
 #include "BKE_instances.hh"
 
-#include "attribute_access_intern.hh"
 #include "attribute_storage_access.hh"
 
 namespace blender::bke {
@@ -28,15 +27,6 @@ static const auto &builtin_attributes()
   static auto attributes = []() {
     Map<StringRef, AttrBuiltinInfo> map;
 
-    /**
-     * IDs of the instances. They are used for consistency over multiple frames for things like
-     * motion blur. Proper stable ID data that actually helps when rendering can only be generated
-     * in some situations, so this vector is allowed to be empty, in which case the index of each
-     * instance will be used for the final ID.
-     */
-    AttrBuiltinInfo id(bke::AttrDomain::Instance, bke::AttrType::Int32);
-    map.add_new("id", std::move(id));
-
     AttrBuiltinInfo instance_transform(bke::AttrDomain::Instance, bke::AttrType::Float4x4);
     instance_transform.deletable = false;
     map.add_new("instance_transform", std::move(instance_transform));
@@ -48,6 +38,12 @@ static const auto &builtin_attributes()
 
     return map;
   }();
+  return attributes;
+}
+
+static const auto &array_storage_required()
+{
+  static Set<StringRef> attributes{"instance_transform", ".reference_index"};
   return attributes;
 }
 
@@ -74,6 +70,15 @@ static constexpr AttributeAccessorFunctions get_instances_accessor_functions()
     const AttrBuiltinInfo &info = builtin_attributes().lookup(name);
     return info.default_value;
   };
+  fn.lookup_meta_data = [](const void *owner, StringRef name) -> std::optional<AttributeMetaData> {
+    const Instances &instances = *static_cast<const Instances *>(owner);
+    const AttributeStorage &storage = instances.attribute_storage();
+    const Attribute *attr = storage.lookup(name);
+    if (!attr) {
+      return std::nullopt;
+    }
+    return AttributeMetaData{attr->domain(), attr->data_type()};
+  };
   fn.lookup = [](const void *owner, const StringRef name) -> GAttributeReader {
     const Instances &instances = *static_cast<const Instances *>(owner);
     const AttributeStorage &storage = instances.attribute_storage();
@@ -97,16 +102,19 @@ static constexpr AttributeAccessorFunctions get_instances_accessor_functions()
                             const AttributeAccessor &accessor) {
     const Instances &instances = *static_cast<const Instances *>(owner);
     const AttributeStorage &storage = instances.attribute_storage();
-    storage.foreach_with_stop([&](const Attribute &attribute) {
+    for (const Attribute &attribute : storage) {
       const auto get_fn = [&]() {
         return attribute_to_reader(attribute, AttrDomain::Instance, instances.instances_num());
       };
       AttributeIter iter(attribute.name(), attribute.domain(), attribute.data_type(), get_fn);
       iter.is_builtin = builtin_attributes().contains(attribute.name());
+      iter.storage_type = attribute.storage_type();
       iter.accessor = &accessor;
       fn(iter);
-      return !iter.is_stopped();
-    });
+      if (iter.is_stopped()) {
+        break;
+      }
+    }
   };
   fn.lookup_validator = [](const void * /*owner*/, const StringRef name) -> AttributeValidator {
     const AttrBuiltinInfo *info = builtin_attributes().lookup_ptr(name);
@@ -158,7 +166,28 @@ static constexpr AttributeAccessorFunctions get_instances_accessor_functions()
     if (storage.lookup(name)) {
       return false;
     }
-    storage.add(name, domain, type, attribute_init_to_data(type, domain_size, initializer));
+    const bool array = array_storage_required().contains(name);
+    Attribute::DataVariant data = attribute_init_to_data(type, domain_size, initializer, array);
+    storage.add(name, domain, type, std::move(data));
+    if (initializer.type != AttributeInit::Type::Construct) {
+      if (const std::optional<AttrUpdateOnChange> fn = changed_tags().lookup_try(name)) {
+        (*fn)(owner);
+      }
+    }
+    return true;
+  };
+  fn.assign_data = [](void *owner, StringRef name, const AttributeInit &initializer) {
+    Instances &instances = *static_cast<Instances *>(owner);
+    AttributeStorage &storage = instances.attribute_storage();
+    Attribute *attr = storage.lookup(name);
+    if (!attr) {
+      return false;
+    }
+    Attribute::DataVariant data = attribute_init_to_data(attr->data_type(),
+                                                         instances.instances_num(),
+                                                         initializer,
+                                                         array_storage_required().contains(name));
+    attr->assign_data(std::move(data));
     if (initializer.type != AttributeInit::Type::Construct) {
       if (const std::optional<AttrUpdateOnChange> fn = changed_tags().lookup_try(name)) {
         (*fn)(owner);

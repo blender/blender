@@ -16,6 +16,7 @@ from bpy.app.translations import (
     pgettext_rpt as rpt_,
     contexts as i18n_contexts,
 )
+from bpy_extras import anim_utils
 
 from collections import defaultdict
 from typing import TYPE_CHECKING, Callable, Any
@@ -904,7 +905,7 @@ class BONE_PT_rigify_buttons(bpy.types.Panel):
             except (ImportError, AttributeError, KeyError):
                 row = layout.row()
                 box = row.box()
-                text = iface_("ERROR: type \"{:s}\" does not exist!").format(rig_name)
+                text = rpt_("ERROR: type \"{:s}\" does not exist!").format(rig_name)
                 box.label(text=text, icon='ERROR', translate=False)
             else:
                 if hasattr(rig.Rig, 'parameters_ui'):
@@ -1352,10 +1353,10 @@ def fk_to_ik(rig: ArmatureObject, window='ALL'):
                     # fk_ctrl = names['fk_ctrl']
                     parent = names['parent']
                     pole = names['pole']
-                    rig.pose.bones[controls[0]].bone.select = True
-                    rig.pose.bones[controls[4]].bone.select = True
-                    rig.pose.bones[pole].bone.select = True
-                    rig.pose.bones[parent].bone.select = True
+                    rig.pose.bones[controls[0]].select = True
+                    rig.pose.bones[controls[4]].select = True
+                    rig.pose.bones[pole].select = True
+                    rig.pose.bones[parent].select = True
                     kwargs = {'uarm_fk': controls[1], 'farm_fk': controls[2], 'hand_fk': controls[3],
                               'uarm_ik': controls[0], 'farm_ik': ik_ctrl[1], 'hand_ik': controls[4],
                               'pole': pole, 'main_parent': parent}
@@ -1368,11 +1369,11 @@ def fk_to_ik(rig: ArmatureObject, window='ALL'):
                     # fk_ctrl = names['fk_ctrl']
                     parent = names['parent']
                     pole = names['pole']
-                    rig.pose.bones[controls[0]].bone.select = True
-                    rig.pose.bones[controls[6]].bone.select = True
-                    rig.pose.bones[controls[5]].bone.select = True
-                    rig.pose.bones[pole].bone.select = True
-                    rig.pose.bones[parent].bone.select = True
+                    rig.pose.bones[controls[0]].select = True
+                    rig.pose.bones[controls[6]].select = True
+                    rig.pose.bones[controls[5]].select = True
+                    rig.pose.bones[pole].select = True
+                    rig.pose.bones[parent].select = True
                     # noinspection SpellCheckingInspection
                     kwargs = {'thigh_fk': controls[1], 'shin_fk': controls[2], 'foot_fk': controls[3],
                               'mfoot_fk': controls[7], 'thigh_ik': controls[0], 'shin_ik': ik_ctrl[1],
@@ -1431,9 +1432,9 @@ def ik_to_fk(rig: ArmatureObject, window='ALL'):
                     # fk_ctrl = names['fk_ctrl']
                     parent = names['parent']
                     pole = names['pole']
-                    rig.pose.bones[controls[1]].bone.select = True
-                    rig.pose.bones[controls[2]].bone.select = True
-                    rig.pose.bones[controls[3]].bone.select = True
+                    rig.pose.bones[controls[1]].select = True
+                    rig.pose.bones[controls[2]].select = True
+                    rig.pose.bones[controls[3]].select = True
                     kwargs = {'uarm_fk': controls[1], 'farm_fk': controls[2], 'hand_fk': controls[3],
                               'uarm_ik': controls[0], 'farm_ik': ik_ctrl[1],
                               'hand_ik': controls[4]}
@@ -1446,9 +1447,9 @@ def ik_to_fk(rig: ArmatureObject, window='ALL'):
                     # fk_ctrl = names['fk_ctrl']
                     parent = names['parent']
                     pole = names['pole']
-                    rig.pose.bones[controls[1]].bone.select = True
-                    rig.pose.bones[controls[2]].bone.select = True
-                    rig.pose.bones[controls[3]].bone.select = True
+                    rig.pose.bones[controls[1]].select = True
+                    rig.pose.bones[controls[2]].select = True
+                    rig.pose.bones[controls[3]].select = True
                     # noinspection SpellCheckingInspection
                     kwargs = {'thigh_fk': controls[1], 'shin_fk': controls[2], 'foot_fk': controls[3],
                               'mfoot_fk': controls[7], 'thigh_ik': controls[0], 'shin_ik': ik_ctrl[1],
@@ -1469,7 +1470,7 @@ def ik_to_fk(rig: ArmatureObject, window='ALL'):
                 break
 
 
-def clear_animation(act, anim_type, names):
+def clear_animation(channelbag, anim_type, names):
     bones = []
     for group in names:
         if names[group]['limb_type'] == 'arm':
@@ -1485,7 +1486,7 @@ def clear_animation(act, anim_type, names):
                 bones.extend([names[group]['controls'][1], names[group]['controls'][2], names[group]['controls'][3],
                               names[group]['controls'][4]])
     f_curves = []
-    for fcu in act.fcurves:
+    for fcu in channelbag.fcurves:
         words = fcu.data_path.split('"')
         if words[0] == "pose.bones[" and words[1] in bones:
             f_curves.append(fcu)
@@ -1494,7 +1495,7 @@ def clear_animation(act, anim_type, names):
         return
 
     for fcu in f_curves:
-        act.fcurves.remove(fcu)
+        channelbag.fcurves.remove(fcu)
 
     # Put cleared bones back to rest pose
     bpy.ops.pose.loc_clear()
@@ -1549,10 +1550,10 @@ def rot_pole_toggle(rig: ArmatureObject, window='ALL', value=False, toggle=False
                     # fk_ctrl = names['fk_ctrl']
                     parent = names['parent']
                     pole = names['pole']
-                    rig.pose.bones[controls[0]].bone.select = not new_pole_vector_value
-                    rig.pose.bones[controls[4]].bone.select = not new_pole_vector_value
-                    rig.pose.bones[parent].bone.select = not new_pole_vector_value
-                    rig.pose.bones[pole].bone.select = new_pole_vector_value
+                    rig.pose.bones[controls[0]].select = not new_pole_vector_value
+                    rig.pose.bones[controls[4]].select = not new_pole_vector_value
+                    rig.pose.bones[parent].select = not new_pole_vector_value
+                    rig.pose.bones[pole].select = new_pole_vector_value
 
                     kwargs1 = {'uarm_fk': controls[1], 'farm_fk': controls[2], 'hand_fk': controls[3],
                                'uarm_ik': controls[0], 'farm_ik': ik_ctrl[1],
@@ -1569,11 +1570,11 @@ def rot_pole_toggle(rig: ArmatureObject, window='ALL', value=False, toggle=False
                     # fk_ctrl = names['fk_ctrl']
                     parent = names['parent']
                     pole = names['pole']
-                    rig.pose.bones[controls[0]].bone.select = not new_pole_vector_value
-                    rig.pose.bones[controls[6]].bone.select = not new_pole_vector_value
-                    rig.pose.bones[controls[5]].bone.select = not new_pole_vector_value
-                    rig.pose.bones[parent].bone.select = not new_pole_vector_value
-                    rig.pose.bones[pole].bone.select = new_pole_vector_value
+                    rig.pose.bones[controls[0]].select = not new_pole_vector_value
+                    rig.pose.bones[controls[6]].select = not new_pole_vector_value
+                    rig.pose.bones[controls[5]].select = not new_pole_vector_value
+                    rig.pose.bones[parent].select = not new_pole_vector_value
+                    rig.pose.bones[pole].select = new_pole_vector_value
 
                     # noinspection SpellCheckingInspection
                     kwargs1 = {'thigh_fk': controls[1], 'shin_fk': controls[2], 'foot_fk': controls[3],
@@ -1673,7 +1674,7 @@ class OBJECT_OT_ClearAnimation(bpy.types.Operator):
     bl_idname = "rigify.clear_animation"
     bl_label = "Clear Animation"
     bl_description = "Clear animation for FK or IK bones"
-    bl_options = {'INTERNAL'}
+    bl_options = {'INTERNAL', 'UNDO'}
 
     anim_type: StringProperty()
 
@@ -1681,13 +1682,14 @@ class OBJECT_OT_ClearAnimation(bpy.types.Operator):
         rig = verify_armature_obj(context.object)
 
         if not rig.animation_data:
-            return {'FINISHED'}
+            return {'CANCELLED'}
 
-        act = rig.animation_data.action
-        if not act:
-            return {'FINISHED'}
+        channelbag = anim_utils.action_get_channelbag_for_slot(
+            rig.animation_data.action, rig.animation_data.action_slot)
+        if not channelbag:
+            return {'CANCELLED'}
 
-        clear_animation(act, self.anim_type, names=get_limb_generated_names(rig))
+        clear_animation(channelbag, self.anim_type, names=get_limb_generated_names(rig))
         return {'FINISHED'}
 
 
@@ -1709,7 +1711,7 @@ class OBJECT_OT_Rot2Pole(bpy.types.Operator):
 
         if self.bone_name:
             bpy.ops.pose.select_all(action='DESELECT')
-            rig.pose.bones[self.bone_name].bone.select = True
+            rig.pose.bones[self.bone_name].select = True
 
         rot_pole_toggle(rig, window=self.window, toggle=self.toggle, value=self.value, bake=self.bake)
         return {'FINISHED'}

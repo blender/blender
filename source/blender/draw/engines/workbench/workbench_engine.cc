@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_rect.h"
+#include "BLI_string.h"
 
 #include "DNA_fluid_types.h"
 
@@ -38,7 +39,9 @@
 
 #include "workbench_engine.h" /* Own include. */
 
-namespace blender::workbench {
+namespace blender {
+
+namespace workbench {
 
 using namespace draw;
 
@@ -67,10 +70,12 @@ class Instance : public DrawEngine {
   /* Used to detect any scene data update. */
   uint64_t depsgraph_last_update_ = 0;
 
+  const char *hair_buffer_overflow_error_ = nullptr;
+
  public:
   const DRWContext *draw_ctx = nullptr;
 
-  blender::StringRefNull name_get() final
+  StringRefNull name_get() final
   {
     return "Workbench";
   }
@@ -117,6 +122,8 @@ class Instance : public DrawEngine {
     outline_ps_.sync(resources_);
     dof_ps_.sync(resources_, this->draw_ctx);
     anti_aliasing_ps_.sync(scene_state_, resources_);
+
+    hair_buffer_overflow_error_ = nullptr;
   }
 
   void end_sync() final
@@ -138,7 +145,7 @@ class Instance : public DrawEngine {
       case V3D_SHADING_TEXTURE_COLOR:
         ATTR_FALLTHROUGH;
       case V3D_SHADING_MATERIAL_COLOR:
-        if (::Material *_mat = BKE_object_material_get_eval(ob_ref.object, slot + 1)) {
+        if (blender::Material *_mat = BKE_object_material_get_eval(ob_ref.object, slot + 1)) {
           return Material(*_mat);
         }
         ATTR_FALLTHROUGH;
@@ -167,7 +174,7 @@ class Instance : public DrawEngine {
     if (!(ob->base_flag & BASE_FROM_DUPLI)) {
       ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Fluid);
       if (md && BKE_modifier_is_enabled(scene_state_.scene, md, eModifierMode_Realtime)) {
-        FluidModifierData *fmd = (FluidModifierData *)md;
+        FluidModifierData *fmd = reinterpret_cast<FluidModifierData *>(md);
         if (fmd->domain) {
           volume_ps_.object_sync_modifier(manager, resources_, scene_state_, ob_ref, md);
 
@@ -210,11 +217,11 @@ class Instance : public DrawEngine {
     }
 
     if (ob->type == OB_MESH && ob->modifiers.first != nullptr) {
-      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-        if (md->type != eModifierType_ParticleSystem) {
+      for (ModifierData &md : ob->modifiers) {
+        if (md.type != eModifierType_ParticleSystem) {
           continue;
         }
-        ParticleSystem *psys = ((ParticleSystemModifierData *)md)->psys;
+        ParticleSystem *psys = (reinterpret_cast<ParticleSystemModifierData *>(&md))->psys;
         if (!DRW_object_is_visible_psys_in_active_context(ob, psys)) {
           continue;
         }
@@ -222,7 +229,7 @@ class Instance : public DrawEngine {
         const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
 
         if (draw_as == PART_DRAW_PATH) {
-          this->hair_sync(manager, ob_ref, emitter_handle, object_state, psys, md);
+          this->hair_sync(manager, ob_ref, emitter_handle, object_state, psys, &md);
         }
       }
     }
@@ -351,7 +358,7 @@ class Instance : public DrawEngine {
     if (object_state.use_per_material_batches) {
       for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, features)) {
         Material mat = this->get_material(ob_ref, object_state.color_type, batch.material_slot);
-        if (SCULPT_DEBUG_DRAW) {
+        if (scene_state_.show_paint_bvh_debug) {
           mat.base_color = batch.debug_color();
         }
 
@@ -367,7 +374,7 @@ class Instance : public DrawEngine {
     else {
       Material mat = this->get_material(ob_ref, object_state.color_type);
       for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, features)) {
-        if (SCULPT_DEBUG_DRAW) {
+        if (scene_state_.show_paint_bvh_debug) {
           mat.base_color = batch.debug_color();
         }
 
@@ -429,7 +436,12 @@ class Instance : public DrawEngine {
 
     this->draw_to_mesh_pass(ob_ref, mat.is_transparent(), [&](MeshPass &mesh_pass) {
       PassMain::Sub &pass = mesh_pass.get_subpass(eGeometryType::CURVES).sub("Curves SubPass");
-      gpu::Batch *batch = curves_sub_pass_setup(pass, scene_state_.scene, ob_ref.object);
+
+      const char *error = nullptr;
+      gpu::Batch *batch = curves_sub_pass_setup(pass, scene_state_.scene, ob_ref.object, error);
+      if (error) {
+        hair_buffer_overflow_error_ = error;
+      }
       pass.draw(batch, handle, material_index);
     });
   }
@@ -478,7 +490,7 @@ class Instance : public DrawEngine {
                                id_attachment);
     resources_.clear_fb.bind();
     float4 clear_colors[2] = {scene_state_.background_color, float4(0.0f)};
-    GPU_framebuffer_multi_clear(resources_.clear_fb, reinterpret_cast<float(*)[4]>(clear_colors));
+    GPU_framebuffer_multi_clear(resources_.clear_fb, reinterpret_cast<float (*)[4]>(clear_colors));
     GPU_framebuffer_clear_depth_stencil(resources_.clear_fb, 1.0f, 0x00);
 
     opaque_ps_.draw(
@@ -503,6 +515,13 @@ class Instance : public DrawEngine {
 
     if (scene_state_.sample + 1 < scene_state_.samples_len) {
       DRW_viewport_request_redraw();
+    }
+
+    if (hair_buffer_overflow_error_) {
+      STRNCPY(info, hair_buffer_overflow_error_);
+    }
+    else {
+      STRNCPY(info, "");
     }
   }
 
@@ -535,6 +554,10 @@ class Instance : public DrawEngine {
 
     BLI_assert(scene_state_.sample == 0);
     for (auto i : IndexRange(scene_state_.samples_len)) {
+      if (hair_buffer_overflow_error_) {
+        RE_engine_set_error_message(engine, hair_buffer_overflow_error_);
+      }
+
       if (engine && RE_engine_test_break(engine)) {
         break;
       }
@@ -546,9 +569,11 @@ class Instance : public DrawEngine {
         anti_aliasing_ps_.sync(scene_state_, resources_);
       }
       this->draw(manager, depth_tx, depth_in_front_tx, color_tx);
-      /* Perform render step between samples to allow
-       * flushing of freed GPUBackend resources. */
-      if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
+      /* Metal: Perform render step between samples to allow flushing of freed GPUBackend
+       * resources. Vulkan: Perform render step between samples to avoid allocation of a high
+       * amount of command buffer memory that can eventually result in out-of-memory errors or a
+       * TDR when submitted as one large command buffer. */
+      if (ELEM(GPU_backend_get_type(), GPU_BACKEND_METAL, GPU_BACKEND_VULKAN)) {
         GPU_flush();
       }
       GPU_render_step();
@@ -566,13 +591,11 @@ void Engine::free_static()
   ShaderCache::release();
 }
 
-}  // namespace blender::workbench
+}  // namespace workbench
 
 /* -------------------------------------------------------------------- */
 /** \name Interface with legacy C DRW manager
  * \{ */
-
-using namespace blender;
 
 /* RENDER */
 
@@ -630,7 +653,7 @@ static bool workbench_render_framebuffers_init(const DRWContext *draw_ctx)
 
 static void write_render_color_output(RenderLayer *layer,
                                       const char *viewname,
-                                      GPUFrameBuffer *fb,
+                                      gpu::FrameBuffer *fb,
                                       const rcti *rect)
 {
   RenderPass *rp = RE_pass_find_by_name(layer, RE_PASSNAME_COMBINED, viewname);
@@ -650,7 +673,7 @@ static void write_render_color_output(RenderLayer *layer,
 
 static void write_render_z_output(RenderLayer *layer,
                                   const char *viewname,
-                                  GPUFrameBuffer *fb,
+                                  gpu::FrameBuffer *fb,
                                   const rcti *rect,
                                   const float4x4 &winmat)
 {
@@ -668,7 +691,7 @@ static void write_render_z_output(RenderLayer *layer,
     int pix_num = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
 
     /* Convert GPU depth [0..1] to view Z [near..far] */
-    if (blender::draw::View::default_get().is_persp()) {
+    if (draw::View::default_get().is_persp()) {
       for (float &z : MutableSpan(rp->ibuf->float_buffer.data, pix_num)) {
         if (z == 1.0f) {
           z = 1e10f; /* Background */
@@ -681,8 +704,8 @@ static void write_render_z_output(RenderLayer *layer,
     }
     else {
       /* Keep in mind, near and far distance are negatives. */
-      float near = blender::draw::View::default_get().near_clip();
-      float far = blender::draw::View::default_get().far_clip();
+      float near = draw::View::default_get().near_clip();
+      float far = draw::View::default_get().far_clip();
       float range = fabsf(far - near);
 
       for (float &z : MutableSpan(rp->ibuf->float_buffer.data, pix_num)) {
@@ -725,7 +748,7 @@ static void workbench_render_to_image(RenderEngine *engine, RenderLayer *layer, 
   /* Render */
   /* TODO: Remove old draw manager calls. */
   DRW_cache_restart();
-  blender::draw::View::default_set(float4x4(viewmat), float4x4(winmat));
+  draw::View::default_set(float4x4(viewmat), float4x4(winmat));
 
   instance.init(depsgraph, camera_ob);
 
@@ -736,7 +759,7 @@ static void workbench_render_to_image(RenderEngine *engine, RenderLayer *layer, 
   DRW_render_object_iter(
       engine,
       depsgraph,
-      [&](blender::draw::ObjectRef &ob_ref, RenderEngine * /*engine*/, Depsgraph * /*depsgraph*/) {
+      [&](draw::ObjectRef &ob_ref, RenderEngine * /*engine*/, Depsgraph * /*depsgraph*/) {
         instance.object_sync(ob_ref, manager);
       });
   instance.end_sync();
@@ -799,3 +822,5 @@ RenderEngineType DRW_engine_viewport_workbench_type = {
 };
 
 /** \} */
+
+}  // namespace blender

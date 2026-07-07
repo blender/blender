@@ -22,9 +22,11 @@
 #include "vk_debug.hh"
 #include "vk_descriptor_pools.hh"
 #include "vk_descriptor_set_layouts.hh"
+#include "vk_memory_pool.hh"
 #include "vk_pipeline_pool.hh"
 #include "vk_resource_pool.hh"
 #include "vk_samplers.hh"
+#include "vk_vertex_attribute_object.hh"
 
 namespace blender::gpu {
 class VKBackend;
@@ -39,6 +41,12 @@ struct VKExtensions {
    * VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR::fragmentShaderBarycentric.
    */
   bool fragment_shader_barycentric = false;
+
+  /**
+   * Does the device support wide line rendering
+   * VkPhysicalDeviceFeatures::wideLines
+   */
+  bool wide_lines = false;
 
   /**
    * Does the device support VK_KHR_dynamic_rendering_local_read enabled.
@@ -59,11 +67,6 @@ struct VKExtensions {
   bool maintenance4 = false;
 
   /**
-   * Does the device support VK_EXT_descriptor_buffer.
-   */
-  bool descriptor_buffer = false;
-
-  /**
    * Does the device support logic ops.
    */
   bool logic_ops = false;
@@ -78,12 +81,35 @@ struct VKExtensions {
    */
   bool pageable_device_local_memory = false;
 
+  /**
+   * Does the device support VK_EXT_graphics_pipeline_library
+   */
+  bool graphics_pipeline_library = false;
+
+  /**
+   * Does the device support VK_EXT_line_rasterization
+   */
+  bool line_rasterization = false;
+
+  /**
+   * Does the device support VK_EXT_extended_dynamic_state
+   */
+  bool extended_dynamic_state = false;
+
+  /**
+   * Does the device support VK_EXT_vertex_input_dynamic_state
+   */
+  bool vertex_input_dynamic_state = false;
+
+  /**
+   *Does the device support VK_EXT_host_image_copy
+   */
+  bool host_image_copy = false;
+
   /** Log enabled features and extensions. */
   void log() const;
 };
 
-/* TODO: Split into VKWorkarounds and VKExtensions to remove the negating when an extension isn't
- * supported. */
 struct VKWorkarounds {
   /**
    * Some devices don't support pixel formats that are aligned to 24 and 48 bits.
@@ -93,13 +119,13 @@ struct VKWorkarounds {
    */
   bool not_aligned_pixel_formats = false;
 
-  struct {
-    /**
-     * Is the workaround enabled for devices that don't support using VK_FORMAT_R8G8B8_* as vertex
-     * buffer.
-     */
-    bool r8g8b8 = false;
-  } vertex_formats;
+  /**
+   * Certain Intel GPUs show visual artifacts with texture pool usage.
+   */
+  bool no_texture_pool = false;
+
+  /** Log enabled workarounds. */
+  void log() const;
 };
 
 /**
@@ -183,8 +209,9 @@ class VKDevice : public NonCopyable {
   VkPhysicalDeviceMemoryProperties vk_physical_device_memory_properties_ = {};
   VkPhysicalDeviceMaintenance4Properties vk_physical_device_maintenance4_properties_ = {
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_PROPERTIES};
-  VkPhysicalDeviceDescriptorBufferPropertiesEXT vk_physical_device_descriptor_buffer_properties_ =
-      {};
+  VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT
+      vk_physical_device_graphics_pipeline_library_properties_ = {
+          VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_PROPERTIES_EXT};
   /** Features support. */
   VkPhysicalDeviceFeatures vk_physical_device_features_ = {};
   VkPhysicalDeviceVulkan11Features vk_physical_device_vulkan_11_features_ = {};
@@ -212,6 +239,8 @@ class VKDevice : public NonCopyable {
   /** Discard pool for resources that could still be used during rendering. */
   VKDiscardPool orphaned_data_render;
   VKPipelinePool pipelines;
+  VKVertexInputDescriptionPool vertex_input_descriptions;
+
   /** Buffer to bind to unbound resource locations. */
   VKBuffer dummy_buffer;
 
@@ -230,30 +259,31 @@ class VKDevice : public NonCopyable {
     PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessenger = nullptr;
     PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessenger = nullptr;
 
+    /* Extension: VK_EXT_extended_dynamic_state */
+    PFN_vkCmdSetFrontFace vkCmdSetFrontFace = nullptr;
+
+    /* Extension: VK_EXT_vertex_input_dynamic_state */
+    PFN_vkCmdSetVertexInputEXT vkCmdSetVertexInput = nullptr;
+
     /* Extension: VK_KHR_external_memory_fd */
     PFN_vkGetMemoryFdKHR vkGetMemoryFd = nullptr;
+
+    /* Extension: VK_EXT_host_image_copy */
+    PFN_vkCopyMemoryToImageEXT vkCopyMemoryToImage = nullptr;
+    PFN_vkTransitionImageLayoutEXT vkTransitionImageLayout = nullptr;
+
+    /* Extension: VK_KHR_mainentance4 */
+    PFN_vkGetDeviceImageMemoryRequirements vkGetDeviceImageMemoryRequirements = nullptr;
+    PFN_vkGetDeviceBufferMemoryRequirements vkGetDeviceBufferMemoryRequirements = nullptr;
 
 #ifdef _WIN32
     /* Extension: VK_KHR_external_memory_win32 */
     PFN_vkGetMemoryWin32HandleKHR vkGetMemoryWin32Handle = nullptr;
 #endif
 
-    /* Extension: VK_EXT_descriptor_buffer */
-    PFN_vkGetDescriptorSetLayoutSizeEXT vkGetDescriptorSetLayoutSize = nullptr;
-    PFN_vkGetDescriptorSetLayoutBindingOffsetEXT vkGetDescriptorSetLayoutBindingOffset = nullptr;
-    PFN_vkGetDescriptorEXT vkGetDescriptor = nullptr;
-    PFN_vkCmdBindDescriptorBuffersEXT vkCmdBindDescriptorBuffers = nullptr;
-    PFN_vkCmdSetDescriptorBufferOffsetsEXT vkCmdSetDescriptorBufferOffsets = nullptr;
-
   } functions;
 
-  struct {
-    /* NOTE: This attribute needs to be kept alive as it will be read by VMA when allocating from
-     * `external_memory` pool. */
-    VkExportMemoryAllocateInfoKHR external_memory_info = {
-        VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO_KHR};
-    VmaPool external_memory = VK_NULL_HANDLE;
-  } vma_pools;
+  VKMemoryPools vma_pools;
 
   const char *extension_name_get(int index) const
   {
@@ -281,10 +311,10 @@ class VKDevice : public NonCopyable {
     return vk_physical_device_id_properties_;
   }
 
-  inline const VkPhysicalDeviceDescriptorBufferPropertiesEXT &
-  physical_device_descriptor_buffer_properties_get() const
+  inline const VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT &
+  physical_device_graphics_pipeline_properties_get()
   {
-    return vk_physical_device_descriptor_buffer_properties_;
+    return vk_physical_device_graphics_pipeline_library_properties_;
   }
 
   const VkPhysicalDeviceFeatures &physical_device_features_get() const
@@ -317,7 +347,7 @@ class VKDevice : public NonCopyable {
     return vk_queue_family_;
   }
 
-  VmaAllocator mem_allocator_get() const
+  inline VmaAllocator mem_allocator_get() const
   {
     return mem_allocator_;
   }
@@ -342,7 +372,7 @@ class VKDevice : public NonCopyable {
     return samplers_;
   }
 
-  void init(void *ghost_context);
+  void init(GHOST_IContext *ghost_context);
   void reinit();
   void deinit();
   bool is_initialized() const
@@ -350,8 +380,8 @@ class VKDevice : public NonCopyable {
     return is_initialized_;
   }
 
-  eGPUDeviceType device_type() const;
-  eGPUDriverType driver_type() const;
+  GPUDeviceType device_type() const;
+  GPUDriverType driver_type() const;
   std::string vendor_name() const;
   std::string driver_version() const;
 
@@ -372,11 +402,11 @@ class VKDevice : public NonCopyable {
     return extensions_;
   }
 
-  const char *glsl_vertex_patch_get() const;
-  const char *glsl_geometry_patch_get() const;
-  const char *glsl_fragment_patch_get() const;
-  const char *glsl_compute_patch_get() const;
-  void init_glsl_patch();
+  std::string glsl_vertex_patch_get() const;
+  std::string glsl_geometry_patch_get() const;
+  std::string glsl_fragment_patch_get() const;
+  std::string glsl_compute_patch_get() const;
+  shader::GeneratedSource extensions_define(StringRefNull stage_define) const;
 
   /* -------------------------------------------------------------------- */
   /** \name Render graph
@@ -387,6 +417,7 @@ class VKDevice : public NonCopyable {
   TimelineValue render_graph_submit(render_graph::VKRenderGraph *render_graph,
                                     VKDiscardPool &context_discard_pool,
                                     bool submit_to_device,
+                                    bool wait_for_submission,
                                     bool wait_for_completion,
                                     VkPipelineStageFlags wait_dst_stage_mask,
                                     VkSemaphore wait_semaphore,
@@ -426,38 +457,25 @@ class VKDevice : public NonCopyable {
    */
   VKThreadData &current_thread_data();
 
-#if 0
-  /**
-   * Get the discard pool for the current thread.
-   *
-   * When the active thread has a context a discard pool associated to the thread is returned.
-   * When there is no context the orphan discard pool is returned.
-   *
-   * A thread with a context can have multiple discard pools. One for each swap-chain image.
-   * A thread without a context is most likely a discarded resource triggered during dependency
-   * graph update. A dependency graph update from the viewport during playback or editing;
-   * or a dependency graph update when rendering.
-   * These can happen from a different thread which will don't have a context at all.
-   * \param thread_safe: Caller thread already owns the resources mutex and is safe to run this
-   * function without trying to reacquire resources mutex making a deadlock.
-   */
-  VKDiscardPool &discard_pool_for_current_thread(bool thread_safe = false);
-#endif
-
   void context_register(VKContext &context);
   void context_unregister(VKContext &context);
   Span<std::reference_wrapper<VKContext>> contexts_get() const;
 
   void memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb) const;
-  static void debug_print(std::ostream &os, const VKDiscardPool &discard_pool);
-  void debug_print();
+  void debug_print() const;
 
   /** \} */
 
   Shader *vk_backbuffer_blit_sh_get()
   {
     if (vk_backbuffer_blit_sh_ == nullptr) {
+      /* See #system_extended_srgb_transfer_function in libocio_display_processor.cc for
+       * details on this choice. */
+#if defined(_WIN32) || defined(__APPLE__)
       vk_backbuffer_blit_sh_ = GPU_shader_create_from_info_name("vk_backbuffer_blit");
+#else
+      vk_backbuffer_blit_sh_ = GPU_shader_create_from_info_name("vk_backbuffer_blit_gamma22");
+#endif
     }
     return vk_backbuffer_blit_sh_;
   }
@@ -468,7 +486,6 @@ class VKDevice : public NonCopyable {
   void init_physical_device_features();
   void init_physical_device_extensions();
   void init_debug_callbacks();
-  void init_memory_allocator();
   void init_submission_pool();
   void deinit_submission_pool();
   /**

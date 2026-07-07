@@ -31,8 +31,19 @@ eb98fe9e-0baa-417f-8ff1-d56dd79d2ce2:Brushes/Mesh Sculpt/General/Utilities:Brush
 722259b1-4abf-4d15-8b17-7875c8efb248:Brushes/Mesh Sculpt/Paint:Brushes-Mesh Sculpt-Paint
 abea2557-f13e-4e21-b4d8-11a1fffd7d57:Brushes/Mesh Sculpt/Simulation:Brushes-Mesh Sculpt-Simulation
 a82f0b44-1d89-4ca7-ae21-86296257be99:Brushes/Mesh Texture Paint:Brushes-Mesh Texture Paint
+d3581edf-cc21-4fb6-85e1-7c682a584517:Brushes/Mesh Texture Paint/Basic:Brushes-Mesh Texture Paint-Basic
+63415de5-6391-412a-8cc5-419a11180480:Brushes/Mesh Texture Paint/Erase:Brushes-Mesh Texture Paint-Erase
+5e82266d-6884-4d6c-b463-b3385ecb0244:Brushes/Mesh Texture Paint/Pixel Art:Brushes-Mesh Texture Paint-Pixel Art
+f57862b2-0845-4ce7-a860-ce343dee67b9:Brushes/Mesh Texture Paint/Utilities:Brushes-Mesh Texture Paint-Utilities
 27cbc8dc-80c8-45d5-863c-7ecc48bccf20:Brushes/Mesh Vertex Paint:Brushes-Mesh Vertex Paint
 77635e98-1a5a-482e-9cb1-ba9ec4bc5b74:Brushes/Mesh Weight Paint:Brushes-Mesh Weight Paint
+81249800-1dfd-4eec-9257-20019aa3ef5d:Camera & Lens Effects:Camera & Lens Effects
+679c9c61-2227-41c9-b483-0112dcd65b71:Creative:Creative
+007a2c8d-f113-421b-a39c-8fbc76c4f7fe:Generate:Generate
+6ecdfe44-a0d7-40b9-8518-b92c97a1b4f2:Generate:Generate
+a7b80fd1-5de6-4c15-9049-52f25f4376de:Geometry:Geometry
+463e71f0-6db1-41af-bc96-6f875196aac7:Geometry/Operations:Geometry-Operations
+5fa1e91c-e798-4051-8e4d-5d47f76f789b:Geometry/Selection:Geometry-Selection
 f14d3c5d-8223-4e8c-b3b3-cbce81e4b3ee:Hair:Hair
 87cbaad7-ae4e-404c-9b6b-4fe60ecc39dc:Hair/Deformation:Hair-Deformation
 40aedbf9-be4b-4ddb-8eec-8a9cd37d0921:Hair/Generation:Hair-Generation
@@ -40,4 +51,9 @@ f14d3c5d-8223-4e8c-b3b3-cbce81e4b3ee:Hair:Hair
 c676fe02-8d25-49a1-b672-11aee0918221:Hair/Read:Hair-Read
 9dedc75a-afe5-472a-9e3f-a555a8df3dff:Hair/Utility:Hair-Utility
 63a83f9c-5a95-476a-9bd5-fcb72414ea0b:Hair/Write:Hair-Write
+a01301f0-5ae0-4627-91a4-b7fde91e5c5a:Instances:Instances
+b9d488d7-441e-4f1a-905a-64ab84c31706:Mesh:Mesh
+b6bb38bb-bfe1-4a12-b2bc-fc87d060864f:Mesh/Read:Mesh-Read
 9e98eca8-e987-44d3-88a1-6633d0a8ad82:Normals:Normals
+b8945cf7-3045-4675-aae3-0b0eba853415:Utilities:Utilities
+8c0273f0-3645-449f-9d95-c4f17fb910db:Utilities/Vector:Utilities-Vector

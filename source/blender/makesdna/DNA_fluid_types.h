@@ -9,15 +9,13 @@
 #pragma once
 
 #include "DNA_listBase.h"
+#include "DNA_vec_defaults.h"
 
-#ifdef __cplusplus
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 class Texture;
-}  // namespace blender::gpu
-using GPUTexture = blender::gpu::Texture;
-#else
-typedef struct GPUTexture GPUTexture;
-#endif
+}  // namespace gpu
 
 /**
  * #FluidDomainSettings.flags
@@ -91,11 +89,11 @@ enum {
  * #FluidDomainSettings.interp_method
  * Display interpolation method.
  */
-typedef enum FLUID_DisplayInterpolationMethod {
+enum FLUID_DisplayInterpolationMethod {
   FLUID_DISPLAY_INTERP_LINEAR = 0,
   FLUID_DISPLAY_INTERP_CUBIC = 1,
   FLUID_DISPLAY_INTERP_CLOSEST = 2,
-} FLUID_DisplayInterpolationMethod;
+};
 
 /** #FluidDomainSettings.vector_draw_type */
 enum {
@@ -115,11 +113,11 @@ enum {
  * #FluidDomainSettings.vector_field
  * Fluid domain vector fields.
  */
-typedef enum FLUID_DisplayVectorField {
+enum FLUID_DisplayVectorField {
   FLUID_DOMAIN_VECTOR_FIELD_VELOCITY = 0,
   FLUID_DOMAIN_VECTOR_FIELD_GUIDE_VELOCITY = 1,
   FLUID_DOMAIN_VECTOR_FIELD_FORCE = 2,
-} FLUID_DisplayVectorField;
+};
 
 /** #FluidDomainSettings.sndparticle_boundary */
 enum {
@@ -471,243 +469,6 @@ enum {
   SM_HRES_FULLSAMPLE = 2,
 };
 
-typedef struct FluidDomainSettings {
-
-  /* -- Runtime-only fields (from here on). -- */
-
-  struct FluidModifierData *fmd; /* For fast RNA access. */
-  struct MANTA *fluid;
-  struct MANTA *fluid_old; /* Adaptive domain needs access to old fluid state. */
-  void *fluid_mutex;
-  struct Collection *fluid_group;
-  struct Collection *force_group;    /* UNUSED */
-  struct Collection *effector_group; /* Effector objects group. */
-  GPUTexture *tex_density;
-  GPUTexture *tex_color;
-  GPUTexture *tex_wt;
-  GPUTexture *tex_shadow;
-  GPUTexture *tex_flame;
-  GPUTexture *tex_flame_coba;
-  GPUTexture *tex_coba;
-  GPUTexture *tex_field;
-  GPUTexture *tex_velocity_x;
-  GPUTexture *tex_velocity_y;
-  GPUTexture *tex_velocity_z;
-  GPUTexture *tex_flags;
-  GPUTexture *tex_range_field;
-  struct Object *guide_parent;
-  struct EffectorWeights *effector_weights;
-
-  /* Domain object data. */
-  float p0[3];          /* Start point of BB in local space
-                         * (includes sub-cell shift for adaptive domain). */
-  float p1[3];          /* End point of BB in local space. */
-  float dp0[3];         /* Difference from object center to grid start point. */
-  float cell_size[3];   /* Size of simulation cell in local space. */
-  float global_size[3]; /* Global size of domain axes. */
-  float prev_loc[3];
-  int shift[3];         /* Current domain shift in simulation cells. */
-  float shift_f[3];     /* Exact domain shift. */
-  float obj_shift_f[3]; /* How much object has shifted since previous smoke frame (used to "lock"
-                         * domain while drawing). */
-  float imat[4][4];     /* Domain object imat. */
-  float obmat[4][4];    /* Domain obmat. */
-  float fluidmat[4][4]; /* Low res fluid matrix. */
-  float fluidmat_wt[4][4]; /* High res fluid matrix. */
-  int base_res[3];         /* Initial "non-adapted" resolution. */
-  int res_min[3];          /* Cell min. */
-  int res_max[3];          /* Cell max. */
-  int res[3];              /* Data resolution (res_max-res_min). */
-  int total_cells;
-  float dx;               /* 1.0f / res. */
-  float scale;            /* Largest domain size. */
-  int boundary_width;     /* Usually this is just 1. */
-  float gravity_final[3]; /* Scene or domain gravity multiplied with gravity weight. */
-
-  /* -- User-accessible fields (from here on). -- */
-
-  /* Adaptive domain options. */
-  int adapt_margin;
-  int adapt_res;
-  float adapt_threshold;
-
-  /* Fluid domain options */
-  int maxres;            /* Longest axis on the BB gets this resolution assigned. */
-  int solver_res;        /* Dimension of manta solver, 2d or 3d. */
-  int border_collisions; /* How domain border collisions are handled. */
-  int flags;             /* Use-mesh, use-noise, etc. */
-  float gravity[3];
-  int active_fields;
-  short type;    /* Gas, liquid. */
-  char _pad2[6]; /* Unused. */
-
-  /* Smoke domain options. */
-  float alpha;
-  float beta;
-  int diss_speed; /* In frames. */
-  float vorticity;
-  float active_color[3]; /* Monitor smoke color. */
-  int highres_sampling;
-
-  /* Flame options. */
-  float burning_rate, flame_smoke, flame_vorticity;
-  float flame_ignition, flame_max_temp;
-  float flame_smoke_color[3];
-
-  /* Noise options. */
-  float noise_strength;
-  float noise_pos_scale;
-  float noise_time_anim;
-  int res_noise[3];
-  int noise_scale;
-  char _pad3[4]; /* Unused. */
-
-  /* Liquid domain options. */
-  float particle_randomness;
-  int particle_number;
-  int particle_minimum;
-  int particle_maximum;
-  float particle_radius;
-  float particle_band_width;
-  float fractions_threshold;
-  float fractions_distance;
-  float flip_ratio;
-  int sys_particle_maximum;
-  short simulation_method;
-  char _pad4[6];
-
-  /* Viscosity options. */
-  float viscosity_value;
-  char _pad5[4];
-
-  /* Diffusion options. */
-  float surface_tension;
-  float viscosity_base;
-  int viscosity_exponent;
-
-  /* Mesh options. */
-  float mesh_concave_upper;
-  float mesh_concave_lower;
-  float mesh_particle_radius;
-  int mesh_smoothen_pos;
-  int mesh_smoothen_neg;
-  int mesh_scale;
-  short mesh_generator;
-  char _pad6[2]; /* Unused. */
-
-  /* Secondary particle options. */
-  int particle_type;
-  int particle_scale;
-  float sndparticle_tau_min_wc;
-  float sndparticle_tau_max_wc;
-  float sndparticle_tau_min_ta;
-  float sndparticle_tau_max_ta;
-  float sndparticle_tau_min_k;
-  float sndparticle_tau_max_k;
-  int sndparticle_k_wc;
-  int sndparticle_k_ta;
-  float sndparticle_k_b;
-  float sndparticle_k_d;
-  float sndparticle_l_min;
-  float sndparticle_l_max;
-  int sndparticle_potential_radius;
-  int sndparticle_update_radius;
-  char sndparticle_boundary;
-  char sndparticle_combined_export;
-  char _pad7[6]; /* Unused. */
-
-  /* Fluid guiding options. */
-  float guide_alpha;      /* Guiding weight scalar (determines strength). */
-  int guide_beta;         /* Guiding blur radius (affects size of vortices). */
-  float guide_vel_factor; /* Multiply guiding velocity by this factor. */
-  int guide_res[3];       /* Res for velocity guide grids - independent from base res. */
-  short guide_source;
-  char _pad8[2]; /* Unused. */
-
-  /* Cache options. */
-  int cache_frame_start;
-  int cache_frame_end;
-  int cache_frame_pause_data;
-  int cache_frame_pause_noise;
-  int cache_frame_pause_mesh;
-  int cache_frame_pause_particles;
-  int cache_frame_pause_guide;
-  int cache_frame_offset;
-  int cache_flag;
-  char cache_mesh_format;
-  char cache_data_format;
-  char cache_particle_format;
-  char cache_noise_format;
-  char cache_directory[/*FILE_MAX*/ 1024];
-  char error[64]; /* Bake error description. */
-  short cache_type;
-  char cache_id[4]; /* Run-time only */
-  char _pad9[2];    /* Unused. */
-
-  /* Time options. */
-  float dt;
-  float time_total;
-  float time_per_frame;
-  float frame_length;
-  float time_scale;
-  float cfl_condition;
-  int timesteps_minimum;
-  int timesteps_maximum;
-
-  /* Display options. */
-  float slice_per_voxel;
-  float slice_depth;
-  float display_thickness;
-  float grid_scale;
-  struct ColorBand *coba;
-  float vector_scale;
-  float gridlines_lower_bound;
-  float gridlines_upper_bound;
-  float gridlines_range_color[4];
-  char axis_slice_method;
-  char slice_axis;
-  char show_gridlines;
-  char draw_velocity;
-  char vector_draw_type;
-  char vector_field; /* Simulation field used for vector display. */
-  char vector_scale_with_magnitude;
-  char vector_draw_mac_components;
-  char use_coba;
-  char coba_field; /* Simulation field used for the color mapping. */
-  char interp_method;
-  char gridlines_color_field; /* Simulation field used to color map onto gridlines. */
-  char gridlines_cell_filter;
-  char _pad10[3]; /* Unused. */
-
-  /* Velocity factor for motion blur rendering. */
-  float velocity_scale;
-
-  /* OpenVDB cache options. */
-  int openvdb_compression;
-  float clipping;
-  char openvdb_data_depth;
-  char _pad11[7]; /* Unused. */
-
-  /* -- Deprecated / unused options (below). -- */
-
-  /* View options. */
-  int viewsettings;
-  char _pad12[4]; /* Unused. */
-
-  /**
-   * Point-cache options.
-   * Smoke uses only one cache from now on (index [0]),
-   * but keeping the array for now for reading old files.
-   */
-  struct PointCache *point_cache[2];
-  struct ListBase ptcaches[2];
-  int cache_comp;
-  int cache_high_comp;
-  char cache_file_format;
-  char _pad13[7]; /* Unused. */
-
-} FluidDomainSettings;
-
 /* Flow types. */
 enum {
   FLUID_FLOW_TYPE_SMOKE = 1,
@@ -753,57 +514,6 @@ enum {
   FLUID_FLOW_NEEDS_UPDATE = (1 << 7),
 };
 
-typedef struct FluidFlowSettings {
-
-  /* -- Runtime-only fields (from here on). -- */
-
-  /* For fast RNA access. */
-  struct FluidModifierData *fmd;
-  struct Mesh *mesh;
-  struct ParticleSystem *psys;
-  struct Tex *noise_texture;
-
-  /* Initial velocity. */
-  /* Previous vertex positions in domain space. */
-  float *verts_old;
-  int numverts;
-  float vel_multi; /* Multiplier for inherited velocity. */
-  float vel_normal;
-  float vel_random;
-  float vel_coord[3];
-  char _pad1[4];
-
-  /* -- User-accessible fields (from here on). -- */
-
-  /* Emission. */
-  float density;
-  float color[3];
-  float fuel_amount;
-  /* Delta temperature (temp - ambient temp). */
-  float temperature;
-  /* Density emitted within mesh volume. */
-  float volume_density;
-  /* Maximum emission distance from mesh surface. */
-  float surface_distance;
-  float particle_size;
-  int subframes;
-
-  /* Texture control. */
-  float texture_size;
-  float texture_offset;
-  char _pad2[4];
-  char uvlayer_name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
-  char _pad3[4];
-  short vgroup_density;
-
-  short type;     /* Smoke, flames, both, outflow, liquid. */
-  short behavior; /* Inflow, outflow, static. */
-  short source;
-  short texture_type;
-  short _pad4[3];
-  int flags; /* Absolute emission etc. */
-} FluidFlowSettings;
-
 /* Effector types. */
 enum {
   FLUID_EFFECTOR_TYPE_COLLISION = 0,
@@ -828,27 +538,321 @@ enum {
   FLUID_EFFECTOR_NEEDS_UPDATE = (1 << 3),
 };
 
-/* Collision objects (filled with smoke). */
-typedef struct FluidEffectorSettings {
+struct FluidDomainSettings {
+  /* -- Runtime-only fields (from here on). -- */
+
+  struct FluidModifierData *fmd = nullptr; /* For fast RNA access. */
+  struct MANTA *fluid = nullptr;
+  struct MANTA *fluid_old = nullptr; /* Adaptive domain needs access to old fluid state. */
+  void *fluid_mutex = nullptr;
+  struct Collection *fluid_group = nullptr;
+  struct Collection *force_group = nullptr;    /* UNUSED */
+  struct Collection *effector_group = nullptr; /* Effector objects group. */
+  gpu::Texture *tex_density = nullptr;
+  gpu::Texture *tex_color = nullptr;
+  gpu::Texture *tex_wt = nullptr;
+  gpu::Texture *tex_shadow = nullptr;
+  gpu::Texture *tex_flame = nullptr;
+  gpu::Texture *tex_flame_coba = nullptr;
+  gpu::Texture *tex_coba = nullptr;
+  gpu::Texture *tex_field = nullptr;
+  gpu::Texture *tex_velocity_x = nullptr;
+  gpu::Texture *tex_velocity_y = nullptr;
+  gpu::Texture *tex_velocity_z = nullptr;
+  gpu::Texture *tex_flags = nullptr;
+  gpu::Texture *tex_range_field = nullptr;
+  struct Object *guide_parent = nullptr;
+  struct EffectorWeights *effector_weights = nullptr; /* #BKE_effector_add_weights. */
+
+  /* Domain object data. */
+  float p0[3] = {0.0f, 0.0f, 0.0f};        /* Start point of BB in local space
+                                            * (includes sub-cell shift for adaptive domain). */
+  float p1[3] = {0.0f, 0.0f, 0.0f};        /* End point of BB in local space. */
+  float dp0[3] = {0.0f, 0.0f, 0.0f};       /* Difference from object center to grid start point. */
+  float cell_size[3] = {0.0f, 0.0f, 0.0f}; /* Size of simulation cell in local space. */
+  float global_size[3] = {0.0f, 0.0f, 0.0f}; /* Global size of domain axes. */
+  float prev_loc[3] = {0.0f, 0.0f, 0.0f};
+  int shift[3] = {0, 0, 0};                    /* Current domain shift in simulation cells. */
+  float shift_f[3] = {0.0f, 0.0f, 0.0f};       /* Exact domain shift. */
+  float obj_shift_f[3] = {0.0f, 0.0f, 0.0f};   /* How much object has shifted since previous smoke
+                                                * frame (used to "lock" domain while drawing). */
+  float imat[4][4] = _DNA_DEFAULT_UNIT_M4;     /* Domain object imat. */
+  float obmat[4][4] = _DNA_DEFAULT_UNIT_M4;    /* Domain obmat. */
+  float fluidmat[4][4] = _DNA_DEFAULT_UNIT_M4; /* Low res fluid matrix. */
+  float fluidmat_wt[4][4] = _DNA_DEFAULT_UNIT_M4; /* High res fluid matrix. */
+  int base_res[3] = {0, 0, 0};                    /* Initial "non-adapted" resolution. */
+  int res_min[3] = {0, 0, 0};                     /* Cell min. */
+  int res_max[3] = {0, 0, 0};                     /* Cell max. */
+  int res[3] = {0, 0, 0};                         /* Data resolution (res_max-res_min). */
+  int total_cells = 0;
+  float dx = 0;           /* 1.0f / res. */
+  float scale = 0.0f;     /* Largest domain size. */
+  int boundary_width = 1; /* Usually this is just 1. */
+  float gravity_final[3] = {
+      0.0f, 0.0f, 0.0f}; /* Scene or domain gravity multiplied with gravity weight. */
+
+  /* -- User-accessible fields (from here on). -- */
+
+  /* Adaptive domain options. */
+  int adapt_margin = 4;
+  int adapt_res = 0;
+  float adapt_threshold = 0.002f;
+
+  /* Fluid domain options */
+  int maxres = 32;           /* Longest axis on the BB gets this resolution assigned. */
+  int solver_res = 3;        /* Dimension of manta solver, 2d or 3d. */
+  int border_collisions = 0; /* How domain border collisions are handled. */
+  int flags = FLUID_DOMAIN_USE_DISSOLVE_LOG | FLUID_DOMAIN_USE_ADAPTIVE_TIME |
+              FLUID_DOMAIN_USE_MESH; /* Use-mesh, use-noise, etc. */
+  float gravity[3] = {0.0f, 0.0f, -9.81f};
+  int active_fields = 0;
+  short type = FLUID_DOMAIN_TYPE_GAS; /* Gas, liquid. */
+  char _pad2[6] = {};                 /* Unused. */
+
+  /* Smoke domain options. */
+  float alpha = 1.0f;
+  float beta = 1.0f;
+  int diss_speed = 5; /* In frames. */
+  float vorticity = 0.0f;
+  float active_color[3] = {0.0f, 0.0f, 0.0f}; /* Monitor smoke color. */
+  int highres_sampling = SM_HRES_FULLSAMPLE;
+
+  /* Flame options. */
+  float burning_rate = 0.75f, flame_smoke = 1.0f, flame_vorticity = 0.5f;
+  float flame_ignition = 1.5f, flame_max_temp = 3.0f;
+  float flame_smoke_color[3] = {0.7f, 0.7f, 0.7f};
+
+  /* Noise options. */
+  float noise_strength = 1.0f;
+  float noise_pos_scale = 2.0f;
+  float noise_time_anim = 0.1f;
+  int res_noise[3] = {0, 0, 0};
+  int noise_scale = 2;
+  char _pad3[4] = {}; /* Unused. */
+
+  /* Liquid domain options. */
+  float particle_randomness = 0.1f;
+  int particle_number = 2;
+  int particle_minimum = 8;
+  int particle_maximum = 16;
+  float particle_radius = 1.0f;
+  float particle_band_width = 3.0f;
+  float fractions_threshold = 0.05f;
+  float fractions_distance = 0.5f;
+  float flip_ratio = 0.97f;
+  int sys_particle_maximum = 0;
+  short simulation_method = FLUID_DOMAIN_METHOD_FLIP;
+  char _pad4[6] = {};
+
+  /* Viscosity options. */
+  float viscosity_value = 0.05f;
+  char _pad5[4] = {};
+
+  /* Diffusion options. */
+  float surface_tension = 0.0f;
+  float viscosity_base = 1.0f;
+  int viscosity_exponent = 6.0f;
+
+  /* Mesh options. */
+  float mesh_concave_upper = 3.5f;
+  float mesh_concave_lower = 0.4f;
+  float mesh_particle_radius = 2.0f;
+  int mesh_smoothen_pos = 1;
+  int mesh_smoothen_neg = 1;
+  int mesh_scale = 2;
+  short mesh_generator = FLUID_DOMAIN_MESH_IMPROVED;
+  char _pad6[2] = {}; /* Unused. */
+
+  /* Secondary particle options. */
+  int particle_type = 0;
+  int particle_scale = 1;
+  float sndparticle_tau_min_wc = 2.0f;
+  float sndparticle_tau_max_wc = 8.0f;
+  float sndparticle_tau_min_ta = 5.0f;
+  float sndparticle_tau_max_ta = 20.0f;
+  float sndparticle_tau_min_k = 1.0f;
+  float sndparticle_tau_max_k = 5.0f;
+  int sndparticle_k_wc = 200;
+  int sndparticle_k_ta = 40;
+  float sndparticle_k_b = 0.5f;
+  float sndparticle_k_d = 0.6f;
+  float sndparticle_l_min = 10.0f;
+  float sndparticle_l_max = 25.0f;
+  int sndparticle_potential_radius = 2;
+  int sndparticle_update_radius = 2;
+  char sndparticle_boundary = SNDPARTICLE_BOUNDARY_DELETE;
+  char sndparticle_combined_export = SNDPARTICLE_COMBINED_EXPORT_OFF;
+  char _pad7[6] = {}; /* Unused. */
+
+  /* Fluid guiding options. */
+  float guide_alpha = 2.0f;      /* Guiding weight scalar (determines strength). */
+  int guide_beta = 5;            /* Guiding blur radius (affects size of vortices). */
+  float guide_vel_factor = 2.0f; /* Multiply guiding velocity by this factor. */
+  int guide_res[3] = {0, 0, 0};  /* Res for velocity guide grids - independent from base res. */
+  short guide_source = FLUID_DOMAIN_GUIDE_SRC_DOMAIN;
+  char _pad8[2] = {}; /* Unused. */
+
+  /* Cache options. */
+  int cache_frame_start = 1;
+  int cache_frame_end = 250;
+  int cache_frame_pause_data = 0;
+  int cache_frame_pause_noise = 0;
+  int cache_frame_pause_mesh = 0;
+  int cache_frame_pause_particles = 0;
+  int cache_frame_pause_guide = 0;
+  int cache_frame_offset = 0;
+  int cache_flag = 0;
+  char cache_mesh_format = FLUID_DOMAIN_FILE_BIN_OBJECT;
+  char cache_data_format = FLUID_DOMAIN_FILE_OPENVDB;
+  char cache_particle_format = FLUID_DOMAIN_FILE_OPENVDB;
+  char cache_noise_format = FLUID_DOMAIN_FILE_OPENVDB;
+  char cache_directory[/*FILE_MAX*/ 1024] = "";
+  char error[64] = ""; /* Bake error description. */
+  short cache_type = FLUID_DOMAIN_CACHE_REPLAY;
+  char cache_id[4] = ""; /* Run-time only */
+  char _pad9[2] = {};    /* Unused. */
+
+  /* Time options. */
+  float dt = 0.0f;
+  float time_total = 0.0f;
+  float time_per_frame = 0.0f;
+  float frame_length = 0.0f;
+  float time_scale = 1.0f;
+  float cfl_condition = 2.0f;
+  int timesteps_minimum = 1;
+  int timesteps_maximum = 4;
+
+  /* Display options. */
+  float slice_per_voxel = 5.0f;
+  float slice_depth = 0.5f;
+  float display_thickness = 1.0f;
+  float grid_scale = 1.0f;
+  struct ColorBand *coba = nullptr;
+  float vector_scale = 1.0f;
+  float gridlines_lower_bound = 0.0f;
+  float gridlines_upper_bound = 1.0f;
+  float gridlines_range_color[4] = {1.0f, 0.0f, 0.0f, 1.0f};
+  char axis_slice_method = AXIS_SLICE_FULL;
+  char slice_axis = 0;
+  char show_gridlines = false;
+  char draw_velocity = false;
+  char vector_draw_type = VECTOR_DRAW_NEEDLE;
+  char vector_field =
+      FLUID_DOMAIN_VECTOR_FIELD_VELOCITY; /* Simulation field used for vector display. */
+  char vector_scale_with_magnitude = true;
+  char vector_draw_mac_components = VECTOR_DRAW_MAC_X | VECTOR_DRAW_MAC_Y | VECTOR_DRAW_MAC_Z;
+  char use_coba = false;
+  char coba_field = FLUID_DOMAIN_FIELD_DENSITY; /* Simulation field used for the color mapping. */
+  char interp_method = FLUID_DISPLAY_INTERP_LINEAR;
+  char gridlines_color_field = 0; /* Simulation field used to color map onto gridlines. */
+  char gridlines_cell_filter = FLUID_CELL_TYPE_NONE;
+  char _pad10[3] = {}; /* Unused. */
+
+  /* Velocity factor for motion blur rendering. */
+  float velocity_scale = 1.0f;
+
+  /* OpenVDB cache options. */
+  int openvdb_compression = VDB_COMPRESSION_BLOSC;
+  float clipping = 1e-6f;
+  char openvdb_data_depth = 0;
+  char _pad11[7] = {}; /* Unused. */
+
+  /* -- Deprecated / unused options (below). -- */
+
+  /* View options. */
+  int viewsettings = 0;
+  char _pad12[4] = {}; /* Unused. */
+
+  /**
+   * Point-cache options.
+   * Smoke uses only one cache from now on (index [0]),
+   * but keeping the array for now for reading old files.
+   */
+  struct PointCache *point_cache[2] = {nullptr, nullptr}; /* Use #BKE_ptcache_add. */
+  struct ListBaseT<PointCache> ptcaches[2] = {
+    {nullptr, nullptr}, {nullptr, nullptr},
+  };
+  int cache_comp = SM_CACHE_LIGHT;
+  int cache_high_comp = SM_CACHE_LIGHT;
+  char cache_file_format = 0;
+  char _pad13[7] = {}; /* Unused. */
+};
+
+struct FluidFlowSettings {
 
   /* -- Runtime-only fields (from here on). -- */
 
   /* For fast RNA access. */
-  struct FluidModifierData *fmd;
-  struct Mesh *mesh;
-  float *verts_old;
-  int numverts;
+  struct FluidModifierData *fmd = nullptr;
+  struct Mesh *mesh = nullptr;
+  struct ParticleSystem *psys = nullptr;
+  struct Tex *noise_texture = nullptr;
+
+  /* Initial velocity. */
+  /* Previous vertex positions in domain space. */
+  float *verts_old = nullptr;
+  int numverts = 0;
+  float vel_multi = 1.0f; /* Multiplier for inherited velocity. */
+  float vel_normal = 0.0f;
+  float vel_random = 0.0f;
+  float vel_coord[3] = {0.0f, 0.0f, 0.0f};
+  char _pad1[4] = {};
 
   /* -- User-accessible fields (from here on). -- */
 
-  float surface_distance; /* Thickness of mesh surface, used in obstacle SDF. */
-  int flags;
-  int subframes;
-  short type;
-  char _pad1[6];
+  /* Emission. */
+  float density = 1.0f;
+  float color[3] = {0.7f, 0.7f, 0.7f};
+  float fuel_amount = 1.0f;
+  /* Delta temperature (temp - ambient temp). */
+  float temperature = 1.0f;
+  /* Density emitted within mesh volume. */
+  float volume_density = 0.0f;
+  /* Maximum emission distance from mesh surface. */
+  float surface_distance = 1.0f;
+  float particle_size = 1.0f;
+  int subframes = 0;
+
+  /* Texture control. */
+  float texture_size = 1.0f;
+  float texture_offset = 0.0f;
+  char _pad2[4] = {};
+  char uvlayer_name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68] = "";
+  char _pad3[4] = {};
+  short vgroup_density = 0;
+
+  short type = FLUID_FLOW_TYPE_SMOKE;            /* Smoke, flames, both, outflow, liquid. */
+  short behavior = FLUID_FLOW_BEHAVIOR_GEOMETRY; /* Inflow, outflow, static. */
+  short source = FLUID_FLOW_SOURCE_MESH;
+  short texture_type = 0;
+  short _pad4[3] = {};
+  int flags = FLUID_FLOW_ABSOLUTE | FLUID_FLOW_USE_PART_SIZE |
+              FLUID_FLOW_USE_INFLOW; /* Absolute emission etc. */
+};
+
+/* Collision objects (filled with smoke). */
+struct FluidEffectorSettings {
+
+  /* -- Runtime-only fields (from here on). -- */
+
+  /* For fast RNA access. */
+  struct FluidModifierData *fmd = nullptr;
+  struct Mesh *mesh = nullptr;
+  float *verts_old = nullptr;
+  int numverts = 0;
+
+  /* -- User-accessible fields (from here on). -- */
+
+  float surface_distance = 0.0f; /* Thickness of mesh surface, used in obstacle SDF. */
+  int flags = FLUID_EFFECTOR_USE_EFFEC;
+  int subframes = 0;
+  short type = FLUID_EFFECTOR_TYPE_COLLISION;
+  char _pad1[6] = {};
 
   /* Guiding options. */
-  float vel_multi; /* Multiplier for object velocity. */
-  short guide_mode;
-  char _pad2[2];
-} FluidEffectorSettings;
+  float vel_multi = 1.0f; /* Multiplier for object velocity. */
+  short guide_mode = FLUID_EFFECTOR_GUIDE_OVERRIDE;
+  char _pad2[2] = {};
+};
+
+}  // namespace blender

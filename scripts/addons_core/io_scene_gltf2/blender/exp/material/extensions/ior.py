@@ -8,7 +8,7 @@ from ..search_node_tree import get_socket
 
 
 def export_ior(blender_material, extensions, export_settings):
-    ior_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, 'IOR')
+    ior_socket = get_socket(blender_material.node_tree, 'IOR')
 
     if not ior_socket.socket:
         return None

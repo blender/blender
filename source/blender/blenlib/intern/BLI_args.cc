@@ -18,6 +18,8 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 /**
  * Needed so printing `--help` doesn't cause a naming collision with:
  * The `-a` argument which is used twice.
@@ -54,7 +56,7 @@ struct bArgument {
 };
 
 struct bArgs {
-  ListBase docs;
+  ListBaseT<bArgDoc> docs;
   GHash *items;
   int argc;
   const char **argv;
@@ -100,7 +102,8 @@ static bool keycmp(const void *a, const void *b)
     }
     return !STREQ(ka->arg, kb->arg);
   }
-  return BLI_ghashutil_intcmp((const void *)ka->pass, (const void *)kb->pass);
+  return BLI_ghashutil_intcmp(reinterpret_cast<const void *>(ka->pass),
+                              reinterpret_cast<const void *>(kb->pass));
 }
 
 static bArgument *lookUp(bArgs *ba, const char *arg, int pass, int case_str)
@@ -123,8 +126,8 @@ static void args_print_wrapper(void * /*user_data*/, const char *format, va_list
 
 bArgs *BLI_args_create(int argc, const char **argv)
 {
-  bArgs *ba = MEM_callocN<bArgs>("bArgs");
-  ba->passes = MEM_calloc_arrayN<int>(argc, "bArgs passes");
+  bArgs *ba = MEM_new_zeroed<bArgs>("bArgs");
+  ba->passes = MEM_new_array_zeroed<int>(argc, "bArgs passes");
   ba->items = BLI_ghash_new(keyhash, keycmp, "bArgs passes gh");
   BLI_listbase_clear(&ba->docs);
   ba->argc = argc;
@@ -143,10 +146,10 @@ bArgs *BLI_args_create(int argc, const char **argv)
 
 void BLI_args_destroy(bArgs *ba)
 {
-  BLI_ghash_free(ba->items, MEM_freeN, MEM_freeN);
-  MEM_freeN(ba->passes);
+  BLI_ghash_free(ba->items, MEM_delete_void, MEM_delete_void);
+  MEM_delete(ba->passes);
   BLI_freelistN(&ba->docs);
-  MEM_freeN(ba);
+  MEM_delete(ba);
 }
 
 void BLI_args_printf(bArgs *ba, const char *format, ...)
@@ -188,7 +191,7 @@ static bArgDoc *internalDocs(bArgs *ba,
 {
   bArgDoc *d;
 
-  d = MEM_callocN<bArgDoc>("bArgDoc");
+  d = MEM_new_zeroed<bArgDoc>("bArgDoc");
 
   if (doc == nullptr) {
     doc = NO_DOCS;
@@ -224,8 +227,8 @@ static void internalAdd(
            a->key->case_str == 1 ? "not " : "");
   }
 
-  a = MEM_callocN<bArgument>("bArgument");
-  key = MEM_callocN<bAKey>("bAKey");
+  a = MEM_new_zeroed<bArgument>("bArgument");
+  key = MEM_new_zeroed<bAKey>("bAKey");
 
   key->arg = arg;
   key->pass = pass;
@@ -316,17 +319,17 @@ void BLI_args_print_arg_doc(bArgs *ba, const char *arg)
 
 void BLI_args_print_other_doc(bArgs *ba)
 {
-  LISTBASE_FOREACH (bArgDoc *, d, &ba->docs) {
-    if (d->done == 0) {
-      internalDocPrint(ba, d);
+  for (bArgDoc &d : ba->docs) {
+    if (d.done == 0) {
+      internalDocPrint(ba, &d);
     }
   }
 }
 
 bool BLI_args_has_other_doc(const bArgs *ba)
 {
-  LISTBASE_FOREACH (const bArgDoc *, d, &ba->docs) {
-    if (d->done == 0) {
+  for (const bArgDoc &d : ba->docs) {
+    if (d.done == 0) {
       return true;
     }
   }
@@ -378,3 +381,5 @@ void BLI_args_parse(bArgs *ba, int pass, BA_ArgCallback default_cb, void *defaul
     }
   }
 }
+
+}  // namespace blender

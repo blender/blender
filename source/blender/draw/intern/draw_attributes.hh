@@ -12,35 +12,39 @@
 
 #include <string>
 
-#include "DNA_customdata_types.h"
-
 #include "BLI_string_ref.hh"
 #include "BLI_sys_types.h"
 
 #include "BLI_vector_set.hh"
 
-namespace blender::bke {
+namespace blender {
+
+namespace bke {
 enum class AttrDomain : int8_t;
 }
 
-namespace blender::draw {
+namespace draw {
 
 struct DRW_MeshCDMask {
-  uint32_t uv : 8;
-  uint32_t tan : 8;
-  uint32_t orco : 1;
-  uint32_t tan_orco : 1;
-  uint32_t sculpt_overlays : 1;
-  /**
-   * Edit uv layer is from the base edit mesh as modifiers could remove it. (see #68857)
-   */
-  uint32_t edit_uv : 1;
-};
+  VectorSet<std::string> uv;
+  VectorSet<std::string> tan;
+  bool orco = false;
+  bool tan_orco = false;
+  bool sculpt_overlays = false;
+  bool edit_uv = false;
 
-/* Keep `DRW_MeshCDMask` struct within a `uint32_t`.
- * bit-wise and atomic operations are used to compare and update the struct.
- * See `mesh_cd_layers_type_*` functions. */
-static_assert(sizeof(DRW_MeshCDMask) <= sizeof(uint32_t), "DRW_MeshCDMask exceeds 32 bits");
+  friend bool operator==(const DRW_MeshCDMask &a, const DRW_MeshCDMask &b) = default;
+
+  void clear()
+  {
+    uv.clear_and_keep_capacity();
+    tan.clear_and_keep_capacity();
+    orco = false;
+    tan_orco = false;
+    sculpt_overlays = false;
+    edit_uv = false;
+  }
+};
 
 void drw_attributes_merge(VectorSet<std::string> *dst, const VectorSet<std::string> *src);
 
@@ -49,9 +53,5 @@ bool drw_attributes_overlap(const VectorSet<std::string> *a, const VectorSet<std
 
 void drw_attributes_add_request(VectorSet<std::string> *attrs, StringRef name);
 
-bool drw_custom_data_match_attribute(const CustomData &custom_data,
-                                     StringRef name,
-                                     int *r_layer_index,
-                                     eCustomDataType *r_type);
-
-}  // namespace blender::draw
+}  // namespace draw
+}  // namespace blender

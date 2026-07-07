@@ -17,10 +17,15 @@
 
 #include "DNA_world_types.h"
 
+#include "draw_view.hh"
+
 #include "eevee_defines.hh"
+#include "eevee_lightprobe_shared.hh"
 #include "eevee_sync.hh"
 
 namespace blender::eevee {
+
+using namespace draw;
 
 class Instance;
 class VolumeProbeModule;
@@ -226,13 +231,13 @@ class LightProbeModule {
 
  public:
   LightProbeModule(Instance &inst);
-  ~LightProbeModule(){};
+  ~LightProbeModule() {};
 
   void init();
 
   void begin_sync();
   void sync_probe(const Object *ob, ObjectHandle &handle);
-  void sync_world(const ::World *world, bool has_update);
+  void sync_world(const blender::World *world, bool has_update);
   void end_sync();
 
  private:

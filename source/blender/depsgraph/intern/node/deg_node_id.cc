@@ -40,7 +40,7 @@ void IDNode::init(const ID *id, const char * /*subdata*/)
   BLI_assert(id != nullptr);
   /* Store ID-pointer. */
   id_type = GS(id->name);
-  id_orig = (ID *)id;
+  id_orig = const_cast<ID *>(id);
   id_orig_session_uid = id->session_uid;
   eval_flags = 0;
   previous_eval_flags = 0;
@@ -58,7 +58,7 @@ void IDNode::init(const ID *id, const char * /*subdata*/)
   previously_visible_components_mask = 0;
 }
 
-void IDNode::init_copy_on_write(Depsgraph &depsgraph, ID *id_cow_hint)
+void IDNode::init_copy_on_write(ID *id_cow_hint)
 {
   /* Create pointer as early as possible, so we can use it for function
    * bindings. Rest of data we'll be copying to the new datablock when
@@ -67,6 +67,13 @@ void IDNode::init_copy_on_write(Depsgraph &depsgraph, ID *id_cow_hint)
     // BLI_assert(deg_eval_copy_is_needed(id_orig));
     if (deg_eval_copy_is_needed(id_orig)) {
       id_cow = id_cow_hint;
+
+      /* While `id_cow->orig_id == id` should be `true` most of the time (a same 'orig' ID should
+       * keep a same pointer in most cases), in can happen that the same 'orig' ID got a new
+       * address, e.g. after being deleted and re-loaded from memfile undo, without any update of
+       * the depsgraph in-between (e.g. when the depsgraph belongs to an inactive viewlayer).
+       * Ref. #145848. */
+      id_cow->orig_id = this->id_orig;
     }
     else {
       id_cow = id_orig;
@@ -74,9 +81,10 @@ void IDNode::init_copy_on_write(Depsgraph &depsgraph, ID *id_cow_hint)
   }
   else if (deg_eval_copy_is_needed(id_orig)) {
     id_cow = BKE_libblock_alloc_notest(GS(id_orig->name));
+    /* No need to call #BKE_libblock_runtime_ensure here, this will be done by
+     * #BKE_libblock_copy_in_lib when #deg_expand_eval_copy_datablock is executed. */
     DEG_COW_PRINT(
-        "Create shallow copy for %s: id_orig=%p id_cow=%p\n", id_orig->name, id_orig, id_cow);
-    deg_tag_eval_copy_id(depsgraph, id_cow, id_orig);
+        "Allocate memory for %s: id_orig=%p id_cow=%p\n", id_orig->name, id_orig, id_cow);
   }
   else {
     id_cow = id_orig;
@@ -98,7 +106,7 @@ void IDNode::destroy()
   /* Free memory used by this evaluated ID. */
   if (!ELEM(id_cow, id_orig, nullptr)) {
     deg_free_eval_copy_datablock(id_cow);
-    MEM_freeN(id_cow);
+    MEM_delete(id_cow);
     id_cow = nullptr;
     DEG_COW_PRINT(
         "Destroy evaluated ID for %s: id_orig=%p id_cow=%p\n", id_orig->name, id_orig, id_cow);
@@ -134,7 +142,7 @@ ComponentNode *IDNode::add_component(NodeType type, const StringRef name)
   if (!comp_node) {
     DepsNodeFactory *factory = type_get_factory(type);
     BLI_assert(factory);
-    comp_node = (ComponentNode *)factory->create_node(this->id_orig, "", name);
+    comp_node = static_cast<ComponentNode *>(factory->create_node(this->id_orig, "", name));
 
     /* Register. */
     ComponentIDKey key(type, comp_node->name);

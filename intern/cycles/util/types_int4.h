@@ -10,8 +10,7 @@ CCL_NAMESPACE_BEGIN
 
 #ifndef __KERNEL_NATIVE_VECTOR_TYPES__
 
-struct ccl_try_align(16) int4
-{
+struct ccl_try_align(16) int4 {
 #  ifdef __KERNEL_SSE__
   union {
     __m128i m128;

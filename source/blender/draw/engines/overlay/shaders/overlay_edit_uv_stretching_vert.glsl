@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/overlay_edit_mode_info.hh"
+#include "infos/overlay_edit_mode_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(overlay_edit_uv_stretching_area)
 
@@ -11,38 +11,38 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_uv_stretching_area)
 
 float3 weight_to_rgb(float weight)
 {
-  float3 r_rgb;
+  float3 rgb;
   float blend = ((weight / 2.0f) + 0.5f);
 
   if (weight <= 0.25f) { /* blue->cyan */
-    r_rgb[0] = 0.0f;
-    r_rgb[1] = blend * weight * 4.0f;
-    r_rgb[2] = blend;
+    rgb[0] = 0.0f;
+    rgb[1] = blend * weight * 4.0f;
+    rgb[2] = blend;
   }
   else if (weight <= 0.50f) { /* cyan->green */
-    r_rgb[0] = 0.0f;
-    r_rgb[1] = blend;
-    r_rgb[2] = blend * (1.0f - ((weight - 0.25f) * 4.0f));
+    rgb[0] = 0.0f;
+    rgb[1] = blend;
+    rgb[2] = blend * (1.0f - ((weight - 0.25f) * 4.0f));
   }
   else if (weight <= 0.75f) { /* green->yellow */
-    r_rgb[0] = blend * ((weight - 0.50f) * 4.0f);
-    r_rgb[1] = blend;
-    r_rgb[2] = 0.0f;
+    rgb[0] = blend * ((weight - 0.50f) * 4.0f);
+    rgb[1] = blend;
+    rgb[2] = 0.0f;
   }
   else if (weight <= 1.0f) { /* yellow->red */
-    r_rgb[0] = blend;
-    r_rgb[1] = blend * (1.0f - ((weight - 0.75f) * 4.0f));
-    r_rgb[2] = 0.0f;
+    rgb[0] = blend;
+    rgb[1] = blend * (1.0f - ((weight - 0.75f) * 4.0f));
+    rgb[2] = 0.0f;
   }
   else {
     /* exceptional value, unclamped or nan,
      * avoid uninitialized memory use */
-    r_rgb[0] = 1.0f;
-    r_rgb[1] = 0.0f;
-    r_rgb[2] = 1.0f;
+    rgb[0] = 1.0f;
+    rgb[1] = 0.0f;
+    rgb[2] = 1.0f;
   }
 
-  return r_rgb;
+  return rgb;
 }
 
 #define M_PI 3.1415926535897932f

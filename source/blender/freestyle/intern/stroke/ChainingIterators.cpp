@@ -157,7 +157,7 @@ int ChainSilhouetteIterator::traverse(const AdjacencyIterator &ait)
         Nature::VALLEY,
         Nature::RIDGE,
     };
-    int numNatures = ARRAY_SIZE(natures);
+    int numNatures = blender::ARRAY_SIZE(natures);
     for (int i = 0; i < numNatures; ++i) {
       if (getCurrentEdge()->getNature() & natures[i]) {
         int n = 0;

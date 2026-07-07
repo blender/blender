@@ -21,9 +21,9 @@ extern PyTypeObject Operators_Type;
 #define BPy_Operators_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&Operators_Type))
 
 /*---------------------------Python BPy_Operators structure definition----------*/
-typedef struct {
+struct BPy_Operators {
   PyObject_HEAD
-} BPy_Operators;
+};
 
 /*---------------------------Python BPy_Operators visible prototypes-----------*/
 

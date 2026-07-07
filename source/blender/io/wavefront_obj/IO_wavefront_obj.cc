@@ -16,6 +16,8 @@
 
 #include <fmt/core.h>
 
+namespace blender {
+
 using namespace blender::timeit;
 
 static void report_duration(const char *job, const TimePoint &start_time, const char *path)
@@ -29,19 +31,21 @@ static void report_duration(const char *job, const TimePoint &start_time, const 
 void OBJ_export(bContext *C, const OBJExportParams *export_params)
 {
   TimePoint start_time = Clock::now();
-  blender::io::obj::exporter_main(C, *export_params);
+  io::obj::exporter_main(C, *export_params);
   report_duration("export", start_time, export_params->filepath);
 }
 
 void OBJ_import(bContext *C, const OBJImportParams *import_params)
 {
   TimePoint start_time = Clock::now();
-  blender::io::obj::importer_main(C, *import_params);
+  io::obj::importer_main(C, *import_params);
   report_duration("import", start_time, import_params->filepath);
 }
 
 void OBJ_import_geometries(const OBJImportParams *import_params,
-                           blender::Vector<blender::bke::GeometrySet> &geometries)
+                           Vector<bke::GeometrySet> &geometries)
 {
-  blender::io::obj::importer_geometry(*import_params, geometries);
+  io::obj::importer_geometry(*import_params, geometries);
 }
+
+}  // namespace blender

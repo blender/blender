@@ -67,8 +67,8 @@ bool operator_asset_reference_props_is_set(PointerRNA &ptr)
  * #AssetLibrary::resolve_asset_weak_reference_to_full_path() currently does not support local
  * assets.
  */
-static const asset_system::AssetRepresentation *get_local_asset_from_relative_identifier(
-    const bContext &C, const StringRefNull relative_identifier, ReportList *reports)
+static const asset_system::AssetRepresentation *get_local_asset_from_weak_ref(
+    const bContext &C, const AssetWeakReference &weak_ref, ReportList *reports)
 {
   AssetLibraryReference library_ref{};
   library_ref.type = ASSET_LIBRARY_LOCAL;
@@ -76,7 +76,7 @@ static const asset_system::AssetRepresentation *get_local_asset_from_relative_id
 
   const asset_system::AssetRepresentation *matching_asset = nullptr;
   list::iterate(library_ref, [&](asset_system::AssetRepresentation &asset) {
-    if (asset.library_relative_identifier() == relative_identifier) {
+    if (asset.make_weak_reference() == weak_ref) {
       matching_asset = &asset;
       return false;
     }
@@ -86,7 +86,7 @@ static const asset_system::AssetRepresentation *get_local_asset_from_relative_id
   if (reports && !matching_asset) {
     if (list::is_loaded(&library_ref)) {
       BKE_reportf(
-          reports, RPT_ERROR, "No asset found at path \"%s\"", relative_identifier.c_str());
+          reports, RPT_ERROR, "No asset found at path \"%s\"", weak_ref.relative_asset_identifier);
     }
     else {
       BKE_report(reports, RPT_WARNING, "Asset loading is unfinished");
@@ -99,8 +99,7 @@ const asset_system::AssetRepresentation *find_asset_from_weak_ref(
     const bContext &C, const AssetWeakReference &weak_ref, ReportList *reports)
 {
   if (weak_ref.asset_library_type == ASSET_LIBRARY_LOCAL) {
-    return get_local_asset_from_relative_identifier(
-        C, weak_ref.relative_asset_identifier, reports);
+    return get_local_asset_from_weak_ref(C, weak_ref, reports);
   }
 
   const AssetLibraryReference library_ref = asset_system::all_library_reference();
@@ -145,11 +144,22 @@ const asset_system::AssetRepresentation *operator_asset_reference_props_get_asse
 
 void draw_menu_for_catalog(const asset_system::AssetCatalogTreeItem &item,
                            const StringRefNull menu_name,
-                           uiLayout &layout)
+                           ui::Layout &layout)
 {
-  uiLayout *col = &layout.column(false);
-  col->context_string_set("asset_catalog_path", item.catalog_path().c_str());
-  col->menu(menu_name, IFACE_(item.get_name()), ICON_NONE);
+  ui::Layout &col = layout.column(false);
+  col.context_string_set("asset_catalog_path", item.catalog_path().c_str());
+  col.menu(menu_name, IFACE_(item.get_name()), ICON_NONE);
+}
+
+void draw_node_menu_for_catalog(const asset_system::AssetCatalogTreeItem &item,
+                                const StringRefNull operator_id,
+                                const StringRefNull menu_name,
+                                ui::Layout &layout)
+{
+  ui::Layout &col = layout.column(false);
+  col.context_string_set("asset_catalog_path", item.catalog_path().c_str());
+  col.context_string_set("operator_id", operator_id);
+  col.menu(menu_name, IFACE_(item.get_name()), ICON_NONE);
 }
 
 }  // namespace blender::ed::asset

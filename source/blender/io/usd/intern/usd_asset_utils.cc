@@ -85,7 +85,7 @@ static std::string get_asset_base_name(const std::string &src_path, ReportList *
 /* Copy an asset to a destination directory. */
 static std::string copy_asset_to_directory(const std::string &src_path,
                                            const char *dest_dir_path,
-                                           eUSDTexNameCollisionMode name_collision_mode,
+                                           TexNameCollisionMode name_collision_mode,
                                            ReportList *reports)
 {
   std::string base_name = get_asset_base_name(src_path, reports);
@@ -94,7 +94,7 @@ static std::string copy_asset_to_directory(const std::string &src_path,
   BLI_path_join(dest_file_path, sizeof(dest_file_path), dest_dir_path, base_name.c_str());
   BLI_path_normalize(dest_file_path);
 
-  if (name_collision_mode == USD_TEX_NAME_COLLISION_USE_EXISTING && BLI_is_file(dest_file_path)) {
+  if (name_collision_mode == TexNameCollisionMode::UseExisting && BLI_is_file(dest_file_path)) {
     return dest_file_path;
   }
 
@@ -113,7 +113,7 @@ static std::string copy_asset_to_directory(const std::string &src_path,
 
 static std::string copy_udim_asset_to_directory(const std::string &src_path,
                                                 const char *dest_dir_path,
-                                                eUSDTexNameCollisionMode name_collision_mode,
+                                                TexNameCollisionMode name_collision_mode,
                                                 ReportList *reports)
 {
   /* Get prefix and suffix from udim pattern. */
@@ -156,12 +156,12 @@ static std::string copy_udim_asset_to_directory(const std::string &src_path,
 
 bool copy_asset(const std::string &src,
                 const std::string &dst,
-                eUSDTexNameCollisionMode name_collision_mode,
+                TexNameCollisionMode name_collision_mode,
                 ReportList *reports)
 {
   const pxr::ArResolver &ar = pxr::ArGetResolver();
 
-  if (name_collision_mode != USD_TEX_NAME_COLLISION_OVERWRITE) {
+  if (name_collision_mode != TexNameCollisionMode::Overwrite) {
     if (!ar.Resolve(dst).IsEmpty()) {
       /* The asset exists, so this is a no-op. */
       BKE_reportf(
@@ -277,7 +277,7 @@ bool asset_exists(const std::string &path)
 
 std::string import_asset(const std::string &src,
                          const char *import_dir,
-                         eUSDTexNameCollisionMode name_collision_mode,
+                         TexNameCollisionMode name_collision_mode,
                          ReportList *reports)
 {
   if (import_dir[0] == '\0') {

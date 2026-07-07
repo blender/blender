@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "DNA_key_types.h"
+
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
@@ -15,13 +17,15 @@
 
 #include "BKE_multires.hh"
 
+namespace blender {
+
 struct Depsgraph;
 struct GridPaintMask;
 struct MDisps;
 struct Mesh;
 struct MultiresModifierData;
 struct Object;
-namespace blender::bke::subdiv {
+namespace bke::subdiv {
 struct Subdiv;
 }
 struct SubdivCCG;
@@ -32,21 +36,21 @@ struct MultiresReshapeContext {
   Object *object;
 
   MultiresModifierData *mmd;
-
+  struct KeyBlock *basis_shape_key;
   /* Base mesh from original object.
    * NOTE: Does NOT include any leading modifiers in it. */
   Mesh *base_mesh;
-  blender::Span<blender::float3> base_positions;
-  blender::Span<blender::int2> base_edges;
-  blender::OffsetIndices<int> base_faces;
-  blender::Span<int> base_corner_verts;
-  blender::Span<int> base_corner_edges;
+  Span<float3> base_positions;
+  Span<int2> base_edges;
+  OffsetIndices<int> base_faces;
+  Span<int> base_corner_verts;
+  Span<int> base_corner_edges;
 
   /* Subdivision surface created for multires modifier.
    *
    * The coarse mesh of this subdivision surface is a base mesh with all deformation modifiers
    * leading multires applied on it. */
-  blender::bke::subdiv::Subdiv *subdiv;
+  bke::subdiv::Subdiv *subdiv;
   bool need_free_subdiv;
 
   struct {
@@ -82,12 +86,12 @@ struct MultiresReshapeContext {
   GridPaintMask *grid_paint_masks;
 
   /* Indexed by face index, gives first grid index of the face. */
-  blender::Array<int> face_start_grid_index;
+  Array<int> face_start_grid_index;
 
   /* Indexed by grid index, contains face index in the base mesh from which the grid has
    * been created (in other words, index of a face which contains loop corresponding to the grid
    * index). */
-  blender::Array<int> grid_to_face_index;
+  Array<int> grid_to_face_index;
 
   /* Indexed by ptex face index, gives first grid index of the ptex face.
    *
@@ -96,16 +100,16 @@ struct MultiresReshapeContext {
    *
    * For quad base faces there is a single ptex face but 4 grids. So in this case there will be
    * 4 grids for the ptex, starting at a value stored in this mapping. */
-  blender::Array<int> ptex_start_grid_index;
+  Array<int> ptex_start_grid_index;
 
   /* Indexed by base face index, returns first ptex face index corresponding
    * to that base face. */
-  blender::Span<int> face_ptex_offset;
+  Span<int> face_ptex_offset;
 
   /* Vertex crease custom data layer, empty if none is present. */
-  blender::VArraySpan<float> cd_vertex_crease;
+  VArraySpan<float> cd_vert_crease;
   /* Edge crease custom data layer, empty if none is present. */
-  blender::VArraySpan<float> cd_edge_crease;
+  VArraySpan<float> cd_edge_crease;
 };
 
 /**
@@ -130,12 +134,12 @@ struct PTexCoord {
  * This is where reshaped coordinates and mask values will be written to.
  */
 struct ReshapeGridElement {
-  blender::float3 *displacement;
+  float3 *displacement;
   float *mask;
 };
 
 struct ReshapeConstGridElement {
-  blender::float3 displacement;
+  float3 displacement;
   float mask;
 };
 
@@ -147,9 +151,9 @@ struct ReshapeConstGridElement {
  * Create subdivision surface descriptor which is configured for surface evaluation at a given
  * multi-res modifier.
  */
-blender::bke::subdiv::Subdiv *multires_reshape_create_subdiv(Depsgraph *depsgraph,
-                                                             Object *object,
-                                                             const MultiresModifierData *mmd);
+bke::subdiv::Subdiv *multires_reshape_create_subdiv(Depsgraph *depsgraph,
+                                                    Object *object,
+                                                    const MultiresModifierData *mmd);
 
 /**
  * \note Initialized base mesh to object's mesh, the Subdivision is created from the deformed
@@ -179,7 +183,7 @@ bool multires_reshape_context_create_from_modifier(MultiresReshapeContext *resha
 bool multires_reshape_context_create_from_subdiv(MultiresReshapeContext *reshape_context,
                                                  Object *object,
                                                  MultiresModifierData *mmd,
-                                                 blender::bke::subdiv::Subdiv *subdiv,
+                                                 bke::subdiv::Subdiv *subdiv,
                                                  int top_level);
 
 void multires_reshape_free_original_grids(MultiresReshapeContext *reshape_context);
@@ -221,15 +225,15 @@ GridCoord multires_reshape_ptex_coord_to_grid(const MultiresReshapeContext *resh
                                               const PTexCoord *ptex_coord);
 
 /**
- * Calculate tangent matrix which converts displacement to a object vector.
+ * Calculate tangent matrix which converts displacement to an object vector.
  * Is calculated for the given surface derivatives at a given base face corner.
  */
 void multires_reshape_tangent_matrix_for_corner(const MultiresReshapeContext *reshape_context,
                                                 int face_index,
                                                 int corner,
-                                                const blender::float3 &dPdu,
-                                                const blender::float3 &dPdv,
-                                                blender::float3x3 &r_tangent_matrix);
+                                                const float3 &dPdu,
+                                                const float3 &dPdv,
+                                                float3x3 &r_tangent_matrix);
 
 /**
  * Get grid elements which are to be reshaped at a given or PTEX coordinate.
@@ -257,8 +261,8 @@ ReshapeConstGridElement multires_reshape_orig_grid_element_for_grid_coord(
 void multires_reshape_evaluate_base_mesh_limit_at_grid(
     const MultiresReshapeContext *reshape_context,
     const GridCoord *grid_coord,
-    blender::float3 &r_P,
-    blender::float3x3 &r_tangent_matrix);
+    float3 &r_P,
+    float3x3 &r_tangent_matrix);
 
 /* --------------------------------------------------------------------
  * Custom data preparation.
@@ -270,19 +274,19 @@ void multires_reshape_evaluate_base_mesh_limit_at_grid(
 void multires_reshape_ensure_grids(Mesh *mesh, int level);
 
 /* --------------------------------------------------------------------
- * Functions specific to reshaping from a set of vertices in a object position.
+ * Functions specific to reshaping from a set of vertices in an object position.
  */
 
 /**
- * Set displacement grids values at a reshape level to a object coordinates of the given source.
+ * Set displacement grids values at a reshape level to an object coordinates of the given source.
  *
- * \returns truth if all coordinates were assigned.
+ * \returns true if all coordinates were assigned.
  *
  * False will be returned if the number of vertex coordinates did not match required number of
  * vertices at a reshape level.
  */
 bool multires_reshape_assign_final_coords_from_vertcos(
-    const MultiresReshapeContext *reshape_context, blender::Span<blender::float3> positions);
+    const MultiresReshapeContext *reshape_context, Span<float3> positions);
 
 /* --------------------------------------------------------------------
  * Functions specific to reshaping from CCG.
@@ -295,7 +299,7 @@ bool multires_reshape_assign_final_coords_from_vertcos(
  *
  * \note Displacement grids to be at least at a reshape level.
  *
- * \return truth if all coordinates have been updated.
+ * \return true if all coordinates have been updated.
  */
 bool multires_reshape_assign_final_coords_from_ccg(const MultiresReshapeContext *reshape_context,
                                                    SubdivCCG *subdiv_ccg);
@@ -311,7 +315,7 @@ void multires_reshape_assign_final_coords_from_mdisps(
     const MultiresReshapeContext *reshape_context);
 
 /**
- * Reads from original #CD_MIDTSPS, writes to the current mesh #CD_MDISPS.
+ * Reads from original #CD_MIDSPS, writes to the current mesh #CD_MDISPS.
  */
 void multires_reshape_assign_final_elements_from_orig_mdisps(
     const MultiresReshapeContext *reshape_context);
@@ -337,7 +341,7 @@ void multires_reshape_smooth_object_grids_with_details(
  * Makes it so surface on top level looks smooth. Details are not preserved
  */
 void multires_reshape_smooth_object_grids(const MultiresReshapeContext *reshape_context,
-                                          enum MultiresSubdivideModeType mode);
+                                          MultiresSubdivideModeType mode);
 
 /* --------------------------------------------------------------------
  * Displacement, space conversion.
@@ -371,6 +375,12 @@ void multires_reshape_apply_base_update_mesh_coords(MultiresReshapeContext *resh
 void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape_context);
 
 /**
+ *Updating Shape key coordinates after apply base so as to maintain sync between mesh and
+ *shape key.
+ */
+void multires_reshape_apply_base_update_shape_key(MultiresReshapeContext *reshape_context);
+
+/**
  * Refine subdivision surface to the new positions of the base mesh.
  */
 void multires_reshape_apply_base_refine_from_base(MultiresReshapeContext *reshape_context);
@@ -382,3 +392,5 @@ void multires_reshape_apply_base_refine_from_base(MultiresReshapeContext *reshap
  * \note Will re-evaluate all leading modifiers, so it's not cheap.
  */
 void multires_reshape_apply_base_refine_from_deform(MultiresReshapeContext *reshape_context);
+
+}  // namespace blender

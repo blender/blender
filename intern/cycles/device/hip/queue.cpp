@@ -66,7 +66,7 @@ void HIPDeviceQueue::init_execution()
 {
   /* Synchronize all textures and memory copies before executing task. */
   HIPContextScope scope(hip_device_);
-  hip_device_->load_texture_info();
+  hip_device_->load_image_info();
   hip_device_assert(hip_device_, hipDeviceSynchronize());
 
   debug_init_execution();
@@ -84,8 +84,8 @@ bool HIPDeviceQueue::enqueue(DeviceKernel kernel,
 
   const HIPContextScope scope(hip_device_);
 
-  /* Update texture info in case memory moved to host. */
-  if (hip_device_->load_texture_info()) {
+  /* Update image info in case memory moved to host. */
+  if (hip_device_->load_image_info()) {
     hip_device_assert(hip_device_, hipDeviceSynchronize());
     if (hip_device_->have_error()) {
       return false;
@@ -149,7 +149,7 @@ bool HIPDeviceQueue::synchronize()
 
 void HIPDeviceQueue::zero_to_device(device_memory &mem)
 {
-  assert(mem.type != MEM_GLOBAL && mem.type != MEM_TEXTURE);
+  assert(mem.type != MEM_GLOBAL && mem.type != MEM_IMAGE_TEXTURE);
 
   if (mem.memory_size() == 0) {
     return;
@@ -171,7 +171,7 @@ void HIPDeviceQueue::zero_to_device(device_memory &mem)
 
 void HIPDeviceQueue::copy_to_device(device_memory &mem)
 {
-  assert(mem.type != MEM_GLOBAL && mem.type != MEM_TEXTURE);
+  assert(mem.type != MEM_GLOBAL && mem.type != MEM_IMAGE_TEXTURE);
 
   if (mem.memory_size() == 0) {
     return;
@@ -195,7 +195,7 @@ void HIPDeviceQueue::copy_to_device(device_memory &mem)
 
 void HIPDeviceQueue::copy_from_device(device_memory &mem)
 {
-  assert(mem.type != MEM_GLOBAL && mem.type != MEM_TEXTURE);
+  assert(mem.type != MEM_GLOBAL && mem.type != MEM_IMAGE_TEXTURE);
 
   if (mem.memory_size() == 0) {
     return;

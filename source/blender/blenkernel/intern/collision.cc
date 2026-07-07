@@ -11,6 +11,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_cloth_types.h"
+#include "DNA_layer_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -30,6 +31,8 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_physics.hh"
 #include "DEG_depsgraph_query.hh"
+
+namespace blender {
 
 #ifdef WITH_ELTOPO
 #  include "eltopo-capi.h"
@@ -81,13 +84,13 @@ void collision_move_object(CollisionModifierData *collmd,
   bvhtree_update_from_mvert(collmd->bvhtree,
                             collmd->current_xnew,
                             collmd->current_x,
-                            reinterpret_cast<const blender::int3 *>(collmd->vert_tris),
+                            reinterpret_cast<const int3 *>(collmd->vert_tris),
                             collmd->tri_num,
                             moving_bvh);
 }
 
 BVHTree *bvhtree_build_from_mvert(const float (*positions)[3],
-                                  const blender::int3 *vert_tris,
+                                  const int3 *vert_tris,
                                   int tri_num,
                                   float epsilon)
 {
@@ -113,7 +116,7 @@ BVHTree *bvhtree_build_from_mvert(const float (*positions)[3],
 void bvhtree_update_from_mvert(BVHTree *bvhtree,
                                const float (*positions)[3],
                                const float (*positions_moving)[3],
-                               const blender::int3 *vert_tris,
+                               const int3 *vert_tris,
                                int tri_num,
                                bool moving)
 {
@@ -940,7 +943,7 @@ static int cloth_selfcollision_response_static(ClothModifierData *clmd,
 
 static bool cloth_bvh_collision_is_active(const ClothModifierData * /*clmd*/,
                                           const Cloth *cloth,
-                                          const blender::int3 vert_tri_a)
+                                          const int3 vert_tri_a)
 {
   const ClothVertex *verts = cloth->verts;
 
@@ -959,7 +962,7 @@ static void cloth_collision(void *__restrict userdata,
                             const int index,
                             const TaskParallelTLS *__restrict /*tls*/)
 {
-  ColDetectData *data = (ColDetectData *)userdata;
+  ColDetectData *data = static_cast<ColDetectData *>(userdata);
 
   ClothModifierData *clmd = data->clmd;
   CollisionModifierData *collmd = data->collmd;
@@ -970,8 +973,8 @@ static void cloth_collision(void *__restrict userdata,
   float epsilon2 = BLI_bvhtree_get_epsilon(collmd->bvhtree);
   float pa[3], pb[3], vect[3];
 
-  const blender::int3 vert_tri_a = clmd->clothObject->vert_tris[data->overlap[index].indexA];
-  const blender::int3 vert_tri_b = collmd->vert_tris[data->overlap[index].indexB];
+  const int3 vert_tri_a = clmd->clothObject->vert_tris[data->overlap[index].indexA];
+  const int3 vert_tri_b = collmd->vert_tris[data->overlap[index].indexB];
 
   /* Compute distance and normal. */
   distance = compute_collision_point_tri_tri(verts1[vert_tri_a[0]].tx,
@@ -1030,8 +1033,8 @@ static void cloth_collision(void *__restrict userdata,
 
 static bool cloth_bvh_selfcollision_is_active(const ClothModifierData *clmd,
                                               const Cloth *cloth,
-                                              const blender::int3 vert_tri_a,
-                                              const blender::int3 vert_tri_b)
+                                              const int3 vert_tri_a,
+                                              const int3 vert_tri_b)
 {
   const ClothVertex *verts = cloth->verts;
 
@@ -1074,7 +1077,7 @@ static void cloth_selfcollision(void *__restrict userdata,
                                 const int index,
                                 const TaskParallelTLS *__restrict /*tls*/)
 {
-  SelfColDetectData *data = (SelfColDetectData *)userdata;
+  SelfColDetectData *data = static_cast<SelfColDetectData *>(userdata);
 
   ClothModifierData *clmd = data->clmd;
   CollPair *collpair = data->collisions;
@@ -1090,8 +1093,8 @@ static void cloth_selfcollision(void *__restrict userdata,
     std::swap(indexA, indexB);
   }
 
-  const blender::int3 vert_tri_a = clmd->clothObject->vert_tris[indexA];
-  const blender::int3 vert_tri_b = clmd->clothObject->vert_tris[indexB];
+  const int3 vert_tri_a = clmd->clothObject->vert_tris[indexA];
+  const int3 vert_tri_b = clmd->clothObject->vert_tris[indexB];
 
   BLI_assert(cloth_bvh_selfcollision_is_active(clmd, clmd->clothObject, vert_tri_a, vert_tri_b));
 
@@ -1154,7 +1157,7 @@ static void hair_collision(void *__restrict userdata,
                            const int index,
                            const TaskParallelTLS *__restrict /*tls*/)
 {
-  ColDetectData *data = (ColDetectData *)userdata;
+  ColDetectData *data = static_cast<ColDetectData *>(userdata);
 
   ClothModifierData *clmd = data->clmd;
   CollisionModifierData *collmd = data->collmd;
@@ -1167,9 +1170,9 @@ static void hair_collision(void *__restrict userdata,
 
   /* TODO: This is not efficient. Might be wise to instead build an array before iterating, to
    * avoid walking the list every time. */
-  const blender::int2 &edge_coll = reinterpret_cast<const blender::int2 *>(
+  const int2 &edge_coll = reinterpret_cast<const int2 *>(
       clmd->clothObject->edges)[data->overlap[index].indexA];
-  const blender::int3 tri_coll = collmd->vert_tris[data->overlap[index].indexB];
+  const int3 tri_coll = collmd->vert_tris[data->overlap[index].indexB];
 
   /* Compute distance and normal. */
   distance = compute_collision_point_edge_tri(verts1[edge_coll[0]].tx,
@@ -1221,7 +1224,7 @@ static void hair_collision(void *__restrict userdata,
   }
 }
 
-static void add_collision_object(ListBase *relations,
+static void add_collision_object(ListBaseT<CollisionRelation> *relations,
                                  Object *ob,
                                  int level,
                                  const ModifierType modifier_type)
@@ -1230,7 +1233,7 @@ static void add_collision_object(ListBase *relations,
   ModifierData *cmd = BKE_modifiers_findby_type(ob, modifier_type);
 
   if (cmd) {
-    CollisionRelation *relation = MEM_callocN<CollisionRelation>(__func__);
+    CollisionRelation *relation = MEM_new_zeroed<CollisionRelation>(__func__);
     relation->ob = ob;
     BLI_addtail(relations, relation);
   }
@@ -1249,9 +1252,9 @@ static void add_collision_object(ListBase *relations,
   }
 }
 
-ListBase *BKE_collision_relations_create(Depsgraph *depsgraph,
-                                         Collection *collection,
-                                         uint modifier_type)
+ListBaseT<CollisionRelation> *BKE_collision_relations_create(Depsgraph *depsgraph,
+                                                             Collection *collection,
+                                                             uint modifier_type)
 {
   const Scene *scene = DEG_get_input_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
@@ -1259,7 +1262,7 @@ ListBase *BKE_collision_relations_create(Depsgraph *depsgraph,
   const bool for_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
   const int base_flag = (for_render) ? BASE_ENABLED_RENDER : BASE_ENABLED_VIEWPORT;
 
-  ListBase *relations = MEM_callocN<ListBase>(__func__);
+  ListBaseT<CollisionRelation> *relations = MEM_new_zeroed<ListBaseT<CollisionRelation>>(__func__);
 
   for (; base; base = base->next) {
     if (base->flag & base_flag) {
@@ -1270,11 +1273,11 @@ ListBase *BKE_collision_relations_create(Depsgraph *depsgraph,
   return relations;
 }
 
-void BKE_collision_relations_free(ListBase *relations)
+void BKE_collision_relations_free(ListBaseT<CollisionRelation> *relations)
 {
   if (relations) {
     BLI_freelistN(relations);
-    MEM_freeN(relations);
+    MEM_delete(relations);
   }
 }
 
@@ -1284,7 +1287,8 @@ Object **BKE_collision_objects_create(Depsgraph *depsgraph,
                                       uint *numcollobj,
                                       uint modifier_type)
 {
-  ListBase *relations = DEG_get_collision_relations(depsgraph, collection, modifier_type);
+  ListBaseT<CollisionRelation> *relations = DEG_get_collision_relations(
+      depsgraph, collection, modifier_type);
 
   if (!relations) {
     *numcollobj = 0;
@@ -1293,11 +1297,11 @@ Object **BKE_collision_objects_create(Depsgraph *depsgraph,
 
   int maxnum = BLI_listbase_count(relations);
   int num = 0;
-  Object **objects = MEM_calloc_arrayN<Object *>(maxnum, __func__);
+  Object **objects = MEM_new_array_zeroed<Object *>(maxnum, __func__);
 
-  LISTBASE_FOREACH (CollisionRelation *, relation, relations) {
+  for (CollisionRelation &relation : *relations) {
     /* Get evaluated object. */
-    Object *ob = DEG_get_evaluated(depsgraph, relation->ob);
+    Object *ob = DEG_get_evaluated(depsgraph, relation.ob);
 
     if (modifier_type == eModifierType_Collision && !(ob->pd && ob->pd->deflect)) {
       continue;
@@ -1310,7 +1314,7 @@ Object **BKE_collision_objects_create(Depsgraph *depsgraph,
   }
 
   if (num == 0) {
-    MEM_freeN(objects);
+    MEM_delete(objects);
     objects = nullptr;
   }
 
@@ -1321,36 +1325,38 @@ Object **BKE_collision_objects_create(Depsgraph *depsgraph,
 void BKE_collision_objects_free(Object **objects)
 {
   if (objects) {
-    MEM_freeN(objects);
+    MEM_delete(objects);
   }
 }
 
-ListBase *BKE_collider_cache_create(Depsgraph *depsgraph, Object *self, Collection *collection)
+ListBaseT<ColliderCache> *BKE_collider_cache_create(Depsgraph *depsgraph,
+                                                    Object *self,
+                                                    Collection *collection)
 {
-  ListBase *relations = DEG_get_collision_relations(
+  ListBaseT<CollisionRelation> *relations = DEG_get_collision_relations(
       depsgraph, collection, eModifierType_Collision);
-  ListBase *cache = nullptr;
+  ListBaseT<ColliderCache> *cache = nullptr;
 
   if (!relations) {
     return nullptr;
   }
 
-  LISTBASE_FOREACH (CollisionRelation *, relation, relations) {
+  for (CollisionRelation &relation : *relations) {
     /* Get evaluated object. */
-    Object *ob = DEG_get_evaluated(depsgraph, relation->ob);
+    Object *ob = DEG_get_evaluated(depsgraph, relation.ob);
 
     if (ob == self) {
       continue;
     }
 
-    CollisionModifierData *cmd = (CollisionModifierData *)BKE_modifiers_findby_type(
-        ob, eModifierType_Collision);
+    CollisionModifierData *cmd = reinterpret_cast<CollisionModifierData *>(
+        BKE_modifiers_findby_type(ob, eModifierType_Collision));
     if (cmd && cmd->bvhtree) {
       if (cache == nullptr) {
-        cache = MEM_callocN<ListBase>(__func__);
+        cache = MEM_new_zeroed<ListBaseT<ColliderCache>>(__func__);
       }
 
-      ColliderCache *col = MEM_callocN<ColliderCache>(__func__);
+      ColliderCache *col = MEM_new_zeroed<ColliderCache>(__func__);
       col->ob = ob;
       col->collmd = cmd;
       /* make sure collider is properly set up */
@@ -1362,11 +1368,11 @@ ListBase *BKE_collider_cache_create(Depsgraph *depsgraph, Object *self, Collecti
   return cache;
 }
 
-void BKE_collider_cache_free(ListBase **colliders)
+void BKE_collider_cache_free(ListBaseT<ColliderCache> **colliders)
 {
   if (*colliders) {
     BLI_freelistN(*colliders);
-    MEM_freeN(*colliders);
+    MEM_delete(*colliders);
     *colliders = nullptr;
   }
 }
@@ -1380,7 +1386,7 @@ static bool cloth_bvh_objcollisions_nearcheck(ClothModifierData *clmd,
                                               bool use_normal)
 {
   const bool is_hair = (clmd->hairdata != nullptr);
-  *collisions = MEM_malloc_arrayN<CollPair>(size_t(numresult), "collision array");
+  *collisions = MEM_new_array_uninitialized<CollPair>(size_t(numresult), "collision array");
 
   ColDetectData data{};
   data.clmd = clmd;
@@ -1442,8 +1448,8 @@ static int cloth_bvh_objcollisions_resolve(ClothModifierData *clmd,
 
     for (i = 0; i < numcollobj; i++) {
       Object *collob = collobjs[i];
-      CollisionModifierData *collmd = (CollisionModifierData *)BKE_modifiers_findby_type(
-          collob, eModifierType_Collision);
+      CollisionModifierData *collmd = reinterpret_cast<CollisionModifierData *>(
+          BKE_modifiers_findby_type(collob, eModifierType_Collision));
 
       if (collmd->bvhtree) {
         result += cloth_collision_response_static(
@@ -1515,9 +1521,9 @@ static int cloth_bvh_selfcollisions_resolve(ClothModifierData *clmd,
 
 static bool cloth_bvh_obj_overlap_cb(void *userdata, int index_a, int /*index_b*/, int /*thread*/)
 {
-  ClothModifierData *clmd = (ClothModifierData *)userdata;
+  ClothModifierData *clmd = static_cast<ClothModifierData *>(userdata);
   Cloth *clothObject = clmd->clothObject;
-  const blender::int3 tri_a = clothObject->vert_tris[index_a];
+  const int3 tri_a = clothObject->vert_tris[index_a];
 
   return cloth_bvh_collision_is_active(clmd, clothObject, tri_a);
 }
@@ -1527,10 +1533,10 @@ static bool cloth_bvh_self_overlap_cb(void *userdata, int index_a, int index_b, 
   /* This shouldn't happen, but just in case. Note that equal combinations
    * (eg. (0,1) & (1,0)) would be filtered out by BLI_bvhtree_overlap_self. */
   if (index_a != index_b) {
-    ClothModifierData *clmd = (ClothModifierData *)userdata;
+    ClothModifierData *clmd = static_cast<ClothModifierData *>(userdata);
     Cloth *clothObject = clmd->clothObject;
-    const blender::int3 tri_a = clothObject->vert_tris[index_a];
-    const blender::int3 tri_b = clothObject->vert_tris[index_b];
+    const int3 tri_a = clothObject->vert_tris[index_a];
+    const int3 tri_b = clothObject->vert_tris[index_b];
 
     if (cloth_bvh_selfcollision_is_active(clmd, clothObject, tri_a, tri_b)) {
       return true;
@@ -1577,13 +1583,13 @@ int cloth_bvh_collision(
                                             eModifierType_Collision);
 
     if (collobjs) {
-      coll_counts_obj = MEM_calloc_arrayN<uint>(numcollobj, "CollCounts");
-      overlap_obj = MEM_calloc_arrayN<BVHTreeOverlap *>(numcollobj, "BVHOverlap");
+      coll_counts_obj = MEM_new_array_zeroed<uint>(numcollobj, "CollCounts");
+      overlap_obj = MEM_new_array_zeroed<BVHTreeOverlap *>(numcollobj, "BVHOverlap");
 
       for (i = 0; i < numcollobj; i++) {
         Object *collob = collobjs[i];
-        CollisionModifierData *collmd = (CollisionModifierData *)BKE_modifiers_findby_type(
-            collob, eModifierType_Collision);
+        CollisionModifierData *collmd = reinterpret_cast<CollisionModifierData *>(
+            BKE_modifiers_findby_type(collob, eModifierType_Collision));
 
         if (!collmd->bvhtree) {
           continue;
@@ -1618,12 +1624,12 @@ int cloth_bvh_collision(
       CollPair **collisions;
       bool collided = false;
 
-      collisions = MEM_calloc_arrayN<CollPair *>(numcollobj, "CollPair");
+      collisions = MEM_new_array_zeroed<CollPair *>(numcollobj, "CollPair");
 
       for (i = 0; i < numcollobj; i++) {
         Object *collob = collobjs[i];
-        CollisionModifierData *collmd = (CollisionModifierData *)BKE_modifiers_findby_type(
-            collob, eModifierType_Collision);
+        CollisionModifierData *collmd = reinterpret_cast<CollisionModifierData *>(
+            BKE_modifiers_findby_type(collob, eModifierType_Collision));
 
         if (!collmd->bvhtree) {
           continue;
@@ -1649,10 +1655,10 @@ int cloth_bvh_collision(
       }
 
       for (i = 0; i < numcollobj; i++) {
-        MEM_SAFE_FREE(collisions[i]);
+        MEM_SAFE_DELETE(collisions[i]);
       }
 
-      MEM_freeN(collisions);
+      MEM_delete(collisions);
     }
 
     /* Self collisions. */
@@ -1664,7 +1670,7 @@ int cloth_bvh_collision(
 
       if (cloth->bvhselftree) {
         if (coll_count_self && overlap_self) {
-          collisions = MEM_malloc_arrayN<CollPair>(coll_count_self, "collision array");
+          collisions = MEM_new_array_uninitialized<CollPair>(coll_count_self, "collision array");
 
           if (cloth_bvh_selfcollisions_nearcheck(clmd, collisions, coll_count_self, overlap_self))
           {
@@ -1674,7 +1680,7 @@ int cloth_bvh_collision(
         }
       }
 
-      MEM_SAFE_FREE(collisions);
+      MEM_SAFE_DELETE(collisions);
     }
 
     /* Apply all collision resolution. */
@@ -1695,15 +1701,15 @@ int cloth_bvh_collision(
 
   if (overlap_obj) {
     for (i = 0; i < numcollobj; i++) {
-      MEM_SAFE_FREE(overlap_obj[i]);
+      MEM_SAFE_DELETE(overlap_obj[i]);
     }
 
-    MEM_freeN(overlap_obj);
+    MEM_delete(overlap_obj);
   }
 
-  MEM_SAFE_FREE(coll_counts_obj);
+  MEM_SAFE_DELETE(coll_counts_obj);
 
-  MEM_SAFE_FREE(overlap_self);
+  MEM_SAFE_DELETE(overlap_self);
 
   BKE_collision_objects_free(collobjs);
 
@@ -1743,3 +1749,5 @@ void collision_get_collider_velocity(float vel_old[3],
   /* XXX assume constant velocity of the collider for now */
   copy_v3_v3(vel_old, vel_new);
 }
+
+}  // namespace blender

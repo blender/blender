@@ -70,6 +70,8 @@
 
 #define URI_MAX (FILE_MAX * 3 + 8)
 
+namespace blender {
+
 static bool get_thumb_dir(char *dir, ThumbSize size)
 {
   char *s = dir;
@@ -167,7 +169,7 @@ static void escape_uri_string(const char *string,
                               const int escaped_string_size,
                               const eUnsafeCharacterSet mask)
 {
-#define ACCEPTABLE(a) ((a) >= 32 && (a) < 128 && (acceptable[(a)-32] & mask))
+#define ACCEPTABLE(a) ((a) >= 32 && (a) < 128 && (acceptable[(a) - 32] & mask))
 
   BLI_assert(escaped_string_size > 0);
   /* Remove space for \0. */
@@ -325,6 +327,9 @@ static ImBuf *thumb_create_ex(const char *file_path,
                               ThumbSource source,
                               ImBuf *img)
 {
+  /* Just in case these folders got deleted somehow. */
+  IMB_thumb_makedirs();
+
   char desc[URI_MAX + 22];
   char tpath[FILE_MAX];
   char tdir[FILE_MAX];
@@ -395,8 +400,8 @@ static ImBuf *thumb_create_ex(const char *file_path,
       else if (THB_SOURCE_MOVIE == source) {
         MovieReader *anim = nullptr;
         /* Image buffer is converted from float to byte and only the latter one is used, and the
-         * conversion process is aware of the float colorspace. So it is possible to save some
-         * compute time by keeping the original colorspace for movies. */
+         * conversion process is aware of the float color-space. So it is possible to save some
+         * compute time by keeping the original color-space for movies. */
         anim = MOV_open_file(file_path, IB_byte_data | IB_metadata, 0, true, nullptr);
         if (anim != nullptr) {
           img = MOV_decode_frame(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
@@ -489,6 +494,14 @@ static ImBuf *thumb_create_or_fail(const char *file_path,
 
 ImBuf *IMB_thumb_create(const char *filepath, ThumbSize size, ThumbSource source, ImBuf *img)
 {
+  if (source == THB_SOURCE_DIRECT) {
+    /* Not yet implemented (not needed currently). Could just directly write the image to the given
+     * `filepath`. */
+    BLI_assert_msg(source != THB_SOURCE_DIRECT,
+                   "Writing thumbnails with direct source isn't implemented");
+    return nullptr;
+  }
+
   char uri[URI_MAX] = "";
   char thumb_name[40];
 
@@ -537,6 +550,26 @@ void IMB_thumb_delete(const char *file_or_lib_path, ThumbSize size)
 
 ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSource source)
 {
+  if (source == THB_SOURCE_DIRECT) {
+    const eFileAttributes file_attributes = BLI_file_attributes(file_or_lib_path);
+    /* Don't trigger download files from online drives. Maybe less of a problem for
+     * #THE_SOURCE_DIRECT, since what we request is the actual image itself. For other sources this
+     * may download a bunch of large files like videos or blends, just to extract a thumbnail. But
+     * for now, keep the API consistent and do not trigger download of such files. */
+    if (file_attributes & FILE_ATTR_OFFLINE) {
+      return nullptr;
+    }
+
+    ImBuf *thumb = IMB_load_image_from_filepath(file_or_lib_path, IB_byte_data | IB_metadata);
+    if (!thumb) {
+      return nullptr;
+    }
+
+    IMB_byte_from_float(thumb);
+    IMB_free_float_pixels(thumb);
+    return thumb;
+  }
+
   char path_buff[FILE_MAX_LIBEXTRA];
   char *blen_group = nullptr, *blen_id = nullptr;
 
@@ -667,37 +700,41 @@ ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSourc
  * So idea is to 'lock' a given source file path.
  */
 
-static struct IMBThumbLocks {
-  GSet *locked_paths;
-  int lock_counter;
-  ThreadCondition cond;
-} thumb_locks = {nullptr};
+struct IMBThumbLocks {
+  Set<std::string> locked_paths;
+  int lock_counter = 0;
+  ThreadCondition cond = {};
+};
+
+static IMBThumbLocks &get_thumb_locks()
+{
+  static IMBThumbLocks thumb_locks{};
+  return thumb_locks;
+}
 
 void IMB_thumb_locks_acquire()
 {
   BLI_thread_lock(LOCK_IMAGE);
 
+  IMBThumbLocks &thumb_locks = get_thumb_locks();
   if (thumb_locks.lock_counter == 0) {
-    BLI_assert(thumb_locks.locked_paths == nullptr);
-    thumb_locks.locked_paths = BLI_gset_str_new(__func__);
     BLI_condition_init(&thumb_locks.cond);
   }
   thumb_locks.lock_counter++;
 
-  BLI_assert(thumb_locks.locked_paths != nullptr);
   BLI_assert(thumb_locks.lock_counter > 0);
   BLI_thread_unlock(LOCK_IMAGE);
 }
 
 void IMB_thumb_locks_release()
 {
+  IMBThumbLocks &thumb_locks = get_thumb_locks();
   BLI_thread_lock(LOCK_IMAGE);
-  BLI_assert((thumb_locks.locked_paths != nullptr) && (thumb_locks.lock_counter > 0));
+  BLI_assert(thumb_locks.lock_counter > 0);
 
   thumb_locks.lock_counter--;
   if (thumb_locks.lock_counter == 0) {
-    BLI_gset_free(thumb_locks.locked_paths, MEM_freeN);
-    thumb_locks.locked_paths = nullptr;
+    thumb_locks.locked_paths.clear();
     BLI_condition_end(&thumb_locks.cond);
   }
 
@@ -706,15 +743,13 @@ void IMB_thumb_locks_release()
 
 void IMB_thumb_path_lock(const char *path)
 {
-  void *key = BLI_strdup(path);
+  IMBThumbLocks &thumb_locks = get_thumb_locks();
 
   BLI_thread_lock(LOCK_IMAGE);
-  BLI_assert((thumb_locks.locked_paths != nullptr) && (thumb_locks.lock_counter > 0));
+  BLI_assert(thumb_locks.lock_counter > 0);
 
-  if (thumb_locks.locked_paths) {
-    while (!BLI_gset_add(thumb_locks.locked_paths, key)) {
-      BLI_condition_wait_global_mutex(&thumb_locks.cond, LOCK_IMAGE);
-    }
+  while (!thumb_locks.locked_paths.add(path)) {
+    BLI_condition_wait_global_mutex(&thumb_locks.cond, LOCK_IMAGE);
   }
 
   BLI_thread_unlock(LOCK_IMAGE);
@@ -722,17 +757,17 @@ void IMB_thumb_path_lock(const char *path)
 
 void IMB_thumb_path_unlock(const char *path)
 {
-  const void *key = path;
+  IMBThumbLocks &thumb_locks = get_thumb_locks();
 
   BLI_thread_lock(LOCK_IMAGE);
-  BLI_assert((thumb_locks.locked_paths != nullptr) && (thumb_locks.lock_counter > 0));
+  BLI_assert(thumb_locks.lock_counter > 0);
 
-  if (thumb_locks.locked_paths) {
-    if (!BLI_gset_remove(thumb_locks.locked_paths, key, MEM_freeN)) {
-      BLI_assert_unreachable();
-    }
-    BLI_condition_notify_all(&thumb_locks.cond);
+  if (!thumb_locks.locked_paths.remove(path)) {
+    BLI_assert_unreachable();
   }
+  BLI_condition_notify_all(&thumb_locks.cond);
 
   BLI_thread_unlock(LOCK_IMAGE);
 }
+
+}  // namespace blender

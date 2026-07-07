@@ -10,9 +10,11 @@
 
 #include "tree_element_id.hh"
 
+namespace blender {
+
 struct Curve;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 class TreeElementIDCurve final : public TreeElementID {
   Curve &curve_;
@@ -26,4 +28,5 @@ class TreeElementIDCurve final : public TreeElementID {
   void expand_materials() const;
 };
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

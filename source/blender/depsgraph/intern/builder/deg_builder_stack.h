@@ -10,12 +10,14 @@
 
 #include "BLI_vector.hh"
 
+namespace blender {
+
 struct ID;
 struct bConstraint;
 struct bPoseChannel;
 struct ModifierData;
 
-namespace blender::deg {
+namespace deg {
 
 /* This class keeps track of the builder calls nesting, allowing to unroll them back and provide a
  * clue about how the builder made it to its current state.
@@ -127,4 +129,5 @@ class BuilderStack {
   Stack stack_;
 };
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

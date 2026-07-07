@@ -22,15 +22,17 @@
 
 #include "gpu_platform_private.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name GPUPlatformGlobal
  * \{ */
 
-namespace blender::gpu {
+namespace gpu {
 
 GPUPlatformGlobal GPG;
 
-static char *create_key(eGPUSupportLevel support_level,
+static char *create_key(GPUSupportLevel support_level,
                         const char *vendor,
                         const char *renderer,
                         const char *version)
@@ -66,11 +68,11 @@ static char *create_gpu_name(const char *vendor, const char *renderer, const cha
   return gpu_name;
 }
 
-void GPUPlatformGlobal::init(eGPUDeviceType gpu_device,
-                             eGPUOSType os_type,
-                             eGPUDriverType driver_type,
-                             eGPUSupportLevel gpu_support_level,
-                             eGPUBackendType backend,
+void GPUPlatformGlobal::init(GPUDeviceType gpu_device,
+                             GPUOSType os_type,
+                             GPUDriverType driver_type,
+                             GPUSupportLevel gpu_support_level,
+                             GPUBackendType backend,
                              const char *vendor_str,
                              const char *renderer_str,
                              const char *version_str,
@@ -100,11 +102,11 @@ void GPUPlatformGlobal::init(eGPUDeviceType gpu_device,
 
 void GPUPlatformGlobal::clear()
 {
-  MEM_SAFE_FREE(vendor);
-  MEM_SAFE_FREE(renderer);
-  MEM_SAFE_FREE(version);
-  MEM_SAFE_FREE(support_key);
-  MEM_SAFE_FREE(gpu_name);
+  MEM_SAFE_DELETE(vendor);
+  MEM_SAFE_DELETE(renderer);
+  MEM_SAFE_DELETE(version);
+  MEM_SAFE_DELETE(support_key);
+  MEM_SAFE_DELETE(gpu_name);
   devices.clear_and_shrink();
   device_uuid.reinitialize(0);
   device_luid.reinitialize(0);
@@ -112,7 +114,7 @@ void GPUPlatformGlobal::clear()
   initialized = false;
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
 
 /** \} */
 
@@ -122,7 +124,7 @@ void GPUPlatformGlobal::clear()
 
 using namespace blender::gpu;
 
-eGPUSupportLevel GPU_platform_support_level()
+GPUSupportLevel GPU_platform_support_level()
 {
   BLI_assert(GPG.initialized);
   return GPG.support_level;
@@ -164,32 +166,32 @@ GPUArchitectureType GPU_platform_architecture()
   return GPG.architecture_type;
 }
 
-bool GPU_type_matches(eGPUDeviceType device, eGPUOSType os, eGPUDriverType driver)
+bool GPU_type_matches(GPUDeviceType device, GPUOSType os, GPUDriverType driver)
 {
   return GPU_type_matches_ex(device, os, driver, GPU_BACKEND_ANY);
 }
 
-bool GPU_type_matches_ex(eGPUDeviceType device,
-                         eGPUOSType os,
-                         eGPUDriverType driver,
-                         eGPUBackendType backend)
+bool GPU_type_matches_ex(GPUDeviceType device,
+                         GPUOSType os,
+                         GPUDriverType driver,
+                         GPUBackendType backend)
 {
   BLI_assert(GPG.initialized);
   return (GPG.device & device) && (GPG.os & os) && (GPG.driver & driver) &&
          (GPG.backend & backend);
 }
 
-blender::Span<GPUDevice> GPU_platform_devices_list()
+Span<GPUDevice> GPU_platform_devices_list()
 {
   return GPG.devices.as_span();
 }
 
-blender::Span<uint8_t> GPU_platform_uuid()
+Span<uint8_t> GPU_platform_uuid()
 {
   return GPG.device_uuid.as_span();
 }
 
-blender::Span<uint8_t> GPU_platform_luid()
+Span<uint8_t> GPU_platform_luid()
 {
   return GPG.device_luid.as_span();
 }
@@ -200,3 +202,5 @@ uint32_t GPU_platform_luid_node_mask()
 }
 
 /** \} */
+
+}  // namespace blender

@@ -29,11 +29,11 @@ static void copy_layer_groups_without_layers(GreasePencil &dst_grease_pencil,
 {
   using namespace bke::greasepencil;
   /* Note: Don't loop over all children, just the direct children. */
-  LISTBASE_FOREACH (GreasePencilLayerTreeNode *, node, &src_parent.children) {
-    if (!node->wrap().is_group()) {
+  for (GreasePencilLayerTreeNode &node : src_parent.children) {
+    if (!node.wrap().is_group()) {
       continue;
     }
-    const LayerGroup &src_group = node->wrap().as_group();
+    const LayerGroup &src_group = node.wrap().as_group();
     LayerGroup &new_group = dst_grease_pencil.add_layer_group(dst_parent, src_group.name(), false);
     BKE_grease_pencil_copy_layer_group_parameters(src_group, new_group);
     /* Repeat recursively for groups in group. */
@@ -98,7 +98,7 @@ static bke::CurvesGeometry join_curves(const GreasePencil &src_grease_pencil,
     const float4x4 &transform = transforms_to_apply[src_curves_i];
     src_curves.transform(transform);
     Curves *src_curves_id = bke::curves_new_nomain(std::move(src_curves));
-    src_curves_id->mat = static_cast<Material **>(MEM_dupallocN(src_grease_pencil.material_array));
+    src_curves_id->mat = MEM_dupalloc(src_grease_pencil.material_array);
     src_curves_id->totcol = src_grease_pencil.material_array_num;
     src_geometries[src_curves_i].replace_curves(src_curves_id);
   }
@@ -201,9 +201,7 @@ void merge_layers(const GreasePencil &src_grease_pencil,
         BLI_assert(duration >= 0);
         dst_frames.add_or_modify(
             item.key,
-            [&](InsertKeyframe *frame) {
-              *frame = {item.value, duration};
-            },
+            [&](InsertKeyframe *frame) { *frame = {item.value, duration}; },
             [&](InsertKeyframe *frame) {
               /* The destination frame is always an implicit hold if at least on of the source
                * frame is an implicit hold. */
@@ -225,7 +223,7 @@ void merge_layers(const GreasePencil &src_grease_pencil,
       for (const FramesMapKeyT key : dst_frames.keys()) {
         sorted_keys[i++] = key;
       }
-      std::sort(sorted_keys.begin(), sorted_keys.end());
+      std::ranges::sort(sorted_keys);
     }
 
     Array<Vector<int>> src_drawing_indices_by_frame(sorted_keys.size());
@@ -331,11 +329,19 @@ void merge_layers(const GreasePencil &src_grease_pencil,
   /* Gather all the layer attributes. */
   const bke::AttributeAccessor src_attributes = src_grease_pencil.attributes();
   bke::MutableAttributeAccessor dst_attributes = dst_grease_pencil.attributes_for_write();
-  src_attributes.foreach_attribute([&](const blender::bke::AttributeIter &iter) {
+  src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
     if (iter.data_type == bke::AttrType::String) {
       return;
     }
     bke::GAttributeReader src_attribute = iter.get();
+    const CommonVArrayInfo info = src_attribute.varray.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      const bke::AttributeInitValue init(GPointer(src_attribute.varray.type(), info.data));
+      if (dst_attributes.add(iter.name, iter.domain, iter.data_type, init)) {
+        return;
+      }
+    }
+
     bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
         iter.name, bke::AttrDomain::Layer, iter.data_type);
     if (!dst_attribute) {
@@ -343,8 +349,7 @@ void merge_layers(const GreasePencil &src_grease_pencil,
     }
 
     const CPPType &type = dst_attribute.span.type();
-    bke::attribute_math::convert_to_static_type(type, [&](auto type) {
-      using T = decltype(type);
+    bke::attribute_math::to_static_type(type, [&]<typename T>() {
       const VArraySpan<T> src_span = src_attribute.varray.typed<T>();
       MutableSpan<T> new_span = dst_attribute.span.typed<T>();
 

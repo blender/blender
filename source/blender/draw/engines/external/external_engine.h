@@ -10,6 +10,8 @@
 
 #include "DRW_render.hh"
 
+namespace blender {
+
 struct RenderEngineType;
 
 extern RenderEngineType DRW_engine_viewport_external_type;
@@ -21,10 +23,11 @@ extern RenderEngineType DRW_engine_viewport_external_type;
  * NOTE: Released by the draw engine when it is done drawing. */
 bool DRW_engine_external_acquire_for_image_editor(const DRWContext *draw_ctx);
 
-namespace blender::draw::external {
+namespace draw::external {
 
 struct Engine : public DrawEngine::Pointer {
   DrawEngine *create_instance() final;
 };
 
-}  // namespace blender::draw::external
+}  // namespace draw::external
+}  // namespace blender

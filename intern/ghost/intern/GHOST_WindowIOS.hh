@@ -80,7 +80,12 @@ class GHOST_WindowIOS : public GHOST_Window {
    * Swaps the current framebuffer to the screen
    * \return Success or failure
    */
-  GHOST_TSuccess swapBuffers() override;
+  GHOST_TSuccess swapBufferAcquire() override
+  {
+    return GHOST_kSuccess;
+  }
+
+  GHOST_TSuccess swapBufferRelease() override;
 
   /**
    * Sets the title displayed in the title bar.

@@ -6,7 +6,7 @@
  * Does not use any tracing method. Only rely on local light probes to get the incoming radiance.
  */
 
-#include "infos/eevee_tracing_info.hh"
+#include "infos/eevee_tracing_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_ray_trace_fallback)
 

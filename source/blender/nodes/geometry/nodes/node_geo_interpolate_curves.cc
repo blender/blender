@@ -6,7 +6,7 @@
 
 #include "BLI_math_vector.hh"
 
-#include "BLI_kdtree.h"
+#include "BLI_kdtree.hh"
 #include "BLI_length_parameterize.hh"
 #include "BLI_math_quaternion.hh"
 #include "BLI_math_rotation.h"
@@ -111,17 +111,18 @@ static Map<int, KDTree_3d *> build_kdtrees_for_root_positions(
     const int group = item.key;
     const Span<int> guide_indices = item.value;
 
-    KDTree_3d *kdtree = BLI_kdtree_3d_new(guide_indices.size());
+    KDTree_3d *kdtree = kdtree_3d_new(guide_indices.size());
     kdtrees.add_new(group, kdtree);
 
     for (const int curve_i : guide_indices) {
       const int first_point_i = offsets[curve_i];
       const float3 &root_pos = positions[first_point_i];
-      BLI_kdtree_3d_insert(kdtree, curve_i, root_pos);
+      kdtree_3d_insert(kdtree, curve_i, root_pos);
     }
   }
-  threading::parallel_for_each(kdtrees.values(),
-                               [](KDTree_3d *kdtree) { BLI_kdtree_3d_balance(kdtree); });
+  Vector<KDTree_3d *> kdtrees_vec;
+  kdtrees_vec.extend(kdtrees.values().begin(), kdtrees.values().end());
+  threading::parallel_for_each(kdtrees_vec, [](KDTree_3d *kdtree) { kdtree_3d_balance(kdtree); });
   return kdtrees;
 }
 
@@ -156,7 +157,7 @@ static void find_neighbor_guides(const Span<float3> positions,
       const int neighbors_to_find = max_neighbor_count + use_extra_neighbor;
 
       Vector<KDTreeNearest_3d, 16> nearest_n(neighbors_to_find);
-      const int num_neighbors = BLI_kdtree_3d_find_nearest_n(
+      const int num_neighbors = kdtree_3d_find_nearest_n(
           kdtree, position, nearest_n.data(), neighbors_to_find);
       if (num_neighbors == 0) {
         r_all_neighbor_counts[child_curve_i] = 0;
@@ -476,16 +477,24 @@ static void interpolate_curve_attributes(bke::CurvesGeometry &child_curves,
       return;
     }
 
-    if (iter.domain == AttrDomain::Curve) {
-      const GVArraySpan src_generic = *iter.get(AttrDomain::Curve, type);
+    const GVArray src_attr = *iter.get();
+    const CommonVArrayInfo info = src_attr.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      const GPointer value(src_attr.type(), info.data);
+      if (children_attributes.add(iter.name, iter.domain, type, bke::AttributeInitValue(value))) {
+        return;
+      }
+    }
 
+    const GVArraySpan src_generic = src_attr;
+
+    if (iter.domain == AttrDomain::Curve) {
       GSpanAttributeWriter dst_generic = children_attributes.lookup_or_add_for_write_only_span(
           iter.name, AttrDomain::Curve, type);
       if (!dst_generic) {
         return;
       }
-      bke::attribute_math::convert_to_static_type(type, [&](auto dummy) {
-        using T = decltype(dummy);
+      bke::attribute_math::to_static_type(type, [&]<typename T>() {
         const Span<T> src = src_generic.typed<T>();
         MutableSpan<T> dst = dst_generic.span.typed<T>();
 
@@ -511,15 +520,13 @@ static void interpolate_curve_attributes(bke::CurvesGeometry &child_curves,
     }
     else {
       BLI_assert(iter.domain == AttrDomain::Point);
-      const GVArraySpan src_generic = *iter.get(AttrDomain::Point, type);
       GSpanAttributeWriter dst_generic = children_attributes.lookup_or_add_for_write_only_span(
           iter.name, AttrDomain::Point, type);
       if (!dst_generic) {
         return;
       }
 
-      bke::attribute_math::convert_to_static_type(type, [&](auto dummy) {
-        using T = decltype(dummy);
+      bke::attribute_math::to_static_type(type, [&]<typename T>() {
         const Span<T> src = src_generic.typed<T>();
         MutableSpan<T> dst = dst_generic.span.typed<T>();
 
@@ -698,7 +705,7 @@ static GeometrySet generate_interpolated_curves(
   Map<int, KDTree_3d *> kdtrees = build_kdtrees_for_root_positions(guides_by_group, guide_curves);
   BLI_SCOPED_DEFER([&]() {
     for (KDTree_3d *kdtree : kdtrees.values()) {
-      BLI_kdtree_3d_free(kdtree);
+      kdtree_3d_free(kdtree);
     }
   });
 
@@ -777,7 +784,7 @@ static GeometrySet generate_interpolated_curves(
                           all_neighbor_weights);
 
   if (guide_curves_id.mat != nullptr) {
-    child_curves_id->mat = static_cast<Material **>(MEM_dupallocN(guide_curves_id.mat));
+    child_curves_id->mat = MEM_dupalloc(guide_curves_id.mat);
     child_curves_id->totcol = guide_curves_id.totcol;
   }
 
@@ -866,13 +873,14 @@ static void node_geo_exec(GeoNodeExecParams params)
     new_curves.add(*curve_edit_data);
   }
   new_curves.name = guide_curves_geometry.name;
+  new_curves.copy_bundle_from(guide_curves_geometry);
 
   params.set_output("Curves", std::move(new_curves));
 }
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeInterpolateCurves", GEO_NODE_INTERPOLATE_CURVES);
   ntype.ui_name = "Interpolate Curves";
@@ -881,7 +889,7 @@ static void node_register()
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

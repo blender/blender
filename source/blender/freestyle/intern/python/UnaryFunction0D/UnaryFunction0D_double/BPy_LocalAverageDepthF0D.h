@@ -18,8 +18,8 @@ extern PyTypeObject LocalAverageDepthF0D_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&LocalAverageDepthF0D_Type))
 
 /*---------------------------Python BPy_LocalAverageDepthF0D structure definition----------*/
-typedef struct {
+struct BPy_LocalAverageDepthF0D {
   BPy_UnaryFunction0DDouble py_uf0D_double;
-} BPy_LocalAverageDepthF0D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

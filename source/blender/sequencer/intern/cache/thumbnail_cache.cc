@@ -307,17 +307,16 @@ void ThumbGenerationJob::run_fn(void *customdata, wmJobWorkerStatus *worker_stat
     }
 
     /* Sort requests by file, stream and increasing frame index. */
-    std::sort(requests.begin(),
-              requests.end(),
-              [](const ThumbnailCache::Request &a, const ThumbnailCache::Request &b) {
-                if (a.file_path != b.file_path) {
-                  return a.file_path < b.file_path;
-                }
-                if (a.stream_index != b.stream_index) {
-                  return a.stream_index < b.stream_index;
-                }
-                return a.frame_index < b.frame_index;
-              });
+    std::ranges::sort(requests,
+                      [](const ThumbnailCache::Request &a, const ThumbnailCache::Request &b) {
+                        if (a.file_path != b.file_path) {
+                          return a.file_path < b.file_path;
+                        }
+                        if (a.stream_index != b.stream_index) {
+                          return a.stream_index < b.stream_index;
+                        }
+                        return a.frame_index < b.frame_index;
+                      });
 
     /* Note: we could process thumbnail cache requests somewhat in parallel,
      * but let's not do that so that UI responsiveness is not affected much.
@@ -547,8 +546,7 @@ void thumbnail_cache_invalidate_strip(Scene *scene, const Strip *strip)
           paths_count = int(MEM_allocN_len(elem) / sizeof(*elem));
         }
         char filepath[FILE_MAX];
-        const char *basepath = strip->scene ? ID_BLEND_PATH_FROM_GLOBAL(&strip->scene->id) :
-                                              BKE_main_blendfile_path_from_global();
+        const char *basepath = ID_BLEND_PATH_FROM_GLOBAL(&scene->id);
         for (int i = 0; i < paths_count; i++, elem++) {
           BLI_path_join(filepath, sizeof(filepath), strip->data->dirpath, elem->filename);
           BLI_path_abs(filepath, basepath);

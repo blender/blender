@@ -20,9 +20,9 @@ extern PyTypeObject SVertexIterator_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&SVertexIterator_Type))
 
 /*---------------------------Python BPy_SVertexIterator structure definition----------*/
-typedef struct {
+struct BPy_SVertexIterator {
   BPy_Iterator py_it;
   Freestyle::ViewEdgeInternal::SVertexIterator *sv_it;
-} BPy_SVertexIterator;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

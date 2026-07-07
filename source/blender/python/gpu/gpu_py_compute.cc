@@ -21,6 +21,8 @@
 #include "gpu_py_compute.hh" /* own include */
 #include "gpu_py_shader.hh"
 
+namespace blender {
+
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_compute_dispatch_doc,
@@ -28,16 +30,14 @@ PyDoc_STRVAR(
     "\n"
     "   Dispatches GPU compute.\n"
     "\n"
-    "   :arg shader: The shader that you want to dispatch.\n"
+    "   :param shader: The shader that you want to dispatch.\n"
     "   :type shader: :class:`gpu.types.GPUShader`\n"
-    "   :arg groups_x_len: Int for group x length:\n"
+    "   :param groups_x_len: Int for group x length:\n"
     "   :type groups_x_len: int\n"
-    "   :arg groups_y_len: Int for group y length:\n"
+    "   :param groups_y_len: Int for group y length:\n"
     "   :type groups_y_len: int\n"
-    "   :arg groups_z_len: Int for group z length:\n"
-    "   :type groups_z_len: int\n"
-    "   :return: Shader object.\n"
-    "   :rtype: :class:`gpu.types.GPUShader`\n");
+    "   :param groups_z_len: Int for group z length:\n"
+    "   :type groups_z_len: int\n");
 static PyObject *pygpu_compute_dispatch(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
@@ -50,15 +50,14 @@ static PyObject *pygpu_compute_dispatch(PyObject * /*self*/, PyObject *args, PyO
   static const char *_keywords[] = {
       "shader", "groups_x_len", "groups_y_len", "groups_z_len", nullptr};
   static _PyArg_Parser _parser = {
-        PY_ARG_PARSER_HEAD_COMPAT()
-        "O" /* `shader` */
-        "i" /* `groups_x_len` */
-        "i" /* `groups_y_len` */
-        "i" /* `groups_z_len` */
-        ":dispatch",
-        _keywords,
-        nullptr,
-    };
+      "O" /* `shader` */
+      "i" /* `groups_x_len` */
+      "i" /* `groups_y_len` */
+      "i" /* `groups_z_len` */
+      ":dispatch",
+      _keywords,
+      nullptr,
+  };
   if (_PyArg_ParseTupleAndKeywordsFast(
           args, kwds, &_parser, &py_shader, &groups_x_len, &groups_y_len, &groups_z_len))
   {
@@ -95,7 +94,7 @@ static PyObject *pygpu_compute_dispatch(PyObject * /*self*/, PyObject *args, PyO
       return nullptr;
     }
 
-    blender::gpu::Shader *shader = py_shader->shader;
+    gpu::Shader *shader = py_shader->shader;
     GPU_compute_dispatch(shader, groups_x_len, groups_y_len, groups_z_len);
     GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
   }
@@ -118,7 +117,7 @@ static PyObject *pygpu_compute_dispatch(PyObject * /*self*/, PyObject *args, PyO
 
 static PyMethodDef pygpu_compute__tp_methods[] = {
     {"dispatch",
-     (PyCFunction)pygpu_compute_dispatch,
+     reinterpret_cast<PyCFunction>(pygpu_compute_dispatch),
      METH_VARARGS | METH_KEYWORDS,
      pygpu_compute_dispatch_doc},
     {nullptr, nullptr, 0, nullptr},
@@ -158,3 +157,5 @@ PyObject *bpygpu_compute_init()
 }
 
 /** \} */
+
+}  // namespace blender

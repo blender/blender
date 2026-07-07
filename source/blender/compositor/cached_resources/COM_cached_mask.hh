@@ -25,13 +25,15 @@ class Context;
  */
 class CachedMaskKey {
  public:
-  int2 size;
+  int2 data_size;
+  int2 display_size;
+  int2 data_offset;
   float aspect_ratio;
   bool use_feather;
   int motion_blur_samples;
   float motion_blur_shutter;
 
-  CachedMaskKey(int2 size,
+  CachedMaskKey(const Domain &domain,
                 float aspect_ratio,
                 bool use_feather,
                 int motion_blur_samples,
@@ -53,7 +55,7 @@ class CachedMask : public CachedResource {
 
   CachedMask(Context &context,
              Mask *mask,
-             int2 size,
+             const Domain &domain,
              int frame,
              float aspect_ratio,
              bool use_feather,
@@ -84,7 +86,7 @@ class CachedMaskContainer : CachedResourceContainer {
    * cached resource as needed to keep it cached for the next evaluation. */
   Result &get(Context &context,
               Mask *mask,
-              int2 size,
+              const Domain &domain,
               float aspect_ratio,
               bool use_feather,
               int motion_blur_samples,

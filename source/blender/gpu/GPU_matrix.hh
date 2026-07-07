@@ -8,9 +8,11 @@
 
 #pragma once
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 class Shader;
-}  // namespace blender::gpu
+}  // namespace gpu
 
 /**
  * To Identity transform & empty stack.
@@ -152,7 +154,7 @@ const float (*GPU_matrix_normal_inverse_get(float m[3][3]))[3];
 /**
  * Set uniform values for currently bound shader.
  */
-void GPU_matrix_bind(blender::gpu::Shader *shader);
+void GPU_matrix_bind(gpu::Shader *shader);
 bool GPU_matrix_dirty_get(); /* since last bind */
 
 /**
@@ -178,35 +180,35 @@ int GPU_matrix_stack_level_get_projection();
 #  if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
 #    define _GPU_MAT3_CONST_CAST(x) \
       (_Generic((x), \
-          void *: (const float(*)[3])(x), \
-          float *: (const float(*)[3])(x), \
-          float(*)[4]: (const float(*)[3])(x), \
-          const void *: (const float(*)[3])(x), \
-          const float *: (const float(*)[3])(x), \
-          const float(*)[3]: (const float(*)[3])(x)))
+           void *: (const float (*)[3])(x), \
+           float *: (const float (*)[3])(x), \
+           float (*)[4]: (const float (*)[3])(x), \
+           const void *: (const float (*)[3])(x), \
+           const float *: (const float (*)[3])(x), \
+           const float (*)[3]: (const float (*)[3])(x)))
 #    define _GPU_MAT3_CAST(x) \
       (_Generic((x), \
-          void *: (float(*)[3])(x), \
-          float *: (float(*)[3])(x), \
-          float(*)[3]: (float(*)[3])(x)))
+           void *: (float (*)[3])(x), \
+           float *: (float (*)[3])(x), \
+           float (*)[3]: (float (*)[3])(x)))
 #    define _GPU_MAT4_CONST_CAST(x) \
       (_Generic((x), \
-          void *: (const float(*)[4])(x), \
-          float *: (const float(*)[4])(x), \
-          float(*)[4]: (const float(*)[4])(x), \
-          const void *: (const float(*)[4])(x), \
-          const float *: (const float(*)[4])(x), \
-          const float(*)[4]: (const float(*)[4])(x)))
+           void *: (const float (*)[4])(x), \
+           float *: (const float (*)[4])(x), \
+           float (*)[4]: (const float (*)[4])(x), \
+           const void *: (const float (*)[4])(x), \
+           const float *: (const float (*)[4])(x), \
+           const float (*)[4]: (const float (*)[4])(x)))
 #    define _GPU_MAT4_CAST(x) \
       (_Generic((x), \
-          void *: (float(*)[4])(x), \
-          float *: (float(*)[4])(x), \
-          float(*)[4]: (float(*)[4])(x)))
+           void *: (float (*)[4])(x), \
+           float *: (float (*)[4])(x), \
+           float (*)[4]: (float (*)[4])(x)))
 #  else
-#    define _GPU_MAT3_CONST_CAST(x) (const float(*)[3])(x)
-#    define _GPU_MAT3_CAST(x) (float(*)[3])(x)
-#    define _GPU_MAT4_CONST_CAST(x) (const float(*)[4])(x)
-#    define _GPU_MAT4_CAST(x) (float(*)[4])(x)
+#    define _GPU_MAT3_CONST_CAST(x) (const float (*)[3])(x)
+#    define _GPU_MAT3_CAST(x) (float (*)[3])(x)
+#    define _GPU_MAT4_CONST_CAST(x) (const float (*)[4])(x)
+#    define _GPU_MAT4_CAST(x) (float (*)[4])(x)
 #  endif /* C11 */
 
 /* make matrix inputs generic, to avoid warnings */
@@ -225,3 +227,5 @@ int GPU_matrix_stack_level_get_projection();
  * however we need to check these limits in code that calls into these API's. */
 constexpr static int GPU_MATRIX_ORTHO_CLIP_NEAR_DEFAULT = -100;
 constexpr static int GPU_MATRIX_ORTHO_CLIP_FAR_DEFAULT = 100;
+
+}  // namespace blender

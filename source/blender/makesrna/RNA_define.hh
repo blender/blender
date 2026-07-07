@@ -18,6 +18,8 @@
 
 #include "RNA_types.hh"
 
+namespace blender {
+
 #ifdef UNIT_TEST
 #  define RNA_MAX_ARRAY_LENGTH 64
 #else
@@ -69,7 +71,13 @@ StructRNA *RNA_def_struct_ptr(BlenderRNA *brna, const char *identifier, StructRN
 StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *from);
 void RNA_def_struct_sdna(StructRNA *srna, const char *structname);
 void RNA_def_struct_sdna_from(StructRNA *srna, const char *structname, const char *propname);
-void RNA_def_struct_name_property(StructRNA *srna, PropertyRNA *prop);
+/**
+ * Define the struct's String property used to retrieve the name of a PointerRNA of that type.
+ * Used e.g. in several UI widget displaying content of RNA collections.
+ *
+ * \param allow_replace If true, allow replacing an already defined struct name property.
+ */
+void RNA_def_struct_name_property(StructRNA *srna, PropertyRNA *prop, bool allow_replace = false);
 void RNA_def_struct_nested(BlenderRNA *brna, StructRNA *srna, const char *structname);
 void RNA_def_struct_flag(StructRNA *srna, int flag);
 void RNA_def_struct_clear_flag(StructRNA *srna, int flag);
@@ -446,6 +454,15 @@ void RNA_def_property_flag(PropertyRNA *prop, PropertyFlag flag);
 void RNA_def_property_clear_flag(PropertyRNA *prop, PropertyFlag flag);
 void RNA_def_property_override_flag(PropertyRNA *prop, PropertyOverrideFlag flag);
 void RNA_def_property_override_clear_flag(PropertyRNA *prop, PropertyOverrideFlag flag);
+
+/**
+ * In some cases showing properties in the outliner crashes.
+ * It's a bug that occurs when accessing a value re-allocates
+ * memory which may already be referenced by other RNA.
+ * See: #145877.
+ */
+void RNA_def_property_flag_hide_from_ui_workaround(PropertyRNA *prop);
+
 /**
  * Add the property-tags passed as \a tags to \a prop (if valid).
  *
@@ -484,6 +501,8 @@ void RNA_def_property_enum_default(PropertyRNA *prop, int value);
 void RNA_def_property_string_default(PropertyRNA *prop, const char *value);
 
 void RNA_def_property_ui_text(PropertyRNA *prop, const char *name, const char *description);
+void RNA_def_property_ui_name_func(PropertyRNA *prop, const char *name_func);
+void RNA_def_property_ui_description_func(PropertyRNA *prop, const char *description_func);
 
 void RNA_def_property_deprecated(PropertyRNA *prop,
                                  const char *note,
@@ -569,6 +588,7 @@ void RNA_def_property_float_default_func(PropertyRNA *prop, const char *get_defa
 void RNA_def_property_int_default_func(PropertyRNA *prop, const char *get_default);
 void RNA_def_property_boolean_default_func(PropertyRNA *prop, const char *get_default);
 void RNA_def_property_enum_default_func(PropertyRNA *prop, const char *get_default);
+void RNA_def_property_string_default_func(PropertyRNA *prop, const char *get_default);
 
 void RNA_def_property_srna(PropertyRNA *prop, const char *type);
 void RNA_def_py_data(PropertyRNA *prop, void *py_data);
@@ -714,3 +734,5 @@ extern const float rna_default_scale_3d[3];
 
 /** Maximum size for dynamic defined type descriptors, this value is arbitrary. */
 #define RNA_DYN_DESCR_MAX 1024
+
+}  // namespace blender

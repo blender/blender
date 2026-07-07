@@ -40,14 +40,14 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Bool>("Value", "Value_003");
 }
 
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
+  layout.prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void fn_node_random_value_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeRandomValue *data = MEM_callocN<NodeRandomValue>(__func__);
+  NodeRandomValue *data = MEM_new<NodeRandomValue>(__func__);
   data->data_type = CD_PROP_FLOAT;
   node->storage = data;
 }
@@ -57,7 +57,7 @@ static void fn_node_random_value_update(bNodeTree *ntree, bNode *node)
   const NodeRandomValue &storage = node_storage(*node);
   const eCustomDataType data_type = eCustomDataType(storage.data_type);
 
-  bNodeSocket *sock_min_vector = (bNodeSocket *)node->inputs.first;
+  bNodeSocket *sock_min_vector = static_cast<bNodeSocket *>(node->inputs.first);
   bNodeSocket *sock_max_vector = sock_min_vector->next;
   bNodeSocket *sock_min_float = sock_max_vector->next;
   bNodeSocket *sock_max_float = sock_min_float->next;
@@ -65,7 +65,7 @@ static void fn_node_random_value_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *sock_max_int = sock_min_int->next;
   bNodeSocket *sock_probability = sock_max_int->next;
 
-  bNodeSocket *sock_out_vector = (bNodeSocket *)node->outputs.first;
+  bNodeSocket *sock_out_vector = static_cast<bNodeSocket *>(node->outputs.first);
   bNodeSocket *sock_out_float = sock_out_vector->next;
   bNodeSocket *sock_out_int = sock_out_float->next;
   bNodeSocket *sock_out_bool = sock_out_int->next;
@@ -171,7 +171,15 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
               std::swap(min_value, max_value);
             }
             const uint32_t hash = noise::hash(id, seed);
-            return min_value + hash % (max_value - min_value + 1);
+
+            /* Calculate range using unsigned types to fit the entire 32-bit space. */
+            const uint32_t range = uint32_t(max_value) - uint32_t(min_value) + 1;
+
+            /* Range wraps around to 0 when min_value is INT_MIN and max_value is INT_MAX.
+             * so the modulo is unnecessary and would cause a division by zero. */
+            const uint32_t modulo_result = (range == 0) ? hash : (hash % range);
+
+            return int(uint32_t(min_value) + modulo_result);
           },
           mf::build::exec_presets::SomeSpanOrSingle<2>());
       builder.set_matching_fn(fn);
@@ -196,10 +204,11 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   fn_node_type_base(&ntype, "FunctionNodeRandomValue", FN_NODE_RANDOM_VALUE);
   ntype.ui_name = "Random Value";
+  ntype.ui_description = "Output a randomized value";
   ntype.enum_name_legacy = "RANDOM_VALUE";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.initfunc = fn_node_random_value_init;
@@ -208,9 +217,9 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.build_multi_function = node_build_multi_function;
   ntype.gather_link_search_ops = node_gather_link_search_ops;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeRandomValue", node_free_standard_storage, node_copy_standard_storage);
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

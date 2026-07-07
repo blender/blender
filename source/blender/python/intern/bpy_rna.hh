@@ -14,6 +14,9 @@
 
 /* --- bpy build options --- */
 #include "intern/rna_internal_types.hh"
+
+namespace blender {
+
 #ifdef WITH_PYTHON_SAFETY
 
 /**
@@ -190,6 +193,11 @@ struct BPy_FunctionRNA {
 
   std::optional<PointerRNA> ptr;
   FunctionRNA *func;
+  /**
+   * Instance call only. This is *always* set to `pyrna_func_vectorcall`.
+   * Storing this value is required by the Python C-API (PEP 590).
+   */
+  vectorcallfunc vectorcall;
 };
 
 [[nodiscard]] StructRNA *srna_from_self(PyObject *self, const char *error_prefix);
@@ -281,6 +289,8 @@ void pyrna_alloc_types();
 
 [[nodiscard]] bool pyrna_write_check();
 void pyrna_write_set(bool val);
+void pyrna_context_init(bContext *C);
+void pyrna_context_clear(bContext *C);
 
 void pyrna_invalidate(BPy_DummyPointerRNA *self);
 
@@ -299,3 +309,5 @@ extern PyMethodDef meth_bpy_owner_id_set;
 extern PyMethodDef meth_bpy_owner_id_get;
 
 extern BPy_StructRNA *bpy_context_module;
+
+}  // namespace blender

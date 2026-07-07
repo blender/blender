@@ -14,10 +14,12 @@
 
 #include "IO_wavefront_obj.hh"
 
+namespace blender {
+
 struct bContext;
 struct Collection;
 
-namespace blender::io::obj {
+namespace io::obj {
 
 /**
  * Behaves like `std::unique_ptr<Depsgraph, custom_deleter>`.
@@ -95,4 +97,5 @@ filter_supported_objects(Depsgraph *depsgraph, const OBJExportParams &export_par
 bool append_frame_to_filename(const char *filepath,
                               int frame,
                               char r_filepath_with_frames[/*FILE_MAX*/ 1024]);
-}  // namespace blender::io::obj
+}  // namespace io::obj
+}  // namespace blender

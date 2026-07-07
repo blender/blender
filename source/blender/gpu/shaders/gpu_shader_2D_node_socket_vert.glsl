@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/gpu_shader_2D_node_socket_info.hh"
+#include "infos/gpu_shader_2D_node_socket_infos.hh"
 
 #include "gpu_shader_math_base_lib.glsl"
 

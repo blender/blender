@@ -4,6 +4,7 @@
 
 #include "gpu_shader_material_blackbody.glsl"
 
+[[node]]
 void node_volume_principled(float4 color,
                             float density,
                             float anisotropy,
@@ -19,7 +20,7 @@ void node_volume_principled(float4 color,
                             float4 temperature_attribute,
                             sampler1DArray spectrummap,
                             float layer,
-                            out Closure result)
+                            Closure &result)
 {
   color = max(color, float4(0.0f));
   density = max(density, 0.0f);

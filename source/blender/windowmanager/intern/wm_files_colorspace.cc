@@ -15,7 +15,7 @@
 #include "BKE_context.hh"
 #include "BKE_image.hh"
 #include "BKE_main.hh"
-#include "BKE_movieclip.h"
+#include "BKE_movieclip.hh"
 #include "BKE_report.hh"
 
 #include "DNA_windowmanager_enums.h"
@@ -29,8 +29,6 @@
 #include "DEG_depsgraph.hh"
 
 #include "UI_interface_c.hh"
-#include "UI_interface_icons.hh"
-#include "UI_interface_layout.hh"
 
 #include "BLT_translation.hh"
 
@@ -46,6 +44,8 @@
 #include "WM_types.hh"
 
 #include "wm_files.hh"
+
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Set Working Color Space Operator
@@ -113,31 +113,31 @@ static wmOperatorStatus wm_set_working_color_space_exec(bContext *C, wmOperator 
     const bool depsgraph_tag = true;
     IMB_colormanagement_working_space_convert(bmain,
                                               bmain->colorspace.scene_linear_to_xyz,
-                                              blender::colorspace::xyz_to_scene_linear,
+                                              colorspace::xyz_to_scene_linear,
                                               depsgraph_tag);
   }
 
   STRNCPY(bmain->colorspace.scene_linear_name, working_space);
-  bmain->colorspace.scene_linear_to_xyz = blender::colorspace::scene_linear_to_xyz;
+  bmain->colorspace.scene_linear_to_xyz = colorspace::scene_linear_to_xyz;
 
   /* Free all render, compositor and sequencer caches. */
   RE_FreeAllRenderResults();
   RE_FreeInteractiveCompositorRenders();
-  blender::seq::prefetch_stop_all();
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    blender::seq::cache_cleanup(scene);
+  seq::prefetch_stop_all();
+  for (Scene &scene : bmain->scenes) {
+    seq::cache_cleanup(&scene, seq::CacheCleanup::All);
   }
 
   /* Free all images, they may have scene linear float buffers. */
-  LISTBASE_FOREACH (Image *, image, &bmain->images) {
-    DEG_id_tag_update(&image->id, ID_RECALC_SOURCE);
-    BKE_image_signal(bmain, image, nullptr, IMA_SIGNAL_COLORMANAGE);
-    BKE_image_partial_update_mark_full_update(image);
+  for (Image &image : bmain->images) {
+    DEG_id_tag_update(&image.id, ID_RECALC_SOURCE);
+    BKE_image_signal(bmain, &image, nullptr, IMA_SIGNAL_COLORMANAGE);
+    BKE_image_partial_update_mark_full_update(&image);
   }
-  LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
-    BKE_movieclip_clear_cache(clip);
-    BKE_movieclip_free_gputexture(clip);
-    DEG_id_tag_update(&clip->id, ID_RECALC_SOURCE);
+  for (MovieClip &clip : bmain->movieclips) {
+    BKE_movieclip_clear_cache(&clip);
+    BKE_movieclip_free_gputexture(&clip);
+    DEG_id_tag_update(&clip.id, ID_RECALC_SOURCE);
   }
 
   /* Redraw everything. */
@@ -162,6 +162,13 @@ static wmOperatorStatus wm_set_working_color_space_invoke(bContext *C,
                  "working_space",
                  IMB_colormanagement_working_space_get_named_index(
                      IMB_colormanagement_working_space_get_default()));
+  }
+
+  const Main *bmain = CTX_data_main(C);
+  const char *working_space = IMB_colormanagement_working_space_get_indexed_name(
+      RNA_enum_get(op->ptr, "working_space"));
+  if (STREQ(working_space, bmain->colorspace.scene_linear_name)) {
+    return OPERATOR_CANCELLED;
   }
 
   return WM_operator_props_popup_confirm_ex(
@@ -204,3 +211,5 @@ void WM_OT_set_working_color_space(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

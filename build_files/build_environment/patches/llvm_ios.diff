@@ -64,26 +64,14 @@ diff -Naur ll.org/llvm/lib/Support/Unix/Path.inc ll/llvm/lib/Support/Unix/Path.i
  
        if (NOT LLVM_ENABLE_IDE)
 
---- a/llvm/lib/Transforms/Hello/CMakeLists.txt	2021-04-06 17:38:18
-+++ b/llvm/lib/Transforms/Hello/CMakeLists.txt	2023-06-14 10:24:15
-@@ -2,7 +2,8 @@
- # from the hello plugin.
- if( NOT LLVM_REQUIRES_RTTI )
-   if( NOT LLVM_REQUIRES_EH )
--    set(LLVM_EXPORTED_SYMBOL_FILE ${CMAKE_CURRENT_SOURCE_DIR}/Hello.exports)
-+    # Disable exports file as no exports are specified causing compilation failure on IOS
-+    #set(LLVM_EXPORTED_SYMBOL_FILE ${CMAKE_CURRENT_SOURCE_DIR}/Hello.exports)
-   endif()
- endif()
-
 --- a/llvm/cmake/modules/HandleLLVMOptions.cmake	2023-06-16 15:45:00
 +++ b/llvm/cmake/modules/HandleLLVMOptions.cmake	2023-06-16 15:33:07
 @@ -236,7 +236,7 @@
  
  # Pass -Wl,-z,defs. This makes sure all symbols are defined. Otherwise a DSO
  # build might work on ELF but fail on MachO/COFF.
--if(NOT (CMAKE_SYSTEM_NAME MATCHES "Darwin|FreeBSD|OpenBSD|DragonFly|AIX|OS390" OR
-+if(NOT (CMAKE_SYSTEM_NAME MATCHES "Darwin|FreeBSD|OpenBSD|DragonFly|AIX|OS390|iOS" OR
+-if(NOT (CMAKE_SYSTEM_NAME MATCHES "Darwin|FreeBSD|OpenBSD|DragonFly|AIX|OS390|Emscripten" OR
++if(NOT (CMAKE_SYSTEM_NAME MATCHES "Darwin|FreeBSD|OpenBSD|DragonFly|AIX|OS390|Emscripten|iOS" OR
          WIN32 OR CYGWIN) AND
     NOT LLVM_USE_SANITIZER)
    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,defs")
@@ -155,11 +143,10 @@ diff -Naur ll.org/llvm/lib/Support/Unix/Path.inc ll/llvm/lib/Support/Unix/Path.i
 
 --- a/llvm/tools/bugpoint-passes/CMakeLists.txt	2023-06-17 00:31:37
 +++ b/llvm/tools/bugpoint-passes/CMakeLists.txt	2023-06-17 00:31:37
-@@ -13,11 +13,3 @@
- if(WIN32 OR CYGWIN)
+@@ -14,10 +13,3 @@
    set(LLVM_LINK_COMPONENTS Core Support)
  endif()
--
+ 
 -add_llvm_library( BugpointPasses MODULE BUILDTREE_ONLY
 -  TestPasses.cpp
 -
@@ -167,3 +154,4 @@ diff -Naur ll.org/llvm/lib/Support/Unix/Path.inc ll/llvm/lib/Support/Unix/Path.i
 -  intrinsics_gen
 -  bugpoint
 -  )
+ 

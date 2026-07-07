@@ -12,6 +12,15 @@ if(WIN32)
   set(SDL_EXTRA_ARGS
     -DSDL_STATIC=Off
   )
+
+  if(BLENDER_PLATFORM_WINDOWS_ARM)
+    set(SDL_PATCH
+      ${SDL_PATCH} &&
+      ${PATCH_CMD} -p 1 -N -d
+        ${BUILD_DIR}/sdl/src/external_sdl <
+        ${PATCH_DIR}/sdl_woa.diff
+    )
+  endif()
 else()
   set(SDL_EXTRA_ARGS
     -DSDL_STATIC=ON

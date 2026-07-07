@@ -10,6 +10,8 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_vector.hh"
 
+namespace blender {
+
 /** \file
  * \ingroup bli
  *
@@ -56,22 +58,44 @@ enum CDT_output_type {
   CDT_FULL,
   /** All triangles fully enclosed by constraint edges or faces. */
   CDT_INSIDE,
-  /** Like previous, but detect holes and omit those from output. */
+  /**
+   * Like #CDT_INSIDE, but detect holes and omit those from output.
+   *
+   * Uses the "even-odd rule": a point is inside if a ray from that point crosses
+   * an odd number of boundary edges. This creates alternating filled/unfilled regions
+   * for nested or overlapping curves. Overlapping regions with the same winding
+   * direction will cancel out and become holes.
+   */
   CDT_INSIDE_WITH_HOLES,
+  /**
+   * Like #CDT_INSIDE_WITH_HOLES, but uses the **non-zero winding rule**.
+   *
+   * A point is inside if the winding number (sum of signed edge crossings) is non-zero.
+   * This creates "union" behavior: overlapping curves with the same winding direction
+   * merge together instead of creating holes.
+   */
+  CDT_INSIDE_WITH_HOLES_NONZERO,
   /** Only point, edge, and face constraints, and their intersections. */
   CDT_CONSTRAINTS,
   /**
-   * Like CDT_CONSTRAINTS, but keep enough
-   * edges so that any output faces that came from input faces can be made as valid
-   * #BMesh faces in Blender: that is,
+   * Like #CDT_CONSTRAINTS, but keep enough edges so that any output faces that came
+   * from input faces can be made as valid #BMesh faces in Blender: that is,
    * no vertex appears more than once and no isolated holes in faces.
    */
   CDT_CONSTRAINTS_VALID_BMESH,
-  /** Like previous, but detect holes and omit those from output. */
+  /**
+   * Like #CDT_CONSTRAINTS_VALID_BMESH, but detect holes using the even-odd rule.
+   * See #CDT_INSIDE_WITH_HOLES for explanation of the even-odd rule.
+   */
   CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES,
+  /**
+   * Like #CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES, but uses non-zero winding rule.
+   * See #CDT_INSIDE_WITH_HOLES_NONZERO for explanation.
+   */
+  CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES_NONZERO,
 };
 
-namespace blender::meshintersect {
+namespace meshintersect {
 
 /**
  * Input to Constrained Delaunay Triangulation.
@@ -153,6 +177,10 @@ template<typename T> class CDT_input {
  * For edges, the edge_orig triple can also say which original face
  * edge is part of a given output edge. See the comment below for how
  * to decode the entries in the edge_orig table.
+ *
+ * \note Regarding `uint32_t`: Each input face reserves a block of IDs
+ * to encode its edges. These blocks stack up with the number of faces,
+ * so `uint32_t` is used to provide sufficient range (see #153708).
  */
 template<typename T> class CDT_result {
  public:
@@ -161,7 +189,7 @@ template<typename T> class CDT_result {
   Array<Vector<int>> face;
   /* The orig vectors are only populated if the need_ids input field is true. */
   /** For each output vert, which input verts correspond to it? */
-  Array<Vector<int>> vert_orig;
+  Array<Vector<uint32_t>> vert_orig;
   /**
    * For each output edge, which input edges does it overlap?
    * The input edge ids are encoded as follows:
@@ -171,11 +199,11 @@ template<typename T> class CDT_result {
    *      the edge index by face_edge_offset; "a" will be the input face + 1,
    *      and "b" will be a position within that face.
    */
-  Array<Vector<int>> edge_orig;
+  Array<Vector<uint32_t>> edge_orig;
   /** For each output face, which original faces does it overlap? */
-  Array<Vector<int>> face_orig;
+  Array<Vector<uint32_t>> face_orig;
   /** Used to encode edge_orig (see above). */
-  int face_edge_offset;
+  uint32_t face_edge_offset;
 };
 
 CDT_result<double> delaunay_2d_calc(const CDT_input<double> &input, CDT_output_type output_type);
@@ -185,4 +213,5 @@ CDT_result<mpq_class> delaunay_2d_calc(const CDT_input<mpq_class> &input,
                                        CDT_output_type output_type);
 #endif
 
-} /* namespace blender::meshintersect */
+}  // namespace meshintersect
+}  // namespace blender

@@ -124,7 +124,7 @@ class NLA_MT_view(Menu):
         layout.prop(st, "show_region_ui")
         layout.prop(st, "show_region_hud")
         layout.prop(st, "show_region_channels")
-        layout.prop(st, "show_region_footer")
+        layout.prop(st, "show_region_footer", text="Playback Controls")
         layout.separator()
 
         layout.operator("nla.view_selected")
@@ -391,7 +391,7 @@ class NLA_MT_channel_context_menu(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator_menu_enum("anim.channels_move", "direction", text="Track Ordering...")
+        layout.operator_menu_enum("anim.channels_move", "direction", text="Track Ordering")
 
         layout.separator()
 

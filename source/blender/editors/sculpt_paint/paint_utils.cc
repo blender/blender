@@ -49,6 +49,8 @@
 
 #include "paint_intern.hh"
 
+namespace blender {
+
 bool paint_convert_bb_to_rect(rcti *rect,
                               const float bb_min[3],
                               const float bb_max[3],
@@ -65,7 +67,7 @@ bool paint_convert_bb_to_rect(rcti *rect,
     return false;
   }
 
-  const blender::float4x4 projection = ED_view3d_ob_project_mat_get(&rv3d, &ob);
+  const float4x4 projection = ED_view3d_ob_project_mat_get(&rv3d, &ob);
 
   for (i = 0; i < 2; i++) {
     for (j = 0; j < 2; j++) {
@@ -76,7 +78,7 @@ bool paint_convert_bb_to_rect(rcti *rect,
         vec[1] = j ? bb_min[1] : bb_max[1];
         vec[2] = k ? bb_min[2] : bb_max[2];
         /* convert corner to screen space */
-        const blender::float2 proj = ED_view3d_project_float_v2_m4(&region, vec, projection);
+        const float2 proj = ED_view3d_project_float_v2_m4(&region, vec, projection);
         /* expand 2D rectangle */
 
         /* we could project directly to int? */
@@ -93,7 +95,7 @@ bool paint_convert_bb_to_rect(rcti *rect,
 }
 
 float paint_calc_object_space_radius(const ViewContext &vc,
-                                     const blender::float3 &center,
+                                     const float3 &center,
                                      const float pixel_radius)
 {
   Object *ob = vc.obact;
@@ -139,36 +141,55 @@ bool paint_get_tex_pixel(const MTex *mtex,
 void paint_stroke_operator_properties(wmOperatorType *ot)
 {
   static const EnumPropertyItem stroke_mode_items[] = {
-      {BRUSH_STROKE_NORMAL, "NORMAL", 0, "Regular", "Apply brush normally"},
-      {BRUSH_STROKE_INVERT,
+      {int(BrushStrokeMode::Normal), "NORMAL", 0, "Regular", "Apply brush normally"},
+      {int(BrushStrokeMode::Invert),
        "INVERT",
        0,
        "Invert",
        "Invert action of brush for duration of stroke"},
-      {BRUSH_STROKE_SMOOTH,
+      {0},
+  };
+
+  static const EnumPropertyItem temporary_brush_toggle_items[] = {
+      {int(BrushSwitchMode::None), "None", 0, "None", "Apply brush normally"},
+      {int(BrushSwitchMode::Smooth),
        "SMOOTH",
        0,
        "Smooth",
-       "Switch brush to smooth mode for duration of stroke"},
-      {BRUSH_STROKE_ERASE,
+       "Switch to smooth brush for duration of stroke"},
+      {int(BrushSwitchMode::Erase),
        "ERASE",
        0,
        "Erase",
-       "Switch brush to erase mode for duration of stroke"},
+       "Switch to erase brush for duration of stroke"},
+      {int(BrushSwitchMode::Mask),
+       "MASK",
+       0,
+       "Mask",
+       "Switch to mask brush for duration of stroke"},
       {0},
   };
 
   PropertyRNA *prop;
 
-  prop = RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
+  prop = RNA_def_collection_runtime(ot->srna, "stroke", RNA_OperatorStrokeElement, "Stroke", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
   prop = RNA_def_enum(ot->srna,
                       "mode",
                       stroke_mode_items,
-                      BRUSH_STROKE_NORMAL,
+                      int(BrushStrokeMode::Normal),
                       "Stroke Mode",
                       "Action taken when a paint stroke is made");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_enum(ot->srna,
+                      "brush_toggle",
+                      temporary_brush_toggle_items,
+                      int(BrushSwitchMode::None),
+                      "Temporary Brush Toggle Type",
+                      "Brush to use for duration of stroke");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
@@ -177,86 +198,6 @@ void paint_stroke_operator_properties(wmOperatorType *ot)
   prop = RNA_def_boolean(
       ot->srna, "pen_flip", false, "Pen Flip", "Whether a tablet's eraser mode is being used");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
-}
-
-/* 3D Paint */
-
-static wmOperatorStatus brush_curve_preset_exec(bContext *C, wmOperator *op)
-{
-  Brush *br = BKE_paint_brush(BKE_paint_get_active_from_context(C));
-
-  if (br) {
-    Scene *scene = CTX_data_scene(C);
-    ViewLayer *view_layer = CTX_data_view_layer(C);
-    BKE_brush_curve_preset(br, eCurveMappingPreset(RNA_enum_get(op->ptr, "shape")));
-    BKE_paint_invalidate_cursor_overlay(scene, view_layer, br->curve);
-  }
-
-  return OPERATOR_FINISHED;
-}
-
-static bool brush_curve_preset_poll(bContext *C)
-{
-  Brush *br = BKE_paint_brush(BKE_paint_get_active_from_context(C));
-
-  return br && br->curve;
-}
-
-static const EnumPropertyItem prop_shape_items[] = {
-    {CURVE_PRESET_SHARP, "SHARP", 0, "Sharp", ""},
-    {CURVE_PRESET_SMOOTH, "SMOOTH", 0, "Smooth", ""},
-    {CURVE_PRESET_MAX, "MAX", 0, "Max", ""},
-    {CURVE_PRESET_LINE, "LINE", 0, "Line", ""},
-    {CURVE_PRESET_ROUND, "ROUND", 0, "Round", ""},
-    {CURVE_PRESET_ROOT, "ROOT", 0, "Root", ""},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
-void BRUSH_OT_curve_preset(wmOperatorType *ot)
-{
-  ot->name = "Preset";
-  ot->description = "Set brush shape";
-  ot->idname = "BRUSH_OT_curve_preset";
-
-  ot->exec = brush_curve_preset_exec;
-  ot->poll = brush_curve_preset_poll;
-
-  PropertyRNA *prop;
-  prop = RNA_def_enum(ot->srna, "shape", prop_shape_items, CURVE_PRESET_SMOOTH, "Mode", "");
-  RNA_def_property_translation_context(prop,
-                                       BLT_I18NCONTEXT_ID_CURVE_LEGACY); /* Abusing id_curve :/ */
-}
-
-static bool brush_sculpt_curves_falloff_preset_poll(bContext *C)
-{
-  Brush *br = BKE_paint_brush(BKE_paint_get_active_from_context(C));
-  return br && br->curves_sculpt_settings && br->curves_sculpt_settings->curve_parameter_falloff;
-}
-
-static wmOperatorStatus brush_sculpt_curves_falloff_preset_exec(bContext *C, wmOperator *op)
-{
-  Brush *brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
-  CurveMapping *mapping = brush->curves_sculpt_settings->curve_parameter_falloff;
-  mapping->preset = RNA_enum_get(op->ptr, "shape");
-  CurveMap *map = mapping->cm;
-  BKE_curvemap_reset(map, &mapping->clipr, mapping->preset, CURVEMAP_SLOPE_POSITIVE);
-  BKE_brush_tag_unsaved_changes(brush);
-  return OPERATOR_FINISHED;
-}
-
-void BRUSH_OT_sculpt_curves_falloff_preset(wmOperatorType *ot)
-{
-  ot->name = "Curve Falloff Preset";
-  ot->description = "Set Curve Falloff Preset";
-  ot->idname = "BRUSH_OT_sculpt_curves_falloff_preset";
-
-  ot->exec = brush_sculpt_curves_falloff_preset_exec;
-  ot->poll = brush_sculpt_curves_falloff_preset_poll;
-
-  PropertyRNA *prop;
-  prop = RNA_def_enum(ot->srna, "shape", prop_shape_items, CURVE_PRESET_SMOOTH, "Mode", "");
-  RNA_def_property_translation_context(prop,
-                                       BLT_I18NCONTEXT_ID_CURVE_LEGACY); /* Abusing id_curve :/ */
 }
 
 /* face-select ops */
@@ -420,6 +361,36 @@ void PAINT_OT_face_select_loop(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 
+static wmOperatorStatus paintvert_select_loop_invoke(bContext *C,
+                                                     wmOperator *op,
+                                                     const wmEvent *event)
+{
+  const bool select = RNA_boolean_get(op->ptr, "select");
+  const bool extend = RNA_boolean_get(op->ptr, "extend");
+  if (!extend) {
+    paintvert_deselect_all_visible(CTX_data_active_object(C), SEL_DESELECT, false);
+  }
+  view3d_operator_needs_gpu(C);
+  paintvert_select_loop(C, CTX_data_active_object(C), event->mval, select);
+  ED_region_tag_redraw(CTX_wm_region(C));
+  return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_vert_select_loop(wmOperatorType *ot)
+{
+  ot->name = "Select Loop";
+  ot->description = "Select vertex loop under the cursor";
+  ot->idname = "PAINT_OT_vert_select_loop";
+
+  ot->invoke = paintvert_select_loop_invoke;
+  ot->poll = vert_paint_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(ot->srna, "select", true, "Select", "If false, vertices will be deselected");
+  RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
+}
+
 static wmOperatorStatus vert_select_all_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
@@ -446,7 +417,7 @@ void PAINT_OT_vert_select_all(wmOperatorType *ot)
 static wmOperatorStatus vert_select_ungrouped_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
 
   if (BLI_listbase_is_empty(&mesh->vertex_group_names) || mesh->deform_verts().is_empty()) {
     BKE_report(op->reports, RPT_ERROR, "No weights/vertex groups on object");
@@ -683,3 +654,5 @@ void PAINT_OT_face_vert_reveal(wmOperatorType *ot)
                   "Select",
                   "Specifies whether the newly revealed geometry should be selected");
 }
+
+}  // namespace blender

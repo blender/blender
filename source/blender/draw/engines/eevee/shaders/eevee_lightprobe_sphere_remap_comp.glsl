@@ -4,7 +4,7 @@
 
 /* Shader to convert cube-map to octahedral projection. */
 
-#include "infos/eevee_lightprobe_sphere_info.hh"
+#include "infos/eevee_lightprobe_sphere_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_sphere_remap)
 
@@ -121,7 +121,7 @@ void main()
   float3 radiance_sun = radiance - radiance_clamped;
   radiance = radiance_clamped;
 
-  if (!any(greaterThanEqual(local_texel, int2(write_coord.extent)))) {
+  if (do_remap_mip0 && !any(greaterThanEqual(local_texel, int2(write_coord.extent)))) {
     float clamp_indirect = uniform_buf.clamp.surface_indirect;
     float3 out_radiance = colorspace_brightness_clamp_max(radiance, clamp_indirect);
 
@@ -137,8 +137,7 @@ void main()
     /* OpenGL/Intel drivers have known issues where it isn't able to compile barriers inside for
      * loops. Unroll is needed as driver might decide to not unroll in shaders with more
      * complexity. */
-    [[gpu::unroll]] for (uint i = 0; i < 10; i++)
-    {
+    for (uint i = 0; i < 10; i++) [[unroll]] {
       barrier();
       uint stride = group_size >> (i + 1u);
       if (local_index < stride) {
@@ -160,8 +159,7 @@ void main()
     /* OpenGL/Intel drivers have known issues where it isn't able to compile barriers inside for
      * loops. Unroll is needed as driver might decide to not unroll in shaders with more
      * complexity. */
-    [[gpu::unroll]] for (uint i = 0; i < 10; i++)
-    {
+    for (uint i = 0; i < 10; i++) [[unroll]] {
       barrier();
       uint stride = group_size >> (i + 1u);
       if (local_index < stride) {
@@ -182,8 +180,7 @@ void main()
     /* OpenGL/Intel drivers have known issues where it isn't able to compile barriers inside for
      * loops. Unroll is needed as driver might decide to not unroll in shaders with more
      * complexity. */
-    [[gpu::unroll]] for (uint i = 0; i < 10; i++)
-    {
+    for (uint i = 0; i < 10; i++) [[unroll]] {
       barrier();
       uint stride = group_size >> (i + 1u);
       if (local_index < stride) {

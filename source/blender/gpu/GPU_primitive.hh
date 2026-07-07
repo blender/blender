@@ -13,6 +13,8 @@
 #include "BLI_assert.h"
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 enum GPUPrimType : int8_t {
   GPU_PRIM_POINTS,
   GPU_PRIM_LINES,
@@ -118,3 +120,5 @@ inline bool is_restart_compatible(GPUPrimType type)
  * GPUPrimClass GPU_primtype_class(GPUPrimType);
  * bool GPU_primtype_belongs_to_class(GPUPrimType, GPUPrimClass);
  */
+
+}  // namespace blender

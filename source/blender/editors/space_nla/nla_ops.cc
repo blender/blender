@@ -22,6 +22,8 @@
 
 #include "nla_intern.hh" /* own include */
 
+namespace blender {
+
 /* ************************** poll callbacks for operators **********************************/
 
 bool nlaop_poll_tweakmode_off(bContext *C)
@@ -185,3 +187,5 @@ void nla_keymap(wmKeyConfig *keyconf)
   /* data ------------------------------------------------------------- */
   WM_keymap_ensure(keyconf, "NLA Editor", SPACE_NLA, RGN_TYPE_WINDOW);
 }
+
+}  // namespace blender

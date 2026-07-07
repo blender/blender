@@ -139,7 +139,7 @@ CurvePoint::CurvePoint(CurvePoint *iA, CurvePoint *iB, float t3)
   }
 
   if (!__A || !__B) {
-    if (G.debug & G_DEBUG_FREESTYLE) {
+    if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
       printf(
           "iA A 0x%p p (%f, %f)\n", iA->A(), iA->A()->getPoint2D().x(), iA->A()->getPoint2D().y());
       printf(
@@ -257,7 +257,7 @@ FEdge *CurvePoint::getFEdge(Interface0D &inter)
     }
   }
 #if 0
-  if (G.debug & G_DEBUG_FREESTYLE) {
+  if (blender::G.debug & blender::G_DEBUG_FREESTYLE) {
     printf("__A           0x%p p (%f, %f)\n", __A, __A->getPoint2D().x(), __A->getPoint2D().y());
     printf("__B           0x%p p (%f, %f)\n", __B, __B->getPoint2D().x(), __B->getPoint2D().y());
     printf("iVertexB->A() 0x%p p (%f, %f)\n",

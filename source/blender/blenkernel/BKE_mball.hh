@@ -11,6 +11,8 @@
  * \ingroup bke
  */
 
+namespace blender {
+
 struct Base;
 struct Depsgraph;
 struct Main;
@@ -22,7 +24,7 @@ struct Scene;
 MetaBall *BKE_mball_add(Main *bmain, const char *name);
 
 bool BKE_mball_is_any_selected(const MetaBall *mb);
-bool BKE_mball_is_any_selected_multi(blender::Span<Base *> bases);
+bool BKE_mball_is_any_selected_multi(Span<Base *> bases);
 bool BKE_mball_is_any_unselected(const MetaBall *mb);
 
 /**
@@ -86,7 +88,7 @@ MetaElem *BKE_mball_element_add(MetaBall *mb, int type);
 /**
  * Calculate & return the display radius & stiffness.
  */
-blender::float2 BKE_mball_element_display_radius_calc_with_stiffness(const MetaElem *ml);
+float2 BKE_mball_element_display_radius_calc_with_stiffness(const MetaElem *ml);
 /**
  * Calculate & return the display radius.
  */
@@ -95,14 +97,16 @@ float BKE_mball_element_display_radius_calc(const MetaElem *ml);
 /* *** Select functions *** */
 
 int BKE_mball_select_count(const MetaBall *mb);
-int BKE_mball_select_count_multi(blender::Span<Base *> bases);
+int BKE_mball_select_count_multi(Span<Base *> bases);
 bool BKE_mball_select_all(MetaBall *mb);
-bool BKE_mball_select_all_multi_ex(blender::Span<Base *> bases);
+bool BKE_mball_select_all_multi_ex(Span<Base *> bases);
 bool BKE_mball_deselect_all(MetaBall *mb);
-bool BKE_mball_deselect_all_multi_ex(blender::Span<Base *> bases);
+bool BKE_mball_deselect_all_multi_ex(Span<Base *> bases);
 bool BKE_mball_select_swap(MetaBall *mb);
-bool BKE_mball_select_swap_multi_ex(blender::Span<Base *> bases);
+bool BKE_mball_select_swap_multi_ex(Span<Base *> bases);
 
 /* **** Depsgraph evaluation **** */
 
 void BKE_mball_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob);
+
+}  // namespace blender

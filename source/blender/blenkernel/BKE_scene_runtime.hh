@@ -8,15 +8,20 @@
 
 #pragma once
 
+#include "BKE_sound_types.hh"
+
 #include "BLI_map.hh"
+#include "BLI_set.hh"
 #include "BLI_timeit.hh"
 #include "BLI_utility_mixins.hh"
 
 #include "DNA_node_types.h"
 
+namespace blender {
+
 struct Depsgraph;
 
-namespace blender::bke {
+namespace bke {
 
 /* Runtime data specific to the compositing trees. */
 class CompositorRuntime {
@@ -34,9 +39,28 @@ class CompositorRuntime {
   ~CompositorRuntime();
 };
 
+/* Runtime data specific to the sequencer, e.g. when using scene strips. */
+class SequencerRuntime {
+ public:
+  Depsgraph *depsgraph = nullptr;
+
+  ~SequencerRuntime();
+};
+
+/* Audio runtime data. */
+struct SceneAudioRuntime {
+  AUD_Sequence sound_scene;
+  AUD_Handle playback_handle;
+  AUD_Handle sound_scrub_handle;
+  Set<AUD_SequenceEntry> speaker_handles;
+};
+
 class SceneRuntime : NonCopyable, NonMovable {
  public:
   CompositorRuntime compositor;
+  SequencerRuntime sequencer;
+  SceneAudioRuntime audio;
 };
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

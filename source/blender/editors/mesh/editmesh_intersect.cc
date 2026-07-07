@@ -6,6 +6,7 @@
  * \ingroup edmesh
  */
 
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_linklist_stack.h"
@@ -38,10 +39,10 @@
 #include "tools/bmesh_intersect.hh"
 #include "tools/bmesh_separate.hh"
 
+namespace blender {
+
 /* detect isolated holes and fill them */
 #define USE_NET_ISLAND_CONNECT
-
-using blender::Vector;
 
 /**
  * Compare selected with itself.
@@ -100,7 +101,9 @@ static void edbm_intersect_select(BMEditMesh *em, Mesh *mesh, bool do_select)
           BM_edge_select_set(em->bm, e, true);
         }
       }
+
       EDBM_selectmode_flush(em);
+      EDBM_uvselect_clear(em);
     }
   }
 
@@ -145,7 +148,7 @@ static wmOperatorStatus edbm_intersect_exec(bContext *C, wmOperator *op)
   const bool exact = RNA_enum_get(op->ptr, "solver") == ISECT_SOLVER_EXACT;
 #else
   if (RNA_enum_get(op->ptr, "solver") == ISECT_SOLVER_EXACT) {
-    BKE_report(op->reports, RPT_WARNING, "Compiled without GMP, using fast solver");
+    BKE_report(op->reports, RPT_WARNING, "Compiled without GMP, using \"float\" solver");
   }
   const bool exact = false;
 #endif
@@ -225,7 +228,7 @@ static wmOperatorStatus edbm_intersect_exec(bContext *C, wmOperator *op)
           em->bm, BM_elem_cb_check_hflag_enabled_simple(const BMFace *, BM_ELEM_SELECT));
     }
 
-    edbm_intersect_select(em, static_cast<Mesh *>(obedit->data), has_isect);
+    edbm_intersect_select(em, id_cast<Mesh *>(obedit->data), has_isect);
 
     if (!has_isect) {
       isect_len++;
@@ -240,26 +243,25 @@ static wmOperatorStatus edbm_intersect_exec(bContext *C, wmOperator *op)
 
 static void edbm_intersect_ui(bContext * /*C*/, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
-  uiLayout *row;
+  ui::Layout &layout = *op->layout;
 
   bool use_exact = RNA_enum_get(op->ptr, "solver") == ISECT_SOLVER_EXACT;
 
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
-  row = &layout->row(false);
-  row->prop(op->ptr, "mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  layout->separator();
-  row = &layout->row(false);
-  row->prop(op->ptr, "separate_mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  layout->separator();
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
+  ui::Layout *row = &layout.row(false);
+  row->prop(op->ptr, "mode", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.separator();
+  row = &layout.row(false);
+  row->prop(op->ptr, "separate_mode", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.separator();
 
-  row = &layout->row(false);
-  row->prop(op->ptr, "solver", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  layout->separator();
+  row = &layout.row(false);
+  row->prop(op->ptr, "solver", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.separator();
 
   if (!use_exact) {
-    layout->prop(op->ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(op->ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 
@@ -345,7 +347,7 @@ static wmOperatorStatus edbm_intersect_boolean_exec(bContext *C, wmOperator *op)
   const bool use_exact = RNA_enum_get(op->ptr, "solver") == ISECT_SOLVER_EXACT;
 #else
   if (RNA_enum_get(op->ptr, "solver") == ISECT_SOLVER_EXACT) {
-    BKE_report(op->reports, RPT_WARNING, "Compiled without GMP, using fast solver");
+    BKE_report(op->reports, RPT_WARNING, "Compiled without GMP, using \"float\" solver");
   }
   const bool use_exact = false;
 #endif
@@ -385,7 +387,7 @@ static wmOperatorStatus edbm_intersect_boolean_exec(bContext *C, wmOperator *op)
                                     eps);
     }
 
-    edbm_intersect_select(em, static_cast<Mesh *>(obedit->data), has_isect);
+    edbm_intersect_select(em, id_cast<Mesh *>(obedit->data), has_isect);
 
     if (!has_isect) {
       isect_len++;
@@ -400,26 +402,25 @@ static wmOperatorStatus edbm_intersect_boolean_exec(bContext *C, wmOperator *op)
 
 static void edbm_intersect_boolean_ui(bContext * /*C*/, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
-  uiLayout *row;
+  ui::Layout &layout = *op->layout;
 
   bool use_exact = RNA_enum_get(op->ptr, "solver") == ISECT_SOLVER_EXACT;
 
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
 
-  row = &layout->row(false);
-  row->prop(op->ptr, "operation", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  layout->separator();
+  ui::Layout &operation_row = layout.row(false);
+  operation_row.prop(op->ptr, "operation", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.separator();
 
-  row = &layout->row(false);
-  row->prop(op->ptr, "solver", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  layout->separator();
+  ui::Layout &solver_row = layout.row(false);
+  solver_row.prop(op->ptr, "solver", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.separator();
 
-  layout->prop(op->ptr, "use_swap", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(op->ptr, "use_self", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "use_swap", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "use_self", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (!use_exact) {
-    layout->prop(op->ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(op->ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 
@@ -575,26 +576,19 @@ struct LinkBase {
   uint list_len;
 };
 
-static void ghash_insert_face_edge_link(GHash *gh,
+static void ghash_insert_face_edge_link(Map<BMFace *, LinkBase *> &gh,
                                         BMFace *f_key,
                                         BMEdge *e_val,
                                         MemArena *mem_arena)
 {
-  void **ls_base_p;
-  LinkBase *ls_base;
-  LinkNode *ls;
-
-  if (!BLI_ghash_ensure_p(gh, f_key, &ls_base_p)) {
-    ls_base = static_cast<LinkBase *>(*ls_base_p = BLI_memarena_alloc(mem_arena,
-                                                                      sizeof(*ls_base)));
+  LinkBase *ls_base = gh.lookup_or_add_cb(f_key, [&]() {
+    LinkBase *ls_base = static_cast<LinkBase *>(BLI_memarena_alloc(mem_arena, sizeof(*ls_base)));
     ls_base->list = nullptr;
     ls_base->list_len = 0;
-  }
-  else {
-    ls_base = static_cast<LinkBase *>(*ls_base_p);
-  }
+    return ls_base;
+  });
 
-  ls = static_cast<LinkNode *>(BLI_memarena_alloc(mem_arena, sizeof(*ls)));
+  LinkNode *ls = static_cast<LinkNode *>(BLI_memarena_alloc(mem_arena, sizeof(*ls)));
   ls->next = ls_base->list;
   ls->link = e_val;
   ls_base->list = ls;
@@ -603,8 +597,10 @@ static void ghash_insert_face_edge_link(GHash *gh,
 
 static int bm_edge_sort_length_cb(const void *e_a_v, const void *e_b_v)
 {
-  const float val_a = -BM_edge_calc_length_squared(*((BMEdge **)e_a_v));
-  const float val_b = -BM_edge_calc_length_squared(*((BMEdge **)e_b_v));
+  const float val_a = -BM_edge_calc_length_squared(
+      *(static_cast<BMEdge **>(const_cast<void *>(e_a_v))));
+  const float val_b = -BM_edge_calc_length_squared(
+      *(static_cast<BMEdge **>(const_cast<void *>(e_b_v))));
 
   if (val_a > val_b) {
     return 1;
@@ -949,13 +945,13 @@ static wmOperatorStatus edbm_face_split_by_edges_exec(bContext *C, wmOperator * 
     params.calc_looptris = true;
     params.calc_normals = true;
     params.is_destructive = true;
-    EDBM_update(static_cast<Mesh *>(obedit->data), &params);
+    EDBM_update(id_cast<Mesh *>(obedit->data), &params);
 
 #ifdef USE_NET_ISLAND_CONNECT
     /* we may have remaining isolated regions remaining,
      * these will need to have connecting edges created */
     if (!BLI_stack_is_empty(edges_loose)) {
-      GHash *face_edge_map = BLI_ghash_ptr_new(__func__);
+      Map<BMFace *, LinkBase *> face_edge_map;
 
       MemArena *mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
 
@@ -990,11 +986,10 @@ static wmOperatorStatus edbm_face_split_by_edges_exec(bContext *C, wmOperator * 
       /* detect edges chains that span faces
        * and splice vertices into the closest edges */
       {
-        GHashIterator gh_iter;
 
-        GHASH_ITER (gh_iter, face_edge_map) {
-          BMFace *f = static_cast<BMFace *>(BLI_ghashIterator_getKey(&gh_iter));
-          LinkBase *e_ls_base = static_cast<LinkBase *>(BLI_ghashIterator_getValue(&gh_iter));
+        for (const auto &item : face_edge_map.items()) {
+          BMFace *f = item.key;
+          LinkBase *e_ls_base = item.value;
           LinkNode *e_link = e_ls_base->list;
 
           do {
@@ -1033,11 +1028,9 @@ static wmOperatorStatus edbm_face_split_by_edges_exec(bContext *C, wmOperator * 
       {
         MemArena *mem_arena_edgenet = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
 
-        GHashIterator gh_iter;
-
-        GHASH_ITER (gh_iter, face_edge_map) {
-          BMFace *f = static_cast<BMFace *>(BLI_ghashIterator_getKey(&gh_iter));
-          LinkBase *e_ls_base = static_cast<LinkBase *>(BLI_ghashIterator_getValue(&gh_iter));
+        for (const auto &item : face_edge_map.items()) {
+          BMFace *f = item.key;
+          LinkBase *e_ls_base = item.value;
 
           bm_face_split_by_edges_island_connect(
               bm, f, e_ls_base->list, e_ls_base->list_len, mem_arena_edgenet);
@@ -1050,17 +1043,17 @@ static wmOperatorStatus edbm_face_split_by_edges_exec(bContext *C, wmOperator * 
 
       BLI_memarena_free(mem_arena);
 
-      BLI_ghash_free(face_edge_map, nullptr, nullptr);
-
       EDBMUpdate_Params params{};
       params.calc_looptris = true;
       params.calc_normals = true;
       params.is_destructive = true;
-      EDBM_update(static_cast<Mesh *>(obedit->data), &params);
+      EDBM_update(id_cast<Mesh *>(obedit->data), &params);
     }
 
     BLI_stack_free(edges_loose);
 #endif /* USE_NET_ISLAND_CONNECT */
+
+    BM_mesh_select_mode_flush(bm);
   }
   return OPERATOR_FINISHED;
 }
@@ -1081,3 +1074,5 @@ void MESH_OT_face_split_by_edges(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

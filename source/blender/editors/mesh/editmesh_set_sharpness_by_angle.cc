@@ -37,7 +37,7 @@ static wmOperatorStatus set_sharpness_by_angle_exec(bContext *C, wmOperator *op)
       CTX_data_scene(C), CTX_data_view_layer(C), CTX_wm_view3d(C));
 
   for (Object *object : objects) {
-    Mesh &mesh = *static_cast<Mesh *>(object->data);
+    Mesh &mesh = *id_cast<Mesh *>(object->data);
     BMEditMesh *em = mesh.runtime->edit_mesh.get();
 
     bool changed = false;

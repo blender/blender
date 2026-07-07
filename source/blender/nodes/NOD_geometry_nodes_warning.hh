@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "BLI_string_ref.hh"
+
 namespace blender::nodes {
 
 /** These values are also written to .blend files, so don't change them lightly. */
@@ -15,5 +17,6 @@ enum class NodeWarningType {
 
 int node_warning_type_icon(NodeWarningType type);
 int node_warning_type_severity(NodeWarningType type);
+StringRefNull node_warning_type_name(NodeWarningType type);
 
 }  // namespace blender::nodes

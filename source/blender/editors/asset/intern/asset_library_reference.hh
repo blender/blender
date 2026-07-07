@@ -14,14 +14,14 @@
 
 #include "DNA_asset_types.h"
 
+namespace blender {
+
 inline bool operator==(const AssetLibraryReference &a, const AssetLibraryReference &b)
 {
   return (a.type == b.type) &&
          ((a.type == ASSET_LIBRARY_CUSTOM) ? (a.custom_library_index == b.custom_library_index) :
                                              true);
 }
-
-namespace blender {
 
 template<> struct DefaultHash<AssetLibraryReference> {
   uint64_t operator()(const AssetLibraryReference &value) const

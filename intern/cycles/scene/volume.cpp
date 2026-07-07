@@ -6,6 +6,7 @@
 #include "scene/attribute.h"
 #include "scene/background.h"
 #include "scene/image_vdb.h"
+#include "scene/integrator.h"
 #include "scene/light.h"
 #include "scene/object.h"
 #include "scene/scene.h"
@@ -21,7 +22,6 @@
 #include "util/nanovdb.h"
 #include "util/path.h"
 #include "util/progress.h"
-#include "util/texture.h"
 #include "util/types.h"
 
 #include "bvh/octree.h"
@@ -34,6 +34,7 @@ NODE_DEFINE(Volume)
 {
   NodeType *type = NodeType::add("volume", create, NodeType::NONE, Mesh::get_node_type());
 
+  SOCKET_FLOAT(step_size, "Step Size", 0.0f);
   SOCKET_BOOLEAN(object_space, "Object Space", false);
   SOCKET_FLOAT(velocity_scale, "Velocity Scale", 1.0f);
 
@@ -42,6 +43,7 @@ NODE_DEFINE(Volume)
 
 Volume::Volume() : Mesh(get_node_type(), Geometry::VOLUME)
 {
+  step_size = 0.0f;
   object_space = false;
 }
 
@@ -154,15 +156,13 @@ class VolumeMeshBuilder {
 
   void add_padding(const int pad_size);
 
-  void create_mesh(vector<float3> &vertices,
-                   vector<int> &indices,
-                   const float face_overlap_avoidance);
+  void create_mesh(vector<float3> &vertices, vector<int> &indices, const bool ray_marching);
 
-  void generate_vertices_and_quads(vector<int3> &vertices_is, vector<QuadData> &quads);
+  void generate_vertices_and_quads(vector<int3> &vertices_is,
+                                   vector<QuadData> &quads,
+                                   const bool ray_marching);
 
-  void convert_object_space(const vector<int3> &vertices,
-                            vector<float3> &out_vertices,
-                            const float face_overlap_avoidance);
+  void convert_object_space(const vector<int3> &vertices, vector<float3> &out_vertices);
 
   void convert_quads_to_tris(const vector<QuadData> &quads, vector<int> &tris);
 
@@ -207,23 +207,95 @@ void VolumeMeshBuilder::add_padding(const int pad_size)
 
 void VolumeMeshBuilder::create_mesh(vector<float3> &vertices,
                                     vector<int> &indices,
-                                    const float face_overlap_avoidance)
+                                    const bool ray_marching)
 {
   /* We create vertices in index space (is), and only convert them to object
    * space when done. */
   vector<int3> vertices_is;
   vector<QuadData> quads;
 
-  generate_vertices_and_quads(vertices_is, quads);
+  generate_vertices_and_quads(vertices_is, quads, ray_marching);
 
-  convert_object_space(vertices_is, vertices, face_overlap_avoidance);
+  convert_object_space(vertices_is, vertices);
 
   convert_quads_to_tris(quads, indices);
 }
 
-void VolumeMeshBuilder::generate_vertices_and_quads(vector<ccl::int3> &vertices_is,
-                                                    vector<QuadData> &quads)
+static bool is_non_empty_leaf(const openvdb::MaskGrid::TreeType &tree, const openvdb::Coord coord)
 {
+  const auto *leaf_node = tree.probeLeaf(coord);
+  return (leaf_node && !leaf_node->isEmpty());
+}
+
+void VolumeMeshBuilder::generate_vertices_and_quads(vector<ccl::int3> &vertices_is,
+                                                    vector<QuadData> &quads,
+                                                    const bool ray_marching)
+{
+  if (ray_marching) {
+    /* Make sure we only have leaf nodes in the tree, as tiles are not handled by this algorithm */
+    topology_grid->tree().voxelizeActiveTiles();
+
+    const openvdb::MaskGrid::TreeType &tree = topology_grid->tree();
+    tree.evalLeafBoundingBox(bbox);
+
+    const int3 resolution = make_int3(bbox.dim().x(), bbox.dim().y(), bbox.dim().z());
+
+    unordered_map<size_t, int> used_verts;
+    for (auto iter = tree.cbeginLeaf(); iter; ++iter) {
+      if (iter->isEmpty()) {
+        continue;
+      }
+      openvdb::CoordBBox leaf_bbox = iter->getNodeBoundingBox();
+      /* +1 to convert from exclusive to include bounds. */
+      leaf_bbox.max() = leaf_bbox.max().offsetBy(1);
+      int3 min = make_int3(leaf_bbox.min().x(), leaf_bbox.min().y(), leaf_bbox.min().z());
+      int3 max = make_int3(leaf_bbox.max().x(), leaf_bbox.max().y(), leaf_bbox.max().z());
+      int3 corners[8] = {
+          make_int3(min[0], min[1], min[2]),
+          make_int3(max[0], min[1], min[2]),
+          make_int3(max[0], max[1], min[2]),
+          make_int3(min[0], max[1], min[2]),
+          make_int3(min[0], min[1], max[2]),
+          make_int3(max[0], min[1], max[2]),
+          make_int3(max[0], max[1], max[2]),
+          make_int3(min[0], max[1], max[2]),
+      };
+      /* Only create a quad if on the border between an active and an inactive leaf.
+       *
+       * We verify that a leaf exists by probing a coordinate that is at its center,
+       * to do so we compute the center of the current leaf and offset this coordinate
+       * by the size of a leaf in each direction.
+       */
+      static const int LEAF_DIM = openvdb::MaskGrid::TreeType::LeafNodeType::DIM;
+      auto center = leaf_bbox.min() + openvdb::Coord(LEAF_DIM / 2);
+      if (!is_non_empty_leaf(tree, openvdb::Coord(center.x() - LEAF_DIM, center.y(), center.z())))
+      {
+        create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_X_MIN);
+      }
+      if (!is_non_empty_leaf(tree, openvdb::Coord(center.x() + LEAF_DIM, center.y(), center.z())))
+      {
+        create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_X_MAX);
+      }
+      if (!is_non_empty_leaf(tree, openvdb::Coord(center.x(), center.y() - LEAF_DIM, center.z())))
+      {
+        create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Y_MIN);
+      }
+      if (!is_non_empty_leaf(tree, openvdb::Coord(center.x(), center.y() + LEAF_DIM, center.z())))
+      {
+        create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Y_MAX);
+      }
+      if (!is_non_empty_leaf(tree, openvdb::Coord(center.x(), center.y(), center.z() - LEAF_DIM)))
+      {
+        create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Z_MIN);
+      }
+      if (!is_non_empty_leaf(tree, openvdb::Coord(center.x(), center.y(), center.z() + LEAF_DIM)))
+      {
+        create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Z_MAX);
+      }
+    }
+    return;
+  }
+
   bbox = topology_grid->evalActiveVoxelBoundingBox();
 
   const int3 resolution = make_int3(bbox.dim().x(), bbox.dim().y(), bbox.dim().z());
@@ -257,22 +329,15 @@ void VolumeMeshBuilder::generate_vertices_and_quads(vector<ccl::int3> &vertices_
 }
 
 void VolumeMeshBuilder::convert_object_space(const vector<int3> &vertices,
-                                             vector<float3> &out_vertices,
-                                             const float face_overlap_avoidance)
+                                             vector<float3> &out_vertices)
 {
-  /* compute the offset for the face overlap avoidance */
-  openvdb::Coord dim = bbox.dim();
-
-  const float3 cell_size = make_float3(1.0f / dim.x(), 1.0f / dim.y(), 1.0f / dim.z());
-  const float3 point_offset = cell_size * face_overlap_avoidance;
-
   out_vertices.reserve(vertices.size());
 
   for (size_t i = 0; i < vertices.size(); ++i) {
     openvdb::math::Vec3d p = topology_grid->indexToWorld(
         openvdb::math::Vec3d(vertices[i].x, vertices[i].y, vertices[i].z));
     const float3 vertex = make_float3((float)p.x(), (float)p.y(), (float)p.z());
-    out_vertices.push_back(vertex + point_offset);
+    out_vertices.push_back(vertex);
   }
 }
 
@@ -298,6 +363,94 @@ bool VolumeMeshBuilder::empty_grid() const
          (!topology_grid->tree().hasActiveTiles() && topology_grid->tree().leafCount() == 0);
 }
 
+/* -------------------------------------------------------------------- */
+/* Compute the average and variance of active values in a nanovdb grid, separately in all
+ * dimensions. Adapted from `nanovdb/tools/GridStats.h`.
+ *
+ * \{ */
+
+struct Vec3Stats {
+  double avg[3] = {0.0, 0.0, 0.0};
+  double var[3] = {0.0, 0.0, 0.0};
+  uint size = 0;
+
+  /* Numerically stable way of computing online mean and variance, from Donald Knuth in “The Art
+   * Of Computer Programming” (1998). */
+  void add(const double value[3])
+  {
+    size++;
+    for (int i = 0; i < 3; i++) {
+      const double delta = value[i] - avg[i];
+      avg[i] += delta / double(size);
+      var[i] += delta * (value[i] - avg[i]);
+    }
+  }
+
+  void add(const Vec3Stats &other)
+  {
+    if (other.size > 0) {
+      const double denom = 1.0 / (double(size + other.size));
+      for (int i = 0; i < 3; i++) {
+        const double delta = other.avg[i] - avg[i];
+        avg[i] += denom * delta * double(other.size);
+        var[i] += other.var[i] + denom * delta * delta * double(size) * double(other.size);
+      }
+      size += other.size;
+    }
+  }
+
+  void finalize()
+  {
+    if (size < 2) {
+      var[0] = var[1] = var[2] = 0.0;
+    }
+    else {
+      for (int i = 0; i < 3; i++) {
+        var[i] /= double(size);
+      }
+    }
+  }
+};
+
+template<typename ChildT> static Vec3Stats compute_stats(const nanovdb::LeafNode<ChildT> &leaf)
+{
+  Vec3Stats stats;
+  for (auto value_it = leaf.cbeginValueOn(); value_it; ++value_it) {
+    const double value[3] = {(*value_it)[0], (*value_it)[1], (*value_it)[2]};
+    stats.add(value);
+  }
+  return stats;
+}
+
+template<typename ChildT> static Vec3Stats compute_stats(const nanovdb::InternalNode<ChildT> &node)
+{
+  const uint32_t num_leaf = node.mChildMask.countOn();
+
+  std::unique_ptr<const ChildT *[]> childNodes(new const ChildT *[num_leaf]);
+  const ChildT **ptr = childNodes.get();
+  for (auto it = node.mChildMask.beginOn(); it; ++it) {
+    *ptr++ = node.getChild(*it);
+  }
+
+  auto reduction_func = [&](const blocked_range<uint32_t> &r, Vec3Stats init) -> Vec3Stats {
+    for (uint32_t i = r.begin(); i < r.end(); ++i) {
+      init.add(compute_stats(*childNodes[i]));
+    }
+    return init;
+  };
+
+  auto join_func = [](Vec3Stats a, Vec3Stats b) -> Vec3Stats {
+    a.add(b);
+    return a;
+  };
+
+  const tbb::blocked_range<uint32_t> range(0, num_leaf);
+
+  return parallel_reduce(range, Vec3Stats(), reduction_func, join_func);
+}
+
+/** \} */
+
 static int estimate_required_velocity_padding(const nanovdb::GridHandle<> &grid,
                                               const float velocity_scale)
 {
@@ -311,23 +464,29 @@ static int estimate_required_velocity_padding(const nanovdb::GridHandle<> &grid,
 
   /* We should only have uniform grids, so x = y = z, but we never know. */
   const double max_voxel_size = openvdb::math::Max(voxel_size[0], voxel_size[1], voxel_size[2]);
-  if (max_voxel_size == 0.0) {
+  if (max_voxel_size == 0.0 || velocity_scale == 0.0f) {
     return 0;
   }
 
-  /* TODO: we may need to also find outliers and clamp them to avoid adding too much padding. */
-  const nanovdb::Vec3f mn = typed_grid->tree().root().minimum();
-  const nanovdb::Vec3f mx = typed_grid->tree().root().maximum();
-  float max_value = 0.0f;
-  max_value = max(max_value, fabsf(mx[0]));
-  max_value = max(max_value, fabsf(mx[1]));
-  max_value = max(max_value, fabsf(mx[2]));
-  max_value = max(max_value, fabsf(mn[0]));
-  max_value = max(max_value, fabsf(mn[1]));
-  max_value = max(max_value, fabsf(mn[2]));
+  Vec3Stats stats;
+  for (auto internal = typed_grid->tree().root().cbeginChild(); internal; ++internal) {
+    stats.add(compute_stats(*internal));
+  }
+  stats.finalize();
 
-  const double estimated_padding = max_value * static_cast<double>(velocity_scale) /
-                                   max_voxel_size;
+  /* A standard score of 2.32635 makes sure only 1% of the values are above `avg + score * std`. */
+  const double score = 2.32635;
+  double estimated_padding = 0.0f;
+  for (int i = 0; i < 3; i++) {
+    const double max_velocity = max(std::fabs(stats.avg[i] + score * sqrt(stats.var[i])),
+                                    std::fabs(stats.avg[i] - score * sqrt(stats.var[i])));
+    const double max_dist_in_voxel = max_velocity * double(velocity_scale) / voxel_size[i];
+
+    /* Clamp padding to half of the volume size, and find the max padding in all 3 dimensions. */
+    estimated_padding = max(
+        min(max_dist_in_voxel, 0.5 * double(typed_grid->tree().bbox().dim()[i])),
+        estimated_padding);
+  }
 
   return static_cast<int>(std::ceil(estimated_padding));
 }
@@ -485,17 +644,17 @@ void GeometryManager::create_volume_mesh(const Scene *scene, Volume *volume, Pro
       continue;
     }
 
-    /* Create NanoVDB grid handle from texture memory. */
-    device_texture *texture = handle.image_memory();
-    if (texture == nullptr || texture->host_pointer == nullptr ||
-        texture->info.data_type == IMAGE_DATA_TYPE_NANOVDB_EMPTY ||
-        !is_nanovdb_type(texture->info.data_type))
+    /* Create NanoVDB grid handle from image memory. */
+    device_image *image = handle.image_memory();
+    if (image == nullptr || image->host_pointer == nullptr ||
+        image->info.data_type == IMAGE_DATA_TYPE_NANOVDB_EMPTY ||
+        !is_nanovdb_type(image->info.data_type))
     {
       continue;
     }
 
     nanovdb::GridHandle grid(
-        nanovdb::HostBuffer::createFull(texture->memory_size(), texture->host_pointer));
+        nanovdb::HostBuffer::createFull(image->memory_size(), image->host_pointer));
 
     /* Add padding based on the maximum velocity vector. */
     if (attr.std == ATTR_STD_VOLUME_VELOCITY && scene->need_motion() != Scene::MOTION_NONE) {
@@ -514,17 +673,11 @@ void GeometryManager::create_volume_mesh(const Scene *scene, Volume *volume, Pro
 
   builder.add_padding(pad_size);
 
-  /* Slightly offset vertex coordinates to avoid overlapping faces with other
-   * volumes or meshes. The proper solution would be to improve intersection in
-   * the kernel to support robust handling of multiple overlapping faces or use
-   * an all-hit intersection similar to shadows. */
-  const float face_overlap_avoidance = 0.1f *
-                                       hash_uint_to_float(hash_string(volume->name.c_str()));
-
   /* Create mesh. */
   vector<float3> vertices;
   vector<int> indices;
-  builder.create_mesh(vertices, indices, face_overlap_avoidance);
+  const bool ray_marching = scene->integrator->get_volume_ray_marching();
+  builder.create_mesh(vertices, indices, ray_marching);
 
   volume->reserve_mesh(vertices.size(), indices.size() / 3);
   volume->used_shaders.clear();
@@ -560,6 +713,7 @@ void Volume::merge_grids(const Scene *scene)
 VolumeManager::VolumeManager()
 {
   need_rebuild_ = true;
+  need_update_step_size = true;
 }
 
 void VolumeManager::tag_update()
@@ -570,6 +724,11 @@ void VolumeManager::tag_update()
 /* Remove changed object from the list of octrees and tag for rebuild. */
 void VolumeManager::tag_update(const Object *object, uint32_t flag)
 {
+  if (object_octrees_.empty()) {
+    /* Volume object is not in the octree, can happen when using ray marching. */
+    return;
+  }
+
   if (flag & ObjectManager::VISIBILITY_MODIFIED) {
     tag_update();
   }
@@ -634,6 +793,12 @@ void VolumeManager::tag_update(const Geometry *geometry)
 void VolumeManager::tag_update_indices()
 {
   update_root_indices_ = true;
+}
+
+void VolumeManager::tag_update_algorithm()
+{
+  need_rebuild_ = true;
+  algorithm_modified_ = true;
 }
 
 bool VolumeManager::is_homogeneous_volume(const Object *object, const Shader *shader)
@@ -829,6 +994,8 @@ void VolumeManager::initialize_octree(const Scene *scene, Progress &progress)
           vdb_map_[{geom, shader}] = mesh_to_sdf_grid(mesh, shader, 1.0f);
         }
       }
+#else
+      (void)progress;
 #endif
     }
   }
@@ -977,6 +1144,7 @@ void VolumeManager::flatten_octree(DeviceScene *dscene, const Scene *scene) cons
             << "Mb.";
 }
 
+/* Dump octree as python script, enabled by `CYCLES_VOLUME_OCTREE_DUMP` environment variable. */
 std::string VolumeManager::visualize_octree(const char *filename) const
 {
   const std::string filename_full = path_join(OIIO::Filesystem::current_path(), filename);
@@ -1013,11 +1181,54 @@ std::string VolumeManager::visualize_octree(const char *filename) const
   return filename_full;
 }
 
+void VolumeManager::update_step_size(const Scene *scene, DeviceScene *dscene)
+{
+  assert(scene->integrator->get_volume_ray_marching());
+
+  if (!need_update_step_size && !dscene->volume_step_size.is_modified() &&
+      !scene->integrator->volume_step_rate_is_modified() && !algorithm_modified_)
+  {
+    return;
+  }
+
+  if (dscene->volume_step_size.need_realloc()) {
+    dscene->volume_step_size.alloc(scene->objects.size());
+  }
+
+  float *volume_step_size = dscene->volume_step_size.data();
+
+  for (const Object *object : scene->objects) {
+    const Geometry *geom = object->get_geometry();
+    if (!geom->has_volume) {
+      continue;
+    }
+
+    volume_step_size[object->index] = scene->integrator->get_volume_step_rate() *
+                                      object->compute_volume_step_size();
+  }
+
+  dscene->volume_step_size.copy_to_device();
+  dscene->volume_step_size.clear_modified();
+  need_update_step_size = false;
+}
+
 void VolumeManager::device_update(Device *device,
                                   DeviceScene *dscene,
                                   const Scene *scene,
                                   Progress &progress)
 {
+  if (scene->integrator->get_volume_ray_marching()) {
+    /* No need to update octree for ray marching. */
+    if (algorithm_modified_) {
+      dscene->volume_tree_nodes.free();
+      dscene->volume_tree_roots.free();
+      dscene->volume_tree_root_ids.free();
+    }
+    update_step_size(scene, dscene);
+    algorithm_modified_ = false;
+    return;
+  }
+
   if (need_rebuild_) {
     /* Data needed for volume shader evaluation. */
     device->const_copy_to("data", &dscene->data, sizeof(dscene->data));
@@ -1036,8 +1247,17 @@ void VolumeManager::device_update(Device *device,
   }
 
   if (update_visualization_) {
-    LOG_DEBUG << "Octree visualization has been written to " << visualize_octree("octree.py");
+    static const bool dump_octree = getenv("CYCLES_VOLUME_OCTREE_DUMP") != nullptr;
+    if (dump_octree) {
+      const std::string octree_path = visualize_octree("octree.py");
+      LOG_INFO << "Octree visualization has been written to " << octree_path;
+    }
     update_visualization_ = false;
+  }
+
+  if (algorithm_modified_) {
+    dscene->volume_step_size.free();
+    algorithm_modified_ = false;
   }
 }
 
@@ -1046,6 +1266,7 @@ void VolumeManager::device_free(DeviceScene *dscene)
   dscene->volume_tree_nodes.free();
   dscene->volume_tree_roots.free();
   dscene->volume_tree_root_ids.free();
+  dscene->volume_step_size.free();
 }
 
 VolumeManager::~VolumeManager()

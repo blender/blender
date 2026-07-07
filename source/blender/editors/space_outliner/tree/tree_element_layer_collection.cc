@@ -7,6 +7,7 @@
  */
 
 #include "DNA_collection_types.h"
+#include "DNA_layer_types.h"
 #include "DNA_outliner_types.h"
 #include "DNA_scene_types.h"
 

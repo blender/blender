@@ -7,7 +7,7 @@
 /** \file
  * \ingroup bli
  *
- * This file contains slot types that are supposed to be used with blender::VectorSet.
+ * This file contains slot types that are supposed to be used with VectorSet.
  *
  * Every slot type has to be able to hold an integer index and state information.
  * A vector set slot has three possible states: empty, occupied and removed.

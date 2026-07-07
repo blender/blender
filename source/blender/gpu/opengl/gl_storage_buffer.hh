@@ -14,8 +14,7 @@
 
 #include "gpu_storage_buffer_private.hh"
 
-namespace blender {
-namespace gpu {
+namespace blender::gpu {
 
 /**
  * Implementation of Storage Buffers using OpenGL.
@@ -56,5 +55,4 @@ class GLStorageBuf : public StorageBuf {
   MEM_CXX_CLASS_ALLOC_FUNCS("GLStorageBuf");
 };
 
-}  // namespace gpu
-}  // namespace blender
+}  // namespace blender::gpu

@@ -8,6 +8,7 @@
 #include <memory>
 
 #include "BLI_map.hh"
+#include "BLI_math_filter.hh"
 
 #include "COM_cached_resource.hh"
 #include "COM_result.hh"
@@ -22,10 +23,10 @@ class Context;
 
 class SymmetricSeparableBlurWeightsKey {
  public:
-  int type;
+  math::FilterKernel type;
   float radius;
 
-  SymmetricSeparableBlurWeightsKey(int type, float radius);
+  SymmetricSeparableBlurWeightsKey(math::FilterKernel type, float radius);
 
   uint64_t hash() const;
 };
@@ -48,7 +49,7 @@ class SymmetricSeparableBlurWeights : public CachedResource {
  public:
   Result result;
 
-  SymmetricSeparableBlurWeights(Context &context, int type, float radius);
+  SymmetricSeparableBlurWeights(Context &context, math::FilterKernel type, float radius);
 
   ~SymmetricSeparableBlurWeights();
 };
@@ -70,7 +71,7 @@ class SymmetricSeparableBlurWeightsContainer : public CachedResourceContainer {
    * parameters in the container, if one exists, return it, otherwise, return a newly created one
    * and add it to the container. In both cases, tag the cached resource as needed to keep it
    * cached for the next evaluation. */
-  Result &get(Context &context, int type, float radius);
+  Result &get(Context &context, math::FilterKernel type, float radius);
 };
 
 /** \} */

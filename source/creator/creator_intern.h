@@ -10,6 +10,8 @@
  * Functionality for main() initialization.
  */
 
+namespace blender {
+
 struct BA_ArgCallback_Deferred;
 struct bArgs;
 struct bContext;
@@ -123,3 +125,5 @@ extern char build_system[];
 #ifdef __cplusplus
 }
 #endif
+
+}  // namespace blender

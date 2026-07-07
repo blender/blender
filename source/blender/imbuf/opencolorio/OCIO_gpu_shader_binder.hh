@@ -21,12 +21,14 @@
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 
-struct CurveMapping;
-namespace blender::gpu {
-class Shader;
-}  // namespace blender::gpu
+namespace blender {
 
-namespace blender::ocio {
+struct CurveMapping;
+namespace gpu {
+class Shader;
+}  // namespace gpu
+
+namespace ocio {
 
 class Config;
 
@@ -127,4 +129,5 @@ class GPUShaderBinder {
                                 Span<std::array<StringRefNull, 2>> additional_defines);
 };
 
-}  // namespace blender::ocio
+}  // namespace ocio
+}  // namespace blender

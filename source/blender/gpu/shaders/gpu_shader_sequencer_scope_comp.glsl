@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "gpu_shader_common_color_utils.glsl"
-#include "infos/gpu_shader_sequencer_info.hh"
+#include "infos/gpu_shader_sequencer_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(gpu_shader_sequencer_scope_raster)
 
@@ -60,8 +60,8 @@ void main()
     int column = texel.x / 3;
 
     /* Use a bit desaturated color, and blend in a bit of original pixel color. */
-    float other_channels = 0.6;
-    float factor = 0.4;
+    float other_channels = 0.6f;
+    float factor = 0.4f;
     if (channel == 0) {
       pos.x = column - image_width / 2;
       pos.y = (color.r - 0.5f) * image_height;
@@ -100,7 +100,7 @@ void main()
   hsv_to_rgb(hsv, color);
 
   /* Calculate final point position in integer pixels. */
-  float4 clip_pos = ModelViewProjectionMatrix * float4(pos, 0.0f, 1.0f);
+  float4 clip_pos = ModelViewProjectionMatrix * float4(pos * inv_render_scale, 0.0f, 1.0f);
   int2 view_pos = int2((clip_pos.xy * 0.5f + float2(0.5f)) * float2(view_width, view_height));
   if (any(lessThan(view_pos, int2(0))) ||
       any(greaterThanEqual(view_pos, int2(view_width, view_height))))
@@ -120,7 +120,7 @@ void main()
    * quantized to integer pixel count point size. */
   float raster_size = scope_point_size;
   int px_size = max(int(ceil(raster_size)), 1);
-  float factor = max(raster_size / px_size, 1.0f / 255.0f);
+  float factor = max(raster_size / px_size * inv_render_scale, 1.0f / 255.0f);
   color.rgb *= factor;
   color.a = factor;
 

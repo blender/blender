@@ -30,7 +30,9 @@
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
 
-namespace blender::nodes::node_sh_mix_cc {
+namespace blender {
+
+namespace nodes::node_sh_mix_cc {
 
 NODE_STORAGE_FUNCS(NodeShaderMix)
 
@@ -107,26 +109,26 @@ static void sh_node_mix_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Rotation>("Result", "Result_Rotation");
 };
 
-static void sh_node_mix_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void sh_node_mix_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
   const NodeShaderMix &data = node_storage(*static_cast<const bNode *>(ptr->data));
-  layout->prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
+  layout.prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
   switch (data.data_type) {
     case SOCK_FLOAT:
       break;
     case SOCK_VECTOR:
-      layout->prop(ptr, "factor_mode", UI_ITEM_NONE, "", ICON_NONE);
+      layout.prop(ptr, "factor_mode", UI_ITEM_NONE, "", ICON_NONE);
       break;
     case SOCK_RGBA:
-      layout->prop(ptr, "blend_type", UI_ITEM_NONE, "", ICON_NONE);
-      layout->prop(ptr, "clamp_result", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(ptr, "blend_type", UI_ITEM_NONE, "", ICON_NONE);
+      layout.prop(ptr, "clamp_result", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       break;
     case SOCK_ROTATION:
       break;
     default:
       BLI_assert_unreachable();
   }
-  layout->prop(ptr, "clamp_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "clamp_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void sh_node_mix_label(const bNodeTree * /*ntree*/,
@@ -139,9 +141,9 @@ static void sh_node_mix_label(const bNodeTree * /*ntree*/,
     const char *name;
     bool enum_label = RNA_enum_name(rna_enum_ramp_blend_items, storage.blend_type, &name);
     if (!enum_label) {
-      name = N_("Unknown");
+      name = CTX_N_(BLT_I18NCONTEXT_COLOR, "Unknown");
     }
-    BLI_strncpy_utf8(label, IFACE_(name), label_maxncpy);
+    BLI_strncpy_utf8(label, CTX_IFACE_(BLT_I18NCONTEXT_COLOR, name), label_maxncpy);
     return;
   }
   BLI_strncpy_utf8(label, IFACE_("Mix"), label_maxncpy);
@@ -181,8 +183,8 @@ static void sh_node_mix_update(bNodeTree *ntree, bNode *node)
     bke::node_set_socket_availability(*ntree, *socket, socket->type == data_type);
   }
 
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-    bke::node_set_socket_availability(*ntree, *socket, socket->type == data_type);
+  for (bNodeSocket &socket : node->outputs) {
+    bke::node_set_socket_availability(*ntree, socket, socket.type == data_type);
   }
 }
 
@@ -292,7 +294,7 @@ static void node_mix_gather_link_searches(GatherLinkSearchOpParams &params)
 
 static void node_mix_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeShaderMix *data = MEM_callocN<NodeShaderMix>(__func__);
+  NodeShaderMix *data = MEM_new<NodeShaderMix>(__func__);
   data->data_type = SOCK_FLOAT;
   data->factor_mode = NODE_MIX_MODE_UNIFORM;
   data->clamp_factor = 1;
@@ -465,14 +467,14 @@ class MixColorFunction : public mf::MultiFunction {
 
     if (clamp_result_) {
       mask.foreach_index_optimized<int64_t>(
-          [&](const int64_t i) { clamp_v3(results[i], 0.0f, 1.0f); });
+          [&](const int64_t i) { clamp_v4(results[i], 0.0f, 1.0f); });
     }
   }
 };
 
 static const mf::MultiFunction *get_multi_function(const bNode &node)
 {
-  const NodeShaderMix *data = (NodeShaderMix *)node.storage;
+  const NodeShaderMix *data = static_cast<NodeShaderMix *>(node.storage);
   bool uniform_factor = data->factor_mode == NODE_MIX_MODE_UNIFORM;
   const bool clamp_factor = data->clamp_factor;
   switch (data->data_type) {
@@ -607,13 +609,13 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_sh_mix_cc
+}  // namespace nodes::node_sh_mix_cc
 
 void register_node_type_sh_mix()
 {
-  namespace file_ns = blender::nodes::node_sh_mix_cc;
+  namespace file_ns = nodes::node_sh_mix_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   common_node_type_base(&ntype, "ShaderNodeMix", SH_NODE_MIX);
   ntype.ui_name = "Mix";
   ntype.ui_description = "Mix values by a factor";
@@ -624,7 +626,7 @@ void register_node_type_sh_mix()
   ntype.gpu_fn = file_ns::gpu_shader_mix;
   ntype.updatefunc = file_ns::sh_node_mix_update;
   ntype.initfunc = file_ns::node_mix_init;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeShaderMix", node_free_standard_storage, node_copy_standard_storage);
   ntype.build_multi_function = file_ns::sh_node_mix_build_multi_function;
   ntype.draw_buttons = file_ns::sh_node_mix_layout;
@@ -632,5 +634,7 @@ void register_node_type_sh_mix()
   ntype.gather_link_search_ops = file_ns::node_mix_gather_link_searches;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

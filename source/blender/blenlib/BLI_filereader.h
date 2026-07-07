@@ -18,6 +18,8 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 #if defined(_MSC_VER) || defined(__APPLE__) || defined(__HAIKU__) || defined(__NetBSD__) || \
     defined(__OpenBSD__)
 typedef int64_t off64_t;
@@ -30,13 +32,13 @@ typedef off64_t (*FileReaderSeekFn)(struct FileReader *reader, off64_t offset, i
 typedef void (*FileReaderCloseFn)(struct FileReader *reader);
 
 /** General structure for all #FileReaders, implementations add custom fields at the end. */
-typedef struct FileReader {
+struct FileReader {
   FileReaderReadFn read;
   FileReaderSeekFn seek;
   FileReaderCloseFn close;
 
   off64_t offset;
-} FileReader;
+};
 
 /* Functions for opening the various types of FileReader.
  * They either succeed and return a valid FileReader, or fail and return NULL.
@@ -57,3 +59,5 @@ FileReader *BLI_filereader_new_memory(const void *data, size_t len) ATTR_WARN_UN
 FileReader *BLI_filereader_new_zstd(FileReader *base) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 /** Create #FileReader from applying `Gzip` decompression on an underlying file. */
 FileReader *BLI_filereader_new_gzip(FileReader *base) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+
+}  // namespace blender

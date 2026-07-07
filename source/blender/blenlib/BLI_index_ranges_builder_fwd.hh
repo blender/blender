@@ -12,4 +12,4 @@ namespace blender {
 
 template<typename T> class IndexRangesBuilder;
 
-}
+}  // namespace blender

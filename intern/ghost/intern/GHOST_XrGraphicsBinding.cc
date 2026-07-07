@@ -32,10 +32,9 @@
 #ifdef WITH_VULKAN_BACKEND
 #  include "GHOST_XrGraphicsBindingVulkan.hh"
 #endif
-
-#include "GHOST_C-api.h"
-#include "GHOST_XrException.hh"
-#include "GHOST_Xr_intern.hh"
+#ifdef WITH_METAL_BACKEND
+#  include "GHOST_XrGraphicsBindingMetal.hh"
+#endif
 
 #include "GHOST_IXrGraphicsBinding.hh"
 
@@ -59,12 +58,27 @@ static std::optional<int64_t> choose_swapchain_format_from_candidates(
 }
 
 class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
+  PFN_xrGetOpenGLGraphicsRequirementsKHR xrGetOpenGLGraphicsRequirementsKHR_ = nullptr;
+
  public:
   ~GHOST_XrGraphicsBindingOpenGL()
   {
     if (fbo_ != 0) {
       glDeleteFramebuffers(1, &fbo_);
     }
+  }
+
+  bool loadExtensionFunctions(XrInstance instance) override
+  {
+#  define LOAD_FUNCTION(fn_ptr, name) \
+    if (XR_FAILED(xrGetInstanceProcAddr(instance, #name, (PFN_xrVoidFunction *)&fn_ptr))) { \
+      return false; \
+    }
+
+    LOAD_FUNCTION(xrGetOpenGLGraphicsRequirementsKHR_, xrGetOpenGLGraphicsRequirementsKHR);
+
+#  undef LOAD_FUNCTION
+    return true;
   }
 
   bool checkVersionRequirements(GHOST_Context &ghost_ctx,
@@ -91,31 +105,11 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
     }
 #    endif
 #  endif
-    static PFN_xrGetOpenGLGraphicsRequirementsKHR s_xrGetOpenGLGraphicsRequirementsKHR_fn =
-        nullptr;
     // static XrInstance s_instance = XR_NULL_HANDLE;
     XrGraphicsRequirementsOpenGLKHR gpu_requirements = {XR_TYPE_GRAPHICS_REQUIREMENTS_OPENGL_KHR};
     const XrVersion gl_version = XR_MAKE_VERSION(gl_major_version, gl_minor_version, 0);
 
-    /* Although it would seem reasonable that the PROC address would not change if the instance was
-     * the same, in testing, repeated calls to #xrGetInstanceProcAddress() with the same instance
-     * can still result in changes so the workaround is to simply set the function pointer every
-     * time (trivializing its 'static' designation). */
-    // if (instance != s_instance) {
-    // s_instance = instance;
-    s_xrGetOpenGLGraphicsRequirementsKHR_fn = nullptr;
-    //}
-    if (!s_xrGetOpenGLGraphicsRequirementsKHR_fn &&
-        XR_FAILED(
-            xrGetInstanceProcAddr(instance,
-                                  "xrGetOpenGLGraphicsRequirementsKHR",
-                                  (PFN_xrVoidFunction *)&s_xrGetOpenGLGraphicsRequirementsKHR_fn)))
-    {
-      s_xrGetOpenGLGraphicsRequirementsKHR_fn = nullptr;
-      return false;
-    }
-
-    s_xrGetOpenGLGraphicsRequirementsKHR_fn(instance, system_id, &gpu_requirements);
+    xrGetOpenGLGraphicsRequirementsKHR_(instance, system_id, &gpu_requirements);
 
     if (r_requirement_info) {
       std::ostringstream strstream;
@@ -219,13 +213,13 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
         GL_RGB10_A2,
         GL_RGBA16,
 #  endif
-      GL_RGBA16F,
+        GL_RGBA16F,
 #  if 1
-      GL_RGB10_A2,
-      GL_RGBA16,
+        GL_RGB10_A2,
+        GL_RGBA16,
 #  endif
-      GL_RGBA8,
-      GL_SRGB8_ALPHA8,
+        GL_RGBA8,
+        GL_SRGB8_ALPHA8,
     };
 
     std::optional result = choose_swapchain_format_from_candidates(gpu_binding_formats,
@@ -323,6 +317,10 @@ std::unique_ptr<GHOST_IXrGraphicsBinding> GHOST_XrGraphicsBindingCreateFromType(
 #ifdef WITH_VULKAN_BACKEND
     case GHOST_kXrGraphicsVulkan:
       return std::make_unique<GHOST_XrGraphicsBindingVulkan>(context);
+#endif
+#ifdef WITH_METAL_BACKEND
+    case GHOST_kXrGraphicsMetal:
+      return std::make_unique<GHOST_XrGraphicsBindingMetal>(context);
 #endif
 #ifdef WIN32
 #  ifdef WITH_OPENGL_BACKEND

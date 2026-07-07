@@ -248,16 +248,26 @@ class OSLRenderServices : public OSL::RendererServices {
                         void *data,
                         OSLUStringHash *errormessage) override;
 
+  static bool get_attribute(ShaderGlobals *globals,
+                            ShaderData *sd,
+                            bool derivatives,
+                            OSLUStringHash object_name,
+                            TypeDesc type,
+                            OSLUStringHash name,
+                            void *val);
+
   static bool get_background_attribute(ShaderGlobals *globals,
+                                       ShaderData *sd,
                                        OSLUStringHash name,
-                                       const TypeDesc type,
+                                       TypeDesc type,
                                        bool derivatives,
                                        void *val);
   static bool get_camera_attribute(
       ShaderGlobals *globals, OSLUStringHash name, TypeDesc type, bool derivatives, void *val);
   static bool get_object_standard_attribute(ShaderGlobals *globals,
+                                            ShaderData *sd,
                                             OSLUStringHash name,
-                                            const TypeDesc type,
+                                            TypeDesc type,
                                             bool derivatives,
                                             void *val);
 
@@ -311,8 +321,10 @@ class OSLRenderServices : public OSL::RendererServices {
   static ustring u_path_transmission_depth;
   static ustring u_path_portal_depth;
   static ustring u_trace;
+  static ustring u_traceset_only_local;
   static ustring u_hit;
   static ustring u_hitdist;
+  static ustring u_hitself;
   static ustring u_N;
   static ustring u_Ng;
   static ustring u_P;

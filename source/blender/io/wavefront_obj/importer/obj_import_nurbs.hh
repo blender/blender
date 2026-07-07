@@ -16,9 +16,14 @@
 
 #include "obj_import_objects.hh"
 
-struct OBJImportParams;
+namespace blender {
 
-namespace blender::io::obj {
+struct OBJImportParams;
+namespace bke {
+class CurvesGeometry;
+};
+
+namespace io::obj {
 
 /**
  * Make a Blender NURBS Curve block from a Geometry of GEOM_CURVE type.
@@ -51,4 +56,5 @@ class CurveFromGeometry : NonMovable, NonCopyable {
                          Span<float> knots,
                          Span<int> multiplicity);
 };
-}  // namespace blender::io::obj
+}  // namespace io::obj
+}  // namespace blender

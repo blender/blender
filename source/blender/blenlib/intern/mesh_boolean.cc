@@ -950,7 +950,7 @@ static void sort_by_signed_triangle_index(Vector<int> &g,
     find_flap_vert(tri, e, &rev);
     signed_g[i] = rev ? -g[i] : g[i];
   }
-  std::sort(signed_g.begin(), signed_g.end());
+  std::ranges::sort(signed_g);
 
   for (int i : g.index_range()) {
     g[i] = abs(signed_g[i]);
@@ -3145,11 +3145,11 @@ static bool dissolve_leaves_valid_bmesh(FaceMergeState *fms,
 }
 
 /**
- * mf_left and mf_right should share a #MergeEdge me, having index me_index.
- * We change mf_left to remove edge me and insert the appropriate edges of
- * mf_right in between the start and end vertices of that edge.
- * We change the left face of the spliced-in edges to be mf_left's index.
- * We mark the merge_to property of mf_right, which is now in essence deleted.
+ * `mf_left` and `mf_right` should share a #MergeEdge `me`, having index `me_index`.
+ * We change `mf_left` to remove edge `me` and insert the appropriate edges of
+ * `mf_right` in between the start and end vertices of that edge.
+ * We change the left face of the spliced-in edges to be `mf_left`'s index.
+ * We mark the `merge_to` property of `mf_right`, which is now in essence deleted.
  */
 static void splice_faces(
     FaceMergeState *fms, MergeEdge &me, int me_index, MergeFace &mf_left, MergeFace &mf_right)
@@ -3223,10 +3223,9 @@ static void do_dissolve(FaceMergeState *fms)
     return;
   }
   /* Things look nicer if we dissolve the longer edges first. */
-  std::sort(
-      dissolve_edges.begin(), dissolve_edges.end(), [fms](const int &a, const int &b) -> bool {
-        return (fms->edge[a].len_squared > fms->edge[b].len_squared);
-      });
+  std::ranges::sort(dissolve_edges, [fms](const int &a, const int &b) -> bool {
+    return (fms->edge[a].len_squared > fms->edge[b].len_squared);
+  });
   if (dbg_level > 0) {
     std::cout << "Sorted dissolvable edges: " << dissolve_edges << "\n";
   }

@@ -7,6 +7,8 @@
 #include "BLI_math_color.h"
 #include "BLI_math_color_blend.h"
 
+namespace blender {
+
 TEST(math_color, RGBToHSVRoundtrip)
 {
   const float orig_rgb[3] = {0.1f, 0.2f, 0.3f};
@@ -177,3 +179,5 @@ TEST(math_color, BlendModeConsistency_SoftLight)
   EXPECT_NEAR(fdst[1] * 255.0f, bdst[1], 1.0f);
   EXPECT_NEAR(fdst[2] * 255.0f, bdst[2], 1.0f);
 }
+
+}  // namespace blender

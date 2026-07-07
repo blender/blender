@@ -15,13 +15,12 @@
  * defined.
  */
 
-#include "infos/eevee_tracing_info.hh"
+#include "infos/eevee_tracing_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_horizon_scan)
 
 #include "draw_shape_lib.glsl"
 #include "draw_view_lib.glsl"
-#include "eevee_bxdf_lib.glsl"
 #include "eevee_horizon_scan_lib.glsl"
 #include "eevee_ray_types_lib.glsl"
 #include "eevee_sampling_lib.glsl"
@@ -55,14 +54,16 @@ float3 horizon_scan_sample_normal(float2 uv)
 #endif
 }
 
-struct HorizonScanResult {
 #ifdef HORIZON_OCCLUSION
+struct HorizonScanResult {
   float result;
+};
 #endif
 #ifdef HORIZON_CLOSURE
+struct HorizonScanResult {
   SphericalHarmonicL1 result;
-#endif
 };
+#endif
 
 /**
  * Scans the horizon in many directions and returns the indirect lighting radiance.

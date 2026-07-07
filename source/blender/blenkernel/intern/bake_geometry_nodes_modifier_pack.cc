@@ -39,6 +39,9 @@ static Vector<NodesModifierBakeFile> pack_files_from_directory(const StringRefNu
     const direntry &dir_entry = dir_entries[i];
     const StringRefNull dir_entry_path = dir_entry.path;
     const StringRefNull name = dir_entry.relname;
+    if (FILENAME_IS_CURRPAR(name.c_str())) {
+      continue;
+    }
     NodesModifierBakeFile bake_file;
     bake_file.name = BLI_strdup_null(name.c_str());
     bake_file.packed_file = BKE_packedfile_new(reports, dir_entry_path.c_str(), "");
@@ -61,14 +64,14 @@ NodesModifierPackedBake *pack_bake_from_disk(const BakePath &bake_path, ReportLi
   const Vector<NodesModifierBakeFile> blob_bake_files = pack_files_from_directory(
       bake_path.blobs_dir, reports);
 
-  NodesModifierPackedBake *packed_bake = MEM_callocN<NodesModifierPackedBake>(__func__);
+  NodesModifierPackedBake *packed_bake = MEM_new<NodesModifierPackedBake>(__func__);
   packed_bake->meta_files_num = meta_bake_files.size();
   packed_bake->blob_files_num = blob_bake_files.size();
 
-  packed_bake->meta_files = MEM_calloc_arrayN<NodesModifierBakeFile>(packed_bake->meta_files_num,
-                                                                     __func__);
-  packed_bake->blob_files = MEM_calloc_arrayN<NodesModifierBakeFile>(packed_bake->blob_files_num,
-                                                                     __func__);
+  packed_bake->meta_files = MEM_new_array<NodesModifierBakeFile>(packed_bake->meta_files_num,
+                                                                 __func__);
+  packed_bake->blob_files = MEM_new_array<NodesModifierBakeFile>(packed_bake->blob_files_num,
+                                                                 __func__);
 
   uninitialized_copy_n(meta_bake_files.data(), meta_bake_files.size(), packed_bake->meta_files);
   uninitialized_copy_n(blob_bake_files.data(), blob_bake_files.size(), packed_bake->blob_files);
@@ -136,15 +139,22 @@ PackGeometryNodesBakeResult pack_geometry_nodes_bake(Main &bmain,
   return PackGeometryNodesBakeResult::Success;
 }
 
-static bool directory_is_empty(const blender::StringRefNull path)
+static bool directory_is_empty(const StringRefNull path)
 {
   direntry *entries = nullptr;
   const int entries_num = BLI_filelist_dir_contents(path.c_str(), &entries);
-  BLI_filelist_free(entries, entries_num);
-  return entries_num == 0;
+  BLI_SCOPED_DEFER([&]() { BLI_filelist_free(entries, entries_num); });
+  for (const int i : IndexRange(entries_num)) {
+    const direntry &entry = entries[i];
+    if (FILENAME_IS_CURRPAR(entry.relname)) {
+      continue;
+    }
+    return false;
+  }
+  return true;
 }
 
-static bool disk_bake_exists(const blender::bke::bake::BakePath &path)
+static bool disk_bake_exists(const bke::bake::BakePath &path)
 {
   return !directory_is_empty(path.meta_dir);
 }
@@ -170,7 +180,7 @@ UnpackGeometryNodesBakeResult unpack_geometry_nodes_bake(Main &bmain,
     const std::string directory = bake::get_default_node_bake_directory(
         bmain, object, nmd, bake.id);
     bake.flag |= NODES_MODIFIER_BAKE_CUSTOM_PATH;
-    MEM_SAFE_FREE(bake.directory);
+    MEM_SAFE_DELETE(bake.directory);
     bake.directory = BLI_strdup(directory.c_str());
     const char *base_path = ID_BLEND_PATH(&bmain, &object.id);
     char absolute_dir[FILE_MAX];
@@ -191,7 +201,7 @@ UnpackGeometryNodesBakeResult unpack_geometry_nodes_bake(Main &bmain,
     BLI_delete(bake_path.blobs_dir.c_str(), true, true);
   };
   auto free_packed_bake = [&]() {
-    blender::nodes_modifier_packed_bake_free(bake.packed);
+    nodes_modifier_packed_bake_free(bake.packed);
     bake.packed = nullptr;
     nmd.runtime->cache->reset_cache(bake.id);
   };

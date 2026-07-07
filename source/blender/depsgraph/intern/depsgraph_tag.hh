@@ -8,10 +8,12 @@
 
 #include "intern/node/deg_node.hh"
 
+namespace blender {
+
 struct ID;
 struct Main;
 
-namespace blender::deg {
+namespace deg {
 
 struct Depsgraph;
 
@@ -29,4 +31,5 @@ void graph_id_tag_update(
  * Will do nothing if the graph is not tagged for visibility update. */
 void graph_tag_ids_for_visible_update(Depsgraph *graph);
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

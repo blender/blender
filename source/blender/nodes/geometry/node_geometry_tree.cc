@@ -25,10 +25,12 @@
 
 #include "node_common.h"
 
-blender::bke::bNodeTreeType *ntreeType_Geometry;
+namespace blender {
+
+bke::bNodeTreeType *ntreeType_Geometry;
 
 static void geometry_node_tree_get_from_context(const bContext *C,
-                                                blender::bke::bNodeTreeType * /*treetype*/,
+                                                bke::bNodeTreeType * /*treetype*/,
                                                 bNodeTree **r_ntree,
                                                 ID **r_id,
                                                 ID **r_from)
@@ -60,7 +62,7 @@ static void geometry_node_tree_get_from_context(const bContext *C,
 
   if (md->type == eModifierType_Nodes) {
     const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
-    if (nmd->node_group != nullptr) {
+    if (nmd->node_group != nullptr && !ID_MISSING(nmd->node_group)) {
       *r_from = &ob->id;
       *r_id = &ob->id;
       *r_ntree = nmd->node_group;
@@ -70,13 +72,13 @@ static void geometry_node_tree_get_from_context(const bContext *C,
 
 static void geometry_node_tree_update(bNodeTree *ntree)
 {
-  blender::bke::node_tree_set_output(*ntree);
+  bke::node_tree_set_output(*ntree);
 
   /* Needed to give correct types to reroutes. */
   ntree_update_reroute_nodes(ntree);
 }
 
-static void foreach_nodeclass(void *calldata, blender::bke::bNodeClassCallback func)
+static void foreach_nodeclass(void *calldata, bke::bNodeClassCallback func)
 {
   func(calldata, NODE_CLASS_INPUT, N_("Input"));
   func(calldata, NODE_CLASS_GEOMETRY, N_("Geometry"));
@@ -117,10 +119,10 @@ static bool geometry_node_tree_validate_link(eNodeSocketDatatype type_a,
   return type_a == type_b;
 }
 
-static bool geometry_node_tree_socket_type_valid(blender::bke::bNodeTreeType * /*treetype*/,
-                                                 blender::bke::bNodeSocketType *socket_type)
+static bool geometry_node_tree_socket_type_valid(bke::bNodeTreeType * /*treetype*/,
+                                                 bke::bNodeSocketType *socket_type)
 {
-  return blender::bke::node_is_static_socket_type(*socket_type) &&
+  return bke::node_is_static_socket_type(*socket_type) &&
          (ELEM(socket_type->type,
                SOCK_FLOAT,
                SOCK_VECTOR,
@@ -133,36 +135,34 @@ static bool geometry_node_tree_socket_type_valid(blender::bke::bNodeTreeType * /
                SOCK_OBJECT,
                SOCK_GEOMETRY,
                SOCK_COLLECTION,
-               SOCK_TEXTURE,
                SOCK_IMAGE,
                SOCK_MATERIAL,
                SOCK_MENU) ||
-          ELEM(socket_type->type, SOCK_BUNDLE, SOCK_CLOSURE));
+          ELEM(socket_type->type, SOCK_BUNDLE, SOCK_CLOSURE, SOCK_FONT));
 }
 
 void register_node_tree_type_geo()
 {
-  blender::bke::bNodeTreeType *tt = ntreeType_Geometry = MEM_new<blender::bke::bNodeTreeType>(
-      __func__);
+  bke::bNodeTreeType *tt = ntreeType_Geometry = MEM_new<bke::bNodeTreeType>(__func__);
   tt->type = NTREE_GEOMETRY;
   tt->idname = "GeometryNodeTree";
   tt->group_idname = "GeometryNodeGroup";
   tt->ui_name = N_("Geometry Node Editor");
   tt->ui_icon = ICON_GEOMETRY_NODES;
-  tt->ui_description = N_("Geometry nodes");
-  tt->rna_ext.srna = &RNA_GeometryNodeTree;
+  tt->ui_description = N_("Advanced geometry editing and tools creation using nodes");
+  tt->rna_ext.srna = RNA_GeometryNodeTree;
   tt->update = geometry_node_tree_update;
   tt->get_from_context = geometry_node_tree_get_from_context;
   tt->foreach_nodeclass = foreach_nodeclass;
   tt->valid_socket_type = geometry_node_tree_socket_type_valid;
   tt->validate_link = geometry_node_tree_validate_link;
 
-  blender::bke::node_tree_type_add(*tt);
+  bke::node_tree_type_add(*tt);
 }
 
 bool is_layer_selection_field(const bNodeTreeInterfaceSocket &socket)
 {
-  const blender::bke::bNodeSocketType *typeinfo = socket.socket_typeinfo();
+  const bke::bNodeSocketType *typeinfo = socket.socket_typeinfo();
   BLI_assert(typeinfo != nullptr);
 
   if (typeinfo->type != SOCK_BOOLEAN) {
@@ -170,3 +170,5 @@ bool is_layer_selection_field(const bNodeTreeInterfaceSocket &socket)
   }
   return (socket.flag & NODE_INTERFACE_SOCKET_LAYER_SELECTION) != 0;
 }
+
+}  // namespace blender

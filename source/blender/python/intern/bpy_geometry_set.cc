@@ -40,7 +40,9 @@
 
 #include "../generic/py_capi_utils.hh"
 
-using blender::bke::GeometrySet;
+namespace blender {
+
+using bke::GeometrySet;
 
 extern PyTypeObject bpy_geometry_set_Type;
 
@@ -92,13 +94,12 @@ PyDoc_STRVAR(
     "   Create a geometry set from the evaluated geometry of an evaluated object.\n"
     "   Typically, it's more convenient to use :func:`bpy.types.Object.evaluated_geometry`.\n"
     "\n"
-    "   :arg evaluated_object: The evaluated object to create a geometry set from.\n"
+    "   :param evaluated_object: The evaluated object to create a geometry set from.\n"
     "   :type evaluated_object: bpy.types.Object\n");
 static BPy_GeometrySet *BPy_GeometrySet_static_from_evaluated_object(PyObject * /*self*/,
                                                                      PyObject *args,
                                                                      PyObject *kwds)
 {
-  using namespace blender;
   static const char *kwlist[] = {"evaluated_object", nullptr};
   PyObject *py_evaluated_object;
   if (!PyArg_ParseTupleAndKeywords(
@@ -144,18 +145,18 @@ static BPy_GeometrySet *BPy_GeometrySet_static_from_evaluated_object(PyObject * 
     PyErr_SetString(PyExc_TypeError, "Object is not owned by a depsgraph");
     return nullptr;
   }
-  Scene *scene = DEG_get_input_scene(depsgraph);
 
   GeometrySet geometry;
   if (is_instance_collection) {
-    bke::Instances *instances = new bke::Instances();
-    instances->add_new_reference(bke::InstanceReference{*evaluated_object->instance_collection});
-    instances->add_instance(0, float4x4::identity());
+    bke::Instances *instances = new bke::Instances(1);
+    const int handle = instances->add_new_reference(
+        bke::InstanceReference{*evaluated_object->instance_collection});
+    instances->reference_handles_for_write().first() = handle;
+    instances->transforms_for_write().first() = float4x4::identity();
     geometry.replace_instances(instances);
   }
   else {
-    bke::Instances instances = object_duplilist_legacy_instances(
-        *depsgraph, *scene, *evaluated_object);
+    bke::Instances instances = object_duplilist_legacy_instances(*depsgraph, *evaluated_object);
     geometry = bke::object_get_evaluated_geometry_set(*evaluated_object, false);
     if (instances.instances_num() > 0) {
       geometry.replace_instances(new bke::Instances(std::move(instances)));
@@ -188,7 +189,6 @@ PyDoc_STRVAR(
     "   :rtype: bpy.types.PointCloud\n");
 static PyObject *BPy_GeometrySet_get_instances_pointcloud(BPy_GeometrySet *self)
 {
-  using namespace blender;
   const bke::Instances *instances = self->geometry.get_instances();
   if (!instances) {
     Py_RETURN_NONE;
@@ -220,7 +220,6 @@ PyDoc_STRVAR(
     "   :rtype: list[None | bpy.types.Object | bpy.types.Collection | bpy.types.GeometrySet]\n");
 static PyObject *BPy_GeometrySet_get_instance_references(BPy_GeometrySet *self)
 {
-  using namespace blender;
   const bke::Instances *instances = self->geometry.get_instances();
   if (!instances) {
     return PyList_New(0);
@@ -343,7 +342,7 @@ PyDoc_STRVAR(
     bpy_geometry_set_grease_pencil_doc,
     "The Grease Pencil data-block in the geometry set.\n"
     "\n"
-    ":type: :class:`bpy.types.GreasePencilv3`\n");
+    ":type: :class:`bpy.types.GreasePencil`\n");
 static PyObject *BPy_GeometrySet_get_grease_pencil(BPy_GeometrySet *self, void * /*closure*/)
 {
   return pyrna_id_CreatePyObject(
@@ -491,3 +490,5 @@ PyObject *BPyInit_geometry_set_type()
   }
   return reinterpret_cast<PyObject *>(&bpy_geometry_set_Type);
 }
+
+}  // namespace blender

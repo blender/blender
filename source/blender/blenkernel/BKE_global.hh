@@ -13,7 +13,10 @@
 
 #include "DNA_listBase.h"
 
+namespace blender {
+
 struct Main;
+struct RecentFile;
 
 /**
  * Global data, typically accessed from #G.
@@ -53,7 +56,7 @@ struct Global {
    * Strings of recently opened files to show in the file menu.
    * A list of #RecentFile read from #BLENDER_HISTORY_FILE.
    */
-  ListBase recent_files;
+  ListBaseT<RecentFile> recent_files;
 
   /**
    * Set when Escape been pressed or `Ctrl-C` pressed in background mode.
@@ -100,8 +103,6 @@ struct Global {
    *   *    666: Use quicker batch delete for outliners' delete hierarchy (01/2019).
    *   *    777: Enable UI node panel's sockets polling (11/2011).
    *   *    799: Enable some mysterious new depsgraph behavior (05/2015).
-   *   *    887: Enable tablet pressure statusbar text for paint modals (08/2025).
-   *   *    889: Enable PBVH visualization in Solid / XRay rendering mode (09/2019)
    *   *   1112: Disable new Cloth internal springs handling (09/2014).
    *   *   1234: Disable new dyntopo code fixing skinny faces generation (04/2015).
    *   *   3001: Enable additional Fluid modifier (Mantaflow) options (02/2020).
@@ -170,7 +171,13 @@ struct Global {
    * Triggers a GPU capture if the name matches a DebugScope.
    * Set using `--debug-gpu-scope-capture "debug_scope"`.
    */
-  char gpu_debug_scope_name[200];
+  char gpu_debug_scope_name[100];
+
+  /**
+   * Save final shader string to disk.
+   * Set using `--debug-gpu-shader-source "shader_name"`.
+   */
+  char gpu_debug_shader_source_name[100];
 
   bool profile_gpu;
 };
@@ -260,11 +267,15 @@ enum {
   G_DEBUG_GPU_COMPILE_SHADERS = (1 << 20),         /* Compile all statically defined shaders. . */
   G_DEBUG_GPU_RENDERDOC = (1 << 21),               /* Enable RenderDoc integration. */
   G_DEBUG_GPU_SHADER_DEBUG_INFO = (1 << 22), /* Enable the generation of shader debug info. */
-  G_DEBUG_XR = (1 << 23),                    /* XR/OpenXR messages */
-  G_DEBUG_XR_TIME = (1 << 24),               /* XR/OpenXR timing messages */
+  G_DEBUG_GPU_NO_TEXTURE_POOL = (1 << 23),   /* Disable memory aliasing in the texture pool. */
+  G_DEBUG_XR = (1 << 24),                    /* XR/OpenXR messages */
+  G_DEBUG_XR_TIME = (1 << 25),               /* XR/OpenXR timing messages */
 
-  G_DEBUG_GHOST = (1 << 25),  /* Debug GHOST module. */
-  G_DEBUG_WINTAB = (1 << 26), /* Debug Wintab. */
+  G_DEBUG_GHOST = (1 << 26),  /* Debug GHOST module. */
+  G_DEBUG_WINTAB = (1 << 27), /* Debug Wintab. */
+
+  G_DEBUG_GPU_SHADER_NO_PREPROCESSOR = (1 << 28), /* Disable the preprocessor (implies NO_DCE). */
+  G_DEBUG_GPU_SHADER_NO_DCE = (1 << 29),          /* Disable Dead Code Elimination. */
 };
 
 #define G_DEBUG_ALL \
@@ -364,3 +375,5 @@ extern Global G;
  * helps with cleanup task.
  */
 #define G_MAIN (G).main
+
+}  // namespace blender

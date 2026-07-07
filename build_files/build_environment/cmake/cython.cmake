@@ -8,13 +8,13 @@ if(MSVC)
     set(CYTHON_ARCHIVE_POSTFIX d)
     set(CYTHON_BUILD_OPTION --debug)
   else()
-    set(CYTHON_DIR_POSTFIX)
-    set(CYTHON_ARCHIVE_POSTFIX)
-    set(CYTHON_BUILD_OPTION)
+    set(CYTHON_DIR_POSTFIX "")
+    set(CYTHON_ARCHIVE_POSTFIX "")
+    set(CYTHON_BUILD_OPTION "")
   endif()
 endif()
 
-set(CYTHON_POSTFIX)
+set(CYTHON_POSTFIX "")
 
 ExternalProject_Add(external_cython
   URL file://${PACKAGE_DIR}/${CYTHON_FILE}
@@ -38,4 +38,5 @@ ExternalProject_Add(external_cython
 add_dependencies(
   external_cython
   external_python
+  external_python_site_packages
 )

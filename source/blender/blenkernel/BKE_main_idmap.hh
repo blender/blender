@@ -20,6 +20,8 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 struct Library;
 struct ID;
 struct IDNameLib_Map;
@@ -62,3 +64,5 @@ ID *BKE_main_idmap_lookup_id(IDNameLib_Map *id_map, const ID *id) ATTR_WARN_UNUS
 
 ID *BKE_main_idmap_lookup_uid(IDNameLib_Map *id_map, uint session_uid) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1);
+
+}  // namespace blender

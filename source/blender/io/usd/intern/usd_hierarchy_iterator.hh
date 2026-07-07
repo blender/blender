@@ -13,15 +13,17 @@
 #include <pxr/usd/usd/common.h>
 #include <pxr/usd/usd/timeCode.h>
 
+namespace blender {
+
 struct Depsgraph;
 struct Main;
 struct Object;
 
-namespace blender::io::usd {
+namespace io::usd {
 
-using blender::io::AbstractHierarchyIterator;
-using blender::io::AbstractHierarchyWriter;
-using blender::io::HierarchyContext;
+using io::AbstractHierarchyIterator;
+using io::AbstractHierarchyWriter;
+using io::HierarchyContext;
 
 class USDHierarchyIterator : public AbstractHierarchyIterator {
  private:
@@ -32,6 +34,16 @@ class USDHierarchyIterator : public AbstractHierarchyIterator {
   ObjExportMap armature_export_map_;
   ObjExportMap skinned_mesh_export_map_;
   ObjExportMap shape_key_mesh_export_map_;
+
+  /*
+   * The field below is mutable because it is used to keep track
+   * of what the exporter is doing. This is necessary even when all
+   * the other export settings are to remain const.
+   */
+
+  /* Map a USD prim path to a list of Blender IDs associated with that prim.
+   * This map is updated by writers during stage export. */
+  mutable Map<pxr::SdfPath, Vector<ID *>> exported_prim_map_;
 
   /* Map prototype_paths[instancer path] = [
    *   (proto_path_1, proto_object_1), (proto_path_2, proto_object_2), ... ] */
@@ -49,9 +61,18 @@ class USDHierarchyIterator : public AbstractHierarchyIterator {
 
   void process_usd_skel() const;
 
+  /* Get the USD stage being exported to. */
+  pxr::UsdStageRefPtr get_stage() const;
+
+  /* Get the mapping of exported objects to their USD prim paths. */
+  const Map<pxr::SdfPath, Vector<ID *>> &get_exported_prim_map() const;
+
+  /* Add an ID to the prim map for a given USD path. */
+  void add_to_prim_map(const pxr::SdfPath &usd_path, const ID *id) const;
+
  protected:
   bool mark_as_weak_export(const Object *object) const override;
-  void determine_point_instancers(const HierarchyContext *context);
+  bool determine_point_instancers(const HierarchyContext *context);
 
   AbstractHierarchyWriter *create_transform_writer(const HierarchyContext *context) override;
   AbstractHierarchyWriter *create_data_writer(const HierarchyContext *context) override;
@@ -71,4 +92,5 @@ class USDHierarchyIterator : public AbstractHierarchyIterator {
   void add_usd_skel_export_mapping(const Object *obj, const pxr::SdfPath &usd_path);
 };
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

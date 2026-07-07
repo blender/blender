@@ -59,7 +59,7 @@ endmacro()
 set(MSYS2_BASE_URL https://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20221028.tar.xz)
 set(MSYS2_BASE_HASH 545cc6a4c36bb98058f2b2945c5d06de523516db)
 
-set(MSYS2_NASM_URL http://www.nasm.us/pub/nasm/releasebuilds/2.13.02/win64/nasm-2.13.02-win64.zip)
+set(MSYS2_NASM_URL https://www.nasm.us/pub/nasm/releasebuilds/3.01/win64/nasm-3.01-win64.zip)
 set(MSYS2_NASM_HASH 6ae5eaffde68aa7450fadd7f45ba5c6df3dce558)
 
 set(MSYS2_PERL_URL https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip)
@@ -179,7 +179,7 @@ if((NOT EXISTS "${DOWNLOAD_DIR}/msys2/msys64/usr/bin/nasm.exe") AND (EXISTS "${M
   )
   execute_process(
     COMMAND ${CMAKE_COMMAND} -E copy
-      "${DOWNLOAD_DIR}/nasm-2.13.02/nasm.exe"
+      "${DOWNLOAD_DIR}/nasm-3.01/nasm.exe"
       "${DOWNLOAD_DIR}/msys2/msys64/usr/bin/nasm.exe"
   )
 endif()

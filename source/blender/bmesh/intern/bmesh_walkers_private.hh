@@ -12,9 +12,11 @@
 
 #include "bmesh_class.hh"
 
+namespace blender {
+
 struct BMWalker;
 
-extern BMWalker *bm_walker_types[];
+extern const BMWalker *bm_walker_types[];
 extern const int bm_totwalkers;
 
 /* Pointer hiding */
@@ -69,6 +71,7 @@ struct BMwEdgeringWalker {
   BMwGenericWalker header;
   BMLoop *l;
   BMEdge *wireedge;
+  bool no_calc;
 };
 
 struct BMwEdgeboundaryWalker {
@@ -92,3 +95,5 @@ struct BMwConnectedVertexWalker {
   BMwGenericWalker header;
   BMVert *curvert;
 };
+
+}  // namespace blender

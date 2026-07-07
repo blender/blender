@@ -4,11 +4,8 @@
 
 #pragma once
 
-#include "gpu_shader_math_base_lib.glsl"
-
-/* WORKAROUND: to guard against double include in EEVEE. */
-#ifndef GPU_SHADER_MATH_FAST_LIB_GLSL
-#  define GPU_SHADER_MATH_FAST_LIB_GLSL
+#include "gpu_shader_compat.hh"
+#include "gpu_shader_math_constants_lib.glsl"
 
 /* [Drobot2014a] Low Level Optimizations for GCN. */
 float sqrt_fast(float v)
@@ -54,5 +51,3 @@ float atan_fast(float x)
   }
   return (x < 0.0f) ? -r : r;
 }
-
-#endif /* GPU_SHADER_MATH_FAST_LIB_GLSL */

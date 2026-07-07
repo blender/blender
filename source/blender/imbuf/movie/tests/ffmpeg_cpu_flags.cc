@@ -4,6 +4,8 @@
 
 #include "testing/testing.h"
 
+namespace blender {
+
 extern "C" {
 #include <libavutil/cpu.h>
 }
@@ -26,3 +28,4 @@ TEST(ffmpeg, correct_av_cpu_flags)
 }
 
 }  // namespace ffmpeg::tests
+}  // namespace blender

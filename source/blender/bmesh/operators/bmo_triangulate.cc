@@ -21,6 +21,8 @@
 #include "bmesh_tools.hh"
 #include "intern/bmesh_operators_private.hh"
 
+namespace blender {
+
 #define ELE_NEW 1
 #define EDGE_MARK 4
 
@@ -55,14 +57,14 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
   BMEdge *e;
   ScanFillContext sf_ctx;
   // ScanFillEdge *sf_edge; /* UNUSED */
-  GHash *sf_vert_map;
   float normal[3];
   const int scanfill_flag = BLI_SCANFILL_CALC_HOLES | BLI_SCANFILL_CALC_POLYS |
                             BLI_SCANFILL_CALC_LOOSE;
   uint nors_tot;
   bool calc_winding = false;
 
-  sf_vert_map = BLI_ghash_ptr_new_ex(__func__, BMO_slot_buffer_len(op->slots_in, "edges"));
+  Map<BMVert *, ScanFillVert *> sf_vert_map;
+  sf_vert_map.reserve(BMO_slot_buffer_len(op->slots_in, "edges"));
 
   BMO_slot_vec_get(op->slots_in, "normal", normal);
 
@@ -78,20 +80,17 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
     calc_winding = (calc_winding || BM_edge_is_boundary(e));
 
     for (i = 0; i < 2; i++) {
-      if ((sf_verts[i] = static_cast<ScanFillVert *>(BLI_ghash_lookup(sf_vert_map, e_verts[i]))) ==
-          nullptr)
-      {
-        sf_verts[i] = BLI_scanfill_vert_add(&sf_ctx, e_verts[i]->co);
-        sf_verts[i]->tmp.p = e_verts[i];
-        BLI_ghash_insert(sf_vert_map, e_verts[i], sf_verts[i]);
-      }
+      sf_verts[i] = sf_vert_map.lookup_or_add_cb(e_verts[i], [&]() {
+        ScanFillVert *sf_vert = BLI_scanfill_vert_add(&sf_ctx, e_verts[i]->co);
+        sf_vert->tmp.p = e_verts[i];
+        return sf_vert;
+      });
     }
 
     /* sf_edge = */ BLI_scanfill_edge_add(&sf_ctx, UNPACK2(sf_verts));
     // sf_edge->tmp.p = e; /* UNUSED */
   }
-  nors_tot = BLI_ghash_len(sf_vert_map);
-  BLI_ghash_free(sf_vert_map, nullptr, nullptr);
+  nors_tot = sf_vert_map.size();
 
   if (is_zero_v3(normal)) {
     /* calculate the normal from the cross product of vert-edge pairs.
@@ -101,7 +100,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
     uint i;
     bool is_degenerate = true;
 
-    nors = MEM_malloc_arrayN<SortNormal>(nors_tot, __func__);
+    nors = MEM_new_array_uninitialized<SortNormal>(nors_tot, __func__);
 
     for (sf_vert = static_cast<ScanFillVert *>(sf_ctx.fillvertbase.first), i = 0; sf_vert;
          sf_vert = sf_vert->next, i++)
@@ -164,7 +163,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
       normalize_v3(normal);
     }
 
-    MEM_freeN(nors);
+    MEM_delete(nors);
   }
   else {
     calc_winding = false;
@@ -181,10 +180,10 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
   /* if we have existing faces, base winding on those */
   if (calc_winding) {
     int winding_votes = 0;
-    LISTBASE_FOREACH (ScanFillFace *, sf_tri, &sf_ctx.fillfacebase) {
-      BMVert *v_tri[3] = {static_cast<BMVert *>(sf_tri->v1->tmp.p),
-                          static_cast<BMVert *>(sf_tri->v2->tmp.p),
-                          static_cast<BMVert *>(sf_tri->v3->tmp.p)};
+    for (ScanFillFace &sf_tri : sf_ctx.fillfacebase) {
+      BMVert *v_tri[3] = {static_cast<BMVert *>(sf_tri.v1->tmp.p),
+                          static_cast<BMVert *>(sf_tri.v2->tmp.p),
+                          static_cast<BMVert *>(sf_tri.v3->tmp.p)};
       uint i, i_prev;
 
       for (i = 0, i_prev = 2; i < 3; i_prev = i++) {
@@ -196,21 +195,21 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
     }
 
     if (winding_votes < 0) {
-      LISTBASE_FOREACH (ScanFillFace *, sf_tri, &sf_ctx.fillfacebase) {
-        std::swap(sf_tri->v2, sf_tri->v3);
+      for (ScanFillFace &sf_tri : sf_ctx.fillfacebase) {
+        std::swap(sf_tri.v2, sf_tri.v3);
       }
     }
   }
 
-  LISTBASE_FOREACH (ScanFillFace *, sf_tri, &sf_ctx.fillfacebase) {
+  for (ScanFillFace &sf_tri : sf_ctx.fillfacebase) {
     BMFace *f;
     BMLoop *l;
     BMIter liter;
 
     f = BM_face_create_quad_tri(bm,
-                                static_cast<BMVert *>(sf_tri->v1->tmp.p),
-                                static_cast<BMVert *>(sf_tri->v2->tmp.p),
-                                static_cast<BMVert *>(sf_tri->v3->tmp.p),
+                                static_cast<BMVert *>(sf_tri.v1->tmp.p),
+                                static_cast<BMVert *>(sf_tri.v2->tmp.p),
+                                static_cast<BMVert *>(sf_tri.v3->tmp.p),
                                 nullptr,
                                 nullptr,
                                 BM_CREATE_NO_DOUBLE);
@@ -266,3 +265,5 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_EDGE | BM_FACE, ELE_NEW);
 }
+
+}  // namespace blender

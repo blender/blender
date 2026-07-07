@@ -27,7 +27,7 @@ GLStorageBuf::GLStorageBuf(size_t size, GPUUsageType usage, const char *name)
     : StorageBuf(size, name)
 {
   usage_ = usage;
-  /* Do not create UBO GL buffer here to allow allocation from any thread. */
+  /* Do not create SSBO GL buffer here to allow allocation from any thread. */
   BLI_assert(size <= GPU_max_storage_buffer_size());
 }
 
@@ -49,10 +49,10 @@ GLStorageBuf::~GLStorageBuf()
   }
 
   if (read_ssbo_id_) {
-    GLContext::buf_free(read_ssbo_id_);
+    GLContext::buffer_free(read_ssbo_id_);
   }
 
-  GLContext::buf_free(ssbo_id_);
+  GLContext::buffer_free(ssbo_id_);
 }
 
 /** \} */
@@ -108,7 +108,7 @@ void GLStorageBuf::bind(int slot)
 
   if (data_ != nullptr) {
     this->update(data_);
-    MEM_SAFE_FREE(data_);
+    MEM_SAFE_DELETE_VOID(data_);
   }
 
   slot_ = slot;
@@ -123,7 +123,7 @@ void GLStorageBuf::bind(int slot)
 void GLStorageBuf::bind_as(GLenum target)
 {
   BLI_assert_msg(ssbo_id_ != 0,
-                 "Trying to use storage buf as indirect buffer but buffer was never filled.");
+                 "Trying to use storage buffer as indirect buffer but buffer was never filled.");
   glBindBuffer(target, ssbo_id_);
 }
 
@@ -227,8 +227,17 @@ void GLStorageBuf::read(void *data)
     return;
   }
 
-  if (!persistent_ptr_ || !read_fence_) {
-    this->async_flush_to_host();
+  if (!read_fence_) {
+    /* Synchronous path. */
+    if (GLContext::direct_state_access_support) {
+      glGetNamedBufferSubData(ssbo_id_, 0, size_in_bytes_, data);
+    }
+    else {
+      glBindBuffer(GL_COPY_READ_BUFFER, ssbo_id_);
+      glGetBufferSubData(GL_COPY_READ_BUFFER, 0, size_in_bytes_, data);
+      glBindBuffer(GL_COPY_READ_BUFFER, 0);
+    }
+    return;
   }
 
   while (glClientWaitSync(read_fence_, GL_SYNC_FLUSH_COMMANDS_BIT, 1000) == GL_TIMEOUT_EXPIRED) {
@@ -237,6 +246,7 @@ void GLStorageBuf::read(void *data)
   glDeleteSync(read_fence_);
   read_fence_ = nullptr;
 
+  BLI_assert(persistent_ptr_);
   memcpy(data, persistent_ptr_, size_in_bytes_);
 }
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021-2022 Intel Corporation
+/* SPDX-FileCopyrightText: 2021-2025 Intel Corporation
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
@@ -6,6 +6,7 @@
 
 #  include "device/oneapi/queue.h"
 #  include "device/oneapi/device_impl.h"
+#  include "device/oneapi/graphics_interop.h"
 #  include "util/log.h"
 
 #  include "kernel/device/oneapi/kernel.h"
@@ -54,7 +55,7 @@ int OneapiDeviceQueue::num_sort_partitions(int max_num_paths, uint /*max_scene_s
 
 void OneapiDeviceQueue::init_execution()
 {
-  oneapi_device_->load_texture_info();
+  oneapi_device_->load_image_info();
 
   SyclQueue *device_queue = oneapi_device_->sycl_queue();
   void *kg_dptr = oneapi_device_->kernel_globals_device_pointer();
@@ -75,8 +76,8 @@ bool OneapiDeviceQueue::enqueue(DeviceKernel kernel,
     return false;
   }
 
-  /* Update texture info in case memory moved to host. */
-  if (oneapi_device_->load_texture_info()) {
+  /* Update image info in case memory moved to host. */
+  if (oneapi_device_->load_image_info()) {
     if (!synchronize()) {
       return false;
     }
@@ -141,6 +142,13 @@ void OneapiDeviceQueue::copy_from_device(device_memory &mem)
 {
   oneapi_device_->mem_copy_from(mem);
 }
+
+#  ifdef SYCL_LINEAR_MEMORY_INTEROP_AVAILABLE
+unique_ptr<DeviceGraphicsInterop> OneapiDeviceQueue::graphics_interop_create()
+{
+  return make_unique<OneapiDeviceGraphicsInterop>(this);
+}
+#  endif
 
 CCL_NAMESPACE_END
 

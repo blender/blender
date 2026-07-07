@@ -14,6 +14,8 @@
 #include "eigen_utils.h"
 #include "implicit.h"
 
+namespace blender {
+
 /* ================ Volumetric Hair Interaction ================
  * adapted from
  *
@@ -1141,7 +1143,7 @@ HairGrid *SIM_hair_volume_create_vertex_grid(float cellsize,
   }
   size = hair_grid_size(res);
 
-  grid = MEM_callocN<HairGrid>("hair grid");
+  grid = MEM_new_zeroed<HairGrid>("hair grid");
   grid->res[0] = res[0];
   grid->res[1] = res[1];
   grid->res[2] = res[2];
@@ -1149,7 +1151,7 @@ HairGrid *SIM_hair_volume_create_vertex_grid(float cellsize,
   copy_v3_v3(grid->gmax, gmax_margin);
   grid->cellsize = cellsize;
   grid->inv_cellsize = scale;
-  grid->verts = MEM_calloc_arrayN<HairGridVert>(size, "hair voxel data");
+  grid->verts = MEM_new_array_zeroed<HairGridVert>(size, "hair voxel data");
 
   return grid;
 }
@@ -1158,9 +1160,9 @@ void SIM_hair_volume_free_vertex_grid(HairGrid *grid)
 {
   if (grid) {
     if (grid->verts) {
-      MEM_freeN(grid->verts);
+      MEM_delete(grid->verts);
     }
-    MEM_freeN(grid);
+    MEM_delete(grid);
   }
 }
 
@@ -1189,7 +1191,7 @@ static HairGridVert *hair_volume_create_collision_grid(ClothModifierData *clmd,
   int res = hair_grid_res;
   int size = hair_grid_size(res);
   HairGridVert *collgrid;
-  ListBase *colliders;
+  ListBaseT<ColliderCache> *colliders;
   ColliderCache *col = nullptr;
   float gmin[3], gmax[3], scale[3];
   /* 2.0f is an experimental value that seems to give good results */
@@ -1200,7 +1202,7 @@ static HairGridVert *hair_volume_create_collision_grid(ClothModifierData *clmd,
   hair_volume_get_boundbox(lX, numverts, gmin, gmax);
   hair_grid_get_scale(res, gmin, gmax, scale);
 
-  collgrid = MEM_malloc_arrayN<HairGridVert>(size, "hair collider voxel data");
+  collgrid = MEM_new_array_uninitialized<HairGridVert>(size, "hair collider voxel data");
 
   /* initialize grid */
   for (i = 0; i < size; i++) {
@@ -1256,3 +1258,5 @@ static HairGridVert *hair_volume_create_collision_grid(ClothModifierData *clmd,
   return collgrid;
 }
 #endif
+
+}  // namespace blender

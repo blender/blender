@@ -6,6 +6,7 @@
 
 #include <functional>
 
+#include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
@@ -13,10 +14,12 @@
 
 #include "NOD_node_declaration.hh"
 
+namespace blender {
+
 struct bContext;
 struct SpaceNode;
 
-namespace blender::nodes {
+namespace nodes {
 
 /**
  * Parameters for the operation of adding a node after the link drag search menu closes.
@@ -148,12 +151,19 @@ class GatherLinkSearchOpParams {
  * If a node type does not meet these criteria, the function will do nothing in a release build.
  * In a debug build, an assert will most likely be hit.
  *
- * \note For nodes with the deprecated #blender::bke::bNodeSocketTemplate instead of a declaration,
+ * \note For nodes with the deprecated #bke::bNodeSocketTemplate instead of a declaration,
  * these criteria do not apply and the function just tries its best without asserting.
  */
 void search_link_ops_for_basic_node(GatherLinkSearchOpParams &params);
 
+/**
+ * Same as search_link_ops_for_basic_node with additional filtering to exclude sockets.
+ */
+void search_filtered_link_ops_for_basic_node(GatherLinkSearchOpParams &params,
+                                             const Set<std::string> &skip_socket_identifiers);
+
 void search_link_ops_for_declarations(GatherLinkSearchOpParams &params,
                                       Span<SocketDeclaration *> declarations);
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

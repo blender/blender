@@ -1,0 +1,36 @@
+commit 6d2b7f71b98bfa28e372b1f2d85f137280bdb3de
+Author: James Zern <jzern@google.com>
+Date:   Tue Oct 7 14:08:44 2025 -0700
+
+    cmake: fix nasm detection w/3.0
+    
+    nasm 3.0 separated Oflags (-Ox) output to `-hO` which is used to
+    validate the nasm binary. This change is compatible with older versions
+    (tested with NASM version 2.16.03 & 2.13.02).
+    
+    Bug: aomedia:448994065
+    Fixed: aomedia:448994065
+    Change-Id: I704dcfe39ac6e68bc4d5b9e409fb59a0d277170e
+
+diff --git a/build/cmake/aom_optimization.cmake b/build/cmake/aom_optimization.cmake
+index 9cc34de362..2750a0be41 100644
+--- a/build/cmake/aom_optimization.cmake
++++ b/build/cmake/aom_optimization.cmake
+@@ -212,7 +212,7 @@ endfunction()
+ # Currently checks only for presence of required object formats and support for
+ # the -Ox argument (multipass optimization).
+ function(test_nasm)
+-  execute_process(COMMAND ${CMAKE_ASM_NASM_COMPILER} -hf
++  execute_process(COMMAND ${CMAKE_ASM_NASM_COMPILER} -hO
+                   OUTPUT_VARIABLE nasm_helptext)
+ 
+   if(NOT "${nasm_helptext}" MATCHES "-Ox")
+@@ -220,6 +220,8 @@ function(test_nasm)
+       FATAL_ERROR "Unsupported nasm: multipass optimization not supported.")
+   endif()
+ 
++  execute_process(COMMAND ${CMAKE_ASM_NASM_COMPILER} -hf
++                  OUTPUT_VARIABLE nasm_helptext)
+   if("${AOM_TARGET_CPU}" STREQUAL "x86")
+     if("${AOM_TARGET_SYSTEM}" STREQUAL "Darwin")
+       if(NOT "${nasm_helptext}" MATCHES "macho32")

@@ -269,6 +269,21 @@ TEST(util_string_remove_trademark, r_space_middle)
   EXPECT_EQ(str, "foo bar baz");
 }
 
+/* ******** Tests for string_remove_trademark() ******** */
+
+TEST(util_string_remove_gpu_from_cpu_name, basic)
+{
+  EXPECT_EQ(string_remove_gpu_from_cpu_name(""), "");
+
+  EXPECT_EQ(string_remove_gpu_from_cpu_name("My CPU"), "My CPU");
+
+  EXPECT_EQ(string_remove_gpu_from_cpu_name("AMD CPU w/ Graphics"), "AMD CPU");
+  EXPECT_EQ(string_remove_gpu_from_cpu_name("AMD CPU with Graphics"), "AMD CPU");
+
+  EXPECT_EQ(string_remove_gpu_from_cpu_name("My CPU w/ foo"), "My CPU w/ foo");
+  EXPECT_EQ(string_remove_gpu_from_cpu_name("My CPU with foo"), "My CPU with foo");
+}
+
 /* ******** Tests for string_startswith() ******** */
 
 TEST(string_startswith, basic)

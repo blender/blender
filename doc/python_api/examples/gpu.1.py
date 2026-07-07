@@ -108,7 +108,7 @@ They can be set using the ``shader.uniform_*`` functions after the shader has be
 Batch Creation
 ++++++++++++++
 
-Batches can be creates by first manually creating VBOs and IBOs.
+Batches can be created by first manually creating VBOs and IBOs.
 However, it is recommended to use the :class:`gpu_extras.batch.batch_for_shader` function.
 It makes sure that all the vertex attributes necessary for a specific shader are provided.
 Consequently, the shader has to be passed to the function as well.
@@ -137,7 +137,7 @@ In Blender Offscreen Rendering is done using the :class:`gpu.types.GPUOffScreen`
 Examples
 ++++++++
 
-To try these examples, just copy them into Blenders text editor and execute them.
+To try these examples, just copy them into Blender's text editor and execute them.
 To keep the examples relatively small, they just register a draw function that can't easily be removed anymore.
 Blender has to be restarted in order to delete the draw handlers.
 

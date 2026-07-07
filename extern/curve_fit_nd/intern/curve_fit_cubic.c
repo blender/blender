@@ -43,13 +43,13 @@
 
 #include "../curve_fit_nd.h"
 
-/** Take curvature into account when calculating the least square solution isn't usable. */
+/** Take curvature into account when calculating the least-squares solution isn't usable. */
 #define USE_CIRCULAR_FALLBACK
 
 /**
  * Use the maximum distance of any points from the direct line between 2 points
  * to calculate how long the handles need to be.
- * Can do a 'perfect' reversal of subdivision when for curve has symmetrical handles and doesn't change direction
+ * Can do a 'perfect' reversal of subdivision when the curve has symmetrical handles and doesn't change direction
  * (as with an 'S' shape).
  */
 #define USE_OFFSET_FALLBACK
@@ -63,9 +63,19 @@
  */
 #define USE_ORIG_INDEX_DATA
 
+/**
+ * Enable optimized code paths that sacrifice readability for speed.
+ * When defined, certain hot loops use combined calculations to reduce
+ * redundant operations (e.g., computing shared intermediate values once
+ * instead of multiple times). The optimized code produces identical results
+ * but is harder to follow. Disable this for debugging or code review.
+ */
+#define USE_FAST_PATH
+
 typedef unsigned int uint;
 
 #include "curve_fit_inline.h"
+#include "curve_fit_intern.h"
 
 #ifdef _MSC_VER
 #  define alloca(size) _alloca(size)
@@ -107,7 +117,6 @@ typedef unsigned int uint;
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Cubic Type & Functions
  * \{ */
 
@@ -174,9 +183,7 @@ static void cubic_free(Cubic *cubic)
 
 /** \} */
 
-
 /* -------------------------------------------------------------------- */
-
 /** \name CubicList Type & Functions
  * \{ */
 
@@ -270,7 +277,6 @@ static void cubic_list_clear(CubicList *clist)
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Cubic Evaluation
  * \{ */
 
@@ -290,6 +296,7 @@ static void cubic_calc_point(
 	}
 }
 
+#ifndef USE_FAST_PATH
 static void cubic_calc_speed(
         const Cubic *cubic, const double t, const uint dims,
         double r_v[])
@@ -298,7 +305,7 @@ static void cubic_calc_speed(
 	const double s = 1.0 - t;
 	for (uint j = 0; j < dims; j++) {
 		r_v[j] =  3.0 * ((p1[j] - p0[j]) * s * s + 2.0 *
-		                 (p2[j] - p0[j]) * s * t +
+		                 (p2[j] - p1[j]) * s * t +
 		                 (p3[j] - p2[j]) * t * t);
 	}
 }
@@ -314,6 +321,46 @@ static void cubic_calc_acceleration(
 		                (p3[j] - 2.0 * p2[j] + p1[j]) * t);
 	}
 }
+#endif /* !USE_FAST_PATH */
+
+#ifdef USE_FAST_PATH
+/**
+ * Compute point, first derivative (speed), and second derivative (acceleration) in one pass.
+ * Combines #cubic_calc_point, #cubic_calc_speed, and #cubic_calc_acceleration to share
+ * intermediate values and reduce redundant control point access.
+ */
+static void cubic_calc_point_speed_accel(
+        const Cubic *cubic, const double t, const uint dims,
+        double r_point[], double r_speed[], double r_accel[])
+{
+	CUBIC_VARS_CONST(cubic, dims, p0, p1, p2, p3);
+	const double s = 1.0 - t;
+	const double ss = s * s;
+	const double tt = t * t;
+	const double st2 = 2.0 * s * t;
+
+	for (uint j = 0; j < dims; j++) {
+		/* Control point differences, computed once. */
+		const double d01 = p1[j] - p0[j];
+		const double d12 = p2[j] - p1[j];
+		const double d23 = p3[j] - p2[j];
+
+		/* Point via de Casteljau's algorithm. */
+		const double p01 = p0[j] + d01 * t;
+		const double p12 = p1[j] + d12 * t;
+		const double p23 = p2[j] + d23 * t;
+		const double p012 = p01 * s + p12 * t;
+		const double p123 = p12 * s + p23 * t;
+		r_point[j] = p012 * s + p123 * t;
+
+		/* First derivative: 3 * ((d01)*s^2 + 2*(d12)*s*t + (d23)*t^2). */
+		r_speed[j] = 3.0 * (d01 * ss + d12 * st2 + d23 * tt);
+
+		/* Second derivative: 6 * ((d12 - d01)*s + (d23 - d12)*t). */
+		r_accel[j] = 6.0 * ((d12 - d01) * s + (d23 - d12) * t);
+	}
+}
+#endif /* USE_FAST_PATH */
 
 /**
  * Returns a 'measure' of the maximum distance (squared) of the points specified
@@ -354,7 +401,7 @@ static double cubic_calc_error(
 
 #ifdef USE_OFFSET_FALLBACK
 /**
- * A version #cubic_calc_error where we don't need the split-index and can exit early when over the limit.
+ * A version of #cubic_calc_error where we don't need the split-index and can exit early when over the limit.
  */
 static double cubic_calc_error_simple(
         const Cubic *cubic,
@@ -390,8 +437,9 @@ static double cubic_calc_error_simple(
 }
 #endif
 
+#ifndef USE_FAST_PATH
 /**
- * Bezier multipliers
+ * Bezier multipliers.
  */
 
 static double B1(double u)
@@ -415,6 +463,30 @@ static double B2plusB3(double u)
 {
     return u * u * (3.0 - 2.0 * u);
 }
+#endif /* !USE_FAST_PATH */
+
+
+#ifdef USE_FAST_PATH
+/**
+ * Compute all four Bernstein polynomial values with shared intermediate calculations.
+ * This avoids redundant computation of (1-u), u^2, etc. when all four values are needed.
+ */
+static void bernstein_all(
+        const double u,
+        double *r_b1, double *r_b2,
+        double *r_b0_plus_b1, double *r_b2_plus_b3)
+{
+	const double s = 1.0 - u;
+	const double ss = s * s;
+	const double uu = u * u;
+	const double us3 = 3.0 * u * s;
+
+	*r_b1 = us3 * s;                    /* 3 * u * (1-u)^2 */
+	*r_b2 = us3 * u;                    /* 3 * u^2 * (1-u) */
+	*r_b0_plus_b1 = ss * (1.0 + 2.0 * u);
+	*r_b2_plus_b3 = uu * (3.0 - 2.0 * u);
+}
+#endif  /* USE_FAST_PATH */
 
 static void points_calc_center_weighted(
         const double *points_offset,
@@ -494,7 +566,7 @@ static double points_calc_circumference_factor(
  * Return the value which the distance between points will need to be scaled by,
  * to define a handle, given both points are on a perfect circle.
  *
- * \note the return value will need to be multiplied by 1.3... for correct results.
+ * \note The return value will need to be multiplied by ~1.33 for correct results.
  */
 static double points_calc_circle_tangent_factor(
         const double  tan_l[],
@@ -523,8 +595,8 @@ static double points_calc_circle_tangent_factor(
 }
 
 /**
- * Calculate the scale the handles, which serves as a best-guess
- * used as a fallback when the least-square solution fails.
+ * Calculate the scale of the handles, which serves as a best-guess
+ * used as a fallback when the least-squares solution fails.
  */
 static double points_calc_cubic_scale(
         const double v_l[], const double v_r[],
@@ -633,7 +705,7 @@ static void cubic_from_points_offset_fallback(
 	 * are perpendicular to the direction defined by the two points.
 	 *
 	 * Project tangents onto these perpendicular lengths.
-	 * Note that this can cause divide by zero in the case of co-linear tangents.
+	 * Note that this can cause divide by zero in the case of collinear tangents.
 	 * The limits check afterwards accounts for this.
 	 *
 	 * The 'dists[..] + dir_dirs' limit is just a rough approximation.
@@ -714,11 +786,18 @@ static void cubic_from_points(
 		const double *pt = points_offset;
 
 		for (uint i = 0; i < points_offset_len; i++, pt += dims) {
+#ifdef USE_FAST_PATH
+			double b1, b2, b0_plus_b1, b2_plus_b3;
+			bernstein_all(u_prime[i], &b1, &b2, &b0_plus_b1, &b2_plus_b3);
+			mul_vnvn_fl(a[0], tan_l, b1, dims);
+			mul_vnvn_fl(a[1], tan_r, b2, dims);
+#else
 			mul_vnvn_fl(a[0], tan_l, B1(u_prime[i]), dims);
 			mul_vnvn_fl(a[1], tan_r, B2(u_prime[i]), dims);
 
 			const double b0_plus_b1 = B0plusB1(u_prime[i]);
 			const double b2_plus_b3 = B2plusB3(u_prime[i]);
+#endif
 
 			/* Inline dot product. */
 			for (uint j = 0; j < dims; j++) {
@@ -749,13 +828,9 @@ static void cubic_from_points(
 	}
 
 	/*
-	 * The problem that the stupid values for alpha dare not put
-	 * only when we realize that the sign and wrong,
-	 * but even if the values are too high.
-	 * But how do you evaluate it?
-	 *
-	 * Meanwhile, we should ensure that these values are sometimes
-	 * so only problems absurd of approximation and not for bugs in the code.
+	 * When the least-squares solution produces invalid alpha values,
+	 * we need to fall back to a simpler approximation. Invalid values
+	 * can occur due to numerical instability or degenerate point configurations.
 	 */
 
 	bool use_clamp = true;
@@ -885,7 +960,7 @@ static void points_calc_coord_length_cache(
 #endif  /* USE_LENGTH_CACHE */
 
 /**
- * \return the accumulated length of \a points_offset.
+ * \return The accumulated length of \a points_offset.
  */
 static double points_calc_coord_length(
         const double *points_offset,
@@ -916,8 +991,9 @@ static double points_calc_coord_length(
 	}
 	assert(!is_almost_zero(r_u[points_offset_len - 1]));
 	const double w = r_u[points_offset_len - 1];
+	const double w_inv = 1.0 / w;
 	for (uint i = 1; i < points_offset_len; i++) {
-		r_u[i] /= w;
+		r_u[i] *= w_inv;
 	}
 	return w;
 }
@@ -929,7 +1005,7 @@ static double points_calc_coord_length(
  * \param p: Point to test against.
  * \param u: Parameter value for \a p.
  *
- * \note Return value may be `nan` caller must check for this.
+ * \note Return value may be `nan`; caller must check for this.
  */
 static double cubic_find_root(
         const Cubic *cubic,
@@ -949,9 +1025,13 @@ static double cubic_find_root(
 	double *q2_u = alloca(sizeof(double) * dims);
 #endif
 
+#ifdef USE_FAST_PATH
+	cubic_calc_point_speed_accel(cubic, u, dims, q0_u, q1_u, q2_u);
+#else
 	cubic_calc_point(cubic, u, dims, q0_u);
 	cubic_calc_speed(cubic, u, dims, q1_u);
 	cubic_calc_acceleration(cubic, u, dims, q2_u);
+#endif
 
 	/* May divide-by-zero, caller must check for that case. */
 	/* `u - ((q0_u - p) * q1_u) / (q1_u.length_squared() + (q0_u - p) * q2_u)` */
@@ -982,7 +1062,7 @@ static bool cubic_reparameterize(
         double       *r_u_prime)
 {
 	/*
-	 * Recalculate the values of u[] based on the Newton Raphson method
+	 * Recalculate the values of u[] based on the Newton-Raphson method.
 	 */
 
 	const double *pt = points_offset;
@@ -1069,12 +1149,12 @@ static bool fit_cubic_to_points(
 	Cubic *cubic_test = alloca(cubic_alloc_size(dims));
 
 	/* Run this so we use the non-circular calculation when the circular-fallback
-	 * in 'cubic_from_points' failed to give a close enough result. */
+	 * in #cubic_from_points failed to give a close enough result. */
 #ifdef USE_CIRCULAR_FALLBACK
 	if (!(error_max_sq < error_threshold_sq)) {
 		/* Don't use the cubic calculated above, instead calculate a new fallback cubic,
 		 * since this tends to give more balanced split_index along the curve.
-		 * This is because the attempt to calcualte the cubic may contain spikes
+		 * This is because the attempt to calculate the cubic may contain spikes
 		 * along the curve which may give a lop-sided maximum distance. */
 		cubic_from_points_fallback(
 		        points_offset, points_offset_len,
@@ -1166,6 +1246,184 @@ static bool fit_cubic_to_points(
 	}
 }
 
+/**
+ * Compute the tangent at a split point from neighboring points.
+ */
+static void split_tangent_compute(
+        const double *points_offset,
+        const uint    points_offset_len,
+#ifdef USE_LENGTH_CACHE
+        const double *points_length_cache,
+#endif
+        const uint    split_index,
+        const uint    dims,
+        double       *r_tan_center)
+{
+#ifdef USE_VLA
+	double tan_center_a[dims];
+	double tan_center_b[dims];
+#else
+	double *tan_center_a = alloca(sizeof(double) * dims);
+	double *tan_center_b = alloca(sizeof(double) * dims);
+#endif
+
+	const double *pt_a = &points_offset[(split_index - 1) * dims];
+	const double *pt_b = &points_offset[(split_index + 1) * dims];
+	const double *pt   = &points_offset[split_index * dims];
+
+	if (split_index + 1 >= points_offset_len) {
+		/* Fallback for edge case. */
+		pt_b = pt;
+	}
+	if (equals_vnvn(pt_a, pt_b, dims)) {
+		pt_a = &points_offset[(split_index > 1 ? split_index - 2 : 0) * dims];
+	}
+
+	/* `tan_center = ((pt_a - pt).normalized() + (pt - pt_b).normalized()).normalized()`. */
+#ifdef USE_LENGTH_CACHE
+	/* Use cached lengths to avoid sqrt.
+	 * Cache stores: points_length_cache[i] = distance(point i, point i-1).
+	 * len_a = distance(split_index-1, split_index) = points_length_cache[split_index]
+	 * len_b = distance(split_index, split_index+1) = points_length_cache[split_index+1] */
+	const double len_a = points_length_cache[split_index];
+	const double len_b = (split_index + 1 < points_offset_len) ?
+	        points_length_cache[split_index + 1] : 0.0;
+	if (len_a > 0.0) {
+		const double len_a_inv = 1.0 / len_a;
+		for (uint j = 0; j < dims; j++) {
+			tan_center_a[j] = (pt_a[j] - pt[j]) * len_a_inv;
+		}
+	}
+	else {
+		zero_vn(tan_center_a, dims);
+	}
+	if (len_b > 0.0) {
+		const double len_b_inv = 1.0 / len_b;
+		for (uint j = 0; j < dims; j++) {
+			tan_center_b[j] = (pt[j] - pt_b[j]) * len_b_inv;
+		}
+	}
+	else {
+		zero_vn(tan_center_b, dims);
+	}
+#else
+	normalize_vn_vnvn(tan_center_a, pt_a, pt, dims);
+	normalize_vn_vnvn(tan_center_b, pt, pt_b, dims);
+#endif
+	add_vn_vnvn(r_tan_center, tan_center_a, tan_center_b, dims);
+	normalize_vn(r_tan_center, dims);
+}
+
+/**
+ * Measure the maximum fitting error if we split at the given index.
+ * Returns the larger of the two half-curve errors.
+ */
+static double split_error_measure(
+        const double *points_offset,
+        const uint    points_offset_len,
+#ifdef USE_LENGTH_CACHE
+        const double *points_length_cache,
+#endif
+        const double  tan_l[],
+        const double  tan_r[],
+        const uint    split_index,
+        const uint    dims)
+{
+	/* Validate split index. */
+	if (split_index < 1 || split_index >= points_offset_len - 1) {
+		return DBL_MAX;
+	}
+
+#ifdef USE_VLA
+	double tan_center[dims];
+#else
+	double *tan_center = alloca(sizeof(double) * dims);
+#endif
+
+	split_tangent_compute(
+	        points_offset, points_offset_len,
+#ifdef USE_LENGTH_CACHE
+	        points_length_cache,
+#endif
+	        split_index, dims, tan_center);
+
+	/* Fit left half. */
+	Cubic *cubic_l = cubic_alloc(dims);
+	double error_l;
+	uint dummy_split;
+	fit_cubic_to_points(
+	        points_offset, split_index + 1,
+#ifdef USE_LENGTH_CACHE
+	        points_length_cache,
+#endif
+	        tan_l, tan_center,
+	        DBL_MAX, dims,
+	        cubic_l, &error_l, &dummy_split);
+	cubic_free(cubic_l);
+
+	/* Fit right half. */
+	Cubic *cubic_r = cubic_alloc(dims);
+	double error_r;
+	fit_cubic_to_points(
+	        &points_offset[split_index * dims], points_offset_len - split_index,
+#ifdef USE_LENGTH_CACHE
+	        points_length_cache + split_index,
+#endif
+	        tan_center, tan_r,
+	        DBL_MAX, dims,
+	        cubic_r, &error_r, &dummy_split);
+	cubic_free(cubic_r);
+
+	return (error_l > error_r) ? error_l : error_r;
+}
+
+/**
+ * Find the best split index by comparing fallback with max-distance method.
+ */
+static uint split_find_best(
+        const double *points_offset,
+        const uint    points_offset_len,
+#ifdef USE_LENGTH_CACHE
+        const double *points_length_cache,
+#endif
+        const double  tan_l[],
+        const double  tan_r[],
+        const uint    split_index_fallback,
+        const uint    dims)
+{
+	/* NOTE: #split_point_find_inflection and #split_point_find_sign_change are excluded
+	 * because more sophisticated checks don't make sense when scanning over more complex curves
+	 * and recursively splitting. This could be used to refine existing knot placement though
+	 * (see the "refit" solver). */
+	const uint split_index_test = split_point_find_max_distance(
+	        points_offset, points_offset_len,
+	        0, points_offset_len - 1, dims);
+
+	if ((split_index_test == SPLIT_POINT_INVALID) ||
+	    (split_index_test == split_index_fallback))
+	{
+		return split_index_fallback;
+	}
+
+	const double error_fallback = split_error_measure(
+	        points_offset, points_offset_len,
+#ifdef USE_LENGTH_CACHE
+	        points_length_cache,
+#endif
+	        tan_l, tan_r,
+	        split_index_fallback, dims);
+
+	const double error_test = split_error_measure(
+	        points_offset, points_offset_len,
+#ifdef USE_LENGTH_CACHE
+	        points_length_cache,
+#endif
+	        tan_l, tan_r,
+	        split_index_test, dims);
+
+	return (error_test < error_fallback) ? split_index_test : split_index_fallback;
+}
+
 static void fit_cubic_to_points_recursive(
         const double *points_offset,
         const uint    points_offset_len,
@@ -1190,7 +1448,7 @@ static void fit_cubic_to_points_recursive(
 	        points_length_cache,
 #endif
 	        tan_l, tan_r,
-	        (calc_flag & CURVE_FIT_CALC_HIGH_QUALIY) ? DBL_EPSILON : error_threshold_sq,
+	        (calc_flag & CURVE_FIT_CALC_HIGH_QUALITY) ? DBL_EPSILON : error_threshold_sq,
 	        dims,
 	        cubic, &error_max_sq, &split_index) ||
 	    (error_max_sq < error_threshold_sq))
@@ -1203,42 +1461,33 @@ static void fit_cubic_to_points_recursive(
 
 	/* Fitting failed -- split at max error point and fit recursively. */
 
-	/* Check splinePoint is not an endpoint?
+	/* Check split_index is not an endpoint?
 	 *
-	 * This assert happens sometimes...
-	 * Look into it but disable for now. Campbell! */
+	 * This assert triggers in some edge cases.
+	 * TODO: investigate further, disabled for now. */
 
 	// assert(split_index > 1)
+
+	split_index = split_find_best(
+	        points_offset, points_offset_len,
+#ifdef USE_LENGTH_CACHE
+	        points_length_cache,
+#endif
+	        tan_l, tan_r,
+	        split_index, dims);
+
 #ifdef USE_VLA
 	double tan_center[dims];
 #else
 	double *tan_center = alloca(sizeof(double) * dims);
 #endif
 
-	const double *pt_a = &points_offset[(split_index - 1) * dims];
-	const double *pt_b = &points_offset[(split_index + 1) * dims];
-
-	assert(split_index < points_offset_len);
-	if (equals_vnvn(pt_a, pt_b, dims)) {
-		pt_a += dims;
-	}
-
-	{
-#ifdef USE_VLA
-		double tan_center_a[dims];
-		double tan_center_b[dims];
-#else
-		double *tan_center_a = alloca(sizeof(double) * dims);
-		double *tan_center_b = alloca(sizeof(double) * dims);
+	split_tangent_compute(
+	        points_offset, points_offset_len,
+#ifdef USE_LENGTH_CACHE
+	        points_length_cache,
 #endif
-		const double *pt   = &points_offset[split_index * dims];
-
-		/* `tan_center = ((pt_a - pt).normalized() + (pt - pt_b).normalized()).normalized()`. */
-		normalize_vn_vnvn(tan_center_a, pt_a, pt, dims);
-		normalize_vn_vnvn(tan_center_b, pt, pt_b, dims);
-		add_vn_vnvn(tan_center, tan_center_a, tan_center_b, dims);
-		normalize_vn(tan_center, dims);
-	}
+	        split_index, dims, tan_center);
 
 	fit_cubic_to_points_recursive(
 	        points_offset, split_index + 1,
@@ -1258,16 +1507,347 @@ static void fit_cubic_to_points_recursive(
 /** \} */
 
 
-/* -------------------------------------------------------------------- */
 
+/* -------------------------------------------------------------------- */
+/** \name Split Calculation
+ * \{ */
+
+/**
+ * Find the split point based on sign change of perpendicular distance.
+ * This finds where the curve crosses the line between the two endpoints,
+ * selecting the crossing point with the largest perpendicular distance.
+ *
+ * For N-dimensional support, we establish a reference perpendicular direction
+ * from the first point that deviates from the line, then measure signed distance
+ * as the dot product with that reference. This gives consistent "sides" in any dimension.
+ *
+ * \return Index of the split point, or #SPLIT_POINT_INVALID if none found.
+ *
+ * \note This operation is symmetrical (reversing the curve produces the same split point).
+ */
+uint split_point_find_sign_change(
+        const double *points,
+        const uint points_len,
+        const uint index_l, const uint index_r,
+        const uint dims)
+{
+	uint split_point = SPLIT_POINT_INVALID;
+	double split_point_dist_best = -DBL_MAX;
+
+	const double *offset = &points[index_l * dims];
+
+#ifdef USE_VLA
+	double v_line[dims];
+	double v_proj[dims];
+	double v_offset[dims];
+	double v_ref[dims];
+#else
+	double *v_line =   alloca(sizeof(double) * dims);
+	double *v_proj =   alloca(sizeof(double) * dims);
+	double *v_offset = alloca(sizeof(double) * dims);
+	double *v_ref =    alloca(sizeof(double) * dims);
+#endif
+
+	/* Direction along the line (used to project points onto perpendicular plane). */
+	sub_vn_vnvn(
+	        v_line,
+	        &points[index_l * dims],
+	        &points[index_r * dims],
+	        dims);
+
+	normalize_vn(v_line, dims);
+
+	uint i_best = index_l;
+	double best_signed_dist = 0.0;
+	double best_dist_sq = 0.0;
+	bool have_reference = false;
+
+	/* Iterate from index_l+1 to index_r-1 (exclusive of endpoints). */
+	uint i_curr = index_l;
+	while (true) {
+		/* Advance to next index, wrapping at points_len. */
+		i_curr = (i_curr + 1) % points_len;
+
+		if (i_curr == index_r) {
+			break;
+		}
+
+		sub_vn_vnvn(v_offset, &points[i_curr * dims], offset, dims);
+		project_plane_vn_vnvn_normalized(v_proj, v_offset, v_line, dims);
+
+		const double dist_sq = len_squared_vn(v_proj, dims);
+
+		/* Establish reference direction from first point with significant perpendicular component.
+		 * This gives us a consistent "side" reference for N-dimensional sign detection. */
+		if (!have_reference && dist_sq > 1e-12) {
+			const double len_inv = 1.0 / sqrt(dist_sq);
+			for (uint j = 0; j < dims; j++) {
+				v_ref[j] = v_proj[j] * len_inv;
+			}
+			have_reference = true;
+		}
+
+		/* Signed distance is the dot product with the reference direction.
+		 * Positive means same side as reference, negative means opposite side. */
+		double signed_dist = 0.0;
+		if (have_reference) {
+			signed_dist = dot_vnvn(v_proj, v_ref, dims);
+		}
+
+		/* Check for sign change (curve crossing the line). */
+		if (best_signed_dist * signed_dist < 0.0) {
+			/* Sign changed - pick the point with larger perpendicular distance. */
+			if (dist_sq > split_point_dist_best) {
+				split_point_dist_best = dist_sq;
+				split_point = i_curr;
+			}
+			/* Also consider the previous best point. */
+			if (best_dist_sq > split_point_dist_best) {
+				split_point_dist_best = best_dist_sq;
+				split_point = i_best;
+			}
+		}
+
+		best_signed_dist = signed_dist;
+		best_dist_sq = dist_sq;
+		i_best = i_curr;
+	}
+
+	return split_point;
+}
+
+/**
+ * Find the split point with maximum perpendicular distance from the line-segment.
+ *
+ * \return Index of the split point, or #SPLIT_POINT_INVALID if none found.
+ */
+uint split_point_find_max_distance(
+        const double *points,
+        const uint points_len,
+        const uint index_l, const uint index_r,
+        const uint dims)
+{
+	uint split_point = SPLIT_POINT_INVALID;
+	double split_point_dist_best = -DBL_MAX;
+
+	const double *offset = &points[index_l * dims];
+
+#ifdef USE_VLA
+	double v_segment[dims];
+	double v_proj[dims];
+	double v_offset[dims];
+#else
+	double *v_segment = alloca(sizeof(double) * dims);
+	double *v_proj =    alloca(sizeof(double) * dims);
+	double *v_offset =  alloca(sizeof(double) * dims);
+#endif
+
+	/* Direction along the segment (line from `index_l` to `index_r`). */
+	sub_vn_vnvn(
+	        v_segment,
+	        &points[index_l * dims],
+	        &points[index_r * dims],
+	        dims);
+
+	normalize_vn(v_segment, dims);
+
+	/* Iterate from `index_l + 1` to `index_r - 1` (exclusive of endpoints). */
+	uint i_curr = index_l;
+	while (true) {
+		/* Advance to next index, wrapping at points_len. */
+		i_curr = (i_curr + 1) % points_len;
+
+		if (i_curr == index_r) {
+			break;
+		}
+
+		sub_vn_vnvn(v_offset, &points[i_curr * dims], offset, dims);
+		project_plane_vn_vnvn_normalized(v_proj, v_offset, v_segment, dims);
+
+		const double dist_sq = len_squared_vn(v_proj, dims);
+		if (dist_sq > split_point_dist_best) {
+			split_point_dist_best = dist_sq;
+			split_point = i_curr;
+		}
+	}
+
+	return split_point;
+}
+
+/**
+ * Find the split point with maximum projection onto a given axis.
+ * Used for corner detection - finds the point that extends furthest
+ * in the direction the corner "points".
+ *
+ * \return Index of the split point, or #SPLIT_POINT_INVALID if none found.
+ */
+uint split_point_find_max_on_axis(
+        const double *points,
+        const uint points_len,
+        const uint index_l, const uint index_r,
+        const double *axis,
+        const uint dims)
+{
+	uint split_point = SPLIT_POINT_INVALID;
+	double split_point_proj_best = -DBL_MAX;
+
+	/* Iterate from `index_l + 1` to `index_r - 1` (exclusive of endpoints). */
+	uint i_curr = index_l;
+	while (true) {
+		/* Advance to next index, wrapping at points_len. */
+		i_curr = (i_curr + 1) % points_len;
+
+		if (i_curr == index_r) {
+			break;
+		}
+
+		const double proj = dot_vnvn(axis, &points[i_curr * dims], dims);
+		if (proj > split_point_proj_best) {
+			split_point_proj_best = proj;
+			split_point = i_curr;
+		}
+	}
+
+	return split_point;
+}
+
+/**
+ * Find the split point based on inflection (curvature sign change).
+ * This finds where the curve changes from curving one way to curving the other,
+ * selecting the inflection point with the largest curvature magnitude.
+ *
+ * For N-dimensional support, we compute acceleration (second derivative approx)
+ * at each point and establish a reference direction from the first point with
+ * significant acceleration. Sign changes in the projected acceleration indicate
+ * inflection points.
+ *
+ * \return Index of the split point, or #SPLIT_POINT_INVALID if none found.
+ *
+ * \note This operation is symmetrical (reversing the curve produces the same split point).
+ */
+uint split_point_find_inflection(
+        const double *points,
+        const uint points_len,
+        const uint index_l, const uint index_r,
+        const uint dims)
+{
+	uint split_point = SPLIT_POINT_INVALID;
+	double split_point_accel_best = -DBL_MAX;
+
+	/* Calculate span length to check if we have enough points. */
+	const uint span_len = (index_l <= index_r) ?
+	        (index_r - index_l + 1) :
+	        (index_r + points_len - index_l + 1);
+
+	/* Need at least 4 points to detect inflection (need 2 interior points). */
+	if (span_len < 4) {
+		return split_point;
+	}
+
+#ifdef USE_VLA
+	double v_accel[dims];
+	double v_ref[dims];
+#else
+	double *v_accel = alloca(sizeof(double) * dims);
+	double *v_ref =   alloca(sizeof(double) * dims);
+#endif
+
+	uint i_prev = index_l;
+	uint i_curr = (index_l + 1) % points_len;
+
+	uint i_best = i_curr;
+	double best_signed_accel = 0.0;
+	double best_accel_sq = 0.0;
+	bool have_reference = false;
+
+	/* Safety limit to prevent infinite loops. */
+	uint iter_limit = points_len + 1;
+
+	while (i_curr != index_r) {
+		if (--iter_limit == 0) {
+			break;
+		}
+
+		uint i_next = (i_curr + 1) % points_len;
+
+		/* Compute acceleration: `accel = p[i + 1] - (2 * p[i]) + p[i - 1]`
+		 * This is the discrete second derivative (finite difference) on raw input points.
+		 * Unlike #cubic_calc_acceleration which computes the parametric second derivative
+		 * of a Bezier curve at parameter t, this operates directly on sampled points. */
+		const double *p_prev = &points[i_prev * dims];
+		const double *p_curr = &points[i_curr * dims];
+		const double *p_next = &points[i_next * dims];
+
+		for (uint j = 0; j < dims; j++) {
+			v_accel[j] = p_next[j] - (2.0 * p_curr[j]) + p_prev[j];
+		}
+
+		const double accel_sq = len_squared_vn(v_accel, dims);
+
+		/* Establish reference direction from first point with significant acceleration. */
+		if (!have_reference && accel_sq > 1e-12) {
+			const double len_inv = 1.0 / sqrt(accel_sq);
+			for (uint j = 0; j < dims; j++) {
+				v_ref[j] = v_accel[j] * len_inv;
+			}
+			have_reference = true;
+		}
+
+		/* Signed acceleration is the dot product with the reference direction. */
+		double signed_accel = 0.0;
+		if (have_reference) {
+			signed_accel = dot_vnvn(v_accel, v_ref, dims);
+		}
+
+		/* Check for sign change (inflection point - curvature reversal). */
+		if (best_signed_accel * signed_accel < 0.0) {
+			/* Sign changed - pick the point with larger acceleration magnitude. */
+			if (accel_sq > split_point_accel_best) {
+				split_point_accel_best = accel_sq;
+				split_point = i_curr;
+			}
+			/* Also consider the previous best point. */
+			if (best_accel_sq > split_point_accel_best) {
+				split_point_accel_best = best_accel_sq;
+				split_point = i_best;
+			}
+		}
+
+		best_signed_accel = signed_accel;
+		best_accel_sq = accel_sq;
+		i_best = i_curr;
+
+		i_prev = i_curr;
+		i_curr = i_next;
+	}
+
+	/* Reject split points too close to boundaries (within 2 points). */
+	if (split_point != SPLIT_POINT_INVALID) {
+		const uint dist_from_l = (split_point >= index_l) ?
+		        (split_point - index_l) :
+		        (split_point + points_len - index_l);
+		const uint dist_from_r = (index_r >= split_point) ?
+		        (index_r - split_point) :
+		        (index_r + points_len - split_point);
+		if (dist_from_l < 3 || dist_from_r < 3) {
+			split_point = SPLIT_POINT_INVALID;
+		}
+	}
+
+	return split_point;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name External API for Curve-Fitting
  * \{ */
 
 /**
  * Main function:
  *
- * Take an array of 3d points.
- * return the cubic splines
+ * Takes an array of n-dimensional points.
+ * Returns the cubic splines.
  */
 int curve_fit_cubic_to_points_db(
         const double *points,
@@ -1338,6 +1918,7 @@ int curve_fit_cubic_to_points_db(
 					free(points_length_cache);
 				}
 				points_length_cache = malloc(sizeof(double) * points_offset_len);
+				points_length_cache_len_alloc = points_offset_len;
 			}
 			points_calc_coord_length_cache(
 			        &points[first_point * dims], points_offset_len, dims,
@@ -1409,7 +1990,7 @@ int curve_fit_cubic_to_points_db(
 }
 
 /**
- * A version of #curve_fit_cubic_to_points_db to handle floats
+ * A version of #curve_fit_cubic_to_points_db to handle floats.
  */
 int curve_fit_cubic_to_points_fl(
         const float  *points,
@@ -1474,7 +2055,7 @@ int curve_fit_cubic_to_points_single_db(
 {
 	Cubic *cubic = alloca(cubic_alloc_size(dims));
 
-	/* In this instance there are no advantage in using length cache,
+	/* In this instance there is no advantage in using length cache,
 	 * since we're not recursively calculating values. */
 #ifdef USE_LENGTH_CACHE
 	double *points_length_cache_alloc = NULL;

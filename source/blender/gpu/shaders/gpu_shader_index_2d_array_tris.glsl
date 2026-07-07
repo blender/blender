@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/gpu_shader_index_info.hh"
+#include "infos/gpu_shader_index_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(gpu_shader_index_2d_array_tris)
 

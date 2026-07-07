@@ -10,7 +10,7 @@
 #  EMBREE_LIBRARIES, libraries to link against to use Embree.
 #  EMBREE_ROOT_DIR, The base directory to search for Embree.
 #                        This can also be an environment variable.
-#  EMBREEFOUND, If false, do not try to use Embree.
+#  EMBREE_FOUND, If false, do not try to use Embree.
 
 # If `EMBREE_ROOT_DIR` was defined in the environment, use it.
 if(DEFINED EMBREE_ROOT_DIR)
@@ -94,7 +94,7 @@ else()
   endif()
 endif()
 
-set(_embree_LIBRARIES)
+set(_embree_LIBRARIES "")
 foreach(COMPONENT ${_embree_FIND_COMPONENTS})
   string(TOUPPER ${COMPONENT} UPPERCOMPONENT)
   find_library(EMBREE_${UPPERCOMPONENT}_LIBRARY

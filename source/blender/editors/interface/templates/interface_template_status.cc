@@ -37,38 +37,40 @@
 #include "UI_interface_layout.hh"
 #include "interface_intern.hh"
 
+namespace blender::ui {
+
 /* Maximum width for a Status Bar report */
 #define REPORT_BANNER_MAX_WIDTH (800.0f * UI_SCALE_FAC)
 
-void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
+void uiTemplateReportsBanner(Layout *layout, bContext *C)
 {
   ReportList *reports = CTX_wm_reports(C);
   Report *report = BKE_reports_last_displayable(reports);
-  const uiStyle *style = UI_style_get();
+  const uiStyle *style = style_get();
 
-  uiBut *but;
+  Button *but;
 
   /* if the report display has timed out, don't show */
   if (!reports->reporttimer) {
     return;
   }
 
-  ReportTimerInfo *rti = (ReportTimerInfo *)reports->reporttimer->customdata;
+  ReportTimerInfo *rti = static_cast<ReportTimerInfo *>(reports->reporttimer->customdata);
 
   if (!rti || rti->widthfac == 0.0f || !report) {
     return;
   }
 
-  uiLayout *ui_abs = &layout->absolute(false);
-  uiBlock *block = ui_abs->block();
-  blender::ui::EmbossType previous_emboss = UI_block_emboss_get(block);
+  Layout &ui_abs = layout->absolute(false);
+  Block *block = ui_abs.block();
+  EmbossType previous_emboss = block_emboss_get(block);
 
   uchar report_icon_color[4];
   uchar report_text_color[4];
 
-  UI_GetThemeColorType4ubv(
-      UI_icon_colorid_from_report_type(report->type), SPACE_INFO, report_icon_color);
-  UI_GetThemeColorType4ubv(
+  theme::get_color_type_4ubv(
+      icon_colorid_from_report_type(report->type), SPACE_INFO, report_icon_color);
+  theme::get_color_type_4ubv(
       UI_text_colorid_from_report_type(report->type), SPACE_INFO, report_text_color);
   report_text_color[3] = 255; /* This theme color is RGB only, so have to set alpha here. */
 
@@ -78,18 +80,17 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
     add_v3_uchar_clamped(report_icon_color, brighten_amount);
   }
 
-  UI_fontstyle_set(&style->widget);
+  fontstyle_set(&style->widget);
   int width = BLF_width(style->widget.uifont_id, report->message, report->len);
   width = min_ii(width, int(REPORT_BANNER_MAX_WIDTH));
   width = min_ii(int(rti->widthfac * width), width);
   width = max_ii(width, 10 * UI_SCALE_FAC);
 
-  UI_block_align_begin(block);
+  block_align_begin(block);
 
   /* Background for icon. */
   but = uiDefBut(block,
-                 ButType::Roundbox,
-                 0,
+                 ButtonType::Roundbox,
                  "",
                  0,
                  0,
@@ -99,13 +100,12 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
                  0.0f,
                  0.0f,
                  "");
-  /* #ButType::Roundbox's background color is set in `but->col`. */
+  /* #ButtonType::Roundbox's background color is set in `but->col`. */
   copy_v4_v4_uchar(but->col, report_icon_color);
 
   /* Background for the rest of the message. */
   but = uiDefBut(block,
-                 ButType::Roundbox,
-                 0,
+                 ButtonType::Roundbox,
                  "",
                  UI_UNIT_X + (6 * UI_SCALE_FAC),
                  0,
@@ -119,15 +119,15 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
   copy_v3_v3_uchar(but->col, report_icon_color);
   but->col[3] = 64;
 
-  UI_block_align_end(block);
-  UI_block_emboss_set(block, blender::ui::EmbossType::None);
+  block_align_end(block);
+  block_emboss_set(block, EmbossType::None);
 
   /* The report icon itself. */
   but = uiDefIconButO(block,
-                      ButType::But,
+                      ButtonType::But,
                       "SCREEN_OT_info_log_show",
-                      blender::wm::OpCallContext::InvokeRegionWin,
-                      UI_icon_from_report_type(report->type),
+                      wm::OpCallContext::InvokeRegionWin,
+                      icon_from_report_type(report->type),
                       (3 * UI_SCALE_FAC),
                       0,
                       UI_UNIT_X,
@@ -137,9 +137,9 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 
   /* The report message. */
   but = uiDefButO(block,
-                  ButType::But,
+                  ButtonType::But,
                   "SCREEN_OT_info_log_show",
-                  blender::wm::OpCallContext::InvokeRegionWin,
+                  wm::OpCallContext::InvokeRegionWin,
                   report->message,
                   UI_UNIT_X,
                   0,
@@ -147,10 +147,10 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
                   UI_UNIT_Y,
                   TIP_("Show in Info Log"));
 
-  UI_block_emboss_set(block, previous_emboss);
+  block_emboss_set(block, previous_emboss);
 }
 
-static bool uiTemplateInputStatusAzone(uiLayout *layout, const AZone *az, const ARegion *region)
+static bool uiTemplateInputStatusAzone(Layout *layout, const AZone *az, const ARegion *region)
 {
   if (az->type == AZONE_AREA) {
     layout->label(nullptr, ICON_MOUSE_LMB_DRAG);
@@ -164,10 +164,17 @@ static bool uiTemplateInputStatusAzone(uiLayout *layout, const AZone *az, const 
     layout->label(IFACE_("Duplicate into Window"), ICON_NONE);
     layout->separator(0.6f);
     layout->label("", ICON_EVENT_CTRL);
-    layout->separator(ui_event_icon_offset(ICON_EVENT_CTRL));
+    layout->separator(event_icon_offset(ICON_EVENT_CTRL));
     layout->label(nullptr, ICON_MOUSE_LMB_DRAG);
     layout->separator(-0.2f);
     layout->label(IFACE_("Swap Areas"), ICON_NONE);
+    return true;
+  }
+
+  if (az->type == AZONE_REGION_QUAD) {
+    layout->label(nullptr, ICON_MOUSE_LMB_DRAG);
+    layout->separator(-0.2f);
+    layout->label(IFACE_("Resize Quadrants"), ICON_NONE);
     return true;
   }
 
@@ -183,17 +190,17 @@ static bool uiTemplateInputStatusAzone(uiLayout *layout, const AZone *az, const 
   return false;
 }
 
-static bool uiTemplateInputStatusBorder(wmWindow *win, uiLayout *row)
+static bool uiTemplateInputStatusBorder(wmWindow *win, Layout *row)
 {
   /* On a gap between editors. */
   rcti win_rect;
   const int pad = int((3.0f * UI_SCALE_FAC) + U.pixelsize);
   WM_window_screen_rect_calc(win, &win_rect);
   BLI_rcti_pad(&win_rect, pad * -2, pad);
-  if (BLI_rcti_isect_pt_v(&win_rect, win->eventstate->xy)) {
+  if (BLI_rcti_isect_pt_v(&win_rect, win->runtime->eventstate->xy)) {
     /* Show options but not along left and right edges. */
     BLI_rcti_pad(&win_rect, 0, pad * -3);
-    if (BLI_rcti_isect_pt_v(&win_rect, win->eventstate->xy)) {
+    if (BLI_rcti_isect_pt_v(&win_rect, win->runtime->eventstate->xy)) {
       /* No resize at top and bottom. */
       row->label(nullptr, ICON_MOUSE_LMB_DRAG);
       row->separator(-0.2f);
@@ -208,7 +215,7 @@ static bool uiTemplateInputStatusBorder(wmWindow *win, uiLayout *row)
   return false;
 }
 
-static bool uiTemplateInputStatusHeader(ARegion *region, uiLayout *row)
+static bool uiTemplateInputStatusHeader(ARegion *region, Layout *row)
 {
   if (region->regiontype != RGN_TYPE_HEADER) {
     return false;
@@ -224,7 +231,7 @@ static bool uiTemplateInputStatusHeader(ARegion *region, uiLayout *row)
   return true;
 }
 
-static bool uiTemplateInputStatus3DView(bContext *C, uiLayout *row)
+static bool uiTemplateInputStatus3DView(bContext *C, Layout *row)
 {
   const Object *ob = CTX_data_active_object(C);
   if (!ob) {
@@ -257,47 +264,47 @@ static bool uiTemplateInputStatus3DView(bContext *C, uiLayout *row)
   return false;
 }
 
-void uiTemplateInputStatus(uiLayout *layout, bContext *C)
+void uiTemplateInputStatus(Layout *layout, bContext *C)
 {
   wmWindow *win = CTX_wm_window(C);
   WorkSpace *workspace = CTX_wm_workspace(C);
 
   /* Workspace status text has priority. */
   if (!workspace->runtime->status.is_empty()) {
-    uiLayout *row = &layout->row(true);
-    for (const blender::bke::WorkSpaceStatusItem &item : workspace->runtime->status) {
+    Layout &row = layout->row(true);
+    for (const bke::WorkSpaceStatusItem &item : workspace->runtime->status) {
       if (item.space_factor != 0.0f) {
-        row->separator(item.space_factor);
+        row.separator(item.space_factor);
       }
       else {
-        uiBut *but = uiItemL_ex(row, item.text, item.icon, false, false);
+        Button *but = uiItemL_ex(&row, item.text, item.icon, false, false);
         if (item.inverted) {
-          but->drawflag |= UI_BUT_ICON_INVERT;
+          but->drawflag |= BUT_ICON_INVERT;
         }
-        const float offset = ui_event_icon_offset(item.icon);
+        const float offset = event_icon_offset(item.icon);
         if (offset != 0.0f) {
-          row->separator(offset);
+          row.separator(offset);
         }
       }
     }
     return;
   }
 
-  if (WM_window_modal_keymap_status_draw(C, win, layout)) {
+  if (WM_window_modal_keymap_status_draw(C, win, *layout)) {
     return;
   }
 
   bScreen *screen = CTX_wm_screen(C);
   ARegion *region = screen->active_region;
-  uiLayout *row = &layout->row(true);
+  Layout &row = layout->row(true);
 
   if (region == nullptr) {
     /* Check if over an action zone. */
-    LISTBASE_FOREACH (ScrArea *, area_iter, &screen->areabase) {
-      LISTBASE_FOREACH (AZone *, az, &area_iter->actionzones) {
-        if (BLI_rcti_isect_pt_v(&az->rect, win->eventstate->xy)) {
-          region = az->region;
-          if (uiTemplateInputStatusAzone(row, az, region)) {
+    for (ScrArea &area_iter : screen->areabase) {
+      for (AZone &az : area_iter.actionzones) {
+        if (BLI_rcti_isect_pt_v(&az.rect, win->runtime->eventstate->xy)) {
+          region = az.region;
+          if (uiTemplateInputStatusAzone(&row, &az, region)) {
             return;
           }
           break;
@@ -306,12 +313,12 @@ void uiTemplateInputStatus(uiLayout *layout, bContext *C)
     }
   }
 
-  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, win->eventstate->xy);
+  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, win->runtime->eventstate->xy);
   if (!area) {
     /* Are we in a global area? */
-    LISTBASE_FOREACH (ScrArea *, global_area, &win->global_areas.areabase) {
-      if (BLI_rcti_isect_pt_v(&global_area->totrct, win->eventstate->xy)) {
-        area = global_area;
+    for (ScrArea &global_area : win->global_areas.areabase) {
+      if (BLI_rcti_isect_pt_v(&global_area.totrct, win->runtime->eventstate->xy)) {
+        area = &global_area;
         break;
       }
     }
@@ -322,17 +329,17 @@ void uiTemplateInputStatus(uiLayout *layout, bContext *C)
     return;
   }
 
-  if (!region && win && uiTemplateInputStatusBorder(win, row)) {
+  if (!region && win && uiTemplateInputStatusBorder(win, &row)) {
     /* On a gap between editors. */
     return;
   }
 
-  if (region && uiTemplateInputStatusHeader(region, row)) {
+  if (region && uiTemplateInputStatusHeader(region, &row)) {
     /* Over a header region. */
     return;
   }
 
-  if (area && area->spacetype == SPACE_VIEW3D && uiTemplateInputStatus3DView(C, row)) {
+  if (area && area->spacetype == SPACE_VIEW3D && uiTemplateInputStatus3DView(C, &row)) {
     /* Specific to 3DView. */
     return;
   }
@@ -344,7 +351,7 @@ void uiTemplateInputStatus(uiLayout *layout, bContext *C)
 
   /* Otherwise should cursor keymap status. */
   for (int i = 0; i < 3; i++) {
-    row->alignment_set(blender::ui::LayoutAlign::Left);
+    row.alignment_set(LayoutAlign::Left);
 
     const char *msg = CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT,
                                  WM_window_cursor_keymap_status_get(win, i, 0));
@@ -352,24 +359,24 @@ void uiTemplateInputStatus(uiLayout *layout, bContext *C)
                                       WM_window_cursor_keymap_status_get(win, i, 1));
 
     if (msg) {
-      row->label("", (ICON_MOUSE_LMB + i));
-      row->separator(-0.9f);
-      row->label(msg, ICON_NONE);
-      row->separator(0.6f);
+      row.label("", (ICON_MOUSE_LMB + i));
+      row.separator(-0.9f);
+      row.label(msg, ICON_NONE);
+      row.separator(0.6f);
     }
 
     if (msg_drag) {
-      row->label("", (ICON_MOUSE_LMB_DRAG + i));
-      row->separator(-0.4f);
-      row->label(msg_drag, ICON_NONE);
-      row->separator(0.6f);
+      row.label("", (ICON_MOUSE_LMB_DRAG + i));
+      row.separator(-0.4f);
+      row.label(msg_drag, ICON_NONE);
+      row.separator(0.6f);
     }
   }
 }
 
 static std::string ui_template_status_tooltip(bContext *C,
                                               void * /*argN*/,
-                                              const blender::StringRef /*tip*/)
+                                              const StringRef /*tip*/)
 {
   Main *bmain = CTX_data_main(C);
   std::string tooltip_message;
@@ -400,12 +407,12 @@ static std::string ui_template_status_tooltip(bContext *C,
   return tooltip_message;
 }
 
-void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
+void uiTemplateStatusInfo(Layout *layout, bContext *C)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uiLayout *row = &layout->row(true);
+  Layout &row = layout->row(true);
 
   const char *status_info_txt = ED_info_statusbar_string_ex(
       bmain, scene, view_layer, (U.statusbar_flag & ~STATUSBAR_SHOW_VERSION));
@@ -413,7 +420,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
   bool has_status_info = false;
 
   if (status_info_txt[0]) {
-    row->label(status_info_txt, ICON_NONE);
+    row.label(status_info_txt, ICON_NONE);
     has_status_info = true;
   }
 
@@ -423,45 +430,45 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
     /* Special case, always show an alert for any blocked extensions. */
     if (wm->extensions_blocked > 0) {
       if (has_status_info) {
-        row->separator(-0.5f);
-        row->label("|", ICON_NONE);
-        row->separator(-0.5f);
+        row.separator(-0.5f);
+        row.label("|", ICON_NONE);
+        row.separator(-0.5f);
       }
-      row->emboss_set(blender::ui::EmbossType::None);
+      row.emboss_set(EmbossType::None);
       /* This operator also works fine for blocked extensions. */
-      row->op("EXTENSIONS_OT_userpref_show_for_update", "", ICON_ERROR);
-      uiBut *but = layout->block()->buttons.last().get();
+      row.op("EXTENSIONS_OT_userpref_show_for_update", "", ICON_ERROR);
+      Button *but = layout->block()->buttons.last().get();
       uchar color[4];
-      UI_GetThemeColor4ubv(TH_TEXT, color);
+      theme::get_color_4ubv(TH_TEXT, color);
       copy_v4_v4_uchar(but->col, color);
 
       BLI_str_format_integer_unit(but->icon_overlay_text.text, wm->extensions_blocked);
-      UI_but_icon_indicator_color_set(but, color);
+      button_icon_indicator_color_set(but, color);
 
-      row->separator(1.0f);
+      row.separator(1.0f);
       has_status_info = true;
     }
 
     if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
       if (has_status_info) {
-        row->separator(-0.5f);
-        row->label("|", ICON_NONE);
-        row->separator(-0.5f);
+        row.separator(-0.5f);
+        row.label("|", ICON_NONE);
+        row.separator(-0.5f);
       }
 
       if ((G.f & G_FLAG_INTERNET_OVERRIDE_PREF_OFFLINE) != 0) {
-        row->label("", ICON_INTERNET_OFFLINE);
+        row.label("", ICON_INTERNET_OFFLINE);
       }
       else {
-        row->emboss_set(blender::ui::EmbossType::None);
-        row->op("EXTENSIONS_OT_userpref_show_online", "", ICON_INTERNET_OFFLINE);
-        uiBut *but = layout->block()->buttons.last().get();
+        row.emboss_set(EmbossType::None);
+        row.op("EXTENSIONS_OT_userpref_show_online", "", ICON_INTERNET_OFFLINE);
+        Button *but = layout->block()->buttons.last().get();
         uchar color[4];
-        UI_GetThemeColor4ubv(TH_TEXT, color);
+        theme::get_color_4ubv(TH_TEXT, color);
         copy_v4_v4_uchar(but->col, color);
       }
 
-      row->separator(1.0f);
+      row.separator(1.0f);
       has_status_info = true;
     }
     else if ((wm->extensions_updates > 0) ||
@@ -473,23 +480,23 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
       }
 
       if (has_status_info) {
-        row->separator(-0.5f);
-        row->label("|", ICON_NONE);
-        row->separator(-0.5f);
+        row.separator(-0.5f);
+        row.label("|", ICON_NONE);
+        row.separator(-0.5f);
       }
-      row->emboss_set(blender::ui::EmbossType::None);
-      row->op("EXTENSIONS_OT_userpref_show_for_update", "", icon);
-      uiBut *but = layout->block()->buttons.last().get();
+      row.emboss_set(EmbossType::None);
+      row.op("EXTENSIONS_OT_userpref_show_for_update", "", icon);
+      Button *but = layout->block()->buttons.last().get();
       uchar color[4];
-      UI_GetThemeColor4ubv(TH_TEXT, color);
+      theme::get_color_4ubv(TH_TEXT, color);
       copy_v4_v4_uchar(but->col, color);
 
       if (wm->extensions_updates > 0) {
         BLI_str_format_integer_unit(but->icon_overlay_text.text, wm->extensions_updates);
-        UI_but_icon_indicator_color_set(but, color);
+        button_icon_indicator_color_set(but, color);
       }
 
-      row->separator(1.0f);
+      row.separator(1.0f);
       has_status_info = true;
     }
   }
@@ -497,18 +504,18 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
   if (!BKE_main_has_issues(bmain)) {
     if (U.statusbar_flag & STATUSBAR_SHOW_VERSION) {
       if (has_status_info) {
-        row->separator(-0.5f);
-        row->label("|", ICON_NONE);
-        row->separator(-0.5f);
+        row.separator(-0.5f);
+        row.label("|", ICON_NONE);
+        row.separator(-0.5f);
       }
       const char *status_info_d_txt = ED_info_statusbar_string_ex(
           bmain, scene, view_layer, STATUSBAR_SHOW_VERSION);
-      row->label(status_info_d_txt, ICON_NONE);
+      row.label(status_info_d_txt, ICON_NONE);
     }
     return;
   }
 
-  blender::StringRefNull version_string = ED_info_statusbar_string_ex(
+  StringRefNull version_string = ED_info_statusbar_string_ex(
       bmain, scene, view_layer, STATUSBAR_SHOW_VERSION);
   std::string warning_message;
 
@@ -532,39 +539,37 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
     warning_message = warning_message + RPT_("Color Management");
   }
 
-  const uiStyle *style = UI_style_get();
-  uiLayout *ui_abs = &layout->absolute(false);
-  uiBlock *block = ui_abs->block();
-  blender::ui::EmbossType previous_emboss = UI_block_emboss_get(block);
+  const uiStyle *style = style_get();
+  Layout &ui_abs = layout->absolute(false);
+  Block *block = ui_abs.block();
+  EmbossType previous_emboss = block_emboss_get(block);
 
-  UI_fontstyle_set(&style->widget);
+  fontstyle_set(&style->widget);
   const int width = max_ii(
       int(BLF_width(style->widget.uifont_id, warning_message.c_str(), warning_message.size())),
       int(10 * UI_SCALE_FAC));
 
-  UI_block_align_begin(block);
+  block_align_begin(block);
 
   /* Background for icon. */
-  uiBut *but = uiDefBut(block,
-                        ButType::Roundbox,
-                        0,
-                        "",
-                        0,
-                        0,
-                        UI_UNIT_X + (6 * UI_SCALE_FAC),
-                        UI_UNIT_Y,
-                        nullptr,
-                        0.0f,
-                        0.0f,
-                        "");
-  /*# ButType::Roundbox's background color is set in `but->col`. */
-  UI_GetThemeColor4ubv(TH_WARNING, but->col);
+  Button *but = uiDefBut(block,
+                         ButtonType::Roundbox,
+                         "",
+                         0,
+                         0,
+                         UI_UNIT_X + (6 * UI_SCALE_FAC),
+                         UI_UNIT_Y,
+                         nullptr,
+                         0.0f,
+                         0.0f,
+                         "");
+  /*# ButtonType::Roundbox's background color is set in `but->col`. */
+  theme::get_color_4ubv(TH_WARNING, but->col);
 
   if (!warning_message.empty()) {
     /* Background for the rest of the message. */
     but = uiDefBut(block,
-                   ButType::Roundbox,
-                   0,
+                   ButtonType::Roundbox,
                    "",
                    UI_UNIT_X + (6 * UI_SCALE_FAC),
                    0,
@@ -576,17 +581,16 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
                    "");
 
     /* Use icon background at low opacity to highlight, but still contrasting with area TH_TEXT. */
-    UI_GetThemeColor4ubv(TH_WARNING, but->col);
+    theme::get_color_4ubv(TH_WARNING, but->col);
     but->col[3] = 64;
   }
 
-  UI_block_align_end(block);
-  UI_block_emboss_set(block, blender::ui::EmbossType::None);
+  block_align_end(block);
+  block_emboss_set(block, EmbossType::None);
 
   /* The warning icon itself. */
   but = uiDefIconBut(block,
-                     ButType::But,
-                     0,
+                     ButtonType::But,
                      ICON_ERROR,
                      int(3 * UI_SCALE_FAC),
                      0,
@@ -596,15 +600,14 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
                      0.0f,
                      0.0f,
                      std::nullopt);
-  UI_but_func_tooltip_set(but, ui_template_status_tooltip, nullptr, nullptr);
-  UI_GetThemeColorType4ubv(TH_INFO_WARNING_TEXT, SPACE_INFO, but->col);
+  button_func_tooltip_set(but, ui_template_status_tooltip, nullptr, nullptr);
+  theme::get_color_type_4ubv(TH_INFO_WARNING_TEXT, SPACE_INFO, but->col);
   but->col[3] = 255; /* This theme color is RBG only, so have to set alpha here. */
 
   /* The warning message, if any. */
   if (!warning_message.empty()) {
     but = uiDefBut(block,
-                   ButType::But,
-                   0,
+                   ButtonType::But,
                    warning_message.c_str(),
                    UI_UNIT_X,
                    0,
@@ -614,8 +617,10 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
                    0.0f,
                    0.0f,
                    std::nullopt);
-    UI_but_func_tooltip_set(but, ui_template_status_tooltip, nullptr, nullptr);
+    button_func_tooltip_set(but, ui_template_status_tooltip, nullptr, nullptr);
   }
 
-  UI_block_emboss_set(block, previous_emboss);
+  block_emboss_set(block, previous_emboss);
 }
+
+}  // namespace blender::ui

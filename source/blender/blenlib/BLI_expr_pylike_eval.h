@@ -8,11 +8,13 @@
  * \ingroup bli
  */
 
+namespace blender {
+
 /** Opaque structure containing pre-parsed data for evaluation. */
-typedef struct ExprPyLike_Parsed ExprPyLike_Parsed;
+struct ExprPyLike_Parsed;
 
 /** Expression evaluation return code. */
-typedef enum eExprPyLike_EvalStatus {
+enum eExprPyLike_EvalStatus {
   EXPR_PYLIKE_SUCCESS = 0,
   /* Computation errors; result is still set, but may be NaN */
   EXPR_PYLIKE_DIV_BY_ZERO,
@@ -20,7 +22,7 @@ typedef enum eExprPyLike_EvalStatus {
   /* Expression dependent errors or bugs; result is 0 */
   EXPR_PYLIKE_INVALID,
   EXPR_PYLIKE_FATAL_ERROR,
-} eExprPyLike_EvalStatus;
+};
 
 /**
  * Free the parsed data; NULL argument is ok.
@@ -55,3 +57,5 @@ eExprPyLike_EvalStatus BLI_expr_pylike_eval(struct ExprPyLike_Parsed *expr,
                                             const double *param_values,
                                             int param_values_len,
                                             double *r_result);
+
+}  // namespace blender

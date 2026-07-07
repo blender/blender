@@ -15,6 +15,8 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_memory_counter_fwd.hh"
 
+namespace blender {
+
 /**
  * This header gives contains declarations for dealing with volume grids without requiring
  * including any OpenVDB headers (which can have a significant impact on compile times).
@@ -22,7 +24,7 @@
  * These functions are available even if `WITH_OPENVDB` is false, but they may just be empty.
  */
 
-namespace blender::bke::volume_grid {
+namespace bke::volume_grid {
 
 /**
  * Wraps an OpenVDB grid and adds features like implicit sharing and lazy-loading.
@@ -103,15 +105,16 @@ bool is_loaded(const VolumeGridData &grid);
 
 void count_memory(const VolumeGridData &grid, MemoryCounter &memory);
 
-}  // namespace blender::bke::volume_grid
+}  // namespace bke::volume_grid
 
 /**
- * Put the most common types directly into the `blender::bke` namespace.
+ * Put the most common types directly into the `bke` namespace.
  */
-namespace blender::bke {
+namespace bke {
 using volume_grid::GVolumeGrid;
 using volume_grid::is_VolumeGrid_v;
 using volume_grid::VolumeGrid;
 using volume_grid::VolumeGridData;
 using volume_grid::VolumeTreeAccessToken;
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

@@ -8,16 +8,18 @@
 
 #include <algorithm>
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_fileops.h"
+#include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
+
+#include "DNA_userdef_types.h"
 
 #include "BLT_translation.hh"
 
@@ -26,10 +28,10 @@
 #include "ED_fileselect.hh"
 
 #include "UI_resources.hh"
-#include "WM_api.hh"
-#include "WM_types.hh"
 
-#include "fsmenu.h" /* include ourselves */
+#include "fsmenu.hh" /* include ourselves */
+
+namespace blender {
 
 /* FSMENU HANDLING */
 
@@ -46,7 +48,7 @@ static FSMenu *g_fsmenu = nullptr;
 FSMenu *ED_fsmenu_get()
 {
   if (!g_fsmenu) {
-    g_fsmenu = MEM_callocN<FSMenu>(__func__);
+    g_fsmenu = MEM_new_zeroed<FSMenu>(__func__);
   }
   return g_fsmenu;
 }
@@ -131,7 +133,7 @@ void ED_fsmenu_entry_set_path(FSMenuEntry *fsentry, const char *path)
   if ((!fsentry->path || !path || !STREQ(path, fsentry->path)) && (fsentry->path != path)) {
     char tmp_name[FILE_MAXFILE];
 
-    MEM_SAFE_FREE(fsentry->path);
+    MEM_SAFE_DELETE(fsentry->path);
 
     fsentry->path = (path && path[0]) ? BLI_strdup(path) : nullptr;
 
@@ -282,7 +284,7 @@ void fsmenu_insert_entry(FSMenu *fsmenu,
     }
   }
 
-  fsm_iter = MEM_mallocN<FSMenuEntry>("fsme");
+  fsm_iter = MEM_new_uninitialized<FSMenuEntry>("fsme");
   fsm_iter->path = has_trailing_slash ? BLI_strdup(path) : BLI_string_joinN(path, SEP_STR);
   fsm_iter->save = (flag & FS_INSERT_SAVE) != 0;
 
@@ -370,8 +372,8 @@ void fsmenu_remove_entry(FSMenu *fsmenu, FSMenuCategory category, int idx)
         ED_fsmenu_set_category(fsmenu, category, fsm_head);
       }
       /* free entry */
-      MEM_freeN(fsm_iter->path);
-      MEM_freeN(fsm_iter);
+      MEM_delete(fsm_iter->path);
+      MEM_delete(fsm_iter);
     }
   }
 }
@@ -474,9 +476,9 @@ static void fsmenu_free_category(FSMenu *fsmenu, FSMenuCategory category)
     FSMenuEntry *fsm_next = fsm_iter->next;
 
     if (fsm_iter->path) {
-      MEM_freeN(fsm_iter->path);
+      MEM_delete(fsm_iter->path);
     }
-    MEM_freeN(fsm_iter);
+    MEM_delete(fsm_iter);
 
     fsm_iter = fsm_next;
   }
@@ -502,7 +504,7 @@ static void fsmenu_free_ex(FSMenu **fsmenu)
     fsmenu_free_category(*fsmenu, FS_CATEGORY_BOOKMARKS);
     fsmenu_free_category(*fsmenu, FS_CATEGORY_RECENT);
     fsmenu_free_category(*fsmenu, FS_CATEGORY_OTHER);
-    MEM_freeN(*fsmenu);
+    MEM_delete(*fsmenu);
   }
 
   *fsmenu = nullptr;
@@ -526,3 +528,39 @@ int fsmenu_get_active_indices(FSMenu *fsmenu, enum FSMenuCategory category, cons
 
   return -1;
 }
+
+void fsmenu_add_common_platform_directories(FSMenu *fsmenu)
+{
+  /* For all platforms, we add some directories from User Preferences to
+   * the FS_CATEGORY_OTHER category so that these directories
+   * have the appropriate icons when they are added to the Bookmarks.
+   *
+   * NOTE: of the preferences support as `//` prefix.
+   * Skip them since they depend on the current loaded blend file. */
+
+  auto add_user_dir = [fsmenu](const char *dir, int icon) {
+    if (dir[0] && !BLI_path_is_rel(dir)) {
+      fsmenu_insert_entry(fsmenu, FS_CATEGORY_OTHER, dir, nullptr, icon, FS_INSERT_LAST);
+    }
+  };
+
+  add_user_dir(U.fontdir, ICON_FILE_FONT);
+  add_user_dir(U.textudir, ICON_FILE_IMAGE);
+
+  for (bUserScriptDirectory &script_dir : U.script_directories) {
+    if (UNLIKELY(script_dir.dir_path[0] == '\0')) {
+      continue;
+    }
+    fsmenu_insert_entry(fsmenu,
+                        FS_CATEGORY_OTHER,
+                        script_dir.dir_path,
+                        script_dir.name,
+                        ICON_FILE_SCRIPT,
+                        FS_INSERT_LAST);
+  }
+
+  add_user_dir(U.sounddir, ICON_FILE_SOUND);
+  add_user_dir(U.tempdir, ICON_TEMP);
+}
+
+}  // namespace blender

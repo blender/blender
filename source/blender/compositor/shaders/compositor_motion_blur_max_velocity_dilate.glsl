@@ -5,9 +5,14 @@
 /* Identical to eevee_motion_blur_dilate_comp.glsl but with minor adjustments to work with the
  * compositor. */
 
+#include "infos/compositor_motion_blur_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_motion_blur_max_velocity_dilate)
+
 #include "gpu_shader_compositor_motion_blur_lib.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
 #include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_constants_lib.glsl"
 
 struct MotionRect {
   int2 bottom_left;
@@ -95,8 +100,6 @@ void main()
   }
 
   if (true) {
-    MotionPayload payload = motion_blur_tile_indirection_pack_payload(max_motion.zw,
-                                                                      uint2(src_tile));
     /* Rectangular area (in tiles) where the motion vector spreads. */
     MotionRect motion_rect = compute_motion_rect(src_tile, max_motion.zw);
     MotionLine motion_line = compute_motion_line(src_tile, max_motion.zw);

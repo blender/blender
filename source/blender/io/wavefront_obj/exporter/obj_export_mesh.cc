@@ -111,7 +111,7 @@ void OBJMesh::clear()
   normal_coords_ = {};
   face_order_ = {};
   if (face_smooth_groups_) {
-    MEM_freeN(face_smooth_groups_);
+    MEM_delete(face_smooth_groups_);
     face_smooth_groups_ = nullptr;
   }
 }
@@ -245,7 +245,7 @@ void OBJMesh::calc_face_order()
   /* Sort faces by their material index. */
   face_order_.reinitialize(material_indices_span.size());
   array_utils::fill_index_range(face_order_.as_mutable_span());
-  blender::parallel_sort(face_order_.begin(), face_order_.end(), [&](int a, int b) {
+  parallel_sort(face_order_.begin(), face_order_.end(), [&](int a, int b) {
     int mat_a = material_indices_span[a];
     int mat_b = material_indices_span[b];
     if (mat_a != mat_b) {
@@ -272,8 +272,7 @@ StringRef OBJMesh::get_object_mesh_name() const
 
 void OBJMesh::store_uv_coords_and_indices()
 {
-  const StringRef active_uv_name = CustomData_get_active_layer_name(&export_mesh_->corner_data,
-                                                                    CD_PROP_FLOAT2);
+  const StringRef active_uv_name = export_mesh_->active_uv_map_name();
   if (active_uv_name.is_empty()) {
     uv_coords_.clear();
     return;

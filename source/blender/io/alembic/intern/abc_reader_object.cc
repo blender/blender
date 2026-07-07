@@ -26,11 +26,13 @@
 #include "BLI_math_rotation.h"
 #include "BLI_string.h"
 
+namespace blender {
+
 using Alembic::AbcGeom::IObject;
 using Alembic::AbcGeom::IXform;
 using Alembic::AbcGeom::IXformSchema;
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 AbcObjectReader::AbcObjectReader(const IObject &object, ImportSettings &settings)
     : m_object(nullptr),
@@ -303,4 +305,5 @@ void AbcObjectReader::decref()
   BLI_assert(m_refcount >= 0);
 }
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

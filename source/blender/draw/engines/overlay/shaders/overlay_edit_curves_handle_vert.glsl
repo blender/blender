@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/overlay_edit_mode_info.hh"
+#include "infos/overlay_edit_mode_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(overlay_edit_curves_handle)
 
@@ -11,7 +11,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_curves_handle)
 #include "draw_view_lib.glsl"
 #include "gpu_shader_attribute_load_lib.glsl"
 #include "gpu_shader_index_load_lib.glsl"
-#include "gpu_shader_math_base_lib.glsl"
+#include "gpu_shader_math_constants_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
 #define M_TAN_PI_BY_8 tan(M_PI / 8)
@@ -21,6 +21,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_curves_handle)
 struct VertIn {
   /* Local Position. */
   float3 ls_P;
+  float radius;
   /* Edit Flags and Data. */
   uint e_data;
   float sel;
@@ -32,8 +33,9 @@ VertIn input_assembly(uint in_vertex_id)
 
   VertIn vert_in;
   vert_in.ls_P = gpu_attr_load_float3(pos, gpu_attr_0, v_i);
-  vert_in.e_data = data[gpu_attr_load_index(v_i, gpu_attr_1)];
-  vert_in.sel = selection[gpu_attr_load_index(v_i, gpu_attr_2)];
+  vert_in.radius = rad[gpu_attr_load_index(v_i, gpu_attr_1)];
+  vert_in.e_data = data[gpu_attr_load_index(v_i, gpu_attr_2)];
+  vert_in.sel = selection[gpu_attr_load_index(v_i, gpu_attr_3)];
   return vert_in;
 }
 
@@ -49,6 +51,19 @@ VertOut vertex_main(VertIn vert_in)
   VertOut vert;
   vert.flag = vert_in.e_data;
   vert.ws_P = drw_point_object_to_world(vert_in.ls_P);
+  {
+    /* Offset the curve radius in the incoming direction,
+     * so the curve geometry doesn't occlude the handle.
+     * But ensure we don't offset past the near plane. */
+    float3 I = drw_world_incident_vector(vert.ws_P);
+    float vs_depth = dot(drw_view_position() - vert.ws_P, I);
+    float near_plane_distance = abs(drw_view_near()) / dot(I, drw_view_forward());
+    float max_offset = vs_depth - (near_plane_distance * 1.01f);
+    max_offset = max(0.0f, max_offset);
+    /* Compensate for view angle. */
+    float radius = vert_in.radius * 1.5f;
+    vert.ws_P += I * min(radius, max_offset);
+  }
   vert.gpu_position = drw_point_world_to_homogenous(vert.ws_P);
   vert.sel = vert_in.sel;
   return vert;
@@ -162,7 +177,7 @@ void geometry_main(VertOut geom_in[2],
   }
 
   /* Minimize active color bleeding on inner_color. */
-  float4 active_color = mix(theme.colors.active_spline, inner_color, 0.25f);
+  float4 active_color = mix(float4(0.0, 0.0, 0.0, 1.0), inner_color, 0.25f);
   float4 outer_color = is_active ? active_color : float4(inner_color.rgb, 0.0f);
 
   float2 v1_2 = (v2.xy / v2.w - v1.xy / v1.w);
@@ -178,7 +193,7 @@ void geometry_main(VertOut geom_in[2],
     offset.x = 0.0f;
   }
 
-  float4 border_color = float4(theme.colors.active_spline.rgb, 0.0f);
+  float4 border_color = float4(0.0, 0.0, 0.0, 0.0);
   /* Draw the transparent border (AA). */
   if (is_active) {
     offset *= 0.75f; /* Don't make the active "halo" appear very thick. */

@@ -1,0 +1,10 @@
+--- a/src/common/mathmisc.cpp
++++ b/src/common/mathmisc.cpp
+@@ -21,6 +21,7 @@
+     you must obtain a valid commercial licence before doing so.
+ */
+ 
++#include <cstddef>
+ #include "mathmisc.h"
+ 
+ namespace RubberBand {

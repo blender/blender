@@ -15,9 +15,11 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"gpu.vulkan"};
 
-namespace blender::gpu {
+namespace gpu {
 
 void VKUniformBuffer::update(const void *data)
 {
@@ -26,7 +28,7 @@ void VKUniformBuffer::update(const void *data)
   }
 
   if (data) {
-    void *data_copy = MEM_mallocN(size_in_bytes_, __func__);
+    void *data_copy = MEM_new_uninitialized(size_in_bytes_, __func__);
     memcpy(data_copy, data, size_in_bytes_);
     VKContext &context = *VKContext::get();
     buffer_.update_render_graph(context, data_copy);
@@ -39,9 +41,8 @@ void VKUniformBuffer::allocate()
   buffer_.create(size_in_bytes_,
                  VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
                      VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-                 VmaAllocationCreateFlags(0),
+                 VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+                 VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
                  0.8f);
   debug::object_label(buffer_.vk_handle(), name_);
 }
@@ -72,7 +73,7 @@ void VKUniformBuffer::ensure_updated()
   if (data_) {
     if (!data_uploaded_ && buffer_.is_mapped()) {
       buffer_.update_immediately(data_);
-      MEM_freeN(data_);
+      MEM_delete_void(data_);
       data_ = nullptr;
     }
     else {
@@ -107,4 +108,5 @@ void VKUniformBuffer::unbind()
   }
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

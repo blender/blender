@@ -8,6 +8,8 @@
  * Helper functions for area/region API.
  */
 
+#include <limits>
+
 #include "BKE_screen.hh"
 
 #include "BLI_rect.h"
@@ -18,6 +20,8 @@
 #include "ED_screen.hh"
 
 #include "UI_interface.hh"
+
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Generic Tool System Region Callbacks
@@ -48,7 +52,7 @@ int ED_region_generic_tools_region_snap_size(const ARegion *region, int size, in
         (2.0f * column) + margin,
         (2.7f * column) + margin,
     };
-    int best_diff = INT_MAX;
+    int best_diff = std::numeric_limits<int>::max();
     int best_size = size;
     /* Only snap if less than last snap unit. */
     if (size <= snap_units[ARRAY_SIZE(snap_units) - 1]) {
@@ -69,7 +73,7 @@ int ED_region_generic_tools_region_snap_size(const ARegion *region, int size, in
 int ED_region_generic_panel_region_snap_size(const ARegion *region, int size, int axis)
 {
   if (axis == 0) {
-    if (!UI_panel_category_is_visible(region)) {
+    if (!ui::panel_category_tabs_is_visible(region)) {
       return size;
     }
 
@@ -82,3 +86,5 @@ int ED_region_generic_panel_region_snap_size(const ARegion *region, int size, in
 }
 
 /** \} */
+
+}  // namespace blender

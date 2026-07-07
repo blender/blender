@@ -12,7 +12,9 @@
 
 #include "node_shader_util.hh"
 
-namespace blender::nodes::node_shader_rgb_to_bw_cc {
+namespace blender {
+
+namespace nodes::node_shader_rgb_to_bw_cc {
 
 static void sh_node_rgbtobw_declare(NodeDeclarationBuilder &b)
 {
@@ -40,13 +42,13 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_rgb_to_bw_cc
+}  // namespace nodes::node_shader_rgb_to_bw_cc
 
 void register_node_type_sh_rgbtobw()
 {
-  namespace file_ns = blender::nodes::node_shader_rgb_to_bw_cc;
+  namespace file_ns = nodes::node_shader_rgb_to_bw_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeRGBToBW", SH_NODE_RGBTOBW);
   ntype.ui_name = "RGB to BW";
@@ -57,5 +59,7 @@ void register_node_type_sh_rgbtobw()
   ntype.gpu_fn = file_ns::gpu_shader_rgbtobw;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

@@ -19,6 +19,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 using FrameSampleT = uint32_t;
 using FrameSumT = uint64_t;
 
@@ -86,7 +88,7 @@ void ED_scene_fps_average_clear(Scene *scene)
   BLI_assert(fpsi->times_fps_sum == times_fps_sum_cmp);
 #endif /* !NDEBUG */
 
-  MEM_freeN(static_cast<ScreenFrameRateInfo *>(scene->fps_info));
+  MEM_delete(static_cast<ScreenFrameRateInfo *>(scene->fps_info));
   scene->fps_info = nullptr;
 }
 
@@ -101,7 +103,7 @@ void ED_scene_fps_average_accumulate(Scene *scene, const short fps_samples, cons
      * Needed redraw times from when a different FPS was set do not contribute
      * to an average that is over/under the new target. */
     if ((fpsi->fps_target != fps_target) || (fpsi->times_fps_num != times_fps_num)) {
-      MEM_freeN(fpsi);
+      MEM_delete(fpsi);
       fpsi = nullptr;
       scene->fps_info = nullptr;
     }
@@ -109,7 +111,7 @@ void ED_scene_fps_average_accumulate(Scene *scene, const short fps_samples, cons
 
   /* If there isn't any info, initialize it first. */
   if (fpsi == nullptr) {
-    scene->fps_info = MEM_callocN(
+    scene->fps_info = MEM_new_zeroed(
         sizeof(ScreenFrameRateInfo) + (sizeof(FrameSample) * times_fps_num), __func__);
     fpsi = static_cast<ScreenFrameRateInfo *>(scene->fps_info);
     fpsi->fps_target = fps_target;
@@ -200,3 +202,5 @@ bool ED_scene_fps_average_calc(const Scene *scene, SceneFPS_State *r_state)
   r_state->fps_target_is_fractional = fpsi->fps_target_is_fractional;
   return true;
 }
+
+}  // namespace blender

@@ -66,24 +66,18 @@ class MESH_UL_vgroups_slow(bpy.types.UIList):
 
         # assert(isinstance(item, bpy.types.VertexGroup)
         vgroup = item
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            # Here we use one feature of new filtering feature: it can pass data to draw_item, through flt_flag
-            # parameter, which contains exactly what filter_items set in its filter list for this item!
-            # In this case, we show empty groups grayed out.
-            if flt_flag & self.VGROUP_EMPTY:
-                col = layout.column()
-                col.enabled = False
-                col.alignment = 'LEFT'
-                col.prop(vgroup, "name", text="", emboss=False, icon_value=icon)
-            else:
-                layout.prop(vgroup, "name", text="", emboss=False, icon_value=icon)
-            icon = 'LOCKED' if vgroup.lock_weight else 'UNLOCKED'
-            layout.prop(vgroup, "lock_weight", text="", icon=icon, emboss=False)
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            if flt_flag & self.VGROUP_EMPTY:
-                layout.enabled = False
-            layout.label(text="", icon_value=icon)
+        # Here we use one feature of new filtering feature: it can pass data to draw_item, through flt_flag
+        # parameter, which contains exactly what filter_items set in its filter list for this item!
+        # In this case, we show empty groups grayed out.
+        if flt_flag & self.VGROUP_EMPTY:
+            col = layout.column()
+            col.enabled = False
+            col.alignment = 'LEFT'
+            col.prop(vgroup, "name", text="", emboss=False, icon_value=icon)
+        else:
+            layout.prop(vgroup, "name", text="", emboss=False, icon_value=icon)
+        icon = 'LOCKED' if vgroup.lock_weight else 'UNLOCKED'
+        layout.prop(vgroup, "lock_weight", text="", icon=icon, emboss=False)
 
     def draw_filter(self, context, layout):
         # Nothing much to say here, it's usual UI code...

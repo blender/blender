@@ -13,8 +13,7 @@ CCL_NAMESPACE_BEGIN
 #ifndef __KERNEL_NATIVE_VECTOR_TYPES__
 struct int4;
 
-struct ccl_try_align(16) float4
-{
+struct ccl_try_align(16) float4 {
 #  ifdef __KERNEL_SSE__
   union {
     __m128 m128;
@@ -120,11 +119,16 @@ ccl_device_inline int4 make_int4(const float4 f)
 #endif
 }
 
+#if defined __METAL_PRINTF__
+#  define print_float4(label, a) \
+    metal::os_log_default.log_debug(label ": %.8f %.8f %.8f %.8f", (a).x, (a).y, (a).z, (a).w)
+#else
 ccl_device_inline void print_float4(const ccl_private char *label, const float4 a)
 {
-#ifdef __KERNEL_PRINTF__
+#  ifdef __KERNEL_PRINTF__
   printf("%s: %.8f %.8f %.8f %.8f\n", label, (double)a.x, (double)a.y, (double)a.z, (double)a.w);
-#endif
+#  endif
 }
+#endif
 
 CCL_NAMESPACE_END

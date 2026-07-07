@@ -14,7 +14,9 @@
 
 #include "BLI_math_matrix.hh"
 
-namespace blender::math {
+namespace blender {
+
+namespace math {
 
 /* -------------------------------------------------------------------- */
 /** \name Quaternion functions.
@@ -612,9 +614,9 @@ template<typename T>
 
 /** \} */
 
-}  // namespace blender::math
+}  // namespace math
 
-namespace blender::math {
+namespace math {
 
 /* -------------------------------------------------------------------- */
 /** \name Conversion to Euler
@@ -699,4 +701,5 @@ template<typename T> VecBase<T, 3> QuaternionBase<T>::expmap() const
 
 /** \} */
 
-}  // namespace blender::math
+}  // namespace math
+}  // namespace blender

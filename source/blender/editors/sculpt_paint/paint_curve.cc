@@ -40,6 +40,8 @@
 
 #include "paint_intern.hh"
 
+namespace blender {
+
 #define PAINT_CURVE_SELECT_THRESHOLD 40.0f
 #define PAINT_CURVE_POINT_SELECT(pcp, i) (*(&pcp->bez.f1 + i) = SELECT)
 
@@ -62,7 +64,7 @@ bool paint_curve_poll(bContext *C)
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = (paint) ? BKE_paint_brush(paint) : nullptr;
 
-  if (brush && (brush->flag & BRUSH_CURVE)) {
+  if (brush && (brush->stroke_method == BRUSH_STROKE_CURVE)) {
     return true;
   }
 
@@ -201,8 +203,7 @@ static void paintcurve_point_add(bContext *C, wmOperator *op, const int loc[2])
 
   ED_paintcurve_undo_push_begin(op->type->name);
 
-  PaintCurvePoint *pcp = MEM_malloc_arrayN<PaintCurvePoint>((pc->tot_points + 1),
-                                                            "PaintCurvePoint");
+  PaintCurvePoint *pcp = MEM_new_array<PaintCurvePoint>((pc->tot_points + 1), "PaintCurvePoint");
   int add_index = pc->add_index;
 
   if (pc->points) {
@@ -215,7 +216,7 @@ static void paintcurve_point_add(bContext *C, wmOperator *op, const int loc[2])
              (pc->tot_points - add_index) * sizeof(PaintCurvePoint));
     }
 
-    MEM_freeN(pc->points);
+    MEM_delete(pc->points);
   }
   pc->points = pcp;
   pc->tot_points++;
@@ -331,7 +332,7 @@ static wmOperatorStatus paintcurve_delete_point_exec(bContext *C, wmOperator *op
     int new_tot = pc->tot_points - tot_del;
     PaintCurvePoint *points_new = nullptr;
     if (new_tot > 0) {
-      points_new = MEM_malloc_arrayN<PaintCurvePoint>(new_tot, "PaintCurvePoint");
+      points_new = MEM_new_array<PaintCurvePoint>(new_tot, "PaintCurvePoint");
     }
 
     for (i = 0, pcp = pc->points; i < pc->tot_points; i++, pcp++) {
@@ -348,7 +349,7 @@ static wmOperatorStatus paintcurve_delete_point_exec(bContext *C, wmOperator *op
         pc->add_index = j;
       }
     }
-    MEM_freeN(pc->points);
+    MEM_delete(pc->points);
 
     pc->points = points_new;
     pc->tot_points = new_tot;
@@ -586,7 +587,7 @@ static wmOperatorStatus paintcurve_slide_invoke(bContext *C, wmOperator *op, con
   if (pcp) {
     ARegion *region = CTX_wm_region(C);
     wmWindow *window = CTX_wm_window(C);
-    PointSlideData *psd = MEM_mallocN<PointSlideData>("PointSlideData");
+    PointSlideData *psd = MEM_new_uninitialized<PointSlideData>("PointSlideData");
     copy_v2_v2_int(psd->initial_loc, event->mval);
     psd->event = event->type;
     psd->pcp = pcp;
@@ -620,7 +621,7 @@ static wmOperatorStatus paintcurve_slide_modal(bContext *C, wmOperator *op, cons
   PointSlideData *psd = static_cast<PointSlideData *>(op->customdata);
 
   if (event->type == psd->event && event->val == KM_RELEASE) {
-    MEM_freeN(psd);
+    MEM_delete(psd);
     ED_paintcurve_undo_push_begin(op->type->name);
     ED_paintcurve_undo_push_end(C);
     return OPERATOR_FINISHED;
@@ -709,8 +710,7 @@ static wmOperatorStatus paintcurve_draw_exec(bContext *C, wmOperator * /*op*/)
       return OPERATOR_PASS_THROUGH;
   }
 
-  return WM_operator_name_call(
-      C, name, blender::wm::OpCallContext::InvokeDefault, nullptr, nullptr);
+  return WM_operator_name_call(C, name, wm::OpCallContext::InvokeDefault, nullptr, nullptr);
 }
 
 void PAINTCURVE_OT_draw(wmOperatorType *ot)
@@ -744,7 +744,7 @@ static wmOperatorStatus paintcurve_cursor_invoke(bContext *C,
         return OPERATOR_CANCELLED;
       }
 
-      UI_view2d_region_to_view(
+      ui::view2d_region_to_view(
           &region->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
       copy_v2_v2(sima->cursor, location);
       WM_event_add_notifier(C, NC_SPACE | ND_SPACE_IMAGE, nullptr);
@@ -772,3 +772,5 @@ void PAINTCURVE_OT_cursor(wmOperatorType *ot)
   /* flags */
   ot->flag = 0;
 }
+
+}  // namespace blender

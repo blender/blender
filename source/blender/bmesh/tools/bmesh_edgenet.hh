@@ -10,6 +10,8 @@
 
 #include "bmesh_class.hh"
 
+namespace blender {
+
 /**
  * Fill in faces from an edgenet made up of boundary and wire edges.
  *
@@ -20,3 +22,5 @@
  * \param use_edge_tag: Only fill tagged edges.
  */
 void BM_mesh_edgenet(BMesh *bm, bool use_edge_tag, bool use_new_face_tag);
+
+}  // namespace blender

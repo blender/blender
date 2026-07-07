@@ -8,13 +8,15 @@
 
 #include "BKE_attribute_filter.hh"
 
+namespace blender {
+
 struct PointCloud;
 
 /** \file
  * \ingroup geo
  */
 
-namespace blender::geometry {
+namespace geometry {
 
 /**
  * Merge selected points into other selected points within the \a merge_distance. The merged
@@ -25,4 +27,5 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
                                     const IndexMask &selection,
                                     const bke::AttributeFilter &attribute_filter);
 
-}  // namespace blender::geometry
+}  // namespace geometry
+}  // namespace blender

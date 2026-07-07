@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/gpu_shader_3D_smooth_color_info.hh"
+#include "infos/gpu_shader_3D_smooth_color_infos.hh"
 
 #include "gpu_shader_cfg_world_clip_lib.glsl"
 

@@ -8,12 +8,14 @@
  * \ingroup bmesh
  */
 
+#include "BLI_enum_flags.hh"
 #include "BLI_ghash.h"
-#include "BLI_utildefines.h"
 
 #include <cstdarg>
 
 #include "bmesh_class.hh"
+
+namespace blender {
 
 /**
  * operators represent logical, executable mesh modules.  all topological
@@ -59,11 +61,11 @@ BLI_INLINE BMFlagLayer *BMO_elem_flag_from_header(BMHeader *ele_head)
 {
   switch (ele_head->htype) {
     case BM_VERT:
-      return ((BMVert_OFlag *)ele_head)->oflags;
+      return (reinterpret_cast<BMVert_OFlag *>(ele_head))->oflags;
     case BM_EDGE:
-      return ((BMEdge_OFlag *)ele_head)->oflags;
+      return (reinterpret_cast<BMEdge_OFlag *>(ele_head))->oflags;
     default:
-      return ((BMFace_OFlag *)ele_head)->oflags;
+      return (reinterpret_cast<BMFace_OFlag *>(ele_head))->oflags;
   }
 }
 
@@ -210,7 +212,7 @@ enum eBMOpSlotSubType_Elem {
   BMO_OP_SLOT_SUBTYPE_ELEM_FACE = BM_FACE,
   BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE = (BM_FACE << 1),
 };
-ENUM_OPERATORS(eBMOpSlotSubType_Elem, BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE)
+ENUM_OPERATORS(eBMOpSlotSubType_Elem)
 
 enum eBMOpSlotSubType_Map {
   BMO_OP_SLOT_SUBTYPE_MAP_EMPTY = 64, /* use as a set(), unused value */
@@ -275,7 +277,7 @@ struct BMOpSlot {
 #define BMO_SLOT_AS_INT(slot) ((slot)->data.i)
 #define BMO_SLOT_AS_FLOAT(slot) ((slot)->data.f)
 #define BMO_SLOT_AS_VECTOR(slot) ((slot)->data.vec)
-#define BMO_SLOT_AS_MATRIX(slot) ((float(*)[4])((slot)->data.p))
+#define BMO_SLOT_AS_MATRIX(slot) ((float (*)[4])((slot)->data.p))
 #define BMO_SLOT_AS_BUFFER(slot) ((slot)->data.buf)
 #define BMO_SLOT_AS_GHASH(slot) ((slot)->data.ghash)
 
@@ -296,7 +298,7 @@ enum BMOpTypeFlag {
   BMO_OPTYPE_FLAG_SELECT_VALIDATE = (1 << 3),
   BMO_OPTYPE_FLAG_INVALIDATE_CLNOR_ALL = (1 << 4),
 };
-ENUM_OPERATORS(BMOpTypeFlag, BMO_OPTYPE_FLAG_INVALIDATE_CLNOR_ALL)
+ENUM_OPERATORS(BMOpTypeFlag)
 
 struct BMOperator {
   struct BMOpSlot slots_in[BMO_OP_MAX_SLOTS];
@@ -543,7 +545,7 @@ enum BMO_Delimit {
   BMO_DELIM_SHARP = 1 << 3,
   BMO_DELIM_UV = 1 << 4,
 };
-ENUM_OPERATORS(BMO_Delimit, BMO_DELIM_UV)
+ENUM_OPERATORS(BMO_Delimit)
 
 void BMO_op_flag_enable(BMesh *bm, BMOperator *op, int op_flag);
 void BMO_op_flag_disable(BMesh *bm, BMOperator *op, int op_flag);
@@ -838,3 +840,5 @@ bool BMO_iter_map_value_bool(BMOIter *iter);
 extern const int BMO_OPSLOT_TYPEINFO[BMO_OP_SLOT_TOTAL_TYPES];
 
 int BMO_opcode_from_opname(const char *opname);
+
+}  // namespace blender

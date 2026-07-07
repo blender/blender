@@ -8,14 +8,13 @@
  * Dispatch one thread per word.
  */
 
-#include "infos/eevee_light_culling_info.hh"
+#include "infos/eevee_light_culling_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_light_culling_tile)
 
 #include "draw_intersect_lib.glsl"
 #include "draw_view_lib.glsl"
-#include "eevee_light_iter_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_matrix_transform_lib.glsl"
 
 /* ---------------------------------------------------------------------- */
 /** \name Culling shapes extraction
@@ -156,7 +155,7 @@ void main()
     float3 v_right = drw_normal_world_to_view(light_x_axis(light));
     float3 v_up = drw_normal_world_to_view(light_y_axis(light));
     float3 v_back = drw_normal_world_to_view(light_z_axis(light));
-    float radius = light_local_data_get(light).influence_radius_max;
+    float radius = light.local().local.influence_radius_max;
 
     if (light_cull_buf.view_is_flipped) {
       v_right = -v_right;
@@ -168,7 +167,7 @@ void main()
     switch (light.type) {
       case LIGHT_SPOT_SPHERE:
       case LIGHT_SPOT_DISK: {
-        LightSpotData spot = light_spot_data_get(light);
+        LightSpotData spot = light.spot();
         /* Only for < ~170 degree Cone due to plane extraction precision. */
         if (spot.spot_tan < 10.0f) {
           Pyramid pyramid = shape_pyramid_non_oblique(

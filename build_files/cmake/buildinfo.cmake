@@ -82,7 +82,7 @@ if(EXISTS ${SOURCE_DIR}/.git)
       endif()
 
       unset(_git_tag_hashes)
-      unset(_git_head_hashs)
+      unset(_git_head_hash)
     endif()
 
 

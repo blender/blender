@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
+namespace blender {
+
 /** Method used to reference paths. Equivalent of bpy_extras.io_utils.path_reference_mode. */
 enum ePathReferenceMode {
   /** Use relative paths with subdirectories only. */
@@ -18,3 +20,5 @@ enum ePathReferenceMode {
   /** Copy the file to the destination path. */
   PATH_REFERENCE_COPY = 5,
 };
+
+}  // namespace blender

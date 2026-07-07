@@ -15,6 +15,8 @@
 #include "logImageCore.h"
 #include "logmemfile.h"
 
+namespace blender {
+
 int logimage_fseek(LogImageFile *logFile, intptr_t offset, int origin)
 {
   if (logFile->file) {
@@ -61,7 +63,7 @@ int logimage_fread(void *buffer, size_t size, uint count, LogImageFile *logFile)
     return fread(buffer, size, count, logFile->file);
   }
   /* we're reading from memory */
-  uchar *buf = (uchar *)buffer;
+  uchar *buf = static_cast<uchar *>(buffer);
   uintptr_t pos = uintptr_t(logFile->memCursor) - uintptr_t(logFile->memBuffer);
   size_t total_size = size * count;
   if (pos + total_size > logFile->memBufferSize) {
@@ -85,7 +87,7 @@ int logimage_read_uchar(uchar *x, LogImageFile *logFile)
     return 1;
   }
 
-  *x = *(uchar *)logFile->memCursor;
+  *x = *static_cast<uchar *>(logFile->memCursor);
   logFile->memCursor += sizeof(uchar);
   return 0;
 }
@@ -97,7 +99,7 @@ int logimage_read_ushort(ushort *x, LogImageFile *logFile)
     return 1;
   }
 
-  *x = *(ushort *)logFile->memCursor;
+  *x = *reinterpret_cast<ushort *>(logFile->memCursor);
   logFile->memCursor += sizeof(ushort);
   return 0;
 }
@@ -109,7 +111,9 @@ int logimage_read_uint(uint *x, LogImageFile *logFile)
     return 1;
   }
 
-  *x = *(uint *)logFile->memCursor;
+  *x = *reinterpret_cast<uint *>(logFile->memCursor);
   logFile->memCursor += sizeof(uint);
   return 0;
 }
+
+}  // namespace blender

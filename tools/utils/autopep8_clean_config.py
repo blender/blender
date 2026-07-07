@@ -40,6 +40,6 @@ PATHS_EXCLUDE: set[str] = set(
         "tools/svn_rev_map/sha1_to_rev.py",
         "tools/svn_rev_map/rev_to_sha1.py",
         "tools/svn_rev_map/rev_to_sha1.py",
-        "scripts/modules/rna_manual_reference.py",
+        "scripts/modules/_rna_manual_reference.py",
     )
 )

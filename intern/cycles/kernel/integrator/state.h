@@ -246,8 +246,18 @@ using ConstIntegratorShadowState = const IntegratorShadowStateCPU *;
 
 using IntegratorState = int;
 using ConstIntegratorState = int;
-using IntegratorShadowState = int;
-using ConstIntegratorShadowState = int;
+
+/* Shadow state is wrapped in a struct to support function overloading and templates. */
+struct IntegratorShadowState {
+  ccl_device_inline_method IntegratorShadowState() {}
+  ccl_device_inline_method IntegratorShadowState(int state) : state(state) {}
+  ccl_device_inline_method operator int() const
+  {
+    return state;
+  }
+  int state;
+};
+using ConstIntegratorShadowState = IntegratorShadowState;
 
 #  define INTEGRATOR_STATE_NULL -1
 

@@ -10,9 +10,9 @@
 
 #include "DEG_depsgraph.hh"
 
-namespace deg = blender::deg;
+namespace blender {
 
-namespace blender::deg {
+namespace deg {
 
 static DEG_EditorUpdateIDCb deg_editor_update_id_cb = nullptr;
 static DEG_EditorUpdateSceneCb deg_editor_update_scene_cb = nullptr;
@@ -31,10 +31,12 @@ void deg_editors_scene_update(const DEGEditorUpdateContext *update_ctx, bool upd
   }
 }
 
-}  // namespace blender::deg
+}  // namespace deg
 
 void DEG_editors_set_update_cb(DEG_EditorUpdateIDCb id_func, DEG_EditorUpdateSceneCb scene_func)
 {
   deg::deg_editor_update_id_cb = id_func;
   deg::deg_editor_update_scene_cb = scene_func;
 }
+
+}  // namespace blender

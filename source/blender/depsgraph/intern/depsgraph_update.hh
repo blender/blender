@@ -8,13 +8,16 @@
 
 #pragma once
 
+namespace blender {
+
 struct DEGEditorUpdateContext;
 struct ID;
 
-namespace blender::deg {
+namespace deg {
 
 void deg_editors_id_update(const DEGEditorUpdateContext *update_ctx, ID *id);
 
 void deg_editors_scene_update(const DEGEditorUpdateContext *update_ctx, bool updated);
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

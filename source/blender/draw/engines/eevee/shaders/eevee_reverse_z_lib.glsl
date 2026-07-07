@@ -10,17 +10,15 @@
  * We only modify the depth buffer content so we need to change the vertex Z position and modify
  * every depth buffer read. This keeps the projection matrices the same as the rest of blender.
  */
-#include "gpu_glsl_cpp_stubs.hh"
+#include "gpu_shader_compat.hh"
 
 namespace reverse_z {
 
 /* Needs to be called at the end of the vertex entry point function. */
 float4 transform(float4 hs_position)
 {
-#ifdef GPU_ARB_clip_control
   /* Remapping from -1..1 to 1..-1. The scaling to 0..1 is handled by the backend. */
   hs_position.z = -hs_position.z;
-#endif
   return hs_position;
 }
 
@@ -28,13 +26,8 @@ float4 transform(float4 hs_position)
  * The HiZ buffer is already reversed back before downsample. */
 template<typename T> T read(T depth_buffer_value)
 {
-#ifdef GPU_ARB_clip_control
   /* Remapping from 0..1 to 1..0. The scaling to 0..1 is handled as normal by drw_screen_to_ndc. */
   return 1.0f - depth_buffer_value;
-#else
-  /* Passthrough. */
-  return depth_buffer_value;
-#endif
 }
 template float read<float>(float);
 template float4 read<float4>(float4);

@@ -2,14 +2,14 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/gpu_shader_sequencer_info.hh"
+#include "infos/gpu_shader_sequencer_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(gpu_shader_sequencer_strips)
 
 void main()
 {
   int id = gl_InstanceID;
-  strip_id = id;
+  strip_id = uint(id);
   int vid = gl_VertexID;
   SeqStripDrawData strip = strip_data[id];
   float4 rect = float4(strip.left_handle, strip.bottom, strip.right_handle, strip.top);

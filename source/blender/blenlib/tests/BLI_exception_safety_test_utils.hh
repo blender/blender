@@ -28,7 +28,7 @@ class ExceptionThrower {
 
   ExceptionThrower(int value = 0)
       : state_(is_alive_state),
-        my_memory_(MEM_mallocN(1, AT)),
+        my_memory_(MEM_new_uninitialized(1, AT)),
         throw_during_copy(false),
         throw_during_move(false),
         value(value)
@@ -84,7 +84,7 @@ class ExceptionThrower {
     }
     EXPECT_EQ(state_, is_alive_state) << message;
     state_ = is_destructed_state;
-    MEM_freeN(my_memory_);
+    MEM_delete_void(my_memory_);
   }
 
   uint64_t hash() const

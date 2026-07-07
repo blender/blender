@@ -55,10 +55,22 @@ enum class VKImageViewArrayed {
   ARRAYED,
 };
 
+struct VKSubImageRange {
+  uint32_t mipmap_level = 0;
+  uint32_t mipmap_count = VK_REMAINING_MIP_LEVELS;
+  uint32_t layer_base = 0;
+  uint32_t layer_count = VK_REMAINING_ARRAY_LAYERS;
+};
+
 VkImageAspectFlags to_vk_image_aspect_flag_bits(const TextureFormat format);
-VkImageAspectFlags to_vk_image_aspect_flag_bits(const eGPUFrameBufferBits buffers);
+VkImageAspectFlags to_vk_image_aspect_flag_bits(const GPUFrameBufferBits buffers);
 VkFormat to_vk_format(const TextureFormat format);
+BLI_INLINE VkFormat to_vk_format(const TextureTargetFormat format)
+{
+  return to_vk_format(to_texture_format(format));
+}
 TextureFormat to_gpu_format(const VkFormat format);
+std::string to_gpu_format_string(VkFormat format);
 VkFormat to_vk_format(const GPUVertCompType type,
                       const uint32_t size,
                       const GPUVertFetchMode fetch_mode);
@@ -66,16 +78,22 @@ VkFormat to_vk_format(const shader::Type type);
 VkQueryType to_vk_query_type(const GPUQueryType query_type);
 
 VkComponentSwizzle to_vk_component_swizzle(const char swizzle);
-VkImageViewType to_vk_image_view_type(const eGPUTextureType type,
+VkImageViewType to_vk_image_view_type(const GPUTextureType type,
                                       eImageViewUsage view_type,
                                       VKImageViewArrayed arrayed);
-VkImageType to_vk_image_type(const eGPUTextureType type);
+VkImageType to_vk_image_type(const GPUTextureType type);
 VkClearColorValue to_vk_clear_color_value(const eGPUDataFormat format, const void *data);
 VkIndexType to_vk_index_type(const GPUIndexBufType index_type);
 VkPrimitiveTopology to_vk_primitive_topology(const GPUPrimType prim_type);
-VkCullModeFlags to_vk_cull_mode_flags(const eGPUFaceCullTest cull_test);
+VkCullModeFlags to_vk_cull_mode_flags(const GPUFaceCullTest cull_test);
 VkSamplerAddressMode to_vk_sampler_address_mode(const GPUSamplerExtendMode extend_mode);
 VkDescriptorType to_vk_descriptor_type(const shader::ShaderCreateInfo::Resource &resource);
+VkImageCreateFlags to_vk_image_create(const GPUTextureType texture_type,
+                                      const GPUTextureFormatFlag format_flag,
+                                      const eGPUTextureUsage usage);
+VkImageUsageFlags to_vk_image_usage(const eGPUTextureUsage usage,
+                                    const GPUTextureFormatFlag format_flag,
+                                    bool use_image_host_copy);
 
 template<typename T> VkObjectType to_vk_object_type(T /*vk_obj*/)
 {

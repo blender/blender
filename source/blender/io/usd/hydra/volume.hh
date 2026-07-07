@@ -10,6 +10,8 @@
 
 namespace blender::io::hydra {
 
+class HydraSceneDelegate;
+
 class VolumeData : public ObjectData {
  protected:
   std::string filepath_;
@@ -28,8 +30,9 @@ class VolumeData : public ObjectData {
 
   pxr::VtValue get_data(pxr::TfToken const &key) const override;
   pxr::VtValue get_data(pxr::SdfPath const &id, pxr::TfToken const &key) const override;
-  pxr::SdfPath material_id() const override;
   void available_materials(Set<pxr::SdfPath> &paths) const override;
+
+  MaterialData *get_material_data(pxr::SdfPath const &id) const override;
 
   pxr::HdVolumeFieldDescriptorVector field_descriptors() const;
 

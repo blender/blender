@@ -64,14 +64,15 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   fn_node_type_base(&ntype, "FunctionNodeInvertMatrix", FN_NODE_INVERT_MATRIX);
   ntype.ui_name = "Invert Matrix";
+  ntype.ui_description = "Compute the inverse of the given matrix, if one exists";
   ntype.enum_name_legacy = "INVERT_MATRIX";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.build_multi_function = node_build_multi_function;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

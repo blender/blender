@@ -13,10 +13,12 @@
 #include <optional>
 #include <string>
 
+#include "../blenlib/BLI_enum_flags.hh"
 #include "../blenlib/BLI_function_ref.hh"
 #include "../blenlib/BLI_sys_types.h"
-#include "../blenlib/BLI_utildefines.h"
 #include "../blenlib/BLI_vector.hh"
+
+namespace blender {
 
 struct BlenderRNA;
 struct FunctionRNA;
@@ -36,7 +38,7 @@ struct AncestorPointerRNA {
   StructRNA *type;
   void *data;
 };
-/** Allows to benefit from the `max_full_copy_size` optimization on copy of #blender::Vector. */
+/** Allows to benefit from the `max_full_copy_size` optimization on copy of #Vector. */
 constexpr int64_t ANCESTOR_POINTERRNA_DEFAULT_SIZE = 2;
 
 /**
@@ -73,7 +75,7 @@ struct PointerRNA {
    * have access to/knowledge of the whole ancestor chain), and a sub-struct is accessed through
    * regular RNA property access (like a call to RNA_property_pointer_get etc.).
    */
-  blender::Vector<AncestorPointerRNA, ANCESTOR_POINTERRNA_DEFAULT_SIZE> ancestors = {};
+  Vector<AncestorPointerRNA, ANCESTOR_POINTERRNA_DEFAULT_SIZE> ancestors = {};
 
   PointerRNA() = default;
   PointerRNA(const PointerRNA &) = default;
@@ -90,7 +92,7 @@ struct PointerRNA {
   {
     this->ancestors.append({parent.type, parent.data});
   }
-  PointerRNA(ID *owner_id, StructRNA *type, void *data, blender::Span<AncestorPointerRNA> parents)
+  PointerRNA(ID *owner_id, StructRNA *type, void *data, Span<AncestorPointerRNA> parents)
       : owner_id(owner_id), type(type), data(data), ancestors(parents)
   {
   }
@@ -187,7 +189,7 @@ enum PropertyUnit {
   PROP_UNIT_COLOR_TEMPERATURE = (14 << 16), /* K */
   PROP_UNIT_FREQUENCY = (15 << 16),         /* Hz */
 };
-ENUM_OPERATORS(PropertyUnit, PROP_UNIT_TEMPERATURE)
+ENUM_OPERATORS(PropertyUnit)
 
 /**
  * Use values besides #PROP_SCALE_LINEAR
@@ -292,7 +294,20 @@ enum PropertySubType {
   PROP_FREQUENCY = 46 | PROP_UNIT_FREQUENCY,
   PROP_PIXEL_DIAMETER = 47,
   PROP_DISTANCE_DIAMETER = 48 | PROP_UNIT_LENGTH,
+  /** Mass based on scene defined units. */
+  PROP_MASS = 49 | PROP_UNIT_MASS,
 };
+
+/** These two enum types can be combined. */
+inline PropertySubType operator|(const PropertySubType subtype, const PropertyUnit unit)
+{
+  return PropertySubType(int(subtype) | int(unit));
+}
+
+inline int operator&(const PropertySubType subtype, const PropertyUnit unit)
+{
+  return int(subtype) & int(unit);
+}
 
 /* Make sure enums are updated with these */
 /* HIGHEST FLAG IN USE: 1u << 31
@@ -320,7 +335,7 @@ enum PropertyFlag {
   /**
    * This flag means when the property's widget is in 'text-edit' mode, it will be updated
    * after every typed char, instead of waiting final validation. Used e.g. for text search-box.
-   * It will also cause UI_BUT_VALUE_CLEAR to be set for text buttons. We could add a separate flag
+   * It will also cause BUT_VALUE_CLEAR to be set for text buttons. We could add a separate flag
    * for search/filter properties, but this works just fine for now.
    */
   PROP_TEXTEDIT_UPDATE = (1u << 31),
@@ -472,7 +487,7 @@ enum PropertyFlag {
   /** Do not write in presets (#PROP_HIDDEN and #PROP_SKIP_SAVE won't either). */
   PROP_SKIP_PRESET = (1 << 11),
 };
-ENUM_OPERATORS(PropertyFlag, PROP_TEXTEDIT_UPDATE)
+ENUM_OPERATORS(PropertyFlag)
 
 /**
  * For properties that support path templates, this indicates which
@@ -516,7 +531,7 @@ enum PropertyOverrideFlag {
    * created for it, and no attempt to restore the data from linked reference either.
    *
    * WARNING: This flag should be used with a lot of caution, as it completely bypasses override
-   * system. It is currently only used for ID's names, since we cannot prevent local override to
+   * system. It is used for example for ID's names, since we cannot prevent local override to
    * get a different name from the linked reference, and ID names are 'rna name property' (i.e. are
    * used in overrides of collections of IDs). See also `BKE_lib_override_library_update()` where
    * we deal manually with the value of that property at DNA level. */
@@ -535,7 +550,7 @@ enum PropertyOverrideFlag {
    */
   PROPOVERRIDE_NO_PROP_NAME = (1 << 11),
 };
-ENUM_OPERATORS(PropertyOverrideFlag, PROPOVERRIDE_NO_PROP_NAME);
+ENUM_OPERATORS(PropertyOverrideFlag);
 
 /**
  * Function parameters flags.
@@ -556,7 +571,7 @@ enum ParameterFlag {
    */
   PARM_PYFUNC_REGISTER_OPTIONAL = (1 << 3),
 };
-ENUM_OPERATORS(ParameterFlag, PARM_PYFUNC_REGISTER_OPTIONAL)
+ENUM_OPERATORS(ParameterFlag)
 
 struct CollectionPropertyIterator;
 struct Link;
@@ -616,7 +631,7 @@ struct CollectionPropertyIterator {
 };
 
 struct CollectionVector {
-  blender::Vector<PointerRNA> items;
+  Vector<PointerRNA> items;
 };
 
 enum RawPropertyType {
@@ -670,16 +685,10 @@ struct EnumPropertyItem {
  * By convention the value should be a non-empty string or NULL when there is no description
  * (never an empty string).
  */
-#define RNA_ENUM_ITEM_HEADING(name, description) \
-  { \
-    0, "", 0, name, description \
-  }
+#define RNA_ENUM_ITEM_HEADING(name, description) {0, "", 0, name, description}
 
 /** Separator for RNA enum items (shown in the UI). */
-#define RNA_ENUM_ITEM_SEPR \
-  { \
-    0, "", 0, NULL, NULL \
-  }
+#define RNA_ENUM_ITEM_SEPR {0, "", 0, NULL, NULL}
 
 /** Separator for RNA enum that begins a new column in menus (shown in the UI). */
 #define RNA_ENUM_ITEM_SEPR_COLUMN RNA_ENUM_ITEM_HEADING("", NULL)
@@ -797,7 +806,7 @@ enum eStringPropertySearchFlag {
    */
   PROP_STRING_SEARCH_SUGGESTION = (1 << 2),
 };
-ENUM_OPERATORS(eStringPropertySearchFlag, PROP_STRING_SEARCH_SUGGESTION)
+ENUM_OPERATORS(eStringPropertySearchFlag)
 
 /**
  * \param C: context, may be NULL (in this case all available items should be shown).
@@ -814,7 +823,7 @@ using StringPropertySearchFunc =
              PointerRNA *ptr,
              PropertyRNA *prop,
              const char *edit_text,
-             blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
+             FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
 
 /**
  * Returns an optional glob pattern (e.g. `*.png`) that can be passed to the file browser to filter
@@ -833,7 +842,7 @@ using EnumPropertyGetTransformFunc = int (*)(PointerRNA *ptr,
 using EnumPropertySetTransformFunc =
     int (*)(PointerRNA *ptr, PropertyRNA *prop, int new_value, int curr_value, bool is_set);
 /* same as PropEnumItemFunc */
-using EnumPropertyItemFunc = const EnumPropertyItem *(*)(bContext *C,
+using EnumPropertyItemFunc = const EnumPropertyItem *(*)(bContext * C,
                                                          PointerRNA *ptr,
                                                          PropertyRNA *prop,
                                                          bool *r_free);
@@ -994,7 +1003,7 @@ using StructCallbackFunc = int (*)(bContext *C,
                                    FunctionRNA *func,
                                    ParameterList *list);
 using StructFreeFunc = void (*)(void *data);
-using StructRegisterFunc = StructRNA *(*)(Main *bmain,
+using StructRegisterFunc = StructRNA *(*)(Main * bmain,
                                           ReportList *reports,
                                           void *data,
                                           const char *identifier,
@@ -1003,7 +1012,7 @@ using StructRegisterFunc = StructRNA *(*)(Main *bmain,
                                           StructFreeFunc free);
 /** Return true when `type` was successfully unregistered & freed. */
 using StructUnregisterFunc = bool (*)(Main *bmain, StructRNA *type);
-using StructInstanceFunc = void **(*)(PointerRNA *ptr);
+using StructInstanceFunc = void **(*)(PointerRNA * ptr);
 
 struct StructRNA;
 
@@ -1067,5 +1076,7 @@ struct PrimitiveFloatRNA {
 struct PrimitiveBooleanRNA {
   bool value;
 };
+
+}  // namespace blender
 
 #endif /* __RNA_TYPES_H__ */

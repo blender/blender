@@ -8,6 +8,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "vk_backend.hh"
 #include "vk_common.hh"
 
 namespace blender::gpu {
@@ -102,7 +103,7 @@ VkImageAspectFlags to_vk_image_aspect_flag_bits(const TextureFormat format)
   return 0;
 }
 
-VkImageAspectFlags to_vk_image_aspect_flag_bits(const eGPUFrameBufferBits buffers)
+VkImageAspectFlags to_vk_image_aspect_flag_bits(const GPUFrameBufferBits buffers)
 {
   VkImageAspectFlags result = 0;
   if (buffers & GPU_COLOR_BIT) {
@@ -131,6 +132,25 @@ TextureFormat to_gpu_format(const VkFormat format)
       BLI_assert_unreachable();
   }
   return TextureFormat::SFLOAT_32_32_32_32;
+}
+
+std::string to_gpu_format_string(VkFormat format)
+{
+#define CASE(a, b, c, blender_enum, vk_enum, e, f, g, h) \
+  case VK_FORMAT_##vk_enum: \
+    return STRINGIFY(blender_enum);
+  switch (format) {
+    GPU_TEXTURE_TARGET_FORMAT_EXPAND(CASE)
+
+    case VK_FORMAT_UNDEFINED:
+      return "UNDEFINED";
+
+    default:
+      BLI_assert_unreachable();
+      break;
+  }
+#undef CASE
+  return "Invalid";
 }
 
 VkFormat to_vk_format(const TextureFormat format)
@@ -472,7 +492,7 @@ VkQueryType to_vk_query_type(const GPUQueryType query_type)
   return VK_QUERY_TYPE_OCCLUSION;
 }
 
-VkImageType to_vk_image_type(const eGPUTextureType type)
+VkImageType to_vk_image_type(const GPUTextureType type)
 {
   /* See
    * https://vulkan.lunarg.com/doc/view/1.3.243.0/linux/1.3-extensions/vkspec.html#resources-image-views-compatibility
@@ -501,7 +521,7 @@ VkImageType to_vk_image_type(const eGPUTextureType type)
   return VK_IMAGE_TYPE_1D;
 }
 
-VkImageViewType to_vk_image_view_type(const eGPUTextureType type,
+VkImageViewType to_vk_image_view_type(const GPUTextureType type,
                                       const eImageViewUsage view_type,
                                       VKImageViewArrayed arrayed)
 {
@@ -676,7 +696,7 @@ VkPrimitiveTopology to_vk_primitive_topology(const GPUPrimType prim_type)
   return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
 }
 
-VkCullModeFlags to_vk_cull_mode_flags(const eGPUFaceCullTest cull_test)
+VkCullModeFlags to_vk_cull_mode_flags(const GPUFaceCullTest cull_test)
 {
   switch (cull_test) {
     case GPU_CULL_FRONT:
@@ -815,6 +835,74 @@ VkDescriptorType to_vk_descriptor_type(const shader::ShaderCreateInfo::Resource 
   }
   BLI_assert_unreachable();
   return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+}
+
+VkImageCreateFlags to_vk_image_create(const GPUTextureType texture_type,
+                                      const GPUTextureFormatFlag format_flag,
+                                      const eGPUTextureUsage usage)
+{
+  VkImageCreateFlags result = 0;
+
+  if (ELEM(texture_type, GPU_TEXTURE_CUBE, GPU_TEXTURE_CUBE_ARRAY)) {
+    result |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+  }
+
+  /* sRGB textures needs to be mutable as they can be used as non-sRGB frame-buffer attachments. */
+  if (usage & GPU_TEXTURE_USAGE_ATTACHMENT && format_flag & GPU_FORMAT_SRGB) {
+    result |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
+  }
+
+  return result;
+}
+
+VkImageUsageFlags to_vk_image_usage(const eGPUTextureUsage usage,
+                                    const GPUTextureFormatFlag format_flag,
+                                    bool use_image_host_copy)
+{
+  const VKDevice &device = VKBackend::get().device;
+  const VKExtensions &extensions = device.extensions_get();
+
+  VkImageUsageFlags result = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+  if (usage & GPU_TEXTURE_USAGE_SHADER_READ) {
+    result |= VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+  }
+  if (usage & GPU_TEXTURE_USAGE_SHADER_WRITE) {
+    result |= VK_IMAGE_USAGE_STORAGE_BIT;
+  }
+  if (usage & GPU_TEXTURE_USAGE_ATTACHMENT) {
+    if (format_flag & GPU_FORMAT_COMPRESSED) {
+      /* These formats aren't supported as an attachment. When using GPU_TEXTURE_USAGE_DEFAULT they
+       * are still being evaluated to be attachable. So we need to skip them. */
+    }
+    else {
+      if (format_flag & (GPU_FORMAT_DEPTH | GPU_FORMAT_STENCIL)) {
+        result |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+      }
+      else {
+        result |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        result |= extensions.dynamic_rendering_local_read ? VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT :
+                                                            VK_IMAGE_USAGE_SAMPLED_BIT;
+      }
+    }
+  }
+  if (usage & GPU_TEXTURE_USAGE_HOST_READ) {
+    result |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+  }
+  if (use_image_host_copy) {
+    result |= VK_IMAGE_USAGE_HOST_TRANSFER_BIT_EXT;
+  }
+
+  /* Disable some usages based on the given format flag to support more devices. */
+  if (format_flag & GPU_FORMAT_SRGB) {
+    /* NVIDIA devices don't create SRGB textures when it storage bit is set. */
+    result &= ~VK_IMAGE_USAGE_STORAGE_BIT;
+  }
+  if (format_flag & (GPU_FORMAT_DEPTH | GPU_FORMAT_STENCIL)) {
+    /* NVIDIA devices don't create depth textures when it storage bit is set. */
+    result &= ~VK_IMAGE_USAGE_STORAGE_BIT;
+  }
+
+  return result;
 }
 
 }  // namespace blender::gpu

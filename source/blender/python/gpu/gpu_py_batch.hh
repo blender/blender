@@ -12,7 +12,9 @@
 
 #include "BLI_compiler_attrs.h"
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 class Batch;
 }
 
@@ -25,11 +27,13 @@ extern PyTypeObject BPyGPUBatch_Type;
 struct BPyGPUBatch {
   PyObject_VAR_HEAD
   /* The batch is owned, we may support thin wrapped batches later. */
-  blender::gpu::Batch *batch;
+  gpu::Batch *batch;
 #ifdef USE_GPU_PY_REFERENCES
   /* Just to keep a user to prevent freeing buffers we're using. */
   PyObject *references;
 #endif
 };
 
-[[nodiscard]] PyObject *BPyGPUBatch_CreatePyObject(blender::gpu::Batch *batch) ATTR_NONNULL(1);
+[[nodiscard]] PyObject *BPyGPUBatch_CreatePyObject(gpu::Batch *batch) ATTR_NONNULL(1);
+
+}  // namespace blender

@@ -24,11 +24,12 @@ if(WIN32)
   if(BUILD_MODE STREQUAL Debug)
     list(APPEND USD_PLATFORM_FLAGS -DPXR_USE_DEBUG_PYTHON=ON)
     list(APPEND USD_PLATFORM_FLAGS -DOPENVDB_LIBRARY=${LIBDIR}/openvdb/lib/openvdb_d.lib)
+    list(APPEND USD_PLATFORM_FLAGS -DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT='')
   endif()
 elseif(UNIX)
   set(USD_PLATFORM_FLAGS
     # Workaround USD not linking correctly with static Python library, where it would embed
-    # part of the interpret in the USD library. Allow undefined Python symbols and replace
+    # part of the interpreter in the USD library. Allow undefined Python symbols and replace
     # Python library with TBB so it doesn't complain about missing library.
     # NOTE(@ideasman42): Setting the root is needed, without this an older version of Python
     # is detected from the system. Referencing the root-directory may remove the need
@@ -45,11 +46,6 @@ elseif(UNIX)
     list(APPEND USD_PLATFORM_FLAGS
       -DCMAKE_SHARED_LINKER_FLAGS=${USD_SHARED_LINKER_FLAGS}
     )
-    # Metal only patch for MaterialX 1.39 issues.
-    set(USD_EXTRA_PATCHES
-      ${PATCH_CMD} -p 1 -d
-      ${BUILD_DIR}/usd/src/external_usd <
-      ${PATCH_DIR}/usd_3519.diff &&)
   endif()
 endif()
 
@@ -103,6 +99,7 @@ set(USD_EXTRA_ARGS
   -DPXR_BUILD_USD_TOOLS=OFF
   -DCMAKE_DEBUG_POSTFIX=_d
   -DBUILD_SHARED_LIBS=ON
+  -DTBB_DIR=${LIBDIR}/tbb/lib/cmake/TBB
   -DTBB_INCLUDE_DIRS=${LIBDIR}/tbb/include
   -DTBB_LIBRARIES=${LIBDIR}/tbb/lib/${LIBPREFIX}${TBB_LIBRARY}${SHAREDLIBEXT}
   -DTBB_LIBRARIES_DEBUG=${LIBDIR}/tbb/lib/${LIBPREFIX}${TBB_LIBRARY}${SHAREDLIBEXT}
@@ -161,7 +158,6 @@ ExternalProject_Add(external_usd
   LIST_SEPARATOR ^^
 
   PATCH_COMMAND
-    ${USD_EXTRA_PATCHES}
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/usd/src/external_usd <
       ${USD_BASE_PATCH} &&
@@ -173,22 +169,25 @@ ExternalProject_Add(external_usd
       ${PATCH_DIR}/usd_ctor.diff &&
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/usd/src/external_usd <
-      ${PATCH_DIR}/usd_3243.diff &&
-    ${PATCH_CMD} -p 1 -d
-      ${BUILD_DIR}/usd/src/external_usd <
-      ${PATCH_DIR}/usd_forward_compat.diff &&
-    ${PATCH_CMD} -p 1 -d
-      ${BUILD_DIR}/usd/src/external_usd <
       ${PATCH_DIR}/usd_noboost.diff &&
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/usd/src/external_usd <
+      ${PATCH_DIR}/usd_mip_trace_3837.diff &&
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/usd/src/external_usd <
       ${PATCH_DIR}/usd_no_vulkan_sdk.diff &&
+    # The patch just makes empty, but we need it to be removed to avoid
+    # including an empty file instead of the actual vma header.
+    ${CMAKE_COMMAND} -E remove ${BUILD_DIR}/usd/src/external_usd/pxr/imaging/hgiVulkan/vk_mem_alloc.h &&
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/usd/src/external_usd <
       ${PATCH_DIR}/usd_storm_vulkan.diff &&
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/usd/src/external_usd <
-      ${PATCH_DIR}/usd_3666_vulkan_amd.diff
+      ${PATCH_DIR}/usd_vulkan_headless_3931.diff &&
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/usd/src/external_usd <
+      ${PATCH_DIR}/usd_linux_arm64_3764.diff
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/usd
     -Wno-dev

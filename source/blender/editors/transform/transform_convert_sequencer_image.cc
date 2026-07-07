@@ -159,10 +159,10 @@ static void createTransSeqImageData(bContext *C, TransInfo *t)
     return;
   }
 
-  ListBase *seqbase = seq::active_seqbase_get(ed);
-  ListBase *channels = seq::channels_displayed_get(ed);
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
   VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
-  strips.remove_if([&](Strip *strip) { return (strip->flag & SELECT) == 0; });
+  strips.remove_if([&](Strip *strip) { return (strip->flag & SEQ_SELECT) == 0; });
 
   if (strips.is_empty()) {
     return;
@@ -172,9 +172,9 @@ static void createTransSeqImageData(bContext *C, TransInfo *t)
   tc->custom.type.free_cb = freeSeqData;
 
   tc->data_len = strips.size() * 3; /* 3 vertices per sequence are needed. */
-  TransData *td = tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransSeq TransData");
-  TransData2D *td2d = tc->data_2d = MEM_calloc_arrayN<TransData2D>(tc->data_len,
-                                                                   "TransSeq TransData2D");
+  TransData *td = tc->data = MEM_new_array_zeroed<TransData>(tc->data_len, "TransSeq TransData");
+  TransData2D *td2d = tc->data_2d = MEM_new_array_zeroed<TransData2D>(tc->data_len,
+                                                                      "TransSeq TransData2D");
 
   for (Strip *strip : strips) {
     /* One `Sequence` needs 3 `TransData` entries - center point placed in image origin, then 2
@@ -192,7 +192,7 @@ static bool autokeyframe_sequencer_image(bContext *C,
                                          const int tmode)
 {
   PropertyRNA *prop;
-  PointerRNA ptr = RNA_pointer_create_discrete(&scene->id, &RNA_StripTransform, transform);
+  PointerRNA ptr = RNA_pointer_create_discrete(&scene->id, RNA_StripTransform, transform);
 
   const bool around_cursor = scene->toolsettings->sequencer_tool_settings->pivot_point ==
                              V3D_AROUND_CURSOR;

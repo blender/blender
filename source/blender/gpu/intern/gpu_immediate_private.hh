@@ -17,7 +17,9 @@
 #include "GPU_shader.hh"
 #include "GPU_vertex_format.hh"
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 
 class Immediate {
  public:
@@ -45,9 +47,9 @@ class Immediate {
   /** Wide Line workaround. */
 
   /** Previously bound shader to restore after drawing. */
-  std::optional<eGPUBuiltinShader> prev_builtin_shader;
+  std::optional<GPUBuiltinShader> prev_builtin_shader;
   /** Builtin shader index. Used to test if the line width workaround can be done. */
-  std::optional<eGPUBuiltinShader> builtin_shader_bound;
+  std::optional<GPUBuiltinShader> builtin_shader_bound;
   /** Uniform color: Kept here to update the wide-line shader just before #immBegin. */
   float uniform_color[4];
 
@@ -61,7 +63,9 @@ class Immediate {
   void polyline_draw_workaround(uint64_t offset);
 };
 
-}  // namespace blender::gpu
+}  // namespace gpu
 
 void immActivate();
 void immDeactivate();
+
+}  // namespace blender

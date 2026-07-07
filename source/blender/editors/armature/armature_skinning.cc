@@ -41,6 +41,8 @@
 #include "armature_intern.hh"
 #include "meshlaplacian.h"
 
+namespace blender {
+
 /* ******************************* Bone Skinning *********************************************** */
 
 static int bone_skinnable_cb(Object * /*ob*/, Bone *bone, void *datap)
@@ -91,7 +93,7 @@ static int bone_skinnable_cb(Object * /*ob*/, Bone *bone, void *datap)
       }
 
       if (data->list != nullptr) {
-        hbone = (Bone ***)&data->list;
+        hbone = reinterpret_cast<Bone ***>(&data->list);
 
         for (a = 0; a < segments; a++) {
           **hbone = bone;
@@ -157,7 +159,7 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
     return 0;
   }
 
-  bArmature *arm = static_cast<bArmature *>(data->armob->data);
+  bArmature *arm = id_cast<bArmature *>(data->armob->data);
   const bPoseChannel *pose_bone = BKE_pose_channel_find_name(data->armob->pose, bone->name);
   if (!pose_bone) {
     return 0;
@@ -175,7 +177,7 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
   }
 
   if (!data->is_weight_paint ||
-      (ANIM_bone_in_visible_collection(arm, bone) && (bone->flag & BONE_SELECTED)))
+      (ANIM_bone_in_visible_collection(arm, bone) && (pose_bone->flag & POSE_SELECTED)))
   {
     if (!(defgroup = BKE_object_defgroup_find_name(ob, bone->name))) {
       defgroup = BKE_object_defgroup_add_name(ob, bone->name);
@@ -187,7 +189,7 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
   }
 
   if (data->list != nullptr) {
-    hgroup = (bDeformGroup ***)&data->list;
+    hgroup = reinterpret_cast<bDeformGroup ***>(&data->list);
 
     for (a = 0; a < segments; a++) {
       **hgroup = defgroup;
@@ -199,7 +201,7 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
 
 static void envelope_bone_weighting(Object *ob,
                                     Mesh *mesh,
-                                    const blender::Span<blender::float3> verts,
+                                    const Span<float3> verts,
                                     int numbones,
                                     Bone **bonelist,
                                     bDeformGroup **dgrouplist,
@@ -209,7 +211,6 @@ static void envelope_bone_weighting(Object *ob,
                                     const bool *selected,
                                     float scale)
 {
-  using namespace blender;
   /* Create vertex group weights from envelopes */
 
   bool use_topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
@@ -252,19 +253,19 @@ static void envelope_bone_weighting(Object *ob,
 
       /* add the vert to the deform group if (weight != 0.0) */
       if (distance != 0.0f) {
-        blender::ed::object::vgroup_vert_add(ob, dgroup, i, distance, WEIGHT_REPLACE);
+        ed::object::vgroup_vert_add(ob, dgroup, i, distance, WEIGHT_REPLACE);
       }
       else {
-        blender::ed::object::vgroup_vert_remove(ob, dgroup, i);
+        ed::object::vgroup_vert_remove(ob, dgroup, i);
       }
 
       /* do same for mirror */
       if (dgroupflip && dgroupflip[j] && iflip != -1) {
         if (distance != 0.0f) {
-          blender::ed::object::vgroup_vert_add(ob, dgroupflip[j], iflip, distance, WEIGHT_REPLACE);
+          ed::object::vgroup_vert_add(ob, dgroupflip[j], iflip, distance, WEIGHT_REPLACE);
         }
         else {
-          blender::ed::object::vgroup_vert_remove(ob, dgroupflip[j], iflip);
+          ed::object::vgroup_vert_remove(ob, dgroupflip[j], iflip);
         }
       }
     }
@@ -291,15 +292,15 @@ static void add_verts_to_dgroups(ReportList *reports,
    * when parenting, or simply the original mesh coords.
    */
 
-  bArmature *arm = static_cast<bArmature *>(par->data);
+  bArmature *arm = id_cast<bArmature *>(par->data);
   Bone **bonelist, *bone;
   bDeformGroup **dgrouplist, **dgroupflip;
   bDeformGroup *dgroup;
   bPoseChannel *pchan;
   Mesh *mesh;
   Mat4 bbone_array[MAX_BBONE_SUBDIV], *bbone = nullptr;
-  float(*root)[3], (*tip)[3];
-  blender::Array<blender::float3> verts;
+  float (*root)[3], (*tip)[3];
+  Array<float3> verts;
   bool *selected;
   int numbones, vertsfilled = 0, segments = 0;
   const bool wpmode = (ob->mode & OB_MODE_WEIGHT_PAINT);
@@ -327,30 +328,30 @@ static void add_verts_to_dgroups(ReportList *reports,
     return;
   }
 
-  if (BKE_object_defgroup_data_create(static_cast<ID *>(ob->data)) == nullptr) {
+  if (BKE_object_defgroup_data_create(ob->data) == nullptr) {
     return;
   }
 
   /* create an array of pointer to bones that are skinnable
    * and fill it with all of the skinnable bones */
-  bonelist = MEM_calloc_arrayN<Bone *>(numbones, "bonelist");
+  bonelist = MEM_new_array_zeroed<Bone *>(numbones, "bonelist");
   looper_data.list = bonelist;
   bone_looper(ob, static_cast<Bone *>(arm->bonebase.first), &looper_data, bone_skinnable_cb);
 
   /* create an array of pointers to the deform groups that
    * correspond to the skinnable bones (creating them
    * as necessary. */
-  dgrouplist = MEM_calloc_arrayN<bDeformGroup *>(numbones, "dgrouplist");
-  dgroupflip = MEM_calloc_arrayN<bDeformGroup *>(numbones, "dgroupflip");
+  dgrouplist = MEM_new_array_zeroed<bDeformGroup *>(numbones, "dgrouplist");
+  dgroupflip = MEM_new_array_zeroed<bDeformGroup *>(numbones, "dgroupflip");
 
   looper_data.list = dgrouplist;
   bone_looper(ob, static_cast<Bone *>(arm->bonebase.first), &looper_data, dgroup_skinnable_cb);
 
   /* create an array of root and tip positions transformed into
    * global coords */
-  root = MEM_calloc_arrayN<float[3]>(numbones, "root");
-  tip = MEM_calloc_arrayN<float[3]>(numbones, "tip");
-  selected = MEM_calloc_arrayN<bool>(numbones, "selected");
+  root = MEM_new_array_zeroed<float[3]>(numbones, "root");
+  tip = MEM_new_array_zeroed<float[3]>(numbones, "tip");
+  selected = MEM_new_array_zeroed<bool>(numbones, "selected");
 
   for (int j = 0; j < numbones; j++) {
     bone = bonelist[j];
@@ -394,8 +395,10 @@ static void add_verts_to_dgroups(ReportList *reports,
 
     /* set selected */
     if (wpmode) {
-      if (ANIM_bone_in_visible_collection(arm, bone) && (bone->flag & BONE_SELECTED)) {
-        selected[j] = true;
+      if (ANIM_bone_in_visible_collection(arm, bone)) {
+        if ((pchan = BKE_pose_channel_find_name(par->pose, bone->name))) {
+          selected[j] = pchan->flag & POSE_SELECTED;
+        }
       }
     }
     else {
@@ -412,7 +415,7 @@ static void add_verts_to_dgroups(ReportList *reports,
   }
 
   /* create verts */
-  mesh = static_cast<Mesh *>(ob->data);
+  mesh = id_cast<Mesh *>(ob->data);
   verts.reinitialize(mesh->verts_num);
 
   if (wpmode) {
@@ -421,7 +424,7 @@ static void add_verts_to_dgroups(ReportList *reports,
     const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
     if (mesh_eval) {
       BKE_mesh_foreach_mapped_vert_coords_get(
-          mesh_eval, reinterpret_cast<float(*)[3]>(verts.data()), mesh->verts_num);
+          mesh_eval, reinterpret_cast<float (*)[3]>(verts.data()), mesh->verts_num);
       vertsfilled = 1;
     }
   }
@@ -429,12 +432,12 @@ static void add_verts_to_dgroups(ReportList *reports,
     /* Is subdivision-surface on? Lets use the verts on the limit surface then.
      * = same amount of vertices as mesh, but vertices moved to the
      * subdivision-surfaced position, like for 'optimal'. */
-    blender::bke::subdiv::calculate_limit_positions(mesh, verts);
+    bke::subdiv::calculate_limit_positions(mesh, verts);
     vertsfilled = 1;
   }
 
   /* transform verts to global space */
-  const blender::Span<blender::float3> positions = mesh->vert_positions();
+  const Span<float3> positions = mesh->vert_positions();
   for (int i = 0; i < mesh->verts_num; i++) {
     if (!vertsfilled) {
       copy_v3_v3(verts[i], positions[i]);
@@ -448,7 +451,7 @@ static void add_verts_to_dgroups(ReportList *reports,
 
     heat_bone_weighting(ob,
                         mesh,
-                        reinterpret_cast<float(*)[3]>(verts.data()),
+                        reinterpret_cast<float (*)[3]>(verts.data()),
                         numbones,
                         dgrouplist,
                         dgroupflip,
@@ -478,12 +481,12 @@ static void add_verts_to_dgroups(ReportList *reports,
   ED_mesh_mirror_spatial_table_end(ob);
 
   /* free the memory allocated */
-  MEM_freeN(bonelist);
-  MEM_freeN(dgrouplist);
-  MEM_freeN(dgroupflip);
-  MEM_freeN(root);
-  MEM_freeN(tip);
-  MEM_freeN(selected);
+  MEM_delete(bonelist);
+  MEM_delete(dgrouplist);
+  MEM_delete(dgroupflip);
+  MEM_delete(root);
+  MEM_delete(tip);
+  MEM_delete(selected);
 }
 
 void ED_object_vgroup_calc_from_armature(ReportList *reports,
@@ -497,7 +500,7 @@ void ED_object_vgroup_calc_from_armature(ReportList *reports,
   /* Lets try to create some vertex groups
    * based on the bones of the parent armature.
    */
-  bArmature *arm = static_cast<bArmature *>(par->data);
+  bArmature *arm = id_cast<bArmature *>(par->data);
 
   if (mode == ARM_GROUPS_NAME) {
     const int defbase_tot = BKE_object_defgroup_count(ob);
@@ -511,7 +514,7 @@ void ED_object_vgroup_calc_from_armature(ReportList *reports,
     if (defbase_add) {
       /* It's possible there are DWeights outside the range of the current
        * object's deform groups. In this case the new groups won't be empty #33889. */
-      blender::ed::object::vgroup_data_clamp_range(static_cast<ID *>(ob->data), defbase_tot);
+      ed::object::vgroup_data_clamp_range(ob->data, defbase_tot);
     }
   }
   else if (ELEM(mode, ARM_GROUPS_ENVELOPE, ARM_GROUPS_AUTO)) {
@@ -522,3 +525,5 @@ void ED_object_vgroup_calc_from_armature(ReportList *reports,
     add_verts_to_dgroups(reports, depsgraph, scene, ob, par, (mode == ARM_GROUPS_AUTO), mirror);
   }
 }
+
+}  // namespace blender

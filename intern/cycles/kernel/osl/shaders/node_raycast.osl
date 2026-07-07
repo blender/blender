@@ -1,0 +1,26 @@
+/* SPDX-FileCopyrightText: 2011-2025 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
+
+#include "stdcycles.h"
+
+shader node_raycast(point Position = P,
+                    normal Direction = N,
+                    float Length = 1.0,
+                    int only_local = 0,
+                    output float IsHit = 0.0,
+                    output float SelfHit = 0.0,
+                    output float HitDistance = Length,
+                    output point HitPosition = point(0.0, 0.0, 0.0),
+                    output normal HitNormal = normal(0.0, 0.0, 0.0))
+{
+  if (trace(
+          Position, Direction, "maxdist", Length, "traceset", only_local ? "__only_local__" : ""))
+  {
+    IsHit = 1.0;
+    getmessage("trace", "hitself", SelfHit);
+    getmessage("trace", "hitdist", HitDistance);
+    getmessage("trace", "P", HitPosition);
+    getmessage("trace", "N", HitNormal);
+  }
+}

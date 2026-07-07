@@ -132,14 +132,12 @@ ccl_device_inline
                                             kernel_data_fetch(prim_object, prim_addr) :
                                             object;
                 const int prim = kernel_data_fetch(prim_index, prim_addr);
-                if (intersection_skip_self(ray->self, prim_object, prim)) {
+                if (bvh_volume_anyhit_triangle_filter<false>(
+                        kg, prim_object, prim, ray->self, visibility))
+                {
                   continue;
                 }
 
-                int object_flag = kernel_data_fetch(object_flag, prim_object);
-                if ((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
-                  continue;
-                }
                 triangle_intersect(
                     kg, isect, P, dir, tmin, isect->t, visibility, prim_object, prim, prim_addr);
               }
@@ -155,11 +153,9 @@ ccl_device_inline
                                             kernel_data_fetch(prim_object, prim_addr) :
                                             object;
                 const int prim = kernel_data_fetch(prim_index, prim_addr);
-                if (intersection_skip_self(ray->self, prim_object, prim)) {
-                  continue;
-                }
-                int object_flag = kernel_data_fetch(object_flag, prim_object);
-                if ((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
+                if (bvh_volume_anyhit_triangle_filter<false>(
+                        kg, prim_object, prim, ray->self, visibility))
+                {
                   continue;
                 }
                 motion_triangle_intersect(kg,
@@ -185,7 +181,7 @@ ccl_device_inline
         else {
           /* instance push */
           object = kernel_data_fetch(prim_object, -prim_addr - 1);
-          int object_flag = kernel_data_fetch(object_flag, object);
+          uint object_flag = kernel_data_fetch(object_flag, object);
           if (object_flag & SD_OBJECT_HAS_VOLUME) {
 #if BVH_FEATURE(BVH_MOTION)
             bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir);

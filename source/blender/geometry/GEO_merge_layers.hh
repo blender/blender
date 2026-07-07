@@ -6,9 +6,11 @@
 
 #include "BKE_attribute_filter.hh"
 
+namespace blender {
+
 struct GreasePencil;
 
-namespace blender::geometry {
+namespace geometry {
 
 /**
  * Creates a new grease pencil geometry that has groups of layers merged into one layer per group.
@@ -20,4 +22,5 @@ GreasePencil *merge_layers(const GreasePencil &src_grease_pencil,
                            Span<Vector<int>> layers_to_merge,
                            const bke::AttributeFilter &attribute_filter);
 
-}  // namespace blender::geometry
+}  // namespace geometry
+}  // namespace blender

@@ -24,13 +24,16 @@
 #include "ply_file_buffer_binary.hh"
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.ply"};
 
-namespace blender::io::ply {
+namespace io::ply {
 
 void exporter_main(bContext *C, const PLYExportParams &export_params)
 {
-  std::unique_ptr<blender::io::ply::PlyData> plyData = std::make_unique<PlyData>();
+  std::unique_ptr<io::ply::PlyData> plyData = std::make_unique<PlyData>();
 
   Depsgraph *depsgraph = nullptr;
   bool needs_free = false;
@@ -94,4 +97,5 @@ void exporter_main(bContext *C, const PLYExportParams &export_params)
 
   buffer->close_file();
 }
-}  // namespace blender::io::ply
+}  // namespace io::ply
+}  // namespace blender

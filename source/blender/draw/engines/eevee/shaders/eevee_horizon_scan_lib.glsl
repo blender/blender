@@ -90,7 +90,7 @@ float bsdf_eval(float3 N, float3 L, float3 V)
  * Returns the angle of the normal projected normal with `V` and its length.
  */
 void horizon_scan_projected_normal_to_plane_angle_and_length(
-    float3 N, float3 V, float3 T, float3 B, out float N_proj_len, out float N_angle)
+    float3 N, float3 V, float3 T, float3 B, float &N_proj_len, float &N_angle)
 {
   /* Projected view normal onto the integration plane. */
   float3 N_proj = normalize_and_get_length(N - B * dot(N, B), N_proj_len);

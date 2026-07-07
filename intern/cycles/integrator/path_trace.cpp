@@ -652,7 +652,7 @@ void PathTrace::denoise(const RenderWork &render_work)
 void PathTrace::denoise_volume_guiding_buffers(const RenderWork &render_work,
                                                const bool has_volume)
 {
-  if (!has_volume || !render_scheduler_.volume_guiding_need_denoise()) {
+  if (!has_volume || !render_work.volume_guiding_denoise) {
     return;
   }
 
@@ -1307,6 +1307,9 @@ static string device_info_list_report(const string &message, const DeviceInfo &d
 
   if (device_info.multi_devices.empty()) {
     result += full_device_info_description(device_info) + "\n";
+    result += pad +
+              "    Hardware Ray-Tracing: " + (device_info.use_hardware_raytracing ? "On" : "Off") +
+              "\n";
     return result;
   }
 
@@ -1317,6 +1320,8 @@ static string device_info_list_report(const string &message, const DeviceInfo &d
     }
 
     result += full_device_info_description(sub_device_info) + "\n";
+    result += pad + "    Hardware Ray-Tracing: " +
+              (sub_device_info.use_hardware_raytracing ? "On" : "Off") + "\n";
 
     is_first = false;
   }

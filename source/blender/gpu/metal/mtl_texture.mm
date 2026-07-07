@@ -7,6 +7,7 @@
  */
 
 #include "BKE_global.hh"
+#include "BLI_math_half.hh"
 
 #include "DNA_userdef_types.h"
 
@@ -18,6 +19,7 @@
 #include "GPU_platform.hh"
 #include "GPU_state.hh"
 
+#include "MEM_guardedalloc.h"
 #include "mtl_backend.hh"
 #include "mtl_common.hh"
 #include "mtl_context.hh"
@@ -25,8 +27,6 @@
 #include "mtl_storage_buffer.hh"
 #include "mtl_texture.hh"
 #include "mtl_vertex_buffer.hh"
-
-#include "GHOST_C-api.h"
 
 namespace blender::gpu {
 
@@ -47,9 +47,6 @@ void gpu::MTLTexture::mtl_texture_init()
   /* Metal properties. */
   texture_ = nil;
   mip_swizzle_view_ = nil;
-
-  /* Binding information. */
-  is_bound_ = false;
 
   /* VBO. */
   vert_buffer_ = nullptr;
@@ -72,7 +69,7 @@ gpu::MTLTexture::MTLTexture(const char *name) : Texture(name)
 
 gpu::MTLTexture::MTLTexture(const char *name,
                             TextureFormat format,
-                            eGPUTextureType type,
+                            GPUTextureType type,
                             id<MTLTexture> metal_texture)
     : Texture(name)
 {
@@ -100,11 +97,9 @@ gpu::MTLTexture::MTLTexture(const char *name,
 gpu::MTLTexture::~MTLTexture()
 {
   /* Unbind if bound. */
-  if (is_bound_) {
-    MTLContext *ctx = MTLContext::get();
-    if (ctx != nullptr) {
-      ctx->state_manager->texture_unbind(this);
-    }
+  MTLContext *ctx = MTLContext::get();
+  if (ctx != nullptr) {
+    ctx->state_manager->texture_unbind(this);
   }
 
   /* Free memory. */
@@ -381,8 +376,8 @@ void gpu::MTLTexture::blit(gpu::MTLTexture *dst,
   BLI_assert(MTLContext::get());
 
   /* Fetch restore framebuffer and blit target framebuffer from destination texture. */
-  GPUFrameBuffer *restore_fb = GPU_framebuffer_active_get();
-  GPUFrameBuffer *blit_target_fb = dst->get_blit_framebuffer(dst_slice, dst_mip);
+  gpu::FrameBuffer *restore_fb = GPU_framebuffer_active_get();
+  gpu::FrameBuffer *blit_target_fb = dst->get_blit_framebuffer(dst_slice, dst_mip);
   BLI_assert(blit_target_fb);
   GPU_framebuffer_bind(blit_target_fb);
 
@@ -404,10 +399,10 @@ void gpu::MTLTexture::blit(gpu::MTLTexture *dst,
   /* Caching previous pipeline state. */
   bool depth_write_prev = GPU_depth_mask_get();
   uint stencil_mask_prev = GPU_stencil_mask_get();
-  eGPUStencilTest stencil_test_prev = GPU_stencil_test_get();
-  eGPUFaceCullTest culling_test_prev = GPU_face_culling_get();
-  eGPUBlend blend_prev = GPU_blend_get();
-  eGPUDepthTest depth_test_prev = GPU_depth_test_get();
+  GPUStencilTest stencil_test_prev = GPU_stencil_test_get();
+  GPUFaceCullTest culling_test_prev = GPU_face_culling_get();
+  GPUBlend blend_prev = GPU_blend_get();
+  GPUDepthTest depth_test_prev = GPU_depth_test_get();
   GPU_scissor_test(false);
 
   /* Apply state for blit draw call. */
@@ -438,13 +433,14 @@ void gpu::MTLTexture::blit(gpu::MTLTexture *dst,
   }
 }
 
-GPUFrameBuffer *gpu::MTLTexture::get_blit_framebuffer(int dst_slice, uint dst_mip)
+gpu::FrameBuffer *gpu::MTLTexture::get_blit_framebuffer(int dst_slice, uint dst_mip)
 {
 
   /* Check if layer has changed. */
   bool update_attachments = false;
   if (!blit_fb_) {
-    blit_fb_ = GPU_framebuffer_create("gpu_blit");
+    std::string fb_name = this->name_ + "_blit_fb";
+    blit_fb_ = GPU_framebuffer_create(fb_name.c_str());
     update_attachments = true;
   }
 
@@ -486,8 +482,12 @@ MTLSamplerState gpu::MTLTexture::get_sampler_state()
   return sampler_state;
 }
 
-void gpu::MTLTexture::update_sub(
-    int mip, int offset[3], int extent[3], eGPUDataFormat type, const void *data)
+void gpu::MTLTexture::update_sub(int mip,
+                                 int offset[3],
+                                 int extent[3],
+                                 eGPUDataFormat type,
+                                 const void *data,
+                                 const uint unpack_row_length)
 {
   /* Fetch active context. */
   MTLContext *ctx = MTLContext::get();
@@ -506,6 +506,67 @@ void gpu::MTLTexture::update_sub(
   BLI_assert(mip >= mip_min_ && mip <= mip_max_);
   BLI_assert(mip < texture_.mipmapLevelCount);
   BLI_assert(texture_.mipmapLevelCount >= mip_max_);
+
+  /* If `unpack_row_length` is 0, rows are sequentially stored. Otherwise we unpack data
+   * into a staging block, so the half conversion below doesn't happen on the full input. */
+  const bool do_texture_unpack = !ELEM(unpack_row_length, 0, extent[0]);
+
+  /* Unpack `data` if `unpack_row_length` is set. */
+  std::unique_ptr<uint8_t, MEM_smart_ptr_deleter<uint8_t>> unpack_buffer = nullptr;
+  if (do_texture_unpack) {
+    BLI_assert_msg(!(format_flag_ & GPU_FORMAT_COMPRESSED),
+                   "Compressed data with unpack_row_length != 0 is not supported.");
+    BLI_assert_msg(extent[2] <= 1,
+                   "3D texture data with unpack_row_length != 0 is not supported.");
+
+    size_t src_row_stride = unpack_row_length * to_bytesize(format_, type);
+    size_t dst_row_stride = max_ii(extent[0], 1) * to_bytesize(format_, type);
+    size_t dst_total_count = dst_row_stride * max_ii(extent[1], 1) * max_ii(extent[2], 1);
+
+    /* Allocate buffer to size necessary for gather */
+    unpack_buffer.reset((uint8_t *)MEM_new_uninitialized_aligned(dst_total_count, 128, __func__));
+
+    /* Strided loop; we advance source and destination pointers separately during a gather. */
+    const uint8_t *src_ptr = static_cast<const uint8_t *>(data);
+    uint8_t *dst_ptr = unpack_buffer.get();
+    for (int y = 0; y < max_ii(extent[1], 1); ++y) {
+      std::memcpy(dst_ptr, src_ptr, dst_row_stride);
+      src_ptr += src_row_stride;
+      dst_ptr += dst_row_stride;
+    }
+
+    /* Replace the 'data' ptr with `unpack_buffer`,
+     * which has lifetime in the function scope. */
+    data = unpack_buffer.get();
+  }
+
+  std::unique_ptr<uint16_t, MEM_smart_ptr_deleter<uint16_t>> clamped_half_buffer = nullptr;
+
+  if (data != nullptr && type == GPU_DATA_FLOAT && is_half_float(format_)) {
+    size_t pixel_count = max_ii(extent[0], 1) * max_ii(extent[1], 1) * max_ii(extent[2], 1);
+    size_t total_component_count = to_component_len(format_) * pixel_count;
+
+    clamped_half_buffer.reset(static_cast<uint16_t *>(
+        MEM_new_uninitialized_aligned(sizeof(uint16_t) * total_component_count, 128, __func__)));
+
+    Span<float> src(static_cast<const float *>(data), total_component_count);
+    MutableSpan<uint16_t> dst(static_cast<uint16_t *>(clamped_half_buffer.get()),
+                              total_component_count);
+
+    constexpr int64_t chunk_size = 4 * 1024 * 1024;
+
+    threading::parallel_for(
+        IndexRange(total_component_count), chunk_size, [&](const IndexRange range) {
+          /* Doing float to half conversion manually to avoid implementation specific behavior
+           * regarding Inf and NaNs. Use make finite version to avoid unexpected black pixels on
+           * certain implementation. For platform parity we clamp these infinite values to finite
+           * values. */
+          blender::math::float_to_half_make_finite_array(
+              src.slice(range).data(), dst.slice(range).data(), range.size());
+        });
+    data = clamped_half_buffer.get();
+    type = GPU_DATA_HALF_FLOAT;
+  }
 
   /* DEPTH FLAG - Depth formats cannot use direct BLIT - pass off to their own routine which will
    * do a depth-only render. */
@@ -532,11 +593,7 @@ void gpu::MTLTexture::update_sub(
     size_t input_bytes_per_pixel = to_bytesize(format_, type);
     size_t totalsize = 0;
 
-    /* If unpack row length is used, size of input data uses the unpack row length, rather than the
-     * image length. */
-    size_t expected_update_w = ((ctx->pipeline_state.unpack_row_length == 0) ?
-                                    extent[0] :
-                                    ctx->pipeline_state.unpack_row_length);
+    size_t expected_update_w = extent[0];
 
     /* Ensure calculated total size isn't larger than remaining image data size. */
     if (is_compressed) {
@@ -572,13 +629,6 @@ void gpu::MTLTexture::update_sub(
           extent[2],
           this->dimensions_count());
       return;
-    }
-
-    /* When unpack row length is used, provided data does not necessarily contain padding for last
-     * row, so we only include up to the end of updated data. */
-    if (ctx->pipeline_state.unpack_row_length > 0) {
-      BLI_assert(ctx->pipeline_state.unpack_row_length >= extent[0]);
-      totalsize -= (ctx->pipeline_state.unpack_row_length - extent[0]) * input_bytes_per_pixel;
     }
 
     /* Check */
@@ -622,7 +672,7 @@ void gpu::MTLTexture::update_sub(
       MTL_LOG_WARNING(
           "SRGB data upload does not work correctly using compute upload. "
           "texname '%s'",
-          name_);
+          name_.c_str());
     }
 
     /* Safety Checks. */
@@ -745,10 +795,7 @@ void gpu::MTLTexture::update_sub(
       case GPU_TEXTURE_1D_ARRAY: {
         if (can_use_direct_blit) {
           /* Use Blit based update. */
-          size_t bytes_per_row = expected_dst_bytes_per_pixel *
-                                 ((ctx->pipeline_state.unpack_row_length == 0) ?
-                                      extent[0] :
-                                      ctx->pipeline_state.unpack_row_length);
+          size_t bytes_per_row = expected_dst_bytes_per_pixel * extent[0];
           size_t bytes_per_image = bytes_per_row;
           if (is_compressed) {
             size_t block_size = to_block_size(format_);
@@ -778,12 +825,7 @@ void gpu::MTLTexture::update_sub(
           if (type_ == GPU_TEXTURE_1D) {
             id<MTLComputePipelineState> pso = texture_update_1d_get_kernel(
                 compute_specialization_kernel);
-            TextureUpdateParams params = {mip,
-                                          {extent[0], 1, 1},
-                                          {offset[0], 0, 0},
-                                          ((ctx->pipeline_state.unpack_row_length == 0) ?
-                                               extent[0] :
-                                               ctx->pipeline_state.unpack_row_length)};
+            TextureUpdateParams params = {mip, {extent[0], 1, 1}, {offset[0], 0, 0}, extent[0]};
 
             /* Bind resources via compute state for optimal state caching performance. */
             MTLComputeState &cs = ctx->main_command_buffer.get_compute_state();
@@ -798,12 +840,8 @@ void gpu::MTLTexture::update_sub(
           else if (type_ == GPU_TEXTURE_1D_ARRAY) {
             id<MTLComputePipelineState> pso = texture_update_1d_array_get_kernel(
                 compute_specialization_kernel);
-            TextureUpdateParams params = {mip,
-                                          {extent[0], extent[1], 1},
-                                          {offset[0], offset[1], 0},
-                                          ((ctx->pipeline_state.unpack_row_length == 0) ?
-                                               extent[0] :
-                                               ctx->pipeline_state.unpack_row_length)};
+            TextureUpdateParams params = {
+                mip, {extent[0], extent[1], 1}, {offset[0], offset[1], 0}, extent[0]};
 
             /* Bind resources via compute state for optimal state caching performance. */
             MTLComputeState &cs = ctx->main_command_buffer.get_compute_state();
@@ -823,10 +861,7 @@ void gpu::MTLTexture::update_sub(
       case GPU_TEXTURE_2D_ARRAY: {
         if (can_use_direct_blit) {
           /* Use Blit encoder update. */
-          size_t bytes_per_row = expected_dst_bytes_per_pixel *
-                                 ((ctx->pipeline_state.unpack_row_length == 0) ?
-                                      extent[0] :
-                                      ctx->pipeline_state.unpack_row_length);
+          size_t bytes_per_row = expected_dst_bytes_per_pixel * extent[0];
           size_t bytes_per_image = bytes_per_row * extent[1];
           if (is_compressed) {
             size_t block_size = to_block_size(format_);
@@ -865,12 +900,8 @@ void gpu::MTLTexture::update_sub(
           if (type_ == GPU_TEXTURE_2D) {
             id<MTLComputePipelineState> pso = texture_update_2d_get_kernel(
                 compute_specialization_kernel);
-            TextureUpdateParams params = {mip,
-                                          {extent[0], extent[1], 1},
-                                          {offset[0], offset[1], 0},
-                                          ((ctx->pipeline_state.unpack_row_length == 0) ?
-                                               extent[0] :
-                                               ctx->pipeline_state.unpack_row_length)};
+            TextureUpdateParams params = {
+                mip, {extent[0], extent[1], 1}, {offset[0], offset[1], 0}, extent[0]};
 
             /* Bind resources via compute state for optimal state caching performance. */
             MTLComputeState &cs = ctx->main_command_buffer.get_compute_state();
@@ -889,9 +920,7 @@ void gpu::MTLTexture::update_sub(
             TextureUpdateParams params = {mip,
                                           {extent[0], extent[1], extent[2]},
                                           {offset[0], offset[1], offset[2]},
-                                          ((ctx->pipeline_state.unpack_row_length == 0) ?
-                                               extent[0] :
-                                               ctx->pipeline_state.unpack_row_length)};
+                                          extent[0]};
 
             /* Bind resources via compute state for optimal state caching performance. */
             MTLComputeState &cs = ctx->main_command_buffer.get_compute_state();
@@ -911,10 +940,7 @@ void gpu::MTLTexture::update_sub(
       /* 3D */
       case GPU_TEXTURE_3D: {
         if (can_use_direct_blit) {
-          size_t bytes_per_row = expected_dst_bytes_per_pixel *
-                                 ((ctx->pipeline_state.unpack_row_length == 0) ?
-                                      extent[0] :
-                                      ctx->pipeline_state.unpack_row_length);
+          size_t bytes_per_row = expected_dst_bytes_per_pixel * extent[0];
           size_t bytes_per_image = bytes_per_row * extent[1];
           [blit_encoder copyFromBuffer:staging_buffer
                           sourceOffset:0
@@ -932,9 +958,7 @@ void gpu::MTLTexture::update_sub(
           TextureUpdateParams params = {mip,
                                         {extent[0], extent[1], extent[2]},
                                         {offset[0], offset[1], offset[2]},
-                                        ((ctx->pipeline_state.unpack_row_length == 0) ?
-                                             extent[0] :
-                                             ctx->pipeline_state.unpack_row_length)};
+                                        extent[0]};
 
           /* Bind resources via compute state for optimal state caching performance. */
           MTLComputeState &cs = ctx->main_command_buffer.get_compute_state();
@@ -952,10 +976,7 @@ void gpu::MTLTexture::update_sub(
       /* CUBE */
       case GPU_TEXTURE_CUBE: {
         if (can_use_direct_blit) {
-          size_t bytes_per_row = expected_dst_bytes_per_pixel *
-                                 ((ctx->pipeline_state.unpack_row_length == 0) ?
-                                      extent[0] :
-                                      ctx->pipeline_state.unpack_row_length);
+          size_t bytes_per_row = expected_dst_bytes_per_pixel * extent[0];
           size_t bytes_per_image = bytes_per_row * extent[1];
           size_t texture_array_relative_offset = 0;
 
@@ -987,10 +1008,7 @@ void gpu::MTLTexture::update_sub(
       case GPU_TEXTURE_CUBE_ARRAY: {
         if (can_use_direct_blit) {
 
-          size_t bytes_per_row = expected_dst_bytes_per_pixel *
-                                 ((ctx->pipeline_state.unpack_row_length == 0) ?
-                                      extent[0] :
-                                      ctx->pipeline_state.unpack_row_length);
+          size_t bytes_per_row = expected_dst_bytes_per_pixel * extent[0];
           size_t bytes_per_image = bytes_per_row * extent[1];
 
           /* Upload to all faces between offset[2] (which is zero in most cases) AND extent[2]. */
@@ -1379,8 +1397,8 @@ void gpu::MTLTexture::clear(eGPUDataFormat data_format, const void *data)
 
   if (do_render_pass_clear) {
     /* Create clear frame-buffer for fast clear. */
-    GPUFrameBuffer *prev_fb = GPU_framebuffer_active_get();
-    FrameBuffer *fb = unwrap(this->get_blit_framebuffer(-1, 0));
+    gpu::FrameBuffer *prev_fb = GPU_framebuffer_active_get();
+    FrameBuffer *fb = this->get_blit_framebuffer(-1, 0);
     fb->bind(true);
     fb->clear_attachment(this->attachment_type(0), data_format, data);
     GPU_framebuffer_bind(prev_fb);
@@ -1416,12 +1434,7 @@ void gpu::MTLTexture::clear(eGPUDataFormat data_format, const void *data)
       case GPU_TEXTURE_1D: {
         id<MTLComputePipelineState> pso = texture_update_1d_get_kernel(
             compute_specialization_kernel);
-        TextureUpdateParams params = {0,
-                                      {w_, 1, 1},
-                                      {0, 0, 0},
-                                      ((ctx->pipeline_state.unpack_row_length == 0) ?
-                                           w_ :
-                                           ctx->pipeline_state.unpack_row_length)};
+        TextureUpdateParams params = {0, {w_, 1, 1}, {0, 0, 0}, w_};
 
         /* Bind resources via compute state for optimal state caching performance. */
         MTLComputeState &cs = ctx->main_command_buffer.get_compute_state();
@@ -1435,12 +1448,7 @@ void gpu::MTLTexture::clear(eGPUDataFormat data_format, const void *data)
       case GPU_TEXTURE_1D_ARRAY: {
         id<MTLComputePipelineState> pso = texture_update_1d_array_get_kernel(
             compute_specialization_kernel);
-        TextureUpdateParams params = {0,
-                                      {w_, h_, 1},
-                                      {0, 0, 0},
-                                      ((ctx->pipeline_state.unpack_row_length == 0) ?
-                                           w_ :
-                                           ctx->pipeline_state.unpack_row_length)};
+        TextureUpdateParams params = {0, {w_, h_, 1}, {0, 0, 0}, w_};
 
         /* Bind resources via compute state for optimal state caching performance. */
         MTLComputeState &cs = ctx->main_command_buffer.get_compute_state();
@@ -1559,7 +1567,7 @@ void *gpu::MTLTexture::read(int mip, eGPUDataFormat type)
   size_t texture_size = sample_len * sample_size;
   int num_channels = to_component_len(format_);
 
-  void *data = MEM_mallocN(texture_size + 8, "GPU_texture_read");
+  void *data = MEM_new_uninitialized(texture_size + 8, "GPU_texture_read");
 
   /* Ensure texture is baked. */
   if (is_baked_) {
@@ -2032,12 +2040,6 @@ void gpu::MTLTexture::read_internal(int mip,
     /* Release destination buffer. */
     dest_buf->free();
   }
-}
-
-/* Remove once no longer required -- will just return 0 for now in MTL path. */
-uint gpu::MTLTexture::gl_bindcode_get() const
-{
-  return 0;
 }
 
 bool gpu::MTLTexture::init_internal()

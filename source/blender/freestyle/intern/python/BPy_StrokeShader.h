@@ -24,10 +24,10 @@ extern PyTypeObject StrokeShader_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&StrokeShader_Type))
 
 /*---------------------------Python BPy_StrokeShader structure definition----------*/
-typedef struct {
+struct BPy_StrokeShader {
   PyObject_HEAD
   Freestyle::StrokeShader *ss;
-} BPy_StrokeShader;
+};
 
 /*---------------------------Python BPy_StrokeShader visible prototypes-----------*/
 

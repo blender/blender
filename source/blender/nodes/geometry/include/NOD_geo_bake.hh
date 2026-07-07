@@ -16,12 +16,14 @@
 
 #include "BLI_index_range.hh"
 
+namespace blender {
+
 struct NodesModifierData;
 struct NodesModifierBake;
 struct SpaceNode;
 struct Object;
 
-namespace blender::nodes {
+namespace nodes {
 
 /**
  * Makes it possible to use various functions (e.g. the ones in `NOD_socket_items.hh`) for index
@@ -29,7 +31,7 @@ namespace blender::nodes {
  */
 struct BakeItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeGeometryBakeItem;
-  static StructRNA *item_srna;
+  static StructRNA **item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "GeometryNodeBake";
   static constexpr bool has_type = true;
@@ -61,7 +63,7 @@ struct BakeItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
 
   static void destruct_item(NodeGeometryBakeItem *item)
   {
-    MEM_SAFE_FREE(item->name);
+    MEM_SAFE_DELETE(item->name);
   }
 
   static void blend_write_item(BlendWriter *writer, const ItemT &item);
@@ -121,9 +123,10 @@ struct BakeDrawContext {
 std::string get_baked_string(const BakeDrawContext &ctx);
 
 std::optional<std::string> get_bake_state_string(const BakeDrawContext &ctx);
-void draw_common_bake_settings(bContext *C, BakeDrawContext &ctx, uiLayout *layout);
+void draw_common_bake_settings(bContext *C, BakeDrawContext &ctx, ui::Layout &layout);
 void draw_bake_button_row(const BakeDrawContext &ctx,
-                          uiLayout *layout,
+                          ui::Layout &layout,
                           bool is_in_sidebar = false);
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

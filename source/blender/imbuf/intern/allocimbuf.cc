@@ -32,31 +32,9 @@
 
 #include "atomic_ops.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"image.buffer"};
-
-#ifndef WIN32
-static SpinLock mmap_spin;
-
-void imb_mmap_lock_init()
-{
-  BLI_spin_init(&mmap_spin);
-}
-
-void imb_mmap_lock_exit()
-{
-  BLI_spin_end(&mmap_spin);
-}
-
-void imb_mmap_lock()
-{
-  BLI_spin_lock(&mmap_spin);
-}
-
-void imb_mmap_unlock()
-{
-  BLI_spin_unlock(&mmap_spin);
-}
-#endif
 
 /* Free the specified buffer storage, freeing memory when needed and restoring the state of the
  * buffer to its defaults. */
@@ -68,7 +46,7 @@ template<class BufferType> static void imb_free_buffer(BufferType &buffer)
         break;
 
       case IB_TAKE_OWNERSHIP:
-        MEM_freeN(buffer.data);
+        MEM_delete(buffer.data);
         break;
     }
   }
@@ -88,7 +66,8 @@ static void imb_free_dds_buffer(DDSData &dds_data)
         break;
 
       case IB_TAKE_OWNERSHIP:
-        /* dds_data.data is allocated by DirectDrawSurface::readData(), so don't use MEM_freeN! */
+        /* dds_data.data is allocated by DirectDrawSurface::readData(), so don't use
+         * MEM_delete! */
         free(dds_data.data);
         break;
     }
@@ -130,7 +109,7 @@ template<class BufferType> void imb_make_writeable_buffer(BufferType &buffer)
 
   switch (buffer.ownership) {
     case IB_DO_NOT_TAKE_OWNERSHIP:
-      buffer.data = static_cast<decltype(BufferType::data)>(MEM_dupallocN(buffer.data));
+      buffer.data = MEM_dupalloc(buffer.data);
       buffer.ownership = IB_TAKE_OWNERSHIP;
 
     case IB_TAKE_OWNERSHIP:
@@ -231,7 +210,7 @@ void IMB_freeImBuf(ImBuf *ibuf)
     IMB_metadata_free(ibuf->metadata);
     colormanage_cache_free(ibuf);
     imb_free_dds_buffer(ibuf->dds_data);
-    MEM_freeN(ibuf);
+    MEM_delete(ibuf);
   }
 }
 
@@ -330,7 +309,8 @@ void *imb_alloc_pixels(
   }
 
   size_t size = size_t(x) * size_t(y) * size_t(channels) * typesize;
-  return initialize_pixels ? MEM_callocN(size, alloc_name) : MEM_mallocN(size, alloc_name);
+  return initialize_pixels ? MEM_new_zeroed(size, alloc_name) :
+                             MEM_new_uninitialized(size, alloc_name);
 }
 
 bool IMB_alloc_float_pixels(ImBuf *ibuf, const uint channels, bool initialize_pixels)
@@ -503,7 +483,7 @@ ImBuf *IMB_allocFromBuffer(
 
   ibuf->channels = channels;
 
-  /* NOTE: Avoid #MEM_dupallocN since the buffers might not be allocated using guarded-allocation.
+  /* NOTE: Avoid #MEM_dupalloc since the buffers might not be allocated using guarded-allocation.
    */
   if (float_buffer) {
     /* TODO(sergey): The 4 channels is the historical code. Should probably be `channels`, but
@@ -524,7 +504,7 @@ ImBuf *IMB_allocFromBuffer(
 
 ImBuf *IMB_allocImBuf(uint x, uint y, uchar planes, uint flags)
 {
-  ImBuf *ibuf = MEM_callocN<ImBuf>("ImBuf_struct");
+  ImBuf *ibuf = MEM_new<ImBuf>("ImBuf_struct");
 
   if (ibuf) {
     if (!IMB_initImBuf(ibuf, x, y, planes, flags)) {
@@ -674,3 +654,5 @@ size_t IMB_get_size_in_memory(const ImBuf *ibuf)
 
   return size;
 }
+
+}  // namespace blender

@@ -6,7 +6,7 @@
 
 # Detect processor architecture.
 if(WITH_APPLE_CROSSPLATFORM)
-  set(CMAKE_OSX_ARCHITECTURES "arm64" CACHE STRING "" FORCE) 
+  set(CMAKE_OSX_ARCHITECTURES "arm64" CACHE STRING "" FORCE)
   set(CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
 
   ### Configure cross-platform parameters per platform type. ###
@@ -48,7 +48,7 @@ else()
       "Choose the architecture you want to build Blender for: arm64 or x86_64"
       FORCE)
   endif()
-  
+
   set(OSX_MIN_DEPLOYMENT_TARGET 11.2)
   set(APPLE_OS_MINVERSION_CFLAG " -mmacosx-version-min=${OSX_MIN_DEPLOYMENT_TARGET}")
 endif()
@@ -98,14 +98,14 @@ if(XCODE_VERSION)
 
     set(XCODE_PLATFORM_DIR ${XCODE_DEVELOPER_DIR}/Platforms/${APPLE_SDK_CROSSPLATFORM_NAME}.platform)
     set(XCODE_SDK_DIR ${XCODE_DEVELOPER_DIR}/Platforms/${APPLE_SDK_CROSSPLATFORM_NAME}.platform/Developer/SDKs)
-    
+
     if(NOT DEFINED OSX_SYSTEM)
     execute_process(
         COMMAND xcodebuild -version -sdk ${APPLE_SDK_CROSSPLATFORM_NAME_LOWER} SDKVersion
         OUTPUT_VARIABLE OSX_SYSTEM
         OUTPUT_STRIP_TRAILING_WHITESPACE)
     endif()
-    
+
     message(STATUS "--- APPLE CROSS PLATFORM BUILD -----")
     message(STATUS "Detected ${APPLE_SDK_CROSSPLATFORM_NAME} ${OSX_SYSTEM} and Xcode ${XCODE_VERSION} at ${XCODE_DEVELOPER_DIR}")
     message(STATUS "${APPLE_SDK_CROSSPLATFORM_NAME} Platform DIR ${XCODE_PLATFORM_DIR}")
@@ -159,12 +159,12 @@ else()
   endif()
 
   unset(_cltools_pkg_info)
-  unset(__cltools_pkg_info_result)
+  unset(_cltools_pkg_info_result)
 endif()
 
 # Require a relatively recent Xcode version.
-if(${XCODE_VERSION} VERSION_LESS 10.0)
-  message(FATAL_ERROR "Only Xcode version 10.0 and newer is supported")
+if(${XCODE_VERSION} VERSION_LESS 16.0)
+  message(FATAL_ERROR "Only Xcode version 16.0 and newer is supported")
 endif()
 
 # Collect list of OSX system versions which will be used to detect path to corresponding SDK.
@@ -298,9 +298,9 @@ if(WITH_APPLE_CROSSPLATFORM)
 else()
 
   # Loop through all possible versions and pick the first one which resolves to a valid SDK path.
-  set(OSX_SDK_PATH)
+  set(OSX_SDK_PATH "")
   set(OSX_SDK_FOUND FALSE)
-  set(OSX_SDKROOT)
+  set(OSX_SDKROOT "")
   foreach(OSX_SDK_VERSION ${OSX_SDK_TEST_VERSIONS})
     set(CURRENT_OSX_SDK_PATH "${XCODE_SDK_DIR}/MacOSX${OSX_SDK_VERSION}.sdk")
     if(EXISTS ${CURRENT_OSX_SDK_PATH})

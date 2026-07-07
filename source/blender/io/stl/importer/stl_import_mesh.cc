@@ -17,9 +17,12 @@
 #include "stl_import_mesh.hh"
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.stl"};
 
-namespace blender::io::stl {
+namespace io::stl {
 
 STLMeshHelper::STLMeshHelper(int tris_num, bool use_custom_normals)
     : use_custom_normals_(use_custom_normals)
@@ -80,4 +83,5 @@ Mesh *STLMeshHelper::to_mesh()
   return mesh;
 }
 
-}  // namespace blender::io::stl
+}  // namespace io::stl
+}  // namespace blender

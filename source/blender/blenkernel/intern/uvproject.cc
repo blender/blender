@@ -19,6 +19,8 @@
 
 #include "BKE_uvproject.h"
 
+namespace blender {
+
 struct ProjCameraInfo {
   float camangle;
   float camsize;
@@ -128,7 +130,7 @@ ProjCameraInfo *BKE_uvproject_camera_info(const Object *ob,
                                           float winy)
 {
   ProjCameraInfo uci;
-  const Camera *camera = static_cast<Camera *>(ob->data);
+  const Camera *camera = id_cast<Camera *>(ob->data);
 
   uci.do_pano = (camera->type == CAM_PANO);
   uci.do_persp = ELEM(camera->type, CAM_PERSP, CAM_CUSTOM);
@@ -166,7 +168,7 @@ ProjCameraInfo *BKE_uvproject_camera_info(const Object *ob,
     uci.shiftx = 0.5f - (camera->shiftx * uci.xasp);
     uci.shifty = 0.5f - (camera->shifty * uci.yasp);
 
-    uci_pt = MEM_mallocN<ProjCameraInfo>(__func__);
+    uci_pt = MEM_new_uninitialized<ProjCameraInfo>(__func__);
     *uci_pt = uci;
     return uci_pt;
   }
@@ -176,7 +178,7 @@ ProjCameraInfo *BKE_uvproject_camera_info(const Object *ob,
 
 void BKE_uvproject_camera_info_free(ProjCameraInfo *uci)
 {
-  MEM_freeN(uci);
+  MEM_delete(uci);
 }
 
 void BKE_uvproject_from_view_ortho(float target[2], float source[3], const float rotmat[4][4])
@@ -195,3 +197,5 @@ void BKE_uvproject_camera_info_scale(ProjCameraInfo *uci, float scale_x, float s
   uci->xasp *= scale_x;
   uci->yasp *= scale_y;
 }
+
+}  // namespace blender

@@ -17,9 +17,9 @@ def export_clearcoat(blender_material, export_settings):
     clearcoat_extension = {}
     clearcoat_roughness_slots = ()
 
-    clearcoat_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, 'Coat Weight')
-    clearcoat_roughness_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, 'Coat Roughness')
-    clearcoat_normal_socket = get_socket(blender_material.node_tree, blender_material.use_nodes, 'Coat Normal')
+    clearcoat_socket = get_socket(blender_material.node_tree, 'Coat Weight')
+    clearcoat_roughness_socket = get_socket(blender_material.node_tree, 'Coat Roughness')
+    clearcoat_normal_socket = get_socket(blender_material.node_tree, 'Coat Normal')
 
     if clearcoat_socket.socket is not None and isinstance(
             clearcoat_socket.socket,

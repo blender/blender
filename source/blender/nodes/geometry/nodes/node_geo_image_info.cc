@@ -15,7 +15,7 @@ namespace blender::nodes::node_geo_image_info_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Image>("Image").hide_label();
+  b.add_input<decl::Image>("Image").optional_label();
   b.add_input<decl::Int>("Frame").min(0).description(
       "Which frame to use for videos. Note that different frames in videos can "
       "have different resolutions");
@@ -41,7 +41,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   ImageUser image_user;
   BKE_imageuser_default(&image_user);
-  image_user.frames = INT_MAX;
+  image_user.frames = std::numeric_limits<int>::max();
   image_user.framenr = BKE_image_is_animated(image) ? frame : 0;
 
   void *lock;
@@ -73,7 +73,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeImageInfo", GEO_NODE_IMAGE_INFO);
   ntype.ui_name = "Image Info";
@@ -82,8 +82,8 @@ static void node_register()
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Large);
-  blender::bke::node_register_type(ntype);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Large);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "gpu_glsl_cpp_stubs.hh"
+#include "gpu_shader_compat.hh"
 
 /**
  * Library to read packed vertex buffer data of a `gpu::Batch` using a SSBO rather than using input

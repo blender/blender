@@ -20,9 +20,9 @@ def bmesh_linked_uv_islands(bm, uv_layer):
 
     For meshes use :class:`bpy.types.Mesh.mesh_linked_uv_islands` instead.
 
-    :arg bm: the bmesh used to group with.
+    :param bm: the bmesh used to group with.
     :type bmesh: :class:`BMesh`
-    :arg uv_layer: the UV layer to source UVs from.
+    :param uv_layer: the UV layer to source UVs from.
     :type bmesh: :class:`BMLayerItem`
     :return: list of lists containing polygon indices
     :rtype: list[list[int]]

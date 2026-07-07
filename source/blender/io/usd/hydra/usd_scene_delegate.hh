@@ -9,9 +9,11 @@
 #include <pxr/imaging/hd/renderIndex.h>
 #include <pxr/usdImaging/usdImaging/delegate.h>
 
+namespace blender {
+
 struct Depsgraph;
 
-namespace blender::io::hydra {
+namespace io::hydra {
 
 /* Populate Hydra render index using USD file export, for testing. */
 class USDSceneDelegate {
@@ -35,4 +37,5 @@ class USDSceneDelegate {
   void populate(Depsgraph *depsgraph);
 };
 
-}  // namespace blender::io::hydra
+}  // namespace io::hydra
+}  // namespace blender

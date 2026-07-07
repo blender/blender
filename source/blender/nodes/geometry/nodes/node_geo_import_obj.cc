@@ -21,7 +21,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::String>("Path")
       .subtype(PROP_FILEPATH)
       .path_filter("*.obj")
-      .hide_label()
+      .optional_label()
       .description("Path to a OBJ file");
 
   b.add_output<decl::Geometry>("Instances");
@@ -61,17 +61,18 @@ static void node_geo_exec(GeoNodeExecParams params)
         Vector<bke::GeometrySet> geometries;
         OBJ_import_geometries(&import_params, geometries);
 
-        bke::Instances *instances = new bke::Instances();
-        for (GeometrySet geometry : geometries) {
-          const int handle = instances->add_reference(bke::InstanceReference{std::move(geometry)});
-          instances->add_instance(handle, float4x4::identity());
+        auto instances = std::make_unique<bke::Instances>(geometries.size());
+        MutableSpan<int> handles = instances->reference_handles_for_write();
+        instances->transforms_for_write().fill(float4x4::identity());
+        for (const int i : geometries.index_range()) {
+          handles[i] = instances->add_reference(bke::InstanceReference{std::move(geometries[i])});
         }
 
         auto cached_value = std::make_unique<LoadObjCache>();
-        cached_value->geometry = GeometrySet::from_instances(instances);
+        cached_value->geometry = GeometrySet::from_instances(std::move(instances));
 
-        LISTBASE_FOREACH (Report *, report, &(import_params.reports)->list) {
-          cached_value->warnings.append_as(*report);
+        for (Report &report : (import_params.reports)->list) {
+          cached_value->warnings.append_as(report);
         }
 
         return cached_value;
@@ -91,7 +92,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeImportOBJ", GEO_NODE_IMPORT_OBJ);
   ntype.ui_name = "Import OBJ";
@@ -101,7 +102,7 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

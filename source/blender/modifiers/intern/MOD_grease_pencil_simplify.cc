@@ -12,7 +12,6 @@
 
 #include "BLO_read_write.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_modifier_types.h"
 #include "DNA_screen_types.h"
 
@@ -40,10 +39,7 @@ namespace blender {
 static void init_data(ModifierData *md)
 {
   auto *gpmd = reinterpret_cast<GreasePencilSimplifyModifierData *>(md);
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(gpmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(GreasePencilSimplifyModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(gpmd, modifier);
   modifier::greasepencil::init_influence_data(&gpmd->influence, true);
 }
 
@@ -67,7 +63,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 {
   const auto *mmd = reinterpret_cast<const GreasePencilSimplifyModifierData *>(md);
 
-  BLO_write_struct(writer, GreasePencilSimplifyModifierData, mmd);
+  writer->write_struct(mmd);
   modifier::greasepencil::write_influence_data(writer, &mmd->influence);
 }
 
@@ -196,35 +192,35 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   int mode = RNA_enum_get(ptr, "mode");
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (mode == MOD_GREASE_PENCIL_SIMPLIFY_FIXED) {
-    layout->prop(ptr, "step", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "step", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else if (mode == MOD_GREASE_PENCIL_SIMPLIFY_ADAPTIVE) {
-    layout->prop(ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else if (mode == MOD_GREASE_PENCIL_SIMPLIFY_SAMPLE) {
-    layout->prop(ptr, "length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    layout->prop(ptr, "sharp_threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "sharp_threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else if (mode == MOD_GREASE_PENCIL_SIMPLIFY_MERGE) {
-    layout->prop(ptr, "distance", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "distance", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (uiLayout *influence_panel = layout->panel_prop(
+  if (ui::Layout *influence_panel = layout.panel_prop(
           C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
-    modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);
+    modifier::greasepencil::draw_layer_filter_settings(C, *influence_panel, ptr);
+    modifier::greasepencil::draw_material_filter_settings(C, *influence_panel, ptr);
   }
 
   modifier_error_message_draw(layout, ptr);
@@ -234,8 +230,6 @@ static void panel_register(ARegionType *region_type)
 {
   modifier_panel_register(region_type, eModifierType_GreasePencilSimplify, panel_draw);
 }
-
-}  // namespace blender
 
 ModifierTypeInfo modifierType_GreasePencilSimplify = {
     /*idname*/ "GreasePencilSimplifyModifier",
@@ -249,28 +243,30 @@ ModifierTypeInfo modifierType_GreasePencilSimplify = {
         eModifierTypeFlag_EnableInEditmode,
     /*icon*/ ICON_MOD_SIMPLIFY,
 
-    /*copy_data*/ blender::copy_data,
+    /*copy_data*/ copy_data,
 
     /*deform_verts*/ nullptr,
     /*deform_matrices*/ nullptr,
     /*deform_verts_EM*/ nullptr,
     /*deform_matrices_EM*/ nullptr,
     /*modify_mesh*/ nullptr,
-    /*modify_geometry_set*/ blender::modify_geometry_set,
+    /*modify_geometry_set*/ modify_geometry_set,
 
-    /*init_data*/ blender::init_data,
+    /*init_data*/ init_data,
     /*required_data_mask*/ nullptr,
-    /*free_data*/ blender::free_data,
+    /*free_data*/ free_data,
     /*is_disabled*/ nullptr,
     /*update_depsgraph*/ nullptr,
     /*depends_on_time*/ nullptr,
     /*depends_on_normals*/ nullptr,
-    /*foreach_ID_link*/ blender::foreach_ID_link,
+    /*foreach_ID_link*/ foreach_ID_link,
     /*foreach_tex_link*/ nullptr,
     /*free_runtime_data*/ nullptr,
-    /*panel_register*/ blender::panel_register,
-    /*blend_write*/ blender::blend_write,
-    /*blend_read*/ blender::blend_read,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ blend_write,
+    /*blend_read*/ blend_read,
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

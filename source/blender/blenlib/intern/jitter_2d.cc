@@ -16,6 +16,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 void BLI_jitterate1(float (*jit1)[2], float (*jit2)[2], int num, float radius1)
 {
   int i, j, k;
@@ -126,7 +128,7 @@ void BLI_jitterate2(float (*jit1)[2], float (*jit2)[2], int num, float radius2)
 
 void BLI_jitter_init(float (*jitarr)[2], int num)
 {
-  float(*jit2)[2];
+  float (*jit2)[2];
   float number_fl, number_fl_sqrt;
   float x, rad1, rad2, rad3;
   RNG *rng;
@@ -139,7 +141,7 @@ void BLI_jitter_init(float (*jitarr)[2], int num)
   number_fl = float(num);
   number_fl_sqrt = sqrtf(number_fl);
 
-  jit2 = MEM_malloc_arrayN<float[2]>(2 + size_t(num), "initjit");
+  jit2 = MEM_new_array_uninitialized<float[2]>(2 + size_t(num), "initjit");
   rad1 = 1.0f / number_fl_sqrt;
   rad2 = 1.0f / number_fl;
   rad3 = number_fl_sqrt / number_fl;
@@ -162,7 +164,7 @@ void BLI_jitter_init(float (*jitarr)[2], int num)
     BLI_jitterate2(jitarr, jit2, num, rad2);
   }
 
-  MEM_freeN(jit2);
+  MEM_delete(jit2);
 
   /* Finally, move jitter to be centered around (0, 0). */
   for (i = 0; i < num; i++) {
@@ -170,3 +172,5 @@ void BLI_jitter_init(float (*jitarr)[2], int num)
     jitarr[i][1] -= 0.5f;
   }
 }
+
+}  // namespace blender

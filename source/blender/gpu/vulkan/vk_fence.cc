@@ -17,6 +17,7 @@ void VKFence::signal()
 {
   VKContext &context = *VKContext::get();
   timeline_value_ = context.flush_render_graph(RenderGraphFlushFlags::SUBMIT |
+                                               RenderGraphFlushFlags::WAIT_FOR_SUBMISSION |
                                                RenderGraphFlushFlags::RENEW_RENDER_GRAPH);
 }
 

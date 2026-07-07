@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/overlay_extra_info.hh"
+#include "infos/overlay_extra_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(overlay_extra_grid_base)
 VERTEX_SHADER_CREATE_INFO(draw_modelmat)
@@ -36,7 +36,7 @@ void main()
   float color_id = grid_model_matrix[3].w;
 
   int3 grid_resolution = int3(
-      grid_model_matrix[0].w, grid_model_matrix[1].w, grid_model_matrix[2].w);
+      float3(grid_model_matrix[0].w, grid_model_matrix[1].w, grid_model_matrix[2].w));
 
   float3 ls_cell_location;
   /* Keep in sync with update_irradiance_probe */

@@ -14,25 +14,29 @@
 #include <stdarg.h>
 #include <string>
 
+#include "DNA_listBase.h"
+
 #include "RNA_types.hh"
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_enum_flags.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_string_ref.hh"
+
+namespace blender {
 
 struct ID;
 struct IDOverrideLibrary;
 struct IDOverrideLibraryProperty;
 struct IDOverrideLibraryPropertyOperation;
 struct IDProperty;
-struct ListBase;
 struct Main;
 struct ReportList;
 struct Scene;
 struct bContext;
 
 /* Types */
-extern BlenderRNA BLENDER_RNA;
+BlenderRNA &RNA_blender_rna_get();
 
 /* Pointer
  *
@@ -75,7 +79,7 @@ PointerRNA RNA_pointer_create_with_parent(const PointerRNA &parent, StructRNA *t
  * and is a shortcut for:
  *
  *    PointerRNA id_ptr = RNA_id_pointer_create(id);
- *    PointerRNA ptr = RNA_pointer_create_with_parent(id_ptr, &RNA_Type, data);
+ *    PointerRNA ptr = RNA_pointer_create_with_parent(id_ptr, RNA_Type, data);
  */
 PointerRNA RNA_pointer_create_id_subdata(ID &id, StructRNA *type, void *data);
 
@@ -118,7 +122,7 @@ StructRNA *RNA_struct_base(StructRNA *type);
 /**
  * Use to find the sub-type directly below a base-type.
  *
- * So if type were `RNA_SpotLight`, `RNA_struct_base_of(type, &RNA_ID)` would return `&RNA_Light`.
+ * So if type were `RNA_SpotLight`, `RNA_struct_base_of(type, RNA_ID)` would return `RNA_Light`.
  */
 const StructRNA *RNA_struct_base_child_of(const StructRNA *type, const StructRNA *parent_type);
 
@@ -155,7 +159,7 @@ bool RNA_struct_system_idprops_check(StructRNA *srna);
  * (e.g. by assigning an IDP_GROUP containing some IDP_ID pointers...).
  *
  * \note This is currently giving results for both user-defined and system-defined IDProperties,
- * there is no distinction for this between both storages.
+ * there is no distinction for this between both kinds of storage.
  */
 bool RNA_struct_idprops_contains_datablock(const StructRNA *type);
 /**
@@ -203,7 +207,7 @@ std::optional<AncestorPointerRNA> RNA_struct_search_closest_ancestor_by_type(
  * Low level direct access to type->properties,
  * note this ignores parent classes so should be used with care.
  */
-const ListBase *RNA_struct_type_properties(StructRNA *srna);
+const ListBaseT<PropertyRNA> *RNA_struct_type_properties(StructRNA *srna);
 PropertyRNA *RNA_struct_type_find_property_no_base(StructRNA *srna, const char *identifier);
 /**
  * \note #RNA_struct_find_property is a higher level alternative to this function
@@ -212,7 +216,7 @@ PropertyRNA *RNA_struct_type_find_property_no_base(StructRNA *srna, const char *
 PropertyRNA *RNA_struct_type_find_property(StructRNA *srna, const char *identifier);
 
 FunctionRNA *RNA_struct_find_function(StructRNA *srna, const char *identifier);
-const ListBase *RNA_struct_type_functions(StructRNA *srna);
+Span<std::unique_ptr<FunctionRNA>> RNA_struct_type_functions(StructRNA *srna);
 
 [[nodiscard]] char *RNA_struct_name_get_alloc_ex(
     PointerRNA *ptr, char *fixedbuf, int fixedlen, int *r_len, PropertyRNA **r_nameprop);
@@ -276,10 +280,16 @@ int RNA_property_array_item_index(PropertyRNA *prop, char name);
  */
 int RNA_property_string_maxlength(PropertyRNA *prop);
 
-const char *RNA_property_ui_name(const PropertyRNA *prop);
-const char *RNA_property_ui_name_raw(const PropertyRNA *prop);
-const char *RNA_property_ui_description(const PropertyRNA *prop);
-const char *RNA_property_ui_description_raw(const PropertyRNA *prop);
+/**
+ * \return true when the string is stored as UTF-8. Otherwise this is e.g. a byte string.
+ */
+bool RNA_property_string_is_utf8(PropertyRNA *prop);
+
+const char *RNA_property_ui_name(const PropertyRNA *prop, const PointerRNA *ptr = nullptr);
+const char *RNA_property_ui_name_raw(const PropertyRNA *prop, const PointerRNA *ptr = nullptr);
+const char *RNA_property_ui_description(const PropertyRNA *prop, const PointerRNA *ptr = nullptr);
+const char *RNA_property_ui_description_raw(const PropertyRNA *prop,
+                                            const PointerRNA *ptr = nullptr);
 const char *RNA_property_translation_context(const PropertyRNA *prop);
 int RNA_property_ui_icon(const PropertyRNA *prop);
 
@@ -525,12 +535,11 @@ eStringPropertySearchFlag RNA_property_string_search_flag(PropertyRNA *prop);
  *
  * See #PropStringSearchFunc for details.
  */
-void RNA_property_string_search(
-    const bContext *C,
-    PointerRNA *ptr,
-    PropertyRNA *prop,
-    const char *edit_text,
-    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
+void RNA_property_string_search(const bContext *C,
+                                PointerRNA *ptr,
+                                PropertyRNA *prop,
+                                const char *edit_text,
+                                FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
 
 /**
  * For filepath properties, get a glob pattern to filter possible files.
@@ -545,7 +554,10 @@ std::optional<std::string> RNA_property_string_path_filter(const bContext *C,
  * string, when a `get_transform` callback is defined).
  */
 int RNA_property_string_length(PointerRNA *ptr, PropertyRNA *prop);
-void RNA_property_string_get_default(PropertyRNA *prop, char *value, int value_maxncpy);
+void RNA_property_string_get_default(PointerRNA *ptr,
+                                     PropertyRNA *prop,
+                                     char *value,
+                                     int value_maxncpy);
 char *RNA_property_string_get_default_alloc(PointerRNA *ptr,
                                             PropertyRNA *prop,
                                             char *fixedbuf,
@@ -569,7 +581,21 @@ int RNA_property_enum_get_default(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_enum_step(
     const bContext *C, PointerRNA *ptr, PropertyRNA *prop, int from_value, int step);
 
+/**
+ * WARNING: _may_ create data in IDPGroup backend storage case.
+ * While creation of data itself is mutex-protected, potential concurrent _accesses_ to the same
+ * property are not, so threaded calls to #RNA_property_pointer_get() remain highly unsafe.
+ */
 PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop) ATTR_NONNULL(1, 2);
+/**
+ * Same as above, but never creates an empty IDPGroup property for Pointer runtime properties that
+ * are not set yet.
+ *
+ * Ideally this should never be done ever, as it is intrinsically not thread-safe,
+ * but for the time being at least provide a way to avoid this bad behavior.
+ */
+PointerRNA RNA_property_pointer_get_never_create(PointerRNA *ptr, PropertyRNA *prop)
+    ATTR_NONNULL(1, 2);
 void RNA_property_pointer_set(PointerRNA *ptr,
                               PropertyRNA *prop,
                               PointerRNA ptr_value,
@@ -844,7 +870,7 @@ PropertyRNA *RNA_function_get_parameter(PointerRNA *ptr, FunctionRNA *func, int 
 PropertyRNA *RNA_function_find_parameter(PointerRNA *ptr,
                                          FunctionRNA *func,
                                          const char *identifier);
-const ListBase *RNA_function_defined_parameters(FunctionRNA *func);
+const ListBaseT<PropertyRNA> *RNA_function_defined_parameters(FunctionRNA *func);
 
 /* Utility */
 
@@ -878,7 +904,7 @@ void RNA_parameter_dynamic_length_set_data(ParameterList *parms,
 int RNA_function_call(
     bContext *C, ReportList *reports, PointerRNA *ptr, FunctionRNA *func, ParameterList *parms);
 
-std::optional<blender::StringRefNull> RNA_translate_ui_text(
+std::optional<StringRefNull> RNA_translate_ui_text(
     const char *text, const char *text_ctxt, StructRNA *type, PropertyRNA *prop, int translate);
 
 /* ID */
@@ -894,6 +920,16 @@ StructRNA *ID_code_to_RNA_type(short idcode);
 #  define RNA_warning(format, ...) _RNA_warning("%s: " format "\n", __FUNCTION__, ##__VA_ARGS__)
 #else
 #  define RNA_warning(format, ...) _RNA_warning("%s: " format "\n", __FUNCTION__, __VA_ARGS__)
+#endif
+
+/** A formattable RNA warning, without the default `__func__` trace. */
+#if defined __GNUC__
+#  define RNA_warning_bare(format, args...) _RNA_warning(format "\n", ##args)
+#elif defined(_MSVC_TRADITIONAL) && \
+    !_MSVC_TRADITIONAL /* The "new preprocessor" is enabled via `/Zc:preprocessor`. */
+#  define RNA_warning_bare(format, ...) _RNA_warning(format "\n", ##__VA_ARGS__)
+#else
+#  define RNA_warning_bare(format, ...) _RNA_warning(format "\n", __VA_ARGS__)
 #endif
 
 /** Use to implement the #RNA_warning macro which includes `__func__` suffix. */
@@ -937,7 +973,7 @@ enum eRNAOverrideMatch {
   /** Tag for restoration of property's value(s) to reference ones, if needed and possible. */
   RNA_OVERRIDE_COMPARE_TAG_FOR_RESTORE = 1 << 18,
 };
-ENUM_OPERATORS(eRNAOverrideMatch, RNA_OVERRIDE_COMPARE_TAG_FOR_RESTORE)
+ENUM_OPERATORS(eRNAOverrideMatch)
 
 enum eRNAOverrideMatchResult {
   RNA_OVERRIDE_MATCH_RESULT_INIT = 0,
@@ -955,7 +991,7 @@ enum eRNAOverrideMatchResult {
   /** Some properties were reset to reference values. */
   RNA_OVERRIDE_MATCH_RESULT_RESTORED = 1 << 2,
 };
-ENUM_OPERATORS(eRNAOverrideMatchResult, RNA_OVERRIDE_MATCH_RESULT_RESTORED)
+ENUM_OPERATORS(eRNAOverrideMatchResult)
 
 enum eRNAOverrideStatus {
   /** The property is overridable. */
@@ -967,7 +1003,7 @@ enum eRNAOverrideStatus {
   /** The override status of this property is locked. */
   RNA_OVERRIDE_STATUS_LOCKED = 1 << 3,
 };
-ENUM_OPERATORS(eRNAOverrideStatus, RNA_OVERRIDE_STATUS_LOCKED)
+ENUM_OPERATORS(eRNAOverrideStatus)
 
 /**
  * Check whether reference and local overridden data match (are the same),
@@ -1055,5 +1091,7 @@ eRNAOverrideStatus RNA_property_override_library_status(Main *bmain,
 
 void RNA_struct_state_owner_set(const char *name);
 const char *RNA_struct_state_owner_get();
+
+}  // namespace blender
 
 #endif /* __RNA_ACCESS_H__ */

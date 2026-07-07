@@ -19,7 +19,6 @@ DeviceScene::DeviceScene(Device *device)
       prim_time(device, "prim_time", MEM_GLOBAL),
       tri_verts(device, "tri_verts", MEM_GLOBAL),
       tri_shader(device, "tri_shader", MEM_GLOBAL),
-      tri_vnormal(device, "tri_vnormal", MEM_GLOBAL),
       tri_vindex(device, "tri_vindex", MEM_GLOBAL),
       curves(device, "curves", MEM_GLOBAL),
       curve_keys(device, "curve_keys", MEM_GLOBAL),
@@ -38,6 +37,7 @@ DeviceScene::DeviceScene(Device *device)
       attributes_float3(device, "attributes_float3", MEM_GLOBAL),
       attributes_float4(device, "attributes_float4", MEM_GLOBAL),
       attributes_uchar4(device, "attributes_uchar4", MEM_GLOBAL),
+      attributes_normal(device, "attributes_normal", MEM_GLOBAL),
       light_distribution(device, "light_distribution", MEM_GLOBAL),
       lights(device, "lights", MEM_GLOBAL),
       light_background_marginal_cdf(device, "light_background_marginal_cdf", MEM_GLOBAL),
@@ -56,7 +56,8 @@ DeviceScene::DeviceScene(Device *device)
       ies_lights(device, "ies", MEM_GLOBAL),
       volume_tree_nodes(device, "volume_tree_nodes", MEM_GLOBAL),
       volume_tree_roots(device, "volume_tree_roots", MEM_GLOBAL),
-      volume_tree_root_ids(device, "volume_tree_root_ids", MEM_GLOBAL)
+      volume_tree_root_ids(device, "volume_tree_root_ids", MEM_GLOBAL),
+      volume_step_size(device, "volume_step_size", MEM_GLOBAL)
 {
   memset((void *)&data, 0, sizeof(data));
 }

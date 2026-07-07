@@ -7,7 +7,7 @@ set(INC
 )
 
 set(INC_SYS
-
+  PUBLIC include
 )
 
 set(SRC
@@ -23,3 +23,4 @@ add_definitions(-DENABLE_BINRELOC)
 
 
 blender_add_lib(extern_binreloc "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+add_library(bf::extern::binreloc ALIAS extern_binreloc)

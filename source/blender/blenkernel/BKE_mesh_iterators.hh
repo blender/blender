@@ -7,6 +7,8 @@
  * \ingroup bke
  */
 
+namespace blender {
+
 struct Mesh;
 
 enum MeshForeachFlag {
@@ -47,3 +49,5 @@ void BKE_mesh_foreach_mapped_subdiv_face_center(
     MeshForeachFlag flag);
 
 void BKE_mesh_foreach_mapped_vert_coords_get(const Mesh *mesh_eval, float (*r_cos)[3], int totcos);
+
+}  // namespace blender

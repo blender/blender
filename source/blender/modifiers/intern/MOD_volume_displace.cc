@@ -12,6 +12,7 @@
 #include "BKE_texture.h"
 #include "BKE_volume.hh"
 #include "BKE_volume_grid.hh"
+#include "BKE_volume_grid_process.hh"
 #include "BKE_volume_openvdb.hh"
 
 #include "BLT_translation.hh"
@@ -44,6 +45,8 @@
 #  include <openvdb/tools/ValueTransformer.h>
 #endif
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
   VolumeDisplaceModifierData *vdmd = reinterpret_cast<VolumeDisplaceModifierData *>(md);
@@ -70,13 +73,13 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   VolumeDisplaceModifierData *vdmd = reinterpret_cast<VolumeDisplaceModifierData *>(md);
-  walk(user_data, ob, (ID **)&vdmd->texture, IDWALK_CB_USER);
-  walk(user_data, ob, (ID **)&vdmd->texture_map_object, IDWALK_CB_USER);
+  walk(user_data, ob, reinterpret_cast<ID **>(&vdmd->texture), IDWALK_CB_USER);
+  walk(user_data, ob, reinterpret_cast<ID **>(&vdmd->texture_map_object), IDWALK_CB_USER);
 }
 
 static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, void *user_data)
 {
-  PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Modifier, md);
+  PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, RNA_Modifier, md);
   PropertyRNA *prop = RNA_struct_find_property(&ptr, "texture");
   walk(user_data, ob, md, &ptr, prop);
 }
@@ -92,24 +95,24 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
   VolumeDisplaceModifierData *vdmd = static_cast<VolumeDisplaceModifierData *>(ptr->data);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  uiTemplateID(layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
-  layout->prop(ptr, "texture_map_mode", UI_ITEM_NONE, IFACE_("Texture Mapping"), ICON_NONE);
+  template_id(&layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
+  layout.prop(ptr, "texture_map_mode", UI_ITEM_NONE, IFACE_("Texture Mapping"), ICON_NONE);
 
   if (vdmd->texture_map_mode == MOD_VOLUME_DISPLACE_MAP_OBJECT) {
-    layout->prop(ptr, "texture_map_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
+    layout.prop(ptr, "texture_map_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
   }
 
-  layout->prop(ptr, "strength", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "texture_sample_radius", UI_ITEM_NONE, IFACE_("Sample Radius"), ICON_NONE);
-  layout->prop(ptr, "texture_mid_level", UI_ITEM_NONE, IFACE_("Mid Level"), ICON_NONE);
+  layout.prop(ptr, "strength", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "texture_sample_radius", UI_ITEM_NONE, IFACE_("Sample Radius"), ICON_NONE);
+  layout.prop(ptr, "texture_mid_level", UI_ITEM_NONE, IFACE_("Mid Level"), ICON_NONE);
 
   modifier_error_message_draw(layout, ptr);
 }
@@ -121,7 +124,7 @@ static void panel_register(ARegionType *region_type)
 
 #ifdef WITH_OPENVDB
 
-static openvdb::Mat4s matrix_to_openvdb(const blender::float4x4 &m)
+static openvdb::Mat4s matrix_to_openvdb(const float4x4 &m)
 {
   /* OpenVDB matrices are transposed Blender matrices, i.e. the translation is in the last row
    * instead of in the last column. However, the layout in memory is the same, because OpenVDB
@@ -186,9 +189,7 @@ struct DisplaceGridOp {
 
   template<typename GridType> void operator()()
   {
-    if constexpr (blender::
-                      is_same_any_v<GridType, openvdb::points::PointDataGrid, openvdb::MaskGrid>)
-    {
+    if constexpr (is_same_any_v<GridType, openvdb::points::PointDataGrid, openvdb::MaskGrid>) {
       /* We don't support displacing these grid types yet. */
       return;
     }
@@ -235,7 +236,7 @@ struct DisplaceGridOp {
      * slowing down subsequent operations. */
     typename GridType::ValueType prune_tolerance{0};
     openvdb::tools::deactivate(*temp_grid, temp_grid->background(), prune_tolerance);
-    openvdb::tools::prune(temp_grid->tree());
+    bke::volume_grid::prune_inactive(*temp_grid);
 
     /* Overwrite the old volume grid with the new grid. */
     grid.clear();
@@ -281,15 +282,16 @@ static void displace_volume(ModifierData *md, const ModifierEvalContext *ctx, Vo
   BKE_volume_load(volume, DEG_get_bmain(ctx->depsgraph));
   const int grid_amount = BKE_volume_num_grids(volume);
   for (int grid_index = 0; grid_index < grid_amount; grid_index++) {
-    blender::bke::VolumeGridData *volume_grid = BKE_volume_grid_get_for_write(volume, grid_index);
+    bke::VolumeGridData *volume_grid = BKE_volume_grid_get_for_write(volume, grid_index);
     BLI_assert(volume_grid);
 
-    blender::bke::VolumeTreeAccessToken tree_token;
+    bke::VolumeTreeAccessToken tree_token;
     openvdb::GridBase &grid = volume_grid->grid_for_write(tree_token);
     VolumeGridType grid_type = volume_grid->grid_type();
 
     DisplaceGridOp displace_grid_op{grid, *vdmd, *ctx};
     BKE_volume_grid_type_operation(grid_type, displace_grid_op);
+    volume_grid->tag_tree_modified();
   }
 
 #else
@@ -300,7 +302,7 @@ static void displace_volume(ModifierData *md, const ModifierEvalContext *ctx, Vo
 
 static void modify_geometry_set(ModifierData *md,
                                 const ModifierEvalContext *ctx,
-                                blender::bke::GeometrySet *geometry_set)
+                                bke::GeometrySet *geometry_set)
 {
   Volume *input_volume = geometry_set->get_volume_for_write();
   if (input_volume != nullptr) {
@@ -343,3 +345,5 @@ ModifierTypeInfo modifierType_VolumeDisplace = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

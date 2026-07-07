@@ -19,9 +19,10 @@
  *   (uniqueness is improved by re-hashing with connected data).
  */
 
+#include <algorithm>
 #include <cstring>
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 #include "BLI_linklist_stack.h"
@@ -55,6 +56,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Internal UIDWalk API
  * \{ */
@@ -63,10 +66,30 @@
 
 using UID_Int = uintptr_t;
 
+struct BMElemIndexHash {
+  template<typename BMElemT> uint64_t operator()(const BMElemT *ele) const
+  {
+    return uint64_t(BM_elem_index_get(ele));
+  }
+};
+
+struct BMElemIndexEq {
+  template<typename BMElemT> bool operator()(const BMElemT *a, const BMElemT *b) const
+  {
+    BLI_assert((a != b) == (BM_elem_index_get(a) != BM_elem_index_get(b)));
+    return a == b;
+  }
+};
+
+using BMFaceIndexSet = Set<BMFace *, 4, DefaultProbingStrategy, BMElemIndexHash, BMElemIndexEq>;
+
+struct UIDFaceStep;
+struct UIDFaceStepItem;
+
 struct UIDWalk {
 
   /* List of faces we can step onto (UIDFaceStep's) */
-  ListBase faces_step;
+  ListBaseT<UIDFaceStep> faces_step;
 
   /* Face & Vert UID's */
   GHash *verts_uid;
@@ -91,7 +114,7 @@ struct UIDWalk {
   /* runtime vars, avoid re-creating each pass */
   struct {
     GHash *verts_uid; /* BMVert -> UID */
-    GSet *faces_step; /* BMFace */
+    BMFaceIndexSet *faces_step;
 
     GHash *faces_from_uid; /* UID -> UIDFaceStepItem */
 
@@ -108,7 +131,7 @@ struct UIDFaceStep {
   LinkNode *faces;
 
   /* faces sorted into 'UIDFaceStepItem' */
-  ListBase items;
+  ListBaseT<UIDFaceStepItem> items;
 };
 
 /* store face-lists with same HID. */
@@ -133,7 +156,7 @@ BLI_INLINE bool bm_uidwalk_vert_lookup(UIDWalk *uidwalk, BMVert *v, UID_Int *r_u
   void **ret;
   ret = BLI_ghash_lookup_p(uidwalk->verts_uid, v);
   if (ret) {
-    *r_uid = (UID_Int)(*ret);
+    *r_uid = reinterpret_cast<UID_Int>(*ret);
     return true;
   }
   return false;
@@ -144,7 +167,7 @@ BLI_INLINE bool bm_uidwalk_face_lookup(UIDWalk *uidwalk, BMFace *f, UID_Int *r_u
   void **ret;
   ret = BLI_ghash_lookup_p(uidwalk->faces_uid, f);
   if (ret) {
-    *r_uid = (UID_Int)(*ret);
+    *r_uid = reinterpret_cast<UID_Int>(*ret);
     return true;
   }
   return false;
@@ -152,14 +175,12 @@ BLI_INLINE bool bm_uidwalk_face_lookup(UIDWalk *uidwalk, BMFace *f, UID_Int *r_u
 
 static uint ghashutil_bmelem_indexhash(const void *key)
 {
-  const BMElem *ele = static_cast<const BMElem *>(key);
-  return uint(BM_elem_index_get(ele));
+  return uint(BMElemIndexHash{}(static_cast<const BMElem *>(key)));
 }
 
 static bool ghashutil_bmelem_indexcmp(const void *a, const void *b)
 {
-  BLI_assert((a != b) == (BM_elem_index_get((BMElem *)a) != BM_elem_index_get((BMElem *)b)));
-  return (a != b);
+  return !BMElemIndexEq{}(static_cast<const BMElem *>(a), static_cast<const BMElem *>(b));
 }
 
 static GHash *ghash_bmelem_new_ex(const char *info, const uint nentries_reserve)
@@ -168,20 +189,9 @@ static GHash *ghash_bmelem_new_ex(const char *info, const uint nentries_reserve)
       ghashutil_bmelem_indexhash, ghashutil_bmelem_indexcmp, info, nentries_reserve);
 }
 
-static GSet *gset_bmelem_new_ex(const char *info, const uint nentries_reserve)
-{
-  return BLI_gset_new_ex(
-      ghashutil_bmelem_indexhash, ghashutil_bmelem_indexcmp, info, nentries_reserve);
-}
-
 static GHash *ghash_bmelem_new(const char *info)
 {
   return ghash_bmelem_new_ex(info, 0);
-}
-
-static GSet *gset_bmelem_new(const char *info)
-{
-  return gset_bmelem_new_ex(info, 0);
 }
 
 static void bm_uidwalk_init(UIDWalk *uidwalk,
@@ -194,7 +204,7 @@ static void bm_uidwalk_init(UIDWalk *uidwalk,
   uidwalk->faces_uid = ghash_bmelem_new_ex(__func__, faces_src_region_len);
 
   uidwalk->cache.verts_uid = ghash_bmelem_new(__func__);
-  uidwalk->cache.faces_step = gset_bmelem_new(__func__);
+  uidwalk->cache.faces_step = MEM_new<BMFaceIndexSet>(__func__);
 
   /* works because 'int' ghash works for intptr_t too */
   uidwalk->cache.faces_from_uid = BLI_ghash_int_new(__func__);
@@ -220,7 +230,7 @@ static void bm_uidwalk_clear(UIDWalk *uidwalk)
   BLI_ghash_clear(uidwalk->faces_uid, nullptr, nullptr);
 
   BLI_ghash_clear(uidwalk->cache.verts_uid, nullptr, nullptr);
-  BLI_gset_clear(uidwalk->cache.faces_step, nullptr);
+  uidwalk->cache.faces_step->clear();
   BLI_ghash_clear(uidwalk->cache.faces_from_uid, nullptr, nullptr);
 
   /* keep rehash_store as-is, for reuse */
@@ -247,9 +257,9 @@ static void bm_uidwalk_free(UIDWalk *uidwalk)
 
   /* cache */
   BLI_ghash_free(uidwalk->cache.verts_uid, nullptr, nullptr);
-  BLI_gset_free(uidwalk->cache.faces_step, nullptr);
+  MEM_delete(uidwalk->cache.faces_step);
   BLI_ghash_free(uidwalk->cache.faces_from_uid, nullptr, nullptr);
-  MEM_SAFE_FREE(uidwalk->cache.rehash_store);
+  MEM_SAFE_DELETE(uidwalk->cache.rehash_store);
 
   BLI_mempool_destroy(uidwalk->link_pool);
   BLI_mempool_destroy(uidwalk->step_pool);
@@ -366,7 +376,7 @@ static void bm_uidwalk_rehash_reserve(UIDWalk *uidwalk, uint rehash_store_len_ne
   if (UNLIKELY(rehash_store_len_new > uidwalk->cache.rehash_store_len)) {
     /* Avoid re-allocations. */
     rehash_store_len_new *= 2;
-    uidwalk->cache.rehash_store = static_cast<UID_Int *>(MEM_reallocN(
+    uidwalk->cache.rehash_store = static_cast<UID_Int *>(MEM_realloc_uninitialized(
         uidwalk->cache.rehash_store, rehash_store_len_new * sizeof(*uidwalk->cache.rehash_store)));
     uidwalk->cache.rehash_store_len = rehash_store_len_new;
   }
@@ -396,7 +406,7 @@ static void bm_uidwalk_rehash(UIDWalk *uidwalk)
   i = 0;
   GHASH_ITER (gh_iter, uidwalk->verts_uid) {
     void **uid_p = BLI_ghashIterator_getValue_p(&gh_iter);
-    *((UID_Int *)uid_p) = uid_store[i++];
+    *(reinterpret_cast<UID_Int *>(uid_p)) = uid_store[i++];
   }
 
   /* faces */
@@ -408,7 +418,7 @@ static void bm_uidwalk_rehash(UIDWalk *uidwalk)
   i = 0;
   GHASH_ITER (gh_iter, uidwalk->faces_uid) {
     void **uid_p = BLI_ghashIterator_getValue_p(&gh_iter);
-    *((UID_Int *)uid_p) = uid_store[i++];
+    *(reinterpret_cast<UID_Int *>(uid_p)) = uid_store[i++];
   }
 }
 
@@ -434,14 +444,14 @@ static void bm_uidwalk_rehash_facelinks(UIDWalk *uidwalk,
   if (is_init) {
     for (f_link = faces; f_link; f_link = f_link->next) {
       BMFace *f = static_cast<BMFace *>(f_link->link);
-      BLI_ghash_insert(uidwalk->faces_uid, f, (void *)uid_store[i++]);
+      BLI_ghash_insert(uidwalk->faces_uid, f, reinterpret_cast<void *>(uid_store[i++]));
     }
   }
   else {
     for (f_link = faces; f_link; f_link = f_link->next) {
       BMFace *f = static_cast<BMFace *>(f_link->link);
       void **uid_p = BLI_ghash_lookup_p(uidwalk->faces_uid, f);
-      *((UID_Int *)uid_p) = uid_store[i++];
+      *(reinterpret_cast<UID_Int *>(uid_p)) = uid_store[i++];
     }
   }
 }
@@ -464,7 +474,6 @@ static void bm_uidwalk_pass_add(UIDWalk *uidwalk, LinkNode *faces_pass, const ui
 {
   GHashIterator gh_iter;
   GHash *verts_uid_pass;
-  GSet *faces_step_next;
   LinkNode *f_link;
 
   UIDFaceStep *fstep;
@@ -476,10 +485,10 @@ static void bm_uidwalk_pass_add(UIDWalk *uidwalk, LinkNode *faces_pass, const ui
 
   /* create verts_new */
   verts_uid_pass = uidwalk->cache.verts_uid;
-  faces_step_next = uidwalk->cache.faces_step;
+  BMFaceIndexSet *faces_step_next = uidwalk->cache.faces_step;
 
   BLI_assert(BLI_ghash_len(verts_uid_pass) == 0);
-  BLI_assert(BLI_gset_len(faces_step_next) == 0);
+  BLI_assert(faces_step_next->is_empty());
 
   /* Add the face_step data from connected faces, creating new passes */
   fstep = static_cast<UIDFaceStep *>(BLI_mempool_alloc(uidwalk->step_pool));
@@ -500,7 +509,7 @@ static void bm_uidwalk_pass_add(UIDWalk *uidwalk, LinkNode *faces_pass, const ui
           (bm_vert_is_uid_connect(uidwalk, l_iter->v) == true))
       {
         const UID_Int uid = bm_uidwalk_calc_vert_uid(uidwalk, l_iter->v);
-        *val_p = (void *)uid;
+        *val_p = reinterpret_cast<void *>(uid);
       }
 
       /* fill faces_step_next */
@@ -508,10 +517,10 @@ static void bm_uidwalk_pass_add(UIDWalk *uidwalk, LinkNode *faces_pass, const ui
         BMLoop *l_iter_radial = l_iter->radial_next;
         do {
           if (!BLI_ghash_haskey(uidwalk->faces_uid, l_iter_radial->f) &&
-              !BLI_gset_haskey(faces_step_next, l_iter_radial->f) &&
+              !faces_step_next->contains(l_iter_radial->f) &&
               bm_uidwalk_face_test(uidwalk, l_iter_radial->f))
           {
-            BLI_gset_insert(faces_step_next, l_iter_radial->f);
+            faces_step_next->add(l_iter_radial->f);
 
             /* add to fstep */
             BLI_linklist_prepend_pool(&fstep->faces, l_iter_radial->f, uidwalk->link_pool);
@@ -534,28 +543,14 @@ static void bm_uidwalk_pass_add(UIDWalk *uidwalk, LinkNode *faces_pass, const ui
   uidwalk->pass += 1;
 
   BLI_ghash_clear(uidwalk->cache.verts_uid, nullptr, nullptr);
-  BLI_gset_clear(uidwalk->cache.faces_step, nullptr);
-}
-
-static int bm_face_len_cmp(const void *v1, const void *v2)
-{
-  const BMFace *f1 = *((BMFace **)v1);
-  const BMFace *f2 = *((BMFace **)v2);
-
-  if (f1->len > f2->len) {
-    return 1;
-  }
-  if (f1->len < f2->len) {
-    return -1;
-  }
-  return 0;
+  uidwalk->cache.faces_step->clear();
 }
 
 static uint bm_uidwalk_init_from_edge(UIDWalk *uidwalk, BMEdge *e)
 {
   BMLoop *l_iter = e->l;
   uint f_arr_len = uint(BM_edge_face_count(e));
-  BMFace **f_arr = BLI_array_alloca(f_arr, f_arr_len);
+  Array<BMFace *, BM_DEFAULT_TOPOLOGY_STACK_SIZE> f_arr(f_arr_len);
   uint fstep_num = 0, i = 0;
 
   do {
@@ -567,13 +562,15 @@ static uint bm_uidwalk_init_from_edge(UIDWalk *uidwalk, BMEdge *e)
   BLI_assert(i <= f_arr_len);
   f_arr_len = i;
 
-  qsort(f_arr, f_arr_len, sizeof(*f_arr), bm_face_len_cmp);
+  std::sort(f_arr.begin(), f_arr.begin() + f_arr_len, [](BMFace *f1, BMFace *f2) {
+    return f1->len < f2->len;
+  });
 
   /* start us off! */
   {
     const UID_Int uid = PRIME_VERT_INIT;
-    BLI_ghash_insert(uidwalk->verts_uid, e->v1, (void *)uid);
-    BLI_ghash_insert(uidwalk->verts_uid, e->v2, (void *)uid);
+    BLI_ghash_insert(uidwalk->verts_uid, e->v1, reinterpret_cast<void *>(uid));
+    BLI_ghash_insert(uidwalk->verts_uid, e->v2, reinterpret_cast<void *>(uid));
   }
 
   /* turning an array into LinkNode's seems odd,
@@ -636,7 +633,8 @@ static bool bm_uidwalk_facestep_begin(UIDWalk *uidwalk, UIDFaceStep *fstep)
 
       ok = true;
 
-      if (BLI_ghash_ensure_p(uidwalk->cache.faces_from_uid, (void *)uid, &val_p)) {
+      if (BLI_ghash_ensure_p(uidwalk->cache.faces_from_uid, reinterpret_cast<void *>(uid), &val_p))
+      {
         fstep_item = static_cast<UIDFaceStepItem *>(*val_p);
       }
       else {
@@ -835,8 +833,7 @@ static BMFace **bm_mesh_region_match_pair(
     const uint faces_result_len = BLI_ghash_len(w_dst->faces_uid);
     uint i;
 
-    faces_result = static_cast<BMFace **>(
-        MEM_mallocN(sizeof(*faces_result) * (faces_result_len + 1), __func__));
+    faces_result = MEM_new_array_uninitialized<BMFace *>(faces_result_len + 1, __func__);
     GHASH_ITER_INDEX (gh_iter, w_dst->faces_uid, i) {
       BMFace *f = static_cast<BMFace *>(BLI_ghashIterator_getKey(&gh_iter));
       faces_result[i] = f;
@@ -925,15 +922,15 @@ static bool bm_edge_is_region_boundary(BMEdge *e)
   return true;
 }
 
-static void bm_face_region_pivot_edge_use_best(GHash *gh,
+static void bm_face_region_pivot_edge_use_best(const Map<BMVert *, SUID_Int> &gh,
                                                BMEdge *e_test,
                                                BMEdge **r_e_pivot_best,
                                                SUID_Int e_pivot_best_id[2])
 {
   SUID_Int e_pivot_test_id[2];
 
-  e_pivot_test_id[0] = (SUID_Int)BLI_ghash_lookup(gh, e_test->v1);
-  e_pivot_test_id[1] = (SUID_Int)BLI_ghash_lookup(gh, e_test->v2);
+  e_pivot_test_id[0] = gh.lookup_default(e_test->v1, 0);
+  e_pivot_test_id[1] = gh.lookup_default(e_test->v2, 0);
   if (e_pivot_test_id[0] > e_pivot_test_id[1]) {
     std::swap(e_pivot_test_id[0], e_pivot_test_id[1]);
   }
@@ -983,7 +980,7 @@ static SUID_Int bm_face_region_vert_boundary_id(BMVert *v)
 /**
  * Accumulate id's from a previous pass (swap sign each pass)
  */
-static SUID_Int bm_face_region_vert_pass_id(GHash *gh, BMVert *v)
+static SUID_Int bm_face_region_vert_pass_id(const Map<BMVert *, SUID_Int> &gh, BMVert *v)
 {
   BMIter eiter;
   BMEdge *e;
@@ -1001,7 +998,7 @@ static SUID_Int bm_face_region_vert_pass_id(GHash *gh, BMVert *v)
       BMVert *v_other = BM_edge_other_vert(e, v);
       if (BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
         /* non-zero values aren't allowed... so no need to check haskey */
-        SUID_Int v_other_id = (SUID_Int)BLI_ghash_lookup(gh, v_other);
+        SUID_Int v_other_id = gh.lookup_default(v_other, 0);
         if (v_other_id > 0) {
           v_sum_id += v_other_id;
           tot += 1;
@@ -1051,7 +1048,7 @@ static BMEdge *bm_face_region_pivot_edge_find(BMFace **faces_region,
   BLI_LINKSTACK_DECLARE(vert_queue_prev, BMVert *);
   BLI_LINKSTACK_DECLARE(vert_queue_next, BMVert *);
 
-  GHash *gh = BLI_ghash_ptr_new(__func__);
+  Map<BMVert *, SUID_Int> gh;
   uint i;
 
   BMEdge *e_pivot = nullptr;
@@ -1077,13 +1074,13 @@ static BMEdge *bm_face_region_pivot_edge_find(BMFace **faces_region,
       if (bm_edge_is_region_boundary(e)) {
         uint j;
         for (j = 0; j < 2; j++) {
-          void **val_p;
-          if (!BLI_ghash_ensure_p(gh, (&e->v1)[j], &val_p)) {
-            SUID_Int v_id = bm_face_region_vert_boundary_id((&e->v1)[j]);
-            *val_p = (void *)v_id;
-            BLI_LINKSTACK_PUSH(vert_queue_prev, (&e->v1)[j]);
+          BMVert *v = (&e->v1)[j];
+          gh.lookup_or_add_cb(v, [&]() {
+            SUID_Int v_id = bm_face_region_vert_boundary_id(v);
+            BLI_LINKSTACK_PUSH(vert_queue_prev, v);
             vert_queue_used += 1;
-          }
+            return v_id;
+          });
         }
       }
       else {
@@ -1098,20 +1095,18 @@ static BMEdge *bm_face_region_pivot_edge_find(BMFace **faces_region,
     while ((v = BLI_LINKSTACK_POP(vert_queue_prev))) {
       BMIter eiter;
       BMEdge *e;
-      BLI_assert(BLI_ghash_haskey(gh, v));
-      BLI_assert((SUID_Int)BLI_ghash_lookup(gh, v) > 0);
+      BLI_assert(gh.lookup(v) > 0);
       BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
         if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
           BMVert *v_other = BM_edge_other_vert(e, v);
           if (BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
-            void **val_p;
-            if (!BLI_ghash_ensure_p(gh, v_other, &val_p)) {
+            gh.lookup_or_add_cb(v_other, [&]() {
               /* add as negative, so we know not to read from them this pass */
               const SUID_Int v_id_other = -bm_face_region_vert_pass_id(gh, v_other);
-              *val_p = (void *)v_id_other;
               BLI_LINKSTACK_PUSH(vert_queue_next, v_other);
               vert_queue_used += 1;
-            }
+              return v_id_other;
+            });
           }
         }
       }
@@ -1121,9 +1116,9 @@ static BMEdge *bm_face_region_pivot_edge_find(BMFace **faces_region,
     {
       LinkNode *v_link;
       for (v_link = vert_queue_next; v_link; v_link = v_link->next) {
-        SUID_Int *v_id_p = (SUID_Int *)BLI_ghash_lookup_p(gh, v_link->link);
-        *v_id_p = -(*v_id_p);
-        BLI_assert(*v_id_p > 0);
+        SUID_Int &v_id = gh.lookup(static_cast<BMVert *>(v_link->link));
+        v_id = -v_id;
+        BLI_assert(v_id > 0);
       }
     }
 
@@ -1201,8 +1196,6 @@ static BMEdge *bm_face_region_pivot_edge_find(BMFace **faces_region,
   BLI_LINKSTACK_FREE(vert_queue_prev);
   BLI_LINKSTACK_FREE(vert_queue_next);
 
-  BLI_ghash_free(gh, nullptr, nullptr);
-
   if (e_pivot == nullptr) {
 #  ifdef DEBUG_PRINT
     printf("%s: using fallback edge!\n", __func__);
@@ -1266,8 +1259,8 @@ static UIDFashMatch *bm_vert_fasthash_create(BMesh *bm, const uint depth)
   BMVert *v;
   BMIter iter;
 
-  id_prev = MEM_malloc_arrayN<UIDFashMatch>(uint(bm->totvert), __func__);
-  id_curr = MEM_malloc_arrayN<UIDFashMatch>(uint(bm->totvert), __func__);
+  id_prev = MEM_new_array_uninitialized<UIDFashMatch>(uint(bm->totvert), __func__);
+  id_curr = MEM_new_array_uninitialized<UIDFashMatch>(uint(bm->totvert), __func__);
 
   BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
     id_prev[i] = bm_vert_fasthash_single(v);
@@ -1288,7 +1281,7 @@ static UIDFashMatch *bm_vert_fasthash_create(BMesh *bm, const uint depth)
       }
     }
   }
-  MEM_freeN(id_prev);
+  MEM_delete(id_prev);
 
   return id_curr;
 }
@@ -1318,7 +1311,7 @@ static bool bm_vert_fasthash_edge_is_match(UIDFashMatch *fm, const BMEdge *e_a, 
 
 static void bm_vert_fasthash_destroy(UIDFashMatch *fm)
 {
-  MEM_freeN(fm);
+  MEM_delete(fm);
 }
 
 /** \} */
@@ -1328,7 +1321,7 @@ static void bm_vert_fasthash_destroy(UIDFashMatch *fm)
 int BM_mesh_region_match(BMesh *bm,
                          BMFace **faces_region,
                          uint faces_region_len,
-                         ListBase *r_face_regions)
+                         ListBaseT<LinkData> *r_face_regions)
 {
   BMEdge *e_src;
   BMEdge *e_dst;
@@ -1464,3 +1457,5 @@ int BM_mesh_region_match(BMesh *bm,
 
   return int(faces_result_len);
 }
+
+}  // namespace blender

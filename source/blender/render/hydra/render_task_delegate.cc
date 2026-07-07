@@ -4,13 +4,16 @@
 
 #include "render_task_delegate.hh"
 
-#include <epoxy/gl.h>
-
-#include "GPU_context.hh"
+#ifdef WITH_OPENGL_BACKEND
+#  include "GPU_context.hh"
+#  include <epoxy/gl.h>
+#endif
 
 #include <pxr/imaging/hd/renderBuffer.h>
 #include <pxr/imaging/hd/renderDelegate.h>
 #include <pxr/imaging/hdx/renderTask.h>
+
+#include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -160,7 +163,7 @@ void RenderTaskDelegate::read_aov(pxr::TfToken const &aov_key, void *data)
   }
   else if (pxr::HdGetComponentFormat(format) == pxr::HdFormatFloat16) {
     Eigen::half *buf_data = (Eigen::half *)buffer->Map();
-    float *fdata = (float *)data;
+    float *fdata = static_cast<float *>(data);
     for (size_t i = 0; i < len; ++i) {
       fdata[i] = buf_data[i];
     }
@@ -220,14 +223,14 @@ void GPURenderTaskDelegate::set_viewport(pxr::GfVec4d const &viewport)
 
 void GPURenderTaskDelegate::add_aov(pxr::TfToken const &aov_key)
 {
-  blender::gpu::TextureFormat format;
-  blender::gpu::Texture **tex;
+  gpu::TextureFormat format;
+  gpu::Texture **tex;
   if (aov_key == pxr::HdAovTokens->color) {
-    format = blender::gpu::TextureFormat::SFLOAT_32_32_32_32;
+    format = gpu::TextureFormat::SFLOAT_32_32_32_32;
     tex = &tex_color_;
   }
   else if (aov_key == pxr::HdAovTokens->depth) {
-    format = blender::gpu::TextureFormat::SFLOAT_32_DEPTH;
+    format = gpu::TextureFormat::SFLOAT_32_DEPTH;
     tex = &tex_depth_;
   }
   else {
@@ -252,7 +255,7 @@ void GPURenderTaskDelegate::add_aov(pxr::TfToken const &aov_key)
 
 void GPURenderTaskDelegate::read_aov(pxr::TfToken const &aov_key, void *data)
 {
-  blender::gpu::Texture *tex = nullptr;
+  gpu::Texture *tex = nullptr;
   int c;
   if (aov_key == pxr::HdAovTokens->color) {
     tex = tex_color_;
@@ -269,7 +272,7 @@ void GPURenderTaskDelegate::read_aov(pxr::TfToken const &aov_key, void *data)
   int w = GPU_texture_width(tex), h = GPU_texture_height(tex);
   void *tex_data = GPU_texture_read(tex, GPU_DATA_FLOAT, 0);
   memcpy(data, tex_data, sizeof(float) * w * h * c);
-  MEM_freeN(tex_data);
+  MEM_delete_void(tex_data);
 }
 
 void GPURenderTaskDelegate::bind()
@@ -284,21 +287,27 @@ void GPURenderTaskDelegate::bind()
   float clear_color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   GPU_framebuffer_clear_color_depth(framebuffer_, clear_color, 1.0f);
 
+#ifdef WITH_OPENGL_BACKEND
   /* Workaround missing/buggy VAOs in hgiGL and hdSt. For OpenGL compatibility
    * profile this is not a problem, but for core profile it is. */
   if (VAO_ == 0 && GPU_backend_get_type() == GPU_BACKEND_OPENGL) {
     glGenVertexArrays(1, &VAO_);
     glBindVertexArray(VAO_);
   }
+#else
+  UNUSED_VARS(VAO_);
+#endif
   CLOG_DEBUG(LOG_HYDRA_RENDER, "bind");
 }
 
 void GPURenderTaskDelegate::unbind()
 {
+#ifdef WITH_OPENGL_BACKEND
   if (VAO_) {
     glDeleteVertexArrays(1, &VAO_);
     VAO_ = 0;
   }
+#endif
   if (framebuffer_) {
     GPU_framebuffer_free(framebuffer_);
     framebuffer_ = nullptr;
@@ -306,7 +315,7 @@ void GPURenderTaskDelegate::unbind()
   CLOG_DEBUG(LOG_HYDRA_RENDER, "unbind");
 }
 
-blender::gpu::Texture *GPURenderTaskDelegate::get_aov_texture(pxr::TfToken const &aov_key)
+gpu::Texture *GPURenderTaskDelegate::get_aov_texture(pxr::TfToken const &aov_key)
 {
   if (aov_key == pxr::HdAovTokens->color) {
     return tex_color_;

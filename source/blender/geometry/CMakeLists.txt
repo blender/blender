@@ -100,6 +100,7 @@ set(SRC
   GEO_uv_pack.hh
   GEO_uv_parametrizer.hh
   GEO_volume_grid_resample.hh
+  intern/mesh_boolean_intern.hh
   intern/mesh_boolean_manifold.hh
 )
 
@@ -110,11 +111,12 @@ set(LIB
   PRIVATE bf::bmesh
   PRIVATE bf::dna
   PRIVATE bf::functions
+  PRIVATE bf::nodes
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::extern::fmtlib
   PRIVATE bf::extern::curve_fit_nd
   PRIVATE bf::dependencies::optional::manifold
+  PRIVATE bf::dependencies::optional::gmp
 )
 
 if(WITH_UV_SLIM)
@@ -122,18 +124,6 @@ if(WITH_UV_SLIM)
     ../../../intern/slim
   )
   add_definitions(-DWITH_UV_SLIM)
-endif()
-
-if(WITH_GMP)
-  add_definitions(-DWITH_GMP)
-
-  list(APPEND INC_SYS
-    ${GMP_INCLUDE_DIRS}
-  )
-
-  list(APPEND LIB
-    ${GMP_LIBRARIES}
-  )
 endif()
 
 if(WITH_MANIFOLD)

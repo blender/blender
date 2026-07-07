@@ -20,10 +20,10 @@ function(unset_cache_variables pattern)
 endfunction()
 
 # Clear cached variables with values containing `contents`.
-function(unset_cached_varables_containting contents msg)
+function(unset_cached_variables_containing contents msg)
   get_cmake_property(_cache_variables CACHE_VARIABLES)
-  set(_found)
-  set(_print_msg)
+  set(_found "")
+  set(_print_msg "")
   foreach(_cache_variable ${_cache_variables})
     # Skip "_" prefixed variables, these are used for internal book-keeping,
     # not under user control.
@@ -95,4 +95,12 @@ if(LIBDIR AND
   unset_cache_variables("^SYCL")
   unset_cache_variables("^TBB")
   unset_cache_variables("^USD")
+endif()
+
+# Detect update to 5.0 libs.
+if(UNIX AND LIBDIR AND
+   EXISTS ${LIBDIR}/haru/lib/libhpdf.a AND
+   HARU_LIBRARY MATCHES "libhpdfs.a$")
+  message(STATUS "Auto updating CMake configuration for Blender 5.0 libraries")
+  unset_cache_variables("^HARU")
 endif()

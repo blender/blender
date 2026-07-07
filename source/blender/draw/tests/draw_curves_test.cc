@@ -486,8 +486,8 @@ static void test_draw_curves_interpolate_position()
     /* Ensure the rest of the buffer is untouched. */
     EXPECT_EQ(evaluated_positions_radii_buf[8], float4(0.0));
 
-    EXPECT_FLOAT_EQ(curves_length_buf[0], numbers::sqrt3);
-    EXPECT_FLOAT_EQ(curves_length_buf[1], 2.0f * numbers::sqrt3);
+    EXPECT_FLOAT_EQ(curves_length_buf[0], std::numbers::sqrt3);
+    EXPECT_FLOAT_EQ(curves_length_buf[1], 2.0f * std::numbers::sqrt3);
 
     EXPECT_FLOAT_EQ(evaluated_time_buf[0], 0.0f);
     EXPECT_FLOAT_EQ(evaluated_time_buf[1], 0.218749985f);

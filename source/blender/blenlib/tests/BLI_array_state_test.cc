@@ -27,7 +27,7 @@ TEST(array_state, NoSharing)
 
 TEST(array_state, WithSharing)
 {
-  int *data = MEM_calloc_arrayN<int>(3, __func__);
+  int *data = MEM_new_array_zeroed<int>(3, __func__);
   data[0] = 0;
   data[1] = 10;
   data[2] = 20;
@@ -42,13 +42,13 @@ TEST(array_state, WithSharing)
 
 TEST(array_state, DifferentSharingInfoButSameData)
 {
-  int *data1 = MEM_calloc_arrayN<int>(3, __func__);
+  int *data1 = MEM_new_array_zeroed<int>(3, __func__);
   data1[0] = 0;
   data1[1] = 10;
   data1[2] = 20;
   ImplicitSharingPtr sharing_info1{implicit_sharing::info_for_mem_free(data1)};
 
-  int *data2 = MEM_calloc_arrayN<int>(3, __func__);
+  int *data2 = MEM_new_array_zeroed<int>(3, __func__);
   data2[0] = 0;
   data2[1] = 10;
   data2[2] = 20;

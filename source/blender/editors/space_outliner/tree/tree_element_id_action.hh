@@ -14,9 +14,11 @@
 
 #include <optional>
 
+namespace blender {
+
 struct bAction;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 class TreeElementIDAction final : public TreeElementID {
   bAction &action_;
@@ -42,4 +44,5 @@ class TreeElementIDAction final : public TreeElementID {
   void expand(SpaceOutliner &space_outliner) const override;
 };
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

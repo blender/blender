@@ -22,7 +22,7 @@ The JSON data is formatted into a list of nested lists of 4 items:
 Where each list may be empty, and the items in
 the subtree are formatted the same way.
 
-data_types is a string, aligned with data that spesifies a type
+data_types is a string, aligned with data that specifies a type
 for each property.
 
 The types are as follows:
@@ -61,7 +61,7 @@ def parse_json_rec(fbx_root, json_node):
     name, data, data_types, children = json_node
     ver = 0
 
-    assert(len(data_types) == len(data))
+    assert len(data_types) == len(data)
 
     e = elem_empty(fbx_root, name.encode())
     for d, dt in zip(data, data_types):
@@ -102,7 +102,7 @@ def parse_json_rec(fbx_root, json_node):
             e.add_byte_array(d)
 
     if name == "FBXVersion":
-        assert(data_types == "I")
+        assert data_types == "I"
         ver = int(data[0])
 
     for child in children:

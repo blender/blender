@@ -14,23 +14,23 @@
 #  include "MEM_guardedalloc.h"
 #  if defined __GNUC__
 #    define LIBMV_OBJECT_NEW(type, args...)                                    \
-      new (MEM_mallocN(sizeof(type), __func__)) type(args)
+      new (MEM_new_uninitialized(sizeof(type), __func__)) type(args)
 #  else
 #    define LIBMV_OBJECT_NEW(type, ...)                                        \
-      new (MEM_mallocN(sizeof(type), __FUNCTION__)) type(__VA_ARGS__)
+      new (MEM_new_uninitialized(sizeof(type), __FUNCTION__)) type(__VA_ARGS__)
 #  endif
 #  define LIBMV_OBJECT_DELETE(what, type)                                      \
     {                                                                          \
       if (what) {                                                              \
         ((type*)what)->~type();                                                \
-        MEM_freeN(const_cast<void*>(static_cast<const void*>(what)));          \
+        MEM_delete_void(const_cast<void*>(static_cast<const void*>(what)));    \
       }                                                                        \
     }                                                                          \
     (void)0
 #  define LIBMV_STRUCT_NEW(type, count)                                        \
-    (type*)MEM_mallocN(sizeof(type) * count, __func__)
+    (type*)MEM_new_uninitialized(sizeof(type) * count, __func__)
 #  define LIBMV_STRUCT_DELETE(what)                                            \
-    MEM_freeN(const_cast<void*>(static_cast<const void*>(what)))
+    MEM_delete_void(const_cast<void*>(static_cast<const void*>(what)))
 #else
 // Need this to keep libmv-capi potentially standalone.
 #  if defined __GNUC__ || defined __sun

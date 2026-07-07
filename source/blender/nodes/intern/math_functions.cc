@@ -250,6 +250,8 @@ const FloatMathOperationInfo *get_float3_math_operation_info(const int operation
       RETURN_OPERATION_INFO("Normalize", "vector_math_normalize");
     case NODE_VECTOR_MATH_SNAP:
       RETURN_OPERATION_INFO("Snap", "vector_math_snap");
+    case NODE_VECTOR_MATH_ROUND:
+      RETURN_OPERATION_INFO("Round", "vector_math_round");
     case NODE_VECTOR_MATH_FLOOR:
       RETURN_OPERATION_INFO("Floor", "vector_math_floor");
     case NODE_VECTOR_MATH_CEIL:

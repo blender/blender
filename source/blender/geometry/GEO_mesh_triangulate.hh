@@ -10,9 +10,11 @@
 
 #include "BKE_attribute.hh"
 
+namespace blender {
+
 struct Mesh;
 
-namespace blender::geometry {
+namespace geometry {
 
 /** \warning Values are saved in files. */
 enum class TriangulateNGonMode {
@@ -45,4 +47,5 @@ std::optional<Mesh *> mesh_triangulate(const Mesh &src_mesh,
                                        TriangulateQuadMode quad_mode,
                                        const bke::AttributeFilter &attribute_filter);
 
-}  // namespace blender::geometry
+}  // namespace geometry
+}  // namespace blender

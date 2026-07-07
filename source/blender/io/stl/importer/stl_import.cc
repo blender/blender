@@ -10,6 +10,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
+#include "BKE_library.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
@@ -35,9 +36,12 @@
 #include "stl_import_binary_reader.hh"
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.stl"};
 
-namespace blender::io::stl {
+namespace io::stl {
 
 void stl_import_report_error(FILE *file)
 {
@@ -98,7 +102,7 @@ Mesh *read_stl_file(const STLImportParams &import_params)
 #ifndef NDEBUG
     verbose_validate = true;
 #endif
-    BKE_mesh_validate(mesh, verbose_validate, false);
+    bke::mesh_validate(*mesh, verbose_validate);
   }
 
   return mesh;
@@ -130,13 +134,21 @@ void importer_main(Main *bmain,
   Mesh *mesh_in_main = BKE_mesh_add(bmain, ob_name);
   BKE_mesh_nomain_to_mesh(mesh, mesh_in_main, nullptr);
   BKE_view_layer_base_deselect_all(scene, view_layer);
-  LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
+  LayerCollection *lc = BKE_layer_collection_get_active_editable(view_layer);
+  if (!ID_IS_EDITABLE(lc->collection)) {
+    BKE_report(import_params.reports,
+               RPT_WARNING,
+               "Could not find an editable collection in current scene, imported data will not be "
+               "instantiated");
+  }
   Object *obj = BKE_object_add_only_object(bmain, OB_MESH, ob_name);
-  obj->data = mesh_in_main;
+  obj->data = id_cast<ID *>(mesh_in_main);
   BKE_collection_object_add(bmain, lc->collection, obj);
   BKE_view_layer_synced_ensure(scene, view_layer);
-  Base *base = BKE_view_layer_base_find(view_layer, obj);
-  BKE_view_layer_base_select_and_set_active(view_layer, base);
+  if (Base *base = BKE_view_layer_base_find(view_layer, obj)) {
+    /* `base` will be nullptr if the Object could not be instantiated in the current viewlayer. */
+    BKE_view_layer_base_select_and_set_active(view_layer, base);
+  }
 
   float global_scale = import_params.global_scale;
   if ((scene->unit.system != USER_UNIT_NONE) && import_params.use_scene_unit) {
@@ -161,4 +173,5 @@ void importer_main(Main *bmain,
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
   DEG_relations_tag_update(bmain);
 }
-}  // namespace blender::io::stl
+}  // namespace io::stl
+}  // namespace blender

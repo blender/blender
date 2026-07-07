@@ -16,6 +16,8 @@
 /* XXX, bad level call */
 #include "../../blenfont/BLF_api.hh"
 
+namespace blender {
+
 /* Only change if we need to update the previews in the on-disk cache. */
 #define FONT_THUMB_VERSION "1.0.1"
 
@@ -87,3 +89,5 @@ ImBuf *IMB_font_preview(const char *filepath,
 
   return ibuf;
 }
+
+}  // namespace blender

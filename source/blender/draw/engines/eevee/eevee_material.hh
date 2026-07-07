@@ -12,16 +12,24 @@
 
 #include "DRW_render.hh"
 
+#include "BLI_enum_flags.hh"
 #include "BLI_map.hh"
 #include "BLI_vector.hh"
+
 #include "GPU_material.hh"
 
+#include "draw_pass.hh"
+
+#include "eevee_material_shared.hh"
+#include "eevee_shader.hh"
 #include "eevee_sync.hh"
+
+namespace blender {
 
 struct bNodeSocketValueFloat;
 struct bNodeSocketValueRGBA;
 
-namespace blender::eevee {
+namespace eevee {
 
 class Instance;
 
@@ -29,34 +37,6 @@ class Instance;
 /** \name MaterialKey
  *
  * \{ */
-
-enum eMaterialPipeline {
-  MAT_PIPE_DEFERRED = 0,
-  MAT_PIPE_FORWARD,
-  /* These all map to the depth shader. */
-  MAT_PIPE_PREPASS_DEFERRED,
-  MAT_PIPE_PREPASS_DEFERRED_VELOCITY,
-  MAT_PIPE_PREPASS_OVERLAP,
-  MAT_PIPE_PREPASS_FORWARD,
-  MAT_PIPE_PREPASS_FORWARD_VELOCITY,
-  MAT_PIPE_PREPASS_PLANAR,
-
-  MAT_PIPE_VOLUME_MATERIAL,
-  MAT_PIPE_VOLUME_OCCUPANCY,
-  MAT_PIPE_SHADOW,
-  MAT_PIPE_CAPTURE,
-};
-
-enum eMaterialGeometry {
-  /* These maps directly to object types. */
-  MAT_GEOM_MESH = 0,
-  MAT_GEOM_POINTCLOUD,
-  MAT_GEOM_CURVES,
-  MAT_GEOM_VOLUME,
-
-  /* These maps to special shader. */
-  MAT_GEOM_WORLD,
-};
 
 static inline bool geometry_type_has_surface(eMaterialGeometry geometry_type)
 {
@@ -143,7 +123,24 @@ static inline uint64_t shader_uuid_from_material_type(
   return uuid;
 }
 
-ENUM_OPERATORS(eClosureBits, CLOSURE_AMBIENT_OCCLUSION)
+enum eClosureBits : uint32_t {
+  CLOSURE_NONE = 0u,
+  CLOSURE_DIFFUSE = (1u << 0u),
+  CLOSURE_SSS = (1u << 1u),
+  CLOSURE_REFLECTION = (1u << 2u),
+  CLOSURE_REFRACTION = (1u << 3u),
+  CLOSURE_TRANSLUCENT = (1u << 4u),
+  CLOSURE_TRANSPARENCY = (1u << 8u),
+  CLOSURE_EMISSION = (1u << 9u),
+  CLOSURE_HOLDOUT = (1u << 10u),
+  CLOSURE_VOLUME = (1u << 11u),
+  CLOSURE_AMBIENT_OCCLUSION = (1u << 12u),
+  CLOSURE_SHADER_TO_RGBA = (1u << 13u),
+  CLOSURE_CLEARCOAT = (1u << 14u),
+
+  CLOSURE_TRANSMISSION = CLOSURE_SSS | CLOSURE_REFRACTION | CLOSURE_TRANSLUCENT,
+};
+ENUM_OPERATORS(eClosureBits)
 
 static inline eClosureBits shader_closure_bits_from_flag(const GPUMaterial *gpumat)
 {
@@ -235,10 +232,10 @@ static inline eMaterialGeometry to_material_geometry(const Object *ob)
  * This is above the shader binning.
  */
 struct MaterialKey {
-  ::Material *mat;
+  blender::Material *mat;
   uint64_t options;
 
-  MaterialKey(::Material *mat_,
+  MaterialKey(blender::Material *mat_,
               eMaterialGeometry geometry,
               eMaterialPipeline pipeline,
               short visibility_flags)
@@ -283,7 +280,7 @@ struct ShaderKey {
   gpu::Shader *shader;
   uint64_t options;
 
-  ShaderKey(GPUMaterial *gpumat, ::Material *blender_mat, eMaterialProbe probe_capture)
+  ShaderKey(GPUMaterial *gpumat, blender::Material *blender_mat, eMaterialProbe probe_capture)
   {
     shader = GPU_material_get_shader(gpumat);
     options = uint64_t(shader_closure_bits_from_flag(gpumat));
@@ -300,33 +297,6 @@ struct ShaderKey {
   {
     return (shader == k.shader) && (options == k.options);
   }
-};
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Default Material Node-Tree
- *
- * In order to support materials without nodetree we reuse and configure a standalone nodetree that
- * we pass for shader generation. The GPUMaterial is still stored inside the Material even if
- * it does not use the same nodetree.
- *
- * \{ */
-
-class DefaultSurfaceNodeTree {
- private:
-  bNodeTree *ntree_;
-  bNodeSocketValueRGBA *color_socket_;
-  bNodeSocketValueFloat *metallic_socket_;
-  bNodeSocketValueFloat *roughness_socket_;
-  bNodeSocketValueFloat *specular_socket_;
-
- public:
-  DefaultSurfaceNodeTree();
-  ~DefaultSurfaceNodeTree();
-
-  /** Configure a default node-tree with the given material. */
-  bNodeTree *nodetree_get(::Material *ma);
 };
 
 /** \} */
@@ -366,12 +336,12 @@ struct MaterialArray {
 
 class MaterialModule {
  public:
-  ::Material *diffuse_mat;
-  ::Material *metallic_mat;
-  ::Material *default_surface;
-  ::Material *default_volume;
+  blender::Material *diffuse_mat;
+  blender::Material *metallic_mat;
+  blender::Material *default_surface;
+  blender::Material *default_volume;
 
-  ::Material *material_override = nullptr;
+  blender::Material *material_override = nullptr;
 
   int64_t queued_shaders_count = 0;
   int64_t queued_textures_count = 0;
@@ -385,9 +355,7 @@ class MaterialModule {
 
   MaterialArray material_array_;
 
-  DefaultSurfaceNodeTree default_surface_ntree_;
-
-  ::Material *error_mat_;
+  blender::Material *error_mat_;
 
   uint64_t gpu_pass_last_update_ = 0;
   uint64_t gpu_pass_next_update_ = 0;
@@ -423,14 +391,14 @@ class MaterialModule {
 
  private:
   Material &material_sync(Object *ob,
-                          ::Material *blender_mat,
+                          blender::Material *blender_mat,
                           eMaterialGeometry geometry_type,
                           bool has_motion);
 
   /** Return correct material or empty default material if slot is empty. */
-  ::Material *material_from_slot(Object *ob, int slot);
+  blender::Material *material_from_slot(Object *ob, int slot);
   MaterialPass material_pass_get(Object *ob,
-                                 ::Material *blender_mat,
+                                 blender::Material *blender_mat,
                                  eMaterialPipeline pipeline_type,
                                  eMaterialGeometry geometry_type,
                                  eMaterialProbe probe_capture = MAT_PROBE_NONE);
@@ -443,4 +411,5 @@ class MaterialModule {
 
 /** \} */
 
-}  // namespace blender::eevee
+}  // namespace eevee
+}  // namespace blender

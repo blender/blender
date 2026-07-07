@@ -20,6 +20,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 /* NOTE: we should handle all previews for a same group at once, would avoid reopening
  * `.blend` file for each and every ID. However, this adds some complexity,
  * so keep it for later. */
@@ -42,7 +44,7 @@ static ImBuf *imb_thumb_load_from_blend_id(const char *blen_path,
 
   if (preview) {
     ima = BKE_previewimg_to_imbuf(preview, ICON_SIZE_PREVIEW);
-    BKE_previewimg_freefunc(preview);
+    BKE_previewimg_free(&preview);
   }
   return ima;
 }
@@ -53,7 +55,7 @@ static ImBuf *imb_thumb_load_from_blendfile(const char *blen_path)
   ImBuf *ima = BKE_main_thumbnail_to_imbuf(nullptr, data);
 
   if (data) {
-    MEM_freeN(data);
+    MEM_delete(data);
   }
   return ima;
 }
@@ -65,3 +67,5 @@ ImBuf *IMB_thumb_load_blend(const char *blen_path, const char *blen_group, const
   }
   return imb_thumb_load_from_blendfile(blen_path);
 }
+
+}  // namespace blender

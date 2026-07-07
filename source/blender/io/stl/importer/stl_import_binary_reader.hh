@@ -10,6 +10,8 @@
 
 #include <cstdio>
 
+namespace blender {
+
 struct Mesh;
 
 /* Binary STL spec.:
@@ -23,8 +25,9 @@ struct Mesh;
  *   - UINT16      - Attribute byte count   -  2 bytes
  */
 
-namespace blender::io::stl {
+namespace io::stl {
 
 Mesh *read_stl_binary(FILE *file, bool use_custom_normals);
 
-}  // namespace blender::io::stl
+}  // namespace io::stl
+}  // namespace blender

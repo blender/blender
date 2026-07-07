@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/overlay_outline_info.hh"
+#include "infos/overlay_outline_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(overlay_outline_prepass_gpencil)
 
@@ -19,11 +19,13 @@ float3 ray_plane_intersection(float3 ray_ori, float3 ray_dir, float4 plane)
 
 void main()
 {
-  if (gpencil_stroke_round_cap_mask(gp_interp_flat.sspos.xy,
-                                    gp_interp_flat.sspos.zw,
-                                    gp_interp_flat.aspect,
-                                    gp_interp_noperspective.thickness.x,
-                                    gp_interp_noperspective.hardness) < 0.001f)
+  if (gpencil_stroke_segment_mask(gp_interp_flat.sspos.xy,
+                                  gp_interp_flat.sspos.zw,
+                                  gp_interp_flat.sspos_adj.xy,
+                                  gp_interp_flat.sspos_adj.zw,
+                                  gp_interp_noperspective.thickness.x,
+                                  gp_interp_noperspective.hardness,
+                                  gp_interp_noperspective.thickness.zw) < 0.001f)
   {
     gpu_discard_fragment();
     return;

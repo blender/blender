@@ -18,8 +18,8 @@ shader node_glass_bsdf(color Color = 0.8,
   float r2 = clamp(Roughness, 0.0, 1.0);
   r2 = r2 * r2;
   float eta = max(IOR, 1e-5);
-  eta = backfacing() ? 1.0 / eta : eta;
   float thinfilm_ior = backfacing() ? ThinFilmIOR / eta : ThinFilmIOR;
+  eta = backfacing() ? 1.0 / eta : eta;
   color F0 = F0_from_ior(eta);
   color F90 = color(1.0);
 

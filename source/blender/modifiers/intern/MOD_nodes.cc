@@ -10,6 +10,7 @@
 #include <fmt/format.h>
 #include <sstream>
 #include <string>
+#include <xxhash.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -22,7 +23,6 @@
 #include "DNA_array_utils.hh"
 #include "DNA_collection_types.h"
 #include "DNA_curves_types.h"
-#include "DNA_defaults.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
@@ -92,20 +92,18 @@
 #include "NOD_node_declaration.hh"
 #include "NOD_socket_usage_inference.hh"
 
-namespace lf = blender::fn::lazy_function;
-namespace geo_log = blender::nodes::geo_eval_log;
-namespace bake = blender::bke::bake;
-
 namespace blender {
+
+namespace lf = fn::lazy_function;
+namespace geo_log = nodes::geo_eval_log;
+namespace bake = bke::bake;
 
 static void init_data(ModifierData *md)
 {
-  NodesModifierData *nmd = (NodesModifierData *)md;
+  NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(nmd, modifier));
+  INIT_DEFAULT_STRUCT_AFTER(nmd, modifier);
   nmd->modifier.layout_panel_open_flag |= 1 << NODES_MODIFIER_PANEL_WARNINGS;
-
-  MEMCPY_STRUCT_AFTER(nmd, DNA_struct_default_get(NodesModifierData), modifier);
   nmd->runtime = MEM_new<NodesModifierRuntime>(__func__);
   nmd->runtime->cache = std::make_shared<bake::ModifierCache>();
 }
@@ -114,7 +112,7 @@ static void find_dependencies_from_settings(const NodesModifierSettings &setting
                                             nodes::GeometryNodesEvalDependencies &deps)
 {
   IDP_foreach_property(settings.properties, IDP_TYPE_FILTER_ID, [&](IDProperty *property) {
-    if (ID *id = IDP_Id(property)) {
+    if (ID *id = IDP_ID_get(property)) {
       deps.add_generic_id_full(id);
     }
   });
@@ -142,7 +140,7 @@ static void add_object_relation(
   if (info.transform) {
     DEG_add_object_relation(ctx->node, &object, DEG_OB_COMP_TRANSFORM, "Nodes Modifier");
   }
-  if (&(ID &)object == &ctx->object->id) {
+  if (&object == ctx->object) {
     return;
   }
   if (info.geometry) {
@@ -157,6 +155,11 @@ static void add_object_relation(
   if (object.type == OB_CAMERA) {
     if (info.camera_parameters) {
       DEG_add_object_relation(ctx->node, &object, DEG_OB_COMP_PARAMETERS, "Nodes Modifier");
+    }
+  }
+  if (object.type == OB_ARMATURE) {
+    if (info.pose) {
+      DEG_add_object_relation(ctx->node, &object, DEG_OB_COMP_EVAL_POSE, "Nodes Modifier");
     }
   }
 }
@@ -180,7 +183,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
   find_dependencies_from_settings(nmd->settings, eval_deps);
 
   if (ctx->object->type == OB_CURVES) {
-    Curves *curves_id = static_cast<Curves *>(ctx->object->data);
+    Curves *curves_id = id_cast<Curves *>(ctx->object->data);
     if (curves_id->surface != nullptr) {
       eval_deps.add_object(curves_id->surface);
     }
@@ -195,7 +198,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
   }
 
   for (ID *id : eval_deps.ids.values()) {
-    switch ((ID_Type)GS(id->name)) {
+    switch (ID_Type(GS(id->name))) {
       case ID_OB: {
         Object *object = reinterpret_cast<Object *>(id);
         add_object_relation(
@@ -212,9 +215,17 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
         DEG_add_generic_id_relation(ctx->node, id, "Nodes Modifier");
         break;
       }
-      default: {
+      case ID_VF: {
+        DEG_add_vfont_relation(ctx->node, reinterpret_cast<VFont *>(id), "Nodes Modifier");
+        break;
+      }
+      case ID_MA: {
         /* Purposefully don't add relations for materials. While there are material sockets,
          * the pointers are only passed around as handles rather than dereferenced. */
+        break;
+      }
+      default: {
+        /* Other types don't need depsgraph dependencies currently. */
         break;
       }
     }
@@ -255,10 +266,10 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-  walk(user_data, ob, (ID **)&nmd->node_group, IDWALK_CB_USER);
+  walk(user_data, ob, reinterpret_cast<ID **>(&nmd->node_group), IDWALK_CB_USER);
 
   IDP_foreach_property(nmd->settings.properties, IDP_TYPE_FILTER_ID, [&](IDProperty *id_prop) {
-    walk(user_data, ob, (ID **)&id_prop->data.pointer, IDWALK_CB_USER);
+    walk(user_data, ob, reinterpret_cast<ID **>(&id_prop->data.pointer), IDWALK_CB_USER);
   });
 
   for (NodesModifierBake &bake : MutableSpan(nmd->bakes, nmd->bakes_num)) {
@@ -271,7 +282,7 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
 
 static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, void *user_data)
 {
-  PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Modifier, md);
+  PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, RNA_Modifier, md);
   PropertyRNA *prop = RNA_struct_find_property(&ptr, "texture");
   walk(user_data, ob, md, &ptr, prop);
 }
@@ -300,7 +311,7 @@ static bool logging_enabled(const ModifierEvalContext *ctx)
 
 static void update_id_properties_from_node_group(NodesModifierData *nmd)
 {
-  if (nmd->node_group == nullptr) {
+  if (nmd->node_group == nullptr || ID_MISSING(nmd->node_group)) {
     if (nmd->settings.properties) {
       IDP_FreeProperty(nmd->settings.properties);
       nmd->settings.properties = nullptr;
@@ -351,7 +362,7 @@ static void update_bakes_from_node_group(NodesModifierData &nmd)
   }
 
   Vector<int> new_bake_ids;
-  if (nmd.node_group) {
+  if (nmd.node_group && !ID_MISSING(nmd.node_group)) {
     for (const bNestedNodeRef &ref : nmd.node_group->nested_node_refs_span()) {
       const bNode *node = nmd.node_group->find_nested_node(ref.id);
       if (node) {
@@ -367,8 +378,8 @@ static void update_bakes_from_node_group(NodesModifierData &nmd)
     }
   }
 
-  NodesModifierBake *new_bake_data = MEM_calloc_arrayN<NodesModifierBake>(new_bake_ids.size(),
-                                                                          __func__);
+  NodesModifierBake *new_bake_data = MEM_new_array<NodesModifierBake>(new_bake_ids.size(),
+                                                                      __func__);
   for (const int i : new_bake_ids.index_range()) {
     const int id = new_bake_ids[i];
     NodesModifierBake *old_bake = old_bake_by_id.lookup_default(id, nullptr);
@@ -392,7 +403,7 @@ static void update_bakes_from_node_group(NodesModifierData &nmd)
   for (NodesModifierBake &old_bake : MutableSpan(nmd.bakes, nmd.bakes_num)) {
     nodes_modifier_bake_destruct(&old_bake, true);
   }
-  MEM_SAFE_FREE(nmd.bakes);
+  MEM_SAFE_DELETE(nmd.bakes);
 
   nmd.bakes = new_bake_data;
   nmd.bakes_num = new_bake_ids.size();
@@ -408,7 +419,7 @@ static void update_panels_from_node_group(NodesModifierData &nmd)
   }
 
   Vector<const bNodeTreeInterfacePanel *> interface_panels;
-  if (nmd.node_group) {
+  if (nmd.node_group && !ID_MISSING(nmd.node_group)) {
     nmd.node_group->ensure_interface_cache();
     nmd.node_group->tree_interface.foreach_item([&](const bNodeTreeInterfaceItem &item) {
       if (item.item_type != NODE_INTERFACE_PANEL) {
@@ -419,8 +430,8 @@ static void update_panels_from_node_group(NodesModifierData &nmd)
     });
   }
 
-  NodesModifierPanel *new_panels = MEM_calloc_arrayN<NodesModifierPanel>(interface_panels.size(),
-                                                                         __func__);
+  NodesModifierPanel *new_panels = MEM_new_array<NodesModifierPanel>(interface_panels.size(),
+                                                                     __func__);
 
   for (const int i : interface_panels.index_range()) {
     const bNodeTreeInterfacePanel &interface_panel = *interface_panels[i];
@@ -437,20 +448,18 @@ static void update_panels_from_node_group(NodesModifierData &nmd)
     }
   }
 
-  MEM_SAFE_FREE(nmd.panels);
+  MEM_SAFE_DELETE(nmd.panels);
 
   nmd.panels = new_panels;
   nmd.panels_num = interface_panels.size();
 }
 
-}  // namespace blender
-
 void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
 {
-  using namespace blender;
   update_id_properties_from_node_group(nmd);
   update_bakes_from_node_group(*nmd);
   update_panels_from_node_group(*nmd);
+  nmd->runtime->usage_cache.reset();
 
   DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
 }
@@ -462,15 +471,13 @@ NodesModifierBake *NodesModifierData::find_bake(const int id)
 
 const NodesModifierBake *NodesModifierData::find_bake(const int id) const
 {
-  for (const NodesModifierBake &bake : blender::Span{this->bakes, this->bakes_num}) {
+  for (const NodesModifierBake &bake : Span{this->bakes, this->bakes_num}) {
     if (bake.id == id) {
       return &bake;
     }
   }
   return nullptr;
 }
-
-namespace blender {
 
 /**
  * Setup side effects nodes so that the given node in the given compute context will be executed.
@@ -483,7 +490,7 @@ static void try_add_side_effect_node(const ModifierEvalContext &ctx,
                                      const NodesModifierData &nmd,
                                      nodes::GeoNodesSideEffectNodes &r_side_effect_nodes)
 {
-  if (nmd.node_group == nullptr) {
+  if (nmd.node_group == nullptr || ID_MISSING(nmd.node_group)) {
     return;
   }
 
@@ -494,7 +501,7 @@ static void try_add_side_effect_node(const ModifierEvalContext &ctx,
   std::reverse(compute_context_vec.begin(), compute_context_vec.end());
 
   const auto *modifier_compute_context = dynamic_cast<const bke::ModifierComputeContext *>(
-      compute_context_vec[0]);
+      compute_context_vec[1]);
   if (modifier_compute_context == nullptr) {
     return;
   }
@@ -509,13 +516,14 @@ static void try_add_side_effect_node(const ModifierEvalContext &ctx,
    * caller. This is easier than changing r_side_effect_nodes directly and then undoing changes in
    * case of errors. */
   nodes::GeoNodesSideEffectNodes local_side_effect_nodes;
-  for (const ComputeContext *compute_context_generic : compute_context_vec.as_span().drop_front(1))
+  for (const ComputeContext *compute_context_generic : compute_context_vec.as_span().drop_front(2))
   {
     const bke::bNodeTreeZones *current_zones = current_tree->zones();
     if (current_zones == nullptr) {
       return;
     }
-    const auto *lf_graph_info = nodes::ensure_geometry_nodes_lazy_function_graph(*current_tree);
+    const nodes::GeometryNodesLazyFunctionGraphInfo *lf_graph_info =
+        nodes::ensure_geometry_nodes_lazy_function_graph(*current_tree).get();
     if (lf_graph_info == nullptr) {
       return;
     }
@@ -533,13 +541,13 @@ static void try_add_side_effect_node(const ModifierEvalContext &ctx,
         return;
       }
       const lf::FunctionNode *lf_zone_node = lf_graph_info->mapping.zone_node_map.lookup_default(
-          simulation_zone, nullptr);
+          *simulation_zone->output_node_id, nullptr);
       if (lf_zone_node == nullptr) {
         return;
       }
       const lf::FunctionNode *lf_simulation_output_node =
           lf_graph_info->mapping.possible_side_effect_node_map.lookup_default(
-              simulation_zone->output_node(), nullptr);
+              *simulation_zone->output_node_id, nullptr);
       if (lf_simulation_output_node == nullptr) {
         return;
       }
@@ -563,7 +571,7 @@ static void try_add_side_effect_node(const ModifierEvalContext &ctx,
         return;
       }
       const lf::FunctionNode *lf_zone_node = lf_graph_info->mapping.zone_node_map.lookup_default(
-          repeat_zone, nullptr);
+          *repeat_zone->output_node_id, nullptr);
       if (lf_zone_node == nullptr) {
         return;
       }
@@ -586,7 +594,7 @@ static void try_add_side_effect_node(const ModifierEvalContext &ctx,
         return;
       }
       const lf::FunctionNode *lf_zone_node = lf_graph_info->mapping.zone_node_map.lookup_default(
-          foreach_zone, nullptr);
+          *foreach_zone->output_node_id, nullptr);
       if (lf_zone_node == nullptr) {
         return;
       }
@@ -613,7 +621,7 @@ static void try_add_side_effect_node(const ModifierEvalContext &ctx,
         return;
       }
       const lf::FunctionNode *lf_group_node = lf_graph_info->mapping.group_node_map.lookup_default(
-          group_node, nullptr);
+          group_node->identifier, nullptr);
       if (lf_group_node == nullptr) {
         return;
       }
@@ -643,8 +651,8 @@ static void try_add_side_effect_node(const ModifierEvalContext &ctx,
         return;
       }
       const lf::FunctionNode *lf_evaluate_node =
-          lf_graph_info->mapping.possible_side_effect_node_map.lookup_default(evaluate_node,
-                                                                              nullptr);
+          lf_graph_info->mapping.possible_side_effect_node_map.lookup_default(
+              evaluate_node->identifier, nullptr);
       if (!lf_evaluate_node) {
         return;
       }
@@ -672,7 +680,8 @@ static void try_add_side_effect_node(const ModifierEvalContext &ctx,
   if (final_node == nullptr) {
     return;
   }
-  const auto *lf_graph_info = nodes::ensure_geometry_nodes_lazy_function_graph(*current_tree);
+  const nodes::GeometryNodesLazyFunctionGraphInfo *lf_graph_info =
+      nodes::ensure_geometry_nodes_lazy_function_graph(*current_tree).get();
   if (lf_graph_info == nullptr) {
     return;
   }
@@ -684,7 +693,7 @@ static void try_add_side_effect_node(const ModifierEvalContext &ctx,
     return;
   }
   const lf::FunctionNode *lf_node =
-      lf_graph_info->mapping.possible_side_effect_node_map.lookup_default(final_node, nullptr);
+      lf_graph_info->mapping.possible_side_effect_node_map.lookup_default(final_node_id, nullptr);
   if (lf_node == nullptr) {
     return;
   }
@@ -718,7 +727,9 @@ static void find_side_effect_nodes_for_viewer_path(
   }
 
   bke::ComputeContextCache compute_context_cache;
-  const ComputeContext *current = &compute_context_cache.for_modifier(nullptr, nmd);
+  const ComputeContext *object_context = &compute_context_cache.for_data_block(
+      nullptr, parsed_path->object->id);
+  const ComputeContext *current = &compute_context_cache.for_modifier(object_context, nmd);
   for (const ViewerPathElem *elem : parsed_path->node_path) {
     current = ed::viewer_path::compute_context_for_viewer_path_elem(
         *elem, compute_context_cache, current);
@@ -737,7 +748,9 @@ static void find_side_effect_nodes_for_nested_node(
     nodes::GeoNodesSideEffectNodes &r_side_effect_nodes)
 {
   bke::ComputeContextCache compute_context_cache;
-  const ComputeContext *compute_context = &compute_context_cache.for_modifier(nullptr, nmd);
+  const ComputeContext *object_context = &compute_context_cache.for_data_block(nullptr,
+                                                                               ctx.object->id);
+  const ComputeContext *compute_context = &compute_context_cache.for_modifier(object_context, nmd);
 
   int nested_node_id = root_nested_node_id;
   const bNodeTree *tree = nmd.node_group;
@@ -836,16 +849,16 @@ static void find_side_effect_nodes(const NodesModifierData &nmd,
                                    Set<ComputeContextHash> &r_socket_log_contexts)
 {
   Main *bmain = DEG_get_bmain(ctx.depsgraph);
-  wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
   if (wm == nullptr) {
     return;
   }
-  LISTBASE_FOREACH (const wmWindow *, window, &wm->windows) {
-    const bScreen *screen = BKE_workspace_active_screen_get(window->workspace_hook);
-    const WorkSpace *workspace = BKE_workspace_active_get(window->workspace_hook);
+  for (const wmWindow &window : wm->windows) {
+    const bScreen *screen = BKE_workspace_active_screen_get(window.workspace_hook);
+    const WorkSpace *workspace = BKE_workspace_active_get(window.workspace_hook);
     find_side_effect_nodes_for_viewer_path(workspace->viewer_path, nmd, ctx, r_side_effect_nodes);
-    LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
-      const SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
+    for (const ScrArea &area : screen->areabase) {
+      const SpaceLink *sl = static_cast<SpaceLink *>(area.spacedata.first);
       if (sl->spacetype == SPACE_SPREADSHEET) {
         const SpaceSpreadsheet &sspreadsheet = *reinterpret_cast<const SpaceSpreadsheet *>(sl);
         find_side_effect_nodes_for_viewer_path(
@@ -868,15 +881,15 @@ static void find_socket_log_contexts(const NodesModifierData &nmd,
                                      Set<ComputeContextHash> &r_socket_log_contexts)
 {
   Main *bmain = DEG_get_bmain(ctx.depsgraph);
-  wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
   if (wm == nullptr) {
     return;
   }
   bke::ComputeContextCache compute_context_cache;
-  LISTBASE_FOREACH (const wmWindow *, window, &wm->windows) {
-    const bScreen *screen = BKE_workspace_active_screen_get(window->workspace_hook);
-    LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
-      const SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
+  for (const wmWindow &window : wm->windows) {
+    const bScreen *screen = BKE_workspace_active_screen_get(window.workspace_hook);
+    for (const ScrArea &area : screen->areabase) {
+      const SpaceLink *sl = static_cast<SpaceLink *>(area.spacedata.first);
       if (sl->spacetype == SPACE_NODE) {
         const SpaceNode &snode = *reinterpret_cast<const SpaceNode *>(sl);
         if (snode.edittree == nullptr || snode.edittree->type != NTREE_GEOMETRY) {
@@ -901,7 +914,7 @@ static void find_socket_log_contexts(const NodesModifierData &nmd,
  * the object as a parameter, so it's likely better to this check as a separate step.
  */
 static void check_property_socket_sync(const Object *ob,
-                                       const nodes::PropertiesVectorSet &properties,
+                                       const IDProperty *properties,
                                        ModifierData *md)
 {
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
@@ -926,7 +939,7 @@ static void check_property_socket_sync(const Object *ob,
       continue;
     }
 
-    IDProperty *property = properties.lookup_key_default_as(socket->identifier, nullptr);
+    IDProperty *property = IDP_GetPropertyFromGroup_null(properties, socket->identifier);
     if (property == nullptr) {
       if (!ELEM(type, SOCK_GEOMETRY, SOCK_MATRIX, SOCK_BUNDLE, SOCK_CLOSURE)) {
         BKE_modifier_set_error(
@@ -1102,9 +1115,11 @@ static bool try_find_baked_data(const NodesModifierBake &bake,
         return false;
       }
     }
+
     /* Make sure frames processed in the right order. */
     Vector<SubFrame> frames;
     frames.extend(file_by_frame.keys().begin(), file_by_frame.keys().end());
+    std::ranges::sort(frames);
 
     for (const SubFrame &frame : frames) {
       const NodesModifierBakeFile &meta_file = *file_by_frame.lookup(frame);
@@ -1654,10 +1669,10 @@ static void add_missing_data_block_mappings(
   const int old_num = bake.data_blocks_num;
   const int new_num = old_num + missing.size();
   bake.data_blocks = reinterpret_cast<NodesModifierDataBlock *>(
-      MEM_recallocN(bake.data_blocks, sizeof(NodesModifierDataBlock) * new_num));
+      MEM_realloc_zeroed(bake.data_blocks, sizeof(NodesModifierDataBlock) * new_num));
   for (const int i : missing.index_range()) {
     NodesModifierDataBlock &data_block = bake.data_blocks[old_num + i];
-    const blender::bke::bake::BakeDataBlockID &key = missing[i];
+    const bke::bake::BakeDataBlockID &key = missing[i];
 
     data_block.id_name = BLI_strdup(key.id_name.c_str());
     if (!key.lib_name.empty()) {
@@ -1674,8 +1689,8 @@ static void add_missing_data_block_mappings(
 
 void nodes_modifier_data_block_destruct(NodesModifierDataBlock *data_block, const bool do_id_user)
 {
-  MEM_SAFE_FREE(data_block->id_name);
-  MEM_SAFE_FREE(data_block->lib_name);
+  MEM_SAFE_DELETE(data_block->id_name);
+  MEM_SAFE_DELETE(data_block->lib_name);
   if (do_id_user) {
     id_us_min(data_block->id);
   }
@@ -1812,7 +1827,6 @@ static void modifyGeometry(ModifierData *md,
                            const ModifierEvalContext *ctx,
                            bke::GeometrySet &geometry_set)
 {
-  using namespace blender;
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
   if (nmd->node_group == nullptr) {
     return;
@@ -1823,11 +1837,8 @@ static void modifyGeometry(ModifierData *md,
     return;
   }
 
-  nodes::PropertiesVectorSet properties = nodes::build_properties_vector_set(
-      nmd->settings.properties);
-
   const bNodeTree &tree = *nmd->node_group;
-  check_property_socket_sync(ctx->object, properties, md);
+  check_property_socket_sync(ctx->object, nmd->settings.properties, md);
 
   tree.ensure_topology_cache();
   const bNode *output_node = tree.group_output_node();
@@ -1852,7 +1863,7 @@ static void modifyGeometry(ModifierData *md,
   }
 
   const nodes::GeometryNodesLazyFunctionGraphInfo *lf_graph_info =
-      nodes::ensure_geometry_nodes_lazy_function_graph(tree);
+      nodes::ensure_geometry_nodes_lazy_function_graph(tree).get();
   if (lf_graph_info == nullptr) {
     BKE_modifier_set_error(ctx->object, md, "Cannot evaluate node group");
     geometry_set.clear();
@@ -1893,10 +1904,14 @@ static void modifyGeometry(ModifierData *md,
   find_side_effect_nodes(*nmd, *ctx, side_effect_nodes, socket_log_contexts);
   call_data.side_effect_nodes = &side_effect_nodes;
 
-  bke::ModifierComputeContext modifier_compute_context{nullptr, *nmd};
+  bke::DataBlockComputeContext data_block_compute_context{nullptr, ctx->object->id};
+  bke::ModifierComputeContext modifier_compute_context{&data_block_compute_context, *nmd};
 
-  geometry_set = nodes::execute_geometry_nodes_on_geometry(
-      tree, properties, modifier_compute_context, call_data, std::move(geometry_set));
+  geometry_set = nodes::execute_geometry_nodes_on_geometry(tree,
+                                                           nmd->settings.properties,
+                                                           modifier_compute_context,
+                                                           call_data,
+                                                           std::move(geometry_set));
 
   if (logging_enabled(ctx)) {
     nmd_orig->runtime->eval_log = std::move(eval_log);
@@ -1952,16 +1967,68 @@ static void modify_geometry_set(ModifierData *md,
   modifyGeometry(md, ctx, *geometry_set);
 }
 
+void NodesModifierUsageInferenceCache::ensure(const NodesModifierData &nmd)
+{
+  if (!nmd.node_group || ID_MISSING(nmd.node_group)) {
+    this->reset();
+    return;
+  }
+  const bNodeTree &tree = *nmd.node_group;
+  tree.ensure_interface_cache();
+  tree.ensure_topology_cache();
+  ResourceScope scope;
+  const Vector<nodes::InferenceValue> group_input_values =
+      nodes::get_geometry_nodes_input_inference_values(tree, nmd.settings.properties, scope);
+
+  /* Compute the hash of the input values. This has to be done every time currently, because there
+   * is no reliable callback yet that is called any of the modifier properties changes. */
+  XXH3_state_t *state = XXH3_createState();
+  XXH3_64bits_reset(state);
+  BLI_SCOPED_DEFER([&]() { XXH3_freeState(state); });
+  for (const int input_i : IndexRange(nmd.node_group->interface_inputs().size())) {
+    const nodes::InferenceValue &value = group_input_values[input_i];
+    XXH3_64bits_update(state, &input_i, sizeof(input_i));
+    if (value.is_primitive_value()) {
+      const void *value_ptr = value.get_primitive_ptr();
+      const bNodeTreeInterfaceSocket &io_socket = *nmd.node_group->interface_inputs()[input_i];
+      const CPPType &base_type = *io_socket.socket_typeinfo()->base_cpp_type;
+      uint64_t value_hash = base_type.hash_or_fallback(value_ptr, 0);
+      XXH3_64bits_update(state, &value_hash, sizeof(value_hash));
+    }
+  }
+  const uint64_t new_input_values_hash = XXH3_64bits_digest(state);
+  if (new_input_values_hash == input_values_hash_) {
+    if (this->inputs.size() == tree.interface_inputs().size() &&
+        this->outputs.size() == tree.interface_outputs().size())
+    {
+      /* The cache is up to date, so return early. */
+      return;
+    }
+  }
+  /* Compute the new usage inference result. */
+  this->inputs.reinitialize(tree.interface_inputs().size());
+  this->outputs.reinitialize(tree.interface_outputs().size());
+  nodes::socket_usage_inference::infer_group_interface_usage(
+      tree, group_input_values, inputs, outputs);
+  input_values_hash_ = new_input_values_hash;
+}
+
+void NodesModifierUsageInferenceCache::reset()
+{
+  input_values_hash_ = 0;
+  this->inputs = {};
+  this->outputs = {};
+}
+
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
   PointerRNA *modifier_ptr = modifier_panel_get_property_pointers(panel, nullptr);
-  nodes::draw_geometry_nodes_modifier_ui(*C, modifier_ptr, *layout);
+  nodes::draw_geometry_nodes_modifier_ui(*C, modifier_ptr, layout);
 }
 
 static void panel_register(ARegionType *region_type)
 {
-  using namespace blender;
   modifier_panel_register(region_type, eModifierType_Nodes, panel_draw);
 }
 
@@ -1969,7 +2036,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 {
   const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
 
-  BLO_write_struct(writer, NodesModifierData, nmd);
+  writer->write_struct(nmd);
 
   BLO_write_string(writer, nmd->bake_directory);
 
@@ -1980,11 +2047,11 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
        * properties are automatically converted to boolean sockets where applicable as well.
        * However, boolean properties will crash old versions of Blender, so convert them to integer
        * properties for writing. The actual value is stored in the same variable for both types */
-      LISTBASE_FOREACH (IDProperty *, prop, &nmd->settings.properties->data.group) {
-        if (prop->type == IDP_BOOLEAN) {
-          boolean_props.add_new(prop, reinterpret_cast<IDPropertyUIDataBool *>(prop->ui_data));
-          prop->type = IDP_INT;
-          prop->ui_data = nullptr;
+      for (IDProperty &prop : nmd->settings.properties->data.group) {
+        if (prop.type == IDP_BOOLEAN) {
+          boolean_props.add_new(&prop, reinterpret_cast<IDPropertyUIDataBool *>(prop.ui_data));
+          prop.type = IDP_INT;
+          prop.ui_data = nullptr;
         }
       }
     }
@@ -1994,21 +2061,19 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
     IDP_BlendWrite(writer, nmd->settings.properties);
   }
 
-  BLO_write_struct_array(writer, NodesModifierBake, nmd->bakes_num, nmd->bakes);
+  writer->write_struct_array(nmd->bakes_num, nmd->bakes);
   for (const NodesModifierBake &bake : Span(nmd->bakes, nmd->bakes_num)) {
     BLO_write_string(writer, bake.directory);
 
-    BLO_write_struct_array(writer, NodesModifierDataBlock, bake.data_blocks_num, bake.data_blocks);
+    writer->write_struct_array(bake.data_blocks_num, bake.data_blocks);
     for (const NodesModifierDataBlock &item : Span(bake.data_blocks, bake.data_blocks_num)) {
       BLO_write_string(writer, item.id_name);
       BLO_write_string(writer, item.lib_name);
     }
     if (bake.packed) {
-      BLO_write_struct(writer, NodesModifierPackedBake, bake.packed);
-      BLO_write_struct_array(
-          writer, NodesModifierBakeFile, bake.packed->meta_files_num, bake.packed->meta_files);
-      BLO_write_struct_array(
-          writer, NodesModifierBakeFile, bake.packed->blob_files_num, bake.packed->blob_files);
+      writer->write_struct(bake.packed);
+      writer->write_struct_array(bake.packed->meta_files_num, bake.packed->meta_files);
+      writer->write_struct_array(bake.packed->blob_files_num, bake.packed->blob_files);
       const auto write_bake_file = [&](const NodesModifierBakeFile &bake_file) {
         BLO_write_string(writer, bake_file.name);
         if (bake_file.packed_file) {
@@ -2027,16 +2092,16 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
       }
     }
   }
-  BLO_write_struct_array(writer, NodesModifierPanel, nmd->panels_num, nmd->panels);
+  writer->write_struct_array(nmd->panels_num, nmd->panels);
 
   if (nmd->settings.properties) {
     if (!BLO_write_is_undo(writer)) {
-      LISTBASE_FOREACH (IDProperty *, prop, &nmd->settings.properties->data.group) {
-        if (prop->type == IDP_INT) {
-          if (IDPropertyUIDataBool **ui_data = boolean_props.lookup_ptr(prop)) {
-            prop->type = IDP_BOOLEAN;
+      for (IDProperty &prop : nmd->settings.properties->data.group) {
+        if (prop.type == IDP_INT) {
+          if (IDPropertyUIDataBool **ui_data = boolean_props.lookup_ptr(&prop)) {
+            prop.type = IDP_BOOLEAN;
             if (ui_data) {
-              prop->ui_data = reinterpret_cast<IDPropertyUIData *>(*ui_data);
+              prop.ui_data = reinterpret_cast<IDPropertyUIData *>(*ui_data);
             }
           }
         }
@@ -2116,14 +2181,14 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
   BKE_modifier_copydata_generic(md, target, flag);
 
   if (nmd->bakes) {
-    tnmd->bakes = static_cast<NodesModifierBake *>(MEM_dupallocN(nmd->bakes));
+    tnmd->bakes = MEM_dupalloc(nmd->bakes);
     for (const int i : IndexRange(nmd->bakes_num)) {
       NodesModifierBake &bake = tnmd->bakes[i];
       if (bake.directory) {
         bake.directory = BLI_strdup(bake.directory);
       }
       if (bake.data_blocks) {
-        bake.data_blocks = static_cast<NodesModifierDataBlock *>(MEM_dupallocN(bake.data_blocks));
+        bake.data_blocks = MEM_dupalloc(bake.data_blocks);
         for (const int i : IndexRange(bake.data_blocks_num)) {
           NodesModifierDataBlock &data_block = bake.data_blocks[i];
           if (data_block.id_name) {
@@ -2135,13 +2200,13 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
         }
       }
       if (bake.packed) {
-        bake.packed = static_cast<NodesModifierPackedBake *>(MEM_dupallocN(bake.packed));
+        bake.packed = MEM_dupalloc(bake.packed);
         const auto copy_bake_files_inplace = [](NodesModifierBakeFile **bake_files,
                                                 const int bake_files_num) {
           if (!*bake_files) {
             return;
           }
-          *bake_files = static_cast<NodesModifierBakeFile *>(MEM_dupallocN(*bake_files));
+          *bake_files = MEM_dupalloc(*bake_files);
           for (NodesModifierBakeFile &bake_file : MutableSpan{*bake_files, bake_files_num}) {
             bake_file.name = BLI_strdup_null(bake_file.name);
             if (bake_file.packed_file) {
@@ -2156,7 +2221,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
   }
 
   if (nmd->panels) {
-    tnmd->panels = static_cast<NodesModifierPanel *>(MEM_dupallocN(nmd->panels));
+    tnmd->panels = MEM_dupalloc(nmd->panels);
   }
 
   tnmd->runtime = MEM_new<NodesModifierRuntime>(__func__);
@@ -2182,27 +2247,27 @@ void nodes_modifier_packed_bake_free(NodesModifierPackedBake *packed_bake)
 {
   const auto free_packed_files = [](NodesModifierBakeFile *files, const int files_num) {
     for (NodesModifierBakeFile &file : MutableSpan{files, files_num}) {
-      MEM_SAFE_FREE(file.name);
+      MEM_SAFE_DELETE(file.name);
       if (file.packed_file) {
         BKE_packedfile_free(file.packed_file);
       }
     }
-    MEM_SAFE_FREE(files);
+    MEM_SAFE_DELETE(files);
   };
   free_packed_files(packed_bake->meta_files, packed_bake->meta_files_num);
   free_packed_files(packed_bake->blob_files, packed_bake->blob_files_num);
-  MEM_SAFE_FREE(packed_bake);
+  MEM_SAFE_DELETE(packed_bake);
 }
 
 void nodes_modifier_bake_destruct(NodesModifierBake *bake, const bool do_id_user)
 {
-  MEM_SAFE_FREE(bake->directory);
+  MEM_SAFE_DELETE(bake->directory);
 
   for (NodesModifierDataBlock &data_block : MutableSpan(bake->data_blocks, bake->data_blocks_num))
   {
     nodes_modifier_data_block_destruct(&data_block, do_id_user);
   }
-  MEM_SAFE_FREE(bake->data_blocks);
+  MEM_SAFE_DELETE(bake->data_blocks);
 
   if (bake->packed) {
     nodes_modifier_packed_bake_free(bake->packed);
@@ -2220,11 +2285,11 @@ static void free_data(ModifierData *md)
   for (NodesModifierBake &bake : MutableSpan(nmd->bakes, nmd->bakes_num)) {
     nodes_modifier_bake_destruct(&bake, false);
   }
-  MEM_SAFE_FREE(nmd->bakes);
+  MEM_SAFE_DELETE(nmd->bakes);
 
-  MEM_SAFE_FREE(nmd->panels);
+  MEM_SAFE_DELETE(nmd->panels);
 
-  MEM_SAFE_FREE(nmd->bake_directory);
+  MEM_SAFE_DELETE(nmd->bake_directory);
   MEM_delete(nmd->runtime);
 }
 
@@ -2235,8 +2300,6 @@ static void required_data_mask(ModifierData * /*md*/, CustomData_MeshMasks *r_cd
   r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
   r_cddata_masks->vmask |= CD_MASK_PROP_ALL;
 }
-
-}  // namespace blender
 
 ModifierTypeInfo modifierType_Nodes = {
     /*idname*/ "GeometryNodes",
@@ -2251,28 +2314,30 @@ ModifierTypeInfo modifierType_Nodes = {
      eModifierTypeFlag_SupportsMapping | eModifierTypeFlag_AcceptsGreasePencil),
     /*icon*/ ICON_GEOMETRY_NODES,
 
-    /*copy_data*/ blender::copy_data,
+    /*copy_data*/ copy_data,
 
     /*deform_verts*/ nullptr,
     /*deform_matrices*/ nullptr,
     /*deform_verts_EM*/ nullptr,
     /*deform_matrices_EM*/ nullptr,
-    /*modify_mesh*/ blender::modify_mesh,
-    /*modify_geometry_set*/ blender::modify_geometry_set,
+    /*modify_mesh*/ modify_mesh,
+    /*modify_geometry_set*/ modify_geometry_set,
 
-    /*init_data*/ blender::init_data,
-    /*required_data_mask*/ blender::required_data_mask,
-    /*free_data*/ blender::free_data,
-    /*is_disabled*/ blender::is_disabled,
-    /*update_depsgraph*/ blender::update_depsgraph,
-    /*depends_on_time*/ blender::depends_on_time,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ required_data_mask,
+    /*free_data*/ free_data,
+    /*is_disabled*/ is_disabled,
+    /*update_depsgraph*/ update_depsgraph,
+    /*depends_on_time*/ depends_on_time,
     /*depends_on_normals*/ nullptr,
-    /*foreach_ID_link*/ blender::foreach_ID_link,
-    /*foreach_tex_link*/ blender::foreach_tex_link,
+    /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_tex_link*/ foreach_tex_link,
     /*free_runtime_data*/ nullptr,
-    /*panel_register*/ blender::panel_register,
-    /*blend_write*/ blender::blend_write,
-    /*blend_read*/ blender::blend_read,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ blend_write,
+    /*blend_read*/ blend_read,
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

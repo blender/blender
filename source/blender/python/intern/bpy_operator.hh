@@ -10,12 +10,8 @@
 
 #include <Python.h>
 
-extern PyTypeObject pyop_base_Type;
-
-#define BPy_OperatorBase_Check(v) (PyObject_TypeCheck(v, &pyop_base_Type))
-
-struct BPy_OperatorBase {
-  PyObject_HEAD /* Required Python macro. */
-};
+namespace blender {
 
 [[nodiscard]] PyObject *BPY_operator_module();
+
+}  // namespace blender

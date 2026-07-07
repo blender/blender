@@ -22,12 +22,14 @@
 
 #include "RNA_access.hh"
 
-#include "FX_shader_types.h"
-#include "FX_ui_common.h"
+#include "FX_shader_types.hh"
+#include "FX_ui_common.hh"
+
+namespace blender {
 
 static void init_data(ShaderFxData *fx)
 {
-  ColorizeShaderFxData *gpfx = (ColorizeShaderFxData *)fx;
+  ColorizeShaderFxData *gpfx = reinterpret_cast<ColorizeShaderFxData *>(fx);
   ARRAY_SET_ITEMS(gpfx->low_color, 0.0f, 0.0f, 0.0f, 1.0f);
   ARRAY_SET_ITEMS(gpfx->high_color, 1.0f, 1.0f, 1.0f, 1.0f);
   gpfx->mode = eShaderFxColorizeMode_GrayScale;
@@ -41,26 +43,26 @@ static void copy_data(const ShaderFxData *md, ShaderFxData *target)
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
   int mode = RNA_enum_get(ptr, "mode");
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (ELEM(mode, eShaderFxColorizeMode_Custom, eShaderFxColorizeMode_Duotone)) {
     const char *text = (mode == eShaderFxColorizeMode_Duotone) ? IFACE_("Low Color") :
                                                                  IFACE_("Color");
-    layout->prop(ptr, "low_color", UI_ITEM_NONE, text, ICON_NONE);
+    layout.prop(ptr, "low_color", UI_ITEM_NONE, text, ICON_NONE);
   }
   if (mode == eShaderFxColorizeMode_Duotone) {
-    layout->prop(ptr, "high_color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "high_color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  layout->prop(ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   shaderfx_panel_end(layout, ptr);
 }
@@ -73,7 +75,7 @@ static void panel_register(ARegionType *region_type)
 static void foreach_working_space_color(ShaderFxData *fx,
                                         const IDTypeForeachColorFunctionCallback &fn)
 {
-  ColorizeShaderFxData *gpfx = (ColorizeShaderFxData *)fx;
+  ColorizeShaderFxData *gpfx = reinterpret_cast<ColorizeShaderFxData *>(fx);
   fn.single(gpfx->low_color);
   fn.single(gpfx->high_color);
 }
@@ -96,3 +98,5 @@ ShaderFxTypeInfo shaderfx_Type_Colorize = {
     /*foreach_working_space_color*/ foreach_working_space_color,
     /*panel_register*/ panel_register,
 };
+
+}  // namespace blender

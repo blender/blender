@@ -206,6 +206,7 @@
 #include "intern/bmesh_polygon_edgenet.hh"      // IWYU pragma: export
 #include "intern/bmesh_query.hh"                // IWYU pragma: export
 #include "intern/bmesh_query_uv.hh"             // IWYU pragma: export
+#include "intern/bmesh_uvselect.hh"             // IWYU pragma: export
 #include "intern/bmesh_walkers.hh"              // IWYU pragma: export
 
 #include "intern/bmesh_inline.hh"  // IWYU pragma: export

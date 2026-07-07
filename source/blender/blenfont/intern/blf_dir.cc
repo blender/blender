@@ -23,6 +23,8 @@
 
 #include "blf_internal.hh"
 
+namespace blender {
+
 char *blf_dir_metrics_search(const char *filepath)
 {
   char *mfile;
@@ -32,7 +34,7 @@ char *blf_dir_metrics_search(const char *filepath)
   s = strrchr(mfile, '.');
   if (s) {
     if (BLI_strnlen(s, 4) < 4) {
-      MEM_freeN(mfile);
+      MEM_delete(mfile);
       return nullptr;
     }
     s++;
@@ -52,6 +54,8 @@ char *blf_dir_metrics_search(const char *filepath)
       return mfile;
     }
   }
-  MEM_freeN(mfile);
+  MEM_delete(mfile);
   return nullptr;
 }
+
+}  // namespace blender

@@ -9,11 +9,10 @@ from ....io.exp.user_extensions import export_user_extensions
 from ....io.com.gltf2_io_extensions import Extension
 from ....io.exp.image_data import ImageData
 from ....io.exp.binary_data import BinaryData
-from ....io.com import debug as gltf2_io_debug
 from ....io.com import gltf2_io
 from ..sampler import gather_sampler
 from ..cache import cached
-from .search_node_tree import get_texture_node_from_socket, NodeSocket
+from .search_node_tree import get_texture_node_from_socket
 from . import image
 
 
@@ -110,7 +109,7 @@ def __gather_extensions(blender_shader_sockets, source, webp_image, image_data, 
             )
             buffer_view = None
             name = source.uri.name
-            image.set_real_uri(uri, export_settings) # Note: image, here, is the imported image python file
+            image.set_real_uri(uri, export_settings)  # Note: image, here, is the imported image python file
 
         else:
             buffer_view = BinaryData(data=new_data)
@@ -188,7 +187,7 @@ def __gather_sampler(blender_shader_sockets, export_settings):
     if len(first_valid_shader_node.group_path) > 0:
         # Retrieving the blender material using this shader tree
         for mat in bpy.data.materials:
-            if mat.use_nodes is True and id(mat.node_tree) == id(first_valid_shader_node.group_path[0].original):
+            if id(mat.node_tree) == id(first_valid_shader_node.group_path[0].original):
                 group_path_str += mat.name  # TODO if linked, we can have multiple materials with same name...
                 break
     if len(first_valid_shader_node.group_path) > 1:
@@ -234,7 +233,7 @@ def __gather_source(blender_shader_sockets, use_tile, export_settings):
                 )
                 name = source.uri.name
 
-                image.set_real_uri(uri, export_settings) # Note: image, here, is the imported image python file
+                image.set_real_uri(uri, export_settings)  # Note: image, here, is the imported image python file
 
             else:
                 uri = None

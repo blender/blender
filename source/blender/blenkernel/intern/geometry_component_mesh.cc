@@ -9,9 +9,9 @@
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 
-#include "attribute_access_intern.hh"
+namespace blender {
 
-namespace blender::bke {
+namespace bke {
 
 /* -------------------------------------------------------------------- */
 /** \name Geometry Component Implementation
@@ -168,9 +168,9 @@ VArray<float3> mesh_normals_varray(const Mesh &mesh,
 
 /** \} */
 
-}  // namespace blender::bke
+}  // namespace bke
 
-namespace blender::bke {
+namespace bke {
 
 /* -------------------------------------------------------------------- */
 /** \name Attribute Access
@@ -189,4 +189,5 @@ std::optional<MutableAttributeAccessor> MeshComponent::attributes_for_write()
 
 /** \} */
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

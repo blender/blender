@@ -39,6 +39,7 @@ static void node_declare(NodeDeclarationBuilder &b)
                      .max(1.0f)
                      .subtype(PROP_FACTOR)
                      .supports_field()
+                     .structure_type(StructureType::Dynamic)
                      .make_available([](bNode &node) {
                        node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_FACTOR;
                      });
@@ -46,13 +47,15 @@ static void node_declare(NodeDeclarationBuilder &b)
                      .min(0.0f)
                      .subtype(PROP_DISTANCE)
                      .supports_field()
+                     .structure_type(StructureType::Dynamic)
                      .make_available([](bNode &node) {
                        node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_LENGTH;
                      });
-  auto &index =
-      b.add_input<decl::Int>("Curve Index").supports_field().make_available([](bNode &node) {
-        node_storage(node).use_all_curves = false;
-      });
+  auto &index = b.add_input<decl::Int>("Curve Index")
+                    .supports_field()
+                    .structure_type(StructureType::Dynamic)
+                    .make_available(
+                        [](bNode &node) { node_storage(node).use_all_curves = false; });
 
   if (const bNode *node = b.node_or_null()) {
     const NodeGeometryCurveSample &storage = node_storage(*node);
@@ -69,16 +72,16 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>("Normal").dependent_field({2, 3, 4});
 }
 
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
-  layout->prop(ptr, "mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "use_all_curves", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
+  layout.prop(ptr, "mode", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "use_all_curves", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryCurveSample *data = MEM_callocN<NodeGeometryCurveSample>(__func__);
+  NodeGeometryCurveSample *data = MEM_new<NodeGeometryCurveSample>(__func__);
   data->mode = GEO_NODE_CURVE_SAMPLE_FACTOR;
   data->use_all_curves = false;
   data->data_type = CD_PROP_FLOAT;
@@ -114,7 +117,7 @@ static void sample_indices_and_lengths(const Span<float> accumulated_lengths,
   const float total_length = accumulated_lengths.last();
   length_parameterize::SampleSegmentHint hint;
 
-  mask.foreach_index_optimized<int>([&](const int i) {
+  mask.foreach_index([&](const int i) {
     const float sample_length = length_mode == GEO_NODE_CURVE_SAMPLE_FACTOR ?
                                     sample_lengths[i] * total_length :
                                     sample_lengths[i];
@@ -146,7 +149,7 @@ static void sample_indices_and_factors_to_compressed(const Span<float> accumulat
 
   switch (length_mode) {
     case GEO_NODE_CURVE_SAMPLE_FACTOR:
-      mask.foreach_index_optimized<int>([&](const int i, const int pos) {
+      mask.foreach_index([&](const int i, const int pos) {
         const float length = sample_lengths[i] * total_length;
         length_parameterize::sample_at_length(accumulated_lengths,
                                               std::clamp(length, 0.0f, total_length),
@@ -156,7 +159,7 @@ static void sample_indices_and_factors_to_compressed(const Span<float> accumulat
       });
       break;
     case GEO_NODE_CURVE_SAMPLE_LENGTH:
-      mask.foreach_index_optimized<int>([&](const int i, const int pos) {
+      mask.foreach_index([&](const int i, const int pos) {
         const float length = sample_lengths[i];
         length_parameterize::sample_at_length(accumulated_lengths,
                                               std::clamp(length, 0.0f, total_length),
@@ -307,8 +310,7 @@ class SampleCurveFunction : public mf::MultiFunction {
         index_mask::masked_fill(sampled_normals, float3(0), mask);
       }
       if (!sampled_values.is_empty()) {
-        bke::attribute_math::convert_to_static_type(source_data_->type(), [&](auto dummy) {
-          using T = decltype(dummy);
+        bke::attribute_math::to_static_type(source_data_->type(), [&]<typename T>() {
           index_mask::masked_fill<T>(sampled_values.typed<T>(), {}, mask);
         });
       }
@@ -330,8 +332,7 @@ class SampleCurveFunction : public mf::MultiFunction {
               sampled_normals, evaluated_normals[evaluated_points.first()], mask);
         }
         if (!sampled_values.is_empty()) {
-          bke::attribute_math::convert_to_static_type(source_data_->type(), [&](auto dummy) {
-            using T = decltype(dummy);
+          bke::attribute_math::to_static_type(source_data_->type(), [&]<typename T>() {
             const T &value = source_data_->typed<T>()[points_by_curve[curve_i].first()];
             index_mask::masked_fill<T>(sampled_values.typed<T>(), value, mask);
           });
@@ -380,8 +381,7 @@ class SampleCurveFunction : public mf::MultiFunction {
         source_data_->materialize_compressed_to_uninitialized(points, src_original_values.data());
         src_evaluated_values.reinitialize(evaluated_points.size());
         curves.interpolate_to_evaluated(curve_i, src_original_values, src_evaluated_values);
-        bke::attribute_math::convert_to_static_type(source_data_->type(), [&](auto dummy) {
-          using T = decltype(dummy);
+        bke::attribute_math::to_static_type(source_data_->type(), [&]<typename T>() {
           const Span<T> src_evaluated_values_typed = src_evaluated_values.as_span().typed<T>();
           MutableSpan<T> sampled_values_typed = sampled_values.typed<T>();
           length_parameterize::interpolate_to_masked<T>(
@@ -480,48 +480,88 @@ static void node_geo_exec(GeoNodeExecParams params)
   const NodeGeometryCurveSample &storage = node_storage(params.node());
   const GeometryNodeCurveSampleMode mode = GeometryNodeCurveSampleMode(storage.mode);
 
-  Field<float> length_field = params.extract_input<Field<float>>(
-      mode == GEO_NODE_CURVE_SAMPLE_FACTOR ? "Factor" : "Length");
+  const StringRef length_input_name = mode == GEO_NODE_CURVE_SAMPLE_FACTOR ? "Factor" : "Length";
+  auto sample_length = params.extract_input<bke::SocketValueVariant>(length_input_name);
+
   GField src_values_field = params.extract_input<GField>("Value");
 
+  std::string error_message;
+
+  bke::SocketValueVariant position;
+  bke::SocketValueVariant tangent;
+  bke::SocketValueVariant normal;
+  bke::SocketValueVariant value;
   std::shared_ptr<FieldOperation> sample_op;
   if (curves.curves_num() == 1) {
-    sample_op = FieldOperation::from(
-        std::make_unique<SampleCurveFunction>(
-            std::move(geometry_set), mode, std::move(src_values_field)),
-        {fn::make_constant_field<int>(0), std::move(length_field)});
+    auto curve_index = bke::SocketValueVariant::From(fn::make_constant_field<int>(0));
+    if (!execute_multi_function_on_value_variant(
+            std::make_unique<SampleCurveFunction>(
+                std::move(geometry_set), mode, std::move(src_values_field)),
+            {&curve_index, &sample_length},
+            {&position, &tangent, &normal, &value},
+            params.user_data(),
+            error_message))
+    {
+      params.set_default_remaining_outputs();
+      params.error_message_add(NodeWarningType::Error, std::move(error_message));
+      return;
+    }
   }
   else {
     if (storage.use_all_curves) {
-      auto index_fn = std::make_unique<SampleFloatSegmentsFunction>(
-          curve_accumulated_lengths(curves), mode);
-      auto index_op = FieldOperation::from(std::move(index_fn), {std::move(length_field)});
-      Field<int> curve_index = Field<int>(index_op, 0);
-      Field<float> length_in_curve = Field<float>(index_op, 1);
-      sample_op = FieldOperation::from(
-          std::make_unique<SampleCurveFunction>(
-              std::move(geometry_set), GEO_NODE_CURVE_SAMPLE_LENGTH, std::move(src_values_field)),
-          {std::move(curve_index), std::move(length_in_curve)});
+      bke::SocketValueVariant curve_index;
+      bke::SocketValueVariant length_in_curve;
+      if (!execute_multi_function_on_value_variant(std::make_unique<SampleFloatSegmentsFunction>(
+                                                       curve_accumulated_lengths(curves), mode),
+                                                   {&sample_length},
+                                                   {&curve_index, &length_in_curve},
+                                                   params.user_data(),
+                                                   error_message))
+      {
+        params.set_default_remaining_outputs();
+        params.error_message_add(NodeWarningType::Error, std::move(error_message));
+        return;
+      }
+      if (!execute_multi_function_on_value_variant(
+              std::make_shared<SampleCurveFunction>(std::move(geometry_set),
+                                                    GEO_NODE_CURVE_SAMPLE_LENGTH,
+                                                    std::move(src_values_field)),
+              {&curve_index, &length_in_curve},
+              {&position, &tangent, &normal, &value},
+              params.user_data(),
+              error_message))
+      {
+        params.set_default_remaining_outputs();
+        params.error_message_add(NodeWarningType::Error, std::move(error_message));
+        return;
+      }
     }
     else {
-      Field<int> curve_index = params.extract_input<Field<int>>("Curve Index");
-      Field<float> length_in_curve = std::move(length_field);
-      sample_op = FieldOperation::from(
-          std::make_unique<SampleCurveFunction>(
-              std::move(geometry_set), mode, std::move(src_values_field)),
-          {std::move(curve_index), std::move(length_in_curve)});
+      auto curve_index = params.extract_input<bke::SocketValueVariant>("Curve Index");
+      if (!execute_multi_function_on_value_variant(
+              std::make_shared<SampleCurveFunction>(
+                  std::move(geometry_set), mode, std::move(src_values_field)),
+              {&curve_index, &sample_length},
+              {&position, &tangent, &normal, &value},
+              params.user_data(),
+              error_message))
+      {
+        params.set_default_remaining_outputs();
+        params.error_message_add(NodeWarningType::Error, std::move(error_message));
+        return;
+      }
     }
   }
 
-  params.set_output("Position", Field<float3>(sample_op, 0));
-  params.set_output("Tangent", Field<float3>(sample_op, 1));
-  params.set_output("Normal", Field<float3>(sample_op, 2));
-  params.set_output("Value", GField(sample_op, 3));
+  params.set_output("Position", std::move(position));
+  params.set_output("Tangent", std::move(tangent));
+  params.set_output("Normal", std::move(normal));
+  params.set_output("Value", std::move(value));
 }
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeSampleCurve", GEO_NODE_SAMPLE_CURVE);
   ntype.ui_name = "Sample Curve";
@@ -532,11 +572,11 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGeometryCurveSample", node_free_standard_storage, node_copy_standard_storage);
   ntype.draw_buttons = node_layout;
   ntype.gather_link_search_ops = node_gather_link_searches;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

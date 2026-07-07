@@ -6,8 +6,6 @@
 
 /** \file
  * \ingroup bli
- *
- * Generic algorithms for finding the largest and smallest elements in a span.
  */
 
 #include <optional>
@@ -16,6 +14,7 @@
 #include "BLI_index_mask.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"
+#include "BLI_span.hh"
 #include "BLI_task.hh"
 #include "BLI_virtual_array.hh"
 
@@ -94,9 +93,9 @@ template<typename T>
     /* To avoid mask slice/lookup. */
     return min_max(values);
   }
-  const Bounds<T> init{values.first(), values.first()};
+  const Bounds<T> init{values[mask.first()], values[mask.first()]};
   return threading::parallel_reduce(
-      mask.index_range(),
+      mask.index_range().drop_front(1),
       1024,
       init,
       [&](const IndexRange range, const Bounds<T> &init) {
@@ -239,13 +238,33 @@ inline Bounds<VecBase<T, 3>> transform_bounds(const MatBase<T, D, D> &matrix,
   return {math::min(Span(points)), math::max(Span(points))};
 }
 
-}  // namespace bounds
-
 namespace detail {
 
 template<typename T, int Size>
-[[nodiscard]] inline bool any_less_or_equal_than(const VecBase<T, Size> &a,
-                                                 const VecBase<T, Size> &b)
+[[nodiscard]] inline bool any_less_than_v(const VecBase<T, Size> &a, const VecBase<T, Size> &b)
+{
+  for (int i = 0; i < Size; i++) {
+    if (a[i] < b[i]) {
+      return true;
+    }
+  }
+  return false;
+}
+
+template<typename T, int Size>
+[[nodiscard]] inline bool any_greater_than_v(const VecBase<T, Size> &a, const VecBase<T, Size> &b)
+{
+  for (int i = 0; i < Size; i++) {
+    if (a[i] > b[i]) {
+      return true;
+    }
+  }
+  return false;
+}
+
+template<typename T, int Size>
+[[nodiscard]] inline bool any_less_or_equal_than_v(const VecBase<T, Size> &a,
+                                                   const VecBase<T, Size> &b)
 {
   for (int i = 0; i < Size; i++) {
     if (a[i] <= b[i]) {
@@ -255,16 +274,116 @@ template<typename T, int Size>
   return false;
 }
 
+template<typename T> [[nodiscard]] inline bool any_less_than(const T &a, const T &b)
+{
+  if constexpr (std::is_integral_v<T> || std::is_floating_point_v<T>) {
+    return a < b;
+  }
+  else {
+    return any_less_than_v(a, b);
+  }
+}
+
+template<typename T> [[nodiscard]] inline bool any_greater_than(const T &a, const T &b)
+{
+  if constexpr (std::is_integral_v<T> || std::is_floating_point_v<T>) {
+    return a > b;
+  }
+  else {
+    return any_greater_than_v(a, b);
+  }
+}
+
+template<typename T> [[nodiscard]] inline bool any_less_or_equal_than(const T &a, const T &b)
+{
+  if constexpr (std::is_integral_v<T> || std::is_floating_point_v<T>) {
+    return a <= b;
+  }
+  else {
+    return any_less_or_equal_than_v(a, b);
+  }
+}
+
+template<typename T> [[nodiscard]] inline Bounds<T> segment_bounds(const T &start, const T &end)
+{
+  Bounds<T> bounds{start, start};
+  math::min_max(end, bounds.min, bounds.max);
+  return bounds;
+}
+
+/** Returns true if (p1 / q1) > (p2 / q2). */
+template<typename T>
+[[nodiscard]] inline bool rational_greater_than(const T &p1, const T &q1, const T &p2, const T &q2)
+{
+  BLI_assert(q1 > T(0) && q2 > T(0));
+  return p1 * q2 > p2 * q1;
+}
+/** Returns true if (p1 / q1) < (p2 / q2). */
+template<typename T>
+[[nodiscard]] inline bool rational_less_than(const T &p1, const T &q1, const T &p2, const T &q2)
+{
+  BLI_assert(q1 > T(0) && q2 > T(0));
+  return p1 * q2 < p2 * q1;
+}
+
+/** Adaptation of Liang-Barsky for N dimensions. */
+template<typename T, int Size>
+[[nodiscard]] inline bool segment_enter_exit_bounds(const Bounds<VecBase<T, Size>> &bounds,
+                                                    const VecBase<T, Size> &start,
+                                                    const VecBase<T, Size> &end)
+{
+  T p_enter = T(0);
+  T q_enter = T(1);
+  T p_exit = T(1);
+  T q_exit = T(1);
+
+  /* t_enter = p_enter / q_enter */
+  /* t_exit = p_exit / q_exit */
+  for (int i = 0; i < Size; i++) {
+    const T di = end[i] - start[i];
+    if (di == T(0)) {
+      /* Segment is parallel to i-th axis. */
+      if (start[i] < bounds.min[i] || start[i] > bounds.max[i]) {
+        return false;
+      }
+      continue;
+    }
+
+    /* Note: We flip the sign here to ensure the denominator is positive. This doesn't change the
+     * value of the rational number. */
+    const T p_low = (di > T(0)) ? bounds.min[i] - start[i] : -(bounds.max[i] - start[i]);
+    const T p_high = (di > T(0)) ? bounds.max[i] - start[i] : -(bounds.min[i] - start[i]);
+    const T di_abs = (di > T(0)) ? di : -di;
+
+    /* t_low = p_low / di_abs */
+    /* t_high = p_high / di_abs */
+    if (rational_greater_than(p_low, di_abs, p_enter, q_enter)) {
+      /* t_low > t_enter */
+      p_enter = p_low;
+      q_enter = di_abs;
+    }
+    if (rational_less_than(p_high, di_abs, p_exit, q_exit)) {
+      /* t_high < t_exit */
+      p_exit = p_high;
+      q_exit = di_abs;
+    }
+
+    if (rational_greater_than(p_enter, q_enter, p_exit, q_exit)) {
+      /* t_enter > t_exit */
+      return false;
+    }
+  }
+
+  /* t_exit >= 0 and t_enter <= 1 */
+  return p_exit >= T(0) && p_enter <= q_enter;
+}
+
 }  // namespace detail
+}  // namespace bounds
 
 template<typename T> inline bool Bounds<T>::is_empty() const
 {
-  if constexpr (std::is_integral_v<T> || std::is_floating_point_v<T>) {
-    return this->max <= this->min;
-  }
-  else {
-    return detail::any_less_or_equal_than(this->max, this->min);
-  }
+  return bounds::detail::any_less_or_equal_than(this->max, this->min);
 }
 
 template<typename T> inline T Bounds<T>::center() const
@@ -309,6 +428,44 @@ inline void Bounds<T>::pad(const PaddingT &padding)
 {
   this->min = this->min - padding;
   this->max = this->max + padding;
+}
+
+template<typename T> inline bool Bounds<T>::contains(const T &point)
+{
+  if (bounds::detail::any_less_than(point, this->min)) {
+    return false;
+  }
+  if (bounds::detail::any_greater_than(point, this->max)) {
+    return false;
+  }
+  return true;
+}
+
+template<typename T> inline bool Bounds<T>::intersects(const Bounds<T> &other)
+{
+  if (bounds::intersect(*this, other)) {
+    return true;
+  }
+  return false;
+}
+
+template<typename T> inline bool Bounds<T>::intersects_segment(const T &start, const T &end)
+{
+  /* Check end points first to properly handle degenerate case where the segment is a point. */
+  if (this->contains(start) || this->contains(end)) {
+    return true;
+  }
+  if (!this->intersects(bounds::detail::segment_bounds(start, end))) {
+    return false;
+  }
+  if constexpr (std::is_integral_v<T> || std::is_floating_point_v<T>) {
+    /* In the 1-dimensional case, the bounding box check above covers the intersection check. */
+    return true;
+  }
+  else {
+    /* Check if the segment is entering and exiting the bounds. */
+    return bounds::detail::segment_enter_exit_bounds(*this, start, end);
+  }
 }
 
 }  // namespace blender

@@ -93,7 +93,7 @@ struct ShaderSpecializationConst {
   void validate(shader::SpecializationConstants &constants)
   {
     if (is_graphic) {
-      GPUFrameBuffer *fb = GPU_framebuffer_create("test_fb");
+      gpu::FrameBuffer *fb = GPU_framebuffer_create("test_fb");
       GPU_framebuffer_default_size(fb, 1, 1);
       GPU_framebuffer_bind(fb);
 

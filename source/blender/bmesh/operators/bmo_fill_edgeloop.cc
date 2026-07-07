@@ -14,6 +14,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 #define VERT_USED 1
 #define EDGE_MARK 2
 #define ELE_OUT 4
@@ -23,7 +25,7 @@ void bmo_edgeloop_fill_exec(BMesh *bm, BMOperator *op)
   /* first collect an array of unique from the edges */
   const int tote = BMO_slot_buffer_len(op->slots_in, "edges");
   const int totv = tote; /* these should be the same */
-  BMVert **verts = MEM_malloc_arrayN<BMVert *>(totv, __func__);
+  BMVert **verts = MEM_new_array_uninitialized<BMVert *>(totv, __func__);
 
   BMVert *v;
   BMEdge *e;
@@ -72,7 +74,7 @@ void bmo_edgeloop_fill_exec(BMesh *bm, BMOperator *op)
 
   if (ok) {
     /* NOTE: in the case of multiple loops, this over-allocates (which is fine). */
-    BMVert **f_verts = MEM_malloc_arrayN<BMVert *>(totv, __func__);
+    BMVert **f_verts = MEM_new_array_uninitialized<BMVert *>(totv, __func__);
     BMIter eiter;
 
     /* build array of connected verts and edges */
@@ -128,11 +130,13 @@ void bmo_edgeloop_fill_exec(BMesh *bm, BMOperator *op)
         }
       }
     }
-    MEM_freeN(f_verts);
+    MEM_delete(f_verts);
 
     BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, ELE_OUT);
   }
 
 cleanup:
-  MEM_freeN(verts);
+  MEM_delete(verts);
 }
+
+}  // namespace blender

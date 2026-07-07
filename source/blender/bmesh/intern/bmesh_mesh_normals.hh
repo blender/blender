@@ -13,6 +13,8 @@
 
 #include "bmesh_class.hh"
 
+namespace blender {
+
 struct BMPartialUpdate;
 
 struct BMeshNormalsUpdate_Params {
@@ -46,9 +48,9 @@ void BM_mesh_normals_update_with_partial(BMesh *bm, const BMPartialUpdate *bmpin
  * using given vertex coordinates (vcos) and polygon normals (fnos).
  */
 void BM_verts_calc_normal_vcos(BMesh *bm,
-                               blender::Span<blender::float3> fnos,
-                               blender::Span<blender::float3> vcos,
-                               blender::MutableSpan<blender::float3> vnos);
+                               Span<float3> fnos,
+                               Span<float3> vcos,
+                               MutableSpan<float3> vnos);
 /**
  * \brief BMesh Compute Loop Normals from/to external data.
  *
@@ -57,11 +59,11 @@ void BM_verts_calc_normal_vcos(BMesh *bm,
  * (splitting edges).
  */
 void BM_loops_calc_normal_vcos(BMesh *bm,
-                               blender::Span<blender::float3> vcos,
-                               blender::Span<blender::float3> vnos,
-                               blender::Span<blender::float3> fnos,
+                               Span<float3> vcos,
+                               Span<float3> vnos,
+                               Span<float3> fnos,
                                bool use_split_normals,
-                               blender::MutableSpan<blender::float3> r_lnos,
+                               MutableSpan<float3> r_lnos,
                                MLoopNorSpaceArray *r_lnors_spacearr,
                                short (*clnors_data)[2],
                                int cd_loop_clnors_offset,
@@ -73,7 +75,7 @@ void BM_loops_calc_normal_vcos(BMesh *bm,
  * and yet we need to walk them once, and only once.
  */
 bool BM_loop_check_cyclic_smooth_fan(BMLoop *l_curr);
-void BM_lnorspacearr_store(BMesh *bm, blender::MutableSpan<blender::float3> r_lnors);
+void BM_lnorspacearr_store(BMesh *bm, MutableSpan<float3> r_lnors);
 void BM_lnorspace_invalidate(BMesh *bm, bool do_invalidate_all);
 void BM_lnorspace_rebuild(BMesh *bm, bool preserve_clnor);
 /**
@@ -87,6 +89,15 @@ void BM_lnorspace_err(BMesh *bm);
 #endif
 
 /* Loop Generics */
+
+/**
+ * Initialize loop data based on a type, overriding the #BMesh::selectmode of `bm`.
+ * This can be useful if a single types selection is preferred,
+ * instead of using mixed modes and the selection history.
+ */
+BMLoopNorEditDataArray *BM_loop_normal_editdata_array_init_with_htype(BMesh *bm,
+                                                                      bool do_all_loops_of_vert,
+                                                                      char htype_override);
 BMLoopNorEditDataArray *BM_loop_normal_editdata_array_init(BMesh *bm, bool do_all_loops_of_vert);
 void BM_loop_normal_editdata_array_free(BMLoopNorEditDataArray *lnors_ed_arr);
 
@@ -104,3 +115,5 @@ void BM_custom_loop_normals_from_vector_layer(BMesh *bm, bool add_sharp_edges);
  * to keep same shading as with auto-smooth!
  */
 void BM_edges_sharp_from_angle_set(BMesh *bm, float split_angle);
+
+}  // namespace blender

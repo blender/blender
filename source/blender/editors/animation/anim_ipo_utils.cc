@@ -39,13 +39,14 @@
 
 #include <cstring>
 
+namespace blender {
+
 struct StructRNA;
 
 /* ----------------------- Getter functions ----------------------- */
 
 std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 {
-  using namespace blender;
   /* Could make an argument, it's a documented limit at the moment. */
   constexpr size_t name_maxncpy = 256;
 
@@ -140,7 +141,7 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
         {
           const char *structname_all = BLI_sprintfN("%s : %s", stripname, structname);
           if (free_structname) {
-            MEM_freeN(structname);
+            MEM_delete(structname);
           }
           structname = structname_all;
           free_structname = true;
@@ -148,24 +149,24 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
       }
     }
 
-    if (RNA_struct_is_a(ptr.type, &RNA_NodeSocket)) {
+    if (RNA_struct_is_a(ptr.type, RNA_NodeSocket)) {
       /* Display the name/label of a node socket's node to allow distinguishing multiple nodes. */
       BLI_assert(GS(ptr.owner_id->name) == ID_NT);
       const bNodeTree *ntree = reinterpret_cast<const bNodeTree *>(ptr.owner_id);
       const bNodeSocket *socket = static_cast<const bNodeSocket *>(ptr.data);
       const bNode &node = bke::node_find_node(*ntree, *socket);
       if (free_structname) {
-        MEM_freeN(structname);
+        MEM_delete(structname);
       }
       structname = node.label_or_name().c_str();
       free_structname = false;
     }
-    else if (RNA_struct_is_a(ptr.type, &RNA_Node)) {
+    else if (RNA_struct_is_a(ptr.type, RNA_Node)) {
       /* Display the label of the node if available to distinguish nodes like "Value". */
       BLI_assert(GS(ptr.owner_id->name) == ID_NT);
       const bNode *node = static_cast<const bNode *>(ptr.data);
       if (free_structname) {
-        MEM_freeN(structname);
+        MEM_delete(structname);
       }
       structname = node->label_or_name().c_str();
       free_structname = false;
@@ -174,18 +175,18 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 
   propname = RNA_property_ui_name(prop);
 
-  if (RNA_struct_is_a(ptr.type, &RNA_NodesModifier)) {
+  if (RNA_struct_is_a(ptr.type, RNA_NodesModifier)) {
     /* Display geometry node properties with node-tree socket labels. */
     const NodesModifierData *nmd = static_cast<const NodesModifierData *>(ptr.data);
-    if (const bNodeTree *node_group = nmd->node_group) {
+    if (nmd->node_group && !ID_MISSING(nmd->node_group)) {
       if (const bNodeTreeInterfaceSocket *input = bke::node_find_interface_input_by_identifier(
-              *node_group, propname))
+              *nmd->node_group, propname))
       {
         propname = input->name;
       }
     }
   }
-  else if (RNA_struct_is_a(ptr.type, &RNA_NodeSocket)) {
+  else if (RNA_struct_is_a(ptr.type, RNA_NodeSocket)) {
     /* Use the socket's name rather than the "Default Value" name of the socket's RNA property. */
     const bNodeSocket *socket = static_cast<const bNodeSocket *>(ptr.data);
     propname = socket->name;
@@ -222,16 +223,14 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 
   /* free temp name if nameprop is set */
   if (free_structname) {
-    MEM_freeN(structname);
+    MEM_delete(structname);
   }
 
   /* Use the property's owner struct icon. */
   return RNA_struct_ui_icon(ptr.type);
 }
 
-std::string getname_anim_fcurve_for_slot(Main &bmain,
-                                         const blender::animrig::Slot &slot,
-                                         FCurve &fcurve)
+std::string getname_anim_fcurve_for_slot(Main &bmain, const animrig::Slot &slot, FCurve &fcurve)
 {
   /* TODO: Refactor to avoid this variable. */
   constexpr size_t name_maxncpy = 256;
@@ -266,7 +265,7 @@ std::string getname_anim_fcurve_for_slot(Main &bmain,
     return fmt::format("\"{}[{}]\"", fcurve.rna_path, fcurve.array_index);
   }
 
-  if (blender::StringRef(fcurve.rna_path).find(".") != blender::StringRef::not_found) {
+  if (StringRef(fcurve.rna_path).find(".") != StringRef::not_found) {
     /* Not a simple property, so bail out. This needs path resolution, which needs an ID*. */
     return fmt::format("\"{}[{}]\"", fcurve.rna_path, fcurve.array_index);
   }
@@ -345,3 +344,5 @@ void getcolor_fcurve_rainbow(int cur, int tot, float out[3])
   /* finally, convert this to RGB colors */
   hsv_to_rgb_v(hsv, out);
 }
+
+}  // namespace blender

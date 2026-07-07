@@ -76,7 +76,8 @@ static void extract_uv_stretch_angle_bm(const MeshRenderData &mr,
                                         MutableSpan<UVStretchAngle> vbo_data)
 {
   const BMesh &bm = *mr.bm;
-  const int uv_offset = CustomData_get_offset(&bm.ldata, CD_PROP_FLOAT2);
+  const StringRef active_name = mr.mesh->active_uv_map_name();
+  const int uv_offset = CustomData_get_offset_named(&bm.ldata, CD_PROP_FLOAT2, active_name);
 
   float auv[2][2], last_auv[2];
   float av[2][3], last_av[3];
@@ -89,7 +90,7 @@ static void extract_uv_stretch_angle_bm(const MeshRenderData &mr,
     do {
       const int l_index = BM_elem_index_get(l_iter);
 
-      const float(*luv)[2], (*luv_next)[2];
+      const float (*luv)[2], (*luv_next)[2];
       BMLoop *l_next = l_iter->next;
       if (l_iter == BM_FACE_FIRST_LOOP(face)) {
         /* First loop in face. */
@@ -138,7 +139,7 @@ static void extract_uv_stretch_angle_mesh(const MeshRenderData &mr,
   const Span<int> corner_verts = mr.corner_verts;
   const Mesh &mesh = *mr.mesh;
   const bke::AttributeAccessor attributes = mesh.attributes();
-  const StringRef name = CustomData_get_active_layer_name(&mesh.corner_data, CD_PROP_FLOAT2);
+  const StringRef name = mesh.active_uv_map_name();
   const VArraySpan uv_map = *attributes.lookup<float2>(name, bke::AttrDomain::Corner);
 
   float auv[2][2], last_auv[2];
@@ -245,28 +246,17 @@ gpu::VertBufPtr extract_edituv_stretch_angle_subdiv(const MeshRenderData &mr,
 
   /* UVs are stored contiguously so we need to compute the offset in the UVs buffer for the active
    * UV layer. */
-  const CustomData *cd_ldata = (mr.extract_type == MeshExtractType::Mesh) ? &mr.mesh->corner_data :
-                                                                            &mr.bm->ldata;
 
-  uint32_t uv_layers = cache.cd_used.uv;
+  VectorSet<std::string> uv_layers = cache.cd_used.uv;
   /* HACK to fix #68857 */
   if (mr.extract_type == MeshExtractType::BMesh && cache.cd_used.edit_uv == 1) {
-    int layer = CustomData_get_active_layer(cd_ldata, CD_PROP_FLOAT2);
-    if (layer != -1 && !CustomData_layer_is_anonymous(cd_ldata, CD_PROP_FLOAT2, layer)) {
-      uv_layers |= (1 << layer);
+    const StringRef active_name = mr.mesh->active_uv_map_name();
+    if (!active_name.is_empty()) {
+      uv_layers.add_as(active_name);
     }
   }
 
-  int uvs_offset = 0;
-  for (int i = 0; i < MAX_MTFACE; i++) {
-    if (uv_layers & (1 << i)) {
-      if (i == CustomData_get_active_layer(cd_ldata, CD_PROP_FLOAT2)) {
-        break;
-      }
-
-      uvs_offset += 1;
-    }
-  }
+  int uvs_offset = uv_layers.index_of(mr.mesh->active_uv_map_name());
 
   /* The data is at `offset * num loops`, and we have 2 values per index. */
   uvs_offset *= subdiv_cache.num_subdiv_loops * 2;

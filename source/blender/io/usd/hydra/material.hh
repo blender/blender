@@ -5,7 +5,6 @@
 #pragma once
 
 #include <pxr/imaging/hd/enums.h>
-#include <pxr/usd/sdf/assetPath.h>
 #include <pxr/usd/sdf/path.h>
 
 #include "DNA_material_types.h"
@@ -15,6 +14,8 @@
 #include "id.hh"
 
 namespace blender::io::hydra {
+
+class HydraSceneDelegate;
 
 class MaterialData : public IdData {
  public:

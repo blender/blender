@@ -32,11 +32,11 @@
 #include "gl_shader.hh"
 #include "gl_storage_buffer.hh"
 #include "gl_texture.hh"
+#include "gl_texture_pool.hh"
 #include "gl_uniform_buffer.hh"
 #include "gl_vertex_buffer.hh"
 
-namespace blender {
-namespace gpu {
+namespace blender::gpu {
 
 class GLBackend : public GPUBackend {
  private:
@@ -52,6 +52,8 @@ class GLBackend : public GPUBackend {
     GLBackend::platform_init();
 
     GLBackend::capabilities_init();
+    GLBackend::log_extensions();
+    GLBackend::log_workarounds();
     GLTexture::samplers_init();
   }
   ~GLBackend()
@@ -86,7 +88,7 @@ class GLBackend : public GPUBackend {
     GLTexture::samplers_update();
   };
 
-  Context *context_alloc(void *ghost_window, void * /*ghost_context*/) override
+  Context *context_alloc(GHOST_IWindow *ghost_window, GHOST_IContext * /*ghost_context*/) override
   {
     return new GLContext(ghost_window, shared_orphan_list_);
   };
@@ -131,6 +133,8 @@ class GLBackend : public GPUBackend {
     return new GLTexture(name);
   };
 
+  TexturePool *texturepool_alloc() override;
+
   UniformBuf *uniformbuf_alloc(size_t size, const char *name) override
   {
     return new GLUniformBuf(size, name);
@@ -165,7 +169,7 @@ class GLBackend : public GPUBackend {
     /* This barrier needs to be here as it only work on the currently bound indirect buffer. */
     glMemoryBarrier(GL_COMMAND_BARRIER_BIT);
 
-    glDispatchComputeIndirect((GLintptr)0);
+    glDispatchComputeIndirect(GLintptr(0));
     /* Unbind. */
     glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, 0);
   }
@@ -178,9 +182,9 @@ class GLBackend : public GPUBackend {
   }
 
   /* Render Frame Coordination */
-  void render_begin() override{};
-  void render_end() override{};
-  void render_step(bool /*force_resource_release*/) override{};
+  void render_begin() override {};
+  void render_end() override {};
+  void render_step(bool /*force_resource_release*/) override {};
 
   bool debug_capture_begin(const char *title);
   void debug_capture_end();
@@ -190,7 +194,9 @@ class GLBackend : public GPUBackend {
   static void platform_exit();
 
   static void capabilities_init();
+
+  static void log_extensions();
+  static void log_workarounds();
 };
 
-}  // namespace gpu
-}  // namespace blender
+}  // namespace blender::gpu

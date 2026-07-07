@@ -596,10 +596,10 @@ def rotPoleToggle(rig, limb_type, controls, ik_ctrl, fk_ctrl, parent, pole):
             if limb_type == 'arm':
                 func1 = arm_fk2ik
                 func2 = arm_ik2fk
-                rig.pose.bones[controls[0]].bone.select = not new_pole_vector_value
-                rig.pose.bones[controls[4]].bone.select = not new_pole_vector_value
-                rig.pose.bones[parent].bone.select = not new_pole_vector_value
-                rig.pose.bones[pole].bone.select = new_pole_vector_value
+                rig.pose.bones[controls[0]].select = not new_pole_vector_value
+                rig.pose.bones[controls[4]].select = not new_pole_vector_value
+                rig.pose.bones[parent].select = not new_pole_vector_value
+                rig.pose.bones[pole].select = new_pole_vector_value
 
                 kwargs1 = {'uarm_fk': controls[1], 'farm_fk': controls[2], 'hand_fk': controls[3],
                           'uarm_ik': controls[0], 'farm_ik': ik_ctrl[1],
@@ -610,11 +610,11 @@ def rotPoleToggle(rig, limb_type, controls, ik_ctrl, fk_ctrl, parent, pole):
             else:
                 func1 = leg_fk2ik
                 func2 = leg_ik2fk
-                rig.pose.bones[controls[0]].bone.select = not new_pole_vector_value
-                rig.pose.bones[controls[6]].bone.select = not new_pole_vector_value
-                rig.pose.bones[controls[5]].bone.select = not new_pole_vector_value
-                rig.pose.bones[parent].bone.select = not new_pole_vector_value
-                rig.pose.bones[pole].bone.select = new_pole_vector_value
+                rig.pose.bones[controls[0]].select = not new_pole_vector_value
+                rig.pose.bones[controls[6]].select = not new_pole_vector_value
+                rig.pose.bones[controls[5]].select = not new_pole_vector_value
+                rig.pose.bones[parent].select = not new_pole_vector_value
+                rig.pose.bones[pole].select = new_pole_vector_value
 
                 kwargs1 = {'thigh_fk': controls[1], 'shin_fk': controls[2], 'foot_fk': controls[3],
                           'mfoot_fk': controls[7], 'thigh_ik': controls[0], 'shin_ik': ik_ctrl[1],
@@ -787,7 +787,7 @@ class Rigify_Rot2PoleSwitch(bpy.types.Operator):
 
         if self.bone_name:
             bpy.ops.pose.select_all(action='DESELECT')
-            rig.pose.bones[self.bone_name].bone.select = True
+            rig.pose.bones[self.bone_name].select = True
 
         rotPoleToggle(rig, self.limb_type, self.controls, self.ik_ctrl, self.fk_ctrl,
                       self.parent, self.pole)
@@ -839,7 +839,7 @@ class RigUI(bpy.types.Panel):
     bl_category = 'Item'
 
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
         if context.mode != 'POSE':
             return False
         try:
@@ -883,7 +883,7 @@ class RigBakeSettings(bpy.types.Panel):
     bl_category = 'Item'
 
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
         return RigUI.poll(context) and find_action(context.active_object) is not None
 
     def draw(self, context):
@@ -900,7 +900,7 @@ class RigLayers(bpy.types.Panel):
     bl_category = 'Item'
 
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
         try:
             return (context.active_object.data.get("rig_id") == rig_id)
         except (AttributeError, KeyError, TypeError):
@@ -910,7 +910,7 @@ class RigLayers(bpy.types.Panel):
         layout = self.layout
         row_table = collections.defaultdict(list)
         for coll in flatten_children(context.active_object.data.collections):
-            row_id = coll.get('rigify_ui_row', 0)
+            row_id = coll.rigify_ui_row
             if row_id > 0:
                 row_table[row_id].append(coll)
         col = layout.column()
@@ -919,7 +919,7 @@ class RigLayers(bpy.types.Panel):
             row_buttons = row_table[row_id]
             if row_buttons:
                 for coll in row_buttons:
-                    title = coll.get('rigify_ui_title') or coll.name
+                    title = coll.rigify_ui_title or coll.name
                     row2 = row.row()
                     row2.active = coll.is_visible_ancestors
                     row2.prop(coll, 'is_visible', toggle=True, text=title, translate=False)
@@ -1353,6 +1353,8 @@ class ScriptGenerator(base_generate.GeneratorPlugin):
         }
 
     def finalize(self):
+        from . import register_usetime_properties, unregister_usetime_properties
+
         metarig = self.generator.metarig
         rig_id = self.generator.rig_id
 
@@ -1393,7 +1395,11 @@ class ScriptGenerator(base_generate.GeneratorPlugin):
 
         script.write(UI_LAYERS_PANEL)
 
+        # Inject the RNA property (un)register functions.
+        self._write_rna_prop_register_funcs(script)
+
         script.write("\ndef register():\n")
+        script.write(f"    {register_usetime_properties.__name__}()\n")
 
         ui_register = OrderedDict.fromkeys(self.ui_register)
         for s in ui_register:
@@ -1408,6 +1414,7 @@ class ScriptGenerator(base_generate.GeneratorPlugin):
             script.write(f"    bpy.types.{classname} = {text}\n ")
 
         script.write("\ndef unregister():\n")
+        script.write(f"    {unregister_usetime_properties.__name__}()\n")
 
         for s in ui_register_props:
             script.write("    del bpy.types.%s\n" % s[0])
@@ -1426,3 +1433,17 @@ class ScriptGenerator(base_generate.GeneratorPlugin):
 
         # Attach the script to the rig
         self.obj['rig_ui'] = script
+
+    def _write_rna_prop_register_funcs(self, script: bpy.types.Text) -> None:
+        """Inject the (un)register_use_time_properties functions into the script."""
+        import inspect
+        from . import register_usetime_properties, unregister_usetime_properties
+
+        register_func_src = inspect.getsource(register_usetime_properties)
+        unregister_func_src = inspect.getsource(unregister_usetime_properties)
+
+        script.write("\n\n")
+        script.write(register_func_src)
+        script.write("\n\n")
+        script.write(unregister_func_src)
+        script.write("\n")

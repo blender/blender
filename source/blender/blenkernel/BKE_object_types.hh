@@ -17,13 +17,16 @@
 
 #include "DNA_customdata_types.h" /* #CustomData_MeshMasks. */
 
+namespace blender {
+
 struct Curve;
 struct CurveCache;
 struct ID;
 struct Mesh;
 struct PoseBackup;
+struct SculptSession;
 
-namespace blender::bke {
+namespace bke {
 
 struct GeometrySet;
 
@@ -85,6 +88,13 @@ struct ObjectRuntime {
   GeometrySet *geometry_set_eval = nullptr;
 
   /**
+   * Bitflag where each bit at an index corresponds to a `GeometryComponent::Type`. When a bit is
+   * set, the geometry type is contained within #geometry_set_eval. This includes referenced
+   * geometry in instances.
+   */
+  uint16_t contained_geometry_types = 0;
+
+  /**
    * Mesh structure created during object evaluation.
    * It has deformation only modifiers applied on it.
    */
@@ -118,7 +128,7 @@ struct ObjectRuntime {
    * This is a curve representation of corresponding object.
    * It created when Python calls `object.to_curve()`.
    */
-  ::Curve *object_as_temp_curve = nullptr;
+  Curve *object_as_temp_curve = nullptr;
 
   /** Runtime evaluated curve-specific data, not stored in the file. */
   CurveCache *curve_cache = nullptr;
@@ -132,6 +142,11 @@ struct ObjectRuntime {
   uint64_t last_update_transform = 0;
   uint64_t last_update_geometry = 0;
   uint64_t last_update_shading = 0;
+
+  /* Runtime data used by mesh painting modes (Sculpt, Vertex, Weight). */
+  /* TODO: Rename the struct and the variable to better indicate its wider usage */
+  SculptSession *sculpt_session = nullptr;
 };
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

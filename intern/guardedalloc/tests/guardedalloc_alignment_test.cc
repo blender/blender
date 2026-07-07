@@ -17,25 +17,25 @@ void DoBasicAlignmentChecks(const int alignment)
 {
   int *foo, *bar;
 
-  foo = (int *)MEM_mallocN_aligned(sizeof(int) * 10, alignment, "test");
+  foo = (int *)MEM_new_uninitialized_aligned(sizeof(int) * 10, alignment, "test");
   CHECK_ALIGNMENT(foo, alignment);
 
-  bar = (int *)MEM_dupallocN(foo);
+  bar = (int *)MEM_dupalloc_void(foo);
   CHECK_ALIGNMENT(bar, alignment);
-  MEM_freeN(bar);
+  MEM_delete(bar);
 
-  foo = (int *)MEM_reallocN(foo, sizeof(int) * 5);
+  foo = (int *)MEM_realloc_uninitialized(foo, sizeof(int) * 5);
   CHECK_ALIGNMENT(foo, alignment);
 
-  foo = (int *)MEM_recallocN(foo, sizeof(int) * 5);
+  foo = (int *)MEM_realloc_zeroed(foo, sizeof(int) * 5);
   CHECK_ALIGNMENT(foo, alignment);
 
-  MEM_freeN(foo);
+  MEM_delete(foo);
 }
 
 }  // namespace
 
-TEST_F(LockFreeAllocatorTest, MEM_mallocN_aligned)
+TEST_F(LockFreeAllocatorTest, MEM_new_uninitialized_aligned)
 {
   DoBasicAlignmentChecks(1);
   DoBasicAlignmentChecks(2);
@@ -47,7 +47,7 @@ TEST_F(LockFreeAllocatorTest, MEM_mallocN_aligned)
   DoBasicAlignmentChecks(512);
 }
 
-TEST_F(GuardedAllocatorTest, MEM_mallocN_aligned)
+TEST_F(GuardedAllocatorTest, MEM_new_uninitialized_aligned)
 {
   DoBasicAlignmentChecks(1);
   DoBasicAlignmentChecks(2);

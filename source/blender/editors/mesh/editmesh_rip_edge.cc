@@ -8,6 +8,7 @@
  * based on mouse cursor position, split of vertices along the closest edge.
  */
 
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_context.hh"
@@ -15,35 +16,37 @@
 #include "BKE_layer.hh"
 
 #include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
-#include "BLI_math_vector_types.hh"
+#include "BLI_math_matrix.hh"
 
 #include "WM_types.hh"
 
 #include "ED_mesh.hh"
 #include "ED_transform.hh"
 #include "ED_view3d.hh"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "bmesh.hh"
 
 #include "mesh_intern.hh" /* own include */
 
-using blender::float2;
-using blender::Vector;
+namespace blender {
 
 /* uses total number of selected edges around a vertex to choose how to extend */
 #define USE_TRICKY_EXTEND
 
-static wmOperatorStatus edbm_rip_edge_invoke(bContext *C,
-                                             wmOperator * /*op*/,
-                                             const wmEvent *event)
+static wmOperatorStatus edbm_rip_edge_exec(bContext *C, wmOperator *op)
 {
-  ARegion *region = CTX_wm_region(C);
-  RegionView3D *rv3d = CTX_wm_region_view3d(C);
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
+
+  float3 ray_loc;
+  float3 ray_dir;
+  RNA_float_get_array(op->ptr, "location", ray_loc);
+  RNA_float_get_array(op->ptr, "direction", ray_dir);
+  normalize_v3(ray_dir);
 
   for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -51,75 +54,23 @@ static wmOperatorStatus edbm_rip_edge_invoke(bContext *C,
 
     BMIter viter;
     BMVert *v;
-    const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
-    float cent_sco[2];
-    int cent_tot;
     bool changed = false;
-
-    /* mouse direction to view center */
-    float mval_dir[2];
 
     if (bm->totvertsel == 0) {
       continue;
     }
 
-    const blender::float4x4 projectMat = ED_view3d_ob_project_mat_get(rv3d, obedit);
-
-    zero_v2(cent_sco);
-    cent_tot = 0;
-
-    /* clear tags and calc screen center */
+    /* clear tags. */
     BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
       BM_elem_flag_disable(v, BM_ELEM_TAG);
-
-      if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-        const float2 v_sco = ED_view3d_project_float_v2_m4(region, v->co, projectMat);
-
-        add_v2_v2(cent_sco, v_sco);
-        cent_tot += 1;
-      }
     }
-    mul_v2_fl(cent_sco, 1.0f / float(cent_tot));
-
-    /* not essential, but gives more expected results with edge selection */
-    if (bm->totedgesel) {
-      /* angle against center can give odd result,
-       * try re-position the center to the closest edge */
-      BMIter eiter;
-      BMEdge *e;
-      float dist_sq_best = len_squared_v2v2(cent_sco, mval_fl);
-
-      BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
-        if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-          float cent_sco_test[2];
-          float dist_sq_test;
-
-          const float2 e_sco_0 = ED_view3d_project_float_v2_m4(region, e->v1->co, projectMat);
-          const float2 e_sco_1 = ED_view3d_project_float_v2_m4(region, e->v2->co, projectMat);
-
-          closest_to_line_segment_v2(cent_sco_test, mval_fl, e_sco_0, e_sco_1);
-          dist_sq_test = len_squared_v2v2(cent_sco_test, mval_fl);
-          if (dist_sq_test < dist_sq_best) {
-            dist_sq_best = dist_sq_test;
-
-            /* we have a new screen center */
-            copy_v2_v2(cent_sco, cent_sco_test);
-          }
-        }
-      }
-    }
-
-    sub_v2_v2v2(mval_dir, mval_fl, cent_sco);
-    normalize_v2(mval_dir);
 
     /* operate on selected verts */
     BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
       BMIter eiter;
       BMEdge *e;
-      float2 v_sco;
 
       if (BM_elem_flag_test(v, BM_ELEM_SELECT) && BM_elem_flag_test(v, BM_ELEM_TAG) == false) {
-        /* Rules for */
         float angle_best = FLT_MAX;
         BMEdge *e_best = nullptr;
 
@@ -152,28 +103,25 @@ static wmOperatorStatus edbm_rip_edge_invoke(bContext *C,
           goto found_edge;
         }
 #endif
-        v_sco = ED_view3d_project_float_v2_m4(region, v->co, projectMat);
 
         BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
           if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
             BMVert *v_other = BM_edge_other_vert(e, v);
-            float angle_test;
 
-            float2 v_other_sco = ED_view3d_project_float_v2_m4(region, v_other->co, projectMat);
+            const float4x4 &object_to_world = obedit->object_to_world();
+            const float3 v_world = math::transform_point(object_to_world, float3(v->co));
+            float3 projected_point;
+            closest_to_line_v3(projected_point, v_world, ray_loc, ray_loc + ray_dir);
 
-            /* avoid comparing with view-axis aligned edges (less than a pixel) */
-            if (len_squared_v2v2(v_sco, v_other_sco) > 1.0f) {
-              float v_dir[2];
+            float3 v_ray_dir = math::normalize(projected_point - v_world);
+            const float3 v_other_world = math::transform_point(object_to_world,
+                                                               float3(v_other->co));
+            const float3 v_edge_dir = math::normalize(v_other_world - v_world);
 
-              sub_v2_v2v2(v_dir, v_other_sco, v_sco);
-              normalize_v2(v_dir);
-
-              angle_test = angle_normalized_v2v2(mval_dir, v_dir);
-
-              if (angle_test < angle_best) {
-                angle_best = angle_test;
-                e_best = e;
-              }
+            float angle_test = angle_normalized_v3v3(v_ray_dir, v_edge_dir);
+            if (angle_test < angle_best) {
+              angle_best = angle_test;
+              e_best = e;
             }
           }
         }
@@ -197,6 +145,36 @@ static wmOperatorStatus edbm_rip_edge_invoke(bContext *C,
           }
           BM_elem_flag_enable(v_new, BM_ELEM_TAG); /* prevent further splitting */
 
+          /* When UV sync select is enabled, the wrong UV's will be selected
+           * because the existing loops will have the selection and the new ones won't.
+           * transfer the selection state to the new loops. */
+          if (bm->uv_select_sync_valid) {
+            if (e_best->l) {
+              BMLoop *l_iter, *l_first;
+              l_iter = l_first = e_best->l;
+              do {
+                bool was_select = false;
+                if (l_iter->next->e == e_new) {
+                  if (BM_elem_flag_test(l_iter, BM_ELEM_SELECT_UV)) {
+                    BM_loop_edge_uvselect_set(bm, l_iter->next, false);
+                    was_select = true;
+                  }
+                }
+                else {
+                  BLI_assert(l_iter->prev->e == e_new);
+                  if (BM_elem_flag_test(l_iter->prev, BM_ELEM_SELECT_UV)) {
+                    BM_loop_edge_uvselect_set(bm, l_iter->prev, false);
+                    was_select = true;
+                  }
+                }
+                if (was_select) {
+                  BM_loop_edge_uvselect_set(bm, l_iter, true);
+                }
+
+              } while ((l_iter = l_iter->radial_next) != l_first);
+            }
+          }
+
           changed = true;
         }
       }
@@ -211,11 +189,32 @@ static wmOperatorStatus edbm_rip_edge_invoke(bContext *C,
       params.calc_looptris = true;
       params.calc_normals = false;
       params.is_destructive = true;
-      EDBM_update(static_cast<Mesh *>(obedit->data), &params);
+      EDBM_update(id_cast<Mesh *>(obedit->data), &params);
     }
   }
 
   return OPERATOR_FINISHED;
+}
+
+static wmOperatorStatus edbm_rip_edge_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  ARegion *region = CTX_wm_region(C);
+  const float2 mval_fl = {float(event->mval[0]), float(event->mval[1])};
+
+  float3 ray_start, ray_dir;
+  ED_view3d_win_to_ray(region, mval_fl, ray_start, ray_dir);
+  normalize_v3(ray_dir);
+
+  float3 ray_start_proj;
+  /* Project ray_start onto a plane defined by the ray direction to avoid precision
+   * issues especially for orthographic views where the far-clipping is used to calculate
+   * the ray_start. */
+  project_plane_normalized_v3_v3v3(ray_start_proj, ray_start, ray_dir);
+
+  RNA_float_set_array(op->ptr, "location", ray_start_proj);
+  RNA_float_set_array(op->ptr, "direction", ray_dir);
+
+  return edbm_rip_edge_exec(C, op);
 }
 
 void MESH_OT_rip_edge(wmOperatorType *ot)
@@ -227,11 +226,37 @@ void MESH_OT_rip_edge(wmOperatorType *ot)
 
   /* API callbacks. */
   ot->invoke = edbm_rip_edge_invoke;
+  ot->exec = edbm_rip_edge_exec;
   ot->poll = EDBM_view3d_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
-  /* to give to transform */
-  blender::ed::transform::properties_register(ot, P_PROPORTIONAL | P_MIRROR_DUMMY);
+  PropertyRNA *prop;
+
+  prop = RNA_def_float_vector(ot->srna,
+                              "location",
+                              3,
+                              nullptr,
+                              -FLT_MAX,
+                              FLT_MAX,
+                              "Location",
+                              "World-space ray origin for extending vertices",
+                              -1.0f,
+                              1.0f);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
+  prop = RNA_def_float_vector(ot->srna,
+                              "direction",
+                              3,
+                              nullptr,
+                              -FLT_MAX,
+                              FLT_MAX,
+                              "Direction",
+                              "World-space direction vector for extending vertices",
+                              -1.0f,
+                              1.0f);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
+
+}  // namespace blender

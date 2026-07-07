@@ -234,7 +234,7 @@ class pyViewMapGradientVectorF0D(UnaryFunction0DVec2f):
 
        Builds a pyViewMapGradientVectorF0D object.
 
-       :arg level: the level at which to compute the gradient
+       :param level: the level at which to compute the gradient
        :type level: int
     """
 

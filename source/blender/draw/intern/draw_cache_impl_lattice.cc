@@ -114,8 +114,7 @@ enum {
 
 static LatticeRenderData *lattice_render_data_create(Lattice *lt, const int types)
 {
-  LatticeRenderData *rdata = static_cast<LatticeRenderData *>(
-      MEM_callocN(sizeof(*rdata), __func__));
+  LatticeRenderData *rdata = MEM_new_zeroed<LatticeRenderData>(__func__);
   rdata->types = types;
 
   if (lt->editlatt) {
@@ -164,10 +163,10 @@ static void lattice_render_data_free(LatticeRenderData *rdata)
 {
 #if 0
   if (rdata->loose_verts) {
-    MEM_freeN(rdata->loose_verts);
+    MEM_delete(rdata->loose_verts);
   }
 #endif
-  MEM_freeN(rdata);
+  MEM_delete(rdata);
 }
 
 static int lattice_render_data_verts_len_get(const LatticeRenderData *rdata)
@@ -216,7 +215,7 @@ struct LatticeBatchCache {
 
 static bool lattice_batch_cache_valid(Lattice *lt)
 {
-  LatticeBatchCache *cache = static_cast<LatticeBatchCache *>(lt->batch_cache);
+  LatticeBatchCache *cache = lt->batch_cache;
 
   if (cache == nullptr) {
     return false;
@@ -242,11 +241,10 @@ static bool lattice_batch_cache_valid(Lattice *lt)
 
 static void lattice_batch_cache_init(Lattice *lt)
 {
-  LatticeBatchCache *cache = static_cast<LatticeBatchCache *>(lt->batch_cache);
+  LatticeBatchCache *cache = lt->batch_cache;
 
   if (!cache) {
-    cache = static_cast<LatticeBatchCache *>(
-        lt->batch_cache = MEM_callocN(sizeof(*cache), __func__));
+    lt->batch_cache = cache = MEM_new_zeroed<LatticeBatchCache>(__func__);
   }
   else {
     memset(cache, 0, sizeof(*cache));
@@ -272,12 +270,12 @@ void DRW_lattice_batch_cache_validate(Lattice *lt)
 
 static LatticeBatchCache *lattice_batch_cache_get(Lattice *lt)
 {
-  return static_cast<LatticeBatchCache *>(lt->batch_cache);
+  return lt->batch_cache;
 }
 
 void DRW_lattice_batch_cache_dirty_tag(Lattice *lt, int mode)
 {
-  LatticeBatchCache *cache = static_cast<LatticeBatchCache *>(lt->batch_cache);
+  LatticeBatchCache *cache = lt->batch_cache;
   if (cache == nullptr) {
     return;
   }
@@ -296,7 +294,7 @@ void DRW_lattice_batch_cache_dirty_tag(Lattice *lt, int mode)
 
 static void lattice_batch_cache_clear(Lattice *lt)
 {
-  LatticeBatchCache *cache = static_cast<LatticeBatchCache *>(lt->batch_cache);
+  LatticeBatchCache *cache = lt->batch_cache;
   if (!cache) {
     return;
   }
@@ -312,7 +310,7 @@ static void lattice_batch_cache_clear(Lattice *lt)
 void DRW_lattice_batch_cache_free(Lattice *lt)
 {
   lattice_batch_cache_clear(lt);
-  MEM_SAFE_FREE(lt->batch_cache);
+  MEM_SAFE_DELETE(lt->batch_cache);
 }
 
 /* gpu::Batch cache usage. */
@@ -366,6 +364,10 @@ static gpu::IndexBuf *lattice_batch_cache_get_edges(LatticeRenderData *rdata,
     GPUIndexBufBuilder builder;
     GPU_indexbuf_init(&builder, GPU_PRIM_LINES, edge_len, vert_len);
     MutableSpan<uint2> data = GPU_indexbuf_get_data(&builder).cast<uint2>();
+    /* The buffer is allocated with **all** edges (see #lattice_render_edges_len_get()), but with
+     * the LT_OUTSIDE flag not all are drawn. So fill those gaps with zeros to hide redundant
+     * edges. */
+    data.fill(uint2(0));
     int line_index = 0;
 
 #define LATT_INDEX(u, v, w) ((((w) * rdata->dims.v_len + (v)) * rdata->dims.u_len) + (u))

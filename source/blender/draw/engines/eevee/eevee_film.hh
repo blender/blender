@@ -36,11 +36,16 @@
 #include "DNA_scene_types.h"
 #include "DRW_render.hh"
 
-#include "eevee_shader_shared.hh"
+#include "draw_pass.hh"
+
+#include "eevee_film_shared.hh"
+#include "eevee_renderbuffers_shared.hh"
 
 #include <sstream>
 
 namespace blender::eevee {
+
+using namespace draw;
 
 class Instance;
 
@@ -51,7 +56,7 @@ class Instance;
 class Film {
  public:
   /** Stores indirection table of AOVs based on their name hash and their type. */
-  AOVsInfoDataBuf aovs_info;
+  StorageBuffer<AOVsInfoData> aovs_info;
   /** For debugging purpose but could be a user option in the future. */
   static constexpr bool use_box_filter = false;
 
@@ -107,8 +112,8 @@ class Film {
   bool is_valid_render_extent_ = true;
 
  public:
-  Film(Instance &inst, FilmData &data) : inst_(inst), data_(data){};
-  ~Film(){};
+  Film(Instance &inst, FilmData &data) : inst_(inst), data_(data) {};
+  ~Film() {};
 
   void init(const int2 &full_extent, const rcti *output_rect);
 

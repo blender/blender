@@ -18,6 +18,7 @@
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
 
+#include "BLI_enum_flags.hh"
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
@@ -26,6 +27,8 @@
 
 #include <utility>
 
+namespace blender {
+
 struct FCurve;
 struct FCurve;
 struct ID;
@@ -33,7 +36,7 @@ struct Main;
 struct PointerRNA;
 struct Main;
 
-namespace blender::animrig {
+namespace animrig {
 
 /* Forward declarations for the types defined later in this file. */
 class Layer;
@@ -75,23 +78,14 @@ class Slot;
  *
  * \note This wrapper class for the `bAction` DNA struct only has functionality
  * for the layered animation data. The legacy F-Curves (in `bAction::curves`)
- * and their groups (in `bAction::groups`) are not managed here.
- *
- * To continue supporting legacy actions at runtime, there are
- * `Action::is_action_legacy()` and `Action::is_action_layered()` that report
- * whether an Action uses that legacy F-Curve data or is instead a layered
- * Action. These methods will eventually be removed when runtime support for
- * legacy actions is fully removed. For code in blend file loading and
- * versioning, which will stick around for the long-term, use
- * `animrig::versioning::action_is_layered()` instead. (Note that an empty
- * Action is considered both a valid legacy *and* layered action.)
+ * and their groups (in `bAction::groups`) are not managed here. See animrig::versioning.
  *
  * \see #AnimData::action
  * \see #AnimData::slot_handle
  * \see assert_baklava_phase_1_invariants()
  * \see #animrig::versioning::action_is_layered()
  */
-class Action : public ::bAction {
+class Action : public bAction {
  public:
   Action() = default;
   /**
@@ -100,57 +94,16 @@ class Action : public ::bAction {
    */
   Action(const Action &other) = delete;
 
-  /* Discriminators for 'legacy' and 'layered' Actions.
-   *
-   * Note: `is_action_legacy()` and `is_action_layered()` are transitional APIs,
-   * and should eventually be removed. See their documentation below for
-   * details.
-   */
   /**
    * Return whether this Action has any data at all.
    *
-   * \return true when `bAction::layer_array` and `bAction::slot_array`, as well as
-   * the legacy `curves` list, are empty.
+   * \return true when `bAction::layer_array` and `bAction::slot_array` are empty.
    */
   bool is_empty() const;
-  /**
-   * Return whether this is a legacy Action.
-   *
-   * - Animation data is stored in `bAction::curves`.
-   * - Evaluated equally for all data-blocks that reference this Action.
-   * - Slot handle is ignored.
-   *
-   * \note An empty Action is valid as both a legacy and layered Action. Code that only supports
-   * layered Actions should assert on `is_action_layered()`.
-   *
-   * \note This method will be removed when runtime support for legacy Actions
-   * is removed, so only use it in such runtime code. See
-   * `animrig::versioning::action_is_layered()` for uses that should stick
-   * around for the long term, such as blend file loading and versioning.
-   *
-   * \see #animrig::versioning::action_is_layered()
-   */
-  bool is_action_legacy() const;
-  /**
-   * Return whether this is a layered Action.
-   *
-   * - Animation data is stored in `bAction::layer_array`.
-   * - Evaluated for data-blocks based on their slot handle.
-   *
-   * \note An empty Action is valid as both a legacy and layered Action.
-   *
-   * \note This method will be removed when runtime support for legacy Actions
-   * is removed, so only use it in such runtime code. See
-   * `animrig::versioning::action_is_layered()` for uses that should stick
-   * around for the long term, such as blend file loading and versioning.
-   *
-   * \see #animrig::versioning::action_is_layered()
-   */
-  bool is_action_layered() const;
 
   /* Action Layers access. */
-  blender::Span<const Layer *> layers() const;
-  blender::Span<Layer *> layers();
+  Span<const Layer *> layers() const;
+  Span<Layer *> layers();
   const Layer *layer(int64_t index) const;
   Layer *layer(int64_t index);
 
@@ -192,8 +145,8 @@ class Action : public ::bAction {
   void layer_keystrip_ensure();
 
   /* Action Slot access. */
-  blender::Span<const Slot *> slots() const;
-  blender::Span<Slot *> slots();
+  Span<const Slot *> slots() const;
+  Span<Slot *> slots();
   const Slot *slot(int64_t index) const;
   Slot *slot(int64_t index);
 
@@ -393,9 +346,6 @@ class Action : public ::bAction {
   /**
    * Check if the slot with this handle has any keyframes.
    *
-   * If called on a legacy action, `action_slot_handle` is ignored and the
-   * fcurves of the legacy action are checked for keyframes.
-   *
    * \see is_slot_animated()
    */
   bool has_keyframes(slot_handle_t action_slot_handle) const ATTR_WARN_UNUSED_RESULT;
@@ -535,7 +485,7 @@ class Action : public ::bAction {
    */
   void slot_identifier_ensure_prefix(Slot &slot);
 };
-static_assert(sizeof(Action) == sizeof(::bAction),
+static_assert(sizeof(Action) == sizeof(bAction),
               "DNA struct and its C++ wrapper must have the same size");
 
 /**
@@ -548,7 +498,7 @@ static_assert(sizeof(Action) == sizeof(::bAction),
  * Different strips can refer to different types of data, although at the moment
  * only one type of strip data is implemented: keyframe animation data.
  */
-class Strip : public ::ActionStrip {
+class Strip : public ActionStrip {
  public:
   /**
    * The possible types of strip data.
@@ -648,7 +598,7 @@ class Strip : public ::ActionStrip {
   template<typename T> const T &data(const Action &owning_action) const;
   template<typename T> T &data(Action &owning_action);
 };
-static_assert(sizeof(Strip) == sizeof(::ActionStrip),
+static_assert(sizeof(Strip) == sizeof(ActionStrip),
               "DNA struct and its C++ wrapper must have the same size");
 
 /**
@@ -666,7 +616,7 @@ static_assert(sizeof(Strip) == sizeof(::ActionStrip),
  * within the strip array, etc.) have not yet been decided. These will be
  * decided and documented when support for multiple strips is added.
  */
-class Layer : public ::ActionLayer {
+class Layer : public ActionLayer {
  public:
   Layer() = default;
   Layer(const Layer &other) = delete;
@@ -690,7 +640,6 @@ class Layer : public ::ActionLayer {
   enum class Flags : uint8_t {
     /* Set by default, cleared to mute. */
     Enabled = (1 << 0),
-    /* When adding/removing a flag, also update the ENUM_OPERATORS() invocation below. */
   };
 
   Flags flags() const
@@ -717,8 +666,8 @@ class Layer : public ::ActionLayer {
   }
 
   /* Strip array access. */
-  blender::Span<const Strip *> strips() const;
-  blender::Span<Strip *> strips();
+  Span<const Strip *> strips() const;
+  Span<Strip *> strips();
   const Strip *strip(int64_t index) const;
   Strip *strip(int64_t index);
 
@@ -748,10 +697,10 @@ class Layer : public ::ActionLayer {
    */
   int64_t find_strip_index(const Strip &strip) const;
 };
-static_assert(sizeof(Layer) == sizeof(::ActionLayer),
+static_assert(sizeof(Layer) == sizeof(ActionLayer),
               "DNA struct and its C++ wrapper must have the same size");
 
-ENUM_OPERATORS(Layer::Flags, Layer::Flags::Enabled);
+ENUM_OPERATORS(Layer::Flags);
 
 /**
  * Identifier for a sub-set of the animation data inside an Action.
@@ -762,7 +711,7 @@ ENUM_OPERATORS(Layer::Flags, Layer::Flags::Enabled);
  *
  * \see #AnimData::slot_handle
  */
-class Slot : public ::ActionSlot {
+class Slot : public ActionSlot {
  public:
   Slot();
   explicit Slot(const Slot &other);
@@ -874,8 +823,6 @@ class Slot : public ::ActionSlot {
     Selected = (1 << 1),
     /** The active Slot for this Action. Set via a method on the Action. */
     Active = (1 << 2),
-    /* When adding/removing a flag, also update the ENUM_OPERATORS() invocation,
-     * all the way below the Slot class. */
   };
   Flags flags() const;
   bool is_expanded() const;
@@ -922,8 +869,8 @@ class Slot : public ::ActionSlot {
    *
    * \note This static method invalidates all user caches of all Action Slots.
    *
-   * \see #blender::animrig::internal::rebuild_slot_user_cache()
-   * \see #blender::bke::animdata::action_slots_user_cache_invalidate(), which is an alternative to
+   * \see #animrig::internal::rebuild_slot_user_cache()
+   * \see #bke::animdata::action_slots_user_cache_invalidate(), which is an alternative to
    *      calling this static method in case the caller only wants to depend on BKE headers.
    */
   static void users_invalidate(Main &bmain);
@@ -959,9 +906,9 @@ class Slot : public ::ActionSlot {
    */
   void set_active(bool active);
 };
-static_assert(sizeof(Slot) == sizeof(::ActionSlot),
+static_assert(sizeof(Slot) == sizeof(ActionSlot),
               "DNA struct and its C++ wrapper must have the same size");
-ENUM_OPERATORS(Slot::Flags, Slot::Flags::Active);
+ENUM_OPERATORS(Slot::Flags);
 
 /**
  * Keyframe animation data for a keyframe strip.
@@ -972,7 +919,7 @@ ENUM_OPERATORS(Slot::Flags, Slot::Flags::Active);
  *
  * \see ChannelBag
  */
-class StripKeyframeData : public ::ActionStripKeyframeData {
+class StripKeyframeData : public ActionStripKeyframeData {
  public:
   /* Value of `Strip::type()` that corresponds to this type. */
   static constexpr Strip::Type TYPE = Strip::Type::Keyframe;
@@ -982,8 +929,8 @@ class StripKeyframeData : public ::ActionStripKeyframeData {
   ~StripKeyframeData();
 
   /* Channelbag array access. */
-  blender::Span<const Channelbag *> channelbags() const;
-  blender::Span<Channelbag *> channelbags();
+  Span<const Channelbag *> channelbags() const;
+  Span<Channelbag *> channelbags();
   const Channelbag *channelbag(int64_t index) const;
   Channelbag *channelbag(int64_t index);
 
@@ -1046,7 +993,7 @@ class StripKeyframeData : public ::ActionStripKeyframeData {
                                      eInsertKeyFlags insert_key_flags = INSERTKEY_NOFLAGS,
                                      std::optional<float2> cycle_range = std::nullopt);
 };
-static_assert(sizeof(StripKeyframeData) == sizeof(::ActionStripKeyframeData),
+static_assert(sizeof(StripKeyframeData) == sizeof(ActionStripKeyframeData),
               "DNA struct and its C++ wrapper must have the same size");
 
 /**
@@ -1058,15 +1005,15 @@ static_assert(sizeof(StripKeyframeData) == sizeof(::ActionStripKeyframeData),
  *
  * \see ChannelGroup
  */
-class Channelbag : public ::ActionChannelbag {
+class Channelbag : public ActionChannelbag {
  public:
   Channelbag() = default;
   explicit Channelbag(const Channelbag &other);
   ~Channelbag();
 
   /* FCurves access. */
-  blender::Span<const FCurve *> fcurves() const;
-  blender::Span<FCurve *> fcurves();
+  Span<const FCurve *> fcurves() const;
+  Span<FCurve *> fcurves();
   const FCurve *fcurve(int64_t index) const;
   FCurve *fcurve(int64_t index);
 
@@ -1215,8 +1162,8 @@ class Channelbag : public ::ActionChannelbag {
   void fcurves_clear();
 
   /* Channel group access. */
-  blender::Span<const bActionGroup *> channel_groups() const;
-  blender::Span<bActionGroup *> channel_groups();
+  Span<const bActionGroup *> channel_groups() const;
+  Span<bActionGroup *> channel_groups();
   const bActionGroup *channel_group(int64_t index) const;
   bActionGroup *channel_group(int64_t index);
 
@@ -1396,7 +1343,7 @@ class Channelbag : public ::ActionChannelbag {
   void restore_channel_group_invariants();
 };
 
-static_assert(sizeof(Channelbag) == sizeof(::ActionChannelbag),
+static_assert(sizeof(Channelbag) == sizeof(ActionChannelbag),
               "DNA struct and its C++ wrapper must have the same size");
 
 /**
@@ -1406,7 +1353,7 @@ static_assert(sizeof(Channelbag) == sizeof(::ActionChannelbag),
  * fcurves for organizational purposes, e.g. for use in the channel list in the
  * animation editors.
  */
-class ChannelGroup : public ::bActionGroup {
+class ChannelGroup : public bActionGroup {
  public:
   /**
    * Determine whether this channel group is from a legacy action or a layered action.
@@ -1426,7 +1373,7 @@ class ChannelGroup : public ::bActionGroup {
   Span<const FCurve *> fcurves() const;
 };
 
-static_assert(sizeof(ChannelGroup) == sizeof(::bActionGroup),
+static_assert(sizeof(ChannelGroup) == sizeof(bActionGroup),
               "DNA struct and its C++ wrapper must have the same size");
 
 /**
@@ -1447,14 +1394,6 @@ enum class ActionSlotAssignmentResult : int8_t {
   SlotNotSuitable = 2,   /* Slot is not suitable for the given ID type. */
   MissingAction = 3,     /* No Action assigned yet, so cannot assign slot. */
 };
-
-/**
- * Return whether the given Action can be assigned to the ID.
- *
- * This always returns `true` for layered Actions. For legacy Actions it
- * returns `true` if the Action's `idroot` matches the ID.
- */
-[[nodiscard]] bool is_action_assignable_to(const bAction *dna_action, ID_Type id_code);
 
 /**
  * Assign the Action to the ID.
@@ -1481,8 +1420,7 @@ enum class ActionSlotAssignmentResult : int8_t {
  * Use this function when you already have the AnimData struct of this ID.
  *
  * \return true when successful, false otherwise. This can fail when the NLA is in tweak mode (no
- * action changes allowed) or when a legacy Action is assigned and it doesn't match the animated
- * ID's type.
+ * action changes allowed).
  */
 [[nodiscard]] bool assign_action(bAction *action, OwnedAnimData owned_adt);
 
@@ -1508,8 +1446,7 @@ ActionSlotAssignmentResult assign_action_and_slot(Action *action,
  *
  * \returns the assigned slot if the assignment was successful, or `nullptr` otherwise. Reasons the
  * assignment can fail is when the given ID is of an animatable type, when the ID is in NLA Tweak
- * mode (in which case no Action assignments can happen), or when the legacy Action ID type doesn't
- * match the animated ID.
+ * mode (in which case no Action assignments can happen).
  *
  * \note Contrary to `assign_action()` this skips the search by slot identifier when the Action is
  * already assigned. It should be possible for an animator to un-assign a slot, then create a new
@@ -1533,7 +1470,7 @@ ActionSlotAssignmentResult assign_action_and_slot(Action *action,
  *
  * Same as calling `assign_action(nullptr, animated_id)`.
  *
- * \see #blender::animrig::assign_action(ID &animated_id)
+ * \see #animrig::assign_action(ID &animated_id)
  */
 [[nodiscard]] bool unassign_action(ID &animated_id);
 
@@ -1542,7 +1479,7 @@ ActionSlotAssignmentResult assign_action_and_slot(Action *action,
  *
  * Same as calling `assign_action(nullptr, owned_adt)`.
  *
- * \see #blender::animrig::assign_action(OwnedAnimData owned_adt)
+ * \see #animrig::assign_action(OwnedAnimData owned_adt)
  */
 [[nodiscard]] bool unassign_action(OwnedAnimData owned_adt);
 
@@ -1641,10 +1578,7 @@ animrig::Channelbag *channelbag_for_action_slot(Action &action, slot_handle_t sl
  * The use of this function is also an indicator for code that will have to be altered when
  * multi-layered Actions are getting implemented.
  *
- * \note This function requires a layered Action. To transparently handle legacy Actions, see the
- * `animrig::legacy` namespace.
- *
- * \see #blender::animrig::legacy::fcurves_for_action_slot
+ * \see #animrig::legacy::fcurves_for_action_slot
  */
 Span<FCurve *> fcurves_for_action_slot(Action &action, slot_handle_t slot_handle);
 Span<const FCurve *> fcurves_for_action_slot(const Action &action, slot_handle_t slot_handle);
@@ -1690,8 +1624,8 @@ FCurve &action_fcurve_ensure(Main *bmain,
  * Find or create an F-Curve on the given action that matches the given fcurve
  * descriptor.
  *
- * This function is primarily intended for use with legacy actions, but for
- * reasons of expedience it now also works with layered actions under the
+ * This function was primarily intended for use with legacy actions, but for
+ * reasons of expedience it also works with layered actions under the
  * following limited circumstances: `ptr` must be non-null and must have an
  * `owner_id` that already uses `act`. See the comments in the implementation
  * for more details.
@@ -1713,24 +1647,8 @@ FCurve &action_fcurve_ensure(Main *bmain,
  */
 FCurve *action_fcurve_ensure_ex(Main *bmain,
                                 bAction *act,
-                                const char group[],
                                 PointerRNA *ptr,
                                 const FCurveDescriptor &fcurve_descriptor);
-
-/**
- * Same as above, but creates a legacy Action.
- *
- * \note this function should ONLY be used in unit tests, in order to create
- * legacy Actions for testing. Or in the very rare cases where handling of
- * legacy Actions is still necessary AND you have no PointerRNA. In all other
- * cases, just call #action_fcurve_ensure, it'll do the right thing
- * transparently on whatever Action you give it.
- */
-FCurve *action_fcurve_ensure_legacy(Main *bmain,
-                                    bAction *act,
-                                    const char group[],
-                                    PointerRNA *ptr,
-                                    const FCurveDescriptor &fcurve_descriptor);
 
 /**
  * Find the F-Curve in the given Action.
@@ -1738,14 +1656,14 @@ FCurve *action_fcurve_ensure_legacy(Main *bmain,
  * All the Action slots are searched for this F-Curve. To limit to a single
  * slot, use fcurve_find_in_action_slot().
  *
- * \see #blender::animrig::fcurve_find_in_action_slot
+ * \see #animrig::fcurve_find_in_action_slot
  */
 FCurve *fcurve_find_in_action(bAction *act, const FCurveDescriptor &fcurve_descriptor);
 
 /**
  * Find the F-Curve in the given Action Slot.
  *
- * \see #blender::animrig::fcurve_find_in_action
+ * \see #animrig::fcurve_find_in_action
  */
 FCurve *fcurve_find_in_action_slot(bAction *act,
                                    slot_handle_t slot_handle,
@@ -1754,7 +1672,7 @@ FCurve *fcurve_find_in_action_slot(bAction *act,
 /**
  * Find the F-Curve in the Action Slot assigned to this ADT.
  *
- * \see #blender::animrig::fcurve_find_in_action
+ * \see #animrig::fcurve_find_in_action
  */
 FCurve *fcurve_find_in_assigned_slot(AnimData &adt, const FCurveDescriptor &fcurve_descriptor);
 
@@ -1773,9 +1691,6 @@ bool fcurve_matches_collection_path(const FCurve &fcurve,
 /**
  * Return the F-Curves in the given action+slot for which `predicate` returns
  * true.
- *
- * This works for both layered and legacy actions. For legacy actions the slot
- * handle is ignored.
  */
 Vector<FCurve *> fcurves_in_action_slot_filtered(
     bAction *act, slot_handle_t slot_handle, FunctionRef<bool(const FCurve &fcurve)> predicate);
@@ -1790,14 +1705,12 @@ Vector<FCurve *> fcurves_in_span_filtered(Span<FCurve *> fcurves,
  * Return the F-Curves in the given listbase for which `predicate` returns
  * true.
  */
-Vector<FCurve *> fcurves_in_listbase_filtered(ListBase /* FCurve * */ fcurves,
+Vector<FCurve *> fcurves_in_listbase_filtered(ListBaseT<FCurve> fcurves,
                                               FunctionRef<bool(const FCurve &fcurve)> predicate);
 
 /**
  * Remove the given FCurve from the action by searching for it in all channelbags.
  * This assumes that an FCurve can only exist in an action once.
- *
- * Compatible with both legacy and layered Actions.
  *
  *  \returns true if the given FCurve was removed.
  *
@@ -1807,9 +1720,6 @@ bool action_fcurve_remove(Action &action, FCurve &fcu);
 
 /**
  * Detach the F-Curve from the Action, searching for it in all channelbags.
- *
- * Compatible with both legacy and layered Actions. The slot handles are ignored
- * for legacy Actions.
  *
  * The F-Curve is not freed, and ownership is transferred to the caller.
  *
@@ -1824,10 +1734,8 @@ bool action_fcurve_detach(Action &action, FCurve &fcurve_to_detach);
 /**
  * Attach the F-Curve to the Action Slot.
  *
- * Compatible with both legacy and layered Actions. The slot handle is ignored
- * for legacy Actions.
  *
- * On layered Actions, this assumes the 'Baklava Phase 1' invariants (one layer,
+ * This assumes the 'Baklava Phase 1' invariants (one layer,
  * one keyframe strip).
  *
  * \see action_fcurve_detach
@@ -1845,15 +1753,12 @@ void action_fcurve_attach(Action &action,
  * over to the destination Action. If no group with the same name exists, it is
  * created. This only happens for layered Actions, though.
  *
- * Compatible with both legacy and layered Actions. The slot handle and group
- * membership are ignored for legacy Actions.
- *
  * The F-Curve must exist on the source Action. All channelbags for all slots
  * are searched for the F-Curve.
  *
  * \param action_slot_dst: may not be #Slot::unassigned on layered Actions.
  *
- * \see #blender::animrig::action_fcurve_detach
+ * \see #animrig::action_fcurve_detach
  */
 void action_fcurve_move(Action &action_dst,
                         slot_handle_t action_slot_dst,
@@ -1868,7 +1773,7 @@ void action_fcurve_move(Action &action_dst,
  *
  * If the F-Curves belonged to channel groups, the group membership also carries
  * over to the destination Channelbag. If groups with the same names don't
- * exist, they are created. \see #blender::animrig::action_fcurve_detach
+ * exist, they are created. \see #animrig::action_fcurve_detach
  *
  * The order of existing channel groups in the destination Channelbag are not
  * changed, and any new groups are placed after those in the order they appeared
@@ -1878,11 +1783,6 @@ void channelbag_fcurves_move(Channelbag &channelbag_dst, Channelbag &channelbag_
 
 /**
  * Find an appropriate user of the given Action + Slot for keyframing purposes.
- *
- * (NOTE: although this function exists for handling situations caused by the
- * expanded capabilities of layered actions, for convenience it also works with
- * legacy actions. For legacy actions this simply returns `primary_id` as long
- * as it's a user of `action`.)
  *
  * Usually this function shouldn't be necessary, because you'll already have an
  * obvious ID that you're keying. But in some cases (such as the action editor
@@ -1933,17 +1833,15 @@ ID *action_slot_get_id_best_guess(Main &bmain, Slot &slot, ID *primary_id);
  * TODO: Maybe at some point this function should get extended with an ID type parameter, to return
  * the first slot that is suitable for that ID type.
  *
- * \return The handle of the first slot, or #Slot::unassigned if there is no slot (which includes
- * legacy Actions).
+ * \return The handle of the first slot, or #Slot::unassigned if there is no slot.
  */
-slot_handle_t first_slot_handle(const ::bAction &dna_action);
+slot_handle_t first_slot_handle(const bAction &dna_action);
 
 /**
  * Assert the invariants of Project Baklava phase 1.
  *
  * For an action the invariants are that it:
- * - Is a legacy action.
- * - OR has zero layers.
+ * - has zero layers.
  * - OR has a single layer that adheres to the phase 1 invariants for layers.
  *
  * For a layer the invariants are that it:
@@ -1970,12 +1868,6 @@ void assert_baklava_phase_1_invariants(const Layer &layer);
 void assert_baklava_phase_1_invariants(const Strip &strip);
 
 /**
- * Creates a new `Action` that matches the old action but is converted to have layers.
- * Returns a nullptr if the action is empty or already layered.
- */
-Action *convert_to_layered_action(Main &bmain, const Action &legacy_action);
-
-/**
  * Move the given slot from `from_action` to `to_action`.
  * The slot identifier might not be exactly the same if the identifier already exists in the slots
  * of `to_action`. Also the slot handle is likely going to be different on `to_action`. All users
@@ -1998,76 +1890,78 @@ Slot &duplicate_slot(Action &action, const Slot &slot);
 /**
  * Deselect the keys of all actions in the Span. Duplicate entries are only visited once.
  */
-void deselect_keys_actions(blender::Span<bAction *> actions);
+void deselect_keys_actions(Span<bAction *> actions);
 
 /**
  * Deselect all keys within the action.
  */
 void action_deselect_keys(Action &action);
 
-}  // namespace blender::animrig
+}  // namespace animrig
 
 /* Wrap functions for the DNA structs. */
 
-inline blender::animrig::ChannelGroup &bActionGroup::wrap()
+inline animrig::ChannelGroup &bActionGroup::wrap()
 {
-  return *reinterpret_cast<blender::animrig::ChannelGroup *>(this);
+  return *reinterpret_cast<animrig::ChannelGroup *>(this);
 }
-inline const blender::animrig::ChannelGroup &bActionGroup::wrap() const
+inline const animrig::ChannelGroup &bActionGroup::wrap() const
 {
-  return *reinterpret_cast<const blender::animrig::ChannelGroup *>(this);
-}
-
-inline blender::animrig::Action &bAction::wrap()
-{
-  return *reinterpret_cast<blender::animrig::Action *>(this);
-}
-inline const blender::animrig::Action &bAction::wrap() const
-{
-  return *reinterpret_cast<const blender::animrig::Action *>(this);
+  return *reinterpret_cast<const animrig::ChannelGroup *>(this);
 }
 
-inline blender::animrig::Layer &ActionLayer::wrap()
+inline animrig::Action &bAction::wrap()
 {
-  return *reinterpret_cast<blender::animrig::Layer *>(this);
+  return *reinterpret_cast<animrig::Action *>(this);
 }
-inline const blender::animrig::Layer &ActionLayer::wrap() const
+inline const animrig::Action &bAction::wrap() const
 {
-  return *reinterpret_cast<const blender::animrig::Layer *>(this);
-}
-
-inline blender::animrig::Slot &ActionSlot::wrap()
-{
-  return *reinterpret_cast<blender::animrig::Slot *>(this);
-}
-inline const blender::animrig::Slot &ActionSlot::wrap() const
-{
-  return *reinterpret_cast<const blender::animrig::Slot *>(this);
+  return *reinterpret_cast<const animrig::Action *>(this);
 }
 
-inline blender::animrig::Strip &ActionStrip::wrap()
+inline animrig::Layer &ActionLayer::wrap()
 {
-  return *reinterpret_cast<blender::animrig::Strip *>(this);
+  return *reinterpret_cast<animrig::Layer *>(this);
 }
-inline const blender::animrig::Strip &ActionStrip::wrap() const
+inline const animrig::Layer &ActionLayer::wrap() const
 {
-  return *reinterpret_cast<const blender::animrig::Strip *>(this);
-}
-
-inline blender::animrig::StripKeyframeData &ActionStripKeyframeData::wrap()
-{
-  return *reinterpret_cast<blender::animrig::StripKeyframeData *>(this);
-}
-inline const blender::animrig::StripKeyframeData &ActionStripKeyframeData::wrap() const
-{
-  return *reinterpret_cast<const blender::animrig::StripKeyframeData *>(this);
+  return *reinterpret_cast<const animrig::Layer *>(this);
 }
 
-inline blender::animrig::Channelbag &ActionChannelbag::wrap()
+inline animrig::Slot &ActionSlot::wrap()
 {
-  return *reinterpret_cast<blender::animrig::Channelbag *>(this);
+  return *reinterpret_cast<animrig::Slot *>(this);
 }
-inline const blender::animrig::Channelbag &ActionChannelbag::wrap() const
+inline const animrig::Slot &ActionSlot::wrap() const
 {
-  return *reinterpret_cast<const blender::animrig::Channelbag *>(this);
+  return *reinterpret_cast<const animrig::Slot *>(this);
 }
+
+inline animrig::Strip &ActionStrip::wrap()
+{
+  return *reinterpret_cast<animrig::Strip *>(this);
+}
+inline const animrig::Strip &ActionStrip::wrap() const
+{
+  return *reinterpret_cast<const animrig::Strip *>(this);
+}
+
+inline animrig::StripKeyframeData &ActionStripKeyframeData::wrap()
+{
+  return *reinterpret_cast<animrig::StripKeyframeData *>(this);
+}
+inline const animrig::StripKeyframeData &ActionStripKeyframeData::wrap() const
+{
+  return *reinterpret_cast<const animrig::StripKeyframeData *>(this);
+}
+
+inline animrig::Channelbag &ActionChannelbag::wrap()
+{
+  return *reinterpret_cast<animrig::Channelbag *>(this);
+}
+inline const animrig::Channelbag &ActionChannelbag::wrap() const
+{
+  return *reinterpret_cast<const animrig::Channelbag *>(this);
+}
+
+}  // namespace blender

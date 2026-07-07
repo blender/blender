@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   height="1600"
+   viewBox="0 0 1600 1600"
+   width="1600"
+   version="1.1"
+   id="svg3"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs3" />
+  <g
+     fill="#fff"
+     id="g3">
+    <g
+       enable-background="new"
+       transform="matrix(100 0 0 100 -44600.356 -59800.356)"
+       id="g2">
+      <path
+         id="path1"
+         d="m 447.50001,599.00001 c -0.27613,3e-5 -0.49997,0.22387 -0.5,0.5 v 13.00355 c 3e-5,0.27613 0.22397,0.48947 0.5,0.5 h 13 c 0.0229,3e-4 0.045,-5.7e-4 0.0664,-0.003 0.32026,-0.0296 0.46599,-0.30644 0.43719,-0.56098 v -12.94003 c -3e-5,-0.27613 -0.22387,-0.49997 -0.5,-0.5 z m 0.5,1 h 12.00355 v 12.00355 h -12.00355 z"
+         style="opacity:0.5" />
+      <path
+         d="m 458.00356,602.00356 c -4.87024,0 -4.08879,7 -8,7 h -1 v 1 h 1 c 4.75106,0 4.07637,-7 8,-7 h 1 v -1 z"
+         opacity="0.65"
+         id="path6"
+         style="display:inline;opacity:1" />
+      <circle
+         style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.02;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+         id="path7"
+         cx="456.00357"
+         cy="603.00354"
+         r="1" />
+      <circle
+         style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.02;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+         id="circle7"
+         cx="452.00357"
+         cy="609.00354"
+         r="1" />
+      <path
+         id="path1-1"
+         style="display:inline;opacity:0.3"
+         d="m 450.50372,600.9984 c -0.25245,0 -0.50494,0.16903 -0.50016,0.50711 v 0.49805 h -0.5 c -0.67616,-0.01 -0.67616,1.00956 0,1 h 0.5 v 3.50195 c -0.004,0.28226 0.22555,0.51224 0.50781,0.50782 0.27614,-0.004 0.49651,-0.23168 0.49219,-0.50782 v -3.50195 h 2.48083 c 0.67616,0.01 0.67616,-1.00956 0,-1 h -2.48083 v -0.49805 c 0.005,-0.33808 -0.2474,-0.50711 -0.49984,-0.50711 z m 6.99203,4.00516 c -0.27614,0.004 -0.49651,0.23167 -0.49219,0.50781 v 3.49414 h -2.5 c -0.67616,-0.01 -0.67616,1.00956 0,1 h 2.5 v 0.49805 c -0.01,0.67616 1.00956,0.67616 1,0 v -0.49805 h 0.5 c 0.67616,0.01 0.67616,-1.00956 0,-1 h -0.5 v -3.49414 c 0.004,-0.28226 -0.22555,-0.51223 -0.50781,-0.50781 z" />
+    </g>
+  </g>
+</svg>

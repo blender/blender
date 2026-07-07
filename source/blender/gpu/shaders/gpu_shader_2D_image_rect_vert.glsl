@@ -7,7 +7,7 @@
  * does not need any vertex input (producing less call to immBegin/End)
  */
 
-#include "infos/gpu_shader_2D_image_rect_color_info.hh"
+#include "infos/gpu_shader_2D_image_rect_color_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(gpu_shader_2D_image_rect_color)
 

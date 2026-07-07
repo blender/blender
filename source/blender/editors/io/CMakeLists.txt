@@ -17,7 +17,6 @@ set(INC
 )
 
 set(INC_SYS
-
 )
 
 set(SRC
@@ -53,7 +52,6 @@ set(LIB
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
-  PRIVATE bf::extern::fmtlib
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::intern::clog
   PRIVATE bf::windowmanager
@@ -102,11 +100,9 @@ if(WITH_ALEMBIC)
 endif()
 
 if(WITH_USD)
-  list(APPEND INC_SYS
-    ${USD_INCLUDE_DIRS}
-  )
   list(APPEND LIB
     bf_io_usd
+    PRIVATE bf::dependencies::optional::usd
   )
   add_definitions(-DWITH_USD)
 endif()

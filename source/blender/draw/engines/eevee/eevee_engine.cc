@@ -19,7 +19,9 @@
 
 #include "eevee_instance.hh"
 
-namespace blender::eevee {
+namespace blender {
+
+namespace eevee {
 
 DrawEngine *Engine::create_instance()
 {
@@ -31,7 +33,7 @@ void Engine::free_static()
   ShaderModule::module_free();
 }
 
-}  // namespace blender::eevee
+}  // namespace eevee
 
 using namespace blender::eevee;
 
@@ -98,3 +100,5 @@ RenderEngineType DRW_engine_viewport_eevee_type = {
         /*call*/ nullptr,
     },
 };
+
+}  // namespace blender

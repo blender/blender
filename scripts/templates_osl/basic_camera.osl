@@ -1,6 +1,8 @@
 /* A basic perspective camera. */
 
-shader camera(float focal_length = 90.0,
+shader camera(float focal_length = 90.0 [[ float min = 0.0,
+                                           string unit = "mm",
+                                           float sensitivity = 0.2 ]],
               output point position = 0.0,
               output vector direction = 0.0,
               output color throughput = 1.0)

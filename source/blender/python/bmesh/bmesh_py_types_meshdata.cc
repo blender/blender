@@ -38,6 +38,8 @@
 #include "../generic/py_capi_utils.hh"
 #include "../generic/python_utildefines.hh"
 
+namespace blender {
+
 /* Mesh Loop UV
  * ************ */
 
@@ -46,14 +48,15 @@
 struct BPy_BMLoopUV {
   PyObject_VAR_HEAD
   float *uv;
-  /* vert_select, edge_select and pin could be nullptr, signifying those layers don't exist.
-   * Currently those layers are always created on a BMesh because adding layers to an existing
-   * BMesh is slow and invalidates existing python objects having pointers into the original
-   * datablocks (adding a layer re-generates all blocks). But eventually the plan is to lazily
-   * allocate the bool layers 'on demand'. Therefore the code tries to handle all cases where
-   * the layers don't exist. */
-  bool *vert_select;
-  bool *edge_select;
+  /**
+   * Pin may be null, signifying the layer doesn't exist.
+   *
+   * Currently its always created on a #BMesh because adding UV layers to an existing #BMesh is
+   * slow and invalidates existing Python objects having pointers into the original data-blocks
+   * (since adding a layer re-generates all blocks).
+   * But eventually the plan is to lazily allocate the boolean layers "on demand".
+   * Therefore the code handles cases where the pin layer doesn't exist.
+   */
   bool *pin;
   BMLoop *loop;
 };
@@ -61,7 +64,7 @@ struct BPy_BMLoopUV {
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmloopuv_uv_doc,
-    "Loops UV (as a 2D Vector).\n"
+    "Loop UV (as a 2D Vector).\n"
     "\n"
     ":type: :class:`mathutils.Vector`\n");
 static PyObject *bpy_bmloopuv_uv_get(BPy_BMLoopUV *self, void * /*closure*/)
@@ -80,29 +83,30 @@ static int bpy_bmloopuv_uv_set(BPy_BMLoopUV *self, PyObject *value, void * /*clo
   return -1;
 }
 
+static bool bpy_bmloopuv_pin_uv_ok_or_error(const BPy_BMLoopUV *self)
+{
+  if (self->pin == nullptr) {
+    PyErr_SetString(PyExc_RuntimeError,
+                    "active uv layer has no associated pin layer. This is a bug!");
+    return false;
+  }
+  return true;
+}
+
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmloopuv_pin_uv_doc,
     "UV pin state.\n"
     "\n"
     ":type: bool\n");
-PyDoc_STRVAR(
-    /* Wrap. */
-    bpy_bmloopuv_select_doc,
-    "UV select state.\n"
-    "\n"
-    ":type: bool\n");
-PyDoc_STRVAR(
-    /* Wrap. */
-    bpy_bmloopuv_select_edge_doc,
-    "UV edge select state.\n"
-    "\n"
-    ":type: bool\n");
 
 static PyObject *bpy_bmloopuv_pin_uv_get(BPy_BMLoopUV *self, void * /*closure*/)
 {
-  /* A non existing pin layer means nothing is currently pinned */
-  return self->pin ? PyBool_FromLong(*self->pin) : nullptr;
+  /* A non existing pin layer means nothing is currently pinned. */
+  if (UNLIKELY(!bpy_bmloopuv_pin_uv_ok_or_error(self))) {
+    return nullptr;
+  }
+  return PyBool_FromLong(*self->pin);
 }
 
 static int bpy_bmloopuv_pin_uv_set(BPy_BMLoopUV *self, PyObject *value, void * /*closure*/)
@@ -113,76 +117,25 @@ static int bpy_bmloopuv_pin_uv_set(BPy_BMLoopUV *self, PyObject *value, void * /
    * existing python objects. So for now lazy allocation isn't done and self->pin should
    * never be nullptr. */
   BLI_assert(self->pin);
-  if (self->pin) {
-    *self->pin = PyC_Long_AsBool(value);
-  }
-  else {
-    PyErr_SetString(PyExc_RuntimeError,
-                    "active uv layer has no associated pin layer. This is a bug!");
+  if (UNLIKELY(!bpy_bmloopuv_pin_uv_ok_or_error(self))) {
     return -1;
   }
-  return 0;
-}
-
-static PyObject *bpy_bmloopuv_select_get(BPy_BMLoopUV *self, void * /*closure*/)
-{
-  /* A non existing vert_select layer means nothing is currently selected */
-  return self->vert_select ? PyBool_FromLong(*self->vert_select) : nullptr;
-}
-static int bpy_bmloopuv_select_set(BPy_BMLoopUV *self, PyObject *value, void * /*closure*/)
-{
-  /* TODO: see comment above on bpy_bmloopuv_pin_uv_set(), the same applies here. */
-  BLI_assert(self->vert_select);
-  if (self->vert_select) {
-    *self->vert_select = PyC_Long_AsBool(value);
-  }
-  else {
-    PyErr_SetString(PyExc_RuntimeError,
-                    "active uv layer has no associated vertex selection layer. This is a bug!");
-    return -1;
-  }
-  return 0;
-}
-
-static PyObject *bpy_bmloopuv_select_edge_get(BPy_BMLoopUV *self, void * /*closure*/)
-{
-  /* A non existing edge_select layer means nothing is currently selected */
-  return self->edge_select ? PyBool_FromLong(*self->edge_select) : nullptr;
-}
-static int bpy_bmloopuv_select_edge_set(BPy_BMLoopUV *self, PyObject *value, void * /*closure*/)
-{
-  /* TODO: see comment above on bpy_bmloopuv_pin_uv_set(), the same applies here. */
-  BLI_assert(self->edge_select);
-  if (self->edge_select) {
-    *self->edge_select = PyC_Long_AsBool(value);
-  }
-  else {
-    PyErr_SetString(PyExc_RuntimeError,
-                    "active uv layer has no associated edge selection layer. This is a bug!");
-    return -1;
-  }
+  *self->pin = PyC_Long_AsBool(value);
   return 0;
 }
 
 static PyGetSetDef bpy_bmloopuv_getseters[] = {
     /* attributes match rna_def_mloopuv. */
-    {"uv", (getter)bpy_bmloopuv_uv_get, (setter)bpy_bmloopuv_uv_set, bpy_bmloopuv_uv_doc, nullptr},
+    {"uv",
+     reinterpret_cast<getter>(bpy_bmloopuv_uv_get),
+     reinterpret_cast<setter>(bpy_bmloopuv_uv_set),
+     bpy_bmloopuv_uv_doc,
+     nullptr},
     {"pin_uv",
-     (getter)bpy_bmloopuv_pin_uv_get,
-     (setter)bpy_bmloopuv_pin_uv_set,
+     reinterpret_cast<getter>(bpy_bmloopuv_pin_uv_get),
+     reinterpret_cast<setter>(bpy_bmloopuv_pin_uv_set),
      bpy_bmloopuv_pin_uv_doc,
      nullptr},
-    {"select",
-     (getter)bpy_bmloopuv_select_get,
-     (setter)bpy_bmloopuv_select_set,
-     bpy_bmloopuv_select_doc,
-     nullptr},
-    {"select_edge",
-     (getter)bpy_bmloopuv_select_edge_get,
-     (setter)bpy_bmloopuv_select_edge_set,
-     bpy_bmloopuv_select_edge_doc,
-     nullptr},
-
     {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
@@ -210,19 +163,11 @@ int BPy_BMLoopUV_AssignPyObject(BMesh *bm, BMLoop *loop, PyObject *value)
     return -1;
   }
 
-  BPy_BMLoopUV *src = (BPy_BMLoopUV *)value;
+  BPy_BMLoopUV *src = reinterpret_cast<BPy_BMLoopUV *>(value);
   const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
   float *luv = BM_ELEM_CD_GET_FLOAT_P(loop, offsets.uv);
   copy_v2_v2(luv, src->uv);
-
-  if (src->vert_select) {
-    BM_ELEM_CD_SET_BOOL(loop, offsets.select_vert, *src->vert_select);
-  }
-
-  if (src->edge_select) {
-    BM_ELEM_CD_SET_BOOL(loop, offsets.select_edge, *src->edge_select);
-  }
   if (src->pin) {
     BM_ELEM_CD_SET_BOOL(loop, offsets.pin, *src->pin);
   }
@@ -236,13 +181,9 @@ PyObject *BPy_BMLoopUV_CreatePyObject(BMesh *bm, BMLoop *loop, int layer)
   const BMUVOffsets offsets = BM_uv_map_offsets_from_layer(bm, layer);
 
   self->uv = BM_ELEM_CD_GET_FLOAT_P(loop, offsets.uv);
-  self->vert_select = offsets.select_vert >= 0 ? BM_ELEM_CD_GET_BOOL_P(loop, offsets.select_vert) :
-                                                 nullptr;
-  self->edge_select = offsets.select_edge >= 0 ? BM_ELEM_CD_GET_BOOL_P(loop, offsets.select_edge) :
-                                                 nullptr;
   self->pin = offsets.pin >= 0 ? BM_ELEM_CD_GET_BOOL_P(loop, offsets.pin) : nullptr;
 
-  return (PyObject *)self;
+  return reinterpret_cast<PyObject *>(self);
 }
 
 /* --- End Mesh Loop UV --- */
@@ -318,20 +259,20 @@ static int bpy_bmvertskin_flag_set(BPy_BMVertSkin *self, PyObject *value, void *
 static PyGetSetDef bpy_bmvertskin_getseters[] = {
     /* attributes match rna_mesh_gen. */
     {"radius",
-     (getter)bpy_bmvertskin_radius_get,
-     (setter)bpy_bmvertskin_radius_set,
+     reinterpret_cast<getter>(bpy_bmvertskin_radius_get),
+     reinterpret_cast<setter>(bpy_bmvertskin_radius_set),
      bpy_bmvertskin_radius_doc,
      nullptr},
     {"use_root",
-     (getter)bpy_bmvertskin_flag_get,
-     (setter)bpy_bmvertskin_flag_set,
+     reinterpret_cast<getter>(bpy_bmvertskin_flag_get),
+     reinterpret_cast<setter>(bpy_bmvertskin_flag_set),
      bpy_bmvertskin_flag__use_root_doc,
-     (void *)MVERT_SKIN_ROOT},
+     reinterpret_cast<void *>(MVERT_SKIN_ROOT)},
     {"use_loose",
-     (getter)bpy_bmvertskin_flag_get,
-     (setter)bpy_bmvertskin_flag_set,
+     reinterpret_cast<getter>(bpy_bmvertskin_flag_get),
+     reinterpret_cast<setter>(bpy_bmvertskin_flag_set),
      bpy_bmvertskin_flag__use_loose_doc,
-     (void *)MVERT_SKIN_LOOSE},
+     reinterpret_cast<void *>(MVERT_SKIN_LOOSE)},
 
     {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
@@ -344,7 +285,7 @@ static void bm_init_types_bmvertskin()
 
   BPy_BMVertSkin_Type.tp_name = "BMVertSkin";
 
-  BPy_BMVertSkin_Type.tp_doc = nullptr; /* todo */
+  BPy_BMVertSkin_Type.tp_doc = "Skin vertex data for the skin modifier.";
 
   BPy_BMVertSkin_Type.tp_getset = bpy_bmvertskin_getseters;
 
@@ -360,7 +301,7 @@ int BPy_BMVertSkin_AssignPyObject(MVertSkin *mvertskin, PyObject *value)
     return -1;
   }
 
-  *(mvertskin) = *(((BPy_BMVertSkin *)value)->data);
+  *(mvertskin) = *((reinterpret_cast<BPy_BMVertSkin *>(value))->data);
   return 0;
 }
 
@@ -368,7 +309,7 @@ PyObject *BPy_BMVertSkin_CreatePyObject(MVertSkin *mvertskin)
 {
   BPy_BMVertSkin *self = PyObject_New(BPy_BMVertSkin, &BPy_BMVertSkin_Type);
   self->data = mvertskin;
-  return (PyObject *)self;
+  return reinterpret_cast<PyObject *>(self);
 }
 
 /* --- End Mesh Vert Skin --- */
@@ -385,12 +326,12 @@ PyObject *BPy_BMVertSkin_CreatePyObject(MVertSkin *mvertskin)
 
 static void mloopcol_to_float(const MLoopCol *mloopcol, float r_col[4])
 {
-  rgba_uchar_to_float(r_col, (const uchar *)&mloopcol->r);
+  rgba_uchar_to_float(r_col, static_cast<const uchar *>(&mloopcol->r));
 }
 
 static void mloopcol_from_float(MLoopCol *mloopcol, const float col[4])
 {
-  rgba_float_to_uchar((uchar *)&mloopcol->r, col);
+  rgba_float_to_uchar(static_cast<uchar *>(&mloopcol->r), col);
 }
 
 static uchar mathutils_bmloopcol_cb_index = -1;
@@ -605,7 +546,7 @@ static int bpy_bmdeformvert_contains(BPy_BMDeformVert *self, PyObject *value)
 
 /* only defined for __contains__ */
 static PySequenceMethods bpy_bmdeformvert_as_sequence = {
-    /*sq_length*/ (lenfunc)bpy_bmdeformvert_len,
+    /*sq_length*/ reinterpret_cast<lenfunc>(bpy_bmdeformvert_len),
     /*sq_concat*/ nullptr,
     /*sq_repeat*/ nullptr,
     /* NOTE: if this is set #PySequence_Check() returns True,
@@ -614,15 +555,15 @@ static PySequenceMethods bpy_bmdeformvert_as_sequence = {
     /*was_sq_slice*/ nullptr, /* DEPRECATED. */
     /*sq_ass_item*/ nullptr,
     /*was_sq_ass_slice*/ nullptr, /* DEPRECATED. */
-    /*sq_contains*/ (objobjproc)bpy_bmdeformvert_contains,
+    /*sq_contains*/ reinterpret_cast<objobjproc>(bpy_bmdeformvert_contains),
     /*sq_inplace_concat*/ nullptr,
     /*sq_inplace_repeat*/ nullptr,
 };
 
 static PyMappingMethods bpy_bmdeformvert_as_mapping = {
-    /*mp_length*/ (lenfunc)bpy_bmdeformvert_len,
-    /*mp_subscript*/ (binaryfunc)bpy_bmdeformvert_subscript,
-    /*mp_ass_subscript*/ (objobjargproc)bpy_bmdeformvert_ass_subscript,
+    /*mp_length*/ reinterpret_cast<lenfunc>(bpy_bmdeformvert_len),
+    /*mp_subscript*/ reinterpret_cast<binaryfunc>(bpy_bmdeformvert_subscript),
+    /*mp_ass_subscript*/ reinterpret_cast<objobjargproc>(bpy_bmdeformvert_ass_subscript),
 };
 
 /* Methods
@@ -636,7 +577,7 @@ PyDoc_STRVAR(
     "   Return the group indices used by this vertex\n"
     "   (matching Python's dict.keys() functionality).\n"
     "\n"
-    "   :return: the deform group this vertex uses\n"
+    "   :return: The deform group indices this vertex uses.\n"
     "   :rtype: list[int]\n");
 static PyObject *bpy_bmdeformvert_keys(BPy_BMDeformVert *self)
 {
@@ -711,11 +652,13 @@ PyDoc_STRVAR(
     "   Returns the deform weight matching the key or default\n"
     "   when not found (matches Python's dictionary function of the same name).\n"
     "\n"
-    "   :arg key: The key associated with deform weight.\n"
+    "   :param key: The vertex group index.\n"
     "   :type key: int\n"
-    "   :arg default: Optional argument for the value to return if\n"
+    "   :param default: Optional argument for the value to return if\n"
     "      *key* is not found.\n"
-    "   :type default: Any\n");
+    "   :type default: Any\n"
+    "   :return: The deform weight or the default when not found.\n"
+    "   :rtype: float | Any\n");
 static PyObject *bpy_bmdeformvert_get(BPy_BMDeformVert *self, PyObject *args)
 {
   int key;
@@ -758,12 +701,27 @@ static PyObject *bpy_bmdeformvert_clear(BPy_BMDeformVert *self)
 #endif
 
 static PyMethodDef bpy_bmdeformvert_methods[] = {
-    {"keys", (PyCFunction)bpy_bmdeformvert_keys, METH_NOARGS, bpy_bmdeformvert_keys_doc},
-    {"values", (PyCFunction)bpy_bmdeformvert_values, METH_NOARGS, bpy_bmdeformvert_values_doc},
-    {"items", (PyCFunction)bpy_bmdeformvert_items, METH_NOARGS, bpy_bmdeformvert_items_doc},
-    {"get", (PyCFunction)bpy_bmdeformvert_get, METH_VARARGS, bpy_bmdeformvert_get_doc},
+    {"keys",
+     reinterpret_cast<PyCFunction>(bpy_bmdeformvert_keys),
+     METH_NOARGS,
+     bpy_bmdeformvert_keys_doc},
+    {"values",
+     reinterpret_cast<PyCFunction>(bpy_bmdeformvert_values),
+     METH_NOARGS,
+     bpy_bmdeformvert_values_doc},
+    {"items",
+     reinterpret_cast<PyCFunction>(bpy_bmdeformvert_items),
+     METH_NOARGS,
+     bpy_bmdeformvert_items_doc},
+    {"get",
+     reinterpret_cast<PyCFunction>(bpy_bmdeformvert_get),
+     METH_VARARGS,
+     bpy_bmdeformvert_get_doc},
     /* BMESH_TODO `pop`, `popitem`, `update`. */
-    {"clear", (PyCFunction)bpy_bmdeformvert_clear, METH_NOARGS, bpy_bmdeformvert_clear_doc},
+    {"clear",
+     reinterpret_cast<PyCFunction>(bpy_bmdeformvert_clear),
+     METH_NOARGS,
+     bpy_bmdeformvert_clear_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 
@@ -802,7 +760,7 @@ int BPy_BMDeformVert_AssignPyObject(MDeformVert *dvert, PyObject *value)
     return -1;
   }
 
-  MDeformVert *dvert_src = ((BPy_BMDeformVert *)value)->data;
+  MDeformVert *dvert_src = (reinterpret_cast<BPy_BMDeformVert *>(value))->data;
   if (LIKELY(dvert != dvert_src)) {
     BKE_defvert_copy(dvert, dvert_src);
   }
@@ -813,7 +771,7 @@ PyObject *BPy_BMDeformVert_CreatePyObject(MDeformVert *dvert)
 {
   BPy_BMDeformVert *self = PyObject_New(BPy_BMDeformVert, &BPy_BMDeformVert_Type);
   self->data = dvert;
-  return (PyObject *)self;
+  return reinterpret_cast<PyObject *>(self);
 }
 
 /* --- End Mesh Deform Vert --- */
@@ -825,3 +783,5 @@ void BPy_BM_init_types_meshdata()
   bm_init_types_bmdvert();
   bm_init_types_bmvertskin();
 }
+
+}  // namespace blender

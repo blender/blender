@@ -253,4 +253,7 @@ class GHOST_WindowX11 : public GHOST_Window {
 
   void motifFullScreen(bool set);
   bool motifIsFullScreen() const;
+
+  void motifShowWindowFrame(bool set);
+  bool motifIsShowWindowFrame() const;
 };

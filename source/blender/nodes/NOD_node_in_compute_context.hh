@@ -6,14 +6,15 @@
 
 #include "BLI_compute_context.hh"
 #include "BLI_hash.hh"
-#include "BLI_struct_equality_utils.hh"
 
 #include "BKE_node_runtime.hh"
+
+namespace blender {
 
 struct bNode;
 struct bNodeSocket;
 
-namespace blender::nodes {
+namespace nodes {
 
 struct NodeInContext;
 struct SocketInContext;
@@ -39,11 +40,14 @@ struct NodeInContext {
    * Two nodes in context compare equal if their context hash is equal, not the pointer to the
    * context. This is important as the same compute context may be constructed multiple times.
    */
-  BLI_STRUCT_EQUALITY_OPERATORS_2(NodeInContext, context_hash(), node)
+  friend bool operator==(const NodeInContext &a, const NodeInContext &b)
+  {
+    return a.context_hash() == b.context_hash() && a.node == b.node;
+  }
 };
 
 /**
- * Utility struct to pair a socket with a compute context. This unique identifies a socket in a
+ * Utility struct to pair a socket with a compute context. This uniquely identifies a socket in a
  * node-tree evaluation.
  */
 struct SocketInContext {
@@ -62,7 +66,24 @@ struct SocketInContext {
    * Two sockets in context compare equal if their context hash is equal, not the pointer to the
    * context. This is important as the same compute context may be constructed multiple times.
    */
-  BLI_STRUCT_EQUALITY_OPERATORS_2(SocketInContext, context_hash(), socket)
+  friend bool operator==(const SocketInContext &a, const SocketInContext &b)
+  {
+    return a.context_hash() == b.context_hash() && a.socket == b.socket;
+  }
+};
+
+/**
+ * Utility struct to pair a tree with a compute context.
+ */
+struct TreeInContext {
+  const ComputeContext *context = nullptr;
+  const bNodeTree *tree = nullptr;
+
+  uint64_t hash() const;
+  ComputeContextHash context_hash() const;
+  const bNodeTree *operator->() const;
+  const bNodeTree &operator*() const;
+  operator bool() const;
 };
 
 /* -------------------------------------------------------------------- */
@@ -142,4 +163,36 @@ inline NodeInContext SocketInContext::owner_node() const
 
 /** \} */
 
-}  // namespace blender::nodes
+/* -------------------------------------------------------------------- */
+/** \name #TreeInContext Inline Methods
+ * \{ */
+
+inline uint64_t TreeInContext::hash() const
+{
+  return get_default_hash(this->context_hash(), this->tree);
+}
+
+inline ComputeContextHash TreeInContext::context_hash() const
+{
+  return context ? context->hash() : ComputeContextHash{};
+}
+
+inline const bNodeTree *TreeInContext::operator->() const
+{
+  return this->tree;
+}
+
+inline const bNodeTree &TreeInContext::operator*() const
+{
+  return *this->tree;
+}
+
+inline TreeInContext::operator bool() const
+{
+  return this->tree != nullptr;
+}
+
+/** \} */
+
+}  // namespace nodes
+}  // namespace blender

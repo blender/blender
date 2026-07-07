@@ -11,7 +11,7 @@ from ...io.exp.user_extensions import export_user_extensions
 from ...io.com import constants as gltf2_io_constants
 from ..com import conversion as gltf2_blender_conversion
 from ..com.gltf2_blender_utils import fast_structured_np_unique
-from .material.materials import get_base_material, get_material_from_idx, get_active_uvmap_index, get_new_material_texture_shared
+from .material.materials import get_base_material, get_active_uvmap_index, get_new_material_texture_shared
 from .material.texture_info import gather_udim_texture_info
 from . import skins as gltf2_blender_gather_skins
 
@@ -96,7 +96,7 @@ class PrimitiveCreator:
 
         self.use_tangents = False
         if self.use_normals and self.export_settings['gltf_tangents']:
-            if self.blender_mesh.uv_layers.active and len(self.blender_mesh.uv_layers) > 0:
+            if len(self.blender_mesh.uv_layers) > 0:
                 try:
                     self.blender_mesh.calc_tangents()
                     self.use_tangents = True
@@ -107,7 +107,7 @@ class PrimitiveCreator:
 
         self.tex_coord_max = 0
         if self.export_settings['gltf_texcoords']:
-            if self.blender_mesh.uv_layers.active:
+            if len(self.blender_mesh.uv_layers) > 0:
                 self.tex_coord_max = len(self.blender_mesh.uv_layers)
 
         self.use_morph_normals = self.use_normals and self.export_settings['gltf_morph_normal']
@@ -151,7 +151,8 @@ class PrimitiveCreator:
         # We need to check if we are in a GN Instance, because for GN instances, it seems that shape keys are preserved,
         # even if we apply modifiers
         # (For classic objects, shape keys are not preserved if we apply modifiers)
-        if self.blender_mesh.shape_keys and self.export_settings['gltf_morph'] and ((self.blender_mesh.is_evaluated is True and self.blender_mesh.get('gltf2_mesh_applied') is not None) or self.blender_mesh.is_evaluated is False):
+        if self.blender_mesh.shape_keys and self.export_settings['gltf_morph'] and (
+                (self.blender_mesh.is_evaluated is True and self.blender_mesh.get('gltf2_mesh_applied') is not None) or self.blender_mesh.is_evaluated is False):
             self.key_blocks = get_sk_exported(self.blender_mesh.shape_keys.key_blocks)
 
         # Fetch vert positions and bone data (joint,weights)
@@ -307,7 +308,7 @@ class PrimitiveCreator:
             attr['len'] = gltf2_blender_conversion.get_data_length(attr['blender_data_type'])
             attr['type'] = gltf2_blender_conversion.get_numpy_type(attr['blender_data_type'])
 
-        # Now we have all attribtues, we can change order if we want
+        # Now we have all attributes, we can change order if we want
         # Note that the glTF specification doesn't say anything about order
         # Attributes are defined only by name
         # But if user want it in a particular order, he can use this hook to perform it
@@ -389,7 +390,7 @@ class PrimitiveCreator:
             self.blender_mesh.calc_loop_triangles()
             loop_indices = np.empty(len(self.blender_mesh.loop_triangles) * 3, dtype=np.uint32)
             self.blender_mesh.loop_triangles.foreach_get('loops', loop_indices)
-        except:
+        except Exception as _e:
             # For some not valid meshes, we can't get loops without errors
             # We already displayed a Warning message after validate() check, so here
             # we can return without a new one
@@ -525,14 +526,16 @@ class PrimitiveCreator:
 
                         # Active Vertex Color
                         if (base_material is not None and self.export_settings['gltf_vertex_color'] == "ACTIVE") or (
-                            base_material is None and self.export_settings['gltf_active_vertex_color_when_no_material'] is True):
+                                base_material is None and self.export_settings['gltf_active_vertex_color_when_no_material'] is True):
                             if self.blender_mesh.color_attributes.render_color_index != -1:
                                 vc_color_name = self.blender_mesh.color_attributes[self.blender_mesh.color_attributes.render_color_index].name
                                 vc_alpha_name = self.blender_mesh.color_attributes[self.blender_mesh.color_attributes.render_color_index].name
                         # Named Vertex Color
                         elif (base_material is not None and self.export_settings['gltf_vertex_color'] == "NAME"):
-                            vc_color_name = self.export_settings['gltf_vertex_color_name'] if self.blender_mesh.color_attributes.find(self.export_settings['gltf_vertex_color_name']) != -1 else None
-                            vc_alpha_name = self.export_settings['gltf_vertex_color_name'] if self.blender_mesh.color_attributes.find(self.export_settings['gltf_vertex_color_name']) != -1 else None
+                            vc_color_name = self.export_settings['gltf_vertex_color_name'] if self.blender_mesh.color_attributes.find(
+                                self.export_settings['gltf_vertex_color_name']) != -1 else None
+                            vc_alpha_name = self.export_settings['gltf_vertex_color_name'] if self.blender_mesh.color_attributes.find(
+                                self.export_settings['gltf_vertex_color_name']) != -1 else None
 
                         if vc_color_name is not None:
 
@@ -549,7 +552,9 @@ class PrimitiveCreator:
 
                             elif materials_use_vc is None:
                                 materials_use_vc = vc_key
-                                add_alpha = True  # As we are using the active Vertex Color (or named) without checking node tree, we need to add alpha
+                                # As we are using the active Vertex Color (or named) without checking node
+                                # tree, we need to add alpha
+                                add_alpha = True
                                 self.vc_infos.append({
                                     'color': vc_color_name,
                                     'alpha': vc_alpha_name,
@@ -580,8 +585,10 @@ class PrimitiveCreator:
 
                     if self.export_settings['gltf_vertex_color'] == "NAME":
                         # Even if we have something in node tree, we need to use the named Vertex Color
-                        vc_color_name = self.export_settings['gltf_vertex_color_name'] if self.blender_mesh.color_attributes.find(self.export_settings['gltf_vertex_color_name']) != -1 else None
-                        vc_alpha_name = self.export_settings['gltf_vertex_color_name'] if self.blender_mesh.color_attributes.find(self.export_settings['gltf_vertex_color_name']) != -1 else None
+                        vc_color_name = self.export_settings['gltf_vertex_color_name'] if self.blender_mesh.color_attributes.find(
+                            self.export_settings['gltf_vertex_color_name']) != -1 else None
+                        vc_alpha_name = self.export_settings['gltf_vertex_color_name'] if self.blender_mesh.color_attributes.find(
+                            self.export_settings['gltf_vertex_color_name']) != -1 else None
 
                     else:
                         if material_info['vc_info']['color_type'] == "name":
@@ -874,7 +881,7 @@ class PrimitiveCreator:
                 continue
 
             primitives.append({
-                # No attribute here, as they are shared accross all primitives
+                # No attribute here, as they are shared across all primitives
                 'indices': indices,
                 'material': material_idx,
                 'uvmap_attributes_index': uvmap_attributes_index

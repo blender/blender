@@ -5,6 +5,7 @@
 from ....io.com import gltf2_io
 from .material_utils import gather_extras, gather_name
 
+
 def export_viewport_material(blender_material, export_settings):
 
     pbr_metallic_roughness = gltf2_io.MaterialPBRMetallicRoughness(

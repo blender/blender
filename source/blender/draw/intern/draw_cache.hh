@@ -13,12 +13,14 @@
 
 #include "BKE_volume_grid_fwd.hh"
 
+namespace blender {
+
 struct GPUMaterial;
-namespace blender::gpu {
+namespace gpu {
 class Texture;
 class Batch;
 class VertBuf;
-}  // namespace blender::gpu
+}  // namespace gpu
 struct ModifierData;
 struct Object;
 struct PTCacheEdit;
@@ -26,7 +28,7 @@ struct ParticleSystem;
 struct Volume;
 struct Scene;
 
-namespace blender::draw {
+namespace draw {
 
 /**
  * Shape resolution level of detail.
@@ -159,4 +161,5 @@ gpu::Batch *DRW_cache_grease_pencil_weight_points_get(const Scene *scene, Object
 gpu::Batch *DRW_cache_grease_pencil_weight_lines_get(const Scene *scene, Object *ob);
 gpu::Batch *DRW_cache_grease_pencil_face_wireframe_get(const Scene *scene, Object *ob);
 
-}  // namespace blender::draw
+}  // namespace draw
+}  // namespace blender

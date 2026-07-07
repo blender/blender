@@ -19,13 +19,13 @@ static EnumPropertyItem mode_items[] = {
     {GEO_NODE_CURVE_FILLET_BEZIER,
      "BEZIER",
      0,
-     "Bézier",
-     "Align Bézier handles to create circular arcs at each control point"},
+     N_("Bézier"),
+     N_("Align Bézier handles to create circular arcs at each control point")},
     {GEO_NODE_CURVE_FILLET_POLY,
      "POLY",
      0,
-     "Poly",
-     "Add control points along a circular arc (handle type is vector if Bézier Spline)"},
+     N_("Poly"),
+     N_("Add control points along a circular arc (handle type is vector if Bézier Spline)")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -47,6 +47,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Limit the maximum value of the radius in order to avoid overlapping fillets");
   b.add_input<decl::Menu>("Mode")
       .static_items(mode_items)
+      .optional_label()
       .description("How to choose number of vertices on fillet");
   b.add_input<decl::Int>("Count")
       .default_value(1)
@@ -59,7 +60,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   /* Still used for forward compatibility. */
-  node->storage = MEM_callocN<NodeGeometryCurveFillet>(__func__);
+  node->storage = MEM_new<NodeGeometryCurveFillet>(__func__);
 }
 
 static bke::CurvesGeometry fillet_curve(const bke::CurvesGeometry &src_curves,
@@ -171,19 +172,19 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeFilletCurve", GEO_NODE_FILLET_CURVE);
   ntype.ui_name = "Fillet Curve";
   ntype.ui_description = "Round corners by generating circular arcs on each control point";
   ntype.enum_name_legacy = "FILLET_CURVE";
   ntype.nclass = NODE_CLASS_GEOMETRY;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGeometryCurveFillet", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

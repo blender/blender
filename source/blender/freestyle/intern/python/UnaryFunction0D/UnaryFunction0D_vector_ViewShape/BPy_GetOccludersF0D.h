@@ -18,8 +18,8 @@ extern PyTypeObject GetOccludersF0D_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetOccludersF0D_Type))
 
 /*---------------------------Python BPy_GetOccludersF0D structure definition----------*/
-typedef struct {
+struct BPy_GetOccludersF0D {
   BPy_UnaryFunction0DVectorViewShape py_uf0D_vectorviewshape;
-} BPy_GetOccludersF0D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

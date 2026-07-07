@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include "BLI_struct_equality_utils.hh"
 #include "intern/node/deg_node.hh"
 
 #include "DNA_ID.h"
@@ -43,7 +42,7 @@ struct IDNode : public Node {
     StringRef name;
 
     ComponentIDKey(NodeType type, StringRef name = "") : type(type), name(name) {}
-    BLI_STRUCT_EQUALITY_OPERATORS_2(ComponentIDKey, type, name);
+    friend bool operator==(const ComponentIDKey &a, const ComponentIDKey &b) = default;
     uint64_t hash() const
     {
       return get_default_hash(type, name);
@@ -52,7 +51,7 @@ struct IDNode : public Node {
 
   /** Initialize 'id' node - from pointer data given. */
   void init(const ID *id, const char *subdata) override;
-  void init_copy_on_write(Depsgraph &depsgraph, ID *id_cow_hint = nullptr);
+  void init_copy_on_write(ID *id_cow_hint = nullptr);
   ~IDNode() override;
   void destroy();
 

@@ -15,11 +15,13 @@
 
 #include <memory>
 
+namespace blender {
+
 struct ID;
 struct PointerRNA;
 struct PropertyRNA;
 
-namespace blender::deg {
+namespace deg {
 
 struct Depsgraph;
 struct Node;
@@ -58,7 +60,7 @@ class RNANodeIdentifier {
 };
 
 /* Helper class which performs optimized lookups of a node within a given
- * dependency graph which satisfies given RNA pointer or RAN path. */
+ * dependency graph which satisfies given RNA pointer or RNA path. */
 class RNANodeQuery {
  public:
   RNANodeQuery(Depsgraph *depsgraph, DepsgraphBuilder *builder);
@@ -98,4 +100,5 @@ class RNANodeQuery {
 
 bool rna_prop_affects_parameters_node(const PointerRNA *ptr, const PropertyRNA *prop);
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

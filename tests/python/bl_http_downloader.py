@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-blender -b --factory-startup -P tests/python/bl_http_downloader.py  -- output-dir /tmp/should-not-exist --verbose
+blender -b --factory-startup -P tests/python/bl_http_downloader.py  -- --verbose
 """
 
 
@@ -60,6 +60,32 @@ class BasicImportTest(unittest.TestCase):
         self.assertFalse(downloader.is_shutdown_requested)
         self.assertFalse(downloader.is_shutdown_complete)
         self.assertFalse(downloader.is_subprocess_alive)
+
+
+class MaxDownloadSizeTest(unittest.TestCase):
+    def test_max_size(self) -> None:
+        from _bpy_internal.http import downloader as http_dl
+        from unittest.mock import MagicMock, patch
+
+        metadata_provider = MagicMock(spec=http_dl.MetadataProvider)
+        metadata_provider.load.return_value = None
+
+        downloader = http_dl.ConditionalDownloader(metadata_provider=metadata_provider)
+        downloader.max_size_bytes = 100
+
+        mock_response = MagicMock()
+        mock_response.headers = {"Content-Length": "200", "Content-Type": "text/plain"}
+        mock_response.status_code = 200
+        # When used as context manager, return itself.
+        mock_response.__enter__.return_value = mock_response
+
+        # NOTE: when this test fails, it will say "TypeError: a bytes-like object is required, not 'MagicMock'". This
+        # indicates that the HTTP downloader tried to actually read bytes from the mock response, which it doesn't
+        # support.
+
+        with patch.object(http_dl.requests.Session, 'send', return_value=mock_response):
+            with self.assertRaises(http_dl.ContentLengthTooBigError):
+                downloader.download_to_file("https://example.com/huge.json", Path("/tmp/huge.json"))
 
 
 class BackgroundDownloaderProcessTest(unittest.TestCase):

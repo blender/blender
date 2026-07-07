@@ -8,6 +8,8 @@
  * Engine for drawing a selection map where the pixels indicate the selection indices.
  */
 
+#include "DNA_userdef_types.h"
+
 #include "BKE_editmesh.hh"
 #include "BKE_mesh_types.hh"
 #include "BLI_math_matrix.h"
@@ -34,7 +36,9 @@
 
 #include "select_engine.hh"
 
-namespace blender::draw::edit_select {
+namespace blender {
+
+namespace draw::edit_select {
 
 #define USE_CAGE_OCCLUSION
 
@@ -64,8 +68,8 @@ struct Instance : public DrawEngine {
 
  public:
   struct StaticData {
-    GPUFrameBuffer *framebuffer_select_id;
-    blender::gpu::Texture *texture_u32;
+    gpu::FrameBuffer *framebuffer_select_id;
+    gpu::Texture *texture_u32;
 
     struct Shaders {
       /* Depth Pre Pass */
@@ -82,7 +86,7 @@ struct Instance : public DrawEngine {
     }
   };
 
-  blender::StringRefNull name_get() final
+  StringRefNull name_get() final
   {
     return "SelectID";
   }
@@ -91,9 +95,9 @@ struct Instance : public DrawEngine {
   {
     this->draw_ctx = DRW_context_get();
     StaticData &e_data = StaticData::get();
-    eGPUShaderConfig sh_cfg = (RV3D_CLIPPING_ENABLED(draw_ctx->v3d, draw_ctx->rv3d)) ?
-                                  GPU_SHADER_CFG_CLIPPED :
-                                  GPU_SHADER_CFG_DEFAULT;
+    GPUShaderConfig sh_cfg = RV3D_CLIPPING_ENABLED(draw_ctx->v3d, draw_ctx->rv3d) ?
+                                 GPU_SHADER_CFG_CLIPPED :
+                                 GPU_SHADER_CFG_DEFAULT;
 
     StaticData::Shaders *sh_data = &e_data.sh_data[sh_cfg];
 
@@ -111,9 +115,9 @@ struct Instance : public DrawEngine {
   void begin_sync() final
   {
     StaticData &e_data = StaticData::get();
-    eGPUShaderConfig sh_cfg = (RV3D_CLIPPING_ENABLED(draw_ctx->v3d, draw_ctx->rv3d)) ?
-                                  GPU_SHADER_CFG_CLIPPED :
-                                  GPU_SHADER_CFG_DEFAULT;
+    GPUShaderConfig sh_cfg = RV3D_CLIPPING_ENABLED(draw_ctx->v3d, draw_ctx->rv3d) ?
+                                 GPU_SHADER_CFG_CLIPPED :
+                                 GPU_SHADER_CFG_DEFAULT;
 
     StaticData::Shaders *sh = &e_data.sh_data[sh_cfg];
 
@@ -174,7 +178,9 @@ struct Instance : public DrawEngine {
       select_face_flat = nullptr;
       if (e_data.context.select_mode & SCE_SELECT_FACE) {
         auto &sub = select_face_ps.sub("Face");
+        const float vertex_size = U.pixelsize * draw::overlay::Resources::vertex_size_get();
         sub.shader_set(sh->select_id_flat);
+        sub.push_constant("vertex_size", float(2 * vertex_size));
         sub.push_constant("retopology_offset", retopology_offset);
         select_face_flat = &sub;
       }
@@ -201,8 +207,7 @@ struct Instance : public DrawEngine {
       select_id_vert_ps.bind_ubo(DRW_CLIPPING_UBO_SLOT, clip_planes_buf);
       select_vert = nullptr;
       if (e_data.context.select_mode & SCE_SELECT_VERTEX) {
-        const float vertex_size = U.pixelsize *
-                                  blender::draw::overlay::Resources::vertex_size_get();
+        const float vertex_size = U.pixelsize * draw::overlay::Resources::vertex_size_get();
         auto &sub = select_id_vert_ps.sub("Sub");
         sub.state_set(state, clipping_plane_count);
         sub.shader_set(sh->select_id_flat);
@@ -218,7 +223,7 @@ struct Instance : public DrawEngine {
     e_data.context.max_index_drawn_len = 1;
     framebuffer_setup();
     GPU_framebuffer_bind(e_data.framebuffer_select_id);
-    GPU_framebuffer_clear_color_depth(e_data.framebuffer_select_id, blender::float4{0.0f}, 1.0f);
+    GPU_framebuffer_clear_color_depth(e_data.framebuffer_select_id, float4{0.0f}, 1.0f);
   }
 
   ElemIndexRanges edit_mesh_sync(Object *ob,
@@ -229,7 +234,6 @@ struct Instance : public DrawEngine {
                                  const uint initial_index)
   {
     using namespace blender::draw;
-    using namespace blender;
     Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(*ob);
 
     ElemIndexRanges ranges{};
@@ -287,7 +291,6 @@ struct Instance : public DrawEngine {
                             const uint initial_index)
   {
     using namespace blender::draw;
-    using namespace blender;
     Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(*ob);
 
     ElemIndexRanges ranges{};
@@ -358,13 +361,15 @@ struct Instance : public DrawEngine {
     StaticData &e_data = StaticData::get();
     SELECTID_Context &sel_ctx = e_data.context;
 
-    if (!sel_ctx.objects.contains(ob) && ob->dt >= OB_SOLID) {
-      /* This object is not selectable. It is here to participate in occlusion.
-       * This is the case in retopology mode. */
-      blender::gpu::Batch *geom_faces = DRW_mesh_batch_cache_get_surface(
-          DRW_object_get_data_for_drawing<Mesh>(*ob));
+    if (!sel_ctx.objects.contains(ob)) {
+      if (ob->dt >= OB_SOLID) {
+        /* This object is not selectable. It is here to participate in occlusion.
+         * This is the case in retopology mode. */
+        gpu::Batch *geom_faces = DRW_mesh_batch_cache_get_surface(
+            DRW_object_get_data_for_drawing<Mesh>(*ob));
 
-      depth_occlude->draw(geom_faces, manager.unique_handle(ob_ref));
+        depth_occlude->draw(geom_faces, manager.unique_handle(ob_ref));
+      }
       return;
     }
 
@@ -453,7 +458,7 @@ struct Instance : public DrawEngine {
 
   short get_object_select_mode(Scene *scene, Object *ob)
   {
-    short r_select_mode = 0;
+    short select_mode = 0;
     if (ob->mode & (OB_MODE_WEIGHT_PAINT | OB_MODE_VERTEX_PAINT | OB_MODE_TEXTURE_PAINT)) {
       /* In order to sample flat colors for vertex weights / texture-paint / vertex-paint
        * we need to be in SCE_SELECT_FACE mode so select_cache_init() correctly sets up
@@ -461,19 +466,19 @@ struct Instance : public DrawEngine {
        * Note this is not working correctly for vertex-paint (yet), but has been discussed
        * in #66645 and there is a solution by @mano-wii in P1032.
        * So OB_MODE_VERTEX_PAINT is already included here [required for P1032 I guess]. */
-      Mesh *me_orig = static_cast<Mesh *>(DEG_get_original(ob)->data);
+      Mesh *me_orig = id_cast<Mesh *>(DEG_get_original(ob)->data);
       if (me_orig->editflag & ME_EDIT_PAINT_VERT_SEL) {
-        r_select_mode = SCE_SELECT_VERTEX;
+        select_mode = SCE_SELECT_VERTEX;
       }
       else {
-        r_select_mode = SCE_SELECT_FACE;
+        select_mode = SCE_SELECT_FACE;
       }
     }
     else {
-      r_select_mode = scene->toolsettings->selectmode;
+      select_mode = scene->toolsettings->selectmode;
     }
 
-    return r_select_mode;
+    return select_mode;
   }
 
   bool check_ob_drawface_dot(short select_mode, const View3D *v3d, eDrawType dt)
@@ -517,7 +522,7 @@ void Engine::free_static()
   GPU_FRAMEBUFFER_FREE_SAFE(e_data.framebuffer_select_id);
 }
 
-}  // namespace blender::draw::edit_select
+}  // namespace draw::edit_select
 
 /** \} */
 
@@ -533,16 +538,18 @@ SELECTID_Context *DRW_select_engine_context_get()
   return &e_data.context;
 }
 
-GPUFrameBuffer *DRW_engine_select_framebuffer_get()
+gpu::FrameBuffer *DRW_engine_select_framebuffer_get()
 {
   Instance::StaticData &e_data = Instance::StaticData::get();
   return e_data.framebuffer_select_id;
 }
 
-blender::gpu::Texture *DRW_engine_select_texture_get()
+gpu::Texture *DRW_engine_select_texture_get()
 {
   Instance::StaticData &e_data = Instance::StaticData::get();
   return e_data.texture_u32;
 }
 
 /** \} */
+
+}  // namespace blender

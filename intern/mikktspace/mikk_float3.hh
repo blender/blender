@@ -19,11 +19,11 @@ struct float3 {
 
   float3(const float *ptr) : x{ptr[0]}, y{ptr[1]}, z{ptr[2]} {}
 
-  float3(const float (*ptr)[3]) : float3((const float *)ptr) {}
+  float3(const float (*ptr)[3]) : float3(reinterpret_cast<const float *>(ptr)) {}
 
   explicit float3(float value) : x(value), y(value), z(value) {}
 
-  explicit float3(int value) : x((float)value), y((float)value), z((float)value) {}
+  explicit float3(int value) : x(float(value)), y(float(value)), z(float(value)) {}
 
   float3(float x_, float y_, float z_) : x{x_}, y{y_}, z{z_} {}
 

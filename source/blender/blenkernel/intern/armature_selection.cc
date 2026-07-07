@@ -13,6 +13,7 @@
 #include "BLI_listbase.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_object_types.h"
 
 namespace blender::bke {
 
@@ -23,7 +24,7 @@ void find_selected_bones__visit_bone(const bArmature *armature,
                                      SelectedBonesResult &result,
                                      Bone *bone)
 {
-  const bool is_selected = blender::animrig::bone_is_selected(armature, bone);
+  const bool is_selected = animrig::bone_is_selected(armature, bone);
   result.all_bones_selected &= is_selected;
   result.no_bones_selected &= !is_selected;
 
@@ -31,18 +32,19 @@ void find_selected_bones__visit_bone(const bArmature *armature,
     callback(bone);
   }
 
-  LISTBASE_FOREACH (Bone *, child_bone, &bone->childbase) {
-    find_selected_bones__visit_bone(armature, callback, result, child_bone);
+  for (Bone &child_bone : bone->childbase) {
+    find_selected_bones__visit_bone(armature, callback, result, &child_bone);
   }
 }
+
 }  // namespace
 
 SelectedBonesResult BKE_armature_find_selected_bones(const bArmature *armature,
                                                      SelectedBoneCallback callback)
 {
   SelectedBonesResult result;
-  LISTBASE_FOREACH (Bone *, root_bone, &armature->bonebase) {
-    find_selected_bones__visit_bone(armature, callback, result, root_bone);
+  for (Bone &root_bone : armature->bonebase) {
+    find_selected_bones__visit_bone(armature, callback, result, &root_bone);
   }
 
   return result;
@@ -55,6 +57,24 @@ BoneNameSet BKE_armature_find_selected_bone_names(const bArmature *armature)
   /* Iterate over the selected bones to fill the set of bone names. */
   auto callback = [&](Bone *bone) { selected_bone_names.add(bone->name); };
   BKE_armature_find_selected_bones(armature, callback);
+  return selected_bone_names;
+}
+
+BoneNameSet BKE_pose_channel_find_selected_names(const Object *object)
+{
+  if (!object->pose) {
+    return {};
+  }
+
+  BoneNameSet selected_bone_names;
+  const bArmature *armature = BKE_armature_from_object(const_cast<Object *>(object));
+  /* Since there is a pose, there should be an armature. */
+  BLI_assert(armature);
+  for (bPoseChannel &pose_bone : object->pose->chanbase) {
+    if (animrig::bone_is_selected(armature, &pose_bone)) {
+      selected_bone_names.add(pose_bone.name);
+    }
+  }
   return selected_bone_names;
 }
 

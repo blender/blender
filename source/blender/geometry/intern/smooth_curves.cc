@@ -155,8 +155,7 @@ void gaussian_blur_1D(const GSpan src,
                       const bool is_cyclic,
                       GMutableSpan dst)
 {
-  bke::attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  bke::attribute_math::to_static_type(src.type(), [&]<typename T>() {
     /* Only allow smoothing of float, float2, or float3. */
     /* Reduces unnecessary code generation. */
     if constexpr (is_same_any_v<T, float, float2, float3>) {
@@ -353,6 +352,7 @@ void smooth_curve_positions(bke::CurvesGeometry &curves,
     }
 
     curves.calculate_bezier_auto_handles();
+    curves.calculate_bezier_aligned_handles();
   }
 
   curves.tag_positions_changed();

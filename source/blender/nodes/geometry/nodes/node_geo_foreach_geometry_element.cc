@@ -26,10 +26,14 @@
 
 #include "WM_api.hh"
 
-namespace blender::nodes::node_geo_foreach_geometry_element_cc {
+#include "fmt/core.h"
+
+namespace blender {
+
+namespace nodes::node_geo_foreach_geometry_element_cc {
 
 /** Shared between zone input and output node. */
-static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_node_ptr)
+static void node_layout_ex(ui::Layout &layout, bContext *C, PointerRNA *current_node_ptr)
 {
   bNodeTree &ntree = *reinterpret_cast<bNodeTree *>(current_node_ptr->owner_id);
   bNode *current_node = static_cast<bNode *>(current_node_ptr->data);
@@ -49,11 +53,11 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
                                   GEO_NODE_FOREACH_GEOMETRY_ELEMENT_INPUT;
   bNode &output_node = const_cast<bNode &>(*zone->output_node());
   PointerRNA output_node_ptr = RNA_pointer_create_discrete(
-      current_node_ptr->owner_id, &RNA_Node, &output_node);
+      current_node_ptr->owner_id, RNA_Node, &output_node);
   auto &storage = *static_cast<NodeGeometryForeachGeometryElementOutput *>(output_node.storage);
 
   if (is_zone_input_node) {
-    if (uiLayout *panel = layout->panel(C, "input", false, IFACE_("Input Fields"))) {
+    if (ui::Layout *panel = layout.panel(C, "input", false, IFACE_("Input Fields"))) {
       socket_items::ui::draw_items_list_with_operators<ForeachGeometryElementInputItemsAccessor>(
           C, panel, ntree, output_node);
       socket_items::ui::draw_active_item_props<ForeachGeometryElementInputItemsAccessor>(
@@ -65,7 +69,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
     }
   }
   else {
-    if (uiLayout *panel = layout->panel(C, "main_items", false, IFACE_("Main Geometry"))) {
+    if (ui::Layout *panel = layout.panel(C, "main_items", false, IFACE_("Main Geometry"))) {
       socket_items::ui::draw_items_list_with_operators<ForeachGeometryElementMainItemsAccessor>(
           C, panel, ntree, output_node);
       socket_items::ui::draw_active_item_props<ForeachGeometryElementMainItemsAccessor>(
@@ -75,7 +79,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
             panel->prop(item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
           });
     }
-    if (uiLayout *panel = layout->panel(
+    if (ui::Layout *panel = layout.panel(
             C, "generation_items", false, IFACE_("Generated Geometry")))
     {
       socket_items::ui::draw_items_list_with_operators<
@@ -94,7 +98,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
     }
   }
 
-  layout->prop(&output_node_ptr, "inspection_index", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(&output_node_ptr, "inspection_index", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 namespace input_node {
@@ -149,7 +153,7 @@ static void node_declare(NodeDeclarationBuilder &b)
           ForeachGeometryElementInputItemsAccessor::socket_identifier_for_item(item);
       b.add_input(socket_type, name, identifier)
           .socket_name_ptr(
-              &tree->id, ForeachGeometryElementInputItemsAccessor::item_srna, &item, "name")
+              &tree->id, *ForeachGeometryElementInputItemsAccessor::item_srna, &item, "name")
           .description("Field that is evaluated on the iteration domain")
           .field_on_all();
       b.add_output(socket_type, name, identifier)
@@ -164,21 +168,21 @@ static void node_declare(NodeDeclarationBuilder &b)
       .align_with_previous();
 }
 
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
   bNodeTree &tree = *reinterpret_cast<bNodeTree *>(ptr->owner_id);
   bNode &node = *static_cast<bNode *>(ptr->data);
   const NodeGeometryForeachGeometryElementInput &storage = node_storage(node);
   bNode *output_node = tree.node_by_id(storage.output_node_id);
 
-  PointerRNA output_node_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_Node, output_node);
-  layout->prop(&output_node_ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
+  PointerRNA output_node_ptr = RNA_pointer_create_discrete(ptr->owner_id, RNA_Node, output_node);
+  layout.prop(&output_node_ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryForeachGeometryElementInput *data =
-      MEM_callocN<NodeGeometryForeachGeometryElementInput>(__func__);
+  NodeGeometryForeachGeometryElementInput *data = MEM_new<NodeGeometryForeachGeometryElementInput>(
+      __func__);
   /* Needs to be initialized for the node to work. */
   data->output_node_id = 0;
   node->storage = data;
@@ -206,7 +210,7 @@ static bool node_insert_link(bke::NodeInsertLinkParams &params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(
       &ntype, "GeometryNodeForeachGeometryElementInput", GEO_NODE_FOREACH_GEOMETRY_ELEMENT_INPUT);
   ntype.ui_name = "For Each Geometry Element Input";
@@ -220,11 +224,11 @@ static void node_register()
   ntype.insert_link = node_insert_link;
   ntype.gather_link_search_ops = nullptr;
   ntype.no_muting = true;
-  blender::bke::node_type_storage(ntype,
-                                  "NodeGeometryForeachGeometryElementInput",
-                                  node_free_standard_storage,
-                                  node_copy_standard_storage);
-  blender::bke::node_register_type(ntype);
+  bke::node_type_storage(ntype,
+                         "NodeGeometryForeachGeometryElementInput",
+                         node_free_standard_storage,
+                         node_copy_standard_storage);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 
@@ -256,7 +260,7 @@ static void node_declare(NodeDeclarationBuilder &b)
           item);
       b.add_input(socket_type, name, identifier)
           .socket_name_ptr(
-              &tree->id, ForeachGeometryElementMainItemsAccessor::item_srna, &item, "name")
+              &tree->id, *ForeachGeometryElementMainItemsAccessor::item_srna, &item, "name")
           .description(
               "Attribute value that will be stored for the current element on the main geometry");
       b.add_output(socket_type, name, identifier)
@@ -283,7 +287,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       auto &input_decl = panel.add_input(socket_type, name, identifier)
                              .socket_name_ptr(
                                  &tree->id,
-                                 ForeachGeometryElementGenerationItemsAccessor::item_srna,
+                                 *ForeachGeometryElementGenerationItemsAccessor::item_srna,
                                  &item,
                                  "name");
       auto &output_decl = panel.add_output(socket_type, name, identifier).align_with_previous();
@@ -313,10 +317,10 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryForeachGeometryElementOutput *data =
-      MEM_callocN<NodeGeometryForeachGeometryElementOutput>(__func__);
+      MEM_new<NodeGeometryForeachGeometryElementOutput>(__func__);
 
-  data->generation_items.items = MEM_calloc_arrayN<NodeForeachGeometryElementGenerationItem>(
-      1, __func__);
+  data->generation_items.items = MEM_new_array<NodeForeachGeometryElementGenerationItem>(1,
+                                                                                         __func__);
   NodeForeachGeometryElementGenerationItem &item = data->generation_items.items[0];
   item.name = BLI_strdup(DATA_("Geometry"));
   item.socket_type = SOCK_GEOMETRY;
@@ -331,14 +335,14 @@ static void node_free_storage(bNode *node)
   socket_items::destruct_array<ForeachGeometryElementInputItemsAccessor>(*node);
   socket_items::destruct_array<ForeachGeometryElementGenerationItemsAccessor>(*node);
   socket_items::destruct_array<ForeachGeometryElementMainItemsAccessor>(*node);
-  MEM_freeN(node->storage);
+  MEM_delete(reinterpret_cast<NodeGeometryForeachGeometryElementOutput *>(node->storage));
 }
 
 static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const bNode *src_node)
 {
   const NodeGeometryForeachGeometryElementOutput &src_storage = node_storage(*src_node);
-  auto *dst_storage = MEM_dupallocN<NodeGeometryForeachGeometryElementOutput>(__func__,
-                                                                              src_storage);
+  auto *dst_storage = MEM_new<NodeGeometryForeachGeometryElementOutput>(
+      __func__, dna::shallow_copy(src_storage));
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<ForeachGeometryElementInputItemsAccessor>(*src_node, *dst_node);
@@ -407,22 +411,24 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
   else {
     params.add_item_full_name(
-        IFACE_("For Each Element " UI_MENU_ARROW_SEP " Main"), [](LinkSearchOpParams &params) {
+        fmt::format(fmt::runtime(IFACE_("For Each Element {} Main")), UI_MENU_ARROW_SEP),
+        [](LinkSearchOpParams &params) {
           const auto [input_node, output_node] = add_foreach_zone(params);
           socket_items::clear<ForeachGeometryElementGenerationItemsAccessor>(*output_node);
           params.update_and_connect_available_socket(*output_node, "Geometry");
         });
 
-    params.add_item_full_name(IFACE_("For Each Element " UI_MENU_ARROW_SEP " Generated"),
-                              [](LinkSearchOpParams &params) {
-                                const auto [input_node, output_node] = add_foreach_zone(params);
-                                params.node_tree.ensure_topology_cache();
-                                bke::node_add_link(params.node_tree,
-                                                   *output_node,
-                                                   output_node->output_socket(2),
-                                                   params.node,
-                                                   params.socket);
-                              });
+    params.add_item_full_name(
+        fmt::format(fmt::runtime(IFACE_("For Each Element {} Generated")), UI_MENU_ARROW_SEP),
+        [](LinkSearchOpParams &params) {
+          const auto [input_node, output_node] = add_foreach_zone(params);
+          params.node_tree.ensure_topology_cache();
+          bke::node_add_link(params.node_tree,
+                             *output_node,
+                             output_node->output_socket(2),
+                             params.node,
+                             params.socket);
+        });
   }
 }
 
@@ -442,7 +448,7 @@ static void node_blend_read(bNodeTree & /*tree*/, bNode &node, BlendDataReader &
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(&ntype,
                      "GeometryNodeForeachGeometryElementOutput",
                      GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT);
@@ -460,19 +466,19 @@ static void node_register()
   ntype.no_muting = true;
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGeometryForeachGeometryElementOutput", node_free_storage, node_copy_storage);
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 
 }  // namespace output_node
 
-}  // namespace blender::nodes::node_geo_foreach_geometry_element_cc
+}  // namespace nodes::node_geo_foreach_geometry_element_cc
 
-namespace blender::nodes {
+namespace nodes {
 
-StructRNA *ForeachGeometryElementInputItemsAccessor::item_srna =
+StructRNA **ForeachGeometryElementInputItemsAccessor::item_srna =
     &RNA_ForeachGeometryElementInputItem;
 
 void ForeachGeometryElementInputItemsAccessor::blend_write_item(BlendWriter *writer,
@@ -487,7 +493,7 @@ void ForeachGeometryElementInputItemsAccessor::blend_read_data_item(BlendDataRea
   BLO_read_string(reader, &item.name);
 }
 
-StructRNA *ForeachGeometryElementMainItemsAccessor::item_srna =
+StructRNA **ForeachGeometryElementMainItemsAccessor::item_srna =
     &RNA_ForeachGeometryElementMainItem;
 
 void ForeachGeometryElementMainItemsAccessor::blend_write_item(BlendWriter *writer,
@@ -502,7 +508,7 @@ void ForeachGeometryElementMainItemsAccessor::blend_read_data_item(BlendDataRead
   BLO_read_string(reader, &item.name);
 }
 
-StructRNA *ForeachGeometryElementGenerationItemsAccessor::item_srna =
+StructRNA **ForeachGeometryElementGenerationItemsAccessor::item_srna =
     &RNA_ForeachGeometryElementGenerationItem;
 
 void ForeachGeometryElementGenerationItemsAccessor::blend_write_item(BlendWriter *writer,
@@ -517,4 +523,5 @@ void ForeachGeometryElementGenerationItemsAccessor::blend_read_data_item(BlendDa
   BLO_read_string(reader, &item.name);
 }
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

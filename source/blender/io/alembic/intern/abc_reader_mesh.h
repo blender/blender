@@ -14,9 +14,11 @@
 #include <Alembic/AbcGeom/IPolyMesh.h>
 #include <Alembic/AbcGeom/ISubD.h>
 
+namespace blender {
+
 struct Mesh;
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 class AbcMeshReader final : public AbcObjectReader {
   Alembic::AbcGeom::IPolyMeshSchema m_schema;
@@ -89,4 +91,5 @@ void read_mverts(Mesh &mesh,
                  const Alembic::AbcGeom::P3fArraySamplePtr positions,
                  const Alembic::AbcGeom::N3fArraySamplePtr normals);
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

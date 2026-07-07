@@ -16,7 +16,14 @@
 
 #include "BLI_assert.h"
 
+#include "WM_types.hh"
+
 namespace blender::io::usd {
+
+ReportList *USDPrimReader::reports() const
+{
+  return import_params_.worker_status ? import_params_.worker_status->reports : nullptr;
+}
 
 void USDPrimReader::set_props(const bool merge_with_parent, const pxr::UsdTimeCode time)
 {
@@ -24,9 +31,9 @@ void USDPrimReader::set_props(const bool merge_with_parent, const pxr::UsdTimeCo
     return;
   }
 
-  eUSDPropertyImportMode property_import_mode = this->import_params_.property_import_mode;
+  PropertyImportMode property_import_mode = this->import_params_.property_import_mode;
 
-  if (property_import_mode == USD_ATTR_IMPORT_NONE) {
+  if (property_import_mode == PropertyImportMode::None) {
     return;
   }
 
@@ -46,7 +53,7 @@ void USDPrimReader::set_props(const bool merge_with_parent, const pxr::UsdTimeCo
   if (object_->data) {
     /* If the object has data, the data represents the USD prim, so set the prim's custom
      * properties on the data directly. */
-    set_id_props_from_prim(static_cast<ID *>(object_->data), prim_, property_import_mode, time);
+    set_id_props_from_prim(object_->data, prim_, property_import_mode, time);
   }
 }
 

@@ -32,6 +32,8 @@
 
 #include "view3d_intern.hh" /* own include */
 
+namespace blender {
+
 static const char *handle_normal_id = "VIEW3D_GGT_tool_generic_handle_normal";
 static const char *handle_free_id = "VIEW3D_GGT_tool_generic_handle_free";
 
@@ -67,14 +69,14 @@ static wmGizmo *tool_generic_create_gizmo(const bContext *C, wmGizmoGroup *gzgro
   wmGizmo *gz = WM_gizmo_new("GIZMO_GT_button_2d", gzgroup, nullptr);
   gz->flag |= WM_GIZMO_OPERATOR_TOOL_INIT;
 
-  UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
-  UI_GetThemeColor3fv(TH_GIZMO_HI, gz->color_hi);
+  ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, gz->color);
+  ui::theme::get_color_3fv(TH_GIZMO_HI, gz->color_hi);
 
   unit_m4(gz->matrix_offset);
 
   RNA_enum_set(gz->ptr, "icon", ICON_NONE);
 
-  bToolRef *tref = WM_toolsystem_ref_from_context((bContext *)C);
+  bToolRef *tref = WM_toolsystem_ref_from_context(const_cast<bContext *>(C));
   PointerRNA gzgt_ptr;
   const bool gzgt_ptr_is_valid = WM_toolsystem_ref_properties_get_from_gizmo_group(
       tref, gzgroup->type, &gzgt_ptr);
@@ -115,7 +117,7 @@ static wmGizmo *tool_generic_create_gizmo(const bContext *C, wmGizmoGroup *gzgro
 
 static void WIDGETGROUP_tool_generic_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  wmGizmoWrapper *wwrapper = MEM_mallocN<wmGizmoWrapper>(__func__);
+  wmGizmoWrapper *wwrapper = MEM_new_uninitialized<wmGizmoWrapper>(__func__);
   wwrapper->gizmo = tool_generic_create_gizmo(C, gzgroup);
   gzgroup->customdata = wwrapper;
 
@@ -144,11 +146,11 @@ static void WIDGETGROUP_tool_generic_refresh(const bContext *C, wmGizmoGroup *gz
     }
 
     RegionView3D *rv3d = static_cast<RegionView3D *>(CTX_wm_region_data(C));
-    blender::ed::transform::TransformBounds tbounds;
-    blender::ed::transform::TransformCalcParams params{};
+    ed::transform::TransformBounds tbounds;
+    ed::transform::TransformCalcParams params{};
     params.use_only_center = true;
     params.orientation_index = orientation + 1;
-    const bool hide = blender::ed::transform::calc_gizmo_stats(C, &params, &tbounds, rv3d) == 0;
+    const bool hide = ed::transform::calc_gizmo_stats(C, &params, &tbounds, rv3d) == 0;
 
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, hide);
     if (hide) {
@@ -180,7 +182,7 @@ static void WIDGETGROUP_gizmo_message_subscribe(const bContext *C,
 
     Scene *scene = CTX_data_scene(C);
     PointerRNA toolsettings_ptr = RNA_pointer_create_discrete(
-        &scene->id, &RNA_ToolSettings, scene->toolsettings);
+        &scene->id, RNA_ToolSettings, scene->toolsettings);
 
     for (int i = 0; i < ARRAY_SIZE(props); i++) {
       WM_msg_subscribe_rna(
@@ -247,3 +249,5 @@ void VIEW3D_GGT_tool_generic_handle_free(wmGizmoGroupType *gzgt)
 }
 
 /** \} */
+
+}  // namespace blender

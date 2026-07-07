@@ -6,7 +6,7 @@
 
 namespace blender::nodes::socket_usage_inference {
 
-class InputSocketUsageParams;
+class SocketUsageParams;
 
 struct SocketUsage {
   bool is_used = true;

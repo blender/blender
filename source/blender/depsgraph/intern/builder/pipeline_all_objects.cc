@@ -42,7 +42,7 @@ class AllObjectsRelationBuilder : public DepsgraphRelationBuilder {
 
 }  // namespace
 
-AllObjectsBuilderPipeline::AllObjectsBuilderPipeline(::Depsgraph *graph)
+AllObjectsBuilderPipeline::AllObjectsBuilderPipeline(blender::Depsgraph *graph)
     : ViewLayerBuilderPipeline(graph)
 {
 }

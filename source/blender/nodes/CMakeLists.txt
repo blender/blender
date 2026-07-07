@@ -32,7 +32,7 @@ function(add_node_discovery
       ${sources}
       ${extra_args}
     DEPENDS
-      ${SRC}
+      ${sources}
       ${DISCOVER_NODES_PATH}
   )
   set_source_files_properties(${output_file} PROPERTIES GENERATED TRUE)
@@ -68,7 +68,6 @@ set(INC_SYS
 )
 
 set(SRC
-  intern/derived_node_tree.cc
   intern/geometry_nodes_bundle.cc
   intern/geometry_nodes_caller_ui.cc
   intern/geometry_nodes_closure.cc
@@ -94,6 +93,7 @@ set(SRC
   intern/node_rna_define.cc
   intern/node_socket.cc
   intern/node_socket_declarations.cc
+  intern/node_tree_defaults.cc
   intern/node_util.cc
   intern/partial_eval.cc
   intern/shader_nodes_inline.cc
@@ -107,7 +107,7 @@ set(SRC
 
   NOD_common.hh
   NOD_composite.hh
-  NOD_derived_node_tree.hh
+  NOD_defaults.hh
   NOD_geometry.hh
   NOD_geometry_exec.hh
   NOD_geometry_nodes_bundle.hh
@@ -184,23 +184,13 @@ set(LIB
   bf_nodes_geometry
   bf_nodes_shader
   bf_nodes_texture
-  PRIVATE bf::extern::fmtlib
   PRIVATE bf::extern::xxhash
   PRIVATE bf::render
   PRIVATE bf::windowmanager
   PRIVATE bf::intern::clog
+  PRIVATE bf::dependencies::optional::gmp
+  PRIVATE bf::dependencies::optional::bullet
 )
-
-if(WITH_BULLET)
-  list(APPEND INC_SYS
-    ${BULLET_INCLUDE_DIRS}
-    ../../../intern/rigidbody
-  )
-  list(APPEND LIB
-    ${BULLET_LIBRARIES}
-  )
-  add_definitions(-DWITH_BULLET)
-endif()
 
 if(WITH_TBB)
   if(WIN32)
@@ -222,18 +212,6 @@ if(WITH_OPENSUBDIV)
   add_definitions(-DWITH_OPENSUBDIV)
 endif()
 
-if(WITH_GMP)
-  add_definitions(-DWITH_GMP)
-
-  list(APPEND INC_SYS
-    ${GMP_INCLUDE_DIRS}
-  )
-
-  list(APPEND LIB
-    ${GMP_LIBRARIES}
-  )
-endif()
-
 blender_add_lib(bf_nodes "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 add_library(bf::nodes ALIAS bf_nodes)
 
@@ -248,7 +226,8 @@ if(WITH_GTESTS)
     intern/node_iterator_tests.cc
   )
   set(TEST_LIB
+    ${LIB}
     bf_nodes
   )
-  blender_add_test_suite_lib(nodes "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB}")
+  blender_add_test_suite_lib(nodes "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${TEST_LIB}")
 endif()

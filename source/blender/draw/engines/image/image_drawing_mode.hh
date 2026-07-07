@@ -178,8 +178,7 @@ template<size_t Divisions> class ScreenTileTextures : public BaseTextureMethod {
   {
     float2 uv_coords[VerticesPerDimension][VerticesPerDimension];
     float2 region_tile_uv_span = region_uv_span / float2(float(Divisions));
-    float2 onscreen_multiple = (blender::math::floor(region_uv_min / region_tile_uv_span) +
-                                float2(1.0f)) *
+    float2 onscreen_multiple = (math::floor(region_uv_min / region_tile_uv_span) + float2(1.0f)) *
                                region_tile_uv_span;
     for (int y = 0; y < VerticesPerDimension; y++) {
       for (int x = 0; x < VerticesPerDimension; x++) {
@@ -281,7 +280,7 @@ class ScreenSpaceDrawingMode : public AbstractDrawingMode {
    *
    * The depth is used to identify if the tile exist or transparent.
    */
-  void add_depth_shgroups(::Image *image, ::ImageUser *image_user) const;
+  void add_depth_shgroups(blender::Image *image, blender::ImageUser *image_user) const;
 
   /**
    * \brief Update GPUTextures for drawing the image.
@@ -289,7 +288,7 @@ class ScreenSpaceDrawingMode : public AbstractDrawingMode {
    * GPUTextures that are marked dirty are rebuild. GPUTextures that aren't marked dirty are
    * updated with changed region of the image.
    */
-  void update_textures(::Image *image, ::ImageUser *image_user) const;
+  void update_textures(blender::Image *image, blender::ImageUser *image_user) const;
 
   /**
    * Update the float buffer in the region given by the partial update checker.
@@ -297,8 +296,8 @@ class ScreenSpaceDrawingMode : public AbstractDrawingMode {
   void do_partial_update_float_buffer(
       ImBuf *float_buffer, PartialUpdateChecker<ImageTileData>::CollectResult &iterator) const;
   void do_partial_update(PartialUpdateChecker<ImageTileData>::CollectResult &iterator) const;
-  void do_full_update_for_dirty_textures(const ::ImageUser *image_user) const;
-  void do_full_update_gpu_texture(TextureInfo &info, const ::ImageUser *image_user) const;
+  void do_full_update_for_dirty_textures(const blender::ImageUser *image_user) const;
+  void do_full_update_gpu_texture(TextureInfo &info, const blender::ImageUser *image_user) const;
   /**
    * texture_buffer is the image buffer belonging to the texture_info.
    * tile_buffer is the image buffer of the tile.
@@ -310,7 +309,7 @@ class ScreenSpaceDrawingMode : public AbstractDrawingMode {
 
  public:
   void begin_sync() const override;
-  void image_sync(::Image *image, ::ImageUser *iuser) const override;
+  void image_sync(blender::Image *image, blender::ImageUser *iuser) const override;
   void draw_finish() const override;
   void draw_viewport() const override;
 };

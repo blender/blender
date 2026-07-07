@@ -45,7 +45,7 @@ class VKDevice;
  * It should also keep track of the submissions in order to reuse the allocated
  * data.
  */
-class VKPushConstants : VKResourceTracker<VKUniformBuffer> {
+class VKPushConstants {
   friend class VKContext;
 
  public:
@@ -157,7 +157,9 @@ class VKPushConstants : VKResourceTracker<VKUniformBuffer> {
  private:
   const Layout *layout_ = nullptr;
   void *data_ = nullptr;
-  bool is_dirty_ = false;
+
+  /** Uniform buffer used to store the push constants when they don't fit. */
+  std::unique_ptr<VKUniformBuffer> uniform_buffer_;
 
  public:
   VKPushConstants();
@@ -176,11 +178,6 @@ class VKPushConstants : VKResourceTracker<VKUniformBuffer> {
   {
     return *layout_;
   }
-
-  /**
-   * Part of Resource Tracking API is called when new resource is needed.
-   */
-  std::unique_ptr<VKUniformBuffer> create_resource(VKContext &context) override;
 
   /**
    * Get the reference to the active data.
@@ -231,7 +228,6 @@ class VKPushConstants : VKResourceTracker<VKUniformBuffer> {
       BLI_assert_msg(push_constant_layout->offset + copy_size_in_bytes <= layout_->size_in_bytes(),
                      "Tried to write outside the push constant allocated memory.");
       memcpy(dst, input_data, copy_size_in_bytes);
-      is_dirty_ = true;
       return;
     }
 
@@ -258,8 +254,6 @@ class VKPushConstants : VKResourceTracker<VKUniformBuffer> {
         }
       }
     }
-
-    is_dirty_ = true;
   }
 
   /**

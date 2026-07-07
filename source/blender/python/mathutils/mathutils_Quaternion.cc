@@ -25,6 +25,8 @@
 #  include "BLI_dynstr.h"
 #endif
 
+namespace blender {
+
 #define QUAT_SIZE 4
 
 static PyObject *quat__apply_to_copy(PyObject *(*quat_func)(QuaternionObject *),
@@ -41,7 +43,7 @@ static PyObject *quat__apply_to_copy(PyObject *(*quat_func)(QuaternionObject *),
                                      QuaternionObject *self)
 {
   PyObject *ret = Quaternion_copy(self);
-  PyObject *ret_dummy = quat_func((QuaternionObject *)ret);
+  PyObject *ret_dummy = quat_func(reinterpret_cast<QuaternionObject *>(ret));
   if (ret_dummy) {
     Py_DECREF(ret_dummy);
     return ret;
@@ -104,32 +106,32 @@ static PyObject *Quaternion_to_tuple_ext(QuaternionObject *self, int ndigits)
 /** \name Quaternion Type: `__new__` / `mathutils.Quaternion()`
  * \{ */
 
-static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+static PyObject *Quaternion_vectorcall(PyObject *type,
+                                       PyObject *const *args,
+                                       const size_t nargsf,
+                                       PyObject *kwnames)
 {
-  PyObject *seq = nullptr;
-  double angle = 0.0f;
-  float quat[QUAT_SIZE];
-  unit_qt(quat);
-
-  if (kwds && PyDict_Size(kwds)) {
+  if (UNLIKELY(kwnames && PyTuple_GET_SIZE(kwnames))) {
     PyErr_SetString(PyExc_TypeError,
                     "mathutils.Quaternion(): "
                     "takes no keyword args");
     return nullptr;
   }
 
-  if (!PyArg_ParseTuple(args, "|Od:mathutils.Quaternion", &seq, &angle)) {
-    return nullptr;
-  }
+  double angle = 0.0f;
+  float quat[QUAT_SIZE];
+  unit_qt(quat);
 
-  switch (PyTuple_GET_SIZE(args)) {
-    case 0:
+  const size_t nargs = PyVectorcall_NARGS(nargsf);
+  switch (nargs) {
+    case 0: {
       break;
+    }
     case 1: {
-      int size;
+      const int size = mathutils_array_parse(
+          quat, 3, QUAT_SIZE, args[0], "mathutils.Quaternion()");
 
-      if ((size = mathutils_array_parse(quat, 3, QUAT_SIZE, seq, "mathutils.Quaternion()")) == -1)
-      {
+      if (UNLIKELY(size == -1)) {
         return nullptr;
       }
 
@@ -146,16 +148,45 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
     }
     case 2: {
       float axis[3];
-      if (mathutils_array_parse(axis, 3, 3, seq, "mathutils.Quaternion()") == -1) {
+      if (mathutils_array_parse(axis, 3, 3, args[0], "mathutils.Quaternion()") == -1) {
+        return nullptr;
+      }
+      angle = PyFloat_AsDouble(args[1]);
+      if (UNLIKELY(angle == -1.0 && PyErr_Occurred())) {
+        PyErr_Format(PyExc_TypeError,
+                     "mathutils.Quaternion(): "
+                     "angle must be a real number, not '%.200s'",
+                     Py_TYPE(args[1])->tp_name);
         return nullptr;
       }
       angle = angle_wrap_rad(angle); /* clamp because of precision issues */
       axis_angle_to_quat(quat, axis, angle);
       break;
-      /* PyArg_ParseTuple assures no more than 2 */
+    }
+    default: {
+      PyErr_Format(PyExc_TypeError,
+                   "mathutils.Quaternion() "
+                   "takes at most 2 arguments (%zd given)",
+                   nargs);
+      return nullptr;
     }
   }
-  return Quaternion_CreatePyObject(quat, type);
+  return Quaternion_CreatePyObject(quat, reinterpret_cast<PyTypeObject *>(type));
+}
+
+static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+  /* Only called on sub-classes. */
+  if (UNLIKELY(kwds && PyDict_GET_SIZE(kwds))) {
+    PyErr_SetString(PyExc_TypeError,
+                    "mathutils.Quaternion(): "
+                    "takes no keyword args");
+    return nullptr;
+  }
+  PyObject *const *args_array = &PyTuple_GET_ITEM(args, 0);
+  const size_t args_array_num = PyTuple_GET_SIZE(args);
+  return Quaternion_vectorcall(
+      reinterpret_cast<PyObject *>(type), args_array, args_array_num, nullptr);
 }
 
 /** \} */
@@ -171,12 +202,12 @@ PyDoc_STRVAR(
     "\n"
     "   Return Euler representation of the quaternion.\n"
     "\n"
-    "   :arg order: Rotation order.\n"
+    "   :param order: Rotation order.\n"
     "   :type order: Literal['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX']\n"
-    "   :arg euler_compat: Optional euler argument the new euler will be made\n"
+    "   :param euler_compat: Optional euler argument the new euler will be made\n"
     "      compatible with (no axis flipping between them).\n"
-    "      Useful for converting a series of matrices to animation curves.\n"
-    "   :type euler_compat: :class:`Euler`\n"
+    "      Useful for converting a series of quaternions to animation curves.\n"
+    "   :type euler_compat: :class:`Euler` | None\n"
     "   :return: Euler representation of the quaternion.\n"
     "   :rtype: :class:`Euler`\n");
 static PyObject *Quaternion_to_euler(QuaternionObject *self, PyObject *args)
@@ -186,8 +217,20 @@ static PyObject *Quaternion_to_euler(QuaternionObject *self, PyObject *args)
   const char *order_str = nullptr;
   short order = EULER_ORDER_XYZ;
   EulerObject *eul_compat = nullptr;
+  PyC_TypeOrNone eul_compat_or_none = PyC_TYPE_OR_NONE_INIT(&euler_Type, &eul_compat);
 
-  if (!PyArg_ParseTuple(args, "|sO!:to_euler", &order_str, &euler_Type, &eul_compat)) {
+  static const char *_keywords[] = {"", "", nullptr};
+  static _PyArg_Parser _parser = {
+      "|"  /* Optional arguments. */
+      "s"  /* `order` */
+      "O&" /* `euler_compat` */
+      ":to_euler",
+      _keywords,
+      nullptr,
+  };
+  if (!_PyArg_ParseTupleAndKeywordsFast(
+          args, nullptr, &_parser, &order_str, PyC_ParseTypeOrNone, &eul_compat_or_none))
+  {
     return nullptr;
   }
 
@@ -252,7 +295,7 @@ static PyObject *Quaternion_to_matrix(QuaternionObject *self)
     return nullptr;
   }
 
-  quat_to_mat3((float(*)[3])mat, self->quat);
+  quat_to_mat3(reinterpret_cast<float (*)[3]>(mat), self->quat);
   return Matrix_CreatePyObject(mat, 3, 3, nullptr);
 }
 
@@ -308,7 +351,7 @@ PyDoc_STRVAR(
     "   Split the rotation into a swing quaternion with the specified\n"
     "   axis fixed at zero, and the remaining twist rotation angle.\n"
     "\n"
-    "   :arg axis: Twist axis as a string.\n"
+    "   :param axis: Twist axis as a string.\n"
     "   :type axis: Literal['X', 'Y', 'Z']\n"
     "   :return: Swing, twist angle.\n"
     "   :rtype: tuple[:class:`Quaternion`, float]\n");
@@ -360,11 +403,11 @@ PyDoc_STRVAR(
     "\n"
     "   Return the exponential map representation of the quaternion.\n"
     "\n"
-    "   This representation consist of the rotation axis multiplied by the rotation angle.\n"
+    "   This representation consists of the rotation axis multiplied by the rotation angle.\n"
     "   Such a representation is useful for interpolation between multiple orientations.\n"
     "\n"
-    "   :return: exponential map.\n"
-    "   :rtype: :class:`Vector` of size 3\n"
+    "   :return: 3D exponential map.\n"
+    "   :rtype: :class:`Vector`\n"
     "\n"
     "   To convert back to a quaternion, pass it to the :class:`Quaternion` constructor.\n");
 static PyObject *Quaternion_to_exponential_map(QuaternionObject *self)
@@ -392,7 +435,7 @@ PyDoc_STRVAR(
     "\n"
     "   Return the cross product of this quaternion and another.\n"
     "\n"
-    "   :arg other: The other quaternion to perform the cross product with.\n"
+    "   :param other: The other quaternion to perform the cross product with.\n"
     "   :type other: :class:`Quaternion`\n"
     "   :return: The cross product.\n"
     "   :rtype: :class:`Quaternion`\n");
@@ -428,7 +471,7 @@ PyDoc_STRVAR(
     "\n"
     "   Return the dot product of this quaternion and another.\n"
     "\n"
-    "   :arg other: The other quaternion to perform the dot product with.\n"
+    "   :param other: The other quaternion to perform the dot product with.\n"
     "   :type other: :class:`Quaternion`\n"
     "   :return: The dot product.\n"
     "   :rtype: float\n");
@@ -458,11 +501,11 @@ static PyObject *Quaternion_dot(QuaternionObject *self, PyObject *value)
 PyDoc_STRVAR(
     /* Wrap. */
     Quaternion_rotation_difference_doc,
-    ".. function:: rotation_difference(other, /)\n"
+    ".. method:: rotation_difference(other, /)\n"
     "\n"
     "   Returns a quaternion representing the rotational difference.\n"
     "\n"
-    "   :arg other: second quaternion.\n"
+    "   :param other: second quaternion.\n"
     "   :type other: :class:`Quaternion`\n"
     "   :return: the rotational difference between the two quat rotations.\n"
     "   :rtype: :class:`Quaternion`\n");
@@ -497,13 +540,13 @@ static PyObject *Quaternion_rotation_difference(QuaternionObject *self, PyObject
 PyDoc_STRVAR(
     /* Wrap. */
     Quaternion_slerp_doc,
-    ".. function:: slerp(other, factor, /)\n"
+    ".. method:: slerp(other, factor, /)\n"
     "\n"
     "   Returns the interpolation of two quaternions.\n"
     "\n"
-    "   :arg other: value to interpolate with.\n"
+    "   :param other: value to interpolate with.\n"
     "   :type other: :class:`Quaternion`\n"
-    "   :arg factor: The interpolation value in [0.0, 1.0].\n"
+    "   :param factor: The interpolation value in [0.0, 1.0].\n"
     "   :type factor: float\n"
     "   :return: The interpolated rotation.\n"
     "   :rtype: :class:`Quaternion`\n");
@@ -555,7 +598,7 @@ PyDoc_STRVAR(
     "\n"
     "   Rotates the quaternion by another mathutils value.\n"
     "\n"
-    "   :arg other: rotation component of mathutils value\n"
+    "   :param other: rotation component of mathutils value\n"
     "   :type other: :class:`Euler` | :class:`Quaternion` | :class:`Matrix`\n");
 static PyObject *Quaternion_rotate(QuaternionObject *self, PyObject *value)
 {
@@ -588,7 +631,7 @@ PyDoc_STRVAR(
     "   Make this quaternion compatible with another,\n"
     "   so interpolating between them works as intended.\n"
     "\n"
-    "   :arg other: The other quaternion to make compatible with.\n"
+    "   :param other: The reference quaternion to make this one compatible with.\n"
     "   :type other: :class:`Quaternion`\n");
 static PyObject *Quaternion_make_compatible(QuaternionObject *self, PyObject *value)
 {
@@ -630,7 +673,7 @@ static PyObject *Quaternion_make_compatible(QuaternionObject *self, PyObject *va
 PyDoc_STRVAR(
     /* Wrap. */
     Quaternion_normalize_doc,
-    ".. function:: normalize()\n"
+    ".. method:: normalize()\n"
     "\n"
     "   Normalize the quaternion.\n");
 static PyObject *Quaternion_normalize(QuaternionObject *self)
@@ -647,7 +690,7 @@ static PyObject *Quaternion_normalize(QuaternionObject *self)
 PyDoc_STRVAR(
     /* Wrap. */
     Quaternion_normalized_doc,
-    ".. function:: normalized()\n"
+    ".. method:: normalized()\n"
     "\n"
     "   Return a new normalized quaternion.\n"
     "\n"
@@ -663,14 +706,13 @@ static PyObject *Quaternion_normalized(QuaternionObject *self)
 /* -------------------------------------------------------------------- */
 /** \name Quaternion Methods: Invert
  *
- * Normalize the quaternion. This may change the angle as well as the
- * rotation axis, as all of (w, x, y, z) are scaled.
+ * Invert the quaternion, representing the inverse rotation.
  * \{ */
 
 PyDoc_STRVAR(
     /* Wrap. */
     Quaternion_invert_doc,
-    ".. function:: invert()\n"
+    ".. method:: invert()\n"
     "\n"
     "   Set the quaternion to its inverse.\n");
 static PyObject *Quaternion_invert(QuaternionObject *self)
@@ -687,7 +729,7 @@ static PyObject *Quaternion_invert(QuaternionObject *self)
 PyDoc_STRVAR(
     /* Wrap. */
     Quaternion_inverted_doc,
-    ".. function:: inverted()\n"
+    ".. method:: inverted()\n"
     "\n"
     "   Return a new, inverted quaternion.\n"
     "\n"
@@ -707,7 +749,7 @@ static PyObject *Quaternion_inverted(QuaternionObject *self)
 PyDoc_STRVAR(
     /* Wrap. */
     Quaternion_identity_doc,
-    ".. function:: identity()\n"
+    ".. method:: identity()\n"
     "\n"
     "   Set the quaternion to an identity quaternion.\n");
 static PyObject *Quaternion_identity(QuaternionObject *self)
@@ -731,7 +773,7 @@ static PyObject *Quaternion_identity(QuaternionObject *self)
 PyDoc_STRVAR(
     /* Wrap. */
     Quaternion_negate_doc,
-    ".. function:: negate()\n"
+    ".. method:: negate()\n"
     "\n"
     "   Set the quaternion to its negative.\n");
 static PyObject *Quaternion_negate(QuaternionObject *self)
@@ -755,7 +797,7 @@ static PyObject *Quaternion_negate(QuaternionObject *self)
 PyDoc_STRVAR(
     /* Wrap. */
     Quaternion_conjugate_doc,
-    ".. function:: conjugate()\n"
+    ".. method:: conjugate()\n"
     "\n"
     "   Set the quaternion to its conjugate (negate x, y, z).\n");
 static PyObject *Quaternion_conjugate(QuaternionObject *self)
@@ -772,7 +814,7 @@ static PyObject *Quaternion_conjugate(QuaternionObject *self)
 PyDoc_STRVAR(
     /* Wrap. */
     Quaternion_conjugated_doc,
-    ".. function:: conjugated()\n"
+    ".. method:: conjugated()\n"
     "\n"
     "   Return a new conjugated quaternion.\n"
     "\n"
@@ -792,7 +834,7 @@ static PyObject *Quaternion_conjugated(QuaternionObject *self)
 PyDoc_STRVAR(
     /* Wrap. */
     Quaternion_copy_doc,
-    ".. function:: copy()\n"
+    ".. method:: copy()\n"
     "\n"
     "   Returns a copy of this quaternion.\n"
     "\n"
@@ -869,7 +911,7 @@ static PyObject *Quaternion_str(QuaternionObject *self)
 
 static int Quaternion_getbuffer(PyObject *obj, Py_buffer *view, int flags)
 {
-  QuaternionObject *self = (QuaternionObject *)obj;
+  QuaternionObject *self = reinterpret_cast<QuaternionObject *>(obj);
   if (UNLIKELY(BaseMath_Prepare_ForBufferAccess(self, view, flags) == -1)) {
     return -1;
   }
@@ -879,8 +921,8 @@ static int Quaternion_getbuffer(PyObject *obj, Py_buffer *view, int flags)
 
   memset(view, 0, sizeof(*view));
 
-  view->obj = (PyObject *)self;
-  view->buf = (void *)self->quat;
+  view->obj = reinterpret_cast<PyObject *>(self);
+  view->buf = static_cast<void *>(self->quat);
   view->len = Py_ssize_t(QUAT_SIZE * sizeof(float));
   view->itemsize = sizeof(float);
   view->ndim = 1;
@@ -888,7 +930,7 @@ static int Quaternion_getbuffer(PyObject *obj, Py_buffer *view, int flags)
     view->readonly = 1;
   }
   if (flags & PyBUF_FORMAT) {
-    view->format = (char *)"f";
+    view->format = const_cast<char *>("f");
   }
 
   self->flag |= BASE_MATH_FLAG_HAS_BUFFER_VIEW;
@@ -899,7 +941,7 @@ static int Quaternion_getbuffer(PyObject *obj, Py_buffer *view, int flags)
 
 static void Quaternion_releasebuffer(PyObject * /*exporter*/, Py_buffer *view)
 {
-  QuaternionObject *self = (QuaternionObject *)view->obj;
+  QuaternionObject *self = reinterpret_cast<QuaternionObject *>(view->obj);
   self->flag &= ~BASE_MATH_FLAG_HAS_BUFFER_VIEW;
 
   if (view->readonly == 0) {
@@ -910,8 +952,8 @@ static void Quaternion_releasebuffer(PyObject * /*exporter*/, Py_buffer *view)
 }
 
 static PyBufferProcs Quaternion_as_buffer = {
-    (getbufferproc)Quaternion_getbuffer,
-    (releasebufferproc)Quaternion_releasebuffer,
+    static_cast<getbufferproc>(Quaternion_getbuffer),
+    static_cast<releasebufferproc>(Quaternion_releasebuffer),
 };
 
 /** \} */
@@ -926,8 +968,8 @@ static PyObject *Quaternion_richcmpr(PyObject *a, PyObject *b, int op)
   int ok = -1; /* zero is true */
 
   if (QuaternionObject_Check(a) && QuaternionObject_Check(b)) {
-    QuaternionObject *quatA = (QuaternionObject *)a;
-    QuaternionObject *quatB = (QuaternionObject *)b;
+    QuaternionObject *quatA = reinterpret_cast<QuaternionObject *>(a);
+    QuaternionObject *quatB = reinterpret_cast<QuaternionObject *>(b);
 
     if (BaseMath_ReadCallback(quatA) == -1 || BaseMath_ReadCallback(quatB) == -1) {
       return nullptr;
@@ -937,22 +979,25 @@ static PyObject *Quaternion_richcmpr(PyObject *a, PyObject *b, int op)
   }
 
   switch (op) {
-    case Py_NE:
+    case Py_NE: {
       ok = !ok;
       ATTR_FALLTHROUGH;
-    case Py_EQ:
+    }
+    case Py_EQ: {
       res = ok ? Py_False : Py_True;
       break;
-
+    }
     case Py_LT:
     case Py_LE:
     case Py_GT:
-    case Py_GE:
+    case Py_GE: {
       res = Py_NotImplemented;
       break;
-    default:
+    }
+    default: {
       PyErr_BadArgument();
       return nullptr;
+    }
   }
 
   return Py_NewRef(res);
@@ -1201,8 +1246,8 @@ static PyObject *Quaternion_add(PyObject *q1, PyObject *q2)
                  Py_TYPE(q2)->tp_name);
     return nullptr;
   }
-  quat1 = (QuaternionObject *)q1;
-  quat2 = (QuaternionObject *)q2;
+  quat1 = reinterpret_cast<QuaternionObject *>(q1);
+  quat2 = reinterpret_cast<QuaternionObject *>(q2);
 
   if (BaseMath_ReadCallback(quat1) == -1 || BaseMath_ReadCallback(quat2) == -1) {
     return nullptr;
@@ -1228,8 +1273,8 @@ static PyObject *Quaternion_sub(PyObject *q1, PyObject *q2)
     return nullptr;
   }
 
-  quat1 = (QuaternionObject *)q1;
-  quat2 = (QuaternionObject *)q2;
+  quat1 = reinterpret_cast<QuaternionObject *>(q1);
+  quat2 = reinterpret_cast<QuaternionObject *>(q2);
 
   if (BaseMath_ReadCallback(quat1) == -1 || BaseMath_ReadCallback(quat2) == -1) {
     return nullptr;
@@ -1257,13 +1302,13 @@ static PyObject *Quaternion_mul(PyObject *q1, PyObject *q2)
   QuaternionObject *quat1 = nullptr, *quat2 = nullptr;
 
   if (QuaternionObject_Check(q1)) {
-    quat1 = (QuaternionObject *)q1;
+    quat1 = reinterpret_cast<QuaternionObject *>(q1);
     if (BaseMath_ReadCallback(quat1) == -1) {
       return nullptr;
     }
   }
   if (QuaternionObject_Check(q2)) {
-    quat2 = (QuaternionObject *)q2;
+    quat2 = reinterpret_cast<QuaternionObject *>(q2);
     if (BaseMath_ReadCallback(quat2) == -1) {
       return nullptr;
     }
@@ -1301,13 +1346,13 @@ static PyObject *Quaternion_imul(PyObject *q1, PyObject *q2)
   QuaternionObject *quat1 = nullptr, *quat2 = nullptr;
 
   if (QuaternionObject_Check(q1)) {
-    quat1 = (QuaternionObject *)q1;
+    quat1 = reinterpret_cast<QuaternionObject *>(q1);
     if (BaseMath_ReadCallback(quat1) == -1) {
       return nullptr;
     }
   }
   if (QuaternionObject_Check(q2)) {
-    quat2 = (QuaternionObject *)q2;
+    quat2 = reinterpret_cast<QuaternionObject *>(q2);
     if (BaseMath_ReadCallback(quat2) == -1) {
       return nullptr;
     }
@@ -1341,13 +1386,13 @@ static PyObject *Quaternion_matmul(PyObject *q1, PyObject *q2)
   QuaternionObject *quat1 = nullptr, *quat2 = nullptr;
 
   if (QuaternionObject_Check(q1)) {
-    quat1 = (QuaternionObject *)q1;
+    quat1 = reinterpret_cast<QuaternionObject *>(q1);
     if (BaseMath_ReadCallback(quat1) == -1) {
       return nullptr;
     }
   }
   if (QuaternionObject_Check(q2)) {
-    quat2 = (QuaternionObject *)q2;
+    quat2 = reinterpret_cast<QuaternionObject *>(q2);
     if (BaseMath_ReadCallback(quat2) == -1) {
       return nullptr;
     }
@@ -1360,7 +1405,7 @@ static PyObject *Quaternion_matmul(PyObject *q1, PyObject *q2)
   if (quat1) {
     /* QUAT @ VEC */
     if (VectorObject_Check(q2)) {
-      VectorObject *vec2 = (VectorObject *)q2;
+      VectorObject *vec2 = reinterpret_cast<VectorObject *>(q2);
       float tvec[3];
 
       if (vec2->vec_num != 3) {
@@ -1396,13 +1441,13 @@ static PyObject *Quaternion_imatmul(PyObject *q1, PyObject *q2)
   QuaternionObject *quat1 = nullptr, *quat2 = nullptr;
 
   if (QuaternionObject_Check(q1)) {
-    quat1 = (QuaternionObject *)q1;
+    quat1 = reinterpret_cast<QuaternionObject *>(q1);
     if (BaseMath_ReadCallback(quat1) == -1) {
       return nullptr;
     }
   }
   if (QuaternionObject_Check(q2)) {
-    quat2 = (QuaternionObject *)q2;
+    quat2 = reinterpret_cast<QuaternionObject *>(q2);
     if (BaseMath_ReadCallback(quat2) == -1) {
       return nullptr;
     }
@@ -1446,12 +1491,12 @@ static PyObject *Quaternion_neg(QuaternionObject *self)
  * \{ */
 
 static PySequenceMethods Quaternion_SeqMethods = {
-    /*sq_length*/ (lenfunc)Quaternion_len,
+    /*sq_length*/ reinterpret_cast<lenfunc>(Quaternion_len),
     /*sq_concat*/ nullptr,
     /*sq_repeat*/ nullptr,
-    /*sq_item*/ (ssizeargfunc)Quaternion_item,
+    /*sq_item*/ reinterpret_cast<ssizeargfunc>(Quaternion_item),
     /*was_sq_slice*/ nullptr, /* DEPRECATED. */
-    /*sq_ass_item*/ (ssizeobjargproc)Quaternion_ass_item,
+    /*sq_ass_item*/ reinterpret_cast<ssizeobjargproc>(Quaternion_ass_item),
     /*was_sq_ass_slice*/ nullptr, /* DEPRECATED. */
     /*sq_contains*/ nullptr,
     /*sq_inplace_concat*/ nullptr,
@@ -1459,20 +1504,20 @@ static PySequenceMethods Quaternion_SeqMethods = {
 };
 
 static PyMappingMethods Quaternion_AsMapping = {
-    /*mp_length*/ (lenfunc)Quaternion_len,
-    /*mp_subscript*/ (binaryfunc)Quaternion_subscript,
-    /*mp_ass_subscript*/ (objobjargproc)Quaternion_ass_subscript,
+    /*mp_length*/ reinterpret_cast<lenfunc>(Quaternion_len),
+    /*mp_subscript*/ reinterpret_cast<binaryfunc>(Quaternion_subscript),
+    /*mp_ass_subscript*/ reinterpret_cast<objobjargproc>(Quaternion_ass_subscript),
 };
 
 static PyNumberMethods Quaternion_NumMethods = {
-    /*nb_add*/ (binaryfunc)Quaternion_add,
-    /*nb_subtract*/ (binaryfunc)Quaternion_sub,
-    /*nb_multiply*/ (binaryfunc)Quaternion_mul,
+    /*nb_add*/ static_cast<binaryfunc>(Quaternion_add),
+    /*nb_subtract*/ static_cast<binaryfunc>(Quaternion_sub),
+    /*nb_multiply*/ static_cast<binaryfunc>(Quaternion_mul),
     /*nb_remainder*/ nullptr,
     /*nb_divmod*/ nullptr,
     /*nb_power*/ nullptr,
-    /*nb_negative*/ (unaryfunc)Quaternion_neg,
-    /*nb_positive*/ (unaryfunc)Quaternion_copy,
+    /*nb_negative*/ reinterpret_cast<unaryfunc>(Quaternion_neg),
+    /*nb_positive*/ reinterpret_cast<unaryfunc>(Quaternion_copy),
     /*nb_absolute*/ nullptr,
     /*nb_bool*/ nullptr,
     /*nb_invert*/ nullptr,
@@ -1486,7 +1531,7 @@ static PyNumberMethods Quaternion_NumMethods = {
     /*nb_float*/ nullptr,
     /*nb_inplace_add*/ nullptr,
     /*nb_inplace_subtract*/ nullptr,
-    /*nb_inplace_multiply*/ (binaryfunc)Quaternion_imul,
+    /*nb_inplace_multiply*/ static_cast<binaryfunc>(Quaternion_imul),
     /*nb_inplace_remainder*/ nullptr,
     /*nb_inplace_power*/ nullptr,
     /*nb_inplace_lshift*/ nullptr,
@@ -1499,8 +1544,8 @@ static PyNumberMethods Quaternion_NumMethods = {
     /*nb_inplace_floor_divide*/ nullptr,
     /*nb_inplace_true_divide*/ nullptr,
     /*nb_index*/ nullptr,
-    /*nb_matrix_multiply*/ (binaryfunc)Quaternion_matmul,
-    /*nb_inplace_matrix_multiply*/ (binaryfunc)Quaternion_imatmul,
+    /*nb_matrix_multiply*/ static_cast<binaryfunc>(Quaternion_matmul),
+    /*nb_inplace_matrix_multiply*/ static_cast<binaryfunc>(Quaternion_imatmul),
 };
 
 /** \} */
@@ -1512,7 +1557,7 @@ static PyNumberMethods Quaternion_NumMethods = {
 PyDoc_STRVAR(
     /* Wrap. */
     Quaternion_axis_doc,
-    "Quaternion axis value.\n"
+    "Quaternion component value.\n"
     "\n"
     ":type: float\n");
 static PyObject *Quaternion_axis_get(QuaternionObject *self, void *type)
@@ -1664,58 +1709,58 @@ static int Quaternion_axis_vector_set(QuaternionObject *self, PyObject *value, v
 
 static PyGetSetDef Quaternion_getseters[] = {
     {"w",
-     (getter)Quaternion_axis_get,
-     (setter)Quaternion_axis_set,
+     reinterpret_cast<getter>(Quaternion_axis_get),
+     reinterpret_cast<setter>(Quaternion_axis_set),
      Quaternion_axis_doc,
      POINTER_FROM_INT(0)},
     {"x",
-     (getter)Quaternion_axis_get,
-     (setter)Quaternion_axis_set,
+     reinterpret_cast<getter>(Quaternion_axis_get),
+     reinterpret_cast<setter>(Quaternion_axis_set),
      Quaternion_axis_doc,
      POINTER_FROM_INT(1)},
     {"y",
-     (getter)Quaternion_axis_get,
-     (setter)Quaternion_axis_set,
+     reinterpret_cast<getter>(Quaternion_axis_get),
+     reinterpret_cast<setter>(Quaternion_axis_set),
      Quaternion_axis_doc,
      POINTER_FROM_INT(2)},
     {"z",
-     (getter)Quaternion_axis_get,
-     (setter)Quaternion_axis_set,
+     reinterpret_cast<getter>(Quaternion_axis_get),
+     reinterpret_cast<setter>(Quaternion_axis_set),
      Quaternion_axis_doc,
      POINTER_FROM_INT(3)},
     {"magnitude",
-     (getter)Quaternion_magnitude_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(Quaternion_magnitude_get),
+     static_cast<setter>(nullptr),
      Quaternion_magnitude_doc,
      nullptr},
     {"angle",
-     (getter)Quaternion_angle_get,
-     (setter)Quaternion_angle_set,
+     reinterpret_cast<getter>(Quaternion_angle_get),
+     reinterpret_cast<setter>(Quaternion_angle_set),
      Quaternion_angle_doc,
      nullptr},
     {"axis",
-     (getter)Quaternion_axis_vector_get,
-     (setter)Quaternion_axis_vector_set,
+     reinterpret_cast<getter>(Quaternion_axis_vector_get),
+     reinterpret_cast<setter>(Quaternion_axis_vector_set),
      Quaternion_axis_vector_doc,
      nullptr},
     {"is_wrapped",
-     (getter)BaseMathObject_is_wrapped_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(BaseMathObject_is_wrapped_get),
+     static_cast<setter>(nullptr),
      BaseMathObject_is_wrapped_doc,
      nullptr},
     {"is_frozen",
-     (getter)BaseMathObject_is_frozen_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(BaseMathObject_is_frozen_get),
+     static_cast<setter>(nullptr),
      BaseMathObject_is_frozen_doc,
      nullptr},
     {"is_valid",
-     (getter)BaseMathObject_is_valid_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(BaseMathObject_is_valid_get),
+     static_cast<setter>(nullptr),
      BaseMathObject_is_valid_doc,
      nullptr},
     {"owner",
-     (getter)BaseMathObject_owner_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(BaseMathObject_owner_get),
+     static_cast<setter>(nullptr),
      BaseMathObject_owner_doc,
      nullptr},
     {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
@@ -1739,55 +1784,91 @@ static PyGetSetDef Quaternion_getseters[] = {
 
 static PyMethodDef Quaternion_methods[] = {
     /* In place only. */
-    {"identity", (PyCFunction)Quaternion_identity, METH_NOARGS, Quaternion_identity_doc},
-    {"negate", (PyCFunction)Quaternion_negate, METH_NOARGS, Quaternion_negate_doc},
+    {"identity",
+     reinterpret_cast<PyCFunction>(Quaternion_identity),
+     METH_NOARGS,
+     Quaternion_identity_doc},
+    {"negate",
+     reinterpret_cast<PyCFunction>(Quaternion_negate),
+     METH_NOARGS,
+     Quaternion_negate_doc},
 
     /* Operate on original or copy. */
-    {"conjugate", (PyCFunction)Quaternion_conjugate, METH_NOARGS, Quaternion_conjugate_doc},
-    {"conjugated", (PyCFunction)Quaternion_conjugated, METH_NOARGS, Quaternion_conjugated_doc},
+    {"conjugate",
+     reinterpret_cast<PyCFunction>(Quaternion_conjugate),
+     METH_NOARGS,
+     Quaternion_conjugate_doc},
+    {"conjugated",
+     reinterpret_cast<PyCFunction>(Quaternion_conjugated),
+     METH_NOARGS,
+     Quaternion_conjugated_doc},
 
-    {"invert", (PyCFunction)Quaternion_invert, METH_NOARGS, Quaternion_invert_doc},
-    {"inverted", (PyCFunction)Quaternion_inverted, METH_NOARGS, Quaternion_inverted_doc},
+    {"invert",
+     reinterpret_cast<PyCFunction>(Quaternion_invert),
+     METH_NOARGS,
+     Quaternion_invert_doc},
+    {"inverted",
+     reinterpret_cast<PyCFunction>(Quaternion_inverted),
+     METH_NOARGS,
+     Quaternion_inverted_doc},
 
-    {"normalize", (PyCFunction)Quaternion_normalize, METH_NOARGS, Quaternion_normalize_doc},
-    {"normalized", (PyCFunction)Quaternion_normalized, METH_NOARGS, Quaternion_normalized_doc},
+    {"normalize",
+     reinterpret_cast<PyCFunction>(Quaternion_normalize),
+     METH_NOARGS,
+     Quaternion_normalize_doc},
+    {"normalized",
+     reinterpret_cast<PyCFunction>(Quaternion_normalized),
+     METH_NOARGS,
+     Quaternion_normalized_doc},
 
     /* Return converted representation. */
-    {"to_euler", (PyCFunction)Quaternion_to_euler, METH_VARARGS, Quaternion_to_euler_doc},
-    {"to_matrix", (PyCFunction)Quaternion_to_matrix, METH_NOARGS, Quaternion_to_matrix_doc},
+    {"to_euler",
+     reinterpret_cast<PyCFunction>(Quaternion_to_euler),
+     METH_VARARGS,
+     Quaternion_to_euler_doc},
+    {"to_matrix",
+     reinterpret_cast<PyCFunction>(Quaternion_to_matrix),
+     METH_NOARGS,
+     Quaternion_to_matrix_doc},
     {"to_axis_angle",
-     (PyCFunction)Quaternion_to_axis_angle,
+     reinterpret_cast<PyCFunction>(Quaternion_to_axis_angle),
      METH_NOARGS,
      Quaternion_to_axis_angle_doc},
     {"to_swing_twist",
-     (PyCFunction)Quaternion_to_swing_twist,
+     reinterpret_cast<PyCFunction>(Quaternion_to_swing_twist),
      METH_O,
      Quaternion_to_swing_twist_doc},
     {"to_exponential_map",
-     (PyCFunction)Quaternion_to_exponential_map,
+     reinterpret_cast<PyCFunction>(Quaternion_to_exponential_map),
      METH_NOARGS,
      Quaternion_to_exponential_map_doc},
 
     /* Operation between 2 or more types. */
-    {"cross", (PyCFunction)Quaternion_cross, METH_O, Quaternion_cross_doc},
-    {"dot", (PyCFunction)Quaternion_dot, METH_O, Quaternion_dot_doc},
+    {"cross", reinterpret_cast<PyCFunction>(Quaternion_cross), METH_O, Quaternion_cross_doc},
+    {"dot", reinterpret_cast<PyCFunction>(Quaternion_dot), METH_O, Quaternion_dot_doc},
     {"rotation_difference",
-     (PyCFunction)Quaternion_rotation_difference,
+     reinterpret_cast<PyCFunction>(Quaternion_rotation_difference),
      METH_O,
      Quaternion_rotation_difference_doc},
-    {"slerp", (PyCFunction)Quaternion_slerp, METH_VARARGS, Quaternion_slerp_doc},
-    {"rotate", (PyCFunction)Quaternion_rotate, METH_O, Quaternion_rotate_doc},
+    {"slerp", reinterpret_cast<PyCFunction>(Quaternion_slerp), METH_VARARGS, Quaternion_slerp_doc},
+    {"rotate", reinterpret_cast<PyCFunction>(Quaternion_rotate), METH_O, Quaternion_rotate_doc},
     {"make_compatible",
-     (PyCFunction)Quaternion_make_compatible,
+     reinterpret_cast<PyCFunction>(Quaternion_make_compatible),
      METH_O,
      Quaternion_make_compatible_doc},
 
     /* Base-math methods. */
-    {"freeze", (PyCFunction)BaseMathObject_freeze, METH_NOARGS, BaseMathObject_freeze_doc},
+    {"freeze",
+     reinterpret_cast<PyCFunction>(BaseMathObject_freeze),
+     METH_NOARGS,
+     BaseMathObject_freeze_doc},
 
-    {"copy", (PyCFunction)Quaternion_copy, METH_NOARGS, Quaternion_copy_doc},
-    {"__copy__", (PyCFunction)Quaternion_copy, METH_NOARGS, Quaternion_copy_doc},
-    {"__deepcopy__", (PyCFunction)Quaternion_deepcopy, METH_VARARGS, Quaternion_copy_doc},
+    {"copy", reinterpret_cast<PyCFunction>(Quaternion_copy), METH_NOARGS, Quaternion_copy_doc},
+    {"__copy__", reinterpret_cast<PyCFunction>(Quaternion_copy), METH_NOARGS, Quaternion_copy_doc},
+    {"__deepcopy__",
+     reinterpret_cast<PyCFunction>(Quaternion_deepcopy),
+     METH_VARARGS,
+     Quaternion_copy_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 
@@ -1816,9 +1897,10 @@ PyDoc_STRVAR(
     "\n"
     "   This object gives access to Quaternions in Blender.\n"
     "\n"
-    "   :arg seq: size 3 or 4\n"
-    "   :type seq: :class:`Vector`\n"
-    "   :arg angle: rotation angle, in radians\n"
+    "   :param seq: A (w, x, y, z) quaternion, a 3D exponential map vector,\n"
+    "      or a 3D axis vector (when *angle* is also provided).\n"
+    "   :type seq: Sequence[float]\n"
+    "   :param angle: rotation angle, in radians\n"
     "   :type angle: float\n"
     "\n"
     "   The constructor takes arguments in various forms:\n"
@@ -1840,26 +1922,26 @@ PyTypeObject quaternion_Type = {
     /*tp_name*/ "Quaternion",
     /*tp_basicsize*/ sizeof(QuaternionObject),
     /*tp_itemsize*/ 0,
-    /*tp_dealloc*/ (destructor)BaseMathObject_dealloc,
+    /*tp_dealloc*/ reinterpret_cast<destructor>(BaseMathObject_dealloc),
     /*tp_vectorcall_offset*/ 0,
     /*tp_getattr*/ nullptr,
     /*tp_setattr*/ nullptr,
     /*tp_as_async*/ nullptr,
-    /*tp_repr*/ (reprfunc)Quaternion_repr,
+    /*tp_repr*/ reinterpret_cast<reprfunc>(Quaternion_repr),
     /*tp_as_number*/ &Quaternion_NumMethods,
     /*tp_as_sequence*/ &Quaternion_SeqMethods,
     /*tp_as_mapping*/ &Quaternion_AsMapping,
-    /*tp_hash*/ (hashfunc)Quaternion_hash,
+    /*tp_hash*/ reinterpret_cast<hashfunc>(Quaternion_hash),
     /*tp_call*/ nullptr,
-    /*tp_str*/ (reprfunc)Quaternion_str,
+    /*tp_str*/ reinterpret_cast<reprfunc>(Quaternion_str),
     /*tp_getattro*/ nullptr,
     /*tp_setattro*/ nullptr,
     /*tp_as_buffer*/ &Quaternion_as_buffer,
     /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
     /*tp_doc*/ quaternion_doc,
-    /*tp_traverse*/ (traverseproc)BaseMathObject_traverse,
-    /*tp_clear*/ (inquiry)BaseMathObject_clear,
-    /*tp_richcompare*/ (richcmpfunc)Quaternion_richcmpr,
+    /*tp_traverse*/ reinterpret_cast<traverseproc>(BaseMathObject_traverse),
+    /*tp_clear*/ reinterpret_cast<inquiry>(BaseMathObject_clear),
+    /*tp_richcompare*/ static_cast<richcmpfunc>(Quaternion_richcmpr),
     /*tp_weaklistoffset*/ 0,
     /*tp_iter*/ nullptr,
     /*tp_iternext*/ nullptr,
@@ -1875,7 +1957,7 @@ PyTypeObject quaternion_Type = {
     /*tp_alloc*/ nullptr,
     /*tp_new*/ Quaternion_new,
     /*tp_free*/ nullptr,
-    /*tp_is_gc*/ (inquiry)BaseMathObject_is_gc,
+    /*tp_is_gc*/ reinterpret_cast<inquiry>(BaseMathObject_is_gc),
     /*tp_bases*/ nullptr,
     /*tp_mro*/ nullptr,
     /*tp_cache*/ nullptr,
@@ -1884,7 +1966,7 @@ PyTypeObject quaternion_Type = {
     /*tp_del*/ nullptr,
     /*tp_version_tag*/ 0,
     /*tp_finalize*/ nullptr,
-    /*tp_vectorcall*/ nullptr,
+    /*tp_vectorcall*/ Quaternion_vectorcall,
 };
 
 #ifdef MATH_STANDALONE
@@ -1930,7 +2012,7 @@ PyObject *Quaternion_CreatePyObject(const float quat[4], PyTypeObject *base_type
     PyMem_Free(quat_alloc);
   }
 
-  return (PyObject *)self;
+  return reinterpret_cast<PyObject *>(self);
 }
 
 PyObject *Quaternion_CreatePyObject_wrap(float quat[4], PyTypeObject *base_type)
@@ -1947,12 +2029,13 @@ PyObject *Quaternion_CreatePyObject_wrap(float quat[4], PyTypeObject *base_type)
     self->quat = quat;
     self->flag = BASE_MATH_FLAG_DEFAULT | BASE_MATH_FLAG_IS_WRAP;
   }
-  return (PyObject *)self;
+  return reinterpret_cast<PyObject *>(self);
 }
 
 PyObject *Quaternion_CreatePyObject_cb(PyObject *cb_user, uchar cb_type, uchar cb_subtype)
 {
-  QuaternionObject *self = (QuaternionObject *)Quaternion_CreatePyObject(nullptr, nullptr);
+  QuaternionObject *self = reinterpret_cast<QuaternionObject *>(
+      Quaternion_CreatePyObject(nullptr, nullptr));
   if (self) {
     Py_INCREF(cb_user);
     self->cb_user = cb_user;
@@ -1962,7 +2045,9 @@ PyObject *Quaternion_CreatePyObject_cb(PyObject *cb_user, uchar cb_type, uchar c
     PyObject_GC_Track(self);
   }
 
-  return (PyObject *)self;
+  return reinterpret_cast<PyObject *>(self);
 }
 
 /** \} */
+
+}  // namespace blender

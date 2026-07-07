@@ -6,6 +6,8 @@
 
 #include "DNA_grease_pencil_types.h"
 
+namespace blender {
+
 /** \file
  * \ingroup bke
  * \brief Low-level operations for grease pencil that cannot be defined in the C++ header yet.
@@ -20,3 +22,5 @@ extern void (*BKE_grease_pencil_batch_cache_free_cb)(GreasePencil *grease_pencil
 
 void BKE_grease_pencil_batch_cache_dirty_tag(GreasePencil *grease_pencil, int mode);
 void BKE_grease_pencil_batch_cache_free(GreasePencil *grease_pencil);
+
+}  // namespace blender

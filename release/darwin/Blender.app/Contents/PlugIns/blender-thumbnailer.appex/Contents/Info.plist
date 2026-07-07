@@ -27,7 +27,7 @@
 		<key>CFBundleGetInfoString</key>
 		<string>${MACOSX_BUNDLE_LONG_VERSION_STRING}, Blender Foundation</string>
 		<key>LSMinimumSystemVersion</key>
-		<string>10.15</string>
+		<string>11.2</string>
 		<key>NSExtension</key>
 		<dict>
 			<key>NSExtensionAttributes</key>

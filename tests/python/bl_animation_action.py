@@ -377,203 +377,6 @@ class LimitationsTest(unittest.TestCase):
         self.assertFalse(hasattr(strip, 'frame_offset'))
 
 
-class LegacyAPIOnLayeredActionTest(unittest.TestCase):
-    """Test that the legacy Action API works on layered Actions.
-
-    It should give access to the keyframes for the first slot.
-
-    - curve_frame_range
-    - fcurves
-    - groups
-    - id_root
-    - flip_with_pose(object)
-    """
-
-    def setUp(self) -> None:
-        bpy.ops.wm.read_homefile(use_factory_startup=True)
-
-        self.action = bpy.data.actions.new('LayeredAction')
-
-    def test_fcurves_on_layered_action(self) -> None:
-        slot = self.action.slots.new(bpy.data.objects['Cube'].id_type, bpy.data.objects['Cube'].name)
-
-        layer = self.action.layers.new(name="Layer")
-        strip = layer.strips.new(type='KEYFRAME')
-        channelbag = strip.channelbags.new(slot=slot)
-
-        # Create new F-Curves via legacy API, they should be stored on the Channelbag.
-        fcurve1 = self.action.fcurves.new("scale", index=1)
-        fcurve2 = self.action.fcurves.new("scale", index=2)
-        self.assertEqual([fcurve1, fcurve2], channelbag.fcurves[:], "Expected two F-Curves after creating them")
-        self.assertEqual([fcurve1, fcurve2], self.action.fcurves[:],
-                         "Expected the same F-Curves on the legacy API")
-
-        # Find an F-Curve.
-        self.assertEqual(fcurve2, self.action.fcurves.find("scale", index=2))
-
-        # Create an already-existing F-Curve.
-        try:
-            self.action.fcurves.new("scale", index=2)
-        except RuntimeError as ex:
-            self.assertIn("F-Curve 'scale[2]' already exists in action 'LayeredAction'", str(ex))
-        else:
-            self.fail("expected RuntimeError not thrown")
-        self.assertEqual([fcurve1, fcurve2], channelbag.fcurves[:],
-                         "Expected two F-Curves after failing to create a third")
-        self.assertEqual([fcurve1, fcurve2], self.action.fcurves[:])
-
-        # Remove a single F-Curve.
-        self.action.fcurves.remove(fcurve1)
-        self.assertEqual([fcurve2], channelbag.fcurves[:], "Expected single F-Curve after removing one")
-        self.assertEqual([fcurve2], self.action.fcurves[:])
-
-        # Clear all F-Curves (with multiple F-Curves to avoid the trivial case).
-        self.action.fcurves.new("scale", index=3)
-        self.action.fcurves.clear()
-        self.assertEqual([], channelbag.fcurves[:], "Expected empty fcurves list after clearing")
-        self.assertEqual([], self.action.fcurves[:])
-
-    def test_fcurves_clear_should_not_create_layers(self):
-        self.action.fcurves.clear()
-        self.assertEqual([], self.action.slots[:])
-        self.assertEqual([], self.action.layers[:])
-
-    def test_fcurves_new_on_empty_action(self) -> None:
-        # Create new F-Curves via legacy API, this should create a layer+strip+Channelbag.
-        fcurve1 = self.action.fcurves.new("scale", index=1)
-        fcurve2 = self.action.fcurves.new("scale", index=2)
-
-        self.assertEqual(1, len(self.action.slots))
-        self.assertEqual(1, len(self.action.layers))
-
-        slot = self.action.slots[0]
-        layer = self.action.layers[0]
-
-        self.assertEqual("Legacy Slot", slot.name_display)
-        self.assertEqual("Legacy Layer", layer.name)
-
-        self.assertEqual(1, len(layer.strips))
-        strip = layer.strips[0]
-        self.assertEqual('KEYFRAME', strip.type)
-        self.assertEqual(1, len(strip.channelbags))
-        channelbag = strip.channelbags[0]
-        self.assertEqual(channelbag.slot_handle, slot.handle)
-
-        self.assertEqual([fcurve1, fcurve2], channelbag.fcurves[:])
-
-        # After this, there is no need to test the rest of the functions, as the
-        # Action will be in the same state as in test_fcurves_on_layered_action().
-
-    def test_groups(self) -> None:
-        # Create a group by using the legacy API to create an F-Curve with group name.
-        group_name = "Object Transfoibles"
-        self.action.fcurves.new("scale", index=1, action_group=group_name)
-
-        layer = self.action.layers[0]
-        strip = layer.strips[0]
-        channelbag = strip.channelbags[0]
-
-        self.assertEqual(1, len(channelbag.groups), "The new group should be available on the channelbag")
-        self.assertEqual(group_name, channelbag.groups[0].name)
-        self.assertEqual(1, len(self.action.groups), "The new group should be available with the legacy group API")
-        self.assertEqual(group_name, self.action.groups[0].name)
-
-        # Create a group via the legacy API.
-        group = self.action.groups.new(group_name)
-        self.assertEqual("{}.001".format(group_name), group.name, "The group should have a unique name")
-        self.assertEqual(group, self.action.groups[1], "The group should be accessible via the legacy API")
-        self.assertEqual(group, channelbag.groups[1], "The group should be accessible via the channelbag")
-
-        # Remove a group via the legacy API.
-        self.action.groups.remove(group)
-        self.assertNotIn(group, self.action.groups[:], "A group should be removable via the legacy API")
-        self.assertNotIn(group, channelbag.groups[:], "A group should be removable via the legacy API")
-
-    def test_groups_new_on_empty_action(self) -> None:
-        # Create new group via legacy API, this should create a layer+strip+Channelbag.
-        group = self.action.groups.new("foo")
-
-        self.assertEqual(1, len(self.action.slots))
-        self.assertEqual(1, len(self.action.layers))
-
-        slot = self.action.slots[0]
-        layer = self.action.layers[0]
-
-        self.assertEqual("Legacy Slot", slot.name_display)
-        self.assertEqual("Legacy Layer", layer.name)
-
-        self.assertEqual(1, len(layer.strips))
-        strip = layer.strips[0]
-        self.assertEqual('KEYFRAME', strip.type)
-        self.assertEqual(1, len(strip.channelbags))
-        channelbag = strip.channelbags[0]
-        self.assertEqual(channelbag.slot_handle, slot.handle)
-
-        self.assertEqual([group], channelbag.groups[:])
-
-    def test_id_root_on_layered_action(self) -> None:
-        # When there's at least one slot, action.id_root should simply act as a
-        # proxy for the first slot's target_id_type. This should work for both
-        # reading and writing.
-
-        slot_1 = self.action.slots.new('OBJECT', "Slot 1")
-        slot_2 = self.action.slots.new('CAMERA', "Slot 2")
-        bpy.data.objects['Cube'].animation_data_create()
-        bpy.data.objects['Cube'].animation_data.action = self.action
-        bpy.data.objects['Cube'].animation_data.action_slot = slot_1
-
-        self.assertEqual(self.action.id_root, 'OBJECT')
-        self.assertEqual(self.action.slots[0].target_id_type, 'OBJECT')
-        self.assertEqual(self.action.slots[0].identifier, 'OBSlot 1')
-        self.assertEqual(self.action.slots[1].target_id_type, 'CAMERA')
-        self.assertEqual(self.action.slots[1].identifier, 'CASlot 2')
-        self.assertEqual(bpy.data.objects['Cube'].animation_data.last_slot_identifier, 'OBSlot 1')
-
-        self.action.id_root = 'MATERIAL'
-
-        self.assertEqual(self.action.id_root, 'MATERIAL')
-        self.assertEqual(self.action.slots[0].target_id_type, 'MATERIAL')
-        self.assertEqual(self.action.slots[0].identifier, 'MASlot 1')
-        self.assertEqual(self.action.slots[1].target_id_type, 'CAMERA')
-        self.assertEqual(self.action.slots[1].identifier, 'CASlot 2')
-        self.assertEqual(bpy.data.objects['Cube'].animation_data.last_slot_identifier, 'MASlot 1')
-
-    def test_id_root_on_layered_action_for_identifier_uniqueness(self) -> None:
-        # When setting id_root such that the first slot's identifier would
-        # become a duplicate, the name portion of the identifier should be
-        # automatically renamed to be unique.
-
-        slot_1 = self.action.slots.new('OBJECT', "Foo")
-        slot_2 = self.action.slots.new('CAMERA', "Foo")
-
-        self.assertEqual(self.action.id_root, 'OBJECT')
-        self.assertEqual(self.action.slots[0].target_id_type, 'OBJECT')
-        self.assertEqual(self.action.slots[0].identifier, 'OBFoo')
-        self.assertEqual(self.action.slots[1].target_id_type, 'CAMERA')
-        self.assertEqual(self.action.slots[1].identifier, 'CAFoo')
-
-        self.action.id_root = 'CAMERA'
-
-        self.assertEqual(self.action.id_root, 'CAMERA')
-        self.assertEqual(self.action.slots[0].target_id_type, 'CAMERA')
-        self.assertEqual(self.action.slots[0].identifier, 'CAFoo.001')
-        self.assertEqual(self.action.slots[1].target_id_type, 'CAMERA')
-        self.assertEqual(self.action.slots[1].identifier, 'CAFoo')
-
-    def test_id_root_on_empty_action(self) -> None:
-        # When there are no slots, setting action.id_root should create a legacy
-        # slot and set its target_id_type.
-
-        self.assertEqual(self.action.id_root, 'UNSPECIFIED')
-        self.assertEqual(len(self.action.slots), 0)
-
-        self.action.id_root = 'OBJECT'
-
-        self.assertEqual(self.action.id_root, 'OBJECT')
-        self.assertEqual(len(self.action.slots), 1)
-        self.assertEqual(self.action.slots[0].target_id_type, 'OBJECT')
-
-
 class ChannelbagsTest(unittest.TestCase):
     def setUp(self):
         anims = bpy.data.actions
@@ -607,25 +410,40 @@ class ChannelbagsTest(unittest.TestCase):
         self.assertEqual([channelbag], list(self.strip.channelbags))
         self.assertEqual(self.slot, channelbag.slot)
 
+    def test_ensure_fcurve(self):
+        channelbag = self.strip.channelbag(self.slot, ensure=True)
+        self.assertEqual([], channelbag.fcurves[:])
+
+        fcurve_1 = channelbag.fcurves.ensure("location", index=2, group_name="Name")
+        self.assertEqual("location", fcurve_1.data_path)
+        self.assertEqual(2, fcurve_1.array_index)
+        self.assertEqual("Name", fcurve_1.group.name)
+        self.assertIn("Name", channelbag.groups)
+        self.assertEqual([fcurve_1], channelbag.fcurves[:])
+
+        fcurve_2 = channelbag.fcurves.ensure("location", index=2, group_name="Name")
+        self.assertEqual(fcurve_1, fcurve_2)
+        self.assertEqual([fcurve_1], channelbag.fcurves[:])
+
     def test_create_remove_fcurves(self):
         channelbag = self.strip.channelbags.new(self.slot)
 
         # Creating an F-Curve should work.
         fcurve = channelbag.fcurves.new('location', index=1)
         self.assertIsNotNone(fcurve)
-        self.assertEquals(fcurve.data_path, 'location')
-        self.assertEquals(fcurve.array_index, 1)
-        self.assertEquals([fcurve], channelbag.fcurves[:])
+        self.assertEqual(fcurve.data_path, 'location')
+        self.assertEqual(fcurve.array_index, 1)
+        self.assertEqual([fcurve], channelbag.fcurves[:])
 
         # Empty data paths should not be accepted.
         with self.assertRaises(RuntimeError):
             channelbag.fcurves.new('', index=1)
-        self.assertEquals([fcurve], channelbag.fcurves[:])
+        self.assertEqual([fcurve], channelbag.fcurves[:])
 
         # Creating an F-Curve twice should fail:
         with self.assertRaises(RuntimeError):
             channelbag.fcurves.new('location', index=1)
-        self.assertEquals([fcurve], channelbag.fcurves[:])
+        self.assertEqual([fcurve], channelbag.fcurves[:])
 
         # Removing an unrelated F-Curve should fail, even when an F-Curve with
         # the same RNA path and array index exists.
@@ -634,11 +452,11 @@ class ChannelbagsTest(unittest.TestCase):
         other_fcurve = other_cbag.fcurves.new('location', index=1)
         with self.assertRaises(RuntimeError):
             channelbag.fcurves.remove(other_fcurve)
-        self.assertEquals([fcurve], channelbag.fcurves[:])
+        self.assertEqual([fcurve], channelbag.fcurves[:])
 
         # Removing an existing F-Curve should work:
         channelbag.fcurves.remove(fcurve)
-        self.assertEquals([], channelbag.fcurves[:])
+        self.assertEqual([], channelbag.fcurves[:])
 
     def test_fcurves_clear(self):
         channelbag = self.strip.channelbags.new(self.slot)
@@ -646,9 +464,9 @@ class ChannelbagsTest(unittest.TestCase):
         for index in range(4):
             channelbag.fcurves.new('rotation_quaternion', index=index)
 
-        self.assertEquals(4, len(channelbag.fcurves))
+        self.assertEqual(4, len(channelbag.fcurves))
         channelbag.fcurves.clear()
-        self.assertEquals([], channelbag.fcurves[:])
+        self.assertEqual([], channelbag.fcurves[:])
 
     def test_channel_groups(self):
         channelbag = self.strip.channelbags.new(self.slot)
@@ -661,14 +479,14 @@ class ChannelbagsTest(unittest.TestCase):
         fcurve4 = channelbag.fcurves.new('scale', index=1)
         fcurve5 = channelbag.fcurves.new('scale', index=2)
 
-        self.assertEquals([], channelbag.groups[:])
+        self.assertEqual([], channelbag.groups[:])
 
         # Create some channel groups.
         group0 = channelbag.groups.new('group0')
         group1 = channelbag.groups.new('group1')
-        self.assertEquals([group0, group1], channelbag.groups[:])
-        self.assertEquals([], group0.channels[:])
-        self.assertEquals([], group1.channels[:])
+        self.assertEqual([group0, group1], channelbag.groups[:])
+        self.assertEqual([], group0.channels[:])
+        self.assertEqual([], group1.channels[:])
 
         # Assign some fcurves to the channel groups. Intentionally not in order
         # so we can test that the fcurves get moved around properly.
@@ -676,25 +494,25 @@ class ChannelbagsTest(unittest.TestCase):
         fcurve3.group = group1
         fcurve2.group = group0
         fcurve4.group = group0
-        self.assertEquals([fcurve2, fcurve4], group0.channels[:])
-        self.assertEquals([fcurve5, fcurve3], group1.channels[:])
-        self.assertEquals([fcurve2, fcurve4, fcurve5, fcurve3, fcurve0, fcurve1], channelbag.fcurves[:])
+        self.assertEqual([fcurve2, fcurve4], group0.channels[:])
+        self.assertEqual([fcurve5, fcurve3], group1.channels[:])
+        self.assertEqual([fcurve2, fcurve4, fcurve5, fcurve3, fcurve0, fcurve1], channelbag.fcurves[:])
 
         # Weird case to be consistent with the legacy API: assigning None to an
         # fcurve's group does *not* unassign it from its group. This is stupid,
         # and we should change it at some point.  But it's how the legacy API
         # already works (presumably an oversight), so sticking to that for now.
         fcurve3.group = None
-        self.assertEquals(group1, fcurve3.group)
-        self.assertEquals([fcurve2, fcurve4], group0.channels[:])
-        self.assertEquals([fcurve5, fcurve3], group1.channels[:])
-        self.assertEquals([fcurve2, fcurve4, fcurve5, fcurve3, fcurve0, fcurve1], channelbag.fcurves[:])
+        self.assertEqual(group1, fcurve3.group)
+        self.assertEqual([fcurve2, fcurve4], group0.channels[:])
+        self.assertEqual([fcurve5, fcurve3], group1.channels[:])
+        self.assertEqual([fcurve2, fcurve4, fcurve5, fcurve3, fcurve0, fcurve1], channelbag.fcurves[:])
 
         # Removing a group.
         channelbag.groups.remove(group0)
-        self.assertEquals([group1], channelbag.groups[:])
-        self.assertEquals([fcurve5, fcurve3], group1.channels[:])
-        self.assertEquals([fcurve5, fcurve3, fcurve2, fcurve4, fcurve0, fcurve1], channelbag.fcurves[:])
+        self.assertEqual([group1], channelbag.groups[:])
+        self.assertEqual([fcurve5, fcurve3], group1.channels[:])
+        self.assertEqual([fcurve5, fcurve3, fcurve2, fcurve4, fcurve0, fcurve1], channelbag.fcurves[:])
 
         # Attempting to remove a channel group that belongs to a different
         # channel bag should fail.
@@ -708,9 +526,9 @@ class ChannelbagsTest(unittest.TestCase):
         # to assign a group to an fcurve that doesn't belong to the same channel
         # bag should silently fail (just does a printf to stdout).
         fcurve0.group = other_group
-        self.assertEquals([group1], channelbag.groups[:])
-        self.assertEquals([fcurve5, fcurve3], group1.channels[:])
-        self.assertEquals([fcurve5, fcurve3, fcurve2, fcurve4, fcurve0, fcurve1], channelbag.fcurves[:])
+        self.assertEqual([group1], channelbag.groups[:])
+        self.assertEqual([fcurve5, fcurve3], group1.channels[:])
+        self.assertEqual([fcurve5, fcurve3, fcurve2, fcurve4, fcurve0, fcurve1], channelbag.fcurves[:])
 
     def test_channelbag_slot_properties(self):
         slot_1 = self.slot
@@ -760,7 +578,6 @@ class VersioningTest(unittest.TestCase):
     def test_nla_conversion(self):
         nla_object = bpy.data.objects["nla_object"]
         nla_anim_data = nla_object.animation_data
-        self.assertTrue(nla_anim_data.action.is_action_layered)
         self.assertNotEqual(nla_anim_data.action_slot_handle, 0)
 
         # The action that is not pushed into an NLA strip.
@@ -772,19 +589,15 @@ class VersioningTest(unittest.TestCase):
             self.assertEqual(fcurve.array_index, fcurve_index)
 
         self.assertEqual(len(nla_anim_data.nla_tracks), 2)
-        self.assertTrue(nla_anim_data.nla_tracks[0].strips[0].action.is_action_layered)
         self.assertNotEqual(nla_anim_data.nla_tracks[0].strips[0].action_slot_handle, 0)
 
-        self.assertTrue(nla_anim_data.nla_tracks[1].strips[0].action.is_action_layered)
         self.assertNotEqual(nla_anim_data.nla_tracks[1].strips[0].action_slot_handle, 0)
 
     def test_multi_use_action(self):
         object_a = bpy.data.objects["multi_user_object_a"]
         object_b = bpy.data.objects["multi_user_object_b"]
-        self.assertTrue(object_a.animation_data.action.is_action_layered)
         self.assertNotEqual(object_a.animation_data.action_slot_handle, 0)
 
-        self.assertTrue(object_b.animation_data.action.is_action_layered)
         self.assertNotEqual(object_b.animation_data.action_slot_handle, 0)
 
         self.assertEqual(object_a.animation_data.action, object_b.animation_data.action)
@@ -802,12 +615,10 @@ class VersioningTest(unittest.TestCase):
     def test_action_constraint(self):
         constrained_object = bpy.data.objects["action_constraint_constrained"]
         action_constraint = constrained_object.constraints[0]
-        self.assertTrue(action_constraint.action.is_action_layered)
         self.assertNotEqual(action_constraint.action_slot_handle, 0)
 
         action_owner_object = bpy.data.objects["action_constraint_action_owner"]
         action = action_owner_object.animation_data.action
-        self.assertTrue(action.is_action_layered)
         self.assertEqual(action, action_constraint.action)
         self.assertEqual(action_owner_object.animation_data.action_slot_handle, action_constraint.action_slot_handle)
         strip = action.layers[0].strips[0]
@@ -820,7 +631,6 @@ class VersioningTest(unittest.TestCase):
     def test_armature_action_conversion(self):
         armature_object = bpy.data.objects["armature_object"]
         action = armature_object.animation_data.action
-        self.assertTrue(action.is_action_layered)
         strip = action.layers[0].strips[0]
         self.assertEqual(len(strip.channelbags[0].groups), 2)
         self.assertEqual(strip.channelbags[0].groups[0].name, "Bone")
@@ -987,6 +797,103 @@ class ConvenienceFunctionsTest(unittest.TestCase):
 
         channelbag = self.action.layers[0].strips[0].channelbags[0]
         self.assertEqual(fcurve, channelbag.fcurves[0])
+
+    def test_fcurve_ensure_for_datablock_group_name(self) -> None:
+        # Assign the Action to the Cube.
+        ob_cube = bpy.data.objects["Cube"]
+        adt = ob_cube.animation_data_create()
+        adt.action = self.action
+
+        with self.assertRaises(IndexError):
+            self.action.layers[0].strips[0].channelbags[0]
+
+        fcurve = self.action.fcurve_ensure_for_datablock(ob_cube, "location", index=2, group_name="grúpa")
+
+        channelbag = self.action.layers[0].strips[0].channelbags[0]
+        self.assertEqual(fcurve, channelbag.fcurves[0])
+
+        # Check that the group was also created correctly.
+        self.assertIn("grúpa", channelbag.groups)
+        self.assertIn(fcurve, channelbag.groups["grúpa"].channels[:])
+
+
+class ReplaceAction(unittest.TestCase):
+
+    # Data that exists in the test file.
+    initial_action: bpy.types.Action
+    replacement_action: bpy.types.Action
+
+    # Object animated before and after a replace
+    obj_animated: bpy.types.Object
+    # Object without a slot in `replacement_action`
+    obj_no_slot_after: bpy.types.Object
+    # Object without a slot before in `initial_action` but that has one in `replacement_action`
+    obj_no_slot_before: bpy.types.Object
+    # Armature object with slot before and after a replace
+    armature: bpy.types.Armature
+    obj_shapekeys: bpy.types.Object
+    obj_material: bpy.types.Object
+    # Object with an action constraint
+    obj_action_constraint: bpy.types.Object
+    # Object with an NLA strip pointing to `initial_action`
+    obj_nla: bpy.types.Object
+
+    def setUp(self) -> None:
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "remap_action.blend"))
+
+        self.initial_action = bpy.data.actions["initial_action"]
+        self.replacement_action = bpy.data.actions["replace_action"]
+        self.obj_animated = bpy.data.objects["obj_animated"]
+        self.obj_no_slot_after = bpy.data.objects["obj_no_slot_after"]
+        self.obj_no_slot_before = bpy.data.objects["obj_no_slot_before"]
+        self.armature = bpy.data.objects["Armature"]
+        self.obj_action_constraint = bpy.data.objects["action_constrained"]
+        self.obj_nla = bpy.data.objects["obj_nla"]
+        self.obj_shapekeys = bpy.data.objects["obj_shapekeys"]
+        self.obj_material = bpy.data.objects["obj_material"]
+
+    def test_action_remap(self):
+        self.assertEqual(self.obj_animated.animation_data.action, self.initial_action)
+
+        bpy.ops.anim.replace_action(
+            old_session_uid=self.initial_action.session_uid,
+            new_session_uid=self.replacement_action.session_uid)
+
+        self.assertEqual(self.obj_animated.animation_data.action, self.replacement_action)
+        self.assertEqual(self.obj_no_slot_after.animation_data.action_slot, None)
+        self.assertNotEqual(self.obj_no_slot_before.animation_data.action_slot, None)
+        self.assertEqual(self.armature.animation_data.action, self.replacement_action)
+        self.assertEqual(self.obj_shapekeys.data.shape_keys.animation_data.action, self.replacement_action)
+
+        # Actions of embedded data blocks should also be replaced.
+        material = self.obj_material.material_slots[0].material
+        self.assertEqual(material.node_tree.animation_data.action, self.replacement_action)
+
+        # The operator shouldn't touch the NLA or action constraints.
+        self.assertEqual(self.obj_action_constraint.animation_data.action, None)
+        self.assertEqual(self.obj_action_constraint.constraints[0].action, self.initial_action)
+        self.assertEqual(self.obj_nla.animation_data.action, None)
+        self.assertEqual(self.obj_nla.animation_data.nla_tracks[0].strips[0].action, self.initial_action)
+
+    def test_action_remap_new(self):
+        self.assertEqual(self.obj_animated.animation_data.action, self.initial_action)
+
+        bpy.ops.anim.replace_action_new(
+            old_session_uid=self.initial_action.session_uid)
+
+        new_action = bpy.data.actions["Action"]
+        self.assertEqual(self.obj_animated.animation_data.action, new_action)
+        # The new action should have the same slots as the previous one.
+        self.assertNotEqual(self.obj_animated.animation_data.action_slot, None)
+        self.assertEqual(self.obj_no_slot_after.animation_data.action, new_action)
+        self.assertEqual(self.obj_no_slot_before.animation_data.action, new_action)
+        self.assertEqual(self.armature.animation_data.action, new_action)
+
+        # The operator shouldn't touch the NLA or action constraints.
+        self.assertEqual(self.obj_action_constraint.animation_data.action, None)
+        self.assertEqual(self.obj_action_constraint.constraints[0].action, self.initial_action)
+        self.assertEqual(self.obj_nla.animation_data.action, None)
+        self.assertEqual(self.obj_nla.animation_data.nla_tracks[0].strips[0].action, self.initial_action)
 
 
 def main():

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup sequencer
+ * \ingroup spseq
  */
 
 #include "DNA_screen_types.h"
@@ -17,7 +17,6 @@
 
 #include "WM_api.hh"
 
-/* Own include. */
 #include "sequencer_intern.hh"
 
 namespace blender::ed::vse {
@@ -29,7 +28,7 @@ static wmOperatorStatus sequencer_rename_channel_invoke(bContext *C,
   SeqChannelDrawContext context;
   SpaceSeq *sseq = CTX_wm_space_seq(C);
   channel_draw_context_init(C, CTX_wm_region(C), &context);
-  float mouse_y = UI_view2d_region_to_view_y(context.timeline_region_v2d, event->mval[1]);
+  float mouse_y = ui::view2d_region_to_view_y(context.timeline_region_v2d, event->mval[1]);
 
   sseq->runtime->rename_channel_index = mouse_y;
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, CTX_data_sequencer_scene(C));

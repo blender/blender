@@ -43,6 +43,41 @@ TEST(bit_span, Iteration)
     EXPECT_EQ(bit.test(), ELEM(index, 2, 3));
     index++;
   }
+
+  {
+    const Vector<int> expect{2, 3};
+    Vector<int> result;
+    for (const int bit_index : iter_1_indices(data)) {
+      result.append(bit_index);
+    }
+    EXPECT_EQ_SPAN(expect.as_span(), result.as_span());
+  }
+  {
+    uint64_t data2 = 0xFBu;
+    const Vector<int> expect{0, 1, 3, 4, 5, 6, 7};
+    Vector<int> result;
+    for (const int bit_index : iter_1_indices(data2)) {
+      result.append(bit_index);
+    }
+    EXPECT_EQ_SPAN(expect.as_span(), result.as_span());
+  }
+  {
+    uint64_t data2 = ~uint64_t(0);
+    int i = 0;
+    for (const int bit_index : iter_1_indices(data2)) {
+      EXPECT_EQ(i, bit_index);
+      i++;
+    }
+    EXPECT_EQ(i, 64);
+  }
+  {
+    uint64_t data2 = 0;
+    int i = 0;
+    for ([[maybe_unused]] const int bit_index : iter_1_indices(data2)) {
+      i++;
+    }
+    EXPECT_EQ(i, 0);
+  }
 }
 
 TEST(bit_span, MutableIteration)

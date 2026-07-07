@@ -230,7 +230,7 @@ class IMeshArena : NonCopyable, NonMovable {
 };
 
 /**
- * A #blender::meshintersect::IMesh is a self-contained mesh structure
+ * A #meshintersect::IMesh is a self-contained mesh structure
  * that can be used in `blenlib` without depending on the rest of Blender.
  * The Vert and #Face resources used in the #IMesh should be owned by
  * some #IMeshArena.
@@ -288,7 +288,11 @@ class IMesh {
   }
 
   /** Returns index in vert_ where v is, or #NO_INDEX. */
-  int lookup_vert(const Vert *v) const;
+  int lookup_vert(const Vert *v) const
+  {
+    BLI_assert(vert_populated_);
+    return vert_to_index_.lookup_default(v, NO_INDEX);
+  }
 
   IndexRange vert_index_range() const
   {
@@ -402,6 +406,6 @@ IMesh triangulate_polymesh(IMesh &imesh, IMeshArena *arena);
  */
 void write_obj_mesh(IMesh &m, const std::string &objname);
 
-} /* namespace blender::meshintersect */
+}  // namespace blender::meshintersect
 
 #endif /* WITH_GMP */

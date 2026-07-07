@@ -1,0 +1,36 @@
+commit 3d83737a647a55f9cee0bcb102fd17d7a121e811
+Author: Silvio Traversaro <silvio@traversaro.it>
+Date:   Mon Aug 18 16:13:46 2025 -0700
+
+    Fix compilation of executorDataVector.cpp in Linux on arm64
+    
+    In
+    https://github.com/PixarAnimationStudios/OpenUSD/commit/4b581269d045b4a97931e476345891ddc34570a3
+    some x86-specific assembly code was added and it was enabled by default in
+    https://github.com/PixarAnimationStudios/OpenUSD/commit/5fdfda11286f566c65745785fc44f26526f433ec
+    . This PR adds a define check to ensure that the x86-specific code is only
+    compiled on x86, even if this will not insert the correct marking on arm64, but
+    as the todo mentions, probably the best thing to do for that is to use valgrind
+    macro `VALGRIND_MAKE_MEM_DEFINED`, as mentioned in the code comments.. However,
+    that should not matter unless the binary is run under valgrind, so for regular
+    users this fixes the compilation.
+    
+    Fix https://github.com/PixarAnimationStudios/OpenUSD/issues/3711 .
+    
+    Closes #3764
+    
+    (Internal change: 2376127)
+
+diff --git a/pxr/exec/vdf/executorDataVector.cpp b/pxr/exec/vdf/executorDataVector.cpp
+index 12f9e517e..96dacca06 100644
+--- a/pxr/exec/vdf/executorDataVector.cpp
++++ b/pxr/exec/vdf/executorDataVector.cpp
+@@ -24,7 +24,7 @@ PXR_NAMESPACE_OPEN_SCOPE
+ static inline void
+ Vdf_ExecutorDataVector_ValgrindMakeDefined(void *ptr, size_t size)
+ {
+-#if defined(ARCH_OS_LINUX)
++#if defined(ARCH_OS_LINUX) && defined(ARCH_CPU_INTEL)
+     // Pass a result and a pointer to some arguments via registers
+     volatile unsigned long long int result;
+     volatile unsigned long long int args[6] = {

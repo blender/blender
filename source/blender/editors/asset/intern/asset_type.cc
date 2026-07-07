@@ -18,8 +18,8 @@ namespace blender::ed::asset {
 
 bool id_type_is_non_experimental(const ID *id)
 {
-  /* Remember to update #ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_UI_STRING and
-   * #ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_FLAGS() with this! */
+  /* Remember to update #ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_FLAGS() and the messages in
+   * asset_operation_unsupported_type_msg with this! */
   return ELEM(GS(id->name), ID_BR, ID_MA, ID_GR, ID_OB, ID_AC, ID_WO, ID_NT, ID_SCE);
 }
 

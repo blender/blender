@@ -17,7 +17,7 @@ else:
         BoolProperty,
         StringProperty,
     )
-    from bl_i18n_utils import settings as settings_i18n
+    from _bl_i18n_utils import settings as settings_i18n
 
 
 settings = settings_i18n.I18nSettings()
@@ -160,7 +160,7 @@ class UI_AP_i18n_settings(AddonPreferences):
         description="The name of a json file storing those settings (unfortunately, Blender's system "
                     "does not work here)",
         subtype='FILE_PATH',
-        default=os.path.join("ui_translate_settings.json"),
+        default=os.path.join(""),
     )
     _is_init = False
 

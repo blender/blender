@@ -28,7 +28,7 @@ class FallbackConfig : public Config {
   FallbackColorSpace colorspace_data_{1, "Non-Color", FallbackColorSpace::Type::DATA};
   FallbackColorSpace colorspace_srgb_{2, "sRGB", FallbackColorSpace::Type::SRGB};
 
-  FallbackDefaultDisplay default_display_;
+  FallbackDefaultDisplay default_display_{&colorspace_srgb_};
   FallbackDefaultLook default_look_;
 
   /* Vectors that contain non-owning pointers to the color spaces and display. */
@@ -50,6 +50,7 @@ class FallbackConfig : public Config {
   const ColorSpace *get_color_space_by_index(int index) const override;
   const ColorSpace *get_sorted_color_space_by_index(int index) const override;
   const ColorSpace *get_color_space_by_interop_id(StringRefNull interop_id) const override;
+  const ColorSpace *get_color_space_for_hdr_image(StringRefNull name) const override;
 
   /* Working space API. */
   void set_scene_linear_role(StringRefNull name) override;

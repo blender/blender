@@ -9,7 +9,9 @@
 
 #include "NOD_multi_function.hh"
 
-namespace blender::nodes::node_shader_tex_checker_cc {
+namespace blender {
+
+namespace nodes::node_shader_tex_checker_cc {
 
 static void sh_node_tex_checker_declare(NodeDeclarationBuilder &b)
 {
@@ -31,12 +33,12 @@ static void sh_node_tex_checker_declare(NodeDeclarationBuilder &b)
           "Overall texture scale.\n"
           "The scale is a factor of the bounding box of the face divided by the Scale value");
   b.add_output<decl::Color>("Color");
-  b.add_output<decl::Float>("Fac");
+  b.add_output<decl::Float>("Factor", "Fac");
 }
 
 static void node_shader_init_tex_checker(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeTexChecker *tex = MEM_callocN<NodeTexChecker>(__func__);
+  NodeTexChecker *tex = MEM_new<NodeTexChecker>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
 
@@ -97,7 +99,7 @@ class NodeTexChecker : public mf::MultiFunction {
     });
 
     if (!r_color.is_empty()) {
-      mask.foreach_index(
+      mask.foreach_index_optimized<int64_t>(
           [&](const int64_t i) { r_color[i] = (r_fac[i] == 1.0f) ? color1[i] : color2[i]; });
     }
   }
@@ -118,7 +120,7 @@ NODE_SHADER_MATERIALX_BEGIN
   }
   NodeItem value1 = val(1.0f);
   NodeItem value2 = val(0.0f);
-  if (STREQ(socket_out_->name, "Color")) {
+  if (STREQ(socket_out_->identifier, "Color")) {
     value1 = get_input_value("Color1", NodeItem::Type::Color3);
     value2 = get_input_value("Color2", NodeItem::Type::Color3);
   }
@@ -131,13 +133,13 @@ NODE_SHADER_MATERIALX_BEGIN
 #endif
 NODE_SHADER_MATERIALX_END
 
-}  // namespace blender::nodes::node_shader_tex_checker_cc
+}  // namespace nodes::node_shader_tex_checker_cc
 
 void register_node_type_sh_tex_checker()
 {
-  namespace file_ns = blender::nodes::node_shader_tex_checker_cc;
+  namespace file_ns = nodes::node_shader_tex_checker_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   common_node_type_base(&ntype, "ShaderNodeTexChecker", SH_NODE_TEX_CHECKER);
   ntype.ui_name = "Checker Texture";
@@ -146,11 +148,13 @@ void register_node_type_sh_tex_checker()
   ntype.nclass = NODE_CLASS_TEXTURE;
   ntype.declare = file_ns::sh_node_tex_checker_declare;
   ntype.initfunc = file_ns::node_shader_init_tex_checker;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeTexChecker", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_checker;
   ntype.build_multi_function = file_ns::sh_node_tex_checker_build_multi_function;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

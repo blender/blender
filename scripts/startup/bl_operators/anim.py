@@ -114,7 +114,7 @@ class ANIM_OT_keying_set_export(Operator):
 
                 if not found:
                     self.report(
-                        {'WARN'},
+                        {'WARNING'},
                         rpt_("Could not find material or light using Shader Node Tree - {:s}").format(str(ksp.id)),
                     )
             elif ksp.id.bl_rna.identifier.startswith("CompositorNodeTree"):
@@ -126,7 +126,7 @@ class ANIM_OT_keying_set_export(Operator):
                         break
                 else:
                     self.report(
-                        {'WARN'},
+                        {'WARNING'},
                         rpt_("Could not find scene using Compositor Node Tree - {:s}").format(str(ksp.id)),
                     )
             elif ksp.id.bl_rna.name == "Key":
@@ -223,7 +223,7 @@ class NLA_OT_bake(Operator):
         default=False,
     )
     clear_constraints: BoolProperty(
-        name="Clear Constraints",
+        name="Clear Local Constraints",
         description=(
             "Remove all constraints from keyed object/bones. "
             "To get a correct bake with this setting Visual Keying should be enabled"
@@ -352,6 +352,16 @@ class ClearUselessActions(Operator):
     def poll(cls, _context):
         return bool(bpy.data.actions)
 
+    @staticmethod
+    def has_fcurves(action: bpy.types.Action) -> bool:
+        for layer in action.layers:
+            for strip in layer.strips:
+                assert strip.type == 'KEYFRAME'
+                for channelbag in strip.channelbags:
+                    if channelbag.fcurves:
+                        return True
+        return False
+
     def execute(self, _context):
         removed = 0
 
@@ -365,7 +375,7 @@ class ClearUselessActions(Operator):
                 # if it has F-Curves, then it's a "action library"
                 # (i.e. walk, wave, jump, etc.)
                 # and should be left alone as that's what fake users are for!
-                if not action.fcurves:
+                if not self.has_fcurves(action):
                     # mark action for deletion
                     action.user_clear()
                     removed += 1
@@ -382,13 +392,15 @@ class UpdateAnimatedTransformConstraint(Operator):
 
     use_convert_to_radians: BoolProperty(
         name="Convert to Radians",
-        description="Convert f-curves/drivers affecting rotations to radians.\n"
-                    "Warning: Use this only once",
+        description=(
+            "Convert f-curves/drivers affecting rotations to radians.\n"
+            "Warning: Use this only once"
+        ),
         default=True,
     )
 
     def execute(self, context):
-        import animsys_refactor
+        import _animsys_refactor as animsys_refactor
         from math import radians
         import io
 
@@ -530,8 +542,8 @@ class ARMATURE_OT_copy_bone_color_to_selected(Operator):
         if num_pose_color_overrides:
             self.report(
                 {'INFO'},
-                "Bone colors were synced; "
-                "for {:d} bones this will not be visible due to pose bone color overrides".format(
+                rpt_("Bone colors were synced; "
+                     "for {:d} bones this will not be visible due to pose bone color overrides").format(
                     num_pose_color_overrides,
                 ),
             )
@@ -670,7 +682,10 @@ class ARMATURE_OT_collection_remove_unused(Operator):
             armature.collections.remove(bcoll)
 
         self.report(
-            {'INFO'}, "Removed {:d} of {:d} bone collections".format(num_bcolls_to_remove, num_bcolls_before_removal),
+            {'INFO'},
+            rpt_("Removed {:d} of {:d} bone collections").format(
+                num_bcolls_to_remove,
+                num_bcolls_before_removal),
         )
 
 
@@ -697,9 +712,6 @@ class ANIM_OT_slot_new_for_id(Operator):
             return False
         if not animated_id.animation_data or not animated_id.animation_data.action:
             cls.poll_message_set("An action slot can only be created when an action is assigned")
-            return False
-        if not animated_id.animation_data.action.is_action_layered:
-            cls.poll_message_set("Action slots are only supported by layered Actions. Upgrade this Action first")
             return False
         if not animated_id.animation_data.action.is_editable:
             cls.poll_message_set("Creating a new Slot is not possible on a linked Action")
@@ -802,6 +814,98 @@ class ANIM_OT_slot_unassign_from_constraint(generic_slot_unassign_mixin, Operato
     context_property_name = "constraint"
 
 
+# This is for the versioning from 4.5 to 5.0 and can be removed in 6.0.
+class ANIM_OT_version_bone_hide_property(Operator):
+    bl_idname = "anim.version_bone_hide_property"
+    bl_label = "Version Bone Hide Property"
+    bl_description = "Moves any F-Curves for the `hide` property of selected armatures " \
+        "into the action of the object. This will only operate on the first layer " \
+        "and strip of the action"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+
+        if len(context.selected_objects) == 0:
+            cls.poll_message_set("No objects selected")
+            return False
+        return True
+
+    @staticmethod
+    def find_property_fcurves(channelbag):
+        fcurves = []
+        for fcurve in channelbag.fcurves:
+            if fcurve.data_path.startswith("bones[") and fcurve.data_path.endswith("].hide"):
+                fcurves.append(fcurve)
+        return fcurves
+
+    def execute(self, context):
+        from bpy_extras import anim_utils
+        selected_armatures = []
+        for arm_ob in context.selected_objects:
+            if arm_ob.type != 'ARMATURE' or not arm_ob.data:
+                continue
+            armature = arm_ob.data
+            assigned_channelbag = anim_utils.animdata_get_channelbag_for_assigned_slot(armature.animation_data)
+            if not assigned_channelbag:
+                # Armature not animated. Cannot have the FCurve we need.
+                continue
+            selected_armatures.append(arm_ob)
+
+        if not selected_armatures:
+            self.report({'WARNING'}, rpt_("No animated armatures selected"))
+            return {'CANCELLED'}
+
+        warn = True
+        modified_armatures = []
+        # The objects also have to be animated -> have an assigned action + slot.
+        # This means we know with certainty which action to move the data into.
+        for arm_ob in selected_armatures:
+            ob_adt = arm_ob.animation_data
+            arm_adt = arm_ob.data.animation_data
+            if warn and (not ob_adt or not ob_adt.action or not ob_adt.action_slot):
+                self.report({'WARNING'}, rpt_("Not all armature objects have an action and slot assigned"))
+                # Only warn once.
+                warn = False
+                continue
+
+            # Only armatures with an action and slot are added to `selected_armatures`.
+            assert arm_adt is not None
+            armature_channelbag = anim_utils.action_get_channelbag_for_slot(arm_adt.action, arm_adt.action_slot)
+            if not armature_channelbag:
+                continue
+
+            fcurves = self.find_property_fcurves(armature_channelbag)
+
+            if not fcurves:
+                # No FCurves for the hide property found.
+                continue
+
+            # An action + slot is assigned, but that doesn't mean there is a layer and a strip.
+            ob_channelbag = anim_utils.action_ensure_channelbag_for_slot(ob_adt.action, ob_adt.action_slot)
+
+            for fcurve in fcurves:
+                new_path = "pose." + fcurve.data_path
+                if ob_channelbag.fcurves.find(new_path):
+                    # FCurve for that property already exists.
+                    continue
+
+                ob_channelbag.fcurves.new_from_fcurve(fcurve, data_path=new_path)
+
+            modified_armatures.append(arm_ob)
+
+        if not modified_armatures:
+            self.report({'WARNING'}, rpt_("No armature animation was modified"))
+            return {'CANCELLED'}
+
+        self.report({'INFO'}, rpt_("Modified the animation of {:d} armatures").format(len(modified_armatures)))
+        for screen in bpy.data.screens:
+            for area in screen.areas:
+                area.tag_redraw()
+
+        return {'FINISHED'}
+
+
 classes = (
     ANIM_OT_keying_set_export,
     NLA_OT_bake,
@@ -815,4 +919,5 @@ classes = (
     ANIM_OT_slot_unassign_from_id,
     ANIM_OT_slot_unassign_from_nla_strip,
     ANIM_OT_slot_unassign_from_constraint,
+    ANIM_OT_version_bone_hide_property,
 )

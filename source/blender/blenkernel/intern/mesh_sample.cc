@@ -59,8 +59,7 @@ void sample_point_attribute(const Span<int> corner_verts,
   BLI_assert(src.type() == dst.type());
 
   const CPPType &type = src.type();
-  attribute_math::convert_to_static_type(type, [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(type, [&]<typename T>() {
     sample_point_attribute<T>(
         corner_verts, corner_tris, tri_indices, bary_coords, src.typed<T>(), mask, dst.typed<T>());
   });
@@ -110,8 +109,7 @@ void sample_corner_attribute(const Span<int3> corner_tris,
   BLI_assert(src.type() == dst.type());
 
   const CPPType &type = src.type();
-  attribute_math::convert_to_static_type(type, [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(type, [&]<typename T>() {
     sample_corner_attribute<T>(
         corner_tris, tri_indices, bary_coords, src.typed<T>(), mask, dst.typed<T>());
   });
@@ -140,8 +138,7 @@ void sample_face_attribute(const Span<int> corner_tri_faces,
   BLI_assert(src.type() == dst.type());
 
   const CPPType &type = src.type();
-  attribute_math::convert_to_static_type(type, [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(type, [&]<typename T>() {
     sample_face_attribute<T>(corner_tri_faces, tri_indices, src.typed<T>(), mask, dst.typed<T>());
   });
 }
@@ -461,8 +458,7 @@ void BaryWeightSampleFn::call(const IndexMask &mask,
   const VArraySpan<float3> bary_weights = params.readonly_single_input<float3>(
       1, "Barycentric Weight");
   GMutableSpan dst = params.uninitialized_single_output(2, "Value");
-  attribute_math::convert_to_static_type(dst.type(), [&](auto dummy) {
-    using T = decltype(dummy);
+  attribute_math::to_static_type(dst.type(), [&]<typename T>() {
     sample_corner_attribute<T, true>(corner_tris_,
                                      triangle_indices,
                                      bary_weights,

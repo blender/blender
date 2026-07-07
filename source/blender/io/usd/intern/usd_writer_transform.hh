@@ -5,13 +5,16 @@
 
 #include "usd_writer_abstract.hh"
 
+#include "BLI_math_matrix_types.hh"
+#include "BLI_vector.hh"
+
 #include <pxr/usd/usdGeom/xformable.h>
 
 namespace blender::io::usd {
 
 class USDTransformWriter : public USDAbstractWriter {
  private:
-  blender::Vector<pxr::UsdGeomXformOp> xformOps_;
+  Vector<pxr::UsdGeomXformOp> xformOps_;
 
  public:
   USDTransformWriter(const USDExporterContext &ctx);
@@ -20,7 +23,7 @@ class USDTransformWriter : public USDAbstractWriter {
   void do_write(HierarchyContext &context) override;
   bool check_is_animated(const HierarchyContext &context) const override;
   bool should_apply_root_xform(const HierarchyContext &context) const;
-  void set_xform_ops(float parent_relative_matrix[4][4], const pxr::UsdGeomXformable &xf);
+  void set_xform_ops(const float4x4 &parent_relative_matrix, const pxr::UsdGeomXformable &xf);
 
   /* Subclasses may override this to create prims other than UsdGeomXform. */
   virtual pxr::UsdGeomXformable create_xformable() const;

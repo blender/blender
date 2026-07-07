@@ -22,45 +22,34 @@
 #include "BKE_attribute.hh"
 
 namespace blender {
-class GVArray;
-}
 
-namespace blender::bke::attribute_math {
+class GVArray;
+
+namespace bke::attribute_math {
 
 /**
  * Utility function that simplifies calling a templated function based on a run-time data type.
  */
-template<typename Func>
-inline void convert_to_static_type(const CPPType &cpp_type, const Func &func)
+template<typename Fn> inline void to_static_type(const CPPType &cpp_type, Fn &&fn)
 {
-  cpp_type.to_static_type_tag<float,
-                              float2,
-                              float3,
-                              int,
-                              int2,
-                              bool,
-                              int8_t,
-                              short2,
-                              ColorGeometry4f,
-                              ColorGeometry4b,
-                              math::Quaternion,
-                              float4x4>([&](auto type_tag) {
-    using T = typename decltype(type_tag)::type;
-    if constexpr (std::is_same_v<T, void>) {
-      /* It's expected that the given cpp type is one of the supported ones. */
-      BLI_assert_unreachable();
-    }
-    else {
-      func(T());
-    }
-  });
+  cpp_type.to_static_type<float,
+                          float2,
+                          float3,
+                          int,
+                          int2,
+                          bool,
+                          int8_t,
+                          short2,
+                          ColorGeometry4f,
+                          ColorGeometry4b,
+                          math::Quaternion,
+                          float4x4>([&]<typename T>() { fn.template operator()<T>(); });
 }
 
-template<typename Func>
-inline void convert_to_static_type(const bke::AttrType data_type, const Func &func)
+template<typename Fn> inline void to_static_type(const bke::AttrType data_type, Fn &&fn)
 {
   const CPPType &cpp_type = bke::attribute_type_to_cpp_type(data_type);
-  convert_to_static_type(cpp_type, func);
+  to_static_type(cpp_type, std::forward<Fn>(fn));
 }
 
 /* -------------------------------------------------------------------- */
@@ -332,7 +321,7 @@ template<typename T> class SimpleMixer {
       : buffer_(buffer), default_value_(default_value), total_weights_(buffer.size(), 0.0f)
   {
     BLI_STATIC_ASSERT(std::is_trivial_v<T>, "");
-    mask.foreach_index([&](const int64_t i) { buffer_[i] = default_value_; });
+    index_mask::masked_fill(buffer_, default_value_, mask);
   }
 
   /**
@@ -401,7 +390,7 @@ class BooleanPropagationMixer {
    */
   BooleanPropagationMixer(MutableSpan<bool> buffer, const IndexMask &mask) : buffer_(buffer)
   {
-    mask.foreach_index([&](const int64_t i) { buffer_[i] = false; });
+    index_mask::masked_fill(buffer_, false, mask);
   }
 
   /**
@@ -462,7 +451,7 @@ class SimpleMixerWithAccumulationType {
                                   T default_value = {})
       : buffer_(buffer), default_value_(default_value), accumulation_buffer_(buffer.size())
   {
-    mask.foreach_index([&](const int64_t index) { buffer_[index] = default_value_; });
+    index_mask::masked_fill(buffer_, default_value_, mask);
   }
 
   void set(const int64_t index, const T &value, const float weight = 1.0f)
@@ -714,4 +703,6 @@ void gather_ranges_to_groups(Span<IndexRange> src_ranges,
 
 /** \} */
 
-}  // namespace blender::bke::attribute_math
+}  // namespace bke::attribute_math
+
+}  // namespace blender

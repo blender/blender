@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "gpu_shader_math_vector_safe_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
+
+[[node]]
 void node_bsdf_glossy(float4 color,
                       float roughness,
                       float anisotropy,
@@ -10,7 +14,7 @@ void node_bsdf_glossy(float4 color,
                       float3 T,
                       float weight,
                       const float do_multiscatter,
-                      out Closure result)
+                      Closure &result)
 {
   color = max(color, float4(0.0f));
   roughness = saturate(roughness);

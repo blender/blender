@@ -12,9 +12,11 @@
 #include "DNA_material_types.h"
 #include "NOD_node_in_compute_context.hh"
 
+namespace blender {
+
 struct bNodeTree;
 
-namespace blender::nodes {
+namespace nodes {
 
 /**
  * During socket usage inferencing, some socket values are computed. This class represents such a
@@ -82,11 +84,12 @@ class SocketValueInferencer {
   SocketValueInferencerImpl &impl_;
 
  public:
-  SocketValueInferencer(const bNodeTree &tree,
-                        ResourceScope &scope,
-                        bke::ComputeContextCache &compute_context_cache,
-                        const std::optional<Span<InferenceValue>> tree_input_values,
-                        const std::optional<Span<bool>> top_level_ignored_inputs);
+  SocketValueInferencer(
+      const bNodeTree &tree,
+      ResourceScope &scope,
+      bke::ComputeContextCache &compute_context_cache,
+      FunctionRef<InferenceValue(int group_input_i)> group_input_value_fn = nullptr,
+      std::optional<Span<bool>> top_level_ignored_inputs = std::nullopt);
 
   InferenceValue get_socket_value(const SocketInContext &socket);
 };
@@ -104,4 +107,5 @@ bool is_socket_selected__shader_mix_node(const SocketInContext &socket,
 
 }  // namespace switch_node_inference_utils
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

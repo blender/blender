@@ -8,16 +8,18 @@
 
 #pragma once
 
+struct TransInfo;
+namespace blender {
+
 struct bContext;
 struct bPoseChannel;
 struct Object;
 struct Scene;
 struct TransformOrientation;
-struct TransInfo;
 struct View3D;
 struct ViewLayer;
 
-namespace blender::ed::transform {
+namespace ed::transform {
 
 bool gimbal_axis_pose(Object *ob, const bPoseChannel *pchan, float gmat[3][3]);
 bool gimbal_axis_object(Object *ob, float gmat[3][3]);
@@ -89,4 +91,5 @@ int getTransformOrientation_ex(const Scene *scene,
                                float r_plane[3]);
 int getTransformOrientation(const bContext *C, float r_normal[3], float r_plane[3]);
 
-}  // namespace blender::ed::transform
+}  // namespace ed::transform
+}  // namespace blender

@@ -8,7 +8,7 @@
  * \ingroup bli
  *
  * This file implements different probing strategies. Those can be used by different hash table
- * implementations like blender::Set and blender::Map. A probing strategy produces a sequence of
+ * implementations like Set and Map. A probing strategy produces a sequence of
  * values based on an initial hash value.
  *
  * A probing strategy has to implement the following methods:

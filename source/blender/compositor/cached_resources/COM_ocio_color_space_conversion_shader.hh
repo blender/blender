@@ -13,11 +13,13 @@
 
 #include "COM_cached_resource.hh"
 
-namespace blender::gpu {
-class Shader;
-}  // namespace blender::gpu
+namespace blender {
 
-namespace blender::compositor {
+namespace gpu {
+class Shader;
+}  // namespace gpu
+
+namespace compositor {
 
 class Context;
 
@@ -147,4 +149,5 @@ class OCIOToDisplayShaderContainer : CachedResourceContainer {
                            const bool inverse);
 };
 
-}  // namespace blender::compositor
+}  // namespace compositor
+}  // namespace blender

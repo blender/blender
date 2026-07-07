@@ -14,7 +14,7 @@ namespace blender::deg {
 
 class ViewLayerBuilderPipeline : public AbstractBuilderPipeline {
  public:
-  ViewLayerBuilderPipeline(::Depsgraph *graph);
+  ViewLayerBuilderPipeline(blender::Depsgraph *graph);
 
  protected:
   void build_nodes(DepsgraphNodeBuilder &node_builder) override;

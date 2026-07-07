@@ -18,23 +18,25 @@
 
 #include "draw_pass.hh"
 
+namespace blender {
+
 struct Curves;
 struct Object;
 struct ParticleSystem;
 struct PTCacheEdit;
 struct ModifierData;
 struct ParticleCacheKey;
-namespace blender::bke {
+namespace bke {
 class CurvesGeometry;
-}  // namespace blender::bke
+}  // namespace bke
 
-namespace blender::gpu {
+namespace gpu {
 class Batch;
 class VertBuf;
-}  // namespace blender::gpu
+}  // namespace gpu
 struct GPUMaterial;
 
-namespace blender::draw {
+namespace draw {
 
 struct CurvesModule;
 
@@ -216,10 +218,12 @@ struct CurvesEvalCache {
                                        const bke::CurvesGeometry &curves,
                                        int face_per_segment);
 
+  /* Sets r_over_limit to true if reaching hardware limit for the number of segments. */
   gpu::Batch *batch_get(int evaluated_point_count,
                         int curve_count,
                         int face_per_segment,
-                        bool use_cyclic);
+                        bool use_cyclic,
+                        bool &r_over_limit);
 
   void discard_attributes();
   void clear();
@@ -271,4 +275,5 @@ void curves_bind_resources(draw::PassSimple::Sub &sub_ps,
                            gpu::VertBufPtr &indirection_buf,
                            std::optional<StringRef> active_uv_name);
 
-}  // namespace blender::draw
+}  // namespace draw
+}  // namespace blender

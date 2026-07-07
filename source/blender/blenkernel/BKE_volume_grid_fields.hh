@@ -6,6 +6,8 @@
 
 #include "FN_field.hh"
 
+#include "BLI_math_basis_types.hh"
+
 #ifdef WITH_OPENVDB
 
 #  include "openvdb_fwd.hh"
@@ -27,6 +29,11 @@ class VoxelFieldContext : public fn::FieldContext {
   GVArray get_varray_for_input(const fn::FieldInput &field_input,
                                const IndexMask &mask,
                                ResourceScope &scope) const override;
+
+  Span<openvdb::Coord> voxels() const
+  {
+    return voxels_;
+  }
 };
 
 /**
@@ -45,6 +52,44 @@ class TilesFieldContext : public fn::FieldContext {
   GVArray get_varray_for_input(const fn::FieldInput &field_input,
                                const IndexMask &mask,
                                ResourceScope &scope) const override;
+
+  Span<openvdb::CoordBBox> tiles() const
+  {
+    return tiles_;
+  }
+};
+
+class VoxelCoordinateFieldInput : public fn::FieldInput {
+ private:
+  math::Axis axis_;
+
+ public:
+  VoxelCoordinateFieldInput(math::Axis axis);
+
+  GVArray get_varray_for_context(const fn::FieldContext &context,
+                                 const IndexMask &mask,
+                                 ResourceScope &scope) const override;
+};
+
+class VoxelExtentFieldInput : public fn::FieldInput {
+ private:
+  math::Axis axis_;
+
+ public:
+  VoxelExtentFieldInput(math::Axis axis);
+
+  GVArray get_varray_for_context(const fn::FieldContext &context,
+                                 const IndexMask &mask,
+                                 ResourceScope &scope) const override;
+};
+
+class IsTileFieldInput : public fn::FieldInput {
+ public:
+  IsTileFieldInput();
+
+  GVArray get_varray_for_context(const fn::FieldContext &context,
+                                 const IndexMask &mask,
+                                 ResourceScope &scope) const override;
 };
 
 }  // namespace blender::bke

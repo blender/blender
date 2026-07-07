@@ -85,7 +85,7 @@ static void add_sliced_parameters(const Signature &signature,
         break;
       }
       case ParamCategory::SingleOutput: {
-        if (bool(signature.params[param_index].flag & ParamFlag::SupportsUnusedOutput)) {
+        if (flag_is_set(signature.params[param_index].flag, ParamFlag::SupportsUnusedOutput)) {
           const GMutableSpan span = full_params.uninitialized_single_output_if_required(
               param_index);
           if (span.is_empty()) {

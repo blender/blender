@@ -10,7 +10,7 @@
  * tiles.
  */
 
-#include "infos/eevee_shadow_info.hh"
+#include "infos/eevee_shadow_pipeline_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_shadow_tag_usage_transparent)
 
@@ -57,8 +57,8 @@ void step_bounding_sphere(float3 vs_near_plane,
                           float3 vs_view_direction,
                           float near_t,
                           float far_t,
-                          out float3 sphere_center,
-                          out float sphere_radius)
+                          float3 &sphere_center,
+                          float &sphere_radius)
 {
   float near_pixel_size = pixel_size_at(near_t);
   float3 near_center = vs_near_plane + vs_view_direction * near_t;

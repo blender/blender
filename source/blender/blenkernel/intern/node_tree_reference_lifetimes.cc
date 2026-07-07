@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
@@ -847,6 +848,13 @@ static bool pass_right_to_left(const bNodeTree &tree,
         for (const bNodeSocket *socket : node->output_sockets()) {
           required_data_on_inputs |= r_required_data_by_socket[socket->index_in_tree()];
         }
+        /* References available on inputs are also required on the data inputs because they may be
+         * used by the closure. */
+        for (const bNodeSocket *socket : node->input_sockets()) {
+          if (can_contain_reference(eNodeSocketDatatype(socket->type))) {
+            required_data_on_inputs |= potential_reference_by_socket[socket->index_in_tree()];
+          }
+        }
         for (const bNodeSocket *socket : node->input_sockets()) {
           const int dst_index = socket->index_in_tree();
           r_required_data_by_socket[dst_index] |= required_data_on_inputs;
@@ -986,6 +994,32 @@ static aal::RelationsInNode get_tree_relations(
   return tree_relations;
 }
 
+/**
+ * After creating detecting the final propagate-relations, we can detect some input geometry that
+ * looked like it was passed to the output actually is not. So we can update
+ * #required_data_by_socket to never use the corresponding #ReferenceSetInfo.
+ */
+static void disable_unused_group_output_propagation(
+    const Span<ReferenceSetInfo> reference_sets,
+    const Span<aal::PropagateRelation> &propagate_relations,
+    BitGroupVector<> &required_data_by_socket)
+{
+  Vector<int> propagate_targets;
+  for (const auto relation : propagate_relations) {
+    propagate_targets.append(relation.to_geometry_output);
+  }
+  BitVector<> reference_sets_mask(reference_sets.size(), true);
+  for (const int i : reference_sets.index_range()) {
+    const ReferenceSetInfo &reference_set = reference_sets[i];
+    if (reference_set.type == ReferenceSetType::GroupOutputData) {
+      if (!propagate_targets.contains(reference_set.index)) {
+        reference_sets_mask[i].reset();
+      }
+    }
+  }
+  required_data_by_socket.foreach_and(reference_sets_mask);
+}
+
 static std::unique_ptr<ReferenceLifetimesInfo> make_reference_lifetimes_info(const bNodeTree &tree)
 {
   tree.ensure_topology_cache();
@@ -1042,6 +1076,16 @@ static std::unique_ptr<ReferenceLifetimesInfo> make_reference_lifetimes_info(con
   /* Make sure that all required data is also potentially available. */
   required_data_by_socket.all_bits() &= potential_data_by_socket.all_bits();
 
+  reference_lifetimes_info->tree_relations = get_tree_relations(tree,
+                                                                reference_sets,
+                                                                potential_data_by_socket,
+                                                                potential_reference_by_socket,
+                                                                required_data_by_socket);
+  disable_unused_group_output_propagation(
+      reference_sets,
+      reference_lifetimes_info->tree_relations.propagate_relations,
+      required_data_by_socket);
+
 /* Only useful when debugging the reference lifetimes analysis. */
 #if 0
   std::cout << "\n\n"
@@ -1053,11 +1097,6 @@ static std::unique_ptr<ReferenceLifetimesInfo> make_reference_lifetimes_info(con
             << "\n\n";
 #endif
 
-  reference_lifetimes_info->tree_relations = get_tree_relations(tree,
-                                                                reference_sets,
-                                                                potential_data_by_socket,
-                                                                potential_reference_by_socket,
-                                                                required_data_by_socket);
   reference_lifetimes_info->required_data_by_socket = std::move(required_data_by_socket);
   return reference_lifetimes_info;
 }

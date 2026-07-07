@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/compositor_glare_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_glare_bloom_upsample)
+
 void main()
 {
   /* Each invocation corresponds to one output pixel, where the output has twice the size of the

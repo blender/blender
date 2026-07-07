@@ -8,6 +8,11 @@
  * LUT generation module.
  */
 
+#include "GPU_state.hh"
+
+#include "draw_pass.hh"
+
+#include "eevee_defines.hh"
 #include "eevee_precompute.hh"
 
 namespace blender::eevee {
@@ -41,7 +46,7 @@ Precompute::Precompute(draw::Manager &manager, PrecomputeType type, int3 table_e
 
 Precompute::~Precompute()
 {
-  MEM_SAFE_FREE(raw_data_);
+  MEM_SAFE_DELETE(raw_data_);
 }
 
 }  // namespace blender::eevee

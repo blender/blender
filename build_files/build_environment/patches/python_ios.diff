@@ -1,16 +1,3 @@
-diff --git a/setup.py.orig b/setup.py
-index a97a755..07ce853 100644
---- a/setup.py.orig
-+++ b/setup.py
-@@ -2168,7 +2168,7 @@
-                 ffi_inc = None
-                 print('Header file {} does not exist'.format(ffi_h))
-         if ffi_lib is None and ffi_inc:
--            for lib_name in ('ffi', 'ffi_pic'):
-+            for lib_name in ('ffi_pic', ):
-                 if (self.compiler.find_library_file(self.lib_dirs, lib_name)):
-                     ffi_lib = lib_name
-                     break
 --- a/Modules/posixmodule.c	2022-12-09 21:44:03
 +++ b/Modules/posixmodule.c	2022-12-09 21:39:46
 @@ -10564,10 +10564,15 @@
@@ -47,9 +34,10 @@ index a97a755..07ce853 100644
                  mknodat_unavailable = 1;
                  result = 0;
              }
+
 --- a/configure	2023-06-14 10:39:22
 +++ b/configure	2023-06-14 11:05:42
-@@ -1066,6 +1066,7 @@
+@@ -1131,6 +1131,7 @@
  with_ssl_default_suites
  with_builtin_hashlib_hashes
  enable_test_modules
@@ -57,14 +45,13 @@ index a97a755..07ce853 100644
  '
        ac_precious_vars='build_alias
  host_alias
-@@ -1573,7 +1574,23 @@
-     cross_compiling=yes
+@@ -1648,6 +1649,22 @@
    fi
  fi
-+
+ 
 +# Force enable cross-compilation to take crosscompile path even if host and build are the same.
 +{ $as_echo_n "checking for --with-force-crosscompile... " >&6; }
- 
++
 +if test "${with_force_crosscompile+set}" = set; then
 +  withval=$with_force_crosscompile
 +else
@@ -81,8 +68,8 @@ index a97a755..07ce853 100644
  ac_tool_prefix=
  test -n "$host_alias" && ac_tool_prefix=$host_alias-
  
-@@ -3832,6 +3849,9 @@
- 	*-*-wasi)
+@@ -4067,6 +4084,9 @@
+ 	*-*-wasi*)
  	    ac_sys_system=WASI
  	    ;;
 +    *-apple-darwin*)
@@ -91,39 +78,66 @@ index a97a755..07ce853 100644
  	*)
  		# for now, limit cross builds to known configurations
  		MACHDEP="unknown"
-@@ -3885,7 +3905,10 @@
+@@ -4531,7 +4551,10 @@
  	wasm32-*-* | wasm64-*-*)
- 		_host_cpu=$host_cpu
+ 		_host_ident=$host_cpu
  		;;
 -	*)
 +    *-apple-darwin*)
-+        _host_cpu=arm
++        _host_ident=arm
 +        ;;
 +    *)
  		# for now, limit cross builds to known configurations
  		MACHDEP="unknown"
  		as_fn_error $? "cross build not supported for $host" "$LINENO" 5
-@@ -10645,7 +10668,7 @@
-             LIBTOOL_CRUFT=""
-     fi
-     if test "$cross_compiling" = yes; then :
--  ac_osx_32bit=yes
-+  ac_osx_32bit=no
+@@ -14432,7 +14455,14 @@
+ 
+ 
+ 
++if test "x$ac_sys_system" = xDarwin && test "$cross_compiling" = yes
++then :
++    ac_cv_func_ffi_prep_cif_var=yes
++    ac_cv_func_ffi_prep_closure_loc=yes
++    ac_cv_func_ffi_closure_alloc=yes
++fi
+ 
++
+ have_libffi=missing
+ if test "x$ac_sys_system" = xDarwin
+ then :
+@@ -14483,7 +14513,7 @@
+ fi
+ { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ffi_ffi_call" >&5
+ printf "%s\n" "$ac_cv_lib_ffi_ffi_call" >&6; }
+-if test "x$ac_cv_lib_ffi_ffi_call" = xyes
++if test "x$ac_cv_lib_ffi_ffi_call" = xyes && test "$cross_compiling" = no
+ then :
+ 
+                 have_libffi=yes
+@@ -28823,14 +28853,14 @@
+ printf "%s\n" "no" >&6; }
+ 	have_libb2=no
  else
-   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
- /* end confdefs.h.  */
+-	LIBB2_CFLAGS=$pkg_cv_LIBB2_CFLAGS
+-	LIBB2_LIBS=$pkg_cv_LIBB2_LIBS
++	LIBB2_CFLAGS=
++	LIBB2_LIBS=
+         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+ printf "%s\n" "yes" >&6; }
+ 
+-    have_libb2=yes
++    have_libb2=no
+ 
+-printf "%s\n" "#define HAVE_LIBB2 1" >>confdefs.h
++#printf "%s\n" "#define HAVE_LIBB2 1" >>confdefs.h
+ 
+ 
+ fi
 
- --- a/Modules/posixmodule.c	2023-03-20 15:29:29
+--- a/Modules/posixmodule.c	2023-03-20 15:29:29
 +++ b/Modules/posixmodule.c	2023-06-14 14:36:27
-@@ -346,13 +346,22 @@
- #    define HAVE_WSPAWNV    1
- #    define HAVE_WEXECV     1
- #    define HAVE_PIPE       1
- #    define HAVE_SYSTEM     1
- #    define HAVE_CWAIT      1
- #    define HAVE_FSYNC      1
- #    define fsync _commit
- #  endif  /* _MSC_VER */
+@@ -395,6 +395,15 @@
+ #  define fsync _commit
  #endif  /* ! __WATCOMC__ || __QNX__ */
  
 +#ifdef __APPLE__
@@ -141,44 +155,21 @@ index a97a755..07ce853 100644
 
 --- a/Modules/Setup	2023-07-27 15:15:02
 +++ b/Modules/Setup	2023-07-27 15:16:13
-@@ -130,82 +130,88 @@
+@@ -129,78 +129,81 @@
+ #*shared*
  
  # Modules that should always be present (POSIX and Windows):
- 
--#_asyncio _asynciomodule.c
--#_bisect _bisectmodule.c
--#_contextvars _contextvarsmodule.c
--#_csv _csv.c
--#_datetime _datetimemodule.c
--#_decimal _decimal/_decimal.c
--#_heapq _heapqmodule.c
--#_json _json.c
--#_lsprof _lsprof.c rotatingtree.c
--#_multiprocessing -I$(srcdir)/Modules/_multiprocessing _multiprocessing/multiprocessing.c _multiprocessing/semaphore.c
--#_opcode _opcode.c
--#_pickle _pickle.c
--#_queue _queuemodule.c
--#_random _randommodule.c
--#_socket socketmodule.c
--#_statistics _statisticsmodule.c
--#_struct _struct.c
--#_typing _typingmodule.c
--#_zoneinfo _zoneinfo.c
--#array arraymodule.c
--#audioop audioop.c
--#binascii binascii.c
--#cmath cmathmodule.c
--#math mathmodule.c
--#mmap mmapmodule.c
--#select selectmodule.c
 +*static*
 +_asyncio _asynciomodule.c
 +_bisect _bisectmodule.c
 +_contextvars _contextvarsmodule.c
 +_csv _csv.c
 +_datetime _datetimemodule.c
-+_decimal _decimal/libmpdec/context.c _decimal/_decimal.c _decimal/libmpdec/basearith.c _decimal/libmpdec/constants.c _decimal/libmpdec/convolute.c _decimal/libmpdec/crt.c _decimal/libmpdec/difradix2.c _decimal/libmpdec/fnt.c _decimal/libmpdec/fourstep.c _decimal/libmpdec/io.c _decimal/libmpdec/mpalloc.c _decimal/libmpdec/mpdecimal.c _decimal/libmpdec/numbertheory.c _decimal/libmpdec/sixstep.c _decimal/libmpdec/transpose.c -I$(srcdir)/Modules/_decimal/  -I$(srcdir)/Modules/_decimal/libmpdec -DCONFIG_64 -DANSI
++_decimal _decimal/_decimal.c -I$(srcdir)/Modules/_decimal/libmpdec Modules/_decimal/libmpdec/libmpdec.a
 +_heapq _heapqmodule.c
++_interpchannels _interpchannelsmodule.c
++_interpqueues _interpqueuesmodule.c
++_interpreters _interpretersmodule.c
 +_json _json.c
 +_lsprof _lsprof.c rotatingtree.c
 +_multiprocessing -I$(srcdir)/Modules/_multiprocessing _multiprocessing/multiprocessing.c _multiprocessing/semaphore.c
@@ -192,35 +183,62 @@ index a97a755..07ce853 100644
 +_typing _typingmodule.c
 +_zoneinfo _zoneinfo.c
 +array arraymodule.c
-+audioop audioop.c
 +binascii binascii.c
-+cmath cmathmodule.c
-+math mathmodule.c
++cmath cmathmodule.c _math.c
++math mathmodule.c _math.c
 +mmap mmapmodule.c
 +select selectmodule.c
++_sysconfig _sysconfig.c
  
+-#_asyncio _asynciomodule.c
+-#_bisect _bisectmodule.c
+-#_contextvars _contextvarsmodule.c
+-#_csv _csv.c
+-#_datetime _datetimemodule.c
+-#_decimal _decimal/_decimal.c
+-#_heapq _heapqmodule.c
+-#_interpchannels _interpchannelsmodule.c
+-#_interpqueues _interpqueuesmodule.c
+-#_interpreters _interpretersmodule.c
+-#_json _json.c
+-#_lsprof _lsprof.c rotatingtree.c
+-#_multiprocessing -I$(srcdir)/Modules/_multiprocessing _multiprocessing/multiprocessing.c _multiprocessing/semaphore.c
+-#_opcode _opcode.c
+-#_pickle _pickle.c
+-#_queue _queuemodule.c
+-#_random _randommodule.c
+-#_socket socketmodule.c
+-#_statistics _statisticsmodule.c
+-#_struct _struct.c
+-#_typing _typingmodule.c
+-#_zoneinfo _zoneinfo.c
+-#array arraymodule.c
+-#binascii binascii.c
+-#cmath cmathmodule.c
+-#math mathmodule.c
+-#mmap mmapmodule.c
+-#select selectmodule.c
+-#_sysconfig _sysconfig.c
+-
  # XML
 -#_elementtree _elementtree.c
 -#pyexpat pyexpat.c
 +*static*
 +_elementtree _elementtree.c
-+pyexpat expat/xmlparse.c expat/xmlrole.c expat/xmltok.c pyexpat.c -I$(srcdir)/Modules/expat -DHAVE_EXPAT_CONFIG_H -DXML_POOR_ENTROPY -DUSE_PYEXPAT_CAPI
++pyexpat pyexpat.c
  
  # hashing builtins
 -#_blake2 _blake2/blake2module.c _blake2/blake2b_impl.c _blake2/blake2s_impl.c
--#_md5 md5module.c
--#_sha1 sha1module.c
--#_sha256 sha256module.c
--#_sha512 sha512module.c
--#_sha3 _sha3/sha3module.c
+-#_md5 md5module.c -I$(srcdir)/Modules/_hacl/include _hacl/Hacl_Hash_MD5.c -D_BSD_SOURCE -D_DEFAULT_SOURCE
+-#_sha1 sha1module.c -I$(srcdir)/Modules/_hacl/include _hacl/Hacl_Hash_SHA1.c -D_BSD_SOURCE -D_DEFAULT_SOURCE
+-#_sha2 sha2module.c -I$(srcdir)/Modules/_hacl/include Modules/_hacl/libHacl_Hash_SHA2.a
+-#_sha3 sha3module.c -I$(srcdir)/Modules/_hacl/include _hacl/Hacl_Hash_SHA3.c -D_BSD_SOURCE -D_DEFAULT_SOURCE
 +*static*
 +_blake2 _blake2/blake2module.c _blake2/blake2b_impl.c _blake2/blake2s_impl.c
-+*static*
-+_md5 md5module.c
-+_sha1 sha1module.c
-+_sha256 sha256module.c
-+_sha512 sha512module.c
-+_sha3 _sha3/sha3module.c
++_md5 md5module.c -I$(srcdir)/Modules/_hacl/include _hacl/Hacl_Hash_MD5.c -D_BSD_SOURCE -D_DEFAULT_SOURCE
++_sha1 sha1module.c -I$(srcdir)/Modules/_hacl/include _hacl/Hacl_Hash_SHA1.c -D_BSD_SOURCE -D_DEFAULT_SOURCE
++_sha2 sha2module.c -I$(srcdir)/Modules/_hacl/include Modules/_hacl/libHacl_Hash_SHA2.a
++_sha3 sha3module.c -I$(srcdir)/Modules/_hacl/include _hacl/Hacl_Hash_SHA3.c -D_BSD_SOURCE -D_DEFAULT_SOURCE
  
  # text encodings and unicode
 -#_codecs_cn cjkcodecs/_codecs_cn.c
@@ -244,51 +262,40 @@ index a97a755..07ce853 100644
  # Modules with some UNIX dependencies
 -
 -#_posixsubprocess _posixsubprocess.c
++*static*
++_posixsubprocess _posixsubprocess.c
 -#_posixshmem -I$(srcdir)/Modules/_multiprocessing _multiprocessing/posixshmem.c -lrt
 -#fcntl fcntlmodule.c
 -#grp grpmodule.c
-+*static*
-+_posixsubprocess _posixsubprocess.c
+-#resource resource.c
+-#syslog syslogmodule.c
+-#termios termios.c
 +_posixshmem _multiprocessing/posixshmem.c
 +fcntl fcntlmodule.c
 +grp grpmodule.c
- #ossaudiodev ossaudiodev.c
--#resource resource.c
 +resource resource.c
- #spwd spwdmodule.c
--#syslog syslogmodule.c
--#termios termios.c
 +syslog syslogmodule.c
 +termios termios.c
- 
- # Modules with UNIX dependencies that require external libraries
--
--#_crypt _cryptmodule.c -lcrypt
-+*static*
-+_crypt _cryptmodule.c #-lcrypt
- #nis nismodule.c -I/usr/include/tirpc -lnsl -ltirpc
  
  # Modules that require external libraries.
 -
 -#_bz2 _bz2module.c -lbz2
--#_ctypes _ctypes/_ctypes.c _ctypes/callbacks.c _ctypes/callproc.c _ctypes/stgdict.c _ctypes/cfield.c -ldl -lffi -DHAVE_FFI_PREP_CIF_VAR -DHAVE_FFI_PREP_CLOSURE_LOC -DHAVE_FFI_CLOSURE_ALLOC
 +*static*
 +_bz2 _bz2module.c -lbz2
-+_ctypes _ctypes/_ctypes.c _ctypes/callbacks.c _ctypes/callproc.c _ctypes/stgdict.c _ctypes/cfield.c -ldl -lffi -DHAVE_FFI_PREP_CIF_VAR -DHAVE_FFI_PREP_CLOSURE_LOC -DHAVE_FFI_CLOSURE_ALLOC
+ #_ctypes _ctypes/_ctypes.c _ctypes/callbacks.c _ctypes/callproc.c _ctypes/stgdict.c _ctypes/cfield.c -ldl -lffi -DHAVE_FFI_PREP_CIF_VAR -DHAVE_FFI_PREP_CLOSURE_LOC -DHAVE_FFI_CLOSURE_ALLOC
  # The _dbm module supports NDBM, GDBM with compat module, and Berkeley DB.
  #_dbm _dbmmodule.c -lgdbm_compat -DUSE_GDBM_COMPAT
  #_gdbm _gdbmmodule.c -lgdbm
 -#_lzma _lzmamodule.c -llzma
 -#_uuid _uuidmodule.c -luuid
 -#zlib  zlibmodule.c -lz
-+*static*
 +_lzma _lzmamodule.c -llzma
-+_uuid _uuidmodule.c #-luuid
++_uuid _uuidmodule.c -luuid
 +zlib  zlibmodule.c -lz
  
  # The readline module also supports libeditline (-leditline).
  # Some systems may require -ltermcap or -ltermlib.
-@@ -221,6 +227,12 @@
+@@ -216,6 +219,12 @@
  #     -l:libcrypto.a -Wl,--exclude-libs,libcrypto.a
  # _hashlib _hashopenssl.c $(OPENSSL_INCLUDES) $(OPENSSL_LDFLAGS) \
  #     -l:libcrypto.a -Wl,--exclude-libs,libcrypto.a
@@ -301,7 +308,7 @@ index a97a755..07ce853 100644
  
  # The _tkinter module.
  #
-@@ -271,15 +283,15 @@
+@@ -266,14 +275,14 @@
  # _scproxy _scproxy.c
  
  # Examples
@@ -310,27 +317,29 @@ index a97a755..07ce853 100644
  #xx xxmodule.c
 -#xxlimited xxlimited.c
 -#xxlimited_35 xxlimited_35.c
+-#xxsubtype xxsubtype.c
 +xxlimited xxlimited.c
 +xxlimited_35 xxlimited_35.c
- xxsubtype xxsubtype.c  # Required for the test suite to pass!
- 
++xxsubtype xxsubtype.c
+
  # Testing
 -
--#_xxsubinterpreters _xxsubinterpretersmodule.c
 +*static*
-+_xxsubinterpreters _xxsubinterpretersmodule.c
  #_xxtestfuzz _xxtestfuzz/_xxtestfuzz.c _xxtestfuzz/fuzzer.c
  #_testbuffer _testbuffer.c
  #_testinternalcapi _testinternalcapi.c
-@@ -298,5 +310,6 @@
+@@ -294,6 +303,8 @@
  #
- #*disabled*
+-#*disabled*
++*disabled*
  #
 -# _sqlite3 _tkinter _curses pyexpat
 -# _codecs_jp _codecs_kr _codecs_tw unicodedata
++#_curses _curses_panel _cursesmodule
 +*static*
-+_sqlite3 _tkinter _curses pyexpat
++_sqlite3 _tkinter pyexpat
 +_codecs_jp _codecs_kr _codecs_tw unicodedata
+
 diff --git a/Modules/_scproxy.c b/Modules/_scproxy.c
 index 4c1f1aa..92ed82c 100644
 --- a/Modules/_scproxy.c
@@ -385,3 +394,14 @@ index 019fb4a..1ec0592 100644
 
  # Examples
  *static*
+--- a/Makefile.pre.in
++++ b/Makefile.pre.in
+@@ -503,7 +503,10 @@ LIBRARY_OBJS=	\
+ 		$(LIBRARY_OBJS_OMIT_FROZEN) \
+ 		$(DEEPFREEZE_OBJS) \
+ 		Modules/getpath.o \
+-		Python/frozen.o
++		Python/frozen.o \
++		$(LIBMPDEC_OBJS) \
++       $(LIBHACL_SHA2_OBJS) \
++       $(LIBEXPAT_OBJS)

@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "gpu_shader_math_vector_safe_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
+
+[[node]]
 void node_eevee_specular(float4 diffuse,
                          float4 specular,
                          float roughness,
@@ -13,7 +17,7 @@ void node_eevee_specular(float4 diffuse,
                          float3 CN,
                          float weight,
                          const float use_clearcoat,
-                         out Closure result)
+                         Closure &result)
 {
   diffuse = max(diffuse, float4(0));
   specular = max(specular, float4(0));

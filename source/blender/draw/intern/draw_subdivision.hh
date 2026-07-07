@@ -12,21 +12,23 @@
 
 #include "mesh_extractors/extract_mesh.hh"
 
+namespace blender {
+
 struct BMesh;
-namespace blender::gpu {
+namespace gpu {
 class IndexBuf;
 class UniformBuf;
 class VertBuf;
-}  // namespace blender::gpu
+}  // namespace gpu
 struct GPUVertFormat;
 struct Mesh;
 struct Object;
-namespace blender::bke::subdiv {
+namespace bke::subdiv {
 struct Subdiv;
 }
 struct ToolSettings;
 
-namespace blender::draw {
+namespace draw {
 
 struct MeshBatchCache;
 struct MeshBufferCache;
@@ -100,10 +102,10 @@ struct DRWSubdivCache {
 
   /* Indices of faces adjacent to the vertices, ordered by vertex index, with no particular
    * winding. */
-  gpu::VertBuf *subdiv_vertex_face_adjacency;
+  gpu::VertBuf *subdiv_vert_face_adjacency;
   /* The difference between value (i + 1) and (i) gives the number of faces adjacent to vertex (i).
    */
-  gpu::VertBuf *subdiv_vertex_face_adjacency_offsets;
+  gpu::VertBuf *subdiv_vert_face_adjacency_offsets;
 
   /* Maps subdivision loop to original coarse vertex index, only really useful for edit mode. */
   gpu::VertBuf *verts_orig_index;
@@ -118,7 +120,7 @@ struct DRWSubdivCache {
   /* Vertex buffer for face_ptex_offset. */
   gpu::VertBuf *face_ptex_offset_buffer;
 
-  int *subdiv_face_offset;
+  Array<int> subdiv_face_offset;
   gpu::VertBuf *subdiv_face_offset_buffer;
 
   /* Contains the start loop index and the smooth flag for each coarse face. */
@@ -188,7 +190,7 @@ void draw_subdiv_accumulate_normals(const DRWSubdivCache &cache,
                                     gpu::VertBuf *pos,
                                     gpu::VertBuf *face_adjacency_offsets,
                                     gpu::VertBuf *face_adjacency_lists,
-                                    gpu::VertBuf *vertex_loop_map,
+                                    gpu::VertBuf *vert_loop_map,
                                     gpu::VertBuf *vert_normals);
 
 void draw_subdiv_extract_pos(const DRWSubdivCache &cache, gpu::VertBuf *pos, gpu::VertBuf *orco);
@@ -274,4 +276,5 @@ inline int subdiv_full_vbo_size(const MeshRenderData &mr, const DRWSubdivCache &
   return cache.num_subdiv_loops + subdiv_loose_edges_num(mr, cache) * 2 + mr.loose_verts.size();
 }
 
-}  // namespace blender::draw
+}  // namespace draw
+}  // namespace blender

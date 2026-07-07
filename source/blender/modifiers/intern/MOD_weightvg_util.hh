@@ -10,6 +10,8 @@
 
 #include "DNA_object_types.h"
 
+namespace blender {
+
 struct bContext;
 struct CurveMapping;
 struct MDeformVert;
@@ -21,7 +23,10 @@ struct PointerRNA;
 struct RNG;
 struct Scene;
 struct Tex;
-struct uiLayout;
+
+namespace ui {
+struct Layout;
+}  // namespace ui
 
 /*
  * XXX I'd like to make modified weights visible in WeightPaint mode,
@@ -100,4 +105,9 @@ void weightvg_update_vg(MDeformVert *dvert,
 /**
  * Common vertex weight mask interface elements for the modifier panels.
  */
-void weightvg_ui_common(const bContext *C, PointerRNA *ob_ptr, PointerRNA *ptr, uiLayout *layout);
+void weightvg_ui_common(const bContext *C,
+                        PointerRNA *ob_ptr,
+                        PointerRNA *ptr,
+                        ui::Layout &layout);
+
+}  // namespace blender

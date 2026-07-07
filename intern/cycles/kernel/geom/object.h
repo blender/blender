@@ -59,7 +59,7 @@ ccl_device_inline Transform object_fetch_transform_motion(KernelGlobals kg,
 {
   const uint motion_offset = kernel_data_fetch(objects, object).motion_offset;
   const ccl_global DecomposedTransform *motion = &kernel_data_fetch(object_motion, motion_offset);
-  const uint num_steps = kernel_data_fetch(objects, object).num_tfm_steps;
+  const int num_steps = kernel_data_fetch(objects, object).num_tfm_steps;
 
   Transform tfm;
   transform_motion_array_interpolate(&tfm, motion, num_steps, time);
@@ -74,7 +74,7 @@ ccl_device_inline Transform object_fetch_transform_motion_test(KernelGlobals kg,
                                                                ccl_private Transform *itfm)
 {
 #ifdef __OBJECT_MOTION__
-  const int object_flag = kernel_data_fetch(object_flag, object);
+  const uint object_flag = kernel_data_fetch(object_flag, object);
   if (object_flag & SD_OBJECT_MOTION) {
     /* if we do motion blur */
     Transform tfm = object_fetch_transform_motion(kg, object, time);
@@ -203,7 +203,7 @@ ccl_device_inline void object_normal_transform(KernelGlobals kg,
   }
 }
 
-ccl_device_inline bool object_negative_scale_applied(const int object_flag)
+ccl_device_inline bool object_negative_scale_applied(const uint object_flag)
 {
   return ((object_flag & SD_OBJECT_NEGATIVE_SCALE) && (object_flag & SD_OBJECT_TRANSFORM_APPLIED));
 }

@@ -10,11 +10,14 @@
 #include "BKE_instances.hh"
 #include "BKE_vfont.hh"
 
+#include "DNA_vfont_types.h"
+
 #include "BLI_bounds.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_string_utf8.h"
 #include "BLI_task.hh"
 
+#include "MEM_guardedalloc.h"
 #include "UI_interface.hh"
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
@@ -27,67 +30,166 @@ namespace blender::nodes::node_geo_string_to_curves_cc {
 
 NODE_STORAGE_FUNCS(NodeGeometryStringToCurves)
 
+static const EnumPropertyItem rna_node_geometry_string_to_curves_overflow_items[] = {
+    {GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW,
+     "OVERFLOW",
+     ICON_NONE,
+     "Overflow",
+     "Let the text use more space than the specified height"},
+    {GEO_NODE_STRING_TO_CURVES_MODE_SCALE_TO_FIT,
+     "SCALE_TO_FIT",
+     ICON_NONE,
+     "Scale To Fit",
+     "Scale the text size to fit inside the width and height"},
+    {GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE,
+     "TRUNCATE",
+     ICON_NONE,
+     "Truncate",
+     "Only output curves that fit within the width and height. Output the remainder to the "
+     "\"Remainder\" output."},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static const EnumPropertyItem rna_node_geometry_string_to_curves_align_x_items[] = {
+    {GEO_NODE_STRING_TO_CURVES_ALIGN_X_LEFT,
+     "LEFT",
+     ICON_ALIGN_LEFT,
+     "Left",
+     "Align text to the left"},
+    {GEO_NODE_STRING_TO_CURVES_ALIGN_X_CENTER,
+     "CENTER",
+     ICON_ALIGN_CENTER,
+     "Center",
+     "Align text to the center"},
+    {GEO_NODE_STRING_TO_CURVES_ALIGN_X_RIGHT,
+     "RIGHT",
+     ICON_ALIGN_RIGHT,
+     "Right",
+     "Align text to the right"},
+    {GEO_NODE_STRING_TO_CURVES_ALIGN_X_JUSTIFY,
+     "JUSTIFY",
+     ICON_ALIGN_JUSTIFY,
+     "Justify",
+     "Align text to the left and the right"},
+    {GEO_NODE_STRING_TO_CURVES_ALIGN_X_FLUSH,
+     "FLUSH",
+     ICON_ALIGN_FLUSH,
+     "Flush",
+     "Align text to the left and the right, with equal character spacing"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static const EnumPropertyItem rna_node_geometry_string_to_curves_align_y_items[] = {
+    {GEO_NODE_STRING_TO_CURVES_ALIGN_Y_TOP, "TOP", ICON_ALIGN_TOP, "Top", "Align text to the top"},
+    {GEO_NODE_STRING_TO_CURVES_ALIGN_Y_TOP_BASELINE,
+     "TOP_BASELINE",
+     ICON_ALIGN_TOP,
+     "Top Baseline",
+     "Align text to the top line's baseline"},
+    {GEO_NODE_STRING_TO_CURVES_ALIGN_Y_MIDDLE,
+     "MIDDLE",
+     ICON_ALIGN_MIDDLE,
+     "Middle",
+     "Align text to the middle"},
+    {GEO_NODE_STRING_TO_CURVES_ALIGN_Y_BOTTOM_BASELINE,
+     "BOTTOM_BASELINE",
+     ICON_ALIGN_BOTTOM,
+     "Bottom Baseline",
+     "Align text to the bottom line's baseline"},
+    {GEO_NODE_STRING_TO_CURVES_ALIGN_Y_BOTTOM,
+     "BOTTOM",
+     ICON_ALIGN_BOTTOM,
+     "Bottom",
+     "Align text to the bottom"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static const EnumPropertyItem rna_node_geometry_string_to_curves_pivot_mode[] = {
+    {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_MIDPOINT, "MIDPOINT", 0, "Midpoint", "Midpoint"},
+    {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_TOP_LEFT, "TOP_LEFT", 0, "Top Left", "Top Left"},
+    {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_TOP_CENTER, "TOP_CENTER", 0, "Top Center", "Top Center"},
+    {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_TOP_RIGHT, "TOP_RIGHT", 0, "Top Right", "Top Right"},
+    {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_BOTTOM_LEFT,
+     "BOTTOM_LEFT",
+     0,
+     "Bottom Left",
+     "Bottom Left"},
+    {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_BOTTOM_CENTER,
+     "BOTTOM_CENTER",
+     0,
+     "Bottom Center",
+     "Bottom Center"},
+    {GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_BOTTOM_RIGHT,
+     "BOTTOM_RIGHT",
+     0,
+     "Bottom Right",
+     "Bottom Right"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::String>("String").hide_label();
-  b.add_input<decl::Float>("Size").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>("Character Spacing").default_value(1.0f).min(0.0f);
-  b.add_input<decl::Float>("Word Spacing").default_value(1.0f).min(0.0f);
-  b.add_input<decl::Float>("Line Spacing").default_value(1.0f).min(0.0f);
-  b.add_input<decl::Float>("Text Box Width").default_value(0.0f).min(0.0f).subtype(PROP_DISTANCE);
-  auto &height = b.add_input<decl::Float>("Text Box Height")
-                     .default_value(0.0f)
-                     .min(0.0f)
-                     .subtype(PROP_DISTANCE)
-                     .make_available([](bNode &node) {
-                       node_storage(node).overflow = GEO_NODE_STRING_TO_CURVES_MODE_SCALE_TO_FIT;
-                     });
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
+
   b.add_output<decl::Geometry>("Curve Instances");
-  auto &remainder = b.add_output<decl::String>("Remainder").make_available([](bNode &node) {
-    node_storage(node).overflow = GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE;
-  });
+  b.add_output<decl::String>("Remainder")
+      .usage_by_menu("Overflow", GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE);
   b.add_output<decl::Int>("Line").field_on_all().translation_context(BLT_I18NCONTEXT_ID_TEXT);
+  b.add_output<decl::Int>("Word").field_on_all().translation_context(BLT_I18NCONTEXT_ID_TEXT);
   b.add_output<decl::Vector>("Pivot Point").field_on_all();
 
-  const bNode *node = b.node_or_null();
-  if (node != nullptr) {
-    const NodeGeometryStringToCurves &storage = node_storage(*node);
-    const GeometryNodeStringToCurvesOverflowMode overflow = GeometryNodeStringToCurvesOverflowMode(
-        storage.overflow);
-
-    remainder.available(overflow == GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE);
-    height.available(overflow != GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW);
+  b.add_input<decl::String>("String").optional_label();
+  b.add_input<decl::Float>("Size").default_value(1.0f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_input<decl::Font>("Font")
+      .default_value_fn(
+          [](const bNode & /*node*/) { return id_cast<ID *>(BKE_vfont_builtin_ensure()); })
+      .optional_label();
+  {
+    auto &p = b.add_panel("Alignment").default_closed(true);
+    p.add_input<decl::Menu>("Align X")
+        .static_items(rna_node_geometry_string_to_curves_align_x_items)
+        .optional_label();
+    p.add_input<decl::Menu>("Align Y")
+        .static_items(rna_node_geometry_string_to_curves_align_y_items)
+        .optional_label();
+    p.add_input<decl::Menu>("Pivot Point")
+        .static_items(rna_node_geometry_string_to_curves_pivot_mode);
   }
-}
-
-static void node_layout(uiLayout *layout, bContext *C, PointerRNA *ptr)
-{
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
-  uiTemplateID(layout, C, ptr, "font", nullptr, "FONT_OT_open", "FONT_OT_unlink");
-  layout->prop(ptr, "overflow", UI_ITEM_NONE, "", ICON_NONE);
-  layout->prop(ptr, "align_x", UI_ITEM_NONE, "", ICON_NONE);
-  layout->prop(ptr, "align_y", UI_ITEM_NONE, "", ICON_NONE);
-  layout->prop(ptr, "pivot_mode", UI_ITEM_NONE, IFACE_("Pivot Point"), ICON_NONE);
+  {
+    auto &p = b.add_panel("Spacing").default_closed(true);
+    p.add_input<decl::Float>("Character Spacing").default_value(1.0f).min(0.0f);
+    p.add_input<decl::Float>("Word Spacing").default_value(1.0f).min(0.0f);
+    p.add_input<decl::Float>("Line Spacing").default_value(1.0f).min(0.0f);
+  }
+  {
+    auto &p = b.add_panel("Text Box").default_closed(true);
+    p.add_input<decl::Menu>("Overflow")
+        .static_items(rna_node_geometry_string_to_curves_overflow_items)
+        .optional_label();
+    p.add_input<decl::Float>("Text Box Width")
+        .default_value(0.0f)
+        .min(0.0f)
+        .subtype(PROP_DISTANCE);
+    p.add_input<decl::Float>("Text Box Height")
+        .default_value(0.0f)
+        .min(0.0f)
+        .subtype(PROP_DISTANCE)
+        .usage_by_menu("Overflow", GEO_NODE_STRING_TO_CURVES_MODE_SCALE_TO_FIT);
+  }
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryStringToCurves *data = MEM_callocN<NodeGeometryStringToCurves>(__func__);
-
-  data->overflow = GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW;
-  data->align_x = GEO_NODE_STRING_TO_CURVES_ALIGN_X_LEFT;
-  data->align_y = GEO_NODE_STRING_TO_CURVES_ALIGN_Y_TOP_BASELINE;
-  data->pivot_mode = GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_BOTTOM_LEFT;
+  /* Still used for forward compatibility. */
+  NodeGeometryStringToCurves *data = MEM_new<NodeGeometryStringToCurves>(__func__);
   node->storage = data;
-  node->id = reinterpret_cast<ID *>(BKE_vfont_builtin_ensure());
 }
 
 static float3 get_pivot_point(GeoNodeExecParams &params, bke::CurvesGeometry &curves)
 {
-  const NodeGeometryStringToCurves &storage = node_storage(params.node());
-  const GeometryNodeStringToCurvesPivotMode pivot_mode = (GeometryNodeStringToCurvesPivotMode)
-                                                             storage.pivot_mode;
+  const GeometryNodeStringToCurvesPivotMode pivot_mode =
+      params.get_input<GeometryNodeStringToCurvesPivotMode>("Pivot Point");
 
   const std::optional<Bounds<float3>> bounds = bounds::min_max(curves.positions());
 
@@ -124,6 +226,9 @@ struct TextLayout {
   /* Line number of each character. */
   Array<int> line_numbers;
 
+  /* Word number of each character. */
+  Array<int> word_numbers;
+
   /* Map of Pivot point for each character code. */
   Map<int, float3> pivot_points;
 
@@ -142,7 +247,7 @@ struct TextLayout {
 
 static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
 {
-  VFont *vfont = reinterpret_cast<VFont *>(params.node().id);
+  VFont *vfont = params.get_input<VFont *>("Font");
   if (!vfont) {
     params.error_message_add(NodeWarningType::Error, TIP_("Font not specified"));
     return std::nullopt;
@@ -154,13 +259,9 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
     return std::nullopt;
   }
 
-  const NodeGeometryStringToCurves &storage = node_storage(params.node());
-  const GeometryNodeStringToCurvesOverflowMode overflow = (GeometryNodeStringToCurvesOverflowMode)
-                                                              storage.overflow;
-  const GeometryNodeStringToCurvesAlignXMode align_x = (GeometryNodeStringToCurvesAlignXMode)
-                                                           storage.align_x;
-  const GeometryNodeStringToCurvesAlignYMode align_y = (GeometryNodeStringToCurvesAlignYMode)
-                                                           storage.align_y;
+  const auto overflow = params.get_input<GeometryNodeStringToCurvesOverflowMode>("Overflow");
+  const auto align_x = params.get_input<GeometryNodeStringToCurvesAlignXMode>("Align X");
+  const auto align_y = params.get_input<GeometryNodeStringToCurvesAlignYMode>("Align Y");
 
   const float font_size = std::max(params.extract_input<float>("Size"), 0.0f);
   const float char_spacing = params.extract_input<float>("Character Spacing");
@@ -186,7 +287,7 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
   cu.linedist = line_spacing;
   cu.vfont = vfont;
   cu.overflow = overflow;
-  cu.tb = MEM_calloc_arrayN<TextBox>(MAXTEXTBOX, __func__);
+  cu.tb = MEM_new_array<TextBox>(MAXTEXTBOX, __func__);
   cu.tb->w = textbox_w;
   cu.tb->h = textbox_h;
   cu.totbox = 1;
@@ -196,9 +297,9 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
   cu.len = len_bytes;
   cu.pos = len_chars;
   /* The reason for the additional character here is unknown, but reflects other code elsewhere. */
-  cu.str = MEM_malloc_arrayN<char>(len_bytes + sizeof(char32_t), __func__);
+  cu.str = MEM_new_array_uninitialized<char>(len_bytes + sizeof(char32_t), __func__);
   memcpy(cu.str, layout.text.c_str(), len_bytes + 1);
-  cu.strinfo = MEM_calloc_arrayN<CharInfo>(len_chars + 1, __func__);
+  cu.strinfo = MEM_new_array<CharInfo>(len_chars + 1, __func__);
 
   CharTrans *chartransdata = nullptr;
   int text_len;
@@ -217,7 +318,7 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
                         &final_font_size);
 
   if (text_free) {
-    MEM_freeN(r_text);
+    MEM_delete(r_text);
   }
 
   Span<CharInfo> info{cu.strinfo, text_len};
@@ -245,16 +346,24 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
     }
   }
 
+  if (params.anonymous_attribute_output_is_required("Word")) {
+    layout.word_numbers.reinitialize(layout.positions.size());
+    for (const int i : layout.positions.index_range()) {
+      CharTrans &ct = chartransdata[i];
+      layout.word_numbers[i] = ct.wordnr;
+    }
+  }
+
   /* Convert UTF8 encoded string to UTF32. */
   len_chars = BLI_strlen_utf8_ex(layout.text.c_str(), &len_bytes);
   layout.char_codes.resize(len_chars + 1);
   BLI_str_utf8_as_utf32(layout.char_codes.data(), layout.text.c_str(), layout.char_codes.size());
   layout.char_codes.remove_last();
 
-  MEM_SAFE_FREE(chartransdata);
-  MEM_SAFE_FREE(cu.str);
-  MEM_SAFE_FREE(cu.strinfo);
-  MEM_SAFE_FREE(cu.tb);
+  MEM_SAFE_DELETE(chartransdata);
+  MEM_SAFE_DELETE(cu.str);
+  MEM_SAFE_DELETE(cu.strinfo);
+  MEM_SAFE_DELETE(cu.tb);
 
   return layout;
 }
@@ -264,7 +373,7 @@ static Map<int, int> create_curve_instances(GeoNodeExecParams &params,
                                             TextLayout &layout,
                                             bke::Instances &instances)
 {
-  VFont *vfont = reinterpret_cast<VFont *>(params.node().id);
+  VFont *vfont = params.get_input<VFont *>("Font");
   Map<int, int> handles;
   bool pivot_required = params.anonymous_attribute_output_is_required("Pivot Point");
 
@@ -349,6 +458,14 @@ static void create_attributes(GeoNodeExecParams &params,
     line_attribute.span.copy_from(layout.line_numbers);
     line_attribute.finish();
   }
+  if (std::optional<std::string> line_id = params.get_output_anonymous_attribute_id_if_needed(
+          "Word"))
+  {
+    SpanAttributeWriter<int> word_attribute = attributes.lookup_or_add_for_write_only_span<int>(
+        *line_id, AttrDomain::Instance);
+    word_attribute.span.copy_from(layout.word_numbers);
+    word_attribute.finish();
+  }
 
   if (std::optional<std::string> pivot_id = params.get_output_anonymous_attribute_id_if_needed(
           "Pivot Point"))
@@ -372,9 +489,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  const NodeGeometryStringToCurves &storage =
-      *(const NodeGeometryStringToCurves *)params.node().storage;
-  if (storage.overflow == GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE) {
+  const auto overflow = params.get_input<GeometryNodeStringToCurvesOverflowMode>("Overflow");
+  if (overflow == GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE) {
     params.set_output("Remainder", std::move(layout->truncated_text));
   }
 
@@ -385,17 +501,17 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   /* Create and add instances. */
-  std::unique_ptr<bke::Instances> instances = std::make_unique<bke::Instances>();
+  auto instances = std::make_unique<bke::Instances>();
   Map<int, int> char_handles = create_curve_instances(params, *layout, *instances);
   add_instances_from_handles(*instances, char_handles, *layout);
   create_attributes(params, *layout, *instances);
 
-  params.set_output("Curve Instances", GeometrySet::from_instances(instances.release()));
+  params.set_output("Curve Instances", GeometrySet::from_instances(std::move(instances)));
 }
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeStringToCurves", GEO_NODE_STRING_TO_CURVES);
   ntype.ui_name = "String to Curves";
@@ -407,11 +523,10 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.initfunc = node_init;
-  blender::bke::node_type_size(ntype, 190, 120, 700);
-  blender::bke::node_type_storage(
+  bke::node_type_size(ntype, 190, 120, 700);
+  bke::node_type_storage(
       ntype, "NodeGeometryStringToCurves", node_free_standard_storage, node_copy_standard_storage);
-  ntype.draw_buttons = node_layout;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

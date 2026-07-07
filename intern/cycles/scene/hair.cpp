@@ -356,6 +356,14 @@ void Hair::copy_center_to_motion_step(const int motion_step)
     const size_t numkeys = curve_keys.size();
     std::copy_n(keys, numkeys, attr_mP->data_float3() + motion_step * numkeys);
   }
+
+  Attribute *attr_mvN = attributes.find(ATTR_STD_MOTION_VERTEX_NORMAL);
+  Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
+  if (attr_mvN && attr_vN) {
+    packed_normal *vN = attr_vN->data_normal();
+    const size_t numkeys = curve_keys.size();
+    std::copy_n(vN, numkeys, attr_mvN->data_normal() + motion_step * numkeys);
+  }
 }
 
 void Hair::get_uv_tiles(ustring map, unordered_set<int> &tiles)
@@ -582,11 +590,27 @@ static void read_shader_output(float *shadow_transparency,
   is_fully_opaque = is_opaque;
 }
 
-bool Hair::need_shadow_transparency()
+bool Hair::need_shadow_transparency() const
 {
+  if (!is_traceable()) {
+    return false;
+  }
+
   for (const Node *node : used_shaders) {
     const Shader *shader = static_cast<const Shader *>(node);
     if (shader->has_surface_transparent && shader->get_use_transparent_shadow()) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool Hair::need_update_shadow_transparency() const
+{
+  for (const Node *node : used_shaders) {
+    const Shader *shader = static_cast<const Shader *>(node);
+    if (shader->need_update_shadow_transparency) {
       return true;
     }
   }
@@ -603,6 +627,11 @@ bool Hair::update_shadow_transparency(Device *device, Scene *scene, Progress &pr
       attributes.remove(attr);
       return true;
     }
+    return false;
+  }
+
+  if (!is_modified() && !need_update_shadow_transparency()) {
+    /* Neither geometry nor shader is modified, no need to update. */
     return false;
   }
 

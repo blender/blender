@@ -18,6 +18,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /***/
 
 struct HeapNode {
@@ -60,7 +62,7 @@ struct Heap {
 /** \name Internal Functions
  * \{ */
 
-#define HEAP_PARENT(i) (((i)-1) >> 1)
+#define HEAP_PARENT(i) (((i) - 1) >> 1)
 #define HEAP_LEFT(i) (((i) << 1) + 1)
 #define HEAP_RIGHT(i) (((i) << 1) + 2)
 #define HEAP_COMPARE(a, b) ((a)->value < (b)->value)
@@ -130,7 +132,7 @@ static void heap_up(Heap *heap, uint i)
 static HeapNode_Chunk *heap_node_alloc_chunk(uint nodes_num, HeapNode_Chunk *chunk_prev)
 {
   HeapNode_Chunk *chunk = static_cast<HeapNode_Chunk *>(
-      MEM_mallocN(sizeof(HeapNode_Chunk) + (sizeof(HeapNode) * nodes_num), __func__));
+      MEM_new_uninitialized(sizeof(HeapNode_Chunk) + (sizeof(HeapNode) * nodes_num), __func__));
   chunk->prev = chunk_prev;
   chunk->bufsize = nodes_num;
   chunk->size = 0;
@@ -170,11 +172,11 @@ static void heap_node_free(Heap *heap, HeapNode *node)
 
 Heap *BLI_heap_new_ex(uint reserve_num)
 {
-  Heap *heap = MEM_callocN<Heap>(__func__);
+  Heap *heap = MEM_new_zeroed<Heap>(__func__);
   /* ensure we have at least one so we can keep doubling it */
   heap->size = 0;
   heap->bufsize = std::max(1u, reserve_num);
-  heap->tree = MEM_calloc_arrayN<HeapNode *>(heap->bufsize, "BLIHeapTree");
+  heap->tree = MEM_new_array_zeroed<HeapNode *>(heap->bufsize, "BLIHeapTree");
 
   heap->nodes.chunk = heap_node_alloc_chunk(
       (reserve_num > 1) ? reserve_num : HEAP_CHUNK_DEFAULT_NUM, nullptr);
@@ -202,12 +204,12 @@ void BLI_heap_free(Heap *heap, HeapFreeFP ptrfreefp)
   do {
     HeapNode_Chunk *chunk_prev;
     chunk_prev = chunk->prev;
-    MEM_freeN(chunk);
+    MEM_delete(chunk);
     chunk = chunk_prev;
   } while (chunk);
 
-  MEM_freeN(heap->tree);
-  MEM_freeN(heap);
+  MEM_delete(heap->tree);
+  MEM_delete(heap);
 }
 
 void BLI_heap_clear(Heap *heap, HeapFreeFP ptrfreefp)
@@ -224,7 +226,7 @@ void BLI_heap_clear(Heap *heap, HeapFreeFP ptrfreefp)
   /* Remove all except the last chunk */
   while (heap->nodes.chunk->prev) {
     HeapNode_Chunk *chunk_prev = heap->nodes.chunk->prev;
-    MEM_freeN(heap->nodes.chunk);
+    MEM_delete(heap->nodes.chunk);
     heap->nodes.chunk = chunk_prev;
   }
   heap->nodes.chunk->size = 0;
@@ -238,7 +240,7 @@ HeapNode *BLI_heap_insert(Heap *heap, float value, void *ptr)
   if (UNLIKELY(heap->size >= heap->bufsize)) {
     heap->bufsize *= 2;
     heap->tree = static_cast<HeapNode **>(
-        MEM_reallocN(heap->tree, heap->bufsize * sizeof(*heap->tree)));
+        MEM_realloc_uninitialized(heap->tree, heap->bufsize * sizeof(*heap->tree)));
   }
 
   node = heap_node_alloc(heap);
@@ -381,3 +383,5 @@ bool BLI_heap_is_valid(const Heap *heap)
 }
 
 /** \} */
+
+}  // namespace blender

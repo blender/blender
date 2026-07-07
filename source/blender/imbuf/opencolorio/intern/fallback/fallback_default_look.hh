@@ -26,6 +26,11 @@ class FallbackDefaultLook : public Look {
     return name();
   }
 
+  StringRefNull description() const override
+  {
+    return "";
+  }
+
   StringRefNull view() const override
   {
     return "";

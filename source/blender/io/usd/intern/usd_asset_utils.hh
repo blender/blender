@@ -23,7 +23,7 @@ namespace blender::io::usd {
  */
 bool copy_asset(const std::string &src,
                 const std::string &dst,
-                eUSDTexNameCollisionMode name_collision_mode,
+                TexNameCollisionMode name_collision_mode,
                 ReportList *reports);
 
 /**
@@ -52,7 +52,7 @@ bool asset_exists(const std::string &path);
  */
 std::string import_asset(const std::string &src,
                          const char *import_dir,
-                         eUSDTexNameCollisionMode name_collision_mode,
+                         TexNameCollisionMode name_collision_mode,
                          ReportList *reports);
 
 /**

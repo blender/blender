@@ -33,6 +33,8 @@
 
 #include "io_cache.hh"
 
+namespace blender {
+
 static void reload_cachefile(bContext *C, CacheFile *cache_file)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -44,7 +46,7 @@ static void cachefile_init(bContext *C, wmOperator *op)
   PropertyPointerRNA *pprop;
 
   op->customdata = pprop = MEM_new<PropertyPointerRNA>("OpenPropertyPointerRNA");
-  UI_context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
+  ui::context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
 }
 
 static wmOperatorStatus cachefile_open_invoke(bContext *C,
@@ -315,5 +317,7 @@ void CACHEFILE_OT_layer_move(wmOperatorType *ot)
                layer_slot_move,
                0,
                "Direction",
-               "Direction to move the active vertex group towards");
+               "Direction to move the active layer towards");
 }
+
+}  // namespace blender

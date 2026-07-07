@@ -18,8 +18,6 @@
 #include "overlay_shader_shared.hh"
 
 namespace blender::draw::overlay {
-using namespace blender;
-
 enum eArmatureDrawMode {
   ARM_DRAW_MODE_OBJECT,
   ARM_DRAW_MODE_POSE,
@@ -135,14 +133,14 @@ class Armatures : Overlay {
       });
     }
 
-    BoneBuffers(const SelectionType selection_type) : selection_type_(selection_type){};
+    BoneBuffers(const SelectionType selection_type) : selection_type_(selection_type) {};
   };
 
   BoneBuffers opaque_ = {selection_type_};
   BoneBuffers transparent_ = {selection_type_};
 
  public:
-  Armatures(const SelectionType selection_type) : selection_type_(selection_type){};
+  Armatures(const SelectionType selection_type) : selection_type_(selection_type) {};
 
   void begin_sync(Resources &res, const State &state) final
   {

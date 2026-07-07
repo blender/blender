@@ -10,6 +10,8 @@
 
 #include "bmesh_class.hh"
 
+namespace blender {
+
 enum {
   /** Vertices tags must match (special case). */
   VERT_RESTRICT_TAG = (1 << 0),
@@ -40,3 +42,5 @@ float BM_verts_calc_rotate_beauty(const BMVert *v1,
                                   const BMVert *v4,
                                   short flag,
                                   short method);
+
+}  // namespace blender

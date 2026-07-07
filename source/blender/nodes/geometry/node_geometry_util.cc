@@ -21,7 +21,9 @@
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
 
-namespace blender::nodes {
+namespace blender {
+
+namespace nodes {
 
 bool check_tool_context_and_error(GeoNodeExecParams &params)
 {
@@ -40,11 +42,12 @@ void search_link_ops_for_tool_node(GatherLinkSearchOpParams &params)
   }
 }
 
-void search_link_ops_for_volume_grid_node(GatherLinkSearchOpParams &params)
+void node_geo_sdf_grid_error_not_levelset(GeoNodeExecParams &params)
 {
-  if (USER_EXPERIMENTAL_TEST(&U, use_new_volume_nodes)) {
-    nodes::search_link_ops_for_basic_node(params);
-  }
+  params.error_message_add(
+      NodeWarningType::Error,
+      "Input grid is not a valid level set. Use a signed distance field grid as input");
+  params.set_default_remaining_outputs();
 }
 
 namespace enums {
@@ -110,9 +113,15 @@ void node_geo_exec_with_missing_openvdb(GeoNodeExecParams &params)
                            TIP_("Disabled, Blender was compiled without OpenVDB"));
 }
 
-}  // namespace blender::nodes
+void node_geo_exec_with_too_old_openvdb(GeoNodeExecParams &params)
+{
+  params.set_default_remaining_outputs();
+  params.error_message_add(NodeWarningType::Error, TIP_("Disabled, OpenVDB version is too old"));
+}
 
-bool geo_node_poll_default(const blender::bke::bNodeType * /*ntype*/,
+}  // namespace nodes
+
+bool geo_node_poll_default(const bke::bNodeType * /*ntype*/,
                            const bNodeTree *ntree,
                            const char **r_disabled_hint)
 {
@@ -123,17 +132,17 @@ bool geo_node_poll_default(const blender::bke::bNodeType * /*ntype*/,
   return true;
 }
 
-void geo_node_type_base(blender::bke::bNodeType *ntype,
+void geo_node_type_base(bke::bNodeType *ntype,
                         std::string idname,
                         const std::optional<int16_t> legacy_type)
 {
-  blender::bke::node_type_base(*ntype, idname, legacy_type);
+  bke::node_type_base(*ntype, idname, legacy_type);
   ntype->poll = geo_node_poll_default;
   ntype->insert_link = node_insert_link_default;
-  ntype->gather_link_search_ops = blender::nodes::search_link_ops_for_basic_node;
+  ntype->gather_link_search_ops = nodes::search_link_ops_for_basic_node;
 }
 
-static bool geo_cmp_node_poll_default(const blender::bke::bNodeType * /*ntype*/,
+static bool geo_cmp_node_poll_default(const bke::bNodeType * /*ntype*/,
                                       const bNodeTree *ntree,
                                       const char **r_disabled_hint)
 {
@@ -144,12 +153,14 @@ static bool geo_cmp_node_poll_default(const blender::bke::bNodeType * /*ntype*/,
   return true;
 }
 
-void geo_cmp_node_type_base(blender::bke::bNodeType *ntype,
+void geo_cmp_node_type_base(bke::bNodeType *ntype,
                             std::string idname,
                             const std::optional<int16_t> legacy_type)
 {
-  blender::bke::node_type_base(*ntype, idname, legacy_type);
+  bke::node_type_base(*ntype, idname, legacy_type);
   ntype->poll = geo_cmp_node_poll_default;
   ntype->insert_link = node_insert_link_default;
-  ntype->gather_link_search_ops = blender::nodes::search_link_ops_for_basic_node;
+  ntype->gather_link_search_ops = nodes::search_link_ops_for_basic_node;
 }
+
+}  // namespace blender

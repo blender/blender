@@ -48,9 +48,7 @@ struct GrainSize {
   explicit constexpr GrainSize(const int64_t grain_size) : value(grain_size) {}
 };
 
-}  // namespace blender
-
-namespace blender::threading {
+namespace threading {
 
 template<typename Range, typename Function>
 inline void parallel_for_each(Range &&range, const Function &function)
@@ -245,13 +243,13 @@ inline void parallel_invoke(const bool use_threading, Functions &&...functions)
 }
 
 /** See #BLI_task_isolate for a description of what isolating a task means. */
-template<typename Function> inline void isolate_task(const Function &function)
+template<typename Function> inline auto isolate_task(const Function &function)
 {
 #ifdef WITH_TBB
   lazy_threading::ReceiverIsolation isolation;
-  tbb::this_task_arena::isolate(function);
+  return tbb::this_task_arena::isolate(function);
 #else
-  function();
+  return function();
 #endif
 }
 
@@ -277,4 +275,5 @@ inline void memory_bandwidth_bound_task(const int64_t approximate_bytes_touched,
   detail::memory_bandwidth_bound_task_impl(function);
 }
 
-}  // namespace blender::threading
+}  // namespace threading
+}  // namespace blender

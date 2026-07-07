@@ -37,6 +37,13 @@ using bke::bNodeTreeZones;
 
 ViewerPathElem *viewer_path_elem_for_compute_context(const ComputeContext &compute_context)
 {
+  if (const auto *context = dynamic_cast<const bke::DataBlockComputeContext *>(&compute_context)) {
+    IDViewerPathElem *elem = BKE_viewer_path_elem_new_id();
+    elem->id = const_cast<ID *>(context->id());
+    BLI_assert(elem->id);
+    elem->base.ui_name = BLI_strdup(BKE_id_name(*elem->id));
+    return &elem->base;
+  }
   if (const auto *context = dynamic_cast<const bke::ModifierComputeContext *>(&compute_context)) {
     ModifierViewerPathElem *elem = BKE_viewer_path_elem_new_modifier();
     elem->modifier_uid = context->modifier_uid();
@@ -112,18 +119,13 @@ static void viewer_path_for_geometry_node(const SpaceNode &snode,
     return;
   }
 
-  Object *ob = reinterpret_cast<Object *>(snode.id);
-  IDViewerPathElem *id_elem = BKE_viewer_path_elem_new_id();
-  id_elem->id = &ob->id;
-  BLI_addhead(&r_dst.path, id_elem);
-
   for (const ComputeContext *context = socket_context; context; context = context->parent()) {
     ViewerPathElem *elem = viewer_path_elem_for_compute_context(*context);
     if (!elem) {
       BKE_viewer_path_clear(&r_dst);
       return;
     }
-    BLI_insertlinkafter(&r_dst.path, id_elem, elem);
+    BLI_addhead(&r_dst.path, elem);
   }
 
   ViewerNodeViewerPathElem *viewer_node_elem = BKE_viewer_path_elem_new_viewer_node();
@@ -132,9 +134,12 @@ static void viewer_path_for_geometry_node(const SpaceNode &snode,
   BLI_addtail(&r_dst.path, viewer_node_elem);
 }
 
-void activate_geometry_node(Main &bmain, SpaceNode &snode, bNode &node)
+void activate_geometry_node(Main &bmain,
+                            SpaceNode &snode,
+                            bNode &node,
+                            std::optional<int> item_identifier)
 {
-  wmWindowManager *wm = (wmWindowManager *)bmain.wm.first;
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain.wm.first);
   if (wm == nullptr) {
     return;
   }
@@ -151,15 +156,22 @@ void activate_geometry_node(Main &bmain, SpaceNode &snode, bNode &node)
 
   bool found_view3d_with_enabled_viewer = false;
   View3D *any_view3d_without_viewer = nullptr;
-  LISTBASE_FOREACH (wmWindow *, window, &wm->windows) {
-    WorkSpace *workspace = BKE_workspace_active_get(window->workspace_hook);
-    bScreen *screen = BKE_workspace_active_screen_get(window->workspace_hook);
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
+  for (wmWindow &window : wm->windows) {
+    WorkSpace *workspace = BKE_workspace_active_get(window.workspace_hook);
+    bScreen *screen = BKE_workspace_active_screen_get(window.workspace_hook);
+    for (ScrArea &area : screen->areabase) {
+      SpaceLink *sl = static_cast<SpaceLink *>(area.spacedata.first);
       if (sl->spacetype == SPACE_SPREADSHEET) {
         SpaceSpreadsheet &sspreadsheet = *reinterpret_cast<SpaceSpreadsheet *>(sl);
         if (!(sspreadsheet.flag & SPREADSHEET_FLAG_PINNED)) {
-          sspreadsheet.geometry_id.object_eval_state = SPREADSHEET_OBJECT_EVAL_STATE_VIEWER_NODE;
+          SpreadsheetTableIDGeometry &table_id = sspreadsheet.geometry_id;
+          table_id.object_eval_state = SPREADSHEET_OBJECT_EVAL_STATE_VIEWER_NODE;
+          if (item_identifier) {
+            table_id.viewer_item_identifier = *item_identifier;
+          }
+          MEM_SAFE_DELETE(table_id.viewer_item_bundle_path.bundle_path);
+          table_id.viewer_item_bundle_path.bundle_path_num = 0;
+          table_id.viewer_item_bundle_path.closure_input_output = SPREADSHEET_CLOSURE_NONE;
         }
       }
       else if (sl->spacetype == SPACE_VIEW3D) {
@@ -210,8 +222,8 @@ std::optional<ViewerPathForGeometryNodesViewer> parse_geometry_nodes_viewer(
     const ViewerPath &viewer_path)
 {
   Vector<const ViewerPathElem *, 16> elems_vec;
-  LISTBASE_FOREACH (const ViewerPathElem *, item, &viewer_path.path) {
-    elems_vec.append(item);
+  for (const ViewerPathElem &item : viewer_path.path) {
+    elems_vec.append(&item);
   }
 
   if (elems_vec.size() < 3) {
@@ -265,20 +277,20 @@ std::optional<ViewerPathForGeometryNodesViewer> parse_geometry_nodes_viewer(
 bool exists_geometry_nodes_viewer(const ViewerPathForGeometryNodesViewer &parsed_viewer_path)
 {
   const NodesModifierData *modifier = nullptr;
-  LISTBASE_FOREACH (const ModifierData *, md, &parsed_viewer_path.object->modifiers) {
-    if (md->type != eModifierType_Nodes) {
+  for (const ModifierData &md : parsed_viewer_path.object->modifiers) {
+    if (md.type != eModifierType_Nodes) {
       continue;
     }
-    if (md->persistent_uid != parsed_viewer_path.modifier_uid) {
+    if (md.persistent_uid != parsed_viewer_path.modifier_uid) {
       continue;
     }
-    modifier = reinterpret_cast<const NodesModifierData *>(md);
+    modifier = reinterpret_cast<const NodesModifierData *>(&md);
     break;
   }
   if (modifier == nullptr) {
     return false;
   }
-  if (modifier->node_group == nullptr) {
+  if (modifier->node_group == nullptr || ID_MISSING(modifier->node_group)) {
     return false;
   }
   const bNodeTree *ngroup = modifier->node_group;
@@ -411,16 +423,16 @@ UpdateActiveGeometryNodesViewerResult update_active_geometry_nodes_viewer(const 
   if (wm == nullptr) {
     return UpdateActiveGeometryNodesViewerResult::NotActive;
   }
-  LISTBASE_FOREACH (const wmWindow *, window, &wm->windows) {
-    const bScreen *active_screen = BKE_workspace_active_screen_get(window->workspace_hook);
+  for (const wmWindow &window : wm->windows) {
+    const bScreen *active_screen = BKE_workspace_active_screen_get(window.workspace_hook);
     Vector<const bScreen *> screens = {active_screen};
     if (ELEM(active_screen->state, SCREENMAXIMIZED, SCREENFULL)) {
       const ScrArea *area = static_cast<ScrArea *>(active_screen->areabase.first);
       screens.append(area->full);
     }
     for (const bScreen *screen : screens) {
-      LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
-        const SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
+      for (const ScrArea &area : screen->areabase) {
+        const SpaceLink *sl = static_cast<SpaceLink *>(area.spacedata.first);
         if (sl == nullptr) {
           continue;
         }
@@ -507,9 +519,15 @@ bNode *find_geometry_nodes_viewer(const ViewerPath &viewer_path, SpaceNode &snod
     const ComputeContext *parent_compute_context)
 {
   switch (ViewerPathElemType(elem_generic.type)) {
-    case VIEWER_PATH_ELEM_TYPE_VIEWER_NODE:
-    case VIEWER_PATH_ELEM_TYPE_ID: {
+    case VIEWER_PATH_ELEM_TYPE_VIEWER_NODE: {
       return nullptr;
+    }
+    case VIEWER_PATH_ELEM_TYPE_ID: {
+      const auto &elem = reinterpret_cast<const IDViewerPathElem &>(elem_generic);
+      if (elem.id == nullptr) {
+        return nullptr;
+      }
+      return &compute_context_cache.for_data_block(parent_compute_context, *elem.id);
     }
     case VIEWER_PATH_ELEM_TYPE_MODIFIER: {
       const auto &elem = reinterpret_cast<const ModifierViewerPathElem &>(elem_generic);

@@ -18,16 +18,16 @@
 #include "BKE_attribute_math.hh"
 #include "BKE_geometry_fields.hh"
 
+namespace blender {
+
 struct Mesh;
 
-namespace blender {
 class RandomNumberGenerator;
 namespace bke {
 struct BVHTreeFromMesh;
 }
-}  // namespace blender
 
-namespace blender::bke::mesh_surface_sample {
+namespace bke::mesh_surface_sample {
 
 void sample_point_attribute(Span<int> corner_verts,
                             Span<int3> corner_tris,
@@ -191,4 +191,6 @@ class BaryWeightSampleFn : public mf::MultiFunction {
   void evaluate_source(fn::GField src_field);
 };
 
-}  // namespace blender::bke::mesh_surface_sample
+}  // namespace bke::mesh_surface_sample
+
+}  // namespace blender

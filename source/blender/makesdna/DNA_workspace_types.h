@@ -14,14 +14,11 @@
 #include "DNA_asset_types.h"
 #include "DNA_viewer_path_types.h"
 
-#ifdef __cplusplus
-namespace blender::bke {
+namespace blender {
+
+namespace bke {
 struct WorkSpaceRuntime;
 }
-using WorkSpaceRuntimeHandle = blender::bke::WorkSpaceRuntime;
-#else
-typedef struct WorkSpaceRuntimeHandle WorkSpaceRuntimeHandle;
-#endif
 
 /** #bToolRef_Runtime.flag */
 enum {
@@ -35,13 +32,13 @@ enum {
 
 #
 #
-typedef struct bToolRef_Runtime {
-  int cursor;
+struct bToolRef_Runtime {
+  int cursor = 0;
 
   /** One of these 4 must be defined. */
-  char keymap[64];
-  char gizmo_group[64];
-  char data_block[64];
+  char keymap[64] = "";
+  char gizmo_group[64] = "";
+  char data_block[64] = "";
   /**
    * The brush type this tool is limited too, if #TOOLREF_FLAG_USE_BRUSHES is set. Note that this
    * is a different enum in different modes, e.g. #eBrushSculptType in sculpt mode,
@@ -49,29 +46,29 @@ typedef struct bToolRef_Runtime {
    *
    *  -1 means any brush type may be used (0 is used by brush type enums of some modes).
    */
-  int brush_type;
+  int brush_type = 0;
 
   /** Keymap for #bToolRef.idname_fallback, if set. */
-  char keymap_fallback[64];
+  char keymap_fallback[64] = "";
 
   /** Use to infer primary operator to use when setting accelerator keys. */
-  char op[64];
+  char op[64] = "";
 
   /** Index when a tool is a member of a group. */
-  int index;
+  int index = 0;
   /** Options: `TOOLREF_FLAG_*`. */
-  int flag;
-} bToolRef_Runtime;
+  int flag = 0;
+};
 
 /**
  * \note Stored per mode.
  */
-typedef struct bToolRef {
-  struct bToolRef *next, *prev;
-  char idname[64];
+struct bToolRef {
+  struct bToolRef *next = nullptr, *prev = nullptr;
+  char idname[64] = "";
 
   /** Optionally use these when not interacting directly with the primary tools gizmo. */
-  char idname_fallback[64];
+  char idname_fallback[64] = "";
 
   /**
    * A pending request to switch to a different tool,
@@ -87,20 +84,20 @@ typedef struct bToolRef {
    *   for a request to sync to another area isn't handled if the area isn't visible.
    *   So store this in the file, so the pending change can be performed when the area is shown.
    */
-  char idname_pending[64];
+  char idname_pending[64] = "";
 
   /** Use to avoid initializing the same tool multiple times. */
-  short tag;
+  short tag = 0;
 
   /** #bToolKey (space-type, mode), used in 'WM_api.hh' */
-  short space_type;
+  short space_type = 0;
   /**
    * Value depends on the 'space_type', object mode for 3D view, image editor has its own mode too.
    * RNA needs to handle using item function.
    *
    * See: #eSpaceImageMode for SPACE_IMAGE, #eContextObjectMode for SPACE_VIEW3D, etc
    */
-  int mode;
+  int mode = 0;
 
   /**
    * Use for tool options, each group's name must match a tool name:
@@ -109,11 +106,11 @@ typedef struct bToolRef {
    *
    * This is done since different tools may call the same operators with their own options.
    */
-  IDProperty *properties;
+  IDProperty *properties = nullptr;
 
   /** Variables needed to operate the tool. */
-  bToolRef_Runtime *runtime;
-} bToolRef;
+  bToolRef_Runtime *runtime = nullptr;
+};
 
 /**
  * \brief Wrapper for bScreen.
@@ -124,23 +121,30 @@ typedef struct bToolRef {
  * which would mess with the next/prev pointers.
  * So we use this struct to wrap a bScreen pointer with another pair of next/prev pointers.
  */
-typedef struct WorkSpaceLayout {
-  struct WorkSpaceLayout *next, *prev;
+struct WorkSpaceLayout {
+  struct WorkSpaceLayout *next = nullptr, *prev = nullptr;
 
-  struct bScreen *screen;
+  struct bScreen *screen = nullptr;
   /* The name of this layout, we override the RNA name of the screen with this
    * (but not ID name itself) */
-  char name[/*MAX_NAME*/ 64];
-} WorkSpaceLayout;
+  char name[/*MAX_NAME*/ 64] = "";
+};
 
 /** Optional tags, which features to use, aligned with #bAddon names by convention. */
-typedef struct wmOwnerID {
-  struct wmOwnerID *next, *prev;
+struct wmOwnerID {
+  struct wmOwnerID *next = nullptr, *prev = nullptr;
   /** Optional, see: #wmOwnerID. */
-  char name[128];
-} wmOwnerID;
+  char name[128] = "";
+};
 
-typedef struct WorkSpace {
+enum eWorkSpaceFlags {
+  WORKSPACE_USE_FILTER_BY_ORIGIN = (1 << 1),
+  WORKSPACE_USE_PIN_SCENE = (1 << 2),
+  /* Used for syncing time between sequencer scene strips and the active scene. */
+  WORKSPACE_SYNC_SCENE_TIME = (1 << 3),
+};
+
+struct WorkSpace {
 #ifdef __cplusplus
   /** See #ID_Type comment for why this is here. */
   static constexpr ID_Type id_type = ID_WS;
@@ -148,39 +152,35 @@ typedef struct WorkSpace {
 
   ID id;
 
-  /** WorkSpaceLayout. */
-  ListBase layouts;
+  ListBaseT<WorkSpaceLayout> layouts = {nullptr, nullptr};
   /* Store for each hook (so for each window) which layout has
    * been activated the last time this workspace was visible. */
-  /** WorkSpaceDataRelation. */
-  ListBase hook_layout_relations;
+  ListBaseT<struct WorkSpaceDataRelation> hook_layout_relations = {nullptr, nullptr};
 
   /* Feature tagging (use for addons) */
-  /** #wmOwnerID. */
-  ListBase owner_ids;
+  ListBaseT<wmOwnerID> owner_ids = {nullptr, nullptr};
 
-  /** List of #bToolRef */
-  ListBase tools;
+  ListBaseT<bToolRef> tools = {nullptr, nullptr};
 
   /** Optional, scene to switch to when enabling this workspace (NULL to disable). Cleared on
    * link/append. */
-  struct Scene *pin_scene;
+  struct Scene *pin_scene = nullptr;
 
   /* Scene that is used by the sequence editors in this workspace. */
-  struct Scene *sequencer_scene;
+  struct Scene *sequencer_scene = nullptr;
 
-  char _pad[4];
+  char _pad[4] = {};
 
-  int object_mode;
+  int object_mode = 0;
 
   /** Enum eWorkSpaceFlags. */
-  int flags;
+  int flags = 0;
 
   /** Number for workspace tab reordering in the UI. */
-  int order;
+  int order = 0;
 
   /** Info text from modal operators (runtime). */
-  WorkSpaceRuntimeHandle *runtime;
+  bke::WorkSpaceRuntime *runtime = nullptr;
 
   /** Workspace-wide active asset library, for asset UIs to use (e.g. asset view UI template). The
    * Asset Browser has its own and doesn't use this. */
@@ -192,7 +192,7 @@ typedef struct WorkSpace {
    * spreadsheet and viewport do this).
    */
   ViewerPath viewer_path;
-} WorkSpace;
+};
 
 /**
  * Generic (and simple/primitive) struct for storing a history of assignments/relations
@@ -217,40 +217,35 @@ typedef struct WorkSpace {
  * To find the screen-layout to activate for this window-workspace combination, simply lookup
  * the WorkSpaceDataRelation with the workspace-hook of the window set as parent.
  */
-typedef struct WorkSpaceDataRelation {
-  struct WorkSpaceDataRelation *next, *prev;
+struct WorkSpaceDataRelation {
+  struct WorkSpaceDataRelation *next = nullptr, *prev = nullptr;
 
   /** The data used to identify the relation
    * (e.g. to find screen-layout (= value) from/for a hook).
    * NOTE: Now runtime only. */
-  void *parent;
+  void *parent = nullptr;
   /** The value for this parent-data/workspace relation. */
-  void *value;
+  void *value = nullptr;
 
   /** Reference to the actual parent window, #wmWindow.winid. Used in read/write code. */
-  int parentid;
-  char _pad_0[4];
-} WorkSpaceDataRelation;
+  int parentid = 0;
+  char _pad_0[4] = {};
+};
 
 /**
  * Little wrapper to store data that is going to be per window, but coming from the workspace.
  * It allows us to keep workspace and window data completely separate.
  */
-typedef struct WorkSpaceInstanceHook {
-  WorkSpace *active;
-  struct WorkSpaceLayout *act_layout;
+struct WorkSpaceInstanceHook {
+  WorkSpace *active = nullptr;
+  struct WorkSpaceLayout *act_layout = nullptr;
 
   /**
    * Needed because we can't change work-spaces/layouts in running handler loop,
    * it would break context.
    */
-  WorkSpace *temp_workspace_store;
-  struct WorkSpaceLayout *temp_layout_store;
-} WorkSpaceInstanceHook;
+  WorkSpace *temp_workspace_store = nullptr;
+  struct WorkSpaceLayout *temp_layout_store = nullptr;
+};
 
-typedef enum eWorkSpaceFlags {
-  WORKSPACE_USE_FILTER_BY_ORIGIN = (1 << 1),
-  WORKSPACE_USE_PIN_SCENE = (1 << 2),
-  /* Used for syncing time between sequencer scene strips and the active scene. */
-  WORKSPACE_SYNC_SCENE_TIME = (1 << 3),
-} eWorkSpaceFlags;
+}  // namespace blender

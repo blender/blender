@@ -7,7 +7,6 @@ set(INC
 )
 
 set(INC_SYS
-  ${PYTHON_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -41,8 +40,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   bf_python_mathutils
 
-  ${PYTHON_LINKFLAGS}
-  ${PYTHON_LIBRARIES}
+  PRIVATE bf::dependencies::optional::python
 )
 
 if(WITH_FREESTYLE)

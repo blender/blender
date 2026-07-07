@@ -7,6 +7,8 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 /** \file
  * \ingroup bli
  * \brief Random number functions.
@@ -18,10 +20,7 @@
  * the global RNG is not thread safe and will not give repeatable results.
  */
 struct RNG;
-typedef struct RNG RNG;
-
 struct RNG_THREAD_ARRAY;
-typedef struct RNG_THREAD_ARRAY RNG_THREAD_ARRAY;
 
 struct RNG *BLI_rng_new(unsigned int seed);
 /**
@@ -98,3 +97,5 @@ void BLI_halton_1d(unsigned int prime, double offset, int n, double *r);
 void BLI_halton_2d(const unsigned int prime[2], double offset[2], int n, double *r);
 void BLI_halton_3d(const unsigned int prime[3], double offset[3], int n, double *r);
 void BLI_hammersley_1d(unsigned int n, double *r);
+
+}  // namespace blender

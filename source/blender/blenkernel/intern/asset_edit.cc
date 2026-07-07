@@ -160,11 +160,21 @@ static bool asset_write_in_library(Main &bmain,
 
   ID &id = const_cast<ID &>(id_const);
 
-  PartialWriteContext lib_write_ctx{BKE_main_blendfile_path(&bmain)};
+  /* This is not expected to ever happen currently from this code-path. */
+  BLI_assert(!ID_IS_PACKED(&id));
+
+  PartialWriteContext lib_write_ctx{bmain};
   ID *new_id = lib_write_ctx.id_add(&id,
                                     {(PartialWriteContext::IDAddOperations::MAKE_LOCAL |
                                       PartialWriteContext::IDAddOperations::SET_FAKE_USER |
                                       PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES)});
+  if (!new_id) {
+    BKE_reportf(&reports,
+                RPT_ERROR,
+                "Could not create a copy of ID '%s' to write it in the library",
+                id.name);
+    return false;
+  }
 
   std::string new_name = name;
   BKE_libblock_rename(lib_write_ctx.bmain, *new_id, new_name);

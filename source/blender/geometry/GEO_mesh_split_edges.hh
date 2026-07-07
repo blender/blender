@@ -8,12 +8,15 @@
 
 #include "BKE_attribute_filter.hh"
 
+namespace blender {
+
 struct Mesh;
 
-namespace blender::geometry {
+namespace geometry {
 
 void split_edges(Mesh &mesh,
                  const IndexMask &selected_edges,
                  const bke::AttributeFilter &attribute_filter = {});
 
-}  // namespace blender::geometry
+}  // namespace geometry
+}  // namespace blender

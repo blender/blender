@@ -187,7 +187,7 @@ static int PHashSizes[] = {
 
 static PHash *phash_new(PHashLink **list, int sizehint)
 {
-  PHash *ph = MEM_callocN<PHash>("PHash");
+  PHash *ph = MEM_new_zeroed<PHash>("PHash");
   ph->size = 0;
   ph->cursize_id = 0;
   ph->list = list;
@@ -197,7 +197,7 @@ static PHash *phash_new(PHashLink **list, int sizehint)
   }
 
   ph->cursize = PHashSizes[ph->cursize_id];
-  ph->buckets = MEM_calloc_arrayN<PHashLink *>(ph->cursize, "PHashBuckets");
+  ph->buckets = MEM_new_array_zeroed<PHashLink *>(ph->cursize, "PHashBuckets");
 
   return ph;
 }
@@ -207,8 +207,8 @@ static void phash_safe_delete(PHash **pph)
   if (!*pph) {
     return;
   }
-  MEM_SAFE_FREE((*pph)->buckets);
-  MEM_freeN(*pph);
+  MEM_SAFE_DELETE((*pph)->buckets);
+  MEM_delete(*pph);
   *pph = nullptr;
 }
 
@@ -241,8 +241,8 @@ static void phash_insert(PHash *ph, PHashLink *link)
     PHashLink *next = nullptr, *first = *(ph->list);
 
     ph->cursize = PHashSizes[++ph->cursize_id];
-    MEM_freeN(ph->buckets);
-    ph->buckets = (PHashLink **)MEM_callocN(ph->cursize * sizeof(*ph->buckets), "PHashBuckets");
+    MEM_delete(ph->buckets);
+    ph->buckets = MEM_new_array_zeroed<PHashLink *>(ph->cursize, "PHashBuckets");
     ph->size = 0;
     *(ph->list) = nullptr;
 
@@ -713,7 +713,7 @@ static void p_face_restore_uvs(PFace *f)
 static PVert *p_vert_add(
     ParamHandle *handle, PHashKey key, const float co[3], const float weight, PEdge *e)
 {
-  PVert *v = (PVert *)BLI_memarena_alloc(handle->arena, sizeof(*v));
+  PVert *v = static_cast<PVert *>(BLI_memarena_alloc(handle->arena, sizeof(*v)));
   copy_v3_v3(v->co, co);
   v->weight = weight;
 
@@ -734,7 +734,7 @@ static PVert *p_vert_add(
   v->on_boundary_flag = false;
   v->slim_id = 0;
 
-  phash_insert(handle->hash_verts, (PHashLink *)v);
+  phash_insert(handle->hash_verts, reinterpret_cast<PHashLink *>(v));
 
   return v;
 }
@@ -742,7 +742,7 @@ static PVert *p_vert_add(
 static PVert *p_vert_lookup(
     ParamHandle *handle, PHashKey key, const float co[3], const float weight, PEdge *e)
 {
-  PVert *v = (PVert *)phash_lookup(handle->hash_verts, key);
+  PVert *v = reinterpret_cast<PVert *>(phash_lookup(handle->hash_verts, key));
 
   if (v) {
     return v;
@@ -752,7 +752,7 @@ static PVert *p_vert_lookup(
 
 static PVert *p_vert_copy(ParamHandle *handle, PVert *v)
 {
-  PVert *nv = (PVert *)BLI_memarena_alloc(handle->arena, sizeof(*nv));
+  PVert *nv = static_cast<PVert *>(BLI_memarena_alloc(handle->arena, sizeof(*nv)));
 
   copy_v3_v3(nv->co, v->co);
   nv->uv[0] = v->uv[0];
@@ -771,7 +771,7 @@ static PVert *p_vert_copy(ParamHandle *handle, PVert *v)
 static PEdge *p_edge_lookup(ParamHandle *handle, const PHashKey *vkeys)
 {
   PHashKey key = PHASH_edge(vkeys[0], vkeys[1]);
-  PEdge *e = (PEdge *)phash_lookup(handle->hash_edges, key);
+  PEdge *e = reinterpret_cast<PEdge *>(phash_lookup(handle->hash_edges, key));
 
   while (e) {
     if ((e->vert->u.key == vkeys[0]) && (e->next->vert->u.key == vkeys[1])) {
@@ -781,7 +781,8 @@ static PEdge *p_edge_lookup(ParamHandle *handle, const PHashKey *vkeys)
       return e;
     }
 
-    e = (PEdge *)phash_next(handle->hash_edges, key, (PHashLink *)e);
+    e = reinterpret_cast<PEdge *>(
+        phash_next(handle->hash_edges, key, reinterpret_cast<PHashLink *>(e)));
   }
 
   return nullptr;
@@ -789,9 +790,9 @@ static PEdge *p_edge_lookup(ParamHandle *handle, const PHashKey *vkeys)
 
 static int p_face_exists(ParamHandle *handle, const ParamKey *pvkeys, int i1, int i2, int i3)
 {
-  PHashKey *vkeys = (PHashKey *)pvkeys;
+  PHashKey *vkeys = const_cast<PHashKey *>(pvkeys);
   PHashKey key = PHASH_edge(vkeys[i1], vkeys[i2]);
-  PEdge *e = (PEdge *)phash_lookup(handle->hash_edges, key);
+  PEdge *e = reinterpret_cast<PEdge *>(phash_lookup(handle->hash_edges, key));
 
   while (e) {
     if ((e->vert->u.key == vkeys[i1]) && (e->next->vert->u.key == vkeys[i2])) {
@@ -805,7 +806,8 @@ static int p_face_exists(ParamHandle *handle, const ParamKey *pvkeys, int i1, in
       }
     }
 
-    e = (PEdge *)phash_next(handle->hash_edges, key, (PHashLink *)e);
+    e = reinterpret_cast<PEdge *>(
+        phash_next(handle->hash_edges, key, reinterpret_cast<PHashLink *>(e)));
   }
 
   return false;
@@ -858,7 +860,7 @@ static bool p_edge_has_pair(ParamHandle *handle, PEdge *e, bool topology_from_uv
   }
 
   key = PHASH_edge(key1, key2);
-  pe = (PEdge *)phash_lookup(handle->hash_edges, key);
+  pe = reinterpret_cast<PEdge *>(phash_lookup(handle->hash_edges, key));
   *r_pair = nullptr;
 
   while (pe) {
@@ -882,7 +884,8 @@ static bool p_edge_has_pair(ParamHandle *handle, PEdge *e, bool topology_from_uv
       }
     }
 
-    pe = (PEdge *)phash_next(handle->hash_edges, key, (PHashLink *)pe);
+    pe = reinterpret_cast<PEdge *>(
+        phash_next(handle->hash_edges, key, reinterpret_cast<PHashLink *>(pe)));
   }
 
   if (*r_pair && (e->vert == (*r_pair)->vert)) {
@@ -922,8 +925,8 @@ static bool p_edge_connect_pair(ParamHandle *handle,
 
 static int p_connect_pairs(ParamHandle *handle, bool topology_from_uvs)
 {
-  PEdge **stackbase = MEM_malloc_arrayN<PEdge *>(size_t(phash_size(handle->hash_faces)),
-                                                 "Pstackbase");
+  PEdge **stackbase = MEM_new_array_uninitialized<PEdge *>(size_t(phash_size(handle->hash_faces)),
+                                                           "Pstackbase");
   PEdge **stack = stackbase;
   PFace *f, *first;
   PEdge *e, *e1, *e2;
@@ -965,7 +968,7 @@ static int p_connect_pairs(ParamHandle *handle, bool topology_from_uvs)
     ncharts++;
   }
 
-  MEM_freeN(stackbase);
+  MEM_delete(stackbase);
 
   return ncharts;
 }
@@ -1029,10 +1032,10 @@ static void p_split_vert(ParamHandle *handle, PChart *chart, PEdge *e)
 
 static PChart **p_split_charts(ParamHandle *handle, PChart *chart, int ncharts)
 {
-  PChart **charts = MEM_calloc_arrayN<PChart *>(ncharts, "PCharts");
+  PChart **charts = MEM_new_array_zeroed<PChart *>(ncharts, "PCharts");
 
   for (int i = 0; i < ncharts; i++) {
-    charts[i] = MEM_callocN<PChart>("PChart");
+    charts[i] = MEM_new_zeroed<PChart>("PChart");
   }
 
   PFace *f = chart->faces;
@@ -1069,12 +1072,12 @@ static PFace *p_face_add(ParamHandle *handle)
   PFace *f;
 
   /* allocate */
-  f = (PFace *)BLI_memarena_alloc(handle->arena, sizeof(*f));
+  f = static_cast<PFace *>(BLI_memarena_alloc(handle->arena, sizeof(*f)));
   f->flag = 0;
 
-  PEdge *e1 = (PEdge *)BLI_memarena_calloc(handle->arena, sizeof(*e1));
-  PEdge *e2 = (PEdge *)BLI_memarena_calloc(handle->arena, sizeof(*e2));
-  PEdge *e3 = (PEdge *)BLI_memarena_calloc(handle->arena, sizeof(*e3));
+  PEdge *e1 = static_cast<PEdge *>(BLI_memarena_calloc(handle->arena, sizeof(*e1)));
+  PEdge *e2 = static_cast<PEdge *>(BLI_memarena_calloc(handle->arena, sizeof(*e2)));
+  PEdge *e3 = static_cast<PEdge *>(BLI_memarena_calloc(handle->arena, sizeof(*e3)));
 
   /* set up edges */
   f->edge = e1;
@@ -1147,15 +1150,15 @@ static PFace *p_face_add_construct(ParamHandle *handle,
   }
 
   f->u.key = key;
-  phash_insert(handle->hash_faces, (PHashLink *)f);
+  phash_insert(handle->hash_faces, reinterpret_cast<PHashLink *>(f));
 
   e1->u.key = PHASH_edge(vkeys[i1], vkeys[i2]);
   e2->u.key = PHASH_edge(vkeys[i2], vkeys[i3]);
   e3->u.key = PHASH_edge(vkeys[i3], vkeys[i1]);
 
-  phash_insert(handle->hash_edges, (PHashLink *)e1);
-  phash_insert(handle->hash_edges, (PHashLink *)e2);
-  phash_insert(handle->hash_edges, (PHashLink *)e3);
+  phash_insert(handle->hash_edges, reinterpret_cast<PHashLink *>(e1));
+  phash_insert(handle->hash_edges, reinterpret_cast<PHashLink *>(e2));
+  phash_insert(handle->hash_edges, reinterpret_cast<PHashLink *>(e3));
 
   return f;
 }
@@ -1277,7 +1280,7 @@ static void p_chart_fill_boundary(ParamHandle *handle, PChart *chart, PEdge *be,
     while (nedges > 2) {
       PEdge *ne, *ne1, *ne2;
 
-      e = (PEdge *)BLI_heap_pop_min(heap);
+      e = static_cast<PEdge *>(BLI_heap_pop_min(heap));
 
       e1 = p_boundary_edge_prev(e);
       e2 = p_boundary_edge_next(e);
@@ -1420,8 +1423,8 @@ static void p_polygon_kernel_center(float (*points)[2], int npoints, float *cent
   float(*oldpoints)[2], (*newpoints)[2], *p1, *p2;
 
   size = npoints * 3;
-  oldpoints = MEM_malloc_arrayN<float[2]>(size_t(size), "PPolygonOldPoints");
-  newpoints = MEM_malloc_arrayN<float[2]>(size_t(size), "PPolygonNewPoints");
+  oldpoints = MEM_new_array_uninitialized<float[2]>(size_t(size), "PPolygonOldPoints");
+  newpoints = MEM_new_array_uninitialized<float[2]>(size_t(size), "PPolygonNewPoints");
 
   memcpy(oldpoints, points, sizeof(float[2]) * npoints);
 
@@ -1441,19 +1444,19 @@ static void p_polygon_kernel_center(float (*points)[2], int npoints, float *cent
       center[0] = newpoints[0][0];
       center[1] = newpoints[0][1];
 
-      MEM_freeN(oldpoints);
-      MEM_freeN(newpoints);
+      MEM_delete(oldpoints);
+      MEM_delete(newpoints);
 
       return;
     }
 
     if (nnewpoints * 2 > size) {
       size *= 2;
-      MEM_freeN(oldpoints);
-      oldpoints = MEM_mallocN(sizeof(float[2]) * size, "oldpoints");
+      MEM_delete(oldpoints);
+      oldpoints = MEM_new_array_uninitialized<float[2]>(size, "oldpoints");
       memcpy(oldpoints, newpoints, sizeof(float[2]) * nnewpoints);
-      MEM_freeN(newpoints);
-      newpoints = MEM_mallocN(sizeof(float[2]) * size, "newpoints");
+      MEM_delete(newpoints);
+      newpoints = MEM_new_array_uninitialized<float[2]>(size, "newpoints");
     }
     else {
       float(*sw_points)[2] = oldpoints;
@@ -1472,8 +1475,8 @@ static void p_polygon_kernel_center(float (*points)[2], int npoints, float *cent
   center[0] /= nnewpoints;
   center[1] /= nnewpoints;
 
-  MEM_freeN(oldpoints);
-  MEM_freeN(newpoints);
+  MEM_delete(oldpoints);
+  MEM_delete(newpoints);
 }
 #endif
 
@@ -1611,7 +1614,7 @@ static void p_vert_harmonic_insert(PVert *v)
       npoints++;
     }
 
-    points = MEM_malloc_arrayN<float[2]>(size_t(npoints), "PHarmonicPoints");
+    points = MEM_new_array_uninitialized<float[2]>(size_t(npoints), "PHarmonicPoints");
 
     e = v->edge;
     i = 0;
@@ -1634,7 +1637,7 @@ static void p_vert_harmonic_insert(PVert *v)
 
     p_polygon_kernel_center(points, npoints, v->uv);
 
-    MEM_freeN(points);
+    MEM_delete(points);
   }
 
   e = v->edge;
@@ -2199,7 +2202,7 @@ static void p_chart_simplify_compute(PChart *chart,
     }
 
     HeapNode *link = BLI_heap_top(heap);
-    PEdge *edge = (PEdge *)BLI_heap_pop_min(heap), *pair = edge->pair;
+    PEdge *edge = static_cast<PEdge *>(BLI_heap_pop_min(heap)), *pair = edge->pair;
     PVert *oldv, *keepv;
     PEdge *wheele, *nexte;
 
@@ -2355,23 +2358,23 @@ static void p_abf_setup_system(PAbfSystem *sys)
 {
   int i;
 
-  sys->alpha = MEM_malloc_arrayN<float>(size_t(sys->nangles), "ABFalpha");
-  sys->beta = MEM_malloc_arrayN<float>(size_t(sys->nangles), "ABFbeta");
-  sys->sine = MEM_malloc_arrayN<float>(size_t(sys->nangles), "ABFsine");
-  sys->cosine = MEM_malloc_arrayN<float>(size_t(sys->nangles), "ABFcosine");
-  sys->weight = MEM_malloc_arrayN<float>(size_t(sys->nangles), "ABFweight");
+  sys->alpha = MEM_new_array_uninitialized<float>(size_t(sys->nangles), "ABFalpha");
+  sys->beta = MEM_new_array_uninitialized<float>(size_t(sys->nangles), "ABFbeta");
+  sys->sine = MEM_new_array_uninitialized<float>(size_t(sys->nangles), "ABFsine");
+  sys->cosine = MEM_new_array_uninitialized<float>(size_t(sys->nangles), "ABFcosine");
+  sys->weight = MEM_new_array_uninitialized<float>(size_t(sys->nangles), "ABFweight");
 
-  sys->bAlpha = MEM_malloc_arrayN<float>(size_t(sys->nangles), "ABFbalpha");
-  sys->bTriangle = MEM_malloc_arrayN<float>(size_t(sys->nfaces), "ABFbtriangle");
-  sys->bInterior = MEM_malloc_arrayN<float>(2 * size_t(sys->ninterior), "ABFbinterior");
+  sys->bAlpha = MEM_new_array_uninitialized<float>(size_t(sys->nangles), "ABFbalpha");
+  sys->bTriangle = MEM_new_array_uninitialized<float>(size_t(sys->nfaces), "ABFbtriangle");
+  sys->bInterior = MEM_new_array_uninitialized<float>(2 * size_t(sys->ninterior), "ABFbinterior");
 
-  sys->lambdaTriangle = MEM_calloc_arrayN<float>(sys->nfaces, "ABFlambdatri");
-  sys->lambdaPlanar = MEM_calloc_arrayN<float>(sys->ninterior, "ABFlamdaplane");
-  sys->lambdaLength = MEM_malloc_arrayN<float>(sys->ninterior, "ABFlambdalen");
+  sys->lambdaTriangle = MEM_new_array_zeroed<float>(sys->nfaces, "ABFlambdatri");
+  sys->lambdaPlanar = MEM_new_array_zeroed<float>(sys->ninterior, "ABFlamdaplane");
+  sys->lambdaLength = MEM_new_array_uninitialized<float>(sys->ninterior, "ABFlambdalen");
 
-  sys->J2dt = MEM_malloc_arrayN<float[3]>(size_t(sys->nangles), "ABFj2dt");
-  sys->bstar = MEM_malloc_arrayN<float>(size_t(sys->nfaces), "ABFbstar");
-  sys->dstar = MEM_malloc_arrayN<float>(size_t(sys->nfaces), "ABFdstar");
+  sys->J2dt = MEM_new_array_uninitialized<float[3]>(size_t(sys->nangles), "ABFj2dt");
+  sys->bstar = MEM_new_array_uninitialized<float>(size_t(sys->nfaces), "ABFbstar");
+  sys->dstar = MEM_new_array_uninitialized<float>(size_t(sys->nfaces), "ABFdstar");
 
   for (i = 0; i < sys->ninterior; i++) {
     sys->lambdaLength[i] = 1.0;
@@ -2380,20 +2383,20 @@ static void p_abf_setup_system(PAbfSystem *sys)
 
 static void p_abf_free_system(PAbfSystem *sys)
 {
-  MEM_freeN(sys->alpha);
-  MEM_freeN(sys->beta);
-  MEM_freeN(sys->sine);
-  MEM_freeN(sys->cosine);
-  MEM_freeN(sys->weight);
-  MEM_freeN(sys->bAlpha);
-  MEM_freeN(sys->bTriangle);
-  MEM_freeN(sys->bInterior);
-  MEM_freeN(sys->lambdaTriangle);
-  MEM_freeN(sys->lambdaPlanar);
-  MEM_freeN(sys->lambdaLength);
-  MEM_freeN(sys->J2dt);
-  MEM_freeN(sys->bstar);
-  MEM_freeN(sys->dstar);
+  MEM_delete(sys->alpha);
+  MEM_delete(sys->beta);
+  MEM_delete(sys->sine);
+  MEM_delete(sys->cosine);
+  MEM_delete(sys->weight);
+  MEM_delete(sys->bAlpha);
+  MEM_delete(sys->bTriangle);
+  MEM_delete(sys->bInterior);
+  MEM_delete(sys->lambdaTriangle);
+  MEM_delete(sys->lambdaPlanar);
+  MEM_delete(sys->lambdaLength);
+  MEM_delete(sys->J2dt);
+  MEM_delete(sys->bstar);
+  MEM_delete(sys->dstar);
 }
 
 static void p_abf_compute_sines(PAbfSystem *sys)
@@ -2843,7 +2846,7 @@ static bool p_chart_abf_solve(PChart *chart)
     }
   }
 
-  chart->abf_alpha = (float *)MEM_dupallocN(sys.alpha);
+  chart->abf_alpha = MEM_dupalloc(sys.alpha);
   p_abf_free_system(&sys);
 
   return true;
@@ -3290,7 +3293,7 @@ static void p_chart_lscm_end(PChart *chart)
   EIG_linear_solver_delete(chart->context);
   chart->context = nullptr;
 
-  MEM_SAFE_FREE(chart->abf_alpha);
+  MEM_SAFE_DELETE(chart->abf_alpha);
 
   chart->pin1 = nullptr;
   chart->pin2 = nullptr;
@@ -3456,8 +3459,8 @@ static void p_chart_stretch_minimize(PChart *chart, RNG *rng)
 
 static int p_compare_geometric_uv(const void *a, const void *b)
 {
-  const PVert *v1 = *(const PVert *const *)a;
-  const PVert *v2 = *(const PVert *const *)b;
+  const PVert *v1 = *static_cast<const PVert *const *>(a);
+  const PVert *v2 = *static_cast<const PVert *const *>(b);
 
   if (v1->uv[0] < v2->uv[0]) {
     return -1;
@@ -3495,9 +3498,9 @@ static bool p_chart_convex_hull(PChart *chart, PVert ***r_verts, int *r_nverts, 
     e = p_boundary_edge_next(e);
   } while (e != be);
 
-  p = points = MEM_malloc_arrayN<PVert *>(2 * size_t(npoints), "PCHullpoints");
-  U = MEM_malloc_arrayN<PVert *>(size_t(npoints), "PCHullU");
-  L = MEM_malloc_arrayN<PVert *>(size_t(npoints), "PCHullL");
+  p = points = MEM_new_array_uninitialized<PVert *>(2 * size_t(npoints), "PCHullpoints");
+  U = MEM_new_array_uninitialized<PVert *>(size_t(npoints), "PCHullU");
+  L = MEM_new_array_uninitialized<PVert *>(size_t(npoints), "PCHullL");
 
   e = be;
   do {
@@ -3537,8 +3540,8 @@ static bool p_chart_convex_hull(PChart *chart, PVert ***r_verts, int *r_nverts, 
   *r_nverts = npoints;
   *r_right = ulen - 1;
 
-  MEM_freeN(U);
-  MEM_freeN(L);
+  MEM_delete(U);
+  MEM_delete(L);
 
   return true;
 }
@@ -3584,7 +3587,7 @@ static float p_chart_minimum_area_angle(PChart *chart)
   }
 
   /* find left/top/right/bottom points, and compute angle for each point */
-  angles = MEM_malloc_arrayN<float>(size_t(npoints), "PMinAreaAngles");
+  angles = MEM_new_array_uninitialized<float>(size_t(npoints), "PMinAreaAngles");
 
   i_min = i_max = 0;
   miny = 1e10;
@@ -3686,8 +3689,8 @@ static float p_chart_minimum_area_angle(PChart *chart)
     minangle -= float(M_PI_2);
   }
 
-  MEM_freeN(angles);
-  MEM_freeN(points);
+  MEM_delete(angles);
+  MEM_delete(points);
 
   return minangle;
 }
@@ -3727,11 +3730,11 @@ ParamHandle::ParamHandle()
   polyfill_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "param polyfill arena");
   polyfill_heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
 
-  construction_chart = MEM_callocN<PChart>("PChart");
+  construction_chart = MEM_new_zeroed<PChart>("PChart");
 
-  hash_verts = phash_new((PHashLink **)&construction_chart->verts, 1);
-  hash_edges = phash_new((PHashLink **)&construction_chart->edges, 1);
-  hash_faces = phash_new((PHashLink **)&construction_chart->faces, 1);
+  hash_verts = phash_new(reinterpret_cast<PHashLink **>(&construction_chart->verts), 1);
+  hash_edges = phash_new(reinterpret_cast<PHashLink **>(&construction_chart->edges), 1);
+  hash_faces = phash_new(reinterpret_cast<PHashLink **>(&construction_chart->faces), 1);
 }
 
 ParamHandle::~ParamHandle()
@@ -3743,7 +3746,7 @@ ParamHandle::~ParamHandle()
   BLI_heap_free(polyfill_heap, nullptr);
   polyfill_heap = nullptr;
 
-  MEM_SAFE_FREE(construction_chart);
+  MEM_SAFE_DELETE(construction_chart);
 
   phash_safe_delete(&hash_verts);
   phash_safe_delete(&hash_edges);
@@ -3755,9 +3758,9 @@ ParamHandle::~ParamHandle()
   }
 
   for (int i = 0; i < ncharts; i++) {
-    MEM_SAFE_FREE(charts[i]);
+    MEM_SAFE_DELETE(charts[i]);
   }
-  MEM_SAFE_FREE(charts);
+  MEM_SAFE_DELETE(charts);
 
   if (rng) {
     BLI_rng_free(rng);
@@ -3783,8 +3786,8 @@ ParamKey uv_find_pin_index(ParamHandle *handle, const int bmvertindex, const flo
     return bmvertindex; /* No verts pinned. */
   }
 
-  const GeoUVPinIndex *pinuvlist = (const GeoUVPinIndex *)BLI_ghash_lookup(
-      handle->pin_hash, POINTER_FROM_INT(bmvertindex));
+  const GeoUVPinIndex *pinuvlist = static_cast<const GeoUVPinIndex *>(
+      BLI_ghash_lookup(handle->pin_hash, POINTER_FROM_INT(bmvertindex)));
   if (!pinuvlist) {
     return bmvertindex; /* Vert not pinned. */
   }
@@ -3806,7 +3809,8 @@ ParamKey uv_find_pin_index(ParamHandle *handle, const int bmvertindex, const flo
 
 static GeoUVPinIndex *new_geo_uv_pinindex(ParamHandle *handle, const float uv[2])
 {
-  GeoUVPinIndex *pinuv = (GeoUVPinIndex *)BLI_memarena_alloc(handle->arena, sizeof(*pinuv));
+  GeoUVPinIndex *pinuv = static_cast<GeoUVPinIndex *>(
+      BLI_memarena_alloc(handle->arena, sizeof(*pinuv)));
   pinuv->next = nullptr;
   copy_v2_v2(pinuv->uv, uv);
   pinuv->reindex = PARAM_KEY_MAX - (handle->unique_pin_count++);
@@ -3819,8 +3823,8 @@ void uv_prepare_pin_index(ParamHandle *handle, const int bmvertindex, const floa
     handle->pin_hash = BLI_ghash_int_new("uv pin reindex");
   }
 
-  GeoUVPinIndex *pinuvlist = (GeoUVPinIndex *)BLI_ghash_lookup(handle->pin_hash,
-                                                               POINTER_FROM_INT(bmvertindex));
+  GeoUVPinIndex *pinuvlist = static_cast<GeoUVPinIndex *>(
+      BLI_ghash_lookup(handle->pin_hash, POINTER_FROM_INT(bmvertindex)));
   if (!pinuvlist) {
     BLI_ghash_insert(
         handle->pin_hash, POINTER_FROM_INT(bmvertindex), new_geo_uv_pinindex(handle, uv));
@@ -3855,7 +3859,7 @@ static void p_add_ngon(ParamHandle *handle,
   uint nfilltri = nverts - 2;
   uint(*tris)[3] = static_cast<uint(*)[3]>(
       BLI_memarena_alloc(arena, sizeof(*tris) * size_t(nfilltri)));
-  float(*projverts)[2] = static_cast<float(*)[2]>(
+  float (*projverts)[2] = static_cast<float (*)[2]>(
       BLI_memarena_alloc(arena, sizeof(*projverts) * size_t(nverts)));
 
   /* Calc normal, flipped: to get a positive 2d cross product. */
@@ -4030,7 +4034,7 @@ void uv_parametrizer_construct_end(ParamHandle *phandle,
   phandle->ncharts = p_connect_pairs(phandle, topology_from_uvs);
   phandle->charts = p_split_charts(phandle, phandle->construction_chart, phandle->ncharts);
 
-  MEM_freeN(phandle->construction_chart);
+  MEM_delete(phandle->construction_chart);
   phandle->construction_chart = nullptr;
 
   phash_safe_delete(&phandle->hash_verts);
@@ -4044,7 +4048,7 @@ void uv_parametrizer_construct_end(ParamHandle *phandle,
     p_chart_boundaries(chart, &outer);
 
     if (!topology_from_uvs && chart->nboundaries == 0) {
-      MEM_freeN(chart);
+      MEM_delete(chart);
       if (r_count_failed) {
         *r_count_failed += 1;
       }
@@ -4219,6 +4223,7 @@ void uv_parametrizer_pack(ParamHandle *handle, const UVPackIsland_Params &params
     for (PVert *v = chart->verts; v; v = v->nextlink) {
       geometry::mul_v2_m2_add_v2v2(v->uv, matrix, v->uv, pack_island->pre_translate);
     }
+    geometry::p_chart_uv_translate(chart, params.udim_base_offset);
 
     pack_island_vector[i] = nullptr;
     delete pack_island;

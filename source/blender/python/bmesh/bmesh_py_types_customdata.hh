@@ -12,6 +12,8 @@
 
 #include "bmesh_py_types.hh"
 
+namespace blender {
+
 struct BMesh;
 
 /* All use #BPy_BMLayerAccess struct. */
@@ -67,3 +69,5 @@ void BPy_BM_init_types_customdata();
 [[nodiscard]] int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele,
                                           BPy_BMLayerItem *py_layer,
                                           PyObject *value);
+
+}  // namespace blender

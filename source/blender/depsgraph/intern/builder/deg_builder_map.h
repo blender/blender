@@ -9,10 +9,13 @@
 #pragma once
 
 #include "BLI_map.hh"
+#include "BLI_set.hh"
+
+namespace blender {
 
 struct ID;
 
-namespace blender::deg {
+namespace deg {
 
 class BuilderMap {
  public:
@@ -33,9 +36,12 @@ class BuilderMap {
      */
     TAG_COLLECTION_CHILDREN_HIERARCHY = (1 << 7),
 
+    TAG_COLLECTION_PROPERTIES = (1 << 8),
+
     /* All ID components has been built. */
     TAG_COMPLETE = (TAG_ANIMATION | TAG_PARAMETERS | TAG_TRANSFORM | TAG_GEOMETRY |
-                    TAG_SCENE_COMPOSITOR | TAG_SCENE_SEQUENCER | TAG_SCENE_AUDIO),
+                    TAG_SCENE_COMPOSITOR | TAG_SCENE_SEQUENCER | TAG_SCENE_AUDIO |
+                    TAG_COLLECTION_PROPERTIES),
   };
 
   /* Check whether given ID is already handled by builder (or if it's being handled). */
@@ -61,10 +67,13 @@ class BuilderMap {
     return this->check_is_built_and_tag(&datablock->id, tag);
   }
 
+  Set<const ID *> get_ids() const;
+
  protected:
   int get_ID_tag(ID *id) const;
 
   Map<ID *, int> id_tags_;
 };
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

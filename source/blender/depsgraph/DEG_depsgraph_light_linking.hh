@@ -8,12 +8,15 @@
 
 #pragma once
 
-struct Object;
-struct Depsgraph;
+namespace blender {
 
-namespace blender::deg::light_linking {
+struct Depsgraph;
+struct Object;
+namespace deg::light_linking {
 
 /* Set runtime light linking data on evaluated object. */
-void eval_runtime_data(const ::Depsgraph *depsgraph, Object &object_eval);
+void eval_runtime_data(const Depsgraph *depsgraph, Object &object_eval);
 
-}  // namespace blender::deg::light_linking
+}  // namespace deg::light_linking
+
+}  // namespace blender

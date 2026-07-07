@@ -24,6 +24,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Enum Utilities
  * \{ */
@@ -61,7 +63,7 @@ int pyrna_enum_value_from_id(const EnumPropertyItem *item,
     const char *enum_str = pyrna_enum_repr(item);
     PyErr_Format(
         PyExc_ValueError, "%s: '%.200s' not found in (%s)", error_prefix, identifier, enum_str);
-    MEM_freeN(enum_str);
+    MEM_delete(enum_str);
     return -1;
   }
 
@@ -108,7 +110,7 @@ BLI_bitmap *pyrna_enum_bitmap_from_set(const EnumPropertyItem *items,
             signed short as_signed;
             ushort as_unsigned;
           } ret_convert;
-          ret_convert.as_signed = (signed short)ret;
+          ret_convert.as_signed = short(ret);
           index = int(ret_convert.as_unsigned);
         }
         else if (type_size == 1) {
@@ -116,7 +118,7 @@ BLI_bitmap *pyrna_enum_bitmap_from_set(const EnumPropertyItem *items,
             signed char as_signed;
             uchar as_unsigned;
           } ret_convert;
-          ret_convert.as_signed = (signed char)ret;
+          ret_convert.as_signed = static_cast<signed char>(ret);
           index = int(ret_convert.as_unsigned);
         }
         else {
@@ -129,7 +131,7 @@ BLI_bitmap *pyrna_enum_bitmap_from_set(const EnumPropertyItem *items,
     Py_DECREF(it);
 
     if (key) {
-      MEM_freeN(bitmap);
+      MEM_delete(bitmap);
       bitmap = nullptr;
     }
   }
@@ -244,3 +246,5 @@ int pyrna_enum_bitfield_parse_set(PyObject *o, void *p)
 }
 
 /** \} */
+
+}  // namespace blender

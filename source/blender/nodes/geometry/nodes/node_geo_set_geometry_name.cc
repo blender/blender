@@ -12,7 +12,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.allow_any_socket_order();
   b.add_input<decl::Geometry>("Geometry").description("Geometry to override the name of");
   b.add_output<decl::Geometry>("Geometry").propagate_all().align_with_previous();
-  b.add_input<decl::String>("Name").hide_label();
+  b.add_input<decl::String>("Name").optional_label();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

@@ -11,10 +11,12 @@
 
 #include <memory>
 
+namespace blender {
+
 struct IDProperty;
 struct Object;
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 class ABCAbstractWriter : public AbstractHierarchyWriter {
  protected:
@@ -97,4 +99,5 @@ class ABCAbstractWriter : public AbstractHierarchyWriter {
   }
 };
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

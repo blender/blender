@@ -10,6 +10,8 @@
 
 #include "bmesh.hh"
 
+namespace blender {
+
 /* BMO functions */
 
 /* -------------------------------------------------------------------- */
@@ -84,7 +86,7 @@ void BMO_mesh_delete_oflag_tagged(BMesh *bm, const short oflag, const char htype
 void BMO_mesh_delete_oflag_context(BMesh *bm,
                                    const short oflag,
                                    const int type,
-                                   blender::FunctionRef<void()> prepare_fn)
+                                   FunctionRef<void()> prepare_fn)
 {
   BMEdge *e;
 
@@ -359,3 +361,5 @@ void BM_mesh_delete_hflag_context(BMesh *bm, const char hflag, const int type)
 }
 
 /** \} */
+
+}  // namespace blender

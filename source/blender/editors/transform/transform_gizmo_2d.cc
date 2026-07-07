@@ -121,7 +121,7 @@ static void gizmo2d_pivot_point_message_subscribe(wmGizmoGroup *gzgroup,
   switch (area->spacetype) {
     case SPACE_IMAGE: {
       SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
-      PointerRNA ptr = RNA_pointer_create_discrete(&screen->id, &RNA_SpaceImageEditor, sima);
+      PointerRNA ptr = RNA_pointer_create_discrete(&screen->id, RNA_SpaceImageEditor, sima);
       {
         const PropertyRNA *props[] = {
             &rna_SpaceImageEditor_pivot_point,
@@ -193,7 +193,7 @@ static void gizmo2d_get_axis_color(const int axis_idx, float *r_col, float *r_co
       break;
   }
 
-  UI_GetThemeColor4fv(col_id, r_col);
+  ui::theme::get_color_4fv(col_id, r_col);
 
   copy_v4_v4(r_col_hi, r_col);
   r_col[3] *= alpha;
@@ -206,7 +206,7 @@ static GizmoGroup2D *gizmogroup2d_init(wmGizmoGroup *gzgroup)
   const wmGizmoType *gzt_cage = WM_gizmotype_find("GIZMO_GT_cage_2d", true);
   const wmGizmoType *gzt_button = WM_gizmotype_find("GIZMO_GT_button_2d", true);
 
-  GizmoGroup2D *ggd = MEM_callocN<GizmoGroup2D>(__func__);
+  GizmoGroup2D *ggd = MEM_new_zeroed<GizmoGroup2D>(__func__);
 
   ggd->translate_xy[0] = WM_gizmo_new_ptr(gzt_arrow, gzgroup, nullptr);
   ggd->translate_xy[1] = WM_gizmo_new_ptr(gzt_arrow, gzgroup, nullptr);
@@ -255,7 +255,7 @@ static bool gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
         break;
       }
       case SI_MODE_MASK: {
-        if (ED_mask_selected_minmax(C, r_min, r_max, false)) {
+        if (ED_mask_selected_minmax(C, r_min, r_max, false, false)) {
           has_select = true;
         }
         break;
@@ -267,10 +267,10 @@ static bool gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
   else if (area->spacetype == SPACE_SEQ) {
     Scene *scene = CTX_data_scene(C);
     Editing *ed = seq::editing_get(scene);
-    ListBase *seqbase = seq::active_seqbase_get(ed);
-    ListBase *channels = seq::channels_displayed_get(ed);
+    ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+    ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
     VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
-    strips.remove_if([&](Strip *strip) { return (strip->flag & SELECT) == 0; });
+    strips.remove_if([&](Strip *strip) { return (strip->flag & SEQ_SELECT) == 0; });
     int selected_strips = strips.size();
     if (selected_strips > 0) {
       has_select = true;
@@ -321,10 +321,10 @@ static int gizmo2d_calc_transform_orientation(const bContext *C)
 
   Scene *scene = CTX_data_scene(C);
   Editing *ed = seq::editing_get(scene);
-  ListBase *seqbase = seq::active_seqbase_get(ed);
-  ListBase *channels = seq::channels_displayed_get(ed);
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
   VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
-  strips.remove_if([&](Strip *strip) { return (strip->flag & SELECT) == 0; });
+  strips.remove_if([&](Strip *strip) { return (strip->flag & SEQ_SELECT) == 0; });
 
   bool use_local_orient = strips.size() == 1;
 
@@ -343,10 +343,10 @@ static float gizmo2d_calc_rotation(const bContext *C)
 
   Scene *scene = CTX_data_scene(C);
   Editing *ed = seq::editing_get(scene);
-  ListBase *seqbase = seq::active_seqbase_get(ed);
-  ListBase *channels = seq::channels_displayed_get(ed);
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
   VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
-  strips.remove_if([&](Strip *strip) { return (strip->flag & SELECT) == 0; });
+  strips.remove_if([&](Strip *strip) { return (strip->flag & SEQ_SELECT) == 0; });
 
   if (strips.size() == 1) {
     /* Only return the strip rotation if only one is selected. */
@@ -365,10 +365,10 @@ static bool seq_get_strip_pivot_median(const Scene *scene, float r_pivot[2])
   zero_v2(r_pivot);
 
   Editing *ed = seq::editing_get(scene);
-  ListBase *seqbase = seq::active_seqbase_get(ed);
-  ListBase *channels = seq::channels_displayed_get(ed);
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
   VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
-  strips.remove_if([&](Strip *strip) { return (strip->flag & SELECT) == 0; });
+  strips.remove_if([&](Strip *strip) { return (strip->flag & SEQ_SELECT) == 0; });
   bool has_select = !strips.is_empty();
 
   if (has_select) {
@@ -382,7 +382,9 @@ static bool seq_get_strip_pivot_median(const Scene *scene, float r_pivot[2])
   return has_select;
 }
 
-static bool gizmo2d_calc_transform_pivot(const bContext *C, float r_pivot[2])
+static bool gizmo2d_calc_transform_pivot(const bContext *C,
+                                         bool handles_as_knot_selected_only,
+                                         float r_pivot[2])
 {
   ScrArea *area = CTX_wm_area(C);
   Scene *scene = CTX_data_scene(C);
@@ -397,7 +399,8 @@ static bool gizmo2d_calc_transform_pivot(const bContext *C, float r_pivot[2])
             sima, scene, view_layer, r_pivot, sima->around, &has_select);
         break;
       case SI_MODE_MASK:
-        ED_mask_center_from_pivot_ex(C, area, r_pivot, sima->around, &has_select);
+        ED_mask_center_from_pivot_ex(
+            C, area, sima->around, handles_as_knot_selected_only, r_pivot, &has_select);
         break;
       default:
         break;
@@ -412,10 +415,10 @@ static bool gizmo2d_calc_transform_pivot(const bContext *C, float r_pivot[2])
       copy_v2_v2(r_pivot, cursor_pixel);
 
       Editing *ed = seq::editing_get(scene);
-      ListBase *seqbase = seq::active_seqbase_get(ed);
-      ListBase *channels = seq::channels_displayed_get(ed);
+      ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+      ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
       VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
-      strips.remove_if([&](Strip *strip) { return (strip->flag & SELECT) == 0; });
+      strips.remove_if([&](Strip *strip) { return (strip->flag & SEQ_SELECT) == 0; });
       has_select = !strips.is_empty();
     }
     else if (pivot_point == V3D_AROUND_CENTER_BOUNDS) {
@@ -436,7 +439,7 @@ static bool gizmo2d_calc_transform_pivot(const bContext *C, float r_pivot[2])
  */
 BLI_INLINE void gizmo2d_origin_to_region(ARegion *region, float *r_origin)
 {
-  UI_view2d_view_to_region_fl(&region->v2d, r_origin[0], r_origin[1], &r_origin[0], &r_origin[1]);
+  ui::view2d_view_to_region_fl(&region->v2d, r_origin[0], r_origin[1], &r_origin[0], &r_origin[1]);
 }
 
 /**
@@ -450,7 +453,7 @@ static wmOperatorStatus gizmo2d_modal(bContext *C,
   ARegion *region = CTX_wm_region(C);
   float origin[3];
 
-  gizmo2d_calc_transform_pivot(C, origin);
+  gizmo2d_calc_transform_pivot(C, false, origin);
   gizmo2d_origin_to_region(region, origin);
   WM_gizmo_set_matrix_location(widget, origin);
 
@@ -494,7 +497,7 @@ static void gizmo2d_xform_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
     }
     else {
       float color[4], color_hi[4];
-      UI_GetThemeColor4fv(TH_GIZMO_VIEW_ALIGN, color);
+      ui::theme::get_color_4fv(TH_GIZMO_VIEW_ALIGN, color);
       copy_v4_v4(color_hi, color);
       color[3] *= 0.6f;
 
@@ -582,7 +585,7 @@ static void gizmo2d_xform_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   GizmoGroup2D *ggd = static_cast<GizmoGroup2D *>(gzgroup->customdata);
   bool has_select;
   if (ggd->no_cage) {
-    has_select = gizmo2d_calc_transform_pivot(C, ggd->origin);
+    has_select = gizmo2d_calc_transform_pivot(C, false, ggd->origin);
   }
   else {
     has_select = gizmo2d_calc_bounds(C, ggd->origin, ggd->min, ggd->max);
@@ -629,7 +632,7 @@ static void gizmo2d_xform_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
     WM_gizmo_set_matrix_location(gz, origin);
   }
 
-  UI_view2d_view_to_region_m4(&region->v2d, ggd->cage->matrix_space);
+  ui::view2d_view_to_region_m4(&region->v2d, ggd->cage->matrix_space);
   /* Define the bounding box of the gizmo in the offset transform matrix. */
   unit_m4(ggd->cage->matrix_offset);
   const float min_gizmo_pixel_size = 0.001f; /* Draw Gizmo larger than this many pixels. */
@@ -815,7 +818,7 @@ static GizmoGroup_Resize2D *gizmogroup2d_resize_init(wmGizmoGroup *gzgroup)
   const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
   const wmGizmoType *gzt_button = WM_gizmotype_find("GIZMO_GT_button_2d", true);
 
-  GizmoGroup_Resize2D *ggd = MEM_callocN<GizmoGroup_Resize2D>(__func__);
+  GizmoGroup_Resize2D *ggd = MEM_new_zeroed<GizmoGroup_Resize2D>(__func__);
 
   ggd->gizmo_xy[0] = WM_gizmo_new_ptr(gzt_arrow, gzgroup, nullptr);
   ggd->gizmo_xy[1] = WM_gizmo_new_ptr(gzt_arrow, gzgroup, nullptr);
@@ -827,8 +830,8 @@ static GizmoGroup_Resize2D *gizmogroup2d_resize_init(wmGizmoGroup *gzgroup)
 static void gizmo2d_resize_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
   GizmoGroup_Resize2D *ggd = static_cast<GizmoGroup_Resize2D *>(gzgroup->customdata);
-  float origin[3];
-  const bool has_select = gizmo2d_calc_transform_pivot(C, origin);
+  float origin[2];
+  const bool has_select = gizmo2d_calc_transform_pivot(C, true, origin);
 
   if (has_select == false) {
     for (int i = 0; i < ARRAY_SIZE(ggd->gizmo_xy); i++) {
@@ -894,7 +897,7 @@ static void gizmo2d_resize_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
     }
     else {
       float color[4], color_hi[4];
-      UI_GetThemeColor4fv(TH_GIZMO_VIEW_ALIGN, color);
+      ui::theme::get_color_4fv(TH_GIZMO_VIEW_ALIGN, color);
       copy_v4_v4(color_hi, color);
       color[3] *= 0.6f;
 
@@ -977,7 +980,7 @@ static GizmoGroup_Rotate2D *gizmogroup2d_rotate_init(wmGizmoGroup *gzgroup)
 {
   const wmGizmoType *gzt_button = WM_gizmotype_find("GIZMO_GT_button_2d", true);
 
-  GizmoGroup_Rotate2D *ggd = MEM_callocN<GizmoGroup_Rotate2D>(__func__);
+  GizmoGroup_Rotate2D *ggd = MEM_new_zeroed<GizmoGroup_Rotate2D>(__func__);
 
   ggd->gizmo = WM_gizmo_new_ptr(gzt_button, gzgroup, nullptr);
 
@@ -987,8 +990,8 @@ static GizmoGroup_Rotate2D *gizmogroup2d_rotate_init(wmGizmoGroup *gzgroup)
 static void gizmo2d_rotate_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
   GizmoGroup_Rotate2D *ggd = static_cast<GizmoGroup_Rotate2D *>(gzgroup->customdata);
-  float origin[3];
-  const bool has_select = gizmo2d_calc_transform_pivot(C, origin);
+  float origin[2];
+  const bool has_select = gizmo2d_calc_transform_pivot(C, true, origin);
 
   if (has_select == false) {
     ggd->gizmo->flag |= WM_GIZMO_HIDDEN;
@@ -1028,7 +1031,7 @@ static void gizmo2d_rotate_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 
     {
       float color[4];
-      UI_GetThemeColor4fv(TH_GIZMO_VIEW_ALIGN, color);
+      ui::theme::get_color_4fv(TH_GIZMO_VIEW_ALIGN, color);
 
       PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "icon");
       RNA_property_enum_set(gz->ptr, prop, ICON_NONE);

@@ -52,9 +52,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Whether the node could find a single face to sample at the UV coordinate");
 }
 
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
+  layout.prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -166,8 +166,19 @@ static void node_geo_exec(GeoNodeExecParams params)
   const CPPType &float2_type = CPPType::get<float2>();
   Field<float2> source_uv_map = conversions.try_convert(
       params.extract_input<Field<float3>>("Source UV Map"), float2_type);
-  Field<float2> sample_uvs = conversions.try_convert(
-      params.extract_input<Field<float3>>("Sample UV"), float2_type);
+
+  auto sample_uv_value = params.extract_input<bke::SocketValueVariant>("Sample UV");
+  if (sample_uv_value.is_list()) {
+    params.error_message_add(NodeWarningType::Error,
+                             "Lists are not supported for \"Sample UV\" input");
+  }
+  if (sample_uv_value.is_volume_grid()) {
+    params.error_message_add(NodeWarningType::Error,
+                             "Volume grids are not supported for \"Sample UV\" input");
+  }
+  Field<float2> sample_uvs = conversions.try_convert(sample_uv_value.extract<Field<float3>>(),
+                                                     float2_type);
+
   auto uv_op = FieldOperation::from(
       std::make_shared<ReverseUVSampleFunction>(geometry, std::move(source_uv_map)),
       {std::move(sample_uvs)});
@@ -197,7 +208,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeSampleUVSurface", GEO_NODE_SAMPLE_UV_SURFACE);
   ntype.ui_name = "Sample UV Surface";
@@ -210,7 +221,7 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
   ntype.gather_link_search_ops = node_gather_link_searches;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

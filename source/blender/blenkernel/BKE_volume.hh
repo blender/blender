@@ -22,6 +22,8 @@
 
 #include "DNA_volume_types.h"
 
+namespace blender {
+
 struct Depsgraph;
 struct Main;
 struct Object;
@@ -30,7 +32,7 @@ struct Scene;
 struct Volume;
 struct VolumeGridVector;
 
-namespace blender::bke::bake {
+namespace bke::bake {
 struct BakeMaterialsList;
 }
 
@@ -80,19 +82,17 @@ bool BKE_volume_is_loaded(const Volume *volume);
 int BKE_volume_num_grids(const Volume *volume);
 const char *BKE_volume_grids_error_msg(const Volume *volume);
 const char *BKE_volume_grids_frame_filepath(const Volume *volume);
-const blender::bke::VolumeGridData *BKE_volume_grid_get(const Volume *volume, int grid_index);
-blender::bke::VolumeGridData *BKE_volume_grid_get_for_write(Volume *volume, int grid_index);
-const blender::bke::VolumeGridData *BKE_volume_grid_active_get_for_read(const Volume *volume);
+const bke::VolumeGridData *BKE_volume_grid_get(const Volume *volume, int grid_index);
+bke::VolumeGridData *BKE_volume_grid_get_for_write(Volume *volume, int grid_index);
+const bke::VolumeGridData *BKE_volume_grid_active_get_for_read(const Volume *volume);
 /* Tries to find a grid with the given name. Make sure that the volume has been loaded. */
-const blender::bke::VolumeGridData *BKE_volume_grid_find(const Volume *volume,
-                                                         blender::StringRef name);
-blender::bke::VolumeGridData *BKE_volume_grid_find_for_write(Volume *volume,
-                                                             blender::StringRef name);
+const bke::VolumeGridData *BKE_volume_grid_find(const Volume *volume, StringRef name);
+bke::VolumeGridData *BKE_volume_grid_find_for_write(Volume *volume, StringRef name);
 
 /* Tries to set the name of the velocity field. If no such grid exists with the given base name,
  * this will try common post-fixes in order to detect velocity fields split into multiple grids.
  * Return false if neither finding with the base name nor with the post-fixes succeeded. */
-bool BKE_volume_set_velocity_grid_by_name(Volume *volume, blender::StringRef base_name);
+bool BKE_volume_set_velocity_grid_by_name(Volume *volume, StringRef base_name);
 
 /* Volume Editing
  *
@@ -107,20 +107,20 @@ bool BKE_volume_set_velocity_grid_by_name(Volume *volume, blender::StringRef bas
 Volume *BKE_volume_new_for_eval(const Volume *volume_src);
 Volume *BKE_volume_copy_for_eval(const Volume *volume_src);
 
-void BKE_volume_grid_remove(Volume *volume, const blender::bke::VolumeGridData *grid);
+void BKE_volume_grid_remove(Volume *volume, const bke::VolumeGridData *grid);
 
 /**
  * Adds a new grid to the volume with the name stored in the grid. The caller is responsible for
  * making sure that the user count already contains the volume as a user.
  */
-void BKE_volume_grid_add(Volume *volume, const blender::bke::VolumeGridData &grid);
+void BKE_volume_grid_add(Volume *volume, const bke::VolumeGridData &grid);
 
 /**
  * OpenVDB crashes when the determinant of the transform matrix becomes too small.
  */
 bool BKE_volume_grid_determinant_valid(double determinant);
-bool BKE_volume_voxel_size_valid(const blender::float3 &voxel_size);
-bool BKE_volume_grid_transform_valid(const blender::float4x4 &transform);
+bool BKE_volume_voxel_size_valid(const float3 &voxel_size);
+bool BKE_volume_grid_transform_valid(const float4x4 &transform);
 
 /* Simplify */
 int BKE_volume_simplify_level(const Depsgraph *depsgraph);
@@ -132,11 +132,11 @@ bool BKE_volume_save(const Volume *volume,
                      ReportList *reports,
                      const char *filepath);
 
-void BKE_volume_count_memory(const Volume &volume, blender::MemoryCounter &memory);
+void BKE_volume_count_memory(const Volume &volume, MemoryCounter &memory);
 
-std::optional<blender::Bounds<blender::float3>> BKE_volume_min_max(const Volume *volume);
+std::optional<Bounds<float3>> BKE_volume_min_max(const Volume *volume);
 
-namespace blender::bke {
+namespace bke {
 
 struct VolumeRuntime {
   /** OpenVDB Grids. */
@@ -153,4 +153,5 @@ struct VolumeRuntime {
   std::unique_ptr<bake::BakeMaterialsList> bake_materials;
 };
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

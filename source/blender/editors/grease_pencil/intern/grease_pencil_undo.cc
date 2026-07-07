@@ -31,9 +31,11 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"undo.greasepencil"};
 
-namespace blender::ed::greasepencil::undo {
+namespace ed::greasepencil::undo {
 
 /* -------------------------------------------------------------------- */
 /** \name Implements ED Undo System
@@ -287,7 +289,7 @@ class StepObject {
 
   void encode(Object *ob, StepEncodeStatus &encode_status)
   {
-    const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
+    const GreasePencil &grease_pencil = *id_cast<GreasePencil *>(ob->data);
     this->obedit_ref.ptr = ob;
 
     this->encode_drawings(grease_pencil, encode_status);
@@ -296,7 +298,7 @@ class StepObject {
 
   void decode(StepDecodeStatus &decode_status) const
   {
-    GreasePencil &grease_pencil = *static_cast<GreasePencil *>(this->obedit_ref.ptr->data);
+    GreasePencil &grease_pencil = *id_cast<GreasePencil *>(this->obedit_ref.ptr->data);
 
     this->decode_drawings(grease_pencil, decode_status);
     this->decode_layers(grease_pencil, decode_status);
@@ -399,7 +401,7 @@ static void foreach_ID_ref(UndoStep *us_p,
 
 /** \} */
 
-}  // namespace blender::ed::greasepencil::undo
+}  // namespace ed::greasepencil::undo
 
 void ED_undosys_type_grease_pencil(UndoType *ut)
 {
@@ -417,3 +419,5 @@ void ED_undosys_type_grease_pencil(UndoType *ut)
 
   ut->step_size = sizeof(greasepencil::undo::GreasePencilUndoStep);
 }
+
+}  // namespace blender

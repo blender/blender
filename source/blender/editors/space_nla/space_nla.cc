@@ -16,6 +16,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
+#include "BLI_math_base.h"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
@@ -44,6 +45,8 @@
 
 #include "nla_intern.hh" /* own include */
 
+namespace blender {
+
 /* ******************** default callbacks for nla space ***************** */
 
 static SpaceLink *nla_create(const ScrArea *area, const Scene *scene)
@@ -51,12 +54,12 @@ static SpaceLink *nla_create(const ScrArea *area, const Scene *scene)
   ARegion *region;
   SpaceNla *snla;
 
-  snla = MEM_callocN<SpaceNla>("initnla");
+  snla = MEM_new<SpaceNla>("initnla");
   snla->spacetype = SPACE_NLA;
 
   /* allocate DopeSheet data for NLA Editor */
-  snla->ads = MEM_callocN<bDopeSheet>("NlaEdit DopeSheet");
-  snla->ads->source = (ID *)(scene);
+  snla->ads = MEM_new<bDopeSheet>("NlaEdit DopeSheet");
+  snla->ads->source = id_cast<ID *>(const_cast<Scene *>((scene)));
 
   /* set auto-snapping settings */
   snla->flag = SNLA_SHOW_MARKERS;
@@ -131,7 +134,7 @@ static void nla_free(SpaceLink *sl)
 
   if (snla->ads) {
     BLI_freelistN(&snla->ads->chanbase);
-    MEM_freeN(snla->ads);
+    MEM_delete(snla->ads);
   }
 }
 
@@ -142,7 +145,7 @@ static void nla_init(wmWindowManager *wm, ScrArea *area)
 
   /* init dope-sheet data if non-existent (i.e. for old files). */
   if (snla->ads == nullptr) {
-    snla->ads = MEM_callocN<bDopeSheet>("NlaEdit DopeSheet");
+    snla->ads = MEM_new<bDopeSheet>("NlaEdit DopeSheet");
     wmWindow *win = WM_window_find_by_area(wm, area);
     snla->ads->source = win ? reinterpret_cast<ID *>(WM_window_get_active_scene(win)) : nullptr;
   }
@@ -152,10 +155,10 @@ static void nla_init(wmWindowManager *wm, ScrArea *area)
 
 static SpaceLink *nla_duplicate(SpaceLink *sl)
 {
-  SpaceNla *snlan = static_cast<SpaceNla *>(MEM_dupallocN(sl));
+  SpaceNla *snlan = MEM_dupalloc(reinterpret_cast<SpaceNla *>(sl));
 
   /* clear or remove stuff from old */
-  snlan->ads = static_cast<bDopeSheet *>(MEM_dupallocN(snlan->ads));
+  snlan->ads = MEM_dupalloc(snlan->ads);
 
   return reinterpret_cast<SpaceLink *>(snlan);
 }
@@ -168,7 +171,7 @@ static void nla_track_region_init(wmWindowManager *wm, ARegion *region)
   /* ensure the 2d view sync works - main region has bottom scroller */
   region->v2d.scroll = V2D_SCROLL_BOTTOM;
 
-  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
+  view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
   /* own keymap */
   /* own tracks map first to override some track keymaps */
@@ -193,9 +196,9 @@ static void nla_track_region_draw(const bContext *C, ARegion *region)
   }
 
   /* clear and setup matrix */
-  UI_ThemeClearColor(TH_BACK);
+  ui::theme::frame_buffer_clear(TH_BACK);
 
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
   SpaceNla *snla = reinterpret_cast<SpaceNla *>(ac.sl);
   View2D *v2d = &region->v2d;
@@ -206,7 +209,7 @@ static void nla_track_region_draw(const bContext *C, ARegion *region)
       &ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
 
   /* Recalculate the height of the track list.
-   * Needs to be done before the call to #UI_view2d_view_ortho. */
+   * Needs to be done before the call to #view2d_view_ortho. */
   int height = NLATRACK_TOT_HEIGHT(&ac, item_count);
   /* Add padding for the collapsed redo panel. */
   height += HEADERY;
@@ -214,9 +217,9 @@ static void nla_track_region_draw(const bContext *C, ARegion *region)
     height += (UI_MARKER_MARGIN_Y - NLATRACK_STEP(snla));
   }
   v2d->tot.ymin = -height;
-  UI_view2d_curRect_clamp_y(v2d);
+  ui::view2d_curRect_clamp_y(v2d);
 
-  UI_view2d_view_ortho(v2d);
+  ui::view2d_view_ortho(v2d);
 
   draw_nla_track_list(C, &ac, region, anim_data);
 
@@ -224,11 +227,11 @@ static void nla_track_region_draw(const bContext *C, ARegion *region)
   ED_time_scrub_channel_search_draw(C, region, ac.ads);
 
   /* reset view matrix */
-  UI_view2d_view_restore(C);
+  ui::view2d_view_restore(C);
 
   /* scrollers */
   if (region->winy > UI_ANIM_MINY) {
-    UI_view2d_scrollers_draw(v2d, nullptr);
+    ui::view2d_scrollers_draw(v2d, nullptr);
   }
 
   ANIM_animdata_freelist(&anim_data);
@@ -239,7 +242,7 @@ static void nla_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
+  view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->runtime->defaultconf, "NLA Editor", SPACE_NLA, RGN_TYPE_WINDOW);
@@ -259,14 +262,13 @@ static void nla_main_region_draw(const bContext *C, ARegion *region)
   const int min_height = UI_ANIM_MINY;
 
   /* clear and setup matrix */
-  UI_ThemeClearColor(TH_BACK);
+  ui::theme::frame_buffer_clear(TH_BACK);
 
-  UI_view2d_view_ortho(v2d);
+  ui::view2d_view_ortho(v2d);
 
   /* time grid */
   if (region->winy > min_height) {
-    UI_view2d_draw_lines_x__discrete_frames_or_seconds(
-        v2d, scene, snla->flag & SNLA_DRAWTIME, true);
+    ui::view2d_draw_lines_x_frames(v2d, scene, snla->flag & SNLA_DRAWTIME, false, true);
   }
 
   ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
@@ -282,28 +284,29 @@ static void nla_main_region_draw(const bContext *C, ARegion *region)
     draw_nla_main_data(&ac, snla, region);
 
     /* Text draw cached, in pixel-space now. */
-    UI_view2d_text_cache_draw(region);
+    ui::view2d_text_cache_draw(region);
   }
 
   /* markers */
-  UI_view2d_view_orthoSpecial(region, v2d, true);
+  ui::view2d_view_orthoSpecial(region, v2d, true);
   int marker_draw_flag = DRAW_MARKERS_MARGIN;
-  if (snla->flag & SNLA_SHOW_MARKERS && region->winy > (UI_ANIM_MINY + UI_MARKER_MARGIN_Y)) {
+  if (ED_markers_region_visible(CTX_wm_area(C), region)) {
     ED_markers_draw(C, marker_draw_flag);
   }
 
   /* preview range */
-  UI_view2d_view_ortho(v2d);
+  ui::view2d_view_ortho(v2d);
   ANIM_draw_previewrange(scene, v2d, 0);
 
   /* callback */
-  UI_view2d_view_ortho(v2d);
+  ui::view2d_view_ortho(v2d);
   ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_VIEW);
 
   /* reset view matrix */
-  UI_view2d_view_restore(C);
+  ui::view2d_view_restore(C);
 
-  ED_time_scrub_draw(region, scene, snla->flag & SNLA_DRAWTIME, true);
+  const int fps = round_db_to_int(scene->frames_per_second());
+  ED_time_scrub_draw(region, scene, snla->flag & SNLA_DRAWTIME, true, fps);
 }
 
 static void nla_main_region_draw_overlay(const bContext *C, ARegion *region)
@@ -319,7 +322,7 @@ static void nla_main_region_draw_overlay(const bContext *C, ARegion *region)
 
   /* scrollers */
   if (region->winy >= UI_ANIM_MINY) {
-    UI_view2d_scrollers_draw(v2d, nullptr);
+    ui::view2d_scrollers_draw(v2d, nullptr);
   }
 }
 
@@ -389,6 +392,7 @@ static void nla_region_listener(const wmRegionListenerParams *params)
         case ND_MARKERS:
         case ND_LAYER_CONTENT:
         case ND_OB_SELECT:
+        case ND_WORLD:
           ED_region_tag_redraw(region);
           break;
       }
@@ -430,6 +434,7 @@ static void nla_main_region_listener(const wmRegionListenerParams *params)
         case ND_MARKERS:
         case ND_LAYER_CONTENT:
         case ND_OB_SELECT:
+        case ND_WORLD:
           ED_region_tag_redraw(region);
           break;
       }
@@ -514,6 +519,7 @@ static void nla_track_region_listener(const wmRegionListenerParams *params)
         case ND_LAYER_CONTENT:
         case ND_FRAME:
         case ND_OB_SELECT:
+        case ND_WORLD:
           ED_region_tag_redraw(region);
           break;
       }
@@ -556,7 +562,7 @@ static void nla_track_region_message_subscribe(const wmRegionMessageSubscribePar
   {
     wmMsgParams_RNA msg_key_params = {{}};
     StructRNA *type_array[] = {
-        &RNA_DopeSheet,
+        RNA_DopeSheet,
     };
 
     for (int i = 0; i < ARRAY_SIZE(type_array); i++) {
@@ -608,9 +614,7 @@ static void nla_listener(const wmSpaceTypeListenerParams *params)
   }
 }
 
-static void nla_id_remap(ScrArea * /*area*/,
-                         SpaceLink *slink,
-                         const blender::bke::id::IDRemapper &mappings)
+static void nla_id_remap(ScrArea * /*area*/, SpaceLink *slink, const bke::id::IDRemapper &mappings)
 {
   SpaceNla *snla = reinterpret_cast<SpaceNla *>(slink);
 
@@ -645,9 +649,9 @@ static void nla_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   SpaceNla *snla = reinterpret_cast<SpaceNla *>(sl);
 
-  BLO_write_struct(writer, SpaceNla, snla);
+  writer->write_struct_cast<SpaceNla>(snla);
   if (snla->ads) {
-    BLO_write_struct(writer, bDopeSheet, snla->ads);
+    writer->write_struct(snla->ads);
   }
 }
 
@@ -673,7 +677,7 @@ void ED_spacetype_nla()
   st->blend_write = nla_space_blend_write;
 
   /* regions: main window */
-  art = MEM_callocN<ARegionType>("spacetype nla region");
+  art = MEM_new_zeroed<ARegionType>("spacetype nla region");
   art->regionid = RGN_TYPE_WINDOW;
   art->init = nla_main_region_init;
   art->draw = nla_main_region_draw;
@@ -685,7 +689,7 @@ void ED_spacetype_nla()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
-  art = MEM_callocN<ARegionType>("spacetype nla region");
+  art = MEM_new_zeroed<ARegionType>("spacetype nla region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
@@ -696,10 +700,10 @@ void ED_spacetype_nla()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: footer */
-  art = MEM_callocN<ARegionType>("spacetype nla region");
+  art = MEM_new_zeroed<ARegionType>("spacetype nla region");
   art->regionid = RGN_TYPE_FOOTER;
   art->prefsizey = HEADERY;
-  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER;
+  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER | ED_KEYMAP_FRAMES;
 
   art->init = nla_header_region_init;
   art->draw = nla_header_region_draw;
@@ -708,7 +712,7 @@ void ED_spacetype_nla()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: tracks */
-  art = MEM_callocN<ARegionType>("spacetype nla region");
+  art = MEM_new_zeroed<ARegionType>("spacetype nla region");
   art->regionid = RGN_TYPE_CHANNELS;
   art->prefsizex = 200;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES;
@@ -721,7 +725,7 @@ void ED_spacetype_nla()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: UI buttons */
-  art = MEM_callocN<ARegionType>("spacetype nla region");
+  art = MEM_new_zeroed<ARegionType>("spacetype nla region");
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
@@ -733,8 +737,10 @@ void ED_spacetype_nla()
 
   nla_buttons_register(art);
 
-  art = ED_area_type_hud(st->spaceid);
+  art = ui::ED_area_type_hud(st->spaceid);
   BLI_addhead(&st->regiontypes, art);
 
   BKE_spacetype_register(std::move(st));
 }
+
+}  // namespace blender

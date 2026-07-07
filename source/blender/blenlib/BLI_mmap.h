@@ -11,11 +11,13 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 /* Memory-mapped file IO that implements all the OS-specific details and error handling. */
 
 struct BLI_mmap_file;
 
-typedef struct BLI_mmap_file BLI_mmap_file;
+struct BLI_mmap_file;
 
 /* Prepares an opened file for memory-mapped IO.
  * May return NULL if the operation fails.
@@ -33,3 +35,5 @@ size_t BLI_mmap_get_length(const BLI_mmap_file *file) ATTR_WARN_UNUSED_RESULT;
 bool BLI_mmap_any_io_error(const BLI_mmap_file *file) ATTR_WARN_UNUSED_RESULT;
 
 void BLI_mmap_free(BLI_mmap_file *file) ATTR_NONNULL(1);
+
+}  // namespace blender

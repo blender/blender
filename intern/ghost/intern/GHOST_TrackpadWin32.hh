@@ -13,7 +13,7 @@
 #  error WIN32 only!
 #endif  // WIN32
 
-#include "GHOST_Types.h"
+#include "GHOST_Types.hh"
 
 #include <directmanipulation.h>
 #include <wrl.h>

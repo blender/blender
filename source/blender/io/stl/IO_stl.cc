@@ -12,19 +12,23 @@
 #include "stl_export.hh"
 #include "stl_import.hh"
 
+namespace blender {
+
 void STL_import(bContext *C, const STLImportParams *import_params)
 {
   SCOPED_TIMER("STL Import");
-  blender::io::stl::importer_main(C, *import_params);
+  io::stl::importer_main(C, *import_params);
 }
 
 void STL_export(bContext *C, const STLExportParams *export_params)
 {
   SCOPED_TIMER("STL Export");
-  blender::io::stl::exporter_main(C, *export_params);
+  io::stl::exporter_main(C, *export_params);
 }
 
 Mesh *STL_import_mesh(const STLImportParams *import_params)
 {
-  return blender::io::stl::read_stl_file(*import_params);
+  return io::stl::read_stl_file(*import_params);
 }
+
+}  // namespace blender

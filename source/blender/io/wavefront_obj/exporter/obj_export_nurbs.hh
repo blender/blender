@@ -8,17 +8,23 @@
 
 #pragma once
 
-#include "BLI_math_vector_types.hh"
+#include "BLI_math_matrix_types.hh"
+#include "BLI_span.hh"
+#include "BLI_vector.hh"
+
+namespace blender {
 
 struct Curve;
 struct Nurb;
 struct OBJExportParams;
+struct Object;
+struct Depsgraph;
 
-namespace blender::bke {
+namespace bke {
 class CurvesGeometry;
 }
 
-namespace blender::io::obj {
+namespace io::obj {
 
 /**
  * Finds the range within the control points that represents the sequence of valid spans or
@@ -94,7 +100,7 @@ class OBJCurves : public IOBJCurve, NonCopyable {
 
  public:
   OBJCurves(const bke::CurvesGeometry &curve, const float4x4 &transform, const std::string &name);
-  virtual ~OBJCurves() override = default;
+  ~OBJCurves() override = default;
 
   const float4x4 &object_transform() const override;
 
@@ -121,7 +127,7 @@ class OBJLegacyCurve : public IOBJCurve, NonCopyable {
 
  public:
   OBJLegacyCurve(const Depsgraph *depsgraph, Object *curve_object);
-  virtual ~OBJLegacyCurve() override = default;
+  ~OBJLegacyCurve() override = default;
 
   const float4x4 &object_transform() const override;
 
@@ -139,4 +145,5 @@ class OBJLegacyCurve : public IOBJCurve, NonCopyable {
                                   Vector<float3> &dynamic_point_buffer) const override;
 };
 
-}  // namespace blender::io::obj
+}  // namespace io::obj
+}  // namespace blender

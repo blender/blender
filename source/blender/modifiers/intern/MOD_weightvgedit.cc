@@ -17,7 +17,6 @@
 #include "BLT_translation.hh"
 
 #include "DNA_color_types.h" /* CurveMapping. */
-#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -51,16 +50,15 @@
 #include "MOD_util.hh"
 #include "MOD_weightvg_util.hh"
 
+namespace blender {
+
 /**************************************
  * Modifiers functions.               *
  **************************************/
 static void init_data(ModifierData *md)
 {
-  WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(wmd, DNA_struct_default_get(WeightVGEditModifierData), modifier);
+  WeightVGEditModifierData *wmd = reinterpret_cast<WeightVGEditModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(wmd, modifier);
 
   wmd->cmap_curve = BKE_curvemapping_add(1, 0.0, 0.0, 1.0, 1.0);
   BKE_curvemapping_init(wmd->cmap_curve);
@@ -68,14 +66,14 @@ static void init_data(ModifierData *md)
 
 static void free_data(ModifierData *md)
 {
-  WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
+  WeightVGEditModifierData *wmd = reinterpret_cast<WeightVGEditModifierData *>(md);
   BKE_curvemapping_free(wmd->cmap_curve);
 }
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
-  const WeightVGEditModifierData *wmd = (const WeightVGEditModifierData *)md;
-  WeightVGEditModifierData *twmd = (WeightVGEditModifierData *)target;
+  const WeightVGEditModifierData *wmd = reinterpret_cast<const WeightVGEditModifierData *>(md);
+  WeightVGEditModifierData *twmd = reinterpret_cast<WeightVGEditModifierData *>(target);
 
   BKE_modifier_copydata_generic(md, target, flag);
 
@@ -84,7 +82,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
+  WeightVGEditModifierData *wmd = reinterpret_cast<WeightVGEditModifierData *>(md);
 
   /* We need vertex groups! */
   r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
@@ -97,7 +95,7 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 
 static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 {
-  WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
+  WeightVGEditModifierData *wmd = reinterpret_cast<WeightVGEditModifierData *>(md);
 
   if (wmd->mask_texture) {
     return BKE_texture_dependsOnTime(wmd->mask_texture);
@@ -107,22 +105,22 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
+  WeightVGEditModifierData *wmd = reinterpret_cast<WeightVGEditModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&wmd->mask_texture, IDWALK_CB_USER);
-  walk(user_data, ob, (ID **)&wmd->mask_tex_map_obj, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&wmd->mask_texture), IDWALK_CB_USER);
+  walk(user_data, ob, reinterpret_cast<ID **>(&wmd->mask_tex_map_obj), IDWALK_CB_NOP);
 }
 
 static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, void *user_data)
 {
-  PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Modifier, md);
+  PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, RNA_Modifier, md);
   PropertyRNA *prop = RNA_struct_find_property(&ptr, "mask_texture");
   walk(user_data, ob, md, &ptr, prop);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
+  WeightVGEditModifierData *wmd = reinterpret_cast<WeightVGEditModifierData *>(md);
   bool need_transform_relation = false;
 
   if (wmd->mask_texture != nullptr) {
@@ -145,7 +143,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
+  WeightVGEditModifierData *wmd = reinterpret_cast<WeightVGEditModifierData *>(md);
   /* If no vertex group, bypass. */
   return (wmd->defgrp_name[0] == '\0');
 }
@@ -154,7 +152,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 {
   BLI_assert(mesh != nullptr);
 
-  WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
+  WeightVGEditModifierData *wmd = reinterpret_cast<WeightVGEditModifierData *>(md);
 
   MDeformWeight **dw = nullptr;
   float *org_w; /* Array original weights. */
@@ -203,9 +201,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   }
 
   /* Get org weights, assuming 0.0 for vertices not in given vgroup. */
-  org_w = MEM_malloc_arrayN<float>(size_t(verts_num), __func__);
-  new_w = MEM_malloc_arrayN<float>(size_t(verts_num), __func__);
-  dw = MEM_malloc_arrayN<MDeformWeight *>(size_t(verts_num), __func__);
+  org_w = MEM_new_array_uninitialized<float>(size_t(verts_num), __func__);
+  new_w = MEM_new_array_uninitialized<float>(size_t(verts_num), __func__);
+  dw = MEM_new_array_uninitialized<MDeformWeight *>(size_t(verts_num), __func__);
   for (i = 0; i < verts_num; i++) {
     dw[i] = BKE_defvert_find_index(&dvert[i], defgrp_index);
     if (dw[i]) {
@@ -274,9 +272,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 #endif
 
   /* Freeing stuff. */
-  MEM_freeN(org_w);
-  MEM_freeN(new_w);
-  MEM_freeN(dw);
+  MEM_delete(org_w);
+  MEM_delete(new_w);
+  MEM_delete(dw);
 
   mesh->runtime->is_original_bmesh = false;
 
@@ -286,20 +284,20 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *sub, *col, *row;
-  uiLayout *layout = panel->layout;
+  ui::Layout *sub, *col, *row;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  col = &layout->column(true);
+  col = &layout.column(true);
   col->prop_search(ptr, "vertex_group", &ob_ptr, "vertex_groups", std::nullopt, ICON_GROUP_VERTEX);
 
-  layout->prop(ptr, "default_weight", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "default_weight", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
-  col = &layout->column(false, IFACE_("Group Add"));
+  col = &layout.column(false, IFACE_("Group Add"));
   row = &col->row(true);
   row->use_property_decorate_set(false);
   sub = &row->row(true);
@@ -307,10 +305,10 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   sub = &sub->row(true);
   sub->active_set(RNA_boolean_get(ptr, "use_add"));
   sub->use_property_split_set(false);
-  sub->prop(ptr, "add_threshold", UI_ITEM_R_SLIDER, IFACE_("Threshold"), ICON_NONE);
+  sub->prop(ptr, "add_threshold", ui::ITEM_R_SLIDER, IFACE_("Threshold"), ICON_NONE);
   row->decorator(ptr, "add_threshold", 0);
 
-  col = &layout->column(false, IFACE_("Group Remove"));
+  col = &layout.column(false, IFACE_("Group Remove"));
   row = &col->row(true);
   row->use_property_decorate_set(false);
   sub = &row->row(true);
@@ -318,37 +316,36 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   sub = &sub->row(true);
   sub->active_set(RNA_boolean_get(ptr, "use_remove"));
   sub->use_property_split_set(false);
-  sub->prop(ptr, "remove_threshold", UI_ITEM_R_SLIDER, IFACE_("Threshold"), ICON_NONE);
+  sub->prop(ptr, "remove_threshold", ui::ITEM_R_SLIDER, IFACE_("Threshold"), ICON_NONE);
   row->decorator(ptr, "remove_threshold", 0);
 
-  layout->prop(ptr, "normalize", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "normalize", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   modifier_error_message_draw(layout, ptr);
 }
 
 static void falloff_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *row, *sub;
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  row = &layout->row(true);
-  row->prop(ptr, "falloff_type", UI_ITEM_NONE, IFACE_("Type"), ICON_NONE);
-  sub = &row->row(true);
-  sub->use_property_split_set(false);
-  row->prop(ptr, "invert_falloff", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
+  ui::Layout &row = layout.row(true);
+  row.prop(ptr, "falloff_type", UI_ITEM_NONE, IFACE_("Type"), ICON_NONE);
+  ui::Layout &sub = row.row(true);
+  sub.use_property_split_set(false);
+  row.prop(ptr, "invert_falloff", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   if (RNA_enum_get(ptr, "falloff_type") == MOD_WVG_MAPPING_CURVE) {
-    uiTemplateCurveMapping(layout, ptr, "map_curve", 0, false, false, false, false);
+    template_curve_mapping(&layout, ptr, "map_curve", 0, false, false, false, false, false);
   }
 }
 
 static void influence_panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -368,9 +365,9 @@ static void panel_register(ARegionType *region_type)
 
 static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const ModifierData *md)
 {
-  const WeightVGEditModifierData *wmd = (const WeightVGEditModifierData *)md;
+  const WeightVGEditModifierData *wmd = reinterpret_cast<const WeightVGEditModifierData *>(md);
 
-  BLO_write_struct(writer, WeightVGEditModifierData, wmd);
+  writer->write_struct(wmd);
 
   if (wmd->cmap_curve) {
     BKE_curvemapping_blend_write(writer, wmd->cmap_curve);
@@ -379,7 +376,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 
 static void blend_read(BlendDataReader *reader, ModifierData *md)
 {
-  WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
+  WeightVGEditModifierData *wmd = reinterpret_cast<WeightVGEditModifierData *>(md);
 
   BLO_read_struct(reader, CurveMapping, &wmd->cmap_curve);
   if (wmd->cmap_curve) {
@@ -423,3 +420,5 @@ ModifierTypeInfo modifierType_WeightVGEdit = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

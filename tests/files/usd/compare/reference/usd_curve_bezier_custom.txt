@@ -1,0 +1,139 @@
+==== Curves(new): 8
+- Curve 'bezier_bad_count1' splines:0 control-points:0
+
+- Curve 'bezier_bad_count2' splines:0 control-points:0
+
+- Curve 'bezier_bad_count3' splines:1 control-points:2
+  - attr 'curve_type' INT8 CURVE
+    - 2 
+  - attr 'handle_left' FLOAT_VECTOR POINT
+    - (0.500, 0.000, -0.276)
+    - (0.500, 0.000, 0.276)
+  - attr 'handle_right' FLOAT_VECTOR POINT
+    - (0.500, 0.000, 0.276)
+    - (0.948, 0.000, 0.724)
+  - attr 'handle_type_left' INT8 POINT
+    - 3 3 
+  - attr 'handle_type_right' INT8 POINT
+    - 3 3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.500, 0.000, 0.000)
+    - (0.724, 0.000, 0.500)
+  - attr 'radius' FLOAT POINT
+    - 0.010 0.010 
+
+- Curve 'bezier_bad_count9' splines:1 control-points:4
+  - attr 'curve_type' INT8 CURVE
+    - 2 
+  - attr 'handle_left' FLOAT_VECTOR POINT
+    - (0.500, 0.000, -0.276)
+    - (0.724, 0.000, 0.500)
+    - (1.500, 0.000, 0.276)
+    - (1.500, 0.000, -0.276)
+  - attr 'handle_right' FLOAT_VECTOR POINT
+    - (0.500, 0.000, 0.276)
+    - (1.276, 0.000, 0.500)
+    - (1.500, 0.000, -0.276)
+    - (1.052, 0.000, -0.724)
+  - attr 'handle_type_left' INT8 POINT
+    - 3 3 3 3 
+  - attr 'handle_type_right' INT8 POINT
+    - 3 3 3 3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.500, 0.000, 0.000)
+    - (1.000, 0.000, 0.500)
+    - (1.500, 0.000, 0.000)
+    - (1.276, 0.000, -0.500)
+  - attr 'radius' FLOAT POINT
+    - 0.010 0.010 0.010 0.010 
+
+- Curve 'bezier_counts_but_no_points' splines:1 control-points:2
+  - attr 'curve_type' INT8 CURVE
+    - 2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, 0.000)
+    - (0.000, 0.000, 0.000)
+
+- Curve 'bezier_counts_but_too_few_points' splines:1 control-points:3
+  - attr 'curve_type' INT8 CURVE
+    - 2 
+  - attr 'handle_left' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, -0.276)
+    - (-0.276, 0.000, 0.500)
+    - (-0.276, 0.000, 0.500)
+  - attr 'handle_right' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.276)
+    - (0.276, 0.000, 0.500)
+    - (0.276, 0.000, 0.500)
+  - attr 'handle_type_left' INT8 POINT
+    - 3 3 3 
+  - attr 'handle_type_right' INT8 POINT
+    - 3 3 3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.000, 0.500)
+    - (0.000, 0.000, 0.500)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.100 0.100 
+
+- Curve 'bezier_empty_frame' splines:0 control-points:0
+
+- Curve 'bezier_vertex_width_single_value' splines:1 control-points:2
+  - attr 'curve_type' INT8 CURVE
+    - 2 
+  - attr 'handle_left' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, -0.276)
+    - (-0.276, 0.000, 0.500)
+  - attr 'handle_right' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.276)
+    - (0.276, 0.000, 0.500)
+  - attr 'handle_type_left' INT8 POINT
+    - 3 3 
+  - attr 'handle_type_right' INT8 POINT
+    - 3 3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, 0.000, 0.000)
+    - (0.000, 0.000, 0.500)
+  - attr 'radius' FLOAT POINT
+    - 0.100 0.100 
+
+==== Objects: 9
+- Obj 'bezier_bad_count1' CURVES data:'bezier_bad_count1' par:'root'
+  - pos 2.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bezier_bad_count2' CURVES data:'bezier_bad_count2' par:'root'
+  - pos 2.000, 0.000, 1.250
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bezier_bad_count3' CURVES data:'bezier_bad_count3' par:'root'
+  - pos 2.000, 0.000, 2.500
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bezier_bad_count9' CURVES data:'bezier_bad_count9' par:'root'
+  - pos 4.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bezier_counts_but_no_points' CURVES data:'bezier_counts_but_no_points' par:'root'
+  - pos 0.000, 0.000, 2.500
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bezier_counts_but_too_few_points' CURVES data:'bezier_counts_but_too_few_points' par:'root'
+  - pos 0.000, 0.000, 3.750
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'bezier_empty_frame' CURVES data:'bezier_empty_frame' par:'root'
+  - pos 0.000, 0.000, 1.250
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 1 modifiers
+    - MESH_SEQUENCE_CACHE 'MeshSequenceCache'
+- Obj 'bezier_vertex_width_single_value' CURVES data:'bezier_vertex_width_single_value' par:'root'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'root' EMPTY
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

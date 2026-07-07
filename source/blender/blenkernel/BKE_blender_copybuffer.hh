@@ -9,6 +9,8 @@
 
 #include "BLI_sys_types.h"
 
+namespace blender {
+
 struct Main;
 struct ReportList;
 struct bContext;
@@ -45,3 +47,5 @@ bool BKE_copybuffer_read(Main *bmain_dst,
  */
 int BKE_copybuffer_paste(
     bContext *C, const char *libname, int flag, ReportList *reports, uint64_t id_types_mask);
+
+}  // namespace blender

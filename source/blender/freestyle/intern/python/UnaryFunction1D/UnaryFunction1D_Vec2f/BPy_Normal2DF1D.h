@@ -18,8 +18,8 @@ extern PyTypeObject Normal2DF1D_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&Normal2DF1D_Type))
 
 /*---------------------------Python BPy_Normal2DF1D structure definition----------*/
-typedef struct {
+struct BPy_Normal2DF1D {
   BPy_UnaryFunction1DVec2f py_uf1D_vec2f;
-} BPy_Normal2DF1D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

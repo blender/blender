@@ -22,6 +22,8 @@
 #include "bmesh.hh"
 #include "intern/bmesh_operators_private.hh"
 
+namespace blender {
+
 /* ************************ primitives ******************* */
 
 static const float icovert[12][3] = {
@@ -738,7 +740,7 @@ void bmo_create_grid_exec(BMesh *bm, BMOperator *op)
   BMO_slot_mat4_get(op->slots_in, "matrix", mat);
 
   BMO_slot_buffer_alloc(op, op->slots_out, "verts.out", (xtot + 1) * (ytot + 1));
-  varr = (BMVert **)slot_verts_out->data.buf;
+  varr = reinterpret_cast<BMVert **>(slot_verts_out->data.buf);
 
   i = 0;
   vec[2] = 0.0f;
@@ -785,16 +787,12 @@ void BM_mesh_calc_uvs_grid(BMesh *bm,
                            const int cd_loop_uv_offset)
 {
   BMFace *f;
-  BMLoop *l;
-  BMIter iter, liter;
+  BMIter iter;
 
   const float dx = 1.0f / float(x_segments);
   const float dy = 1.0f / float(y_segments);
-  const float dx_wrap = 1.0 - (dx / 2.0f);
-  float x = 0.0f;
-  float y = dy;
 
-  int loop_index;
+  uint face_index = 0;
 
   BLI_assert(cd_loop_uv_offset != -1);
 
@@ -803,43 +801,53 @@ void BM_mesh_calc_uvs_grid(BMesh *bm,
       continue;
     }
 
+    const uint ix = face_index % x_segments;
+    const uint iy = face_index / x_segments;
+
+    BMIter liter;
+    BMLoop *l;
+    int loop_index;
+
     BM_ITER_ELEM_INDEX (l, &liter, f, BM_LOOPS_OF_FACE, loop_index) {
       float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
 
       switch (loop_index) {
-        case 0:
-          y -= dy;
+        case 0: {
+          luv[0] = ix * dx;
+          luv[1] = iy * dy;
           break;
-        case 1:
-          x += dx;
+        }
+        case 1: {
+          luv[0] = (ix + 1) * dx;
+          luv[1] = iy * dy;
           break;
-        case 2:
-          y += dy;
+        }
+        case 2: {
+          luv[0] = (ix + 1) * dx;
+          luv[1] = (iy + 1) * dy;
           break;
-        case 3:
-          x -= dx;
+        }
+        case 3: {
+          luv[0] = ix * dx;
+          luv[1] = (iy + 1) * dy;
           break;
-        default:
+        }
+        default: {
           break;
+        }
       }
-
-      luv[0] = x;
-      luv[1] = y;
     }
 
-    x += dx;
-    if (x >= dx_wrap) {
-      x = 0.0f;
-      y += dy;
-    }
+    face_index++;
   }
 }
 
 void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 {
   const float rad = BMO_slot_float_get(op->slots_in, "radius");
-  const int seg = BMO_slot_int_get(op->slots_in, "u_segments");
-  const int tot = BMO_slot_int_get(op->slots_in, "v_segments");
+  /* Prevent zero U/V (crashes). If default permanents were supported 3 would make more sense. */
+  const int seg = std::max(1, BMO_slot_int_get(op->slots_in, "u_segments"));
+  const int tot = std::max(1, BMO_slot_int_get(op->slots_in, "v_segments"));
 
   const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
   const bool calc_uvs = (cd_loop_uv_offset != -1) && BMO_slot_bool_get(op->slots_in, "calc_uvs");
@@ -1156,7 +1164,7 @@ void BM_mesh_calc_uvs_sphere(BMesh *bm, const short oflag, const int cd_loop_uv_
 
 void bmo_create_monkey_exec(BMesh *bm, BMOperator *op)
 {
-  BMVert **tv = MEM_malloc_arrayN<BMVert *>(monkeynv * 2, "tv");
+  BMVert **tv = MEM_new_array_uninitialized<BMVert *>(monkeynv * 2, "tv");
   float mat[4][4];
   int i;
 
@@ -1230,7 +1238,7 @@ void bmo_create_monkey_exec(BMesh *bm, BMOperator *op)
     }
   }
 
-  MEM_freeN(tv);
+  MEM_delete(tv);
 
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "verts.out", BM_VERT, VERT_MARK);
 }
@@ -1391,8 +1399,7 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
   }
 
   const int side_faces_len = segs - 1;
-  BMFace **side_faces = static_cast<BMFace **>(
-      MEM_mallocN(sizeof(*side_faces) * side_faces_len, __func__));
+  BMFace **side_faces = MEM_new_array_uninitialized<BMFace *>(side_faces_len, __func__);
 
   for (int i = 0; i < segs; i++) {
     /* Calculate with higher precision, see: #87779. */
@@ -1496,7 +1503,7 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
   }
 
   if (side_faces != nullptr) {
-    MEM_freeN(side_faces);
+    MEM_delete(side_faces);
   }
 
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "verts.out", BM_VERT, VERT_MARK);
@@ -1725,3 +1732,5 @@ void BM_mesh_calc_uvs_cube(BMesh *bm, const short oflag)
     }
   }
 }
+
+}  // namespace blender

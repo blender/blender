@@ -6,6 +6,8 @@
 
 #include "bmesh_class.hh"
 
+namespace blender {
+
 /** \file
  * \ingroup bmesh
  */
@@ -152,6 +154,9 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm,
  * Collapses a vertex onto another vertex it shares an edge with.
  *
  * \return The New Edge
+ *
+ * \note To check if collapsing would create duplicate geometry,
+ * see: #BM_vert_collapse_check_double_face.
  */
 BMEdge *BM_vert_collapse_edge(BMesh *bm,
                               BMEdge *e_kill,
@@ -270,3 +275,5 @@ enum {
 BMVert *BM_face_loop_separate(BMesh *bm, BMLoop *l_sep);
 BMVert *BM_face_loop_separate_multi_isolated(BMesh *bm, BMLoop *l_sep);
 BMVert *BM_face_loop_separate_multi(BMesh *bm, BMLoop **larr, int larr_len);
+
+}  // namespace blender

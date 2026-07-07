@@ -277,6 +277,13 @@ ccl_device_inline Transform transform_translate(const float x, const float y, fl
   return transform_translate(make_float3(x, y, z));
 }
 
+ccl_device_inline void transform_translate(Transform &T, const float3 t)
+{
+  T.x.w += t.x;
+  T.y.w += t.y;
+  T.z.w += t.z;
+}
+
 ccl_device_inline Transform transform_scale(const float3 s)
 {
   return make_transform(s.x, 0, 0, 0, 0, s.y, 0, 0, 0, 0, s.z, 0);
@@ -590,7 +597,7 @@ ccl_device_inline void transform_compose(ccl_private Transform *tfm,
 /* Interpolate from array of decomposed transforms. */
 ccl_device void transform_motion_array_interpolate(ccl_private Transform *tfm,
                                                    const ccl_global DecomposedTransform *motion,
-                                                   const uint numsteps,
+                                                   const int numsteps,
                                                    const float time)
 {
   /* Figure out which steps we need to interpolate. */

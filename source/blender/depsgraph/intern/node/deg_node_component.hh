@@ -10,7 +10,6 @@
 
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_struct_equality_utils.hh"
 #include "intern/eval/deg_eval_copy_on_write.h"
 #include "intern/node/deg_node.hh"
 #include "intern/node/deg_node_id.hh"
@@ -19,10 +18,12 @@
 #include "BLI_map.hh"
 #include "BLI_vector.hh"
 
+namespace blender {
+
 struct ID;
 struct bPoseChannel;
 
-namespace blender::deg {
+namespace deg {
 
 struct Depsgraph;
 struct IDNode;
@@ -44,7 +45,7 @@ struct ComponentNode : public Node {
     }
 
     std::string identifier() const;
-    BLI_STRUCT_EQUALITY_OPERATORS_3(OperationIDKey, opcode, name_tag, name);
+    friend bool operator==(const OperationIDKey &a, const OperationIDKey &b) = default;
     uint64_t hash() const
     {
       return get_default_hash(opcode, name_tag, name);
@@ -255,4 +256,5 @@ struct AudioComponentNode : public ComponentNode {
 
 void deg_register_component_depsnodes();
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

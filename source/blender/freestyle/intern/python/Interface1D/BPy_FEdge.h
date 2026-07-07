@@ -19,9 +19,9 @@ extern PyTypeObject FEdge_Type;
 #define BPy_FEdge_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&FEdge_Type))
 
 /*---------------------------Python BPy_FEdge structure definition----------*/
-typedef struct {
+struct BPy_FEdge {
   BPy_Interface1D py_if1D;
   Freestyle::FEdge *fe;
-} BPy_FEdge;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

@@ -12,7 +12,6 @@ set(INC
 )
 
 set(INC_SYS
-  ../../../../extern/fast_float
 )
 
 set(SRC
@@ -55,7 +54,7 @@ set(LIB
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_io_common
-  PRIVATE bf::extern::fmtlib
+  PRIVATE bf::extern::fast_float
   PRIVATE bf::windowmanager
 )
 

@@ -37,13 +37,44 @@ CCL_NAMESPACE_BEGIN
 bool Device::need_types_update = true;
 bool Device::need_devices_update = true;
 thread_mutex Device::device_mutex;
-vector<DeviceInfo> Device::cuda_devices;
-vector<DeviceInfo> Device::optix_devices;
-vector<DeviceInfo> Device::cpu_devices;
-vector<DeviceInfo> Device::hip_devices;
-vector<DeviceInfo> Device::metal_devices;
-vector<DeviceInfo> Device::oneapi_devices;
 uint Device::devices_initialized_mask = 0;
+
+/* Lazily init inside function so they get destructed before guardedalloc leak check. */
+vector<DeviceInfo> &Device::cuda_devices()
+{
+  static vector<DeviceInfo> devices_;
+  return devices_;
+}
+
+vector<DeviceInfo> &Device::optix_devices()
+{
+  static vector<DeviceInfo> devices_;
+  return devices_;
+}
+
+vector<DeviceInfo> &Device::cpu_devices()
+{
+  static vector<DeviceInfo> devices_;
+  return devices_;
+}
+
+vector<DeviceInfo> &Device::hip_devices()
+{
+  static vector<DeviceInfo> devices_;
+  return devices_;
+}
+
+vector<DeviceInfo> &Device::metal_devices()
+{
+  static vector<DeviceInfo> devices_;
+  return devices_;
+}
+
+vector<DeviceInfo> &Device::oneapi_devices()
+{
+  static vector<DeviceInfo> devices_;
+  return devices_;
+}
 
 /* Device */
 
@@ -236,12 +267,12 @@ vector<DeviceInfo> Device::available_devices(const uint mask)
   if (mask & (DEVICE_MASK_CUDA | DEVICE_MASK_OPTIX)) {
     if (!(devices_initialized_mask & DEVICE_MASK_CUDA)) {
       if (device_cuda_init()) {
-        device_cuda_info(cuda_devices);
+        device_cuda_info(cuda_devices());
       }
       devices_initialized_mask |= DEVICE_MASK_CUDA;
     }
     if (mask & DEVICE_MASK_CUDA) {
-      for (DeviceInfo &info : cuda_devices) {
+      for (DeviceInfo &info : cuda_devices()) {
         devices.push_back(info);
       }
     }
@@ -252,11 +283,11 @@ vector<DeviceInfo> Device::available_devices(const uint mask)
   if (mask & DEVICE_MASK_OPTIX) {
     if (!(devices_initialized_mask & DEVICE_MASK_OPTIX)) {
       if (device_optix_init()) {
-        device_optix_info(cuda_devices, optix_devices);
+        device_optix_info(cuda_devices(), optix_devices());
       }
       devices_initialized_mask |= DEVICE_MASK_OPTIX;
     }
-    for (DeviceInfo &info : optix_devices) {
+    for (DeviceInfo &info : optix_devices()) {
       devices.push_back(info);
     }
   }
@@ -266,11 +297,11 @@ vector<DeviceInfo> Device::available_devices(const uint mask)
   if (mask & DEVICE_MASK_HIP) {
     if (!(devices_initialized_mask & DEVICE_MASK_HIP)) {
       if (device_hip_init()) {
-        device_hip_info(hip_devices);
+        device_hip_info(hip_devices());
       }
       devices_initialized_mask |= DEVICE_MASK_HIP;
     }
-    for (DeviceInfo &info : hip_devices) {
+    for (DeviceInfo &info : hip_devices()) {
       devices.push_back(info);
     }
   }
@@ -280,11 +311,11 @@ vector<DeviceInfo> Device::available_devices(const uint mask)
   if (mask & DEVICE_MASK_ONEAPI) {
     if (!(devices_initialized_mask & DEVICE_MASK_ONEAPI)) {
       if (device_oneapi_init()) {
-        device_oneapi_info(oneapi_devices);
+        device_oneapi_info(oneapi_devices());
       }
       devices_initialized_mask |= DEVICE_MASK_ONEAPI;
     }
-    for (DeviceInfo &info : oneapi_devices) {
+    for (DeviceInfo &info : oneapi_devices()) {
       devices.push_back(info);
     }
   }
@@ -292,10 +323,10 @@ vector<DeviceInfo> Device::available_devices(const uint mask)
 
   if (mask & DEVICE_MASK_CPU) {
     if (!(devices_initialized_mask & DEVICE_MASK_CPU)) {
-      device_cpu_info(cpu_devices);
+      device_cpu_info(cpu_devices());
       devices_initialized_mask |= DEVICE_MASK_CPU;
     }
-    for (const DeviceInfo &info : cpu_devices) {
+    for (const DeviceInfo &info : cpu_devices()) {
       devices.push_back(info);
     }
   }
@@ -304,11 +335,11 @@ vector<DeviceInfo> Device::available_devices(const uint mask)
   if (mask & DEVICE_MASK_METAL) {
     if (!(devices_initialized_mask & DEVICE_MASK_METAL)) {
       if (device_metal_init()) {
-        device_metal_info(metal_devices);
+        device_metal_info(metal_devices());
       }
       devices_initialized_mask |= DEVICE_MASK_METAL;
     }
-    for (const DeviceInfo &info : metal_devices) {
+    for (const DeviceInfo &info : metal_devices()) {
       devices.push_back(info);
     }
   }
@@ -473,12 +504,12 @@ void Device::tag_update()
 void Device::free_memory()
 {
   devices_initialized_mask = 0;
-  cuda_devices.free_memory();
-  optix_devices.free_memory();
-  hip_devices.free_memory();
-  oneapi_devices.free_memory();
-  cpu_devices.free_memory();
-  metal_devices.free_memory();
+  cuda_devices().free_memory();
+  optix_devices().free_memory();
+  hip_devices().free_memory();
+  oneapi_devices().free_memory();
+  cpu_devices().free_memory();
+  metal_devices().free_memory();
 }
 
 unique_ptr<DeviceQueue> Device::gpu_queue_create()
@@ -523,13 +554,13 @@ void Device::host_free(const MemoryType /*type*/, void *host_pointer, const size
 
 GPUDevice::~GPUDevice() noexcept(false) = default;
 
-bool GPUDevice::load_texture_info()
+bool GPUDevice::load_image_info()
 {
-  /* Note texture_info is never host mapped, and load_texture_info() should only
+  /* Note image_info is never host mapped, and load_image_info() should only
    * be called right before kernel enqueue when all memory operations have completed. */
-  if (need_texture_info) {
-    texture_info.copy_to_device();
-    need_texture_info = false;
+  if (need_image_info) {
+    image_info.copy_to_device();
+    need_image_info = false;
     return true;
   }
   return false;
@@ -563,8 +594,8 @@ void GPUDevice::init_host_memory(const size_t preferred_texture_headroom,
    * is space left for it. */
   device_working_headroom = preferred_working_headroom > 0 ? preferred_working_headroom :
                                                              32 * 1024 * 1024LL;  // 32MB
-  device_texture_headroom = preferred_texture_headroom > 0 ? preferred_texture_headroom :
-                                                             128 * 1024 * 1024LL;  // 128MB
+  device_image_headroom = preferred_texture_headroom > 0 ? preferred_texture_headroom :
+                                                           128 * 1024 * 1024LL;  // 128MB
 
   LOG_INFO << "Mapped host memory limit set to " << string_human_readable_number(map_host_limit)
            << " bytes. (" << string_human_readable_size(map_host_limit) << ")";
@@ -601,8 +632,8 @@ void GPUDevice::move_textures_to_host(size_t size, const size_t headroom, const 
         continue;
       }
 
-      const bool is_texture = (mem.type == MEM_TEXTURE || mem.type == MEM_GLOBAL) &&
-                              (&mem != &texture_info);
+      const bool is_texture = (mem.type == MEM_IMAGE_TEXTURE || mem.type == MEM_GLOBAL) &&
+                              (&mem != &image_info);
       const bool is_image = is_texture && (mem.data_height > 1);
 
       /* Can't move this type of memory. */
@@ -642,8 +673,8 @@ void GPUDevice::move_textures_to_host(size_t size, const size_t headroom, const 
       max_mem->move_to_host = false;
       size = (max_size >= size) ? 0 : size - max_size;
 
-      /* Tag texture info update for new pointers. */
-      need_texture_info = true;
+      /* Tag image info update for new pointers. */
+      need_image_info = true;
     }
     else {
       break;
@@ -660,17 +691,17 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, const size_t pitch_
   const char *status = "";
 
   /* First try allocating in device memory, respecting headroom. We make
-   * an exception for texture info. It is small and frequently accessed,
+   * an exception for image info. It is small and frequently accessed,
    * so treat it as working memory.
    *
    * If there is not enough room for working memory, we will try to move
    * textures to host memory, assuming the performance impact would have
    * been worse for working memory. */
-  const bool is_texture = (mem.type == MEM_TEXTURE || mem.type == MEM_GLOBAL) &&
-                          (&mem != &texture_info);
+  const bool is_texture = (mem.type == MEM_IMAGE_TEXTURE || mem.type == MEM_GLOBAL) &&
+                          (&mem != &image_info);
   const bool is_image = is_texture && (mem.data_height > 1);
 
-  const size_t headroom = (is_texture) ? device_texture_headroom : device_working_headroom;
+  const size_t headroom = (is_texture) ? device_image_headroom : device_working_headroom;
 
   /* Move textures to host memory if needed. */
   if (!mem.move_to_host && !is_image && can_map_host) {
@@ -830,18 +861,5 @@ bool GPUDevice::is_shared(const void *shared_pointer,
 }
 
 /* DeviceInfo */
-
-bool DeviceInfo::contains_device_type(const DeviceType type) const
-{
-  if (this->type == type) {
-    return true;
-  }
-  for (const DeviceInfo &info : multi_devices) {
-    if (info.contains_device_type(type)) {
-      return true;
-    }
-  }
-  return false;
-}
 
 CCL_NAMESPACE_END

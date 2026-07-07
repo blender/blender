@@ -20,21 +20,24 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   GeoNodesMultiInput<GeometrySet> geometries =
       params.extract_input<GeoNodesMultiInput<GeometrySet>>("Geometry");
-  std::unique_ptr<bke::Instances> instances = std::make_unique<bke::Instances>();
+  auto instances = std::make_unique<bke::Instances>(geometries.values.size());
 
-  for (GeometrySet &geometry : geometries.values) {
+  MutableSpan<int> handles = instances->reference_handles_for_write();
+
+  for (const int i : geometries.values.index_range()) {
+    GeometrySet &geometry = geometries.values[i];
     geometry.ensure_owns_direct_data();
-    const int handle = instances->add_reference(std::move(geometry));
-    instances->add_instance(handle, float4x4::identity());
+    handles[i] = instances->add_reference(std::move(geometry));
   }
 
-  GeometrySet new_geometry = GeometrySet::from_instances(instances.release());
-  params.set_output("Instances", std::move(new_geometry));
+  instances->transforms_for_write().fill(float4x4::identity());
+
+  params.set_output("Instances", GeometrySet::from_instances(std::move(instances)));
 }
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeGeometryToInstance", GEO_NODE_GEOMETRY_TO_INSTANCE);
   ntype.ui_name = "Geometry to Instance";
@@ -43,10 +46,10 @@ static void node_register()
       "Geometry node when the inputs are large";
   ntype.enum_name_legacy = "GEOMETRY_TO_INSTANCE";
   ntype.nclass = NODE_CLASS_GEOMETRY;
-  blender::bke::node_type_size(ntype, 160, 100, 300);
+  bke::node_type_size(ntype, 160, 100, 300);
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

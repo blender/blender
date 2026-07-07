@@ -11,12 +11,14 @@
 #include <cstring>
 #include <stdexcept>
 
+namespace blender {
+
 static inline bool is_newline(char ch)
 {
   return ch == '\n';
 }
 
-namespace blender::io::ply {
+namespace io::ply {
 
 PlyReadBuffer::PlyReadBuffer(const char *file_path, size_t read_buffer_size)
     : buffer_(read_buffer_size), read_buffer_size_(read_buffer_size)
@@ -73,7 +75,7 @@ bool PlyReadBuffer::read_bytes(void *dst, size_t size)
     to_copy = std::min(to_copy, buf_used_);
     memcpy(dst, buffer_.data() + pos_, to_copy);
     pos_ += to_copy;
-    dst = (char *)dst + to_copy;
+    dst = static_cast<char *>(dst) + to_copy;
     size -= to_copy;
   }
   return true;
@@ -125,4 +127,5 @@ bool PlyReadBuffer::refill_buffer()
   return true;
 }
 
-}  // namespace blender::io::ply
+}  // namespace io::ply
+}  // namespace blender

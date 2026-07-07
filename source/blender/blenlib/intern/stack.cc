@@ -16,6 +16,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 #define USE_TOTELEM
 
 #define CHUNK_EMPTY size_t(-1)
@@ -42,7 +44,8 @@ struct BLI_Stack {
 
 static void *stack_get_last_elem(BLI_Stack *stack)
 {
-  return ((char *)(stack)->chunk_curr->data) + ((stack)->elem_size * (stack)->chunk_index);
+  return (static_cast<char *>((stack)->chunk_curr->data)) +
+         ((stack)->elem_size * (stack)->chunk_index);
 }
 
 /**
@@ -69,7 +72,7 @@ BLI_Stack *BLI_stack_new_ex(const size_t elem_size,
                             const char *description,
                             const size_t chunk_size)
 {
-  BLI_Stack *stack = MEM_callocN<BLI_Stack>(description);
+  BLI_Stack *stack = MEM_new_zeroed<BLI_Stack>(description);
 
   stack->chunk_elem_max = stack_chunk_elem_max_calc(elem_size, chunk_size);
   stack->elem_size = elem_size;
@@ -88,7 +91,7 @@ static void stack_free_chunks(StackChunk *data)
 {
   while (data) {
     StackChunk *data_next = data->next;
-    MEM_freeN(data);
+    MEM_delete(data);
     data = data_next;
   }
 }
@@ -97,7 +100,7 @@ void BLI_stack_free(BLI_Stack *stack)
 {
   stack_free_chunks(stack->chunk_curr);
   stack_free_chunks(stack->chunk_free);
-  MEM_freeN(stack);
+  MEM_delete(stack);
 }
 
 void *BLI_stack_push_r(BLI_Stack *stack)
@@ -111,8 +114,8 @@ void *BLI_stack_push_r(BLI_Stack *stack)
       stack->chunk_free = chunk->next;
     }
     else {
-      chunk = static_cast<StackChunk *>(
-          MEM_mallocN(sizeof(*chunk) + (stack->elem_size * stack->chunk_elem_max), __func__));
+      chunk = static_cast<StackChunk *>(MEM_new_uninitialized(
+          sizeof(*chunk) + (stack->elem_size * stack->chunk_elem_max), __func__));
     }
     chunk->next = stack->chunk_curr;
     stack->chunk_curr = chunk;
@@ -150,7 +153,7 @@ void BLI_stack_pop_n(BLI_Stack *stack, void *dst, uint n)
 
   while (n--) {
     BLI_stack_pop(stack, dst);
-    dst = (void *)((char *)dst + stack->elem_size);
+    dst = static_cast<void *>(static_cast<char *>(dst) + stack->elem_size);
   }
 }
 
@@ -158,10 +161,10 @@ void BLI_stack_pop_n_reverse(BLI_Stack *stack, void *dst, uint n)
 {
   BLI_assert(n <= BLI_stack_count(stack));
 
-  dst = (void *)((char *)dst + (stack->elem_size * n));
+  dst = static_cast<void *>(static_cast<char *>(dst) + (stack->elem_size * n));
 
   while (n--) {
-    dst = (void *)((char *)dst - stack->elem_size);
+    dst = static_cast<void *>(static_cast<char *>(dst) - stack->elem_size);
     BLI_stack_pop(stack, dst);
   }
 }
@@ -254,3 +257,5 @@ bool BLI_stack_is_empty(const BLI_Stack *stack)
 #endif
   return (stack->chunk_curr == nullptr);
 }
+
+}  // namespace blender

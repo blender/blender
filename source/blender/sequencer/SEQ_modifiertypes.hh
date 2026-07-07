@@ -17,10 +17,13 @@ namespace blender::seq {
 extern StripModifierTypeInfo seqModifierType_None;
 extern StripModifierTypeInfo seqModifierType_BrightContrast;
 extern StripModifierTypeInfo seqModifierType_ColorBalance;
+extern StripModifierTypeInfo seqModifierType_Compositor;
 extern StripModifierTypeInfo seqModifierType_Curves;
 extern StripModifierTypeInfo seqModifierType_HueCorrect;
 extern StripModifierTypeInfo seqModifierType_Mask;
 extern StripModifierTypeInfo seqModifierType_SoundEqualizer;
+extern StripModifierTypeInfo seqModifierType_Pitch;
+extern StripModifierTypeInfo seqModifierType_Echo;
 extern StripModifierTypeInfo seqModifierType_Tonemap;
 extern StripModifierTypeInfo seqModifierType_WhiteBalance;
 

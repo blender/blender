@@ -9,9 +9,11 @@
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 
+namespace blender {
+
 struct Mesh;
 
-namespace blender::geometry::boolean {
+namespace geometry::boolean {
 
 /** Specifies which solver to use. */
 enum class Solver {
@@ -91,4 +93,5 @@ Mesh *mesh_boolean(Span<const Mesh *> meshes,
                    Vector<int> *r_intersecting_edges,
                    BooleanError *r_error);
 
-}  // namespace blender::geometry::boolean
+}  // namespace geometry::boolean
+}  // namespace blender

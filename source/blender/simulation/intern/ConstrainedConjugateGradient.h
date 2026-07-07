@@ -12,7 +12,9 @@
 #include <Eigen/IterativeLinearSolvers>
 #include <Eigen/Sparse>
 
-namespace Eigen {
+class ConstrainedConjugateGradient;
+
+namespace blender::Eigen {
 
 namespace internal {
 
@@ -131,17 +133,16 @@ template<typename _MatrixType,
          int _UpLo = Lower,
          typename _FilterMatrixType = _MatrixType,
          typename _Preconditioner = DiagonalPreconditioner<typename _MatrixType::Scalar>>
-class ConstrainedConjugateGradient;
+namespace internal
+{
 
-namespace internal {
-
-template<typename _MatrixType, int _UpLo, typename _FilterMatrixType, typename _Preconditioner>
-struct traits<
-    ConstrainedConjugateGradient<_MatrixType, _UpLo, _FilterMatrixType, _Preconditioner>> {
-  using MatrixType = _MatrixType;
-  using FilterMatrixType = _FilterMatrixType;
-  using Preconditioner = _Preconditioner;
-};
+  template<typename _MatrixType, int _UpLo, typename _FilterMatrixType, typename _Preconditioner>
+  struct traits<
+      ConstrainedConjugateGradient<_MatrixType, _UpLo, _FilterMatrixType, _Preconditioner>> {
+    using MatrixType = _MatrixType;
+    using FilterMatrixType = _FilterMatrixType;
+    using Preconditioner = _Preconditioner;
+  };
 
 }  // namespace internal
 
@@ -313,4 +314,4 @@ struct solve_retval<ConstrainedConjugateGradient<_MatrixType, _UpLo, _Filter, _P
 
 }  // end namespace internal
 
-}  // end namespace Eigen
+}  // namespace blender::Eigen

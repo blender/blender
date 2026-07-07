@@ -51,7 +51,7 @@ static bool get_matcap_tx(Texture &matcap_tx, StudioLight &studio_light)
 
 static float4x4 get_world_shading_rotation_matrix(float studiolight_rot_z)
 {
-  float4x4 V = blender::draw::View::default_get().viewmat();
+  float4x4 V = draw::View::default_get().viewmat();
   float R[4][4];
   axis_angle_to_mat4_single(R, 'Z', -studiolight_rot_z);
   mul_m4_m4m4(R, V.ptr(), R);
@@ -60,10 +60,10 @@ static float4x4 get_world_shading_rotation_matrix(float studiolight_rot_z)
   return float4x4(R);
 }
 
-static LightData get_light_data_from_studio_solidlight(const SolidLight *sl,
-                                                       const float4x4 &world_shading_rotation)
+static SolidLightData get_light_data_from_studio_solidlight(const SolidLight *sl,
+                                                            const float4x4 &world_shading_rotation)
 {
-  LightData light = {};
+  SolidLightData light = {};
   if (sl && sl->flag) {
     float3 direction = math::transform_direction(world_shading_rotation, float3(sl->vec));
     light.direction = float4(direction, 0.0f);

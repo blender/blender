@@ -112,7 +112,8 @@ def datacache(func):
             result = func(*args)
             func.__cache = result
             # Here are the key used: result[obj_uuid][action_name][slot_identifier][path][bone][frame]
-            return result[cache_key_args[1]][cache_key_args[3]][cache_key_args[6]][cache_key_args[0]][cache_key_args[2]][cache_key_args[4]]
+            return result[cache_key_args[1]][cache_key_args[3]][cache_key_args[6]
+                                                                ][cache_key_args[0]][cache_key_args[2]][cache_key_args[4]]
         # object is in cache, but not this action
         # We need to not erase other actions of this object
         elif cache_key_args[3] not in func.__cache[cache_key_args[1]].keys():
@@ -121,29 +122,33 @@ def datacache(func):
             # Need to create all newly retrieved animations
             func.__cache.update(result)
             # Here are the key used: result[obj_uuid][action_name][slot_identifier][path][bone][frame]
-            return result[cache_key_args[1]][cache_key_args[3]][cache_key_args[6]][cache_key_args[0]][cache_key_args[2]][cache_key_args[4]]
+            return result[cache_key_args[1]][cache_key_args[3]][cache_key_args[6]
+                                                                ][cache_key_args[0]][cache_key_args[2]][cache_key_args[4]]
         # object and action are in cache, but not this slot
         elif cache_key_args[6] not in func.__cache[cache_key_args[1]][cache_key_args[3]].keys():
-            if cache_key_args[6] is None and (cache_key_args[3] == cache_key_args[1] or _is_driver_baking(cache_key_args[3])):
+            if cache_key_args[6] is None and (cache_key_args[3] == cache_key_args[1]
+                                              or _is_driver_baking(cache_key_args[3])):
                 # We are currently baking this animation
                 # But maybe we get these data from another object action / with a slot
                 # So if there are some data for a slot, use them
                 if len(func.__cache[cache_key_args[1]][cache_key_args[3]]) > 0:
                     first_key = list(func.__cache[cache_key_args[1]][cache_key_args[3]].keys())[0]
                     # Here are the key used: result[obj_uuid][action_name][slot_identifier][path][bone][frame]
-                    return func.__cache[cache_key_args[1]][cache_key_args[3]][first_key][cache_key_args[0]][cache_key_args[2]][cache_key_args[4]]
+                    return func.__cache[cache_key_args[1]][cache_key_args[3]
+                                                           ][first_key][cache_key_args[0]][cache_key_args[2]][cache_key_args[4]]
             else:
                 result = func(*args, only_gather_provided=True)
                 # The result can contains multiples animations, in case this is an armature with drivers
                 # Need to create all newly retrieved animations
                 func.__cache.update(result)
                 # Here are the key used: result[obj_uuid][action_name][slot_identifier][path][bone][frame]
-                return result[cache_key_args[1]][cache_key_args[3]][cache_key_args[6]][cache_key_args[0]][cache_key_args[2]][cache_key_args[4]]
+                return result[cache_key_args[1]][cache_key_args[3]][cache_key_args[6]
+                                                                    ][cache_key_args[0]][cache_key_args[2]][cache_key_args[4]]
         # all is already cached
         else:
             # Here are the key used: result[obj_uuid][action_name][slot_identifier][path][bone][frame]
-            return func.__cache[cache_key_args[1]][cache_key_args[3]
-                                                   ][cache_key_args[6]][cache_key_args[0]][cache_key_args[2]][cache_key_args[4]]
+            return func.__cache[cache_key_args[1]][cache_key_args[3]][cache_key_args[6]
+                                                                      ][cache_key_args[0]][cache_key_args[2]][cache_key_args[4]]
     return wrapper_objectcache
 
 

@@ -40,17 +40,6 @@ macro(ios_get_dependency_env_vars)
    endif()
 
    foreach (dependency IN ITEMS ${ARGN})
-    
-    # Boost - Pretty sure this is not required, including for completeness
-    if (${dependency} STREQUAL BOOST)
-      list(APPEND IOSDEP_INCLUDES_LIST "${LIBDIR}/boost/include/")
-      list(APPEND IOSDEP_DEFINES_LIST "=${LIBDIR}/")
-      file(GLOB IOSDEP_BOOST_LIBRARIES "${LIBDIR}/boost/lib/*.dylib")
-      list(APPEND IOSDEP_LIBRARIES_LIST ${IOSDEP_BOOST_LIBRARIES})
-      list(APPEND IOSDEP_LIBDIRS_LIST "${LIBDIR}/boost/lib")
-      unset(IOSDEP_BOOST_LIBRARIES)
-    endif()
-    
     # Deflate
     if (${dependency} STREQUAL DEFLATE)
       list(APPEND IOSDEP_INCLUDES_LIST "${LIBDIR}/deflate/include/")
@@ -214,6 +203,23 @@ macro(ios_get_dependency_env_vars)
       list(APPEND IOSDEP_INCLUDES_LIST "${LIBDIR}/webp/include/")
       list(APPEND IOSDEP_DEFINES_LIST "WebP_DIR=${LIBDIR}/webp/share/WebP/cmake")
       list(APPEND IOSDEP_LIBDIRS_LIST "${LIBDIR}/webp/lib")
+    endif()
+
+    # LibHeif
+    if(${dependency} STREQUAL LIBHEIF)
+      list(APPEND IOSDEP_INCLUDES_LIST "${LIBDIR}/libheif/include/")
+      list(APPEND IOSDEP_DEFINES_LIST "Libheif_ROOT=${LIBDIR}/libheif")
+      list(APPEND IOSDEP_DEFINES_LIST "Libheif_DIR=${LIBDIR}/libheif/lib/cmake/libheif")
+      list(APPEND IOSDEP_LIBDIRS_LIST "${LIBDIR}/libheif/lib")
+      list(APPEND IOSDEP_LIBRARIES_LIST "${LIBDIR}/libheif/lib/libheif.a")
+    endif()
+
+    # Aom
+    if(${dependency} STREQUAL AOM)
+      list(APPEND IOSDEP_INCLUDES_LIST "${LIBDIR}/aom/include/")
+      list(APPEND IOSDEP_DEFINES_LIST "Libaom_DIR=${LIBDIR}/aom/lib/cmake/aom")
+      list(APPEND IOSDEP_LIBDIRS_LIST "${LIBDIR}/aom/lib")
+      list(APPEND IOSDEP_LIBRARIES_LIST "${LIBDIR}/aom/lib/libaom.a")
     endif()
 
     # Blank

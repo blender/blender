@@ -16,7 +16,7 @@ namespace blender::nodes {
  */
 struct FormatStringItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeFunctionFormatStringItem;
-  static StructRNA *item_srna;
+  static StructRNA **item_srna;
   static constexpr StringRefNull node_idname = "FunctionNodeFormatString";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
@@ -51,7 +51,7 @@ struct FormatStringItemsAccessor : public socket_items::SocketItemsAccessorDefau
 
   static void destruct_item(NodeFunctionFormatStringItem *item)
   {
-    MEM_SAFE_FREE(item->name);
+    MEM_SAFE_DELETE(item->name);
   }
 
   static void blend_write_item(BlendWriter *writer, const ItemT &item);

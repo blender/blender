@@ -32,11 +32,11 @@ bool filter_matches_asset(const AssetFilterSettings *filter,
     return false;
   }
   /* Not very efficient (O(n^2)), could be improved quite a bit. */
-  LISTBASE_FOREACH (const AssetTag *, filter_tag, &filter->tags) {
+  for (const AssetTag &filter_tag : filter->tags) {
     AssetMetaData &asset_data = asset.get_metadata();
 
-    AssetTag *matched_tag = (AssetTag *)BLI_findstring(
-        &asset_data.tags, filter_tag->name, offsetof(AssetTag, name));
+    AssetTag *matched_tag = static_cast<AssetTag *>(
+        BLI_findstring(&asset_data.tags, filter_tag.name, offsetof(AssetTag, name)));
     if (matched_tag == nullptr) {
       return false;
     }
@@ -75,8 +75,9 @@ asset_system::AssetCatalogTree build_filtered_catalog_tree(
 
   /* Build catalog tree. */
   asset_system::AssetCatalogTree filtered_tree;
-  const asset_system::AssetCatalogTree &full_tree = library.catalog_service().catalog_tree();
-  full_tree.foreach_item([&](const asset_system::AssetCatalogTreeItem &item) {
+  const std::shared_ptr<const asset_system::AssetCatalogTree> full_tree =
+      library.catalog_service().catalog_tree();
+  full_tree->foreach_item([&](const asset_system::AssetCatalogTreeItem &item) {
     if (!known_paths.contains(item.catalog_path().str())) {
       return;
     }
@@ -138,8 +139,9 @@ AssetItemTree build_filtered_all_catalog_tree(
   });
 
   asset_system::AssetCatalogTree catalogs_with_node_assets;
-  const asset_system::AssetCatalogTree &catalog_tree = library->catalog_service().catalog_tree();
-  catalog_tree.foreach_item([&](const asset_system::AssetCatalogTreeItem &item) {
+  const std::shared_ptr<const asset_system::AssetCatalogTree> catalog_tree =
+      library->catalog_service().catalog_tree();
+  catalog_tree->foreach_item([&](const asset_system::AssetCatalogTreeItem &item) {
     if (assets_per_path.lookup(item.catalog_path()).is_empty()) {
       return;
     }

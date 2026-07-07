@@ -21,7 +21,9 @@
 
 #include "interface_regions_intern.hh"
 
-ARegion *ui_region_temp_add(bScreen *screen)
+namespace blender::ui {
+
+ARegion *region_temp_add(bScreen *screen)
 {
   ARegion *region = BKE_area_region_new();
   BLI_addtail(&screen->regionbase, region);
@@ -32,7 +34,7 @@ ARegion *ui_region_temp_add(bScreen *screen)
   return region;
 }
 
-void ui_region_temp_remove(bContext *C, bScreen *screen, ARegion *region)
+void region_temp_remove(bContext *C, bScreen *screen, ARegion *region)
 {
   wmWindow *win = CTX_wm_window(C);
 
@@ -53,3 +55,5 @@ void ui_region_temp_remove(bContext *C, bScreen *screen, ARegion *region)
     CTX_wm_region_popup_set(C, nullptr);
   }
 }
+
+}  // namespace blender::ui

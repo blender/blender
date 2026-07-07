@@ -280,7 +280,7 @@ template<typename T> void free_shared_data(T **data, const ImplicitSharingInfo *
 
 /**
  * Create an implicit sharing object that takes ownership of the data, allowing it to be shared.
- * When it is no longer used, the data is freed with #MEM_freeN, so it must be a trivial type.
+ * When it is no longer used, the data is freed with #MEM_delete, so it must be a trivial type.
  */
 const ImplicitSharingInfo *info_for_mem_free(void *data);
 

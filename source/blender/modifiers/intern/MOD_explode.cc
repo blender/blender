@@ -10,7 +10,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLI_kdtree.h"
+#include "BLI_kdtree.hh"
 #include "BLI_map.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -19,12 +19,12 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
 #include "BKE_lib_id.hh"
@@ -46,26 +46,25 @@
 
 #include "MOD_ui_common.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
-  ExplodeModifierData *emd = (ExplodeModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(emd, modifier));
-
-  MEMCPY_STRUCT_AFTER(emd, DNA_struct_default_get(ExplodeModifierData), modifier);
+  ExplodeModifierData *emd = reinterpret_cast<ExplodeModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(emd, modifier);
 }
 static void free_data(ModifierData *md)
 {
-  ExplodeModifierData *emd = (ExplodeModifierData *)md;
+  ExplodeModifierData *emd = reinterpret_cast<ExplodeModifierData *>(md);
 
-  MEM_SAFE_FREE(emd->facepa);
+  MEM_SAFE_DELETE(emd->facepa);
 }
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
 #if 0
   const ExplodeModifierData *emd = (const ExplodeModifierData *)md;
 #endif
-  ExplodeModifierData *temd = (ExplodeModifierData *)target;
+  ExplodeModifierData *temd = reinterpret_cast<ExplodeModifierData *>(target);
 
   BKE_modifier_copydata_generic(md, target, flag);
 
@@ -77,7 +76,7 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData * /*md*/)
 }
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  ExplodeModifierData *emd = (ExplodeModifierData *)md;
+  ExplodeModifierData *emd = reinterpret_cast<ExplodeModifierData *>(md);
 
   if (emd->vgroup) {
     r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
@@ -96,9 +95,9 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
   int i, p, v1, v2, v3, v4 = 0;
   const bool invert_vgroup = (emd->flag & eExplodeFlag_INVERT_VGROUP) != 0;
 
-  blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
-  mface = (MFace *)CustomData_get_layer_for_write(
-      &mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy);
+  MutableSpan<float3> positions = mesh->vert_positions_for_write();
+  mface = static_cast<MFace *>(
+      CustomData_get_layer_for_write(&mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy));
   totvert = mesh->verts_num;
   totface = mesh->totface_legacy;
   totpart = psmd->psys->totpart;
@@ -106,11 +105,11 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
   rng = BLI_rng_new_srandom(psys->seed);
 
   if (emd->facepa) {
-    MEM_freeN(emd->facepa);
+    MEM_delete(emd->facepa);
   }
-  facepa = emd->facepa = MEM_calloc_arrayN<int>(totface, __func__);
+  facepa = emd->facepa = MEM_new_array_zeroed<int>(totface, __func__);
 
-  vertpa = MEM_calloc_arrayN<int>(totvert, __func__);
+  vertpa = MEM_new_array_zeroed<int>(totvert, __func__);
 
   /* initialize all faces & verts to no particle */
   for (i = 0; i < totface; i++) {
@@ -138,7 +137,7 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
   }
 
   /* make tree of emitter locations */
-  tree = BLI_kdtree_3d_new(totpart);
+  tree = kdtree_3d_new(totpart);
   for (p = 0, pa = psys->particles; p < totpart; p++, pa++) {
     psys_particle_on_emitter(psmd,
                              psys->part->from,
@@ -151,9 +150,9 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
                              nullptr,
                              nullptr,
                              nullptr);
-    BLI_kdtree_3d_insert(tree, p, co);
+    kdtree_3d_insert(tree, p, co);
   }
-  BLI_kdtree_3d_balance(tree);
+  kdtree_3d_balance(tree);
 
   /* set face-particle-indexes to nearest particle to face center */
   for (i = 0, fa = mface; i < totface; i++, fa++) {
@@ -167,7 +166,7 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
       mul_v3_fl(center, 1.0f / 3.0f);
     }
 
-    p = BLI_kdtree_3d_find_nearest(tree, center, nullptr);
+    p = kdtree_3d_find_nearest(tree, center, nullptr);
 
     v1 = vertpa[fa->v1];
     v2 = vertpa[fa->v2];
@@ -195,14 +194,14 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
   }
 
   if (vertpa) {
-    MEM_freeN(vertpa);
+    MEM_delete(vertpa);
   }
-  BLI_kdtree_3d_free(tree);
+  kdtree_3d_free(tree);
 
   BLI_rng_free(rng);
 }
 
-static int edgecut_get(const blender::Map<blender::OrderedEdge, int> &edgehash, uint v1, uint v2)
+static int edgecut_get(const Map<OrderedEdge, int> &edgehash, uint v1, uint v2)
 {
   return edgehash.lookup({int(v1), int(v2)});
 }
@@ -243,7 +242,7 @@ static void remap_faces_3_6_9_12(Mesh *mesh,
                                  int *facepa,
                                  const int *vertpa,
                                  int i,
-                                 const blender::Map<blender::OrderedEdge, int> &eh,
+                                 const Map<OrderedEdge, int> &eh,
                                  int cur,
                                  int v1,
                                  int v2,
@@ -313,7 +312,7 @@ static void remap_faces_5_10(Mesh *mesh,
                              int *facepa,
                              const int *vertpa,
                              int i,
-                             const blender::Map<blender::OrderedEdge, int> &eh,
+                             const Map<OrderedEdge, int> &eh,
                              int cur,
                              int v1,
                              int v2,
@@ -371,7 +370,7 @@ static void remap_faces_15(Mesh *mesh,
                            int *facepa,
                            const int *vertpa,
                            int i,
-                           const blender::Map<blender::OrderedEdge, int> &eh,
+                           const Map<OrderedEdge, int> &eh,
                            int cur,
                            int v1,
                            int v2,
@@ -457,7 +456,7 @@ static void remap_faces_7_11_13_14(Mesh *mesh,
                                    int *facepa,
                                    const int *vertpa,
                                    int i,
-                                   const blender::Map<blender::OrderedEdge, int> &eh,
+                                   const Map<OrderedEdge, int> &eh,
                                    int cur,
                                    int v1,
                                    int v2,
@@ -528,7 +527,7 @@ static void remap_faces_19_21_22(Mesh *mesh,
                                  int *facepa,
                                  const int *vertpa,
                                  int i,
-                                 const blender::Map<blender::OrderedEdge, int> &eh,
+                                 const Map<OrderedEdge, int> &eh,
                                  int cur,
                                  int v1,
                                  int v2,
@@ -584,7 +583,7 @@ static void remap_faces_23(Mesh *mesh,
                            int *facepa,
                            const int *vertpa,
                            int i,
-                           const blender::Map<blender::OrderedEdge, int> &eh,
+                           const Map<OrderedEdge, int> &eh,
                            int cur,
                            int v1,
                            int v2,
@@ -656,8 +655,8 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
   int totvert = mesh->verts_num;
   int totface = mesh->totface_legacy;
 
-  int *facesplit = MEM_calloc_arrayN<int>(totface, __func__);
-  int *vertpa = MEM_calloc_arrayN<int>(totvert, __func__);
+  int *facesplit = MEM_new_array_zeroed<int>(totface, __func__);
+  int *vertpa = MEM_new_array_zeroed<int>(totvert, __func__);
   int *facepa = emd->facepa;
   int *fs, totfsplit = 0, curdupface = 0;
   int i, v1, v2, v3, v4, v[4] = {0, 0, 0, 0}, /* To quite gcc barking... */
@@ -665,7 +664,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
   int layers_num;
 
   int totesplit = totvert;
-  blender::Map<blender::OrderedEdge, int> edgehash;
+  Map<OrderedEdge, int> edgehash;
 
   /* recreate vertpa from facepa calculation */
   for (i = 0, mf = mface; i < totface; i++, mf++) {
@@ -733,11 +732,12 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
 
   layers_num = CustomData_number_of_layers(&split_m->fdata_legacy, CD_MTFACE);
 
-  blender::MutableSpan<blender::float3> split_m_positions = split_m->vert_positions_for_write();
+  MutableSpan<float3> split_m_positions = split_m->vert_positions_for_write();
 
   /* copy new faces & verts (is it really this painful with custom data??) */
+  bke::LegacyMeshInterpolator vert_interp(*mesh, *split_m, bke::AttrDomain::Point);
   for (i = 0; i < totvert; i++) {
-    CustomData_copy_data(&mesh->vert_data, &split_m->vert_data, i, i, 1);
+    vert_interp.copy(i, i, 1);
   }
 
   /* override original facepa (original pointer is saved in caller function) */
@@ -746,7 +746,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
    * later interpreted as triangles, for this to work right I think we probably
    * have to stop using tessface. */
 
-  facepa = MEM_calloc_arrayN<int>(size_t(totface) + (size_t(totfsplit) * 2), __func__);
+  facepa = MEM_new_array_zeroed<int>(size_t(totface) + (size_t(totfsplit) * 2), __func__);
   // memcpy(facepa, emd->facepa, totface*sizeof(int));
   emd->facepa = facepa;
 
@@ -755,8 +755,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
     const int ed_v1 = edge.v_low;
     const int ed_v2 = edge.v_high;
 
-    CustomData_free_elem(&split_m->vert_data, esplit, 1);
-    CustomData_copy_data(&split_m->vert_data, &split_m->vert_data, ed_v2, esplit, 1);
+    vert_interp.copy(ed_v2, esplit, 1);
 
     dupve = split_m_positions[esplit];
     copy_v3_v3(dupve, split_m_positions[ed_v2]);
@@ -880,12 +879,11 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
         mf, &split_m->fdata_legacy, i, ((mf->flag & ME_FACE_SEL) ? 4 : 3));
   }
 
-  MEM_freeN(facesplit);
-  MEM_freeN(vertpa);
+  MEM_delete(facesplit);
+  MEM_delete(vertpa);
 
   BKE_mesh_calc_edges_tessface(split_m);
   BKE_mesh_convert_mfaces_to_mpolys(split_m);
-  BKE_mesh_legacy_convert_polys_to_offsets(split_m);
 
   return split_m;
 }
@@ -927,7 +925,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   ctime = BKE_scene_ctime_get(scene);
 
   /* hash table for vertex <-> particle relations */
-  blender::Map<blender::OrderedEdge, int> vertpahash;
+  Map<OrderedEdge, int> vertpahash;
 
   for (i = 0; i < totface; i++) {
     if (facepa[i] != totpart) {
@@ -976,8 +974,10 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
 
   psys_sim_data_init(&sim);
 
-  const blender::Span<blender::float3> positions = mesh->vert_positions();
-  blender::MutableSpan<blender::float3> explode_positions = explode->vert_positions_for_write();
+  const Span<float3> positions = mesh->vert_positions();
+  MutableSpan<float3> explode_positions = explode->vert_positions_for_write();
+
+  bke::LegacyMeshInterpolator vert_interp(*mesh, *explode, bke::AttrDomain::Point);
 
   for (const auto [edge, v] : vertpahash.items()) {
     int ed_v1 = edge.v_low;
@@ -986,7 +986,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
 
     copy_v3_v3(explode_positions[v], positions[ed_v1]);
 
-    CustomData_copy_data(&mesh->vert_data, &explode->vert_data, ed_v1, v, 1);
+    vert_interp.copy(ed_v1, v, 1);
 
     copy_v3_v3(explode_positions[v], positions[ed_v1]);
 
@@ -1088,7 +1088,6 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   /* finalization */
   BKE_mesh_calc_edges_tessface(explode);
   BKE_mesh_convert_mfaces_to_mpolys(explode);
-  BKE_mesh_legacy_convert_polys_to_offsets(explode);
 
   psys_sim_data_free(&sim);
 
@@ -1102,14 +1101,14 @@ static ParticleSystemModifierData *findPrecedingParticlesystem(Object *ob, Modif
 
   for (md = static_cast<ModifierData *>(ob->modifiers.first); emd != md; md = md->next) {
     if (md->type == eModifierType_ParticleSystem) {
-      psmd = (ParticleSystemModifierData *)md;
+      psmd = reinterpret_cast<ParticleSystemModifierData *>(md);
     }
   }
   return psmd;
 }
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  ExplodeModifierData *emd = (ExplodeModifierData *)md;
+  ExplodeModifierData *emd = reinterpret_cast<ExplodeModifierData *>(md);
   ParticleSystemModifierData *psmd = findPrecedingParticlesystem(ctx->object, md);
 
   if (psmd) {
@@ -1147,7 +1146,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
       Mesh *split_m = cutEdges(emd, mesh);
       Mesh *explode = explodeMesh(emd, psmd, ctx, scene, split_m);
 
-      MEM_freeN(emd->facepa);
+      MEM_delete(emd->facepa);
       emd->facepa = facepa;
       BKE_id_free(nullptr, split_m);
       return explode;
@@ -1160,9 +1159,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *row, *col;
-  uiLayout *layout = panel->layout;
-  const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
+  ui::Layout &layout = *panel->layout;
+  const ui::eUI_Item_Flag toggles_flag = ui::ITEM_R_TOGGLE | ui::ITEM_R_FORCE_BLANK_DECORATE;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -1170,29 +1168,28 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
   bool has_vertex_group = RNA_string_length(ptr, "vertex_group") != 0;
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop_search(
-      ptr, "particle_uv", &obj_data_ptr, "uv_layers", std::nullopt, ICON_GROUP_UVS);
+  layout.prop_search(ptr, "particle_uv", &obj_data_ptr, "uv_layers", std::nullopt, ICON_GROUP_UVS);
 
-  row = &layout->row(true, IFACE_("Show"));
+  ui::Layout *row = &layout.row(true, IFACE_("Show"));
   row->prop(ptr, "show_alive", toggles_flag, std::nullopt, ICON_NONE);
   row->prop(ptr, "show_dead", toggles_flag, std::nullopt, ICON_NONE);
   row->prop(ptr, "show_unborn", toggles_flag, std::nullopt, ICON_NONE);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  col = &layout->column(false);
-  col->prop(ptr, "use_edge_cut", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  col->prop(ptr, "use_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  ui::Layout &col = layout.column(false);
+  col.prop(ptr, "use_edge_cut", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col.prop(ptr, "use_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
-  row = &layout->row(false);
+  row = &layout.row(false);
   row->active_set(has_vertex_group);
   row->prop(ptr, "protect", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  layout->op("OBJECT_OT_explode_refresh", IFACE_("Refresh"), ICON_NONE);
+  layout.op("OBJECT_OT_explode_refresh", IFACE_("Refresh"), ICON_NONE);
 
   modifier_error_message_draw(layout, ptr);
 }
@@ -1204,7 +1201,7 @@ static void panel_register(ARegionType *region_type)
 
 static void blend_read(BlendDataReader * /*reader*/, ModifierData *md)
 {
-  ExplodeModifierData *psmd = (ExplodeModifierData *)md;
+  ExplodeModifierData *psmd = reinterpret_cast<ExplodeModifierData *>(md);
 
   psmd->facepa = nullptr;
 }
@@ -1243,3 +1240,5 @@ ModifierTypeInfo modifierType_Explode = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

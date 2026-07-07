@@ -5,6 +5,9 @@
 set(INC
   PUBLIC .
   intern
+  ../compositor
+  ../compositor/cached_resources
+  ../compositor/derived_resources
   ../editors/include
   ../animrig
   ../makesrna
@@ -14,7 +17,6 @@ set(INC
 )
 
 set(INC_SYS
-
 )
 
 set(SRC
@@ -64,15 +66,17 @@ set(SRC
   intern/effects/vse_effect_solid_color.cc
   intern/effects/vse_effect_speed.cc
   intern/effects/vse_effect_text.cc
-  intern/effects/vse_effect_transform.cc
   intern/effects/vse_effect_wipe.cc
   intern/modifiers/MOD_brightness_contrast.cc
   intern/modifiers/MOD_color_balance.cc
+  intern/modifiers/MOD_compositor.cc
   intern/modifiers/MOD_curves.cc
   intern/modifiers/MOD_hue_correct.cc
   intern/modifiers/MOD_mask.cc
   intern/modifiers/MOD_none.cc
+  intern/modifiers/MOD_sound_echo.cc
   intern/modifiers/MOD_sound_equalizer.cc
+  intern/modifiers/MOD_sound_pitch.cc
   intern/modifiers/MOD_tonemap.cc
   intern/modifiers/MOD_white_balance.cc
   intern/modifiers/modifier.cc
@@ -113,29 +117,22 @@ set(LIB
   PRIVATE bf::blentranslation
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
-  PRIVATE bf::extern::fmtlib
+  PRIVATE bf::extern::xxhash
   PRIVATE bf::gpu
   PRIVATE bf::imbuf
   PRIVATE bf::imbuf::movie
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::nodes
   PRIVATE bf::render
   PRIVATE bf::windowmanager
+  bf_compositor
+  PRIVATE bf::dependencies::optional::audaspace
+  PRIVATE bf::dependencies::optional::fftw3
 )
 
 if(WITH_AUDASPACE)
-  list(APPEND INC_SYS
-    ${AUDASPACE_C_INCLUDE_DIRS}
-  )
-  if(WITH_SYSTEM_AUDASPACE)
-    list(APPEND LIB
-      ${AUDASPACE_C_LIBRARIES}
-      ${AUDASPACE_PY_LIBRARIES}
-    )
-  endif()
-  add_definitions(-DWITH_AUDASPACE)
-
   if(WITH_FFTW3)
     add_definitions(-DWITH_CONVOLUTION)
   endif()

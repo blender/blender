@@ -16,9 +16,11 @@
 
 #include "DRW_render.hh"
 
+namespace blender {
+
 #define SHADER_CUSTOM_DATA_INTERP_MAX_DIMENSIONS 4
 
-static blender::StringRefNull get_subdiv_shader_info_name(SubdivShaderType shader_type)
+static StringRefNull get_subdiv_shader_info_name(SubdivShaderType shader_type)
 {
   switch (shader_type) {
     case SubdivShaderType::BUFFER_LINES:
@@ -79,7 +81,7 @@ static blender::StringRefNull get_subdiv_shader_info_name(SubdivShaderType shade
   return "";
 }
 
-namespace blender::draw::Shader {
+namespace draw::Shader {
 
 class ShaderCache {
   static gpu::StaticShaderCache<ShaderCache> &get_static_cache()
@@ -151,67 +153,67 @@ class ShaderCache {
   }
 };
 
-}  // namespace blender::draw::Shader
+}  // namespace draw::Shader
 
 using namespace blender::draw::Shader;
 
-blender::gpu::Shader *DRW_shader_curves_topology_get()
+gpu::Shader *DRW_shader_curves_topology_get()
 {
   return ShaderCache::get().curves_topology.get();
 }
 
-blender::gpu::Shader *DRW_shader_curves_refine_get(blender::draw::CurvesEvalShader type)
+gpu::Shader *DRW_shader_curves_refine_get(draw::CurvesEvalShader type)
 {
   switch (type) {
-    case blender::draw::CURVES_EVAL_POSITION:
+    case draw::CURVES_EVAL_POSITION:
       return ShaderCache::get().curves_evaluate_position.get();
-    case blender::draw::CURVES_EVAL_FLOAT4:
+    case draw::CURVES_EVAL_FLOAT4:
       return ShaderCache::get().curves_evaluate_float4.get();
-    case blender::draw::CURVES_EVAL_FLOAT3:
+    case draw::CURVES_EVAL_FLOAT3:
       return ShaderCache::get().curves_evaluate_float3.get();
-    case blender::draw::CURVES_EVAL_FLOAT2:
+    case draw::CURVES_EVAL_FLOAT2:
       return ShaderCache::get().curves_evaluate_float2.get();
-    case blender::draw::CURVES_EVAL_FLOAT:
+    case draw::CURVES_EVAL_FLOAT:
       return ShaderCache::get().curves_evaluate_float.get();
-    case blender::draw::CURVES_EVAL_LENGTH_INTERCEPT:
+    case draw::CURVES_EVAL_LENGTH_INTERCEPT:
       return ShaderCache::get().curves_evaluate_length_intercept.get();
   }
   BLI_assert_unreachable();
   return nullptr;
 }
 
-blender::gpu::Shader *DRW_shader_debug_draw_display_get()
+gpu::Shader *DRW_shader_debug_draw_display_get()
 {
   return ShaderCache::get().debug_draw_display.get();
 }
 
-blender::gpu::Shader *DRW_shader_draw_visibility_compute_get()
+gpu::Shader *DRW_shader_draw_visibility_compute_get()
 {
   return ShaderCache::get().draw_visibility_compute.get();
 }
 
-blender::gpu::Shader *DRW_shader_draw_view_finalize_get()
+gpu::Shader *DRW_shader_draw_view_finalize_get()
 {
   return ShaderCache::get().draw_view_finalize.get();
 }
 
-blender::gpu::Shader *DRW_shader_draw_resource_finalize_get()
+gpu::Shader *DRW_shader_draw_resource_finalize_get()
 {
   return ShaderCache::get().draw_resource_finalize.get();
 }
 
-blender::gpu::Shader *DRW_shader_draw_command_generate_get()
+gpu::Shader *DRW_shader_draw_command_generate_get()
 {
   return ShaderCache::get().draw_command_generate.get();
 }
 
-blender::gpu::Shader *DRW_shader_subdiv_get(SubdivShaderType shader_type)
+gpu::Shader *DRW_shader_subdiv_get(SubdivShaderType shader_type)
 {
   BLI_assert(!ELEM(shader_type, SubdivShaderType::COMP_CUSTOM_DATA_INTERP));
   return ShaderCache::get().subdiv_sh[uint(shader_type)].get();
 }
 
-blender::gpu::Shader *DRW_shader_subdiv_custom_data_get(GPUVertCompType comp_type, int dimensions)
+gpu::Shader *DRW_shader_subdiv_custom_data_get(GPUVertCompType comp_type, int dimensions)
 {
   BLI_assert(dimensions >= 1 && dimensions <= SHADER_CUSTOM_DATA_INTERP_MAX_DIMENSIONS);
   if (comp_type == GPU_COMP_U16) {
@@ -222,7 +224,7 @@ blender::gpu::Shader *DRW_shader_subdiv_custom_data_get(GPUVertCompType comp_typ
   return ShaderCache::get().subdiv_custom_data_sh[dimensions - 1][comp_type].get();
 }
 
-blender::gpu::Shader *DRW_shader_subdiv_interp_corner_normals_get()
+gpu::Shader *DRW_shader_subdiv_interp_corner_normals_get()
 {
   return ShaderCache::get().subdiv_interp_corner_normals_sh.get();
 }
@@ -232,3 +234,5 @@ void DRW_shaders_free()
   GPU_shader_unbind();
   ShaderCache::release();
 }
+
+}  // namespace blender

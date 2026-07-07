@@ -12,7 +12,7 @@ import sys
 import bpy
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
-from modules.mesh_test import SpecMeshTest, ModifierSpec, OperatorSpecObjectMode, DeformModifierSpec, RunTest
+from modules.mesh_test import SpecMeshTest, ModifierSpec, OperatorSpec, DeformModifierSpec, RunTest
 
 tests = [
 
@@ -22,7 +22,7 @@ tests = [
     SpecMeshTest("SurfaceDeform", "testObjMonkeySurfaceDeform", "expObjMonkeySurfaceDeform",
                  [DeformModifierSpec(10, [
                      ModifierSpec('surface_deform', 'SURFACE_DEFORM', {'target': bpy.data.objects["Cube"]})],
-                     OperatorSpecObjectMode('surfacedeform_bind', {'modifier': 'surface_deform'}))]),
+                     OperatorSpec('OBJECT', 'object.surfacedeform_bind', {'modifier': 'surface_deform'}))]),
 
     # Mesh Deform Test, finally can bind to the Target object.
     # Actual deformation occurs by animating imitating user input.
@@ -30,7 +30,7 @@ tests = [
     SpecMeshTest("MeshDeform", "testObjMonkeyMeshDeform", "expObjMonkeyMeshDeform",
                  [DeformModifierSpec(10, [ModifierSpec('mesh_deform', 'MESH_DEFORM',
                                                        {'object': bpy.data.objects["MeshCube"], 'precision': 2})],
-                                     OperatorSpecObjectMode('meshdeform_bind', {'modifier': 'mesh_deform'}))]),
+                                     OperatorSpec('OBJECT', 'object.meshdeform_bind', {'modifier': 'mesh_deform'}))]),
 
     # Surface Deform Test, finally can bind to the Target object.
     # Actual deformation occurs by animating imitating user input.
@@ -47,7 +47,7 @@ tests = [
                                      [ModifierSpec('hook2', 'HOOK', {'object': bpy.data.objects["Empty.001"],
                                                                      'vertex_group': 'hook_vg'}),
                                       ModifierSpec('laplace', 'LAPLACIANDEFORM', {'vertex_group': 'laplace_vg'})],
-                                     OperatorSpecObjectMode('laplaciandeform_bind', {'modifier': 'laplace'}))]),
+                                     OperatorSpec('OBJECT', 'object.laplaciandeform_bind', {'modifier': 'laplace'}))]),
 
     SpecMeshTest("WarpPlane", "testObjPlaneWarp", "expObjPlaneWarp",
                  [DeformModifierSpec(10, [ModifierSpec('warp', 'WARP',
@@ -78,7 +78,7 @@ tests = [
                  [DeformModifierSpec(10, [
                      ModifierSpec('mesh_deform_curve', 'MESH_DEFORM', {'object': bpy.data.objects["Cylinder"],
                                                                        'precision': 2})],
-                     OperatorSpecObjectMode('meshdeform_bind', {'modifier': 'mesh_deform_curve'}))]),
+                     OperatorSpec('OBJECT', 'object.meshdeform_bind', {'modifier': 'mesh_deform_curve'}))]),
 
     SpecMeshTest("WarpCurve", "testObjBezierCurveWarp", "expObjBezierCurveWarp",
                  [DeformModifierSpec(10, [ModifierSpec('warp_curve', 'WARP',

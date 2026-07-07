@@ -24,8 +24,8 @@
  * - Update mouse position (GHOST_kEventDraggingUpdated) sent upon each mouse move until the
  *   drag & drop operation stops, to give the updated mouse position.
  *   Useful to highlight a potential destination, and update the status
- *   (through GHOST_setAcceptDragOperation) telling if the object can be dropped at the current
- *   cursor position.
+ *   (through GHOST_IWindow::setAcceptDragOperation) telling if the object can be dropped at the
+ *   current cursor position.
  *
  * - Abort drag & drop sequence (#GHOST_kEventDraggingExited)
  *   sent when the user moved the mouse outside the window.
@@ -80,7 +80,7 @@ class GHOST_EventDragnDrop : public GHOST_Event {
 
     switch (dragn_drop_event_data_.dataType) {
       case GHOST_kDragnDropTypeBitmap:
-        IMB_freeImBuf((ImBuf *)dragn_drop_event_data_.data);
+        blender::IMB_freeImBuf((blender::ImBuf *)dragn_drop_event_data_.data);
         break;
       case GHOST_kDragnDropTypeFilenames: {
         GHOST_TStringArray *strArray = (GHOST_TStringArray *)dragn_drop_event_data_.data;

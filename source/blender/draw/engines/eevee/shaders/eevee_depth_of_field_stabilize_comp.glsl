@@ -17,7 +17,7 @@
  * - Stabilized Color and CoC (half-resolution).
  */
 
-#include "infos/eevee_depth_of_field_info.hh"
+#include "infos/eevee_depth_of_field_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_stabilize)
 
@@ -25,23 +25,24 @@ COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_stabilize)
 #include "eevee_depth_of_field_lib.glsl"
 #include "eevee_reverse_z_lib.glsl"
 #include "eevee_velocity_lib.glsl"
+#include "gpu_shader_math_safe_lib.glsl"
 
 struct DofSample {
   float4 color;
   float coc;
-
-  METAL_CONSTRUCTOR_2(DofSample, float4, color, float, coc)
 };
 
 /* -------------------------------------------------------------------- */
 /** \name LDS Cache
  * \{ */
-#define cache_size (gl_WorkGroupSize.x + 2)
-shared float4 color_cache[cache_size][cache_size];
-shared float coc_cache[cache_size][cache_size];
+
+shared float4 color_cache[gl_WorkGroupSize.x + 2][gl_WorkGroupSize.x + 2];
+shared float coc_cache[gl_WorkGroupSize.x + 2][gl_WorkGroupSize.x + 2];
 /* Need 2 pixel border for depth. */
+shared float depth_cache[gl_WorkGroupSize.x + 4][gl_WorkGroupSize.x + 4];
+
+#define cache_size (gl_WorkGroupSize.x + 2)
 #define cache_depth_size (gl_WorkGroupSize.x + 4)
-shared float depth_cache[cache_depth_size][cache_depth_size];
 
 void dof_cache_init()
 {
@@ -96,7 +97,7 @@ void dof_cache_init()
 DofSample dof_fetch_input_sample(int2 offset)
 {
   int2 coord = offset + 1 + int2(gl_LocalInvocationID.xy);
-  return DofSample(color_cache[coord.y][coord.x], coc_cache[coord.y][coord.x]);
+  return {color_cache[coord.y][coord.x], coc_cache[coord.y][coord.x]};
 }
 
 float dof_fetch_half_depth(int2 offset)
@@ -129,7 +130,7 @@ DofSample dof_spatial_filtering()
   /* Plus (+) shape offsets. */
   constexpr int2 plus_offsets[4] = int2_array(int2(-1, 0), int2(0, -1), int2(1, 0), int2(0, 1));
   DofSample center = dof_fetch_input_sample(int2(0));
-  DofSample accum = DofSample(float4(0.0f), 0.0f);
+  DofSample accum{float4(0.0f), 0.0f};
   float accum_weight = 0.0f;
   for (int i = 0; i < 4; i++) {
     DofSample samp = dof_fetch_input_sample(plus_offsets[i]);
@@ -155,8 +156,6 @@ DofSample dof_spatial_filtering()
 struct DofNeighborhoodMinMax {
   DofSample min;
   DofSample max;
-
-  METAL_CONSTRUCTOR_2(DofNeighborhoodMinMax, DofSample, min, DofSample, max)
 };
 
 /* Return history clipping bounding box in YCoCg color space. */
@@ -194,7 +193,7 @@ DofNeighborhoodMinMax dof_neighbor_boundbox()
   min_c.coc = (min_c.coc + min_c_3x3.coc) * 0.5f;
   max_c.coc = (max_c.coc + max_c_3x3.coc) * 0.5f;
 
-  return DofNeighborhoodMinMax(min_c, max_c);
+  return {min_c, max_c};
 }
 
 /* Returns motion in pixel space to retrieve the pixel history. */
@@ -263,7 +262,7 @@ DofSample dof_sample_history(float2 input_texel)
   color /= (weight_center + reduce_add(weight_cross));
 #endif
   /* NOTE(fclem): Opacity is wrong on purpose. Final Opacity does not rely on history. */
-  return DofSample(color.xyzz, color.w);
+  return {color.xyzz, color.w};
 }
 
 /* Modulate the history color to avoid ghosting artifact. */

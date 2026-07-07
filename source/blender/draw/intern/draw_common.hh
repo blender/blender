@@ -50,11 +50,13 @@ gpu::VertBuf *curves_pos_buffer_get(Object *object);
 gpu::Batch *curves_sub_pass_setup(PassMain::Sub &ps,
                                   const Scene *scene,
                                   Object *ob,
+                                  const char *&r_error,
                                   GPUMaterial *gpu_material = nullptr);
 
 gpu::Batch *curves_sub_pass_setup(PassSimple::Sub &ps,
                                   const Scene *scene,
                                   Object *ob,
+                                  const char *&r_error,
                                   GPUMaterial *gpu_material = nullptr);
 
 /* Point cloud. */

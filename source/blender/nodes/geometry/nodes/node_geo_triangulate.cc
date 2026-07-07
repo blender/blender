@@ -16,28 +16,28 @@ static const EnumPropertyItem rna_node_geometry_triangulate_quad_method_items[] 
     {int(geometry::TriangulateQuadMode::Beauty),
      "BEAUTY",
      0,
-     "Beauty",
-     "Split the quads in nice triangles, slower method"},
+     N_("Beauty"),
+     N_("Split the quads in nice triangles, slower method")},
     {int(geometry::TriangulateQuadMode::Fixed),
      "FIXED",
      0,
-     "Fixed",
-     "Split the quads on the first and third vertices"},
+     N_("Fixed"),
+     N_("Split the quads on the first and third vertices")},
     {int(geometry::TriangulateQuadMode::Alternate),
      "FIXED_ALTERNATE",
      0,
-     "Fixed Alternate",
-     "Split the quads on the 2nd and 4th vertices"},
+     N_("Fixed Alternate"),
+     N_("Split the quads on the 2nd and 4th vertices")},
     {int(geometry::TriangulateQuadMode::ShortEdge),
      "SHORTEST_DIAGONAL",
      0,
-     "Shortest Diagonal",
-     "Split the quads along their shortest diagonal"},
+     N_("Shortest Diagonal"),
+     N_("Split the quads along their shortest diagonal")},
     {int(geometry::TriangulateQuadMode::LongEdge),
      "LONGEST_DIAGONAL",
      0,
-     "Longest Diagonal",
-     "Split the quads along their longest diagonal"},
+     N_("Longest Diagonal"),
+     N_("Split the quads along their longest diagonal")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -45,13 +45,13 @@ static const EnumPropertyItem rna_node_geometry_triangulate_ngon_method_items[] 
     {int(geometry::TriangulateNGonMode::Beauty),
      "BEAUTY",
      0,
-     "Beauty",
-     "Arrange the new triangles evenly (slow)"},
+     N_("Beauty"),
+     N_("Arrange the new triangles evenly (slow)")},
     {int(geometry::TriangulateNGonMode::EarClip),
      "CLIP",
      0,
-     "Clip",
-     "Split the polygons with an ear clipping algorithm"},
+     N_("Clip"),
+     N_("Split the polygons with an ear clipping algorithm")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -69,10 +69,12 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Menu>("Quad Method")
       .static_items(rna_node_geometry_triangulate_quad_method_items)
       .default_value(geometry::TriangulateQuadMode::ShortEdge)
+      .optional_label()
       .description("Method for splitting the quads into triangles");
   b.add_input<decl::Menu>("N-gon Method")
       .default_value(geometry::TriangulateNGonMode::Beauty)
       .static_items(rna_node_geometry_triangulate_ngon_method_items)
+      .optional_label()
       .description("Method for splitting the n-gons into triangles");
 }
 
@@ -126,7 +128,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeTriangulate", GEO_NODE_TRIANGULATE);
   ntype.ui_name = "Triangulate";
@@ -135,7 +137,7 @@ static void node_register()
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

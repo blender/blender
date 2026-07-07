@@ -18,8 +18,8 @@ extern PyTypeObject BezierCurveShader_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&BezierCurveShader_Type))
 
 /*---------------------------Python BPy_BezierCurveShader structure definition----------*/
-typedef struct {
+struct BPy_BezierCurveShader {
   BPy_StrokeShader py_ss;
-} BPy_BezierCurveShader;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

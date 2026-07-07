@@ -6,13 +6,15 @@
 #include <pxr/usd/sdf/types.h>
 #include <pxr/usd/usd/common.h>
 
+namespace blender {
+
 struct bNode;
 struct bNodeTree;
 
 struct Main;
 struct Scene;
 
-namespace blender::io::usd {
+namespace io::usd {
 
 struct USDExportParams;
 struct USDImportParams;
@@ -44,4 +46,5 @@ void dome_light_to_world_material(const USDImportParams &params,
                                   const pxr::UsdPrim &prim,
                                   const pxr::UsdTimeCode time = 0.0);
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

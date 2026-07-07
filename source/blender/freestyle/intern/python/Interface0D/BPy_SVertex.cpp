@@ -159,7 +159,7 @@ static PyMethodDef BPy_SVertex_methods[] = {
 #define MATHUTILS_SUBTYPE_POINT3D 1
 #define MATHUTILS_SUBTYPE_POINT2D 2
 
-static int SVertex_mathutils_check(BaseMathObject *bmo)
+static int SVertex_mathutils_check(blender::BaseMathObject *bmo)
 {
   if (!BPy_SVertex_Check(bmo->cb_user)) {
     return -1;
@@ -167,7 +167,7 @@ static int SVertex_mathutils_check(BaseMathObject *bmo)
   return 0;
 }
 
-static int SVertex_mathutils_get(BaseMathObject *bmo, int subtype)
+static int SVertex_mathutils_get(blender::BaseMathObject *bmo, int subtype)
 {
   BPy_SVertex *self = (BPy_SVertex *)bmo->cb_user;
   switch (subtype) {
@@ -187,7 +187,7 @@ static int SVertex_mathutils_get(BaseMathObject *bmo, int subtype)
   return 0;
 }
 
-static int SVertex_mathutils_set(BaseMathObject *bmo, int subtype)
+static int SVertex_mathutils_set(blender::BaseMathObject *bmo, int subtype)
 {
   BPy_SVertex *self = (BPy_SVertex *)bmo->cb_user;
   switch (subtype) {
@@ -207,7 +207,7 @@ static int SVertex_mathutils_set(BaseMathObject *bmo, int subtype)
   return 0;
 }
 
-static int SVertex_mathutils_get_index(BaseMathObject *bmo, int subtype, int index)
+static int SVertex_mathutils_get_index(blender::BaseMathObject *bmo, int subtype, int index)
 {
   BPy_SVertex *self = (BPy_SVertex *)bmo->cb_user;
   switch (subtype) {
@@ -247,7 +247,7 @@ static int SVertex_mathutils_get_index(BaseMathObject *bmo, int subtype, int ind
   return 0;
 }
 
-static int SVertex_mathutils_set_index(BaseMathObject *bmo, int subtype, int index)
+static int SVertex_mathutils_set_index(blender::BaseMathObject *bmo, int subtype, int index)
 {
   BPy_SVertex *self = (BPy_SVertex *)bmo->cb_user;
   switch (subtype) {
@@ -269,7 +269,7 @@ static int SVertex_mathutils_set_index(BaseMathObject *bmo, int subtype, int ind
   return 0;
 }
 
-static Mathutils_Callback SVertex_mathutils_cb = {
+static blender::Mathutils_Callback SVertex_mathutils_cb = {
     SVertex_mathutils_check,
     SVertex_mathutils_get,
     SVertex_mathutils_set,
@@ -294,14 +294,15 @@ PyDoc_STRVAR(
     ":type: :class:`mathutils.Vector`\n");
 static PyObject *SVertex_point_3d_get(BPy_SVertex *self, void * /*closure*/)
 {
-  return Vector_CreatePyObject_cb(
+  return blender::Vector_CreatePyObject_cb(
       (PyObject *)self, 3, SVertex_mathutils_cb_index, MATHUTILS_SUBTYPE_POINT3D);
 }
 
 static int SVertex_point_3d_set(BPy_SVertex *self, PyObject *value, void * /*closure*/)
 {
   float v[3];
-  if (mathutils_array_parse(v, 3, 3, value, "value must be a 3-dimensional vector") == -1) {
+  if (blender::mathutils_array_parse(v, 3, 3, value, "value must be a 3-dimensional vector") == -1)
+  {
     return -1;
   }
   Vec3r p(v[0], v[1], v[2]);
@@ -317,14 +318,15 @@ PyDoc_STRVAR(
     ":type: :class:`mathutils.Vector`\n");
 static PyObject *SVertex_point_2d_get(BPy_SVertex *self, void * /*closure*/)
 {
-  return Vector_CreatePyObject_cb(
+  return blender::Vector_CreatePyObject_cb(
       (PyObject *)self, 3, SVertex_mathutils_cb_index, MATHUTILS_SUBTYPE_POINT2D);
 }
 
 static int SVertex_point_2d_set(BPy_SVertex *self, PyObject *value, void * /*closure*/)
 {
   float v[3];
-  if (mathutils_array_parse(v, 3, 3, value, "value must be a 3-dimensional vector") == -1) {
+  if (blender::mathutils_array_parse(v, 3, 3, value, "value must be a 3-dimensional vector") == -1)
+  {
     return -1;
   }
   Vec3r p(v[0], v[1], v[2]);

@@ -47,7 +47,7 @@ del shader_info
 
 coords = [Vector((random(), random(), random())) * 5 for _ in range(5)]
 
-arc_lengths = [0]
+arc_lengths = [0.0]
 for a, b in zip(coords[:-1], coords[1:]):
     arc_lengths.append(arc_lengths[-1] + (a - b).length)
 

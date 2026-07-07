@@ -29,7 +29,7 @@ OffsetIndices<int> accumulate_counts_to_offsets(MutableSpan<int> counts_to_offse
   }
   counts_to_offsets.last() = offset;
 
-  BLI_assert_msg(offset == offset_i64, "Integer overflow occured");
+  BLI_assert_msg(offset == offset_i64, "Integer overflow occurred");
   UNUSED_VARS_NDEBUG(offset_i64);
 
   return OffsetIndices<int>(counts_to_offsets);

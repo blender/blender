@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/gpencil_info.hh"
+#include "infos/gpencil_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(gpencil_geometry)
 
@@ -52,6 +52,7 @@ void main()
                                vert_strength,
                                gp_interp.uv,
                                gp_interp_flat.sspos,
+                               gp_interp_flat.sspos_adj,
                                gp_interp_flat.aspect,
                                gp_interp_noperspective.thickness,
                                gp_interp_noperspective.hardness);

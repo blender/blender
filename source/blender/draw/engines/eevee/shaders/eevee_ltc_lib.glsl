@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "infos/eevee_common_info.hh"
+#include "infos/eevee_common_infos.hh"
 
 /**
  * Adapted from :
@@ -14,7 +14,8 @@
  * Project page: https://eheitzresearch.wordpress.com/415-2/
  */
 
-#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_constants_lib.glsl"
+#include "gpu_shader_math_matrix_construct_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
 /* Diffuse *clipped* sphere integral. */
@@ -159,7 +160,7 @@ float3x3 ltc_tangent_basis(float3 N, float3 V)
   return float3x3(T1, T2, N);
 }
 
-void ltc_transform_quad(float3 N, float3 V, float3x3 Minv, inout float3 corners[4])
+void ltc_transform_quad(float3 N, float3 V, float3x3 Minv, float3 (&corners)[4])
 {
   /* Construct orthonormal basis around N. */
   float3x3 T = ltc_tangent_basis(N, V);

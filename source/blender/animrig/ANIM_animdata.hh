@@ -13,6 +13,8 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
+namespace blender {
+
 struct ID;
 struct Main;
 
@@ -20,7 +22,7 @@ struct AnimData;
 struct FCurve;
 struct bAction;
 
-namespace blender::animrig {
+namespace animrig {
 
 class Action;
 
@@ -79,4 +81,14 @@ const FCurve *fcurve_find_by_rna_path(const AnimData &adt,
                                       StringRefNull rna_path,
                                       int array_index);
 
-}  // namespace blender::animrig
+/**
+ * Return the F-Curves for the assigned Action Slot.
+ *
+ * If `adt` is `nullptr` or there is no Action assigned (i.e. `adt->action == nullptr`), an empty
+ * Vector is returned.
+ */
+Vector<FCurve *> fcurves_for_assigned_action(AnimData *adt);
+Vector<const FCurve *> fcurves_for_assigned_action(const AnimData *adt);
+
+}  // namespace animrig
+}  // namespace blender

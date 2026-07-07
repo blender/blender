@@ -46,7 +46,7 @@ bool ray_face_nearest_tri(const float3 &ray_start,
 
 /* pbvh_bmesh.cc */
 
-bool bmesh_node_nearest_to_ray(blender::bke::pbvh::BMeshNode &node,
+bool bmesh_node_nearest_to_ray(bke::pbvh::BMeshNode &node,
                                const float3 &ray_start,
                                const float3 &ray_normal,
                                float *r_depth,
@@ -57,7 +57,7 @@ void bmesh_normals_update(Tree &pbvh, const IndexMask &nodes_to_update);
 
 /* pbvh_pixels.hh */
 
-void node_pixels_free(blender::bke::pbvh::Node *node);
-void pixels_free(blender::bke::pbvh::Tree *pbvh);
+void node_pixels_free(bke::pbvh::Node *node);
+void pixels_free(bke::pbvh::Tree *pbvh);
 
 }  // namespace blender::bke::pbvh

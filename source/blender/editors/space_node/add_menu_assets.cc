@@ -45,7 +45,7 @@ static asset::AssetItemTree build_catalog_tree(const bContext &C, const bNodeTre
   type_filter.id_types = FILTER_ID_NT;
   auto meta_data_filter = [&](const AssetMetaData &meta_data) {
     const IDProperty *tree_type = BKE_asset_metadata_idprop_find(&meta_data, "type");
-    if (tree_type == nullptr || IDP_Int(tree_type) != node_tree.type) {
+    if (tree_type == nullptr || IDP_int_get(tree_type) != node_tree.type) {
       return false;
     }
     return true;
@@ -77,6 +77,7 @@ static Set<StringRef> get_builtin_menus(const int tree_type)
               "Input/Scene",
               "Output",
               "Geometry",
+              "Geometry/Material",
               "Geometry/Read",
               "Geometry/Sample",
               "Geometry/Write",
@@ -106,10 +107,11 @@ static Set<StringRef> get_builtin_menus(const int tree_type)
               "Volume/Operations",
               "Volume/Primitives",
               "Simulation",
-              "Material",
+              "Color",
               "Texture",
               "Utilities",
-              "Utilities/Color",
+              "Utilities/Bundle",
+              "Utilities/Closure",
               "Utilities/Text",
               "Utilities/Vector",
               "Utilities/Field",
@@ -126,7 +128,7 @@ static Set<StringRef> get_builtin_menus(const int tree_type)
               "Output",
               "Color",
               "Color/Adjust",
-              "Color/Mix",
+              "Creative",
               "Filter",
               "Filter/Blur",
               "Keying",
@@ -135,25 +137,27 @@ static Set<StringRef> get_builtin_menus(const int tree_type)
               "Transform",
               "Texture",
               "Utilities",
-              "Vector",
+              "Utilities/Math",
+              "Utilities/Vector",
               "Group",
               "Layout"};
     case NTREE_SHADER:
       return {"Input",
               "Output",
-              "Color",
-              "Converter",
               "Shader",
+              "Displacement",
+              "Color",
               "Texture",
-              "Vector",
-              "Script",
+              "Utilities",
+              "Utilities/Math",
+              "Utilities/Vector",
               "Group",
               "Layout"};
   }
   return {};
 }
 
-static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
+static void node_catalog_assets_draw(const bContext *C, Menu *menu)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
   const bNodeTree *edit_tree = snode.edittree;
@@ -167,11 +171,16 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
   }
   asset::AssetItemTree &tree = *snode.runtime->assets_for_menu;
 
-  const std::optional<blender::StringRefNull> menu_path = CTX_data_string_get(
-      C, "asset_catalog_path");
+  const std::optional<StringRefNull> menu_path = CTX_data_string_get(C, "asset_catalog_path");
   if (!menu_path) {
     return;
   }
+
+  const std::optional<StringRefNull> operator_id = CTX_data_string_get(C, "operator_id");
+  if (!operator_id) {
+    return;
+  }
+
   const Span<asset_system::AssetRepresentation *> assets = tree.assets_per_path.lookup(
       menu_path->c_str());
   const asset_system::AssetCatalogTreeItem *catalog_item = tree.catalogs.find_item(
@@ -182,7 +191,7 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
     return;
   }
 
-  uiLayout *layout = menu->layout;
+  ui::Layout *layout = menu->layout;
   bool add_separator = true;
 
   for (const asset_system::AssetRepresentation *asset : assets) {
@@ -190,7 +199,7 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
       layout->separator();
       add_separator = false;
     }
-    PointerRNA op_ptr = layout->op("NODE_OT_add_group_asset",
+    PointerRNA op_ptr = layout->op(*operator_id,
                                    IFACE_(asset->get_name()),
                                    ICON_NONE,
                                    wm::OpCallContext::InvokeRegionWin,
@@ -208,17 +217,23 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
       layout->separator();
       add_separator = false;
     }
-    asset::draw_menu_for_catalog(item, "NODE_MT_node_add_catalog_assets", *layout);
+    asset::draw_node_menu_for_catalog(item, *operator_id, "NODE_MT_node_catalog_assets", *layout);
   });
 }
 
-static void node_add_unassigned_assets_draw(const bContext *C, Menu *menu)
+static void node_unassigned_assets_draw(const bContext *C, Menu *menu)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
   const bNodeTree *edit_tree = snode.edittree;
   if (!edit_tree) {
     return;
   }
+
+  const std::optional<StringRefNull> operator_id = CTX_data_string_get(C, "operator_id");
+  if (!operator_id) {
+    return;
+  }
+
   if (!snode.runtime->assets_for_menu) {
     snode.runtime->assets_for_menu = std::make_shared<asset::AssetItemTree>(
         build_catalog_tree(*C, *edit_tree));
@@ -226,7 +241,7 @@ static void node_add_unassigned_assets_draw(const bContext *C, Menu *menu)
   }
   asset::AssetItemTree &tree = *snode.runtime->assets_for_menu;
   for (const asset_system::AssetRepresentation *asset : tree.unassigned_assets) {
-    PointerRNA op_ptr = menu->layout->op("NODE_OT_add_group_asset",
+    PointerRNA op_ptr = menu->layout->op(*operator_id,
                                          IFACE_(asset->get_name()),
                                          ICON_NONE,
                                          wm::OpCallContext::InvokeRegionWin,
@@ -235,10 +250,10 @@ static void node_add_unassigned_assets_draw(const bContext *C, Menu *menu)
   }
 }
 
-static void add_root_catalogs_draw(const bContext *C, Menu *menu)
+static void root_catalogs_draw(const bContext *C, Menu *menu, const StringRefNull operator_id)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
-  uiLayout *layout = menu->layout;
+  ui::Layout *layout = menu->layout;
   const bNodeTree *edit_tree = snode.edittree;
   if (!edit_tree) {
     return;
@@ -264,33 +279,49 @@ static void add_root_catalogs_draw(const bContext *C, Menu *menu)
 
   tree.catalogs.foreach_root_item([&](const asset_system::AssetCatalogTreeItem &item) {
     if (!all_builtin_menus.contains_as(item.catalog_path().str())) {
-      asset::draw_menu_for_catalog(item, "NODE_MT_node_add_catalog_assets", *layout);
+      asset::draw_node_menu_for_catalog(item, operator_id, "NODE_MT_node_catalog_assets", *layout);
     }
   });
 
   if (!tree.unassigned_assets.is_empty()) {
     layout->separator();
-    layout->menu("NODE_MT_node_add_unassigned_assets", IFACE_("Unassigned"), ICON_FILE_HIDDEN);
+    layout->menu("NODE_MT_node_unassigned_assets", IFACE_("Unassigned"), ICON_FILE_HIDDEN);
   }
 }
 
-MenuType add_catalog_assets_menu_type()
+static void add_root_catalogs_draw(const bContext *C, Menu *menu)
+{
+  const StringRefNull operator_id = "NODE_OT_add_group_asset";
+
+  menu->layout->context_string_set("operator_id", operator_id);
+  root_catalogs_draw(C, menu, operator_id);
+}
+
+static void swap_root_catalogs_draw(const bContext *C, Menu *menu)
+{
+  const StringRefNull operator_id = "NODE_OT_swap_group_asset";
+
+  menu->layout->context_string_set("operator_id", operator_id);
+  root_catalogs_draw(C, menu, operator_id);
+}
+
+MenuType catalog_assets_menu_type()
 {
   MenuType type{};
-  STRNCPY_UTF8(type.idname, "NODE_MT_node_add_catalog_assets");
+  STRNCPY_UTF8(type.idname, "NODE_MT_node_catalog_assets");
   type.poll = node_add_menu_poll;
-  type.draw = node_add_catalog_assets_draw;
+  type.draw = node_catalog_assets_draw;
   type.listener = asset::list::asset_reading_region_listen_fn;
   type.flag = MenuTypeFlag::ContextDependent;
   return type;
 }
 
-MenuType add_unassigned_assets_menu_type()
+MenuType unassigned_assets_menu_type()
 {
   MenuType type{};
-  STRNCPY_UTF8(type.idname, "NODE_MT_node_add_unassigned_assets");
+  STRNCPY_UTF8(type.idname, "NODE_MT_node_unassigned_assets");
   type.poll = node_add_menu_poll;
-  type.draw = node_add_unassigned_assets_draw;
+  type.draw = node_unassigned_assets_draw;
   type.listener = asset::list::asset_reading_region_listen_fn;
   type.flag = MenuTypeFlag::ContextDependent;
   type.description = N_(
@@ -309,9 +340,20 @@ MenuType add_root_catalogs_menu_type()
   return type;
 }
 
-void ui_template_node_asset_menu_items(uiLayout &layout,
+MenuType swap_root_catalogs_menu_type()
+{
+  MenuType type{};
+  STRNCPY_UTF8(type.idname, "NODE_MT_node_swap_root_catalogs");
+  type.poll = node_add_menu_poll;
+  type.draw = swap_root_catalogs_draw;
+  type.listener = asset::list::asset_reading_region_listen_fn;
+  return type;
+}
+
+void ui_template_node_asset_menu_items(ui::Layout &layout,
                                        const bContext &C,
-                                       const StringRef catalog_path)
+                                       const StringRef catalog_path,
+                                       const ui::NodeAssetMenuOperatorType operator_type)
 {
   SpaceNode &snode = *CTX_wm_space_node(&C);
   if (snode.runtime->assets_for_menu == nullptr) {
@@ -322,9 +364,21 @@ void ui_template_node_asset_menu_items(uiLayout &layout,
   if (!item) {
     return;
   }
-  uiLayout *col = &layout.column(false);
+
+  StringRef operator_id;
+
+  switch (operator_type) {
+    case ui::NodeAssetMenuOperatorType::Swap:
+      operator_id = "NODE_OT_swap_group_asset";
+      break;
+    default:
+      operator_id = "NODE_OT_add_group_asset";
+  }
+
+  ui::Layout *col = &layout.column(false);
   col->context_string_set("asset_catalog_path", item->catalog_path().str());
-  col->menu_contents("NODE_MT_node_add_catalog_assets");
+  col->context_string_set("operator_id", operator_id);
+  col->menu_contents("NODE_MT_node_catalog_assets");
 }
 
 }  // namespace blender::ed::space_node

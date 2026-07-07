@@ -319,5 +319,4 @@ std::optional<int64_t> find_end_of_quoted_field(const Span<char> buffer,
 }
 
 }  // namespace detail
-
 }  // namespace blender::csv_parse

@@ -40,8 +40,8 @@
 #include "DRW_gpu_wrapper.hh"
 #include "GPU_batch_utils.hh"
 
-#include "eevee_shader_shared.hh"
 #include "eevee_sync.hh"
+#include "eevee_volume_shared.hh"
 
 namespace blender::eevee {
 

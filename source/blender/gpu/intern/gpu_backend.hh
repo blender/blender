@@ -12,6 +12,10 @@
 
 #include "BLI_color_types.hh"
 #include "BLI_string_ref.hh"
+
+#include "GHOST_IContext.hh"
+#include "GHOST_IWindow.hh"
+
 #include "GPU_vertex_buffer.hh"
 
 namespace blender::gpu {
@@ -27,6 +31,7 @@ class QueryPool;
 class Shader;
 class ShaderCompiler;
 class Texture;
+class TexturePool;
 class UniformBuf;
 class StorageBuf;
 class VertBuf;
@@ -54,7 +59,7 @@ class GPUBackend {
   virtual void compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len) = 0;
   virtual void compute_dispatch_indirect(StorageBuf *indirect_buf) = 0;
 
-  virtual Context *context_alloc(void *ghost_window, void *ghost_context) = 0;
+  virtual Context *context_alloc(GHOST_IWindow *ghost_window, GHOST_IContext *ghost_context) = 0;
 
   virtual Batch *batch_alloc() = 0;
   virtual Fence *fence_alloc() = 0;
@@ -64,6 +69,7 @@ class GPUBackend {
   virtual QueryPool *querypool_alloc() = 0;
   virtual Shader *shader_alloc(const char *name) = 0;
   virtual Texture *texture_alloc(const char *name) = 0;
+  virtual TexturePool *texturepool_alloc() = 0;
   virtual UniformBuf *uniformbuf_alloc(size_t size, const char *name) = 0;
   virtual StorageBuf *storagebuf_alloc(size_t size, GPUUsageType usage, const char *name) = 0;
   virtual VertBuf *vertbuf_alloc() = 0;
@@ -77,7 +83,7 @@ class GPUBackend {
 };
 
 namespace debug {
-static blender::ColorTheme4f GPU_DEBUG_GROUP_COLOR_DEFAULT = {};
+static ColorTheme4f GPU_DEBUG_GROUP_COLOR_DEFAULT = {};
 
 static inline ColorTheme4f get_debug_group_color(StringRefNull name)
 {
@@ -111,5 +117,4 @@ static inline ColorTheme4f get_debug_group_color(StringRefNull name)
   return GPU_DEBUG_GROUP_COLOR_DEFAULT;
 }
 }  // namespace debug
-
 }  // namespace blender::gpu

@@ -140,7 +140,7 @@ This is especially true when modifying Blender data :ref:`in operators <operator
 Undo & Library Data
 ^^^^^^^^^^^^^^^^^^^
 
-One of the advantages with Blender's library linking system that undo
+One of the advantages with Blender's library linking system is that undo
 can skip checking changes in library data since it is assumed to be static.
 Tools in Blender are not allowed to modify library data.
 But Python does not enforce this restriction.
@@ -160,8 +160,8 @@ Abusing RNA property callbacks
 Python-defined RNA properties can have custom callbacks. Trying to perform complex operations
 from there, like calling an operator, may work, but is not officially recommended nor supported.
 
-Main reason is that those callback should be very fast, but additionally, it may for example
-create issues with undo/redo system (most operators store an history step, and editing an RNA
+Main reason is that those callbacks should be very fast, but additionally, it may for example
+create issues with undo/redo system (most operators store a history step, and editing an RNA
 property does so as well), trigger infinite update loops, and so on.
 
 
@@ -296,7 +296,7 @@ Data-Blocks Renaming During Iteration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Data-blocks accessed from ``bpy.data`` are sorted when their name is set.
-Any loop that iterates of a data such as ``bpy.data.objects`` for example,
+Any loop that iterates over data such as ``bpy.data.objects`` for example,
 and sets the objects ``name`` must get all items from the iterator first (typically by converting to a list or tuple)
 to avoid missing some objects and iterating over others multiple times.
 
@@ -310,5 +310,5 @@ as if Blender is crashing since ``sys.exit()`` will close Blender immediately.
 
 For example, the ``argparse`` module will print an error and exit if the arguments are invalid.
 
-An dirty way of troubleshooting this is to set ``sys.exit = None`` and see what line of Python code is quitting,
+A dirty way of troubleshooting this is to set ``sys.exit = None`` and see what line of Python code is quitting,
 you could of course replace ``sys.exit`` with your own function but manipulating Python in this way is bad practice.

@@ -127,7 +127,7 @@ if(SYCL_FOUND)
     set(SYCL_LIBRARIES ${SYCL_LIBRARY})
   endif()
 else()
-  set(SYCL_SYCL_FOUND FALSE)
+  set(SYCL_FOUND FALSE)
 endif()
 
 mark_as_advanced(

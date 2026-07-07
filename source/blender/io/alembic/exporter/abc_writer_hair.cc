@@ -23,6 +23,9 @@
 #include "BKE_particle.h"
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.alembic"};
 
 using Alembic::Abc::P3fArraySamplePtr;
@@ -31,7 +34,7 @@ using Alembic::AbcGeom::OCurvesSchema;
 using Alembic::AbcGeom::ON3fGeomParam;
 using Alembic::AbcGeom::OV2fGeomParam;
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 ABCHairWriter::ABCHairWriter(const ABCWriterConstructorArgs &args)
     : ABCAbstractWriter(args), uv_warning_shown_(false)
@@ -124,9 +127,10 @@ void ABCHairWriter::write_hair_sample(const HierarchyContext &context,
   float inv_mat[4][4];
   invert_m4_m4_safe(inv_mat, context.object->object_to_world().ptr());
 
-  MTFace *mtface = (MTFace *)CustomData_get_layer_for_write(
-      &mesh->fdata_legacy, CD_MTFACE, mesh->totface_legacy);
-  const MFace *mface = (const MFace *)CustomData_get_layer(&mesh->fdata_legacy, CD_MFACE);
+  MTFace *mtface = static_cast<MTFace *>(
+      CustomData_get_layer_for_write(&mesh->fdata_legacy, CD_MTFACE, mesh->totface_legacy));
+  const MFace *mface = static_cast<const MFace *>(
+      CustomData_get_layer(&mesh->fdata_legacy, CD_MFACE));
   const Span<float3> positions = mesh->vert_positions();
   const Span<float3> vert_normals = mesh->vert_normals();
 
@@ -162,14 +166,14 @@ void ABCHairWriter::write_hair_sample(const HierarchyContext &context,
         MTFace *tface = mtface + num;
 
         if (mface) {
-          float r_uv[2], mapfw[4], vec[3];
+          float uv[2], mapfw[4], vec[3];
 
-          psys_interpolate_uvs(tface, face->v4, pa->fuv, r_uv);
-          uv_values.emplace_back(r_uv[0], r_uv[1]);
+          psys_interpolate_uvs(tface, face->v4, pa->fuv, uv);
+          uv_values.emplace_back(uv[0], uv[1]);
 
           psys_interpolate_face(mesh,
-                                reinterpret_cast<const float(*)[3]>(positions.data()),
-                                reinterpret_cast<const float(*)[3]>(vert_normals.data()),
+                                reinterpret_cast<const float (*)[3]>(positions.data()),
+                                reinterpret_cast<const float (*)[3]>(vert_normals.data()),
                                 face,
                                 tface,
                                 nullptr,
@@ -249,9 +253,10 @@ void ABCHairWriter::write_hair_child_sample(const HierarchyContext &context,
   float inv_mat[4][4];
   invert_m4_m4_safe(inv_mat, context.object->object_to_world().ptr());
 
-  const MFace *mface = (const MFace *)CustomData_get_layer(&mesh->fdata_legacy, CD_MFACE);
-  MTFace *mtface = (MTFace *)CustomData_get_layer_for_write(
-      &mesh->fdata_legacy, CD_MTFACE, mesh->totface_legacy);
+  const MFace *mface = static_cast<const MFace *>(
+      CustomData_get_layer(&mesh->fdata_legacy, CD_MFACE));
+  MTFace *mtface = static_cast<MTFace *>(
+      CustomData_get_layer_for_write(&mesh->fdata_legacy, CD_MTFACE, mesh->totface_legacy));
   const Span<float3> positions = mesh->vert_positions();
   const Span<float3> vert_normals = mesh->vert_normals();
 
@@ -280,14 +285,14 @@ void ABCHairWriter::write_hair_child_sample(const HierarchyContext &context,
       const MFace *face = &mface[num];
       MTFace *tface = mtface + num;
 
-      float r_uv[2], tmpnor[3], mapfw[4], vec[3];
+      float uv[2], tmpnor[3], mapfw[4], vec[3];
 
-      psys_interpolate_uvs(tface, face->v4, pc->fuv, r_uv);
-      uv_values.emplace_back(r_uv[0], r_uv[1]);
+      psys_interpolate_uvs(tface, face->v4, pc->fuv, uv);
+      uv_values.emplace_back(uv[0], uv[1]);
 
       psys_interpolate_face(mesh,
-                            reinterpret_cast<const float(*)[3]>(positions.data()),
-                            reinterpret_cast<const float(*)[3]>(vert_normals.data()),
+                            reinterpret_cast<const float (*)[3]>(positions.data()),
+                            reinterpret_cast<const float (*)[3]>(vert_normals.data()),
                             face,
                             tface,
                             nullptr,
@@ -326,4 +331,5 @@ void ABCHairWriter::write_hair_child_sample(const HierarchyContext &context,
   }
 }
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

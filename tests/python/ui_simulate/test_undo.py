@@ -3,9 +3,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-This file does not run anything, it's methods are accessed for tests by: ``run.py``.
+This file does not run anything, its methods are accessed for tests by ``run_blender_setup.py``.
 """
-import datetime
+import modules.ui_test_utils as ui
 
 # FIXME: Since 2.8 or so, there is a problem with simulated events
 # where a popup needs the main-loop to cycle once before new events
@@ -16,106 +16,11 @@ _MENU_CONFIRM_HACK = True
 # -----------------------------------------------------------------------------
 # Utilities
 
-def _keep_open():
-    """
-    Only for development, handy so we can quickly keep the window open while testing.
-    """
-    import bpy
-    bpy.app.use_event_simulate = False
-
-
-def _test_window(windows_exclude=None):
-    import bpy
-    wm = bpy.data.window_managers[0]
-    if windows_exclude is None:
-        return wm.windows[0]
-    for window in wm.windows:
-        if window not in windows_exclude:
-            return window
-    return None
-
-
-def _test_vars(window):
-    import unittest
-    from modules.easy_keys import EventGenerate
-    return (
-        EventGenerate(window),
-        unittest.TestCase(),
-    )
-
-
-def _call_by_name(e, text: str):
-    yield e.f3()
-    yield e.text(text)
-    yield e.ret()
-
-
-def _call_menu(e, text: str):
-    yield e.f3()
-    yield e.text_unicode(text.replace(" -> ", " \u25b8 "))
-    yield e.ret()
-
-
-def _window_size_in_pixels(window):
-    import sys
-    size = window.width, window.height
-    # macOS window size is a multiple of the pixel_size.
-    if sys.platform == "darwin":
-        from bpy import context
-        # The value is always rounded to an int, so converting to an int is safe here.
-        pixel_size = int(context.preferences.system.pixel_size)
-        size = size[0] * pixel_size, size[1] * pixel_size
-    return size
-
-
-def _cursor_motion_data_x(window):
-    size = _window_size_in_pixels(window)
-    return [
-        (x, size[1] // 2) for x in
-        range(int(size[0] * 0.2), int(size[0] * 0.8), 80)
-    ]
-
-
-def _cursor_motion_data_y(window):
-    size = _window_size_in_pixels(window)
-    return [
-        (size[0] // 2, y) for y in
-        range(int(size[1] * 0.2), int(size[1] * 0.8), 80)
-    ]
-
-
-def _cursor_motion_data_xy(window):
-    size = _window_size_in_pixels(window)
-    return [
-        (p, p) for p in
-        range(int(size[0] * 0.2), int(size[0] * 0.8), 80)
-    ]
-
-
-def _window_area_get_by_type(window, space_type):
-    for area in window.screen.areas:
-        if area.type == space_type:
-            return area
-
-
-def _cursor_position_from_area(area):
-    return (
-        area.x + area.width // 2,
-        area.y + area.height // 2,
-    )
-
-
-def _cursor_position_from_spacetype(window, space_type):
-    area = _window_area_get_by_type(window, space_type)
-    if area is None:
-        raise Exception("Space Type {!r} not found".format(space_type))
-    return _cursor_position_from_area(area)
-
 
 def _view3d_object_calc_screen_space_location(window, name: str):
     from bpy_extras.view3d_utils import location_3d_to_region_2d
 
-    area = _window_area_get_by_type(window, 'VIEW_3D')
+    area = ui.get_window_area_by_type(window, 'VIEW_3D')
     region = next((region for region in area.regions if region.type == 'WINDOW'))
     rv3d = region.data
 
@@ -140,13 +45,13 @@ def _setup_window_areas_from_ui_types(e, ui_types):
     while len(e.window.screen.areas) < total_areas:
         areas = list(e.window.screen.areas)
         for area in areas:
-            event_xy = _cursor_position_from_area(area)
+            event_xy = ui.get_area_center(area)
             e.cursor_position_set(x=event_xy[0], y=event_xy[1], move=True)
             # areas_len_prev = len(e.window.screen.areas)
             if (i % 2) == 0:
-                yield from _call_menu(e, "View -> Area -> Horizontal Split")
+                yield from ui.call_menu(e, "View -> Area -> Horizontal Split")
             else:
-                yield from _call_menu(e, "View -> Area -> Vertical Split")
+                yield from ui.call_menu(e, "View -> Area -> Vertical Split")
             e.leftmouse.tap()
             yield
             # areas_len_curr = len(e.window.screen.areas)
@@ -191,14 +96,14 @@ def _text_editor_startup(e):
 
 def _text_editor_and_3dview_startup(e, window):
     # Add text block in properties editors.
-    pos_text = _cursor_position_from_spacetype(window, 'PROPERTIES')
+    pos_text = ui.get_area_center_from_spacetype(window, 'PROPERTIES')
     e.cursor_position_set(*pos_text, move=True)
     yield e.shift.f11()                 # Text editor.
     yield e.alt.n()                     # New text.
 
 
 def text_editor_simple():
-    e, t = _test_vars(_test_window())
+    e, t, _ = ui.test_window()
 
     import bpy
     yield from _text_editor_startup(e)
@@ -217,18 +122,18 @@ def text_editor_simple():
 
 def text_editor_edit_mode_mix():
     # Ensure text edits and mesh edits can co-exist properly (see: T66658).
-    e, t = _test_vars(window := _test_window())
+    e, t, window = ui.test_window()
 
     import bpy
     yield from _text_editor_and_3dview_startup(e, window)
     text = bpy.data.texts[0]
 
-    pos_text = _cursor_position_from_spacetype(window, 'TEXT_EDITOR')
-    pos_v3d = _cursor_position_from_spacetype(window, 'VIEW_3D')
+    pos_text = ui.get_area_center_from_spacetype(window, 'TEXT_EDITOR')
+    pos_v3d = ui.get_area_center_from_spacetype(window, 'VIEW_3D')
 
     # View 3D: edit-mode
     e.cursor_position_set(*pos_v3d, move=True)
-    yield from _call_menu(e, "Add -> Mesh -> Cube")
+    yield from ui.call_menu(e, "Add -> Mesh -> Cube")
 
     yield e.numpad_period()             # View all.
     yield e.tab()                       # Edit mode.
@@ -302,16 +207,16 @@ def _compositor_startup_area(e):
 
 def compositor_make_group():
     import bpy
-    e, t = _test_vars(window := _test_window())
+    e, t, window = ui.test_window()
     yield from _compositor_startup_area(e)
 
     # Create a node tree with multiple nodes and select all nodes.
     # TODO: Node tree should be created through the UI
     node_group = bpy.data.node_groups.new(name="comp ntree", type="CompositorNodeTree")
     window.scene.compositing_node_group = node_group
-    yield from _call_menu(e, "Add -> Color -> Alpha Convert")
+    yield from ui.call_menu(e, "Add -> Color -> Alpha Convert")
     yield e.ret()  # Confirm adding node.
-    yield from _call_menu(e, "Add -> Filter -> Filter")
+    yield from ui.call_menu(e, "Add -> Filter -> Filter")
     yield e.ret()
     yield e.a()  # Select all.
     t.assertEqual(len(window.scene.compositing_node_group.nodes), 2)
@@ -346,15 +251,15 @@ def _view3d_startup_area_single(e):
 
     for _ in range(len(e.window.screen.areas)):
         # 3D Viewport.
-        event_xy = _cursor_position_from_spacetype(e.window, e.window.screen.areas[0].type)
+        event_xy = ui.get_area_center_from_spacetype(e.window, e.window.screen.areas[0].type)
         e.cursor_position_set(x=event_xy[0], y=event_xy[1], move=True)
         yield e.shift.f5()
-        yield from _call_menu(e, "View -> Area -> Close Area")
+        yield from ui.call_menu(e, "View -> Area -> Close Area")
     assert len(e.window.screen.areas) == 1
 
 
 def view3d_simple():
-    e, t = _test_vars(window := _test_window())
+    e, t, window = ui.test_window()
     yield from _view3d_startup_area_maximized(e)
 
     # NOTE: it should be possible to consider "Add -> Mesh -> Plane" an exact match.
@@ -363,13 +268,13 @@ def view3d_simple():
     use_menu_search_workaround = True
     if use_menu_search_workaround:
         import sys
-        yield from _call_menu(e, "Add ({:s} A) -> Mesh -> Plane".format(
+        yield from ui.call_menu(e, "Add ({:s} A) -> Mesh -> Plane".format(
             "\u21e7" if sys.platform == "darwin" else "Shift"
         ))
         del sys
     else:
         # It would be nice if this could be restored.
-        yield from _call_menu(e, "Add -> Mesh -> Plane")
+        yield from ui.call_menu(e, "Add -> Mesh -> Plane")
 
     # Duplicate and rotate.
     for _ in range(3):
@@ -381,7 +286,7 @@ def view3d_simple():
     yield e.ctrl.j()                    # Join.
     t.assertEqual(len(window.view_layer.objects), 1)
     yield e.tab()                       # Edit mode.
-    yield from _call_menu(e, "Edge -> Subdivide")
+    yield from ui.call_menu(e, "Edge -> Subdivide")
     yield e.tab()                       # Object mode.
     t.assertEqual(len(window.view_layer.objects.active.data.polygons), 16)
     yield e.ctrl.z(12)                  # Undo until start.
@@ -391,10 +296,10 @@ def view3d_simple():
 
 
 def view3d_sculpt_with_memfile_step():
-    e, t = _test_vars(window := _test_window())
+    e, t, window = ui.test_window()
     yield from _view3d_startup_area_maximized(e)
 
-    yield from _call_menu(e, "Add -> Mesh -> Torus")
+    yield from ui.call_menu(e, "Add -> Mesh -> Torus")
 
     # Note: this could also be replaced by adding the multires modifier (see comment below).
     yield e.tab()                       # Enter Edit mode.
@@ -424,12 +329,12 @@ def view3d_sculpt_with_memfile_step():
     mesh_verts_cos_before_sculpt = extract_mesh_cos(window)
 
     # Add a first sculpt stroke.
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_x(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
     mesh_verts_cos_sculpt_stroke1 = extract_mesh_cos(window)
     t.assertNotEqual(mesh_verts_cos_before_sculpt, mesh_verts_cos_sculpt_stroke1)
 
     # Add a second sculpt stroke.
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_y(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_y(window))
     mesh_verts_cos_sculpt_stroke2 = extract_mesh_cos(window)
     t.assertNotEqual(mesh_verts_cos_sculpt_stroke1, mesh_verts_cos_sculpt_stroke2)
 
@@ -458,21 +363,21 @@ def view3d_sculpt_with_memfile_step():
 
 
 def view3d_sculpt_dyntopo_simple():
-    e, t = _test_vars(window := _test_window())
+    e, t, window = ui.test_window()
     yield from _view3d_startup_area_maximized(e)
 
-    yield from _call_menu(e, "Add -> Mesh -> Torus")
+    yield from ui.call_menu(e, "Add -> Mesh -> Torus")
     # Avoid dynamic topology prompt.
-    yield from _call_by_name(e, "Remove UV Map")
+    yield from ui.call_operator(e, "Remove UV Map")
     if _MENU_CONFIRM_HACK:
         yield
     yield e.r().y().text("45").ret()    # Rotate Y 45.
     yield e.ctrl.a().r()                # Apply rotation.
     yield e.numpad_period()             # View all.
     yield e.ctrl.tab().s()              # Sculpt via pie menu.
-    yield from _call_menu(e, "Sculpt -> Dynamic Topology Toggle")
+    yield from ui.call_menu(e, "Sculpt -> Dynamic Topology Toggle")
     # TODO: should be accessible from menu.
-    yield from _call_by_name(e, "Symmetrize")
+    yield from ui.call_operator(e, "Symmetrize")
     yield e.ctrl.tab().o()              # Object mode.
     t.assertEqual(len(window.view_layer.objects.active.data.polygons), 1258)
     yield e.delete()                   # Delete the object.
@@ -483,18 +388,18 @@ def view3d_sculpt_dyntopo_simple():
 
 
 def view3d_sculpt_dyntopo_and_edit():
-    e, t = _test_vars(window := _test_window())
+    e, _, window = ui.test_window()
     yield from _view3d_startup_area_maximized(e)
 
-    yield from _call_menu(e, "Add -> Mesh -> Torus")
+    yield from ui.call_menu(e, "Add -> Mesh -> Torus")
     yield e.numpad_period()             # View all.
-    yield from _call_by_name(e, "Remove UV Map")
+    yield from ui.call_operator(e, "Remove UV Map")
     yield e.ctrl.tab().s()              # Sculpt via pie menu.
     yield e.ctrl.d().ret()              # Dynamic topology.
     # TODO: should be accessible from menu.
-    yield from _call_by_name(e, "Symmetrize")
+    yield from ui.call_operator(e, "Symmetrize")
     # Some painting (demo it works, not needed for the crash)
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_x(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
     yield e.tab()                       # Edit mode.
     yield e.tab()                       # Object mode.
     yield e.ctrl.z(3)                   # Undo
@@ -507,11 +412,11 @@ def view3d_sculpt_trim():
     Operations that work on the entire mesh exercise a different code path from normal sculpt undo.
     """
 
-    e, t = _test_vars(window := _test_window())
+    e, t, window = ui.test_window()
     yield from _view3d_startup_area_maximized(e)
-    yield from _call_menu(e, "Add -> Mesh -> Torus")
+    yield from ui.call_menu(e, "Add -> Mesh -> Torus")
     yield e.numpad_period()             # View all.
-    yield from _call_by_name(e, "Remove UV Map")
+    yield from ui.call_operator(e, "Remove UV Map")
     yield e.ctrl.tab().s()              # Sculpt via pie menu.
 
     # Utility to extract current mesh coordinates (used to ensure undo/redo steps are applied properly).
@@ -525,8 +430,8 @@ def view3d_sculpt_trim():
         return tmp_cos
 
     beginning_positions = extract_mesh_positions(window)
-    yield from _call_by_name(e, "Box Trim")
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_xy(window))    # Perform the trim
+    yield from ui.call_operator(e, "Box Trim")
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_xy(window))  # Perform the trim
     after_trim_positions = extract_mesh_positions(window)
     t.assertNotEqual(beginning_positions, after_trim_positions)
 
@@ -540,12 +445,12 @@ def view3d_sculpt_trim():
 
 
 def view3d_sculpt_dyntopo_stroke_toggle():
-    e, t = _test_vars(window := _test_window())
+    e, t, window = ui.test_window()
     yield from _view3d_startup_area_maximized(e)
 
-    yield from _call_menu(e, "Add -> Mesh -> Torus")
+    yield from ui.call_menu(e, "Add -> Mesh -> Torus")
     yield e.numpad_period()             # View all.
-    yield from _call_by_name(e, "Remove UV Map")
+    yield from ui.call_operator(e, "Remove UV Map")
     yield e.ctrl.tab().s()              # Sculpt via pie menu.
 
     # Utility to extract current mesh coordinates (used to ensure undo/redo steps are applied properly).
@@ -559,15 +464,15 @@ def view3d_sculpt_dyntopo_stroke_toggle():
         return tmp_cos
 
     original_positions = extract_mesh_positions(window)
-    yield from _call_by_name(e, "Dynamic Topology")  # On
+    yield from ui.call_operator(e, "Dynamic Topology")  # On
 
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_x(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
 
-    yield from _call_by_name(e, "Dynamic Topology")  # Off
+    yield from ui.call_operator(e, "Dynamic Topology")  # Off
     after_toggle_off = extract_mesh_positions(window)
     t.assertNotEqual(original_positions, after_toggle_off)
 
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_y(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_y(window))
     after_normal_stroke = extract_mesh_positions(window)
     t.assertNotEqual(after_toggle_off, after_normal_stroke)
 
@@ -593,50 +498,68 @@ def view3d_sculpt_dyntopo_stroke_toggle():
 
 
 def view3d_texture_paint_simple():
-    e, t = _test_vars(window := _test_window())
+    e, t, window = ui.test_window()
     yield from _view3d_startup_area_maximized(e)
 
-    yield from _call_menu(e, "Add -> Mesh -> Monkey")
+    yield from ui.call_menu(e, "Add -> Mesh -> Monkey")
     yield e.numpad_period()             # View monkey
     yield e.ctrl.tab().t()              # Paint via pie menu.
-    yield from _call_by_name(e, "Add Texture Paint Slot")
+    yield from ui.call_operator(e, "Add Texture Paint Slot")
     yield e.ret()                       # Accept popup.
 
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_x(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
     yield e.ctrl.z(2)                   # Undo: initial texture paint.
     t.assertEqual(window.view_layer.objects.active.mode, 'TEXTURE_PAINT')
     yield e.ctrl.z()                    # Undo: object mode.
     t.assertEqual(window.view_layer.objects.active.mode, 'OBJECT')
     yield e.ctrl.shift.z(2)             # Redo: initial blank canvas.
     t.assertEqual(window.view_layer.objects.active.mode, 'TEXTURE_PAINT')
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_x(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
     yield e.ctrl.z()                    # Used to crash T61172.
 
 
 def view3d_texture_paint_complex():
+    import bpy
     # More complex test than `view3d_texture_paint_simple`,
     # including interleaved memfile steps,
     # and a call to history to undo several steps at once.
-    e, t = _test_vars(window := _test_window())
+    e, t, window = ui.test_window()
     yield from _view3d_startup_area_maximized(e)
 
-    yield from _call_menu(e, "Add -> Mesh -> Monkey")
+    yield from ui.call_menu(e, "Add -> Mesh -> Monkey")
     yield e.numpad_period()             # View monkey
     yield e.ctrl.tab().t()              # Paint via pie menu.
 
-    yield from _call_by_name(e, "Add Texture Paint Slot")
+    yield from ui.call_operator(e, "Add Texture Paint Slot")
     yield e.ret()                       # Accept popup.
 
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_x(window))
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_y(window))
+    initial_data = tuple(bpy.data.images['Suzanne Base Color'].pixels)
 
-    yield from _call_by_name(e, "Add Texture Paint Slot")
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_y(window))
+
+    after_strokes = tuple(bpy.data.images['Suzanne Base Color'].pixels)
+    t.assertTrue(any([orig != new for (orig, new) in zip(initial_data, after_strokes)]),
+                 "At least one pixel should differ in color component")
+
+    yield from ui.call_operator(e, "Add Texture Paint Slot")
     yield e.ret()                       # Accept popup.
 
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_x(window))
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_y(window))
+    yield from ui.call_operator(e, "Add Modifier")
+    yield e.a()                         # Array modifier
+    t.assertEqual(len(bpy.context.active_object.modifiers), 1, "One modifier should exist")
 
-    yield e.ctrl.z(6)                   # Undo: initial texture paint.
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_y(window))
+
+    yield e.ctrl.z(6)                   # Undo: second slot added.
+    t.assertEqual(len(bpy.context.active_object.modifiers), 0, "No modifiers should exist")
+
+    after_undo = tuple(bpy.data.images['Suzanne Base Color'].pixels)
+    t.assertTrue(all([orig == new for (orig, new) in zip(initial_data, after_undo)]),
+                 "All pixels should be the same as their original state")
+
+    yield e.ctrl.z(1)                   # Undo: initial texture paint.
     t.assertEqual(window.view_layer.objects.active.mode, 'TEXTURE_PAINT')
     yield e.ctrl.z()                    # Undo: object mode.
     t.assertEqual(window.view_layer.objects.active.mode, 'OBJECT')
@@ -644,19 +567,19 @@ def view3d_texture_paint_complex():
     yield e.ctrl.shift.z(2)             # Redo: initial blank canvas.
     t.assertEqual(window.view_layer.objects.active.mode, 'TEXTURE_PAINT')
 
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_x(window))
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_y(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_y(window))
 
-    yield from _call_by_name(e, "Undo History")
+    yield from ui.call_operator(e, "Undo History")
     yield e.o()                         # Undo everything to Original step.
     t.assertEqual(window.view_layer.objects.active.mode, 'OBJECT')
 
 
 def view3d_mesh_edit_separate():
-    e, t = _test_vars(window := _test_window())
+    e, t, window = ui.test_window()
     yield from _view3d_startup_area_maximized(e)
 
-    yield from _call_menu(e, "Add -> Mesh -> Cube")
+    yield from ui.call_menu(e, "Add -> Mesh -> Cube")
     yield e.numpad_period()             # View all.
     yield e.tab()                       # Edit mode.
     yield e.shift.d()                   # Duplicate...
@@ -679,19 +602,19 @@ def view3d_mesh_edit_separate():
 
 
 def view3d_mesh_particle_edit_mode_simple():
-    e, t = _test_vars(window := _test_window())
+    e, t, window = ui.test_window()
     yield from _view3d_startup_area_maximized(e)
 
-    yield from _call_menu(e, "Add -> Mesh -> Cube")
+    yield from ui.call_menu(e, "Add -> Mesh -> Cube")
     yield e.r.z().text("15").ret()      # Single object-mode action (to test mixing different kinds of undo steps).
-    yield from _call_menu(e, "Object -> Quick Effects -> Quick Fur")
+    yield from ui.call_menu(e, "Object -> Quick Effects -> Quick Fur")
 
     yield e.ctrl.tab().s()              # Particle sculpt mode.
     t.assertEqual(window.view_layer.objects.active.mode, 'SCULPT_CURVES')
 
     # Brush strokes.
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_y(window))
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_x(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_y(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
 
     # Undo and redo.
     yield e.ctrl.z(5)
@@ -701,8 +624,8 @@ def view3d_mesh_particle_edit_mode_simple():
     t.assertEqual(window.view_layer.objects.active.mode, 'SCULPT_CURVES')
 
     # Brush strokes.
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_y(window))
-    yield from e.leftmouse.cursor_motion(_cursor_motion_data_x(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_y(window))
+    yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
 
     yield e.ctrl.z(7)
     t.assertEqual(window.view_layer.objects.active.mode, 'OBJECT')
@@ -710,10 +633,10 @@ def view3d_mesh_particle_edit_mode_simple():
 
 
 def view3d_font_edit_mode_simple():
-    e, t = _test_vars(window := _test_window())
+    e, t, window = ui.test_window()
     yield from _view3d_startup_area_maximized(e)
 
-    yield from _call_menu(e, "Add -> Text")
+    yield from ui.call_menu(e, "Add -> Text")
     yield e.numpad_period()             # View all.
     yield e.tab()                       # Edit mode.
     yield e.ctrl.back_space()
@@ -736,7 +659,7 @@ def view3d_font_edit_mode_simple():
 
 def view3d_multi_mode_select():
     # Note, this test should be extended to change modes for each object type.
-    e, t = _test_vars(window := _test_window())
+    e, t, window = ui.test_window()
     yield from _view3d_startup_area_maximized(e)
 
     object_names = []
@@ -753,7 +676,7 @@ def view3d_multi_mode_select():
             ("Add -> Camera", "Camera"),
             ("Add -> Empty -> Plain Axis", "Empty"),
     )):
-        yield from _call_menu(e, menu_search)
+        yield from ui.call_menu(e, menu_search)
         # Single object-mode action (to test mixing different kinds of undo steps).
         yield e.g.z().text(str(i * 2)).ret()
         # Rename.
@@ -761,7 +684,7 @@ def view3d_multi_mode_select():
 
         object_names.append(window.view_layer.objects.active.name)
 
-    yield from _call_menu(e, "View -> Frame All")
+    yield from ui.call_menu(e, "View -> Frame All")
     # print(object_names)
 
     for ob_name in object_names:
@@ -777,21 +700,20 @@ def view3d_multi_mode_select():
 
 
 def view3d_multi_mode_multi_window():
-    e_a, t = _test_vars(window_a := _test_window())
-    yield from _call_menu(e_a, "Window -> New Main Window")
+    e_a, t, window_a = ui.test_window(0)
+    yield from ui.call_menu(e_a, "Window -> New Main Window")
 
-    e_b, _ = _test_vars(window_b := _test_window(windows_exclude={window_a}))
+    e_b, _, window_b = ui.test_window(1)
     del _
-    yield from _call_menu(e_b, "New Scene")
+    yield from ui.call_menu(e_b, "New Scene")
     yield e_b.ret()
     if _MENU_CONFIRM_HACK:
-        # We wait for a brief period of time after confirming to ensure that each main window has a different view layer
-        yield datetime.timedelta(seconds=1 / 60)
+        yield from ui.idle_until(lambda: window_a.view_layer != window_b.view_layer)
 
     t.assertNotEqual(window_a.view_layer, window_b.view_layer, "Windows should have different view layers")
 
     for e in (e_a, e_b):
-        pos_v3d = _cursor_position_from_spacetype(e.window, 'VIEW_3D')
+        pos_v3d = ui.get_area_center_from_spacetype(e.window, 'VIEW_3D')
         e.cursor_position_set(x=pos_v3d[0], y=pos_v3d[1], move=True)
         del pos_v3d
 
@@ -801,8 +723,8 @@ def view3d_multi_mode_multi_window():
     undo_current = 0
     undo_state_empty = undo_current
 
-    yield from _call_menu(e_a, "Add -> Torus")
-    yield from _call_menu(e_b, "Add -> Monkey")
+    yield from ui.call_menu(e_a, "Add -> Torus")
+    yield from ui.call_menu(e_b, "Add -> Monkey")
     undo_current += 2
 
     # Weight paint via pie menu.
@@ -829,8 +751,8 @@ def view3d_multi_mode_multi_window():
     vert_count_a_start = len(_bmesh_from_object(window_a.view_layer.objects.active).verts)
     vert_count_b_start = len(_bmesh_from_object(window_b.view_layer.objects.active).verts)
 
-    yield from _call_menu(e_a, "Edge -> Subdivide")
-    yield from _call_menu(e_b, "Edge -> Subdivide")
+    yield from ui.call_menu(e_a, "Edge -> Subdivide")
+    yield from ui.call_menu(e_b, "Edge -> Subdivide")
     undo_current += 2
 
     yield e_a.r().y().text("45").ret()  # Rotate Y 45.
@@ -851,9 +773,9 @@ def view3d_multi_mode_multi_window():
     t.assertEqual(window_b.view_layer.objects.active.mode, 'SCULPT')
 
     # Rotate 90.
-    yield from _call_menu(e_a, "Sculpt -> Rotate")
+    yield from ui.call_menu(e_a, "Sculpt -> Rotate")
     yield e_a.text("90").ret()
-    yield from _call_menu(e_b, "Sculpt -> Rotate")
+    yield from ui.call_menu(e_b, "Sculpt -> Rotate")
     yield e_b.text("90").ret()
     undo_current += 2
 
@@ -867,8 +789,8 @@ def view3d_multi_mode_multi_window():
     yield e_b.tab()
     undo_current += 2
 
-    yield from _call_menu(e_a, "Edge -> Subdivide")
-    yield from _call_menu(e_b, "Edge -> Subdivide")
+    yield from ui.call_menu(e_a, "Edge -> Subdivide")
+    yield from ui.call_menu(e_b, "Edge -> Subdivide")
     undo_current += 2
 
     vert_count_a_end = len(_bmesh_from_object(window_a.view_layer.objects.active).verts)
@@ -928,7 +850,7 @@ def view3d_edit_mode_multi_window():
     Use undo and redo with multiple windows in edit-mode,
     this test caused a crash with #110022.
     """
-    e_a, t = _test_vars(window_a := _test_window())
+    e_a, t, window_a = ui.test_window(0)
 
     # Nice but slower.
     use_all_area_ui_types = False
@@ -936,28 +858,27 @@ def view3d_edit_mode_multi_window():
     # Use a large, single area so the window can be duplicated & split.
     yield from _view3d_startup_area_single(e_a)
 
-    yield from _call_menu(e_a, "Window -> New Main Window")
+    yield from ui.call_menu(e_a, "Window -> New Main Window")
 
-    e_b, _ = _test_vars(window_b := _test_window(windows_exclude={window_a}))
+    e_b, _, window_b = ui.test_window(1)
     del _
 
-    yield from _call_menu(e_b, "New Scene")
+    yield from ui.call_menu(e_b, "New Scene")
     yield e_b.ret()
     if _MENU_CONFIRM_HACK:
-        # We wait for a brief period of time after confirming to ensure that each main window has a different view layer
-        yield datetime.timedelta(seconds=1 / 60)
+        yield from ui.idle_until(lambda: window_a.view_layer != window_b.view_layer)
 
     t.assertNotEqual(window_a.view_layer, window_b.view_layer, "Windows should have different view layers")
 
     for e in (e_a, e_b):
-        pos_v3d = _cursor_position_from_spacetype(e.window, 'VIEW_3D')
+        pos_v3d = ui.get_area_center_from_spacetype(e.window, 'VIEW_3D')
         e.cursor_position_set(x=pos_v3d[0], y=pos_v3d[1], move=True)
         del pos_v3d
 
     undo_current = 0
 
-    yield from _call_menu(e_a, "Add -> Cone")
-    yield from _call_menu(e_b, "Add -> Cylinder")
+    yield from ui.call_menu(e_a, "Add -> Cone")
+    yield from ui.call_menu(e_b, "Add -> Cylinder")
     undo_current += 2
 
     # Edit mode.
@@ -974,16 +895,16 @@ def view3d_edit_mode_multi_window():
     yield e_b.r().z().text("45").ret()  # Rotate Z 45.
     undo_current += 2
 
-    yield from _call_menu(e_a, "Face -> Poke Faces")
-    yield from _call_menu(e_b, "Face -> Poke Faces")
+    yield from ui.call_menu(e_a, "Face -> Poke Faces")
+    yield from ui.call_menu(e_b, "Face -> Poke Faces")
     undo_current += 2
 
-    yield from _call_menu(e_a, "Face -> Beautify Faces")
-    yield from _call_menu(e_b, "Face -> Beautify Faces")
+    yield from ui.call_menu(e_a, "Face -> Beautify Faces")
+    yield from ui.call_menu(e_b, "Face -> Beautify Faces")
     undo_current += 2
 
-    yield from _call_menu(e_a, "Face -> Wireframe")
-    yield from _call_menu(e_b, "Face -> Wireframe")
+    yield from ui.call_menu(e_a, "Face -> Wireframe")
+    yield from ui.call_menu(e_b, "Face -> Wireframe")
     undo_current += 2
 
     vert_count_a_end = len(_bmesh_from_object(window_a.view_layer.objects.active).verts)

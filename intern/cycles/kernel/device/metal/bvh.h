@@ -30,37 +30,31 @@ struct MetalRTIntersectionLocalPayload_single_hit {
 #endif
 };
 
+struct MetalRTLocalHit {
+  uint prim;
+  float t, u, v;
+};
+
+/* Payload for the local intersection queries.
+ * It embeds a subset of storage that is typically found in the LocalIntersection. This is because
+ * it is not possible to store a pointer to the actual LocalIntersection in the payload. So some
+ * data is duplicated into the payload and then copied back to the LocalIntersection. */
 struct MetalRTIntersectionLocalPayload {
   int self_prim;
 #if defined(__METALRT_MOTION__)
   int self_object;
 #endif
+
   uint lcg_state;
-  uint hit_prim[LOCAL_MAX_HITS];
-  float hit_t[LOCAL_MAX_HITS];
-  float hit_u[LOCAL_MAX_HITS];
-  float hit_v[LOCAL_MAX_HITS];
-  uint max_hits : 3;
-  uint num_hits : 3;
-  uint has_lcg_state : 1;
+  MetalRTLocalHit hits[LOCAL_MAX_HITS];
+  int max_hits;
+  int num_hits;
+  bool has_lcg_state;
 };
-static_assert(LOCAL_MAX_HITS < 8,
-              "MetalRTIntersectionLocalPayload max_hits & num_hits bitfields are too small");
 
 struct MetalRTIntersectionShadowPayload {
   RaySelfPrimitives self;
   uint visibility;
-};
-
-struct MetalRTIntersectionShadowAllPayload {
-  RaySelfPrimitives self;
-  uint visibility;
-  int state;
-  float throughput;
-  short max_transparent_hits;
-  short num_transparent_hits;
-  short num_recorded_hits;
-  bool result;
 };
 
 #ifdef __HAIR__
@@ -231,7 +225,7 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
     isect->type = segment.type;
     isect->u = intersection.curve_parameter;
 
-    if (segment.type & PRIMITIVE_CURVE_RIBBON) {
+    if ((segment.type & PRIMITIVE_CURVE) == PRIMITIVE_CURVE_RIBBON) {
       isect->v = curve_ribbon_v(kg,
                                 intersection.curve_parameter,
                                 intersection.distance,
@@ -414,8 +408,11 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
     payload.max_hits = max_hits;
     payload.num_hits = 0;
     if (lcg_state) {
-      payload.has_lcg_state = 1;
+      payload.has_lcg_state = true;
       payload.lcg_state = *lcg_state;
+    }
+    else {
+      payload.has_lcg_state = false;
     }
 
     metalrt_intersect.force_opacity(metal::raytracing::forced_opacity::non_opaque);
@@ -454,13 +451,15 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
       /* Record geometric normal */
       int prim_type = kernel_data_fetch(objects, local_object).primitive_type;
 
+      /* Number of hits counted can be higher than recorded due to reservoir sampling. */
       local_isect->num_hits = num_hits;
-      for (int hit = 0; hit < num_hits; hit++) {
-        uint prim = payload.hit_prim[hit] + primitive_id_offset;
+      const int num_recorded_hits = min(payload.num_hits, max_hits);
+      for (int hit = 0; hit < num_recorded_hits; hit++) {
+        const uint prim = payload.hits[hit].prim + primitive_id_offset;
         local_isect->hits[hit].prim = prim;
-        local_isect->hits[hit].t = payload.hit_t[hit];
-        local_isect->hits[hit].u = payload.hit_u[hit];
-        local_isect->hits[hit].v = payload.hit_v[hit];
+        local_isect->hits[hit].t = payload.hits[hit].t;
+        local_isect->hits[hit].u = payload.hits[hit].u;
+        local_isect->hits[hit].v = payload.hits[hit].v;
         local_isect->hits[hit].object = local_object;
         local_isect->hits[hit].type = prim_type;
 
@@ -476,14 +475,9 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
 }
 #endif
 
-#ifdef __SHADOW_RECORD_ALL__
-ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
-                                                     IntegratorShadowState state,
-                                                     const ccl_private Ray *ray,
-                                                     const uint visibility,
-                                                     const uint max_transparent_hits,
-                                                     ccl_private uint *num_recorded_hits,
-                                                     ccl_private float *throughput)
+#ifdef __TRANSPARENT_SHADOWS__
+ccl_device_intersect void scene_intersect_shadow_all_metalrt(
+    const ccl_private Ray *ray, ccl_private BVHShadowAllPayload &ccl_restrict payload)
 {
   metal::raytracing::ray r(ray->P, ray->D, ray->tmin, ray->tmax);
   metalrt_intersector_type metalrt_intersect;
@@ -495,18 +489,8 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
       (kernel_data.bvh.have_points ? metal::raytracing::geometry_type::bounding_box :
                                      metal::raytracing::geometry_type::none));
 
-  MetalRTIntersectionShadowAllPayload payload;
-  payload.self = ray->self;
-  payload.max_transparent_hits = max_transparent_hits;
-  payload.num_transparent_hits = 0;
-  payload.num_recorded_hits = 0;
-  payload.throughput = 1.0f;
-  payload.result = false;
-  payload.state = state;
-  payload.visibility = visibility;
-
-  uint ray_mask = visibility & 0xFF;
-  if (0 == ray_mask && (visibility & ~0xFF) != 0) {
+  uint ray_mask = payload.base.ray_visibility & 0xFF;
+  if (0 == ray_mask && (payload.base.ray_visibility & ~0xFF) != 0) {
     ray_mask = 0xFF;
   }
 
@@ -524,10 +508,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
       r, metal_ancillaries->accel_struct, ray_mask, metal_ancillaries->ift_shadow_all, payload);
 #  endif
 
-  *num_recorded_hits = payload.num_recorded_hits;
-  *throughput = payload.throughput;
-
-  return payload.result;
+  (void)intersection;
 }
 #endif
 

@@ -117,9 +117,9 @@ class pyChainSilhouetteGenericIterator(ChainingIterator):
 
        Builds a pyChainSilhouetteGenericIterator object.
 
-       :arg stayInSelection: True if it is allowed to go out of the selection
+       :param stayInSelection: True if it is allowed to go out of the selection
        :type stayInSelection: bool
-       :arg stayInUnvisited: May the same ViewEdge be chained twice
+       :param stayInUnvisited: May the same ViewEdge be chained twice
        :type stayInUnvisited: bool
     """
 
@@ -207,9 +207,9 @@ class pySketchyChainSilhouetteIterator(ChainingIterator):
 
        Builds a pySketchyChainSilhouetteIterator object.
 
-       :arg nRounds: Number of times every Viewedge is chained.
+       :param nRounds: Number of times every Viewedge is chained.
        :type nRounds: int
-       :arg stayInSelection: if False, edges outside of the selection can be chained.
+       :param stayInSelection: if False, edges outside of the selection can be chained.
        :type stayInSelection: bool
     """
 
@@ -308,7 +308,7 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
 
        Builds a pyFillOcclusionsRelativeChainingIterator object.
 
-       :arg percent: The maximal length of the occluded part, expressed
+       :param percent: The maximal length of the occluded part, expressed
            in a percentage of the total chain length.
        :type percent: float
     """
@@ -382,7 +382,7 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
 
        Builds a pyFillOcclusionsAbsoluteChainingIterator object.
 
-       :arg length: The maximum length of the occluded part in pixels.
+       :param length: The maximum length of the occluded part in pixels.
        :type length: int
     """
 
@@ -445,10 +445,10 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
 
        Builds a pyFillOcclusionsAbsoluteAndRelativeChainingIterator object.
 
-       :arg percent: The maximal length of the occluded part as a
+       :param percent: The maximal length of the occluded part as a
            percentage of the total chain length.
        :type percent: float
-       :arg l: Absolute length.
+       :param l: Absolute length.
        :type l: float
     """
 
@@ -516,10 +516,10 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
 
        Builds a pyFillQi0AbsoluteAndRelativeChainingIterator object.
 
-       :arg percent: The maximal length of the occluded part as a
+       :param percent: The maximal length of the occluded part as a
            percentage of the total chain length.
        :type percent: float
-       :arg l: Absolute length.
+       :param l: Absolute length.
        :type l: float
     """
 
@@ -588,7 +588,7 @@ class pyNoIdChainSilhouetteIterator(ChainingIterator):
 
        Builds a pyNoIdChainSilhouetteIterator object.
 
-       :arg stayInSelection: True if it is allowed to go out of the selection
+       :param stayInSelection: True if it is allowed to go out of the selection
        :type stayInSelection: bool
     """
 

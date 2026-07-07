@@ -13,9 +13,11 @@
 #include "BKE_idprop.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_lib_remap.hh"
 #include "BKE_library.hh"
 #include "BKE_object.hh"
 
+#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
@@ -43,6 +45,8 @@
 #include "WM_types.hh"
 
 #include "view3d_intern.hh" /* own include */
+
+namespace blender {
 
 static bool view3d_drop_in_main_region_poll(bContext *C, const wmEvent *event)
 {
@@ -122,20 +126,20 @@ static void view3d_ob_drop_on_enter(wmDropBox *drop, wmDrag *drag)
 
   float dimensions[3] = {0.0f};
   if (drag->type == WM_DRAG_ID) {
-    Object *ob = (Object *)WM_drag_get_local_ID(drag, ID_OB);
+    Object *ob = id_cast<Object *>(WM_drag_get_local_ID(drag, ID_OB));
     BKE_object_dimensions_eval_cached_get(ob, dimensions);
   }
   else {
     AssetMetaData *meta_data = WM_drag_get_asset_meta_data(drag, ID_OB);
     IDProperty *dimensions_prop = BKE_asset_metadata_idprop_find(meta_data, "dimensions");
     if (dimensions_prop) {
-      copy_v3_v3(dimensions, static_cast<float *>(IDP_Array(dimensions_prop)));
+      copy_v3_v3(dimensions, IDP_array_float_get(dimensions_prop));
     }
   }
 
   if (!is_zero_v3(dimensions)) {
     mul_v3_v3fl(state->box_dimensions, dimensions, 0.5f);
-    UI_GetThemeColor4ubv(TH_GIZMO_PRIMARY, state->color_box);
+    ui::theme::get_color_4ubv(TH_GIZMO_PRIMARY, state->color_box);
     state->draw_box = true;
   }
 }
@@ -203,13 +207,13 @@ static std::string view3d_mat_drop_tooltip(bContext *C,
                                            const int xy[2],
                                            wmDropBox * /*drop*/)
 {
-  const char *name = WM_drag_get_item_name(drag);
+  const std::string name = WM_drag_get_item_name(drag);
   ARegion *region = CTX_wm_region(C);
   const int mval[2] = {
       xy[0] - region->winrct.xmin,
       xy[1] - region->winrct.ymin,
   };
-  return blender::ed::object::drop_named_material_tooltip(C, name, mval);
+  return ed::object::drop_named_material_tooltip(C, name, mval);
 }
 
 static bool view3d_world_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
@@ -308,7 +312,7 @@ static bool view3d_geometry_nodes_drop_poll(bContext *C, wmDrag *drag, const wmE
     }
     const AssetMetaData *metadata = &asset_data->asset->get_metadata();
     const IDProperty *tree_type = BKE_asset_metadata_idprop_find(metadata, "type");
-    if (!tree_type || IDP_Int(tree_type) != NTREE_GEOMETRY) {
+    if (!tree_type || IDP_int_get(tree_type) != NTREE_GEOMETRY) {
       return false;
     }
     if (wmDropBox *drop_box = drag->drop_state.active_dropbox) {
@@ -330,14 +334,13 @@ static std::string view3d_geometry_nodes_drop_tooltip(bContext *C,
 {
   ARegion *region = CTX_wm_region(C);
   int mval[2] = {xy[0] - region->winrct.xmin, xy[1] - region->winrct.ymin};
-  return blender::ed::object::drop_geometry_nodes_tooltip(C, drop->ptr, mval);
+  return ed::object::drop_geometry_nodes_tooltip(C, drop->ptr, mval);
 }
 
 static void view3d_ob_drop_matrix_from_snap(V3DSnapCursorState *snap_state,
                                             Object *ob,
                                             float obmat_final[4][4])
 {
-  using namespace blender;
   V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
   BLI_assert(snap_state->draw_box || snap_state->draw_plane);
   UNUSED_VARS_NDEBUG(snap_state);
@@ -367,9 +370,89 @@ static void view3d_ob_drop_copy_local_id(bContext * /*C*/, wmDrag *drag, wmDropB
   V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_active_get();
   float obmat_final[4][4];
 
-  view3d_ob_drop_matrix_from_snap(snap_state, (Object *)id, obmat_final);
+  view3d_ob_drop_matrix_from_snap(snap_state, id_cast<Object *>(id), obmat_final);
 
   RNA_float_set_array(drop->ptr, "matrix", &obmat_final[0][0]);
+}
+
+/**
+ * Make all selected objects and the collections (if \a localize_collections is set) local so
+ * objects can be transformed. The object data and other dependencies are kept linked/packed.
+ *
+ * This is a bit of a minimum effort solution. Ideally there would be a version of
+ * #BKE_lib_id_make_local() that allows passing multiple IDs to make local.
+ */
+static void make_selected_objects_local(Main &bmain,
+                                        Scene &scene,
+                                        ViewLayer &view_layer,
+                                        View3D &v3d,
+                                        const bool localize_parent_collections)
+{
+  Set<Collection *> collections_to_localize;
+
+  if (localize_parent_collections) {
+    /* Collect the collections containing the selected objects. */
+    for (Collection &collection : bmain.collections) {
+      if (ID_IS_LINKED(&collection) &&
+          /* This #BKE_view_layer_has_collection() check requires the view layer to be synced.
+           * That's why we first collect the collections before doing any changes. Otherwise we'd
+           * have to sync the view layer after every "make local" operation. */
+          BKE_view_layer_has_collection(&view_layer, &collection))
+      {
+        FOREACH_SELECTED_OBJECT_BEGIN (&view_layer, &v3d, ob_selected) {
+          if (BKE_collection_has_object(&collection, ob_selected)) {
+            collections_to_localize.add(&collection);
+            break;
+          }
+        }
+        FOREACH_SELECTED_OBJECT_END;
+      }
+    }
+  }
+
+  Vector<ID *> localized_ids;
+
+  /* Make IDs local. When an ID gets made local, pointers to it will be remapped to the new local
+   * version. However, this doesn't work if the pointer is owned by linked data too.
+   *
+   * E.g. when multiple objects are linked/packed together, they may point to each other. An object
+   * that is being made local may be pointed to by another object that hasn't been made local yet.
+   * So this pointer cannot be remapped yet either.
+   *
+   * That's why we do another remapping pass below, over all IDs that were made local. This catches
+   * remaining old pointers.
+   */
+  {
+    const auto make_id_local = [&bmain, &localized_ids](ID *id) {
+      BKE_lib_id_make_local(
+          &bmain, id, LIB_ID_MAKELOCAL_ASSET_DATA_CLEAR | LIB_ID_MAKELOCAL_LIBOVERRIDE_CLEAR);
+      if (id->newid) {
+        BLI_assert(ID_IS_LINKED(id));
+        BLI_assert(!ID_IS_LINKED(id->newid));
+
+        localized_ids.append(id);
+      }
+    };
+
+    for (Collection *collection : collections_to_localize) {
+      make_id_local(&collection->id);
+    }
+    BKE_view_layer_synced_ensure(&scene, &view_layer);
+
+    FOREACH_SELECTED_OBJECT_BEGIN (&view_layer, &v3d, ob_selected) {
+      make_id_local(&ob_selected->id);
+    }
+    FOREACH_SELECTED_OBJECT_END;
+  }
+
+  /* Make sure all remaining pointers from the linked IDs are replaced by the new one. */
+  {
+    bke::id::IDRemapper remapper;
+    for (ID *id : localized_ids) {
+      remapper.add(id, id->newid);
+    }
+    BKE_libblock_remap_multiple(&bmain, remapper, ID_REMAP_SKIP_INDIRECT_USAGE);
+  }
 }
 
 /* Mostly the same logic as #view3d_collection_drop_copy_external_asset(), just different enough to
@@ -383,27 +466,43 @@ static void view3d_ob_drop_copy_external_asset(bContext *C, wmDrag *drag, wmDrop
   BLI_assert(drag->type == WM_DRAG_ASSET);
 
   wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0);
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   BKE_view_layer_base_deselect_all(scene, view_layer);
 
   ID *id = WM_drag_asset_id_import(C, asset_drag, FILE_AUTOSELECT);
+  if (!id) {
+    return;
+  }
 
   /* TODO(sergey): Only update relations for the current scene. */
-  DEG_relations_tag_update(CTX_data_main(C));
+  DEG_relations_tag_update(bmain);
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
 
-  RNA_int_set(drop->ptr, "session_uid", id->session_uid);
-
   BKE_view_layer_synced_ensure(scene, view_layer);
-  Base *base = BKE_view_layer_base_find(view_layer, (Object *)id);
+  Base *base = BKE_view_layer_base_find(view_layer, id_cast<Object *>(id));
   if (base != nullptr) {
     BKE_view_layer_base_select_and_set_active(view_layer, base);
     WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, scene);
   }
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+
+  /* Make objects local so they can be transformed. */
+  if (WM_drag_asset_will_import_packed(drag)) {
+    make_selected_objects_local(*bmain, *scene, *view_layer, *CTX_wm_view3d(C), false);
+
+    /* Making the IDs local might result in a new, copied ID. */
+    if (id->newid) {
+      id = id->newid;
+    }
+  }
+
   ED_outliner_select_sync_from_object_tag(C);
+
+  /* Do after making local, since that changes the session UID. */
+  RNA_int_set(drop->ptr, "session_uid", id->session_uid);
 
   /* Make sure the depsgraph is evaluated so the new object's transforms are up-to-date.
    * The evaluated #Object::object_to_world() will be copied back to the original object
@@ -414,7 +513,7 @@ static void view3d_ob_drop_copy_external_asset(bContext *C, wmDrag *drag, wmDrop
   if (snap_state) {
     float obmat_final[4][4];
 
-    view3d_ob_drop_matrix_from_snap(snap_state, (Object *)id, obmat_final);
+    view3d_ob_drop_matrix_from_snap(snap_state, id_cast<Object *>(id), obmat_final);
 
     RNA_float_set_array(drop->ptr, "matrix", &obmat_final[0][0]);
   }
@@ -438,7 +537,6 @@ static void view3d_collection_drop_matrix_from_snap(V3DSnapCursorState *snap_sta
                                                     float r_loc[3],
                                                     float r_rot[3])
 {
-  using namespace blender;
   V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
   BLI_assert(snap_state->draw_box || snap_state->draw_plane);
   UNUSED_VARS_NDEBUG(snap_state);
@@ -467,6 +565,7 @@ static void view3d_collection_drop_copy_external_asset(bContext *C, wmDrag *drag
   BLI_assert(drag->type == WM_DRAG_ASSET);
 
   wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0);
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
@@ -477,17 +576,17 @@ static void view3d_collection_drop_copy_external_asset(bContext *C, wmDrag *drag
   asset_drag->import_settings.use_instance_collections = false;
 
   ID *id = WM_drag_asset_id_import(C, asset_drag, FILE_AUTOSELECT);
-  Collection *collection = (Collection *)id;
+  if (!id) {
+    return;
+  }
+  Collection *collection = id_cast<Collection *>(id);
 
   /* Reset temporary override. */
   asset_drag->import_settings.use_instance_collections = use_instance_collections;
 
   /* TODO(sergey): Only update relations for the current scene. */
-  DEG_relations_tag_update(CTX_data_main(C));
+  DEG_relations_tag_update(bmain);
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
-
-  RNA_int_set(drop->ptr, "session_uid", int(id->session_uid));
-  RNA_boolean_set(drop->ptr, "use_instance", asset_drag->import_settings.use_instance_collections);
 
   /* Make an object active, just use the first one in the collection. */
   CollectionObject *cobject = static_cast<CollectionObject *>(collection->gobject.first);
@@ -499,7 +598,21 @@ static void view3d_collection_drop_copy_external_asset(bContext *C, wmDrag *drag
     WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, scene);
   }
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+
+  /* Make objects local so they can be transformed. */
+  if (WM_drag_asset_will_import_packed(drag) && !use_instance_collections) {
+    make_selected_objects_local(*bmain, *scene, *view_layer, *CTX_wm_view3d(C), true);
+
+    /* Making the IDs local might result in a new, copied ID. */
+    collection = id_cast<Collection *>(id->newid ? id->newid : id);
+    id = &collection->id;
+  }
+
   ED_outliner_select_sync_from_object_tag(C);
+
+  /* Do after making local, since that changes the session UID. */
+  RNA_int_set(drop->ptr, "session_uid", int(id->session_uid));
+  RNA_boolean_set(drop->ptr, "use_instance", asset_drag->import_settings.use_instance_collections);
 
   V3DSnapCursorState *snap_state = static_cast<V3DSnapCursorState *>(drop->draw_data);
   if (snap_state) {
@@ -511,15 +624,15 @@ static void view3d_collection_drop_copy_external_asset(bContext *C, wmDrag *drag
 
   /* XXX Without an undo push here, there will be a crash when the user modifies operator
    * properties. The stuff we do in these drop callbacks just isn't safe over undo/redo. */
-  ED_undo_push(C, "Collection_Drop");
+  ED_undo_push(C, "Drop Collection");
 }
 
 static void view3d_id_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, 0);
-
-  WM_operator_properties_id_lookup_set_from_id(drop->ptr, id);
-  RNA_boolean_set(drop->ptr, "show_datablock_in_modifier", (drag->type != WM_DRAG_ASSET));
+  if (id) {
+    WM_operator_properties_id_lookup_set_from_id(drop->ptr, id);
+  }
 }
 
 static void view3d_geometry_nodes_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
@@ -531,9 +644,22 @@ static void view3d_geometry_nodes_drop_copy(bContext *C, wmDrag *drag, wmDropBox
 static void view3d_id_drop_copy_with_type(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, 0);
+  wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0);
 
-  RNA_enum_set(drop->ptr, "type", GS(id->name));
-  WM_operator_properties_id_lookup_set_from_id(drop->ptr, id);
+  std::optional<ID_Type> idtype = std::nullopt;
+  if (asset_drag) {
+    idtype = asset_drag->asset->get_id_type();
+  }
+  else if (id) {
+    idtype = GS(id->name);
+  }
+
+  if (idtype) {
+    RNA_enum_set(drop->ptr, "type", *idtype);
+  }
+  if (id) {
+    WM_operator_properties_id_lookup_set_from_id(drop->ptr, id);
+  }
 }
 
 static void view3d_id_path_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
@@ -549,7 +675,7 @@ static void view3d_id_path_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 
 void view3d_dropboxes()
 {
-  ListBase *lb = WM_dropboxmap_find("View3D", SPACE_VIEW3D, RGN_TYPE_WINDOW);
+  ListBaseT<wmDropBox> *lb = WM_dropboxmap_find("View3D", SPACE_VIEW3D, RGN_TYPE_WINDOW);
 
   wmDropBox *drop;
   drop = WM_dropbox_add(lb,
@@ -630,3 +756,5 @@ void view3d_dropboxes()
                  WM_drag_free_imported_drag_ID,
                  nullptr);
 }
+
+}  // namespace blender

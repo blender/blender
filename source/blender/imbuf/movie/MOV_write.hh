@@ -9,6 +9,8 @@
  * \ingroup imbuf
  */
 
+namespace blender {
+
 struct ImageFormatData;
 struct ImBuf;
 struct MovieWriter;
@@ -44,3 +46,5 @@ void MOV_filepath_from_settings(char filepath[/*FILE_MAX*/ 1024],
                                 bool preview,
                                 const char *suffix,
                                 ReportList *reports);
+
+}  // namespace blender

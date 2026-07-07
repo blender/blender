@@ -140,7 +140,7 @@ static PyObject *StrokeAttribute_repr(BPy_StrokeAttribute *self)
        << " b: " << self->sa->getColorB() << " a: " << self->sa->getAlpha()
        << " - R: " << self->sa->getThicknessR() << " L: " << self->sa->getThicknessL();
 
-  return PyC_UnicodeFromStdStr(repr.str());
+  return blender::PyC_UnicodeFromStdStr(repr.str());
 }
 
 PyDoc_STRVAR(
@@ -452,7 +452,7 @@ static PyMethodDef BPy_StrokeAttribute_methods[] = {
 #define MATHUTILS_SUBTYPE_COLOR 1
 #define MATHUTILS_SUBTYPE_THICKNESS 2
 
-static int StrokeAttribute_mathutils_check(BaseMathObject *bmo)
+static int StrokeAttribute_mathutils_check(blender::BaseMathObject *bmo)
 {
   if (!BPy_StrokeAttribute_Check(bmo->cb_user)) {
     return -1;
@@ -460,7 +460,7 @@ static int StrokeAttribute_mathutils_check(BaseMathObject *bmo)
   return 0;
 }
 
-static int StrokeAttribute_mathutils_get(BaseMathObject *bmo, int subtype)
+static int StrokeAttribute_mathutils_get(blender::BaseMathObject *bmo, int subtype)
 {
   BPy_StrokeAttribute *self = (BPy_StrokeAttribute *)bmo->cb_user;
   switch (subtype) {
@@ -479,7 +479,7 @@ static int StrokeAttribute_mathutils_get(BaseMathObject *bmo, int subtype)
   return 0;
 }
 
-static int StrokeAttribute_mathutils_set(BaseMathObject *bmo, int subtype)
+static int StrokeAttribute_mathutils_set(blender::BaseMathObject *bmo, int subtype)
 {
   BPy_StrokeAttribute *self = (BPy_StrokeAttribute *)bmo->cb_user;
   switch (subtype) {
@@ -495,7 +495,9 @@ static int StrokeAttribute_mathutils_set(BaseMathObject *bmo, int subtype)
   return 0;
 }
 
-static int StrokeAttribute_mathutils_get_index(BaseMathObject *bmo, int subtype, int index)
+static int StrokeAttribute_mathutils_get_index(blender::BaseMathObject *bmo,
+                                               int subtype,
+                                               int index)
 {
   BPy_StrokeAttribute *self = (BPy_StrokeAttribute *)bmo->cb_user;
   switch (subtype) {
@@ -532,7 +534,9 @@ static int StrokeAttribute_mathutils_get_index(BaseMathObject *bmo, int subtype,
   return 0;
 }
 
-static int StrokeAttribute_mathutils_set_index(BaseMathObject *bmo, int subtype, int index)
+static int StrokeAttribute_mathutils_set_index(blender::BaseMathObject *bmo,
+                                               int subtype,
+                                               int index)
 {
   BPy_StrokeAttribute *self = (BPy_StrokeAttribute *)bmo->cb_user;
   switch (subtype) {
@@ -555,7 +559,7 @@ static int StrokeAttribute_mathutils_set_index(BaseMathObject *bmo, int subtype,
   return 0;
 }
 
-static Mathutils_Callback StrokeAttribute_mathutils_cb = {
+static blender::Mathutils_Callback StrokeAttribute_mathutils_cb = {
     StrokeAttribute_mathutils_check,
     StrokeAttribute_mathutils_get,
     StrokeAttribute_mathutils_set,
@@ -605,7 +609,7 @@ PyDoc_STRVAR(
     ":type: :class:`mathutils.Color`\n");
 static PyObject *StrokeAttribute_color_get(BPy_StrokeAttribute *self, void * /*closure*/)
 {
-  return Color_CreatePyObject_cb(
+  return blender::Color_CreatePyObject_cb(
       (PyObject *)self, StrokeAttribute_mathutils_cb_index, MATHUTILS_SUBTYPE_COLOR);
 }
 
@@ -614,7 +618,8 @@ static int StrokeAttribute_color_set(BPy_StrokeAttribute *self,
                                      void * /*closure*/)
 {
   float v[3];
-  if (mathutils_array_parse(v, 3, 3, value, "value must be a 3-dimensional vector") == -1) {
+  if (blender::mathutils_array_parse(v, 3, 3, value, "value must be a 3-dimensional vector") == -1)
+  {
     return -1;
   }
   self->sa->setColor(v[0], v[1], v[2]);
@@ -631,7 +636,7 @@ PyDoc_STRVAR(
     ":type: :class:`mathutils.Vector`\n");
 static PyObject *StrokeAttribute_thickness_get(BPy_StrokeAttribute *self, void * /*closure*/)
 {
-  return Vector_CreatePyObject_cb(
+  return blender::Vector_CreatePyObject_cb(
       (PyObject *)self, 2, StrokeAttribute_mathutils_cb_index, MATHUTILS_SUBTYPE_THICKNESS);
 }
 
@@ -640,7 +645,8 @@ static int StrokeAttribute_thickness_set(BPy_StrokeAttribute *self,
                                          void * /*closure*/)
 {
   float v[2];
-  if (mathutils_array_parse(v, 2, 2, value, "value must be a 2-dimensional vector") == -1) {
+  if (blender::mathutils_array_parse(v, 2, 2, value, "value must be a 2-dimensional vector") == -1)
+  {
     return -1;
   }
   self->sa->setThickness(v[0], v[1]);

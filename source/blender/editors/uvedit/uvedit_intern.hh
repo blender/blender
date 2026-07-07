@@ -10,6 +10,8 @@
 
 #include "BKE_customdata.hh"
 
+namespace blender {
+
 struct BMVert;
 struct BMEdge;
 struct BMFace;
@@ -45,21 +47,28 @@ UvNearestHit uv_nearest_hit_init_dist_px(const View2D *v2d, float dist_px);
 UvNearestHit uv_nearest_hit_init_max(const View2D *v2d);
 UvNearestHit uv_nearest_hit_init_max_default();
 
+/**
+ * A utility to set the vertex or edge in #UvNearestHit, useful when face-select
+ * is used as a fallback, but the caller expects to be able to access an element
+ * that would be "picked" based on the current selection mode.
+ *
+ * - Does nothing when `uv_selectmode` is #UV_SELECT_FACE.
+ * - Only call this when #UvNearestHit::efa has been set.
+ */
+void uv_nearest_hit_elem_set_from_face(const float co[2], UvNearestHit *hit, short uv_selectmode);
+
 bool uv_find_nearest_vert(
     Scene *scene, Object *obedit, const float co[2], float penalty_dist, UvNearestHit *hit);
 bool uv_find_nearest_vert_multi(Scene *scene,
-                                blender::Span<Object *> objects,
+                                Span<Object *> objects,
                                 const float co[2],
                                 float penalty_dist,
                                 UvNearestHit *hit);
 
 bool uv_find_nearest_edge(
     Scene *scene, Object *obedit, const float co[2], float penalty, UvNearestHit *hit);
-bool uv_find_nearest_edge_multi(Scene *scene,
-                                blender::Span<Object *> objects,
-                                const float co[2],
-                                float penalty,
-                                UvNearestHit *hit);
+bool uv_find_nearest_edge_multi(
+    Scene *scene, Span<Object *> objects, const float co[2], float penalty, UvNearestHit *hit);
 
 /**
  * \param only_in_face: when true, only hit faces which `co` is inside.
@@ -73,13 +82,10 @@ bool uv_find_nearest_edge_multi(Scene *scene,
 bool uv_find_nearest_face_ex(
     Scene *scene, Object *obedit, const float co[2], UvNearestHit *hit, bool only_in_face);
 bool uv_find_nearest_face(Scene *scene, Object *obedit, const float co[2], UvNearestHit *hit);
-bool uv_find_nearest_face_multi_ex(Scene *scene,
-                                   blender::Span<Object *> objects,
-                                   const float co[2],
-                                   UvNearestHit *hit,
-                                   bool only_in_face);
+bool uv_find_nearest_face_multi_ex(
+    Scene *scene, Span<Object *> objects, const float co[2], UvNearestHit *hit, bool only_in_face);
 bool uv_find_nearest_face_multi(Scene *scene,
-                                blender::Span<Object *> objects,
+                                Span<Object *> objects,
                                 const float co[2],
                                 UvNearestHit *hit);
 
@@ -87,17 +93,45 @@ BMLoop *uv_find_nearest_loop_from_vert(Scene *scene, Object *obedit, BMVert *v, 
 BMLoop *uv_find_nearest_loop_from_edge(Scene *scene, Object *obedit, BMEdge *e, const float co[2]);
 
 bool uvedit_vert_is_edge_select_any_other(const ToolSettings *ts,
+                                          const BMesh *bm,
                                           const BMLoop *l,
                                           const BMUVOffsets &offsets);
 bool uvedit_vert_is_face_select_any_other(const ToolSettings *ts,
+                                          const BMesh *bm,
                                           const BMLoop *l,
                                           const BMUVOffsets &offsets);
+bool uvedit_edge_is_face_select_any_other(const ToolSettings *ts,
+                                          const BMesh *bm,
+                                          const BMLoop *l,
+                                          const BMUVOffsets &offsets);
+
 bool uvedit_vert_is_all_other_faces_selected(const ToolSettings *ts,
+                                             const BMesh *bm,
                                              const BMLoop *l,
                                              const BMUVOffsets &offsets);
-bool uvedit_edge_is_face_select_any_other(const ToolSettings *ts,
-                                          const BMLoop *l,
-                                          const BMUVOffsets &offsets);
+
+[[nodiscard]] bool uvedit_vert_select_get_no_sync(const ToolSettings *ts,
+                                                  const BMesh *bm,
+                                                  const BMLoop *l);
+[[nodiscard]] bool uvedit_edge_select_get_no_sync(const ToolSettings *ts,
+                                                  const BMesh *bm,
+                                                  const BMLoop *l);
+[[nodiscard]] bool uvedit_face_select_get_no_sync(const ToolSettings *ts,
+                                                  const BMesh *bm,
+                                                  const BMFace *f);
+
+void uvedit_vert_select_set_no_sync(const ToolSettings *ts,
+                                    const BMesh *bm,
+                                    BMLoop *l,
+                                    bool select);
+void uvedit_edge_select_set_no_sync(const ToolSettings *ts,
+                                    const BMesh *bm,
+                                    BMLoop *l,
+                                    bool select);
+void uvedit_face_select_set_no_sync(const ToolSettings *ts,
+                                    const BMesh *bm,
+                                    BMFace *f,
+                                    bool select);
 
 /* utility tool functions */
 
@@ -131,14 +165,18 @@ void UV_OT_shortest_path_select(wmOperatorType *ot);
 /* `uvedit_select.cc` */
 
 void uvedit_select_prepare_custom_data(const Scene *scene, BMesh *bm);
+void uvedit_select_prepare_sync_select(const Scene *scene, BMesh *bm);
+
+void uvedit_select_prepare_UNUSED(const Scene *scene, BMesh *bm);
 
 bool uvedit_select_is_any_selected(const Scene *scene, BMesh *bm);
-bool uvedit_select_is_any_selected_multi(const Scene *scene, blender::Span<Object *> objects);
+bool uvedit_select_is_any_selected_multi(const Scene *scene, Span<Object *> objects);
 /**
  * \warning This returns first selected UV,
  * not ideal in many cases since there could be multiple.
  */
 const float *uvedit_first_selected_uv_from_vertex(Scene *scene,
+                                                  const BMesh *bm,
                                                   BMVert *eve,
                                                   const BMUVOffsets &offsets);
 
@@ -157,5 +195,11 @@ void UV_OT_select_more(wmOperatorType *ot);
 void UV_OT_select_less(wmOperatorType *ot);
 void UV_OT_select_overlap(wmOperatorType *ot);
 void UV_OT_select_similar(wmOperatorType *ot);
+void UV_OT_select_tile(wmOperatorType *ot);
+
+void UV_OT_custom_region_set(wmOperatorType *ot);
+
 /* Used only when UV sync select is disabled. */
 void UV_OT_select_mode(wmOperatorType *ot);
+
+}  // namespace blender

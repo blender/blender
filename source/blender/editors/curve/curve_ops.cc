@@ -18,6 +18,8 @@
 
 #include "curve_intern.hh"
 
+namespace blender {
+
 /************************* registration ****************************/
 
 void ED_operatortypes_curve()
@@ -155,3 +157,5 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 
   curve_pen_modal_keymap(keyconf);
 }
+
+}  // namespace blender

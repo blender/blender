@@ -14,7 +14,7 @@
 #include "BKE_lib_query.hh"
 #include "BKE_modifier.hh"
 #include "BKE_screen.hh"
-#include "BKE_shader_fx.h"
+#include "BKE_shader_fx.hh"
 
 #include "DNA_screen_types.h"
 
@@ -23,14 +23,16 @@
 
 #include "RNA_access.hh"
 
-#include "FX_shader_types.h"
-#include "FX_ui_common.h"
+#include "FX_shader_types.hh"
+#include "FX_ui_common.hh"
 
 #include "DEG_depsgraph_build.hh"
 
+namespace blender {
+
 static void init_data(ShaderFxData *md)
 {
-  SwirlShaderFxData *gpmd = (SwirlShaderFxData *)md;
+  SwirlShaderFxData *gpmd = reinterpret_cast<SwirlShaderFxData *>(md);
   gpmd->radius = 100;
   gpmd->angle = M_PI_2;
 }
@@ -42,7 +44,7 @@ static void copy_data(const ShaderFxData *md, ShaderFxData *target)
 
 static void update_depsgraph(ShaderFxData *fx, const ModifierUpdateDepsgraphContext *ctx)
 {
-  SwirlShaderFxData *fxd = (SwirlShaderFxData *)fx;
+  SwirlShaderFxData *fxd = reinterpret_cast<SwirlShaderFxData *>(fx);
   if (fxd->object != nullptr) {
     DEG_add_object_relation(ctx->node, fxd->object, DEG_OB_COMP_TRANSFORM, "Swirl ShaderFx");
   }
@@ -51,29 +53,29 @@ static void update_depsgraph(ShaderFxData *fx, const ModifierUpdateDepsgraphCont
 
 static bool is_disabled(ShaderFxData *fx, bool /*use_render_params*/)
 {
-  SwirlShaderFxData *fxd = (SwirlShaderFxData *)fx;
+  SwirlShaderFxData *fxd = reinterpret_cast<SwirlShaderFxData *>(fx);
 
   return !fxd->object;
 }
 
 static void foreach_ID_link(ShaderFxData *fx, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  SwirlShaderFxData *fxd = (SwirlShaderFxData *)fx;
+  SwirlShaderFxData *fxd = reinterpret_cast<SwirlShaderFxData *>(fx);
 
-  walk(user_data, ob, (ID **)&fxd->object, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&fxd->object), IDWALK_CB_NOP);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "radius", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "angle", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "radius", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "angle", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   shaderfx_panel_end(layout, ptr);
 }
@@ -101,3 +103,5 @@ ShaderFxTypeInfo shaderfx_Type_Swirl = {
     /*foreach_working_space_color*/ nullptr,
     /*panel_register*/ panel_register,
 };
+
+}  // namespace blender

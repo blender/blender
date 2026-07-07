@@ -27,7 +27,7 @@ template<typename T>
 inline void remove_index(
     T **items, int *items_num, int *active_index, const int index, void (*destruct_item)(T *))
 {
-  static_assert(std::is_trivial_v<T>);
+  static_assert(std::is_trivially_copyable_v<T>);
   BLI_assert(index >= 0);
   BLI_assert(index < *items_num);
 
@@ -35,13 +35,13 @@ inline void remove_index(
   const int new_items_num = old_items_num - 1;
 
   T *old_items = *items;
-  T *new_items = MEM_calloc_arrayN<T>(new_items_num, __func__);
+  T *new_items = MEM_new_array<T>(new_items_num, __func__);
 
   std::copy_n(old_items, index, new_items);
   std::copy_n(old_items + index + 1, old_items_num - index - 1, new_items + index);
 
   destruct_item(&old_items[index]);
-  MEM_freeN(old_items);
+  MEM_delete(old_items);
 
   *items = new_items;
   *items_num = new_items_num;
@@ -64,7 +64,7 @@ inline void remove_if(T **items,
                       FunctionRef<bool(const T &)> predicate,
                       void (*destruct_item)(T *))
 {
-  static_assert(std::is_trivial_v<T>);
+  static_assert(std::is_trivially_copyable_v<T>);
   /* This sorts the items-to-remove to the back. */
   const int remaining = std::stable_partition(*items,
                                               *items + *items_num,
@@ -82,11 +82,11 @@ inline void remove_if(T **items,
 template<typename T>
 inline void clear(T **items, int *items_num, int *active_index, void (*destruct_item)(T *))
 {
-  static_assert(std::is_trivial_v<T>);
+  static_assert(std::is_trivially_copyable_v<T>);
   for (const int i : IndexRange(*items_num)) {
     destruct_item(&(*items)[i]);
   }
-  MEM_SAFE_FREE(*items);
+  MEM_SAFE_DELETE(*items);
   *items_num = 0;
   if (active_index) {
     *active_index = 0;
@@ -99,7 +99,7 @@ inline void clear(T **items, int *items_num, int *active_index, void (*destruct_
 template<typename T>
 inline void move_index(T *items, const int items_num, const int from_index, const int to_index)
 {
-  static_assert(std::is_trivial_v<T>);
+  static_assert(std::is_trivially_copyable_v<T>);
   BLI_assert(from_index >= 0);
   BLI_assert(from_index < items_num);
   BLI_assert(to_index >= 0);

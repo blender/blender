@@ -14,8 +14,7 @@
 
 #include "GPU_vertex_buffer.hh"
 
-namespace blender {
-namespace gpu {
+namespace blender::gpu {
 
 class GLVertBuf : public VertBuf {
   friend class GLTexture;    /* For buffer texture. */
@@ -96,5 +95,4 @@ static inline GLenum to_gl(GPUVertCompType type)
   }
 }
 
-}  // namespace gpu
-}  // namespace blender
+}  // namespace blender::gpu

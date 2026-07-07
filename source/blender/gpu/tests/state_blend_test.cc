@@ -18,7 +18,7 @@
 
 namespace blender::gpu::tests {
 
-template<eGPUBlend blend_type>
+template<GPUBlend blend_type>
 void blend_test(float4 source_a, float4 source_b, float4 expected_result)
 {
   GPUOffScreen *offscreen = GPU_offscreen_create(1,
@@ -31,7 +31,7 @@ void blend_test(float4 source_a, float4 source_b, float4 expected_result)
                                                  nullptr);
   BLI_assert(offscreen != nullptr);
   GPU_offscreen_bind(offscreen, false);
-  blender::gpu::Texture *color_texture = GPU_offscreen_color_texture(offscreen);
+  gpu::Texture *color_texture = GPU_offscreen_color_texture(offscreen);
   GPU_texture_clear(color_texture, GPU_DATA_FLOAT, source_a);
 
   Batch *batch = GPU_batch_preset_quad();
@@ -134,5 +134,21 @@ static void test_blend_background()
                                    float4(0.5f, 0.5f, 0.5f, 0.5f));
 }
 GPU_TEST(blend_background)
+
+static void test_blend_min()
+{
+  blend_test<GPU_BLEND_MIN>(float4(1.0f, 2.0f, 3.0f, 4.0f),
+                            float4(4.0f, 3.0f, 2.0f, 1.0f),
+                            float4(1.0f, 2.0f, 2.0f, 1.0f));
+}
+GPU_TEST(blend_min)
+
+static void test_blend_max()
+{
+  blend_test<GPU_BLEND_MAX>(float4(1.0f, 2.0f, 3.0f, 4.0f),
+                            float4(4.0f, 3.0f, 2.0f, 1.0f),
+                            float4(4.0f, 3.0f, 3.0f, 4.0f));
+}
+GPU_TEST(blend_max)
 
 }  // namespace blender::gpu::tests

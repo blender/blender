@@ -7,7 +7,9 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes::node_shader_bsdf_hair_cc {
+namespace blender {
+
+namespace nodes::node_shader_bsdf_hair_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -29,9 +31,9 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Shader>("BSDF");
 }
 
-static void node_shader_buts_hair(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_shader_buts_hair(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "component", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "component", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 static int node_shader_gpu_bsdf_hair(GPUMaterial *mat,
@@ -40,19 +42,19 @@ static int node_shader_gpu_bsdf_hair(GPUMaterial *mat,
                                      GPUNodeStack *in,
                                      GPUNodeStack *out)
 {
-  GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE | GPU_MATFLAG_GLOSSY);
+  GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE);
 
   return GPU_stack_link(mat, node, "node_bsdf_hair", in, out);
 }
 
-}  // namespace blender::nodes::node_shader_bsdf_hair_cc
+}  // namespace nodes::node_shader_bsdf_hair_cc
 
 /* node type definition */
 void register_node_type_sh_bsdf_hair()
 {
-  namespace file_ns = blender::nodes::node_shader_bsdf_hair_cc;
+  namespace file_ns = nodes::node_shader_bsdf_hair_cc;
 
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeBsdfHair", SH_NODE_BSDF_HAIR);
   ntype.ui_name = "Hair BSDF";
@@ -60,10 +62,13 @@ void register_node_type_sh_bsdf_hair()
   ntype.enum_name_legacy = "BSDF_HAIR";
   ntype.nclass = NODE_CLASS_SHADER;
   ntype.declare = file_ns::node_declare;
+  ntype.gather_link_search_ops = search_link_ops_for_shader_bsdf_node;
   ntype.add_ui_poll = object_cycles_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_shader_buts_hair;
-  blender::bke::node_type_size(ntype, 150, 60, 200);
+  bke::node_type_size(ntype, 150, 60, 200);
   ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_hair;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

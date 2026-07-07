@@ -37,3 +37,4 @@ leak:*libOpenColorIO*
 leak:*libOpenEXR*
 leak:pa_xmalloc
 leak:*::x265_malloc*
+leak:libceres*

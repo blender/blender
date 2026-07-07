@@ -28,7 +28,7 @@ class Speakers : Overlay {
   SpeakerInstanceBuf speaker_buf_ = {selection_type_, "speaker_data_buf"};
 
  public:
-  Speakers(const SelectionType selection_type) : selection_type_(selection_type){};
+  Speakers(const SelectionType selection_type) : selection_type_(selection_type) {};
 
   void begin_sync(Resources & /*res*/, const State &state) final
   {

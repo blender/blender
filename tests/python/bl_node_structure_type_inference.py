@@ -40,7 +40,7 @@ class StructureTypeInferenceTest(unittest.TestCase):
         tree = bpy.data.node_groups["test_empty_group"]
 
         node = tree.nodes["Group Input"]
-        self.assertSingle(node.outputs["Geometry"])
+        self.assertDynamic(node.outputs["Geometry"])
         self.assertDynamic(node.outputs["Value"])
 
         node = tree.nodes["Group Output"]

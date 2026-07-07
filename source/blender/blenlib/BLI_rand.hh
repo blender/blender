@@ -82,7 +82,7 @@ class RandomNumberGenerator {
    */
   float get_float()
   {
-    return (float)this->get_int32() / 0x80000000;
+    return float(this->get_int32()) / 0x80000000;
   }
 
   template<typename T> void shuffle(MutableSpan<T> values)

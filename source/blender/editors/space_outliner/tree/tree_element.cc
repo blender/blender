@@ -203,7 +203,7 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::create_from_type(const
           *static_cast<BoneCollection *>(create_data));
     case TSE_ACTION_SLOT:
       return std::make_unique<TreeElementActionSlot>(
-          legacy_te, *reinterpret_cast<blender::animrig::Slot *>(create_data));
+          legacy_te, *reinterpret_cast<animrig::Slot *>(create_data));
 
     default:
       break;
@@ -240,7 +240,7 @@ void AbstractTreeElement::uncollapse_by_default(TreeElement *legacy_te)
   }
 }
 
-TreeElement *AbstractTreeElement::add_element(ListBase *lb,
+TreeElement *AbstractTreeElement::add_element(ListBaseT<TreeElement> *lb,
                                               ID *owner_id,
                                               void *create_data,
                                               TreeElement *parent,

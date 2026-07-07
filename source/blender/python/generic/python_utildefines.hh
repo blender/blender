@@ -12,6 +12,8 @@
 
 #include <Python.h>
 
+namespace blender {
+
 #define PyTuple_SET_ITEMS(op_arg, ...) \
   { \
     PyTupleObject *op = (PyTupleObject *)op_arg; \
@@ -32,3 +34,5 @@ Py_LOCAL_INLINE(int) PyList_APPEND(PyObject *op, PyObject *v)
   Py_DecRef(v);
   return ret;
 }
+
+}  // namespace blender

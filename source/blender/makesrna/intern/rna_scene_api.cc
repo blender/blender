@@ -18,27 +18,40 @@
 
 #include "rna_internal.hh" /* own include */
 
-#ifdef WITH_ALEMBIC
-#endif
-
 #ifdef RNA_RUNTIME
+
+#  include "DNA_screen_types.h"
+
+#  include "BLI_math_matrix.h"
+#  include "BLI_math_vector.h"
 
 #  include "BKE_editmesh.hh"
 #  include "BKE_global.hh"
 #  include "BKE_image.hh"
+#  include "BKE_image_format.hh"
+#  include "BKE_main.hh"
 #  include "BKE_scene.hh"
+#  include "BKE_screen.hh"
 
 #  include "DEG_depsgraph_query.hh"
 
+#  include "ED_mesh.hh"
 #  include "ED_transform.hh"
 #  include "ED_transform_snap_object_context.hh"
 #  include "ED_uvedit.hh"
 
 #  include "MOV_write.hh"
 
+#  include "SEQ_sequencer.hh"
+
+#  include "WM_api.hh"
+#  include "WM_types.hh"
+
 #  ifdef WITH_PYTHON
 #    include "BPY_extern.hh"
 #  endif
+
+namespace blender {
 
 static void rna_Scene_frame_set(Scene *scene, Main *bmain, int frame, float subframe)
 {
@@ -118,22 +131,22 @@ static void rna_SceneRender_get_frame_path(ID *id,
     MOV_filepath_from_settings(filepath, scene, rd, preview != 0, suffix, reports);
   }
   else {
-    blender::bke::path_templates::VariableMap template_variables;
+    bke::path_templates::VariableMap template_variables;
     BKE_add_template_variables_general(template_variables, &scene->id);
     BKE_add_template_variables_for_render_path(template_variables, *scene);
 
     const char *relbase = BKE_main_blendfile_path(bmain);
 
-    const blender::Vector<blender::bke::path_templates::Error> errors =
-        BKE_image_path_from_imformat(filepath,
-                                     rd->pic,
-                                     relbase,
-                                     &template_variables,
-                                     (frame == INT_MIN) ? rd->cfra : frame,
-                                     &rd->im_format,
-                                     (rd->scemode & R_EXTENSION) != 0,
-                                     true,
-                                     suffix);
+    const Vector<bke::path_templates::Error> errors = BKE_image_path_from_imformat(
+        filepath,
+        rd->pic,
+        relbase,
+        &template_variables,
+        (frame == INT_MIN) ? rd->cfra : frame,
+        &rd->im_format,
+        (rd->scemode & R_EXTENSION) != 0,
+        true,
+        suffix);
 
     if (!errors.is_empty()) {
       BKE_report_path_template_errors(reports, RPT_ERROR, rd->pic, errors);
@@ -141,7 +154,7 @@ static void rna_SceneRender_get_frame_path(ID *id,
   }
 }
 
-static void rna_Scene_ray_cast(Scene *scene,
+static void rna_Scene_ray_cast(Scene * /*scene*/,
                                Depsgraph *depsgraph,
                                const float origin[3],
                                const float direction[3],
@@ -155,26 +168,26 @@ static void rna_Scene_ray_cast(Scene *scene,
 {
   float direction_unit[3];
   normalize_v3_v3(direction_unit, direction);
-  blender::ed::transform::SnapObjectContext *sctx =
-      blender::ed::transform::snap_object_context_create(scene, 0);
+  ed::transform::SnapObjectContext *sctx = ed::transform::snap_object_context_create();
 
-  blender::ed::transform::SnapObjectParams snap_object_params{};
+  ed::transform::SnapObjectParams snap_object_params{};
   snap_object_params.snap_target_select = SCE_SNAP_TARGET_ALL;
+  snap_object_params.ignore_editmode_filtering = true;
 
-  bool ret = blender::ed::transform::snap_object_project_ray_ex(sctx,
-                                                                depsgraph,
-                                                                nullptr,
-                                                                &snap_object_params,
-                                                                origin,
-                                                                direction_unit,
-                                                                &ray_dist,
-                                                                r_location,
-                                                                r_normal,
-                                                                r_index,
-                                                                (const Object **)(r_ob),
-                                                                (float(*)[4])r_obmat);
+  bool ret = ed::transform::snap_object_project_ray_ex(sctx,
+                                                       depsgraph,
+                                                       nullptr,
+                                                       &snap_object_params,
+                                                       origin,
+                                                       direction_unit,
+                                                       &ray_dist,
+                                                       r_location,
+                                                       r_normal,
+                                                       r_index,
+                                                       (const Object **)(r_ob),
+                                                       (float (*)[4])r_obmat);
 
-  blender::ed::transform::snap_object_context_destroy(sctx);
+  ed::transform::snap_object_context_destroy(sctx);
 
   if (r_ob != nullptr && *r_ob != nullptr) {
     *r_ob = DEG_get_original(*r_ob);
@@ -186,7 +199,7 @@ static void rna_Scene_ray_cast(Scene *scene,
   else {
     *r_success = false;
 
-    unit_m4((float(*)[4])r_obmat);
+    unit_m4(reinterpret_cast<float (*)[4]>(r_obmat));
     zero_v3(r_location);
     zero_v3(r_normal);
   }
@@ -194,81 +207,14 @@ static void rna_Scene_ray_cast(Scene *scene,
 
 static void rna_Scene_sequencer_editing_free(Scene *scene)
 {
-  blender::seq::editing_free(scene, true);
+  seq::editing_free(scene, true);
 }
 
-#  ifdef WITH_ALEMBIC
-
-static void rna_Scene_alembic_export(Scene *scene,
-                                     bContext *C,
-                                     const char *filepath,
-                                     int frame_start,
-                                     int frame_end,
-                                     int xform_samples,
-                                     int geom_samples,
-                                     float shutter_open,
-                                     float shutter_close,
-                                     bool selected_only,
-                                     bool uvs,
-                                     bool normals,
-                                     bool vcolors,
-                                     bool apply_subdiv,
-                                     bool flatten_hierarchy,
-                                     bool visible_objects_only,
-                                     bool face_sets,
-                                     bool use_subdiv_schema,
-                                     bool export_hair,
-                                     bool export_particles,
-                                     bool packuv,
-                                     float scale,
-                                     bool triangulate,
-                                     int quad_method,
-                                     int ngon_method)
-{
-/* We have to enable allow_threads, because we may change scene frame number
- * during export. */
-#    ifdef WITH_PYTHON
-  BPy_BEGIN_ALLOW_THREADS;
-#    endif
-
-  AlembicExportParams params{};
-  params.frame_start = frame_start;
-  params.frame_end = frame_end;
-
-  params.frame_samples_xform = xform_samples;
-  params.frame_samples_shape = geom_samples;
-
-  params.shutter_open = shutter_open;
-  params.shutter_close = shutter_close;
-
-  params.selected_only = selected_only;
-  params.uvs = uvs;
-  params.normals = normals;
-  params.vcolors = vcolors;
-  params.apply_subdiv = apply_subdiv;
-  params.flatten_hierarchy = flatten_hierarchy;
-  params.visible_objects_only = visible_objects_only;
-  params.face_sets = face_sets;
-  params.use_subdiv_schema = use_subdiv_schema;
-  params.export_hair = export_hair;
-  params.export_particles = export_particles;
-  params.packuv = packuv;
-  params.triangulate = triangulate;
-  params.quad_method = quad_method;
-  params.ngon_method = ngon_method;
-
-  params.global_scale = scale;
-
-  ABC_export(scene, C, filepath, &params, true);
-
-#    ifdef WITH_PYTHON
-  BPy_END_ALLOW_THREADS;
-#    endif
-}
-
-#  endif
+}  // namespace blender
 
 #else
+
+namespace blender {
 
 void RNA_api_scene(StructRNA *srna)
 {
@@ -344,97 +290,26 @@ void RNA_api_scene(StructRNA *srna)
   parm = RNA_def_int(
       func, "index", 0, 0, 0, "", "The face index, -1 when original data isn't available", 0, 0);
   RNA_def_function_output(func, parm);
-  parm = RNA_def_pointer(func, "object", "Object", "", "Ray cast object");
+  parm = RNA_def_pointer(func,
+                         "object",
+                         "Object",
+                         "",
+                         "The original (un-evaluated) object that was hit. "
+                         "Note that ``location``, ``normal``, and ``index`` "
+                         "correspond to the evaluated object's mesh.");
   RNA_def_function_output(func, parm);
   parm = RNA_def_float_matrix(func, "matrix", 4, 4, nullptr, 0.0f, 0.0f, "", "Matrix", 0.0f, 0.0f);
   RNA_def_function_output(func, parm);
 
   /* Sequencer. */
-  func = RNA_def_function(srna, "sequence_editor_create", "blender::seq::editing_ensure");
+  func = RNA_def_function(srna, "sequence_editor_create", "seq::editing_ensure");
   RNA_def_function_ui_description(func, "Ensure sequence editor is valid in this scene");
   parm = RNA_def_pointer(
-      func, "sequence_editor", "SequenceEditor", "", "New sequence editor data or nullptr");
+      func, "sequence_editor", "SequenceEditor", "", "New sequence editor data or None");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "sequence_editor_clear", "rna_Scene_sequencer_editing_free");
   RNA_def_function_ui_description(func, "Clear sequence editor in this scene");
-
-#  ifdef WITH_ALEMBIC
-  /* XXX Deprecated, will be removed in 2.8 in favor of calling the export operator. */
-  func = RNA_def_function(srna, "alembic_export", "rna_Scene_alembic_export");
-  RNA_def_function_ui_description(
-      func, "Export to Alembic file (deprecated, use the Alembic export operator)");
-
-  parm = RNA_def_string(
-      func, "filepath", nullptr, FILE_MAX, "File Path", "File path to write Alembic file");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  RNA_def_property_subtype(parm, PROP_FILEPATH); /* Allow non UTF8. */
-
-  RNA_def_int(func, "frame_start", 1, INT_MIN, INT_MAX, "Start", "Start Frame", INT_MIN, INT_MAX);
-  RNA_def_int(func, "frame_end", 1, INT_MIN, INT_MAX, "End", "End Frame", INT_MIN, INT_MAX);
-  RNA_def_int(
-      func, "xform_samples", 1, 1, 128, "Xform samples", "Transform samples per frame", 1, 128);
-  RNA_def_int(
-      func, "geom_samples", 1, 1, 128, "Geom samples", "Geometry samples per frame", 1, 128);
-  RNA_def_float(func, "shutter_open", 0.0f, -1.0f, 1.0f, "Shutter open", "", -1.0f, 1.0f);
-  RNA_def_float(func, "shutter_close", 1.0f, -1.0f, 1.0f, "Shutter close", "", -1.0f, 1.0f);
-  RNA_def_boolean(func, "selected_only", false, "Selected only", "Export only selected objects");
-  RNA_def_boolean(func, "uvs", true, "UVs", "Export UVs");
-  RNA_def_boolean(func, "normals", true, "Normals", "Export normals");
-  RNA_def_boolean(func, "vcolors", false, "Color Attributes", "Export color attributes");
-  RNA_def_boolean(
-      func, "apply_subdiv", true, "Subsurfs as meshes", "Export subdivision surfaces as meshes");
-  RNA_def_boolean(func, "flatten", false, "Flatten hierarchy", "Flatten hierarchy");
-  RNA_def_boolean(func,
-                  "visible_objects_only",
-                  false,
-                  "Visible layers only",
-                  "Export only objects in visible layers");
-  RNA_def_boolean(func, "face_sets", false, "Facesets", "Export face sets");
-  RNA_def_boolean(func,
-                  "subdiv_schema",
-                  false,
-                  "Use Alembic subdivision Schema",
-                  "Use Alembic subdivision Schema");
-  RNA_def_boolean(func,
-                  "export_hair",
-                  true,
-                  "Export Hair",
-                  "Exports hair particle systems as animated curves");
-  RNA_def_boolean(
-      func, "export_particles", true, "Export Particles", "Exports non-hair particle systems");
-  RNA_def_boolean(
-      func, "packuv", false, "Export with packed UV islands", "Export with packed UV islands");
-  RNA_def_float(
-      func,
-      "scale",
-      1.0f,
-      0.0001f,
-      1000.0f,
-      "Scale",
-      "Value by which to enlarge or shrink the objects with respect to the world's origin",
-      0.0001f,
-      1000.0f);
-  RNA_def_boolean(func,
-                  "triangulate",
-                  false,
-                  "Triangulate",
-                  "Export polygons (quads and n-gons) as triangles");
-  RNA_def_enum(func,
-               "quad_method",
-               rna_enum_modifier_triangulate_quad_method_items,
-               0,
-               "Quad Method",
-               "Method for splitting the quads into triangles");
-  RNA_def_enum(func,
-               "ngon_method",
-               rna_enum_modifier_triangulate_ngon_method_items,
-               0,
-               "N-gon Method",
-               "Method for splitting the n-gons into triangles");
-
-  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-#  endif
 }
 
 void RNA_api_scene_render(StructRNA *srna)
@@ -472,5 +347,7 @@ void RNA_api_scene_render(StructRNA *srna)
       parm, PROP_THICK_WRAP, ParameterFlag(0)); /* needed for string return value */
   RNA_def_function_output(func, parm);
 }
+
+}  // namespace blender
 
 #endif

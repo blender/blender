@@ -19,8 +19,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef TEXTSTROKERENDERER_H
-#define TEXTSTROKERENDERER_H
+#pragma once
 
 #include <fstream>
 
@@ -51,5 +50,3 @@ class TextStrokeRenderer : public StrokeRenderer {
 };
 
 } /* namespace Freestyle */
-
-#endif  // TEXTSTROKERENDERER_H

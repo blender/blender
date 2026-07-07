@@ -156,7 +156,7 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
     )
     minor_radius: FloatProperty(
         name="Minor Radius",
-        description="Radius of the torus' cross section",
+        description="Radius of the torus's cross section",
         soft_min=0.0, soft_max=100.0,
         min=0.0, max=10_000.0,
         default=0.25,

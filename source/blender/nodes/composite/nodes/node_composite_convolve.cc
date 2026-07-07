@@ -20,23 +20,28 @@ static const EnumPropertyItem kernel_data_type_items[] = {
     {int(KernelDataType::Float),
      "FLOAT",
      0,
-     "Float",
-     "The kernel is a float and will be convolved with all input channels"},
+     N_("Float"),
+     N_("The kernel is a float and will be convolved with all input channels")},
     {int(KernelDataType::Color),
      "COLOR",
      0,
-     "Color",
-     "The kernel is a color and each channel of the kernel will be convolved with each respective "
-     "channel in the input"},
+     N_("Color"),
+     N_("The kernel is a color and each channel of the kernel will be convolved with each "
+        "respective channel in the input")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.add_input<decl::Color>("Image").hide_value().structure_type(StructureType::Dynamic);
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic).align_with_previous();
+
   b.add_input<decl::Menu>("Kernel Data Type")
       .default_value(KernelDataType::Float)
-      .static_items(kernel_data_type_items);
+      .static_items(kernel_data_type_items)
+      .optional_label();
   b.add_input<decl::Float>("Kernel", "Float Kernel")
       .hide_value()
       .structure_type(StructureType::Dynamic)
@@ -50,8 +55,6 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>("Normalize Kernel")
       .default_value(true)
       .description("Normalizes the kernel such that it integrates to one");
-
-  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 using namespace blender::compositor;
@@ -89,26 +92,24 @@ class ConvolveOperation : public NodeOperation {
 
   KernelDataType get_kernel_data_type()
   {
-    const Result &input = this->get_input("Kernel Data Type");
-    const MenuValue default_menu_value = MenuValue(KernelDataType::Float);
-    const MenuValue menu_value = input.get_single_value_default(default_menu_value);
-    return static_cast<KernelDataType>(menu_value.value);
+    return KernelDataType(
+        this->get_input("Kernel Data Type").get_single_value_default<MenuValue>().value);
   }
 
   bool get_normalize_kernel()
   {
-    return this->get_input("Normalize Kernel").get_single_value_default(true);
+    return this->get_input("Normalize Kernel").get_single_value_default<bool>();
   }
 };
 
-static NodeOperation *get_compositor_operation(Context &context, DNode node)
+static NodeOperation *get_compositor_operation(Context &context, const bNode &node)
 {
   return new ConvolveOperation(context, node);
 }
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeConvolve");
   ntype.ui_name = "Convolve";
@@ -117,7 +118,7 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.get_compositor_operation = get_compositor_operation;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

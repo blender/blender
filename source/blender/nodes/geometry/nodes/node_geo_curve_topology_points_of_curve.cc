@@ -19,9 +19,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("Weights").supports_field().hide_value().description(
       "Values used to sort the curve's points. Uses indices by default");
   b.add_input<decl::Int>("Sort Index")
-      .min(0)
       .supports_field()
-      .description("Which of the sorted points to output");
+      .description("Which of the sorted points to output. Negative indexing is supported");
   b.add_output<decl::Int>("Point Index")
       .field_source_reference_all()
       .description("A point of the curve, chosen by the sort index");
@@ -218,7 +217,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(&ntype, "GeometryNodePointsOfCurve", GEO_NODE_CURVE_TOPOLOGY_POINTS_OF_CURVE);
   ntype.ui_name = "Points of Curve";
   ntype.ui_description = "Retrieve a point index within a curve";
@@ -226,7 +225,7 @@ static void node_register()
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

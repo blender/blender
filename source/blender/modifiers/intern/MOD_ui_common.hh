@@ -17,24 +17,29 @@
 
 #include "DEG_depsgraph_build.hh"
 
+namespace blender {
+
 struct ARegionType;
 struct Panel;
 struct PanelType;
 struct PointerRNA;
 struct bContext;
-struct uiLayout;
+
+namespace ui {
+struct Layout;
+}  // namespace ui
 
 using PanelDrawFn = void (*)(const bContext *, Panel *);
 
 /**
  * Helper function for modifier layouts to draw vertex group settings.
  */
-void modifier_vgroup_ui(uiLayout *layout,
+void modifier_vgroup_ui(ui::Layout &layout,
                         PointerRNA *ptr,
                         PointerRNA *ob_ptr,
-                        blender::StringRefNull vgroup_prop,
-                        std::optional<blender::StringRefNull> invert_vgroup_prop,
-                        std::optional<blender::StringRefNull> text);
+                        StringRefNull vgroup_prop,
+                        std::optional<StringRefNull> invert_vgroup_prop,
+                        std::optional<StringRefNull> text);
 
 void modifier_grease_pencil_curve_header_draw(const bContext * /*C*/, Panel *panel);
 void modifier_grease_pencil_curve_panel_draw(const bContext * /*C*/, Panel *panel);
@@ -42,7 +47,7 @@ void modifier_grease_pencil_curve_panel_draw(const bContext * /*C*/, Panel *pane
 /**
  * Draw modifier error message.
  */
-void modifier_error_message_draw(uiLayout *layout, PointerRNA *ptr);
+void modifier_error_message_draw(ui::Layout &layout, PointerRNA *ptr);
 
 PointerRNA *modifier_panel_get_property_pointers(Panel *panel, PointerRNA *r_ob_ptr);
 
@@ -63,3 +68,5 @@ PanelType *modifier_subpanel_register(ARegionType *region_type,
                                       PanelDrawFn draw_header,
                                       PanelDrawFn draw,
                                       PanelType *parent);
+
+}  // namespace blender

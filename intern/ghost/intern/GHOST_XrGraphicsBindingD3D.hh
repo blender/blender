@@ -24,9 +24,13 @@
  * OpenGL/Vulkan have their own specific implementations.
  */
 class GHOST_XrGraphicsBindingD3D : public GHOST_IXrGraphicsBinding {
+  PFN_xrGetD3D11GraphicsRequirementsKHR xrGetD3D11GraphicsRequirementsKHR_ = nullptr;
+
  public:
   GHOST_XrGraphicsBindingD3D();
   ~GHOST_XrGraphicsBindingD3D() override;
+
+  bool loadExtensionFunctions(XrInstance instance) override;
 
   /**
    * Check the version requirements to use OpenXR with the Vulkan backend.

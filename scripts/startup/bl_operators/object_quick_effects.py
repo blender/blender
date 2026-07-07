@@ -27,6 +27,7 @@ def object_ensure_material(obj, mat_name):
             break
     if mat is None:
         mat = bpy.data.materials.new(mat_name)
+        mat.node_tree.nodes.clear()
         if mat_slot:
             mat_slot.material = mat
         else:
@@ -107,7 +108,7 @@ class QuickFur(ObjectModeOperator, Operator):
         asset_library_filepath = os.path.join(
             bpy.utils.system_resource('DATAFILES'),
             "assets",
-            "geometry_nodes",
+            "nodes",
             "procedural_hair_node_assets.blend",
         )
 
@@ -127,10 +128,9 @@ class QuickFur(ObjectModeOperator, Operator):
 
         with bpy.data.libraries.load(
                 asset_library_filepath,
-                link=False,
-                clear_asset_data=True,
-                reuse_local_id=True,
-                recursive=True,
+                link=True,
+                pack=True,
+                set_fake=False,
         ) as (data_src, data_dst):
             # The values are assumed to exist, no inspection of the source is needed.
             del data_src
@@ -326,20 +326,17 @@ class QuickExplode(ObjectModeOperator, Operator):
 
                 mat = object_ensure_material(obj, data_("Explode Fade"))
                 mat.surface_render_method = 'DITHERED'
-                if not mat.use_nodes:
-                    mat.use_nodes = True
 
                 nodes = mat.node_tree.nodes
-                for node in nodes:
-                    if node.type == 'OUTPUT_MATERIAL':
-                        node_out_mat = node
-                        break
-
-                node_surface = node_out_mat.inputs["Surface"].links[0].from_node
+                node_out_mat = nodes.new("ShaderNodeOutputMaterial")
+                node_surface = nodes.new("ShaderNodeBsdfPrincipled")
+                nodes.active = node_out_mat
 
                 node_x = node_surface.location[0]
                 node_y = node_surface.location[1] - 400
                 offset_x = 200
+
+                node_out_mat.location[0] = node_x + node_surface.width + offset_x
 
                 node_mix = nodes.new('ShaderNodeMixShader')
                 node_mix.location = (node_x - offset_x, node_y)
@@ -515,9 +512,6 @@ class QuickSmoke(ObjectModeOperator, Operator):
         mat = bpy.data.materials.new(data_("Smoke Domain Material"))
         obj.material_slots[0].material = mat
 
-        # Make sure we use nodes
-        mat.use_nodes = True
-
         # Set node variables and clear the default nodes
         tree = mat.node_tree
         nodes = tree.nodes
@@ -649,9 +643,6 @@ class QuickLiquid(Operator):
 
         mat = bpy.data.materials.new(data_("Liquid Domain Material"))
         obj.material_slots[0].material = mat
-
-        # Make sure we use nodes
-        mat.use_nodes = True
 
         # Set node variables and clear the default nodes
         tree = mat.node_tree

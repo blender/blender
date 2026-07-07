@@ -9,13 +9,15 @@
 #include "BLI_math_vector.h"
 #include "node_texture_util.hh"
 
+namespace blender {
+
 /* **************** INVERT ******************** */
-static blender::bke::bNodeSocketTemplate inputs[] = {
+static bke::bNodeSocketTemplate inputs[] = {
     {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
     {-1, ""},
 };
 
-static blender::bke::bNodeSocketTemplate outputs[] = {
+static bke::bNodeSocketTemplate outputs[] = {
     {SOCK_RGBA, N_("Color")},
     {-1, ""},
 };
@@ -46,14 +48,16 @@ static void exec(void *data,
 
 void register_node_type_tex_invert()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   tex_node_type_base(&ntype, "TextureNodeInvert", TEX_NODE_INVERT);
   ntype.ui_name = "Invert Color";
   ntype.enum_name_legacy = "INVERT";
   ntype.nclass = NODE_CLASS_OP_COLOR;
-  blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
+  bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.exec_fn = exec;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
+
+}  // namespace blender

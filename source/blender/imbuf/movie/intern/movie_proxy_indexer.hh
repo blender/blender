@@ -12,6 +12,8 @@
 #include "IMB_imbuf_enums.h"
 #include "MOV_enums.hh"
 
+namespace blender {
+
 struct MovieReader;
 
 /*
@@ -43,7 +45,7 @@ struct MovieIndexFrame {
 struct MovieIndex {
   char filepath[1024];
 
-  blender::Vector<MovieIndexFrame> entries;
+  Vector<MovieIndexFrame> entries;
 
   uint64_t get_seek_pos_pts(int frame_index) const;
   uint64_t get_seek_pos_dts(int frame_index) const;
@@ -55,3 +57,5 @@ struct MovieIndex {
 
 MovieReader *movie_open_proxy(MovieReader *anim, IMB_Proxy_Size preview_size);
 const MovieIndex *movie_open_index(MovieReader *anim, IMB_Timecode_Type tc);
+
+}  // namespace blender

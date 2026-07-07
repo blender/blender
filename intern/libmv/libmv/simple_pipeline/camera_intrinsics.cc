@@ -286,17 +286,25 @@ void DivisionCameraIntrinsics::Unpack(
 // Nuke model.
 
 NukeCameraIntrinsics::NukeCameraIntrinsics() : CameraIntrinsics() {
-  SetDistortion(0.0, 0.0);
+  SetRadialDistortion(0.0, 0.0);
+  SetTangentialDistortion(0.0, 0.0);
 }
 
 NukeCameraIntrinsics::NukeCameraIntrinsics(const NukeCameraIntrinsics& from)
     : CameraIntrinsics(from) {
-  SetDistortion(from.k1(), from.k2());
+  SetRadialDistortion(from.k1(), from.k2());
+  SetTangentialDistortion(from.p1(), from.p2());
 }
 
-void NukeCameraIntrinsics::SetDistortion(double k1, double k2) {
+void NukeCameraIntrinsics::SetRadialDistortion(double k1, double k2) {
   parameters_[OFFSET_K1] = k1;
   parameters_[OFFSET_K2] = k2;
+  ResetLookupGrids();
+}
+
+void NukeCameraIntrinsics::SetTangentialDistortion(double p1, double p2) {
+  parameters_[OFFSET_P1] = p1;
+  parameters_[OFFSET_P2] = p2;
   ResetLookupGrids();
 }
 
@@ -312,6 +320,8 @@ void NukeCameraIntrinsics::ApplyIntrinsics(double normalized_x,
                            image_height(),
                            k1(),
                            k2(),
+                           p1(),
+                           p2(),
                            normalized_x,
                            normalized_y,
                            image_x,
@@ -330,6 +340,8 @@ void NukeCameraIntrinsics::InvertIntrinsics(double image_x,
                             image_height(),
                             k1(),
                             k2(),
+                            p1(),
+                            p2(),
                             image_x,
                             image_y,
                             normalized_x,
@@ -341,12 +353,16 @@ void NukeCameraIntrinsics::Pack(PackedIntrinsics* packed_intrinsics) const {
 
   packed_intrinsics->SetK1(k1());
   packed_intrinsics->SetK2(k2());
+
+  packed_intrinsics->SetP1(p1());
+  packed_intrinsics->SetP2(p2());
 }
 
 void NukeCameraIntrinsics::Unpack(const PackedIntrinsics& packed_intrinsics) {
   CameraIntrinsics::Unpack(packed_intrinsics);
 
-  SetDistortion(packed_intrinsics.GetK1(), packed_intrinsics.GetK2());
+  SetRadialDistortion(packed_intrinsics.GetK1(), packed_intrinsics.GetK2());
+  SetTangentialDistortion(packed_intrinsics.GetP1(), packed_intrinsics.GetP2());
 }
 
 // Brown model.
@@ -484,6 +500,8 @@ std::ostream& operator<<(std::ostream& os, const CameraIntrinsics& intrinsics) {
           static_cast<const NukeCameraIntrinsics*>(&intrinsics);
       PRINT_NONZERO_COEFFICIENT(nuke_intrinsics, k1);
       PRINT_NONZERO_COEFFICIENT(nuke_intrinsics, k2);
+      PRINT_NONZERO_COEFFICIENT(nuke_intrinsics, p1);
+      PRINT_NONZERO_COEFFICIENT(nuke_intrinsics, p2);
       break;
     }
     case DISTORTION_MODEL_BROWN: {

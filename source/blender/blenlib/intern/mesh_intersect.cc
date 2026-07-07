@@ -6,7 +6,7 @@
  * \ingroup bli
  */
 
-/* The #blender::meshintersect API needs GMP. */
+/* The #meshintersect API needs GMP. */
 #ifdef WITH_GMP
 
 #  include <algorithm>
@@ -541,12 +541,6 @@ void IMesh::set_faces(Span<Face *> faces)
   face_ = faces;
 }
 
-int IMesh::lookup_vert(const Vert *v) const
-{
-  BLI_assert(vert_populated_);
-  return vert_to_index_.lookup_default(v, NO_INDEX);
-}
-
 void IMesh::populate_vert()
 {
   /* This is likely an overestimate, since verts are shared between
@@ -586,7 +580,7 @@ void IMesh::populate_vert(int max_verts)
    * TODO: when all debugged, set fix_order = false. */
   const bool fix_order = true;
   if (fix_order) {
-    blender::parallel_sort(vert_.begin(), vert_.end(), [](const Vert *a, const Vert *b) {
+    parallel_sort(vert_.begin(), vert_.end(), [](const Vert *a, const Vert *b) {
       if (a->orig != NO_INDEX && b->orig != NO_INDEX) {
         return a->orig < b->orig;
       }
@@ -716,7 +710,7 @@ struct BBCalcData {
   const IMesh &im;
   Array<BoundingBox> *face_bounding_box;
 
-  BBCalcData(const IMesh &im, Array<BoundingBox> *fbb) : im(im), face_bounding_box(fbb){};
+  BBCalcData(const IMesh &im, Array<BoundingBox> *fbb) : im(im), face_bounding_box(fbb) {};
 };
 
 static void calc_face_bb_range_func(void *__restrict userdata,
@@ -741,7 +735,7 @@ struct BBPadData {
   Array<BoundingBox> *face_bounding_box;
   double pad;
 
-  BBPadData(Array<BoundingBox> *fbb, double pad) : face_bounding_box(fbb), pad(pad){};
+  BBPadData(Array<BoundingBox> *fbb, double pad) : face_bounding_box(fbb), pad(pad) {};
 };
 
 static void pad_face_bb_range_func(void *__restrict userdata,
@@ -1721,7 +1715,7 @@ static void do_cdt(CDT_data &cd)
     }
   }
   cdt_in.epsilon = 0; /* TODO: needs attention for non-exact T. */
-  cd.cdt_out = blender::meshintersect::delaunay_2d_calc(cdt_in, CDT_INSIDE);
+  cd.cdt_out = delaunay_2d_calc(cdt_in, CDT_INSIDE);
   constexpr int make_edge_map_threshold = 15;
   if (cd.cdt_out.edge.size() >= make_edge_map_threshold) {
     populate_cdt_edge_map(cd.verts_to_edge, cd.cdt_out);
@@ -1770,7 +1764,7 @@ static void do_cdt(CDT_data &cd)
 static int get_cdt_edge_orig(
     int i0, int i1, const CDT_data &cd, const IMesh &in_tm, bool *r_is_intersect)
 {
-  int foff = cd.cdt_out.face_edge_offset;
+  uint32_t foff = cd.cdt_out.face_edge_offset;
   *r_is_intersect = false;
   int e = NO_INDEX;
   if (cd.verts_to_edge.size() > 0) {
@@ -1796,12 +1790,12 @@ static int get_cdt_edge_orig(
    * then want to set *r_is_intersect to true. */
   int face_eorig = NO_INDEX;
   bool have_non_face_eorig = false;
-  for (int orig_index : cd.cdt_out.edge_orig[e]) {
+  for (uint32_t orig_index : cd.cdt_out.edge_orig[e]) {
     /* orig_index encodes the triangle and pos within the triangle of the input edge. */
     if (orig_index >= foff) {
       if (face_eorig == NO_INDEX) {
-        int in_face_index = (orig_index / foff) - 1;
-        int pos = orig_index % foff;
+        uint32_t in_face_index = (orig_index / foff) - 1;
+        int pos = int(orig_index % foff);
         /* We need to retrieve the edge orig field from the Face used to populate the
          * in_face_index'th face of the CDT, at the pos'th position of the face. */
         int in_tm_face_index = cd.input_face[in_face_index];
@@ -1944,12 +1938,12 @@ static Array<Face *> polyfill_triangulate_poly(Face *f, IMeshArena *arena)
   }
   /* Project along negative face normal so (x,y) can be used in 2d. */
   float axis_mat[3][3];
-  float(*projverts)[2];
+  float (*projverts)[2];
   uint(*tris)[3];
   const int totfilltri = flen - 2;
   /* Prepare projected vertices and array to receive triangles in tessellation. */
-  tris = MEM_malloc_arrayN<uint[3]>(size_t(totfilltri), __func__);
-  projverts = MEM_malloc_arrayN<float[2]>(size_t(flen), __func__);
+  tris = MEM_new_array_uninitialized<uint[3]>(size_t(totfilltri), __func__);
+  projverts = MEM_new_array_uninitialized<float[2]>(size_t(flen), __func__);
   axis_dominant_v3_to_m3_negate(axis_mat, no);
   for (int j = 0; j < flen; ++j) {
     const double3 &dco = (*f)[j]->co;
@@ -1979,8 +1973,8 @@ static Array<Face *> polyfill_triangulate_poly(Face *f, IMeshArena *arena)
     }
   }
 
-  MEM_freeN(tris);
-  MEM_freeN(projverts);
+  MEM_delete(tris);
+  MEM_delete(projverts);
 
   return ans;
 }
@@ -2058,16 +2052,16 @@ static Array<Face *> exact_triangulate_poly(Face *f, IMeshArena *arena)
     }
     Map<std::pair<int, int>, int> verts_to_edge;
     populate_cdt_edge_map(verts_to_edge, cdt_out);
-    int foff = cdt_out.face_edge_offset;
+    uint32_t foff = cdt_out.face_edge_offset;
     for (int i = 0; i < 3; ++i) {
       std::pair<int, int> vpair(i_v_out[i], i_v_out[(i + 1) % 3]);
       std::pair<int, int> vpair_canon = sorted_int_pair(vpair);
       int e_out = verts_to_edge.lookup_default(vpair_canon, NO_INDEX);
       BLI_assert(e_out != NO_INDEX);
       eo[i] = NO_INDEX;
-      for (int orig : cdt_out.edge_orig[e_out]) {
+      for (uint32_t orig : cdt_out.edge_orig[e_out]) {
         if (orig >= foff) {
-          int pos = orig % foff;
+          int pos = int(orig % foff);
           BLI_assert(pos < f->size());
           eo[i] = f->edge_orig[pos];
           break;
@@ -2319,7 +2313,7 @@ class TriOverlaps {
      * in the repeated part, sorting will then bring things with indexB together. */
     if (two_trees_no_self) {
       overlap_ = static_cast<BVHTreeOverlap *>(
-          MEM_reallocN(overlap_, 2 * overlap_num_ * sizeof(overlap_[0])));
+          MEM_realloc_uninitialized(overlap_, 2 * overlap_num_ * sizeof(overlap_[0])));
       for (uint i = 0; i < overlap_num_; ++i) {
         overlap_[overlap_num_ + i].indexA = overlap_[i].indexB;
         overlap_[overlap_num_ + i].indexB = overlap_[i].indexA;
@@ -2352,7 +2346,7 @@ class TriOverlaps {
       BLI_bvhtree_free(tree_b_);
     }
     if (overlap_) {
-      MEM_freeN(overlap_);
+      MEM_delete(overlap_);
     }
   }
 
@@ -2645,7 +2639,7 @@ static CDT_data calc_cluster_subdivided(const CoplanarClusterInfo &clinfo,
   return cd_data;
 }
 
-static IMesh union_tri_subdivides(const blender::Array<IMesh> &tri_subdivided)
+static IMesh union_tri_subdivides(const Array<IMesh> &tri_subdivided)
 {
   int tot_tri = 0;
   for (const IMesh &m : tri_subdivided) {
@@ -2846,8 +2840,7 @@ static IMesh remove_degenerate_tris(const IMesh &tm_in)
 
 IMesh trimesh_self_intersect(const IMesh &tm_in, IMeshArena *arena)
 {
-  return trimesh_nary_intersect(
-      tm_in, 1, [](int /*t*/) { return 0; }, true, arena);
+  return trimesh_nary_intersect(tm_in, 1, [](int /*t*/) { return 0; }, true, arena);
 }
 
 IMesh trimesh_nary_intersect(const IMesh &tm_in,

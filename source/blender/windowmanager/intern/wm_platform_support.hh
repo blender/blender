@@ -7,4 +7,8 @@
  */
 #pragma once
 
+namespace blender {
+
 bool WM_platform_support_perform_checks();
+
+}  // namespace blender

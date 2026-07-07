@@ -10,6 +10,14 @@ if(NOT MSVC)
   message(FATAL_ERROR "Compiler is unsupported")
 endif()
 
+# By default CMAKE will map imported configs that lack a specific RELWITHDEBINFO
+# or MINSIZEREL location, to the debug libs, which is not good as this will cause
+# all sorts of linking issues with MSVC. Map them explicitly to Release libs.
+# for further reading: https://gitlab.kitware.com/cmake/cmake/-/issues/20319
+set(CMAKE_MAP_IMPORTED_CONFIG_MINSIZEREL MinSizeRel RelWithDebInfo Release Debug)
+set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO RelWithDebInfo Release MinSizeRel Debug)
+set(CMAKE_MAP_IMPORTED_CONFIG_RELEASE Release RelWithDebInfo MinSizeRel Debug)
+
 if(CMAKE_C_COMPILER_ID MATCHES "Clang")
   set(MSVC_CLANG ON)
   if(NOT WITH_WINDOWS_EXTERNAL_MANIFEST)
@@ -27,29 +35,17 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang")
       "try running from the visual studio developer prompt."
     )
   endif()
-  if(WITH_WINDOWS_STRIPPED_PDB)
-    message(WARNING "stripped pdb not supported with clang, disabling..")
-    set(WITH_WINDOWS_STRIPPED_PDB OFF)
-  endif()
 else()
   if(WITH_BLENDER)
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.28.29921) # MSVC 2019 16.9.16
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.44.35216) # MSVC 2022 17.14.14
       message(FATAL_ERROR
-        "Compiler is unsupported, MSVC 2019 16.9.16 or newer is required for building blender."
-      )
-    endif()
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.36.32532 AND # MSVC 2022 17.6.0 has a bad codegen
-       CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.37.32705)             # But it is fixed in 2022 17.7 preview 1
-      message(FATAL_ERROR
-        "Compiler is unsupported, "
-        "MSVC 2022 17.6.x has codegen issues and cannot be used to build blender. "
-        "Please upgrade to 17.7 or newer."
+        "Compiler is unsupported, MSVC 2022 17.14.14 or newer is required for building blender."
       )
     endif()
   endif()
 endif()
 
-set(WINDOWS_ARM64_MIN_VSCMD_VER 17.12.3)
+set(WINDOWS_ARM64_MIN_VSCMD_VER 17.14.23)
 # We have a minimum version of VSCMD for ARM64 (ie, the version the libs were compiled against)
 # This checks for the version on initial run, and caches it,
 # so users do not have to run the VS CMD window every time
@@ -61,7 +57,7 @@ if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
     if(VSCMD_VER VERSION_LESS WINDOWS_ARM64_MIN_VSCMD_VER)
       message(FATAL_ERROR
         "Windows ARM64 requires VS2022 version ${WINDOWS_ARM64_MIN_VSCMD_VER} or greater - "
-        "please update your VS2022 install!"
+        "detected ${VSCMD_VER}, please update your VS2022 install!"
       )
     endif()
   else()
@@ -94,8 +90,6 @@ macro(find_package_wrapper)
   endif()
 endmacro()
 
-add_definitions(-DWIN32)
-
 # Needed, otherwise system encoding causes utf-8 encoding to fail in some cases (C4819)
 add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
@@ -113,7 +107,7 @@ endif()
 list(APPEND PLATFORM_LINKLIBS
   ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 Comctl32 version
   advapi32 shfolder shell32 ole32 oleaut32 uuid psapi Dbghelp Shlwapi
-  pathcch Shcore Dwmapi Crypt32 Bcrypt
+  pathcch Shcore Dwmapi Crypt32 Bcrypt Mpr
 )
 
 if(WITH_INPUT_IME)
@@ -203,7 +197,7 @@ if(WITH_COMPILER_ASAN AND MSVC AND NOT MSVC_CLANG)
   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.28.29828)
     # Set a flag so we don't have to do this comparison all the time.
     set(MSVC_ASAN ON)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fsanitize=address")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fsanitize=address /D_DISABLE_VECTOR_ANNOTATION /D_DISABLE_STRING_ANNOTATION")
     set(CMAKE_C_FLAGS     "${CMAKE_C_FLAGS} /fsanitize=address")
     string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " /INCREMENTAL:NO")
     string(APPEND CMAKE_SHARED_LINKER_FLAGS_DEBUG " /INCREMENTAL:NO")
@@ -238,35 +232,23 @@ if(WITH_WINDOWS_SCCACHE AND CMAKE_VS_MSBUILD_COMMAND)
   set(WITH_WINDOWS_SCCACHE OFF)
 endif()
 
-# Debug Symbol format
-# sccache # MSVC_ASAN # format # why
-# ON      # ON        # Z7     # sccache will only play nice with Z7.
-# ON      # OFF       # Z7     # sccache will only play nice with Z7.
-# OFF     # ON        # Zi     # Asan will not play nice with Edit and Continue.
-# OFF     # OFF       # ZI     # Neither ASAN nor sscache is enabled Edit and
-#                                Continue is available.
-
-# Release Symbol format
-# sccache # MSVC_ASAN # format # why
-# ON      # ON        # Z7     # sccache will only play nice with Z7
-# ON      # OFF       # Z7     # sccache will only play nice with Z7
-# OFF     # ON        # Zi     # Asan will not play nice with Edit and Continue
-# OFF     # OFF       # Zi     # Edit and Continue disables some optimizations
-
-
 if(WITH_WINDOWS_SCCACHE)
   set(CMAKE_C_COMPILER_LAUNCHER sccache)
   set(CMAKE_CXX_COMPILER_LAUNCHER sccache)
+  # sccache will only play nice with Z7.
   set(SYMBOL_FORMAT /Z7)
   set(SYMBOL_FORMAT_RELEASE /Z7)
 else()
   unset(CMAKE_C_COMPILER_LAUNCHER)
   unset(CMAKE_CXX_COMPILER_LAUNCHER)
-  if(MSVC_ASAN)
+  if(MSVC_ASAN OR MSVC_CLANG)
+    # Neither Asan nor Clang will play nice with Edit and Continue.
     set(SYMBOL_FORMAT /Zi)
     set(SYMBOL_FORMAT_RELEASE /Zi)
   else()
+    # Otherwise enable Edit and Continue.
     set(SYMBOL_FORMAT /ZI)
+    # Except for Release builds, since it disables some optimizations.
     set(SYMBOL_FORMAT_RELEASE /Zi)
   endif()
 endif()
@@ -295,12 +277,7 @@ endif()
 string(APPEND PLATFORM_LINKFLAGS " /SUBSYSTEM:CONSOLE /STACK:2097152")
 set(PLATFORM_LINKFLAGS_RELEASE "/NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib")
 
-if(NOT WITH_COMPILER_ASAN)
-  # ASAN is incompatible with `fastlink`, it will appear to work,
-  # but will not resolve symbols which makes it somewhat useless.
-  string(APPEND PLATFORM_LINKFLAGS_DEBUG "/debug:fastlink ")
-endif()
-string(APPEND PLATFORM_LINKFLAGS_DEBUG " /IGNORE:4099 /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:libcmtd.lib")
+string(APPEND PLATFORM_LINKFLAGS_DEBUG " /debug /IGNORE:4099 /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:libcmtd.lib")
 
 # Ignore meaningless for us linker warnings.
 string(APPEND PLATFORM_LINKFLAGS " /ignore:4049 /ignore:4217 /ignore:4221")
@@ -336,6 +313,9 @@ if(NOT DEFINED LIBDIR)
     message(STATUS
       "Clang version ${CMAKE_CXX_COMPILER_VERSION} detected, masquerading as MSVC ${MSVC_VERSION}"
     )
+    set(LIBDIR ${CMAKE_SOURCE_DIR}/lib/${LIBDIR_BASE})
+  elseif(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.50.0)
+    message(STATUS "Visual Studio 2026 detected.")
     set(LIBDIR ${CMAKE_SOURCE_DIR}/lib/${LIBDIR_BASE})
   elseif(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.30.30423)
     message(STATUS "Visual Studio 2022 detected.")
@@ -402,6 +382,18 @@ set(ZLIB_LIBRARIES ${LIBDIR}/zlib/lib/libz_st.lib)
 set(ZLIB_INCLUDE_DIR ${LIBDIR}/zlib/include)
 set(ZLIB_LIBRARY ${LIBDIR}/zlib/lib/libz_st.lib)
 set(ZLIB_DIR ${LIBDIR}/zlib)
+
+set(fmt_DIR ${LIBDIR}/fmt/lib/cmake/config)
+find_package(fmt REQUIRED CONFIG)
+
+set(Eigen3_DIR ${LIBDIR}/eigen)
+find_package(Eigen3 REQUIRED CONFIG)
+
+if(WITH_LIBMV)
+  set(absl_DIR ${LIBDIR}/abseil)
+  set(Ceres_DIR ${LIBDIR}/ceres)
+  find_package(Ceres REQUIRED CONFIG)
+endif()
 
 windows_find_package(ZLIB) # We want to find before finding things that depend on it like PNG.
 windows_find_package(PNG)
@@ -518,57 +510,13 @@ if(WITH_CODEC_FFMPEG)
   endif()
 endif()
 
+set(openjph_ROOT ${LIBDIR}/openjph)
+
 if(WITH_IMAGE_OPENEXR)
-  # Imath and OpenEXR have a single combined build option and include and library variables
-  # used by the rest of the build system.
-  set(IMATH_ROOT_DIR ${LIBDIR}/imath)
-  set(IMATH_VERSION "3.14")
-  windows_find_package(IMATH REQUIRED)
-  if(NOT IMATH_FOUND)
-    set(IMATH ${LIBDIR}/imath)
-    set(IMATH_INCLUDE_DIR ${IMATH}/include)
-    set(IMATH_INCLUDE_DIRS ${IMATH_INCLUDE_DIR} ${IMATH}/include/Imath)
-    set(IMATH_LIBPATH ${IMATH}/lib)
-    if(EXISTS ${IMATH_LIBPATH}/Imath_s.lib)
-      set(IMATH_POSTFIX _s)
-    endif()
-    set(IMATH_LIBRARIES
-      optimized ${IMATH_LIBPATH}/Imath${IMATH_POSTFIX}.lib
-      debug ${IMATH_LIBPATH}/Imath${IMATH_POSTFIX}_d.lib
-    )
-  endif()
-  set(OPENEXR_ROOT_DIR ${LIBDIR}/openexr)
-  set(OPENEXR_VERSION "3.14")
-  windows_find_package(OPENEXR REQUIRED)
-  if(NOT OpenEXR_FOUND)
-    warn_hardcoded_paths(OpenEXR)
-    set(OPENEXR ${LIBDIR}/openexr)
-    set(OPENEXR_INCLUDE_DIR ${OPENEXR}/include)
-    set(OPENEXR_INCLUDE_DIRS
-      ${OPENEXR_INCLUDE_DIR}
-      ${IMATH_INCLUDE_DIRS}
-      ${OPENEXR_INCLUDE_DIR}/OpenEXR
-    )
-    set(OPENEXR_LIBPATH ${OPENEXR}/lib)
-    # Check if the blender 3.3 lib static library eixts
-    # if not assume this is a 3.4+ dynamic version.
-    if(EXISTS "${OPENEXR_LIBPATH}/OpenEXR_s.lib")
-      set(OPENEXR_POSTFIX _s)
-    endif()
-    set(OPENEXR_LIBRARIES
-      optimized ${OPENEXR_LIBPATH}/Iex${OPENEXR_POSTFIX}.lib
-      optimized ${OPENEXR_LIBPATH}/IlmThread${OPENEXR_POSTFIX}.lib
-      optimized ${OPENEXR_LIBPATH}/OpenEXR${OPENEXR_POSTFIX}.lib
-      optimized ${OPENEXR_LIBPATH}/OpenEXRCore${OPENEXR_POSTFIX}.lib
-      optimized ${OPENEXR_LIBPATH}/OpenEXRUtil${OPENEXR_POSTFIX}.lib
-      debug ${OPENEXR_LIBPATH}/Iex${OPENEXR_POSTFIX}_d.lib
-      debug ${OPENEXR_LIBPATH}/IlmThread${OPENEXR_POSTFIX}_d.lib
-      debug ${OPENEXR_LIBPATH}/OpenEXR${OPENEXR_POSTFIX}_d.lib
-      debug ${OPENEXR_LIBPATH}/OpenEXRCore${OPENEXR_POSTFIX}_d.lib
-      debug ${OPENEXR_LIBPATH}/OpenEXRUtil${OPENEXR_POSTFIX}_d.lib
-      ${IMATH_LIBRARIES}
-    )
-  endif()
+  set(IMATH_ROOT ${LIBDIR}/imath)
+  find_package(IMATH REQUIRED CONFIG)
+  set(OpenEXR_ROOT ${LIBDIR}/openexr)
+  find_package(OpenEXR REQUIRED CONFIG)
 endif()
 
 # Try to find tiff first then complain and set static and maybe wrong paths
@@ -590,17 +538,17 @@ if(WITH_JACK)
   )
 endif()
 
-set(_PYTHON_VERSION "3.11")
+set(_PYTHON_VERSION "3.13")
 string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${_PYTHON_VERSION})
 
 # Enable for a short time when bumping to the next Python version.
-if(FALSE)
+if(TRUE)
   if(NOT EXISTS ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS})
-    set(_PYTHON_VERSION "3.12")
+    set(_PYTHON_VERSION "3.11")
     string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${_PYTHON_VERSION})
     if(NOT EXISTS ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS})
       message(FATAL_ERROR
-        "Missing python libraries! Neither 3.12 nor 3.11 are found in ${LIBDIR}/python"
+        "Missing python libraries! Neither 3.13 nor 3.11 are found in ${LIBDIR}/python"
       )
     endif()
   endif()
@@ -619,7 +567,7 @@ if(WITH_PYTHON)
   set(PYTHON_LIBRARY_DEBUG ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/libs/python${_PYTHON_VERSION_NO_DOTS}_d.lib)
 
   set(PYTHON_INCLUDE_DIR ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/include)
-  set(PYTHON_NUMPY_INCLUDE_DIRS ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/lib/site-packages/numpy/core/include)
+  set(PYTHON_NUMPY_INCLUDE_DIRS ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/lib/site-packages/numpy/_core/include)
   set(NUMPY_FOUND ON)
   # uncached vars
   set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
@@ -629,97 +577,11 @@ if(WITH_PYTHON)
   )
 endif()
 
-if(NOT WITH_WINDOWS_FIND_MODULES)
-  set(BOOST ${LIBDIR}/boost)
-  set(BOOST_INCLUDE_DIR ${BOOST}/include)
-  set(BOOST_LIBPATH ${BOOST}/lib)
-
-  # With Blender 4.4 libraries there is no more Boost. This code is only
-  # here until we can reasonably assume everyone has upgraded to them.
-  if(EXISTS "${LIBDIR}" AND NOT EXISTS "${BOOST}")
-    set(WITH_BOOST OFF)
-    set(BOOST_LIBRARIES)
-    set(BOOST_PYTHON_LIBRARIES)
-    set(BOOST_INCLUDE_DIR)
-  else()
-    # For older libraries when boost is off, we still need to install the dlls when
-    # since some of the other dependencies may need them. For this to work, BOOST_VERSION,
-    # BOOST_POSTFIX, and BOOST_DEBUG_POSTFIX need to be set.
-    set(BOOST_VERSION_HEADER ${BOOST_INCLUDE_DIR}/boost/version.hpp)
-    if(EXISTS ${BOOST_VERSION_HEADER})
-      file(STRINGS "${BOOST_VERSION_HEADER}" BOOST_LIB_VERSION REGEX "#define BOOST_LIB_VERSION ")
-      if(BOOST_LIB_VERSION MATCHES "#define BOOST_LIB_VERSION \"([0-9_]+)\"")
-        set(BOOST_VERSION "${CMAKE_MATCH_1}")
-      endif()
-    endif()
-    if(NOT BOOST_VERSION)
-      message(FATAL_ERROR "Unable to determine Boost version")
-    endif()
-    if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
-      set(BOOST_POSTFIX "vc143-mt-a64-${BOOST_VERSION}")
-      set(BOOST_DEBUG_POSTFIX "vc143-mt-gyd-a64-${BOOST_VERSION}")
-      set(BOOST_PREFIX "")
-    else()
-      set(BOOST_POSTFIX "vc142-mt-x64-${BOOST_VERSION}")
-      set(BOOST_DEBUG_POSTFIX "vc142-mt-gyd-x64-${BOOST_VERSION}")
-      set(BOOST_PREFIX "")
-    endif()
-  endif()
-endif()
-
-if(WITH_BOOST)
-  set(boost_extra_libs)
-  set(Boost_USE_STATIC_RUNTIME ON) # prefix lib
-  set(Boost_USE_MULTITHREADED ON) # suffix -mt
-  set(Boost_USE_STATIC_LIBS ON) # suffix -s
-  if(WITH_WINDOWS_FIND_MODULES)
-    find_package(Boost COMPONENTS ${boost_extra_libs})
-  endif()
-  if(NOT Boost_FOUND)
-    warn_hardcoded_paths(BOOST)
-    # This is file new in 3.4 if it does not exist, assume we are building against 3.3 libs
-    # Note, as ARM64 was introduced in 4.x, this check is not needed
-    set(BOOST_34_TRIGGER_FILE ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_python${_PYTHON_VERSION_NO_DOTS}-${BOOST_DEBUG_POSTFIX}.lib)
-    if(NOT EXISTS ${BOOST_34_TRIGGER_FILE})
-      set(BOOST_DEBUG_POSTFIX "vc142-mt-gd-x64-${BOOST_VERSION}")
-      set(BOOST_PREFIX "lib")
-    endif()
-    if(EXISTS ${BOOST_34_TRIGGER_FILE})
-      # Boost Python is the only library Blender directly depends on, though USD headers.
-      if(WITH_USD)
-        set(BOOST_PYTHON_LIBRARIES
-          debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_python${_PYTHON_VERSION_NO_DOTS}-${BOOST_DEBUG_POSTFIX}.lib
-          optimized ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_python${_PYTHON_VERSION_NO_DOTS}-${BOOST_POSTFIX}.lib
-        )
-      endif()
-    endif()
-  else() # we found boost using find_package
-    set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
-    set(BOOST_LIBPATH ${Boost_LIBRARY_DIRS})
-  endif()
-
-  set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
-endif()
 unset(_PYTHON_VERSION)
 unset(_PYTHON_VERSION_NO_DOTS)
 
-windows_find_package(OpenImageIO)
-if(NOT OpenImageIO_FOUND)
-  set(OPENIMAGEIO ${LIBDIR}/OpenImageIO)
-  set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib)
-  set(OPENIMAGEIO_INCLUDE_DIR ${OPENIMAGEIO}/include)
-  set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO_INCLUDE_DIR})
-  set(OIIO_OPTIMIZED
-    optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO.lib
-    optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util.lib
-  )
-  set(OIIO_DEBUG
-    debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_d.lib
-    debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util_d.lib
-  )
-  set(OPENIMAGEIO_LIBRARIES ${OIIO_OPTIMIZED} ${OIIO_DEBUG})
-  set(OPENIMAGEIO_TOOL "${OPENIMAGEIO}/bin/oiiotool.exe")
-endif()
+set(OpenImageIO_ROOT ${LIBDIR}/OpenImageIO)
+find_package(OpenImageIO REQUIRED CONFIG)
 
 if(WITH_LLVM)
   set(LLVM_ROOT_DIR ${LIBDIR}/llvm CACHE PATH "Path to the LLVM installation")
@@ -839,7 +701,7 @@ if(WITH_OPENIMAGEDENOISE)
       debug ${OPENIMAGEDENOISE_LIBPATH}/dnnl_d.lib
     )
   endif()
-  set(OPENIMAGEDENOISE_DEFINITIONS)
+  set(OPENIMAGEDENOISE_DEFINITIONS "")
 endif()
 
 if(WITH_MANIFOLD)
@@ -895,6 +757,15 @@ if(WITH_OPENSUBDIV)
       debug ${OPENSUBDIV_LIBPATH}/osdGPU_d.lib
     )
   endif()
+endif()
+
+if(WITH_RUBBERBAND)
+  set(RUBBERBAND_FOUND TRUE)
+  set(RUBBERBAND_INCLUDE_DIRS ${LIBDIR}/rubberband/include)
+  set(RUBBERBAND_LIBRARIES
+    optimized ${LIBDIR}/rubberband/lib/rubberband-static.lib
+    debug ${LIBDIR}/rubberband/lib/rubberband-static_d.lib
+  )
 endif()
 
 if(WITH_SDL)
@@ -976,7 +847,8 @@ if(WITH_CODEC_SNDFILE)
   endif()
 endif()
 
-if(WITH_CPU_SIMD AND SUPPORT_NEON_BUILD)
+test_neon_support()
+if(SUPPORTS_NEON_BUILD)
   windows_find_package(sse2neon)
   if(NOT SSE2NEON_FOUND)
     set(SSE2NEON_ROOT_DIR ${LIBDIR}/sse2neon)
@@ -987,48 +859,8 @@ endif()
 
 if(WITH_CYCLES AND WITH_CYCLES_OSL)
   set(CYCLES_OSL ${LIBDIR}/osl CACHE PATH "Path to OpenShadingLanguage installation")
-  set(OSL_SHADER_DIR ${CYCLES_OSL}/shaders)
-  # Shaders have moved around a bit between OSL versions, check multiple locations
-  if(NOT EXISTS "${OSL_SHADER_DIR}")
-    set(OSL_SHADER_DIR ${CYCLES_OSL}/share/OSL/shaders)
-  endif()
-  find_library(OSL_LIB_EXEC NAMES oslexec PATHS ${CYCLES_OSL}/lib)
-  find_library(OSL_LIB_COMP NAMES oslcomp PATHS ${CYCLES_OSL}/lib)
-  find_library(OSL_LIB_QUERY NAMES oslquery PATHS ${CYCLES_OSL}/lib)
-  find_library(OSL_LIB_NOISE NAMES oslnoise PATHS ${CYCLES_OSL}/lib)
-  find_library(OSL_LIB_EXEC_DEBUG NAMES oslexec_d PATHS ${CYCLES_OSL}/lib)
-  find_library(OSL_LIB_COMP_DEBUG NAMES oslcomp_d PATHS ${CYCLES_OSL}/lib)
-  find_library(OSL_LIB_QUERY_DEBUG NAMES oslquery_d PATHS ${CYCLES_OSL}/lib)
-  find_library(OSL_LIB_NOISE_DEBUG NAMES oslnoise_d PATHS ${CYCLES_OSL}/lib)
-  list(APPEND OSL_LIBRARIES
-    optimized ${OSL_LIB_COMP}
-    optimized ${OSL_LIB_EXEC}
-    optimized ${OSL_LIB_QUERY}
-    debug ${OSL_LIB_EXEC_DEBUG}
-    debug ${OSL_LIB_COMP_DEBUG}
-    debug ${OSL_LIB_QUERY_DEBUG}
-    ${PUGIXML_LIBRARIES}
-  )
-  if(OSL_LIB_NOISE)
-    list(APPEND OSL_LIBRARIES optimized ${OSL_LIB_NOISE})
-  endif()
-  if(OSL_LIB_NOISE_DEBUG)
-    list(APPEND OSL_LIBRARIES debug ${OSL_LIB_NOISE_DEBUG})
-  endif()
-  find_path(OSL_INCLUDE_DIR OSL/oslclosure.h PATHS ${CYCLES_OSL}/include)
-  find_program(OSL_COMPILER NAMES oslc PATHS ${CYCLES_OSL}/bin)
-  file(STRINGS "${OSL_INCLUDE_DIR}/OSL/oslversion.h" OSL_LIBRARY_VERSION_MAJOR
-       REGEX "^[ \t]*#define[ \t]+OSL_LIBRARY_VERSION_MAJOR[ \t]+[0-9]+.*$")
-  file(STRINGS "${OSL_INCLUDE_DIR}/OSL/oslversion.h" OSL_LIBRARY_VERSION_MINOR
-       REGEX "^[ \t]*#define[ \t]+OSL_LIBRARY_VERSION_MINOR[ \t]+[0-9]+.*$")
-  file(STRINGS "${OSL_INCLUDE_DIR}/OSL/oslversion.h" OSL_LIBRARY_VERSION_PATCH
-       REGEX "^[ \t]*#define[ \t]+OSL_LIBRARY_VERSION_PATCH[ \t]+[0-9]+.*$")
-  string(REGEX REPLACE ".*#define[ \t]+OSL_LIBRARY_VERSION_MAJOR[ \t]+([.0-9]+).*"
-         "\\1" OSL_LIBRARY_VERSION_MAJOR ${OSL_LIBRARY_VERSION_MAJOR})
-  string(REGEX REPLACE ".*#define[ \t]+OSL_LIBRARY_VERSION_MINOR[ \t]+([.0-9]+).*"
-         "\\1" OSL_LIBRARY_VERSION_MINOR ${OSL_LIBRARY_VERSION_MINOR})
-  string(REGEX REPLACE ".*#define[ \t]+OSL_LIBRARY_VERSION_PATCH[ \t]+([.0-9]+).*"
-         "\\1" OSL_LIBRARY_VERSION_PATCH ${OSL_LIBRARY_VERSION_PATCH})
+  set(OSL_ROOT ${CYCLES_OSL}) 
+  find_package(OSL REQUIRED CONFIG) 
 endif()
 
 if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
@@ -1191,7 +1023,7 @@ if(WINDOWS_PYTHON_DEBUG)
   set_target_properties(blender_python_system_scripts PROPERTIES FOLDER "scripts")
   set_target_properties(blender_python_user_scripts PROPERTIES FOLDER "scripts")
   # Set the default debugging options for the project, only write this file once so the user
-  # is free to override them at their own perril.
+  # is free to override them at their own peril.
   set(USER_PROPS_FILE "${CMAKE_CURRENT_BINARY_DIR}/source/creator/blender.Cpp.user.props")
   if(NOT EXISTS ${USER_PROPS_FILE})
     # Layout below is messy, because otherwise the generated file will look messy.
@@ -1249,7 +1081,11 @@ if(WITH_HARU)
   set(HARU_FOUND ON)
   set(HARU_ROOT_DIR ${LIBDIR}/haru)
   set(HARU_INCLUDE_DIRS ${HARU_ROOT_DIR}/include)
-  set(HARU_LIBRARIES ${HARU_ROOT_DIR}/lib/libhpdfs.lib)
+  if(EXISTS ${HARU_ROOT_DIR}/lib/hpdf.lib) # blender 5.0+
+    set(HARU_LIBRARIES ${HARU_ROOT_DIR}/lib/hpdf.lib)
+  else()
+    set(HARU_LIBRARIES ${HARU_ROOT_DIR}/lib/libhpdfs.lib)
+  endif()
 endif()
 
 if(WITH_VULKAN_BACKEND)
@@ -1319,13 +1155,44 @@ if(WITH_CYCLES AND (WITH_CYCLES_DEVICE_ONEAPI OR (WITH_CYCLES_EMBREE AND EMBREE_
   endforeach()
   unset(_sycl_runtime_libraries_glob)
 
-  file(GLOB _sycl_pi_runtime_libraries_glob
-    ${SYCL_ROOT_DIR}/bin/pi_*.dll
+  file(GLOB _sycl_unified_runtime_libraries_glob
     ${SYCL_ROOT_DIR}/bin/ur_*.dll
   )
-  list(REMOVE_ITEM _sycl_pi_runtime_libraries_glob "${SYCL_ROOT_DIR}/bin/pi_opencl.dll")
-  list(APPEND _sycl_runtime_libraries ${_sycl_pi_runtime_libraries_glob})
-  unset(_sycl_pi_runtime_libraries_glob)
+  # Cycles doesn't currently support the OpenCL backend
+  list(FILTER _sycl_unified_runtime_libraries_glob EXCLUDE REGEX "opencl")
+
+  foreach(sycl_unified_runtime_library IN LISTS _sycl_unified_runtime_libraries_glob)
+    # We do not know, which library we would discover first, debug or release, so we check for both.
+    string(REPLACE ".dll" "d.dll" sycl_unified_runtime_library_debug ${sycl_unified_runtime_library})
+    # In case we are processing release version (no "d.dll" to replace), then
+    # sycl_unified_runtime_library_release will be identical to sycl_unified_runtime_library,
+    # there is a safe guard against it below.
+    string(REPLACE "d.dll" ".dll" sycl_unified_runtime_library_release ${sycl_unified_runtime_library})
+
+    list(FIND _sycl_unified_runtime_libraries_glob ${sycl_unified_runtime_library_debug} debug_index)
+    list(FIND _sycl_unified_runtime_libraries_glob ${sycl_unified_runtime_library_release} release_index)
+    if(NOT debug_index EQUAL -1)
+      set (sycl_unified_runtime_library_release ${sycl_unified_runtime_library})
+    elseif(NOT release_index EQUAL -1 AND NOT sycl_unified_runtime_library_release STREQUAL sycl_unified_runtime_library)
+      set (sycl_unified_runtime_library_debug ${sycl_unified_runtime_library})
+    else()
+      # If there is no debug pair version of the library, then we are assuming
+      # that this dll dependency is unique, and should be just added as both
+      # release and debug dependency.
+      set (sycl_unified_runtime_library_release ${sycl_unified_runtime_library})
+      set (sycl_unified_runtime_library_debug ${sycl_unified_runtime_library})
+    endif()
+    list(FIND _sycl_runtime_libraries ${sycl_unified_runtime_library_release} found_index)
+    if (found_index EQUAL -1)
+      list(APPEND _sycl_runtime_libraries RELEASE ${sycl_unified_runtime_library_release})
+      list(APPEND _sycl_runtime_libraries DEBUG ${sycl_unified_runtime_library_debug})
+      # NOTE(Sirgienko) Due to a bug in DPC++ runtime, in versions 6.2 and 6.3
+      # at least, the debug builds need the release versions of the
+      # unified-runtime adapters to be installed.
+      list(APPEND _sycl_runtime_libraries DEBUG ${sycl_unified_runtime_library_release})
+    endif()
+  endforeach()
+  unset(_sycl_unified_runtime_libraries_glob)
 
   list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_sycl_runtime_libraries})
   unset(_sycl_runtime_libraries)
@@ -1341,10 +1208,12 @@ endif()
 get_filename_component(_msvc_path ${CMAKE_C_COMPILER} DIRECTORY)
 # Environment variables to run precompiled executables that needed libraries.
 list(JOIN PLATFORM_BUNDLED_LIBRARY_DIRS ";" _library_paths)
-set(PLATFORM_ENV_BUILD_DIRS "${_msvc_path}\;${LIBDIR}/epoxy/bin\;${LIBDIR}/tbb/bin\;${LIBDIR}/OpenImageIO/bin\;${LIBDIR}/boost/lib\;${LIBDIR}/openexr/bin\;${LIBDIR}/imath/bin\;${LIBDIR}/shaderc/bin\;${LIBDIR}/opencolorio/bin\;${PATH}")
+set(PLATFORM_ENV_BUILD_DIRS "${_msvc_path}\;${LIBDIR}/epoxy/bin\;${LIBDIR}/tbb/bin\;${LIBDIR}/OpenImageIO/bin\;${LIBDIR}/boost/lib\;${LIBDIR}/openexr/bin\;${LIBDIR}/imath/bin\;${LIBDIR}/shaderc/bin\;${LIBDIR}/opencolorio/bin\;${LIBDIR}/aom/bin\;${LIBDIR}/openjph/bin\;${PATH}")
 set(PLATFORM_ENV_BUILD "PATH=${PLATFORM_ENV_BUILD_DIRS}")
 # Install needs the additional folders from PLATFORM_ENV_BUILD_DIRS as well, as tools like:
 # `idiff` and `abcls` use the release mode dlls.
-set(PLATFORM_ENV_INSTALL "PATH=${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/blender.shared/\;${PLATFORM_ENV_BUILD_DIRS}\;$ENV{PATH}")
+# Escape semicolons, since in cmake they denote elements in a list if surrounded by square brackets
+string(REPLACE ";" "\\;" ESCAPED_PATH "$ENV{PATH}")
+set(PLATFORM_ENV_INSTALL "PATH=${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/blender.shared/\;${PLATFORM_ENV_BUILD_DIRS}\;${ESCAPED_PATH}")
 unset(_library_paths)
 unset(_msvc_path)

@@ -20,17 +20,20 @@
 
 #include "GPU_material.hh"
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 class Batch;
 class Shader;
 class Texture;
 class UniformBuf;
-}  // namespace blender::gpu
+class FrameBuffer;
+}  // namespace gpu
 struct ARegion;
 struct bContext;
-struct Depsgraph;
 struct DefaultFramebufferList;
 struct DefaultTextureList;
+struct Depsgraph;
 struct DupliObject;
 struct GPUMaterial;
 struct Mesh;
@@ -51,15 +54,13 @@ struct World;
 struct DRWData;
 struct DRWViewData;
 struct GPUViewport;
-struct GPUFrameBuffer;
 struct DRWTextStore;
-struct GSet;
 struct GPUViewport;
-namespace blender::draw {
+namespace draw {
 class TextureFromPool;
 class ObjectRef;
 class Manager;
-}  // namespace blender::draw
+}  // namespace draw
 
 /* TODO: Put it somewhere else? */
 struct BoundSphere {
@@ -75,7 +76,7 @@ struct DrawEngine {
 
   virtual ~DrawEngine() = default;
 
-  virtual blender::StringRefNull name_get() = 0;
+  virtual StringRefNull name_get() = 0;
 
   /* Functions called for viewport. */
 
@@ -83,10 +84,10 @@ struct DrawEngine {
   virtual void init() = 0;
   /** Scene synchronization. Command buffers building. */
   virtual void begin_sync() = 0;
-  virtual void object_sync(blender::draw::ObjectRef &ob_ref, blender::draw::Manager &manager) = 0;
+  virtual void object_sync(draw::ObjectRef &ob_ref, draw::Manager &manager) = 0;
   virtual void end_sync() = 0;
   /** Command Submission. */
-  virtual void draw(blender::draw::Manager &manager) = 0;
+  virtual void draw(draw::Manager &manager) = 0;
 
   /* Called when closing blender.
    * Cleanup all lazily initialized static members that have GPU resources.
@@ -132,20 +133,24 @@ struct DrawEngine {
  * compositor in every redraw, then it should allocate the texture and write the pass data to it.
  * The texture should cover the entire viewport.
  */
-blender::draw::TextureFromPool &DRW_viewport_pass_texture_get(const char *pass_name);
+draw::TextureFromPool &DRW_viewport_pass_texture_get(const char *pass_name);
+
+/**
+ * Returns true if the pass with the given name exists.
+ */
+bool DRW_viewport_pass_texture_exists(const char *pass_name);
 
 void DRW_viewport_request_redraw();
 
 void DRW_render_to_image(
     RenderEngine *engine,
     Depsgraph *depsgraph,
-    std::function<void(RenderEngine *, RenderLayer *, const rcti)> render_view_cb,
-    std::function<void(RenderResult *)> store_metadata_cb);
+    ::std::function<void(RenderEngine *, RenderLayer *, const rcti)> render_view_cb,
+    ::std::function<void(RenderResult *)> store_metadata_cb);
 
-void DRW_render_object_iter(
-    RenderEngine *engine,
-    Depsgraph *depsgraph,
-    std::function<void(blender::draw::ObjectRef &, RenderEngine *, Depsgraph *)>);
+void DRW_render_object_iter(RenderEngine *engine,
+                            Depsgraph *depsgraph,
+                            ::std::function<void(draw::ObjectRef &, RenderEngine *, Depsgraph *)>);
 
 void DRW_render_set_time(RenderEngine *engine, Depsgraph *depsgraph, int frame, float subframe);
 
@@ -190,7 +195,7 @@ bool DRW_object_is_visible_psys_in_active_context(const Object *object,
  */
 template<typename T> T &DRW_object_get_data_for_drawing(const Object &object)
 {
-  return *static_cast<T *>(object.data);
+  return *id_cast<T *>(object.data);
 }
 
 inline Mesh &DRW_mesh_get_for_drawing(Mesh &mesh)
@@ -206,7 +211,7 @@ inline Mesh &DRW_mesh_get_for_drawing(Mesh &mesh)
 template<> inline Mesh &DRW_object_get_data_for_drawing(const Object &object)
 {
   BLI_assert(object.type == OB_MESH);
-  return DRW_mesh_get_for_drawing(*static_cast<Mesh *>(object.data));
+  return DRW_mesh_get_for_drawing(*id_cast<Mesh *>(object.data));
 }
 
 /**
@@ -225,6 +230,9 @@ struct DRWContext {
  private:
   /** Render State: No persistent data between draw calls. */
   static thread_local DRWContext *g_context;
+  /** Timings recorded for performance overlay. */
+  float last_sync_time_;
+  float last_submission_time_;
 
   /* TODO(fclem): Private? */
  public:
@@ -237,11 +245,11 @@ struct DRWContext {
   /** Optional associated viewport. Can be nullptr. */
   GPUViewport *viewport = nullptr;
   /** Size of the viewport or the final render frame. */
-  blender::float2 size = {0, 0};
-  blender::float2 inv_size = {0, 0};
+  float2 size = {0, 0};
+  float2 inv_size = {0, 0};
 
   /** Returns the viewport's default frame-buffer. */
-  GPUFrameBuffer *default_framebuffer();
+  gpu::FrameBuffer *default_framebuffer();
   /** Returns the viewport's default frame-buffer list. Not all of them might be available. */
   DefaultFramebufferList *viewport_framebuffer_list_get() const;
   /** Returns the viewport's default texture list. Not all of them might be available. */
@@ -257,7 +265,8 @@ struct DRWContext {
     VIEWPORT_XR,
     /** Render for a 3D viewport offscreen render (python). Runs on main thread. */
     VIEWPORT_OFFSCREEN,
-    /** Render for a 3D viewport image render (render preview). Runs on main thread. */
+    /** Render for a 3D viewport image render (Render Viewport Preview, also VSE scene strips).
+       Runs on main thread. */
     VIEWPORT_RENDER,
 
     /** Render for object mode selection. Runs on main thread. */
@@ -285,7 +294,7 @@ struct DRWContext {
   DRWTextStore **text_store_p = nullptr;
 
   /** Contains list of objects that needs to be extracted from other objects. */
-  GSet *delayed_extraction = nullptr;
+  Set<Object *> delayed_extraction;
 
   /* TODO(fclem): Public. */
 
@@ -331,7 +340,7 @@ struct DRWContext {
              View3D *v3d = nullptr);
   DRWContext(Mode mode,
              Depsgraph *depsgraph,
-             const blender::int2 size = {1, 1},
+             const int2 size = {1, 1},
              const bContext *C = nullptr,
              ARegion *region = nullptr,
              View3D *v3d = nullptr);
@@ -366,7 +375,7 @@ struct DRWContext {
   void engines_data_validate();
 
   using iter_callback_t =
-      std::function<void(struct DupliCacheManager &, struct ExtractionGraph &)>;
+      ::std::function<void(struct DupliCacheManager &, struct ExtractionGraph &)>;
 
   /** Run the sync phase with data extraction. iter_callback defines which object to sync. */
   void sync(iter_callback_t iter_callback);
@@ -380,7 +389,7 @@ struct DRWContext {
     return *g_context;
   }
 
-  blender::float2 viewport_size_get() const
+  float2 viewport_size_get() const
   {
     return size;
   }
@@ -415,6 +424,14 @@ struct DRWContext {
   {
     return ELEM(mode, VIEWPORT_RENDER);
   }
+  float last_sync_time() const
+  {
+    return last_sync_time_;
+  }
+  float last_submission_time() const
+  {
+    return last_submission_time_;
+  }
 
   /** True if current viewport is drawn during playback. */
   bool is_playback() const;
@@ -431,3 +448,5 @@ struct DRWContext {
 /** \} */
 
 const DRWContext *DRW_context_get();
+
+}  // namespace blender

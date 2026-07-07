@@ -48,6 +48,8 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 void BlendfileLoadingBaseTest::SetUpTestCase()
 {
   testing::Test::SetUpTestCase();
@@ -64,10 +66,10 @@ void BlendfileLoadingBaseTest::SetUpTestCase()
   BKE_appdir_init();
   IMB_init();
   BKE_modifier_init();
-  blender::seq::modifiers_init();
+  seq::modifiers_init();
   DEG_register_node_types();
   RNA_init();
-  blender::bke::node_system_init();
+  bke::node_system_init();
   BKE_callback_global_init();
   BKE_vfont_builtin_register(datatoc_bfont_pfb, datatoc_bfont_pfb_size);
   BLF_init();
@@ -81,7 +83,7 @@ void BlendfileLoadingBaseTest::SetUpTestCase()
    * the release directory, which it won't be able to find. */
   ASSERT_EQ(G.main->wm.first, nullptr);
   wmWindowManager *wm = BKE_id_new<wmWindowManager>(G.main, "WMdummy");
-  wm->runtime = MEM_new<blender::bke::WindowManagerRuntime>(__func__);
+  wm->runtime = MEM_new<bke::WindowManagerRuntime>(__func__);
 }
 
 void BlendfileLoadingBaseTest::TearDownTestCase()
@@ -116,7 +118,7 @@ void BlendfileLoadingBaseTest::TearDown()
 
 bool BlendfileLoadingBaseTest::blendfile_load(const char *filepath)
 {
-  const std::string &test_assets_dir = blender::tests::flags_test_asset_dir();
+  const std::string &test_assets_dir = tests::flags_test_asset_dir();
   if (test_assets_dir.empty()) {
     return false;
   }
@@ -134,8 +136,8 @@ bool BlendfileLoadingBaseTest::blendfile_load(const char *filepath)
 
   /* Make sure that all view_layers in the file are synced. Depsgraph can make a copy of the whole
    * scene, which will fail when one view layer isn't synced. */
-  LISTBASE_FOREACH (ViewLayer *, view_layer, &bfile->curscene->view_layers) {
-    BKE_view_layer_synced_ensure(bfile->curscene, view_layer);
+  for (ViewLayer &view_layer : bfile->curscene->view_layers) {
+    BKE_view_layer_synced_ensure(bfile->curscene, &view_layer);
   }
 
   return true;
@@ -167,3 +169,5 @@ void BlendfileLoadingBaseTest::depsgraph_free()
   DEG_graph_free(depsgraph);
   depsgraph = nullptr;
 }
+
+}  // namespace blender

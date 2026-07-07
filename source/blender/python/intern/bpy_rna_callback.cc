@@ -32,9 +32,11 @@
 #include "bpy_rna.hh"
 #include "bpy_rna_callback.hh" /* Own include. */
 
+namespace blender {
+
 /* Use this to stop other capsules from being mis-used. */
-static const char *rna_capsual_id = "RNA_HANDLE";
-static const char *rna_capsual_id_invalid = "RNA_HANDLE_REMOVED";
+static const char *rna_capsule_id = "RNA_HANDLE";
+static const char *rna_capsule_id_invalid = "RNA_HANDLE_REMOVED";
 
 static const EnumPropertyItem region_draw_mode_items[] = {
     {REGION_DRAW_POST_PIXEL, "POST_PIXEL", 0, "Post Pixel", ""},
@@ -47,7 +49,7 @@ static const EnumPropertyItem region_draw_mode_items[] = {
 static void cb_region_draw(const bContext *C, ARegion * /*region*/, void *customdata)
 {
   PyGILState_STATE gilstate;
-  bpy_context_set((bContext *)C, &gilstate);
+  bpy_context_set(const_cast<bContext *>(C), &gilstate);
 
   PyObject *cb_func, *cb_args, *result;
 
@@ -62,7 +64,7 @@ static void cb_region_draw(const bContext *C, ARegion * /*region*/, void *custom
     PyErr_Print();
   }
 
-  bpy_context_clear((bContext *)C, &gilstate);
+  bpy_context_clear(const_cast<bContext *>(C), &gilstate);
 }
 
 /* We could make generic utility */
@@ -80,8 +82,8 @@ static PyObject *PyC_Tuple_CopySized(PyObject *src, int len_dst)
 }
 
 static void cb_wm_cursor_draw(bContext *C,
-                              const blender::int2 &xy,
-                              const blender::float2 & /*tilt*/,
+                              const int2 &xy,
+                              const float2 & /*tilt*/,
                               void *customdata)
 {
   PyGILState_STATE gilstate;
@@ -133,7 +135,7 @@ PyObject *pyrna_callback_add(BPy_StructRNA *self, PyObject *args)
     return nullptr;
   }
 
-  if (RNA_struct_is_a(self->ptr.type, &RNA_Region)) {
+  if (RNA_struct_is_a(self->ptr.type, RNA_Region)) {
     if (cb_event_str) {
       if (pyrna_enum_value_from_id(
               region_draw_mode_items, cb_event_str, &cb_event, "bpy_struct.callback_add()") == -1)
@@ -154,7 +156,7 @@ PyObject *pyrna_callback_add(BPy_StructRNA *self, PyObject *args)
     return nullptr;
   }
 
-  return PyCapsule_New((void *)handle, rna_capsual_id, nullptr);
+  return PyCapsule_New((void *)handle, rna_capsule_id, nullptr);
 }
 
 PyObject *pyrna_callback_remove(BPy_StructRNA *self, PyObject *args)
@@ -167,7 +169,7 @@ PyObject *pyrna_callback_remove(BPy_StructRNA *self, PyObject *args)
     return nullptr;
   }
 
-  handle = PyCapsule_GetPointer(py_handle, rna_capsual_id);
+  handle = PyCapsule_GetPointer(py_handle, rna_capsule_id);
 
   if (handle == nullptr) {
     PyErr_SetString(PyExc_ValueError,
@@ -175,7 +177,7 @@ PyObject *pyrna_callback_remove(BPy_StructRNA *self, PyObject *args)
     return nullptr;
   }
 
-  if (RNA_struct_is_a(self->ptr.type, &RNA_Region)) {
+  if (RNA_struct_is_a(self->ptr.type, RNA_Region)) {
     customdata = ED_region_draw_cb_customdata(handle);
     Py_DECREF((PyObject *)customdata);
 
@@ -187,7 +189,7 @@ PyObject *pyrna_callback_remove(BPy_StructRNA *self, PyObject *args)
   }
 
   /* don't allow reuse */
-  PyCapsule_SetName(py_handle, rna_capsual_id_invalid);
+  PyCapsule_SetName(py_handle, rna_capsule_id_invalid);
 
   Py_RETURN_NONE;
 }
@@ -196,52 +198,52 @@ PyObject *pyrna_callback_remove(BPy_StructRNA *self, PyObject *args)
 /* reverse of rna_Space_refine() */
 static eSpace_Type rna_Space_refine_reverse(StructRNA *srna)
 {
-  if (srna == &RNA_SpaceView3D) {
+  if (srna == RNA_SpaceView3D) {
     return SPACE_VIEW3D;
   }
-  if (srna == &RNA_SpaceGraphEditor) {
+  if (srna == RNA_SpaceGraphEditor) {
     return SPACE_GRAPH;
   }
-  if (srna == &RNA_SpaceOutliner) {
+  if (srna == RNA_SpaceOutliner) {
     return SPACE_OUTLINER;
   }
-  if (srna == &RNA_SpaceProperties) {
+  if (srna == RNA_SpaceProperties) {
     return SPACE_PROPERTIES;
   }
-  if (srna == &RNA_SpaceFileBrowser) {
+  if (srna == RNA_SpaceFileBrowser) {
     return SPACE_FILE;
   }
-  if (srna == &RNA_SpaceImageEditor) {
+  if (srna == RNA_SpaceImageEditor) {
     return SPACE_IMAGE;
   }
-  if (srna == &RNA_SpaceInfo) {
+  if (srna == RNA_SpaceInfo) {
     return SPACE_INFO;
   }
-  if (srna == &RNA_SpaceSequenceEditor) {
+  if (srna == RNA_SpaceSequenceEditor) {
     return SPACE_SEQ;
   }
-  if (srna == &RNA_SpaceTextEditor) {
+  if (srna == RNA_SpaceTextEditor) {
     return SPACE_TEXT;
   }
-  if (srna == &RNA_SpaceDopeSheetEditor) {
+  if (srna == RNA_SpaceDopeSheetEditor) {
     return SPACE_ACTION;
   }
-  if (srna == &RNA_SpaceNLA) {
+  if (srna == RNA_SpaceNLA) {
     return SPACE_NLA;
   }
-  if (srna == &RNA_SpaceNodeEditor) {
+  if (srna == RNA_SpaceNodeEditor) {
     return SPACE_NODE;
   }
-  if (srna == &RNA_SpaceConsole) {
+  if (srna == RNA_SpaceConsole) {
     return SPACE_CONSOLE;
   }
-  if (srna == &RNA_SpacePreferences) {
+  if (srna == RNA_SpacePreferences) {
     return SPACE_USERPREF;
   }
-  if (srna == &RNA_SpaceClipEditor) {
+  if (srna == RNA_SpaceClipEditor) {
     return SPACE_CLIP;
   }
-  if (srna == &RNA_SpaceSpreadsheet) {
+  if (srna == RNA_SpaceSpreadsheet) {
     return SPACE_SPREADSHEET;
   }
   return SPACE_EMPTY;
@@ -277,7 +279,7 @@ PyObject *pyrna_callback_classmethod_add(PyObject * /*self*/, PyObject *args)
 
   /* class specific callbacks */
 
-  if (srna == &RNA_WindowManager) {
+  if (srna == RNA_WindowManager) {
     struct {
       BPy_EnumProperty_Parse space_type_enum;
       BPy_EnumProperty_Parse region_type_enum;
@@ -305,9 +307,9 @@ PyObject *pyrna_callback_classmethod_add(PyObject * /*self*/, PyObject *args)
                                       params.region_type_enum.value,
                                       nullptr,
                                       cb_wm_cursor_draw,
-                                      (void *)args);
+                                      static_cast<void *>(args));
   }
-  else if (RNA_struct_is_a(srna, &RNA_Space)) {
+  else if (RNA_struct_is_a(srna, RNA_Space)) {
     struct {
       BPy_EnumProperty_Parse region_type_enum;
       BPy_EnumProperty_Parse event_enum;
@@ -343,7 +345,7 @@ PyObject *pyrna_callback_classmethod_add(PyObject * /*self*/, PyObject *args)
       return nullptr;
     }
     handle = ED_region_draw_cb_activate(
-        art, cb_region_draw, (void *)args, params.event_enum.value);
+        art, cb_region_draw, static_cast<void *>(args), params.event_enum.value);
   }
   else {
     PyErr_SetString(PyExc_TypeError, "callback_add(): type does not support callbacks");
@@ -354,7 +356,7 @@ PyObject *pyrna_callback_classmethod_add(PyObject * /*self*/, PyObject *args)
    * This reference is decremented in #BPY_callback_screen_free and #BPY_callback_wm_free. */
   Py_INCREF(args);
 
-  PyObject *ret = PyCapsule_New(handle, rna_capsual_id, nullptr);
+  PyObject *ret = PyCapsule_New(handle, rna_capsule_id, nullptr);
 
   /* Store 'args' in context as well for simple access. */
   PyCapsule_SetDestructor(ret, cb_rna_capsule_destructor);
@@ -383,14 +385,14 @@ PyObject *pyrna_callback_classmethod_remove(PyObject * /*self*/, PyObject *args)
     return nullptr;
   }
   py_handle = PyTuple_GET_ITEM(args, 1);
-  handle = PyCapsule_GetPointer(py_handle, rna_capsual_id);
+  handle = PyCapsule_GetPointer(py_handle, rna_capsule_id);
   if (handle == nullptr) {
     PyErr_SetString(PyExc_ValueError,
                     "callback_remove(handler): null handler given, invalid or already removed");
     return nullptr;
   }
 
-  if (srna == &RNA_WindowManager) {
+  if (srna == RNA_WindowManager) {
     if (!PyArg_ParseTuple(
             args, "OO!:WindowManager.draw_cursor_remove", &cls, &PyCapsule_Type, &py_handle))
     {
@@ -399,7 +401,7 @@ PyObject *pyrna_callback_classmethod_remove(PyObject * /*self*/, PyObject *args)
     handle_removed = WM_paint_cursor_end(static_cast<wmPaintCursor *>(handle));
     capsule_clear = true;
   }
-  else if (RNA_struct_is_a(srna, &RNA_Space)) {
+  else if (RNA_struct_is_a(srna, RNA_Space)) {
     const char *error_prefix = "Space.draw_handler_remove";
     struct {
       BPy_EnumProperty_Parse region_type_enum;
@@ -459,7 +461,7 @@ PyObject *pyrna_callback_classmethod_remove(PyObject * /*self*/, PyObject *args)
       destructor_fn(py_handle);
       PyCapsule_SetDestructor(py_handle, nullptr);
     }
-    PyCapsule_SetName(py_handle, rna_capsual_id_invalid);
+    PyCapsule_SetName(py_handle, rna_capsule_id_invalid);
   }
 
   Py_RETURN_NONE;
@@ -492,3 +494,5 @@ void BPY_callback_wm_free(wmWindowManager *wm)
 }
 
 /** \} */
+
+}  // namespace blender

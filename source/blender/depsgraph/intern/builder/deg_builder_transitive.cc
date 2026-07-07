@@ -90,7 +90,8 @@ void deg_graph_transitive_reduction(Depsgraph *graph)
     num_removed_relations += relations_to_remove.size();
     relations_to_remove.clear();
   }
-  DEG_DEBUG_PRINTF((::Depsgraph *)graph, BUILD, "Removed %d relations\n", num_removed_relations);
+  DEG_DEBUG_PRINTF(
+      (blender::Depsgraph *)graph, BUILD, "Removed %d relations\n", num_removed_relations);
 }
 
 }  // namespace blender::deg

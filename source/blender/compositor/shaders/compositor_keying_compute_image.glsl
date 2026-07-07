@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/compositor_keying_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_keying_compute_image)
+
 #include "gpu_shader_compositor_texture_utilities.glsl"
 
 int3 compute_saturation_indices(float3 v)

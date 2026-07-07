@@ -6,6 +6,7 @@
  * \ingroup fbx
  */
 
+#include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_deform.hh"
 #include "BKE_key.hh"
@@ -183,11 +184,18 @@ static void import_edges(const ufbx_mesh *fmesh,
 }
 
 static void import_uvs(const ufbx_mesh *fmesh,
+                       Mesh *mesh,
                        bke::MutableAttributeAccessor &attributes,
                        AttributeOwner attr_owner)
 {
+  bool set_active_uv = true;
   for (const ufbx_uv_set &fuv_set : fmesh->uv_sets) {
     std::string attr_name = BKE_attribute_calc_unique_name(attr_owner, fuv_set.name.data);
+    if (set_active_uv) {
+      mesh->uv_maps_active_set(attr_name);
+      mesh->uv_maps_default_set(attr_name);
+      set_active_uv = false;
+    }
     bke::SpanAttributeWriter<float2> uvs = attributes.lookup_or_add_for_write_only_span<float2>(
         attr_name, bke::AttrDomain::Corner);
     BLI_assert(fuv_set.vertex_uv.indices.count == uvs.span.size());
@@ -466,7 +474,7 @@ void import_meshes(Main &bmain,
     import_face_material_indices(fmesh, attributes);
     import_face_smoothing(fmesh, attributes);
     import_edges(fmesh, mesh, attributes);
-    import_uvs(fmesh, attributes, attr_owner);
+    import_uvs(fmesh, mesh, attributes, attr_owner);
     if (params.vertex_colors != eFBXVertexColorMode::None) {
       import_colors(fmesh, mesh, attributes, attr_owner, params.vertex_colors);
     }
@@ -479,13 +487,21 @@ void import_meshes(Main &bmain,
     }
     import_skin_vertex_groups(mapping, fmesh, mesh);
 
+    /* Add vertex groups to the object. */
+    VectorSet<std::string> bone_set = get_skin_bone_name_set(mapping, fmesh);
+    for (const std::string &name : bone_set) {
+      bDeformGroup *defgroup = MEM_new<bDeformGroup>("bDeformGroup");
+      StringRef(name).copy_utf8_truncated(defgroup->name);
+      BLI_addtail(&mesh->vertex_group_names, defgroup);
+    }
+
     /* Validate if needed. */
     if (params.validate_meshes) {
       bool verbose_validate = false;
 #ifndef NDEBUG
       verbose_validate = true;
 #endif
-      BKE_mesh_validate(mesh, verbose_validate, false);
+      bke::mesh_validate(*mesh, verbose_validate);
     }
 
     if (has_custom_normals) {
@@ -533,7 +549,7 @@ void import_meshes(Main &bmain,
         name = get_fbx_name(node->name);
       }
       Object *obj = BKE_object_add_only_object(&bmain, OB_MESH, name.c_str());
-      obj->data = mesh_main;
+      obj->data = id_cast<ID *>(mesh_main);
       if (!node->visible) {
         obj->visibility_flag |= OB_HIDE_VIEWPORT;
       }
@@ -546,12 +562,6 @@ void import_meshes(Main &bmain,
 
       /* Skinned mesh. */
       if (fmesh->skin_deformers.count > 0) {
-        /* Add vertex groups to the object. */
-        VectorSet<std::string> bone_set = get_skin_bone_name_set(mapping, fmesh);
-        for (const std::string &name : bone_set) {
-          BKE_object_defgroup_add_name(obj, name.c_str());
-        }
-
         /* Add armature modifiers for each skin deformer. */
         for (const ufbx_skin_deformer *skin : fmesh->skin_deformers) {
           if (!is_skin_deformer_usable(fmesh, skin)) {

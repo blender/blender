@@ -10,6 +10,8 @@
 
 #include <Python.h>
 
+namespace blender {
+
 struct IDProperty;
 
 extern PyTypeObject BPy_IDPropertyUIManager_Type;
@@ -20,3 +22,5 @@ struct BPy_IDPropertyUIManager {
 };
 
 void IDPropertyUIData_Init_Types();
+
+}  // namespace blender

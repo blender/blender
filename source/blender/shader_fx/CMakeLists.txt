@@ -13,11 +13,10 @@ set(INC
 )
 
 set(INC_SYS
-  ${ZLIB_INCLUDE_DIRS}
 )
 
 set(SRC
-  intern/FX_shader_util.h
+  intern/FX_shader_util.hh
   intern/FX_ui_common.cc
 
   intern/FX_shader_blur.cc
@@ -31,8 +30,8 @@ set(SRC
   intern/FX_shader_util.cc
   intern/FX_shader_wave.cc
 
-  intern/FX_ui_common.h
-  FX_shader_types.h
+  intern/FX_ui_common.hh
+  FX_shader_types.hh
 )
 
 set(LIB
@@ -46,6 +45,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::render
   PRIVATE bf::windowmanager
+  PRIVATE bf::dependencies::zlib
 )
 
 

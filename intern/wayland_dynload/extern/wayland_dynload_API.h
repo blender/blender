@@ -25,11 +25,6 @@ bool wayland_dynload_egl_init(bool verbose);
 void wayland_dynload_egl_exit(void);
 #endif
 
-#ifdef WITH_GHOST_WAYLAND_LIBDECOR
-bool wayland_dynload_libdecor_init(bool verbose);
-void wayland_dynload_libdecor_exit(void);
-#endif
-
 #ifdef __cplusplus
 }
 #endif

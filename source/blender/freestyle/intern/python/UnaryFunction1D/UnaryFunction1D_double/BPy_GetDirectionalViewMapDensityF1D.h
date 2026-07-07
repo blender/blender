@@ -19,8 +19,8 @@ extern PyTypeObject GetDirectionalViewMapDensityF1D_Type;
 
 /*---------------------------Python BPy_GetDirectionalViewMapDensityF1D structure
  * definition----------*/
-typedef struct {
+struct BPy_GetDirectionalViewMapDensityF1D {
   BPy_UnaryFunction1DDouble py_uf1D_double;
-} BPy_GetDirectionalViewMapDensityF1D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

@@ -23,7 +23,7 @@ endif()
 
 project(audaspace)
 
-set(AUDASPACE_VERSION 1.7)
+set(AUDASPACE_VERSION 1.8)
 set(AUDASPACE_LONG_VERSION ${AUDASPACE_VERSION}.0)
 
 if(DEFINED AUDASPACE_CMAKE_CFG)
@@ -92,6 +92,8 @@ set(SRC
 	src/fx/VolumeReader.cpp
 	src/fx/VolumeSound.cpp
 	src/fx/VolumeStorage.cpp
+	src/fx/Echo.cpp
+	src/fx/EchoReader.cpp
 	src/generator/Sawtooth.cpp
 	src/generator/SawtoothReader.cpp
 	src/generator/Silence.cpp
@@ -206,6 +208,8 @@ set(PUBLIC_HDR
 	include/fx/VolumeReader.h
 	include/fx/VolumeSound.h
 	include/fx/VolumeStorage.h
+	include/fx/Echo.h
+	include/fx/EchoReader.h
 	include/generator/Sawtooth.h
 	include/generator/SawtoothReader.h
 	include/generator/Silence.h
@@ -257,9 +261,9 @@ set(HDR ${PRIVATE_HDR} ${PUBLIC_HDR})
 set(INCLUDE ${CMAKE_CURRENT_BINARY_DIR} include)
 
 if(WIN32)
-	set(LIBRARIES)
+	set(LIBRARIES "")
 	if(AUDASPACE_STANDALONE)
-		set(DLLS)
+		set(DLLS "")
 		set(LIBRARY_PATH "../lib" CACHE PATH "Path which contains the libraries.")
 		file(GLOB LIBRARY_DIRS ${LIBRARY_PATH}/*)
 		list(APPEND CMAKE_PREFIX_PATH ${LIBRARY_DIRS})
@@ -942,7 +946,6 @@ endif()
 # directories
 
 include_directories(${INCLUDE})
-link_directories()
 
 # install configuration
 
@@ -1216,7 +1219,14 @@ if(WITH_PYTHON)
 	endif()
 
 	add_library(audaspace-py ${LIBRARY_TYPE} ${PYTHON_SRC} ${PYTHON_HDR})
-	target_link_libraries(audaspace-py audaspace ${PYTHON_LIBRARIES})
+	# When Blender is built as a Python module, `PYTHON_LIBRARIES` won't be defined.
+	# NOTE: AUDASPACE has its own `WITH_PYTHON_MODULE` option with different meaning,
+	# so we check the variable is defined instead.
+	if(DEFINED PYTHON_LIBRARIES)
+		target_link_libraries(audaspace-py audaspace ${PYTHON_LIBRARIES})
+	else()
+		target_link_libraries(audaspace-py audaspace)
+	endif()
 	set_target_properties(audaspace-py PROPERTIES SOVERSION ${AUDASPACE_VERSION})
 
 	if(AUDASPACE_STANDALONE)

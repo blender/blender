@@ -19,8 +19,8 @@ extern PyTypeObject QuantitativeInvisibilityUP1D_Type;
 
 /*---------------------------Python BPy_QuantitativeInvisibilityUP1D structure
  * definition----------*/
-typedef struct {
+struct BPy_QuantitativeInvisibilityUP1D {
   BPy_UnaryPredicate1D py_up1D;
-} BPy_QuantitativeInvisibilityUP1D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

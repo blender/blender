@@ -12,6 +12,7 @@
 
 #include <Python.h>
 #include <frameobject.h>
+#include <optional>
 
 #ifdef WITH_PYTHON_MODULE
 #  include "pylifecycle.h" /* For `Py_Version`. */
@@ -21,6 +22,7 @@
 #include "CLG_log.h"
 
 #include "BLI_path_utils.hh"
+#include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -33,6 +35,7 @@
 #include "RNA_types.hh"
 
 #include "bpy.hh"
+#include "bpy_audaspace.hh"
 #include "bpy_capi_utils.hh"
 #include "bpy_intern_string.hh"
 #include "bpy_path.hh"
@@ -68,11 +71,14 @@
 #include "../gpu/gpu_py_api.hh"
 #include "../mathutils/mathutils.hh"
 
+namespace blender {
+
 /* Logging types to use anywhere in the Python modules. */
 
-CLG_LOGREF_DECLARE_GLOBAL(BPY_LOG_CONTEXT, "bpy.context");
 CLG_LOGREF_DECLARE_GLOBAL(BPY_LOG_INTERFACE, "bpy.interface");
 CLG_LOGREF_DECLARE_GLOBAL(BPY_LOG_RNA, "bpy.rna");
+
+extern CLG_LogRef *BKE_LOG_CONTEXT;
 
 /* For internal use, when starting and ending Python scripts. */
 
@@ -82,6 +88,7 @@ static int py_call_level = 0;
 
 /* Set by command line arguments before Python starts. */
 static bool py_use_system_env = false;
+static bool py_use_user_env = false;
 
 // #define TIME_PY_RUN /* Simple python tests. prints on exit. */
 
@@ -122,6 +129,13 @@ void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
   if (py_call_level == 1) {
     BPY_context_update(C);
 
+    /* In rare situations, a nullptr context may be set. Such as when executing a XR surface region
+     * draw callback, which doesn't provide a valid context. Prevent calling #pyrna_context_init
+     * which would dereference the context to initialize flags. */
+    if (C != nullptr) {
+      pyrna_context_init(C);
+    }
+
 #ifdef TIME_PY_RUN
     if (bpy_timer_count == 0) {
       /* Record time from the beginning. */
@@ -135,7 +149,7 @@ void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
   }
 }
 
-void bpy_context_clear(bContext * /*C*/, const PyGILState_STATE *gilstate)
+void bpy_context_clear(bContext *C, const PyGILState_STATE *gilstate)
 {
   py_call_level--;
 
@@ -152,6 +166,11 @@ void bpy_context_clear(bContext * /*C*/, const PyGILState_STATE *gilstate)
 #if 0
     BPY_context_set(nullptr);
 #endif
+
+    /* See previous comment regarding nullptr check in #bpy_context_set. */
+    if (C != nullptr) {
+      pyrna_context_clear(C);
+    }
 
 #ifdef TIME_PY_RUN
     bpy_timer_run_tot += BLI_time_now_seconds() - bpy_timer_run;
@@ -193,7 +212,6 @@ void BPY_context_dict_clear_members_array(void **dict_p,
     PyObject *key = PyUnicode_FromString(context_members[i]);
     PyObject *item;
 
-#if PY_VERSION_HEX >= 0x030d0000
     switch (PyDict_Pop(dict, key, &item)) {
       case 1: {
         Py_DECREF(item);
@@ -206,10 +224,6 @@ void BPY_context_dict_clear_members_array(void **dict_p,
         break;
       }
     }
-#else /* Remove when Python 3.12 support is dropped. */
-    item = _PyDict_Pop(dict, key, Py_None);
-    Py_DECREF(item);
-#endif
 
     Py_DECREF(key);
   }
@@ -259,17 +273,12 @@ bContext *BPY_context_get()
 
 void BPY_context_set(bContext *C)
 {
-  bpy_context_module->ptr->data = (void *)C;
+  bpy_context_module->ptr->data = static_cast<void *>(C);
 }
 
 #ifdef WITH_FLUID
 /* Defined in `manta` module. */
 extern "C" PyObject *Manta_initPython();
-#endif
-
-#ifdef WITH_AUDASPACE_PY
-/* Defined in `AUD_C-API.cpp`. */
-extern "C" PyObject *AUD_initPython();
 #endif
 
 #ifdef WITH_CYCLES
@@ -306,7 +315,7 @@ static _inittab bpy_internal_modules[] = {
     {"manta", Manta_initPython},
 #endif
 #ifdef WITH_AUDASPACE_PY
-    {"aud", AUD_initPython},
+    {"aud", BPyInit_audaspace},
 #endif
 #ifdef WITH_CYCLES
     {"_cycles", CCL_initPython},
@@ -344,17 +353,24 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
 #ifndef WITH_PYTHON_MODULE
   BLI_assert_msg(Py_IsInitialized() == 0, "Python has already been initialized");
 
+  /* It's necessary to disable isolation so `user-site-packages` can be used.
+   * Leave everything else disabled (mainly environment variables). */
+  const std::optional<bool> isolated_override = ((py_use_system_env == false) &&
+                                                 (py_use_user_env == true)) ?
+                                                    std::optional(false) :
+                                                    std::nullopt;
+
   /* #PyPreConfig (early-configuration). */
   {
     PyPreConfig preconfig;
     PyStatus status;
 
     /* To narrow down reports where the systems Python is inexplicably used, see: #98131. */
-    CLOG_DEBUG(
-        BPY_LOG_INTERFACE,
-        "Initializing %s support for the systems Python environment such as 'PYTHONPATH' and "
-        "the user-site directory.",
-        py_use_system_env ? "*with*" : "*without*");
+    CLOG_DEBUG(BPY_LOG_INTERFACE,
+               "Initializing %s support for the systems Python environment such as 'PYTHONPATH', "
+               "%s support for the user-site directory.",
+               py_use_system_env ? "*with*" : "*without*",
+               py_use_user_env ? "*with*" : "*without*");
 
     if (py_use_system_env) {
       PyPreConfig_InitPythonConfig(&preconfig);
@@ -364,6 +380,10 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
        * Since an incorrect 'PYTHONPATH' causes difficult to debug errors, see: #72807.
        * An alternative to setting `preconfig.use_environment = 0` */
       PyPreConfig_InitIsolatedConfig(&preconfig);
+    }
+
+    if (isolated_override) {
+      preconfig.isolated = isolated_override.value();
     }
 
     /* Force UTF8 on all platforms, since this is what's used for Blender's internal strings,
@@ -411,6 +431,10 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
       config.install_signal_handlers = 1;
     }
 
+    if (isolated_override) {
+      config.isolated = isolated_override.value();
+    }
+
     /* Suppress error messages when calculating the module search path.
      * While harmless, it's noisy. */
     config.pathconfig_warnings = 0;
@@ -440,18 +464,26 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
       }
     }
 
-    /* Allow the user site directory because this is used
-     * when PIP installing packages from Blender, see: #104000.
+    /* By default, use an isolated environment unless the user passes in:
+     * `--python-use-user-env`.
      *
-     * NOTE(@ideasman42): While an argument can be made for isolating Blender's Python
-     * from the users home directory entirely, an alternative directory should be used in that
-     * case - so PIP can be used to install packages. Otherwise PIP will install packages to a
-     * directory which us not in the users `sys.path`, see `site.USER_BASE` for details. */
-    // config.user_site_directory = py_use_system_env;
+     * This is a somewhat contentious issue since Python developers may want to access
+     * modules from their user path. The problem with this is it's possible for this path
+     * to contain modules that override Blender's bundled Python modules and user modules
+     * may not be binary compatible with Blender.
+     * So it's possible for the existence of user modules to "break" Blender.
+     * Given this situation, default to an isolated environment with command line arguments
+     * to enable *user* and *system* Python settings, see: #107137.
+     *
+     * - See also related reports about users site packages failing to load, see: #104000, #106963.
+     * - See `site.USER_BASE` for the location PIP will install user packages
+     *   this could be customized if we want to support a separate "blender-user" user path.
+     */
+    config.user_site_directory = py_use_user_env;
 
     /* While `sys.argv` is set, we don't want Python to interpret it. */
     config.parse_argv = 0;
-    status = PyConfig_SetBytesArgv(&config, argc, (char *const *)argv);
+    status = PyConfig_SetBytesArgv(&config, argc, const_cast<char *const *>(argv));
     pystatus_exit_on_error(status);
 
     /* Needed for Python's initialization for portable Python installations.
@@ -680,6 +712,26 @@ void BPY_python_use_system_env()
 {
   BLI_assert(!Py_IsInitialized());
   py_use_system_env = true;
+
+  /* NOTE: it's debatable if enabling the system-environment should enable the user-environment.
+   *
+   * While in principle it's possible a developer wants to access user site-packages
+   * in an otherwise isolated environment. The intent with the system-environment was
+   * to disable all isolation, so Python developers have a convenient way to access
+   * the full Python environment.
+   *
+   * Having to pass in multiple arguments to achieve this goes against the original intention.
+   *
+   * If a developer wants to enable the system-environment and disable user-environment
+   * this can be achieved by running with the environment variable `PYTHONNOUSERSITE=1`
+   * along with the argument `--python-use-system-env`. */
+  py_use_user_env = true;
+}
+
+void BPY_python_use_user_env()
+{
+  BLI_assert(!Py_IsInitialized());
+  py_use_user_env = true;
 }
 
 bool BPY_python_use_system_env_get()
@@ -699,13 +751,20 @@ void BPY_python_backtrace(FILE *fp)
   if (frame == nullptr) {
     return;
   }
+  /* The reference is borrowed, increase since #PyFrame_GetBack is *not* borrowed,
+   * and this simplifies handling reference counts in the loop. */
+  Py_INCREF(frame);
   do {
     PyCodeObject *code = PyFrame_GetCode(frame);
     const int line = PyFrame_GetLineNumber(frame);
     const char *filepath = PyUnicode_AsUTF8(code->co_filename);
     const char *funcname = PyUnicode_AsUTF8(code->co_name);
     fprintf(fp, "  File \"%s\", line %d in %s\n", filepath, line, funcname);
-  } while ((frame = PyFrame_GetBack(frame)));
+    Py_DECREF(code);
+    PyFrameObject *frame_next = PyFrame_GetBack(frame);
+    Py_DECREF(frame);
+    frame = frame_next;
+  } while (frame);
 }
 
 void BPY_DECREF(void *pyob_ptr)
@@ -771,6 +830,29 @@ void BPY_modules_load_user(bContext *C)
   bpy_context_clear(C, &gilstate);
 }
 
+/** Helper function for logging context member access errors with both CLI and Python support */
+static void bpy_context_log_member_error(const bContext *C, const char *message)
+{
+  const bool use_logging_info = CLOG_CHECK(BKE_LOG_CONTEXT, CLG_LEVEL_INFO);
+  const bool use_logging_member = C && CTX_member_logging_get(C);
+  if (!(use_logging_info || use_logging_member)) {
+    return;
+  }
+
+  std::optional<std::string> python_location = BPY_python_current_file_and_line();
+  const char *location = python_location ? python_location->c_str() : "unknown:0";
+
+  if (use_logging_info) {
+    CLOG_INFO(BKE_LOG_CONTEXT, "%s: %s", location, message);
+  }
+  else if (use_logging_member) {
+    CLOG_AT_LEVEL_NOCHECK(BKE_LOG_CONTEXT, CLG_LEVEL_INFO, "%s: %s", location, message);
+  }
+  else {
+    BLI_assert_unreachable();
+  }
+}
+
 bool BPY_context_member_get(bContext *C, const char *member, bContextDataResult *result)
 {
   PyGILState_STATE gilstate;
@@ -784,7 +866,7 @@ bool BPY_context_member_get(bContext *C, const char *member, bContextDataResult 
   PointerRNA *ptr = nullptr;
   bool done = false;
 
-  pyctx = (PyObject *)CTX_py_dict_get(C);
+  pyctx = static_cast<PyObject *>(CTX_py_dict_get(C));
   item = PyDict_GetItemString(pyctx, member);
 
   if (item == nullptr) {
@@ -798,7 +880,7 @@ bool BPY_context_member_get(bContext *C, const char *member, bContextDataResult 
 
     // result->ptr = ((BPy_StructRNA *)item)->ptr;
     CTX_data_pointer_set_ptr(result, ptr);
-    CTX_data_type_set(result, CTX_DATA_TYPE_POINTER);
+    CTX_data_type_set(result, ContextDataType::Pointer);
     done = true;
   }
   else if (PySequence_Check(item)) {
@@ -819,28 +901,25 @@ bool BPY_context_member_get(bContext *C, const char *member, bContextDataResult 
           CTX_data_list_add_ptr(result, ptr);
         }
         else {
-          CLOG_INFO(BPY_LOG_CONTEXT,
-                    "'%s' list item not a valid type in sequence type '%s'",
-                    member,
-                    Py_TYPE(item)->tp_name);
+          /* Log invalid list item type */
+          std::string message = std::string("'") + member +
+                                "' list item not a valid type in sequence type '" +
+                                Py_TYPE(list_item)->tp_name + "'";
+          bpy_context_log_member_error(C, message.c_str());
         }
       }
       Py_DECREF(seq_fast);
-      CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+      CTX_data_type_set(result, ContextDataType::Collection);
       done = true;
     }
   }
 
   if (done == false) {
     if (item) {
-      CLOG_INFO(BPY_LOG_CONTEXT, "'%s' not a valid type", member);
+      /* Log invalid member type */
+      std::string message = std::string("'") + member + "' not a valid type";
+      bpy_context_log_member_error(C, message.c_str());
     }
-    else {
-      CLOG_INFO(BPY_LOG_CONTEXT, "'%s' not found", member);
-    }
-  }
-  else {
-    CLOG_DEBUG(BPY_LOG_CONTEXT, "'%s' found", member);
   }
 
   if (use_gil) {
@@ -850,7 +929,85 @@ bool BPY_context_member_get(bContext *C, const char *member, bContextDataResult 
   return done;
 }
 
+std::optional<std::string> BPY_python_current_file_and_line()
+{
+  /* Early return if Python is not initialized, usually during startup.
+   * This function shouldn't operate if Python isn't initialized yet.
+   *
+   * In most cases this shouldn't be done, make an exception as it's needed for logging. */
+  if (!Py_IsInitialized()) {
+    return std::nullopt;
+  }
+
+  PyGILState_STATE gilstate;
+  const bool use_gil = !PyC_IsInterpreterActive();
+  std::optional<std::string> result = std::nullopt;
+  if (use_gil) {
+    gilstate = PyGILState_Ensure();
+  }
+
+  const char *filename = nullptr;
+  int lineno = -1;
+  PyC_FileAndNum_Safe(&filename, &lineno);
+
+  if (filename) {
+    result = std::string(filename) + ":" + std::to_string(lineno);
+  }
+
+  if (use_gil) {
+    PyGILState_Release(gilstate);
+  }
+  return result;
+}
+
 #ifdef WITH_PYTHON_MODULE
+
+/* -------------------------------------------------------------------- */
+/** \name Detect Exit Singleton
+ *
+ * Python does not reliably free all modules on exit.
+ * This means we can't rely on #PyModuleDef::m_free running to clean-up
+ * Blender data when Python exits.
+ *
+ * However Python *does* reliably clear the modules name-space.
+ * Store a singleton in modules which may reference Blender owned memory,
+ * calling #main_python_exit once the singleton has been cleared from the
+ * name-space of all modules.
+ * \{ */
+
+static void main_python_exit_ensure();
+
+static void bpy_detect_exit_singleton_cleanup(PyObject * /*capsule*/)
+{
+  main_python_exit_ensure();
+}
+
+static void bpy_detect_exit_singleton_add_to_module(PyObject *mod)
+{
+  static PyObject *singleton = nullptr;
+
+  /* Note that Python's API docs state that:
+   * - If this capsule will be stored as an attribute of a module,
+   *   the name should be specified as `modulename.attributename`.
+   * This is ignored here because the capsule is not intended for script author access.
+   * It also wouldn't make sense as it is stored in multiple modules. */
+  const char *bpy_detect_exit_singleton_id = "_bpy_detect_exit_singleton";
+  if (singleton == nullptr) {
+    /* This is ignored, but must be non-null,
+     * set an address that is non-null and easily identifiable. */
+    void *pointer = reinterpret_cast<void *>(uintptr_t(-1));
+    singleton = PyCapsule_New(
+        pointer, bpy_detect_exit_singleton_id, bpy_detect_exit_singleton_cleanup);
+    BLI_assert(singleton);
+  }
+  else {
+    Py_INCREF(singleton);
+  }
+  PyModule_AddObject(mod, bpy_detect_exit_singleton_id, singleton);
+}
+
+/** \} */
+
 /* TODO: reloading the module isn't functional at the moment. */
 
 static void bpy_module_free(void *mod);
@@ -858,6 +1015,16 @@ static void bpy_module_free(void *mod);
 /* Defined in 'creator.c' when building as a Python module. */
 extern int main_python_enter(int argc, const char **argv);
 extern void main_python_exit();
+
+static void main_python_exit_ensure()
+{
+  static bool exit = false;
+  if (exit) {
+    return;
+  }
+  exit = true;
+  main_python_exit();
+}
 
 static struct PyModuleDef bpy_proxy_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
@@ -901,6 +1068,28 @@ static void bpy_module_delay_init(PyObject *bpy_proxy)
 
   /* Initialized in #BPy_init_modules(). */
   PyDict_Update(PyModule_GetDict(bpy_proxy), PyModule_GetDict(bpy_package_py));
+
+  {
+    /* Modules which themselves require access to Blender
+     * allocated resources to be freed should be included in this list.
+     * Once the last module has been cleared, the singleton will be de-allocated
+     * which calls #main_python_exit.
+     *
+     * Note that, other modules can be here as needed. */
+    const char *bpy_modules_array[] = {
+        "bpy.types",
+        /* Not technically required however as this is created early on
+         * in Blender's module initialization, it's likely to be cleared later,
+         * since module cleanup runs in the reverse of the order added to `sys.modules`. */
+        "_bpy",
+    };
+    PyObject *sys_modules = PyImport_GetModuleDict();
+    for (int i = 0; i < ARRAY_SIZE(bpy_modules_array); i++) {
+      PyObject *mod = PyDict_GetItemString(sys_modules, bpy_modules_array[i]);
+      BLI_assert(mod);
+      bpy_detect_exit_singleton_add_to_module(mod);
+    }
+  }
 }
 
 /**
@@ -994,7 +1183,7 @@ PyMODINIT_FUNC PyInit_bpy()
 
 static void bpy_module_free(void * /*mod*/)
 {
-  main_python_exit();
+  main_python_exit_ensure();
 }
 
 #endif
@@ -1036,3 +1225,5 @@ int text_check_identifier_nodigit_unicode(const uint ch)
 }
 
 /** \} */
+
+}  // namespace blender

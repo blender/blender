@@ -8,12 +8,15 @@
 
 #pragma once
 
+namespace blender {
+
 struct bContext;
 struct PLYExportParams;
 
-namespace blender::io::ply {
+namespace io::ply {
 
 /* Main export function used from within Blender. */
 void exporter_main(bContext *C, const PLYExportParams &export_params);
 
-}  // namespace blender::io::ply
+}  // namespace io::ply
+}  // namespace blender

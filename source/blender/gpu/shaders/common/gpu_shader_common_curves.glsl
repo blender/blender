@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "gpu_glsl_cpp_stubs.hh"
+#include "gpu_shader_compat.hh"
 
 float4 white_balance(float4 color, float4 black_level, float4 white_level)
 {
@@ -57,6 +57,7 @@ float3 compute_curve_map_coordinates(float3 parameters)
   return parameters * sampler_scale + sampler_offset;
 }
 
+[[node]]
 void curves_combined_rgb(float factor,
                          float4 color,
                          float4 black_level,
@@ -67,7 +68,7 @@ void curves_combined_rgb(float factor,
                          float4 range_dividers,
                          float4 start_slopes,
                          float4 end_slopes,
-                         out float4 result)
+                         float4 &result)
 {
   float4 balanced = white_balance(color, black_level, white_level);
 
@@ -98,6 +99,33 @@ void curves_combined_rgb(float factor,
   result = mix(color, result, factor);
 }
 
+[[node]]
+void curves_combined_rgb_compositor(float4 color,
+                                    float factor,
+                                    float4 black_level,
+                                    float4 white_level,
+                                    sampler1DArray curve_map,
+                                    const float layer,
+                                    float4 range_minimums,
+                                    float4 range_dividers,
+                                    float4 start_slopes,
+                                    float4 end_slopes,
+                                    float4 &result)
+{
+  curves_combined_rgb(factor,
+                      color,
+                      black_level,
+                      white_level,
+                      curve_map,
+                      layer,
+                      range_minimums,
+                      range_dividers,
+                      start_slopes,
+                      end_slopes,
+                      result);
+}
+
+[[node]]
 void curves_combined_only(float factor,
                           float4 color,
                           float4 black_level,
@@ -108,7 +136,7 @@ void curves_combined_only(float factor,
                           float range_divider,
                           float start_slope,
                           float end_slope,
-                          out float4 result)
+                          float4 &result)
 {
   float4 balanced = white_balance(color, black_level, white_level);
 
@@ -127,6 +155,32 @@ void curves_combined_only(float factor,
   result.a = color.a;
 
   result = mix(color, result, factor);
+}
+
+[[node]]
+void curves_combined_only_compositor(float4 color,
+                                     float factor,
+                                     float4 black_level,
+                                     float4 white_level,
+                                     sampler1DArray curve_map,
+                                     const float layer,
+                                     float range_minimum,
+                                     float range_divider,
+                                     float start_slope,
+                                     float end_slope,
+                                     float4 &result)
+{
+  curves_combined_only(factor,
+                       color,
+                       black_level,
+                       white_level,
+                       curve_map,
+                       layer,
+                       range_minimum,
+                       range_divider,
+                       start_slope,
+                       end_slope,
+                       result);
 }
 
 /* Contrary to standard tone curve implementations, the film-like implementation tries to preserve
@@ -160,6 +214,7 @@ void curves_combined_only(float factor,
  * change in the distance from the minimum to the maximum. Finally, each of the new minimum,
  * maximum, and median values are written to the color channel that they were originally extracted
  * from. */
+[[node]]
 void curves_film_like(float factor,
                       float4 color,
                       float4 black_level,
@@ -170,7 +225,7 @@ void curves_film_like(float factor,
                       float range_divider,
                       float start_slope,
                       float end_slope,
-                      out float4 result)
+                      float4 &result)
 {
   float4 balanced = white_balance(color, black_level, white_level);
 
@@ -207,6 +262,33 @@ void curves_film_like(float factor,
   result = mix(color, result, clamp(factor, 0.0f, 1.0f));
 }
 
+[[node]]
+void curves_film_like_compositor(float4 color,
+                                 float factor,
+                                 float4 black_level,
+                                 float4 white_level,
+                                 sampler1DArray curve_map,
+                                 const float layer,
+                                 float range_minimum,
+                                 float range_divider,
+                                 float start_slope,
+                                 float end_slope,
+                                 float4 &result)
+{
+  curves_film_like(factor,
+                   color,
+                   black_level,
+                   white_level,
+                   curve_map,
+                   layer,
+                   range_minimum,
+                   range_divider,
+                   start_slope,
+                   end_slope,
+                   result);
+}
+
+[[node]]
 void curves_vector(float3 vector,
                    sampler1DArray curve_map,
                    const float layer,
@@ -214,7 +296,7 @@ void curves_vector(float3 vector,
                    float3 range_dividers,
                    float3 start_slopes,
                    float3 end_slopes,
-                   out float3 result)
+                   float3 &result)
 {
   /* Evaluate each component on its curve map.
    * The components are first normalized into the [0, 1] range. */
@@ -228,6 +310,7 @@ void curves_vector(float3 vector,
   result = extrapolate_if_needed(parameters, result, start_slopes, end_slopes);
 }
 
+[[node]]
 void curves_vector_mixed(float factor,
                          float3 vector,
                          sampler1DArray curve_map,
@@ -236,13 +319,14 @@ void curves_vector_mixed(float factor,
                          float3 range_dividers,
                          float3 start_slopes,
                          float3 end_slopes,
-                         out float3 result)
+                         float3 &result)
 {
   curves_vector(
       vector, curve_map, layer, range_minimums, range_dividers, start_slopes, end_slopes, result);
   result = mix(vector, result, factor);
 }
 
+[[node]]
 void curves_float(float value,
                   sampler1DArray curve_map,
                   const float layer,
@@ -250,7 +334,7 @@ void curves_float(float value,
                   float range_divider,
                   float start_slope,
                   float end_slope,
-                  out float result)
+                  float &result)
 {
   /* Evaluate the normalized value on the first curve map. */
   float parameter = (value - range_minimum) * range_divider;
@@ -261,6 +345,7 @@ void curves_float(float value,
   result = extrapolate_if_needed(parameter, result, start_slope, end_slope);
 }
 
+[[node]]
 void curves_float_mixed(float factor,
                         float value,
                         sampler1DArray curve_map,
@@ -269,7 +354,7 @@ void curves_float_mixed(float factor,
                         float range_divider,
                         float start_slope,
                         float end_slope,
-                        out float result)
+                        float &result)
 {
   curves_float(
       value, curve_map, layer, range_minimum, range_divider, start_slope, end_slope, result);

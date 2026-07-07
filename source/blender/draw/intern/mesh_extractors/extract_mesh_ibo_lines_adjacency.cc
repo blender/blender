@@ -20,7 +20,21 @@
 
 namespace blender::draw {
 
-#define NO_EDGE INT_MAX
+/** Set when the edge has not yet been initialized. */
+#define EDGE_IS_UNSET INT_MAX
+/**
+ * Set when the edge has been initialized and handled.
+ * This is set instead of #EDGE_IS_UNSET so the edge isn't handled again
+ * which can write past the buffer bounds, see: #150841.
+ *
+ * \note this isn't ideal as the winding checks may match
+ * or not depending on the order triangles are handled.
+ * Typically we try to avoid different behavior based on the order of data
+ * however enforcing exactly matching behavior seems fairly involved without
+ * much benefit, so accept this shortcoming.
+ */
+#define EDGE_IS_HANDLED (INT_MAX - 1)
+#define EDGE_IS_UNSET_OR_HANDLED(i) ((i) >= EDGE_IS_HANDLED)
 
 static void create_lines_for_remaining_edges(MutableSpan<int> vert_to_corner,
                                              Map<OrderedEdge, int> &edge_hash,
@@ -29,7 +43,7 @@ static void create_lines_for_remaining_edges(MutableSpan<int> vert_to_corner,
 {
   for (const auto item : edge_hash.items()) {
     int v_data = item.value;
-    if (v_data == NO_EDGE) {
+    if (EDGE_IS_UNSET_OR_HANDLED(v_data)) {
       continue;
     }
 
@@ -80,16 +94,25 @@ inline void lines_adjacency_triangle(uint3 vert_tri,
         },
         [&](int *value) {
           int v_data = *value;
-          if (v_data == NO_EDGE) {
+          if (v_data == EDGE_IS_UNSET) {
             int new_value = int(corner_tri[0]) + 1; /* 0 cannot be signed so add one. */
             *value = inv_indices ? -new_value : new_value;
             /* Store loop indices for remaining non-manifold edges. */
             vert_to_corner[vert_tri[1]] = corner_tri[1];
             vert_to_corner[vert_tri[2]] = corner_tri[2];
           }
+          else if (UNLIKELY(v_data == EDGE_IS_HANDLED)) {
+            /* Ignore additional faces once this has been handled
+             * as this may exceed the pre-sized index buffer: see #150841 & !151084 for details. */
+
+            /* When there are 3+ users of an edge the mesh is not manifold (by definition). */
+            is_manifold = false;
+          }
           else {
-            /* HACK Tag as not used. Prevent overhead of BLI_edgehash_remove. */
-            *value = NO_EDGE;
+            /* HACK Tag as not used.
+             * Prevent overhead of removing from the hash as well as potentially adding
+             * the value back in the case more than 2 triangles use this edge. */
+            *value = EDGE_IS_HANDLED;
             bool inv_opposite = (v_data < 0);
             const int corner_opposite = abs(v_data) - 1;
             /* TODO: Make this part thread-safe. */
@@ -239,6 +262,8 @@ gpu::IndexBufPtr extract_lines_adjacency_subdiv(const DRWSubdivCache &subdiv_cac
   return gpu::IndexBufPtr(GPU_indexbuf_build(&builder));
 }
 
-#undef NO_EDGE
+#undef EDGE_IS_UNSET
+#undef EDGE_IS_HANDLED
+#undef EDGE_IS_CHECK
 
 }  // namespace blender::draw

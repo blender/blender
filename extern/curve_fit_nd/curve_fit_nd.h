@@ -36,13 +36,13 @@
 /* curve_fit_cubic.c */
 
 /**
- * Takes a flat array of points and evaluates that to calculate a bezier spline.
+ * Takes a flat array of points and evaluates that to calculate a Bezier spline.
  *
- * \param points, points_len: The array of points to calculate a cubics from.
+ * \param points, points_len: The array of points to calculate cubics from.
  * \param dims: The number of dimensions for each element in \a points.
- * \param error_threshold: the error threshold to allow for,
+ * \param error_threshold: The error threshold to allow for,
  * the curve will be within this distance from \a points.
- * \param corners, corners_len: indices for points which will not have aligned tangents (optional).
+ * \param corners, corners_len: Indices for points which will not have aligned tangents (optional).
  * This can use the output of #curve_fit_corners_detect_db which has been included
  * to evaluate a line to detect corner indices.
  *
@@ -84,17 +84,17 @@ int curve_fit_cubic_to_points_fl(
 /**
  * Takes a flat array of points and evaluates that to calculate handle lengths.
  *
- * \param points, points_len: The array of points to calculate a cubics from.
+ * \param points, points_len: The array of points to calculate cubics from.
  * \param dims: The number of dimensions for each element in \a points.
  * \param points_length_cache: Optional pre-calculated lengths between points.
- * \param error_threshold: the error threshold to allow for,
+ * \param error_threshold: The error threshold to allow for.
  * \param tan_l, tan_r: Normalized tangents the handles will be aligned to.
  * Note that tangents must both point along the direction of the \a points,
  * so \a tan_l points in the same direction of the resulting handle,
  * where \a tan_r will point the opposite direction of its handle.
  *
  * \param r_handle_l, r_handle_r: Resulting calculated handles.
- * \param r_error_sq: The maximum distance  (squared) this curve diverges from \a points.
+ * \param r_error_sq: The maximum distance (squared) this curve diverges from \a points.
  */
 int curve_fit_cubic_to_points_single_db(
         const double      *points,
@@ -125,7 +125,7 @@ int curve_fit_cubic_to_points_single_fl(
         unsigned int *r_error_index);
 
 enum {
-	CURVE_FIT_CALC_HIGH_QUALIY          = (1 << 0),
+	CURVE_FIT_CALC_HIGH_QUALITY         = (1 << 0),
 	CURVE_FIT_CALC_CYCLIC               = (1 << 1),
 };
 

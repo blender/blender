@@ -46,7 +46,7 @@ class FBXElem:
     )
 
     def __init__(self, id):
-        assert(len(id) < 256)  # length must fit in a uint8
+        assert len(id) < 256  # length must fit in a uint8
         self.id = id
         self.props = []
         self.props_type = bytearray()
@@ -106,78 +106,78 @@ class FBXElem:
             # Exiting the MultiThreadedTaskConsumer context manager will wait for all scheduled tasks to complete.
 
     def add_bool(self, data):
-        assert(isinstance(data, bool))
+        assert isinstance(data, bool)
         data = pack('?', data)
 
         self.props_type.append(data_types.BOOL)
         self.props.append(data)
 
     def add_char(self, data):
-        assert(isinstance(data, bytes))
-        assert(len(data) == 1)
+        assert isinstance(data, bytes)
+        assert len(data) == 1
         data = pack('<c', data)
 
         self.props_type.append(data_types.CHAR)
         self.props.append(data)
 
     def add_int8(self, data):
-        assert(isinstance(data, int))
+        assert isinstance(data, int)
         data = pack('<b', data)
 
         self.props_type.append(data_types.INT8)
         self.props.append(data)
 
     def add_int16(self, data):
-        assert(isinstance(data, int))
+        assert isinstance(data, int)
         data = pack('<h', data)
 
         self.props_type.append(data_types.INT16)
         self.props.append(data)
 
     def add_int32(self, data):
-        assert(isinstance(data, int))
+        assert isinstance(data, int)
         data = pack('<i', data)
 
         self.props_type.append(data_types.INT32)
         self.props.append(data)
 
     def add_int64(self, data):
-        assert(isinstance(data, int))
+        assert isinstance(data, int)
         data = pack('<q', data)
 
         self.props_type.append(data_types.INT64)
         self.props.append(data)
 
     def add_float32(self, data):
-        assert(isinstance(data, float))
+        assert isinstance(data, float)
         data = pack('<f', data)
 
         self.props_type.append(data_types.FLOAT32)
         self.props.append(data)
 
     def add_float64(self, data):
-        assert(isinstance(data, float))
+        assert isinstance(data, float)
         data = pack('<d', data)
 
         self.props_type.append(data_types.FLOAT64)
         self.props.append(data)
 
     def add_bytes(self, data):
-        assert(isinstance(data, bytes))
+        assert isinstance(data, bytes)
         data = pack('<I', len(data)) + data
 
         self.props_type.append(data_types.BYTES)
         self.props.append(data)
 
     def add_string(self, data):
-        assert(isinstance(data, bytes))
+        assert isinstance(data, bytes)
         data = pack('<I', len(data)) + data
 
         self.props_type.append(data_types.STRING)
         self.props.append(data)
 
     def add_string_unicode(self, data):
-        assert(isinstance(data, str))
+        assert isinstance(data, str)
         data = data.encode('utf8')
         data = pack('<I', len(data)) + data
 
@@ -196,7 +196,7 @@ class FBXElem:
 
     def _add_array_helper(self, data, prop_type, length):
         self.props_type.append(prop_type)
-        # mimic behavior of fbxconverter (also common sense)
+        # Mimic behavior of `fbxconverter` (also common sense)
         # we could make this configurable.
         encoding = 0 if len(data) <= 128 else 1
         if encoding == 0:
@@ -206,8 +206,8 @@ class FBXElem:
             self._add_compressed_array_helper(data, length)
 
     def _add_parray_helper(self, data, array_type, prop_type):
-        assert (isinstance(data, array.array))
-        assert (data.typecode == array_type)
+        assert isinstance(data, array.array)
+        assert data.typecode == array_type
 
         length = len(data)
 
@@ -219,8 +219,8 @@ class FBXElem:
         self._add_array_helper(data, prop_type, length)
 
     def _add_ndarray_helper(self, data, dtype, prop_type):
-        assert (isinstance(data, np.ndarray))
-        assert (data.dtype == dtype)
+        assert isinstance(data, np.ndarray)
+        assert data.dtype == dtype
 
         length = data.size
 
@@ -285,10 +285,10 @@ class FBXElem:
         """
         Call before writing, calculates fixed offsets.
         """
-        assert(self._end_offset == -1)
-        assert(self._props_length == -1)
+        assert self._end_offset == -1
+        assert self._props_length == -1
 
-        offset += _ELEM_META_SIZE  # 3 uints (or 3 ulonglongs for FBX 7500 and later)
+        offset += _ELEM_META_SIZE  # `uint[3]` (or `ulonglong[3]`  for FBX 7500 and later).
         offset += 1 + len(self.id)  # len + idname
 
         props_length = 0
@@ -315,8 +315,8 @@ class FBXElem:
         return offset
 
     def _write(self, write, tell, is_last):
-        assert(self._end_offset != -1)
-        assert(self._props_length != -1)
+        assert self._end_offset != -1
+        assert self._props_length != -1
 
         write(pack(_ELEM_META_FORMAT, self._end_offset, len(self.props), self._props_length))
 
@@ -337,7 +337,7 @@ class FBXElem:
         if self.elems:
             elem_last = self.elems[-1]
             for elem in self.elems:
-                assert(elem.id != b'')
+                assert elem.id != b''
                 elem._write(write, tell, (elem is elem_last))
             write(_BLOCK_SENTINEL_DATA)
         elif (not self.props and not is_last) or self.id in _ELEMS_ID_ALWAYS_BLOCK_SENTINEL:
@@ -352,16 +352,16 @@ def _write_timedate_hack(elem_root):
     ok = 0
     for elem in elem_root.elems:
         if elem.id == b'FileId':
-            assert(elem.props_type[0] == b'R'[0])
-            assert(len(elem.props_type) == 1)
+            assert elem.props_type[0] == b'R'[0]
+            assert len(elem.props_type) == 1
             elem.props.clear()
             elem.props_type.clear()
 
             elem.add_bytes(_FILE_ID)
             ok += 1
         elif elem.id == b'CreationTime':
-            assert(elem.props_type[0] == b'S'[0])
-            assert(len(elem.props_type) == 1)
+            assert elem.props_type[0] == b'S'[0]
+            assert len(elem.props_type) == 1
             elem.props.clear()
             elem.props_type.clear()
 
@@ -397,7 +397,7 @@ def init_version(fbx_version):
 
 
 def write(fn, elem_root, version):
-    assert(elem_root.id == b'')
+    assert elem_root.id == b''
 
     with open(fn, 'wb') as f:
         write = f.write

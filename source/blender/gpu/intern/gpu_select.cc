@@ -19,12 +19,14 @@
 
 #include "gpu_select_private.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Internal Types
  * \{ */
 
 /* Internal algorithm used */
-enum eGPUSelectAlgo {
+enum GPUSelectAlgo {
   /**
    * `glBegin/EndQuery(GL_SAMPLES_PASSED... )`, `gpu_select_query.c`
    * Only sets 4th component (ID) correctly.
@@ -43,9 +45,9 @@ struct GPUSelectState {
   /* To ignore selection id calls when not initialized */
   bool select_is_active;
   /* mode of operation */
-  eGPUSelectMode mode;
+  GPUSelectMode mode;
   /* internal algorithm for selection */
-  eGPUSelectAlgo algorithm;
+  GPUSelectAlgo algorithm;
   /* allow GPU_select_begin/end without drawing */
   bool use_cache;
   /**
@@ -69,7 +71,8 @@ static GPUSelectState g_select_state = {false};
 
 static void gpu_select_begin_ex(GPUSelectBuffer *buffer,
                                 const rcti *input,
-                                eGPUSelectMode mode,
+                                const int radius,
+                                GPUSelectMode mode,
                                 int oldhits,
                                 bool use_select_next)
 {
@@ -114,7 +117,7 @@ static void gpu_select_begin_ex(GPUSelectBuffer *buffer,
 
   switch (g_select_state.algorithm) {
     case ALGO_SELECT_NEXT: {
-      gpu_select_next_begin(buffer, input, mode);
+      gpu_select_next_begin(buffer, input, radius, mode);
       break;
     }
     case ALGO_SAMPLE_QUERY: {
@@ -129,17 +132,15 @@ static void gpu_select_begin_ex(GPUSelectBuffer *buffer,
   }
 }
 
-void GPU_select_begin_next(GPUSelectBuffer *buffer,
-                           const rcti *input,
-                           eGPUSelectMode mode,
-                           int oldhits)
+void GPU_select_begin_next(
+    GPUSelectBuffer *buffer, const rcti *input, const int radius, GPUSelectMode mode, int oldhits)
 {
-  gpu_select_begin_ex(buffer, input, mode, oldhits, true);
+  gpu_select_begin_ex(buffer, input, radius, mode, oldhits, true);
 }
 
-void GPU_select_begin(GPUSelectBuffer *buffer, const rcti *input, eGPUSelectMode mode, int oldhits)
+void GPU_select_begin(GPUSelectBuffer *buffer, const rcti *input, GPUSelectMode mode, int oldhits)
 {
-  gpu_select_begin_ex(buffer, input, mode, oldhits, false);
+  gpu_select_begin_ex(buffer, input, 0, mode, oldhits, false);
 }
 
 bool GPU_select_load_id(uint id)
@@ -240,7 +241,7 @@ bool GPU_select_is_cached()
 /** \name Utilities
  * \{ */
 
-const GPUSelectResult *GPU_select_buffer_near(const blender::Span<GPUSelectResult> hit_results)
+const GPUSelectResult *GPU_select_buffer_near(const Span<GPUSelectResult> hit_results)
 {
   const GPUSelectResult *hit_result_near = nullptr;
   uint depth_min = uint(-1);
@@ -254,8 +255,7 @@ const GPUSelectResult *GPU_select_buffer_near(const blender::Span<GPUSelectResul
   return hit_result_near;
 }
 
-uint GPU_select_buffer_remove_by_id(blender::MutableSpan<GPUSelectResult> hit_results,
-                                    uint select_id)
+uint GPU_select_buffer_remove_by_id(MutableSpan<GPUSelectResult> hit_results, uint select_id)
 {
   uint index_src = 0;
   uint index_dst = 0;
@@ -315,3 +315,5 @@ void GPU_select_buffer_stride_realign(const rcti *src, const rcti *dst, uint *r_
 }
 
 /** \} */
+
+}  // namespace blender

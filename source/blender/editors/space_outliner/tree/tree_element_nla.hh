@@ -10,11 +10,13 @@
 
 #include "tree_element.hh"
 
+namespace blender {
+
 struct bAction;
 struct AnimData;
 struct NlaTrack;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 class TreeElementNLA final : public AbstractTreeElement {
   AnimData &anim_data_;
@@ -39,4 +41,5 @@ class TreeElementNLAAction final : public AbstractTreeElement {
   TreeElementNLAAction(TreeElement &legacy_te, const bAction &action);
 };
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

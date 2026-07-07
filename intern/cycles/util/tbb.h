@@ -59,4 +59,9 @@ static inline void parallel_for_cancel()
 #endif
 }
 
+template<typename Function> static inline void isolate_task(const Function &function)
+{
+  tbb::this_task_arena::isolate(function);
+}
+
 CCL_NAMESPACE_END

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "util/half.h"
+#include "util/math_int2.h"
 #include "util/types.h"
 #include "util/vector.h"
 
@@ -146,7 +147,7 @@ class DisplayDriver {
   virtual void update_end() = 0;
 
   /* Optionally flush outstanding display commands before ending the render loop. */
-  virtual void flush(){};
+  virtual void flush() {};
 
   virtual half4 *map_texture_buffer() = 0;
   virtual void unmap_texture_buffer() = 0;
@@ -171,8 +172,8 @@ class DisplayDriver {
    *
    * For example, destruction of the CUDA object associated with an OpenGL requires the
    * OpenGL context to be active. */
-  virtual void graphics_interop_activate(){};
-  virtual void graphics_interop_deactivate(){};
+  virtual void graphics_interop_activate() {};
+  virtual void graphics_interop_deactivate() {};
 
   /* Clear the display buffer by filling it with zeros. */
   virtual void zero() = 0;

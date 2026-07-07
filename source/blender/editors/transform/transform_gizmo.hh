@@ -8,6 +8,10 @@
 
 #pragma once
 
+struct TransformBounds;
+struct TransInfo;
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Types/
  * \{ */
@@ -18,13 +22,11 @@ struct bScreen;
 struct RegionView3D;
 struct Scene;
 struct ScrArea;
-struct TransformBounds;
-struct TransInfo;
 struct wmGizmoGroup;
 struct wmGizmoGroupType;
 struct wmMsgBus;
 
-namespace blender::ed::transform {
+namespace ed::transform {
 
 /** \} */
 
@@ -68,4 +70,5 @@ void transform_gizmo_3d_model_from_constraint_and_mode_restore(TransInfo *t);
 
 /** \} */
 
-}  // namespace blender::ed::transform
+}  // namespace ed::transform
+}  // namespace blender

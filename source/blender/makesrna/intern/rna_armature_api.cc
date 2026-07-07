@@ -32,9 +32,12 @@
 
 #  include "WM_api.hh"
 
+namespace blender {
+
 static void rna_EditBone_align_roll(EditBone *ebo, const float no[3])
 {
   ebo->roll = ED_armature_ebone_roll_to_vector(ebo, no, false);
+  WM_main_add_notifier(NC_GEOM | ND_DATA, nullptr);
 }
 
 static float rna_Bone_do_envelope(Bone *bone, const float vec[3])
@@ -58,9 +61,10 @@ static void rna_Bone_convert_local_to_pose(Bone *bone,
 {
   BoneParentTransform bpt;
   float offs_bone[4][4];
-  float(*bone_arm_mat)[4] = (float(*)[4])matrix_local;
-  float(*parent_pose_mat)[4] = (float(*)[4])parent_matrix;
-  float(*parent_arm_mat)[4] = (float(*)[4])parent_matrix_local;
+  float (*bone_arm_mat)[4] = reinterpret_cast<float (*)[4]>(const_cast<float *>(matrix_local));
+  float (*parent_pose_mat)[4] = reinterpret_cast<float (*)[4]>(const_cast<float *>(parent_matrix));
+  float (*parent_arm_mat)[4] = reinterpret_cast<float (*)[4]>(
+      const_cast<float *>(parent_matrix_local));
 
   if (is_zero_m4(parent_pose_mat) || is_zero_m4(parent_arm_mat)) {
     /* No parent case. */
@@ -79,12 +83,14 @@ static void rna_Bone_convert_local_to_pose(Bone *bone,
     BKE_bone_parent_transform_invert(&bpt);
   }
 
-  BKE_bone_parent_transform_apply(&bpt, (float(*)[4])matrix, (float(*)[4])r_matrix);
+  BKE_bone_parent_transform_apply(&bpt,
+                                  reinterpret_cast<float (*)[4]>(const_cast<float *>(matrix)),
+                                  reinterpret_cast<float (*)[4]>(r_matrix));
 }
 
 static void rna_Bone_MatrixFromAxisRoll(const float axis[3], float roll, float r_matrix[9])
 {
-  vec_roll_to_mat3(axis, roll, (float(*)[3])r_matrix);
+  vec_roll_to_mat3(axis, roll, reinterpret_cast<float (*)[3]>(r_matrix));
 }
 
 static void rna_Bone_AxisRollFromMatrix(const float matrix[9],
@@ -94,7 +100,7 @@ static void rna_Bone_AxisRollFromMatrix(const float matrix[9],
 {
   float mat[3][3];
 
-  normalize_m3_m3(mat, (float(*)[3])matrix);
+  normalize_m3_m3(mat, reinterpret_cast<float (*)[3]>(const_cast<float *>(matrix)));
 
   if (normalize_v3_v3(r_axis, axis_override) != 0.0f) {
     mat3_vec_to_roll(mat, r_axis, r_roll);
@@ -119,29 +125,29 @@ static bool rna_BoneCollection_assign_abstract(BoneCollection *bcoll,
     return false;
   }
 
-  if (RNA_struct_is_a(bone_ptr->type, &RNA_PoseBone)) {
+  if (RNA_struct_is_a(bone_ptr->type, RNA_PoseBone)) {
     bPoseChannel *pchan = static_cast<bPoseChannel *>(bone_ptr->data);
     const bool made_any_change = assign_bone(bcoll, pchan->bone);
     if (made_any_change) {
-      WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
+      WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, nullptr);
     }
     return made_any_change;
   }
 
-  if (RNA_struct_is_a(bone_ptr->type, &RNA_Bone)) {
+  if (RNA_struct_is_a(bone_ptr->type, RNA_Bone)) {
     Bone *bone = static_cast<Bone *>(bone_ptr->data);
     const bool made_any_change = assign_bone(bcoll, bone);
     if (made_any_change) {
-      WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
+      WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, nullptr);
     }
     return made_any_change;
   }
 
-  if (RNA_struct_is_a(bone_ptr->type, &RNA_EditBone)) {
+  if (RNA_struct_is_a(bone_ptr->type, RNA_EditBone)) {
     EditBone *ebone = static_cast<EditBone *>(bone_ptr->data);
     const bool made_any_change = assign_ebone(bcoll, ebone);
     if (made_any_change) {
-      WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, nullptr);
+      WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, nullptr);
     }
     return made_any_change;
   }
@@ -178,7 +184,11 @@ static bool rna_BoneCollection_unassign(BoneCollection *bcoll,
                                             ANIM_armature_bonecoll_unassign_editbone);
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 void RNA_api_armature_edit_bone(StructRNA *srna)
 {
@@ -320,5 +330,7 @@ void RNA_api_bonecollection(StructRNA *srna)
                          "not a member of the collection to begin with");
   RNA_def_function_return(func, parm);
 }
+
+}  // namespace blender
 
 #endif

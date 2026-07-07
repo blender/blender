@@ -25,13 +25,15 @@
 #include <fstream>
 #include <vector>
 
+namespace blender {
+
 using Alembic::Abc::ErrorHandler;
 using Alembic::Abc::Exception;
 using Alembic::Abc::IArchive;
 using Alembic::Abc::kWrapExisting;
 using Alembic::Abc::MetaData;
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 static IArchive open_archive(const std::string &filename,
                              const std::vector<std::istream *> &input_streams)
@@ -157,4 +159,5 @@ bool ArchiveReader::is_blender_archive_version_prior_44()
   return false;
 }
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

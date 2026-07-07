@@ -44,7 +44,7 @@ def register():
     bpy.types.WindowManager.i18n_update_settings = \
         bpy.props.PointerProperty(type=update_ui.I18nUpdateTranslationSettings)
 
-    # Init addon's preferences (unfortunately, as we are using an external storage for the properties,
+    # Init add-on's preferences (unfortunately, as we are using an external storage for the properties,
     # the load/save user preferences process has no effect on them :( ).
     if __name__ in bpy.context.preferences.addons:
         pref = bpy.context.preferences.addons[__name__].preferences

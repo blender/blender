@@ -10,6 +10,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_report.hh"
 
+#include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
 
 #include <pxr/base/vt/array.h>
@@ -24,7 +25,7 @@ void USDPointsWriter::do_write(HierarchyContext &context)
   const pxr::SdfPath &usd_path = usd_export_context_.usd_path;
   const pxr::UsdTimeCode time = get_export_time_code();
 
-  const PointCloud *points = static_cast<const PointCloud *>(context.object->data);
+  const PointCloud *points = id_cast<const PointCloud *>(context.object->data);
   Span<pxr::GfVec3f> positions = points->positions().cast<pxr::GfVec3f>();
   VArray<float> radii = points->radius();
 
@@ -53,6 +54,7 @@ void USDPointsWriter::do_write(HierarchyContext &context)
     usd_value_writer_.SetAttribute(attr_widths, usd_widths, time);
   }
 
+  this->write_ids(points, usd_points, time);
   this->write_velocities(points, usd_points, time);
   this->write_custom_data(points, usd_points, time);
 
@@ -94,7 +96,7 @@ void USDPointsWriter::write_generic_data(const bke::AttributeIter &attr,
   }
 
   const pxr::TfToken pv_name(
-      make_safe_name(attr.name, usd_export_context_.export_params.allow_unicode));
+      make_safe_primvar_name(attr.name, usd_export_context_.export_params.allow_unicode));
   const pxr::UsdGeomPrimvarsAPI pv_api = pxr::UsdGeomPrimvarsAPI(usd_points);
 
   pxr::UsdGeomPrimvar pv_attr = pv_api.CreatePrimvar(pv_name, *pv_type, *pv_interp);
@@ -120,12 +122,26 @@ void USDPointsWriter::write_custom_data(const PointCloud *points,
   });
 }
 
+void USDPointsWriter::write_ids(const PointCloud *points,
+                                const pxr::UsdGeomPoints &usd_points,
+                                const pxr::UsdTimeCode time)
+{
+  const VArraySpan ids = *points->attributes().lookup<int>("id", bke::AttrDomain::Point);
+  if (ids.is_empty()) {
+    return;
+  }
+
+  pxr::VtInt64Array usd_ids(ids.begin(), ids.end());
+  pxr::UsdAttribute attr_ids = usd_points.CreateIdsAttr(pxr::VtValue(), true);
+  set_attribute(attr_ids, usd_ids, time, usd_value_writer_);
+}
+
 void USDPointsWriter::write_velocities(const PointCloud *points,
                                        const pxr::UsdGeomPoints &usd_points,
                                        const pxr::UsdTimeCode time)
 {
-  const VArraySpan velocity = *points->attributes().lookup<float3>(
-      "velocity", blender::bke::AttrDomain::Point);
+  const VArraySpan velocity = *points->attributes().lookup<float3>("velocity",
+                                                                   bke::AttrDomain::Point);
   if (velocity.is_empty()) {
     return;
   }

@@ -20,7 +20,7 @@ def as_float_32(f):
 
 def repr_float_precision(f, round_fn):
     """
-    Get's the value which was most likely entered by a human in C.
+    Gets the value which was most likely entered by a human in C.
 
     Needed since Python will show trailing precision from a 32bit float.
     """
@@ -108,7 +108,7 @@ test_Armature = _test_id_gen("armatures")
 test_Brush = _test_id_gen("brushes")
 test_Camera = _test_id_gen("cameras")
 test_Collection = _test_id_gen("collections")
-test_GreasePencil = _test_id_gen("grease_pencils_v3")
+test_GreasePencil = _test_id_gen("grease_pencils")
 test_HairCurves = _test_id_gen("hair_curves")
 test_Lattice = _test_id_gen("lattices")
 test_LineStyle = _test_id_gen("linestyles")

@@ -10,9 +10,11 @@
 
 #include "tree_element.hh"
 
+namespace blender {
+
 struct LayerCollection;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 class TreeElementLayerCollection final : public AbstractTreeElement {
   LayerCollection &lc_;
@@ -21,4 +23,5 @@ class TreeElementLayerCollection final : public AbstractTreeElement {
   TreeElementLayerCollection(TreeElement &legacy_te, LayerCollection &lc);
 };
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

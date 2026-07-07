@@ -220,7 +220,7 @@ class __point_iterator : public IteratorBase<Traits, BidirectionalIteratorTag_Tr
     return tmp;
   }
 
-  // comparibility
+  // comparability
   virtual bool operator!=(const Self &b) const
   {
     return ((__A != b.__A) || (__B != b.__B) || (_t != b._t));

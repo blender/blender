@@ -203,6 +203,14 @@ class TestIdPropertyCreation(TestHelper, unittest.TestCase):
         with self.assertRaises(TypeError):
             self.id[self.key_id] = self
 
+    def test_rename(self):
+        self.id["foo"] = {"a": 1}
+        self.id["bar"] = {"b": 2}
+        self.id["foo"].name = "foo"
+        self.id["bar"].name = "bar"
+        with self.assertRaises(NameError):
+            self.id["foo"].name = "bar"
+
 
 class TestIdPropertyUIData(TestHelper, unittest.TestCase):
     # Default testing idprop key identifier.
@@ -292,7 +300,7 @@ class TestIdPropertyDynamicRNA(TestHelper, unittest.TestCase):
         # PropertyGroup type always exists.
         self.assertTrue('dynrna_prop' in self.id.bl_system_properties_get())
         # However, the underlying idprop data for each property of the PropertyGroup
-        # does not exist untill set through an RNA property access.
+        # does not exist until set through an RNA property access.
         self.assertTrue(len(self.id.bl_system_properties_get()['dynrna_prop']) == 0)
 
         self.id.dynrna_prop.string_prop = "Test String"
@@ -380,7 +388,7 @@ class TestIdPropertyDynamicRNA(TestHelper, unittest.TestCase):
 
         # Raw-set back to default value.
         self.id.bl_system_properties_get()['dynrna_prop']['string_prop_transform'] = "test"
-        # Now set_transform will return 12-char string, wich is also invalid and discarded.
+        # Now set_transform will return 12-char string, which is also invalid and discarded.
         stderr, sys.stderr = sys.stderr, io.StringIO()
         self.id.dynrna_prop.string_prop_transform = "test!!"
         self.assertTrue("ValueError" in sys.stderr.getvalue() and

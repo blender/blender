@@ -355,6 +355,9 @@ RenderWork RenderScheduler::get_render_work()
   render_work.adaptive_sampling.threshold = work_adaptive_threshold();
   render_work.adaptive_sampling.reset = false;
 
+  /* Denoise volume guiding at power of two samples, but not needed when done. */
+  render_work.volume_guiding_denoise = is_power_of_two(state_.num_rendered_samples) && !done();
+
   bool denoiser_delayed;
   bool denoiser_ready_to_display;
   render_work.tile.denoise = work_need_denoise(denoiser_delayed, denoiser_ready_to_display);
@@ -873,8 +876,10 @@ int RenderScheduler::get_num_samples_to_path_trace() const
     /* Keep occupancy at about 0.5 (this is more of an empirical figure which seems to match scenes
      * with good performance without forcing occupancy to be higher). */
     int num_samples_to_occupy = state_.occupancy_num_samples;
+    float ratio_to_increase_occupancy = 1.0f;
     if (state_.occupancy > 0 && state_.occupancy < 0.5f) {
-      num_samples_to_occupy = lround(state_.occupancy_num_samples * 0.7f / state_.occupancy);
+      ratio_to_increase_occupancy = 0.7f / state_.occupancy;
+      num_samples_to_occupy = lround(state_.occupancy_num_samples * ratio_to_increase_occupancy);
     }
 
     /* Time limit for path tracing, which constraints the scheduler from "over-scheduling" work
@@ -917,10 +922,12 @@ int RenderScheduler::get_num_samples_to_path_trace() const
       }
     }
     if (path_tracing_time_limit != 0) {
-      /* Use the per-sample time from the previously rendered batch of samples so that the
-       * correction is applied much quicker. */
+      /* Use the per-sample time from the previously rendered batch of samples, so that the
+       * correction is applied much quicker. Also use the predicted increase in performance from
+       * increased occupancy. */
       const double predicted_render_time = num_samples_to_occupy *
-                                           path_trace_time_.get_last_sample_time();
+                                           path_trace_time_.get_last_sample_time() /
+                                           ratio_to_increase_occupancy;
       if (predicted_render_time > path_tracing_time_limit) {
         num_samples_to_occupy = lround(num_samples_to_occupy *
                                        (path_tracing_time_limit / predicted_render_time));
@@ -985,20 +992,6 @@ float RenderScheduler::work_adaptive_threshold() const
   }
 
   return max(state_.adaptive_sampling_threshold, adaptive_sampling_.threshold);
-}
-
-bool RenderScheduler::volume_guiding_need_denoise() const
-{
-  if (!is_power_of_two(get_num_rendered_samples())) {
-    return false;
-  }
-
-  if (done()) {
-    /* No need to denoise after the last sample. */
-    return false;
-  }
-
-  return true;
 }
 
 bool RenderScheduler::work_need_denoise(bool &delayed, bool &ready_to_display)

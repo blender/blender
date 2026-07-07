@@ -62,7 +62,7 @@ template<typename C, typename T> class PointerSequence : public C {
   }
 
  public:
-  PointerSequence(){};
+  PointerSequence() {};
 
   ~PointerSequence()
   {

@@ -334,9 +334,12 @@ class POSE_PT_selection_sets(Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.object and
-                context.object.type == 'ARMATURE' and
-                context.object.pose)
+        ob = context.object
+        return (
+            (ob is not None) and
+            (ob.type == 'ARMATURE') and
+            (ob.pose is not None)
+        )
 
     def draw(self, context):
         layout = self.layout

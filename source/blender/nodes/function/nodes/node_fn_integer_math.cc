@@ -24,15 +24,40 @@ namespace blender::nodes::node_fn_integer_math_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Int>("Value");
-  b.add_input<decl::Int>("Value", "Value_001");
-  b.add_input<decl::Int>("Value", "Value_002");
+
+  b.add_input<decl::Int>("Value").label_fn([](bNode node) {
+    switch (node.custom1) {
+      case NODE_INTEGER_MATH_POWER:
+        return IFACE_("Base");
+      default:
+        return IFACE_("Value");
+    }
+  });
+
+  b.add_input<decl::Int>("Value", "Value_001").label_fn([](bNode node) {
+    switch (node.custom1) {
+      case NODE_INTEGER_MATH_MULTIPLY_ADD:
+        return IFACE_("Multiplier");
+      case NODE_INTEGER_MATH_POWER:
+        return IFACE_("Exponent");
+      default:
+        return IFACE_("Value");
+    }
+  });
+  b.add_input<decl::Int>("Value", "Value_002").label_fn([](bNode node) {
+    switch (node.custom1) {
+      case NODE_INTEGER_MATH_MULTIPLY_ADD:
+        return IFACE_("Addend");
+      default:
+        return IFACE_("Value");
+    }
+  });
   b.add_output<decl::Int>("Value");
 };
 
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "operation", UI_ITEM_NONE, "", ICON_NONE);
+  layout.prop(ptr, "operation", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_update(bNodeTree *ntree, bNode *node)
@@ -47,21 +72,6 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
   bke::node_set_socket_availability(*ntree, *sockB, !one_input_ops);
   bke::node_set_socket_availability(*ntree, *sockC, three_input_ops);
-
-  node_sock_label_clear(sockA);
-  node_sock_label_clear(sockB);
-  node_sock_label_clear(sockC);
-  switch (node->custom1) {
-    case NODE_INTEGER_MATH_MULTIPLY_ADD:
-      node_sock_label(sockA, N_("Value"));
-      node_sock_label(sockB, N_("Multiplier"));
-      node_sock_label(sockC, N_("Addend"));
-      break;
-    case NODE_INTEGER_MATH_POWER:
-      node_sock_label(sockA, N_("Base"));
-      node_sock_label(sockB, N_("Exponent"));
-      break;
-  }
 }
 
 class SocketSearchOp {
@@ -302,10 +312,11 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   fn_node_type_base(&ntype, "FunctionNodeIntegerMath", FN_NODE_INTEGER_MATH);
   ntype.ui_name = "Integer Math";
+  ntype.ui_description = "Perform various math operations on the given integer inputs";
   ntype.enum_name_legacy = "INTEGER_MATH";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
@@ -318,7 +329,7 @@ static void node_register()
   ntype.eval_inverse_elem = node_eval_inverse_elem;
   ntype.eval_inverse = node_eval_inverse;
 
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

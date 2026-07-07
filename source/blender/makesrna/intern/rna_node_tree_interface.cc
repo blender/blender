@@ -16,6 +16,8 @@
 
 #include "WM_types.hh"
 
+namespace blender {
+
 const EnumPropertyItem rna_enum_node_tree_interface_item_type_items[] = {
     {NODE_INTERFACE_SOCKET, "SOCKET", 0, "Socket", ""},
     {NODE_INTERFACE_PANEL, "PANEL", 0, "Panel", ""},
@@ -78,6 +80,8 @@ static const EnumPropertyItem node_default_input_items[] = {
      "The right Bézier control point handle from the context"},
     {0, nullptr, 0, nullptr, nullptr}};
 
+}  // namespace blender
+
 #ifdef RNA_RUNTIME
 
 #  include <fmt/format.h>
@@ -97,6 +101,7 @@ static const EnumPropertyItem node_default_input_items[] = {
 #  include "BLT_translation.hh"
 
 #  include "NOD_node_declaration.hh"
+#  include "NOD_rna_define.hh"
 #  include "NOD_socket.hh"
 
 #  include "DNA_material_types.h"
@@ -105,12 +110,14 @@ static const EnumPropertyItem node_default_input_items[] = {
 
 #  include "ED_node.hh"
 
-/* Internal RNA function declarations, used to invoke registered callbacks. */
-extern FunctionRNA rna_NodeTreeInterfaceSocket_draw_func;
-extern FunctionRNA rna_NodeTreeInterfaceSocket_init_socket_func;
-extern FunctionRNA rna_NodeTreeInterfaceSocket_from_socket_func;
+namespace blender {
 
-namespace node_interface = blender::bke::node_interface;
+/* Internal RNA function declarations, used to invoke registered callbacks. */
+extern FunctionRNA *rna_NodeTreeInterfaceSocket_draw_func;
+extern FunctionRNA *rna_NodeTreeInterfaceSocket_init_socket_func;
+extern FunctionRNA *rna_NodeTreeInterfaceSocket_from_socket_func;
+
+namespace node_interface = bke::node_interface;
 
 static void rna_NodeTreeInterfaceItem_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
@@ -123,27 +130,34 @@ static void rna_NodeTreeInterfaceItem_update(Main *bmain, Scene * /*scene*/, Poi
   BKE_main_ensure_invariants(*bmain, ntree->id);
 }
 
+static void rna_NodeTreeInterfaceItem_subtype_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  bNodeTreeInterfaceSocket *socket = static_cast<bNodeTreeInterfaceSocket *>(ptr->data);
+  socket->update_socket_type();
+
+  rna_NodeTreeInterfaceItem_update(bmain, scene, ptr);
+}
+
 static StructRNA *rna_NodeTreeInterfaceItem_refine(PointerRNA *ptr)
 {
   bNodeTreeInterfaceItem *item = static_cast<bNodeTreeInterfaceItem *>(ptr->data);
 
-  switch (NodeTreeInterfaceItemType(item->item_type)) {
+  switch (eNodeTreeInterfaceItemType(item->item_type)) {
     case NODE_INTERFACE_SOCKET: {
       bNodeTreeInterfaceSocket &socket = node_interface::get_item_as<bNodeTreeInterfaceSocket>(
           *item);
       if (socket.socket_type) {
-        blender::bke::bNodeSocketType *socket_typeinfo = blender::bke::node_socket_type_find(
-            socket.socket_type);
+        bke::bNodeSocketType *socket_typeinfo = bke::node_socket_type_find(socket.socket_type);
         if (socket_typeinfo && socket_typeinfo->ext_interface.srna) {
           return socket_typeinfo->ext_interface.srna;
         }
       }
-      return &RNA_NodeTreeInterfaceSocket;
+      return RNA_NodeTreeInterfaceSocket;
     }
     case NODE_INTERFACE_PANEL:
-      return &RNA_NodeTreeInterfacePanel;
+      return RNA_NodeTreeInterfacePanel;
     default:
-      return &RNA_NodeTreeInterfaceItem;
+      return RNA_NodeTreeInterfaceItem;
   }
 }
 
@@ -169,7 +183,7 @@ static PointerRNA rna_NodeTreeInterfaceItem_parent_get(PointerRNA *ptr)
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   const bNodeTreeInterfaceItem *item = static_cast<const bNodeTreeInterfaceItem *>(ptr->data);
   bNodeTreeInterfacePanel *parent = ntree->tree_interface.find_item_parent(*item, true);
-  PointerRNA result = RNA_pointer_create_discrete(&ntree->id, &RNA_NodeTreeInterfacePanel, parent);
+  PointerRNA result = RNA_pointer_create_discrete(&ntree->id, RNA_NodeTreeInterfacePanel, parent);
   return result;
 }
 
@@ -189,7 +203,7 @@ static int rna_NodeTreeInterfaceItem_index_get(PointerRNA *ptr)
 
 static bool rna_NodeTreeInterfaceSocket_unregister(Main * /*bmain*/, StructRNA *type)
 {
-  blender::bke::bNodeSocketType *st = static_cast<blender::bke::bNodeSocketType *>(
+  bke::bNodeSocketType *st = static_cast<bke::bNodeSocketType *>(
       RNA_struct_blender_type_get(type));
   if (!st) {
     return false;
@@ -197,7 +211,7 @@ static bool rna_NodeTreeInterfaceSocket_unregister(Main * /*bmain*/, StructRNA *
 
   RNA_struct_free_extension(type, &st->ext_interface);
 
-  RNA_struct_free(&BLENDER_RNA, type);
+  RNA_struct_free(&RNA_blender_rna_get(), type);
 
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
@@ -207,9 +221,9 @@ static bool rna_NodeTreeInterfaceSocket_unregister(Main * /*bmain*/, StructRNA *
 static void rna_NodeTreeInterfaceSocket_draw_builtin(ID *id,
                                                      bNodeTreeInterfaceSocket *interface_socket,
                                                      bContext *C,
-                                                     uiLayout *layout)
+                                                     ui::Layout *layout)
 {
-  blender::bke::bNodeSocketType *typeinfo = interface_socket->socket_typeinfo();
+  bke::bNodeSocketType *typeinfo = interface_socket->socket_typeinfo();
   if (typeinfo && typeinfo->interface_draw) {
     typeinfo->interface_draw(id, interface_socket, C, layout);
   }
@@ -218,17 +232,16 @@ static void rna_NodeTreeInterfaceSocket_draw_builtin(ID *id,
 static void rna_NodeTreeInterfaceSocket_draw_custom(ID *id,
                                                     bNodeTreeInterfaceSocket *interface_socket,
                                                     bContext *C,
-                                                    uiLayout *layout)
+                                                    ui::Layout *layout)
 {
-  blender::bke::bNodeSocketType *typeinfo = blender::bke::node_socket_type_find(
-      interface_socket->socket_type);
+  bke::bNodeSocketType *typeinfo = bke::node_socket_type_find(interface_socket->socket_type);
   if (typeinfo == nullptr) {
     return;
   }
 
-  PointerRNA ptr = RNA_pointer_create_discrete(id, &RNA_NodeTreeInterfaceSocket, interface_socket);
+  PointerRNA ptr = RNA_pointer_create_discrete(id, RNA_NodeTreeInterfaceSocket, interface_socket);
 
-  FunctionRNA *func = &rna_NodeTreeInterfaceSocket_draw_func;
+  FunctionRNA *func = rna_NodeTreeInterfaceSocket_draw_func;
 
   ParameterList list;
   RNA_parameter_list_create(&list, &ptr, func);
@@ -246,7 +259,7 @@ static void rna_NodeTreeInterfaceSocket_init_socket_builtin(
     bNodeSocket *socket,
     const char *data_path)
 {
-  blender::bke::bNodeSocketType *typeinfo = interface_socket->socket_typeinfo();
+  bke::bNodeSocketType *typeinfo = interface_socket->socket_typeinfo();
   if (typeinfo && typeinfo->interface_draw) {
     typeinfo->interface_init_socket(id, interface_socket, node, socket, data_path);
   }
@@ -257,18 +270,17 @@ static void rna_NodeTreeInterfaceSocket_init_socket_custom(
     const bNodeTreeInterfaceSocket *interface_socket,
     bNode *node,
     bNodeSocket *socket,
-    const blender::StringRefNull data_path)
+    const StringRefNull data_path)
 {
-  blender::bke::bNodeSocketType *typeinfo = blender::bke::node_socket_type_find(
-      interface_socket->socket_type);
+  bke::bNodeSocketType *typeinfo = bke::node_socket_type_find(interface_socket->socket_type);
   if (typeinfo == nullptr) {
     return;
   }
 
   PointerRNA ptr = RNA_pointer_create_discrete(
-      id, &RNA_NodeTreeInterfaceSocket, const_cast<bNodeTreeInterfaceSocket *>(interface_socket));
+      id, RNA_NodeTreeInterfaceSocket, const_cast<bNodeTreeInterfaceSocket *>(interface_socket));
 
-  FunctionRNA *func = &rna_NodeTreeInterfaceSocket_init_socket_func;
+  FunctionRNA *func = rna_NodeTreeInterfaceSocket_init_socket_func;
 
   ParameterList list;
   RNA_parameter_list_create(&list, &ptr, func);
@@ -283,7 +295,7 @@ static void rna_NodeTreeInterfaceSocket_init_socket_custom(
 static void rna_NodeTreeInterfaceSocket_from_socket_builtin(
     ID *id, bNodeTreeInterfaceSocket *interface_socket, bNode *node, bNodeSocket *socket)
 {
-  blender::bke::bNodeSocketType *typeinfo = interface_socket->socket_typeinfo();
+  bke::bNodeSocketType *typeinfo = interface_socket->socket_typeinfo();
   if (typeinfo && typeinfo->interface_draw) {
     typeinfo->interface_from_socket(id, interface_socket, node, socket);
   }
@@ -295,15 +307,14 @@ static void rna_NodeTreeInterfaceSocket_from_socket_custom(
     const bNode *node,
     const bNodeSocket *socket)
 {
-  blender::bke::bNodeSocketType *typeinfo = blender::bke::node_socket_type_find(
-      interface_socket->socket_type);
+  bke::bNodeSocketType *typeinfo = bke::node_socket_type_find(interface_socket->socket_type);
   if (typeinfo == nullptr) {
     return;
   }
 
-  PointerRNA ptr = RNA_pointer_create_discrete(id, &RNA_NodeTreeInterfaceSocket, interface_socket);
+  PointerRNA ptr = RNA_pointer_create_discrete(id, RNA_NodeTreeInterfaceSocket, interface_socket);
 
-  FunctionRNA *func = &rna_NodeTreeInterfaceSocket_from_socket_func;
+  FunctionRNA *func = rna_NodeTreeInterfaceSocket_from_socket_func;
 
   ParameterList list;
   RNA_parameter_list_create(&list, &ptr, func);
@@ -327,7 +338,7 @@ static StructRNA *rna_NodeTreeInterfaceSocket_register(Main * /*bmain*/,
   dummy_socket.item.item_type = NODE_INTERFACE_SOCKET;
 
   PointerRNA dummy_socket_ptr = RNA_pointer_create_discrete(
-      nullptr, &RNA_NodeTreeInterfaceSocket, &dummy_socket);
+      nullptr, RNA_NodeTreeInterfaceSocket, &dummy_socket);
 
   /* Validate the python class. */
   bool have_function[3];
@@ -336,29 +347,28 @@ static StructRNA *rna_NodeTreeInterfaceSocket_register(Main * /*bmain*/,
   }
 
   /* Check if we have registered this socket type before. */
-  blender::bke::bNodeSocketType *st = blender::bke::node_socket_type_find(
-      dummy_socket.socket_type);
+  bke::bNodeSocketType *st = bke::node_socket_type_find(dummy_socket.socket_type);
   if (st) {
     /* Socket type registered before. */
   }
   else {
     /* Create a new node socket type. */
-    st = MEM_new<blender::bke::bNodeSocketType>(__func__);
+    st = MEM_new<bke::bNodeSocketType>(__func__);
     st->idname = dummy_socket.socket_type;
 
-    blender::bke::node_register_socket_type(*st);
+    bke::node_register_socket_type(*st);
   }
 
-  st->free_self = [](blender::bke::bNodeSocketType *type) { MEM_delete(type); };
+  st->free_self = [](bke::bNodeSocketType *type) { MEM_delete(type); };
 
   /* if RNA type is already registered, unregister first */
   if (st->ext_interface.srna) {
     StructRNA *srna = st->ext_interface.srna;
     RNA_struct_free_extension(srna, &st->ext_interface);
-    RNA_struct_free(&BLENDER_RNA, srna);
+    RNA_struct_free(&RNA_blender_rna_get(), srna);
   }
   st->ext_interface.srna = RNA_def_struct_ptr(
-      &BLENDER_RNA, identifier, &RNA_NodeTreeInterfaceSocket);
+      &RNA_blender_rna_get(), identifier, RNA_NodeTreeInterfaceSocket);
   st->ext_interface.data = data;
   st->ext_interface.call = call;
   st->ext_interface.free = free;
@@ -371,7 +381,7 @@ static StructRNA *rna_NodeTreeInterfaceSocket_register(Main * /*bmain*/,
                                                    nullptr;
 
   /* Cleanup local dummy type. */
-  MEM_SAFE_FREE(dummy_socket.socket_type);
+  MEM_SAFE_DELETE(dummy_socket.socket_type);
 
   /* Update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
@@ -405,7 +415,7 @@ static int rna_NodeTreeInterfaceSocket_socket_type_get(PointerRNA *ptr)
 
 static void rna_NodeTreeInterfaceSocket_socket_type_set(PointerRNA *ptr, int value)
 {
-  blender::bke::bNodeSocketType *typeinfo = rna_node_socket_type_from_enum(value);
+  bke::bNodeSocketType *typeinfo = rna_node_socket_type_from_enum(value);
 
   if (typeinfo) {
     bNodeTreeInterfaceSocket *socket = static_cast<bNodeTreeInterfaceSocket *>(ptr->data);
@@ -413,8 +423,8 @@ static void rna_NodeTreeInterfaceSocket_socket_type_set(PointerRNA *ptr, int val
   }
 }
 
-static bool is_socket_type_supported(blender::bke::bNodeTreeType *ntreetype,
-                                     blender::bke::bNodeSocketType *socket_type)
+static bool is_socket_type_supported(bke::bNodeTreeType *ntreetype,
+                                     bke::bNodeSocketType *socket_type)
 {
   /* Check if the node tree supports the socket type. */
   if (ntreetype->valid_socket_type && !ntreetype->valid_socket_type(ntreetype, socket_type)) {
@@ -423,8 +433,8 @@ static bool is_socket_type_supported(blender::bke::bNodeTreeType *ntreetype,
 
   /* Only basic socket types are supported. Custom sockets don't have a base type. */
   if (socket_type->type != SOCK_CUSTOM) {
-    blender::bke::bNodeSocketType *base_socket_type = blender::bke::node_socket_type_find_static(
-        socket_type->type, PROP_NONE);
+    bke::bNodeSocketType *base_socket_type = bke::node_socket_type_find_static(socket_type->type,
+                                                                               PROP_NONE);
     BLI_assert(base_socket_type != nullptr);
     if (socket_type != base_socket_type) {
       return false;
@@ -434,10 +444,9 @@ static bool is_socket_type_supported(blender::bke::bNodeTreeType *ntreetype,
   return true;
 }
 
-static blender::bke::bNodeSocketType *find_supported_socket_type(
-    blender::bke::bNodeTreeType *ntree_type)
+static bke::bNodeSocketType *find_supported_socket_type(bke::bNodeTreeType *ntree_type)
 {
-  for (blender::bke::bNodeSocketType *socket_type : blender::bke::node_socket_types_get()) {
+  for (bke::bNodeSocketType *socket_type : bke::node_socket_types_get()) {
     if (is_socket_type_supported(ntree_type, socket_type)) {
       return socket_type;
     }
@@ -445,10 +454,10 @@ static blender::bke::bNodeSocketType *find_supported_socket_type(
   return nullptr;
 }
 
-static bool rna_NodeTreeInterfaceSocket_socket_type_poll(
-    void *userdata, blender::bke::bNodeSocketType *socket_type)
+static bool rna_NodeTreeInterfaceSocket_socket_type_poll(void *userdata,
+                                                         bke::bNodeSocketType *socket_type)
 {
-  blender::bke::bNodeTreeType *ntreetype = static_cast<blender::bke::bNodeTreeType *>(userdata);
+  bke::bNodeTreeType *ntreetype = static_cast<bke::bNodeTreeType *>(userdata);
   return is_socket_type_supported(ntreetype, socket_type);
 }
 
@@ -477,24 +486,18 @@ static void rna_NodeTreeInterfaceSocket_force_non_field_set(PointerRNA *ptr, con
                                    NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO;
 }
 
-static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_structure_type_itemf(
-    bContext * /*C*/, PointerRNA *ptr, PropertyRNA * /*prop*/, bool *r_free)
+const EnumPropertyItem *rna_NodeSocket_structure_type_item_filter(
+    const bNodeTree *ntree, const eNodeSocketDatatype socket_type, bool *r_free)
 {
-  const bNodeTree *ntree = reinterpret_cast<const bNodeTree *>(ptr->owner_id);
-  const bNodeTreeInterfaceSocket *socket = static_cast<const bNodeTreeInterfaceSocket *>(
-      ptr->data);
   if (!ntree) {
     return rna_enum_dummy_NULL_items;
   }
-
   const bool is_geometry_nodes = ntree->type == NTREE_GEOMETRY;
 
-  const eNodeSocketDatatype socket_type = socket->socket_typeinfo()->type;
   const bool supports_fields = is_geometry_nodes &&
-                               blender::nodes::socket_type_supports_fields(socket_type);
-  const bool supports_grids = is_geometry_nodes &&
-                              blender::nodes::socket_type_supports_grids(socket_type);
-  const bool supports_lists = is_geometry_nodes && supports_fields;
+                               nodes::socket_type_supports_fields(socket_type);
+  const bool supports_grids = is_geometry_nodes && nodes::socket_type_supports_grids(socket_type);
+  const bool supports_lists = is_geometry_nodes;
 
   *r_free = true;
   EnumPropertyItem *items = nullptr;
@@ -541,6 +544,16 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_structure_type_itemf(
   return items;
 }
 
+static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_structure_type_itemf(
+    bContext * /*C*/, PointerRNA *ptr, PropertyRNA * /*prop*/, bool *r_free)
+{
+  const bNodeTree *ntree = reinterpret_cast<const bNodeTree *>(ptr->owner_id);
+  const bNodeTreeInterfaceSocket *socket = static_cast<const bNodeTreeInterfaceSocket *>(
+      ptr->data);
+  const eNodeSocketDatatype socket_type = socket->socket_typeinfo()->type;
+  return rna_NodeSocket_structure_type_item_filter(ntree, socket_type, r_free);
+}
+
 static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_default_input_itemf(
     bContext * /*C*/, PointerRNA *ptr, PropertyRNA * /*prop*/, bool *r_free)
 {
@@ -550,7 +563,7 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_default_input_itemf(
   if (!ntree) {
     return rna_enum_dummy_NULL_items;
   }
-  const blender::bke::bNodeSocketType *stype = socket->socket_typeinfo();
+  const bke::bNodeSocketType *stype = socket->socket_typeinfo();
   if (!stype) {
     return rna_enum_dummy_NULL_items;
   }
@@ -564,8 +577,8 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_default_input_itemf(
       RNA_enum_item_add(&items, &items_count, item);
     }
     else if (ntree->type == NTREE_GEOMETRY) {
-      if (blender::nodes::socket_type_supports_default_input_type(
-              *stype, NodeDefaultInputType(item->value)))
+      if (nodes::socket_type_supports_default_input_type(*stype,
+                                                         NodeDefaultInputType(item->value)))
       {
         RNA_enum_item_add(&items, &items_count, item);
       }
@@ -579,7 +592,6 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_default_input_itemf(
 static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_attribute_domain_itemf(
     bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free)
 {
-  using namespace blender;
   EnumPropertyItem *item_array = nullptr;
   int items_len = 0;
 
@@ -594,12 +606,26 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_attribute_domain_item
   return item_array;
 }
 
+static void rna_NodeTreeInterfaceItems_active_index_set(PointerRNA *ptr, int value)
+{
+  bNodeTreeInterface *interface = static_cast<bNodeTreeInterface *>(ptr->data);
+
+  if (bNodeTreeInterfaceItem *original_active = interface->active_item()) {
+    original_active->set_selected(false);
+  }
+
+  interface->active_index = value;
+  if (bNodeTreeInterfaceItem *new_active = interface->active_item()) {
+    new_active->set_selected(true);
+  }
+}
+
 static PointerRNA rna_NodeTreeInterfaceItems_active_get(PointerRNA *ptr)
 {
   bNodeTreeInterface *interface = static_cast<bNodeTreeInterface *>(ptr->data);
-  PointerRNA r_ptr = RNA_pointer_create_discrete(
-      ptr->owner_id, &RNA_NodeTreeInterfaceItem, interface->active_item());
-  return r_ptr;
+  PointerRNA ptr_result = RNA_pointer_create_discrete(
+      ptr->owner_id, RNA_NodeTreeInterfaceItem, interface->active_item());
+  return ptr_result;
 }
 
 static void rna_NodeTreeInterfaceItems_active_set(PointerRNA *ptr,
@@ -627,7 +653,7 @@ static bNodeTreeInterfaceSocket *rna_NodeTreeInterfaceItems_new_socket(
     return nullptr;
   }
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
-  blender::bke::bNodeSocketType *typeinfo = rna_node_socket_type_from_enum(socket_type_enum);
+  bke::bNodeSocketType *typeinfo = rna_node_socket_type_from_enum(socket_type_enum);
   if (typeinfo == nullptr) {
     BKE_report(reports, RPT_ERROR_INVALID_INPUT, "Unknown socket type");
     return nullptr;
@@ -641,7 +667,7 @@ static bNodeTreeInterfaceSocket *rna_NodeTreeInterfaceItems_new_socket(
       return nullptr;
     }
   }
-  const blender::StringRef socket_type = typeinfo->idname;
+  const StringRef socket_type = typeinfo->idname;
   NodeTreeInterfaceSocketFlag flag = NodeTreeInterfaceSocketFlag(in_out);
   bNodeTreeInterfaceSocket *socket = interface->add_socket(
       name, description, socket_type, flag, parent);
@@ -698,15 +724,33 @@ static bNodeTreeInterfaceItem *rna_NodeTreeInterfaceItems_copy_to_parent(
     }
   }
 
+  const bNodeTree &interface_node_tree = *blender::id_cast<bNodeTree *>(id);
+  if (bNodeTreeInterfaceSocket *socket = node_interface::get_item_as<bNodeTreeInterfaceSocket>(
+          item))
+  {
+    blender::bke::bNodeTreeType *ntreetype = interface_node_tree.typeinfo;
+    /* Check if the node tree supports the socket type. */
+    if (ntreetype->valid_socket_type &&
+        !ntreetype->valid_socket_type(ntreetype, socket->socket_typeinfo()))
+    {
+      BKE_report(reports,
+                 RPT_ERROR_INVALID_INPUT,
+                 "Item to be copied to this interface is of an unsupported socket type");
+      return nullptr;
+    }
+  }
+
   if (parent == nullptr) {
     parent = &interface->root_panel;
   }
   const int index = parent->items().as_span().first_index_try(item);
-  if (!parent->items().index_range().contains(index)) {
-    return nullptr;
+  bNodeTreeInterfaceItem *item_copy = nullptr;
+  if (index == -1) {
+    item_copy = interface->insert_item_copy(*item, parent, parent->items_num);
   }
-
-  bNodeTreeInterfaceItem *item_copy = interface->insert_item_copy(*item, parent, index + 1);
+  else if (parent->items().index_range().contains(index)) {
+    item_copy = interface->insert_item_copy(*item, parent, index + 1);
+  }
 
   if (item_copy == nullptr) {
     BKE_report(reports, RPT_ERROR, "Unable to copy item");
@@ -783,8 +827,7 @@ static void rna_NodeTreeInterfaceItems_move_to_parent(ID *id,
 
 /* ******** Node Socket Subtypes ******** */
 
-static const EnumPropertyItem *rna_subtype_filter_itemf(const blender::Set<int> &subtypes,
-                                                        bool *r_free)
+static const EnumPropertyItem *rna_subtype_filter_itemf(const Set<int> &subtypes, bool *r_free)
 {
   if (subtypes.is_empty()) {
     return rna_enum_dummy_NULL_items;
@@ -814,6 +857,7 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocketFloat_subtype_itemf(
 {
   return rna_subtype_filter_itemf({PROP_PERCENTAGE,
                                    PROP_FACTOR,
+                                   PROP_MASS,
                                    PROP_ANGLE,
                                    PROP_TIME,
                                    PROP_TIME_ABSOLUTE,
@@ -830,8 +874,7 @@ void rna_NodeTreeInterfaceSocketFloat_default_value_range(
 {
   bNodeTreeInterfaceSocket *socket = static_cast<bNodeTreeInterfaceSocket *>(ptr->data);
   bNodeSocketValueFloat *dval = static_cast<bNodeSocketValueFloat *>(socket->socket_data);
-  blender::bke::bNodeSocketType *socket_typeinfo = blender::bke::node_socket_type_find(
-      socket->socket_type);
+  bke::bNodeSocketType *socket_typeinfo = bke::node_socket_type_find(socket->socket_type);
   int subtype = socket_typeinfo ? socket_typeinfo->subtype : PROP_NONE;
 
   if (dval->max < dval->min) {
@@ -857,8 +900,7 @@ void rna_NodeTreeInterfaceSocketInt_default_value_range(
 {
   bNodeTreeInterfaceSocket *socket = static_cast<bNodeTreeInterfaceSocket *>(ptr->data);
   bNodeSocketValueInt *dval = static_cast<bNodeSocketValueInt *>(socket->socket_data);
-  blender::bke::bNodeSocketType *socket_typeinfo = blender::bke::node_socket_type_find(
-      socket->socket_type);
+  bke::bNodeSocketType *socket_typeinfo = bke::node_socket_type_find(socket->socket_type);
   int subtype = socket_typeinfo ? socket_typeinfo->subtype : PROP_NONE;
 
   if (dval->max < dval->min) {
@@ -906,31 +948,6 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocketString_subtype_itemf(
     bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free)
 {
   return rna_subtype_filter_itemf({PROP_FILEPATH, PROP_NONE}, r_free);
-}
-
-/* If the dimensions of the vector socket changed, we need to update the socket type, since each
- * dimensions value has its own sub-type. */
-static void rna_NodeTreeInterfaceSocketVector_dimensions_update(Main *bmain,
-                                                                Scene *scene,
-                                                                PointerRNA *ptr)
-{
-
-  bNodeTreeInterfaceSocket *socket = static_cast<bNodeTreeInterfaceSocket *>(ptr->data);
-
-  /* Store a copy of the existing default value since it will be freed when setting the socket type
-   * below. */
-  const bNodeSocketValueVector default_value = *static_cast<bNodeSocketValueVector *>(
-      socket->socket_data);
-
-  const blender::StringRefNull socket_idname = *blender::bke::node_static_socket_type(
-      SOCK_VECTOR, default_value.subtype, default_value.dimensions);
-
-  socket->set_socket_type(socket_idname);
-
-  /* Restore existing default value. */
-  *static_cast<bNodeSocketValueVector *>(socket->socket_data) = default_value;
-
-  rna_NodeTreeInterfaceItem_update(bmain, scene, ptr);
 }
 
 static bool rna_NodeTreeInterfaceSocketMaterial_default_value_poll(PointerRNA * /*ptr*/,
@@ -982,7 +999,7 @@ static bool rna_NodeTreeInterface_items_lookup_int(PointerRNA *ptr, int index, P
   }
 
   rna_pointer_create_with_ancestors(
-      *ptr, &RNA_NodeTreeInterfaceItem, ntree->interface_items()[index], *r_ptr);
+      *ptr, RNA_NodeTreeInterfaceItem, ntree->interface_items()[index], *r_ptr);
   return true;
 }
 
@@ -997,11 +1014,11 @@ static bool rna_NodeTreeInterface_items_lookup_string(PointerRNA *ptr,
 
   ntree->ensure_interface_cache();
   for (bNodeTreeInterfaceItem *item : ntree->interface_items()) {
-    switch (NodeTreeInterfaceItemType(item->item_type)) {
+    switch (eNodeTreeInterfaceItemType(item->item_type)) {
       case NODE_INTERFACE_SOCKET: {
         bNodeTreeInterfaceSocket *socket = reinterpret_cast<bNodeTreeInterfaceSocket *>(item);
         if (STREQ(socket->identifier, key)) {
-          rna_pointer_create_with_ancestors(*ptr, &RNA_NodeTreeInterfaceSocket, socket, *r_ptr);
+          rna_pointer_create_with_ancestors(*ptr, RNA_NodeTreeInterfaceSocket, socket, *r_ptr);
           return true;
         }
         break;
@@ -1011,11 +1028,11 @@ static bool rna_NodeTreeInterface_items_lookup_string(PointerRNA *ptr,
     }
   }
   for (bNodeTreeInterfaceItem *item : ntree->interface_items()) {
-    switch (NodeTreeInterfaceItemType(item->item_type)) {
+    switch (eNodeTreeInterfaceItemType(item->item_type)) {
       case NODE_INTERFACE_SOCKET: {
         bNodeTreeInterfaceSocket *socket = reinterpret_cast<bNodeTreeInterfaceSocket *>(item);
         if (STREQ(socket->name, key)) {
-          rna_pointer_create_with_ancestors(*ptr, &RNA_NodeTreeInterfaceSocket, socket, *r_ptr);
+          rna_pointer_create_with_ancestors(*ptr, RNA_NodeTreeInterfaceSocket, socket, *r_ptr);
           return true;
         }
         break;
@@ -1023,7 +1040,7 @@ static bool rna_NodeTreeInterface_items_lookup_string(PointerRNA *ptr,
       case NODE_INTERFACE_PANEL: {
         bNodeTreeInterfacePanel *panel = reinterpret_cast<bNodeTreeInterfacePanel *>(item);
         if (STREQ(panel->name, key)) {
-          rna_pointer_create_with_ancestors(*ptr, &RNA_NodeTreeInterfacePanel, panel, *r_ptr);
+          rna_pointer_create_with_ancestors(*ptr, RNA_NodeTreeInterfacePanel, panel, *r_ptr);
           return true;
         }
         break;
@@ -1051,7 +1068,11 @@ const EnumPropertyItem *RNA_node_tree_interface_socket_menu_itemf(bContext * /*C
   return RNA_node_enum_definition_itemf(*data->enum_items, r_free);
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static void rna_def_node_interface_item(BlenderRNA *brna)
 {
@@ -1199,6 +1220,22 @@ static void rna_def_node_interface_socket(BlenderRNA *brna)
       prop, "Menu Expanded", "Draw the menu socket as an expanded drop-down menu");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
 
+  prop = RNA_def_property(srna, "optional_label", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", NODE_INTERFACE_SOCKET_OPTIONAL_LABEL);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(
+      prop,
+      "Optional Label",
+      "Indicate that the label of this socket is not necessary to understand its meaning. This "
+      "may result in the label being skipped in some cases");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
+
+  prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", NODE_INTERFACE_SOCKET_SELECT);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Select", "Socket is selected in the interface");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
+
   prop = RNA_def_property(srna, "attribute_domain", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_attribute_domain_items);
   RNA_def_property_enum_funcs(
@@ -1299,6 +1336,12 @@ static void rna_def_node_interface_panel(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Default Closed", "Panel is closed by default on new nodes");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
 
+  prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", NODE_INTERFACE_PANEL_SELECT);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Select", "Panel is selected in the interface");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
+
   prop = RNA_def_property(srna, "interface_items", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, nullptr, "items_array", "items_num");
   RNA_def_property_struct_type(prop, "NodeTreeInterfaceItem");
@@ -1320,6 +1363,8 @@ static void rna_def_node_tree_interface_items_api(StructRNA *srna)
 
   prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, nullptr, "active_index");
+  RNA_def_property_int_funcs(
+      prop, nullptr, "rna_NodeTreeInterfaceItems_active_index_set", nullptr);
   RNA_def_property_ui_text(prop, "Active Index", "Index of the active item");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_NODE, nullptr);
@@ -1472,5 +1517,7 @@ void RNA_def_node_tree_interface(BlenderRNA *brna)
 
   rna_def_node_socket_interface_subtypes(brna);
 }
+
+}  // namespace blender
 
 #endif

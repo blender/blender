@@ -133,6 +133,11 @@ struct MeshData {
                     Span<int> corner_verts,
                     Span<float2> uv_map,
                     Span<float3> vert_positions);
+
+  bool is_edge_manifold(const int edge_id) const
+  {
+    return edge_to_primitive_map[edge_id].size() == 2;
+  }
 };
 
 struct UVVertex {

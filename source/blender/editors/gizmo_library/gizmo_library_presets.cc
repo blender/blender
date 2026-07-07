@@ -24,6 +24,8 @@
 #include "ED_gizmo_library.hh"     /* own include */
 #include "gizmo_library_intern.hh" /* own include */
 
+namespace blender {
+
 /* TODO: this is to be used by RNA. might move to ED_gizmo_library. */
 
 /**
@@ -91,3 +93,5 @@ void ED_gizmo_draw_preset_circle(const wmGizmo *gz, const float mat[4][4], int a
   single_axis_convert(OB_POSZ, mat, axis, mat_rotate);
   ed_gizmo_draw_preset_geometry(gz, mat_rotate, select_id, &wm_gizmo_geom_data_dial);
 }
+
+}  // namespace blender

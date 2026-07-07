@@ -11,6 +11,7 @@
 #include <memory>
 #include <vector>
 
+#include "GHOST_Types.hh"
 #include "GHOST_Xr_openxr_includes.hh"
 
 #define CHECK_XR(call, error_msg) \

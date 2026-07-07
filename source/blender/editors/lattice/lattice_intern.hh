@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 struct wmOperatorType;
 
 /* `editlattice_select.cc` */
@@ -23,3 +25,5 @@ void LATTICE_OT_select_mirror(wmOperatorType *ot);
 
 void LATTICE_OT_make_regular(wmOperatorType *ot);
 void LATTICE_OT_flip(wmOperatorType *ot);
+
+}  // namespace blender

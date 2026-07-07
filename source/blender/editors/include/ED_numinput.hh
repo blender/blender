@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 #define NUM_STR_REP_LEN 64
 #define NUM_MAX_ELEMENTS 3
 
@@ -102,3 +104,5 @@ bool user_string_to_number(bContext *C,
                            char **r_error);
 
 /** \} */
+
+}  // namespace blender

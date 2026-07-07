@@ -10,10 +10,11 @@
  * This is used by alpha blended materials and materials using Shader to RGB nodes.
  */
 
+#include "draw_model_lib.glsl"
 #include "eevee_colorspace_lib.glsl"
 #include "eevee_light_eval_lib.glsl"
 #include "eevee_lightprobe_eval_lib.glsl"
-#include "eevee_nodetree_lib.glsl"
+#include "eevee_nodetree_closures_lib.glsl"
 #include "eevee_subsurface_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
 
@@ -26,15 +27,15 @@
 #  error Closure data count and eval count must match
 #endif
 
-void forward_lighting_eval(float thickness, out float3 radiance, out float3 transmittance)
+void forward_lighting_eval(float thickness, float3 &radiance, float3 &transmittance)
 {
   float vPz = dot(drw_view_forward(), g_data.P) - dot(drw_view_forward(), drw_view_position());
   float3 V = drw_world_incident_vector(g_data.P);
 
   ClosureLightStack stack;
   for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT; i++) {
-    ClosureUndetermined cl = g_closure_get(i);
-    closure_light_set(stack, i, closure_light_new(cl, V));
+    ClosureUndetermined cl = g_closure_get(uchar(i));
+    closure_light_set(stack, uchar(i), closure_light_new(cl, V));
   }
 
   /* TODO(fclem): If transmission (no SSS) is present, we could reduce LIGHT_CLOSURE_EVAL_COUNT
@@ -49,7 +50,7 @@ void forward_lighting_eval(float thickness, out float3 radiance, out float3 tran
 #if defined(MAT_SUBSURFACE) || defined(MAT_REFRACTION) || defined(MAT_TRANSLUCENT)
 
   ClosureUndetermined cl_transmit = g_closure_get(0);
-  if (cl_transmit.type != CLOSURE_NONE) {
+  if (cl_transmit.type != CLOSURE_NONE_ID) {
 #  if defined(MAT_SUBSURFACE)
     float3 sss_reflect_shadowed, sss_reflect_unshadowed;
     if (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) {
@@ -58,18 +59,24 @@ void forward_lighting_eval(float thickness, out float3 radiance, out float3 tran
     }
 #  endif
 
-    stack.cl[0] = closure_light_new(cl_transmit, V, thickness);
+    if ((cl_transmit.type == CLOSURE_BSDF_TRANSLUCENT_ID ||
+         cl_transmit.type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID ||
+         cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) &&
+        (thickness != 0.0f))
+    {
+      stack.cl[0] = closure_light_new(cl_transmit, V, thickness);
 
-    /* NOTE: Only evaluates `stack.cl[0]`. */
-    light_eval_transmission(stack,
-                            g_data.P,
-                            g_data.Ng,
-                            V,
-                            vPz,
-                            thickness,
-                            receiver_light_set,
-                            normal_offset,
-                            geometry_offset);
+      /* NOTE: Only evaluates `stack.cl[0]`. */
+      light_eval_transmission(stack,
+                              g_data.P,
+                              g_data.Ng,
+                              V,
+                              vPz,
+                              thickness,
+                              receiver_light_set,
+                              normal_offset,
+                              geometry_offset);
+    }
 
 #  if defined(MAT_SUBSURFACE)
     if (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) {
@@ -114,9 +121,14 @@ void forward_lighting_eval(float thickness, out float3 radiance, out float3 tran
   /* Light clamping. */
   float clamp_direct = uniform_buf.clamp.surface_direct;
   float clamp_indirect = uniform_buf.clamp.surface_indirect;
+
   radiance_direct = colorspace_brightness_clamp_max(radiance_direct, clamp_direct);
   radiance_indirect = colorspace_brightness_clamp_max(radiance_indirect, clamp_indirect);
 
+  radiance_direct *= uniform_buf.clamp.direct_scale;
+  radiance_indirect *= uniform_buf.clamp.indirect_scale;
+
   radiance = radiance_direct + radiance_indirect + g_emission;
+
   transmittance = g_transmittance;
 }

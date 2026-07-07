@@ -10,25 +10,28 @@
 
 #include "tree_element.hh"
 
-namespace blender::bke::greasepencil {
+namespace blender {
+
+namespace bke::greasepencil {
 class TreeNode;
-}  // namespace blender::bke::greasepencil
+}  // namespace bke::greasepencil
 struct GreasePencil;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 class TreeElementGreasePencilNode final : public AbstractTreeElement {
   GreasePencil &owner_grease_pencil_;
-  blender::bke::greasepencil::TreeNode &node_;
+  bke::greasepencil::TreeNode &node_;
 
  public:
   TreeElementGreasePencilNode(TreeElement &legacy_te,
                               GreasePencil &owner_grease_pencil,
-                              blender::bke::greasepencil::TreeNode &node);
+                              bke::greasepencil::TreeNode &node);
 
   void expand(SpaceOutliner & /*soops*/) const override;
 
-  blender::bke::greasepencil::TreeNode &node() const;
+  bke::greasepencil::TreeNode &node() const;
 };
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

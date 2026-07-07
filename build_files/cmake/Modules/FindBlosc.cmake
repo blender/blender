@@ -57,7 +57,7 @@ if(BLOSC_FOUND)
   set(BLOSC_LIBRARIES ${BLOSC_LIBRARY})
   set(BLOSC_INCLUDE_DIRS ${BLOSC_INCLUDE_DIR})
 else()
-  set(BLOSC_BLOSC_FOUND FALSE)
+  set(BLOSC_FOUND FALSE)
 endif()
 
 mark_as_advanced(

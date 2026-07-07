@@ -1,0 +1,68 @@
+diff --git a/hiprt/hiprt_libpath.h b/hiprt/hiprt_libpath.h
+index 58daa96..f0fb339 100644
+--- a/hiprt/hiprt_libpath.h
++++ b/hiprt/hiprt_libpath.h
+@@ -34,7 +34,7 @@
+ #ifdef HIPRT_PREFER_HIP_5
+ const char* g_hip_paths[] = { "amdhip64.dll", "amdhip64_6.dll", NULL };
+ #else
+-const char* g_hip_paths[] = { "amdhip64_6.dll", "amdhip64.dll", NULL };
++const char* g_hip_paths[] = { "amdhip64_6.dll", "amdhip64_7.dll", "amdhip64.dll", NULL };
+ #endif
+ 
+ const char* g_hiprtc_paths[] = {
+@@ -72,9 +72,13 @@ const char* g_hip_paths[] = {
+ 	"/opt/rocm/lib/libamdhip64.so",
+ 	"/opt/rocm/hip/lib/libamdhip64.so",
+ 
+-	"libamdhip64.so.5",
+-	"/opt/rocm/lib/libamdhip64.so.5",
+-	"/opt/rocm/hip/lib/libamdhip64.so.5",
++	"libamdhip64.so.6",
++	"/opt/rocm/lib/libamdhip64.so.6",
++	"/opt/rocm/hip/lib/libamdhip64.so.6",
++
++	"libamdhip64.so.7",
++	"/opt/rocm/lib/libamdhip64.so.7",
++	"/opt/rocm/hip/lib/libamdhip64.so.7",
+ 	NULL };
+ #endif
+ 
+diff --git a/hiprt/impl/hiprt_device_impl.h b/hiprt/impl/hiprt_device_impl.h
+index 0687234..bc0737a 100644
+--- a/hiprt/impl/hiprt_device_impl.h
++++ b/hiprt/impl/hiprt_device_impl.h
+@@ -362,10 +362,10 @@ TraversalBase<Stack>::testInternalNode( const hiprtRay& ray, const float3& invD,
+ 	auto result = __builtin_amdgcn_image_bvh_intersect_ray_l(
+ 		encodeBaseAddr( nodes, nodeIndex ),
+ 		ray.maxT,
+-		float4{ ray.origin.x, ray.origin.y, ray.origin.z, 0.0f }.data,
+-		float4{ ray.direction.x, ray.direction.y, ray.direction.z, 0.0f }.data,
+-		float4{ invD.x, invD.y, invD.z, 0.0f }.data,
+-		m_descriptor.data );
++		{ ray.origin.x, ray.origin.y, ray.origin.z, 0.0f },
++		{ ray.direction.x, ray.direction.y, ray.direction.z, 0.0f },
++		{ invD.x, invD.y, invD.z, 0.0f },
++		{ m_descriptor.x, m_descriptor.y, m_descriptor.z, m_descriptor.w } );
+ #endif
+ 	if ( m_stack.vacancy() < 3 )
+ 	{
+@@ -397,11 +397,13 @@ HIPRT_DEVICE bool TraversalBase<Stack>::testTriangleNode(
+ 		hit.normal = node.m_triPair.fetchTriangle( leafIndex & 1 ).normal( node.m_flags >> ( ( leafIndex & 1 ) * 8 ) );
+ 	}
+ #else
+-	const float4 origin	   = float4{ ray.origin.x, ray.origin.y, ray.origin.z, 0.0f };
+-	const float4 direction = float4{ ray.direction.x, ray.direction.y, ray.direction.z, 0.0f };
+-	const float4 invDir	   = float4{ invD.x, invD.y, invD.z, 0.0f };
+-	auto		 result	   = __builtin_amdgcn_image_bvh_intersect_ray_l(
+-		   encodeBaseAddr( nodes, leafIndex ), ray.maxT, origin.data, direction.data, invDir.data, m_descriptor.data );
++	auto result = __builtin_amdgcn_image_bvh_intersect_ray_l(
++		encodeBaseAddr( nodes, leafIndex ),
++		ray.maxT,
++		{ ray.origin.x, ray.origin.y, ray.origin.z, 0.0f },
++		{ ray.direction.x, ray.direction.y, ray.direction.z, 0.0f },
++		{ invD.x, invD.y, invD.z, 0.0f },
++		{ m_descriptor.x, m_descriptor.y, m_descriptor.z, m_descriptor.w } );
+ 	float invDenom = __ocml_native_recip_f32( __int_as_float( result[1] ) );
+ 	float t		   = __int_as_float( result[0] ) * invDenom;
+ 	hasHit		   = ray.minT <= t && t <= ray.maxT;

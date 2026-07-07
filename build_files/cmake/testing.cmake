@@ -48,7 +48,7 @@ endfunction()
 
 macro(blender_src_gtest_ex)
   if(WITH_GTESTS)
-    set(options)
+    set(options "")
     set(oneValueArgs NAME)
     set(multiValueArgs SRC EXTRA_LIBS COMMAND_ARGS)
     cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -65,8 +65,6 @@ macro(blender_src_gtest_ex)
       ${CMAKE_SOURCE_DIR}/tests/gtests
     )
     set(TEST_INC_SYS
-      ${GLOG_INCLUDE_DIRS}
-      ${GFLAGS_INCLUDE_DIRS}
       ${CMAKE_SOURCE_DIR}/extern/gtest/include
       ${CMAKE_SOURCE_DIR}/extern/gmock/include
     )
@@ -79,8 +77,6 @@ macro(blender_src_gtest_ex)
 
     add_executable(${TARGET_NAME} ${ARG_SRC} ${MANIFEST})
     setup_platform_linker_flags(${TARGET_NAME})
-    target_compile_definitions(${TARGET_NAME} PRIVATE ${GFLAGS_DEFINES})
-    target_compile_definitions(${TARGET_NAME} PRIVATE ${GLOG_DEFINES})
     target_include_directories(${TARGET_NAME} PUBLIC "${TEST_INC}")
     target_include_directories(${TARGET_NAME} SYSTEM PUBLIC "${TEST_INC_SYS}")
     blender_link_libraries(${TARGET_NAME} "${ARG_EXTRA_LIBS};${PLATFORM_LINKLIBS}")
@@ -100,20 +96,14 @@ macro(blender_src_gtest_ex)
                           extern_gtest
                           extern_gmock
                           # Needed for GLOG.
-                          ${GLOG_LIBRARIES}
-                          ${GFLAGS_LIBRARIES})
+                          bf::dependencies::glog
+                          bf::dependencies::gflags
+                          bf::dependencies::pthreads
+                          bf::dependencies::optional::tbb
+                          bf::dependencies::optional::gmp)
 
-    if(DEFINED PTHREADS_LIBRARIES) # Needed for GLOG.
-      target_link_libraries(${TARGET_NAME} PRIVATE ${PTHREADS_LIBRARIES})
-    endif()
     if(UNIX AND NOT APPLE)
       target_link_libraries(${TARGET_NAME} PRIVATE bf_intern_libc_compat)
-    endif()
-    if(WITH_TBB)
-      target_link_libraries(${TARGET_NAME} PRIVATE ${TBB_LIBRARIES})
-    endif()
-    if(WITH_GMP)
-      target_link_libraries(${TARGET_NAME} PRIVATE ${GMP_LIBRARIES})
     endif()
 
     get_blender_test_install_dir(TEST_INSTALL_DIR)
@@ -203,7 +193,7 @@ endfunction()
 # blender_add_test_suite_executable.
 #
 # The function accepts an optional argument which denotes list of sources which
-# is to be compiled-in with the suite sources for each fo the suites when the
+# is to be compiled-in with the suite sources for each of the suites when the
 # WITH_TESTS_SINGLE_BINARY configuration is set to OFF.
 function(blender_add_test_suite_lib
   name
@@ -213,7 +203,7 @@ function(blender_add_test_suite_lib
   library_deps
   )
 
-  # Sources which are common for all suits and do not need to yield their own
+  # Sources which are common for all suites and do not need to yield their own
   # test suite binaries when WITH_TESTS_SINGLE_BINARY is OFF.
   set(common_sources ${ARGN})
 
@@ -229,10 +219,12 @@ function(blender_add_test_suite_lib
       ${CMAKE_SOURCE_DIR}/tests/gtests
     )
     list(APPEND includes_sys
-      ${GLOG_INCLUDE_DIRS}
-      ${GFLAGS_INCLUDE_DIRS}
       ${CMAKE_SOURCE_DIR}/extern/gtest/include
       ${CMAKE_SOURCE_DIR}/extern/gmock/include
+    )
+    list(APPEND library_deps
+      bf::dependencies::gflags
+      bf::dependencies::glog
     )
 
     blender_add_lib__impl(${name}_tests
@@ -271,7 +263,7 @@ function(blender_add_test_executable_impl
   )
 
   set(oneValueArgs ADD_CTESTS DISCOVER_TESTS)
-  set(multiValueArgs)
+  set(multiValueArgs "")
   cmake_parse_arguments(ARGS "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
   unset(oneValueArgs)
   unset(multiValueArgs)
@@ -315,7 +307,7 @@ endfunction()
 # very large executable, blender_add_test_suite_lib() should be used instead.
 #
 # The function accepts an optional argument which denotes list of sources which
-# is to be compiled-in with the suit sources for each fo the suites when the
+# is to be compiled-in with the suite sources for each of the suites when the
 # WITH_TESTS_SINGLE_BINARY configuration is set to OFF.
 function(blender_add_test_suite_executable
   name
@@ -325,8 +317,8 @@ function(blender_add_test_suite_executable
   library_deps
   )
 
-  # Sources which are common for all suits and do not need to yield their own
-  # test suit binaries when WITH_TESTS_SINGLE_BINARY is OFF.
+  # Sources which are common for all suites and do not need to yield their own
+  # test suite binaries when WITH_TESTS_SINGLE_BINARY is OFF.
   set(common_sources ${ARGN})
 
   if(WITH_TESTS_SINGLE_BINARY)
@@ -371,7 +363,7 @@ function(blender_add_test_suite_executable
         # perform search of _PyBaseObject_Type on startup.
         #
         # Work-around by telling the linker that the python libraries should not be stripped.
-        if(APPLE)
+        if(APPLE AND NOT WITH_PYTHON_MODULE)
           target_link_libraries("${_test_name}_test" PRIVATE "-Wl,-force_load,${PYTHON_LIBRARIES}")
         endif()
 

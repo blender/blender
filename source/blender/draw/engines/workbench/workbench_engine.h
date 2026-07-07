@@ -10,11 +10,13 @@
 
 #include "DRW_render.hh"
 
+namespace blender {
+
 struct RenderEngineType;
 
 extern RenderEngineType DRW_engine_viewport_workbench_type;
 
-namespace blender::workbench {
+namespace workbench {
 
 struct Engine : public DrawEngine::Pointer {
   DrawEngine *create_instance() final;
@@ -22,4 +24,5 @@ struct Engine : public DrawEngine::Pointer {
   static void free_static();
 };
 
-}  // namespace blender::workbench
+}  // namespace workbench
+}  // namespace blender

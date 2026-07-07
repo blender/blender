@@ -33,6 +33,8 @@
 
 #include "BLI_astar.h"
 
+namespace blender {
+
 void BLI_astar_node_init(BLI_AStarGraph *as_graph, const int node_index, void *custom_data)
 {
   as_graph->nodes[node_index].custom_data = custom_data;
@@ -221,3 +223,5 @@ bool BLI_astar_graph_solve(BLI_AStarGraph *as_graph,
   BLI_heapsimple_free(todo_nodes, nullptr);
   return false;
 }
+
+}  // namespace blender

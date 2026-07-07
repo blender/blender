@@ -14,9 +14,11 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"gpu.vulkan"};
 
-namespace blender::gpu {
+namespace gpu {
 
 void VKIndexBuffer::ensure_updated()
 {
@@ -39,7 +41,7 @@ void VKIndexBuffer::ensure_updated()
 
   if (!data_uploaded_ && buffer_.is_mapped()) {
     buffer_.update_immediately(data_);
-    MEM_SAFE_FREE(data_);
+    MEM_SAFE_DELETE_VOID(data_);
   }
   else {
     VKContext &context = *VKContext::get();
@@ -58,7 +60,7 @@ void VKIndexBuffer::ensure_updated()
           "drawing artifacts due to read from uninitialized memory.");
       buffer_.clear(context, 0u);
     }
-    MEM_SAFE_FREE(data_);
+    MEM_SAFE_DELETE_VOID(data_);
   }
 
   data_uploaded_ = true;
@@ -111,8 +113,7 @@ void VKIndexBuffer::allocate()
   buffer_.create(size_get(),
                  VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT |
                      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                 VkMemoryPropertyFlags(0),
+                 VMA_MEMORY_USAGE_AUTO,
                  VmaAllocationCreateFlags(0),
                  0.8f);
   debug::object_label(buffer_.vk_handle(), "IndexBuffer");
@@ -127,4 +128,5 @@ VKBuffer &VKIndexBuffer::buffer_get()
   return is_subrange_ ? unwrap(src_)->buffer_ : buffer_;
 }
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

@@ -12,9 +12,11 @@
 
 #define TEXT_DOMAIN_NAME "blender"
 
-bool BLT_is_default_context(blender::StringRef msgctxt);
+namespace blender {
+
+bool BLT_is_default_context(StringRef msgctxt);
 const char *BLT_pgettext(const char *msgctxt, const char *msgid);
-blender::StringRef BLT_pgettext(blender::StringRef msgctxt, blender::StringRef msgid);
+StringRef BLT_pgettext(StringRef msgctxt, StringRef msgid);
 
 /* Translation */
 /* - iface includes buttons in the user interface: short labels displayed in windows, panels,
@@ -28,16 +30,15 @@ bool BLT_translate_tooltips();
 bool BLT_translate_reports();
 bool BLT_translate_new_dataname();
 const char *BLT_translate_do(const char *msgctxt, const char *msgid);
-blender::StringRef BLT_translate_do(blender::StringRef msgctxt, blender::StringRef msgid);
+StringRef BLT_translate_do(StringRef msgctxt, StringRef msgid);
 const char *BLT_translate_do_iface(const char *msgctxt, const char *msgid);
-blender::StringRef BLT_translate_do_iface(blender::StringRef msgctxt, blender::StringRef msgid);
+StringRef BLT_translate_do_iface(StringRef msgctxt, StringRef msgid);
 const char *BLT_translate_do_tooltip(const char *msgctxt, const char *msgid);
-blender::StringRef BLT_translate_do_tooltip(blender::StringRef msgctxt, blender::StringRef msgid);
+StringRef BLT_translate_do_tooltip(StringRef msgctxt, StringRef msgid);
 const char *BLT_translate_do_report(const char *msgctxt, const char *msgid);
-blender::StringRef BLT_translate_do_report(blender::StringRef msgctxt, blender::StringRef msgid);
+StringRef BLT_translate_do_report(StringRef msgctxt, StringRef msgid);
 const char *BLT_translate_do_new_dataname(const char *msgctxt, const char *msgid);
-blender::StringRef BLT_translate_do_new_dataname(blender::StringRef msgctxt,
-                                                 blender::StringRef msgid);
+StringRef BLT_translate_do_new_dataname(StringRef msgctxt, StringRef msgid);
 
 /* The "translation-marker" macro. */
 #define N_(msgid) msgid
@@ -89,6 +90,18 @@ blender::StringRef BLT_translate_do_new_dataname(blender::StringRef msgctxt,
 /* Mark the msgid applies to several elements
  * (needed in some cases, as English adjectives have no plural mark :( ). */
 #define BLT_I18NCONTEXT_PLURAL "Plural"
+
+/* Some words can be either countable or uncountable in English, but translate to different words
+ * in other languages. An example is "Amount", which can refer to "a number of things", countable,
+ * or "a quantity or volume", uncountable. */
+#define BLT_I18NCONTEXT_COUNTABLE "Countable"
+
+/* Special cases when translation cannot be avoided, for example in an interface where some props
+ * are built-in (translatable) and others are user-defined (non-translatable), but we don't know
+ * which ones in advance.
+ * It allows specifying explicitly that translation should not occur for user data when building
+ * the UI. */
+#define BLT_I18NCONTEXT_NO_TRANSLATION "Do not translate"
 
 /* ID-types contexts. */
 /* WARNING! Keep it in sync with ID-types in `blenkernel/intern/idtype.cc`. */
@@ -159,10 +172,7 @@ struct BLT_i18n_contexts_descriptor {
   const char *value;
 };
 
-#define BLT_I18NCONTEXTS_ITEM(ctxt_id, py_id) \
-  { \
-    #ctxt_id, py_id, ctxt_id \
-  }
+#define BLT_I18NCONTEXTS_ITEM(ctxt_id, py_id) {#ctxt_id, py_id, ctxt_id}
 
 #define BLT_I18NCONTEXTS_DESC \
   { \
@@ -171,8 +181,10 @@ struct BLT_i18n_contexts_descriptor {
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "operator_default"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_UI_EVENTS, "ui_events_keymaps"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_PLURAL, "plural"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_COUNTABLE, "countable"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_ACTION, "id_action"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_ARMATURE, "id_armature"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_NO_TRANSLATION, "no_translation"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_BRUSH, "id_brush"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_CACHEFILE, "id_cachefile"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_CAMERA, "id_camera"), \
@@ -230,3 +242,5 @@ struct BLT_i18n_contexts_descriptor {
       NULL, NULL, NULL \
     } \
   }
+
+}  // namespace blender

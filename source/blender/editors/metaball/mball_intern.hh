@@ -10,6 +10,8 @@
 
 #include "DNA_windowmanager_types.h"
 
+namespace blender {
+
 void MBALL_OT_hide_metaelems(wmOperatorType *ot);
 void MBALL_OT_reveal_metaelems(wmOperatorType *ot);
 
@@ -19,3 +21,5 @@ void MBALL_OT_duplicate_metaelems(wmOperatorType *ot);
 void MBALL_OT_select_all(wmOperatorType *ot);
 void MBALL_OT_select_similar(wmOperatorType *ot);
 void MBALL_OT_select_random_metaelems(wmOperatorType *ot);
+
+}  // namespace blender

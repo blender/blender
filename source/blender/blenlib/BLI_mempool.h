@@ -12,6 +12,8 @@
 
 #include <type_traits>
 
+namespace blender {
+
 struct BLI_mempool;
 struct BLI_mempool_chunk;
 
@@ -119,3 +121,5 @@ void BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter) ATTR_NONNULL
  * Step over the iterator, returning the mempool item or NULL.
  */
 void *BLI_mempool_iterstep(BLI_mempool_iter *iter) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+
+}  // namespace blender

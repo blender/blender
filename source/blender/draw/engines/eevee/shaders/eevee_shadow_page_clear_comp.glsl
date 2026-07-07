@@ -8,7 +8,7 @@
  * Equivalent to a frame-buffer depth clear but only for pages pushed to the clear_page_buf.
  */
 
-#include "infos/eevee_shadow_info.hh"
+#include "infos/eevee_shadow_pipeline_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_shadow_page_clear)
 

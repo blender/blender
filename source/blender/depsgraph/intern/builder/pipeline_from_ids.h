@@ -26,7 +26,7 @@ class FromIDsBuilderPipeline : public AbstractBuilderPipeline {
   Span<ID *> ids_;
 
  public:
-  FromIDsBuilderPipeline(::Depsgraph *graph, Span<ID *> ids);
+  FromIDsBuilderPipeline(blender::Depsgraph *graph, Span<ID *> ids);
 
  protected:
   std::unique_ptr<DepsgraphNodeBuilder> construct_node_builder() override;

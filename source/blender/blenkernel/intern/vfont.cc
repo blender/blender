@@ -43,6 +43,8 @@
 
 #include "BLO_read_write.hh"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"geom.vfont"};
 
 /* -------------------------------------------------------------------- */
@@ -62,7 +64,7 @@ int builtin_font_size = 0;
 
 static void vfont_init_data(ID *id)
 {
-  VFont *vfont = (VFont *)id;
+  VFont *vfont = id_cast<VFont *>(id);
   PackedFile *pf = packedfile_new_from_builtin();
 
   if (pf) {
@@ -86,7 +88,7 @@ static void vfont_copy_data(Main * /*bmain*/,
                             const ID * /*id_src*/,
                             const int flag)
 {
-  VFont *vfont_dst = (VFont *)id_dst;
+  VFont *vfont_dst = id_cast<VFont *>(id_dst);
 
   /* We never handle user-count here for own data. */
   const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
@@ -106,7 +108,7 @@ static void vfont_copy_data(Main * /*bmain*/,
 /** Free (or release) any data used by this font (does not free the font itself). */
 static void vfont_free_data(ID *id)
 {
-  VFont *vfont = (VFont *)id;
+  VFont *vfont = id_cast<VFont *>(id);
   BKE_vfont_data_free(vfont);
 
   if (vfont->packedfile) {
@@ -117,7 +119,7 @@ static void vfont_free_data(ID *id)
 
 static void vfont_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
-  VFont *vfont = (VFont *)id;
+  VFont *vfont = id_cast<VFont *>(id);
 
   if ((vfont->packedfile != nullptr) &&
       (bpath_data->flag & BKE_BPATH_FOREACH_PATH_SKIP_PACKED) != 0)
@@ -134,7 +136,7 @@ static void vfont_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 
 static void vfont_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  VFont *vf = (VFont *)id;
+  VFont *vf = id_cast<VFont *>(id);
   const bool is_undo = BLO_write_is_undo(writer);
 
   /* Clean up, important in undo case to reduce false detection of changed datablocks. */
@@ -147,7 +149,7 @@ static void vfont_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   }
 
   /* write LibData */
-  BLO_write_id_struct(writer, VFont, id_address, &vf->id);
+  writer->write_id_struct(id_address, vf);
   BKE_id_blend_write(writer, &vf->id);
 
   /* direct data */
@@ -156,7 +158,7 @@ static void vfont_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 
 static void vfont_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  VFont *vf = (VFont *)id;
+  VFont *vf = id_cast<VFont *>(id);
   vf->data = nullptr;
   vf->temp_pf = nullptr;
   BKE_packedfile_blend_read(reader, &vf->packedfile, vf->filepath);
@@ -243,9 +245,7 @@ void BKE_vfont_data_free(VFont *vfont)
 {
   if (vfont->data) {
     if (vfont->data->characters) {
-      GHashIterator gh_iter;
-      GHASH_ITER (gh_iter, vfont->data->characters) {
-        VChar *che = static_cast<VChar *>(BLI_ghashIterator_getValue(&gh_iter));
+      for (VChar *che : vfont->data->characters->values()) {
         if (che == nullptr) {
           continue;
         }
@@ -253,18 +253,18 @@ void BKE_vfont_data_free(VFont *vfont)
         while (che->nurbsbase.first) {
           Nurb *nu = static_cast<Nurb *>(che->nurbsbase.first);
           if (nu->bezt) {
-            MEM_freeN(nu->bezt);
+            MEM_delete(nu->bezt);
           }
           BLI_freelinkN(&che->nurbsbase, nu);
         }
 
-        MEM_freeN(che);
+        MEM_delete(che);
       }
 
-      BLI_ghash_free(vfont->data->characters, nullptr, nullptr);
+      MEM_delete(vfont->data->characters);
     }
 
-    MEM_freeN(vfont->data);
+    MEM_delete(vfont->data);
     vfont->data = nullptr;
   }
 
@@ -293,7 +293,7 @@ static PackedFile *packedfile_new_from_builtin()
     return nullptr;
   }
 
-  void *mem = MEM_mallocN(builtin_font_size, "vfd_builtin");
+  void *mem = MEM_new_uninitialized(builtin_font_size, "vfd_builtin");
 
   memcpy(mem, builtin_font_data, builtin_font_size);
 
@@ -359,16 +359,16 @@ VFont *BKE_vfont_load_exists_ex(Main *bmain, const char *filepath, bool *r_exist
   BLI_path_abs(filepath_abs, BKE_main_blendfile_path(bmain));
 
   /* first search an identical filepath */
-  LISTBASE_FOREACH (VFont *, vfont, &bmain->fonts) {
-    STRNCPY(filepath_test, vfont->filepath);
-    BLI_path_abs(filepath_test, ID_BLEND_PATH(bmain, &vfont->id));
+  for (VFont &vfont : bmain->fonts) {
+    STRNCPY(filepath_test, vfont.filepath);
+    BLI_path_abs(filepath_test, ID_BLEND_PATH(bmain, &vfont.id));
 
     if (BLI_path_cmp(filepath_test, filepath_abs) == 0) {
-      id_us_plus(&vfont->id); /* officially should not, it doesn't link here! */
+      id_us_plus(&vfont.id); /* officially should not, it doesn't link here! */
       if (r_exists) {
         *r_exists = true;
       }
-      return vfont;
+      return &vfont;
     }
   }
 
@@ -385,9 +385,9 @@ VFont *BKE_vfont_load_exists(Main *bmain, const char *filepath)
 
 VFont *BKE_vfont_builtin_ensure()
 {
-  LISTBASE_FOREACH (VFont *, vfont, &G_MAIN->fonts) {
-    if (BKE_vfont_is_builtin(vfont)) {
-      return vfont;
+  for (VFont &vfont : G_MAIN->fonts) {
+    if (BKE_vfont_is_builtin(&vfont)) {
+      return &vfont;
     }
   }
 
@@ -397,6 +397,21 @@ VFont *BKE_vfont_builtin_ensure()
   id_us_min(&vfont->id);
   BLI_assert(vfont->id.us == 0);
   return vfont;
+}
+
+void BKE_vfont_packfile_ensure(Main *bmain, VFont *vfont, ReportList *reports)
+{
+  if (vfont->packedfile != nullptr) {
+    /* Font is already packed and considered unmodified, do not attempt to repack it, since its
+     * original file may not be available anymore on the current FS.
+     *
+     * See #152638.
+     */
+    return;
+  }
+
+  vfont->packedfile = BKE_packedfile_new(
+      reports, vfont->filepath, ID_BLEND_PATH(bmain, &vfont->id));
 }
 
 /** \} */
@@ -470,8 +485,8 @@ static struct {
 
 void BKE_vfont_clipboard_free()
 {
-  MEM_SAFE_FREE(g_vfont_clipboard.text_buffer);
-  MEM_SAFE_FREE(g_vfont_clipboard.info_buffer);
+  MEM_SAFE_DELETE(g_vfont_clipboard.text_buffer);
+  MEM_SAFE_DELETE(g_vfont_clipboard.info_buffer);
   g_vfont_clipboard.len_utf32 = 0;
   g_vfont_clipboard.len_utf8 = 0;
 }
@@ -484,14 +499,14 @@ void BKE_vfont_clipboard_set(const char32_t *text_buf, const CharInfo *info_buf,
   /* Clean previous buffers. */
   BKE_vfont_clipboard_free();
 
-  text = MEM_malloc_arrayN<char32_t>((len + 1), __func__);
+  text = MEM_new_array_uninitialized<char32_t>((len + 1), __func__);
   if (text == nullptr) {
     return;
   }
 
-  info = MEM_malloc_arrayN<CharInfo>(len, __func__);
+  info = MEM_new_array<CharInfo>(len, __func__);
   if (info == nullptr) {
-    MEM_freeN(text);
+    MEM_delete(text);
     return;
   }
 
@@ -529,3 +544,5 @@ void BKE_vfont_clipboard_get(char32_t **r_text_buf,
 }
 
 /** \} */
+
+}  // namespace blender

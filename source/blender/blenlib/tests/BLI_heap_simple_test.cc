@@ -13,6 +13,8 @@
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 
+namespace blender {
+
 #define SIZE 1024
 
 static void range_fl(float *array_tar, const int size)
@@ -41,7 +43,7 @@ TEST(heap, SimpleOne)
 
   heap = BLI_heapsimple_new();
 
-  BLI_heapsimple_insert(heap, 0.0f, (void *)in);
+  BLI_heapsimple_insert(heap, 0.0f, const_cast<char *>(in));
   EXPECT_FALSE(BLI_heapsimple_is_empty(heap));
   EXPECT_EQ(BLI_heapsimple_len(heap), 1);
   EXPECT_EQ(in, BLI_heapsimple_pop_min(heap));
@@ -95,7 +97,7 @@ TEST(heap, SimpleDuplicates)
 static void random_heapsimple_helper(const int items_total, const int random_seed)
 {
   HeapSimple *heap = BLI_heapsimple_new();
-  float *values = MEM_malloc_arrayN<float>(size_t(items_total), __func__);
+  float *values = MEM_new_array_uninitialized<float>(size_t(items_total), __func__);
   range_fl(values, items_total);
   BLI_array_randomize(values, sizeof(float), items_total, random_seed);
   for (int i = 0; i < items_total; i++) {
@@ -106,7 +108,7 @@ static void random_heapsimple_helper(const int items_total, const int random_see
   }
   EXPECT_TRUE(BLI_heapsimple_is_empty(heap));
   BLI_heapsimple_free(heap, nullptr);
-  MEM_freeN(values);
+  MEM_delete(values);
 }
 
 TEST(heap, SimpleRand1)
@@ -121,3 +123,5 @@ TEST(heap, SimpleRand100)
 {
   random_heapsimple_helper(100, 4321);
 }
+
+}  // namespace blender

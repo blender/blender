@@ -43,6 +43,8 @@
 
 #include "atomic_ops.h"
 
+namespace blender {
+
 static void gpu_material_ramp_texture_build(GPUMaterial *mat);
 static void gpu_material_sky_texture_build(GPUMaterial *mat);
 
@@ -61,7 +63,7 @@ struct GPUSkyBuilder {
 };
 
 struct GPUMaterial {
-  /* Contains #blender::gpu::Shader and source code for deferred compilation.
+  /* Contains #gpu::Shader and source code for deferred compilation.
    * Can be shared between materials sharing same node-tree topology. */
   GPUPass *pass = nullptr;
   /* Optimized GPUPass, situationally compiled after initial pass for optimal realtime performance.
@@ -70,7 +72,7 @@ struct GPUMaterial {
   GPUPass *optimized_pass = nullptr;
 
   /* UBOs for this material parameters. */
-  blender::gpu::UniformBuf *ubo = nullptr;
+  gpu::UniformBuf *ubo = nullptr;
   /* Some flags about the nodetree & the needed resources. */
   eGPUMaterialFlag flag = GPU_MATFLAG_UPDATED;
   /* The engine type this material is compiled for. */
@@ -83,11 +85,11 @@ struct GPUMaterial {
   /* Source material, might be null. */
   Material *source_material = nullptr;
   /* 1D Texture array containing all color bands. */
-  blender::gpu::Texture *coba_tex = nullptr;
+  gpu::Texture *coba_tex = nullptr;
   /* Builder for coba_tex. */
   GPUColorBandBuilder *coba_builder = nullptr;
   /* 2D Texture array containing all sky textures. */
-  blender::gpu::Texture *sky_tex = nullptr;
+  gpu::Texture *sky_tex = nullptr;
   /* Builder for sky_tex. */
   GPUSkyBuilder *sky_builder = nullptr;
   /* Low level node graph(s). Also contains resources needed by the material. */
@@ -99,11 +101,7 @@ struct GPUMaterial {
 
   std::string name;
 
-  GPUMaterial(eGPUMaterialEngine engine) : engine(engine)
-  {
-    graph.used_libraries = BLI_gset_new(
-        BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "GPUNodeGraph.used_libraries");
-  };
+  GPUMaterial(eGPUMaterialEngine engine) : engine(engine) {};
 
   ~GPUMaterial()
   {
@@ -119,7 +117,7 @@ struct GPUMaterial {
       GPU_uniformbuf_free(ubo);
     }
     if (coba_builder != nullptr) {
-      MEM_freeN(coba_builder);
+      MEM_delete(coba_builder);
     }
     if (coba_tex != nullptr) {
       GPU_texture_free(coba_tex);
@@ -135,7 +133,7 @@ struct GPUMaterial {
 GPUMaterialFromNodeTreeResult GPU_material_from_nodetree(
     Material *ma,
     bNodeTree *ntree,
-    ListBase *gpumaterials,
+    ListBaseT<LinkData> *gpumaterials,
     const char *name,
     eGPUMaterialEngine engine,
     uint64_t shader_uuid,
@@ -145,8 +143,8 @@ GPUMaterialFromNodeTreeResult GPU_material_from_nodetree(
     GPUMaterialPassReplacementCallbackFn pass_replacement_cb)
 {
   /* Search if this material is not already compiled. */
-  LISTBASE_FOREACH (LinkData *, link, gpumaterials) {
-    GPUMaterial *mat = (GPUMaterial *)link->data;
+  for (LinkData &link : *gpumaterials) {
+    GPUMaterial *mat = static_cast<GPUMaterial *>(link.data);
     if (mat->uuid == shader_uuid && mat->engine == engine) {
       if (!deferred_compilation) {
         GPU_pass_ensure_its_ready(mat->pass);
@@ -164,15 +162,14 @@ GPUMaterialFromNodeTreeResult GPU_material_from_nodetree(
   result.material = mat;
 
   /* Localize tree to create links for reroute and mute. */
-  bNodeTree *localtree = blender::bke::node_tree_add_tree(
-      nullptr, (blender::StringRef(ntree->id.name) + " Inlined").c_str(), ntree->idname);
-  blender::nodes::InlineShaderNodeTreeParams inline_params;
-  inline_params.allow_preserving_repeat_zones = false;
-  blender::nodes::inline_shader_node_tree(*ntree, *localtree, inline_params);
+  bNodeTree *localtree = bke::node_tree_add_tree(
+      nullptr, (StringRef(ntree->id.name) + " Inlined").c_str(), ntree->idname);
+  nodes::InlineShaderNodeTreeParams inline_params;
+  inline_params.allow_preserving_repeat_zones = true;
+  inline_params.target_engine_ = engine == GPU_MAT_EEVEE ? SHD_OUTPUT_EEVEE : SHD_OUTPUT_ALL;
+  nodes::inline_shader_node_tree(*ntree, *localtree, inline_params);
 
-  for (blender::nodes::InlineShaderNodeTreeParams::ErrorMessage &error :
-       inline_params.r_error_messages)
-  {
+  for (nodes::InlineShaderNodeTreeParams::ErrorMessage &error : inline_params.r_error_messages) {
     result.errors.append({error.node, std::move(error.message)});
   }
 
@@ -206,14 +203,14 @@ GPUMaterialFromNodeTreeResult GPU_material_from_nodetree(
   }
 
   gpu_node_graph_free_nodes(&mat->graph);
-  /* Only free after GPU_pass_shader_get where blender::gpu::UniformBuf read data from the local
+  /* Only free after GPU_pass_shader_get where gpu::UniformBuf read data from the local
    * tree. */
   BKE_id_free(nullptr, &localtree->id);
 
   /* Note that even if building the shader fails in some way, we want to keep
    * it to avoid trying to compile again and again, and simply do not use
    * the actual shader on drawing. */
-  LinkData *link = MEM_callocN<LinkData>("GPUMaterialLink");
+  LinkData *link = MEM_new_zeroed<LinkData>("GPUMaterialLink");
   link->data = mat;
   BLI_addtail(gpumaterials, link);
 
@@ -267,10 +264,10 @@ void GPU_material_free_single(GPUMaterial *material)
   MEM_delete(material);
 }
 
-void GPU_material_free(ListBase *gpumaterial)
+void GPU_material_free(ListBaseT<LinkData> *gpumaterial)
 {
-  LISTBASE_FOREACH (LinkData *, link, gpumaterial) {
-    GPUMaterial *material = static_cast<GPUMaterial *>(link->data);
+  for (LinkData &link : *gpumaterial) {
+    GPUMaterial *material = static_cast<GPUMaterial *>(link.data);
     GPU_material_free_single(material);
   }
   BLI_freelistN(gpumaterial);
@@ -278,12 +275,12 @@ void GPU_material_free(ListBase *gpumaterial)
 
 void GPU_materials_free(Main *bmain)
 {
-  LISTBASE_FOREACH (Material *, ma, &bmain->materials) {
-    GPU_material_free(&ma->gpumaterial);
+  for (Material &ma : bmain->materials) {
+    GPU_material_free(&ma.gpumaterial);
   }
 
-  LISTBASE_FOREACH (World *, wo, &bmain->worlds) {
-    GPU_material_free(&wo->gpumaterial);
+  for (World &wo : bmain->worlds) {
+    GPU_material_free(&wo.gpumaterial);
   }
 
   BKE_material_defaults_free_gpu();
@@ -313,12 +310,12 @@ GPUPass *GPU_material_get_pass(GPUMaterial *material)
              material->pass;
 }
 
-blender::gpu::Shader *GPU_material_get_shader(GPUMaterial *material)
+gpu::Shader *GPU_material_get_shader(GPUMaterial *material)
 {
   return GPU_pass_shader_get(GPU_material_get_pass(material));
 }
 
-eGPUMaterialStatus GPU_material_status(GPUMaterial *mat)
+GPUMaterialStatus GPU_material_status(GPUMaterial *mat)
 {
   switch (GPU_pass_status(mat->pass)) {
     case GPU_PASS_SUCCESS:
@@ -386,22 +383,22 @@ void GPU_material_flag_set(GPUMaterial *mat, eGPUMaterialFlag flag)
   mat->flag |= flag;
 }
 
-void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs)
+void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBaseT<LinkData> *inputs)
 {
   material->ubo = GPU_uniformbuf_create_from_list(inputs, material->name.c_str());
 }
 
-blender::gpu::UniformBuf *GPU_material_uniform_buffer_get(GPUMaterial *material)
+gpu::UniformBuf *GPU_material_uniform_buffer_get(GPUMaterial *material)
 {
   return material->ubo;
 }
 
-ListBase GPU_material_attributes(const GPUMaterial *material)
+ListBaseT<GPUMaterialAttribute> GPU_material_attributes(const GPUMaterial *material)
 {
   return material->graph.attributes;
 }
 
-ListBase GPU_material_textures(GPUMaterial *material)
+ListBaseT<GPUMaterialTexture> GPU_material_textures(GPUMaterial *material)
 {
   return material->graph.textures;
 }
@@ -412,9 +409,9 @@ const GPUUniformAttrList *GPU_material_uniform_attributes(const GPUMaterial *mat
   return attrs->count > 0 ? attrs : nullptr;
 }
 
-const ListBase *GPU_material_layer_attributes(const GPUMaterial *material)
+const ListBaseT<GPULayerAttr> *GPU_material_layer_attributes(const GPUMaterial *material)
 {
-  const ListBase *attrs = &material->graph.layer_attrs;
+  const ListBaseT<GPULayerAttr> *attrs = &material->graph.layer_attrs;
   return !BLI_listbase_is_empty(attrs) ? attrs : nullptr;
 }
 
@@ -425,7 +422,7 @@ GPUNodeGraph *gpu_material_node_graph(GPUMaterial *material)
 
 /* Resources */
 
-blender::gpu::Texture **gpu_material_sky_texture_layer_set(
+gpu::Texture **gpu_material_sky_texture_layer_set(
     GPUMaterial *mat, int width, int height, const float *pixels, float *row)
 {
   /* In order to put all sky textures into one 2D array texture,
@@ -435,7 +432,7 @@ blender::gpu::Texture **gpu_material_sky_texture_layer_set(
   UNUSED_VARS_NDEBUG(width, height);
 
   if (mat->sky_builder == nullptr) {
-    mat->sky_builder = MEM_mallocN<GPUSkyBuilder>("GPUSkyBuilder");
+    mat->sky_builder = MEM_new_uninitialized<GPUSkyBuilder>("GPUSkyBuilder");
     mat->sky_builder->current_layer = 0;
   }
 
@@ -446,7 +443,7 @@ blender::gpu::Texture **gpu_material_sky_texture_layer_set(
     printf("Too many sky textures in shader!\n");
   }
   else {
-    float *dst = (float *)mat->sky_builder->pixels[layer];
+    float *dst = reinterpret_cast<float *>(mat->sky_builder->pixels[layer]);
     memcpy(dst, pixels, sizeof(float) * GPU_SKY_WIDTH * GPU_SKY_HEIGHT * 4);
     mat->sky_builder->current_layer += 1;
   }
@@ -454,10 +451,10 @@ blender::gpu::Texture **gpu_material_sky_texture_layer_set(
   return &mat->sky_tex;
 }
 
-blender::gpu::Texture **gpu_material_ramp_texture_row_set(GPUMaterial *mat,
-                                                          int size,
-                                                          const float *pixels,
-                                                          float *r_row)
+gpu::Texture **gpu_material_ramp_texture_row_set(GPUMaterial *mat,
+                                                 int size,
+                                                 const float *pixels,
+                                                 float *r_row)
 {
   /* In order to put all the color-bands into one 1D array texture,
    * we need them to be the same size. */
@@ -465,7 +462,7 @@ blender::gpu::Texture **gpu_material_ramp_texture_row_set(GPUMaterial *mat,
   UNUSED_VARS_NDEBUG(size);
 
   if (mat->coba_builder == nullptr) {
-    mat->coba_builder = MEM_mallocN<GPUColorBandBuilder>("GPUColorBandBuilder");
+    mat->coba_builder = MEM_new_uninitialized<GPUColorBandBuilder>("GPUColorBandBuilder");
     mat->coba_builder->current_layer = 0;
   }
 
@@ -476,7 +473,7 @@ blender::gpu::Texture **gpu_material_ramp_texture_row_set(GPUMaterial *mat,
     printf("Too many color band in shader! Remove some Curve, Black Body or Color Ramp Node.\n");
   }
   else {
-    float *dst = (float *)mat->coba_builder->pixels[layer];
+    float *dst = reinterpret_cast<float *>(mat->coba_builder->pixels[layer]);
     memcpy(dst, pixels, sizeof(float) * (CM_TABLE + 1) * 4);
     mat->coba_builder->current_layer += 1;
   }
@@ -496,11 +493,11 @@ static void gpu_material_ramp_texture_build(GPUMaterial *mat)
                                               CM_TABLE + 1,
                                               builder->current_layer,
                                               1,
-                                              blender::gpu::TextureFormat::SFLOAT_16_16_16_16,
+                                              gpu::TextureFormat::SFLOAT_16_16_16_16,
                                               GPU_TEXTURE_USAGE_SHADER_READ,
-                                              (float *)builder->pixels);
+                                              reinterpret_cast<float *>(builder->pixels));
 
-  MEM_freeN(builder);
+  MEM_delete(builder);
   mat->coba_builder = nullptr;
 }
 
@@ -515,11 +512,11 @@ static void gpu_material_sky_texture_build(GPUMaterial *mat)
                                              GPU_SKY_HEIGHT,
                                              mat->sky_builder->current_layer,
                                              1,
-                                             blender::gpu::TextureFormat::SFLOAT_32_32_32_32,
+                                             gpu::TextureFormat::SFLOAT_32_32_32_32,
                                              GPU_TEXTURE_USAGE_SHADER_READ,
-                                             (float *)mat->sky_builder->pixels);
+                                             reinterpret_cast<float *>(mat->sky_builder->pixels));
 
-  MEM_freeN(mat->sky_builder);
+  MEM_delete(mat->sky_builder);
   mat->sky_builder = nullptr;
 }
 
@@ -558,7 +555,7 @@ void GPU_material_output_thickness(GPUMaterial *material, GPUNodeLink *link)
 
 void GPU_material_add_output_link_aov(GPUMaterial *material, GPUNodeLink *link, int hash)
 {
-  GPUNodeGraphOutputLink *aov_link = MEM_callocN<GPUNodeGraphOutputLink>(__func__);
+  GPUNodeGraphOutputLink *aov_link = MEM_new_zeroed<GPUNodeGraphOutputLink>(__func__);
   aov_link->outlink = link;
   aov_link->hash = hash;
   BLI_addtail(&material->graph.outlink_aovs, aov_link);
@@ -566,13 +563,13 @@ void GPU_material_add_output_link_aov(GPUMaterial *material, GPUNodeLink *link, 
 
 void GPU_material_add_output_link_composite(GPUMaterial *material, GPUNodeLink *link)
 {
-  GPUNodeGraphOutputLink *compositor_link = MEM_callocN<GPUNodeGraphOutputLink>(__func__);
+  GPUNodeGraphOutputLink *compositor_link = MEM_new_zeroed<GPUNodeGraphOutputLink>(__func__);
   compositor_link->outlink = link;
   BLI_addtail(&material->graph.outlink_compositor, compositor_link);
 }
 
 char *GPU_material_split_sub_function(GPUMaterial *material,
-                                      eGPUType return_type,
+                                      GPUType return_type,
                                       GPUNodeLink **link)
 {
   /* Force cast to return type. */
@@ -591,10 +588,12 @@ char *GPU_material_split_sub_function(GPUMaterial *material,
       break;
   }
 
-  GPUNodeGraphFunctionLink *func_link = MEM_callocN<GPUNodeGraphFunctionLink>(__func__);
+  GPUNodeGraphFunctionLink *func_link = MEM_new_zeroed<GPUNodeGraphFunctionLink>(__func__);
   func_link->outlink = *link;
   SNPRINTF(func_link->name, "ntree_fn%d", material->generated_function_len++);
   BLI_addtail(&material->graph.material_functions, func_link);
 
   return func_link->name;
 }
+
+}  // namespace blender

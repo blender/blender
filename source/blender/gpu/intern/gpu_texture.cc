@@ -17,7 +17,9 @@
 
 #include "gpu_texture_private.hh"
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 
 /* -------------------------------------------------------------------- */
 /** \name Creation & Deletion
@@ -25,11 +27,8 @@ namespace blender::gpu {
 
 Texture::Texture(const char *name)
 {
-  if (name) {
-    STRNCPY(name_, name);
-  }
-  else {
-    name_[0] = '\0';
+  if ((G.debug & G_DEBUG_GPU) && name) {
+    name_ = name;
   }
 
   for (int i = 0; i < ARRAY_SIZE(fb_); i++) {
@@ -132,7 +131,7 @@ bool Texture::init_buffer(VertBuf *vbo, TextureFormat format)
 
 bool Texture::init_view(Texture *src,
                         TextureFormat format,
-                        eGPUTextureType type,
+                        GPUTextureType type,
                         int mip_start,
                         int mip_len,
                         int layer_start,
@@ -230,13 +229,12 @@ void Texture::update(eGPUDataFormat format, const void *data)
 
 /** \} */
 
-}  // namespace blender::gpu
+}  // namespace gpu
 
 /* -------------------------------------------------------------------- */
 /** \name C-API
  * \{ */
 
-using namespace blender;
 using namespace blender::gpu;
 
 /* ------ Memory Management ------ */
@@ -253,7 +251,7 @@ static inline gpu::Texture *gpu_texture_create(const char *name,
                                                const int w,
                                                const int h,
                                                const int d,
-                                               const eGPUTextureType type,
+                                               const GPUTextureType type,
                                                int mip_len,
                                                TextureFormat tex_format,
                                                eGPUTextureUsage usage,
@@ -395,12 +393,16 @@ gpu::Texture *GPU_texture_create_compressed_2d(const char *name,
   if (data) {
     size_t ofs = 0;
     for (int mip = 0; mip < mip_len; mip++) {
-      int extent[3], offset[3] = {0, 0, 0};
+      int extent[3] = {1, 1, 1};
+      int offset[3] = {0, 0, 0};
       tex->mip_size_get(mip, extent);
 
       size_t size = ((extent[0] + 3) / 4) * ((extent[1] + 3) / 4) * to_block_size(tex_format);
-      tex->update_sub(
-          mip, offset, extent, to_texture_data_format(tex_format), (uchar *)data + ofs);
+      tex->update_sub(mip,
+                      offset,
+                      extent,
+                      to_texture_data_format(tex_format),
+                      static_cast<uchar *>(const_cast<void *>(data)) + ofs);
 
       ofs += size;
     }
@@ -435,7 +437,7 @@ gpu::Texture *GPU_texture_create_error(int dimension, bool is_array)
   int h = (dimension < 2 && !is_array) ? 0 : 1;
   int d = (dimension < 3 && !is_array) ? 0 : 1;
 
-  eGPUTextureType type = GPU_TEXTURE_3D;
+  GPUTextureType type = GPU_TEXTURE_3D;
   type = (dimension == 2) ? (is_array ? GPU_TEXTURE_2D_ARRAY : GPU_TEXTURE_2D) : type;
   type = (dimension == 1) ? (is_array ? GPU_TEXTURE_1D_ARRAY : GPU_TEXTURE_1D) : type;
 
@@ -480,6 +482,15 @@ gpu::Texture *GPU_texture_create_view(const char *name,
                   layer_len,
                   cube_as_array,
                   use_stencil);
+
+  /* On integer textures, disable filtering by default, as this is not guaranteed to be
+   * consistently supported across backends. */
+  if (GPU_texture_has_integer_format(view)) {
+    view->sampler_state.set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_LINEAR, false);
+    view->sampler_state.set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_MIPMAP, false);
+    view->sampler_state.set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_ANISOTROPIC, false);
+  }
+
   return view;
 }
 
@@ -495,11 +506,12 @@ eGPUTextureUsage GPU_texture_usage(const gpu::Texture *texture_)
 void GPU_texture_update_mipmap(gpu::Texture *texture,
                                int mip_level,
                                eGPUDataFormat data_format,
-                               const void *pixels)
+                               const void *pixels,
+                               uint unpack_row_length)
 {
   int extent[3] = {1, 1, 1}, offset[3] = {0, 0, 0};
   texture->mip_size_get(mip_level, extent);
-  texture->update_sub(mip_level, offset, extent, data_format, pixels);
+  texture->update_sub(mip_level, offset, extent, data_format, pixels, unpack_row_length);
 }
 
 void GPU_texture_update_sub(gpu::Texture *tex,
@@ -510,11 +522,12 @@ void GPU_texture_update_sub(gpu::Texture *tex,
                             int offset_z,
                             int width,
                             int height,
-                            int depth)
+                            int depth,
+                            uint unpack_row_length)
 {
   int offset[3] = {offset_x, offset_y, offset_z};
   int extent[3] = {width, height, depth};
-  tex->update_sub(0, offset, extent, data_format, pixels);
+  tex->update_sub(0, offset, extent, data_format, pixels, unpack_row_length);
 }
 
 void GPU_texture_update_sub_from_pixel_buffer(gpu::Texture *texture,
@@ -550,11 +563,6 @@ void GPU_texture_clear(gpu::Texture *tex, eGPUDataFormat data_format, const void
 void GPU_texture_update(gpu::Texture *tex, eGPUDataFormat data_format, const void *data)
 {
   tex->update(data_format, data);
-}
-
-void GPU_unpack_row_length_set(uint len)
-{
-  Context::get()->state_manager->texture_unpack_row_length_set(len);
 }
 
 /* ------ Binding ------ */
@@ -691,7 +699,7 @@ void GPU_texture_ref(gpu::Texture *texture)
 
 int GPU_texture_dimensions(const gpu::Texture *texture)
 {
-  eGPUTextureType type = texture->type_get();
+  GPUTextureType type = texture->type_get();
   if (type & GPU_TEXTURE_1D) {
     return 1;
   }
@@ -1037,3 +1045,5 @@ size_t GPU_texture_dataformat_size(eGPUDataFormat data_format)
 }
 
 /** \} */
+
+}  // namespace blender

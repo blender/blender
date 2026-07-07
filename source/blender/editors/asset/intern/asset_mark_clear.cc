@@ -68,7 +68,7 @@ void generate_preview(const bContext *C, ID *id)
     BKE_previewimg_clear(preview);
   }
 
-  UI_icon_render_id(C, nullptr, id, ICON_SIZE_PREVIEW, !G.background);
+  ui::icon_render_id(C, nullptr, id, ICON_SIZE_PREVIEW, !G.background);
 }
 
 bool clear_id(ID *id)
@@ -112,7 +112,7 @@ bool can_mark_single_from_context(const bContext *C)
 {
   /* Context needs a "id" pointer to be set for #ASSET_OT_mark()/#ASSET_OT_mark_single() and
    * #ASSET_OT_clear()/#ASSET_OT_clear_single() to use. */
-  const ID *id = static_cast<ID *>(CTX_data_pointer_get_type_silent(C, "id", &RNA_ID).data);
+  const ID *id = static_cast<ID *>(CTX_data_pointer_get_type_silent(C, "id", RNA_ID).data);
   if (!id) {
     return false;
   }

@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 struct wmEvent;
 struct wmWindow;
 
@@ -72,3 +74,5 @@ enum WMCursorType {
 
 void wm_init_cursor_data();
 bool wm_cursor_arrow_move(wmWindow *win, const wmEvent *event);
+
+}  // namespace blender

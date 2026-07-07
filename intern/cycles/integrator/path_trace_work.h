@@ -51,7 +51,7 @@ class PathTraceWork {
   bool has_multiple_works() const;
 
   /* Allocate working memory for execution. Must be called before init_execution(). */
-  virtual void alloc_work_memory(){};
+  virtual void alloc_work_memory() {};
 
   /* Initialize execution of kernels.
    * Will ensure that all device queues are initialized for execution.

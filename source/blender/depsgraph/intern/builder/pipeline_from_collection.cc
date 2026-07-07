@@ -77,7 +77,7 @@ class DepsgraphFromCollectionIDsRelationBuilder : public DepsgraphRelationBuilde
 
 }  // namespace
 
-FromCollectionBuilderPipeline::FromCollectionBuilderPipeline(::Depsgraph *graph,
+FromCollectionBuilderPipeline::FromCollectionBuilderPipeline(blender::Depsgraph *graph,
                                                              Collection *collection)
     : AbstractBuilderPipeline(graph)
 {

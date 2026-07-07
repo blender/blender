@@ -15,6 +15,8 @@
 
 #include "RE_pipeline.h"
 
+namespace blender {
+
 struct Image;
 struct Mesh;
 struct MultiresBakeRender;
@@ -40,9 +42,9 @@ struct MultiresBakeRender {
   bool use_low_resolution_mesh = false;
 
   /* Material aligned image array (for per-face bake image), */
-  blender::Vector<Image *> ob_image;
+  Vector<Image *> ob_image;
 
-  blender::Set<Image *> images;
+  Set<Image *> images;
 
   int num_total_objects = 0;
   int num_baked_objects = 0;
@@ -53,3 +55,5 @@ struct MultiresBakeRender {
 };
 
 void RE_multires_bake_images(MultiresBakeRender &bake);
+
+}  // namespace blender

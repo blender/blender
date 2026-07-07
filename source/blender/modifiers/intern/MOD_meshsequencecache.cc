@@ -15,7 +15,6 @@
 #include "BLT_translation.hh"
 
 #include "DNA_cachefile_types.h"
-#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
@@ -54,22 +53,16 @@
 #endif
 
 #ifdef WITH_USD
-#  include "usd.hh"
+#  include "usd_api_modifier.hh"
 #endif
 
-using namespace blender;
+namespace blender {
 
 static void init_data(ModifierData *md)
 {
   MeshSeqCacheModifierData *mcmd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mcmd, modifier));
-
-  mcmd->cache_file = nullptr;
-  mcmd->object_path[0] = '\0';
+  INIT_DEFAULT_STRUCT_AFTER(mcmd, modifier);
   mcmd->read_flag = MOD_MESHSEQ_READ_ALL;
-
-  MEMCPY_STRUCT_AFTER(mcmd, DNA_struct_default_get(MeshSeqCacheModifierData), modifier);
 }
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
@@ -77,7 +70,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
 #if 0
   const MeshSeqCacheModifierData *mcmd = (const MeshSeqCacheModifierData *)md;
 #endif
-  MeshSeqCacheModifierData *tmcmd = (MeshSeqCacheModifierData *)target;
+  MeshSeqCacheModifierData *tmcmd = reinterpret_cast<MeshSeqCacheModifierData *>(target);
 
   BKE_modifier_copydata_generic(md, target, flag);
 
@@ -127,11 +120,13 @@ static bool can_use_mesh_for_orco_evaluation(MeshSeqCacheModifierData *mcmd,
       if (!ABC_mesh_topology_changed(mcmd->reader, ctx->object, mesh, time_offset, r_err_str)) {
         return true;
       }
+#  else
+      UNUSED_VARS(time_offset);
 #  endif
       break;
     case CACHEFILE_TYPE_USD:
 #  ifdef WITH_USD
-      if (!blender::io::usd::USD_mesh_topology_changed(
+      if (!io::usd::USD_mesh_topology_changed(
               mcmd->reader, ctx->object, mesh, frame_offset, r_err_str))
       {
         return true;
@@ -146,26 +141,6 @@ static bool can_use_mesh_for_orco_evaluation(MeshSeqCacheModifierData *mcmd,
 
   return false;
 }
-
-static Mesh *generate_bounding_box_mesh(const std::optional<Bounds<float3>> &bounds,
-                                        Material **mat,
-                                        short totcol)
-{
-  if (!bounds) {
-    return nullptr;
-  }
-
-  Mesh *result = geometry::create_cuboid_mesh(bounds->max - bounds->min, 2, 2, 2);
-  if (mat) {
-    result->mat = static_cast<Material **>(MEM_dupallocN(mat));
-    result->totcol = totcol;
-  }
-
-  bke::mesh_translate(*result, math::midpoint(bounds->min, bounds->max), false);
-
-  return result;
-}
-
 #endif
 
 static void modify_geometry_set(ModifierData *md,
@@ -200,24 +175,6 @@ static void modify_geometry_set(ModifierData *md,
     }
   }
 
-  /* Do not process data if using a render procedural, return a box instead for displaying in the
-   * viewport. */
-  if (BKE_cache_file_uses_render_procedural(cache_file, scene)) {
-    Mesh *bbox = nullptr;
-    if (geometry_set->has_mesh()) {
-      const Mesh *mesh = geometry_set->get_mesh();
-      bbox = generate_bounding_box_mesh(mesh->bounds_min_max(), mesh->mat, mesh->totcol);
-    }
-    else if (geometry_set->has_pointcloud()) {
-      const PointCloud *pointcloud = geometry_set->get_pointcloud();
-      bbox = generate_bounding_box_mesh(
-          pointcloud->bounds_min_max(), pointcloud->mat, pointcloud->totcol);
-    }
-
-    *geometry_set = bke::GeometrySet::from_mesh(bbox);
-    return;
-  }
-
   /* Time (in frames or seconds) between two velocity samples. Automatically computed to
    * scale the velocity vectors at render time for generating proper motion blur data. */
 #  ifdef WITH_ALEMBIC
@@ -241,10 +198,9 @@ static void modify_geometry_set(ModifierData *md,
     }
     case CACHEFILE_TYPE_USD: {
 #  ifdef WITH_USD
-      const blender::io::usd::USDMeshReadParams params = blender::io::usd::create_mesh_read_params(
-          frame_offset, mcmd->read_flag);
-      blender::io::usd::USD_read_geometry(
-          mcmd->reader, ctx->object, *geometry_set, params, &err_str);
+      const io::usd::USDMeshReadParams params = io::usd::create_mesh_read_params(frame_offset,
+                                                                                 mcmd->read_flag);
+      io::usd::USD_read_geometry(mcmd->reader, ctx->object, *geometry_set, params, &err_str);
 #  endif
       break;
     }
@@ -268,7 +224,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   MeshSeqCacheModifierData *mcmd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
 
   /* Only used to check whether we are operating on org data or not... */
-  Mesh *object_mesh = (ctx->object->type == OB_MESH) ? static_cast<Mesh *>(ctx->object->data) :
+  Mesh *object_mesh = (ctx->object->type == OB_MESH) ? id_cast<Mesh *>(ctx->object->data) :
                                                        nullptr;
   Mesh *org_mesh = mesh;
 
@@ -290,12 +246,6 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     }
   }
 
-  /* Do not process data if using a render procedural, return a box instead for displaying in the
-   * viewport. */
-  if (BKE_cache_file_uses_render_procedural(cache_file, scene)) {
-    return generate_bounding_box_mesh(org_mesh->bounds_min_max(), org_mesh->mat, org_mesh->totcol);
-  }
-
   /* If this invocation is for the ORCO mesh, and the mesh hasn't changed topology, we
    * must return the mesh as-is instead of deforming it. */
   if (can_use_mesh_for_orco_evaluation(mcmd, ctx, mesh, frame_offset, time_offset, &err_str)) {
@@ -304,11 +254,11 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   if (object_mesh != nullptr) {
     const Span<float3> mesh_positions = mesh->vert_positions();
-    const Span<blender::int2> mesh_edges = mesh->edges();
-    const blender::OffsetIndices mesh_faces = mesh->faces();
+    const Span<int2> mesh_edges = mesh->edges();
+    const OffsetIndices mesh_faces = mesh->faces();
     const Span<float3> me_positions = object_mesh->vert_positions();
-    const Span<blender::int2> me_edges = object_mesh->edges();
-    const blender::OffsetIndices me_faces = object_mesh->faces();
+    const Span<int2> me_edges = object_mesh->edges();
+    const OffsetIndices me_faces = object_mesh->faces();
 
     /* TODO(sybren+bastien): possibly check relevant custom data layers (UV/color depending on
      * flags) and duplicate those too.
@@ -343,15 +293,13 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 #endif
 }
 
-static bool depends_on_time(Scene *scene, ModifierData *md)
+static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 {
 #if defined(WITH_USD) || defined(WITH_ALEMBIC)
   MeshSeqCacheModifierData *mcmd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
-  /* Do not evaluate animations if using the render engine procedural. */
-  return (mcmd->cache_file != nullptr) &&
-         !BKE_cache_file_uses_render_procedural(mcmd->cache_file, scene);
+  return (mcmd->cache_file != nullptr);
 #else
-  UNUSED_VARS(scene, md);
+  UNUSED_VARS(md);
   return false;
 #endif
 }
@@ -375,7 +323,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -383,21 +331,21 @@ static void panel_draw(const bContext *C, Panel *panel)
   PointerRNA cache_file_ptr = RNA_pointer_get(ptr, "cache_file");
   bool has_cache_file = !RNA_pointer_is_null(&cache_file_ptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  uiTemplateCacheFile(layout, C, ptr, "cache_file");
+  template_cache_file(&layout, C, ptr, "cache_file");
 
   if (has_cache_file) {
-    layout->prop_search(
+    layout.prop_search(
         ptr, "object_path", &cache_file_ptr, "object_paths", std::nullopt, ICON_NONE);
   }
 
   if (RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
-    layout->prop(ptr, "read_data", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-    layout->prop(ptr, "use_vertex_interpolation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "read_data", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "use_vertex_interpolation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else if (RNA_enum_get(&ob_ptr, "type") == OB_CURVES) {
-    layout->prop(ptr, "use_vertex_interpolation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "use_vertex_interpolation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   modifier_error_message_draw(layout, ptr);
@@ -405,67 +353,51 @@ static void panel_draw(const bContext *C, Panel *panel)
 
 static void velocity_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   PointerRNA fileptr;
-  if (!uiTemplateCacheFilePointer(ptr, "cache_file", &fileptr)) {
+  if (!ui::template_cache_file_pointer(ptr, "cache_file", &fileptr)) {
     return;
   }
 
-  layout->use_property_split_set(true);
-  uiTemplateCacheFileVelocity(layout, &fileptr);
-  layout->prop(ptr, "velocity_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.use_property_split_set(true);
+  template_cache_file_velocity(&layout, &fileptr);
+  layout.prop(ptr, "velocity_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void time_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   PointerRNA fileptr;
-  if (!uiTemplateCacheFilePointer(ptr, "cache_file", &fileptr)) {
+  if (!ui::template_cache_file_pointer(ptr, "cache_file", &fileptr)) {
     return;
   }
 
-  layout->use_property_split_set(true);
-  uiTemplateCacheFileTimeSettings(layout, &fileptr);
-}
-
-static void render_procedural_panel_draw(const bContext *C, Panel *panel)
-{
-  uiLayout *layout = panel->layout;
-
-  PointerRNA ob_ptr;
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
-
-  PointerRNA fileptr;
-  if (!uiTemplateCacheFilePointer(ptr, "cache_file", &fileptr)) {
-    return;
-  }
-
-  layout->use_property_split_set(true);
-  uiTemplateCacheFileProcedural(layout, C, &fileptr);
+  layout.use_property_split_set(true);
+  template_cache_file_time_settings(&layout, &fileptr);
 }
 
 static void override_layers_panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   PointerRNA fileptr;
-  if (!uiTemplateCacheFilePointer(ptr, "cache_file", &fileptr)) {
+  if (!ui::template_cache_file_pointer(ptr, "cache_file", &fileptr)) {
     return;
   }
 
-  layout->use_property_split_set(true);
-  uiTemplateCacheFileLayers(layout, C, &fileptr);
+  layout.use_property_split_set(true);
+  template_list_flags(&layout, C, &fileptr);
 }
 
 static void panel_register(ARegionType *region_type)
@@ -473,12 +405,6 @@ static void panel_register(ARegionType *region_type)
   PanelType *panel_type = modifier_panel_register(
       region_type, eModifierType_MeshSequenceCache, panel_draw);
   modifier_subpanel_register(region_type, "time", "Time", nullptr, time_panel_draw, panel_type);
-  modifier_subpanel_register(region_type,
-                             "render_procedural",
-                             "Render Procedural",
-                             nullptr,
-                             render_procedural_panel_draw,
-                             panel_type);
   modifier_subpanel_register(
       region_type, "velocity", "Velocity", nullptr, velocity_panel_draw, panel_type);
   modifier_subpanel_register(region_type,
@@ -532,3 +458,5 @@ ModifierTypeInfo modifierType_MeshSequenceCache = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

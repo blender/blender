@@ -67,10 +67,10 @@ shader_info.fragment_source(
 shader = gpu.shader.create_from_info(shader_info)
 
 batch = batch_for_shader(
-    shader, 'TRI_FAN',
+    shader, 'TRI_STRIP',
     {
-        "position": ((-1, -1), (1, -1), (1, 1), (-1, 1)),
-        "uv": ((0, 0), (1, 0), (1, 1), (0, 1)),
+        "position": ((-1, -1), (1, -1), (-1, 1), (1, 1)),
+        "uv": ((0, 0), (1, 0), (0, 1), (1, 1)),
     },
 )
 

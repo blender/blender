@@ -24,12 +24,12 @@ void USDVolumeReader::create_object(Main *bmain)
   Volume *volume = BKE_volume_add(bmain, name_.c_str());
 
   object_ = BKE_object_add_only_object(bmain, OB_VOLUME, name_.c_str());
-  object_->data = volume;
+  object_->data = id_cast<ID *>(volume);
 }
 
 void USDVolumeReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)
 {
-  Volume *volume = static_cast<Volume *>(object_->data);
+  Volume *volume = id_cast<Volume *>(object_->data);
 
   pxr::UsdVolVolume::FieldMap fields = volume_.GetFieldPaths();
 

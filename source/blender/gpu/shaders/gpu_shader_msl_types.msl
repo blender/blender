@@ -1,0 +1,11 @@
+/* SPDX-FileCopyrightText: 2025 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+#pragma once
+
+/* int implicitly cast to bool in MSL. */
+using bool32_t = int32_t;
+
+using vec3_1010102_Unorm = uint32_t;
+using vec3_1010102_Inorm = int32_t;

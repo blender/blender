@@ -28,15 +28,12 @@
 #include "SEQ_time.hh"
 #include "SEQ_transform.hh"
 
-/* For menu, popup, icons, etc. */
 #include "ED_anim_api.hh"
 #include "ED_markers.hh"
 #include "ED_screen.hh"
 #include "ED_sequencer.hh"
-#include "ED_time_scrub_ui.hh"
 #include "ED_util_imbuf.hh"
 
-/* Own include. */
 #include "sequencer_intern.hh"
 
 namespace blender::ed::vse {
@@ -62,8 +59,7 @@ void SEQUENCER_OT_sample(wmOperatorType *ot)
   ot->flag = OPTYPE_BLOCKING;
 
   /* Not implemented. */
-  PropertyRNA *prop;
-  prop = RNA_def_int(ot->srna, "size", 1, 1, 128, "Sample Size", "", 1, 64);
+  PropertyRNA *prop = RNA_def_int(ot->srna, "size", 1, 1, 128, "Sample Size", "", 1, 64);
   RNA_def_property_subtype(prop, PROP_PIXEL);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
@@ -121,7 +117,7 @@ static wmOperatorStatus sequencer_view_all_exec(bContext *C, wmOperator *op)
 
   SEQ_add_timeline_region_padding(C, &box);
 
-  UI_view2d_smooth_view(C, region, &box, smooth_viewtx);
+  ui::view2d_smooth_view(C, region, &box, smooth_viewtx);
   return OPERATOR_FINISHED;
 }
 
@@ -182,12 +178,12 @@ static bool view_frame_preview_scope(bContext *C, wmOperator *op, ARegion *regio
   if (!sseq) {
     return false;
   }
-  const View2D *v2d = UI_view2d_fromcontext(C);
+  const View2D *v2d = ui::view2d_fromcontext(C);
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 
   if (sseq->mainb == SEQ_DRAW_IMG_HISTOGRAM) {
     /* For histogram scope, use extents of the histogram. */
-    const vse::ScopeHistogram &hist = sseq->runtime->scopes.histogram;
+    const ScopeHistogram &hist = sseq->runtime->scopes.histogram;
     if (hist.data.is_empty()) {
       return false;
     }
@@ -199,7 +195,7 @@ static bool view_frame_preview_scope(bContext *C, wmOperator *op, ARegion *regio
     /* Add some padding around whole histogram. */
     BLI_rctf_scale(&cur_new, 1.1f);
 
-    UI_view2d_smooth_view(C, region, &cur_new, smooth_viewtx);
+    ui::view2d_smooth_view(C, region, &cur_new, smooth_viewtx);
     return true;
   }
 
@@ -212,7 +208,7 @@ static bool view_frame_preview_scope(bContext *C, wmOperator *op, ARegion *regio
       const float val_max = 3.0f;
       cur_new.ymax = cur_new.ymin + (cur_new.ymax - cur_new.ymin) * val_max;
     }
-    UI_view2d_smooth_view(C, region, &cur_new, smooth_viewtx);
+    ui::view2d_smooth_view(C, region, &cur_new, smooth_viewtx);
     return true;
   }
 
@@ -237,11 +233,11 @@ static wmOperatorStatus sequencer_view_all_preview_exec(bContext *C, wmOperator 
   ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_sequencer_scene(C);
 #endif
-  View2D *v2d = UI_view2d_fromcontext(C);
+  View2D *v2d = ui::view2d_fromcontext(C);
 
   v2d->cur = v2d->tot;
-  UI_view2d_curRect_changed(C, v2d);
-  UI_view2d_sync(screen, area, v2d, V2D_LOCK_COPY);
+  ui::view2d_curRect_changed(C, v2d);
+  ui::view2d_sync(screen, area, v2d, V2D_LOCK_COPY);
 
 #if 0
   /* Like zooming on an image view. */
@@ -302,7 +298,7 @@ static wmOperatorStatus sequencer_view_zoom_ratio_exec(bContext *C, wmOperator *
 {
   const Scene *scene = CTX_data_sequencer_scene(C);
   const RenderData *rd = &scene->r;
-  View2D *v2d = UI_view2d_fromcontext(C);
+  View2D *v2d = ui::view2d_fromcontext(C);
 
   float ratio = RNA_float_get(op->ptr, "ratio");
 
@@ -316,7 +312,7 @@ static wmOperatorStatus sequencer_view_zoom_ratio_exec(bContext *C, wmOperator *
 
   ED_region_tag_redraw(CTX_wm_region(C));
 
-  UI_view2d_curRect_changed(C, v2d);
+  ui::view2d_curRect_changed(C, v2d);
 
   return OPERATOR_FINISHED;
 }
@@ -350,11 +346,9 @@ void SEQUENCER_OT_view_zoom_ratio(wmOperatorType *ot)
 /** \name Frame Selected Operator
  * \{ */
 
-static void seq_view_collection_rect_preview(Scene *scene,
-                                             blender::Span<Strip *> strips,
-                                             rctf *rect)
+static void seq_view_collection_rect_preview(Scene *scene, Span<Strip *> strips, rctf *rect)
 {
-  const blender::Bounds<blender::float2> box = seq::image_transform_bounding_box_from_collection(
+  const Bounds<float2> box = seq::image_transform_bounding_box_from_collection(
       scene, strips, true);
 
   rect->xmin = box.min[0];
@@ -373,9 +367,7 @@ static void seq_view_collection_rect_preview(Scene *scene,
   BLI_rctf_scale(rect, 1.1f);
 }
 
-static void seq_view_collection_rect_timeline(const bContext *C,
-                                              blender::Span<Strip *> strips,
-                                              rctf *rect)
+static void seq_view_collection_rect_timeline(const bContext *C, Span<Strip *> strips, rctf *rect)
 {
   const Scene *scene = CTX_data_sequencer_scene(C);
   int xmin = MAXFRAME * 2;
@@ -385,8 +377,8 @@ static void seq_view_collection_rect_timeline(const bContext *C,
   int xmargin = scene->frames_per_second();
 
   for (Strip *strip : strips) {
-    xmin = min_ii(xmin, seq::time_left_handle_frame_get(scene, strip));
-    xmax = max_ii(xmax, seq::time_right_handle_frame_get(scene, strip));
+    xmin = min_ii(xmin, strip->left_handle());
+    xmax = max_ii(xmax, strip->right_handle(scene));
 
     ymin = min_ii(ymin, strip->channel);
     /* "+1" because each channel has a thickness of 1. */
@@ -446,14 +438,14 @@ static wmOperatorStatus sequencer_view_selected_exec(bContext *C, wmOperator *op
 {
   Scene *scene = CTX_data_sequencer_scene(C);
   ARegion *region = CTX_wm_region(C);
-  View2D *v2d = UI_view2d_fromcontext(C);
+  View2D *v2d = ui::view2d_fromcontext(C);
   rctf cur_new = v2d->cur;
 
   if (view_frame_preview_scope(C, op, region)) {
     return OPERATOR_FINISHED;
   }
 
-  blender::VectorSet strips = selected_strips_from_context(C);
+  VectorSet strips = selected_strips_from_context(C);
   if (strips.is_empty()) {
     return OPERATOR_CANCELLED;
   }
@@ -470,7 +462,7 @@ static wmOperatorStatus sequencer_view_selected_exec(bContext *C, wmOperator *op
   }
 
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-  UI_view2d_smooth_view(C, region, &cur_new, smooth_viewtx);
+  ui::view2d_smooth_view(C, region, &cur_new, smooth_viewtx);
 
   return OPERATOR_FINISHED;
 }
@@ -499,13 +491,13 @@ void SEQUENCER_OT_view_selected(wmOperatorType *ot)
 static wmOperatorStatus view_ghost_border_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
-  View2D *v2d = UI_view2d_fromcontext(C);
+  View2D *v2d = ui::view2d_fromcontext(C);
 
   rctf rect;
 
   /* Convert coordinates of rect to 'tot' rect coordinates. */
   WM_operator_properties_border_to_rctf(op, &rect);
-  UI_view2d_region_to_view_rctf(v2d, &rect, &rect);
+  ui::view2d_region_to_view_rctf(v2d, &rect, &rect);
 
   rect.xmin /= fabsf(BLI_rctf_size_x(&v2d->tot));
   rect.ymin /= fabsf(BLI_rctf_size_y(&v2d->tot));

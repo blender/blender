@@ -62,6 +62,15 @@ static void reorder_attributes_group_to_group(const bke::AttributeAccessor src_a
       return;
     }
     const GVArray src = *iter.get(domain);
+
+    const CommonVArrayInfo info = src.common_info();
+    if (info.type == CommonVArrayInfo::Type::Single) {
+      const GPointer value(src.type(), info.data);
+      if (dst_attributes.add(iter.name, domain, iter.data_type, bke::AttributeInitValue(value))) {
+        return;
+      }
+    }
+
     bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         iter.name, domain, iter.data_type);
     if (!dst) {

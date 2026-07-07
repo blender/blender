@@ -8,6 +8,7 @@ from mathutils import Matrix, Vector  # noqa
 
 from typing import TYPE_CHECKING, Callable, Any, Collection, Iterator, Optional, Sequence
 from bpy.types import Action, bpy_struct, FCurve
+from bpy_extras import anim_utils
 
 import json
 
@@ -22,14 +23,23 @@ rig_id = None
 # Keyframing functions
 ##############################################
 
-def get_keyed_frames_in_range(context, rig):
-    action = find_action(rig)
-    if action:
-        frame_range = RIGIFY_OT_get_frame_range.get_range(context)
+def _get_channelbag_for_rig(rig: bpy.types.Object) -> bpy.types.ActionChannelbag | None:
+    assert isinstance(rig, bpy.types.Object)
+    if not rig.animation_data:
+        return None
 
-        return sorted(get_curve_frame_set(action.fcurves, frame_range))
-    else:
+    action = rig.animation_data.action
+    action_slot = rig.animation_data.action_slot
+    return anim_utils.action_get_channelbag_for_slot(action, action_slot)
+
+
+def get_keyed_frames_in_range(context: bpy.types.Context, rig: bpy.types.Object) -> list[float]:
+    channelbag = _get_channelbag_for_rig(rig)
+    if not channelbag:
         return []
+
+    frame_range = RIGIFY_OT_get_frame_range.get_range(context)
+    return sorted(get_curve_frame_set(channelbag.fcurves, frame_range))
 
 
 def bones_in_frame(f, rig, *args):
@@ -41,12 +51,11 @@ def bones_in_frame(f, rig, *args):
     :return:
     """
 
-    if rig.animation_data and rig.animation_data.action:
-        fcurves = rig.animation_data.action.fcurves
-    else:
+    channelbag = _get_channelbag_for_rig(rig)
+    if not channelbag:
         return False
 
-    for fc in fcurves:
+    for fc in channelbag.fcurves:
         animated_frames = [kp.co[0] for kp in fc.keyframe_points]
         for bone in args:
             if bone in fc.data_path.split('"') and f in animated_frames:
@@ -56,14 +65,14 @@ def bones_in_frame(f, rig, *args):
 
 
 def overwrite_prop_animation(rig, bone, prop_name, value, frames):
-    act = rig.animation_data.action
-    if not act:
+    channelbag = _get_channelbag_for_rig(rig)
+    if not channelbag:
         return
 
     bone_name = bone.name
     curve = None
 
-    for fcu in act.fcurves:
+    for fcu in channelbag.fcurves:
         words = fcu.data_path.split('"')
         if words[0] == "pose.bones[" and words[1] == bone_name and words[-2] == prop_name:
             curve = fcu
@@ -310,6 +319,8 @@ SCRIPT_UTILITIES_CURVES = ['''
 ## Animation curve tools ##
 ###########################
 
+from bpy_extras import anim_utils
+
 def flatten_curve_set(curves):
     "Iterate over all FCurves inside a set of nested lists and dictionaries."
     if curves is None:
@@ -375,9 +386,12 @@ def find_action(action):
 def clean_action_empty_curves(action):
     "Delete completely empty curves from the given action."
     action = find_action(action)
-    for curve in list(action.fcurves):
-        if curve.is_empty:
-            action.fcurves.remove(curve)
+    for layer in action.layers:
+        for strip in layer.strips:
+            for channelbag in strip.channelbags:
+                for curve in channelbag.fcurves[:]:
+                    if curve.is_empty:
+                        channelbag.fcurves.remove(curve)
     action.update_tag()
 
 TRANSFORM_PROPS_LOCATION = frozenset(['location'])
@@ -428,11 +442,19 @@ class FCurveTable(object):
 class ActionCurveTable(FCurveTable):
     "Table for efficient lookup of Action FCurves by properties."
 
-    def __init__(self, action):
+    def __init__(self, rig: bpy.types.Object) -> None:
         super().__init__()
-        self.action = find_action(action)
-        if self.action:
-            self.index_curves(self.action.fcurves)
+        assert isinstance(rig, bpy.types.Object)
+
+        if not rig.animation_data:
+            return
+        action = rig.animation_data.action
+        action_slot = rig.animation_data.action_slot
+
+        channelbag = anim_utils.action_get_channelbag_for_slot(action, action_slot)
+        if not channelbag:
+            return
+        self.index_curves(channelbag.fcurves)
 
 class DriverCurveTable(FCurveTable):
     "Table for efficient lookup of Driver FCurves by properties."

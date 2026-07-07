@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -19,6 +20,10 @@
 #include "DNA_windowmanager_enums.h"
 
 #include "DEG_depsgraph.hh"
+
+namespace blender {
+
+struct Depsgraph;
 
 /* -------------------------------------------------------------------- */
 /** \name Macros/
@@ -59,7 +64,6 @@
 
 struct ARegion;
 struct bConstraint;
-struct Depsgraph;
 struct NumInput;
 struct Object;
 struct RNG;
@@ -82,7 +86,7 @@ struct wmTimer;
 /** \name Enums and Flags
  * \{ */
 
-namespace blender::ed::transform {
+namespace ed::transform {
 
 struct TransSnap;
 struct TransConvertTypeInfo;
@@ -118,7 +122,7 @@ enum eTContext {
   /** Enable edge scrolling in 2D views. */
   CTX_VIEW2D_EDGE_PAN = (1 << 15),
 };
-ENUM_OPERATORS(eTContext, CTX_VIEW2D_EDGE_PAN)
+ENUM_OPERATORS(eTContext)
 
 /** #TransInfo.flag */
 enum eTFlag {
@@ -189,7 +193,7 @@ enum eTFlag {
   /** Transform origin. */
   T_ORIGIN = 1 << 27,
 };
-ENUM_OPERATORS(eTFlag, T_ORIGIN);
+ENUM_OPERATORS(eTFlag);
 
 /** #TransInfo.modifiers */
 enum eTModifier {
@@ -204,7 +208,7 @@ enum eTModifier {
   MOD_NODE_FRAME = 1 << 8,
   MOD_STRIP_CLAMP_HOLDS = 1 << 9,
 };
-ENUM_OPERATORS(eTModifier, MOD_EDIT_SNAP_SOURCE)
+ENUM_OPERATORS(eTModifier)
 
 /** #TransSnap.status */
 enum eTSnap {
@@ -214,7 +218,7 @@ enum eTSnap {
   SNAP_TARGET_FOUND = 1 << 1,
   SNAP_MULTI_POINTS = 1 << 2,
 };
-ENUM_OPERATORS(eTSnap, SNAP_MULTI_POINTS)
+ENUM_OPERATORS(eTSnap)
 
 /** #TransSnap.direction */
 enum eSnapDir {
@@ -222,7 +226,7 @@ enum eSnapDir {
   DIR_GLOBAL_Y = (1 << 1),
   DIR_GLOBAL_Z = (1 << 2),
 };
-ENUM_OPERATORS(eSnapDir, DIR_GLOBAL_Z)
+ENUM_OPERATORS(eSnapDir)
 
 /** #TransCon.mode, #TransInfo.con.mode */
 enum eTConstraint {
@@ -235,7 +239,7 @@ enum eTConstraint {
   CON_SELECT = 1 << 4,
   CON_USER = 1 << 5,
 };
-ENUM_OPERATORS(eTConstraint, CON_USER)
+ENUM_OPERATORS(eTConstraint)
 
 /** #TransInfo.state */
 enum eTState {
@@ -251,7 +255,7 @@ enum eRedrawFlag {
   TREDRAW_SOFT = (1 << 0),
   TREDRAW_HARD = (1 << 1) | TREDRAW_SOFT,
 };
-ENUM_OPERATORS(eRedrawFlag, TREDRAW_HARD)
+ENUM_OPERATORS(eRedrawFlag)
 
 /** #TransInfo.helpline */
 enum eTHelpline {
@@ -471,6 +475,12 @@ struct TransDataExtension {
   int rotOrder;
   /** Original object transformation used for rigid bodies. */
   float oloc[3], orot[3], oquat[4], orotAxis[3], orotAngle;
+
+  /**
+   * Use when #TransDataBasic::center has been overridden but the real center is still needed
+   * for internal calculations.
+   */
+  float center_no_override[3];
 };
 
 struct TransData2D {
@@ -546,7 +556,7 @@ struct TransSnap {
   /** To this point (in global-space). */
   float snap_target[3];
   float snapNormal[3];
-  ListBase points;
+  ListBaseT<TransSnapPoint> points;
   TransSnapPoint *selectedPoint;
   double last;
   void (*snap_target_fn)(TransInfo *, float *);
@@ -1136,6 +1146,10 @@ void freeCustomNormalArray(TransInfo *t, TransDataContainer *tc, TransCustomData
 /* TODO: move to: `transform_query.c`. */
 bool checkUseAxisMatrix(TransInfo *t);
 
+/** Converts 2D mouse movement to a normalized 3D direction in world space. */
+std::optional<float3> mouse_delta_to_world_dir(const TransInfo *t, const float2 &delta);
+
 /** \} */
 
-}  // namespace blender::ed::transform
+}  // namespace ed::transform
+}  // namespace blender

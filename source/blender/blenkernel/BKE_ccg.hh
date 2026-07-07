@@ -22,6 +22,8 @@ struct CCGSubSurf;
  */
 struct CCGElem;
 
+namespace blender {
+
 struct CCGKey {
   int level;
 
@@ -48,15 +50,15 @@ struct CCGKey {
   int has_mask;
 };
 
-inline blender::float3 &CCG_elem_co(const CCGKey & /*key*/, CCGElem *elem)
+inline float3 &CCG_elem_co(const CCGKey & /*key*/, CCGElem *elem)
 {
-  return *reinterpret_cast<blender::float3 *>(elem);
+  return *reinterpret_cast<float3 *>(elem);
 }
 
-inline blender::float3 &CCG_elem_no(const CCGKey &key, CCGElem *elem)
+inline float3 &CCG_elem_no(const CCGKey &key, CCGElem *elem)
 {
   BLI_assert(key.has_normals);
-  return *reinterpret_cast<blender::float3 *>(reinterpret_cast<char *>(elem) + key.normal_offset);
+  return *reinterpret_cast<float3 *>(reinterpret_cast<char *>(elem) + key.normal_offset);
 }
 
 inline float &CCG_elem_mask(const CCGKey &key, CCGElem *elem)
@@ -81,12 +83,12 @@ inline CCGElem *CCG_grid_elem(const CCGKey &key, CCGElem *elem, int x, int y)
   return CCG_elem_offset(key, elem, CCG_grid_xy_to_index(key.grid_size, x, y));
 }
 
-inline blender::float3 &CCG_grid_elem_co(const CCGKey &key, CCGElem *elem, int x, int y)
+inline float3 &CCG_grid_elem_co(const CCGKey &key, CCGElem *elem, int x, int y)
 {
   return CCG_elem_co(key, CCG_grid_elem(key, elem, x, y));
 }
 
-inline blender::float3 &CCG_grid_elem_no(const CCGKey &key, CCGElem *elem, int x, int y)
+inline float3 &CCG_grid_elem_no(const CCGKey &key, CCGElem *elem, int x, int y)
 {
   return CCG_elem_no(key, CCG_grid_elem(key, elem, x, y));
 }
@@ -96,7 +98,7 @@ inline float &CCG_grid_elem_mask(const CCGKey &key, CCGElem *elem, int x, int y)
   return CCG_elem_mask(key, CCG_grid_elem(key, elem, x, y));
 }
 
-inline blender::float3 &CCG_elem_offset_co(const CCGKey &key, CCGElem *elem, int offset)
+inline float3 &CCG_elem_offset_co(const CCGKey &key, CCGElem *elem, int offset)
 {
   return CCG_elem_co(key, CCG_elem_offset(key, elem, offset));
 }
@@ -113,3 +115,5 @@ inline int CCG_grid_factor(int low_level, int high_level)
   BLI_assert(low_level <= high_level);
   return 1 << (high_level - low_level);
 }
+
+}  // namespace blender

@@ -22,6 +22,14 @@
 //   language governing permissions and limitations under the Apache License.
 //
 
+#include "gpu_shader_compat.hh"
+
+#include "osd_patch_basis.glsl"
+
+/* Runtime create info. */
+GPU_SHADER_CREATE_INFO(osd_eval_patches_comp)
+GPU_SHADER_CREATE_END()
+
 //------------------------------------------------------------------------------
 
 OsdPatchCoord GetPatchCoord(int coordIndex)

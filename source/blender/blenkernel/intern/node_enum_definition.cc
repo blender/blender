@@ -7,24 +7,26 @@
 
 #include "BKE_node_enum.hh"
 
-using blender::bke::NodeSocketValueMenuRuntimeFlag;
+namespace blender {
+
+using bke::NodeSocketValueMenuRuntimeFlag;
 
 bool bNodeSocketValueMenu::has_conflict() const
 {
   return this->runtime_flag & NodeSocketValueMenuRuntimeFlag::NODE_MENU_ITEMS_CONFLICT;
 }
 
-blender::Span<NodeEnumItem> NodeEnumDefinition::items() const
+Span<NodeEnumItem> NodeEnumDefinition::items() const
 {
   return {this->items_array, this->items_num};
 }
 
-blender::MutableSpan<NodeEnumItem> NodeEnumDefinition::items()
+MutableSpan<NodeEnumItem> NodeEnumDefinition::items()
 {
   return {this->items_array, this->items_num};
 }
 
-namespace blender::bke {
+namespace bke {
 
 const RuntimeNodeEnumItem *RuntimeNodeEnumItems::find_item_by_identifier(
     const int identifier) const
@@ -37,4 +39,5 @@ const RuntimeNodeEnumItem *RuntimeNodeEnumItems::find_item_by_identifier(
   return nullptr;
 }
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

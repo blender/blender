@@ -17,6 +17,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /**
  * The category of character as returned by #cursor_delim_type_unicode.
  *
@@ -424,3 +426,5 @@ void BLI_str_cursor_step_bounds_utf32(
     }
   }
 }
+
+}  // namespace blender

@@ -12,6 +12,8 @@
 
 #include "DNA_asset_types.h"
 
+namespace blender {
+
 struct AssetLibraryReference;
 struct AssetMetaData;
 struct AssetTag;
@@ -84,12 +86,16 @@ void BKE_asset_metadata_read(BlendDataReader *reader, AssetMetaData *asset_data)
 void BKE_asset_weak_reference_write(BlendWriter *writer, const AssetWeakReference *weak_ref);
 void BKE_asset_weak_reference_read(BlendDataReader *reader, AssetWeakReference *weak_ref);
 
-void BKE_asset_catalog_path_list_free(ListBase &catalog_path_list);
-ListBase BKE_asset_catalog_path_list_duplicate(const ListBase &catalog_path_list);
-void BKE_asset_catalog_path_list_blend_write(BlendWriter *writer,
-                                             const ListBase &catalog_path_list);
-void BKE_asset_catalog_path_list_blend_read_data(BlendDataReader *reader,
-                                                 ListBase &catalog_path_list);
-bool BKE_asset_catalog_path_list_has_path(const ListBase &catalog_path_list,
+void BKE_asset_catalog_path_list_free(ListBaseT<AssetCatalogPathLink> &catalog_path_list);
+ListBaseT<AssetCatalogPathLink> BKE_asset_catalog_path_list_duplicate(
+    const ListBaseT<AssetCatalogPathLink> &catalog_path_list);
+void BKE_asset_catalog_path_list_blend_write(
+    BlendWriter *writer, const ListBaseT<AssetCatalogPathLink> &catalog_path_list);
+void BKE_asset_catalog_path_list_blend_read_data(
+    BlendDataReader *reader, ListBaseT<AssetCatalogPathLink> &catalog_path_list);
+bool BKE_asset_catalog_path_list_has_path(const ListBaseT<AssetCatalogPathLink> &catalog_path_list,
                                           const char *catalog_path);
-void BKE_asset_catalog_path_list_add_path(ListBase &catalog_path_list, const char *catalog_path);
+void BKE_asset_catalog_path_list_add_path(ListBaseT<AssetCatalogPathLink> &catalog_path_list,
+                                          const char *catalog_path);
+
+}  // namespace blender

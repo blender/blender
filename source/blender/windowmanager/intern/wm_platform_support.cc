@@ -26,6 +26,8 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 #define WM_PLATFORM_SUPPORT_TEXT_SIZE 1024
 
 static CLG_LogRef LOG = {"gpu.platform"};
@@ -106,7 +108,7 @@ bool WM_platform_support_perform_checks()
 
   bool result = true;
 
-  eGPUSupportLevel support_level = GPU_platform_support_level();
+  GPUSupportLevel support_level = GPU_platform_support_level();
   const char *platform_key = GPU_platform_support_level_key();
 
   CLOG_INFO(&LOG, "Using GPU \"%s\"", GPU_platform_gpu_name());
@@ -252,3 +254,5 @@ bool WM_platform_support_perform_checks()
 
   return result;
 }
+
+}  // namespace blender

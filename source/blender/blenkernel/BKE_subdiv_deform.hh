@@ -11,9 +11,11 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 
+namespace blender {
+
 struct Mesh;
 
-namespace blender::bke::subdiv {
+namespace bke::subdiv {
 
 struct Subdiv;
 
@@ -30,4 +32,5 @@ void deform_coarse_vertices(Subdiv *subdiv,
                             const Mesh *coarse_mesh,
                             MutableSpan<float3> vert_positions);
 
-}  // namespace blender::bke::subdiv
+}  // namespace bke::subdiv
+}  // namespace blender

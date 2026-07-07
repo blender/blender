@@ -62,6 +62,7 @@
 #include "kernel/svm/mix.h"
 #include "kernel/svm/noisetex.h"
 #include "kernel/svm/normal.h"
+#include "kernel/svm/radial_tiling.h"
 #include "kernel/svm/ramp.h"
 #include "kernel/svm/sepcomb_color.h"
 #include "kernel/svm/sepcomb_vector.h"
@@ -80,6 +81,7 @@
 #ifdef __SHADER_RAYTRACE__
 #  include "kernel/svm/ao.h"
 #  include "kernel/svm/bevel.h"
+#  include "kernel/svm/raycast.h"
 #endif
 
 CCL_NAMESPACE_BEGIN
@@ -102,7 +104,8 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
                                const uint32_t path_flag)
 {
   float stack[SVM_STACK_SIZE];
-  Spectrum closure_weight;
+  /* Initialize to silence (false positive?) warning about uninitialized use on Windows. */
+  Spectrum closure_weight = zero_spectrum();
   int offset = sd->shader & SHADER_MASK;
 
   while (true) {
@@ -114,13 +117,13 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       SVM_CASE(NODE_SHADER_JUMP)
       {
         if (type == SHADER_TYPE_SURFACE) {
-          offset = node.y;
+          offset = int(node.y);
         }
         else if (type == SHADER_TYPE_VOLUME) {
-          offset = node.z;
+          offset = int(node.z);
         }
         else if (type == SHADER_TYPE_DISPLACEMENT) {
-          offset = node.w;
+          offset = int(node.w);
         }
         else {
           return;
@@ -395,14 +398,14 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       SVM_CASE(NODE_CURVES)
       offset = svm_node_curves(kg, stack, node, offset);
       break;
-      SVM_CASE(NODE_FLOAT_CURVE)
-      offset = svm_node_curve(kg, stack, node, offset);
-      break;
       SVM_CASE(NODE_TANGENT)
       svm_node_tangent(kg, sd, stack, node);
       break;
       SVM_CASE(NODE_NORMAL_MAP)
       svm_node_normal_map(kg, sd, stack, node);
+      break;
+      SVM_CASE(NODE_RADIAL_TILING)
+      offset = svm_node_radial_tiling<node_feature_mask>(stack, node, offset);
       break;
       SVM_CASE(NODE_INVERT)
       svm_node_invert(stack, node.y, node.z, node.w);
@@ -453,8 +456,10 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       SVM_CASE(NODE_AMBIENT_OCCLUSION)
       svm_node_ao<node_feature_mask>(kg, state, sd, stack, node);
       break;
+      SVM_CASE(NODE_RAYCAST)
+      svm_node_raycast<node_feature_mask>(kg, state, sd, stack, node);
+      break;
 #endif
-
       SVM_CASE(NODE_AOV_START)
       if (!svm_node_aov_check(path_flag, render_buffer)) {
         return;
@@ -465,6 +470,9 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       break;
       SVM_CASE(NODE_AOV_VALUE)
       svm_node_aov_value<node_feature_mask>(kg, state, stack, node, render_buffer);
+      break;
+      SVM_CASE(NODE_FLOAT_CURVE)
+      offset = svm_node_curve(kg, stack, node, offset);
       break;
       SVM_CASE(NODE_MIX_COLOR)
       svm_node_mix_color(stack, node.y, node.z, node.w);

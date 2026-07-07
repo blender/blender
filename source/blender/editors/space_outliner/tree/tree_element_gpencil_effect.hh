@@ -10,10 +10,12 @@
 
 #include "tree_element.hh"
 
+namespace blender {
+
 struct Object;
 struct ShaderFxData;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 class TreeElementGPencilEffectBase final : public AbstractTreeElement {
   Object &object_;
@@ -33,4 +35,5 @@ class TreeElementGPencilEffect final : public AbstractTreeElement {
   void expand(SpaceOutliner & /*soops*/) const override;
 };
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

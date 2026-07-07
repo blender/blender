@@ -10,6 +10,8 @@
 
 #include <Python.h>
 
+namespace blender {
+
 struct StructRNA;
 
 [[nodiscard]] PyObject *BPY_rna_props();
@@ -37,3 +39,5 @@ extern PyTypeObject bpy_prop_deferred_Type;
 #define BPy_PropDeferred_CheckTypeExact(v) (Py_TYPE(v) == &bpy_prop_deferred_Type)
 
 #define PYRNA_STACK_ARRAY RNA_STACK_ARRAY
+
+}  // namespace blender

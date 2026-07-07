@@ -17,7 +17,7 @@ namespace blender::deg {
  * (and their dependencies). */
 class AllObjectsBuilderPipeline : public ViewLayerBuilderPipeline {
  public:
-  AllObjectsBuilderPipeline(::Depsgraph *graph);
+  AllObjectsBuilderPipeline(blender::Depsgraph *graph);
 
  protected:
   std::unique_ptr<DepsgraphNodeBuilder> construct_node_builder() override;

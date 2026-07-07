@@ -12,8 +12,12 @@
 
 #include "DNA_vec_types.h"
 
+namespace blender {
+
 struct bContext;
 struct View2D;
+
+namespace ui {
 
 struct View2DScrollers {
   /* focus bubbles */
@@ -41,3 +45,6 @@ bool view2d_edge_pan_poll(bContext *C);
  * (#View2D.page_size_y) but defaults to the #View2D.mask height.
  */
 float view2d_page_size_y(const View2D &v2d);
+
+}  // namespace ui
+}  // namespace blender

@@ -153,7 +153,12 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
 
   bool addUniform(const char *name,
                   const SizeGetter &get_size,
-                  const VectorFloatGetter &get_vector_float) override
+                  const VectorFloatGetter &get_vector_float
+#  if OCIO_VERSION_HEX >= 0x02050000
+                  ,
+                  const unsigned /*maxSize*/
+#  endif
+                  ) override
   {
     /* Check if a resource exists with the same name and assert if it is the case, returning false
      * indicates failure to add the uniform for the shader creator. */
@@ -175,7 +180,12 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
 
   bool addUniform(const char *name,
                   const SizeGetter &get_size,
-                  const VectorIntGetter &get_vector_int) override
+                  const VectorIntGetter &get_vector_int
+#  if OCIO_VERSION_HEX >= 0x02050000
+                  ,
+                  const unsigned /*maxSize*/
+#  endif
+                  ) override
   {
     /* Check if a resource exists with the same name and assert if it is the case, returning false
      * indicates failure to add the uniform for the shader creator. */
@@ -195,16 +205,21 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
     return true;
   }
 
-  void addTexture(const char *texture_name,
-                  const char *sampler_name,
-                  uint width,
-                  uint height,
-                  TextureType channel,
-#  if OCIO_VERSION_HEX >= 0x02030000
-                  OCIO::GpuShaderDesc::TextureDimensions dimensions,
+#  if OCIO_VERSION_HEX >= 0x02050000
+  unsigned
+#  else
+  void
 #  endif
-                  OCIO::Interpolation interpolation,
-                  const float *values) override
+  addTexture(const char *texture_name,
+             const char *sampler_name,
+             uint width,
+             uint height,
+             TextureType channel,
+#  if OCIO_VERSION_HEX >= 0x02030000
+             OCIO::GpuShaderDesc::TextureDimensions dimensions,
+#  endif
+             OCIO::Interpolation interpolation,
+             const float *values) override
   {
     /* Check if a resource exists with the same name and assert if it is the case. */
     if (!resource_names_.add(std::make_unique<std::string>(sampler_name))) {
@@ -215,12 +230,11 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
      * resource names, instead, use the name that is stored in resource_names_. */
     const std::string &resource_name = *resource_names_[resource_names_.size() - 1];
 
-    blender::gpu::Texture *texture;
-    const blender::gpu::TextureFormat base_format =
-        (channel == TEXTURE_RGB_CHANNEL) ? blender::gpu::TextureFormat::SFLOAT_32_32_32 :
-                                           blender::gpu::TextureFormat::SFLOAT_32;
-    const blender::gpu::TextureFormat texture_format = Result::gpu_texture_format(base_format,
-                                                                                  precision_);
+    gpu::Texture *texture;
+    const gpu::TextureFormat base_format = (channel == TEXTURE_RGB_CHANNEL) ?
+                                               gpu::TextureFormat::SFLOAT_32_32_32 :
+                                               gpu::TextureFormat::SFLOAT_32;
+    const gpu::TextureFormat texture_format = Result::gpu_texture_format(base_format, precision_);
     /* A height of 1 indicates a 1D texture according to the OCIO API. */
 #  if OCIO_VERSION_HEX >= 0x02030000
     if (dimensions == OCIO::GpuShaderDesc::TEXTURE_1D)
@@ -240,13 +254,21 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
     GPU_texture_filter_mode(texture, interpolation != OCIO::INTERP_NEAREST);
 
     textures_.add(sampler_name, texture);
+#  if OCIO_VERSION_HEX >= 0x02050000
+    return textures_.size() - 1;
+#  endif
   }
 
-  void add3DTexture(const char *texture_name,
-                    const char *sampler_name,
-                    uint size,
-                    OCIO::Interpolation interpolation,
-                    const float *values) override
+#  if OCIO_VERSION_HEX >= 0x02050000
+  unsigned
+#  else
+  void
+#  endif
+  add3DTexture(const char *texture_name,
+               const char *sampler_name,
+               uint size,
+               OCIO::Interpolation interpolation,
+               const float *values) override
   {
     /* Check if a resource exists with the same name and assert if it is the case. */
     if (!resource_names_.add(std::make_unique<std::string>(sampler_name))) {
@@ -258,24 +280,30 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
     const std::string &resource_name = *resource_names_[resource_names_.size() - 1];
     shader_create_info_.sampler(textures_.size() + 1, ImageType::Float3D, resource_name);
 
-    blender::gpu::Texture *texture = GPU_texture_create_3d(
+    gpu::Texture *texture = GPU_texture_create_3d(
         texture_name,
         size,
         size,
         size,
         1,
-        Result::gpu_texture_format(blender::gpu::TextureFormat::SFLOAT_32_32_32, precision_),
+        Result::gpu_texture_format(gpu::TextureFormat::SFLOAT_32_32_32, precision_),
         GPU_TEXTURE_USAGE_SHADER_READ,
         values);
     GPU_texture_filter_mode(texture, interpolation != OCIO::INTERP_NEAREST);
 
     textures_.add(sampler_name, texture);
+#  if OCIO_VERSION_HEX >= 0x02050000
+    return textures_.size() - 1;
+#  endif
   }
 
   /* This gets called before the finalize() method to construct the shader code. We just
    * concatenate the code except for the declarations section. That's because the ShaderCreateInfo
    * will add the declaration itself. */
-  void createShaderText(const char * /*declarations*/,
+  void createShaderText(const char * /*parameter_declarations*/,
+#  if OCIO_VERSION_HEX >= 0x02050000
+                        const char * /*texture_declarations*/,
+#  endif
                         const char *helper_methods,
                         const char *function_header,
                         const char *function_body,
@@ -296,13 +324,17 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
 
     shader_create_info_.local_group_size(16, 16);
     shader_create_info_.sampler(0, ImageType::Float2D, input_sampler_name());
+    shader_create_info_.builtins(BuiltinBits::GLOBAL_INVOCATION_ID);
     shader_create_info_.image(0,
                               Result::gpu_texture_format(ResultType::Color, precision_),
                               Qualifier::write,
                               ImageReadWriteType::Float2D,
                               output_image_name());
     shader_create_info_.compute_source("gpu_shader_compositor_ocio_processor.glsl");
-    shader_create_info_.compute_source_generated += GPU_shader_preprocess_source(shader_code_);
+    shader_create_info_.generated_sources.append(
+        {"gpu_shader_compositor_ocio_processor_lib.glsl",
+         {},
+         GPU_shader_preprocess_source(shader_code_, shader_create_info_)});
 
     GPUShaderCreateInfo *info = reinterpret_cast<GPUShaderCreateInfo *>(&shader_create_info_);
     shader_ = GPU_shader_create_from_info(info);
@@ -359,7 +391,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
       GPU_uniformbuf_free(buffer);
     }
 
-    for (blender::gpu::Texture *texture : textures_.values()) {
+    for (gpu::Texture *texture : textures_.values()) {
       GPU_texture_unbind(texture);
     }
 
@@ -378,7 +410,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
 
   ~GPUShaderCreator() override
   {
-    for (blender::gpu::Texture *texture : textures_.values()) {
+    for (gpu::Texture *texture : textures_.values()) {
       GPU_texture_free(texture);
     }
 
@@ -389,7 +421,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
   /* The processor shader and the ShaderCreateInfo used to construct it. Constructed and
    * initialized in the finalize() method. */
   gpu::Shader *shader_ = nullptr;
-  ShaderCreateInfo shader_create_info_ = ShaderCreateInfo("OCIO Processor");
+  ShaderCreateInfo shader_create_info_ = ShaderCreateInfo("OCIO_Processor");
 
   /* Stores the generated OCIOMain function as well as a number of helper functions. Initialized in
    * the createShaderText() method. */
@@ -412,7 +444,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
 
   /* A map that associates the name of a sampler with its corresponding texture. Initialized in the
    * addTexture() and add3DTexture() methods. */
-  Map<std::string, blender::gpu::Texture *> textures_;
+  Map<std::string, gpu::Texture *> textures_;
 
   /* A vector set that stores the names of all the resources used by the shader. This is used to:
    *   1. Check for name collisions when adding new resources.

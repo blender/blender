@@ -17,6 +17,8 @@
 #include "BLI_set.hh"
 #include "BLI_sys_types.h" /* for bool and uint */
 
+namespace blender {
+
 struct ARegion;
 struct Base;
 struct Depsgraph;
@@ -30,18 +32,18 @@ struct rcti;
  */
 struct ElemIndexRanges {
   /** Range for each element type. */
-  blender::IndexRange face;
-  blender::IndexRange edge;
-  blender::IndexRange vert;
+  IndexRange face;
+  IndexRange edge;
+  IndexRange vert;
   /** Combined range for the whole object. */
-  blender::IndexRange total;
+  IndexRange total;
 };
 
 struct SELECTID_Context {
   /** All selectable evaluated objects. */
-  blender::Vector<Object *> objects;
+  Vector<Object *> objects;
   /** Map of the selectable objects from `objects` to their indices ranges. */
-  blender::Map<Object *, ElemIndexRanges> elem_ranges;
+  Map<Object *, ElemIndexRanges> elem_ranges;
 
   /**
    * Maximum index value that can be contained inside the selection frame-buffer.
@@ -52,7 +54,7 @@ struct SELECTID_Context {
   short select_mode;
 
   /** To check for updates. */
-  blender::float4x4 persmat;
+  float4x4 persmat;
   uint64_t depsgraph_last_update = 0;
 
   bool is_dirty(Depsgraph *depsgraph, RegionView3D *rv3d);
@@ -101,7 +103,7 @@ uint *DRW_select_buffer_bitmap_from_circle(Depsgraph *depsgraph,
 uint *DRW_select_buffer_bitmap_from_poly(Depsgraph *depsgraph,
                                          ARegion *region,
                                          View3D *v3d,
-                                         blender::Span<blender::int2> poly,
+                                         Span<int2> poly,
                                          const rcti *rect,
                                          uint *r_bitmap_len);
 /**
@@ -123,6 +125,6 @@ uint DRW_select_buffer_find_nearest_to_point(Depsgraph *depsgraph,
                                              uint id_min,
                                              uint id_max,
                                              uint *dist);
-void DRW_select_buffer_context_create(Depsgraph *depsgraph,
-                                      blender::Span<Base *> bases,
-                                      short select_mode);
+void DRW_select_buffer_context_create(Depsgraph *depsgraph, Span<Base *> bases, short select_mode);
+
+}  // namespace blender

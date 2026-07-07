@@ -11,18 +11,16 @@
  * tag the appropriate tiles.
  */
 
-#include "infos/eevee_shadow_info.hh"
+#include "infos/eevee_shadow_pipeline_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_shadow_tag_update)
 
 #include "draw_aabb_lib.glsl"
 #include "draw_intersect_lib.glsl"
 
-#include "draw_view_lib.glsl"
 #include "eevee_shadow_tilemap_lib.glsl"
-#include "gpu_shader_utildefines_lib.glsl"
 
-float3 safe_project(float4x4 winmat, float4x4 viewmat, inout int clipped, float3 v)
+float3 safe_project(float4x4 winmat, float4x4 viewmat, int &clipped, float3 v)
 {
   float4 tmp = winmat * (viewmat * float4(v, 1.0f));
   /* Detect case when point is behind the camera. */
@@ -64,7 +62,7 @@ void main()
       /* All verts are behind the camera. */
       return;
     }
-    else if (clipped > 0) {
+    if (clipped > 0) {
       /* Not all verts are behind the near clip plane. */
       if (intersect(frustum, box)) {
         /* We cannot correctly handle this case so we fall back by covering the whole view. */
@@ -103,7 +101,7 @@ void main()
   for (int lod = 0; lod <= SHADOW_TILEMAP_LOD; lod++, box_min >>= 1, box_max >>= 1) {
     for (int y = box_min.y; y <= box_max.y; y++) {
       for (int x = box_min.x; x <= box_max.x; x++) {
-        int tile_index = shadow_tile_offset(uint2(x, y), tilemap.tiles_index, lod);
+        int tile_index = shadow_tile_offset(uint2(uint(x), uint(y)), tilemap.tiles_index, lod);
         atomicOr(tiles_buf[tile_index], uint(SHADOW_DO_UPDATE));
       }
     }

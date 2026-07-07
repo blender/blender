@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/workbench_shadow_info.hh"
+#include "infos/workbench_shadow_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(workbench_shadow_visibility_compute_dynamic_pass_type)
 

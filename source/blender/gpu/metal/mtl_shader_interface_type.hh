@@ -10,7 +10,9 @@
 #include "BLI_assert.h"
 #include "GPU_material.hh"
 
-enum eMTLDataType {
+namespace blender::gpu {
+
+enum MTLInterfaceDataType {
   MTL_DATATYPE_CHAR,
   MTL_DATATYPE_CHAR2,
   MTL_DATATYPE_CHAR3,
@@ -87,7 +89,7 @@ enum eMTLDataType {
   MTL_DATATYPE_INT1010102_NORM
 };
 
-inline uint mtl_get_data_type_size(eMTLDataType type)
+inline uint mtl_get_data_type_size(MTLInterfaceDataType type)
 {
   switch (type) {
     case MTL_DATATYPE_CHAR:
@@ -176,7 +178,80 @@ inline uint mtl_get_data_type_size(eMTLDataType type)
   };
 }
 
-inline uint mtl_get_data_type_alignment(eMTLDataType type)
+inline MTLInterfaceDataType to_mtl_type(shader::Type type)
+{
+  switch (type) {
+    case shader::Type::float_t:
+      return MTL_DATATYPE_FLOAT;
+    case shader::Type::float2_t:
+      return MTL_DATATYPE_FLOAT2;
+    case shader::Type::float3_t:
+      return MTL_DATATYPE_FLOAT3;
+    case shader::Type::float4_t:
+      return MTL_DATATYPE_FLOAT4;
+    case shader::Type::float3x3_t:
+      return MTL_DATATYPE_FLOAT3x3;
+    case shader::Type::float4x4_t:
+      return MTL_DATATYPE_FLOAT4x4;
+    case shader::Type::uint_t:
+      return MTL_DATATYPE_UINT;
+    case shader::Type::uint2_t:
+      return MTL_DATATYPE_UINT2;
+    case shader::Type::uint3_t:
+      return MTL_DATATYPE_UINT3;
+    case shader::Type::uint4_t:
+      return MTL_DATATYPE_UINT4;
+    case shader::Type::int_t:
+      return MTL_DATATYPE_INT;
+    case shader::Type::int2_t:
+      return MTL_DATATYPE_INT2;
+    case shader::Type::int3_t:
+      return MTL_DATATYPE_INT3;
+    case shader::Type::int4_t:
+      return MTL_DATATYPE_INT4;
+    case shader::Type::bool_t:
+      return MTL_DATATYPE_BOOL;
+    case shader::Type::float3_10_10_10_2_t:
+      return MTL_DATATYPE_UINT1010102_NORM;
+    case shader::Type::uchar_t:
+      return MTL_DATATYPE_UCHAR;
+    case shader::Type::uchar2_t:
+      return MTL_DATATYPE_UCHAR2;
+    case shader::Type::uchar3_t:
+      return MTL_DATATYPE_UCHAR3;
+    case shader::Type::uchar4_t:
+      return MTL_DATATYPE_UCHAR4;
+    case shader::Type::char_t:
+      return MTL_DATATYPE_CHAR;
+    case shader::Type::char2_t:
+      return MTL_DATATYPE_CHAR2;
+    case shader::Type::char3_t:
+      return MTL_DATATYPE_CHAR3;
+    case shader::Type::char4_t:
+      return MTL_DATATYPE_CHAR4;
+    case shader::Type::ushort_t:
+      return MTL_DATATYPE_USHORT;
+    case shader::Type::ushort2_t:
+      return MTL_DATATYPE_USHORT2;
+    case shader::Type::ushort3_t:
+      return MTL_DATATYPE_USHORT3;
+    case shader::Type::ushort4_t:
+      return MTL_DATATYPE_USHORT4;
+    case shader::Type::short_t:
+      return MTL_DATATYPE_SHORT;
+    case shader::Type::short2_t:
+      return MTL_DATATYPE_SHORT2;
+    case shader::Type::short3_t:
+      return MTL_DATATYPE_SHORT3;
+    case shader::Type::short4_t:
+      return MTL_DATATYPE_SHORT4;
+    default:
+      BLI_assert(false);
+      return MTL_DATATYPE_FLOAT;
+  };
+}
+
+inline uint mtl_get_data_type_alignment(MTLInterfaceDataType type)
 {
   switch (type) {
     case MTL_DATATYPE_CHAR:
@@ -258,7 +333,7 @@ inline uint mtl_get_data_type_alignment(eMTLDataType type)
   };
 }
 
-inline eMTLDataType gpu_type_to_mtl_type(eGPUType type)
+inline MTLInterfaceDataType gpu_type_to_mtl_type(GPUType type)
 {
   switch (type) {
     case GPU_FLOAT:
@@ -279,3 +354,5 @@ inline eMTLDataType gpu_type_to_mtl_type(eGPUType type)
   }
   return MTL_DATATYPE_FLOAT;
 }
+
+}  // namespace blender::gpu

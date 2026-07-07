@@ -14,8 +14,10 @@
 
 #include "bmesh_class.hh"
 
+namespace blender {
+
 bool BM_mesh_boolean(BMesh *bm,
-                     blender::Span<std::array<BMLoop *, 3>> looptris,
+                     Span<std::array<BMLoop *, 3>> looptris,
                      int (*test_fn)(BMFace *f, void *user_data),
                      void *user_data,
                      int nshapes,
@@ -35,7 +37,7 @@ bool BM_mesh_boolean(BMesh *bm,
  * to the intersection result faces.
  */
 bool BM_mesh_boolean_knife(BMesh *bm,
-                           blender::Span<std::array<BMLoop *, 3>> looptris,
+                           Span<std::array<BMLoop *, 3>> looptris,
                            int (*test_fn)(BMFace *f, void *user_data),
                            void *user_data,
                            int nshapes,
@@ -43,3 +45,5 @@ bool BM_mesh_boolean_knife(BMesh *bm,
                            bool use_separate_all,
                            bool hole_tolerant,
                            bool keep_hidden);
+
+}  // namespace blender

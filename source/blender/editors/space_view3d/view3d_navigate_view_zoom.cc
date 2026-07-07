@@ -22,6 +22,8 @@
 #include "view3d_intern.hh"
 #include "view3d_navigate.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name View Zoom Operator
  * \{ */
@@ -292,7 +294,7 @@ static void viewzoom_apply_3d(ViewOpsData *vod,
                               const bool zoom_invert,
                               const bool zoom_to_pos)
 {
-  const blender::Bounds<float> dist_range = ED_view3d_dist_soft_range_get(vod->v3d, false);
+  const Bounds<float> dist_range = ED_view3d_dist_soft_range_get(vod->v3d, false);
   float zfac = viewzoom_scale_value_offset(&vod->region->winrct,
                                            viewzoom,
                                            zoom_invert,
@@ -351,7 +353,7 @@ static wmOperatorStatus viewzoom_modal_impl(bContext *C,
 
   switch (event_code) {
     case VIEW_APPLY: {
-      viewzoom_apply(vod, xy, (eViewZoom_Style)U.viewzoom, (U.uiflag & USER_ZOOM_INVERT) != 0);
+      viewzoom_apply(vod, xy, eViewZoom_Style(U.viewzoom), (U.uiflag & USER_ZOOM_INVERT) != 0);
       if (ED_screen_animation_playing(CTX_wm_manager(C))) {
         use_autokey = true;
       }
@@ -393,7 +395,7 @@ static void view_zoom_apply_step(bContext *C,
   use_cam_zoom = (rv3d->persp == RV3D_CAMOB) &&
                  !(rv3d->is_persp && ED_view3d_camera_lock_check(v3d, rv3d));
 
-  const blender::Bounds<float> dist_range = ED_view3d_dist_soft_range_get(v3d, false);
+  const Bounds<float> dist_range = ED_view3d_dist_soft_range_get(v3d, false);
 
   if (delta < 0) {
     const float step = 1.2f;
@@ -551,3 +553,5 @@ const ViewOpsType ViewOpsType_zoom = {
     /*init_fn*/ viewzoom_invoke_impl,
     /*apply_fn*/ viewzoom_modal_impl,
 };
+
+}  // namespace blender

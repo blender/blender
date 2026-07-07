@@ -40,10 +40,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-
 #include "BLI_array_utils.hh"
 #include "BLI_bitmap.h"
+#include "BLI_enum_flags.hh"
 #include "BLI_heap_simple.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
@@ -52,12 +51,12 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_deform.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
@@ -75,6 +74,8 @@
 #include "MOD_ui_common.hh"
 
 #include "bmesh.hh"
+
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Generic BMesh Utilities
@@ -129,7 +130,7 @@ enum SkinNodeFlag {
   SEAM_FRAME = 4,
   FLIP_NORMAL = 8,
 };
-ENUM_OPERATORS(SkinNodeFlag, FLIP_NORMAL);
+ENUM_OPERATORS(SkinNodeFlag);
 
 struct Frame {
   /* Index in the vertex array */
@@ -450,22 +451,19 @@ static void merge_frame_corners(Frame **frames, int totframe)
   }
 }
 
-static Frame **collect_hull_frames(int v,
-                                   SkinNode *frames,
-                                   blender::GroupedSpan<int> emap,
-                                   const blender::Span<blender::int2> edges,
-                                   int *tothullframe)
+static Frame **collect_hull_frames(
+    int v, SkinNode *frames, GroupedSpan<int> emap, const Span<int2> edges, int *tothullframe)
 {
   SkinNode *f;
   Frame **hull_frames;
   int hull_frames_num, i;
 
   (*tothullframe) = emap[v].size();
-  hull_frames = MEM_calloc_arrayN<Frame *>(*tothullframe, __func__);
+  hull_frames = MEM_new_array_zeroed<Frame *>(*tothullframe, __func__);
   hull_frames_num = 0;
   for (i = 0; i < emap[v].size(); i++) {
-    const blender::int2 &edge = edges[emap[v][i]];
-    f = &frames[blender::bke::mesh::edge_other_vert(edge, v)];
+    const int2 &edge = edges[emap[v][i]];
+    f = &frames[bke::mesh::edge_other_vert(edge, v)];
     /* Can't have adjacent branch nodes yet */
     if (f->totframe) {
       hull_frames[hull_frames_num++] = &f->frames[0];
@@ -527,9 +525,9 @@ static float half_v2(const float v[2])
 
 static void end_node_frames(int v,
                             SkinNode *skin_nodes,
-                            const blender::Span<blender::float3> vert_positions,
+                            const Span<float3> vert_positions,
                             const MVertSkin *nodes,
-                            blender::GroupedSpan<int> emap,
+                            GroupedSpan<int> emap,
                             EMat *emat)
 {
   const float *rad = nodes[v].radius;
@@ -577,7 +575,7 @@ static void end_node_frames(int v,
 }
 
 /* Returns 1 for seam, 0 otherwise */
-static int connection_node_mat(float mat[3][3], int v, blender::GroupedSpan<int> emap, EMat *emat)
+static int connection_node_mat(float mat[3][3], int v, GroupedSpan<int> emap, EMat *emat)
 {
   float axis[3], angle, ine[3][3], oute[3][3];
   EMat *e1, *e2;
@@ -612,9 +610,9 @@ static int connection_node_mat(float mat[3][3], int v, blender::GroupedSpan<int>
 
 static void connection_node_frames(int v,
                                    SkinNode *skin_nodes,
-                                   const blender::Span<blender::float3> vert_positions,
+                                   const Span<float3> vert_positions,
                                    const MVertSkin *nodes,
-                                   blender::GroupedSpan<int> emap,
+                                   GroupedSpan<int> emap,
                                    EMat *emat)
 {
   const float *rad = nodes[v].radius;
@@ -655,15 +653,15 @@ static void connection_node_frames(int v,
   create_frame(&skin_nodes[v].frames[0], vert_positions[v], rad, mat, 0);
 }
 
-static SkinNode *build_frames(const blender::Span<blender::float3> vert_positions,
+static SkinNode *build_frames(const Span<float3> vert_positions,
                               int verts_num,
                               const MVertSkin *nodes,
-                              blender::GroupedSpan<int> emap,
+                              GroupedSpan<int> emap,
                               EMat *emat)
 {
   int v;
 
-  SkinNode *skin_nodes = MEM_calloc_arrayN<SkinNode>(verts_num, __func__);
+  SkinNode *skin_nodes = MEM_new_array_zeroed<SkinNode>(verts_num, __func__);
 
   for (v = 0; v < verts_num; v++) {
     if (emap[v].size() <= 1) {
@@ -720,10 +718,10 @@ struct EdgeStackElem {
 static void build_emats_stack(BLI_Stack *stack,
                               BLI_bitmap *visited_e,
                               EMat *emat,
-                              blender::GroupedSpan<int> emap,
-                              const blender::Span<blender::int2> edges,
+                              GroupedSpan<int> emap,
+                              const Span<int2> edges,
                               const MVertSkin *vs,
-                              const blender::Span<blender::float3> vert_positions)
+                              const Span<float3> vert_positions)
 {
   EdgeStackElem stack_elem;
   float axis[3], angle;
@@ -745,7 +743,7 @@ static void build_emats_stack(BLI_Stack *stack,
 
   parent_is_branch = ((emap[parent_v].size() > 2) || (vs[parent_v].flag & MVERT_SKIN_ROOT));
 
-  v = blender::bke::mesh::edge_other_vert(edges[e], parent_v);
+  v = bke::mesh::edge_other_vert(edges[e], parent_v);
   emat[e].origin = parent_v;
 
   /* If parent is a branch node, start a new edge chain */
@@ -774,10 +772,10 @@ static void build_emats_stack(BLI_Stack *stack,
 }
 
 static EMat *build_edge_mats(const MVertSkin *vs,
-                             const blender::Span<blender::float3> vert_positions,
+                             const Span<float3> vert_positions,
                              const int verts_num,
-                             const blender::Span<blender::int2> edges,
-                             blender::GroupedSpan<int> emap,
+                             const Span<int2> edges,
+                             GroupedSpan<int> emap,
                              bool *has_valid_root)
 {
   BLI_Stack *stack;
@@ -789,17 +787,17 @@ static EMat *build_edge_mats(const MVertSkin *vs,
   stack = BLI_stack_new(sizeof(stack_elem), "build_edge_mats.stack");
 
   visited_e = BLI_BITMAP_NEW(edges.size(), "build_edge_mats.visited_e");
-  emat = MEM_calloc_arrayN<EMat>(edges.size(), __func__);
+  emat = MEM_new_array_zeroed<EMat>(edges.size(), __func__);
 
   /* Edge matrices are built from the root nodes, add all roots with
    * children to the stack */
   for (v = 0; v < verts_num; v++) {
     if (vs[v].flag & MVERT_SKIN_ROOT) {
       if (emap[v].size() >= 1) {
-        const blender::int2 &edge = edges[emap[v][0]];
+        const int2 &edge = edges[emap[v][0]];
         calc_edge_mat(stack_elem.mat,
                       vert_positions[v],
-                      vert_positions[blender::bke::mesh::edge_other_vert(edge, v)]);
+                      vert_positions[bke::mesh::edge_other_vert(edge, v)]);
         stack_elem.parent_v = v;
 
         /* Add adjacent edges to stack */
@@ -822,7 +820,7 @@ static EMat *build_edge_mats(const MVertSkin *vs,
     build_emats_stack(stack, visited_e, emat, emap, edges, vs, vert_positions);
   }
 
-  MEM_freeN(visited_e);
+  MEM_delete(visited_e);
   BLI_stack_free(stack);
 
   return emat;
@@ -835,10 +833,10 @@ static EMat *build_edge_mats(const MVertSkin *vs,
  * nodes, at least two intermediate frames are required. (This avoids
  * having any special cases for dealing with sharing a frame between
  * two hulls.) */
-static int calc_edge_subdivisions(const blender::Span<blender::float3> vert_positions,
+static int calc_edge_subdivisions(const Span<float3> vert_positions,
                                   const MVertSkin *nodes,
-                                  const blender::int2 &edge,
-                                  const blender::Span<int> degree)
+                                  const int2 &edge,
+                                  const Span<int> degree)
 {
   /* prevent memory errors #38003. */
 #define NUM_SUBDIVISIONS_MAX 128
@@ -900,18 +898,18 @@ static Mesh *subdivide_base(const Mesh *orig)
 
   const MVertSkin *orignode = static_cast<const MVertSkin *>(
       CustomData_get_layer(&orig->vert_data, CD_MVERT_SKIN));
-  const blender::Span<blender::float3> orig_vert_positions = orig->vert_positions();
-  const blender::Span<blender::int2> orig_edges = orig->edges();
+  const Span<float3> orig_vert_positions = orig->vert_positions();
+  const Span<int2> orig_edges = orig->edges();
   const MDeformVert *origdvert = orig->deform_verts().data();
   int orig_vert_num = orig->verts_num;
   int orig_edge_num = orig->edges_num;
 
   /* Get degree of all vertices */
-  blender::Array<int> degree(orig_vert_num, 0);
-  blender::array_utils::count_indices(orig_edges.cast<int>(), degree);
+  Array<int> degree(orig_vert_num, 0);
+  array_utils::count_indices(orig_edges.cast<int>(), degree);
 
   /* Per edge, store how many subdivisions are needed */
-  blender::Array<int> edge_subd(orig_edge_num, 0);
+  Array<int> edge_subd(orig_edge_num, 0);
   for (i = 0, subd_num = 0; i < orig_edge_num; i++) {
     edge_subd[i] += calc_edge_subdivisions(orig_vert_positions, orignode, orig_edges[i], degree);
     BLI_assert(edge_subd[i] >= 0);
@@ -922,8 +920,8 @@ static Mesh *subdivide_base(const Mesh *orig)
   Mesh *result = BKE_mesh_new_nomain_from_template(
       orig, orig_vert_num + subd_num, orig_edge_num + subd_num, 0, 0);
 
-  blender::MutableSpan<blender::float3> out_vert_positions = result->vert_positions_for_write();
-  blender::MutableSpan<blender::int2> result_edges = result->edges_for_write();
+  MutableSpan<float3> out_vert_positions = result->vert_positions_for_write();
+  MutableSpan<int2> result_edges = result->edges_for_write();
   MVertSkin *outnode = static_cast<MVertSkin *>(
       CustomData_get_layer_for_write(&result->vert_data, CD_MVERT_SKIN, result->verts_num));
   MDeformVert *outdvert = nullptr;
@@ -932,7 +930,8 @@ static Mesh *subdivide_base(const Mesh *orig)
   }
 
   /* Copy original vertex data */
-  CustomData_copy_data(&orig->vert_data, &result->vert_data, 0, 0, orig_vert_num);
+  bke::LegacyMeshInterpolator vert_interp(*orig, *result, bke::AttrDomain::Point);
+  vert_interp.copy(0, 0, orig_vert_num);
 
   /* Subdivide edges */
   int result_edge_i = 0;
@@ -945,12 +944,12 @@ static Mesh *subdivide_base(const Mesh *orig)
     VGroupData *vgroups = nullptr, *vg;
     int vgroups_num = 0;
 
-    const blender::int2 &edge = orig_edges[i];
+    const int2 &edge = orig_edges[i];
 
     if (origdvert) {
       const MDeformVert *dv1 = &origdvert[edge[0]];
       const MDeformVert *dv2 = &origdvert[edge[1]];
-      vgroups = MEM_calloc_arrayN<VGroupData>(dv1->totweight, __func__);
+      vgroups = MEM_new_array_zeroed<VGroupData>(dv1->totweight, __func__);
 
       /* Only want vertex groups used by both vertices */
       for (j = 0; j < dv1->totweight; j++) {
@@ -1012,7 +1011,7 @@ static Mesh *subdivide_base(const Mesh *orig)
     }
 
     if (vgroups) {
-      MEM_freeN(vgroups);
+      MEM_delete(vgroups);
     }
 
     /* Link up to final vertex */
@@ -1322,7 +1321,12 @@ static void skin_choose_quad_bridge_order(BMVert *a[4], BMVert *b[4], int best_o
   }
 }
 
-static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_face)
+/**
+ * Attempt to fix a detached frame by extruding a hull face and merging it with the frame.
+ *
+ * \return True if the fix succeeded, false if it failed (caller should create a cap face).
+ */
+static bool skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_face)
 {
   BMFace *f;
   BMVert *verts[4];
@@ -1353,7 +1357,7 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 
   BMO_op_finish(bm, &op);
 
-  blender::Vector<BMVert *> vert_buf;
+  Vector<BMVert *> vert_buf;
 
   if (split_face->len == 3) {
     BMEdge *longest_edge;
@@ -1378,7 +1382,11 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
     vert_buf.reinitialize(split_face->len);
 
     /* Get split face's verts */
-    BM_iter_as_array(bm, BM_VERTS_OF_FACE, split_face, (void **)vert_buf.data(), split_face->len);
+    BM_iter_as_array(bm,
+                     BM_VERTS_OF_FACE,
+                     split_face,
+                     reinterpret_cast<void **>(vert_buf.data()),
+                     split_face->len);
 
     /* Earlier edge split operations may have turned some quads
      * into higher-degree faces */
@@ -1392,10 +1400,14 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
   if (split_face->len != 4) {
     /* Reuse `vert_buf` for updating normals. */
     vert_buf.reinitialize(split_face->len);
-    BM_iter_as_array(bm, BM_FACES_OF_VERT, split_face, (void **)vert_buf.data(), split_face->len);
+    BM_iter_as_array(bm,
+                     BM_FACES_OF_VERT,
+                     split_face,
+                     reinterpret_cast<void **>(vert_buf.data()),
+                     split_face->len);
 
     vert_array_face_normal_update(vert_buf.data(), split_face->len);
-    return;
+    return false;
   }
 
   /* Get split face's verts */
@@ -1414,6 +1426,7 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
   BMO_op_finish(bm, &op);
 
   vert_array_face_normal_update(frame->verts, 4);
+  return true;
 }
 
 /* If the frame has some vertices that are inside the hull (detached)
@@ -1435,6 +1448,43 @@ static void skin_hole_detach_partially_attached_frame(BMesh *bm, Frame *frame)
     BMVert **av = &frame->verts[attached[i]];
     (*av) = BM_vert_create(bm, (*av)->co, *av, BM_CREATE_NOP);
   }
+}
+
+/**
+ * Check if any frame vertex was detected as interior.
+ */
+static bool skin_frame_has_interior_hull_vertex(const Frame *frame)
+{
+  for (const int k : IndexRange(4)) {
+    if (frame->inside_hull[k]) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Check if any frame vertex is shared with the target face.
+ *
+ * When frame vertices are at the same position as (or very close to) branch node vertices,
+ * the convex hull calculation (via Bullet) merges them into a single vertex.
+ * Without this check, the subsequent extrusion creates degenerate zero-length edges,
+ * leaving holes in the resulting mesh. See: #78848.
+ */
+static bool skin_frame_has_coincident_hull_vertex(const Frame *frame, BMFace *target_face)
+{
+  BMVert *const *verts = frame->verts;
+  BMVert *const *verts_end = frame->verts + 4;
+
+  BMLoop *l_first = BM_FACE_FIRST_LOOP(target_face);
+  BMLoop *l = l_first;
+  do {
+    if (std::find(verts, verts_end, l->v) != verts_end) {
+      return true;
+    }
+    l = l->next;
+  } while (l != l_first);
+  return false;
 }
 
 static void quad_from_tris(BMEdge *e, BMFace *adj[2], BMVert *ndx[4])
@@ -1564,8 +1614,8 @@ static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
 
 static void skin_merge_close_frame_verts(SkinNode *skin_nodes,
                                          int verts_num,
-                                         blender::GroupedSpan<int> emap,
-                                         const blender::Span<blender::int2> edges)
+                                         GroupedSpan<int> emap,
+                                         const Span<int2> edges)
 {
   Frame **hull_frames;
   int v, tothullframe;
@@ -1575,7 +1625,7 @@ static void skin_merge_close_frame_verts(SkinNode *skin_nodes,
     if (!skin_nodes[v].totframe) {
       hull_frames = collect_hull_frames(v, skin_nodes, emap, edges, &tothullframe);
       merge_frame_corners(hull_frames, tothullframe);
-      MEM_freeN(hull_frames);
+      MEM_delete(hull_frames);
     }
   }
 }
@@ -1615,13 +1665,31 @@ static void skin_fix_hull_topology(BMesh *bm, SkinNode *skin_nodes, int verts_nu
       Frame *f = &sn->frames[j];
 
       if (f->detached) {
-        BMFace *target_face;
+        /* It is important to check for coincident vertices *before* detaching
+         * because detaching duplicates the frame vertices, losing their identity with
+         * hull vertices. Note: `skin_hole_target_face` uses vertex positions, not identity,
+         * so the call order doesn't matter for it - but the coincidence check requires the
+         * original vertex pointers. */
+        BMFace *target_face = skin_hole_target_face(bm, f);
+        const bool has_degenerate_coincidence =
+            (target_face &&
+             /* The frame would only create a degenerate edge (using two of the same vertex)
+              * when all its vertices are on the hull. */
+             !skin_frame_has_interior_hull_vertex(f) &&
+             skin_frame_has_coincident_hull_vertex(f, target_face));
 
         skin_hole_detach_partially_attached_frame(bm, f);
 
-        target_face = skin_hole_target_face(bm, f);
-        if (target_face) {
-          skin_fix_hole_no_good_verts(bm, f, target_face);
+        if (target_face && LIKELY(!has_degenerate_coincidence)) {
+          if (skin_fix_hole_no_good_verts(bm, f, target_face)) {
+            continue;
+          }
+        }
+        /* Fallback: no target face, coincident vertices, or fix failed.
+         * Create a quad from the four frame vertices to close the hole. */
+        BMFace *f_cap = BM_face_create_verts(bm, f->verts, 4, nullptr, BM_CREATE_NOP, true);
+        if (f_cap) {
+          BM_face_normal_update(f_cap);
         }
       }
     }
@@ -1675,9 +1743,7 @@ static void skin_output_end_nodes(SkinOutput *so, SkinNode *skin_nodes, int vert
   }
 }
 
-static void skin_output_connections(SkinOutput *so,
-                                    SkinNode *skin_nodes,
-                                    const blender::Span<blender::int2> edges)
+static void skin_output_connections(SkinOutput *so, SkinNode *skin_nodes, const Span<int2> edges)
 {
   for (const int e : edges.index_range()) {
     SkinNode *a, *b;
@@ -1786,8 +1852,8 @@ static void skin_smooth_hulls(BMesh *bm,
 static bool skin_output_branch_hulls(SkinOutput *so,
                                      SkinNode *skin_nodes,
                                      int verts_num,
-                                     blender::GroupedSpan<int> emap,
-                                     const blender::Span<blender::int2> edges)
+                                     GroupedSpan<int> emap,
+                                     const Span<int2> edges)
 {
   bool result = true;
   int v;
@@ -1805,7 +1871,7 @@ static bool skin_output_branch_hulls(SkinOutput *so,
         result = false;
       }
 
-      MEM_freeN(hull_frames);
+      MEM_delete(hull_frames);
     }
   }
 
@@ -1816,12 +1882,12 @@ enum eSkinErrorFlag {
   SKIN_ERROR_NO_VALID_ROOT = (1 << 0),
   SKIN_ERROR_HULL = (1 << 1),
 };
-ENUM_OPERATORS(eSkinErrorFlag, SKIN_ERROR_HULL);
+ENUM_OPERATORS(eSkinErrorFlag);
 
 static BMesh *build_skin(SkinNode *skin_nodes,
                          int verts_num,
-                         blender::GroupedSpan<int> emap,
-                         const blender::Span<blender::int2> edges,
+                         GroupedSpan<int> emap,
+                         const Span<int2> edges,
                          const MDeformVert *input_dvert,
                          SkinModifierData *smd,
                          eSkinErrorFlag *r_error)
@@ -1914,24 +1980,24 @@ static Mesh *base_skin(Mesh *origmesh, SkinModifierData *smd, eSkinErrorFlag *r_
   const MVertSkin *nodes = static_cast<const MVertSkin *>(
       CustomData_get_layer(&origmesh->vert_data, CD_MVERT_SKIN));
 
-  const blender::Span<blender::float3> vert_positions = origmesh->vert_positions();
-  const blender::Span<blender::int2> edges = origmesh->edges();
+  const Span<float3> vert_positions = origmesh->vert_positions();
+  const Span<int2> edges = origmesh->edges();
   const MDeformVert *dvert = origmesh->deform_verts().data();
   const int verts_num = origmesh->verts_num;
 
-  blender::Array<int> vert_to_edge_offsets;
-  blender::Array<int> vert_to_edge_indices;
-  const blender::GroupedSpan<int> vert_to_edge = blender::bke::mesh::build_vert_to_edge_map(
+  Array<int> vert_to_edge_offsets;
+  Array<int> vert_to_edge_indices;
+  const GroupedSpan<int> vert_to_edge = bke::mesh::build_vert_to_edge_map(
       edges, verts_num, vert_to_edge_offsets, vert_to_edge_indices);
 
   emat = build_edge_mats(nodes, vert_positions, verts_num, edges, vert_to_edge, &has_valid_root);
   skin_nodes = build_frames(vert_positions, verts_num, nodes, vert_to_edge, emat);
-  MEM_freeN(emat);
+  MEM_delete(emat);
   emat = nullptr;
 
   bm = build_skin(skin_nodes, verts_num, vert_to_edge, edges, dvert, smd, r_error);
 
-  MEM_freeN(skin_nodes);
+  MEM_delete(skin_nodes);
 
   if (!has_valid_root) {
     *r_error |= SKIN_ERROR_NO_VALID_ROOT;
@@ -1969,11 +2035,8 @@ static Mesh *final_skin(SkinModifierData *smd, Mesh *mesh, eSkinErrorFlag *r_err
 
 static void init_data(ModifierData *md)
 {
-  SkinModifierData *smd = (SkinModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(smd, modifier));
-
-  MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(SkinModifierData), modifier);
+  SkinModifierData *smd = reinterpret_cast<SkinModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(smd, modifier);
 
   /* Enable in editmode by default. */
   md->mode |= eModifierMode_Editmode;
@@ -1982,7 +2045,7 @@ static void init_data(ModifierData *md)
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   eSkinErrorFlag error = eSkinErrorFlag(0);
-  Mesh *result = final_skin((SkinModifierData *)md, mesh, &error);
+  Mesh *result = final_skin(reinterpret_cast<SkinModifierData *>(md), mesh, &error);
 
   if (error & SKIN_ERROR_NO_VALID_ROOT) {
     error &= ~SKIN_ERROR_NO_VALID_ROOT;
@@ -2010,46 +2073,45 @@ static void required_data_mask(ModifierData * /*md*/, CustomData_MeshMasks *r_cd
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *row;
-  uiLayout *layout = panel->layout;
-  const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
+  ui::Layout &layout = *panel->layout;
+  const ui::eUI_Item_Flag toggles_flag = ui::ITEM_R_TOGGLE | ui::ITEM_R_FORCE_BLANK_DECORATE;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   PointerRNA op_ptr;
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "branch_smoothing", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "branch_smoothing", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  row = &layout->row(true, IFACE_("Symmetry"));
+  ui::Layout *row = &layout.row(true, IFACE_("Symmetry"));
   row->prop(ptr, "use_x_symmetry", toggles_flag, std::nullopt, ICON_NONE);
   row->prop(ptr, "use_y_symmetry", toggles_flag, std::nullopt, ICON_NONE);
   row->prop(ptr, "use_z_symmetry", toggles_flag, std::nullopt, ICON_NONE);
 
-  layout->prop(ptr, "use_smooth_shade", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "use_smooth_shade", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  row = &layout->row(false);
+  row = &layout.row(false);
   row->op("OBJECT_OT_skin_armature_create", IFACE_("Create Armature"), ICON_NONE);
   row->op("MESH_OT_customdata_skin_add", std::nullopt, ICON_NONE);
 
-  row = &layout->row(false);
+  row = &layout.row(false);
   op_ptr = row->op("OBJECT_OT_skin_loose_mark_clear",
                    IFACE_("Mark Loose"),
                    ICON_NONE,
-                   blender::wm::OpCallContext::ExecDefault,
+                   wm::OpCallContext::ExecDefault,
                    UI_ITEM_NONE);
   RNA_enum_set(&op_ptr, "action", 0); /* SKIN_LOOSE_MARK */
   op_ptr = row->op("OBJECT_OT_skin_loose_mark_clear",
                    IFACE_("Clear Loose"),
                    ICON_NONE,
-                   blender::wm::OpCallContext::ExecDefault,
+                   wm::OpCallContext::ExecDefault,
                    UI_ITEM_NONE);
   RNA_enum_set(&op_ptr, "action", 1); /* SKIN_LOOSE_CLEAR */
 
-  layout->op("OBJECT_OT_skin_root_mark", IFACE_("Mark Root"), ICON_NONE);
-  layout->op("OBJECT_OT_skin_radii_equalize", IFACE_("Equalize Radii"), ICON_NONE);
+  layout.op("OBJECT_OT_skin_root_mark", IFACE_("Mark Root"), ICON_NONE);
+  layout.op("OBJECT_OT_skin_radii_equalize", IFACE_("Equalize Radii"), ICON_NONE);
 
   modifier_error_message_draw(layout, ptr);
 }
@@ -2094,3 +2156,5 @@ ModifierTypeInfo modifierType_Skin = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

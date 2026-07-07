@@ -18,8 +18,8 @@ extern PyTypeObject VertexOrientation3DF0D_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&VertexOrientation3DF0D_Type))
 
 /*---------------------------Python BPy_VertexOrientation3DF0D structure definition----------*/
-typedef struct {
+struct BPy_VertexOrientation3DF0D {
   BPy_UnaryFunction0DVec3f py_uf0D_vec3f;
-} BPy_VertexOrientation3DF0D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

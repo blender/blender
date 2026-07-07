@@ -34,6 +34,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 struct MemBuf {
   MemBuf *next;
   uchar data[0];
@@ -55,17 +57,17 @@ static void memarena_buf_free_all(MemBuf *mb)
   while (mb != nullptr) {
     MemBuf *mb_next = mb->next;
 
-    /* Unpoison memory because #MEM_freeN might overwrite it. */
+    /* Unpoison memory because #MEM_delete_void might overwrite it. */
     BLI_asan_unpoison(mb, uint(MEM_allocN_len(mb)));
 
-    MEM_freeN(mb);
+    MEM_delete(mb);
     mb = mb_next;
   }
 }
 
 MemArena *BLI_memarena_new(const size_t bufsize, const char *name)
 {
-  MemArena *ma = MEM_callocN<MemArena>("memarena");
+  MemArena *ma = MEM_new_zeroed<MemArena>("memarena");
   ma->bufsize = bufsize;
   ma->align = 8;
   ma->name = name;
@@ -99,18 +101,18 @@ void BLI_memarena_free(MemArena *ma)
 
   VALGRIND_DESTROY_MEMPOOL(ma);
 
-  MEM_freeN(ma);
+  MEM_delete(ma);
 }
 
 /** Pad num up by \a amt (must be power of two). */
-#define PADUP(num, amt) (((num) + ((amt)-1)) & ~((amt)-1))
+#define PADUP(num, amt) (((num) + ((amt) - 1)) & ~((amt) - 1))
 
 /** Align alloc'ed memory (needed if `align > 8`). */
 static void memarena_curbuf_align(MemArena *ma)
 {
   uchar *tmp;
 
-  tmp = (uchar *)PADUP(intptr_t(ma->curbuf), int(ma->align));
+  tmp = reinterpret_cast<uchar *> PADUP(intptr_t(ma->curbuf), int(ma->align));
   ma->cursize -= size_t(tmp - ma->curbuf);
   ma->curbuf = tmp;
 }
@@ -132,10 +134,10 @@ void *BLI_memarena_alloc(MemArena *ma, size_t size)
 
     MemBuf *mb;
     if (ma->use_calloc) {
-      mb = static_cast<MemBuf *>(MEM_callocN(sizeof(*mb) + ma->cursize, ma->name));
+      mb = static_cast<MemBuf *>(MEM_new_zeroed(sizeof(*mb) + ma->cursize, ma->name));
     }
     else {
-      mb = static_cast<MemBuf *>(MEM_mallocN(sizeof(*mb) + ma->cursize, ma->name));
+      mb = static_cast<MemBuf *>(MEM_new_uninitialized(sizeof(*mb) + ma->cursize, ma->name));
     }
     ma->curbuf = mb->data;
     mb->next = ma->bufs;
@@ -237,3 +239,5 @@ void BLI_memarena_clear(MemArena *ma)
   VALGRIND_DESTROY_MEMPOOL(ma);
   VALGRIND_CREATE_MEMPOOL(ma, 0, false);
 }
+
+}  // namespace blender

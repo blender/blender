@@ -7,8 +7,24 @@
  * Comment out for correct compilation error line. */
 #line 9
 
-#include "gpu_shader_math_matrix_lib.glsl"
+#include "infos/gpu_shader_test_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(gpu_math_test)
+
 #include "gpu_shader_test_lib.glsl"
+
+#include "gpu_shader_math_axis_angle_lib.glsl"
+#include "gpu_shader_math_euler_lib.glsl"
+#include "gpu_shader_math_matrix_adjoint_lib.glsl"
+#include "gpu_shader_math_matrix_construct_lib.glsl"
+#include "gpu_shader_math_matrix_interpolate_lib.glsl"
+#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_math_matrix_normalize_lib.glsl"
+#include "gpu_shader_math_matrix_projection_lib.glsl"
+#include "gpu_shader_math_matrix_transform_lib.glsl"
+#include "gpu_shader_math_quaternion_lib.glsl"
+#include "gpu_shader_math_rotation_conversion_lib.glsl"
+#include "gpu_shader_math_rotation_lib.glsl"
 
 #define TEST(a, b) if (true)
 
@@ -71,7 +87,7 @@ void main()
                                 float4(-0.0587266f, -0.426918f, 0.902382f, 0),
                                 float4(-0.909297f, -0.350175f, -0.224845f, 0),
                                 float4(0, 0, 0, 1)));
-    EulerXYZ euler = EulerXYZ(1, 2, 3);
+    EulerXYZ euler = EulerXYZ{1, 2, 3};
     Quaternion quat = to_quaternion(euler);
     AxisAngle axis_angle = to_axis_angle(euler);
     m = to_float4x4(from_rotation(euler));
@@ -96,14 +112,14 @@ void main()
         float4(1, 0, 0, 0), float4(0, 2, 0, 0), float4(0, 0, 1, 0), float4(0, 0, 0, 1));
     EXPECT_TRUE(is_equal(m, expect, 0.00001f));
 
-    m = from_loc_rot(float3(1, 2, 3), EulerXYZ(1, 2, 3));
+    m = from_loc_rot(float3(1, 2, 3), EulerXYZ{1, 2, 3});
     expect = float4x4(float4(0.411982f, -0.0587266f, -0.909297f, 0),
                       float4(-0.833738f, -0.426918f, -0.350175f, 0),
                       float4(-0.36763f, 0.902382f, -0.224845f, 0),
                       float4(1, 2, 3, 1));
     EXPECT_TRUE(is_equal(m, expect, 0.00001f));
 
-    m = from_loc_rot_scale(float3(1, 2, 3), EulerXYZ(1, 2, 3), float3(1, 2, 3));
+    m = from_loc_rot_scale(float3(1, 2, 3), EulerXYZ{1, 2, 3}, float3(1, 2, 3));
     expect = float4x4(float4(0.411982f, -0.0587266f, -0.909297f, 0),
                       float4(-1.66748f, -0.853835f, -0.700351f, 0),
                       float4(-1.10289f, 2.70714f, -0.674535f, 0),
@@ -130,7 +146,7 @@ void main()
 
     expect = float4x4(
         float4(0, 0, -2, 0), float4(2, 0, 0, 0), float4(0, 3, 0, 0), float4(0, 0, 0, 1));
-    result = rotate(m1, AxisAngle(float3(0, 1, 0), M_PI_2));
+    result = rotate(m1, AxisAngle{float3(0, 1, 0), M_PI_2});
     EXPECT_NEAR(result, expect, epsilon);
 
     expect = float4x4(
@@ -183,13 +199,13 @@ void main()
   {
     float4x4 m = float4x4(
         float4(0, 3, 0, 0), float4(2, 0, 0, 0), float4(0, 0, 2, 0), float4(0, 1, 0, 1));
-    EulerXYZ expect_eul = EulerXYZ(0, 0, M_PI_2);
-    Quaternion expect_qt = Quaternion(0, -M_SQRT1_2, M_SQRT1_2, 0);
+    EulerXYZ expect_eul = EulerXYZ{0, 0, M_PI_2};
+    Quaternion expect_qt = Quaternion{0, -M_SQRT1_2, M_SQRT1_2, 0};
     float3 expect_scale = float3(3, 2, 2);
     float3 expect_location = float3(0, 1, 0);
 
-    EXPECT_NEAR(as_vec3(to_euler(m)), as_vec3(expect_eul), 0.0002f);
-    EXPECT_NEAR(as_vec4(to_quaternion(m)), as_vec4(expect_qt), 0.0002f);
+    EXPECT_NEAR(to_euler(m).as_float3(), expect_eul.as_float3(), 0.0002f);
+    EXPECT_NEAR(to_quaternion(m).as_float4(), expect_qt.as_float4(), 0.0002f);
     EXPECT_NEAR(to_scale(m), expect_scale, 0.00001f);
 
     float4 expect_size = float4(3, 2, 2, M_SQRT2);
@@ -207,25 +223,30 @@ void main()
     to_rot_scale(to_float3x3(m), eul, scale);
     to_rot_scale(to_float3x3(m), qt, scale);
     EXPECT_NEAR(scale, expect_scale, 0.00001f);
-    EXPECT_NEAR(as_vec4(qt), as_vec4(expect_qt), 0.0002f);
-    EXPECT_NEAR(as_vec3(eul), as_vec3(expect_eul), 0.0002f);
+    EXPECT_NEAR(qt.as_float4(), expect_qt.as_float4(), 0.0002f);
+    EXPECT_NEAR(eul.as_float3(), expect_eul.as_float3(), 0.0002f);
 
     float3 loc;
     to_loc_rot_scale(m, loc, eul, scale);
     to_loc_rot_scale(m, loc, qt, scale);
     EXPECT_NEAR(scale, expect_scale, 0.00001f);
     EXPECT_NEAR(loc, expect_location, 0.00001f);
-    EXPECT_NEAR(as_vec4(qt), as_vec4(expect_qt), 0.0002f);
-    EXPECT_NEAR(as_vec3(eul), as_vec3(expect_eul), 0.0002f);
+    EXPECT_NEAR(qt.as_float4(), expect_qt.as_float4(), 0.0002f);
+    EXPECT_NEAR(eul.as_float3(), expect_eul.as_float3(), 0.0002f);
   }
 
   TEST(math_matrix, MatrixTranspose)
   {
     float4x4 m = float4x4(
         float4(1, 2, 3, 4), float4(5, 6, 7, 8), float4(9, 1, 2, 3), float4(2, 5, 6, 7));
+    float4x4 transposed = transpose(m);
     float4x4 expect = float4x4(
         float4(1, 5, 9, 2), float4(2, 6, 1, 5), float4(3, 7, 2, 6), float4(4, 8, 3, 7));
-    EXPECT_EQ(transpose(m), expect);
+    /* Split into vector comparison because lack of operator==(matrix,matrix) on metal. */
+    EXPECT_NEAR(transposed[0], expect[0], 0.0f);
+    EXPECT_NEAR(transposed[1], expect[1], 0.0f);
+    EXPECT_NEAR(transposed[2], expect[2], 0.0f);
+    EXPECT_NEAR(transposed[3], expect[3], 0.0f);
   }
 
   TEST(math_matrix, MatrixInterpolationRegular)
@@ -261,8 +282,8 @@ void main()
   {
     float3 expect, result;
     constexpr float3 p = float3(1, 2, 3);
-    float4x4 m4 = from_loc_rot(float3(10, 0, 0), EulerXYZ(M_PI_2, M_PI_2, M_PI_2));
-    float3x3 m3 = from_rotation(EulerXYZ(M_PI_2, M_PI_2, M_PI_2));
+    float4x4 m4 = from_loc_rot(float3(10, 0, 0), EulerXYZ{M_PI_2, M_PI_2, M_PI_2});
+    float3x3 m3 = from_rotation(EulerXYZ{M_PI_2, M_PI_2, M_PI_2});
     float4x4 pers4 = projection_perspective(-0.1f, 0.1f, -0.1f, 0.1f, -0.1f, -1.0f);
     float3x3 pers3 = float3x3(float3(1, 0, 0.1f), float3(0, 1, 0.1f), float3(0, 0.1f, 1));
 

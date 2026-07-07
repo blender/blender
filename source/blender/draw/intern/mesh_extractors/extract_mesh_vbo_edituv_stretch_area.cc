@@ -40,7 +40,8 @@ static AreaInfo compute_area_ratio(const MeshRenderData &mr, MutableSpan<float> 
 {
   if (mr.extract_type == MeshExtractType::BMesh) {
     const BMesh &bm = *mr.bm;
-    const int uv_offset = CustomData_get_offset(&bm.ldata, CD_PROP_FLOAT2);
+    const StringRef active_name = mr.mesh->active_uv_map_name();
+    const int uv_offset = CustomData_get_offset_named(&bm.ldata, CD_PROP_FLOAT2, active_name);
     return threading::parallel_reduce(
         IndexRange(bm.totface),
         1024,
@@ -66,7 +67,7 @@ static AreaInfo compute_area_ratio(const MeshRenderData &mr, MutableSpan<float> 
   const Span<int> corner_verts = mr.corner_verts;
   const Mesh &mesh = *mr.mesh;
   const bke::AttributeAccessor attributes = mesh.attributes();
-  const StringRef name = CustomData_get_active_layer_name(&mesh.corner_data, CD_PROP_FLOAT2);
+  const StringRef name = mesh.active_uv_map_name();
   const VArraySpan uv_map = *attributes.lookup<float2>(name, bke::AttrDomain::Corner);
 
   return threading::parallel_reduce(
@@ -77,7 +78,7 @@ static AreaInfo compute_area_ratio(const MeshRenderData &mr, MutableSpan<float> 
         for (const int face_index : range) {
           const IndexRange face = faces[face_index];
           const float area = bke::mesh::face_area_calc(positions, corner_verts.slice(face));
-          float uvarea = area_poly_v2(reinterpret_cast<const float(*)[2]>(&uv_map[face.start()]),
+          float uvarea = area_poly_v2(reinterpret_cast<const float (*)[2]>(&uv_map[face.start()]),
                                       face.size());
           info.tot_area += area;
           info.tot_uv_area += uvarea;

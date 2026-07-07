@@ -37,8 +37,8 @@
 #  define GPU_THREAD_MAX_REGISTERS 255
 
 /* tunable parameters */
-#  define GPU_KERNEL_BLOCK_NUM_THREADS 512
-#  define GPU_KERNEL_MAX_REGISTERS 96
+#  define GPU_KERNEL_BLOCK_NUM_THREADS 384
+#  define GPU_KERNEL_MAX_REGISTERS 168
 
 /* unknown architecture */
 #else

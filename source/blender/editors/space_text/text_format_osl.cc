@@ -20,6 +20,8 @@
 
 #include "text_format.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Local Literal Definitions
  * \{ */
@@ -393,3 +395,5 @@ void ED_text_format_register_osl()
 }
 
 /** \} */
+
+}  // namespace blender

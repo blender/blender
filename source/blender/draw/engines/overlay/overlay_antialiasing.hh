@@ -52,7 +52,7 @@ class AntiAliasing : Overlay {
  private:
   PassSimple anti_aliasing_ps_ = {"AntiAliasing"};
 
-  GPUFrameBuffer *framebuffer_ref_ = nullptr;
+  gpu::FrameBuffer *framebuffer_ref_ = nullptr;
 
  public:
   void begin_sync(Resources &res, const State & /*state*/) final

@@ -6,6 +6,8 @@
 
 #include "BLI_math_base_safe.h"
 
+namespace blender {
+
 TEST(math_base, SafePowf)
 {
   EXPECT_FLOAT_EQ(safe_powf(4.0f, 3.0f), 64.0f);
@@ -37,3 +39,5 @@ TEST(math_base, SafeLogf)
   EXPECT_FLOAT_EQ(safe_logf(2.0f, -4.3f), 0.0f);
   EXPECT_FLOAT_EQ(safe_logf(-2.0f, -4.3f), 0.0f);
 }
+
+}  // namespace blender

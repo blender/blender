@@ -45,8 +45,11 @@ you should be able to find the poll function with no knowledge of C.
    feel free to add calls to :class:`bpy.types.Operator.poll_message_set` (``CTX_wm_operator_poll_msg_set`` in C)
    where it's not obvious why poll fails, e.g:
 
-      >>> bpy.ops.gpencil.draw()
-      RuntimeError: Operator bpy.ops.gpencil.draw.poll() Failed to find Grease Pencil data to draw into
+      >>> bpy.ops.object.vertex_group_add()
+      RuntimeError: Operator bpy.ops.object.vertex_group_add.poll() No active editable object
+
+   In some cases using :class:`bpy.types.Context.temp_override` to enable temporary logging or using the
+   ``context`` category when :ref:`logging <blender_manual:command-line-args-logging-options>` can help.
 
 
 The operator still doesn't work!
@@ -58,10 +61,10 @@ modifier or constraint.
 
 Examples of this are:
 
-- :mod:`bpy.ops.texture.slot_move`
-- :mod:`bpy.ops.constraint.limitdistance_reset`
-- :mod:`bpy.ops.object.modifier_copy`
-- :mod:`bpy.ops.buttons.file_browse`
+- :func:`bpy.ops.texture.slot_move`
+- :func:`bpy.ops.constraint.limitdistance_reset`
+- :func:`bpy.ops.object.modifier_copy`
+- :func:`bpy.ops.buttons.file_browse`
 
 Another possibility is that you are the first person to attempt to use this operator
 in a script and some modifications need to be made to the operator to run in a different context.

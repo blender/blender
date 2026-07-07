@@ -10,13 +10,15 @@
 
 #include "BLI_sys_types.h"
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 class Batch;
 class IndexBuf;
 class VertBuf;
-}  // namespace blender::gpu
+}  // namespace gpu
 
-namespace blender::ed::vse {
+namespace ed::vse {
 
 struct ColorVertex;
 
@@ -81,16 +83,17 @@ class SeqQuadsBatch {
   static constexpr int MAX_QUADS = 1024;
   static constexpr int MAX_LINES = 4096;
 
-  blender::gpu::VertBuf *vbo_quads = nullptr;
-  blender::gpu::IndexBuf *ibo_quads = nullptr;
-  blender::gpu::Batch *batch_quads = nullptr;
+  gpu::VertBuf *vbo_quads = nullptr;
+  gpu::IndexBuf *ibo_quads = nullptr;
+  gpu::Batch *batch_quads = nullptr;
   ColorVertex *verts_quads = nullptr;
   int quads_num = 0;
 
-  blender::gpu::VertBuf *vbo_lines = nullptr;
-  blender::gpu::Batch *batch_lines = nullptr;
+  gpu::VertBuf *vbo_lines = nullptr;
+  gpu::Batch *batch_lines = nullptr;
   ColorVertex *verts_lines = nullptr;
   int lines_num = 0;
 };
 
-}  // namespace blender::ed::vse
+}  // namespace ed::vse
+}  // namespace blender

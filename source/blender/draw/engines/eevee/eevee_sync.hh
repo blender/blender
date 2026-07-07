@@ -13,14 +13,15 @@
 
 #include "BKE_duplilist.hh"
 #include "BLI_map.hh"
-#include "DEG_depsgraph_query.hh"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DRW_render.hh"
-#include "GPU_material.hh"
 
-#include "eevee_shader_shared.hh"
+#include "draw_handle.hh"
 
 namespace blender::eevee {
+
+using namespace draw;
 
 class Instance;
 
@@ -48,11 +49,11 @@ class SyncModule {
   Map<ObjectKey, ObjectHandle> ob_handles = {};
 
  public:
-  SyncModule(Instance &inst) : inst_(inst){};
-  ~SyncModule(){};
+  SyncModule(Instance &inst) : inst_(inst) {};
+  ~SyncModule() {};
 
   ObjectHandle &sync_object(const ObjectRef &ob_ref);
-  WorldHandle sync_world(const ::World &world);
+  WorldHandle sync_world(const blender::World &world);
 
   void sync_mesh(Object *ob, ObjectHandle &ob_handle, const ObjectRef &ob_ref);
   bool sync_sculpt(Object *ob, ObjectHandle &ob_handle, const ObjectRef &ob_ref);

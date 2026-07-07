@@ -8,10 +8,12 @@
  * \ingroup bmesh
  */
 
+struct RangeTreeUInt;
+namespace blender {
+
 struct BMFace;
 struct BMVert;
 struct BMesh;
-struct RangeTreeUInt;
 struct BMLog;
 struct BMLogEntry;
 
@@ -199,3 +201,5 @@ struct RangeTreeUInt *BM_log_unused_ids(BMLog *log);
 void BM_log_print(const BMLog *log, const char *description);
 void BM_log_print_entry(BMesh *bm, BMLogEntry *entry);
 #endif
+
+}  // namespace blender

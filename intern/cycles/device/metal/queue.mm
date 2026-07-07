@@ -265,38 +265,74 @@ MetalDeviceQueue::~MetalDeviceQueue()
 
 int MetalDeviceQueue::num_concurrent_states(const size_t state_size) const
 {
-  static int result = 0;
-  if (result) {
-    return result;
-  }
+  size_t state_count = 4194304;
 
-  result = 4194304;
 #  ifdef WITH_APPLE_CROSSPLATFORM
   /* Return minimal default working set.
    * TODO: Tune based on device and runtime status on iOS. */
-  return result;
+  return state_count;
 #  endif
 
   /* Increasing the state count doesn't notably benefit M1-family systems. */
   if (MetalInfo::get_apple_gpu_architecture(metal_device_->mtlDevice) != APPLE_M1) {
-    size_t system_ram = system_physical_ram();
-    size_t allocated_so_far = [metal_device_->mtlDevice currentAllocatedSize];
+    const size_t max_recommended_working_set =
+        [metal_device_->mtlDevice recommendedMaxWorkingSetSize];
 
-    if (@available(iOS 16.0, *)) {
-      size_t max_recommended_working_set = [metal_device_->mtlDevice recommendedMaxWorkingSetSize];
+    /* Only use 90% of available working set for safety. */
+    size_t percent = 90;
+    if (auto str = getenv("CYCLES_METAL_WORKING_SET_PERCENT")) {
+      percent = atoi(str);
+    }
 
-      /* Determine whether we can double the state count, and leave enough GPU-available memory
-       * (1/8 the system RAM or 1GB - whichever is largest). Enlarging the state size allows us
-       * to keep dispatch sizes high and minimize work submission overheads. */
-      size_t min_headroom = std::max(system_ram / 8, size_t(1024LL * 1024LL * 1024LL));
-      size_t total_state_size = result * state_size;
-      if (max_recommended_working_set - allocated_so_far - total_state_size * 2 >= min_headroom) {
-        result *= 2;
-        metal_printf("Doubling state count to exploit available RAM (new size = %d)\n", result);
+    const size_t max_working_set = (max_recommended_working_set * percent) / 100;
+    size_t max_safe_state_count = 0;
+
+    if (stats_.mem_used < max_working_set) {
+      const size_t headroom = max_working_set - stats_.mem_used;
+      max_safe_state_count = headroom / state_size;
+    }
+
+    /* Require a bare minimum of states to avoid pathological performance. */
+    if (max_safe_state_count >= 65536) {
+      /* If RAM is limited, we can still render with reduced state count. */
+      if (max_safe_state_count < state_count) {
+        metal_printf(
+            "Reducing state count to fit within available RAM. %zu -> %zu (%.1f%% of original "
+            "size)",
+            state_count,
+            max_safe_state_count,
+            double(max_safe_state_count) / double(state_count) * 100.0);
+        state_count = max_safe_state_count;
+      }
+      else {
+        /* Aggressive safety margin: only grow if it leaves us at < 50% max working set
+         * utilisation. */
+        size_t grow_percent = 50;
+        if (auto str = getenv("CYCLES_METAL_GROW_PERCENT")) {
+          grow_percent = atoi(str);
+        }
+
+        max_safe_state_count = (max_safe_state_count * grow_percent) / 100;
+
+        /* Limit to two "doublings" - we see diminishing returns after that. */
+        for (int i = 0; i < 2; i++) {
+          /* Determine whether we can double the state count, and leave enough GPU-available
+           * memory. Enlarging the state size allows us to keep dispatch sizes high and minimize
+           * work submission overheads. */
+          if (max_safe_state_count > state_count * 2) {
+            state_count *= 2;
+            metal_printf("Doubling state count to exploit available RAM (new size = %zu)",
+                         state_count);
+          }
+        }
       }
     }
+    else {
+      metal_device_->set_error("Out of memory - couldn't allocate integrator state");
+      state_count = 0;
+    }
   }
-  return result;
+  return state_count;
 }
 
 int MetalDeviceQueue::num_concurrent_busy_states(const size_t state_size) const
@@ -367,24 +403,24 @@ void MetalDeviceQueue::init_execution()
     write_resource(blas_array, metal_device_->blas_array[slot], slot);
   }
 
-  device_vector<TextureInfo> &texture_info = metal_device_->texture_info;
-  id<MTLBuffer> &texture_bindings = metal_device_->texture_bindings;
-  std::vector<id<MTLResource>> &texture_slot_map = metal_device_->texture_slot_map;
+  device_vector<KernelImageInfo> &image_info = metal_device_->image_info;
+  id<MTLBuffer> &image_bindings = metal_device_->image_bindings;
+  std::vector<id<MTLResource>> &image_slot_map = metal_device_->image_slot_map;
 
-  /* Ensure texture_info is allocated before populating. */
-  texture_info.copy_to_device();
+  /* Ensure image_info is allocated before populating. */
+  image_info.copy_to_device();
 
   /* Populate texture bindings. */
-  uint64_t *bindings = (uint64_t *)texture_bindings.contents;
-  memset(bindings, 0, texture_bindings.length);
-  for (int slot = 0; slot < texture_info.size(); ++slot) {
-    if (texture_slot_map[slot]) {
-      if (metal_device_->is_texture(texture_info[slot])) {
-        write_resource(bindings, id<MTLTexture>(texture_slot_map[slot]), slot);
+  uint64_t *bindings = (uint64_t *)image_bindings.contents;
+  memset(bindings, 0, image_bindings.length);
+  for (int slot = 0; slot < image_info.size(); ++slot) {
+    if (image_slot_map[slot]) {
+      if (metal_device_->is_texture(image_info[slot])) {
+        write_resource(bindings, id<MTLTexture>(image_slot_map[slot]), slot);
       }
       else {
         /* The GPU address of a 1D buffer texture is written into the slot data field. */
-        write_resource(&texture_info[slot].data, id<MTLBuffer>(texture_slot_map[slot]), 0);
+        write_resource(&image_info[slot].data, id<MTLBuffer>(image_slot_map[slot]), 0);
       }
     }
   }
@@ -458,7 +494,7 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
 
     /* Encode ancillaries */
     int ancillary_index = 0;
-    write_resource(ancillary_args, metal_device_->texture_bindings, ancillary_index++);
+    write_resource(ancillary_args, metal_device_->image_bindings, ancillary_index++);
 
     if (metal_device_->use_metalrt) {
       write_resource(ancillary_args, metal_device_->accel_struct, ancillary_index++);
@@ -681,7 +717,7 @@ void MetalDeviceQueue::zero_to_device(device_memory &mem)
       return;
     }
 
-    assert(mem.type != MEM_GLOBAL && mem.type != MEM_TEXTURE);
+    assert(mem.type != MEM_GLOBAL && mem.type != MEM_IMAGE_TEXTURE);
 
     if (mem.memory_size() == 0) {
       return;
@@ -743,7 +779,7 @@ void MetalDeviceQueue::prepare_resources(DeviceKernel /*kernel*/)
     device_memory *mem = it.first;
 
     MTLResourceUsage usage = MTLResourceUsageRead;
-    if (mem->type != MEM_GLOBAL && mem->type != MEM_READ_ONLY && mem->type != MEM_TEXTURE) {
+    if (mem->type != MEM_GLOBAL && mem->type != MEM_READ_ONLY && mem->type != MEM_IMAGE_TEXTURE) {
       usage |= MTLResourceUsageWrite;
     }
 
@@ -758,7 +794,7 @@ void MetalDeviceQueue::prepare_resources(DeviceKernel /*kernel*/)
   }
 
   /* ancillaries */
-  [mtlComputeEncoder_ useResource:metal_device_->texture_bindings usage:MTLResourceUsageRead];
+  [mtlComputeEncoder_ useResource:metal_device_->image_bindings usage:MTLResourceUsageRead];
 }
 
 id<MTLComputeCommandEncoder> MetalDeviceQueue::get_compute_encoder(DeviceKernel kernel)

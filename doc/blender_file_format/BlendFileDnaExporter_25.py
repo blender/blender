@@ -425,7 +425,7 @@ def main():
 
         # deleting or not?
         if '--dna-keep-blend' in sys.argv:
-            # keep the blend, useful for studying hexdumps
+            # Keep the blend, useful for studying HEX-dumps.
             log.info("5: closing blend file:")
             log.info("   {0}".format(Path_Blend))
         else:

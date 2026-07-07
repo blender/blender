@@ -16,11 +16,11 @@
 #include "BLT_translation.hh"
 
 #include "DNA_camera_types.h"
-#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_camera.h"
 #include "BKE_customdata.hh"
@@ -41,13 +41,13 @@
 
 #include "DEG_depsgraph_build.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
-  UVProjectModifierData *umd = (UVProjectModifierData *)md;
+  UVProjectModifierData *umd = reinterpret_cast<UVProjectModifierData *>(md);
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(umd, modifier));
-
-  MEMCPY_STRUCT_AFTER(umd, DNA_struct_default_get(UVProjectModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(umd, modifier);
 }
 
 static void required_data_mask(ModifierData * /*md*/, CustomData_MeshMasks *r_cddata_masks)
@@ -58,15 +58,15 @@ static void required_data_mask(ModifierData * /*md*/, CustomData_MeshMasks *r_cd
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  UVProjectModifierData *umd = (UVProjectModifierData *)md;
+  UVProjectModifierData *umd = reinterpret_cast<UVProjectModifierData *>(md);
   for (int i = 0; i < MOD_UVPROJECT_MAXPROJECTORS; i++) {
-    walk(user_data, ob, (ID **)&umd->projectors[i], IDWALK_CB_NOP);
+    walk(user_data, ob, reinterpret_cast<ID **>(&umd->projectors[i]), IDWALK_CB_NOP);
   }
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  UVProjectModifierData *umd = (UVProjectModifierData *)md;
+  UVProjectModifierData *umd = reinterpret_cast<UVProjectModifierData *>(md);
   bool do_add_own_transform = false;
   for (int i = 0; i < umd->projectors_num; i++) {
     if (umd->projectors[i] != nullptr) {
@@ -87,13 +87,11 @@ struct Projector {
   void *uci;           /* optional uv-project info (panorama projection) */
 };
 
-static blender::bke::SpanAttributeWriter<blender::float2> get_uv_attribute(
-    Mesh &mesh, const blender::StringRef md_name)
+static bke::SpanAttributeWriter<float2> get_uv_attribute(Mesh &mesh, const StringRef md_name)
 {
-  using namespace blender;
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   if (md_name.is_empty()) {
-    const StringRef name = CustomData_get_active_layer_name(&mesh.corner_data, CD_PROP_FLOAT2);
+    const StringRef name = mesh.active_uv_map_name();
     return attributes.lookup_or_add_for_write_span<float2>(name.is_empty() ? "Float2" : name,
                                                            bke::AttrDomain::Corner);
   }
@@ -112,7 +110,6 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
                                   Object *ob,
                                   Mesh *mesh)
 {
-  using namespace blender;
   Projector projectors[MOD_UVPROJECT_MAXPROJECTORS];
   int projectors_num = 0;
   float aspx = umd->aspectx ? umd->aspectx : 1.0f;
@@ -146,7 +143,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
     projectors[i].uci = nullptr;
 
     if (projectors[i].ob->type == OB_CAMERA) {
-      const Camera *cam = (const Camera *)projectors[i].ob->data;
+      const Camera *cam = id_cast<const Camera *>(projectors[i].ob->data);
       if (cam->type == CAM_PANO) {
         projectors[i].uci = BKE_uvproject_camera_info(projectors[i].ob, nullptr, aspx, aspy);
         BKE_uvproject_camera_info_scale(
@@ -234,8 +231,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
       float best_dot;
 
       /* get the untransformed face normal */
-      const float3 face_no = blender::bke::mesh::face_normal_calc(positions,
-                                                                  corner_verts.slice(face));
+      const float3 face_no = bke::mesh::face_normal_calc(positions, corner_verts.slice(face));
 
       /* find the projector which the face points at most directly
        * (projector normal with largest dot product is best)
@@ -271,7 +267,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
     int j;
     for (j = 0; j < projectors_num; j++) {
       if (projectors[j].uci) {
-        MEM_freeN(projectors[j].uci);
+        MEM_delete_void(projectors[j].uci);
       }
     }
   }
@@ -286,7 +282,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   Mesh *result;
-  UVProjectModifierData *umd = (UVProjectModifierData *)md;
+  UVProjectModifierData *umd = reinterpret_cast<UVProjectModifierData *>(md);
 
   result = uvprojectModifier_do(umd, ctx, ctx->object, mesh);
 
@@ -295,17 +291,16 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *sub;
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop_search(ptr, "uv_layer", &obj_data_ptr, "uv_layers", std::nullopt, ICON_GROUP_UVS);
+  layout.prop_search(ptr, "uv_layer", &obj_data_ptr, "uv_layers", std::nullopt, ICON_GROUP_UVS);
 
   /* Aspect and Scale are only used for camera projectors. */
   bool has_camera = false;
@@ -318,19 +313,19 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   }
   RNA_END;
 
-  sub = &layout->column(true);
+  ui::Layout *sub = &layout.column(true);
   sub->active_set(has_camera);
   sub->prop(ptr, "aspect_x", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   sub->prop(ptr, "aspect_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
 
-  sub = &layout->column(true);
+  sub = &layout.column(true);
   sub->active_set(has_camera);
   sub->prop(ptr, "scale_x", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   sub->prop(ptr, "scale_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
 
-  layout->prop(ptr, "projector_count", UI_ITEM_NONE, IFACE_("Projectors"), ICON_NONE);
+  layout.prop(ptr, "projector_count", UI_ITEM_NONE, IFACE_("Projectors"), ICON_NONE);
   RNA_BEGIN (ptr, projector_ptr, "projectors") {
-    layout->prop(&projector_ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(&projector_ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   RNA_END;
 
@@ -378,3 +373,5 @@ ModifierTypeInfo modifierType_UVProject = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

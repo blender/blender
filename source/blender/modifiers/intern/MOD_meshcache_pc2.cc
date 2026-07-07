@@ -25,6 +25,8 @@
 
 #include "MOD_meshcache_util.hh" /* own include */
 
+namespace blender {
+
 struct PC2Head {
   char header[12];  /* 'POINTCACHE2\0' */
   int file_version; /* unused - should be 1 */
@@ -272,3 +274,5 @@ bool MOD_meshcache_read_pc2_times(const char *filepath,
   fclose(fp);
   return ok;
 }
+
+}  // namespace blender

@@ -172,7 +172,7 @@ class BPYRNATest(api.Test):
 def generate(env):
     return [
         BPYRNATest("ID Instance Access", _run_id_instance_access, 10000 * 1000),
-        BPYRNATest("Static RNA Stuct Instance Access", _run_static_subdata_instance_access, 10000 * 1000),
+        BPYRNATest("Static RNA Struct Instance Access", _run_static_subdata_instance_access, 10000 * 1000),
         BPYRNATest("IDProperty Access", _run_idproperty_access, 10000 * 1000),
         BPYRNATest("Py-Defined Struct Register", _run_runtime_group_register_access, 100 * 1000,
                    {"do_register": True}),

@@ -26,7 +26,9 @@ float invertDistortionModel(float x, float y, float k1, float k2, float k3)
   return -1.0;
 }
 
-shader camera(float focal_length = 50.0 [[ float min = 0.0, float sensitivity = 0.2 ]],
+shader camera(float focal_length = 50.0 [[ float min = 0.0,
+                                           string unit = "mm",
+                                           float sensitivity = 0.2 ]],
               int do_distortion = 0 [[ string widget = "checkBox"]],
               int do_swirl = 0 [[ string widget = "checkBox"]],
               int do_dof = 0 [[ string widget = "checkBox"]],
@@ -35,7 +37,7 @@ shader camera(float focal_length = 50.0 [[ float min = 0.0, float sensitivity = 
               float distortion_k3 = 0.0,
               float swirl_scale = 100.0,
               float swirl_amplitude = 0.01,
-              float swirl_W = 0.0 [[ float sensitivity = 1]],
+              float swirl_w = 0.0 [[ float sensitivity = 1]],
               output point position = 0.0,
               output vector direction = 0.0,
               output color throughput = 1.0)
@@ -59,7 +61,7 @@ shader camera(float focal_length = 50.0 [[ float min = 0.0, float sensitivity = 
   Pcam = Pcam * sensor_size / focal_length;
 
   if (do_swirl) {
-    Pcam += swirl_amplitude * noise("perlin", Pcam * swirl_scale, swirl_W);
+    Pcam += swirl_amplitude * noise("perlin", Pcam * swirl_scale, swirl_w);
   }
 
   direction = normalize(vector(Pcam.x, Pcam.y, 1.0));
@@ -68,6 +70,7 @@ shader camera(float focal_length = 50.0 [[ float min = 0.0, float sensitivity = 
     float focal_distance;
     getattribute("cam:focal_distance", focal_distance);
     getattribute("cam:aperture_position", position);
+    position *= focal_length * 1e-3;
 
     point Pfocus = direction * focal_distance / direction.z;
     direction = normalize(Pfocus - position);

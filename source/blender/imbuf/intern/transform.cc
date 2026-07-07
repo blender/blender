@@ -20,10 +20,9 @@
 #include "IMB_imbuf.hh"
 #include "IMB_interp.hh"
 
-using blender::float4;
-using blender::uchar4;
+namespace blender {
 
-namespace blender::imbuf::transform {
+namespace imbuf::transform {
 
 struct TransformContext {
   const ImBuf *src;
@@ -459,11 +458,9 @@ static void edge_aa(const TransformContext &ctx)
   }
 }
 
-}  // namespace blender::imbuf::transform
+}  // namespace imbuf::transform
 
 using namespace blender::imbuf::transform;
-using namespace blender;
-
 void IMB_transform(const ImBuf *src,
                    ImBuf *dst,
                    const eIMBTransformMode mode,
@@ -508,3 +505,5 @@ void IMB_transform(const ImBuf *src,
     edge_aa(ctx);
   }
 }
+
+}  // namespace blender

@@ -24,6 +24,8 @@
 #  include "RE_pipeline.h"
 #  include "RE_texture.h"
 
+namespace blender {
+
 static void texture_evaluate(Tex *tex, const float value[3], float r_color[4])
 {
   TexResult texres = {0.0f};
@@ -35,7 +37,11 @@ static void texture_evaluate(Tex *tex, const float value[3], float r_color[4])
   r_color[3] = texres.tin;
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 void RNA_api_texture(StructRNA *srna)
 {
@@ -76,5 +82,7 @@ void RNA_api_texture(StructRNA *srna)
   RNA_def_parameter_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
   RNA_def_function_output(func, parm);
 }
+
+}  // namespace blender
 
 #endif

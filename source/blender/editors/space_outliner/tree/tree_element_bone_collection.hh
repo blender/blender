@@ -10,10 +10,12 @@
 
 #include "tree_element.hh"
 
+namespace blender {
+
 struct bArmature;
 struct BoneCollection;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 class TreeElementBoneCollectionBase final : public AbstractTreeElement {
   bArmature &armature_;
@@ -32,4 +34,5 @@ class TreeElementBoneCollection final : public AbstractTreeElement {
   void expand(SpaceOutliner & /*soops*/) const override;
 };
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

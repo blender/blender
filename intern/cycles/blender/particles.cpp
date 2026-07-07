@@ -9,16 +9,23 @@
 #include "blender/sync.h"
 #include "blender/util.h"
 
+#include "DNA_particle_types.h"
+
+#include "BKE_scene.hh"
+
+#include "DEG_depsgraph_query.hh"
+
 CCL_NAMESPACE_BEGIN
 
 /* Utilities */
 
-bool BlenderSync::sync_dupli_particle(BL::Object &b_ob,
-                                      BL::DepsgraphObjectInstance &b_instance,
+bool BlenderSync::sync_dupli_particle(blender::Object &b_parent,
+                                      blender::DEGObjectIterData &b_deg_iter_data,
+                                      blender::Object &b_ob,
                                       Object *object)
 {
   /* Test if this dupli was generated from a particle system. */
-  BL::ParticleSystem b_psys = b_instance.particle_system();
+  blender::ParticleSystem *b_psys = b_deg_iter_data.dupli_object_current->particle_system;
   if (!b_psys) {
     return false;
   }
@@ -31,19 +38,18 @@ bool BlenderSync::sync_dupli_particle(BL::Object &b_ob,
   }
 
   /* don't handle child particles yet */
-  BL::Array<int, OBJECT_PERSISTENT_ID_SIZE> persistent_id = b_instance.persistent_id();
+  const int *persistent_id = b_deg_iter_data.dupli_object_current->persistent_id;
 
-  if (persistent_id[0] >= b_psys.particles.length()) {
+  if (persistent_id[0] >= b_psys->totpart) {
     return false;
   }
 
   /* find particle system */
-  const ParticleSystemKey key(b_ob, persistent_id);
+  const ParticleSystemKey key(&b_parent, persistent_id);
   ParticleSystem *psys;
 
   const bool first_use = !particle_system_map.is_used(key);
-  const bool need_update = particle_system_map.add_or_update(
-      &psys, b_ob, b_instance.object(), key);
+  const bool need_update = particle_system_map.add_or_update(&psys, &b_parent.id, &b_ob.id, key);
 
   /* no update needed? */
   if (!need_update && !object->get_geometry()->is_modified() &&
@@ -59,17 +65,18 @@ bool BlenderSync::sync_dupli_particle(BL::Object &b_ob,
   }
 
   /* add particle */
-  BL::Particle b_pa = b_psys.particles[persistent_id[0]];
+  blender::ParticleData &b_pa = b_psys->particles[persistent_id[0]];
   Particle pa;
 
   pa.index = persistent_id[0];
-  pa.age = b_scene.frame_current_final() - b_pa.birth_time();
-  pa.lifetime = b_pa.lifetime();
-  pa.location = get_float3(b_pa.location());
-  pa.rotation = get_float4(b_pa.rotation());
-  pa.size = b_pa.size();
-  pa.velocity = get_float3(b_pa.velocity());
-  pa.angular_velocity = get_float3(b_pa.angular_velocity());
+  pa.age = BKE_scene_frame_to_ctime(b_scene, b_scene->r.cfra) - b_pa.time;
+  pa.lifetime = b_pa.lifetime;
+  pa.location = make_float3(b_pa.state.co[0], b_pa.state.co[1], b_pa.state.co[2]);
+  pa.rotation = make_float4(
+      b_pa.state.rot[0], b_pa.state.rot[1], b_pa.state.rot[2], b_pa.state.rot[3]);
+  pa.size = b_pa.size;
+  pa.velocity = make_float3(b_pa.state.vel[0], b_pa.state.vel[1], b_pa.state.vel[2]);
+  pa.angular_velocity = make_float3(b_pa.state.ave[0], b_pa.state.ave[1], b_pa.state.ave[2]);
 
   psys->particles.push_back_slow(pa);
 

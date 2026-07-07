@@ -12,6 +12,8 @@
 
 #include "mathutils.hh"
 
+namespace blender {
+
 extern PyTypeObject vector_Type;
 
 #define VectorObject_Check(v) PyObject_TypeCheck((v), &vector_Type)
@@ -51,3 +53,5 @@ struct VectorObject {
 [[nodiscard]] PyObject *Vector_CreatePyObject_alloc(float *vec,
                                                     int vec_num,
                                                     PyTypeObject *base_type) ATTR_NONNULL(1);
+
+}  // namespace blender

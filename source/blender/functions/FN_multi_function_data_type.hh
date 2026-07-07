@@ -13,7 +13,6 @@
  */
 
 #include "BLI_cpp_type.hh"
-#include "BLI_struct_equality_utils.hh"
 
 namespace blender::fn::multi_function {
 
@@ -47,7 +46,7 @@ class DataType {
   const CPPType &single_type() const;
   const CPPType &vector_base_type() const;
 
-  BLI_STRUCT_EQUALITY_OPERATORS_2(DataType, category_, type_)
+  friend bool operator==(const DataType &a, const DataType &b) = default;
 
   std::string to_string() const;
 

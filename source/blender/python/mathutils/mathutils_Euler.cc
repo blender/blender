@@ -22,6 +22,8 @@
 #  include "BLI_dynstr.h"
 #endif
 
+namespace blender {
+
 #define EULER_SIZE 3
 
 /* -------------------------------------------------------------------- */
@@ -42,19 +44,25 @@ short euler_order_from_string(const char *str, const char *error_prefix)
 /* NOTE: this is endianness-sensitive. */
 #define MAKE_ID3(a, b, c) ((a) | ((b) << 8) | ((c) << 16))
 
-    switch (*((const PY_INT32_T *)str)) {
-      case MAKE_ID3('X', 'Y', 'Z'):
+    switch (*(reinterpret_cast<const int32_t *>(str))) {
+      case MAKE_ID3('X', 'Y', 'Z'): {
         return EULER_ORDER_XYZ;
-      case MAKE_ID3('X', 'Z', 'Y'):
+      }
+      case MAKE_ID3('X', 'Z', 'Y'): {
         return EULER_ORDER_XZY;
-      case MAKE_ID3('Y', 'X', 'Z'):
+      }
+      case MAKE_ID3('Y', 'X', 'Z'): {
         return EULER_ORDER_YXZ;
-      case MAKE_ID3('Y', 'Z', 'X'):
+      }
+      case MAKE_ID3('Y', 'Z', 'X'): {
         return EULER_ORDER_YZX;
-      case MAKE_ID3('Z', 'X', 'Y'):
+      }
+      case MAKE_ID3('Z', 'X', 'Y'): {
         return EULER_ORDER_ZXY;
-      case MAKE_ID3('Z', 'Y', 'X'):
+      }
+      case MAKE_ID3('Z', 'Y', 'X'): {
         return EULER_ORDER_ZYX;
+      }
     }
 
 #undef MAKE_ID3
@@ -94,40 +102,65 @@ static PyObject *Euler_to_tuple_ex(EulerObject *self, int ndigits)
 /** \name Euler Type: `__new__` / `mathutils.Euler()`
  * \{ */
 
-static PyObject *Euler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+static PyObject *Euler_vectorcall(PyObject *type,
+                                  PyObject *const *args,
+                                  const size_t nargsf,
+                                  PyObject *kwnames)
 {
-  PyObject *seq = nullptr;
-  const char *order_str = nullptr;
-
-  float eul[EULER_SIZE] = {0.0f, 0.0f, 0.0f};
-  short order = EULER_ORDER_XYZ;
-
-  if (kwds && PyDict_Size(kwds)) {
+  if (UNLIKELY(kwnames && PyTuple_GET_SIZE(kwnames))) {
     PyErr_SetString(PyExc_TypeError,
                     "mathutils.Euler(): "
                     "takes no keyword args");
     return nullptr;
   }
 
-  if (!PyArg_ParseTuple(args, "|Os:mathutils.Euler", &seq, &order_str)) {
-    return nullptr;
-  }
+  float eul[EULER_SIZE] = {0.0f, 0.0f, 0.0f};
+  short order = EULER_ORDER_XYZ;
 
-  switch (PyTuple_GET_SIZE(args)) {
-    case 0:
+  const size_t nargs = PyVectorcall_NARGS(nargsf);
+  switch (nargs) {
+    case 0: {
       break;
-    case 2:
-      if ((order = euler_order_from_string(order_str, "mathutils.Euler()")) == -1) {
+    }
+    case 2: {
+      const char *order_str;
+
+      if (((order_str = PyUnicode_AsUTF8(args[1])) == nullptr) ||
+          ((order = euler_order_from_string(order_str, "mathutils.Euler()")) == -1))
+      {
         return nullptr;
       }
       ATTR_FALLTHROUGH;
-    case 1:
-      if (mathutils_array_parse(eul, EULER_SIZE, EULER_SIZE, seq, "mathutils.Euler()") == -1) {
+    }
+    case 1: {
+      if (mathutils_array_parse(eul, EULER_SIZE, EULER_SIZE, args[0], "mathutils.Euler()") == -1) {
         return nullptr;
       }
       break;
+    }
+    default: {
+      PyErr_Format(PyExc_TypeError,
+                   "mathutils.Euler(): "
+                   "takes at most 2 arguments (%zd given)",
+                   nargs);
+      return nullptr;
+    }
   }
-  return Euler_CreatePyObject(eul, order, type);
+  return Euler_CreatePyObject(eul, order, reinterpret_cast<PyTypeObject *>(type));
+}
+
+static PyObject *Euler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+  /* Only called on sub-classes. */
+  if (UNLIKELY(kwds && PyDict_GET_SIZE(kwds))) {
+    PyErr_SetString(PyExc_TypeError,
+                    "mathutils.Euler(): "
+                    "takes no keyword args");
+    return nullptr;
+  }
+  PyObject *const *args_array = &PyTuple_GET_ITEM(args, 0);
+  const size_t args_array_num = PyTuple_GET_SIZE(args);
+  return Euler_vectorcall(reinterpret_cast<PyObject *>(type), args_array, args_array_num, nullptr);
 }
 
 /** \} */
@@ -175,7 +208,7 @@ static PyObject *Euler_to_matrix(EulerObject *self)
     return nullptr;
   }
 
-  eulO_to_mat3((float(*)[3])mat, self->eul, self->order);
+  eulO_to_mat3(reinterpret_cast<float (*)[3]>(mat), self->eul, self->order);
 
   return Matrix_CreatePyObject(mat, 3, 3, nullptr);
 }
@@ -206,12 +239,12 @@ PyDoc_STRVAR(
     Euler_rotate_axis_doc,
     ".. method:: rotate_axis(axis, angle, /)\n"
     "\n"
-    "   Rotates the euler a certain amount and returning a unique euler rotation\n"
-    "   (no 720 degree pitches).\n"
+    "   Rotates the euler a certain amount, wrapping the result to produce\n"
+    "   a unique euler rotation (no 720 degree pitches).\n"
     "\n"
-    "   :arg axis: An axis string.\n"
-    "   :type axis: Literal['X, 'Y', 'Z']\n"
-    "   :arg angle: angle in radians.\n"
+    "   :param axis: An axis string.\n"
+    "   :type axis: Literal['X', 'Y', 'Z']\n"
+    "   :param angle: angle in radians.\n"
     "   :type angle: float\n");
 static PyObject *Euler_rotate_axis(EulerObject *self, PyObject *args)
 {
@@ -250,7 +283,7 @@ PyDoc_STRVAR(
     "\n"
     "   Rotates the euler by another mathutils value.\n"
     "\n"
-    "   :arg other: rotation component of mathutils value\n"
+    "   :param other: rotation component of mathutils value\n"
     "   :type other: :class:`Euler` | :class:`Quaternion` | :class:`Matrix`\n");
 static PyObject *Euler_rotate(EulerObject *self, PyObject *value)
 {
@@ -281,7 +314,7 @@ PyDoc_STRVAR(
     "   Make this euler compatible with another,\n"
     "   so interpolating between them works as intended.\n"
     "\n"
-    "   :arg other: Other euler rotation.\n"
+    "   :param other: Other euler rotation.\n"
     "   :type other: :class:`Euler`\n"
     "\n"
     "   .. note:: the rotation order is not taken into account for this function.\n");
@@ -312,7 +345,7 @@ static PyObject *Euler_make_compatible(EulerObject *self, PyObject *value)
 PyDoc_STRVAR(
     /* Wrap. */
     Euler_copy_doc,
-    ".. function:: copy()\n"
+    ".. method:: copy()\n"
     "\n"
     "   Returns a copy of this euler.\n"
     "\n"
@@ -389,7 +422,7 @@ static PyObject *Euler_str(EulerObject *self)
 
 static int Euler_getbuffer(PyObject *obj, Py_buffer *view, int flags)
 {
-  EulerObject *self = (EulerObject *)obj;
+  EulerObject *self = reinterpret_cast<EulerObject *>(obj);
   if (UNLIKELY(BaseMath_Prepare_ForBufferAccess(self, view, flags) == -1)) {
     return -1;
   }
@@ -399,8 +432,8 @@ static int Euler_getbuffer(PyObject *obj, Py_buffer *view, int flags)
 
   memset(view, 0, sizeof(*view));
 
-  view->obj = (PyObject *)self;
-  view->buf = (void *)self->eul;
+  view->obj = reinterpret_cast<PyObject *>(self);
+  view->buf = static_cast<void *>(self->eul);
   view->len = Py_ssize_t(EULER_SIZE * sizeof(float));
   view->itemsize = sizeof(float);
   view->ndim = 1;
@@ -408,7 +441,7 @@ static int Euler_getbuffer(PyObject *obj, Py_buffer *view, int flags)
     view->readonly = 1;
   }
   if (flags & PyBUF_FORMAT) {
-    view->format = (char *)"f";
+    view->format = const_cast<char *>("f");
   }
 
   self->flag |= BASE_MATH_FLAG_HAS_BUFFER_VIEW;
@@ -419,7 +452,7 @@ static int Euler_getbuffer(PyObject *obj, Py_buffer *view, int flags)
 
 static void Euler_releasebuffer(PyObject * /*exporter*/, Py_buffer *view)
 {
-  EulerObject *self = (EulerObject *)view->obj;
+  EulerObject *self = reinterpret_cast<EulerObject *>(view->obj);
   self->flag &= ~BASE_MATH_FLAG_HAS_BUFFER_VIEW;
 
   if (view->readonly == 0) {
@@ -430,8 +463,8 @@ static void Euler_releasebuffer(PyObject * /*exporter*/, Py_buffer *view)
 }
 
 static PyBufferProcs Euler_as_buffer = {
-    (getbufferproc)Euler_getbuffer,
-    (releasebufferproc)Euler_releasebuffer,
+    static_cast<getbufferproc>(Euler_getbuffer),
+    static_cast<releasebufferproc>(Euler_releasebuffer),
 };
 
 /** \} */
@@ -446,8 +479,8 @@ static PyObject *Euler_richcmpr(PyObject *a, PyObject *b, int op)
   int ok = -1; /* zero is true */
 
   if (EulerObject_Check(a) && EulerObject_Check(b)) {
-    EulerObject *eulA = (EulerObject *)a;
-    EulerObject *eulB = (EulerObject *)b;
+    EulerObject *eulA = reinterpret_cast<EulerObject *>(a);
+    EulerObject *eulB = reinterpret_cast<EulerObject *>(b);
 
     if (BaseMath_ReadCallback(eulA) == -1 || BaseMath_ReadCallback(eulB) == -1) {
       return nullptr;
@@ -460,22 +493,25 @@ static PyObject *Euler_richcmpr(PyObject *a, PyObject *b, int op)
   }
 
   switch (op) {
-    case Py_NE:
+    case Py_NE: {
       ok = !ok;
       ATTR_FALLTHROUGH;
-    case Py_EQ:
+    }
+    case Py_EQ: {
       res = ok ? Py_False : Py_True;
       break;
-
+    }
     case Py_LT:
     case Py_LE:
     case Py_GT:
-    case Py_GE:
+    case Py_GE: {
       res = Py_NotImplemented;
       break;
-    default:
+    }
+    default: {
       PyErr_BadArgument();
       return nullptr;
+    }
   }
 
   return Py_NewRef(res);
@@ -710,12 +746,12 @@ static int Euler_ass_subscript(EulerObject *self, PyObject *item, PyObject *valu
  * \{ */
 
 static PySequenceMethods Euler_SeqMethods = {
-    /*sq_length*/ (lenfunc)Euler_len,
+    /*sq_length*/ reinterpret_cast<lenfunc>(Euler_len),
     /*sq_concat*/ nullptr,
     /*sq_repeat*/ nullptr,
-    /*sq_item*/ (ssizeargfunc)Euler_item,
+    /*sq_item*/ reinterpret_cast<ssizeargfunc>(Euler_item),
     /*was_sq_slice*/ nullptr, /* DEPRECATED. */
-    /*sq_ass_item*/ (ssizeobjargproc)Euler_ass_item,
+    /*sq_ass_item*/ reinterpret_cast<ssizeobjargproc>(Euler_ass_item),
     /*was_sq_ass_slice*/ nullptr, /* DEPRECATED. */
     /*sq_contains*/ nullptr,
     /*sq_inplace_concat*/ nullptr,
@@ -723,9 +759,9 @@ static PySequenceMethods Euler_SeqMethods = {
 };
 
 static PyMappingMethods Euler_AsMapping = {
-    /*mp_length*/ (lenfunc)Euler_len,
-    /*mp_subscript*/ (binaryfunc)Euler_subscript,
-    /*mp_ass_subscript*/ (objobjargproc)Euler_ass_subscript,
+    /*mp_length*/ reinterpret_cast<lenfunc>(Euler_len),
+    /*mp_subscript*/ reinterpret_cast<binaryfunc>(Euler_subscript),
+    /*mp_ass_subscript*/ reinterpret_cast<objobjargproc>(Euler_ass_subscript),
 };
 
 /** \} */
@@ -797,33 +833,48 @@ static int Euler_order_set(EulerObject *self, PyObject *value, void * /*closure*
  * \{ */
 
 static PyGetSetDef Euler_getseters[] = {
-    {"x", (getter)Euler_axis_get, (setter)Euler_axis_set, Euler_axis_doc, POINTER_FROM_INT(0)},
-    {"y", (getter)Euler_axis_get, (setter)Euler_axis_set, Euler_axis_doc, POINTER_FROM_INT(1)},
-    {"z", (getter)Euler_axis_get, (setter)Euler_axis_set, Euler_axis_doc, POINTER_FROM_INT(2)},
-    {"order", (getter)Euler_order_get, (setter)Euler_order_set, Euler_order_doc, nullptr},
+    {"x",
+     reinterpret_cast<getter>(Euler_axis_get),
+     reinterpret_cast<setter>(Euler_axis_set),
+     Euler_axis_doc,
+     POINTER_FROM_INT(0)},
+    {"y",
+     reinterpret_cast<getter>(Euler_axis_get),
+     reinterpret_cast<setter>(Euler_axis_set),
+     Euler_axis_doc,
+     POINTER_FROM_INT(1)},
+    {"z",
+     reinterpret_cast<getter>(Euler_axis_get),
+     reinterpret_cast<setter>(Euler_axis_set),
+     Euler_axis_doc,
+     POINTER_FROM_INT(2)},
+    {"order",
+     reinterpret_cast<getter>(Euler_order_get),
+     reinterpret_cast<setter>(Euler_order_set),
+     Euler_order_doc,
+     nullptr},
 
     {"is_wrapped",
-     (getter)BaseMathObject_is_wrapped_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(BaseMathObject_is_wrapped_get),
+     static_cast<setter>(nullptr),
      BaseMathObject_is_wrapped_doc,
      nullptr},
     {"is_frozen",
-     (getter)BaseMathObject_is_frozen_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(BaseMathObject_is_frozen_get),
+     static_cast<setter>(nullptr),
      BaseMathObject_is_frozen_doc,
      nullptr},
     {"is_valid",
-     (getter)BaseMathObject_is_valid_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(BaseMathObject_is_valid_get),
+     static_cast<setter>(nullptr),
      BaseMathObject_is_valid_doc,
      nullptr},
     {"owner",
-     (getter)BaseMathObject_owner_get,
-     (setter) nullptr,
+     reinterpret_cast<getter>(BaseMathObject_owner_get),
+     static_cast<setter>(nullptr),
      BaseMathObject_owner_doc,
      nullptr},
-    {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
-};
+    {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */};
 
 /** \} */
 
@@ -842,18 +893,33 @@ static PyGetSetDef Euler_getseters[] = {
 #endif
 
 static PyMethodDef Euler_methods[] = {
-    {"zero", (PyCFunction)Euler_zero, METH_NOARGS, Euler_zero_doc},
-    {"to_matrix", (PyCFunction)Euler_to_matrix, METH_NOARGS, Euler_to_matrix_doc},
-    {"to_quaternion", (PyCFunction)Euler_to_quaternion, METH_NOARGS, Euler_to_quaternion_doc},
-    {"rotate_axis", (PyCFunction)Euler_rotate_axis, METH_VARARGS, Euler_rotate_axis_doc},
-    {"rotate", (PyCFunction)Euler_rotate, METH_O, Euler_rotate_doc},
-    {"make_compatible", (PyCFunction)Euler_make_compatible, METH_O, Euler_make_compatible_doc},
-    {"copy", (PyCFunction)Euler_copy, METH_NOARGS, Euler_copy_doc},
-    {"__copy__", (PyCFunction)Euler_copy, METH_NOARGS, Euler_copy_doc},
-    {"__deepcopy__", (PyCFunction)Euler_deepcopy, METH_VARARGS, Euler_copy_doc},
+    {"zero", reinterpret_cast<PyCFunction>(Euler_zero), METH_NOARGS, Euler_zero_doc},
+    {"to_matrix",
+     reinterpret_cast<PyCFunction>(Euler_to_matrix),
+     METH_NOARGS,
+     Euler_to_matrix_doc},
+    {"to_quaternion",
+     reinterpret_cast<PyCFunction>(Euler_to_quaternion),
+     METH_NOARGS,
+     Euler_to_quaternion_doc},
+    {"rotate_axis",
+     reinterpret_cast<PyCFunction>(Euler_rotate_axis),
+     METH_VARARGS,
+     Euler_rotate_axis_doc},
+    {"rotate", reinterpret_cast<PyCFunction>(Euler_rotate), METH_O, Euler_rotate_doc},
+    {"make_compatible",
+     reinterpret_cast<PyCFunction>(Euler_make_compatible),
+     METH_O,
+     Euler_make_compatible_doc},
+    {"copy", reinterpret_cast<PyCFunction>(Euler_copy), METH_NOARGS, Euler_copy_doc},
+    {"__copy__", reinterpret_cast<PyCFunction>(Euler_copy), METH_NOARGS, Euler_copy_doc},
+    {"__deepcopy__", reinterpret_cast<PyCFunction>(Euler_deepcopy), METH_VARARGS, Euler_copy_doc},
 
     /* base-math methods */
-    {"freeze", (PyCFunction)BaseMathObject_freeze, METH_NOARGS, BaseMathObject_freeze_doc},
+    {"freeze",
+     reinterpret_cast<PyCFunction>(BaseMathObject_freeze),
+     METH_NOARGS,
+     BaseMathObject_freeze_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 
@@ -882,37 +948,38 @@ PyDoc_STRVAR(
     "\n"
     "   This object gives access to Eulers in Blender.\n"
     "\n"
-    "   .. seealso:: `Euler angles <https://en.wikipedia.org/wiki/Euler_angles>`__ on Wikipedia.\n"
+    "   .. seealso:: `Euler angles <https://en.wikipedia.org/wiki/Euler_angles>`__ on "
+    "Wikipedia.\n"
     "\n"
-    "   :arg angles: (X, Y, Z) angles in radians.\n"
+    "   :param angles: (X, Y, Z) angles in radians.\n"
     "   :type angles: Sequence[float]\n"
-    "   :arg order: Euler rotation order.\n"
+    "   :param order: Euler rotation order.\n"
     "   :type order: Literal['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX']\n");
 PyTypeObject euler_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Euler",
     /*tp_basicsize*/ sizeof(EulerObject),
     /*tp_itemsize*/ 0,
-    /*tp_dealloc*/ (destructor)BaseMathObject_dealloc,
+    /*tp_dealloc*/ reinterpret_cast<destructor>(BaseMathObject_dealloc),
     /*tp_vectorcall_offset*/ 0,
     /*tp_getattr*/ nullptr,
     /*tp_setattr*/ nullptr,
     /*tp_as_async*/ nullptr,
-    /*tp_repr*/ (reprfunc)Euler_repr,
+    /*tp_repr*/ reinterpret_cast<reprfunc>(Euler_repr),
     /*tp_as_number*/ nullptr,
     /*tp_as_sequence*/ &Euler_SeqMethods,
     /*tp_as_mapping*/ &Euler_AsMapping,
-    /*tp_hash*/ (hashfunc)Euler_hash,
+    /*tp_hash*/ reinterpret_cast<hashfunc>(Euler_hash),
     /*tp_call*/ nullptr,
-    /*tp_str*/ (reprfunc)Euler_str,
+    /*tp_str*/ reinterpret_cast<reprfunc>(Euler_str),
     /*tp_getattro*/ nullptr,
     /*tp_setattro*/ nullptr,
     /*tp_as_buffer*/ &Euler_as_buffer,
     /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
     /*tp_doc*/ euler_doc,
-    /*tp_traverse*/ (traverseproc)BaseMathObject_traverse,
-    /*tp_clear*/ (inquiry)BaseMathObject_clear,
-    /*tp_richcompare*/ (richcmpfunc)Euler_richcmpr,
+    /*tp_traverse*/ reinterpret_cast<traverseproc>(BaseMathObject_traverse),
+    /*tp_clear*/ reinterpret_cast<inquiry>(BaseMathObject_clear),
+    /*tp_richcompare*/ static_cast<richcmpfunc>(Euler_richcmpr),
     /*tp_weaklistoffset*/ 0,
     /*tp_iter*/ nullptr,
     /*tp_iternext*/ nullptr,
@@ -928,7 +995,7 @@ PyTypeObject euler_Type = {
     /*tp_alloc*/ nullptr,
     /*tp_new*/ Euler_new,
     /*tp_free*/ nullptr,
-    /*tp_is_gc*/ (inquiry)BaseMathObject_is_gc,
+    /*tp_is_gc*/ reinterpret_cast<inquiry>(BaseMathObject_is_gc),
     /*tp_bases*/ nullptr,
     /*tp_mro*/ nullptr,
     /*tp_cache*/ nullptr,
@@ -937,7 +1004,7 @@ PyTypeObject euler_Type = {
     /*tp_del*/ nullptr,
     /*tp_version_tag*/ 0,
     /*tp_finalize*/ nullptr,
-    /*tp_vectorcall*/ nullptr,
+    /*tp_vectorcall*/ Euler_vectorcall,
 };
 
 #ifdef MATH_STANDALONE
@@ -985,7 +1052,7 @@ PyObject *Euler_CreatePyObject(const float eul[3], const short order, PyTypeObje
     PyMem_Free(eul_alloc);
   }
 
-  return (PyObject *)self;
+  return reinterpret_cast<PyObject *>(self);
 }
 
 PyObject *Euler_CreatePyObject_wrap(float eul[3], const short order, PyTypeObject *base_type)
@@ -1004,7 +1071,7 @@ PyObject *Euler_CreatePyObject_wrap(float eul[3], const short order, PyTypeObjec
     self->order = order;
   }
 
-  return (PyObject *)self;
+  return reinterpret_cast<PyObject *>(self);
 }
 
 PyObject *Euler_CreatePyObject_cb(PyObject *cb_user,
@@ -1012,7 +1079,8 @@ PyObject *Euler_CreatePyObject_cb(PyObject *cb_user,
                                   uchar cb_type,
                                   uchar cb_subtype)
 {
-  EulerObject *self = (EulerObject *)Euler_CreatePyObject(nullptr, order, nullptr);
+  EulerObject *self = reinterpret_cast<EulerObject *>(
+      Euler_CreatePyObject(nullptr, order, nullptr));
   if (self) {
     Py_INCREF(cb_user);
     self->cb_user = cb_user;
@@ -1022,7 +1090,9 @@ PyObject *Euler_CreatePyObject_cb(PyObject *cb_user,
     PyObject_GC_Track(self);
   }
 
-  return (PyObject *)self;
+  return reinterpret_cast<PyObject *>(self);
 }
 
 /** \} */
+
+}  // namespace blender

@@ -7,7 +7,7 @@
 # Example usage:
 #   cmake -C../blender/build_files/cmake/config/blender_release.cmake  ../blender
 #
-# NOTE: the built-bot supports configuration overrides for some of these settings.
+# NOTE: the build-bot supports configuration overrides for some of these settings.
 # This means the daily-builds may not match this configuration *exactly*,
 # see: `build_files/buildbot/config/*.cmake`.
 
@@ -36,10 +36,14 @@ set(WITH_IMAGE_WEBP          ON  CACHE BOOL "" FORCE)
 set(WITH_INPUT_NDOF          ON  CACHE BOOL "" FORCE)
 set(WITH_INPUT_IME           ON  CACHE BOOL "" FORCE)
 set(WITH_INTERNATIONAL       ON  CACHE BOOL "" FORCE)
+set(WITH_IO_FBX              ON  CACHE BOOL "" FORCE)
+set(WITH_IO_GREASE_PENCIL    ON  CACHE BOOL "" FORCE)
+set(WITH_IO_PLY              ON  CACHE BOOL "" FORCE)
+set(WITH_IO_STL              ON  CACHE BOOL "" FORCE)
+set(WITH_IO_WAVEFRONT_OBJ    ON  CACHE BOOL "" FORCE)
 set(WITH_LIBMV               ON  CACHE BOOL "" FORCE)
 set(WITH_LIBMV_SCHUR_SPECIALIZATIONS ON CACHE BOOL "" FORCE)
-set(WITH_LZMA                ON  CACHE BOOL "" FORCE)
-set(WITH_LZO                 ON  CACHE BOOL "" FORCE)
+set(WITH_MANIFOLD            ON  CACHE BOOL "" FORCE)
 set(WITH_MOD_FLUID           ON  CACHE BOOL "" FORCE)
 set(WITH_MOD_OCEANSIM        ON  CACHE BOOL "" FORCE)
 set(WITH_MOD_REMESH          ON  CACHE BOOL "" FORCE)
@@ -55,13 +59,13 @@ set(WITH_POTRACE             ON  CACHE BOOL "" FORCE)
 set(WITH_PUGIXML             ON  CACHE BOOL "" FORCE)
 set(WITH_PYTHON_INSTALL      ON  CACHE BOOL "" FORCE)
 set(WITH_QUADRIFLOW          ON  CACHE BOOL "" FORCE)
+set(WITH_RUBBERBAND          ON  CACHE BOOL "" FORCE)
 set(WITH_SDL                 OFF CACHE BOOL "" FORCE)
 set(WITH_TBB                 ON  CACHE BOOL "" FORCE)
 set(WITH_USD                 ON  CACHE BOOL "" FORCE)
 set(WITH_MATERIALX           ON  CACHE BOOL "" FORCE)
 set(WITH_HYDRA               ON  CACHE BOOL "" FORCE)
-
-set(WITH_MEM_JEMALLOC          ON  CACHE BOOL "" FORCE)
+set(WITH_XR_OPENXR           ON  CACHE BOOL "" FORCE)
 
 # platform dependent options
 if(APPLE)
@@ -70,7 +74,7 @@ if(APPLE)
   set(WITH_BLENDER_THUMBNAILER ON  CACHE BOOL "" FORCE)
 endif()
 if(WIN32)
-  set(WITH_WASAPI               ON  CACHE BOOL "" FORCE)
+  set(WITH_WASAPI              ON  CACHE BOOL "" FORCE)
 endif()
 if(UNIX AND NOT APPLE)
   set(WITH_JACK                ON  CACHE BOOL "" FORCE)
@@ -84,12 +88,20 @@ if(UNIX AND NOT APPLE)
   set(WITH_PIPEWIRE            OFF  CACHE BOOL "" FORCE)
   set(WITH_PIPEWIRE_DYNLOAD    ON  CACHE BOOL "" FORCE)
 endif()
-if(NOT APPLE)
-  set(WITH_XR_OPENXR              ON  CACHE BOOL "" FORCE)
 
-  # Can't use CMAKE_SYSTEM_PROCESSOR here as it's not set yet,
-  # so fall back to checking the env for vcvarsall's VSCMD_ARG_TGT_ARCH
-  if(NOT (WIN32 AND "$ENV{VSCMD_ARG_TGT_ARCH}" STREQUAL "arm64"))
+if(NOT APPLE)
+  set(_is_win32_arm64_target OFF)
+  if(WIN32)
+    if(DEFINED ENV{VSCMD_ARG_TGT_ARCH})
+      if("$ENV{VSCMD_ARG_TGT_ARCH}" STREQUAL "arm64")
+        # Can't use `CMAKE_SYSTEM_PROCESSOR` here as it's not set yet,
+        # so fall back to checking the environment for vcvarsall's `VSCMD_ARG_TGT_ARCH`.
+        set(_is_win32_arm64_target ON)
+      endif()
+    endif()
+  endif()
+  if(NOT _is_win32_arm64_target)
+    set(WITH_TBB_MALLOC_PROXY       ON  CACHE BOOL "" FORCE)
     set(WITH_CYCLES_DEVICE_HIPRT    ON  CACHE BOOL "" FORCE)
     set(WITH_CYCLES_DEVICE_OPTIX    ON  CACHE BOOL "" FORCE)
     set(WITH_CYCLES_CUDA_BINARIES   ON  CACHE BOOL "" FORCE)
@@ -97,4 +109,5 @@ if(NOT APPLE)
     set(WITH_CYCLES_DEVICE_ONEAPI   ON  CACHE BOOL "" FORCE)
     set(WITH_CYCLES_ONEAPI_BINARIES ON  CACHE BOOL "" FORCE)
   endif()
+  unset(_is_win32_arm64_target)
 endif()

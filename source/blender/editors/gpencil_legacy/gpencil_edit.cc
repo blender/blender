@@ -47,6 +47,8 @@
 
 #include "gpencil_intern.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Delete Active Frame Operator
  * \{ */
@@ -105,3 +107,5 @@ void GPENCIL_OT_annotation_active_frame_delete(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

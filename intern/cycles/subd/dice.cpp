@@ -31,7 +31,7 @@ EdgeDice::EdgeDice(const SubdParams &params_,
   mesh_shader = mesh->shader.data();
   mesh_smooth = mesh->smooth.data();
   mesh_P = mesh->verts.data();
-  mesh_N = attr_vN->data_float3();
+  mesh_N = attr_vN->data_normal();
 
   if (params.ptex) {
     Attribute *attr_ptex_face_id = params.mesh->attributes.add(ATTR_STD_PTEX_FACE_ID);
@@ -103,7 +103,7 @@ void EdgeDice::set_vertex(const SubPatch &sub, const int index, const float2 uv)
   sub.patch->eval(&P, nullptr, nullptr, &N, uv.x, uv.y);
 
   mesh_P[index] = P;
-  mesh_N[index] = N;
+  mesh_N[index] = packed_normal(N);
 
   for (const SubdAttribute &attr : interpolation.vertex_attributes) {
     attr.interp(sub.patch->patch_index, sub.face_index, sub.corner, &index, &uv, 1);

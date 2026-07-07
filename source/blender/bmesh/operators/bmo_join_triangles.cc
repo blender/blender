@@ -27,6 +27,8 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
+namespace blender {
+
 /**
  *  Used to keep track of our math for the error values and ensure it's not getting out of control.
  */
@@ -372,6 +374,14 @@ static DelimitData bm_edge_delmimit_data_from_op(BMesh *bm, BMOperator *op)
   {
     delimit_data.cdata_len += 1;
   }
+  delimit_data.cdata[delimit_data.cdata_len].cd_offset = -1;
+  if (BMO_slot_bool_get(op->slots_in, "cmp_vcols") &&
+      bm_edge_delimit_cdata(
+          &bm->ldata, CD_PROP_COLOR, &delimit_data.cdata[delimit_data.cdata_len]))
+  {
+    delimit_data.cdata_len += 1;
+  }
+
   return delimit_data;
 }
 
@@ -980,7 +990,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
   s.edge_queue = BLI_heap_new();
   s.select_tris_only = BMO_slot_bool_get(op->slots_in, "deselect_joined");
   if (s.use_topo_influence) {
-    s.edge_queue_nodes = MEM_malloc_arrayN<HeapNode *>(bm->totedge, __func__);
+    s.edge_queue_nodes = MEM_new_array_uninitialized<HeapNode *>(bm->totedge, __func__);
   }
 
 #ifdef USE_JOIN_TRIANGLE_INTERACTIVE_TESTING
@@ -1126,9 +1136,11 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
   /* Clean up. */
   BLI_heap_free(s.edge_queue, nullptr);
   if (s.use_topo_influence) {
-    MEM_freeN(s.edge_queue_nodes);
+    MEM_delete(s.edge_queue_nodes);
   }
 
   /* Return the selection results. */
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, FACE_OUT);
 }
+
+}  // namespace blender

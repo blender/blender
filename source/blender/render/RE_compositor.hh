@@ -6,11 +6,13 @@
 
 #include <cstdint>
 
-namespace blender::compositor {
+namespace blender {
+
+namespace compositor {
 class RenderContext;
 class Profiler;
-enum class OutputTypes : uint8_t;
-}  // namespace blender::compositor
+enum class NodeGroupOutputTypes : uint8_t;
+}  // namespace compositor
 
 struct bNodeTree;
 struct Render;
@@ -24,7 +26,7 @@ struct Scene;
  * that is part of the draw manager. The input and output of this is pre-existing RenderResult
  * buffers in scenes, that are uploaded to and read back from the GPU. */
 
-namespace blender::render {
+namespace render {
 class Compositor;
 }
 
@@ -34,9 +36,11 @@ void RE_compositor_execute(Render &render,
                            const RenderData &render_data,
                            const bNodeTree &node_tree,
                            const char *view_name,
-                           blender::compositor::RenderContext *render_context,
-                           blender::compositor::Profiler *profiler,
-                           blender::compositor::OutputTypes needed_outputs);
+                           compositor::RenderContext *render_context,
+                           compositor::Profiler *profiler,
+                           compositor::NodeGroupOutputTypes needed_outputs);
 
 /* Free compositor caches. */
 void RE_compositor_free(Render &render);
+
+}  // namespace blender

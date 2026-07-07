@@ -17,10 +17,12 @@
 
 #include "RNA_types.hh"
 
+namespace blender {
+
 struct ID;
 struct PropertyRNA;
 
-namespace blender::deg {
+namespace deg {
 
 struct TimeSourceKey {
   TimeSourceKey() = default;
@@ -177,4 +179,5 @@ struct RNAPathKey {
   RNAPointerSource source;
 };
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

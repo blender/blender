@@ -29,18 +29,20 @@
 
 #  include "WM_api.hh"
 
+namespace blender {
+
 static StructRNA *rna_LightProbe_refine(PointerRNA *ptr)
 {
-  LightProbe *probe = (LightProbe *)ptr->data;
+  LightProbe *probe = static_cast<LightProbe *>(ptr->data);
   switch (probe->type) {
     case LIGHTPROBE_TYPE_PLANE:
-      return &RNA_LightProbePlane;
+      return RNA_LightProbePlane;
     case LIGHTPROBE_TYPE_SPHERE:
-      return &RNA_LightProbeSphere;
+      return RNA_LightProbeSphere;
     case LIGHTPROBE_TYPE_VOLUME:
-      return &RNA_LightProbeVolume;
+      return RNA_LightProbeVolume;
     default:
-      return &RNA_LightProbe;
+      return RNA_LightProbe;
   }
 }
 
@@ -49,7 +51,11 @@ static void rna_LightProbe_recalc(Main * /*bmain*/, Scene * /*scene*/, PointerRN
   DEG_id_tag_update(ptr->owner_id, ID_RECALC_GEOMETRY);
 }
 
+}  // namespace blender
+
 #else
+
+namespace blender {
 
 static EnumPropertyItem parallax_type_items[] = {
     {LIGHTPROBE_SHAPE_ELIPSOID, "ELIPSOID", ICON_NONE, "Sphere", ""},
@@ -442,5 +448,7 @@ void RNA_def_lightprobe(BlenderRNA *brna)
   rna_def_lightprobe_sphere(brna);
   rna_def_lightprobe_volume(brna);
 }
+
+}  // namespace blender
 
 #endif

@@ -18,10 +18,12 @@
 
 #include <memory>
 
+namespace blender {
+
 struct AssetLibraryReference;
 struct bUserAssetLibrary;
 
-namespace blender::asset_system {
+namespace asset_system {
 
 class AllAssetLibrary;
 class OnDiskAssetLibrary;
@@ -199,4 +201,6 @@ class AssetLibraryService {
   void app_handler_unregister();
 };
 
-}  // namespace blender::asset_system
+}  // namespace asset_system
+
+}  // namespace blender

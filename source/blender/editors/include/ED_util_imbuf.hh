@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 struct ARegion;
 struct bContext;
 struct wmEvent;
@@ -21,3 +23,5 @@ wmOperatorStatus ED_imbuf_sample_invoke(bContext *C, wmOperator *op, const wmEve
 wmOperatorStatus ED_imbuf_sample_modal(bContext *C, wmOperator *op, const wmEvent *event);
 void ED_imbuf_sample_cancel(bContext *C, wmOperator *op);
 bool ED_imbuf_sample_poll(bContext *C);
+
+}  // namespace blender

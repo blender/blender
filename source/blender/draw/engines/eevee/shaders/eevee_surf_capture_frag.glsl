@@ -9,8 +9,11 @@
  * into other surface shaders.
  */
 
-#include "infos/eevee_material_info.hh"
+#include "infos/eevee_geom_infos.hh"
+#include "infos/eevee_nodetree_infos.hh"
+#include "infos/eevee_surf_capture_infos.hh"
 
+FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree)
 FRAGMENT_SHADER_CREATE_INFO(eevee_geom_mesh)
 FRAGMENT_SHADER_CREATE_INFO(eevee_surf_capture)
 
@@ -37,7 +40,7 @@ void main()
   float3 albedo = float3(0.0f);
 
   for (int i = 0; i < CLOSURE_BIN_COUNT; i++) {
-    ClosureUndetermined cl = g_closure_get_resolved(i, 1.0f);
+    ClosureUndetermined cl = g_closure_get_resolved(uchar(i), 1.0f);
     if (cl.weight <= CLOSURE_WEIGHT_CUTOFF) {
       continue;
     }

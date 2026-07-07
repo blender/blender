@@ -29,7 +29,9 @@
 #include <algorithm>
 #include <cmath>
 
-namespace blender::render::texturemargin {
+namespace blender {
+
+namespace render::texturemargin {
 
 /**
  * The map class contains both a pixel map which maps out face indices for all UV-polygons and
@@ -306,7 +308,7 @@ class TextureMarginMap {
 
   void build_tables()
   {
-    loop_to_face_map_ = blender::bke::mesh::build_corner_to_face_map(faces_);
+    loop_to_face_map_ = bke::mesh::build_corner_to_face_map(faces_);
 
     loop_adjacency_map_.resize(corner_edges_.size(), -1);
 
@@ -516,10 +518,10 @@ static void generate_margin(ImBuf *ibuf,
   /* Now the map contains 3 sorts of values: 0xFFFFFFFF for empty pixels, `0x80000000 + polyindex`
    * for margin pixels, just `polyindex` for face pixels. */
   if (mask) {
-    mask = (char *)MEM_dupallocN(mask);
+    mask = MEM_dupalloc(mask);
   }
   else {
-    mask = MEM_calloc_arrayN<char>(size_t(ibuf->x) * size_t(ibuf->y), __func__);
+    mask = MEM_new_array_zeroed<char>(size_t(ibuf->x) * size_t(ibuf->y), __func__);
     draw_new_mask = true;
   }
 
@@ -544,11 +546,11 @@ static void generate_margin(ImBuf *ibuf,
     map.rasterize_tri(vec[0], vec[1], vec[2], tri_faces[i], mask, draw_new_mask);
   }
 
-  char *tmpmask = (char *)MEM_dupallocN(mask);
+  char *tmpmask = MEM_dupalloc(mask);
   /* Extend (with averaging) by 2 pixels. Those will be overwritten, but it
    * helps linear interpolations on the edges of polygons. */
   IMB_filter_extend(ibuf, tmpmask, 2);
-  MEM_freeN(tmpmask);
+  MEM_delete(tmpmask);
 
   map.grow_dijkstra(margin);
 
@@ -562,35 +564,32 @@ static void generate_margin(ImBuf *ibuf,
    */
   IMB_filter_extend(ibuf, mask, margin);
 
-  MEM_freeN(mask);
+  MEM_delete(mask);
 }
 
-}  // namespace blender::render::texturemargin
+}  // namespace render::texturemargin
 
 void RE_generate_texturemargin_adjacentfaces(ImBuf *ibuf,
                                              char *mask,
                                              const int margin,
                                              const Mesh *mesh,
-                                             char const *uv_layer,
+                                             StringRef uv_layer,
                                              const float uv_offset[2])
 {
-  using namespace blender;
-  const blender::StringRef uv_map_name = (uv_layer && uv_layer[0]) ?
-                                             uv_layer :
-                                             CustomData_get_active_layer_name(&mesh->corner_data,
-                                                                              CD_PROP_FLOAT2);
-  const blender::bke::AttributeAccessor attributes = mesh->attributes();
-  const VArraySpan<float2> uv_map = *attributes.lookup<float2>(uv_map_name,
-                                                               bke::AttrDomain::Corner);
+  const StringRef name = uv_layer.is_empty() ? mesh->active_uv_map_name() : uv_layer;
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArraySpan<float2> uv_map = *attributes.lookup<float2>(name, bke::AttrDomain::Corner);
 
-  blender::render::texturemargin::generate_margin(ibuf,
-                                                  mask,
-                                                  margin,
-                                                  mesh->vert_positions(),
-                                                  mesh->edges_num,
-                                                  mesh->faces(),
-                                                  mesh->corner_edges(),
-                                                  mesh->corner_verts(),
-                                                  uv_map,
-                                                  uv_offset);
+  render::texturemargin::generate_margin(ibuf,
+                                         mask,
+                                         margin,
+                                         mesh->vert_positions(),
+                                         mesh->edges_num,
+                                         mesh->faces(),
+                                         mesh->corner_edges(),
+                                         mesh->corner_verts(),
+                                         uv_map,
+                                         uv_offset);
 }
+
+}  // namespace blender

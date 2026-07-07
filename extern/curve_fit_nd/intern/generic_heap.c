@@ -35,7 +35,7 @@
 
 #include "generic_heap.h"
 
-/* swap with a temp value */
+/* Swap with a temp value. */
 #define SWAP_TVAL(tval, a, b)  {  \
 	(tval) = (a);                 \
 	(a) = (b);                    \
@@ -50,15 +50,13 @@
 
 typedef unsigned int uint;
 
-/***/
-
 struct HeapNode {
 	void   *ptr;
 	double  value;
 	uint    index;
 };
 
-/* heap_* pool allocator */
+/* heap_* pool allocator. */
 #define TPOOL_IMPL_PREFIX  heap
 #define TPOOL_ALLOC_TYPE   HeapNode
 #define TPOOL_STRUCT       HeapMemPool
@@ -81,7 +79,13 @@ struct Heap {
 #define HEAP_PARENT(i) (((i) - 1) >> 1)
 #define HEAP_LEFT(i)   (((i) << 1) + 1)
 #define HEAP_RIGHT(i)  (((i) << 1) + 2)
-#define HEAP_COMPARE(a, b) ((a)->value < (b)->value)
+/* Compare by value, using index as tie-breaker for deterministic ordering.
+ * Otherwise equal values would have arbitrary ordering based on the heap's internal state.
+ * While technically deterministic, this is less stable as minor changes to the heap contents
+ * can yield different results elsewhere in the heap. */
+#define HEAP_COMPARE(a, b) \
+	(((a)->value < (b)->value) || \
+	 (((a)->value == (b)->value) && ((a)->index < (b)->index)))
 
 #if 0  /* UNUSED */
 #define HEAP_EQUALS(a, b) ((a)->value == (b)->value)
@@ -106,7 +110,7 @@ static void heap_swap(Heap *heap, const uint i, const uint j)
 
 static void heap_down(Heap *heap, uint i)
 {
-	/* size won't change in the loop */
+	/* Size won't change in the loop. */
 	const uint size = heap->size;
 
 	while (1) {
@@ -148,11 +152,11 @@ static void heap_up(Heap *heap, uint i)
 /** \name Public Heap API
  * \{ */
 
-/* use when the size of the heap is known in advance */
+/* Use when the size of the heap is known in advance. */
 Heap *HEAP_new(uint tot_reserve)
 {
 	Heap *heap = malloc(sizeof(Heap));
-	/* ensure we have at least one so we can keep doubling it */
+	/* Ensure we have at least one so we can keep doubling it. */
 	heap->size = 0;
 	heap->bufsize = tot_reserve ? tot_reserve : 1;
 	heap->tree = malloc(heap->bufsize * sizeof(HeapNode *));

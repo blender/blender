@@ -10,6 +10,9 @@
 
 #include "DNA_sequence_types.h"
 
+#include "SEQ_modifier.hh"
+#include "SEQ_sequencer.hh"
+
 #include "BLI_listbase.h"
 
 namespace blender::deg {
@@ -23,35 +26,49 @@ void StripModifierDataBackup::reset()
 {
   sound_in = nullptr;
   sound_out = nullptr;
-  last_buf = nullptr;
+  flag = STRIP_MODIFIER_FLAG_NONE;
+  params_hash = 0;
 }
 
 void StripModifierDataBackup::init_from_modifier(StripModifierData *smd)
 {
-  if (smd->type == eSeqModifierType_SoundEqualizer) {
-    sound_in = smd->runtime.last_sound_in;
-    sound_out = smd->runtime.last_sound_out;
-    last_buf = smd->runtime.last_buf;
+  blender::seq::StripModifierDataRuntime *runtime = smd->runtime;
 
-    smd->runtime.last_sound_in = nullptr;
-    smd->runtime.last_sound_out = nullptr;
-    smd->runtime.last_buf = nullptr;
+  if (ELEM(smd->type,
+           eSeqModifierType_SoundEqualizer,
+           eSeqModifierType_Pitch,
+           eSeqModifierType_Echo))
+  {
+    flag = runtime->flag;
+    sound_in = runtime->last_sound_in;
+    sound_out = runtime->last_sound_out;
+    params_hash = runtime->params_hash;
+
+    runtime->last_sound_in = nullptr;
+    runtime->last_sound_out = nullptr;
   }
 }
 
 void StripModifierDataBackup::restore_to_modifier(StripModifierData *smd)
 {
-  if (smd->type == eSeqModifierType_SoundEqualizer) {
-    smd->runtime.last_sound_in = sound_in;
-    smd->runtime.last_sound_out = sound_out;
-    smd->runtime.last_buf = last_buf;
+  blender::seq::StripModifierDataRuntime *runtime = smd->runtime;
+
+  if (ELEM(smd->type,
+           eSeqModifierType_SoundEqualizer,
+           eSeqModifierType_Pitch,
+           eSeqModifierType_Echo))
+  {
+    runtime->flag = flag;
+    runtime->last_sound_in = sound_in;
+    runtime->last_sound_out = sound_out;
+    runtime->params_hash = params_hash;
   }
   reset();
 }
 
 bool StripModifierDataBackup::isEmpty() const
 {
-  return sound_in == nullptr && sound_out == nullptr && last_buf == nullptr;
+  return sound_in == nullptr && sound_out == nullptr;
 }
 
 StripBackup::StripBackup(const Depsgraph * /*depsgraph*/)
@@ -62,36 +79,44 @@ StripBackup::StripBackup(const Depsgraph * /*depsgraph*/)
 void StripBackup::reset()
 {
   scene_sound = nullptr;
-  BLI_listbase_clear(&anims);
+  sound_time_stretch = nullptr;
+  sound_time_stretch_fps = 0.0f;
+  movie_readers.clear();
   modifiers.clear();
 }
 
 void StripBackup::init_from_strip(Strip *strip)
 {
-  scene_sound = strip->scene_sound;
-  anims = strip->anims;
+  scene_sound = strip->runtime->scene_sound;
+  sound_time_stretch = strip->runtime->sound_time_stretch;
+  sound_time_stretch_fps = strip->runtime->sound_time_stretch_fps;
+  movie_readers = std::move(strip->runtime->movie_readers);
 
-  LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
+  for (StripModifierData &smd : strip->modifiers) {
     StripModifierDataBackup mod_backup;
-    mod_backup.init_from_modifier(smd);
+    mod_backup.init_from_modifier(&smd);
     if (!mod_backup.isEmpty()) {
-      modifiers.add(smd->persistent_uid, mod_backup);
+      modifiers.add(smd.persistent_uid, mod_backup);
     }
   }
 
-  strip->scene_sound = nullptr;
-  BLI_listbase_clear(&strip->anims);
+  strip->runtime->scene_sound = nullptr;
+  strip->runtime->sound_time_stretch = nullptr;
+  strip->runtime->sound_time_stretch_fps = 0.0f;
+  strip->runtime->movie_readers.clear();
 }
 
 void StripBackup::restore_to_strip(Strip *strip)
 {
-  strip->scene_sound = scene_sound;
-  strip->anims = anims;
+  strip->runtime->scene_sound = scene_sound;
+  strip->runtime->sound_time_stretch = sound_time_stretch;
+  strip->runtime->sound_time_stretch_fps = sound_time_stretch_fps;
+  strip->runtime->movie_readers = std::move(movie_readers);
 
-  LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
-    std::optional<StripModifierDataBackup> backup = modifiers.pop_try(smd->persistent_uid);
-    if (backup.has_value()) {
-      backup->restore_to_modifier(smd);
+  for (StripModifierData &smd : strip->modifiers) {
+    std::optional<StripModifierDataBackup> backup = modifiers.pop_try(smd.persistent_uid);
+    if (backup) {
+      backup->restore_to_modifier(&smd);
     }
   }
 
@@ -100,7 +125,8 @@ void StripBackup::restore_to_strip(Strip *strip)
 
 bool StripBackup::isEmpty() const
 {
-  return (scene_sound == nullptr) && BLI_listbase_is_empty(&anims) && modifiers.is_empty();
+  return (scene_sound == nullptr) && (sound_time_stretch == nullptr) && movie_readers.is_empty() &&
+         modifiers.is_empty();
 }
 
 }  // namespace blender::deg

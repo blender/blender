@@ -74,7 +74,7 @@ static int FEdgeSmooth_init(BPy_FEdgeSmooth *self, PyObject *args, PyObject *kwd
 
 /*----------------------mathutils callbacks ----------------------------*/
 
-static int FEdgeSmooth_mathutils_check(BaseMathObject *bmo)
+static int FEdgeSmooth_mathutils_check(blender::BaseMathObject *bmo)
 {
   if (!BPy_FEdgeSmooth_Check(bmo->cb_user)) {
     return -1;
@@ -82,7 +82,7 @@ static int FEdgeSmooth_mathutils_check(BaseMathObject *bmo)
   return 0;
 }
 
-static int FEdgeSmooth_mathutils_get(BaseMathObject *bmo, int /*subtype*/)
+static int FEdgeSmooth_mathutils_get(blender::BaseMathObject *bmo, int /*subtype*/)
 {
   BPy_FEdgeSmooth *self = (BPy_FEdgeSmooth *)bmo->cb_user;
   Vec3r p(self->fes->normal());
@@ -92,7 +92,7 @@ static int FEdgeSmooth_mathutils_get(BaseMathObject *bmo, int /*subtype*/)
   return 0;
 }
 
-static int FEdgeSmooth_mathutils_set(BaseMathObject *bmo, int /*subtype*/)
+static int FEdgeSmooth_mathutils_set(blender::BaseMathObject *bmo, int /*subtype*/)
 {
   BPy_FEdgeSmooth *self = (BPy_FEdgeSmooth *)bmo->cb_user;
   Vec3r p(bmo->data[0], bmo->data[1], bmo->data[2]);
@@ -100,7 +100,9 @@ static int FEdgeSmooth_mathutils_set(BaseMathObject *bmo, int /*subtype*/)
   return 0;
 }
 
-static int FEdgeSmooth_mathutils_get_index(BaseMathObject *bmo, int /*subtype*/, int index)
+static int FEdgeSmooth_mathutils_get_index(blender::BaseMathObject *bmo,
+                                           int /*subtype*/,
+                                           int index)
 {
   BPy_FEdgeSmooth *self = (BPy_FEdgeSmooth *)bmo->cb_user;
   Vec3r p(self->fes->normal());
@@ -108,7 +110,9 @@ static int FEdgeSmooth_mathutils_get_index(BaseMathObject *bmo, int /*subtype*/,
   return 0;
 }
 
-static int FEdgeSmooth_mathutils_set_index(BaseMathObject *bmo, int /*subtype*/, int index)
+static int FEdgeSmooth_mathutils_set_index(blender::BaseMathObject *bmo,
+                                           int /*subtype*/,
+                                           int index)
 {
   BPy_FEdgeSmooth *self = (BPy_FEdgeSmooth *)bmo->cb_user;
   Vec3r p(self->fes->normal());
@@ -117,7 +121,7 @@ static int FEdgeSmooth_mathutils_set_index(BaseMathObject *bmo, int /*subtype*/,
   return 0;
 }
 
-static Mathutils_Callback FEdgeSmooth_mathutils_cb = {
+static blender::Mathutils_Callback FEdgeSmooth_mathutils_cb = {
     FEdgeSmooth_mathutils_check,
     FEdgeSmooth_mathutils_get,
     FEdgeSmooth_mathutils_set,
@@ -142,13 +146,14 @@ PyDoc_STRVAR(
     ":type: :class:`mathutils.Vector`\n");
 static PyObject *FEdgeSmooth_normal_get(BPy_FEdgeSmooth *self, void * /*closure*/)
 {
-  return Vector_CreatePyObject_cb((PyObject *)self, 3, FEdgeSmooth_mathutils_cb_index, 0);
+  return blender::Vector_CreatePyObject_cb((PyObject *)self, 3, FEdgeSmooth_mathutils_cb_index, 0);
 }
 
 static int FEdgeSmooth_normal_set(BPy_FEdgeSmooth *self, PyObject *value, void * /*closure*/)
 {
   float v[3];
-  if (mathutils_array_parse(v, 3, 3, value, "value must be a 3-dimensional vector") == -1) {
+  if (blender::mathutils_array_parse(v, 3, 3, value, "value must be a 3-dimensional vector") == -1)
+  {
     return -1;
   }
   Vec3r p(v[0], v[1], v[2]);

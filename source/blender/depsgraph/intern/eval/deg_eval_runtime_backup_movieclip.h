@@ -8,11 +8,13 @@
 
 #pragma once
 
+namespace blender {
+
 struct MovieClip;
 struct MovieClipCache;
 struct MovieReader;
 
-namespace blender::deg {
+namespace deg {
 
 struct Depsgraph;
 
@@ -30,4 +32,5 @@ class MovieClipBackup {
   struct MovieClipCache *cache;
 };
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

@@ -6,7 +6,8 @@
 
 #include "BKE_global.hh"
 
-#include "GHOST_C-api.h"
+#include "GHOST_IContext.hh"
+#include "GHOST_ISystem.hh"
 
 #include "GPU_platform.hh"
 
@@ -19,17 +20,21 @@ namespace blender::gpu {
  */
 class GPUTest : public ::testing::Test {
  private:
-  static GHOST_SystemHandle ghost_system_;
-  static GHOST_ContextHandle ghost_context_;
+  static GHOST_ISystem *ghost_system_;
+  static GHOST_IContext *ghost_context_;
   static GPUContext *context_;
 
   static int32_t prev_g_debug_;
+  std::string debug_group_name_;
 
  protected:
   static void SetUpTestSuite(GHOST_TDrawingContextType draw_context_type,
-                             eGPUBackendType gpu_backend_type,
+                             GPUBackendType gpu_backend_type,
                              int32_t g_debug_flags);
   static void TearDownTestSuite();
+
+  void SetUp() override;
+  void TearDown() override;
 };
 
 #ifdef WITH_OPENGL_BACKEND
@@ -37,8 +42,9 @@ class GPUOpenGLTest : public GPUTest {
  public:
   static void SetUpTestSuite()
   {
-    GPUTest::SetUpTestSuite(
-        GHOST_kDrawingContextTypeOpenGL, GPU_BACKEND_OPENGL, G_DEBUG_GPU | G_DEBUG_GPU_RENDERDOC);
+    GPUTest::SetUpTestSuite(GHOST_kDrawingContextTypeOpenGL,
+                            GPU_BACKEND_OPENGL,
+                            G_DEBUG_GPU | G_DEBUG_GPU_COMPILE_SHADERS | G_DEBUG_GPU_RENDERDOC);
   }
   static void TearDownTestSuite()
   {
@@ -52,7 +58,8 @@ class GPUOpenGLWorkaroundsTest : public GPUTest {
   {
     GPUTest::SetUpTestSuite(GHOST_kDrawingContextTypeOpenGL,
                             GPU_BACKEND_OPENGL,
-                            G_DEBUG_GPU | G_DEBUG_GPU_FORCE_WORKAROUNDS);
+                            G_DEBUG_GPU | G_DEBUG_GPU_COMPILE_SHADERS | G_DEBUG_GPU_RENDERDOC |
+                                G_DEBUG_GPU_FORCE_WORKAROUNDS);
   }
   static void TearDownTestSuite()
   {
@@ -116,8 +123,9 @@ class GPUVulkanTest : public GPUTest {
  public:
   static void SetUpTestSuite()
   {
-    GPUTest::SetUpTestSuite(
-        GHOST_kDrawingContextTypeVulkan, GPU_BACKEND_VULKAN, G_DEBUG_GPU | G_DEBUG_GPU_RENDERDOC);
+    GPUTest::SetUpTestSuite(GHOST_kDrawingContextTypeVulkan,
+                            GPU_BACKEND_VULKAN,
+                            G_DEBUG_GPU | G_DEBUG_GPU_SHADER_DEBUG_INFO | G_DEBUG_GPU_RENDERDOC);
   }
   static void TearDownTestSuite()
   {
@@ -131,7 +139,8 @@ class GPUVulkanWorkaroundsTest : public GPUTest {
   {
     GPUTest::SetUpTestSuite(GHOST_kDrawingContextTypeVulkan,
                             GPU_BACKEND_VULKAN,
-                            G_DEBUG_GPU | G_DEBUG_GPU_RENDERDOC | G_DEBUG_GPU_FORCE_WORKAROUNDS);
+                            G_DEBUG_GPU | G_DEBUG_GPU_SHADER_DEBUG_INFO | G_DEBUG_GPU_RENDERDOC |
+                                G_DEBUG_GPU_FORCE_WORKAROUNDS);
   }
   static void TearDownTestSuite()
   {
@@ -155,5 +164,13 @@ class GPUVulkanWorkaroundsTest : public GPUTest {
   GPU_OPENGL_TEST(test_name) \
   GPU_METAL_TEST(test_name) \
   GPU_VULKAN_TEST(test_name)
+
+#define BLOCK_GPU_TEST_ON(device_type, os_type, driver_type, backend_type) \
+  if (!blender::tests::should_ignore_blocklist(device_type == GPU_DEVICE_ANY) && \
+      GPU_type_matches_ex(device_type, os_type, driver_type, backend_type)) \
+  { \
+    GTEST_SKIP(); \
+    return; \
+  }
 
 }  // namespace blender::gpu

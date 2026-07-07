@@ -19,8 +19,8 @@ extern PyTypeObject ReadSteerableViewMapPixelF0D_Type;
 
 /*---------------------------Python BPy_ReadSteerableViewMapPixelF0D structure
  * definition----------*/
-typedef struct {
+struct BPy_ReadSteerableViewMapPixelF0D {
   BPy_UnaryFunction0DFloat py_uf0D_float;
-} BPy_ReadSteerableViewMapPixelF0D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

@@ -37,17 +37,6 @@ if(WITH_OPENGL_BACKEND)
   add_definitions(-DWITH_OPENGL_BACKEND)
 endif()
 
-if(WITH_GHOST_WAYLAND_LIBDECOR)
-  list(APPEND INC_SYS
-    ${libdecor_INCLUDE_DIRS}
-  )
-  list(APPEND SRC
-    intern/wayland_dynload_libdecor.c
-
-    extern/wayland_dynload_libdecor.h
-  )
-endif()
-
 set(LIB
 )
 

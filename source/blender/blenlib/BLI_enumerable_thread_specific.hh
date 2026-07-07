@@ -104,7 +104,7 @@ template<typename T> class EnumerableThreadSpecific : NonCopyable, NonMovable {
     const int thread_id = enumerable_thread_specific_utils::thread_id;
     std::lock_guard lock{mutex_};
     return values_.lookup_or_add_cb(thread_id, [&]() {
-      T *value = (T *)::operator new(sizeof(T));
+      T *value = static_cast<T *>(::operator new(sizeof(T)));
       initializer_(value);
       owned_values_.append(std::unique_ptr<T>{value});
       return std::reference_wrapper<T>{*value};

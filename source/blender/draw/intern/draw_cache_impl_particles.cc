@@ -58,18 +58,18 @@ static void particle_batch_cache_clear(ParticleSystem *psys);
 
 struct ParticleHairFinalCache {
   /* Output of the subdivision stage: vertex buff sized to subdiv level. */
-  blender::gpu::VertBuf *proc_buf;
+  gpu::VertBuf *proc_buf;
 
   /* Just contains a huge index buffer used to draw the final hair. */
-  blender::gpu::Batch *proc_hairs[MAX_THICKRES];
+  gpu::Batch *proc_hairs[MAX_THICKRES];
 
   int strands_res; /* points per hair, at least 2 */
 };
 
 struct ParticleHairCache {
-  blender::gpu::VertBuf *pos;
-  blender::gpu::IndexBuf *indices;
-  blender::gpu::Batch *hairs;
+  gpu::VertBuf *pos;
+  gpu::IndexBuf *indices;
+  gpu::Batch *hairs;
   int strands_len;
   int elems_len;
   int point_len;
@@ -144,7 +144,7 @@ static const GPUVertFormat *edit_points_vert_format_get(uint *r_pos_id, uint *r_
 
 static bool particle_batch_cache_valid(ParticleSystem *psys)
 {
-  ParticleBatchCache *cache = static_cast<ParticleBatchCache *>(psys->batch_cache);
+  ParticleBatchCache *cache = psys->batch_cache;
 
   if (cache == nullptr) {
     return false;
@@ -161,7 +161,7 @@ static bool particle_batch_cache_valid(ParticleSystem *psys)
 
 static void particle_batch_cache_init(ParticleSystem *psys)
 {
-  ParticleBatchCache *cache = static_cast<ParticleBatchCache *>(psys->batch_cache);
+  ParticleBatchCache *cache = psys->batch_cache;
 
   if (!cache) {
     cache = MEM_new<ParticleBatchCache>(__func__);
@@ -181,12 +181,12 @@ static ParticleBatchCache *particle_batch_cache_get(ParticleSystem *psys)
     particle_batch_cache_clear(psys);
     particle_batch_cache_init(psys);
   }
-  return static_cast<ParticleBatchCache *>(psys->batch_cache);
+  return psys->batch_cache;
 }
 
 void DRW_particle_batch_cache_dirty_tag(ParticleSystem *psys, int mode)
 {
-  ParticleBatchCache *cache = static_cast<ParticleBatchCache *>(psys->batch_cache);
+  ParticleBatchCache *cache = psys->batch_cache;
   if (cache == nullptr) {
     return;
   }
@@ -222,7 +222,7 @@ static void particle_batch_cache_clear_hair(ParticleHairCache *hair_cache)
 
 static void particle_batch_cache_clear(ParticleSystem *psys)
 {
-  ParticleBatchCache *cache = static_cast<ParticleBatchCache *>(psys->batch_cache);
+  ParticleBatchCache *cache = psys->batch_cache;
   if (!cache) {
     return;
   }
@@ -243,7 +243,7 @@ static void particle_batch_cache_clear(ParticleSystem *psys)
 void DRW_particle_batch_cache_free(ParticleSystem *psys)
 {
   particle_batch_cache_clear(psys);
-  ParticleBatchCache *batch_cache = static_cast<ParticleBatchCache *>(psys->batch_cache);
+  ParticleBatchCache *batch_cache = psys->batch_cache;
   MEM_delete(batch_cache);
   psys->batch_cache = nullptr;
 }
@@ -511,11 +511,11 @@ static void particle_calculate_uvs(ParticleSystem *psys,
       *r_uv = r_parent_uvs[parent_index];
     }
     else {
-      *r_uv = MEM_calloc_arrayN<float[2]>(num_uv_layers, "Particle UVs");
+      *r_uv = MEM_new_array_zeroed<float[2]>(num_uv_layers, "Particle UVs");
     }
   }
   else {
-    *r_uv = MEM_calloc_arrayN<float[2]>(num_uv_layers, "Particle UVs");
+    *r_uv = MEM_new_array_zeroed<float[2]>(num_uv_layers, "Particle UVs");
   }
   if (child_index == -1) {
     /* Calculate UVs for parent particles. */
@@ -554,11 +554,11 @@ static void particle_calculate_mcol(ParticleSystem *psys,
       *r_mcol = r_parent_mcol[parent_index];
     }
     else {
-      *r_mcol = MEM_calloc_arrayN<MCol>(num_col_layers, "Particle MCol");
+      *r_mcol = MEM_new_array_zeroed<MCol>(num_col_layers, "Particle MCol");
     }
   }
   else {
-    *r_mcol = MEM_calloc_arrayN<MCol>(num_col_layers, "Particle MCol");
+    *r_mcol = MEM_new_array_zeroed<MCol>(num_col_layers, "Particle MCol");
   }
   if (child_index == -1) {
     /* Calculate MCols for parent particles. */
@@ -607,12 +607,10 @@ static int particle_batch_cache_fill_segments(ParticleSystem *psys,
   const bool is_child = (particle_source == PARTICLE_SOURCE_CHILDREN);
   if (is_simple && *r_parent_uvs == nullptr) {
     /* TODO(sergey): For edit mode it should be edit->totcached. */
-    *r_parent_uvs = static_cast<float(**)[2]>(
-        MEM_callocN(sizeof(*r_parent_uvs) * psys->totpart, "Parent particle UVs"));
+    *r_parent_uvs = MEM_new_array_zeroed<float (*)[2]>(psys->totpart, "Parent particle UVs");
   }
   if (is_simple && *r_parent_mcol == nullptr) {
-    *r_parent_mcol = static_cast<MCol **>(
-        MEM_callocN(sizeof(*r_parent_mcol) * psys->totpart, "Parent particle MCol"));
+    *r_parent_mcol = MEM_new_array_zeroed<MCol *>(psys->totpart, "Parent particle MCol");
   }
   int curr_point = start_index;
   for (int i = 0; i < num_path_keys; i++) {
@@ -621,7 +619,7 @@ static int particle_batch_cache_fill_segments(ParticleSystem *psys,
       continue;
     }
     float tangent[3];
-    float(*uv)[2] = nullptr;
+    float (*uv)[2] = nullptr;
     MCol *mcol = nullptr;
     particle_calculate_mcol(psys,
                             psmd,
@@ -695,8 +693,8 @@ static int particle_batch_cache_fill_segments(ParticleSystem *psys,
         GPU_vertbuf_attr_set(hair_cache->pos, col_id[k], curr_point, scol);
       }
       if (!is_simple) {
-        MEM_freeN(uv);
-        MEM_freeN(mcol);
+        MEM_delete(uv);
+        MEM_delete(mcol);
       }
     }
     /* Finish the segment and add restart primitive. */
@@ -740,7 +738,7 @@ static int particle_batch_cache_fill_segments_edit(
       continue;
     }
     for (int j = 0; j <= path->segments; j++) {
-      EditStrandData *seg_data = (EditStrandData *)GPU_vertbuf_raw_step(attr_step);
+      EditStrandData *seg_data = static_cast<EditStrandData *>(GPU_vertbuf_raw_step(attr_step));
       copy_v3_v3(seg_data->pos, path[j].co);
       float strand_t = float(j) / path->segments;
       if (particle) {
@@ -771,7 +769,7 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
   }
 
   int curr_point = 0;
-  ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
+  ParticleSystemModifierData *psmd = reinterpret_cast<ParticleSystemModifierData *>(md);
 
   GPU_VERTBUF_DISCARD_SAFE(hair_cache->pos);
   GPU_INDEXBUF_DISCARD_SAFE(hair_cache->indices);
@@ -780,65 +778,58 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
   HairAttributeID attr_id;
   uint *uv_id = nullptr;
   uint *col_id = nullptr;
-  int num_uv_layers = 0;
+  Vector<StringRef> color_attribute_names;
   int num_col_layers = 0;
-  int active_uv = 0;
-  int active_col = 0;
   const MTFace **mtfaces = nullptr;
   const MCol **mcols = nullptr;
-  float(**parent_uvs)[2] = nullptr;
+  float (**parent_uvs)[2] = nullptr;
   MCol **parent_mcol = nullptr;
 
+  VectorSet<StringRefNull> uv_map_names;
   if (psmd != nullptr) {
-    if (CustomData_has_layer(&psmd->mesh_final->corner_data, CD_PROP_FLOAT2)) {
-      num_uv_layers = CustomData_number_of_layers(&psmd->mesh_final->corner_data, CD_PROP_FLOAT2);
-      active_uv = CustomData_get_active_layer(&psmd->mesh_final->corner_data, CD_PROP_FLOAT2);
-    }
-    if (CustomData_has_layer(&psmd->mesh_final->corner_data, CD_PROP_BYTE_COLOR)) {
-      num_col_layers = CustomData_number_of_layers(&psmd->mesh_final->corner_data,
-                                                   CD_PROP_BYTE_COLOR);
-      if (psmd->mesh_final->active_color_attribute != nullptr) {
-        active_col = CustomData_get_named_layer(&psmd->mesh_final->corner_data,
-                                                CD_PROP_BYTE_COLOR,
-                                                psmd->mesh_final->active_color_attribute);
+    psmd->mesh_final->uv_map_names();
+    psmd->mesh_final->attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
+      if (iter.domain == bke::AttrDomain::Corner && iter.data_type == bke::AttrType::ColorByte) {
+        color_attribute_names.append(iter.name);
       }
-    }
+    });
+    num_col_layers = color_attribute_names.size();
   }
+  int num_uv_layers = uv_map_names.size();
 
   attr_id.pos = GPU_vertformat_attr_add(&format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
   attr_id.tan = GPU_vertformat_attr_add(&format, "nor", gpu::VertAttrType::SFLOAT_32_32_32);
   attr_id.ind = GPU_vertformat_attr_add(&format, "ind", gpu::VertAttrType::SINT_32);
 
   if (psmd) {
-    uv_id = MEM_malloc_arrayN<uint>(num_uv_layers, "UV attr format");
-    col_id = MEM_malloc_arrayN<uint>(num_col_layers, "Col attr format");
+    const StringRef active_uv = psmd->mesh_final->default_uv_map_name();
+    const char *active_col = psmd->mesh_final->active_color_attribute;
+    uv_id = MEM_new_array_uninitialized<uint>(num_uv_layers, "UV attr format");
+    col_id = MEM_new_array_uninitialized<uint>(color_attribute_names.size(), "Col attr format");
 
     for (int i = 0; i < num_uv_layers; i++) {
 
       char uuid[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-      const char *name = CustomData_get_layer_name(
-          &psmd->mesh_final->corner_data, CD_PROP_FLOAT2, i);
+      const StringRef name = uv_map_names[i];
       GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
       SNPRINTF_UTF8(uuid, "a%s", attr_safe_name);
-      uv_id[i] = GPU_vertformat_attr_add(&format, uuid, blender::gpu::VertAttrType::SFLOAT_32_32);
+      uv_id[i] = GPU_vertformat_attr_add(&format, uuid, gpu::VertAttrType::SFLOAT_32_32);
 
-      if (i == active_uv) {
+      if (name == active_uv) {
         GPU_vertformat_alias_add(&format, "a");
       }
     }
 
     for (int i = 0; i < num_col_layers; i++) {
+      const StringRef name = color_attribute_names[i];
       char uuid[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-      const char *name = CustomData_get_layer_name(
-          &psmd->mesh_final->corner_data, CD_PROP_BYTE_COLOR, i);
       GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
       SNPRINTF_UTF8(uuid, "a%s", attr_safe_name);
-      col_id[i] = GPU_vertformat_attr_add(
-          &format, uuid, blender::gpu::VertAttrType::UNORM_16_16_16_16);
+      col_id[i] = GPU_vertformat_attr_add(&format, uuid, gpu::VertAttrType::UNORM_16_16_16_16);
 
-      if (i == active_col) {
+      if (name == active_col) {
         GPU_vertformat_alias_add(&format, "c");
       }
     }
@@ -853,19 +844,17 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
   if (num_uv_layers || num_col_layers) {
     BKE_mesh_tessface_ensure(psmd->mesh_final);
     if (num_uv_layers) {
-      mtfaces = static_cast<const MTFace **>(
-          MEM_mallocN(sizeof(*mtfaces) * num_uv_layers, "Faces UV layers"));
+      mtfaces = MEM_new_array_uninitialized<const MTFace *>(num_uv_layers, "Faces UV layers");
       for (int i = 0; i < num_uv_layers; i++) {
-        mtfaces[i] = (const MTFace *)CustomData_get_layer_n(
-            &psmd->mesh_final->fdata_legacy, CD_MTFACE, i);
+        mtfaces[i] = static_cast<const MTFace *>(
+            CustomData_get_layer_n(&psmd->mesh_final->fdata_legacy, CD_MTFACE, i));
       }
     }
     if (num_col_layers) {
-      mcols = static_cast<const MCol **>(
-          MEM_mallocN(sizeof(*mcols) * num_col_layers, "Color layers"));
+      mcols = MEM_new_array_uninitialized<const MCol *>(num_col_layers, "Color layers");
       for (int i = 0; i < num_col_layers; i++) {
-        mcols[i] = (const MCol *)CustomData_get_layer_n(
-            &psmd->mesh_final->fdata_legacy, CD_MCOL, i);
+        mcols[i] = static_cast<const MCol *>(
+            CustomData_get_layer_n(&psmd->mesh_final->fdata_legacy, CD_MCOL, i));
       }
     }
   }
@@ -939,24 +928,24 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
   if (parent_uvs != nullptr) {
     /* TODO(sergey): For edit mode it should be edit->totcached. */
     for (int i = 0; i < psys->totpart; i++) {
-      MEM_SAFE_FREE(parent_uvs[i]);
+      MEM_SAFE_DELETE(parent_uvs[i]);
     }
-    MEM_freeN(parent_uvs);
+    MEM_delete(parent_uvs);
   }
   if (parent_mcol != nullptr) {
     for (int i = 0; i < psys->totpart; i++) {
-      MEM_SAFE_FREE(parent_mcol[i]);
+      MEM_SAFE_DELETE(parent_mcol[i]);
     }
-    MEM_freeN(parent_mcol);
+    MEM_delete(parent_mcol);
   }
   if (num_uv_layers) {
-    MEM_freeN(mtfaces);
+    MEM_delete(mtfaces);
   }
   if (num_col_layers) {
-    MEM_freeN(mcols);
+    MEM_delete(mcols);
   }
   if (psmd != nullptr) {
-    MEM_freeN(uv_id);
+    MEM_delete(uv_id);
   }
   hair_cache->indices = GPU_indexbuf_build(&elb);
 }
@@ -1384,7 +1373,7 @@ template<typename InputT, typename OutputT, eCustomDataType data_type>
 static gpu::VertBufPtr interpolate_face_corner_attribute_to_curve(ParticleDrawSource &src,
                                                                   const StringRef name)
 {
-  ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)src.md;
+  ParticleSystemModifierData *psmd = reinterpret_cast<ParticleSystemModifierData *>(src.md);
   Mesh &mesh = *psmd->mesh_final;
 
   /* TODO(fclem): Use normalized integer format. */
@@ -1493,7 +1482,7 @@ void CurvesEvalCache::ensure_attributes(CurvesModule &module,
                                         ParticleDrawSource &src,
                                         const GPUMaterial *gpu_material)
 {
-  ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)src.md;
+  ParticleSystemModifierData *psmd = reinterpret_cast<ParticleSystemModifierData *>(src.md);
   if (psmd == nullptr || psmd->mesh_final == nullptr || src.curves_num() == 0) {
     return;
   }
@@ -1502,9 +1491,9 @@ void CurvesEvalCache::ensure_attributes(CurvesModule &module,
 
   if (gpu_material) {
     VectorSet<std::string> attrs_needed;
-    ListBase gpu_attrs = GPU_material_attributes(gpu_material);
-    LISTBASE_FOREACH (GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
-      StringRef name = gpu_attr->name;
+    ListBaseT<GPUMaterialAttribute> gpu_attrs = GPU_material_attributes(gpu_material);
+    for (GPUMaterialAttribute &gpu_attr : gpu_attrs) {
+      StringRef name = gpu_attr.name;
       if (name.is_empty()) {
         if (std::optional<StringRef> uv_name = get_first_uv_name(attributes)) {
           drw_attributes_add_request(&attrs_needed, *uv_name);
@@ -1614,7 +1603,7 @@ void CurvesEvalCache::ensure_positions(CurvesModule &module, ParticleDrawSource 
 
   this->evaluated_pos_rad_buf = gpu::VertBuf::device_only<float4>(src.evaluated_points_num());
 
-  float4x4 transform = src.object->world_to_object();
+  float4x4 transform = float4x4(src.psys->imat);
 
   module.evaluate_positions(true,
                             false,

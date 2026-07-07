@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 struct Object;
 struct bContext;
 
@@ -63,3 +65,5 @@ enum {
   /** Calculated when #TM_CALC_NORMALS is set, avoid nonzero check. */
   TX_VERT_USE_NORMAL = (1 << 2),
 };
+
+}  // namespace blender

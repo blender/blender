@@ -90,8 +90,6 @@ LightProbeRay bxdf_lightprobe_ray(ClosureUndetermined cl, float3 P, float3 V, fl
   return ray;
 }
 
-#ifdef EEVEE_UTILITY_TX
-
 ClosureLight closure_light_new_ex(ClosureUndetermined cl,
                                   float3 V,
                                   float thickness,
@@ -149,5 +147,3 @@ ClosureLight closure_light_new(ClosureUndetermined cl, float3 V)
 {
   return closure_light_new_ex(cl, V, 0.0f, false);
 }
-
-#endif

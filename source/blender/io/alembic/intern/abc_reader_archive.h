@@ -13,9 +13,11 @@
 #include <fstream>
 #include <vector>
 
+namespace blender {
+
 struct Main;
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 /**
  * Wrappers around input and output archives. The goal is to be able to use
@@ -46,4 +48,5 @@ class ArchiveReader {
   bool is_blender_archive_version_prior_44();
 };
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

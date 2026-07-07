@@ -26,23 +26,23 @@
 #include "BKE_attribute_storage.hh"
 #include "BKE_curves.h"
 
+namespace blender {
+
 struct BlendDataReader;
 struct BlendWriter;
 struct MDeformVert;
-namespace blender::bke {
+namespace bke {
 class AttributeAccessor;
 class MutableAttributeAccessor;
 enum class AttrDomain : int8_t;
 struct AttributeAccessorFunctions;
-}  // namespace blender::bke
-namespace blender::bke::bake {
+}  // namespace bke
+namespace bke::bake {
 struct BakeMaterialsList;
 }
-namespace blender {
 class GVArray;
-}
 
-namespace blender::bke {
+namespace bke {
 
 namespace curves::nurbs {
 
@@ -59,7 +59,7 @@ struct BasisCache {
   Vector<int> start_indices;
 
   /**
-   * The result of #check_valid_num_and_order, to avoid retrieving its inputs later on.
+   * The result of #check_valid_eval_params, to avoid retrieving its inputs later on.
    * If this is true, the data above will be invalid, and original data should be copied
    * to the evaluated result.
    */
@@ -152,7 +152,7 @@ class CurvesGeometryRuntime {
  * directly from the struct rather than storing a pointer to avoid more complicated ownership
  * handling.
  */
-class CurvesGeometry : public ::CurvesGeometry {
+class CurvesGeometry : public blender::CurvesGeometry {
  public:
   CurvesGeometry();
   /**
@@ -463,7 +463,15 @@ class CurvesGeometry : public ::CurvesGeometry {
   void translate(const float3 &translation);
   void transform(const float4x4 &matrix);
 
+  /**
+   * Calculate handle positions for `Auto`, `Vector` handle types.
+   */
   void calculate_bezier_auto_handles();
+  /**
+   * Calculate handle positions for `Align` handle types. Ensure that both handles position fall on
+   * the same line, both handle will be moved unless the handles are already aligned.
+   */
+  void calculate_bezier_aligned_handles();
 
   void remove_points(const IndexMask &points_to_delete, const AttributeFilter &attribute_filter);
   void remove_curves(const IndexMask &curves_to_delete, const AttributeFilter &attribute_filter);
@@ -511,11 +519,11 @@ class CurvesGeometry : public ::CurvesGeometry {
    * This function needs to be called before `blend_write` and before the `CurvesGeometry` struct
    * is written because it can mutate the `CustomData` and `AttributeStorage` structs.
    */
-  void blend_write_prepare(BlendWriteData &write_data);
+  void blend_write_prepare(BlendWriteData &write_data, bool use_5_0_compatibility);
   void blend_write(BlendWriter &writer, ID &id, const BlendWriteData &write_data);
 };
 
-static_assert(sizeof(blender::bke::CurvesGeometry) == sizeof(::CurvesGeometry));
+static_assert(sizeof(bke::CurvesGeometry) == sizeof(CurvesGeometry));
 
 /**
  * Used to propagate deformation data through modifier evaluation so that sculpt tools can work on
@@ -732,11 +740,17 @@ void calculate_auto_handles(bool cyclic,
                             MutableSpan<float3> positions_left,
                             MutableSpan<float3> positions_right);
 
+void calculate_single_aligned_handles(const IndexMask &selection,
+                                      Span<float3> positions,
+                                      Span<float3> align_by,
+                                      MutableSpan<float3> align);
+
 void calculate_aligned_handles(const IndexMask &selection,
                                Span<float3> positions,
-                               Span<float3> align_by,
-                               MutableSpan<float3> align);
-
+                               Span<float3> handles_left,
+                               Span<float3> handles_right,
+                               MutableSpan<float3> align_handles_left,
+                               MutableSpan<float3> align_handles_right);
 /**
  * Change the handles of a single control point, aligning any aligned (#BEZIER_HANDLE_ALIGN)
  * handles on the other side of the control point.
@@ -850,7 +864,8 @@ namespace nurbs {
 /**
  * Checks the conditions that a NURBS curve needs to evaluate.
  */
-bool check_valid_num_and_order(int points_num, int8_t order, bool cyclic, KnotsMode knots_mode);
+bool check_valid_eval_params(
+    int points_num, int8_t order, bool cyclic, KnotsMode knots_mode, int resolution);
 
 /**
  * Calculate the standard evaluated size for a NURBS curve, using the standard that
@@ -878,7 +893,7 @@ int knots_num(int points_num, int8_t order, bool cyclic);
  * Calculate the total number of control points for a NURBS curve including virtual/repeated points
  * for a cyclic/closed curve.
  */
-int control_points_num(int num_control_points, int8_t order, bool cyclic);
+int control_points_num(int points_num, int8_t order, bool cyclic);
 
 /**
  * Depending on KnotsMode calculates knots or copies custom knots into given `MutableSpan`.
@@ -924,6 +939,7 @@ void calculate_basis_cache(int points_num,
                            int8_t order,
                            int resolution,
                            bool cyclic,
+                           KnotsMode knots_mode,
                            Span<float> knots,
                            BasisCache &basis_cache);
 
@@ -1164,13 +1180,15 @@ struct CurvesSurfaceTransforms {
   CurvesSurfaceTransforms(const Object &curves_ob, const Object *surface_ob);
 };
 
-}  // namespace blender::bke
+}  // namespace bke
 
-inline blender::bke::CurvesGeometry &CurvesGeometry::wrap()
+inline bke::CurvesGeometry &CurvesGeometry::wrap()
 {
-  return *reinterpret_cast<blender::bke::CurvesGeometry *>(this);
+  return *reinterpret_cast<bke::CurvesGeometry *>(this);
 }
-inline const blender::bke::CurvesGeometry &CurvesGeometry::wrap() const
+inline const bke::CurvesGeometry &CurvesGeometry::wrap() const
 {
-  return *reinterpret_cast<const blender::bke::CurvesGeometry *>(this);
+  return *reinterpret_cast<const bke::CurvesGeometry *>(this);
 }
+
+}  // namespace blender

@@ -9,6 +9,10 @@
 #  line 10
 #endif
 
+#include "infos/gpu_shader_test_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(gpu_shader_test)
+
 #include "eevee_gbuffer_write_lib.glsl"
 #include "gpu_shader_test_lib.glsl"
 

@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/gpencil_info.hh"
+#include "infos/gpencil_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(gpencil_layer_blend)
 
@@ -10,6 +10,8 @@ FRAGMENT_SHADER_CREATE_INFO(gpencil_layer_blend)
 
 void main()
 {
+  float2 screen_uv = gl_FragCoord.xy / float2(textureSize(color_buf, 0).xy);
+
   float4 color;
 
   /* Remember, this is associated alpha (aka. pre-multiply). */

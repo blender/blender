@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "infos/gpu_shader_print_info.hh"
+#include "infos/gpu_shader_print_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(gpu_print)
 
@@ -14,6 +14,11 @@ uint print_data(uint offset, uint data)
     gpu_print_buf[offset] = data;
   }
   return offset + 1u;
+}
+
+uint print_data(uint offset, string_t data)
+{
+  return print_data(offset, as_uint(data));
 }
 
 uint print_data(uint offset, int data)
@@ -26,8 +31,8 @@ uint print_data(uint offset, float data)
   return print_data(offset, floatBitsToUint(data));
 }
 
-uint print_header(const uint data_len, uint format_hash)
+uint print_start(const uint data_len)
 {
-  uint offset = atomicAdd(gpu_print_buf[0], 1u + data_len) + 1u;
-  return print_data(offset, format_hash);
+  /* Add one to skip the length stored in the first element of the buffer. */
+  return atomicAdd(gpu_print_buf[0], data_len) + 1u;
 }

@@ -10,20 +10,23 @@
  */
 
 #include "BLI_filereader.h"
-#include "BLI_listbase.h"
+#include "BLI_implicit_sharing.hh"
 #include "BLI_map.hh"
 
+#include "DNA_listBase.h"
+
 namespace blender {
-class ImplicitSharingInfo;
-}
+
 struct Main;
 struct Scene;
+struct WriteData;
+struct WriteDataStableAddressIDs;
 
 struct MemFileSharedStorage {
   /**
-   * Maps the data pointer to the sharing info that it is owned by.
+   * Maps the address id to the shared data and corresponding sharing info..
    */
-  blender::Map<const void *, const blender::ImplicitSharingInfo *> map;
+  Map<uint64_t, ImplicitSharingInfoAndData> sharing_info_by_address_id;
 
   ~MemFileSharedStorage();
 };
@@ -45,7 +48,7 @@ struct MemFileChunk {
 };
 
 struct MemFile {
-  ListBase chunks;
+  ListBaseT<MemFileChunk> chunks;
   size_t size;
   /**
    * Some data is not serialized into a new buffer because the undo-step can take ownership of it
@@ -62,7 +65,7 @@ struct MemFileWriteData {
   MemFileChunk *reference_current_chunk;
 
   /** Maps an ID session uid to its first reference MemFileChunk, if existing. */
-  blender::Map<uint, MemFileChunk *> id_session_uid_mapping;
+  Map<uint, MemFileChunk *> id_session_uid_mapping;
 };
 
 struct MemFileUndoData {
@@ -83,10 +86,11 @@ struct UndoReader {
 
 /* Actually only used `writefile.cc`. */
 
-void BLO_memfile_write_init(MemFileWriteData *mem_data,
+void BLO_memfile_write_init(WriteData *wd,
+                            MemFileWriteData *mem_data,
                             MemFile *written_memfile,
                             MemFile *reference_memfile);
-void BLO_memfile_write_finalize(MemFileWriteData *mem_data);
+void BLO_memfile_write_finalize(WriteData *wd, MemFileWriteData *mem_data);
 
 void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, size_t size);
 
@@ -113,3 +117,5 @@ void BLO_memfile_clear_future(MemFile *memfile);
 Main *BLO_memfile_main_get(MemFile *memfile, Main *bmain, Scene **r_scene);
 
 FileReader *BLO_memfile_new_filereader(MemFile *memfile, int undo_direction);
+
+}  // namespace blender

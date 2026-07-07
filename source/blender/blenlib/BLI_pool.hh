@@ -5,7 +5,7 @@
 /** \file
  * \ingroup bli
  *
- * A `blender::Pool` allows fast allocation and deallocation of many elements of the same type.
+ * A `Pool` allows fast allocation and deallocation of many elements of the same type.
  *
  * It is compatible with types that are not movable.
  *

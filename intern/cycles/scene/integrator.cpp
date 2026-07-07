@@ -15,6 +15,7 @@
 #include "scene/shader.h"
 #include "scene/stats.h"
 #include "scene/tabulated_sobol.h"
+#include "scene/volume.h"
 
 #include "kernel/types.h"
 
@@ -57,7 +58,9 @@ NODE_DEFINE(Integrator)
   SOCKET_FLOAT(ao_distance, "AO Distance", FLT_MAX);
   SOCKET_FLOAT(ao_additive_factor, "AO Additive Factor", 0.0f);
 
-  SOCKET_BOOLEAN(volume_unbiased, "Unbiased", false);
+  SOCKET_BOOLEAN(volume_ray_marching, "Biased", false);
+  SOCKET_INT(volume_max_steps, "Volume Max Steps", 1024);
+  SOCKET_FLOAT(volume_step_rate, "Volume Step Rate", 1.0f);
 
   static NodeEnum guiding_distribution_enum;
   guiding_distribution_enum.insert("PARALLAX_AWARE_VMM", GUIDING_TYPE_PARALLAX_AWARE_VMM);
@@ -217,6 +220,9 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
    * to improve performance a bit. */
   kintegrator->transparent_shadows = false;
   for (Shader *shader : scene->shaders) {
+    if (shader->reference_count() == 0) {
+      continue;
+    }
     /* keep this in sync with SD_HAS_TRANSPARENT_SHADOW in shader.cpp */
     if ((shader->has_surface_transparent && shader->get_use_transparent_shadow()) ||
         shader->has_volume)
@@ -226,7 +232,8 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
     }
   }
 
-  kintegrator->volume_unbiased = volume_unbiased;
+  kintegrator->volume_ray_marching = volume_ray_marching;
+  kintegrator->volume_max_steps = volume_max_steps;
 
   kintegrator->caustics_reflective = caustics_reflective;
   kintegrator->caustics_refractive = caustics_refractive;
@@ -351,9 +358,20 @@ void Integrator::device_free(Device * /*unused*/, DeviceScene *dscene, bool forc
   dscene->sample_pattern_lut.free_if_need_realloc(force_free);
 }
 
+bool Integrator::is_modified() const
+{
+  return Node::is_modified() || shadow_catcher_needs_recalc_;
+}
+
+void Integrator::clear_modified()
+{
+  Node::clear_modified();
+  shadow_catcher_needs_recalc_ = false;
+}
+
 void Integrator::tag_update(Scene *scene, const uint32_t flag)
 {
-  if (flag & UPDATE_ALL) {
+  if (flag == UPDATE_ALL) {
     tag_modified();
   }
 
@@ -363,9 +381,18 @@ void Integrator::tag_update(Scene *scene, const uint32_t flag)
     tag_ao_bounces_modified();
   }
 
+  if (flag & OBJECT_MANAGER) {
+    shadow_catcher_needs_recalc_ = true;
+  }
+
   if (motion_blur_is_modified()) {
     scene->object_manager->tag_update(scene, ObjectManager::MOTION_BLUR_MODIFIED);
     scene->camera->tag_modified();
+  }
+
+  if (volume_ray_marching_is_modified()) {
+    scene->volume_manager->tag_update_algorithm();
+    scene->geometry_manager->tag_update(scene, GeometryManager::VOLUME_MODIFIED);
   }
 }
 

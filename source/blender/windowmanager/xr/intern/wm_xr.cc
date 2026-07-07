@@ -20,7 +20,9 @@
 
 #include "ED_screen.hh"
 
-#include "GHOST_C-api.h"
+#include "GHOST_IXrContext.hh"
+#include "GHOST_Types.hh"
+#include "GHOST_Xr-api.hh"
 
 #include "GPU_context.hh"
 
@@ -29,6 +31,8 @@
 #include "WM_api.hh"
 
 #include "wm_xr_intern.hh"
+
+namespace blender {
 
 struct wmXrErrorHandlerData {
   wmWindowManager *wm;
@@ -55,7 +59,7 @@ static void wm_xr_error_handler(const GHOST_XrError *error)
 
 bool wm_xr_init(wmWindowManager *wm)
 {
-  if (wm->xr.runtime && wm->xr.runtime->context) {
+  if (wm->xr.runtime && wm->xr.runtime->ghost_context) {
     return true;
   }
   static wmXrErrorHandlerData error_customdata;
@@ -65,7 +69,7 @@ bool wm_xr_init(wmWindowManager *wm)
   GHOST_XrErrorHandler(wm_xr_error_handler, &error_customdata);
 
   {
-    blender::Vector<GHOST_TXrGraphicsBinding> gpu_bindings_candidates;
+    Vector<GHOST_TXrGraphicsBinding> gpu_bindings_candidates;
     switch (GPU_backend_get_type()) {
 #ifdef WITH_OPENGL_BACKEND
       case GPU_BACKEND_OPENGL:
@@ -85,6 +89,12 @@ bool wm_xr_init(wmWindowManager *wm)
         break;
 #endif
 
+#ifdef WITH_METAL_BACKEND
+      case GPU_BACKEND_METAL:
+        gpu_bindings_candidates.append(GHOST_kXrGraphicsMetal);
+        break;
+#endif
+
       default:
         break;
     }
@@ -93,8 +103,6 @@ bool wm_xr_init(wmWindowManager *wm)
         /*gpu_binding_candidates*/ gpu_bindings_candidates.data(),
         /*gpu_binding_candidates_count*/ uint32_t(gpu_bindings_candidates.size()),
     };
-    GHOST_XrContextHandle context;
-
     if (G.debug & G_DEBUG_XR) {
       create_info.context_flag |= GHOST_kXrContextDebug;
     }
@@ -107,24 +115,25 @@ bool wm_xr_init(wmWindowManager *wm)
     }
 #endif
 
-    if (!(context = GHOST_XrContextCreate(&create_info))) {
+    GHOST_IXrContext *ghost_context;
+    if (!(ghost_context = GHOST_XrContextCreate(&create_info))) {
       return false;
     }
 
     /* Set up context callbacks. */
-    GHOST_XrGraphicsContextBindFuncs(context,
+    GHOST_XrGraphicsContextBindFuncs(ghost_context,
                                      wm_xr_session_gpu_binding_context_create,
                                      wm_xr_session_gpu_binding_context_destroy);
-    GHOST_XrDrawViewFunc(context, wm_xr_draw_view);
-    GHOST_XrPassthroughEnabledFunc(context, wm_xr_passthrough_enabled);
-    GHOST_XrDisablePassthroughFunc(context, wm_xr_disable_passthrough);
+    GHOST_XrDrawViewFunc(ghost_context, wm_xr_draw_view);
+    GHOST_XrPassthroughEnabledFunc(ghost_context, wm_xr_passthrough_enabled);
+    GHOST_XrDisablePassthroughFunc(ghost_context, wm_xr_disable_passthrough);
 
     if (!wm->xr.runtime) {
       wm->xr.runtime = wm_xr_runtime_data_create();
-      wm->xr.runtime->context = context;
+      wm->xr.runtime->ghost_context = ghost_context;
     }
   }
-  BLI_assert(wm->xr.runtime && wm->xr.runtime->context);
+  BLI_assert(wm->xr.runtime && wm->xr.runtime->ghost_context);
 
   return true;
 }
@@ -141,8 +150,8 @@ void wm_xr_exit(wmWindowManager *wm)
 
 bool wm_xr_events_handle(wmWindowManager *wm)
 {
-  if (wm->xr.runtime && wm->xr.runtime->context) {
-    GHOST_XrEventsHandle(wm->xr.runtime->context);
+  if (wm->xr.runtime && wm->xr.runtime->ghost_context) {
+    GHOST_XrEventsHandle(wm->xr.runtime->ghost_context);
 
     /* Process OpenXR action events. */
     if (WM_xr_session_is_ready(&wm->xr)) {
@@ -163,7 +172,7 @@ bool wm_xr_events_handle(wmWindowManager *wm)
 
 wmXrRuntimeData *wm_xr_runtime_data_create()
 {
-  wmXrRuntimeData *runtime = MEM_callocN<wmXrRuntimeData>(__func__);
+  wmXrRuntimeData *runtime = MEM_new_zeroed<wmXrRuntimeData>(__func__);
   return runtime;
 }
 
@@ -175,24 +184,28 @@ void wm_xr_runtime_data_free(wmXrRuntimeData **runtime)
    * everything that is freed here. */
 
   /* We free all runtime XR data here, so if the context is still alive, destroy it. */
-  if ((*runtime)->context != nullptr) {
-    GHOST_XrContextHandle context = (*runtime)->context;
+  if ((*runtime)->ghost_context != nullptr) {
+    GHOST_IXrContext *ghost_context = (*runtime)->ghost_context;
     /* Prevent recursive #GHOST_XrContextDestroy() call by nulling the context pointer before
      * the first call, see comment above. */
-    (*runtime)->context = nullptr;
+    (*runtime)->ghost_context = nullptr;
 
     if ((*runtime)->area) {
       wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
       wmWindow *win = wm_xr_session_root_window_or_fallback_get(wm, (*runtime));
+
+      WM_event_remove_handlers_by_area(&win->runtime->handlers, (*runtime)->area);
       ED_area_offscreen_free(wm, win, (*runtime)->area);
       (*runtime)->area = nullptr;
     }
     wm_xr_session_data_free(&(*runtime)->session_state);
     WM_xr_actionmaps_clear(*runtime);
 
-    GHOST_XrContextDestroy(context);
+    GHOST_XrContextDestroy(ghost_context);
   }
-  MEM_SAFE_FREE(*runtime);
+  MEM_SAFE_DELETE(*runtime);
 }
 
 /** \} */ /* XR Runtime Data. */
+
+}  // namespace blender

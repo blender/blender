@@ -15,7 +15,7 @@ are supported.
 """
 
 import bpy
-import keyingsets_utils
+import _keyingsets_utils as keyingsets_utils
 from bpy.types import KeyingSetInfo
 
 ###############################
@@ -183,8 +183,8 @@ class BUILTIN_KSI_RotScale(KeyingSetInfo):
 
 # Bendy Bones
 class BUILTIN_KSI_BendyBones(KeyingSetInfo):
-    """Insert a keyframe for each of the BBone shape properties"""
-    bl_label = "BBone Shape"
+    """Insert a keyframe for each of the B-Bone shape properties"""
+    bl_label = "B-Bone Shape"
 
     # poll - use callback for selected bones
     poll = keyingsets_utils.RKS_POLL_selected_bones

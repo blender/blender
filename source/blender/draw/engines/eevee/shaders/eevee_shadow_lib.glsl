@@ -5,7 +5,6 @@
 #pragma once
 
 #include "eevee_shadow_tilemap_lib.glsl"
-#include "gpu_shader_math_matrix_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
 #define EEVEE_SHADOW_LIB
@@ -35,7 +34,7 @@ float shadow_read_depth(SHADOW_ATLAS_TYPE atlas_tx,
   uint2 texel_page = (texel >> tile.lod) & page_mask;
   texel = (uint2(tile.page.xy) << page_shift) | texel_page;
 
-  return uintBitsToFloat(texelFetch(atlas_tx, int3(int2(texel), tile.page.z), 0).r);
+  return uintBitsToFloat(texelFetch(atlas_tx, int3(int2(texel), int(tile.page.z)), 0).r);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -47,7 +46,7 @@ float shadow_punctual_sample_get(SHADOW_ATLAS_TYPE atlas_tx,
                                  LightData light,
                                  float3 P)
 {
-  float3 shadow_position = light_local_data_get(light).shadow_position;
+  float3 shadow_position = light.local().local.shadow_position;
   float3 lP = transform_point_inversed(light.object_to_world, P);
   lP -= shadow_position;
   int face_id = shadow_punctual_face_index_get(lP);

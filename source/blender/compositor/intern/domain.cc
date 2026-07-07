@@ -14,16 +14,31 @@
 
 namespace blender::compositor {
 
-Domain::Domain(const int2 &size) : size(size), transformation(float3x3::identity()) {}
+Domain::Domain(const int2 &size)
+    : data_size(size),
+      display_size(size),
+      data_offset(int2(0)),
+      transformation(float3x3::identity())
+{
+}
 
 Domain::Domain(const int2 &size, const float3x3 &transformation)
-    : size(size), transformation(transformation)
+    : data_size(size), display_size(size), data_offset(int2(0)), transformation(transformation)
 {
 }
 
 void Domain::transform(const float3x3 &input_transformation)
 {
   transformation = input_transformation * transformation;
+}
+
+Domain Domain::transposed() const
+{
+  Domain domain = *this;
+  domain.data_size = int2(this->data_size.y, this->data_size.x);
+  domain.display_size = int2(this->display_size.y, this->display_size.x);
+  domain.data_offset = int2(this->data_offset.y, this->data_offset.x);
+  return domain;
 }
 
 Domain Domain::identity()
@@ -33,12 +48,12 @@ Domain Domain::identity()
 
 bool Domain::is_equal(const Domain &a, const Domain &b, const float epsilon)
 {
-  return a.size == b.size && math::is_equal(a.transformation, b.transformation, epsilon);
+  return a.data_size == b.data_size && math::is_equal(a.transformation, b.transformation, epsilon);
 }
 
 bool operator==(const Domain &a, const Domain &b)
 {
-  return a.size == b.size && a.transformation == b.transformation;
+  return a.data_size == b.data_size && a.transformation == b.transformation;
 }
 
 bool operator!=(const Domain &a, const Domain &b)
@@ -46,30 +61,16 @@ bool operator!=(const Domain &a, const Domain &b)
   return !(a == b);
 }
 
-math::InterpWrapMode map_extension_mode_to_wrap_mode(const ExtensionMode &mode)
+GPUSamplerExtendMode map_extension_mode_to_extend_mode(const Extension &mode)
 {
   switch (mode) {
-    case ExtensionMode::Clip:
-      return math::InterpWrapMode::Border;
-    case ExtensionMode::Repeat:
-      return math::InterpWrapMode::Repeat;
-    case ExtensionMode::Extend:
-      return math::InterpWrapMode::Extend;
-  }
-  BLI_assert_unreachable();
-  return math::InterpWrapMode::Border;
-}
-
-GPUSamplerExtendMode map_extension_mode_to_extend_mode(const ExtensionMode &mode)
-{
-  switch (mode) {
-    case blender::compositor::ExtensionMode::Clip:
+    case compositor::Extension::Clip:
       return GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER;
 
-    case blender::compositor::ExtensionMode::Extend:
+    case compositor::Extension::Extend:
       return GPU_SAMPLER_EXTEND_MODE_EXTEND;
 
-    case blender::compositor::ExtensionMode::Repeat:
+    case compositor::Extension::Repeat:
       return GPU_SAMPLER_EXTEND_MODE_REPEAT;
   }
 

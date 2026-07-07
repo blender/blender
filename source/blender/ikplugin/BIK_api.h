@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 struct Depsgraph;
 struct Object;
 struct Scene;
@@ -29,3 +31,5 @@ void BIK_clear_data(struct bPose *pose);
 void BIK_clear_cache(struct bPose *pose);
 void BIK_update_param(struct bPose *pose);
 void BIK_test_constraint(struct Object *ob, struct bConstraint *cons);
+
+}  // namespace blender

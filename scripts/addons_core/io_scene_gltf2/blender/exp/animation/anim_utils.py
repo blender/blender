@@ -30,12 +30,12 @@ def link_samplers(animation: gltf2_io.Animation, export_settings):
     # TODO: move this to some util module and update gltf2 exporter also
     T = typing.TypeVar('T')
 
-    def __append_unique_and_get_index(l: typing.List[T], item: T):
-        if item in l:
-            return l.index(item)
+    def __append_unique_and_get_index(list_items: typing.List[T], item: T):
+        if item in list_items:
+            return list_items.index(item)
         else:
-            index = len(l)
-            l.append(item)
+            index = len(list_items)
+            list_items.append(item)
             return index
 
     for i, channel in enumerate(animation.channels):
@@ -174,7 +174,7 @@ def merge_tracks_perform(merged_tracks, animations, export_settings):
     for anim in new_animations:
         new_samplers = []
         for s in anim.samplers:
-            if type(s) == int:
+            if type(s) is int:
                 new_samplers.append(anim.samplers[s])
             else:
                 new_samplers.append(s)
@@ -260,6 +260,7 @@ def bake_animation(obj_uuid: str, animation_key: str, export_settings, mode=None
         # We need to bake all bones. Because some bone can have some constraints linking to
         # some other armature bones, for example
 
+        animation = None
         channels, _ = gather_action_armature_sampled(obj_uuid, None, None, animation_key, export_settings)
         if channels:
             animation = gltf2_io.Animation(
@@ -303,7 +304,8 @@ def bake_data_animation(blender_type_data, blender_id, animation_key, slot_ident
             if len(export_settings['KHR_animation_pointer'][blender_type_data][i]['paths']) == 0:
                 continue
 
-            channels = gather_data_sampled_channels(blender_type_data, i, animation_key, slot_identifier, on_type, export_settings)
+            channels = gather_data_sampled_channels(
+                blender_type_data, i, animation_key, slot_identifier, on_type, export_settings)
             if channels is not None:
                 total_channels.extend(channels)
 

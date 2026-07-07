@@ -21,7 +21,6 @@ from bpy.props import (
 )
 
 from bpy.app.translations import (
-    pgettext_tip as tip_,
     pgettext_rpt as rpt_,
     contexts as i18n_contexts,
 )
@@ -298,7 +297,9 @@ class MaterialProperties_MixIn:
             ('BLENDED',
              "Blended",
              "Allows for colored transparency, but incompatible with render passes and ray-tracing. "
-             "Also known as forward rendering.")))
+             "Also known as forward rendering."),
+        ),
+    )
 
     use_backface_culling: BoolProperty(
         name="Backface Culling",
@@ -337,7 +338,7 @@ class MaterialProperties_MixIn:
 
             engine = context.scene.render.engine
             if engine not in COMPATIBLE_ENGINES:
-                body.label(text=tip_("{:s} is not supported").format(engine), icon='ERROR')
+                body.label(text=rpt_("{:s} is not supported").format(engine), icon='ERROR')
 
             body.prop(self, "overwrite_material")
 
@@ -425,15 +426,14 @@ def create_cycles_material(self, context, img_spec, name):
         material = bpy.data.materials.get((name, None))
     if material is None:
         material = bpy.data.materials.new(name=name)
-
-    material.use_nodes = True
+        material.node_tree.nodes.clear()
 
     material.surface_render_method = self.render_method
     material.use_backface_culling = self.use_backface_culling
     material.use_transparency_overlap = self.show_transparent_back
 
     node_tree = material.node_tree
-    out_node = clean_node_tree(node_tree)
+    out_node = node_tree.nodes.new("ShaderNodeOutputMaterial")
 
     tex_image = create_cycles_texnode(self, node_tree, img_spec)
 

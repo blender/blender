@@ -33,15 +33,15 @@ elseif(APPLE)
   endif()
 elseif(UNIX)
   set(ISPC_EXTRA_ARGS_UNIX
-    -DCMAKE_C_COMPILER=${LIBDIR}/llvm/bin/clang
-    -DCMAKE_CXX_COMPILER=${LIBDIR}/llvm/bin/clang++
+    -DCMAKE_C_COMPILER=gcc
+    -DCMAKE_CXX_COMPILER=g++
     -DARM_ENABLED=${BLENDER_PLATFORM_ARM}
     -DFLEX_EXECUTABLE=${LIBDIR}/flex/bin/flex
   )
 endif()
 
 macro(copy_host_tool_apple
-  TOOL_SOURCE 
+  TOOL_SOURCE
   TOOL_DEST)
 
   if(EXISTS ${TOOL_SOURCE})
@@ -54,18 +54,18 @@ endmacro()
 
 if(WITH_APPLE_CROSSPLATFORM)
   # NOTE: Crosscompile currently limited due to missing curses and tinfo libs for iOS.
-  #       These libs are not part of the build process, but instead we opt to statically 
+  #       These libs are not part of the build process, but instead we opt to statically
   #       link and resolve indirectly via other dependencies in the project.
   # TODO: Add curses and tinfo as dependencies for ispc and build locally.
 
   set(LLVM_TOOLS_BINARY_DIR ${CMAKE_DEPS_CROSSCOMPILE_BUILDDIR}/deps_arm64/Release/llvm/bin)
 
   # Copy LLVM tools to build_ios path as lib dir is derived from tool dir and this erroneously links macOS libraries.
-  set(LLVM_CONFIG_EXECUTABLE_PATH_ORIG ${CMAKE_DEPS_CROSSCOMPILE_BUILDDIR}/deps_arm64/Release/llvm/bin/llvm-config)
-  set(CLANG_EXECUTABLE_PATH_ORIG ${CMAKE_DEPS_CROSSCOMPILE_BUILDDIR}/deps_arm64/Release/llvm/bin/clang)
-  set(CLANGPP_EXECUTABLE_PATH_ORIG ${CMAKE_DEPS_CROSSCOMPILE_BUILDDIR}/deps_arm64/Release/llvm/bin/clang++)
-  set(LLVM_DIS_EXECUTABLE_PATH_ORIG ${CMAKE_DEPS_CROSSCOMPILE_BUILDDIR}/deps_arm64/Release/llvm/bin/llvm-dis)
-  set(LLVM_AS_EXECUTABLE_PATH_ORIG ${CMAKE_DEPS_CROSSCOMPILE_BUILDDIR}/deps_arm64/Release/llvm/bin/llvm-as)
+  set(LLVM_CONFIG_EXECUTABLE_PATH_ORIG ${LLVM_TOOLS_BINARY_DIR}/llvm-config)
+  set(CLANG_EXECUTABLE_PATH_ORIG ${LLVM_TOOLS_BINARY_DIR}/clang)
+  set(CLANGPP_EXECUTABLE_PATH_ORIG ${LLVM_TOOLS_BINARY_DIR}/clang++)
+  set(LLVM_DIS_EXECUTABLE_PATH_ORIG ${LLVM_TOOLS_BINARY_DIR}/llvm-dis)
+  set(LLVM_AS_EXECUTABLE_PATH_ORIG ${LLVM_TOOLS_BINARY_DIR}/llvm-as)
 
   set(LLVM_CONFIG_EXECUTABLE_PATH ${LIBDIR}/llvm/bin/llvm-config)
   set(CLANG_EXECUTABLE_PATH ${LIBDIR}/llvm/bin/clang)
@@ -94,6 +94,7 @@ if(WITH_APPLE_CROSSPLATFORM)
     -DISPC_IOS_SDK_PATH=${CMAKE_OSX_SYSROOT}
     # ISPC still needs to have access to MACOSX SDK when cross-compiling
     -DISPC_MACOS_SDK_PATH=${CMAKE_MACOSX_SYSROOT}
+    -DISPC_HOST_SLIM_BINARY=${CMAKE_DEPS_CROSSCOMPILE_BUILDDIR}/deps_arm64/build/ispc/src/external_ispc-build/bin/ispc-slim
 
     -DISPC_NO_DUMPS=On
     -DISPC_INCLUDE_EXAMPLES=Off
@@ -105,10 +106,7 @@ if(WITH_APPLE_CROSSPLATFORM)
 
     # LLVM settings (Auto detect fails)
     -DLLVM_FOUND=YES
-    -DLLVM_VERSION=${LLVM_VERSION}
-    -DLLVM_VERSION_MAJOR=${LLVM_VERSION_MAJOR}
-    -DLLVM_VERSION_MINOR=${LLVM_VERSION_MINOR}
-    -DLLVM_VERSION_NUMBER=${LLVM_VERSION_NUMBER}
+    # -DLLVM_VERSION=${LLVM_VERSION}
     -DLLVM_TARGETS_TO_BUILD=AArch64
 
     # Host Tools (Using freshly built tools for darwin_arm64)
@@ -140,20 +138,19 @@ if(WITH_APPLE_CROSSPLATFORM)
   )
 else()
   set(ISPC_EXTRA_ARGS
-    -DISPC_NO_DUMPS=On
     -DISPC_INCLUDE_EXAMPLES=Off
     -DISPC_INCLUDE_TESTS=Off
     -DISPC_INCLUDE_RT=Off
+    -DISPC_INCLUDE_UTILS=Off
+    -DISPC_LIBRARY=Off
     -DLLVM_CONFIG_EXECUTABLE=${LIBDIR}/llvm/bin/llvm-config
     -DLLVM_DIR=${LIBDIR}/llvm/lib/cmake/llvm/
-    -DLLVM_LIBRARY_DIR=${LIBDIR}/llvm/lib
     -DCLANG_EXECUTABLE=${LIBDIR}/llvm/bin/clang
     -DCLANGPP_EXECUTABLE=${LIBDIR}/llvm/bin/clang++
     -DISPC_INCLUDE_TESTS=Off
-    -DCLANG_LIBRARY_DIR=${LIBDIR}/llvm/lib
-    -DCLANG_INCLUDE_DIRS=${LIBDIR}/llvm/include
     -DPython3_ROOT_DIR=${LIBDIR}/python/
     -DPython3_EXECUTABLE=${PYTHON_BINARY}
+    -DGIT_BINARY=GIT_BINARY-NOTFOUND # Prevent any git checks
     ${ISPC_EXTRA_ARGS_WIN}
     ${ISPC_EXTRA_ARGS_APPLE}
     ${ISPC_EXTRA_ARGS_UNIX}
@@ -171,6 +168,7 @@ ExternalProject_Add(external_ispc
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${ISPC_HASH_TYPE}=${ISPC_HASH}
   PREFIX ${BUILD_DIR}/ispc
+  CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
 
   PATCH_COMMAND ${PATCH_CMD} -p 1 -d
     ${BUILD_DIR}/ispc/src/external_ispc <

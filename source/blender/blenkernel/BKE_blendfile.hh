@@ -9,11 +9,14 @@
 
 #include "BKE_main.hh"
 
+#include "BLI_enum_flags.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
 #include "BLI_utility_mixins.hh"
 
 #include <string>
+
+namespace blender {
 
 struct bContext;
 struct BlendFileData;
@@ -156,7 +159,7 @@ WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepat
                                                              ReportList *reports);
 void BKE_blendfile_workspace_config_data_free(WorkspaceConfigFileData *workspace_config);
 
-namespace blender::bke::blendfile {
+namespace bke::blendfile {
 
 /**
  * Partial blendfile writing.
@@ -203,13 +206,13 @@ class PartialWriteContext : NonCopyable, NonMovable {
   IDNameLib_Map *matching_uid_map_;
 
   /** A mapping from the absolute library paths to the #Library IDs in the context. */
-  blender::Map<std::string, Library *> libraries_map_;
+  Map<std::string, Library *> libraries_map_;
 
  public:
   /* Passing a reference root filepath is mandatory, for remapping of relative paths to work as
    * expected. */
   PartialWriteContext() = delete;
-  PartialWriteContext(StringRefNull reference_root_filepath);
+  PartialWriteContext(Main &reference_main);
   ~PartialWriteContext();
 
   /**
@@ -321,9 +324,8 @@ class PartialWriteContext : NonCopyable, NonMovable {
    */
   ID *id_add(const ID *id,
              IDAddOptions options,
-             blender::FunctionRef<IDAddOperations(LibraryIDLinkCallbackData *cb_data,
-                                                  IDAddOptions options)> dependencies_filter_cb =
-                 nullptr);
+             FunctionRef<IDAddOperations(LibraryIDLinkCallbackData *cb_data, IDAddOptions options)>
+                 dependencies_filter_cb = nullptr);
 
   /**
    * Add and return a new ID into the partial write context.
@@ -429,7 +431,7 @@ class PartialWriteContext : NonCopyable, NonMovable {
   Library *ensure_library(StringRefNull library_absolute_path);
 };
 
-ENUM_OPERATORS(PartialWriteContext::IDAddOperations,
-               PartialWriteContext::IDAddOperations::MASK_INHERITED);
+ENUM_OPERATORS(PartialWriteContext::IDAddOperations);
 
-}  // namespace blender::bke::blendfile
+}  // namespace bke::blendfile
+}  // namespace blender

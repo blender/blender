@@ -16,6 +16,8 @@
 
 #include "physics_intern.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Particles
  * \{ */
@@ -188,3 +190,5 @@ void ED_keymap_physics(wmKeyConfig *keyconf)
 }
 
 /** \} */
+
+}  // namespace blender

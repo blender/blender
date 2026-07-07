@@ -2,8 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from ...io.com.gltf2_io import from_dict, from_union, from_none, from_float, from_str, from_list
-from ...io.com.gltf2_io import to_float, to_class
+from ...io.com.gltf2_io import from_dict, from_union, from_none, from_str
 
 
 class Variant:

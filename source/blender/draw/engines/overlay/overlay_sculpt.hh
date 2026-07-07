@@ -122,7 +122,7 @@ class Sculpts : Overlay {
 
   void curves_sync(Manager &manager, const ObjectRef &ob_ref, const State &state)
   {
-    ::Curves &curves = DRW_object_get_data_for_drawing<::Curves>(*ob_ref.object);
+    blender::Curves &curves = DRW_object_get_data_for_drawing<blender::Curves>(*ob_ref.object);
 
     /* As an optimization, draw nothing if everything is selected. */
     if (show_mask_ && !everything_selected(curves)) {
@@ -133,7 +133,11 @@ class Sculpts : Overlay {
           &curves, ".selection", is_point_domain, is_valid);
       if (is_valid) {
         /* Evaluate curves and their attributes if necessary. */
-        gpu::Batch *geometry = curves_sub_pass_setup(*curves_ps_, state.scene, ob_ref.object);
+        const char *error = nullptr;
+        /* The error string will always have been printed by the engine already.
+         * No need to display it twice. */
+        gpu::Batch *geometry = curves_sub_pass_setup(
+            *curves_ps_, state.scene, ob_ref.object, error);
         if (select_attr_buf.get()) {
           ResourceHandleRange handle = manager.unique_handle(ob_ref);
 
@@ -147,7 +151,7 @@ class Sculpts : Overlay {
     if (show_curves_cage_) {
       ResourceHandleRange handle = manager.unique_handle(ob_ref);
 
-      blender::gpu::Batch *geometry = DRW_curves_batch_cache_get_sculpt_curves_cage(&curves);
+      gpu::Batch *geometry = DRW_curves_batch_cache_get_sculpt_curves_cage(&curves);
       sculpt_curve_cage_.draw(geometry, handle);
     }
   }
@@ -159,7 +163,7 @@ class Sculpts : Overlay {
       return;
     }
 
-    const SculptSession *sculpt_session = ob_ref.object->sculpt;
+    const SculptSession *sculpt_session = ob_ref.object->runtime->sculpt_session;
     if (sculpt_session == nullptr) {
       return;
     }
@@ -181,7 +185,7 @@ class Sculpts : Overlay {
     }
 
     switch (pbvh->type()) {
-      case blender::bke::pbvh::Type::Mesh: {
+      case bke::pbvh::Type::Mesh: {
         const Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(*object_orig);
         if (!mesh.attributes().contains(".sculpt_face_set") &&
             !mesh.attributes().contains(".sculpt_mask"))
@@ -190,7 +194,7 @@ class Sculpts : Overlay {
         }
         break;
       }
-      case blender::bke::pbvh::Type::Grids: {
+      case bke::pbvh::Type::Grids: {
         const SubdivCCG &subdiv_ccg = *sculpt_session->subdiv_ccg;
         const Mesh &base_mesh = DRW_object_get_data_for_drawing<Mesh>(*object_orig);
         if (subdiv_ccg.masks.is_empty() && !base_mesh.attributes().contains(".sculpt_face_set")) {
@@ -198,7 +202,7 @@ class Sculpts : Overlay {
         }
         break;
       }
-      case blender::bke::pbvh::Type::BMesh: {
+      case bke::pbvh::Type::BMesh: {
         const BMesh &bm = *sculpt_session->bm;
         if (!CustomData_has_layer_named(&bm.pdata, CD_PROP_FLOAT, ".sculpt_face_set") &&
             !CustomData_has_layer_named(&bm.vdata, CD_PROP_FLOAT, ".sculpt_mask"))
@@ -240,7 +244,7 @@ class Sculpts : Overlay {
     manager.submit(sculpt_curve_cage_, view);
   }
 
-  void draw_on_render(GPUFrameBuffer *framebuffer, Manager &manager, View &view) final
+  void draw_on_render(gpu::FrameBuffer *framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
@@ -250,7 +254,7 @@ class Sculpts : Overlay {
   }
 
  private:
-  bool everything_selected(const ::Curves &curves_id)
+  bool everything_selected(const blender::Curves &curves_id)
   {
     const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
     const VArray<bool> selection = *curves.attributes().lookup_or_default<bool>(

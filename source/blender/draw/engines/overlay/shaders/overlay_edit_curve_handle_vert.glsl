@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/overlay_edit_mode_info.hh"
+#include "infos/overlay_edit_mode_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(overlay_edit_curve_handle)
 
@@ -159,7 +159,7 @@ void geometry_main(VertOut geom_in[2],
   }
 
   /* Minimize active color bleeding on inner_color. */
-  float4 active_color = mix(theme.colors.active_spline, inner_color, 0.25f);
+  float4 active_color = mix(float4(0.0, 0.0, 0.0, 1.0), inner_color, 0.25f);
   float4 outer_color = (is_active_nurb != 0u) ? active_color : float4(inner_color.rgb, 0.0f);
 
   float2 v1_2 = (v2.xy / v2.w - v1.xy / v1.w);
@@ -172,7 +172,7 @@ void geometry_main(VertOut geom_in[2],
     offset.x = 0.0f;
   }
 
-  float4 border_color = float4(theme.colors.active_spline.rgb, 0.0f);
+  float4 border_color = float4(0.0, 0.0, 0.0, 0.0);
   /* Draw the transparent border (AA). */
   if (is_active_nurb != 0u) {
     offset *= 0.75f; /* Don't make the active "halo" appear very thick. */

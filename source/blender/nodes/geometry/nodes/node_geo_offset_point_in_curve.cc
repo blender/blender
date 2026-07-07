@@ -63,7 +63,7 @@ class ControlPointNeighborFieldInput final : public bke::GeometryFieldInput {
     const VArray<int> offsets = evaluator.get_evaluated<int>(1);
 
     Array<int> output(mask.min_array_size());
-    mask.foreach_index([&](const int i_selection) {
+    mask.foreach_index(GrainSize(512), [&](const int i_selection) {
       const int point = std::clamp(indices[i_selection], 0, curves.points_num() - 1);
       const int curve = parent_curves[point];
       const IndexRange curve_points = points_by_curve[curve];
@@ -123,7 +123,7 @@ class OffsetValidFieldInput final : public bke::GeometryFieldInput {
     const VArray<int> offsets = evaluator.get_evaluated<int>(1);
 
     Array<bool> output(mask.min_array_size());
-    mask.foreach_index([&](const int i_selection) {
+    mask.foreach_index(GrainSize(512), [&](const int i_selection) {
       const int i_point = indices[i_selection];
       if (!curves.points_range().contains(i_point)) {
         output[i_selection] = false;
@@ -165,7 +165,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
   geo_node_type_base(&ntype, "GeometryNodeOffsetPointInCurve", GEO_NODE_OFFSET_POINT_IN_CURVE);
   ntype.ui_name = "Offset Point in Curve";
   ntype.ui_description = "Offset a control point index within its curve";
@@ -173,7 +173,7 @@ static void node_register()
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

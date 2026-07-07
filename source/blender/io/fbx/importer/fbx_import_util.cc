@@ -265,8 +265,7 @@ void read_custom_properties(const ufbx_props &props, ID &id, bool enums_as_strin
 static IDProperty *pchan_EnsureProperties(bPoseChannel &pchan)
 {
   if (pchan.prop == nullptr) {
-    pchan.prop = MEM_callocN<IDProperty>("IDProperty");
-    pchan.prop->type = IDP_GROUP;
+    pchan.prop = bke::idprop::create_group("").release();
   }
   return pchan.prop;
 }

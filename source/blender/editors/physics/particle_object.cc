@@ -57,6 +57,8 @@
 
 #include "physics_intern.hh"
 
+namespace blender {
+
 static float I[4][4] = {
     {1.0f, 0.0f, 0.0f, 0.0f},
     {0.0f, 1.0f, 0.0f, 0.0f},
@@ -69,7 +71,7 @@ static float I[4][4] = {
 static wmOperatorStatus particle_system_add_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
-  Object *ob = blender::ed::object::context_object(C);
+  Object *ob = ed::object::context_object(C);
   Scene *scene = CTX_data_scene(C);
 
   if (!scene || !ob) {
@@ -102,7 +104,7 @@ void OBJECT_OT_particle_system_add(wmOperatorType *ot)
 static wmOperatorStatus particle_system_remove_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
-  Object *ob = blender::ed::object::context_object(C);
+  Object *ob = ed::object::context_object(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   int mode_orig;
@@ -152,7 +154,7 @@ void OBJECT_OT_particle_system_remove(wmOperatorType *ot)
 
 static bool psys_poll(bContext *C)
 {
-  PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", RNA_ParticleSystem);
   return (ptr.data != nullptr);
 }
 
@@ -164,7 +166,7 @@ static wmOperatorStatus new_particle_settings_exec(bContext *C, wmOperator * /*o
   Object *ob;
   PointerRNA ptr;
 
-  ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+  ptr = CTX_data_pointer_get_type(C, "particle_system", RNA_ParticleSystem);
 
   psys = static_cast<ParticleSystem *>(ptr.data);
 
@@ -177,7 +179,7 @@ static wmOperatorStatus new_particle_settings_exec(bContext *C, wmOperator * /*o
     part = BKE_particlesettings_add(bmain, "ParticleSettings");
   }
 
-  ob = (Object *)ptr.owner_id;
+  ob = id_cast<Object *>(ptr.owner_id);
 
   if (psys->part) {
     id_us_min(&psys->part->id);
@@ -215,9 +217,9 @@ void PARTICLE_OT_new(wmOperatorType *ot)
 static wmOperatorStatus new_particle_target_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
-  PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", RNA_ParticleSystem);
   ParticleSystem *psys = static_cast<ParticleSystem *>(ptr.data);
-  Object *ob = (Object *)ptr.owner_id;
+  Object *ob = id_cast<Object *>(ptr.owner_id);
 
   ParticleTarget *pt;
 
@@ -230,7 +232,7 @@ static wmOperatorStatus new_particle_target_exec(bContext *C, wmOperator * /*op*
     pt->flag &= ~PTARGET_CURRENT;
   }
 
-  pt = MEM_callocN<ParticleTarget>("keyed particle target");
+  pt = MEM_new<ParticleTarget>("keyed particle target");
 
   pt->flag |= PTARGET_CURRENT;
   pt->psys = 1;
@@ -262,9 +264,9 @@ void PARTICLE_OT_new_target(wmOperatorType *ot)
 static wmOperatorStatus remove_particle_target_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
-  PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", RNA_ParticleSystem);
   ParticleSystem *psys = static_cast<ParticleSystem *>(ptr.data);
-  Object *ob = (Object *)ptr.owner_id;
+  Object *ob = id_cast<Object *>(ptr.owner_id);
 
   ParticleTarget *pt;
 
@@ -276,7 +278,7 @@ static wmOperatorStatus remove_particle_target_exec(bContext *C, wmOperator * /*
   for (; pt; pt = pt->next) {
     if (pt->flag & PTARGET_CURRENT) {
       BLI_remlink(&psys->targets, pt);
-      MEM_freeN(pt);
+      MEM_delete(pt);
       break;
     }
   }
@@ -312,9 +314,9 @@ void PARTICLE_OT_target_remove(wmOperatorType *ot)
 
 static wmOperatorStatus target_move_up_exec(bContext *C, wmOperator * /*op*/)
 {
-  PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", RNA_ParticleSystem);
   ParticleSystem *psys = static_cast<ParticleSystem *>(ptr.data);
-  Object *ob = (Object *)ptr.owner_id;
+  Object *ob = id_cast<Object *>(ptr.owner_id);
   ParticleTarget *pt;
 
   if (!psys) {
@@ -352,9 +354,9 @@ void PARTICLE_OT_target_move_up(wmOperatorType *ot)
 
 static wmOperatorStatus target_move_down_exec(bContext *C, wmOperator * /*op*/)
 {
-  PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", RNA_ParticleSystem);
   ParticleSystem *psys = static_cast<ParticleSystem *>(ptr.data);
-  Object *ob = (Object *)ptr.owner_id;
+  Object *ob = id_cast<Object *>(ptr.owner_id);
   ParticleTarget *pt;
 
   if (!psys) {
@@ -391,7 +393,7 @@ void PARTICLE_OT_target_move_down(wmOperatorType *ot)
 
 static wmOperatorStatus dupliob_refresh_exec(bContext *C, wmOperator * /*op*/)
 {
-  PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", RNA_ParticleSystem);
   ParticleSystem *psys = static_cast<ParticleSystem *>(ptr.data);
 
   if (!psys) {
@@ -421,7 +423,7 @@ void PARTICLE_OT_dupliob_refresh(wmOperatorType *ot)
 
 static wmOperatorStatus dupliob_move_up_exec(bContext *C, wmOperator * /*op*/)
 {
-  PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", RNA_ParticleSystem);
   ParticleSystem *psys = static_cast<ParticleSystem *>(ptr.data);
   ParticleSettings *part;
 
@@ -430,10 +432,10 @@ static wmOperatorStatus dupliob_move_up_exec(bContext *C, wmOperator * /*op*/)
   }
 
   part = psys->part;
-  LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
-    if (dw->flag & PART_DUPLIW_CURRENT && dw->prev) {
-      BLI_remlink(&part->instance_weights, dw);
-      BLI_insertlinkbefore(&part->instance_weights, dw->prev, dw);
+  for (ParticleDupliWeight &dw : part->instance_weights) {
+    if (dw.flag & PART_DUPLIW_CURRENT && dw.prev) {
+      BLI_remlink(&part->instance_weights, &dw);
+      BLI_insertlinkbefore(&part->instance_weights, dw.prev, &dw);
 
       DEG_id_tag_update(&part->id, ID_RECALC_GEOMETRY | ID_RECALC_PSYS_REDO);
       WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE, nullptr);
@@ -460,7 +462,7 @@ void PARTICLE_OT_dupliob_move_up(wmOperatorType *ot)
 
 static wmOperatorStatus copy_particle_dupliob_exec(bContext *C, wmOperator * /*op*/)
 {
-  PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", RNA_ParticleSystem);
   ParticleSystem *psys = static_cast<ParticleSystem *>(ptr.data);
   ParticleSettings *part;
 
@@ -468,12 +470,13 @@ static wmOperatorStatus copy_particle_dupliob_exec(bContext *C, wmOperator * /*o
     return OPERATOR_CANCELLED;
   }
   part = psys->part;
-  LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
-    if (dw->flag & PART_DUPLIW_CURRENT) {
-      dw->flag &= ~PART_DUPLIW_CURRENT;
-      dw = static_cast<ParticleDupliWeight *>(MEM_dupallocN(dw));
-      dw->flag |= PART_DUPLIW_CURRENT;
-      BLI_addhead(&part->instance_weights, dw);
+  for (ParticleDupliWeight &dw : part->instance_weights) {
+    if (dw.flag & PART_DUPLIW_CURRENT) {
+      dw.flag &= ~PART_DUPLIW_CURRENT;
+
+      ParticleDupliWeight *new_dw = MEM_dupalloc(&dw);
+      new_dw->flag |= PART_DUPLIW_CURRENT;
+      BLI_addhead(&part->instance_weights, new_dw);
 
       DEG_id_tag_update(&part->id, ID_RECALC_GEOMETRY | ID_RECALC_PSYS_REDO);
       WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE, nullptr);
@@ -500,7 +503,7 @@ void PARTICLE_OT_dupliob_copy(wmOperatorType *ot)
 
 static wmOperatorStatus remove_particle_dupliob_exec(bContext *C, wmOperator * /*op*/)
 {
-  PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", RNA_ParticleSystem);
   ParticleSystem *psys = static_cast<ParticleSystem *>(ptr.data);
   ParticleSettings *part;
 
@@ -509,10 +512,10 @@ static wmOperatorStatus remove_particle_dupliob_exec(bContext *C, wmOperator * /
   }
 
   part = psys->part;
-  LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
-    if (dw->flag & PART_DUPLIW_CURRENT) {
-      BLI_remlink(&part->instance_weights, dw);
-      MEM_freeN(dw);
+  for (ParticleDupliWeight &dw : part->instance_weights) {
+    if (dw.flag & PART_DUPLIW_CURRENT) {
+      BLI_remlink(&part->instance_weights, &dw);
+      MEM_delete(&dw);
       break;
     }
   }
@@ -546,7 +549,7 @@ void PARTICLE_OT_dupliob_remove(wmOperatorType *ot)
 
 static wmOperatorStatus dupliob_move_down_exec(bContext *C, wmOperator * /*op*/)
 {
-  PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", RNA_ParticleSystem);
   ParticleSystem *psys = static_cast<ParticleSystem *>(ptr.data);
   ParticleSettings *part;
 
@@ -555,10 +558,10 @@ static wmOperatorStatus dupliob_move_down_exec(bContext *C, wmOperator * /*op*/)
   }
 
   part = psys->part;
-  LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
-    if (dw->flag & PART_DUPLIW_CURRENT && dw->next) {
-      BLI_remlink(&part->instance_weights, dw);
-      BLI_insertlinkafter(&part->instance_weights, dw->next, dw);
+  for (ParticleDupliWeight &dw : part->instance_weights) {
+    if (dw.flag & PART_DUPLIW_CURRENT && dw.next) {
+      BLI_remlink(&part->instance_weights, &dw);
+      BLI_insertlinkafter(&part->instance_weights, dw.next, &dw);
 
       DEG_id_tag_update(&part->id, ID_RECALC_GEOMETRY | ID_RECALC_PSYS_REDO);
       WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE, nullptr);
@@ -641,7 +644,7 @@ static wmOperatorStatus disconnect_hair_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
-  Object *ob = blender::ed::object::context_object(C);
+  Object *ob = ed::object::context_object(C);
   ParticleSystem *psys = nullptr;
   const bool all = RNA_boolean_get(op->ptr, "all");
 
@@ -650,8 +653,8 @@ static wmOperatorStatus disconnect_hair_exec(bContext *C, wmOperator *op)
   }
 
   if (all) {
-    LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
-      disconnect_hair(depsgraph, scene, ob, psys);
+    for (ParticleSystem &psys : ob->particlesystem) {
+      disconnect_hair(depsgraph, scene, ob, &psys);
     }
   }
   else {
@@ -702,9 +705,9 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   ParticleData *pa, *tpa;
   PTCacheEditPoint *edit_point;
   PTCacheEditKey *ekey;
-  blender::bke::BVHTreeFromMesh bvhtree = {nullptr};
+  bke::BVHTreeFromMesh bvhtree = {nullptr};
   const MFace *mface = nullptr, *mf;
-  const blender::int2 *edges = nullptr, *edge;
+  const int2 *edges = nullptr, *edge;
   Mesh *mesh, *target_mesh;
   int numverts;
   int k;
@@ -743,13 +746,13 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   }
   /* don't modify the original vertices */
   /* we don't want to mess up target_psmd->dm when converting to global coordinates below */
-  mesh = (Mesh *)BKE_id_copy_ex(nullptr, &mesh->id, nullptr, LIB_ID_COPY_LOCALIZE);
+  mesh = id_cast<Mesh *>(BKE_id_copy_ex(nullptr, &mesh->id, nullptr, LIB_ID_COPY_LOCALIZE));
 
   /* BMESH_ONLY, deform dm may not have tessface */
   BKE_mesh_tessface_ensure(mesh);
 
   numverts = mesh->verts_num;
-  blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
+  MutableSpan<float3> positions = mesh->vert_positions_for_write();
 
   /* convert to global coordinates */
   for (int i = 0; i < numverts; i++) {
@@ -936,7 +939,7 @@ static wmOperatorStatus connect_hair_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
-  Object *ob = blender::ed::object::context_object(C);
+  Object *ob = ed::object::context_object(C);
   ParticleSystem *psys = nullptr;
   const bool all = RNA_boolean_get(op->ptr, "all");
   bool any_connected = false;
@@ -946,8 +949,8 @@ static wmOperatorStatus connect_hair_exec(bContext *C, wmOperator *op)
   }
 
   if (all) {
-    LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
-      any_connected |= connect_hair(depsgraph, scene, ob, psys);
+    for (ParticleSystem &psys : ob->particlesystem) {
+      any_connected |= connect_hair(depsgraph, scene, ob, &psys);
     }
   }
   else {
@@ -1006,7 +1009,7 @@ static void copy_particle_edit(Depsgraph *depsgraph,
     return;
   }
 
-  edit = static_cast<PTCacheEdit *>(MEM_dupallocN(edit_from));
+  edit = MEM_dupalloc(edit_from);
   edit->psys = psys;
   psys->edit = edit;
 
@@ -1017,12 +1020,12 @@ static void copy_particle_edit(Depsgraph *depsgraph,
   edit->emitter_field = nullptr;
   edit->emitter_cosnos = nullptr;
 
-  edit->points = static_cast<PTCacheEditPoint *>(MEM_dupallocN(edit_from->points));
+  edit->points = MEM_dupalloc(edit_from->points);
   pa = psys->particles;
   LOOP_POINTS {
     HairKey *hkey = pa->hair;
 
-    point->keys = static_cast<PTCacheEditKey *>(MEM_dupallocN(point->keys));
+    point->keys = MEM_dupalloc(point->keys);
     LOOP_KEYS {
       key->co = hkey->co;
       key->time = &hkey->time;
@@ -1114,7 +1117,8 @@ static bool copy_particle_systems_to_object(const bContext *C,
 #define PSYS_FROM_NEXT(cur) (single_psys_from ? nullptr : (cur)->next)
   totpsys = single_psys_from ? 1 : BLI_listbase_count(&ob_from->particlesystem);
 
-  tmp_psys = MEM_malloc_arrayN<ParticleSystem *>(totpsys, "temporary particle system array");
+  tmp_psys = MEM_new_array_uninitialized<ParticleSystem *>(totpsys,
+                                                           "temporary particle system array");
 
   for (psys_from = PSYS_FROM_FIRST, i = 0; psys_from; psys_from = PSYS_FROM_NEXT(psys_from), i++) {
     psys = BKE_object_copy_particlesystem(psys_from, 0);
@@ -1144,13 +1148,13 @@ static bool copy_particle_systems_to_object(const bContext *C,
 
     /* add a particle system modifier for each system */
     md = BKE_modifier_new(eModifierType_ParticleSystem);
-    psmd = (ParticleSystemModifierData *)md;
+    psmd = reinterpret_cast<ParticleSystemModifierData *>(md);
     /* push on top of the stack, no use trying to reproduce old stack order */
-    BLI_addtail(&ob_to->modifiers, md);
+    BKE_modifiers_add_at_end_if_possible(ob_to, md);
     BKE_modifiers_persistent_uid_init(*ob_to, *md);
 
     SNPRINTF_UTF8(md->name, "ParticleSystem %i", i);
-    BKE_modifier_unique_name(&ob_to->modifiers, (ModifierData *)psmd);
+    BKE_modifier_unique_name(&ob_to->modifiers, reinterpret_cast<ModifierData *>(psmd));
 
     psmd->psys = psys;
 
@@ -1160,10 +1164,10 @@ static bool copy_particle_systems_to_object(const bContext *C,
 
     if (duplicate_settings) {
       id_us_min(&psys->part->id);
-      psys->part = (ParticleSettings *)BKE_id_copy(bmain, &psys->part->id);
+      psys->part = id_cast<ParticleSettings *>(BKE_id_copy(bmain, &psys->part->id));
     }
   }
-  MEM_freeN(tmp_psys);
+  MEM_delete(tmp_psys);
 
   /* NOTE: do this after creating DM copies for all the particle system modifiers,
    * the remapping otherwise makes final_dm invalid!
@@ -1171,7 +1175,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
   for (psys = psys_start, psys_from = PSYS_FROM_FIRST, i = 0; psys;
        psys = psys->next, psys_from = PSYS_FROM_NEXT(psys_from), i++)
   {
-    const float(*from_mat)[4], (*to_mat)[4];
+    const float (*from_mat)[4], (*to_mat)[4];
 
     switch (space) {
       case PAR_COPY_SPACE_OBJECT:
@@ -1222,7 +1226,7 @@ static bool copy_particle_systems_poll(bContext *C)
     return false;
   }
 
-  ob = blender::ed::object::context_active_object(C);
+  ob = ed::object::context_active_object(C);
   if (BLI_listbase_is_empty(&ob->particlesystem)) {
     return false;
   }
@@ -1236,12 +1240,12 @@ static wmOperatorStatus copy_particle_systems_exec(bContext *C, wmOperator *op)
   const bool remove_target_particles = RNA_boolean_get(op->ptr, "remove_target_particles");
   const bool use_active = RNA_boolean_get(op->ptr, "use_active");
   Scene *scene = CTX_data_scene(C);
-  Object *ob_from = blender::ed::object::context_active_object(C);
+  Object *ob_from = ed::object::context_active_object(C);
 
   ParticleSystem *psys_from = nullptr;
   if (use_active) {
     psys_from = static_cast<ParticleSystem *>(
-        CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem).data);
+        CTX_data_pointer_get_type(C, "particle_system", RNA_ParticleSystem).data);
     if (psys_from == nullptr) {
       /* Particle System context pointer is only valid in the Properties Editor. */
       psys_from = psys_get_current(ob_from);
@@ -1328,7 +1332,7 @@ static bool duplicate_particle_systems_poll(bContext *C)
   if (!ED_operator_object_active_local_editable(C)) {
     return false;
   }
-  Object *ob = blender::ed::object::context_active_object(C);
+  Object *ob = ed::object::context_active_object(C);
   if (BLI_listbase_is_empty(&ob->particlesystem)) {
     return false;
   }
@@ -1343,10 +1347,10 @@ static wmOperatorStatus duplicate_particle_systems_exec(bContext *C, wmOperator 
 {
   const bool duplicate_settings = RNA_boolean_get(op->ptr, "use_duplicate_settings");
   Scene *scene = CTX_data_scene(C);
-  Object *ob = blender::ed::object::context_active_object(C);
+  Object *ob = ed::object::context_active_object(C);
   /* Context pointer is only valid in the Properties Editor. */
   ParticleSystem *psys = static_cast<ParticleSystem *>(
-      CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem).data);
+      CTX_data_pointer_get_type(C, "particle_system", RNA_ParticleSystem).data);
   if (psys == nullptr) {
     psys = psys_get_current(ob);
   }
@@ -1380,7 +1384,7 @@ static bool remove_all_particle_systems_poll(bContext *C)
   if (!ED_operator_object_active_local_editable(C)) {
     return false;
   }
-  const Object *ob = blender::ed::object::context_active_object(C);
+  const Object *ob = ed::object::context_active_object(C);
   if (BLI_listbase_is_empty(&ob->particlesystem)) {
     return false;
   }
@@ -1393,7 +1397,7 @@ static bool remove_all_particle_systems_poll(bContext *C)
 static wmOperatorStatus particle_system_remove_all_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
-  Object *ob = blender::ed::object::context_object(C);
+  Object *ob = ed::object::context_object(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
@@ -1402,8 +1406,8 @@ static wmOperatorStatus particle_system_remove_all_exec(bContext *C, wmOperator 
   }
 
   const eObjectMode mode_orig = eObjectMode(ob->mode);
-  LISTBASE_FOREACH_MUTABLE (ParticleSystem *, psys, &ob->particlesystem) {
-    object_remove_particle_system(bmain, scene, ob, psys);
+  for (ParticleSystem &psys : ob->particlesystem.items_mutable()) {
+    object_remove_particle_system(bmain, scene, ob, &psys);
   }
 
   /* possible this isn't the active object
@@ -1436,3 +1440,5 @@ void PARTICLE_OT_particle_system_remove_all(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+}  // namespace blender

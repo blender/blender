@@ -12,6 +12,10 @@
  *   - The depth scale is constant and set to 100.
  *   - The motion scale is defined by the shutter_speed. */
 
+#include "infos/compositor_motion_blur_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_motion_blur)
+
 #include "gpu_shader_compositor_motion_blur_lib.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
 
@@ -72,7 +76,7 @@ void gather_sample(float2 screen_uv,
                    float2 offset,
                    float offset_len,
                    const bool next,
-                   inout Accumulator accum)
+                   Accumulator &accum)
 {
   float2 sample_uv = screen_uv - offset / float2(texture_size(input_tx));
   float4 sample_vectors = texture(velocity_tx, sample_uv) *
@@ -99,7 +103,7 @@ void gather_blur(float2 screen_uv,
                  float2 max_motion,
                  float ofs,
                  const bool next,
-                 inout Accumulator accum)
+                 Accumulator &accum)
 {
   float center_motion_len = length(center_motion);
   float max_motion_len = length(max_motion);

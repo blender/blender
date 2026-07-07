@@ -10,14 +10,16 @@
 
 #include "IO_stl.hh"
 
-struct bContext;
-struct Depsgraph;
+namespace blender {
 
-namespace blender::io::stl {
+struct Depsgraph;
+struct bContext;
+namespace io::stl {
 
 void exporter_main(const bContext *C, const STLExportParams &export_params);
 void export_frame(Depsgraph *depsgraph,
                   float scene_unit_scale,
                   const STLExportParams &export_params);
 
-}  // namespace blender::io::stl
+}  // namespace io::stl
+}  // namespace blender

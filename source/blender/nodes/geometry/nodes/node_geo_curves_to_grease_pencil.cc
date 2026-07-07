@@ -53,7 +53,7 @@ static GreasePencil *curves_to_grease_pencil_with_one_layer(
   /* Transfer materials. */
   const int materials_num = curves_id.totcol;
   grease_pencil->material_array_num = materials_num;
-  grease_pencil->material_array = MEM_calloc_arrayN<Material *>(materials_num, __func__);
+  grease_pencil->material_array = MEM_new_array_zeroed<Material *>(materials_num, __func__);
   initialized_copy_n(curves_id.mat, materials_num, grease_pencil->material_array);
 
   return grease_pencil;
@@ -124,7 +124,7 @@ static GreasePencil *curve_instances_to_grease_pencil_layers(
   });
 
   grease_pencil->material_array_num = all_materials.size();
-  grease_pencil->material_array = MEM_calloc_arrayN<Material *>(all_materials.size(), __func__);
+  grease_pencil->material_array = MEM_new_array_zeroed<Material *>(all_materials.size(), __func__);
   initialized_copy_n(all_materials.data(), all_materials.size(), grease_pencil->material_array);
 
   const bke::AttributeAccessor instances_attributes = instances.attributes();
@@ -214,6 +214,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   GeometrySet grease_pencil_geometry = GeometrySet::from_grease_pencil(grease_pencil);
   grease_pencil_geometry.name = std::move(curves_geometry.name);
+  grease_pencil_geometry.copy_bundle_from(curves_geometry);
   params.set_output("Grease Pencil", std::move(grease_pencil_geometry));
 }
 

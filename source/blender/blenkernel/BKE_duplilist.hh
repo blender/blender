@@ -13,9 +13,10 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_instances.hh"
 
+namespace blender {
+
 struct Depsgraph;
 struct ID;
-struct ListBase;
 struct Object;
 struct ParticleSystem;
 struct Scene;
@@ -40,13 +41,16 @@ struct DupliObject {
   /** Depth in the instance hierarchy. */
   int8_t level;
   /* If this dupli object is belongs to a preview, this is non-null. */
-  const blender::bke::GeometrySet *preview_base_geometry;
+  const bke::GeometrySet *preview_base_geometry;
   /* Index of the top-level instance this dupli is part of or -1 when unused. */
   int preview_instance_index;
 
   /* Persistent identifier for a dupli object, for inter-frame matching of
    * objects with motion blur, or inter-update matching for syncing. */
   int persistent_id[MAX_DUPLI_RECUR];
+
+  /* Random ID for shading */
+  unsigned int random_id;
 
   /* Particle this dupli was generated from. */
   ParticleSystem *particle_system;
@@ -60,27 +64,22 @@ struct DupliObject {
    * size between 1 and MAX_DUPLI_RECUR can be used without issues.
    */
   int instance_idx[4];
-  const blender::bke::GeometrySet *instance_data[4];
-
-  /* Random ID for shading */
-  unsigned int random_id;
+  const bke::GeometrySet *instance_data[4];
 };
 
-using DupliList = blender::VectorList<DupliObject>;
+using DupliList = VectorList<DupliObject>;
 
 /**
  * Fill a Vector of #DupliObject.
  */
 void object_duplilist(Depsgraph *depsgraph,
-                      Scene *sce,
                       Object *ob,
-                      blender::Set<const Object *> *include_objects,
+                      Set<const Object *> *include_objects,
                       DupliList &r_duplilist);
 /**
  * Fill a Vector of #DupliObject for the preview geometry referenced by the #ViewerPath.
  */
 void object_duplilist_preview(Depsgraph *depsgraph,
-                              Scene *scene,
                               Object *ob,
                               const ViewerPath *viewer_path,
                               DupliList &r_duplilist);
@@ -97,9 +96,7 @@ void object_duplilist_preview(Depsgraph *depsgraph,
  *
  * Also see #get_dupli_generator for the different existing dupli generators.
  */
-blender::bke::Instances object_duplilist_legacy_instances(Depsgraph &depsgraph,
-                                                          Scene &scene,
-                                                          Object &ob);
+bke::Instances object_duplilist_legacy_instances(Depsgraph &depsgraph, Object &ob);
 
 /**
  * Look up the RGBA value of a uniform shader attribute.
@@ -119,3 +116,5 @@ bool BKE_view_layer_find_rgba_attribute(const Scene *scene,
                                         const ViewLayer *layer,
                                         const char *name,
                                         float r_value[4]);
+
+}  // namespace blender

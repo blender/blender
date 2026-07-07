@@ -48,6 +48,7 @@ typedef unsigned long long uint64_t;
 #define ccl_restrict __restrict__
 #define ccl_align(n) __align__(n)
 #define ccl_optional_struct_init
+#define ccl_attr_maybe_unused [[maybe_unused]]
 
 #define kernel_assert(cond)
 
@@ -77,12 +78,12 @@ typedef unsigned long long uint64_t;
 #define ccl_gpu_ballot(predicate) __ballot(predicate)
 
 /* GPU texture objects */
-typedef hipTextureObject_t ccl_gpu_tex_object_2D;
+typedef hipTextureObject_t ccl_gpu_image_object_2D;
 
 template<typename T>
-ccl_device_forceinline T ccl_gpu_tex_object_read_2D(const ccl_gpu_tex_object_2D texobj,
-                                                    const float x,
-                                                    const float y)
+ccl_device_forceinline T ccl_gpu_image_object_read_2D(const ccl_gpu_image_object_2D texobj,
+                                                      const float x,
+                                                      const float y)
 {
   return tex2D<T>(texobj, x, y);
 }

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <pxr/base/gf/vec2f.h>
-#include <pxr/base/tf/staticTokens.h>
+#include <pxr/base/tf/token.h>
 #include <pxr/imaging/hd/tokens.h>
 
 #include "BLI_array_utils.hh"
@@ -11,7 +11,6 @@
 #include "BLI_vector_set.hh"
 
 #include "BKE_attribute.hh"
-#include "BKE_customdata.hh"
 #include "BKE_material.hh"
 #include "BKE_mesh.hh"
 
@@ -35,7 +34,7 @@ void MeshData::init()
 {
   ID_LOGN("");
 
-  Object *object = (Object *)id;
+  Object *object = id_cast<Object *>(const_cast<ID *>(id));
   Mesh *mesh = BKE_object_to_mesh(nullptr, object, false);
   if (mesh) {
     write_submeshes(mesh);
@@ -61,8 +60,8 @@ void MeshData::remove()
 
 void MeshData::update()
 {
-  Object *object = (Object *)id;
-  if ((id->recalc & ID_RECALC_GEOMETRY) || (((ID *)object->data)->recalc & ID_RECALC_GEOMETRY)) {
+  Object *object = id_cast<Object *>(const_cast<ID *>(id));
+  if ((id->recalc & ID_RECALC_GEOMETRY) || (object->data->recalc & ID_RECALC_GEOMETRY)) {
     init();
     update_prims();
     return;
@@ -108,15 +107,6 @@ pxr::VtValue MeshData::get_data(pxr::SdfPath const &id, pxr::TfToken const &key)
   return get_data(key);
 }
 
-pxr::SdfPath MeshData::material_id(pxr::SdfPath const &id) const
-{
-  const SubMesh &sm = submesh(id);
-  if (!sm.mat_data) {
-    return pxr::SdfPath();
-  }
-  return sm.mat_data->prim_id;
-}
-
 void MeshData::available_materials(Set<pxr::SdfPath> &paths) const
 {
   for (const auto &sm : submeshes_) {
@@ -155,22 +145,9 @@ pxr::HdPrimvarDescriptorVector MeshData::primvar_descriptors(
   return primvars;
 }
 
-pxr::HdCullStyle MeshData::cull_style(pxr::SdfPath const &id) const
+MaterialData *MeshData::get_material_data(pxr::SdfPath const &id) const
 {
-  const SubMesh &sm = submesh(id);
-  if (sm.mat_data) {
-    return sm.mat_data->cull_style();
-  }
-  return pxr::HdCullStyle::HdCullStyleNothing;
-}
-
-bool MeshData::double_sided(pxr::SdfPath const &id) const
-{
-  const SubMesh &sm = submesh(id);
-  if (sm.mat_data) {
-    return sm.mat_data->double_sided;
-  }
-  return true;
+  return submesh(id).mat_data;
 }
 
 void MeshData::update_double_sided(MaterialData *mat_data)
@@ -196,7 +173,7 @@ pxr::SdfPathVector MeshData::submesh_paths() const
 
 void MeshData::write_materials()
 {
-  const Object *object = (const Object *)id;
+  const Object *object = id_cast<const Object *>(id);
   for (int i = 0; i < submeshes_.size(); ++i) {
     SubMesh &m = submeshes_[i];
     const Material *mat = BKE_object_material_get_eval(const_cast<Object *>(object),
@@ -375,7 +352,7 @@ void MeshData::write_submeshes(const Mesh *mesh)
   const Span<int> tri_faces = mesh->corner_tri_faces();
   const std::pair<bke::MeshNormalDomain, Span<float3>> normals = get_mesh_normals(*mesh);
   const bke::AttributeAccessor attributes = mesh->attributes();
-  const StringRef active_uv = CustomData_get_active_layer_name(&mesh->corner_data, CD_PROP_FLOAT2);
+  const StringRef active_uv = mesh->active_uv_map_name();
   const VArraySpan uv_map = *attributes.lookup<float2>(active_uv, bke::AttrDomain::Corner);
   const VArraySpan material_indices = *attributes.lookup<int>("material_index",
                                                               bke::AttrDomain::Face);

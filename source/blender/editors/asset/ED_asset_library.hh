@@ -12,19 +12,21 @@
 #include "BLI_string_ref.hh"
 #include "DNA_asset_types.h"
 
+namespace blender {
+
 struct bUserAssetLibrary;
 struct bContext;
 struct AssetLibraryReference;
 struct EnumPropertyItem;
 struct StringPropertySearchVisitParams;
 
-namespace blender::asset_system {
+namespace asset_system {
 class AssetCatalog;
 class AssetCatalogPath;
 class AssetRepresentation;
-}  // namespace blender::asset_system
+}  // namespace asset_system
 
-namespace blender::ed::asset {
+namespace ed::asset {
 
 /**
  * Return an index that can be used to uniquely identify \a library, assuming
@@ -58,9 +60,8 @@ const EnumPropertyItem *custom_libraries_rna_enum_itemf();
 /**
  * Find the catalog with the given path in the library. Creates it in case it doesn't exist.
  */
-blender::asset_system::AssetCatalog &library_ensure_catalogs_in_path(
-    blender::asset_system::AssetLibrary &library,
-    const blender::asset_system::AssetCatalogPath &path);
+asset_system::AssetCatalog &library_ensure_catalogs_in_path(
+    asset_system::AssetLibrary &library, const asset_system::AssetCatalogPath &path);
 
 AssetLibraryReference user_library_to_library_ref(const bUserAssetLibrary &user_library);
 
@@ -70,6 +71,7 @@ AssetLibraryReference user_library_to_library_ref(const bUserAssetLibrary &user_
 void refresh_asset_library(const bContext *C, const AssetLibraryReference &library_ref);
 void refresh_asset_library(const bContext *C, const bUserAssetLibrary &user_library);
 void refresh_asset_library_from_asset(const bContext *C,
-                                      const blender::asset_system::AssetRepresentation &asset);
+                                      const asset_system::AssetRepresentation &asset);
 
-}  // namespace blender::ed::asset
+}  // namespace ed::asset
+}  // namespace blender

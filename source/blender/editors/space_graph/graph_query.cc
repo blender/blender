@@ -2,15 +2,17 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_listbase.h"
+#include "DNA_listBase.h"
+#include "DNA_userdef_types.h"
+
 #include "ED_anim_api.hh"
 #include "ED_space_graph.hh"
 
 namespace blender::ed::graph {
 
-ListBase get_editable_fcurves(bAnimContext &ac)
+ListBaseT<bAnimListElem> get_editable_fcurves(bAnimContext &ac)
 {
-  ListBase anim_data = {nullptr, nullptr};
+  ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE |
                               ANIMFILTER_FCURVESONLY | ANIMFILTER_NODUPLIS);
   if (U.animation_flag & USER_ANIM_ONLY_SHOW_SELECTED_CURVE_KEYS) {

@@ -39,6 +39,8 @@
 
 #  include "WM_toolsystem.hh"
 
+namespace blender {
+
 static void rna_window_update_all(Main * /*bmain*/, Scene * /*scene*/, PointerRNA * /*ptr*/)
 {
   WM_main_add_notifier(NC_WINDOW, nullptr);
@@ -46,7 +48,7 @@ static void rna_window_update_all(Main * /*bmain*/, Scene * /*scene*/, PointerRN
 
 void rna_workspace_screens_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  WorkSpace *workspace = (WorkSpace *)ptr->owner_id;
+  WorkSpace *workspace = id_cast<WorkSpace *>(ptr->owner_id);
   rna_iterator_listbase_begin(iter, ptr, &workspace->layouts, nullptr);
 }
 
@@ -62,7 +64,7 @@ static PointerRNA rna_workspace_screens_item_get(CollectionPropertyIterator *ite
 
 static wmOwnerID *rna_WorkSpace_owner_ids_new(WorkSpace *workspace, const char *name)
 {
-  wmOwnerID *owner_id = MEM_callocN<wmOwnerID>(__func__);
+  wmOwnerID *owner_id = MEM_new<wmOwnerID>(__func__);
   BLI_addtail(&workspace->owner_ids, owner_id);
   STRNCPY(owner_id->name, name);
   WM_main_add_notifier(NC_WINDOW, nullptr);
@@ -83,7 +85,7 @@ static void rna_WorkSpace_owner_ids_remove(WorkSpace *workspace,
     return;
   }
 
-  MEM_freeN(owner_id);
+  MEM_delete(owner_id);
   wstag_ptr->invalidate();
 
   WM_main_add_notifier(NC_WINDOW, nullptr);
@@ -98,13 +100,13 @@ static void rna_WorkSpace_owner_ids_clear(WorkSpace *workspace)
 static int rna_WorkSpace_asset_library_get(PointerRNA *ptr)
 {
   const WorkSpace *workspace = static_cast<WorkSpace *>(ptr->data);
-  return blender::ed::asset::library_reference_to_enum_value(&workspace->asset_library_ref);
+  return ed::asset::library_reference_to_enum_value(&workspace->asset_library_ref);
 }
 
 static void rna_WorkSpace_asset_library_set(PointerRNA *ptr, int value)
 {
   WorkSpace *workspace = static_cast<WorkSpace *>(ptr->data);
-  workspace->asset_library_ref = blender::ed::asset::library_reference_from_enum_value(value);
+  workspace->asset_library_ref = ed::asset::library_reference_from_enum_value(value);
 }
 
 static bToolRef *rna_WorkSpace_tools_from_tkey(WorkSpace *workspace,
@@ -175,7 +177,7 @@ const EnumPropertyItem *rna_WorkSpace_tools_mode_itemf(bContext * /*C*/,
 static bool rna_WorkSpaceTool_use_paint_canvas_get(PointerRNA *ptr)
 {
   bToolRef *tref = static_cast<bToolRef *>(ptr->data);
-  return ED_image_paint_brush_type_use_canvas(nullptr, tref);
+  return ED_paint_brush_type_use_canvas(nullptr, tref);
 }
 
 static int rna_WorkSpaceTool_index_get(PointerRNA *ptr)
@@ -209,7 +211,7 @@ const EnumPropertyItem *rna_WorkSpaceTool_brush_type_itemf(bContext *C,
 {
 
   PaintMode paint_mode = [&]() {
-    if (ptr->type == &RNA_WorkSpaceTool) {
+    if (ptr->type == RNA_WorkSpaceTool) {
       const bToolRef *tref = static_cast<bToolRef *>(ptr->data);
       return BKE_paintmode_get_from_tool(tref);
     }
@@ -248,10 +250,14 @@ static int rna_WorkSpaceTool_widget_length(PointerRNA *ptr)
 
 static void rna_workspace_sync_scene_time_update(bContext *C, PointerRNA * /*ptr*/)
 {
-  blender::ed::vse::sync_active_scene_and_time_with_scene_strip(*C);
+  ed::vse::sync_active_scene_and_time_with_scene_strip(*C);
 }
 
+}  // namespace blender
+
 #else /* RNA_RUNTIME */
+
+namespace blender {
 
 static void rna_def_workspace_owner(BlenderRNA *brna)
 {
@@ -500,7 +506,7 @@ static void rna_def_workspace(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_scene_time_sync", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flags", WORKSPACE_SYNC_SCENE_TIME);
   RNA_def_property_ui_text(
-      prop, "Sync Active Scene", "Set the active scene and time based on the current scene strip");
+      prop, "Sync Scene Time", "Set the active scene and time based on the current scene strip");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, NC_WINDOW, "rna_workspace_sync_scene_time_update");
 
@@ -514,5 +520,7 @@ void RNA_def_workspace(BlenderRNA *brna)
 
   rna_def_workspace(brna);
 }
+
+}  // namespace blender
 
 #endif /* RNA_RUNTIME */

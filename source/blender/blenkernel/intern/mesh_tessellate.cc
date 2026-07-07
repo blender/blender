@@ -106,7 +106,7 @@ BLI_INLINE void mesh_calc_tessellation_for_face_impl(const Span<int> corner_vert
 
       uint(*tris)[3] = static_cast<uint(*)[3]>(
           BLI_memarena_alloc(pf_arena, sizeof(*tris) * size_t(totfilltri)));
-      float(*projverts)[2] = static_cast<float(*)[2]>(
+      float (*projverts)[2] = static_cast<float (*)[2]>(
           BLI_memarena_alloc(pf_arena, sizeof(*projverts) * size_t(face_size)));
 
       for (int j = 0; j < face_size; j++) {

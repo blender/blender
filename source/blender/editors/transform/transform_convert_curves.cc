@@ -294,7 +294,7 @@ static void createTransCurvesVerts(bContext *C, TransInfo *t)
   /* Count selected elements per object and create TransData structs. */
   for (const int i : trans_data_contrainers.index_range()) {
     TransDataContainer &tc = trans_data_contrainers[i];
-    Curves *curves_id = static_cast<Curves *>(tc.obedit->data);
+    Curves *curves_id = id_cast<Curves *>(tc.obedit->data);
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
     CurvesTransformData *curves_transform_data = create_curves_transform_custom_data(
         tc.custom.type);
@@ -353,7 +353,7 @@ static void createTransCurvesVerts(bContext *C, TransInfo *t)
     }
 
     if (tc.data_len > 0) {
-      tc.data = MEM_calloc_arrayN<TransData>(tc.data_len, __func__);
+      tc.data = MEM_new_array_zeroed<TransData>(tc.data_len, __func__);
       curves_transform_data->positions.reinitialize(tc.data_len);
     }
     else {
@@ -368,7 +368,7 @@ static void createTransCurvesVerts(bContext *C, TransInfo *t)
       continue;
     }
     Object *object = tc.obedit;
-    Curves *curves_id = static_cast<Curves *>(object->data);
+    Curves *curves_id = id_cast<Curves *>(object->data);
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
     const bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_curves_deformation(*depsgraph, *object);
@@ -411,9 +411,9 @@ static void createTransCurvesVerts(bContext *C, TransInfo *t)
   }
 }
 
-void calculate_aligned_handles(const TransCustomData &custom_data,
-                               bke::CurvesGeometry &curves,
-                               const int curve_index)
+void calculate_single_aligned_handles(const TransCustomData &custom_data,
+                                      bke::CurvesGeometry &curves,
+                                      const int curve_index)
 {
   if (ed::curves::get_curves_selection_attribute_names(curves).size() == 1) {
     return;
@@ -425,14 +425,16 @@ void calculate_aligned_handles(const TransCustomData &custom_data,
   MutableSpan<float3> handle_positions_left = curves.handle_positions_left_for_write();
   MutableSpan<float3> handle_positions_right = curves.handle_positions_right_for_write();
 
-  bke::curves::bezier::calculate_aligned_handles(transform_data.aligned_with_left[curve_index],
-                                                 positions,
-                                                 handle_positions_left,
-                                                 handle_positions_right);
-  bke::curves::bezier::calculate_aligned_handles(transform_data.aligned_with_right[curve_index],
-                                                 positions,
-                                                 handle_positions_right,
-                                                 handle_positions_left);
+  bke::curves::bezier::calculate_single_aligned_handles(
+      transform_data.aligned_with_left[curve_index],
+      positions,
+      handle_positions_left,
+      handle_positions_right);
+  bke::curves::bezier::calculate_single_aligned_handles(
+      transform_data.aligned_with_right[curve_index],
+      positions,
+      handle_positions_right,
+      handle_positions_left);
 }
 
 static void recalcData_curves(TransInfo *t)
@@ -443,7 +445,7 @@ static void recalcData_curves(TransInfo *t)
 
   const Span<TransDataContainer> trans_data_contrainers(t->data_container, t->data_container_len);
   for (const TransDataContainer &tc : trans_data_contrainers) {
-    Curves *curves_id = static_cast<Curves *>(tc.obedit->data);
+    Curves *curves_id = id_cast<Curves *>(tc.obedit->data);
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
     if (t->mode == TFM_CURVE_SHRINKFATTEN) {
       curves.tag_radii_changed();
@@ -460,7 +462,7 @@ static void recalcData_curves(TransInfo *t)
       }
       curves.tag_positions_changed();
       curves.calculate_bezier_auto_handles();
-      calculate_aligned_handles(tc.custom.type, curves, 0);
+      calculate_single_aligned_handles(tc.custom.type, curves, 0);
     }
     DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
   }
@@ -596,7 +598,8 @@ void curve_populate_trans_data_structs(const TransInfo &t,
         return;
       }
       float3 center(0.0f);
-      selection.foreach_index([&](const int64_t point_i) { center += point_positions[point_i]; });
+      selection.foreach_index_optimized<int64_t>(
+          [&](const int64_t point_i) { center += point_positions[point_i]; });
       center /= selection.size();
       mean_center_point_per_curve[curve_i] = center;
     });
@@ -645,9 +648,7 @@ void curve_populate_trans_data_structs(const TransInfo &t,
 
           td.extra = extra;
 
-          /* Set #TransData.val to nullptr for handles since those values are only tweaked on
-           * control points. Logic in e.g. #initCurveShrinkFatten() also relies on this. */
-          if (value_attribute && (selection_i == 0)) {
+          if (value_attribute) {
             float *value = &((*value_attribute)[domain_i]);
             td.val = value;
             td.ival = *value;

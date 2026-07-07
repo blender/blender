@@ -8,6 +8,8 @@
  * Eyedropper (bones)
  */
 
+#include "DNA_layer_types.h"
+
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
 #include "BKE_object.hh"
@@ -47,8 +49,10 @@ enum class SampleResult {
 };
 
 struct BoneDropper {
+  /* The ptr.owner_id is the ID for which we are searching the property.*/
   PointerRNA ptr = {};
   PropertyRNA *prop = nullptr;
+  /* The property we are looking for. */
   PointerRNA search_ptr = {};
   PropertyRNA *search_prop = nullptr;
 
@@ -83,8 +87,17 @@ static bool is_bone_dropper_valid(BoneDropper *bone_dropper)
     return false;
   }
 
-  PointerRNA owner_ptr = RNA_id_pointer_create(bone_dropper->search_ptr.owner_id);
-  if (RNA_type_to_ID_code(owner_ptr.type) != ID_AR) {
+  ID *search_id = bone_dropper->search_ptr.owner_id;
+
+  if (GS(search_id->name) == ID_OB) {
+    Object *ob = reinterpret_cast<Object *>(search_id);
+    /* Allows for the eyedropper to work on pose bones. */
+    if (ob->type == OB_ARMATURE && ob->data) {
+      return true;
+    }
+  }
+
+  if (GS(search_id->name) != ID_AR) {
     return false;
   }
 
@@ -96,14 +109,14 @@ static int bonedropper_init(bContext *C, wmOperator *op)
   int index_dummy;
   PointerRNA button_ptr;
   PropertyRNA *button_prop;
-  uiBut *button = UI_context_active_but_prop_get(C, &button_ptr, &button_prop, &index_dummy);
+  Button *button = context_active_but_prop_get(C, &button_ptr, &button_prop, &index_dummy);
 
-  if (!button || button->type != ButType::SearchMenu) {
+  if (!button || button->type != ButtonType::SearchMenu) {
     return false;
   }
 
   BoneDropper *bone_dropper = MEM_new<BoneDropper>(__func__);
-  uiButSearch *search_button = (uiButSearch *)button;
+  ButtonSearch *search_button = static_cast<ButtonSearch *>(button);
   bone_dropper->ptr = button_ptr;
   bone_dropper->prop = button_prop;
   bone_dropper->search_ptr = search_button->rnasearchpoin;
@@ -115,7 +128,7 @@ static int bonedropper_init(bContext *C, wmOperator *op)
 
   op->customdata = bone_dropper;
 
-  bone_dropper->is_undo = UI_but_flag_is_set(button, UI_BUT_UNDO);
+  bone_dropper->is_undo = button_flag_is_set(button, BUT_UNDO);
 
   SpaceType *space_type = BKE_spacetype_from_id(SPACE_VIEW3D);
   ARegionType *area_region_type = BKE_regiontype_from_id(space_type, RGN_TYPE_WINDOW);
@@ -133,7 +146,7 @@ static void bonedropper_exit(bContext *C, wmOperator *op)
   WM_cursor_modal_restore(win);
 
   if (op->customdata) {
-    BoneDropper *bdr = (BoneDropper *)op->customdata;
+    BoneDropper *bdr = static_cast<BoneDropper *>(op->customdata);
     op->customdata = nullptr;
 
     if (bdr->area_region_type) {
@@ -186,15 +199,20 @@ static BoneSampleData sample_data_from_3d_view(bContext *C,
         return {SampleResult::NO_BONE_3DVIEW};
       }
       Object *ob = base->object;
-      bArmature *armature = (bArmature *)ob->data;
-      if (!armature || &armature->id != bdr.search_ptr.owner_id) {
+      bArmature *armature = id_cast<bArmature *>(ob->data);
+      if (bdr.search_ptr.type == RNA_Pose && &ob->id != bdr.search_ptr.owner_id) {
+        return {SampleResult::WRONG_ARMATURE};
+      }
+      if (bdr.search_ptr.type == RNA_Armature &&
+          (!armature || &armature->id != bdr.search_ptr.owner_id))
+      {
         return {SampleResult::WRONG_ARMATURE};
       }
 
       BoneSampleData sample_data;
       sample_data.name = bone->name;
       /* Not using the search pointer owner ID because pose bones are part of the object. */
-      sample_data.bone_rna = RNA_pointer_create_discrete(&base->object->id, &RNA_PoseBone, bone);
+      sample_data.bone_rna = RNA_pointer_create_discrete(&base->object->id, RNA_PoseBone, bone);
       sample_data.sample_result = SampleResult::SUCCESS;
       return sample_data;
     }
@@ -205,14 +223,14 @@ static BoneSampleData sample_data_from_3d_view(bContext *C,
         return {SampleResult::NO_BONE_3DVIEW};
       }
       Object *ob = base->object;
-      bArmature *armature = (bArmature *)ob->data;
+      bArmature *armature = id_cast<bArmature *>(ob->data);
       if (!armature || &armature->id != bdr.search_ptr.owner_id) {
         return {SampleResult::WRONG_ARMATURE};
       }
 
       BoneSampleData sample_data;
       sample_data.name = ebone->name;
-      sample_data.bone_rna = RNA_pointer_create_discrete(&armature->id, &RNA_EditBone, ebone);
+      sample_data.bone_rna = RNA_pointer_create_discrete(&armature->id, RNA_EditBone, ebone);
       sample_data.sample_result = SampleResult::SUCCESS;
       return sample_data;
     }
@@ -238,44 +256,44 @@ static BoneSampleData sample_data_from_outliner(bContext *C,
 
   /* By comparing the ID of the RNA returned by the outliner with the ID we are searching in, we
    * can determine if the Bone is for the correct armature. */
-  if (sample_data.bone_rna.type == &RNA_Bone) {
+  if (sample_data.bone_rna.type == RNA_Bone) {
     if (bone_id != search_id) {
       sample_data.sample_result = SampleResult::WRONG_ARMATURE;
       return sample_data;
     }
-    Bone *bone = (Bone *)sample_data.bone_rna.data;
+    Bone *bone = static_cast<Bone *>(sample_data.bone_rna.data);
     sample_data.name = bone->name;
     sample_data.sample_result = SampleResult::SUCCESS;
     return sample_data;
   }
 
-  if (sample_data.bone_rna.type == &RNA_EditBone) {
+  if (sample_data.bone_rna.type == RNA_EditBone) {
     if (bone_id != search_id) {
       sample_data.sample_result = SampleResult::WRONG_ARMATURE;
       return sample_data;
     }
-    EditBone *bone = (EditBone *)sample_data.bone_rna.data;
+    EditBone *bone = static_cast<EditBone *>(sample_data.bone_rna.data);
     sample_data.name = bone->name;
     sample_data.sample_result = SampleResult::SUCCESS;
     return sample_data;
   }
 
-  if (sample_data.bone_rna.type == &RNA_PoseBone) {
-    bPoseChannel *pose_bone = (bPoseChannel *)sample_data.bone_rna.data;
+  if (sample_data.bone_rna.type == RNA_PoseBone) {
+    bPoseChannel *pose_bone = static_cast<bPoseChannel *>(sample_data.bone_rna.data);
     /* Special case for pose bones. Because they are not stored in the Armature, the IDs of the
      * search property and the picked result might not match since the comparison would be between
      * armature and object. */
-    if (bdr.search_ptr.type == &RNA_Object) {
+    if (bdr.search_ptr.type == RNA_Object) {
       if (bone_id != search_id) {
         sample_data.sample_result = SampleResult::WRONG_ARMATURE;
         return sample_data;
       }
     }
     /* If looking for an armature, get the Armature object and follow the data pointer. */
-    if (bdr.search_ptr.type == &RNA_Armature) {
+    if (bdr.search_ptr.type == RNA_Armature) {
       /* Expecting Pose Bones to be stored on the object. */
       BLI_assert(GS(sample_data.bone_rna.owner_id->name) == ID_OB);
-      Object *armature_object = (Object *)sample_data.bone_rna.owner_id;
+      Object *armature_object = id_cast<Object *>(sample_data.bone_rna.owner_id);
       if (armature_object->data != bdr.search_ptr.owner_id) {
         sample_data.sample_result = SampleResult::WRONG_ARMATURE;
         return sample_data;
@@ -365,16 +383,16 @@ static SampleResult bonedropper_sample(bContext *C, BoneDropper &bdr, const int 
 
   StructRNA *search_type = RNA_property_pointer_type(&bdr.search_ptr, bdr.search_prop);
   /* In case we are searching for a bone, convert the pointer from bPoseChannel. */
-  if (search_type == &RNA_Bone && sample_data.bone_rna.type == &RNA_PoseBone &&
-      bdr.search_ptr.type == &RNA_Armature)
+  if (search_type == RNA_Bone && sample_data.bone_rna.type == RNA_PoseBone &&
+      bdr.search_ptr.type == RNA_Armature)
   {
     /* We are searching for something in the armature but got a pose bone on the object, so we
      * need to do a conversion. We will just assume the ID under the cursor is the one we are
      * searching for since there is no way to get the armature ID from the object ID that we
      * have. */
-    bPoseChannel *pose_bone = (bPoseChannel *)sample_data.bone_rna.data;
+    bPoseChannel *pose_bone = static_cast<bPoseChannel *>(sample_data.bone_rna.data);
     sample_data.bone_rna = RNA_pointer_create_discrete(
-        bdr.search_ptr.owner_id, &RNA_Bone, pose_bone->bone);
+        bdr.search_ptr.owner_id, RNA_Bone, pose_bone->bone);
   }
 
   PropertyType type = RNA_property_type(bdr.prop);
@@ -429,7 +447,7 @@ static void generate_sample_warning(SampleResult result, wmOperator *op)
 
 static wmOperatorStatus bonedropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  BoneDropper *bdr = (BoneDropper *)op->customdata;
+  BoneDropper *bdr = static_cast<BoneDropper *>(op->customdata);
   if (!bdr) {
     return OPERATOR_CANCELLED;
   }
@@ -475,7 +493,7 @@ static wmOperatorStatus bonedropper_invoke(bContext *C, wmOperator *op, const wm
   if (bonedropper_init(C, op)) {
     wmWindow *win = CTX_wm_window(C);
     /* Workaround for de-activating the button clearing the cursor, see #76794 */
-    UI_context_active_but_clear(C, win, CTX_wm_region(C));
+    context_active_but_clear(C, win, CTX_wm_region(C));
     WM_cursor_modal_set(win, WM_CURSOR_EYEDROPPER);
 
     WM_event_add_modal_handler(C, op);
@@ -516,17 +534,17 @@ static bool bonedropper_poll(bContext *C)
     return false;
   }
 
-  uiBut *but = UI_context_active_but_prop_get(C, &ptr, &prop, &index_dummy);
+  Button *but = context_active_but_prop_get(C, &ptr, &prop, &index_dummy);
 
   if (!but) {
     return false;
   }
 
-  if (but->type != ButType::SearchMenu || !(but->flag & UI_BUT_VALUE_CLEAR)) {
+  if (but->type != ButtonType::SearchMenu || !(but->flag & BUT_VALUE_CLEAR)) {
     return false;
   }
 
-  uiButSearch *search_but = (uiButSearch *)but;
+  ButtonSearch *search_but = static_cast<ButtonSearch *>(but);
 
   if (!ELEM(RNA_property_type(prop), PROP_STRING, PROP_POINTER)) {
     return false;
@@ -535,7 +553,7 @@ static bool bonedropper_poll(bContext *C)
   const StructRNA *type = RNA_property_pointer_type(&search_but->rnasearchpoin,
                                                     search_but->rnasearchprop);
 
-  return type == &RNA_Bone || type == &RNA_EditBone;
+  return type == RNA_Bone || type == RNA_EditBone || type == RNA_PoseBone;
 }
 
 void UI_OT_eyedropper_bone(wmOperatorType *ot)

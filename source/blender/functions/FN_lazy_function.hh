@@ -53,7 +53,8 @@
 #  define FN_LAZY_FUNCTION_DEBUG_THREADS
 #endif
 
-namespace blender::fn::lazy_function {
+namespace blender {
+namespace fn::lazy_function {
 
 enum class ValueUsage : uint8_t {
   /**
@@ -467,8 +468,8 @@ inline void Params::assert_valid_thread() const
 
 /** \} */
 
-}  // namespace blender::fn::lazy_function
+}  // namespace fn::lazy_function
 
-namespace blender {
 namespace lf = fn::lazy_function;
-}
+
+}  // namespace blender

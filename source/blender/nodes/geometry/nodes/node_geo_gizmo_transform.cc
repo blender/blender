@@ -26,7 +26,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryTransformGizmo *storage = MEM_callocN<NodeGeometryTransformGizmo>(__func__);
+  NodeGeometryTransformGizmo *storage = MEM_new<NodeGeometryTransformGizmo>(__func__);
   storage->flag = (GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_X |
                    GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_Y |
                    GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_Z |
@@ -37,28 +37,28 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node->storage = storage;
 }
 
-static void node_layout_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout_ex(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
 
   {
-    uiLayout *row = &layout->column(true, IFACE_("Translation"));
-    row->prop(ptr, "use_translation_x", UI_ITEM_NONE, IFACE_("X"), ICON_NONE);
-    row->prop(ptr, "use_translation_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
-    row->prop(ptr, "use_translation_z", UI_ITEM_NONE, IFACE_("Z"), ICON_NONE);
+    ui::Layout &row = layout.column(true, IFACE_("Translation"));
+    row.prop(ptr, "use_translation_x", UI_ITEM_NONE, IFACE_("X"), ICON_NONE);
+    row.prop(ptr, "use_translation_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
+    row.prop(ptr, "use_translation_z", UI_ITEM_NONE, IFACE_("Z"), ICON_NONE);
   }
   {
-    uiLayout *row = &layout->column(true, IFACE_("Rotation"));
-    row->prop(ptr, "use_rotation_x", UI_ITEM_NONE, IFACE_("X"), ICON_NONE);
-    row->prop(ptr, "use_rotation_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
-    row->prop(ptr, "use_rotation_z", UI_ITEM_NONE, IFACE_("Z"), ICON_NONE);
+    ui::Layout &row = layout.column(true, IFACE_("Rotation"));
+    row.prop(ptr, "use_rotation_x", UI_ITEM_NONE, IFACE_("X"), ICON_NONE);
+    row.prop(ptr, "use_rotation_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
+    row.prop(ptr, "use_rotation_z", UI_ITEM_NONE, IFACE_("Z"), ICON_NONE);
   }
   {
-    uiLayout *row = &layout->column(true, IFACE_("Scale"));
-    row->prop(ptr, "use_scale_x", UI_ITEM_NONE, IFACE_("X"), ICON_NONE);
-    row->prop(ptr, "use_scale_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
-    row->prop(ptr, "use_scale_z", UI_ITEM_NONE, IFACE_("Z"), ICON_NONE);
+    ui::Layout &row = layout.column(true, IFACE_("Scale"));
+    row.prop(ptr, "use_scale_x", UI_ITEM_NONE, IFACE_("X"), ICON_NONE);
+    row.prop(ptr, "use_scale_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
+    row.prop(ptr, "use_scale_z", UI_ITEM_NONE, IFACE_("Z"), ICON_NONE);
   }
 }
 

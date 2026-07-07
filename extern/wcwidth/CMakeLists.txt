@@ -7,7 +7,7 @@ set(INC
 )
 
 set(INC_SYS
-
+  PUBLIC .
 )
 
 set(SRC
@@ -20,3 +20,4 @@ set(LIB
 )
 
 blender_add_lib(extern_wcwidth "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+add_library(bf::extern::wcwidth ALIAS extern_wcwidth)

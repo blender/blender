@@ -18,6 +18,8 @@
 
 HGLRC GHOST_ContextWGL::s_sharedHGLRC = nullptr;
 int GHOST_ContextWGL::s_sharedCount = 0;
+std::list<GHOST_ContextWGL::OffscreenWindowHandle>
+    GHOST_ContextWGL::s_sharedOffscreenWindowHandles;
 
 /* Some third-generation Intel video-cards are constantly bring problems */
 static bool is_crappy_intel_card()
@@ -43,14 +45,31 @@ GHOST_ContextWGL::GHOST_ContextWGL(const GHOST_ContextParams &context_params,
       context_flags_(contextFlags),
       alpha_background_(alphaBackground),
       context_reset_notification_strategy_(contextResetNotificationStrategy),
-      h_GLRC_(nullptr)
+      h_GLRC_(nullptr),
 #ifndef NDEBUG
-      ,
       dummy_vendor_(nullptr),
       dummy_renderer_(nullptr),
-      dummy_version_(nullptr)
+      dummy_version_(nullptr),
 #endif
+      offscreen_window_handle_(nullptr)
 {
+  if (h_wnd_ == nullptr) {
+    /* For offscreen context, OpenGL needs a dummy window to create a context on windows.
+     * Create or reuse an existing one. */
+    for (OffscreenWindowHandle &handle : s_sharedOffscreenWindowHandles) {
+      if (!handle.used) {
+        offscreen_window_handle_ = &handle;
+        break;
+      }
+    }
+    if (offscreen_window_handle_ == nullptr) {
+      offscreen_window_handle_ = &s_sharedOffscreenWindowHandles.emplace_back();
+    }
+    offscreen_window_handle_->used = true;
+    h_wnd_ = offscreen_window_handle_->h_wnd;
+    h_DC_ = offscreen_window_handle_->h_DC;
+  }
+
   assert(h_DC_ != nullptr);
 }
 
@@ -74,6 +93,8 @@ GHOST_ContextWGL::~GHOST_ContextWGL()
     }
   }
 
+  releaseNativeHandles();
+
 #ifndef NDEBUG
   if (dummy_renderer_) {
     free((void *)dummy_renderer_);
@@ -83,7 +104,7 @@ GHOST_ContextWGL::~GHOST_ContextWGL()
 #endif
 }
 
-GHOST_TSuccess GHOST_ContextWGL::swapBuffers()
+GHOST_TSuccess GHOST_ContextWGL::swapBufferRelease()
 {
   return WIN32_CHK(::SwapBuffers(h_DC_)) ? GHOST_kSuccess : GHOST_kFailure;
 }
@@ -616,13 +637,6 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
     }
   }
 
-  {
-    const GHOST_TVSyncModes vsync = getVSync();
-    if (vsync != GHOST_kVSyncModeUnset) {
-      setSwapInterval(int(vsync));
-    }
-  }
-
   s_sharedCount++;
 
   if (s_sharedHGLRC == nullptr) {
@@ -631,6 +645,13 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 
   if (!WIN32_CHK(::wglMakeCurrent(h_DC_, h_GLRC_))) {
     goto error;
+  }
+
+  {
+    const GHOST_TVSyncModes vsync = getVSync();
+    if (vsync != GHOST_kVSyncModeUnset) {
+      setSwapInterval(int(vsync));
+    }
   }
 
   if (is_crappy_intel_card()) {
@@ -671,8 +692,39 @@ GHOST_TSuccess GHOST_ContextWGL::releaseNativeHandles()
   GHOST_TSuccess success = h_GLRC_ != s_sharedHGLRC || s_sharedCount == 1 ? GHOST_kSuccess :
                                                                             GHOST_kFailure;
 
+  if (offscreen_window_handle_) {
+    offscreen_window_handle_->used = false;
+    offscreen_window_handle_ = nullptr;
+  }
+
   h_wnd_ = nullptr;
   h_DC_ = nullptr;
 
   return success;
+}
+
+GHOST_ContextWGL::OffscreenWindowHandle::OffscreenWindowHandle()
+{
+  h_wnd = CreateWindowA("STATIC",
+                        "BlenderGLEW",
+                        WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+                        0,
+                        0,
+                        64,
+                        64,
+                        nullptr,
+                        nullptr,
+                        GetModuleHandle(nullptr),
+                        nullptr);
+  h_DC = GetDC(h_wnd);
+}
+
+GHOST_ContextWGL::OffscreenWindowHandle::~OffscreenWindowHandle()
+{
+  if (h_DC != nullptr) {
+    WIN32_CHK(::ReleaseDC(h_wnd, h_DC));
+  }
+  if (h_wnd != nullptr) {
+    WIN32_CHK(::DestroyWindow(h_wnd));
+  }
 }

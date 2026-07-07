@@ -31,6 +31,9 @@
  *
  * be sure to keep 'bm_iter_itype_htype_map' in sync with any changes
  */
+
+namespace blender {
+
 enum BMIterType {
   BM_VERTS_OF_MESH = 1,
   BM_EDGES_OF_MESH = 2,
@@ -224,14 +227,14 @@ void *BMO_iter_as_arrayN(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
 
 int BM_iter_mesh_bitmap_from_filter(char itype,
                                     BMesh *bm,
-                                    blender::MutableBitSpan bitmap,
+                                    MutableBitSpan bitmap,
                                     bool (*test_fn)(BMElem *, void *user_data),
                                     void *user_data);
 /**
  * Needed when we want to check faces, but return a loop aligned array.
  */
 int BM_iter_mesh_bitmap_from_filter_tessface(BMesh *bm,
-                                             blender::MutableBitSpan bitmap,
+                                             MutableBitSpan bitmap,
                                              bool (*test_fn)(BMFace *, void *user_data),
                                              void *user_data);
 
@@ -278,6 +281,8 @@ BMITER_CB_DEF(edge_of_face);
 BMITER_CB_DEF(loop_of_face);
 
 #undef BMITER_CB_DEF
+
+}  // namespace blender
 
 #include "intern/bmesh_iterators_inline.hh" /* IWYU pragma: export */
 

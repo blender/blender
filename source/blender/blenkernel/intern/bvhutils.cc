@@ -17,7 +17,9 @@
 #include "BKE_mesh.hh"
 #include "BKE_pointcloud.hh"
 
-namespace blender::bke {
+namespace blender {
+
+namespace bke {
 
 /* -------------------------------------------------------------------- */
 /** \name Local Callbacks
@@ -81,7 +83,7 @@ static void mesh_faces_nearest_point(void *userdata,
                                      const float co[3],
                                      BVHTreeNearest *nearest)
 {
-  const BVHTreeFromMesh *data = (BVHTreeFromMesh *)userdata;
+  const BVHTreeFromMesh *data = static_cast<BVHTreeFromMesh *>(userdata);
   const MFace *face = data->face + index;
 
   const float *t0, *t1, *t2, *t3;
@@ -115,7 +117,7 @@ static void mesh_corner_tris_nearest_point(void *userdata,
                                            const float co[3],
                                            BVHTreeNearest *nearest)
 {
-  const BVHTreeFromMesh *data = (BVHTreeFromMesh *)userdata;
+  const BVHTreeFromMesh *data = static_cast<BVHTreeFromMesh *>(userdata);
   const int3 &tri = data->corner_tris[index];
   const float *vtri_co[3] = {
       data->vert_positions[data->corner_verts[tri[0]]],
@@ -146,7 +148,7 @@ static void mesh_faces_spherecast(void *userdata,
                                   const BVHTreeRay *ray,
                                   BVHTreeRayHit *hit)
 {
-  const BVHTreeFromMesh *data = (BVHTreeFromMesh *)userdata;
+  const BVHTreeFromMesh *data = static_cast<BVHTreeFromMesh *>(userdata);
   const MFace *face = &data->face[index];
 
   const float *t0, *t1, *t2, *t3;
@@ -184,7 +186,7 @@ static void mesh_corner_tris_spherecast(void *userdata,
                                         const BVHTreeRay *ray,
                                         BVHTreeRayHit *hit)
 {
-  const BVHTreeFromMesh *data = (BVHTreeFromMesh *)userdata;
+  const BVHTreeFromMesh *data = static_cast<BVHTreeFromMesh *>(userdata);
   const Span<float3> positions = data->vert_positions;
   const int3 &tri = data->corner_tris[index];
   const float *vtri_co[3] = {
@@ -221,7 +223,7 @@ static void mesh_edges_nearest_point(void *userdata,
                                      const float co[3],
                                      BVHTreeNearest *nearest)
 {
-  const BVHTreeFromMesh *data = (BVHTreeFromMesh *)userdata;
+  const BVHTreeFromMesh *data = static_cast<BVHTreeFromMesh *>(userdata);
   const Span<float3> positions = data->vert_positions;
   const int2 edge = data->edges[index];
   float nearest_tmp[3], dist_sq;
@@ -277,7 +279,7 @@ static void mesh_verts_spherecast(void *userdata,
                                   const BVHTreeRay *ray,
                                   BVHTreeRayHit *hit)
 {
-  const BVHTreeFromMesh *data = (BVHTreeFromMesh *)userdata;
+  const BVHTreeFromMesh *data = static_cast<BVHTreeFromMesh *>(userdata);
   const float *v = data->vert_positions[index];
 
   mesh_verts_spherecast_do(index, v, ray, hit);
@@ -294,7 +296,7 @@ static void mesh_edges_spherecast(void *userdata,
                                   const BVHTreeRay *ray,
                                   BVHTreeRayHit *hit)
 {
-  const BVHTreeFromMesh *data = (BVHTreeFromMesh *)userdata;
+  const BVHTreeFromMesh *data = static_cast<BVHTreeFromMesh *>(userdata);
   const Span<float3> positions = data->vert_positions;
   const int2 edge = data->edges[index];
 
@@ -637,11 +639,10 @@ static BitVector<> loose_edges_no_hidden_mask_get(const Mesh &mesh)
   return edge_mask;
 }
 
-}  // namespace blender::bke
+}  // namespace bke
 
-blender::bke::BVHTreeFromMesh Mesh::bvh_loose_verts() const
+bke::BVHTreeFromMesh Mesh::bvh_loose_verts() const
 {
-  using namespace blender;
   using namespace blender::bke;
   const Span<float3> positions = this->vert_positions();
   this->runtime->bvh_cache_loose_verts.ensure([&](std::unique_ptr<BVHTree, BVHTreeDeleter> &data) {
@@ -653,9 +654,8 @@ blender::bke::BVHTreeFromMesh Mesh::bvh_loose_verts() const
   return create_verts_tree_data(this->runtime->bvh_cache_loose_verts.data().get(), positions);
 }
 
-blender::bke::BVHTreeFromMesh Mesh::bvh_loose_no_hidden_verts() const
+bke::BVHTreeFromMesh Mesh::bvh_loose_no_hidden_verts() const
 {
-  using namespace blender;
   using namespace blender::bke;
   const Span<float3> positions = this->vert_positions();
   this->runtime->bvh_cache_loose_verts_no_hidden.ensure(
@@ -668,9 +668,8 @@ blender::bke::BVHTreeFromMesh Mesh::bvh_loose_no_hidden_verts() const
                                 positions);
 }
 
-blender::bke::BVHTreeFromMesh Mesh::bvh_verts() const
+bke::BVHTreeFromMesh Mesh::bvh_verts() const
 {
-  using namespace blender;
   using namespace blender::bke;
   const Span<float3> positions = this->vert_positions();
   this->runtime->bvh_cache_verts.ensure([&](std::unique_ptr<BVHTree, BVHTreeDeleter> &data) {
@@ -679,9 +678,8 @@ blender::bke::BVHTreeFromMesh Mesh::bvh_verts() const
   return create_verts_tree_data(this->runtime->bvh_cache_verts.data().get(), positions);
 }
 
-blender::bke::BVHTreeFromMesh Mesh::bvh_loose_edges() const
+bke::BVHTreeFromMesh Mesh::bvh_loose_edges() const
 {
-  using namespace blender;
   using namespace blender::bke;
   const Span<float3> positions = this->vert_positions();
   const Span<int2> edges = this->edges();
@@ -695,9 +693,8 @@ blender::bke::BVHTreeFromMesh Mesh::bvh_loose_edges() const
       this->runtime->bvh_cache_loose_edges.data().get(), positions, edges);
 }
 
-blender::bke::BVHTreeFromMesh Mesh::bvh_loose_no_hidden_edges() const
+bke::BVHTreeFromMesh Mesh::bvh_loose_no_hidden_edges() const
 {
-  using namespace blender;
   using namespace blender::bke;
   const Span<float3> positions = this->vert_positions();
   const Span<int2> edges = this->edges();
@@ -711,9 +708,8 @@ blender::bke::BVHTreeFromMesh Mesh::bvh_loose_no_hidden_edges() const
       this->runtime->bvh_cache_loose_edges_no_hidden.data().get(), positions, edges);
 }
 
-blender::bke::BVHTreeFromMesh Mesh::bvh_edges() const
+bke::BVHTreeFromMesh Mesh::bvh_edges() const
 {
-  using namespace blender;
   using namespace blender::bke;
   const Span<float3> positions = this->vert_positions();
   const Span<int2> edges = this->edges();
@@ -723,9 +719,8 @@ blender::bke::BVHTreeFromMesh Mesh::bvh_edges() const
   return create_edges_tree_data(this->runtime->bvh_cache_edges.data().get(), positions, edges);
 }
 
-blender::bke::BVHTreeFromMesh Mesh::bvh_legacy_faces() const
+bke::BVHTreeFromMesh Mesh::bvh_legacy_faces() const
 {
-  using namespace blender;
   using namespace blender::bke;
   BLI_assert(!(this->totface_legacy == 0 && this->faces_num != 0));
   Span legacy_faces{
@@ -739,9 +734,8 @@ blender::bke::BVHTreeFromMesh Mesh::bvh_legacy_faces() const
       this->runtime->bvh_cache_faces.data().get(), positions, legacy_faces.data());
 }
 
-blender::bke::BVHTreeFromMesh Mesh::bvh_corner_tris_no_hidden() const
+bke::BVHTreeFromMesh Mesh::bvh_corner_tris_no_hidden() const
 {
-  using namespace blender;
   using namespace blender::bke;
   const Span<float3> positions = this->vert_positions();
   const Span<int> corner_verts = this->corner_verts();
@@ -765,9 +759,8 @@ blender::bke::BVHTreeFromMesh Mesh::bvh_corner_tris_no_hidden() const
                                corner_tris);
 }
 
-blender::bke::BVHTreeFromMesh Mesh::bvh_corner_tris() const
+bke::BVHTreeFromMesh Mesh::bvh_corner_tris() const
 {
-  using namespace blender;
   using namespace blender::bke;
   const Span<float3> positions = this->vert_positions();
   const Span<int> corner_verts = this->corner_verts();
@@ -779,7 +772,7 @@ blender::bke::BVHTreeFromMesh Mesh::bvh_corner_tris() const
       this->runtime->bvh_cache_corner_tris.data().get(), positions, corner_verts, corner_tris);
 }
 
-namespace blender::bke {
+namespace bke {
 
 BVHTreeFromMesh bvhtree_from_mesh_tris_init(const Mesh &mesh, const IndexMask &faces_mask)
 {
@@ -849,11 +842,10 @@ BVHTreeFromPointCloud bvhtree_from_pointcloud_get(const PointCloud &pointcloud,
   return create_pointcloud_tree_data(create_tree_from_verts(positions, points_mask), positions);
 }
 
-}  // namespace blender::bke
+}  // namespace bke
 
-blender::bke::BVHTreeFromPointCloud PointCloud::bvh_tree() const
+bke::BVHTreeFromPointCloud PointCloud::bvh_tree() const
 {
-  using namespace blender;
   using namespace blender::bke;
   const Span<float3> positions = this->positions();
   this->runtime->bvh_cache.ensure([&](std::unique_ptr<BVHTree, BVHTreeDeleter> &data) {
@@ -863,3 +855,5 @@ blender::bke::BVHTreeFromPointCloud PointCloud::bvh_tree() const
 }
 
 /** \} */
+
+}  // namespace blender

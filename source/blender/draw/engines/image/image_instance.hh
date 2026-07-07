@@ -97,8 +97,13 @@ class Instance : public DrawEngine {
     /* Setup the matrix to go from screen UV coordinates to UV texture space coordinates. */
     float image_resolution[2] = {image_buffer ? image_buffer->x : 1024.0f,
                                  image_buffer ? image_buffer->y : 1024.0f};
-    space_->init_ss_to_texture_matrix(
-        region, state.image->runtime->backdrop_offset, image_resolution, state.ss_to_texture);
+    float2 offset = float2(0.0f);
+    if (image_buffer && space_->use_display_window() &&
+        (image_buffer->flags & IB_has_display_window))
+    {
+      offset = float2(image_buffer->display_offset);
+    }
+    space_->init_ss_to_texture_matrix(region, offset, image_resolution, state.ss_to_texture);
 
     const Scene *scene = DRW_context_get()->scene;
     state.sh_params.update(space_.get(), scene, state.image, image_buffer);

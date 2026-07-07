@@ -28,8 +28,7 @@
 #include "ED_object.hh"
 #include "ED_screen.hh"
 
-using blender::Array;
-using blender::Vector;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Generic Utilities
@@ -169,7 +168,7 @@ struct ObCustomData_ForEditMode {
   ValueInteraction inter;
 
   /** This could be split into a sub-type if we support different kinds of data. */
-  blender::Array<std::unique_ptr<blender::ed::object::XFormObjectData>> objects_xform;
+  Array<std::unique_ptr<ed::object::XFormObjectData>> objects_xform;
 };
 
 /* Internal callback to free. */
@@ -187,9 +186,9 @@ static void op_generic_value_exit(wmOperator *op)
 static void op_generic_value_restore(wmOperator *op)
 {
   ObCustomData_ForEditMode *cd = static_cast<ObCustomData_ForEditMode *>(op->customdata);
-  for (std::unique_ptr<blender::ed::object::XFormObjectData> &xod : cd->objects_xform) {
-    blender::ed::object::data_xform_restore(*xod);
-    blender::ed::object::data_xform_tag_update(*xod);
+  for (std::unique_ptr<ed::object::XFormObjectData> &xod : cd->objects_xform) {
+    ed::object::data_xform_restore(*xod);
+    ed::object::data_xform_tag_update(*xod);
   }
 }
 
@@ -225,8 +224,7 @@ static wmOperatorStatus op_generic_value_invoke(bContext *C, wmOperator *op, con
   cd->objects_xform.reinitialize(objects.size());
   for (const int i : objects.index_range()) {
     Object *obedit = objects[i];
-    cd->objects_xform[i] = blender::ed::object::data_xform_create_from_edit_mode(
-        static_cast<ID *>(obedit->data));
+    cd->objects_xform[i] = ed::object::data_xform_create_from_edit_mode(obedit->data);
   }
 
   op->customdata = cd;
@@ -339,3 +337,5 @@ void WM_operator_type_modal_from_exec_for_object_edit_coords(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

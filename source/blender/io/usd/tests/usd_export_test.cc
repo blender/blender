@@ -45,7 +45,7 @@ const StringRefNull materials_filename = "usd/usd_materials_export.blend";
 const StringRefNull output_filename = "output.usd";
 
 static const bNode *find_node_for_type_in_graph(const bNodeTree *nodetree,
-                                                const blender::StringRefNull type_idname);
+                                                const StringRefNull type_idname);
 
 class UsdExportTest : public BlendfileLoadingBaseTest {
  protected:
@@ -103,7 +103,7 @@ class UsdExportTest : public BlendfileLoadingBaseTest {
     ASSERT_TRUE(bool(bsdf_prim));
 
     for (const auto *socket : bsdf_node->input_sockets()) {
-      const pxr::TfToken attribute_token = blender::io::usd::token_for_input(socket->name);
+      const pxr::TfToken attribute_token = io::usd::token_for_input(socket->name);
       if (attribute_token.IsEmpty()) {
         /* This socket is not translated between Blender and USD. */
         continue;
@@ -210,7 +210,6 @@ TEST_F(UsdExportTest, usd_export_rain_mesh)
   params.export_materials = false;
   params.export_normals = true;
   params.export_uvmaps = false;
-  params.visible_objects_only = true;
 
   bool result = USD_export(context, output_filename.c_str(), &params, false, nullptr);
   ASSERT_TRUE(result) << "Writing to " << output_filename << " failed!";
@@ -221,9 +220,9 @@ TEST_F(UsdExportTest, usd_export_rain_mesh)
   /*
    * Run the mesh comparison for all Meshes in the original scene.
    */
-  LISTBASE_FOREACH (Object *, object, &bfile->main->objects) {
-    const Mesh *mesh = static_cast<Mesh *>(object->data);
-    const StringRefNull object_name(object->id.name + 2);
+  for (Object &object : bfile->main->objects) {
+    const Mesh *mesh = id_cast<Mesh *>(object.data);
+    const StringRefNull object_name(object.id.name + 2);
 
     const pxr::SdfPath sdf_path("/" + pxr::TfMakeValidIdentifier(object_name.c_str()));
     pxr::UsdPrim prim = stage->GetPrimAtPath(sdf_path);
@@ -237,7 +236,7 @@ TEST_F(UsdExportTest, usd_export_rain_mesh)
 }
 
 static const bNode *find_node_for_type_in_graph(const bNodeTree *nodetree,
-                                                const blender::StringRefNull type_idname)
+                                                const StringRefNull type_idname)
 {
   auto found_nodes = nodetree->nodes_by_type(type_idname);
   if (found_nodes.size() == 1) {
@@ -319,13 +318,16 @@ TEST(utilities, make_safe_name)
   ASSERT_EQ(make_safe_name("1", false), std::string("_1"));
   ASSERT_EQ(make_safe_name("1Test", false), std::string("_1Test"));
 
+  ASSERT_EQ(make_safe_name(":", false), std::string("_"));
+  ASSERT_EQ(make_safe_name("test:", false), std::string("test_"));
+  ASSERT_EQ(make_safe_name(":test", false), std::string("_test"));
+  ASSERT_EQ(make_safe_name("test:test", false), std::string("test_test"));
+
   ASSERT_EQ(make_safe_name("Test", false), std::string("Test"));
-  ASSERT_EQ(make_safe_name("Test|$bézier @ world", false), std::string("Test__b__zier___world"));
-  ASSERT_EQ(make_safe_name("Test|ハローワールド", false),
-            std::string("Test______________________"));
-  ASSERT_EQ(make_safe_name("Test|Γεια σου κόσμε", false),
-            std::string("Test___________________________"));
-  ASSERT_EQ(make_safe_name("Test|∧hello ○ wórld", false), std::string("Test____hello_____w__rld"));
+  ASSERT_EQ(make_safe_name("Test|$bézier @ world", false), std::string("Test__b_zier___world"));
+  ASSERT_EQ(make_safe_name("Test|ハローワールド", false), std::string("Test________"));
+  ASSERT_EQ(make_safe_name("Test|Γεια σου κόσμε", false), std::string("Test_______________"));
+  ASSERT_EQ(make_safe_name("Test|∧hello ○ wórld", false), std::string("Test__hello___w_rld"));
 
   /* Unicode variations. */
   ASSERT_EQ(make_safe_name("", true), std::string("_"));
@@ -333,11 +335,51 @@ TEST(utilities, make_safe_name)
   ASSERT_EQ(make_safe_name("1", true), std::string("_1"));
   ASSERT_EQ(make_safe_name("1Test", true), std::string("_1Test"));
 
+  ASSERT_EQ(make_safe_name(":", true), std::string("_"));
+  ASSERT_EQ(make_safe_name("test:", true), std::string("test_"));
+  ASSERT_EQ(make_safe_name(":test", true), std::string("_test"));
+  ASSERT_EQ(make_safe_name("test:test", true), std::string("test_test"));
+
   ASSERT_EQ(make_safe_name("Test", true), std::string("Test"));
   ASSERT_EQ(make_safe_name("Test|$bézier @ world", true), std::string("Test__bézier___world"));
   ASSERT_EQ(make_safe_name("Test|ハローワールド", true), std::string("Test_ハローワールド"));
   ASSERT_EQ(make_safe_name("Test|Γεια σου κόσμε", true), std::string("Test_Γεια_σου_κόσμε"));
   ASSERT_EQ(make_safe_name("Test|∧hello ○ wórld", true), std::string("Test__hello___wórld"));
+}
+
+TEST(utilities, make_safe_primvar_name)
+{
+  /* ASCII variations. */
+  ASSERT_EQ(make_safe_primvar_name("", false), std::string("_"));
+  ASSERT_EQ(make_safe_primvar_name("|", false), std::string("_"));
+  ASSERT_EQ(make_safe_primvar_name("1", false), std::string("_1"));
+  ASSERT_EQ(make_safe_primvar_name("1Test", false), std::string("_1Test"));
+
+  ASSERT_EQ(make_safe_primvar_name(":", false), std::string("_:_"));
+  ASSERT_EQ(make_safe_primvar_name("test:", false), std::string("test:_"));
+  ASSERT_EQ(make_safe_primvar_name(":test", false), std::string("_:test"));
+  ASSERT_EQ(make_safe_primvar_name("test:test", false), std::string("test:test"));
+  ASSERT_EQ(make_safe_primvar_name("1test:2test", false), std::string("_1test:_2test"));
+
+  ASSERT_EQ(make_safe_primvar_name("tést", false), std::string("t_st"));
+  ASSERT_EQ(make_safe_primvar_name("tést:tést", false), std::string("t_st:t_st"));
+  ASSERT_EQ(make_safe_primvar_name("tést:tést:tést", false), std::string("t_st:t_st:t_st"));
+
+  /* Unicode variations. */
+  ASSERT_EQ(make_safe_primvar_name("", true), std::string("_"));
+  ASSERT_EQ(make_safe_primvar_name("|", true), std::string("_"));
+  ASSERT_EQ(make_safe_primvar_name("1", true), std::string("_1"));
+  ASSERT_EQ(make_safe_primvar_name("1Test", true), std::string("_1Test"));
+
+  ASSERT_EQ(make_safe_primvar_name(":", true), std::string("_:_"));
+  ASSERT_EQ(make_safe_primvar_name("test:", true), std::string("test:_"));
+  ASSERT_EQ(make_safe_primvar_name(":test", true), std::string("_:test"));
+  ASSERT_EQ(make_safe_primvar_name("test:test", true), std::string("test:test"));
+  ASSERT_EQ(make_safe_primvar_name("1test:2test", true), std::string("_1test:_2test"));
+
+  ASSERT_EQ(make_safe_primvar_name("tést", true), std::string("tést"));
+  ASSERT_EQ(make_safe_primvar_name("tést:tést", true), std::string("tést:tést"));
+  ASSERT_EQ(make_safe_primvar_name("tést:tést:tést", true), std::string("tést:tést:tést"));
 }
 
 }  // namespace blender::io::usd

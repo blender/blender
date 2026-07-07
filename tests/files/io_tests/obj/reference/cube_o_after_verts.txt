@@ -2,6 +2,16 @@
 - Mesh 'ActualCube' vtx:8 face:6 loop:24 edge:12
     - 3 2 1 0 0 ... 0 4 5 6 7 
     - 0/3 2/3 1/2 0/1 0/4 ... 2/6 5/6 3/7 6/7 4/7 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (-1.000, -1.000, 1.000)
     - (-1.000, 1.000, 1.000)
@@ -12,38 +22,28 @@
     - (1.000, -1.000, -1.000)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 0 0 0 0 0 ... 0 0 0 0 0 
-  - attr 'material_index' INT FACE
-    - 0 0 0 0 0 0 
   - attr 'sharp_face' BOOLEAN FACE
     - 0 0 0 0 0 0 
-  - attr 'custom_normal' INT16_2D CORNER
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
-      ...
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
   - 1 materials
     - 'red' 
 
 - Mesh 'SparseTri' vtx:3 face:1 loop:3 edge:3
     - 2 0 1 
     - 1/2 0/2 0/1 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'material_index' INT FACE
+    - 0 
   - attr 'position' FLOAT_VECTOR POINT
     - (1.000, -1.000, 1.000)
     - (-1.000, -1.000, -1.000)
     - (-2.000, -2.000, 2.000)
   - attr 'sharp_edge' BOOLEAN EDGE
     - 0 0 0 
-  - attr 'material_index' INT FACE
-    - 0 
   - attr 'sharp_face' BOOLEAN FACE
     - 0 
-  - attr 'custom_normal' INT16_2D CORNER
-    - (0, 0)
-    - (0, 0)
-    - (0, 0)
   - 1 materials
     - 'blue' 
 

@@ -12,12 +12,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
 #include "BLI_kdopbvh.hh"
 #include "BLI_linklist_stack.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_memarena.h"
 #include "BLI_sort_utils.h"
 #include "BLI_utildefines_stack.h"
@@ -27,6 +27,8 @@
 
 #include "bmesh.hh"
 #include "intern/bmesh_private.hh"
+
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Face Split Edge-Net
@@ -413,11 +415,12 @@ static bool bm_face_split_edgenet_find_loop(BMVert *v_init,
                                             /* cache to avoid realloc every time */
                                             VertOrder *edge_order,
                                             const uint edge_order_len,
-                                            BMVert **r_face_verts,
-                                            int *r_face_verts_len)
+                                            BMVert **face_verts,
+                                            BMEdge **face_edges,
+                                            int *r_face_verts_len,
+                                            bool *r_check_face_exists)
 {
   BMEdge *e_pair[2];
-  BMVert *v;
 
   if (!bm_face_split_edgenet_find_loop_pair(v_init, face_normal, face_normal_matrix, e_pair)) {
     return false;
@@ -426,30 +429,55 @@ static bool bm_face_split_edgenet_find_loop(BMVert *v_init,
   BLI_assert((bm_edge_flagged_radial_count(e_pair[0]) == 1) ||
              (bm_edge_flagged_radial_count(e_pair[1]) == 1));
 
-  if (bm_face_split_edgenet_find_loop_walk(
+  if (!bm_face_split_edgenet_find_loop_walk(
           v_init, face_normal, edge_order, edge_order_len, e_pair))
   {
-    uint i = 0;
-
-    r_face_verts[i++] = v_init;
-    v = BM_edge_other_vert(e_pair[1], v_init);
-    do {
-      r_face_verts[i++] = v;
-    } while ((v = BM_edge_other_vert(v->e, v)) != v_init);
-    *r_face_verts_len = i;
-    return (i > 2) ? true : false;
+    return false;
   }
-  return false;
+
+  /* Skip redundant checks for existing faces if *any* edges are wire. */
+  bool check_face_exists = true;
+
+  BMVert *v = BM_edge_other_vert(e_pair[1], v_init);
+  int i = 0;
+  face_verts[i] = v_init;
+  face_edges[i] = e_pair[1];
+  if (check_face_exists && BM_edge_is_wire(face_edges[i])) {
+    check_face_exists = false;
+  }
+  i++;
+
+  do {
+    face_verts[i] = v;
+    face_edges[i] = v->e;
+    if (check_face_exists && BM_edge_is_wire(face_edges[i])) {
+      check_face_exists = false;
+    }
+    i++;
+  } while ((v = BM_edge_other_vert(v->e, v)) != v_init);
+
+  if (i < 3) {
+    return false;
+  }
+
+#ifndef NDEBUG
+  for (int j = 0, j_prev = i - 1; j < i; j_prev = j++) {
+    BLI_assert(face_edges[j_prev] == BM_edge_exists(face_verts[j], face_verts[j_prev]));
+  }
+#endif
+
+  *r_face_verts_len = i;
+
+  *r_check_face_exists = check_face_exists;
+  return true;
 }
 
-bool BM_face_split_edgenet(BMesh *bm,
-                           BMFace *f,
-                           BMEdge **edge_net,
-                           const int edge_net_len,
-                           blender::Vector<BMFace *> *r_face_arr)
+bool BM_face_split_edgenet(
+    BMesh *bm, BMFace *f, BMEdge **edge_net, const int edge_net_len, Vector<BMFace *> *r_face_arr)
 {
   /* re-use for new face verts */
   BMVert **face_verts;
+  BMEdge **face_edges;
   int face_verts_len;
 
   BMVert **vert_queue;
@@ -474,14 +502,13 @@ bool BM_face_split_edgenet(BMesh *bm,
    * large for single faces with complex edge-nets, see: #65980. */
 
   /* over-alloc (probably 2-4 is only used in most cases), for the biggest-fan */
-  edge_order = MEM_malloc_arrayN<VertOrder>(edge_order_len, __func__);
+  edge_order = MEM_new_array_uninitialized<VertOrder>(edge_order_len, __func__);
 
   /* use later */
-  face_verts = static_cast<BMVert **>(
-      MEM_mallocN(sizeof(*face_verts) * (edge_net_len + f->len), __func__));
+  face_verts = MEM_new_array_uninitialized<BMVert *>(edge_net_len + f->len, __func__);
+  face_edges = MEM_new_array_uninitialized<BMEdge *>(edge_net_len + f->len, __func__);
 
-  vert_queue = static_cast<BMVert **>(
-      MEM_mallocN(sizeof(vert_queue) * (edge_net_len + f->len), __func__));
+  vert_queue = MEM_new_array_uninitialized<BMVert *>(edge_net_len + f->len, __func__);
   STACK_INIT(vert_queue, f->len + edge_net_len);
 
   BLI_assert(BM_ELEM_API_FLAG_TEST(f, FACE_NET) == 0);
@@ -522,21 +549,35 @@ bool BM_face_split_edgenet(BMesh *bm,
   STACK_PUSH(vert_queue, l_first->v);
   BM_ELEM_API_FLAG_ENABLE(l_first->v, VERT_IN_QUEUE);
 
-  blender::Vector<BMFace *> face_arr;
+  Vector<BMFace *> face_arr;
   while ((v = STACK_POP(vert_queue))) {
+    bool check_face_exists = false;
     BM_ELEM_API_FLAG_DISABLE(v, VERT_IN_QUEUE);
-    if (bm_face_split_edgenet_find_loop(
-            v, f->no, face_normal_matrix, edge_order, edge_order_len, face_verts, &face_verts_len))
+    if (bm_face_split_edgenet_find_loop(v,
+                                        f->no,
+                                        face_normal_matrix,
+                                        edge_order,
+                                        edge_order_len,
+                                        face_verts,
+                                        face_edges,
+                                        &face_verts_len,
+                                        &check_face_exists))
     {
-      BMFace *f_new;
+      BMFace *f_new = nullptr;
 
-      f_new = BM_face_create_verts(bm, face_verts, face_verts_len, f, BM_CREATE_NOP, false);
-
+      if (UNLIKELY(check_face_exists && BM_face_exists(face_verts, face_verts_len))) {
+        /* Should only happen in unexpected/degenerate cases, see: #150360. */
+      }
+      else {
+        BLI_assert(!BM_face_exists(face_verts, face_verts_len));
+        f_new = BM_face_create(bm, face_verts, face_edges, face_verts_len, f, BM_CREATE_NOP);
+      }
       for (i = 0; i < edge_net_len; i++) {
         BLI_assert(BM_ELEM_API_FLAG_TEST(edge_net[i], EDGE_NET));
       }
 
       if (f_new) {
+        BLI_assert(f != f_new);
         face_arr.append(f_new);
         copy_v3_v3(f_new->no, f->no);
 
@@ -571,9 +612,11 @@ bool BM_face_split_edgenet(BMesh *bm,
     BMLoop *l_other;
 
     /* See: #BM_loop_interp_from_face for similar logic. */
-    void **blocks = BLI_array_alloca(blocks, f->len);
-    float(*cos_2d)[2] = BLI_array_alloca(cos_2d, f->len);
-    float *w = BLI_array_alloca(w, f->len);
+    Array<void *, BM_DEFAULT_NGON_STACK_SIZE> blocks_buf(f->len);
+    Array<float2, BM_DEFAULT_NGON_STACK_SIZE> cos_2d_buf(f->len);
+    Array<float, BM_DEFAULT_NGON_STACK_SIZE> w(f->len);
+    void **blocks = blocks_buf.data();
+    float (*cos_2d)[2] = reinterpret_cast<float (*)[2]>(cos_2d_buf.data());
     float axis_mat[3][3];
     float co[2];
 
@@ -611,9 +654,9 @@ bool BM_face_split_edgenet(BMesh *bm,
             if (BM_ELEM_API_FLAG_TEST(l_iter->f, FACE_NET)) {
               if (l_first == nullptr) {
                 mul_v2_m3v3(co, axis_mat, v->co);
-                interp_weights_poly_v2(w, cos_2d, f->len, co);
+                interp_weights_poly_v2(w.data(), cos_2d, f->len, co);
                 CustomData_bmesh_interp(
-                    &bm->ldata, (const void **)blocks, w, f->len, l_iter->head.data);
+                    &bm->ldata, (const void **)blocks, w.data(), f->len, l_iter->head.data);
                 l_first = l_iter;
               }
               else {
@@ -657,9 +700,10 @@ bool BM_face_split_edgenet(BMesh *bm,
     *r_face_arr = std::move(face_arr);
   }
 
-  MEM_freeN(edge_order);
-  MEM_freeN(face_verts);
-  MEM_freeN(vert_queue);
+  MEM_delete(edge_order);
+  MEM_delete(face_verts);
+  MEM_delete(face_edges);
+  MEM_delete(vert_queue);
 
   return true;
 }
@@ -748,8 +792,8 @@ struct EdgeGroupIsland {
 
 static int group_min_cmp_fn(const void *p1, const void *p2)
 {
-  const EdgeGroupIsland *g1 = *(EdgeGroupIsland **)p1;
-  const EdgeGroupIsland *g2 = *(EdgeGroupIsland **)p2;
+  const EdgeGroupIsland *g1 = *static_cast<EdgeGroupIsland **>(const_cast<void *>(p1));
+  const EdgeGroupIsland *g2 = *static_cast<EdgeGroupIsland **>(const_cast<void *>(p2));
   /* min->co[SORT_AXIS] hasn't been applied yet */
   int test = axis_pt_cmp(g1->vert_span.min_axis, g2->vert_span.min_axis);
   if (UNLIKELY(test == 0)) {
@@ -1015,7 +1059,9 @@ static int bm_face_split_edgenet_find_connection(const EdgeGroup_FindConnection_
              (e_hit = test_edges_isect_2d_vert(args, v_origin, v_other)));
 
     if (v_other == nullptr) {
+#ifdef DEBUG_PRINT
       printf("Using fallback\n");
+#endif
       v_other = v_other_fallback;
     }
 
@@ -1042,7 +1088,7 @@ static int bm_face_split_edgenet_find_connection(const EdgeGroup_FindConnection_
  */
 static bool test_tagged_and_notface(BMEdge *e, void *fptr)
 {
-  BMFace *f = (BMFace *)fptr;
+  BMFace *f = static_cast<BMFace *>(fptr);
   return BM_elem_flag_test(e, BM_ELEM_INTERNAL_TAG) && !BM_edge_in_face(e, f);
 }
 
@@ -1333,7 +1379,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
       g->edge_len = unique_edges_in_group;
       edge_in_group_tot += unique_edges_in_group;
 
-      BLI_linklist_prepend_nlink(&group_head, edge_links, (LinkNode *)g);
+      BLI_linklist_prepend_nlink(&group_head, edge_links, reinterpret_cast<LinkNode *>(g));
 
       group_arr_len++;
 
@@ -1352,7 +1398,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
   /* Declare here because of `goto` below. */
   BMEdge **edge_net_new = nullptr;
   BVHTree *bvhtree = nullptr;
-  float(*vert_coords_backup)[3] = nullptr;
+  float (*vert_coords_backup)[3] = nullptr;
   uint *verts_group_table = nullptr;
   BMVert **vert_arr = nullptr;
   uint vert_arr_len = 0;
@@ -1381,14 +1427,14 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
     /* fill 'groups_arr' in reverse order so the boundary face is first */
     EdgeGroupIsland **group_arr_p = &group_arr[group_arr_len];
 
-    for (EdgeGroupIsland *g = static_cast<EdgeGroupIsland *>((void *)group_head); g;
-         g = (EdgeGroupIsland *)g->edge_links.next)
+    for (EdgeGroupIsland *g = static_cast<EdgeGroupIsland *>(static_cast<void *>(group_head)); g;
+         g = reinterpret_cast<EdgeGroupIsland *>(g->edge_links.next))
     {
       LinkNode *edge_links = static_cast<LinkNode *>(g->edge_links.link);
 
       /* init with *any* different verts */
-      g->vert_span.min = ((BMEdge *)edge_links->link)->v1;
-      g->vert_span.max = ((BMEdge *)edge_links->link)->v2;
+      g->vert_span.min = (static_cast<BMEdge *>(edge_links->link))->v1;
+      g->vert_span.max = (static_cast<BMEdge *>(edge_links->link))->v2;
       float min_axis[2] = {FLT_MAX, FLT_MAX};
       float max_axis[2] = {-FLT_MAX, -FLT_MAX};
 
@@ -1403,11 +1449,11 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
            * but we need to sort the groups before setting the vertex array order */
           const float axis_value[2] = {
 #if SORT_AXIS == 0
-            dot_m3_v3_row_x(axis_mat, v_iter->co),
-            dot_m3_v3_row_y(axis_mat, v_iter->co),
+              dot_m3_v3_row_x(axis_mat, v_iter->co),
+              dot_m3_v3_row_y(axis_mat, v_iter->co),
 #else
-            dot_m3_v3_row_y(axis_mat, v_iter->co),
-            dot_m3_v3_row_x(axis_mat, v_iter->co),
+              dot_m3_v3_row_y(axis_mat, v_iter->co),
+              dot_m3_v3_row_x(axis_mat, v_iter->co),
 #endif
           };
 
@@ -1442,7 +1488,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
   verts_group_table = static_cast<uint *>(
       BLI_memarena_alloc(mem_arena, sizeof(*verts_group_table) * vert_arr_len));
 
-  vert_coords_backup = static_cast<float(*)[3]>(
+  vert_coords_backup = static_cast<float (*)[3]>(
       BLI_memarena_alloc(mem_arena, sizeof(*vert_coords_backup) * vert_arr_len));
 
   {
@@ -1496,7 +1542,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
         {UNPACK2(edge_arr[i]->v1->co), 0.0f},
         {UNPACK2(edge_arr[i]->v2->co), 0.0f},
     };
-    BLI_bvhtree_insert(bvhtree, i, (const float *)e_cos, 2);
+    BLI_bvhtree_insert(bvhtree, i, reinterpret_cast<const float *>(e_cos), 2);
   }
   BLI_bvhtree_balance(bvhtree);
 
@@ -1566,14 +1612,17 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
 #endif
           {
             BMVert *v_end = vert_arr[index_other];
-
-            edge_net_new[edge_net_new_index] = BM_edge_create(
-                bm, v_origin, v_end, nullptr, eBMCreateFlag(0));
+            /* Doubles should not be present in the common case,
+             * see the complex test file from: #150360. */
+            if ((edge_net_new[edge_net_new_index] = BM_edge_create(
+                     bm, v_origin, v_end, nullptr, BM_CREATE_NO_DOUBLE)))
+            {
 #ifdef USE_PARTIAL_CONNECT
-            BM_elem_index_set(edge_net_new[edge_net_new_index], edge_net_new_index);
+              BM_elem_index_set(edge_net_new[edge_net_new_index], edge_net_new_index);
 #endif
-            edge_net_new_index++;
-            args.edge_arr_new_len++;
+              edge_net_new_index++;
+              args.edge_arr_new_len++;
+            }
           }
         }
       }
@@ -1593,13 +1642,17 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
 #endif
           {
             BMVert *v_end = vert_arr[index_other];
-            edge_net_new[edge_net_new_index] = BM_edge_create(
-                bm, v_origin, v_end, nullptr, eBMCreateFlag(0));
+            /* Doubles should not be present in the common case,
+             * see the complex test file from: #150360. */
+            if ((edge_net_new[edge_net_new_index] = BM_edge_create(
+                     bm, v_origin, v_end, nullptr, BM_CREATE_NO_DOUBLE)))
+            {
 #ifdef USE_PARTIAL_CONNECT
-            BM_elem_index_set(edge_net_new[edge_net_new_index], edge_net_new_index);
+              BM_elem_index_set(edge_net_new[edge_net_new_index], edge_net_new_index);
 #endif
-            edge_net_new_index++;
-            args.edge_arr_new_len++;
+              edge_net_new_index++;
+              args.edge_arr_new_len++;
+            }
           }
 
           /* tell the 'next' group it doesn't need to create its own back-link */
@@ -1644,7 +1697,9 @@ finally:
     do {
       /* its _very_ unlikely the edge exists,
        * however splicing may cause this. see: #48012 */
-      if (!BM_edge_exists(tvp->v_orig, tvp->v_temp)) {
+      if (!BM_edge_exists(tvp->v_orig, tvp->v_temp) &&
+          !BM_vert_splice_check_double_face(tvp->v_orig, tvp->v_temp))
+      {
         BM_vert_splice(bm, tvp->v_orig, tvp->v_temp);
       }
     } while ((tvp = tvp->next));
@@ -1682,3 +1737,5 @@ finally:
 #undef SORT_AXIS
 
 /** \} */
+
+}  // namespace blender

@@ -7,7 +7,6 @@
 #include "GHOST_ContextIOS.hh"
 #include "GHOST_SystemIOS.hh"
 
-#include "GHOST_C-api.h"
 #include "GHOST_Debug.hh"
 #include "GHOST_EventButton.hh"
 #include "GHOST_EventCursor.hh"
@@ -458,74 +457,67 @@ typedef struct UserInputEvent {
 
       switch (event_type) {
         case UserInputEvent::EventTypes::CURSOR_MOVE:
-          system->pushEvent(
-              new GHOST_EventCursor(GHOST_GetMilliSeconds((GHOST_SystemHandle)system),
-                                    GHOST_kEventCursorMove,
-                                    window,
-                                    event_info.location.x,
-                                    event_info.location.y,
-                                    tablet_data));
+          system->pushEvent(std::make_unique<GHOST_EventCursor>(system->getMilliSeconds(),
+                                                                GHOST_kEventCursorMove,
+                                                                window,
+                                                                event_info.location.x,
+                                                                event_info.location.y,
+                                                                tablet_data));
           break;
         case UserInputEvent::EventTypes::PAN_GESTURE:
-          system->pushEvent(
-              new GHOST_EventTrackpad(GHOST_GetMilliSeconds((GHOST_SystemHandle)system),
-                                      window,
-                                      GHOST_kTrackpadEventScroll,
-                                      event_info.location.x,
-                                      event_info.location.y,
-                                      event_info.translation.x,
-                                      event_info.translation.y,
-                                      false,
-                                      1));
+          system->pushEvent(std::make_unique<GHOST_EventTrackpad>(system->getMilliSeconds(),
+                                                                  window,
+                                                                  GHOST_kTrackpadEventScroll,
+                                                                  event_info.location.x,
+                                                                  event_info.location.y,
+                                                                  event_info.translation.x,
+                                                                  event_info.translation.y,
+                                                                  false,
+                                                                  1));
           break;
         case UserInputEvent::EventTypes::PAN_GESTURE_TWO_FINGERS:
-          system->pushEvent(
-              new GHOST_EventTrackpad(GHOST_GetMilliSeconds((GHOST_SystemHandle)system),
-                                      window,
-                                      GHOST_kTrackpadEventScroll,
-                                      event_info.location.x,
-                                      event_info.location.y,
-                                      event_info.translation.x,
-                                      event_info.translation.y,
-                                      true,
-                                      2));
+          system->pushEvent(std::make_unique<GHOST_EventTrackpad>(system->getMilliSeconds(),
+                                                                  window,
+                                                                  GHOST_kTrackpadEventScroll,
+                                                                  event_info.location.x,
+                                                                  event_info.location.y,
+                                                                  event_info.translation.x,
+                                                                  event_info.translation.y,
+                                                                  true,
+                                                                  2));
           break;
         case UserInputEvent::EventTypes::LEFT_BUTTON_DOWN:
-          system->pushEvent(
-              new GHOST_EventButton(GHOST_GetMilliSeconds((GHOST_SystemHandle)system),
-                                    GHOST_kEventButtonDown,
-                                    window,
-                                    GHOST_kButtonMaskLeft,
-                                    tablet_data));
+          system->pushEvent(std::make_unique<GHOST_EventButton>(system->getMilliSeconds(),
+                                                                GHOST_kEventButtonDown,
+                                                                window,
+                                                                GHOST_kButtonMaskLeft,
+                                                                tablet_data));
           break;
         case UserInputEvent::EventTypes::LEFT_BUTTON_UP:
-          system->pushEvent(
-              new GHOST_EventButton(GHOST_GetMilliSeconds((GHOST_SystemHandle)system),
-                                    GHOST_kEventButtonUp,
-                                    window,
-                                    GHOST_kButtonMaskLeft,
-                                    tablet_data));
+          system->pushEvent(std::make_unique<GHOST_EventButton>(system->getMilliSeconds(),
+                                                                GHOST_kEventButtonUp,
+                                                                window,
+                                                                GHOST_kButtonMaskLeft,
+                                                                tablet_data));
           break;
         case UserInputEvent::EventTypes::PINCH_GESTURE:
-          system->pushEvent(
-              new GHOST_EventTrackpad(GHOST_GetMilliSeconds((GHOST_SystemHandle)system),
-                                      window,
-                                      GHOST_kTrackpadEventMagnify,
-                                      event_info.location.x,
-                                      event_info.location.y,
-                                      event_info.distance,
-                                      0,
-                                      false,
-                                      2));
+          system->pushEvent(std::make_unique<GHOST_EventTrackpad>(system->getMilliSeconds(),
+                                                                  window,
+                                                                  GHOST_kTrackpadEventMagnify,
+                                                                  event_info.location.x,
+                                                                  event_info.location.y,
+                                                                  event_info.distance,
+                                                                  0,
+                                                                  false,
+                                                                  2));
           break;
         case UserInputEvent::EventTypes::PENCIL_TAP:
           /* Simulate clicking with the right mouse button. */
-          system->pushEvent(
-              new GHOST_EventButton(GHOST_GetMilliSeconds((GHOST_SystemHandle)system),
-                                    GHOST_kEventButtonDown,
-                                    window,
-                                    GHOST_kButtonMaskRight,
-                                    tablet_data));
+          system->pushEvent(std::make_unique<GHOST_EventButton>(system->getMilliSeconds(),
+                                                                GHOST_kEventButtonDown,
+                                                                window,
+                                                                GHOST_kButtonMaskRight,
+                                                                tablet_data));
           break;
         default:
           GHOST_ASSERT(FALSE, "GHOST_SystemIOS::generateUserInputEvents unsupported event type");
@@ -643,8 +635,8 @@ typedef struct UserInputEvent {
   touch_point.x *= scale;
   touch_point.y *= scale;
 
-  system->pushEvent(new GHOST_Event(
-      GHOST_GetMilliSeconds((GHOST_SystemHandle)system), GHOST_kEventTwoFingerTap, window));
+  system->pushEvent(
+      std::make_unique<GHOST_Event>(system->getMilliSeconds(), GHOST_kEventTwoFingerTap, window));
 }
 
 - (void)handleTap3F:(GHOSTUITapGestureRecognizer *)sender
@@ -658,8 +650,8 @@ typedef struct UserInputEvent {
   touch_point.x *= scale;
   touch_point.y *= scale;
 
-  system->pushEvent(new GHOST_Event(
-      GHOST_GetMilliSeconds((GHOST_SystemHandle)system), GHOST_kEventThreeFingerTap, window));
+  system->pushEvent(std::make_unique<GHOST_Event>(
+      system->getMilliSeconds(), GHOST_kEventThreeFingerTap, window));
 }
 
 - (void)handleTap4F:(GHOSTUITapGestureRecognizer *)sender
@@ -673,8 +665,8 @@ typedef struct UserInputEvent {
   touch_point.x *= scale;
   touch_point.y *= scale;
 
-  system->pushEvent(new GHOST_Event(
-      GHOST_GetMilliSeconds((GHOST_SystemHandle)system), GHOST_kEventFourFingerTap, window));
+  system->pushEvent(
+      std::make_unique<GHOST_Event>(system->getMilliSeconds(), GHOST_kEventFourFingerTap, window));
 }
 
 - (void)handlePan:(GHOSTUIPanGestureRecognizer *)sender
@@ -777,7 +769,7 @@ typedef struct UserInputEvent {
     return;
   }
 
-  system->pushEvent(new GHOST_EventTouch(
+  system->pushEvent(std::make_unique<GHOST_EventTouch>(
       system->getMilliSeconds(), window, ghostEventType, location.x, location.y));
 }
 
@@ -922,12 +914,8 @@ typedef struct UserInputEvent {
      This event should cause ui_textedit_end() to be called which will
      hide the keyboard.
      */
-    system->pushEvent(new GHOST_EventKey(GHOST_GetMilliSeconds((GHOST_SystemHandle)system),
-                                         GHOST_kEventKeyDown,
-                                         window,
-                                         GHOST_kKeyEnter,
-                                         false,
-                                         nullptr));
+    system->pushEvent(std::make_unique<GHOST_EventKey>(
+        system->getMilliSeconds(), GHOST_kEventKeyDown, window, GHOST_kKeyEnter, false, nullptr));
   }
   else {
     IOS_INPUT_LOG(@"Ignoring handleKeyboardReturn %@", text_field.text);
@@ -962,12 +950,12 @@ typedef struct UserInputEvent {
     bool push_edits_back_to_blender = false;
 
     if (push_edits_back_to_blender) {
-      system->pushEvent(new GHOST_EventKey(GHOST_GetMilliSeconds((GHOST_SystemHandle)system),
-                                           GHOST_kEventKeyDown,
-                                           window,
-                                           GHOST_kKeyTextEdit,
-                                           false,
-                                           nullptr));
+      system->pushEvent(std::make_unique<GHOST_EventKey>(system->getMilliSeconds(),
+                                                         GHOST_kEventKeyDown,
+                                                         window,
+                                                         GHOST_kKeyTextEdit,
+                                                         false,
+                                                         nullptr));
     }
   }
 }
@@ -1528,7 +1516,7 @@ void *GHOST_WindowIOS::getOSWindow() const
   return (void *)uiview_;
 }
 
-GHOST_TSuccess GHOST_WindowIOS::swapBuffers()
+GHOST_TSuccess GHOST_WindowIOS::swapBufferRelease()
 {
   deferred_swap_buffers_count++;
   return GHOST_kSuccess;
@@ -1557,7 +1545,7 @@ void GHOST_WindowIOS::flushDeferredSwapBuffers()
                    deferred_swap_buffers_count);
 
     GHOST_ContextIOS *context = reinterpret_cast<GHOST_ContextIOS *>(getContext());
-    context->swapBuffers();
+    context->swapBufferRelease();
     deferred_swap_buffers_count = 0;
   }
 }

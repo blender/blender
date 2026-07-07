@@ -17,7 +17,9 @@
 
 #include "gpu_capabilities_private.hh"
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 
 GPUCapabilities GCaps = {};
 
@@ -39,11 +41,22 @@ int GPU_max_texture_3d_size()
   return GCaps.max_texture_3d_size;
 }
 
+uint32_t GPU_max_buffer_texture_size()
+{
+  return GCaps.max_buffer_texture_size;
+}
+
 int GPU_texture_size_with_limit(int res)
 {
   int size = GPU_max_texture_size();
   int reslimit = (U.glreslimit != 0) ? min_ii(U.glreslimit, size) : size;
   return min_ii(reslimit, res);
+}
+
+bool GPU_is_safe_texture_size(int width, int height)
+{
+  const int max_texture_size = GPU_max_texture_size();
+  return size_t(width) * height <= size_t(max_texture_size) * max_texture_size / 4;
 }
 
 int GPU_max_texture_layers()
@@ -151,12 +164,6 @@ bool GPU_use_main_context_workaround()
   return GCaps.use_main_context_workaround;
 }
 
-bool GPU_crappy_amd_driver()
-{
-  /* Currently are the same drivers with the `unused_fb_slot` problem. */
-  return GCaps.broken_amd_driver;
-}
-
 bool GPU_use_hq_normals_workaround()
 {
   return GCaps.use_hq_normals_workaround;
@@ -195,6 +202,11 @@ int GPU_max_compute_shader_storage_blocks()
 int GPU_minimum_per_vertex_stride()
 {
   return GCaps.minimum_per_vertex_stride;
+}
+
+size_t GPU_max_uniform_buffer_size()
+{
+  return GCaps.max_uniform_buffer_size;
 }
 
 size_t GPU_max_storage_buffer_size()
@@ -241,3 +253,5 @@ void GPU_compilation_subprocess_override_set(int count)
 }
 
 /** \} */
+
+}  // namespace blender

@@ -32,6 +32,8 @@
 
 #include "RE_texture.h"
 
+namespace blender {
+
 static RNG_THREAD_ARRAY *random_tex_array;
 
 void RE_texture_rng_init()
@@ -1106,3 +1108,5 @@ bool RE_texture_evaluate(const MTex *mtex,
 
   return (rgb != 0);
 }
+
+}  // namespace blender

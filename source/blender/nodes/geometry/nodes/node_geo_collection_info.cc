@@ -27,7 +27,7 @@ NODE_STORAGE_FUNCS(NodeGeometryCollectionInfo)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Collection>("Collection").hide_label();
+  b.add_input<decl::Collection>("Collection").optional_label();
   b.add_input<decl::Bool>("Separate Children")
       .description(
           "Output each child of the collection as a separate instance, sorted alphabetically");
@@ -40,14 +40,14 @@ static void node_declare(NodeDeclarationBuilder &b)
           "Instance of the collection or instances of all the children in the collection");
 }
 
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "transform_space", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "transform_space", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }
 
 static void node_node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryCollectionInfo *data = MEM_callocN<NodeGeometryCollectionInfo>(__func__);
+  NodeGeometryCollectionInfo *data = MEM_new<NodeGeometryCollectionInfo>(__func__);
   data->transform_space = GEO_NODE_TRANSFORM_SPACE_ORIGINAL;
   node->storage = data;
 }
@@ -93,12 +93,12 @@ static void node_geo_exec(GeoNodeExecParams params)
   if (separate_children) {
     const bool reset_children = params.extract_input<bool>("Reset Children");
     Vector<Collection *> children_collections;
-    LISTBASE_FOREACH (CollectionChild *, collection_child, &collection->children) {
-      children_collections.append(collection_child->collection);
+    for (CollectionChild &collection_child : collection->children) {
+      children_collections.append(collection_child.collection);
     }
     Vector<Object *> children_objects;
-    LISTBASE_FOREACH (CollectionObject *, collection_object, &collection->gobject) {
-      children_objects.append(collection_object->ob);
+    for (CollectionObject &collection_object : collection->gobject) {
+      children_objects.append(collection_object.ob);
     }
 
     Vector<InstanceListEntry> entries;
@@ -133,13 +133,16 @@ static void node_geo_exec(GeoNodeExecParams params)
       entries.append({handle, &(child_object->id.name[2]), transform});
     }
 
-    std::sort(entries.begin(),
-              entries.end(),
-              [](const InstanceListEntry &a, const InstanceListEntry &b) {
-                return BLI_strcasecmp_natural(a.name, b.name) < 0;
-              });
-    for (const InstanceListEntry &entry : entries) {
-      instances->add_instance(entry.handle, entry.transform);
+    std::ranges::sort(entries, [](const InstanceListEntry &a, const InstanceListEntry &b) {
+      return BLI_strcasecmp_natural(a.name, b.name) < 0;
+    });
+
+    instances->resize(entries.size());
+    MutableSpan<int> handles = instances->reference_handles_for_write();
+    MutableSpan<float4x4> transforms = instances->transforms_for_write();
+    for (const int i : entries.index_range()) {
+      handles[i] = entries[i].handle;
+      transforms[i] = entries[i].transform;
     }
   }
   else {
@@ -149,10 +152,11 @@ static void node_geo_exec(GeoNodeExecParams params)
       transform = self_object->world_to_object() * transform;
     }
 
-    const int handle = instances->add_reference(*collection);
-    instances->add_instance(handle, transform);
+    instances->resize(1);
+    instances->reference_handles_for_write().first() = instances->add_reference(*collection);
+    instances->transforms_for_write().first() = transform;
   }
-  GeometrySet geometry = GeometrySet::from_instances(instances.release());
+  GeometrySet geometry = GeometrySet::from_instances(std::move(instances));
   geometry.name = collection->id.name + 2;
 
   params.set_output("Instances", std::move(geometry));
@@ -188,7 +192,7 @@ static void node_rna(StructRNA *srna)
 
 static void node_register()
 {
-  static blender::bke::bNodeType ntype;
+  static bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, "GeometryNodeCollectionInfo", GEO_NODE_COLLECTION_INFO);
   ntype.ui_name = "Collection Info";
@@ -197,11 +201,11 @@ static void node_register()
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = node_declare;
   ntype.initfunc = node_node_init;
-  blender::bke::node_type_storage(
+  bke::node_type_storage(
       ntype, "NodeGeometryCollectionInfo", node_free_standard_storage, node_copy_standard_storage);
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
-  blender::bke::node_register_type(ntype);
+  bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

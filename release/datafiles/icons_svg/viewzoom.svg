@@ -1,1 +1,21 @@
-<svg height="1600" viewBox="0 0 1600 1600" width="1600" xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"><sodipodi:namedview pagecolor="#303030" showgrid="true"><inkscape:grid id="grid5" units="px" spacingx="100" spacingy="100" color="#4772b3" opacity="0.2" visible="true" /></sodipodi:namedview><g fill="#fff"><path d="m99 599c-2.74773 0-5 2.25226-5 5 0 1.1945.441488 2.28163 1.148438 3.14453l-5.001954 5.00195a.50005.50005 0 1 0 .707032.70704l5.001953-5.00196c.8629.70695 1.950034 1.14844 3.144531 1.14844 2.74773 0 5-2.25227 5-5 0-2.74774-2.25227-5-5-5zm0 1c2.20227 0 4 1.79773 4 4 0 2.20226-1.79773 4-4 4s-4-1.79774-4-4c0-2.20227 1.79773-4 4-4z" transform="matrix(100 0 0 100 -8899.6439 -59800.356)"/></g></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   height="1600"
+   viewBox="0 0 1600 1600"
+   width="1600"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     fill="#ffffff"
+     id="g1"
+     transform="matrix(-1,0,0,1,1599.9999,0)">
+    <path
+       d="m 99,599 c -2.74773,0 -5,2.25226 -5,5 0,1.1945 0.441488,2.28163 1.148438,3.14453 l -5.001954,5.00195 a 0.50005,0.50005 0 1 0 0.707032,0.70704 l 5.001953,-5.00196 C 96.718369,608.55851 97.805503,609 99,609 c 2.74773,0 5,-2.25227 5,-5 0,-2.74774 -2.25227,-5 -5,-5 z m 0,1 c 2.20227,0 4,1.79773 4,4 0,2.20226 -1.79773,4 -4,4 -2.20227,0 -4,-1.79774 -4,-4 0,-2.20227 1.79773,-4 4,-4 z"
+       transform="matrix(100,0,0,100,-8899.6439,-59800.356)"
+       id="path1" />
+  </g>
+</svg>

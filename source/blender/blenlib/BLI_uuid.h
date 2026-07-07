@@ -21,6 +21,8 @@
 #include <iosfwd>
 #include <string>
 
+namespace blender {
+
 /**
  * UUID generator for random (version 4) UUIDs. See RFC4122 section 4.4.
  * This function is not thread-safe. */
@@ -57,23 +59,21 @@ bool BLI_uuid_parse_string(bUUID *uuid, const char *buffer) ATTR_NONNULL();
 /** Output the UUID as formatted ASCII string, see #BLI_uuid_format(). */
 std::ostream &operator<<(std::ostream &stream, bUUID uuid);
 
-namespace blender {
-
-class bUUID : public ::bUUID {
+class UUID : public bUUID {
  public:
   /**
    * Default constructor, used with `bUUID value{};`, will initialize to the nil UUID.
    */
-  bUUID() = default;
+  UUID() = default;
 
   /** Initialize from the bUUID DNA struct. */
-  bUUID(const ::bUUID &struct_uuid);
+  UUID(const bUUID &struct_uuid);
 
   /** Initialize from 11 integers, 5 for the regular fields and 6 for the `node` array. */
-  bUUID(std::initializer_list<uint32_t> field_values);
+  UUID(std::initializer_list<uint32_t> field_values);
 
   /** Initialize by parsing the string; undefined behavior when the string is invalid. */
-  explicit bUUID(StringRefNull string_formatted_uuid);
+  explicit UUID(StringRefNull string_formatted_uuid);
 
   /** Return the UUID as formatted ASCII string, see #BLI_uuid_format(). */
   std::string str() const;
@@ -81,12 +81,12 @@ class bUUID : public ::bUUID {
   uint64_t hash() const;
 };  // namespace blender
 
-bool operator==(bUUID uuid1, bUUID uuid2);
-bool operator!=(bUUID uuid1, bUUID uuid2);
+bool operator==(UUID uuid1, UUID uuid2);
+bool operator!=(UUID uuid1, UUID uuid2);
 
 /**
  * Lexicographic comparison of the UUIDs.
  * Equivalent to string comparison on the formatted UUIDs. */
-bool operator<(bUUID uuid1, bUUID uuid2);
+bool operator<(UUID uuid1, UUID uuid2);
 
 }  // namespace blender

@@ -24,7 +24,9 @@
 
 #include "vk_common.hh"
 
-namespace blender::gpu {
+namespace blender {
+
+namespace gpu {
 
 class VKDevice;
 
@@ -45,11 +47,10 @@ struct VKDescriptorSetLayoutInfo {
   };
 };
 
-};  // namespace blender::gpu
+};  // namespace gpu
 
-namespace blender {
 /**
- * Default hash for blender::gpu::VKDescriptorSetLayoutInfo.
+ * Default hash for gpu::VKDescriptorSetLayoutInfo.
  *
  * NOTE: DefaultHash needs to be implemented in namespace `blender`.
  */
@@ -63,27 +64,8 @@ template<> struct DefaultHash<gpu::VKDescriptorSetLayoutInfo> {
     return hash;
   }
 };
-}  // namespace blender
 
-namespace blender::gpu {
-
-struct VKDescriptorBufferLayout {
-  /**
-   * Total size of the descriptor buffer.
-   *
-   * Size is aligned to
-   * VkPhysicalDeviceDescriptorBufferProperties.descriptorBufferOffsetAlignment.
-   */
-  VkDeviceSize size;
-
-  /**
-   * Offsets of each binding inside the buffer.
-   *
-   * Offsets are aligned to
-   * VkPhysicalDeviceDescriptorBufferProperties.descriptorBufferOffsetAlignment.
-   */
-  Vector<VkDeviceSize> binding_offsets;
-};
+namespace gpu {
 
 /**
  * Registries of descriptor set layouts.
@@ -96,7 +78,6 @@ class VKDescriptorSetLayouts : NonCopyable {
    * Map containing all created descriptor set layouts.
    */
   Map<VKDescriptorSetLayoutInfo, VkDescriptorSetLayout> vk_descriptor_set_layouts_;
-  Map<VkDescriptorSetLayout, VKDescriptorBufferLayout> descriptor_buffer_layouts_;
 
   /**
    * Reusable descriptor set layout create info.
@@ -120,23 +101,6 @@ class VKDescriptorSetLayouts : NonCopyable {
                                       bool &r_needed);
 
   /**
-   * Return the descriptor buffer layout offsets and alignment for the given
-   * vk_descriptor_set_layout handle.
-   *
-   * A copy of the buffer layout is returned due to other threads can alter the location of the
-   * items.
-   *
-   * This function has undefined behavior when descriptor buffers extension isn't enabled on the
-   * VKDevice.
-   */
-  VKDescriptorBufferLayout descriptor_buffer_layout_get(
-      VkDescriptorSetLayout vk_descriptor_set_layout)
-  {
-    std::scoped_lock lock(mutex_);
-    return descriptor_buffer_layouts_.lookup(vk_descriptor_set_layout);
-  }
-
-  /**
    * Free all descriptor set layouts.
    *
    * This method is called when the VKDevice is destroyed.
@@ -153,10 +117,7 @@ class VKDescriptorSetLayouts : NonCopyable {
 
  private:
   void update_layout_bindings(const VKDescriptorSetLayoutInfo &info);
-  VKDescriptorBufferLayout create_descriptor_buffer_layout(
-      const VKDevice &device,
-      const VKDescriptorSetLayoutInfo &info,
-      VkDescriptorSetLayout vk_descriptor_set_layout) const;
 };
 
-}  // namespace blender::gpu
+}  // namespace gpu
+}  // namespace blender

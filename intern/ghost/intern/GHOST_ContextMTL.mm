@@ -21,6 +21,7 @@
 #import <QuartzCore/QuartzCore.h>
 
 #include <cassert>
+#include <mutex>
 #include <vector>
 
 static const MTLPixelFormat METAL_FRAMEBUFFERPIXEL_FORMAT_EDR = MTLPixelFormatRGBA16Float;
@@ -121,6 +122,10 @@ GHOST_ContextMTL::GHOST_ContextMTL(const GHOST_ContextParams &context_params,
 
 GHOST_ContextMTL::~GHOST_ContextMTL()
 {
+  /* Multiple threads can release their own context at the same time. */
+  static std::mutex mutex;
+  std::scoped_lock lock(mutex);
+
   metalFree();
 
   if (owns_metal_device_) {
@@ -138,7 +143,7 @@ GHOST_ContextMTL::~GHOST_ContextMTL()
   }
 }
 
-GHOST_TSuccess GHOST_ContextMTL::swapBuffers()
+GHOST_TSuccess GHOST_ContextMTL::swapBufferRelease()
 {
   if (metal_view_) {
     metalSwapBuffers();
@@ -211,6 +216,12 @@ void GHOST_ContextMTL::metalRegisterPresentCallback(void (*callback)(
     MTLRenderPassDescriptor *, id<MTLRenderPipelineState>, id<MTLTexture>, id<CAMetalDrawable>))
 {
   this->contextPresentCallback = callback;
+}
+
+void GHOST_ContextMTL::metalRegisterXrBlitCallback(
+    void (*callback)(id<MTLTexture>, int, int, int, int))
+{
+  this->xrBlitCallback = callback;
 }
 
 GHOST_TSuccess GHOST_ContextMTL::initializeDrawingContext()
@@ -353,10 +364,9 @@ void GHOST_ContextMTL::metalInitFramebuffer()
 void GHOST_ContextMTL::metalUpdateFramebuffer()
 {
   @autoreleasepool {
-    const NSRect bounds = [metal_view_ bounds];
-    const NSSize backingSize = [metal_view_ convertSizeToBacking:bounds.size];
-    const size_t width = size_t(backingSize.width);
-    const size_t height = size_t(backingSize.height);
+    const NSSize drawableSize = metal_layer_.drawableSize;
+    const size_t width = size_t(drawableSize.width);
+    const size_t height = size_t(drawableSize.height);
 
     if (default_framebuffer_metal_texture_[current_swapchain_index].texture &&
         default_framebuffer_metal_texture_[current_swapchain_index].texture.width == width &&

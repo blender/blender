@@ -16,6 +16,7 @@ import bpy
 from bpy.app.translations import (
     contexts as i18n_contexts,
     pgettext_iface as iface_,
+    pgettext_rpt as rpt_,
 )
 
 
@@ -106,9 +107,12 @@ def draw_km(display_keymaps, kc, km, children, layout, level):
             # "Add New" at end of keymap item list
             subcol = _indented_layout(col, kmi_level)
             subcol = subcol.split(factor=0.2).column()
-            subcol.operator("preferences.keyitem_add", text="Add New", text_ctxt=i18n_contexts.id_windowmanager,
-                            icon='ADD')
-
+            subcol.operator(
+                "preferences.keyitem_add",
+                text="Add New",
+                text_ctxt=i18n_contexts.id_windowmanager,
+                icon='ADD',
+            )
             col.separator()
 
         # Child key maps
@@ -152,7 +156,7 @@ def draw_kmi(display_keymaps, kc, km, kmi, layout, level):
             row.label(text="(Unassigned)")
         else:
             row.alert = True
-            row.label(text="{:s} (unavailable)".format(kmi.idname), icon='WARNING_LARGE')
+            row.label(text=rpt_("{:s} (unavailable)").format(kmi.idname), icon='WARNING_LARGE', translate=False)
 
     row = split.row()
     row.prop(kmi, "map_type", text="")
@@ -278,8 +282,10 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
         if not _EVENT_TYPES:
             enum = bpy.types.Event.bl_rna.properties["type"].enum_items
             _EVENT_TYPES.update(enum.keys())
-            _EVENT_TYPE_MAP.update({item.name.replace(" ", "_").upper(): key
-                                    for key, item in enum.items()})
+            _EVENT_TYPE_MAP.update({
+                item.name.replace(" ", "_").upper(): key
+                for key, item in enum.items()
+            })
 
             del enum
             _EVENT_TYPE_MAP_EXTRA.update({
@@ -398,9 +404,11 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
             col = layout.column()
 
             row = col.row(align=True)
-            row.label(text=km.name, icon='DOT',
-                      text_ctxt=i18n_contexts.id_windowmanager)
-
+            row.label(
+                text=km.name,
+                icon='DOT',
+                text_ctxt=i18n_contexts.id_windowmanager,
+            )
             if km.is_user_modified:
                 subrow = row.row()
                 subrow.alignment = 'RIGHT'

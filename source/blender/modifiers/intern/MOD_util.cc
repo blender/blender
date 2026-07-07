@@ -33,6 +33,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 void MOD_init_texture(MappingInfoModifierData *dmd, const ModifierEvalContext *ctx)
 {
   Tex *tex = dmd->texture;
@@ -55,7 +57,6 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
 {
   /* TODO: to be renamed to `get_texture_coords` once we are done with moving modifiers to Mesh. */
 
-  using namespace blender;
   const int verts_num = mesh->verts_num;
   int i;
   int texmapping = dmd->texmapping;
@@ -86,13 +87,14 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
 
   /* UVs need special handling, since they come from faces */
   if (texmapping == MOD_DISP_MAP_UV) {
-    if (CustomData_has_layer(&mesh->corner_data, CD_PROP_FLOAT2)) {
+    const VectorSet<StringRefNull> uv_map_names = mesh->uv_map_names();
+    if (!uv_map_names.is_empty()) {
       const OffsetIndices faces = mesh->faces();
       const Span<int> corner_verts = mesh->corner_verts();
       BLI_bitmap *done = BLI_BITMAP_NEW(verts_num, __func__);
-      char uvname[MAX_CUSTOMDATA_LAYER_NAME];
-      CustomData_validate_layer_name(
-          &mesh->corner_data, CD_PROP_FLOAT2, dmd->uvlayer_name, uvname);
+      const StringRef uvname = uv_map_names.contains(dmd->uvlayer_name) ?
+                                   dmd->uvlayer_name :
+                                   mesh->active_uv_map_name();
       const bke::AttributeAccessor attributes = mesh->attributes();
       const VArraySpan uv_map = *attributes.lookup_or_default<float2>(
           uvname, bke::AttrDomain::Corner, float2(0));
@@ -111,7 +113,7 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
         }
       }
 
-      MEM_freeN(done);
+      MEM_delete(done);
       return;
     }
 
@@ -142,9 +144,9 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
 void MOD_previous_vcos_store(ModifierData *md, const float (*vert_coords)[3])
 {
   while ((md = md->next) && md->type == eModifierType_Armature) {
-    ArmatureModifierData *amd = (ArmatureModifierData *)md;
+    ArmatureModifierData *amd = reinterpret_cast<ArmatureModifierData *>(md);
     if (amd->multi && amd->vert_coords_prev == nullptr) {
-      amd->vert_coords_prev = static_cast<float(*)[3]>(MEM_dupallocN(vert_coords));
+      amd->vert_coords_prev = MEM_dupalloc(vert_coords);
     }
     else {
       break;
@@ -289,3 +291,5 @@ void modifier_type_init(ModifierTypeInfo *types[])
   INIT_TYPE(GreasePencilTexture);
 #undef INIT_TYPE
 }
+
+}  // namespace blender

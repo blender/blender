@@ -17,6 +17,7 @@
 #endif
 
 #include <atomic>
+#include <iosfwd>
 
 CCL_NAMESPACE_BEGIN
 

@@ -11,17 +11,12 @@ __all__ = (
 )
 
 
-import sys
-if sys.version_info.major < 3:
-    print("\nPython3.x or newer needed, found %s.\nAborting!\n" %
-          sys.version.partition(" ")[0])
-    sys.exit(1)
-
-
 import os
-from os.path import join, dirname, normpath, abspath
-
+import shlex
 import subprocess
+import sys
+
+from os.path import join, dirname, normpath, abspath
 
 from typing import (
     Any,
@@ -32,8 +27,6 @@ from collections.abc import (
     Iterator,
     Sequence,
 )
-
-import shlex
 
 
 SOURCE_DIR = join(dirname(__file__), "..", "..")

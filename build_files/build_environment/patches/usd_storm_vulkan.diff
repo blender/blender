@@ -1,8 +1,8 @@
 diff --git a/pxr/imaging/hdSt/renderDelegate.cpp b/pxr/imaging/hdSt/renderDelegate.cpp
-index 2e34715d2..329933383 100644
+index 8e81f3804..b171ac540 100644
 --- a/pxr/imaging/hdSt/renderDelegate.cpp
 +++ b/pxr/imaging/hdSt/renderDelegate.cpp
-@@ -541,7 +541,10 @@ HdStRenderDelegate::CommitResources(HdChangeTracker *tracker)
+@@ -549,7 +549,10 @@ HdStRenderDelegate::CommitResources(HdChangeTracker *tracker)
  bool
  HdStRenderDelegate::IsSupported()
  {

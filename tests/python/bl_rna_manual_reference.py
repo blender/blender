@@ -17,7 +17,7 @@ VERBOSE = False
 
 
 def test_data():
-    import rna_manual_reference
+    import _rna_manual_reference as rna_manual_reference
 
     assert isinstance(rna_manual_reference.url_manual_mapping, tuple)
     for i, value in enumerate(rna_manual_reference.url_manual_mapping):
@@ -37,7 +37,7 @@ def lookup_rna_url(rna_id, visit_indices):
     A local version of ``WM_OT_doc_view_manual._lookup_rna_url``
     that tracks which matches are found.
     """
-    import rna_manual_reference
+    import _rna_manual_reference as rna_manual_reference
     from fnmatch import fnmatchcase
     rna_id = rna_id.lower()
     for i, (pattern, url_suffix) in enumerate(rna_manual_reference.url_manual_mapping):
@@ -51,7 +51,7 @@ def lookup_rna_url(rna_id, visit_indices):
 def test_lookup_coverage():
 
     def rna_ids():
-        import rna_info
+        import _rna_info as rna_info
         struct = rna_info.BuildRNAInfo()[0]
         for struct_id, v in sorted(struct.items()):
             props = [(prop.identifier, prop) for prop in v.properties]
@@ -96,7 +96,7 @@ def test_lookup_coverage():
     print("---------------------------------------")
     print("Unused RNA Patterns Known to the Manual")
 
-    import rna_manual_reference
+    import _rna_manual_reference as rna_manual_reference
     for i, (pattern, url_suffix) in enumerate(rna_manual_reference.url_manual_mapping):
         if i not in visit_indices:
             print(pattern, url_suffix)
@@ -118,7 +118,7 @@ def test_language_coverage():
 def test_urls():
     import os
     import sys
-    import rna_manual_reference
+    import _rna_manual_reference as rna_manual_reference
 
     import urllib.error
     from urllib.request import urlopen

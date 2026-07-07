@@ -47,7 +47,7 @@ float4 fetch_data(int2 texel, uchar layer)
    * classification shader. */
   layer = min(layer, 9999);
 #endif
-  return texelFetch(sampler_get(eevee_gbuffer_data, gbuf_closure_tx), int3(texel, layer), 0);
+  return texelFetch(sampler_get(eevee_gbuffer_data, gbuf_closure_tx), int3(texel, int(layer)), 0);
 }
 
 float4 fetch_normal(int2 texel, uchar layer)
@@ -57,7 +57,7 @@ float4 fetch_normal(int2 texel, uchar layer)
    * classification shader. */
   layer = min(layer, 9999);
 #endif
-  return texelFetch(sampler_get(eevee_gbuffer_data, gbuf_normal_tx), int3(texel, layer), 0);
+  return texelFetch(sampler_get(eevee_gbuffer_data, gbuf_normal_tx), int3(texel, int(layer)), 0);
 }
 
 float4 fetch_additional_data(int2 texel)

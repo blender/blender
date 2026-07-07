@@ -16,6 +16,8 @@
 #include "file_intern.hh"
 #include "filelist.hh"
 
+namespace blender {
+
 const char *file_context_dir[] = {
     "active_file",
     "selected_files",
@@ -53,7 +55,7 @@ int /*eContextResult*/ file_context(const bContext *C,
       return CTX_RESULT_NO_DATA;
     }
 
-    CTX_data_pointer_set(result, &screen->id, &RNA_FileSelectEntry, file);
+    CTX_data_pointer_set(result, &screen->id, RNA_FileSelectEntry, file);
     return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "selected_files")) {
@@ -62,11 +64,11 @@ int /*eContextResult*/ file_context(const bContext *C,
     for (int file_index = 0; file_index < num_files_filtered; file_index++) {
       if (filelist_entry_is_selected(sfile->files, file_index)) {
         FileDirEntry *entry = filelist_file(sfile->files, file_index);
-        CTX_data_list_add(result, &screen->id, &RNA_FileSelectEntry, entry);
+        CTX_data_list_add(result, &screen->id, RNA_FileSelectEntry, entry);
       }
     }
 
-    CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+    CTX_data_type_set(result, ContextDataType::Collection);
     return CTX_RESULT_OK;
   }
 
@@ -77,7 +79,7 @@ int /*eContextResult*/ file_context(const bContext *C,
     }
 
     CTX_data_pointer_set(
-        result, &screen->id, &RNA_AssetLibraryReference, &asset_params->asset_library_ref);
+        result, &screen->id, RNA_AssetLibraryReference, &asset_params->asset_library_ref);
     return CTX_RESULT_OK;
   }
 
@@ -87,7 +89,7 @@ int /*eContextResult*/ file_context(const bContext *C,
       return CTX_RESULT_NO_DATA;
     }
 
-    CTX_data_pointer_set(result, nullptr, &RNA_AssetRepresentation, file->asset);
+    CTX_data_pointer_set(result, nullptr, RNA_AssetRepresentation, file->asset);
     return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "selected_assets")) {
@@ -97,12 +99,12 @@ int /*eContextResult*/ file_context(const bContext *C,
       if (filelist_entry_is_selected(sfile->files, file_index)) {
         FileDirEntry *entry = filelist_file(sfile->files, file_index);
         if (entry->asset) {
-          CTX_data_list_add(result, nullptr, &RNA_AssetRepresentation, entry->asset);
+          CTX_data_list_add(result, nullptr, RNA_AssetRepresentation, entry->asset);
         }
       }
     }
 
-    CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+    CTX_data_type_set(result, ContextDataType::Collection);
     return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "id")) {
@@ -134,9 +136,11 @@ int /*eContextResult*/ file_context(const bContext *C,
       CTX_data_id_list_add(result, id);
     }
 
-    CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+    CTX_data_type_set(result, ContextDataType::Collection);
     return CTX_RESULT_OK;
   }
 
   return CTX_RESULT_MEMBER_NOT_FOUND;
 }
+
+}  // namespace blender

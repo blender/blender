@@ -34,9 +34,9 @@
  *   \code{.c}
  *   #
  *   #
- *   typedef struct MyStruct {
+ *   struct MyStruct {
  *       int value;
- *   } MyStruct;
+ *   };
  *   \endcode
  *
  *   Ignored structs can only be referred to from non-ignored structs

@@ -15,6 +15,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender {
+
 struct ZstdReader {
   FileReader reader;
 
@@ -96,8 +98,8 @@ static bool zstd_read_seek_table(ZstdReader *zstd)
   }
 
   zstd->seek.frames_num = frames_num;
-  zstd->seek.compressed_ofs = MEM_malloc_arrayN<size_t>(frames_num + 1, __func__);
-  zstd->seek.uncompressed_ofs = MEM_malloc_arrayN<size_t>(frames_num + 1, __func__);
+  zstd->seek.compressed_ofs = MEM_new_array_uninitialized<size_t>(frames_num + 1, __func__);
+  zstd->seek.uncompressed_ofs = MEM_new_array_uninitialized<size_t>(frames_num + 1, __func__);
 
   size_t compressed_ofs = 0;
   size_t uncompressed_ofs = 0;
@@ -119,8 +121,8 @@ static bool zstd_read_seek_table(ZstdReader *zstd)
 
   /* Seek to the end of the previous frame for the following #BHead frame detection. */
   if (seek_frame_start != compressed_ofs || base->seek(base, seek_frame_start, SEEK_SET) < 0) {
-    MEM_freeN(zstd->seek.compressed_ofs);
-    MEM_freeN(zstd->seek.uncompressed_ofs);
+    MEM_delete(zstd->seek.compressed_ofs);
+    MEM_delete(zstd->seek.uncompressed_ofs);
     memset(&zstd->seek, 0, sizeof(zstd->seek));
     return false;
   }
@@ -162,27 +164,27 @@ static const char *zstd_ensure_cache(ZstdReader *zstd, int frame)
   }
 
   /* Cached frame doesn't match, so discard it and cache the wanted one instead. */
-  MEM_SAFE_FREE(zstd->seek.cached_content);
+  MEM_SAFE_DELETE(zstd->seek.cached_content);
 
   size_t compressed_size = zstd->seek.compressed_ofs[frame + 1] - zstd->seek.compressed_ofs[frame];
   size_t uncompressed_size = zstd->seek.uncompressed_ofs[frame + 1] -
                              zstd->seek.uncompressed_ofs[frame];
 
-  char *uncompressed_data = MEM_malloc_arrayN<char>(uncompressed_size, __func__);
-  char *compressed_data = MEM_malloc_arrayN<char>(compressed_size, __func__);
+  char *uncompressed_data = MEM_new_array_uninitialized<char>(uncompressed_size, __func__);
+  char *compressed_data = MEM_new_array_uninitialized<char>(compressed_size, __func__);
   if (zstd->base->seek(zstd->base, zstd->seek.compressed_ofs[frame], SEEK_SET) < 0 ||
       zstd->base->read(zstd->base, compressed_data, compressed_size) < compressed_size)
   {
-    MEM_freeN(compressed_data);
-    MEM_freeN(uncompressed_data);
+    MEM_delete(compressed_data);
+    MEM_delete(uncompressed_data);
     return nullptr;
   }
 
   size_t res = ZSTD_decompressDCtx(
       zstd->ctx, uncompressed_data, uncompressed_size, compressed_data, compressed_size);
-  MEM_freeN(compressed_data);
+  MEM_delete(compressed_data);
   if (ZSTD_isError(res) || res < uncompressed_size) {
-    MEM_freeN(uncompressed_data);
+    MEM_delete(uncompressed_data);
     return nullptr;
   }
 
@@ -193,7 +195,7 @@ static const char *zstd_ensure_cache(ZstdReader *zstd, int frame)
 
 static int64_t zstd_read_seekable(FileReader *reader, void *buffer, size_t size)
 {
-  ZstdReader *zstd = (ZstdReader *)reader;
+  ZstdReader *zstd = reinterpret_cast<ZstdReader *>(reader);
 
   size_t end_offset = zstd->reader.offset + size, read_len = 0;
   while (zstd->reader.offset < end_offset) {
@@ -213,7 +215,7 @@ static int64_t zstd_read_seekable(FileReader *reader, void *buffer, size_t size)
     size_t frame_read_len = frame_end_offset - zstd->reader.offset;
 
     size_t offset_in_frame = zstd->reader.offset - zstd->seek.uncompressed_ofs[frame];
-    memcpy((char *)buffer + read_len, framedata + offset_in_frame, frame_read_len);
+    memcpy(static_cast<char *>(buffer) + read_len, framedata + offset_in_frame, frame_read_len);
     read_len += frame_read_len;
     zstd->reader.offset = frame_end_offset;
   }
@@ -223,7 +225,7 @@ static int64_t zstd_read_seekable(FileReader *reader, void *buffer, size_t size)
 
 static off64_t zstd_seek(FileReader *reader, off64_t offset, int whence)
 {
-  ZstdReader *zstd = (ZstdReader *)reader;
+  ZstdReader *zstd = reinterpret_cast<ZstdReader *>(reader);
   off64_t new_pos;
   if (whence == SEEK_SET) {
     new_pos = offset;
@@ -244,7 +246,7 @@ static off64_t zstd_seek(FileReader *reader, off64_t offset, int whence)
 
 static int64_t zstd_read(FileReader *reader, void *buffer, size_t size)
 {
-  ZstdReader *zstd = (ZstdReader *)reader;
+  ZstdReader *zstd = reinterpret_cast<ZstdReader *>(reader);
   ZSTD_outBuffer output = {buffer, size, 0};
 
   while (output.pos < output.size) {
@@ -252,7 +254,7 @@ static int64_t zstd_read(FileReader *reader, void *buffer, size_t size)
       /* Ran out of buffered input data, read some more. */
       zstd->in_buf.pos = 0;
       int64_t readsize = zstd->base->read(
-          zstd->base, (char *)zstd->in_buf.src, zstd->in_buf_max_size);
+          zstd->base, const_cast<void *>(zstd->in_buf.src), zstd->in_buf_max_size);
 
       if (readsize > 0) {
         /* We got some data, so mark the buffer as refilled. */
@@ -275,28 +277,28 @@ static int64_t zstd_read(FileReader *reader, void *buffer, size_t size)
 
 static void zstd_close(FileReader *reader)
 {
-  ZstdReader *zstd = (ZstdReader *)reader;
+  ZstdReader *zstd = reinterpret_cast<ZstdReader *>(reader);
 
   ZSTD_freeDCtx(zstd->ctx);
   if (zstd->reader.seek) {
-    MEM_freeN(zstd->seek.uncompressed_ofs);
-    MEM_freeN(zstd->seek.compressed_ofs);
+    MEM_delete(zstd->seek.uncompressed_ofs);
+    MEM_delete(zstd->seek.compressed_ofs);
     /* When an error has occurred this may be nullptr, see: #99744. */
     if (zstd->seek.cached_content) {
-      MEM_freeN(zstd->seek.cached_content);
+      MEM_delete(zstd->seek.cached_content);
     }
   }
   else {
-    MEM_freeN(const_cast<void *>(zstd->in_buf.src));
+    MEM_delete(static_cast<const std::byte *>(zstd->in_buf.src));
   }
 
   zstd->base->close(zstd->base);
-  MEM_freeN(zstd);
+  MEM_delete(zstd);
 }
 
 FileReader *BLI_filereader_new_zstd(FileReader *base)
 {
-  ZstdReader *zstd = MEM_callocN<ZstdReader>(__func__);
+  ZstdReader *zstd = MEM_new_zeroed<ZstdReader>(__func__);
 
   zstd->ctx = ZSTD_createDCtx();
   zstd->base = base;
@@ -310,7 +312,8 @@ FileReader *BLI_filereader_new_zstd(FileReader *base)
     zstd->reader.seek = nullptr;
 
     zstd->in_buf_max_size = ZSTD_DStreamInSize();
-    zstd->in_buf.src = MEM_mallocN(zstd->in_buf_max_size, "zstd in buf");
+    zstd->in_buf.src = MEM_new_array_uninitialized<std::byte>(zstd->in_buf_max_size,
+                                                              "zstd in buf");
     zstd->in_buf.size = zstd->in_buf_max_size;
     /* This signals that the buffer has run out,
      * which will make the read function refill it on the first call. */
@@ -321,5 +324,7 @@ FileReader *BLI_filereader_new_zstd(FileReader *base)
   /* Rewind after the seek table check so that zstd_read starts at the file's start. */
   zstd->base->seek(zstd->base, 0, SEEK_SET);
 
-  return (FileReader *)zstd;
+  return reinterpret_cast<FileReader *>(zstd);
 }
+
+}  // namespace blender

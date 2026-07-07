@@ -33,6 +33,11 @@ class Display {
   virtual StringRefNull ui_name() const = 0;
 
   /**
+   * Description of the display from the OpenColorIO config.
+   */
+  virtual StringRefNull description() const = 0;
+
+  /**
    * Get default view of this display. */
   virtual const View *get_default_view() const = 0;
 

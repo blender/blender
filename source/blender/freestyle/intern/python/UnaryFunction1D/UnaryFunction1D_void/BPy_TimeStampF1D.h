@@ -18,8 +18,8 @@ extern PyTypeObject TimeStampF1D_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&TimeStampF1D_Type))
 
 /*---------------------------Python BPy_TimeStampF1D structure definition----------*/
-typedef struct {
+struct BPy_TimeStampF1D {
   BPy_UnaryFunction1DVoid py_uf1D_void;
-} BPy_TimeStampF1D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

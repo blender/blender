@@ -6,6 +6,7 @@ set(INC
   .
   ../asset
   ../include
+  ../../animrig
   ../../makesrna
   ../../python
   ../../../../intern/ghost
@@ -74,6 +75,7 @@ set(SRC
   templates/interface_template_layers.cc
   templates/interface_template_light_linking.cc
   templates/interface_template_list.cc
+  templates/interface_template_matrix.cc
   templates/interface_template_modifiers.cc
   templates/interface_template_node_inputs.cc
   templates/interface_template_node_tree_interface.cc
@@ -124,7 +126,6 @@ set(LIB
   PRIVATE bf::draw
   bf_editor_datafiles
   bf_editor_id_management
-  PRIVATE bf::extern::fmtlib
   PRIVATE bf::functions
   PRIVATE bf::gpu
   PRIVATE bf::imbuf

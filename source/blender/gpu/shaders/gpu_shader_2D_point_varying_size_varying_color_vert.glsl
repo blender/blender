@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/gpu_shader_2D_point_varying_size_varying_color_info.hh"
+#include "infos/gpu_shader_2D_point_varying_size_varying_color_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(gpu_shader_2D_point_varying_size_varying_color)
 

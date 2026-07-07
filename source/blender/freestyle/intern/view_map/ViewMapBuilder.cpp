@@ -33,7 +33,7 @@
 namespace Freestyle {
 
 // XXX Grmll... G is used as template's typename parameter :/
-static const Global &_global = G;
+static const blender::Global &_global = blender::G;
 
 #define LOGGING 0
 
@@ -70,7 +70,7 @@ static void findOccludee(FEdge *fe,
 
     for (occluders.initAfterTarget(); occluders.validAfterTarget(); occluders.nextOccludee()) {
 #if LOGGING
-      if (_global.debug & G_DEBUG_FREESTYLE) {
+      if (_global.debug & blender::G_DEBUG_FREESTYLE) {
         cout << "\t\tEvaluating intersection for occludee " << occluders.getWFace() << " and ray "
              << A << " * " << u << endl;
       }
@@ -127,7 +127,7 @@ static void findOccludee(FEdge *fe,
             GeomUtils::intersectRayPlane(origin, edgeDir, p->getNormal(), d, t, epsilon))
         {
 #if LOGGING
-          if (_global.debug & G_DEBUG_FREESTYLE) {
+          if (_global.debug & blender::G_DEBUG_FREESTYLE) {
             cout << "\t\tRejecting occluder for target coincidence." << endl;
           }
 #endif
@@ -137,7 +137,7 @@ static void findOccludee(FEdge *fe,
 
       if (p->rayIntersect(A, v, t, t_u, t_v)) {
 #if LOGGING
-        if (_global.debug & G_DEBUG_FREESTYLE) {
+        if (_global.debug & blender::G_DEBUG_FREESTYLE) {
           cout << "\t\tRay " << A << " * " << v << " intersects at time " << t << endl;
           cout << "\t\t(v * normal) == " << (v * p->getNormal()) << " for normal "
                << p->getNormal() << endl;
@@ -151,7 +151,7 @@ static void findOccludee(FEdge *fe,
               noIntersection = false;
               fe->setOccludeeIntersection(Vec3r(A + t * v));
 #if LOGGING
-              if (_global.debug & G_DEBUG_FREESTYLE) {
+              if (_global.debug & blender::G_DEBUG_FREESTYLE) {
                 cout << "\t\tIs occludee" << endl;
               }
 #endif
@@ -263,7 +263,7 @@ static int computeVisibility(ViewMap *viewMap,
     Polygon3r *p = occluders.getCameraSpacePolygon();
     real t, t_u, t_v;
 #if LOGGING
-    if (_global.debug & G_DEBUG_FREESTYLE) {
+    if (_global.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "\t\tEvaluating intersection for occluder " << (p->getVertices())[0]
            << (p->getVertices())[1] << (p->getVertices())[2] << endl
            << "\t\t\tand ray " << vp << " * " << u << " (center " << center << ")" << endl;
@@ -286,7 +286,7 @@ static int computeVisibility(ViewMap *viewMap,
     Polygon3r p1(points, oface->GetNormal());
     Vec3r v1((p1.getVertices())[0]);
     real d = -(v1 * p->getNormal());
-    if (_global.debug & G_DEBUG_FREESTYLE) {
+    if (_global.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "\t\tp:  " << (p->getVertices())[0] << (p->getVertices())[1] << (p->getVertices())[2]
            << ", norm: " << p->getNormal() << endl;
       cout << "\t\tp1: " << (p1.getVertices())[0] << (p1.getVertices())[1] << (p1.getVertices())[2]
@@ -298,7 +298,7 @@ static int computeVisibility(ViewMap *viewMap,
 
     if (face) {
 #if LOGGING
-      if (_global.debug & G_DEBUG_FREESTYLE) {
+      if (_global.debug & blender::G_DEBUG_FREESTYLE) {
         cout << "\t\tDetermining face adjacency...";
       }
 #endif
@@ -306,7 +306,7 @@ static int computeVisibility(ViewMap *viewMap,
 
       if (face == oface) {
 #if LOGGING
-        if (_global.debug & G_DEBUG_FREESTYLE) {
+        if (_global.debug & blender::G_DEBUG_FREESTYLE) {
           cout << "  Rejecting occluder for face concurrency." << endl;
         }
 #endif
@@ -342,7 +342,7 @@ static int computeVisibility(ViewMap *viewMap,
       }
       if (skipFace) {
 #if LOGGING
-        if (_global.debug & G_DEBUG_FREESTYLE) {
+        if (_global.debug & blender::G_DEBUG_FREESTYLE) {
           cout << "  Rejecting occluder for face adjacency." << endl;
         }
 #endif
@@ -357,7 +357,7 @@ static int computeVisibility(ViewMap *viewMap,
           GeomUtils::intersectRayPlane(origin, edgeDir, p->getNormal(), d, t, epsilon))
       {
 #if LOGGING
-        if (_global.debug & G_DEBUG_FREESTYLE) {
+        if (_global.debug & blender::G_DEBUG_FREESTYLE) {
           cout << "\t\tRejecting occluder for target coincidence." << endl;
         }
 #endif
@@ -366,7 +366,7 @@ static int computeVisibility(ViewMap *viewMap,
     }
 
 #if LOGGING
-    if (_global.debug & G_DEBUG_FREESTYLE) {
+    if (_global.debug & blender::G_DEBUG_FREESTYLE) {
       real x;
       if (p1.rayIntersect(center, v, x, t_u, t_v)) {
         cout << "\t\tRay should intersect at time " << (rl - x) << ". Center: " << center
@@ -381,7 +381,7 @@ static int computeVisibility(ViewMap *viewMap,
 
     if (p->rayIntersect(center, u, t, t_u, t_v)) {
 #if LOGGING
-      if (_global.debug & G_DEBUG_FREESTYLE) {
+      if (_global.debug & blender::G_DEBUG_FREESTYLE) {
         cout << "\t\tRay " << center << " * " << u << " intersects at time " << t
              << " (raylength is " << raylength << ")" << endl;
         cout << "\t\t(u * normal) == " << (u * p->getNormal()) << " for normal " << p->getNormal()
@@ -391,7 +391,7 @@ static int computeVisibility(ViewMap *viewMap,
       if (fabs(u * p->getNormal()) > 0.0001) {
         if ((t > 0.0) && (t < raylength)) {
 #if LOGGING
-          if (_global.debug & G_DEBUG_FREESTYLE) {
+          if (_global.debug & blender::G_DEBUG_FREESTYLE) {
             cout << "\t\tIs occluder" << endl;
           }
 #endif
@@ -459,7 +459,7 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
       count++;
     }
 #if LOGGING
-    if (_global.debug & G_DEBUG_FREESTYLE) {
+    if (_global.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "Processing ViewEdge " << (*ve)->getId() << endl;
     }
 #endif
@@ -469,7 +469,7 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
       (*ve)->setQI(255);
       (*ve)->setaShape(nullptr);
 #if LOGGING
-      if (_global.debug & G_DEBUG_FREESTYLE) {
+      if (_global.debug & blender::G_DEBUG_FREESTYLE) {
         cout << "\tCulled." << endl;
       }
 #endif
@@ -490,7 +490,7 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
     if (qiMajority == 0) {
       // There are no occludable FEdges on this ViewEdge
       // This should be impossible.
-      if (_global.debug & G_DEBUG_FREESTYLE) {
+      if (_global.debug & blender::G_DEBUG_FREESTYLE) {
         cout << "View Edge in viewport without occludable FEdges: " << (*ve)->getId() << endl;
       }
       // We can recover from this error:
@@ -504,7 +504,7 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
     qiMajority >>= 1;
 
 #if LOGGING
-    if (_global.debug & G_DEBUG_FREESTYLE) {
+    if (_global.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "\tqiMajority: " << qiMajority << endl;
     }
 #endif
@@ -527,7 +527,7 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
         tmpQI = computeVisibility<G, I>(
             ioViewMap, fe, grid, epsilon, *ve, &wFace, &foundOccluders);
 #if LOGGING
-        if (_global.debug & G_DEBUG_FREESTYLE) {
+        if (_global.debug & blender::G_DEBUG_FREESTYLE) {
           cout << "\tFEdge: visibility " << tmpQI << endl;
         }
 #endif
@@ -550,7 +550,7 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
         // ARB: change &wFace to wFace and use reference in called function
         findOccludee<G, I>(fe, grid, epsilon, *ve, &wFace);
 #if LOGGING
-        if (_global.debug & G_DEBUG_FREESTYLE) {
+        if (_global.debug & blender::G_DEBUG_FREESTYLE) {
           cout << "\tFEdge: occludee only (" << (wFace != nullptr ? "found" : "not found") << ")"
                << endl;
         }
@@ -569,7 +569,7 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
         wFaces.push_back(wFace);
         fe->setOccludeeEmpty(false);
 #if LOGGING
-        if (_global.debug & G_DEBUG_FREESTYLE) {
+        if (_global.debug & blender::G_DEBUG_FREESTYLE) {
           cout << "\tFound occludee" << endl;
         }
 #endif
@@ -583,7 +583,7 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
     } while ((maxCard < qiMajority) && (fe) && (fe != festart));
 
 #if LOGGING
-    if (_global.debug & G_DEBUG_FREESTYLE) {
+    if (_global.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "\tFinished with " << nSamples << " samples, maxCard = " << maxCard << endl;
     }
 #endif
@@ -608,7 +608,7 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
       (*ve)->AddOccluder(*o);
     }
 #if LOGGING
-    if (_global.debug & G_DEBUG_FREESTYLE) {
+    if (_global.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "\tConclusion: QI = " << maxIndex << ", " << (*ve)->occluders_size() << " occluders."
            << endl;
     }
@@ -658,7 +658,7 @@ static void computeDetailedVisibility(ViewMap *ioViewMap,
       break;
     }
 #if LOGGING
-    if (_global.debug & G_DEBUG_FREESTYLE) {
+    if (_global.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "Processing ViewEdge " << (*ve)->getId() << endl;
     }
 #endif
@@ -668,7 +668,7 @@ static void computeDetailedVisibility(ViewMap *ioViewMap,
       (*ve)->setQI(255);
       (*ve)->setaShape(nullptr);
 #if LOGGING
-      if (_global.debug & G_DEBUG_FREESTYLE) {
+      if (_global.debug & blender::G_DEBUG_FREESTYLE) {
         cout << "\tCulled." << endl;
       }
 #endif
@@ -689,7 +689,7 @@ static void computeDetailedVisibility(ViewMap *ioViewMap,
     if (qiMajority == 0) {
       // There are no occludable FEdges on this ViewEdge
       // This should be impossible.
-      if (_global.debug & G_DEBUG_FREESTYLE) {
+      if (_global.debug & blender::G_DEBUG_FREESTYLE) {
         cout << "View Edge in viewport without occludable FEdges: " << (*ve)->getId() << endl;
       }
       // We can recover from this error:
@@ -703,7 +703,7 @@ static void computeDetailedVisibility(ViewMap *ioViewMap,
     qiMajority >>= 1;
 
 #if LOGGING
-    if (_global.debug & G_DEBUG_FREESTYLE) {
+    if (_global.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "\tqiMajority: " << qiMajority << endl;
     }
 #endif
@@ -726,7 +726,7 @@ static void computeDetailedVisibility(ViewMap *ioViewMap,
         tmpQI = computeVisibility<G, I>(
             ioViewMap, fe, grid, epsilon, *ve, &wFace, &foundOccluders);
 #if LOGGING
-        if (_global.debug & G_DEBUG_FREESTYLE) {
+        if (_global.debug & blender::G_DEBUG_FREESTYLE) {
           cout << "\tFEdge: visibility " << tmpQI << endl;
         }
 #endif
@@ -749,7 +749,7 @@ static void computeDetailedVisibility(ViewMap *ioViewMap,
         // ARB: change &wFace to wFace and use reference in called function
         findOccludee<G, I>(fe, grid, epsilon, *ve, &wFace);
 #if LOGGING
-        if (_global.debug & G_DEBUG_FREESTYLE) {
+        if (_global.debug & blender::G_DEBUG_FREESTYLE) {
           cout << "\tFEdge: occludee only (" << (wFace != nullptr ? "found" : "not found") << ")"
                << endl;
         }
@@ -768,7 +768,7 @@ static void computeDetailedVisibility(ViewMap *ioViewMap,
         wFaces.push_back(wFace);
         fe->setOccludeeEmpty(false);
 #if LOGGING
-        if (_global.debug & G_DEBUG_FREESTYLE) {
+        if (_global.debug & blender::G_DEBUG_FREESTYLE) {
           cout << "\tFound occludee" << endl;
         }
 #endif
@@ -782,7 +782,7 @@ static void computeDetailedVisibility(ViewMap *ioViewMap,
     } while ((maxCard < qiMajority) && (fe) && (fe != festart));
 
 #if LOGGING
-    if (_global.debug & G_DEBUG_FREESTYLE) {
+    if (_global.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "\tFinished with " << nSamples << " samples, maxCard = " << maxCard << endl;
     }
 #endif
@@ -800,7 +800,7 @@ static void computeDetailedVisibility(ViewMap *ioViewMap,
       (*ve)->AddOccluder(*o);
     }
 #if LOGGING
-    if (_global.debug & G_DEBUG_FREESTYLE) {
+    if (_global.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "\tConclusion: QI = " << maxIndex << ", " << (*ve)->occluders_size() << " occluders."
            << endl;
     }
@@ -861,7 +861,7 @@ static void computeFastVisibility(ViewMap *ioViewMap, G &grid, real epsilon)
     if (qiMajority == 0) {
       // There are no occludable FEdges on this ViewEdge
       // This should be impossible.
-      if (_global.debug & G_DEBUG_FREESTYLE) {
+      if (_global.debug & blender::G_DEBUG_FREESTYLE) {
         cout << "View Edge in viewport without occludable FEdges: " << (*ve)->getId() << endl;
       }
       // We can recover from this error:
@@ -984,7 +984,7 @@ static void computeVeryFastVisibility(ViewMap *ioViewMap, G &grid, real epsilon)
     if (!fe || !fe->isInImage()) {
       // There are no occludable FEdges on this ViewEdge
       // This should be impossible.
-      if (_global.debug & G_DEBUG_FREESTYLE) {
+      if (_global.debug & blender::G_DEBUG_FREESTYLE) {
         cout << "View Edge in viewport without occludable FEdges: " << (*ve)->getId() << endl;
       }
       // We can recover from this error:
@@ -1025,7 +1025,7 @@ void ViewMapBuilder::BuildGrid(WingedEdge &we, const BBox<Vec3r> &bbox, uint sce
     // intersections.
     size[i] += size[i] / 10.0;
     if (size[i] == 0) {
-      if (_global.debug & G_DEBUG_FREESTYLE) {
+      if (_global.debug & blender::G_DEBUG_FREESTYLE) {
         cout << "Warning: the bbox size is 0 in dimension " << i << endl;
       }
     }
@@ -1105,7 +1105,7 @@ void ViewMapBuilder::CullViewEdges(ViewMap *ioViewMap,
   real prosceniumOrigin[2];
   prosceniumOrigin[0] = (viewProscenium[1] - viewProscenium[0]) / 2.0;
   prosceniumOrigin[1] = (viewProscenium[3] - viewProscenium[2]) / 2.0;
-  if (_global.debug & G_DEBUG_FREESTYLE) {
+  if (_global.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "Proscenium culling:" << endl;
     cout << "Proscenium: [" << viewProscenium[0] << ", " << viewProscenium[1] << ", "
          << viewProscenium[2] << ", " << viewProscenium[3] << "]" << endl;
@@ -1457,28 +1457,28 @@ void ViewMapBuilder::ComputeEdgesVisibility(ViewMap *ioViewMap,
 #endif
   switch (iAlgo) {
     case ray_casting:
-      if (_global.debug & G_DEBUG_FREESTYLE) {
+      if (_global.debug & blender::G_DEBUG_FREESTYLE) {
         cout << "Using ordinary ray casting" << endl;
       }
       BuildGrid(we, bbox, sceneNumFaces);
       ComputeRayCastingVisibility(ioViewMap, epsilon);
       break;
     case ray_casting_fast:
-      if (_global.debug & G_DEBUG_FREESTYLE) {
+      if (_global.debug & blender::G_DEBUG_FREESTYLE) {
         cout << "Using fast ray casting" << endl;
       }
       BuildGrid(we, bbox, sceneNumFaces);
       ComputeFastRayCastingVisibility(ioViewMap, epsilon);
       break;
     case ray_casting_very_fast:
-      if (_global.debug & G_DEBUG_FREESTYLE) {
+      if (_global.debug & blender::G_DEBUG_FREESTYLE) {
         cout << "Using very fast ray casting" << endl;
       }
       BuildGrid(we, bbox, sceneNumFaces);
       ComputeVeryFastRayCastingVisibility(ioViewMap, epsilon);
       break;
     case ray_casting_culled_adaptive_traditional:
-      if (_global.debug & G_DEBUG_FREESTYLE) {
+      if (_global.debug & blender::G_DEBUG_FREESTYLE) {
         cout << "Using culled adaptive grid with heuristic density and traditional QI calculation"
              << endl;
       }
@@ -1500,7 +1500,7 @@ void ViewMapBuilder::ComputeEdgesVisibility(ViewMap *ioViewMap,
       }
       break;
     case ray_casting_adaptive_traditional:
-      if (_global.debug & G_DEBUG_FREESTYLE) {
+      if (_global.debug & blender::G_DEBUG_FREESTYLE) {
         cout
             << "Using unculled adaptive grid with heuristic density and traditional QI calculation"
             << endl;
@@ -1514,7 +1514,7 @@ void ViewMapBuilder::ComputeEdgesVisibility(ViewMap *ioViewMap,
       }
       break;
     case ray_casting_culled_adaptive_cumulative:
-      if (_global.debug & G_DEBUG_FREESTYLE) {
+      if (_global.debug & blender::G_DEBUG_FREESTYLE) {
         cout << "Using culled adaptive grid with heuristic density and cumulative QI calculation"
              << endl;
       }
@@ -1527,7 +1527,7 @@ void ViewMapBuilder::ComputeEdgesVisibility(ViewMap *ioViewMap,
       }
       break;
     case ray_casting_adaptive_cumulative:
-      if (_global.debug & G_DEBUG_FREESTYLE) {
+      if (_global.debug & blender::G_DEBUG_FREESTYLE) {
         cout << "Using unculled adaptive grid with heuristic density and cumulative QI calculation"
              << endl;
       }
@@ -1580,7 +1580,7 @@ void ViewMapBuilder::ComputeRayCastingVisibility(ViewMap *ioViewMap, real epsilo
       break;
     }
 #if LOGGING
-    if (_global.debug & G_DEBUG_FREESTYLE) {
+    if (_global.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "Processing ViewEdge " << (*ve)->getId() << endl;
     }
 #endif
@@ -1593,7 +1593,7 @@ void ViewMapBuilder::ComputeRayCastingVisibility(ViewMap *ioViewMap, real epsilo
     } while (fe && fe != festart);
     qiMajority >>= 1;
 #if LOGGING
-    if (_global.debug & G_DEBUG_FREESTYLE) {
+    if (_global.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "\tqiMajority: " << qiMajority << endl;
     }
 #endif
@@ -1610,7 +1610,7 @@ void ViewMapBuilder::ComputeRayCastingVisibility(ViewMap *ioViewMap, real epsilo
         tmpQI = ComputeRayCastingVisibility(fe, _Grid, epsilon, occluders, &aFace, timestamp++);
 
 #if LOGGING
-        if (_global.debug & G_DEBUG_FREESTYLE) {
+        if (_global.debug & blender::G_DEBUG_FREESTYLE) {
           cout << "\tFEdge: visibility " << tmpQI << endl;
         }
 #endif
@@ -1631,7 +1631,7 @@ void ViewMapBuilder::ComputeRayCastingVisibility(ViewMap *ioViewMap, real epsilo
         // ARB: FindOccludee is redundant if ComputeRayCastingVisibility has been called
         FindOccludee(fe, _Grid, epsilon, &aFace, timestamp++);
 #if LOGGING
-        if (_global.debug & G_DEBUG_FREESTYLE) {
+        if (_global.debug & blender::G_DEBUG_FREESTYLE) {
           cout << "\tFEdge: occludee only (" << (aFace != nullptr ? "found" : "not found") << ")"
                << endl;
         }
@@ -1643,7 +1643,7 @@ void ViewMapBuilder::ComputeRayCastingVisibility(ViewMap *ioViewMap, real epsilo
         aFaces.push_back(aFace);
         fe->setOccludeeEmpty(false);
 #if LOGGING
-        if (_global.debug & G_DEBUG_FREESTYLE) {
+        if (_global.debug & blender::G_DEBUG_FREESTYLE) {
           cout << "\tFound occludee" << endl;
         }
 #endif
@@ -1660,7 +1660,7 @@ void ViewMapBuilder::ComputeRayCastingVisibility(ViewMap *ioViewMap, real epsilo
       fe = fe->nextEdge();
     } while ((maxCard < qiMajority) && (fe) && (fe != festart));
 #if LOGGING
-    if (_global.debug & G_DEBUG_FREESTYLE) {
+    if (_global.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "\tFinished with " << nSamples << " samples, maxCard = " << maxCard << endl;
     }
 #endif
@@ -1674,7 +1674,7 @@ void ViewMapBuilder::ComputeRayCastingVisibility(ViewMap *ioViewMap, real epsilo
       (*ve)->AddOccluder(*o);
     }
 #if LOGGING
-    if (_global.debug & G_DEBUG_FREESTYLE) {
+    if (_global.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "\tConclusion: QI = " << maxIndex << ", " << (*ve)->occluders_size() << " occluders."
            << endl;
     }
@@ -2093,7 +2093,7 @@ int ViewMapBuilder::ComputeRayCastingVisibility(FEdge *fe,
   real raylength = u.norm();
   u.normalize();
 #if 0
-  if (_global.debug & G_DEBUG_FREESTYLE) {
+  if (_global.debug & blender::G_DEBUG_FREESTYLE) {
     cout << "grid origin " << iGrid->getOrigin().x() << "," << iGrid->getOrigin().y() << ","
          << iGrid->getOrigin().z() << endl;
     cout << "center " << center.x() << "," << center.y() << "," << center.z() << endl;
@@ -2124,7 +2124,7 @@ int ViewMapBuilder::ComputeRayCastingVisibility(FEdge *fe,
     //-----------
     oface = (WFace *)(*p)->userdata;
 #if LOGGING
-    if (_global.debug & G_DEBUG_FREESTYLE) {
+    if (_global.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "\t\tEvaluating intersection for occluder " << ((*p)->getVertices())[0]
            << ((*p)->getVertices())[1] << ((*p)->getVertices())[2] << endl
            << "\t\t\tand ray " << vp << " * " << u << " (center " << center << ")" << endl;
@@ -2136,7 +2136,7 @@ int ViewMapBuilder::ComputeRayCastingVisibility(FEdge *fe,
     real t, t_u, t_v;
 
 #if LOGGING
-    if (_global.debug & G_DEBUG_FREESTYLE) {
+    if (_global.debug & blender::G_DEBUG_FREESTYLE) {
       cout << "\t\tp:  " << ((*p)->getVertices())[0] << ((*p)->getVertices())[1]
            << ((*p)->getVertices())[2] << ", norm: " << (*p)->getNormal() << endl;
     }
@@ -2144,7 +2144,7 @@ int ViewMapBuilder::ComputeRayCastingVisibility(FEdge *fe,
 
     if (face) {
 #if LOGGING
-      if (_global.debug & G_DEBUG_FREESTYLE) {
+      if (_global.debug & blender::G_DEBUG_FREESTYLE) {
         cout << "\t\tDetermining face adjacency...";
       }
 #endif
@@ -2152,7 +2152,7 @@ int ViewMapBuilder::ComputeRayCastingVisibility(FEdge *fe,
 
       if (face == oface) {
 #if LOGGING
-        if (_global.debug & G_DEBUG_FREESTYLE) {
+        if (_global.debug & blender::G_DEBUG_FREESTYLE) {
           cout << "  Rejecting occluder for face concurrency." << endl;
         }
 #endif
@@ -2188,7 +2188,7 @@ int ViewMapBuilder::ComputeRayCastingVisibility(FEdge *fe,
       }
       if (skipFace) {
 #if LOGGING
-        if (_global.debug & G_DEBUG_FREESTYLE) {
+        if (_global.debug & blender::G_DEBUG_FREESTYLE) {
           cout << "  Rejecting occluder for face adjacency." << endl;
         }
 #endif
@@ -2204,7 +2204,7 @@ int ViewMapBuilder::ComputeRayCastingVisibility(FEdge *fe,
           GeomUtils::intersectRayPlane(origin, edgeDir, normal, d, t, epsilon))
       {
 #if LOGGING
-        if (_global.debug & G_DEBUG_FREESTYLE) {
+        if (_global.debug & blender::G_DEBUG_FREESTYLE) {
           cout << "\t\tRejecting occluder for target coincidence." << endl;
         }
 #endif
@@ -2214,7 +2214,7 @@ int ViewMapBuilder::ComputeRayCastingVisibility(FEdge *fe,
 
     if ((*p)->rayIntersect(center, u, t, t_u, t_v)) {
 #if LOGGING
-      if (_global.debug & G_DEBUG_FREESTYLE) {
+      if (_global.debug & blender::G_DEBUG_FREESTYLE) {
         cout << "\t\tRay " << vp << " * " << u << " intersects at time " << t << " (raylength is "
              << raylength << ")" << endl;
         cout << "\t\t(u * normal) == " << (u * normal) << " for normal " << normal << endl;
@@ -2223,7 +2223,7 @@ int ViewMapBuilder::ComputeRayCastingVisibility(FEdge *fe,
       if (fabs(u * normal) > 0.0001) {
         if ((t > 0.0) && (t < raylength)) {
 #if LOGGING
-          if (_global.debug & G_DEBUG_FREESTYLE) {
+          if (_global.debug & blender::G_DEBUG_FREESTYLE) {
             cout << "\t\tIs occluder" << endl;
           }
 #endif
@@ -2257,7 +2257,7 @@ void ViewMapBuilder::ComputeIntersections(ViewMap *ioViewMap,
       break;
   }
 #if 0
-  if (_global.debug & G_DEBUG_FREESTYLE) {
+  if (_global.debug & blender::G_DEBUG_FREESTYLE) {
     ViewMap::viewvertices_container &vvertices = ioViewMap->ViewVertices();
     for (ViewMap::viewvertices_container::iterator vv = vvertices.begin(), vvend = vvertices.end();
          vv != vvend;
@@ -2348,7 +2348,7 @@ void ViewMapBuilder::ComputeSweepLineIntersections(ViewMap *ioViewMap, real epsi
   uint sVerticesSize = svertices.size();
   uint fEdgesSize = ioViewMap->FEdges().size();
 #if 0
-  if (_global.debug & G_DEBUG_FREESTYLE) {
+  if (_global.debug & blender::G_DEBUG_FREESTYLE) {
     ViewMap::fedges_container &fedges = ioViewMap->FEdges();
     for (ViewMap::fedges_container::const_iterator f = fedges.begin(), end = fedges.end();
          f != end;
@@ -2487,7 +2487,7 @@ void ViewMapBuilder::ComputeSweepLineIntersections(ViewMap *ioViewMap, real epsi
     }
 
 #if 0
-    if (_global.debug & G_DEBUG_FREESTYLE) {
+    if (_global.debug & blender::G_DEBUG_FREESTYLE) {
       if ((Ta < -epsilon) || (Ta > 1 + epsilon) || (Tb < -epsilon) || (Tb > 1 + epsilon)) {
         printf("ta %.12e\n", ta);
         printf("tb %.12e\n", tb);

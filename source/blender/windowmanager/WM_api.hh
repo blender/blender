@@ -22,12 +22,18 @@
 #include "BLI_array.hh"
 #include "BLI_bounds_types.hh"
 #include "BLI_compiler_attrs.h"
+#include "BLI_enum_flags.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_set.hh"
 #include "BLI_sys_types.h"
 
 #include "WM_keymap.hh"
 #include "WM_types.hh"
+
+class GHOST_IContext;
+
+namespace blender {
 
 struct ARegion;
 struct GPUViewport;
@@ -50,6 +56,7 @@ struct WorkSpaceLayout;
 struct wmDrag;
 struct wmDropBox;
 struct wmEvent;
+struct wmEventHandler;
 struct wmEventHandler_Dropbox;
 struct wmEventHandler_Keymap;
 struct wmEventHandler_Op;
@@ -72,12 +79,16 @@ struct wmXrRuntimeData;
 struct wmXrSessionState;
 #endif
 
-namespace blender::bke::id {
+namespace bke::id {
 class IDRemapper;
 }
 
-namespace blender::asset_system {
+namespace asset_system {
 class AssetRepresentation;
+}
+
+namespace ui {
+enum class AlertIcon : int8_t;
 }
 
 /* General API. */
@@ -103,6 +114,8 @@ void WM_init_state_normal_set();
 void WM_init_state_maximized_set();
 void WM_init_state_start_with_console_set(bool value);
 void WM_init_window_focus_set(bool do_it);
+bool WM_init_window_frame_get();
+void WM_init_window_frame_set(bool do_it);
 void WM_init_native_pixels(bool do_it);
 void WM_init_input_devices();
 
@@ -158,8 +171,6 @@ void WM_init_splash(bContext *C);
 
 void WM_init_gpu();
 
-bool WM_gpu_is_initialized();
-
 /**
  * Return an identifier for the underlying GHOST implementation.
  * \warning Use of this function should be limited & never for compatibility checks.
@@ -211,10 +222,14 @@ enum eWM_CapabilitiesFlag {
   WM_CAPABILITY_CURSOR_GENERATOR = (1 << 11),
   /** Ability to save/restore windows among multiple monitors. */
   WM_CAPABILITY_MULTIMONITOR_PLACEMENT = (1 << 12),
+  /** Support for the window to show a file-path (otherwise include in the title text). */
+  WM_CAPABILITY_WINDOW_PATH = (1 << 13),
+  /** Support for window server side decorations (SSD). */
+  WM_CAPABILITY_WINDOW_DECORATION_SERVER_SIDE = (1 << 14),
   /** The initial value, indicates the value needs to be set by inspecting GHOST. */
   WM_CAPABILITY_INITIALIZED = (1u << 31),
 };
-ENUM_OPERATORS(eWM_CapabilitiesFlag, WM_CAPABILITY_WINDOW_DECORATION_STYLES)
+ENUM_OPERATORS(eWM_CapabilitiesFlag)
 
 /**
  * Return the capabilities of the windowing system.
@@ -300,13 +315,24 @@ bool WM_window_pixels_read_sample(bContext *C, wmWindow *win, const int pos[2], 
  * Support for native pixel size
  *
  * \note macOS retina opens window in size X, but it has up to 2 x more pixels.
+ *
+ * \warning This includes CSD (Client-Side Decoration) area such as the title-bar.
+ * Use #WM_window_rect_calc to get the usable content bounds.
  */
 int WM_window_native_pixel_x(const wmWindow *win);
 int WM_window_native_pixel_y(const wmWindow *win);
 
-blender::int2 WM_window_native_pixel_size(const wmWindow *win);
+int2 WM_window_native_pixel_size(const wmWindow *win);
 
 void WM_window_native_pixel_coords(const wmWindow *win, int *x, int *y);
+/**
+ * Return non-nil if the CSD is used.
+ */
+bool WM_window_is_csd(const wmWindow *win);
+/**
+ * Calculate the window content sub-region when CSD is used.
+ */
+void WM_window_csd_rect_calc(const wmWindow *win, rcti *r_rect);
 /**
  * Get boundaries usable by all window contents, including global areas.
  */
@@ -320,7 +346,7 @@ bool WM_window_is_main_top_level(const wmWindow *win);
 bool WM_window_is_fullscreen(const wmWindow *win);
 bool WM_window_is_maximized(const wmWindow *win);
 
-/*
+/**
  * Support for wide gamut and HDR colors.
  */
 bool WM_window_support_hdr_color(const wmWindow *win);
@@ -330,7 +356,7 @@ bool WM_window_support_hdr_color(const wmWindow *win);
  * This function ensures data is synced for editors
  * in visible work-spaces and their visible layouts.
  */
-void WM_windows_scene_data_sync(const ListBase *win_lb, Scene *scene) ATTR_NONNULL();
+void WM_windows_scene_data_sync(const ListBaseT<wmWindow> *win_lb, Scene *scene) ATTR_NONNULL();
 Scene *WM_windows_scene_get_from_screen(const wmWindowManager *wm, const bScreen *screen)
     ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 ViewLayer *WM_windows_view_layer_get_from_screen(const wmWindowManager *wm, const bScreen *screen)
@@ -366,10 +392,10 @@ void WM_window_ensure_active_view_layer(wmWindow *win) ATTR_NONNULL(1);
 
 bool WM_window_is_temp_screen(const wmWindow *win) ATTR_WARN_UNUSED_RESULT;
 
-void *WM_system_gpu_context_create();
-void WM_system_gpu_context_dispose(void *context);
-void WM_system_gpu_context_activate(void *context);
-void WM_system_gpu_context_release(void *context);
+GHOST_IContext *WM_system_gpu_context_create();
+void WM_system_gpu_context_dispose(GHOST_IContext *context);
+void WM_system_gpu_context_activate(GHOST_IContext *context);
+void WM_system_gpu_context_release(GHOST_IContext *context);
 
 /** #WM_window_open alignment. */
 enum eWindowAlignment {
@@ -416,7 +442,18 @@ float WM_window_dpi_get_scale(const wmWindow *win);
  * Give a title to a window. With "Title" unspecified or nullptr, it is generated
  * automatically from window settings and areas. Only use custom title when really needed.
  */
-void WM_window_title(wmWindowManager *wm, wmWindow *win, const char *title = nullptr);
+void WM_window_title_set(wmWindow *win, const char *title);
+/**
+ * Generate a window title automatically from window settings and areas.
+ *
+ * Also refresh the modified-state (for main windows).
+ */
+void WM_window_title_refresh(wmWindowManager *wm, wmWindow *win);
+
+/**
+ * Update the parameters for CSD.
+ */
+void WM_window_csd_params_update();
 
 bool WM_stereo3d_enabled(wmWindow *win, bool skip_stereo3d_check);
 
@@ -433,7 +470,7 @@ enum eWM_WindowDecorationStyleFlag {
   /** Colored TitleBar. */
   WM_WINDOW_DECORATION_STYLE_COLORED_TITLEBAR = (1 << 0),
 };
-ENUM_OPERATORS(eWM_WindowDecorationStyleFlag, WM_WINDOW_DECORATION_STYLE_COLORED_TITLEBAR)
+ENUM_OPERATORS(eWM_WindowDecorationStyleFlag)
 
 /**
  * Get the window decoration style flags.
@@ -485,7 +522,8 @@ ID *WM_file_link_datablock(Main *bmain,
                            const char *filepath,
                            short id_code,
                            const char *id_name,
-                           int flag);
+                           int flag,
+                           ReportList *reports = nullptr);
 /**
  * \note `scene` (and related `view_layer` and `v3d`) pointers may be NULL,
  * in which case no instantiation of appended objects, collections etc. will be performed.
@@ -497,7 +535,8 @@ ID *WM_file_append_datablock(Main *bmain,
                              const char *filepath,
                              short id_code,
                              const char *id_name,
-                             int flag);
+                             int flag,
+                             ReportList *reports = nullptr);
 void WM_lib_reload(Library *lib, bContext *C, ReportList *reports);
 
 /* Mouse cursors. */
@@ -586,14 +625,15 @@ enum eWM_EventHandlerFlag {
   /** Handler tagged to be freed in #wm_handlers_do(). */
   WM_HANDLER_DO_FREE = (1 << 7),
 };
-ENUM_OPERATORS(eWM_EventHandlerFlag, WM_HANDLER_DO_FREE)
+ENUM_OPERATORS(eWM_EventHandlerFlag)
 
 using EventHandlerPoll = bool (*)(const wmWindow *win,
                                   const ScrArea *area,
                                   const ARegion *region,
                                   const wmEvent *event);
-wmEventHandler_Keymap *WM_event_add_keymap_handler(ListBase *handlers, wmKeyMap *keymap);
-wmEventHandler_Keymap *WM_event_add_keymap_handler_poll(ListBase *handlers,
+wmEventHandler_Keymap *WM_event_add_keymap_handler(ListBaseT<wmEventHandler> *handlers,
+                                                   wmKeyMap *keymap);
+wmEventHandler_Keymap *WM_event_add_keymap_handler_poll(ListBaseT<wmEventHandler> *handlers,
                                                         wmKeyMap *keymap,
                                                         EventHandlerPoll poll);
 
@@ -627,11 +667,12 @@ bool WM_event_handler_region_v2d_mask_no_marker_poll(const wmWindow *win,
                                                      const ARegion *region,
                                                      const wmEvent *event);
 
-wmEventHandler_Keymap *WM_event_add_keymap_handler_v2d_mask(ListBase *handlers, wmKeyMap *keymap);
+wmEventHandler_Keymap *WM_event_add_keymap_handler_v2d_mask(ListBaseT<wmEventHandler> *handlers,
+                                                            wmKeyMap *keymap);
 /**
  * \note Priorities not implemented yet, for time being just insert in begin of list.
  */
-wmEventHandler_Keymap *WM_event_add_keymap_handler_priority(ListBase *handlers,
+wmEventHandler_Keymap *WM_event_add_keymap_handler_priority(ListBaseT<wmEventHandler> *handlers,
                                                             wmKeyMap *keymap,
                                                             int priority);
 
@@ -655,9 +696,11 @@ void WM_event_get_keymap_from_toolsystem(wmWindowManager *wm,
                                          wmEventHandler_KeymapResult *km_result);
 
 wmEventHandler_Keymap *WM_event_add_keymap_handler_dynamic(
-    ListBase *handlers, wmEventHandler_KeymapDynamicFn keymap_fn, void *user_data);
+    ListBaseT<wmEventHandler> *handlers,
+    wmEventHandler_KeymapDynamicFn keymap_fn,
+    void *user_data);
 
-void WM_event_remove_keymap_handler(ListBase *handlers, wmKeyMap *keymap);
+void WM_event_remove_keymap_handler(ListBaseT<wmEventHandler> *handlers, wmKeyMap *keymap);
 
 void WM_event_set_keymap_handler_post_callback(wmEventHandler_Keymap *handler,
                                                void(keymap_tag)(wmKeyMap *keymap,
@@ -671,8 +714,11 @@ void WM_event_get_keymaps_from_handler(wmWindowManager *wm,
 
 wmKeyMapItem *WM_event_match_keymap_item(bContext *C, wmKeyMap *keymap, const wmEvent *event);
 
-wmKeyMapItem *WM_event_match_keymap_item_from_handlers(
-    bContext *C, wmWindowManager *wm, wmWindow *win, ListBase *handlers, const wmEvent *event);
+wmKeyMapItem *WM_event_match_keymap_item_from_handlers(bContext *C,
+                                                       wmWindowManager *wm,
+                                                       wmWindow *win,
+                                                       ListBaseT<wmEventHandler> *handlers,
+                                                       const wmEvent *event);
 
 bool WM_event_match(const wmEvent *winevent, const wmKeyMapItem *kmi);
 
@@ -680,7 +726,7 @@ using wmUIHandlerFunc = int (*)(bContext *C, const wmEvent *event, void *userdat
 using wmUIHandlerRemoveFunc = void (*)(bContext *C, void *userdata);
 
 wmEventHandler_UI *WM_event_add_ui_handler(const bContext *C,
-                                           ListBase *handlers,
+                                           ListBaseT<wmEventHandler> *handlers,
                                            wmUIHandlerFunc handle_fn,
                                            wmUIHandlerRemoveFunc remove_fn,
                                            void *user_data,
@@ -695,14 +741,14 @@ wmOperator *WM_operator_find_modal_by_type(wmWindow *win, const wmOperatorType *
  * \param postpone: Enable for `win->modalhandlers`,
  * this is in a running for () loop in wm_handlers_do().
  */
-void WM_event_remove_ui_handler(ListBase *handlers,
+void WM_event_remove_ui_handler(ListBaseT<wmEventHandler> *handlers,
                                 wmUIHandlerFunc handle_fn,
                                 wmUIHandlerRemoveFunc remove_fn,
                                 void *user_data,
                                 bool postpone);
-void WM_event_remove_handlers_by_area(ListBase *handlers, const ScrArea *area);
+void WM_event_remove_handlers_by_area(ListBaseT<wmEventHandler> *handlers, const ScrArea *area);
 void WM_event_free_ui_handler_all(bContext *C,
-                                  ListBase *handlers,
+                                  ListBaseT<wmEventHandler> *handlers,
                                   wmUIHandlerFunc handle_fn,
                                   wmUIHandlerRemoveFunc remove_fn);
 
@@ -714,8 +760,9 @@ wmEventHandler_Op *WM_event_add_modal_handler_ex(wmWindow *win,
                                                  ARegion *region,
                                                  wmOperator *op) ATTR_NONNULL(1, 4);
 wmEventHandler_Op *WM_event_add_modal_handler(bContext *C, wmOperator *op) ATTR_NONNULL(1, 2);
-void WM_event_remove_model_handler(ListBase *handlers, const wmOperator *op, bool postpone)
-    ATTR_NONNULL(1, 2);
+void WM_event_remove_modal_handler(ListBaseT<wmEventHandler> *handlers,
+                                   const wmOperator *op,
+                                   bool postpone) ATTR_NONNULL(1, 2);
 
 void WM_event_remove_modal_handler_all(const wmOperator *op, bool postpone) ATTR_NONNULL(1);
 
@@ -740,9 +787,10 @@ void WM_event_ui_handler_region_popup_replace(wmWindow *win,
 /**
  * Called on exit or remove area, only here call cancel callback.
  */
-void WM_event_remove_handlers(bContext *C, ListBase *handlers);
+void WM_event_remove_handlers(bContext *C, ListBaseT<wmEventHandler> *handlers);
 
-wmEventHandler_Dropbox *WM_event_add_dropbox_handler(ListBase *handlers, ListBase *dropboxes);
+wmEventHandler_Dropbox *WM_event_add_dropbox_handler(ListBaseT<wmEventHandler> *handlers,
+                                                     ListBaseT<wmDropBox> *dropboxes);
 
 /* Mouse. */
 void WM_event_add_mousemove(wmWindow *win);
@@ -762,7 +810,7 @@ void WM_main_add_notifier(unsigned int type, void *reference);
  * Clear notifiers by reference, Used so listeners don't act on freed data.
  */
 void WM_main_remove_notifier_reference(const void *reference);
-void WM_main_remap_editor_id_reference(const blender::bke::id::IDRemapper &mappings);
+void WM_main_remap_editor_id_reference(const bke::id::IDRemapper &mappings);
 
 /* Reports. */
 
@@ -867,14 +915,12 @@ int WM_operator_smooth_viewtx_get(const wmOperator *op);
 /**
  * Invoke callback, uses enum property named "type".
  */
-wmOperatorStatus WM_menu_invoke_ex(bContext *C,
-                                   wmOperator *op,
-                                   blender::wm::OpCallContext opcontext);
+wmOperatorStatus WM_menu_invoke_ex(bContext *C, wmOperator *op, wm::OpCallContext opcontext);
 wmOperatorStatus WM_menu_invoke(bContext *C, wmOperator *op, const wmEvent *event);
 /**
  * Call an existent menu. The menu can be created in C or Python.
  */
-void WM_menu_name_call(bContext *C, const char *menu_name, blender::wm::OpCallContext context);
+void WM_menu_name_call(bContext *C, const char *menu_name, wm::OpCallContext context);
 
 wmOperatorStatus WM_enum_search_invoke(bContext *C, wmOperator *op, const wmEvent *event);
 
@@ -889,10 +935,10 @@ wmOperatorStatus WM_operator_confirm_or_exec(bContext *C, wmOperator *op, const 
  */
 wmOperatorStatus WM_operator_confirm_ex(bContext *C,
                                         wmOperator *op,
-                                        const char *title = nullptr,
-                                        const char *message = nullptr,
-                                        const char *confirm_text = nullptr,
-                                        int icon = 0, /* ALERT_ICON_WARNING. */
+                                        const char *title,
+                                        const char *message,
+                                        const char *confirm_text,
+                                        ui::AlertIcon icon,
                                         bool cancel_default = false);
 
 /**
@@ -951,7 +997,7 @@ wmOperatorStatus WM_operator_confirm_message_ex(bContext *C,
                                                 const char *title,
                                                 int icon,
                                                 const char *message,
-                                                blender::wm::OpCallContext opcontext);
+                                                wm::OpCallContext opcontext);
 wmOperatorStatus WM_operator_confirm_message(bContext *C, wmOperator *op, const char *message);
 
 /* Operator API. */
@@ -967,14 +1013,31 @@ void WM_operator_free_all_after(wmWindowManager *wm, wmOperator *op);
  */
 void WM_operator_type_set(wmOperator *op, wmOperatorType *ot);
 void WM_operator_stack_clear(wmWindowManager *wm);
+void WM_operator_stack_clear(wmWindowManager *wm, const Set<wmOperatorType *> &types);
 /**
  * This function is needed in the case when an addon id disabled
  * while a modal operator it defined is running.
  */
 void WM_operator_handlers_clear(wmWindowManager *wm, wmOperatorType *ot);
+void WM_operator_handlers_clear(wmWindowManager *wm, const Set<wmOperatorType *> &types);
 
 bool WM_operator_poll(bContext *C, wmOperatorType *ot);
-bool WM_operator_poll_context(bContext *C, wmOperatorType *ot, blender::wm::OpCallContext context);
+bool WM_operator_poll_context(bContext *C, wmOperatorType *ot, wm::OpCallContext context);
+
+/**
+ * Check poll succeeds or returns false & report an error.
+ *
+ * This can be used from #wmOperatorType::exec for operators that use the file-selector.
+ * It's needed in this case because the context can be changed once the file-selector
+ * has been activated.
+ *
+ * \return true or false & report an error.
+ *
+ * \note It's best practice that `ot->poll` sets the "poll message",
+ * otherwise a generic (unhelpful) error will be used.
+ */
+bool WM_operator_poll_or_report_error(bContext *C, wmOperatorType *ot, ReportList *reports);
+
 /**
  * For running operators with frozen context (modal handlers, menus).
  *
@@ -1017,22 +1080,22 @@ bool WM_operator_name_poll(bContext *C, const char *opstring);
  */
 wmOperatorStatus WM_operator_name_call_ptr(bContext *C,
                                            wmOperatorType *ot,
-                                           blender::wm::OpCallContext context,
+                                           wm::OpCallContext context,
                                            PointerRNA *properties,
                                            const wmEvent *event);
 /** See #WM_operator_name_call_ptr. */
 wmOperatorStatus WM_operator_name_call(bContext *C,
                                        const char *opstring,
-                                       blender::wm::OpCallContext context,
+                                       wm::OpCallContext context,
                                        PointerRNA *properties,
                                        const wmEvent *event);
 wmOperatorStatus WM_operator_name_call_with_properties(bContext *C,
                                                        const char *opstring,
-                                                       blender::wm::OpCallContext context,
+                                                       wm::OpCallContext context,
                                                        IDProperty *properties,
                                                        const wmEvent *event);
 /**
- * Similar to #WM_operator_name_call called with #blender::wm::OpCallContext::ExecDefault
+ * Similar to #WM_operator_name_call called with #wm::OpCallContext::ExecDefault
  * context.
  *
  * - #wmOperatorType is used instead of operator name since python already has the operator type.
@@ -1041,17 +1104,17 @@ wmOperatorStatus WM_operator_name_call_with_properties(bContext *C,
  */
 wmOperatorStatus WM_operator_call_py(bContext *C,
                                      wmOperatorType *ot,
-                                     blender::wm::OpCallContext context,
+                                     wm::OpCallContext context,
                                      PointerRNA *properties,
                                      ReportList *reports,
                                      bool is_undo);
 
 void WM_operator_name_call_ptr_with_depends_on_cursor(bContext *C,
                                                       wmOperatorType *ot,
-                                                      blender::wm::OpCallContext opcontext,
+                                                      wm::OpCallContext opcontext,
                                                       PointerRNA *properties,
                                                       const wmEvent *event,
-                                                      blender::StringRef drawstr);
+                                                      StringRef drawstr);
 
 /**
  * Similar to the function above except its uses ID properties used for key-maps and macros.
@@ -1076,8 +1139,8 @@ bool WM_operator_properties_default(PointerRNA *ptr, bool do_update);
  * Remove all props without #PROP_SKIP_SAVE or #PROP_SKIP_PRESET.
  */
 void WM_operator_properties_reset(wmOperator *op);
-void WM_operator_properties_create(PointerRNA *ptr, const char *opstring);
-void WM_operator_properties_create_ptr(PointerRNA *ptr, wmOperatorType *ot);
+PointerRNA WM_operator_properties_create(const char *opstring);
+PointerRNA WM_operator_properties_create_ptr(wmOperatorType *ot);
 void WM_operator_properties_clear(PointerRNA *ptr);
 void WM_operator_properties_free(PointerRNA *ptr);
 
@@ -1113,7 +1176,7 @@ enum eFileSel_Flag {
   /** Show the properties sidebar by default. */
   WM_FILESEL_SHOW_PROPS = 1 << 5,
 };
-ENUM_OPERATORS(eFileSel_Flag, WM_FILESEL_SHOW_PROPS)
+ENUM_OPERATORS(eFileSel_Flag)
 
 /** Action for #WM_operator_properties_filesel. */
 enum eFileSel_Action {
@@ -1174,7 +1237,7 @@ void WM_operator_properties_use_cursor_init(wmOperatorType *ot);
 void WM_operator_properties_border(wmOperatorType *ot);
 void WM_operator_properties_border_to_rcti(wmOperator *op, rcti *r_rect);
 void WM_operator_properties_border_to_rctf(wmOperator *op, rctf *r_rect);
-blender::Bounds<blender::int2> WM_operator_properties_border_to_bounds(wmOperator *op);
+Bounds<int2> WM_operator_properties_border_to_bounds(wmOperator *op);
 /**
  * Use with #WM_gesture_box_invoke
  */
@@ -1306,6 +1369,7 @@ size_t WM_operator_py_idname(char *dst, const char *src) ATTR_NONNULL(1, 2);
 bool WM_operator_py_idname_ok_or_report(ReportList *reports,
                                         const char *classname,
                                         const char *idname);
+bool WM_operator_idname_ok_or_report(ReportList *reports, const char *idname);
 /**
  * Return true when an operators name follows the `SOME_OT_op` naming convention.
  */
@@ -1323,7 +1387,7 @@ std::optional<std::string> WM_context_path_resolve_full(bContext *C, const Point
 /* `wm_operator_type.cc` */
 
 wmOperatorType *WM_operatortype_find(const char *idname, bool quiet);
-blender::Span<wmOperatorType *> WM_operatortypes_registered_get();
+Span<wmOperatorType *> WM_operatortypes_registered_get();
 void WM_operatortype_append(void (*opfunc)(wmOperatorType *ot));
 void WM_operatortype_append_ptr(void (*opfunc)(wmOperatorType *ot, void *userdata),
                                 void *userdata);
@@ -1344,7 +1408,7 @@ void WM_operatortype_idname_visit_for_search(
     PointerRNA *ptr,
     PropertyRNA *prop,
     const char *edit_text,
-    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
+    FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
 
 /**
  * Tag all operator-properties of \a ot defined after calling this, until
@@ -1411,7 +1475,7 @@ void WM_operator_type_modal_from_exec_for_object_edit_coords(wmOperatorType *ot)
  * Called on initialize #WM_init()
  */
 void WM_uilisttype_init();
-uiListType *WM_uilisttype_find(blender::StringRef idname, bool quiet);
+uiListType *WM_uilisttype_find(StringRef idname, bool quiet);
 bool WM_uilisttype_add(uiListType *ult);
 void WM_uilisttype_remove_ptr(Main *bmain, uiListType *ult);
 void WM_uilisttype_free();
@@ -1420,10 +1484,11 @@ void WM_uilisttype_free();
  * The "full" list-ID is an internal name used for storing and identifying a list. It is built like
  * this:
  * `{uiListType.idname}_{list_id}`, whereby `list_id` is an optional parameter passed to
- * `UILayout.template_list()`. If it is not set, the full list-ID is just `{uiListType.idname}_`.
+ * `ui::Layout.template_list()`. If it is not set, the full list-ID is just
+ * `{uiListType.idname}_`.
  *
  * Note that whenever the Python API refers to the list-ID, it's the short, "non-full" one it
- * passed to `UILayout.template_list()`. C code can query that through
+ * passed to `ui::Layout.template_list()`. C code can query that through
  * #WM_uilisttype_list_id_get().
  */
 void WM_uilisttype_to_full_list_id(const uiListType *ult,
@@ -1442,8 +1507,8 @@ const char *WM_uilisttype_list_id_get(const uiListType *ult, uiList *list);
  * \note Called on initialize #WM_init().
  */
 void WM_menutype_init();
-MenuType *WM_menutype_find(blender::StringRef idname, bool quiet);
-blender::Span<MenuType *> WM_menutypes_registered_get();
+MenuType *WM_menutype_find(StringRef idname, bool quiet);
+Span<MenuType *> WM_menutypes_registered_get();
 bool WM_menutype_add(MenuType *mt);
 void WM_menutype_freelink(MenuType *mt);
 void WM_menutype_free();
@@ -1454,7 +1519,7 @@ void WM_menutype_idname_visit_for_search(
     PointerRNA *ptr,
     PropertyRNA *prop,
     const char *edit_text,
-    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
+    FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
 
 /* `wm_panel_type.cc` */
 
@@ -1463,7 +1528,7 @@ void WM_menutype_idname_visit_for_search(
  */
 void WM_paneltype_init();
 void WM_paneltype_clear();
-PanelType *WM_paneltype_find(blender::StringRef idname, bool quiet);
+PanelType *WM_paneltype_find(StringRef idname, bool quiet);
 bool WM_paneltype_add(PanelType *pt);
 void WM_paneltype_remove(PanelType *pt);
 
@@ -1472,7 +1537,7 @@ void WM_paneltype_idname_visit_for_search(
     PointerRNA *ptr,
     PropertyRNA *prop,
     const char *edit_text,
-    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
+    FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
 
 /* `wm_gesture_ops.cc` */
 
@@ -1494,7 +1559,7 @@ void WM_gesture_polyline_cancel(bContext *C, wmOperator *op);
 /**
  * helper function, we may want to add options for conversion to view space
  */
-blender::Array<blender::int2> WM_gesture_lasso_path_to_array(bContext *C, wmOperator *op);
+Array<int2> WM_gesture_lasso_path_to_array(bContext *C, wmOperator *op);
 
 wmOperatorStatus WM_gesture_straightline_invoke(bContext *C, wmOperator *op, const wmEvent *event);
 /**
@@ -1548,7 +1613,7 @@ void WM_event_fileselect_event(wmWindowManager *wm, void *ophandle, int eventval
 
 /** Return a borrowed reference to the custom-data. */
 void *WM_event_consecutive_data_get(wmWindow *win, const char *id);
-/** Set the custom-data (and own the pointer), free with #MEM_freeN. */
+/** Set the custom-data (and own the pointer), free with #MEM_delete_void. */
 void WM_event_consecutive_data_set(wmWindow *win, const char *id, void *custom_data);
 /** Clear and free the consecutive custom-data. */
 void WM_event_consecutive_data_free(wmWindow *win);
@@ -1615,8 +1680,8 @@ void WM_event_drag_path_override_poin_data_with_space_file_paths(const bContext 
 void WM_event_drag_preview_icon(wmDrag *drag, int icon_id);
 void WM_drag_free(wmDrag *drag);
 void WM_drag_data_free(eWM_DragDataType dragtype, void *poin);
-void WM_drag_free_list(ListBase *lb);
-wmDropBox *WM_dropbox_add(ListBase *lb,
+void WM_drag_free_list(ListBaseT<wmDrag> *lb);
+wmDropBox *WM_dropbox_add(ListBaseT<wmDropBox> *lb,
                           const char *idname,
                           bool (*poll)(bContext *C, wmDrag *drag, const wmEvent *event),
                           void (*copy)(bContext *C, wmDrag *drag, wmDropBox *drop),
@@ -1632,15 +1697,19 @@ void WM_drag_draw_default_fn(bContext *C, wmWindow *win, wmDrag *drag, const int
 /**
  * `spaceid` / `regionid` are zero for window drop maps.
  */
-ListBase *WM_dropboxmap_find(const char *idname, int spaceid, int regionid);
+ListBaseT<wmDropBox> *WM_dropboxmap_find(const char *idname, int spaceid, int regionid);
 
 /* ID drag and drop. */
 
 /**
+ * \note This can return null! Importing can fail if the asset was deleted or moved since the asset
+ * library was loaded.
+ *
  * \param flag_extra: Additional linking flags (from #eFileSel_Params_Flag).
  */
 ID *WM_drag_asset_id_import(const bContext *C, wmDragAsset *asset_drag, int flag_extra);
 bool WM_drag_asset_will_import_linked(const wmDrag *drag);
+bool WM_drag_asset_will_import_packed(const wmDrag *drag);
 void WM_drag_add_local_ID(wmDrag *drag, ID *id, ID *from_parent);
 ID *WM_drag_get_local_ID(const wmDrag *drag, short idcode);
 ID *WM_drag_get_local_ID_from_event(const wmEvent *event, short idcode);
@@ -1652,7 +1721,7 @@ bool WM_drag_is_ID_type(const wmDrag *drag, int idcode);
 /**
  * \note Does not store \a asset in any way, so it's fine to pass a temporary.
  */
-wmDragAsset *WM_drag_create_asset_data(const blender::asset_system::AssetRepresentation *asset,
+wmDragAsset *WM_drag_create_asset_data(const asset_system::AssetRepresentation *asset,
                                        const AssetImportSettings &import_settings);
 
 wmDragAsset *WM_drag_get_asset_data(const wmDrag *drag, int idcode);
@@ -1681,19 +1750,18 @@ wmDragAssetCatalog *WM_drag_get_asset_catalog_data(const wmDrag *drag);
 /**
  * \note Does not store \a asset in any way, so it's fine to pass a temporary.
  */
-void WM_drag_add_asset_list_item(wmDrag *drag,
-                                 const blender::asset_system::AssetRepresentation *asset);
+void WM_drag_add_asset_list_item(wmDrag *drag, const asset_system::AssetRepresentation *asset);
 
-const ListBase *WM_drag_asset_list_get(const wmDrag *drag);
+const ListBaseT<wmDragAssetListItem> *WM_drag_asset_list_get(const wmDrag *drag);
 
-const char *WM_drag_get_item_name(wmDrag *drag);
+const std::string WM_drag_get_item_name(wmDrag *drag);
 
 /* Paths drag and drop. */
 /**
  * \param paths: The paths to drag. Values will be copied into the drag data so the passed strings
  * may be destructed.
  */
-wmDragPath *WM_drag_create_path_data(blender::Span<const char *> paths);
+wmDragPath *WM_drag_create_path_data(Span<const char *> paths);
 /**
  *  If `drag` contains path data, returns the first path int he path list.
  */
@@ -1706,7 +1774,7 @@ const char *WM_drag_get_single_path(const wmDrag *drag);
  * \param file_type: #eFileSel_File_Types bit flag.
  */
 const char *WM_drag_get_single_path(const wmDrag *drag, int file_type);
-blender::Span<std::string> WM_drag_get_paths(const wmDrag *drag);
+Span<std::string> WM_drag_get_paths(const wmDrag *drag);
 /**
  * If `drag` contains path data, returns if any file path match a `file_type`.
  *
@@ -1730,6 +1798,10 @@ void wmPartialViewport(rcti *drawrct, const rcti *winrct, const rcti *partialrct
 void wmWindowViewport(const wmWindow *win);
 void wmWindowViewport_ex(const wmWindow *win, float offset);
 
+/* Closely related to #wmWindowViewport but for drawing the title-bar. */
+void wmWindowViewportTitle_ex(const rcti &rect, float offset);
+void wmWindowViewportTitle(const rcti &rect);
+
 /* OpenGL utilities with safety check. */
 void wmOrtho2(float x1, float x2, float y1, float y2);
 /* Use for conventions (avoid hard-coded offsets all over). */
@@ -1751,7 +1823,7 @@ enum eWM_JobFlag {
   WM_JOB_EXCL_RENDER = (1 << 1),
   WM_JOB_PROGRESS = (1 << 2),
 };
-ENUM_OPERATORS(eWM_JobFlag, WM_JOB_PROGRESS);
+ENUM_OPERATORS(eWM_JobFlag);
 
 /**
  * Identifying jobs by owner alone is unreliable, this isn't saved, order can change.
@@ -1828,7 +1900,11 @@ bool WM_jobs_is_running(const wmJob *wm_job);
 bool WM_jobs_is_stopped(const wmWindowManager *wm, const void *owner);
 void *WM_jobs_customdata_get(wmJob *wm_job);
 void WM_jobs_customdata_set(wmJob *wm_job, void *customdata, void (*free)(void *));
-void WM_jobs_timer(wmJob *wm_job, double time_step, unsigned int note, unsigned int endnote);
+void WM_jobs_timer(wmJob *wm_job,
+                   double time_step,
+                   unsigned int note,
+                   unsigned int endnote,
+                   void (*timer_step)(void *) = nullptr);
 void WM_jobs_delay_start(wmJob *wm_job, double delay_time);
 
 using wm_jobs_start_callback = void (*)(void *custom_data, wmJobWorkerStatus *worker_status);
@@ -1999,6 +2075,7 @@ const char *WM_window_cursor_keymap_status_get(const wmWindow *win,
                                                int button_index,
                                                int type_index);
 void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win);
+void WM_window_cursor_keymap_status_free(wmWindow *win);
 
 void WM_window_status_area_tag_redraw(wmWindow *win);
 /**
@@ -2006,7 +2083,7 @@ void WM_window_status_area_tag_redraw(wmWindow *win);
  * use here since the area is stored in the window manager.
  */
 ScrArea *WM_window_status_area_find(wmWindow *win, bScreen *screen);
-bool WM_window_modal_keymap_status_draw(bContext *C, wmWindow *win, uiLayout *layout);
+bool WM_window_modal_keymap_status_draw(bContext *C, wmWindow *win, ui::Layout &layout);
 
 /* `wm_event_query.cc` */
 
@@ -2073,13 +2150,13 @@ int WM_userdef_event_map(int kmitype);
 int WM_userdef_event_type_from_keymap_type(int kmitype);
 
 #ifdef WITH_INPUT_NDOF
-blender::float3 WM_event_ndof_translation_get_for_navigation(const wmNDOFMotionData &ndof);
-blender::float3 WM_event_ndof_rotation_get_for_navigation(const wmNDOFMotionData &ndof);
+float3 WM_event_ndof_translation_get_for_navigation(const wmNDOFMotionData &ndof);
+float3 WM_event_ndof_rotation_get_for_navigation(const wmNDOFMotionData &ndof);
 float WM_event_ndof_rotation_get_axis_angle_for_navigation(const wmNDOFMotionData &ndof,
                                                            float axis[3]);
 
-blender::float3 WM_event_ndof_translation_get(const wmNDOFMotionData &ndof);
-blender::float3 WM_event_ndof_rotation_get(const wmNDOFMotionData &ndof);
+float3 WM_event_ndof_translation_get(const wmNDOFMotionData &ndof);
+float3 WM_event_ndof_rotation_get(const wmNDOFMotionData &ndof);
 float WM_event_ndof_rotation_get_axis_angle(const wmNDOFMotionData &ndof, float axis[3]);
 
 bool WM_event_ndof_translation_has_pan(const wmNDOFMotionData &ndof);
@@ -2107,7 +2184,7 @@ bool WM_event_is_ime_switch(const wmEvent *event);
 
 /* `wm_tooltip.cc` */
 
-using wmTooltipInitFn = ARegion *(*)(bContext *C,
+using wmTooltipInitFn = ARegion *(*)(bContext * C,
                                      ARegion *region,
                                      int *pass,
                                      double *r_pass_delay,
@@ -2183,7 +2260,10 @@ bool WM_xr_session_state_nav_rotation_get(const wmXrData *xr, float r_rotation[4
 void WM_xr_session_state_nav_rotation_set(wmXrData *xr, const float rotation[4]);
 bool WM_xr_session_state_nav_scale_get(const wmXrData *xr, float *r_scale);
 void WM_xr_session_state_nav_scale_set(wmXrData *xr, float scale);
+bool WM_xr_session_state_viewer_scale_get(const wmXrData *xr, float *r_scale);
 void WM_xr_session_state_navigation_reset(wmXrSessionState *state);
+void WM_xr_session_state_vignette_activate(wmXrData *xr);
+void WM_xr_session_state_vignette_update(wmXrSessionState *state);
 
 ARegionType *WM_xr_surface_controller_region_type_get();
 
@@ -2198,7 +2278,7 @@ bool WM_xr_action_create(wmXrData *xr,
                          const char *action_set_name,
                          const char *action_name,
                          eXrActionType type,
-                         const ListBase *user_paths,
+                         const ListBaseT<XrUserPath> *user_paths,
                          wmOperatorType *ot,
                          IDProperty *op_properties,
                          const char *haptic_name,
@@ -2213,8 +2293,8 @@ bool WM_xr_action_binding_create(wmXrData *xr,
                                  const char *action_set_name,
                                  const char *action_name,
                                  const char *profile_path,
-                                 const ListBase *user_paths,
-                                 const ListBase *component_paths,
+                                 const ListBaseT<XrUserPath> *user_paths,
+                                 const ListBaseT<XrComponentPath> *component_paths,
                                  const float *float_thresholds,
                                  const eXrAxisFlag *axis_flags,
                                  const wmXrPose *poses);
@@ -2267,7 +2347,7 @@ bool WM_xr_actionmap_remove(wmXrRuntimeData *runtime, XrActionMap *actionmap);
 XrActionMap *WM_xr_actionmap_find(wmXrRuntimeData *runtime, const char *name);
 void WM_xr_actionmap_clear(XrActionMap *actionmap);
 void WM_xr_actionmaps_clear(wmXrRuntimeData *runtime);
-ListBase *WM_xr_actionmaps_get(wmXrRuntimeData *runtime);
+ListBaseT<XrActionMap> *WM_xr_actionmaps_get(wmXrRuntimeData *runtime);
 short WM_xr_actionmap_active_index_get(const wmXrRuntimeData *runtime);
 void WM_xr_actionmap_active_index_set(wmXrRuntimeData *runtime, short idx);
 short WM_xr_actionmap_selected_index_get(const wmXrRuntimeData *runtime);
@@ -2301,3 +2381,5 @@ XrActionMapBinding *WM_xr_actionmap_binding_add_copy(XrActionMapItem *ami,
 bool WM_xr_actionmap_binding_remove(XrActionMapItem *ami, XrActionMapBinding *amb);
 XrActionMapBinding *WM_xr_actionmap_binding_find(XrActionMapItem *ami, const char *name);
 #endif /* WITH_XR_OPENXR */
+
+}  // namespace blender

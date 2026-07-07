@@ -8,6 +8,8 @@
 
 #include "BLO_core_bhead.hh"
 
+namespace blender {
+
 /**
  * A low level blend file version number. Also see #decode_blender_header for how the first few
  * bytes of a .blend file are structured.
@@ -78,3 +80,5 @@ using BlenderHeaderVariant =
  * Reads the header at the beginning of a .blend file and decodes it.
  */
 BlenderHeaderVariant BLO_readfile_blender_header_decode(FileReader *file);
+
+}  // namespace blender

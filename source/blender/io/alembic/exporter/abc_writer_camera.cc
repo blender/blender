@@ -17,9 +17,12 @@
 #include "DNA_scene_types.h"
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.alembic"};
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 using Alembic::AbcGeom::CameraSample;
 using Alembic::AbcGeom::OCamera;
@@ -29,7 +32,7 @@ ABCCameraWriter::ABCCameraWriter(const ABCWriterConstructorArgs &args) : ABCAbst
 
 bool ABCCameraWriter::is_supported(const HierarchyContext *context) const
 {
-  const Camera *camera = static_cast<const Camera *>(context->object->data);
+  const Camera *camera = id_cast<const Camera *>(context->object->data);
   return camera->type == CAM_PERSP;
 }
 
@@ -68,7 +71,7 @@ Alembic::Abc::OCompoundProperty ABCCameraWriter::abc_prop_for_custom_props()
 
 void ABCCameraWriter::do_write(HierarchyContext &context)
 {
-  const Camera *cam = static_cast<const Camera *>(context.object->data);
+  const Camera *cam = id_cast<const Camera *>(context.object->data);
 
   abc_stereo_distance_.set(cam->stereo.convergence_distance);
   abc_eye_separation_.set(cam->stereo.interocular_distance);
@@ -104,4 +107,5 @@ void ABCCameraWriter::do_write(HierarchyContext &context)
   abc_camera_schema_.set(camera_sample);
 }
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

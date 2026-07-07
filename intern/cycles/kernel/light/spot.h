@@ -30,17 +30,13 @@ ccl_device float spot_light_attenuation(const ccl_global KernelSpotLight *spot, 
   return smoothstepf((ray.z - spot->cos_half_spot_angle) * spot->spot_smooth);
 }
 
-ccl_device void spot_light_uv(const float3 ray,
-                              const float half_cot_half_spot_angle,
-                              ccl_private float *u,
-                              ccl_private float *v)
+ccl_device float2 spot_light_uv(const float3 ray, const float half_cot_half_spot_angle)
 {
   /* Ensures that the spot light projects the full image regardless of the spot angle. */
   const float factor = half_cot_half_spot_angle / ray.z;
 
   /* NOTE: Return barycentric coordinates in the same notation as Embree and OptiX. */
-  *u = ray.y * factor + 0.5f;
-  *v = -(ray.x + ray.y) * factor;
+  return make_float2(ray.y * factor + 0.5f, -(ray.x + ray.y) * factor);
 }
 
 template<bool in_volume_segment>
@@ -122,9 +118,6 @@ ccl_device_inline bool spot_light_sample(KernelGlobals kg,
     /* Remap sampled point onto the sphere to prevent precision issues with small radius. */
     ls->Ng = normalize(ls->P - klight->co);
     ls->P = ls->Ng * klight->spot.radius + klight->co;
-
-    /* Texture coordinates. */
-    spot_light_uv(local_ray, klight->spot.half_cot_half_spot_angle, &ls->u, &ls->v);
   }
   else {
     /* Point light with ad-hoc radius based on oriented disk. */
@@ -146,9 +139,6 @@ ccl_device_inline bool spot_light_sample(KernelGlobals kg,
     /* PDF. */
     const float invarea = (r_sq > 0.0f) ? 1.0f / (r_sq * M_PI_F) : 1.0f;
     ls->pdf = invarea * light_pdf_area_to_solid_angle(lightN, -ls->D, ls->t);
-
-    /* Texture coordinates. */
-    spot_light_uv(local_ray, klight->spot.half_cot_half_spot_angle, &ls->u, &ls->v);
   }
 
   return true;
@@ -211,9 +201,6 @@ ccl_device_forceinline void spot_light_mnee_sample_update(KernelGlobals kg,
   if (use_attenuation) {
     ls->eval_fac *= spot_light_attenuation(&klight->spot, local_ray);
   }
-
-  /* Texture coordinates. */
-  spot_light_uv(local_ray, klight->spot.half_cot_half_spot_angle, &ls->u, &ls->v);
 }
 
 ccl_device_inline bool spot_light_intersect(const ccl_global KernelLight *klight,
@@ -228,49 +215,37 @@ ccl_device_inline bool spot_light_intersect(const ccl_global KernelLight *klight
   return point_light_intersect(klight, ray, t);
 }
 
-ccl_device_inline bool spot_light_sample_from_intersection(KernelGlobals kg,
-                                                           const ccl_global KernelLight *klight,
-                                                           const float3 ray_P,
-                                                           const float3 ray_D,
-                                                           const float3 N,
-                                                           const uint32_t path_flag,
-                                                           ccl_private LightSample *ccl_restrict
-                                                               ls)
+ccl_device_inline LightEval spot_light_eval_from_intersection(KernelGlobals kg,
+                                                              const ccl_global KernelLight *klight,
+                                                              const float3 ray_P,
+                                                              const float3 ray_D,
+                                                              const float t,
+                                                              const float3 N,
+                                                              const uint32_t path_flag)
 {
   const float r_sq = sqr(klight->spot.radius);
   const float d_sq = len_squared(ray_P - klight->co);
 
-  ls->eval_fac = klight->spot.eval_fac;
+  LightEval light_eval = {klight->spot.eval_fac, 0.0f};
 
   if (klight->spot.is_sphere) {
-    ls->pdf = spot_light_pdf(&klight->spot, d_sq, r_sq, N, ray_D, path_flag);
-    ls->Ng = normalize(ls->P - klight->co);
+    light_eval.pdf = spot_light_pdf(&klight->spot, d_sq, r_sq, N, ray_D, path_flag);
   }
   else {
-    if (ls->t != FLT_MAX) {
+    if (t != FLT_MAX) {
       const float3 lightN = normalize(ray_P - klight->co);
       const float invarea = (r_sq > 0.0f) ? 1.0f / (r_sq * M_PI_F) : 1.0f;
-      ls->pdf = invarea * light_pdf_area_to_solid_angle(lightN, -ray_D, ls->t);
+      light_eval.pdf = invarea * light_pdf_area_to_solid_angle(lightN, -ray_D, t);
     }
-    else {
-      ls->pdf = 0.0f;
-    }
-    ls->Ng = -ray_D;
   }
 
   /* Attenuation. */
   const float3 local_ray = spot_light_to_local(kg, klight, -ray_D);
   if (!klight->spot.is_sphere || d_sq > r_sq) {
-    ls->eval_fac *= spot_light_attenuation(&klight->spot, local_ray);
-  }
-  if (ls->eval_fac == 0) {
-    return false;
+    light_eval.eval_fac *= spot_light_attenuation(&klight->spot, local_ray);
   }
 
-  /* Texture coordinates. */
-  spot_light_uv(local_ray, klight->spot.half_cot_half_spot_angle, &ls->u, &ls->v);
-
-  return true;
+  return light_eval;
 }
 
 /* Find the ray segment lit by the spot light. */

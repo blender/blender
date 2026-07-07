@@ -24,16 +24,20 @@
 #include "../asset/ED_asset_filter.hh"  // IWYU pragma: export
 #include "../asset/ED_asset_import.hh"  // IWYU pragma: export
 
+namespace blender {
+
 /** From UI_resources.hh. */
 using BIFIconID = int;
 
 struct PointerRNA;
-struct uiTooltipData;
+namespace ui {
+struct TooltipData;
+}
 
-namespace blender::ed::asset {
+namespace ed::asset {
 
 void asset_tooltip(const asset_system::AssetRepresentation &asset,
-                   uiTooltipData &tip,
+                   ui::TooltipData &tip,
                    bool include_name = true);
 
 BIFIconID asset_preview_icon_id(const asset_system::AssetRepresentation &asset);
@@ -51,6 +55,13 @@ const bUserAssetLibrary *get_asset_library_from_opptr(PointerRNA &ptr);
 AssetLibraryReference get_asset_library_ref_from_opptr(PointerRNA &ptr);
 
 /**
+ * Returns the library reference of \a library if set and if it is a library that can be saved to.
+ * Otherwise falls back to the first enabled user library.
+ */
+std::optional<AssetLibraryReference> get_user_library_ref_for_save(
+    const asset_system::AssetLibrary *preferred_library = nullptr);
+
+/**
  * For each catalog of the given bUserAssetLibrary call `visit_fn`.
  * \param edit_text: If that text is not empty, and not matching an existing catalog path
  * `visit_fn` will be called with that text and the icon ICON_ADD.
@@ -61,4 +72,5 @@ void visit_library_catalogs_catalog_for_search(
     StringRef edit_text,
     const FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
 
-}  // namespace blender::ed::asset
+}  // namespace ed::asset
+}  // namespace blender

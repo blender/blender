@@ -48,12 +48,7 @@ void device_cpu_info(vector<DeviceInfo> &devices)
 
 string device_cpu_capabilities()
 {
-  string capabilities;
-  capabilities += system_cpu_support_avx2() ? "AVX2" : "";
-  if (capabilities[capabilities.size() - 1] == ' ') {
-    capabilities.resize(capabilities.size() - 1);
-  }
-  return capabilities;
+  return system_cpu_support_avx2() ? "AVX2" : "";
 }
 
 CCL_NAMESPACE_END

@@ -83,7 +83,6 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::intern::clog
   PUBLIC bf::dependencies::optional::opencolorio
-  PRIVATE bf::extern::fmtlib
 )
 
 blender_add_lib(bf_imbuf_opencolorio "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
@@ -94,13 +93,24 @@ target_include_directories(bf_imbuf_opencolorio PUBLIC .)
 set(GLSL_SRC
   shaders/gpu_shader_display_transform_vert.glsl
   shaders/gpu_shader_display_transform_frag.glsl
+  shaders/gpu_shader_display_transform_lib.glsl
+  shaders/gpu_shader_display_transform_fallback_lib.glsl
 
   intern/ocio_shader_shared.hh
 )
 
-set(GLSL_C)
+set(GLSL_INC
+  ../../gpu
+  ../../gpu/shaders
+  ../../gpu/shaders/common
+
+  intern
+  shaders
+)
+
+set(GLSL_C "")
 foreach(GLSL_FILE ${GLSL_SRC})
-  glsl_to_c(${GLSL_FILE} GLSL_C)
+  glsl_to_c(${GLSL_FILE} GLSL_C GLSL_INC)
 endforeach()
 
 blender_add_lib(bf_imbuf_opencolorio_shaders "${GLSL_C}" "" "" "")
@@ -109,11 +119,13 @@ target_link_libraries(bf_imbuf_opencolorio PRIVATE bf_imbuf_opencolorio_shaders)
 
 set(GLSL_SOURCE_CONTENT "")
 set(GLSL_METADATA_CONTENT "")
+set(GLSL_INFOS_CONTENT "")
 foreach(GLSL_FILE ${GLSL_SRC})
   get_filename_component(GLSL_FILE_NAME ${GLSL_FILE} NAME)
   string(REPLACE "." "_" GLSL_FILE_NAME_UNDERSCORES ${GLSL_FILE_NAME})
   string(APPEND GLSL_SOURCE_CONTENT "SHADER_SOURCE\(${GLSL_FILE_NAME_UNDERSCORES}, \"${GLSL_FILE_NAME}\", \"${GLSL_FILE}\"\)\n")
   string(APPEND GLSL_METADATA_CONTENT "#include \"${GLSL_FILE}.hh\"\n")
+  string(APPEND GLSL_INFOS_CONTENT "#include \"${GLSL_FILE}.info\"\n")
 endforeach()
 
 set(glsl_source_list_file "${CMAKE_CURRENT_BINARY_DIR}/glsl_ocio_source_list.h")
@@ -122,6 +134,9 @@ list(APPEND SRC ${glsl_source_list_file})
 set(glsl_metadata_list_file "${CMAKE_CURRENT_BINARY_DIR}/glsl_ocio_metadata_list.hh")
 file(GENERATE OUTPUT ${glsl_metadata_list_file} CONTENT "${GLSL_METADATA_CONTENT}")
 list(APPEND SRC ${glsl_metadata_list_file})
+set(glsl_infos_list_file "${CMAKE_CURRENT_BINARY_DIR}/glsl_ocio_infos_list.hh")
+file(GENERATE OUTPUT ${glsl_infos_list_file} CONTENT "${GLSL_INFOS_CONTENT}")
+list(APPEND SRC ${glsl_infos_list_file})
 list(APPEND INC ${CMAKE_CURRENT_BINARY_DIR})
 
 target_include_directories(bf_imbuf_opencolorio_shaders PUBLIC ${CMAKE_CURRENT_BINARY_DIR})

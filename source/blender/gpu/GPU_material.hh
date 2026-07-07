@@ -10,6 +10,10 @@
 
 #include <string>
 
+#include "BLI_enum_flags.hh"
+#include "BLI_math_base.h"
+#include "BLI_set.hh"
+
 #include "DNA_customdata_types.h" /* for eCustomDataType */
 #include "DNA_image_types.h"
 #include "DNA_listBase.h"
@@ -17,18 +21,20 @@
 #include "GPU_shader.hh"  /* for GPUShaderCreateInfo */
 #include "GPU_texture.hh" /* for GPUSamplerState */
 
+namespace blender {
+
 struct GHash;
 struct GPUMaterial;
+struct GPUInput;
 struct GPUNodeLink;
 struct GPUNodeStack;
 struct GPUPass;
-namespace blender::gpu {
+namespace gpu {
 class Texture;
 class UniformBuf;
-}  // namespace blender::gpu
+}  // namespace gpu
 struct Image;
 struct ImageUser;
-struct ListBase;
 struct Main;
 struct Material;
 struct Scene;
@@ -45,7 +51,7 @@ enum eGPUMaterialEngine {
   GPU_MAT_ENGINE_MAX,
 };
 
-enum eGPUMaterialStatus {
+enum GPUMaterialStatus {
   GPU_MAT_FAILED = 0,
   GPU_MAT_QUEUED,
   GPU_MAT_SUCCESS,
@@ -72,6 +78,7 @@ enum eGPUMaterialFlag {
   /* Signals the presence of multiple reflection closures. */
   GPU_MATFLAG_COAT = (1 << 9),
   GPU_MATFLAG_TRANSLUCENT = (1 << 10),
+  GPU_MATFLAG_RAYCAST = (1 << 11),
 
   GPU_MATFLAG_VOLUME_SCATTER = (1 << 16),
   GPU_MATFLAG_VOLUME_ABSORPTION = (1 << 17),
@@ -80,11 +87,19 @@ enum eGPUMaterialFlag {
   GPU_MATFLAG_AOV = (1 << 19),
 
   GPU_MATFLAG_BARYCENTRIC = (1 << 20),
+  /* Signals that these specific closures might *not* be colorless.
+   * If this flag is not set, all closures are ensured to not be tinted. */
+  GPU_MATFLAG_REFLECTION_MAYBE_COLORED = (1 << 21),
+  GPU_MATFLAG_REFRACTION_MAYBE_COLORED = (1 << 22),
+  GPU_MATFLAG_TRANSPARENT_MAYBE_COLORED = (1 << 23),
+
+  /* Set if the material uses the "Is Diffuse / Glossy Ray" output of the light path node. */
+  GPU_MATFLAG_IS_DIFFUSE_OR_GLOSSY_RAY_FLAG = (1 << 24),
 
   /* Tells the render engine the material was just compiled or updated. */
   GPU_MATFLAG_UPDATED = (1 << 29),
 };
-ENUM_OPERATORS(eGPUMaterialFlag, GPU_MATFLAG_UPDATED);
+ENUM_OPERATORS(eGPUMaterialFlag);
 
 using GPUCodegenCallbackFn = void (*)(void *thunk,
                                       GPUMaterial *mat,
@@ -102,14 +117,14 @@ struct GPUMaterialFromNodeTreeResult {
     const bNode *node;
     std::string message;
   };
-  blender::Vector<Error> errors;
+  Vector<Error> errors;
 };
 
 /** WARNING: gpumaterials thread safety must be ensured by the caller. */
 GPUMaterialFromNodeTreeResult GPU_material_from_nodetree(
     Material *ma,
     bNodeTree *ntree,
-    ListBase *gpumaterials,
+    ListBaseT<LinkData> *gpumaterials,
     const char *name,
     eGPUMaterialEngine engine,
     uint64_t shader_uuid,
@@ -130,13 +145,13 @@ GPUMaterial *GPU_material_from_callbacks(eGPUMaterialEngine engine,
                                          void *thunk);
 
 void GPU_material_free_single(GPUMaterial *material);
-void GPU_material_free(ListBase *gpumaterial);
+void GPU_material_free(ListBaseT<LinkData> *gpumaterial);
 
 void GPU_materials_free(Main *bmain);
 
 GPUPass *GPU_material_get_pass(GPUMaterial *material);
 /** Return the most optimal shader configuration for the given material. */
-blender::gpu::Shader *GPU_material_get_shader(GPUMaterial *material);
+gpu::Shader *GPU_material_get_shader(GPUMaterial *material);
 
 const char *GPU_material_get_name(GPUMaterial *material);
 
@@ -147,7 +162,7 @@ Material *GPU_material_get_material(GPUMaterial *material);
 /**
  * Return true if the material compilation has not yet begin or begin.
  */
-eGPUMaterialStatus GPU_material_status(GPUMaterial *mat);
+GPUMaterialStatus GPU_material_status(GPUMaterial *mat);
 
 /**
  * Return status for asynchronous optimization jobs.
@@ -156,13 +171,13 @@ eGPUMaterialOptimizationStatus GPU_material_optimization_status(GPUMaterial *mat
 
 uint64_t GPU_material_compilation_timestamp(GPUMaterial *mat);
 
-blender::gpu::UniformBuf *GPU_material_uniform_buffer_get(GPUMaterial *material);
+gpu::UniformBuf *GPU_material_uniform_buffer_get(GPUMaterial *material);
 /**
  * Create dynamic UBO from parameters
  *
  * \param inputs: Items are #LinkData, data is #GPUInput (`BLI_genericNodeN(GPUInput)`).
  */
-void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs);
+void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBaseT<LinkData> *inputs);
 
 bool GPU_material_has_surface_output(GPUMaterial *mat);
 bool GPU_material_has_volume_output(GPUMaterial *mat);
@@ -184,11 +199,11 @@ struct GPULayerAttr {
   int users;
 };
 
-const ListBase *GPU_material_layer_attributes(const GPUMaterial *material);
+const ListBaseT<GPULayerAttr> *GPU_material_layer_attributes(const GPUMaterial *material);
 
 /* Requested Material Attributes and Textures */
 
-enum eGPUType {
+enum GPUType {
   /* Keep in sync with GPU_DATATYPE_STR */
   /* The value indicates the number of elements in each type */
   GPU_NONE = 0,
@@ -213,7 +228,7 @@ enum eGPUType {
   GPU_ATTR = 3001,
 };
 
-enum eGPUDefaultValue {
+enum GPUDefaultValue {
   GPU_DEFAULT_0 = 0,
   GPU_DEFAULT_1,
 };
@@ -223,8 +238,8 @@ struct GPUMaterialAttribute {
   int type; /* eCustomDataType */
   char name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
   char input_name[/*GPU_MAX_SAFE_ATTR_NAME + 1*/ 12 + 1];
-  eGPUType gputype;
-  eGPUDefaultValue default_value; /* Only for volumes attributes. */
+  GPUType gputype;
+  GPUDefaultValue default_value; /* Only for volumes attributes. */
   int id;
   int users;
   /**
@@ -248,16 +263,16 @@ struct GPUMaterialTexture {
   Image *ima;
   ImageUser iuser;
   bool iuser_available;
-  blender::gpu::Texture **colorband;
-  blender::gpu::Texture **sky;
+  gpu::Texture **colorband;
+  gpu::Texture **sky;
   char sampler_name[32];       /* Name of sampler in GLSL. */
   char tiled_mapping_name[32]; /* Name of tile mapping sampler in GLSL. */
   int users;
   GPUSamplerState sampler_state;
 };
 
-ListBase GPU_material_attributes(const GPUMaterial *material);
-ListBase GPU_material_textures(GPUMaterial *material);
+ListBaseT<GPUMaterialAttribute> GPU_material_attributes(const GPUMaterial *material);
+ListBaseT<GPUMaterialTexture> GPU_material_textures(GPUMaterial *material);
 
 struct GPUUniformAttr {
   GPUUniformAttr *next, *prev;
@@ -274,7 +289,7 @@ struct GPUUniformAttr {
 };
 
 struct GPUUniformAttrList {
-  ListBase list; /* GPUUniformAttr */
+  ListBaseT<GPUUniformAttr> list;
 
   /* List length and hash code precomputed for fast lookup and comparison. */
   unsigned int count, hash_code;
@@ -286,24 +301,61 @@ const GPUUniformAttrList *GPU_material_uniform_attributes(const GPUMaterial *mat
 /* TODO: Move to its own header. */
 
 struct GPUNodeStack {
-  eGPUType type;
+  GPUType type;
   float vec[4];
   GPUNodeLink *link;
   bool hasinput;
   bool hasoutput;
   short sockettype;
   bool end;
+
+  /* Return true if the socket might contain a polychromatic value.
+   * This is a conservative heuristic that allows for optimization. */
+  bool might_be_tinted() const
+  {
+    return this->link || (this->vec[0] != this->vec[1]) || (this->vec[1] != this->vec[2]);
+  }
+
+  bool socket_not_zero() const
+  {
+    return this->link || (clamp_f(this->vec[0], 0.0f, 1.0f) > 1e-5f);
+  }
+
+  bool socket_not_one() const
+  {
+    return this->link || (clamp_f(this->vec[0], 0.0f, 1.0f) < 1.0f - 1e-5f);
+  }
+
+  bool socket_is_one() const
+  {
+    return !this->link && (clamp_f(this->vec[0], 0.0f, 1.0f) > 0.9999f);
+  }
+};
+
+struct GPUGraphOutput {
+  std::string serialized;
+  Vector<StringRefNull> dependencies;
+
+  bool empty() const
+  {
+    return serialized.empty();
+  }
+
+  std::string serialized_or_default(std::string value) const
+  {
+    return serialized.empty() ? value : serialized;
+  }
 };
 
 struct GPUCodegenOutput {
   std::string attr_load;
   /* Node-tree functions calls. */
-  std::string displacement;
-  std::string surface;
-  std::string volume;
-  std::string thickness;
-  std::string composite;
-  std::string material_functions;
+  GPUGraphOutput displacement;
+  GPUGraphOutput surface;
+  GPUGraphOutput volume;
+  GPUGraphOutput thickness;
+  GPUGraphOutput composite;
+  Vector<GPUGraphOutput> material_functions;
 
   GPUShaderCreateInfo *create_info;
 };
@@ -324,7 +376,7 @@ GPUNodeLink *GPU_attribute_hair_intercept(GPUMaterial *mat);
 GPUNodeLink *GPU_attribute_with_default(GPUMaterial *mat,
                                         eCustomDataType type,
                                         const char *name,
-                                        eGPUDefaultValue default_value);
+                                        GPUDefaultValue default_value);
 GPUNodeLink *GPU_uniform_attribute(GPUMaterial *mat,
                                    const char *name,
                                    bool use_dupli,
@@ -363,6 +415,16 @@ bool GPU_stack_link(GPUMaterial *mat,
                     GPUNodeStack *out,
                     ...);
 
+bool GPU_stack_link_zone(GPUMaterial *material,
+                         const bNode *bnode,
+                         const char *name,
+                         GPUNodeStack *in,
+                         GPUNodeStack *out,
+                         int zone_index,
+                         bool is_zone_end,
+                         int in_argument_count,
+                         int out_argument_count);
+
 void GPU_material_output_surface(GPUMaterial *material, GPUNodeLink *link);
 void GPU_material_output_volume(GPUMaterial *material, GPUNodeLink *link);
 void GPU_material_output_displacement(GPUMaterial *material, GPUNodeLink *link);
@@ -381,7 +443,7 @@ void GPU_material_add_output_link_composite(GPUMaterial *material, GPUNodeLink *
  * \return the name of the generated function.
  */
 char *GPU_material_split_sub_function(GPUMaterial *material,
-                                      eGPUType return_type,
+                                      GPUType return_type,
                                       GPUNodeLink **link);
 
 void GPU_material_flag_set(GPUMaterial *mat, eGPUMaterialFlag flag);
@@ -390,3 +452,5 @@ eGPUMaterialFlag GPU_material_flag(const GPUMaterial *mat);
 GHash *GPU_uniform_attr_list_hash_new(const char *info);
 void GPU_uniform_attr_list_copy(GPUUniformAttrList *dest, const GPUUniformAttrList *src);
 void GPU_uniform_attr_list_free(GPUUniformAttrList *set);
+
+}  // namespace blender

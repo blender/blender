@@ -18,8 +18,8 @@ extern PyTypeObject GetProjectedYF1D_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetProjectedYF1D_Type))
 
 /*---------------------------Python BPy_GetProjectedYF1D structure definition----------*/
-typedef struct {
+struct BPy_GetProjectedYF1D {
   BPy_UnaryFunction1DDouble py_uf1D_double;
-} BPy_GetProjectedYF1D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

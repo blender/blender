@@ -30,18 +30,20 @@
 
 #include <cstring> /* memcpy */
 
+namespace blender {
+
 #define USE_NONUNIFORM_SCALE
 
 /* ********************** THE IK SOLVER ******************* */
 
-static void find_ik_constraints(ListBase *constraints,
-                                blender::Vector<bConstraint *> &ik_constraints)
+static void find_ik_constraints(ListBaseT<bConstraint> *constraints,
+                                Vector<bConstraint *> &ik_constraints)
 {
-  LISTBASE_FOREACH (bConstraint *, con, constraints) {
-    if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
-      bKinematicConstraint *data = (bKinematicConstraint *)con->data;
+  for (bConstraint &con : *constraints) {
+    if (con.type == CONSTRAINT_TYPE_KINEMATIC) {
+      bKinematicConstraint *data = (bKinematicConstraint *)con.data;
       if (data->flag & CONSTRAINT_IK_AUTO) {
-        ik_constraints.append(con);
+        ik_constraints.append(&con);
         continue;
       }
       if (data->tar == nullptr) {
@@ -50,10 +52,10 @@ static void find_ik_constraints(ListBase *constraints,
       if (data->tar->type == OB_ARMATURE && data->subtarget[0] == 0) {
         continue;
       }
-      if (con->flag & CONSTRAINT_DISABLE) {
+      if (con.flag & CONSTRAINT_DISABLE) {
         continue;
       }
-      ik_constraints.append(con);
+      ik_constraints.append(&con);
     }
   }
 }
@@ -63,7 +65,7 @@ static void find_ik_constraints(ListBase *constraints,
  * in drawarmature.c and in transform_conversions.c */
 static void initialize_posetree(Object * /*ob*/, bPoseChannel *pchan_tip)
 {
-  blender::Vector<bConstraint *> ik_constraints;
+  Vector<bConstraint *> ik_constraints;
   find_ik_constraints(&pchan_tip->constraints, ik_constraints);
 
   if (ik_constraints.is_empty()) {
@@ -116,13 +118,13 @@ static void initialize_posetree(Object * /*ob*/, bPoseChannel *pchan_tip)
     }
 
     /* create a target */
-    target = MEM_callocN<PoseTarget>("posetarget");
+    target = MEM_new_zeroed<PoseTarget>("posetarget");
     target->con = constraint;
     pchan_tip->flag &= ~POSE_CHAIN;
 
     if (tree == nullptr) {
       /* make new tree */
-      tree = MEM_callocN<PoseTree>("posetree");
+      tree = MEM_new_zeroed<PoseTree>("posetree");
 
       tree->type = CONSTRAINT_TYPE_KINEMATIC;
 
@@ -130,8 +132,8 @@ static void initialize_posetree(Object * /*ob*/, bPoseChannel *pchan_tip)
       tree->totchannel = segcount;
       tree->stretch = (data->flag & CONSTRAINT_IK_STRETCH);
 
-      tree->pchan = MEM_calloc_arrayN<bPoseChannel *>(segcount, "ik tree pchan");
-      tree->parent = MEM_calloc_arrayN<int>(segcount, "ik tree parent");
+      tree->pchan = MEM_new_array_zeroed<bPoseChannel *>(segcount, "ik tree pchan");
+      tree->parent = MEM_new_array_zeroed<int>(segcount, "ik tree parent");
       for (int a = 0; a < segcount; a++) {
         tree->pchan[a] = chanlist[segcount - a - 1];
         tree->parent[a] = a - 1;
@@ -185,12 +187,12 @@ static void initialize_posetree(Object * /*ob*/, bPoseChannel *pchan_tip)
         oldchan = tree->pchan;
         int *oldparent = tree->parent;
 
-        tree->pchan = MEM_calloc_arrayN<bPoseChannel *>(newsize, "ik tree pchan");
-        tree->parent = MEM_calloc_arrayN<int>(newsize, "ik tree parent");
+        tree->pchan = MEM_new_array_zeroed<bPoseChannel *>(newsize, "ik tree pchan");
+        tree->parent = MEM_new_array_zeroed<int>(newsize, "ik tree parent");
         memcpy(tree->pchan, oldchan, sizeof(void *) * tree->totchannel);
         memcpy(tree->parent, oldparent, sizeof(int) * tree->totchannel);
-        MEM_freeN(oldchan);
-        MEM_freeN(oldparent);
+        MEM_delete(oldchan);
+        MEM_delete(oldparent);
 
         /* add new pose channels at the end, in reverse order */
         for (a = 0; a < segcount; a++) {
@@ -305,7 +307,7 @@ static void execute_posetree(Depsgraph *depsgraph, Scene *scene, Object *ob, Pos
     return;
   }
 
-  iktree = MEM_malloc_arrayN<IK_Segment *>(size_t(tree->totchannel), "ik tree");
+  iktree = MEM_new_array_uninitialized<IK_Segment *>(size_t(tree->totchannel), "ik tree");
 
   for (a = 0; a < tree->totchannel; a++) {
     float length;
@@ -428,17 +430,17 @@ static void execute_posetree(Depsgraph *depsgraph, Scene *scene, Object *ob, Pos
   mul_m4_m4m4(imat, ob->object_to_world().ptr(), rootmat);
   invert_m4_m4(goalinv, imat);
 
-  LISTBASE_FOREACH (PoseTarget *, target, &tree->targets) {
+  for (PoseTarget &target : tree->targets) {
     float polepos[3];
     int poleconstrain = 0;
 
-    data = (bKinematicConstraint *)target->con->data;
+    data = (bKinematicConstraint *)target.con->data;
 
     /* 1.0=ctime, we pass on object for auto-ik (owner-type here is object, even though
      * strictly speaking, it is a posechannel)
      */
     BKE_constraint_target_matrix_get(
-        depsgraph, scene, target->con, 0, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
+        depsgraph, scene, target.con, 0, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
 
     /* and set and transform goal */
     mul_m4_m4m4(goal, goalinv, rootmat);
@@ -450,7 +452,7 @@ static void execute_posetree(Depsgraph *depsgraph, Scene *scene, Object *ob, Pos
     /* same for pole vector target */
     if (data->poletar) {
       BKE_constraint_target_matrix_get(
-          depsgraph, scene, target->con, 1, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
+          depsgraph, scene, target.con, 1, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
 
       if (data->flag & CONSTRAINT_IK_SETANGLE) {
         /* don't solve IK when we are setting the pole angle */
@@ -465,7 +467,7 @@ static void execute_posetree(Depsgraph *depsgraph, Scene *scene, Object *ob, Pos
        * instead of the target position, otherwise we can't get
        * a smooth transition */
       resultblend = 1;
-      resultinf = (target->con->flag & CONSTRAINT_OFF) ? 0.0f : target->con->enforce;
+      resultinf = (target.con->flag & CONSTRAINT_OFF) ? 0.0f : target.con->enforce;
 
       if (data->flag & CONSTRAINT_IK_GETANGLE) {
         poleangledata = data;
@@ -474,12 +476,12 @@ static void execute_posetree(Depsgraph *depsgraph, Scene *scene, Object *ob, Pos
     }
 
     /* do we need blending? */
-    if (!resultblend && ((target->con->flag & CONSTRAINT_OFF) || target->con->enforce != 1.0f)) {
+    if (!resultblend && ((target.con->flag & CONSTRAINT_OFF) || target.con->enforce != 1.0f)) {
       float q1[4], q2[4], q[4];
-      float fac = (target->con->flag & CONSTRAINT_OFF) ? 0.0f : target->con->enforce;
+      float fac = (target.con->flag & CONSTRAINT_OFF) ? 0.0f : target.con->enforce;
       float mfac = 1.0f - fac;
 
-      pchan = tree->pchan[target->tip];
+      pchan = tree->pchan[target.tip];
 
       /* end effector in world space */
       copy_m4_m4(end_pose, pchan->pose_mat);
@@ -498,7 +500,7 @@ static void execute_posetree(Depsgraph *depsgraph, Scene *scene, Object *ob, Pos
       quat_to_mat3(goalrot, q);
     }
 
-    iktarget = iktree[target->tip];
+    iktarget = iktree[target.tip];
 
     if ((data->flag & CONSTRAINT_IK_POS) && data->weight != 0.0f) {
       if (poleconstrain) {
@@ -524,9 +526,10 @@ static void execute_posetree(Depsgraph *depsgraph, Scene *scene, Object *ob, Pos
   IK_FreeSolver(solver);
 
   /* gather basis changes */
-  tree->basis_change = MEM_malloc_arrayN<float[3][3]>(size_t(tree->totchannel), "ik basis change");
+  tree->basis_change = MEM_new_array_uninitialized<float[3][3]>(size_t(tree->totchannel),
+                                                                "ik basis change");
   if (hasstretch) {
-    ikstretch = MEM_malloc_arrayN<float>(size_t(tree->totchannel), "ik stretch");
+    ikstretch = MEM_new_array_uninitialized<float>(size_t(tree->totchannel), "ik stretch");
   }
 
   for (a = 0; a < tree->totchannel; a++) {
@@ -566,9 +569,9 @@ static void execute_posetree(Depsgraph *depsgraph, Scene *scene, Object *ob, Pos
     IK_FreeSegment(iktree[a]);
   }
 
-  MEM_freeN(iktree);
+  MEM_delete(iktree);
   if (ikstretch) {
-    MEM_freeN(ikstretch);
+    MEM_delete(ikstretch);
   }
 }
 
@@ -576,15 +579,15 @@ static void free_posetree(PoseTree *tree)
 {
   BLI_freelistN(&tree->targets);
   if (tree->pchan) {
-    MEM_freeN(tree->pchan);
+    MEM_delete(tree->pchan);
   }
   if (tree->parent) {
-    MEM_freeN(tree->parent);
+    MEM_delete(tree->parent);
   }
   if (tree->basis_change) {
-    MEM_freeN(tree->basis_change);
+    MEM_delete(tree->basis_change);
   }
-  MEM_freeN(tree);
+  MEM_delete(tree);
 }
 
 /* ------------------------------
@@ -595,9 +598,9 @@ void iksolver_initialize_tree(Depsgraph * /*depsgraph*/,
                               Object *ob,
                               float /*ctime*/)
 {
-  LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-    if (pchan->constflag & PCHAN_HAS_IK) { /* flag is set on editing constraints */
-      initialize_posetree(ob, pchan);      /* will attach it to root! */
+  for (bPoseChannel &pchan : ob->pose->chanbase) {
+    if (pchan.constflag & PCHAN_HAS_IK) { /* flag is set on editing constraints */
+      initialize_posetree(ob, &pchan);    /* will attach it to root! */
     }
   }
   ob->pose->flag &= ~POSE_WAS_REBUILT;
@@ -617,8 +620,8 @@ void iksolver_execute_tree(
 
     /* Test if this IK tree has any influence, so we can skip computations. */
     bool has_influence = false;
-    LISTBASE_FOREACH (PoseTarget *, target, &tree->targets) {
-      if (!(target->con->flag & CONSTRAINT_OFF) && target->con->enforce != 0.0f) {
+    for (PoseTarget &target : tree->targets) {
+      if (!(target.con->flag & CONSTRAINT_OFF) && target.con->enforce != 0.0f) {
         has_influence = true;
         break;
       }
@@ -668,21 +671,23 @@ void iksolver_release_tree(Scene * /*scene*/, Object *ob, float /*ctime*/)
 
 void iksolver_clear_data(bPose *pose)
 {
-  LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
-    if ((pchan->flag & POSE_IKTREE) == 0) {
+  for (bPoseChannel &pchan : pose->chanbase) {
+    if ((pchan.flag & POSE_IKTREE) == 0) {
       continue;
     }
 
-    while (pchan->iktree.first) {
-      PoseTree *tree = static_cast<PoseTree *>(pchan->iktree.first);
+    while (pchan.iktree.first) {
+      PoseTree *tree = static_cast<PoseTree *>(pchan.iktree.first);
 
       /* stop on the first tree that isn't a standard IK chain */
       if (tree->type != CONSTRAINT_TYPE_KINEMATIC) {
         break;
       }
 
-      BLI_remlink(&pchan->iktree, tree);
+      BLI_remlink(&pchan.iktree, tree);
       free_posetree(tree);
     }
   }
 }
+
+}  // namespace blender

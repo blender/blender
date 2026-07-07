@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 struct ARegion;
 struct SpaceText;
 struct Text;
@@ -45,3 +47,5 @@ UndoStep *ED_text_undo_push_init(bContext *C);
 const char *ED_text_format_comment_line_prefix(Text *text);
 
 bool ED_text_is_syntax_highlight_supported(Text *text);
+
+}  // namespace blender

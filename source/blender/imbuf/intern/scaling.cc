@@ -21,28 +21,26 @@
 
 #include "BLI_sys_types.h" /* for intptr_t support */
 
-using blender::float2;
-using blender::float3;
-using blender::float4;
-using blender::uchar4;
+namespace blender {
 
 static void alloc_scale_dst_buffers(
     const ImBuf *ibuf, uint newx, uint newy, uchar4 **r_dst_byte, float **r_dst_float)
 {
   *r_dst_byte = nullptr;
   if (ibuf->byte_buffer.data != nullptr) {
-    *r_dst_byte = MEM_malloc_arrayN<uchar4>(size_t(newx) * size_t(newy), "scale_buf_byte");
+    *r_dst_byte = MEM_new_array_uninitialized<uchar4>(size_t(newx) * size_t(newy),
+                                                      "scale_buf_byte");
     if (*r_dst_byte == nullptr) {
       return;
     }
   }
   *r_dst_float = nullptr;
   if (ibuf->float_buffer.data != nullptr) {
-    *r_dst_float = MEM_malloc_arrayN<float>(size_t(ibuf->channels) * newx * newy,
-                                            "scale_buf_float");
+    *r_dst_float = MEM_new_array_uninitialized<float>(size_t(ibuf->channels) * newx * newy,
+                                                      "scale_buf_float");
     if (*r_dst_float == nullptr) {
       if (*r_dst_byte) {
-        MEM_freeN(*r_dst_byte);
+        MEM_delete(*r_dst_byte);
       }
       return;
     }
@@ -71,7 +69,7 @@ static inline float4 load_pixel(const float4 *ptr)
 }
 static inline void store_pixel(float4 pix, uchar4 *ptr)
 {
-  *ptr = uchar4(blender::math::round(pix));
+  *ptr = uchar4(math::round(pix));
 }
 static inline void store_pixel(float4 pix, float *ptr)
 {
@@ -79,11 +77,11 @@ static inline void store_pixel(float4 pix, float *ptr)
 }
 static inline void store_pixel(float4 pix, float2 *ptr)
 {
-  memcpy(ptr, &pix, sizeof(*ptr));
+  memcpy(reinterpret_cast<void *>(ptr), &pix, sizeof(*ptr));
 }
 static inline void store_pixel(float4 pix, float3 *ptr)
 {
-  memcpy(ptr, &pix, sizeof(*ptr));
+  memcpy(reinterpret_cast<void *>(ptr), &pix, sizeof(*ptr));
 }
 static inline void store_pixel(float4 pix, float4 *ptr)
 {
@@ -94,7 +92,6 @@ struct ScaleDownX {
   template<typename T>
   static void op(const T *src, T *dst, int ibufx, int ibufy, int newx, int /*newy*/, bool threaded)
   {
-    using namespace blender;
     const float add = (ibufx - 0.01f) / newx;
     const float inv_add = 1.0f / add;
 
@@ -133,7 +130,6 @@ struct ScaleDownY {
   template<typename T>
   static void op(const T *src, T *dst, int ibufx, int ibufy, int /*newx*/, int newy, bool threaded)
   {
-    using namespace blender;
     const float add = (ibufy - 0.01f) / newy;
     const float inv_add = 1.0f / add;
 
@@ -172,7 +168,6 @@ struct ScaleUpX {
   template<typename T>
   static void op(const T *src, T *dst, int ibufx, int ibufy, int newx, int /*newy*/, bool threaded)
   {
-    using namespace blender;
     const float add = (ibufx - 0.001f) / newx;
     /* Special case: source is 1px wide (see #70356). */
     if (UNLIKELY(ibufx == 1)) {
@@ -210,7 +205,7 @@ struct ScaleUpX {
                 counter++;
               }
             }
-            float4 pix = val + blender::math::max(sample, 0.0f) * diff;
+            float4 pix = val + math::max(sample, 0.0f) * diff;
             store_pixel(pix, dst_ptr);
             dst_ptr++;
             sample += add;
@@ -225,12 +220,11 @@ struct ScaleUpY {
   template<typename T>
   static void op(const T *src, T *dst, int ibufx, int ibufy, int /*newx*/, int newy, bool threaded)
   {
-    using namespace blender;
     const float add = (ibufy - 0.001f) / newy;
     /* Special case: source is 1px high (see #70356). */
     if (UNLIKELY(ibufy == 1)) {
       for (int y = newy; y > 0; y--) {
-        memcpy(dst, src, sizeof(T) * ibufx);
+        memcpy(reinterpret_cast<void *>(dst), src, sizeof(T) * ibufx);
         dst += ibufx;
       }
     }
@@ -262,7 +256,7 @@ struct ScaleUpY {
                 ++counter;
               }
             }
-            float4 pix = val + blender::math::max(sample, 0.0f) * diff;
+            float4 pix = val + math::max(sample, 0.0f) * diff;
             store_pixel(pix, dst_ptr);
             dst_ptr += ibufx;
             sample += add;
@@ -283,7 +277,7 @@ static void instantiate_pixel_op(T & /*op*/,
                                  bool threaded)
 {
   if (dst_byte != nullptr) {
-    const uchar4 *src = (const uchar4 *)ibuf->byte_buffer.data;
+    const uchar4 *src = reinterpret_cast<const uchar4 *>(ibuf->byte_buffer.data);
     T::op(src, dst_byte, ibuf->x, ibuf->y, newx, newy, threaded);
   }
   if (dst_float != nullptr) {
@@ -291,16 +285,16 @@ static void instantiate_pixel_op(T & /*op*/,
       T::op(ibuf->float_buffer.data, dst_float, ibuf->x, ibuf->y, newx, newy, threaded);
     }
     else if (ibuf->channels == 2) {
-      const float2 *src = (const float2 *)ibuf->float_buffer.data;
-      T::op(src, (float2 *)dst_float, ibuf->x, ibuf->y, newx, newy, threaded);
+      const float2 *src = reinterpret_cast<const float2 *>(ibuf->float_buffer.data);
+      T::op(src, reinterpret_cast<float2 *>(dst_float), ibuf->x, ibuf->y, newx, newy, threaded);
     }
     else if (ibuf->channels == 3) {
-      const float3 *src = (const float3 *)ibuf->float_buffer.data;
-      T::op(src, (float3 *)dst_float, ibuf->x, ibuf->y, newx, newy, threaded);
+      const float3 *src = reinterpret_cast<const float3 *>(ibuf->float_buffer.data);
+      T::op(src, reinterpret_cast<float3 *>(dst_float), ibuf->x, ibuf->y, newx, newy, threaded);
     }
     else if (ibuf->channels == 4) {
-      const float4 *src = (const float4 *)ibuf->float_buffer.data;
-      T::op(src, (float4 *)dst_float, ibuf->x, ibuf->y, newx, newy, threaded);
+      const float4 *src = reinterpret_cast<const float4 *>(ibuf->float_buffer.data);
+      T::op(src, reinterpret_cast<float4 *>(dst_float), ibuf->x, ibuf->y, newx, newy, threaded);
     }
   }
 }
@@ -380,7 +374,7 @@ static void imb_scale_box(ImBuf *ibuf, uint newx, uint newy, bool threaded)
 
 template<typename T>
 static void scale_nearest(
-    const T *src, T *dst, int ibufx, int ibufy, int newx, int newy, blender::IndexRange y_range)
+    const T *src, T *dst, int ibufx, int ibufy, int newx, int newy, IndexRange y_range)
 {
   /* Nearest sample scaling. Step through pixels in fixed point coordinates. */
   constexpr int FRAC_BITS = 16;
@@ -403,13 +397,11 @@ static void scale_nearest(
 static void scale_nearest_func(
     const ImBuf *ibuf, int newx, int newy, uchar4 *dst_byte, float *dst_float, bool threaded)
 {
-  using namespace blender;
-
   const int grain_size = threaded ? 64 : newy;
   threading::parallel_for(IndexRange(newy), grain_size, [&](IndexRange y_range) {
     /* Byte pixels. */
     if (dst_byte != nullptr) {
-      const uchar4 *src = (const uchar4 *)ibuf->byte_buffer.data;
+      const uchar4 *src = reinterpret_cast<const uchar4 *>(ibuf->byte_buffer.data);
       scale_nearest(src, dst_byte, ibuf->x, ibuf->y, newx, newy, y_range);
     }
     /* Float pixels. */
@@ -418,16 +410,19 @@ static void scale_nearest_func(
         scale_nearest(ibuf->float_buffer.data, dst_float, ibuf->x, ibuf->y, newx, newy, y_range);
       }
       else if (ibuf->channels == 2) {
-        const float2 *src = (const float2 *)ibuf->float_buffer.data;
-        scale_nearest(src, (float2 *)dst_float, ibuf->x, ibuf->y, newx, newy, y_range);
+        const float2 *src = reinterpret_cast<const float2 *>(ibuf->float_buffer.data);
+        scale_nearest(
+            src, reinterpret_cast<float2 *>(dst_float), ibuf->x, ibuf->y, newx, newy, y_range);
       }
       else if (ibuf->channels == 3) {
-        const float3 *src = (const float3 *)ibuf->float_buffer.data;
-        scale_nearest(src, (float3 *)dst_float, ibuf->x, ibuf->y, newx, newy, y_range);
+        const float3 *src = reinterpret_cast<const float3 *>(ibuf->float_buffer.data);
+        scale_nearest(
+            src, reinterpret_cast<float3 *>(dst_float), ibuf->x, ibuf->y, newx, newy, y_range);
       }
       else if (ibuf->channels == 4) {
-        const float4 *src = (const float4 *)ibuf->float_buffer.data;
-        scale_nearest(src, (float4 *)dst_float, ibuf->x, ibuf->y, newx, newy, y_range);
+        const float4 *src = reinterpret_cast<const float4 *>(ibuf->float_buffer.data);
+        scale_nearest(
+            src, reinterpret_cast<float4 *>(dst_float), ibuf->x, ibuf->y, newx, newy, y_range);
       }
     }
   });
@@ -436,7 +431,6 @@ static void scale_nearest_func(
 static void scale_bilinear_func(
     const ImBuf *ibuf, int newx, int newy, uchar4 *dst_byte, float *dst_float, bool threaded)
 {
-  using namespace blender;
   using namespace blender::imbuf;
 
   const int grain_size = threaded ? 32 : newy;
@@ -450,7 +444,7 @@ static void scale_bilinear_func(
         float u = (float(x) + 0.5f) * factor_x - 0.5f;
         int64_t offset = int64_t(y) * newx + x;
         if (dst_byte) {
-          interpolate_bilinear_byte(ibuf, (uchar *)(dst_byte + offset), u, v);
+          interpolate_bilinear_byte(ibuf, reinterpret_cast<uchar *>(dst_byte + offset), u, v);
         }
         if (dst_float) {
           float *pixel = dst_float + ibuf->channels * offset;
@@ -522,10 +516,10 @@ ImBuf *IMB_scale_into_new(
       alloc_scale_dst_buffers(ibuf, newx, ibuf->y, &tmp_byte, &tmp_float);
       if (tmp_byte == nullptr && tmp_float == nullptr) {
         if (dst_byte != nullptr) {
-          MEM_freeN(dst_byte);
+          MEM_delete(dst_byte);
         }
         if (dst_byte != nullptr) {
-          MEM_freeN(dst_float);
+          MEM_delete(dst_float);
         }
         return nullptr;
       }
@@ -554,10 +548,10 @@ ImBuf *IMB_scale_into_new(
       }
 
       if (tmp_byte != nullptr) {
-        MEM_freeN(tmp_byte);
+        MEM_delete(tmp_byte);
       }
       if (tmp_float != nullptr) {
-        MEM_freeN(tmp_float);
+        MEM_delete(tmp_float);
       }
     } break;
   }
@@ -577,3 +571,5 @@ ImBuf *IMB_scale_into_new(
   }
   return dst;
 }
+
+}  // namespace blender

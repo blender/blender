@@ -186,39 +186,43 @@ def list_render_passes(scene, srl):
     # autopep8: off
 
     # Data passes.
-    if srl.use_pass_z:                     yield ("Depth",         "Z",    'VALUE')
-    if srl.use_pass_mist:                  yield ("Mist",          "Z",    'VALUE')
-    if srl.use_pass_position:              yield ("Position",      "XYZ",  'VECTOR')
-    if srl.use_pass_normal:                yield ("Normal",        "XYZ",  'VECTOR')
-    if srl.use_pass_vector:                yield ("Vector",        "XYZW", 'VECTOR')
-    if srl.use_pass_uv:                    yield ("UV",            "UVA",  'VECTOR')
-    if srl.use_pass_object_index:          yield ("IndexOB",       "X",    'VALUE')
-    if srl.use_pass_material_index:        yield ("IndexMA",       "X",    'VALUE')
-    if crl.use_pass_volume_majorant:       yield ("Volume Majorant", "Z",  'VALUE')
+    if srl.use_pass_z:                     yield ("Depth",           "Z",    'VALUE')
+    if srl.use_pass_mist:                  yield ("Mist",            "Z",    'VALUE')
+    if srl.use_pass_position:              yield ("Position",        "XYZ",  'VECTOR')
+    if srl.use_pass_normal:                yield ("Normal",          "XYZ",  'VECTOR')
+    if srl.use_pass_vector:                yield ("Vector",          "XYZW", 'VECTOR')
+    if srl.use_pass_uv:                    yield ("UV",              "UVA",  'VECTOR')
+    if srl.use_pass_object_index:          yield ("Object Index",    "X",    'VALUE')
+    if srl.use_pass_material_index:        yield ("Material Index",  "X",    'VALUE')
 
     # Light passes.
-    if srl.use_pass_diffuse_direct:        yield ("DiffDir",       "RGB",  'COLOR')
-    if srl.use_pass_diffuse_indirect:      yield ("DiffInd",       "RGB",  'COLOR')
-    if srl.use_pass_diffuse_color:         yield ("DiffCol",       "RGB",  'COLOR')
-    if srl.use_pass_glossy_direct:         yield ("GlossDir",      "RGB",  'COLOR')
-    if srl.use_pass_glossy_indirect:       yield ("GlossInd",      "RGB",  'COLOR')
-    if srl.use_pass_glossy_color:          yield ("GlossCol",      "RGB",  'COLOR')
-    if srl.use_pass_transmission_direct:   yield ("TransDir",      "RGB",  'COLOR')
-    if srl.use_pass_transmission_indirect: yield ("TransInd",      "RGB",  'COLOR')
-    if srl.use_pass_transmission_color:    yield ("TransCol",      "RGB",  'COLOR')
-    if crl.use_pass_volume_direct:         yield ("VolumeDir",     "RGB",  'COLOR')
-    if crl.use_pass_volume_indirect:       yield ("VolumeInd",     "RGB",  'COLOR')
-    if crl.use_pass_volume_scatter:        yield ("Volume Scatter",     "RGB",  'COLOR')
-    if crl.use_pass_volume_transmit:       yield ("Volume Transmit",     "RGB",  'COLOR')
-    if srl.use_pass_emit:                  yield ("Emit",          "RGB",  'COLOR')
-    if srl.use_pass_environment:           yield ("Env",           "RGB",  'COLOR')
-    if srl.use_pass_ambient_occlusion:     yield ("AO",            "RGB",  'COLOR')
-    if crl.use_pass_shadow_catcher:        yield ("Shadow Catcher",      "RGB",  'COLOR')
+    if srl.use_pass_diffuse_direct:        yield ("Diffuse Direct",        "RGB",  'COLOR')
+    if srl.use_pass_diffuse_indirect:      yield ("Diffuse Indirect",      "RGB",  'COLOR')
+    if srl.use_pass_diffuse_color:         yield ("Diffuse Color",         "RGB",  'COLOR')
+    if srl.use_pass_glossy_direct:         yield ("Glossy Direct",         "RGB",  'COLOR')
+    if srl.use_pass_glossy_indirect:       yield ("Glossy Indirect",       "RGB",  'COLOR')
+    if srl.use_pass_glossy_color:          yield ("Glossy Color",          "RGB",  'COLOR')
+    if srl.use_pass_transmission_direct:   yield ("Transmission Direct",   "RGB",  'COLOR')
+    if srl.use_pass_transmission_indirect: yield ("Transmission Indirect", "RGB",  'COLOR')
+    if srl.use_pass_transmission_color:    yield ("Transmission Color",    "RGB",  'COLOR')
+    if crl.use_pass_volume_direct:         yield ("Volume Direct",         "RGB",  'COLOR')
+    if crl.use_pass_volume_indirect:       yield ("Volume Indirect",       "RGB",  'COLOR')
+    if crl.use_pass_volume_scatter:        yield ("Volume Scatter",        "RGB",  'COLOR')
+    if crl.use_pass_volume_transmit:       yield ("Volume Transmit",       "RGB",  'COLOR')
+    if crl.use_pass_volume_majorant:       yield ("Volume Majorant",       "Z",    'VALUE')
+    if srl.use_pass_emit:                  yield ("Emission",              "RGB",  'COLOR')
+    if srl.use_pass_environment:           yield ("Environment",           "RGB",  'COLOR')
+    if srl.use_pass_ambient_occlusion:     yield ("Ambient Occlusion",     "RGB",  'COLOR')
+    if crl.use_pass_shadow_catcher:        yield ("Shadow Catcher",        "RGB",  'COLOR')
     # autopep8: on
 
     # Debug passes.
     if crl.pass_debug_sample_count:
         yield ("Debug Sample Count", "X", 'VALUE')
+    if crl.pass_render_time:
+        # Only yield the pass if rendering on CPU
+        if scene.cycles.device == 'CPU':
+            yield ("Render Time", "X", "VALUE")
 
     # Cryptomatte passes.
     # NOTE: Name channels are lowercase RGBA so that compression rules check in OpenEXR DWA code
@@ -241,8 +245,8 @@ def list_render_passes(scene, srl):
         if crl.use_pass_shadow_catcher:
             yield ("Noisy Shadow Catcher", "RGB", 'COLOR')
     if crl.denoising_store_passes:
-        yield ("Denoising Normal", "XYZ", 'VECTOR')
         yield ("Denoising Albedo", "RGB", 'COLOR')
+        yield ("Denoising Normal", "XYZ", 'VECTOR')
         yield ("Denoising Depth", "Z", 'VALUE')
 
     # Custom AOV passes.

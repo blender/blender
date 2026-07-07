@@ -8,7 +8,6 @@
 
 #include "BLI_math_matrix.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
@@ -48,10 +47,7 @@ using bke::greasepencil::Drawing;
 static void init_data(ModifierData *md)
 {
   auto *mmd = reinterpret_cast<GreasePencilMultiModifierData *>(md);
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(mmd, DNA_struct_default_get(GreasePencilMultiModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(mmd, modifier);
   modifier::greasepencil::init_influence_data(&mmd->influence, true);
 }
 
@@ -105,20 +101,24 @@ static bke::CurvesGeometry duplicate_strokes(const bke::CurvesGeometry &curves,
   bke::GeometrySet masked_geo = bke::GeometrySet::from_curves(masked_curves_id);
   bke::GeometrySet unselected_geo = bke::GeometrySet::from_curves(unselected_curves_id);
 
-  std::unique_ptr<bke::Instances> instances = std::make_unique<bke::Instances>();
+  auto instances = std::make_unique<bke::Instances>(count + 1);
   const int masked_handle = instances->add_reference(bke::InstanceReference{masked_geo});
   const int unselected_handle = instances->add_reference(bke::InstanceReference{unselected_geo});
+  MutableSpan<int> handles = instances->reference_handles_for_write();
+  instances->transforms_for_write().fill(float4x4::identity());
 
   for ([[maybe_unused]] const int i : IndexRange(count)) {
-    instances->add_instance(masked_handle, float4x4::identity());
+    handles[i] = masked_handle;
   }
-  instances->add_instance(unselected_handle, float4x4::identity());
+  handles[count] = unselected_handle;
 
   geometry::RealizeInstancesOptions options;
   options.keep_original_ids = true;
   options.realize_instance_attributes = true;
   bke::GeometrySet result_geo = geometry::realize_instances(
-      bke::GeometrySet::from_instances(instances.release()), options);
+                                    bke::GeometrySet::from_instances(std::move(instances)),
+                                    options)
+                                    .geometry;
   return std::move(result_geo.get_curves_for_write()->geometry.wrap());
 }
 
@@ -238,35 +238,35 @@ static void modify_geometry_set(ModifierData *md,
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "duplicates", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "duplicates", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiLayout *col = &layout->column(false);
-  col->active_set(RNA_int_get(ptr, "duplicates") > 0);
-  col->prop(ptr, "distance", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  col->prop(ptr, "offset", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
-  PanelLayout fade_panel_layout = layout->panel_prop_with_bool_header(
+  ui::Layout &col = layout.column(false);
+  col.active_set(RNA_int_get(ptr, "duplicates") > 0);
+  col.prop(ptr, "distance", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col.prop(ptr, "offset", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  ui::PanelLayout fade_panel_layout = layout.panel_prop_with_bool_header(
       C, ptr, "open_fading_panel", ptr, "use_fade", IFACE_("Fade"));
-  if (uiLayout *fade_panel = fade_panel_layout.body) {
-    uiLayout *sub = &fade_panel->column(false);
-    sub->active_set(RNA_boolean_get(ptr, "use_fade"));
+  if (ui::Layout *fade_panel = fade_panel_layout.body) {
+    ui::Layout &sub = fade_panel->column(false);
+    sub.active_set(RNA_boolean_get(ptr, "use_fade"));
 
-    sub->prop(ptr, "fading_center", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    sub->prop(ptr, "fading_thickness", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
-    sub->prop(ptr, "fading_opacity", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+    sub.prop(ptr, "fading_center", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    sub.prop(ptr, "fading_thickness", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+    sub.prop(ptr, "fading_opacity", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
   }
 
-  if (uiLayout *influence_panel = layout->panel_prop(
+  if (ui::Layout *influence_panel = layout.panel_prop(
           C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
-    modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);
+    modifier::greasepencil::draw_layer_filter_settings(C, *influence_panel, ptr);
+    modifier::greasepencil::draw_material_filter_settings(C, *influence_panel, ptr);
   }
 
   modifier_error_message_draw(layout, ptr);
@@ -281,7 +281,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 {
   const auto *mmd = reinterpret_cast<const GreasePencilMultiModifierData *>(md);
 
-  BLO_write_struct(writer, GreasePencilMultiModifierData, mmd);
+  writer->write_struct(mmd);
   modifier::greasepencil::write_influence_data(writer, &mmd->influence);
 }
 
@@ -291,8 +291,6 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
 
   modifier::greasepencil::read_influence_data(reader, &mmd->influence);
 }
-
-}  // namespace blender
 
 ModifierTypeInfo modifierType_GreasePencilMultiply = {
     /*idname*/ "GreasePencilMultiply",
@@ -305,26 +303,28 @@ ModifierTypeInfo modifierType_GreasePencilMultiply = {
         eModifierTypeFlag_EnableInEditmode | eModifierTypeFlag_SupportsMapping,
     /*icon*/ ICON_MOD_CURVE,
 
-    /*copy_data*/ blender::copy_data,
+    /*copy_data*/ copy_data,
 
     /*deform_verts*/ nullptr,
     /*deform_matrices*/ nullptr,
     /*deform_verts_EM*/ nullptr,
     /*deform_matrices_EM*/ nullptr,
     /*modify_mesh*/ nullptr,
-    /*modify_geometry_set*/ blender::modify_geometry_set,
+    /*modify_geometry_set*/ modify_geometry_set,
 
-    /*init_data*/ blender::init_data,
+    /*init_data*/ init_data,
     /*required_data_mask*/ nullptr,
-    /*free_data*/ blender::free_data,
-    /*is_disabled*/ blender::is_disabled,
+    /*free_data*/ free_data,
+    /*is_disabled*/ is_disabled,
     /*update_depsgraph*/ nullptr,
     /*depends_on_time*/ nullptr,
     /*depends_on_normals*/ nullptr,
-    /*foreach_ID_link*/ blender::foreach_ID_link,
+    /*foreach_ID_link*/ foreach_ID_link,
     /*foreach_tex_link*/ nullptr,
     /*free_runtime_data*/ nullptr,
-    /*panel_register*/ blender::panel_register,
-    /*blend_write*/ blender::blend_write,
-    /*blend_read*/ blender::blend_read,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ blend_write,
+    /*blend_read*/ blend_read,
 };
+
+}  // namespace blender

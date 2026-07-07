@@ -8,17 +8,22 @@
 
 #include "BLI_function_ref.hh"
 
+#include "DNA_node_types.h"
+
 #include "RNA_define.hh"
 
 #include "WM_types.hh" /* For notifier defines */
+
+namespace blender {
 
 void rna_Node_update(Main *bmain, Scene *scene, PointerRNA *ptr);
 void rna_Node_socket_update(Main *bmain, Scene *scene, PointerRNA *ptr);
 void rna_Node_update_relations(Main *bmain, Scene *scne, PointerRNA *ptr);
 void rna_Node_Viewer_shortcut_node_set(PointerRNA *ptr, PropertyRNA *prop, int value);
-int rna_Node_Viewer_shortcut_node_get(PointerRNA *ptr, PropertyRNA *prop);
+const EnumPropertyItem *rna_NodeSocket_structure_type_item_filter(
+    const bNodeTree *ntree, const eNodeSocketDatatype socket_type, bool *r_free);
 
-namespace blender::nodes {
+namespace nodes {
 
 struct EnumRNAAccessors {
   EnumPropertyGetFunc getter;
@@ -121,4 +126,5 @@ PropertyRNA *RNA_def_node_boolean(StructRNA *srna,
                                   std::optional<bool> default_value = std::nullopt,
                                   bool allow_animation = false);
 
-}  // namespace blender::nodes
+}  // namespace nodes
+}  // namespace blender

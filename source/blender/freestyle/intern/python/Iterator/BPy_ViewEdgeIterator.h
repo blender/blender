@@ -20,9 +20,9 @@ extern PyTypeObject ViewEdgeIterator_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&ViewEdgeIterator_Type))
 
 /*---------------------------Python BPy_ViewEdgeIterator structure definition----------*/
-typedef struct {
+struct BPy_ViewEdgeIterator {
   BPy_Iterator py_it;
   Freestyle::ViewEdgeInternal::ViewEdgeIterator *ve_it;
-} BPy_ViewEdgeIterator;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

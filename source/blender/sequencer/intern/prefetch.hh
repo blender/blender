@@ -4,6 +4,8 @@
 
 #pragma once
 
+namespace blender {
+
 /** \file
  * \ingroup sequencer
  */
@@ -11,7 +13,7 @@
 struct Scene;
 struct Strip;
 
-namespace blender::seq {
+namespace seq {
 
 struct RenderData;
 
@@ -26,4 +28,5 @@ void seq_prefetch_get_time_range(Scene *scene, int *r_start, int *r_end);
 Scene *prefetch_get_original_scene(const RenderData *context);
 Scene *prefetch_get_original_scene_and_strip(const RenderData *context, const Strip *&strip);
 
-}  // namespace blender::seq
+}  // namespace seq
+}  // namespace blender

@@ -25,6 +25,13 @@ except ImportError:
     # this script is run during preparation steps.
     pass
 
+BLOCKLIST_VULKAN = [
+    # Blocked due behavior differences. mix(0.05, INF, 0.0) will result a NaN in Vulkan, but INF in OpenGL.
+    # The INF is part of the EXR image.
+    "image_log.blend",
+    "image_log_osl.blend",
+]
+
 
 def setup():
     import bpy
@@ -33,6 +40,9 @@ def setup():
         scene.render.engine = 'BLENDER_WORKBENCH'
         scene.display.shading.light = 'STUDIO'
         scene.display.shading.color_type = 'TEXTURE'
+
+        # Hair
+        scene.render.hair_type = 'STRIP'
 
 
 # When run from inside Blender, render and exit.
@@ -90,7 +100,11 @@ def main():
     parser = create_argparse()
     args = parser.parse_args()
 
-    report = WorkbenchReport("Workbench", args.outdir, args.oiiotool, variation=args.gpu_backend)
+    blocklist = ["raycast_hit.blend", "raycast_normal.blend", "raycast_position.blend"]
+    if args.gpu_backend == "vulkan":
+        blocklist += BLOCKLIST_VULKAN
+
+    report = WorkbenchReport("Workbench", args.outdir, args.oiiotool, variation=args.gpu_backend, blocklist=blocklist)
     if args.gpu_backend == "vulkan":
         report.set_compare_engine('workbench', 'opengl')
     else:
@@ -101,6 +115,8 @@ def main():
     test_dir_name = Path(args.testdir).name
     if test_dir_name.startswith('hair') and platform.system() == "Darwin":
         report.set_fail_threshold(0.050)
+    if test_dir_name.startswith('openvdb'):
+        report.set_fail_threshold(0.04)
 
     ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch)
 

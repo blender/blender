@@ -12,18 +12,16 @@ from bpy.app.translations import pgettext_tip as tip_
 
 
 class CYCLES_OT_use_shading_nodes(Operator):
-    """Enable nodes on a material or light"""
+    """Enable nodes on a light"""
     bl_idname = "cycles.use_shading_nodes"
     bl_label = "Use Nodes"
 
     @classmethod
     def poll(cls, context):
-        return (getattr(context, "material", False) or getattr(context, "light", False))
+        return getattr(context, "light", False)
 
     def execute(self, context):
-        if context.material:
-            context.material.use_nodes = True
-        elif context.light:
+        if context.light:
             context.light.use_nodes = True
 
         return {'FINISHED'}

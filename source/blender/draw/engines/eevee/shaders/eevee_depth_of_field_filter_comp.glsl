@@ -9,23 +9,22 @@
  * cheaper.
  */
 
-#include "infos/eevee_depth_of_field_info.hh"
+#include "infos/eevee_depth_of_field_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_filter)
 
 struct FilterSample {
   float4 color;
   float weight;
-
-  METAL_CONSTRUCTOR_2(FilterSample, float4, color, float, weight)
 };
 
 /* -------------------------------------------------------------------- */
 /** \name Pixel cache.
  * \{ */
+
+shared float4 color_cache[gl_WorkGroupSize.x + 2][gl_WorkGroupSize.x + 2];
+shared float weight_cache[gl_WorkGroupSize.x + 2][gl_WorkGroupSize.x + 2];
 #define cache_size (gl_WorkGroupSize.x + 2)
-shared float4 color_cache[cache_size][cache_size];
-shared float weight_cache[cache_size][cache_size];
 
 void cache_init()
 {
@@ -66,7 +65,7 @@ void cache_init()
 
 FilterSample cache_sample(int x, int y)
 {
-  return FilterSample(color_cache[y][x], weight_cache[y][x]);
+  return {color_cache[y][x], weight_cache[y][x]};
 }
 
 /** \} */
@@ -82,22 +81,22 @@ FilterSample cache_sample(int x, int y)
 
 FilterSample filter_min(FilterSample a, FilterSample b)
 {
-  return FilterSample(min(a.color, b.color), min(a.weight, b.weight));
+  return {min(a.color, b.color), min(a.weight, b.weight)};
 }
 
 FilterSample filter_max(FilterSample a, FilterSample b)
 {
-  return FilterSample(max(a.color, b.color), max(a.weight, b.weight));
+  return {max(a.color, b.color), max(a.weight, b.weight)};
 }
 
 FilterSample filter_min(FilterSample a, FilterSample b, FilterSample c)
 {
-  return FilterSample(min(a.color, min(c.color, b.color)), min(a.weight, min(c.weight, b.weight)));
+  return {min(a.color, min(c.color, b.color)), min(a.weight, min(c.weight, b.weight))};
 }
 
 FilterSample filter_max(FilterSample a, FilterSample b, FilterSample c)
 {
-  return FilterSample(max(a.color, max(c.color, b.color)), max(a.weight, max(c.weight, b.weight)));
+  return {max(a.color, max(c.color, b.color)), max(a.weight, max(c.weight, b.weight))};
 }
 
 FilterSample filter_median(FilterSample s1, FilterSample s2, FilterSample s3)

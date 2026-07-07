@@ -9,6 +9,8 @@
 
 #pragma once
 
+namespace blender {
+
 /**
  * Return an indication of time, expressed as seconds since some fixed point.
  * Successive calls are guaranteed to generate values greater than or equal to the last call.
@@ -31,3 +33,5 @@ void BLI_time_sleep_ms(int ms);
  * \param us: Number of microseconds to sleep
  */
 void BLI_time_sleep_precise_us(int us);
+
+}  // namespace blender

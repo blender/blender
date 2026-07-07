@@ -16,7 +16,7 @@ namespace blender::nodes {
  */
 struct SimulationItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeSimulationItem;
-  static StructRNA *item_srna;
+  static StructRNA **item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "GeometryNodeSimulationOutput";
   static constexpr bool has_type = true;
@@ -48,7 +48,7 @@ struct SimulationItemsAccessor : public socket_items::SocketItemsAccessorDefault
 
   static void destruct_item(NodeSimulationItem *item)
   {
-    MEM_SAFE_FREE(item->name);
+    MEM_SAFE_DELETE(item->name);
   }
 
   static void blend_write_item(BlendWriter *writer, const ItemT &item);

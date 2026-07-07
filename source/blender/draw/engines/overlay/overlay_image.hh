@@ -30,7 +30,10 @@ class Images {
     return eStereoViews(v3d->multiview_eye);
   }
 
-  static void stereo_setup(const Scene *scene, const View3D *v3d, ::Image *ima, ImageUser *iuser)
+  static void stereo_setup(const Scene *scene,
+                           const View3D *v3d,
+                           blender::Image *ima,
+                           ImageUser *iuser)
   {
     if (BKE_image_is_stereo(ima)) {
       iuser->flag |= IMA_SHOW_STEREO;

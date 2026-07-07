@@ -17,19 +17,21 @@
 #include "BKE_idtype.hh"
 #include "BKE_modifier.hh"
 #include "BKE_screen.hh"
-#include "BKE_shader_fx.h"
+#include "BKE_shader_fx.hh"
 
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
 #include "RNA_access.hh"
 
-#include "FX_shader_types.h"
-#include "FX_ui_common.h"
+#include "FX_shader_types.hh"
+#include "FX_ui_common.hh"
+
+namespace blender {
 
 static void init_data(ShaderFxData *md)
 {
-  GlowShaderFxData *gpfx = (GlowShaderFxData *)md;
+  GlowShaderFxData *gpfx = reinterpret_cast<GlowShaderFxData *>(md);
   ARRAY_SET_ITEMS(gpfx->glow_color, 0.75f, 1.0f, 1.0f, 1.0f);
   ARRAY_SET_ITEMS(gpfx->select_color, 0.0f, 0.0f, 0.0f);
   copy_v2_fl(gpfx->blur, 50.0f);
@@ -44,31 +46,31 @@ static void copy_data(const ShaderFxData *md, ShaderFxData *target)
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
   int mode = RNA_enum_get(ptr, "mode");
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  layout->prop(ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (mode == eShaderFxGlowMode_Color) {
-    layout->prop(ptr, "select_color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "select_color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  layout->prop(ptr, "glow_color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "glow_color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  layout->separator();
+  layout.separator();
 
-  layout->prop(ptr, "blend_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "opacity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "rotation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "samples", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "use_glow_under", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "blend_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "opacity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "rotation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "samples", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "use_glow_under", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   shaderfx_panel_end(layout, ptr);
 }
@@ -81,7 +83,7 @@ static void panel_register(ARegionType *region_type)
 static void foreach_working_space_color(ShaderFxData *fx,
                                         const IDTypeForeachColorFunctionCallback &fn)
 {
-  GlowShaderFxData *gpfx = (GlowShaderFxData *)fx;
+  GlowShaderFxData *gpfx = reinterpret_cast<GlowShaderFxData *>(fx);
   fn.single(gpfx->glow_color);
   fn.single(gpfx->select_color);
 }
@@ -104,3 +106,5 @@ ShaderFxTypeInfo shaderfx_Type_Glow = {
     /*foreach_working_space_color*/ foreach_working_space_color,
     /*panel_register*/ panel_register,
 };
+
+}  // namespace blender

@@ -13,6 +13,8 @@
 #include "bmesh.hh"
 #include "bmesh_decimate.hh" /* own include */
 
+namespace blender {
+
 static bool bm_vert_dissolve_fan_test(BMVert *v)
 {
   /* check if we should walk over these verts */
@@ -125,7 +127,7 @@ static bool bm_vert_dissolve_fan(BMesh *bm, BMVert *v)
 
     /* ensure there are exactly tot_loop loops */
     BLI_assert(BM_iter_at_index(bm, BM_LOOPS_OF_VERT, v, tot_loop) == nullptr);
-    BM_iter_as_array(bm, BM_LOOPS_OF_VERT, v, (void **)f_loop, tot_loop);
+    BM_iter_as_array(bm, BM_LOOPS_OF_VERT, v, reinterpret_cast<void **>(f_loop), tot_loop);
 
     for (i = 0; i < tot_loop; i++) {
       BMLoop *l = f_loop[i];
@@ -202,8 +204,8 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool
 {
   /* NOTE: while #BMWalker seems like a logical choice, it results in uneven geometry. */
 
-  BMVert **verts_collapse = MEM_malloc_arrayN<BMVert *>(bm->totvert, __func__);
-  BMVert **verts_ignore = MEM_malloc_arrayN<BMVert *>(bm->totvert, __func__);
+  BMVert **verts_collapse = MEM_new_array_uninitialized<BMVert *>(bm->totvert, __func__);
+  BMVert **verts_ignore = MEM_new_array_uninitialized<BMVert *>(bm->totvert, __func__);
   uint verts_collapse_num = 0;
   uint verts_ignore_num = 0;
 
@@ -291,11 +293,13 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool
   /* Ensure the vert index values will be recomputed. */
   bm->elem_index_dirty |= BM_VERT;
 
-  MEM_freeN(verts_collapse);
-  MEM_freeN(verts_ignore);
+  MEM_delete(verts_collapse);
+  MEM_delete(verts_ignore);
 }
 
 void BM_mesh_decimate_unsubdivide(BMesh *bm, const int iterations)
 {
   BM_mesh_decimate_unsubdivide_ex(bm, iterations, false);
 }
+
+}  // namespace blender

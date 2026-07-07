@@ -49,38 +49,6 @@ struct SeqThumbInfo {
   bool is_muted;
 };
 
-static float thumb_calc_first_timeline_frame(const Strip *strip,
-                                             float left_handle,
-                                             float frame_step,
-                                             const rctf *view_area)
-{
-  int first_drawable_frame = max_iii(left_handle, strip->start, view_area->xmin);
-
-  /* First frame should correspond to handle position. */
-  if (first_drawable_frame == left_handle) {
-    return left_handle;
-  }
-
-  float aligned_frame_offset = int((first_drawable_frame - strip->start) / frame_step) *
-                               frame_step;
-  return strip->start + aligned_frame_offset;
-}
-
-static float thumb_calc_next_timeline_frame(const Strip *strip,
-                                            float left_handle,
-                                            float last_frame,
-                                            float frame_step)
-{
-  float next_frame = last_frame + frame_step;
-
-  /* If handle position was displayed, align next frame with `strip->start`. */
-  if (last_frame == left_handle) {
-    next_frame = strip->start + (int((last_frame - strip->start) / frame_step) + 1) * frame_step;
-  }
-
-  return next_frame;
-}
-
 static void strip_get_thumb_image_dimensions(const Strip *strip,
                                              float pixelx,
                                              float pixely,
@@ -143,8 +111,24 @@ static void get_seq_strip_thumbnails(const View2D *v2d,
     upper_thumb_bound = strip.right_handle;
   }
 
-  float timeline_frame = thumb_calc_first_timeline_frame(
-      strip.strip, strip.left_handle, thumb_width, &v2d->cur);
+  int first_drawable_frame = max_iii(strip.left_handle, strip.strip->start, v2d->cur.xmin);
+  /* Calculate how many thumbnails should we skip over to get to the first visible thumbnail. */
+  float aligned_frame_offset = int((first_drawable_frame - strip.strip->start) / thumb_width) *
+                               thumb_width;
+
+  /* If the first frame should correspond to the left handle position,
+   * we want to make it slide under the other thumbs when moving
+   * the left handle. This is so that we don't shift around the rest of the
+   * thumbnails.
+   */
+  bool draw_next_frame_ontop = first_drawable_frame == strip.left_handle;
+  float timeline_frame;
+  if (draw_next_frame_ontop) {
+    timeline_frame = first_drawable_frame;
+  }
+  else {
+    timeline_frame = strip.strip->start + aligned_frame_offset;
+  }
 
   /* Start going over the strip length. */
   while (timeline_frame < upper_thumb_bound) {
@@ -156,20 +140,12 @@ static void get_seq_strip_thumbnails(const View2D *v2d,
       break;
     }
 
-    /* Set the clipping bound to show the left handle moving over thumbs and not shift thumbs. */
-    float cut_off = 0.0f;
-    if (strip.left_handle > timeline_frame && strip.left_handle < thumb_x_end) {
-      cut_off = strip.left_handle - timeline_frame;
-      clipped = true;
-    }
-
     /* Clip if full thumbnail cannot be displayed. */
     if (thumb_x_end > upper_thumb_bound) {
       thumb_x_end = upper_thumb_bound;
       clipped = true;
     }
 
-    float cropx_min = cut_off * crop_x_multiplier;
     float cropx_max = (thumb_x_end - timeline_frame) * crop_x_multiplier;
     if (cropx_max < 1.0f) {
       break;
@@ -186,7 +162,6 @@ static void get_seq_strip_thumbnails(const View2D *v2d,
     thumb.cropx_min = 0;
     thumb.cropx_max = ibuf->x - 1;
     if (clipped) {
-      thumb.cropx_min = clamp_f(cropx_min, 0, ibuf->x - 1);
       thumb.cropx_max = clamp_f(cropx_max - 1 * 0, 0, ibuf->x - 1);
     }
     thumb.left_handle = strip.left_handle;
@@ -194,14 +169,19 @@ static void get_seq_strip_thumbnails(const View2D *v2d,
     thumb.is_muted = is_muted;
     thumb.bottom = strip.bottom;
     thumb.top = strip.top;
-    thumb.x1 = timeline_frame + cut_off;
+    thumb.x1 = timeline_frame;
     thumb.x2 = thumb_x_end;
     thumb.y1 = strip.bottom;
     thumb.y2 = strip.strip_content_top;
     r_thumbs.append(thumb);
 
-    timeline_frame = thumb_calc_next_timeline_frame(
-        strip.strip, strip.left_handle, timeline_frame, thumb_width);
+    if (draw_next_frame_ontop) {
+      timeline_frame = strip.strip->start + aligned_frame_offset + thumb_width;
+      draw_next_frame_ontop = false;
+    }
+    else {
+      timeline_frame += thumb_width;
+    }
   }
 }
 
@@ -281,13 +261,13 @@ struct ThumbsDrawBatch {
   }
 };
 
-void draw_strip_thumbnails(TimelineDrawContext *ctx,
+void draw_strip_thumbnails(const TimelineDrawContext &ctx,
                            StripsDrawBatch &strips_batch,
                            const Vector<StripDrawContext> &strips)
 {
   /* Nothing to do if we're not showing thumbnails overall. */
-  if ((ctx->sseq->flag & SEQ_SHOW_OVERLAY) == 0 ||
-      (ctx->sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_THUMBNAILS) == 0)
+  if ((ctx.sseq->flag & SEQ_SHOW_OVERLAY) == 0 ||
+      (ctx.sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_THUMBNAILS) == 0)
   {
     return;
   }
@@ -296,15 +276,15 @@ void draw_strip_thumbnails(TimelineDrawContext *ctx,
   Vector<SeqThumbInfo> thumbs;
   for (const StripDrawContext &strip : strips) {
     get_seq_strip_thumbnails(
-        ctx->v2d, ctx->C, ctx->scene, strip, ctx->pixelx, ctx->pixely, strip.is_muted, thumbs);
+        ctx.v2d, ctx.C, ctx.scene, strip, ctx.pixelx, ctx.pixely, strip.is_muted, thumbs);
   }
   if (thumbs.is_empty()) {
     return;
   }
 
-  ColorManagedViewSettings *view_settings;
-  ColorManagedDisplaySettings *display_settings;
-  IMB_colormanagement_display_settings_from_ctx(ctx->C, &view_settings, &display_settings);
+  Scene *sequencer_scene = CTX_data_sequencer_scene(ctx.C);
+  ColorManagedViewSettings *view_settings = &sequencer_scene->view_settings;
+  ColorManagedDisplaySettings *display_settings = &sequencer_scene->display_settings;
 
   /* Arrange thumbnail images into a texture atlas, using a simple
    * "add to current row until end, then start a new row". Thumbnail
@@ -373,20 +353,20 @@ void draw_strip_thumbnails(TimelineDrawContext *ctx,
     IMB_freeImBuf(info.ibuf);
     info.ibuf = nullptr;
   }
-  blender::gpu::Texture *atlas = GPU_texture_create_2d("thumb_atlas",
-                                                       tex_width,
-                                                       tex_height,
-                                                       1,
-                                                       blender::gpu::TextureFormat::UNORM_8_8_8_8,
-                                                       GPU_TEXTURE_USAGE_SHADER_READ,
-                                                       nullptr);
+  gpu::Texture *atlas = GPU_texture_create_2d("thumb_atlas",
+                                              tex_width,
+                                              tex_height,
+                                              1,
+                                              gpu::TextureFormat::UNORM_8_8_8_8,
+                                              GPU_TEXTURE_USAGE_SHADER_READ,
+                                              nullptr);
   GPU_texture_update(atlas, GPU_DATA_UBYTE, tex_data.data());
   GPU_texture_filter_mode(atlas, true);
   GPU_texture_extend_mode(atlas, GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
 
   /* Draw all thumbnails. */
   GPU_matrix_push_projection();
-  wmOrtho2_region_pixelspace(ctx->region);
+  wmOrtho2_region_pixelspace(ctx.region);
 
   ThumbsDrawBatch batch(strips_batch, atlas);
   for (int64_t i = 0; i < rects.size(); i++) {

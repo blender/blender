@@ -39,6 +39,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 #ifdef WITH_ASAN
 #  define POISON_REDZONE_SIZE 32
 #else
@@ -130,7 +132,7 @@ struct BLI_mempool {
   ((BLI_freenode *)(CHECK_TYPE_INLINE(chunk, BLI_mempool_chunk *), (void *)((chunk) + 1)))
 
 #define NODE_STEP_NEXT(node) ((BLI_freenode *)((char *)(node) + esize))
-#define NODE_STEP_PREV(node) ((BLI_freenode *)((char *)(node)-esize))
+#define NODE_STEP_PREV(node) ((BLI_freenode *)((char *)(node) - esize))
 
 /** Extra bytes implicitly used for every chunk alloc. */
 #define CHUNK_OVERHEAD uint(MEM_SIZE_OVERHEAD + sizeof(BLI_mempool_chunk))
@@ -175,7 +177,7 @@ BLI_INLINE uint mempool_maxchunks(const uint elem_num, const uint pchunk)
 static BLI_mempool_chunk *mempool_chunk_alloc(const BLI_mempool *pool)
 {
   return static_cast<BLI_mempool_chunk *>(
-      MEM_mallocN(sizeof(BLI_mempool_chunk) + size_t(pool->csize), "mempool chunk"));
+      MEM_new_uninitialized(sizeof(BLI_mempool_chunk) + size_t(pool->csize), "mempool chunk"));
 }
 
 /**
@@ -300,7 +302,7 @@ static void mempool_chunk_free(BLI_mempool_chunk *mpchunk, BLI_mempool *pool)
 #ifdef WITH_MEM_VALGRIND
   VALGRIND_MAKE_MEM_DEFINED(mpchunk, sizeof(BLI_mempool_chunk) + pool->esize * pool->csize);
 #endif
-  MEM_freeN(mpchunk);
+  MEM_delete(mpchunk);
 }
 
 static void mempool_chunk_free_all(BLI_mempool_chunk *mpchunk, BLI_mempool *pool)
@@ -320,7 +322,7 @@ BLI_mempool *BLI_mempool_create(uint esize, uint elem_num, uint pchunk, uint fla
   uint i, maxchunks;
 
   /* allocate the pool structure */
-  pool = MEM_callocN<BLI_mempool>("memory pool");
+  pool = MEM_new_zeroed<BLI_mempool>("memory pool");
 
 #ifdef WITH_ASAN
   BLI_mutex_init(&pool->mutex);
@@ -418,7 +420,7 @@ void *BLI_mempool_alloc(BLI_mempool *pool)
   VALGRIND_MAKE_MEM_UNDEFINED(free_pop, pool->esize - POISON_REDZONE_SIZE);
 #endif
 
-  return (void *)free_pop;
+  return static_cast<void *>(free_pop);
 }
 
 void *BLI_mempool_calloc(BLI_mempool *pool)
@@ -569,7 +571,7 @@ void BLI_mempool_as_array(BLI_mempool *pool, void *data)
 void *BLI_mempool_as_arrayN(BLI_mempool *pool, const char *allocstr)
 {
   char *data = static_cast<char *>(
-      MEM_malloc_arrayN(size_t(pool->totused), pool->esize, allocstr));
+      MEM_new_array_uninitialized(size_t(pool->totused), pool->esize, allocstr));
   BLI_mempool_as_array(pool, data);
   return data;
 }
@@ -593,9 +595,9 @@ ParallelMempoolTaskData *mempool_iter_threadsafe_create(BLI_mempool *pool, const
 {
   BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
 
-  ParallelMempoolTaskData *iter_arr = MEM_calloc_arrayN<ParallelMempoolTaskData>(iter_num,
-                                                                                 __func__);
-  BLI_mempool_chunk **curchunk_threaded_shared = MEM_callocN<BLI_mempool_chunk *>(__func__);
+  ParallelMempoolTaskData *iter_arr = MEM_new_array_zeroed<ParallelMempoolTaskData>(iter_num,
+                                                                                    __func__);
+  BLI_mempool_chunk **curchunk_threaded_shared = MEM_new_zeroed<BLI_mempool_chunk *>(__func__);
 
   mempool_threadsafe_iternew(pool, &iter_arr->ts_iter);
 
@@ -614,8 +616,8 @@ void mempool_iter_threadsafe_destroy(ParallelMempoolTaskData *iter_arr)
 {
   BLI_assert(iter_arr->ts_iter.curchunk_threaded_shared != nullptr);
 
-  MEM_freeN(iter_arr->ts_iter.curchunk_threaded_shared);
-  MEM_freeN(iter_arr);
+  MEM_delete(iter_arr->ts_iter.curchunk_threaded_shared);
+  MEM_delete(iter_arr);
 }
 
 #if 0
@@ -729,7 +731,7 @@ void *mempool_iter_threadsafe_step(BLI_mempool_threadsafe_iter *ts_iter)
       /* Begin unique to the `threadsafe` version of this function. */
       for (iter->curchunk = *ts_iter->curchunk_threaded_shared;
            (iter->curchunk != nullptr) &&
-           (atomic_cas_ptr((void **)ts_iter->curchunk_threaded_shared,
+           (atomic_cas_ptr(reinterpret_cast<void **>(ts_iter->curchunk_threaded_shared),
                            iter->curchunk,
                            iter->curchunk->next) != iter->curchunk);
            iter->curchunk = *ts_iter->curchunk_threaded_shared)
@@ -845,7 +847,7 @@ void BLI_mempool_destroy(BLI_mempool *pool)
   VALGRIND_DESTROY_MEMPOOL(pool);
 #endif
 
-  MEM_freeN(pool);
+  MEM_delete(pool);
 }
 
 #ifndef NDEBUG
@@ -854,3 +856,5 @@ void BLI_mempool_set_memory_debug()
   mempool_debug_memset = true;
 }
 #endif
+
+}  // namespace blender

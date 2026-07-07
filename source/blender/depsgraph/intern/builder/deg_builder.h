@@ -8,6 +8,8 @@
 
 #pragma once
 
+namespace blender {
+
 struct Base;
 struct ID;
 struct Main;
@@ -17,7 +19,7 @@ struct PointerRNA;
 struct Scene;
 struct bPoseChannel;
 
-namespace blender::deg {
+namespace deg {
 
 struct Depsgraph;
 class DepsgraphBuilderCache;
@@ -57,4 +59,5 @@ bool deg_check_id_in_depsgraph(const Depsgraph *graph, ID *id_orig);
 bool deg_check_base_in_depsgraph(const Depsgraph *graph, Base *base);
 void deg_graph_build_finalize(Main *bmain, Depsgraph *graph);
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

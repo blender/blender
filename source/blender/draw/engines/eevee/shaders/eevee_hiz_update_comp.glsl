@@ -17,12 +17,13 @@
  * downsample to max level.
  */
 
-#include "infos/eevee_hiz_info.hh"
+#include "infos/eevee_hiz_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_hiz_update)
 
 #include "eevee_reverse_z_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_vector_reduce_lib.glsl"
 
 shared float local_depths[gl_WorkGroupSize.y][gl_WorkGroupSize.x];
 

@@ -54,4 +54,4 @@ void         HEAP_node_value_update(Heap *heap, HeapNode *node, double value);
 void         HEAP_node_value_update_ptr(Heap *heap, HeapNode *node, double value, void *ptr);
 double       HEAP_node_value(const HeapNode *node);
 
-#endif  /* __GENERIC_HEAP_IMPL_H__ */
+#endif  /* __GENERIC_HEAP_H__ */

@@ -8,11 +8,15 @@
 
 #pragma once
 
+#include "BLI_offset_indices.hh"
+#include "BLI_span.hh"
 #include "BLI_sys_types.h"
+
+namespace blender {
 
 struct Mesh;
 
-namespace blender::bke::subdiv {
+namespace bke::subdiv {
 
 struct ToMeshSettings;
 struct ForeachContext;
@@ -23,36 +27,36 @@ using ForeachTopologyInformationCb = bool (*)(const ForeachContext *context,
                                               int num_edges,
                                               int num_loops,
                                               int num_faces,
-                                              const int *subdiv_face_offset);
+                                              Span<int> subdiv_face_offset);
 
-using ForeachVertexFromCornerCb = void (*)(const ForeachContext *context,
-                                           void *tls,
-                                           int ptex_face_index,
-                                           float u,
-                                           float v,
-                                           int coarse_vertex_index,
-                                           int coarse_face_index,
-                                           int coarse_corner,
-                                           int subdiv_vertex_index);
-
-using ForeachVertexFromEdgeCb = void (*)(const ForeachContext *context,
+using ForeachVertFromCornerCb = void (*)(const ForeachContext *context,
                                          void *tls,
                                          int ptex_face_index,
                                          float u,
                                          float v,
-                                         int coarse_edge_index,
+                                         int coarse_vert_index,
                                          int coarse_face_index,
                                          int coarse_corner,
-                                         int subdiv_vertex_index);
+                                         int subdiv_vert_index);
 
-using ForeachVertexInnerCb = void (*)(const ForeachContext *context,
-                                      void *tls,
-                                      int ptex_face_index,
-                                      float u,
-                                      float v,
-                                      int coarse_face_index,
-                                      int coarse_corner,
-                                      int subdiv_vertex_index);
+using ForeachVertFromEdgeCb = void (*)(const ForeachContext *context,
+                                       void *tls,
+                                       int ptex_face_index,
+                                       float u,
+                                       float v,
+                                       int coarse_edge_index,
+                                       int coarse_face_index,
+                                       int coarse_corner,
+                                       int subdiv_vert_index);
+
+using ForeachVertInnerCb = void (*)(const ForeachContext *context,
+                                    void *tls,
+                                    int ptex_face_index,
+                                    float u,
+                                    float v,
+                                    int coarse_face_index,
+                                    int coarse_corner,
+                                    int subdiv_vert_index);
 
 using ForeachEdgeCb = void (*)(const ForeachContext *context,
                                void *tls,
@@ -71,26 +75,27 @@ using ForeachLoopCb = void (*)(const ForeachContext *context,
                                int coarse_face_index,
                                int coarse_corner,
                                int subdiv_loop_index,
-                               int subdiv_vertex_index,
+                               int subdiv_vert_index,
                                int subdiv_edge_index);
 
-using ForeachPolygonCb = void (*)(const ForeachContext *context,
-                                  void *tls,
-                                  int coarse_face_index,
-                                  int subdiv_face_index,
-                                  int start_loop_index,
-                                  int num_loops);
+/**
+ * \param subdiv_faces_by_base_face: Groups the subdivided faces by the base mesh face they came
+ * from (all the subdivided faces for a single base mesh face are contiguous). For more
+ * information, see #OffsetIndices.
+ */
+using FacesCb = void (*)(const ForeachContext *context,
+                         OffsetIndices<int> subdiv_faces_by_base_face);
 
 using ForeachLooseCb = void (*)(const ForeachContext *context,
                                 void *tls,
-                                int coarse_vertex_index,
-                                int subdiv_vertex_index);
+                                int coarse_vert_index,
+                                int subdiv_vert_index);
 
-using ForeachVertexOfLooseEdgeCb = void (*)(const ForeachContext *context,
-                                            void *tls,
-                                            int coarse_edge_index,
-                                            float u,
-                                            int subdiv_vertex_index);
+using ForeachVertOfLooseEdgeCb = void (*)(const ForeachContext *context,
+                                          void *tls,
+                                          int coarse_edge_index,
+                                          float u,
+                                          int subdiv_vert_index);
 
 struct ForeachContext {
   /**
@@ -104,24 +109,24 @@ struct ForeachContext {
    * These callbacks are called from every ptex which shares "emitting"
    * vertex or edge.
    */
-  ForeachVertexFromCornerCb vertex_every_corner = nullptr;
-  ForeachVertexFromEdgeCb vertex_every_edge = nullptr;
+  ForeachVertFromCornerCb vert_every_corner = nullptr;
+  ForeachVertFromEdgeCb vert_every_edge = nullptr;
   /**
    * Those callbacks are run once per subdivision vertex, ptex is undefined
    * as in it will be whatever first ptex face happened to be traversed in
    * the multi-threaded environment and which shares "emitting" vertex or edge.
    */
-  ForeachVertexFromCornerCb vertex_corner = nullptr;
-  ForeachVertexFromEdgeCb vertex_edge = nullptr;
+  ForeachVertFromCornerCb vert_corner = nullptr;
+  ForeachVertFromEdgeCb vert_edge = nullptr;
   /** Called exactly once, always corresponds to a single ptex face. */
-  ForeachVertexInnerCb vertex_inner = nullptr;
+  ForeachVertInnerCb vert_inner = nullptr;
   /**
    * Called once for each loose vertex. One loose coarse vertex corresponds
    * to a single subdivision vertex.
    */
-  ForeachLooseCb vertex_loose = nullptr;
+  ForeachLooseCb vert_loose = nullptr;
   /** Called once per vertex created for loose edge. */
-  ForeachVertexOfLooseEdgeCb vertex_of_loose_edge = nullptr;
+  ForeachVertOfLooseEdgeCb vert_of_loose_edge = nullptr;
   /**
    * \note If subdivided edge does not come from coarse edge, ORIGINDEX_NONE
    * will be passed as coarse_edge_index.
@@ -130,9 +135,17 @@ struct ForeachContext {
   /**
    * \note If subdivided loop does not come from coarse loop, ORIGINDEX_NONE
    * will be passed as coarse_loop_index.
+   *
+   * \note All the face corners for a particular face are contiguous, and the face corners have the
+   * same order in the mesh as their faces.
    */
   ForeachLoopCb loop = nullptr;
-  ForeachPolygonCb poly = nullptr;
+
+  /**
+   * Called once for the whole mesh, passing the #OffsetIndices encoding the groups of subdivided
+   * faces corresponding to each base mesh face.
+   */
+  FacesCb faces = nullptr;
 
   /**
    * User-defined pointer, to allow callbacks know something about context the
@@ -158,14 +171,14 @@ struct ForeachContext {
  *
  * Returns true if the whole topology was traversed, without any early exits.
  *
- * TODO(sergey): Need to either get rid of subdiv or of coarse_mesh.
+ * TODO(@sergey): Need to either get rid of subdiv or of coarse_mesh.
  * The main point here is to be able to get base level topology, which can be
  * done with either of those. Having both of them is kind of redundant.
-
  */
 bool foreach_subdiv_geometry(Subdiv *subdiv,
                              const ForeachContext *context,
                              const ToMeshSettings *mesh_settings,
                              const Mesh *coarse_mesh);
 
-}  // namespace blender::bke::subdiv
+}  // namespace bke::subdiv
+}  // namespace blender

@@ -192,6 +192,8 @@ void InvertDistortionModelUsingIntrinsicsBlock(
     case DISTORTION_MODEL_NUKE: {
       const T& k1 = intrinsics_block[PackedIntrinsics::OFFSET_K1];
       const T& k2 = intrinsics_block[PackedIntrinsics::OFFSET_K2];
+      const T& p1 = intrinsics_block[PackedIntrinsics::OFFSET_P1];
+      const T& p2 = intrinsics_block[PackedIntrinsics::OFFSET_P2];
 
       InvertNukeDistortionModel(focal_length,
                                 focal_length,
@@ -201,6 +203,8 @@ void InvertDistortionModelUsingIntrinsicsBlock(
                                 invariant_intrinsics->image_height(),
                                 k1,
                                 k2,
+                                p1,
+                                p2,
                                 image_x,
                                 image_y,
                                 normalized_x,

@@ -17,6 +17,8 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_hash_mm3.hh" /* own include */
 
+namespace blender {
+
 #if defined(_MSC_VER)
 #  include <stdlib.h>
 #  define ROTL32(x, y) _rotl(x, y)
@@ -72,7 +74,7 @@ BLI_INLINE uint64_t fmix64(uint64_t k)
 
 uint32_t BLI_hash_mm3(const uchar *data, size_t len, uint32_t seed)
 {
-  const uint8_t *in_data = (const uint8_t *)data;
+  const uint8_t *in_data = static_cast<const uint8_t *>(data);
   const int nblocks = len / 4;
 
   uint32_t h1 = seed;
@@ -82,7 +84,7 @@ uint32_t BLI_hash_mm3(const uchar *data, size_t len, uint32_t seed)
 
   /* body */
 
-  const uint32_t *blocks = (const uint32_t *)(in_data + nblocks * 4);
+  const uint32_t *blocks = reinterpret_cast<const uint32_t *>(in_data + nblocks * 4);
 
   for (int i = -nblocks; i; i++) {
     uint32_t k1 = getblock32(blocks, i);
@@ -98,7 +100,7 @@ uint32_t BLI_hash_mm3(const uchar *data, size_t len, uint32_t seed)
 
   /* tail */
 
-  const uint8_t *tail = (const uint8_t *)(in_data + nblocks * 4);
+  const uint8_t *tail = static_cast<const uint8_t *>(in_data + nblocks * 4);
 
   uint32_t k1 = 0;
 
@@ -125,3 +127,5 @@ uint32_t BLI_hash_mm3(const uchar *data, size_t len, uint32_t seed)
 
   return h1;
 }
+
+}  // namespace blender

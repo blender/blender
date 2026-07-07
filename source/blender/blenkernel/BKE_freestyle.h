@@ -8,14 +8,16 @@
  * \ingroup bke
  */
 
+namespace blender {
+
 struct FreestyleConfig;
 struct FreestyleLineSet;
 struct FreestyleModuleConfig;
 struct Main;
 
 /* RNA aliases */
-typedef struct FreestyleModuleSettings FreestyleModuleSettings;
-typedef struct FreestyleSettings FreestyleSettings;
+struct FreestyleModuleSettings;
+struct FreestyleSettings;
 
 /* FreestyleConfig */
 void BKE_freestyle_config_init(struct FreestyleConfig *config);
@@ -47,3 +49,5 @@ short BKE_freestyle_lineset_get_active_index(struct FreestyleConfig *config);
 void BKE_freestyle_lineset_set_active_index(struct FreestyleConfig *config, short index);
 void BKE_freestyle_lineset_unique_name(struct FreestyleConfig *config,
                                        struct FreestyleLineSet *lineset);
+
+}  // namespace blender

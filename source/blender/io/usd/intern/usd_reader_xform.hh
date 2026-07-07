@@ -13,9 +13,11 @@
 /* For #UsdGeomXformable. */
 #include <pxr/usd/usdGeom/xformable.h>
 
+namespace blender {
+
 struct Main;
 
-namespace blender::io::usd {
+namespace io::usd {
 
 /**
  * A transformation matrix and a boolean indicating
@@ -44,10 +46,7 @@ class USDXformReader : public USDPrimReader {
 
   pxr::SdfPath object_prim_path() const override;
 
-  void read_matrix(float r_mat[4][4],
-                   pxr::UsdTimeCode time,
-                   float scale,
-                   bool *r_is_constant) const;
+  void read_matrix(float4x4 &r_mat, pxr::UsdTimeCode time, float scale, bool *r_is_constant) const;
 
   bool use_parent_xform() const
   {
@@ -81,4 +80,5 @@ class USDXformReader : public USDPrimReader {
   pxr::UsdGeomXformable get_xformable() const;
 };
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

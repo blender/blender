@@ -428,9 +428,8 @@ bool mtl_format_supports_blending(MTLPixelFormat format)
 
 id<MTLComputePipelineState> gpu::MTLTexture::mtl_texture_update_impl(
     TextureUpdateRoutineSpecialisation specialization_params,
-    blender::Map<TextureUpdateRoutineSpecialisation, id<MTLComputePipelineState>>
-        &specialization_cache,
-    eGPUTextureType texture_type)
+    Map<TextureUpdateRoutineSpecialisation, id<MTLComputePipelineState>> &specialization_cache,
+    GPUTextureType texture_type)
 {
   /* Check whether the Kernel exists. */
   id<MTLComputePipelineState> *result = specialization_cache.lookup_ptr(specialization_params);
@@ -656,10 +655,10 @@ void gpu::MTLTexture::update_sub_depth_2d(
   GPU_texture_filter_mode(r32_tex_tmp, false);
   GPU_texture_extend_mode(r32_tex_tmp, GPU_SAMPLER_EXTEND_MODE_EXTEND);
   gpu::MTLTexture *mtl_tex = static_cast<gpu::MTLTexture *>(r32_tex_tmp);
-  mtl_tex->update_sub(mip, offset, extent, type, data);
+  mtl_tex->update_sub(mip, offset, extent, type, data, 0);
 
-  GPUFrameBuffer *restore_fb = GPU_framebuffer_active_get();
-  GPUFrameBuffer *depth_fb_temp = GPU_framebuffer_create("depth_intermediate_copy_fb");
+  gpu::FrameBuffer *restore_fb = GPU_framebuffer_active_get();
+  gpu::FrameBuffer *depth_fb_temp = GPU_framebuffer_create("depth_intermediate_copy_fb");
   GPU_framebuffer_texture_attach(depth_fb_temp, this, 0, mip);
   GPU_framebuffer_bind(depth_fb_temp);
   if (extent[0] == w_ && extent[1] == h_) {
@@ -681,8 +680,8 @@ void gpu::MTLTexture::update_sub_depth_2d(
 
   bool depth_write_prev = GPU_depth_mask_get();
   uint stencil_mask_prev = GPU_stencil_mask_get();
-  eGPUDepthTest depth_test_prev = GPU_depth_test_get();
-  eGPUStencilTest stencil_test_prev = GPU_stencil_test_get();
+  GPUDepthTest depth_test_prev = GPU_depth_test_get();
+  GPUStencilTest stencil_test_prev = GPU_stencil_test_get();
   GPU_scissor_test(true);
   GPU_scissor(offset[0], offset[1], extent[0], extent[1]);
 
@@ -716,9 +715,8 @@ void gpu::MTLTexture::update_sub_depth_2d(
 
 id<MTLComputePipelineState> gpu::MTLTexture::mtl_texture_read_impl(
     TextureReadRoutineSpecialisation specialization_params,
-    blender::Map<TextureReadRoutineSpecialisation, id<MTLComputePipelineState>>
-        &specialization_cache,
-    eGPUTextureType texture_type)
+    Map<TextureReadRoutineSpecialisation, id<MTLComputePipelineState>> &specialization_cache,
+    GPUTextureType texture_type)
 {
   /* Check whether the Kernel exists. */
   id<MTLComputePipelineState> *result = specialization_cache.lookup_ptr(specialization_params);

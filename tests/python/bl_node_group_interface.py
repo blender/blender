@@ -71,8 +71,6 @@ class NodeGroupInterfaceTests:
             return (0.3, 5.0, -42)
         elif (socket_type == "NodeSocketString"):
             return "Hello World!"
-        elif (socket_type == "NodeSocketTexture"):
-            return bpy.data.textures.new("test", 'MAGIC')
         elif (socket_type == "NodeSocketVector"):
             return (4.0, -1.0, 0.0)
 
@@ -93,8 +91,7 @@ class NodeGroupInterfaceTests:
                             "NodeSocketMaterial",
                             "NodeSocketObject",
                             "NodeSocketRotation",
-                            "NodeSocketString",
-                            "NodeSocketTexture"}):
+                            "NodeSocketString"}):
             return cmp_default
         elif (socket_type in {"NodeSocketColor",
                               "NodeSocketVector"}):
@@ -148,7 +145,7 @@ class NodeGroupInterfaceTests:
                 expected_users,
                 f"Socket default value has user count {value.users}, expected {expected_users}")
 
-    def do_test_socket_type(self, socket_type):
+    def do_test_socket_type(self, socket_type, subtype=None, dimensions=None):
         default_value = self.make_default_socket_value(socket_type)
         compare_value = self.make_socket_value_comparator(socket_type)
 
@@ -162,6 +159,35 @@ class NodeGroupInterfaceTests:
         out0 = tree.interface.new_socket("Output 0", socket_type=socket_type, in_out='OUTPUT')
         self.assertIsNotNone(in0, f"Could not create socket of type {socket_type}")
         self.assertIsNotNone(out0, f"Could not create socket of type {socket_type}")
+        # Note: the type of the socket python object remains the same even when
+        # the actual type of the socket in the tree changes due to changing the
+        # subtype and/or dimensions! It would be nice if that can be avoided in
+        # the future, but for now is expected behavior.
+        in0_old_suffix = in0.bl_socket_idname.removeprefix("Node")
+        out0_old_suffix = out0.bl_socket_idname.removeprefix("Node")
+        expect_same_idname = True
+        if subtype is not None:
+            if subtype != in0.subtype:
+                expect_same_idname = False
+            in0.subtype = subtype
+            out0.subtype = subtype
+        if dimensions is not None:
+            if dimensions != in0.dimensions:
+                expect_same_idname = False
+            in0.dimensions = dimensions
+            out0.dimensions = dimensions
+
+        self.assertEqual(type(in0).__name__.removeprefix("NodeTreeInterface"), in0_old_suffix)
+        self.assertEqual(type(out0).__name__.removeprefix("NodeTreeInterface"), out0_old_suffix)
+        # Get the sockets from the tree again to use the correct the type.
+        in0 = tree.interface.items_tree[in0.identifier]
+        out0 = tree.interface.items_tree[out0.identifier]
+        if expect_same_idname:
+            self.assertEqual(type(in0).__name__.removeprefix("NodeTreeInterface"), in0_old_suffix)
+            self.assertEqual(type(out0).__name__.removeprefix("NodeTreeInterface"), out0_old_suffix)
+        else:
+            self.assertNotEqual(type(in0).__name__.removeprefix("NodeTreeInterface"), in0_old_suffix)
+            self.assertNotEqual(type(out0).__name__.removeprefix("NodeTreeInterface"), out0_old_suffix)
 
         # Now make a node group instance to check default values.
         group_node = self.make_instance(tree)
@@ -182,6 +208,12 @@ class NodeGroupInterfaceTests:
         # one user for the interface and one for the group node instance.
         if (hasattr(in1, "default_value")):
             self.do_test_user_count(in1.default_value, 4)
+
+        tree2 = self.make_group()
+        inCrossTreeCopy = tree2.interface.copy(in0)
+        outCrossTreeCopy = tree2.interface.copy(out1)
+        self.assertIsNotNone(inCrossTreeCopy, "Could not copy socket to other tree")
+        self.assertIsNotNone(outCrossTreeCopy, "Could not copy socket to other tree")
 
     # Classic outputs..inputs socket layout
     def do_test_items_order_classic(self, socket_type):
@@ -352,16 +384,23 @@ class GeometryNodeGroupInterfaceTest(AbstractNodeGroupInterfaceTest, NodeGroupIn
         self.do_test_socket_type("NodeSocketCollection")
         self.do_test_socket_type("NodeSocketColor")
         self.do_test_socket_type("NodeSocketFloat")
+        self.do_test_socket_type("NodeSocketFloat", subtype='FACTOR')
         self.do_test_socket_type("NodeSocketGeometry")
         self.do_test_socket_type("NodeSocketImage")
         self.do_test_socket_type("NodeSocketInt")
+        self.do_test_socket_type("NodeSocketInt", subtype='PERCENTAGE')
         self.do_test_socket_type("NodeSocketMaterial")
         self.do_test_socket_type("NodeSocketObject")
         self.do_test_socket_type("NodeSocketRotation")
         self.do_test_invalid_socket_type("NodeSocketShader")
         self.do_test_socket_type("NodeSocketString")
-        self.do_test_socket_type("NodeSocketTexture")
+        self.do_test_invalid_socket_type("NodeSocketTexture")
         self.do_test_socket_type("NodeSocketVector")
+        self.do_test_socket_type("NodeSocketVector", dimensions=2)
+        self.do_test_socket_type("NodeSocketVector", dimensions=4)
+        self.do_test_socket_type("NodeSocketVector", subtype='TRANSLATION')
+        self.do_test_socket_type("NodeSocketVector", subtype='TRANSLATION', dimensions=2)
+        self.do_test_socket_type("NodeSocketVector", subtype='TRANSLATION', dimensions=4)
         self.do_test_invalid_socket_type("NodeSocketVirtual")
 
     def test_items_order_classic(self):
@@ -384,7 +423,6 @@ class ShaderNodeGroupInterfaceTest(AbstractNodeGroupInterfaceTest, NodeGroupInte
     def setUp(self):
         super().setUp()
         self.material = bpy.data.materials.new("test")
-        self.material.use_nodes = True
         self.main_tree = self.material.node_tree
 
     def test_invalid_socket_type(self):
@@ -398,9 +436,11 @@ class ShaderNodeGroupInterfaceTest(AbstractNodeGroupInterfaceTest, NodeGroupInte
         self.do_test_invalid_socket_type("NodeSocketCollection")
         self.do_test_socket_type("NodeSocketColor")
         self.do_test_socket_type("NodeSocketFloat")
+        self.do_test_socket_type("NodeSocketFloat", subtype='FACTOR')
         self.do_test_invalid_socket_type("NodeSocketGeometry")
         self.do_test_invalid_socket_type("NodeSocketImage")
         self.do_test_socket_type("NodeSocketInt")
+        self.do_test_socket_type("NodeSocketInt", subtype='PERCENTAGE')
         self.do_test_invalid_socket_type("NodeSocketMaterial")
         self.do_test_invalid_socket_type("NodeSocketObject")
         self.do_test_invalid_socket_type("NodeSocketRotation")
@@ -408,6 +448,11 @@ class ShaderNodeGroupInterfaceTest(AbstractNodeGroupInterfaceTest, NodeGroupInte
         self.do_test_invalid_socket_type("NodeSocketString")
         self.do_test_invalid_socket_type("NodeSocketTexture")
         self.do_test_socket_type("NodeSocketVector")
+        self.do_test_socket_type("NodeSocketVector", dimensions=2)
+        self.do_test_socket_type("NodeSocketVector", dimensions=4)
+        self.do_test_socket_type("NodeSocketVector", subtype='TRANSLATION')
+        self.do_test_socket_type("NodeSocketVector", subtype='TRANSLATION', dimensions=2)
+        self.do_test_socket_type("NodeSocketVector", subtype='TRANSLATION', dimensions=4)
         self.do_test_invalid_socket_type("NodeSocketVirtual")
 
     def test_items_order_classic(self):
@@ -444,9 +489,11 @@ class CompositorNodeGroupInterfaceTest(AbstractNodeGroupInterfaceTest, NodeGroup
         self.do_test_invalid_socket_type("NodeSocketCollection")
         self.do_test_socket_type("NodeSocketColor")
         self.do_test_socket_type("NodeSocketFloat")
+        self.do_test_socket_type("NodeSocketFloat", subtype='FACTOR')
         self.do_test_invalid_socket_type("NodeSocketGeometry")
         self.do_test_invalid_socket_type("NodeSocketImage")
         self.do_test_socket_type("NodeSocketInt")
+        self.do_test_socket_type("NodeSocketInt", subtype='PERCENTAGE')
         self.do_test_invalid_socket_type("NodeSocketMaterial")
         self.do_test_invalid_socket_type("NodeSocketObject")
         self.do_test_invalid_socket_type("NodeSocketRotation")
@@ -454,6 +501,11 @@ class CompositorNodeGroupInterfaceTest(AbstractNodeGroupInterfaceTest, NodeGroup
         self.do_test_socket_type("NodeSocketString")
         self.do_test_invalid_socket_type("NodeSocketTexture")
         self.do_test_socket_type("NodeSocketVector")
+        self.do_test_socket_type("NodeSocketVector", dimensions=2)
+        self.do_test_socket_type("NodeSocketVector", dimensions=4)
+        self.do_test_socket_type("NodeSocketVector", subtype='TRANSLATION')
+        self.do_test_socket_type("NodeSocketVector", subtype='TRANSLATION', dimensions=2)
+        self.do_test_socket_type("NodeSocketVector", subtype='TRANSLATION', dimensions=4)
         self.do_test_invalid_socket_type("NodeSocketVirtual")
 
     def test_items_order_classic(self):
@@ -476,7 +528,6 @@ class NodeTreeItemsIteratorTest(AbstractNodeGroupInterfaceTest, NodeGroupInterfa
     def setUp(self):
         super().setUp()
         self.material = bpy.data.materials.new("test")
-        self.material.use_nodes = True
         self.main_tree = self.material.node_tree
 
     # Regression test for changes while iterating over tree interface items (#143551).
@@ -488,7 +539,7 @@ class NodeTreeItemsIteratorTest(AbstractNodeGroupInterfaceTest, NodeGroupInterfa
         tree.interface.new_socket("Input 1", socket_type="NodeSocketBool", in_out='INPUT')
         # The cache vector has a fixed buffer for small sizes, add enough sockets to force reallocation.
         for i in range(20):
-            tree.interface.new_socket(f"Input {2+i}", socket_type="NodeSocketColor", in_out='INPUT')
+            tree.interface.new_socket(f"Input {2 + i}", socket_type="NodeSocketColor", in_out='INPUT')
 
         # Iterate over items and change properties. The loop iterator must remain valid.
         for item in tree.interface.items_tree:

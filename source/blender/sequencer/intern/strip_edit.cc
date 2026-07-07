@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup bke
+ * \ingroup sequencer
  */
 
 #include "DNA_scene_types.h"
@@ -18,7 +18,7 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_sound.h"
+#include "BKE_sound.hh"
 
 #include "strip_time.hh"
 
@@ -45,14 +45,14 @@ bool edit_strip_swap(Scene *scene, Strip *strip_a, Strip *strip_b, const char **
 {
   char name[sizeof(strip_a->name)];
 
-  if (time_strip_length_get(scene, strip_a) != time_strip_length_get(scene, strip_b)) {
+  if (strip_a->length(scene) != strip_b->length(scene)) {
     *r_error_str = N_("Strips must be the same length");
     return false;
   }
 
   /* type checking, could be more advanced but disallow sound vs non-sound copy */
   if (strip_a->type != strip_b->type) {
-    if (strip_a->type == STRIP_TYPE_SOUND_RAM || strip_b->type == STRIP_TYPE_SOUND_RAM) {
+    if (strip_a->type == STRIP_TYPE_SOUND || strip_b->type == STRIP_TYPE_SOUND) {
       *r_error_str = N_("Strips were not compatible");
       return false;
     }
@@ -71,7 +71,7 @@ bool edit_strip_swap(Scene *scene, Strip *strip_a, Strip *strip_b, const char **
     }
   }
 
-  blender::dna::shallow_swap(*strip_a, *strip_b);
+  dna::shallow_swap(*strip_a, *strip_b);
 
   /* swap back names so animation fcurves don't get swapped */
   STRNCPY(name, strip_a->name + 2);
@@ -91,31 +91,33 @@ bool edit_strip_swap(Scene *scene, Strip *strip_a, Strip *strip_b, const char **
   strip_time_effect_range_set(scene, strip_a);
   strip_time_effect_range_set(scene, strip_b);
 
+  strip_lookup_invalidate(editing_get(scene));
+
   return true;
 }
 
-static void strip_update_muting_recursive(ListBase *channels,
-                                          ListBase *seqbasep,
+static void strip_update_muting_recursive(ListBaseT<SeqTimelineChannel> *channels,
+                                          ListBaseT<Strip> *seqbasep,
                                           Strip *strip_meta,
                                           const bool mute)
 {
   /* For sound we go over full meta tree to update muted state,
    * since sound is played outside of evaluating the imbufs. */
-  LISTBASE_FOREACH (Strip *, strip, seqbasep) {
-    bool strip_mute = (mute || render_is_muted(channels, strip));
+  for (Strip &strip : *seqbasep) {
+    bool strip_mute = (mute || render_is_muted(channels, &strip));
 
-    if (strip->type == STRIP_TYPE_META) {
+    if (strip.type == STRIP_TYPE_META) {
       /* if this is the current meta-strip, unmute because
        * all strips above this were set to mute */
-      if (strip == strip_meta) {
+      if (&strip == strip_meta) {
         strip_mute = false;
       }
 
-      strip_update_muting_recursive(&strip->channels, &strip->seqbase, strip_meta, strip_mute);
+      strip_update_muting_recursive(&strip.channels, &strip.seqbase, strip_meta, strip_mute);
     }
-    else if (ELEM(strip->type, STRIP_TYPE_SOUND_RAM, STRIP_TYPE_SCENE)) {
-      if (strip->scene_sound) {
-        BKE_sound_mute_scene_sound(strip->scene_sound, strip_mute);
+    else if (ELEM(strip.type, STRIP_TYPE_SOUND, STRIP_TYPE_SCENE)) {
+      if (strip.runtime->scene_sound) {
+        BKE_sound_mute_scene_sound(strip.runtime->scene_sound, strip_mute);
       }
     }
   }
@@ -136,66 +138,66 @@ void edit_update_muting(Editing *ed)
   }
 }
 
-static void sequencer_flag_users_for_removal(Scene *scene, ListBase *seqbase, Strip *strip)
+static void sequencer_flag_users_for_removal(Scene *scene, ListBaseT<Strip> *seqbase, Strip *strip)
 {
-  LISTBASE_FOREACH (Strip *, user_strip, seqbase) {
+  for (Strip &user_strip : *seqbase) {
     /* Look in meta-strips for usage of strip. */
-    if (user_strip->type == STRIP_TYPE_META) {
-      sequencer_flag_users_for_removal(scene, &user_strip->seqbase, strip);
+    if (user_strip.type == STRIP_TYPE_META) {
+      sequencer_flag_users_for_removal(scene, &user_strip.seqbase, strip);
     }
 
     /* Clear strip from modifiers. */
-    LISTBASE_FOREACH (StripModifierData *, smd, &user_strip->modifiers) {
-      if (smd->mask_strip == strip) {
-        smd->mask_strip = nullptr;
+    for (StripModifierData &smd : user_strip.modifiers) {
+      if (smd.mask_strip == strip) {
+        smd.mask_strip = nullptr;
       }
     }
 
     /* Mark effects for removal that use the strip. */
-    if (relation_is_effect_of_strip(user_strip, strip)) {
-      user_strip->runtime.flag |= STRIP_MARK_FOR_DELETE;
+    if (relation_is_effect_of_strip(&user_strip, strip)) {
+      user_strip.runtime->flag |= StripRuntimeFlag::MarkForDelete;
       /* Strips can be used as mask even if not in same seqbase. */
-      sequencer_flag_users_for_removal(scene, &scene->ed->seqbase, user_strip);
+      sequencer_flag_users_for_removal(scene, &scene->ed->seqbase, &user_strip);
     }
   }
 }
 
-void edit_flag_for_removal(Scene *scene, ListBase *seqbase, Strip *strip)
+void edit_flag_for_removal(Scene *scene, ListBaseT<Strip> *seqbase, Strip *strip)
 {
-  if (strip == nullptr || (strip->runtime.flag & STRIP_MARK_FOR_DELETE) != 0) {
+  if (strip == nullptr || flag_is_set(strip->runtime->flag, StripRuntimeFlag::MarkForDelete)) {
     return;
   }
 
   /* Flag and remove meta children. */
   if (strip->type == STRIP_TYPE_META) {
-    LISTBASE_FOREACH (Strip *, meta_child, &strip->seqbase) {
-      edit_flag_for_removal(scene, &strip->seqbase, meta_child);
+    for (Strip &meta_child : strip->seqbase) {
+      edit_flag_for_removal(scene, &strip->seqbase, &meta_child);
     }
   }
 
-  strip->runtime.flag |= STRIP_MARK_FOR_DELETE;
+  strip->runtime->flag |= StripRuntimeFlag::MarkForDelete;
   sequencer_flag_users_for_removal(scene, seqbase, strip);
 }
 
-void edit_remove_flagged_strips(Scene *scene, ListBase *seqbase)
+void edit_remove_flagged_strips(Scene *scene, ListBaseT<Strip> *seqbase)
 {
-  LISTBASE_FOREACH_MUTABLE (Strip *, strip, seqbase) {
-    if (strip->runtime.flag & STRIP_MARK_FOR_DELETE) {
-      if (strip->type == STRIP_TYPE_META) {
-        edit_remove_flagged_strips(scene, &strip->seqbase);
+  for (Strip &strip : seqbase->items_mutable()) {
+    if (flag_is_set(strip.runtime->flag, StripRuntimeFlag::MarkForDelete)) {
+      if (strip.type == STRIP_TYPE_META) {
+        edit_remove_flagged_strips(scene, &strip.seqbase);
       }
-      free_animdata(scene, strip);
-      BLI_remlink(seqbase, strip);
-      strip_free(scene, strip);
+      free_animdata(scene, &strip);
+      BLI_remlink(seqbase, &strip);
+      strip_free(scene, &strip);
       strip_lookup_invalidate(scene->ed);
     }
   }
 }
 
 bool edit_move_strip_to_seqbase(Scene *scene,
-                                ListBase *seqbase,
+                                ListBaseT<Strip> *seqbase,
                                 Strip *strip,
-                                ListBase *dst_seqbase)
+                                ListBaseT<Strip> *dst_seqbase)
 {
   /* Move to meta. */
   BLI_remlink(seqbase, strip);
@@ -217,7 +219,7 @@ bool edit_move_strip_to_meta(Scene *scene,
 {
   /* Find the appropriate seqbase */
   Editing *ed = editing_get(scene);
-  ListBase *seqbase = get_seqbase_by_strip(scene, src_strip);
+  ListBaseT<Strip> *seqbase = get_seqbase_by_strip(scene, src_strip);
 
   if (dst_stripm->type != STRIP_TYPE_META) {
     *r_error_str = N_("Cannot move strip to non-meta strip");
@@ -244,7 +246,7 @@ bool edit_move_strip_to_meta(Scene *scene,
     return false;
   }
 
-  blender::VectorSet<Strip *> strips;
+  VectorSet<Strip *> strips;
   strips.add(src_strip);
   iterator_set_expand(scene, seqbase, strips, query_strip_effect_chain);
 
@@ -252,6 +254,8 @@ bool edit_move_strip_to_meta(Scene *scene,
     /* Move to meta. */
     edit_move_strip_to_seqbase(scene, seqbase, strip, &dst_stripm->seqbase);
   }
+
+  time_update_meta_strip_range(scene, dst_stripm);
 
   return true;
 }
@@ -261,8 +265,8 @@ static void seq_split_set_right_hold_offset(Main *bmain,
                                             Strip *strip,
                                             int timeline_frame)
 {
-  const float content_start = time_start_frame_get(strip);
-  const float content_end = time_content_end_frame_get(scene, strip);
+  const float content_start = strip->content_start();
+  const float content_end = strip->content_end(scene);
 
   /* Adjust within range of extended still-frames before strip. */
   if (timeline_frame < content_start) {
@@ -274,13 +278,13 @@ static void seq_split_set_right_hold_offset(Main *bmain,
   else if ((timeline_frame >= content_start) && (timeline_frame <= content_end)) {
     strip->endofs = 0;
     const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
-    const float speed_factor = time_media_playback_rate_factor_get(strip, scene_fps);
+    const float speed_factor = strip->media_playback_rate_factor(scene_fps);
     strip->anim_endofs += round_fl_to_int((content_end - timeline_frame) * speed_factor);
   }
 
   /* Needed only to set `strip->len`. */
   add_reload_new_file(bmain, scene, strip, false);
-  time_right_handle_frame_set(scene, strip, timeline_frame);
+  strip->right_handle_set(scene, timeline_frame);
 }
 
 static void seq_split_set_left_hold_offset(Main *bmain,
@@ -288,13 +292,13 @@ static void seq_split_set_left_hold_offset(Main *bmain,
                                            Strip *strip,
                                            int timeline_frame)
 {
-  const float content_start = time_start_frame_get(strip);
-  const float content_end = time_content_end_frame_get(scene, strip);
+  const float content_start = strip->content_start();
+  const float content_end = strip->content_end(scene);
 
   /* Adjust within range of strip contents. */
   if ((timeline_frame >= content_start) && (timeline_frame <= content_end)) {
     const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
-    const float speed_factor = time_media_playback_rate_factor_get(strip, scene_fps);
+    const float speed_factor = strip->media_playback_rate_factor(scene_fps);
     strip->anim_startofs += round_fl_to_int((timeline_frame - content_start) * speed_factor);
     strip->start = timeline_frame;
     strip->startofs = 0;
@@ -308,15 +312,14 @@ static void seq_split_set_left_hold_offset(Main *bmain,
 
   /* Needed only to set `strip->len`. */
   add_reload_new_file(bmain, scene, strip, false);
-  time_left_handle_frame_set(scene, strip, timeline_frame);
+  strip->left_handle_set(scene, timeline_frame);
 }
 
 static bool seq_edit_split_intersect_check(const Scene *scene,
                                            const Strip *strip,
                                            const int timeline_frame)
 {
-  return timeline_frame > time_left_handle_frame_get(scene, strip) &&
-         timeline_frame < time_right_handle_frame_get(scene, strip);
+  return timeline_frame > strip->left_handle() && timeline_frame < strip->right_handle(scene);
 }
 
 static void seq_edit_split_handle_strip_offsets(Main *bmain,
@@ -329,7 +332,7 @@ static void seq_edit_split_handle_strip_offsets(Main *bmain,
   if (seq_edit_split_intersect_check(scene, right_strip, timeline_frame)) {
     switch (method) {
       case SPLIT_SOFT:
-        time_left_handle_frame_set(scene, right_strip, timeline_frame);
+        right_strip->left_handle_set(scene, timeline_frame);
         break;
       case SPLIT_HARD:
         seq_split_set_left_hold_offset(bmain, scene, right_strip, timeline_frame);
@@ -340,7 +343,7 @@ static void seq_edit_split_handle_strip_offsets(Main *bmain,
   if (seq_edit_split_intersect_check(scene, left_strip, timeline_frame)) {
     switch (method) {
       case SPLIT_SOFT:
-        time_right_handle_frame_set(scene, left_strip, timeline_frame);
+        left_strip->right_handle_set(scene, timeline_frame);
         break;
       case SPLIT_HARD:
         seq_split_set_right_hold_offset(bmain, scene, left_strip, timeline_frame);
@@ -372,12 +375,12 @@ static bool seq_edit_split_effect_inputs_intersect(const Scene *scene,
 }
 
 static bool seq_edit_split_operation_permitted_check(const Scene *scene,
-                                                     blender::Span<Strip *> strips,
+                                                     Span<Strip *> strips,
                                                      const int timeline_frame,
                                                      const char **r_error)
 {
   for (Strip *strip : strips) {
-    ListBase *channels = channels_displayed_get(editing_get(scene));
+    const ListBaseT<SeqTimelineChannel> *channels = channels_displayed_get(editing_get(scene));
     if (transform_is_locked(channels, strip)) {
       *r_error = "Strip is locked.";
       return false;
@@ -391,7 +394,7 @@ static bool seq_edit_split_operation_permitted_check(const Scene *scene,
     if (effect_get_num_inputs(strip->type) <= 1) {
       continue;
     }
-    if (ELEM(strip->type, STRIP_TYPE_CROSS, STRIP_TYPE_GAMCROSS, STRIP_TYPE_WIPE)) {
+    if (effect_is_transition(StripType(strip->type))) {
       *r_error = "Splitting transition effect is not permitted.";
       return false;
     }
@@ -405,10 +408,11 @@ static bool seq_edit_split_operation_permitted_check(const Scene *scene,
 
 Strip *edit_strip_split(Main *bmain,
                         Scene *scene,
-                        ListBase *seqbase,
+                        ListBaseT<Strip> *seqbase,
                         Strip *strip,
                         const int timeline_frame,
                         const eSplitMethod method,
+                        const bool ignore_connections,
                         const char **r_error)
 {
   if (!seq_edit_split_intersect_check(scene, strip, timeline_frame)) {
@@ -416,23 +420,13 @@ Strip *edit_strip_split(Main *bmain,
   }
 
   /* Whole strip effect chain must be duplicated in order to preserve relationships. */
-  blender::VectorSet<Strip *> strips;
+  VectorSet<Strip *> strips;
   strips.add(strip);
-  iterator_set_expand(scene, seqbase, strips, query_strip_effect_chain);
-
-  /* All connected strips (that are selected and at the cut frame) must also be duplicated. */
-  blender::VectorSet<Strip *> strips_old(strips);
-  for (Strip *strip : strips_old) {
-    blender::VectorSet<Strip *> connections = connected_strips_get(strip);
-    connections.remove_if([&](Strip *connection) {
-      return !(connection->flag & SELECT) ||
-             !seq_edit_split_intersect_check(scene, connection, timeline_frame);
-    });
-    strips.add_multiple(connections.as_span());
-  }
-
-  /* In case connected strips had effects, duplicate those too: */
-  iterator_set_expand(scene, seqbase, strips, query_strip_effect_chain);
+  iterator_set_expand(scene,
+                      seqbase,
+                      strips,
+                      ignore_connections ? query_strip_effect_chain :
+                                           query_strip_connected_and_effect_chain);
 
   if (!seq_edit_split_operation_permitted_check(scene, strips, timeline_frame, r_error)) {
     return nullptr;
@@ -442,18 +436,22 @@ Strip *edit_strip_split(Main *bmain,
   AnimationBackup animation_backup{};
   animation_backup_original(scene, &animation_backup);
 
-  ListBase left_strips = {nullptr, nullptr};
+  ListBaseT<Strip> left_strips = {nullptr, nullptr};
   for (Strip *strip_iter : strips) {
     /* Move strips in collection from seqbase to new ListBase. */
     BLI_remlink(seqbase, strip_iter);
     BLI_addtail(&left_strips, strip_iter);
+
+    if (ignore_connections) {
+      disconnect(strip_iter);
+    }
 
     /* Duplicate curves from backup, so they can be renamed along with split strips. */
     animation_duplicate_backup_to_scene(scene, strip_iter, &animation_backup);
   }
 
   /* Duplicate ListBase. */
-  ListBase right_strips = {nullptr, nullptr};
+  ListBaseT<Strip> right_strips = {nullptr, nullptr};
   seqbase_duplicate_recursive(
       bmain, scene, scene, &right_strips, &left_strips, StripDuplicate::All, 0);
 
@@ -474,10 +472,10 @@ Strip *edit_strip_split(Main *bmain,
 
   /* Split strips. */
   while (left_strip && right_strip) {
-    if (time_left_handle_frame_get(scene, left_strip) >= timeline_frame) {
+    if (left_strip->left_handle() >= timeline_frame) {
       edit_flag_for_removal(scene, seqbase, left_strip);
     }
-    else if (time_right_handle_frame_get(scene, right_strip) <= timeline_frame) {
+    else if (right_strip->right_handle(scene) <= timeline_frame) {
       edit_flag_for_removal(scene, seqbase, right_strip);
     }
     else if (return_strip == nullptr) {
@@ -498,7 +496,7 @@ Strip *edit_strip_split(Main *bmain,
 }
 
 bool edit_remove_gaps(Scene *scene,
-                      ListBase *seqbase,
+                      ListBaseT<Strip> *seqbase,
                       const int initial_frame,
                       const bool remove_all_gaps)
 {

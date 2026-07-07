@@ -10,10 +10,12 @@
 
 #include "tree_element.hh"
 
+namespace blender {
+
 struct Object;
 struct bDeformGroup;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 class TreeElementDeformGroupBase final : public AbstractTreeElement {
   Object &object_;
@@ -32,4 +34,5 @@ class TreeElementDeformGroup final : public AbstractTreeElement {
   TreeElementDeformGroup(TreeElement &legacy_te, Object &object, bDeformGroup &defgroup);
 };
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

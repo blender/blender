@@ -37,7 +37,7 @@ def update_factory_startup_scenes():
 
 
 def update_factory_startup_grease_pencils():
-    for grease_pencil in bpy.data.grease_pencils_v3:
+    for grease_pencil in bpy.data.grease_pencils:
         grease_pencil.onion_keyframe_type = 'ALL'
 
 

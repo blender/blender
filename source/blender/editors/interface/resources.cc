@@ -35,6 +35,10 @@
 #include "GPU_framebuffer.hh"
 #include "interface_intern.hh"
 
+namespace blender::ui {
+
+namespace theme {
+
 /* be sure to keep 'bThemeState' in sync */
 static bThemeState g_theme_state = {
     nullptr,
@@ -42,27 +46,38 @@ static bThemeState g_theme_state = {
     RGN_TYPE_WINDOW,
 };
 
+}  // namespace theme
+
 /* -------------------------------------------------------------------- */
 /** \name Init/Exit
  * \{ */
 
-void ui_resources_init()
+void resources_init()
 {
-  UI_icons_init();
+  icons_init();
 }
 
-void ui_resources_free()
+void resources_free()
 {
-  UI_icons_free();
+  icons_free();
 }
 
 /** \} */
+
+void style_init_default()
+{
+  BLI_freelistN(&U.uistyles);
+  /* gets automatically re-allocated */
+  style_init();
+}
+
+namespace theme {
 
 /* -------------------------------------------------------------------- */
 /** \name Themes
  * \{ */
 
-const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
+const uchar *get_color_ptr(bTheme *btheme, int spacetype, int colorid)
 {
   ThemeSpace *ts = nullptr;
   static uchar error[4] = {240, 0, 240, 255};
@@ -175,22 +190,22 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
             cp = ts->back;
           }
           else if (g_theme_state.regionid == RGN_TYPE_CHANNELS) {
-            cp = ts->list;
+            cp = btheme->regions.channels.back;
           }
           else if (ELEM(g_theme_state.regionid, RGN_TYPE_HEADER, RGN_TYPE_FOOTER)) {
             cp = ts->header;
           }
           else if (g_theme_state.regionid == RGN_TYPE_NAV_BAR) {
-            cp = ts->tab_back;
+            cp = btheme->regions.sidebars.tab_back;
           }
           else if (g_theme_state.regionid == RGN_TYPE_ASSET_SHELF) {
-            cp = btheme->asset_shelf.back;
+            cp = btheme->regions.asset_shelf.back;
           }
           else if (g_theme_state.regionid == RGN_TYPE_ASSET_SHELF_HEADER) {
-            cp = btheme->asset_shelf.header_back;
+            cp = btheme->regions.asset_shelf.header_back;
           }
           else {
-            cp = ts->button;
+            cp = btheme->regions.sidebars.back;
           }
 
           copy_v4_v4_uchar(back, cp);
@@ -214,7 +229,7 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
             cp = btheme->tui.panel_text;
           }
           else if (g_theme_state.regionid == RGN_TYPE_CHANNELS) {
-            cp = ts->list_text;
+            cp = btheme->regions.channels.text;
           }
           else if (ELEM(g_theme_state.regionid,
                         RGN_TYPE_HEADER,
@@ -229,7 +244,7 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           break;
         case TH_TEXT_HI:
           if (g_theme_state.regionid == RGN_TYPE_CHANNELS) {
-            cp = ts->list_text_hi;
+            cp = btheme->regions.channels.text_selected;
           }
           else if (ELEM(g_theme_state.regionid,
                         RGN_TYPE_HEADER,
@@ -243,13 +258,10 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           }
           break;
         case TH_TITLE:
-          if (ELEM(g_theme_state.regionid, RGN_TYPE_UI, RGN_TYPE_TOOLS) ||
+          if (ELEM(g_theme_state.regionid, RGN_TYPE_UI, RGN_TYPE_TOOLS, RGN_TYPE_CHANNELS) ||
               ELEM(g_theme_state.spacetype, SPACE_PROPERTIES, SPACE_USERPREF))
           {
             cp = btheme->tui.panel_title;
-          }
-          else if (g_theme_state.regionid == RGN_TYPE_CHANNELS) {
-            cp = ts->list_title;
           }
           else if (ELEM(g_theme_state.regionid,
                         RGN_TYPE_HEADER,
@@ -290,10 +302,6 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           cp = btheme->tui.panel_active;
           break;
 
-        case TH_BUTBACK:
-          cp = ts->button;
-          break;
-
         case TH_TAB_TEXT:
           cp = btheme->tui.wcol_tab.text;
           break;
@@ -313,8 +321,7 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           cp = btheme->tui.wcol_tab.outline_sel;
           break;
         case TH_TAB_BACK:
-          /* Tab background is set per editor. */
-          cp = ts->tab_back;
+          cp = btheme->regions.sidebars.tab_back;
           break;
 
         case TH_SHADE1:
@@ -330,14 +337,20 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_GRID:
           cp = ts->grid;
           break;
+        case TH_GRID_MAJOR:
+          cp = ts->grid_major;
+          break;
         case TH_TIME_SCRUB_BACKGROUND:
-          cp = ts->time_scrub_background;
+          cp = btheme->regions.scrubbing.back;
+          break;
+        case TH_TIME_SCRUB_TEXT:
+          cp = btheme->regions.scrubbing.text;
           break;
         case TH_TIME_MARKER_LINE:
-          cp = btheme->common.anim.time_marker;
+          cp = btheme->regions.scrubbing.time_marker;
           break;
         case TH_TIME_MARKER_LINE_SELECTED:
-          cp = btheme->common.anim.time_marker_selected;
+          cp = btheme->regions.scrubbing.time_marker_selected;
           break;
         case TH_VIEW_OVERLAY:
           cp = ts->view_overlay;
@@ -387,9 +400,6 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_VERTEX_ACTIVE:
           cp = ts->vertex_active;
           break;
-        case TH_VERTEX_BEVEL:
-          cp = ts->vertex_bevel;
-          break;
         case TH_VERTEX_UNREFERENCED:
           cp = ts->vertex_unreferenced;
           break;
@@ -414,18 +424,6 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_EDGE_MODE_SELECT:
           cp = ts->edge_mode_select;
           break;
-        case TH_EDGE_BEVEL:
-          cp = btheme->space_view3d.edge_bevel;
-          break;
-        case TH_EDGE_CREASE:
-          cp = btheme->space_view3d.edge_crease;
-          break;
-        case TH_EDGE_SEAM:
-          cp = btheme->space_view3d.edge_seam;
-          break;
-        case TH_EDGE_SHARP:
-          cp = btheme->space_view3d.edge_sharp;
-          break;
         case TH_EDITMESH_ACTIVE:
           cp = ts->editmesh_active;
           break;
@@ -447,12 +445,26 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_FACE_FRONT:
           cp = ts->face_front;
           break;
-        case TH_FACE_DOT:
-          cp = ts->face_dot;
-          break;
         case TH_FACEDOT_SIZE:
           cp = &ts->facedot_size;
           break;
+
+        case TH_BEVEL:
+          cp = btheme->space_view3d.bevel;
+          break;
+        case TH_CREASE:
+          cp = btheme->space_view3d.crease;
+          break;
+        case TH_SEAM:
+          cp = btheme->space_view3d.seam;
+          break;
+        case TH_SHARP:
+          cp = btheme->space_view3d.sharp;
+          break;
+        case TH_FREESTYLE:
+          cp = btheme->space_view3d.freestyle;
+          break;
+
         case TH_DRAWEXTRA_EDGELEN:
           cp = ts->extra_edge_len;
           break;
@@ -498,8 +510,11 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_STRIP_SELECT:
           cp = ts->strip_select;
           break;
-        case TH_TRACK_SELECT:
-          cp = ts->track_selected;
+        case TH_CHANNEL:
+          cp = btheme->common.anim.channel;
+          break;
+        case TH_CHANNEL_SELECT:
+          cp = btheme->common.anim.channel_selected;
           break;
         case TH_KEYTYPE_KEYFRAME:
           cp = btheme->common.anim.keyframe;
@@ -568,9 +583,6 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_NURB_SEL_VLINE:
           cp = ts->nurb_sel_vline;
           break;
-        case TH_ACTIVE_SPLINE:
-          cp = ts->act_spline;
-          break;
 
         case TH_HANDLE_FREE:
           cp = btheme->common.curves.handle_free;
@@ -603,13 +615,6 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           cp = btheme->common.curves.handle_sel_auto_clamped;
           break;
 
-        case TH_FREESTYLE_EDGE_MARK:
-          cp = ts->freestyle_edge_mark;
-          break;
-        case TH_FREESTYLE_FACE_MARK:
-          cp = ts->freestyle_face_mark;
-          break;
-
         case TH_SYNTAX_B:
           cp = ts->syntaxb;
           break;
@@ -640,6 +645,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 
         case TH_NODE:
           cp = ts->syntaxl;
+          break;
+        case TH_NODE_OUTLINE:
+          cp = ts->node_outline;
           break;
         case TH_NODE_INPUT:
           cp = ts->syntaxn;
@@ -789,6 +797,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           cp = &btheme->common.curves.handle_vertex_size;
           break;
 
+        case TH_GP_WIRE_EDIT:
+          cp = ts->gp_wire_edit;
+          break;
         case TH_GP_VERTEX:
           cp = ts->gp_vertex;
           break;
@@ -800,13 +811,19 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           break;
 
         case TH_DOPESHEET_CHANNELOB:
-          cp = btheme->common.anim.channel;
+          cp = btheme->common.anim.channels;
           break;
         case TH_DOPESHEET_CHANNELSUBOB:
-          cp = btheme->common.anim.channel_sub;
+          cp = btheme->common.anim.channels_sub;
           break;
         case TH_DOPESHEET_IPOLINE:
-          cp = ts->ds_ipoline;
+          cp = ts->anim_interpolation_linear;
+          break;
+        case TH_DOPESHEET_IPOCONST:
+          cp = ts->anim_interpolation_constant;
+          break;
+        case TH_DOPESHEET_IPOOTHER:
+          cp = ts->anim_interpolation_other;
           break;
 
         case TH_PREVIEW_BACK:
@@ -834,13 +851,6 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           break;
         case TH_STITCH_PREVIEW_ACTIVE:
           cp = ts->preview_stitch_active;
-          break;
-
-        case TH_PAINT_CURVE_HANDLE:
-          cp = ts->paint_curve_handle;
-          break;
-        case TH_PAINT_CURVE_PIVOT:
-          cp = ts->paint_curve_pivot;
           break;
 
         case TH_METADATA_BG:
@@ -935,6 +945,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_ANIM_PREVIEW_RANGE:
           cp = btheme->common.anim.preview_range;
           break;
+        case TH_ANIM_SCENE_STRIP_RANGE:
+          cp = btheme->common.anim.scene_strip_range;
+          break;
 
         case TH_NLA_TWEAK:
           cp = ts->nla_tweaking;
@@ -944,7 +957,7 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           break;
 
         case TH_NLA_TRACK:
-          cp = ts->nla_track;
+          cp = btheme->common.anim.channel;
           break;
         case TH_NLA_TRANSITION:
           cp = ts->nla_transition;
@@ -1105,16 +1118,16 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
     }
   }
 
-  return (const uchar *)cp;
+  return static_cast<const uchar *>(cp);
 }
 
-void UI_theme_init_default()
+void init_default()
 {
   /* We search for the theme with the default name. */
   bTheme *btheme = static_cast<bTheme *>(
       BLI_findstring(&U.themes, U_theme_default.name, offsetof(bTheme, name)));
   if (btheme == nullptr) {
-    btheme = MEM_callocN<bTheme>(__func__);
+    btheme = MEM_new_zeroed<bTheme>(__func__);
     STRNCPY_UTF8(btheme->name, U_theme_default.name);
     BLI_addhead(&U.themes, btheme);
   }
@@ -1122,21 +1135,14 @@ void UI_theme_init_default()
   /* Must be first, see `U.themes` doc-string. */
   BLI_listbase_rotate_first(&U.themes, btheme);
 
-  UI_SetTheme(0, 0); /* make sure the global used in this file is set */
+  theme_set(0, 0); /* make sure the global used in this file is set */
 
   const int active_theme_area = btheme->active_theme_area;
   MEMCPY_STRUCT_AFTER(btheme, &U_theme_default, name);
   btheme->active_theme_area = active_theme_area;
 }
 
-void UI_style_init_default()
-{
-  BLI_freelistN(&U.uistyles);
-  /* gets automatically re-allocated */
-  uiStyleInit();
-}
-
-void UI_SetTheme(int spacetype, int regionid)
+void theme_set(int spacetype, int regionid)
 {
   if (spacetype) {
     /* later on, a local theme can be found too */
@@ -1158,24 +1164,24 @@ void UI_SetTheme(int spacetype, int regionid)
   }
 }
 
-bTheme *UI_GetTheme()
+bTheme *theme_get()
 {
   return static_cast<bTheme *>(U.themes.first);
 }
 
-void UI_Theme_Store(bThemeState *theme_state)
+void theme_store(bThemeState *theme_state)
 {
   *theme_state = g_theme_state;
 }
-void UI_Theme_Restore(const bThemeState *theme_state)
+void theme_restore(const bThemeState *theme_state)
 {
   g_theme_state = *theme_state;
 }
 
-void UI_GetThemeColorShadeAlpha4ubv(int colorid, int coloffset, int alphaoffset, uchar col[4])
+void get_color_shade_alpha_4ubv(int colorid, int coloffset, int alphaoffset, uchar col[4])
 {
   int r, g, b, a;
-  const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid);
+  const uchar *cp = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid);
   r = coloffset + int(cp[0]);
   CLAMP(r, 0, 255);
   g = coloffset + int(cp[1]);
@@ -1191,10 +1197,10 @@ void UI_GetThemeColorShadeAlpha4ubv(int colorid, int coloffset, int alphaoffset,
   col[3] = a;
 }
 
-void UI_GetThemeColorBlend3ubv(int colorid1, int colorid2, float fac, uchar col[3])
+void get_color_blend_3ubv(int colorid1, int colorid2, float fac, uchar col[3])
 {
-  const uchar *cp1 = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid1);
-  const uchar *cp2 = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid2);
+  const uchar *cp1 = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid1);
+  const uchar *cp2 = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid2);
 
   CLAMP(fac, 0.0f, 1.0f);
   col[0] = floorf((1.0f - fac) * cp1[0] + fac * cp2[0]);
@@ -1202,10 +1208,10 @@ void UI_GetThemeColorBlend3ubv(int colorid1, int colorid2, float fac, uchar col[
   col[2] = floorf((1.0f - fac) * cp1[2] + fac * cp2[2]);
 }
 
-void UI_GetThemeColorBlend3f(int colorid1, int colorid2, float fac, float r_col[3])
+void get_color_blend_3f(int colorid1, int colorid2, float fac, float r_col[3])
 {
-  const uchar *cp1 = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid1);
-  const uchar *cp2 = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid2);
+  const uchar *cp1 = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid1);
+  const uchar *cp2 = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid2);
 
   CLAMP(fac, 0.0f, 1.0f);
   r_col[0] = ((1.0f - fac) * cp1[0] + fac * cp2[0]) / 255.0f;
@@ -1213,10 +1219,10 @@ void UI_GetThemeColorBlend3f(int colorid1, int colorid2, float fac, float r_col[
   r_col[2] = ((1.0f - fac) * cp1[2] + fac * cp2[2]) / 255.0f;
 }
 
-void UI_GetThemeColorBlend4f(int colorid1, int colorid2, float fac, float r_col[4])
+void get_color_blend_4f(int colorid1, int colorid2, float fac, float r_col[4])
 {
-  const uchar *cp1 = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid1);
-  const uchar *cp2 = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid2);
+  const uchar *cp1 = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid1);
+  const uchar *cp2 = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid2);
 
   CLAMP(fac, 0.0f, 1.0f);
   r_col[0] = ((1.0f - fac) * cp1[0] + fac * cp2[0]) / 255.0f;
@@ -1225,66 +1231,66 @@ void UI_GetThemeColorBlend4f(int colorid1, int colorid2, float fac, float r_col[
   r_col[3] = ((1.0f - fac) * cp1[3] + fac * cp2[3]) / 255.0f;
 }
 
-void UI_FontThemeColor(int fontid, int colorid)
+void font_theme_color_set(int fontid, int colorid)
 {
   uchar color[4];
-  UI_GetThemeColor4ubv(colorid, color);
+  get_color_4ubv(colorid, color);
   BLF_color4ubv(fontid, color);
 }
 
-float UI_GetThemeValuef(int colorid)
+float get_value_f(int colorid)
 {
-  const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid);
+  const uchar *cp = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid);
   return float(cp[0]);
 }
 
-int UI_GetThemeValue(int colorid)
+int get_value(int colorid)
 {
-  const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid);
+  const uchar *cp = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid);
   return int(cp[0]);
 }
 
-float UI_GetThemeValueTypef(int colorid, int spacetype)
+float get_value_type_f(int colorid, int spacetype)
 {
-  const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, spacetype, colorid);
+  const uchar *cp = get_color_ptr(g_theme_state.theme, spacetype, colorid);
   return float(cp[0]);
 }
 
-int UI_GetThemeValueType(int colorid, int spacetype)
+int get_value_type(int colorid, int spacetype)
 {
-  const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, spacetype, colorid);
+  const uchar *cp = get_color_ptr(g_theme_state.theme, spacetype, colorid);
   return int(cp[0]);
 }
 
-void UI_GetThemeColor3fv(int colorid, float col[3])
+void get_color_3fv(int colorid, float col[3])
 {
-  const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid);
+  const uchar *cp = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid);
   col[0] = float(cp[0]) / 255.0f;
   col[1] = float(cp[1]) / 255.0f;
   col[2] = float(cp[2]) / 255.0f;
 }
 
-void UI_GetThemeColor4fv(int colorid, float col[4])
+void get_color_4fv(int colorid, float col[4])
 {
-  const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid);
+  const uchar *cp = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid);
   col[0] = float(cp[0]) / 255.0f;
   col[1] = float(cp[1]) / 255.0f;
   col[2] = float(cp[2]) / 255.0f;
   col[3] = float(cp[3]) / 255.0f;
 }
 
-void UI_GetThemeColorType4fv(int colorid, int spacetype, float col[4])
+void get_color_type_4fv(int colorid, int spacetype, float col[4])
 {
-  const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, spacetype, colorid);
+  const uchar *cp = get_color_ptr(g_theme_state.theme, spacetype, colorid);
   col[0] = float(cp[0]) / 255.0f;
   col[1] = float(cp[1]) / 255.0f;
   col[2] = float(cp[2]) / 255.0f;
   col[3] = float(cp[3]) / 255.0f;
 }
 
-void UI_GetThemeColorShade3fv(int colorid, int offset, float col[3])
+void get_color_shade_3fv(int colorid, int offset, float col[3])
 {
-  const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid);
+  const uchar *cp = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid);
   int r, g, b;
 
   r = offset + int(cp[0]);
@@ -1299,9 +1305,9 @@ void UI_GetThemeColorShade3fv(int colorid, int offset, float col[3])
   col[2] = float(b) / 255.0f;
 }
 
-void UI_GetThemeColorShade3ubv(int colorid, int offset, uchar col[3])
+void get_color_shade_3ubv(int colorid, int offset, uchar col[3])
 {
-  const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid);
+  const uchar *cp = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid);
   int r, g, b;
 
   r = offset + int(cp[0]);
@@ -1316,11 +1322,10 @@ void UI_GetThemeColorShade3ubv(int colorid, int offset, uchar col[3])
   col[2] = b;
 }
 
-void UI_GetThemeColorBlendShade3ubv(
-    int colorid1, int colorid2, float fac, int offset, uchar col[3])
+void get_color_blend_shade_3ubv(int colorid1, int colorid2, float fac, int offset, uchar col[3])
 {
-  const uchar *cp1 = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid1);
-  const uchar *cp2 = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid2);
+  const uchar *cp1 = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid1);
+  const uchar *cp2 = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid2);
 
   CLAMP(fac, 0.0f, 1.0f);
 
@@ -1332,9 +1337,9 @@ void UI_GetThemeColorBlendShade3ubv(
   unit_float_to_uchar_clamp_v3(col, blend);
 }
 
-void UI_GetThemeColorShade4ubv(int colorid, int offset, uchar col[4])
+void get_color_shade_4ubv(int colorid, int offset, uchar col[4])
 {
-  const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid);
+  const uchar *cp = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid);
   int r, g, b;
 
   r = offset + int(cp[0]);
@@ -1350,9 +1355,9 @@ void UI_GetThemeColorShade4ubv(int colorid, int offset, uchar col[4])
   col[3] = cp[3];
 }
 
-void UI_GetThemeColorShadeAlpha4fv(int colorid, int coloffset, int alphaoffset, float col[4])
+void get_color_shade_alpha_4fv(int colorid, int coloffset, int alphaoffset, float col[4])
 {
-  const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid);
+  const uchar *cp = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid);
   int r, g, b, a;
 
   r = coloffset + int(cp[0]);
@@ -1370,10 +1375,10 @@ void UI_GetThemeColorShadeAlpha4fv(int colorid, int coloffset, int alphaoffset, 
   col[3] = float(a) / 255.0f;
 }
 
-void UI_GetThemeColorBlendShade3fv(int colorid1, int colorid2, float fac, int offset, float col[3])
+void get_color_blend_shade_3fv(int colorid1, int colorid2, float fac, int offset, float col[3])
 {
-  const uchar *cp1 = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid1);
-  const uchar *cp2 = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid2);
+  const uchar *cp1 = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid1);
+  const uchar *cp2 = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid2);
   int r, g, b;
 
   CLAMP(fac, 0.0f, 1.0f);
@@ -1390,10 +1395,10 @@ void UI_GetThemeColorBlendShade3fv(int colorid1, int colorid2, float fac, int of
   col[2] = float(b) / 255.0f;
 }
 
-void UI_GetThemeColorBlendShade4fv(int colorid1, int colorid2, float fac, int offset, float col[4])
+void get_color_blend_shade_4fv(int colorid1, int colorid2, float fac, int offset, float col[4])
 {
-  const uchar *cp1 = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid1);
-  const uchar *cp2 = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid2);
+  const uchar *cp1 = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid1);
+  const uchar *cp2 = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid2);
   int r, g, b, a;
 
   CLAMP(fac, 0.0f, 1.0f);
@@ -1414,17 +1419,17 @@ void UI_GetThemeColorBlendShade4fv(int colorid1, int colorid2, float fac, int of
   col[3] = float(a) / 255.0f;
 }
 
-void UI_GetThemeColor3ubv(int colorid, uchar col[3])
+void get_color_3ubv(int colorid, uchar col[3])
 {
-  const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid);
+  const uchar *cp = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid);
   col[0] = cp[0];
   col[1] = cp[1];
   col[2] = cp[2];
 }
 
-void UI_GetThemeColorShade4fv(int colorid, int offset, float col[4])
+void get_color_shade_4fv(int colorid, int offset, float col[4])
 {
-  const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid);
+  const uchar *cp = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid);
   int r, g, b, a;
 
   r = offset + int(cp[0]);
@@ -1443,41 +1448,41 @@ void UI_GetThemeColorShade4fv(int colorid, int offset, float col[4])
   col[3] = float(a) / 255.0f;
 }
 
-void UI_GetThemeColor4ubv(int colorid, uchar col[4])
+void get_color_4ubv(int colorid, uchar col[4])
 {
-  const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid);
+  const uchar *cp = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid);
   col[0] = cp[0];
   col[1] = cp[1];
   col[2] = cp[2];
   col[3] = cp[3];
 }
 
-void UI_GetThemeColorType3fv(int colorid, int spacetype, float col[3])
+void get_color_type_3fv(int colorid, int spacetype, float col[3])
 {
-  const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, spacetype, colorid);
+  const uchar *cp = get_color_ptr(g_theme_state.theme, spacetype, colorid);
   col[0] = float(cp[0]) / 255.0f;
   col[1] = float(cp[1]) / 255.0f;
   col[2] = float(cp[2]) / 255.0f;
 }
 
-void UI_GetThemeColorType3ubv(int colorid, int spacetype, uchar col[3])
+void get_color_type_3ubv(int colorid, int spacetype, uchar col[3])
 {
-  const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, spacetype, colorid);
+  const uchar *cp = get_color_ptr(g_theme_state.theme, spacetype, colorid);
   col[0] = cp[0];
   col[1] = cp[1];
   col[2] = cp[2];
 }
 
-void UI_GetThemeColorType4ubv(int colorid, int spacetype, uchar col[4])
+void get_color_type_4ubv(int colorid, int spacetype, uchar col[4])
 {
-  const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, spacetype, colorid);
+  const uchar *cp = get_color_ptr(g_theme_state.theme, spacetype, colorid);
   col[0] = cp[0];
   col[1] = cp[1];
   col[2] = cp[2];
   col[3] = cp[3];
 }
 
-bool UI_GetIconThemeColor4ubv(int colorid, uchar col[4])
+bool get_icon_color_4ubv(int colorid, uchar col[4])
 {
   if (colorid == 0) {
     return false;
@@ -1497,7 +1502,7 @@ bool UI_GetIconThemeColor4ubv(int colorid, uchar col[4])
     return false;
   }
 
-  const uchar *cp = UI_ThemeGetColorPtr(g_theme_state.theme, g_theme_state.spacetype, colorid);
+  const uchar *cp = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid);
   col[0] = cp[0];
   col[1] = cp[1];
   col[2] = cp[2];
@@ -1506,7 +1511,29 @@ bool UI_GetIconThemeColor4ubv(int colorid, uchar col[4])
   return true;
 }
 
-void UI_GetColorPtrShade3ubv(const uchar cp[3], int offset, uchar r_col[3])
+void get_color_blend_alpha_4fv(
+    const float cp1[4], const float cp2[4], float fac, const float alphaoffset, float r_col[4])
+{
+  float r, g, b, a;
+
+  CLAMP(fac, 0.0f, 1.0f);
+  r = (1.0f - fac) * cp1[0] + fac * cp2[0];
+  g = (1.0f - fac) * cp1[1] + fac * cp2[1];
+  b = (1.0f - fac) * cp1[2] + fac * cp2[2];
+  a = (1.0f - fac) * cp1[3] + fac * cp2[3] + alphaoffset;
+
+  CLAMP(r, 0.0f, 1.0f);
+  CLAMP(g, 0.0f, 1.0f);
+  CLAMP(b, 0.0f, 1.0f);
+  CLAMP(a, 0.0f, 1.0f);
+
+  r_col[0] = r;
+  r_col[1] = g;
+  r_col[2] = b;
+  r_col[3] = a;
+}
+
+void get_color_shade_3ubv(const uchar cp[3], int offset, uchar r_col[3])
 {
   int r, g, b;
 
@@ -1523,7 +1550,7 @@ void UI_GetColorPtrShade3ubv(const uchar cp[3], int offset, uchar r_col[3])
   r_col[2] = b;
 }
 
-void UI_GetColorPtrBlendShade3ubv(
+void get_color_blend_shade_3ubv(
     const uchar cp1[3], const uchar cp2[3], float fac, int offset, uchar r_col[3])
 {
   int r, g, b;
@@ -1542,36 +1569,36 @@ void UI_GetColorPtrBlendShade3ubv(
   r_col[2] = b;
 }
 
-void UI_ThemeClearColor(int colorid)
+void frame_buffer_clear(int colorid)
 {
   float col[3];
 
-  UI_GetThemeColor3fv(colorid, col);
+  get_color_3fv(colorid, col);
   GPU_clear_color(col[0], col[1], col[2], 1.0f);
 }
 
-int UI_ThemeMenuShadowWidth()
+int get_menu_shadow_width()
 {
-  const bTheme *btheme = UI_GetTheme();
+  const bTheme *btheme = theme_get();
   return int(btheme->tui.menu_shadow_width * UI_SCALE_FAC);
 }
 
-void UI_make_axis_color(const uchar col[3], const char axis, uchar r_col[3])
+void make_axis_color(const uchar col[3], const char axis, uchar r_col[3])
 {
   uchar col_axis[3];
 
   switch (axis) {
     case 'X':
-      UI_GetThemeColor3ubv(TH_AXIS_X, col_axis);
-      UI_GetColorPtrBlendShade3ubv(col, col_axis, 0.5f, -10, r_col);
+      get_color_3ubv(TH_AXIS_X, col_axis);
+      get_color_blend_shade_3ubv(col, col_axis, 0.5f, -10, r_col);
       break;
     case 'Y':
-      UI_GetThemeColor3ubv(TH_AXIS_Y, col_axis);
-      UI_GetColorPtrBlendShade3ubv(col, col_axis, 0.5f, -10, r_col);
+      get_color_3ubv(TH_AXIS_Y, col_axis);
+      get_color_blend_shade_3ubv(col, col_axis, 0.5f, -10, r_col);
       break;
     case 'Z':
-      UI_GetThemeColor3ubv(TH_AXIS_Z, col_axis);
-      UI_GetColorPtrBlendShade3ubv(col, col_axis, 0.5f, -10, r_col);
+      get_color_3ubv(TH_AXIS_Z, col_axis);
+      get_color_blend_shade_3ubv(col, col_axis, 0.5f, -10, r_col);
       break;
     default:
       BLI_assert(0);
@@ -1580,3 +1607,6 @@ void UI_make_axis_color(const uchar col[3], const char axis, uchar r_col[3])
 }
 
 /** \} */
+
+}  // namespace theme
+}  // namespace blender::ui

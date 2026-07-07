@@ -19,7 +19,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_defaults.h"
 #include "DNA_scene_types.h" /* min/max frames */
 #include "DNA_userdef_types.h"
 
@@ -38,9 +37,9 @@
 #include "BKE_global.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_movieclip.h"
+#include "BKE_movieclip.hh"
 #include "BKE_report.hh"
-#include "BKE_tracking.h"
+#include "BKE_tracking.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -65,6 +64,8 @@
 #include "DEG_depsgraph_build.hh"
 
 #include "clip_intern.hh" /* own include */
+
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name View Navigation Utilities
@@ -170,7 +171,7 @@ static void open_init(bContext *C, wmOperator *op)
   PropertyPointerRNA *pprop;
 
   op->customdata = pprop = MEM_new<PropertyPointerRNA>("OpenPropertyPointerRNA");
-  UI_context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
+  ui::context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
 }
 
 static void open_cancel(bContext * /*C*/, wmOperator *op)
@@ -278,7 +279,7 @@ static wmOperatorStatus open_invoke(bContext *C, wmOperator *op, const wmEvent *
   if (clip) {
     STRNCPY(dirpath, clip->filepath);
 
-    BLI_path_abs(dirpath, CTX_data_main(C)->filepath);
+    BLI_path_abs(dirpath, ID_BLEND_PATH_FROM_GLOBAL(&clip->id));
     BLI_path_parent_dir(dirpath);
   }
   else {
@@ -382,7 +383,7 @@ static void view_pan_init(bContext *C, wmOperator *op, const wmEvent *event)
   SpaceClip *sc = CTX_wm_space_clip(C);
   ViewPanData *vpd;
 
-  op->customdata = vpd = MEM_callocN<ViewPanData>("ClipViewPanData");
+  op->customdata = vpd = MEM_new_zeroed<ViewPanData>("ClipViewPanData");
 
   /* Grab will be set when running from gizmo. */
   vpd->own_cursor = WM_cursor_modal_is_set_ok(win);
@@ -421,7 +422,7 @@ static void view_pan_exit(bContext *C, wmOperator *op, bool cancel)
   if (vpd->own_cursor) {
     WM_cursor_modal_restore(CTX_wm_window(C));
   }
-  MEM_freeN(vpd);
+  MEM_delete(vpd);
 }
 
 static wmOperatorStatus view_pan_exec(bContext *C, wmOperator *op)
@@ -562,7 +563,7 @@ static void view_zoom_init(bContext *C, wmOperator *op, const wmEvent *event)
   ARegion *region = CTX_wm_region(C);
   ViewZoomData *vpd;
 
-  op->customdata = vpd = MEM_callocN<ViewZoomData>("ClipViewZoomData");
+  op->customdata = vpd = MEM_new_zeroed<ViewZoomData>("ClipViewZoomData");
 
   /* Grab will be set when running from gizmo. */
   vpd->own_cursor = WM_cursor_modal_is_set_ok(win);
@@ -603,7 +604,7 @@ static void view_zoom_exit(bContext *C, wmOperator *op, bool cancel)
   if (vpd->own_cursor) {
     WM_cursor_modal_restore(CTX_wm_window(C));
   }
-  MEM_freeN(vpd);
+  MEM_delete(vpd);
 }
 
 static wmOperatorStatus view_zoom_exec(bContext *C, wmOperator *op)
@@ -1107,7 +1108,7 @@ static int frame_from_event(bContext *C, const wmEvent *event)
   else {
     float viewx, viewy;
 
-    UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &viewx, &viewy);
+    ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &viewx, &viewy);
 
     framenr = round_fl_to_int(viewx);
   }
@@ -1190,7 +1191,7 @@ struct ProxyJob {
   Scene *scene;
   Main *main;
   MovieClip *clip;
-  int clip_flag;
+  MovieClipFlag clip_flag;
   bool stop;
   MovieProxyBuilder *proxy_builder;
 };
@@ -1198,8 +1199,7 @@ struct ProxyJob {
 static void proxy_freejob(void *pjv)
 {
   ProxyJob *pj = static_cast<ProxyJob *>(pjv);
-
-  MEM_freeN(pj);
+  MEM_delete(pj);
 }
 
 static int proxy_bitflag_to_array(int size_flag, int build_sizes[4], int undistort)
@@ -1238,7 +1238,7 @@ static void do_movie_proxy(void *pjv,
                            int /*build_count*/,
                            const int *build_undistort_sizes,
                            int build_undistort_count,
-                           bool *stop,
+                           const bool *stop,
                            bool *do_update,
                            float *progress)
 {
@@ -1247,7 +1247,9 @@ static void do_movie_proxy(void *pjv,
   MovieDistortion *distortion = nullptr;
 
   if (pj->proxy_builder) {
-    MOV_proxy_builder_process(pj->proxy_builder, stop, do_update, progress);
+    MOV_proxy_builder_process(pj->proxy_builder, stop, do_update, [&](const float new_progress) {
+      *progress = new_progress;
+    });
   }
 
   if (!build_undistort_count) {
@@ -1323,7 +1325,7 @@ static uchar *proxy_thread_next_frame(ProxyQueue *queue,
 
   std::lock_guard lock(queue->mutex);
   if (!*queue->stop && queue->cfra <= queue->efra) {
-    MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
+    MovieClipUser user = {};
     char filepath[FILE_MAX];
     int file;
 
@@ -1342,11 +1344,11 @@ static uchar *proxy_thread_next_frame(ProxyQueue *queue,
       return nullptr;
     }
 
-    mem = MEM_calloc_arrayN<uchar>(size, "movieclip proxy memory file");
+    mem = MEM_new_array_zeroed<uchar>(size, "movieclip proxy memory file");
 
     if (BLI_read(file, mem, size) != size) {
       close(file);
-      MEM_freeN(mem);
+      MEM_delete(mem);
       return nullptr;
     }
 
@@ -1364,8 +1366,8 @@ static uchar *proxy_thread_next_frame(ProxyQueue *queue,
 
 static void proxy_task_func(TaskPool *__restrict pool, void *task_data)
 {
-  ProxyThread *data = (ProxyThread *)task_data;
-  ProxyQueue *queue = (ProxyQueue *)BLI_task_pool_user_data(pool);
+  ProxyThread *data = static_cast<ProxyThread *>(task_data);
+  ProxyQueue *queue = static_cast<ProxyQueue *>(BLI_task_pool_user_data(pool));
   uchar *mem;
   size_t size;
   int cfra;
@@ -1393,7 +1395,7 @@ static void proxy_task_func(TaskPool *__restrict pool, void *task_data)
 
     IMB_freeImBuf(ibuf);
 
-    MEM_freeN(mem);
+    MEM_delete(mem);
   }
 }
 
@@ -1429,7 +1431,7 @@ static void do_sequence_proxy(void *pjv,
   queue.progress = progress;
 
   TaskPool *task_pool = BLI_task_pool_create(&queue, TASK_PRIORITY_LOW);
-  handles = MEM_calloc_arrayN<ProxyThread>(tot_thread, "proxy threaded handles");
+  handles = MEM_new_array_zeroed<ProxyThread>(tot_thread, "proxy threaded handles");
   for (int i = 0; i < tot_thread; i++) {
     ProxyThread *handle = &handles[i];
 
@@ -1458,7 +1460,7 @@ static void do_sequence_proxy(void *pjv,
     }
   }
 
-  MEM_freeN(handles);
+  MEM_delete(handles);
 }
 
 static void proxy_startjob(void *pjv, wmJobWorkerStatus *worker_status)
@@ -1507,6 +1509,7 @@ static void proxy_endjob(void *pjv)
 
   if (pj->proxy_builder) {
     MOV_proxy_builder_finish(pj->proxy_builder, pj->stop);
+    pj->proxy_builder = nullptr;
   }
 
   if (pj->clip->source == MCLIP_SRC_MOVIE) {
@@ -1541,11 +1544,11 @@ static wmOperatorStatus clip_rebuild_proxy_exec(bContext *C, wmOperator * /*op*/
                        WM_JOB_PROGRESS,
                        WM_JOB_TYPE_CLIP_BUILD_PROXY);
 
-  pj = MEM_callocN<ProxyJob>("proxy rebuild job");
+  pj = MEM_new<ProxyJob>("proxy rebuild job");
   pj->scene = scene;
   pj->main = CTX_data_main(C);
   pj->clip = clip;
-  pj->clip_flag = clip->flag & MCLIP_TIMECODE_FLAGS;
+  pj->clip_flag = MovieClipFlag(clip->flag & MCLIP_TIMECODE_FLAGS);
 
   if (clip->anim) {
     pj->proxy_builder = MOV_proxy_builder_start(clip->anim,
@@ -1653,7 +1656,7 @@ static wmOperatorStatus clip_view_ndof_invoke(bContext *C,
   const wmNDOFMotionData &ndof = *static_cast<wmNDOFMotionData *>(event->customdata);
   const float pan_speed = NDOF_PIXELS_PER_SECOND;
 
-  blender::float3 pan_vec = ndof.time_delta * WM_event_ndof_translation_get_for_navigation(ndof);
+  float3 pan_vec = ndof.time_delta * WM_event_ndof_translation_get_for_navigation(ndof);
   mul_v2_fl(pan_vec, pan_speed / sc->zoom);
 
   sclip_zoom_set_factor(C, max_ff(0.0f, 1.0f - pan_vec[2]), nullptr, false);
@@ -1907,3 +1910,5 @@ void ED_operatormacros_clip()
 }
 
 /** \} */
+
+}  // namespace blender

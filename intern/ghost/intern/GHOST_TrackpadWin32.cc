@@ -117,7 +117,8 @@ GHOST_DirectManipulationHelper *GHOST_DirectManipulationHelper::create(HWND hWnd
 
 bool GHOST_DirectManipulationHelper::getScrollDirectionFromReg()
 {
-  DWORD scrollDirectionRegValue, pcbData;
+  DWORD scrollDirectionRegValue = 0;
+  DWORD pcbData = sizeof(scrollDirectionRegValue);
   HRESULT hr = HRESULT_FROM_WIN32(
       RegGetValueW(HKEY_CURRENT_USER,
                    L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\PrecisionTouchPad\\",
@@ -128,9 +129,12 @@ bool GHOST_DirectManipulationHelper::getScrollDirectionFromReg()
                    &pcbData));
   if (!SUCCEEDED(hr)) {
     GHOST_PRINT("Failed to get scroll direction from registry\n");
-    return false;
+    /* This is the default value for scroll direction, not a failure/success indicator. */
+    return true;
   }
 
+  /* Return false for natural scrolling direction (upward motion results in content scrolling
+   * downward), and true for reversed direction. */
   return scrollDirectionRegValue == 0;
 }
 
@@ -204,7 +208,7 @@ GHOST_TTrackpadInfo GHOST_DirectManipulationHelper::getTrackpadInfo()
 
 GHOST_DirectManipulationHelper::~GHOST_DirectManipulationHelper()
 {
-  HRESULT hr;
+  [[maybe_unused]] HRESULT hr;
   hr = direct_manipulation_viewport_->Stop();
   GHOST_ASSERT(SUCCEEDED(hr), "Viewport stop failed\n");
 

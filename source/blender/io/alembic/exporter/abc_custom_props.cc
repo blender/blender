@@ -19,6 +19,8 @@
 #include "BKE_idprop.hh"
 #include "DNA_ID.h"
 
+namespace blender {
+
 using Alembic::Abc::ArraySample;
 using Alembic::Abc::OArrayProperty;
 using Alembic::Abc::OBoolArrayProperty;
@@ -28,7 +30,7 @@ using Alembic::Abc::OFloatArrayProperty;
 using Alembic::Abc::OInt32ArrayProperty;
 using Alembic::Abc::OStringArrayProperty;
 
-namespace blender::io::alembic {
+namespace io::alembic {
 
 CustomPropertiesExporter::CustomPropertiesExporter(ABCAbstractWriter *owner) : owner_(owner) {}
 
@@ -40,8 +42,8 @@ void CustomPropertiesExporter::write_all(const IDProperty *group)
   BLI_assert(group->type == IDP_GROUP);
 
   /* Loop over the properties, just like IDP_foreach_property() does, but without the recursion. */
-  LISTBASE_FOREACH (IDProperty *, id_property, &group->data.group) {
-    write(id_property);
+  for (IDProperty &id_property : group->data.group) {
+    write(&id_property);
   }
 }
 
@@ -52,23 +54,25 @@ void CustomPropertiesExporter::write(const IDProperty *id_property)
   switch (id_property->type) {
     case IDP_STRING: {
       /* The Alembic library doesn't accept null-terminated character arrays. */
-      const std::string prop_value(IDP_String(id_property), id_property->len - 1);
+      const std::string prop_value(IDP_string_get(id_property), id_property->len - 1);
       set_scalar_property<OStringArrayProperty, std::string>(id_property->name, prop_value);
       break;
     }
     case IDP_INT:
       static_assert(sizeof(int) == sizeof(int32_t), "Expecting 'int' to be 32-bit");
-      set_scalar_property<OInt32ArrayProperty, int32_t>(id_property->name, IDP_Int(id_property));
+      set_scalar_property<OInt32ArrayProperty, int32_t>(id_property->name,
+                                                        IDP_int_get(id_property));
       break;
     case IDP_FLOAT:
-      set_scalar_property<OFloatArrayProperty, float>(id_property->name, IDP_Float(id_property));
+      set_scalar_property<OFloatArrayProperty, float>(id_property->name,
+                                                      IDP_float_get(id_property));
       break;
     case IDP_DOUBLE:
       set_scalar_property<ODoubleArrayProperty, double>(id_property->name,
-                                                        IDP_Double(id_property));
+                                                        IDP_double_get(id_property));
       break;
     case IDP_BOOLEAN:
-      set_scalar_property<OBoolArrayProperty, bool>(id_property->name, IDP_Bool(id_property));
+      set_scalar_property<OBoolArrayProperty, bool>(id_property->name, IDP_bool_get(id_property));
       break;
     case IDP_ARRAY:
       write_array(id_property);
@@ -85,23 +89,23 @@ void CustomPropertiesExporter::write_array(const IDProperty *id_property)
 
   switch (id_property->subtype) {
     case IDP_INT: {
-      const int *array = (int *)IDP_Array(id_property);
+      const int *array = IDP_array_int_get(id_property);
       static_assert(sizeof(int) == sizeof(int32_t), "Expecting 'int' to be 32-bit");
       set_array_property<OInt32ArrayProperty, int32_t>(id_property->name, array, id_property->len);
       break;
     }
     case IDP_FLOAT: {
-      const float *array = (float *)IDP_Array(id_property);
+      const float *array = IDP_array_float_get(id_property);
       set_array_property<OFloatArrayProperty, float>(id_property->name, array, id_property->len);
       break;
     }
     case IDP_DOUBLE: {
-      const double *array = (double *)IDP_Array(id_property);
+      const double *array = IDP_array_double_get(id_property);
       set_array_property<ODoubleArrayProperty, double>(id_property->name, array, id_property->len);
       break;
     }
     case IDP_BOOLEAN: {
-      const int8_t *array = static_cast<const int8_t *>(IDP_Array(id_property));
+      const int8_t *array = IDP_array_bool_get(id_property);
       set_array_property<OBoolArrayProperty, int8_t>(id_property->name, array, id_property->len);
       break;
     }
@@ -117,7 +121,7 @@ void CustomPropertiesExporter::write_idparray(const IDProperty *idp_array)
     return;
   }
 
-  IDProperty *idp_elements = (IDProperty *)IDP_Array(idp_array);
+  IDProperty *idp_elements = IDP_property_array_get(idp_array);
 
 #ifndef NDEBUG
   /* Sanity check that all elements of the array have the same type.
@@ -147,11 +151,11 @@ void CustomPropertiesExporter::write_idparray_of_strings(const IDProperty *idp_a
   BLI_assert(idp_array->len > 0);
 
   /* Convert to an array of std::strings, because Alembic doesn't like zero-delimited strings. */
-  IDProperty *idp_elements = (IDProperty *)IDP_Array(idp_array);
+  IDProperty *idp_elements = IDP_property_array_get(idp_array);
   std::vector<std::string> strings(idp_array->len);
   for (int i = 0; i < idp_array->len; i++) {
     BLI_assert(idp_elements[i].type == IDP_STRING);
-    strings[i] = IDP_String(&idp_elements[i]);
+    strings[i] = IDP_string_get(&idp_elements[i]);
   }
 
   /* Alembic needs a pointer to the first value of the array. */
@@ -166,7 +170,7 @@ void CustomPropertiesExporter::write_idparray_of_numbers(const IDProperty *idp_a
   BLI_assert(idp_array->len > 0);
 
   /* This must be an array of arrays. */
-  IDProperty *idp_rows = (IDProperty *)IDP_Array(idp_array);
+  IDProperty *idp_rows = IDP_property_array_get(idp_array);
   BLI_assert(idp_rows[0].type == IDP_ARRAY);
 
   const int subtype = idp_rows[0].subtype;
@@ -198,14 +202,15 @@ void CustomPropertiesExporter::write_idparray_flattened_typed(const IDProperty *
   BLI_assert(idp_array->type == IDP_IDPARRAY);
   BLI_assert(idp_array->len > 0);
 
-  const IDProperty *idp_rows = (IDProperty *)IDP_Array(idp_array);
+  const IDProperty *idp_rows = IDP_property_array_get(idp_array);
   BLI_assert(idp_rows[0].type == IDP_ARRAY);
   BLI_assert(ELEM(idp_rows[0].subtype, IDP_INT, IDP_FLOAT, IDP_DOUBLE, IDP_BOOLEAN));
 
   const uint64_t num_rows = idp_array->len;
   std::vector<BlenderValueType> matrix_values;
   for (size_t row_idx = 0; row_idx < num_rows; ++row_idx) {
-    const BlenderValueType *row = (BlenderValueType *)IDP_Array(&idp_rows[row_idx]);
+    const BlenderValueType *row = static_cast<BlenderValueType *> IDP_array_voidp_get(
+        &idp_rows[row_idx]);
     for (size_t col_idx = 0; col_idx < idp_rows[row_idx].len; col_idx++) {
       matrix_values.push_back(row[col_idx]);
     }
@@ -250,4 +255,5 @@ OArrayProperty CustomPropertiesExporter::create_abc_property(const StringRef pro
   return abc_property;
 }
 
-}  // namespace blender::io::alembic
+}  // namespace io::alembic
+}  // namespace blender

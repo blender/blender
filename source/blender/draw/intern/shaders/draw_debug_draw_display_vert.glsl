@@ -6,7 +6,7 @@
  * Display debug edge list.
  */
 
-#include "draw_debug_info.hh"
+#include "draw_debug_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(draw_debug_draw_display)
 

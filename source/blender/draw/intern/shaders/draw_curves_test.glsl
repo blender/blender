@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "draw_curves_info.hh"
+#include "draw_curves_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(draw_curves_test)
 

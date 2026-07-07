@@ -24,9 +24,12 @@
 #include "obj_import_mtl.hh"
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.obj"};
 
-namespace blender::io::obj {
+namespace io::obj {
 
 /**
  * Set the socket's (of given ID) value to the given number(s).
@@ -85,8 +88,8 @@ static Image *create_placeholder_image(Main *bmain, const std::string &path)
 {
   const float color[4] = {0, 0, 0, 1};
   Image *image = BKE_image_add_generated(bmain,
-                                         32,
-                                         32,
+                                         1,
+                                         1,
                                          BLI_path_basename(path.c_str()),
                                          24,
                                          false,
@@ -96,7 +99,12 @@ static Image *create_placeholder_image(Main *bmain, const std::string &path)
                                          false,
                                          false);
   STRNCPY(image->filepath, path.c_str());
+
+  /* Ensure that we are not marked as a generated image and clear any buffers created so far. */
   image->source = IMA_SRC_FILE;
+  image->type = IMA_TYPE_IMAGE;
+  BKE_image_free_buffers(image);
+
   return image;
 }
 
@@ -432,8 +440,8 @@ bNodeTree *create_mtl_node_tree(Main *bmain,
                                 Material *mat,
                                 bool relative_paths)
 {
-  bNodeTree *ntree = blender::bke::node_tree_add_tree_embedded(
-      nullptr, &mat->id, "Shader Nodetree", ntreeType_Shader->idname);
+  bNodeTree *ntree = mat->nodetree;
+  BLI_assert(mat->nodetree);
 
   bNode *bsdf = add_node(ntree, SH_NODE_BSDF_PRINCIPLED, node_locx_bsdf, node_locy_top);
   bNode *output = add_node(ntree, SH_NODE_OUTPUT_MATERIAL, node_locx_output, node_locy_top);
@@ -446,4 +454,5 @@ bNodeTree *create_mtl_node_tree(Main *bmain,
   return ntree;
 }
 
-}  // namespace blender::io::obj
+}  // namespace io::obj
+}  // namespace blender

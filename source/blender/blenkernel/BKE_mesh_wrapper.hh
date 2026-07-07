@@ -12,6 +12,8 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 
+namespace blender {
+
 struct BMEditMesh;
 struct CustomData_MeshMasks;
 struct Mesh;
@@ -30,18 +32,17 @@ int BKE_mesh_wrapper_face_len(const Mesh *mesh);
  * Return a contiguous array of vertex position values, if available.
  * Otherwise, vertex positions are stored in BMesh vertices and this returns null.
  */
-blender::Span<blender::float3> BKE_mesh_wrapper_vert_coords(const Mesh *mesh);
+Span<float3> BKE_mesh_wrapper_vert_coords(const Mesh *mesh);
 
 /**
  * Return a contiguous array of face normal values, if available.
  * Otherwise, normals are stored in BMesh faces and this returns null.
  */
-blender::Span<blender::float3> BKE_mesh_wrapper_face_normals(Mesh *mesh);
+Span<float3> BKE_mesh_wrapper_face_normals(Mesh *mesh);
 
 void BKE_mesh_wrapper_tag_positions_changed(Mesh *mesh);
 
-void BKE_mesh_wrapper_vert_coords_copy(const Mesh *mesh,
-                                       blender::MutableSpan<blender::float3> positions);
+void BKE_mesh_wrapper_vert_coords_copy(const Mesh *mesh, MutableSpan<float3> positions);
 void BKE_mesh_wrapper_vert_coords_copy_with_mat4(const Mesh *mesh,
                                                  float (*vert_coords)[3],
                                                  int vert_coords_len,
@@ -49,3 +50,5 @@ void BKE_mesh_wrapper_vert_coords_copy_with_mat4(const Mesh *mesh,
 
 Mesh *BKE_mesh_wrapper_ensure_subdivision(Mesh *mesh);
 const Mesh *BKE_mesh_wrapper_ensure_subdivision(const Mesh *mesh);
+
+}  // namespace blender

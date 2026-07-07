@@ -16,17 +16,19 @@
 #include "DNA_ID_enums.h"
 
 struct AssetTempIDConsumer;
+
+namespace blender {
+
 struct ID;
 struct Main;
 struct ReportList;
-namespace blender::asset_system {
+namespace asset_system {
 class AssetRepresentation;
 }
 
-namespace blender::ed::asset {
+namespace ed::asset {
 
-AssetTempIDConsumer *temp_id_consumer_create(
-    const blender::asset_system::AssetRepresentation *asset);
+AssetTempIDConsumer *temp_id_consumer_create(const asset_system::AssetRepresentation *asset);
 
 void temp_id_consumer_free(AssetTempIDConsumer **consumer);
 ID *temp_id_consumer_ensure_local_id(AssetTempIDConsumer *consumer,
@@ -34,4 +36,5 @@ ID *temp_id_consumer_ensure_local_id(AssetTempIDConsumer *consumer,
                                      Main *bmain,
                                      ReportList *reports);
 
-}  // namespace blender::ed::asset
+}  // namespace ed::asset
+}  // namespace blender

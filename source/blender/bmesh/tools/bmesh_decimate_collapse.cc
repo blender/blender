@@ -12,7 +12,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
+#include "BLI_enum_flags.hh"
 #include "BLI_heap.h"
 #include "BLI_linklist.h"
 #include "BLI_math_geom.h"
@@ -32,8 +33,10 @@
 
 #define USE_SYMMETRY
 #ifdef USE_SYMMETRY
-#  include "BLI_kdtree.h"
+#  include "BLI_kdtree.hh"
 #endif
+
+namespace blender {
 
 /* defines for testing */
 #define USE_CUSTOMDATA
@@ -61,7 +64,7 @@ enum CD_UseFlag {
   CD_DO_EDGE = (1 << 1),
   CD_DO_LOOP = (1 << 2),
 };
-ENUM_OPERATORS(CD_UseFlag, CD_DO_LOOP)
+ENUM_OPERATORS(CD_UseFlag)
 
 /* BMesh Helper Functions
  * ********************** */
@@ -368,7 +371,7 @@ struct KD_Symmetry_Data {
 
 static bool bm_edge_symmetry_check_cb(void *user_data,
                                       int index,
-                                      const float /*co*/[3],
+                                      const float3 & /*co*/,
                                       float /*dist_sq*/)
 {
   KD_Symmetry_Data *sym_data = static_cast<KD_Symmetry_Data *>(user_data);
@@ -407,20 +410,20 @@ static int *bm_edge_symmetry_map(BMesh *bm, uint symmetry_axis, float limit)
   const float limit_sq = square_f(limit);
   KDTree_3d *tree;
 
-  tree = BLI_kdtree_3d_new(bm->totedge);
+  tree = kdtree_3d_new(bm->totedge);
 
-  etable = MEM_malloc_arrayN<BMEdge *>(bm->totedge, __func__);
-  edge_symmetry_map = MEM_malloc_arrayN<int>(bm->totedge, __func__);
+  etable = MEM_new_array_uninitialized<BMEdge *>(bm->totedge, __func__);
+  edge_symmetry_map = MEM_new_array_uninitialized<int>(bm->totedge, __func__);
 
   BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
     float co[3];
     mid_v3_v3v3(co, e->v1->co, e->v2->co);
-    BLI_kdtree_3d_insert(tree, i, co);
+    kdtree_3d_insert(tree, i, co);
     etable[i] = e;
     edge_symmetry_map[i] = -1;
   }
 
-  BLI_kdtree_3d_balance(tree);
+  kdtree_3d_balance(tree);
 
   sym_data.etable = etable;
   sym_data.limit_sq = limit_sq;
@@ -438,7 +441,7 @@ static int *bm_edge_symmetry_map(BMesh *bm, uint symmetry_axis, float limit)
       sub_v3_v3v3(sym_data.e_dir, sym_data.e_v2_co, sym_data.e_v1_co);
       sym_data.e_found_index = -1;
 
-      BLI_kdtree_3d_range_search_cb(tree, co, limit, bm_edge_symmetry_check_cb, &sym_data);
+      kdtree_3d_range_search_cb(tree, co, limit, bm_edge_symmetry_check_cb, &sym_data);
 
       if (sym_data.e_found_index != -1) {
         const int i_other = sym_data.e_found_index;
@@ -448,8 +451,8 @@ static int *bm_edge_symmetry_map(BMesh *bm, uint symmetry_axis, float limit)
     }
   }
 
-  MEM_freeN(etable);
-  BLI_kdtree_3d_free(tree);
+  MEM_delete(etable);
+  kdtree_3d_free(tree);
 
   return edge_symmetry_map;
 }
@@ -483,8 +486,8 @@ static bool bm_face_triangulate(BMesh *bm,
   const int f_base_len = f_base->len;
   int faces_array_tot = f_base_len - 3;
   int edges_array_tot = f_base_len - 3;
-  BMFace **faces_array = BLI_array_alloca(faces_array, faces_array_tot);
-  BMEdge **edges_array = BLI_array_alloca(edges_array, edges_array_tot);
+  Array<BMFace *, BM_DEFAULT_NGON_STACK_SIZE> faces_array(faces_array_tot);
+  Array<BMEdge *, BM_DEFAULT_NGON_STACK_SIZE> edges_array(edges_array_tot);
   const int quad_method = 0, ngon_method = 0; /* beauty */
 
   bool has_cut = false;
@@ -493,9 +496,9 @@ static bool bm_face_triangulate(BMesh *bm,
 
   BM_face_triangulate(bm,
                       f_base,
-                      faces_array,
+                      faces_array.data(),
                       &faces_array_tot,
-                      edges_array,
+                      edges_array.data(),
                       &edges_array_tot,
                       r_faces_double,
                       quad_method,
@@ -579,7 +582,7 @@ static bool bm_decim_triangulate_begin(BMesh *bm, int *r_edges_tri_tot)
     while (faces_double) {
       LinkNode *next = faces_double->next;
       BM_face_kill(bm, static_cast<BMFace *>(faces_double->link));
-      MEM_freeN(faces_double);
+      MEM_delete(faces_double);
       faces_double = next;
     }
 
@@ -606,8 +609,8 @@ static void bm_decim_triangulate_end(BMesh *bm, const int edges_tri_tot)
   BMEdge *e;
 
   /* we need to collect before merging for ngons since the loops indices will be lost */
-  BMEdge **edges_tri = static_cast<BMEdge **>(
-      MEM_mallocN(std::min(edges_tri_tot, bm->totedge) * sizeof(*edges_tri), __func__));
+  BMEdge **edges_tri = MEM_new_array_uninitialized<BMEdge *>(std::min(edges_tri_tot, bm->totedge),
+                                                             __func__);
   STACK_DECLARE(edges_tri);
 
   STACK_INIT(edges_tri, std::min(edges_tri_tot, bm->totedge));
@@ -674,7 +677,7 @@ static void bm_decim_triangulate_end(BMesh *bm, const int edges_tri_tot)
       }
     }
   }
-  MEM_freeN(edges_tri);
+  MEM_delete(edges_tri);
 }
 
 #endif /* USE_TRIANGULATE */
@@ -1053,7 +1056,7 @@ static bool bm_edge_collapse(BMesh *bm,
     }
 #endif
 
-    // BM_mesh_validate(bm);
+    // BM_mesh_is_valid(bm);
 
     return true;
   }
@@ -1109,7 +1112,7 @@ static bool bm_edge_collapse(BMesh *bm,
     }
 #endif
 
-    // BM_mesh_validate(bm);
+    // BM_mesh_is_valid(bm);
 
     return true;
   }
@@ -1311,10 +1314,10 @@ void BM_mesh_decimate_collapse(BMesh *bm,
 #endif
 
   /* Allocate variables. */
-  vquadrics = MEM_calloc_arrayN<Quadric>(bm->totvert, __func__);
+  vquadrics = MEM_new_array_zeroed<Quadric>(bm->totvert, __func__);
   /* Since some edges may be degenerate, we might be over allocating a little here. */
   eheap = BLI_heap_new_ex(bm->totedge);
-  eheap_table = MEM_malloc_arrayN<HeapNode *>(bm->totedge, __func__);
+  eheap_table = MEM_new_array_uninitialized<HeapNode *>(bm->totedge, __func__);
   tot_edge_orig = bm->totedge;
 
   /* build initial edge collapse cost data */
@@ -1503,7 +1506,7 @@ void BM_mesh_decimate_collapse(BMesh *bm,
       }
     }
 
-    MEM_freeN(edge_symmetry_map);
+    MEM_delete(edge_symmetry_map);
   }
 #endif /* USE_SYMMETRY */
 
@@ -1518,13 +1521,15 @@ void BM_mesh_decimate_collapse(BMesh *bm,
 #endif
 
   /* free vars */
-  MEM_freeN(vquadrics);
-  MEM_freeN(eheap_table);
+  MEM_delete(vquadrics);
+  MEM_delete(eheap_table);
   BLI_heap_free(eheap, nullptr);
 
   /* testing only */
-  // BM_mesh_validate(bm);
+  // BM_mesh_is_valid(bm);
 
   /* quiet release build warning */
   (void)tot_edge_orig;
 }
+
+}  // namespace blender

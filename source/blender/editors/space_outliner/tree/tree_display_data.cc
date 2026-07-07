@@ -22,13 +22,14 @@ TreeDisplayDataAPI::TreeDisplayDataAPI(SpaceOutliner &space_outliner)
 {
 }
 
-ListBase TreeDisplayDataAPI::build_tree(const TreeSourceData &source_data)
+ListBaseT<TreeElement> TreeDisplayDataAPI::build_tree(const TreeSourceData &source_data)
 {
-  ListBase tree = {nullptr};
+  ListBaseT<TreeElement> tree = {nullptr};
 
   PointerRNA mainptr = RNA_main_pointer_create(source_data.bmain);
 
-  TreeElement *te = add_element(&tree, nullptr, (void *)&mainptr, nullptr, TSE_RNA_STRUCT, -1);
+  TreeElement *te = add_element(
+      &tree, nullptr, static_cast<void *>(&mainptr), nullptr, TSE_RNA_STRUCT, -1);
 
   /* On first view open parent data elements */
   const int show_opened = !space_outliner_.treestore ||

@@ -8,13 +8,13 @@ if(MSVC)
     set(ZSTANDARD_ARCHIVE_POSTFIX d)
     set(ZSTANDARD_BUILD_OPTION --debug)
   else()
-    set(ZSTANDARD_DIR_POSTFIX)
-    set(ZSTANDARD_ARCHIVE_POSTFIX)
-    set(ZSTANDARD_BUILD_OPTION)
+    set(ZSTANDARD_DIR_POSTFIX "")
+    set(ZSTANDARD_ARCHIVE_POSTFIX "")
+    set(ZSTANDARD_BUILD_OPTION "")
   endif()
 endif()
 
-set(ZSTANDARD_POSTFIX)
+set(ZSTANDARD_POSTFIX "")
 
 ExternalProject_Add(external_zstandard
   URL file://${PACKAGE_DIR}/${ZSTANDARD_FILE}

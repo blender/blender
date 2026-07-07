@@ -27,10 +27,11 @@
 /* Keep last */
 #include "BKE_undo_system.hh"
 
+namespace blender {
+
 void ED_undosys_type_init()
 {
   /* Edit Modes */
-  using namespace blender;
   using namespace blender::ed;
   BKE_undosys_type_append(ED_armature_undosys_type);
   BKE_undosys_type_append(ED_curve_undosys_type);
@@ -62,3 +63,5 @@ void ED_undosys_type_free()
 {
   BKE_undosys_type_free_all();
 }
+
+}  // namespace blender

@@ -4,7 +4,7 @@
 
 #include "BLI_math_vector.hh"
 
-#include "BLI_kdtree.h"
+#include "BLI_kdtree.hh"
 #include "BLI_length_parameterize.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
@@ -66,7 +66,7 @@ static Array<NeighborCurves> find_curve_neighbors(const Span<float3> root_positi
     for (const int i : range) {
       const float3 root = root_positions[i];
       std::array<KDTreeNearest_3d, max_neighbors> nearest_n;
-      const int found_neighbors = BLI_kdtree_3d_find_nearest_n(
+      const int found_neighbors = kdtree_3d_find_nearest_n(
           &old_roots_kdtree, root, nearest_n.data(), max_neighbors);
       float tot_weight = 0.0f;
       for (const int neighbor_i : IndexRange(found_neighbors)) {

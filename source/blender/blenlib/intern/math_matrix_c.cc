@@ -20,6 +20,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /********************************* Init **************************************/
 
 void zero_m3(float m[3][3])
@@ -1672,6 +1674,19 @@ bool is_orthonormal_m4(const float m[4][4])
   return false;
 }
 
+bool is_identity_m4(const float m[4][4])
+{
+  for (int row = 0; row < 4; row++) {
+    for (int col = 0; col < 4; col++) {
+      if (m[row][col] != (row == col ? 1.0f : 0.0f)) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 bool is_uniform_scaled_m3(const float m[3][3])
 {
   const float eps = 1e-7f;
@@ -1774,18 +1789,21 @@ void adjoint_m2_m2(float R[2][2], const float M[2][2])
 
 void adjoint_m3_m3(float R[3][3], const float M[3][3])
 {
-  BLI_assert(R != M);
-  R[0][0] = M[1][1] * M[2][2] - M[1][2] * M[2][1];
-  R[0][1] = -M[0][1] * M[2][2] + M[0][2] * M[2][1];
-  R[0][2] = M[0][1] * M[1][2] - M[0][2] * M[1][1];
+  const float m00 = M[0][0], m01 = M[0][1], m02 = M[0][2];
+  const float m10 = M[1][0], m11 = M[1][1], m12 = M[1][2];
+  const float m20 = M[2][0], m21 = M[2][1], m22 = M[2][2];
 
-  R[1][0] = -M[1][0] * M[2][2] + M[1][2] * M[2][0];
-  R[1][1] = M[0][0] * M[2][2] - M[0][2] * M[2][0];
-  R[1][2] = -M[0][0] * M[1][2] + M[0][2] * M[1][0];
+  R[0][0] = m11 * m22 - m12 * m21;
+  R[0][1] = -m01 * m22 + m02 * m21;
+  R[0][2] = m01 * m12 - m02 * m11;
 
-  R[2][0] = M[1][0] * M[2][1] - M[1][1] * M[2][0];
-  R[2][1] = -M[0][0] * M[2][1] + M[0][1] * M[2][0];
-  R[2][2] = M[0][0] * M[1][1] - M[0][1] * M[1][0];
+  R[1][0] = -m10 * m22 + m12 * m20;
+  R[1][1] = m00 * m22 - m02 * m20;
+  R[1][2] = -m00 * m12 + m02 * m10;
+
+  R[2][0] = m10 * m21 - m11 * m20;
+  R[2][1] = -m00 * m21 + m01 * m20;
+  R[2][2] = m00 * m11 - m01 * m10;
 }
 
 void adjoint_m4_m4(float R[4][4], const float M[4][4]) /* out = ADJ(in) */
@@ -2931,22 +2949,24 @@ void BLI_space_transform_global_from_matrices(SpaceTransform *data,
 
 void BLI_space_transform_apply(const SpaceTransform *data, float co[3])
 {
-  mul_v3_m4v3(co, ((SpaceTransform *)data)->local2target, co);
+  mul_v3_m4v3(co, (const_cast<SpaceTransform *>(data))->local2target, co);
 }
 
 void BLI_space_transform_invert(const SpaceTransform *data, float co[3])
 {
-  mul_v3_m4v3(co, ((SpaceTransform *)data)->target2local, co);
+  mul_v3_m4v3(co, (const_cast<SpaceTransform *>(data))->target2local, co);
 }
 
 void BLI_space_transform_apply_normal(const SpaceTransform *data, float no[3])
 {
-  mul_mat3_m4_v3(((SpaceTransform *)data)->local2target, no);
+  mul_mat3_m4_v3((const_cast<SpaceTransform *>(data))->local2target, no);
   normalize_v3(no);
 }
 
 void BLI_space_transform_invert_normal(const SpaceTransform *data, float no[3])
 {
-  mul_mat3_m4_v3(((SpaceTransform *)data)->target2local, no);
+  mul_mat3_m4_v3((const_cast<SpaceTransform *>(data))->target2local, no);
   normalize_v3(no);
 }
+
+}  // namespace blender

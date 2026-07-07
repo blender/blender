@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'29d18c45e4ed')\n"
+"Project-Id-Version: Blender 5.1.0 Beta (b'5a04f1d246f1')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 07:24+0000\n"
-"PO-Revision-Date: 2025-07-23 15:03+0000\n"
-"Last-Translator: Nooby Noober <iamanoobynoober@gmail.com>\n"
+"POT-Creation-Date: 2026-03-11 11:01+0000\n"
+"PO-Revision-Date: 2025-11-19 06:24+0000\n"
+"Last-Translator: \"M. Amin Taheri\" <amintaheri2001@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
 "Language: fa\n"
 "MIME-Version: 1.0\n"
@@ -62,12 +62,24 @@ msgid "Collection of AOVs"
 msgstr "ﺎﻫAOV ﻪﻋﻮﻤﺠﻣ"
 
 
+msgid "Animation Channel Bag"
+msgstr "ﻦﺸﯿﻤﯿﻧﺍ ﯼﺎﻫ‌ﻝﺎﻧﺎﮐ ﯼ‌ﻪﺴﯿﮐ"
+
+
+msgid "Collection of animation channels, typically associated with an action slot"
+msgstr ".ﺖﺳﺍ ﻂﺒﺗﺮﻣ ﻡﺍﺪﻗﺍ ﯼﺎﻫ‌ﻩﻭﺮﮔ ﺎﺑ ﻻ﻿ﻮﻤﻌﻣ ،ﻦﺸﯿﻤﯿﻧﺍ ﯼﺎﻫ‌ﻝﺎﻧﺎﮐ ﺯﺍ ﯼﺍ‌ﻪﻋﻮﻤﺠﻣ"
+
+
 msgid "F-Curves"
-msgstr "ﻑﺍ ﯽﻨﺤﻨﻣ"
+msgstr "ﻊﺑﺎﺗ ﯼﺎﻫ‌ﯽﻨﺤﻨﻣ"
 
 
-msgid "Action F-Curves"
-msgstr "ﻞﻤﻋ ﻊﺑﺎﺗ ﯽﻨﺤﻨﻣ"
+msgid "The individual F-Curves that animate the slot"
+msgstr "ﺪﻨﻨﮐ ﯽﻣ ﯽﯾﺎﻤﻧﺎﯾﻮﭘ ﺍﺭ ﻦﺸﯿﻤﯿﻧﺍ ﺖﻤﺴﻗ ﻪﮐ ﯽﻌﺑﺎﺗ ﯼﺎﻫ‎‌ﯽﻨﺤﻨﻣ"
+
+
+msgid "F-Curve Groups"
+msgstr "ﻊﺑﺍﻮﺗ ﯼﺎﻫ‌ﯽﻨﺤﻨﻣ ﯼﺎﻫ‌ﻩ‌ﻭﺮﮔ"
 
 
 msgid "Action Group"
@@ -238,12 +250,24 @@ msgid "Pin in Graph Editor"
 msgstr "ﻑﺍﺮﮔ ﺮﮕﺸﯾﺍﺮﯾﻭ ﺭﺩ ﻥﺩﺮﮐ ﻕﺎﺠﻨﺳ"
 
 
-msgid "Action Groups"
-msgstr "ﻡﺍﺪﻗﺍ ﯼﺎﻫ‌ﻩﻭﺮﮔ"
+msgid "Action Layer"
+msgstr "ﻡﺍﺪﻗﺍ ﯼ‌ﻪﯾﻻ﻿"
 
 
-msgid "Collection of action groups"
-msgstr "ﻡﺍﺪﻗﺍ ﯼﺎﻫ‌ﻩﻭﺮﮔ ﻪﻋﻮﻤﺠﻣ"
+msgid "Strips"
+msgstr "ﭗﯾﺮﺘﺳﺍ"
+
+
+msgid "The list of strips that are on this animation layer"
+msgstr "ﺪﻨﺘﺴﻫ ﯽﯾﺎﻤﻧﺎﯾﻮﭘ ﯼ ﻪﯾﻻ﻿ ﻦﯾﺍ ﺭﺩ ﻪﮐ ﯽﯾﺎﻫ‌ﭗﯾﺮﺘﺳﺍ ﺖﺳﺮﻬﻓ"
+
+
+msgid "Action Layers"
+msgstr "ﻡﺍﺪﻗﺍ ﯼﺎﻫ ﻪﯾﻻ﻿"
+
+
+msgid "Collection of animation layers"
+msgstr "ﯽﯾﺎﻤﻧﺎﯾﻮﭘ ﯼﺎﻫ ﻪﯾﻻ﻿ ﻪﻋﻮﻤﺠﻣ"
 
 
 msgid "Action Pose Markers"
@@ -279,8 +303,93 @@ msgstr "ﻩﺩﺮﺘﺴﮔ ﺶﯾﺎﻤﻧ"
 
 
 msgctxt "ID"
+msgid "Brush"
+msgstr "ﻮﻣ‌ﻢﻠﻗ"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "ﻦﯿﺑﺭﻭﺩ"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "ﻪﻋﻮﻤﺠﻣ"
+
+
+msgctxt "ID"
+msgid "Curves"
+msgstr "ﺎﻫ‌ﯽﻨﺨﻨﻣ"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "ﻂﺧ"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "ﯽﻨﻏﻭﺭ ﺩﺍﺪﻣ"
+
+
+msgctxt "ID"
 msgid "Grease Pencil v3"
-msgstr "v3 ﯽﻨﻏﻭﺭ ﺩﺍﺪﻣ"
+msgstr "3 ﻥﮊﺭﻭ ﯽﻨﻏﻭﺭ ﺩﺍﺪﻣ"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "ﺲﮑﻋ"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "ﺪﯿﻠﮐ"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "ﻪﮑﺒﺷ"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "ﻪﻧﺎﺧ ﺏﺎﺘﮐ"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "ﻍﺍﺮﭼ"
+
+
+msgctxt "ID"
+msgid "Light Probe"
+msgstr "ﻍﺍﺮﭼ ﺭﺍﺩﺮﺑ ﻪﻧﻮﻤﻧ"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "ﻂﺧ ﮏﺒﺳ"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "ﮏﺳﺎﻣ"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "ﺲﻨﺟ"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "ﺶﻣ"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "ﻪﻨﺤﺻ"
 
 
 msgid "Add-on"
@@ -395,8 +504,20 @@ msgid "Displays glTF UI to manage material variants"
 msgstr "ﺪﻫﺩ ﯽﻣ ﺶﯾﺎﻤﻧ ﺎﻫ‌ﺲﻨﺟ ﻉﺍﻮﻧﺍ ﺖﯾﺮﯾﺪﻣ ﯼﺍﺮﺑ ﺍﺭ GlTF ﯼﺮﺑﺭﺎﮐ ﻂﺑﺍﺭ"
 
 
+msgid "Allow glTF Embedded format"
+msgstr "ﺖﺳﺍ ﺯﺎﺠﻣ glTF Embedded ﺖﻣﺮﻓ"
+
+
 msgid "Display glTF UI to manage animations"
 msgstr "ﺎﻫ‌ﻦﺸﯿﻤﯿﻧﺍ ﺖﯾﺮﯾﺪﻣ ﯼﺍﺮﺑ glTF ﯼﺮﺑﺭﺎﮐ ﻂﺑﺍﺭ ﺶﯾﺎﻤﻧ"
+
+
+msgid "glTFpack file path"
+msgstr "(glTFpack) ﻑﺍ ﯽﺗ ﻝﺍ ﯽﺟ ﯼ ﻪﺘﺴﺑ ﻞﯾﺎﻓ ﺮﯿﺴﻣ"
+
+
+msgid "Path to gltfpack binary"
+msgstr "ﯼﺮﻨﯾﺎﺑ gltf ﻪﺘﺴﺑ ﻪﺑ ﯼﺮﯿﺴﻣ"
 
 
 msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
@@ -911,10 +1032,6 @@ msgid "Video Sequencer"
 msgstr "ﻮﺋﺪﯾﻭ ﺞﻨﺳ ﺐﯿﺗﺮﺗ"
 
 
-msgid "Video editing tools"
-msgstr "ﻮﺋﺪﯾﻭ ﺶﯾﺍﺮﯾﻭ ﯼﺎﻫﺭﺍﺰﺑﺍ"
-
-
 msgid "Movie Clip Editor"
 msgstr "ﻢﻠﯿﻓ ﭗﯿﻠﮐ ﺮﮕﺸﯾﺍﺮﯾﻭ"
 
@@ -1007,6 +1124,14 @@ msgid "Browse for files and assets"
 msgstr "ﻦﺘﺸﮔ ﺎﻫ asset  ﻭ ﺎﻫ ﻞﯾﺎﻓ ﻝﺎﺒﻧﺩ"
 
 
+msgid "Spreadsheet"
+msgstr "ﻩﺩﺮﺘﺴﮔ ﯼ‌ﻪﮔﺮﺑ"
+
+
+msgid "Preferences"
+msgstr "ﯽﺤﯿﺟﺮﺗ ﺕﺎﻤﯿﻈﻨﺗ"
+
+
 msgid "Width"
 msgstr "ﺎﻨﻬﭘ"
 
@@ -1015,12 +1140,20 @@ msgid "Area width"
 msgstr "ﻪﻘﻄﻨﻣ ﯼﺎﻨﻬﭘ"
 
 
-msgid "Catalog Path"
-msgstr "ﮒﻮﻟﺎﺗﺎﮐ ﺮﯿﺴﻣ"
-
-
 msgid "Full Path"
 msgstr "ﻞﻣﺎﮐ ﺮﯿﺴﻣ"
+
+
+msgid "Cache Files"
+msgstr "ﺶﮐ ﯼﺎﻫ ﻞﯾﺎﻓ"
+
+
+msgid "Grease Pencil"
+msgstr "ﯽﻨﻏﻭﺭ ﺩﺍﺪﻣ"
+
+
+msgid "Textures"
+msgstr "ﺎﻫ‌ﺖﻓﺎﺑ"
 
 
 msgid "Show Names"
@@ -1037,10 +1170,6 @@ msgstr "ﺭﺍﺩﺮﺑ"
 
 msgid "Layer"
 msgstr "ﻪﯾﻻ﻿"
-
-
-msgid "Single"
-msgstr "ﯽﮑﺗ"
 
 
 msgid "Object"
@@ -1099,24 +1228,12 @@ msgid "Weight"
 msgstr "ﻥﺯﻭ"
 
 
-msgid "Cache Files"
-msgstr "ﺶﮐ ﯼﺎﻫ ﻞﯾﺎﻓ"
-
-
 msgid "Color Space"
 msgstr "ﮓﻧﺭ ﯼﺎﻀﻓ"
 
 
-msgid "Grease Pencil"
-msgstr "ﯽﻨﻏﻭﺭ ﺩﺍﺪﻣ"
-
-
 msgid "Particles"
 msgstr "ﺕﺍﺭﺫ"
-
-
-msgid "Textures"
-msgstr "ﺎﻫ‌ﺖﻓﺎﺑ"
 
 
 msgid "Blender RNA"
@@ -1532,6 +1649,10 @@ msgid "Gamma"
 msgstr "ﺎﻣﺎﮔ"
 
 
+msgid "View"
+msgstr "ﺶﯾﺎﻤﻧ"
+
+
 msgid "Color mapping settings"
 msgstr "ﯽﮕﻧﺭ ﺖﺷﺎﮕﻧ ﺕﺎﻤﯿﻈﻨﺗ"
 
@@ -1542,46 +1663,6 @@ msgstr "ﺩﻮﺷ ﻁﻮﻠﺨﻣ ﯽﺟﻭﺮﺧ ﺖﻓﺎﺑ ﮓﻧﺭ ﺎﺑ 
 
 msgid "Blend Factor"
 msgstr "ﻁﻮﻠﺨﻣ ﺭﻮﺘﮐﺎﻓ"
-
-
-msgid "Blend Type"
-msgstr "ﻁﻮﻠﺨﻣ ﻉﻮﻧ"
-
-
-msgid "Mix"
-msgstr "ﻁﻮﻠﺨﻣ"
-
-
-msgid "Darken"
-msgstr "ﮏﯾﺭﺎﺗ"
-
-
-msgid "Lighten"
-msgstr "ﻦﺷﻭﺭ"
-
-
-msgid "Screen"
-msgstr "ﻩﺩﺮﭘ"
-
-
-msgid "Overlay"
-msgstr "ﻢﻬﯾﻭﺭ"
-
-
-msgid "Soft Light"
-msgstr "ﻢﯾﻼ﻿ﻣ ﺭﻮﻧ"
-
-
-msgid "Linear Light"
-msgstr "ﯽﻄﺧ ﺭﻮﻧ"
-
-
-msgid "Difference"
-msgstr "ﺕﻭﺎﻔﺗ"
-
-
-msgid "Divide"
-msgstr "ﻢﯿﺴﻘﺗ"
 
 
 msgid "Brightness"
@@ -1940,10 +2021,6 @@ msgid "Plane"
 msgstr "ﻪﺤﻔﺻ"
 
 
-msgid "View"
-msgstr "ﺶﯾﺎﻤﻧ"
-
-
 msgid "Render"
 msgstr "ﺭﺪﻧﺭ"
 
@@ -2141,6 +2218,10 @@ msgid "The highest power of 'x' for this polynomial (number of coefficients - 1)
 msgstr "(ﮏﯾ ﯼﺎﻬﻨﻣ ﺎﻫ‌ﺐﯾﺮﺿ ﺩﺍﺪﻌﺗ) ﯼﺍ‌ﻪﻠﻤﺟﺪﻨﭼ ﺭﺩ x ﻥِﺍﻮﺗ ﻦﯾﺮﺗﻻ﻿ﺎﺑ"
 
 
+msgid "Blend Type"
+msgstr "ﻁﻮﻠﺨﻣ ﻉﻮﻧ"
+
+
 msgid "Frame"
 msgstr "ﻢﯾﺮﻓ"
 
@@ -2228,6 +2309,10 @@ msgid "Append"
 msgstr "ﻥﺩﻭﺰﻓﺍ"
 
 
+msgid "Pack"
+msgstr "ﻪﺘﺴﺑ"
+
+
 msgid "Matrix"
 msgstr "ﺲﯾﺮﺗﺎﻣ"
 
@@ -2260,6 +2345,18 @@ msgid "Top"
 msgstr "ﻻ﻿ﺎﺑ"
 
 
+msgid "Font"
+msgstr "ﺖﻧﻮﻓ"
+
+
+msgid "Text"
+msgstr "ﻦﺘﻣ"
+
+
+msgid "Sound"
+msgstr "ﺍﺪﺻ"
+
+
 msgid "Visibility"
 msgstr "ﺪﯾﺩ"
 
@@ -2282,6 +2379,10 @@ msgstr "ﺭﺍﺰﺑﺍ"
 
 msgid "Ping Pong"
 msgstr "ﮓﻨﭘ ﮓﻨﯿﭘ"
+
+
+msgid "Divide"
+msgstr "ﻢﯿﺴﻘﺗ"
 
 
 msgid "Local Matrix"
@@ -2382,10 +2483,6 @@ msgstr "ﻑﺎﺻ"
 msgctxt "Curves"
 msgid "Slide"
 msgstr "ﺪﯾﻼ﻿ﺳﺍ"
-
-
-msgid "Direction"
-msgstr "ﺎﺘﺳﺍﺭ"
 
 
 msgctxt "Brush"
@@ -2535,10 +2632,6 @@ msgstr "ﺮﯿﺴﻣ"
 
 msgid "Text on Curve"
 msgstr "ﯽﻨﺤﻨﻣ ﯼﻭﺭ ﺮﺑ ﻦﺘﻣ"
-
-
-msgid "Font"
-msgstr "ﺖﻧﻮﻓ"
 
 
 msgid "X Offset"
@@ -2804,10 +2897,6 @@ msgid "Mute"
 msgstr "ﺵﻮﻣ‌ﺎﺧ"
 
 
-msgid "Sound"
-msgstr "ﺍﺪﺻ"
-
-
 msgid "Memory"
 msgstr "ﻪﻈﻓﺎﺣ"
 
@@ -2870,6 +2959,10 @@ msgid "Ctrl"
 msgstr "Ctrl"
 
 
+msgid "Direction"
+msgstr "ﺎﺘﺳﺍﺭ"
+
+
 msgid "Cmd"
 msgstr "Cmd"
 
@@ -2901,12 +2994,44 @@ msgid "Keying Sets"
 msgstr "ﺪﯿﻠﮐ ﯼﺎﻫ‌ﻪﻋﻮﻤﺠﻣ"
 
 
+msgid "Mix"
+msgstr "ﻁﻮﻠﺨﻣ"
+
+
+msgid "Difference"
+msgstr "ﺕﻭﺎﻔﺗ"
+
+
 msgid "Max Angle"
 msgstr "ﻪﯾﻭﺍﺯ ﻪﻨﯿﺸﯿﺑ"
 
 
 msgid "Min Angle"
 msgstr "ﻪﯾﻭﺍﺯ ﻞﻗﺍﺪﺣ"
+
+
+msgid "Darken"
+msgstr "ﮏﯾﺭﺎﺗ"
+
+
+msgid "Lighten"
+msgstr "ﻦﺷﻭﺭ"
+
+
+msgid "Screen"
+msgstr "ﻩﺩﺮﭘ"
+
+
+msgid "Overlay"
+msgstr "ﻢﻬﯾﻭﺭ"
+
+
+msgid "Soft Light"
+msgstr "ﻢﯾﻼ﻿ﻣ ﺭﻮﻧ"
+
+
+msgid "Linear Light"
+msgstr "ﯽﻄﺧ ﺭﻮﻧ"
 
 
 msgctxt "FreestyleLineStyle"
@@ -2953,12 +3078,28 @@ msgid "Mix"
 msgstr "ﻁﻮﻠﺨﻣ"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Pivot Point"
 msgstr "ﺶﺧﺮﭼ ﻪﻄﻘﻧ"
 
 
 msgid "Mirror"
 msgstr "ﻪﻨﯾﺁ"
+
+
+msgid "Layout"
+msgstr "ﺡﺮﻃ"
+
+
+msgid "Tracking"
+msgstr "ﯽﺑﺎﯾﺩﺭ"
+
+
+msgid "Math"
+msgstr "ﯽﺿﺎﯾﺭ"
 
 
 msgid "Add Image"
@@ -2977,8 +3118,8 @@ msgid "Convert"
 msgstr "ﻞﯾﺪﺒﺗ"
 
 
-msgid "Text"
-msgstr "ﻦﺘﻣ"
+msgid "Import"
+msgstr "ﻥﺩﺮﮐ ﺩﺭﺍﻭ"
 
 
 msgid "Key"
@@ -2992,22 +3133,6 @@ msgstr "ﺮﮕﻧﺎﺸﻧ"
 msgctxt "Operator"
 msgid "Smooth"
 msgstr "ﻑﺎﺻ"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Math"
-msgstr "ﯽﺿﺎﯾﺭ"
-
-
-msgid "Import"
-msgstr "ﻥﺩﺮﮐ ﺩﺭﺍﻭ"
-
-
-msgid "Layout"
-msgstr "ﺡﺮﻃ"
 
 
 msgctxt "NodeTree"
@@ -3147,10 +3272,6 @@ msgstr "ﺭﻭﺩ"
 msgctxt "Mesh"
 msgid "Flat"
 msgstr "ﺖﺨﺗ"
-
-
-msgid "Use Channel"
-msgstr "ﻝﺎﻧﺎﮐ ﺯﺍ ﻩﺩﺎﻔﺘﺳﺍ"
 
 
 msgid "Default Weight A"
@@ -3360,6 +3481,10 @@ msgstr "ﯽﻠﺻﺍ"
 msgctxt "Image"
 msgid "Mirror"
 msgstr "ﺏﺎﺗﺯﺎﺑ"
+
+
+msgid "Single"
+msgstr "ﯽﮑﺗ"
 
 
 msgid "Fill Type"
@@ -3801,10 +3926,6 @@ msgstr "ﯽﯾﺎﻤﻨﮑﭼﻮﮐ"
 
 msgid "Feather"
 msgstr "ﺮﭘ"
-
-
-msgid "Select ring"
-msgstr "ﻪﻘﻠﺣ ﺏﺎﺨﺘﻧﺍ"
 
 
 msgid "Select Bigger"
@@ -4343,10 +4464,6 @@ msgid "GPU Compute"
 msgstr "GPU ﺎﺑ ﻪﺒﺳﺎﺤﻣ"
 
 
-msgid "Supported"
-msgstr "ﻩﺪﺷ ﯽﻧﺎﺒﯿﺘﺸﭘ"
-
-
 msgid "Box filter"
 msgstr "ﻪﺒﻌﺟ ﺮﺘﻠﯿﻓ"
 
@@ -4446,10 +4563,6 @@ msgstr "X ﯽﯾﺎﺠﺑﺎﺟ"
 
 msgid "Translate Y"
 msgstr "Y ﯽﯾﺎﺠﺑﺎﺟ"
-
-
-msgid "Translation Unit"
-msgstr "ﯽﯾﺎﺠﺑﺎﺟ ﺪﺣﺍﻭ"
 
 
 msgid "X Mapping"
@@ -4590,10 +4703,6 @@ msgid "File:"
 msgstr ":ﻩﺪﻧﻭﺮﭘ"
 
 
-msgid "Tracking"
-msgstr "ﯽﺑﺎﯾﺩﺭ"
-
-
 msgctxt "Operator"
 msgid "Import..."
 msgstr "...ﻥﺩﺮﮐ ﺩﺭﺍﻭ"
@@ -4681,25 +4790,35 @@ msgid "Build Original:"
 msgstr ":ﯽﻠﺻﺍ ﺖﺧﺎﺳ"
 
 
+msgid "Aspect Ratio"
+msgstr "ﺮﯾﻮﺼﺗ ﺖﺒﺴﻧ"
+
+
 msgid "3D Markers"
 msgstr "3D ﺮﮕﻧﺎﺸﻧ"
 
 
-msgid "Image*"
-msgstr "ﺮﯾﻮﺼﺗ*"
+msgctxt "Operator"
+msgid "Back"
+msgstr "ﺖﺸﮔﺯﺎﺑ"
 
 
-msgid "Aspect Ratio"
-msgstr "ﺮﯾﻮﺼﺗ ﺖﺒﺴﻧ"
+msgctxt "Operator"
+msgid "New Folder"
+msgstr "ﺪﯾﺪﺟ ﻪﺷﻮﭘ"
+
+
+msgid ".blend Files"
+msgstr "blend. ﻞﯾﺎﻓ"
+
+
+msgid "Drivers:"
+msgstr ":ﺎﻫﺭﻮﯾﺍﺭﺩ"
 
 
 msgctxt "Operator"
 msgid "Mute"
 msgstr "ﺵﻮﻣ‌ﺎﺧ"
-
-
-msgid "Pack"
-msgstr "ﻪﺘﺴﺑ"
 
 
 msgid "Text: External"
@@ -4846,6 +4965,10 @@ msgid "OK"
 msgstr "ﺪﯿﯾﺄﺗ"
 
 
+msgid "Value: {}"
+msgstr "{} :ﺭﺍﺪﻘﻣ"
+
+
 msgid "Delete the active position"
 msgstr "ﻝﺎﻌﻓ ﻩﺎﮕﯾﺎﺟ ﻑﺬﺣ"
 
@@ -4886,16 +5009,8 @@ msgid "Zoom out"
 msgstr "ﯽﯾﺎﻤﻨﮑﭼﻮﮐ"
 
 
-msgid "Clipping Options"
-msgstr "ﻥﺪﯿﭼ ﯼﺎﻫ ﻪﻨﯾﺰﮔ"
-
-
 msgid "Delete points"
 msgstr "ﻁﺎﻘﻧ ﻑﺬﺣ"
-
-
-msgid "Reset Black/White point and curves"
-msgstr "ﯽﻨﺤﻨﻣ ﻭ ﺪﯿﻔﺳ/ﻩﺎﯿﺳ ﻪﻄﻘﻧ ﺩﺪﺠﻣ ﻢﯿﻈﻨﺗ"
 
 
 msgid "Display number of users of this data (click to make a single-user copy)"
@@ -4998,6 +5113,137 @@ msgid "Seams"
 msgstr "ﺎﻫ ﺯﺭﺩ"
 
 
+msgid "Cannot remove polys in edit mode"
+msgstr "ﺩﺮﮐ ﻑﺬﺣ ﺶﯾﺍﺮﯾﻭ ﺖﻟﺎﺣ ﺭﺩ ﺍﺭ ﺎﻫ‌ﯽﻌﻠﺿﺪﻨﭼ ﻥﺍﻮﺗ ﯽﻤﻧ"
+
+
+msgid "Cannot remove more polys than the mesh contains"
+msgstr "ﺩﺮﮐ ﻑﺬﺣ ﺍﺭ ﺩﺭﺍﺩ ﻢﺴﺟ ﻪﭽﻧﺁ ﺯﺍ ﺮﺘﺸﯿﺑ ﯽﯾﺎﻫ‌ﯽﻌﻠﺿﺪﻨﭼ ﻥﺍﻮﺗ ﯽﻤﻧ"
+
+
+msgid "Cannot add more than %i UV maps"
+msgstr "ﺩﺮﮐ ﻪﻓﺎﺿﺍ UV ﻪﺸﻘﻧ i% ﺯﺍ ﺶﯿﺑ ﻥﺍﻮﺗ‌ﯽﻤﻧ"
+
+
+msgid "%d %s mirrored, %d failed"
+msgstr "‪%d‬ ‪%s‬ ﻩﺪﺷ ﺲﮑﻌﻨﻣ، ‪%d‬ ﻖﻓﻮﻣﺎﻧ"
+
+
+msgid "%d %s mirrored"
+msgstr "‪%d‬ ‪%s‬ ﻩﺪﺷ ﺲﮑﻌﻨﻣ"
+
+
+msgid "Cannot join while in edit mode"
+msgstr "ﺩﺮﮐ ﺖﺳﻮﯿﭘ ﻥﺍﻮﺗ‌ﯽﻤﻧ ﺶﯾﺍﺮﯾﻭ ﺖﻟﺎﺣ ﺭﺩ"
+
+
+msgid "Active object is not a selected mesh"
+msgstr "ﺖﺴﯿﻧ ﯽﺑﺎﺨﺘﻧﺍ ﺶﻣ ﮏﯾ ﻝﺎﻌﻓ ءﯽﺷ"
+
+
+msgid "No mesh data to join"
+msgstr "ﺩﺭﺍﺪﻧ ﺩﻮﺟﻭ ﻦﺘﺳﻮﯿﭘ ﯼﺍﺮﺑ ﺶﻣ ﻩﺩﺍﺩ"
+
+
+msgid "Delete selected metaball elements?"
+msgstr "؟ﺩﻮﺷ ﻑﺬﺣ ﯽﺑﺎﺨﺘﻧﺍ ﻝﺎﺑﺎﺘﻣ ﺮﺻﺎﻨﻋ"
+
+
+msgid "Loading Asset Libraries"
+msgstr "ﯽﯾﺍﺭﺍﺩ ﯼﺎﻫ‌ﻪﻧﺎﺨﺑﺎﺘﮐ ﯼﺮﯿﮔﺭﺎﺑ"
+
+
+msgid "Unassigned"
+msgstr "ﻩﺪﺸﻧ ﺭﺍﺬﮔﺍﻭ"
+
+
+msgid "Delete selected objects?"
+msgstr "؟ﺩﻮﺷ ﻑﺬﺣ ﻩﺪﺷ ﺏﺎﺨﺘﻧﺍ ءﺎﯿﺷﺍ"
+
+
+msgid "SoundTrack"
+msgstr "ﻦﺘﻣ ﯽﻘﯿﺳﻮﻣ"
+
+
+msgctxt "Light"
+msgid "Volume"
+msgstr "ﻢﺠﺣ"
+
+
+msgctxt "Light"
+msgid "Plane"
+msgstr "ﺢﻄﺳ"
+
+
+msgctxt "Object"
+msgid "Force"
+msgstr "ﻭﺮﯿﻧ"
+
+
+msgctxt "Object"
+msgid "Vortex"
+msgstr "ﺏﺍﺩﺮﮔ"
+
+
+msgctxt "Object"
+msgid "Magnet"
+msgstr "ﺎﺑﺭ ﻦﻫﺁ"
+
+
+msgctxt "Object"
+msgid "Wind"
+msgstr "ﺩﺎﺑ"
+
+
+msgctxt "Object"
+msgid "CurveGuide"
+msgstr "ﯽﻨﺤﻨﻣ ﯼﺎﻤﻨﻫﺍﺭ"
+
+
+msgctxt "Object"
+msgid "TextureField"
+msgstr "ﺖﻓﺎﺑ ﻪﻨﯿﻣﺯ"
+
+
+msgctxt "Object"
+msgid "Harmonic"
+msgstr "ﮏﯿﻧﻮﻣﺭﺎﻫ"
+
+
+msgctxt "Object"
+msgid "Charge"
+msgstr "ﮊﺭﺎﺷ"
+
+
+msgctxt "Object"
+msgid "Lennard-Jones"
+msgstr "ﺰﻧﻮﺟ ﺩﺭﺎﻨﻟ"
+
+
+msgctxt "Object"
+msgid "Turbulence"
+msgstr "ﯽﮕﺘﻔﺷﺁ"
+
+
+msgctxt "Object"
+msgid "Drag"
+msgstr "ﮒﺭﺩ"
+
+
+msgctxt "GPencil"
+msgid "Suzanne"
+msgstr "ﻥﺍﺯﻮﺳ"
+
+
+msgctxt "GPencil"
+msgid "LineArt"
+msgstr "ﺕﺭﺁ ﻦﯾﻻ﻿"
+
+
+msgid "Cannot create editmode armature"
+msgstr "ﺩﺮﮐ ﺩﺎﺠﯾﺍ ﺶﯾﺍﺮﯾﻭ ﺖﻟﺎﺣ ﺮﭼﺎﻣﺭﺁ ﯼﺍﺮﺑ ﻥﺍﻮﺗ ﯽﻤﻧ"
+
+
 msgid "3D View "
 msgstr " .ﯼﺪﻌﺑ ﻪﺳ ﺪﯾﺩ"
 
@@ -5024,6 +5270,10 @@ msgstr "ﻩﺩﺎﻣ "
 
 msgid "Compiled without sound support"
 msgstr "ﺍﺪﺻ ﺯﺍ ﯽﻧﺎﺒﯿﺘﺸﭘ ﻥﻭﺪﺑ ﻩﺪﺷ ﻞﯾﺎﭙﻣﺎﮐ"
+
+
+msgid "Not implemented"
+msgstr "ﻩﺪﺸﻧ ﺍﺮﺟﺍ"
 
 
 msgid "File path"
@@ -5120,4 +5370,16 @@ msgstr "ﺭﺪﻨﻠﺑ ﻞﯾﺎﻓ ﺶﯾﺎﻤﻧ"
 
 msgid "Smooth by Angle"
 msgstr "ﻪﯾﻭﺍﺯ ﺱﺎﺳﺍﺮﺑ ﻥﺩﺮﮐ ﻑﺎﺻ"
+
+
+msgid "Ignore Sharpness"
+msgstr "ﯼﺰﯿﺗ ﻦﺘﻓﺮﮕﻧ ﺮﻈﻧ ﺭﺩ"
+
+
+msgid "Straighten Hair Curves"
+msgstr "ﻮﻣ ﯽﻨﺤﻨﻣ ﻥﺩﺮﮐ ﻑﺎﺻ"
+
+
+msgid "Amount of straightening"
+msgstr "ﻥﺩﺮﮐ ﻑﺎﺻ ﺭﺍﺪﻘﻣ"
 

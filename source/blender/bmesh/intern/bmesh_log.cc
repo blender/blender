@@ -34,6 +34,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 struct BMLogFace;
 struct BMLogVert;
 
@@ -43,22 +45,22 @@ struct BMLogEntry {
   /* The following members map from an element ID to one of the log types above. */
 
   /** Elements that were in the previous entry, but have been deleted. */
-  blender::Map<uint, BMLogVert *, 0> deleted_verts;
-  blender::Map<uint, BMLogFace *, 0> deleted_faces;
+  Map<uint, BMLogVert *, 0> deleted_verts;
+  Map<uint, BMLogFace *, 0> deleted_faces;
 
   /** Elements that were not in the previous entry, but are in the result of this entry. */
-  blender::Map<uint, BMLogVert *, 0> added_verts;
-  blender::Map<uint, BMLogFace *, 0> added_faces;
+  Map<uint, BMLogVert *, 0> added_verts;
+  Map<uint, BMLogFace *, 0> added_faces;
 
   /** Vertices whose coordinates, mask value, or hflag have changed. */
-  blender::Map<uint, BMLogVert *, 0> modified_verts;
-  blender::Map<uint, BMLogFace *, 0> modified_faces;
+  Map<uint, BMLogVert *, 0> modified_verts;
+  Map<uint, BMLogFace *, 0> modified_faces;
 
-  blender::Pool<BMLogVert> vert_pool;
-  blender::Pool<BMLogFace> face_pool;
+  Pool<BMLogVert> vert_pool;
+  Pool<BMLogFace> face_pool;
 
-  blender::Vector<BMLogVert *, 0> allocated_verts;
-  blender::Vector<BMLogFace *, 0> allocated_faces;
+  Vector<BMLogVert *, 0> allocated_verts;
+  Vector<BMLogFace *, 0> allocated_faces;
 
   /**
    * This is only needed for dropping BMLogEntries while still in
@@ -85,11 +87,11 @@ struct BMLog {
    * The ID is needed because element pointers will change as they
    * are created and deleted.
    */
-  blender::Map<uint, BMElem *, 0> id_to_elem;
-  blender::Map<BMElem *, uint, 0> elem_to_id;
+  Map<uint, BMElem *, 0> id_to_elem;
+  Map<BMElem *, uint, 0> elem_to_id;
 
   /** All #BMLogEntrys, ordered from earliest to most recent. */
-  ListBase entries;
+  ListBaseT<BMLogEntry> entries;
 
   /**
    * The current log entry from entries list
@@ -104,8 +106,8 @@ struct BMLog {
 };
 
 struct BMLogVert {
-  blender::float3 position;
-  blender::float3 normal;
+  float3 position;
+  float3 normal;
   char hflag;
   float mask;
 };
@@ -222,9 +224,7 @@ static BMLogFace *bm_log_face_alloc(BMLog *log, BMFace *f)
 
 /************************ Helpers for undo/redo ***********************/
 
-static void bm_log_verts_unmake(BMesh *bm,
-                                BMLog *log,
-                                const blender::Map<uint, BMLogVert *, 0> &verts)
+static void bm_log_verts_unmake(BMesh *bm, BMLog *log, const Map<uint, BMLogVert *, 0> &verts)
 {
   const int cd_vert_mask_offset = CustomData_get_offset_named(
       &bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
@@ -240,9 +240,7 @@ static void bm_log_verts_unmake(BMesh *bm,
   }
 }
 
-static void bm_log_faces_unmake(BMesh *bm,
-                                BMLog *log,
-                                const blender::Map<uint, BMLogFace *, 0> &faces)
+static void bm_log_faces_unmake(BMesh *bm, BMLog *log, const Map<uint, BMLogFace *, 0> &faces)
 {
   for (const uint id : faces.keys()) {
     BMFace *f = bm_log_face_from_id(log, id);
@@ -263,9 +261,7 @@ static void bm_log_faces_unmake(BMesh *bm,
   }
 }
 
-static void bm_log_verts_restore(BMesh *bm,
-                                 BMLog *log,
-                                 const blender::Map<uint, BMLogVert *, 0> &verts)
+static void bm_log_verts_restore(BMesh *bm, BMLog *log, const Map<uint, BMLogVert *, 0> &verts)
 {
   const int cd_vert_mask_offset = CustomData_get_offset_named(
       &bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
@@ -280,9 +276,7 @@ static void bm_log_verts_restore(BMesh *bm,
   }
 }
 
-static void bm_log_faces_restore(BMesh *bm,
-                                 BMLog *log,
-                                 const blender::Map<uint, BMLogFace *, 0> &faces)
+static void bm_log_faces_restore(BMesh *bm, BMLog *log, const Map<uint, BMLogFace *, 0> &faces)
 {
   const int cd_face_sets = CustomData_get_offset_named(
       &bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
@@ -306,9 +300,7 @@ static void bm_log_faces_restore(BMesh *bm,
   }
 }
 
-static void bm_log_vert_values_swap(BMesh *bm,
-                                    BMLog *log,
-                                    const blender::Map<uint, BMLogVert *, 0> &verts)
+static void bm_log_vert_values_swap(BMesh *bm, BMLog *log, const Map<uint, BMLogVert *, 0> &verts)
 {
   const int cd_vert_mask_offset = CustomData_get_offset_named(
       &bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
@@ -326,7 +318,7 @@ static void bm_log_vert_values_swap(BMesh *bm,
   }
 }
 
-static void bm_log_face_values_swap(BMLog *log, const blender::Map<uint, BMLogFace *, 0> &faces)
+static void bm_log_face_values_swap(BMLog *log, const Map<uint, BMLogFace *, 0> &faces)
 {
 
   for (const auto item : faces.items()) {
@@ -502,8 +494,8 @@ void BM_log_free(BMLog *log)
 
   /* Clear the BMLog references within each entry, but do not free
    * the entries themselves */
-  LISTBASE_FOREACH (BMLogEntry *, entry, &log->entries) {
-    entry->log = nullptr;
+  for (BMLogEntry &entry : log->entries) {
+    entry.log = nullptr;
   }
 
   MEM_delete(log);
@@ -876,3 +868,5 @@ void BM_log_print_entry(BMesh *bm, BMLogEntry *entry)
   printf("}\n");
 }
 #endif
+
+}  // namespace blender

@@ -16,7 +16,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -43,21 +42,20 @@
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 
+namespace blender {
+
 static void init_data(ModifierData *md)
 {
-  WarpModifierData *wmd = (WarpModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(wmd, DNA_struct_default_get(WarpModifierData), modifier);
+  WarpModifierData *wmd = reinterpret_cast<WarpModifierData *>(md);
+  INIT_DEFAULT_STRUCT_AFTER(wmd, modifier);
 
   wmd->curfalloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
-  const WarpModifierData *wmd = (const WarpModifierData *)md;
-  WarpModifierData *twmd = (WarpModifierData *)target;
+  const WarpModifierData *wmd = reinterpret_cast<const WarpModifierData *>(md);
+  WarpModifierData *twmd = reinterpret_cast<WarpModifierData *>(target);
 
   BKE_modifier_copydata_generic(md, target, flag);
 
@@ -66,7 +64,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
-  WarpModifierData *wmd = (WarpModifierData *)md;
+  WarpModifierData *wmd = reinterpret_cast<WarpModifierData *>(md);
 
   /* Ask for vertex-groups if we need them. */
   if (wmd->defgrp_name[0] != '\0') {
@@ -97,7 +95,7 @@ static void matrix_from_obj_pchan(float mat[4][4],
 
 static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 {
-  WarpModifierData *wmd = (WarpModifierData *)md;
+  WarpModifierData *wmd = reinterpret_cast<WarpModifierData *>(md);
 
   if (wmd->texture) {
     return BKE_texture_dependsOnTime(wmd->texture);
@@ -108,37 +106,37 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 
 static void free_data(ModifierData *md)
 {
-  WarpModifierData *wmd = (WarpModifierData *)md;
+  WarpModifierData *wmd = reinterpret_cast<WarpModifierData *>(md);
   BKE_curvemapping_free(wmd->curfalloff);
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
-  WarpModifierData *wmd = (WarpModifierData *)md;
+  WarpModifierData *wmd = reinterpret_cast<WarpModifierData *>(md);
 
   return !(wmd->object_from && wmd->object_to);
 }
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
-  WarpModifierData *wmd = (WarpModifierData *)md;
+  WarpModifierData *wmd = reinterpret_cast<WarpModifierData *>(md);
 
-  walk(user_data, ob, (ID **)&wmd->texture, IDWALK_CB_USER);
-  walk(user_data, ob, (ID **)&wmd->object_from, IDWALK_CB_NOP);
-  walk(user_data, ob, (ID **)&wmd->object_to, IDWALK_CB_NOP);
-  walk(user_data, ob, (ID **)&wmd->map_object, IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&wmd->texture), IDWALK_CB_USER);
+  walk(user_data, ob, reinterpret_cast<ID **>(&wmd->object_from), IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&wmd->object_to), IDWALK_CB_NOP);
+  walk(user_data, ob, reinterpret_cast<ID **>(&wmd->map_object), IDWALK_CB_NOP);
 }
 
 static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, void *user_data)
 {
-  PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Modifier, md);
+  PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, RNA_Modifier, md);
   PropertyRNA *prop = RNA_struct_find_property(&ptr, "texture");
   walk(user_data, ob, md, &ptr, prop);
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  WarpModifierData *wmd = (WarpModifierData *)md;
+  WarpModifierData *wmd = reinterpret_cast<WarpModifierData *>(md);
   bool need_transform_relation = false;
 
   if (wmd->object_from != nullptr && wmd->object_to != nullptr) {
@@ -190,7 +188,7 @@ static void warpModifier_do(WarpModifierData *wmd,
   int defgrp_index;
   const MDeformVert *dvert, *dv = nullptr;
   const bool invert_vgroup = (wmd->flag & MOD_WARP_INVERT_VGROUP) != 0;
-  float(*tex_co)[3] = nullptr;
+  float (*tex_co)[3] = nullptr;
 
   if (!(wmd->object_from && wmd->object_to)) {
     return;
@@ -235,10 +233,11 @@ static void warpModifier_do(WarpModifierData *wmd,
 
   Tex *tex_target = wmd->texture;
   if (mesh != nullptr && tex_target != nullptr) {
-    tex_co = MEM_malloc_arrayN<float[3]>(size_t(verts_num), __func__);
-    MOD_get_texture_coords((MappingInfoModifierData *)wmd, ctx, ob, mesh, vertexCos, tex_co);
+    tex_co = MEM_new_array_zeroed<float[3]>(size_t(verts_num), __func__);
+    MOD_get_texture_coords(
+        reinterpret_cast<MappingInfoModifierData *>(wmd), ctx, ob, mesh, vertexCos, tex_co);
 
-    MOD_init_texture((MappingInfoModifierData *)wmd, ctx);
+    MOD_init_texture(reinterpret_cast<MappingInfoModifierData *>(wmd), ctx);
   }
 
   for (i = 0; i < verts_num; i++) {
@@ -325,31 +324,30 @@ static void warpModifier_do(WarpModifierData *wmd,
   }
 
   if (tex_co) {
-    MEM_freeN(tex_co);
+    MEM_delete(tex_co);
   }
 }
 
 static void deform_verts(ModifierData *md,
                          const ModifierEvalContext *ctx,
                          Mesh *mesh,
-                         blender::MutableSpan<blender::float3> positions)
+                         MutableSpan<float3> positions)
 {
-  WarpModifierData *wmd = (WarpModifierData *)md;
+  WarpModifierData *wmd = reinterpret_cast<WarpModifierData *>(md);
   warpModifier_do(
-      wmd, ctx, mesh, reinterpret_cast<float(*)[3]>(positions.data()), positions.size());
+      wmd, ctx, mesh, reinterpret_cast<float (*)[3]>(positions.data()), positions.size());
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *col;
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  col = &layout->column(true);
+  ui::Layout *col = &layout.column(true);
   col->prop(ptr, "object_from", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   PointerRNA from_obj_ptr = RNA_pointer_get(ptr, "object_from");
   if (!RNA_pointer_is_null(&from_obj_ptr) && RNA_enum_get(&from_obj_ptr, "type") == OB_ARMATURE) {
@@ -359,7 +357,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
         ptr, "bone_from", &from_obj_data_ptr, "bones", IFACE_("Bone"), ICON_BONE_DATA);
   }
 
-  col = &layout->column(true);
+  col = &layout.column(true);
   col->prop(ptr, "object_to", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   PointerRNA to_obj_ptr = RNA_pointer_get(ptr, "object_to");
   if (!RNA_pointer_is_null(&to_obj_ptr) && RNA_enum_get(&to_obj_ptr, "type") == OB_ARMATURE) {
@@ -367,9 +365,9 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
     col->prop_search(ptr, "bone_to", &to_obj_data_ptr, "bones", IFACE_("Bone"), ICON_BONE_DATA);
   }
 
-  layout->prop(ptr, "use_volume_preserve", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "use_volume_preserve", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  layout->prop(ptr, "strength", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "strength", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
@@ -378,59 +376,58 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void falloff_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   bool use_falloff = (RNA_enum_get(ptr, "falloff_type") != eWarp_Falloff_None);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "falloff_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "falloff_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (use_falloff) {
-    layout->prop(ptr, "falloff_radius", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "falloff_radius", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   if (use_falloff && RNA_enum_get(ptr, "falloff_type") == eWarp_Falloff_Curve) {
-    uiTemplateCurveMapping(layout, ptr, "falloff_curve", 0, false, false, false, false);
+    template_curve_mapping(&layout, ptr, "falloff_curve", 0, false, false, false, false, false);
   }
 }
 
 static void texture_panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *col;
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   int texture_coords = RNA_enum_get(ptr, "texture_coords");
 
-  uiTemplateID(layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
+  template_id(&layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  col = &layout->column(false);
-  col->prop(ptr, "texture_coords", UI_ITEM_NONE, IFACE_("Coordinates"), ICON_NONE);
+  ui::Layout &col = layout.column(false);
+  col.prop(ptr, "texture_coords", UI_ITEM_NONE, IFACE_("Coordinates"), ICON_NONE);
   if (texture_coords == MOD_DISP_MAP_OBJECT) {
-    col->prop(ptr, "texture_coords_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
+    col.prop(ptr, "texture_coords_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
     PointerRNA texture_coords_obj_ptr = RNA_pointer_get(ptr, "texture_coords_object");
     if (!RNA_pointer_is_null(&texture_coords_obj_ptr) &&
         (RNA_enum_get(&texture_coords_obj_ptr, "type") == OB_ARMATURE))
     {
       PointerRNA texture_coords_obj_data_ptr = RNA_pointer_get(&texture_coords_obj_ptr, "data");
-      col->prop_search(ptr,
-                       "texture_coords_bone",
-                       &texture_coords_obj_data_ptr,
-                       "bones",
-                       IFACE_("Bone"),
-                       ICON_NONE);
+      col.prop_search(ptr,
+                      "texture_coords_bone",
+                      &texture_coords_obj_data_ptr,
+                      "bones",
+                      IFACE_("Bone"),
+                      ICON_NONE);
     }
   }
   else if (texture_coords == MOD_DISP_MAP_UV && RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
     PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
-    col->prop_search(ptr, "uv_layer", &obj_data_ptr, "uv_layers", std::nullopt, ICON_GROUP_UVS);
+    col.prop_search(ptr, "uv_layer", &obj_data_ptr, "uv_layers", std::nullopt, ICON_GROUP_UVS);
   }
 }
 
@@ -445,9 +442,9 @@ static void panel_register(ARegionType *region_type)
 
 static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const ModifierData *md)
 {
-  const WarpModifierData *wmd = (const WarpModifierData *)md;
+  const WarpModifierData *wmd = reinterpret_cast<const WarpModifierData *>(md);
 
-  BLO_write_struct(writer, WarpModifierData, wmd);
+  writer->write_struct(wmd);
 
   if (wmd->curfalloff) {
     BKE_curvemapping_blend_write(writer, wmd->curfalloff);
@@ -456,7 +453,7 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 
 static void blend_read(BlendDataReader *reader, ModifierData *md)
 {
-  WarpModifierData *wmd = (WarpModifierData *)md;
+  WarpModifierData *wmd = reinterpret_cast<WarpModifierData *>(md);
 
   BLO_read_struct(reader, CurveMapping, &wmd->curfalloff);
   if (wmd->curfalloff) {
@@ -499,3 +496,5 @@ ModifierTypeInfo modifierType_Warp = {
     /*foreach_cache*/ nullptr,
     /*foreach_working_space_color*/ nullptr,
 };
+
+}  // namespace blender

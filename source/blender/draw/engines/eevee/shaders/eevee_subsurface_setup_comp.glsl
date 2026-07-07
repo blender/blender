@@ -7,7 +7,7 @@
  * processing.
  */
 
-#include "infos/eevee_subsurface_info.hh"
+#include "infos/eevee_subsurface_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_subsurface_setup)
 

@@ -311,7 +311,7 @@ TEST(span, CastSameSize)
   EXPECT_EQ(new_a_span.size(), 4);
 
   EXPECT_EQ(a_span[0], &value);
-  EXPECT_EQ(new_a_span[0], (float *)&value);
+  EXPECT_EQ(new_a_span[0], reinterpret_cast<float *>(&value));
 }
 
 TEST(span, CastSmallerSize)

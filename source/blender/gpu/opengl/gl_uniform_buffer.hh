@@ -12,8 +12,7 @@
 
 #include "gpu_uniform_buffer_private.hh"
 
-namespace blender {
-namespace gpu {
+namespace blender::gpu {
 
 /**
  * Implementation of Uniform Buffers using OpenGL.
@@ -41,5 +40,4 @@ class GLUniformBuf : public UniformBuf {
   MEM_CXX_CLASS_ALLOC_FUNCS("GLUniformBuf");
 };
 
-}  // namespace gpu
-}  // namespace blender
+}  // namespace blender::gpu

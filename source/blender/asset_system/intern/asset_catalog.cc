@@ -27,15 +27,19 @@
 
 #include "CLG_log.h"
 
+namespace blender {
+
 static CLG_LogRef LOG = {"asset.catalog"};
 
-namespace blender::asset_system {
+namespace asset_system {
 
 const CatalogFilePath AssetCatalogService::DEFAULT_CATALOG_FILENAME = "blender_assets.cats.txt";
 
-AssetCatalogService::AssetCatalogService(const CatalogFilePath &asset_library_root)
+AssetCatalogService::AssetCatalogService(const CatalogFilePath &asset_library_root,
+                                         std::optional<read_only_tag> read_only_tag)
     : catalog_collection_(std::make_unique<AssetCatalogCollection>()),
-      asset_library_root_(asset_library_root)
+      asset_library_root_(asset_library_root),
+      is_read_only_(read_only_tag ? true : false)
 {
 }
 
@@ -467,7 +471,12 @@ bool AssetCatalogService::is_catalog_known_with_unsaved_changes(const CatalogID 
 
 bool AssetCatalogService::write_to_disk(const CatalogFilePath &blend_file_path)
 {
+  /* The caller should probably check this somewhat earlier and properly disable whatever operation
+   * triggers the writing. */
   BLI_assert(!is_read_only_);
+  if (is_read_only_) {
+    return false;
+  }
 
   if (!this->write_to_disk_ex(blend_file_path)) {
     return false;
@@ -482,9 +491,19 @@ bool AssetCatalogService::write_to_disk_ex(const CatalogFilePath &blend_file_pat
 {
   /* TODO(Sybren): expand to support multiple CDFs. */
 
-  /* - Already loaded a CDF from disk? -> Always write to that file. */
+  /* - Already loaded a CDF from disk? -> Only write to that file when there were actual changes.
+   * This prevents touching the file, which can cause issues when multiple Blender instances are
+   * accessing the same file (like on shared storage, Sync-thing, etc.). See #111576.
+   */
   if (catalog_collection_->catalog_definition_file_) {
+    /* Always sync with what's on disk. */
     this->reload_catalogs();
+
+    if (!this->has_unsaved_changes() &&
+        catalog_collection_->catalog_definition_file_->exists_on_disk())
+    {
+      return true;
+    }
     return catalog_collection_->catalog_definition_file_->write_to_disk();
   }
 
@@ -574,7 +593,7 @@ void AssetCatalogService::invalidate_catalog_tree()
   this->catalog_tree_ = nullptr;
 }
 
-const AssetCatalogTree &AssetCatalogService::catalog_tree()
+std::shared_ptr<const AssetCatalogTree> AssetCatalogService::catalog_tree()
 {
   std::lock_guard lock{catalog_tree_mutex_};
   if (!catalog_tree_) {
@@ -584,7 +603,7 @@ const AssetCatalogTree &AssetCatalogService::catalog_tree()
 
     catalog_tree_ = read_into_tree();
   }
-  return *catalog_tree_;
+  return catalog_tree_;
 }
 
 void AssetCatalogService::create_missing_catalogs()
@@ -726,4 +745,6 @@ bool AssetCatalogFilter::is_known(const CatalogID asset_catalog_id) const
   return known_catalog_ids_.contains(asset_catalog_id);
 }
 
-}  // namespace blender::asset_system
+}  // namespace asset_system
+
+}  // namespace blender

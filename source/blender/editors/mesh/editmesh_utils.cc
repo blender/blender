@@ -13,7 +13,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_array.hh"
-#include "BLI_kdtree.h"
+#include "BLI_kdtree.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
@@ -40,7 +40,7 @@
 
 #include "mesh_intern.hh" /* own include */
 
-using blender::Vector;
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name Redo API
@@ -63,7 +63,7 @@ void EDBM_redo_state_restore(BMBackup *backup, BMEditMesh *em, bool recalc_loopt
   BM_mesh_data_free(em->bm);
   BMesh *tmpbm = BM_mesh_copy(backup->bmcopy);
   *em->bm = *tmpbm;
-  MEM_freeN(tmpbm);
+  MEM_delete(tmpbm);
   tmpbm = nullptr;
 
   if (recalc_looptris) {
@@ -75,7 +75,7 @@ void EDBM_redo_state_restore_and_free(BMBackup *backup, BMEditMesh *em, bool rec
 {
   BM_mesh_data_free(em->bm);
   *em->bm = *backup->bmcopy;
-  MEM_freeN(backup->bmcopy);
+  MEM_delete(backup->bmcopy);
   backup->bmcopy = nullptr;
   if (recalc_looptris) {
     BKE_editmesh_looptris_calc(em);
@@ -86,7 +86,7 @@ void EDBM_redo_state_free(BMBackup *backup)
 {
   if (backup->bmcopy) {
     BM_mesh_data_free(backup->bmcopy);
-    MEM_freeN(backup->bmcopy);
+    MEM_delete(backup->bmcopy);
   }
 }
 
@@ -272,7 +272,7 @@ bool EDBM_op_call_silentf(BMEditMesh *em, const char *fmt, ...)
  */
 static int object_shapenr_basis_index_ensured(const Object *ob)
 {
-  const Mesh *mesh = static_cast<const Mesh *>(ob->data);
+  const Mesh *mesh = id_cast<const Mesh *>(ob->data);
   if (UNLIKELY((ob->shapenr == 0) && (mesh->key && !BLI_listbase_is_empty(&mesh->key->block)))) {
     return 1;
   }
@@ -281,7 +281,7 @@ static int object_shapenr_basis_index_ensured(const Object *ob)
 
 void EDBM_mesh_make(Object *ob, const int select_mode, const bool add_key_index)
 {
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   EDBM_mesh_make_from_mesh(ob, mesh, select_mode, add_key_index);
 }
 
@@ -290,7 +290,7 @@ void EDBM_mesh_make_from_mesh(Object *ob,
                               const int select_mode,
                               const bool add_key_index)
 {
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   BMeshCreateParams create_params{};
   create_params.use_toolflags = true;
   /* Clamp the index, so the behavior of enter & exit edit-mode matches, see #43998. */
@@ -318,7 +318,7 @@ void EDBM_mesh_make_from_mesh(Object *ob,
 
 void EDBM_mesh_load_ex(Main *bmain, Object *ob, bool free_data)
 {
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Mesh *mesh = id_cast<Mesh *>(ob->data);
   BMesh *bm = mesh->runtime->edit_mesh->bm;
 
   /* Workaround for #42360, 'ob->shapenr' should be 1 in this case.
@@ -373,7 +373,7 @@ void EDBM_selectmode_to_scene(bContext *C)
 
 void EDBM_selectmode_flush_ex(BMEditMesh *em, const short selectmode)
 {
-  BM_mesh_select_mode_flush_ex(em->bm, selectmode, BM_SELECT_LEN_FLUSH_RECALC_ALL);
+  BM_mesh_select_mode_flush_ex(em->bm, selectmode, BMSelectFlushFlag_All);
 }
 
 void EDBM_selectmode_flush(BMEditMesh *em)
@@ -381,18 +381,11 @@ void EDBM_selectmode_flush(BMEditMesh *em)
   EDBM_selectmode_flush_ex(em, em->selectmode);
 }
 
-void EDBM_deselect_flush(BMEditMesh *em)
+void EDBM_select_flush_from_verts(BMEditMesh *em, const bool select)
 {
-  /* function below doesn't use. just do this to keep the values in sync */
+  /* Function below doesn't use. just do this to keep the values in sync. */
   em->bm->selectmode = em->selectmode;
-  BM_mesh_deselect_flush(em->bm);
-}
-
-void EDBM_select_flush(BMEditMesh *em)
-{
-  /* function below doesn't use. just do this to keep the values in sync */
-  em->bm->selectmode = em->selectmode;
-  BM_mesh_select_flush(em->bm);
+  BM_mesh_select_flush_from_verts(em->bm, select);
 }
 
 void EDBM_select_more(BMEditMesh *em, const bool use_face_step)
@@ -415,6 +408,7 @@ void EDBM_select_more(BMEditMesh *em, const bool use_face_step)
   BMO_op_finish(em->bm, &bmop);
 
   EDBM_selectmode_flush(em);
+  EDBM_uvselect_clear(em);
 }
 
 void EDBM_select_less(BMEditMesh *em, const bool use_face_step)
@@ -437,6 +431,7 @@ void EDBM_select_less(BMEditMesh *em, const bool use_face_step)
   BMO_op_finish(em->bm, &bmop);
 
   EDBM_selectmode_flush(em);
+  EDBM_uvselect_clear(em);
 
   /* only needed for select less, ensure we don't have isolated elements remaining */
   BM_mesh_select_mode_clean(em->bm);
@@ -445,11 +440,26 @@ void EDBM_select_less(BMEditMesh *em, const bool use_face_step)
 void EDBM_flag_disable_all(BMEditMesh *em, const char hflag)
 {
   BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, hflag, false);
+
+  /* Keep this as there is no need to maintain UV selection when all are disabled. */
+  if (hflag & BM_ELEM_SELECT) {
+    EDBM_uvselect_clear(em);
+  }
 }
 
 void EDBM_flag_enable_all(BMEditMesh *em, const char hflag)
 {
   BM_mesh_elem_hflag_enable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, hflag, true);
+
+  /* Keep this as there is no need to maintain UV selection when all are enabled. */
+  if (hflag & BM_ELEM_SELECT) {
+    EDBM_uvselect_clear(em);
+  }
+}
+
+bool EDBM_uvselect_clear(BMEditMesh *em)
+{
+  return BM_mesh_uvselect_clear(em->bm);
 }
 
 /** \} */
@@ -458,7 +468,7 @@ void EDBM_flag_enable_all(BMEditMesh *em, const char hflag)
 /** \name UV Vertex Map API
  * \{ */
 
-UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select)
+UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select, const bool respect_hide)
 {
   /* NOTE: delimiting on alternate face-winding was once supported and could be useful
    * in some cases. If this is need see: D17137 to restore support. */
@@ -476,21 +486,25 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select)
 
   /* generate UvMapVert array */
   BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-    if ((use_select == false) || BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-      totuv += efa->len;
+    if (use_select && !BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+      continue;
     }
+    if (respect_hide && BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+      continue;
+    }
+    totuv += efa->len;
   }
 
   if (totuv == 0) {
     return nullptr;
   }
-  UvVertMap *vmap = (UvVertMap *)MEM_callocN(sizeof(*vmap), "UvVertMap");
+  UvVertMap *vmap = MEM_new_zeroed<UvVertMap>("UvVertMap");
   if (!vmap) {
     return nullptr;
   }
 
-  vmap->vert = MEM_calloc_arrayN<UvMapVert *>(totverts, "UvMapVert_pt");
-  UvMapVert *buf = vmap->buf = MEM_calloc_arrayN<UvMapVert>(totuv, "UvMapVert");
+  vmap->vert = MEM_new_array_zeroed<UvMapVert *>(totverts, "UvMapVert_pt");
+  UvMapVert *buf = vmap->buf = MEM_new_array_zeroed<UvMapVert>(totuv, "UvMapVert");
 
   if (!vmap->vert || !vmap->buf) {
     BKE_mesh_uv_vert_map_free(vmap);
@@ -498,17 +512,21 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select)
   }
 
   BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, a) {
-    if ((use_select == false) || BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-      int i;
-      BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
-        buf->loop_of_face_index = i;
-        buf->face_index = a;
-        buf->separate = false;
+    if (use_select && !BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+      continue;
+    }
+    if (respect_hide && BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+      continue;
+    }
+    int i;
+    BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
+      buf->loop_of_face_index = i;
+      buf->face_index = a;
+      buf->separate = false;
 
-        buf->next = vmap->vert[BM_elem_index_get(l->v)];
-        vmap->vert[BM_elem_index_get(l->v)] = buf;
-        buf++;
-      }
+      buf->next = vmap->vert[BM_elem_index_get(l->v)];
+      vmap->vert[BM_elem_index_get(l->v)] = buf;
+      buf++;
     }
   }
 
@@ -578,8 +596,8 @@ UvElement **BM_uv_element_map_ensure_head_table(UvElementMap *element_map)
   }
 
   /* For each UvElement, locate the "separate" UvElement that precedes it in the linked list. */
-  element_map->head_table = static_cast<UvElement **>(
-      MEM_mallocN(sizeof(*element_map->head_table) * element_map->total_uvs, __func__));
+  element_map->head_table = MEM_new_array_uninitialized<UvElement *>(element_map->total_uvs,
+                                                                     __func__);
   UvElement **head_table = element_map->head_table;
   for (int i = 0; i < element_map->total_uvs; i++) {
     UvElement *head = element_map->storage + i;
@@ -600,8 +618,7 @@ UvElement **BM_uv_element_map_ensure_head_table(UvElementMap *element_map)
 int *BM_uv_element_map_ensure_unique_index(UvElementMap *element_map)
 {
   if (!element_map->unique_index_table) {
-    element_map->unique_index_table = static_cast<int *>(
-        MEM_callocN(element_map->total_uvs * sizeof(*element_map->unique_index_table), __func__));
+    element_map->unique_index_table = MEM_new_array_zeroed<int>(element_map->total_uvs, __func__);
 
     int j = 0;
     for (int i = 0; i < element_map->total_uvs; i++) {
@@ -657,6 +674,7 @@ static void bm_uv_assign_island(UvElementMap *element_map,
 
 static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
                                            const Scene *scene,
+                                           const BMesh *bm,
                                            UvElement *islandbuf,
                                            uint *map,
                                            bool uv_selected,
@@ -670,8 +688,7 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
   int nislands = 0;
   int islandbufsize = 0;
   int stack_upper_bound = total_uvs;
-  UvElement **stack_uv = static_cast<UvElement **>(
-      MEM_mallocN(sizeof(*stack_uv) * stack_upper_bound, __func__));
+  UvElement **stack_uv = MEM_new_array_uninitialized<UvElement *>(stack_upper_bound, __func__);
   int stacksize_uv = 0;
   for (int i = 0; i < total_uvs; i++) {
     UvElement *element = element_map->storage + i;
@@ -701,7 +718,7 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
       while (element) {
 
         /* Scan forwards around the BMFace that contains element->l. */
-        if (!uv_selected || uvedit_edge_select_test(scene, element->l, offsets)) {
+        if (!uv_selected || uvedit_edge_select_test(scene, bm, element->l, offsets)) {
           UvElement *next = BM_uv_element_get(element_map, element->l->next);
           if (next && next->island == INVALID_ISLAND) {
             UvElement *tail = element_map->head_table[next - element_map->storage];
@@ -717,7 +734,7 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
         }
 
         /* Scan backwards around the BMFace that contains element->l. */
-        if (!uv_selected || uvedit_edge_select_test(scene, element->l->prev, offsets)) {
+        if (!uv_selected || uvedit_edge_select_test(scene, bm, element->l->prev, offsets)) {
           UvElement *prev = BM_uv_element_get(element_map, element->l->prev);
           if (prev && prev->island == INVALID_ISLAND) {
             UvElement *tail = element_map->head_table[prev - element_map->storage];
@@ -743,8 +760,8 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
   }
   BLI_assert(islandbufsize == total_uvs);
 
-  MEM_SAFE_FREE(stack_uv);
-  MEM_SAFE_FREE(element_map->head_table);
+  MEM_SAFE_DELETE(stack_uv);
+  MEM_SAFE_DELETE(element_map->head_table);
 
   return nislands;
 }
@@ -759,21 +776,21 @@ static void bm_uv_build_islands(UvElementMap *element_map,
   int islandbufsize = 0;
 
   /* map holds the map from current vmap->buf to the new, sorted map */
-  uint *map = MEM_malloc_arrayN<uint>(totuv, __func__);
-  BMFace **stack = MEM_malloc_arrayN<BMFace *>(bm->totface, __func__);
-  UvElement *islandbuf = MEM_calloc_arrayN<UvElement>(totuv, __func__);
+  uint *map = MEM_new_array_uninitialized<uint>(totuv, __func__);
+  BMFace **stack = MEM_new_array_uninitialized<BMFace *>(bm->totface, __func__);
+  UvElement *islandbuf = MEM_new_array_zeroed<UvElement>(totuv, __func__);
   /* Island number for BMFaces. */
-  int *island_number = MEM_calloc_arrayN<int>(bm->totface, __func__);
+  int *island_number = MEM_new_array_zeroed<int>(bm->totface, __func__);
   copy_vn_i(island_number, bm->totface, INVALID_ISLAND);
 
   const BMUVOffsets uv_offsets = BM_uv_map_offsets_get(bm);
 
-  const bool use_uv_edge_connectivity = scene->toolsettings->uv_flag & UV_FLAG_SYNC_SELECT ?
+  const bool use_uv_edge_connectivity = scene->toolsettings->uv_flag & UV_FLAG_SELECT_SYNC ?
                                             scene->toolsettings->selectmode & SCE_SELECT_EDGE :
                                             scene->toolsettings->uv_selectmode & UV_SELECT_EDGE;
   if (use_uv_edge_connectivity) {
     nislands = bm_uv_edge_select_build_islands(
-        element_map, scene, islandbuf, map, uv_selected, uv_offsets);
+        element_map, scene, bm, islandbuf, map, uv_selected, uv_offsets);
     islandbufsize = totuv;
   }
 
@@ -791,7 +808,7 @@ static void bm_uv_build_islands(UvElementMap *element_map,
         BMLoop *l;
         BMIter liter;
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-          if (uv_selected && !uvedit_uv_select_test(scene, l, uv_offsets)) {
+          if (uv_selected && !uvedit_uv_select_test(scene, bm, l, uv_offsets)) {
             continue;
           }
 
@@ -827,7 +844,7 @@ static void bm_uv_build_islands(UvElementMap *element_map,
     }
   }
 
-  MEM_SAFE_FREE(island_number);
+  MEM_SAFE_DELETE(island_number);
 
   /* remap */
   for (int i = 0; i < bm->totvert; i++) {
@@ -837,9 +854,9 @@ static void bm_uv_build_islands(UvElementMap *element_map,
     }
   }
 
-  element_map->island_indices = MEM_calloc_arrayN<int>(nislands, __func__);
-  element_map->island_total_uvs = MEM_calloc_arrayN<int>(nislands, __func__);
-  element_map->island_total_unique_uvs = MEM_calloc_arrayN<int>(nislands, __func__);
+  element_map->island_indices = MEM_new_array_zeroed<int>(nislands, __func__);
+  element_map->island_total_uvs = MEM_new_array_zeroed<int>(nislands, __func__);
+  element_map->island_total_unique_uvs = MEM_new_array_zeroed<int>(nislands, __func__);
   int j = 0;
   for (int i = 0; i < totuv; i++) {
     UvElement *next = element_map->storage[i].next;
@@ -856,12 +873,12 @@ static void bm_uv_build_islands(UvElementMap *element_map,
     }
   }
 
-  MEM_SAFE_FREE(element_map->storage);
+  MEM_SAFE_DELETE(element_map->storage);
   element_map->storage = islandbuf;
   islandbuf = nullptr;
   element_map->total_islands = nislands;
-  MEM_SAFE_FREE(stack);
-  MEM_SAFE_FREE(map);
+  MEM_SAFE_DELETE(stack);
+  MEM_SAFE_DELETE(map);
 }
 
 /** Return true if `loop` has UV co-ordinates which match `luv_a` and `luv_b`. */
@@ -898,7 +915,7 @@ static bool seam_connected_recursive(BMEdge *edge,
                                      const float luv_anchor[2],
                                      const float luv_fan[2],
                                      const BMLoop *needle,
-                                     GSet *visited,
+                                     Set<const BMEdge *> &visited,
                                      const int cd_loop_uv_offset)
 {
   BMVert *anchor = needle->v;
@@ -908,7 +925,7 @@ static bool seam_connected_recursive(BMEdge *edge,
     return false; /* Edge is a seam, don't traverse. */
   }
 
-  if (!BLI_gset_add(visited, edge)) {
+  if (!visited.add(edge)) {
     return false; /* Already visited. */
   }
 
@@ -959,13 +976,16 @@ static bool seam_connected_recursive(BMEdge *edge,
  * \return true if there are edges that fan between them that are seam-free.
  * return false otherwise.
  */
-static bool seam_connected(BMLoop *loop_a, BMLoop *loop_b, GSet *visited, int cd_loop_uv_offset)
+static bool seam_connected(BMLoop *loop_a,
+                           BMLoop *loop_b,
+                           Set<const BMEdge *> &visited,
+                           int cd_loop_uv_offset)
 {
   BLI_assert(loop_a && loop_b);
   BLI_assert(loop_a != loop_b);
   BLI_assert(loop_a->v == loop_b->v);
 
-  BLI_gset_clear(visited, nullptr);
+  visited.clear();
 
   const float *luv_anchor = BM_ELEM_CD_GET_FLOAT_P(loop_a, cd_loop_uv_offset);
   const float *luv_next_fan = BM_ELEM_CD_GET_FLOAT_P(loop_a->next, cd_loop_uv_offset);
@@ -990,7 +1010,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
                                        const bool do_islands)
 {
   /* In uv sync selection, all UVs (from unhidden geometry) are visible. */
-  const bool face_selected = !(scene->toolsettings->uv_flag & UV_FLAG_SYNC_SELECT);
+  const bool face_selected = !(scene->toolsettings->uv_flag & UV_FLAG_SELECT_SYNC);
 
   BMVert *ev;
   BMFace *efa;
@@ -1020,7 +1040,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
     else {
       BMLoop *l;
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-        if (uvedit_uv_select_test(scene, l, offsets)) {
+        if (uvedit_uv_select_test(scene, bm, l, offsets)) {
           totuv++;
         }
       }
@@ -1031,14 +1051,12 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
     return nullptr;
   }
 
-  UvElementMap *element_map = (UvElementMap *)MEM_callocN(sizeof(*element_map), "UvElementMap");
+  UvElementMap *element_map = MEM_new_zeroed<UvElementMap>("UvElementMap");
   element_map->total_uvs = totuv;
-  element_map->vertex = (UvElement **)MEM_callocN(sizeof(*element_map->vertex) * bm->totvert,
-                                                  "UvElementVerts");
-  element_map->storage = (UvElement *)MEM_callocN(sizeof(*element_map->storage) * totuv,
-                                                  "UvElement");
+  element_map->vertex = MEM_new_array_zeroed<UvElement *>(bm->totvert, "UvElementVerts");
+  element_map->storage = MEM_new_array_zeroed<UvElement>(totuv, "UvElement");
 
-  bool *winding = use_winding ? MEM_calloc_arrayN<bool>(bm->totface, "winding") : nullptr;
+  bool *winding = use_winding ? MEM_new_array_zeroed<bool>(bm->totface, "winding") : nullptr;
 
   UvElement *buf = element_map->storage;
   int j;
@@ -1055,7 +1073,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
     int i;
     BMLoop *l;
     BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
-      if (uv_selected && !uvedit_uv_select_test(scene, l, offsets)) {
+      if (uv_selected && !uvedit_uv_select_test(scene, bm, l, offsets)) {
         continue;
       }
 
@@ -1075,7 +1093,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
     }
   }
 
-  GSet *seam_visited_gset = use_seams ? BLI_gset_ptr_new(__func__) : nullptr;
+  Set<const BMEdge *> seam_visited_set;
 
   /* For each BMVert, sort associated linked list into unique uvs. */
   int ev_index;
@@ -1091,7 +1109,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
       newvlist = v;
 
       const float *uv = static_cast<const float *>(BM_ELEM_CD_GET_VOID_P(v->l, offsets.uv));
-      bool uv_vert_sel = uvedit_uv_select_test(scene, v->l, offsets);
+      bool uv_vert_sel = uvedit_uv_select_test(scene, bm, v->l, offsets);
 
       UvElement *lastv = nullptr;
       UvElement *iterv = vlist;
@@ -1111,7 +1129,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
         if (connected) {
           /* Check if the uv loops share the same selection state (if not, they are not connected
            * as they have been ripped or other edit commands have separated them). */
-          const bool uv2_vert_sel = uvedit_uv_select_test(scene, iterv->l, offsets);
+          const bool uv2_vert_sel = uvedit_uv_select_test(scene, bm, iterv->l, offsets);
           connected = (uv_vert_sel == uv2_vert_sel);
         }
 
@@ -1121,7 +1139,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
         }
 
         if (connected && use_seams) {
-          connected = seam_connected(iterv->l, v->l, seam_visited_gset, offsets.uv);
+          connected = seam_connected(iterv->l, v->l, seam_visited_set, offsets.uv);
         }
 
         if (connected) {
@@ -1149,11 +1167,10 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
     element_map->vertex[ev_index] = newvlist;
   }
 
-  if (seam_visited_gset) {
-    BLI_gset_free(seam_visited_gset, nullptr);
-    seam_visited_gset = nullptr;
+  if (!use_seams) {
+    BLI_assert(seam_visited_set.is_empty());
   }
-  MEM_SAFE_FREE(winding);
+  MEM_SAFE_DELETE(winding);
 
   /* at this point, every UvElement in vert points to a UvElement sharing the same vertex.
    * Now we should sort uv's in islands. */
@@ -1176,26 +1193,26 @@ void BM_uv_vert_map_free(UvVertMap *vmap)
 {
   if (vmap) {
     if (vmap->vert) {
-      MEM_freeN(vmap->vert);
+      MEM_delete(vmap->vert);
     }
     if (vmap->buf) {
-      MEM_freeN(vmap->buf);
+      MEM_delete(vmap->buf);
     }
-    MEM_freeN(vmap);
+    MEM_delete(vmap);
   }
 }
 
 void BM_uv_element_map_free(UvElementMap *element_map)
 {
   if (element_map) {
-    MEM_SAFE_FREE(element_map->storage);
-    MEM_SAFE_FREE(element_map->vertex);
-    MEM_SAFE_FREE(element_map->head_table);
-    MEM_SAFE_FREE(element_map->unique_index_table);
-    MEM_SAFE_FREE(element_map->island_indices);
-    MEM_SAFE_FREE(element_map->island_total_uvs);
-    MEM_SAFE_FREE(element_map->island_total_unique_uvs);
-    MEM_SAFE_FREE(element_map);
+    MEM_SAFE_DELETE(element_map->storage);
+    MEM_SAFE_DELETE(element_map->vertex);
+    MEM_SAFE_DELETE(element_map->head_table);
+    MEM_SAFE_DELETE(element_map->unique_index_table);
+    MEM_SAFE_DELETE(element_map->island_indices);
+    MEM_SAFE_DELETE(element_map->island_total_uvs);
+    MEM_SAFE_DELETE(element_map->island_total_unique_uvs);
+    MEM_SAFE_DELETE(element_map);
   }
 }
 
@@ -1261,7 +1278,7 @@ bool EDBM_vert_color_check(BMEditMesh *em)
 static BMVert *cache_mirr_intptr_as_bmvert(const intptr_t *index_lookup, int index)
 {
   intptr_t eve_i = index_lookup[index];
-  return (eve_i == -1) ? nullptr : (BMVert *)eve_i;
+  return (eve_i == -1) ? nullptr : reinterpret_cast<BMVert *>(eve_i);
 }
 
 /**
@@ -1329,15 +1346,15 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
     ED_mesh_mirrtopo_init(em, nullptr, &mesh_topo_store, true);
   }
   else {
-    tree = BLI_kdtree_3d_new(bm->totvert);
+    tree = kdtree_3d_new(bm->totvert);
     BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
       if (respecthide && BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
         continue;
       }
 
-      BLI_kdtree_3d_insert(tree, i, v->co);
+      kdtree_3d_insert(tree, i, v->co);
     }
-    BLI_kdtree_3d_balance(tree);
+    kdtree_3d_balance(tree);
   }
 
 #define VERT_INTPTR(_v, _i) \
@@ -1371,7 +1388,7 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
       co[axis] *= -1.0f;
 
       v_mirr = nullptr;
-      i_mirr = BLI_kdtree_3d_find_nearest(tree, co, nullptr);
+      i_mirr = kdtree_3d_find_nearest(tree, co, nullptr);
       if (i_mirr != -1) {
         BMVert *v_test = BM_vert_at_index(bm, i_mirr);
         if (len_squared_v3v3(co, v_test->co) < maxdist_sq) {
@@ -1397,7 +1414,7 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
     ED_mesh_mirrtopo_free(&mesh_topo_store);
   }
   else {
-    BLI_kdtree_3d_free(tree);
+    kdtree_3d_free(tree);
   }
 }
 
@@ -1456,7 +1473,7 @@ BMEdge *EDBM_verts_mirror_get_edge(BMEditMesh *em, BMEdge *e)
 
 BMFace *EDBM_verts_mirror_get_face(BMEditMesh *em, BMFace *f)
 {
-  blender::Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> v_mirr_arr(f->len);
+  Array<BMVert *, BM_DEFAULT_NGON_STACK_SIZE> v_mirr_arr(f->len);
 
   BMLoop *l_iter, *l_first;
   uint i = 0;
@@ -1520,7 +1537,7 @@ bool EDBM_mesh_hide(BMEditMesh *em, bool swap)
   BMElem *ele;
   int itermode;
   char hflag_swap = swap ? BM_ELEM_SELECT : 0;
-  bool changed = true;
+  bool changed = false;
 
   if (em->selectmode & SCE_SELECT_VERTEX) {
     itermode = BM_VERTS_OF_MESH;
@@ -1541,8 +1558,39 @@ bool EDBM_mesh_hide(BMEditMesh *em, bool swap)
     }
   }
 
+  /* Hiding unselected. */
+  if (swap) {
+    /* In face select mode, also hide loose edges that aren't part of any visible face. */
+    if (itermode == BM_FACES_OF_MESH) {
+      BMEdge *e;
+      BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
+        if (!BM_edge_is_wire(e)) {
+          continue;
+        }
+        if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN) && !BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+          BM_elem_hide_set(em->bm, (BMElem *)e, true);
+          changed = true;
+        }
+      }
+    }
+    /* In edge or face select mode, also hide isolated verts that aren't connected to an edge. */
+    if (ELEM(itermode, BM_EDGES_OF_MESH, BM_FACES_OF_MESH)) {
+      BMVert *v;
+      BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
+        if (v->e) {
+          continue;
+        }
+        if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN) && !BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+          BM_elem_hide_set(em->bm, (BMElem *)v, true);
+          changed = true;
+        }
+      }
+    }
+  }
+
   if (changed) {
     EDBM_selectmode_flush(em);
+    EDBM_uvselect_clear(em);
   }
   return changed;
 
@@ -1609,6 +1657,53 @@ bool EDBM_mesh_reveal(BMEditMesh *em, bool select)
       if (BM_elem_flag_test(ele, BM_ELEM_TAG)) {
         BM_elem_select_set(em->bm, ele, select);
       }
+    }
+  }
+
+  if (em->bm->uv_select_sync_valid) {
+    BMesh *bm = em->bm;
+    /* NOTE(@ideasman42): this could/should use the "sticky" tool setting.
+     * Although in practice it's OK to assume "connected" sticky in this case. */
+    const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
+    if (cd_loop_uv_offset == -1) {
+      /* Not expected but not an error either, clear if the UV's have been removed. */
+      EDBM_uvselect_clear(em);
+    }
+    else {
+      BMIter iter;
+      BMFace *f;
+
+      if (em->selectmode & SCE_SELECT_VERTEX) {
+        BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+          BMLoop *l_iter, *l_first;
+          l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+          do {
+            if (BM_elem_flag_test(l_iter->v, BM_ELEM_TAG)) {
+              BM_loop_vert_uvselect_set_shared(bm, l_iter, select, cd_loop_uv_offset);
+            }
+          } while ((l_iter = l_iter->next) != l_first);
+        }
+      }
+      else if (em->selectmode & SCE_SELECT_EDGE) {
+        BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+          BMLoop *l_iter, *l_first;
+          l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+          do {
+            if (BM_elem_flag_test(l_iter->e, BM_ELEM_TAG)) {
+              BM_loop_edge_uvselect_set_shared(bm, l_iter, select, cd_loop_uv_offset);
+            }
+          } while ((l_iter = l_iter->next) != l_first);
+        }
+      }
+      else {
+        BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+          if (BM_elem_flag_test(f, BM_ELEM_TAG)) {
+            BM_face_uvselect_set_shared(bm, f, select, cd_loop_uv_offset);
+          }
+        }
+      }
+
+      BM_mesh_uvselect_mode_flush(bm);
     }
   }
 
@@ -1703,8 +1798,8 @@ void EDBM_update(Mesh *mesh, const EDBMUpdate_Params *params)
 
 #ifndef NDEBUG
   {
-    LISTBASE_FOREACH (BMEditSelection *, ese, &em->bm->selected) {
-      BLI_assert(BM_elem_flag_test(ese->ele, BM_ELEM_SELECT));
+    for (BMEditSelection &ese : em->bm->selected) {
+      BLI_assert(BM_elem_flag_test(ese.ele, BM_ELEM_SELECT));
     }
   }
 #endif
@@ -1743,13 +1838,13 @@ bool EDBM_view3d_poll(bContext *C)
 BMElem *EDBM_elem_from_selectmode(BMEditMesh *em, BMVert *eve, BMEdge *eed, BMFace *efa)
 {
   if ((em->selectmode & SCE_SELECT_VERTEX) && eve) {
-    return (BMElem *)eve;
+    return reinterpret_cast<BMElem *>(eve);
   }
   if ((em->selectmode & SCE_SELECT_EDGE) && eed) {
-    return (BMElem *)eed;
+    return reinterpret_cast<BMElem *>(eed);
   }
   if ((em->selectmode & SCE_SELECT_FACE) && efa) {
-    return (BMElem *)efa;
+    return reinterpret_cast<BMElem *>(efa);
   }
   return nullptr;
 }
@@ -1782,15 +1877,15 @@ BMElem *EDBM_elem_from_index_any(BMEditMesh *em, uint index)
   BMesh *bm = em->bm;
 
   if (index < bm->totvert) {
-    return (BMElem *)BM_vert_at_index_find_or_table(bm, index);
+    return reinterpret_cast<BMElem *>(BM_vert_at_index_find_or_table(bm, index));
   }
   index -= bm->totvert;
   if (index < bm->totedge) {
-    return (BMElem *)BM_edge_at_index_find_or_table(bm, index);
+    return reinterpret_cast<BMElem *>(BM_edge_at_index_find_or_table(bm, index));
   }
   index -= bm->totedge;
   if (index < bm->totface) {
-    return (BMElem *)BM_face_at_index_find_or_table(bm, index);
+    return reinterpret_cast<BMElem *>(BM_face_at_index_find_or_table(bm, index));
   }
 
   return nullptr;
@@ -1937,8 +2032,8 @@ void EDBM_project_snap_verts(
 
   ED_view3d_init_mats_rv3d(obedit, static_cast<RegionView3D *>(region->regiondata));
 
-  Scene *scene = CTX_data_scene(C);
-  transform::SnapObjectContext *snap_context = transform::snap_object_context_create(scene, 0);
+  const Scene *scene = CTX_data_scene(C);
+  transform::SnapObjectContext *snap_context = transform::snap_object_context_create();
 
   eSnapTargetOP target_op = SCE_SNAP_TARGET_NOT_ACTIVE;
   const int snap_flag = scene->toolsettings->snap_flag;
@@ -1983,3 +2078,23 @@ void EDBM_project_snap_verts(
 }
 
 /** \} */
+
+bool EDBM_smooth_vert(BMEditMesh *em, wmOperator *op)
+{
+  return EDBM_op_callf(em,
+                       op,
+                       "smooth_vert verts=%hv factor=%f mirror_clip_x=%b mirror_clip_y=%b "
+                       "mirror_clip_z=%b "
+                       "clip_dist=%f use_axis_x=%b use_axis_y=%b use_axis_z=%b",
+                       BM_ELEM_TAG,
+                       1.0,
+                       false,
+                       false,
+                       false,
+                       0.1,
+                       true,
+                       true,
+                       true);
+}
+
+}  // namespace blender

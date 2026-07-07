@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/overlay_sculpt_curves_info.hh"
+#include "infos/overlay_sculpt_curves_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(overlay_sculpt_curves_selection)
 
@@ -18,6 +18,11 @@ float retrieve_selection(const curves::Point pt)
   }
   return texelFetch(selection_tx, pt.curve_id).r;
 }
+
+#if defined(GPU_NVIDIA) && defined(GPU_OPENGL)
+/* WORKAROUND: Fix legacy driver compiler issue (see #148472). */
+#  define const
+#endif
 
 void main()
 {

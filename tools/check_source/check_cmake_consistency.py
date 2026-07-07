@@ -9,12 +9,6 @@ __all__ = (
     "main",
 )
 
-import sys
-if sys.version_info.major < 3:
-    print("\nPython3.x needed, found %s.\nAborting!\n" %
-          sys.version.partition(" ")[0])
-    sys.exit(1)
-
 import os
 from os.path import (
     dirname,

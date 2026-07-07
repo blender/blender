@@ -100,7 +100,7 @@ float randomize_rotation(const BrushGpencilSettings &settings,
     random_factor *= BKE_curvemapping_evaluateF(settings.curve_rand_uv, 0, pressure);
   }
 
-  const float random_rotation = random_factor * math::numbers::pi;
+  const float random_rotation = random_factor * std::numbers::pi;
   return math::interpolate(0.0f, random_rotation, settings.uv_random);
 }
 
@@ -125,7 +125,7 @@ float randomize_rotation(const BrushGpencilSettings &settings,
     random_factor *= BKE_curvemapping_evaluateF(settings.curve_rand_uv, 0, pressure);
   }
 
-  const float random_rotation = random_factor * math::numbers::pi;
+  const float random_rotation = random_factor * std::numbers::pi;
   return math::interpolate(0.0f, random_rotation, settings.uv_random);
 }
 
@@ -142,10 +142,9 @@ ColorGeometry4f randomize_color(const BrushGpencilSettings &settings,
   if (!use_random || !jitter) {
     return color;
   }
-  blender::float3 initial_hsv_jitter = {
-      stroke_hue_factor, stroke_saturation_factor, stroke_value_factor};
+  float3 initial_hsv_jitter = {stroke_hue_factor, stroke_saturation_factor, stroke_value_factor};
 
-  blender::float3 jittered = BKE_paint_randomize_color(
+  float3 jittered = BKE_paint_randomize_color(
       *jitter, initial_hsv_jitter, distance, pressure, {color.r, color.g, color.b});
 
   return {jittered[0], jittered[1], jittered[2], color.a};

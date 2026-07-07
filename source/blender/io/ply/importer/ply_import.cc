@@ -8,6 +8,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
+#include "BKE_library.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
@@ -31,9 +32,12 @@
 #include "ply_import_mesh.hh"
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.ply"};
 
-namespace blender::io::ply {
+namespace io::ply {
 
 /* If line starts with keyword, returns true and drops it from the line. */
 static bool parse_keyword(Span<char> &str, StringRef keyword)
@@ -236,13 +240,21 @@ void importer_main(Main *bmain,
   /* Create mesh and do all prep work. */
   Mesh *mesh_in_main = BKE_mesh_add(bmain, ob_name);
   BKE_view_layer_base_deselect_all(scene, view_layer);
-  LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
+  LayerCollection *lc = BKE_layer_collection_get_active_editable(view_layer);
+  if (!ID_IS_EDITABLE(lc->collection)) {
+    BKE_report(import_params.reports,
+               RPT_WARNING,
+               "Could not find an editable collection in current scene, imported data will not be "
+               "instantiated");
+  }
   Object *obj = BKE_object_add_only_object(bmain, OB_MESH, ob_name);
-  obj->data = mesh_in_main;
+  obj->data = id_cast<ID *>(mesh_in_main);
   BKE_collection_object_add(bmain, lc->collection, obj);
   BKE_view_layer_synced_ensure(scene, view_layer);
-  Base *base = BKE_view_layer_base_find(view_layer, obj);
-  BKE_view_layer_base_select_and_set_active(view_layer, base);
+  if (Base *base = BKE_view_layer_base_find(view_layer, obj)) {
+    /* `base` will be nullptr if the Object could not be instantiated in the current viewlayer. */
+    BKE_view_layer_base_select_and_set_active(view_layer, base);
+  }
 
   BKE_mesh_nomain_to_mesh(mesh, mesh_in_main, obj);
 
@@ -270,4 +282,5 @@ void importer_main(Main *bmain,
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
   DEG_relations_tag_update(bmain);
 }
-}  // namespace blender::io::ply
+}  // namespace io::ply
+}  // namespace blender

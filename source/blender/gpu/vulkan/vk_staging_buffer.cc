@@ -30,8 +30,7 @@ VKStagingBuffer::VKStagingBuffer(const VKBuffer &device_buffer,
 
   host_buffer_.create(region_size_,
                       usage,
-                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                      VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
                       VMA_ALLOCATION_CREATE_MAPPED_BIT |
                           VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
                       0.4f);

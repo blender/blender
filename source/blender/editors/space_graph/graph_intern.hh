@@ -10,6 +10,8 @@
 
 #include "ED_keyframes_edit.hh"
 
+namespace blender {
+
 struct ARegion;
 struct ARegionType;
 struct SpaceGraph;
@@ -28,7 +30,7 @@ struct bContext;
 void graph_draw_channel_names(bContext *C,
                               bAnimContext *ac,
                               ARegion *region,
-                              const ListBase /*bAnimListElem*/ &anim_data);
+                              const ListBaseT<bAnimListElem> &anim_data);
 
 /**
  * This is called twice from `space_graph.cc`, #graph_main_region_draw()
@@ -249,3 +251,5 @@ bool graphop_selected_fcurve_poll(bContext *C);
 
 void graphedit_keymap(wmKeyConfig *keyconf);
 void graphedit_operatortypes();
+
+}  // namespace blender

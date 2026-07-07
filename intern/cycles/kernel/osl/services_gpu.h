@@ -17,7 +17,7 @@
 
 #include "kernel/util/differential.h"
 #include "kernel/util/ies.h"
-#include "kernel/util/texture_3d.h"
+#include "kernel/util/image_3d.h"
 
 #include "util/hash.h"
 #include "util/transform.h"
@@ -884,7 +884,7 @@ ccl_device_inline bool get_object_standard_attribute(KernelGlobals kg,
       if (desc.offset != ATTR_STD_NOT_FOUND) {
         return get_object_attribute(kg, sd, desc, type, derivatives, val);
       }
-      float3 f = triangle_smooth_normal_unnormalized(kg, sd, sd->Ng, sd->prim, sd->u, sd->v);
+      float3 f = triangle_smooth_normal_unnormalized_object_space(kg, sd);
       return set_attribute(f, type, derivatives, val);
     }
     else {
@@ -1024,7 +1024,7 @@ ccl_device_extern bool rs_texture(ccl_private ShaderGlobals *sg,
 
   switch (type) {
     case OSL_TEXTURE_HANDLE_TYPE_SVM: {
-      const float4 rgba = kernel_tex_image_interp(nullptr, slot, s, 1.0f - t);
+      const float4 rgba = kernel_image_interp(nullptr, slot, s, 1.0f - t);
       if (nchannels > 0) {
         result[0] = rgba.x;
       }
@@ -1072,7 +1072,7 @@ ccl_device_extern bool rs_texture3d(ccl_private ShaderGlobals *sg,
 
   switch (type) {
     case OSL_TEXTURE_HANDLE_TYPE_SVM: {
-      const float4 rgba = kernel_tex_image_interp_3d(
+      const float4 rgba = kernel_image_interp_3d(
           nullptr, sg->sd, slot, *P, INTERPOLATION_NONE, false);
       if (nchannels > 0) {
         result[0] = rgba.x;

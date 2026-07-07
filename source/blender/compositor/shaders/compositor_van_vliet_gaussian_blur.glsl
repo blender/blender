@@ -15,6 +15,10 @@
  * separately. See the VanVlietGaussianCoefficients class and the implementation for more
  * information. */
 
+#include "infos/compositor_van_vliet_gaussian_blur_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_van_vliet_gaussian_blur)
+
 #include "gpu_shader_compositor_texture_utilities.glsl"
 
 #define FILTER_ORDER 2

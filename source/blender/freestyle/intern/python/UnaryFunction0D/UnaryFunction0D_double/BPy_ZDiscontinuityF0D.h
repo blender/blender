@@ -18,8 +18,8 @@ extern PyTypeObject ZDiscontinuityF0D_Type;
   (PyObject_IsInstance((PyObject *)v, (PyObject *)&ZDiscontinuityF0D_Type))
 
 /*---------------------------Python BPy_ZDiscontinuityF0D structure definition----------*/
-typedef struct {
+struct BPy_ZDiscontinuityF0D {
   BPy_UnaryFunction0DDouble py_uf0D_double;
-} BPy_ZDiscontinuityF0D;
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////

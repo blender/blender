@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "../GHOST_Types.h"
+#include "../GHOST_Types.hh"
 #include "GHOST_System.hh"
 #include "GHOST_WindowWayland.hh"
 
@@ -18,14 +18,8 @@
 #endif
 #include <wayland-client.h>
 
-#ifdef WITH_GHOST_WAYLAND_LIBDECOR
-#  ifdef WITH_GHOST_WAYLAND_DYNLOAD
-#    include <wayland_dynload_libdecor.h>
-#  endif
-#  include <libdecor.h>
-#endif
-
 #include <mutex>
+#include <span>
 #include <string>
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
@@ -83,8 +77,7 @@ int gwl_window_scale_int_from(const GWL_WindowScaleParams &scale_params, int val
 
 #ifdef WITH_GHOST_WAYLAND_DYNLOAD
 /**
- * Return true when all required WAYLAND libraries are present,
- * Performs dynamic loading when `WITH_GHOST_WAYLAND_DYNLOAD` is in use.
+ * Return true when all required WAYLAND libraries are present.
  */
 bool ghost_wl_dynload_libraries_init();
 void ghost_wl_dynload_libraries_exit();
@@ -149,7 +142,7 @@ struct GWL_Output {
 class GHOST_SystemWayland : public GHOST_System {
  public:
   GHOST_SystemWayland(bool background);
-  GHOST_SystemWayland() : GHOST_SystemWayland(true){};
+  GHOST_SystemWayland() : GHOST_SystemWayland(true) {};
 
   ~GHOST_SystemWayland() override;
 
@@ -241,15 +234,13 @@ class GHOST_SystemWayland : public GHOST_System {
 
   bool cursor_grab_use_software_display_get(const GHOST_TGrabCursorMode mode);
 
-#ifdef USE_EVENT_BACKGROUND_THREAD
   /**
    * Return a separate WAYLAND local timer manager to #GHOST_System::getTimerManager
    * Manipulation & access must lock with #GHOST_WaylandSystem::server_mutex.
    *
-   * See #GWL_Display::ghost_timer_manager doc-string for details on why this is needed.
+   * See #GWL_Display::key_repeat_timer_manager doc-string for details on why this is needed.
    */
-  GHOST_TimerManager *ghost_timer_manager();
-#endif
+  GHOST_TimerManager *key_repeat_timer_manager();
 
   /* WAYLAND direct-data access. */
 
@@ -261,14 +252,11 @@ class GHOST_SystemWayland : public GHOST_System {
   struct wp_fractional_scale_manager_v1 *wp_fractional_scale_manager_get();
   struct wp_viewporter *wp_viewporter_get();
 
-#ifdef WITH_GHOST_WAYLAND_LIBDECOR
-  libdecor *libdecor_context_get();
-#endif
   struct xdg_wm_base *xdg_decor_shell_get();
   struct zxdg_decoration_manager_v1 *xdg_decor_manager_get();
   /* End `xdg_decor`. */
 
-  const std::vector<GWL_Output *> &outputs_get() const;
+  const std::span<GWL_Output *const> outputs_get() const;
 
   struct wl_shm *wl_shm_get() const;
 
@@ -279,6 +267,12 @@ class GHOST_SystemWayland : public GHOST_System {
                  int32_t h,
                  bool completed) const;
   void ime_end(const GHOST_WindowWayland *win) const;
+
+  bool use_window_frame_get() const;
+  bool use_window_frame_csd_get() const;
+#ifdef WITH_GHOST_CSD
+  const GHOST_CSD_Layout &csd_layout_base_get() const;
+#endif
 
   static const char *xdg_app_id_get();
 
@@ -295,7 +289,7 @@ class GHOST_SystemWayland : public GHOST_System {
    * Push an event, with support for calling from a thread.
    * NOTE: only needed for `USE_EVENT_BACKGROUND_THREAD`.
    */
-  GHOST_TSuccess pushEvent_maybe_pending(const GHOST_IEvent *event);
+  GHOST_TSuccess pushEvent_maybe_pending(std::unique_ptr<const GHOST_IEvent> event);
 
   /** Set this seat to be active. */
   void seat_active_set(const struct GWL_Seat *seat);
@@ -329,10 +323,6 @@ class GHOST_SystemWayland : public GHOST_System {
                               GHOST_TAxisFlag wrap_axis,
                               wl_surface *wl_surface,
                               const struct GWL_WindowScaleParams &scale_params);
-
-#ifdef WITH_GHOST_WAYLAND_LIBDECOR
-  static bool use_libdecor_runtime();
-#endif
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
   /* NOTE: allocate mutex so `const` functions can lock the mutex. */

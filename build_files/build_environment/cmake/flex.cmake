@@ -6,7 +6,7 @@
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(_autoconf_cmd_optional ./autogen.sh &&)
 else()
-  set(_autoconf_cmd_optional)
+  set(_autoconf_cmd_optional "")
 endif()
 
 
@@ -15,6 +15,10 @@ ExternalProject_Add(external_flex
   URL_HASH ${FLEX_HASH_TYPE}=${FLEX_HASH}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   PREFIX ${BUILD_DIR}/flex
+
+  PATCH_COMMAND ${PATCH_CMD} --verbose -p1 -d
+    ${BUILD_DIR}/flex/src/external_flex <
+    ${PATCH_DIR}/flex_gcc14.diff
 
   CONFIGURE_COMMAND ${CONFIGURE_ENV} &&
     cd ${BUILD_DIR}/flex/src/external_flex/ &&

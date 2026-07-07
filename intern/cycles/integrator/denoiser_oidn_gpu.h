@@ -7,21 +7,17 @@
 #if defined(WITH_OPENIMAGEDENOISE)
 
 #  include "integrator/denoiser_gpu.h"
+#  include "integrator/denoiser_oidn_base.h"
 #  include "util/openimagedenoise.h"  // IWYU pragma: keep
 
 CCL_NAMESPACE_BEGIN
 
 /* Implementation of a GPU denoiser which uses OpenImageDenoise library. */
 class OIDNDenoiserGPU : public DenoiserGPU {
-  friend class OIDNDenoiseContext;
-
  public:
-  /* Forwardly declared state which might be using compile-flag specific fields, such as
-   * OpenImageDenoise device and filter handles. */
   class State;
 
   OIDNDenoiserGPU(Device *denoiser_device, const DenoiseParams &params);
-  ~OIDNDenoiserGPU() override;
 
   bool denoise_buffer(const BufferParams &buffer_params,
                       RenderBuffers *render_buffers,
@@ -49,7 +45,6 @@ class OIDNDenoiserGPU : public DenoiserGPU {
   /* Run configured denoiser. */
   bool denoise_run(const DenoiseContext &context, const DenoisePass &pass) override;
 
-  OIDNFilter create_filter();
   bool commit_and_execute_filter(OIDNFilter filter, ExecMode mode = ExecMode::SYNC);
 
   void set_filter_pass(OIDNFilter filter,
@@ -62,22 +57,7 @@ class OIDNDenoiserGPU : public DenoiserGPU {
                        const size_t pixel_stride_in_bytes,
                        size_t row_stride_in_bytes);
 
-  /* Delete all allocated OIDN objects. */
-  void release_all_resources();
-
-  OIDNDevice oidn_device_ = nullptr;
-  OIDNFilter oidn_filter_ = nullptr;
-  OIDNFilter albedo_filter_ = nullptr;
-  OIDNFilter normal_filter_ = nullptr;
-
-  bool is_configured_ = false;
-  int2 configured_size_ = make_int2(0, 0);
-
-  vector<uint8_t> custom_weights;
-
-  bool use_pass_albedo_ = false;
-  bool use_pass_normal_ = false;
-  DenoiserQuality quality_ = DENOISER_QUALITY_HIGH;
+  OIDNDenoiserBase base_;
 
   /* Filter memory usage limit if we ran out of memory with OIDN's default limit. */
   int max_mem_ = 768;

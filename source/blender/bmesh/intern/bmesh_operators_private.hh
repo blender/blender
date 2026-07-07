@@ -8,6 +8,8 @@
  * \ingroup bmesh
  */
 
+namespace blender {
+
 struct BMOperator;
 struct BMesh;
 
@@ -92,3 +94,5 @@ void bmo_unsubdivide_exec(BMesh *bm, BMOperator *op);
 void bmo_weld_verts_exec(BMesh *bm, BMOperator *op);
 void bmo_wireframe_exec(BMesh *bm, BMOperator *op);
 void bmo_flip_quad_tessellation_exec(BMesh *bm, BMOperator *op);
+
+}  // namespace blender

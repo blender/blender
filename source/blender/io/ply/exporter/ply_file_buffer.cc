@@ -13,9 +13,12 @@
 #include <system_error>
 
 #include "CLG_log.h"
+
+namespace blender {
+
 static CLG_LogRef LOG = {"io.ply"};
 
-namespace blender::io::ply {
+namespace io::ply {
 
 FileBuffer::FileBuffer(const char *filepath, size_t buffer_chunk_size)
     : buffer_chunk_size_(buffer_chunk_size), filepath_(filepath)
@@ -82,4 +85,5 @@ void FileBuffer::write_bytes(Span<char> bytes)
   bb.insert(bb.end(), bytes.begin(), bytes.end());
 }
 
-}  // namespace blender::io::ply
+}  // namespace io::ply
+}  // namespace blender

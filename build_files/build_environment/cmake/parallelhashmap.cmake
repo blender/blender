@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2022-2023 Blender Authors
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+set(PARALLELHASHMAP_EXTRA_ARGS
+  -DPHMAP_BUILD_TESTS=OFF
+  -DPHMAP_BUILD_EXAMPLES=OFF
+)
+
+ExternalProject_Add(external_parallelhashmap
+  URL file://${PACKAGE_DIR}/${PARALLEL_HASHMAP_FILE}
+  URL_HASH ${PARALLEL_HASHMAP_HASH_TYPE}=${PARALLEL_HASHMAP_HASH}
+  DOWNLOAD_DIR ${DOWNLOAD_DIR}
+  PREFIX ${BUILD_DIR}/parallelhashmap
+  CMAKE_ARGS
+    -DCMAKE_INSTALL_PREFIX=${LIBDIR}/parallelhashmap
+    ${DEFAULT_CMAKE_FLAGS}
+    ${PARALLELHASHMAP_EXTRA_ARGS}
+)

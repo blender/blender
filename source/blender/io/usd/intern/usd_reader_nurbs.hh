@@ -9,18 +9,20 @@
 
 #include "usd.hh"
 #include "usd_reader_curve.hh"
-#include "usd_reader_geom.hh"
+#include "usd_reader_prim.hh"
 
 #include <pxr/usd/usd/prim.h>
 #include <pxr/usd/usdGeom/nurbsCurves.h>
 
+namespace blender {
+
 struct Curves;
 
-namespace blender::bke {
+namespace bke {
 class CurvesGeometry;
-}  // namespace blender::bke
+}  // namespace bke
 
-namespace blender::io::usd {
+namespace io::usd {
 
 class USDNurbsReader : public USDCurvesReader {
  private:
@@ -43,4 +45,5 @@ class USDNurbsReader : public USDCurvesReader {
   bool is_animated() const override;
 };
 
-}  // namespace blender::io::usd
+}  // namespace io::usd
+}  // namespace blender

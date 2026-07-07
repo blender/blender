@@ -14,6 +14,8 @@
 
 #include "BKE_mesh_mapping.hh"
 
+namespace blender {
+
 struct MemArena;
 struct Mesh;
 
@@ -53,13 +55,13 @@ void BKE_mesh_remap_item_define_invalid(MeshPairRemap *map, int index);
  * in favor of a global good matching.
  */
 float BKE_mesh_remap_calc_difference_from_mesh(const SpaceTransform *space_transform,
-                                               blender::Span<blender::float3> vert_positions_dst,
+                                               Span<float3> vert_positions_dst,
                                                const Mesh *me_src);
 
 /**
  * Set r_space_transform so that best bbox of dst matches best bbox of src.
  */
-void BKE_mesh_remap_find_best_match_from_mesh(blender::Span<blender::float3> vert_positions_dst,
+void BKE_mesh_remap_find_best_match_from_mesh(Span<float3> vert_positions_dst,
                                               const Mesh *me_src,
                                               SpaceTransform *r_space_transform);
 
@@ -67,7 +69,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(int mode,
                                          const SpaceTransform *space_transform,
                                          float max_dist,
                                          float ray_radius,
-                                         blender::Span<blender::float3> vert_positions_dst,
+                                         Span<float3> vert_positions_dst,
                                          const Mesh *me_src,
                                          Mesh *me_dst,
                                          MeshPairRemap *r_map);
@@ -76,8 +78,8 @@ void BKE_mesh_remap_calc_edges_from_mesh(int mode,
                                          const SpaceTransform *space_transform,
                                          float max_dist,
                                          float ray_radius,
-                                         blender::Span<blender::float3> vert_positions_dst,
-                                         blender::Span<blender::int2> edges_dst,
+                                         Span<float3> vert_positions_dst,
+                                         Span<int2> edges_dst,
                                          const Mesh *me_src,
                                          Mesh *me_dst,
                                          MeshPairRemap *r_map);
@@ -87,9 +89,9 @@ void BKE_mesh_remap_calc_loops_from_mesh(int mode,
                                          float max_dist,
                                          float ray_radius,
                                          const Mesh *mesh_dst,
-                                         blender::Span<blender::float3> vert_positions_dst,
-                                         blender::Span<int> corner_verts_dst,
-                                         const blender::OffsetIndices<int> faces_dst,
+                                         Span<float3> vert_positions_dst,
+                                         Span<int> corner_verts_dst,
+                                         const OffsetIndices<int> faces_dst,
                                          const Mesh *me_src,
                                          MeshRemapIslandsCalc gen_islands_src,
                                          float islands_precision_src,
@@ -100,8 +102,10 @@ void BKE_mesh_remap_calc_faces_from_mesh(int mode,
                                          float max_dist,
                                          float ray_radius,
                                          const Mesh *mesh_dst,
-                                         blender::Span<blender::float3> vert_positions_dst,
-                                         blender::Span<int> corner_verts,
-                                         const blender::OffsetIndices<int> faces_dst,
+                                         Span<float3> vert_positions_dst,
+                                         Span<int> corner_verts,
+                                         const OffsetIndices<int> faces_dst,
                                          const Mesh *me_src,
                                          MeshPairRemap *r_map);
+
+}  // namespace blender

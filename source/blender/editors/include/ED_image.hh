@@ -13,6 +13,8 @@
 
 #include "BLI_string_ref.hh"
 
+namespace blender {
+
 struct ARegion;
 struct ImBuf;
 struct Image;
@@ -189,10 +191,16 @@ bool ED_image_save_all_modified(const bContext *C, ReportList *reports);
 
 /* `image_sequence.cc` */
 
+struct ImageFrame;
+
 struct ImageFrameRange {
   ImageFrameRange *next, *prev;
 
-  /** Absolute file path of the first file in the range. */
+  /**
+   * File path of the first file in the range.
+   * May be relative to `G_MAIN->filepath` or the `root_path`
+   * passed in by #ED_image_filesel_detect_sequences.
+   */
   char filepath[FILE_MAX];
   /* Sequence parameters. */
   int length; /* Does not include placeholders, stops at gaps in sequence. */
@@ -201,10 +209,10 @@ struct ImageFrameRange {
 
   /* UDIM tiles. */
   bool udims_detected;
-  ListBase udim_tiles;
+  ListBaseT<LinkData> udim_tiles;
 
   /* Temporary data. */
-  ListBase frames; /* ImageFrame. */
+  ListBaseT<ImageFrame> frames;
 };
 
 struct ImageFrame {
@@ -214,10 +222,19 @@ struct ImageFrame {
 
 /**
  * Used for both images and volume file loading.
+ *
+ * \param blendfile_path: For relative paths, the operator paths will be relative to this.
+ * \param root_path: When `op` references a relative path, #ImageFrameRange::filepath
+ * will be made relative to this path if possible, otherwise it will be made absolute.
+ * Note that `blendfile_path` may equal `root_path`, otherwise `root_path` may be set
+ * to a libraries absolute file-path.
  */
-ListBase ED_image_filesel_detect_sequences(blender::StringRefNull root_path,
-                                           wmOperator *op,
-                                           bool detect_udim);
+ListBaseT<ImageFrameRange> ED_image_filesel_detect_sequences(StringRefNull blendfile_path,
+                                                             StringRefNull root_path,
+                                                             wmOperator *op,
+                                                             bool detect_udim);
 
 bool ED_image_tools_paint_poll(bContext *C);
 void ED_paint_cursor_start(Paint *paint, bool (*poll)(bContext *C));
+
+}  // namespace blender

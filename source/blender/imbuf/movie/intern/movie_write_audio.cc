@@ -21,20 +21,17 @@
 #  include <cstdio>
 #  include <cstring>
 
-#  ifdef WITH_AUDASPACE
-#    include <AUD_Device.h>
-#    include <AUD_Special.h>
-#  endif
-
 #  include "DNA_scene_types.h"
 
 #  include "BLI_string.h"
 #  include "BLI_utildefines.h"
 
 #  include "BKE_report.hh"
-#  include "BKE_sound.h"
+#  include "BKE_sound.hh"
 
 #  include "CLG_log.h"
+
+namespace blender {
 
 static CLG_LogRef LOG = {"video.write"};
 
@@ -51,7 +48,7 @@ static int write_audio_frame(MovieWriter *context)
   AVFrame *frame = nullptr;
   AVCodecContext *c = context->audio_codec;
 
-  AUD_Device_read(
+  bke::sound_device_read(
       context->audio_mixdown_device, context->audio_input_buffer, context->audio_input_samples);
 
   frame = av_frame_alloc();
@@ -155,28 +152,28 @@ bool movie_audio_open(MovieWriter *context,
   if (context->audio_stream) {
     AVCodecContext *c = context->audio_codec;
 
-    AUD_DeviceSpecs specs;
+    aud::DeviceSpecs specs;
 #    ifdef FFMPEG_USE_OLD_CHANNEL_VARS
-    specs.channels = AUD_Channels(c->channels);
+    specs.channels = aud::Channels(c->channels);
 #    else
-    specs.channels = AUD_Channels(c->ch_layout.nb_channels);
+    specs.channels = aud::Channels(c->ch_layout.nb_channels);
 #    endif
 
     switch (av_get_packed_sample_fmt(c->sample_fmt)) {
       case AV_SAMPLE_FMT_U8:
-        specs.format = AUD_FORMAT_U8;
+        specs.format = aud::FORMAT_U8;
         break;
       case AV_SAMPLE_FMT_S16:
-        specs.format = AUD_FORMAT_S16;
+        specs.format = aud::FORMAT_S16;
         break;
       case AV_SAMPLE_FMT_S32:
-        specs.format = AUD_FORMAT_S32;
+        specs.format = aud::FORMAT_S32;
         break;
       case AV_SAMPLE_FMT_FLT:
-        specs.format = AUD_FORMAT_FLOAT32;
+        specs.format = aud::FORMAT_FLOAT32;
         break;
       case AV_SAMPLE_FMT_DBL:
-        specs.format = AUD_FORMAT_FLOAT64;
+        specs.format = aud::FORMAT_FLOAT64;
         break;
       default:
         BKE_report(reports, RPT_ERROR, "Audio sample format unsupported");
@@ -199,10 +196,7 @@ void movie_audio_close(MovieWriter *context, bool is_autosplit)
 {
 #  ifdef WITH_AUDASPACE
   if (!is_autosplit) {
-    if (context->audio_mixdown_device) {
-      AUD_Device_free(context->audio_mixdown_device);
-      context->audio_mixdown_device = nullptr;
-    }
+    context->audio_mixdown_device.reset();
   }
 #  else
   UNUSED_VARS(context, is_autosplit);
@@ -215,7 +209,8 @@ AVStream *alloc_audio_stream(MovieWriter *context,
                              AVCodecID codec_id,
                              AVFormatContext *of,
                              char *error,
-                             int error_size)
+                             int error_size,
+                             ReportList *reports)
 {
   AVStream *st;
   const AVCodec *codec;
@@ -235,6 +230,98 @@ AVStream *alloc_audio_stream(MovieWriter *context,
     return nullptr;
   }
 
+  int channel_layout_mask = 0;
+  int channel_count = 0;
+  switch (audio_channels) {
+    case FFM_CHANNELS_MONO:
+      channel_layout_mask = AV_CH_LAYOUT_MONO;
+      channel_count = 1;
+      break;
+    case FFM_CHANNELS_STEREO:
+      channel_layout_mask = AV_CH_LAYOUT_STEREO;
+      channel_count = 2;
+      break;
+    case FFM_CHANNELS_SURROUND4:
+      channel_layout_mask = AV_CH_LAYOUT_QUAD;
+      channel_count = 4;
+      break;
+    case FFM_CHANNELS_SURROUND51:
+      channel_layout_mask = AV_CH_LAYOUT_5POINT1_BACK;
+      channel_count = 6;
+      break;
+    case FFM_CHANNELS_SURROUND71:
+      channel_layout_mask = AV_CH_LAYOUT_7POINT1;
+      channel_count = 8;
+      break;
+    default:
+      BLI_assert(false);
+      break;
+  }
+
+  /* Clamp audio bitrate and report info if bitrate is set higher than the maximum bitrate of the
+   * codec. */
+  switch (codec_id) {
+    case AV_CODEC_ID_MP2:
+      if (context->ffmpeg_audio_bitrate > 384) {
+        context->ffmpeg_audio_bitrate = 384;
+        BKE_report(reports,
+                   RPT_INFO,
+                   "The audio is rendered with a bitrate of 384kbit/s, the maximum bitrate MP2 "
+                   "supports.");
+      }
+      break;
+    case AV_CODEC_ID_MP3:
+      if (context->ffmpeg_audio_bitrate > 320) {
+        context->ffmpeg_audio_bitrate = 320;
+        BKE_report(reports,
+                   RPT_INFO,
+                   "The audio is rendered with a bitrate of 320kbit/s, the maximum bitrate MP3 "
+                   "supports.");
+      }
+      break;
+    case AV_CODEC_ID_AAC:
+      if (context->ffmpeg_audio_bitrate > 250 * channel_count) {
+        /* AAC doesn't specify a maximum bitrate. Instead, the maximum bitrate is dependent on the
+         * encoder used. Clamping of the bitrate is therefore left to the encoder. */
+        BKE_report(
+            reports,
+            RPT_INFO,
+            "The audio is rendered with a bitrate of roughly 250kbit/s per channel, the maximum "
+            "bitrate AAC supports.");
+      }
+      break;
+    case AV_CODEC_ID_AC3:
+      if (context->ffmpeg_audio_bitrate > 640) {
+        context->ffmpeg_audio_bitrate = 640;
+        BKE_report(reports,
+                   RPT_INFO,
+                   "The audio is rendered with a bitrate of 640kbit/s, the maximum bitrate AC3 "
+                   "supports.");
+      }
+      break;
+    case AV_CODEC_ID_OPUS:
+      if (context->ffmpeg_audio_bitrate > 256 * channel_count) {
+        context->ffmpeg_audio_bitrate = 256 * channel_count;
+        BKE_report(reports,
+                   RPT_INFO,
+                   "The audio is rendered with a bitrate of 256kbit/s per channel, the maximum "
+                   "bitrate Opus supports.");
+      }
+      break;
+    case AV_CODEC_ID_VORBIS:
+      if (context->ffmpeg_audio_bitrate > 240 * channel_count) {
+        context->ffmpeg_audio_bitrate = 240 * channel_count;
+        BKE_report(reports,
+                   RPT_INFO,
+                   "The audio is rendered with a bitrate of 240kbit/s per channel, the maximum "
+                   "bitrate Vorbis supports.");
+      }
+      break;
+    default:
+      /* Default case for suppressing compiler warnings. */
+      break;
+  }
+
   context->audio_codec = avcodec_alloc_context3(codec);
   AVCodecContext *c = context->audio_codec;
   c->thread_count = MOV_thread_count();
@@ -243,26 +330,6 @@ AVStream *alloc_audio_stream(MovieWriter *context,
   c->sample_rate = audio_mixrate;
   c->bit_rate = context->ffmpeg_audio_bitrate * 1000;
   c->sample_fmt = AV_SAMPLE_FMT_S16;
-
-  int channel_layout_mask = 0;
-  switch (audio_channels) {
-    case FFM_CHANNELS_MONO:
-      channel_layout_mask = AV_CH_LAYOUT_MONO;
-      break;
-    case FFM_CHANNELS_STEREO:
-      channel_layout_mask = AV_CH_LAYOUT_STEREO;
-      break;
-    case FFM_CHANNELS_SURROUND4:
-      channel_layout_mask = AV_CH_LAYOUT_QUAD;
-      break;
-    case FFM_CHANNELS_SURROUND51:
-      channel_layout_mask = AV_CH_LAYOUT_5POINT1_BACK;
-      break;
-    case FFM_CHANNELS_SURROUND71:
-      channel_layout_mask = AV_CH_LAYOUT_7POINT1;
-      break;
-  }
-  BLI_assert(channel_layout_mask != 0);
 
 #  ifdef FFMPEG_USE_OLD_CHANNEL_VARS
   c->channels = audio_channels;
@@ -378,5 +445,7 @@ void write_audio_frames(MovieWriter *context, double to_pts)
   UNUSED_VARS(context, to_pts);
 #  endif
 }
+
+}  // namespace blender
 
 #endif /* WITH_FFMPEG */

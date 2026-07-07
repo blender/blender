@@ -23,6 +23,7 @@ class Volume : public Mesh {
 
   Volume();
 
+  NODE_SOCKET_API(float, step_size)
   NODE_SOCKET_API(bool, object_space)
   NODE_SOCKET_API(float, velocity_scale)
 
@@ -46,9 +47,12 @@ class VolumeManager {
   void tag_update(const Object *object, const uint32_t flag);
   void tag_update(const Geometry *geometry);
   void tag_update_indices();
+  void tag_update_algorithm();
 
   /* Check whether the shader is a homogeneous volume. */
   static bool is_homogeneous_volume(const Object *, const Shader *);
+
+  bool need_update_step_size;
 
  private:
   /* Initialize octrees from the volumes in the scene. */
@@ -68,16 +72,23 @@ class VolumeManager {
   int num_octree_nodes() const;
   int num_octree_roots() const;
 
-  /* When running Blender with `--log-level debug`, an octree visualization is written to
-   * `filename`, which is a Python script that can be run inside Blender. */
+  /* When running Blender with environment variable `CYCLES_VOLUME_OCTREE_DUMP`, an octree
+   * visualization is written to `filename`, which is a Python script that can be run inside
+   * Blender. */
   std::string visualize_octree(const char *filename) const;
+
+  /* Step size for ray marching. */
+  void update_step_size(const Scene *, DeviceScene *);
 
   /* One octree per object per shader. */
   std::map<std::pair<const Object *, const Shader *>, std::shared_ptr<Octree>> object_octrees_;
 
+  /* TODO(weizhen): replace booleans with enum `update_flags`? */
   bool update_root_indices_ = false;
   bool need_rebuild_;
   bool update_visualization_ = false;
+  bool algorithm_modified_ = true;
+
   int num_octree_nodes_;
   int num_octree_roots_;
 

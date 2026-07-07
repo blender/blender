@@ -45,7 +45,7 @@ const DupliObject *DupliParentFinder::find_duplicated_parent(const DupliObject *
   const Object *parent_ob = dupli_ob->ob->parent;
   BLI_assert(parent_ob != nullptr);
 
-  const blender::Set<const DupliObject *> *found = instancer_pid_to_duplis_.lookup_ptr(parent_pid);
+  const Set<const DupliObject *> *found = instancer_pid_to_duplis_.lookup_ptr(parent_pid);
   if (!found) {
     /* Unexpected, as there should be at least one entry here, for the dupli_ob itself. */
     return nullptr;

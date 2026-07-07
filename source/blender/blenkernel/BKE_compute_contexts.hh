@@ -22,15 +22,44 @@
 
 #include "NOD_geometry_nodes_closure_location.hh"
 
+namespace blender {
+
 struct bNode;
 struct bNodeTree;
 struct NodesModifierData;
+struct ID;
 
-namespace blender::nodes {
+namespace nodes {
 class Closure;
 }
 
-namespace blender::bke {
+namespace bke {
+
+class DataBlockComputeContext : public ComputeContext {
+ private:
+  uint32_t orig_session_uid_;
+  const ID *id_ = nullptr;
+
+ public:
+  DataBlockComputeContext(const ComputeContext *parent, const ID &id);
+  DataBlockComputeContext(const ComputeContext *parent,
+                          uint32_t orig_session_uid,
+                          const ID *id = nullptr);
+
+  uint32_t orig_session_uid() const
+  {
+    return orig_session_uid_;
+  }
+
+  const ID *id() const
+  {
+    return id_;
+  }
+
+ private:
+  ComputeContextHash compute_hash() const override;
+  void print_current_in_line(std::ostream &stream) const override;
+};
 
 class ModifierComputeContext : public ComputeContext {
  private:
@@ -217,4 +246,5 @@ class ShaderComputeContext : public ComputeContext {
   void print_current_in_line(std::ostream &stream) const override;
 };
 
-}  // namespace blender::bke
+}  // namespace bke
+}  // namespace blender

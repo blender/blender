@@ -98,7 +98,7 @@ else()
     install(CODE "\
       file(GLOB_RECURSE shared_libs ${HARVEST_TARGET}/${to}/${pattern}) \n
       foreach(f \${shared_libs}) \n
-        execute_process(COMMAND ${set_rpath_cmd}/../lib; \${f}) \n
+        execute_process(COMMAND ${set_rpath_cmd}/../lib \${f}) \n
       endforeach()")
   endfunction()
 

@@ -33,23 +33,67 @@
 #include <optional>
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_enum_flags.hh"
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
 #include "DNA_ID.h"
+#include "DNA_listBase.h"
 #include "DNA_userdef_enums.h"
 
+namespace blender {
+
 struct BlendWriter;
+struct Depsgraph;
 struct GHash;
 struct ID;
+struct ID_Readfile_Data;
 struct Library;
-struct ListBase;
 struct Main;
 struct PointerRNA;
 struct PropertyRNA;
 struct bContext;
+
+namespace bke::id {
+
+/** Status used and counters created during id-remapping. */
+struct ID_Runtime_Remap {
+  /** Status during ID remapping. */
+  int status = 0;
+  /** During ID remapping the number of skipped use cases that refcount the data-block. */
+  int skipped_refcounted = 0;
+  /**
+   * During ID remapping the number of direct use cases that could be remapped
+   * (e.g. obdata when in edit mode).
+   */
+  int skipped_direct = 0;
+  /** During ID remapping, the number of indirect use cases that could not be remapped. */
+  int skipped_indirect = 0;
+};
+
+struct ID_Runtime {
+  /**
+   * The last modifification time of the source .blend file where this ID was loaded from.
+   */
+  int64_t src_blend_modifification_time;
+
+  ID_Runtime_Remap remap = {};
+  /**
+   * The depsgraph that owns this data block. This is only set on data-blocks which are
+   * copied-on-eval by the depsgraph. Additional data-blocks created during depsgraph evaluation
+   * are not owned by any specific depsgraph and thus this pointer is null for those.
+   */
+  Depsgraph *depsgraph = nullptr;
+
+  /**
+   * This data is only allocated & used during the readfile process. After that, the memory is
+   * freed and the pointer set to `nullptr`.
+   */
+  ID_Readfile_Data *readfile_data = nullptr;
+};
+
+}  // namespace bke::id
 
 /**
  * Get allocation size of a given data-block type and optionally allocation `r_name`.
@@ -58,6 +102,9 @@ size_t BKE_libblock_get_alloc_info(short type, const char **r_name);
 /**
  * Allocates and returns memory of the right size for the specified block type,
  * initialized to zero.
+ *
+ * \note: Typically, caller also needs to immediately call #BKE_libblock_runtime_ensure on the
+ * allocated ID data.
  */
 ID *BKE_libblock_alloc_notest(short type) ATTR_WARN_UNUSED_RESULT;
 /**
@@ -89,6 +136,14 @@ void *BKE_libblock_alloc_in_lib(Main *bmain,
  * ID is assumed to be just calloc'ed.
  */
 void BKE_libblock_init_empty(ID *id) ATTR_NONNULL(1);
+
+/**
+ * Ensure that the given ID does have a valid runtime data.
+ *
+ * Low-level API, should not be needed in typical ID usages, where ID::runtime can always be
+ * assumed valid.
+ */
+void BKE_libblock_runtime_ensure(ID &id);
 
 /**
  * Reset the runtime counters used by ID remapping.
@@ -147,6 +202,14 @@ void *BKE_id_new_in_lib(Main *bmain,
                         std::optional<Library *> owner_library,
                         short type,
                         const char *name);
+
+template<typename T>
+inline T *BKE_id_new_in_lib(Main *bmain, std::optional<Library *> owner_library, const char *name)
+{
+  const ID_Type id_type = T::id_type;
+  return static_cast<T *>(BKE_id_new_in_lib(bmain, owner_library, id_type, name));
+}
+
 /**
  * Generic helper to create a new temporary empty data-block of given type,
  * *outside* of any Main database.
@@ -201,6 +264,11 @@ enum {
    */
   LIB_ID_COPY_SET_COPIED_ON_WRITE = 1 << 10,
 
+  /**
+   * Set #ID.newid pointer of the given source ID with the address of its new copy.
+   */
+  LIB_ID_COPY_ID_NEW_SET = 1 << 11,
+
   /* *** Specific options to some ID types or usages. *** */
   /* *** May be ignored by unrelated ID copying functions. *** */
   /** Object only, needed by make_local code. */
@@ -225,19 +293,26 @@ enum {
   LIB_ID_COPY_ACTIONS = 1 << 24,
   /** EXCEPTION! Deep-copy shape-keys used by copied obdata ID. */
   LIB_ID_COPY_SHAPEKEY = 1 << 26,
+  /**
+   * EXCEPTION! Deep-copy screen used by copied workspace ID.
+   * WARNING: Should always be used, except in `NO_MAIN` cases of copying. */
+  LIB_ID_COPY_SCREEN = 1 << 27,
   /** EXCEPTION! Specific deep-copy of node trees used e.g. for rendering purposes. */
-  LIB_ID_COPY_NODETREE_LOCALIZE = 1 << 27,
+  LIB_ID_COPY_NODETREE_LOCALIZE = 1 << 28,
   /**
    * EXCEPTION! Specific handling of RB objects regarding collections differs depending whether we
    * duplicate scene/collections, or objects.
    */
-  LIB_ID_COPY_RIGID_BODY_NO_COLLECTION_HANDLING = 1 << 28,
+  LIB_ID_COPY_RIGID_BODY_NO_COLLECTION_HANDLING = 1 << 29,
   /* Copy asset metadata. */
-  LIB_ID_COPY_ASSET_METADATA = 1 << 29,
+  LIB_ID_COPY_ASSET_METADATA = 1 << 30,
 
   /* *** Helper 'defines' gathering most common flag sets. *** */
-  /** Shape-keys are not real ID's, more like local data to geometry IDs. */
-  LIB_ID_COPY_DEFAULT = LIB_ID_COPY_SHAPEKEY,
+  /**
+   * Shape-keys are not real ID's, more like local data to geometry IDs. Same for bScreens being
+   * local data of Workspaces.
+   */
+  LIB_ID_COPY_DEFAULT = LIB_ID_COPY_SHAPEKEY | LIB_ID_COPY_SCREEN,
 
   /** Create a local, outside of bmain, data-block to work on. */
   LIB_ID_CREATE_LOCALIZE = LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT |
@@ -347,7 +422,7 @@ struct IDNewNameResult {
  */
 IDNewNameResult BKE_libblock_rename(Main &bmain,
                                     ID &id,
-                                    blender::StringRefNull name,
+                                    StringRefNull name,
                                     const IDNewNameMode mode = IDNewNameMode::RenameExistingNever);
 
 /**
@@ -358,7 +433,7 @@ IDNewNameResult BKE_libblock_rename(Main &bmain,
  */
 IDNewNameResult BKE_id_rename(Main &bmain,
                               ID &id,
-                              blender::StringRefNull name,
+                              StringRefNull name,
                               const IDNewNameMode mode = IDNewNameMode::RenameExistingNever);
 
 /**
@@ -412,7 +487,7 @@ enum eLibIDDuplicateFlags {
   LIB_ID_DUPLICATE_IS_ROOT_ID = 1 << 1,
 };
 
-ENUM_OPERATORS(eLibIDDuplicateFlags, LIB_ID_DUPLICATE_IS_ROOT_ID)
+ENUM_OPERATORS(eLibIDDuplicateFlags)
 
 /* `lib_remap.cc` (keep here since they're general functions) */
 /**
@@ -445,20 +520,35 @@ enum {
 /**
  * Low-level ID freeing functions.
  *
- * \note These functions do NOT cover embedded IDs. Those are managed by the
+ * \note These `BKE_libblock_free_` functions do NOT cover embedded IDs. Those are managed by the
  * owning ID, and are typically allocated/freed from the IDType callbacks.
  */
-void BKE_libblock_free_datablock(ID *id, int flag) ATTR_NONNULL();
-void BKE_libblock_free_data(ID *id, bool do_id_user) ATTR_NONNULL();
-void BKE_libblock_free_runtime_data(ID *id) ATTR_NONNULL();
 
 /**
+ * Only free generic Python instance data (ID::py_instance).
+ *
  * In most cases #BKE_id_free_ex handles this, when lower level functions are called directly
  * this function will need to be called too, if Python has access to the data.
  *
  * ID data-blocks such as #Material.nodetree are not stored in #Main.
  */
 void BKE_libblock_free_data_py(ID *id);
+/**
+ * Only free generic runtime data (ID::runtime).
+ *
+ * In most cases #BKE_libblock_free_data handles this, but in rare cases (currently in readfile,
+ * when freeing linked ID placeholders), it is necessary.
+ */
+void BKE_libblock_free_runtime_data(ID *id);
+
+/** Free generic ID data, including the runtime and animation data, but not the python data. */
+void BKE_libblock_free_data(ID *id, bool do_id_user) ATTR_NONNULL();
+
+/**
+ * Free IDtype-specific data (does _not_ free generic ID data, use
+ * #BKE_libblock_free_data for that).
+ */
+void BKE_libblock_free_datablock(ID *id, int flag) ATTR_NONNULL();
 
 /**
  * Complete ID freeing, extended version for corner cases.
@@ -530,10 +620,21 @@ size_t BKE_id_multi_tagged_delete(Main *bmain) ATTR_NONNULL();
  *
  * \return Number of deleted data-blocks.
  */
-size_t BKE_id_multi_delete(Main *bmain, blender::Set<ID *> &ids_to_delete);
+size_t BKE_id_multi_delete(Main *bmain, Set<ID *> &ids_to_delete);
 
 /**
  * Add a 'NO_MAIN' data-block to given main (also sets user-counts of its IDs if needed).
+ *
+ *
+ * \note For linked data, calling code is also responsible to ensure that the relevant library is
+ * in the Main.
+ *
+ * \note Also supports adding packed linked IDs, these should then use as their library `lib`
+ * pointer either:
+ *   - An already valid archive library in target Main.
+ *   - A valid regular library in target Main, in which case a suitable archive library will be
+ *     selected or created.
+ *   See e.g. #BKE_main_merge for an example of adding packed linked ID into a different Main.
  */
 void BKE_libblock_management_main_add(Main *bmain, void *idv);
 /** Remove a data-block from given main (set it to 'NO_MAIN' status). */
@@ -542,6 +643,17 @@ void BKE_libblock_management_main_remove(Main *bmain, void *idv);
 void BKE_libblock_management_usercounts_set(Main *bmain, void *idv);
 void BKE_libblock_management_usercounts_clear(Main *bmain, void *idv);
 
+/**
+ * Flag this linked ID as directly used by another ID in the current blend file.
+ *
+ * If the ID was marked as indirectly/weakly linked, those flags are cleared.
+ *
+ * This is a no-op when `id` is `nullptr` or not linked.
+ *
+ * This status is rechecked for the whole Main data-base as a step of pre-blend-file writing
+ * (see #write_id_direct_linked_data_process_cb() and its usage in #write_file_handle).
+ * This ensures that no reference to indirectly used IDs are kept in the written blend-file.
+ */
 void id_lib_extern(ID *id);
 void id_lib_indirect_weak_link(ID *id);
 /**
@@ -729,7 +841,7 @@ void BKE_lib_id_swap_full(
  * \param id_sorting_hint: Ignored if NULL. Otherwise, used to check if we can insert \a id
  * immediately before or after that pointer. It must always be into given \a lb list.
  */
-void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint);
+void id_sort_by_name(ListBaseT<ID> *lb, ID *id, ID *id_sorting_hint);
 /**
  * Expand ID usages of given id as 'extern' (and no more indirect) linked data.
  * Used by ID copy/make_local functions.
@@ -752,7 +864,7 @@ void BKE_lib_id_expand_local(Main *bmain, ID *id, int flags);
  * \return How renaming went on, see #IDNewNameResult for details.
  */
 IDNewNameResult BKE_id_new_name_validate(Main &bmain,
-                                         ListBase &lb,
+                                         ListBaseT<ID> &lb,
                                          ID &id,
                                          const char *newname,
                                          IDNewNameMode mode,
@@ -775,7 +887,7 @@ void BKE_main_id_tag_idcode(Main *mainvar, short type, int tag, bool value);
 /**
  * Clear or set given tags for all ids in listbase (runtime tags).
  */
-void BKE_main_id_tag_listbase(ListBase *lb, int tag, bool value);
+void BKE_main_id_tag_listbase(ListBaseT<ID> *lb, int tag, bool value);
 /**
  * Clear or set given tags for all ids in bmain (runtime tags).
  */
@@ -784,7 +896,7 @@ void BKE_main_id_tag_all(Main *mainvar, int tag, bool value);
 /**
  * Clear or set given flags for all ids in listbase (persistent flags).
  */
-void BKE_main_id_flag_listbase(ListBase *lb, int flag, bool value);
+void BKE_main_id_flag_listbase(ListBaseT<ID> *lb, int flag, bool value);
 /**
  * Clear or set given flags for all ids in bmain (persistent flags).
  */
@@ -802,7 +914,7 @@ void BKE_main_lib_objects_recalc_all(Main *bmain);
 /**
  * Only for repairing files via versioning, avoid for general use.
  */
-void BKE_main_id_repair_duplicate_names_listbase(Main *bmain, ListBase *lb);
+void BKE_main_id_repair_duplicate_names_listbase(Main *bmain, ListBaseT<ID> *lb);
 
 /** 256 is MAX_ID_NAME - 2 */
 #define MAX_ID_FULL_NAME (256 + 256 + 3 + 1)
@@ -918,11 +1030,11 @@ bool BKE_id_can_use_id(const ID &id_from, const ID &id_to);
 /**
  * Returns ordered list of data-blocks for display in the UI.
  */
-blender::Vector<ID *> BKE_id_ordered_list(const ListBase *lb);
+Vector<ID *> BKE_id_ordered_list(const ListBaseT<ID> *lb);
 /**
  * Reorder ID in the list, before or after the "relative" ID.
  */
-void BKE_id_reorder(const ListBase *lb, ID *id, ID *relative, bool after);
+void BKE_id_reorder(const ListBaseT<ID> *lb, ID *id, ID *relative, bool after);
 
 void BKE_id_blend_write(BlendWriter *writer, ID *id);
 
@@ -936,3 +1048,5 @@ void BKE_id_blend_write(BlendWriter *writer, ID *id);
  * \note Keep in sync with #ID_TYPE_SUPPORTS_PARAMS_WITHOUT_COW.
  */
 void BKE_id_eval_properties_copy(ID *id_cow, ID *id);
+
+}  // namespace blender

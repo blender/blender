@@ -44,7 +44,6 @@ class SessionParams {
   bool headless;
   bool background;
 
-  bool experimental;
   int samples;
   bool use_sample_subset;
   int sample_subset_offset;
@@ -73,7 +72,6 @@ class SessionParams {
     headless = false;
     background = false;
 
-    experimental = false;
     samples = 1024;
     use_sample_subset = false;
     sample_subset_offset = 0;
@@ -97,10 +95,10 @@ class SessionParams {
     /* Modified means we have to recreate the session, any parameter changes
      * that can be handled by an existing Session are omitted. */
     return !(device == params.device && headless == params.headless &&
-             background == params.background && experimental == params.experimental &&
-             pixel_size == params.pixel_size && threads == params.threads &&
-             use_profiling == params.use_profiling && shadingsystem == params.shadingsystem &&
-             use_auto_tile == params.use_auto_tile && tile_size == params.tile_size);
+             background == params.background && pixel_size == params.pixel_size &&
+             threads == params.threads && use_profiling == params.use_profiling &&
+             shadingsystem == params.shadingsystem && use_auto_tile == params.use_auto_tile &&
+             tile_size == params.tile_size);
   }
 };
 

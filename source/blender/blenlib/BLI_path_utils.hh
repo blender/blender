@@ -12,6 +12,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_utildefines_variadic.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Path Queries
  * \{ */
@@ -720,13 +722,13 @@ bool BLI_path_abs_from_cwd(char *path, size_t path_maxncpy) ATTR_NONNULL(1);
  * \{ */
 
 #ifdef WIN32
-#  define SEP '\\'
-#  define ALTSEP '/'
+constexpr char SEP = '\\';
+constexpr char ALTSEP = '/';
 #  define SEP_STR "\\"
 #  define ALTSEP_STR "/"
 #else
-#  define SEP '/'
-#  define ALTSEP '\\'
+constexpr char SEP = '/';
+constexpr char ALTSEP = '\\';
 #  define SEP_STR "/"
 #  define ALTSEP_STR "\\"
 #endif
@@ -796,3 +798,5 @@ const char *BLI_getenv(const char *env) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
   (((_n)[0] == '.') && (((_n)[1] == '\0') || (((_n)[1] == '.') && ((_n)[2] == '\0'))))
 
 /** \} */
+
+}  // namespace blender

@@ -23,6 +23,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name IDProp Repr
  *
@@ -96,26 +98,29 @@ static void idp_repr_fn_recursive(ReprState *state, const IDProperty *prop)
 
   switch (prop->type) {
     case IDP_STRING: {
-      STR_APPEND_STR_LEN_QUOTE(IDP_String(prop), uint(std::max(0, prop->len - 1)));
+      STR_APPEND_STR_LEN_QUOTE(IDP_string_get(prop), uint(std::max(0, prop->len - 1)));
       break;
     }
     case IDP_INT: {
-      if (const IDPropertyUIDataEnumItem *item = IDP_EnumItemFind(prop)) {
-        STR_APPEND_FMT("%s", item->name);
+      if (const IDPropertyUIDataEnumItem *item = prop->ui_data ? IDP_EnumItemFind(prop) : nullptr)
+      {
+        STR_APPEND_STR_QUOTE(item->name);
       }
-      STR_APPEND_FMT("%d", IDP_Int(prop));
+      else {
+        STR_APPEND_FMT("%d", IDP_int_get(prop));
+      }
       break;
     }
     case IDP_FLOAT: {
-      STR_APPEND_FMT("%g", double(IDP_Float(prop)));
+      STR_APPEND_FMT("%g", double(IDP_float_get(prop)));
       break;
     }
     case IDP_DOUBLE: {
-      STR_APPEND_FMT("%g", IDP_Double(prop));
+      STR_APPEND_FMT("%g", IDP_double_get(prop));
       break;
     }
     case IDP_BOOLEAN: {
-      STR_APPEND_FMT("%s", IDP_Bool(prop) ? "True" : "False");
+      STR_APPEND_FMT("%s", IDP_bool_get(prop) ? "True" : "False");
       break;
     }
     case IDP_ARRAY: {
@@ -165,7 +170,7 @@ static void idp_repr_fn_recursive(ReprState *state, const IDProperty *prop)
             if (v != prop->data.pointer) {
               STR_APPEND_STR(", ");
             }
-            STR_APPEND_FMT("%s", IDP_Bool(prop) ? "True" : "False");
+            STR_APPEND_FMT("%s", IDP_bool_get(prop) ? "True" : "False");
           }
           break;
       }
@@ -189,13 +194,13 @@ static void idp_repr_fn_recursive(ReprState *state, const IDProperty *prop)
     }
     case IDP_GROUP: {
       STR_APPEND_STR("{");
-      LISTBASE_FOREACH (const IDProperty *, subprop, &prop->data.group) {
-        if (subprop != prop->data.group.first) {
+      for (const IDProperty &subprop : prop->data.group) {
+        if (&subprop != prop->data.group.first) {
           STR_APPEND_STR(", ");
         }
-        STR_APPEND_STR_QUOTE(subprop->name);
+        STR_APPEND_STR_QUOTE(subprop.name);
         STR_APPEND_STR(": ");
-        idp_repr_fn_recursive(state, subprop);
+        idp_repr_fn_recursive(state, &subprop);
       }
       STR_APPEND_STR("}");
       break;
@@ -258,7 +263,7 @@ void IDP_print(const IDProperty *prop)
   char *repr = IDP_reprN(prop, nullptr);
   printf("IDProperty(%p): ", prop);
   puts(repr);
-  MEM_freeN(repr);
+  MEM_delete(repr);
 }
 
 const char *IDP_type_str(const eIDPropertyType type, const short sub_type)
@@ -311,3 +316,5 @@ const char *IDP_type_str(const IDProperty *prop)
 }
 
 /** \} */
+
+}  // namespace blender

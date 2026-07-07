@@ -10,9 +10,11 @@
 
 #include "fbx_import_util.hh"
 
+namespace blender {
+
 struct Main;
 
-namespace blender::io::fbx {
+namespace io::fbx {
 
 void import_animations(Main &bmain,
                        const ufbx_scene &fbx,
@@ -20,4 +22,5 @@ void import_animations(Main &bmain,
                        const double fps,
                        const float anim_offset);
 
-}  // namespace blender::io::fbx
+}  // namespace io::fbx
+}  // namespace blender

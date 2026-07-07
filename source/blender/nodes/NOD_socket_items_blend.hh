@@ -14,8 +14,8 @@ template<typename Accessor> inline void blend_write(BlendWriter *writer, const b
 {
   using ItemT = typename Accessor::ItemT;
   const SocketItemsRef<ItemT> items = Accessor::get_items_from_node(const_cast<bNode &>(node));
-  BLO_write_struct_array_by_id(
-      writer, dna::sdna_struct_id_get<ItemT>(), *items.items_num, *items.items);
+  writer->write_struct_array_by_id(
+      dna::sdna_struct_id_get<ItemT>(), *items.items_num, *items.items);
   for (const ItemT &item : Span(*items.items, *items.items_num)) {
     Accessor::blend_write_item(writer, item);
   }

@@ -22,6 +22,8 @@
 
 #include "OCIO_colorspace.hh"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 
 /** \name Generic Buffer Conversion
@@ -463,7 +465,6 @@ void IMB_buffer_float_from_float_threaded(float *rect_to,
                                           int stride_to,
                                           int stride_from)
 {
-  using namespace blender;
   threading::parallel_for(IndexRange(height), 64, [&](const IndexRange y_range) {
     int64_t offset_from = y_range.first() * stride_from * channels_from;
     int64_t offset_to = y_range.first() * stride_to * 4;
@@ -604,8 +605,6 @@ void IMB_buffer_byte_from_byte(uchar *rect_to,
 
 void IMB_byte_from_float(ImBuf *ibuf)
 {
-  using namespace blender;
-
   /* Nothing to do if there's no float buffer */
   if (ibuf->float_buffer.data == nullptr) {
     return;
@@ -676,8 +675,6 @@ void IMB_byte_from_float(ImBuf *ibuf)
 
 void IMB_float_from_byte_ex(ImBuf *dst, const ImBuf *src, const rcti *region_to_update)
 {
-  using namespace blender;
-
   BLI_assert_msg(dst->float_buffer.data != nullptr,
                  "Destination buffer should have a float buffer assigned.");
   BLI_assert_msg(src->byte_buffer.data != nullptr,
@@ -783,8 +780,6 @@ void IMB_color_to_bw(ImBuf *ibuf)
 
 void IMB_saturation(ImBuf *ibuf, float sat)
 {
-  using namespace blender;
-
   const size_t pixel_count = IMB_get_pixel_count(ibuf);
   if (ibuf->byte_buffer.data != nullptr) {
     threading::parallel_for(IndexRange(pixel_count), 64 * 1024, [&](IndexRange range) {
@@ -816,3 +811,5 @@ void IMB_saturation(ImBuf *ibuf, float sat)
 }
 
 /** \} */
+
+}  // namespace blender

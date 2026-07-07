@@ -6,13 +6,15 @@
 
 #include <stdbool.h>
 
+namespace blender {
+
 /** \file
  * \ingroup bke
  */
 
 struct OceanModifierData;
 
-typedef struct OceanResult {
+struct OceanResult {
   float disp[3];
   float normal[3];
   float foam;
@@ -22,9 +24,9 @@ typedef struct OceanResult {
   float Jplus;
   float Eminus[3];
   float Eplus[3];
-} OceanResult;
+};
 
-typedef struct OceanCache {
+struct OceanCache {
   struct ImBuf **ibufs_disp;
   struct ImBuf **ibufs_foam;
   struct ImBuf **ibufs_norm;
@@ -52,7 +54,7 @@ typedef struct OceanCache {
   int resolution_y;
 
   int baked;
-} OceanCache;
+};
 
 struct Ocean *BKE_ocean_add(void);
 void BKE_ocean_free_data(struct Ocean *oc);
@@ -161,3 +163,5 @@ float BLI_ocean_spectrum_texelmarsenarsloe(const struct Ocean *oc, float kx, flo
  * called the fetch, or the distance over which the wind blows with constant velocity.
  */
 float BLI_ocean_spectrum_jonswap(const struct Ocean *oc, float kx, float kz);
+
+}  // namespace blender

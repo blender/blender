@@ -13,10 +13,11 @@
 #include "BKE_ccg.hh"
 #include "BKE_subdiv_ccg.hh"
 
+namespace blender {
+
 bool multires_reshape_assign_final_coords_from_ccg(const MultiresReshapeContext *reshape_context,
                                                    SubdivCCG *subdiv_ccg)
 {
-  using namespace blender;
   const CCGKey reshape_level_key = BKE_subdiv_ccg_key(*subdiv_ccg, reshape_context->reshape.level);
 
   const int reshape_grid_size = reshape_context->reshape.grid_size;
@@ -75,3 +76,5 @@ bool multires_reshape_assign_final_coords_from_ccg(const MultiresReshapeContext 
 
   return true;
 }
+
+}  // namespace blender

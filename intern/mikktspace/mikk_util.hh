@@ -84,12 +84,12 @@ static uint hash_uint3_fast(const uint x, const uint y, const uint z)
 
 static uint float_as_uint(const float v)
 {
-  return *((uint *)(&v));
+  return *(reinterpret_cast<uint *>(const_cast<float *>((&v))));
 }
 
 static float uint_as_float(const uint v)
 {
-  return *((float *)(&v));
+  return *(reinterpret_cast<float *>(const_cast<uint *>((&v))));
 }
 
 static uint hash_float3_fast(const float x, const float y, const float z)

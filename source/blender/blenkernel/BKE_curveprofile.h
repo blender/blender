@@ -10,6 +10,8 @@
 
 #include "DNA_curveprofile_types.h"
 
+namespace blender {
+
 struct BlendDataReader;
 struct BlendWriter;
 struct CurveProfile;
@@ -152,3 +154,5 @@ void BKE_curveprofile_blend_write(struct BlendWriter *writer, const struct Curve
  * Expects that the curve profile itself has been read already.
  */
 void BKE_curveprofile_blend_read(struct BlendDataReader *reader, struct CurveProfile *profile);
+
+}  // namespace blender

@@ -12,6 +12,7 @@
 
 #include "GHOST_Window.hh"
 
+#include <span>
 #include <vector>
 
 #include <wayland-util.h> /* For #wl_fixed_t */
@@ -62,6 +63,31 @@ class GHOST_SystemWayland;
 struct GWL_Output;
 struct GWL_Window;
 
+struct GHOST_CSD_EventState_ButtonAction {
+  GHOST_TCSD_Type type = GHOST_kCSDTypeBody;
+  int32_t xy[2] = {0, 0};
+  uint32_t serial = 0;
+  uint64_t ms = 0;
+  bool is_press = false;
+};
+
+struct GHOST_CSD_EventState_Button {
+  GHOST_CSD_EventState_ButtonAction action_history[3];
+  int action_history_num = 0;
+};
+
+struct GHOST_CSD_EventState {
+  int32_t event_xy[2] = {0, 0};
+  /**
+   * Pointing device button, indexed with #GHOST_TButton.
+   *
+   * Only track the left-button for now since there is no need
+   * to track double-click or press-drag for other buttons.
+   * Extend as needed.
+   */
+  GHOST_CSD_EventState_Button buttons[/*GHOST_kButtonMaskLeft + 1*/ 1];
+};
+
 class GHOST_WindowWayland : public GHOST_Window {
  public:
   GHOST_TSuccess hasCursorShape(GHOST_TStandardCursor cursor_shape) override;
@@ -85,7 +111,7 @@ class GHOST_WindowWayland : public GHOST_Window {
   /* Ghost API */
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
-  GHOST_TSuccess swapBuffers() override; /* Only for assertion. */
+  GHOST_TSuccess swapBufferRelease() override; /* Only for assertion. */
 #endif
 
   uint16_t getDPIHint() override;
@@ -148,7 +174,7 @@ class GHOST_WindowWayland : public GHOST_Window {
   const struct GWL_WindowScaleParams &scale_params_get() const;
 
   struct wl_surface *wl_surface_get() const;
-  const std::vector<GWL_Output *> &outputs_get();
+  const std::span<GWL_Output *const> outputs_get() const;
 
   wl_fixed_t wl_fixed_from_window(wl_fixed_t value) const;
   wl_fixed_t wl_fixed_to_window(wl_fixed_t value) const;
@@ -196,6 +222,17 @@ class GHOST_WindowWayland : public GHOST_Window {
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
   void pending_actions_handle();
+#endif
+
+#ifdef WITH_GHOST_CSD
+  struct xdg_toplevel *xdg_toplevel_get();
+  GHOST_TWindowState xdg_toplevel_state_get();
+
+  const GHOST_CSD_Elem *csd_layout(int *r_num);
+  GHOST_CSD_EventState &csd_eventstate_get();
+
+  GHOST_TCSD_Type csd_elem_active_type_get() const;
+  void csd_elem_active_type_set(GHOST_TCSD_Type type);
 #endif
 
  private:

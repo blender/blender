@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_math_vector_reduce_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
 /* -------------------------------------------------------------------- */

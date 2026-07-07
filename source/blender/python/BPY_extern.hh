@@ -8,15 +8,16 @@
 
 #pragma once
 
+#include <optional>
+#include <string>
+
 #include "BLI_sys_types.h"
 
 #ifdef WITH_INTERNATIONAL
-
-#  include <optional>
-
 #  include "BLI_string_ref.hh"
-
 #endif
+
+namespace blender {
 
 struct ARegionType;
 struct AnimationEvalContext;
@@ -137,6 +138,12 @@ void BPY_free_srna_pytype(StructRNA *srna);
  */
 [[nodiscard]] bool BPY_string_is_keyword(const char *str);
 
+/**
+ * Get current Python stack location.
+ * Returns a string like `filename.py:123` if available, #std::nullopt otherwise.
+ */
+[[nodiscard]] std::optional<std::string> BPY_python_current_file_and_line(void);
+
 /* `bpy_rna_callback.cc` */
 
 void BPY_callback_screen_free(ARegionType *art);
@@ -144,6 +151,8 @@ void BPY_callback_wm_free(wmWindowManager *wm);
 
 /* I18n for addons */
 #ifdef WITH_INTERNATIONAL
-[[nodiscard]] std::optional<blender::StringRefNull> BPY_app_translations_py_pgettext(
-    blender::StringRef msgctxt, blender::StringRef msgid);
+[[nodiscard]] std::optional<StringRefNull> BPY_app_translations_py_pgettext(StringRef msgctxt,
+                                                                            StringRef msgid);
 #endif
+
+}  // namespace blender

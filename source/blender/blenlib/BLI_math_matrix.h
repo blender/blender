@@ -10,6 +10,8 @@
 
 #include "BLI_compiler_attrs.h"
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name Init
  * \{ */
@@ -297,6 +299,7 @@ bool is_orthogonal_m4(const float m[4][4]);
 bool is_orthonormal_m3(const float m[3][3]);
 bool is_orthonormal_m4(const float m[4][4]);
 
+bool is_identity_m4(const float m[4][4]);
 bool is_uniform_scaled_m3(const float m[3][3]);
 bool is_uniform_scaled_m4(const float m[4][4]);
 
@@ -525,11 +528,10 @@ bool equals_m4m4(const float mat1[4][4], const float mat2[4][4]);
  * - #BLI_space_transform_apply_normal(&data, no);
  * - #BLI_space_transform_invert_normal(&data, no);
  */
-typedef struct SpaceTransform {
+struct SpaceTransform {
   float local2target[4][4];
   float target2local[4][4];
-
-} SpaceTransform;
+};
 
 /**
  * Global-invariant transform.
@@ -583,3 +585,5 @@ void print_m4(const char *str, const float m[4][4]);
 #define print_m4_id(M) print_m4(STRINGIFY(M), M)
 
 /** \} */
+
+}  // namespace blender

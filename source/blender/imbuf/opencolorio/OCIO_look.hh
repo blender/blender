@@ -39,6 +39,11 @@ class Look {
   virtual StringRefNull ui_name() const = 0;
 
   /**
+   * Description of the look from the OpenColorIO config.
+   */
+  virtual StringRefNull description() const = 0;
+
+  /**
    * When not empty the look is specific to the view with the given name.
    */
   virtual StringRefNull view() const = 0;

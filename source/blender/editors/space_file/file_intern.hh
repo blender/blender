@@ -14,6 +14,8 @@
 
 #include "ED_fileselect.hh"
 
+namespace blender {
+
 /* internal exports only */
 
 struct ARegion;
@@ -21,13 +23,16 @@ struct ARegionType;
 struct bContextDataResult;
 struct FileAssetSelectParams;
 struct FileSelectParams;
+struct FolderList;
 struct Main;
 struct SpaceFile;
 struct View2D;
-struct uiLayout;
-namespace blender::asset_system {
+namespace asset_system {
 class AssetLibrary;
 }
+namespace ui {
+struct Layout;
+}  // namespace ui
 
 bool file_main_region_needs_refresh_before_draw(SpaceFile *sfile);
 
@@ -48,7 +53,6 @@ int /*eContextResult*/ file_context(const bContext *C,
 #define FILE_LAYOUT_HIDE_SIZE(_layout) \
   (_layout->flag & FILE_LAYOUT_VER && (_layout->width / UI_SCALE_FAC) < 350)
 
-void file_calc_previews(const bContext *C, ARegion *region);
 void file_draw_list(const bContext *C, ARegion *region);
 /**
  * Draw a string hint if the file list is invalid.
@@ -59,7 +63,7 @@ bool file_draw_hint_if_invalid(const bContext *C, const SpaceFile *sfile, ARegio
 void file_draw_check_ex(bContext *C, ScrArea *area);
 void file_draw_check(bContext *C);
 /**
- * For use with; #UI_block_func_set.
+ * For use with; #block_func_set.
  */
 void file_draw_check_cb(bContext *C, void *arg1, void *arg2);
 bool file_draw_check_exists(SpaceFile *sfile);
@@ -214,15 +218,15 @@ void file_on_reload_callback_register(SpaceFile *sfile,
 /* folder_history.cc */
 
 /* not listbase itself */
-void folderlist_free(ListBase *folderlist);
-void folderlist_popdir(ListBase *folderlist, char *dir);
-void folderlist_pushdir(ListBase *folderlist, const char *dir);
-const char *folderlist_peeklastdir(ListBase *folderlist);
+void folderlist_free(ListBaseT<FolderList> *folderlist);
+void folderlist_popdir(ListBaseT<FolderList> *folderlist, char *dir);
+void folderlist_pushdir(ListBaseT<FolderList> *folderlist, const char *dir);
+const char *folderlist_peeklastdir(ListBaseT<FolderList> *folderlist);
 bool folderlist_clear_next(SpaceFile *sfile);
 
 void folder_history_list_ensure_for_active_browse_mode(SpaceFile *sfile);
 void folder_history_list_free(SpaceFile *sfile);
-ListBase folder_history_list_duplicate(ListBase *listbase);
+ListBaseT<FileFolderHistory> folder_history_list_duplicate(ListBaseT<FileFolderHistory> *listbase);
 
 /* `file_panels.cc` */
 
@@ -241,11 +245,11 @@ void file_path_to_ui_path(const char *path, char *r_path, int r_path_maxncpy);
 
 /* asset_catalog_tree_view.cc */
 
-namespace blender::ed::asset_browser {
+namespace ed::asset_browser {
 
 void file_create_asset_catalog_tree_view_in_layout(const bContext *C,
                                                    asset_system::AssetLibrary *asset_library,
-                                                   uiLayout *layout,
+                                                   ui::Layout &layout,
                                                    SpaceFile *space_file,
                                                    FileAssetSelectParams *params);
 
@@ -260,10 +264,12 @@ void file_delete_asset_catalog_filter_settings(AssetCatalogFilterSettings **filt
 bool file_set_asset_catalog_filter_settings(
     AssetCatalogFilterSettings *filter_settings,
     eFileSel_Params_AssetCatalogVisibility catalog_visibility,
-    const ::bUUID &catalog_id);
+    const bUUID &catalog_id);
 void file_ensure_updated_catalog_filter_data(AssetCatalogFilterSettings *filter_settings,
                                              const asset_system::AssetLibrary *asset_library);
 bool file_is_asset_visible_in_catalog_filter_settings(
     const AssetCatalogFilterSettings *filter_settings, const AssetMetaData *asset_data);
 
-}  // namespace blender::ed::asset_browser
+}  // namespace ed::asset_browser
+
+}  // namespace blender

@@ -10,13 +10,15 @@
 
 #include "pipeline.h"
 
+namespace blender {
+
 struct bNodeTree;
 
-namespace blender::deg {
+namespace deg {
 
 class CompositorBuilderPipeline : public AbstractBuilderPipeline {
  public:
-  CompositorBuilderPipeline(::Depsgraph *graph, bNodeTree *nodetree);
+  CompositorBuilderPipeline(blender::Depsgraph *graph, bNodeTree *nodetree);
 
  protected:
   std::unique_ptr<DepsgraphNodeBuilder> construct_node_builder() override;
@@ -29,4 +31,5 @@ class CompositorBuilderPipeline : public AbstractBuilderPipeline {
   bNodeTree *nodetree_;
 };
 
-}  // namespace blender::deg
+}  // namespace deg
+}  // namespace blender

@@ -10,9 +10,11 @@
 
 #include "tree_element_id.hh"
 
+namespace blender {
+
 struct Scene;
 
-namespace blender::ed::outliner {
+namespace ed::outliner {
 
 class TreeElementIDScene final : public TreeElementID {
   Scene &scene_;
@@ -29,4 +31,5 @@ class TreeElementIDScene final : public TreeElementID {
   void expand_objects() const;
 };
 
-}  // namespace blender::ed::outliner
+}  // namespace ed::outliner
+}  // namespace blender

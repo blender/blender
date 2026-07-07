@@ -26,7 +26,9 @@
 
 #include "BKE_preview_image.hh"
 
-#define STR_SOURCE_TYPES "'IMAGE', 'MOVIE', 'BLEND', 'FONT'"
+namespace blender {
+
+#define PYDOC_SOURCE_TYPES_LITERAL "Literal['IMAGE', 'MOVIE', 'BLEND', 'FONT', 'OBJECT_IO']"
 
 PyDoc_STRVAR(
     /* Wrap. */
@@ -35,7 +37,7 @@ PyDoc_STRVAR(
     "\n"
     "   Generate a new empty preview.\n"
     "\n"
-    "   :arg name: The name (unique id) identifying the preview.\n"
+    "   :param name: The name (unique id) identifying the preview.\n"
     "   :type name: str\n"
     "   :return: The Preview matching given name, or a new empty one.\n"
     "   :rtype: :class:`bpy.types.ImagePreview`\n"
@@ -52,7 +54,7 @@ static PyObject *bpy_utils_previews_new(PyObject * /*self*/, PyObject *args)
   }
 
   prv = BKE_previewimg_cached_ensure(name);
-  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, &RNA_ImagePreview, prv);
+  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, RNA_ImagePreview, prv);
 
   return pyrna_struct_CreatePyObject(&ptr);
 }
@@ -60,18 +62,18 @@ static PyObject *bpy_utils_previews_new(PyObject * /*self*/, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_utils_previews_load_doc,
-    ".. method:: load(name, filepath, filetype, force_reload=False)\n"
+    ".. method:: load(name, filepath, file_type, force_reload=False)\n"
     "\n"
     "   Generate a new preview from given file path.\n"
     "\n"
-    "   :arg name: The name (unique id) identifying the preview.\n"
+    "   :param name: The name (unique id) identifying the preview.\n"
     "   :type name: str\n"
-    "   :arg filepath: The file path to generate the preview from.\n"
+    "   :param filepath: The file path to generate the preview from.\n"
     "   :type filepath: str | bytes\n"
-    "   :arg filetype: The type of file, needed to generate the preview in [" STR_SOURCE_TYPES
-    "].\n"
-    "   :type filetype: str\n"
-    "   :arg force_reload: If True, force running thumbnail manager even if preview already "
+    "   :param file_type: The type of file, needed to generate the preview.\n"
+    "   :type file_type: " PYDOC_SOURCE_TYPES_LITERAL
+    "\n"
+    "   :param force_reload: If True, force running thumbnail manager even if preview already "
     "exists in cache.\n"
     "   :type force_reload: bool\n"
     "   :return: The Preview matching given name, or a new empty one.\n"
@@ -83,6 +85,7 @@ static PyObject *bpy_utils_previews_load(PyObject * /*self*/, PyObject *args)
 {
   char *name;
   PyC_UnicodeAsBytesAndSize_Data filepath_data = {nullptr};
+  /* Be sure to keep these in sync with #PYDOC_SOURCE_TYPES_LITERAL. */
   const PyC_StringEnumItems path_type_items[] = {
       {THB_SOURCE_IMAGE, "IMAGE"},
       {THB_SOURCE_MOVIE, "MOVIE"},
@@ -120,7 +123,7 @@ static PyObject *bpy_utils_previews_load(PyObject * /*self*/, PyObject *args)
 
   Py_XDECREF(filepath_data.value_coerce);
 
-  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, &RNA_ImagePreview, prv);
+  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, RNA_ImagePreview, prv);
   return pyrna_struct_CreatePyObject(&ptr);
 }
 
@@ -132,7 +135,7 @@ PyDoc_STRVAR(
     "   Release (free) a previously created preview.\n"
     "\n"
     "\n"
-    "   :arg name: The name (unique id) identifying the preview.\n"
+    "   :param name: The name (unique id) identifying the preview.\n"
     "   :type name: str\n");
 static PyObject *bpy_utils_previews_release(PyObject * /*self*/, PyObject *args)
 {
@@ -159,10 +162,16 @@ static PyObject *bpy_utils_previews_release(PyObject * /*self*/, PyObject *args)
 
 static PyMethodDef bpy_utils_previews_methods[] = {
     /* Can't use METH_KEYWORDS alone, see http://bugs.python.org/issue11587 */
-    {"new", (PyCFunction)bpy_utils_previews_new, METH_VARARGS, bpy_utils_previews_new_doc},
-    {"load", (PyCFunction)bpy_utils_previews_load, METH_VARARGS, bpy_utils_previews_load_doc},
+    {"new",
+     static_cast<PyCFunction>(bpy_utils_previews_new),
+     METH_VARARGS,
+     bpy_utils_previews_new_doc},
+    {"load",
+     static_cast<PyCFunction>(bpy_utils_previews_load),
+     METH_VARARGS,
+     bpy_utils_previews_load_doc},
     {"release",
-     (PyCFunction)bpy_utils_previews_release,
+     static_cast<PyCFunction>(bpy_utils_previews_release),
      METH_VARARGS,
      bpy_utils_previews_release_doc},
     {nullptr, nullptr, 0, nullptr},
@@ -201,3 +210,5 @@ PyObject *BPY_utils_previews_module()
 
   return submodule;
 }
+
+}  // namespace blender

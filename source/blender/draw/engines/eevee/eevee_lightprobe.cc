@@ -75,7 +75,8 @@ void LightProbeModule::sync_volume(const Object *ob, ObjectHandle &handle)
   VolumeProbe &grid = volume_map_.lookup_or_add_default(handle.object_key);
   grid.used = true;
   if (handle.recalc != 0 || grid.initialized == false) {
-    const ::LightProbe &lightprobe = DRW_object_get_data_for_drawing<const ::LightProbe>(*ob);
+    const blender::LightProbe &lightprobe =
+        DRW_object_get_data_for_drawing<const blender::LightProbe>(*ob);
 
     grid.initialized = true;
     grid.updated = true;
@@ -114,7 +115,8 @@ void LightProbeModule::sync_sphere(const Object *ob, ObjectHandle &handle)
   SphereProbe &cube = sphere_map_.lookup_or_add_default(handle.object_key);
   cube.used = true;
   if (handle.recalc != 0 || cube.initialized == false) {
-    const ::LightProbe &light_probe = DRW_object_get_data_for_drawing<::LightProbe>(*ob);
+    const blender::LightProbe &light_probe = DRW_object_get_data_for_drawing<blender::LightProbe>(
+        *ob);
 
     cube.initialized = true;
     cube.updated = true;
@@ -168,7 +170,8 @@ void LightProbeModule::sync_planar(const Object *ob, ObjectHandle &handle)
   PlanarProbe &plane = planar_map_.lookup_or_add_default(handle.object_key);
   plane.used = true;
   if (handle.recalc != 0 || plane.initialized == false) {
-    const ::LightProbe &light_probe = DRW_object_get_data_for_drawing<::LightProbe>(*ob);
+    const blender::LightProbe &light_probe = DRW_object_get_data_for_drawing<blender::LightProbe>(
+        *ob);
 
     plane.initialized = true;
     plane.updated = true;
@@ -183,7 +186,8 @@ void LightProbeModule::sync_planar(const Object *ob, ObjectHandle &handle)
 
 void LightProbeModule::sync_probe(const Object *ob, ObjectHandle &handle)
 {
-  const ::LightProbe &lightprobe = DRW_object_get_data_for_drawing<const ::LightProbe>(*ob);
+  const blender::LightProbe &lightprobe =
+      DRW_object_get_data_for_drawing<const blender::LightProbe>(*ob);
   switch (lightprobe.type) {
     case LIGHTPROBE_TYPE_SPHERE:
       sync_sphere(ob, handle);
@@ -198,7 +202,7 @@ void LightProbeModule::sync_probe(const Object *ob, ObjectHandle &handle)
   BLI_assert_unreachable();
 }
 
-void LightProbeModule::sync_world(const ::World *world, bool has_update)
+void LightProbeModule::sync_world(const blender::World *world, bool has_update)
 {
   const eLightProbeResolution probe_resolution = static_cast<eLightProbeResolution>(
       world->probe_resolution);

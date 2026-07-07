@@ -19,28 +19,20 @@ SoundBackup::SoundBackup(const Depsgraph * /*depsgraph*/)
 
 void SoundBackup::reset()
 {
-  cache = nullptr;
-  waveform = nullptr;
-  playback_handle = nullptr;
+  this->cache = nullptr;
+  this->waveform = nullptr;
+  this->playback_handle = nullptr;
 }
 
 void SoundBackup::init_from_sound(bSound *sound)
 {
-  cache = sound->cache;
-  waveform = sound->waveform;
-  playback_handle = sound->playback_handle;
-
-  sound->cache = nullptr;
-  sound->waveform = nullptr;
-  sound->playback_handle = nullptr;
+  BKE_sound_runtime_state_get_and_clear(
+      sound, &this->cache, &this->playback_handle, &this->waveform);
 }
 
 void SoundBackup::restore_to_sound(bSound *sound)
 {
-  sound->cache = cache;
-  sound->waveform = waveform;
-  sound->playback_handle = playback_handle;
-
+  BKE_sound_runtime_state_set(sound, this->cache, this->playback_handle, this->waveform);
   reset();
 }
 

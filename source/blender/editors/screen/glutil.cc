@@ -23,15 +23,15 @@
 #include "GPU_immediate.hh"
 #include "GPU_texture.hh"
 
+namespace blender {
+
 /* ******************************************** */
 
 static void immDrawPixelsTexSetupAttributes(IMMDrawPixelsTexState *state)
 {
   GPUVertFormat *vert_format = immVertexFormat();
-  state->pos = GPU_vertformat_attr_add(
-      vert_format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
-  state->texco = GPU_vertformat_attr_add(
-      vert_format, "texCoord", blender::gpu::VertAttrType::SFLOAT_32_32);
+  state->pos = GPU_vertformat_attr_add(vert_format, "pos", gpu::VertAttrType::SFLOAT_32_32);
+  state->texco = GPU_vertformat_attr_add(vert_format, "texCoord", gpu::VertAttrType::SFLOAT_32_32);
 }
 
 IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin)
@@ -39,10 +39,10 @@ IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin)
   IMMDrawPixelsTexState state;
   immDrawPixelsTexSetupAttributes(&state);
 
-  state.shader = GPU_shader_get_builtin_shader(eGPUBuiltinShader(builtin));
+  state.shader = GPU_shader_get_builtin_shader(GPUBuiltinShader(builtin));
 
   /* Shader will be unbind by immUnbindProgram in a `immDrawPixelsTex` function. */
-  immBindBuiltinProgram(eGPUBuiltinShader(builtin));
+  immBindBuiltinProgram(GPUBuiltinShader(builtin));
   state.do_shader_unbind = true;
 
   return state;
@@ -53,7 +53,7 @@ void immDrawPixelsTexScaledFullSize(const IMMDrawPixelsTexState *state,
                                     const float y,
                                     const int img_w,
                                     const int img_h,
-                                    const blender::gpu::TextureFormat gpu_format,
+                                    const gpu::TextureFormat gpu_format,
                                     const bool use_filter,
                                     const void *rect,
                                     const float scaleX,
@@ -71,13 +71,13 @@ void immDrawPixelsTexScaledFullSize(const IMMDrawPixelsTexState *state,
   const bool use_mipmap = use_filter && ((draw_width < img_w) || (draw_height < img_h));
   const int mip_len = use_mipmap ? 9999 : 1;
 
-  blender::gpu::Texture *tex = GPU_texture_create_2d(
+  gpu::Texture *tex = GPU_texture_create_2d(
       "immDrawPixels", img_w, img_h, mip_len, gpu_format, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
 
   const bool use_float_data = ELEM(gpu_format,
-                                   blender::gpu::TextureFormat::SFLOAT_16_16_16_16,
-                                   blender::gpu::TextureFormat::SFLOAT_16_16_16,
-                                   blender::gpu::TextureFormat::SFLOAT_16);
+                                   gpu::TextureFormat::SFLOAT_16_16_16_16,
+                                   gpu::TextureFormat::SFLOAT_16_16_16,
+                                   gpu::TextureFormat::SFLOAT_16);
   eGPUDataFormat gpu_data_format = (use_float_data) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
   GPU_texture_update(tex, gpu_data_format, rect);
 
@@ -127,7 +127,7 @@ void immDrawPixelsTexTiled_scaling_clipping(IMMDrawPixelsTexState *state,
                                             float y,
                                             int img_w,
                                             int img_h,
-                                            blender::gpu::TextureFormat gpu_format,
+                                            gpu::TextureFormat gpu_format,
                                             bool use_filter,
                                             const void *rect,
                                             float scaleX,
@@ -157,19 +157,14 @@ void immDrawPixelsTexTiled_scaling_clipping(IMMDrawPixelsTexState *state,
   const bool use_clipping = ((clip_min_x < clip_max_x) && (clip_min_y < clip_max_y));
   const float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
-  if (ELEM(gpu_format,
-           blender::gpu::TextureFormat::UNORM_8_8_8_8,
-           blender::gpu::TextureFormat::SFLOAT_16_16_16_16))
+  if (ELEM(gpu_format, gpu::TextureFormat::UNORM_8_8_8_8, gpu::TextureFormat::SFLOAT_16_16_16_16))
   {
     components = 4;
   }
-  else if (ELEM(gpu_format, blender::gpu::TextureFormat::SFLOAT_16_16_16)) {
+  else if (ELEM(gpu_format, gpu::TextureFormat::SFLOAT_16_16_16)) {
     components = 3;
   }
-  else if (ELEM(gpu_format,
-                blender::gpu::TextureFormat::UNORM_8,
-                blender::gpu::TextureFormat::SFLOAT_16))
-  {
+  else if (ELEM(gpu_format, gpu::TextureFormat::UNORM_8, gpu::TextureFormat::SFLOAT_16)) {
     components = 1;
   }
   else {
@@ -178,13 +173,13 @@ void immDrawPixelsTexTiled_scaling_clipping(IMMDrawPixelsTexState *state,
   }
 
   const bool use_float_data = ELEM(gpu_format,
-                                   blender::gpu::TextureFormat::SFLOAT_16_16_16_16,
-                                   blender::gpu::TextureFormat::SFLOAT_16_16_16,
-                                   blender::gpu::TextureFormat::SFLOAT_16);
+                                   gpu::TextureFormat::SFLOAT_16_16_16_16,
+                                   gpu::TextureFormat::SFLOAT_16_16_16,
+                                   gpu::TextureFormat::SFLOAT_16);
   eGPUDataFormat gpu_data = (use_float_data) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
   size_t stride = components * ((use_float_data) ? sizeof(float) : sizeof(uchar));
 
-  blender::gpu::Texture *tex = GPU_texture_create_2d(
+  gpu::Texture *tex = GPU_texture_create_2d(
       "immDrawPixels", tex_w, tex_h, 1, gpu_format, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
 
   GPU_texture_filter_mode(tex, use_filter);
@@ -208,8 +203,6 @@ void immDrawPixelsTexTiled_scaling_clipping(IMMDrawPixelsTexState *state,
   if (state->shader != nullptr && GPU_shader_get_uniform(state->shader, "color") != -1) {
     immUniformColor4fv((color) ? color : white);
   }
-
-  GPU_unpack_row_length_set(img_w);
 
   for (subpart_y = 0; subpart_y < nsubparts_y; subpart_y++) {
     for (subpart_x = 0; subpart_x < nsubparts_x; subpart_x++) {
@@ -251,7 +244,7 @@ void immDrawPixelsTexTiled_scaling_clipping(IMMDrawPixelsTexState *state,
 #define DATA(_y, _x) (static_cast<const char *>(rect) + stride * (size_t(_y) * img_w + (_x)))
         {
           const void *data = DATA(src_y, src_x);
-          GPU_texture_update_sub(tex, gpu_data, data, 0, 0, 0, subpart_w, subpart_h, 0);
+          GPU_texture_update_sub(tex, gpu_data, data, 0, 0, 0, subpart_w, subpart_h, 0, img_w);
         }
         /* Add an extra border of pixels so linear interpolation looks ok
          * at edges of full image. */
@@ -259,20 +252,23 @@ void immDrawPixelsTexTiled_scaling_clipping(IMMDrawPixelsTexState *state,
           const void *data = DATA(src_y, src_x + subpart_w - 1);
           const int offset[2] = {subpart_w, 0};
           const int extent[2] = {1, subpart_h};
-          GPU_texture_update_sub(tex, gpu_data, data, UNPACK2(offset), 0, UNPACK2(extent), 0);
+          GPU_texture_update_sub(
+              tex, gpu_data, data, UNPACK2(offset), 0, UNPACK2(extent), 0, img_w);
         }
         if (subpart_h < tex_h) {
           const void *data = DATA(src_y + subpart_h - 1, src_x);
           const int offset[2] = {0, subpart_h};
           const int extent[2] = {subpart_w, 1};
-          GPU_texture_update_sub(tex, gpu_data, data, UNPACK2(offset), 0, UNPACK2(extent), 0);
+          GPU_texture_update_sub(
+              tex, gpu_data, data, UNPACK2(offset), 0, UNPACK2(extent), 0, img_w);
         }
 
         if (subpart_w < tex_w && subpart_h < tex_h) {
           const void *data = DATA(src_y + subpart_h - 1, src_x + subpart_w - 1);
           const int offset[2] = {subpart_w, subpart_h};
           const int extent[2] = {1, 1};
-          GPU_texture_update_sub(tex, gpu_data, data, UNPACK2(offset), 0, UNPACK2(extent), 0);
+          GPU_texture_update_sub(
+              tex, gpu_data, data, UNPACK2(offset), 0, UNPACK2(extent), 0, img_w);
         }
 #undef DATA
       }
@@ -301,9 +297,6 @@ void immDrawPixelsTexTiled_scaling_clipping(IMMDrawPixelsTexState *state,
 
   GPU_texture_unbind(tex);
   GPU_texture_free(tex);
-
-  /* Restore default. */
-  GPU_unpack_row_length_set(0);
 }
 
 void immDrawPixelsTexTiled_scaling(IMMDrawPixelsTexState *state,
@@ -311,7 +304,7 @@ void immDrawPixelsTexTiled_scaling(IMMDrawPixelsTexState *state,
                                    float y,
                                    int img_w,
                                    int img_h,
-                                   blender::gpu::TextureFormat gpu_format,
+                                   gpu::TextureFormat gpu_format,
                                    bool use_filter,
                                    const void *rect,
                                    float scaleX,
@@ -344,7 +337,7 @@ void immDrawPixelsTexTiled(IMMDrawPixelsTexState *state,
                            float y,
                            int img_w,
                            int img_h,
-                           blender::gpu::TextureFormat gpu_format,
+                           gpu::TextureFormat gpu_format,
                            bool use_filter,
                            const void *rect,
                            float xzoom,
@@ -375,7 +368,7 @@ void immDrawPixelsTexTiled_clipping(IMMDrawPixelsTexState *state,
                                     float y,
                                     int img_w,
                                     int img_h,
-                                    blender::gpu::TextureFormat gpu_format,
+                                    gpu::TextureFormat gpu_format,
                                     bool use_filter,
                                     const void *rect,
                                     float clip_min_x,
@@ -507,7 +500,7 @@ void ED_draw_imbuf_clipping(ImBuf *ibuf,
                                        y,
                                        ibuf->x,
                                        ibuf->y,
-                                       blender::gpu::TextureFormat::UNORM_8_8_8_8,
+                                       gpu::TextureFormat::UNORM_8_8_8_8,
                                        use_filter,
                                        ibuf->byte_buffer.data,
                                        clip_min_x,
@@ -540,7 +533,7 @@ void ED_draw_imbuf_clipping(ImBuf *ibuf,
                                      y,
                                      ibuf->x,
                                      ibuf->y,
-                                     blender::gpu::TextureFormat::UNORM_8_8_8_8,
+                                     gpu::TextureFormat::UNORM_8_8_8_8,
                                      use_filter,
                                      display_buffer,
                                      clip_min_x,
@@ -666,3 +659,5 @@ void immDrawBorderCorners(uint pos, const rcti *border, float zoomx, float zoomy
   immVertex2f(pos, border->xmax, border->ymax - delta_y);
   immEnd();
 }
+
+}  // namespace blender

@@ -17,6 +17,8 @@
 
 #include "view3d_navigate.hh" /* own include */
 
+namespace blender {
+
 /* -------------------------------------------------------------------- */
 /** \name View Camera Operator
  * \{ */
@@ -129,3 +131,5 @@ void VIEW3D_OT_view_camera(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender

@@ -17,6 +17,8 @@
 
 #include "openimageio_api.h"
 
+namespace blender {
+
 static PyTypeObject BlenderAppOIIOType;
 
 static PyStructSequence_Field app_oiio_info_fields[] = {
@@ -76,7 +78,9 @@ PyObject *BPY_app_oiio_struct()
   BlenderAppOIIOType.tp_init = nullptr;
   BlenderAppOIIOType.tp_new = nullptr;
   /* Without this we can't do `set(sys.modules)` #29635. */
-  BlenderAppOIIOType.tp_hash = (hashfunc)Py_HashPointer;
+  BlenderAppOIIOType.tp_hash = reinterpret_cast<hashfunc>(Py_HashPointer);
 
   return ret;
 }
+
+}  // namespace blender

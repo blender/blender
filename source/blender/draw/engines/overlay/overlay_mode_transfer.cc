@@ -22,7 +22,7 @@ void ModeTransfer::begin_sync(Resources &res, const State &state)
     return;
   }
 
-  UI_GetThemeColor3fv(TH_VERTEX_SELECT, flash_color_);
+  ui::theme::get_color_3fv(TH_VERTEX_SELECT, flash_color_);
   srgb_to_linearrgb_v4(flash_color_, flash_color_);
 
   ps_.init();

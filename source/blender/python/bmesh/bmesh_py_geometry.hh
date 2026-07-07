@@ -10,4 +10,8 @@
 
 #include <Python.h>
 
+namespace blender {
+
 [[nodiscard]] PyObject *BPyInit_bmesh_geometry();
+
+}  // namespace blender

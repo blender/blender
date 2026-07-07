@@ -12,6 +12,8 @@
 #  include <intrin.h>
 #endif
 
+namespace blender {
+
 /* The code below is duplicated from system.c from bf_blenlib. This is on purpose, since bf_blenlib
  * may be build with CPU flags that are not available on the current cpu so we can't link it. */
 
@@ -50,9 +52,9 @@ static const char *cpu_brand_string()
   int result[4] = {0};
   __cpuid(result, 0x80000000);
   if (result[0] >= int(0x80000004)) {
-    __cpuid((int *)(buf + 0), 0x80000002);
-    __cpuid((int *)(buf + 16), 0x80000003);
-    __cpuid((int *)(buf + 32), 0x80000004);
+    __cpuid(reinterpret_cast<int *>(buf + 0), 0x80000002);
+    __cpuid(reinterpret_cast<int *>(buf + 16), 0x80000003);
+    __cpuid(reinterpret_cast<int *>(buf + 32), 0x80000004);
     const char *buf_ptr = buf;
     /* Trim any leading spaces. */
     while (*buf_ptr == ' ') {
@@ -95,12 +97,12 @@ static __attribute__((constructor)) void cpu_check()
 {
 #  ifdef __x86_64
   if (!cpu_supports_sse42()) {
-    std::string error = "Unsupported CPU - " + std::string(cpu_brand_string()) +
-                        "\nBlender requires a CPU with SSE42 support.";
-    printf("%s\n", error.c_str());
+    printf("Unsupported CPU - %s\nBlender requires a CPU with SSE42 support.", cpu_brand_string());
     exit(-1);
   }
   return;
 #  endif
 }
 #endif
+
+}  // namespace blender

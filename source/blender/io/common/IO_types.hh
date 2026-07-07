@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
+namespace blender {
+
 /* The CacheArchiveHandle struct is only used for anonymous pointers,
  * to interface between C and C++ code. This is currently used
  * to hide pointers to alembic ArchiveReader and USDStageReader. */
@@ -17,3 +19,5 @@ struct CacheArchiveHandle {
 struct CacheReader {
   int unused;
 };
+
+}  // namespace blender

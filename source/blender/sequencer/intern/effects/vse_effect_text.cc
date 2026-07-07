@@ -33,7 +33,6 @@
 #include "DNA_space_types.h"
 #include "DNA_vfont_types.h"
 
-#include "IMB_colormanagement.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "SEQ_effects.hh"
@@ -44,6 +43,13 @@
 #include "effects.hh"
 
 namespace blender::seq {
+
+static Mutex text_runtime_mutex;
+
+std::unique_lock<Mutex> text_runtime_scoped_lock_get()
+{
+  return std::unique_lock<Mutex>(text_runtime_mutex);
+}
 
 /* -------------------------------------------------------------------- */
 /* Sequencer font access.
@@ -171,11 +177,7 @@ bool effects_can_render_text(const Strip *strip)
 
 static void init_text_effect(Strip *strip)
 {
-  if (strip->effectdata) {
-    MEM_freeN(strip->effectdata);
-  }
-
-  TextVars *data = MEM_callocN<TextVars>("textvars");
+  TextVars *data = MEM_new<TextVars>("textvars");
   strip->effectdata = data;
 
   data->text_font = nullptr;
@@ -198,6 +200,7 @@ static void init_text_effect(Strip *strip)
 
   data->text_ptr = BLI_strdup("Text");
   data->text_len_bytes = strlen(data->text_ptr);
+  data->cursor_offset = data->text_len_bytes;
 
   data->loc[0] = 0.5f;
   data->loc[1] = 0.5f;
@@ -207,7 +210,7 @@ static void init_text_effect(Strip *strip)
   data->wrap_width = 1.0f;
 }
 
-void effect_text_font_unload(TextVars *data, const bool do_id_user)
+static void text_font_unload(TextVars *data, const bool do_id_user)
 {
   if (data == nullptr) {
     return;
@@ -226,7 +229,20 @@ void effect_text_font_unload(TextVars *data, const bool do_id_user)
   }
 }
 
-void effect_text_font_load(TextVars *data, const bool do_id_user)
+void effect_text_font_set(Strip *strip, VFont *font)
+{
+  if (strip == nullptr || strip->type != STRIP_TYPE_TEXT) {
+    return;
+  }
+  TextVars *data = static_cast<TextVars *>(strip->effectdata);
+  text_font_unload(data, true);
+
+  id_us_plus(&font->id);
+  data->text_blf_id = STRIP_FONT_NOT_LOADED;
+  data->text_font = font;
+}
+
+static void text_font_load(TextVars *data, const bool do_id_user)
 {
   VFont *vfont = data->text_font;
   if (vfont == nullptr) {
@@ -262,31 +278,26 @@ void effect_text_font_load(TextVars *data, const bool do_id_user)
 static void free_text_effect(Strip *strip, const bool do_id_user)
 {
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
-  effect_text_font_unload(data, do_id_user);
+  text_font_unload(data, do_id_user);
 
   if (data) {
-    MEM_SAFE_FREE(data->text_ptr);
+    MEM_SAFE_DELETE(data->text_ptr);
     MEM_delete(data->runtime);
-    MEM_freeN(data);
+    MEM_delete(data);
     strip->effectdata = nullptr;
   }
 }
 
-static void load_text_effect(Strip *strip)
-{
-  TextVars *data = static_cast<TextVars *>(strip->effectdata);
-  effect_text_font_load(data, false);
-}
-
 static void copy_text_effect(Strip *dst, const Strip *src, const int flag)
 {
-  dst->effectdata = MEM_dupallocN(src->effectdata);
-  TextVars *data = static_cast<TextVars *>(dst->effectdata);
+  TextVars *data = MEM_dupalloc(static_cast<TextVars *>(src->effectdata));
   data->text_ptr = BLI_strdup_null(data->text_ptr);
 
   data->runtime = nullptr;
   data->text_blf_id = -1;
-  effect_text_font_load(data, (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0);
+  text_font_load(data, (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0);
+
+  dst->effectdata = data;
 }
 
 static int num_inputs_text()
@@ -592,7 +603,7 @@ static rcti draw_text_outline(const RenderData *context,
   Array<uchar4> tmp_buf(pixel_count, uchar4(0));
   BLF_buffer(runtime->font,
              nullptr,
-             (uchar *)tmp_buf.data(),
+             reinterpret_cast<uchar *>(tmp_buf.data()),
              size.x,
              size.y,
              out->byte_buffer.colorspace);
@@ -803,8 +814,7 @@ int text_effect_font_init(const RenderData *context, const Strip *strip, FontFla
 
   if (data->text_blf_id == STRIP_FONT_NOT_LOADED) {
     data->text_blf_id = -1;
-
-    effect_text_font_load(data, false);
+    text_font_load(data, false);
   }
 
   if (data->text_blf_id >= 0) {
@@ -866,41 +876,66 @@ static void apply_word_wrapping(const TextVars *data,
 {
   const int wrap_width = wrap_width_get(data, image_size);
 
-  float2 char_position{0.0f, 0.0f};
+  float cur_pixel_x = 0.0f;
   CharInfo *last_space = nullptr;
 
-  /* First pass: Find characters where line has to be broken. */
+  /* First pass: Find characters where line has to be broken. Temporarily set `CharInfo.position`
+   * only for space characters for now so that we can jump back if we find a breaking space. */
   for (CharInfo &character : characters) {
-    char ch = data->text_ptr[character.offset];
-    if (ch == ' ') {
-      character.position = char_position;
+    char chr = data->text_ptr[character.offset];
+    if (chr == '\0') {
+      break;
+    }
+
+    if (chr == ' ') {
+      character.position.x = cur_pixel_x;
       last_space = &character;
     }
-    if (ch == '\n') {
-      char_position.x = 0;
+    else if (chr == '\n') {
+      character.do_wrap = true;
+      cur_pixel_x = 0;
       last_space = nullptr;
     }
-    if (ch != '\0' && char_position.x > wrap_width && last_space != nullptr) {
+    else if ((cur_pixel_x + character.advance_x) > wrap_width && last_space != nullptr) {
       last_space->do_wrap = true;
-      char_position -= last_space->position + last_space->advance_x;
+      cur_pixel_x -= last_space->position.x + last_space->advance_x;
+      last_space = nullptr;
     }
-    char_position.x += character.advance_x;
+    cur_pixel_x += character.advance_x;
   }
 
   /* Second pass: Fill lines with characters. */
-  char_position = {0.0f, 0.0f};
+  float2 cur_pixel_pos = {0.0f, 0.0f};
   runtime->lines.append(LineInfo());
   for (CharInfo &character : characters) {
-    character.position = char_position;
-    runtime->lines.last().characters.append(character);
-    runtime->lines.last().width = char_position.x;
+    LineInfo &line = runtime->lines.last();
+    character.position = cur_pixel_pos;
+    line.characters.append(character);
 
-    char_position.x += character.advance_x;
+    cur_pixel_pos.x += character.advance_x;
 
-    if (character.do_wrap || data->text_ptr[character.offset] == '\n') {
+    /* If line is ending, calculate final line width. */
+    const bool line_end = data->text_ptr[character.offset] == '\0' || character.do_wrap;
+    if (line_end) {
+      /* Subtract one to ignore \0 or \n character. */
+      const int num_visible_chars = line.characters.size() - 1;
+      if (num_visible_chars <= 0) {
+        line.width = 0;
+      }
+      else {
+        const CharInfo last_char = line.characters[num_visible_chars - 1];
+        /* Note that we cannot only rely on `advance_x`, since e.g. italic fonts can extend further
+         * than this, so calculate the last glyph width to get a correct result. See !145692. */
+        const int glyph_width = math::ceil(
+            BLF_width(runtime->font, &data->text_ptr[last_char.offset], last_char.byte_length));
+        line.width = last_char.position.x + glyph_width;
+      }
+    }
+
+    if (character.do_wrap) {
       runtime->lines.append(LineInfo());
-      char_position.x = 0;
-      char_position.y -= runtime->line_height;
+      cur_pixel_pos.x = 0;
+      cur_pixel_pos.y -= runtime->line_height;
     }
   }
 }
@@ -917,9 +952,9 @@ static int text_box_width_get(const Vector<LineInfo> &lines)
 
 static float2 horizontal_alignment_offset_get(const TextVars *data,
                                               float line_width,
-                                              int width_max)
+                                              int max_width)
 {
-  const float line_offset = (width_max - line_width);
+  const float line_offset = (max_width - line_width);
 
   if (data->align == SEQ_TEXT_ALIGN_X_RIGHT) {
     return {line_offset, 0.0f};
@@ -963,7 +998,11 @@ static float2 anchor_offset_get(const TextVars *data, int width_max, int text_he
 
 static void calc_boundbox(const TextVars *data, TextVarsRuntime *runtime, const int2 image_size)
 {
-  const int text_height = runtime->lines.size() * runtime->line_height;
+  /* `BLF_bounds_max()` is used, because some fonts have glyphs overlapping with lines above. */
+  rctf glyph_bounds_max;
+  BLF_bounds_max(runtime->font, &glyph_bounds_max);
+  const int text_height = (runtime->lines.size() - 1) * runtime->line_height +
+                          math::ceil(BLI_rctf_size_y(&glyph_bounds_max));
 
   int width_max = text_box_width_get(runtime->lines);
 
@@ -985,20 +1024,21 @@ static void apply_text_alignment(const TextVars *data,
                                  TextVarsRuntime *runtime,
                                  const int2 image_size)
 {
-  const int width_max = text_box_width_get(runtime->lines);
-  const int text_height = runtime->lines.size() * runtime->line_height;
+  const int box_width = text_box_width_get(runtime->lines);
+  const int box_height = runtime->lines.size() * runtime->line_height;
 
   const float2 image_center{data->loc[0] * image_size.x, data->loc[1] * image_size.y};
   const float2 line_height_offset{0.0f,
                                   float(-runtime->line_height - BLF_descender(runtime->font))};
-  const float2 anchor = anchor_offset_get(data, width_max, text_height);
+  const float2 anchor_offset = anchor_offset_get(data, box_width, box_height);
 
   for (LineInfo &line : runtime->lines) {
-    const float2 alignment_x = horizontal_alignment_offset_get(data, line.width, width_max);
-    const float2 alignment = math::round(image_center + line_height_offset + alignment_x + anchor);
+    const float2 align_offset = horizontal_alignment_offset_get(data, line.width, box_width);
+    const float2 offset = math::round(image_center + line_height_offset + align_offset +
+                                      anchor_offset);
 
     for (CharInfo &character : line.characters) {
-      character.position += alignment;
+      character.position += offset;
     }
   }
 }
@@ -1021,6 +1061,7 @@ TextVarsRuntime *text_effect_calc_runtime(const Strip *strip, int font, const in
 }
 
 static ImBuf *do_text_effect(const RenderData *context,
+                             SeqRenderState * /*state*/,
                              Strip *strip,
                              float /*timeline_frame*/,
                              float /*fac*/,
@@ -1036,7 +1077,8 @@ static ImBuf *do_text_effect(const RenderData *context,
                                ((data->flag & SEQ_TEXT_ITALIC) ? BLF_ITALIC : BLF_NONE);
 
   /* Guard against parallel accesses to the fonts map. */
-  std::lock_guard lock(g_font_map.mutex);
+  std::lock_guard font_map_lock(g_font_map.mutex);
+  std::lock_guard text_runtime_lock(text_runtime_mutex);
 
   const int font = text_effect_font_init(context, strip, font_flags);
 
@@ -1079,7 +1121,6 @@ void text_effect_get_handle(EffectHandle &rval)
   rval.num_inputs = num_inputs_text;
   rval.init = init_text_effect;
   rval.free = free_text_effect;
-  rval.load = load_text_effect;
   rval.copy = copy_text_effect;
   rval.early_out = early_out_text;
   rval.execute = do_text_effect;

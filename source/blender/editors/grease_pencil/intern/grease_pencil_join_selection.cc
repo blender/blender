@@ -25,7 +25,9 @@
 
 #include <algorithm>
 
-namespace blender::ed::greasepencil {
+namespace blender {
+
+namespace ed::greasepencil {
 
 namespace {
 
@@ -148,10 +150,12 @@ void reverse_points_of(bke::CurvesGeometry &dst_curves, const IndexRange points_
     if (iter.data_type == bke::AttrType::String) {
       return;
     }
+    if (iter.storage_type == bke::AttrStorageType::Single) {
+      return;
+    }
 
     bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(iter.name);
-    bke::attribute_math::convert_to_static_type(attribute.span.type(), [&](auto dummy) {
-      using T = decltype(dummy);
+    bke::attribute_math::to_static_type(attribute.span.type(), [&]<typename T>() {
       reverse_point_data<T>(points_to_reverse, attribute.span.typed<T>());
     });
     attribute.finish();
@@ -398,13 +402,16 @@ void copy_curve_attributes(Span<PointsRange> ranges_selected,
  * Removes the selection state of all the affected CurvesGeometry, except the one
  * of the active layer. Points in the active layer do not get unselected
  */
-void clear_selection_attribute(Span<PointsRange> ranges_selected)
+void clear_selection_attribute(Span<PointsRange> ranges_selected,
+                               const bke::AttrDomain selection_domain)
 {
   for (const PointsRange &range : ranges_selected) {
     bke::CurvesGeometry &curves = range.from_drawing->strokes_for_write();
     bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-    if (bke::GSpanAttributeWriter selection = attributes.lookup_for_write_span(".selection")) {
-      ed::curves::fill_selection_false(selection.span);
+    if (bke::SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
+            ".selection", selection_domain))
+    {
+      selection.span.fill(false);
       selection.finish();
     }
     if (bke::GSpanAttributeWriter selection = attributes.lookup_for_write_span(".selection_left"))
@@ -437,6 +444,7 @@ void remove_selected_points(Span<PointsRange> ranges_selected)
     IndexMaskMemory memory;
     const IndexMask combined_mask = IndexMask::from_union(item.value, memory);
     dst_curves.remove_points(combined_mask, {});
+    item.key->tag_topology_changed();
   }
 }
 
@@ -496,7 +504,7 @@ wmOperatorStatus grease_pencil_join_selection_exec(bContext *C, wmOperator *op)
   Object *object = CTX_data_active_object(C);
   const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
       scene->toolsettings, object);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   if (!grease_pencil.has_active_layer()) {
     BKE_report(op->reports, RPT_ERROR, "No active layer");
     return OPERATOR_CANCELLED;
@@ -532,10 +540,10 @@ wmOperatorStatus grease_pencil_join_selection_exec(bContext *C, wmOperator *op)
       ranges_selected, tmp_curves, tmp_drawing);
   copy_curve_attributes(ranges_selected, tmp_curves, *dst_drawing);
 
-  clear_selection_attribute(ranges_selected);
+  clear_selection_attribute(ranges_selected, selection_domain);
 
   Array<PointsRange> working_range_collection = {working_range};
-  clear_selection_attribute(working_range_collection);
+  clear_selection_attribute(working_range_collection, selection_domain);
 
   bke::CurvesGeometry &dst_curves = dst_drawing->strokes_for_write();
   if (ELEM(active_layer_behavior,
@@ -616,7 +624,7 @@ void GREASE_PENCIL_OT_join_selection(wmOperatorType *ot)
 
 /** \} */
 
-}  // namespace blender::ed::greasepencil
+}  // namespace ed::greasepencil
 
 void ED_operatortypes_grease_pencil_join()
 {
@@ -624,3 +632,5 @@ void ED_operatortypes_grease_pencil_join()
 
   WM_operatortype_append(GREASE_PENCIL_OT_join_selection);
 }
+
+}  // namespace blender

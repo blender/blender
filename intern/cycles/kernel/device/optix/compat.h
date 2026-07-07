@@ -51,6 +51,7 @@ typedef unsigned long long uint64_t;
 #define ccl_may_alias
 #define ccl_restrict __restrict__
 #define ccl_align(n) __align__(n)
+#define ccl_attr_maybe_unused [[maybe_unused]]
 
 /* Zero initialize structs to help the compiler figure out scoping */
 #define ccl_optional_struct_init = {}
@@ -62,12 +63,12 @@ typedef unsigned long long uint64_t;
 /* GPU texture objects */
 
 typedef unsigned long long CUtexObject;
-typedef CUtexObject ccl_gpu_tex_object_2D;
+typedef CUtexObject ccl_gpu_image_object_2D;
 
 template<typename T>
-ccl_device_forceinline T ccl_gpu_tex_object_read_2D(const ccl_gpu_tex_object_2D texobj,
-                                                    const float x,
-                                                    const float y)
+ccl_device_forceinline T ccl_gpu_image_object_read_2D(const ccl_gpu_image_object_2D texobj,
+                                                      const float x,
+                                                      const float y)
 {
   return tex2D<T>(texobj, x, y);
 }

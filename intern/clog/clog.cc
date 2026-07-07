@@ -14,6 +14,7 @@
 #include <cstring>
 
 #include <mutex>
+#include <set>
 
 /* Disable for small single threaded programs
  * to avoid having to link with pthreads. */
@@ -78,8 +79,6 @@ struct CLG_IDFilter {
 struct CLogContext {
   /** Single linked list of types. */
   CLG_LogType *types;
-  /** Single linked list of references. */
-  CLG_LogRef *refs;
 #ifdef WITH_CLOG_PTHREADS
   pthread_mutex_t types_lock;
 #endif
@@ -114,6 +113,20 @@ struct CLogContext {
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Global LogRef Single Linked List
+ * \{ */
+
+static CLG_LogRef **clg_all_refs_p()
+{
+  /* Inside a function for correct static initialization order, otherwise
+   * all_refs might get null initialized only after logrefs are registered.*/
+  static CLG_LogRef *all_refs = nullptr;
+  return &all_refs;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Mini Buffer Functionality
  *
  * Use so we can do a single call to write.
@@ -139,7 +152,7 @@ static void clg_str_init(CLogStringBuf *cstr, char *buf_stack, uint buf_stack_le
 static void clg_str_free(CLogStringBuf *cstr)
 {
   if (cstr->is_alloc) {
-    MEM_freeN(cstr->data);
+    MEM_delete(cstr->data);
   }
 }
 
@@ -150,11 +163,11 @@ static void clg_str_reserve(CLogStringBuf *cstr, const uint len)
     cstr->len_alloc = std::max(len, cstr->len_alloc);
 
     if (cstr->is_alloc) {
-      cstr->data = static_cast<char *>(MEM_reallocN(cstr->data, cstr->len_alloc));
+      cstr->data = static_cast<char *>(MEM_realloc_uninitialized(cstr->data, cstr->len_alloc));
     }
     else {
       /* Copy the static buffer. */
-      char *data = MEM_malloc_arrayN<char>(cstr->len_alloc, __func__);
+      char *data = MEM_new_array_uninitialized<char>(cstr->len_alloc, __func__);
       memcpy(data, cstr->data, cstr->len);
       cstr->data = data;
       cstr->is_alloc = true;
@@ -251,7 +264,7 @@ static void clg_str_indent_multiline(CLogStringBuf *cstr, const uint indent_len)
 
   cstr->len_alloc = cstr->len + (num_newlines * indent_len);
   cstr->len = 0;
-  cstr->data = MEM_malloc_arrayN<char>(cstr->len_alloc, __func__);
+  cstr->data = MEM_new_array_uninitialized<char>(cstr->len_alloc, __func__);
   cstr->is_alloc = true;
 
   for (uint i = 0; i < old_len; i++) {
@@ -264,7 +277,7 @@ static void clg_str_indent_multiline(CLogStringBuf *cstr, const uint indent_len)
   }
 
   if (old_is_alloc) {
-    MEM_freeN(old_data);
+    MEM_delete(old_data);
   }
 }
 
@@ -375,10 +388,10 @@ static bool clg_ctx_filter_check(CLogContext *ctx, const char *identifier)
         return (bool)i;
       }
       if (flt->match[0] == '*' && flt->match[len - 1] == '*') {
-        char *match = MEM_calloc_arrayN<char>(len - 1, __func__);
+        char *match = MEM_new_array_zeroed<char>(len - 1, __func__);
         memcpy(match, flt->match + 1, len - 2);
         const bool success = (strstr(identifier, match) != nullptr);
-        MEM_freeN(match);
+        MEM_delete(match);
         if (success) {
           return (bool)i;
         }
@@ -415,7 +428,7 @@ static CLG_LogType *clg_ctx_type_find_by_name(CLogContext *ctx, const char *iden
 static CLG_LogType *clg_ctx_type_register(CLogContext *ctx, const char *identifier)
 {
   assert(clg_ctx_type_find_by_name(ctx, identifier) == nullptr);
-  CLG_LogType *ty = MEM_callocN<CLG_LogType>(__func__);
+  CLG_LogType *ty = MEM_new_zeroed<CLG_LogType>(__func__);
   ty->next = ctx->types;
   ctx->types = ty;
   strncpy(ty->identifier, identifier, sizeof(ty->identifier) - 1);
@@ -771,7 +784,7 @@ static void clg_ctx_type_filter_append(CLG_IDFilter **flt_list,
     return;
   }
   CLG_IDFilter *flt = static_cast<CLG_IDFilter *>(
-      MEM_callocN(sizeof(*flt) + type_match_len + 1, __func__));
+      MEM_new_zeroed(sizeof(*flt) + type_match_len + 1, __func__));
   flt->next = *flt_list;
   *flt_list = flt;
   memcpy(flt->match, type_match, type_match_len);
@@ -805,7 +818,7 @@ static void CLG_ctx_level_set(CLogContext *ctx, CLG_Level level)
 
 static CLogContext *CLG_ctx_init()
 {
-  CLogContext *ctx = MEM_callocN<CLogContext>(__func__);
+  CLogContext *ctx = MEM_new_zeroed<CLogContext>(__func__);
 #ifdef WITH_CLOG_PTHREADS
   pthread_mutex_init(&ctx->types_lock, nullptr);
 #endif
@@ -824,26 +837,24 @@ static void CLG_ctx_free(CLogContext *ctx)
   while (ctx->types != nullptr) {
     CLG_LogType *item = ctx->types;
     ctx->types = item->next;
-    MEM_freeN(item);
+    MEM_delete(item);
   }
 
-  while (ctx->refs != nullptr) {
-    CLG_LogRef *item = ctx->refs;
-    ctx->refs = item->next;
-    item->type = nullptr;
+  for (CLG_LogRef *ref = *clg_all_refs_p(); ref; ref = ref->next) {
+    ref->type = nullptr;
   }
 
   for (uint i = 0; i < 2; i++) {
     while (ctx->filters[i] != nullptr) {
       CLG_IDFilter *item = ctx->filters[i];
       ctx->filters[i] = item->next;
-      MEM_freeN(item);
+      MEM_delete(item);
     }
   }
 #ifdef WITH_CLOG_PTHREADS
   pthread_mutex_destroy(&ctx->types_lock);
 #endif
-  MEM_freeN(ctx);
+  MEM_delete(ctx);
 }
 
 /** \} */
@@ -944,17 +955,44 @@ bool CLG_quiet_get()
  * Use to avoid look-ups each time.
  * \{ */
 
+void CLG_logref_register(CLG_LogRef *clg_ref)
+{
+  /* Add to global list of refs, both for setting the type to null on CLG_exit()
+   * and so CLG_logref_list_all can be used to print all categories. */
+  static std::mutex mutex;
+  std::scoped_lock lock(mutex);
+  CLG_LogRef **all_refs = clg_all_refs_p();
+  clg_ref->next = *all_refs;
+  *all_refs = clg_ref;
+}
+
+void CLG_logref_list_all(void (*callback)(const char *identifier, void *user_data),
+                         void *user_data)
+{
+  /* Generate sorted list of unique identifiers. */
+  auto cmp = [](const char *a, const char *b) { return std::strcmp(a, b) < 0; };
+  std::set<const char *, decltype(cmp)> identifiers(cmp);
+  for (CLG_LogRef *ref = *clg_all_refs_p(); ref; ref = ref->next) {
+    identifiers.insert(ref->identifier);
+  }
+
+  for (const char *identifier : identifiers) {
+    callback(identifier, user_data);
+  }
+}
+
 void CLG_logref_init(CLG_LogRef *clg_ref)
 {
+  if (g_ctx == nullptr) {
+    fprintf(stderr, "CLG logging used without initialization, aborting.\n");
+    abort();
+  }
+
 #ifdef WITH_CLOG_PTHREADS
   /* Only runs once when initializing a static type in most cases. */
   pthread_mutex_lock(&g_ctx->types_lock);
 #endif
   if (clg_ref->type == nullptr) {
-    /* Add to the refs list so we can nullptr the pointers to 'type' when CLG_exit() is called. */
-    clg_ref->next = g_ctx->refs;
-    g_ctx->refs = clg_ref;
-
     CLG_LogType *clg_ty = clg_ctx_type_find_by_name(g_ctx, clg_ref->identifier);
     if (clg_ty == nullptr) {
       clg_ty = clg_ctx_type_register(g_ctx, clg_ref->identifier);

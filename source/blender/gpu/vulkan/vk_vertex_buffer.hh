@@ -54,7 +54,7 @@ class VKVertexBuffer : public VertBuf {
 
   inline VkFormat to_vk_format()
   {
-    return blender::gpu::to_vk_format(to_texture_format(&format));
+    return gpu::to_vk_format(to_texture_format(&format));
   }
 
  protected:

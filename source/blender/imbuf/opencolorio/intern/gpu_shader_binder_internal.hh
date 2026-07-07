@@ -24,14 +24,16 @@
 #  include "opencolorio.hh"
 #endif
 
+namespace blender {
+
 struct CurveMapping;
-namespace blender::gpu {
+namespace gpu {
 class Shader;
 class UniformBuf;
 class Texture;
-}  // namespace blender::gpu
+}  // namespace gpu
 
-namespace blender::ocio {
+namespace ocio {
 
 struct GPUDisplayParameters;
 
@@ -57,7 +59,7 @@ struct UniformBufferSlot {
 };
 
 struct GPULutTexture {
-  blender::gpu::Texture *texture = nullptr;
+  gpu::Texture *texture = nullptr;
   std::string sampler_name;
 };
 
@@ -77,7 +79,7 @@ class GPUTextures : NonCopyable, NonMovable {
   Vector<GPULutTexture> luts;
 
   /* Dummy in case of no overlay. */
-  blender::gpu::Texture *dummy = nullptr;
+  gpu::Texture *dummy = nullptr;
 
   /* Uniforms */
   Vector<GPUUniform> uniforms;
@@ -100,7 +102,7 @@ class GPUCurveMappping : NonCopyable, NonMovable {
   float *lut = nullptr;
 
   gpu::UniformBuf *buffer = nullptr;
-  blender::gpu::Texture *texture = nullptr;
+  gpu::Texture *texture = nullptr;
   size_t cache_id = 0;
 
   ~GPUCurveMappping();
@@ -192,4 +194,5 @@ class GPUShaderCache {
 };
 
 }  // namespace internal
-}  // namespace blender::ocio
+}  // namespace ocio
+}  // namespace blender
