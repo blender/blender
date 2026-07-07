@@ -436,6 +436,9 @@ class RemoteAssetListingDownloader:
         if self._on_metafiles_done_callback:
             self._on_metafiles_done_callback(self)
 
+        # There may not be any pages to download (empty library).
+        self._shutdown_if_done()
+
     def on_asset_page_downloaded(self,
                                  http_req_descr: http_dl.RequestDescription,
                                  unsafe_local_file: Path,
