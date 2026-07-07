@@ -3,18 +3,13 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
-  .
+  INTERFACE .
 )
 
 set(INC_SYS
 )
 set(LIB
 )
-
-add_library(bf_intern_atomic INTERFACE)
-
-target_include_directories(bf_intern_atomic INTERFACE .)
-add_library(bf::intern::atomic ALIAS bf_intern_atomic)
 
 set(SRC
   atomic_ops.h
@@ -23,8 +18,9 @@ set(SRC
   intern/atomic_ops_unix.h
   intern/atomic_ops_utils.h
 )
-target_sources(bf_intern_atomic PRIVATE ${SRC})
-blender_source_group(bf_intern_atomic ${SRC})
+
+blender_add_lib(bf_intern_atomic "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+add_library(bf::intern::atomic ALIAS bf_intern_atomic)
 
 if(WITH_GTESTS)
   set(TEST_SRC

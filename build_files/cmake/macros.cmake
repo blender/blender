@@ -424,6 +424,21 @@ function(blender_link_libraries
   target_link_libraries(${target} ${dependency_libraries})
 endfunction()
 
+function(is_c_or_cxx_source file variable)
+  set(result FALSE)
+  cmake_path(GET file EXTENSION LAST_ONLY _ext)
+  # Files without an extension are not sources.
+  if(_ext)
+    # Strip the leading dot.
+    string(SUBSTRING "${_ext}" 1 -1 _ext)
+    if(("${_ext}" IN_LIST CMAKE_C_SOURCE_FILE_EXTENSIONS) OR
+       ("${_ext}" IN_LIST CMAKE_CXX_SOURCE_FILE_EXTENSIONS))
+      set(result TRUE)
+    endif()
+  endif()
+  set(${variable} ${result} PARENT_SCOPE)
+endfunction()
+
 function(blender_add_lib__impl
   name
   sources
@@ -434,7 +449,25 @@ function(blender_add_lib__impl
 
   # message(STATUS "Configuring library ${name}")
 
-  add_library(${name} ${sources})
+  # Check if all sources are header-only (not C/C++ sources).
+  set(_all_headers TRUE)
+  foreach(_src ${sources})
+    is_c_or_cxx_source("${_src}" _is_source)
+    if(_is_source)
+      set(_all_headers FALSE)
+      break()
+    endif()
+  endforeach()
+  unset(_src)
+  unset(_is_source)
+
+  if(_all_headers)
+    add_library(${name} INTERFACE)
+    target_sources(${name} PRIVATE ${sources})
+  else()
+    add_library(${name} ${sources})
+  endif()
+  unset(_all_headers)
 
   # On windows vcpkg goes out of its way to make its libs the preferred
   # libs, and needs to be explicitly be told not to do that.
