@@ -244,7 +244,7 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
     /* If the original allocation size was large, it might have been separately allocated. In this
      * case, we can't free the end of it anymore. */
     if (original_allocation_size <= large_buffer_threshold) {
-      const int64_t new_begin = uintptr_t(free_after);
+      const int64_t new_begin = int64_t(uintptr_t(free_after));
       BLI_assert(new_begin <= current_begin_);
 #ifndef NDEBUG
       /* This condition is not really necessary but it helps finding the cases where memory was
