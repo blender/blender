@@ -252,7 +252,7 @@ static void foreach_active_gizmo_in_open_node_editor(
     return;
   }
   const std::optional<ed::space_node::ObjectAndModifier> object_and_modifier =
-      ed::space_node::get_modifier_for_node_editor(snode);
+      ed::space_node::get_geometry_nodes_modifier_for_node_editor(snode);
   if (!object_and_modifier) {
     return;
   }

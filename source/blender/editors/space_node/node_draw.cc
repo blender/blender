@@ -3838,7 +3838,7 @@ static Set<const bNodeSocket *> find_sockets_on_active_gizmo_paths(
     const bContext &C, const SpaceNode &snode, bke::ComputeContextCache &compute_context_cache)
 {
   const std::optional<ed::space_node::ObjectAndModifier> object_and_modifier =
-      ed::space_node::get_modifier_for_node_editor(snode);
+      ed::space_node::get_geometry_nodes_modifier_for_node_editor(snode);
   if (!object_and_modifier) {
     return {};
   }

@@ -446,7 +446,7 @@ static void node_extra_info(NodeExtraInfoParams &params)
   SpaceNode *snode = CTX_wm_space_node(&params.C);
   if (snode) {
     if (std::optional<ed::space_node::ObjectAndModifier> object_and_modifier =
-            ed::space_node::get_modifier_for_node_editor(*snode))
+            ed::space_node::get_geometry_nodes_modifier_for_node_editor(*snode))
     {
       const NodesModifierData &nmd = *object_and_modifier->nmd;
       nmd.node_group->ensure_topology_cache();

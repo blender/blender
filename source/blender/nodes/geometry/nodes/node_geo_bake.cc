@@ -520,7 +520,7 @@ bool get_bake_draw_context(const bContext *C, const bNode &node, BakeDrawContext
     return false;
   }
   std::optional<ed::space_node::ObjectAndModifier> object_and_modifier =
-      ed::space_node::get_modifier_for_node_editor(*r_ctx.snode);
+      ed::space_node::get_geometry_nodes_modifier_for_node_editor(*r_ctx.snode);
   if (!object_and_modifier) {
     return false;
   }

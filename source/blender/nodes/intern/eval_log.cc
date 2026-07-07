@@ -1011,7 +1011,7 @@ static NodesEvalLog *get_geometry_nodes_root_log(const SpaceNode &snode)
   switch (SpaceNodeGeometryNodesType(snode.node_tree_sub_type)) {
     case SNODE_GEOMETRY_MODIFIER: {
       std::optional<ed::space_node::ObjectAndModifier> object_and_modifier =
-          ed::space_node::get_modifier_for_node_editor(snode);
+          ed::space_node::get_geometry_nodes_modifier_for_node_editor(snode);
       if (!object_and_modifier) {
         return {};
       }
