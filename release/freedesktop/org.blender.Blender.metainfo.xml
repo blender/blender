@@ -48,6 +48,23 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="5.2" date="2026-07-14">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>Support for Online Asset Libraries</li>
+                    <li>Cycles: Texture Cache for reduced memory</li>
+                    <li>Virtual Reality: Introducing Location Scouting</li>
+                </ul>
+                <p>Enhancements:</p>
+                <ul>
+                    <li>EEVEE: Screen Space Raytracing Overhaul</li>
+                    <li>Geometry Nodes: New experimental physics system with an initial focus on hair and cloth</li>
+                    <li>VSE: New "Compositor" effect, strip enhancements, scopes support HDR</li>
+                    <li>And much more!</li>
+                </ul>
+            </description>
+        </release>
         <release version="5.1" date="2026-03-17">
             <description>
                 <p>New features:</p>
