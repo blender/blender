@@ -4396,7 +4396,9 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
  * Type of value storage related with socket is the same.
  * \param socket: Node can have multiple sockets & storage pairs.
  */
-static bool store_socket_value(bNode &node, const bNodeSocket &socket, const void *value)
+[[nodiscard]] static bool store_socket_value(bNode &node,
+                                             const bNodeSocket &socket,
+                                             const void *value)
 {
   if (!socket.is_output()) {
     return false;
@@ -4468,7 +4470,7 @@ static bool store_socket_value(bNode &node, const bNodeSocket &socket, const voi
   return false;
 }
 
-static bool get_socket_value(bNodeSocket &socket, void *buffer)
+[[nodiscard]] static bool get_socket_value(bNodeSocket &socket, void *buffer)
 {
   switch (socket.type) {
     case SOCK_BOOLEAN:
@@ -4568,24 +4570,34 @@ void node_socket_move_default_value(Main & /*bmain*/,
   switch (src.type) {
     case SOCK_COLLECTION:
       src.default_value_typed<bNodeSocketValueCollection>()->value = nullptr;
+      break;
     case SOCK_IMAGE:
       src.default_value_typed<bNodeSocketValueImage>()->value = nullptr;
+      break;
     case SOCK_MATERIAL:
       src.default_value_typed<bNodeSocketValueMaterial>()->value = nullptr;
+      break;
     case SOCK_TEXTURE:
       src.default_value_typed<bNodeSocketValueTexture>()->value = nullptr;
+      break;
     case SOCK_OBJECT:
       src.default_value_typed<bNodeSocketValueObject>()->value = nullptr;
+      break;
     case SOCK_FONT:
       src.default_value_typed<bNodeSocketValueFont>()->value = nullptr;
+      break;
     case SOCK_SCENE:
       src.default_value_typed<bNodeSocketValueScene>()->value = nullptr;
+      break;
     case SOCK_TEXT_ID:
       src.default_value_typed<bNodeSocketValueText>()->value = nullptr;
+      break;
     case SOCK_MASK:
       src.default_value_typed<bNodeSocketValueMask>()->value = nullptr;
+      break;
     case SOCK_SOUND:
       src.default_value_typed<bNodeSocketValueSound>()->value = nullptr;
+      break;
     default:
       break;
   }
