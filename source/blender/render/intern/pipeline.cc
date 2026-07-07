@@ -1105,9 +1105,9 @@ static void do_render_compositor_scene(Render *re, Scene *sce, int cfra)
   RE_display_free(resc);
 }
 
-/* Get the scene referenced by the given node if the node uses its render. Returns nullptr
- * otherwise. */
-static Scene *get_scene_referenced_by_node(const bNode *node)
+/* Get the scene referenced by the given node if the node uses its render. The main pipeline scene
+ * is given. Returns nullptr otherwise. */
+static Scene *get_scene_referenced_by_node(const bNode *node, Scene *pipeline_scene)
 {
   if (node->is_muted()) {
     return nullptr;
@@ -1120,6 +1120,9 @@ static Scene *get_scene_referenced_by_node(const bNode *node)
       node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER)
   {
     return reinterpret_cast<Scene *>(node->id);
+  }
+  if (node->type_legacy == NODE_GROUP_INPUT) {
+    return pipeline_scene;
   }
 
   return nullptr;
@@ -1140,7 +1143,7 @@ static bool compositor_needs_render(Scene *scene)
   }
 
   for (const bNode *node : ntree->all_nodes()) {
-    Scene *node_scene = get_scene_referenced_by_node(node);
+    Scene *node_scene = get_scene_referenced_by_node(node, scene);
     if (node_scene && node_scene == scene) {
       return true;
     }
@@ -1177,7 +1180,7 @@ static void do_render_compositor_scenes(Render *re)
    * compositor will find it. */
   Set<Scene *> scenes_rendered;
   for (bNode *node : re->scene->compositing_node_group->all_nodes()) {
-    Scene *node_scene = get_scene_referenced_by_node(node);
+    Scene *node_scene = get_scene_referenced_by_node(node, re->scene);
     if (!node_scene) {
       continue;
     }
