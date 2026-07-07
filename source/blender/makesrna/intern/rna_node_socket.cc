@@ -1693,6 +1693,10 @@ static void rna_def_node_socket_interface_string(BlenderRNA *brna,
   RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
 
+  if (subtype == PROP_FILEPATH) {
+    RNA_def_property_flag(prop, PROP_PATH_SUPPORTS_BLEND_RELATIVE);
+  }
+
   RNA_def_struct_sdna_from(srna, "bNodeTreeInterfaceSocket", nullptr);
 
   rna_def_node_tree_interface_socket_builtin(srna);
