@@ -754,6 +754,7 @@ if(WITH_GTESTS)
     intern/armature_test.cc
     intern/asset_metadata_test.cc
     intern/attribute_storage_test.cc
+    intern/bake_items_serialize_test.cc
     intern/bpath_test.cc
     intern/brush_test.cc
     intern/cryptomatte_test.cc
