@@ -463,11 +463,42 @@ template<> void socket_data_read_data_impl(BlendDataReader *reader, bNodeSocketV
   (*data)->runtime_flag = 0;
 }
 
+static const Map<StringRef, StringRef> &subtype_none_to_pixel()
+{
+  static const Map<StringRef, StringRef> map = {
+      {"NodeSocketFloat", "NodeSocketFloatPixel"},
+      {"NodeSocketVector", "NodeSocketVectorPixel"},
+      {"NodeSocketVector2D", "NodeSocketVectorPixel2D"},
+      {"NodeSocketVector4D", "NodeSocketVectorPixel4D"},
+      {"NodeSocketInt", "NodeSocketIntPixel"},
+      {"NodeSocketIntVector2D", "NodeSocketIntVectorPixel2D"},
+      {"NodeSocketIntVector3D", "NodeSocketIntVectorPixel3D"}};
+  return map;
+}
+
 static void socket_data_read_data(BlendDataReader *reader, bNodeTreeInterfaceSocket &socket)
 {
   bool data_read = false;
   socket_data_to_static_type(socket.socket_type, [&]<typename SocketDataType>() {
     socket_data_read_data_impl(reader, reinterpret_cast<SocketDataType **>(&socket.socket_data));
+
+    /* Pixel subtype was set to None to ensure forward compatibility.
+     * So the pixel subtype is restored here. */
+    if (socket.is_pixel_socket_forward_compat) {
+      const Map<StringRef, StringRef> &subtype_none_to_pixel_map = subtype_none_to_pixel();
+      const StringRef *pixel_type = subtype_none_to_pixel_map.lookup_ptr(socket.socket_type);
+      if (pixel_type != nullptr) {
+        MEM_SAFE_DELETE(socket.socket_type);
+        socket.socket_type = BLI_strdupn(pixel_type->data(), pixel_type->size());
+        SocketDataType *socket_data = reinterpret_cast<SocketDataType *>(socket.socket_data);
+        if constexpr (requires { socket_data->subtype; }) {
+          if (socket_data) {
+            socket_data->subtype = PROP_PIXEL;
+          }
+        }
+      }
+    }
+
     data_read = true;
   });
   if (!data_read && socket.socket_data) {
@@ -775,6 +806,56 @@ static void item_write_data(BlendWriter *writer, bNodeTreeInterfaceItem &item)
   }
 }
 
+static const Map<StringRef, StringRef> &subtype_pixel_to_none()
+{
+  static const Map<StringRef, StringRef> map = {
+      {"NodeSocketFloatPixel", "NodeSocketFloat"},
+      {"NodeSocketVectorPixel", "NodeSocketVector"},
+      {"NodeSocketVectorPixel2D", "NodeSocketVector2D"},
+      {"NodeSocketVectorPixel4D", "NodeSocketVector4D"},
+      {"NodeSocketIntPixel", "NodeSocketInt"},
+      {"NodeSocketIntVectorPixel2D", "NodeSocketIntVector2D"},
+      {"NodeSocketIntVectorPixel3D", "NodeSocketIntVector3D"}};
+  return map;
+}
+
+static void socket_set_subtype(bNodeTreeInterfaceSocket &socket, const PropertySubType subtype)
+{
+  socket_types::socket_data_to_static_type(socket.socket_type, [&]<typename SocketDataType>() {
+    SocketDataType *socket_data = reinterpret_cast<SocketDataType *>(socket.socket_data);
+    if constexpr (requires { socket_data->subtype; }) {
+      if (socket_data) {
+        socket_data->subtype = subtype;
+      }
+    }
+  });
+}
+
+static void pixel_subtype_forward_compat(BlendWriter *writer, bNodeTreeInterfaceItem &item)
+{
+  /* The Pixel subtype is written as None subtype to ensure forward compatibility. */
+  bNodeTreeInterfaceSocket &socket = get_item_as<bNodeTreeInterfaceSocket>(item);
+  const Map<StringRef, StringRef> &subtype_pixel_to_none_map = subtype_pixel_to_none();
+  const StringRef new_type = subtype_pixel_to_none_map.lookup(socket.socket_type);
+  /* Sockets with and without Pixel subtype share the same socket storage, so socket_type can
+   * be assigned safely. */
+  char *original_type = BLI_strdup(socket.socket_type);
+  BLI_assert(new_type.size() <= StringRef(original_type).size());
+  new_type.copy_unsafe(socket.socket_type);
+  socket_set_subtype(socket, PROP_NONE);
+
+  socket.is_pixel_socket_forward_compat = true;
+
+  writer->write_struct_cast<bNodeTreeInterfaceSocket>(&item);
+  item_write_data(writer, item);
+
+  /* Restore type and subtype. */
+  StringRef(original_type).copy_unsafe(socket.socket_type);
+  socket_set_subtype(socket, PROP_PIXEL);
+  socket.is_pixel_socket_forward_compat = false;
+  MEM_SAFE_DELETE(original_type);
+}
+
 void item_write_struct(BlendWriter *writer, bNodeTreeInterfaceItem &item)
 {
   switch (item.item_type) {
@@ -785,16 +866,23 @@ void item_write_struct(BlendWriter *writer, bNodeTreeInterfaceItem &item)
                          socket.structure_type == NodeSocketInterfaceStructureType::Single,
                          NODE_INTERFACE_SOCKET_SINGLE_VALUE_ONLY_LEGACY);
 
-      writer->write_struct_cast<bNodeTreeInterfaceSocket>(&item);
+      /* Todo(#140111): Forward compatible writing of Pixel subtype. To be removed in 6.0. */
+      if (!BLO_write_is_undo(writer) && subtype_pixel_to_none().contains(socket.socket_type)) {
+        pixel_subtype_forward_compat(writer, item);
+      }
+      else {
+        writer->write_struct_cast<bNodeTreeInterfaceSocket>(&item);
+        item_write_data(writer, item);
+      }
+
       break;
     }
     case NodeTreeInterfaceItemType::Panel: {
       writer->write_struct_cast<bNodeTreeInterfacePanel>(&item);
+      item_write_data(writer, item);
       break;
     }
   }
-
-  item_write_data(writer, item);
 }
 
 static void item_read_data(BlendDataReader *reader, bNodeTreeInterfaceItem &item)

@@ -1635,11 +1635,21 @@ static void serialize_list(const nodes::GListPtr &list_ptr,
   }
   const nodes::GList &list = *list_ptr;
   const CPPType &type = list.cpp_type();
+  std::optional<eCustomDataType> data_type;
   if (type.is<SocketValueVariant>()) {
     r_io_item.append_str("item_type", "SOCKET_VALUE_VARIANT");
   }
+  else if (type.is<GeometrySet>()) {
+    r_io_item.append_str("item_type", "GEOMETRY");
+  }
+  else if (type.is<nodes::BundlePtr>()) {
+    r_io_item.append_str("item_type", "BUNDLE");
+  }
+  else if (type.is<std::string>()) {
+    r_io_item.append_str("item_type", "STRING");
+  }
   else {
-    const std::optional<eCustomDataType> data_type = cpp_type_to_custom_data_type(type);
+    data_type = cpp_type_to_custom_data_type(type);
     BLI_assert(data_type);
     r_io_item.append_str("item_type", get_data_type_io_name(*data_type));
   }
@@ -1651,7 +1661,7 @@ static void serialize_list(const nodes::GListPtr &list_ptr,
   }
   else if (const auto *array_data = std::get_if<nodes::GList::ArrayData>(&list.data())) {
     const GSpan array_span{type, array_data->data, list.size()};
-    if (type.is_trivial) {
+    if (type.is_trivial && data_type) {
       r_io_item.append("data",
                        write_blob_shared_simple_gspan(
                            blob_writer, blob_sharing, array_span, array_data->sharing_info.get()));
@@ -1664,6 +1674,56 @@ static void serialize_list(const nodes::GListPtr &list_ptr,
       }
     }
   }
+}
+
+template<typename T>
+static std::optional<T> deserialize_list_item(const DictionaryValue &io_value,
+                                              const BlobReader &blob_reader,
+                                              const BlobReadSharing &blob_sharing)
+{
+  std::optional<SocketValueVariant> value = deserialize_bake_item(
+      io_value, blob_reader, blob_sharing);
+  if (!value || !value->is_single()) {
+    return std::nullopt;
+  }
+  return value->extract<T>();
+}
+
+template<typename T>
+static std::optional<SocketValueVariant> deserialize_value_list(
+    const DictionaryValue &io_item,
+    const int num_items,
+    const BlobReader &blob_reader,
+    const BlobReadSharing &blob_sharing)
+{
+  const CPPType &cpp_type = CPPType::get<T>();
+  if (const DictionaryValue *io_value = io_item.lookup_dict("value")) {
+    std::optional<T> value = deserialize_list_item<T>(*io_value, blob_reader, blob_sharing);
+    if (!value) {
+      return std::nullopt;
+    }
+    nodes::GListPtr list = nodes::GList::create(
+        cpp_type, nodes::GList::SingleData::ForValue(GPointer{cpp_type, &*value}), num_items);
+    return SocketValueVariant::From(std::move(list));
+  }
+  const ArrayValue *io_values = io_item.lookup_array("data");
+  if (!io_values || io_values->elements().size() != num_items) {
+    return std::nullopt;
+  }
+  GArray<> values(cpp_type, num_items);
+  MutableSpan<T> values_span = values.as_mutable_span().typed<T>();
+  for (const int i : IndexRange(num_items)) {
+    const DictionaryValue *io_value = io_values->elements()[i]->as_dictionary_value();
+    if (!io_value) {
+      return std::nullopt;
+    }
+    std::optional<T> value = deserialize_list_item<T>(*io_value, blob_reader, blob_sharing);
+    if (!value) {
+      return std::nullopt;
+    }
+    values_span[i] = std::move(*value);
+  }
+  return SocketValueVariant::From(nodes::GList::from_garray(std::move(values)));
 }
 
 static void serialize_socket_value_variant(const SocketValueVariant &value_variant,
@@ -1843,6 +1903,16 @@ static std::optional<SocketValueVariant> deserialize_bake_item(const DictionaryV
         values[i] = std::move(*value);
       }
       return SocketValueVariant::From(nodes::GList::from_container(values));
+    }
+    if (io_list_item_type == "GEOMETRY") {
+      return deserialize_value_list<GeometrySet>(io_item, *num_items, blob_reader, blob_sharing);
+    }
+    if (io_list_item_type == "BUNDLE") {
+      return deserialize_value_list<nodes::BundlePtr>(
+          io_item, *num_items, blob_reader, blob_sharing);
+    }
+    if (io_list_item_type == "STRING") {
+      return deserialize_value_list<std::string>(io_item, *num_items, blob_reader, blob_sharing);
     }
     if (const std::optional<eCustomDataType> data_type = get_data_type_from_io_name(
             *io_list_item_type))
