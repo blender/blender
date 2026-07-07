@@ -8,6 +8,7 @@
 
 #include <cstdlib>
 
+#include "BLI_path_utils.hh"
 #include "BLT_translation.hh"
 
 #include "RNA_define.hh"
@@ -83,6 +84,7 @@ const EnumPropertyItem rna_enum_asset_import_method_items[] = {
 
 #  include "AS_asset_library.hh"
 #  include "AS_asset_representation.hh"
+#  include "AS_essentials_library.hh"
 
 #  include "BKE_asset.hh"
 #  include "BKE_context.hh"
@@ -453,6 +455,16 @@ static bool rna_AssetLibrary_is_editable_get(PointerRNA *ptr)
 {
   asset_system::AssetLibrary *asset_library = static_cast<asset_system::AssetLibrary *>(ptr->data);
   return !asset_library->is_read_only();
+}
+
+static const char *rna_AssetLibrary_online_assets_url()
+{
+  return asset_system::online_essentials_url().c_str();
+}
+
+static const char *rna_AssetLibrary_online_assets_cache_path()
+{
+  return asset_system::online_essentials_cache_directory_path().c_str();
 }
 
 static void rna_AssetRepresentation_name_get(PointerRNA *ptr, char *value)
@@ -837,6 +849,26 @@ static void rna_def_asset_library(BlenderRNA *brna)
       prop,
       "Is Editable",
       "Assets and catalogs in this library can be edited from the current Blender instance");
+
+  FunctionRNA *func;
+  PropertyRNA *parm;
+
+  func = RNA_def_function(srna, "online_assets_url", "rna_AssetLibrary_online_assets_url");
+  RNA_def_function_flag(func, FUNC_NO_SELF);
+  parm = RNA_def_string(
+      func, "url", nullptr, 0, "URL", "Remote location of the Online Essentials library");
+  RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(
+      srna, "online_assets_cache_path", "rna_AssetLibrary_online_assets_cache_path");
+  RNA_def_function_flag(func, FUNC_NO_SELF);
+  parm = RNA_def_string(func,
+                        "path",
+                        nullptr,
+                        0,
+                        "Path",
+                        "Local location of the Online Essentials library's disk cache");
+  RNA_def_function_return(func, parm);
 }
 
 PropertyRNA *rna_def_asset_library_ui_reference_common(StructRNA *srna,
