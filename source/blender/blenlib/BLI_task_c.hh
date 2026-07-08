@@ -39,8 +39,7 @@ int BLI_task_scheduler_num_threads();
 /** \name Task Pool
  *
  * Pool of tasks that will be executed by the central task scheduler. For each
- * pool, we can wait for all tasks to be done, or cancel them before they are
- * done.
+ * pool, we can wait for all tasks to be done.
  *
  * Running tasks may spawn new tasks.
  *
@@ -48,6 +47,10 @@ int BLI_task_scheduler_num_threads();
  * pool with smaller tasks. When other threads are busy they will continue
  * working on their own tasks, if not they will join in, no new threads will
  * be launched.
+ *
+ * Note: task cancellation used to be exposed too, but at least with TBB
+ * it has several non-intuitive repercussions (#152467, #143662); avoid re-adding
+ * it again.
  * \{ */
 
 enum eTaskPriority {
@@ -105,17 +108,6 @@ void BLI_task_pool_push(TaskPool *pool,
  * Work and wait until all tasks are done.
  */
 void BLI_task_pool_work_and_wait(TaskPool *pool);
-/**
- * Cancel all tasks, keep worker threads running.
- */
-void BLI_task_pool_cancel(TaskPool *pool);
-
-/**
- * For worker threads, test if current task pool canceled. this function may
- * only be called from worker threads and pool must be the task pool that the
- * thread is currently executing a task from.
- */
-bool BLI_task_pool_current_canceled(TaskPool *pool);
 
 /**
  * Optional `userdata` pointer to pass along to run function.

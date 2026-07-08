@@ -387,6 +387,8 @@ struct ButtonText : public Button {
    */
   std::function<void(StringRefNull new_name)> rename_full_func = nullptr;
   std::string rename_full_new;
+  /** Allow double click editing on text buttons with no emboss styled like labels. */
+  bool use_label_style = false;
 };
 
 /** Derived struct for #ButtonType::TextBox */
@@ -1028,6 +1030,12 @@ struct PopupBlockHandle {
   void (*popup_func)(bContext *C, void *arg, int event) = nullptr;
   void (*cancel_func)(bContext *C, void *arg) = nullptr;
   void *popup_arg = nullptr;
+
+  /**
+   * The StructRNA type that owns this popup, this popup should be removed if this type gets
+   * unregistered.
+   */
+  StructRNA *srna_owner = nullptr;
 
   /** Store data for refreshing popups. */
   PopupBlockCreate popup_create_vars;

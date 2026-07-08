@@ -50,7 +50,7 @@ void forward_lighting_eval(const ViewMatrices view,
   [[resource_table]] LightEvalIterator &lights = resource_table_get(eevee::LightEvalIterator);
   [[resource_table]] UtilityTexture &util_tx = resource_table_get(UtilityTexture);
   [[resource_table]] const Uniform &uni = resource_table_get(eevee::Uniform);
-  /* clang-format off */ /* Multiline macro breaks error line counting. */
+  /* clang-format off */ /* Multi-line macro breaks error line counting. */
   [[resource_table]] LightprobeRenderData &lightprobes = resource_table_get(eevee::LightprobeRenderData);
   [[resource_table]] LightprobePlaneRenderData &lightprobe_planes = resource_table_get(eevee::LightprobePlaneRenderData);
   /* clang-format on */

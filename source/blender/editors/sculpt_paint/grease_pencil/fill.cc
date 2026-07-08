@@ -1372,7 +1372,6 @@ static void add_weights_for_tri(const Span<int3> tri_adjacency,
 static meshintersect::CDT_input<double> get_input_from_drawings(
     const Span<DrawingInfo> src_drawings,
     const Object &object,
-    const Object &object_eval,
     const VArray<bool> &boundary_layers,
     const ARegion &region,
     const std::optional<float> opacity_threshold)
@@ -1393,15 +1392,22 @@ static meshintersect::CDT_input<double> get_input_from_drawings(
 
       const Layer &layer = *grease_pencil.layers()[info.layer_index];
       const float4x4 layer_to_world = layer.to_world_space(object);
-      const bke::crazyspace::GeometryDeformation deformation =
-          bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-              &object_eval, object, info.drawing);
+      const bke::CurvesGeometry &curves = info.drawing.strokes();
+      const Span<float3> evaluated_positions = curves.evaluated_positions();
+      const OffsetIndices<int> eval_points_by_curve = curves.evaluated_points_by_curve();
       const bool only_boundary_strokes = boundary_layers[info.layer_index];
       const VArray<float> radii = info.drawing.radii();
-      const bke::CurvesGeometry &strokes = info.drawing.strokes();
-      const bke::AttributeAccessor attributes = strokes.attributes();
-      const VArray<bool> cyclic = strokes.cyclic();
       const VArray<float> opacities = info.drawing.opacities();
+
+      Array<float> opacities_array(curves.points_num());
+      array_utils::copy(opacities, opacities_array.as_mutable_span());
+      curves.ensure_can_interpolate_to_evaluated();
+
+      Array<float> eval_opacities(eval_points_by_curve.total_size());
+      curves.interpolate_to_evaluated(opacities_array.as_span(), eval_opacities.as_mutable_span());
+
+      const bke::AttributeAccessor attributes = curves.attributes();
+      const VArray<bool> cyclic = curves.cyclic();
       const VArray<int> materials = *attributes.lookup_or_default<int>(
           attr_material_index, bke::AttrDomain::Curve, 0);
       const VArray<bool> is_boundary_stroke = *attributes.lookup_or_default<bool>(
@@ -1418,12 +1424,12 @@ static meshintersect::CDT_input<double> get_input_from_drawings(
           object, info, only_boundary_strokes, curve_mask_memory);
 
       curve_mask.foreach_index([&](const int curve_i) {
-        const IndexRange points = strokes.points_by_curve()[curve_i];
+        const IndexRange eval_points = eval_points_by_curve[curve_i];
         const bool is_fill = fill_id[curve_i];
         const bool is_stroke_hidden = hide_stroke[curve_i];
         const bool is_cyclic = cyclic[curve_i] || is_fill;
         /* Check if stroke can be drawn. */
-        if (points.size() < 2) {
+        if (eval_points.size() < 2) {
           return;
         }
 
@@ -1450,34 +1456,40 @@ static meshintersect::CDT_input<double> get_input_from_drawings(
           }
         }
 
-        const int point_offset = drawing_input_verts[drawing_i].size();
-        Array<bool> is_point_visible(points.size(), false);
-        for (const int point_i : points) {
+        const int first_point_offset = drawing_input_verts[drawing_i].size();
+        int point_offset = first_point_offset;
+        Array<bool> is_point_visible(eval_points.size(), false);
+        for (const int point_i : eval_points) {
           if (!is_fill) {
             /* Skip transparent points. */
             if (opacity_threshold &&
-                (material_stroke_alpha * opacities[point_i] < *opacity_threshold))
+                (material_stroke_alpha * eval_opacities[point_i] < *opacity_threshold))
             {
               continue;
             }
           }
 
           const float3 pos_world = math::transform_point(layer_to_world,
-                                                         deformation.positions[point_i]);
+                                                         evaluated_positions[point_i]);
           float2 pos_view;
           eV3DProjStatus result = ED_view3d_project_float_global(
               &region, pos_world, pos_view, V3D_PROJ_TEST_NOP);
           if (result == V3D_PROJ_RET_OK) {
             drawing_input_verts[drawing_i].append(double2(pos_view));
-            is_point_visible[point_i - points.first()] = true;
+            is_point_visible[point_i - eval_points.first()] = true;
           }
         }
 
-        for (const int local_i : points.index_range().drop_back(is_cyclic ? 0 : 1)) {
-          const int local_next = (local_i + 1) % points.size();
-          if (is_point_visible[local_i] && is_point_visible[local_next]) {
-            drawing_input_edges[drawing_i].append(order_edge(
-                std::pair<int, int>(local_i + point_offset, local_next + point_offset)));
+        for (const int local_i : eval_points.index_range().drop_back(is_cyclic ? 0 : 1)) {
+          const int local_next = (local_i + 1) % eval_points.size();
+          const int point_offset_next = local_next == local_i + 1 ? (point_offset + 1) :
+                                                                    first_point_offset;
+          if (is_point_visible[local_i]) {
+            if (is_point_visible[local_next]) {
+              drawing_input_edges[drawing_i].append(
+                  order_edge(std::pair<int, int>(point_offset, point_offset_next)));
+            }
+            point_offset++;
           }
         }
       });
@@ -1646,7 +1658,7 @@ std::optional<bke::CurvesGeometry> delaunay_fill_strokes(
   }
 
   const meshintersect::CDT_input<double> input = get_input_from_drawings(
-      src_drawings, object, object_eval, boundary_layers, region, opacity_threshold);
+      src_drawings, object, boundary_layers, region, opacity_threshold);
   meshintersect::CDT_result<double> result = delaunay_2d_calc(input, CDT_FULL);
 
   Array<bool> is_source_edge(result.edge.size(), false);
@@ -1670,11 +1682,19 @@ std::optional<bke::CurvesGeometry> delaunay_fill_strokes(
   auto get_tri_for_point = [&](const float2 &v) {
     for (const int tri_index : result.face.index_range()) {
       const Vector<int> &tri = result.face[tri_index];
-      if (isect_point_tri_v2(v,
-                             float2(result.vert[tri[0]]),
-                             float2(result.vert[tri[1]]),
-                             float2(result.vert[tri[2]])) != 0)
+      const float2 pos_0 = float2(result.vert[tri[0]]);
+      const float2 pos_1 = float2(result.vert[tri[1]]);
+      const float2 pos_2 = float2(result.vert[tri[2]]);
+
+      /* Skip triangles that have points too close together. */
+      if (math::almost_equal_relative(pos_0, pos_1, 1e-4f) ||
+          math::almost_equal_relative(pos_1, pos_2, 1e-4f) ||
+          math::almost_equal_relative(pos_2, pos_0, 1e-4f))
       {
+        continue;
+      }
+
+      if (isect_point_tri_v2(v, pos_0, pos_1, pos_2) != 0) {
         return tri_index;
       }
     }

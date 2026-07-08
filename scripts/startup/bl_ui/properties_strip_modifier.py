@@ -2,8 +2,10 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import bpy
 from bpy.types import (
     Panel,
+    Operator,
 )
 
 
@@ -30,8 +32,23 @@ class STRIP_PT_modifiers(StripModButtonsPanel, Panel):
         layout.template_strip_modifiers()
 
 
+class AddStripModifierMenu(Operator):
+    bl_idname = "sequencer.add_strip_modifier_menu"
+    bl_label = "Add Modifier"
+
+    @classmethod
+    def poll(cls, context):
+        # NOTE: This operator only exists to add a poll to the add modifier shortcut in the property editor.
+        space = context.space_data
+        return space and space.type == 'PROPERTIES' and space.context == 'STRIP_MODIFIER'
+
+    def invoke(self, _context, _event):
+        return bpy.ops.wm.call_menu(name="SEQUENCER_MT_modifier_add")
+
+
 classes = (
     STRIP_PT_modifiers,
+    AddStripModifierMenu,
 )
 
 if __name__ == "__main__":  # only for live edit.

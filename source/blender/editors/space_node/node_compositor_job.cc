@@ -203,7 +203,7 @@ static bool is_compositing_possible(const Scene *scene)
 /* Returns the compositor outputs that need to be computed because their result is visible to the
  * user or required by the render pipeline. */
 static compositor::NodeGroupOutputTypes get_compositor_needed_outputs(
-    const wmWindowManager *window_manager, Scene *scene)
+    const wmWindowManager *window_manager)
 {
   if (G.background) {
     return compositor::NodeGroupOutputTypes::None;
@@ -230,24 +230,13 @@ static compositor::NodeGroupOutputTypes get_compositor_needed_outputs(
       else if (space_link->spacetype == SPACE_IMAGE) {
         const SpaceImage *space_image = reinterpret_cast<const SpaceImage *>(space_link);
         Image *image = ED_space_image(space_image);
-        if (!image || image->source != IMA_SRC_VIEWER) {
-          continue;
-        }
-        /* Do not override the Render Result if compositing is disabled in the render pipeline or
-         * if the sequencer is enabled. */
-        if (image->type == IMA_TYPE_R_RESULT && scene->r.scemode & R_DOCOMP &&
-            !RE_seq_render_active(scene, &scene->r))
-        {
-          needed_outputs |= compositor::NodeGroupOutputTypes::GroupOutputNode;
-        }
-        else if (image->type == IMA_TYPE_COMPOSITE) {
+        if (image && image->source == IMA_SRC_VIEWER && image->type == IMA_TYPE_COMPOSITE) {
           needed_outputs |= compositor::NodeGroupOutputTypes::ViewerNode;
         }
       }
 
-      /* All outputs are already needed, return early. */
-      if (needed_outputs == (compositor::NodeGroupOutputTypes::GroupOutputNode |
-                             compositor::NodeGroupOutputTypes::ViewerNode |
+      /* All possible outputs are already needed, return early. */
+      if (needed_outputs == (compositor::NodeGroupOutputTypes::ViewerNode |
                              compositor::NodeGroupOutputTypes::NodePreviews))
       {
         return needed_outputs;
@@ -275,7 +264,7 @@ void ED_node_compositor_job(Main *bmain,
 
   wmWindowManager *window_manager = static_cast<wmWindowManager *>(bmain->wm.first);
   const compositor::NodeGroupOutputTypes needed_outputs = get_compositor_needed_outputs(
-      window_manager, scene);
+      window_manager);
   if (needed_outputs == compositor::NodeGroupOutputTypes::None) {
     return;
   }

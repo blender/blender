@@ -82,15 +82,9 @@ static void free_read_sound_waveform_task(TaskPool *__restrict task_pool, void *
   MEM_delete(task);
 }
 
-static void execute_read_sound_waveform_task(TaskPool *__restrict task_pool, void *task_data)
+static void execute_read_sound_waveform_task(TaskPool *__restrict /*task_pool*/, void *task_data)
 {
   ReadSoundWaveformTask *task = static_cast<ReadSoundWaveformTask *>(task_data);
-
-  if (BLI_task_pool_current_canceled(task_pool)) {
-    BKE_sound_runtime_clear_waveform_loading_tag(task->preview_job_audio->sound);
-    return;
-  }
-
   PreviewJobAudio *audio_job = task->preview_job_audio;
   BKE_sound_read_waveform(audio_job->bmain, audio_job->sound, task->stop);
 }
@@ -124,9 +118,11 @@ static void preview_startjob(void *data, wmJobWorkerStatus *worker_status)
       break;
     }
 
-    if (worker_status->stop || G.is_break) {
-      BLI_task_pool_cancel(task_pool);
+    if (G.is_break) {
+      worker_status->stop = true;
+    }
 
+    if (worker_status->stop) {
       for (PreviewJobAudio &previewjb : pj->previews) {
         BKE_sound_runtime_clear_waveform_loading_tag(previewjb.sound);
       }

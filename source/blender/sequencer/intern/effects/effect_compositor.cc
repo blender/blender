@@ -6,6 +6,7 @@
  * \ingroup sequencer
  */
 
+#include "BKE_compositor.hh"
 #include "BKE_node_runtime.hh"
 
 #include "COM_domain.hh"
@@ -35,6 +36,9 @@ class CompositorEffectContext : public CompositorContext {
   ImBuf *output_;
   float factor_;
 
+  /* The hash of the active compute context. */
+  const ComputeContextHash active_compute_context_hash_;
+
  public:
   CompositorEffectContext(compositor::StaticCacheManager &cache_manager,
                           const RenderData &render_data,
@@ -49,8 +53,15 @@ class CompositorEffectContext : public CompositorContext {
         input_1_(input_1),
         input_2_(input_2),
         output_(output),
-        factor_(factor)
+        factor_(factor),
+        active_compute_context_hash_(bke::compositor::compute_active_compute_context_hash(
+            *render_data_.scene, *node_group_))
   {
+  }
+
+  const ComputeContextHash &get_active_compute_context_hash() const override
+  {
+    return active_compute_context_hash_;
   }
 
   compositor::Domain get_compositing_domain() const override
@@ -69,12 +80,8 @@ class CompositorEffectContext : public CompositorContext {
     const bNodeTree &node_group = *DEG_get_evaluated<bNodeTree>(render_data_.depsgraph,
                                                                 node_group_);
     const bke::DataBlockComputeContext compute_context(nullptr, this->get_scene().id);
-    NodeGroupOperation node_group_operation(*this,
-                                            node_group,
-                                            this->needed_outputs(),
-                                            node_group.active_viewer_key,
-                                            bke::NODE_INSTANCE_KEY_BASE,
-                                            compute_context);
+    NodeGroupOperation node_group_operation(
+        *this, node_group, this->needed_outputs(), compute_context);
     set_output_refcount(node_group, node_group_operation);
 
     /* Map the inputs to the operation. */

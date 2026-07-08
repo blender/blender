@@ -495,14 +495,7 @@ static void print_resource(std::ostream &os,
                            const ShaderCreateInfo::Resource &res,
                            const ShaderCreateInfo &info)
 {
-  if (info.auto_resource_location_ &&
-      res.bind_type == ShaderCreateInfo::Resource::BindType::SAMPLER)
   {
-    /* Skip explicit binding location for samplers when not needed, since drivers can usually
-     * handle more sampler declarations this way (as long as they're not actually used by the
-     * shader). See #105661. */
-  }
-  else if (GLContext::explicit_location_support) {
     os << "layout(binding = " << res.slot;
     if (res.bind_type == ShaderCreateInfo::Resource::BindType::IMAGE) {
       os << ", " << to_string(res.image.format);
@@ -514,9 +507,6 @@ static void print_resource(std::ostream &os,
       os << ", std430";
     }
     os << ") ";
-  }
-  else if (res.bind_type == ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER) {
-    os << "layout(std140) ";
   }
 
   switch (res.bind_type) {
@@ -541,6 +531,9 @@ static void print_resource(std::ostream &os,
       os << "buffer _";
       os << res.storagebuf.name.str_no_array() << " { ";
       os << info.buffer_typename(res.storagebuf.type_name) << " " << res.storagebuf.name << "; };";
+      break;
+    case ShaderCreateInfo::Resource::BindType::ACCELERATION_STRUCTURE:
+      BLI_assert_unreachable();
       break;
   }
 }
@@ -709,12 +702,7 @@ std::string GLShader::vertex_interface_declare(const ShaderCreateInfo &info) con
 
   /* Inputs. */
   for (const ShaderCreateInfo::VertIn &attr : info.vertex_inputs_) {
-    if (GLContext::explicit_location_support &&
-        /* Fix issue with AMDGPU-PRO + workbench_prepass_mesh_vert.glsl being quantized. */
-        GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL) == false)
-    {
-      ss << "layout(location = " << attr.index << ") ";
-    }
+    ss << "layout(location = " << attr.index << ") ";
     ss << "in " << to_string(attr.type) << " " << attr.name << ";\n";
   }
   /* Interfaces. */

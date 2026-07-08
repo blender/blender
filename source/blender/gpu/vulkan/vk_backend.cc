@@ -28,6 +28,7 @@
 #include "vk_index_buffer.hh"
 #include "vk_pixel_buffer.hh"
 #include "vk_query.hh"
+#include "vk_ray_tracing.hh"
 #include "vk_shader.hh"
 #include "vk_state_manager.hh"
 #include "vk_storage_buffer.hh"
@@ -251,6 +252,15 @@ static bool vk_instance_create_for_platform_checks(VkInstance *r_instance)
 {
   vk_restrict_loader_layers();
 
+  VkResult vk_result = volkInitialize();
+  if (vk_result != VK_SUCCESS) {
+    CLOG_ERROR(&LOG,
+               "Error initializing Vulkan loader: VkResult=%d, most likely cannot find the Vulkan "
+               "Loader provided by GPU driver/OS.",
+               vk_result);
+    return false;
+  }
+
   /* Initialize an vulkan 1.2 instance. */
   VkApplicationInfo vk_application_info = {VK_STRUCTURE_TYPE_APPLICATION_INFO};
   vk_application_info.pApplicationName = "Blender";
@@ -277,6 +287,7 @@ bool VKBackend::is_supported()
     CLOG_WARN(&LOG, "Unable to initialize a Vulkan 1.2 instance.");
     return false;
   }
+  volkLoadInstanceOnly(vk_instance);
 
   /* Go over all the devices. */
   uint32_t physical_devices_count = 0;
@@ -505,66 +516,6 @@ void VKBackend::platform_init(const VKDevice &device)
             driver_version.c_str());
 }
 
-enum class IntelGpuArch : uint32_t {
-  Gen9AndOlder,
-  Gen11,
-  Gen12,
-  Xe = Gen12,
-  Xe2,
-  Xe3AndNewer,
-};
-
-inline IntelGpuArch get_intel_gpu_arch(uint32_t device_id)
-{
-  /* Source for device IDs:
-   * https://gitlab.freedesktop.org/mesa/mesa/-/blob/main/include/pci_ids/iris_pci_ids.h
-   */
-  switch (device_id & 0xFF00) {
-    case 0x2900:  // Broadwater
-    case 0x2A00:  // Broadwater/Eagle Lake
-    case 0x2E00:  // Eagle Lake
-    case 0x0000:  // Iron Lake
-    case 0x0100:  // Ivy Bridge/Sandy Bridge/Baytrail
-    case 0x0F00:  // Baytrail
-    case 0x0400:  // Haswell
-    case 0x0C00:  // Haswell
-    case 0x0D00:  // Haswell
-    case 0x0A00:  // Haswell / Appollo Lake
-    case 0x2200:  // Cherrytrail
-    case 0x1600:  // Broadwell
-    case 0x5A00:  // Apollo Lake
-    case 0x1900:  // Skylake
-    case 0x1A00:  // Apollo Lake
-    case 0x3100:  // Gemini Lake
-    case 0x5900:  // Kaby Lake/Amber Lake
-    case 0x8700:  // Kaby Lake/Coffee Lake
-    case 0x3E00:  // Coffee Lake/Whiskey Lake
-    case 0x9B00:  // Comet Lake
-      return IntelGpuArch::Gen9AndOlder;
-    case 0x8A00:  // Ice Lake
-    case 0x4500:  // Elkhart Lake
-    case 0x4E00:  // Jasper Lake
-      return IntelGpuArch::Gen11;
-    case 0x9A00:  // Tiger Lake
-    case 0x4C00:  // Rocket Lake
-    case 0x4900:  // DG1
-    case 0x4600:  // Alder Lake
-    case 0x4F00:  // Alchemist
-    case 0x5600:  // Alchemist
-    case 0xA700:  // Raptor Lake
-    case 0x7D00:  // Meteor Lake / Arrow Lake
-    case 0xB600:  // Meteor Lake / Arrow Lake
-      return IntelGpuArch::Xe;
-    case 0x6400:  // Lunar Lake
-    case 0xE200:  // Battlemage
-      return IntelGpuArch::Xe2;
-    case 0xB000:  // Panther Lake
-    case 0xFD00:  // Wildcat Lake
-    default:
-      return IntelGpuArch::Xe3AndNewer;
-  }
-}
-
 void VKBackend::detect_workarounds(VKDevice &device)
 {
   VKWorkarounds workarounds;
@@ -584,6 +535,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
     extensions.wide_lines = false;
     extensions.line_rasterization = false;
     extensions.extended_dynamic_state = false;
+    GCaps.ray_query_support = false;
     GCaps.stencil_export_support = false;
     GCaps.texture_pool_workaround = true;
 
@@ -688,14 +640,15 @@ void VKBackend::detect_workarounds(VKDevice &device)
 
 #ifdef _WIN32
   if (GPU_type_matches(GPU_DEVICE_INTEL | GPU_DEVICE_INTEL_UHD, GPU_OS_WIN, GPU_DRIVER_OFFICIAL)) {
-    IntelGpuArch gpu_arch = get_intel_gpu_arch(device.physical_device_properties_get().deviceID);
+    GPUIntelGpuArch gpu_arch = GPU_platform_get_intel_arch(
+        device.physical_device_properties_get().deviceID);
 
     /* Intel Gen9 iGPUs (Intel 7th to 10th Gen Processor Graphics driver) show a black screen at
      * application startup when using VK_EXT_vertex_input_dynamic_state.
      *
      * See #147721
      */
-    if (gpu_arch == IntelGpuArch::Gen9AndOlder) {
+    if (gpu_arch == GPUIntelGpuArch::Gen9AndOlder) {
       extensions.vertex_input_dynamic_state = false;
     }
 
@@ -709,7 +662,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
      * - When using the texture pool without the image cache, memory leaks happen on Gen11 and
      * Gen12 GPUs (#157777).
      */
-    if (gpu_arch <= IntelGpuArch::Gen12) {
+    if (gpu_arch <= GPUIntelGpuArch::Gen12) {
       GCaps.texture_pool_workaround = true;
     }
   }
@@ -763,7 +716,7 @@ void VKBackend::compute_dispatch_indirect(StorageBuf *indirect_buf)
   render_graph::VKResourceAccessInfo &resources = context.reset_and_get_access_info();
   render_graph::VKDispatchIndirectNode::CreateInfo dispatch_indirect_info(resources);
   context.update_pipeline_data(dispatch_indirect_info.dispatch_indirect_node.pipeline_data);
-  dispatch_indirect_info.dispatch_indirect_node.buffer = indirect_buffer.vk_handle();
+  dispatch_indirect_info.dispatch_indirect_node.buffer = indirect_buffer.resource();
   dispatch_indirect_info.dispatch_indirect_node.offset = 0;
   context.render_graph().add_node(dispatch_indirect_info);
 }
@@ -853,6 +806,15 @@ VertBuf *VKBackend::vertbuf_alloc()
   return new VKVertexBuffer();
 }
 
+TopLevelAS *VKBackend::tlas_alloc(const char *name)
+{
+  return new VKTopLevelAS(name);
+}
+BottomLevelAS *VKBackend::blas_alloc(const char *name)
+{
+  return new VKBottomLevelAS(name);
+}
+
 void VKBackend::render_begin()
 {
   VKThreadData &thread_data = device.current_thread_data();
@@ -906,6 +868,11 @@ void VKBackend::capabilities_init(VKDevice &device)
   GCaps.geometry_shader_support = true;
   GCaps.stencil_export_support = device.supports_extension(
       VK_EXT_SHADER_STENCIL_EXPORT_EXTENSION_NAME);
+  GCaps.ray_query_support =
+      device.supports_extension(VK_KHR_RAY_QUERY_EXTENSION_NAME) &&
+      device.physical_device_acceleration_structure_properties_get().maxGeometryCount > 0 &&
+      device.physical_device_acceleration_structure_properties_get().maxPrimitiveCount > 0 &&
+      device.physical_device_acceleration_structure_properties_get().maxInstanceCount > 0;
 
   GCaps.max_texture_size = max_ii(limits.maxImageDimension1D, limits.maxImageDimension2D);
   GCaps.max_texture_3d_size = min_uu(limits.maxImageDimension3D, INT_MAX);

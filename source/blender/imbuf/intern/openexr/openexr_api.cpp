@@ -501,6 +501,27 @@ static int openexr_header_get_compression(const Header &header)
   return R_IMF_EXR_CODEC_NONE;
 }
 
+static bool openexr_metadata_skip_read(const char *name, const bool is_multi)
+{
+  /* For multi-layer reads, the part name and view are used for the view, layer, pass
+   * names. The metadata from the first part is used as shared metadata for all passes,
+   * as OpenEXR has no global metadata. So this would be wrong for all but the first pass.
+   *
+   * For single layer images we keep it, as in that case writing out the image again
+   * would otherwise lose the metadata. */
+  return is_multi && STR_ELEM(name, "name", "view");
+}
+
+static bool openexr_metadata_skip_write(const char *name, const bool is_multi)
+{
+  /* Do not blindly pass along compression or colorInteropID, as they might have changed
+   * and will already be written when appropriate.
+   *
+   * Multi-layer name and view are skipped, see #openexr_metadata_skip_read. */
+  return STR_ELEM(name, "compression", "colorInteropID") ||
+         (is_multi && STR_ELEM(name, "name", "view"));
+}
+
 static void openexr_header_metadata_global(Header *header, const IDProperty *metadata)
 {
   header->insert(
@@ -509,9 +530,7 @@ static void openexr_header_metadata_global(Header *header, const IDProperty *met
 
   if (metadata) {
     for (IDProperty &prop : metadata->data.group) {
-      /* Do not blindly pass along compression or colorInteropID, as they might have
-       * changed and will already be written when appropriate. */
-      if ((prop.type == IDP_STRING) && !STR_ELEM(prop.name, "compression", "colorInteropID")) {
+      if ((prop.type == IDP_STRING) && !openexr_metadata_skip_write(prop.name, false)) {
         header->insert(prop.name, StringAttribute(IDP_string_get(&prop)));
       }
     }
@@ -566,15 +585,6 @@ static void openexr_header_metadata_colorspace(Header *header, const ImBuf *ibuf
   }
 
   openexr_header_metadata_colorspace(header, colorspace);
-}
-
-static void openexr_header_metadata_callback(void *data,
-                                             const char *propname,
-                                             char *prop,  // NOLINT
-                                             int /*len*/)
-{
-  Header *header = (Header *)data;
-  header->insert(propname, StringAttribute(prop));
 }
 
 struct RGBAHalf {
@@ -994,7 +1004,15 @@ static void openexr_header_metadata_multi(ExrWriteHandle *handle,
     addMultiView(header, handle->views);
   }
   BKE_stamp_info_callback(
-      &header, const_cast<StampData *>(stamp), openexr_header_metadata_callback, false);
+      &header,
+      const_cast<StampData *>(stamp),
+      [](void *data, const char *propname, char *prop, int /*len*/) {
+        if (!openexr_metadata_skip_write(propname, true)) {
+          Header *header = (Header *)data;
+          header->insert(propname, StringAttribute(prop));
+        }
+      },
+      false);
 }
 
 bool IMB_exr_write_end(ExrWriteHandle *handle,
@@ -1053,7 +1071,16 @@ bool IMB_exr_write_end(ExrWriteHandle *handle,
       if (part_headers.is_empty() || last_part_name != echan.part_name) {
         Header part_header = header;
 
-        /* When writing multipart, set name, view,type and colorspace in each part. */
+        /* Store global metadata in the first header only. Large metadata like cryptomatte would
+         * be bad to duplicate many times. */
+        if (part_headers.is_empty()) {
+          openexr_header_metadata_multi(handle, part_header, stamp);
+        }
+
+        /* When writing multipart, set name, view, type and colorspace in each part.
+         *
+         * Note we do this after openexr_header_metadata_multi to replace any attributes with the
+         * same name, because e.g. the part header name is really just a "name" attribute. */
         if (handle->write_multipart) {
           part_header.setName(echan.part_name);
           if (!echan.view.empty()) {
@@ -1061,12 +1088,6 @@ bool IMB_exr_write_end(ExrWriteHandle *handle,
           }
           part_header.insert("type", StringAttribute(SCANLINEIMAGE));
           openexr_header_metadata_colorspace(&part_header, echan.colorspace);
-        }
-
-        /* Store global metadata in the first header only. Large metadata like cryptomatte would
-         * be bad to duplicate many times. */
-        if (part_headers.is_empty()) {
-          openexr_header_metadata_multi(handle, part_header, stamp);
         }
 
         part_headers.append(std::move(part_header));
@@ -2371,6 +2392,10 @@ ImBuf *imb_load_openexr(const uchar *mem,
 
           IDProperty *metadata = ibuf->metadata_for_write();
           for (iter = file_header.begin(); iter != file_header.end(); iter++) {
+            if (openexr_metadata_skip_read(iter.name(), is_multi)) {
+              continue;
+            }
+
             const StringAttribute *attr = file_header.findTypedAttribute<StringAttribute>(
                 iter.name());
 

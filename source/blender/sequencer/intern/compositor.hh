@@ -19,8 +19,6 @@ class CompositorContext : public compositor::Context {
   const RenderData &render_data_;
   const Strip *strip_ = nullptr;
   float2 result_translation_ = float2(0, 0);
-  /* Identifies if the output of the viewer was written. */
-  bool viewer_was_written_ = false;
 
   /* True if GPU compute is supported and can be used, if false, we fallback to CPU. */
   bool gpu_supported_ = true;
@@ -39,10 +37,6 @@ class CompositorContext : public compositor::Context {
   const Scene &get_scene() const override
   {
     return *render_data_.scene;
-  }
-  bool treat_viewer_as_group_output() const override
-  {
-    return true;
   }
   const Strip *get_strip() const override
   {
@@ -70,12 +64,10 @@ class CompositorContext : public compositor::Context {
  protected:
   compositor::NodeGroupOutputTypes needed_outputs() const
   {
-    compositor::NodeGroupOutputTypes needed_outputs =
-        compositor::NodeGroupOutputTypes::GroupOutputNode;
     if (!render_data_.render) {
-      needed_outputs |= compositor::NodeGroupOutputTypes::ViewerNode;
+      return compositor::NodeGroupOutputTypes::ViewerNode;
     }
-    return needed_outputs;
+    return compositor::NodeGroupOutputTypes();
   }
 
   void create_result_from_input(compositor::Result &result, ImBuf &input);

@@ -24,6 +24,34 @@ namespace blender::bke::node_structure_type_inferencing {
 using nodes::StructureType;
 namespace rl = nodes::reference_lifetimes;
 
+static StructureType ensure_supported_structure_type(const eNodeSocketDatatype socket_type,
+                                                     const StructureType structure_type)
+{
+  if (structure_type == StructureType::Field && !nodes::socket_type_supports_fields(socket_type)) {
+    return StructureType::Single;
+  }
+  if (structure_type == StructureType::Grid && !nodes::socket_type_supports_grids(socket_type)) {
+    return StructureType::Single;
+  }
+  return structure_type;
+}
+
+static StructureType ensure_supported_structure_type(const bNodeSocket &socket,
+                                                     const StructureType structure_type)
+{
+  return ensure_supported_structure_type(eNodeSocketDatatype(socket.type), structure_type);
+}
+
+static StructureType ensure_supported_structure_type(const bNodeTreeInterfaceSocket &io_socket,
+                                                     const StructureType structure_type)
+{
+  const bke::bNodeSocketType *socket_type = io_socket.socket_typeinfo();
+  if (!socket_type) {
+    return structure_type;
+  }
+  return ensure_supported_structure_type(eNodeSocketDatatype(socket_type->type), structure_type);
+}
+
 static nodes::StructureTypeInterface calc_node_interface(const bNode &node)
 {
   if (node.is_group()) {
@@ -325,12 +353,14 @@ static void store_group_input_structure_types(const bNodeTree &tree,
   for (const int i : tree.interface_inputs().index_range()) {
     const bNodeTreeInterfaceSocket &io_socket = *tree.interface_inputs()[i];
     if (io_socket.structure_type != NodeSocketInterfaceStructureType::Auto) {
-      derived_interface.inputs[i] = StructureType(io_socket.structure_type);
+      derived_interface.inputs[i] = ensure_supported_structure_type(
+          io_socket, StructureType(io_socket.structure_type));
       continue;
     }
 
     const DataRequirement requirement = interface_requirements[i];
-    derived_interface.inputs[i] = data_requirement_to_auto_structure_type(requirement);
+    derived_interface.inputs[i] = ensure_supported_structure_type(
+        io_socket, data_requirement_to_auto_structure_type(requirement));
   }
 }
 
@@ -353,7 +383,8 @@ static void store_auto_output_structure_types(const bNodeTree &tree,
     }
 
     const DataRequirement requirement = calc_output_socket_requirement(socket, input_requirements);
-    structure_types[socket.index_in_tree()] = data_requirement_to_auto_structure_type(requirement);
+    structure_types[socket.index_in_tree()] = ensure_supported_structure_type(
+        socket, data_requirement_to_auto_structure_type(requirement));
   });
 }
 
@@ -603,12 +634,14 @@ static ZoneInOutChange simulation_zone_status_propagate(const bNode &input_node,
     const bNodeSocket &output = output_node.output_socket(i);
     const StructureType new_value = left_to_right_merge(structure_types[input.index_in_tree()],
                                                         structure_types[output.index_in_tree()]);
-    if (structure_types[input.index_in_tree()] != new_value) {
-      structure_types[input.index_in_tree()] = new_value;
+    const StructureType new_input_value = ensure_supported_structure_type(input, new_value);
+    const StructureType new_output_value = ensure_supported_structure_type(output, new_value);
+    if (structure_types[input.index_in_tree()] != new_input_value) {
+      structure_types[input.index_in_tree()] = new_input_value;
       change |= ZoneInOutChange::In;
     }
-    if (structure_types[output.index_in_tree()] != new_value) {
-      structure_types[output.index_in_tree()] = new_value;
+    if (structure_types[output.index_in_tree()] != new_output_value) {
+      structure_types[output.index_in_tree()] = new_output_value;
       change |= ZoneInOutChange::Out;
     }
   }
@@ -626,12 +659,16 @@ static ZoneInOutChange repeat_zone_status_propagate(const bNode &input_node,
     const StructureType new_value = left_to_right_merge(
         structure_types[input_of_input_node.index_in_tree()],
         structure_types[output_of_output_node.index_in_tree()]);
-    if (structure_types[input_of_input_node.index_in_tree()] != new_value) {
-      structure_types[input_of_input_node.index_in_tree()] = new_value;
+    const StructureType new_input_value = ensure_supported_structure_type(input_of_input_node,
+                                                                          new_value);
+    const StructureType new_output_value = ensure_supported_structure_type(output_of_output_node,
+                                                                           new_value);
+    if (structure_types[input_of_input_node.index_in_tree()] != new_input_value) {
+      structure_types[input_of_input_node.index_in_tree()] = new_input_value;
       change |= ZoneInOutChange::In;
     }
-    if (structure_types[output_of_output_node.index_in_tree()] != new_value) {
-      structure_types[output_of_output_node.index_in_tree()] = new_value;
+    if (structure_types[output_of_output_node.index_in_tree()] != new_output_value) {
+      structure_types[output_of_output_node.index_in_tree()] = new_output_value;
       change |= ZoneInOutChange::Out;
     }
   }
@@ -718,8 +755,8 @@ static void propagate_left_to_right(const bNodeTree &tree,
     }
     if (!input->is_directly_linked()) {
       if (const nodes::SocketDeclaration *declaration = input->runtime->declaration) {
-        structure_types[input->index_in_tree()] = get_unconnected_input_structure_type(
-            *declaration);
+        structure_types[input->index_in_tree()] = ensure_supported_structure_type(
+            *input, get_unconnected_input_structure_type(*declaration));
       }
     }
   }
@@ -747,7 +784,8 @@ static void propagate_left_to_right(const bNodeTree &tree,
       const Span<const bNodeSocket *> output_sockets = node->output_sockets();
       if (node->is_group_input()) {
         for (const int i : output_sockets.index_range().drop_back(1)) {
-          structure_types[output_sockets[i]->index_in_tree()] = group_input_structure_types[i];
+          structure_types[output_sockets[i]->index_in_tree()] = ensure_supported_structure_type(
+              *output_sockets[i], group_input_structure_types[i]);
         }
         continue;
       }
@@ -771,7 +809,8 @@ static void propagate_left_to_right(const bNodeTree &tree,
           }
         }
         if (input_type) {
-          structure_types[input->index_in_tree()] = *input_type;
+          structure_types[input->index_in_tree()] = ensure_supported_structure_type(*input,
+                                                                                    *input_type);
         }
       }
 
@@ -802,7 +841,8 @@ static void propagate_left_to_right(const bNodeTree &tree,
             output_type = new_type;
           }
         }
-        structure_types[output.index_in_tree()] = output_type.value_or(declaration.structure_type);
+        structure_types[output.index_in_tree()] = ensure_supported_structure_type(
+            output, output_type.value_or(declaration.structure_type));
       }
 
       if (propagate_zone_status(tree, *node, structure_types)) {
@@ -875,11 +915,15 @@ static void store_group_output_structure_types(
   const Span<const bNodeSocket *> sockets = group_output_node->input_sockets().drop_back(1);
   for (const int i : sockets.index_range()) {
     if (interface_outputs[i]->structure_type != NodeSocketInterfaceStructureType::Auto) {
-      interface.outputs[i] = {StructureType(interface_outputs[i]->structure_type), {}};
+      interface.outputs[i] = {
+          ensure_supported_structure_type(*interface_outputs[i],
+                                          StructureType(interface_outputs[i]->structure_type)),
+          {}};
       continue;
     }
     /* Update derived interface output structure types from output node socket usages. */
-    interface.outputs[i].type = structure_types[sockets[i]->index_in_tree()];
+    interface.outputs[i].type = ensure_supported_structure_type(
+        *interface_outputs[i], structure_types[sockets[i]->index_in_tree()]);
     if (interface.outputs[i].type == StructureType::Dynamic) {
       const Vector<int> linked_inputs = find_dynamic_output_linked_inputs(*sockets[i],
                                                                           interface_by_node);

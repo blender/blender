@@ -53,6 +53,7 @@ void VKExtensions::log() const
              " - [%c] memory priority\n"
              " - [%c] pageable device local memory\n"
              " - [%c] shader stencil export\n"
+             " - [%c] ray queries\n"
              " - [%c] vertex input dynamic state",
              shader_output_viewport_index ? 'X' : ' ',
              shader_output_layer ? 'X' : ' ',
@@ -69,6 +70,7 @@ void VKExtensions::log() const
              memory_priority ? 'X' : ' ',
              pageable_device_local_memory ? 'X' : ' ',
              GPU_stencil_export_support() ? 'X' : ' ',
+             GPU_ray_query_support() ? 'X' : ' ',
              vertex_input_dynamic_state ? 'X' : ' ');
 }
 
@@ -110,7 +112,7 @@ void VKDevice::deinit()
     thread_data_.clear();
   }
   pipelines.write_to_disk();
-  pipelines.free_data();
+  pipelines.free_data(*this);
   descriptor_set_layouts_.deinit();
   vma_pools.deinit(*this);
   mem_allocator_ = VK_NULL_HANDLE;
@@ -148,13 +150,14 @@ void VKDevice::init(GHOST_IContext *ghost_context)
   mem_allocator_ = handles.vma_allocator;
   queue_mutex_ = static_cast<std::mutex *>(handles.queue_mutex);
 
+  volkLoadDeviceTable(&functions, vk_device_);
+
   init_physical_device_extensions();
   init_physical_device_properties();
   init_physical_device_memory_properties();
   init_physical_device_features();
   VKBackend::platform_init(*this);
   VKBackend::capabilities_init(*this);
-  init_functions();
   init_debug_callbacks();
   vma_pools.init(*this);
   pipelines.init();
@@ -171,57 +174,6 @@ void VKDevice::init(GHOST_IContext *ghost_context)
 
   init_submission_thread();
   is_initialized_ = true;
-}
-
-void VKDevice::init_functions()
-{
-#define LOAD_FUNCTION(name) (PFN_##name) vkGetInstanceProcAddr(vk_instance_, STRINGIFY(name))
-  /* VK_KHR_dynamic_rendering */
-  functions.vkCmdBeginRendering = LOAD_FUNCTION(vkCmdBeginRenderingKHR);
-  functions.vkCmdEndRendering = LOAD_FUNCTION(vkCmdEndRenderingKHR);
-
-  /* VK_EXT_debug_utils */
-  functions.vkCmdBeginDebugUtilsLabel = LOAD_FUNCTION(vkCmdBeginDebugUtilsLabelEXT);
-  functions.vkCmdEndDebugUtilsLabel = LOAD_FUNCTION(vkCmdEndDebugUtilsLabelEXT);
-  functions.vkSetDebugUtilsObjectName = LOAD_FUNCTION(vkSetDebugUtilsObjectNameEXT);
-  functions.vkCreateDebugUtilsMessenger = LOAD_FUNCTION(vkCreateDebugUtilsMessengerEXT);
-  functions.vkDestroyDebugUtilsMessenger = LOAD_FUNCTION(vkDestroyDebugUtilsMessengerEXT);
-
-  /* VK_EXT_extended_dynamic_state */
-  if (extensions_.extended_dynamic_state) {
-    functions.vkCmdSetFrontFace = LOAD_FUNCTION(vkCmdSetFrontFaceEXT);
-  }
-
-  /* VK_EXT_vertex_input_dynamic_state */
-  if (extensions_.vertex_input_dynamic_state) {
-    functions.vkCmdSetVertexInput = LOAD_FUNCTION(vkCmdSetVertexInputEXT);
-  }
-
-  /* VK_EXT_host_image_copy */
-  if (extensions_.host_image_copy) {
-    functions.vkCopyMemoryToImage = LOAD_FUNCTION(vkCopyMemoryToImageEXT);
-    functions.vkTransitionImageLayout = LOAD_FUNCTION(vkTransitionImageLayoutEXT);
-  }
-
-  /* VK_KHR_maintenance4 */
-  if (extensions_.maintenance4) {
-    functions.vkGetDeviceImageMemoryRequirements = LOAD_FUNCTION(
-        vkGetDeviceImageMemoryRequirementsKHR);
-    functions.vkGetDeviceBufferMemoryRequirements = LOAD_FUNCTION(
-        vkGetDeviceBufferMemoryRequirementsKHR);
-  }
-
-  if (extensions_.external_memory) {
-#ifdef _WIN32
-    /* VK_KHR_external_memory_win32 */
-    functions.vkGetMemoryWin32Handle = LOAD_FUNCTION(vkGetMemoryWin32HandleKHR);
-#elif not defined(__APPLE__)
-    /* VK_KHR_external_memory_fd */
-    functions.vkGetMemoryFd = LOAD_FUNCTION(vkGetMemoryFdKHR);
-#endif
-  }
-
-#undef LOAD_FUNCTION
 }
 
 void VKDevice::init_debug_callbacks()
@@ -252,6 +204,11 @@ void VKDevice::init_physical_device_properties()
     vk_physical_device_properties.pNext =
         &vk_physical_device_graphics_pipeline_library_properties_;
   }
+  if (supports_extension(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME)) {
+    vk_physical_device_acceleration_structure_properties_.pNext =
+        vk_physical_device_properties.pNext;
+    vk_physical_device_properties.pNext = &vk_physical_device_acceleration_structure_properties_;
+  }
 
   vkGetPhysicalDeviceProperties2(vk_physical_device_, &vk_physical_device_properties);
   vk_physical_device_properties_ = vk_physical_device_properties.properties;
@@ -276,6 +233,8 @@ void VKDevice::init_physical_device_features()
 
   features.pNext = &vk_physical_device_vulkan_11_features_;
   vk_physical_device_vulkan_11_features_.pNext = &vk_physical_device_vulkan_12_features_;
+  vk_physical_device_vulkan_12_features_.pNext =
+      &vk_physical_device_acceleration_structure_features_;
 
   vkGetPhysicalDeviceFeatures2(vk_physical_device_, &features);
   vk_physical_device_features_ = features.features;
@@ -315,11 +274,18 @@ void VKDevice::init_dummy_buffer()
   dummy_buffer.update_immediately(static_cast<void *>(data));
 }
 
-shader::GeneratedSource VKDevice::extensions_define(StringRefNull stage_define) const
+shader::GeneratedSource VKDevice::extensions_define(StringRefNull stage_define,
+                                                    bool use_ray_query) const
 {
   std::stringstream ss;
 
-  ss << "#version 450\n";
+  const bool requires_460 = use_ray_query;
+  if (requires_460) {
+    ss << "#version 460\n";
+  }
+  else {
+    ss << "#version 450\n";
+  }
   {
     /* Required extension. */
     ss << "#extension GL_ARB_shader_draw_parameters : enable\n";
@@ -343,35 +309,41 @@ shader::GeneratedSource VKDevice::extensions_define(StringRefNull stage_define) 
     ss << "#define gpu_BaryCoord gl_BaryCoordEXT\n";
     ss << "#define gpu_BaryCoordNoPersp gl_BaryCoordNoPerspEXT\n";
   }
+  if (use_ray_query) {
+    ss << "#extension GL_EXT_ray_query : enable\n";
+  }
   ss << stage_define;
 
   return shader::GeneratedSource{"gpu_shader_glsl_extension.glsl", {}, ss.str()};
 }
 
-std::string VKDevice::glsl_vertex_patch_get() const
+std::string VKDevice::glsl_vertex_patch_get(bool use_ray_query) const
 {
-  shader::GeneratedSourceList sources{extensions_define("#define GPU_VERTEX_SHADER\n")};
+  shader::GeneratedSourceList sources{
+      extensions_define("#define GPU_VERTEX_SHADER\n", use_ray_query)};
   return fmt::to_string(fmt::join(
       gpu_shader_dependency_get_resolved_source("gpu_shader_compat_glsl.glsl", sources), ""));
 }
 
 std::string VKDevice::glsl_geometry_patch_get() const
 {
-  shader::GeneratedSourceList sources{extensions_define("#define GPU_GEOMETRY_SHADER\n")};
+  shader::GeneratedSourceList sources{extensions_define("#define GPU_GEOMETRY_SHADER\n", false)};
   return fmt::to_string(fmt::join(
       gpu_shader_dependency_get_resolved_source("gpu_shader_compat_glsl.glsl", sources), ""));
 }
 
-std::string VKDevice::glsl_fragment_patch_get() const
+std::string VKDevice::glsl_fragment_patch_get(bool use_ray_query) const
 {
-  shader::GeneratedSourceList sources{extensions_define("#define GPU_FRAGMENT_SHADER\n")};
+  shader::GeneratedSourceList sources{
+      extensions_define("#define GPU_FRAGMENT_SHADER\n", use_ray_query)};
   return fmt::to_string(fmt::join(
       gpu_shader_dependency_get_resolved_source("gpu_shader_compat_glsl.glsl", sources), ""));
 }
 
-std::string VKDevice::glsl_compute_patch_get() const
+std::string VKDevice::glsl_compute_patch_get(bool use_ray_query) const
 {
-  shader::GeneratedSourceList sources{extensions_define("#define GPU_COMPUTE_SHADER\n")};
+  shader::GeneratedSourceList sources{
+      extensions_define("#define GPU_COMPUTE_SHADER\n", use_ray_query)};
   return fmt::to_string(fmt::join(
       gpu_shader_dependency_get_resolved_source("gpu_shader_compat_glsl.glsl", sources), ""));
 }

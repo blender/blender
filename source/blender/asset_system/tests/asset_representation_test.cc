@@ -151,7 +151,8 @@ TEST_F(AssetRepresentationTest, weak_reference__compare)
 
     /* Arbitrary individual member changes to test how it affects the comparison. */
     b.asset_library_identifier = "My lib";
-    EXPECT_NE(a, b);
+    /* Asset library identifier should be ignored unless the type is #ASSET_LIBRARY_CUSTOM. */
+    EXPECT_EQ(a, b);
     a.asset_library_identifier = "My lib";
     EXPECT_EQ(a, b);
     a.asset_library_type = ASSET_LIBRARY_ESSENTIALS;

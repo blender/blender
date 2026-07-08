@@ -105,16 +105,6 @@ void NodeOperation::compute_results_reference_counts(const Schedule &schedule)
   }
 }
 
-void NodeOperation::set_instance_key(const bNodeInstanceKey &instance_key)
-{
-  instance_key_ = instance_key;
-}
-
-const bNodeInstanceKey &NodeOperation::get_instance_key() const
-{
-  return instance_key_;
-}
-
 void NodeOperation::set_compute_context(const ComputeContext &compute_context)
 {
   compute_context_ = &compute_context;

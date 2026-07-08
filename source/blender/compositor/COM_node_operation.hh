@@ -31,8 +31,6 @@ class NodeOperation : public Operation {
  private:
   /* The node that this operation represents. */
   const bNode &node_;
-  /* A node instance key that identifies the node instance in the nested node groups path. */
-  bNodeInstanceKey instance_key_ = bke::NODE_INSTANCE_KEY_NONE;
   /* The compute context where this node operation is executing. */
   const ComputeContext *compute_context_ = nullptr;
   /* False if node previews are not needed and true otherwise. */
@@ -52,10 +50,6 @@ class NodeOperation : public Operation {
    * computed as the number of inputs whose node is part of the schedule and is linked to the
    * output corresponding to each result. The node execution schedule is given as an input. */
   void compute_results_reference_counts(const Schedule &schedule);
-
-  /* Setter and getter for instance_key_. */
-  void set_instance_key(const bNodeInstanceKey &instance_key);
-  const bNodeInstanceKey &get_instance_key() const;
 
   /* Setter and getter for compute_context_. */
   void set_compute_context(const ComputeContext &compute_context);

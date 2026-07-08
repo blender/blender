@@ -11,7 +11,7 @@
 
 #include "kernel/globals.h"
 
-#include "kernel/camera/projection.h"
+#include "kernel/camera/camera.h"
 
 #include "kernel/geom/attribute.h"
 #include "kernel/geom/curve.h"
@@ -277,61 +277,6 @@ ccl_device_forceinline void primitive_motion_data_without_camera(KernelGlobals k
   *motion_post = transform_point(&tfm, *motion_post);
 }
 
-ccl_device_forceinline void primitive_motion_data_camera_step(KernelGlobals kg,
-                                                              ccl_private float3 *motion_center,
-                                                              ccl_private float3 *motion_pre,
-                                                              ccl_private float3 *motion_post)
-{
-  Transform tfm;
-
-  /* camera motion, for perspective/orthographic motion.pre/post will be a
-   * world-to-raster matrix, for panorama it's world-to-camera, for custom
-   * we fall back to the world position until we have inverse mapping for it */
-  if (kernel_data.cam.type == CAMERA_CUSTOM) {
-    /* TODO: Custom cameras don't have inverse mappings yet, so we fall back to
-     * camera-space vectors here for now. */
-    tfm = kernel_data.cam.worldtocamera;
-    *motion_center = normalize(transform_point(&tfm, *motion_center));
-
-    tfm = kernel_data.cam.motion_pass_pre;
-    *motion_pre = normalize(transform_point(&tfm, *motion_pre));
-
-    tfm = kernel_data.cam.motion_pass_post;
-    *motion_post = normalize(transform_point(&tfm, *motion_post));
-  }
-  else if (kernel_data.cam.type != CAMERA_PANORAMA) {
-    /* Perspective and orthographics camera use the world-to-raster matrix. */
-    ProjectionTransform projection = kernel_data.cam.worldtoraster;
-    *motion_center = transform_perspective(&projection, *motion_center);
-
-    projection = kernel_data.cam.perspective_pre;
-    *motion_pre = transform_perspective(&projection, *motion_pre);
-
-    projection = kernel_data.cam.perspective_post;
-    *motion_post = transform_perspective(&projection, *motion_post);
-  }
-  else {
-    /* Panorama cameras have their own inverse mappings. */
-    tfm = kernel_data.cam.worldtocamera;
-    *motion_center = normalize(transform_point(&tfm, *motion_center));
-    *motion_center = make_float3(direction_to_panorama(&kernel_data.cam, *motion_center));
-    motion_center->x *= kernel_data.cam.width;
-    motion_center->y *= kernel_data.cam.height;
-
-    tfm = kernel_data.cam.motion_pass_pre;
-    *motion_pre = normalize(transform_point(&tfm, *motion_pre));
-    *motion_pre = make_float3(direction_to_panorama(&kernel_data.cam, *motion_pre));
-    motion_pre->x *= kernel_data.cam.width;
-    motion_pre->y *= kernel_data.cam.height;
-
-    tfm = kernel_data.cam.motion_pass_post;
-    *motion_post = normalize(transform_point(&tfm, *motion_post));
-    *motion_post = make_float3(direction_to_panorama(&kernel_data.cam, *motion_post));
-    motion_post->x *= kernel_data.cam.width;
-    motion_post->y *= kernel_data.cam.height;
-  }
-}
-
 /* Motion vector for motion pass */
 
 ccl_device_forceinline float4 primitive_motion_vector(KernelGlobals kg,
@@ -339,12 +284,8 @@ ccl_device_forceinline float4 primitive_motion_vector(KernelGlobals kg,
 {
   float3 motion_center, motion_pre, motion_post;
   primitive_motion_data_without_camera(kg, sd, &motion_center, &motion_pre, &motion_post);
-  primitive_motion_data_camera_step(kg, &motion_center, &motion_pre, &motion_post);
 
-  motion_pre = motion_pre - motion_center;
-  motion_post = motion_center - motion_post;
-
-  return make_float4(motion_pre.x, motion_pre.y, motion_post.x, motion_post.y);
+  return camera_motion_vector(kg, motion_center, motion_pre, motion_post);
 }
 
 /* Motion vector for denoising backward motion pass */
@@ -362,12 +303,54 @@ primitive_motion_vector_backward_depth_delta(KernelGlobals kg, const ccl_private
   tfm = kernel_data.cam.motion_pass_pre;
   float3 motion_pre_cam = transform_point(&tfm, motion_pre);
 
-  primitive_motion_data_camera_step(kg, &motion_center, &motion_pre, &motion_post);
+  float4 motion = camera_motion_vector(kg, motion_center, motion_pre, motion_post);
 
-  motion_pre = motion_pre - motion_center;
   float linear_depth_delta_pre = motion_pre_cam.z - motion_center_cam.z;
 
-  return make_float3(motion_pre.x, motion_pre.y, linear_depth_delta_pre);
+  return make_float3(motion.x, motion.y, linear_depth_delta_pre);
+}
+
+/* Motion vector for reflections */
+
+ccl_device_forceinline float3 project_reflection(const float3 reflector_P,
+                                                 const float3 reflector_N,
+                                                 const float3 P)
+{
+  /* See Ray Tracing Gems chapter 32.4.3 Reflection Motion Vectors */
+
+  float3 reflector_to_o = P - reflector_P;
+  float3 N = dot(reflector_N, reflector_to_o) < 0.0f ? -reflector_N : reflector_N;
+  float3 T, B;
+  make_orthonormals(N, &T, &B);
+
+  float3 P_o = to_local(reflector_to_o, T, B, N);
+
+  float z_o = max(P_o.z, 1e-5f);
+  float x_o = P_o.x;
+  float y_o = P_o.y;
+  const float inverse_f = 0.0f;
+  float z_i = 1.0f / (inverse_f - 1.0f / z_o);
+  float x_i = -(z_i / z_o) * x_o;
+  float y_i = -(z_i / z_o) * y_o;
+
+  float3 P_i = reflector_P + to_global(make_float3(x_i, y_i, z_i), T, B, N);
+  return P_i;
+}
+
+ccl_device_forceinline float4 primitive_motion_vector_reflection(KernelGlobals kg,
+                                                                 const float3 reflector_P,
+                                                                 const float3 reflector_N,
+                                                                 const ccl_private ShaderData *sd)
+{
+  float3 motion_center, motion_pre, motion_post;
+  primitive_motion_data_without_camera(kg, sd, &motion_center, &motion_pre, &motion_post);
+
+  /* TODO: This does not handle cases where the reflector is moving. */
+  motion_center = project_reflection(reflector_P, reflector_N, motion_center);
+  motion_pre = project_reflection(reflector_P, reflector_N, motion_pre);
+  motion_post = project_reflection(reflector_P, reflector_N, motion_post);
+
+  return camera_motion_vector(kg, motion_center, motion_pre, motion_post);
 }
 
 CCL_NAMESPACE_END

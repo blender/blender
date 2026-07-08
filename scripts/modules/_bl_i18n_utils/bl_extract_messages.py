@@ -973,20 +973,31 @@ def dump_ocio_config(msgs, reports, settings):
             msgs, settings.DEFAULT_CONTEXT, display, msgsrc,
             reports, None, settings,
         )
-
         for view in config.getViews(display):
             msgsrc = "View name from OCIO display " + display
             process_msg(
                 msgs, settings.DEFAULT_CONTEXT, view, msgsrc,
                 reports, None, settings,
             )
-
             description = config.getDisplayViewDescription(display, view)
             msgsrc = "View description from OCIO display " + display
             process_msg(
                 msgs, settings.DEFAULT_CONTEXT, description, msgsrc,
                 reports, None, settings,
             )
+
+    for view_transform in config.getViewTransforms():
+        msgsrc = "View transform name from OCIO config"
+        process_msg(
+            msgs, settings.DEFAULT_CONTEXT, view_transform.getName(), msgsrc,
+            reports, None, settings,
+        )
+        description = config.getDisplayViewDescription(display, view)
+        msgsrc = "View transform description from OCIO config"
+        process_msg(
+            msgs, settings.DEFAULT_CONTEXT, view_transform.getDescription(), msgsrc,
+            reports, None, settings,
+        )
 
     for look in config.getLookNames():
         # Some looks include their view's name to have unique names,
@@ -1022,6 +1033,14 @@ def dump_ocio_config(msgs, reports, settings):
             msgs, settings.DEFAULT_CONTEXT, description, msgsrc,
             reports, None, settings,
         )
+        family = colorspace.getFamily()
+        family_separator = config.getFamilySeparator()
+        for family_part in family.split(family_separator):
+            msgsrc = "Colorspace family from OCIO config"
+            process_msg(
+                msgs, settings.DEFAULT_CONTEXT, family_part, msgsrc,
+                reports, None, settings,
+            )
 
 
 def dump_asset_messages(msgs, reports, settings):

@@ -67,6 +67,9 @@ struct ThumbnailCache {
     /* Used for strips that are IDs. We store the session UID so it stays valid
      * across undo/redo. */
     unsigned int id_session_uid = 0;
+    /* Hash of any extra data that needs to be part of source key (e.g. camera for scene
+     * strips). */
+    unsigned int extra_bits = 0;
 
     bool is_valid() const
     {
@@ -75,16 +78,9 @@ struct ThumbnailCache {
 
     uint64_t hash() const
     {
-      return get_default_hash(path, id_session_uid);
+      return get_default_hash(path, id_session_uid, extra_bits);
     }
-    friend bool operator==(const SourceKey &a, const SourceKey &b) = default;
-    bool operator<(const SourceKey &o) const
-    {
-      if (path != o.path) {
-        return path < o.path;
-      }
-      return id_session_uid < o.id_session_uid;
-    }
+    friend auto operator<=>(const SourceKey &a, const SourceKey &b) = default;
   };
 
   struct FrameEntry {
@@ -126,6 +122,9 @@ struct ThumbnailCache {
     int64_t requested_at = 0;
     float timeline_frame = 0;
     int channel = 0;
+    /* For scene-strip requests only. Pointer is re-validated against live data
+     * before actual use. */
+    const Strip *scene_strip = nullptr;
 
     uint64_t hash() const
     {
@@ -144,6 +143,9 @@ struct ThumbnailCache {
    * Copies are needed so that the thumbnail generation thread is safe with regards to ID
    * modifications or deletions that might happen on the main thread. */
   Map<unsigned int, ID *> id_copies_;
+  /* Scene strip thumbnail requests. These need to be rendered on main thread (due to usage of main
+   * GPU/DRW context), and are processed separately. */
+  Set<Request> scene_requests_;
   int64_t logical_time_ = 0;
 
   ~ThumbnailCache()
@@ -160,6 +162,7 @@ struct ThumbnailCache {
     }
     map_.clear();
     requests_.clear();
+    scene_requests_.clear();
     for (ID *id_copy : id_copies_.values()) {
       BKE_id_free(nullptr, id_copy);
     }
@@ -167,16 +170,17 @@ struct ThumbnailCache {
     logical_time_ = 0;
   }
 
-  void remove_entry(const SourceKey &key)
+  bool remove_entry(const SourceKey &key)
   {
     SourceEntry *entry = map_.lookup_ptr(key);
     if (entry == nullptr) {
-      return;
+      return false;
     }
     for (const FrameEntry &thumb : entry->frames) {
       IMB_freeImBuf(thumb.thumb);
     }
     map_.remove_contained(key);
+    return true;
   }
 };
 
@@ -197,12 +201,25 @@ static ThumbnailCache *query_thumbnail_cache(Scene *scene)
   return scene->ed->runtime->thumbnail_cache;
 }
 
+void image_size_to_thumb_size(int &r_width, int &r_height, int size)
+{
+  const float aspect = float(r_width) / float(r_height);
+  if (r_width > r_height) {
+    r_width = size;
+    r_height = std::max(1, round_fl_to_int(size / aspect));
+  }
+  else {
+    r_height = size;
+    r_width = std::max(1, round_fl_to_int(size * aspect));
+  }
+}
+
 bool strip_can_have_thumbnail(const Scene *scene, const Strip *strip)
 {
   if (scene == nullptr || scene->ed == nullptr || strip == nullptr) {
     return false;
   }
-  if (ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_IMAGE)) {
+  if (ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_IMAGE) && strip->data) {
     const StripElem *se = strip->data->stripdata;
     if (se->orig_height == 0 || se->orig_width == 0) {
       return false;
@@ -215,10 +232,29 @@ bool strip_can_have_thumbnail(const Scene *scene, const Strip *strip)
   if (strip->type == STRIP_TYPE_MASK && strip->mask) {
     return true;
   }
+  if (strip->type == STRIP_TYPE_SCENE && (strip->flag & SEQ_SCENE_STRIPS) == 0 && strip->scene &&
+      strip->scene != scene)
+  {
+    return true;
+  }
   return false;
 }
 
-static ThumbnailCache::SourceKey get_key_from_strip(Scene *scene,
+static ThumbnailCache::SourceKey get_key_from_scene_strip(const Strip *strip)
+{
+  BLI_assert(strip->type == STRIP_TYPE_SCENE);
+  BLI_assert(strip->scene);
+  ThumbnailCache::SourceKey key = ThumbnailCache::SourceKey(&strip->scene->id);
+  if (strip->scene_camera != nullptr) {
+    key.extra_bits = key.extra_bits * 33 ^ strip->scene_camera->id.session_uid;
+  }
+  if (strip->scene_view_layer_name != nullptr) {
+    key.extra_bits = key.extra_bits * 33 ^ uint32_t(hash_string(strip->scene_view_layer_name));
+  }
+  return key;
+}
+
+static ThumbnailCache::SourceKey get_key_from_strip(const Scene *scene,
                                                     const Strip *strip,
                                                     float timeline_frame)
 {
@@ -244,23 +280,12 @@ static ThumbnailCache::SourceKey get_key_from_strip(Scene *scene,
     case STRIP_TYPE_MASK:
       BLI_assert(strip->mask);
       return ThumbnailCache::SourceKey(&strip->mask->id);
+    case STRIP_TYPE_SCENE:
+      return get_key_from_scene_strip(strip);
     default:
       break;
   }
   return ThumbnailCache::SourceKey();
-}
-
-static void image_size_to_thumb_size(int &r_width, int &r_height)
-{
-  float aspect = float(r_width) / float(r_height);
-  if (r_width > r_height) {
-    r_width = THUMB_SIZE;
-    r_height = round_fl_to_int(THUMB_SIZE / aspect);
-  }
-  else {
-    r_height = THUMB_SIZE;
-    r_width = round_fl_to_int(THUMB_SIZE * aspect);
-  }
 }
 
 static ImBuf *make_thumb_for_image(const Scene *scene, const ThumbnailCache::Request &request)
@@ -627,7 +652,19 @@ static ImBuf *query_thumbnail(ThumbnailCache &cache,
     }
   }
 
-  if (best_score > 0) {
+  if (best_score > 0 && strip->type == STRIP_TYPE_SCENE) {
+    /* Add thumb generation request for a scene strip. */
+    ThumbnailCache::Request request(key,
+                                    frame_index,
+                                    strip->streamindex,
+                                    strip->type,
+                                    cur_time,
+                                    timeline_frame,
+                                    strip->channel);
+    request.scene_strip = strip;
+    cache.scene_requests_.add(request);
+  }
+  else if (best_score > 0) {
     /* We do not have an exact frame match, add a thumb generation request. */
 
     /* For ID-based sources, make a copy of the ID so that the worker thread can safely access it.
@@ -681,7 +718,7 @@ ImBuf *thumbnail_cache_get(const bContext *C,
 
   const ThumbnailCache::SourceKey key = get_key_from_strip(scene, strip, timeline_frame);
   int frame_index = give_frame_index(scene, strip, timeline_frame);
-  if (ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_MOVIECLIP)) {
+  if (ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_MOVIECLIP, STRIP_TYPE_SCENE)) {
     frame_index += strip->anim_startofs;
   }
 
@@ -698,38 +735,121 @@ ImBuf *thumbnail_cache_get(const bContext *C,
   return res;
 }
 
+bool thumbnail_cache_has_pending_scene_requests(Scene *scene)
+{
+  if (scene == nullptr || scene->ed == nullptr) {
+    return false;
+  }
+  std::scoped_lock lock(thumb_cache_mutex);
+  ThumbnailCache *cache = query_thumbnail_cache(scene);
+  return cache != nullptr && !cache->scene_requests_.is_empty();
+}
+
+bool thumbnail_cache_update_scene_thumbs(const bContext *C, Scene *scene)
+{
+  if (scene == nullptr || scene->ed == nullptr) {
+    return false;
+  }
+
+  /* Pop a single scene strip thumbnail request out of the queue (we are rendering
+   * just one scene thumbnail per draw to keep UI responsive). */
+  const Strip *strip = nullptr;
+  ThumbnailCache::SourceKey key;
+  int frame_index = 0;
+  bool more_pending = false;
+  {
+    std::scoped_lock lock(thumb_cache_mutex);
+    ThumbnailCache *cache = query_thumbnail_cache(scene);
+    if (cache == nullptr || cache->scene_requests_.is_empty()) {
+      return false;
+    }
+    auto first_request = cache->scene_requests_.begin();
+    strip = first_request->scene_strip;
+    key = first_request->source_key;
+    frame_index = first_request->frame_index;
+    cache->scene_requests_.remove(first_request);
+    more_pending = !cache->scene_requests_.is_empty();
+  }
+
+  /* The strip pointer in the thumbnail request might be stale at this point.
+   * Before accessing it, validate that we still have that scene strip. */
+  Main *bmain = CTX_data_main(C);
+  Scene *scene_from_uid = reinterpret_cast<Scene *>(
+      BKE_libblock_find_session_uid(bmain, ID_SCE, key.id_session_uid));
+  Span<const Strip *> scene_strips = lookup_strips_by_scene(scene->ed, scene_from_uid);
+
+  bool rendered_thumb = false;
+  if (strip != nullptr && scene_strips.contains(strip) && strip->type == STRIP_TYPE_SCENE &&
+      strip->scene != nullptr)
+  {
+    /* Render the strip thumbnail, outside of the cache lock. */
+    ImBuf *thumb = render_scene_strip_thumbnail(
+        bmain, scene, strip, float(frame_index), THUMB_SIZE);
+    if (thumb != nullptr) {
+      seq_imbuf_assign_spaces(scene, thumb);
+      scale_to_thumbnail_size(thumb);
+
+      /* Add to thumbnail cache. */
+      std::scoped_lock lock(thumb_cache_mutex);
+      ThumbnailCache *cache = query_thumbnail_cache(scene);
+      ThumbnailCache::SourceEntry *val = cache ? cache->map_.lookup_ptr(key) : nullptr;
+      if (val == nullptr) {
+        /* Cache entry vanished (e.g. cleared), drop the result. */
+        IMB_freeImBuf(thumb);
+      }
+      else {
+        val->used_at = math::max(val->used_at, cache->logical_time_);
+        val->frames.append({frame_index, 0, thumb, cache->logical_time_});
+        rendered_thumb = true;
+      }
+    }
+  }
+
+  return rendered_thumb || more_pending;
+}
+
 void thumbnail_cache_invalidate_strip(Scene *scene, const Strip *strip)
 {
   if (!strip_can_have_thumbnail(scene, strip)) {
     return;
   }
 
-  std::scoped_lock lock(thumb_cache_mutex);
-  ThumbnailCache *cache = query_thumbnail_cache(scene);
-  if (cache != nullptr) {
-    if (ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_IMAGE)) {
-      const StripElem *elem = strip->data->stripdata;
-      if (elem != nullptr) {
-        int paths_count = 1;
-        if (strip->type == STRIP_TYPE_IMAGE) {
-          /* Image strip has array of file names. */
-          paths_count = int(MEM_allocN_len(elem) / sizeof(*elem));
-        }
-        char filepath[FILE_MAX];
-        const char *basepath = ID_BLEND_PATH_FROM_GLOBAL(&scene->id);
-        for (int i = 0; i < paths_count; i++, elem++) {
-          BLI_path_join(filepath, sizeof(filepath), strip->data->dirpath, elem->filename);
-          BLI_path_abs(filepath, basepath);
-          cache->remove_entry(ThumbnailCache::SourceKey(filepath));
+  bool removed = false;
+  {
+    std::scoped_lock lock(thumb_cache_mutex);
+    ThumbnailCache *cache = query_thumbnail_cache(scene);
+    if (cache != nullptr) {
+      if (ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_IMAGE)) {
+        const StripElem *elem = strip->data->stripdata;
+        if (elem != nullptr) {
+          int paths_count = 1;
+          if (strip->type == STRIP_TYPE_IMAGE) {
+            /* Image strip has array of file names. */
+            paths_count = int(MEM_allocN_len(elem) / sizeof(*elem));
+          }
+          char filepath[FILE_MAX];
+          const char *basepath = ID_BLEND_PATH_FROM_GLOBAL(&scene->id);
+          for (int i = 0; i < paths_count; i++, elem++) {
+            BLI_path_join(filepath, sizeof(filepath), strip->data->dirpath, elem->filename);
+            BLI_path_abs(filepath, basepath);
+            removed |= cache->remove_entry(ThumbnailCache::SourceKey(filepath));
+          }
         }
       }
+      else if (strip->type == STRIP_TYPE_MOVIECLIP && strip->clip) {
+        removed |= cache->remove_entry(ThumbnailCache::SourceKey(&strip->clip->id));
+      }
+      else if (strip->type == STRIP_TYPE_MASK && strip->mask) {
+        removed |= cache->remove_entry(ThumbnailCache::SourceKey(&strip->mask->id));
+      }
+      else if (strip->type == STRIP_TYPE_SCENE && strip->scene) {
+        removed |= cache->remove_entry(get_key_from_scene_strip(strip));
+      }
     }
-    else if (strip->type == STRIP_TYPE_MOVIECLIP && strip->clip) {
-      cache->remove_entry(ThumbnailCache::SourceKey(&strip->clip->id));
-    }
-    else if (strip->type == STRIP_TYPE_MASK && strip->mask) {
-      cache->remove_entry(ThumbnailCache::SourceKey(&strip->mask->id));
-    }
+  }
+
+  if (removed) {
+    WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, &scene->id);
   }
 }
 
@@ -782,10 +902,12 @@ void thumbnail_cache_discard_requests_outside(Scene *scene, const rctf &rect)
   std::scoped_lock lock(thumb_cache_mutex);
   ThumbnailCache *cache = query_thumbnail_cache(scene);
   if (cache != nullptr) {
-    cache->requests_.remove_if([&](const ThumbnailCache::Request &request) {
+    const auto is_outside = [&](const ThumbnailCache::Request &request) {
       return request.timeline_frame < rect.xmin || request.timeline_frame > rect.xmax ||
              request.channel < rect.ymin || request.channel > rect.ymax;
-    });
+    };
+    cache->requests_.remove_if(is_outside);
+    cache->scene_requests_.remove_if(is_outside);
   }
 }
 

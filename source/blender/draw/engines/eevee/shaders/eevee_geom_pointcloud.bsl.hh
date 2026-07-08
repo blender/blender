@@ -17,7 +17,7 @@ VERTEX_SHADER_CREATE_INFO(eevee_clip_plane)
 #include "eevee_nodetree_vert_lib.glsl"
 #include "eevee_pipeline.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
-#include "eevee_sampling_shared.hh" /* TODO(fclem): Remove. Needed becaused of fragment shader. */
+#include "eevee_sampling_shared.hh" /* TODO(fclem): Remove. Needed because of fragment shader. */
 #include "eevee_surf_common.bsl.hh"
 #include "eevee_velocity.bsl.hh"
 
@@ -65,7 +65,7 @@ struct GeomPointCloud {
   auto &interp = interface_get(eevee_geom_iface_info, interp);
   auto &pointcloud_interp = interface_get(eevee_geom_pointcloud_iface_info, pointcloud_interp);
 
-  /* clang-format off */ /* Multiline macro breaks error line counting. */
+  /* clang-format off */ /* Multi-line macro breaks error line counting. */
   auto &pointcloud_interp_flat = interface_get(eevee_geom_pointcloud_iface_info, pointcloud_interp_flat);
   /* clang-format on */
 
@@ -99,7 +99,7 @@ struct GeomPointCloud {
   }
 
   if (pipe.use_velocity) [[static_branch]] {
-    /* clang-format off */ /* Multiline define messes up line index. */
+    /* clang-format off */ /* Multi-line define messes up line index. */
     [[resource_table]] const GeometryVelocity &geo_vel = resource_table_get(eevee::GeometryVelocity);
     /* clang-format on */
     auto &motion = interface_get(eevee_velocity_iface_info, motion);

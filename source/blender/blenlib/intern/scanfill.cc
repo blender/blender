@@ -25,6 +25,7 @@
 
 #include "DNA_listBase.h"
 
+#include "BLI_array_utils.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix_c.hh"
@@ -1079,8 +1080,8 @@ uint BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float n
     }
 #endif
 
-    uint *target_map = MEM_new_array_zeroed<uint>(poly, "polycache");
-    range_vn_u(target_map, poly, 0);
+    uint *target_map = MEM_new_array<uint>(poly, "polycache");
+    array_utils::fill_index_range<uint>({target_map, poly});
 
     for (a = 0; a < poly; a++) {
       if (target_map[a] != a) {

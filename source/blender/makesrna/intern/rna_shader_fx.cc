@@ -17,7 +17,7 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_animsys.h"
+#include "BKE_animsys.hh"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"

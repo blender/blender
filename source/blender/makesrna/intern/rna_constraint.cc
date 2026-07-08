@@ -283,7 +283,7 @@ static const EnumPropertyItem euler_order_items[] = {
 #  include "BLI_string_utf8.hh"
 
 #  include "BKE_action.hh"
-#  include "BKE_animsys.h"
+#  include "BKE_animsys.hh"
 #  include "BKE_constraint.h"
 #  include "BKE_context.hh"
 #  include "BKE_lib_id.hh"

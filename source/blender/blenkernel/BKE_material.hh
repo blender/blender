@@ -137,6 +137,14 @@ bool BKE_object_material_slot_add(Main *bmain, Object *ob, bool set_active = tru
 bool BKE_object_material_slot_remove(Main *bmain, Object *ob);
 bool BKE_object_material_slot_used(Object *object, short actcol);
 
+/* Ensure the active material index is within the valid range. */
+void BKE_object_material_active_index_sanitize(Object *ob);
+
+/* Remove unused material slots and keep the active material index valid. */
+int BKE_object_material_remove_unused(Main *bmain, Object *ob);
+/* Remove all material slots and keep the active material index valid. */
+int BKE_object_material_remove_all(Main *bmain, Object *ob);
+
 int BKE_object_material_index_get(Object *ob, const Material *ma);
 /**
  * A version of #BKE_object_material_index_get that takes an index to test first.

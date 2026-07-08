@@ -15,7 +15,7 @@ namespace blender::gpu::render_graph {
  * Information stored inside the render graph node. See `VKRenderGraphNode`.
  */
 struct VKUpdateBufferData {
-  VkBuffer dst_buffer;
+  VKResourceWithHandle<VkBuffer> dst_buffer;
   VkDeviceSize dst_offset;
   VkDeviceSize data_size;
   void *data;

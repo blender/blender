@@ -388,7 +388,7 @@ static void node_extra_info(NodeExtraInfoParams &params)
   if (!ctx.is_bakeable_in_current_context) {
     NodeExtraInfoRow row;
     row.text = TIP_("Cannot bake in zone");
-    row.icon = ICON_ERROR;
+    row.icon = ICON_STATUS_ERROR;
     params.rows.append(std::move(row));
   }
   if (ctx.is_baked) {
@@ -520,7 +520,7 @@ bool get_bake_draw_context(const bContext *C, const bNode &node, BakeDrawContext
     return false;
   }
   std::optional<ed::space_node::ObjectAndModifier> object_and_modifier =
-      ed::space_node::get_modifier_for_node_editor(*r_ctx.snode);
+      ed::space_node::get_geometry_nodes_modifier_for_node_editor(*r_ctx.snode);
   if (!object_and_modifier) {
     return false;
   }

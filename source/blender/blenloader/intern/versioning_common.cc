@@ -22,7 +22,7 @@
 #include "BLI_string_ref.hh"
 #include "BLI_string_utf8.hh"
 
-#include "BKE_animsys.h"
+#include "BKE_animsys.hh"
 #include "BKE_grease_pencil_legacy_convert.hh"
 #include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"

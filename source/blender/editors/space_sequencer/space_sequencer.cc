@@ -40,6 +40,7 @@
 #include "SEQ_preview_cache.hh"
 #include "SEQ_retiming.hh"
 #include "SEQ_sequencer.hh"
+#include "SEQ_thumbnail_cache.hh"
 #include "SEQ_time.hh"
 #include "SEQ_transform.hh"
 #include "SEQ_utils.hh"
@@ -267,6 +268,15 @@ static void sequencer_refresh(const bContext *C, ScrArea *area)
     ED_area_init(const_cast<bContext *>(C), window, area);
     ED_area_tag_redraw(area);
   }
+
+  /* Render one pending scene strip thumbnail, if any. This needs to happen
+   * outside of regular drawing due to DRW/GPU locks. */
+  if (Scene *scene = CTX_data_sequencer_scene(C)) {
+    if (seq::thumbnail_cache_update_scene_thumbs(C, scene)) {
+      ED_area_tag_refresh(area);
+      ED_area_tag_redraw(area);
+    }
+  }
 }
 
 static SpaceLink *sequencer_duplicate(SpaceLink *sl)
@@ -458,6 +468,14 @@ static void sequencer_main_region_init(wmWindowManager *wm, ARegion *region)
 static void sequencer_main_region_draw(const bContext *C, ARegion *region)
 {
   draw_timeline_seq(C, region);
+
+  /* If we have any pending scene strip thumbnail requests, tag the area for a refresh
+   * (actual thumbnail rendering needs to happen outside of regular drawing). */
+  if (Scene *scene = CTX_data_sequencer_scene(C)) {
+    if (seq::thumbnail_cache_has_pending_scene_requests(scene)) {
+      ED_area_tag_refresh(CTX_wm_area(C));
+    }
+  }
 }
 
 /* Strip editing timeline. */

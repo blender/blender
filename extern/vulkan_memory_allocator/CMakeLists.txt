@@ -7,7 +7,6 @@ set(INC
 )
 
 set(INC_SYS
-  ${VULKAN_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -17,6 +16,7 @@ set(SRC
 )
 
 set(LIB
+  PUBLIC bf::extern::volk
 )
 
 blender_add_lib(extern_vulkan_memory_allocator "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

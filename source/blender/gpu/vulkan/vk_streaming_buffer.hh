@@ -30,7 +30,7 @@ class VKStreamingBuffer {
    * `VkPhysicalDeviceLimits.min*OffsetAlignment` */
   VkDeviceSize min_offset_alignment_;
   /** Device buffer that is being updated. */
-  VkBuffer vk_buffer_dst_;
+  VKResourceWithHandle<VkBuffer> vk_buffer_dst_;
   /** Size of 'vk_buffer_dst_' */
   VkDeviceSize vk_buffer_size_;
   /** Current offset in the host buffer where new data will be stored. */
@@ -51,7 +51,7 @@ class VKStreamingBuffer {
    */
   VkDeviceSize update(VKContext &context, const void *data, size_t data_size);
 
-  VkBuffer vk_buffer_dst()
+  VKResourceWithHandle<VkBuffer> vk_buffer_dst()
   {
     return vk_buffer_dst_;
   }

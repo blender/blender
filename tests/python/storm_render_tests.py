@@ -71,6 +71,7 @@ BLOCKLIST_METAL = [
     "transparent_shadow.blend",
     "transparent_shadow_hair.blend",
     "transparent_shadow_hair_blur.blend",
+    "transparent_shadow_hair_colored.blend",
     "shadow_all_max_bounces.blend",
     "underwater_caustics.blend",
     "shadow_link_transparency.blend",

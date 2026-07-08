@@ -91,13 +91,6 @@ struct wmXrSessionState {
 
   wmXrViewfinderState viewfinder;
 
-  /** The pose (location + rotation) to which eye deltas will be applied to when drawing (world
-   * space). With positional tracking enabled, it should be the same as the base pose, when
-   * disabled it also contains a location delta from the moment the option was toggled. */
-  GHOST_XrPose base_pose;
-  /** Base scale (uniform, world space). */
-  float base_scale;
-
   /** Copy of XrSessionSettings.base_pose_ data to detect changes that need
    * resetting to base pose. */
   char prev_base_pose_type; /* #eXRSessionBasePoseType. */
@@ -185,6 +178,12 @@ struct wmXrDrawData {
   wmXrData *xr_data;
   wmXrSurfaceData *surface_data;
 
+  /** The pose (location + rotation) to which eye deltas will be applied to when drawing (world
+   * space). With positional tracking enabled, it should be the same as the base pose, when
+   * disabled it also contains a location delta from the moment the option was toggled. */
+  GHOST_XrPose base_pose;
+  /** Base scale (uniform, world space). */
+  float base_scale;
   /** Offset to _subtract_ from the OpenXR eye and viewer pose to get the wanted effective pose
    * (e.g. a pose exactly at the landmark position). */
   float eye_position_ofs[3]; /* Local/view space. */

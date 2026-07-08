@@ -42,6 +42,10 @@ class VKUniformBuffer : public UniformBuf, NonCopyable {
   {
     return buffer_.vk_handle();
   }
+  const VKResourceWithHandle<VkBuffer> &resource() const
+  {
+    return buffer_.resource();
+  }
   inline VkDeviceAddress device_address_get() const
   {
     return buffer_.device_address_get();

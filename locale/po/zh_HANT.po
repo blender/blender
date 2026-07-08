@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'b2d38940ccd4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-29 10:51+0000\n"
+"POT-Creation-Date: 2026-07-06 08:37+0000\n"
 "PO-Revision-Date: 2026-06-25 10:12+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -11703,10 +11703,6 @@ msgstr "正弦規一化"
 
 msgid "sin(x) / x"
 msgstr "sin(x) / x"
-
-
-msgid "Phase Multiple"
-msgstr "相位乘數"
 
 
 msgid "Scale factor determining the 'speed' of the function"
@@ -26508,114 +26504,6 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Render Preview"
-msgstr "算繪預覽"
-
-
-msgid "Mirror"
-msgstr "鏡像"
-
-
-msgid "Snap"
-msgstr "吸附"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射處理"
-
-
-msgid "Local View"
-msgstr "區域檢視"
-
-
-msgid "Viewpoint"
-msgstr "視點"
-
-
-msgid "Navigation"
-msgstr "導覽"
-
-
-msgid "Align View"
-msgstr "對齊檢視"
-
-
-msgid "Align View to Active"
-msgstr "對齊檢視至作用項"
-
-
-msgid "View Regions"
-msgstr "檢視範圍"
-
-
-msgid "Math"
-msgstr "數學公式"
-
-
-msgid "Select More/Less"
-msgstr "選取更多/更少"
-
-
-msgid "Utilities"
-msgstr "效用"
-
-
-msgid "Select Similar"
-msgstr "選取相似者"
-
-
-msgid "Select All by Trait"
-msgstr "依特徵全選"
-
-
-msgid "Select Linked"
-msgstr "選取連結項"
-
-
-msgid "Select Loops"
-msgstr "選取迴圈"
-
-
-msgid "Assign Material"
-msgstr "指派材質"
-
-
-msgid "Read"
-msgstr "讀取"
-
-
-msgid "Sample"
-msgstr "取樣"
-
-
-msgid "Write"
-msgstr "寫入"
-
-
-msgid "Primitives"
-msgstr "原形"
-
-
-msgid "Metaball"
-msgstr "變幻球"
-
-
-msgid "Light"
-msgstr "燈光"
-
-
-msgid "Light Probe"
-msgstr "燈光採樣器"
-
-
-msgid "Gizmo"
-msgstr "操縱器"
-
-
-msgid "Instances"
-msgstr "實例化"
-
-
 msgid "Add Image"
 msgstr "新增影像"
 
@@ -26628,8 +26516,8 @@ msgid "Rigid Body"
 msgstr "剛體"
 
 
-msgid "Import"
-msgstr "匯入"
+msgid "Render Preview"
+msgstr "算繪預覽"
 
 
 msgid "Apply"
@@ -26646,10 +26534,6 @@ msgstr "快速效果"
 
 msgid "Show/Hide"
 msgstr "顯示/隱藏"
-
-
-msgid "Deprecated"
-msgstr "已棄用"
 
 
 msgid "Clean Up"
@@ -26676,16 +26560,20 @@ msgid "Hooks"
 msgstr "鉤"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Vertex Group Locks"
 msgstr "頂點群組鎖定"
 
 
+msgid "Math"
+msgstr "數學公式"
+
+
 msgid "Trim/Add"
 msgstr "修剪/增加"
+
+
+msgid "Utilities"
+msgstr "效用"
 
 
 msgid "Sculpt Set Pivot"
@@ -26720,12 +26608,28 @@ msgid "Names"
 msgstr "名稱"
 
 
+msgid "Read"
+msgstr "讀取"
+
+
+msgid "Sample"
+msgstr "取樣"
+
+
+msgid "Write"
+msgstr "寫入"
+
+
 msgid "Toggle Bone Options"
 msgstr "開關骨骼選項"
 
 
 msgid "Enable Bone Options"
 msgstr "啟用骨骼設定"
+
+
+msgid "Primitives"
+msgstr "原形"
 
 
 msgid "Disable Bone Options"
@@ -26744,16 +26648,20 @@ msgid "Set Face Strength"
 msgstr "設定面強度"
 
 
+msgid "Gizmo"
+msgstr "操縱器"
+
+
+msgid "Instances"
+msgstr "實例化"
+
+
 msgid "Merge"
 msgstr "合併"
 
 
-msgid "Linked"
-msgstr "已連結"
-
-
-msgid "Layout"
-msgstr "配置"
+msgid "Import"
+msgstr "匯入"
 
 
 msgid "Special Characters"
@@ -26764,28 +26672,28 @@ msgid "Kerning"
 msgstr "字間微調"
 
 
+msgid "Deprecated"
+msgstr "已棄用"
+
+
+msgid "Metaball"
+msgstr "變幻球"
+
+
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Bone Roll"
 msgstr "骨骼滾動"
 
 
-msgid "Adjust"
-msgstr "調整"
-
-
-msgid "Keying"
-msgstr "鍵處理"
-
-
-msgid "Tracking"
-msgstr "跟蹤"
-
-
-msgid "Creative"
-msgstr "創意"
-
-
 msgid "Pivot Point"
 msgstr "樞紐點"
+
+
+msgid "Snap"
+msgstr "吸附"
 
 
 msgid "Proportional Editing Falloff"
@@ -26802,6 +26710,94 @@ msgstr "自動遮罩"
 
 msgid "Face Sets Edit"
 msgstr "面集編輯"
+
+
+msgid "Mirror"
+msgstr "鏡像"
+
+
+msgid "UV Mapping"
+msgstr "UV 映射處理"
+
+
+msgid "Local View"
+msgstr "區域檢視"
+
+
+msgid "Viewpoint"
+msgstr "視點"
+
+
+msgid "Linked"
+msgstr "已連結"
+
+
+msgid "Navigation"
+msgstr "導覽"
+
+
+msgid "Layout"
+msgstr "配置"
+
+
+msgid "Align View"
+msgstr "對齊檢視"
+
+
+msgid "Align View to Active"
+msgstr "對齊檢視至作用項"
+
+
+msgid "View Regions"
+msgstr "檢視範圍"
+
+
+msgid "Select More/Less"
+msgstr "選取更多/更少"
+
+
+msgid "Select Similar"
+msgstr "選取相似者"
+
+
+msgid "Select All by Trait"
+msgstr "依特徵全選"
+
+
+msgid "Select Linked"
+msgstr "選取連結項"
+
+
+msgid "Select Loops"
+msgstr "選取迴圈"
+
+
+msgid "Adjust"
+msgstr "調整"
+
+
+msgid "Keying"
+msgstr "鍵處理"
+
+
+msgid "Tracking"
+msgstr "跟蹤"
+
+
+msgid "Assign Material"
+msgstr "指派材質"
+
+
+msgid "Creative"
+msgstr "創意"
+
+
+msgid "Light"
+msgstr "燈光"
+
+
+msgid "Light Probe"
+msgstr "燈光採樣器"
 
 
 msgid "Keyframe Insert Pie"
@@ -61387,6 +61383,38 @@ msgid "Palette Splines"
 msgstr "調色盤雲型線"
 
 
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR 資訊"
+
+
+msgid "glTF Variants"
+msgstr "glTF 變體"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF 材質變體"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF 動畫"
+
+
+msgid "Active Tool"
+msgstr "作用中工具"
+
+
+msgid "View Lock"
+msgstr "視圖鎖定"
+
+
 msgid "Shadow Settings"
 msgstr "陰影設定"
 
@@ -61477,38 +61505,6 @@ msgstr "自動遮罩"
 
 msgid "Viewport Debug"
 msgstr "視圖除錯"
-
-
-msgid "glTF Variants"
-msgstr "glTF 變體"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF 材質變體"
-
-
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR 資訊"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF 動畫"
-
-
-msgid "Active Tool"
-msgstr "作用中工具"
-
-
-msgid "View Lock"
-msgstr "視圖鎖定"
 
 
 msgid "Import Settings"
@@ -90303,10 +90299,6 @@ msgid "No Rigid Body World to add Rigid Body Constraint to"
 msgstr "無剛體約束可新增的剛體世界"
 
 
-msgid "Object has no Rigid Body Constraint to remove"
-msgstr "物體無可移除的剛體約束"
-
-
 msgid "Object '%s' already has a Rigid Body Constraint"
 msgstr "物體「%s」已有剛體約束"
 
@@ -98108,6 +98100,10 @@ msgid "Base Contrast"
 msgstr "基礎對比"
 
 
+msgid "Utility"
+msgstr "公用程式"
+
+
 msgid "Add & Subtract"
 msgstr "加 & 減"
 
@@ -98134,10 +98130,6 @@ msgstr "網格頂點繪製"
 
 msgid "Mesh Weight Paint"
 msgstr "網格權重繪製"
-
-
-msgid "Utility"
-msgstr "公用程式"
 
 
 msgid "Phi"

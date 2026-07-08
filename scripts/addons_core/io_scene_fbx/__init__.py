@@ -261,7 +261,7 @@ def import_panel_transform(layout, operator):
         body.prop(operator, "decal_offset")
         row = body.row()
         row.prop(operator, "bake_space_transform")
-        row.label(text="", icon='ERROR')
+        row.label(text="", icon='STATUS_ERROR')
         body.prop(operator, "use_prepost_rot")
 
         import_panel_transform_orientation(body, operator)
@@ -664,7 +664,7 @@ def export_panel_transform(layout, operator):
         body.prop(operator, "use_space_transform")
         row = body.row()
         row.prop(operator, "bake_space_transform")
-        row.label(text="", icon='ERROR')
+        row.label(text="", icon='STATUS_ERROR')
 
 
 def export_panel_geometry(layout, operator):

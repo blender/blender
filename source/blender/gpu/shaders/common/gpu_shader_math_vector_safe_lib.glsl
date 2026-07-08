@@ -156,6 +156,23 @@ template float3 safe_normalize<float3>(float3);
 template float4 safe_normalize<float4>(float4);
 
 /**
+ * Return normalized version of the `vector` or `fallback` vector if `vector` is invalid.
+ */
+template<typename VecT> VecT normalize_fallback(VecT vector, VecT fallback)
+{
+  float length_squared = dot(vector, vector);
+  constexpr float threshold = 1e-35f;
+  if (length_squared > threshold) {
+    return vector / inversesqrt(length_squared);
+  }
+  /* Either the vector is small or one of its values contained `nan`. */
+  return fallback;
+}
+template float2 normalize_fallback<float2>(float2, float2);
+template float3 normalize_fallback<float3>(float3, float3);
+template float4 normalize_fallback<float4>(float4, float4);
+
+/**
  * Safe reciprocal function. Returns `1/a`.
  * If `a` equal 0 the result will be 0.
  */

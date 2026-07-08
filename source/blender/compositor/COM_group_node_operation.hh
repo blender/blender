@@ -14,7 +14,6 @@ namespace blender::compositor {
  * more information.. */
 NodeOperation *get_group_node_operation(Context &context,
                                         const bNode &node,
-                                        const NodeGroupOutputTypes &needed_outputs,
-                                        const bNodeInstanceKey active_node_group_instance_key);
+                                        const NodeGroupOutputTypes &needed_outputs);
 
 }  // namespace blender::compositor

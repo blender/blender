@@ -21,7 +21,7 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_animsys.h"
+#include "BKE_animsys.hh"
 #include "BKE_customdata.hh"
 #include "BKE_data_transfer.h"
 #include "BKE_mesh_remap.hh"
@@ -558,9 +558,9 @@ const EnumPropertyItem rna_enum_shrinkwrap_face_cull_items[] = {
 };
 
 const EnumPropertyItem rna_enum_node_warning_type_items[] = {
-    {int(nodes::NodeWarningType::Error), "ERROR", ICON_CANCEL, "Error", ""},
-    {int(nodes::NodeWarningType::Warning), "WARNING", ICON_ERROR, "Warning", ""},
-    {int(nodes::NodeWarningType::Info), "INFO", ICON_INFO, "Info", ""},
+    {int(nodes::NodeWarningType::Error), "ERROR", ICON_STATUS_ERROR_FILLED, "Error", ""},
+    {int(nodes::NodeWarningType::Warning), "WARNING", ICON_STATUS_WARNING_FILLED, "Warning", ""},
+    {int(nodes::NodeWarningType::Info), "INFO", ICON_STATUS_INFO_FILLED, "Info", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -1973,7 +1973,7 @@ static nodes::eval_log::NodeTreeLog *get_nodes_modifier_log(const Object &object
     return nullptr;
   }
   bke::DataBlockComputeContext data_block_context{nullptr, object.id};
-  bke::ModifierComputeContext modifier_context{&data_block_context, nmd};
+  bke::GeometryNodesModifierComputeContext modifier_context{&data_block_context, nmd};
   return &nmd.runtime->eval_log->get_tree_log(modifier_context.hash());
 }
 

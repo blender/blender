@@ -321,9 +321,12 @@ void AbstractGridView::scroll_active_into_view(bContext *C, bool scroll_active_t
       int first_idx_in_view = visible_range.first();
       int last_idx_in_view = visible_range.last();
 
-      /* When button is slightly outside the view, clamp region to button's height, see: !159566 */
-      first_idx_in_view += rect.ymax > v2d.cur.ymax ? cols_per_row_ : 0;
-      last_idx_in_view -= rect.ymin < v2d.cur.ymin ? cols_per_row_ : 0;
+      if (but) {
+        /* When button is slightly outside the view, clamp region to button's height, see: !159566
+         */
+        first_idx_in_view += rect.ymax > v2d.cur.ymax ? cols_per_row_ : 0;
+        last_idx_in_view -= rect.ymin < v2d.cur.ymin ? cols_per_row_ : 0;
+      }
 
       const int view_height = BLI_rcti_size_y(&v2d.mask);
       const int count_rows_in_view = std::max(view_height / style_.tile_height, 1);

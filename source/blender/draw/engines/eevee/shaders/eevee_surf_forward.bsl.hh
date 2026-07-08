@@ -49,7 +49,7 @@ float4 closure_to_rgba_forward(Closure /*cl_unused*/)
 
 #if defined(MAT_TRANSPARENT) && defined(MAT_SHADER_TO_RGBA)
   { /* Limit resource guard to this scope. */
-    /* Multiline macro breaks error line counting. */
+    /* Multi-line macro breaks error line counting. */
     /* clang-format off */
     [[resource_table]] eevee::LightprobeRenderData &lightprobes = resource_table_get(eevee::LightprobeRenderData);
     /* clang-format on */
@@ -62,7 +62,7 @@ float4 closure_to_rgba_forward(Closure /*cl_unused*/)
 
 #  ifndef MAT_FIRST_LAYER
     { /* Limit resource guard to this scope. */
-      /* Multiline macro breaks error line counting. */
+      /* Multi-line macro breaks error line counting. */
       /* clang-format off */
       [[resource_table]] const eevee::PreviousLayerHiZ &prev_hiz = resource_table_get(eevee::PreviousLayerHiZ);
       [[resource_table]] const eevee::PreviousLayerRadiance &prev_radiance = resource_table_get(eevee::PreviousLayerRadiance);

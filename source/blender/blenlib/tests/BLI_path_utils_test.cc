@@ -903,6 +903,10 @@ TEST(path_utils, FrameStrip)
   PATH_FRAME_STRIP("/abspath/to/somefile.001.abc", "/abspath/to/somefile.###", ".abc");
   PATH_FRAME_STRIP("/ext/longer/somefile.001.alembic", "/ext/longer/somefile.###", ".alembic");
   PATH_FRAME_STRIP("/ext/shorter/somefile.123001.abc", "/ext/shorter/somefile.######", ".abc");
+
+  /* Check int overflow scenario. */
+  PATH_FRAME_STRIP("1234567890.png", "##########", ".png");
+  PATH_FRAME_STRIP("12345678901.png", "12345678901", ".png");
 }
 #undef PATH_FRAME_STRIP
 
@@ -1220,6 +1224,11 @@ TEST(path_utils, FrameGet)
   PATH_FRAME_GET("path/to/frame_2810.dummy_quite_long_extension", 2810, 4, true);
   PATH_FRAME_GET("notframe_7_frame00018.bla", 18, 5, true);
 
+  /* Check int overflow scenario. */
+  PATH_FRAME_GET("1234567890.png", 1234567890, 10, true);
+  PATH_FRAME_GET("12345678901.png", -1, 11, false);
+
+  PATH_FRAME_GET("nonum.abc", -1, 0, false);
   PATH_FRAME_GET("", -1, -1, false);
 }
 #undef PATH_FRAME_GET

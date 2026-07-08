@@ -336,7 +336,8 @@ std::optional<nodes::FoundNestedNodeID> find_nested_node_id_in_root(
   return found;
 }
 
-std::optional<ObjectAndModifier> get_modifier_for_node_editor(const SpaceNode &snode)
+std::optional<ObjectAndModifier> get_geometry_nodes_modifier_for_node_editor(
+    const SpaceNode &snode)
 {
   if (snode.node_tree_sub_type != SNODE_GEOMETRY_MODIFIER) {
     return std::nullopt;
@@ -384,7 +385,8 @@ bool node_editor_is_for_geometry_nodes_modifier(const SpaceNode &snode,
                                                 const Object &object,
                                                 const NodesModifierData &nmd)
 {
-  const std::optional<ObjectAndModifier> object_and_modifier = get_modifier_for_node_editor(snode);
+  const std::optional<ObjectAndModifier> object_and_modifier =
+      get_geometry_nodes_modifier_for_node_editor(snode);
   if (!object_and_modifier) {
     return false;
   }
@@ -494,13 +496,14 @@ static const ComputeContext *get_node_editor_root_compute_context(
     switch (SpaceNodeGeometryNodesType(snode.node_tree_sub_type)) {
       case SNODE_GEOMETRY_MODIFIER: {
         std::optional<ed::space_node::ObjectAndModifier> object_and_modifier =
-            ed::space_node::get_modifier_for_node_editor(snode);
+            ed::space_node::get_geometry_nodes_modifier_for_node_editor(snode);
         if (!object_and_modifier) {
           return nullptr;
         }
         const bke::DataBlockComputeContext &object_context = compute_context_cache.for_data_block(
             nullptr, object_and_modifier->object->id);
-        return &compute_context_cache.for_modifier(&object_context, *object_and_modifier->nmd);
+        return &compute_context_cache.for_geometry_nodes_modifier(&object_context,
+                                                                  *object_and_modifier->nmd);
       }
       case SNODE_GEOMETRY_TOOL: {
         return &compute_context_cache.for_operator(nullptr);
@@ -830,6 +833,8 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
             node_area_tag_tree_recalc(snode, area);
           }
         }
+
+        ED_area_tag_redraw(area);
       }
       break;
 

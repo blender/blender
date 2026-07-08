@@ -319,7 +319,7 @@ void template_running_jobs(Layout *layout, bContext *C)
   if (ED_screen_animation_no_scrub(wm)) {
     Button *but = uiDefIconTextBut(block,
                                    ButtonType::But,
-                                   ICON_CANCEL,
+                                   ICON_STATUS_ERROR_FILLED,
                                    IFACE_("Anim Player"),
                                    0,
                                    0,

@@ -29,6 +29,7 @@
 
 #include "DNA_text_types.h"
 
+#include "BPY_extern.hh"
 #include "BPY_extern_run.hh"
 
 #include "bpy_capi_utils.hh"
@@ -269,6 +270,25 @@ bool BPY_string_compile_check(const char *expr)
 }
 
 /**
+ * Run `fn` with `bpy.context` set to `C` and the GIL held,
+ * restoring the previous context afterwards.
+ */
+static void bpy_run_with_context_or_null(bContext *C, FunctionRef<void()> fn)
+{
+  bContext *C_prev = BPY_context_get();
+  PyGILState_STATE gilstate;
+  const bool context_set = bpy_context_set_allow_null(C, &gilstate);
+
+  fn();
+
+  /* Failure to restore `C_prev` may leave it null, see #160604. */
+  if (context_set && (C != C_prev)) {
+    BPY_context_update(C_prev);
+  }
+  bpy_context_clear(C, &gilstate);
+}
+
+/**
  * \param mode: Passed to #PyRun_String, matches Python's `compile` functions mode argument.
  * #Py_eval_input for `eval`, #Py_file_input for `exec`.
  */
@@ -278,46 +298,43 @@ static bool bpy_run_string_impl(bContext *C,
                                 const int mode)
 {
   BLI_assert(expr);
-  PyGILState_STATE gilstate;
-  PyObject *py_dict, *retval;
   bool ok = true;
 
   if (expr[0] == '\0') {
     return ok;
   }
 
-  /* Historically `BPY_run_*` C to be null, risky but not trivial to change. See docstring. */
-  bpy_context_set_allow_null(C, &gilstate);
+  bpy_run_with_context_or_null(C, [&]() {
+    PyObject *py_dict, *retval;
 
-  PyObject *main_mod = PyC_MainModule_Backup();
+    PyObject *main_mod = PyC_MainModule_Backup();
 
-  py_dict = PyC_DefaultNameSpace("<blender string>");
+    py_dict = PyC_DefaultNameSpace("<blender string>");
 
-  if (imports && !PyC_NameSpace_ImportArray(py_dict, imports)) {
-    Py_DECREF(py_dict);
-    retval = nullptr;
-  }
-  else {
-    retval = PyRun_String(expr, mode, py_dict, py_dict);
-  }
-
-  if (retval == nullptr) {
-    ok = false;
-    if (ReportList *wm_reports = C ? CTX_wm_reports(C) : nullptr) {
-      BPy_errors_to_report(wm_reports);
+    if (imports && !PyC_NameSpace_ImportArray(py_dict, imports)) {
+      Py_DECREF(py_dict);
+      retval = nullptr;
     }
     else {
-      PyC_Err_CaptureSystemExitCode();
+      retval = PyRun_String(expr, mode, py_dict, py_dict);
     }
-    PyErr_Print();
-  }
-  else {
-    Py_DECREF(retval);
-  }
 
-  PyC_MainModule_Restore(main_mod);
+    if (retval == nullptr) {
+      ok = false;
+      if (ReportList *wm_reports = C ? CTX_wm_reports(C) : nullptr) {
+        BPy_errors_to_report(wm_reports);
+      }
+      else {
+        PyC_Err_CaptureSystemExitCode();
+      }
+      PyErr_Print();
+    }
+    else {
+      Py_DECREF(retval);
+    }
 
-  bpy_context_clear(C, &gilstate);
+    PyC_MainModule_Restore(main_mod);
+  });
 
   return ok;
 }
@@ -396,26 +413,24 @@ static bool bpy_run_string_exec_with_locals_acquire_gil(
     IDProperty &locals,
     FunctionRef<void(PyObject *py_locals)> on_exec_ok)
 {
-  PyGILState_STATE gilstate;
-  /* Historically `BPY_run_*` C to be null, risky but not trivial to change. See docstring. */
+  bool ok = false;
 
-  bpy_context_set_allow_null(C, &gilstate);
+  bpy_run_with_context_or_null(C, [&]() {
+    PyObject *main_mod_backup = PyC_MainModule_Backup();
 
-  PyObject *main_mod_backup = PyC_MainModule_Backup();
-
-  const bool ok = bpy_run_string_exec_with_locals_assume_gil(script, locals, on_exec_ok);
-  if (!ok) {
-    if (ReportList *wm_reports = C ? CTX_wm_reports(C) : nullptr) {
-      BPy_errors_to_report(wm_reports);
+    ok = bpy_run_string_exec_with_locals_assume_gil(script, locals, on_exec_ok);
+    if (!ok) {
+      if (ReportList *wm_reports = C ? CTX_wm_reports(C) : nullptr) {
+        BPy_errors_to_report(wm_reports);
+      }
+      else {
+        PyC_Err_CaptureSystemExitCode();
+      }
+      PyErr_Print();
     }
-    else {
-      PyC_Err_CaptureSystemExitCode();
-    }
-    PyErr_Print();
-  }
 
-  PyC_MainModule_Restore(main_mod_backup);
-  bpy_context_clear(C, &gilstate);
+    PyC_MainModule_Restore(main_mod_backup);
+  });
 
   return ok;
 }
@@ -529,17 +544,13 @@ bool BPY_run_string_as_number(bContext *C,
     return ok;
   }
 
-  PyGILState_STATE gilstate;
-  /* Historically `BPY_run_*` C to be null, risky but not trivial to change. See docstring. */
-  bpy_context_set_allow_null(C, &gilstate);
+  bpy_run_with_context_or_null(C, [&]() {
+    ok = PyC_RunString_AsNumber(imports, expr, "<expr as number>", r_value);
 
-  ok = PyC_RunString_AsNumber(imports, expr, "<expr as number>", r_value);
-
-  if (ok == false) {
-    run_string_handle_error(err_info);
-  }
-
-  bpy_context_clear(C, &gilstate);
+    if (ok == false) {
+      run_string_handle_error(err_info);
+    }
+  });
 
   return ok;
 }
@@ -558,17 +569,13 @@ bool BPY_run_string_as_string_and_len(bContext *C,
     return ok;
   }
 
-  PyGILState_STATE gilstate;
-  /* Historically `BPY_run_*` C to be null, risky but not trivial to change. See docstring. */
-  bpy_context_set_allow_null(C, &gilstate);
+  bpy_run_with_context_or_null(C, [&]() {
+    ok = PyC_RunString_AsStringAndSize(imports, expr, "<expr as str>", r_value, r_value_len);
 
-  ok = PyC_RunString_AsStringAndSize(imports, expr, "<expr as str>", r_value, r_value_len);
-
-  if (ok == false) {
-    run_string_handle_error(err_info);
-  }
-
-  bpy_context_clear(C, &gilstate);
+    if (ok == false) {
+      run_string_handle_error(err_info);
+    }
+  });
 
   return ok;
 }
@@ -594,18 +601,14 @@ bool BPY_run_string_as_string_and_len_or_none(bContext *C,
     return ok;
   }
 
-  PyGILState_STATE gilstate;
-  /* Historically `BPY_run_*` C to be null, risky but not trivial to change. See docstring. */
-  bpy_context_set_allow_null(C, &gilstate);
+  bpy_run_with_context_or_null(C, [&]() {
+    ok = PyC_RunString_AsStringAndSizeOrNone(
+        imports, expr, "<expr as str or none>", r_value, r_value_len);
 
-  ok = PyC_RunString_AsStringAndSizeOrNone(
-      imports, expr, "<expr as str or none>", r_value, r_value_len);
-
-  if (ok == false) {
-    run_string_handle_error(err_info);
-  }
-
-  bpy_context_clear(C, &gilstate);
+    if (ok == false) {
+      run_string_handle_error(err_info);
+    }
+  });
 
   return ok;
 }
@@ -631,17 +634,13 @@ bool BPY_run_string_as_intptr(bContext *C,
     return ok;
   }
 
-  PyGILState_STATE gilstate;
-  /* Historically `BPY_run_*` C to be null, risky but not trivial to change. See docstring. */
-  bpy_context_set_allow_null(C, &gilstate);
+  bpy_run_with_context_or_null(C, [&]() {
+    ok = PyC_RunString_AsIntPtr(imports, expr, "<expr as intptr>", r_value);
 
-  ok = PyC_RunString_AsIntPtr(imports, expr, "<expr as intptr>", r_value);
-
-  if (ok == false) {
-    run_string_handle_error(err_info);
-  }
-
-  bpy_context_clear(C, &gilstate);
+    if (ok == false) {
+      run_string_handle_error(err_info);
+    }
+  });
 
   return ok;
 }

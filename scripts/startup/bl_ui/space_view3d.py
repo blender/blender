@@ -2880,8 +2880,8 @@ class VIEW3D_MT_object(Menu):
         layout.separator()
 
         layout.operator_context = 'EXEC_REGION_WIN'
-        layout.operator("object.delete", text="Delete", icon='X').use_global = False
         layout.operator("object.delete", text="Delete Global").use_global = True
+        layout.operator("object.delete", text="Delete", icon='X').use_global = False
 
         layout.template_node_operator_asset_menu_items(catalog_path="Object")
 
@@ -5771,7 +5771,9 @@ class VIEW3D_MT_edit_armature_delete(Menu):
 
         layout.separator()
 
-        layout.operator("armature.dissolve", text="Dissolve Bones")
+        row = layout.row()
+        row.operator_context = 'INVOKE_REGION_WIN'
+        row.operator("armature.dissolve", text="Dissolve Bones")
 
 
 class VIEW3D_MT_weight_grease_pencil(Menu):
@@ -8353,7 +8355,7 @@ class VIEW3D_PT_active_spline(Panel):
                     if col is None:
                         layout.separator()
                         col = layout.column(align=True)
-                    col.label(text=message, icon='INFO')
+                    col.label(text=message, icon='STATUS_INFO')
                 del col
 
 

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'b2d38940ccd4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-29 10:51+0000\n"
-"PO-Revision-Date: 2026-06-28 16:25+0000\n"
+"POT-Creation-Date: 2026-07-06 08:37+0000\n"
+"PO-Revision-Date: 2026-07-03 21:30+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
 "Language: fr\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 5.16.2"
+"X-Generator: Weblate 2026.6.1"
 
 
 msgid "Shader AOV"
@@ -14358,10 +14358,6 @@ msgid "sin(x) / x"
 msgstr "sin(x)/x"
 
 
-msgid "Phase Multiple"
-msgstr "Multiplicateur de phase"
-
-
 msgid "Scale factor determining the 'speed' of the function"
 msgstr "Facteur d’échelle déterminant la « vitesse » de la fonction"
 
@@ -15635,12 +15631,32 @@ msgid "Show only assets that are available on disk already (no internet access n
 msgstr "Afficher seulement les assets qui sont déjà disponibles sur le disque (ne nécessite pas d’accès à Internet)"
 
 
+msgid "Catalog Visibility"
+msgstr "Visibilité des catalogues"
+
+
+msgid "Which assets to show based on catalog filter"
+msgstr "Quels assets afficher, en fonction du filtre de catalogue"
+
+
+msgid "Show assets from all catalogs"
+msgstr "Afficher les assets de tous les catalogues"
+
+
 msgid "Catalog"
 msgstr "Catalogue"
 
 
+msgid "Show assets from the active catalog only"
+msgstr "Afficher seulement les assets du catalogue actif"
+
+
 msgid "Unassigned"
 msgstr "Non assigné"
+
+
+msgid "Show assets not assigned to any catalog"
+msgstr "Affiché les assets n’étant assignés à aucun catalogue"
 
 
 msgid "The UUID of the catalog shown in the browser"
@@ -35904,114 +35920,6 @@ msgid "Editor menu containing buttons"
 msgstr "Menu d’éditeur contenant des boutons"
 
 
-msgid "Render Preview"
-msgstr "Rendu de prévisualisation"
-
-
-msgid "Mirror"
-msgstr "Miroir"
-
-
-msgid "Snap"
-msgstr "Aimanter"
-
-
-msgid "UV Mapping"
-msgstr "Placage UV"
-
-
-msgid "Local View"
-msgstr "Vue locale"
-
-
-msgid "Viewpoint"
-msgstr "Point de vue"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Align View"
-msgstr "Aligner la vue"
-
-
-msgid "Align View to Active"
-msgstr "Aligner la vue sur l’actif"
-
-
-msgid "View Regions"
-msgstr "Régions dans la vue"
-
-
-msgid "Math"
-msgstr "Maths"
-
-
-msgid "Select More/Less"
-msgstr "Sélectionner plus ou moins"
-
-
-msgid "Utilities"
-msgstr "Utilitaires"
-
-
-msgid "Select Similar"
-msgstr "Sélectionner similaires"
-
-
-msgid "Select All by Trait"
-msgstr "Tout sélectionner par caractéristiques"
-
-
-msgid "Select Linked"
-msgstr "Sélectionner liés"
-
-
-msgid "Select Loops"
-msgstr "Sélectionner les boucles"
-
-
-msgid "Assign Material"
-msgstr "Assigner un matériau"
-
-
-msgid "Read"
-msgstr "Lecture"
-
-
-msgid "Sample"
-msgstr "Échantillonner"
-
-
-msgid "Write"
-msgstr "Écriture"
-
-
-msgid "Primitives"
-msgstr "Primitives"
-
-
-msgid "Metaball"
-msgstr "Métaballe"
-
-
-msgid "Light"
-msgstr "Éclairage"
-
-
-msgid "Light Probe"
-msgstr "Sonde d’éclairage"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instances"
-
-
 msgid "Add Image"
 msgstr "Ajouter une image"
 
@@ -36024,8 +35932,8 @@ msgid "Rigid Body"
 msgstr "Corps rigide"
 
 
-msgid "Import"
-msgstr "Importer"
+msgid "Render Preview"
+msgstr "Rendu de prévisualisation"
 
 
 msgid "Apply"
@@ -36042,10 +35950,6 @@ msgstr "Effets rapides"
 
 msgid "Show/Hide"
 msgstr "Afficher/cacher"
-
-
-msgid "Deprecated"
-msgstr "Obsolète"
 
 
 msgid "Clean Up"
@@ -36072,16 +35976,20 @@ msgid "Hooks"
 msgstr "Crochets"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Vertex Group Locks"
 msgstr "Verrouillages des groupes de sommets"
 
 
+msgid "Math"
+msgstr "Maths"
+
+
 msgid "Trim/Add"
 msgstr "Découper/Ajouter"
+
+
+msgid "Utilities"
+msgstr "Utilitaires"
 
 
 msgid "Add Primitive"
@@ -36120,12 +36028,28 @@ msgid "Names"
 msgstr "Noms"
 
 
+msgid "Read"
+msgstr "Lecture"
+
+
+msgid "Sample"
+msgstr "Échantillonner"
+
+
+msgid "Write"
+msgstr "Écriture"
+
+
 msgid "Toggle Bone Options"
 msgstr "(Dés)activer des options d’os"
 
 
 msgid "Enable Bone Options"
 msgstr "Activer des options d’os"
+
+
+msgid "Primitives"
+msgstr "Primitives"
 
 
 msgid "Disable Bone Options"
@@ -36148,16 +36072,20 @@ msgid "Set Face Strength"
 msgstr "Définir la force de face"
 
 
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Instances"
+
+
 msgid "Merge"
 msgstr "Fusionner"
 
 
-msgid "Linked"
-msgstr "Liés"
-
-
-msgid "Layout"
-msgstr "Disposition"
+msgid "Import"
+msgstr "Importer"
 
 
 msgid "Special Characters"
@@ -36168,28 +36096,28 @@ msgid "Kerning"
 msgstr "Approche"
 
 
+msgid "Deprecated"
+msgstr "Obsolète"
+
+
+msgid "Metaball"
+msgstr "Métaballe"
+
+
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Bone Roll"
 msgstr "Roulis de l’os"
 
 
-msgid "Adjust"
-msgstr "Ajuster"
-
-
-msgid "Keying"
-msgstr "Incrustation"
-
-
-msgid "Tracking"
-msgstr "Suivi"
-
-
-msgid "Creative"
-msgstr "Créatif"
-
-
 msgid "Pivot Point"
 msgstr "Point de pivot"
+
+
+msgid "Snap"
+msgstr "Aimanter"
 
 
 msgid "Proportional Editing Falloff"
@@ -36206,6 +36134,94 @@ msgstr "Masquage auto"
 
 msgid "Face Sets Edit"
 msgstr "Édition des ensembles de faces"
+
+
+msgid "Mirror"
+msgstr "Miroir"
+
+
+msgid "UV Mapping"
+msgstr "Placage UV"
+
+
+msgid "Local View"
+msgstr "Vue locale"
+
+
+msgid "Viewpoint"
+msgstr "Point de vue"
+
+
+msgid "Linked"
+msgstr "Liés"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Layout"
+msgstr "Disposition"
+
+
+msgid "Align View"
+msgstr "Aligner la vue"
+
+
+msgid "Align View to Active"
+msgstr "Aligner la vue sur l’actif"
+
+
+msgid "View Regions"
+msgstr "Régions dans la vue"
+
+
+msgid "Select More/Less"
+msgstr "Sélectionner plus ou moins"
+
+
+msgid "Select Similar"
+msgstr "Sélectionner similaires"
+
+
+msgid "Select All by Trait"
+msgstr "Tout sélectionner par caractéristiques"
+
+
+msgid "Select Linked"
+msgstr "Sélectionner liés"
+
+
+msgid "Select Loops"
+msgstr "Sélectionner les boucles"
+
+
+msgid "Adjust"
+msgstr "Ajuster"
+
+
+msgid "Keying"
+msgstr "Incrustation"
+
+
+msgid "Tracking"
+msgstr "Suivi"
+
+
+msgid "Assign Material"
+msgstr "Assigner un matériau"
+
+
+msgid "Creative"
+msgstr "Créatif"
+
+
+msgid "Light"
+msgstr "Éclairage"
+
+
+msgid "Light Probe"
+msgstr "Sonde d’éclairage"
 
 
 msgid "Keyframe Insert Pie"
@@ -70794,10 +70810,6 @@ msgid "Radius of the circle"
 msgstr "Rayon du cercle"
 
 
-msgid "Force of the tool"
-msgstr "Force de l’outil"
-
-
 msgid "Method used for fitting a circle to the vertices"
 msgstr "Méthode utilisée pour ajuster le cercle aux sommets"
 
@@ -71530,10 +71542,6 @@ msgstr "Aplatir"
 
 msgid "Flatten vertices on a best-fitting plane"
 msgstr "Aplatir les sommets sur un plan le mieux ajusté"
-
-
-msgid "Spacing effect factor"
-msgstr "Facteur de l’effet d’espacement"
 
 
 msgid "Plane on which vertices are flattened"
@@ -73295,6 +73303,10 @@ msgstr "Espacer uniformément les boucles d’arêtes"
 
 msgid "Space the vertices in a regular distribution on the loop"
 msgstr "Espacer les sommets uniformément le long des boucles"
+
+
+msgid "Spacing effect factor"
+msgstr "Facteur de l’effet d’espacement"
 
 
 msgid "Algorithm used for interpolation"
@@ -94318,6 +94330,38 @@ msgid "Panel containing UI elements"
 msgstr "Panneau contenant des éléments d’interface"
 
 
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "Infos VR"
+
+
+msgid "glTF Variants"
+msgstr "Variantes glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Variantes de matériaux glTF"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "Animations glTF"
+
+
+msgid "Active Tool"
+msgstr "Outil actif"
+
+
+msgid "View Lock"
+msgstr "Verrouillage de la vue"
+
+
 msgid "Selectability & Visibility"
 msgstr "Sélectionnabilité et visibilité"
 
@@ -94424,38 +94468,6 @@ msgstr "Courbes – échelle pour grandir/raccourcir"
 
 msgid "Viewport Debug"
 msgstr "Débugage vue 3D"
-
-
-msgid "glTF Variants"
-msgstr "Variantes glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Variantes de matériaux glTF"
-
-
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "Infos VR"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "Animations glTF"
-
-
-msgid "Active Tool"
-msgstr "Outil actif"
-
-
-msgid "View Lock"
-msgstr "Verrouillage de la vue"
 
 
 msgid "Import Settings"
@@ -95588,7 +95600,7 @@ msgstr "Enregistrer les préférences"
 
 
 msgid "Auto Run Python Scripts"
-msgstr "Lancement auto des scripts Python"
+msgstr "Exécution auto des scripts Python"
 
 
 msgid "Blend Files"
@@ -99811,10 +99823,6 @@ msgid "Chinese (Simplified) - 简体中文"
 msgstr "Chinois (Simplifié) - 简体中文"
 
 
-msgid "Locale code: zh_HANS. Translation progress: 99%"
-msgstr "Identificateur de culture : zh_HANS. Progrès de la traduction : 99%"
-
-
 msgid "Chinese (Traditional) - 繁體中文"
 msgstr "Chinois (Traditionnel) - 繁體中文"
 
@@ -99959,10 +99967,6 @@ msgid "Japanese - 日本語"
 msgstr "Japonais - 日本語"
 
 
-msgid "Locale code: ja_JP. Translation progress: 98%"
-msgstr "Identificateur de culture : ja_JP. Progrès de la traduction : 98%"
-
-
 msgid "Korean - 한국어"
 msgstr "Coréen - 한국어"
 
@@ -100087,12 +100091,12 @@ msgid "Spanish - Español"
 msgstr "Espagnol - Español"
 
 
+msgid "Locale code: es. Translation progress: 100%"
+msgstr "Identificateur de culture : es. Progrès de la traduction : 100%"
+
+
 msgid "Swahili - Kiswahili"
 msgstr "Swahili - Kiswahili"
-
-
-msgid "Locale code: sw. Translation progress: 70%"
-msgstr "Identificateur de culture : sw. Progrès de la traduction : 70%"
 
 
 msgid "Swedish - Svenska"
@@ -100145,10 +100149,6 @@ msgstr "Identificateur de culture : ur. Progrès de la traduction : 83%"
 
 msgid "Vietnamese - Tiếng Việt"
 msgstr "Vietnamien - Tiếng Việt"
-
-
-msgid "Locale code: vi_VN. Translation progress: 97%"
-msgstr "Identificateur de culture : vi_VN. Progrès de la traduction : 97%"
 
 
 msgid "Reference Sphere Size"
@@ -125572,6 +125572,10 @@ msgid "Liquid Domain"
 msgstr "Domaine de liquide"
 
 
+msgid "No active mesh object."
+msgstr "Aucun objet maillage actif."
+
+
 msgid "Select at least one mesh object"
 msgstr "Sélectionner au moins un objet maillage"
 
@@ -126311,6 +126315,10 @@ msgstr "OpenVDB (.vdb)"
 
 msgid "For Each Element"
 msgstr "Pour chaque élément"
+
+
+msgid "Typed Bundle"
+msgstr "Paquet typé"
 
 
 msgid "Calculation Range"
@@ -131081,6 +131089,11 @@ msgid "New Data"
 msgstr "Nouvelles données"
 
 
+msgctxt "Preferences"
+msgid "Time"
+msgstr "Heure"
+
+
 msgid "Numeric Input Arrows"
 msgstr "Flèches d’entrée numérique"
 
@@ -134153,6 +134166,10 @@ msgid "User Library"
 msgstr "Bibliothèque de l’utilisateur"
 
 
+msgid "actions"
+msgstr "actions"
+
+
 msgid "Attempt to set action on non-animatable ID"
 msgstr "Impossible de définir l’action sur une ID non-animable"
 
@@ -134223,6 +134240,10 @@ msgstr "Domaine non pris en charge pour l’attribut « %s »"
 
 msgid "Type unsupported for \"%s\" attribute"
 msgstr "Type non pris en charge pour l’attribut « %s »"
+
+
+msgid "Attribute '%s' is required and cannot be removed"
+msgstr "L’attribut « %s » est requis et ne peut pas être supprimé"
 
 
 msgid "This attribute cannot be accessed in a procedural context"
@@ -134652,6 +134673,10 @@ msgid "Slot %d"
 msgstr "Emplacement %d"
 
 
+msgid "images"
+msgstr "images"
+
+
 msgid "Cannot pack multiview images from raw data currently..."
 msgstr "Impossible d’empaqueter des images multivues à partir de données brutes pour le moment…"
 
@@ -135075,6 +135100,10 @@ msgstr "LIB : objet perdu dans la scène : « %s »"
 
 msgid "RenderView"
 msgstr "Vue de rendu"
+
+
+msgid "scenes"
+msgstr "scènes"
 
 
 msgid "screens"
@@ -137065,6 +137094,10 @@ msgstr "Impossible de copier le paquet à cause de %zu dépendances externes ;
 
 msgid "Screenshot cannot be smaller than %i pixels on a side"
 msgstr "La capture d’écran ne peut pas être plus petite que %i pixels par côté"
+
+
+msgid "Asset could not be found (relative identifier: '%s')"
+msgstr "Asset introuvable (identifiant relatif : « %s »)"
 
 
 msgid "Asset '%s' doesn't need downloading"
@@ -140627,6 +140660,14 @@ msgid "Could not find hook modifier"
 msgstr "Impossible de trouver le modificateur Crochet"
 
 
+msgid "Cannot link to light linking collection '%s' that is used by scene '%s'"
+msgstr "Impossible de lier dans la collection de liaison d’éclairage « %s », utilisée par la scène « %s »"
+
+
+msgid "Cannot unlink from light linking collection '%s' that is used by scene '%s'"
+msgstr "Impossible de dé-lier de la collection de liaison d’éclairage « %s », utilisée par la scène « %s »"
+
+
 msgid "Unable to execute '%s', error changing modes"
 msgstr "Impossible d’exécuter « %s », erreur au changement de mode"
 
@@ -141448,10 +141489,6 @@ msgid "No Rigid Body World to add Rigid Body Constraint to"
 msgstr "Aucun monde de corps rigides auquel ajouter une contrainte de corps rigide"
 
 
-msgid "Object has no Rigid Body Constraint to remove"
-msgstr "L’objet n’a aucune contrainte de corps rigide à supprimer"
-
-
 msgid "Object '%s' already has a Rigid Body Constraint"
 msgstr "L’objet « %s » a déjà une contrainte de corps rigide"
 
@@ -141774,6 +141811,10 @@ msgstr "Les aperçus ne sont pas pris en charge pour les scènes sans caméras"
 
 msgid "Brushes do not support automatic previews"
 msgstr "Les aperçus automatiques ne sont pas pris en charge pour les brosses"
+
+
+msgid "Screens do not support automatic previews"
+msgstr "Les aperçus automatiques ne sont pas pris en charge pour les écrans"
 
 
 msgid "Data-block type does not support automatic previews"
@@ -142376,10 +142417,6 @@ msgstr "Le groupe actif est verrouillé, annulation"
 
 msgid "Fill tool needs active material"
 msgstr "L’outil remplissage doit avoir un matériau actif"
-
-
-msgid "Unable to fill unclosed areas"
-msgstr "Impossible de remplir les zones non-closes"
 
 
 msgid "GPencil Interpolation: "
@@ -149927,6 +149964,10 @@ msgid "Topology Mapping"
 msgstr "Correspondance de topologie"
 
 
+msgid "Face Count: {}"
+msgstr "Nombre de faces : {}"
+
+
 msgid "Modifier requires more than 3 input faces"
 msgstr "Le modificateur nécessite plus de 3 faces en entrée"
 
@@ -150736,20 +150777,52 @@ msgid "An image of the given size and constant color"
 msgstr "Une image, avec la taille et la couleur uniforme données"
 
 
+msgid "Applies a box blur filter"
+msgstr "Appliquer un filtre de flou uniforme"
+
+
 msgid "Tent"
 msgstr "Triangulaire"
+
+
+msgid "Applies a triangle blur filter"
+msgstr "Appliquer un filtre de flou triangulaire"
+
+
+msgid "Applies a quadratic blur filter"
+msgstr "Appliquer un filtre de flou quadratique"
+
+
+msgid "Applies a cubic blur filter"
+msgstr "Appliquer un filtre de flou cubique"
+
+
+msgid "Applies a Gaussian blur"
+msgstr "Appliquer un filtre de flou gaussien"
 
 
 msgid "Fast Gaussian"
 msgstr "Gaussien rapide"
 
 
+msgid "Applies a recursive Gaussian blur that can be faster and more accurate in some cases, but less accurate in other cases"
+msgstr "Appliquer un flou gaussien récursif, qui peut être plus rapide et précis dans certains cas, mais moins précis dans d’autres"
+
+
 msgid "Catrom"
 msgstr "Catrom"
 
 
+msgid "Applies a cubic Catmull-Rom filter"
+msgstr "Appliquer un filtre Catmull-Rom cubique"
+
+
 msgid "Mitch"
 msgstr "Mitch"
+
+
+msgid "Applies a cubic Mitchell-Netravali filter"
+msgstr "Appliquer un filtre Mitchell-Netravali cubique"
 
 
 msgid "Extend Bounds"
@@ -150814,6 +150887,14 @@ msgstr "Espace de couleur YUV (Y - luma, U V - chroma)"
 
 msgid "YCbCr (Y - luma, Cb - blue-difference chroma, Cr - red-difference chroma) color space"
 msgstr "Espace de couleur YCbCr (Y - luma, Cb - chroma différence de bleu, Cr - chroma différence de rouge)"
+
+
+msgid "Limit by single channel"
+msgstr "Limiter par un seul canal"
+
+
+msgid "Limit by maximum of other channels"
+msgstr "Limiter par le maximum des autres canaux"
 
 
 msgid "YUV Key Channel"
@@ -151903,6 +151984,10 @@ msgid "Invert stabilization to reintroduce motion to the image"
 msgstr "Inverser la stabilisation pour retrouver le mouvement de l’image"
 
 
+msgid "Align text to the center"
+msgstr "Aligner le texte au centre"
+
+
 msgid "The image containing the paragraph of text"
 msgstr "Image contenant le paragraphe de texte"
 
@@ -152125,6 +152210,22 @@ msgid "B"
 msgstr "B"
 
 
+msgid "From Start"
+msgstr "Depuis le début"
+
+
+msgid "Find the first occurrence of the string"
+msgstr "Trouver la première occurrence du texte"
+
+
+msgid "From End"
+msgstr "Depuis la fin"
+
+
+msgid "Find the last occurrence of the string"
+msgstr "Trouver la dernière occurrence du texte"
+
+
 msgid "First Found"
 msgstr "Première occurence"
 
@@ -152285,6 +152386,22 @@ msgstr "Utiliser plutôt le nœud « Tourner la rotation »"
 
 msgid "Rotate By"
 msgstr "Tourner de"
+
+
+msgid "Uppercase"
+msgstr "Capitales"
+
+
+msgid "Convert all characters to uppercase"
+msgstr "Convertir tous les caractères en capitales"
+
+
+msgid "Lowercase"
+msgstr "Minuscules"
+
+
+msgid "Convert all characters to lowercase"
+msgstr "Convertir tous les caractères en minuscules"
 
 
 msgid "Separator"
@@ -153616,6 +153733,14 @@ msgid "Bundle Type"
 msgstr "Type de paquet"
 
 
+msgid "Find paths to bundles of a specific type"
+msgstr "Trouver les chemins vers les paquets ayant un type spécifique"
+
+
+msgid "Find paths to values of a specific data type"
+msgstr "Trouver les chemins vers les valeurs ayant un type de données spécifique"
+
+
 msgid "Pattern Mode"
 msgstr "Mode de motif"
 
@@ -153762,6 +153887,30 @@ msgstr "Indice maximum en Y de la boîte englobante à restreindre"
 
 msgid "Maximum Z index of the clipping bounding box"
 msgstr "Indice maximum en Z de la boîte englobante à restreindre"
+
+
+msgid "6-connectivity: affect voxels connected by faces only"
+msgstr "6-connectivité : affecter les voxels connectés seulement par des faces"
+
+
+msgid "18-connectivity: affect voxels connected by faces or edges only"
+msgstr "18-connectivité : affecter les voxels connectés seulement par des faces ou des arêtes"
+
+
+msgid "26-connectivity: affect voxels connected by faces, edges, or vertices"
+msgstr "26-connectivité : affecter les voxels connectés par des faces, des arêtes, ou des sommets"
+
+
+msgid "Ignore active tiles; they are neither dilated/eroded nor contribute to the operation"
+msgstr "Ignorer les tuiles actives ; elles ne sont pas dilatées / érodées, et ne contribuent pas à l’opération"
+
+
+msgid "Voxelize active tiles, apply operation, and leave in voxelized state"
+msgstr "Voxéliser les tuiles actives, appliquer l’opération, et les laisser dans leur état voxélisé"
+
+
+msgid "Keep tiles unchanged when possible, only voxelizing if necessary. More memory efficient"
+msgstr "Ne pas modifier les tuiles si possible, en ne les voxélisant que si nécessaire. Meilleure gestion mémoire"
 
 
 msgid "Connectivity"
@@ -154331,6 +154480,14 @@ msgid "ID of group of the points to merge"
 msgstr "ID du groupe de points à fusionner"
 
 
+msgid "Bevel affects vertices"
+msgstr "Le biseautage affecte les sommets"
+
+
+msgid "Bevel affects edges"
+msgstr "Le biseautage affecte les arêtes"
+
+
 msgid "Affect Kind"
 msgstr "Affecter"
 
@@ -154401,10 +154558,6 @@ msgstr "Utiliser un onglet pour les coins"
 
 msgid "Per corner specification of 'spread' for arc miters"
 msgstr "Spécification de la « dispersion » pour chaque coin, pour les onglets en arcs"
-
-
-msgid "How many pieces is an edge beveled into, or, for vertex bevels, the how many segments on the arcs between the edges."
-msgstr "En combien de segments une arête est biseautée, ou pour le biseautage des sommets, combien de segments sur les arcs entre les arêtes."
 
 
 msgid "Superellipse shape parameter, used when there is no Profile, and also used for Arc and Patch miters"
@@ -155078,6 +155231,14 @@ msgid "Attribute not found"
 msgstr "Attribut introuvable"
 
 
+msgid "Rename a single attribute with the provided attribute name"
+msgstr "Renommer un seul attribut avec le nom d’attribut fourni"
+
+
+msgid "Rename all attributes with the provided prefix"
+msgstr "Renommer tous les attributs avec le préfixe fourni"
+
+
 msgid "Repeat Items"
 msgstr "Éléments de répétition"
 
@@ -155141,6 +155302,14 @@ msgstr "Maillage sur lequel trouver le point de surface le plus proche"
 
 msgid "Splits the faces of the input mesh into groups which can be sampled individually"
 msgstr "Séparer les faces du maillage en entrée en groupes pouvant être échantillonnés individuellement"
+
+
+msgid "Rectangular"
+msgstr "Rectangulaire"
+
+
+msgid "Equivalent to having no window function"
+msgstr "Revient à ne pas avoir de fonction fenêtre"
 
 
 msgid "FFT Size"
@@ -155520,12 +155689,80 @@ msgid "Font not specified"
 msgstr "Police non spécifiée"
 
 
+msgid "Let the text use more space than the specified height"
+msgstr "Permettre au texte d’occuper plus d’espace que la hauteur spécifiée"
+
+
+msgid "Scale To Fit"
+msgstr "Redimensionner pour faire tenir"
+
+
+msgid "Scale the text size to fit inside the width and height"
+msgstr "Redimensionner la taille du texte pour qu’il tienne dans la largeur et la hauteur"
+
+
+msgid "Only output curves that fit within the width and height. Output the remainder to the \"Remainder\" output."
+msgstr "Ne produire que des courbes tenant dans la largeur et la hauteur. Produire le reste dans la sortie « Reste »."
+
+
+msgid "Align text to the left and the right"
+msgstr "Aligner le texte à gauche et à droite"
+
+
+msgid "Align text to the left and the right, with equal character spacing"
+msgstr "Aligner le texte à gauche et à droite, avec un espacement égal entre caractères"
+
+
+msgid "Set the pivot point for each character at its midpoint"
+msgstr "Définir le point de pivot de chaque caractère à son point milieu"
+
+
+msgid "Top Left"
+msgstr "Haut gauche"
+
+
+msgid "Set the pivot point for each character at its top left"
+msgstr "Définir le point de pivot de chaque caractère en haut à gauche"
+
+
+msgid "Top Center"
+msgstr "Haut centre"
+
+
+msgid "Set the pivot point for each character at its top center"
+msgstr "Définir le point de pivot de chaque caractère en haut au centre"
+
+
 msgid "Top Right"
 msgstr "Haut droite"
 
 
+msgid "Set the pivot point for each character at its top right"
+msgstr "Définir le point de pivot de chaque caractère en haut à droite"
+
+
 msgid "Bottom Left"
 msgstr "Bas gauche"
+
+
+msgid "Set the pivot point for each character at its bottom left"
+msgstr "Définir le point de pivot de chaque caractère en bas à gauche"
+
+
+msgid "Bottom Center"
+msgstr "Bas centre"
+
+
+msgid "Set the pivot point for each character at its bottom center"
+msgstr "Définir le point de pivot de chaque caractère en bas au centre"
+
+
+msgid "Bottom Right"
+msgstr "Bas droite"
+
+
+msgid "Set the pivot point for each character at its bottom right"
+msgstr "Définir le point de pivot de chaque caractère en bas à droite"
 
 
 msgid "Align Y"
@@ -155551,6 +155788,10 @@ msgstr "Reste"
 msgctxt "Text"
 msgid "Word"
 msgstr "Mot"
+
+
+msgid "Point around which to rotate each character instance"
+msgstr "Point autour duquel faire tourner chaque instance de caractère"
 
 
 msgid "Subdivision result mesh is too large for uniform subdivision"
@@ -157701,6 +157942,10 @@ msgid "Images are not automatically saved with the file"
 msgstr "Les images ne sont pas enregistrées automatiquement avec le fichier"
 
 
+msgid "Save {} modified image(s)"
+msgstr "Enregistrer {} image(s) modifiée(s)"
+
+
 msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"
 msgstr "Pour des raisons de sécurité, l’exécution automatique des scripts Python dans ce fichier a été désactivée :"
 
@@ -159287,6 +159532,10 @@ msgstr ""
 "À utiliser avec des textures en référence scène."
 
 
+msgid "Utility"
+msgstr "Utilitaires"
+
+
 msgid ""
 "2.2 gamma-encoded Rec.709 with illuminant D65 white point.\n"
 "For use with scene-referred textures."
@@ -159385,10 +159634,6 @@ msgstr "Peinture de poids de maillage"
 
 msgid "Pixel Art"
 msgstr "Pixel art"
-
-
-msgid "Utility"
-msgstr "Utilitaires"
 
 
 msgid "3D to Screen Space"
@@ -159923,6 +160168,10 @@ msgid "Cloth Dynamics (Experimental)"
 msgstr "Dynamique de tissu (expérimentale)"
 
 
+msgid "Simulate dynamic cloth behavior on mesh geometry"
+msgstr "Simuler un comportement de tissu dynamique sur la géométrie de maillage"
+
+
 msgid "Bendiness"
 msgstr "Flexibilité"
 
@@ -160101,6 +160350,10 @@ msgstr "Échelle des patches de Voronoï dont les limites peuvent se déchirer."
 
 msgid "Collider"
 msgstr "Collisionneur"
+
+
+msgid "Set up a mesh as an external colliider"
+msgstr "Paramétrer un maillage comme collisionneur externe"
 
 
 msgid "If true, the simulated geometry should stay within the mesh instead of it being pushed out of it."
@@ -160311,6 +160564,10 @@ msgid "Custom Effector"
 msgstr "Effecteur personnalisé"
 
 
+msgid "Create a custom effect on geometry during simulation"
+msgstr "Créer un effet personnalisé sur la géométrie pendant la simulation"
+
+
 msgid "A bundle containing all information about this effector."
 msgstr "Paquet contenant toutes les informations sur cet effecteur."
 
@@ -160395,6 +160652,10 @@ msgid "Custom Force"
 msgstr "Force personnalisée"
 
 
+msgid "Apply a custom force to simulated geometry"
+msgstr "Appliquer une force personnalisée sur la géométrie simulée"
+
+
 msgid "The closure computing the force at each point of the input geometry."
 msgstr "La fermeture qui calcule la force à chaque point de la géométrie en entrée."
 
@@ -160461,6 +160722,10 @@ msgstr "Créer une force en fournissant seulement un champ et en spécifiant les
 
 msgid "Returns the length of an edge"
 msgstr "Retourne la longueur d’une arête"
+
+
+msgid "Simulate dynamic hair behavior on curve geometry"
+msgstr "Simuler un comportement de poils dynamiques sur la géométrie de courbe"
 
 
 msgid "Simulation stability increases with more angular damping."
@@ -160605,6 +160870,10 @@ msgstr "Simuler de la physique par-dessus la déformation du poil."
 
 msgid "Set Effector"
 msgstr "Définir l’effecteur"
+
+
+msgid "Attach an effector to a geometry"
+msgstr "Attacher un effecteur à une géométrie"
 
 
 msgid "The actual bundle containing one or multiple effectors."

@@ -21,6 +21,7 @@
 #include "rna_internal.hh"
 
 #include "UI_interface.hh"
+#include "UI_interface_c.hh"
 #include "UI_interface_layout.hh"
 
 #include "WM_toolsystem.hh"
@@ -211,6 +212,7 @@ static bool rna_Panel_unregister(Main *bmain, StructRNA *type)
     return false;
   }
 
+  ui::refresh_for_srna_unregister(bmain, type);
   RNA_struct_free_extension(type, &pt->rna_ext);
   RNA_struct_free(&RNA_blender_rna_get(), type);
 
@@ -697,7 +699,7 @@ static bool rna_UIList_unregister(Main *bmain, StructRNA *type)
   if (!ult) {
     return false;
   }
-
+  ui::refresh_for_srna_unregister(bmain, type);
   RNA_struct_free_extension(type, &ult->rna_ext);
   RNA_struct_free(&RNA_blender_rna_get(), type);
 
@@ -817,7 +819,7 @@ static void header_draw(const bContext *C, Header *hdr)
   RNA_parameter_list_free(&list);
 }
 
-static bool rna_Header_unregister(Main * /*bmain*/, StructRNA *type)
+static bool rna_Header_unregister(Main *bmain, StructRNA *type)
 {
   ARegionType *art;
   HeaderType *ht = static_cast<HeaderType *>(RNA_struct_blender_type_get(type));
@@ -825,10 +827,12 @@ static bool rna_Header_unregister(Main * /*bmain*/, StructRNA *type)
   if (!ht) {
     return false;
   }
+
   if (!(art = region_type_find(nullptr, ht->space_type, ht->region_type))) {
     return false;
   }
 
+  ui::refresh_for_srna_unregister(bmain, type);
   RNA_struct_free_extension(type, &ht->rna_ext);
   RNA_struct_free(&RNA_blender_rna_get(), type);
 
@@ -978,7 +982,7 @@ static void menu_draw(const bContext *C, Menu *menu)
   RNA_parameter_list_free(&list);
 }
 
-static bool rna_Menu_unregister(Main * /*bmain*/, StructRNA *type)
+static bool rna_Menu_unregister(Main *bmain, StructRNA *type)
 {
   MenuType *mt = static_cast<MenuType *>(RNA_struct_blender_type_get(type));
 
@@ -986,6 +990,7 @@ static bool rna_Menu_unregister(Main * /*bmain*/, StructRNA *type)
     return false;
   }
 
+  ui::refresh_for_srna_unregister(bmain, type);
   RNA_struct_free_extension(type, &mt->rna_ext);
   RNA_struct_free(&RNA_blender_rna_get(), type);
 
@@ -1222,6 +1227,7 @@ static bool rna_AssetShelf_unregister(Main *bmain, StructRNA *type)
 
   ed::asset::shelf::type_unlink(*bmain, *shelf_type);
 
+  ui::refresh_for_srna_unregister(bmain, type);
   RNA_struct_free_extension(type, &shelf_type->rna_ext);
   RNA_struct_free(&RNA_blender_rna_get(), type);
 

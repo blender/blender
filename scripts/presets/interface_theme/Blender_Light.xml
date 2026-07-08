@@ -7,17 +7,19 @@
         icon_alpha="1"
         icon_saturation="0.5"
         widget_emboss="#00000026"
+        link="#6fa9e6ff"
         editor_border="#999999"
         editor_outline="#b3b3b3ff"
         editor_outline_active="#ccccccff"
         widget_text_cursor="#3399e6"
         panel_roundness="0.4"
         panel_header="#ccccccff"
-        panel_title="#1a1a1aff"
-        panel_text="#1a1a1aff"
+        panel_title="#1a1a1a"
+        panel_text="#1a1a1a"
         panel_back="#ccccccff"
         panel_sub_back="#0000001f"
         panel_outline="#ffffff22"
+        panel_active="#4772b3ff"
         transparent_checker_primary="#333333"
         transparent_checker_secondary="#262626"
         transparent_checker_size="8"
@@ -201,6 +203,22 @@
             >
           </ThemeWidgetColors>
         </wcol_box>
+        <wcol_curve>
+          <ThemeWidgetColors
+            outline="#727272ff"
+            outline_sel="#9a9a9aff"
+            inner="#545454ff"
+            inner_sel="#000000ff"
+            item="#00000059"
+            text="#080808"
+            text_sel="#c9c9c9"
+            show_shaded="FALSE"
+            shadetop="0"
+            shadedown="0"
+            roundness="0.4"
+            >
+          </ThemeWidgetColors>
+        </wcol_curve>
         <wcol_menu>
           <ThemeWidgetColors
             outline="#3d3d3dff"
@@ -335,7 +353,7 @@
             outline_sel="#2d2d2dff"
             inner="#1a1a1a00"
             inner_sel="#668cccff"
-            item="#ffffff33"
+            item="#ffffffcc"
             text="#1a1a1a"
             text_sel="#ffffff"
             show_shaded="FALSE"
@@ -402,7 +420,7 @@
         </channels>
         <scrubbing>
           <ThemeRegionsScrubbing
-            back="#808080E6"
+            back="#808080e6"
             text="#272727"
             time_marker="#00000060"
             time_marker_selected="#ffffff60"
@@ -424,11 +442,13 @@
           <ThemeCommonAnim
             playhead="#5680c2"
             preview_range="#a14d0066"
+            scene_strip_range="#00000080"
             channels="#2e639924"
             channels_sub="#7aa4cc24"
             channel_group="#278c0e37"
             channel_group_active="#4eb33555"
             channel="#999999ff"
+            channel_selected="#60c04044"
             keyframe="#e8e8e8"
             keyframe_selected="#ffbe33"
             keyframe_extreme="#e8b3cc"
@@ -489,25 +509,19 @@
         vertex="#000000"
         vertex_select="#ff7a00"
         vertex_size="3"
-        vertex_unreferenced="#000000"
         edge_select="#ff9900"
         edge_mode_select="#ffd800"
         face="#00000012"
         face_select="#ffa30033"
         face_mode_select="#ffb70033"
         facedot_size="4"
-        face_retopology="#50c8ff1e"
+        face_back="#ff0000b3"
+        face_front="#0000ff00"
         bevel="#00a5ff"
         seam="#db2512"
         sharp="#00ffff"
         crease="#cc0099"
         freestyle="#7fff7f33"
-        face_back="#ff0000b3"
-        face_front="#0000ff00"
-        nurb_uline="#909000"
-        nurb_vline="#803060"
-        nurb_sel_uline="#f0ff40"
-        nurb_sel_vline="#f090a0"
         extra_edge_len="#ff6149"
         extra_edge_angle="#cccc00"
         extra_face_angle="#b3b3ff"
@@ -516,6 +530,12 @@
         normal="#22dddd"
         vertex_normal="#2361dd"
         split_normal="#dd23dd"
+        vertex_unreferenced="#000000"
+        face_retopology="#50c8ff1e"
+        nurb_uline="#909000"
+        nurb_vline="#803060"
+        nurb_sel_uline="#f0ff40"
+        nurb_sel_vline="#f090a0"
         bone_pose="#50c8ff"
         bone_pose_active="#8cffff"
         bone_solid="#e6e6e6"
@@ -576,7 +596,6 @@
     </graph_editor>
     <file_browser>
       <ThemeFileBrowser
-        selected_file="#5680c2"
         row_alternate="#ffffff0f"
         >
         <space>
@@ -706,6 +725,8 @@
         text_strip="#824c8f"
         active_strip="#ffffff"
         selected_strip="#ff6a00"
+        keyframe_border="#000000ff"
+        keyframe_border_selected="#000000ff"
         preview_back="#000000"
         metadatabg="#000000"
         metadatatext="#ffffff"
@@ -777,13 +798,13 @@
     <node_editor>
       <ThemeNodeEditor
         grid="#282828"
+        node_outline="#00000026"
         node_selected="#ed5700"
         node_active="#ffffff"
         wire="#1a1a1aff"
         wire_inner="#8d8d8d"
         wire_select="#ffffffb3"
         node_backdrop="#666666ff"
-        node_outline="#00000026"
         converter_node="#4482a3"
         color_node="#8e8e3f"
         group_node="#566643"
@@ -875,7 +896,9 @@
       </ThemeInfo>
     </info>
     <preferences>
-      <ThemePreferences>
+      <ThemePreferences
+        match="#4772b3"
+        >
         <space>
           <ThemeSpaceGeneric
             back="#b3b3b3"

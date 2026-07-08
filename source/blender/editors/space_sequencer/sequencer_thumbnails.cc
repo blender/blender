@@ -58,7 +58,7 @@ static void strip_get_thumb_image_dimensions(const Strip *strip,
                                              float *r_image_width,
                                              float *r_image_height)
 {
-  float image_width = seq::THUMB_SIZE, image_height = seq::THUMB_SIZE;
+  int image_width = seq::THUMB_SIZE, image_height = seq::THUMB_SIZE;
   if (ELEM(strip->type, STRIP_TYPE_IMAGE, STRIP_TYPE_MOVIE)) {
     image_width = strip->data->stripdata->orig_width;
     image_height = strip->data->stripdata->orig_height;
@@ -67,20 +67,15 @@ static void strip_get_thumb_image_dimensions(const Strip *strip,
     image_width = strip->clip->lastsize[0];
     image_height = strip->clip->lastsize[1];
   }
+  else if (strip->type == STRIP_TYPE_SCENE && strip->scene) {
+    image_width = strip->scene->r.xsch;
+    image_height = strip->scene->r.ysch;
+  }
 
-  /* Fix the dimensions to be max SEQ_THUMB_SIZE for x or y. */
-  float aspect_ratio = image_width / image_height;
-  if (image_width > image_height) {
-    image_width = seq::THUMB_SIZE;
-    image_height = round_fl_to_int(image_width / aspect_ratio);
-  }
-  else {
-    image_height = seq::THUMB_SIZE;
-    image_width = round_fl_to_int(image_height * aspect_ratio);
-  }
+  seq::image_size_to_thumb_size(image_width, image_height);
 
   /* Calculate thumb dimensions. */
-  aspect_ratio = image_width / image_height;
+  const float aspect_ratio = float(image_width) / float(image_height);
   float thumb_h_px = thumb_height / pixely;
   float thumb_width = aspect_ratio * thumb_h_px * pixelx;
 

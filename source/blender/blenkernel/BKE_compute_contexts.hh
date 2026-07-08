@@ -61,16 +61,16 @@ class DataBlockComputeContext : public ComputeContext {
   void print_current_in_line(std::ostream &stream) const override;
 };
 
-class ModifierComputeContext : public ComputeContext {
+class GeometryNodesModifierComputeContext : public ComputeContext {
  private:
   /** #ModifierData.persistent_uid. */
   int modifier_uid_;
-  /** The modifier data that this context is for. This may be null. */
+  /** The geometry nodes modifier data that this context is for. This may be null. */
   const NodesModifierData *nmd_ = nullptr;
 
  public:
-  ModifierComputeContext(const ComputeContext *parent, const NodesModifierData &nmd);
-  ModifierComputeContext(const ComputeContext *parent, int modifier_uid);
+  GeometryNodesModifierComputeContext(const ComputeContext *parent, const NodesModifierData &nmd);
+  GeometryNodesModifierComputeContext(const ComputeContext *parent, int modifier_uid);
 
   int modifier_uid() const
   {

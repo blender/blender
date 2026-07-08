@@ -47,7 +47,6 @@ void gtest_setup()
 {
   CLG_init();
   BLI_threadapi_init();
-  DNA_sdna_current_init();
   BKE_cpp_types_init();
   fn::multi_function::register_common_functions();
   BKE_idtype_init();
@@ -82,7 +81,6 @@ void gtest_teardown()
   BKE_materials_exit();
   bke::node_system_exit();
   RNA_exit();
-  DNA_sdna_current_free();
   BLI_threadapi_exit();
   RE_texture_rng_exit();
   RE_engines_exit();

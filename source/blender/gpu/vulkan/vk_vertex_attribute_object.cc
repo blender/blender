@@ -32,6 +32,12 @@ void VKVertexAttributeObject::clear()
   vertex_input.clear();
   vbos.clear();
   buffers.clear();
+  vertex_input_key = VKVertexInputDescriptionPool::invalid_key;
+}
+
+void VKVertexAttributeObject::update_vertex_input_key(VKVertexInputDescriptionPool &pool)
+{
+  vertex_input_key = pool.get_or_insert(vertex_input);
 }
 
 VKVertexAttributeObject &VKVertexAttributeObject::operator=(const VKVertexAttributeObject &other)
@@ -41,6 +47,7 @@ VKVertexAttributeObject &VKVertexAttributeObject::operator=(const VKVertexAttrib
   }
 
   vertex_input = other.vertex_input;
+  vertex_input_key = other.vertex_input_key;
 
   vbos.clear();
   vbos.extend(other.vbos);
@@ -65,20 +72,21 @@ void VKVertexAttributeObject::bind(
     }
     visited_bindings[attribute.binding].set(true);
 
-    VkBuffer buffer = VK_NULL_HANDLE;
+    VKResourceWithHandle<VkBuffer> resource = {};
     VkDeviceSize offset = 0;
 
     if (attribute.binding < buffers.size()) {
-      buffer = buffers[attribute.binding].buffer;
+      resource = buffers[attribute.binding].buffer;
       offset = buffers[attribute.binding].offset;
     }
 
-    if (buffer == VK_NULL_HANDLE) {
-      buffer = dummy.vk_handle();
+    if (resource.vk_handle == VK_NULL_HANDLE) {
+      resource = dummy.resource();
       offset = 0;
     }
 
-    r_vertex_buffer_bindings.buffer[attribute.binding] = buffer;
+    r_vertex_buffer_bindings.buffer[attribute.binding] = resource;
+    r_vertex_buffer_bindings.resource_handles[attribute.binding] = resource;
     r_vertex_buffer_bindings.offset[attribute.binding] = offset;
     r_vertex_buffer_bindings.buffer_count = max_ii(r_vertex_buffer_bindings.buffer_count,
                                                    attribute.binding + 1);
@@ -228,8 +236,7 @@ void VKVertexAttributeObject::update_bindings(const GPUVertFormat &vertex_format
       vertex_input.bindings.append(vk_binding_descriptor);
       if (vertex_buffer) {
         add_vbo = true;
-        vertex_buffer->upload();
-        buffers.append({vertex_buffer->vk_handle(), buffer_offset});
+        buffers.append({vertex_buffer->resource(), buffer_offset});
       }
       if (immediate_vertex_buffer) {
         buffers.append(*immediate_vertex_buffer);

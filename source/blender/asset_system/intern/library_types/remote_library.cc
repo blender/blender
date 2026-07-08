@@ -741,8 +741,14 @@ static std::optional<std::string> remote_library_request_asset_download_file(
           const_cast<bContext *>(&C), script, *locals, "_result");
 
   if (!abs_url_idptr) {
-    CLOG_ERROR(&LOG, "Failed to retrieve URL from downloader - bug in Python script");
-    BLI_assert_unreachable();
+    /* This can happen when there is a malicious asset listing, for example when asset file entries
+     * are constructed such that they overwrite Blender's local asset listing files. */
+    /* TODO: improve the error reporting. */
+    BKE_reportf(
+        reports,
+        RPT_ERROR,
+        "Could not queue the download of asset '%s', check the system console for more info",
+        asset_name.c_str());
     return std::nullopt;
   }
   BLI_SCOPED_DEFER([&] { IDP_FreeProperty(*abs_url_idptr); });

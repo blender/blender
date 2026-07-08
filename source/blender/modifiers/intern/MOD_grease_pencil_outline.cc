@@ -281,7 +281,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   Scene *scene = CTX_data_scene(C);
   if (scene->camera == nullptr) {
-    layout.label(RPT_("Outline requires an active camera"), ICON_ERROR);
+    layout.label(RPT_("Outline requires an active camera"), ICON_STATUS_ERROR);
   }
 
   if (ui::Layout *influence_panel = layout.panel_prop(

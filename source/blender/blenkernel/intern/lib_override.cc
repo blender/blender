@@ -5497,10 +5497,16 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
    * Not impossible to do, but would rather see first if extra useless usual user handling
    * is actually a (performances) issue here. */
 
+  /* Note: do not add duplicated object to rigid body collections, as we swap it with its 'local'
+   * liboverride orig version, which should already be in these RB collections if needed.
+   * Otherwise, the temp id gets also added to these RB collections, which will then crash on
+   * freeing it at the end of this function, since it is assumed that this temp id is not used by
+   * anything. */
   ID *tmp_id = BKE_id_copy_ex(bmain,
                               local->override_library->reference,
                               nullptr,
-                              LIB_ID_COPY_DEFAULT | LIB_ID_COPY_NO_LIB_OVERRIDE_LOCAL_DATA_FLAG);
+                              LIB_ID_COPY_DEFAULT | LIB_ID_COPY_NO_LIB_OVERRIDE_LOCAL_DATA_FLAG |
+                                  LIB_ID_COPY_RIGID_BODY_NO_COLLECTION_HANDLING);
 
   if (tmp_id == nullptr) {
     return;

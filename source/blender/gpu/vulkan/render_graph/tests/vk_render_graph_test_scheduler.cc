@@ -15,12 +15,12 @@ TEST_P(VKRenderGraphTestScheduler, begin_rendering_copy_buffer_end_rendering)
 {
   VkHandle<VkImage> image(1u);
   VkHandle<VkImageView> image_view(2u);
-  VkHandle<VkBuffer> buffer_src(3u);
-  VkHandle<VkBuffer> buffer_dst(4u);
+  VKTrackedHandle<VkBuffer> buffer_src(3u);
+  VKTrackedHandle<VkBuffer> buffer_dst(4u);
 
   resources.add_image(image, false);
-  resources.add_buffer(buffer_src);
-  resources.add_buffer(buffer_dst);
+  buffer_src.set_resource_handle(resources.add_buffer(buffer_src));
+  buffer_dst.set_resource_handle(resources.add_buffer(buffer_dst));
 
   {
     VKResourceAccessInfo access_info = {};
@@ -114,12 +114,12 @@ TEST_P(VKRenderGraphTestScheduler, begin_clear_attachments_copy_buffer_end)
 {
   VkHandle<VkImage> image(1u);
   VkHandle<VkImageView> image_view(2u);
-  VkHandle<VkBuffer> buffer_src(3u);
-  VkHandle<VkBuffer> buffer_dst(4u);
+  VKTrackedHandle<VkBuffer> buffer_src(3u);
+  VKTrackedHandle<VkBuffer> buffer_dst(4u);
 
   resources.add_image(image, false);
-  resources.add_buffer(buffer_src);
-  resources.add_buffer(buffer_dst);
+  buffer_src.set_resource_handle(resources.add_buffer(buffer_src));
+  buffer_dst.set_resource_handle(resources.add_buffer(buffer_dst));
 
   {
     VKResourceAccessInfo access_info = {};
@@ -235,12 +235,12 @@ TEST_P(VKRenderGraphTestScheduler, begin_copy_buffer_clear_attachments_end)
 {
   VkHandle<VkImage> image(1u);
   VkHandle<VkImageView> image_view(2u);
-  VkHandle<VkBuffer> buffer_src(3u);
-  VkHandle<VkBuffer> buffer_dst(4u);
+  VKTrackedHandle<VkBuffer> buffer_src(3u);
+  VKTrackedHandle<VkBuffer> buffer_dst(4u);
 
   resources.add_image(image, false);
-  resources.add_buffer(buffer_src);
-  resources.add_buffer(buffer_dst);
+  buffer_src.set_resource_handle(resources.add_buffer(buffer_src));
+  buffer_dst.set_resource_handle(resources.add_buffer(buffer_dst));
 
   {
     VKResourceAccessInfo access_info = {};
@@ -356,12 +356,12 @@ TEST_P(VKRenderGraphTestScheduler, begin_clear_attachments_copy_buffer_clear_att
 {
   VkHandle<VkImage> image(1u);
   VkHandle<VkImageView> image_view(2u);
-  VkHandle<VkBuffer> buffer_src(3u);
-  VkHandle<VkBuffer> buffer_dst(4u);
+  VKTrackedHandle<VkBuffer> buffer_src(3u);
+  VKTrackedHandle<VkBuffer> buffer_dst(4u);
 
   resources.add_image(image, false);
-  resources.add_buffer(buffer_src);
-  resources.add_buffer(buffer_dst);
+  buffer_src.set_resource_handle(resources.add_buffer(buffer_src));
+  buffer_dst.set_resource_handle(resources.add_buffer(buffer_dst));
 
   {
     VKResourceAccessInfo access_info = {};
@@ -537,18 +537,19 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_copy_framebuffer_draw_end)
 
   {
     VKResourceAccessInfo access_info = {};
-    VKDrawNode::CreateInfo draw(access_info);
-    draw.node_data.first_instance = 0;
-    draw.node_data.first_vertex = 0;
-    draw.node_data.instance_count = 1;
-    draw.node_data.vertex_count = 4;
-    draw.node_data.graphics.pipeline_data.push_constants_range = IndexRange(0);
-    draw.node_data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
-    draw.node_data.graphics.pipeline_data.vk_pipeline = pipeline_combine;
-    draw.node_data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout_combine;
-    draw.node_data.graphics.viewport.viewports.append(VkViewport{});
-    draw.node_data.graphics.viewport.scissors.append(VkRect2D{});
-    render_graph->add_node(draw);
+    VKNodeData<VKDrawNode> node = render_graph->alloc_node<VKDrawNode>();
+    node.data.first_instance = 0;
+    node.data.first_vertex = 0;
+    node.data.instance_count = 1;
+    node.data.vertex_count = 4;
+    node.data.graphics.pipeline_data.push_constants_range = IndexRange(0);
+    node.data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+    node.data.graphics.pipeline_data.vk_pipeline = pipeline_combine;
+    node.data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout_combine;
+    node.data.graphics.viewport.viewports.append(VkViewport{});
+    node.data.graphics.viewport.scissors.append(VkRect2D{});
+    VKDrawNode::CreateInfo draw_create_info(access_info);
+    node.finalize(*render_graph, draw_create_info);
   }
 
   {
@@ -569,18 +570,19 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_copy_framebuffer_draw_end)
 
   {
     VKResourceAccessInfo access_info = {};
-    VKDrawNode::CreateInfo draw(access_info);
-    draw.node_data.first_instance = 0;
-    draw.node_data.first_vertex = 0;
-    draw.node_data.instance_count = 1;
-    draw.node_data.vertex_count = 4;
-    draw.node_data.graphics.pipeline_data.push_constants_range = IndexRange(0);
-    draw.node_data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
-    draw.node_data.graphics.pipeline_data.vk_pipeline = pipeline_background;
-    draw.node_data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout_background;
-    draw.node_data.graphics.viewport.viewports.append(VkViewport{});
-    draw.node_data.graphics.viewport.scissors.append(VkRect2D{});
-    render_graph->add_node(draw);
+    VKNodeData<VKDrawNode> node = render_graph->alloc_node<VKDrawNode>();
+    node.data.first_instance = 0;
+    node.data.first_vertex = 0;
+    node.data.instance_count = 1;
+    node.data.vertex_count = 4;
+    node.data.graphics.pipeline_data.push_constants_range = IndexRange(0);
+    node.data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+    node.data.graphics.pipeline_data.vk_pipeline = pipeline_background;
+    node.data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout_background;
+    node.data.graphics.viewport.viewports.append(VkViewport{});
+    node.data.graphics.viewport.scissors.append(VkRect2D{});
+    VKDrawNode::CreateInfo draw_create_info(access_info);
+    node.finalize(*render_graph, draw_create_info);
   }
 
   {
@@ -688,16 +690,16 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_copy_framebuffer_draw_end)
  */
 TEST_P(VKRenderGraphTestScheduler, begin_update_draw_update_draw_update_draw_end)
 {
-  VkHandle<VkBuffer> buffer_a(1u);
-  VkHandle<VkBuffer> buffer_b(2u);
+  VKTrackedHandle<VkBuffer> buffer_a(1u);
+  VKTrackedHandle<VkBuffer> buffer_b(2u);
   VkHandle<VkImage> image(3u);
   VkHandle<VkImageView> image_view(4u);
   VkHandle<VkPipelineLayout> pipeline_layout(5u);
   VkHandle<VkPipeline> pipeline(6u);
 
   resources.add_image(image, false);
-  resources.add_buffer(buffer_a);
-  resources.add_buffer(buffer_b);
+  buffer_a.set_resource_handle(resources.add_buffer(buffer_a));
+  buffer_b.set_resource_handle(resources.add_buffer(buffer_b));
 
   {
     VKResourceAccessInfo access_info = {};
@@ -730,19 +732,20 @@ TEST_P(VKRenderGraphTestScheduler, begin_update_draw_update_draw_update_draw_end
 
   {
     VKResourceAccessInfo access_info = {};
-    access_info.buffers.append({buffer_a, VK_ACCESS_UNIFORM_READ_BIT});
-    VKDrawNode::CreateInfo draw(access_info);
-    draw.node_data.first_instance = 0;
-    draw.node_data.first_vertex = 0;
-    draw.node_data.instance_count = 1;
-    draw.node_data.vertex_count = 1;
-    draw.node_data.graphics.pipeline_data.push_constants_range = IndexRange(0);
-    draw.node_data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
-    draw.node_data.graphics.pipeline_data.vk_pipeline = pipeline;
-    draw.node_data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
-    draw.node_data.graphics.viewport.viewports.append(VkViewport{});
-    draw.node_data.graphics.viewport.scissors.append(VkRect2D{});
-    render_graph->add_node(draw);
+    access_info.buffers.append({buffer_a.get_resource_handle(), VK_ACCESS_UNIFORM_READ_BIT});
+    VKNodeData<VKDrawNode> node = render_graph->alloc_node<VKDrawNode>();
+    node.data.first_instance = 0;
+    node.data.first_vertex = 0;
+    node.data.instance_count = 1;
+    node.data.vertex_count = 1;
+    node.data.graphics.pipeline_data.push_constants_range = IndexRange(0);
+    node.data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+    node.data.graphics.pipeline_data.vk_pipeline = pipeline;
+    node.data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
+    node.data.graphics.viewport.viewports.append(VkViewport{});
+    node.data.graphics.viewport.scissors.append(VkRect2D{});
+    VKDrawNode::CreateInfo draw_create_info(access_info);
+    node.finalize(*render_graph, draw_create_info);
   }
 
   {
@@ -756,19 +759,20 @@ TEST_P(VKRenderGraphTestScheduler, begin_update_draw_update_draw_update_draw_end
 
   {
     VKResourceAccessInfo access_info = {};
-    access_info.buffers.append({buffer_b, VK_ACCESS_UNIFORM_READ_BIT});
-    VKDrawNode::CreateInfo draw(access_info);
-    draw.node_data.first_instance = 0;
-    draw.node_data.first_vertex = 0;
-    draw.node_data.instance_count = 1;
-    draw.node_data.vertex_count = 2;
-    draw.node_data.graphics.pipeline_data.push_constants_range = IndexRange(0);
-    draw.node_data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
-    draw.node_data.graphics.pipeline_data.vk_pipeline = pipeline;
-    draw.node_data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
-    draw.node_data.graphics.viewport.viewports.append(VkViewport{});
-    draw.node_data.graphics.viewport.scissors.append(VkRect2D{});
-    render_graph->add_node(draw);
+    access_info.buffers.append({buffer_b.get_resource_handle(), VK_ACCESS_UNIFORM_READ_BIT});
+    VKNodeData<VKDrawNode> node = render_graph->alloc_node<VKDrawNode>();
+    node.data.first_instance = 0;
+    node.data.first_vertex = 0;
+    node.data.instance_count = 1;
+    node.data.vertex_count = 2;
+    node.data.graphics.pipeline_data.push_constants_range = IndexRange(0);
+    node.data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+    node.data.graphics.pipeline_data.vk_pipeline = pipeline;
+    node.data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
+    node.data.graphics.viewport.viewports.append(VkViewport{});
+    node.data.graphics.viewport.scissors.append(VkRect2D{});
+    VKDrawNode::CreateInfo draw_create_info(access_info);
+    node.finalize(*render_graph, draw_create_info);
   }
 
   {
@@ -782,19 +786,20 @@ TEST_P(VKRenderGraphTestScheduler, begin_update_draw_update_draw_update_draw_end
 
   {
     VKResourceAccessInfo access_info = {};
-    access_info.buffers.append({buffer_a, VK_ACCESS_UNIFORM_READ_BIT});
-    VKDrawNode::CreateInfo draw(access_info);
-    draw.node_data.first_instance = 0;
-    draw.node_data.first_vertex = 0;
-    draw.node_data.instance_count = 1;
-    draw.node_data.vertex_count = 3;
-    draw.node_data.graphics.pipeline_data.push_constants_range = IndexRange(0);
-    draw.node_data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
-    draw.node_data.graphics.pipeline_data.vk_pipeline = pipeline;
-    draw.node_data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
-    draw.node_data.graphics.viewport.viewports.append(VkViewport{});
-    draw.node_data.graphics.viewport.scissors.append(VkRect2D{});
-    render_graph->add_node(draw);
+    access_info.buffers.append({buffer_a.get_resource_handle(), VK_ACCESS_UNIFORM_READ_BIT});
+    VKNodeData<VKDrawNode> node = render_graph->alloc_node<VKDrawNode>();
+    node.data.first_instance = 0;
+    node.data.first_vertex = 0;
+    node.data.instance_count = 1;
+    node.data.vertex_count = 3;
+    node.data.graphics.pipeline_data.push_constants_range = IndexRange(0);
+    node.data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+    node.data.graphics.pipeline_data.vk_pipeline = pipeline;
+    node.data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
+    node.data.graphics.viewport.viewports.append(VkViewport{});
+    node.data.graphics.viewport.scissors.append(VkRect2D{});
+    VKDrawNode::CreateInfo draw_create_info(access_info);
+    node.finalize(*render_graph, draw_create_info);
   }
 
   {
@@ -947,18 +952,19 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_copy_to_attachment_draw_end)
 
   {
     VKResourceAccessInfo access_info = {};
-    VKDrawNode::CreateInfo draw(access_info);
-    draw.node_data.first_instance = 0;
-    draw.node_data.first_vertex = 0;
-    draw.node_data.instance_count = 1;
-    draw.node_data.vertex_count = 4;
-    draw.node_data.graphics.pipeline_data.push_constants_range = IndexRange(0);
-    draw.node_data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
-    draw.node_data.graphics.pipeline_data.vk_pipeline = pipeline;
-    draw.node_data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
-    draw.node_data.graphics.viewport.viewports.append(VkViewport{});
-    draw.node_data.graphics.viewport.scissors.append(VkRect2D{});
-    render_graph->add_node(draw);
+    VKNodeData<VKDrawNode> node = render_graph->alloc_node<VKDrawNode>();
+    node.data.first_instance = 0;
+    node.data.first_vertex = 0;
+    node.data.instance_count = 1;
+    node.data.vertex_count = 4;
+    node.data.graphics.pipeline_data.push_constants_range = IndexRange(0);
+    node.data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+    node.data.graphics.pipeline_data.vk_pipeline = pipeline;
+    node.data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
+    node.data.graphics.viewport.viewports.append(VkViewport{});
+    node.data.graphics.viewport.scissors.append(VkRect2D{});
+    VKDrawNode::CreateInfo draw_create_info(access_info);
+    node.finalize(*render_graph, draw_create_info);
   }
 
   {
@@ -979,18 +985,19 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_copy_to_attachment_draw_end)
 
   {
     VKResourceAccessInfo access_info = {};
-    VKDrawNode::CreateInfo draw(access_info);
-    draw.node_data.first_instance = 0;
-    draw.node_data.first_vertex = 0;
-    draw.node_data.instance_count = 1;
-    draw.node_data.vertex_count = 4;
-    draw.node_data.graphics.pipeline_data.push_constants_range = IndexRange(0);
-    draw.node_data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
-    draw.node_data.graphics.pipeline_data.vk_pipeline = pipeline;
-    draw.node_data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
-    draw.node_data.graphics.viewport.viewports.append(VkViewport{});
-    draw.node_data.graphics.viewport.scissors.append(VkRect2D{});
-    render_graph->add_node(draw);
+    VKNodeData<VKDrawNode> node = render_graph->alloc_node<VKDrawNode>();
+    node.data.first_instance = 0;
+    node.data.first_vertex = 0;
+    node.data.instance_count = 1;
+    node.data.vertex_count = 4;
+    node.data.graphics.pipeline_data.push_constants_range = IndexRange(0);
+    node.data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+    node.data.graphics.pipeline_data.vk_pipeline = pipeline;
+    node.data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
+    node.data.graphics.viewport.viewports.append(VkViewport{});
+    node.data.graphics.viewport.scissors.append(VkRect2D{});
+    VKDrawNode::CreateInfo draw_create_info(access_info);
+    node.finalize(*render_graph, draw_create_info);
   }
 
   {
@@ -1126,18 +1133,19 @@ TEST_P(VKRenderGraphTestScheduler, begin_rendering_end_rendering_begin_rendering
 
   {
     VKResourceAccessInfo access_info = {};
-    VKDrawNode::CreateInfo draw(access_info);
-    draw.node_data.first_instance = 0;
-    draw.node_data.first_vertex = 0;
-    draw.node_data.instance_count = 1;
-    draw.node_data.vertex_count = 4;
-    draw.node_data.graphics.pipeline_data.push_constants_range = IndexRange(0);
-    draw.node_data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
-    draw.node_data.graphics.pipeline_data.vk_pipeline = pipeline;
-    draw.node_data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
-    draw.node_data.graphics.viewport.viewports.append(VkViewport{});
-    draw.node_data.graphics.viewport.scissors.append(VkRect2D{});
-    render_graph->add_node(draw);
+    VKNodeData<VKDrawNode> node = render_graph->alloc_node<VKDrawNode>();
+    node.data.first_instance = 0;
+    node.data.first_vertex = 0;
+    node.data.instance_count = 1;
+    node.data.vertex_count = 4;
+    node.data.graphics.pipeline_data.push_constants_range = IndexRange(0);
+    node.data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+    node.data.graphics.pipeline_data.vk_pipeline = pipeline;
+    node.data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
+    node.data.graphics.viewport.viewports.append(VkViewport{});
+    node.data.graphics.viewport.scissors.append(VkRect2D{});
+    VKDrawNode::CreateInfo draw_create_info(access_info);
+    node.finalize(*render_graph, draw_create_info);
   }
 
   {
@@ -1170,18 +1178,19 @@ TEST_P(VKRenderGraphTestScheduler, begin_rendering_end_rendering_begin_rendering
 
     {
       VKResourceAccessInfo access_info = {};
-      VKDrawNode::CreateInfo draw(access_info);
-      draw.node_data.first_instance = 0;
-      draw.node_data.first_vertex = 0;
-      draw.node_data.instance_count = 1;
-      draw.node_data.vertex_count = 4;
-      draw.node_data.graphics.pipeline_data.push_constants_range = IndexRange(0);
-      draw.node_data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
-      draw.node_data.graphics.pipeline_data.vk_pipeline = pipeline;
-      draw.node_data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
-      draw.node_data.graphics.viewport.viewports.append(VkViewport{});
-      draw.node_data.graphics.viewport.scissors.append(VkRect2D{});
-      render_graph->add_node(draw);
+      VKNodeData<VKDrawNode> node = render_graph->alloc_node<VKDrawNode>();
+      node.data.first_instance = 0;
+      node.data.first_vertex = 0;
+      node.data.instance_count = 1;
+      node.data.vertex_count = 4;
+      node.data.graphics.pipeline_data.push_constants_range = IndexRange(0);
+      node.data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+      node.data.graphics.pipeline_data.vk_pipeline = pipeline;
+      node.data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
+      node.data.graphics.viewport.viewports.append(VkViewport{});
+      node.data.graphics.viewport.scissors.append(VkRect2D{});
+      VKDrawNode::CreateInfo draw_create_info(access_info);
+      node.finalize(*render_graph, draw_create_info);
     }
 
     /* Should not assert. */
@@ -1306,18 +1315,19 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_storage_end_begin_draw_end)
                                VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
                                VK_IMAGE_ASPECT_COLOR_BIT,
                                {}});
-    VKDrawNode::CreateInfo draw(access_info);
-    draw.node_data.first_instance = 0;
-    draw.node_data.first_vertex = 0;
-    draw.node_data.instance_count = 1;
-    draw.node_data.vertex_count = 4;
-    draw.node_data.graphics.pipeline_data.push_constants_range = IndexRange(0);
-    draw.node_data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
-    draw.node_data.graphics.pipeline_data.vk_pipeline = pipeline;
-    draw.node_data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
-    draw.node_data.graphics.viewport.viewports.append(VkViewport{});
-    draw.node_data.graphics.viewport.scissors.append(VkRect2D{});
-    render_graph->add_node(draw);
+    VKNodeData<VKDrawNode> node = render_graph->alloc_node<VKDrawNode>();
+    node.data.first_instance = 0;
+    node.data.first_vertex = 0;
+    node.data.instance_count = 1;
+    node.data.vertex_count = 4;
+    node.data.graphics.pipeline_data.push_constants_range = IndexRange(0);
+    node.data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+    node.data.graphics.pipeline_data.vk_pipeline = pipeline;
+    node.data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
+    node.data.graphics.viewport.viewports.append(VkViewport{});
+    node.data.graphics.viewport.scissors.append(VkRect2D{});
+    VKDrawNode::CreateInfo draw_create_info(access_info);
+    node.finalize(*render_graph, draw_create_info);
   }
 
   {
@@ -1351,18 +1361,19 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_storage_end_begin_draw_end)
 
   {
     VKResourceAccessInfo access_info = {};
-    VKDrawNode::CreateInfo draw(access_info);
-    draw.node_data.first_instance = 0;
-    draw.node_data.first_vertex = 0;
-    draw.node_data.instance_count = 1;
-    draw.node_data.vertex_count = 4;
-    draw.node_data.graphics.pipeline_data.push_constants_range = IndexRange(0);
-    draw.node_data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
-    draw.node_data.graphics.pipeline_data.vk_pipeline = pipeline;
-    draw.node_data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
-    draw.node_data.graphics.viewport.viewports.append(VkViewport{});
-    draw.node_data.graphics.viewport.scissors.append(VkRect2D{});
-    render_graph->add_node(draw);
+    VKNodeData<VKDrawNode> node = render_graph->alloc_node<VKDrawNode>();
+    node.data.first_instance = 0;
+    node.data.first_vertex = 0;
+    node.data.instance_count = 1;
+    node.data.vertex_count = 4;
+    node.data.graphics.pipeline_data.push_constants_range = IndexRange(0);
+    node.data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+    node.data.graphics.pipeline_data.vk_pipeline = pipeline;
+    node.data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
+    node.data.graphics.viewport.viewports.append(VkViewport{});
+    node.data.graphics.viewport.scissors.append(VkRect2D{});
+    VKDrawNode::CreateInfo draw_create_info(access_info);
+    node.finalize(*render_graph, draw_create_info);
   }
 
   {
@@ -1498,18 +1509,19 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_storage_end_begin_draw_end_subreso
                                VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
                                VK_IMAGE_ASPECT_COLOR_BIT,
                                {}});
-    VKDrawNode::CreateInfo draw(access_info);
-    draw.node_data.first_instance = 0;
-    draw.node_data.first_vertex = 0;
-    draw.node_data.instance_count = 1;
-    draw.node_data.vertex_count = 4;
-    draw.node_data.graphics.pipeline_data.push_constants_range = IndexRange(0);
-    draw.node_data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
-    draw.node_data.graphics.pipeline_data.vk_pipeline = pipeline;
-    draw.node_data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
-    draw.node_data.graphics.viewport.viewports.append(VkViewport{});
-    draw.node_data.graphics.viewport.scissors.append(VkRect2D{});
-    render_graph->add_node(draw);
+    VKNodeData<VKDrawNode> node = render_graph->alloc_node<VKDrawNode>();
+    node.data.first_instance = 0;
+    node.data.first_vertex = 0;
+    node.data.instance_count = 1;
+    node.data.vertex_count = 4;
+    node.data.graphics.pipeline_data.push_constants_range = IndexRange(0);
+    node.data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+    node.data.graphics.pipeline_data.vk_pipeline = pipeline;
+    node.data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
+    node.data.graphics.viewport.viewports.append(VkViewport{});
+    node.data.graphics.viewport.scissors.append(VkRect2D{});
+    VKDrawNode::CreateInfo draw_create_info(access_info);
+    node.finalize(*render_graph, draw_create_info);
   }
 
   {
@@ -1543,18 +1555,19 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_storage_end_begin_draw_end_subreso
 
   {
     VKResourceAccessInfo access_info = {};
-    VKDrawNode::CreateInfo draw(access_info);
-    draw.node_data.first_instance = 0;
-    draw.node_data.first_vertex = 0;
-    draw.node_data.instance_count = 1;
-    draw.node_data.vertex_count = 4;
-    draw.node_data.graphics.pipeline_data.push_constants_range = IndexRange(0);
-    draw.node_data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
-    draw.node_data.graphics.pipeline_data.vk_pipeline = pipeline;
-    draw.node_data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
-    draw.node_data.graphics.viewport.viewports.append(VkViewport{});
-    draw.node_data.graphics.viewport.scissors.append(VkRect2D{});
-    render_graph->add_node(draw);
+    VKNodeData<VKDrawNode> node = render_graph->alloc_node<VKDrawNode>();
+    node.data.first_instance = 0;
+    node.data.first_vertex = 0;
+    node.data.instance_count = 1;
+    node.data.vertex_count = 4;
+    node.data.graphics.pipeline_data.push_constants_range = IndexRange(0);
+    node.data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+    node.data.graphics.pipeline_data.vk_pipeline = pipeline;
+    node.data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
+    node.data.graphics.viewport.viewports.append(VkViewport{});
+    node.data.graphics.viewport.scissors.append(VkRect2D{});
+    VKDrawNode::CreateInfo draw_create_info(access_info);
+    node.finalize(*render_graph, draw_create_info);
   }
 
   {
@@ -1683,12 +1696,12 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_storage_dispatch_begin_draw_end_su
   VkHandle<VkImageView> image_view(2u);
   VkHandle<VkPipelineLayout> pipeline_layout(4u);
   VkHandle<VkPipeline> pipeline(3u);
-  VkHandle<VkBuffer> buffer_src(5u);
-  VkHandle<VkBuffer> buffer_dst(6u);
+  VKTrackedHandle<VkBuffer> buffer_src(5u);
+  VKTrackedHandle<VkBuffer> buffer_dst(6u);
 
   resources.add_image(image, true);
-  resources.add_buffer(buffer_src);
-  resources.add_buffer(buffer_dst);
+  buffer_src.set_resource_handle(resources.add_buffer(buffer_src));
+  buffer_dst.set_resource_handle(resources.add_buffer(buffer_dst));
 
   /* First scope: BEGIN_RENDERING + DRAW(storage) in one group.
    * No END_RENDERING in this group, so the after-group-loop suspend fires. */
@@ -1721,18 +1734,19 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_storage_dispatch_begin_draw_end_su
                                VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
                                VK_IMAGE_ASPECT_COLOR_BIT,
                                {}});
-    VKDrawNode::CreateInfo draw(access_info);
-    draw.node_data.first_instance = 0;
-    draw.node_data.first_vertex = 0;
-    draw.node_data.instance_count = 1;
-    draw.node_data.vertex_count = 4;
-    draw.node_data.graphics.pipeline_data.push_constants_range = IndexRange(0);
-    draw.node_data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
-    draw.node_data.graphics.pipeline_data.vk_pipeline = pipeline;
-    draw.node_data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
-    draw.node_data.graphics.viewport.viewports.append(VkViewport{});
-    draw.node_data.graphics.viewport.scissors.append(VkRect2D{});
-    render_graph->add_node(draw);
+    VKNodeData<VKDrawNode> node = render_graph->alloc_node<VKDrawNode>();
+    node.data.first_instance = 0;
+    node.data.first_vertex = 0;
+    node.data.instance_count = 1;
+    node.data.vertex_count = 4;
+    node.data.graphics.pipeline_data.push_constants_range = IndexRange(0);
+    node.data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+    node.data.graphics.pipeline_data.vk_pipeline = pipeline;
+    node.data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
+    node.data.graphics.viewport.viewports.append(VkViewport{});
+    node.data.graphics.viewport.scissors.append(VkRect2D{});
+    VKDrawNode::CreateInfo draw_create_info(access_info);
+    node.finalize(*render_graph, draw_create_info);
   }
 
   /* Non-rendering node splits the group, triggering after-group-loop suspend. */
@@ -1774,18 +1788,19 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_storage_dispatch_begin_draw_end_su
          VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
          VK_IMAGE_ASPECT_COLOR_BIT,
          {}});
-    VKDrawNode::CreateInfo draw(access_info);
-    draw.node_data.first_instance = 0;
-    draw.node_data.first_vertex = 0;
-    draw.node_data.instance_count = 1;
-    draw.node_data.vertex_count = 4;
-    draw.node_data.graphics.pipeline_data.push_constants_range = IndexRange(0);
-    draw.node_data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
-    draw.node_data.graphics.pipeline_data.vk_pipeline = pipeline;
-    draw.node_data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
-    draw.node_data.graphics.viewport.viewports.append(VkViewport{});
-    draw.node_data.graphics.viewport.scissors.append(VkRect2D{});
-    render_graph->add_node(draw);
+    VKNodeData<VKDrawNode> node = render_graph->alloc_node<VKDrawNode>();
+    node.data.first_instance = 0;
+    node.data.first_vertex = 0;
+    node.data.instance_count = 1;
+    node.data.vertex_count = 4;
+    node.data.graphics.pipeline_data.push_constants_range = IndexRange(0);
+    node.data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+    node.data.graphics.pipeline_data.vk_pipeline = pipeline;
+    node.data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
+    node.data.graphics.viewport.viewports.append(VkViewport{});
+    node.data.graphics.viewport.scissors.append(VkRect2D{});
+    VKDrawNode::CreateInfo draw_create_info(access_info);
+    node.finalize(*render_graph, draw_create_info);
   }
 
   {
@@ -1875,18 +1890,19 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_storage_end_begin_draw_restart_dep
                                VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
                                VK_IMAGE_ASPECT_DEPTH_BIT,
                                {}});
-    VKDrawNode::CreateInfo draw(access_info);
-    draw.node_data.first_instance = 0;
-    draw.node_data.first_vertex = 0;
-    draw.node_data.instance_count = 1;
-    draw.node_data.vertex_count = 4;
-    draw.node_data.graphics.pipeline_data.push_constants_range = IndexRange(0);
-    draw.node_data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
-    draw.node_data.graphics.pipeline_data.vk_pipeline = pipeline;
-    draw.node_data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
-    draw.node_data.graphics.viewport.viewports.append(VkViewport{});
-    draw.node_data.graphics.viewport.scissors.append(VkRect2D{});
-    render_graph->add_node(draw);
+    VKNodeData<VKDrawNode> node = render_graph->alloc_node<VKDrawNode>();
+    node.data.first_instance = 0;
+    node.data.first_vertex = 0;
+    node.data.instance_count = 1;
+    node.data.vertex_count = 4;
+    node.data.graphics.pipeline_data.push_constants_range = IndexRange(0);
+    node.data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+    node.data.graphics.pipeline_data.vk_pipeline = pipeline;
+    node.data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
+    node.data.graphics.viewport.viewports.append(VkViewport{});
+    node.data.graphics.viewport.scissors.append(VkRect2D{});
+    VKDrawNode::CreateInfo draw_create_info(access_info);
+    node.finalize(*render_graph, draw_create_info);
   }
 
   {
@@ -1920,18 +1936,19 @@ TEST_P(VKRenderGraphTestScheduler, begin_draw_storage_end_begin_draw_restart_dep
     VKResourceAccessInfo access_info = {};
     access_info.images.append(
         {image, VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT, VK_IMAGE_ASPECT_DEPTH_BIT, {}});
-    VKDrawNode::CreateInfo draw(access_info);
-    draw.node_data.first_instance = 0;
-    draw.node_data.first_vertex = 0;
-    draw.node_data.instance_count = 1;
-    draw.node_data.vertex_count = 4;
-    draw.node_data.graphics.pipeline_data.push_constants_range = IndexRange(0);
-    draw.node_data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
-    draw.node_data.graphics.pipeline_data.vk_pipeline = pipeline;
-    draw.node_data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
-    draw.node_data.graphics.viewport.viewports.append(VkViewport{});
-    draw.node_data.graphics.viewport.scissors.append(VkRect2D{});
-    render_graph->add_node(draw);
+    VKNodeData<VKDrawNode> node = render_graph->alloc_node<VKDrawNode>();
+    node.data.first_instance = 0;
+    node.data.first_vertex = 0;
+    node.data.instance_count = 1;
+    node.data.vertex_count = 4;
+    node.data.graphics.pipeline_data.push_constants_range = IndexRange(0);
+    node.data.graphics.pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
+    node.data.graphics.pipeline_data.vk_pipeline = pipeline;
+    node.data.graphics.pipeline_data.vk_pipeline_layout = pipeline_layout;
+    node.data.graphics.viewport.viewports.append(VkViewport{});
+    node.data.graphics.viewport.scissors.append(VkRect2D{});
+    VKDrawNode::CreateInfo draw_create_info(access_info);
+    node.finalize(*render_graph, draw_create_info);
   }
 
   {

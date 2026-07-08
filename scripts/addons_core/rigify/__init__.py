@@ -319,7 +319,7 @@ def check_feature_set_error(_feature_set: RigifyFeatureSets, info: dict, layout:
                 rpt_("This feature set requires Blender {:s} or newer to work properly.")
                 .format(".".join(str(x) for x in info['blender']))
             )
-            sub.label(icon='ERROR', text=text, translate=False)
+            sub.label(icon='STATUS_WARNING', text=text, translate=False)
 
     for dep_link in info.get("dependencies", []):
         if not feature_set_list.get_module_by_link_safe(dep_link):
@@ -332,7 +332,7 @@ def check_feature_set_error(_feature_set: RigifyFeatureSets, info: dict, layout:
                 sub.alert = True
                 sub.label(
                     text="This feature set depends on the following feature set to work properly:",
-                    icon='ERROR'
+                    icon='STATUS_WARNING'
                 )
                 sub_split = col.split(factor=0.8)
                 sub = sub_split.row()
@@ -368,7 +368,7 @@ def draw_feature_set_prefs(layout: bpy.types.UILayout, _context: bpy.types.Conte
         split.label(text="Error:")
         sub = split.row()
         sub.alert = True
-        sub.label(text="This feature set failed to load correctly.", icon='ERROR')
+        sub.label(text="This feature set failed to load correctly.", icon='STATUS_ERROR')
 
     split = col.row().split(factor=split_factor)
     split.label(text="Description:")
@@ -389,7 +389,7 @@ def draw_feature_set_prefs(layout: bpy.types.UILayout, _context: bpy.types.Conte
     if 'warning' in info:
         split = col.row().split(factor=split_factor)
         split.label(text="Warning:")
-        split.label(text="  " + info['warning'], icon='ERROR')
+        split.label(text="  " + info['warning'], icon='STATUS_WARNING')
 
     split = col.row().split(factor=split_factor)
     split.label(text="Internet:")

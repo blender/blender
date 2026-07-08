@@ -68,64 +68,10 @@ if(POLICY CMP0177)
   cmake_policy(SET CMP0177 NEW)
 endif()
 
-
-# TODO(android): These project_hack_pre/post macros were moved from macros.cmake as macros.cmake must be included
-#                after the `project(Blender)` call for the TOOLCHAIN_FILE to be loaded and the proper target definitions
-#                to be used. Check with Campbell/Sergey if these macros couldn't be removed, and if not refactor them
-#                somewhere else.
-#                From a quick test, they do seem to still effect the C{XX}_FLAGS, but perhaps O3 doesn't cause problems
-#                anymore.
-
-# hacks to override initial project settings
-# these macros must be called directly before/after project(Blender)
-#
-# NOTE: must be a macro pair, `_pre` sets `_reset_standard_c*flags_rel`
-# variables that `_post` reads from the same scope, and `_post` modifies
-# `CMAKE_C/CXX_FLAGS_RELEASE` cache entries.
-macro(blender_project_hack_pre)
-  # ------------------
-  # GCC -O3 HACK START
-  # needed because O3 can cause problems but
-  # allow the builder to set O3 manually after.
-  if(DEFINED CMAKE_C_FLAGS_RELEASE)
-    set(_reset_standard_cflags_rel OFF)
-  else()
-    set(_reset_standard_cflags_rel ON)
-  endif()
-  if(DEFINED CMAKE_CXX_FLAGS_RELEASE)
-    set(_reset_standard_cxxflags_rel OFF)
-  else()
-    set(_reset_standard_cxxflags_rel ON)
-  endif()
-endmacro()
-
-macro(blender_project_hack_post)
-  # ----------------
-  # GCC -O3 HACK END
-  if(_reset_standard_cflags_rel)
-    string(REGEX REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}" CACHE STRING "" FORCE)
-    mark_as_advanced(CMAKE_C_FLAGS_RELEASE)
-  endif()
-
-  if(_reset_standard_cxxflags_rel)
-    string(REGEX REPLACE "-O3" "-O2" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}" CACHE STRING "" FORCE)
-    mark_as_advanced(CMAKE_CXX_FLAGS_RELEASE)
-  endif()
-
-  unset(_reset_standard_cflags_rel)
-  unset(_reset_standard_cxxflags_rel)
-endmacro()
-
 # -----------------------------------------------------------------------------
 # Initialize Project
 
-blender_project_hack_pre()
-
 project(Blender)
-
-blender_project_hack_post()
 
 enable_testing()
 
@@ -133,7 +79,6 @@ enable_testing()
 # Load Blender's Local Macros
 
 include(build_files/cmake/macros.cmake)
-
 
 # There are some circumstances where the git checkout doesn't grab
 # the files from LFS but produces small pointer files. The build system

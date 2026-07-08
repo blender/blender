@@ -156,7 +156,7 @@ def draw_kmi(display_keymaps, kc, km, kmi, layout, level):
             row.label(text="(Unassigned)")
         else:
             row.alert = True
-            row.label(text=rpt_("{:s} (unavailable)").format(kmi.idname), icon='WARNING_LARGE', translate=False)
+            row.label(text=rpt_("{:s} (unavailable)").format(kmi.idname), icon='STATUS_WARNING', translate=False)
 
     row = split.row()
     row.prop(kmi, "map_type", text="")

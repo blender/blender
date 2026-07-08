@@ -57,7 +57,7 @@ bool mark_id(ID *id)
 
 void generate_preview(const bContext *C, ID *id)
 {
-  if (!ED_preview_id_is_supported(id)) {
+  if (!ED_preview_id_render_is_supported(id)) {
     return;
   }
 

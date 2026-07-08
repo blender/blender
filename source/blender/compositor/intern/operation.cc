@@ -54,6 +54,11 @@ void Operation::free_results()
   }
 }
 
+Context &Operation::context() const
+{
+  return context_;
+}
+
 Domain Operation::compute_domain()
 {
   /* Default to an identity domain in case no domain input was found, most likely because all
@@ -136,11 +141,6 @@ void Operation::allocate_default_remaining_outputs()
       result.allocate_invalid();
     }
   }
-}
-
-Context &Operation::context() const
-{
-  return context_;
 }
 
 void Operation::add_and_evaluate_input_processor(StringRef identifier, SimpleOperation *processor)

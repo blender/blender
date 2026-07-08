@@ -246,7 +246,7 @@ static void draw_error_message(const bNodeTree &tree, ui::Layout &layout, const 
     const eNodeSocketDatatype socket_type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
     if (socket_type != SOCK_RGBA) {
       ui::Layout &row = layout.row(false);
-      row.label(RPT_("The first node group input must have the Color type"), ICON_ERROR);
+      row.label(RPT_("The first node group input must have the Color type"), ICON_STATUS_ERROR);
     }
   }
 
@@ -254,26 +254,26 @@ static void draw_error_message(const bNodeTree &tree, ui::Layout &layout, const 
     if (interface_inputs.size() < 1) {
       ui::Layout &row = layout.row(false);
       row.label(RPT_("Node group must have at least two inputs to use the mask input"),
-                ICON_ERROR);
+                ICON_STATUS_ERROR);
     }
     const bke::bNodeSocketType *typeinfo = interface_inputs[1]->socket_typeinfo();
     const eNodeSocketDatatype socket_type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
     if (socket_type != SOCK_RGBA) {
       ui::Layout &row = layout.row(false);
-      row.label(RPT_("The second node group input must have the Color type"), ICON_ERROR);
+      row.label(RPT_("The second node group input must have the Color type"), ICON_STATUS_ERROR);
     }
   }
 
   if (interface_ouputs.is_empty()) {
     ui::Layout &row = layout.row(false);
-    row.label(RPT_("Node group must have an output"), ICON_ERROR);
+    row.label(RPT_("Node group must have an output"), ICON_STATUS_ERROR);
   }
   else {
     const bke::bNodeSocketType *typeinfo = interface_ouputs[0]->socket_typeinfo();
     const eNodeSocketDatatype socket_type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
     if (socket_type != SOCK_RGBA) {
       ui::Layout &row = layout.row(false);
-      row.label(RPT_("The first node group output must have the Color type"), ICON_ERROR);
+      row.label(RPT_("The first node group output must have the Color type"), ICON_STATUS_ERROR);
     }
   }
 }

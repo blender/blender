@@ -1200,7 +1200,7 @@ ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals kg,
  * internal reflections.
  *
  * The reflected lobe is a glossy lobe with given roughness.
- * The transmitted lobe is modelled as a mirrored reflection with modified roughness.
+ * The transmitted lobe is modeled as a mirrored reflection with modified roughness.
  *
  * \{ */
 

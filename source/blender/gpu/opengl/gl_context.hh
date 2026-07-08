@@ -58,7 +58,6 @@ class GLContext : public Context {
 
   static bool debug_layer_support;
   static bool direct_state_access_support;
-  static bool explicit_location_support;
   static bool framebuffer_fetch_support;
   /* layered_rendering_support requires GL_ARB_shader_viewport_layer_array, which is a superset of
    * GL_AMD_vertex_shader_viewport_index (vertex_shader_viewport_index_support) and

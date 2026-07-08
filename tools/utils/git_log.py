@@ -118,6 +118,9 @@ class GitCommit:
             if not ("<" in author and ">" in author):
                 # Always follow `Name <>` spec, even when no email is given.
                 author = author + " <>"
+            elif not author.endswith(">"):
+                # In case the co-author line has rubbish after the author email.
+                author = author.rsplit(">", 1)[0] + ">"
             authors.append(author)
         return authors
 

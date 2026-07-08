@@ -23,6 +23,7 @@
 #include "DNA_space_types.h"
 #include "DNA_world_types.h"
 
+#include "BLI_array_utils.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_path_utils.hh"
@@ -33,7 +34,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_anim_data.hh"
-#include "BKE_animsys.h"
+#include "BKE_animsys.hh"
 #include "BKE_appdir.hh"
 #include "BKE_blender_copybuffer.hh"
 #include "BKE_blendfile.hh"
@@ -648,7 +649,7 @@ static wmOperatorStatus material_slot_move_exec(bContext *C, wmOperator *op)
 
   slot_remap = MEM_new_array_uninitialized<uint>(ob->totcol, __func__);
 
-  range_vn_u(slot_remap, ob->totcol, 0);
+  array_utils::fill_index_range<uint>({slot_remap, ob->totcol});
 
   slot_remap[index_pair[0]] = index_pair[1];
   slot_remap[index_pair[1]] = index_pair[0];
@@ -705,21 +706,7 @@ static wmOperatorStatus material_slot_remove_unused_exec(bContext *C, wmOperator
 
   Vector<Object *> objects = object_array_for_shading_edit_mode_disabled(C);
   for (Object *ob : objects) {
-    int actcol = ob->actcol;
-    for (int slot = 1; slot <= ob->totcol; slot++) {
-      while (slot <= ob->totcol && !BKE_object_material_slot_used(ob, slot)) {
-        ob->actcol = slot;
-        BKE_object_material_slot_remove(bmain, ob);
-
-        if (actcol >= slot) {
-          actcol--;
-        }
-
-        removed++;
-      }
-    }
-    ob->actcol = actcol;
-
+    removed += BKE_object_material_remove_unused(bmain, ob);
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
 
@@ -767,21 +754,7 @@ static wmOperatorStatus material_slot_remove_all_exec(bContext *C, wmOperator *o
 
   Vector<Object *> objects = object_array_for_shading_edit_mode_disabled(C);
   for (Object *ob : objects) {
-    int actcol = ob->actcol;
-    for (int slot = 1; slot <= ob->totcol; slot++) {
-      while (slot <= ob->totcol) {
-        ob->actcol = slot;
-        BKE_object_material_slot_remove(bmain, ob);
-
-        if (actcol >= slot) {
-          actcol--;
-        }
-
-        removed++;
-      }
-    }
-    ob->actcol = actcol;
-
+    removed += BKE_object_material_remove_all(bmain, ob);
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
 

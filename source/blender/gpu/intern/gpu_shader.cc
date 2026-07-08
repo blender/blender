@@ -242,6 +242,10 @@ std::string GPU_shader_preprocess_source(StringRefNull original,
   for (auto builtin : metadata.builtins) {
     info.builtins(gpu::shader::convert_builtin_bit(builtin));
   }
+  /* WORKAROUND: We have an extra check in place on Metal for clip distances (see #160847). */
+  if (bool(info.builtins_ & shader::BuiltinBits::CLIP_DISTANCES)) {
+    info.define("USE_WORLD_CLIP_PLANES");
+  }
   return processed_str;
 };
 
@@ -551,6 +555,13 @@ int GPU_shader_get_sampler_binding(gpu::Shader *shader, const char *name)
   const ShaderInterface *interface = shader->interface;
   const ShaderInput *tex = interface->uniform_get(name);
   return tex ? tex->binding : -1;
+}
+
+int GPU_shader_get_tlas_binding(gpu::Shader *shader, const char *name)
+{
+  const ShaderInterface *interface = shader->interface;
+  const ShaderInput *tlas = interface->tlas_get(name);
+  return tlas ? tlas->location : -1;
 }
 
 uint GPU_shader_get_attribute_len(const gpu::Shader *shader)

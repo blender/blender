@@ -19,6 +19,16 @@ namespace blender {
 struct BMEdgeLoopStore;
 struct LinkData;
 
+struct BMEdgeLoopFind_Params {
+  /**
+   * - When true, a vertex with more than two tagged edges is treated as a junction:
+   *   loops terminate at the junction instead of being discarded, and the junction
+   *   vertex may be shared as the end-point of multiple loops.
+   * - When false, loops running into a junction are discarded.
+   */
+  bool use_vert_junction;
+};
+
 /* multiple edgeloops (ListBase) */
 /**
  * \return listbase of listbases, each linking to a vertex.
@@ -26,7 +36,8 @@ struct LinkData;
 int BM_mesh_edgeloops_find(BMesh *bm,
                            ListBaseT<BMEdgeLoopStore> *r_eloops,
                            bool (*test_fn)(BMEdge *, void *user_data),
-                           void *user_data);
+                           void *user_data,
+                           const BMEdgeLoopFind_Params *params = nullptr);
 bool BM_mesh_edgeloops_find_path(BMesh *bm,
                                  ListBaseT<BMEdgeLoopStore> *r_eloops,
                                  bool (*test_fn)(BMEdge *, void *user_data),
@@ -51,6 +62,14 @@ BMEdgeLoopStore *BM_edgeloop_from_verts(BMVert **v_arr, int v_arr_tot, bool is_c
 
 void BM_edgeloop_free(BMEdgeLoopStore *el_store);
 bool BM_edgeloop_is_closed(BMEdgeLoopStore *el_store);
+/**
+ * \return true when the loop is cyclic but anchored at a junction,
+ * so it has a distinct start and end (both the same junction vertex)
+ * rather than being freely cyclic like #BM_edgeloop_is_closed.
+ *
+ * \note The first vertex will be set to the junction.
+ */
+bool BM_edgeloop_is_closed_junction(BMEdgeLoopStore *el_store);
 int BM_edgeloop_length_get(BMEdgeLoopStore *el_store);
 ListBaseT<LinkData> *BM_edgeloop_verts_get(BMEdgeLoopStore *el_store);
 const float *BM_edgeloop_normal_get(BMEdgeLoopStore *el_store);

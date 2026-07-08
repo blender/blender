@@ -96,7 +96,7 @@ const EnumPropertyItem rna_enum_keying_flag_api_items[] = {
 #  include "BLI_string_utf8.hh"
 
 #  include "BKE_anim_data.hh"
-#  include "BKE_animsys.h"
+#  include "BKE_animsys.hh"
 #  include "BKE_context.hh"
 #  include "BKE_fcurve.hh"
 #  include "BKE_lib_id.hh"

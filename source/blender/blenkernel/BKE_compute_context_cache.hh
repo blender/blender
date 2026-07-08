@@ -30,8 +30,8 @@ class ComputeContextCache {
 
   Map<std::pair<const ComputeContext *, uint32_t>, const DataBlockComputeContext *>
       data_block_contexts_cache_;
-  Map<std::pair<const ComputeContext *, int>, const ModifierComputeContext *>
-      modifier_contexts_cache_;
+  Map<std::pair<const ComputeContext *, int>, const GeometryNodesModifierComputeContext *>
+      geometry_nodes_modifier_contexts_cache_;
   Map<const ComputeContext *, const OperatorComputeContext *> operator_contexts_cache_;
   Map<const ComputeContext *, const ShaderComputeContext *> shader_contexts_cache_;
   Map<std::pair<const ComputeContext *, int32_t>, const GroupNodeComputeContext *>
@@ -52,9 +52,10 @@ class ComputeContextCache {
                                                 const ID *id = nullptr);
   const DataBlockComputeContext &for_data_block(const ComputeContext *parent, const ID &id);
 
-  const ModifierComputeContext &for_modifier(const ComputeContext *parent,
-                                             const NodesModifierData &nmd);
-  const ModifierComputeContext &for_modifier(const ComputeContext *parent, int modifier_uid);
+  const GeometryNodesModifierComputeContext &for_geometry_nodes_modifier(
+      const ComputeContext *parent, const NodesModifierData &nmd);
+  const GeometryNodesModifierComputeContext &for_geometry_nodes_modifier(
+      const ComputeContext *parent, int modifier_uid);
 
   const OperatorComputeContext &for_operator(const ComputeContext *parent);
   const OperatorComputeContext &for_operator(const ComputeContext *parent, const bNodeTree &tree);

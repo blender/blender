@@ -97,6 +97,9 @@ class Operation {
    * operations will not get evaluated and thus will not free the results it consumes. */
   void free_results();
 
+  /* Returns a reference to the compositor context. */
+  Context &context() const;
+
  protected:
   /* Compute the operation domain of this operation. By default, this implements a default logic
    * that infers the operation domain from the inputs, which may be overridden for a different
@@ -131,9 +134,6 @@ class Operation {
 
   /* Allocates all needed outputs that are not yet allocated and default initialize them. */
   void allocate_default_remaining_outputs();
-
-  /* Returns a reference to the compositor context. */
-  Context &context() const;
 
  private:
   /* Given the identifier of an input of the operation and a processor operation:

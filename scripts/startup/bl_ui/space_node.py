@@ -453,10 +453,6 @@ class NODE_MT_node(Menu):
         props.NODE_OT_translate_attach.TRANSFORM_OT_translate.view2d_edge_pan = True
 
         layout.separator()
-        layout.operator("node.delete", icon='X')
-        layout.operator("node.delete_reconnect")
-
-        layout.separator()
         layout.operator("node.join", text="Join in New Frame")
         layout.operator("node.detach", text="Remove from Frame")
         layout.operator("node.join_nodes", text="Join Group Inputs")
@@ -488,6 +484,10 @@ class NODE_MT_node(Menu):
         if is_compositor:
             layout.separator()
             layout.operator("node.read_viewlayers", icon='RENDERLAYERS')
+
+        layout.separator()
+        layout.operator("node.delete_reconnect")
+        layout.operator("node.delete", icon='X')
 
 
 class NODE_MT_view_pie(Menu):
@@ -627,7 +627,7 @@ class NODE_PT_geometry_node_tool_options(Panel):
         layout.prop(group, "node_tool_idname", text="Identifier")
         layout.template_node_operator_registration_errors(idname=group.node_tool_idname)
         if len(group.node_tool_idname) == 0:
-            layout.label(icon='ERROR', text="Missing operator identifier")
+            layout.label(icon='STATUS_ERROR', text="Missing operator identifier")
 
 
 class NODE_PT_node_color_presets(PresetPanel, Panel):

@@ -11,7 +11,7 @@
 
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
-#include "BKE_animsys.h"
+#include "BKE_animsys.hh"
 #include "BKE_asset_edit.hh"
 #include "BKE_attribute_legacy_convert.hh"
 #include "BKE_attribute_storage.hh"
@@ -699,8 +699,9 @@ static void update_curve_plane_normal_cache(const Span<float3> positions,
 
         float length;
         normal = math::normalize_and_get_length(normal, length);
-        /* Check for degenerate case where the points are on a line. */
-        if (math::is_zero(length)) {
+        /* Check for degenerate case where the points are on a line (Newell's method can introduce
+         * a small error that accumulates with many points). */
+        if (length < std::numeric_limits<float>::epsilon() * points.size()) {
           for (const int point_i : points.drop_back(1)) {
             float3 segment_vec = positions[point_i] - positions[point_i + 1];
             if (math::length_squared(segment_vec) != 0.0f) {

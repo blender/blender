@@ -72,7 +72,7 @@ struct GeomMeshVertIn {
   interp.P = obj.point_object_to_world(vert_in.pos);
   interp.N = normalize(obj.normal_object_to_world(vert_in.nor));
   if (pipe.use_velocity) [[static_branch]] {
-    /* clang-format off */ /* Multiline define messes up line index. */
+    /* clang-format off */ /* Multi-line define messes up line index. */
     [[resource_table]] const GeometryVelocity &geo_vel = resource_table_get(eevee::GeometryVelocity);
     /* clang-format on */
     auto &motion = interface_get(eevee_velocity_iface_info, motion);

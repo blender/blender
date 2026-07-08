@@ -298,6 +298,7 @@ void ED_node_set_active(
               for (int i = 0; i < ma.tot_slots; i++) {
                 if (ma.texpaintslot[i].ima == image) {
                   ma.paint_active_slot = i;
+                  DEG_id_tag_update(&ma.id, ID_RECALC_SYNC_TO_EVAL);
                 }
               }
             }
@@ -1694,6 +1695,8 @@ static wmOperatorStatus node_delete_exec(bContext *C, wmOperator * /*op*/)
     }
   }
 
+  WM_event_handling_break(*C);
+
   ED_node_set_active_viewer_key(snode);
   BKE_main_ensure_invariants(*bmain, snode->edittree->id);
 
@@ -1741,6 +1744,8 @@ static wmOperatorStatus node_delete_reconnect_exec(bContext *C, wmOperator * /*o
       WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, nullptr);
     }
   }
+
+  WM_event_handling_break(*C);
 
   BKE_main_ensure_invariants(*bmain, snode->edittree->id);
 

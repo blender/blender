@@ -691,8 +691,6 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
     CTX_free(C);
   }
 
-  DNA_sdna_current_free();
-
   BLI_threadapi_exit();
   BLI_task_scheduler_exit();
 

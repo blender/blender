@@ -302,6 +302,16 @@ rctf strip_bounds_get(const Scene *scene, const Strip *strip)
   return bounds;
 }
 
+rcti strip_int_bounds_get(const Scene *scene, const Strip *strip)
+{
+  rcti bounds;
+  bounds.xmin = strip->left_handle();
+  bounds.xmax = strip->right_handle(scene);
+  bounds.ymin = strip->channel;
+  bounds.ymax = strip->channel;
+  return bounds;
+}
+
 Strip *find_neighboring_strip(const Scene *scene, const Strip *test, const int lr, int sel)
 {
   /* sel: 0==unselected, 1==selected, -1==don't care. */
@@ -484,53 +494,6 @@ void SEQUENCER_OT_select_all(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO;
 
   WM_operator_properties_select_all(ot);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Select Inverse Operator
- * \{ */
-
-static wmOperatorStatus sequencer_select_inverse_exec(bContext *C, wmOperator * /*op*/)
-{
-  Scene *scene = CTX_data_sequencer_scene(C);
-
-  if (sequencer_view_has_preview_poll(C) && !sequencer_view_preview_only_poll(C)) {
-    return OPERATOR_CANCELLED;
-  }
-
-  VectorSet strips = all_strips_from_context(C);
-
-  for (Strip *strip : strips) {
-    if (strip->flag & SEQ_SELECT) {
-      strip->flag &= ~STRIP_ALLSEL;
-    }
-    else {
-      strip->flag &= ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
-      strip->flag |= SEQ_SELECT;
-    }
-  }
-
-  ED_outliner_select_sync_from_sequence_tag(C);
-  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
-
-  return OPERATOR_FINISHED;
-}
-
-void SEQUENCER_OT_select_inverse(wmOperatorType *ot)
-{
-  /* Identifiers. */
-  ot->name = "Select Inverse";
-  ot->idname = "SEQUENCER_OT_select_inverse";
-  ot->description = "Select unselected strips";
-
-  /* API callbacks. */
-  ot->exec = sequencer_select_inverse_exec;
-  ot->poll = sequencer_edit_poll;
-
-  /* Flags. */
-  ot->flag = OPTYPE_UNDO;
 }
 
 /** \} */
@@ -1308,7 +1271,7 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
   if (copy_handles_to_sel) {
     copy_to = seq::query_selected_strips(seq::active_seqbase_get(scene->ed));
     copy_to.remove(selection.strip1);
-    copy_to.remove_if([](Strip *strip) { return strip->is_effect(); });
+    copy_to.remove_if([](Strip *strip) { return strip->is_effect_with_inputs(); });
   }
 
   bool changed = false;
@@ -2804,7 +2767,6 @@ static bool select_grouped_visual_overlap(const Scene *scene,
                                           Strip *act_strip)
 {
   Editing *ed = seq::editing_get(scene);
-  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
   VectorSet<Strip *> strips_to_select;
 
   for (Strip *strip : strips) {
@@ -2819,7 +2781,7 @@ static bool select_grouped_visual_overlap(const Scene *scene,
     strips_to_select.add(strip);
   }
 
-  seq::iterator_set_expand(seqbase, strips_to_select, seq::query_strip_effect_chain);
+  seq::iterator_set_expand(ed, strips_to_select, seq::query_strip_effect_chain);
 
   const bool changed = !strips_to_select.is_empty();
   if (changed) {

@@ -22,6 +22,7 @@ class VKStorageBuffer;
 class VKIndexBuffer;
 class VKContext;
 class VKDescriptorSetTracker;
+class VKTopLevelAS;
 
 /**
  * Offset when searching for bindings.
@@ -214,6 +215,38 @@ class BindSpaceTextures {
   }
 };
 
+class BindSpaceTopLevelAS {
+ public:
+  Vector<VKTopLevelAS *> bound_resources;
+
+  void bind(VKTopLevelAS *resource, int binding)
+  {
+    if (bound_resources.size() <= binding) {
+      bound_resources.resize(binding + 1);
+    }
+    bound_resources[binding] = resource;
+  }
+
+  VKTopLevelAS *get(int binding) const
+  {
+    return bound_resources[binding];
+  }
+
+  void unbind(void *resource)
+  {
+    for (int index : IndexRange(bound_resources.size())) {
+      if (bound_resources[index] == resource) {
+        bound_resources[index] = nullptr;
+      }
+    }
+  }
+
+  void unbind_all()
+  {
+    bound_resources.clear();
+  }
+};
+
 class VKStateManager : public StateManager {
   friend class VKDescriptorSetUpdator;
   friend class VKDescriptorSetTracker;
@@ -222,6 +255,7 @@ class VKStateManager : public StateManager {
   BindSpaceImages<BIND_SPACE_IMAGE_OFFSET> images_;
   BindSpaceUniformBuffers uniform_buffers_;
   BindSpaceStorageBuffers storage_buffers_;
+  BindSpaceTopLevelAS acceleration_structures_;
 
  public:
   bool is_dirty = false;
@@ -258,5 +292,8 @@ class VKStateManager : public StateManager {
                            VkDeviceSize offset);
   void storage_buffer_unbind(void *resource);
   void storage_buffer_unbind_all();
+
+  void toplevelas_bind(VKTopLevelAS &tlas, int slot);
+  void toplevelas_unbind(void *resource);
 };
 }  // namespace blender::gpu

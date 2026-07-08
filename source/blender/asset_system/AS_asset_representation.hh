@@ -245,7 +245,7 @@ class AssetRepresentation : NonCopyable, NonMovable {
   /** Set the file status for on-disk assets. No-op for online-only assets. */
   void remote_file_status_set(RemoteAssetFileStatus status);
   /**
-   * Store the remote listing's online info on an on-disk asset so it can be re-downloaded.
+   * Store the remote listings online info on an on-disk asset so it can be re-downloaded.
    * Replaces any previously set online info.
    */
   void online_info_set(OnlineAssetInfo info);

@@ -506,6 +506,13 @@ class CommandBufferLog : public VKCommandBufferInterface {
 
   void begin_debug_utils_label(const VkDebugUtilsLabelEXT * /*vk_debug_utils_label*/) override {}
   void end_debug_utils_label() override {}
+
+  /* VK_KHR_ray_tracing */
+  void build_acceleration_structure(
+      const VkAccelerationStructureBuildGeometryInfoKHR * /*p_infos*/,
+      const VkAccelerationStructureBuildRangeInfoKHR * /*p_build_range_infos*/) override
+  {
+  }
 };
 
 class VKRenderGraphTest : public ::testing::Test {
@@ -569,6 +576,41 @@ template<typename VKObjectType> union VkHandle {
   operator VKObjectType() const
   {
     return vk_handle;
+  }
+};
+
+/**
+ * \brief Convenience wrapper for tracked resources.
+ */
+template<typename VKObjectType> struct VKTrackedHandle {
+  VKResourceWithHandle<VKObjectType> resource;
+
+ public:
+  VKTrackedHandle(uint64_t handle)
+  {
+    VkHandle<VKObjectType> to_vk_handle(handle);
+    resource.vk_handle = to_vk_handle;
+    resource.resource_handle = 0;
+  }
+
+  void set_resource_handle(uint64_t handle)
+  {
+    resource.resource_handle = handle;
+  }
+
+  operator VKResourceWithHandle<VKObjectType>() const
+  {
+    return resource;
+  }
+
+  operator VKObjectType() const
+  {
+    return resource.vk_handle;
+  }
+
+  uint64_t get_resource_handle() const
+  {
+    return resource.resource_handle;
   }
 };
 

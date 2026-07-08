@@ -82,6 +82,8 @@ class VKBackend : public GPUBackend {
   UniformBuf *uniformbuf_alloc(size_t size, const char *name) override;
   StorageBuf *storagebuf_alloc(size_t size, GPUUsageType usage, const char *name) override;
   VertBuf *vertbuf_alloc() override;
+  TopLevelAS *tlas_alloc(const char *name) override;
+  BottomLevelAS *blas_alloc(const char *name) override;
 
   void shader_cache_dir_clear_old() override
   {

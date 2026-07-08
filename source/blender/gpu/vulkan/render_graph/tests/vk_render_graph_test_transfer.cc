@@ -15,9 +15,9 @@ class VKRenderGraphTestTransfer : public VKRenderGraphTest {};
  */
 TEST_F(VKRenderGraphTestTransfer, fill_and_read_back)
 {
-  VkHandle<VkBuffer> buffer(1u);
+  VKTrackedHandle<VkBuffer> buffer(1u);
 
-  resources.add_buffer(buffer);
+  buffer.set_resource_handle(resources.add_buffer(buffer));
   VKFillBufferNode::CreateInfo fill_buffer = {buffer, 1024, 42};
   render_graph->add_node(fill_buffer);
   submit(render_graph, command_buffer);
@@ -31,13 +31,13 @@ TEST_F(VKRenderGraphTestTransfer, fill_and_read_back)
  */
 TEST_F(VKRenderGraphTestTransfer, fill_transfer_and_read_back)
 {
-  VkHandle<VkBuffer> buffer(1u);
-  VkHandle<VkBuffer> staging_buffer(2u);
+  VKTrackedHandle<VkBuffer> buffer(1u);
+  VKTrackedHandle<VkBuffer> staging_buffer(2u);
 
-  resources.add_buffer(buffer);
+  buffer.set_resource_handle(resources.add_buffer(buffer));
   VKFillBufferNode::CreateInfo fill_buffer = {buffer, 1024, 42};
   render_graph->add_node(fill_buffer);
-  resources.add_buffer(staging_buffer);
+  staging_buffer.set_resource_handle(resources.add_buffer(staging_buffer));
 
   VKCopyBufferNode::CreateInfo copy_buffer = {};
   copy_buffer.src_buffer = buffer;
@@ -72,9 +72,9 @@ TEST_F(VKRenderGraphTestTransfer, fill_transfer_and_read_back)
  */
 TEST_F(VKRenderGraphTestTransfer, fill_fill_read_back)
 {
-  VkHandle<VkBuffer> buffer(1u);
+  VKTrackedHandle<VkBuffer> buffer(1u);
 
-  resources.add_buffer(buffer);
+  buffer.set_resource_handle(resources.add_buffer(buffer));
   VKFillBufferNode::CreateInfo fill_buffer_1 = {buffer, 1024, 0};
   render_graph->add_node(fill_buffer_1);
   VKFillBufferNode::CreateInfo fill_buffer_2 = {buffer, 1024, 42};
@@ -102,11 +102,11 @@ TEST_F(VKRenderGraphTestTransfer, clear_clear_copy_and_read_back)
 {
   VkHandle<VkImage> src_image(1u);
   VkHandle<VkImage> dst_image(2u);
-  VkHandle<VkBuffer> staging_buffer(3u);
+  VKTrackedHandle<VkBuffer> staging_buffer(3u);
 
   resources.add_image(src_image, false);
   resources.add_image(dst_image, false);
-  resources.add_buffer(staging_buffer);
+  staging_buffer.set_resource_handle(resources.add_buffer(staging_buffer));
   VkClearColorValue color_white = {};
   color_white.float32[0] = 1.0f;
   color_white.float32[1] = 1.0f;
@@ -244,11 +244,11 @@ TEST_F(VKRenderGraphTestTransfer, clear_blit_copy_and_read_back)
 {
   VkHandle<VkImage> src_image(1u);
   VkHandle<VkImage> dst_image(2u);
-  VkHandle<VkBuffer> staging_buffer(3u);
+  VKTrackedHandle<VkBuffer> staging_buffer(3u);
 
   resources.add_image(src_image, false);
   resources.add_image(dst_image, false);
-  resources.add_buffer(staging_buffer);
+  staging_buffer.set_resource_handle(resources.add_buffer(staging_buffer));
   VkClearColorValue color_black = {};
   color_black.float32[0] = 0.0f;
   color_black.float32[1] = 0.0f;
@@ -347,11 +347,11 @@ TEST_F(VKRenderGraphTestTransfer, clear_blit_copy_and_read_back)
  */
 TEST_F(VKRenderGraphTestTransfer, copy_buffer_modify_data)
 {
-  VkHandle<VkBuffer> buffer_src(1u);
-  VkHandle<VkBuffer> buffer_dst(2u);
+  VKTrackedHandle<VkBuffer> buffer_src(1u);
+  VKTrackedHandle<VkBuffer> buffer_dst(2u);
 
-  resources.add_buffer(buffer_src);
-  resources.add_buffer(buffer_dst);
+  buffer_src.set_resource_handle(resources.add_buffer(buffer_src));
+  buffer_dst.set_resource_handle(resources.add_buffer(buffer_dst));
   VKCopyBufferNode::CreateInfo copy_buffer = {buffer_src, buffer_dst, {0, 0, 32}};
   NodeHandle copy_buffer_handle = render_graph->add_node(copy_buffer);
   VKCopyBufferNode::Data &copy_buffer_data = render_graph->get_node_data(copy_buffer_handle);
@@ -376,13 +376,13 @@ TEST_F(VKRenderGraphTestTransfer, copy_buffer_modify_data)
  */
 TEST_F(VKRenderGraphTestTransfer, copy_buffer_to_image_dispatch_read_aliased_image)
 {
-  VkHandle<VkBuffer> buffer(1u);
+  VKTrackedHandle<VkBuffer> buffer(1u);
   VkHandle<VkImage> image(2u);
   VkHandle<VkPipeline> pipeline(3u);
   VkHandle<VkPipelineLayout> pipeline_layout(4u);
   VkHandle<VkDescriptorSet> descriptor_set(5u);
 
-  resources.add_buffer(buffer);
+  buffer.set_resource_handle(resources.add_buffer(buffer));
   resources.add_aliased_image(image, false);
 
   VKCopyBufferToImageNode::CreateInfo copy_buffer_to_image = {};

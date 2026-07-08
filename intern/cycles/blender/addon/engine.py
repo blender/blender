@@ -253,6 +253,7 @@ def list_render_passes(scene, srl):
         yield (n_("Denoising Depth"), "Z", 'VALUE')
         if not (scene.render.use_motion_blur and srl.use_motion_blur):
             yield (n_("Denoising Backward Motion"), "XYZ", 'VECTOR')
+            yield (n_("Denoising Specular Motion"), "XYZ", 'VECTOR')
 
     # Custom AOV passes.
     for aov in srl.aovs:

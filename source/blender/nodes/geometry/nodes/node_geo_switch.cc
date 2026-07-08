@@ -59,6 +59,9 @@ static void node_declare(NodeDeclarationBuilder &b)
     if (socket_type_supports_fields(socket_type)) {
       output_decl.inferred_structure_type();
     }
+    else {
+      output_decl.inferred_structure_type({false_decl.index(), true_decl.index()});
+    }
   }
 
   switch_decl.structure_type(condition_structure_type);

@@ -214,6 +214,8 @@ template<typename T> struct CDTVert {
   int merge_to_index{-1};
   /** Used by algorithms operating on CDT structures. */
   int visit_index{0};
+  /** If this vert is an intersection, which original edges were intersected? */
+  std::pair<int, int> intersected_edges{-1, -1};
 
   CDTVert() = default;
   explicit CDTVert(const VecBase<T, 2> &pt);
@@ -1276,6 +1278,24 @@ template<typename T> void CDTArrangement<T>::delete_edge(SymEdge<T> *se)
       this->outer_face = aface;
     }
   }
+  else if (v1_isolated && v2_isolated) {
+    /* `se` was `aface`'s last edge, leaving an empty boundary with no loop left to walk.
+     * A `symedge` left pointing at the deleted edge crashed when walking the boundary
+     * to generate output, see: #160787.
+     *
+     * Mark the face deleted so callers checking `deleted` (hole detection, output) skip it.
+     * The outer face is the exception: it's dereferenced without null checks so it must never
+     * be deleted, only clear its `symedge` (matching the handling in #dissolve_symedge). */
+    BLI_assert(aface == bface);
+    if (aface == this->outer_face) {
+      if (ELEM(this->outer_face->symedge, se, sesym)) {
+        this->outer_face->symedge = nullptr;
+      }
+    }
+    else {
+      aface->deleted = true;
+    }
+  }
 }
 
 template<typename T> class SiteInfo {
@@ -2137,6 +2157,16 @@ void add_edge_constraint(
       CDTEdge<T> *edge = cdt_state->cdt.split_edge(
           cd->in, cd->lambda, cdt_state->edge_winding_map, cdt_state->polygon_boundary_count_map);
       cd->vert = edge->symedges[0].vert;
+
+      /* Keep track of original edges for the intersection point. */
+      if (cdt_state->need_ids) {
+        uint32_t edge1_id = -1;
+        if (!cd->in->edge->input_ids.is_empty()) {
+          /* Use the first original edge. */
+          edge1_id = *cd->in->edge->input_ids.begin();
+        }
+        cd->vert->intersected_edges = {int(edge1_id), int(input_id)};
+      }
     }
   }
 
@@ -2477,11 +2507,21 @@ template<typename T> void dissolve_symedge(CDT_state<T> *cdt_state, SymEdge<T> *
     }
   }
   else {
+    /* Faces referencing `se` or `symse` must have their `symedge` updated to point to a live edge.
+     * Always using `next` is incorrect: when the vertex `next` walks toward is isolated
+     * (this is its last remaining edge), `next` is the *other* half of the edge being deleted,
+     * leaving a dangling `symedge` that crashed output generation, see: #160787.
+     *
+     * Use `prev()` in that case as it walks toward the other vertex, only failing when
+     * both vertices are isolated, a case #delete_edge handles by deleting the face outright.
+     * Check `se` and `symse` separately, one side can be safe while the other dangles. */
+    const bool v1_isolated = (symse->next == se);
+    const bool v2_isolated = (se->next == symse);
     if (se->face->symedge == se) {
-      se->face->symedge = se->next;
+      se->face->symedge = v2_isolated ? prev(se) : se->next;
     }
     if (symse->face->symedge == symse) {
-      symse->face->symedge = symse->next;
+      symse->face->symedge = v1_isolated ? prev(symse) : symse->next;
     }
   }
   cdt->delete_edge(se);
@@ -3198,6 +3238,7 @@ CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state, CDT_output_type output_typ
   result.vert = Array<VecBase<T, 2>>(nv);
   if (cdt_state->need_ids) {
     result.vert_orig = Array<Vector<uint32_t>>(nv);
+    result.intersected_edges_orig = Array<std::pair<int, int>>(nv, {-1, -1});
   }
   int i_out = 0;
   for (int i = 0; i < verts_size; ++i) {
@@ -3211,6 +3252,7 @@ CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state, CDT_output_type output_typ
         for (uint32_t vert : v->input_ids) {
           result.vert_orig[i_out].append(vert);
         }
+        result.intersected_edges_orig[i_out] = v->intersected_edges;
       }
       ++i_out;
     }

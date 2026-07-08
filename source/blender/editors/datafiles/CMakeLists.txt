@@ -828,6 +828,8 @@ if(WITH_BLENDER)
       seq_preview
       seq_sequencer
       seq_splitview
+      seq_strip
+      seq_strip_data
       seq_strip_duplicate
       seq_strip_meta
       seq_strip_modifier
@@ -872,6 +874,12 @@ if(WITH_BLENDER)
       split_horizontal
       split_vertical
       spreadsheet
+      status_error
+      status_error_filled
+      status_info
+      status_info_filled
+      status_warning
+      status_warning_filled
       statusbar
       sticky_uvs_disable
       sticky_uvs_loc

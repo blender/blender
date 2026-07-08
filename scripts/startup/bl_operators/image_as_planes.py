@@ -338,7 +338,7 @@ class MaterialProperties_MixIn:
 
             engine = context.scene.render.engine
             if engine not in COMPATIBLE_ENGINES:
-                body.label(text=rpt_("{:s} is not supported").format(engine), icon='ERROR')
+                body.label(text=rpt_("{:s} is not supported").format(engine), icon='STATUS_ERROR')
 
             body.prop(self, "overwrite_material")
 

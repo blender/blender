@@ -60,6 +60,9 @@ MTLShaderInterface::MTLShaderInterface(const char *name,
       case ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
         ssbo_len_++;
         break;
+      case ShaderCreateInfo::Resource::BindType::ACCELERATION_STRUCTURE:
+        BLI_assert_unreachable();
+        break;
     }
   }
 

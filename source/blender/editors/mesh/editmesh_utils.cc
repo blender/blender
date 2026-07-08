@@ -20,6 +20,7 @@
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_vector_c.hh"
 
+#include "BKE_attribute.h"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
@@ -307,6 +308,9 @@ void EDBM_mesh_make_from_mesh(Object *ob,
   /* Clamp the index, so the behavior of enter & exit edit-mode matches, see #43998. */
   const int shapenr = object_shapenr_basis_index_ensured(ob);
 
+  AttributeOwner owner = AttributeOwner::from_id(const_cast<ID *>(&mesh->id));
+  const std::string attributes_active_name = BKE_attributes_active_name_get(owner).value_or("");
+
   BMesh *bm = BKE_mesh_to_bmesh(src_mesh, shapenr, add_key_index, &create_params);
 
   if (mesh->runtime->edit_mesh) {
@@ -325,6 +329,25 @@ void EDBM_mesh_make_from_mesh(Object *ob,
 
   /* we need to flush selection because the mode may have changed from when last in editmode */
   EDBM_selectmode_flush(mesh->runtime->edit_mesh.get());
+
+  /* Conversion to edit-mesh may have modified the attribute layers.
+   * Re-resolve the active attribute by name to keep it stable. */
+  if (!attributes_active_name.empty()) {
+    /* Invalid active attributes can happen because of wrong DNA default, see comment
+     * on the Mesh.attributes_active_index declaration. */
+    if (bke::allow_procedural_attribute_access(attributes_active_name)) {
+      BKE_attributes_active_set(owner, attributes_active_name);
+    }
+    else {
+      mesh->attributes_active_index = -1;
+    }
+  }
+  else {
+    /* 0 can happen for newly created meshes. See comment on Mesh.attributes_active_index
+     * declaration. */
+    BLI_assert(ELEM(mesh->attributes_active_index, 0, -1));
+    mesh->attributes_active_index = -1;
+  }
 }
 
 void EDBM_mesh_load_ex(Main *bmain, Object *ob, bool free_data)
@@ -1952,10 +1975,14 @@ BMElem *EDBM_elem_from_index_any_multi(const Main &bmain,
 /** \name BMesh BVH API
  * \{ */
 
-static BMFace *edge_ray_cast(
-    const BMBVHTree *tree, const float co[3], const float dir[3], float *r_hitout, const BMEdge *e)
+static BMFace *edge_ray_cast(const BMBVHTree *tree,
+                             const float co[3],
+                             const float dir[3],
+                             float *r_hitout,
+                             const BMEdge *e,
+                             float *r_dist)
 {
-  BMFace *f = BKE_bmbvh_ray_cast(tree, co, dir, 0.0f, nullptr, r_hitout, nullptr);
+  BMFace *f = BKE_bmbvh_ray_cast(tree, co, dir, 0.0f, r_dist, r_hitout, nullptr);
 
   if (f && BM_edge_in_face(e, f)) {
     return nullptr;
@@ -2000,11 +2027,16 @@ bool BMBVH_EdgeVisible(const BMBVHTree *tree,
   scale_point(co1, co2, 0.99);
   scale_point(co3, co2, 0.99);
 
-  /* OK, idea is to generate rays going from the camera origin to the
-   * three points on the edge (v1, mid, v2). */
+  /* OK, idea is to generate rays going from the three points on the edge (v1, mid, v2) to the
+   * camera origin. */
   sub_v3_v3v3(dir1, origin, co1);
   sub_v3_v3v3(dir2, origin, co2);
   sub_v3_v3v3(dir3, origin, co3);
+
+  /* This prevents the ray shooting behind the camera. */
+  float dist1 = len_v3(dir1);
+  float dist2 = len_v3(dir2);
+  float dist3 = len_v3(dir3);
 
   normalize_v3_length(dir1, epsilon);
   normalize_v3_length(dir2, epsilon);
@@ -2021,11 +2053,11 @@ bool BMBVH_EdgeVisible(const BMBVHTree *tree,
   normalize_v3(dir3);
 
   /* do three samplings: left, middle, right */
-  f = edge_ray_cast(tree, co1, dir1, nullptr, e);
-  if (f && !edge_ray_cast(tree, co2, dir2, nullptr, e)) {
+  f = edge_ray_cast(tree, co1, dir1, nullptr, e, &dist1);
+  if (f && !edge_ray_cast(tree, co2, dir2, nullptr, e, &dist2)) {
     return true;
   }
-  if (f && !edge_ray_cast(tree, co3, dir3, nullptr, e)) {
+  if (f && !edge_ray_cast(tree, co3, dir3, nullptr, e, &dist3)) {
     return true;
   }
   if (!f) {

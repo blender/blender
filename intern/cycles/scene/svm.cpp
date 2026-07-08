@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include <algorithm>
+#include <functional>
 
 #include "device/device.h"
 
@@ -23,7 +24,6 @@
 #include "util/math_float3.h"
 #include "util/progress.h"
 #include "util/queue.h"
-#include "util/set.h"
 #include "util/task.h"
 
 CCL_NAMESPACE_BEGIN
@@ -608,100 +608,150 @@ void SVMCompiler::generate_svm_nodes(const ShaderNodeSet &nodes, CompilerState *
   ShaderNodeSet &done = state->nodes_done;
   vector<bool> &done_flag = state->nodes_done_flag;
 
-  /* Use a heuristic for scheduling the nodes to reduce SVM stack size. When
-   * scheduling the next node, pick the one that increases the stack usage the
-   * least, preferring nodes that free more slots than they allocate. This way
-   * short lived intermediate values are released more quickly, before going
-   * into other parts of the graph. */
+  /* Schedule the nodes to reduce peak SVM stack usage with a Sethi-Ullman style
+   * heuristic. This is optimal for trees, but only a heuristic for DAGs where
+   * it's an NP-hard problem.
+   *
+   * Nodes whose sub-graphs need the most stack are generated first, which helps
+   * complete tightly related sub-graphs before handling other parts of the graph.
+   *
+   * See "Generalizations of the Sethi-Ullman algorithm for register allocation"
+   * by Appel and Supowit for details. We use different terminology as some of it
+   * conflicts with our own.
+   *
+   * The Sethi-Ullman number is the peak SVM stack size needed to evaluate a node
+   * and "producer" nodes feeding into it, including the node output stack size.
+   *
+   * It was proven that evaluating producer nodes by descending order of this number
+   * minus the output stack size is optimal for trees. For a graph, we approximate
+   * this by only counting the output stack size for a producer node with multiple
+   * consumers. */
 
-  /* Number of pending inputs for each node. */
-  unordered_map<ShaderNode *, int> num_pending_inputs;
-  /* Nodes ready to be scheduled. */
-  vector<ShaderNode *> ready;
+  /* Producer nodes feeding into #node that have not been scheduled yet. */
+  auto get_producers = [&](const ShaderNode *node, vector<ShaderNode *> &producers) {
+    producers.clear();
+    for (const ShaderInput *input : node->inputs) {
+      if (input->link) {
+        ShaderNode *producer = input->link->parent;
+        if (!done_flag[producer->id] &&
+            std::find(producers.begin(), producers.end(), producer) == producers.end())
+        {
+          producers.push_back(producer);
+        }
+      }
+    }
+  };
 
-  /* Count pending inputs and ready nodes. */
+  /* Number of unique unscheduled consumer nodes for each producer node. */
+  unordered_map<const ShaderNode *, int> num_consumers;
+  vector<ShaderNode *> consumers;
   for (ShaderNode *node : nodes) {
     if (done_flag[node->id]) {
       continue;
     }
-    int num_pending = 0;
-    for (const ShaderInput *input : node->inputs) {
-      if (input->link && !done_flag[input->link->parent->id]) {
-        num_pending++;
+    consumers.clear();
+    for (const ShaderOutput *output : node->outputs) {
+      for (const ShaderInput *in : output->links) {
+        ShaderNode *consumer = in->parent;
+        if (!done_flag[consumer->id] && nodes.contains(consumer) &&
+            std::find(consumers.begin(), consumers.end(), consumer) == consumers.end())
+        {
+          consumers.push_back(consumer);
+        }
       }
     }
-    num_pending_inputs[node] = num_pending;
-    if (num_pending == 0) {
-      ready.push_back(node);
-    }
+    num_consumers[node] = consumers.size();
   }
 
-  /* Compute stack size that will be freed by scheduling this node. If this
-   * node is the last remaining user of an output socket, scheduling it will
-   * free the output socket's stack space. This mirrors stack_clear_users(),
-   * which performs the actual freeing once the node is compiled. */
-  unordered_set<const ShaderOutput *> output_counted;
-  auto node_free_size = [&](const ShaderNode *node) {
-    int size = 0;
-    /* Clear instead of allocating from scratch for slightly better performance. */
-    output_counted.clear();
-    for (const ShaderInput *input : node->inputs) {
-      const ShaderOutput *output = input->link;
-      if (output && output->stack_offset != SVM_STACK_INVALID && is_sole_user(node, output, done))
-      {
-        /* Multiple inputs may link to the same output, count its size only once. */
-        if (!output_counted.contains(output)) {
-          output_counted.insert(output);
-          size += stack_size(output);
-        }
-      }
-    }
-    return size;
+  /* Sethi-Ullman number for each node. */
+  unordered_map<const ShaderNode *, int> sethi_ullman_number;
+
+  /* Current Sethi-Ullman number for graph scheduling, only counting the output
+   * size when there are multiple consumers. */
+  auto current_sethi_ullman_number = [&](ShaderNode *node) -> int {
+    return (num_consumers[node] > 1) ? stack_node_output_size(node) : sethi_ullman_number[node];
   };
 
-  while (!ready.empty()) {
-    /* Pick the node with lowest added - freed, and use highest freed as a tie break.
-     * If equal, use node ID as tie breaker. There is no good justification for the
-     * latter, and it's randomly better or worse in some scenes, but mostly better in
-     * our test scenes. A better solution would be to use Sethi–Ullman ordering. */
-    size_t best_i = 0;
-    if (ready.size() > 1) {
-      int best_delta = 0;
-      int best_freed = 0;
-      for (size_t i = 0; i < ready.size(); i++) {
-        const int freed = node_free_size(ready[i]);
-        const int delta = stack_node_output_size(ready[i]) - freed;
-        if (i == 0 || delta < best_delta || (delta == best_delta && freed > best_freed) ||
-            (delta == best_delta && freed == best_freed && ready[i]->id < ready[best_i]->id))
-        {
-          best_i = i;
-          best_delta = delta;
-          best_freed = freed;
-        }
-      }
+  /* Order producers by Sethi-Ullman number. Node ID is the tie breaker. */
+  auto node_order_key = [&](ShaderNode *node) -> int {
+    return current_sethi_ullman_number(node) - stack_node_output_size(node);
+  };
+  auto node_order_compare = [&](ShaderNode *a, ShaderNode *b) {
+    return node_order_key(a) > node_order_key(b) ||
+           (node_order_key(a) == node_order_key(b) && a->id < b->id);
+  };
+
+  /* Compute Sethi-Ullman number recursively. */
+  std::function<int(ShaderNode *)> compute_sethi_ullman_number = [&](ShaderNode *node) -> int {
+    const auto it = sethi_ullman_number.find(node);
+    if (it != sethi_ullman_number.end()) {
+      return it->second;
     }
 
-    /* Schedule the chosen node .*/
-    ShaderNode *node = ready[best_i];
-    ready[best_i] = ready.back();
-    ready.pop_back();
+    vector<ShaderNode *> producers;
+    get_producers(node, producers);
+    for (ShaderNode *producer : producers) {
+      compute_sethi_ullman_number(producer);
+    }
+    std::sort(producers.begin(), producers.end(), node_order_compare);
 
+    /* Sum output and peak stack usage of producers. */
+    int output_size = 0;
+    int peak_size = 0;
+    for (ShaderNode *producer : producers) {
+      peak_size = max(peak_size, output_size + current_sethi_ullman_number(producer));
+      output_size += stack_node_output_size(producer);
+    }
+    peak_size = max(peak_size, output_size + stack_node_output_size(node));
+    sethi_ullman_number[node] = peak_size;
+
+    return peak_size;
+  };
+
+  /* Gather all sink nodes (that have no unscheduled consumers) and sort by
+   * Sethi-Ullman number. */
+  vector<ShaderNode *> sinks;
+  for (ShaderNode *node : nodes) {
+    if (done_flag[node->id]) {
+      continue;
+    }
+    compute_sethi_ullman_number(node);
+    bool is_sink = true;
+    for (const ShaderOutput *output : node->outputs) {
+      for (const ShaderInput *in : output->links) {
+        if (!done_flag[in->parent->id] && nodes.contains(in->parent)) {
+          is_sink = false;
+          break;
+        }
+      }
+      if (!is_sink) {
+        break;
+      }
+    }
+    if (is_sink) {
+      sinks.push_back(node);
+    }
+  }
+  std::sort(sinks.begin(), sinks.end(), node_order_compare);
+
+  /* Generate nodes recursively from sink nodes. */
+  std::function<void(ShaderNode *)> generate = [&](ShaderNode *node) {
+    if (done_flag[node->id]) {
+      return;
+    }
+    vector<ShaderNode *> producers;
+    get_producers(node, producers);
+    std::sort(producers.begin(), producers.end(), node_order_compare);
+    for (ShaderNode *producer : producers) {
+      generate(producer);
+    }
     generate_node(node, done);
     done.insert(node);
     done_flag[node->id] = true;
+  };
 
-    /* Update ready nodes when their inputs are ready. */
-    for (const ShaderOutput *output : node->outputs) {
-      for (ShaderInput *in : output->links) {
-        auto it = num_pending_inputs.find(in->parent);
-        if (it != num_pending_inputs.end() && it->second > 0) {
-          it->second--;
-          if (it->second == 0) {
-            ready.push_back(in->parent);
-          }
-        }
-      }
-    }
+  for (ShaderNode *node : sinks) {
+    generate(node);
   }
 }
 

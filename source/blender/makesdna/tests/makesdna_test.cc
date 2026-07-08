@@ -17,18 +17,15 @@ namespace {
 class SDNATest : public ::testing::Test {
   void SetUp() override
   {
-    sdna = DNA_sdna_from_data(DNAstr, DNAlen, false, true, nullptr);
+    sdna_ptr = DNA_sdna_from_data(DNAstr, DNAlen, false, true, nullptr);
+    sdna = sdna_ptr.get();
   }
 
-  void TearDown() override
-  {
-    if (sdna) {
-      DNA_sdna_free(sdna);
-    }
-  }
+  void TearDown() override {}
 
  protected:
-  SDNA *sdna = nullptr;
+  std::unique_ptr<SDNA> sdna_ptr;
+  SDNA *sdna;
 };
 
 /**
@@ -84,7 +81,7 @@ TEST_F(SDNATest, basic)
 {
   ASSERT_NE(sdna, nullptr);
 
-  EXPECT_EQ(sdna->structs_num, 5);
+  EXPECT_EQ(sdna->structs.size(), 5);
 }
 
 TEST_F(SDNATest, index_without_alias)

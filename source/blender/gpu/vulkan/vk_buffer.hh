@@ -11,6 +11,8 @@
 #include "gpu_context_private.hh"
 
 #include "BLI_utility_mixins.hh"
+
+#include "render_graph/vk_resource_state_tracker.hh"
 #include "vk_common.hh"
 
 namespace blender::gpu {
@@ -23,7 +25,7 @@ class VKDevice;
 class VKBuffer : public NonCopyable {
   size_t size_in_bytes_ = 0;
   size_t alloc_size_in_bytes_ = 0;
-  VkBuffer vk_buffer_ = VK_NULL_HANDLE;
+  VKResourceWithHandle<VkBuffer> resource_;
   VmaAllocation allocation_ = VK_NULL_HANDLE;
   TimelineValue async_timeline_ = 0;
   /** Has a previous allocation failed. Will skip reallocations. */
@@ -103,9 +105,13 @@ class VKBuffer : public NonCopyable {
     return alloc_size_in_bytes_;
   }
 
+  const VKResourceWithHandle<VkBuffer> &resource() const
+  {
+    return resource_;
+  }
   VkBuffer vk_handle() const
   {
-    return vk_buffer_;
+    return resource_.vk_handle;
   }
 
   /**
@@ -115,9 +121,14 @@ class VKBuffer : public NonCopyable {
    */
   void *mapped_memory_get() const;
 
-  VkDeviceAddress device_address_get() const
+  inline VkDeviceAddress device_address_get() const
   {
     return vk_device_address;
+  }
+
+  inline bool has_device_address() const
+  {
+    return vk_device_address != 0;
   }
 
   /**
@@ -170,7 +181,7 @@ inline bool VKBuffer::is_allocated() const
  * Used for de-interleaved vertex input buffers and immediate mode buffers.
  */
 struct VKBufferWithOffset {
-  VkBuffer buffer;
+  VKResourceWithHandle<VkBuffer> buffer;
   VkDeviceSize offset;
 };
 

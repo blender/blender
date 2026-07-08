@@ -726,6 +726,15 @@ wmKeyMapItem *WM_event_match_keymap_item_from_handlers(bContext *C,
 
 bool WM_event_match(const wmEvent *winevent, const wmKeyMapItem *kmi);
 
+/**
+ * Check if `event_modifier` matches a modifier key press bound to `kmi`.
+ *
+ * Used to detect a modifier already held when a modal operator starts,
+ * since the initial event won't generate a #KM_PRESS event for the modifier itself.
+ */
+bool WM_event_modifier_flag_match_kmi_press(wmEventModifierFlag event_modifier,
+                                            const wmKeyMapItem *kmi);
+
 using wmUIHandlerFunc = int (*)(bContext *C, const wmEvent *event, void *userdata);
 using wmUIHandlerRemoveFunc = void (*)(bContext *C, void *userdata);
 

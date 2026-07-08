@@ -16,6 +16,7 @@
 #include "BLI_string_utf8.hh"
 
 #include "BKE_context.hh"
+#include "BKE_preferences.h"
 #include "BKE_screen.hh"
 
 #include "ED_screen.hh"
@@ -153,16 +154,20 @@ bool ED_userpref_tab_has_search_result(SpaceUserPref *spref, const int index)
 
 Vector<int> ED_userpref_tabs_list(SpaceUserPref * /*prefs*/)
 {
+  bool free = false;
+  const EnumPropertyItem *item = BKE_preferences_active_section_itemf(&U, &free);
+
   Vector<int> result;
-  for (const EnumPropertyItem *it = rna_enum_preference_section_items; it->identifier != nullptr;
-       it++)
-  {
+  for (const EnumPropertyItem *it = item; it->identifier != nullptr; it++) {
     if (it->name) {
       result.append(eUserPref_Section(it->value));
     }
     else {
       result.append(-1);
     }
+  }
+  if (free) {
+    MEM_delete(item);
   }
   return result;
 }

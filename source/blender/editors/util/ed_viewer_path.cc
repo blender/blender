@@ -44,7 +44,9 @@ ViewerPathElem *viewer_path_elem_for_compute_context(const ComputeContext &compu
     elem->base.ui_name = BLI_strdup(BKE_id_name(*elem->id));
     return &elem->base;
   }
-  if (const auto *context = dynamic_cast<const bke::ModifierComputeContext *>(&compute_context)) {
+  if (const auto *context = dynamic_cast<const bke::GeometryNodesModifierComputeContext *>(
+          &compute_context))
+  {
     ModifierViewerPathElem *elem = BKE_viewer_path_elem_new_modifier();
     elem->modifier_uid = context->modifier_uid();
     if (const NodesModifierData *nmd = context->nmd()) {
@@ -531,7 +533,8 @@ bNode *find_geometry_nodes_viewer(const ViewerPath &viewer_path, SpaceNode &snod
     }
     case VIEWER_PATH_ELEM_TYPE_MODIFIER: {
       const auto &elem = reinterpret_cast<const ModifierViewerPathElem &>(elem_generic);
-      return &compute_context_cache.for_modifier(parent_compute_context, elem.modifier_uid);
+      return &compute_context_cache.for_geometry_nodes_modifier(parent_compute_context,
+                                                                elem.modifier_uid);
     }
     case VIEWER_PATH_ELEM_TYPE_GROUP_NODE: {
       const auto &elem = reinterpret_cast<const GroupNodeViewerPathElem &>(elem_generic);

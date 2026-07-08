@@ -998,7 +998,7 @@ static void duplicate_points_mesh(GeometrySet &geometry_set,
     MutableSpan dst(static_cast<int *>(CustomData_add_layer(
                         &new_mesh->vert_data, CD_ORIGINDEX, CD_CONSTRUCT, new_mesh->verts_num)),
                     new_mesh->verts_num);
-    array_utils::gather_to_groups(src, selection, src, dst);
+    array_utils::gather_to_groups(duplicates, selection, src, dst);
   }
 
   new_mesh->tag_overlapping_none();

@@ -4,7 +4,7 @@
 
 #include "ANIM_evaluation.hh"
 
-#include "BKE_animsys.h"
+#include "BKE_animsys.hh"
 #include "BKE_fcurve.hh"
 
 #include "BLI_map.hh"

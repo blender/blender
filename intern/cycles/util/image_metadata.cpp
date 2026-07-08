@@ -145,6 +145,12 @@ void ImageMetaData::finalize(const ImageAlphaType alpha_type)
     }
   }
 
+  /* For Blender tx files, match colorspace used by maketx to generate the file.
+   * THis is needed because TIFF files can not store arbitrary colorspace metadata. */
+  if (!tile_need_conform) {
+    colorspace = make_tx_get_file_colorspace(*this);
+  }
+
   ignore_alpha = alpha_type == IMAGE_ALPHA_IGNORE;
   is_channel_packed = alpha_type == IMAGE_ALPHA_CHANNEL_PACKED;
 
@@ -280,12 +286,6 @@ void ImageMetaData::detect_tiles(ImageInput &input,
   }
   else {
     tile_need_conform = false;
-
-    /* For tx files, use the color space hint to determine if this was encoded
-     * as scene linear, scene linear + sRGB or data. */
-    if (!colorspace_file_hint.empty()) {
-      colorspace = ustring(colorspace_file_hint);
-    }
   }
 
   bool has_tiles = false;

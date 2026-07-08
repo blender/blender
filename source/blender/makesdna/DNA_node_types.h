@@ -2006,8 +2006,10 @@ struct bNodeTree {
   Span<bNodeLink *> all_links();
   Span<const bNodeLink *> all_links() const;
   /**
-   * Cached toposort of all nodes. If there are cycles, the returned array is not actually a
-   * toposort. However, if a connected component does not contain a cycle, this component is sorted
+   * Cached toposort of all nodes.
+   * As if you go from left to right then for any right node all connected left nodes already being
+   * visited and vice versa. If there are cycles, the returned array is not actually a toposort.
+   * However, if a connected component does not contain a cycle, this component is sorted
    * correctly. Use #has_available_link_cycle to check for cycles.
    */
   Span<bNode *> toposort_left_to_right();

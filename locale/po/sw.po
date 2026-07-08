@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'b2d38940ccd4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-29 10:51+0000\n"
+"POT-Creation-Date: 2026-07-06 08:37+0000\n"
 "PO-Revision-Date: 2025-11-14 10:59+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -11520,10 +11520,6 @@ msgstr "Sine Iliyosawazishwa"
 
 msgid "sin(x) / x"
 msgstr "dhambi(x) / x"
-
-
-msgid "Phase Multiple"
-msgstr "Awamu Nyingi"
 
 
 msgid "Scale factor determining the 'speed' of the function"
@@ -28274,16 +28270,20 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
-msgid "Mirror"
-msgstr "Kioo"
+msgid "Apply"
+msgstr "Tumia"
 
 
-msgid "Snap"
-msgstr "Picha"
+msgid "Show/Hide"
+msgstr "Onyesha/Ficha"
 
 
-msgid "Navigation"
-msgstr "Urambazaji"
+msgid "Clean Up"
+msgstr "Safisha"
+
+
+msgid "Asset"
+msgstr "Mali"
 
 
 msgid "Math"
@@ -28294,8 +28294,8 @@ msgid "Utilities"
 msgstr "Huduma"
 
 
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
+msgid "Bone Collections"
+msgstr "Mikusanyo ya Mifupa"
 
 
 msgid "Read"
@@ -28314,60 +28314,52 @@ msgid "Primitives"
 msgstr "Watu wa kwanza"
 
 
-msgid "Metaball"
-msgstr "Mpira wa miguu"
-
-
-msgid "Light"
-msgstr "Mwanga"
-
-
-msgid "Light Probe"
-msgstr "Uchunguzi wa Mwanga"
-
-
 msgid "Instances"
 msgstr "Matukio"
-
-
-msgid "Import"
-msgstr "Ingiza"
-
-
-msgid "Apply"
-msgstr "Tumia"
-
-
-msgid "Show/Hide"
-msgstr "Onyesha/Ficha"
-
-
-msgid "Deprecated"
-msgstr "Imeacha kutumika"
-
-
-msgid "Clean Up"
-msgstr "Safisha"
-
-
-msgid "Asset"
-msgstr "Mali"
-
-
-msgid "Bone Collections"
-msgstr "Mikusanyo ya Mifupa"
 
 
 msgid "Merge"
 msgstr "Unganisha"
 
 
+msgid "Import"
+msgstr "Ingiza"
+
+
+msgid "Deprecated"
+msgstr "Imeacha kutumika"
+
+
+msgid "Metaball"
+msgstr "Mpira wa miguu"
+
+
+msgid "Pivot Point"
+msgstr "Egemeo"
+
+
+msgid "Snap"
+msgstr "Picha"
+
+
+msgid "Mirror"
+msgstr "Kioo"
+
+
 msgid "Linked"
 msgstr "Imeunganishwa"
 
 
+msgid "Navigation"
+msgstr "Urambazaji"
+
+
 msgid "Layout"
 msgstr "Mpangilio"
+
+
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
 
 
 msgid "Adjust"
@@ -28382,8 +28374,12 @@ msgid "Tracking"
 msgstr "Kufuatilia"
 
 
-msgid "Pivot Point"
-msgstr "Egemeo"
+msgid "Light"
+msgstr "Mwanga"
+
+
+msgid "Light Probe"
+msgstr "Uchunguzi wa Mwanga"
 
 
 msgid "Keyframe Insert Pie"
@@ -72549,6 +72545,10 @@ msgid "Panel containing UI elements"
 msgstr "Paneli iliyo na vipengele vya UI"
 
 
+msgid "View Lock"
+msgstr "Kufuli ya Tazama"
+
+
 msgid "Selectability & Visibility"
 msgstr "Uteuzi"
 
@@ -72619,10 +72619,6 @@ msgstr "Curves Sculpt Parameta Falloff"
 
 msgid "Viewport Debug"
 msgstr "Utatuzi wa kituo cha kutazama"
-
-
-msgid "View Lock"
-msgstr "Kufuli ya Tazama"
 
 
 msgid "Motion Blur"
@@ -103140,10 +103136,6 @@ msgid "No Rigid Body World to add Rigid Body Constraint to"
 msgstr "Hakuna Ulimwengu Mgumu wa Mwili wa kuongeza Kizuizi Kigumu cha Mwili kwa"
 
 
-msgid "Object has no Rigid Body Constraint to remove"
-msgstr "Object haina Kikwazo Rigid Mwili kuondoa"
-
-
 msgid "Object '%s' already has a Rigid Body Constraint"
 msgstr "Kitu '%s' tayari kina Kizuizi Kigumu cha Mwili"
 
@@ -111691,12 +111683,12 @@ msgid "Import-Export"
 msgstr "Leta-Hamisha"
 
 
-msgid "Generation"
-msgstr "Kizazi"
-
-
 msgid "Utility"
 msgstr "Huduma"
+
+
+msgid "Generation"
+msgstr "Kizazi"
 
 
 msgid "Curve Info"

@@ -927,7 +927,7 @@ static void ui_node_draw_input(ui::Layout &layout,
   }
 
   if (dependency_loop) {
-    row->label(RPT_("Dependency Loop"), ICON_ERROR);
+    row->label(RPT_("Dependency Loop"), ICON_STATUS_WARNING_FILLED);
     add_dummy_decorator = true;
   }
   else if (lnode) {

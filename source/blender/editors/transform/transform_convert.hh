@@ -15,6 +15,8 @@
 
 #include "ED_grease_pencil.hh"
 
+#include "UI_view2d.hh"
+
 #include "transform.hh"
 struct TransData;
 struct TransDataCurveHandleFlags;
@@ -414,6 +416,26 @@ extern TransConvertTypeInfo TransConvertType_Sculpt;
 /* `transform_convert_sequencer.cc` */
 
 extern TransConvertTypeInfo TransConvertType_Sequencer;
+
+/**
+ * Sequencer transform customdata (stored in #TransCustomDataContainer).
+ */
+struct TransSeq {
+  /* An array of TransDataSeq for either retiming or normal transform. */
+  void *tdseq;
+  /* Maximum delta allowed along x and y before clamping selected strips/handles. Always active. */
+  rcti offset_clamp;
+  /* Maximum delta before clamping handles to the bounds of underlying content. May be disabled. */
+  int hold_clamp_min = INT_MIN;
+  int hold_clamp_max = INT_MAX;
+
+  /* Initial rect of the view2d, used for computing offset during edge panning. */
+  rctf initial_v2d_cur;
+  ui::View2DEdgePanData edge_pan;
+
+  /* Strips that aren't selected, but their position entirely depends on transformed strips. */
+  VectorSet<Strip *> time_dependent_strips;
+};
 
 bool seq_transform_check_overlap(Span<Strip *> transformed_strips);
 

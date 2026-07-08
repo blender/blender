@@ -1,0 +1,11 @@
+Project: volk
+URL: https://github.com/zeux/volk
+License: SPDX:MIT
+Copyright: "Copyright (c) 2018-2026 Arseny Kapoulkine"
+Upstream version: 3ca312a4f38baa63d8006b6905abbeeb89c8087d
+Local modifications:
+
+- Added volk_impl.cc for custom configuration of volk.
+- Hide global symbols.
+- Use of volk namespace.
+- Include definition of platform specifics extensions.  

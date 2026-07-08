@@ -30,6 +30,8 @@
 
 #include "devices/MixingThreadDevice.h"
 
+#include <string>
+
 AUD_NAMESPACE_BEGIN
 
 /**

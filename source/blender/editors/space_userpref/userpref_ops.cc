@@ -337,8 +337,12 @@ static void PREFERENCES_OT_asset_library_add(wmOperatorType *ot)
     RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   }
 
-  ot->prop = RNA_def_enum(
-      ot->srna, "type", custom_library_type_items, 0, "Type", "The kind of asset library to add");
+  ot->prop = RNA_def_enum(ot->srna,
+                          "type",
+                          custom_library_type_items,
+                          int(bUserAssetLibraryAddType::Local),
+                          "Type",
+                          "The kind of asset library to add");
   RNA_def_enum_funcs(ot->prop, custom_library_type_itemf);
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }

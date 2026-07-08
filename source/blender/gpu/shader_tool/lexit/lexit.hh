@@ -161,19 +161,19 @@ struct TokenBuffer {
   }
 
   /**
-   * @brief Discard all currently held data. Does not reallocate.
+   * \brief Discard all currently held data. Does not reallocate.
    */
   void clear();
 
   /**
-   * @brief Allocate backing memory for the given number of tokens and move currently held data.
+   * \brief Allocate backing memory for the given number of tokens and move currently held data.
    *
    * Does nothing if allocation is already large enough.
    */
   void reserve(const uint32_t count);
 
   /**
-   * @brief Tokenizes the input string by grouping contiguous characters of the same class.
+   * \brief Tokenizes the input string by grouping contiguous characters of the same class.
    *
    * This function iterates through the input string and identifies "runs" of characters
    * that map to the same CharClass. For each new group, it records the type and the
@@ -186,27 +186,27 @@ struct TokenBuffer {
    * If the input string contains characters that are not inside the ASCII range, the result of
    * the operation is undefined and might cause segmentation fault.
    *
-   * @param char_class_table  A lookup table mapping ASCII values (0-127) to an 8-bit CharClass.
+   * \param char_class_table  A lookup table mapping ASCII values (0-127) to an 8-bit CharClass.
    */
   void tokenize(const CharClass char_class_table[128]);
 
   /**
-   * @brief Merge complex literals such as floats, strings and comments.
+   * \brief Merge complex literals such as floats, strings and comments.
    */
   void merge_complex_literals();
 
   /**
-   * @brief Assign keyword types and atoms for a small set of identifier.
+   * \brief Assign keyword types and atoms for a small set of identifier.
    */
   void atomize_words(IdentifierMap &identifiers, const KeywordTable &keywords);
 
   /**
-   * @brief Compute small token length for speeding up certain tasks.
+   * \brief Compute small token length for speeding up certain tasks.
    */
   void compute_lengths();
 
   /**
-   * @brief Return the amount of token inside the buffer.
+   * \brief Return the amount of token inside the buffer.
    */
   uint32_t size() const
   {
@@ -214,9 +214,9 @@ struct TokenBuffer {
   }
 
   /**
-   * @brief Return the substring between the start and end tokens (included).
+   * \brief Return the substring between the start and end tokens (included).
    *
-   * @param with_trailing_whitespaces If true, include the trailing whitespaces.
+   * \param with_trailing_whitespaces If true, include the trailing whitespaces.
    */
   std::string_view substr(const Token &start,
                           const Token &end,
@@ -228,7 +228,7 @@ struct TokenBuffer {
   }
 
   /**
-   * @brief Append a Token at the end of the buffer.
+   * \brief Append a Token at the end of the buffer.
    */
   void append(TokenType type, TokenAtom atom, int32_t str_size, int32_t str_size_with_witespaces)
   {
@@ -250,7 +250,7 @@ struct TokenBuffer {
   }
 
   /**
-   * @brief Token iterator.
+   * \brief Token iterator.
    */
   struct TokenIt {
     using iterator_category = std::forward_iterator_tag;

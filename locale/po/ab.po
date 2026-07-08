@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'e65907bec1c9')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Beta (b'b2d38940ccd4')\n"
 "Report-Msgid-Bugs-To: \n"
 "PO-Revision-Date: 2025-07-23 15:29+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
@@ -274,12 +274,12 @@ msgid "Metaball"
 msgstr "Метампыл"
 
 
-msgid "Light"
-msgstr "Алашара"
-
-
 msgid "Keying"
 msgstr " Аиҭаганҵа"
+
+
+msgid "Light"
+msgstr "Алашара"
 
 
 msgid "Marker"

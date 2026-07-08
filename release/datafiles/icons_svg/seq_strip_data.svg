@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   height="1200"
+   viewBox="0 0 1600 1200"
+   width="1600"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="seq_strip_data.svg"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     pagecolor="#303030"
+     showgrid="true"
+     id="namedview1"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     inkscape:zoom="0.56375"
+     inkscape:cx="878.9357"
+     inkscape:cy="600.44346"
+     inkscape:window-width="2328"
+     inkscape:window-height="1182"
+     inkscape:window-x="1080"
+     inkscape:window-y="232"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="g1">
+    <inkscape:grid
+       id="grid5"
+       units="px"
+       spacingx="100"
+       spacingy="100"
+       color="#4772b3"
+       opacity="0.2"
+       visible="true"
+       originx="0"
+       originy="0" />
+  </sodipodi:namedview>
+  <g
+     fill="#fff"
+     id="g1">
+    <path
+       id="path1"
+       style="display:inline;stroke:none;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:fill markers stroke;opacity:1"
+       d="M 111.5 103 C 111.22387 103.00003 111.00003 103.22387 111 103.5 L 111 106.5 C 111.00003 106.77613 111.22387 106.99997 111.5 107 L 121.5 107 C 121.77613 106.99997 121.99997 106.77613 122 106.5 L 122 103.5 C 121.99997 103.22387 121.77613 103.00003 121.5 103 L 111.5 103 z M 112 104 L 121 104 L 121 106 L 112 106 L 112 104 z "
+       transform="matrix(100,0,0,100,-11000,-9600)" />
+    <path
+       id="path3"
+       style="display:inline;opacity:1;stroke:none;stroke-width:100;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:fill markers stroke"
+       d="m 450,100 c -27.613,0.003 -49.997,22.387 -50,50 v 300 c 0.003,27.613 22.387,49.997 50,50 h 1000 c 27.613,-0.003 49.997,-22.387 50,-50 V 150 c 0,-27.613 -22.387,-49.997 -50,-50 z m 50,100 h 900 V 400 H 500 Z"
+       inkscape:label="path2" />
+  </g>
+</svg>

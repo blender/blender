@@ -1890,7 +1890,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
         if not found_device:
             col = box.column(align=True)
-            col.label(text=rpt_("No compatible GPUs found for Cycles"), icon='INFO', translate=False)
+            col.label(text=rpt_("No compatible GPUs found for Cycles"), icon='STATUS_INFO', translate=False)
 
             if device_type == 'CUDA':
                 compute_capability = "5.0"

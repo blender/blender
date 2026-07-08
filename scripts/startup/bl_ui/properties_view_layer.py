@@ -213,7 +213,7 @@ class ViewLayerAOVPanelHelper(ViewLayerButtonsPanel):
 
         aov = view_layer.active_aov
         if aov and not aov.is_valid:
-            layout.label(text="Conflicts with another render pass with the same name", icon='ERROR')
+            layout.label(text="Conflicts with another render pass with the same name", icon='STATUS_ERROR')
 
 
 class VIEWLAYER_PT_layer_passes_aov(ViewLayerAOVPanelHelper, Panel):

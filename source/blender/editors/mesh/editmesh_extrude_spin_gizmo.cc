@@ -580,6 +580,7 @@ static void gizmo_mesh_spin_redo_update_from_op(GizmoGroupData_SpinRedo *ggd)
   for (int i = 0; i < 2; i++) {
     WM_gizmo_set_matrix_location(ggd->rotate_xy[i], plane_co);
     WM_gizmo_set_matrix_location(ggd->translate_xy[i], plane_co);
+    ED_gizmo_arrow3d_reset_offset(ggd->translate_xy[i]);
   }
   WM_gizmo_set_matrix_location(ggd->angle_z, plane_co);
   WM_gizmo_set_matrix_location(ggd->rotate_view, plane_co);

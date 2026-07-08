@@ -302,7 +302,7 @@ PopupBlockHandle *popover_panel_create(bContext *C,
     WM_event_add_mousemove(window);
     handle->popup = true;
   }
-
+  handle->srna_owner = panel_type->rna_ext.srna;
   return handle;
 }
 

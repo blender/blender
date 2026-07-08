@@ -22,7 +22,7 @@
 #include "BLI_threads.hh"
 #include "BLT_translation.hh"
 
-#include "BKE_animsys.h"
+#include "BKE_animsys.hh"
 #include "BKE_collection.hh"
 #include "BKE_freestyle.h"
 #include "BKE_idprop.hh"

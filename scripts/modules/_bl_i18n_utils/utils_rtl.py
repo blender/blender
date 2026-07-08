@@ -138,7 +138,7 @@ def protect_format_seq(msg):
             orig_dlt = dlt
             valid_format = False
 
-            # %x12| - What is this for actually?
+            # `%x12|` - What is this for actually?
             if idx < (ln - 2) and msg[idx + 1] in "x" and msg[idx + 2] in printf_format_widthprec:
                 dlt = 2
                 while (idx + dlt) < ln and msg[idx + dlt] in printf_format_widthprec:
@@ -147,16 +147,16 @@ def protect_format_seq(msg):
                     dlt += 1
                     valid_format = True
             else:
-                # %+d, %-40s, ...
+                # `%+d, %-40s`, ...
                 while (idx + dlt) < ln and msg[idx + dlt] in printf_format_flags:
                     dlt += 1
-                # %.4f, %6d, ...
+                # `%.4f, %6d`, ...
                 while (idx + dlt) < ln and msg[idx + dlt] in printf_format_widthprec:
                     dlt += 1
-                # %lld, %zu, ...
+                # `%lld, %zu`, ...
                 while (idx + dlt) < ln and msg[idx + dlt] in printf_format_datasize:
                     dlt += 1
-                # %s, %d, ...
+                # `%s, %d`, ...
                 if (idx + dlt) < ln and msg[idx + dlt] in printf_format_codes:
                     dlt += 1
                     valid_format = True

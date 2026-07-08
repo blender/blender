@@ -1577,7 +1577,7 @@ static std::optional<std::string> rna_LoopCustomData_data_path(const PointerRNA 
     return std::nullopt;
   }
   return fmt::format(
-      "{}[\"{}\"].data[{}]", collection, BLI_str_escape(lookup->name.c_str()), lookup->elem_index);
+      "{}[\"{}\"].data[{}]", collection, BLI_str_escape(lookup->name), lookup->elem_index);
 }
 
 static void rna_Mesh_vertices_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -1834,8 +1834,7 @@ static void rna_MeshUVLoop_uv_set(PointerRNA *ptr, const float *value)
 
 static std::optional<std::string> rna_MeshLoopColorLayer_path(const PointerRNA *ptr)
 {
-  return fmt::format("vertex_colors[\"{}\"]",
-                     BLI_str_escape(rna_Attribute_name_get(*ptr).c_str()));
+  return fmt::format("vertex_colors[\"{}\"]", BLI_str_escape(rna_Attribute_name_get(*ptr)));
 }
 
 static std::optional<std::string> rna_MeshColor_path(const PointerRNA *ptr)
