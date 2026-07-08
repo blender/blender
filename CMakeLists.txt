@@ -2510,6 +2510,11 @@ endif()
 include(build_files/cmake/testing.cmake)
 
 # -----------------------------------------------------------------------------
+# Host-Architecture Code Generation Tools (cross-compilation support)
+
+include(build_files/cmake/host_tools.cmake)
+
+# -----------------------------------------------------------------------------
 # Add Sub-Directories
 
 if(WITH_BLENDER)

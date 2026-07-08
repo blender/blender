@@ -400,23 +400,30 @@ if(WITH_GMP)
 endif()
 
 # Build `makesrna` executable.
-add_c_and_cxx_flags_custom_test(makesrna)
+#
+# When cross-compiling the executable is separately compiled for the host architecture
+# in a sub-build defined in host_tools.cmake. As this is a build-time code-gen tool
+# that must run on the host build machine, the executable is then provided by the
+# TOOL_MAKESRNA_EXE variable.
+if(NOT CMAKE_CROSSCOMPILING)
+  add_c_and_cxx_flags_custom_test(makesrna)
 
-add_executable(makesrna ${SRC} ${SRC_RNA_INC} ${SRC_DNA_INC})
-setup_platform_linker_flags(makesrna)
-setup_platform_linker_libs(makesrna)
-blender_target_include_dirs(makesrna ${INC})
-blender_target_include_dirs_sys(makesrna ${INC_SYS})
+  add_executable(makesrna ${SRC} ${SRC_RNA_INC} ${SRC_DNA_INC})
+  setup_platform_linker_flags(makesrna)
+  setup_platform_linker_libs(makesrna)
+  blender_target_include_dirs(makesrna ${INC})
+  blender_target_include_dirs_sys(makesrna ${INC_SYS})
 
-target_link_libraries(makesrna PRIVATE bf_dna)
-target_link_libraries(makesrna PRIVATE bf::intern::atomic)
-target_link_libraries(makesrna PRIVATE bf::intern::guardedalloc)
-target_link_libraries(makesrna PRIVATE bf_dna_blenlib)
-target_link_libraries(makesrna PRIVATE bf_dna_defaults)
-target_link_libraries(makesrna PRIVATE bf::dependencies::optional::openvdb)
-target_link_libraries(makesrna PRIVATE bf::dependencies::optional::tbb)
-target_link_libraries(makesrna PRIVATE bf::dependencies::pthreads)
-target_link_libraries(makesrna PRIVATE bf::dependencies::fmt)
+  target_link_libraries(makesrna PRIVATE bf_dna)
+  target_link_libraries(makesrna PRIVATE bf::intern::atomic)
+  target_link_libraries(makesrna PRIVATE bf::intern::guardedalloc)
+  target_link_libraries(makesrna PRIVATE bf_dna_blenlib)
+  target_link_libraries(makesrna PRIVATE bf_dna_defaults)
+  target_link_libraries(makesrna PRIVATE bf::dependencies::optional::openvdb)
+  target_link_libraries(makesrna PRIVATE bf::dependencies::optional::tbb)
+  target_link_libraries(makesrna PRIVATE bf::dependencies::pthreads)
+  target_link_libraries(makesrna PRIVATE bf::dependencies::fmt)
+endif()
 
 # Output `rna_*_gen.cc`.
 # NOTE: (Linux only): with crashes try add this after COMMAND:
@@ -425,8 +432,8 @@ add_custom_command(
   OUTPUT ${GENSRC}
   COMMAND
     ${CMAKE_COMMAND} -E env ${PLATFORM_ENV_BUILD}
-    "$<TARGET_FILE:makesrna>" ${CMAKE_SOURCE_DIR}/source/blender/makesdna/ ${CMAKE_CURRENT_BINARY_DIR}/ ${CMAKE_CURRENT_BINARY_DIR}/../
-  DEPENDS makesrna
+    ${TOOL_MAKESRNA_EXE} ${CMAKE_SOURCE_DIR}/source/blender/makesdna/ ${CMAKE_CURRENT_BINARY_DIR}/ ${CMAKE_CURRENT_BINARY_DIR}/../
+  DEPENDS ${TOOL_MAKESRNA_DEPENDENCY}
 )
 
 # Build bf_rna

@@ -1072,8 +1072,8 @@ function(data_to_c
 
   add_custom_command(
     OUTPUT ${file_to}
-    COMMAND "$<TARGET_FILE:datatoc>" ${file_from} ${file_to} ${symbol_name_override}
-    DEPENDS ${file_from} datatoc)
+    COMMAND ${TOOL_DATATOC_EXE} ${file_from} ${file_to} ${symbol_name_override}
+    DEPENDS ${file_from} ${TOOL_DATATOC_DEPENDENCY})
 
   set_source_files_properties(${file_to} PROPERTIES GENERATED TRUE)
 endfunction()
@@ -1096,8 +1096,8 @@ function(data_to_c_simple
 
   add_custom_command(
     OUTPUT  ${_file_to}
-    COMMAND "$<TARGET_FILE:datatoc>" ${_file_from} ${_file_to}
-    DEPENDS ${_file_from} datatoc)
+    COMMAND ${TOOL_DATATOC_EXE} ${_file_from} ${_file_to}
+    DEPENDS ${_file_from} ${TOOL_DATATOC_DEPENDENCY})
 
   set_source_files_properties(${_file_to} PROPERTIES GENERATED TRUE)
 endfunction()
@@ -1133,13 +1133,13 @@ function(glsl_to_c
   add_custom_command(
     OUTPUT  ${_file_tmp} ${_file_meta} ${_file_info} ${_file_dep}
     DEPFILE ${_file_dep}
-    COMMAND "$<TARGET_FILE:shader_tool>" ${_file_from} ${_file_tmp} ${_file_meta} ${_file_info} ${_file_dep} ${_inc_list}
-    DEPENDS ${_file_from} shader_tool)
+    COMMAND ${TOOL_SHADER_TOOL_EXE} ${_file_from} ${_file_tmp} ${_file_meta} ${_file_info} ${_file_dep} ${_inc_list}
+    DEPENDS ${_file_from} ${TOOL_SHADER_TOOL_DEPENDENCY})
 
   add_custom_command(
     OUTPUT  ${_file_to}
-    COMMAND "$<TARGET_FILE:datatoc>" ${_file_tmp} ${_file_to}
-    DEPENDS ${_file_tmp} datatoc)
+    COMMAND ${TOOL_DATATOC_EXE} ${_file_tmp} ${_file_to}
+    DEPENDS ${_file_tmp} ${TOOL_DATATOC_DEPENDENCY})
 
   set_source_files_properties(${_file_tmp} PROPERTIES GENERATED TRUE)
   set_source_files_properties(${_file_to}  PROPERTIES GENERATED TRUE)

@@ -1941,7 +1941,7 @@ endif()
 # -----------------------------------------------------------------------------
 # Setup link libraries
 
-add_dependencies(blender makesdna)
+add_dependencies(blender ${TOOL_MAKESDNA_DEPENDENCY})
 target_link_libraries(blender PRIVATE ${LIB})
 unset(LIB)
 

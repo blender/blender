@@ -86,15 +86,21 @@ endif()
 
 # `SRC_DNA_INC` is defined in the parent directory.
 
-add_c_and_cxx_flags_custom_test(makesdna)
+# When cross-compiling the executable is separately compiled for the host architecture
+# in a sub-build defined in host_tools.cmake. As this is a build-time code-gen tool
+# that must run on the host build machine, the executable is then provided by the
+# TOOL_MAKESDNA_EXE variable.
+if(NOT CMAKE_CROSSCOMPILING)
+  add_c_and_cxx_flags_custom_test(makesdna)
 
-add_executable(makesdna ${SRC} ${SRC_DNA_INC})
-setup_platform_linker_flags(makesdna)
-setup_platform_linker_libs(makesdna)
-blender_target_include_dirs(makesdna ${INC})
-blender_target_include_dirs_sys(makesdna ${INC_SYS})
-target_link_libraries(makesdna ${LIB})
-target_link_libraries(makesdna PRIVATE bf::dependencies::pthreads)
+  add_executable(makesdna ${SRC} ${SRC_DNA_INC})
+  setup_platform_linker_flags(makesdna)
+  setup_platform_linker_libs(makesdna)
+  blender_target_include_dirs(makesdna ${INC})
+  blender_target_include_dirs_sys(makesdna ${INC_SYS})
+  target_link_libraries(makesdna ${LIB})
+  target_link_libraries(makesdna PRIVATE bf::dependencies::pthreads)
+endif()
 
 # Output dna.cc
 add_custom_command(
@@ -106,14 +112,14 @@ add_custom_command(
     ${CMAKE_CURRENT_BINARY_DIR}/dna_verify.cc
   COMMAND
     ${CMAKE_COMMAND} -E env ${PLATFORM_ENV_BUILD}
-    "$<TARGET_FILE:makesdna>"
+    ${TOOL_MAKESDNA_EXE}
     ${CMAKE_CURRENT_BINARY_DIR}/dna.cc
     ${CMAKE_CURRENT_BINARY_DIR}/dna_type_offsets.h
     ${CMAKE_CURRENT_BINARY_DIR}/dna_verify.cc
     ${CMAKE_CURRENT_BINARY_DIR}/dna_struct_ids.cc
     ${CMAKE_CURRENT_BINARY_DIR}/dna_defaults.cc
     ${CMAKE_SOURCE_DIR}/source/blender/makesdna/
-  DEPENDS makesdna
+  DEPENDS ${TOOL_MAKESDNA_DEPENDENCY}
 )
 
 

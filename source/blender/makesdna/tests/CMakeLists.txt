@@ -16,7 +16,7 @@ if(WITH_GTESTS)
       ${CMAKE_CURRENT_BINARY_DIR}/test_dna_verify.cc
     COMMAND
       ${CMAKE_COMMAND} -E env ${PLATFORM_ENV_BUILD}
-      "$<TARGET_FILE:makesdna>"
+      ${TOOL_MAKESDNA_EXE}
       --include-file dna_test.h
       ${CMAKE_CURRENT_BINARY_DIR}/test_dna.cc
       ${CMAKE_CURRENT_BINARY_DIR}/test_dna_type_offsets.h
@@ -25,7 +25,7 @@ if(WITH_GTESTS)
       ${CMAKE_CURRENT_BINARY_DIR}/test_dna_defaults.cc
       ${CMAKE_SOURCE_DIR}/source/blender/makesdna/tests/dna/
     DEPENDS
-      makesdna
+      ${TOOL_MAKESDNA_DEPENDENCY}
       dna/dna_test.h
   )
 
