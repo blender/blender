@@ -33,6 +33,11 @@ struct BMEdgeLoopStore {
 };
 
 #define BM_EDGELOOP_IS_CLOSED (1 << 0)
+/**
+ * The loop is cyclic (the closing edge joins the last and first vertices) but, unlike a fully
+ * closed loop, it is anchored at a junction and so has a meaningful start and end.
+ */
+#define BM_EDGELOOP_IS_CLOSED_JUNCTION (1 << 1)
 
 /* Use a small value since we need normals even for very small loops. */
 #define EDGELOOP_EPS 1e-10f
@@ -61,9 +66,36 @@ static int bm_vert_other_tag(BMVert *v, BMVert *v_prev, BMEdge **r_e)
 }
 
 /**
+ * A junction is a vertex where more than two tagged edges meet. Only valid before the walk begins
+ * to consume (clear) the edge tags.
+ */
+static bool bm_vert_is_junction(BMVert *v)
+{
+  BMIter iter;
+  BMEdge *e;
+  int count = 0;
+  BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
+    if (BM_elem_flag_test(e, BM_ELEM_INTERNAL_TAG)) {
+      count++;
+      if (count > 2) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * \param vert_junctions: When non-null, junctions act as terminators: the loop ends at a junction
+ * (sharing it as an end-point) rather than being discarded. When null, a loop running into a
+ * junction is discarded.
  * \return success
  */
-static bool bm_loop_build(BMEdgeLoopStore *el_store, BMVert *v_prev, BMVert *v, int dir)
+static bool bm_loop_build(BMEdgeLoopStore *el_store,
+                          BMVert *v_prev,
+                          BMVert *v,
+                          int dir,
+                          const Set<BMVert *> *vert_junctions)
 {
   void (*add_fn)(ListBase *, void *) = dir == 1 ? BLI_addhead : BLI_addtail;
   BMEdge *e_next;
@@ -82,6 +114,14 @@ static bool bm_loop_build(BMEdgeLoopStore *el_store, BMVert *v_prev, BMVert *v, 
     node->data = v;
     add_fn(&el_store->verts, node);
     el_store->len++;
+
+    if (vert_junctions) {
+      /* A junction terminates the loop: it may be shared as an end-point by other loops
+       * (so its tag is left set), but is never traversed. */
+      if (vert_junctions->contains(v)) {
+        break;
+      }
+    }
     BM_elem_flag_disable(v, BM_ELEM_INTERNAL_TAG);
 
     count = bm_vert_other_tag(v, v_prev, &e_next);
@@ -112,12 +152,14 @@ static bool bm_loop_build(BMEdgeLoopStore *el_store, BMVert *v_prev, BMVert *v, 
 int BM_mesh_edgeloops_find(BMesh *bm,
                            ListBaseT<BMEdgeLoopStore> *r_eloops,
                            bool (*test_fn)(BMEdge *, void *user_data),
-                           void *user_data)
+                           void *user_data,
+                           const BMEdgeLoopFind_Params *params)
 {
   BMIter iter;
   BMEdge *e;
   BMVert *v;
   int count = 0;
+  bool use_vert_junction = params ? params->use_vert_junction : false;
 
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
     BM_elem_flag_disable(v, BM_ELEM_INTERNAL_TAG);
@@ -143,15 +185,48 @@ int BM_mesh_edgeloops_find(BMesh *bm,
   BLI_stack_pop_n_reverse(edge_stack, edges, BLI_stack_count(edge_stack));
   BLI_stack_free(edge_stack);
 
-  for (uint i = 0; i < edges_len; i += 1) {
-    e = edges[i];
+  /* Collect junctions in a single pass while the edge tags are still complete, so membership can
+   * be tested cheaply as the walk clears the tags. */
+  Set<BMVert *> vert_junction_set;
+  if (use_vert_junction) {
+    for (BMEdge *e : Span{edges, edges_len}) {
+      for (BMVert *v_end : {e->v1, e->v2}) {
+        if (!vert_junction_set.contains(v_end) && bm_vert_is_junction(v_end)) {
+          vert_junction_set.add(v_end);
+        }
+      }
+    }
+  }
+  if (vert_junction_set.is_empty()) {
+    use_vert_junction = false;
+  }
+  const Set<BMVert *> *vert_junctions = use_vert_junction ? &vert_junction_set : nullptr;
+
+  for (BMEdge *e : Span{edges, edges_len}) {
     if (BM_elem_flag_test(e, BM_ELEM_INTERNAL_TAG)) {
       BMEdgeLoopStore *el_store = MEM_new_zeroed<BMEdgeLoopStore>(__func__);
 
       /* add both directions */
-      if (bm_loop_build(el_store, e->v1, e->v2, 1) && bm_loop_build(el_store, e->v2, e->v1, -1) &&
-          el_store->len > 1)
-      {
+      const bool built = bm_loop_build(el_store, e->v1, e->v2, 1, vert_junctions) &&
+                         bm_loop_build(el_store, e->v2, e->v1, -1, vert_junctions);
+
+      if (use_vert_junction) {
+        /* Both directions ending on the same vertex means they met at a shared junction:
+         * the loop is cyclic, anchored at that junction. Drop the duplicated end and flag it
+         * (kept distinct from a fully closed loop, which has no anchor). */
+        if (built && el_store->len >= 2) {
+          LinkData *node_first = static_cast<LinkData *>(el_store->verts.first);
+          LinkData *node_last = static_cast<LinkData *>(el_store->verts.last);
+          if (node_first->data == node_last->data) {
+            BLI_remlink(&el_store->verts, node_last);
+            MEM_delete(node_last);
+            el_store->len--;
+            el_store->flag |= BM_EDGELOOP_IS_CLOSED_JUNCTION;
+          }
+        }
+      }
+
+      if (built && el_store->len > 1) {
         BLI_addtail(r_eloops, el_store);
         count++;
       }
@@ -161,8 +236,7 @@ int BM_mesh_edgeloops_find(BMesh *bm,
     }
   }
 
-  for (uint i = 0; i < edges_len; i += 1) {
-    e = edges[i];
+  for (BMEdge *e : Span{edges, edges_len}) {
     BM_elem_flag_disable(e, BM_ELEM_INTERNAL_TAG);
     BM_elem_flag_disable(e->v1, BM_ELEM_INTERNAL_TAG);
     BM_elem_flag_disable(e->v2, BM_ELEM_INTERNAL_TAG);
@@ -376,8 +450,7 @@ bool BM_mesh_edgeloops_find_path(BMesh *bm,
     }
   }
 
-  for (uint i = 0; i < edges_len; i += 1) {
-    e = edges[i];
+  for (BMEdge *e : Span{edges, edges_len}) {
     BM_elem_flag_disable(e, BM_ELEM_INTERNAL_TAG);
     BM_elem_flag_disable(e->v1, BM_ELEM_INTERNAL_TAG);
     BM_elem_flag_disable(e->v2, BM_ELEM_INTERNAL_TAG);
@@ -535,6 +608,11 @@ void BM_edgeloop_free(BMEdgeLoopStore *el_store)
 bool BM_edgeloop_is_closed(BMEdgeLoopStore *el_store)
 {
   return (el_store->flag & BM_EDGELOOP_IS_CLOSED) != 0;
+}
+
+bool BM_edgeloop_is_closed_junction(BMEdgeLoopStore *el_store)
+{
+  return (el_store->flag & BM_EDGELOOP_IS_CLOSED_JUNCTION) != 0;
 }
 
 ListBaseT<LinkData> *BM_edgeloop_verts_get(BMEdgeLoopStore *el_store)
