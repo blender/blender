@@ -413,7 +413,7 @@ class Meshes : Overlay {
     GPU_debug_group_end();
   }
 
-  void draw_color_only(Framebuffer &framebuffer, Manager &manager, View &view) final
+  void draw_line_only(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
@@ -431,7 +431,7 @@ class Meshes : Overlay {
       return;
     }
 
-    GPU_debug_group_begin("Mesh Edit Color Only");
+    GPU_debug_group_begin("Mesh Edit Line Only");
 
     GPU_framebuffer_bind(framebuffer);
     manager.submit(edit_mesh_normals_ps_, view);
