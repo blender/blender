@@ -89,7 +89,7 @@ endif()
 # When cross-compiling the executable is separately compiled for the host architecture
 # in a sub-build defined in host_tools.cmake. As this is a build-time code-gen tool
 # that must run on the host build machine, the executable is then provided by the
-# TOOL_MAKESDNA_EXE variable.
+# MAKESDNA_EXECUTABLE variable.
 if(NOT CMAKE_CROSSCOMPILING)
   add_c_and_cxx_flags_custom_test(makesdna)
 
@@ -112,14 +112,14 @@ add_custom_command(
     ${CMAKE_CURRENT_BINARY_DIR}/dna_verify.cc
   COMMAND
     ${CMAKE_COMMAND} -E env ${PLATFORM_ENV_BUILD}
-    ${TOOL_MAKESDNA_EXE}
+    ${MAKESDNA_EXECUTABLE}
     ${CMAKE_CURRENT_BINARY_DIR}/dna.cc
     ${CMAKE_CURRENT_BINARY_DIR}/dna_type_offsets.h
     ${CMAKE_CURRENT_BINARY_DIR}/dna_verify.cc
     ${CMAKE_CURRENT_BINARY_DIR}/dna_struct_ids.cc
     ${CMAKE_CURRENT_BINARY_DIR}/dna_defaults.cc
     ${CMAKE_SOURCE_DIR}/source/blender/makesdna/
-  DEPENDS ${TOOL_MAKESDNA_DEPENDENCY}
+  DEPENDS ${MAKESDNA_DEPENDENCY}
 )
 
 

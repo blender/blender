@@ -404,7 +404,7 @@ endif()
 # When cross-compiling the executable is separately compiled for the host architecture
 # in a sub-build defined in host_tools.cmake. As this is a build-time code-gen tool
 # that must run on the host build machine, the executable is then provided by the
-# TOOL_MAKESRNA_EXE variable.
+# MAKESRNA_EXECUTABLE variable.
 if(NOT CMAKE_CROSSCOMPILING)
   add_c_and_cxx_flags_custom_test(makesrna)
 
@@ -432,8 +432,8 @@ add_custom_command(
   OUTPUT ${GENSRC}
   COMMAND
     ${CMAKE_COMMAND} -E env ${PLATFORM_ENV_BUILD}
-    ${TOOL_MAKESRNA_EXE} ${CMAKE_SOURCE_DIR}/source/blender/makesdna/ ${CMAKE_CURRENT_BINARY_DIR}/ ${CMAKE_CURRENT_BINARY_DIR}/../
-  DEPENDS ${TOOL_MAKESRNA_DEPENDENCY}
+    ${MAKESRNA_EXECUTABLE} ${CMAKE_SOURCE_DIR}/source/blender/makesdna/ ${CMAKE_CURRENT_BINARY_DIR}/ ${CMAKE_CURRENT_BINARY_DIR}/../
+  DEPENDS ${MAKESRNA_DEPENDENCY}
 )
 
 # Build bf_rna
