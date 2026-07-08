@@ -1073,7 +1073,6 @@ static void rna_def_mesh_automasking_settings(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_float_sdna(prop, nullptr, "cavity_factor");
   RNA_def_property_ui_text(prop, "Cavity Factor", "The contrast of the cavity mask");
-  RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0.0f, 5.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
   RNA_def_property_update(prop, 0, "rna_MeshAutomaskingSettings_update");
@@ -1082,7 +1081,6 @@ static void rna_def_mesh_automasking_settings(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_int_sdna(prop, nullptr, "cavity_blur_steps");
   RNA_def_property_ui_text(prop, "Blur Steps", "The number of times the cavity mask is blurred");
-  RNA_def_property_int_default(prop, 0);
   RNA_def_property_range(prop, 0, 25);
   RNA_def_property_ui_range(prop, 0, 10, 1, 1);
   RNA_def_property_update(prop, 0, "rna_MeshAutomaskingSettings_update");

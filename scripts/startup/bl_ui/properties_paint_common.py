@@ -1358,7 +1358,11 @@ def brush_settings_advanced(layout, context, settings, brush, popover=False):
                 col.prop(brush, "use_original_normal", text="Normal")
                 col.prop(brush, "use_original_plane", text="Plane")
 
-        draw_auto_masking_panel(container, brush)
+        draw_mesh_automasking_settings(
+            container,
+            brush.mesh_automasking_settings,
+            use_face_set=True,
+            use_operators=True)
 
         if capabilities.has_color and popover:
             draw_color_jitter_panel(container, context, brush)
@@ -1416,6 +1420,7 @@ def brush_settings_advanced(layout, context, settings, brush, popover=False):
             container.prop(brush, "use_accumulate")
 
         container.prop(brush, "use_frontface", text="Front Faces Only")
+        draw_mesh_automasking_settings(container, brush.mesh_automasking_settings)
         if popover:
             draw_color_jitter_panel(container, context, brush)
 
@@ -1428,97 +1433,109 @@ def brush_settings_advanced(layout, context, settings, brush, popover=False):
             container.prop(brush, "use_accumulate")
 
         container.prop(brush, "use_frontface", text="Front Faces Only")
+        draw_mesh_automasking_settings(container, brush.mesh_automasking_settings)
 
     # Sculpt Curves
     elif mode == 'SCULPT_CURVES':
         container.prop(brush, "curves_sculpt_brush_type")
 
 
-def draw_auto_masking_panel(layout, brush):
-    header, panel = layout.panel("auto_masking_panel", default_closed=True)
-    header.label(text="Auto-Masking")
+def draw_mesh_automasking_settings(layout, settings, *, topbar=False, use_face_set=False, use_operators=False):
+    if topbar:
+        layout.label(text="Auto-Masking")
+        parent = layout.column(align=True)
+    else:
+        header, panel = layout.panel("auto_masking_panel", default_closed=True)
+        header.label(text="Auto-Masking")
 
-    if panel is None:
-        return
+        if panel is None:
+            return
 
-    parent = panel
+        parent = panel
 
-    automasking = brush.mesh_automasking_settings
     col = parent.column(align=True)
 
-    col.prop(automasking, "use_automasking_topology", text="Topology")
-    col.prop(automasking, "use_automasking_face_sets", text="Face Sets")
+    col.prop(settings, "use_automasking_topology", text="Topology")
+    if use_face_set:
+        col.prop(settings, "use_automasking_face_sets", text="Face Sets")
 
     parent.separator()
 
     col = parent.column(align=True)
     row = col.row()
-    row.prop(automasking, "use_automasking_boundary_edges", text="Mesh Boundary")
+    row.prop(settings, "use_automasking_boundary_edges", text="Mesh Boundary")
 
-    if automasking.use_automasking_boundary_edges:
+    if use_operators and settings.use_automasking_boundary_edges:
         props = row.operator("sculpt.mask_from_boundary", text="Create Mask")
         props.settings_source = 'BRUSH'
         props.boundary_mode = 'MESH'
 
     row = col.row()
-    row.prop(automasking, "use_automasking_boundary_face_sets", text="Face Sets Boundary")
+    if use_face_set:
+        row.prop(settings, "use_automasking_boundary_face_sets", text="Face Sets Boundary")
 
-    if automasking.use_automasking_boundary_face_sets:
-        props = row.operator("sculpt.mask_from_boundary", text="Create Mask")
-        props.settings_source = 'BRUSH'
-        props.boundary_mode = 'FACE_SETS'
+        if use_operators and settings.use_automasking_boundary_face_sets:
+            props = row.operator("sculpt.mask_from_boundary", text="Create Mask")
+            props.settings_source = 'BRUSH'
+            props.boundary_mode = 'FACE_SETS'
 
-    if automasking.use_automasking_boundary_edges or automasking.use_automasking_boundary_face_sets:
-        col = parent.column()
-        col.use_property_split = False
-        split = col.split(factor=0.4)
-        col = split.column()
-        split.prop(automasking, "boundary_edges_propagation_steps")
+    if settings.use_automasking_boundary_edges or settings.use_automasking_boundary_face_sets:
+        # Odd hack needed to get this to display consistently...
+        if topbar:
+            col = parent.column()
+            col.use_property_split = False
+            col.prop(settings, "boundary_edges_propagation_steps")
+        else:
+            col = parent.column()
+            col.use_property_split = False
+            split = col.split(factor=0.4)
+            col = split.column()
+            split.prop(settings, "boundary_edges_propagation_steps")
 
     col.separator()
 
     col = parent.column(align=True)
     row = col.row()
-    row.prop(automasking, "use_automasking_cavity", text="Cavity")
+    row.prop(settings, "use_automasking_cavity", text="Cavity")
 
-    is_cavity_active = automasking.use_automasking_cavity or automasking.use_automasking_cavity_inverted
+    is_cavity_active = settings.use_automasking_cavity or settings.use_automasking_cavity_inverted
 
-    if is_cavity_active:
+    if use_operators and is_cavity_active:
         props = row.operator("sculpt.mask_from_cavity", text="Create Mask")
         props.settings_source = 'BRUSH'
 
-    col.prop(automasking, "use_automasking_cavity_inverted", text="Cavity (inverted)")
+    col.prop(settings, "use_automasking_cavity_inverted", text="Cavity (inverted)")
 
     if is_cavity_active:
         col = parent.column(align=True)
-        col.prop(automasking, "cavity_factor", text="Factor")
-        col.prop(automasking, "cavity_blur_steps", text="Blur")
+        col.prop(settings, "cavity_factor", text="Factor")
+        col.prop(settings, "cavity_blur_steps", text="Blur")
 
         col = parent.column()
-        col.prop(automasking, "use_automasking_custom_cavity_curve", text="Custom Curve")
+        col.prop(settings, "use_automasking_custom_cavity_curve", text="Custom Curve")
 
-        if automasking.use_automasking_custom_cavity_curve:
-            col.template_curve_mapping(automasking, "cavity_curve", brush=True)
+        if settings.use_automasking_custom_cavity_curve:
+            col.template_curve_mapping(settings, "cavity_curve", brush=True)
 
     col.separator()
 
     col = parent.column(align=True)
-    col.prop(automasking, "use_automasking_view_normal", text="View Normal")
+    col.prop(settings, "use_automasking_view_normal", text="View Normal")
 
-    if automasking.use_automasking_view_normal:
-        col.prop(automasking, "use_automasking_view_occlusion", text="Occlusion")
+    if settings.use_automasking_view_normal:
+        col.prop(settings, "use_automasking_view_occlusion", text="Occlusion")
         subcol = col.column(align=True)
-        subcol.active = not automasking.use_automasking_view_occlusion
-        subcol.prop(automasking, "view_normal_limit", text="Limit")
-        subcol.prop(automasking, "view_normal_falloff", text="Falloff")
+        subcol.active = not settings.use_automasking_view_occlusion
+        subcol.prop(settings, "view_normal_limit", text="Limit")
+        subcol.prop(settings, "view_normal_falloff", text="Falloff")
 
     col = parent.column()
-    col.prop(automasking, "use_automasking_start_normal", text="Area Normal")
+    col.prop(settings, "use_automasking_start_normal", text="Area Normal")
 
-    if automasking.use_automasking_start_normal:
+    if settings.use_automasking_start_normal:
         col = parent.column(align=True)
-        col.prop(automasking, "start_normal_limit", text="Limit")
-        col.prop(automasking, "start_normal_falloff", text="Falloff")
+        col.prop(settings, "start_normal_limit", text="Limit")
+        col.prop(settings, "start_normal_falloff", text="Falloff")
 
 
 def draw_color_settings(context, layout, brush, color_type=False):
