@@ -25,6 +25,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_idprop.hh"
+#include "BKE_main.hh"
 #include "BKE_screen.hh"
 
 #include "ED_asset.hh"
@@ -526,6 +527,17 @@ static bool but_menu_add_path_operators(Layout &layout, PointerRNA *ptr, Propert
   UNUSED_VARS_NDEBUG(subtype);
 
   RNA_property_string_get(ptr, prop, filepath);
+
+  if (BLI_path_is_rel(filepath)) {
+    if (ptr->owner_id == nullptr) {
+      return false;
+    }
+    const char *base_path = ID_BLEND_PATH_FROM_GLOBAL(ptr->owner_id);
+    if (base_path[0] == '\0') {
+      return false;
+    }
+    BLI_path_abs(filepath, base_path);
+  }
 
   if (!BLI_exists(filepath)) {
     return false;
