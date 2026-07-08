@@ -78,6 +78,24 @@ else()
   endif()
 endif()
 
+set(HOST_LIBDIR ${LIBDIR})
+
+if(CMAKE_CROSSCOMPILING)
+  # When cross-compiling, certain tools (like Python) need to be accessed from
+  # the *host* pre-compiled libraries to then be executed.
+  if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Darwin")
+    set(HOST_LIBDIR ${CMAKE_SOURCE_DIR}/lib/macos_arm64)
+  elseif("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
+    if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
+      set(HOST_LIBDIR ${CMAKE_SOURCE_DIR}/lib/linux_arm64)
+    elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
+      set(HOST_LIBDIR ${CMAKE_SOURCE_DIR}/lib/linux_x64)
+    endif()
+  else()
+    message(FATAL_ERROR "Unsupported cross-compilation host.")
+  endif()
+endif()
+
 # Disable the CPU check if not portable or if we are not using the pre-compiled libs.
 # This is because:
 # 1. We don't install the CPU check library on a non portable build.
@@ -289,6 +307,11 @@ else()
   # Python executable is needed as part of the build-process,
   # note that building without Python is quite unusual.
   find_program(PYTHON_EXECUTABLE "python3")
+endif()
+
+if(CMAKE_CROSSCOMPILING)
+  # Fetch the Python executable manually from the host pre-compiled library directory.
+  file(GLOB PYTHON_EXECUTABLE "${HOST_LIBDIR}/python/bin/python3.[0-9]*")
 endif()
 
 find_package_wrapper(OpenEXR REQUIRED)
