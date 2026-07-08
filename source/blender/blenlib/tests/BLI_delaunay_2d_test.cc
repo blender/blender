@@ -3308,6 +3308,188 @@ template<typename T> void square_o_test()
   }
 }
 
+/**
+ * A square boundary filled with a grid of degenerate (two vertex) interior faces,
+ * every one of which must be dissolved. Stress test for the crash in #160787.
+ */
+template<typename T> void fill_curve_degenerate_interior_faces_test()
+{
+  const int grid_size = 10;
+  const int cells_num = grid_size - 1;
+  const int boundary_num = 4 * grid_size - 4;
+  const int interior_faces_num = cells_num * cells_num;
+  const int verts_num = boundary_num + 2 * interior_faces_num;
+  const int faces_num = 1 + interior_faces_num;
+  const double min = -0.5;
+  const double max = 0.5;
+  const double step = 1.0 / double(cells_num);
+
+  Array<VecBase<T, 2>> verts(verts_num);
+  Array<Vector<int>> faces(faces_num);
+
+  int vert_index = 0;
+  auto add_vert = [&](const double x, const double y) {
+    verts[vert_index++] = VecBase<T, 2>(T(x), T(y));
+  };
+
+  for (int i = 0; i < grid_size; i++) {
+    add_vert(min, min + i * step);
+  }
+  for (int i = 1; i < grid_size; i++) {
+    add_vert(min + i * step, max);
+  }
+  for (int i = 1; i < grid_size; i++) {
+    add_vert(max, max - i * step);
+  }
+  for (int i = 1; i < grid_size - 1; i++) {
+    add_vert(max - i * step, min);
+  }
+  for (int i = 0; i < boundary_num; i++) {
+    faces[0].append(i);
+  }
+
+  int face_index = 1;
+  for (int x = 0; x < cells_num; x++) {
+    for (int y = 0; y < cells_num; y++) {
+      const double cx = min + (x + 0.5) * step;
+      const double cy = min + (y + 0.5) * step;
+      const int first_vert = vert_index;
+      add_vert(cx, cy);
+      add_vert(cx, cy);
+      faces[face_index].append(first_vert);
+      faces[face_index].append(first_vert + 1);
+      face_index++;
+    }
+  }
+
+  BLI_assert(vert_index == verts_num);
+  BLI_assert(face_index == faces_num);
+
+  CDT_input<T> in;
+  in.vert = verts;
+  in.face = faces;
+  in.epsilon = T(0.00001);
+  in.need_ids = false;
+
+  CDT_result<T> out = delaunay_2d_calc(in, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES);
+  EXPECT_EQ(out.vert.size(), 117);
+  EXPECT_EQ(out.edge.size(), 36);
+  EXPECT_EQ(out.face.size(), 0);
+}
+
+/**
+ * A single hexagon face plus two points that aren't part of any face, with `need_ids = false`
+ * and #CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES (as used by the "Fill Curve" node).
+ * The stray points force triangulation edges that never represent an input face,
+ * so #remove_non_constraint_edges_leave_valid_bmesh dissolves them without its usual
+ * "keep this face valid" check. Dissolving could reduce a face to a single dangling edge,
+ * or delete a pendant edge leaving `CDTFace::symedge` pointing at a just-deleted #SymEdge,
+ * crashing #get_cdt_output when walking the boundary.
+ *
+ * Reduced from a self-intersecting curve that crashed the "Fill Curve" node
+ * in "N-gons" mode, see: #160787.
+ */
+template<typename T> void dissolve_pendant_edge_face_test()
+{
+  const char *spec = R"(8 0 1
+  -0.5 0.3
+  -0.5 0.4
+  -0.1 0.5
+  0.5 0.2
+  0.5 -0.4
+  0.5 -0.5
+  0.44 -0.2
+  0.44 -0.1
+  0 1 2 3 4 5
+  )";
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+  in.need_ids = false;
+  CDT_result<T> out = delaunay_2d_calc(in, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES);
+  EXPECT_EQ(out.vert.size(), 8);
+  EXPECT_EQ(out.edge.size(), 6);
+  EXPECT_EQ(out.face.size(), 1);
+  if (DO_DRAW) {
+    graph_draw<T>("DissolvePendantEdgeFace", out.vert, out.edge, out.face);
+  }
+}
+
+/**
+ * A single self-intersecting 7-sided polygon (one repeated vertex) plus two stray points
+ * that don't belong to a face, `need_ids = false`, #CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES.
+ * #remove_faces_in_holes crashed on a `symedge` invalidated by an earlier dissolve pass,
+ * see: #160787.
+ */
+template<typename T> void stale_symedge_before_remove_faces_in_holes_test()
+{
+  const char *spec = R"(9 0 1
+  0.7 1.0
+  -1.0 -0.66667
+  0.7 -1.0
+  -1.0 1.0
+  1.0 1.0
+  -1.0 -0.66667
+  0.3 -0.3
+  0.0 -0.3
+  0.0 0.0
+  0 1 2 3 4 5 6
+  )";
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+  in.need_ids = false;
+  CDT_result<T> out = delaunay_2d_calc(in, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES);
+  EXPECT_EQ(out.vert.size(), 12);
+  EXPECT_EQ(out.edge.size(), 18);
+  EXPECT_EQ(out.face.size(), 6);
+  if (DO_DRAW) {
+    graph_draw<T>("StaleSymedgeBeforeRemoveFacesInHoles", out.vert, out.edge, out.face);
+  }
+}
+
+/**
+ * Minimized test case found by fuzzing a fix for: #160787.
+ */
+template<typename T> void fuzz_repro_minimize_test1()
+{
+  const char *spec = R"(9 0 1
+  0.16514 -0.823874
+  0.349776 0.174872
+  -0.528584 0.489292
+  0.916708 0.728511
+  -0.85114 0.07962
+  -0.23437 -0.996308
+  0.433229 -0.892684
+  -0.957911 0.517122
+  0.257921 0.862028
+  0 1 0 3 4
+  )";
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+  in.need_ids = true;
+  CDT_result<T> out = delaunay_2d_calc(in, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES);
+  (void)out;
+}
+
+/**
+ * Minimized test case found by fuzzing a fix for: #160787.
+ */
+template<typename T> void fuzz_repro_minimize_test2()
+{
+  const char *spec = R"(9 0 1
+  -0.255233 0.780605
+  0.789803 0.974262
+  -0.78598 -0.701386
+  0.871088 0.566743
+  0.752273 -0.476301
+  -0.747342 0.0773856
+  -0.3056 -0.229194
+  -0.260009 -0.0515187
+  0.459831 0.861793
+  0 1 2 3 4
+  )";
+  CDT_input<T> in = fill_input_from_string<T>(spec);
+  in.need_ids = false;
+  CDT_result<T> out = delaunay_2d_calc(in, CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES);
+  (void)out;
+}
+
 TEST(delaunay_d, Empty)
 {
   empty_test<double>();
@@ -3576,6 +3758,31 @@ TEST(delaunay_d, SharedSplitBoundary)
 TEST(delaunay_d, SquareO)
 {
   square_o_test<double>();
+}
+
+TEST(delaunay_d, FillCurveDegenerateInteriorFaces)
+{
+  fill_curve_degenerate_interior_faces_test<double>();
+}
+
+TEST(delaunay_d, DissolvePendantEdgeFace)
+{
+  dissolve_pendant_edge_face_test<double>();
+}
+
+TEST(delaunay_d, StaleSymedgeBeforeRemoveFacesInHoles)
+{
+  stale_symedge_before_remove_faces_in_holes_test<double>();
+}
+
+TEST(delaunay_d, FuzzReproMinimize1)
+{
+  fuzz_repro_minimize_test1<double>();
+}
+
+TEST(delaunay_d, FuzzReproMinimize2)
+{
+  fuzz_repro_minimize_test2<double>();
 }
 
 #  ifdef WITH_GMP
