@@ -348,12 +348,13 @@ BLI_NOINLINE static void propagate_attributes(const Mesh &mesh,
     if (iter.is_builtin && !point_attributes.is_builtin(name)) {
       return;
     }
-    if (name == "position") {
+    if (ELEM(name, "position", ".select_vert")) {
       return;
     }
     if (filter.allow_skip(name)) {
       return;
     }
+    const StringRef dst_name = name == ".select_poly" ? ".selection" : name;
     GAttributeReader src = iter.get();
     if (!src) {
       return;
@@ -361,12 +362,12 @@ BLI_NOINLINE static void propagate_attributes(const Mesh &mesh,
     const CommonVArrayInfo info = src.varray.common_info();
     if (info.type == CommonVArrayInfo::Type::Single) {
       const bke::AttributeInitValue init(GPointer(src.varray.type(), info.data));
-      if (point_attributes.add(iter.name, AttrDomain::Point, iter.data_type, init)) {
+      if (point_attributes.add(dst_name, AttrDomain::Point, iter.data_type, init)) {
         return;
       }
     }
     GSpanAttributeWriter dst = point_attributes.lookup_or_add_for_write_only_span(
-        name, AttrDomain::Point, iter.data_type);
+        dst_name, AttrDomain::Point, iter.data_type);
     if (!dst) {
       return;
     }
