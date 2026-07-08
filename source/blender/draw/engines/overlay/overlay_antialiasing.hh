@@ -55,7 +55,7 @@ class AntiAliasing : Overlay {
   gpu::FrameBuffer *framebuffer_ref_ = nullptr;
 
  public:
-  void begin_sync(Resources &res, const State & /*state*/) final
+  void begin_sync(Resources &res, const State &state) final
   {
     if (res.is_selection()) {
       anti_aliasing_ps_.init();
@@ -63,6 +63,8 @@ class AntiAliasing : Overlay {
     }
 
     const bool do_smooth_lines = (U.gpu_flag & USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE) != 0;
+    const bool do_background_fetch = state.xray_enabled_and_not_wire && state.is_space_v3d() &&
+                                     (state.rv3d->is_persp || state.rv3d->view == RV3D_VIEW_USER);
 
     {
       PassSimple &pass = anti_aliasing_ps_;
@@ -72,10 +74,11 @@ class AntiAliasing : Overlay {
       pass.shader_set(res.shaders->anti_aliasing.get());
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
-      pass.bind_texture("depth_tx", &res.depth_tx);
+      pass.bind_texture("depth_tx", &res.depth_target_tx);
       pass.bind_texture("color_tx", &res.overlay_tx);
       pass.bind_texture("line_tx", &res.line_tx);
       pass.push_constant("do_smooth_lines", do_smooth_lines);
+      pass.push_constant("do_background_fetch", do_background_fetch);
       pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
     }
   }
