@@ -1692,9 +1692,10 @@ static bool DNA_sdna_patch_struct_member(SDNA *sdna,
           old_member_name_full_offset_start);
 
       const short old_member_index = member_info->member_index;
+      const int old_member_array_num = sdna->members_array_num[old_member_index];
       member_info->member_index = sdna->members_num++;
       sdna->members.append(new_member_name_full);
-      sdna->members_array_num.append(sdna->members_array_num[old_member_index]);
+      sdna->members_array_num.append(old_member_array_num);
 
       return true;
     }
