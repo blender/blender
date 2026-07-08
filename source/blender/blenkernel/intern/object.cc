@@ -3982,7 +3982,7 @@ void BKE_object_foreach_display_point(Object *ob,
                                       void (*func_cb)(const float[3], void *),
                                       void *user_data)
 {
-  /* TODO: point-cloud and curves object support. */
+  /* TODO: volume object support. */
   const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
   float3 co;
 
@@ -4029,6 +4029,16 @@ void BKE_object_foreach_display_point(Object *ob,
   else if (ob->type == OB_POINTCLOUD) {
     PointCloud &pointcloud = *id_cast<PointCloud *>(ob->data);
     const Span<float3> positions = pointcloud.positions();
+    threading::parallel_for(positions.index_range(), 4096, [&](const IndexRange range) {
+      for (const int i : range) {
+        func_cb(math::transform_point(float4x4(obmat), positions[i]), user_data);
+      }
+    });
+  }
+  else if (ob->type == OB_CURVES) {
+    Curves &curves_id = *id_cast<Curves *>(ob->data);
+    const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
+    const Span<float3> positions = curves.evaluated_positions();
     threading::parallel_for(positions.index_range(), 4096, [&](const IndexRange range) {
       for (const int i : range) {
         func_cb(math::transform_point(float4x4(obmat), positions[i]), user_data);
