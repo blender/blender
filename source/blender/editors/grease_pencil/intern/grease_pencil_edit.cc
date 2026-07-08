@@ -1086,6 +1086,7 @@ static wmOperatorStatus grease_pencil_set_active_material_exec(bContext *C, wmOp
     const VArray<int> materials = *curves.attributes().lookup_or_default<int>(
         "material_index", bke::AttrDomain::Curve, 0);
     object->actcol = materials[strokes.first()] + 1;
+    BKE_object_material_active_index_sanitize(object);
     break;
   };
 
