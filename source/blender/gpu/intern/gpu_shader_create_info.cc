@@ -275,19 +275,6 @@ void ShaderCreateInfo::finalize(const bool recursive)
               << std::endl;
     BLI_assert(0);
   }
-
-  if (auto_resource_location_) {
-    int images = 0, samplers = 0, ubos = 0, ssbos = 0, acceleration_structures = 0;
-    for (auto &res : batch_resources_) {
-      set_resource_slot(res, images, samplers, ubos, ssbos, acceleration_structures);
-    }
-    for (auto &res : pass_resources_) {
-      set_resource_slot(res, images, samplers, ubos, ssbos, acceleration_structures);
-    }
-    for (auto &res : geometry_resources_) {
-      set_resource_slot(res, images, samplers, ubos, ssbos, acceleration_structures);
-    }
-  }
 }
 
 void ShaderCreateInfo::extend_predicate(Vector<Resource, 0> &resource_vector,
@@ -523,78 +510,76 @@ std::string ShaderCreateInfo::check_error() const
 
 void ShaderCreateInfo::validate_merge(const ShaderCreateInfo &other_info)
 {
-  if (!auto_resource_location_) {
-    /* Check same bind-points usage in OGL. */
-    Set<int> images, samplers, ubos, ssbos, acceleration_structures;
+  /* Check same bind-points usage in OGL. */
+  Set<int> images, samplers, ubos, ssbos, acceleration_structures;
 
-    auto register_resource = [&](const Resource &res) -> bool {
+  auto register_resource = [&](const Resource &res) -> bool {
+    switch (res.bind_type) {
+      case Resource::BindType::UNIFORM_BUFFER:
+        return images.add(res.slot);
+      case Resource::BindType::STORAGE_BUFFER:
+        return samplers.add(res.slot);
+      case Resource::BindType::SAMPLER:
+        return ubos.add(res.slot);
+      case Resource::BindType::IMAGE:
+        return ssbos.add(res.slot);
+      case Resource::BindType::ACCELERATION_STRUCTURE:
+        return acceleration_structures.add(res.slot);
+      default:
+        return false;
+    }
+  };
+
+  auto print_error_msg = [&](const Resource &res, const Vector<Resource> &resources) {
+    auto print_resource_name = [&](const Resource &res) {
       switch (res.bind_type) {
         case Resource::BindType::UNIFORM_BUFFER:
-          return images.add(res.slot);
+          std::cout << "Uniform Buffer " << res.uniformbuf.name;
+          break;
         case Resource::BindType::STORAGE_BUFFER:
-          return samplers.add(res.slot);
+          std::cout << "Storage Buffer " << res.storagebuf.name;
+          break;
         case Resource::BindType::SAMPLER:
-          return ubos.add(res.slot);
+          std::cout << "Sampler " << res.sampler.name;
+          break;
         case Resource::BindType::IMAGE:
-          return ssbos.add(res.slot);
+          std::cout << "Image " << res.image.name;
+          break;
         case Resource::BindType::ACCELERATION_STRUCTURE:
-          return acceleration_structures.add(res.slot);
+          std::cout << "Acceleration Structure " << res.acceleration_structure.name;
+          break;
         default:
-          return false;
+          std::cout << "Unknown Type";
+          break;
       }
     };
 
-    auto print_error_msg = [&](const Resource &res, const Vector<Resource> &resources) {
-      auto print_resource_name = [&](const Resource &res) {
-        switch (res.bind_type) {
-          case Resource::BindType::UNIFORM_BUFFER:
-            std::cout << "Uniform Buffer " << res.uniformbuf.name;
-            break;
-          case Resource::BindType::STORAGE_BUFFER:
-            std::cout << "Storage Buffer " << res.storagebuf.name;
-            break;
-          case Resource::BindType::SAMPLER:
-            std::cout << "Sampler " << res.sampler.name;
-            break;
-          case Resource::BindType::IMAGE:
-            std::cout << "Image " << res.image.name;
-            break;
-          case Resource::BindType::ACCELERATION_STRUCTURE:
-            std::cout << "Acceleration Structure " << res.acceleration_structure.name;
-            break;
-          default:
-            std::cout << "Unknown Type";
-            break;
-        }
-      };
-
-      for (const Resource &_res : resources) {
-        if (&res != &_res && res.bind_type == _res.bind_type && res.slot == _res.slot) {
-          std::cout << name_ << ": Validation failed : Overlapping ";
-          print_resource_name(res);
-          std::cout << " and ";
-          print_resource_name(_res);
-          std::cout << " at (" << res.slot << ") while merging " << other_info.name_ << std::endl;
-        }
-      }
-    };
-
-    for (auto &res : batch_resources_) {
-      if (register_resource(res) == false) {
-        print_error_msg(res, resources_get_all_());
+    for (const Resource &_res : resources) {
+      if (&res != &_res && res.bind_type == _res.bind_type && res.slot == _res.slot) {
+        std::cout << name_ << ": Validation failed : Overlapping ";
+        print_resource_name(res);
+        std::cout << " and ";
+        print_resource_name(_res);
+        std::cout << " at (" << res.slot << ") while merging " << other_info.name_ << std::endl;
       }
     }
+  };
 
-    for (auto &res : pass_resources_) {
-      if (register_resource(res) == false) {
-        print_error_msg(res, resources_get_all_());
-      }
+  for (auto &res : batch_resources_) {
+    if (register_resource(res) == false) {
+      print_error_msg(res, resources_get_all_());
     }
+  }
 
-    for (auto &res : geometry_resources_) {
-      if (register_resource(res) == false) {
-        print_error_msg(res, resources_get_all_());
-      }
+  for (auto &res : pass_resources_) {
+    if (register_resource(res) == false) {
+      print_error_msg(res, resources_get_all_());
+    }
+  }
+
+  for (auto &res : geometry_resources_) {
+    if (register_resource(res) == false) {
+      print_error_msg(res, resources_get_all_());
     }
   }
 }

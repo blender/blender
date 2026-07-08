@@ -495,14 +495,7 @@ static void print_resource(std::ostream &os,
                            const ShaderCreateInfo::Resource &res,
                            const ShaderCreateInfo &info)
 {
-  if (info.auto_resource_location_ &&
-      res.bind_type == ShaderCreateInfo::Resource::BindType::SAMPLER)
   {
-    /* Skip explicit binding location for samplers when not needed, since drivers can usually
-     * handle more sampler declarations this way (as long as they're not actually used by the
-     * shader). See #105661. */
-  }
-  else {
     os << "layout(binding = " << res.slot;
     if (res.bind_type == ShaderCreateInfo::Resource::BindType::IMAGE) {
       os << ", " << to_string(res.image.format);
