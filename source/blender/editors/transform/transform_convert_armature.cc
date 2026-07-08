@@ -132,7 +132,7 @@ static bKinematicConstraint *has_targetless_ik(bPoseChannel *pchan)
 /**
  * Adds the IK to pchan - returns if added.
  */
-static short pose_grab_with_ik_add(bke::PChanBone pchanbone)
+static short pose_grab_with_ik_add(Object &ob, bke::PChanBone pchanbone)
 {
   bPoseChannel *pchan = pchanbone.pchan;
   bKinematicConstraint *targetless = nullptr;
@@ -213,8 +213,10 @@ static short pose_grab_with_ik_add(bke::PChanBone pchanbone)
     /* Now we count this pchan as being included. */
     data->rootbone++;
 
+    /* We modify the pchan pointer below so we also have to get the corresponding bone pointer. */
+    Bone *bone = pchan->bone_get(ob);
     /* Continue to parent, but only if we're connected to it. */
-    if (pchanbone.bone->flag & BONE_CONNECTED) {
+    if (bone->flag & BONE_CONNECTED) {
       pchan = pchan->parent;
     }
     else {
@@ -231,7 +233,7 @@ static short pose_grab_with_ik_add(bke::PChanBone pchanbone)
 /**
  * Bone is a candidate to get IK, but we don't do it if it has children connected.
  */
-static short pose_grab_with_ik_children(bPose *pose, Bone *bone)
+static short pose_grab_with_ik_children(Object &ob, Bone *bone)
 {
   short wentdeeper = 0, added = 0;
 
@@ -239,13 +241,13 @@ static short pose_grab_with_ik_children(bPose *pose, Bone *bone)
   for (Bone &bonec : bone->childbase) {
     if (bonec.flag & BONE_CONNECTED) {
       wentdeeper = 1;
-      added += pose_grab_with_ik_children(pose, &bonec);
+      added += pose_grab_with_ik_children(ob, &bonec);
     }
   }
   if (wentdeeper == 0) {
-    bPoseChannel *pchan = BKE_pose_channel_find_name(pose, bone->name);
+    bPoseChannel *pchan = BKE_pose_channel_find_name(ob.pose, bone->name);
     if (pchan) {
-      added += pose_grab_with_ik_add({pchan, bone});
+      added += pose_grab_with_ik_add(ob, {pchan, bone});
     }
   }
 
@@ -295,12 +297,12 @@ static short pose_grab_with_ik(Main *bmain, Object *ob)
             }
           }
           if (parent == nullptr) {
-            tot_ik += pose_grab_with_ik_add({&pchan, pchan_bone});
+            tot_ik += pose_grab_with_ik_add(*ob, {&pchan, pchan_bone});
           }
         }
         else {
           /* Rule: go over the children and add IK to the tips. */
-          tot_ik += pose_grab_with_ik_children(ob->pose, pchan_bone);
+          tot_ik += pose_grab_with_ik_children(*ob, pchan_bone);
         }
       }
     }

@@ -20,6 +20,7 @@
 #include "BLI_math_rotation.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_c.hh"
+#include "BLI_offset_indices.hh"
 #include "BLI_ordered_edge.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
@@ -231,7 +232,6 @@ class ExtendableMesh {
   Vector<int> new_face_examples_;
   Vector<NewFaceKind> new_face_kinds_;
   Vector<NewEdgeKind> new_edge_kinds_;
-  Vector<int> new_corner_examples_;
 
   /* Per-corner UV face representative (-1 = use face-level new_face_examples_). */
   Vector<int> new_corner_face_reps_;
@@ -466,10 +466,7 @@ class ExtendableMesh {
       new_edge_kinds_[ni] = kind;
     }
   }
-  Span<int> new_corner_examples() const
-  {
-    return new_corner_examples_;
-  }
+
   /** Per-corner UV face representative.  -1 means "fall back to the face-level example". */
   Span<int> new_corner_face_reps() const
   {
@@ -611,8 +608,6 @@ int ExtendableMesh::face_create(const Span<int> verts, const int example_face)
     const int nc = int(new_corner_verts_.size());
     new_corner_verts_.append(v1);
     new_corner_edges_.append(e);
-    /* Corner examples are deferred; -1 for now. */
-    new_corner_examples_.append(-1);
     /* Per-corner face rep and snap edge: -1 until overridden by face_set_corner_reps. */
     new_corner_face_reps_.append(-1);
     new_corner_snap_edges_.append(-1);
@@ -6948,95 +6943,181 @@ static void bevel_vert_construct(BevelState &state, int v)
  * Mirrors the `build_mesh` function from the TRY1 reference implementation,
  * adapted for the new index convention (no negated indices).
  */
+/** Data needed to interpolate a new corner's value from a source face. */
+struct NewCornerInterpData {
+  int src_face = -1;
+  float3 co = float3(0.0f);
+};
+
+/** Precomputed interpolation data for new corner values sourced from original faces. */
+struct NewCornerInterpWeights {
+  Array<int> src_faces;
+  Array<int> offsets;
+  Array<float> weights;
+
+  Span<float> weights_for(const int nc) const
+  {
+    return weights.as_span().slice(offsets[nc], offsets[nc + 1] - offsets[nc]);
+  }
+};
+
 /**
- * Interpolate a UV value for vertex position `dst_co` from the corners of original face `f_src`.
- * Mirrors the relevant part of #BM_loop_interp_from_face.
+ * Resolve the source face and query position for new corner `nc`.
+ * Uses the per-corner face rep if set, otherwise `new_face_fallback`.
+ * If a snap edge is set, the position is projected onto that edge.
  */
-static float2 interp_uv_from_face(const ExtendableMesh &emesh,
-                                  const Span<float2> uv_vals,
-                                  const int f_src,
-                                  const float3 dst_co)
+static std::optional<NewCornerInterpData> resolve_new_corner_interp_data(
+    const ExtendableMesh &emesh, const int nc, const int new_face_fallback)
 {
-  const OffsetIndices src_faces = emesh.src_faces;
-  const Span<int> corner_verts = emesh.src_corner_verts;
-  const Span<float3> positions = emesh.src_positions;
-  const IndexRange face_corners = src_faces[f_src];
-
-  const float3 no = emesh.src_face_normals[f_src];
-  const float3x3 axis_mat = math::axis_dominant_to_m3(no);
-
-  /* Project face corners to 2D. */
-  Array<float2, 16> cos_2d(face_corners.size());
-  const Span<int> face_verts = corner_verts.slice(face_corners);
-  for (const int i : face_corners.index_range()) {
-    const int vert = face_verts[i];
-    cos_2d[i] = float2(axis_mat * positions[vert]);
+  const Span<int> face_reps = emesh.new_corner_face_reps();
+  const int f_src = (face_reps[nc] >= 0) ? face_reps[nc] : new_face_fallback;
+  if (f_src < 0 || f_src >= emesh.mesh.faces_num) {
+    return std::nullopt;
   }
-
-  /* Project destination point to 2D. */
-  const float2 co_2d = float2(axis_mat * dst_co);
-
-  /* Compute mean-value interpolation weights. */
-  Array<float, 16> w(face_corners.size());
-  math::interp_weights_poly(w, cos_2d, co_2d);
-
-  /* Weighted sum of UV values. */
-  float2 result(0.0f);
-  for (const int i : face_corners.index_range()) {
-    result += w[i] * uv_vals[face_corners[i]];
+  float3 co = emesh.vert_position(emesh.new_corner_verts()[nc]);
+  const int snap_e = emesh.new_corner_snap_edges()[nc];
+  if (snap_e >= 0) {
+    const int2 ev = emesh.edge_verts(snap_e);
+    co = math::closest_to_line_segment(co, emesh.vert_position(ev[0]), emesh.vert_position(ev[1]));
   }
-  return result;
+  return NewCornerInterpData{f_src, co};
 }
 
 /**
- * For every new corner, interpolate UV values from the corner's face representative and
- * store the results in `emesh.new_corner_uvs_`.
- * Mirrors the per-loop UV interpolation done inside BMesh's #bev_create_ngon.
+ * Compute mean-value interpolation weights for `co` over source face `f_src`.
+ * Projects source corners and query point to 2D via the face normal.
  */
-static void fill_new_corner_uvs(BevelState &state)
+static void compute_face_interp_weights(const ExtendableMesh &emesh,
+                                        const int f_src,
+                                        const float3 &co,
+                                        MutableSpan<float> weights)
+{
+  const IndexRange face_corners = emesh.src_faces[f_src];
+  BLI_assert(weights.size() == face_corners.size());
+  const Span<int> face_verts = emesh.src_corner_verts.slice(face_corners);
+  const float3x3 axis_mat = math::axis_dominant_to_m3(emesh.src_face_normals[f_src]);
+
+  Array<float2, 16> cos_2d(face_corners.size());
+  for (const int i : face_corners.index_range()) {
+    cos_2d[i] = float2(axis_mat * emesh.src_positions[face_verts[i]]);
+  }
+  const float2 co_2d = float2(axis_mat * co);
+
+  math::interp_weights_poly(weights, cos_2d, co_2d);
+}
+
+static NewCornerInterpWeights compute_new_corner_interp_weights(const ExtendableMesh &emesh)
+{
+  const int n_new_corners = int(emesh.new_corner_verts().size());
+  NewCornerInterpWeights data;
+  data.src_faces = Array<int>(n_new_corners, -1);
+  data.offsets = Array<int>(n_new_corners + 1, 0);
+  Array<float3> co(n_new_corners, float3(0.0f));
+
+  const OffsetIndices new_faces(emesh.new_face_offsets());
+
+  /* Pass 1: resolve src_face + query position per corner, and record each corner's weight
+   * count, so the flattened weights array can be allocated exactly once below. */
+  for (const int nf : IndexRange(emesh.new_faces_num())) {
+    const int face_fallback = emesh.new_face_examples()[nf];
+    for (const int nc : new_faces[nf]) {
+      const std::optional<NewCornerInterpData> interp_data = resolve_new_corner_interp_data(
+          emesh, nc, face_fallback);
+      if (interp_data) {
+        data.src_faces[nc] = interp_data->src_face;
+        co[nc] = interp_data->co;
+        data.offsets[nc] = int(emesh.src_faces[interp_data->src_face].size());
+      }
+    }
+  }
+
+  const OffsetIndices<int> corner_offsets = offset_indices::accumulate_counts_to_offsets(
+      data.offsets);
+  data.weights = Array<float>(corner_offsets.total_size());
+
+  /* Pass 2: compute weights directly into each corner's slice of the flattened array. */
+  for (const int nc : IndexRange(n_new_corners)) {
+    if (data.src_faces[nc] == -1) {
+      continue;
+    }
+    compute_face_interp_weights(emesh,
+                                data.src_faces[nc],
+                                co[nc],
+                                data.weights.as_mutable_span().slice(corner_offsets[nc]));
+  }
+
+  return data;
+}
+
+static void interpolate_new_corner_attribute_from_faces(
+    const ExtendableMesh &emesh,
+    const NewCornerInterpWeights &interp_weights,
+    const GVArraySpan &src,
+    GMutableSpan dst)
+{
+  const CPPType &type = src.type();
+  Vector<int64_t> corners_no_src;
+
+  bke::attribute_math::to_static_type(type, [&]<typename T>() {
+    const Span<T> src_values = src.typed<T>();
+    MutableSpan<T> dst_values = dst.typed<T>();
+    bke::attribute_math::DefaultMixer<T> mixer(dst_values);
+
+    for (const int nc : interp_weights.src_faces.index_range()) {
+      const int src_face = interp_weights.src_faces[nc];
+      if (src_face == -1) {
+        corners_no_src.append(nc);
+        continue;
+      }
+      const IndexRange face_corners = emesh.src_faces[src_face];
+      const Span<float> weights = interp_weights.weights_for(nc);
+      BLI_assert(weights.size() == face_corners.size());
+      for (const int i : face_corners.index_range()) {
+        mixer.mix_in(nc, src_values[face_corners[i]], weights[i]);
+      }
+    }
+
+    mixer.finalize();
+  });
+
+  IndexMaskMemory memory;
+  const IndexMask corners_no_src_mask = IndexMask::from_indices(corners_no_src.as_span(), memory);
+  type.fill_assign_indices(type.default_value(), dst.data(), corners_no_src_mask);
+}
+
+/**
+ * Interpolate UV values for every new corner from its face representative.
+ * Weights are computed once per corner, then applied to all UV layers.
+ */
+static void fill_new_corner_uvs(BevelState &state, const NewCornerInterpWeights &interp_weights)
 {
   const int num_uv_layers = int(state.uv_layer_info.uv_maps.size());
   if (num_uv_layers == 0) {
     return;
   }
   ExtendableMesh &emesh = state.emesh;
-  const int n_new_faces = emesh.new_faces_num();
-  const Span<int> new_face_exs = emesh.new_face_examples();
-  /* Build OffsetIndices over the new-face offset array. */
-  const OffsetIndices new_faces(emesh.new_face_offsets());
-  const Span<int> new_corner_verts = emesh.new_corner_verts();
-  const Span<int> new_corner_face_reps = emesh.new_corner_face_reps();
-  const Span<int> new_corner_snap_edges = emesh.new_corner_snap_edges();
 
-  for (int nf = 0; nf < n_new_faces; nf++) {
-    /* Face-level fallback representative face. */
-    const int face_fallback = new_face_exs[nf];
-    const IndexRange new_corners = new_faces[nf];
-    for (int uv_i = 0; uv_i < num_uv_layers; uv_i++) {
-      const Span<float2> uv_vals = state.uv_layer_info.uv_maps[uv_i].values;
-      MutableSpan<float2> dst_uvs = emesh.new_corner_uvs(uv_i);
-      for (const int nc : new_corners) {
-        /* Use the per-corner face rep if set; otherwise fall back to the face-level one. */
-        const int f_src = (new_corner_face_reps[nc] >= 0) ? new_corner_face_reps[nc] :
-                                                            face_fallback;
-        if (f_src < 0 || f_src >= emesh.mesh.faces_num) {
-          continue;
-        }
-        /* Use emesh.vert_position() so new bevel vertices are correctly resolved. */
-        float3 co = emesh.vert_position(new_corner_verts[nc]);
-        /* If a snap edge is set, project the position onto that edge before interpolating.
-         * This mirrors BMesh's snap_edge_arr logic in #bev_create_ngon: UVs are sampled from
-         * the point on the original edge nearest to the new vertex, ensuring correct UV
-         * continuity across the seam at the center strip of an odd-segment bevel. */
-        const int snap_e = new_corner_snap_edges[nc];
-        if (snap_e >= 0) {
-          const int2 ev = emesh.edge_verts(snap_e);
-          const float3 ep0 = emesh.vert_position(ev[0]);
-          const float3 ep1 = emesh.vert_position(ev[1]);
-          co = math::closest_to_line_segment(co, ep0, ep1);
-        }
-        dst_uvs[nc] = interp_uv_from_face(emesh, uv_vals, f_src, co);
+  Array<Span<float2>> src_uv_layers(num_uv_layers);
+  Array<MutableSpan<float2>> dst_uv_layers(num_uv_layers);
+  for (int i = 0; i < num_uv_layers; i++) {
+    src_uv_layers[i] = state.uv_layer_info.uv_maps[i].values;
+    dst_uv_layers[i] = emesh.new_corner_uvs(i);
+  }
+
+  for (const int nc : interp_weights.src_faces.index_range()) {
+    const int src_face = interp_weights.src_faces[nc];
+    if (src_face == -1) {
+      continue;
+    }
+    const IndexRange face_corners = emesh.src_faces[src_face];
+    const Span<float> weights = interp_weights.weights_for(nc);
+    BLI_assert(weights.size() == face_corners.size());
+    for (const int uv_i : IndexRange(num_uv_layers)) {
+      float2 result(0.0f);
+      for (const int i : face_corners.index_range()) {
+        result += weights[i] * src_uv_layers[uv_i][face_corners[i]];
       }
+      dst_uv_layers[uv_i][nc] = result;
     }
   }
 }
@@ -7281,6 +7362,7 @@ static void bevel_extend_edge_data(BevelState &state)
 }
 
 static std::optional<Mesh *> build_output_mesh(const BevelState &state,
+                                               const NewCornerInterpWeights &interp_weights,
                                                const bke::AttributeFilter &attribute_filter)
 {
   const ExtendableMesh &emesh = state.emesh;
@@ -7416,12 +7498,6 @@ static std::optional<Mesh *> build_output_mesh(const BevelState &state,
   const IndexMask face_new_no_src = faces_new_with_src.complement(face_src_by_dst.index_range(),
                                                                   memory);
 
-  const Span<int> corner_src_by_dst = emesh.new_corner_examples();
-  const IndexMask corners_new_with_src = array_utils::indices_non_negative(
-      corner_src_by_dst.index_range(), corner_src_by_dst, memory);
-  const IndexMask corners_new_no_src = corners_new_with_src.complement(
-      corner_src_by_dst.index_range(), memory);
-
   src_attrs.foreach_attribute([&](const bke::AttributeIter &iter) {
     if (iter.data_type == bke::AttrType::String) {
       return;
@@ -7474,10 +7550,12 @@ static std::optional<Mesh *> build_output_mesh(const BevelState &state,
         const GVArraySpan src_span(src);
         GMutableSpan surv_values = dst.span.take_front(n_surv_corners);
         GMutableSpan new_values = dst.span.take_back(n_new_corners);
+
         bke::attribute_math::gather_group_to_group(
             src_faces, dst_faces, src_survive_faces, src_span, surv_values);
-        bke::attribute_math::gather(src_span, corner_src_by_dst, corners_new_with_src, new_values);
-        type.fill_assign_indices(type.default_value(), new_values.data(), corners_new_no_src);
+
+        interpolate_new_corner_attribute_from_faces(emesh, interp_weights, src_span, new_values);
+
         break;
       }
       default:
@@ -7716,9 +7794,12 @@ std::optional<Mesh *> mesh_bevel(const Mesh &src_mesh,
   /* Kill original beveled vertices. */
   state.bevel_affected_vertices.foreach_index([&](const int v) { state.emesh.vert_kill(v); });
 
+  const construct::NewCornerInterpWeights new_corner_interp_weights =
+      construct::compute_new_corner_interp_weights(state.emesh);
+
   /* Interpolate UV values for new corners, then merge at seam vertices. */
   if (state.uv_layer_info.has_uv_maps) {
-    construct::fill_new_corner_uvs(state);
+    construct::fill_new_corner_uvs(state, new_corner_interp_weights);
 #ifdef BEVEL_DEBUG
     {
       /* After fill, before merge: dump per-corner UV values for all new faces. */
@@ -7730,7 +7811,7 @@ std::optional<Mesh *> mesh_bevel(const Mesh &src_mesh,
                      nf + state.emesh.mesh.faces_num,
                      nc_range.start(),
                      nc_range.last());
-        for (int uv_i = 0; uv_i < int(state.uv_layer_info.layers.size()); uv_i++) {
+        for (const int uv_i : state.uv_layer_info.uv_maps.index_range()) {
           const Span<float2> new_uv = state.emesh.new_corner_uvs(uv_i);
           for (const int nc : nc_range) {
             fmt::println("  uv_i={} corner={} v={} uv=({:.5f},{:.5f})",
@@ -7759,7 +7840,8 @@ std::optional<Mesh *> mesh_bevel(const Mesh &src_mesh,
                (uv_edge_data_time - face_time).count() / 1.0e6f);
 #endif
 
-  std::optional<Mesh *> ans = construct::build_output_mesh(state, attribute_filter);
+  std::optional<Mesh *> ans = construct::build_output_mesh(
+      state, new_corner_interp_weights, attribute_filter);
 
 #ifdef DEBUG_TIME
   const timeit::TimePoint end_time = timeit::Clock::now();

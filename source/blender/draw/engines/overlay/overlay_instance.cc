@@ -878,9 +878,12 @@ void Instance::draw_v3d(Manager &manager, View &view)
     layer.curves.draw_line(framebuffer, manager, view);
   };
 
+  auto draw_line_only = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
+    layer.meshes.draw_line_only(framebuffer, manager, view);
+  };
+
   auto draw_color_only = [&](OverlayLayer &layer, Framebuffer &framebuffer) {
     layer.light_probes.draw_color_only(framebuffer, manager, view);
-    layer.meshes.draw_color_only(framebuffer, manager, view);
     layer.curves.draw_color_only(framebuffer, manager, view);
     layer.grease_pencil.draw_color_only(framebuffer, manager, view);
   };
@@ -972,6 +975,8 @@ void Instance::draw_v3d(Manager &manager, View &view)
 
     draw_color_only(regular, resources.overlay_color_only_fb);
     draw_color_only(infront, resources.overlay_color_only_fb);
+    draw_line_only(regular, resources.overlay_line_only_fb);
+    draw_line_only(infront, resources.overlay_line_only_fb);
 
     /* TODO(fclem): Split overlay and rename draw functions. */
     regular.empties.draw_in_front_images(resources.overlay_color_only_fb, manager, view);

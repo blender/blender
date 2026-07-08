@@ -317,6 +317,7 @@ endif
 
 # -----------------------------------------------------------------------------
 # Additional targets for the build configuration
+#
 
 # NOTE: These targets can be combined and are applied in reverse order listed here.
 # So it's important that `bpy` comes before `release` (for example)
@@ -362,7 +363,8 @@ ifneq "$(filter ccache, $(MAKECMDGOALS))" ""
 endif
 
 # -----------------------------------------------------------------------------
-# build tool
+# Build tool
+#
 
 ifneq "$(filter ninja, $(MAKECMDGOALS))" ""
 	CMAKE_CONFIG_ARGS:=$(CMAKE_CONFIG_ARGS) -G Ninja
@@ -384,6 +386,7 @@ endif
 
 # -----------------------------------------------------------------------------
 # Blender binary path
+#
 
 # Allow passing in own BLENDER_BIN so developers who don't
 # use the default build path can still use utility helpers.
@@ -398,6 +401,8 @@ endif
 
 # -----------------------------------------------------------------------------
 # Get the number of cores for threaded build
+#
+
 ifndef NPROCS
 	NPROCS:=1
 	ifeq ($(HOST_OS), Linux)
@@ -414,6 +419,7 @@ endif
 
 # -----------------------------------------------------------------------------
 # Macro for configuring cmake
+#
 
 CMAKE_CONFIG = cmake $(CMAKE_CONFIG_ARGS) \
 					 $(CMAKE_CROSSCOMPILE_CONFIG_ARGS) \
@@ -424,6 +430,7 @@ CMAKE_CONFIG = cmake $(CMAKE_CONFIG_ARGS) \
 
 # -----------------------------------------------------------------------------
 # Tool for 'make config'
+#
 
 # X11 specific.
 ifdef DISPLAY
@@ -435,6 +442,8 @@ endif
 
 # -----------------------------------------------------------------------------
 # Build Blender
+#
+
 all: .FORCE
 	@echo
 	@echo Configuring Blender in \"$(BUILD_DIR)\" ...
@@ -469,8 +478,11 @@ developer: all
 ninja: all
 ccache: all
 
+
 # -----------------------------------------------------------------------------
 # Build dependencies
+#
+
 DEPS_TARGET = install
 ifneq "$(filter clean, $(MAKECMDGOALS))" ""
 	DEPS_TARGET = clean
@@ -494,17 +506,23 @@ deps: .FORCE
 	@echo Dependencies successfully built and installed to $(DEPS_INSTALL_DIR).
 	@echo
 
+
 # -----------------------------------------------------------------------------
 # Configuration (save some cd'ing around)
+#
+
 config: .FORCE
 	$(CMAKE_CONFIG_TOOL) "$(BUILD_DIR)"
 
 
 # -----------------------------------------------------------------------------
 # Help for build targets
+#
+
 export HELP_TEXT
 help: .FORCE
 	@echo "$$HELP_TEXT"
+
 
 # -----------------------------------------------------------------------------
 # Packages
@@ -518,6 +536,7 @@ package_archive: .FORCE
 # -----------------------------------------------------------------------------
 # Tests
 #
+
 test: .FORCE
 	@$(PYTHON) ./build_files/utils/make_test.py "$(BUILD_DIR)"
 
@@ -670,6 +689,7 @@ format: .FORCE
 
 license: .FORCE
 	@$(PYTHON) tools/utils_maintenance/make_license.py
+
 
 # -----------------------------------------------------------------------------
 # Documentation

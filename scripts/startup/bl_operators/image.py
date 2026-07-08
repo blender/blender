@@ -78,7 +78,8 @@ class EditExternally(Operator):
             self.report(
                 {'ERROR'},
                 "Image editor could not be launched, ensure that "
-                "the path in User Preferences > File is valid, and Blender has rights to launch it",
+                "the path in User Preferences > File Paths > Applications > Image Editor is valid, "
+                "and Blender has rights to launch it",
             )
 
             return {'CANCELLED'}

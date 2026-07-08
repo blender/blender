@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "infos/overlay_edit_mode_infos.hh"
+#include "overlay_common_lib.glsl"
 
 FRAGMENT_SHADER_CREATE_INFO(overlay_edit_mesh_edge)
 
@@ -33,5 +34,5 @@ void main()
   frag_color.a *= 1.0f - (geometry_flat_out.final_color_outer.a > 0.0f ? mix_w_outer : mix_w);
 
   frag_color.a *= test_occlusion() ? alpha : 1.0f;
-  line_output = float4(0.0f);
+  line_output = pack_line_data_no_aa();
 }
