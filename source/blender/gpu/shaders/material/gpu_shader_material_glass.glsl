@@ -27,14 +27,12 @@ void node_bsdf_glass(float4 color,
   float2 bsdf = bsdf_lut(NV, roughness, ior, do_multiscatter != 0.0f);
 
   ClosureReflection reflection_data;
-  reflection_data.weight = bsdf.x * weight;
-  reflection_data.color = color.rgb;
+  reflection_data.color = color.rgb * (bsdf.x * weight);
   reflection_data.N = N;
   reflection_data.roughness = roughness;
 
   ClosureRefraction refraction_data;
-  refraction_data.weight = bsdf.y * weight;
-  refraction_data.color = color.rgb;
+  refraction_data.color = color.rgb * (bsdf.y * weight);
   refraction_data.N = N;
   refraction_data.roughness = roughness;
   refraction_data.ior = ior;

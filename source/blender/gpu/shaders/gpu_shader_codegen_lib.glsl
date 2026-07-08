@@ -5,6 +5,7 @@
 #pragma once
 
 #include "gpu_shader_compat.hh"
+#include "gpu_shader_math_vector_reduce_lib.glsl"
 
 float3 calc_barycentric_distances(float3 pos0, float3 pos1, float3 pos2)
 {
@@ -85,11 +86,15 @@ enum ClosureType : uchar {
 
 struct ClosureUndetermined {
   packed_float3 color;
-  float weight;
   packed_float3 N;
   ClosureType type;
   /* Additional data different for each closure type. */
   packed_float4 data;
+
+  float weight() const
+  {
+    return reduce_add(abs(color));
+  }
 };
 
 bool closure_has_transmission(const ClosureType closure)
@@ -112,33 +117,28 @@ struct ClosureOcclusion {
 
 struct ClosureDiffuse {
   packed_float3 color;
-  float weight;
   packed_float3 N;
 };
 
 struct ClosureSubsurface {
   packed_float3 color;
-  float weight;
   packed_float3 N;
   packed_float3 sss_radius;
 };
 
 struct ClosureTranslucent {
   packed_float3 color;
-  float weight;
   packed_float3 N;
 };
 
 struct ClosureReflection {
   packed_float3 color;
-  float weight;
   packed_float3 N;
   float roughness;
 };
 
 struct ClosureRefraction {
   packed_float3 color;
-  float weight;
   packed_float3 N;
   float roughness;
   float ior;
@@ -146,7 +146,6 @@ struct ClosureRefraction {
 
 struct ClosureHair {
   packed_float3 color;
-  float weight;
   packed_float3 T;
   float offset;
   packed_float2 roughness;
@@ -154,29 +153,24 @@ struct ClosureHair {
 
 struct ClosureVolumeScatter {
   packed_float3 scattering;
-  float weight;
   float anisotropy;
 };
 
 struct ClosureVolumeAbsorption {
   packed_float3 absorption;
-  float weight;
 };
 
 struct ClosureEmission {
   packed_float3 emission;
-  float weight;
 };
 
 struct ClosureTransparency {
   packed_float3 transmittance;
-  float weight;
   float holdout;
 };
 
 struct ClosureThinRefraction {
   packed_float3 color;
-  float weight;
   packed_float3 N;
   float roughness;
 };

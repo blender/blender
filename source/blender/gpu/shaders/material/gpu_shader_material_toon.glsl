@@ -13,8 +13,7 @@ void node_bsdf_toon(
 
   /* Fall back to diffuse. */
   ClosureDiffuse diffuse_data;
-  diffuse_data.weight = weight;
-  diffuse_data.color = color.rgb;
+  diffuse_data.color = color.rgb * weight;
   diffuse_data.N = N;
 
   result = closure_eval(diffuse_data);

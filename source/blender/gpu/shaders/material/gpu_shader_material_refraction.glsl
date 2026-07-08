@@ -15,8 +15,7 @@ void node_bsdf_refraction(
   N = safe_normalize(N);
 
   ClosureRefraction refraction_data;
-  refraction_data.weight = weight;
-  refraction_data.color = color.rgb;
+  refraction_data.color = color.rgb * weight;
   refraction_data.N = N;
   refraction_data.roughness = roughness;
   refraction_data.ior = ior;

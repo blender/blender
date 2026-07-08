@@ -63,7 +63,7 @@ void forward_lighting_eval(const ViewMatrices view,
   light::EvalCtx<false> ctx;
   for (uint i = 0u; i < 3; i++) [[unroll]] {
     if (srt.light_closure_eval_count_reflect > i) [[static_branch]] {
-      ClosureUndetermined cl = g_closure_get(uchar(i));
+      ClosureUndetermined cl = g_closure_get(uchar(i)).data;
       ctx.stack.cl[i] = closure_light_new(util_tx, cl, V);
     }
   }
@@ -84,7 +84,7 @@ void forward_lighting_eval(const ViewMatrices view,
   lights.eval_reflection(ctx, vPz);
 
   if (srt.light_closure_eval_count_transmit > 0) [[static_branch]] {
-    ClosureUndetermined cl_transmit = g_closure_get(0);
+    ClosureUndetermined cl_transmit = g_closure_get(0).data;
     if (closure_has_transmission(cl_transmit.type) || cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID)
     {
       light::EvalCtx<true> ctx_tr = light::init_from_reflect_ctx(ctx);
@@ -123,8 +123,8 @@ void forward_lighting_eval(const ViewMatrices view,
     /* Get average normal.  */
     for (uint i = 0u; i < 3; i++) [[unroll]] {
       if (srt.light_closure_eval_count_reflect > i) [[static_branch]] {
-        ClosureUndetermined cl = g_closure_get(uchar(i));
-        average_N += cl.N * cl.weight;
+        ClosureUndetermined cl = g_closure_get(uchar(i)).data;
+        average_N += cl.N * cl.weight();
       }
     }
     average_N = safe_normalize(average_N);
@@ -162,7 +162,7 @@ void forward_lighting_eval(const ViewMatrices view,
   for (uint i = 0u; i < 3; i++) [[unroll]] {
     if (srt.light_closure_eval_count_reflect > i) [[static_branch]] {
       ClosureUndetermined cl = g_closure_get_resolved(uchar(i), 1.0f);
-      if (cl.weight > CLOSURE_WEIGHT_CUTOFF) {
+      if (cl.weight() > CLOSURE_WEIGHT_CUTOFF) {
         float3 direct_light = ctx.stack.cl[i].light_shadowed;
         float3 indirect_light = lightprobes.eval(samp, cl, g_data.P, V, thickness);
 

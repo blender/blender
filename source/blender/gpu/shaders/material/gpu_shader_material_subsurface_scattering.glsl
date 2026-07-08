@@ -22,8 +22,7 @@ void node_subsurface_scattering(float4 color,
   N = safe_normalize(N);
 
   ClosureSubsurface sss_data;
-  sss_data.weight = weight;
-  sss_data.color = color.rgb;
+  sss_data.color = color.rgb * weight;
   sss_data.N = N;
   sss_data.sss_radius = max(radius * scale * random_walk_radius_scale, float3(0.0f));
 

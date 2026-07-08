@@ -9,8 +9,7 @@ void node_emission(float4 color, float strength, float weight, Closure &result)
   strength = max(strength, 0.0f);
 
   ClosureEmission emission_data;
-  emission_data.weight = weight;
-  emission_data.emission = color.rgb * strength;
+  emission_data.emission = color.rgb * (strength * weight);
 
   result = closure_eval(emission_data);
 }

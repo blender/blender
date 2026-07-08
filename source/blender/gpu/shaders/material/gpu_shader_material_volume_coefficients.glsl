@@ -17,17 +17,14 @@ void node_volume_coefficients(float weight,
                               Closure &result)
 {
   ClosureVolumeScatter volume_scatter_data;
-  volume_scatter_data.weight = weight;
-  volume_scatter_data.scattering = ScatterCoefficients;
-  volume_scatter_data.anisotropy = Anisotropy;
+  volume_scatter_data.scattering = ScatterCoefficients * weight;
+  volume_scatter_data.anisotropy = Anisotropy * weight;
 
   ClosureVolumeAbsorption volume_absorption_data;
-  volume_absorption_data.weight = weight;
-  volume_absorption_data.absorption = AbsorptionCoefficients;
+  volume_absorption_data.absorption = AbsorptionCoefficients * weight;
 
   ClosureEmission emission_data;
-  emission_data.weight = weight;
-  emission_data.emission = EmissionCoefficients;
+  emission_data.emission = EmissionCoefficients * weight;
 
   result = closure_eval(volume_scatter_data, volume_absorption_data, emission_data);
 }

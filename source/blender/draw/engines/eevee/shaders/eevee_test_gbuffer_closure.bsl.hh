@@ -40,7 +40,6 @@ void eevee_test_gbuffer_closure_main([[resource_table]] const ShaderTestOutput &
   {
     gbuffer::InputClosures data_in = gbuffer_new();
     data_in.closure[0].type = CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID;
-    data_in.closure[0].weight = 1.0f;
     data_in.closure[0].color = float3(0.1f, 0.2f, 0.3f);
     data_in.closure[0].N = normalize(float3(0.2f, 0.1f, 0.3f));
 
@@ -65,7 +64,6 @@ void eevee_test_gbuffer_closure_main([[resource_table]] const ShaderTestOutput &
   {
     gbuffer::InputClosures data_in = gbuffer_new();
     data_in.closure[1].type = CLOSURE_BSDF_DIFFUSE_ID;
-    data_in.closure[1].weight = 1.0f;
     data_in.closure[1].color = float3(0.1f, 0.2f, 0.3f);
     data_in.closure[1].N = normalize(float3(0.2f, 0.1f, 0.3f));
 
@@ -90,7 +88,6 @@ void eevee_test_gbuffer_closure_main([[resource_table]] const ShaderTestOutput &
   {
     gbuffer::InputClosures data_in = gbuffer_new();
     data_in.closure[0].type = CLOSURE_BSSRDF_BURLEY_ID;
-    data_in.closure[0].weight = 1.0f;
     data_in.closure[0].color = float3(0.1f, 0.2f, 0.3f);
     data_in.closure[0].data.rgb = float3(0.2f, 0.3f, 0.4f);
     data_in.closure[0].N = normalize(float3(0.2f, 0.1f, 0.3f));
@@ -118,7 +115,6 @@ void eevee_test_gbuffer_closure_main([[resource_table]] const ShaderTestOutput &
   {
     gbuffer::InputClosures data_in = gbuffer_new();
     data_in.closure[0].type = CLOSURE_BSDF_TRANSLUCENT_ID;
-    data_in.closure[0].weight = 1.0f;
     data_in.closure[0].color = float3(0.1f, 0.2f, 0.3f);
     data_in.closure[0].N = normalize(float3(0.2f, 0.1f, 0.3f));
 
@@ -143,7 +139,6 @@ void eevee_test_gbuffer_closure_main([[resource_table]] const ShaderTestOutput &
   {
     gbuffer::InputClosures data_in = gbuffer_new();
     data_in.closure[0].type = CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID;
-    data_in.closure[0].weight = 1.0f;
     data_in.closure[0].color = float3(0.1f, 0.2f, 0.3f);
     data_in.closure[0].data.x = 0.4f;
     data_in.closure[0].N = normalize(float3(0.2f, 0.1f, 0.3f));
@@ -171,7 +166,6 @@ void eevee_test_gbuffer_closure_main([[resource_table]] const ShaderTestOutput &
   {
     gbuffer::InputClosures data_in = gbuffer_new();
     data_in.closure[0].type = CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
-    data_in.closure[0].weight = 1.0f;
     data_in.closure[0].color = float3(0.1f, 0.2f, 0.3f);
     data_in.closure[0].data.x = 0.4f;
     data_in.closure[0].data.y = 0.5f;
@@ -200,14 +194,12 @@ void eevee_test_gbuffer_closure_main([[resource_table]] const ShaderTestOutput &
   TEST(eevee_gbuffer, ClosureCombination)
   {
     ClosureUndetermined in_cl0 = closure_new(CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID);
-    in_cl0.weight = 1.0f;
     in_cl0.color = float3(0.1f, 0.2f, 0.3f);
     in_cl0.data.x = 0.4f;
     in_cl0.data.y = 0.5f;
     in_cl0.N = normalize(float3(0.2f, 0.1f, 0.3f));
 
     ClosureUndetermined in_cl1 = closure_new(CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID);
-    in_cl1.weight = 1.0f;
     in_cl1.color = float3(0.4f, 0.5f, 0.6f);
     in_cl1.data.x = 0.6f;
     in_cl1.N = normalize(float3(0.2f, 0.3f, 0.4f));
@@ -252,14 +244,12 @@ void eevee_test_gbuffer_closure_main([[resource_table]] const ShaderTestOutput &
   {
     gbuffer::InputClosures data_in = gbuffer_new();
     data_in.closure[0].type = CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
-    data_in.closure[0].weight = 1.0f;
     data_in.closure[0].color = float3(0.1f, 0.1f, 0.1f);
     data_in.closure[0].data.x = 0.4f;
     data_in.closure[0].data.y = 0.5f;
     data_in.closure[0].N = normalize(float3(0.2f, 0.1f, 0.3f));
 
     data_in.closure[1].type = CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID;
-    data_in.closure[1].weight = 1.0f;
     data_in.closure[1].color = float3(0.1f, 0.1f, 0.1f);
     data_in.closure[1].data.x = 0.4f;
     data_in.closure[1].N = normalize(float3(0.2f, 0.3f, 0.4f));
