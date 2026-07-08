@@ -706,21 +706,7 @@ static wmOperatorStatus material_slot_remove_unused_exec(bContext *C, wmOperator
 
   Vector<Object *> objects = object_array_for_shading_edit_mode_disabled(C);
   for (Object *ob : objects) {
-    int actcol = ob->actcol;
-    for (int slot = 1; slot <= ob->totcol; slot++) {
-      while (slot <= ob->totcol && !BKE_object_material_slot_used(ob, slot)) {
-        ob->actcol = slot;
-        BKE_object_material_slot_remove(bmain, ob);
-
-        if (actcol >= slot) {
-          actcol--;
-        }
-
-        removed++;
-      }
-    }
-    ob->actcol = actcol;
-
+    removed += BKE_object_material_remove_unused(bmain, ob);
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
 
@@ -768,21 +754,7 @@ static wmOperatorStatus material_slot_remove_all_exec(bContext *C, wmOperator *o
 
   Vector<Object *> objects = object_array_for_shading_edit_mode_disabled(C);
   for (Object *ob : objects) {
-    int actcol = ob->actcol;
-    for (int slot = 1; slot <= ob->totcol; slot++) {
-      while (slot <= ob->totcol) {
-        ob->actcol = slot;
-        BKE_object_material_slot_remove(bmain, ob);
-
-        if (actcol >= slot) {
-          actcol--;
-        }
-
-        removed++;
-      }
-    }
-    ob->actcol = actcol;
-
+    removed += BKE_object_material_remove_all(bmain, ob);
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
 
