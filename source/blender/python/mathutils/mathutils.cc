@@ -12,6 +12,7 @@
 
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_rotation_c.hh"
+#include "BLI_offset_indices.hh"
 #include "BLI_utildefines.hh"
 
 #include "../generic/py_capi_utils.hh"
@@ -373,7 +374,8 @@ int mathutils_array_parse_alloc_vi(int **array,
 
 bool mathutils_array_parse_alloc_viseq(PyObject *value,
                                        const char *error_prefix,
-                                       Array<Vector<int>> &r_data)
+                                       Array<int> &r_offsets,
+                                       Array<int> &r_data)
 {
   PyObject *value_fast;
   if (!(value_fast = PySequence_Fast(value, error_prefix))) {
@@ -384,18 +386,28 @@ bool mathutils_array_parse_alloc_viseq(PyObject *value,
   const int size = PySequence_Fast_GET_SIZE(value_fast);
   if (size != 0) {
     PyObject **value_fast_items = PySequence_Fast_ITEMS(value_fast);
-    r_data.reinitialize(size);
-    for (const int64_t i : r_data.index_range()) {
-      PyObject *subseq = value_fast_items[i];
-      const int subseq_len = int(PySequence_Size(subseq));
+    r_offsets.reinitialize(size + 1);
+
+    int count = 0;
+    for (int i = 0; i < size; i++) {
+      r_offsets[i] = count;
+      const int subseq_len = int(PySequence_Size(value_fast_items[i]));
       if (subseq_len == -1) {
         PyErr_Format(
             PyExc_ValueError, "%.200s: sequence expected to have subsequences", error_prefix);
         Py_DECREF(value_fast);
         return false;
       }
-      r_data[i].resize(subseq_len);
-      MutableSpan<int> group = r_data[i];
+      count += int(PySequence_Size(value_fast_items[i]));
+    }
+    r_offsets.last() = count;
+    const OffsetIndices<int> offsets(r_offsets);
+
+    r_data.reinitialize(offsets.total_size());
+
+    for (const int64_t i : r_data.index_range()) {
+      PyObject *subseq = value_fast_items[i];
+      MutableSpan<int> group = r_data.as_mutable_span().slice(offsets[i]);
       if (mathutils_int_array_parse(group.data(), group.size(), subseq, error_prefix) == -1) {
         Py_DECREF(value_fast);
         return false;

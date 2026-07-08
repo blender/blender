@@ -2357,7 +2357,7 @@ int add_face_constraints(CDT_state<T> *cdt_state,
                          const bool need_winding)
 {
   int nv = input.vert.size();
-  const Span<Vector<int>> input_faces = input.face;
+  const GroupedSpan<int> input_faces(input.face_offsets, input.face_vert_indices);
   SymEdge<T> *face_symedge0 = nullptr;
   CDTArrangement<T> *cdt = &cdt_state->cdt;
 
@@ -3326,7 +3326,7 @@ CDT_result<T> delaunay_calc(const CDT_input<T> &input, CDT_output_type output_ty
 {
   int nv = input.vert.size();
   int ne = input.edge.size();
-  int nf = input.face.size();
+  int nf = input.face_offsets.size();
   CDT_state<T> cdt_state(nv, ne, nf, input.epsilon, input.need_ids);
   const bool need_winding = output_uses_nonzero_holes(output_type);
   const bool need_polygon_boundary_count = output_uses_evenodd_holes(output_type);

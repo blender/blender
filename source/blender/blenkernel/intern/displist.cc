@@ -482,13 +482,21 @@ static DispList *displist_fill_cdt_process_group(const CDTFillGroup &group,
 {
   /* Build CDT input, tracking if all Z coordinates are uniform.
    * Also build vert_to_poly map for O(1) polygon lookup. */
-  Array<double2> verts_2d(group.total_verts);
-  Array<int> vert_to_poly(group.total_verts);
-  Array<Vector<int>> faces(group.poly_ranges.size());
+  Array<double2, 64> verts_2d(group.total_verts);
+  Array<int, 64> vert_to_poly(group.total_verts);
 
   const float first_z = group.poly_ranges[0].dl->verts[2];
   bool uniform_z = true;
 
+  Array<int, 8> face_offset_data(group.poly_ranges.size() + 1);
+  for (const int64_t p : group.poly_ranges.index_range()) {
+    face_offset_data[p] = group.poly_ranges[p].count;
+  }
+  const OffsetIndices<int> face_offsets = offset_indices::accumulate_counts_to_offsets(
+      face_offset_data);
+  BLI_assert(face_offsets.total_size() == group.total_verts);
+
+  Array<int, 64> face_vert_indices_data(face_offsets.total_size());
   for (const int64_t p : group.poly_ranges.index_range()) {
     const PolyRange &poly = group.poly_ranges[p];
 
@@ -498,12 +506,12 @@ static DispList *displist_fill_cdt_process_group(const CDTFillGroup &group,
      * Fill indices in reverse order to restore consistent winding
      * so the CDT winding number calculation produces correct results.
      * Needed for correct non-zero filling but harmless for odd/even, see: #155733. */
-    faces[p].resize(poly.count);
+    MutableSpan<int> indices = face_vert_indices_data.as_mutable_span().slice(face_offsets[p]);
     if (poly.dl->flag & DL_REVERSED) {
-      std::iota(faces[p].rbegin(), faces[p].rend(), poly.start);
+      std::iota(indices.rbegin(), indices.rend(), poly.start);
     }
     else {
-      std::iota(faces[p].begin(), faces[p].end(), poly.start);
+      std::iota(indices.begin(), indices.end(), poly.start);
     }
 
     /* Build vertex data. */
@@ -519,8 +527,9 @@ static DispList *displist_fill_cdt_process_group(const CDTFillGroup &group,
   }
 
   meshintersect::CDT_input<double> input;
-  input.vert = std::move(verts_2d);
-  input.face = std::move(faces);
+  input.vert = verts_2d;
+  input.face_offsets = face_offsets;
+  input.face_vert_indices = face_vert_indices_data;
   input.epsilon = 1e-8;
   input.need_ids = true;
 

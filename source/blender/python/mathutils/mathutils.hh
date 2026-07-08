@@ -230,7 +230,8 @@ void _BaseMathObject_RaiseNotFrozenExc(const BaseMathObject *self);
  */
 [[nodiscard]] bool mathutils_array_parse_alloc_viseq(PyObject *value,
                                                      const char *error_prefix,
-                                                     Array<Vector<int>> &r_data);
+                                                     Array<int> &r_offsets,
+                                                     Array<int> &r_data);
 [[nodiscard]] int mathutils_any_to_rotmat(float rmat[3][3],
                                           PyObject *value,
                                           const char *error_prefix);

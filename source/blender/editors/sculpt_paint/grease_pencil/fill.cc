@@ -1511,14 +1511,16 @@ static meshintersect::CDT_input<double> get_input_from_drawings(
   const OffsetIndices<int> drawing_edge_offsets = offset_indices::accumulate_counts_to_offsets(
       drawing_edge_offset_data);
 
+  /* Four points are added for the bounding box. */
+  Array<double2> verts(drawing_vert_offsets.total_size() + 4);
+  Array<std::pair<int, int>> edges(drawing_edge_offsets.total_size());
+
   meshintersect::CDT_input<double> input;
   input.need_ids = true;
+  input.vert = verts;
+  input.edge = edges;
 
-  /* Four points are added for the bounding box. */
-  input.vert.reinitialize(drawing_vert_offsets.total_size() + 4);
-  input.edge.reinitialize(drawing_edge_offsets.total_size());
-
-  MutableSpan<double2> verts_span = input.vert.as_mutable_span();
+  MutableSpan<double2> verts_span = verts.as_mutable_span();
   threading::parallel_for(drawing_input_verts.index_range(), 512, [&](const IndexRange range) {
     for (const int drawing_i : range) {
       const IndexRange drawing_range = drawing_vert_offsets[drawing_i];
@@ -1526,7 +1528,7 @@ static meshintersect::CDT_input<double> get_input_from_drawings(
     }
   });
 
-  MutableSpan<std::pair<int, int>> edges_span = input.edge.as_mutable_span();
+  MutableSpan<std::pair<int, int>> edges_span = edges.as_mutable_span();
   threading::parallel_for(drawing_input_edges.index_range(), 512, [&](const IndexRange range) {
     for (const int drawing_i : range) {
       const IndexRange drawing_range = drawing_edge_offsets[drawing_i];
@@ -1544,14 +1546,14 @@ static meshintersect::CDT_input<double> get_input_from_drawings(
     }
   });
 
-  Bounds<double2> bound = *bounds::min_max(input.vert.as_span().drop_back(4));
+  Bounds<double2> bound = *bounds::min_max(verts.as_span().drop_back(4));
 
   /* Pad by enough that all edges connected to the boundary are longer than any edge inside the
    * shape. */
   bound.pad(math::max(bound.size().x, bound.size().y) * 1.1f);
 
   const std::array<double2, 4> corners = bounds::corners(bound);
-  input.vert.as_mutable_span().take_back(4).copy_from(corners);
+  verts.as_mutable_span().take_back(4).copy_from(corners);
 
   return input;
 }

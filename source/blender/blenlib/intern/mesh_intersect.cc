@@ -1491,7 +1491,8 @@ struct CDT_data {
   const Plane *t_plane;
   Vector<mpq2> vert;
   Vector<std::pair<int, int>> edge;
-  Vector<Vector<int>> face;
+  Vector<int> face_offsets;
+  Vector<int> face_vert_indices;
   /** Parallels face, gives id from input #IMesh of input face. */
   Vector<int> input_face;
   /** Parallels face, says if input face orientation is opposite. */
@@ -1583,15 +1584,15 @@ static void prepare_need_tri(CDT_data &cd, const IMesh &tm, int t)
   else {
     rev = cd.proj_axis != 1;
   }
-  int cd_t = cd.face.append_and_get_index(Vector<int>());
-  cd.face[cd_t].append(v0);
+  cd.face_offsets.append(cd.face_vert_indices.size());
+  cd.face_vert_indices.append(v0);
   if (rev) {
-    cd.face[cd_t].append(v2);
-    cd.face[cd_t].append(v1);
+    cd.face_vert_indices.append(v2);
+    cd.face_vert_indices.append(v1);
   }
   else {
-    cd.face[cd_t].append(v1);
-    cd.face[cd_t].append(v2);
+    cd.face_vert_indices.append(v1);
+    cd.face_vert_indices.append(v2);
   }
   cd.input_face.append(t);
   cd.is_reversed.append(rev);
@@ -1623,6 +1624,7 @@ static CDT_data prepare_cdt_input(const IMesh &tm, int t, const Span<ITT_value> 
       }
     }
   }
+  ans.face_offsets.append(ans.face_vert_indices.size());
   return ans;
 }
 
@@ -1657,6 +1659,7 @@ static CDT_data prepare_cdt_input_for_cluster(const IMesh &tm,
         break;
     }
   }
+  ans.face_offsets.append(ans.face_vert_indices.size());
   return ans;
 }
 
@@ -1693,7 +1696,8 @@ static void do_cdt(CDT_data &cd)
   CDT_input<mpq_class> cdt_in;
   cdt_in.vert = Span<mpq2>(cd.vert);
   cdt_in.edge = Span<std::pair<int, int>>(cd.edge);
-  cdt_in.face = Span<Vector<int>>(cd.face);
+  cdt_in.face_offsets = cd.face_offsets.as_span();
+  cdt_in.face_vert_indices = cd.face_vert_indices;
   if (dbg_level > 0) {
     std::cout << "CDT input\nVerts:\n";
     for (int i : cdt_in.vert.index_range()) {
@@ -1706,10 +1710,11 @@ static void do_cdt(CDT_data &cd)
                 << ")\n";
     }
     std::cout << "Tris\n";
-    for (int f : cdt_in.face.index_range()) {
+    const GroupedSpan<int> in_faces(cdt_in.face_offsets, cdt_in.face_vert_indices);
+    for (int f : in_faces.index_range()) {
       std::cout << "f" << f << ": ";
-      for (int j : cdt_in.face[f].index_range()) {
-        std::cout << cdt_in.face[f][j] << " ";
+      for (int j : in_faces[f].index_range()) {
+        std::cout << in_faces[f][j] << " ";
       }
       std::cout << "\n";
     }
@@ -1998,9 +2003,9 @@ static Array<Face *> exact_triangulate_poly(Face *f, IMeshArena *arena)
 {
   int flen = f->size();
   Array<mpq2> in_verts(flen);
-  Array<Vector<int>> faces(1);
-  faces.first().resize(flen);
-  std::iota(faces.first().begin(), faces.first().end(), 0);
+  const Array<int> face_offsets({0, flen});
+  Array<int> face_vert_indices(flen);
+  std::iota(face_vert_indices.begin(), face_vert_indices.end(), 0);
 
   /* Project poly along dominant axis of normal to get 2d coords. */
   if (!f->plane_populated()) {
@@ -2027,8 +2032,9 @@ static Array<Face *> exact_triangulate_poly(Face *f, IMeshArena *arena)
   }
 
   CDT_input<mpq_class> cdt_in;
-  cdt_in.vert = std::move(in_verts);
-  cdt_in.face = std::move(faces);
+  cdt_in.vert = in_verts;
+  cdt_in.face_offsets = face_offsets.as_span();
+  cdt_in.face_vert_indices = face_vert_indices;
 
   CDT_result<mpq_class> cdt_out = delaunay_2d_calc(cdt_in, CDT_INSIDE);
   int n_tris = cdt_out.face.size();

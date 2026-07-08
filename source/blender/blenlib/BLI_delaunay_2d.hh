@@ -8,6 +8,7 @@
 #include "BLI_math_mpq.hh"
 #include "BLI_math_vector_mpq_types.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_offset_indices.hh"
 #include "BLI_vector.hh"
 
 namespace blender {
@@ -149,9 +150,10 @@ namespace meshintersect {
  */
 template<typename T> class CDT_input {
  public:
-  Array<VecBase<T, 2>> vert;
-  Array<std::pair<int, int>> edge;
-  Array<Vector<int>> face;
+  Span<VecBase<T, 2>> vert;
+  Span<std::pair<int, int>> edge;
+  OffsetIndices<int> face_offsets;
+  Span<int> face_vert_indices;
   T epsilon{0};
   bool need_ids{true};
 };

@@ -74,12 +74,11 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 }
 
 static void fill_curve_vert_indices(const OffsetIndices<int> offsets,
-                                    MutableSpan<Vector<int>> faces)
+                                    MutableSpan<int> face_vert_indices)
 {
-  threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
+  threading::parallel_for(offsets.index_range(), 1024, [&](const IndexRange range) {
     for (const int i : range) {
-      faces[i].resize(offsets[i].size());
-      array_utils::fill_index_range<int>(faces[i], offsets[i].start());
+      array_utils::fill_index_range<int>(face_vert_indices.slice(offsets[i]), offsets[i].start());
     }
   });
 }
@@ -97,14 +96,14 @@ static meshintersect::CDT_result<double> do_cdt(const bke::CurvesGeometry &curve
     }
   });
 
-  Array<Vector<int>> faces(curves.curves_num());
-  fill_curve_vert_indices(points_by_curve, faces);
+  Array<int> face_vert_indices(positions.size());
+  fill_curve_vert_indices(points_by_curve, face_vert_indices);
 
   meshintersect::CDT_input<double> input;
+  input.vert = positions_2d;
+  input.face_offsets = points_by_curve;
+  input.face_vert_indices = face_vert_indices;
   input.need_ids = false;
-  input.vert = std::move(positions_2d);
-  input.face = std::move(faces);
-
   return delaunay_2d_calc(input, output_type);
 }
 
@@ -132,13 +131,14 @@ static meshintersect::CDT_result<double> do_cdt_with_mask(const bke::CurvesGeome
       },
       exec_mode::grain_size(1024));
 
-  Array<Vector<int>> faces(points_by_curve_masked.size());
-  fill_curve_vert_indices(points_by_curve_masked, faces);
+  Array<int> face_vert_indices(positions_2d.size());
+  fill_curve_vert_indices(points_by_curve_masked, face_vert_indices);
 
   meshintersect::CDT_input<double> input;
+  input.vert = positions_2d;
+  input.face_offsets = points_by_curve_masked;
+  input.face_vert_indices = face_vert_indices;
   input.need_ids = false;
-  input.vert = std::move(positions_2d);
-  input.face = std::move(faces);
 
   return delaunay_2d_calc(input, output_type);
 }
