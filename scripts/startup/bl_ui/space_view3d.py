@@ -5771,7 +5771,9 @@ class VIEW3D_MT_edit_armature_delete(Menu):
 
         layout.separator()
 
-        layout.operator("armature.dissolve", text="Dissolve Bones")
+        row = layout.row()
+        row.operator_context = 'INVOKE_REGION_WIN'
+        row.operator("armature.dissolve", text="Dissolve Bones")
 
 
 class VIEW3D_MT_weight_grease_pencil(Menu):
