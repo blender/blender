@@ -362,6 +362,7 @@ ifneq "$(filter ccache, $(MAKECMDGOALS))" ""
 	CMAKE_CONFIG_ARGS:=-DWITH_COMPILER_CCACHE=YES $(CMAKE_CONFIG_ARGS)
 endif
 
+
 # -----------------------------------------------------------------------------
 # Build tool
 #
@@ -383,6 +384,7 @@ else
 		DEPS_BUILD_COMMAND:="$(BLENDER_DIR)/build_files/build_environment/linux/make_deps_wrapper.sh" -s
 	endif
 endif
+
 
 # -----------------------------------------------------------------------------
 # Blender binary path
@@ -505,6 +507,12 @@ deps: .FORCE
 	@echo
 	@echo Dependencies successfully built and installed to $(DEPS_INSTALL_DIR).
 	@echo
+
+
+# -----------------------------------------------------------------------------
+# Cross-compilation targets
+
+android: .FORCE
 
 
 # -----------------------------------------------------------------------------
