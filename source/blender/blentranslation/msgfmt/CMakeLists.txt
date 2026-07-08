@@ -23,21 +23,28 @@ set(LIB
   PRIVATE bf::dependencies::zlib
   ${PLATFORM_LINKLIBS})
 
-add_c_and_cxx_flags_custom_test(msgfmt)
 
-if(WIN32)
-  string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " /nodefaultlib:MSVCRT.lib")
-  list(APPEND LIB bf_intern_utfconv)
-endif()
+# When cross-compiling the executable is separately compiled for the host architecture
+# in a sub-build defined in host_tools.cmake. As this is a build-time code-gen tool
+# that must run on the host build machine, the executable is then provided by the
+# MSGFMT_EXECUTABLE variable
+if(NOT CMAKE_CROSSCOMPILING)
+  add_c_and_cxx_flags_custom_test(msgfmt)
 
-add_executable(msgfmt ${SRC})
-setup_platform_linker_flags(msgfmt)
-blender_target_include_dirs(msgfmt ${INC})
-target_link_libraries(msgfmt ${LIB})
+  if(WIN32)
+    string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " /nodefaultlib:MSVCRT.lib")
+    list(APPEND LIB bf_intern_utfconv)
+  endif()
 
-# If using an external manifest, copy it to the output directory after building.
-if(WITH_WINDOWS_EXTERNAL_MANIFEST)
-  add_custom_command(TARGET msgfmt POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/tests.exe.manifest  $<TARGET_FILE_DIR:msgfmt>/$<TARGET_FILE_NAME:msgfmt>.manifest
-  )
+  add_executable(msgfmt ${SRC})
+  setup_platform_linker_flags(msgfmt)
+  blender_target_include_dirs(msgfmt ${INC})
+  target_link_libraries(msgfmt ${LIB})
+
+  # If using an external manifest, copy it to the output directory after building.
+  if(WITH_WINDOWS_EXTERNAL_MANIFEST)
+    add_custom_command(TARGET msgfmt POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/tests.exe.manifest  $<TARGET_FILE_DIR:msgfmt>/$<TARGET_FILE_NAME:msgfmt>.manifest
+    )
+  endif()
 endif()

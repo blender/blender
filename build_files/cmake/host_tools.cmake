@@ -45,6 +45,7 @@ if(CMAKE_CROSSCOMPILING)
                   --target makesrna
                   --target datatoc
                   --target shader_tool
+                  --target msgfmt
     INSTALL_COMMAND ""
 
     # Nicer build output on ninja: hide verbose configure, show build steps
@@ -56,6 +57,7 @@ if(CMAKE_CROSSCOMPILING)
       ${HOST_TOOLS_BIN_DIR}/makesrna
       ${HOST_TOOLS_BIN_DIR}/datatoc
       ${HOST_TOOLS_BIN_DIR}/shader_tool
+      ${HOST_TOOLS_BIN_DIR}/msgfmt
   )
   unset(_host_tools_forwarded_args)
 
@@ -63,19 +65,23 @@ if(CMAKE_CROSSCOMPILING)
   set(MAKESRNA_EXECUTABLE     ${HOST_TOOLS_BIN_DIR}/makesrna)
   set(DATATOC_EXECUTABLE      ${HOST_TOOLS_BIN_DIR}/datatoc)
   set(SHADER_TOOL_EXECUTABLE  ${HOST_TOOLS_BIN_DIR}/shader_tool)
+  set(MSGFMT_EXECUTABLE       ${HOST_TOOLS_BIN_DIR}/msgfmt)
 
   set(MAKESDNA_DEPENDENCY     host_tools)
   set(MAKESRNA_DEPENDENCY     host_tools)
   set(DATATOC_DEPENDENCY      host_tools)
   set(SHADER_TOOL_DEPENDENCY  host_tools)
+  set(MSGFMT_DEPENDENCY       host_tools)
 else()
   set(MAKESDNA_EXECUTABLE     "$<TARGET_FILE:makesdna>")
   set(MAKESRNA_EXECUTABLE     "$<TARGET_FILE:makesrna>")
   set(DATATOC_EXECUTABLE      "$<TARGET_FILE:datatoc>")
   set(SHADER_TOOL_EXECUTABLE  "$<TARGET_FILE:shader_tool>")
+  set(MSGFMT_EXECUTABLE       "$<TARGET_FILE:msgfmt>")
 
   set(MAKESDNA_DEPENDENCY     makesdna)
   set(MAKESRNA_DEPENDENCY     makesrna)
   set(DATATOC_DEPENDENCY      datatoc)
   set(SHADER_TOOL_DEPENDENCY  shader_tool)
+  set(MSGFMT_DEPENDENCY       msgfmt)
 endif()
