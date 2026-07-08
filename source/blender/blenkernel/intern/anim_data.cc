@@ -754,7 +754,7 @@ static std::optional<std::string> rna_path_rename_fix(ID &owner_id,
 }
 
 /* Check RNA-Paths for a list of F-Curves */
-static bool fcurves_path_rename_fix(ID *owner_id,
+static bool fcurves_path_rename_fix(ID &owner_id,
                                     const StringRef prefix,
                                     const StringRef old_infix,
                                     const StringRef new_infix,
@@ -769,7 +769,7 @@ static bool fcurves_path_rename_fix(ID *owner_id,
     }
     /* Firstly, handle the F-Curve's own path. */
     std::optional<std::string> new_path = rna_path_rename_fix(
-        *owner_id, prefix, old_infix, new_infix, fcu->rna_path, verify_paths);
+        owner_id, prefix, old_infix, new_infix, fcu->rna_path, verify_paths);
     if (!new_path.has_value()) {
       continue;
     }
@@ -780,7 +780,7 @@ static bool fcurves_path_rename_fix(ID *owner_id,
     /* If the path changed and the FCurve is grouped, check if its group also needs renaming
      * (i.e. F-Curve is first of a bone's F-Curves;
      * hence renaming this should also trigger rename) */
-    PointerRNA ptr = RNA_id_pointer_create(owner_id);
+    PointerRNA ptr = RNA_id_pointer_create(&owner_id);
     PointerRNA resolved_ptr;
     PropertyRNA *resolved_prop;
     if (!RNA_path_resolve(&ptr, fcu->rna_path, &resolved_ptr, &resolved_prop)) {
@@ -866,7 +866,7 @@ static bool drivers_path_rename_fix(ID *owner_id,
 
 static bool rename_paths_action(bAction *dna_action,
                                 const animrig::slot_handle_t slot_handle,
-                                ID *owner_id,
+                                ID &owner_id,
                                 const StringRef prefix,
                                 const StringRef old_infix,
                                 const StringRef new_infix,
@@ -893,7 +893,7 @@ static bool rename_paths_action(bAction *dna_action,
 }
 
 /* Fix all RNA-Paths for Actions linked to NLA Strips */
-static bool nlastrips_path_rename_fix(ID *owner_id,
+static bool nlastrips_path_rename_fix(ID &owner_id,
                                       const StringRef prefix,
                                       const StringRef old_infix,
                                       const StringRef new_infix,
@@ -971,7 +971,7 @@ void BKE_action_fix_paths_rename(ID *owner_id,
   auto &&[old_key, new_key] = RNA_generate_keys_for_path_rename(old_name, new_name, 0, 0, true);
 
   /* fix paths in action */
-  fcurves_path_rename_fix(owner_id,
+  fcurves_path_rename_fix(*owner_id,
                           prefix,
                           old_key,
                           new_key,
@@ -1007,11 +1007,11 @@ void BKE_animdata_fix_paths_rename(ID *owner_id,
   /* Active action and temp action. */
   if (adt->action != nullptr && adt->slot_handle != animrig::Slot::unassigned) {
     rename_paths_action(
-        adt->action, adt->slot_handle, owner_id, prefix, old_key, new_key, verify_paths);
+        adt->action, adt->slot_handle, *owner_id, prefix, old_key, new_key, verify_paths);
   }
   if (adt->tmpact) {
     rename_paths_action(
-        adt->tmpact, adt->tmp_slot_handle, owner_id, prefix, old_key, new_key, verify_paths);
+        adt->tmpact, adt->tmp_slot_handle, *owner_id, prefix, old_key, new_key, verify_paths);
   }
   /* Drivers - Drivers are really F-Curves */
   is_self_changed |= drivers_path_rename_fix(owner_id,
@@ -1026,7 +1026,7 @@ void BKE_animdata_fix_paths_rename(ID *owner_id,
   /* NLA Data - Animation Data for Strips */
   for (NlaTrack &nlt : adt->nla_tracks) {
     is_self_changed |= nlastrips_path_rename_fix(
-        owner_id, prefix, old_key, new_key, nlt.strips, verify_paths);
+        *owner_id, prefix, old_key, new_key, nlt.strips, verify_paths);
   }
   /* Tag owner ID if it */
   if (is_self_changed) {
