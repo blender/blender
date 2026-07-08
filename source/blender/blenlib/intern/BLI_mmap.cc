@@ -272,7 +272,7 @@ static bool ensure_mmap_initialized()
   }
   return true;
 }
-#else  /* !WIN32 */
+#else /* !WIN32 */
 static void print_error(const char *message)
 {
   char buffer[256];
@@ -333,11 +333,11 @@ static bool ensure_mmap_initialized()
 
   std::unique_lock lock(mmap_mutex);
   if (!initialized) {
-#ifdef __ANDROID__
+#  ifdef __ANDROID__
     struct sigaction newact = {}, oldact = {};
-#else
+#  else
     struct sigaction newact = {{nullptr}}, oldact = {{nullptr}};
-#endif
+#  endif
 
     newact.sa_sigaction = sigbus_handler;
     newact.sa_flags = SA_SIGINFO;

@@ -59,7 +59,12 @@ def main() -> None:
     )
     parser.add_argument("directory", type=Path, help="Path to the library directory to strip")
     parser.add_argument("strip_cmd", type=Path, help="`strip` executable command / path", nargs='?', default="strip")
-    parser.add_argument("objcopy_cmd", type=Path, help="`objcopy` executable command / path", nargs='?', default="objcopy")
+    parser.add_argument(
+        "objcopy_cmd",
+        type=Path,
+        help="`objcopy` executable command / path",
+        nargs='?',
+        default="objcopy")
 
     args = parser.parse_args()
 
