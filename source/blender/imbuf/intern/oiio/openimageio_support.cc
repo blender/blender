@@ -3,12 +3,14 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "openimageio_support.hh"
+#include <OpenImageIO/image_span.h>
 #include <OpenImageIO/imagebuf.h>
 #include <OpenImageIO/imagebufalgo.h>
 
-#include <algorithm>
+#include <cmath>
+#include <cstddef>
 
-#include "BLI_listbase.hh"
+#include "BLI_listbase_iterator.hh"
 #include "BLI_string_utf8.hh"
 
 #include "BKE_idprop.hh"
@@ -379,7 +381,7 @@ bool imb_oiio_write(const WriteContext &ctx, const char *filepath, const ImageSp
     return false;
   }
 
-  ImageBuf orig_buf(ctx.mem_spec, ctx.mem_start, ctx.mem_xstride, -ctx.mem_ystride, AutoStride);
+  ImageBuf orig_buf(ctx.mem_spec, ctx.mem_span);
   ImageBuf final_buf{};
 
   oiio_write_prepare(file_spec, orig_buf, final_buf);
@@ -407,7 +409,7 @@ Vector<uint8_t> imb_oiio_write_buffer(const WriteContext &ctx, const ImageSpec &
     return {};
   }
 
-  ImageBuf orig_buf(ctx.mem_spec, ctx.mem_start, ctx.mem_xstride, -ctx.mem_ystride, AutoStride);
+  ImageBuf orig_buf(ctx.mem_spec, ctx.mem_span);
   ImageBuf final_buf{};
 
   oiio_write_prepare(file_spec, orig_buf, final_buf);
@@ -432,7 +434,7 @@ Vector<uint8_t> imb_oiio_write_buffer(const WriteContext &ctx, const ImageSpec &
 }
 
 WriteContext imb_create_write_context(const char *file_format,
-                                      ImBuf *ibuf,
+                                      const ImBuf *ibuf,
                                       ImBufFlags flags,
                                       bool prefer_float)
 {
@@ -444,23 +446,37 @@ WriteContext imb_create_write_context(const char *file_format,
   const int width = ibuf->x;
   const int height = ibuf->y;
   const bool use_float = prefer_float && (ibuf->float_data() != nullptr);
+
+  auto make_image_span =
+      [](const auto *buffer, int width, int height, int channels, size_t channel_size) {
+        const stride_t mem_xstride = channel_size * channels;
+        const stride_t mem_ystride = mem_xstride * width;
+        const std::byte *mem_start = reinterpret_cast<const std::byte *>(buffer);
+
+        /* We always write using a negative y-stride so ensure we start at the end. */
+        const stride_t y_flip_offset = (stride_t(height) - 1) * mem_ystride;
+        return image_span<const std::byte>(mem_start + y_flip_offset,
+                                           channels,
+                                           width,
+                                           height,
+                                           1,
+                                           AutoStride,
+                                           mem_xstride,
+                                           -mem_ystride,
+                                           AutoStride,
+                                           channel_size);
+      };
+
   if (use_float) {
     const int mem_channels = ibuf->channels ? ibuf->channels : 4;
-    ctx.mem_xstride = sizeof(float) * mem_channels;
-    ctx.mem_ystride = width * ctx.mem_xstride;
-    ctx.mem_start = reinterpret_cast<uchar *>(ibuf->float_data_for_write());
+    ctx.mem_span = make_image_span(ibuf->float_data(), width, height, mem_channels, sizeof(float));
     ctx.mem_spec = ImageSpec(width, height, mem_channels, TypeDesc::FLOAT);
   }
   else {
     const int mem_channels = 4;
-    ctx.mem_xstride = sizeof(uchar) * mem_channels;
-    ctx.mem_ystride = width * ctx.mem_xstride;
-    ctx.mem_start = ibuf->byte_data_for_write();
+    ctx.mem_span = make_image_span(ibuf->byte_data(), width, height, mem_channels, sizeof(uchar));
     ctx.mem_spec = ImageSpec(width, height, mem_channels, TypeDesc::UINT8);
   }
-
-  /* We always write using a negative y-stride so ensure we start at the end. */
-  ctx.mem_start = ctx.mem_start + ((stride_t(height) - 1) * ctx.mem_ystride);
 
   return ctx;
 }
