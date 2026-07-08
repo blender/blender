@@ -39,6 +39,7 @@ math_nodes = {
 }
 
 switch_nodes = {
+    "GeometryNodeSwitch",
     "GeometryNodeMenuSwitch",
     "GeometryNodeIndexSwitch",
 }
@@ -342,14 +343,18 @@ class NodeSwapOperator(NodeOperator):
                 pass
 
     def transfer_input_values(self, old_node, new_node):
-        if (old_node.bl_idname in math_nodes) and (new_node.bl_idname in math_nodes):
+        both_math_nodes = (old_node.bl_idname in math_nodes) and (new_node.bl_idname in math_nodes)
+        both_switch_nodes = (old_node.bl_idname in switch_nodes) and (new_node.bl_idname in switch_nodes)
+
+        transfer_by_index = both_math_nodes or both_switch_nodes
+
+        if transfer_by_index:
             for source_input, target_input in zip(old_node.inputs, new_node.inputs):
 
                 new_value = cast_value(source=source_input, target=target_input)
 
                 if new_value is not None:
                     target_input.default_value = new_value
-
         else:
             for input in old_node.inputs:
                 try:
@@ -367,22 +372,31 @@ class NodeSwapOperator(NodeOperator):
 
     @staticmethod
     def transfer_links(tree, old_node, new_node, is_input):
-        both_math_nodes = (old_node.bl_idname in math_nodes) and (new_node.bl_idname in math_nodes)
         is_reroute = old_node.bl_idname == "NodeReroute"
 
+        both_math_nodes = (old_node.bl_idname in math_nodes) and (new_node.bl_idname in math_nodes)
+        both_switch_nodes = (old_node.bl_idname in switch_nodes) and (new_node.bl_idname in switch_nodes)
+
+        transfer_by_index = both_math_nodes or both_switch_nodes
+
         if is_input:
-            if both_math_nodes:
+            if transfer_by_index:
                 for i, input in enumerate(old_node.inputs):
                     for link in input.links[:]:
                         try:
                             is_muted = link.is_muted
+                            old_socket = link.from_socket
                             new_socket = new_node.inputs[i]
 
                             if new_socket.hide or not new_socket.enabled:
                                 continue
 
-                            new_link = tree.links.new(link.from_socket, new_socket)
+                            new_link = tree.links.new(old_socket, new_socket)
                             new_link.is_muted = is_muted
+
+                            if not new_link.is_valid:
+                                tree.links.remove(new_link)
+
                         except IndexError:
                             pass
             elif is_reroute:
@@ -418,7 +432,7 @@ class NodeSwapOperator(NodeOperator):
                             pass
 
         else:
-            if both_math_nodes:
+            if transfer_by_index:
                 for i, output in enumerate(old_node.outputs):
                     for link in output.links[:]:
                         try:
@@ -478,41 +492,56 @@ class NodeSwapOperator(NodeOperator):
     def get_switch_items(node):
         switch_type = node.bl_idname
 
+        if switch_type == "GeometryNodeSwitch":
+            return [node.inputs["False"], node.inputs["True"]]
         if switch_type == "GeometryNodeMenuSwitch":
             return node.enum_definition.enum_items
         if switch_type == "GeometryNodeIndexSwitch":
             return node.index_switch_items
+
         return None
 
     def transfer_switch_data(self, old_node, new_node):
         old_switch_items = self.get_switch_items(old_node)
         new_switch_items = self.get_switch_items(new_node)
 
-        new_switch_items.clear()
+        old_selector_value = old_node.inputs[0].default_value
+        if old_node.bl_idname == "GeometryNodeMenuSwitch":
+            if old_selector_value == '':
+                old_selector_value = 0
+            else:
+                old_selector_value = next(i for i, item in enumerate(
+                    old_switch_items) if item.name == old_selector_value)
 
-        if new_node.bl_idname == "GeometryNodeMenuSwitch":
-            for i, old_item in enumerate(old_switch_items[:]):
-                # Change the menu item names to numerical indices.
-                # This makes it so that later functions that match by socket name work on the switches.
-                if hasattr(old_item, "name"):
-                    old_item.name = str(i)
+        if new_node.bl_idname in {"GeometryNodeMenuSwitch", "GeometryNodeIndexSwitch"}:
+            new_switch_items.clear()
 
-                new_switch_items.new(str(i))
+            if old_node.bl_idname == "GeometryNodeSwitch":
+                new_node.data_type = old_node.input_type
 
-            if (old_switch_value := old_node.inputs[0].default_value) != '':
-                new_node.inputs[0].default_value = str(old_switch_value)
+            if new_node.bl_idname == "GeometryNodeMenuSwitch":
+                for i, old_item in enumerate(old_switch_items[:]):
+                    if old_node.bl_idname == "GeometryNodeSwitch":
+                        name = old_item.name
+                    elif old_node.bl_idname in {"GeometryNodeMenuSwitch", "GeometryNodeIndexSwitch"}:
+                        name = str(i)
 
+                    new_switch_items.new(name)
+
+            elif new_node.bl_idname == "GeometryNodeIndexSwitch":
+                for old_item in old_switch_items[:]:
+                    new_switch_items.new()
+
+        elif new_node.bl_idname == "GeometryNodeSwitch":
+            if old_node.bl_idname != "GeometryNodeSwitch":
+                new_node.input_type = old_node.data_type
+
+        if new_node.bl_idname == "GeometryNodeSwitch":
+            new_node.inputs[0].default_value = bool(old_selector_value)
+        elif new_node.bl_idname == "GeometryNodeMenuSwitch":
+            new_node.inputs[0].default_value = str(old_selector_value)
         elif new_node.bl_idname == "GeometryNodeIndexSwitch":
-            for i, old_item in enumerate(old_switch_items[:]):
-                # Change the menu item names to numerical indices.
-                # This makes it so that later functions that match by socket name work on the switches.
-                if hasattr(old_item, "name"):
-                    old_item.name = str(i)
-
-                new_switch_items.new()
-
-            if (old_switch_value := old_node.inputs[0].default_value) != '':
-                new_node.inputs[0].default_value = int(old_switch_value)
+            new_node.inputs[0].default_value = int(old_selector_value)
 
 
 # Simple basic operator for adding a node.
