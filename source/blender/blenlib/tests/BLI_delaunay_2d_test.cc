@@ -3502,7 +3502,6 @@ template<typename T> void fuzz_repro_minimize_test2()
   (void)out;
 }
 
-
 template<typename T> void intersection_simple_edge_ids_test()
 {
   const char *spec = R"(4 2 0
