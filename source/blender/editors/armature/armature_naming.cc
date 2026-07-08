@@ -156,8 +156,6 @@ static void constraint_bone_name_fix(Object *rename_ob,
                                   "pose.bones",
                                   oldname,
                                   newname,
-                                  0,
-                                  0,
                                   true);
     }
   }

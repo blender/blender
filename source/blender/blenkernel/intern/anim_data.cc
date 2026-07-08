@@ -927,11 +927,8 @@ static bool nlastrips_path_rename_fix(ID *owner_id,
 char *BKE_animsys_fix_rna_path_rename(ID *owner_id,
                                       char *old_path,
                                       const StringRef prefix,
-                                      const char *old_name,
-                                      const char *new_name,
-                                      const int old_subscript,
-                                      const int new_subscript,
-                                      const bool verify_paths)
+                                      const StringRefNull old_name,
+                                      const StringRefNull new_name)
 {
   /* if no action, no need to proceed */
   if (ELEM(nullptr, owner_id, old_path)) {
@@ -941,15 +938,14 @@ char *BKE_animsys_fix_rna_path_rename(ID *owner_id,
     return old_path;
   }
 
-  auto &&[old_key, new_key] = RNA_generate_keys_for_path_rename(
-      old_name ? old_name : "", new_name ? new_name : "", old_subscript, new_subscript, true);
+  auto &&[old_key, new_key] = RNA_generate_keys_for_path_rename(old_name, new_name, 0, 0, true);
 
   /* fix given path */
   if (G.debug & G_DEBUG) {
     printf("%s | %s  | oldpath = %p ", old_key.c_str(), new_key.c_str(), old_path);
   }
   std::optional<std::string> new_path = rna_path_rename_fix(
-      *owner_id, prefix, old_key, new_key, old_path, verify_paths);
+      *owner_id, prefix, old_key, new_key, old_path, false);
   if (!new_path.has_value()) {
     return old_path;
   }
@@ -963,10 +959,8 @@ void BKE_action_fix_paths_rename(ID *owner_id,
                                  bAction *act,
                                  animrig::slot_handle_t slot_handle,
                                  const StringRef prefix,
-                                 const char *old_name,
-                                 const char *new_name,
-                                 const int old_subscript,
-                                 const int new_subscript,
+                                 const StringRefNull old_name,
+                                 const StringRefNull new_name,
                                  const bool verify_paths)
 {
   /* if no action, no need to proceed */
@@ -974,8 +968,7 @@ void BKE_action_fix_paths_rename(ID *owner_id,
     return;
   }
 
-  auto &&[old_key, new_key] = RNA_generate_keys_for_path_rename(
-      old_name ? old_name : "", new_name ? new_name : "", old_subscript, new_subscript, true);
+  auto &&[old_key, new_key] = RNA_generate_keys_for_path_rename(old_name, new_name, 0, 0, true);
 
   /* fix paths in action */
   fcurves_path_rename_fix(owner_id,

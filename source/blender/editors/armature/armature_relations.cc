@@ -115,8 +115,6 @@ static void joined_armature_fix_links_constraints(Main *bmain,
                                     "pose.bones",
                                     pchan->name,
                                     curbone->name,
-                                    0,
-                                    0,
                                     false);
 
         DEG_id_tag_update_ex(bmain, &data->act->id, ID_RECALC_SYNC_TO_EVAL);
@@ -153,7 +151,7 @@ static void joined_armature_fix_animdata_cb(
        * waste if there aren't many drivers/keys */
       if (!STREQ(old_name, new_name) && strstr(fcu->rna_path, old_name)) {
         fcu->rna_path = BKE_animsys_fix_rna_path_rename(
-            id, fcu->rna_path, "pose.bones", old_name, new_name, 0, 0, false);
+            id, fcu->rna_path, "pose.bones", old_name, new_name);
 
         changed = true;
 
@@ -199,7 +197,7 @@ static void joined_armature_fix_animdata_cb(
                 if ((dtar->rna_path) && strstr(dtar->rna_path, old_name)) {
                   /* Fix up path */
                   dtar->rna_path = BKE_animsys_fix_rna_path_rename(
-                      id, dtar->rna_path, "pose.bones", old_name, new_name, 0, 0, false);
+                      id, dtar->rna_path, "pose.bones", old_name, new_name);
                   break; /* no need to try any more names for bone path */
                 }
                 if (STREQ(dtar->pchan_name, old_name)) {
