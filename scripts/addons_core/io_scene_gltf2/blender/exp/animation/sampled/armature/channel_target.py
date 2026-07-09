@@ -5,7 +5,7 @@
 from ......io.exp.user_extensions import export_user_extensions
 from ......io.com import gltf2_io
 from ....cache import cached
-from ....joints import gather_joint_vnode
+from .... import joints as gltf2_blender_gather_joints
 
 
 @cached
@@ -43,7 +43,8 @@ def __gather_extras(armature_uuid, bone, channel, export_settings):
 
 
 def __gather_node(armature_uuid, bone, export_settings):
-    return gather_joint_vnode(export_settings['vtree'].nodes[armature_uuid].bones[bone], export_settings)
+    return gltf2_blender_gather_joints.gather_joint_vnode(
+        export_settings['vtree'].nodes[armature_uuid].bones[bone], export_settings)
 
 
 def __gather_path(channel, export_settings):
