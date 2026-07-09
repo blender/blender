@@ -1369,7 +1369,7 @@ class SEQUENCER_MT_context_menu(Menu):
             layout.separator()
         in_meta = len(context.sequencer_scene.sequence_editor.meta_stack) > 0
         show_make = has_selection
-        show_separate = strip_type == 'META'
+        show_separate = strip_type == 'META' and context.active_strip and context.active_strip.select
         show_toggle = in_meta or (strip_type == 'META' and has_selection)
         if show_make or show_separate or show_toggle:
             if show_make:
