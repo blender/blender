@@ -232,7 +232,7 @@ void DRW_gpu_context_enable()
   /* TODO: should be replace by a more elegant alternative. */
 
   if (G.background && viewport_context == nullptr) {
-    WM_init_gpu();
+    WM_init_gpu_offscreen();
   }
   DRW_gpu_context_enable_ex(true);
 }
@@ -288,7 +288,7 @@ void DRW_blender_gpu_render_context_disable(void * /*re_gpu_context*/)
 void DRW_render_context_enable(Render *render)
 {
   if (G.background && viewport_context == nullptr) {
-    WM_init_gpu();
+    WM_init_gpu_offscreen();
   }
 
   GPU_render_begin();

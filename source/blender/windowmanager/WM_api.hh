@@ -169,7 +169,14 @@ void WM_init_splash_on_startup(bContext *C);
  */
 void WM_init_splash(bContext *C);
 
-void WM_init_gpu();
+/**
+ * Initialization for GPU backend,
+ */
+void WM_init_gpu_backend();
+/**
+ * Create the draw manager offscreen GPU context and initialize the GPU module.
+ */
+void WM_init_gpu_offscreen();
 
 /**
  * Return an identifier for the underlying GHOST implementation.

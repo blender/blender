@@ -51,14 +51,16 @@ static PyObject *pygpu_init(PyObject * /*self*/)
     Py_RETURN_NONE;
   }
 
+  WM_init_gpu_backend();
+
   if (!GPU_backend_supported()) {
     PyErr_SetString(PyExc_SystemError, "Failed to initialize GPU. GPU backend not supported");
     return nullptr;
   }
 
   /* Cannot use GPU_init() as it requires a GPU context to have been created.
-   * See WM_init_gpu implementation. */
-  WM_init_gpu();
+   * See WM_init_gpu_offscreen implementation. */
+  WM_init_gpu_offscreen();
 
   if (!GPU_is_init()) {
     PyErr_SetString(PyExc_SystemError, "Failed to initialize GPU. Unexpected Error");

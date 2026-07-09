@@ -494,6 +494,9 @@ void WM_check(bContext *C)
       WM_file_autosave_init(wm);
     }
 
+    /* Initialize GPU backend for GHOST before opening windows. */
+    WM_init_gpu_backend();
+
     /* Case: no open windows at all, for old file reads. */
     wm_window_ghostwindows_ensure(wm);
   }
