@@ -7,7 +7,7 @@ bl_info = {
     # This is now displayed as the maintainer, so show the foundation.
     # "author": "Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein", # Original Authors
     'author': "Blender Foundation, Khronos Group",
-    "version": (5, 3, 14),
+    "version": (5, 3, 15),
     'blender': (5, 2, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -1081,13 +1081,13 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
                     setattr(self, k, v)
                 self.will_save_settings = True
 
-                # Update filter if user saved settings
-                if hasattr(self, 'export_format'):
-                    self.filter_glob = '*.glb' if self.export_format == 'GLB' else '*.gltf'
-
             except (AttributeError, TypeError):
                 self.report({"ERROR"}, "Loading export settings failed. Removed corrupted settings")
                 del context.scene[self.scene_key]
+
+        # Update filter if user saved settings or use last used format
+        if hasattr(self, 'export_format'):
+            self.filter_glob = '*.glb' if self.export_format == 'GLB' else '*.gltf'
 
         return ExportHelper.invoke(self, context, event)
 
