@@ -877,6 +877,7 @@ class RemoteAssetListingBackupper:
     def restore(self) -> None:
         """Restore a backup of the asset library's listing."""
         if not self.has_backup():
+            backup_path = self._locator.listing_backup_path
             logger.warning("Asset Listing backup did not exist, cannot restore: %s", backup_path)
             return
         self._restore()
