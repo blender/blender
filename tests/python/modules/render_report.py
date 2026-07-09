@@ -229,11 +229,13 @@ def diff_output(test, oiiotool, fail_threshold, fail_percent, verbose, update):
     return test
 
 
-def get_gpu_device_vendor(blender):
+def get_gpu_device_vendor(blender, gpu_backend):
     command = [
         blender,
         "--background",
         "--factory-startup",
+        "--gpu-backend",
+        gpu_backend,
         "--python",
         str(pathlib.Path(__file__).parent / "gpu_info.py")
     ]

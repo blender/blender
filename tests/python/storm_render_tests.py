@@ -243,7 +243,7 @@ def main():
         else:
             blocklist += BLOCKLIST_VULKAN_USD
         if os.getenv("BLENDER_TEST_IGNORE_VENDOR_BLOCKLIST") is None:
-            gpu_vendor = render_report.get_gpu_device_vendor(args.blender)
+            gpu_vendor = render_report.get_gpu_device_vendor(args.blender, args.gpu_backend)
             if gpu_vendor == "NVIDIA":
                 blocklist += BLOCKLIST_VULKAN_NVIDIA
             elif gpu_vendor == "AMD":
@@ -252,7 +252,7 @@ def main():
                 blocklist += BLOCKLIST_VULKAN_INTEL_LINUX
     else:
         if os.getenv("BLENDER_TEST_IGNORE_VENDOR_BLOCKLIST") is None:
-            gpu_vendor = render_report.get_gpu_device_vendor(args.blender)
+            gpu_vendor = render_report.get_gpu_device_vendor(args.blender, args.gpu_backend)
             if gpu_vendor == "AMD":
                 blocklist += BLOCKLIST_AMD
             elif gpu_vendor == "INTEL" and sys.platform == "linux":
