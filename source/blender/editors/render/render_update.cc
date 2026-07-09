@@ -320,21 +320,17 @@ static void scene_changed(Main *bmain, Scene *scene)
 
 static void update_sequencer(const DEGEditorUpdateContext *update_ctx, Main *bmain, ID *id)
 {
-  if (ELEM(id->recalc,
-           0,
-           ID_RECALC_SELECT,
-           ID_RECALC_FRAME_CHANGE,
-           ID_RECALC_AUDIO_FPS,
-           ID_RECALC_AUDIO_VOLUME,
-           ID_RECALC_AUDIO_MUTE,
-           ID_RECALC_AUDIO_LISTENER,
-           ID_RECALC_AUDIO))
-  {
+  const uint ignored = ID_RECALC_SELECT | ID_RECALC_FRAME_CHANGE | ID_RECALC_AUDIO_FPS |
+                       ID_RECALC_AUDIO_VOLUME | ID_RECALC_AUDIO_MUTE | ID_RECALC_AUDIO_LISTENER |
+                       ID_RECALC_AUDIO;
+  if ((id->recalc & ~ignored) == 0) {
     return;
   }
   Scene *changed_scene = update_ctx->scene;
 
-  if (GS(id->name) != ID_SCE) {
+  /* Changed datablocks invalidate camera-input scene strips.
+   * Changed strips invalidate sequencer-input scene strips. */
+  if (GS(id->name) != ID_SCE || id->recalc & ID_RECALC_SEQUENCER_STRIPS) {
     seq::relations_invalidate_scene_strips(bmain, changed_scene);
   }
 

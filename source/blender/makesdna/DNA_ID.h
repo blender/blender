@@ -1106,8 +1106,8 @@ enum IDRecalcFlag {
    */
   ID_RECALC_SYNC_TO_EVAL = (1 << 13),
 
-  /* Sequences in the sequencer did change.
-   * Use this tag with a scene ID which owns the sequences. */
+  /* Strips in the sequencer changed.
+   * Use this tag with a scene ID which owns the strips. */
   ID_RECALC_SEQUENCER_STRIPS = (1 << 14),
 
   /* Runs on frame-change (used for seeking audio too). */
