@@ -786,6 +786,48 @@ static GreasePencil *try_load_grease_pencil(const DictionaryValue &io_geometry,
   return grease_pencil;
 }
 
+static void load_texspace(const DictionaryValue *io_mesh, Mesh *mesh)
+{
+
+  const auto reset_texspace_default = [](Mesh *mesh) {
+    std::ranges::fill(mesh->texspace_location, 0.0f);
+    std::ranges::fill(mesh->texspace_size, 1.0f);
+  };
+
+  const auto fill_texspace_values = [](const io::serialize::ArrayValue *io_array,
+                                       float r_texspace_property[3]) -> bool {
+    size_t i = 0;
+    for (const std::shared_ptr<Value> &value : io_array->elements()) {
+      if (value->type() != io::serialize::eValueType::Double) {
+        return false;
+      }
+      r_texspace_property[i++] = static_cast<float>(value->as_double_value()->value());
+    }
+    return true;
+  };
+
+  mesh->texspace_flag = io_mesh->lookup_bool("texture_space_flag").value_or(false);
+
+  const io::serialize::ArrayValue *io_texloc_array = io_mesh->lookup_array(
+      "texture_space_location");
+  const io::serialize::ArrayValue *io_texsize_array = io_mesh->lookup_array("texture_space_size");
+
+  if (!io_texloc_array || !io_texsize_array) {
+    reset_texspace_default(mesh);
+    return;
+  }
+
+  BLI_assert(io_texloc_array->elements().size() == 3);
+  BLI_assert(io_texsize_array->elements().size() == 3);
+
+  if (!fill_texspace_values(io_texloc_array, mesh->texspace_location) ||
+      !fill_texspace_values(io_texsize_array, mesh->texspace_size))
+  {
+    reset_texspace_default(mesh);
+    return;
+  }
+}
+
 static Mesh *try_load_mesh(const DictionaryValue &io_geometry,
                            const BlobReader &blob_reader,
                            const BlobReadSharing &blob_sharing)
@@ -850,6 +892,8 @@ static Mesh *try_load_mesh(const DictionaryValue &io_geometry,
       return cancel();
     }
   }
+
+  load_texspace(io_mesh, mesh);
 
   if (const std::optional<StringRefNull> default_uv_map_name = io_mesh->lookup_str(
           "default_uv_map_name"))
@@ -1110,6 +1154,22 @@ static void serialize_curves_geometry(DictionaryValue &io_curves,
   io_curves.append("attributes", io_attributes);
 }
 
+static void serialize_texture_space(const Mesh &mesh, std::shared_ptr<DictionaryValue> io_mesh)
+{
+  io_mesh->append_bool("texture_space_flag", mesh.texspace_flag);
+
+  std::shared_ptr<ArrayValue> texspace_location_array = io_mesh->append_array(
+      "texture_space_location");
+  for (float value : Span(mesh.texspace_location, 3)) {
+    texspace_location_array->append_double(value);
+  }
+
+  std::shared_ptr<ArrayValue> texspace_size_array = io_mesh->append_array("texture_space_size");
+  for (float value : Span(mesh.texspace_size, 3)) {
+    texspace_size_array->append_double(value);
+  }
+}
+
 static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet &geometry,
                                                                BlobWriter &blob_writer,
                                                                BlobWriteSharing &blob_sharing)
@@ -1141,6 +1201,8 @@ static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet
         io_vertex_group_names->append_str(defgroup.name);
       }
     }
+
+    serialize_texture_space(mesh, io_mesh);
 
     const StringRef default_uv_map_name = mesh.default_uv_map_name();
     if (!default_uv_map_name.is_empty()) {
