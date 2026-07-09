@@ -150,6 +150,12 @@ enum SpaceInterpolationMethod {
   SPACE_EDGE_LOOPS_EVENLY_INTERP_LINEAR = 1,
 };
 
+/** Interpolation method used for relaxing vertices. */
+enum RelaxInterpolationMethod {
+  RELAX_EDGE_LOOPS_INTERP_CUBIC = 0,
+  RELAX_EDGE_LOOPS_INTERP_LINEAR = 1,
+};
+
 /**
  * Methods for determining the orientation of flattening the plane.
  */

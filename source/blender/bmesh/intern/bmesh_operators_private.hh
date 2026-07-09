@@ -66,6 +66,7 @@ void bmo_object_load_bmesh_exec(BMesh *bm, BMOperator *op);
 void bmo_pointmerge_exec(BMesh *bm, BMOperator *op);
 void bmo_pointmerge_facedata_exec(BMesh *bm, BMOperator *op);
 void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op);
+void bmo_relax_edge_loops_exec(BMesh *bm, BMOperator *op);
 void bmo_poke_exec(BMesh *bm, BMOperator *op);
 void bmo_offset_edgeloops_exec(BMesh *bm, BMOperator *op);
 void bmo_planar_faces_exec(BMesh *bm, BMOperator *op);

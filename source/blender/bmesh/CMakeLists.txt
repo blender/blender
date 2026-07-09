@@ -42,6 +42,7 @@ set(SRC
   operators/bmo_planar_faces.cc
   operators/bmo_poke.cc
   operators/bmo_primitive.cc
+  operators/bmo_relax_edge_loops.cc
   operators/bmo_removedoubles.cc
   operators/bmo_rotate_edges.cc
   operators/bmo_smooth_laplacian.cc
