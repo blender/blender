@@ -241,8 +241,7 @@ static Mesh *cdts_to_mesh(const Span<meshintersect::CDT_result<double>> results)
 
       MutableSpan<int2> edges = all_edges.slice(edges_range);
       for (const int i : result.edge.index_range()) {
-        edges[i] = int2(result.edge[i].first + verts_range.start(),
-                        result.edge[i].second + verts_range.start());
+        edges[i] = result.edge[i] + int(verts_range.start());
       }
 
       MutableSpan<int> face_offsets = all_face_offsets.slice(faces_range);

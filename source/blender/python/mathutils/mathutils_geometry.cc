@@ -1809,7 +1809,7 @@ static PyObject *M_Geometry_delaunay_2d_cdt(PyObject * /*self*/, PyObject *args)
 
   meshintersect::CDT_input<double> in;
   in.vert = verts;
-  in.edge = Span(reinterpret_cast<std::pair<int, int> *>(in_edges), edges_len);
+  in.edge = Span(reinterpret_cast<int2 *>(in_edges), edges_len);
   in.face_offsets = face_offsets.as_span();
   in.face_vert_indices = face_vert_indices;
   in.epsilon = epsilon;
@@ -1836,8 +1836,8 @@ static PyObject *M_Geometry_delaunay_2d_cdt(PyObject * /*self*/, PyObject *args)
   out_edges = PyList_New(res.edge.size());
   for (const int i : res.edge.index_range()) {
     PyObject *item = PyTuple_New(2);
-    PyTuple_SET_ITEM(item, 0, PyLong_FromLong(long(res.edge[i].first)));
-    PyTuple_SET_ITEM(item, 1, PyLong_FromLong(long(res.edge[i].second)));
+    PyTuple_SET_ITEM(item, 0, PyLong_FromLong(long(res.edge[i][0])));
+    PyTuple_SET_ITEM(item, 1, PyLong_FromLong(long(res.edge[i][1])));
     PyList_SET_ITEM(out_edges, i, item);
   }
   PyTuple_SET_ITEM(ret_value, 1, out_edges);

@@ -151,7 +151,7 @@ namespace meshintersect {
 template<typename T> class CDT_input {
  public:
   Span<VecBase<T, 2>> vert;
-  Span<std::pair<int, int>> edge;
+  Span<int2> edge;
   OffsetIndices<int> face_offsets;
   Span<int> face_vert_indices;
   T epsilon{0};
@@ -187,7 +187,7 @@ template<typename T> class CDT_input {
 template<typename T> class CDT_result {
  public:
   Array<VecBase<T, 2>> vert;
-  Array<std::pair<int, int>> edge;
+  Array<int2> edge;
   Array<Vector<int>> face;
   /* The orig vectors are only populated if the need_ids input field is true. */
   /** For each output vert, which input verts correspond to it? */
@@ -207,7 +207,7 @@ template<typename T> class CDT_result {
    * which original edges were intersected?
    * Note: Indices follow the same encoding as edge_orig (see above).
    */
-  Array<std::pair<int, int>> intersected_edges_orig;
+  Array<int2> intersected_edges_orig;
   /** For each output face, which original faces does it overlap? */
   Array<Vector<uint32_t>> face_orig;
   /** Used to encode edge_orig (see above). */

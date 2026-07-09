@@ -1194,35 +1194,21 @@ static EdgeCurves follow_edge_connections(const Span<int> all_edges,
   return edge_curves;
 }
 
-static std::pair<int, int> order_edge(const std::pair<int, int> &edge)
-{
-  if (edge.first > edge.second) {
-    return std::pair<int, int>(edge.second, edge.first);
-  }
-  return edge;
-}
-
-static Array<int3> get_all_triangle_edges(const Span<std::pair<int, int>> edges,
-                                          const Span<Vector<int>> tris)
+static Array<int3> get_all_triangle_edges(const Span<int2> edges, const Span<Vector<int>> tris)
 {
   Array<int3> tri_edges(tris.size(), int3(NULL_INDEX));
 
-  Map<std::pair<int, int>, int> edge_to_index;
+  Map<OrderedEdge, int> edge_to_index;
   for (const int edge_index : edges.index_range()) {
-    const std::pair<int, int> &edge = edges[edge_index];
-    edge_to_index.add_new(order_edge(edge), edge_index);
+    edge_to_index.add_new(edges[edge_index], edge_index);
   }
 
   threading::parallel_for(tris.index_range(), 512, [&](const IndexRange range) {
     for (const int64_t tri_index : range) {
       const Vector<int> &face = tris[tri_index];
-
-      const std::pair<int, int> edge0 = order_edge(std::pair<int, int>(face[0], face[1]));
-      const std::pair<int, int> edge1 = order_edge(std::pair<int, int>(face[1], face[2]));
-      const std::pair<int, int> edge2 = order_edge(std::pair<int, int>(face[2], face[0]));
-
-      tri_edges[tri_index] = int3(
-          edge_to_index.lookup(edge0), edge_to_index.lookup(edge1), edge_to_index.lookup(edge2));
+      tri_edges[tri_index] = int3(edge_to_index.lookup(OrderedEdge(face[0], face[1])),
+                                  edge_to_index.lookup(OrderedEdge(face[1], face[2])),
+                                  edge_to_index.lookup(OrderedEdge(face[2], face[0])));
     }
   });
 
@@ -1277,16 +1263,15 @@ static Array<int3> get_all_triangle_adjacency(const int num_edges,
   return tri_adjacency;
 }
 
-static Array<float> get_edge_weights(const Span<std::pair<int, int>> edges,
-                                     const Span<double2> verts)
+static Array<float> get_edge_weights(const Span<int2> edges, const Span<double2> verts)
 {
   Array<float> edge_weights(edges.size());
 
   threading::parallel_for(edges.index_range(), 512, [&](const IndexRange range) {
     for (const int64_t edge_index : range) {
-      const std::pair<int, int> &edge = edges[edge_index];
-      const double2 &v1 = verts[edge.first];
-      const double2 &v2 = verts[edge.second];
+      const int2 &edge = edges[edge_index];
+      const double2 &v1 = verts[edge[0]];
+      const double2 &v2 = verts[edge[1]];
       edge_weights[edge_index] = math::distance(v1, v2);
     }
   });
@@ -1376,7 +1361,7 @@ static meshintersect::CDT_input<double> get_input_from_drawings(
     const ARegion &region,
     const std::optional<float> opacity_threshold,
     Array<double2> &r_cdt_verts,
-    Array<std::pair<int, int>> &r_cdt_edges)
+    Array<int2> &r_cdt_edges)
 {
   using bke::greasepencil::Drawing;
   using bke::greasepencil::Layer;
@@ -1386,7 +1371,7 @@ static meshintersect::CDT_input<double> get_input_from_drawings(
   BLI_assert(grease_pencil.has_active_layer());
 
   Array<Vector<double2>> drawing_input_verts(src_drawings.size());
-  Array<Vector<std::pair<int, int>>> drawing_input_edges(src_drawings.size());
+  Array<Vector<OrderedEdge>> drawing_input_edges(src_drawings.size());
 
   threading::parallel_for(src_drawings.index_range(), 1, [&](const IndexRange range) {
     for (const int drawing_i : range) {
@@ -1488,8 +1473,7 @@ static meshintersect::CDT_input<double> get_input_from_drawings(
                                                                     first_point_offset;
           if (is_point_visible[local_i]) {
             if (is_point_visible[local_next]) {
-              drawing_input_edges[drawing_i].append(
-                  order_edge(std::pair<int, int>(point_offset, point_offset_next)));
+              drawing_input_edges[drawing_i].append(OrderedEdge(point_offset, point_offset_next));
             }
             point_offset++;
           }
@@ -1515,7 +1499,7 @@ static meshintersect::CDT_input<double> get_input_from_drawings(
 
   /* Four points are added for the bounding box. */
   r_cdt_verts = Array<double2>(drawing_vert_offsets.total_size() + 4);
-  r_cdt_edges = Array<std::pair<int, int>>(drawing_edge_offsets.total_size());
+  r_cdt_edges = Array<int2>(drawing_edge_offsets.total_size());
 
   meshintersect::CDT_input<double> input;
   input.need_ids = true;
@@ -1530,20 +1514,20 @@ static meshintersect::CDT_input<double> get_input_from_drawings(
     }
   });
 
-  MutableSpan<std::pair<int, int>> edges_span = r_cdt_edges.as_mutable_span();
+  MutableSpan<int2> edges_span = r_cdt_edges.as_mutable_span();
   threading::parallel_for(drawing_input_edges.index_range(), 512, [&](const IndexRange range) {
     for (const int drawing_i : range) {
       const IndexRange drawing_range = drawing_edge_offsets[drawing_i];
-      MutableSpan<std::pair<int, int>> edges_slice = edges_span.slice(drawing_range);
-      array_utils::copy(drawing_input_edges[drawing_i].as_span(), edges_slice);
+      MutableSpan<int2> edges_slice = edges_span.slice(drawing_range);
+      array_utils::copy(drawing_input_edges[drawing_i].as_span().cast<int2>(), edges_slice);
       const IndexRange vert_range = drawing_vert_offsets[drawing_i];
       if (vert_range.is_empty()) {
         continue;
       }
       const int vert_offset = vert_range.first();
       for (const int edge_i : drawing_range.index_range()) {
-        edges_slice[edge_i] = std::pair<int, int>(edges_slice[edge_i].first + vert_offset,
-                                                  edges_slice[edge_i].second + vert_offset);
+        edges_slice[edge_i] = int2(edges_slice[edge_i][0] + vert_offset,
+                                   edges_slice[edge_i][1] + vert_offset);
       }
     }
   });
@@ -1560,12 +1544,11 @@ static meshintersect::CDT_input<double> get_input_from_drawings(
   return input;
 }
 
-static std::optional<EdgeCurves> create_connected_edges_from_fill(
-    const Span<bool> tri_to_fill,
-    const bool invert,
-    const Span<int3> tri_adjacency,
-    const Span<int3> tri_edges,
-    const Span<std::pair<int, int>> edges)
+static std::optional<EdgeCurves> create_connected_edges_from_fill(const Span<bool> tri_to_fill,
+                                                                  const bool invert,
+                                                                  const Span<int3> tri_adjacency,
+                                                                  const Span<int3> tri_edges,
+                                                                  const Span<int2> edges)
 {
   Set<int> boundary_edges;
 
@@ -1615,13 +1598,13 @@ static std::optional<EdgeCurves> create_connected_edges_from_fill(
   MultiValueMap<int, EncodedConnection> vert_to_edge_ends;
 
   for (const int edge_index : boundary_edges) {
-    const std::pair<int, int> edge = edges[edge_index];
+    const int2 edge = edges[edge_index];
 
     const EncodedConnection point_1 = encode_index_and_side(edge_index, Side::Start);
     const EncodedConnection point_2 = encode_index_and_side(edge_index, Side::End);
 
-    vert_to_edge_ends.add(edge.first, point_1);
-    vert_to_edge_ends.add(edge.second, point_2);
+    vert_to_edge_ends.add(edge[0], point_1);
+    vert_to_edge_ends.add(edge[1], point_2);
   }
 
   for (Span<EncodedConnection> edge_ends : vert_to_edge_ends.values()) {
@@ -1662,7 +1645,7 @@ std::optional<bke::CurvesGeometry> delaunay_fill_strokes(
   }
 
   Array<double2> cdt_verts;
-  Array<std::pair<int, int>> cdt_edges;
+  Array<int2> cdt_edges;
   const meshintersect::CDT_input<double> input = get_input_from_drawings(
       src_drawings, object, boundary_layers, region, opacity_threshold, cdt_verts, cdt_edges);
   meshintersect::CDT_result<double> result = delaunay_2d_calc(input, CDT_FULL);
@@ -1883,8 +1866,8 @@ std::optional<bke::CurvesGeometry> delaunay_fill_strokes(
       for (const int point_i : edges_range) {
         const int edge_index = edge_curves->edges[point_i];
         const bool reversed = edge_curves->reversed[point_i];
-        const std::pair<int, int> edge = result.edge[edge_index];
-        const int vert_id = reversed ? edge.second : edge.first;
+        const int2 edge = result.edge[edge_index];
+        const int vert_id = reversed ? edge[1] : edge[0];
 
         const float2 pos_2d = float2(result.vert[vert_id]);
         const float3 position = placement.project(pos_2d);

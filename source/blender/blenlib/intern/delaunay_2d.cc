@@ -215,7 +215,7 @@ template<typename T> struct CDTVert {
   /** Used by algorithms operating on CDT structures. */
   int visit_index{0};
   /** If this vert is an intersection, which original edges were intersected? */
-  std::pair<int, int> intersected_edges{-1, -1};
+  int2 intersected_edges{-1, -1};
 
   CDTVert() = default;
   explicit CDTVert(const VecBase<T, 2> &pt);
@@ -2258,8 +2258,8 @@ template<typename T> void add_edge_constraints(CDT_state<T> *cdt_state, const CD
   uint32_t ne = uint32_t(input.edge.size());
   int nv = input.vert.size();
   for (uint32_t i = 0; i < ne; i++) {
-    int iv1 = input.edge[i].first;
-    int iv2 = input.edge[i].second;
+    int iv1 = input.edge[i][0];
+    int iv2 = input.edge[i][1];
     if (iv1 < 0 || iv1 >= nv || iv2 < 0 || iv2 >= nv) {
       /* Ignore invalid indices in edges. */
       continue;
@@ -3238,7 +3238,7 @@ CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state, CDT_output_type output_typ
   result.vert = Array<VecBase<T, 2>>(nv);
   if (cdt_state->need_ids) {
     result.vert_orig = Array<Vector<uint32_t>>(nv);
-    result.intersected_edges_orig = Array<std::pair<int, int>>(nv, {-1, -1});
+    result.intersected_edges_orig = Array<int2>(nv, {-1, -1});
   }
   int i_out = 0;
   for (int i = 0; i < verts_size; ++i) {
@@ -3262,7 +3262,7 @@ CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state, CDT_output_type output_typ
   int ne = std::count_if(cdt->edges.begin(), cdt->edges.end(), [](const CDTEdge<T> *e) -> bool {
     return !is_deleted_edge(e);
   });
-  result.edge = Array<std::pair<int, int>>(ne);
+  result.edge = Array<int2>(ne);
   if (cdt_state->need_ids) {
     result.edge_orig = Array<Vector<uint32_t>>(ne);
   }
@@ -3271,7 +3271,7 @@ CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state, CDT_output_type output_typ
     if (!is_deleted_edge(e)) {
       int vo1 = vert_to_output_map[e->symedges[0].vert->index];
       int vo2 = vert_to_output_map[e->symedges[1].vert->index];
-      result.edge[e_out] = std::pair<int, int>(vo1, vo2);
+      result.edge[e_out] = int2(vo1, vo2);
       if (cdt_state->need_ids) {
         for (uint32_t edge : e->input_ids) {
           result.edge_orig[e_out].append(edge);

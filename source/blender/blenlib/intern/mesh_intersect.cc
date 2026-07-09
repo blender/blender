@@ -28,6 +28,7 @@
 #  include "BLI_math_vector_mpq_types.hh"
 #  include "BLI_math_vector_types.hh"
 #  include "BLI_mutex.hh"
+#  include "BLI_ordered_edge.hh"
 #  include "BLI_polyfill_2d.hh"
 #  include "BLI_set.hh"
 #  include "BLI_sort.hh"
@@ -1490,7 +1491,7 @@ static ITT_value intersect_tri_tri(const IMesh &tm, int t1, int t2)
 struct CDT_data {
   const Plane *t_plane;
   Vector<mpq2> vert;
-  Vector<std::pair<int, int>> edge;
+  Vector<int2> edge;
   Vector<int> face_offsets;
   Vector<int> face_vert_indices;
   /** Parallels face, gives id from input #IMesh of input face. */
@@ -1502,7 +1503,7 @@ struct CDT_data {
   /**
    * To speed up get_cdt_edge_orig, sometimes populate this map from vertex pair to output edge.
    */
-  Map<std::pair<int, int>, int> verts_to_edge;
+  Map<OrderedEdge, int> verts_to_edge;
   int proj_axis;
 };
 
@@ -1565,7 +1566,7 @@ static void prepare_need_edge(CDT_data &cd, const mpq3 &p1, const mpq3 &p2)
 {
   int v1 = prepare_need_vert(cd, p1);
   int v2 = prepare_need_vert(cd, p2);
-  cd.edge.append(std::pair<int, int>(v1, v2));
+  cd.edge.append(int2(v1, v2));
 }
 
 static void prepare_need_tri(CDT_data &cd, const IMesh &tm, int t)
@@ -1663,27 +1664,17 @@ static CDT_data prepare_cdt_input_for_cluster(const IMesh &tm,
   return ans;
 }
 
-/* Return a copy of the argument with the integers ordered in ascending order. */
-static inline std::pair<int, int> sorted_int_pair(std::pair<int, int> pair)
-{
-  if (pair.first <= pair.second) {
-    return pair;
-  }
-  return std::pair<int, int>(pair.second, pair.first);
-}
-
 /**
  * Build cd.verts_to_edge to map from a pair of cdt output indices to an index in cd.cdt_out.edge.
  * Order the vertex indices so that the smaller one is first in the pair.
  */
-static void populate_cdt_edge_map(Map<std::pair<int, int>, int> &verts_to_edge,
+static void populate_cdt_edge_map(Map<OrderedEdge, int> &verts_to_edge,
                                   const CDT_result<mpq_class> &cdt_out)
 {
   verts_to_edge.reserve(cdt_out.edge.size());
   for (int e : cdt_out.edge.index_range()) {
-    std::pair<int, int> vpair = sorted_int_pair(cdt_out.edge[e]);
     /* There should be only one edge for each vertex pair. */
-    verts_to_edge.add(vpair, e);
+    verts_to_edge.add(OrderedEdge(cdt_out.edge[e]), e);
   }
 }
 
@@ -1695,7 +1686,7 @@ static void do_cdt(CDT_data &cd)
   constexpr int dbg_level = 0;
   CDT_input<mpq_class> cdt_in;
   cdt_in.vert = Span<mpq2>(cd.vert);
-  cdt_in.edge = Span<std::pair<int, int>>(cd.edge);
+  cdt_in.edge = Span<int2>(cd.edge);
   cdt_in.face_offsets = cd.face_offsets.as_span();
   cdt_in.face_vert_indices = cd.face_vert_indices;
   if (dbg_level > 0) {
@@ -1706,8 +1697,7 @@ static void do_cdt(CDT_data &cd)
     }
     std::cout << "Edges:\n";
     for (int i : cdt_in.edge.index_range()) {
-      std::cout << "e" << i << ": (" << cdt_in.edge[i].first << ", " << cdt_in.edge[i].second
-                << ")\n";
+      std::cout << "e" << i << ": (" << cdt_in.edge[i][0] << ", " << cdt_in.edge[i][1] << ")\n";
     }
     std::cout << "Tris\n";
     const GroupedSpan<int> in_faces(cdt_in.face_offsets, cdt_in.face_vert_indices);
@@ -1745,8 +1735,8 @@ static void do_cdt(CDT_data &cd)
     }
     std::cout << "Edges\n";
     for (int e : cd.cdt_out.edge.index_range()) {
-      std::cout << "e" << e << ": (" << cd.cdt_out.edge[e].first << ", "
-                << cd.cdt_out.edge[e].second << ") ";
+      std::cout << "e" << e << ": (" << cd.cdt_out.edge[e][0] << ", " << cd.cdt_out.edge[e][1]
+                << ") ";
       std::cout << "orig: ";
       for (int j : cd.cdt_out.edge_orig[e].index_range()) {
         std::cout << cd.cdt_out.edge_orig[e][j] << " ";
@@ -1774,13 +1764,12 @@ static int get_cdt_edge_orig(
   int e = NO_INDEX;
   if (cd.verts_to_edge.size() > 0) {
     /* Use the populated map to find the edge, if any, between vertices i0 and i1. */
-    std::pair<int, int> vpair = sorted_int_pair(std::pair<int, int>(i0, i1));
-    e = cd.verts_to_edge.lookup_default(vpair, NO_INDEX);
+    e = cd.verts_to_edge.lookup_default(OrderedEdge(i0, i1), NO_INDEX);
   }
   else {
     for (int ee : cd.cdt_out.edge.index_range()) {
-      std::pair<int, int> edge = cd.cdt_out.edge[ee];
-      if ((edge.first == i0 && edge.second == i1) || (edge.first == i1 && edge.second == i0)) {
+      const int2 edge = cd.cdt_out.edge[ee];
+      if ((edge[0] == i0 && edge[1] == i1) || (edge[0] == i1 && edge[1] == i0)) {
         e = ee;
         break;
       }
@@ -2056,12 +2045,11 @@ static Array<Face *> exact_triangulate_poly(Face *f, IMeshArena *arena)
       /* Fall back on the polyfill triangulator. */
       return polyfill_triangulate_poly(f, arena);
     }
-    Map<std::pair<int, int>, int> verts_to_edge;
+    Map<OrderedEdge, int> verts_to_edge;
     populate_cdt_edge_map(verts_to_edge, cdt_out);
     uint32_t foff = cdt_out.face_edge_offset;
     for (int i = 0; i < 3; ++i) {
-      std::pair<int, int> vpair(i_v_out[i], i_v_out[(i + 1) % 3]);
-      std::pair<int, int> vpair_canon = sorted_int_pair(vpair);
+      const OrderedEdge vpair_canon(i_v_out[i], i_v_out[(i + 1) % 3]);
       int e_out = verts_to_edge.lookup_default(vpair_canon, NO_INDEX);
       BLI_assert(e_out != NO_INDEX);
       eo[i] = NO_INDEX;

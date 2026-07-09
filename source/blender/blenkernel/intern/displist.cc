@@ -564,8 +564,8 @@ static DispList *displist_fill_cdt_process_group(const CDTFillGroup &group,
       if (result.edge_orig[e].is_empty()) {
         continue;
       }
-      const int v0 = result.edge[e].first;
-      const int v1 = result.edge[e].second;
+      const int v0 = result.edge[e][0];
+      const int v1 = result.edge[e][1];
       if (result.vert_orig[v0].is_empty()) {
         isect_vert_to_edge[v0] = e;
       }
