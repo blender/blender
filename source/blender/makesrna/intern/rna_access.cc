@@ -4717,13 +4717,19 @@ void RNA_property_pointer_set(PointerRNA *ptr,
   }
 }
 
-PointerRNA RNA_property_pointer_get_default(PointerRNA * /*ptr*/, PropertyRNA * /*prop*/)
+PointerRNA RNA_property_pointer_get_default(Main &bmain, PointerRNA & /*ptr*/, PropertyRNA &prop)
 {
-  // PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
+  BLI_assert(RNA_property_type(&prop) == PROP_POINTER);
+  auto *pprop = reinterpret_cast<PointerPropertyRNA *>(&prop);
 
-  // BLI_assert(RNA_property_type(prop) == PROP_POINTER);
+  if (RNA_struct_is_a(pprop->pointer_type, RNA_ID)) {
+    if (pprop->id_default_session_uid != 0) {
+      ID *id = BKE_libblock_find_session_uid(&bmain, pprop->id_default_session_uid);
+      return RNA_id_pointer_create(id);
+    }
+  }
 
-  return PointerRNA_NULL; /* FIXME: there has to be a way... */
+  return PointerRNA_NULL;
 }
 
 void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop)
@@ -6310,7 +6316,27 @@ static void update_idprop_float(PointerRNA &rna_ptr, PropertyRNA &rna_prop, IDPr
   }
 }
 
-static void sync_system_properties(PointerRNA &ptr, IDProperty &idprops, const bool ensure)
+static void update_idprop_id(Main &bmain,
+                             PointerRNA &rna_ptr,
+                             PropertyRNA &rna_prop,
+                             IDProperty &idprop)
+{
+  const auto fill_new = [&]() {
+    IDP_ClearProperty(&idprop);
+    idprop.type = IDP_ID;
+    PointerRNA default_ptr = RNA_property_pointer_get_default(bmain, rna_ptr, rna_prop);
+    IDP_AssignID(&idprop, default_ptr.data_as<ID>(), 0);
+  };
+  if (idprop.type == IDP_ID) {
+    return;
+  }
+  fill_new();
+}
+
+static void sync_system_properties(Main &bmain,
+                                   PointerRNA &ptr,
+                                   IDProperty &idprops,
+                                   const bool ensure)
 {
   BLI_assert(idprops.type == IDP_GROUP);
   Set<IDProperty *> used_props;
@@ -6377,10 +6403,7 @@ static void sync_system_properties(PointerRNA &ptr, IDProperty &idprops, const b
       case PROP_POINTER: {
         StructRNA *prop_srna = RNA_property_pointer_type(&ptr, &rna_prop);
         if (RNA_struct_is_ID(prop_srna)) {
-          if (idprop->type != IDP_ID) {
-            IDP_ClearProperty(idprop);
-            idprop->type = IDP_ID;
-          }
+          update_idprop_id(bmain, ptr, rna_prop, *idprop);
         }
         else {
           if (idprop->type != IDP_GROUP) {
@@ -6389,7 +6412,7 @@ static void sync_system_properties(PointerRNA &ptr, IDProperty &idprops, const b
             continue;
           }
           PointerRNA prop_ptr = RNA_property_pointer_get(&ptr, &rna_prop);
-          sync_system_properties(prop_ptr, *idprop, ensure);
+          sync_system_properties(bmain, prop_ptr, *idprop, ensure);
         }
         break;
       }
@@ -6409,14 +6432,14 @@ static void sync_system_properties(PointerRNA &ptr, IDProperty &idprops, const b
   }
 }
 
-void RNA_sync_system_properties(PointerRNA &ptr, IDProperty &idprops)
+void RNA_sync_system_properties(Main &bmain, PointerRNA &ptr, IDProperty &idprops)
 {
-  sync_system_properties(ptr, idprops, false);
+  sync_system_properties(bmain, ptr, idprops, false);
 }
 
-void RNA_ensure_and_sync_system_properties(PointerRNA &ptr, IDProperty &idprops)
+void RNA_ensure_and_sync_system_properties(Main &bmain, PointerRNA &ptr, IDProperty &idprops)
 {
-  sync_system_properties(ptr, idprops, true);
+  sync_system_properties(bmain, ptr, idprops, true);
 }
 
 /* Standard iterator functions */
@@ -7894,7 +7917,7 @@ std::optional<StringRefNull> RNA_translate_ui_text(
   return rna_translate_ui_text(text, text_ctxt, type, prop, translate);
 }
 
-bool RNA_property_reset(PointerRNA *ptr, PropertyRNA *prop, int index)
+bool RNA_property_reset(Main *bmain, PointerRNA *ptr, PropertyRNA *prop, int index)
 {
   int len;
 
@@ -7977,7 +8000,13 @@ bool RNA_property_reset(PointerRNA *ptr, PropertyRNA *prop, int index)
     }
 
     case PROP_POINTER: {
-      PointerRNA value = RNA_property_pointer_get_default(ptr, prop);
+      PointerRNA value;
+      if (bmain) {
+        value = RNA_property_pointer_get_default(*bmain, *ptr, *prop);
+      }
+      else {
+        value = PointerRNA_NULL;
+      }
       RNA_property_pointer_set(ptr, prop, value, nullptr);
       return true;
     }

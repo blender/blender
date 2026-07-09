@@ -373,6 +373,7 @@ static bool reset_default_button_poll(bContext *C)
 
 static wmOperatorStatus reset_default_button_exec(bContext *C, wmOperator *op)
 {
+  Main &bmain = *CTX_data_main(C);
   PointerRNA ptr;
   PropertyRNA *prop;
   int index;
@@ -384,7 +385,7 @@ static wmOperatorStatus reset_default_button_exec(bContext *C, wmOperator *op)
   /* if there is a valid property that is editable... */
   if (ptr.data && prop && RNA_property_editable(&ptr, prop)) {
     const int array_index = (all) ? -1 : index;
-    if (RNA_property_reset(&ptr, prop, array_index)) {
+    if (RNA_property_reset(&bmain, &ptr, prop, array_index)) {
 
       /* Apply auto keyframe when property is successfully reset. */
       Scene *scene = CTX_data_scene(C);

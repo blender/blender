@@ -1930,7 +1930,7 @@ static void rna_NodesModifier_node_group_update(Main *bmain, Scene *scene, Point
   Object *object = id_cast<Object *>(ptr->owner_id);
   NodesModifierData *nmd = static_cast<NodesModifierData *>(ptr->data);
   rna_Modifier_dependency_update(bmain, scene, ptr);
-  MOD_nodes_update_interface(object, nmd);
+  MOD_nodes_update_interface(*bmain, object, nmd);
 }
 
 static StructRNA *rna_NodesModifierProperties_refine(PointerRNA *ptr)

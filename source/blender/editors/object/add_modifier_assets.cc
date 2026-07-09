@@ -306,7 +306,7 @@ static wmOperatorStatus modifier_add_asset_exec(bContext *C, wmOperator *op)
     changed = true;
     nmd->node_group = node_group;
     id_us_plus(&node_group->id);
-    MOD_nodes_update_interface(object, nmd);
+    MOD_nodes_update_interface(*bmain, object, nmd);
 
     /* Don't show the data-block selector since it's not usually necessary for assets. */
     nmd->flag |= NODES_MODIFIER_HIDE_DATABLOCK_SELECTOR;

@@ -1918,7 +1918,7 @@ static wmOperatorStatus shade_auto_smooth_exec(bContext *C, wmOperator *op)
         smooth_by_angle_nmd->modifier.flag |= eModifierFlag_PinLast;
         smooth_by_angle_nmd->node_group = node_group;
         id_us_plus(&node_group->id);
-        MOD_nodes_update_interface(object, smooth_by_angle_nmd);
+        MOD_nodes_update_interface(bmain, object, smooth_by_angle_nmd);
         smooth_by_angle_nmd->flag |= NODES_MODIFIER_HIDE_DATABLOCK_SELECTOR |
                                      NODES_MODIFIER_HIDE_MANAGE_PANEL;
         STRNCPY_UTF8(smooth_by_angle_nmd->modifier.name, DATA_(node_group->id.name + 2));
