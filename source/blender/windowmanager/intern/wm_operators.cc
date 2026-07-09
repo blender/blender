@@ -824,7 +824,7 @@ bool WM_operator_properties_default(PointerRNA *ptr, const bool do_update)
       }
       default:
         if ((do_update == false) || (RNA_property_is_set(ptr, prop) == false)) {
-          if (RNA_property_reset(ptr, prop, -1)) {
+          if (RNA_property_reset(nullptr, ptr, prop, -1)) {
             changed = true;
           }
         }

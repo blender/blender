@@ -636,6 +636,9 @@ struct PointerPropertyRNA : public PropertyRNA {
   /** unlike operators, 'set' can still run if poll fails, used for filtering display. */
   PropPointerPollFunc poll;
 
+  /** Default ID data-block UID, only for properties registered at runtime. */
+  uint32_t id_default_session_uid;
+
   StructRNA *pointer_type;
 };
 

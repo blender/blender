@@ -3539,6 +3539,12 @@ void RNA_def_property_pointer_funcs_runtime(PropertyRNA *prop,
   }
 }
 
+void RNA_def_property_pointer_default_runtime(PropertyRNA *prop, uint32_t id_session_uid)
+{
+  PointerPropertyRNA *pprop = reinterpret_cast<PointerPropertyRNA *>(prop);
+  pprop->id_default_session_uid = id_session_uid;
+}
+
 #ifndef RNA_RUNTIME
 void RNA_def_property_pointer_funcs(
     PropertyRNA *prop, const char *get, const char *set, const char *type_fn, const char *poll)
