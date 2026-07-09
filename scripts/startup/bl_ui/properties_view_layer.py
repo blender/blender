@@ -133,6 +133,21 @@ class VIEWLAYER_PT_eevee_layer_passes_data(ViewLayerButtonsPanel, Panel):
         sub.prop(view_layer, "use_pass_vector")
         col.prop(view_layer, "use_pass_grease_pencil", text="Grease Pencil")
 
+        view_layer_eevee = view_layer.eevee
+        prefs = context.preferences
+        use_debug = prefs.view.show_developer_ui
+        if use_debug:
+            col = layout.column(heading="Denoising", align=True)
+            col.prop(view_layer_eevee, "denoising_store_passes", text="Denoising Data")
+            sub = col.column()
+            sub.active = view_layer_eevee.denoising_store_passes
+            sub.prop(
+                view_layer_eevee,
+                "denoising_pass_use_albedo_roughness_weighting",
+                text="Albedo Roughness Weighting")
+        else:
+            col.prop(view_layer_eevee, "denoising_store_passes", text="Denoising Data")
+
 
 class VIEWLAYER_PT_workbench_layer_passes_data(ViewLayerButtonsPanel, Panel):
     bl_label = "Data"

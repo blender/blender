@@ -4876,6 +4876,21 @@ static void rna_def_view_layer_eevee(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Distance", "Distance of object that contribute to the ambient occlusion effect");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+
+  prop = RNA_def_property(srna, "denoising_store_passes", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "denoising_pass_flags", EEVEE_DENOISING_PASS_STORE);
+  RNA_def_property_ui_text(prop, "Denoising Data", "Deliver denoising passes");
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
+
+  prop = RNA_def_property(
+      srna, "denoising_pass_use_albedo_roughness_weighting", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "denoising_pass_flags", EEVEE_DENOISING_PASS_USE_ALBEDO_ROUGHNESS_WEIGHTING);
+  RNA_def_property_ui_text(
+      prop,
+      "Denoising Pass Albedo Roughness Weighting",
+      "Use roughness-based weighting of the albedo for the denoising feature passes");
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 }
 
 static void rna_def_view_layer_aovs(BlenderRNA *brna, PropertyRNA *cprop)

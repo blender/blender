@@ -238,6 +238,13 @@ static eViewLayerEEVEEPassType enabled_passes(const ViewLayer *view_layer)
                      view_layer->cryptomatte_flag & VIEW_LAYER_CRYPTOMATTE_MATERIAL,
                      EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL);
 
+  SET_FLAG_FROM_TEST(result,
+                     view_layer->eevee.denoising_pass_flags & EEVEE_DENOISING_PASS_STORE,
+                     EEVEE_RENDER_PASS_DENOISING_DEPTH | EEVEE_RENDER_PASS_DENOISING_NORMAL |
+                         EEVEE_RENDER_PASS_DENOISING_ROUGHNESS |
+                         EEVEE_RENDER_PASS_DENOISING_DIFFUSE_ALBEDO |
+                         EEVEE_RENDER_PASS_DENOISING_SPECULAR_ALBEDO);
+
   return result;
 }
 
@@ -411,6 +418,14 @@ void Film::init(const int2 &extent, const rcti *output_rect)
                                                    EEVEE_RENDER_PASS_MIST |
                                                    EEVEE_RENDER_PASS_SHADOW | EEVEE_RENDER_PASS_AO;
     const eViewLayerEEVEEPassType color_passes_3 = EEVEE_RENDER_PASS_TRANSPARENT;
+    const eViewLayerEEVEEPassType denoising_passes = EEVEE_RENDER_PASS_DENOISING_DEPTH |
+                                                     EEVEE_RENDER_PASS_DENOISING_NORMAL |
+                                                     EEVEE_RENDER_PASS_DENOISING_ROUGHNESS |
+                                                     EEVEE_RENDER_PASS_DENOISING_DIFFUSE_ALBEDO |
+                                                     EEVEE_RENDER_PASS_DENOISING_SPECULAR_ALBEDO;
+    const eViewLayerEEVEEPassType cryptomatte_passes = EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET |
+                                                       EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL |
+                                                       EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT;
 
     data_.exposure_scale = pow2f(scene.view_settings.exposure);
     if (enabled_passes_ & data_passes) {
@@ -424,6 +439,12 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     }
     if (enabled_passes_ & color_passes_3) {
       enabled_categories_ |= PASS_CATEGORY_COLOR_3;
+    }
+    if (enabled_passes_ & cryptomatte_passes) {
+      enabled_categories_ |= PASS_CATEGORY_CRYPTOMATTE;
+    }
+    if (enabled_passes_ & denoising_passes) {
+      enabled_categories_ |= PASS_CATEGORY_DENOISE;
     }
   }
   {
@@ -441,14 +462,29 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     data_.color_len = 0;
     data_.value_len = 0;
 
+    int cryptomatte_id = 0;
     auto pass_index_get = [&](eViewLayerEEVEEPassType pass_type) {
       ePassStorageType storage_type = pass_storage_type(pass_type);
-      int index = (enabled_passes_ & pass_type) ?
-                      (storage_type == PASS_STORAGE_VALUE ? data_.value_len : data_.color_len)++ :
-                      -1;
-      if (inst_.is_viewport() && inst_.v3d->shading.render_pass == pass_type) {
-        data_.display_id = index;
-        data_.display_storage_type = storage_type;
+      int index = -1;
+      if (enabled_passes_ & pass_type) {
+        if (storage_type == PASS_STORAGE_COLOR) {
+          index = data_.color_len++;
+        }
+        else if (storage_type == PASS_STORAGE_VALUE) {
+          index = data_.value_len++;
+        }
+        else if (storage_type == PASS_STORAGE_CRYPTOMATTE) {
+          index = cryptomatte_id;
+          cryptomatte_id += divide_ceil_u(data_.cryptomatte_samples_len, 2u);
+        }
+        else if (storage_type == PASS_STORAGE_DENOISING_DEPTH) {
+          index = 0;
+        }
+
+        if (inst_.is_viewport() && inst_.v3d->shading.render_pass == pass_type) {
+          data_.display_id = index;
+          data_.display_storage_type = storage_type;
+        }
       }
       return index;
     };
@@ -468,6 +504,13 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     data_.ambient_occlusion_id = pass_index_get(EEVEE_RENDER_PASS_AO);
     data_.transparent_id = pass_index_get(EEVEE_RENDER_PASS_TRANSPARENT);
 
+    data_.denoising_depth_id = pass_index_get(EEVEE_RENDER_PASS_DENOISING_DEPTH);
+    data_.denoising_normal_id = pass_index_get(EEVEE_RENDER_PASS_DENOISING_NORMAL);
+    data_.denoising_roughness_id = pass_index_get(EEVEE_RENDER_PASS_DENOISING_ROUGHNESS);
+    data_.denoising_diffuse_albedo_id = pass_index_get(EEVEE_RENDER_PASS_DENOISING_DIFFUSE_ALBEDO);
+    data_.denoising_specular_albedo_id = pass_index_get(
+        EEVEE_RENDER_PASS_DENOISING_SPECULAR_ALBEDO);
+
     data_.aov_color_id = data_.color_len;
     data_.aov_value_id = data_.value_len;
 
@@ -477,30 +520,9 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     data_.color_len += data_.aov_color_len;
     data_.value_len += data_.aov_value_len;
 
-    int cryptomatte_id = 0;
-    auto cryptomatte_index_get = [&](eViewLayerEEVEEPassType pass_type) {
-      int index = -1;
-      if (enabled_passes_ & pass_type) {
-        index = cryptomatte_id;
-        cryptomatte_id += divide_ceil_u(data_.cryptomatte_samples_len, 2u);
-
-        if (inst_.is_viewport() && inst_.v3d->shading.render_pass == pass_type) {
-          data_.display_id = index;
-          data_.display_storage_type = PASS_STORAGE_CRYPTOMATTE;
-        }
-      }
-      return index;
-    };
-    data_.cryptomatte_object_id = cryptomatte_index_get(EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT);
-    data_.cryptomatte_asset_id = cryptomatte_index_get(EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET);
-    data_.cryptomatte_material_id = cryptomatte_index_get(EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL);
-
-    if ((enabled_passes_ &
-         (EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET | EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL |
-          EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT)) != 0)
-    {
-      enabled_categories_ |= PASS_CATEGORY_CRYPTOMATTE;
-    }
+    data_.cryptomatte_object_id = pass_index_get(EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT);
+    data_.cryptomatte_asset_id = pass_index_get(EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET);
+    data_.cryptomatte_material_id = pass_index_get(EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL);
   }
   {
     int2 weight_extent = (inst_.camera.is_panoramic() || (data_.scaling_factor > 1)) ?
@@ -533,6 +555,9 @@ void Film::init(const int2 &extent, const rcti *output_rect)
                                              (cryptomatte_array_len > 0) ? data_.extent : int2(1),
                                              (cryptomatte_array_len > 0) ? cryptomatte_array_len :
                                                                            1);
+    reset += denoising_depth_tx_.ensure_2d(
+        depth_format,
+        (enabled_passes_ & EEVEE_RENDER_PASS_DENOISING_DEPTH) ? data_.extent : int2(1));
 
     if (reset > 0) {
       data_.use_history = 0;
@@ -545,6 +570,7 @@ void Film::init(const int2 &extent, const rcti *output_rect)
       weight_tx_.current().clear(float4(0.0f));
       depth_tx_.clear(float4(0.0f));
       cryptomatte_tx_.clear(float4(0.0f));
+      denoising_depth_tx_.clear(float4(0.0f));
     }
   }
 }
@@ -648,6 +674,7 @@ void Film::init_pass(PassSimple &pass, gpu::Shader *sh)
   pass.bind_image("color_accum_img", &color_accum_tx_);
   pass.bind_image("value_accum_img", &value_accum_tx_);
   pass.bind_image("cryptomatte_img", &cryptomatte_tx_);
+  pass.bind_image("denoising_depth_img", &denoising_depth_tx_);
   pass.bind_resources(inst_.uniform_data);
 }
 
@@ -942,6 +969,8 @@ gpu::Texture *Film::get_pass_texture(eViewLayerEEVEEPassType pass_type, int laye
                           combined_tx_.current() :
                       (pass_type == EEVEE_RENDER_PASS_DEPTH) ?
                           depth_tx_ :
+                      (pass_type == EEVEE_RENDER_PASS_DENOISING_DEPTH) ?
+                          denoising_depth_tx_ :
                           (is_cryptomatte ? cryptomatte_tx_ :
                                             (is_value ? value_accum_tx_ : color_accum_tx_));
 
@@ -969,6 +998,7 @@ static eShaderType get_write_pass_shader_type(eViewLayerEEVEEPassType pass_type)
 
   switch (Film::pass_storage_type(pass_type)) {
     case PASS_STORAGE_VALUE:
+    case PASS_STORAGE_DENOISING_DEPTH:
       return FILM_PASS_CONVERT_VALUE;
     case PASS_STORAGE_COLOR:
       return FILM_PASS_CONVERT_COLOR;
