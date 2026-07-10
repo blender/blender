@@ -2004,7 +2004,8 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCursorGrab(GHOST_TGrabCursorMode mo
                                       bounds,
                                       cursor_grab_axis_,
                                       window_->wl.surface,
-                                      this->scale_params_get()))
+                                      this->scale_params_get(),
+                                      this->window_->ghost_context_type))
   {
     return GHOST_kSuccess;
   }
