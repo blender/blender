@@ -326,21 +326,6 @@ UVEdge *UVIsland::lookup_or_create(const UVEdge &edge)
   return result;
 }
 
-void UVIsland::append(const UVPrimitive &primitive)
-{
-  uv_primitives.append(primitive);
-  UVPrimitive *new_prim_ptr = &uv_primitives.last();
-  for (int i = 0; i < 3; i++) {
-    UVEdge *other_edge = primitive.edges[i];
-    UVEdge uv_edge_template;
-    uv_edge_template.vertices[0] = lookup_or_create(*other_edge->vertices[0]);
-    uv_edge_template.vertices[1] = lookup_or_create(*other_edge->vertices[1]);
-    new_prim_ptr->edges[i] = lookup_or_create(uv_edge_template);
-    uv_edge_append_to_uv_vertices(*new_prim_ptr->edges[i]);
-    new_prim_ptr->edges[i]->uv_primitive_indices.append(new_prim_ptr->primitive_i);
-  }
-}
-
 static UVPrimitive *add_primitive(const MeshData &mesh_data,
                                   UVIsland &uv_island,
                                   const int primitive_i)

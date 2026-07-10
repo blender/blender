@@ -271,10 +271,6 @@ struct UVIsland {
   /** Iterative extend border to fit the mask. */
   void extend_border(const MeshData &mesh_data, const UVIslandsMask &mask, short island_index);
 
- private:
-  void append(const UVPrimitive &primitive);
-
- public:
   /** Print a python script to the console that generates a mesh representing this UVIsland. */
   void print_debug(const MeshData &mesh_data) const;
 };
