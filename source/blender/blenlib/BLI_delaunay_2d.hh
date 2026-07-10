@@ -5,8 +5,6 @@
 #pragma once
 
 #include "BLI_array.hh"
-#include "BLI_math_mpq.hh"
-#include "BLI_math_vector_mpq_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_vector.hh"
@@ -214,12 +212,8 @@ template<typename T> class CDT_result {
   uint32_t face_edge_offset;
 };
 
-CDT_result<double> delaunay_2d_calc(const CDT_input<double> &input, CDT_output_type output_type);
-
-#ifdef WITH_GMP
-CDT_result<mpq_class> delaunay_2d_calc(const CDT_input<mpq_class> &input,
-                                       CDT_output_type output_type);
-#endif
+template<typename T>
+CDT_result<T> delaunay_2d_calc(const CDT_input<T> &input, CDT_output_type output_type);
 
 }  // namespace meshintersect
 }  // namespace blender

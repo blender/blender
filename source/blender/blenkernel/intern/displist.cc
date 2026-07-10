@@ -21,6 +21,7 @@
 #include "BLI_listbase.hh"
 #include "BLI_map.hh"
 #include "BLI_math_rotation_c.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_memarena.hh"
 #include "BLI_scanfill.hh"

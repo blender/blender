@@ -3358,17 +3358,16 @@ CDT_result<T> delaunay_calc(const CDT_input<T> &input, CDT_output_type output_ty
   return get_cdt_output(&cdt_state, output_type);
 }
 
-CDT_result<double> delaunay_2d_calc(const CDT_input<double> &input, CDT_output_type output_type)
+template<typename T>
+CDT_result<T> delaunay_2d_calc(const CDT_input<T> &input, CDT_output_type output_type)
 {
   return delaunay_calc(input, output_type);
 }
 
+template CDT_result<double> delaunay_2d_calc(const CDT_input<double> &, CDT_output_type);
+
 #ifdef WITH_GMP
-CDT_result<mpq_class> delaunay_2d_calc(const CDT_input<mpq_class> &input,
-                                       CDT_output_type output_type)
-{
-  return delaunay_calc(input, output_type);
-}
+template CDT_result<mpq_class> delaunay_2d_calc(const CDT_input<mpq_class> &, CDT_output_type);
 #endif
 
 }  // namespace blender::meshintersect
