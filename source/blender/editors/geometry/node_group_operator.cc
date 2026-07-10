@@ -886,6 +886,49 @@ static Vector<Object *> gather_supported_objects(const bContext &C,
   return objects;
 }
 
+/**
+ * Input node values are stored as operator properties in order to support redoing from the redo
+ * panel for a few reasons:
+ *  1. Some data (like the mouse position) cannot be retrieved from the `exec` callback used for
+ *     operator redo. Redo is meant to just call the operator again with the exact same properties.
+ *  2. While adjusting an input in the redo panel, the user doesn't expect anything else to change.
+ *     If we retrieve other data like the viewport transform on every execution, that won't be the
+ *     case.
+ * We use operator RNA properties instead of operator custom data because the custom data struct
+ * isn't maintained for the redo `exec` call.
+ */
+static void store_input_node_values_rna_props(const bContext &C,
+                                              wmOperator &op,
+                                              const wmEvent &event)
+{
+  Scene *scene = CTX_data_scene(&C);
+  /* NOTE: `region` and `rv3d` may be null when called from a script. */
+  const ARegion *region = CTX_wm_region(&C);
+  const RegionView3D *rv3d = CTX_wm_region_view3d(&C);
+
+  /* Mouse position node inputs. */
+  RNA_int_set_array(op.ptr, "mouse_position", event.mval);
+  RNA_int_set_array(
+      op.ptr,
+      "region_size",
+      region ? int2(BLI_rcti_size_x(&region->winrct), BLI_rcti_size_y(&region->winrct)) : int2(0));
+
+  /* 3D cursor node inputs. */
+  const View3DCursor &cursor = scene->cursor;
+  RNA_float_set_array(op.ptr, "cursor_position", cursor.location);
+  math::Quaternion cursor_rotation = cursor.rotation();
+  RNA_float_set_array(op.ptr, "cursor_rotation", &cursor_rotation.w);
+
+  /* Viewport transform node inputs. */
+  RNA_float_set_array(op.ptr,
+                      "viewport_projection_matrix",
+                      rv3d ? float4x4(rv3d->winmat).base_ptr() : float4x4::identity().base_ptr());
+  RNA_float_set_array(op.ptr,
+                      "viewport_view_matrix",
+                      rv3d ? float4x4(rv3d->viewmat).base_ptr() : float4x4::identity().base_ptr());
+  RNA_boolean_set(op.ptr, "viewport_is_perspective", rv3d ? bool(rv3d->is_persp) : true);
+}
+
 static wmOperatorStatus run_node_group_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -1005,49 +1048,6 @@ static wmOperatorStatus run_node_group_exec(bContext *C, wmOperator *op)
   }
 
   return OPERATOR_FINISHED;
-}
-
-/**
- * Input node values are stored as operator properties in order to support redoing from the redo
- * panel for a few reasons:
- *  1. Some data (like the mouse position) cannot be retrieved from the `exec` callback used for
- *     operator redo. Redo is meant to just call the operator again with the exact same properties.
- *  2. While adjusting an input in the redo panel, the user doesn't expect anything else to change.
- *     If we retrieve other data like the viewport transform on every execution, that won't be the
- *     case.
- * We use operator RNA properties instead of operator custom data because the custom data struct
- * isn't maintained for the redo `exec` call.
- */
-static void store_input_node_values_rna_props(const bContext &C,
-                                              wmOperator &op,
-                                              const wmEvent &event)
-{
-  Scene *scene = CTX_data_scene(&C);
-  /* NOTE: `region` and `rv3d` may be null when called from a script. */
-  const ARegion *region = CTX_wm_region(&C);
-  const RegionView3D *rv3d = CTX_wm_region_view3d(&C);
-
-  /* Mouse position node inputs. */
-  RNA_int_set_array(op.ptr, "mouse_position", event.mval);
-  RNA_int_set_array(
-      op.ptr,
-      "region_size",
-      region ? int2(BLI_rcti_size_x(&region->winrct), BLI_rcti_size_y(&region->winrct)) : int2(0));
-
-  /* 3D cursor node inputs. */
-  const View3DCursor &cursor = scene->cursor;
-  RNA_float_set_array(op.ptr, "cursor_position", cursor.location);
-  math::Quaternion cursor_rotation = cursor.rotation();
-  RNA_float_set_array(op.ptr, "cursor_rotation", &cursor_rotation.w);
-
-  /* Viewport transform node inputs. */
-  RNA_float_set_array(op.ptr,
-                      "viewport_projection_matrix",
-                      rv3d ? float4x4(rv3d->winmat).base_ptr() : float4x4::identity().base_ptr());
-  RNA_float_set_array(op.ptr,
-                      "viewport_view_matrix",
-                      rv3d ? float4x4(rv3d->viewmat).base_ptr() : float4x4::identity().base_ptr());
-  RNA_boolean_set(op.ptr, "viewport_is_perspective", rv3d ? bool(rv3d->is_persp) : true);
 }
 
 static wmOperatorStatus run_node_group_invoke(bContext *C, wmOperator *op, const wmEvent *event)
