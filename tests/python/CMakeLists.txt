@@ -1734,6 +1734,32 @@ if(WITH_UI_TESTS)
     test_render.interactive_rendering_eevee
     test_render.animation_rendering_and_player
     test_bpy_types.unregister_referenced_type
+    test_pie_menus.test_object_mode_pie_edit
+    test_pie_menus.test_snap_pie_cursor_to_world_origin
+    test_pie_menus.test_pivot_pie_cursor
+    test_pie_menus.test_orientation_pie_cursor
+    test_pie_menus.test_shading_pie_solid
+    test_pie_menus.test_view_pie_camera
+    test_pie_menus.test_transform_gizmo_pie_show_gizmos
+    test_pie_menus.test_shading_ex_pie_toggle_overlays
+    test_pie_menus.test_proportional_editing_falloff_pie_sphere
+    test_pie_menus.test_sculpt_automasking_pie_topology
+    test_pie_menus.test_graph_editor_pivot_pie_cursor
+    test_pie_menus.test_graph_editor_view_pie_view_all
+    test_pie_menus.test_dopesheet_snap_pie_current_frame
+    test_pie_menus.test_dopesheet_view_pie_view_all
+    test_pie_menus.test_sequencer_pivot_pie_cursor
+    test_pie_menus.test_nla_snap_pie_current_frame
+    test_pie_menus.test_nla_view_pie_view_all
+    test_pie_menus.test_image_pivot_pie_cursor
+    test_pie_menus.test_image_view_pie_view_all
+    test_pie_menus.test_filebrowser_view_pie_list_horizontal
+    test_pie_menus.test_clip_pivot_pie_cursor
+    test_pie_menus.test_clip_marker_pie_affine
+    test_pie_menus.test_clip_solving_pie_tripod_solver
+    test_pie_menus.test_clip_view_pie_view_all
+    test_pie_menus.test_anim_keyframe_insert_pie_location
+    test_pie_menus.test_weight_paint_vgroup_lock_pie
   )
   foreach(ui_test ${_ui_tests})
     add_blender_test_ui(
