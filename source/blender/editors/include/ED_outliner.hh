@@ -48,6 +48,7 @@ void ED_outliner_select_sync_from_edit_bone_tag(bContext *C);
 void ED_outliner_select_sync_from_pose_bone_tag(bContext *C);
 void ED_outliner_select_sync_from_sequence_tag(const bContext *C);
 void ED_outliner_select_sync_from_all_tag(bContext *C);
+void ED_outliner_select_sync_from_collection_tag(bContext *C);
 
 bool ED_outliner_select_sync_is_dirty(const bContext *C);
 

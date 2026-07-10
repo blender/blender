@@ -285,6 +285,14 @@ static wmOperatorStatus collection_new_exec(bContext *C, wmOperator *op)
 
   Collection *new_collection = BKE_collection_add(bmain, data.collection, nullptr);
   new_collection->color_tag = data.collection->color_tag;
+  BKE_view_layer_synced_ensure(*bmain, scene, view_layer);
+  if (LayerCollection *layer_collection = BKE_layer_collection_first_from_scene_collection(
+          view_layer, new_collection))
+  {
+    BKE_layer_collection_activate(view_layer, layer_collection);
+    ED_outliner_select_sync_from_collection_tag(C);
+    ED_outliner_select_sync_flag_outliners(C);
+  }
 
   DEG_id_tag_update(&data.collection->id, ID_RECALC_SYNC_TO_EVAL);
   DEG_relations_tag_update(bmain);

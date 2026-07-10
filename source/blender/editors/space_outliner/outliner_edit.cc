@@ -1611,14 +1611,15 @@ static void outliner_show_active(SpaceOutliner *space_outliner,
   }
 }
 
-void outliner_scroll_to_active(const bContext *C,
+void outliner_scroll_to_active(const bContext * /*C*/,
                                SpaceOutliner *space_outliner,
                                ARegion *region,
-                               TreeViewContext *tvc)
+                               TreeViewContext * /*tvc*/)
 {
+  outliner_set_coordinates(region, space_outliner);
   const View2D *v2d = &region->v2d;
-  TreeElement *active_te = outliner_show_active_get_element(
-      C, space_outliner, tvc->scene, tvc->view_layer);
+  TreeElement *active_te = outliner_find_element_with_flag(&space_outliner->runtime->tree,
+                                                           TSE_ACTIVE);
 
   if (active_te) {
     if (!BLI_rctf_isect_y(&v2d->cur, active_te->ys)) {
