@@ -103,6 +103,15 @@ static void grease_pencil_add_missing_update_tags(const std::string &name,
       drawing.tag_fills_changed();
     }
   }
+  else if (ELEM(name, "uv_rotation", "uv_translation", "uv_scale", "uv_shear")) {
+    for (GreasePencilDrawingBase *base : grease_pencil.drawings()) {
+      if (base->type != GP_DRAWING) {
+        continue;
+      }
+      bke::greasepencil::Drawing &drawing = reinterpret_cast<GreasePencilDrawing *>(base)->wrap();
+      drawing.tag_texture_matrices_changed();
+    }
+  }
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
