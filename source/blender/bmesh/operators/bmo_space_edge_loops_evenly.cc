@@ -13,15 +13,13 @@
  * based on the cumulative length of the edge loop and are interpolated
  * either smoothly via a natural cubic spline or linearly.
  */
-#include <optional>
-
 #include "BLI_math_vector.hh"
 
 #include "BLI_binary_search.hh"
 #include "BLI_length_parameterize.hh"
+#include "BLI_listbase.hh"
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_solvers.hh"
-#include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 
@@ -75,108 +73,9 @@ struct SplineCoeffs {
   float x;
 };
 
-/**
- * Return the next tagged edge to walk from `v`, or null.
- * A null return will occur:
- * - When no other edge can be found.
- * - When there are 3+ connected edges (a logical "junction").
- */
-static BMEdge *vert_next_walk_edge(BMVert *v, const Set<BMEdge *> &visited)
+static bool bm_edge_space_test_cb(BMEdge *e, void * /*user_data*/)
 {
-  BMEdge *e_next = nullptr;
-  int tagged_count = 0;
-  BMIter eiter;
-  BMEdge *e;
-  BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-    if (!BM_elem_flag_test(e, BM_ELEM_TAG)) {
-      continue;
-    }
-    tagged_count++;
-    if (tagged_count >= 3) {
-      return nullptr;
-    }
-    if (!e_next && !visited.contains(e)) {
-      e_next = e;
-    }
-  }
-  return e_next;
-}
-
-/**
- * Walk from start_edge in both directions and return the resulting vertex chain.
- * Returns std::nullopt when all vertices are at the same position.
- */
-static std::optional<SpaceChainData> walk_edges(BMEdge *start_edge, Set<BMEdge *> &r_visited)
-{
-  SpaceChainData chain_data;
-  Set<BMVert *> visited_verts;
-
-  chain_data.verts.append(start_edge->v1);
-  chain_data.verts.append(start_edge->v2);
-  visited_verts.add(start_edge->v1);
-  visited_verts.add(start_edge->v2);
-  r_visited.add(start_edge);
-
-  auto walk_fn = [&](BMVert *v_curr, Vector<BMVert *> &result) {
-    while (true) {
-      BMEdge *e_next = vert_next_walk_edge(v_curr, r_visited);
-      if (!e_next) {
-        break;
-      }
-      BMVert *v_next = BM_edge_other_vert(e_next, v_curr);
-      if (visited_verts.contains(v_next)) {
-        break;
-      }
-      v_curr = v_next;
-      visited_verts.add(v_curr);
-      result.append(v_curr);
-      r_visited.add(e_next);
-    }
-  };
-
-  /* The initial edge direction (v1 -> v2) is arbitrary.
-   * We walk from v2 to extend this sequence. */
-  walk_fn(start_edge->v2, chain_data.verts);
-
-  Vector<BMVert *> pre_chain;
-  walk_fn(start_edge->v1, pre_chain);
-
-  if (!pre_chain.is_empty()) {
-    std::ranges::reverse(pre_chain);
-    pre_chain.extend(chain_data.verts);
-    chain_data.verts = std::move(pre_chain);
-  }
-
-  /* Skip chains where all vertices are at the same location. */
-  bool all_duplicate = true;
-  for (const int i : chain_data.verts.index_range().drop_back(1)) {
-    if (math::distance_squared(float3(chain_data.verts[i]->co),
-                               float3(chain_data.verts[i + 1]->co)) >
-        math::square(DUPLICATE_POSITION_THRESHOLD))
-    {
-      all_duplicate = false;
-      break;
-    }
-  }
-  if (all_duplicate) {
-    return std::nullopt;
-  }
-  /* Close the ring, ensuring the closing vertex is *not* a junction. */
-  BMVert *v_first = chain_data.verts.first();
-  BMVert *v_last = chain_data.verts.last();
-  BMEdge *closing_edge = BM_edge_exists(v_first, v_last);
-  if (closing_edge && BM_elem_flag_test(closing_edge, BM_ELEM_TAG) &&
-      vert_next_walk_edge(v_first, r_visited) == closing_edge &&
-      vert_next_walk_edge(v_last, r_visited) == closing_edge)
-  {
-    r_visited.add(closing_edge);
-    chain_data.is_closed = true;
-  }
-  else {
-    chain_data.is_closed = false;
-  }
-
-  return chain_data;
+  return BM_elem_flag_test(e, BM_ELEM_TAG);
 }
 
 /**
@@ -184,18 +83,36 @@ static std::optional<SpaceChainData> walk_edges(BMEdge *start_edge, Set<BMEdge *
  */
 static void get_space_input_chains(BMesh *bm, Vector<SpaceChainData> &r_chains)
 {
-  Set<BMEdge *> visited;
-  BMIter iter;
-  BMEdge *edge;
-  BM_ITER_MESH (edge, &iter, bm, BM_EDGES_OF_MESH) {
-    if (!BM_elem_flag_test(edge, BM_ELEM_TAG) || visited.contains(edge)) {
-      continue;
+  ListBaseT<BMEdgeLoopStore> eloops = {nullptr};
+  const BMEdgeLoopFind_Params params = {
+      .use_vert_junction = true,
+  };
+  BM_mesh_edgeloops_find(bm, &eloops, bm_edge_space_test_cb, nullptr, &params);
+
+  for (BMEdgeLoopStore &el_store : eloops) {
+    SpaceChainData chain;
+    chain.is_closed = BM_edgeloop_is_closed(&el_store);
+    for (LinkData &node : *BM_edgeloop_verts_get(&el_store)) {
+      chain.verts.append(static_cast<BMVert *>(node.data));
     }
-    std::optional<SpaceChainData> chain = walk_edges(edge, visited);
-    if (chain) {
-      r_chains.append(std::move(*chain));
+
+    /* Skip chains where all vertices are at the same location. */
+    bool all_duplicate = true;
+    for (const int i : chain.verts.index_range().drop_back(1)) {
+      if (math::distance_squared(float3(chain.verts[i]->co), float3(chain.verts[i + 1]->co)) >
+          math::square(DUPLICATE_POSITION_THRESHOLD))
+      {
+        all_duplicate = false;
+        break;
+      }
+    }
+
+    if (!all_duplicate) {
+      r_chains.append(std::move(chain));
     }
   }
+
+  BM_mesh_edgeloops_free(&eloops);
 }
 
 /**
