@@ -3086,9 +3086,7 @@ static void rna_SpaceNodeEditor_show_backdrop_update(Main * /*bmain*/,
                                                      Scene *scene,
                                                      PointerRNA * /*ptr*/)
 {
-  if (scene->compositing_node_group) {
-    DEG_id_tag_update(&scene->compositing_node_group->id, ID_RECALC_NTREE_OUTPUT);
-  }
+  DEG_id_tag_update(&scene->id, ID_RECALC_COMPOSITOR);
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
   WM_main_add_notifier(NC_SCENE | ND_NODES, nullptr);
 }
