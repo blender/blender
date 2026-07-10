@@ -61,4 +61,16 @@ TEST_F(SocketValueVisitorTest, edit_in_nested_mesh)
   EXPECT_TRUE(mesh->attributes().contains("my attribute"));
 }
 
+TEST_F(SocketValueVisitorTest, empty_bundle_list_owns_direct_data)
+{
+  const CPPType &type = CPPType::get<nodes::BundlePtr>();
+  nodes::GListPtr list = nodes::GList::create(
+      type, nodes::GList::SingleData::ForDefaultValue(type), 0);
+  SocketValueVariant value = SocketValueVariant::From(std::move(list));
+
+  EXPECT_TRUE(value.owns_direct_data());
+  value.ensure_owns_direct_data();
+  EXPECT_TRUE(value.owns_direct_data());
+}
+
 }  // namespace blender::bke::socket_value_visitor::tests
