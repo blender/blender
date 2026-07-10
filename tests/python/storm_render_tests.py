@@ -40,6 +40,8 @@ BLOCKLIST_HYDRA = [
     "principled_bsdf_thin_glass.blend",
     # Custom OSL camera not supported.
     "osl_camera_.*.blend",
+    # The result doesn't match storm-usd
+    "many_lights.blend",
 ]
 
 BLOCKLIST_USD = [
