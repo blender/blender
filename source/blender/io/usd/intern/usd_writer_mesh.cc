@@ -16,6 +16,8 @@
 #include <pxr/usd/usdShade/materialBindingAPI.h>
 #include <pxr/usd/usdSkel/bindingAPI.h>
 
+#include "IO_mesh_utils.hh"
+
 #include "BLI_array_utils.hh"
 #include "BLI_assert.hh"
 #include "BLI_math_vector_types.hh"
@@ -902,12 +904,16 @@ Mesh *USDMeshWriter::get_export_mesh(Object *object_eval, bool &r_needsfree)
   }
 
   if (write_skinned_mesh_) {
-    r_needsfree = false;
     /* We must export the skinned mesh in its rest pose.  We therefore
      * return the pre-modified mesh, so that the armature modifier isn't
-     * applied. */
-    /* TODO: Store the "needs free" mesh in a separate variable. */
-    return const_cast<Mesh *>(BKE_object_get_pre_modified_mesh(object_eval));
+     * applied. Objects without a pre-modified mesh of their own (curves,
+     * NURBS surfaces, ...) get one converted on demand. */
+    MeshCoerceForExport coerce;
+    const Mesh *mesh = mesh_coerce_for_export_setup(
+        coerce, usd_export_context_.depsgraph, object_eval, false);
+    r_needsfree = coerce.owned != nullptr;
+    coerce.owned = nullptr;
+    return const_cast<Mesh *>(mesh);
   }
 
   /* Return the fully evaluated mesh. */
