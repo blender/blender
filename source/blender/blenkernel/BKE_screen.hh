@@ -509,6 +509,12 @@ enum class ARegionQuadviewIndex : uint8_t {
   TopRight = 4,
 };
 
+enum ARegionRuntimeFlag : uint8_t {
+  /* Move redo panel in +Y direction to avoid overlaping with other UI elements, see: #62258 */
+  HUD_PADDING = (1 << 0),
+};
+ENUM_OPERATORS(ARegionRuntimeFlag)
+
 struct ARegionRuntime {
   /** Callbacks for this region type. */
   struct ARegionType *type;
@@ -567,6 +573,7 @@ struct ARegionRuntime {
 
   /** Dummy panel used in popups so they can support layout panels. */
   Panel *popup_block_panel = nullptr;
+  ARegionRuntimeFlag flag = {};
 };
 
 }  // namespace bke

@@ -489,14 +489,17 @@ void draw_image_cache(const bContext *C, ARegion *region)
   SpaceImage *sima = CTX_wm_space_image(C);
   Scene *scene = CTX_data_scene(C);
   Image *image = ED_space_image(sima);
+  ScrArea *area = CTX_wm_area(C);
   float x, cfra = scene->r.cfra, sfra = scene->r.sfra, efra = scene->r.efra,
            framelen = region->winx / (efra - sfra + 1);
   Mask *mask = nullptr;
 
   if (!ED_space_image_show_cache(sima)) {
+    ED_area_hud_region_set_padding_flag(area, region, false);
     return;
   }
 
+  ED_area_hud_region_set_padding_flag(area, region, true);
   if (sima->mode == SI_MODE_MASK) {
     mask = ED_space_image_get_mask(sima);
   }
