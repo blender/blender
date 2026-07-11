@@ -473,7 +473,8 @@ gpu::Texture *IMB_create_gpu_texture(const char *name,
     }
   }
 
-  if (ibuf->ftype == IMB_FTYPE_DDS) {
+  /* Compressed textures can't be written to, so upload uncompressed when modified. */
+  if (ibuf->ftype == IMB_FTYPE_DDS && (ibuf->userflags & IB_BITMAPDIRTY) == 0) {
     gpu::TextureFormat compressed_format;
     if (!IMB_gpu_get_compressed_format(ibuf, &compressed_format)) {
       CLOG_WARN(&LOG,
@@ -695,6 +696,13 @@ static void imb_gpu_texture_apply_partial_updates(ImBuf *ibuf, const bool use_pr
       ibuf->gpu.flag &= ~IMB_GPU_LOAD_FAILED;
       break;
     case Changes::Kind::Partial:
+      /* A compressed texture can't be updated in place, need to recreate. */
+      if (GPU_texture_has_compressed_format(ibuf->gpu.texture)) {
+        GPU_texture_free(ibuf->gpu.texture);
+        ibuf->gpu.texture = nullptr;
+        ibuf->gpu.flag &= ~IMB_GPU_LOAD_FAILED;
+        break;
+      }
       IMB_gpu_texture_apply_partial_update(
           ibuf->gpu.texture, ibuf, use_premult, changes, -1, int2(0), int2(0));
       GPU_texture_update_mipmap_chain(ibuf->gpu.texture);

@@ -1251,6 +1251,11 @@ bool GPU_texture_has_normalized_format(const gpu::Texture *texture);
 bool GPU_texture_has_signed_format(const gpu::Texture *texture);
 
 /**
+ * Return true if the texture format is a compressed type.
+ */
+bool GPU_texture_has_compressed_format(const gpu::Texture *texture);
+
+/**
  * Returns the pixel dimensions of a texture's mip-map level.
  * \a size is expected to be a pointer to a vector of dimension matching the texture's dimension
  * (including the array dimension).
