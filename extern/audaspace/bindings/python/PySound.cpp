@@ -133,30 +133,33 @@ PyDoc_STRVAR(M_aud_Sound_data_doc,
 static PyObject *
 Sound_data(Sound* self)
 {
-    try {
-        std::shared_ptr<ISound> sound = *reinterpret_cast<std::shared_ptr<ISound>*>(self->sound);
+	try
+	{
+		std::shared_ptr<ISound> sound = *reinterpret_cast<std::shared_ptr<ISound>*>(self->sound);
 
-        auto stream_buffer = std::dynamic_pointer_cast<StreamBuffer>(sound);
-        if(!stream_buffer)
-            stream_buffer = std::make_shared<StreamBuffer>(sound);
-        Specs specs = stream_buffer->getSpecs();
-        auto buffer = stream_buffer->getBuffer();
+		auto stream_buffer = std::dynamic_pointer_cast<StreamBuffer>(sound);
+		if(!stream_buffer)
+			stream_buffer = std::make_shared<StreamBuffer>(sound);
+		Specs specs = stream_buffer->getSpecs();
+		auto buffer = stream_buffer->getBuffer();
 
-        npy_intp dimensions[2];
-        dimensions[0] = buffer->getSize() / AUD_SAMPLE_SIZE(specs);
-        dimensions[1] = specs.channels;
+		npy_intp dimensions[2];
+		dimensions[0] = buffer->getSize() / AUD_SAMPLE_SIZE(specs);
+		dimensions[1] = specs.channels;
 
-        PyArrayObject* array = reinterpret_cast<PyArrayObject*>(PyArray_SimpleNew(2, dimensions, NPY_FLOAT));
+		PyArrayObject* array = reinterpret_cast<PyArrayObject*>(PyArray_SimpleNew(2, dimensions, NPY_FLOAT));
 
-        sample_t* data = reinterpret_cast<sample_t*>(PyArray_DATA(array));
+		sample_t* data = reinterpret_cast<sample_t*>(PyArray_DATA(array));
 
-        std::memcpy(data, buffer->getBuffer(), buffer->getSize());
+		std::memcpy(data, buffer->getBuffer(), buffer->getSize());
 
-        return reinterpret_cast<PyObject*>(array);
-    } catch (Exception& e) {
-        PyErr_SetString(AUDError, e.what());
-        return nullptr;
-    }
+		return reinterpret_cast<PyObject*>(array);
+	}
+	catch(Exception& e)
+	{
+		PyErr_SetString(AUDError, e.what());
+		return nullptr;
+	}
 }
 
 PyDoc_STRVAR(M_aud_Sound_write_doc,

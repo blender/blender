@@ -22,7 +22,7 @@
 #include <mutex>
 
 #define KEEP_TIME 10
-#define POSITION_EPSILON (1.0 / static_cast<double>(RATE_48000))
+#define POSITION_EPSILON (1.0 / RATE_48000)
 
 AUD_NAMESPACE_BEGIN
 
