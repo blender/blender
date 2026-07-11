@@ -332,16 +332,6 @@ void BKE_animsys_evaluate_animdata(ID *id,
                                    eAnimData_Recalc recalc,
                                    bool flush_to_original);
 
-/**
- * Evaluation of all ID-blocks with Animation Data blocks - Animation Data Only
- *
- * This will evaluate only the animation info available in the animation data-blocks
- * encountered. In order to enforce the system by which some settings controlled by a
- * 'local' (i.e. belonging in the nearest ID-block that setting is related to, not a
- * standard 'root') block are overridden by a larger 'user'
- */
-void BKE_animsys_evaluate_all_animation(Main *main, Depsgraph *depsgraph, float ctime);
-
 /* ------------ Specialized API --------------- */
 /* There are a few special tools which require these following functions. They are NOT to be used
  * for standard animation evaluation UNDER ANY CIRCUMSTANCES!

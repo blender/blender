@@ -1681,7 +1681,15 @@ static SeqResult do_render_strip_seqbase(const RenderData *context,
     frame_index += offset;
 
     if (strip->flag & SEQ_SCENE_STRIPS && strip->scene) {
-      BKE_animsys_evaluate_all_animation(context->bmain, context->depsgraph, frame_index);
+      if (AnimData *adt = BKE_animdata_from_id(&strip->scene->id)) {
+        const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
+            context->depsgraph, frame_index);
+        BKE_animsys_evaluate_animdata(&strip->scene->id,
+                                      adt,
+                                      &anim_eval_context,
+                                      ADT_RECALC_ANIM,
+                                      DEG_is_active(context->depsgraph));
+      }
     }
 
     intra_frame_cache_set_cur_frame(context->scene,
