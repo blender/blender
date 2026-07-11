@@ -8,12 +8,12 @@
  * Circularize selected boundary chains.
  */
 #include "BLI_kdopbvh.hh"
+#include "BLI_listbase.hh"
 #include "BLI_map.hh"
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_vector.hh"
-#include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 
@@ -100,88 +100,15 @@ static bool is_valid_boundary_edge(BMEdge *e, const char hflag, const bool check
   return true;
 }
 
-/**
- * Traverses a connected path of boundary edges to form a continuous sequence of vertices.
- * This function handles two cases:
- * Closed chains: walks until the traversal returns to the start vertex.
- * Open chains: walks in one direction until a dead end, then walks in the
- * opposite direction from the start edge and merges the results.
- */
-static std::optional<VertChain> walk_boundary_chain(BMEdge *start_edge,
-                                                    Set<BMEdge *> &visited,
-                                                    const char hflag,
-                                                    const bool check_axis[3])
+struct CircularizeEdgeTestParams {
+  char hflag;
+  const bool *check_axis;
+};
+
+static bool bm_edge_circularize_test_cb(BMEdge *e, void *user_data)
 {
-  VertChain chain_data;
-  /* Finds the next valid boundary edge that isn't visited. */
-  auto get_next_edge_fn = [&](BMVert *v, BMEdge *exclude_e) -> BMEdge * {
-    BMIter eiter;
-    BMEdge *e_next;
-    BM_ITER_ELEM (e_next, &eiter, v, BM_EDGES_OF_VERT) {
-      if (e_next != exclude_e && !visited.contains(e_next)) {
-        if (is_valid_boundary_edge(e_next, hflag, check_axis)) {
-          return e_next;
-        }
-      }
-    }
-    return nullptr;
-  };
-
-  /* Walks in one direction until a dead end. */
-  auto walk_fn = [&](BMVert *curr_v, BMEdge *curr_e, Vector<BMVert *> &list) {
-    while (true) {
-      BMEdge *next_e = get_next_edge_fn(curr_v, curr_e);
-      if (!next_e) {
-        break;
-      }
-
-      /* Move to next vertex. */
-      curr_v = BM_edge_other_vert(next_e, curr_v);
-      curr_e = next_e;
-
-      list.append(curr_v);
-      visited.add(curr_e);
-    }
-  };
-
-  chain_data.verts.append(start_edge->v1);
-  chain_data.verts.append(start_edge->v2);
-  visited.add(start_edge);
-
-  /* The initial edge direction (v1 -> v2) is arbitrary.
-   * We walk from v2 to extend this sequence. */
-  walk_fn(start_edge->v2, start_edge, chain_data.verts);
-
-  /* If the traversal forms a closed chain, the last vertex will match the first.
-   * Remove the duplicate end vertex. */
-  if (chain_data.verts.size() > 2 && chain_data.verts.first() == chain_data.verts.last()) {
-    if (chain_data.verts.size() < 4) {
-      return std::nullopt;
-    }
-    chain_data.verts.remove_last();
-    chain_data.is_closed = true;
-    return chain_data;
-  }
-
-  /* If we are here, the chain is open.
-   * We need to check the other direction from the start vertex. */
-  Vector<BMVert *> pre_chain;
-  walk_fn(start_edge->v1, start_edge, pre_chain);
-
-  if (!pre_chain.is_empty()) {
-    std::reverse(pre_chain.begin(), pre_chain.end());
-
-    pre_chain.extend(chain_data.verts);
-    chain_data.verts = std::move(pre_chain);
-  }
-
-  chain_data.is_closed = false;
-
-  if (chain_data.verts.size() < 3) {
-    return std::nullopt;
-  }
-
-  return chain_data;
+  const auto *params = static_cast<const CircularizeEdgeTestParams *>(user_data);
+  return is_valid_boundary_edge(e, params->hflag, params->check_axis);
 }
 
 /** Collects all valid boundary edge chains from the current selection. */
@@ -190,23 +117,29 @@ static void bm_vert_chain_extract_from_boundary_edges(BMesh *bm,
                                                       const char hflag,
                                                       const bool check_axis[3])
 {
-  Set<BMEdge *> visited;
-  BMIter iter;
-  BMEdge *edge;
+  ListBaseT<BMEdgeLoopStore> eloops = {nullptr};
+  const BMEdgeLoopFind_Params params = {
+      .use_vert_junction = true,
+  };
+  CircularizeEdgeTestParams test_params = {
+      .hflag = hflag,
+      .check_axis = check_axis,
+  };
 
-  BM_ITER_MESH (edge, &iter, bm, BM_EDGES_OF_MESH) {
-    if (visited.contains(edge)) {
-      continue;
-    }
-    if (!is_valid_boundary_edge(edge, hflag, check_axis)) {
-      continue;
-    }
+  BM_mesh_edgeloops_find(bm, &eloops, bm_edge_circularize_test_cb, &test_params, &params);
 
-    std::optional<VertChain> ld = walk_boundary_chain(edge, visited, hflag, check_axis);
-    if (ld.has_value()) {
-      r_chains.append(*ld);
+  for (BMEdgeLoopStore &el_store : eloops) {
+    VertChain chain;
+    chain.is_closed = BM_edgeloop_is_closed(&el_store);
+    for (LinkData &node : *BM_edgeloop_verts_get(&el_store)) {
+      chain.verts.append(static_cast<BMVert *>(node.data));
+    }
+    if (chain.verts.size() >= 3) {
+      r_chains.append(std::move(chain));
     }
   }
+
+  BM_mesh_edgeloops_free(&eloops);
 }
 
 /** Computes the local coordinate system defining the 2D plane of the vertex chain. */
