@@ -130,8 +130,9 @@ TEST_F(IMBPartialUpdateTest, mark_single_region)
   EXPECT_EQ(changes.kind, Changes::Kind::Partial);
 
   /* Check regions. */
-  ASSERT_EQ(changes.updated_regions.size(), 1);
-  EXPECT_TRUE(BLI_rcti_inside_rcti(&changes.updated_regions.first(), &region));
+  const Vector<rcti> regions = changes.modified_regions();
+  ASSERT_EQ(regions.size(), 1);
+  EXPECT_TRUE(BLI_rcti_inside_rcti(&regions.first(), &region));
 
   EXPECT_EQ(collect(image_buffer, changeset_id).kind, Changes::Kind::None);
 }
@@ -152,11 +153,12 @@ TEST_F(IMBPartialUpdateTest, mark_unconnected_regions)
 
   const Changes changes = collect(image_buffer, changeset_id);
   EXPECT_EQ(changes.kind, Changes::Kind::Partial);
-  EXPECT_EQ(changes.updated_regions.size(), 2);
+  const Vector<rcti> regions = changes.modified_regions();
+  EXPECT_EQ(regions.size(), 2);
 
   bool found_a = false;
   bool found_b = false;
-  for (const rcti &changed : changes.updated_regions) {
+  for (const rcti &changed : regions) {
     found_a |= BLI_rcti_inside_rcti(&changed, &region_a);
     found_b |= BLI_rcti_inside_rcti(&changed, &region_b);
   }
@@ -243,8 +245,9 @@ TEST_F(IMBPartialUpdateTest, sequential_mark_region)
     EXPECT_EQ(changes.kind, Changes::Kind::Partial);
 
     /* Check regions. */
-    ASSERT_EQ(changes.updated_regions.size(), 1);
-    EXPECT_TRUE(BLI_rcti_inside_rcti(&changes.updated_regions.first(), &region));
+    const Vector<rcti> regions = changes.modified_regions();
+    ASSERT_EQ(regions.size(), 1);
+    EXPECT_TRUE(BLI_rcti_inside_rcti(&regions.first(), &region));
 
     EXPECT_EQ(collect(image_buffer, changeset_id).kind, Changes::Kind::None);
   }
@@ -260,8 +263,9 @@ TEST_F(IMBPartialUpdateTest, sequential_mark_region)
     EXPECT_EQ(changes.kind, Changes::Kind::Partial);
 
     /* Check regions. */
-    ASSERT_EQ(changes.updated_regions.size(), 1);
-    EXPECT_TRUE(BLI_rcti_inside_rcti(&changes.updated_regions.first(), &region));
+    const Vector<rcti> regions = changes.modified_regions();
+    ASSERT_EQ(regions.size(), 1);
+    EXPECT_TRUE(BLI_rcti_inside_rcti(&regions.first(), &region));
 
     EXPECT_EQ(collect(image_buffer, changeset_id).kind, Changes::Kind::None);
   }
@@ -285,11 +289,10 @@ TEST_F(IMBPartialUpdateTest, mark_multiple_chunks)
   const Changes changes = collect(image_buffer, changeset_id);
   EXPECT_EQ(changes.kind, Changes::Kind::Partial);
 
-  /* Contiguous modified chunks in a row are merged, and we get 2 regions from 4 chunks. */
-  EXPECT_EQ(changes.updated_regions.size(), 2);
-  for (const rcti &changed : changes.updated_regions) {
-    EXPECT_TRUE(BLI_rcti_isect(&changed, &region, nullptr));
-  }
+  /* Contiguous modified chunks in a row are merged. */
+  const Vector<rcti> regions = changes.modified_regions();
+  ASSERT_EQ(regions.size(), 1);
+  EXPECT_TRUE(BLI_rcti_inside_rcti(&regions.first(), &region));
 }
 
 }  // namespace blender::imbuf::partial_update::tests

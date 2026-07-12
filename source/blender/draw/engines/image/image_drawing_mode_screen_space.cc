@@ -114,7 +114,7 @@ void ScreenSpaceDrawingMode::update_textures(blender::Image *image, ImageUser *i
         }
         else {
           ImBuf *float_buffer = state.float_buffers.cached_float_buffer(tile_buffer);
-          for (const rcti &region : changes.updated_regions) {
+          for (const rcti &region : changes.modified_regions()) {
             if (float_buffer != tile_buffer) {
               do_partial_update_float_buffer(float_buffer, tile_buffer, region);
             }

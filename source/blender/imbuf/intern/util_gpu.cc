@@ -802,7 +802,7 @@ void IMB_gpu_texture_apply_partial_update(gpu::Texture *tex,
 {
   rcti buffer_rect;
   BLI_rcti_init(&buffer_rect, 0, ibuf->x, 0, ibuf->y);
-  for (const rcti &region : changes.updated_regions) {
+  for (const rcti &region : changes.modified_regions()) {
     rcti clipped;
     if (!BLI_rcti_isect(&buffer_rect, &region, &clipped)) {
       continue;

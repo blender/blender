@@ -476,7 +476,7 @@ static void image_gpu_atlas_try_partial_update(Image *image, ImageUser *iuser)
           need_full_rebuild = true;
           break;
         case Changes::Kind::Full:
-          changes.updated_regions.append({0, ibuf->x, 0, ibuf->y});
+          changes.set_all_chunks_modified();
           [[fallthrough]];
         case Changes::Kind::Partial:
           if (atlas_tex != nullptr) {

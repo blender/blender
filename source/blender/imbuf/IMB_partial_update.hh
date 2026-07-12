@@ -27,6 +27,7 @@
 
 #pragma once
 
+#include "BLI_bit_vector.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_vec_types.h"
@@ -74,8 +75,22 @@ struct Changes {
 
   Kind kind = Kind::None;
 
-  /** Modified regions for partial image buffer change. */
-  Vector<rcti> updated_regions;
+  /* Buffer resolution. */
+  int buffer_width = 0;
+  int buffer_height = 0;
+
+  /* Chunk grid resolution of #modified_chunks. */
+  int chunk_x_len = 0;
+  int chunk_y_len = 0;
+
+  /* Modified bitmask for chunks of size #CHUNK_SIZE x #CHUNK_SIZE. */
+  BitVector<> modified_chunks;
+
+  /** Mark all chunks as modified. */
+  void set_all_chunks_modified();
+
+  /** Get merged rectangular changed regions. */
+  Vector<rcti> modified_regions() const;
 };
 
 }  // namespace imbuf::partial_update

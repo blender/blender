@@ -86,8 +86,8 @@ struct Changeset {
     buffer_width = image_buffer->x;
     buffer_height = image_buffer->y;
 
-    const int new_chunk_x_len = (buffer_width + CHUNK_SIZE - 1) / CHUNK_SIZE;
-    const int new_chunk_y_len = (buffer_height + CHUNK_SIZE - 1) / CHUNK_SIZE;
+    const int new_chunk_x_len = divide_ceil_u(buffer_width, CHUNK_SIZE);
+    const int new_chunk_y_len = divide_ceil_u(buffer_height, CHUNK_SIZE);
     init_chunks(new_chunk_x_len, new_chunk_y_len);
     return true;
   }
@@ -168,6 +168,11 @@ struct Changeset {
   {
     const int chunk_index = chunk_y * chunk_x_len + chunk_x;
     return chunk_modified_flags_[chunk_index];
+  }
+
+  BitVector<> extract_modified_flags()
+  {
+    return std::move(chunk_modified_flags_);
   }
 };
 
@@ -282,6 +287,71 @@ struct Tracker {
   }
 };
 
+void Changes::set_all_chunks_modified()
+{
+  chunk_x_len = divide_ceil_u(buffer_width, CHUNK_SIZE);
+  chunk_y_len = divide_ceil_u(buffer_height, CHUNK_SIZE);
+  modified_chunks.resize(int64_t(chunk_x_len) * chunk_y_len);
+  modified_chunks.fill(true);
+}
+
+Vector<rcti> Changes::modified_regions() const
+{
+  BLI_assert(modified_chunks.size() == int64_t(chunk_x_len) * chunk_y_len);
+
+  Vector<rcti> regions;
+  BitVector<> remaining = modified_chunks;
+
+  for (int start_y = 0; start_y < chunk_y_len; start_y++) {
+    for (int start_x = 0; start_x < chunk_x_len;) {
+      if (!remaining[start_y * chunk_x_len + start_x]) {
+        start_x++;
+        continue;
+      }
+
+      /* Extend right. */
+      int end_x = start_x;
+      while (end_x < chunk_x_len && remaining[start_y * chunk_x_len + end_x]) {
+        end_x++;
+      }
+
+      /* Extend up. */
+      int end_y = start_y + 1;
+      while (end_y < chunk_y_len) {
+        bool row_matches = true;
+        for (int x = start_x; x < end_x; x++) {
+          if (!remaining[end_y * chunk_x_len + x]) {
+            row_matches = false;
+            break;
+          }
+        }
+        if (!row_matches) {
+          break;
+        }
+        end_y++;
+      }
+
+      /* Consume all chunks covered by the region. */
+      for (int y = start_y; y < end_y; y++) {
+        for (int x = start_x; x < end_x; x++) {
+          remaining[y * chunk_x_len + x].reset();
+        }
+      }
+
+      rcti region;
+      BLI_rcti_init(&region,
+                    start_x * CHUNK_SIZE,
+                    min_ii(end_x * CHUNK_SIZE, buffer_width),
+                    start_y * CHUNK_SIZE,
+                    min_ii(end_y * CHUNK_SIZE, buffer_height));
+      regions.append(region);
+
+      start_x = end_x;
+    }
+  }
+  return regions;
+}
+
 static Tracker &tracker_ensure(ImBuf *ibuf)
 {
   if (ibuf->partial_update == nullptr) {
@@ -361,6 +431,8 @@ Changes IMB_partial_update_collect(ImBuf *ibuf, const int64_t last_changeset_id)
   Tracker &tracker = tracker_ensure(ibuf);
 
   Changes changes;
+  changes.buffer_width = ibuf->x;
+  changes.buffer_height = ibuf->y;
 
   if (last_changeset_id < tracker.first_changeset_id) {
     const bool resized = tracker.last_resize_changeset_id != 0 &&
@@ -380,31 +452,10 @@ Changes IMB_partial_update_collect(ImBuf *ibuf, const int64_t last_changeset_id)
     return changes;
   }
 
-  /* Compute regions, rows of contiguous modified chunks are merged for efficiency. */
-  for (int chunk_y = 0; chunk_y < changed->chunk_y_len; chunk_y++) {
-    int chunk_x = 0;
-    while (chunk_x < changed->chunk_x_len) {
-      if (!changed->is_modified(chunk_x, chunk_y)) {
-        chunk_x++;
-        continue;
-      }
-
-      const int run_start_x = chunk_x;
-      while (chunk_x < changed->chunk_x_len && changed->is_modified(chunk_x, chunk_y)) {
-        chunk_x++;
-      }
-
-      rcti region;
-      BLI_rcti_init(&region,
-                    run_start_x * CHUNK_SIZE,
-                    min_ii(chunk_x * CHUNK_SIZE, ibuf->x),
-                    chunk_y * CHUNK_SIZE,
-                    min_ii((chunk_y + 1) * CHUNK_SIZE, ibuf->y));
-      changes.updated_regions.append(region);
-    }
-  }
-
   changes.kind = Changes::Kind::Partial;
+  changes.chunk_x_len = changed->chunk_x_len;
+  changes.chunk_y_len = changed->chunk_y_len;
+  changes.modified_chunks = changed->extract_modified_flags();
   return changes;
 }
 
