@@ -780,11 +780,6 @@ bool RNA_struct_is_ID(const StructRNA *type)
   return (type->flag & STRUCT_ID) != 0;
 }
 
-bool RNA_struct_undo_check(const StructRNA *type)
-{
-  return (type->flag & STRUCT_UNDO) != 0;
-}
-
 bool RNA_struct_in_public_namespace(const StructRNA *type)
 {
   return (type->flag & STRUCT_PUBLIC_NAMESPACE) != 0;
@@ -2274,6 +2269,18 @@ const char *RNA_property_translation_context(const PropertyRNA *prop)
 int RNA_property_ui_icon(const PropertyRNA *prop)
 {
   return rna_ensure_property(const_cast<PropertyRNA *>(prop))->icon;
+}
+
+bool RNA_property_undo_check(const PropertyRNA *prop, const StructRNA *type)
+{
+  if (type->flag & STRUCT_UNDO) {
+    return true;
+  }
+  const PropertyRNA *rna_prop = rna_ensure_property(const_cast<PropertyRNA *>(prop));
+  if (rna_prop->flag & PROP_FORCE_UNDO) {
+    return true;
+  }
+  return false;
 }
 
 static bool rna_property_editable_do(const PointerRNA *ptr,

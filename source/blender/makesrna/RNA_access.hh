@@ -136,8 +136,6 @@ const StructRNA *RNA_struct_base_child_of(const StructRNA *type, const StructRNA
 bool RNA_struct_is_ID(const StructRNA *type);
 bool RNA_struct_is_a(const StructRNA *type, const StructRNA *srna);
 
-bool RNA_struct_undo_check(const StructRNA *type);
-
 StructRegisterFunc RNA_struct_register(StructRNA *type);
 StructUnregisterFunc RNA_struct_unregister(StructRNA *type);
 void **RNA_struct_instance(PointerRNA *ptr);
@@ -305,6 +303,8 @@ const char *RNA_property_ui_description_raw(const PropertyRNA *prop,
                                             const PointerRNA *ptr = nullptr);
 const char *RNA_property_translation_context(const PropertyRNA *prop);
 int RNA_property_ui_icon(const PropertyRNA *prop);
+
+bool RNA_property_undo_check(const PropertyRNA *prop, const StructRNA *type);
 
 /* Dynamic Property Information */
 

@@ -311,7 +311,7 @@ inline int operator&(const PropertySubType subtype, const PropertyUnit unit)
 
 /* Make sure enums are updated with these */
 /* HIGHEST FLAG IN USE: 1u << 31
- * FREE FLAGS: 13. */
+ * FREE FLAGS: NONE. */
 enum PropertyFlag {
   /**
    * Editable means the property is editable in the user
@@ -489,6 +489,13 @@ enum PropertyFlag {
 
   /** Use full geometry depsgraph evaluation when this property changes. */
   PROP_FORCE_GEOMETRY_EVAL = (1 << 3),
+
+  /**
+   * When set, this property always performs an undo,
+   * even when #STRUCT_UNDO is unset on the struct it contains.
+   */
+  PROP_FORCE_UNDO = (1 << 13),
+
 };
 ENUM_OPERATORS(PropertyFlag)
 
@@ -980,7 +987,12 @@ enum StructFlag {
    * assigned).
    */
   STRUCT_ID_REFCOUNT = (1 << 1),
-  /** defaults on, indicates when changes in members of a StructRNA should trigger undo steps. */
+  /**
+   * Defaults on, indicates when changes in members of a StructRNA should trigger undo steps.
+   *
+   * \note When unset (disabling undo)
+   * this can still be overridden per-property using the #PROP_FORCE_UNDO flag.
+   */
   STRUCT_UNDO = (1 << 2),
 
   /* internal flags */
