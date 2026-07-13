@@ -952,10 +952,9 @@ void UVIsland::extend_border(const MeshData &mesh_data,
     UVVertex *uv_vertex = border_edge->get_uv_vertex(0);
     UVBorder &border = borders[border_edge->border_index];
 
-    /* If the angle changed, re-queue with new larger angle. */
+    /* If the angle changed, re-queue with new angle. */
     const float angle = border.outside_angle(*border_edge);
     if (angle != entry.angle) {
-      BLI_assert(angle >= entry.angle);
       queue.push({angle, border_edge});
       continue;
     }
@@ -1418,16 +1417,12 @@ static void add_uv_island(const MeshData &mesh_data,
 
     /* Rasterize. */
     const TriRasterizer rasterizer(p0, p1, p2);
-    float3 row_edge_vals = rasterizer.edge_values(xmin, ymin);
     for (int y = ymin; y <= ymax; y++) {
-      float3 edge_vals = row_edge_vals;
       for (int x = xmin; x <= xmax; x++) {
-        if (rasterizer.inside(edge_vals)) {
+        if (rasterizer.inside(x, y)) {
           tile.mask[int64_t(tile.mask_resolution.x) * y + x] = island_index;
         }
-        edge_vals += rasterizer.dx_step;
       }
-      row_edge_vals += rasterizer.dy_step;
     }
   }
 }

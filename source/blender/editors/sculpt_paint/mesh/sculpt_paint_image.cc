@@ -120,8 +120,10 @@ static void fetch_image_buffers(ImageData &image_data,
           return processor;
         }
 
-        /* Fast path for sRGB, to avoid overhead of calling into OpenColorIO. */
-        if (buffer->byte_data() && IMB_colormanagement_space_is_srgb(buffer_colorspace)) {
+        /* Fast path for sRGB byte, to avoid overhead of calling into OpenColorIO. */
+        if (!buffer->float_data() && buffer->byte_data() &&
+            IMB_colormanagement_space_is_srgb(buffer_colorspace))
+        {
           processor.is_srgb_byte = true;
           processor.is_noop = false;
           return processor;

@@ -86,7 +86,6 @@ static void extract_barycentric_pixels(UDIMTilePixels &tile_data,
   const TriRasterizer rasterizer(
       uvs[0] * image_dimensions, uvs[1] * image_dimensions, uvs[2] * image_dimensions);
 
-  float3 row_edge_vals = rasterizer.edge_values(minx, miny);
   for (int y = miny; y < maxy; y++) {
     bool start_detected = false;
     PackedPixelRow pixel_row;
@@ -97,14 +96,13 @@ static void extract_barycentric_pixels(UDIMTilePixels &tile_data,
     const float fy = float(y) + 0.5f;
     const int mask_y = std::clamp(int(fy * mask_scale_y), 0, mask_resolution_y - 1);
 
-    float3 edge_vals = row_edge_vals;
     for (x = minx; x < maxx; x++) {
       const float fx = float(x) + 0.5f;
 
       /* The mask UV is always in range, since loop pixels are inside the clamped bounding box. */
       const int mask_x = std::clamp(int(fx * mask_scale_x), 0, mask_resolution_x - 1);
       const bool is_masked = mask_tile.is_masked(uv_island_index, mask_x, mask_y);
-      const bool is_inside = rasterizer.inside(edge_vals);
+      const bool is_inside = rasterizer.inside(x, y);
 
       if (!start_detected && is_inside && is_masked) {
         start_detected = true;
@@ -117,10 +115,8 @@ static void extract_barycentric_pixels(UDIMTilePixels &tile_data,
       else if (start_detected && (!is_inside || !is_masked)) {
         break;
       }
-      edge_vals += rasterizer.dx_step;
     }
 
-    row_edge_vals += rasterizer.dy_step;
     if (!start_detected) {
       continue;
     }
@@ -461,6 +457,7 @@ static bool update_pixels(const Depsgraph &depsgraph,
     for (const PixelNode &pixel_node : pbvh.pixels_->nodes) {
       for (const UDIMTilePixels &tile : pixel_node.tiles) {
         rows_bytes += int64_t(tile.pixel_rows.size()) * sizeof(PackedPixelRow);
+        rows_bytes += int64_t(tile.pixel_row_positions.size()) * sizeof(PackedPixelRowPosition);
         for (const PackedPixelRow &row : tile.pixel_rows) {
           num_pixels += row.num_pixels;
         }
