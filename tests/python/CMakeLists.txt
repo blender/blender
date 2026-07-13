@@ -653,6 +653,14 @@ if(TEST_SRC_DIR_EXISTS)
     --run-all-tests
   )
 
+  if(WITH_MOD_FLUID)
+    add_blender_test(
+      physics_fluid_cache
+      ${TEST_SRC_DIR}/render/motion_blur/fluid_motion_blur.blend
+      --python ${TEST_PYTHON_DIR}/physics_fluid_cache.py
+    )
+  endif()
+
   add_blender_test(
     deform_modifiers
     ${TEST_SRC_DIR}/modeling/deform_modifiers.blend

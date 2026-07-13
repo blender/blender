@@ -1440,6 +1440,20 @@ bool MANTA::readMesh(FluidModifierData *fmd, int framenr)
     cout << "MANTA::readMesh()" << endl;
   }
 
+  /* Clear mesh data from a previously loaded frame when the requested cache cannot be loaded. */
+  const auto clear_mesh = [this]() {
+    if (mMeshNodes) {
+      mMeshNodes->clear();
+    }
+    if (mMeshTriangles) {
+      mMeshTriangles->clear();
+    }
+    if (mMeshVelocities) {
+      mMeshVelocities->clear();
+    }
+    mMeshFromFile = false;
+  };
+
   if (!mUsingLiquid || !mUsingMesh) {
     return false;
   }
@@ -1454,6 +1468,7 @@ bool MANTA::readMesh(FluidModifierData *fmd, int framenr)
 
   /* Sanity check: Are cache files present? */
   if (!hasMesh(fmd, framenr)) {
+    clear_mesh();
     return false;
   }
 
@@ -1469,7 +1484,11 @@ bool MANTA::readMesh(FluidModifierData *fmd, int framenr)
     pythonCommands.push_back(ss.str());
   }
 
-  return (mMeshFromFile = runPythonString(pythonCommands));
+  mMeshFromFile = runPythonString(pythonCommands);
+  if (!mMeshFromFile) {
+    clear_mesh();
+  }
+  return mMeshFromFile;
 }
 
 bool MANTA::readParticles(FluidModifierData *fmd, int framenr, bool resumable)
