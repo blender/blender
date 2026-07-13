@@ -684,7 +684,7 @@ void SourceProcessor::lower_binary_literals(Parser &parser)
 
 string SourceProcessor::threadgroup_variables_parse_and_remove(const string &str)
 {
-  Parser parser(str, error_handler);
+  IntermediateForm<FullLexer, DummyParser> parser(str, error_handler);
 
   auto process_shared_var = [&](Token shared_tok, Token type, Token name, Token decl_end) {
     if (shared_tok.str() == "shared") {
