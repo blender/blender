@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'b2d38940ccd4')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Release Candidate (b'3d8c46ac31f4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-06 08:37+0000\n"
-"PO-Revision-Date: 2026-07-01 11:12+0000\n"
+"POT-Creation-Date: 2026-07-13 07:34+0000\n"
+"PO-Revision-Date: 2026-07-08 11:12+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
 "Language: sk\n"
@@ -14356,6 +14356,10 @@ msgstr "Normalizovaný sínus"
 
 msgid "sin(x) / x"
 msgstr "sin(x) / x"
+
+
+msgid "Phase Multiplier"
+msgstr "Násobič fázy"
 
 
 msgid "Scale factor determining the 'speed' of the function"
@@ -35920,6 +35924,190 @@ msgid "Editor menu containing buttons"
 msgstr "Ponuka editora obsahujúca tlačidlá"
 
 
+msgid "Face Data"
+msgstr "Údaje plôšky"
+
+
+msgid "Select by Face Strength"
+msgstr "Vybrať podľa vplyvu plôšky"
+
+
+msgid "Set Face Strength"
+msgstr "Nastaviť vplyv plôšky"
+
+
+msgid "Render Preview"
+msgstr "Náhľad prekreslenia"
+
+
+msgid "Clean Up"
+msgstr "Prečistiť"
+
+
+msgid "Merge"
+msgstr "Zlúčiť"
+
+
+msgid "Show/Hide"
+msgstr "Ukázať/skryť"
+
+
+msgid "Special Characters"
+msgstr "Špeciálne znaky"
+
+
+msgid "Kerning"
+msgstr "Zhustenie znakov"
+
+
+msgid "Metaball"
+msgstr "Meta guľa"
+
+
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "Names"
+msgstr "Názvy"
+
+
+msgid "Utilities"
+msgstr "Obslužné programy"
+
+
+msgid "Bone Roll"
+msgstr "Kývanie kosti"
+
+
+msgid "Read"
+msgstr "Čítanie"
+
+
+msgid "Sample"
+msgstr "Snímka"
+
+
+msgid "Pivot Point"
+msgstr "Otočný bod"
+
+
+msgid "Write"
+msgstr "Zápis"
+
+
+msgid "Snap"
+msgstr "Prichytiť"
+
+
+msgid "Primitives"
+msgstr "Prvotné tvary"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Dopad proporcionálnej úpravy"
+
+
+msgid "Mask Edit"
+msgstr "Úprava masky"
+
+
+msgid "Automasking"
+msgstr "Automatické maskovanie"
+
+
+msgid "Face Sets Edit"
+msgstr "Úprava nastavenia plôšok"
+
+
+msgid "Vertex Group Locks"
+msgstr "Zámky skupiny vrcholov"
+
+
+msgid "Gizmo"
+msgstr "Manipulačný prvok"
+
+
+msgid "Instances"
+msgstr "Inštancie"
+
+
+msgid "Import"
+msgstr "Import"
+
+
+msgid "Mirror"
+msgstr "Zrkadlo"
+
+
+msgid "UV Mapping"
+msgstr "UV mapovanie"
+
+
+msgid "Local View"
+msgstr "Lokálny pohľad"
+
+
+msgid "Deprecated"
+msgstr "Zastarané"
+
+
+msgid "Viewpoint"
+msgstr "Smer záberu"
+
+
+msgid "Navigation"
+msgstr "Navigácia"
+
+
+msgid "Align View"
+msgstr "Zarovnať pohľad"
+
+
+msgid "Align View to Active"
+msgstr "Zarovnať pohľad na aktívne"
+
+
+msgid "View Regions"
+msgstr "Oblasti pohľadu"
+
+
+msgid "Select More/Less"
+msgstr "Vybrať viac/menej"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Select Similar"
+msgstr "Vybrať podobné"
+
+
+msgid "Select All by Trait"
+msgstr "Vybrať všetko podľa črty"
+
+
+msgid "Select Linked"
+msgstr "Vybrať prepojené"
+
+
+msgid "Select Loops"
+msgstr "Vybrať slučky"
+
+
+msgid "Assign Material"
+msgstr "Priradiť materiál"
+
+
+msgid "Light"
+msgstr "Svetlo"
+
+
+msgid "Light Probe"
+msgstr "Snímač svetla"
+
+
 msgid "Add Image"
 msgstr "Pridať obrázok"
 
@@ -35930,10 +36118,6 @@ msgstr "Vzťahy"
 
 msgid "Rigid Body"
 msgstr "Pevné teleso"
-
-
-msgid "Render Preview"
-msgstr "Náhľad prekreslenia"
 
 
 msgid "Apply"
@@ -35948,12 +36132,12 @@ msgid "Quick Effects"
 msgstr "Rýchle efekty"
 
 
-msgid "Show/Hide"
-msgstr "Ukázať/skryť"
+msgid "Linked"
+msgstr "Prepojené"
 
 
-msgid "Clean Up"
-msgstr "Prečistiť"
+msgid "Layout"
+msgstr "Rozloženie"
 
 
 msgid "Asset"
@@ -35976,24 +36160,16 @@ msgid "Hooks"
 msgstr "Háky"
 
 
-msgid "Vertex Group Locks"
-msgstr "Zámky skupiny vrcholov"
-
-
-msgid "Math"
-msgstr "Matematika"
-
-
 msgid "Trim/Add"
 msgstr "Orezať/Pridať"
 
 
-msgid "Utilities"
-msgstr "Obslužné programy"
-
-
 msgid "Add Primitive"
 msgstr "Pridať prvotný tvar"
+
+
+msgid "Adjust"
+msgstr "Prispôsobenie"
 
 
 msgid "Sculpt Set Pivot"
@@ -36004,8 +36180,16 @@ msgid "Face Sets Init"
 msgstr "Počiatočná sústava plôšok"
 
 
+msgid "Keying"
+msgstr "Kľúčovanie"
+
+
 msgid "Random Mask"
 msgstr "Náhodná maska"
+
+
+msgid "Tracking"
+msgstr "Snímanie"
 
 
 msgid "Clear Transform"
@@ -36024,20 +36208,8 @@ msgid "Bone Collections"
 msgstr "Kolekcie kostí"
 
 
-msgid "Names"
-msgstr "Názvy"
-
-
-msgid "Read"
-msgstr "Čítanie"
-
-
-msgid "Sample"
-msgstr "Snímka"
-
-
-msgid "Write"
-msgstr "Zápis"
+msgid "Creative"
+msgstr "Kreatívne"
 
 
 msgid "Toggle Bone Options"
@@ -36048,180 +36220,12 @@ msgid "Enable Bone Options"
 msgstr "Povoliť možnosti kostí"
 
 
-msgid "Primitives"
-msgstr "Prvotné tvary"
-
-
 msgid "Disable Bone Options"
 msgstr "Zakázať možnosti kostí"
 
 
 msgid "Mesh Select Mode"
 msgstr "Režim výberu povrchovej siete"
-
-
-msgid "Face Data"
-msgstr "Údaje plôšky"
-
-
-msgid "Select by Face Strength"
-msgstr "Vybrať podľa vplyvu plôšky"
-
-
-msgid "Set Face Strength"
-msgstr "Nastaviť vplyv plôšky"
-
-
-msgid "Gizmo"
-msgstr "Manipulačný prvok"
-
-
-msgid "Instances"
-msgstr "Inštancie"
-
-
-msgid "Merge"
-msgstr "Zlúčiť"
-
-
-msgid "Import"
-msgstr "Import"
-
-
-msgid "Special Characters"
-msgstr "Špeciálne znaky"
-
-
-msgid "Kerning"
-msgstr "Zhustenie znakov"
-
-
-msgid "Deprecated"
-msgstr "Zastarané"
-
-
-msgid "Metaball"
-msgstr "Meta guľa"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Bone Roll"
-msgstr "Kývanie kosti"
-
-
-msgid "Pivot Point"
-msgstr "Otočný bod"
-
-
-msgid "Snap"
-msgstr "Prichytiť"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Dopad proporcionálnej úpravy"
-
-
-msgid "Mask Edit"
-msgstr "Úprava masky"
-
-
-msgid "Automasking"
-msgstr "Automatické maskovanie"
-
-
-msgid "Face Sets Edit"
-msgstr "Úprava nastavenia plôšok"
-
-
-msgid "Mirror"
-msgstr "Zrkadlo"
-
-
-msgid "UV Mapping"
-msgstr "UV mapovanie"
-
-
-msgid "Local View"
-msgstr "Lokálny pohľad"
-
-
-msgid "Viewpoint"
-msgstr "Smer záberu"
-
-
-msgid "Linked"
-msgstr "Prepojené"
-
-
-msgid "Navigation"
-msgstr "Navigácia"
-
-
-msgid "Layout"
-msgstr "Rozloženie"
-
-
-msgid "Align View"
-msgstr "Zarovnať pohľad"
-
-
-msgid "Align View to Active"
-msgstr "Zarovnať pohľad na aktívne"
-
-
-msgid "View Regions"
-msgstr "Oblasti pohľadu"
-
-
-msgid "Select More/Less"
-msgstr "Vybrať viac/menej"
-
-
-msgid "Select Similar"
-msgstr "Vybrať podobné"
-
-
-msgid "Select All by Trait"
-msgstr "Vybrať všetko podľa črty"
-
-
-msgid "Select Linked"
-msgstr "Vybrať prepojené"
-
-
-msgid "Select Loops"
-msgstr "Vybrať slučky"
-
-
-msgid "Adjust"
-msgstr "Prispôsobenie"
-
-
-msgid "Keying"
-msgstr "Kľúčovanie"
-
-
-msgid "Tracking"
-msgstr "Snímanie"
-
-
-msgid "Assign Material"
-msgstr "Priradiť materiál"
-
-
-msgid "Creative"
-msgstr "Kreatívne"
-
-
-msgid "Light"
-msgstr "Svetlo"
-
-
-msgid "Light Probe"
-msgstr "Snímač svetla"
 
 
 msgid "Keyframe Insert Pie"
@@ -70807,6 +70811,10 @@ msgid "Radius of the circle"
 msgstr "Polomer kruhu"
 
 
+msgid "Circularization factor"
+msgstr "Faktor kruhovitosti"
+
+
 msgid "Method used for fitting a circle to the vertices"
 msgstr "Metóda použitá na prispôsobenie kruhu k vrcholom"
 
@@ -71539,6 +71547,10 @@ msgstr "Sploštiť"
 
 msgid "Flatten vertices on a best-fitting plane"
 msgstr "Sploští (zarovná) vrcholy na rovine, ktorá najlepšie sedí"
+
+
+msgid "Flattening factor"
+msgstr "Faktor sploštenia"
 
 
 msgid "Plane on which vertices are flattened"
@@ -94327,30 +94339,6 @@ msgid "Panel containing UI elements"
 msgstr "Panel obsahujúci prvky užívateľského rozhrania"
 
 
-msgid "VR"
-msgstr "Virtuálna realita VR"
-
-
-msgid "VR Info"
-msgstr "VR Info"
-
-
-msgid "glTF Variants"
-msgstr "glTF varianty"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF varianty materiálu"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF animácie"
-
-
 msgid "Active Tool"
 msgstr "Aktívny nástroj"
 
@@ -94383,6 +94371,14 @@ msgid "Compositor"
 msgstr "Kompozítor"
 
 
+msgid "glTF Variants"
+msgstr "glTF varianty"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF varianty materiálu"
+
+
 msgid "Overlays"
 msgstr "Prekrytia"
 
@@ -94413,6 +94409,14 @@ msgstr "Režim editácie krivky"
 
 msgid "Curves Edit Mode"
 msgstr "Režim editácie krivky"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF animácie"
 
 
 msgid "Transform Orientations"
@@ -94465,6 +94469,14 @@ msgstr "Zmena mierky Zúžiť/Rozšíriť krivku"
 
 msgid "Viewport Debug"
 msgstr "Ladenie záberu"
+
+
+msgid "VR"
+msgstr "Virtuálna realita VR"
+
+
+msgid "VR Info"
+msgstr "VR Info"
 
 
 msgid "Import Settings"
@@ -99820,6 +99832,10 @@ msgid "Chinese (Simplified) - 简体中文"
 msgstr "Čínsky (zjednodušená) - 简体中文"
 
 
+msgid "Locale code: zh_HANS. Translation progress: 100%"
+msgstr "Kód lokalizácie: zh_HANS. Pokrok prekladu: 100%"
+
+
 msgid "Chinese (Traditional) - 繁體中文"
 msgstr "Čínsky (tradičná) - 繁體中文"
 
@@ -99894,6 +99910,10 @@ msgstr "Kód lokalizácie: fi_FI. Pokrok prekladu: 11 %"
 
 msgid "French - Français"
 msgstr "Francúzky - Français"
+
+
+msgid "Locale code: fr_FR. Translation progress: 100%"
+msgstr "Kód lokalizácie: fr_FR. Translation progress: 100%"
 
 
 msgid "Georgian - ქართული"
@@ -100096,6 +100116,10 @@ msgid "Swahili - Kiswahili"
 msgstr "Swahilsky - Kiswahili"
 
 
+msgid "Locale code: sw. Translation progress: 69%"
+msgstr "Kód lokalizácie: sw. Pokrok prekladu: 69%"
+
+
 msgid "Swedish - Svenska"
 msgstr "Švédsky - Svenska"
 
@@ -100146,6 +100170,10 @@ msgstr "Kód lokalizácie: ur. Pokrok prekladu: 83%"
 
 msgid "Vietnamese - Tiếng Việt"
 msgstr "Vietnamsky - Tiếng Việt"
+
+
+msgid "Locale code: vi_VN. Translation progress: 96%"
+msgstr "Kód lokalizácie: vi_VN. Pokrok prekladu: 96%"
 
 
 msgid "Reference Sphere Size"
@@ -137852,6 +137880,10 @@ msgid "Shift Left Mouse"
 msgstr "Shift + ľavá myš"
 
 
+msgid "Compact Tabs"
+msgstr "Kompaktné karty"
+
+
 msgid "Add to a user defined context menu (stored in the user preferences)"
 msgstr "Pridať do kontextovej ponuky definovanej užívateľom (uloženej v predvoľbách užívateľa)"
 
@@ -141486,6 +141518,14 @@ msgid "No Rigid Body World to add Rigid Body Constraint to"
 msgstr "Žiadne pevné teleso sveta na pridanie vynútenia pevného telesa"
 
 
+msgid "No object in the scene to add Rigid Body Constraint to"
+msgstr "Na scéne nie je objekt na pridanie do vynútenia Pevné teleso"
+
+
+msgid "No object in the scene to remove Rigid Body Constraint from"
+msgstr "Na scéne nie je objekt na odstránenie z vynútenia Pevné teleso"
+
+
 msgid "Object '%s' already has a Rigid Body Constraint"
 msgstr "Objekt '%s' už má vynútenie pevného telesa"
 
@@ -142410,6 +142450,10 @@ msgstr "Žiadna snímka Grease Pencil pre maľovanie váhy"
 
 msgid "Active group is locked, aborting"
 msgstr "Aktívna skupina je zamknutá, prerušené"
+
+
+msgid "No fill created"
+msgstr "Nevytvorená žiadna výplň"
 
 
 msgid "Fill tool needs active material"
@@ -146714,6 +146758,10 @@ msgid "Shrink/Fatten: %3f"
 msgstr "Zúžiť/Rozšíriť: %3f"
 
 
+msgid "'Rotate Normals' is only supported in mesh edit mode"
+msgstr "Funkcia 'Rotácia normál' je podporovaná iba v režime editácie povrchovej siete"
+
+
 msgid "Sequence Slide: %s%s"
 msgstr "Posunutie sekvencie: %s%s"
 
@@ -146728,6 +146776,10 @@ msgstr "Nastaviť základné prichytenie"
 
 msgid "Edge Slide: "
 msgstr "Kĺzať hranu: "
+
+
+msgid "'Edge Slide' is only supported in mesh edit mode"
+msgstr "Posúvať hranu je podporované iba v režime editácie povrchovej siete"
 
 
 msgid "Opacity: %s"
@@ -146852,6 +146904,10 @@ msgstr "Použije 'časový posuv' namiesto režimu transformácie 'zmeny polohy'
 
 msgid "Vertex Slide: "
 msgstr "Vrcholová snímka: "
+
+
+msgid "'Vertex Slide' is only supported in mesh edit mode"
+msgstr "Posúvať vrchol je podporované iba v režime editácie povrchovej siete"
 
 
 msgid "Create Orientation's 'use' parameter only valid in a 3DView context"
@@ -154557,6 +154613,10 @@ msgid "Per corner specification of 'spread' for arc miters"
 msgstr "Špecifikácia 'rozpätia' na roh pre uhol sklonu"
 
 
+msgid "How many pieces is an edge beveled into, or, for vertex bevels, how many segments on the arcs between the edges."
+msgstr "Určuje, na koľko častí je hrana skosená, resp. v prípade skosenia vrcholov, koľko segmentov tvoria oblúky medzi hranami."
+
+
 msgid "Superellipse shape parameter, used when there is no Profile, and also used for Arc and Patch miters"
 msgstr "Parameter tvaru superelipsy, ktorý sa používa v prípade, že nie je definovaný profil, a tiež pri skosení oblúkov a výrezov"
 
@@ -159387,6 +159447,146 @@ msgid "AgX - SDR"
 msgstr "AgX - SDR"
 
 
+msgid "Apply only the display's standard transform without additional mappings"
+msgstr "Použije iba štandardnú transformáciu displeja bez ďalších priradení"
+
+
+msgid "sRGB display space with Filmic view transform"
+msgstr "Zobrazovací priestor sRGB s transformáciou zobrazenia Filmový"
+
+
+msgid "AgX Base Rec.2020"
+msgstr "Základné AgX Rec.2020"
+
+
+msgid "AgX Base Image Encoding for display with Gamma 2.4 and Rec.2020 gamut"
+msgstr "Kódovanie základného obrazu AgX pre zobrazenie s hodnotou gama 2,4 a farebným priestorom Rec.2020"
+
+
+msgid "AgX Base Rec.1886"
+msgstr "AgX Base Rec.1886"
+
+
+msgid "AgX Base Image Encoding for sRGB and Rec.1886 Display"
+msgstr "Základné kódovanie obrazu AgX pre sRGB a displej Rec.1886"
+
+
+msgid "AgX Base Display P3"
+msgstr "AgX Base Display P3"
+
+
+msgid "AgX Base Image Encoding for Display P3 Display"
+msgstr "Základné kódovanie obrazu AgX pre displej P3"
+
+
+msgid "AgX Rec.2100-HLG - HDR 1000 nits (P3 D65)"
+msgstr "AgX Rec.2100-HLG - HDR 1000 nitov (P3 D65)"
+
+
+msgid "AgX 1000 nits peak Image Encoding for BT.2100-HLG P3 limited Display. Reference white is 100nits"
+msgstr "AgX s maximálnou jasnosťou 1000 nitov a kódovaním obrazu pre displeje s podporou BT.2100-HLG P3. Referenčná biela má jas 100 nitov"
+
+
+msgid "AgX False Color Rec.709"
+msgstr "Falošné farby AgX Rec.709"
+
+
+msgid "A heat-map-like image formed from AgX Base for sRGB and Rec.1886 displays"
+msgstr "Obrázok podobný tepelnej mape vytvorený pomocou AgX Base pre displeje sRGB a Rec.1886"
+
+
+msgid "Khronos PBR Neutral Image Encoding for sRGB Display"
+msgstr "Kódovanie obrazu Khronos PBR Neutral pre zobrazenie sRGB"
+
+
+msgid "ACES 1.3 Display P3"
+msgstr "ACES 1.3 Display P3"
+
+
+msgid "ACES 1.1 Output Transform for SDR D65 video, with P3 gamut"
+msgstr "ACES 1.1 – výstupná transformácia pre video SDR D65 s farebným priestorom P3"
+
+
+msgid "ACES 1.3 Rec.1886"
+msgstr "ACES 1.3 Rec.1886"
+
+
+msgid "ACES 1.0 Output Transform for SDR D65 video, with Rec.709 gamut"
+msgstr "ACES 1.0 Výstupný transformátor pre video SDR D65, s gamutom Rec.709"
+
+
+msgid "ACES 1.1 Rec.2100-PQ - HDR 1000 nits"
+msgstr "ACES 1.1 Rec.2100-PQ - HDR 1000 nitov"
+
+
+msgid "ACES 1.1 Output Transform for 1000 nit HDR D65 video, with Rec.2020 gamut"
+msgstr "ACES 1.1 – výstupná transformácia pre HDR video s jasom 1000 nitov a farebným štandardom D65, s gamutom Rec.2020"
+
+
+msgid "ACES 1.1 Rec.2100-PQ - HDR 2000 nits"
+msgstr "ACES 1.1 Rec.2100-PQ - HDR 2000 nitov"
+
+
+msgid "ACES 1.1 Output Transform for 2000 nit HDR D65 video, with Rec.2020 gamut"
+msgstr "ACES 1.1 – výstupná transformácia pre HDR video s jasom 2000 nitov a farebným štandardom D65, s gamutom Rec.2020"
+
+
+msgid "ACES 1.1 Rec.2100-PQ - HDR 4000 nits"
+msgstr "ACES 1.1 Rec.2100-PQ - HDR 4000 nitov"
+
+
+msgid "ACES 1.1 Output Transform for 4000 nit HDR D65 video, with Rec.2020 gamut"
+msgstr "ACES 1.1 – výstupná transformácia pre HDR video s jasom 4000 nitov a farebným štandardom D65, s gamutom Rec.2020"
+
+
+msgid "ACES 2.0 Display P3"
+msgstr "ACES 2.0 Display P3"
+
+
+msgid "ACES 2 Output Transform for Apple Display P3"
+msgstr "ACES 2 Výstupný transformátor pre Apple Display P3"
+
+
+msgid "ACES 2.0 Rec.1886"
+msgstr "ACES 2.0 Rec.1886"
+
+
+msgid "ACES 2 Output Transform for 100 nit SDR, with Rec709 gamut"
+msgstr "Výstupný transformátor ACES 2 pre 100 nitový SDR Rec709"
+
+
+msgid "ACES 2.0 Rec.2100-PQ - HDR 500 nits"
+msgstr "ACES 2.0 Rec.2100-PQ - HDR 500 nitov"
+
+
+msgid "ACES 2 Output Transform for 500 nit HDR, with Rec.2020 gamut"
+msgstr "Výstupný transformátor ACES 2 pre HDR s jasom 500 nitov a farebným priestorom Rec.2020"
+
+
+msgid "ACES 2.0 Rec.2100-PQ - HDR 1000 nits"
+msgstr "ACES 2.0 Rec.2100-PQ - HDR 1000 nitov"
+
+
+msgid "ACES 2 Output Transform for 1000 nit HDR, with Rec.2020 gamut"
+msgstr "Výstupný transformátor ACES 2 pre HDR s jasom 1000 nitov a farebným priestorom Rec.2020"
+
+
+msgid "ACES 2.0 Rec.2100-PQ - HDR 2000 nits"
+msgstr "ACES 2.0 Rec.2100-PQ - HDR 2000 nitov"
+
+
+msgid "ACES 2 Output Transform for 2000 nit HDR, with Rec.2020 gamut"
+msgstr "Výstupný transformátor ACES 2 pre HDR s jasom 2000 nitov a farebným priestorom Rec.2020"
+
+
+msgid "ACES 2.0 Rec.2100-PQ - HDR 4000 nits"
+msgstr "ACES 2.0 Rec.2100-PQ - HDR 4000 nitov"
+
+
+msgid "ACES 2 Output Transform for 4000 nit HDR, with Rec.2020 gamut"
+msgstr "Výstupný transformátor ACES 2 pre HDR s jasom 4000 nitov a farebným priestorom Rec.2020"
+
+
 msgid "Very High Contrast"
 msgstr "Veľmi vysoký kontrast"
 
@@ -159479,6 +159679,10 @@ msgstr ""
 "Môže sa použiť na konverziu pozadia alebo matovaných kresieb do pracovného priestoru."
 
 
+msgid "View Inverse"
+msgstr "Zobraziť inverzne"
+
+
 msgid ""
 "AgX view transform for sRGB.\n"
 "May be used to convert backplates or matte paintings to the working space."
@@ -159517,6 +159721,38 @@ msgid ""
 msgstr ""
 "Lineárne Adobe RGB (1998) s bielym bodom podľa svetelného zdroja D65.\n"
 "Určené na použitie s textúrami viazanými na scénu."
+
+
+msgid "Apple"
+msgstr "Apple"
+
+
+msgid "ARRI"
+msgstr "ARRI"
+
+
+msgid "BlackmagicDesign"
+msgstr "BlackmagicDesign"
+
+
+msgid "Canon"
+msgstr "Canon"
+
+
+msgid "DJI"
+msgstr "DJI"
+
+
+msgid "Panasonic"
+msgstr "Panasonic"
+
+
+msgid "RED"
+msgstr "RED"
+
+
+msgid "Sony"
+msgstr "Sony"
 
 
 msgid ""
@@ -162853,10 +163089,6 @@ msgstr "Uzamkne rotáciu k osi medzi koncami krivky"
 
 msgid "Random offset to the rotation angle per curve"
 msgstr "Náhodný posuv k uhlu pootočenia podľa krivky"
-
-
-msgid "Set Attachment Surface"
-msgstr "Nastaviť animovaný povrch"
 
 
 msgid "Sets the radius attribute of hair curves according to a profile shape"

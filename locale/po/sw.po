@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'b2d38940ccd4')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Release Candidate (b'3d8c46ac31f4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-06 08:37+0000\n"
+"POT-Creation-Date: 2026-07-13 07:34+0000\n"
 "PO-Revision-Date: 2025-11-14 10:59+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -28270,20 +28270,20 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
-msgid "Apply"
-msgstr "Tumia"
+msgid "Clean Up"
+msgstr "Safisha"
+
+
+msgid "Merge"
+msgstr "Unganisha"
 
 
 msgid "Show/Hide"
 msgstr "Onyesha/Ficha"
 
 
-msgid "Clean Up"
-msgstr "Safisha"
-
-
-msgid "Asset"
-msgstr "Mali"
+msgid "Metaball"
+msgstr "Mpira wa miguu"
 
 
 msgid "Math"
@@ -28294,10 +28294,6 @@ msgid "Utilities"
 msgstr "Huduma"
 
 
-msgid "Bone Collections"
-msgstr "Mikusanyo ya Mifupa"
-
-
 msgid "Read"
 msgstr "Soma"
 
@@ -28306,8 +28302,16 @@ msgid "Sample"
 msgstr "Mfano"
 
 
+msgid "Pivot Point"
+msgstr "Egemeo"
+
+
 msgid "Write"
 msgstr "Andika"
+
+
+msgid "Snap"
+msgstr "Picha"
 
 
 msgid "Primitives"
@@ -28318,48 +28322,48 @@ msgid "Instances"
 msgstr "Matukio"
 
 
-msgid "Merge"
-msgstr "Unganisha"
-
-
 msgid "Import"
 msgstr "Ingiza"
-
-
-msgid "Deprecated"
-msgstr "Imeacha kutumika"
-
-
-msgid "Metaball"
-msgstr "Mpira wa miguu"
-
-
-msgid "Pivot Point"
-msgstr "Egemeo"
-
-
-msgid "Snap"
-msgstr "Picha"
 
 
 msgid "Mirror"
 msgstr "Kioo"
 
 
-msgid "Linked"
-msgstr "Imeunganishwa"
+msgid "Deprecated"
+msgstr "Imeacha kutumika"
 
 
 msgid "Navigation"
 msgstr "Urambazaji"
 
 
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
+
+
+msgid "Light"
+msgstr "Mwanga"
+
+
+msgid "Light Probe"
+msgstr "Uchunguzi wa Mwanga"
+
+
+msgid "Apply"
+msgstr "Tumia"
+
+
+msgid "Linked"
+msgstr "Imeunganishwa"
+
+
 msgid "Layout"
 msgstr "Mpangilio"
 
 
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
+msgid "Asset"
+msgstr "Mali"
 
 
 msgid "Adjust"
@@ -28374,12 +28378,8 @@ msgid "Tracking"
 msgstr "Kufuatilia"
 
 
-msgid "Light"
-msgstr "Mwanga"
-
-
-msgid "Light Probe"
-msgstr "Uchunguzi wa Mwanga"
+msgid "Bone Collections"
+msgstr "Mikusanyo ya Mifupa"
 
 
 msgid "Keyframe Insert Pie"

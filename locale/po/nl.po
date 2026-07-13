@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'b2d38940ccd4')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Release Candidate (b'3d8c46ac31f4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-06 08:37+0000\n"
-"PO-Revision-Date: 2026-07-05 12:12+0000\n"
+"POT-Creation-Date: 2026-07-13 07:34+0000\n"
+"PO-Revision-Date: 2026-07-08 11:12+0000\n"
 "Last-Translator: Timo Hoetmer <timo@timohoetmer.nl>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
 "Language: nl\n"
@@ -505,8 +505,18 @@ msgstr "Deeltje"
 
 
 msgctxt "ID"
+msgid "Point Cloud"
+msgstr "Punten Wolk"
+
+
+msgctxt "ID"
 msgid "Scene"
-msgstr "Scene"
+msgstr "Scène"
+
+
+msgctxt "ID"
+msgid "Screen"
+msgstr "Scherm"
 
 
 msgctxt "ID"
@@ -522,6 +532,11 @@ msgstr "Luidspreker"
 msgctxt "ID"
 msgid "Text"
 msgstr "Tekst"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "Textuur"
 
 
 msgctxt "ID"
@@ -557,6 +572,10 @@ msgid "Active slot for this action"
 msgstr "Actieve slot voor deze actie"
 
 
+msgid "Action Strip"
+msgstr "Actie Strook"
+
+
 msgid "Keyframe"
 msgstr "Keyframe"
 
@@ -567,6 +586,14 @@ msgstr "Strook met een set F-Curves voor elk actieslot"
 
 msgid "Keyframe Animation Strip"
 msgstr "Keyframe Animatie Strook"
+
+
+msgid "Action Strips"
+msgstr "Actie Stroken"
+
+
+msgid "Collection of animation strips"
+msgstr "Collectie van animatie stroken"
 
 
 msgid "Add-on"
@@ -623,6 +650,10 @@ msgstr "Volledig"
 
 msgid "Optimize all kernels. Fastest rendering, may result in extra background CPU usage"
 msgstr "Optimaliseer alle kernels. De snelste weergave, kan resulteren in extra CPU-gebruik op de achtergrond"
+
+
+msgid "MetalRT"
+msgstr "MetalRT"
 
 
 msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases"
@@ -705,8 +736,20 @@ msgid "Show only hotkeys that have this text in their name"
 msgstr "Toon enkel sneltoetsen die deze tekst in hun naam hebben"
 
 
+msgid "Hide Mix Nodes"
+msgstr "Verberg Mix Nodes"
+
+
+msgid "When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specify whether to collapse them or show the full node with options expanded"
+msgstr "Geef aan bij het samenvoegen van nodes met de Ctrl+Numpad0 hotkey (en vergelijkbaar) of ze moeten worden samengevoegd of dat de volledige node met opties uitgevouwen moet worden weergeven"
+
+
 msgid "Always"
 msgstr "Altijd"
+
+
+msgid "Always collapse the new merge nodes"
+msgstr "Vouw de nieuwe samenvoeg nodes altijd samen"
 
 
 msgid "Non-Shader"
@@ -905,6 +948,10 @@ msgid "The list of slots in this animation data-block"
 msgstr "De lijst aan slots in dit animatie data-blok"
 
 
+msgid "Tweak Mode Action Storage"
+msgstr "Modus Actie Opslag Aanpassen"
+
+
 msgid "Drivers"
 msgstr "Drivers"
 
@@ -937,6 +984,10 @@ msgid "NLA stack is evaluated when evaluating this block"
 msgstr "NLA stack wordt geëvalueerd wanneer je dit blok evalueert"
 
 
+msgid "Use NLA Tweak Mode"
+msgstr "Gebruik NLA Aanpas Modus"
+
+
 msgid "Collection of Driver F-Curves"
 msgstr "Collectie van Driver F-Curves"
 
@@ -963,6 +1014,10 @@ msgstr "Bewegingspad Instellingen"
 
 msgid "Motion Path settings for animation visualization"
 msgstr "Bewegingspad instellingen voor animatie visualisatie"
+
+
+msgid "Bake Location"
+msgstr "Bake Locatie"
 
 
 msgid "Heads"
@@ -1025,8 +1080,16 @@ msgid "All Keys"
 msgstr "Alle Toetsen"
 
 
+msgid "From the first keyframe to the last"
+msgstr "Van de eerste keyframe tot de laatste"
+
+
 msgid "Selected Keys"
 msgstr "Geselecteerde Toetsen"
+
+
+msgid "From the first selected keyframe to the last"
+msgstr "Van de eerst geselecteerde keyframe tot de laatste"
 
 
 msgid "Scene Frame Range"
@@ -1049,6 +1112,14 @@ msgid "Show frame numbers on Motion Paths"
 msgstr "Toon frame nummers op Bewegingspaden"
 
 
+msgid "All Action Keyframes"
+msgstr "Alle Actie Keyframes"
+
+
+msgid "Show Keyframe Numbers"
+msgstr "Toon Keyframe Nummers"
+
+
 msgid "Paths Type"
 msgstr "Paden Type"
 
@@ -1059,6 +1130,14 @@ msgstr "Rond Frame"
 
 msgid "In Range"
 msgstr "In Bereik"
+
+
+msgid "Display Paths of poses within specified range"
+msgstr "Toon Paden van poses binnen gespecificeerd bereik"
+
+
+msgid "Bake to active Camera"
+msgstr "Bake naar Actieve Camera"
 
 
 msgid "Collection of related sketches on a particular frame"
@@ -5757,36 +5836,8 @@ msgid "Dots"
 msgstr "Stippen"
 
 
-msgid "Add Image"
-msgstr "Voeg Afbeelding Toe"
-
-
-msgid "Relations"
-msgstr "Relaties"
-
-
-msgid "Rigid Body"
-msgstr "Star Lichaam"
-
-
-msgid "Quick Effects"
-msgstr "Snelle Effecten"
-
-
 msgid "Show/Hide"
 msgstr "Toon/Verberg"
-
-
-msgid "Convert"
-msgstr "Converteer"
-
-
-msgid "Hooks"
-msgstr "Haken"
-
-
-msgid "Clear Transform"
-msgstr "Maak Transformatie Leeg"
 
 
 msgid "Names"
@@ -5805,16 +5856,8 @@ msgid "Local View"
 msgstr "Lokale Scherm"
 
 
-msgid "Linked"
-msgstr "Gekoppeld"
-
-
 msgid "Navigation"
 msgstr "Navigatie"
-
-
-msgid "Layout"
-msgstr "Indeling"
 
 
 msgid "Select Similar"
@@ -5827,6 +5870,42 @@ msgstr "Selecteer Aaneengesloten"
 
 msgid "Light"
 msgstr "Licht"
+
+
+msgid "Add Image"
+msgstr "Voeg Afbeelding Toe"
+
+
+msgid "Relations"
+msgstr "Relaties"
+
+
+msgid "Rigid Body"
+msgstr "Star Lichaam"
+
+
+msgid "Quick Effects"
+msgstr "Snelle Effecten"
+
+
+msgid "Linked"
+msgstr "Gekoppeld"
+
+
+msgid "Layout"
+msgstr "Indeling"
+
+
+msgid "Convert"
+msgstr "Converteer"
+
+
+msgid "Hooks"
+msgstr "Haken"
+
+
+msgid "Clear Transform"
+msgstr "Maak Transformatie Leeg"
 
 
 msgctxt "MovieClip"
@@ -11337,6 +11416,10 @@ msgid "Double Click Speed"
 msgstr "Snelheid Dubbelklik"
 
 
+msgid " Preferences"
+msgstr " Voorkeuren"
+
+
 msgid "Use Light"
 msgstr "Gebruik Licht"
 
@@ -12253,6 +12336,10 @@ msgstr "Voeg Werkplaats toe"
 
 msgid "File not found '%s'"
 msgstr "Bestand niet gevonden '%s'"
+
+
+msgid " Materials,"
+msgstr " Materialen,"
 
 
 msgid "Active Keyframe"

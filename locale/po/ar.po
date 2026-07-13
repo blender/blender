@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'b2d38940ccd4')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Release Candidate (b'3d8c46ac31f4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-06 08:37+0000\n"
+"POT-Creation-Date: 2026-07-13 07:34+0000\n"
 "PO-Revision-Date: 2025-07-23 14:53+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -15656,6 +15656,90 @@ msgid "Material slot name"
 msgstr "ﺔﻣﺎﺨﻟﺍ ﺔﺤﺘﻓ ﻢﺳﺇ"
 
 
+msgid "Face Data"
+msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
+
+
+msgid "Merge"
+msgstr "ﺞﻣﺩﺇ"
+
+
+msgid "Special Characters"
+msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
+
+
+msgid "Metaball"
+msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
+
+
+msgid "Math"
+msgstr "ﺏﺎﺴﺣ"
+
+
+msgid "Names"
+msgstr "ءﺎﻤﺳﺃ"
+
+
+msgid "Bone Roll"
+msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
+
+
+msgid "Snap"
+msgstr "ﻱﺫﺎﺣ"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
+
+
+msgid "Import"
+msgstr "ﺩﺭﻮﺘﺳﺇ"
+
+
+msgid "Mirror"
+msgstr "ﻞﺛﺎﻣ"
+
+
+msgid "UV Mapping"
+msgstr "UV ءﺎﺴﻛﺇ"
+
+
+msgid "Navigation"
+msgstr "ﺢﻔّﺼﺗ"
+
+
+msgid "Align View"
+msgstr "ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
+
+
+msgid "Align View to Active"
+msgstr "ﻝﺎﻌّﻔﻠﻟ ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
+
+
+msgid "Select More/Less"
+msgstr "ﻞﻗﺍ/ﺮﺜﻛﺍ ﺭﺎﻴﺘﺧﺍ"
+
+
+msgid "UV"
+msgstr "ﺭﻭﺎﺤﻣ"
+
+
+msgid "Select Similar"
+msgstr "ﻞﺛﺎﻤﻤﻟﺍ ﺮﺘﺧﺇ"
+
+
+msgid "Select All by Trait"
+msgstr "ﺔﻤﺴﻟﺍ ﺐﺴﺣ ﻞﻛ ﺭﺎﻴﺘﺧﺍ"
+
+
+msgid "Select Linked"
+msgstr "ﺔﻄﺒﺗﺮﻤﻟﺍ ﺭﺎﺘﺧﺇ"
+
+
+msgid "Light"
+msgstr "ءﻮﺿ"
+
+
 msgid "Relations"
 msgstr "ﺕﺎﻗﻼ﻿ﻌﻟﺍ"
 
@@ -15676,104 +15760,16 @@ msgid "Quick Effects"
 msgstr "ﺔﻌﻳﺮﺳ ﺕﺍﺮﻴﺛﺄﺗ"
 
 
+msgid "Layout"
+msgstr "ﻖﻴﺴﻨﺗ"
+
+
 msgid "Make Single User"
 msgstr "ﻡﺪﺨﺘﺴﻤﻟﺍ ﺪﻴﺣﻭ ﻪﻠﻌﺟﺍ"
 
 
 msgid "Hooks"
 msgstr "ﺕﺎﻓﺎﻄﺧ"
-
-
-msgid "Math"
-msgstr "ﺏﺎﺴﺣ"
-
-
-msgid "In-Betweens"
-msgstr "ﻦﻴﺑ ﺎﻣ"
-
-
-msgid "Propagate"
-msgstr "ﻢﻤﻋ"
-
-
-msgid "Names"
-msgstr "ءﺎﻤﺳﺃ"
-
-
-msgid "Face Data"
-msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
-
-
-msgid "Merge"
-msgstr "ﺞﻣﺩﺇ"
-
-
-msgid "Import"
-msgstr "ﺩﺭﻮﺘﺳﺇ"
-
-
-msgid "Special Characters"
-msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
-
-
-msgid "Metaball"
-msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
-
-
-msgid "UV"
-msgstr "ﺭﻭﺎﺤﻣ"
-
-
-msgid "Bone Roll"
-msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
-
-
-msgid "Snap"
-msgstr "ﻱﺫﺎﺣ"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
-
-
-msgid "Mirror"
-msgstr "ﻞﺛﺎﻣ"
-
-
-msgid "UV Mapping"
-msgstr "UV ءﺎﺴﻛﺇ"
-
-
-msgid "Navigation"
-msgstr "ﺢﻔّﺼﺗ"
-
-
-msgid "Layout"
-msgstr "ﻖﻴﺴﻨﺗ"
-
-
-msgid "Align View"
-msgstr "ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
-
-
-msgid "Align View to Active"
-msgstr "ﻝﺎﻌّﻔﻠﻟ ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
-
-
-msgid "Select More/Less"
-msgstr "ﻞﻗﺍ/ﺮﺜﻛﺍ ﺭﺎﻴﺘﺧﺍ"
-
-
-msgid "Select Similar"
-msgstr "ﻞﺛﺎﻤﻤﻟﺍ ﺮﺘﺧﺇ"
-
-
-msgid "Select All by Trait"
-msgstr "ﺔﻤﺴﻟﺍ ﺐﺴﺣ ﻞﻛ ﺭﺎﻴﺘﺧﺍ"
-
-
-msgid "Select Linked"
-msgstr "ﺔﻄﺒﺗﺮﻤﻟﺍ ﺭﺎﺘﺧﺇ"
 
 
 msgid "Keying"
@@ -15784,8 +15780,12 @@ msgid "Tracking"
 msgstr "ﺔﻘﺣﻼ﻿ﻤﻟﺍ"
 
 
-msgid "Light"
-msgstr "ءﻮﺿ"
+msgid "In-Betweens"
+msgstr "ﻦﻴﺑ ﺎﻣ"
+
+
+msgid "Propagate"
+msgstr "ﻢﻤﻋ"
 
 
 msgctxt "MovieClip"

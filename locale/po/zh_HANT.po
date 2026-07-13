@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'b2d38940ccd4')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Release Candidate (b'3d8c46ac31f4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-06 08:37+0000\n"
+"POT-Creation-Date: 2026-07-13 07:34+0000\n"
 "PO-Revision-Date: 2026-06-25 10:12+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -26504,6 +26504,186 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
+msgid "Face Data"
+msgstr "面資料"
+
+
+msgid "Set Face Strength"
+msgstr "設定面強度"
+
+
+msgid "Render Preview"
+msgstr "算繪預覽"
+
+
+msgid "Clean Up"
+msgstr "清理"
+
+
+msgid "Merge"
+msgstr "合併"
+
+
+msgid "Show/Hide"
+msgstr "顯示/隱藏"
+
+
+msgid "Special Characters"
+msgstr "特殊字元"
+
+
+msgid "Kerning"
+msgstr "字間微調"
+
+
+msgid "Metaball"
+msgstr "變幻球"
+
+
+msgid "Math"
+msgstr "數學公式"
+
+
+msgid "Names"
+msgstr "名稱"
+
+
+msgid "Utilities"
+msgstr "效用"
+
+
+msgid "Bone Roll"
+msgstr "骨骼滾動"
+
+
+msgid "Read"
+msgstr "讀取"
+
+
+msgid "Sample"
+msgstr "取樣"
+
+
+msgid "Pivot Point"
+msgstr "樞紐點"
+
+
+msgid "Write"
+msgstr "寫入"
+
+
+msgid "Snap"
+msgstr "吸附"
+
+
+msgid "Primitives"
+msgstr "原形"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "比例化編輯衰落"
+
+
+msgid "Mask Edit"
+msgstr "遮罩編輯"
+
+
+msgid "Automasking"
+msgstr "自動遮罩"
+
+
+msgid "Face Sets Edit"
+msgstr "面集編輯"
+
+
+msgid "Vertex Group Locks"
+msgstr "頂點群組鎖定"
+
+
+msgid "Gizmo"
+msgstr "操縱器"
+
+
+msgid "Instances"
+msgstr "實例化"
+
+
+msgid "Import"
+msgstr "匯入"
+
+
+msgid "Mirror"
+msgstr "鏡像"
+
+
+msgid "UV Mapping"
+msgstr "UV 映射處理"
+
+
+msgid "Local View"
+msgstr "區域檢視"
+
+
+msgid "Deprecated"
+msgstr "已棄用"
+
+
+msgid "Viewpoint"
+msgstr "視點"
+
+
+msgid "Navigation"
+msgstr "導覽"
+
+
+msgid "Align View"
+msgstr "對齊檢視"
+
+
+msgid "Align View to Active"
+msgstr "對齊檢視至作用項"
+
+
+msgid "View Regions"
+msgstr "檢視範圍"
+
+
+msgid "Select More/Less"
+msgstr "選取更多/更少"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Select Similar"
+msgstr "選取相似者"
+
+
+msgid "Select All by Trait"
+msgstr "依特徵全選"
+
+
+msgid "Select Linked"
+msgstr "選取連結項"
+
+
+msgid "Select Loops"
+msgstr "選取迴圈"
+
+
+msgid "Assign Material"
+msgstr "指派材質"
+
+
+msgid "Light"
+msgstr "燈光"
+
+
+msgid "Light Probe"
+msgstr "燈光採樣器"
+
+
 msgid "Add Image"
 msgstr "新增影像"
 
@@ -26514,10 +26694,6 @@ msgstr "關係"
 
 msgid "Rigid Body"
 msgstr "剛體"
-
-
-msgid "Render Preview"
-msgstr "算繪預覽"
 
 
 msgid "Apply"
@@ -26532,12 +26708,12 @@ msgid "Quick Effects"
 msgstr "快速效果"
 
 
-msgid "Show/Hide"
-msgstr "顯示/隱藏"
+msgid "Linked"
+msgstr "已連結"
 
 
-msgid "Clean Up"
-msgstr "清理"
+msgid "Layout"
+msgstr "配置"
 
 
 msgid "Asset"
@@ -26560,20 +26736,12 @@ msgid "Hooks"
 msgstr "鉤"
 
 
-msgid "Vertex Group Locks"
-msgstr "頂點群組鎖定"
-
-
-msgid "Math"
-msgstr "數學公式"
-
-
 msgid "Trim/Add"
 msgstr "修剪/增加"
 
 
-msgid "Utilities"
-msgstr "效用"
+msgid "Adjust"
+msgstr "調整"
 
 
 msgid "Sculpt Set Pivot"
@@ -26584,8 +26752,16 @@ msgid "Face Sets Init"
 msgstr "面集初始化"
 
 
+msgid "Keying"
+msgstr "鍵處理"
+
+
 msgid "Random Mask"
 msgstr "隨機遮罩"
+
+
+msgid "Tracking"
+msgstr "跟蹤"
 
 
 msgid "Clear Transform"
@@ -26604,20 +26780,8 @@ msgid "Bone Collections"
 msgstr "骨骼集盒"
 
 
-msgid "Names"
-msgstr "名稱"
-
-
-msgid "Read"
-msgstr "讀取"
-
-
-msgid "Sample"
-msgstr "取樣"
-
-
-msgid "Write"
-msgstr "寫入"
+msgid "Creative"
+msgstr "創意"
 
 
 msgid "Toggle Bone Options"
@@ -26628,176 +26792,12 @@ msgid "Enable Bone Options"
 msgstr "啟用骨骼設定"
 
 
-msgid "Primitives"
-msgstr "原形"
-
-
 msgid "Disable Bone Options"
 msgstr "停用骨骼設定"
 
 
 msgid "Mesh Select Mode"
 msgstr "網格選取模式"
-
-
-msgid "Face Data"
-msgstr "面資料"
-
-
-msgid "Set Face Strength"
-msgstr "設定面強度"
-
-
-msgid "Gizmo"
-msgstr "操縱器"
-
-
-msgid "Instances"
-msgstr "實例化"
-
-
-msgid "Merge"
-msgstr "合併"
-
-
-msgid "Import"
-msgstr "匯入"
-
-
-msgid "Special Characters"
-msgstr "特殊字元"
-
-
-msgid "Kerning"
-msgstr "字間微調"
-
-
-msgid "Deprecated"
-msgstr "已棄用"
-
-
-msgid "Metaball"
-msgstr "變幻球"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Bone Roll"
-msgstr "骨骼滾動"
-
-
-msgid "Pivot Point"
-msgstr "樞紐點"
-
-
-msgid "Snap"
-msgstr "吸附"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "比例化編輯衰落"
-
-
-msgid "Mask Edit"
-msgstr "遮罩編輯"
-
-
-msgid "Automasking"
-msgstr "自動遮罩"
-
-
-msgid "Face Sets Edit"
-msgstr "面集編輯"
-
-
-msgid "Mirror"
-msgstr "鏡像"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射處理"
-
-
-msgid "Local View"
-msgstr "區域檢視"
-
-
-msgid "Viewpoint"
-msgstr "視點"
-
-
-msgid "Linked"
-msgstr "已連結"
-
-
-msgid "Navigation"
-msgstr "導覽"
-
-
-msgid "Layout"
-msgstr "配置"
-
-
-msgid "Align View"
-msgstr "對齊檢視"
-
-
-msgid "Align View to Active"
-msgstr "對齊檢視至作用項"
-
-
-msgid "View Regions"
-msgstr "檢視範圍"
-
-
-msgid "Select More/Less"
-msgstr "選取更多/更少"
-
-
-msgid "Select Similar"
-msgstr "選取相似者"
-
-
-msgid "Select All by Trait"
-msgstr "依特徵全選"
-
-
-msgid "Select Linked"
-msgstr "選取連結項"
-
-
-msgid "Select Loops"
-msgstr "選取迴圈"
-
-
-msgid "Adjust"
-msgstr "調整"
-
-
-msgid "Keying"
-msgstr "鍵處理"
-
-
-msgid "Tracking"
-msgstr "跟蹤"
-
-
-msgid "Assign Material"
-msgstr "指派材質"
-
-
-msgid "Creative"
-msgstr "創意"
-
-
-msgid "Light"
-msgstr "燈光"
-
-
-msgid "Light Probe"
-msgstr "燈光採樣器"
 
 
 msgid "Keyframe Insert Pie"
@@ -61383,30 +61383,6 @@ msgid "Palette Splines"
 msgstr "調色盤雲型線"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR 資訊"
-
-
-msgid "glTF Variants"
-msgstr "glTF 變體"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF 材質變體"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF 動畫"
-
-
 msgid "Active Tool"
 msgstr "作用中工具"
 
@@ -61433,6 +61409,14 @@ msgstr "算繪通道"
 
 msgid "Compositor"
 msgstr "合成器"
+
+
+msgid "glTF Variants"
+msgstr "glTF 變體"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF 材質變體"
 
 
 msgid "Overlays"
@@ -61465,6 +61449,14 @@ msgstr "曲線編輯模式"
 
 msgid "Curves Edit Mode"
 msgstr "曲線編輯模式"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF 動畫"
 
 
 msgid "Transform Orientations"
@@ -61505,6 +61497,14 @@ msgstr "自動遮罩"
 
 msgid "Viewport Debug"
 msgstr "視圖除錯"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR 資訊"
 
 
 msgid "Import Settings"

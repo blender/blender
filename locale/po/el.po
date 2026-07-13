@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'b2d38940ccd4')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Release Candidate (b'3d8c46ac31f4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-06 08:37+0000\n"
+"POT-Creation-Date: 2026-07-13 07:34+0000\n"
 "PO-Revision-Date: 2025-07-23 15:19+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -523,6 +523,34 @@ msgid "Screen"
 msgstr "Οθόνη"
 
 
+msgid "Merge"
+msgstr "Συγχώνευση"
+
+
+msgid "Metaball"
+msgstr "Μετα-σφαίρα"
+
+
+msgid "Snap"
+msgstr "Προσκόλληση"
+
+
+msgid "Import"
+msgstr "Εισαγωγή"
+
+
+msgid "Mirror"
+msgstr "Καθρέφτισμα"
+
+
+msgid "Select Linked"
+msgstr "Επιλογή Συνδεδεμένων"
+
+
+msgid "Light"
+msgstr "Φως"
+
+
 msgid "Rigid Body"
 msgstr "Rigid Body"
 
@@ -535,40 +563,12 @@ msgid "Track"
 msgstr "Ανίχνευση"
 
 
-msgid "Make Single User"
-msgstr "Ορισμός Ενός Χρήστη"
-
-
-msgid "Merge"
-msgstr "Συγχώνευση"
-
-
-msgid "Import"
-msgstr "Εισαγωγή"
-
-
-msgid "Metaball"
-msgstr "Μετα-σφαίρα"
-
-
-msgid "Snap"
-msgstr "Προσκόλληση"
-
-
-msgid "Mirror"
-msgstr "Καθρέφτισμα"
-
-
 msgid "Linked"
 msgstr "Συνδεδεμένο/α"
 
 
-msgid "Select Linked"
-msgstr "Επιλογή Συνδεδεμένων"
-
-
-msgid "Light"
-msgstr "Φως"
+msgid "Make Single User"
+msgstr "Ορισμός Ενός Χρήστη"
 
 
 msgid "Cache"

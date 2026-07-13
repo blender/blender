@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'b2d38940ccd4')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Release Candidate (b'3d8c46ac31f4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-06 08:37+0000\n"
+"POT-Creation-Date: 2026-07-13 07:34+0000\n"
 "PO-Revision-Date: 2026-07-06 03:50+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
@@ -36505,6 +36505,190 @@ msgid "Editor menu containing buttons"
 msgstr "ボタンを含むエディターメニュー"
 
 
+msgid "Face Data"
+msgstr "面データ"
+
+
+msgid "Select by Face Strength"
+msgstr "面の強さで選択"
+
+
+msgid "Set Face Strength"
+msgstr "面の強さを設定"
+
+
+msgid "Render Preview"
+msgstr "レンダープレビュー"
+
+
+msgid "Clean Up"
+msgstr "クリーンアップ"
+
+
+msgid "Merge"
+msgstr "マージ"
+
+
+msgid "Show/Hide"
+msgstr "表示/隠す"
+
+
+msgid "Special Characters"
+msgstr "特殊文字"
+
+
+msgid "Kerning"
+msgstr "カーニング"
+
+
+msgid "Metaball"
+msgstr "メタボール"
+
+
+msgid "Math"
+msgstr "数式"
+
+
+msgid "Names"
+msgstr "名前"
+
+
+msgid "Utilities"
+msgstr "ユーティリティ"
+
+
+msgid "Bone Roll"
+msgstr "ボーンロール"
+
+
+msgid "Read"
+msgstr "読込"
+
+
+msgid "Sample"
+msgstr "サンプル"
+
+
+msgid "Pivot Point"
+msgstr "ピボットポイント"
+
+
+msgid "Write"
+msgstr "書込"
+
+
+msgid "Snap"
+msgstr "スナップ"
+
+
+msgid "Primitives"
+msgstr "プリミティブ"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "プロポーショナル編集の減衰タイプ"
+
+
+msgid "Mask Edit"
+msgstr "マスク編集"
+
+
+msgid "Automasking"
+msgstr "自動マスク"
+
+
+msgid "Face Sets Edit"
+msgstr "面セット編集"
+
+
+msgid "Vertex Group Locks"
+msgstr "頂点グループのロック"
+
+
+msgid "Gizmo"
+msgstr "ギズモ"
+
+
+msgid "Instances"
+msgstr "インスタンス"
+
+
+msgid "Import"
+msgstr "インポート"
+
+
+msgid "Mirror"
+msgstr "ミラー"
+
+
+msgid "UV Mapping"
+msgstr "UVマッピング"
+
+
+msgid "Local View"
+msgstr "ローカルビュー"
+
+
+msgid "Deprecated"
+msgstr "廃止予定"
+
+
+msgid "Viewpoint"
+msgstr "視点"
+
+
+msgid "Navigation"
+msgstr "視点の操作"
+
+
+msgid "Align View"
+msgstr "視点を揃える"
+
+
+msgid "Align View to Active"
+msgstr "アクティブに視点を揃える"
+
+
+msgid "View Regions"
+msgstr "ビュー領域設定"
+
+
+msgid "Select More/Less"
+msgstr "選択の拡大縮小"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Select Similar"
+msgstr "類似選択"
+
+
+msgid "Select All by Trait"
+msgstr "特徴で全選択"
+
+
+msgid "Select Linked"
+msgstr "リンク選択"
+
+
+msgid "Select Loops"
+msgstr "ループ選択"
+
+
+msgid "Assign Material"
+msgstr "マテリアルを割り当て"
+
+
+msgid "Light"
+msgstr "ライト"
+
+
+msgid "Light Probe"
+msgstr "ライトプローブ"
+
+
 msgid "Add Image"
 msgstr "画像を追加"
 
@@ -36515,10 +36699,6 @@ msgstr "関係"
 
 msgid "Rigid Body"
 msgstr "リジッドボディ"
-
-
-msgid "Render Preview"
-msgstr "レンダープレビュー"
 
 
 msgid "Apply"
@@ -36533,12 +36713,12 @@ msgid "Quick Effects"
 msgstr "クイックエフェクト"
 
 
-msgid "Show/Hide"
-msgstr "表示/隠す"
+msgid "Linked"
+msgstr "リンク"
 
 
-msgid "Clean Up"
-msgstr "クリーンアップ"
+msgid "Layout"
+msgstr "レイアウト"
 
 
 msgid "Asset"
@@ -36561,24 +36741,16 @@ msgid "Hooks"
 msgstr "フック"
 
 
-msgid "Vertex Group Locks"
-msgstr "頂点グループのロック"
-
-
-msgid "Math"
-msgstr "数式"
-
-
 msgid "Trim/Add"
 msgstr "トリム/追加"
 
 
-msgid "Utilities"
-msgstr "ユーティリティ"
-
-
 msgid "Add Primitive"
 msgstr "プリミティブを追加"
+
+
+msgid "Adjust"
+msgstr "調整"
 
 
 msgid "Sculpt Set Pivot"
@@ -36589,8 +36761,16 @@ msgid "Face Sets Init"
 msgstr "面セットを初期化"
 
 
+msgid "Keying"
+msgstr "キーイング"
+
+
 msgid "Random Mask"
 msgstr "ランダムマスク"
+
+
+msgid "Tracking"
+msgstr "トラッキング"
 
 
 msgid "Clear Transform"
@@ -36609,20 +36789,8 @@ msgid "Bone Collections"
 msgstr "ボーンコレクション"
 
 
-msgid "Names"
-msgstr "名前"
-
-
-msgid "Read"
-msgstr "読込"
-
-
-msgid "Sample"
-msgstr "サンプル"
-
-
-msgid "Write"
-msgstr "書込"
+msgid "Creative"
+msgstr "クリエイティブ"
 
 
 msgid "Toggle Bone Options"
@@ -36633,180 +36801,12 @@ msgid "Enable Bone Options"
 msgstr "ボーンオプションを有効化"
 
 
-msgid "Primitives"
-msgstr "プリミティブ"
-
-
 msgid "Disable Bone Options"
 msgstr "ボーンオプションを無効化"
 
 
 msgid "Mesh Select Mode"
 msgstr "メッシュ選択モード"
-
-
-msgid "Face Data"
-msgstr "面データ"
-
-
-msgid "Select by Face Strength"
-msgstr "面の強さで選択"
-
-
-msgid "Set Face Strength"
-msgstr "面の強さを設定"
-
-
-msgid "Gizmo"
-msgstr "ギズモ"
-
-
-msgid "Instances"
-msgstr "インスタンス"
-
-
-msgid "Merge"
-msgstr "マージ"
-
-
-msgid "Import"
-msgstr "インポート"
-
-
-msgid "Special Characters"
-msgstr "特殊文字"
-
-
-msgid "Kerning"
-msgstr "カーニング"
-
-
-msgid "Deprecated"
-msgstr "廃止予定"
-
-
-msgid "Metaball"
-msgstr "メタボール"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Bone Roll"
-msgstr "ボーンロール"
-
-
-msgid "Pivot Point"
-msgstr "ピボットポイント"
-
-
-msgid "Snap"
-msgstr "スナップ"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "プロポーショナル編集の減衰タイプ"
-
-
-msgid "Mask Edit"
-msgstr "マスク編集"
-
-
-msgid "Automasking"
-msgstr "自動マスク"
-
-
-msgid "Face Sets Edit"
-msgstr "面セット編集"
-
-
-msgid "Mirror"
-msgstr "ミラー"
-
-
-msgid "UV Mapping"
-msgstr "UVマッピング"
-
-
-msgid "Local View"
-msgstr "ローカルビュー"
-
-
-msgid "Viewpoint"
-msgstr "視点"
-
-
-msgid "Linked"
-msgstr "リンク"
-
-
-msgid "Navigation"
-msgstr "視点の操作"
-
-
-msgid "Layout"
-msgstr "レイアウト"
-
-
-msgid "Align View"
-msgstr "視点を揃える"
-
-
-msgid "Align View to Active"
-msgstr "アクティブに視点を揃える"
-
-
-msgid "View Regions"
-msgstr "ビュー領域設定"
-
-
-msgid "Select More/Less"
-msgstr "選択の拡大縮小"
-
-
-msgid "Select Similar"
-msgstr "類似選択"
-
-
-msgid "Select All by Trait"
-msgstr "特徴で全選択"
-
-
-msgid "Select Linked"
-msgstr "リンク選択"
-
-
-msgid "Select Loops"
-msgstr "ループ選択"
-
-
-msgid "Adjust"
-msgstr "調整"
-
-
-msgid "Keying"
-msgstr "キーイング"
-
-
-msgid "Tracking"
-msgstr "トラッキング"
-
-
-msgid "Assign Material"
-msgstr "マテリアルを割り当て"
-
-
-msgid "Creative"
-msgstr "クリエイティブ"
-
-
-msgid "Light"
-msgstr "ライト"
-
-
-msgid "Light Probe"
-msgstr "ライトプローブ"
 
 
 msgid "Keyframe Insert Pie"
@@ -95619,30 +95619,6 @@ msgid "Panel containing UI elements"
 msgstr "UIの要素を含むパネル"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR情報"
-
-
-msgid "glTF Variants"
-msgstr "glTFバリアント"
-
-
-msgid "glTF Material Variants"
-msgstr "glTFマテリアルバリアント"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTFアニメーション"
-
-
 msgid "Active Tool"
 msgstr "アクティブツール"
 
@@ -95675,6 +95651,14 @@ msgid "Compositor"
 msgstr "コンポジター"
 
 
+msgid "glTF Variants"
+msgstr "glTFバリアント"
+
+
+msgid "glTF Material Variants"
+msgstr "glTFマテリアルバリアント"
+
+
 msgid "Overlays"
 msgstr "オーバーレイ"
 
@@ -95705,6 +95689,14 @@ msgstr "カーブ編集モード"
 
 msgid "Curves Edit Mode"
 msgstr "ヘアーカーブ編集モード"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTFアニメーション"
 
 
 msgid "Transform Orientations"
@@ -95757,6 +95749,14 @@ msgstr "カーブスケールを拡大/収縮"
 
 msgid "Viewport Debug"
 msgstr "ビューポートデバッグ"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR情報"
 
 
 msgid "Import Settings"
@@ -164941,10 +164941,6 @@ msgstr "カーブ端での角度の回転をロックします"
 
 msgid "Random offset to the rotation angle per curve"
 msgstr "各カーブの回転角度のランダムオフセット"
-
-
-msgid "Set Attachment Surface"
-msgstr "植え付けサーフェスを設定"
 
 
 msgid "Sets the radius attribute of hair curves according to a profile shape"
