@@ -244,7 +244,7 @@ bool metalrt_shadow_all_hit(constant KernelParamsMetal &launch_params_metal,
           kg, payload.state, payload, payload.base.ray_self, payload.base.ray_visibility, isect);
 
 #  else  /* __TRANSPARENT_SHADOWS__ */
-  payload.throughput = 0.0f;
+  payload.throughput = zero_float3();
   return false;
 #  endif /* __TRANSPARENT_SHADOWS__ */
 }
