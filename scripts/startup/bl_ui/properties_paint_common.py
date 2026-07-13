@@ -691,7 +691,7 @@ class FalloffPanel(BrushPanel):
             return False
         if cls.get_brush_mode(context) == 'SCULPT_CURVES':
             brush = settings.brush
-            if brush.curves_sculpt_brush_type in {'ADD', 'DELETE'}:
+            if brush.curves_sculpt_brush_type in {'ADD', 'DELETE', 'CUT'}:
                 return False
         return True
 

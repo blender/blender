@@ -443,6 +443,11 @@ void report_invalid_uv_map(ReportList *reports)
   BKE_report(reports, RPT_WARNING, "Invalid UV map: UV islands must not overlap");
 }
 
+void report_cyclic_not_supported(ReportList *reports)
+{
+  BKE_report(reports, RPT_WARNING, "Cyclic curves are not supported");
+}
+
 void CurvesConstraintSolver::initialize(const bke::CurvesGeometry &curves,
                                         const IndexMask &curve_selection,
                                         const bool use_surface_collision,
