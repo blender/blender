@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'b2d38940ccd4')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Release Candidate (b'3d8c46ac31f4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-06 08:37+0000\n"
+"POT-Creation-Date: 2026-07-13 07:34+0000\n"
 "PO-Revision-Date: 2025-07-23 15:20+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Kyrgyz <https://translate.blender.org/projects/blender-ui/ui/ky/>\n"
@@ -1298,20 +1298,20 @@ msgid "Mask Layers"
 msgstr "Маска каттары"
 
 
-msgid "Apply"
-msgstr "Колдонуу"
-
-
 msgid "Import"
 msgstr "Импорттоо"
+
+
+msgid "Mirror"
+msgstr "Чагылтуу"
 
 
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Mirror"
-msgstr "Чагылтуу"
+msgid "Apply"
+msgstr "Колдонуу"
 
 
 msgid "Tracking"

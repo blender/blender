@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'b2d38940ccd4')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Release Candidate (b'3d8c46ac31f4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-06 08:37+0000\n"
+"POT-Creation-Date: 2026-07-13 07:34+0000\n"
 "PO-Revision-Date: 2026-06-02 05:12+0000\n"
 "Last-Translator: Fadli Birdie Zeinda <justbirdie00@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -15740,40 +15740,32 @@ msgid "Use Material Mask"
 msgstr "Gunakan Masker Bahan"
 
 
-msgid "Add Image"
-msgstr "Tambah Gambar"
+msgid "Merge"
+msgstr "Menggabungkan"
 
 
-msgid "Apply"
-msgstr "Tetapkan"
-
-
-msgid "Track"
-msgstr "Lacak"
-
-
-msgid "Asset"
-msgstr "Aset"
-
-
-msgid "Hooks"
-msgstr "Kait"
+msgid "Metaball"
+msgstr "Metabola"
 
 
 msgid "Math"
 msgstr "Matematika"
 
 
-msgid "Utilities"
-msgstr "Utilitas"
-
-
 msgid "Names"
 msgstr "Nama"
 
 
+msgid "Utilities"
+msgstr "Utilitas"
+
+
 msgid "Sample"
 msgstr "Sampel"
+
+
+msgid "Snap"
+msgstr "Jepret"
 
 
 msgid "Gizmo"
@@ -15784,48 +15776,24 @@ msgid "Instances"
 msgstr "Contoh-contoh"
 
 
-msgid "Merge"
-msgstr "Menggabungkan"
-
-
 msgid "Import"
 msgstr "Impor"
-
-
-msgid "Metaball"
-msgstr "Metabola"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Snap"
-msgstr "Jepret"
 
 
 msgid "Mirror"
 msgstr "Cermin"
 
 
-msgid "Linked"
-msgstr "Terkoleksi"
-
-
 msgid "Navigation"
 msgstr "Navigasi"
 
 
-msgid "Layout"
-msgstr "Tata Letak"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Select Linked"
 msgstr "Seleksi yang Terhubung"
-
-
-msgid "Tracking"
-msgstr "Pelacakan"
 
 
 msgid "Assign Material"
@@ -15838,6 +15806,38 @@ msgstr "Cahaya"
 
 msgid "Light Probe"
 msgstr "Probe Cahaya"
+
+
+msgid "Add Image"
+msgstr "Tambah Gambar"
+
+
+msgid "Apply"
+msgstr "Tetapkan"
+
+
+msgid "Track"
+msgstr "Lacak"
+
+
+msgid "Linked"
+msgstr "Terkoleksi"
+
+
+msgid "Layout"
+msgstr "Tata Letak"
+
+
+msgid "Asset"
+msgstr "Aset"
+
+
+msgid "Hooks"
+msgstr "Kait"
+
+
+msgid "Tracking"
+msgstr "Pelacakan"
 
 
 msgid "Animals"

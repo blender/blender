@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'b2d38940ccd4')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Release Candidate (b'3d8c46ac31f4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-06 08:37+0000\n"
-"PO-Revision-Date: 2026-06-30 17:22+0000\n"
+"POT-Creation-Date: 2026-07-13 07:34+0000\n"
+"PO-Revision-Date: 2026-07-06 21:56+0000\n"
 "Last-Translator: Paweł Mazur <pawelmazur.zam@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
 "Language: pl\n"
@@ -14356,6 +14356,10 @@ msgstr "Znormalizowany sinus"
 
 msgid "sin(x) / x"
 msgstr "sin(x) / x"
+
+
+msgid "Phase Multiplier"
+msgstr "Mnożnik fazowy"
 
 
 msgid "Scale factor determining the 'speed' of the function"
@@ -35920,6 +35924,190 @@ msgid "Editor menu containing buttons"
 msgstr "Menu edytora zawierające przyciski"
 
 
+msgid "Face Data"
+msgstr "Dane lica"
+
+
+msgid "Select by Face Strength"
+msgstr "Wybierz według siły lica"
+
+
+msgid "Set Face Strength"
+msgstr "Ustaw siłę lica"
+
+
+msgid "Render Preview"
+msgstr "Podgląd renderowania"
+
+
+msgid "Clean Up"
+msgstr "Oczyść"
+
+
+msgid "Merge"
+msgstr "Scal"
+
+
+msgid "Show/Hide"
+msgstr "Pokaż / ukryj"
+
+
+msgid "Special Characters"
+msgstr "Znaki specjalne"
+
+
+msgid "Kerning"
+msgstr "Odstęp między literami"
+
+
+msgid "Metaball"
+msgstr "Metakula"
+
+
+msgid "Math"
+msgstr "Matematyka"
+
+
+msgid "Names"
+msgstr "Nazwy"
+
+
+msgid "Utilities"
+msgstr "Narzędzia"
+
+
+msgid "Bone Roll"
+msgstr "Rolka kości"
+
+
+msgid "Read"
+msgstr "Odczyt"
+
+
+msgid "Sample"
+msgstr "Próbka"
+
+
+msgid "Pivot Point"
+msgstr "Punkt obrotu"
+
+
+msgid "Write"
+msgstr "Napisz"
+
+
+msgid "Snap"
+msgstr "Przyciągaj"
+
+
+msgid "Primitives"
+msgstr "Prymitywy"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proporcjonalne zanikanie edycji"
+
+
+msgid "Mask Edit"
+msgstr "Edytuj maskę"
+
+
+msgid "Automasking"
+msgstr "Automatyczne maskowanie"
+
+
+msgid "Face Sets Edit"
+msgstr "Edytuj zestawy lica"
+
+
+msgid "Vertex Group Locks"
+msgstr "Blokady grup wierzchołków"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Instancje"
+
+
+msgid "Import"
+msgstr "Importuj"
+
+
+msgid "Mirror"
+msgstr "Lustro"
+
+
+msgid "UV Mapping"
+msgstr "Mapowanie UV"
+
+
+msgid "Local View"
+msgstr "Widok lokalny"
+
+
+msgid "Deprecated"
+msgstr "Przestarzałe"
+
+
+msgid "Viewpoint"
+msgstr "Punkt widzenia"
+
+
+msgid "Navigation"
+msgstr "Nawigacja"
+
+
+msgid "Align View"
+msgstr "Wyrównaj widok"
+
+
+msgid "Align View to Active"
+msgstr "Wyrównaj widok do aktywnego"
+
+
+msgid "View Regions"
+msgstr "Wyświetl regiony"
+
+
+msgid "Select More/Less"
+msgstr "Wybierz więcej / mniej"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Select Similar"
+msgstr "Wybierz podobne"
+
+
+msgid "Select All by Trait"
+msgstr "Wybierz wszystko według cechy"
+
+
+msgid "Select Linked"
+msgstr "Wybierz połączone"
+
+
+msgid "Select Loops"
+msgstr "Wybierz pętle"
+
+
+msgid "Assign Material"
+msgstr "Przypisz materiał"
+
+
+msgid "Light"
+msgstr "Światło"
+
+
+msgid "Light Probe"
+msgstr "Sonda świetlna"
+
+
 msgid "Add Image"
 msgstr "Dodaj obraz"
 
@@ -35930,10 +36118,6 @@ msgstr "Relacje"
 
 msgid "Rigid Body"
 msgstr "Ciało sztywne"
-
-
-msgid "Render Preview"
-msgstr "Podgląd renderowania"
 
 
 msgid "Apply"
@@ -35948,12 +36132,12 @@ msgid "Quick Effects"
 msgstr "Szybkie efekty"
 
 
-msgid "Show/Hide"
-msgstr "Pokaż / ukryj"
+msgid "Linked"
+msgstr "Połączony"
 
 
-msgid "Clean Up"
-msgstr "Oczyść"
+msgid "Layout"
+msgstr "Układ"
 
 
 msgid "Asset"
@@ -35976,24 +36160,16 @@ msgid "Hooks"
 msgstr "Haki"
 
 
-msgid "Vertex Group Locks"
-msgstr "Blokady grup wierzchołków"
-
-
-msgid "Math"
-msgstr "Matematyka"
-
-
 msgid "Trim/Add"
 msgstr "Przytnij / dodaj"
 
 
-msgid "Utilities"
-msgstr "Narzędzia"
-
-
 msgid "Add Primitive"
 msgstr "Dodaj prymityw"
+
+
+msgid "Adjust"
+msgstr "Dostosuj"
 
 
 msgid "Sculpt Set Pivot"
@@ -36004,8 +36180,16 @@ msgid "Face Sets Init"
 msgstr "Zestawy lica Init"
 
 
+msgid "Keying"
+msgstr "Kluczowanie"
+
+
 msgid "Random Mask"
 msgstr "Losowa maska"
+
+
+msgid "Tracking"
+msgstr "Śledzenie"
 
 
 msgid "Clear Transform"
@@ -36024,20 +36208,8 @@ msgid "Bone Collections"
 msgstr "Kolekcje kości"
 
 
-msgid "Names"
-msgstr "Nazwy"
-
-
-msgid "Read"
-msgstr "Odczyt"
-
-
-msgid "Sample"
-msgstr "Próbka"
-
-
-msgid "Write"
-msgstr "Napisz"
+msgid "Creative"
+msgstr "Twórczy"
 
 
 msgid "Toggle Bone Options"
@@ -36048,180 +36220,12 @@ msgid "Enable Bone Options"
 msgstr "Włącz opcje kości"
 
 
-msgid "Primitives"
-msgstr "Prymitywy"
-
-
 msgid "Disable Bone Options"
 msgstr "Wyłącz opcje kości"
 
 
 msgid "Mesh Select Mode"
 msgstr "Tryb wybierz siatkę"
-
-
-msgid "Face Data"
-msgstr "Dane lica"
-
-
-msgid "Select by Face Strength"
-msgstr "Wybierz według siły lica"
-
-
-msgid "Set Face Strength"
-msgstr "Ustaw siłę lica"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instancje"
-
-
-msgid "Merge"
-msgstr "Scal"
-
-
-msgid "Import"
-msgstr "Importuj"
-
-
-msgid "Special Characters"
-msgstr "Znaki specjalne"
-
-
-msgid "Kerning"
-msgstr "Odstęp między literami"
-
-
-msgid "Deprecated"
-msgstr "Przestarzałe"
-
-
-msgid "Metaball"
-msgstr "Metakula"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Bone Roll"
-msgstr "Rolka kości"
-
-
-msgid "Pivot Point"
-msgstr "Punkt obrotu"
-
-
-msgid "Snap"
-msgstr "Przyciągaj"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proporcjonalne zanikanie edycji"
-
-
-msgid "Mask Edit"
-msgstr "Edytuj maskę"
-
-
-msgid "Automasking"
-msgstr "Automatyczne maskowanie"
-
-
-msgid "Face Sets Edit"
-msgstr "Edytuj zestawy lica"
-
-
-msgid "Mirror"
-msgstr "Lustro"
-
-
-msgid "UV Mapping"
-msgstr "Mapowanie UV"
-
-
-msgid "Local View"
-msgstr "Widok lokalny"
-
-
-msgid "Viewpoint"
-msgstr "Punkt widzenia"
-
-
-msgid "Linked"
-msgstr "Połączony"
-
-
-msgid "Navigation"
-msgstr "Nawigacja"
-
-
-msgid "Layout"
-msgstr "Układ"
-
-
-msgid "Align View"
-msgstr "Wyrównaj widok"
-
-
-msgid "Align View to Active"
-msgstr "Wyrównaj widok do aktywnego"
-
-
-msgid "View Regions"
-msgstr "Wyświetl regiony"
-
-
-msgid "Select More/Less"
-msgstr "Wybierz więcej / mniej"
-
-
-msgid "Select Similar"
-msgstr "Wybierz podobne"
-
-
-msgid "Select All by Trait"
-msgstr "Wybierz wszystko według cechy"
-
-
-msgid "Select Linked"
-msgstr "Wybierz połączone"
-
-
-msgid "Select Loops"
-msgstr "Wybierz pętle"
-
-
-msgid "Adjust"
-msgstr "Dostosuj"
-
-
-msgid "Keying"
-msgstr "Kluczowanie"
-
-
-msgid "Tracking"
-msgstr "Śledzenie"
-
-
-msgid "Assign Material"
-msgstr "Przypisz materiał"
-
-
-msgid "Creative"
-msgstr "Twórczy"
-
-
-msgid "Light"
-msgstr "Światło"
-
-
-msgid "Light Probe"
-msgstr "Sonda świetlna"
 
 
 msgid "Keyframe Insert Pie"
@@ -70807,6 +70811,10 @@ msgid "Radius of the circle"
 msgstr "Promień okręgu"
 
 
+msgid "Circularization factor"
+msgstr "Współczynnik cyrkularyzacji"
+
+
 msgid "Method used for fitting a circle to the vertices"
 msgstr "Metoda stosowana do dopasowania okręgu do wierzchołków"
 
@@ -71539,6 +71547,10 @@ msgstr "Spłaszcz"
 
 msgid "Flatten vertices on a best-fitting plane"
 msgstr "Spłaszcz wierzchołki na najlepiej dopasowanej płaszczyźnie"
+
+
+msgid "Flattening factor"
+msgstr "Współczynnik spłaszczenia"
 
 
 msgid "Plane on which vertices are flattened"
@@ -94327,30 +94339,6 @@ msgid "Panel containing UI elements"
 msgstr "Panel zawierający elementy interfejsu użytkownika"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "Informacje o VR"
-
-
-msgid "glTF Variants"
-msgstr "Warianty glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Warianty materiałów glTF"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "Animacje glTF"
-
-
 msgid "Active Tool"
 msgstr "Aktywne narzędzie"
 
@@ -94383,6 +94371,14 @@ msgid "Compositor"
 msgstr "Kompozytor"
 
 
+msgid "glTF Variants"
+msgstr "Warianty glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Warianty materiałów glTF"
+
+
 msgid "Overlays"
 msgstr "Nakładki"
 
@@ -94413,6 +94409,14 @@ msgstr "Tryb edycji krzywej"
 
 msgid "Curves Edit Mode"
 msgstr "Tryb edycji krzywych"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "Animacje glTF"
 
 
 msgid "Transform Orientations"
@@ -94465,6 +94469,14 @@ msgstr "Skalowanie krzywych wzrostu / kurczenia"
 
 msgid "Viewport Debug"
 msgstr "Debugowanie rzutni"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "Informacje o VR"
 
 
 msgid "Import Settings"
@@ -99820,6 +99832,10 @@ msgid "Chinese (Simplified) - 简体中文"
 msgstr "Chiński (uproszczony) - 简体中文"
 
 
+msgid "Locale code: zh_HANS. Translation progress: 100%"
+msgstr "Kod regionalny: zh_HANS. Postęp tłumaczenia: 100%"
+
+
 msgid "Chinese (Traditional) - 繁體中文"
 msgstr "Chiński (tradycyjny) - 繁體中文"
 
@@ -99894,6 +99910,10 @@ msgstr "Kod regionalny: fi_FI. Postęp tłumaczenia: 11%"
 
 msgid "French - Français"
 msgstr "Francuski - Français"
+
+
+msgid "Locale code: fr_FR. Translation progress: 100%"
+msgstr "Kod regionalny: fr_FR. Postęp tłumaczenia: 100%"
 
 
 msgid "Georgian - ქართული"
@@ -100096,6 +100116,10 @@ msgid "Swahili - Kiswahili"
 msgstr "Suahili - Kiswahili"
 
 
+msgid "Locale code: sw. Translation progress: 69%"
+msgstr "Kod regionalny: sw. Postęp tłumaczenia: 69%"
+
+
 msgid "Swedish - Svenska"
 msgstr "Szwedzki - Svenska"
 
@@ -100146,6 +100170,10 @@ msgstr "Kod regionalny: ur. Postęp tłumaczenia: 83%"
 
 msgid "Vietnamese - Tiếng Việt"
 msgstr "Wietnamski - Tiếng Việt"
+
+
+msgid "Locale code: vi_VN. Translation progress: 96%"
+msgstr "Kod regionalny: vi_VN. Postęp tłumaczenia: 96%"
 
 
 msgid "Reference Sphere Size"
@@ -137852,6 +137880,10 @@ msgid "Shift Left Mouse"
 msgstr "Shift lewy przycisk myszy"
 
 
+msgid "Compact Tabs"
+msgstr "Kompaktowe zakładki"
+
+
 msgid "Add to a user defined context menu (stored in the user preferences)"
 msgstr "Dodaj do menu kontekstowego zdefiniowanego przez użytkownika (zapisanego w preferencjach użytkownika)"
 
@@ -141486,6 +141518,14 @@ msgid "No Rigid Body World to add Rigid Body Constraint to"
 msgstr "Brak świata ciała sztywnego, do którego można dodać ograniczenie ciała sztywnego do"
 
 
+msgid "No object in the scene to add Rigid Body Constraint to"
+msgstr "Brak obiektu na scenie, do którego można dodać ograniczenie sztywnego ciała"
+
+
+msgid "No object in the scene to remove Rigid Body Constraint from"
+msgstr "Brak obiektu na scenie, z którego można usunąć ograniczenie sztywnego ciała"
+
+
 msgid "Object '%s' already has a Rigid Body Constraint"
 msgstr "Obiekt „%s” ma już ograniczenie ciała sztywnego"
 
@@ -142410,6 +142450,10 @@ msgstr "Brak klatki Grease Pencil do rysowania wagi"
 
 msgid "Active group is locked, aborting"
 msgstr "Aktywna grupa jest zablokowana, przerwanie"
+
+
+msgid "No fill created"
+msgstr "Nie utworzono wypełnienia"
 
 
 msgid "Fill tool needs active material"
@@ -146714,6 +146758,10 @@ msgid "Shrink/Fatten: %3f"
 msgstr "Kurcz / rozrastaj: %3f"
 
 
+msgid "'Rotate Normals' is only supported in mesh edit mode"
+msgstr "Funkcja „Obróć normalne” jest obsługiwana tylko w trybie edycji siatki"
+
+
 msgid "Sequence Slide: %s%s"
 msgstr "Slajd sekwencji: %s%s"
 
@@ -146728,6 +146776,10 @@ msgstr "Ustaw bazę przyciągania"
 
 msgid "Edge Slide: "
 msgstr "Przesuń krawędź: "
+
+
+msgid "'Edge Slide' is only supported in mesh edit mode"
+msgstr "„Przesuwanie krawędzi” jest obsługiwane tylko w trybie edycji siatki"
 
 
 msgid "Opacity: %s"
@@ -146852,6 +146904,10 @@ msgstr "Użyj trybu transformacji „Time_Translate” zamiast trybu „Translac
 
 msgid "Vertex Slide: "
 msgstr "Przesuń wierzchołki: "
+
+
+msgid "'Vertex Slide' is only supported in mesh edit mode"
+msgstr "„Przesuwanie wierzchołków” jest obsługiwane tylko w trybie edycji siatki"
 
 
 msgid "Create Orientation's 'use' parameter only valid in a 3DView context"
@@ -154557,6 +154613,10 @@ msgid "Per corner specification of 'spread' for arc miters"
 msgstr "Zgodnie ze specyfikacją „rozwarcia” narożników dla skosów łukowych"
 
 
+msgid "How many pieces is an edge beveled into, or, for vertex bevels, how many segments on the arcs between the edges."
+msgstr "Na ile części jest ścięta krawędź, a w przypadku ścięć wierzchołków, na ile segmentów łuków pomiędzy krawędziami."
+
+
 msgid "Superellipse shape parameter, used when there is no Profile, and also used for Arc and Patch miters"
 msgstr "Parametr kształtu superelipsy, używany w przypadku braku profilu, a także w przypadku skosów łukowych i łat"
 
@@ -159387,6 +159447,146 @@ msgid "AgX - SDR"
 msgstr "AgX - SDR"
 
 
+msgid "Apply only the display's standard transform without additional mappings"
+msgstr "Zastosuj tylko standardową transformację wyświetlacza bez dodatkowych mapowań"
+
+
+msgid "sRGB display space with Filmic view transform"
+msgstr "Przestrzeń wyświetlania sRGB z transformacją widoku Filmic"
+
+
+msgid "AgX Base Rec.2020"
+msgstr "AgX Base Rec.2020"
+
+
+msgid "AgX Base Image Encoding for display with Gamma 2.4 and Rec.2020 gamut"
+msgstr "Kodowanie obrazu bazowego AgX do wyświetlania z gamą Gamma 2.4 i Rec.2020"
+
+
+msgid "AgX Base Rec.1886"
+msgstr "AgX Base Rec.1886"
+
+
+msgid "AgX Base Image Encoding for sRGB and Rec.1886 Display"
+msgstr "Kodowanie obrazu bazowego AgX dla wyświetlaczy sRGB i Rec.1886"
+
+
+msgid "AgX Base Display P3"
+msgstr "AgX Base Display P3"
+
+
+msgid "AgX Base Image Encoding for Display P3 Display"
+msgstr "Kodowanie obrazu bazowego AgX dla wyświetlacza P3"
+
+
+msgid "AgX Rec.2100-HLG - HDR 1000 nits (P3 D65)"
+msgstr "AgX Rec.2100-HLG - HDR 1000 nitów (P3 D65)"
+
+
+msgid "AgX 1000 nits peak Image Encoding for BT.2100-HLG P3 limited Display. Reference white is 100nits"
+msgstr "Kodowanie obrazu AgX 1000 nitów dla wyświetlacza BT.2100-HLG P3 limited. Jasność referencyjna bieli wynosi 100 nitów"
+
+
+msgid "AgX False Color Rec.709"
+msgstr "AgX False Color Rec.709"
+
+
+msgid "A heat-map-like image formed from AgX Base for sRGB and Rec.1886 displays"
+msgstr "Obraz przypominający mapę cieplną utworzony na podstawie AgX Base dla wyświetlaczy sRGB i Rec.1886"
+
+
+msgid "Khronos PBR Neutral Image Encoding for sRGB Display"
+msgstr "Kodowanie obrazu neutralnego Khronos PBR dla wyświetlaczy sRGB"
+
+
+msgid "ACES 1.3 Display P3"
+msgstr "ACES 1.3 Display P3"
+
+
+msgid "ACES 1.1 Output Transform for SDR D65 video, with P3 gamut"
+msgstr "Transformacja wyjściowa ACES 1.1 dla wideo SDR D65 z gamą P3"
+
+
+msgid "ACES 1.3 Rec.1886"
+msgstr "ACES 1.3 Rec.1886"
+
+
+msgid "ACES 1.0 Output Transform for SDR D65 video, with Rec.709 gamut"
+msgstr "Transformacja wyjściowa ACES 1.0 dla wideo SDR D65 z gamą Rec.709"
+
+
+msgid "ACES 1.1 Rec.2100-PQ - HDR 1000 nits"
+msgstr "ACES 1.1 Rec.2100-PQ - HDR 1000 nitów"
+
+
+msgid "ACES 1.1 Output Transform for 1000 nit HDR D65 video, with Rec.2020 gamut"
+msgstr "Transformacja wyjściowa ACES 1.1 dla wideo HDR D65 o jasności 1000 nitów i gamie kolorów Rec.2020"
+
+
+msgid "ACES 1.1 Rec.2100-PQ - HDR 2000 nits"
+msgstr "ACES 1.1 Rec.2100-PQ - HDR 2000 nitów"
+
+
+msgid "ACES 1.1 Output Transform for 2000 nit HDR D65 video, with Rec.2020 gamut"
+msgstr "Transformacja wyjściowa ACES 1.1 dla wideo HDR D65 o jasności 2000 nitów i gamie kolorów Rec.2020"
+
+
+msgid "ACES 1.1 Rec.2100-PQ - HDR 4000 nits"
+msgstr "ACES 1.1 Rec.2100-PQ - HDR 4000 nitów"
+
+
+msgid "ACES 1.1 Output Transform for 4000 nit HDR D65 video, with Rec.2020 gamut"
+msgstr "Transformacja wyjściowa ACES 1.1 dla wideo HDR D65 o rozdzielczości 4000 nitów z gamą Rec.2020"
+
+
+msgid "ACES 2.0 Display P3"
+msgstr "ACES 2.0 Display P3"
+
+
+msgid "ACES 2 Output Transform for Apple Display P3"
+msgstr "Transformacja wyjściowa ACES 2 dla wyświetlacza Apple P3"
+
+
+msgid "ACES 2.0 Rec.1886"
+msgstr "ACES 2.0 Rec.1886"
+
+
+msgid "ACES 2 Output Transform for 100 nit SDR, with Rec709 gamut"
+msgstr "Transformacja wyjściowa ACES 2 dla 100 nitów SDR z gamą Rec709"
+
+
+msgid "ACES 2.0 Rec.2100-PQ - HDR 500 nits"
+msgstr "ACES 2.0 Rec.2100-PQ – HDR 500 nitów"
+
+
+msgid "ACES 2 Output Transform for 500 nit HDR, with Rec.2020 gamut"
+msgstr "Transformacja wyjściowa ACES 2 dla HDR 500 nitów z gamą Rec.2020"
+
+
+msgid "ACES 2.0 Rec.2100-PQ - HDR 1000 nits"
+msgstr "ACES 2.0 Rec.2100-PQ – HDR 1000 nitów"
+
+
+msgid "ACES 2 Output Transform for 1000 nit HDR, with Rec.2020 gamut"
+msgstr "Transformacja wyjściowa ACES 2 dla HDR 1000 nitów z gamą Rec.2020"
+
+
+msgid "ACES 2.0 Rec.2100-PQ - HDR 2000 nits"
+msgstr "ACES 2.0 Rec.2100-PQ - HDR 2000 nitów"
+
+
+msgid "ACES 2 Output Transform for 2000 nit HDR, with Rec.2020 gamut"
+msgstr "Transformacja wyjściowa ACES 2 dla HDR 2000 nitów z gamą Rec.2020"
+
+
+msgid "ACES 2.0 Rec.2100-PQ - HDR 4000 nits"
+msgstr "ACES 2.0 Rec.2100-PQ - HDR 4000 nitów"
+
+
+msgid "ACES 2 Output Transform for 4000 nit HDR, with Rec.2020 gamut"
+msgstr "Transformacja wyjściowa ACES 2 dla HDR 4000 nitów z gamą Rec.2020"
+
+
 msgid "Very High Contrast"
 msgstr "Bardzo wysoki kontrast"
 
@@ -159479,6 +159679,10 @@ msgstr ""
 "Można jej używać do konwersji zdjęć tła lub matowych obrazów na przestrzeń roboczą."
 
 
+msgid "View Inverse"
+msgstr "Widok odwrotny"
+
+
 msgid ""
 "AgX view transform for sRGB.\n"
 "May be used to convert backplates or matte paintings to the working space."
@@ -159517,6 +159721,38 @@ msgid ""
 msgstr ""
 "Liniowy Adobe RGB (1998) z oświetleniem D65 w punkcie bieli.\n"
 "Do użytku z teksturami odnoszącymi się do sceny."
+
+
+msgid "Apple"
+msgstr "Apple"
+
+
+msgid "ARRI"
+msgstr "ARRI"
+
+
+msgid "BlackmagicDesign"
+msgstr "BlackmagicDesign"
+
+
+msgid "Canon"
+msgstr "Canon"
+
+
+msgid "DJI"
+msgstr "DJI"
+
+
+msgid "Panasonic"
+msgstr "Panasonic"
+
+
+msgid "RED"
+msgstr "RED"
+
+
+msgid "Sony"
+msgstr "Sony"
 
 
 msgid ""
@@ -162853,10 +163089,6 @@ msgstr "Zablokuj obrót do osi pomiędzy końcami krzywej"
 
 msgid "Random offset to the rotation angle per curve"
 msgstr "Losowe przesunięcie kąta obrotu na krzywą"
-
-
-msgid "Set Attachment Surface"
-msgstr "Ustaw powierzchnię mocowania"
 
 
 msgid "Sets the radius attribute of hair curves according to a profile shape"

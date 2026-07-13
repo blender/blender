@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'b2d38940ccd4')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Release Candidate (b'3d8c46ac31f4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-06 08:37+0000\n"
+"POT-Creation-Date: 2026-07-13 07:34+0000\n"
 "PO-Revision-Date: 2025-07-23 15:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -8498,6 +8498,74 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
+msgid "Merge"
+msgstr "Сједини"
+
+
+msgid "Show/Hide"
+msgstr "Прикажи/сакриј"
+
+
+msgid "Special Characters"
+msgstr "Специјални знаци"
+
+
+msgid "Metaball"
+msgstr "Мета лопта"
+
+
+msgid "Math"
+msgstr "Математика"
+
+
+msgid "Names"
+msgstr "Имена"
+
+
+msgid "Bone Roll"
+msgstr "Ролна костију"
+
+
+msgid "Snap"
+msgstr "Лепљење"
+
+
+msgid "Import"
+msgstr "Увоз"
+
+
+msgid "Mirror"
+msgstr "Огледало"
+
+
+msgid "UV Mapping"
+msgstr "UV Мапирање"
+
+
+msgid "Local View"
+msgstr "Локални поглед"
+
+
+msgid "Navigation"
+msgstr "Навигација"
+
+
+msgid "Align View"
+msgstr "Поравнај поглед"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Select Linked"
+msgstr "Изабери повезано"
+
+
+msgid "Light"
+msgstr "Светлост"
+
+
 msgid "Relations"
 msgstr "Односи"
 
@@ -8518,16 +8586,20 @@ msgid "Quick Effects"
 msgstr "Брзи ефекти"
 
 
-msgid "Show/Hide"
-msgstr "Прикажи/сакриј"
+msgid "Linked"
+msgstr "Повезано"
 
 
 msgid "Hooks"
 msgstr "Удице"
 
 
-msgid "Math"
-msgstr "Математика"
+msgid "Keying"
+msgstr "Збирка тастера"
+
+
+msgid "Tracking"
+msgstr "Праћење"
 
 
 msgid "Clear Transform"
@@ -8540,10 +8612,6 @@ msgstr "У међувремену"
 
 msgid "Propagate"
 msgstr "Пренеси"
-
-
-msgid "Names"
-msgstr "Имена"
 
 
 msgid "Toggle Bone Options"
@@ -8560,74 +8628,6 @@ msgstr "Онемогући опције костију"
 
 msgid "Mesh Select Mode"
 msgstr "Мод избора мреже"
-
-
-msgid "Merge"
-msgstr "Сједини"
-
-
-msgid "Import"
-msgstr "Увоз"
-
-
-msgid "Special Characters"
-msgstr "Специјални знаци"
-
-
-msgid "Metaball"
-msgstr "Мета лопта"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Bone Roll"
-msgstr "Ролна костију"
-
-
-msgid "Snap"
-msgstr "Лепљење"
-
-
-msgid "Mirror"
-msgstr "Огледало"
-
-
-msgid "UV Mapping"
-msgstr "UV Мапирање"
-
-
-msgid "Local View"
-msgstr "Локални поглед"
-
-
-msgid "Linked"
-msgstr "Повезано"
-
-
-msgid "Navigation"
-msgstr "Навигација"
-
-
-msgid "Align View"
-msgstr "Поравнај поглед"
-
-
-msgid "Select Linked"
-msgstr "Изабери повезано"
-
-
-msgid "Keying"
-msgstr "Збирка тастера"
-
-
-msgid "Tracking"
-msgstr "Праћење"
-
-
-msgid "Light"
-msgstr "Светлост"
 
 
 msgid "Basic"

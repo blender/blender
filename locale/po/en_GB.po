@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'b2d38940ccd4')\n"
+"Project-Id-Version: Blender 5.2.0 LTS Release Candidate (b'3d8c46ac31f4')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-06 08:37+0000\n"
+"POT-Creation-Date: 2026-07-13 07:34+0000\n"
 "PO-Revision-Date: 2026-02-16 18:12+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -34946,6 +34946,190 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
+msgid "Face Data"
+msgstr "Face Data"
+
+
+msgid "Select by Face Strength"
+msgstr "Select by Face Strength"
+
+
+msgid "Set Face Strength"
+msgstr "Set Face Strength"
+
+
+msgid "Render Preview"
+msgstr "Render Preview"
+
+
+msgid "Clean Up"
+msgstr "Clean Up"
+
+
+msgid "Merge"
+msgstr "Merge"
+
+
+msgid "Show/Hide"
+msgstr "Show/Hide"
+
+
+msgid "Special Characters"
+msgstr "Special Characters"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Math"
+msgstr "Maths"
+
+
+msgid "Names"
+msgstr "Names"
+
+
+msgid "Utilities"
+msgstr "Utilities"
+
+
+msgid "Bone Roll"
+msgstr "Bone Roll"
+
+
+msgid "Read"
+msgstr "Read"
+
+
+msgid "Sample"
+msgstr "Sample"
+
+
+msgid "Pivot Point"
+msgstr "Pivot Point"
+
+
+msgid "Write"
+msgstr "Write"
+
+
+msgid "Snap"
+msgstr "Snap"
+
+
+msgid "Primitives"
+msgstr "Primitives"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proportional Editing Falloff"
+
+
+msgid "Mask Edit"
+msgstr "Mask Edit"
+
+
+msgid "Automasking"
+msgstr "Automasking"
+
+
+msgid "Face Sets Edit"
+msgstr "Face Sets Edit"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Group Locks"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Instances"
+
+
+msgid "Import"
+msgstr "Import"
+
+
+msgid "Mirror"
+msgstr "Mirror"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapping"
+
+
+msgid "Local View"
+msgstr "Local View"
+
+
+msgid "Deprecated"
+msgstr "Deprecated"
+
+
+msgid "Viewpoint"
+msgstr "Viewpoint"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Align View"
+msgstr "Align View"
+
+
+msgid "Align View to Active"
+msgstr "Align View to Active"
+
+
+msgid "View Regions"
+msgstr "View Regions"
+
+
+msgid "Select More/Less"
+msgstr "Select More/Less"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Select Similar"
+msgstr "Select Similar"
+
+
+msgid "Select All by Trait"
+msgstr "Select All by Trait"
+
+
+msgid "Select Linked"
+msgstr "Select Linked"
+
+
+msgid "Select Loops"
+msgstr "Select Loops"
+
+
+msgid "Assign Material"
+msgstr "Assign Material"
+
+
+msgid "Light"
+msgstr "Light"
+
+
+msgid "Light Probe"
+msgstr "Light Probe"
+
+
 msgid "Add Image"
 msgstr "Add Image"
 
@@ -34956,10 +35140,6 @@ msgstr "Relations"
 
 msgid "Rigid Body"
 msgstr "Rigid Body"
-
-
-msgid "Render Preview"
-msgstr "Render Preview"
 
 
 msgid "Apply"
@@ -34974,12 +35154,12 @@ msgid "Quick Effects"
 msgstr "Quick Effects"
 
 
-msgid "Show/Hide"
-msgstr "Show/Hide"
+msgid "Linked"
+msgstr "Linked"
 
 
-msgid "Clean Up"
-msgstr "Clean Up"
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Asset"
@@ -35002,20 +35182,12 @@ msgid "Hooks"
 msgstr "Hooks"
 
 
-msgid "Vertex Group Locks"
-msgstr "Vertex Group Locks"
-
-
-msgid "Math"
-msgstr "Maths"
-
-
 msgid "Trim/Add"
 msgstr "Trim/Add"
 
 
-msgid "Utilities"
-msgstr "Utilities"
+msgid "Adjust"
+msgstr "Adjust"
 
 
 msgid "Sculpt Set Pivot"
@@ -35026,8 +35198,16 @@ msgid "Face Sets Init"
 msgstr "Face Sets Init"
 
 
+msgid "Keying"
+msgstr "Keying"
+
+
 msgid "Random Mask"
 msgstr "Random Mask"
+
+
+msgid "Tracking"
+msgstr "Tracking"
 
 
 msgid "Clear Transform"
@@ -35046,20 +35226,8 @@ msgid "Bone Collections"
 msgstr "Bone Collections"
 
 
-msgid "Names"
-msgstr "Names"
-
-
-msgid "Read"
-msgstr "Read"
-
-
-msgid "Sample"
-msgstr "Sample"
-
-
-msgid "Write"
-msgstr "Write"
+msgid "Creative"
+msgstr "Creative"
 
 
 msgid "Toggle Bone Options"
@@ -35070,180 +35238,12 @@ msgid "Enable Bone Options"
 msgstr "Enable Bone Options"
 
 
-msgid "Primitives"
-msgstr "Primitives"
-
-
 msgid "Disable Bone Options"
 msgstr "Disable Bone Options"
 
 
 msgid "Mesh Select Mode"
 msgstr "Mesh Select Mode"
-
-
-msgid "Face Data"
-msgstr "Face Data"
-
-
-msgid "Select by Face Strength"
-msgstr "Select by Face Strength"
-
-
-msgid "Set Face Strength"
-msgstr "Set Face Strength"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instances"
-
-
-msgid "Merge"
-msgstr "Merge"
-
-
-msgid "Import"
-msgstr "Import"
-
-
-msgid "Special Characters"
-msgstr "Special Characters"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Deprecated"
-msgstr "Deprecated"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Bone Roll"
-msgstr "Bone Roll"
-
-
-msgid "Pivot Point"
-msgstr "Pivot Point"
-
-
-msgid "Snap"
-msgstr "Snap"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportional Editing Falloff"
-
-
-msgid "Mask Edit"
-msgstr "Mask Edit"
-
-
-msgid "Automasking"
-msgstr "Automasking"
-
-
-msgid "Face Sets Edit"
-msgstr "Face Sets Edit"
-
-
-msgid "Mirror"
-msgstr "Mirror"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapping"
-
-
-msgid "Local View"
-msgstr "Local View"
-
-
-msgid "Viewpoint"
-msgstr "Viewpoint"
-
-
-msgid "Linked"
-msgstr "Linked"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Align View"
-msgstr "Align View"
-
-
-msgid "Align View to Active"
-msgstr "Align View to Active"
-
-
-msgid "View Regions"
-msgstr "View Regions"
-
-
-msgid "Select More/Less"
-msgstr "Select More/Less"
-
-
-msgid "Select Similar"
-msgstr "Select Similar"
-
-
-msgid "Select All by Trait"
-msgstr "Select All by Trait"
-
-
-msgid "Select Linked"
-msgstr "Select Linked"
-
-
-msgid "Select Loops"
-msgstr "Select Loops"
-
-
-msgid "Adjust"
-msgstr "Adjust"
-
-
-msgid "Keying"
-msgstr "Keying"
-
-
-msgid "Tracking"
-msgstr "Tracking"
-
-
-msgid "Assign Material"
-msgstr "Assign Material"
-
-
-msgid "Creative"
-msgstr "Creative"
-
-
-msgid "Light"
-msgstr "Light"
-
-
-msgid "Light Probe"
-msgstr "Light Probe"
 
 
 msgid "Keyframe Insert Pie"
@@ -91293,30 +91293,6 @@ msgid "Panel containing UI elements"
 msgstr "Panel containing UI elements"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR Info"
-
-
-msgid "glTF Variants"
-msgstr "glTF Variants"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF Material Variants"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF Animations"
-
-
 msgid "Active Tool"
 msgstr "Active Tool"
 
@@ -91349,6 +91325,14 @@ msgid "Compositor"
 msgstr "Compositor"
 
 
+msgid "glTF Variants"
+msgstr "glTF Variants"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF Material Variants"
+
+
 msgid "Overlays"
 msgstr "Overlays"
 
@@ -91379,6 +91363,14 @@ msgstr "Curve Edit Mode"
 
 msgid "Curves Edit Mode"
 msgstr "Curves Edit Mode"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF Animations"
 
 
 msgid "Transform Orientations"
@@ -91431,6 +91423,14 @@ msgstr "Curves Grow/Shrink Scaling"
 
 msgid "Viewport Debug"
 msgstr "Viewport Debug"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR Info"
 
 
 msgid "Import Settings"
