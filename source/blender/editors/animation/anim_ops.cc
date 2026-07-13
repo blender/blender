@@ -1364,7 +1364,7 @@ static bool replace_action_common_poll(bContext *C)
   if (!active_object) {
     return false;
   }
-  AnimData *adt = BKE_animdata_from_id(&active_object->id);
+  AnimData *adt = active_object->adt;
   if (!adt || !adt->action) {
     return false;
   }
@@ -1499,6 +1499,63 @@ static void ANIM_OT_replace_action(wmOperatorType *ot)
       0);
 }
 
+static wmOperatorStatus replace_action_duplicate_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  const uint32_t old_session_uid = RNA_int_get(op->ptr, "old_session_uid");
+  bAction *dna_action = reinterpret_cast<bAction *>(
+      BKE_libblock_find_session_uid(bmain, ID_AC, old_session_uid));
+  BLI_assert(dna_action);
+  bAction *dna_copy = id_cast<bAction *>(BKE_id_copy(bmain, &dna_action->id));
+
+  Vector<ID *> failures = replace_action(*bmain, dna_action->wrap(), dna_copy->wrap());
+  replace_action_common_failure_report(failures, *op->reports);
+
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static wmOperatorStatus replace_action_duplicate_invoke(bContext *C,
+                                                        wmOperator *op,
+                                                        const blender::wmEvent * /* event */)
+{
+  Object *active_object = CTX_data_active_object(C);
+  BLI_assert(active_object != nullptr);
+  AnimData *adt = BKE_animdata_from_id(&active_object->id);
+  bAction *dna_action = adt->action;
+  BLI_assert(dna_action != nullptr);
+  RNA_int_set(op->ptr, "old_session_uid", int(dna_action->id.session_uid));
+
+  return replace_action_duplicate_exec(C, op);
+}
+
+static void ANIM_OT_replace_action_duplicate(wmOperatorType *ot)
+{
+  ot->name = "Replace with Duplicate Action";
+  ot->idname = "ANIM_OT_replace_action_duplicate";
+  ot->description =
+      "Duplicates the action of the active object and swaps all users of that action to that "
+      "duplicate";
+
+  ot->invoke = replace_action_duplicate_invoke;
+  ot->exec = replace_action_duplicate_exec;
+  ot->poll = replace_action_common_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  PropertyRNA *prop = RNA_def_int(ot->srna,
+                                  "old_session_uid",
+                                  0,
+                                  0,
+                                  0,
+                                  "Old Action",
+                                  "Old Action's session uid to replace",
+                                  0,
+                                  0);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+}
+
 static wmOperatorStatus replace_action_new_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -1624,6 +1681,7 @@ void ED_operatortypes_anim()
   WM_operatortype_append(ANIM_OT_merge_animation);
   WM_operatortype_append(ANIM_OT_replace_action);
   WM_operatortype_append(ANIM_OT_replace_action_new);
+  WM_operatortype_append(ANIM_OT_replace_action_duplicate);
 
   WM_operatortype_append(ed::animrig::POSELIB_OT_create_pose_asset);
   WM_operatortype_append(ed::animrig::POSELIB_OT_asset_modify);
