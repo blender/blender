@@ -312,7 +312,10 @@ void BKE_blendfile_link_append_context_item_newid_set(BlendfileLinkAppendContext
   BLI_assert(lapp_context->process_stage != BlendfileLinkAppendContext::ProcessStage::Init);
   BLI_assert(item->new_id);
   BLI_assert(!item->liboverride_id);
-  BLI_assert(new_id->lib == item->new_id->lib);
+  /* The only case where library pointers should be different is when a linked ID is replaced by a
+   * matching linked packed ID. */
+  BLI_assert(new_id->lib == item->new_id->lib ||
+             (ID_IS_PACKED(new_id) && new_id->lib->archive_parent_library == item->new_id->lib));
   BLI_assert(!lapp_context->new_id_to_item.contains(new_id));
 
   lapp_context->new_id_to_item.remove(item->new_id);
@@ -1119,7 +1122,7 @@ void BKE_blendfile_link_pack(BlendfileLinkAppendContext *lapp_context, ReportLis
     /* Calling code may want to access newly packed embedded IDs from the link/append context
      * items. */
     if (id->newid) {
-      item.new_id = id->newid;
+      BKE_blendfile_link_append_context_item_newid_set(lapp_context, &item, id->newid);
     }
 
     /* If packing failed for a linked ID, do not delete its linked version. */
