@@ -239,6 +239,11 @@ std::string GPU_shader_preprocess_source(StringRefNull original,
   gpu::shader::SourceProcessor processor(original, "python_shader.glsl", shader::Language::GLSL);
   auto [processed_str, metadata, error] = processor.convert();
 
+  if (error.has_value()) {
+    std::cerr << error->full_report << std::endl;
+    return "\n#error conversion failled\n";
+  }
+
   for (auto builtin : metadata.builtins) {
     info.builtins(gpu::shader::convert_builtin_bit(builtin));
   }
