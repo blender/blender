@@ -315,7 +315,7 @@ static const StringRef sdna_data_pointer_read_string(const char *&data,
                                                      const char **r_error_message)
 {
   BLI_assert(static_cast<const char *>(data_pointer_end) >= data);
-  const char *str_end = std::char_traits<const char>::find(
+  const char *str_end = std::char_traits<char>::find(
       data, size_t(static_cast<const char *>(data_pointer_end) - data), '\0');
   if (!str_end) [[unlikely]] {
     *r_error_message = "Invalid string data in SDNA file";
