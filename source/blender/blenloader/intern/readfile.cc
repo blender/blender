@@ -4968,7 +4968,12 @@ static void read_id_in_lib(FileData *fd,
      * library it belongs to, so that it will be read later. */
     read_libblock(
         fd, libmain, bhead, fd->id_tag_extra | ID_TAG_INDIRECT, id_read_tags, false, &id);
-    BLI_assert(id != nullptr);
+    /* A corrupt block may fail to read, leaving `id` null.
+     * Skip it rather than dereferencing null - #read_libblock has already advanced
+     * past the block, and #link_named_part handles the same case this way. */
+    if (id == nullptr) {
+      return;
+    }
     id_sort_by_name(which_libbase(libmain, GS(id->name)), id, static_cast<ID *>(id->prev));
 
     /* commented because this can print way too much */
