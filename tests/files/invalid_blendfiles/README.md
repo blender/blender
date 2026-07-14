@@ -31,3 +31,37 @@ This file was generated from a default startup scene, by altering the written ID
  
  int BLO_get_struct_id_by_name(const BlendWriter *writer, const char *struct_name)
 ```
+
+Corrupt SDNA
+============
+
+Factory-startup saves with a few bytes altered to corrupt the file header (`DNA1`) or a file-block header.
+Each crashed the reader before its fix; the expected rejection is checked in `tests/python/bl_blendfile_versioning.py`.
+
+`invalid_sdna_struct_size.blend`
+--------------------------------
+
+An embedded struct's `TLEN` is increased, so its size no longer matches the sum of its members.
+Reconstruction ran past the block end (heap-buffer-overflow).
+
+`invalid_block_count.blend`
+---------------------------
+
+A file-block's element count (`nr`) is `0x7fffffff`. Reconstruction ran past the block end (heap-buffer-overflow).
+
+`invalid_block_struct_index.blend`
+----------------------------------
+
+A file-block's SDNA struct index (`SDNAnr`) is out of range (`0x40000000`), reading past the SDNA struct array (crash).
+
+`invalid_global_block.blend`
+----------------------------
+
+Like `invalid_block_struct_index.blend`, on the required global (`GLOB`) block. 
+The failed read returned null and was dereferenced (crash).
+
+`invalid_window_workspace_hook.blend`
+-------------------------------------
+
+As above, on a window's `WorkSpaceInstanceHook` sub-block.
+The partially-read window was dereferenced while freeing the invalidated file (crash).
