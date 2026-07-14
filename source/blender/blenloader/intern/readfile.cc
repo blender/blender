@@ -4422,7 +4422,13 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
       /* ID has not been read yet, add placeholder to the main of the
        * library it belongs to, so that it will be read later. */
       read_libblock(fd, libmain, bhead, fd->id_tag_extra | ID_TAG_INDIRECT, {}, false, &id);
-      BLI_assert(id != nullptr);
+      /* A corrupt block may fail to read, leaving `id` null.
+       * Skip it rather than dereferencing null - #read_libblock has already advanced
+       * past the block, and #link_named_part handles the same case this way. */
+      if (id == nullptr) {
+        MEM_freeN(lib);
+        return;
+      }
       id_sort_by_name(which_libbase(libmain, GS(id->name)), id, static_cast<ID *>(id->prev));
 
       /* commented because this can print way too much */
@@ -4469,7 +4475,10 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
       id_read_tags.needs_expanding = true;
       read_libblock(
           fd, mainvar, bhead, fd->id_tag_extra | ID_TAG_INDIRECT, id_read_tags, false, &id);
-      BLI_assert(id != nullptr);
+      /* A corrupt block may fail to read, leaving `id` null. */
+      if (id == nullptr) {
+        return;
+      }
       id_sort_by_name(which_libbase(mainvar, GS(id->name)), id, static_cast<ID *>(id->prev));
     }
     else {
