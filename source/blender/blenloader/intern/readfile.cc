@@ -599,6 +599,12 @@ void blo_readfile_invalidate(FileData *fd, Main *bmain, const char *message)
                    message);
 }
 
+/** Root Main being read into, or null when not reading into a Main. */
+static Main *filedata_main(FileData *fd)
+{
+  return fd->mainlist ? static_cast<Main *>(fd->mainlist->first) : nullptr;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1914,6 +1920,19 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname, const i
     if (fd->compflags[bh->SDNAnr] != SDNA_CMP_REMOVED) {
       const char *alloc_name = get_alloc_name(fd, bh, blockname, id_type_index);
       if (fd->compflags[bh->SDNAnr] == SDNA_CMP_NOT_EQUAL) {
+        /* The block must be large enough to hold the number of structs it claims, otherwise
+         * reconstruction (which strides the block by the file struct size) reads past its end.
+         * Written as a division to avoid overflow in `nr * struct_size`. */
+        const int64_t old_struct_size = DNA_struct_size(fd->filesdna, bh->SDNAnr);
+        if (bh->nr < 0 || (old_struct_size != 0 && bh->nr > bh->len / old_struct_size))
+            [[unlikely]]
+        {
+          fd->flags &= ~FD_FLAGS_FILE_OK;
+          if (Main *bmain = filedata_main(fd)) {
+            blo_readfile_invalidate(fd, bmain, "Corrupt .blend file, invalid block count");
+          }
+          return nullptr;
+        }
 #ifdef USE_BHEAD_READ_ON_DEMAND
         if (BHEADN_FROM_BHEAD(bh)->has_data == false) {
           bh = blo_bhead_read_full(fd, bh);
