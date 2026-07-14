@@ -148,28 +148,39 @@ static void extract_barycentric_pixels(Vector<BuildPixelRow> &build_rows,
 struct UVPrimitiveLookup {
   struct Entry {
     uv_islands::UVPrimitive *uv_primitive;
-    uint64_t uv_island_index;
-
-    Entry(uv_islands::UVPrimitive *uv_primitive, uint64_t uv_island_index)
-        : uv_primitive(uv_primitive), uv_island_index(uv_island_index)
-    {
-    }
+    int uv_island_index;
   };
 
-  Vector<Vector<Entry>> lookup;
+  /** Entries per geometry primitive, stored in offset indices ranges. */
+  Array<int> offsets_;
+  Array<Entry> entries_;
 
-  UVPrimitiveLookup(const uint64_t geom_primitive_len,
-                    MutableSpan<uv_islands::UVIsland> uv_islands)
+  UVPrimitiveLookup(const int64_t geom_primitive_len, MutableSpan<uv_islands::UVIsland> uv_islands)
   {
-    lookup.append_n_times(Vector<Entry>(), geom_primitive_len);
-
-    uint64_t uv_island_index = 0;
+    /* Count entries per primitive. */
+    offsets_ = Array<int>(geom_primitive_len + 1, 0);
     for (uv_islands::UVIsland &uv_island : uv_islands) {
       for (uv_islands::UVPrimitive &uv_primitive : uv_island.uv_primitives) {
-        lookup[uv_primitive.primitive_i].append_as(Entry(&uv_primitive, uv_island_index));
+        offsets_[uv_primitive.primitive_i]++;
+      }
+    }
+    const OffsetIndices<int> offsets = offset_indices::accumulate_counts_to_offsets(offsets_);
+
+    /* Fill entries. */
+    entries_.reinitialize(offsets.total_size());
+    Array<int> current_offset(offsets_.as_span().drop_back(1));
+    int uv_island_index = 0;
+    for (uv_islands::UVIsland &uv_island : uv_islands) {
+      for (uv_islands::UVPrimitive &uv_primitive : uv_island.uv_primitives) {
+        entries_[current_offset[uv_primitive.primitive_i]++] = {&uv_primitive, uv_island_index};
       }
       uv_island_index++;
     }
+  }
+
+  Span<Entry> lookup(const int geom_primitive) const
+  {
+    return entries_.as_span().slice(OffsetIndices<int>(offsets_)[geom_primitive]);
   }
 };
 
@@ -248,7 +259,7 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
 
     for (const int face : node.faces()) {
       for (const int tri : bke::mesh::face_triangles_range(mesh_data.faces, face)) {
-        if (uv_prim_lookup.lookup[tri].is_empty()) {
+        if (uv_prim_lookup.lookup(tri).is_empty()) {
           continue;
         }
         float2 uv_min(FLT_MAX);
@@ -301,7 +312,7 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
 
     for (const int face : node.faces()) {
       for (const int tri : bke::mesh::face_triangles_range(mesh_data.faces, face)) {
-        for (const UVPrimitiveLookup::Entry &entry : uv_prim_lookup.lookup[tri]) {
+        for (const UVPrimitiveLookup::Entry &entry : uv_prim_lookup.lookup(tri)) {
           const uv_islands::UVIsland &island = islands[entry.uv_island_index];
           const uv_islands::UVPrimitive &uv_primitive = *entry.uv_primitive;
           const float2 uvs[3] = {
