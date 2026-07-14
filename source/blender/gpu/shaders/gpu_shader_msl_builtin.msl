@@ -81,6 +81,8 @@ template<typename T> vec<T, 2> mix(vec<T, 2> a, vec<T, 2> b, bool2 mask) SELECT;
 /* clang-format off */
 inline float radians(float deg) { return deg * 0.01745329251f; /* M_PI_F / 180 */ }
 inline float degrees(float rad) { return rad * 57.2957795131f; /* 180 / M_PI_F */ }
+inline uint packHalf2x16(float2 v) { return as_type<uint>(half2(v)); }
+inline float2 unpackHalf2x16(uint v) { return float2(as_type<half2>(v)); }
 inline int floatBitsToInt(float f) { return as_type<int>(f); }
 inline int2 floatBitsToInt(float2 f) { return as_type<int2>(f); }
 inline int3 floatBitsToInt(float3 f) { return as_type<int3>(f); }

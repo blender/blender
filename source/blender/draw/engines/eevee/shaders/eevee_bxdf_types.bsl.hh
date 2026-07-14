@@ -22,9 +22,15 @@ struct BsdfEval {
   float weight;
 };
 
+/* Approximation types for computing the irradiance (form factor on point) of area lights. */
+enum class LTCFormFactorType : uchar {
+  /* Form factor of a horizon-clipped sphere affecting a single-sided surface. */
+  OneSidedCosineSphereClipped = 0u,
+  /* Form factor of an unclipped sphere affecting a two-sided surface. */
+  TwoSidedCosineSphere = 1u,
+};
+
 struct ClosureLight {
-  /* LTC matrix. */
-  packed_float4 ltc_mat;
   /* Shading normal. */
   packed_float3 N;
   /* Enum used as index to fetch which light intensity to use [0..3]. */
@@ -32,6 +38,8 @@ struct ClosureLight {
   /* Output both shadowed and unshadowed for shadow denoising. */
   packed_float3 light_shadowed;
   packed_float3 light_unshadowed;
+  /* Packed LTC matrix and attenuation data. */
+  uint ltc_data_packed[5];
 };
 
 /* Represent an approximation of a bunch of rays from a BSDF. */
