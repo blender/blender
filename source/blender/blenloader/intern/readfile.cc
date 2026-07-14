@@ -1810,6 +1810,16 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname, const i
     BHead *bh_orig = bh;
 #endif
 
+    /* A corrupt file could reference a struct index outside the file's SDNA, used below to index
+     * the compare-flags, reconstruction & alignment tables. */
+    if (bh->SDNAnr < 0 || bh->SDNAnr >= fd->filesdna->structs.size()) [[unlikely]] {
+      fd->flags &= ~FD_FLAGS_FILE_OK;
+      if (fd->bmain) {
+        blo_readfile_invalidate(fd, fd->bmain, "Corrupt .blend file, invalid block struct index");
+      }
+      return nullptr;
+    }
+
     /* Endianness switch is based on file DNA.
      *
      * NOTE: raw data (aka #SDNA_RAW_DATA_STRUCT_INDEX #SDNAnr) is not handled here, it's up to
