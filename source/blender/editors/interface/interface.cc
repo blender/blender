@@ -2078,6 +2078,18 @@ bool button_context_poll_operator(bContext *C, wmOperatorType *ot, const Button 
   return button_context_poll_operator_ex(C, but, &params);
 }
 
+void block_post_layout_callbacks_exec(const bContext *C, ARegion *region, Block *block)
+{
+  if (const Vector<std::function<void(const bContext &C)>> *callbacks =
+          region->runtime->post_block_layout_fns.lookup_ptr_as(block->name))
+  {
+    for (const std::function<void(const bContext &C)> &callback : *callbacks) {
+      callback(*C);
+    }
+  }
+  region->runtime->post_block_layout_fns.remove_as(block->name);
+}
+
 void block_end_ex(const bContext *C,
                   Main *bmain,
                   wmWindow *window,
@@ -2086,7 +2098,8 @@ void block_end_ex(const bContext *C,
                   Depsgraph *depsgraph,
                   Block *block,
                   const int xy[2],
-                  int r_xy[2])
+                  int r_xy[2],
+                  bool postpone_callbacks)
 {
   BLI_assert(block->active);
 
@@ -2191,9 +2204,12 @@ void block_end_ex(const bContext *C,
   update_flexible_spacing(region, block);
 
   block->endblock = true;
+  if (!postpone_callbacks) {
+    block_post_layout_callbacks_exec(C, region, block);
+  }
 }
 
-void block_end(const bContext *C, Block *block)
+void block_end(const bContext *C, Block *block, bool postpone_callbacks)
 {
   wmWindow *window = CTX_wm_window(C);
 
@@ -2205,7 +2221,8 @@ void block_end(const bContext *C, Block *block)
                CTX_data_depsgraph_pointer(C),
                block,
                window->runtime->eventstate->xy,
-               nullptr);
+               nullptr,
+               postpone_callbacks);
 }
 
 /* ************** BLOCK DRAWING FUNCTION ************* */

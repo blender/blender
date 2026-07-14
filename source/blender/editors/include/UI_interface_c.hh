@@ -1071,6 +1071,14 @@ Block *block_begin(const bContext *C,
                    ARegion *region,
                    std::string name,
                    EmbossType emboss);
+
+/** Execute every block's after layout callback. */
+void block_post_layout_callbacks_exec(const bContext *C, ARegion *region, Block *block);
+
+/**
+ * \param postpone_callbacks: After block layout callbacks are not executed, caller should execute
+ * them with #block_post_layout_callbacks_exec.
+ */
 void block_end_ex(const bContext *C,
                   Main *bmain,
                   wmWindow *window,
@@ -1079,8 +1087,9 @@ void block_end_ex(const bContext *C,
                   Depsgraph *depsgraph,
                   Block *block,
                   const int xy[2] = nullptr,
-                  int r_xy[2] = nullptr);
-void block_end(const bContext *C, Block *block);
+                  int r_xy[2] = nullptr,
+                  bool postpone_callbacks = false);
+void block_end(const bContext *C, Block *block, bool postpone_callbacks = false);
 /**
  * Uses local copy of style, to scale things down, and allow widgets to change stuff.
  */
@@ -2086,10 +2095,18 @@ void button_tooltip_refresh(bContext *C, Button *but);
  */
 void button_tooltip_timer_remove(bContext *C, Button *but);
 
+/**
+ * Attempt to activate an button referencing an RNA property in the \a region.
+ * \param block_name: targets a block in the \a region, if \a block_name is not set it will test
+ * any block in the \a region.
+ * \returns `true` if the button gets activated.
+ */
 bool textbutton_activate_rna(const bContext *C,
                              ARegion *region,
                              const void *rna_poin_data,
-                             const char *rna_prop_id);
+                             const char *rna_prop_id,
+                             std::optional<StringRefNull> block_name = std::nullopt);
+
 bool textbutton_activate_but(const bContext *C, Button *actbut);
 
 /**
