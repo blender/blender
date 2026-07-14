@@ -56,7 +56,48 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
         }
 
         # Directories to exclude relative to `./tests/files/`.
-        self.excluded_dirs = ()
+        self.excluded_dirs = (
+            # invalid_blendfiles/
+            # Files saved by newer Blender versions, which leak memory on reading (asset shelf
+            # regions, strips, implicitly shared data). Tested separately by
+            # `blendfile_versioning_invalid`, without failing on memory leaks.
+            "invalid_blendfiles/",
+        )
+
+        # Some files are expected to be invalid.
+        # This mapping stores filenames as keys, and expected error message as value.
+        self.invalid_paths = {
+            # invalid_blendfiles/invalid_sdna_struct_size.blend
+            # A struct's DNA size no longer matches the sum of its members.
+            "invalid_sdna_struct_size.blend": (
+                (OSError, RuntimeError),
+                "Invalid struct size in SDNA file"
+            ),
+            # invalid_blendfiles/invalid_block_count.blend
+            # A file-block declares an out-of-range array element count.
+            "invalid_block_count.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, invalid block count"
+            ),
+            # invalid_blendfiles/invalid_block_struct_index.blend
+            # A file-block references an out-of-range SDNA struct index.
+            "invalid_block_struct_index.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, invalid block struct index"
+            ),
+            # invalid_blendfiles/invalid_global_block.blend
+            # The required global block references an out-of-range SDNA struct index.
+            "invalid_global_block.blend": (
+                (OSError, RuntimeError),
+                "is corrupt, unable to read"
+            ),
+            # invalid_blendfiles/invalid_window_workspace_hook.blend
+            # A window's sub-block references an out-of-range SDNA struct index.
+            "invalid_window_workspace_hook.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, invalid block struct index"
+            ),
+        }
 
         assert all(p.endswith("/") for p in self.excluded_dirs)
         self.excluded_dirs = tuple(p.replace("/", os.sep) for p in self.excluded_dirs)
@@ -102,6 +143,18 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
                 return True
         return False
 
+    def invalid_path_exception_process(self, bfp, exception):
+        expected_failure = self.invalid_paths.get(os.path.basename(bfp), None)
+        if not expected_failure:
+            raise exception
+        # Check expected exception type(s).
+        if not isinstance(exception, expected_failure[0]):
+            raise exception
+        # Check expected exception (partial) message.
+        if expected_failure[1] not in str(exception):
+            raise exception
+        print(f"\tExpected failure: '{exception}'", flush=True)
+
     def test_open(self):
         for bfp in self.blendfile_paths:
             if self.skip_path_check(bfp):
@@ -109,7 +162,10 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
             if not self.args.is_quiet:
                 print(f"Trying to open {bfp}", flush=True)
             bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
-            bpy.ops.wm.open_mainfile(filepath=bfp, load_ui=False)
+            try:
+                bpy.ops.wm.open_mainfile(filepath=bfp, load_ui=False)
+            except BaseException as e:
+                self.invalid_path_exception_process(bfp, e)
 
     def link_append(self, do_link):
         operation_name = "link" if do_link else "append"
@@ -117,15 +173,18 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
             if self.skip_path_check(bfp):
                 continue
             bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
-            with bpy.data.libraries.load(bfp, link=do_link) as (lib_in, lib_out):
-                if len(lib_in.collections):
-                    if not self.args.is_quiet:
-                        print(f"Trying to {operation_name} {bfp}/Collection/{lib_in.collections[0]}", flush=True)
-                    lib_out.collections.append(lib_in.collections[0])
-                elif len(lib_in.objects):
-                    if not self.args.is_quiet:
-                        print(f"Trying to {operation_name} {bfp}/Object/{lib_in.objects[0]}", flush=True)
-                    lib_out.objects.append(lib_in.objects[0])
+            try:
+                with bpy.data.libraries.load(bfp, link=do_link) as (lib_in, lib_out):
+                    if len(lib_in.collections):
+                        if not self.args.is_quiet:
+                            print(f"Trying to {operation_name} {bfp}/Collection/{lib_in.collections[0]}", flush=True)
+                        lib_out.collections.append(lib_in.collections[0])
+                    elif len(lib_in.objects):
+                        if not self.args.is_quiet:
+                            print(f"Trying to {operation_name} {bfp}/Object/{lib_in.objects[0]}", flush=True)
+                        lib_out.objects.append(lib_in.objects[0])
+            except BaseException as e:
+                self.invalid_path_exception_process(bfp, e)
 
     def test_link(self):
         self.link_append(do_link=True)

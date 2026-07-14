@@ -324,6 +324,17 @@ if(TEST_SRC_DIR_EXISTS)
     )
   endforeach()
 
+  # Invalid files are saved by newer Blender versions, which leak memory on reading.
+  # Test them without failing on that.
+  add_blender_test_io(
+    blendfile_versioning_invalid
+    --log "*blendfile*"
+    --debug-memory
+    --debug
+    --python ${CMAKE_CURRENT_LIST_DIR}/bl_blendfile_versioning.py --
+    --src-test-dir ${TEST_SRC_DIR}/invalid_blendfiles/
+  )
+
   add_blender_test(
     blendfile_liblink
     --python ${CMAKE_CURRENT_LIST_DIR}/bl_blendfile_liblink.py --
