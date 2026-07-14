@@ -1634,9 +1634,11 @@ static void dilate_tile(UVIslandsMask::Tile &tile, int max_iterations)
 void UVIslandsMask::dilate(int max_iterations)
 {
   PRF_scope(ProfileCategory::Editor);
-  for (Tile &tile : tiles) {
-    dilate_tile(tile, max_iterations);
-  }
+  threading::parallel_for(tiles.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      dilate_tile(tiles[i], max_iterations);
+    }
+  });
 }
 
 bool UVIslandsMask::Tile::is_masked(const uint16_t island_index, const float2 uv) const
