@@ -3891,6 +3891,15 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
       }
     }
 
+    /* It's not enough to check `bfd->main->is_read_invalid` because the error may have
+     * occurred before the #Main struct is available, so it's important to check the flag here. */
+    if (!(fd->flags & FD_FLAGS_FILE_OK)) [[unlikely]] {
+      /* Skip when already invalidated - that error is more specific. */
+      if (!bfd->main->is_read_invalid) {
+        blo_readfile_invalidate(fd, bfd->main, "Corrupt .blend file, failed to read a block");
+      }
+    }
+
     if (bfd->main->is_read_invalid) {
       return bfd;
     }
