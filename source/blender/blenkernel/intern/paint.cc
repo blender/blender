@@ -2397,7 +2397,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
     if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
       const Mesh *me_eval_deform = BKE_object_get_mesh_deform_eval(ob_eval);
-
+      BLI_assert(me_eval_deform != nullptr);
       /* If the fully evaluated mesh has the same topology as the deform-only version, use it.
        * This matters because crazyspace evaluation is very restrictive and excludes even modifiers
        * that simply recompute vertex weights (which can even include Geometry Nodes). */

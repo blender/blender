@@ -269,12 +269,6 @@ static MeshEditHints &geometry_mesh_edit_hints_ensure(GeometrySet &geometry)
   return *edit_data.mesh_edit_hints_;
 }
 
-static void save_deform_mesh(GeometrySet &geometry)
-{
-  MeshEditHints &edit_data = geometry_mesh_edit_hints_ensure(geometry);
-  edit_data.mesh_deform = geometry.get_component_ptr(GeometryComponent::Type::Mesh);
-}
-
 static GeometrySet mesh_calc_modifiers(Depsgraph &depsgraph,
                                        const Scene &scene,
                                        Object &ob,
@@ -283,6 +277,9 @@ static GeometrySet mesh_calc_modifiers(Depsgraph &depsgraph,
                                        const CustomData_MeshMasks &dataMask,
                                        const bool use_cache)
 {
+  /* Add the deform mesh to the geometry set after evaluating all modifiers in case
+   * it's removed. */
+  GeometryComponentPtr mesh_deform;
   const Mesh &mesh_input = *id_cast<const Mesh *>(ob.data);
 
   GeometrySet geometry_set = GeometrySet::from_mesh(const_cast<Mesh *>(&mesh_input),
@@ -366,7 +363,7 @@ static GeometrySet mesh_calc_modifiers(Depsgraph &depsgraph,
     /* Result of all leading deforming modifiers is cached for
      * places that wish to use the original mesh but with deformed
      * coordinates (like vertex paint). */
-    save_deform_mesh(geometry_set);
+    mesh_deform = geometry_set.get_component_ptr(GeometryComponent::Type::Mesh);
   }
 
   /* Apply all remaining constructive and deforming modifiers. */
@@ -590,6 +587,11 @@ static GeometrySet mesh_calc_modifiers(Depsgraph &depsgraph,
     if (sculpt_mode && md->type == eModifierType_Multires) {
       multires_applied = true;
     }
+  }
+
+  if (mesh_deform) {
+    MeshEditHints &edit_data = geometry_mesh_edit_hints_ensure(geometry_set);
+    edit_data.mesh_deform = std::move(mesh_deform);
   }
 
   BLI_linklist_free(reinterpret_cast<LinkNode *>(datamasks), nullptr);
