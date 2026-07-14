@@ -1831,6 +1831,19 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname, const i
     if (fd->compflags[bh->SDNAnr] != SDNA_CMP_REMOVED) {
       const char *alloc_name = get_alloc_name(fd, bh, blockname, id_type_index);
       if (fd->compflags[bh->SDNAnr] == SDNA_CMP_NOT_EQUAL) {
+        /* The block must be large enough to hold the number of structs it claims, otherwise
+         * reconstruction (which strides the block by the file struct size) reads past its end.
+         * Written as a division to avoid overflow in `nr * struct_size`. */
+        const int64_t old_struct_size = DNA_struct_size(fd->filesdna.get(), bh->SDNAnr);
+        if (bh->nr < 0 || (old_struct_size != 0 && bh->nr > bh->len / old_struct_size))
+            [[unlikely]]
+        {
+          fd->flags &= ~FD_FLAGS_FILE_OK;
+          if (fd->bmain) {
+            blo_readfile_invalidate(fd, fd->bmain, "Corrupt .blend file, invalid block count");
+          }
+          return nullptr;
+        }
 #ifdef USE_BHEAD_READ_ON_DEMAND
         if (BHEADN_FROM_BHEAD(bh)->has_data == false) {
           bh = blo_bhead_read_full(fd, bh);
