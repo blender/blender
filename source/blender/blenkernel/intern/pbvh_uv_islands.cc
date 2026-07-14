@@ -1309,20 +1309,13 @@ float UVBorderEdge::length() const
 /** \name UV islands
  * \{ */
 
-Array<UVIsland> build_uv_islands(const MeshData &mesh_data)
+Array<UVIsland> build_uv_islands(const MeshData &mesh_data,
+                                 const GroupedSpan<int> tris_by_island,
+                                 const UVIslandsMask &uv_masks)
 {
   PRF_scope(ProfileCategory::Editor);
 
-  /* Group primitives by island. */
-  Array<int> island_tri_offset_data;
-  Array<int> island_tri_index_data;
-  const GroupedSpan<int> tris_by_island = offset_indices::build_groups_from_indices(
-      mesh_data.uv_island_ids,
-      mesh_data.uv_island_len,
-      island_tri_offset_data,
-      island_tri_index_data);
-
-  Array<UVIsland> islands(mesh_data.uv_island_len);
+  Array<UVIsland> islands(tris_by_island.size());
 
   /* Add primitive to island. */
   threading::parallel_for(islands.index_range(), 1, [&](const IndexRange range) {
@@ -1332,6 +1325,8 @@ Array<UVIsland> build_uv_islands(const MeshData &mesh_data)
       for (const int primitive_i : tris_by_island[uv_island_id]) {
         add_primitive(mesh_data, uv_island, primitive_i);
       }
+      uv_island.extract_borders();
+      uv_island.extend_border(mesh_data, uv_masks, short(uv_island_id));
     }
   });
 
@@ -1371,14 +1366,14 @@ float UVIslandsMask::Tile::get_pixel_size_in_uv_space() const
 
 static void add_uv_island(const MeshData &mesh_data,
                           UVIslandsMask::Tile &tile,
-                          const UVIsland &uv_island,
+                          const Span<int> tris,
                           int16_t island_index)
 {
   PRF_scope(ProfileCategory::Editor);
   const float resolution_x = float(tile.mask_resolution.x);
   const float resolution_y = float(tile.mask_resolution.y);
-  for (const UVPrimitive &uv_primitive : uv_island.uv_primitives) {
-    const int3 &tri = mesh_data.corner_tris[uv_primitive.primitive_i];
+  for (const int tri_i : tris) {
+    const int3 &tri = mesh_data.corner_tris[tri_i];
 
     /* Transform UV coordinates to pixel space in the tile. */
     const float2 uv0 = mesh_data.uv_map[tri[0]];
@@ -1412,14 +1407,14 @@ static void add_uv_island(const MeshData &mesh_data,
   }
 }
 
-void UVIslandsMask::add(const MeshData &mesh_data, const Span<UVIsland> uv_islands)
+void UVIslandsMask::add(const MeshData &mesh_data, const GroupedSpan<int> tris_by_island)
 {
   PRF_scope(ProfileCategory::Editor);
 
   threading::parallel_for(IndexRange(tiles.size()), 1, [&](const IndexRange range) {
     for (const int tile_index : range) {
-      for (const int i : uv_islands.index_range()) {
-        add_uv_island(mesh_data, tiles[tile_index], uv_islands[i], i);
+      for (const int i : tris_by_island.index_range()) {
+        add_uv_island(mesh_data, tiles[tile_index], tris_by_island[i], i);
       }
     }
   });

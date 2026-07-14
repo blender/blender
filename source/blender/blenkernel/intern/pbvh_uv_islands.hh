@@ -271,7 +271,9 @@ struct UVIsland {
   void print_debug(const MeshData &mesh_data) const;
 };
 
-Array<UVIsland> build_uv_islands(const MeshData &mesh_data);
+Array<UVIsland> build_uv_islands(const MeshData &mesh_data,
+                                 GroupedSpan<int> tris_by_island,
+                                 const UVIslandsMask &uv_masks);
 
 /** Mask to find the index of the UVIsland for a given UV coordinate. */
 struct UVIslandsMask {
@@ -317,7 +319,7 @@ struct UVIslandsMask {
    * Add the given UV islands to the mask. Tiles should be added beforehand using the 'add_tile'
    * method.
    */
-  void add(const MeshData &mesh_data, Span<UVIsland> islands);
+  void add(const MeshData &mesh_data, GroupedSpan<int> tris_by_island);
 
   void dilate(int max_iterations);
 };
