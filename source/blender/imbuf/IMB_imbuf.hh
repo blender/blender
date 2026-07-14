@@ -369,13 +369,15 @@ void IMB_scale_box(const float *src_buffer,
                    int channels,
                    float *dst_buffer,
                    int2 dst_size,
-                   bool threaded);
+                   bool threaded,
+                   int src_stride = 0);
 void IMB_scale_box(const uchar *src_buffer,
                    int2 src_size,
                    int channels,
                    uchar *dst_buffer,
                    int2 dst_size,
-                   bool threaded);
+                   bool threaded,
+                   int src_stride = 0);
 
 /**
  * Scale/resize image to new dimensions.
