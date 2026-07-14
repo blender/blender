@@ -500,7 +500,7 @@ void ImageManager::device_load_image(Device *device,
       tex.height = std::max(1, tex.height / 2);
       max_dim /= 2;
     }
-    image_cache.load_image_tiled(scene->dscene, img->metadata, tex);
+    image_cache.load_image_tiled(img->metadata, tex);
   }
   else {
     /* Compute texture resolution scale factor from texture size limit. */
@@ -520,6 +520,13 @@ void ImageManager::device_load_image(Device *device,
   /* Cleanup memory in image loader. */
   img->loader->cleanup();
   img->need_load = false;
+}
+
+void ImageManager::device_load_tiled_descriptors(Scene *scene)
+{
+  DeviceScene &dscene = scene->dscene;
+  image_cache.load_image_tiled_descriptors(
+      dscene, {dscene.image_textures.data(), dscene.image_textures.size()});
 }
 
 void ImageManager::device_free_image(Scene *scene, size_t image_texture_id)
@@ -668,6 +675,7 @@ void ImageManager::device_update(Device *device, Scene *scene, Progress &progres
   }
 
   pool.wait_work();
+  device_load_tiled_descriptors(scene);
   report_failures();
 
   /* Copy device arrays. */
@@ -707,6 +715,7 @@ void ImageManager::device_load_images(Device *device,
     });
   }
   pool.wait_work();
+  device_load_tiled_descriptors(scene);
   report_failures();
 
   /* Copy device arrays. */
@@ -733,6 +742,7 @@ void ImageManager::device_load_builtin(Device *device, Scene *scene, Progress &p
   }
 
   pool.wait_work();
+  device_load_tiled_descriptors(scene);
   report_failures();
 }
 
