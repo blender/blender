@@ -11,6 +11,7 @@
 
 #include "util/color.h"
 #include "util/colorspace.h"
+#include "util/debug.h"
 #include "util/image.h"
 #include "util/image_maketx.h"
 #include "util/image_metadata.h"
@@ -291,6 +292,15 @@ void ImageMetaData::detect_tiles(ImageInput &input,
   bool has_tiles = false;
   bool is_small_image = false;
 
+  /* Load multiple small tiles together if min_tile_size is specified. */
+  uint32_t load_tile_size = spec.tile_width;
+  uint32_t min_tile_size = DebugFlags().texture_cache.min_tile_size;
+  if (min_tile_size > 0) {
+    min_tile_size = is_power_of_two(min_tile_size) ? min_tile_size :
+                                                     next_power_of_two(min_tile_size);
+    load_tile_size = std::max(load_tile_size, min_tile_size);
+  }
+
   if (!is_power_of_two(spec.tile_width)) {
     LOG_DEBUG << "Image " << OIIO::Filesystem::filename(filepath)
               << " has tiles, but tile size not power of two (" << spec.tile_width << ")";
@@ -309,7 +319,7 @@ void ImageMetaData::detect_tiles(ImageInput &input,
               << " has tiles, but tile size too small (found " << spec.tile_width << ", minimum "
               << KERNEL_IMAGE_TEX_PADDING * 4 << ")";
   }
-  else if (width < spec.tile_width && height < spec.tile_width) {
+  else if (width < load_tile_size && height < load_tile_size) {
     /* We don't currently supporting using tiles for images smaller than the tile
      * size, and it's also unnecessary. To enable this, we'd need to solve the
      * problem where interpolation at tile pixel centers does not match full image
@@ -320,7 +330,7 @@ void ImageMetaData::detect_tiles(ImageInput &input,
     is_small_image = true;
   }
   else {
-    tile_size = spec.tile_width;
+    tile_size = load_tile_size;
     has_tiles = true;
   }
 

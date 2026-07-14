@@ -311,7 +311,15 @@ static bool oiio_load_pixels_tile_adjacent(const unique_ptr<ImageInput> &in,
     }
   }
 
-  /* Load adjacent tiles. */
+  /* Load adjacent tile, clamped to the image bounds as the adjacent tile may
+   * be at the edge and smaller than tile_size.
+   *
+   * OpenImageIO accepts either full tile size or clamped, however we support
+   * loading multiple smaller tiles in one go so tile size can not be assumed
+   * to match. */
+  const int64_t adj_tile_w = std::min(width - x_new, tile_size);
+  const int64_t adj_tile_h = std::min(height - y_new, tile_size);
+
   vector<uint8_t> tile_pixels(tile_size * tile_size * x_stride, 0);
   if (!oiio_load_pixels_tile(in,
                              metadata,
@@ -319,20 +327,14 @@ static bool oiio_load_pixels_tile_adjacent(const unique_ptr<ImageInput> &in,
                              miplevel,
                              x_new,
                              y_new,
-                             tile_size,
-                             tile_size,
+                             adj_tile_w,
+                             adj_tile_h,
                              x_stride,
                              tile_size * x_stride,
                              tile_pixels.data()))
   {
     return false;
   }
-
-  /* Copy pixels from adjacent tiles. Use the actual size of the loaded tile
-   * (clamped to image bounds) rather than full image width/height, since the
-   * adjacent tile may be at the edge and smaller than tile_size. */
-  const int64_t adj_tile_w = std::min(width - x_new, tile_size);
-  const int64_t adj_tile_h = std::min(height - y_new, tile_size);
   const int64_t tile_x = (x_adjacent < 0) ? adj_tile_w - padding : 0;
   const int64_t tile_y = (y_adjacent < 0) ? adj_tile_h - padding : 0;
 

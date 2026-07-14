@@ -99,6 +99,7 @@ void DebugFlags::TextureCache::reset()
 {
   use_eviction = true;
   preserve_unused = 0;
+  min_tile_size = 64;
 }
 
 DebugFlags::OptiX::OptiX()
