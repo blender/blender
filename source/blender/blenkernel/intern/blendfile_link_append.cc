@@ -312,9 +312,11 @@ void BKE_blendfile_link_append_context_item_newid_set(BlendfileLinkAppendContext
   BLI_assert(lapp_context->process_stage != BlendfileLinkAppendContext::ProcessStage::Init);
   BLI_assert(item->new_id);
   BLI_assert(!item->liboverride_id);
-  /* The only case where library pointers should be different is when a linked ID is replaced by a
-   * matching linked packed ID. */
+  /* The only cases where library pointers should be different is when:
+   * - A linked ID is replaced by a matching local ID (append case).
+   * - A linked ID is replaced by a matching linked packed ID. */
   BLI_assert(new_id->lib == item->new_id->lib ||
+             (ID_IS_LINKED(item->new_id) && !ID_IS_LINKED(new_id)) ||
              (ID_IS_PACKED(new_id) && new_id->lib->archive_parent_library == item->new_id->lib));
   BLI_assert(!lapp_context->new_id_to_item.contains(new_id));
 
@@ -1612,7 +1614,7 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
     BLI_assert(id->newid != nullptr);
 
     /* Calling code may want to access newly appended IDs from the link/append context items. */
-    item.new_id = id->newid;
+    BKE_blendfile_link_append_context_item_newid_set(lapp_context, &item, id->newid);
 
     /* Only the 'reuse local' action should leave unused newly linked data behind. */
     if (item.action != LINK_APPEND_ACT_REUSE_LOCAL) {
