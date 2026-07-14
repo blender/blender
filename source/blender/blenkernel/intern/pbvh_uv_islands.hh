@@ -37,6 +37,7 @@ struct UVEdge;
 struct UVIslandsMask;
 struct UVPrimitive;
 struct MeshData;
+struct UVIsland;
 struct UVVertex;
 
 class TriangleToEdgeMap {
@@ -158,19 +159,20 @@ struct UVPrimitive {
 
 struct UVBorderEdge {
   UVEdge *edge;
-  UVPrimitive *uv_primitive;
+  /* Index into UVIsland::uv_primitives. */
+  int uv_primitive;
   /* Should the vertices of the edge be evaluated in reverse order. */
   bool reverse_order = false;
+  bool removed = false;
 
   /* Previous and next edge, forming a double linked list. */
   UVBorderEdge *prev = nullptr;
   UVBorderEdge *next = nullptr;
-  bool removed = false;
   int64_t border_index = -1;
   /* Stable ID for tie-break in the priority queue. */
   int64_t order = -1;
 
-  explicit UVBorderEdge(UVEdge *edge, UVPrimitive *uv_primitive);
+  explicit UVBorderEdge(UVEdge *edge, int uv_primitive);
 
   UVVertex *get_uv_vertex(int index);
   const UVVertex *get_uv_vertex(int index) const;
@@ -178,7 +180,7 @@ struct UVBorderEdge {
   /**
    * Get the uv vertex from the primitive that is not part of the edge.
    */
-  const UVVertex *get_other_uv_vertex() const;
+  const UVVertex *get_other_uv_vertex(const UVIsland &island) const;
 
   bool is_extendable() const;
 
@@ -219,7 +221,7 @@ struct UVBorder {
   /**
    * Check if the border is counter clock wise from its island.
    */
-  bool is_ccw() const;
+  bool is_ccw(const UVIsland &island) const;
 
   /**
    * Flip the order of the verts, changing the order between CW and CCW.
@@ -244,7 +246,7 @@ struct UVIsland {
   int id;
   VectorList<UVVertex> uv_vertices;
   VectorList<UVEdge> uv_edges;
-  VectorList<UVPrimitive> uv_primitives;
+  Vector<UVPrimitive> uv_primitives;
   /**
    * List of borders of this island. There can be multiple borders per island as a border could
    * be completely encapsulated by another one.
