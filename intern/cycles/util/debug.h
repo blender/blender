@@ -120,6 +120,10 @@ class DebugFlags {
 
     /* Preserve unused image cache tile memory in megabytes. */
     int preserve_unused = 0;
+
+    /* Minimum tile size, loading multiple smaller file tiles at once if
+     * a tx files contains tiles smaller than this. */
+    int min_tile_size = 64;
   };
 
   /* Get instance of debug flags registry. */
