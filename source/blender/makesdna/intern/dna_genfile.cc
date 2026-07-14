@@ -334,6 +334,35 @@ static const StringRef sdna_data_pointer_read_string(const char *&data,
 }
 
 /**
+ * Check a struct's declared size matches the sum of its member sizes.
+ *
+ * Blender's own DNA always satisfies this (makesdna uses explicit `_pad` members, never implicit
+ * padding), so a mismatch means corrupt sizes - which would let struct reconstruction stride
+ * `old_block` past the end of the file data.
+ *
+ * NOTE: must run after `members_array_num`, `types_size` & `pointer_size` are set up.
+ * #SDNA_StructMember::member_index must already be initialized & validated too.
+ */
+static bool sdna_struct_size_check(const SDNA *sdna,
+                                   const SDNA_Struct *struct_info,
+                                   const char **r_error_message)
+{
+  int64_t members_size = 0;
+  for (const SDNA_StructMember &member : Span(struct_info->members, struct_info->members_num)) {
+    const StringRef member_name = sdna->members[member.member_index];
+    const int64_t array_num = sdna->members_array_num[member.member_index];
+    const int64_t member_size = ispointer(member_name) ? sdna->pointer_size :
+                                                         sdna->types_size[member.type_index];
+    members_size += member_size * array_num;
+  }
+  if (members_size != sdna->types_size[struct_info->type_index]) [[unlikely]] {
+    *r_error_message = "Invalid struct size in SDNA file";
+    return false;
+  }
+  return true;
+}
+
+/**
  * In sdna->data the data, now we convert that to something understandable
  */
 static bool init_structDNA(SDNA *sdna, const char **r_error_message)
@@ -605,6 +634,13 @@ static bool init_structDNA(SDNA *sdna, const char **r_error_message)
   sdna->members_array_num.resize(sdna->members_num);
   for (int member_index = 0; member_index < sdna->members_num; member_index++) {
     sdna->members_array_num[member_index] = DNA_member_array_num(sdna->members[member_index]);
+  }
+
+  /* Reject internally inconsistent DNA before it reaches struct reconstruction. */
+  for (const SDNA_Struct *struct_info : sdna->structs) {
+    if (!sdna_struct_size_check(sdna, struct_info, r_error_message)) {
+      return false;
+    }
   }
 
   sdna->types_alignment = Array<int>(sdna->types_num, int(__STDCPP_DEFAULT_NEW_ALIGNMENT__));
