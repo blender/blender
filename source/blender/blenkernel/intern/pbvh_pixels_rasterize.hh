@@ -53,13 +53,13 @@ struct TriRasterizer {
   bool inside(const int x, const int y) const
   {
     const float3 xyz = {float(x) + 0.5f, float(y) + 0.5f, 1.0f};
-    const float3 e = {math::dot(edges[0].coefficients, xyz),
-                      math::dot(edges[1].coefficients, xyz),
-                      math::dot(edges[2].coefficients, xyz)};
+    const float3 edge_values = {math::dot(edges[0].coefficients, xyz),
+                                math::dot(edges[1].coefficients, xyz),
+                                math::dot(edges[2].coefficients, xyz)};
     /* Note the positive side uses >= and negative uses < to make it watertight. */
-    return (edges[0].positive_side ? e.x >= 0.0f : e.x < 0.0f) &&
-           (edges[1].positive_side ? e.y >= 0.0f : e.y < 0.0f) &&
-           (edges[2].positive_side ? e.z >= 0.0f : e.z < 0.0f);
+    return ((edge_values.x >= 0.0f) == edges[0].positive_side) &
+           ((edge_values.y >= 0.0f) == edges[1].positive_side) &
+           ((edge_values.z >= 0.0f) == edges[2].positive_side);
   }
 };
 
