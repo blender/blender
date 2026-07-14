@@ -298,6 +298,37 @@ class TestBlendFileOpenLinkSaveAllTestFiles(TestHelper):
                 (OSError, RuntimeError),
                 "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
             ),
+
+            # invalid_blendfiles/invalid_sdna_struct_size.blend
+            # A struct's DNA size no longer matches the sum of its members.
+            "invalid_sdna_struct_size.blend": (
+                (OSError, RuntimeError),
+                "Invalid struct size in SDNA file"
+            ),
+            # invalid_blendfiles/invalid_block_count.blend
+            # A file-block declares an out-of-range array element count.
+            "invalid_block_count.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, invalid block count"
+            ),
+            # invalid_blendfiles/invalid_block_struct_index.blend
+            # A file-block references an out-of-range SDNA struct index.
+            "invalid_block_struct_index.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, invalid block struct index"
+            ),
+            # invalid_blendfiles/invalid_global_block.blend
+            # The required global block references an out-of-range SDNA struct index.
+            "invalid_global_block.blend": (
+                (OSError, RuntimeError),
+                "is corrupt, unable to read"
+            ),
+            # invalid_blendfiles/invalid_window_workspace_hook.blend
+            # A window's sub-block references an out-of-range SDNA struct index.
+            "invalid_window_workspace_hook.blend": (
+                (OSError, RuntimeError),
+                "Corrupt .blend file, invalid block struct index"
+            ),
         }
 
         assert all(p.endswith("/") for p in self.excluded_open_link_dirs)
