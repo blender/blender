@@ -1153,9 +1153,12 @@ static FileData *filedata_new(BlendFileReadReport *reports)
 }
 
 /**
- * Check if #FileGlobal::minversion of the file is older than current Blender,
- * return false if it is not.
+ * Check if the file's #FileGlobal::minversion requires a newer Blender to open.
+ *
  * Should only be called after #read_file_dna was successfully executed.
+ *
+ * \return true if the file is too new to open or its required global block is corrupt
+ * (reporting the error), false otherwise.
  */
 static bool is_minversion_older_than_blender(FileData *fd, ReportList *reports)
 {
@@ -1167,6 +1170,10 @@ static bool is_minversion_older_than_blender(FileData *fd, ReportList *reports)
 
     FileGlobal *fg = static_cast<FileGlobal *>(
         read_struct(fd, bhead, "Data from Global block", INDEX_ID_NULL));
+    if (fg == nullptr) [[unlikely]] {
+      BKE_reportf(reports, RPT_ERROR, "Blend file '%s' is corrupt, unable to read", fd->relabase);
+      return true;
+    }
     if ((fg->minversion > BLENDER_FILE_VERSION) ||
         (fg->minversion == BLENDER_FILE_VERSION && fg->minsubversion > BLENDER_FILE_SUBVERSION))
     {
@@ -3598,12 +3605,22 @@ BHead *blo_read_asset_data_block(FileData *fd, BHead *bhead, AssetMetaData **r_a
 /** \name Read Global Data
  * \{ */
 
-/* NOTE: this has to be kept for reading older files... */
-/* also version info is written here */
+/**
+ * Read the required global (#FileGlobal) block.
+ *
+ * NOTE: this has to be kept for reading older files, version info is written here too.
+ *
+ * \return nullptr if the global block is missing or corrupt, invalidating the read.
+ */
 static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
 {
   FileGlobal *fg = static_cast<FileGlobal *>(
       read_struct(fd, bhead, "Data from Global block", INDEX_ID_NULL));
+
+  if (fg == nullptr) [[unlikely]] {
+    blo_readfile_invalidate(fd, bfd->main, "Corrupt .blend file, missing global block");
+    return nullptr;
+  }
 
   /* NOTE: `bfd->main->versionfile` is supposed to have already been set from `fd->fileversion`
    * beforehand by calling code. */
@@ -4007,11 +4024,21 @@ static void direct_link_keymapitem(BlendDataReader *reader, wmKeyMapItem *kmi)
   kmi->flag &= ~KMI_UPDATE;
 }
 
+/**
+ * Read the user-preferences (#UserDef) block.
+ *
+ * \return nullptr if the block is missing or corrupt, invalidating the read.
+ */
 static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 {
   UserDef *user;
   bfd->user = user = static_cast<UserDef *>(
       read_struct(fd, bhead, "Data for User Def", INDEX_ID_NULL));
+
+  if (user == nullptr) [[unlikely]] {
+    blo_readfile_invalidate(fd, bfd->main, "Corrupt .blend file, missing user-preferences block");
+    return nullptr;
+  }
 
   /* User struct has separate do-version handling */
   user->versionfile = bfd->main->versionfile;
