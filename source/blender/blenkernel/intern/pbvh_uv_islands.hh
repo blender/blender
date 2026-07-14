@@ -34,7 +34,6 @@ namespace blender::bke::pbvh::uv_islands {
 
 struct UVBorder;
 struct UVEdge;
-struct UVIslands;
 struct UVIslandsMask;
 struct UVPrimitive;
 struct MeshData;
@@ -241,7 +240,7 @@ struct UVBorder {
 
 struct UVIsland {
   /**
-   * Id (Index) of the UVIsland. Contains the index of this island in UVIslands.
+   * Id (Index) of the UVIsland. Contains the index of this island in the islands array.
    *
    * Useful during debugging to set a breaking condition on a specific island/vert.
    */
@@ -275,15 +274,7 @@ struct UVIsland {
   void print_debug(const MeshData &mesh_data) const;
 };
 
-struct UVIslands {
-  Vector<UVIsland> islands;
-
-  explicit UVIslands(const MeshData &mesh_data);
-
-  void extract_borders();
-  void extend_borders(const MeshData &mesh_data, const UVIslandsMask &islands_mask);
-  void print_debug(const MeshData &mesh_data) const;
-};
+Array<UVIsland> build_uv_islands(const MeshData &mesh_data);
 
 /** Mask to find the index of the UVIsland for a given UV coordinate. */
 struct UVIslandsMask {
@@ -326,10 +317,10 @@ struct UVIslandsMask {
   bool is_masked(uint16_t island_index, float2 uv) const;
 
   /**
-   * Add the given UVIslands to the mask. Tiles should be added beforehand using the 'add_tile'
+   * Add the given UV islands to the mask. Tiles should be added beforehand using the 'add_tile'
    * method.
    */
-  void add(const MeshData &mesh_data, const UVIslands &islands);
+  void add(const MeshData &mesh_data, Span<UVIsland> islands);
 
   void dilate(int max_iterations);
 };

@@ -1303,10 +1303,10 @@ float UVBorderEdge::length() const
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name UVIslands
+/** \name UV islands
  * \{ */
 
-UVIslands::UVIslands(const MeshData &mesh_data)
+Array<UVIsland> build_uv_islands(const MeshData &mesh_data)
 {
   PRF_scope(ProfileCategory::Editor);
 
@@ -1319,7 +1319,7 @@ UVIslands::UVIslands(const MeshData &mesh_data)
       island_tri_offset_data,
       island_tri_index_data);
 
-  islands.resize(mesh_data.uv_island_len);
+  Array<UVIsland> islands(mesh_data.uv_island_len);
 
   /* Add primitive to island. */
   threading::parallel_for(islands.index_range(), 1, [&](const IndexRange range) {
@@ -1331,26 +1331,8 @@ UVIslands::UVIslands(const MeshData &mesh_data)
       }
     }
   });
-}
 
-void UVIslands::extract_borders()
-{
-  PRF_scope(ProfileCategory::Editor);
-  threading::parallel_for(islands.index_range(), 1, [&](const IndexRange range) {
-    for (const int64_t i : range) {
-      islands[i].extract_borders();
-    }
-  });
-}
-
-void UVIslands::extend_borders(const MeshData &mesh_data, const UVIslandsMask &islands_mask)
-{
-  PRF_scope(ProfileCategory::Editor);
-  threading::parallel_for(islands.index_range(), 1, [&](const IndexRange range) {
-    for (const int64_t i : range) {
-      islands[i].extend_border(mesh_data, islands_mask, short(i));
-    }
-  });
+  return islands;
 }
 
 /** \} */
@@ -1427,14 +1409,14 @@ static void add_uv_island(const MeshData &mesh_data,
   }
 }
 
-void UVIslandsMask::add(const MeshData &mesh_data, const UVIslands &uv_islands)
+void UVIslandsMask::add(const MeshData &mesh_data, const Span<UVIsland> uv_islands)
 {
   PRF_scope(ProfileCategory::Editor);
 
   threading::parallel_for(IndexRange(tiles.size()), 1, [&](const IndexRange range) {
     for (const int tile_index : range) {
-      for (const int i : uv_islands.islands.index_range()) {
-        add_uv_island(mesh_data, tiles[tile_index], uv_islands.islands[i], i);
+      for (const int i : uv_islands.index_range()) {
+        add_uv_island(mesh_data, tiles[tile_index], uv_islands[i], i);
       }
     }
   });

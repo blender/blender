@@ -150,12 +150,13 @@ struct UVPrimitiveLookup {
 
   Vector<Vector<Entry>> lookup;
 
-  UVPrimitiveLookup(const uint64_t geom_primitive_len, uv_islands::UVIslands &uv_islands)
+  UVPrimitiveLookup(const uint64_t geom_primitive_len,
+                    MutableSpan<uv_islands::UVIsland> uv_islands)
   {
     lookup.append_n_times(Vector<Entry>(), geom_primitive_len);
 
     uint64_t uv_island_index = 0;
-    for (uv_islands::UVIsland &uv_island : uv_islands.islands) {
+    for (uv_islands::UVIsland &uv_island : uv_islands) {
       for (uv_islands::UVPrimitive &uv_primitive : uv_island.uv_primitives) {
         lookup[uv_primitive.primitive_i].append_as(Entry(&uv_primitive, uv_island_index));
       }
@@ -402,7 +403,7 @@ static bool update_pixels(const Depsgraph &depsgraph,
                                  mesh.corner_verts(),
                                  uv_map,
                                  bke::pbvh::vert_positions_eval(depsgraph, object));
-  uv_islands::UVIslands islands(mesh_data);
+  Array<uv_islands::UVIsland> islands = uv_islands::build_uv_islands(mesh_data);
 
   uv_islands::UVIslandsMask uv_masks;
   ImageUser tile_user = image_user;
@@ -420,8 +421,16 @@ static bool update_pixels(const Depsgraph &depsgraph,
   uv_masks.add(mesh_data, islands);
   uv_masks.dilate(image.seam_margin);
 
-  islands.extract_borders();
-  islands.extend_borders(mesh_data, uv_masks);
+  threading::parallel_for(islands.index_range(), 1, [&](const IndexRange range) {
+    for (const int64_t i : range) {
+      islands[i].extract_borders();
+    }
+  });
+  threading::parallel_for(islands.index_range(), 1, [&](const IndexRange range) {
+    for (const int64_t i : range) {
+      islands[i].extend_border(mesh_data, uv_masks, short(i));
+    }
+  });
   update_geom_primitives(pbvh, mesh_data);
 
   UVPrimitiveLookup uv_primitive_lookup(mesh_data.corner_tris.size(), islands);
