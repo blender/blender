@@ -292,8 +292,11 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
 
   wm_ghostwindow_destroy(wm, win);
 
-  BKE_workspace_instance_hook_free(G_MAIN, win->workspace_hook);
-  MEM_freeN(win->stereo3d_format);
+  /* May be null for a window that was not completely read from an invalid file. */
+  if (win->workspace_hook) {
+    BKE_workspace_instance_hook_free(G_MAIN, win->workspace_hook);
+  }
+  MEM_SAFE_FREE(win->stereo3d_format);
 
   MEM_delete(win->runtime);
   MEM_freeN(win);
