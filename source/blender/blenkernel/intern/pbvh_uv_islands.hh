@@ -158,7 +158,6 @@ struct UVPrimitive {
 
 struct UVBorderEdge {
   UVEdge *edge;
-  bool tag = false;
   UVPrimitive *uv_primitive;
   /* Should the vertices of the edge be evaluated in reverse order. */
   bool reverse_order = false;
@@ -234,8 +233,6 @@ struct UVBorder {
 
   /** Setup prev and next pointers to turn edges into a linked list. */
   void setup_links(int64_t border_index);
-
-  static std::optional<UVBorder> extract_from_edges(Vector<UVBorderEdge> &edges);
 };
 
 struct UVIsland {

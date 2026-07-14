@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_atomic_disjoint_set.hh"
+#include "BLI_bit_span_ops.hh"
+#include "BLI_bit_vector.hh"
 #include "BLI_map.hh"
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix.hh"
@@ -349,6 +351,9 @@ static UVPrimitive *add_primitive(const MeshData &mesh_data,
   return uv_primitive_ptr;
 }
 
+std::optional<UVBorder> extract_border_from_edges(MutableSpan<UVBorderEdge> edges,
+                                                  MutableBoundedBitSpan borders_used);
+
 void UVIsland::extract_borders()
 {
   PRF_scope(ProfileCategory::Editor);
@@ -362,8 +367,9 @@ void UVIsland::extract_borders()
     }
   }
 
+  BitVector<128> borders_used(edges.size(), false);
   while (true) {
-    std::optional<UVBorder> border = UVBorder::extract_from_edges(edges);
+    std::optional<UVBorder> border = extract_border_from_edges(edges, borders_used);
     if (!border.has_value()) {
       break;
     }
@@ -1044,36 +1050,33 @@ void UVIsland::print_debug(const MeshData &mesh_data) const
 /** \name UVBorder
  * \{ */
 
-std::optional<UVBorder> UVBorder::extract_from_edges(Vector<UVBorderEdge> &edges)
+std::optional<UVBorder> extract_border_from_edges(MutableSpan<UVBorderEdge> edges,
+                                                  MutableBoundedBitSpan borders_used)
 {
   /* Find a part of the border that haven't been extracted yet. */
-  UVBorderEdge *starting_border_edge = nullptr;
-  for (UVBorderEdge &edge : edges) {
-    if (edge.tag == false) {
-      starting_border_edge = &edge;
-      break;
-    }
-  }
-  if (starting_border_edge == nullptr) {
+  const std::optional<int64_t> start_index = bits::find_first_0_index(borders_used);
+  if (!start_index) {
     return std::nullopt;
   }
+  UVBorderEdge &start_edge = edges[*start_index];
   UVBorder border;
-  border.edges.append(*starting_border_edge);
-  starting_border_edge->tag = true;
+  border.edges.append(start_edge);
+  borders_used[*start_index].set();
 
-  float2 first_uv = starting_border_edge->get_uv_vertex(0)->uv;
-  float2 current_uv = starting_border_edge->get_uv_vertex(1)->uv;
+  float2 first_uv = start_edge.get_uv_vertex(0)->uv;
+  float2 current_uv = start_edge.get_uv_vertex(1)->uv;
   while (current_uv != first_uv) {
     bool edge_added = false;
-    for (UVBorderEdge &border_edge : edges) {
-      if (border_edge.tag == true) {
+    for (const int edge_i : edges.index_range()) {
+      if (borders_used[edge_i].test()) {
         continue;
       }
+      UVBorderEdge &border_edge = edges[edge_i];
       int i;
       for (i = 0; i < 2; i++) {
         if (border_edge.edge->vertices[i]->uv == current_uv) {
           border_edge.reverse_order = i == 1;
-          border_edge.tag = true;
+          borders_used[edge_i].set();
           current_uv = border_edge.get_uv_vertex(1)->uv;
           border.edges.append(border_edge);
           edge_added = true;
