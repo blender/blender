@@ -1032,12 +1032,12 @@ void RNA_def_struct_nested(BlenderRNA *brna, StructRNA *srna, const char *struct
   srna->nested = srnafrom;
 }
 
-void RNA_def_struct_flag(StructRNA *srna, int flag)
+void RNA_def_struct_flag(StructRNA *srna, StructFlag flag)
 {
   srna->flag |= flag;
 }
 
-void RNA_def_struct_clear_flag(StructRNA *srna, int flag)
+void RNA_def_struct_clear_flag(StructRNA *srna, StructFlag flag)
 {
   srna->flag &= ~flag;
 }
@@ -4634,7 +4634,7 @@ void RNA_def_function_output(FunctionRNA * /*func*/, PropertyRNA *ret)
   ret->flag_parameter |= PARM_OUTPUT;
 }
 
-void RNA_def_function_flag(FunctionRNA *func, int flag)
+void RNA_def_function_flag(FunctionRNA *func, FunctionFlag flag)
 {
   func->flag |= flag;
 

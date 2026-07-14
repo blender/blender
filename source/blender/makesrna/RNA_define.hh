@@ -84,8 +84,8 @@ void RNA_def_struct_sdna_from(StructRNA *srna, const char *structname, const cha
  */
 void RNA_def_struct_name_property(StructRNA *srna, PropertyRNA *prop, bool allow_replace = false);
 void RNA_def_struct_nested(BlenderRNA *brna, StructRNA *srna, const char *structname);
-void RNA_def_struct_flag(StructRNA *srna, int flag);
-void RNA_def_struct_clear_flag(StructRNA *srna, int flag);
+void RNA_def_struct_flag(StructRNA *srna, StructFlag flag);
+void RNA_def_struct_clear_flag(StructRNA *srna, StructFlag flag);
 void RNA_def_struct_property_tags(StructRNA *srna, const EnumPropertyItem *prop_tag_defines);
 void RNA_def_struct_refine_func(StructRNA *srna, const char *refine);
 void RNA_def_struct_idprops_func(StructRNA *srna, const char *idproperties);
@@ -677,7 +677,7 @@ FunctionRNA *RNA_def_function_runtime(StructRNA *srna, const char *identifier, C
  */
 void RNA_def_function_return(FunctionRNA *func, PropertyRNA *ret);
 void RNA_def_function_output(FunctionRNA *func, PropertyRNA *ret);
-void RNA_def_function_flag(FunctionRNA *func, int flag);
+void RNA_def_function_flag(FunctionRNA *func, FunctionFlag flag);
 void RNA_def_function_ui_description(FunctionRNA *func, const char *description);
 
 void RNA_def_parameter_flags(PropertyRNA *prop,

@@ -312,7 +312,7 @@ inline int operator&(const PropertySubType subtype, const PropertyUnit unit)
 /* Make sure enums are updated with these */
 /* HIGHEST FLAG IN USE: 1u << 31
  * FREE FLAGS: NONE. */
-enum PropertyFlag {
+enum PropertyFlag : uint32_t {
   /**
    * Editable means the property is editable in the user
    * interface, properties are editable by default except
@@ -523,7 +523,7 @@ enum PropertyPathTemplateType {
  *
  * FREE FLAGS: 2, 3, 4, 5, 6, 7, 8, 9, 12 and above.
  */
-enum PropertyOverrideFlag {
+enum PropertyOverrideFlag : int32_t {
   /** Means that the property can be overridden by a local override of some linked datablock. */
   PROPOVERRIDE_OVERRIDABLE_LIBRARY = (1 << 0),
 
@@ -566,7 +566,7 @@ ENUM_OPERATORS(PropertyOverrideFlag);
  * Function parameters flags.
  * \warning 16bits only.
  */
-enum ParameterFlag {
+enum ParameterFlag : int16_t {
   PARM_REQUIRED = (1 << 0),
   PARM_OUTPUT = (1 << 1),
   PARM_RNAPTR = (1 << 2),
@@ -911,7 +911,7 @@ struct ParameterDynAlloc {
  *             <other RNA-defined parameters>);
  * </pre>
  */
-enum FunctionFlag {
+enum FunctionFlag : int32_t {
   /**
    * Pass ID owning 'self' data
    * (i.e. ptr->owner_id, might be same as self in case data is an ID...).
@@ -971,6 +971,7 @@ enum FunctionFlag {
    */
   FUNC_FREE_POINTERS = (1 << 10),
 };
+ENUM_OPERATORS(FunctionFlag)
 
 using CallFunc = void (*)(bContext *C, ReportList *reports, PointerRNA *ptr, ParameterList *parms);
 
@@ -978,7 +979,7 @@ struct FunctionRNA;
 
 /* Struct */
 
-enum StructFlag {
+enum StructFlag : int32_t {
   /** Indicates that this struct is an ID struct. */
   STRUCT_ID = (1 << 0),
   /**
@@ -1016,6 +1017,7 @@ enum StructFlag {
    */
   STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID = (1 << 11),
 };
+ENUM_OPERATORS(StructFlag)
 
 using StructValidateFunc = int (*)(PointerRNA *ptr, void *data, bool *have_function);
 using StructCallbackFunc = int (*)(bContext *C,
