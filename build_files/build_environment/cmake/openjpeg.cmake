@@ -20,6 +20,10 @@ if(NOT WIN32)
     URL_HASH ${OPENJPEG_HASH_TYPE}=${OPENJPEG_HASH}
     PREFIX ${BUILD_DIR}/openjpeg
 
+    PATCH_COMMAND ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/openjpeg/src/external_openjpeg <
+      ${PATCH_DIR}/openjpeg_pkgconfig.diff
+
     CONFIGURE_COMMAND ${CONFIGURE_ENV} &&
       cd ${BUILD_DIR}/openjpeg/src/external_openjpeg-build &&
       ${CMAKE_COMMAND}
