@@ -60,13 +60,12 @@ struct MeshData {
   Array<int> edge_to_face_indices;
   GroupedSpan<int> edge_to_face_map;
 
-  /**
-   * UV island each primitive belongs to. This is used to speed up the initial uv island
-   * extraction and should not be used afterwards.
-   */
+  /** UV island each primitive belongs to. */
   Array<int> uv_island_ids;
   /** Total number of found uv islands. */
   int64_t uv_island_len;
+  /** True if a mesh edge is a UV island border. */
+  Array<bool> uv_edge_is_border;
 
   explicit MeshData(OffsetIndices<int> faces,
                     Span<int3> corner_tris,
@@ -103,10 +102,10 @@ struct UVVert {
 struct UVEdge {
   std::array<int, 2> verts;
   Vector<int, 2> uv_primitive_indices;
+  bool is_border = false;
 
   int get_other_uv_vert(const UVIsland &island, int vert);
   bool has_same_verts(const UVIsland &island, const int2 &edge) const;
-  bool is_border_edge() const;
 
  private:
   bool has_same_verts(const UVIsland &island, int vert1, int vert2) const;
@@ -228,6 +227,8 @@ struct UVIsland {
   Vector<UVVert> uv_verts;
   Vector<UVEdge> uv_edges;
   Vector<UVPrimitive> uv_primitives;
+  /** Number of primitive, before border extension. */
+  int64_t num_original_primitives = 0;
   /**
    * List of borders of this island. There can be multiple borders per island as a border could
    * be completely encapsulated by another one.
@@ -299,8 +300,8 @@ struct UVIslandsMask {
   bool is_masked(uint16_t island_index, float2 uv) const;
 
   /**
-   * Add the given UV islands to the mask. Tiles should be added beforehand using the 'add_tile'
-   * method.
+   * Rasterize the UV islands into the mask, using the per-island triangle grouping.
+   * Tiles should be added beforehand using the 'add_tile' method.
    */
   void add(const MeshData &mesh_data, GroupedSpan<int> tris_by_island);
 

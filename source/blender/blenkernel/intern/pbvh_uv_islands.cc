@@ -151,6 +151,7 @@ static int mesh_data_init_primitive_uv_island_ids(MeshData &mesh_data)
   /* Group primitives into UV islands, connected through shared UV edges. */
   const int64_t primitives_num = mesh_data.corner_tris.size();
   mesh_data.uv_island_ids.reinitialize(primitives_num);
+  mesh_data.uv_edge_is_border = Array<bool>(mesh_data.mesh_edges.size(), false);
 
   AtomicDisjointSet disjoint_set(primitives_num);
 
@@ -164,16 +165,20 @@ static int mesh_data_init_primitive_uv_island_ids(MeshData &mesh_data)
     }
   });
 
-  /* Merge the islands of two faces when their UVs match along an edge. */
+  /* Merge the islands of two faces when their UVs match along an edge,
+   * and store which edges are on the border. */
   threading::parallel_for(mesh_data.mesh_edges.index_range(), 1024, [&](const IndexRange range) {
     for (const int edge_i : range) {
-      if (!mesh_data.is_edge_manifold(edge_i)) {
-        continue;
-      }
       const Span<int> edge_faces = mesh_data.edge_to_face_map[edge_i];
-      if (faces_have_shared_uv_edge(mesh_data, edge_faces[0], edge_faces[1], edge_i)) {
+      if (edge_faces.size() == 2 &&
+          faces_have_shared_uv_edge(mesh_data, edge_faces[0], edge_faces[1], edge_i))
+      {
         disjoint_set.join(mesh::face_triangles_range(mesh_data.faces, edge_faces[0]).first(),
                           mesh::face_triangles_range(mesh_data.faces, edge_faces[1]).first());
+      }
+      else {
+        const bool is_loose_edge = edge_faces.is_empty();
+        mesh_data.uv_edge_is_border[edge_i] = !is_loose_edge;
       }
     }
   });
@@ -246,11 +251,6 @@ bool UVEdge::has_same_verts(const UVIsland &island, const int vert1, const int v
 bool UVEdge::has_same_verts(const UVIsland &island, const int2 &edge) const
 {
   return has_same_verts(island, edge[0], edge[1]);
-}
-
-bool UVEdge::is_border_edge() const
-{
-  return uv_primitive_indices.size() == 1;
 }
 
 int UVEdge::get_other_uv_vert(const UVIsland &island, const int vert)
@@ -327,7 +327,8 @@ int UVIsland::lookup_or_create(const UVEdge &edge)
 
 static UVPrimitive *add_primitive(const MeshData &mesh_data,
                                   UVIsland &uv_island,
-                                  const int primitive_i)
+                                  const int primitive_i,
+                                  const Span<bool> tri_corner_near_border)
 {
   UVPrimitive uv_primitive(primitive_i);
   const int3 &tri = mesh_data.corner_tris[primitive_i];
@@ -337,6 +338,7 @@ static UVPrimitive *add_primitive(const MeshData &mesh_data,
     const int corner_1 = tri[i];
     const int corner_2 = tri[(i + 1) % 3];
     UVEdge uv_edge_template;
+    uv_edge_template.is_border = tri_corner_near_border[int64_t(primitive_i) * 3 + i];
     uv_edge_template.verts[0] = uv_island.lookup_or_create(UVVert(mesh_data, corner_1));
     uv_edge_template.verts[1] = uv_island.lookup_or_create(UVVert(mesh_data, corner_2));
     const int uv_edge_i = uv_island.lookup_or_create(uv_edge_template);
@@ -360,7 +362,7 @@ void UVIsland::extract_borders()
     const UVPrimitive &prim = uv_primitives[uv_prim_i];
     for (const int uv_edge_i : prim.edges) {
       const UVEdge &edge = this->uv_edges[uv_edge_i];
-      if (edge.is_border_edge()) {
+      if (edge.is_border) {
         edges.append(UVBorderEdge(uv_edge_i, uv_prim_i));
       }
     }
@@ -441,30 +443,30 @@ struct Fan {
   } flags;
 
   /* Other vertices in the fan triangle. */
-  static int2 other_fan_edge_verts(const MeshData &mesh_data, const int vertex, const int tri_i)
+  static int2 other_fan_edge_verts(const MeshData &mesh_data, const int vert, const int tri_i)
   {
     const int3 &tri = mesh_data.corner_tris[tri_i];
     int2 verts;
     int n = 0;
     for (int k = 0; k < 3; k++) {
       const int v = mesh_data.corner_verts[tri[k]];
-      if (v != vertex) {
+      if (v != vert) {
         verts[n++] = v;
       }
     }
     return verts;
   }
 
-  /* Adjacent triangle in the fan, sharing (vert, other_vert) edge. */
+  /* Adjacent triangle in the fan, sharing (vert, other_vert) edge. Returns -1 if there is none. */
   static int adjacent_tri(const MeshData &mesh_data,
                           const Span<int> tris,
-                          const int vertex,
+                          const int vert,
                           const int other_vert,
                           const int tri_i)
   {
     int result = -1;
     for (const int t : tris) {
-      if (t != tri_i && tri_contains_verts(mesh_data, t, vertex, other_vert)) {
+      if (t != tri_i && tri_contains_verts(mesh_data, t, vert, other_vert)) {
         if (result != -1) {
           return -1;
         }
@@ -1380,22 +1382,74 @@ float UVBorderEdge::length(const UVIsland &island) const
 /** \name UV islands
  * \{ */
 
+/** Find which triangles are near a UV island border, to only build island data
+ * structures for those. This includes triangles that have either an edge or a
+ * a vertex on the border. */
+static void find_triangles_near_border(const MeshData &mesh_data,
+                                       MutableSpan<bool> r_tri_corner_near_border,
+                                       MutableSpan<bool> r_tri_near_border)
+{
+  const Span<int3> corner_tris = mesh_data.corner_tris;
+  const Span<bool> edge_is_border = mesh_data.uv_edge_is_border;
+  const int64_t tris_num = corner_tris.size();
+
+  Array<bool> vert_is_border(mesh_data.vert_positions.size(), false);
+
+  /* Mark all triangle corners and vertices on the border. */
+  threading::parallel_for(IndexRange(tris_num), 2048, [&](const IndexRange range) {
+    for (const int64_t tri_index : range) {
+      const int3 real_edges = mesh::corner_tri_get_real_edges(mesh_data.mesh_edges,
+                                                              mesh_data.corner_verts,
+                                                              mesh_data.corner_edges,
+                                                              corner_tris[tri_index]);
+      for (int j = 0; j < 3; j++) {
+        const int edge_i = real_edges[j];
+        if (edge_i != -1 && edge_is_border[edge_i]) {
+          const int2 edge = mesh_data.mesh_edges[edge_i];
+          vert_is_border[edge[0]] = true;
+          vert_is_border[edge[1]] = true;
+          r_tri_corner_near_border[tri_index * 3 + j] = true;
+        }
+      }
+    }
+  });
+
+  /* Mark triangles near the border. */
+  threading::parallel_for(IndexRange(tris_num), 4096, [&](const IndexRange range) {
+    for (const int64_t tri_index : range) {
+      const int3 &tri = corner_tris[tri_index];
+      r_tri_near_border[tri_index] = vert_is_border[mesh_data.corner_verts[tri[0]]] ||
+                                     vert_is_border[mesh_data.corner_verts[tri[1]]] ||
+                                     vert_is_border[mesh_data.corner_verts[tri[2]]];
+    }
+  });
+}
+
 Array<UVIsland> build_uv_islands(const MeshData &mesh_data,
                                  const GroupedSpan<int> tris_by_island,
                                  const UVIslandsMask &uv_masks)
 {
   PRF_scope(ProfileCategory::Editor);
 
+  const int64_t tris_num = mesh_data.corner_tris.size();
+  Array<bool> tri_corner_near_border(tris_num * 3, false);
+  Array<bool> tri_near_border(tris_num);
+  find_triangles_near_border(mesh_data, tri_corner_near_border, tri_near_border);
+
   Array<UVIsland> islands(tris_by_island.size());
 
-  /* Add primitive to island. */
+  /* Add primitives near the island border to each island. Interior primitives are not
+   * stored, their UVs are read directly from the mesh where needed. */
   threading::parallel_for(islands.index_range(), 1, [&](const IndexRange range) {
     for (const int64_t uv_island_id : range) {
       UVIsland &uv_island = islands[uv_island_id];
       uv_island.id = uv_island_id;
       for (const int primitive_i : tris_by_island[uv_island_id]) {
-        add_primitive(mesh_data, uv_island, primitive_i);
+        if (tri_near_border[primitive_i]) {
+          add_primitive(mesh_data, uv_island, primitive_i, tri_corner_near_border);
+        }
       }
+      uv_island.num_original_primitives = uv_island.uv_primitives.size();
       uv_island.extract_borders();
       uv_island.extend_border(mesh_data, uv_masks, short(uv_island_id));
     }
