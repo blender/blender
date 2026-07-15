@@ -109,7 +109,7 @@ struct UVVert {
   float2 uv;
 
   /* uv edges that share this UVVert. */
-  Vector<UVEdge *> uv_edges;
+  Vector<int> uv_edges;
 
   struct {
     bool is_border : 1;
@@ -136,29 +136,33 @@ struct UVPrimitive {
   /**
    * Index of the primitive in the original mesh.
    */
-  const int primitive_i;
-  Vector<UVEdge *, 3> edges;
+  int primitive_i;
+  std::array<int, 3> edges;
 
   explicit UVPrimitive(int primitive_i);
 
   /**
    * Get the UVVert in the order that the verts are ordered in the MeshPrimitive.
    */
-  const UVVert *get_uv_vert(const MeshData &mesh_data, uint8_t mesh_vert_index) const;
+  const UVVert *get_uv_vert(const UVIsland &island,
+                            const MeshData &mesh_data,
+                            uint8_t mesh_vert_index) const;
 
   /**
    * Get the UVEdge that share the given uv coordinates.
    * Will assert when no UVEdge found.
    */
-  UVEdge *get_uv_edge(float2 uv1, float2 uv2) const;
-  UVEdge *get_uv_edge(int v1, int v2) const;
+  int get_uv_edge(const UVIsland &island, float2 uv1, float2 uv2) const;
+  int get_uv_edge(const UVIsland &island, int v1, int v2) const;
 
-  bool contains_uv_vert(const UVVert *uv_vert) const;
-  const UVVert *get_other_uv_vert(const UVVert *v1, const UVVert *v2) const;
+  bool contains_uv_vert(const UVIsland &island, const UVVert *uv_vert) const;
+  const UVVert *get_other_uv_vert(const UVIsland &island,
+                                  const UVVert *v1,
+                                  const UVVert *v2) const;
 };
 
 struct UVBorderEdge {
-  UVEdge *edge;
+  int uv_edge_i;
   /* Index into UVIsland::uv_primitives. */
   int uv_primitive;
   /* Should the vertices of the edge be evaluated in reverse order. */
@@ -172,19 +176,19 @@ struct UVBorderEdge {
   /* Stable ID for tie-break in the priority queue. */
   int64_t order = -1;
 
-  explicit UVBorderEdge(UVEdge *edge, int uv_primitive);
+  explicit UVBorderEdge(int uv_edge_i, int uv_primitive);
 
-  UVVert *get_uv_vert(int index);
-  const UVVert *get_uv_vert(int index) const;
+  UVVert *get_uv_vert(const UVIsland &island, int index);
+  const UVVert *get_uv_vert(const UVIsland &island, int index) const;
 
   /**
    * Get the uv vertex from the primitive that is not part of the edge.
    */
   const UVVert *get_other_uv_vert(const UVIsland &island) const;
 
-  bool is_extendable() const;
+  bool is_extendable(const UVIsland &island) const;
 
-  float length() const;
+  float length(const UVIsland &island) const;
 };
 
 struct UVBorderCorner {
@@ -200,7 +204,7 @@ struct UVBorderCorner {
    * 'min_uv_distance' is the minimum distance between the corner and the
    * resulting uv coordinate. The distance is in uv space.
    */
-  float2 uv(float factor, float min_uv_distance);
+  float2 uv(const UVIsland &island, float factor, float min_uv_distance);
 
   /**
    * Does this corner exist as 2 connected edges of the mesh.
@@ -208,8 +212,8 @@ struct UVBorderCorner {
    * During the extraction phase a connection can be made in uv-space that
    * doesn't reflect to two connected edges inside the mesh.
    */
-  bool connected_in_mesh() const;
-  void print_debug() const;
+  bool connected_in_mesh(const UVIsland &island) const;
+  void print_debug(const UVIsland &island) const;
 };
 
 struct UVBorder {
@@ -231,7 +235,7 @@ struct UVBorder {
   /**
    * Calculate the outside angle of the given vert.
    */
-  float outside_angle(const UVBorderEdge &edge) const;
+  float outside_angle(const UVIsland &island, const UVBorderEdge &edge) const;
 
   /** Setup prev and next pointers to turn edges into a linked list. */
   void setup_links(int64_t border_index);
@@ -245,7 +249,7 @@ struct UVIsland {
    */
   int id;
   VectorList<UVVert> uv_verts;
-  VectorList<UVEdge> uv_edges;
+  Vector<UVEdge> uv_edges;
   Vector<UVPrimitive> uv_primitives;
   /**
    * List of borders of this island. There can be multiple borders per island as a border could
@@ -261,8 +265,8 @@ struct UVIsland {
 
   UVVert *lookup(const UVVert &vert);
   UVVert *lookup_or_create(const UVVert &vert);
-  UVEdge *lookup(const UVEdge &edge);
-  UVEdge *lookup_or_create(const UVEdge &edge);
+  int lookup(const UVEdge &edge);
+  int lookup_or_create(const UVEdge &edge);
 
   /** Initialize the border attribute. */
   void extract_borders();
