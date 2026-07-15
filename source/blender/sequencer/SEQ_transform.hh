@@ -132,7 +132,8 @@ float2 image_preview_unit_from_px(const Scene *scene, float2 co_src);
 Bounds<float2> image_transform_bounding_box_from_strips_get(Scene *scene, Span<Strip *> strips);
 
 /**
- * Get \a strip image transformation matrix relative to its origin in view-space.
+ * Get \a strip image transformation matrix relative to its origin in view-space, including axis
+ * mirror and viewport pixel aspect.
  */
 float3x3 image_transform_matrix_get(const Scene *scene, const Strip *strip);
 

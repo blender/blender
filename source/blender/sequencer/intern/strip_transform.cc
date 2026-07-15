@@ -677,9 +677,12 @@ float3x3 image_transform_matrix_get(const Scene *scene, const Strip *strip)
   const StripTransform *tr = strip->data->transform;
   const float3x3 matrix = math::from_loc_rot_scale<float3x3>(
       float2(tr->xofs, tr->yofs), tr->rotation, float2(tr->scale_x, tr->scale_y));
-
   const float2 origin_offset = convert_origin_to_image_offset(scene, strip, tr->origin);
-  return math::from_origin_transform(matrix, origin_offset);
+
+  const float2 aspect(scene->r.xasp / scene->r.yasp, 1.0f);
+  const float2 mirror = image_transform_mirror_factor_get(strip);
+  return math::from_scale<float3x3>(mirror * aspect) *
+         math::from_origin_transform(matrix, origin_offset);
 }
 
 Array<float2> image_transform_quad_get(const Scene *scene, const Strip *strip)
@@ -735,13 +738,10 @@ Array<float2> image_transform_quad_get(const Scene *scene, const Strip *strip)
   }
 
   const float3x3 matrix = image_transform_matrix_get(scene, strip);
-  const float2 viewport_pixel_aspect(scene->r.xasp / scene->r.yasp, 1.0f);
-  const float2 mirror = image_transform_mirror_factor_get(strip);
 
   Array<float2> quad_final(num_corners);
   for (const int i : IndexRange(num_corners)) {
-    const float2 point = math::transform_point(matrix, quad[i]);
-    quad_final[i] = point * mirror * viewport_pixel_aspect;
+    quad_final[i] = math::transform_point(matrix, quad[i]);
   }
   return quad_final;
 }
