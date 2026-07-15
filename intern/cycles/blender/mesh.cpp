@@ -723,7 +723,7 @@ static void create_mesh(Scene *scene,
     blender::bke::mesh::vert_tris_from_corner_tris(
         corner_verts,
         b_corner_tris,
-        blender::MutableSpan<int>(triangles, numtris).cast<blender::int3>());
+        blender::MutableSpan<int>(triangles, numtris * 3).cast<blender::int3>());
 
     if (!material_indices.is_empty()) {
       for (const int face : faces.index_range()) {
