@@ -302,13 +302,16 @@ static void get_gpu_texture_data(ImBuf *source_buffer,
       return;
     }
 
+    /* Avoid excessive overhead with small updates. */
+    const bool threaded = size.x >= 1024;
+
     if (is_float) {
       IMB_scale_box(static_cast<const float *>(r_upload.data),
                     size,
                     channels,
                     buffer->float_data_for_write(),
                     *scaled_size,
-                    true,
+                    threaded,
                     r_upload.stride);
     }
     else {
@@ -317,7 +320,7 @@ static void get_gpu_texture_data(ImBuf *source_buffer,
                     channels,
                     buffer->byte_data_for_write(),
                     *scaled_size,
-                    true,
+                    threaded,
                     r_upload.stride);
     }
     if (r_upload.tmp_ibuf) {
