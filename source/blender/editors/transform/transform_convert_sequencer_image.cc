@@ -349,8 +349,7 @@ static float2 calculate_new_origin_position(TransInfo *t, TransDataSeq *tdseq, T
 
   const float2 origin = tdseq->orig_origin_pixelspace;
   const float2 translation = transform_result_get(t, tdseq, td2d, strip).translation;
-  const float2 origin_pixelspace_unscaled = origin / viewport_pixel_aspect * mirror;
-  const float2 origin_translated = origin_pixelspace_unscaled - translation;
+  const float2 origin_translated = origin - translation * viewport_pixel_aspect * mirror;
   const float2 origin_raw_space = math::transform_point(tdseq->orig_matrix, origin_translated);
   const float2 origin_abs = origin_raw_space + image_size / 2;
   const float2 origin_rel = origin_abs / image_size;
