@@ -27,7 +27,6 @@
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
-#include "BLI_ordered_edge.hh"
 #include "BLI_vector.hh"
 #include "BLI_vector_list.hh"
 
@@ -41,26 +40,6 @@ struct MeshData;
 struct UVIsland;
 struct UVVert;
 
-class TriangleToEdgeMap {
-  Array<std::array<int, 3>> edges_of_triangle_;
-
- public:
-  TriangleToEdgeMap() = delete;
-  TriangleToEdgeMap(const int edges_num)
-  {
-    edges_of_triangle_.reinitialize(edges_num);
-  }
-
-  void add(const Span<int> edges, const int tri_i)
-  {
-    std::copy(edges.begin(), edges.end(), edges_of_triangle_[tri_i].begin());
-  }
-  Span<int> operator[](const int tri_i) const
-  {
-    return edges_of_triangle_[tri_i];
-  }
-};
-
 /**
  * MeshData contains input geometry data converted in a list of primitives, edges and vertices for
  * quick access for both local space and uv space.
@@ -70,19 +49,16 @@ struct MeshData {
   OffsetIndices<int> faces;
   Span<int3> corner_tris;
   Span<int> corner_verts;
+  Span<int> corner_edges;
+  Span<int2> mesh_edges;
   Span<float2> uv_map;
   Span<float3> vert_positions;
 
-  Array<int> vert_to_edge_offsets;
-  Array<int> vert_to_edge_indices;
-  GroupedSpan<int> vert_to_edge_map;
+  GroupedSpan<int> vert_to_face_map;
 
-  Vector<OrderedEdge> edges;
-  Array<int> edge_to_primitive_offsets;
-  Array<int> edge_to_primitive_indices;
-  GroupedSpan<int> edge_to_primitive_map;
-
-  TriangleToEdgeMap primitive_to_edge_map;
+  Array<int> edge_to_face_offsets;
+  Array<int> edge_to_face_indices;
+  GroupedSpan<int> edge_to_face_map;
 
   /**
    * UV island each primitive belongs to. This is used to speed up the initial uv island
@@ -95,12 +71,15 @@ struct MeshData {
   explicit MeshData(OffsetIndices<int> faces,
                     Span<int3> corner_tris,
                     Span<int> corner_verts,
+                    Span<int> corner_edges,
+                    Span<int2> mesh_edges,
+                    GroupedSpan<int> vert_to_face_map,
                     Span<float2> uv_map,
                     Span<float3> vert_positions);
 
   bool is_edge_manifold(const int edge_id) const
   {
-    return edge_to_primitive_map[edge_id].size() == 2;
+    return edge_to_face_map[edge_id].size() == 2;
   }
 };
 

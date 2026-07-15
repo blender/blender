@@ -16,6 +16,7 @@
 #include "IMB_imbuf_types.hh"
 
 #include "BKE_image_wrappers.hh"
+#include "BKE_mesh.hh"
 #include "BKE_paint_bvh.hh"
 #include "BKE_paint_bvh_pixels.hh"
 
@@ -107,16 +108,18 @@ class NonManifoldUVEdges : public Vector<Edge<CoordSpace::UV>> {
     int num_non_manifold_edges = count_non_manifold_edges(mesh_data);
     reserve(num_non_manifold_edges);
     for (const int primitive_id : mesh_data.corner_tris.index_range()) {
-      for (const int edge_id : mesh_data.primitive_to_edge_map[primitive_id]) {
-        if (mesh_data.is_edge_manifold(edge_id)) {
+      const int3 tri = mesh_data.corner_tris[primitive_id];
+      const int3 real_edges = mesh::corner_tri_get_real_edges(
+          mesh_data.mesh_edges, mesh_data.corner_verts, mesh_data.corner_edges, tri);
+      for (int j = 0; j < 3; j++) {
+        const int edge_id = real_edges[j];
+        /* -1 means internal edge in face, which is always manifold. */
+        if (edge_id == -1 || mesh_data.is_edge_manifold(edge_id)) {
           continue;
         }
-        const int3 &tri = mesh_data.corner_tris[primitive_id];
-        const int2 mesh_edge = mesh_data.edges[edge_id];
         Edge<CoordSpace::UV> edge;
-
-        edge.vertex_1.coordinate = find_uv(mesh_data, tri, mesh_edge[0]);
-        edge.vertex_2.coordinate = find_uv(mesh_data, tri, mesh_edge[1]);
+        edge.vertex_1.coordinate = mesh_data.uv_map[tri[j]];
+        edge.vertex_2.coordinate = mesh_data.uv_map[tri[(j + 1) % 3]];
         append(edge);
       }
     }
@@ -141,27 +144,19 @@ class NonManifoldUVEdges : public Vector<Edge<CoordSpace::UV>> {
   {
     int64_t result = 0;
     for (const int primitive_id : mesh_data.corner_tris.index_range()) {
-      for (const int edge_id : mesh_data.primitive_to_edge_map[primitive_id]) {
-        if (mesh_data.is_edge_manifold(edge_id)) {
-          continue;
+      const int3 real_edges = mesh::corner_tri_get_real_edges(mesh_data.mesh_edges,
+                                                              mesh_data.corner_verts,
+                                                              mesh_data.corner_edges,
+                                                              mesh_data.corner_tris[primitive_id]);
+      for (int j = 0; j < 3; j++) {
+        const int edge_id = real_edges[j];
+        /* -1 means internal edge in face, which is always manifold. */
+        if (!(edge_id == -1 || mesh_data.is_edge_manifold(edge_id))) {
+          result += 1;
         }
-        result += 1;
       }
     }
     return result;
-  }
-
-  static float2 find_uv(const uv_islands::MeshData &mesh_data, const int3 &tri, int vertex_i)
-  {
-    for (int i = 0; i < 3; i++) {
-      const int loop_i = tri[i];
-      const int vert = mesh_data.corner_verts[loop_i];
-      if (vert == vertex_i) {
-        return mesh_data.uv_map[loop_i];
-      }
-    }
-    BLI_assert_unreachable();
-    return float2(0.0f);
   }
 };
 

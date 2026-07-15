@@ -10,10 +10,10 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_offset_indices.hh"
-#include "BLI_ordered_edge.hh"
 #include "BLI_task.hh"
 #include "BLI_vector_set.hh"
 
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 
 #include "PRF_profile.hh"
@@ -72,21 +72,6 @@ static int primitive_get_other_uv_vert(const MeshData &mesh_data,
   return -1;
 }
 
-static bool primitive_has_shared_uv_edge(const Span<float2> uv_map,
-                                         const int3 &tri,
-                                         const int3 &tri_other)
-{
-  int shared_uv_verts = 0;
-  for (const int corner : {tri[0], tri[1], tri[2]}) {
-    for (const int other_corner : {tri_other[0], tri_other[1], tri_other[2]}) {
-      if (uv_map[corner] == uv_map[other_corner]) {
-        shared_uv_verts += 1;
-      }
-    }
-  }
-  return shared_uv_verts >= 2;
-}
-
 static int get_uv_corner(const MeshData &mesh_data, const int3 &tri, const int vert)
 {
   for (const int corner : {tri[0], tri[1], tri[2]}) {
@@ -104,63 +89,61 @@ static int get_uv_corner(const MeshData &mesh_data, const int3 &tri, const int v
 /** \name MeshData
  * \{ */
 
-static GroupedSpan<int> build_edge_to_primitive_map(const TriangleToEdgeMap &prim_to_edge,
-                                                    const int edges_num,
-                                                    const int prims_num,
-                                                    Array<int> &r_offsets,
-                                                    Array<int> &r_indices)
+/** Test if triangle tri_i has (v0, v1) as an edge. */
+static bool tri_contains_verts(const MeshData &mesh_data,
+                               const int tri_i,
+                               const int v0,
+                               const int v1)
 {
-  r_offsets = Array<int>(edges_num + 1, 0);
-  for (const int prim_i : IndexRange(prims_num)) {
-    for (const int edge_i : prim_to_edge[prim_i]) {
-      r_offsets[edge_i]++;
-    }
+  const int3 &tri = mesh_data.corner_tris[tri_i];
+  bool has_0 = false;
+  bool has_1 = false;
+  for (int k = 0; k < 3; k++) {
+    const int v = mesh_data.corner_verts[tri[k]];
+    has_0 |= v == v0;
+    has_1 |= v == v1;
   }
-  const OffsetIndices<int> offsets = offset_indices::accumulate_counts_to_offsets(r_offsets);
-  r_indices.reinitialize(offsets.total_size());
-  Array<int> pos(r_offsets.as_span().drop_back(1));
-  for (const int prim_i : IndexRange(prims_num)) {
-    for (const int edge_i : prim_to_edge[prim_i]) {
-      r_indices[pos[edge_i]++] = prim_i;
-    }
-  }
-  return {offsets, r_indices};
+  return has_0 && has_1;
 }
 
-static void mesh_data_init_edges(MeshData &mesh_data)
+/** The corner in face whose outgoing edge is edge_i. */
+static int face_corner_of_edge(const MeshData &mesh_data, const int face, const int edge_i)
 {
-  const Span<int> corner_verts = mesh_data.corner_verts;
-  const Span<int3> corner_tris = mesh_data.corner_tris;
-  using EdgeMap = VectorSet<OrderedEdge,
-                            32,
-                            DefaultProbingStrategy,
-                            DefaultHash<OrderedEdge>,
-                            DefaultEquality<OrderedEdge>,
-                            SimpleVectorSetSlot<OrderedEdge, int>,
-                            GuardedAllocator>;
-  EdgeMap edges;
-  edges.reserve(mesh_data.corner_tris.size() * 2);
-  for (const int tri_i : corner_tris.index_range()) {
-    const int3 &tri = mesh_data.corner_tris[tri_i];
-    const std::array<int, 3> tri_edges{
-        int(edges.index_of_or_add({corner_verts[tri[0]], corner_verts[tri[1]]})),
-        int(edges.index_of_or_add({corner_verts[tri[1]], corner_verts[tri[2]]})),
-        int(edges.index_of_or_add({corner_verts[tri[2]], corner_verts[tri[0]]})),
-    };
-    mesh_data.primitive_to_edge_map.add(tri_edges, tri_i);
+  for (const int corner : mesh_data.faces[face]) {
+    if (mesh_data.corner_edges[corner] == edge_i) {
+      return corner;
+    }
   }
+  return -1;
+}
 
-  mesh_data.edges = edges.extract_vector();
-  mesh_data.vert_to_edge_map = mesh::build_vert_to_edge_map(mesh_data.edges.as_span().cast<int2>(),
-                                                            mesh_data.vert_positions.size(),
-                                                            mesh_data.vert_to_edge_offsets,
-                                                            mesh_data.vert_to_edge_indices);
-  mesh_data.edge_to_primitive_map = build_edge_to_primitive_map(
-      mesh_data.primitive_to_edge_map,
-      mesh_data.edges.size(),
-      mesh_data.corner_tris.size(),
-      mesh_data.edge_to_primitive_offsets,
-      mesh_data.edge_to_primitive_indices);
+static bool faces_have_shared_uv_edge(const MeshData &mesh_data,
+                                      const int face_0,
+                                      const int face_1,
+                                      const int edge_i)
+{
+  const int c0 = face_corner_of_edge(mesh_data, face_0, edge_i);
+  const int c1 = face_corner_of_edge(mesh_data, face_1, edge_i);
+  if (c0 == -1 || c1 == -1) {
+    return false;
+  }
+  const int c0_next = mesh::face_corner_next(mesh_data.faces[face_0], c0);
+  const int c1_next = mesh::face_corner_next(mesh_data.faces[face_1], c1);
+
+  const Span<float2> uv_map = mesh_data.uv_map;
+  if (mesh_data.corner_verts[c0] == mesh_data.corner_verts[c1]) {
+    return uv_map[c0] == uv_map[c1] && uv_map[c0_next] == uv_map[c1_next];
+  }
+  return uv_map[c0] == uv_map[c1_next] && uv_map[c0_next] == uv_map[c1];
+}
+
+static void mesh_data_init_topology(MeshData &mesh_data)
+{
+  mesh_data.edge_to_face_map = mesh::build_edge_to_face_map(mesh_data.faces,
+                                                            mesh_data.corner_edges,
+                                                            mesh_data.mesh_edges.size(),
+                                                            mesh_data.edge_to_face_offsets,
+                                                            mesh_data.edge_to_face_indices);
 }
 
 static int mesh_data_init_primitive_uv_island_ids(MeshData &mesh_data)
@@ -170,21 +153,27 @@ static int mesh_data_init_primitive_uv_island_ids(MeshData &mesh_data)
   mesh_data.uv_island_ids.reinitialize(primitives_num);
 
   AtomicDisjointSet disjoint_set(primitives_num);
-  threading::parallel_for(IndexRange(primitives_num), 1024, [&](const IndexRange range) {
-    for (const int primitive_i : range) {
-      for (const int edge : mesh_data.primitive_to_edge_map[primitive_i]) {
-        for (const int other_primitive_i : mesh_data.edge_to_primitive_map[edge]) {
-          /* Join each pair once. */
-          if (other_primitive_i <= primitive_i) {
-            continue;
-          }
-          if (primitive_has_shared_uv_edge(mesh_data.uv_map,
-                                           mesh_data.corner_tris[primitive_i],
-                                           mesh_data.corner_tris[other_primitive_i]))
-          {
-            disjoint_set.join(primitive_i, other_primitive_i);
-          }
-        }
+
+  /* Initialize with one island per face. */
+  threading::parallel_for(mesh_data.faces.index_range(), 1024, [&](const IndexRange range) {
+    for (const int face : range) {
+      const IndexRange tris = mesh::face_triangles_range(mesh_data.faces, int(face));
+      for (const int tri : tris.drop_front(1)) {
+        disjoint_set.join(tris.first(), tri);
+      }
+    }
+  });
+
+  /* Merge the islands of two faces when their UVs match along an edge. */
+  threading::parallel_for(mesh_data.mesh_edges.index_range(), 1024, [&](const IndexRange range) {
+    for (const int edge_i : range) {
+      if (!mesh_data.is_edge_manifold(edge_i)) {
+        continue;
+      }
+      const Span<int> edge_faces = mesh_data.edge_to_face_map[edge_i];
+      if (faces_have_shared_uv_edge(mesh_data, edge_faces[0], edge_faces[1], edge_i)) {
+        disjoint_set.join(mesh::face_triangles_range(mesh_data.faces, edge_faces[0]).first(),
+                          mesh::face_triangles_range(mesh_data.faces, edge_faces[1]).first());
       }
     }
   });
@@ -195,21 +184,26 @@ static int mesh_data_init_primitive_uv_island_ids(MeshData &mesh_data)
 static void mesh_data_init(MeshData &mesh_data)
 {
   PRF_scope(ProfileCategory::Editor);
-  mesh_data_init_edges(mesh_data);
+  mesh_data_init_topology(mesh_data);
   mesh_data.uv_island_len = mesh_data_init_primitive_uv_island_ids(mesh_data);
 }
 
 MeshData::MeshData(const OffsetIndices<int> faces,
                    const Span<int3> corner_tris,
                    const Span<int> corner_verts,
+                   const Span<int> corner_edges,
+                   const Span<int2> mesh_edges,
+                   const GroupedSpan<int> vert_to_face_map,
                    const Span<float2> uv_map,
                    const Span<float3> vert_positions)
     : faces(faces),
       corner_tris(corner_tris),
       corner_verts(corner_verts),
+      corner_edges(corner_edges),
+      mesh_edges(mesh_edges),
       uv_map(uv_map),
       vert_positions(vert_positions),
-      primitive_to_edge_map(corner_tris.size())
+      vert_to_face_map(vert_to_face_map)
 {
   mesh_data_init(*this);
 }
@@ -339,12 +333,9 @@ static UVPrimitive *add_primitive(const MeshData &mesh_data,
   const int3 &tri = mesh_data.corner_tris[primitive_i];
   uv_island.uv_primitives.append(uv_primitive);
   UVPrimitive *uv_primitive_ptr = &uv_island.uv_primitives.last();
-  const Span<int> tri_edges = mesh_data.primitive_to_edge_map[primitive_i];
-  for (const int i : tri_edges.index_range()) {
-    const int edge_i = tri_edges[i];
-    const int2 edge = mesh_data.edges[edge_i];
-    const int corner_1 = get_uv_corner(mesh_data, tri, edge[0]);
-    const int corner_2 = get_uv_corner(mesh_data, tri, edge[1]);
+  for (const int i : IndexRange(3)) {
+    const int corner_1 = tri[i];
+    const int corner_2 = tri[(i + 1) % 3];
     UVEdge uv_edge_template;
     uv_edge_template.verts[0] = uv_island.lookup_or_create(UVVert(mesh_data, corner_1));
     uv_edge_template.verts[1] = uv_island.lookup_or_create(UVVert(mesh_data, corner_2));
@@ -449,47 +440,84 @@ struct Fan {
 
   } flags;
 
+  /* Other vertices in the fan triangle. */
+  static int2 other_fan_edge_verts(const MeshData &mesh_data, const int vertex, const int tri_i)
+  {
+    const int3 &tri = mesh_data.corner_tris[tri_i];
+    int2 verts;
+    int n = 0;
+    for (int k = 0; k < 3; k++) {
+      const int v = mesh_data.corner_verts[tri[k]];
+      if (v != vertex) {
+        verts[n++] = v;
+      }
+    }
+    return verts;
+  }
+
+  /* Adjacent triangle in the fan, sharing (vert, other_vert) edge. */
+  static int adjacent_tri(const MeshData &mesh_data,
+                          const Span<int> tris,
+                          const int vertex,
+                          const int other_vert,
+                          const int tri_i)
+  {
+    int result = -1;
+    for (const int t : tris) {
+      if (t != tri_i && tri_contains_verts(mesh_data, t, vertex, other_vert)) {
+        if (result != -1) {
+          return -1;
+        }
+        result = t;
+      }
+    }
+    return result;
+  }
+
   Fan(const MeshData &mesh_data, const int vert)
   {
     flags.is_manifold = true;
-    int current_edge = mesh_data.vert_to_edge_map[vert].first();
-    const int stop_primitive = mesh_data.edge_to_primitive_map[current_edge].first();
-    int previous_primitive = stop_primitive;
+
+    /* Gather triangles adjacent to the vertex. */
+    Vector<int, 16> tris;
+    for (const int face : mesh_data.vert_to_face_map[vert]) {
+      for (const int t : mesh::face_triangles_range(mesh_data.faces, face)) {
+        const int3 &tri = mesh_data.corner_tris[t];
+        if (ELEM(vert,
+                 mesh_data.corner_verts[tri[0]],
+                 mesh_data.corner_verts[tri[1]],
+                 mesh_data.corner_verts[tri[2]]))
+        {
+          tris.append(t);
+        }
+      }
+    }
+    if (tris.is_empty()) {
+      flags.is_manifold = false;
+      return;
+    }
+
+    /* Walk the fan around the vertex. */
+    const int start_tri = tris.first();
+    int current_tri = start_tri;
+    int incoming_vert = other_fan_edge_verts(mesh_data, vert, start_tri)[0];
+    segments.append(FanSegment(mesh_data, start_tri, mesh_data.corner_tris[start_tri], vert));
+
     while (true) {
-      bool stop = false;
-      if (!mesh_data.is_edge_manifold(current_edge)) {
+      const int2 verts = other_fan_edge_verts(mesh_data, vert, current_tri);
+      const int outgoing_vert = incoming_vert == verts[0] ? verts[1] : verts[0];
+      const int next_tri = adjacent_tri(mesh_data, tris, vert, outgoing_vert, current_tri);
+      if (next_tri == -1) {
+        /* Reached a mesh boundary or non-manifold edge. */
         flags.is_manifold = false;
         break;
       }
-      for (const int other_primitive_i : mesh_data.edge_to_primitive_map[current_edge]) {
-        if (stop) {
-          break;
-        }
-        if (other_primitive_i == previous_primitive) {
-          continue;
-        }
-
-        const int3 &other_tri = mesh_data.corner_tris[other_primitive_i];
-
-        for (const int edge_i : mesh_data.primitive_to_edge_map[other_primitive_i]) {
-          const int2 edge = mesh_data.edges[edge_i];
-          if (edge_i == current_edge || (edge[0] != vert && edge[1] != vert)) {
-            continue;
-          }
-          segments.append(FanSegment(mesh_data, other_primitive_i, other_tri, vert));
-          current_edge = edge_i;
-          previous_primitive = other_primitive_i;
-          stop = true;
-          break;
-        }
-      }
-      if (stop == false) {
-        flags.is_manifold = false;
+      if (next_tri == start_tri) {
         break;
       }
-      if (stop_primitive == previous_primitive) {
-        break;
-      }
+      segments.append(FanSegment(mesh_data, next_tri, mesh_data.corner_tris[next_tri], vert));
+      incoming_vert = outgoing_vert;
+      current_tri = next_tri;
     }
   }
 
@@ -721,17 +749,23 @@ static int find_fill_primitive(const MeshData &mesh_data,
   if (corner.first->get_uv_vert(island, 0) == corner.second->get_uv_vert(island, 1)) {
     return -1;
   }
-  const int shared_vert_i = corner.second->get_uv_vert(island, 0);
-  const UVVert &shared_vert = island.uv_verts[shared_vert_i];
-  for (const int edge_i : mesh_data.vert_to_edge_map[shared_vert.vert]) {
-    const int2 edge = mesh_data.edges[edge_i];
-    if (island.uv_edges[corner.first->uv_edge_i].has_same_verts(island, edge)) {
-      for (const int primitive_i : mesh_data.edge_to_primitive_map[edge_i]) {
-        const int3 &tri = mesh_data.corner_tris[primitive_i];
-        const int other_vert = primitive_get_other_uv_vert(mesh_data, tri, edge[0], edge[1]);
-        if (other_vert == island.uv_verts[corner.second->get_uv_vert(island, 1)].vert) {
-          return primitive_i;
-        }
+  const int shared_vert = island.uv_verts[corner.second->get_uv_vert(island, 0)].vert;
+  const UVEdge &corner_edge = island.uv_edges[corner.first->uv_edge_i];
+  const int2 edge(island.uv_verts[corner_edge.verts[0]].vert,
+                  island.uv_verts[corner_edge.verts[1]].vert);
+  const int target_vert = island.uv_verts[corner.second->get_uv_vert(island, 1)].vert;
+
+  /* Find the triangle around the shared vertex whose edge is `corner.first` and
+   * remaining vertex is the corner's outer vertex. */
+  for (const int face : mesh_data.vert_to_face_map[shared_vert]) {
+    for (const int primitive_i : mesh::face_triangles_range(mesh_data.faces, int(face))) {
+      if (!tri_contains_verts(mesh_data, primitive_i, edge[0], edge[1])) {
+        continue;
+      }
+      const int3 &tri = mesh_data.corner_tris[primitive_i];
+      const int other_vert = primitive_get_other_uv_vert(mesh_data, tri, edge[0], edge[1]);
+      if (other_vert == target_vert) {
+        return primitive_i;
       }
     }
   }

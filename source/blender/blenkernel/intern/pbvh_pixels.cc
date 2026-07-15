@@ -475,6 +475,9 @@ static bool update_pixels(const Depsgraph &depsgraph,
   uv_islands::MeshData mesh_data(mesh.faces(),
                                  mesh.corner_tris(),
                                  mesh.corner_verts(),
+                                 mesh.corner_edges(),
+                                 mesh.edges(),
+                                 mesh.vert_to_face_map(),
                                  uv_map,
                                  bke::pbvh::vert_positions_eval(depsgraph, object));
 
