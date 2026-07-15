@@ -1505,8 +1505,16 @@ static wmOperatorStatus replace_action_duplicate_exec(bContext *C, wmOperator *o
   const uint32_t old_session_uid = RNA_int_get(op->ptr, "old_session_uid");
   bAction *dna_action = reinterpret_cast<bAction *>(
       BKE_libblock_find_session_uid(bmain, ID_AC, old_session_uid));
-  BLI_assert(dna_action);
+
+  if (!dna_action) {
+    BKE_report(op->reports, RPT_ERROR_INVALID_INPUT, "Invalid UID for old Action");
+    return OPERATOR_CANCELLED;
+  }
+
   bAction *dna_copy = id_cast<bAction *>(BKE_id_copy(bmain, &dna_action->id));
+  /* `BKE_id_copy` returns an ID with a user count of 1 although no user has yet been assigned. */
+  id_us_min(&dna_copy->id);
+  BLI_assert(dna_copy->id.us == 0);
 
   Vector<ID *> failures = replace_action(*bmain, dna_action->wrap(), dna_copy->wrap());
   replace_action_common_failure_report(failures, *op->reports);
