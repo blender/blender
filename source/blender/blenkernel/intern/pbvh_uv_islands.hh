@@ -38,7 +38,7 @@ struct UVIslandsMask;
 struct UVPrimitive;
 struct MeshData;
 struct UVIsland;
-struct UVVertex;
+struct UVVert;
 
 class TriangleToEdgeMap {
   Array<std::array<int, 3>> edges_of_triangle_;
@@ -103,12 +103,12 @@ struct MeshData {
   }
 };
 
-struct UVVertex {
-  int vertex;
+struct UVVert {
+  int vert;
   /* Position in uv space. */
   float2 uv;
 
-  /* uv edges that share this UVVertex. */
+  /* uv edges that share this UVVert. */
   Vector<UVEdge *> uv_edges;
 
   struct {
@@ -116,20 +116,20 @@ struct UVVertex {
     bool is_extended : 1;
   } flags;
 
-  explicit UVVertex();
-  explicit UVVertex(const MeshData &mesh_data, int loop);
+  explicit UVVert();
+  explicit UVVert(const MeshData &mesh_data, int corner);
 };
 
 struct UVEdge {
-  std::array<UVVertex *, 2> vertices;
+  std::array<UVVert *, 2> verts;
   Vector<int, 2> uv_primitive_indices;
 
-  UVVertex *get_other_uv_vertex(int vertex_index);
-  bool has_same_vertices(const int2 &edge) const;
+  UVVert *get_other_uv_vert(int vert);
+  bool has_same_verts(const int2 &edge) const;
   bool is_border_edge() const;
 
  private:
-  bool has_same_vertices(int vert1, int vert2) const;
+  bool has_same_verts(int vert1, int vert2) const;
 };
 
 struct UVPrimitive {
@@ -142,9 +142,9 @@ struct UVPrimitive {
   explicit UVPrimitive(int primitive_i);
 
   /**
-   * Get the UVVertex in the order that the verts are ordered in the MeshPrimitive.
+   * Get the UVVert in the order that the verts are ordered in the MeshPrimitive.
    */
-  const UVVertex *get_uv_vertex(const MeshData &mesh_data, uint8_t mesh_vert_index) const;
+  const UVVert *get_uv_vert(const MeshData &mesh_data, uint8_t mesh_vert_index) const;
 
   /**
    * Get the UVEdge that share the given uv coordinates.
@@ -153,8 +153,8 @@ struct UVPrimitive {
   UVEdge *get_uv_edge(float2 uv1, float2 uv2) const;
   UVEdge *get_uv_edge(int v1, int v2) const;
 
-  bool contains_uv_vertex(const UVVertex *uv_vertex) const;
-  const UVVertex *get_other_uv_vertex(const UVVertex *v1, const UVVertex *v2) const;
+  bool contains_uv_vert(const UVVert *uv_vert) const;
+  const UVVert *get_other_uv_vert(const UVVert *v1, const UVVert *v2) const;
 };
 
 struct UVBorderEdge {
@@ -174,13 +174,13 @@ struct UVBorderEdge {
 
   explicit UVBorderEdge(UVEdge *edge, int uv_primitive);
 
-  UVVertex *get_uv_vertex(int index);
-  const UVVertex *get_uv_vertex(int index) const;
+  UVVert *get_uv_vert(int index);
+  const UVVert *get_uv_vert(int index) const;
 
   /**
    * Get the uv vertex from the primitive that is not part of the edge.
    */
-  const UVVertex *get_other_uv_vertex(const UVIsland &island) const;
+  const UVVert *get_other_uv_vert(const UVIsland &island) const;
 
   bool is_extendable() const;
 
@@ -244,7 +244,7 @@ struct UVIsland {
    * Useful during debugging to set a breaking condition on a specific island/vert.
    */
   int id;
-  VectorList<UVVertex> uv_vertices;
+  VectorList<UVVert> uv_verts;
   VectorList<UVEdge> uv_edges;
   Vector<UVPrimitive> uv_primitives;
   /**
@@ -257,10 +257,10 @@ struct UVIsland {
    * Key is mesh vert index, Value is list of UVVertices that refer to the mesh vertex with that
    * index. Map is used internally to quickly lookup similar UVVertices.
    */
-  Map<int64_t, Vector<UVVertex *>> uv_vertex_lookup;
+  Map<int64_t, Vector<UVVert *>> uv_vert_lookup;
 
-  UVVertex *lookup(const UVVertex &vertex);
-  UVVertex *lookup_or_create(const UVVertex &vertex);
+  UVVert *lookup(const UVVert &vert);
+  UVVert *lookup_or_create(const UVVert &vert);
   UVEdge *lookup(const UVEdge &edge);
   UVEdge *lookup_or_create(const UVEdge &edge);
 

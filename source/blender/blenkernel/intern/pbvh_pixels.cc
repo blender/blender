@@ -202,9 +202,9 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
       for (const int tri : bke::mesh::face_triangles_range(mesh_data.faces, face)) {
         for (const UVPrimitiveLookup::Entry &entry : uv_prim_lookup.lookup[tri]) {
           float2 uvs[3] = {
-              entry.uv_primitive->get_uv_vertex(mesh_data, 0)->uv - tile_offset,
-              entry.uv_primitive->get_uv_vertex(mesh_data, 1)->uv - tile_offset,
-              entry.uv_primitive->get_uv_vertex(mesh_data, 2)->uv - tile_offset,
+              entry.uv_primitive->get_uv_vert(mesh_data, 0)->uv - tile_offset,
+              entry.uv_primitive->get_uv_vert(mesh_data, 1)->uv - tile_offset,
+              entry.uv_primitive->get_uv_vert(mesh_data, 2)->uv - tile_offset,
           };
           const float minv = clamp_f(std::min({uvs[0].y, uvs[1].y, uvs[2].y}), 0.0f, 1.0f);
           const int miny = floor(minv * image_buffer->y);
