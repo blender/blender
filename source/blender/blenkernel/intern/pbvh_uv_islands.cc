@@ -12,6 +12,7 @@
 #include "BLI_offset_indices.hh"
 #include "BLI_ordered_edge.hh"
 #include "BLI_task.hh"
+#include "BLI_vector_set.hh"
 
 #include "BKE_mesh_mapping.hh"
 
@@ -128,30 +129,29 @@ static GroupedSpan<int> build_edge_to_primitive_map(const TriangleToEdgeMap &pri
 
 static void mesh_data_init_edges(MeshData &mesh_data)
 {
-  mesh_data.edges.reserve(mesh_data.corner_tris.size() * 2);
-  Map<OrderedEdge, int> eh;
-  eh.reserve(mesh_data.corner_tris.size() * 3);
-  for (int64_t tri_index = 0; tri_index < mesh_data.corner_tris.size(); tri_index++) {
-    const int3 &tri = mesh_data.corner_tris[tri_index];
-    Vector<int, 3> tri_edges;
-    for (int j = 0; j < 3; j++) {
-      int v1 = mesh_data.corner_verts[tri[j]];
-      int v2 = mesh_data.corner_verts[tri[(j + 1) % 3]];
-
-      int64_t edge_index = mesh_data.edges.size();
-      const bool is_new_edge = eh.add({v1, v2}, edge_index);
-      if (is_new_edge) {
-        mesh_data.edges.append({v1, v2});
-      }
-      else {
-        edge_index = eh.lookup({v1, v2});
-      }
-
-      tri_edges.append(edge_index);
-    }
-    mesh_data.primitive_to_edge_map.add(tri_edges, tri_index);
+  const Span<int> corner_verts = mesh_data.corner_verts;
+  const Span<int3> corner_tris = mesh_data.corner_tris;
+  using EdgeMap = VectorSet<OrderedEdge,
+                            32,
+                            DefaultProbingStrategy,
+                            DefaultHash<OrderedEdge>,
+                            DefaultEquality<OrderedEdge>,
+                            SimpleVectorSetSlot<OrderedEdge, int>,
+                            GuardedAllocator>;
+  EdgeMap edges;
+  edges.reserve(mesh_data.corner_tris.size() * 2);
+  for (const int tri_i : corner_tris.index_range()) {
+    const int3 &tri = mesh_data.corner_tris[tri_i];
+    const std::array<int, 3> tri_edges{
+        int(edges.index_of_or_add({corner_verts[tri[0]], corner_verts[tri[1]]})),
+        int(edges.index_of_or_add({corner_verts[tri[1]], corner_verts[tri[2]]})),
+        int(edges.index_of_or_add({corner_verts[tri[2]], corner_verts[tri[0]]})),
+    };
+    mesh_data.primitive_to_edge_map.add(tri_edges, tri_i);
   }
-  mesh_data.vert_to_edge_map = mesh::build_vert_to_edge_map(mesh_data.edges,
+
+  mesh_data.edges = edges.extract_vector();
+  mesh_data.vert_to_edge_map = mesh::build_vert_to_edge_map(mesh_data.edges.as_span().cast<int2>(),
                                                             mesh_data.vert_positions.size(),
                                                             mesh_data.vert_to_edge_offsets,
                                                             mesh_data.vert_to_edge_indices);
@@ -342,7 +342,7 @@ static UVPrimitive *add_primitive(const MeshData &mesh_data,
   const Span<int> tri_edges = mesh_data.primitive_to_edge_map[primitive_i];
   for (const int i : tri_edges.index_range()) {
     const int edge_i = tri_edges[i];
-    const int2 &edge = mesh_data.edges[edge_i];
+    const int2 edge = mesh_data.edges[edge_i];
     const int corner_1 = get_uv_corner(mesh_data, tri, edge[0]);
     const int corner_2 = get_uv_corner(mesh_data, tri, edge[1]);
     UVEdge uv_edge_template;
@@ -472,7 +472,7 @@ struct Fan {
         const int3 &other_tri = mesh_data.corner_tris[other_primitive_i];
 
         for (const int edge_i : mesh_data.primitive_to_edge_map[other_primitive_i]) {
-          const int2 &edge = mesh_data.edges[edge_i];
+          const int2 edge = mesh_data.edges[edge_i];
           if (edge_i == current_edge || (edge[0] != vert && edge[1] != vert)) {
             continue;
           }
@@ -724,7 +724,7 @@ static int find_fill_primitive(const MeshData &mesh_data,
   const int shared_vert_i = corner.second->get_uv_vert(island, 0);
   const UVVert &shared_vert = island.uv_verts[shared_vert_i];
   for (const int edge_i : mesh_data.vert_to_edge_map[shared_vert.vert]) {
-    const int2 &edge = mesh_data.edges[edge_i];
+    const int2 edge = mesh_data.edges[edge_i];
     if (island.uv_edges[corner.first->uv_edge_i].has_same_verts(island, edge)) {
       for (const int primitive_i : mesh_data.edge_to_primitive_map[edge_i]) {
         const int3 &tri = mesh_data.corner_tris[primitive_i];

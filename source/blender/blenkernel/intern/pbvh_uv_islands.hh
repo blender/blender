@@ -27,6 +27,7 @@
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
+#include "BLI_ordered_edge.hh"
 #include "BLI_vector.hh"
 #include "BLI_vector_list.hh"
 
@@ -76,7 +77,7 @@ struct MeshData {
   Array<int> vert_to_edge_indices;
   GroupedSpan<int> vert_to_edge_map;
 
-  Vector<int2> edges;
+  Vector<OrderedEdge> edges;
   Array<int> edge_to_primitive_offsets;
   Array<int> edge_to_primitive_indices;
   GroupedSpan<int> edge_to_primitive_map;
