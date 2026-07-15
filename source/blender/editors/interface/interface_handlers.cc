@@ -13406,16 +13406,12 @@ void refresh_for_srna_unregister(Main *bmain, StructRNA *srna_to_unreg)
 bool textbutton_activate_rna(const bContext *C,
                              ARegion *region,
                              const void *rna_poin_data,
-                             const char *rna_prop_id,
-                             std::optional<StringRefNull> block_name)
+                             const char *rna_prop_id)
 {
   Block *block_text = nullptr;
   Button *but_text = nullptr;
 
   for (Block &block : region->runtime->uiblocks) {
-    if (block_name && *block_name != block.name) {
-      continue;
-    }
     for (Button &but : block.buttons()) {
       if (but.type == ButtonType::Text) {
         if (but.rnaprop && but.rnapoin.data == rna_poin_data) {

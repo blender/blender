@@ -1478,8 +1478,7 @@ static wmOperatorStatus outliner_start_filter_exec(bContext *C, wmOperator * /*o
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
-
-  ED_region_activate_rna_prop(C, region, space_outliner, "filter_text", "OUTLINER_HT_header");
+  ui::textbutton_activate_rna(C, region, space_outliner, "filter_text");
 
   return OPERATOR_FINISHED;
 }

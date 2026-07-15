@@ -58,7 +58,7 @@ static wmOperatorStatus buttons_start_filter_exec(bContext *C, wmOperator * /*op
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
 
-  ED_region_activate_rna_prop(C, region, space, "search_filter", "PROPERTIES_HT_header");
+  ui::textbutton_activate_rna(C, region, space, "search_filter");
 
   return OPERATOR_FINISHED;
 }

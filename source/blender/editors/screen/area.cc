@@ -636,32 +636,6 @@ void ED_region_tag_redraw(ARegion *region)
   }
 }
 
-void ED_region_activate_rna_prop(bContext *C,
-                                 ARegion *region,
-                                 const void *data,
-                                 StringRefNull prop_name,
-                                 StringRefNull block_name)
-{
-  /* Try first to open the button, otherwise try after region redraw. */
-  if (!(region->runtime->do_draw & (RGN_DRAW | RGN_DRAWING)) &&
-      ui::textbutton_activate_rna(C, region, data, prop_name.data(), block_name))
-  {
-    return;
-  }
-  region->runtime->post_block_layout_fns
-      .lookup_or_add_cb_as(block_name,
-                           []() { return Vector<std::function<void(const bContext &C)>>{}; })
-      .append([data, prop_name = std::string(prop_name), block_name](const bContext &C) {
-        ARegion *region = CTX_wm_region(&C);
-        ui::textbutton_activate_rna(&C, region, data, prop_name.c_str(), block_name);
-      });
-
-  if (region->flag & RGN_FLAG_HIDDEN) {
-    ED_region_toggle_hidden(C, region);
-  }
-  ED_region_tag_redraw(region);
-}
-
 void ED_region_tag_redraw_cursor(ARegion *region)
 {
   if (region) {
@@ -3256,7 +3230,7 @@ static void ed_panel_draw(const bContext *C,
     }
   }
 
-  block_end(C, block, true);
+  block_end(C, block);
 
   /* Draw child panels. */
   if (open || search_filter_active) {
@@ -3544,9 +3518,6 @@ void ED_region_panels_layout_ex(const bContext *C,
 
   if (use_categories) {
     region->runtime->category = category;
-  }
-  for (ui::Block &block : region->runtime->uiblocks) {
-    block_post_layout_callbacks_exec(C, region, &block);
   }
 }
 
