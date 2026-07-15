@@ -936,6 +936,7 @@ void tree_element_type_active_set(bContext *C,
       break;
     case TSE_SHAPE_KEY_BLOCK:
       tree_elemment_shapekey_active_set(C, te);
+      break;
     default:
       break;
   }
