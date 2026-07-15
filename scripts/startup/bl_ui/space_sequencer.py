@@ -1930,8 +1930,7 @@ class SEQUENCER_PT_view_composition_guides(SequencerButtonsPanel_Output, Panel):
         return is_preview and (st.display_mode == 'IMAGE') and context.sequencer_scene
 
     def draw_header(self, context):
-        layout = self.layout
-        overlay_settings = context.space_data.preview_overlay
+        pass
 
     def draw(self, context):
         overlay_settings = context.space_data.preview_overlay
