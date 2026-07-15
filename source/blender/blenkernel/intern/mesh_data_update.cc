@@ -753,14 +753,11 @@ static GeometrySet editbmesh_calc_modifiers(Depsgraph &depsgraph,
 
   int cageIndex = BKE_modifiers_get_cage_index(&scene, &ob, nullptr, true);
 
-  /* Add the cage mesh to the geometry set after evaluating all modifiers in case it's removed. */
+  /* Mesh before evaluation, to detect if a modifier replaces it (only use for comparison). */
+  const Mesh *mesh_geometry_set_init = cageIndex == -1 ? geometry_set.get_mesh() : nullptr;
+
+  /* Cage mesh, set by a cage modifier or from the final mesh below. */
   GeometryComponentPtr cage_mesh;
-  if (cageIndex == -1) {
-    /* Ideally we could reuse the mesh component of `geometry_set`,
-     * however this may be replaced as part of evaluating the modifier stack. */
-    cage_mesh = GeometryComponentPtr(new MeshComponent(BKE_mesh_wrapper_from_editmesh(
-        mesh_input.runtime->edit_mesh, &final_datamask, &mesh_input)));
-  }
 
   /* The mesh from edit mode should not have any original index layers already, since those
    * are added during evaluation when necessary and are redundant on an original mesh. */
@@ -779,6 +776,7 @@ static GeometrySet editbmesh_calc_modifiers(Depsgraph &depsgraph,
   }
 
   bool non_deform_modifier_applied = false;
+  bool deform_modifier_applied = false;
   for (int i = 0; md; i++, md = md->next, md_datamask = md_datamask->next) {
     const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
     if (!editbmesh_modifier_is_enabled(&scene, &ob, md, non_deform_modifier_applied)) {
@@ -799,6 +797,7 @@ static GeometrySet editbmesh_calc_modifiers(Depsgraph &depsgraph,
     }
 
     if (mti->type == ModifierTypeType::OnlyDeform) {
+      deform_modifier_applied = true;
       if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
         if (mti->deform_verts_EM) {
           BKE_modifier_deform_vertsEM(
@@ -886,6 +885,22 @@ static GeometrySet editbmesh_calc_modifiers(Depsgraph &depsgraph,
 
   if (mesh_orco) {
     BKE_id_free(nullptr, mesh_orco);
+  }
+
+  /* In all likelihood, when `cageIndex == -1`. */
+  if (!cage_mesh) {
+    /* It's important to reuse the `geometry_set` mesh when not deformed
+     * so the overlay engine sees these as the same mesh (pointer compassing is used).
+     * Otherwise there are subtle artifacts from the mesh Z-fighting with itself, See: !161224. */
+    if ((deform_modifier_applied == false) && (non_deform_modifier_applied == false) &&
+        (mesh_geometry_set_init && mesh_geometry_set_init == geometry_set.get_mesh()))
+    {
+      cage_mesh = geometry_set.get_component_ptr(GeometryComponent::Type::Mesh);
+    }
+    else {
+      cage_mesh = GeometryComponentPtr(new MeshComponent(BKE_mesh_wrapper_from_editmesh(
+          mesh_input.runtime->edit_mesh, &final_datamask, &mesh_input)));
+    }
   }
 
   MeshEditHints &edit_data = geometry_mesh_edit_hints_ensure(geometry_set);
