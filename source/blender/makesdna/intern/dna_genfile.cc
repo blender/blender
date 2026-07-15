@@ -336,7 +336,7 @@ static const StringRef sdna_data_pointer_read_string(const char *&data,
 /**
  * Check a struct's declared size matches the sum of its member sizes.
  *
- * Blender's own DNA always satisfies this (makesdna uses explicit `_pad` members, never implicit
+ * Blender's own DNA always satisfies this (`makesdna` uses explicit `_pad` members, never implicit
  * padding), so a mismatch means corrupt sizes - which would let struct reconstruction stride
  * `old_block` past the end of the file data.
  *

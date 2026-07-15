@@ -346,7 +346,7 @@ float3x3 from_up_axis(float3 up)
 
 /**
  * Create a rotation matrix from an up axis, and an incident vector I.
- * The other axes are chhosen to always be orthogonal. The resulting matrix is a basis matrix.
+ * The other axes are chosen to always be orthogonal. The resulting matrix is a basis matrix.
  * \note `forward` and `up` must be normalized.
  * \note This can be used to create a tangent basis from a normal vector and a light/view vector.
  */

@@ -98,7 +98,7 @@ struct Changes {
 /** Flush updates in an image buffer, must be called before #IMB_partial_update_collect. */
 void IMB_partial_update_flush(ImBuf *ibuf);
 
-/* Current global changeset ID. */
+/** Current global changeset ID. */
 int64_t IMB_partial_update_changeset_id_current();
 
 /** Next global changeset ID. */
@@ -109,7 +109,7 @@ imbuf::partial_update::Changes IMB_partial_update_collect(ImBuf *ibuf, int64_t l
 
 /** \} */
 
-/** Free the partial updaate storage. */
+/** Free the partial update storage. */
 void IMB_partial_update_free(ImBuf *ibuf);
 
 }  // namespace blender

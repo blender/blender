@@ -110,9 +110,8 @@ void textbox_textedit_set_cursor_pos(ButtonTextBox *textbox,
       fstyle.uifont_id, line.data(), line.size(), int(xy.x - start.x));
   int position = line.begin() - lines[0].data() + offset;
 #ifdef WITH_INPUT_IME
-  /* Textbox text wrap includes the IME composition string, remove the ime string pad from the
-   * selection.
-   */
+  /* Text-box text wrap includes the IME composition string, remove the IME string pad from the
+   * selection. */
   const wmIMEData *ime_data = button_ime_data_get(textbox);
   if (ime_data && position > int(textbox->pos)) {
     position = std::max<int>(int(textbox->pos), position - int(ime_data->composite.size()));
@@ -248,8 +247,8 @@ Vector<StringRef> textbox_wrap_lines(ButtonTextBox *textbox)
   }
   textbox->last_total_lines = lines.size();
 
-  /* WORKAROUND: Textbox event handling and drawing requires lines to not include line breaks, but
-   * sometimes text wrap adds them and other times not. */
+  /* WORKAROUND: Text-box event handling and drawing requires lines to not include line breaks,
+   * but sometimes text wrap adds them and other times not. */
   for (int i : lines.index_range()) {
     if (lines[i].endswith("\n")) {
       lines[i] = lines[i].drop_suffix(1);

@@ -301,7 +301,7 @@ BLI_NOINLINE static void paint_blend_pixels_color_managed(
 
 /**
  * Perform paint pixel blending with computed factors.
- * Templated and specialized for common color spaces since this is a hotspot.
+ * Templated and specialized for common color spaces since this is a hot-spot.
  */
 template<typename PixelT>
 static void paint_blend_pixels(const PaintBlendSettings &settings,

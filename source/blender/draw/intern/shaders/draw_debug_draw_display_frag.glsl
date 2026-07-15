@@ -30,7 +30,7 @@ float4 pack_line_data(float2 frag_co, float2 edge_start, float2 edge_pos)
     float sin_theta = perp.x;
     float dist = dot(perp, frag_co - edge_start);
 
-    /* Leave 0.1f boundary around dist to differentiate cleared or intentially blocked pixels. */
+    /* Leave 0.1f boundary around dist to differentiate cleared or intentionally blocked pixels. */
     return float4(sin_theta * 0.5f + 0.5f, dist * 0.4f + 0.5f, 0.0f, 1.0f);
   }
   else {

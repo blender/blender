@@ -2789,8 +2789,8 @@ static void rna_def_library(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Library Overrides Need resync",
                            "True if this library contains library overrides that are linked in "
-                           "current blendfile, and that had to be recursively resynced on load "
-                           "(it is recommended to open and re-save that library blendfile then)");
+                           "current blend-file, and that had to be recursively resynced on load "
+                           "(it is recommended to open and re-save that library blend-file then)");
 
   prop = RNA_def_property(srna, "is_editable", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "runtime->tag", LIBRARY_ASSET_EDITABLE);

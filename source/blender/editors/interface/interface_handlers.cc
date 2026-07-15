@@ -9452,8 +9452,8 @@ static void button_activate_state(bContext *C, Button *but, HandleButtonState st
     data->text_select_auto_scroll = nullptr;
   }
 
-  /* Only Textbox buttons can set #BUTTON_STATE_TEXTBOX_SCROLLING or #BUTTON_STATE_TEXTBOX_RESIZING
-   * as state. */
+  /* Only Text-box buttons can set
+   * #BUTTON_STATE_TEXTBOX_SCROLLING or #BUTTON_STATE_TEXTBOX_RESIZING as state. */
   BLI_assert(!ELEM(state, BUTTON_STATE_TEXTBOX_SCROLLING, BUTTON_STATE_TEXTBOX_RESIZING) ||
              but->type == ButtonType::TextBox);
 

@@ -440,7 +440,7 @@ ClosureLight bxdf_ggx_light_transmission([[resource_table]] const UtilityTexture
     float3 L = bxdf_ggx_dominant_direction_transmission(cl.N, V, cl.ior, perceptual_roughness);
     cl.N = -thickness.shape_intersect(cl.N, L).hit_N;
 
-    /* TODO(not_mark): fix #151205 by e.g. amending V to V_transmitted up the callstack. */
+    /* TODO(not_mark): fix #151205 by e.g. amending V to V_transmitted up the call-stack. */
     V_transmitted = -L;
   }
 

@@ -241,7 +241,7 @@ std::string GPU_shader_preprocess_source(StringRefNull original,
 
   if (error.has_value()) {
     std::cerr << error->full_report << std::endl;
-    return "\n#error conversion failled\n";
+    return "\n#error conversion failed\n";
   }
 
   for (auto builtin : metadata.builtins) {
