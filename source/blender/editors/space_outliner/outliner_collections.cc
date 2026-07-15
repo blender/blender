@@ -222,29 +222,6 @@ static bool collection_new_poll(bContext *C)
 /** \name New Collection
  * \{ */
 
-struct CollectionNewData {
-  bool error;
-  Collection *collection;
-};
-
-static TreeTraversalAction collection_find_selected_to_add(TreeElement *te, void *customdata)
-{
-  CollectionNewData *data = static_cast<CollectionNewData *>(customdata);
-  Collection *collection = outliner_collection_from_tree_element(te);
-
-  if (!collection) {
-    return TRAVERSE_SKIP_CHILDS;
-  }
-
-  if (data->collection != nullptr) {
-    data->error = true;
-    return TRAVERSE_BREAK;
-  }
-
-  data->collection = collection;
-  return TRAVERSE_CONTINUE;
-}
-
 static wmOperatorStatus collection_new_exec(bContext *C, wmOperator *op)
 {
   WorkSpace *workspace = CTX_wm_workspace(C);
@@ -254,28 +231,23 @@ static wmOperatorStatus collection_new_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  CollectionNewData data{};
+  Collection *collection = nullptr;
 
   if (RNA_boolean_get(op->ptr, "nested")) {
     outliner_build_tree(bmain, workspace, scene, view_layer, space_outliner, region);
 
-    outliner_tree_traverse(space_outliner,
-                           &space_outliner->runtime->tree,
-                           0,
-                           TSE_SELECTED,
-                           collection_find_selected_to_add,
-                           &data);
-
-    if (data.error) {
-      BKE_report(op->reports, RPT_ERROR, "More than one collection is selected");
-      return OPERATOR_CANCELLED;
+    TreeElement *active_te = outliner_find_element_with_flag(&space_outliner->runtime->tree,
+                                                             TSE_ACTIVE);
+    collection = outliner_collection_from_tree_element(active_te);
+    if (active_te->idcode == ID_OB) {
+      collection = BKE_collection_object_find(
+          bmain, scene, nullptr, reinterpret_cast<Object *>(active_te->store_elem->id));
     }
   }
 
-  if (data.collection == nullptr || !ID_IS_EDITABLE(data.collection) ||
-      ID_IS_OVERRIDE_LIBRARY(data.collection))
-  {
-    data.collection = scene->master_collection;
+  if (collection == nullptr || !ID_IS_EDITABLE(collection) || ID_IS_OVERRIDE_LIBRARY(collection)) {
+    collection = view_layer->active_collection ? view_layer->active_collection->collection :
+                                                 scene->master_collection;
   }
 
   if (!ID_IS_EDITABLE(scene) || ID_IS_OVERRIDE_LIBRARY(scene)) {
@@ -283,8 +255,8 @@ static wmOperatorStatus collection_new_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  Collection *new_collection = BKE_collection_add(bmain, data.collection, nullptr);
-  new_collection->color_tag = data.collection->color_tag;
+  Collection *new_collection = BKE_collection_add(bmain, collection, nullptr);
+  new_collection->color_tag = collection->color_tag;
   BKE_view_layer_synced_ensure(*bmain, scene, view_layer);
   if (LayerCollection *layer_collection = BKE_layer_collection_first_from_scene_collection(
           view_layer, new_collection))
@@ -294,7 +266,7 @@ static wmOperatorStatus collection_new_exec(bContext *C, wmOperator *op)
     ED_outliner_select_sync_flag_outliners(C);
   }
 
-  DEG_id_tag_update(&data.collection->id, ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update(&collection->id, ID_RECALC_SYNC_TO_EVAL);
   DEG_relations_tag_update(bmain);
 
   outliner_cleanup_tree(space_outliner);
