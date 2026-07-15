@@ -803,26 +803,26 @@ static void extend_at_vert(const MeshData &mesh_data,
                                     corner.first->get_uv_vertex(0),
                                     center_uv,
                                     fill_primitive_1_i);
-    const int new_prim_1 = island.uv_primitives.size() - 1;
+    const int new_prim_1_i = island.uv_primitives.size() - 1;
     add_uv_primitive_shared_uv_edge(mesh_data,
                                     island,
                                     corner.second->get_uv_vertex(0),
                                     corner.second->get_uv_vertex(1),
                                     center_uv,
                                     fill_primitive_2_i);
-    const int new_prim_2 = island.uv_primitives.size() - 1;
+    const int new_prim_2_i = island.uv_primitives.size() - 1;
 
     /* Update border after adding the new geometry. */
     {
       UVBorderEdge *border_edge = corner.first;
-      border_edge->uv_primitive = new_prim_1;
+      border_edge->uv_primitive = new_prim_1_i;
       border_edge->edge = island.uv_primitives[border_edge->uv_primitive].get_uv_edge(
           corner.first->get_uv_vertex(0)->uv, center_uv);
       border_edge->reverse_order = border_edge->edge->vertices[0]->uv == center_uv;
     }
     {
       UVBorderEdge *border_edge = corner.second;
-      border_edge->uv_primitive = new_prim_2;
+      border_edge->uv_primitive = new_prim_2_i;
       border_edge->edge = island.uv_primitives[border_edge->uv_primitive].get_uv_edge(
           corner.second->get_uv_vertex(1)->uv, center_uv);
       border_edge->reverse_order = border_edge->edge->vertices[1]->uv == center_uv;
@@ -864,12 +864,12 @@ static void extend_at_vert(const MeshData &mesh_data,
 
       add_uv_primitive_fill(island, *vertex_1_ptr, *vertex_2_ptr, *vertex_3_ptr, fill_primitive_i);
 
-      const int new_prim = island.uv_primitives.size() - 1;
-      current_edge = island.uv_primitives[new_prim].get_uv_edge(uv_vertex->vertex,
-                                                                other_prim_vertex);
+      const int new_prim_i = island.uv_primitives.size() - 1;
+      current_edge = island.uv_primitives[new_prim_i].get_uv_edge(uv_vertex->vertex,
+                                                                  other_prim_vertex);
       UVBorderEdge new_border(
-          island.uv_primitives[new_prim].get_uv_edge(shared_edge_vertex, other_prim_vertex),
-          new_prim);
+          island.uv_primitives[new_prim_i].get_uv_edge(shared_edge_vertex, other_prim_vertex),
+          new_prim_i);
       new_border_edges.append(new_border);
     }
 
