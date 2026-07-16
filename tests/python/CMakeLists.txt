@@ -688,6 +688,12 @@ if(TEST_SRC_DIR_EXISTS)
   )
 
   add_blender_test(
+    physics_particle_legacy_texture_uv
+    ${TEST_SRC_DIR}/physics/particle_legacy_texture_uv.blend
+    --python ${TEST_PYTHON_DIR}/physics_particle_legacy_texture_uv.py
+  )
+
+  add_blender_test(
     physics_particle_instance
     ${TEST_SRC_DIR}/physics/physics_particle_instance.blend
     --python ${TEST_PYTHON_DIR}/physics_particle_instance.py

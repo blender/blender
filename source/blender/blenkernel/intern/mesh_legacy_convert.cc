@@ -589,12 +589,17 @@ static void update_active_fdata_layers(Mesh &mesh, CustomData *fdata_legacy, Cus
 {
   int act;
 
-  if (CustomData_has_layer(ldata, CD_PROP_FLOAT2)) {
-    act = CustomData_get_active_layer(ldata, CD_PROP_FLOAT2);
-    CustomData_set_layer_active(fdata_legacy, CD_MTFACE, act);
+  /* Active/default UV map status is stored by name on Mesh, not in CustomData. */
+  if (CustomData_has_layer(fdata_legacy, CD_MTFACE)) {
+    act = CustomData_get_named_layer(fdata_legacy, CD_MTFACE, mesh.active_uv_map_name());
+    if (act != -1) {
+      CustomData_set_layer_active(fdata_legacy, CD_MTFACE, act);
+    }
 
-    act = CustomData_get_render_layer(ldata, CD_PROP_FLOAT2);
-    CustomData_set_layer_render(fdata_legacy, CD_MTFACE, act);
+    act = CustomData_get_named_layer(fdata_legacy, CD_MTFACE, mesh.default_uv_map_name());
+    if (act != -1) {
+      CustomData_set_layer_render(fdata_legacy, CD_MTFACE, act);
+    }
   }
 
   if (CustomData_has_layer(ldata, CD_PROP_BYTE_COLOR)) {
