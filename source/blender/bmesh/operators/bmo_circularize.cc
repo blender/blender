@@ -100,17 +100,6 @@ static bool is_valid_boundary_edge(BMEdge *e, const char hflag, const bool check
   return true;
 }
 
-struct CircularizeEdgeTestParams {
-  char hflag;
-  const bool *check_axis;
-};
-
-static bool bm_edge_circularize_test_cb(BMEdge *e, void *user_data)
-{
-  const auto *params = static_cast<const CircularizeEdgeTestParams *>(user_data);
-  return is_valid_boundary_edge(e, params->hflag, params->check_axis);
-}
-
 /** Collects all valid boundary edge chains from the current selection. */
 static void bm_vert_chain_extract_from_boundary_edges(BMesh *bm,
                                                       Vector<VertChain> &r_chains,
@@ -121,12 +110,12 @@ static void bm_vert_chain_extract_from_boundary_edges(BMesh *bm,
   const BMEdgeLoopFind_Params params = {
       .use_vert_junction = true,
   };
-  CircularizeEdgeTestParams test_params = {
-      .hflag = hflag,
-      .check_axis = check_axis,
-  };
 
-  BM_mesh_edgeloops_find(bm, &eloops, bm_edge_circularize_test_cb, &test_params, &params);
+  BM_mesh_edgeloops_find(
+      bm,
+      &eloops,
+      [&](BMEdge *e) { return is_valid_boundary_edge(e, hflag, check_axis); },
+      &params);
 
   for (BMEdgeLoopStore &el_store : eloops) {
     VertChain chain;

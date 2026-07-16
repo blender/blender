@@ -1077,12 +1077,6 @@ static void bm_edgering_pair_ringsubd(BMesh *bm,
   BM_mesh_edgeloops_free(&eloops_ring);
 }
 
-static bool bm_edge_rim_test_cb(BMEdge *e, void *bm_v)
-{
-  BMesh *bm = static_cast<BMesh *>(bm_v);
-  return BMO_edge_flag_test_bool(bm, e, EDGE_RIM);
-}
-
 void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
 {
   /* NOTE: keep this operator fast, its used in a modifier. */
@@ -1163,7 +1157,8 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
   /* -------------------------------------------------------------------- */
   /* Execute subdivision on all ring pairs */
 
-  count = BM_mesh_edgeloops_find(bm, &eloops_rim, bm_edge_rim_test_cb, static_cast<void *>(bm));
+  count = BM_mesh_edgeloops_find(
+      bm, &eloops_rim, [&](BMEdge *e) { return BMO_edge_flag_test_bool(bm, e, EDGE_RIM); });
 
   if (count < 2) {
     BMO_error_raise(bm, op, BMO_ERROR_CANCEL, "No edge rings found");

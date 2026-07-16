@@ -209,18 +209,14 @@ static void build_relax_phases(int verts_num, bool is_closed, Vector<RelaxPhase>
   }
 }
 
-static bool bm_edge_relax_test_cb(BMEdge *e, void * /*user_data*/)
-{
-  return BM_elem_flag_test(e, BM_ELEM_TAG);
-}
-
 static void get_relax_input_chains(BMesh *bm, Vector<RelaxChainData> &r_chains)
 {
   ListBaseT<BMEdgeLoopStore> eloops = {nullptr};
   const BMEdgeLoopFind_Params params = {
       .use_vert_junction = true,
   };
-  BM_mesh_edgeloops_find(bm, &eloops, bm_edge_relax_test_cb, nullptr, &params);
+  BM_mesh_edgeloops_find(
+      bm, &eloops, [](BMEdge *e) { return BM_elem_flag_test(e, BM_ELEM_TAG); }, &params);
 
   for (BMEdgeLoopStore &el_store : eloops) {
     RelaxChainData chain;

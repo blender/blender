@@ -151,8 +151,7 @@ static bool bm_loop_build(BMEdgeLoopStore *el_store,
 
 int BM_mesh_edgeloops_find(BMesh *bm,
                            ListBaseT<BMEdgeLoopStore> *r_eloops,
-                           bool (*test_fn)(BMEdge *, void *user_data),
-                           void *user_data,
+                           FunctionRef<bool(BMEdge *)> test_fn,
                            const BMEdgeLoopFind_Params *params)
 {
   BMIter iter;
@@ -169,7 +168,7 @@ int BM_mesh_edgeloops_find(BMesh *bm,
   BLI_Stack *edge_stack = BLI_stack_new(sizeof(BMEdge *), __func__);
   BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
     BLI_assert(!BM_elem_flag_test(e, BM_ELEM_INTERNAL_TAG));
-    if (test_fn(e, user_data)) {
+    if (test_fn(e)) {
       BM_elem_flag_enable(e, BM_ELEM_INTERNAL_TAG);
       BM_elem_flag_enable(e->v1, BM_ELEM_INTERNAL_TAG);
       BM_elem_flag_enable(e->v2, BM_ELEM_INTERNAL_TAG);
@@ -337,8 +336,7 @@ static bool bm_loop_path_build_step(BLI_mempool *vs_pool,
 
 bool BM_mesh_edgeloops_find_path(BMesh *bm,
                                  ListBaseT<BMEdgeLoopStore> *r_eloops,
-                                 bool (*test_fn)(BMEdge *, void *user_data),
-                                 void *user_data,
+                                 FunctionRef<bool(BMEdge *)> test_fn,
                                  BMVert *v_src,
                                  BMVert *v_dst)
 {
@@ -364,7 +362,7 @@ bool BM_mesh_edgeloops_find_path(BMesh *bm,
   if (test_fn) {
     BLI_Stack *edge_stack = BLI_stack_new(sizeof(BMEdge *), __func__);
     BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-      if (test_fn(e, user_data)) {
+      if (test_fn(e)) {
         BM_elem_flag_enable(e, BM_ELEM_INTERNAL_TAG);
         BM_elem_flag_enable(e->v1, BM_ELEM_INTERNAL_TAG);
         BM_elem_flag_enable(e->v2, BM_ELEM_INTERNAL_TAG);
