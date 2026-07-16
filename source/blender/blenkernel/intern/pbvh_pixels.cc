@@ -166,6 +166,7 @@ struct UVPrimitiveLookup {
 };
 
 static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
+                             const Span<uv_islands::UVIsland> islands,
                              const uv_islands::UVIslandsMask &uv_masks,
                              const UVPrimitiveLookup &uv_prim_lookup,
                              Image &image,
@@ -182,8 +183,6 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
   pixel_node.uv_primitives.tri_indices.reserve(node.faces().size() * 2);
   pixel_node.uv_primitives.delta_barycentric_coords.reserve(node.faces().size() * 2);
 
-  const Span<int3> corner_tris = mesh_data.corner_tris;
-  const Span<float2> uv_map = mesh_data.uv_map;
   for (ImageTile &tile : image.tiles) {
     image::ImageTileWrapper image_tile(&tile);
     image_user.tile = image_tile.get_tile_number();
@@ -202,24 +201,27 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
 
     for (const int face : node.faces()) {
       for (const int tri : bke::mesh::face_triangles_range(mesh_data.faces, face)) {
-        const std::array<float2, 3> uvs{
-            uv_map[corner_tris[tri][0]] - tile_offset,
-            uv_map[corner_tris[tri][1]] - tile_offset,
-            uv_map[corner_tris[tri][2]] - tile_offset,
-        };
-        const float minv = clamp_f(std::min({uvs[0].y, uvs[1].y, uvs[2].y}), 0.0f, 1.0f);
-        const int miny = floor(minv * image_buffer->y);
-        const float maxv = clamp_f(std::max({uvs[0].y, uvs[1].y, uvs[2].y}), 0.0f, 1.0f);
-        const int maxy = min_ii(ceil(maxv * image_buffer->y), image_buffer->y);
-        const float minu = clamp_f(std::min({uvs[0].x, uvs[1].x, uvs[2].x}), 0.0f, 1.0f);
-        const int minx = floor(minu * image_buffer->x);
-        const float maxu = clamp_f(std::max({uvs[0].x, uvs[1].x, uvs[2].x}), 0.0f, 1.0f);
-        const int maxx = min_ii(ceil(maxu * image_buffer->x), image_buffer->x);
         for (const UVPrimitiveLookup::Entry &entry : uv_prim_lookup.lookup[tri]) {
+          const uv_islands::UVIsland &island = islands[entry.uv_island_index];
+          const uv_islands::UVPrimitive &uv_primitive = *entry.uv_primitive;
+          const float2 uvs[3] = {
+              island.uv_verts[uv_primitive.get_uv_vert(island, mesh_data, 0)].uv - tile_offset,
+              island.uv_verts[uv_primitive.get_uv_vert(island, mesh_data, 1)].uv - tile_offset,
+              island.uv_verts[uv_primitive.get_uv_vert(island, mesh_data, 2)].uv - tile_offset,
+          };
+          const float minv = clamp_f(std::min({uvs[0].y, uvs[1].y, uvs[2].y}), 0.0f, 1.0f);
+          const int miny = floor(minv * image_buffer->y);
+          const float maxv = clamp_f(std::max({uvs[0].y, uvs[1].y, uvs[2].y}), 0.0f, 1.0f);
+          const int maxy = min_ii(ceil(maxv * image_buffer->y), image_buffer->y);
+          const float minu = clamp_f(std::min({uvs[0].x, uvs[1].x, uvs[2].x}), 0.0f, 1.0f);
+          const int minx = floor(minu * image_buffer->x);
+          const float maxu = clamp_f(std::max({uvs[0].x, uvs[1].x, uvs[2].x}), 0.0f, 1.0f);
+          const int maxx = min_ii(ceil(maxu * image_buffer->x), image_buffer->x);
+
           const int uv_prim_index = pixel_node.uv_primitives.tri_indices.size();
           pixel_node.uv_primitives.tri_indices.append(tri);
           pixel_node.uv_primitives.delta_barycentric_coords.append(
-              calc_barycentric_delta_x(image_buffer, uvs.data(), minx, miny));
+              calc_barycentric_delta_x(image_buffer, uvs, minx, miny));
 
           /* Extract the pixels. */
           if (mask_tile != nullptr) {
@@ -228,7 +230,7 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
                                        *mask_tile,
                                        entry.uv_island_index,
                                        uv_prim_index,
-                                       uvs.data(),
+                                       uvs,
                                        minx,
                                        miny,
                                        maxx,
@@ -442,8 +444,14 @@ static bool update_pixels(const Depsgraph &depsgraph,
 
   nodes_to_update.foreach_index(
       [&](const int i) {
-        do_encode_pixels(
-            mesh_data, uv_masks, uv_primitive_lookup, image, image_user, nodes[i], pixel_nodes[i]);
+        do_encode_pixels(mesh_data,
+                         islands,
+                         uv_masks,
+                         uv_primitive_lookup,
+                         image,
+                         image_user,
+                         nodes[i],
+                         pixel_nodes[i]);
       },
       exec_mode::grain_size(1));
   const PixelData &pixel_data = data_get(pbvh);
