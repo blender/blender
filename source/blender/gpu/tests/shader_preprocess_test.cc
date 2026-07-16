@@ -3113,7 +3113,8 @@ static void test_preprocess_parser()
   using namespace std;
   using namespace shader::parser;
 
-  using IntermediateForm = IntermediateForm<FullLexer, FullParser>;
+  using Parser = IntermediateForm<FullLexer, FullParser>;
+  using Lexer = IntermediateForm<FullLexer, DummyParser>;
 
   ErrorHandler err_handler;
 
@@ -3133,7 +3134,7 @@ static void test_preprocess_parser()
 )";
     string expect = R"(
 1;1;1;1;1;1;1;1;1;1;1+1;)";
-    EXPECT_EQ(IntermediateForm(input, err_handler).token_types_str(), expect);
+    EXPECT_EQ(Lexer(input, err_handler).token_types_str(), expect);
   }
   {
     string input = R"(
@@ -3142,8 +3143,8 @@ static void test_preprocess_parser()
     string expect = R"(
 [[A(1,1,A),A,A(A)]])";
     string scopes = R"(GABbcmmmbbcm)";
-    EXPECT_EQ(IntermediateForm(input, err_handler).token_types_str(), expect);
-    EXPECT_EQ(IntermediateForm(input, err_handler).scope_types_str, scopes);
+    EXPECT_EQ(Parser(input, err_handler).token_types_str(), expect);
+    EXPECT_EQ(Parser(input, err_handler).scope_types_str, scopes);
   }
   {
     string input = R"(
@@ -3156,7 +3157,7 @@ class B {
 )";
     string expect = R"(
 sA{AA=1;};SA{AA;};)";
-    EXPECT_EQ(IntermediateForm(input, err_handler).token_types_str(), expect);
+    EXPECT_EQ(Lexer(input, err_handler).token_types_str(), expect);
   }
   {
     string input = R"(
@@ -3171,7 +3172,7 @@ a
 )";
     string expect = R"(
 AZZAZAZA)";
-    EXPECT_EQ(IntermediateForm(input, err_handler).token_types_str(), expect);
+    EXPECT_EQ(Lexer(input, err_handler).token_types_str(), expect);
   }
   {
     string input = R"(
@@ -3181,8 +3182,8 @@ namespace T::U::V {}
     string expect = R"(
 nA{}nA::A::A{})";
     string expect_scopes = R"(GNN)";
-    EXPECT_EQ(IntermediateForm(input, err_handler).token_types_str(), expect);
-    EXPECT_EQ(IntermediateForm(input, err_handler).scope_types_str, expect_scopes);
+    EXPECT_EQ(Parser(input, err_handler).token_types_str(), expect);
+    EXPECT_EQ(Parser(input, err_handler).scope_types_str, expect_scopes);
   }
   {
     string input = R"(
@@ -3198,10 +3199,10 @@ void f(int t = 0) {
 )";
     string expect = R"(
 AA(AA=1){AA=1,A=1,A={1};{A=A=A,AP;i(AEA){r;}}})";
-    EXPECT_EQ(IntermediateForm(input, err_handler).token_types_str(), expect);
+    EXPECT_EQ(Lexer(input, err_handler).token_types_str(), expect);
   }
   {
-    IntermediateForm parser("float i;", err_handler);
+    Parser parser("float i;", err_handler);
     parser.insert_after(Token(parser, 0), "A ");
     parser.insert_after(Token(parser, 0), "B  ");
     EXPECT_EQ(parser.result_get(), "float A B  i;");
@@ -3212,7 +3213,7 @@ A
 #line 100
 B
 )";
-    IntermediateForm parser(input, err_handler);
+    Parser parser(input, err_handler);
     string expect = R"(
 A#A1A)";
     EXPECT_EQ(parser.token_types_str(), expect);
@@ -3236,7 +3237,7 @@ match(, const, bool, , foo, , ;)
 match([a], , int, , bar, [0], ;)
 )";
 
-    IntermediateForm parser(input, err_handler);
+    Parser parser(input, err_handler);
 
     string result = "\n";
     parser().foreach_declaration([&](Scope attributes,

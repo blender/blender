@@ -103,117 +103,124 @@ SourceProcessor::Result SourceProcessor::convert_bsl(metadata::Source external_s
 
   const string filename = filepath_.substr(filepath_.find_last_of('/') + 1);
 
-  string str = this->source_;
+  string str = remove_comments(this->source_);
 
-  str = remove_comments(str);
-  str = disabled_code_mutation(str);
-  str = threadgroup_variables_parse_and_remove(str);
+  Parser parser(error_handler);
+  try {
+    parser.set_str(str);
 
-  parse_builtins(str, filename);
-  Parser parser(str, error_handler);
+    disabled_code_mutation(parser);
+    /* Legacy GLSL compat.  */
+    threadgroup_variables_parse_and_remove(parser);
+    parse_builtins(parser, filename);
+    /* Preprocessor directive parsing & linting. */
+    lint_pragma_once(parser, filename);
+    parse_pragma_runtime_generated(parser);
+    parse_includes(parser);
+    parse_defines(parser);
+    parse_legacy_create_info(parser);
+    parse_library_functions(parser);
 
-  /* Preprocessor directive parsing & linting. */
-  lint_pragma_once(parser, filename);
-  parse_pragma_runtime_generated(parser);
-  parse_includes(parser);
-  parse_defines(parser);
-  parse_legacy_create_info(parser);
-  parse_library_functions(parser);
+    lower_preprocessor(parser);
 
-  lower_preprocessor(parser);
+    parser.apply_mutations();
 
-  parser.apply_mutations();
+    /* Early out for certain files. */
+    if (parser.str().find("\n#pragma no_processing") != string::npos) {
+      cleanup_whitespace(parser);
+      return {line_directive_prefix(filename) + parser.result_get(), metadata_, error_handler.err};
+    }
 
-  /* Early out for certain files. */
-  if (parser.str().find("\n#pragma no_processing") != string::npos) {
+    /* Lower high level parsing complexity.
+     * Merge tokens that can be combined together,
+     * remove the token that are unsupported or that are noop.
+     * All these steps should be independent. */
+    lower_namesless_parameters(parser);
+    lower_attribute_sequences(parser);
+    lower_strings_sequences(parser);
+    lower_swizzle_methods(parser);
+    lower_binary_literals(parser);
+    lower_classes(parser);
+    lower_noop_keywords(parser);
+    lower_trailing_comma_in_list(parser);
+    lower_comma_separated_declarations(parser);
+    lower_assert(parser, filename);
+    /* Lower implicit members before we remove SRT member from their struct. */
+    lower_implicit_member(parser);
+
+    parser.apply_mutations();
+
+    parse_local_symbols(parser);
+
+    /* Linting phase. Detect valid syntax with invalid usage. */
+    lint_unbraced_statements(parser);
+    lint_reserved_tokens(parser);
+    lint_attributes(parser);
+    lint_global_scope_constants(parser);
+    lint_constructors(parser);
+    lint_forward_declared_structs(parser);
+
+    /* All mutations that needs to also be applied on template definitions. */
+    lower_pre_template(parser);
+    /* Lower templates. */
+    lower_templates(parser);
+    /* Lower unions and then lint shared structures. */
+    lower_unions(parser);
+    lower_host_shared_structures(parser);
+    /* Lower enums. */
+    lower_enums(parser);
+    /* Lower SRT and Interfaces. */
+    lower_entry_points(parser);
+    lower_pipeline_definition(parser, filename);
+    lower_resource_table(parser);
+    lower_resource_access_functions(parser);
+    /* Lower class methods. */
+    lower_default_constructors(parser);
+    lower_function_default_arguments(parser);
+    lower_method_definitions(parser);
+    lower_method_calls(parser);
+    lower_empty_struct(parser);
+    /* Lower SRT accesses. */
+    lower_srt_member_access(parser);
+    lower_srt_arguments(parser);
+    lower_entry_points_signature(parser);
+    lower_stage_function(parser);
+    /* Lower string, assert, printf. */
+    lower_strings(parser);
+    lower_printf(parser);
+    /* Lower other C++ constructs. */
+    lower_implicit_return_types(parser);
+    lower_initializer_implicit_types(parser);
+    lower_designated_initializers(parser);
+    lower_aggregate_initializers(parser);
+    lower_array_initializations(parser);
+    lower_scope_resolution_operators(parser);
+    lower_structured_bindings(parser);
+    lower_tests(parser);
+    /* Lower references. */
+    lower_reference_arguments(parser);
+    lower_reference_variables(parser);
+    /* Lower control flow. */
+    lower_static_branch(parser);
+    /* Unroll last to avoid processing more tokens in other phases. */
+    lower_loop_unroll(parser);
+
+    /* GLSL syntax compatibility.
+     * TODO(fclem): Remove. */
+    lower_argument_qualifiers(parser);
+    lower_gather_component(parser);
+
+    /* Cleanup to make output more human readable and smaller for runtime. */
     cleanup_whitespace(parser);
-    return {line_directive_prefix(filename) + parser.result_get(), metadata_, error_handler.err};
+    cleanup_empty_lines(parser);
+    cleanup_line_directives(parser);
+
+    str = parser.result_get();
   }
-
-  /* Lower high level parsing complexity.
-   * Merge tokens that can be combined together,
-   * remove the token that are unsupported or that are noop.
-   * All these steps should be independent. */
-  lower_namesless_parameters(parser);
-  lower_attribute_sequences(parser);
-  lower_strings_sequences(parser);
-  lower_swizzle_methods(parser);
-  lower_binary_literals(parser);
-  lower_classes(parser);
-  lower_noop_keywords(parser);
-  lower_trailing_comma_in_list(parser);
-  lower_comma_separated_declarations(parser);
-  lower_assert(parser, filename);
-  /* Lower implicit members before we remove SRT member from their struct. */
-  lower_implicit_member(parser);
-
-  parser.apply_mutations();
-
-  parse_local_symbols(parser);
-
-  /* Linting phase. Detect valid syntax with invalid usage. */
-  lint_unbraced_statements(parser);
-  lint_reserved_tokens(parser);
-  lint_attributes(parser);
-  lint_global_scope_constants(parser);
-  lint_constructors(parser);
-  lint_forward_declared_structs(parser);
-
-  /* All mutations that needs to also be applied on template definitions. */
-  lower_pre_template(parser);
-  /* Lower templates. */
-  lower_templates(parser);
-  /* Lower unions and then lint shared structures. */
-  lower_unions(parser);
-  lower_host_shared_structures(parser);
-  /* Lower enums. */
-  lower_enums(parser);
-  /* Lower SRT and Interfaces. */
-  lower_entry_points(parser);
-  lower_pipeline_definition(parser, filename);
-  lower_resource_table(parser);
-  lower_resource_access_functions(parser);
-  /* Lower class methods. */
-  lower_default_constructors(parser);
-  lower_function_default_arguments(parser);
-  lower_method_definitions(parser);
-  lower_method_calls(parser);
-  lower_empty_struct(parser);
-  /* Lower SRT accesses. */
-  lower_srt_member_access(parser);
-  lower_srt_arguments(parser);
-  lower_entry_points_signature(parser);
-  lower_stage_function(parser);
-  /* Lower string, assert, printf. */
-  lower_strings(parser);
-  lower_printf(parser);
-  /* Lower other C++ constructs. */
-  lower_implicit_return_types(parser);
-  lower_initializer_implicit_types(parser);
-  lower_designated_initializers(parser);
-  lower_aggregate_initializers(parser);
-  lower_array_initializations(parser);
-  lower_scope_resolution_operators(parser);
-  lower_structured_bindings(parser);
-  lower_tests(parser);
-  /* Lower references. */
-  lower_reference_arguments(parser);
-  lower_reference_variables(parser);
-  /* Lower control flow. */
-  lower_static_branch(parser);
-  /* Unroll last to avoid processing more tokens in other phases. */
-  lower_loop_unroll(parser);
-
-  /* GLSL syntax compatibility.
-   * TODO(fclem): Remove. */
-  lower_argument_qualifiers(parser);
-  lower_gather_component(parser);
-
-  /* Cleanup to make output more human readable and smaller for runtime. */
-  cleanup_whitespace(parser);
-  cleanup_empty_lines(parser);
-  cleanup_line_directives(parser);
-  str = parser.result_get();
+  catch (ParserException &e) {
+    /* Output the current source state for inspection. */
+    return {parser.result_get(), metadata_, error_handler.err};
+  }
 
   str = line_directive_prefix(filename) + str;
   return {str, metadata_, error_handler.err};
@@ -246,39 +253,45 @@ metadata::Source SourceProcessor::parse_include_and_symbols()
 
   const string filename = filepath_.substr(filepath_.find_last_of('/') + 1);
 
-  string str = this->source_;
-  str = remove_comments(str);
-  str = disabled_code_mutation(str);
+  string str = remove_comments(this->source_);
 
-  Parser parser(str, error_handler);
-  parse_pragma_runtime_generated(parser);
-  parse_includes(parser);
+  Parser parser(error_handler);
+  try {
+    parser.set_str(str);
+    disabled_code_mutation(parser);
+    parse_pragma_runtime_generated(parser);
+    parse_includes(parser);
 
-  parser.apply_mutations();
+    parser.apply_mutations();
 
-  lower_preprocessor(parser);
+    lower_preprocessor(parser);
 
-  parser.apply_mutations();
+    parser.apply_mutations();
 
-  /* Lower high level parsing complexity.
-   * Merge tokens that can be combined together,
-   * remove the token that are unsupported or that are noop.
-   * All these steps should be independent. */
-  lower_namesless_parameters(parser);
-  lower_attribute_sequences(parser);
-  lower_strings_sequences(parser);
-  lower_swizzle_methods(parser);
-  lower_classes(parser);
-  lower_noop_keywords(parser);
-  lower_trailing_comma_in_list(parser);
-  lower_comma_separated_declarations(parser);
-  lower_assert(parser, filename);
-  /* Lower implicit members before we remove SRT member from their struct. */
-  lower_implicit_member(parser);
+    /* Lower high level parsing complexity.
+     * Merge tokens that can be combined together,
+     * remove the token that are unsupported or that are noop.
+     * All these steps should be independent. */
+    lower_namesless_parameters(parser);
+    lower_attribute_sequences(parser);
+    lower_strings_sequences(parser);
+    lower_swizzle_methods(parser);
+    lower_classes(parser);
+    lower_noop_keywords(parser);
+    lower_trailing_comma_in_list(parser);
+    lower_comma_separated_declarations(parser);
+    lower_assert(parser, filename);
+    /* Lower implicit members before we remove SRT member from their struct. */
+    lower_implicit_member(parser);
 
-  parser.apply_mutations();
+    parser.apply_mutations();
 
-  parse_local_symbols(parser);
+    parse_local_symbols(parser);
+  }
+  catch (ParserException &e) {
+    /* Expect that the parsing will generate error when the file itself is compiled. */
+    return {};
+  }
 
   return metadata_;
 }
@@ -323,6 +336,12 @@ string SourceProcessor::remove_comments(const string &str)
     }
   }
   return out_str;
+}
+
+void SourceProcessor::remove_comments(Parser &parser)
+{
+  parser().foreach_token(TokenType::Comment, [&](Token tok) { parser.erase(tok); });
+  parser.apply_mutations();
 }
 
 /* Remove trailing white spaces. */
@@ -586,10 +605,8 @@ void SourceProcessor::lower_namesless_parameters(Parser &parser)
   });
 }
 
-string SourceProcessor::disabled_code_mutation(const string &str)
+void SourceProcessor::disabled_code_mutation(Parser &parser)
 {
-  Parser parser(str, error_handler);
-
   auto process_disabled_scope = [&](Token start_tok) {
     /* Search for endif with the same indentation. Assume formatted input. */
     string end_str = string(start_tok.str_with_whitespace()) + "endif";
@@ -627,6 +644,14 @@ string SourceProcessor::disabled_code_mutation(const string &str)
       process_disabled_scope(tokens[0]);
     }
   });
+
+  parser.apply_mutations();
+}
+
+string SourceProcessor::disabled_code_mutation(const string &str)
+{
+  Parser parser(str, error_handler);
+  disabled_code_mutation(parser);
   return parser.result_get();
 }
 
@@ -682,10 +707,8 @@ void SourceProcessor::lower_binary_literals(Parser &parser)
   });
 }
 
-string SourceProcessor::threadgroup_variables_parse_and_remove(const string &str)
+void SourceProcessor::threadgroup_variables_parse_and_remove(Parser &parser)
 {
-  IntermediateForm<FullLexer, DummyParser> parser(str, error_handler);
-
   auto process_shared_var = [&](Token shared_tok, Token type, Token name, Token decl_end) {
     if (shared_tok.str() == "shared") {
       metadata_.shared_variables.push_back(
@@ -698,7 +721,24 @@ string SourceProcessor::threadgroup_variables_parse_and_remove(const string &str
     Token end = tokens[2].find_next(lexit::SemiColon);
     process_shared_var(tokens[0], tokens[1], tokens[2], end);
   });
+  parser.apply_mutations();
+}
 
+string SourceProcessor::threadgroup_variables_parse_and_remove(const string &str)
+{
+  IntermediateForm<FullLexer, DummyParser> parser(str, error_handler);
+  auto process_shared_var = [&](Token shared_tok, Token type, Token name, Token decl_end) {
+    if (shared_tok.str() == "shared") {
+      metadata_.shared_variables.push_back(
+          {string(type.str()), parser.substr_range_inclusive(name, decl_end.prev())});
+
+      parser.erase(shared_tok, decl_end);
+    }
+  };
+  parser().foreach_match("AAA", [&](const vector<Token> &tokens) {
+    process_shared_var(tokens[0], tokens[1], tokens[2], tokens[2].find_next(lexit::SemiColon));
+  });
+  parser.apply_mutations();
   return parser.result_get();
 }
 
@@ -798,6 +838,12 @@ void SourceProcessor::parse_builtins(const string &str, const string &filename, 
       metadata_.builtins.emplace_back(Builtin(hash(token)));
     }
   }
+}
+
+void SourceProcessor::parse_builtins(Parser &parser, const std::string &filename)
+{
+  parser.apply_mutations();
+  parse_builtins(parser.str(), filename);
 }
 
 /* Add padding member to empty structs.
@@ -1205,6 +1251,7 @@ void SourceProcessor::lower_tests(Parser &parser)
         return;
       }
       Scope test_body = toks[6].scope();
+      parser.erase(toks[0], toks[5]);
       test_body.foreach_match("A(..)", [&](Tokens toks) {
         if (toks[0].str().starts_with("EXPECT_")) {
           int id = test_id;

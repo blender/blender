@@ -7,9 +7,6 @@
 #include "infos/eevee_geom_infos.hh"
 #include "infos/eevee_nodetree_infos.hh"
 
-VERTEX_SHADER_CREATE_INFO(eevee_nodetree)
-VERTEX_SHADER_CREATE_INFO(eevee_clip_plane)
-
 #include "draw_model.bsl.hh"
 #include "eevee_attributes_mesh_lib.glsl"
 #include "eevee_nodetree_vert_lib.glsl"

@@ -127,10 +127,12 @@ class SourceProcessor {
 
   /** Remove single and multi-line comments to avoid this complexity during parsing. */
   std::string remove_comments(const std::string &str);
+  void remove_comments(Parser &parser);
   /* Lower preprocessor directives containing `GPU_SHADER`.
    * Avoid processing code that is not destined to be shader code and could contain unsupported
    * syntax. */
   std::string disabled_code_mutation(const std::string &str);
+  void disabled_code_mutation(Parser &parser);
   /* Remove trailing white spaces. */
   template<typename ParserT> void cleanup_whitespace(ParserT &parser);
   /* Successive mutations can introduce a lot of unneeded line directives. */
@@ -158,9 +160,11 @@ class SourceProcessor {
    * This is mostly legacy path as most builtin should be explicitly defined inside the BSL entry
    * points. */
   void parse_builtins(const std::string &str, const std::string &filename, bool pure_glsl = false);
+  void parse_builtins(Parser &parser, const std::string &filename);
 
   /* Legacy shared variable support. */
   std::string threadgroup_variables_parse_and_remove(const std::string &str);
+  void threadgroup_variables_parse_and_remove(Parser &parser);
 
   /* --- Linting --- */
 

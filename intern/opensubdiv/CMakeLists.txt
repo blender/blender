@@ -86,6 +86,8 @@ if(WITH_OPENSUBDIV)
   endif()
 
   set(GLSL_SRC
+    internal/evaluator/shaders/infos/osd_eval_infos.hh
+
     internal/evaluator/shaders/osd_eval_stencils_comp.glsl
     internal/evaluator/shaders/osd_eval_patches_comp.glsl
   )
@@ -95,6 +97,7 @@ if(WITH_OPENSUBDIV)
     ../../source/blender/draw/intern/shaders
 
     internal/evaluator/shaders
+    internal/evaluator/shaders/infos
   )
 
   set(GLSL_C "")

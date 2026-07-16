@@ -17,8 +17,6 @@ using namespace metadata;
 
 void SourceProcessor::lower_maybe_unused(Parser &parser)
 {
-  using namespace metadata;
-
   parser().foreach_token(SquareOpen, [&](Token par_open) {
     if (par_open.next() != '[') {
       return;

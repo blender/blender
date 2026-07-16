@@ -6,8 +6,6 @@
 
 #include "draw_view_infos.hh"  // IWYU pragma: export
 
-VERTEX_SHADER_CREATE_INFO(draw_modelmat_with_custom_id)
-
 #include "draw_curves_lib.glsl"
 #include "draw_model.bsl.hh"
 #include "draw_pointcloud_lib.glsl"

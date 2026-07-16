@@ -11,9 +11,6 @@
 #include "draw_view_infos.hh"
 #include "gpu_index_load_infos.hh"
 
-SHADER_LIBRARY_CREATE_INFO(draw_view)
-SHADER_LIBRARY_CREATE_INFO(draw_view_culling)
-
 #include "draw_intersect_lib.glsl"
 #include "workbench_shader_shared.hh"
 

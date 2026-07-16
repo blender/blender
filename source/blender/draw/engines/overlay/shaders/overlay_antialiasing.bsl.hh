@@ -20,8 +20,6 @@
 #include "overlay_common_lib.glsl"
 #include "overlay_shader_shared.hh"
 
-SHADER_LIBRARY_CREATE_INFO(draw_globals)
-
 namespace overlay::antialiasing {
 
 /* Per-pixel line data, unpacked as its perpendicular direction, and distance to origin. */
@@ -214,6 +212,8 @@ struct FragOut {
                             [[resource_table]] Resources &srt,
                             [[out]] FragOut &frag)
 {
+  SHADER_LIBRARY_CREATE_INFO(draw_globals);
+
   const int2 texel = int2(frag_coord.xy);
 
   /* Fetch center pixel. */

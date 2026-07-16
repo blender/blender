@@ -8,9 +8,6 @@
 
 #include "draw_object_infos_infos.hh"
 
-SHADER_LIBRARY_CREATE_INFO(draw_mesh)
-SHADER_LIBRARY_CREATE_INFO(draw_resource_id_varying)
-
 #include "draw_model_lib.glsl"
 #include "draw_object_infos_lib.glsl"
 #include "draw_view_lib.glsl"
@@ -330,6 +327,8 @@ struct VertOut {
                                 [[out, condition(use_slice)]] VertOut &v_out,
                                 [[position]] float4 &out_position)
 {
+  SHADER_LIBRARY_CREATE_INFO(draw_resource_id_varying);
+
   drw_ResourceID_iface.resource_id = drw_resource_id_raw();
 
   float3 final_pos;

@@ -23,6 +23,8 @@ static std::string to_string(TokenType type)
       return "Word";
     case Number:
       return "Number";
+    case Default:
+      return "default";
     case TemplateOpen:
       return "<";
     case TemplateClose:
@@ -275,7 +277,7 @@ struct ScopeParser {
     }
     open_scope(curr, ScopeType::Struct);
     match('{');
-    member_declaration();
+    members_decl();
     close_scope(curr, ScopeType::Struct);
     match('}');
     /* Support C-style anonymous struct for C compatibility. */
@@ -283,7 +285,7 @@ struct ScopeParser {
     match(';');
   }
 
-  void member_declaration()
+  void members_decl()
   {
     while (true) {
       switch (peek()) {
@@ -338,6 +340,7 @@ struct ScopeParser {
         case Inline:    /* For MSL / C++. */
         case Number:    /* For C++ bit-flags. */
         case Star:      /* For C++ pointers. */
+        case Default:   /* For C++ constructor. */
         case Comma:     /* For C++ constructor. */
         case Equal:     /* For C++ operator. */
         case Word:
@@ -407,7 +410,7 @@ struct ScopeParser {
     match(Union);
     open_scope(curr, ScopeType::Local);
     match('{');
-    member_declaration();
+    members_decl();
     close_scope(curr, ScopeType::Local);
     match('}');
   }
@@ -555,6 +558,7 @@ struct ScopeParser {
           close_scope(curr.prev(), ScopeType::Assignment);
           return;
         case This:
+        case Default: /* For C++ constructor. */
         case Word:
         case Number:
         case EXPRESSION_TOKENS:
@@ -605,6 +609,9 @@ struct ScopeParser {
         case While:
           while_loop();
           break;
+        case Do:
+          do_while_loop();
+          break;
         case Switch:
           switch_statement();
           break;
@@ -621,7 +628,8 @@ struct ScopeParser {
           break;
         case Using:
         case This:
-        case Case: /* For switch cases. */
+        case Case:    /* For switch cases. */
+        case Default: /* For switch cases. */
         case Comma:
         case Break:
         case Const:
@@ -660,6 +668,14 @@ struct ScopeParser {
     match(While);
     condition(1, ScopeType::LoopArgs);
     local_scope(ScopeType::LoopBody);
+  }
+
+  void do_while_loop()
+  {
+    match(Do);
+    local_scope(ScopeType::LoopBody);
+    match(While);
+    condition(1, ScopeType::LoopArgs);
   }
 
   void condition(int arg_needed, ScopeType type)
@@ -1123,7 +1139,7 @@ struct ScopeParser {
     if (curr_node.type() == type) {
       IndexRange &range = parser.scope_ranges[curr_node.index_];
       /* On error/EOF unwind, `tok` is invalid: extend the scope to the last token. */
-      const int64_t end = tok.is_valid() ? tok.index_ : parser.size() - 1;
+      const int64_t end = tok.is_valid() ? tok.index_ : parser.size();
       range.size = end - range.start + 1;
       curr_node = curr_node.parent();
     }
