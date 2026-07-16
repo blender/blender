@@ -56,6 +56,13 @@ enum PropertyFlagIntern : int16_t {
    * #rna_auto_types or #RNA_def_property_struct_runtime).
    */
   PROP_INTERN_PTR_ID_REFCOUNT_FORCED = (1 << 6),
+  /**
+   * Set on the RNA definition meta-types own properties (properties of `Struct`, `Property` and
+   * their sub-types).
+   *
+   * See also #StructFlag::STRUCT_RNA_DEFINITION for details.
+   */
+  PROP_INTERN_RNA_DEFINITION = (1 << 7),
 };
 ENUM_OPERATORS(PropertyFlagIntern)
 

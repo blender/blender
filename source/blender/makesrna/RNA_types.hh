@@ -1016,6 +1016,17 @@ enum StructFlag : int32_t {
    * So accessing the property should not read from the current context to derive values/limits.
    */
   STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID = (1 << 11),
+  /**
+   * Set on the RNA definition meta-types (`Struct`, `Property` and their sub-types).
+   *
+   * A #PointerRNA of such a type refers to an RNA type/property *definition*,
+   * never to actual data, so its data callbacks must not be run.
+   * In this case #PointerRNA.data is the definition itself: a #StructRNA for a `Struct`
+   * type, a #PropertyRNA for a `Property` type (not the DNA data such a callback expects).
+   * A more efficient alternative to walking the type hierarchy
+   * checking for Struct or Property types, see: #161362.
+   */
+  STRUCT_RNA_DEFINITION = (1 << 12),
 };
 ENUM_OPERATORS(StructFlag)
 

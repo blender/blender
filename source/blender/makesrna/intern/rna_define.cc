@@ -921,6 +921,7 @@ StructRNA *RNA_def_struct_ptr(BlenderRNA *brna, const char *identifier, StructRN
 
     prop = RNA_def_property(&srna->cont, "rna_type", PROP_POINTER, PROP_NONE);
     RNA_def_property_flag(prop, PROP_HIDDEN);
+    prop->flag_internal |= PROP_INTERN_RNA_DEFINITION;
     RNA_def_property_ui_text(prop, "RNA", "RNA type definition");
 
 #ifndef RNA_RUNTIME
@@ -1176,7 +1177,6 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
                               int type,
                               int subtype)
 {
-  // StructRNA *srna = DefRNA.laststruct; /* Invalid for Python defined props. */
   ContainerRNA *cont = static_cast<ContainerRNA *>(cont_);
   PropertyRNA *prop;
 
@@ -1332,6 +1332,11 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
 #ifndef RNA_RUNTIME
   if (DefRNA.make_overridable) {
     RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  }
+
+  StructRNA *srna = DefRNA.laststruct;
+  if (srna->flag & STRUCT_RNA_DEFINITION) {
+    prop->flag_internal |= PROP_INTERN_RNA_DEFINITION;
   }
 
   switch (type) {
