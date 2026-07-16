@@ -476,15 +476,16 @@ struct SculptSession : NonCopyable, NonMovable {
 
   /* Transform operator */
   float3 pivot_pos = {};
-  float4 pivot_rot = float4(0.0f, 0.0f, 0.0f, 1.0f);
+  /* TODO: Switch this and other `pivot_rot` to C++, so this can be `Quaternion::identity` */
+  float4 pivot_rot = float4(1.0f, 0.0f, 0.0f, 0.0f);
   float3 pivot_scale = {};
 
   float3 init_pivot_pos = {};
-  float4 init_pivot_rot = float4(0.0f, 0.0f, 0.0f, 1.0f);
+  float4 init_pivot_rot = float4(1.0f, 0.0f, 0.0f, 0.0f);
   float3 init_pivot_scale = {};
 
   float3 prev_pivot_pos = {};
-  float4 prev_pivot_rot = float4(0.0f, 0.0f, 0.0f, 1.0f);
+  float4 prev_pivot_rot = float4(1.0f, 0.0f, 0.0f, 0.0f);
   float3 prev_pivot_scale = {};
 
   eObjectMode mode_type;
