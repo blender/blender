@@ -380,7 +380,7 @@ endif
 #
 
 CMAKE_CONFIG = cmake $(CMAKE_CONFIG_ARGS) \
-                     -H"$(BLENDER_DIR)" \
+                     -S"$(BLENDER_DIR)" \
                      -B"$(BUILD_DIR)" \
                      -DCMAKE_BUILD_TYPE_INIT:STRING=$(BUILD_TYPE)
 
@@ -451,7 +451,7 @@ deps: .FORCE
 	@echo
 	@echo Configuring dependencies in \"$(DEPS_BUILD_DIR)\", install to \"$(DEPS_INSTALL_DIR)\"
 
-	@cmake -H"$(DEPS_SOURCE_DIR)" \
+	@cmake -S"$(DEPS_SOURCE_DIR)" \
 	       -B"$(DEPS_BUILD_DIR)" \
 	       -DHARVEST_TARGET=$(DEPS_INSTALL_DIR)
 
@@ -508,7 +508,7 @@ project_qtcreator: .FORCE
 	$(PYTHON) tools/utils_ide/cmake_qtcreator_project.py --build-dir "$(BUILD_DIR)"
 
 project_eclipse: .FORCE
-	cmake -G"Eclipse CDT4 - Unix Makefiles" -H"$(BLENDER_DIR)" -B"$(BUILD_DIR)"
+	cmake -G"Eclipse CDT4 - Unix Makefiles" -S"$(BLENDER_DIR)" -B"$(BUILD_DIR)"
 
 
 # -----------------------------------------------------------------------------
