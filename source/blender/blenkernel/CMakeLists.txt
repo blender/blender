@@ -851,6 +851,7 @@ if(WITH_GTESTS)
     intern/lib_query_test.cc
     intern/lib_remap_test.cc
     intern/main_test.cc
+    intern/main_namemap_test.cc
     intern/nla_test.cc
     intern/path_templates_test.cc
     intern/subdiv_ccg_test.cc
