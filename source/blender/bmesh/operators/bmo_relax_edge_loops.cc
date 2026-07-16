@@ -199,7 +199,8 @@ static void build_relax_phases(int verts_num, bool is_closed, Vector<RelaxPhase>
       }
     }
     if (phase.knot_indices.first() != phase.knot_indices.last()) {
-      phase.knot_indices.append(phase.knot_indices.first());
+      const int first_knot = phase.knot_indices.first();
+      phase.knot_indices.append(first_knot);
     }
 
     if (!phase.point_indices.is_empty()) {
