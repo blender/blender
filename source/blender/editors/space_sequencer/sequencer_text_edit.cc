@@ -37,6 +37,8 @@
 
 namespace blender::ed::vse {
 
+static bool text_insert(TextVars *data, const char *buf, size_t buf_len);
+
 /* -------------------------------------------------------------------- */
 /** \name Text Edit Polls
  * \{ */
@@ -358,7 +360,6 @@ static wmOperatorStatus sequencer_text_edit_paste_exec(bContext *C, wmOperator *
 {
   const Strip *strip = seq::select_active_get(CTX_data_sequencer_scene(C));
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
-  const seq::TextVarsRuntime *runtime = data->runtime;
 
   int buf_len;
   char *buf = WM_clipboard_text_get(false, true, &buf_len);
@@ -367,26 +368,10 @@ static wmOperatorStatus sequencer_text_edit_paste_exec(bContext *C, wmOperator *
     return OPERATOR_CANCELLED;
   }
 
-  delete_selected_text(data);
-  size_t needed_size = data->text_len_bytes + buf_len + 1;
-  char *new_text = MEM_new_array_uninitialized<char>(needed_size, "text");
-
-  const seq::CharInfo cur_char = character_at_cursor_offset_get(runtime, data->cursor_offset);
-  BLI_assert(cur_char.offset >= 0 && cur_char.offset <= data->text_len_bytes);
-  std::memcpy(new_text, data->text_ptr, cur_char.offset);
-  std::memcpy(new_text + cur_char.offset, buf, buf_len);
-  std::memcpy(new_text + cur_char.offset + buf_len,
-              data->text_ptr + cur_char.offset,
-              data->text_len_bytes - cur_char.offset + 1);
-  data->text_len_bytes += buf_len;
-  MEM_delete(data->text_ptr);
-  data->text_ptr = new_text;
-
-  data->cursor_offset += BLI_strlen_utf8(buf);
+  text_insert(data, buf, buf_len);
 
   MEM_delete(buf);
 
-  text_runtime_update(*data);
   text_editing_update(C);
   return OPERATOR_FINISHED;
 }
