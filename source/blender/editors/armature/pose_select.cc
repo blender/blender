@@ -332,6 +332,10 @@ bool ED_pose_deselect_all(Object *ob, int select_mode, const bool ignore_visibil
   /* Set the flags accordingly */
   bool changed = false;
   LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+    if (!pchan->bone) {
+      /* Ignore the pchan if it doesn't have a corresponding bone. */
+      continue;
+    }
     /* ignore the pchan if it isn't visible or if its selection cannot be changed */
     if (ignore_visibility || blender::animrig::bone_is_visible_pchan(arm, pchan)) {
       int flag_prev = pchan->bone->flag;
