@@ -696,7 +696,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         while (sl) {
           if (sl->spacetype == SPACE_TEXT) {
             SpaceText *st = reinterpret_cast<SpaceText *>(sl);
-            st->lheight = 12;
+            st->line_height = 12;
           }
           sl = sl->next;
         }

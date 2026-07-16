@@ -48,7 +48,7 @@ static SpaceLink *console_create(const ScrArea * /*area*/, const Scene * /*scene
   sconsole = MEM_new<SpaceConsole>("initconsole");
   sconsole->spacetype = SPACE_CONSOLE;
 
-  sconsole->lheight = 14;
+  sconsole->line_height = 14;
 
   /* header */
   region = BKE_area_region_new();

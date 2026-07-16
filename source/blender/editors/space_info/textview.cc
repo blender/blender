@@ -29,16 +29,16 @@
 
 namespace blender {
 
-static void textview_font_begin(const int font_id, const int lheight)
+static void textview_font_begin(const int font_id, const int line_height)
 {
   /* Font size in relation to line height. */
-  BLF_size(font_id, 0.8f * lheight);
+  BLF_size(font_id, 0.8f * line_height);
 }
 
 struct TextViewDrawState {
   int font_id;
-  int cwidth;
-  int lheight;
+  int char_width;
+  int line_height;
   /** Text vertical offset per line. */
   int lofs;
   int row_vpadding;
@@ -70,8 +70,8 @@ static void textview_draw_sel(const char *str,
                               const uchar bg_sel[4])
 {
   const int sel[2] = {tds->sel[0], tds->sel[1]};
-  const int cwidth = tds->cwidth;
-  const int lheight = tds->lheight;
+  const int char_width = tds->char_width;
+  const int line_height = tds->line_height;
 
   if (sel[0] <= str_len_draw && sel[1] >= 0) {
     const int sta = BLI_str_utf8_offset_to_column_with_tabs(
@@ -86,7 +86,8 @@ static void textview_draw_sel(const char *str,
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     immUniformColor4ubv(bg_sel);
-    immRectf(pos, xy[0] + (cwidth * sta), xy[1] + lheight, xy[0] + (cwidth * end), xy[1]);
+    immRectf(
+        pos, xy[0] + (char_width * sta), xy[1] + line_height, xy[0] + (char_width * end), xy[1]);
 
     immUnbindProgram();
 
@@ -146,7 +147,7 @@ static bool textview_draw_string(TextViewDrawState *tds,
 
   str_len = textview_wrap_offsets(str, str_len, tds->columns, &tot_lines, &offsets);
 
-  int line_height = (tot_lines * tds->lheight) + (tds->row_vpadding * 2);
+  int line_height = (tot_lines * tds->line_height) + (tds->row_vpadding * 2);
   int line_bottom = tds->xy[1];
   int line_top = line_bottom + line_height;
 
@@ -160,7 +161,7 @@ static bool textview_draw_string(TextViewDrawState *tds,
 
         /* Wrap. */
         if (tot_lines > 1) {
-          int iofs = int(float(y_next - tds->mval[1]) / tds->lheight);
+          int iofs = int(float(y_next - tds->mval[1]) / tds->line_height);
           ofs += offsets[std::min(iofs, tot_lines - 1)];
         }
 
@@ -168,7 +169,7 @@ static bool textview_draw_string(TextViewDrawState *tds,
         ofs += BLI_str_utf8_offset_from_column_with_tabs(
             str + ofs,
             str_len - ofs,
-            int(floor(float(tds->mval[0]) / tds->cwidth)),
+            int(floor(float(tds->mval[0]) / tds->char_width)),
             TVC_TAB_COLUMNS);
 
         CLAMP(ofs, 0, str_len);
@@ -219,7 +220,7 @@ static bool textview_draw_string(TextViewDrawState *tds,
   if (icon_bg) {
     float col[4];
     int bg_size = UI_ICON_SIZE * 1.2;
-    float vpadding = (tds->lheight + (tds->row_vpadding * 2) - bg_size) / 2;
+    float vpadding = (tds->line_height + (tds->row_vpadding * 2) - bg_size) / 2;
     float hpadding = tds->draw_rect->xmin - (bg_size * 1.2f);
 
     rgba_uchar_to_float(col, icon_bg);
@@ -235,7 +236,7 @@ static bool textview_draw_string(TextViewDrawState *tds,
   }
 
   if (icon) {
-    int vpadding = (tds->lheight + (tds->row_vpadding * 2) - UI_ICON_SIZE) / 2;
+    int vpadding = (tds->line_height + (tds->row_vpadding * 2) - UI_ICON_SIZE) / 2;
     int hpadding = tds->draw_rect->xmin - (UI_ICON_SIZE * 1.3f);
 
     GPU_blend(GPU_BLEND_ALPHA);
@@ -266,9 +267,9 @@ static bool textview_draw_string(TextViewDrawState *tds,
 
   BLF_position(tds->font_id, tds->xy[0], tds->lofs + line_bottom + tds->row_vpadding, 0);
   BLF_color4ubv(tds->font_id, fg);
-  BLF_draw_mono(tds->font_id, s, len, tds->cwidth, TVC_TAB_COLUMNS);
+  BLF_draw_mono(tds->font_id, s, len, tds->char_width, TVC_TAB_COLUMNS);
 
-  tds->xy[1] += tds->lheight;
+  tds->xy[1] += tds->line_height;
 
   BLF_color4ubv(tds->font_id, fg);
 
@@ -282,9 +283,9 @@ static bool textview_draw_string(TextViewDrawState *tds,
     }
 
     BLF_position(tds->font_id, tds->xy[0], tds->lofs + tds->xy[1], 0);
-    BLF_draw_mono(tds->font_id, s, len, tds->cwidth, TVC_TAB_COLUMNS);
+    BLF_draw_mono(tds->font_id, s, len, tds->char_width, TVC_TAB_COLUMNS);
 
-    tds->xy[1] += tds->lheight;
+    tds->xy[1] += tds->line_height;
 
     /* Check if we're out of view bounds. */
     if (tds->xy[1] > tds->scroll_ymax) {
@@ -318,7 +319,7 @@ int textview_draw(TextViewContext *tvc,
   int icon = 0;
   const int font_id = blf_mono_font;
 
-  textview_font_begin(font_id, tvc->lheight);
+  textview_font_begin(font_id, tvc->line_height);
 
   xy[0] = x_orig;
   xy[1] = y_orig;
@@ -340,13 +341,13 @@ int textview_draw(TextViewContext *tvc,
 
   /* Constants for the text-view context. */
   tds.font_id = font_id;
-  tds.cwidth = int(BLF_fixed_width(font_id));
-  BLI_assert(tds.cwidth > 0);
-  tds.lheight = tvc->lheight;
+  tds.char_width = int(BLF_fixed_width(font_id));
+  BLI_assert(tds.char_width > 0);
+  tds.line_height = tvc->line_height;
   tds.row_vpadding = tvc->row_vpadding;
   tds.lofs = -BLF_descender(font_id);
   /* NOTE: scroll bar must be already subtracted. */
-  tds.columns = (tvc->draw_rect.xmax - tvc->draw_rect.xmin) / tds.cwidth;
+  tds.columns = (tvc->draw_rect.xmax - tvc->draw_rect.xmin) / tds.char_width;
   /* Avoid divide by zero on small windows. */
   tds.columns = std::max(tds.columns, 1);
   tds.draw_rect = &tvc->draw_rect;
@@ -399,7 +400,7 @@ int textview_draw(TextViewContext *tvc,
       if (do_draw) {
         /* We always want the cursor to draw. */
         if (tvc->draw_cursor && iter_index == 0) {
-          tvc->draw_cursor(tvc, tds.cwidth, tds.columns);
+          tvc->draw_cursor(tvc, tds.char_width, tds.columns);
         }
 
         /* When drawing, if we pass v2d->cur.ymax, then quit. */
@@ -421,11 +422,11 @@ int textview_draw(TextViewContext *tvc,
   tvc->end(tvc);
 
   /* Sanity checks (bugs here can be tricky to track down). */
-  BLI_assert(tds.lheight == tvc->lheight);
+  BLI_assert(tds.line_height == tvc->line_height);
   BLI_assert(tds.row_vpadding == tvc->row_vpadding);
   BLI_assert(tds.do_draw == do_draw);
 
-  xy[1] += tvc->lheight * 2;
+  xy[1] += tvc->line_height * 2;
 
   return xy[1] - y_orig;
 }

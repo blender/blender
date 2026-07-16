@@ -606,7 +606,8 @@ void BLF_draw(int fontid, const char *str, const size_t str_len, ResultBLF *r_in
   }
 }
 
-int BLF_draw_mono(int fontid, const char *str, const size_t str_len, int cwidth, int tab_columns)
+int BLF_draw_mono(
+    int fontid, const char *str, const size_t str_len, int char_width, int tab_columns)
 {
   if (str_len == 0 || str[0] == '\0') {
     return 0;
@@ -617,7 +618,7 @@ int BLF_draw_mono(int fontid, const char *str, const size_t str_len, int cwidth,
 
   if (font) {
     blf_draw_gpu__start(font);
-    columns = blf_font_draw_mono(font, str, str_len, cwidth, tab_columns);
+    columns = blf_font_draw_mono(font, str, str_len, char_width, tab_columns);
     blf_draw_gpu__end(font);
   }
 

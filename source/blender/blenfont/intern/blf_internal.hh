@@ -133,7 +133,7 @@ Vector<StringRef> blf_font_string_wrap(FontBLF *font,
  * Use fixed column width, but an UTF8 character may occupy multiple columns.
  */
 int blf_font_draw_mono(
-    FontBLF *font, const char *str, size_t str_len, int cwidth, int tab_columns);
+    FontBLF *font, const char *str, size_t str_len, int char_width, int tab_columns);
 void blf_font_draw_buffer(FontBLF *font, const char *str, size_t str_len, ResultBLF *r_info);
 void blf_font_draw_buffer__wrap(FontBLF *font, const char *str, size_t str_len, ResultBLF *r_info);
 size_t blf_font_width_to_strlen(

@@ -134,7 +134,7 @@ static void console_cursor_wrap_offset(
   }
 }
 
-static void console_textview_draw_cursor(TextViewContext *tvc, int cwidth, int columns)
+static void console_textview_draw_cursor(TextViewContext *tvc, int char_width, int columns)
 {
   int pen[2];
   {
@@ -144,11 +144,11 @@ static void console_textview_draw_cursor(TextViewContext *tvc, int cwidth, int c
 
     console_cursor_wrap_offset(sc->prompt, columns, &offl, &offc, nullptr);
     console_cursor_wrap_offset(cl->line, columns, &offl, &offc, cl->line + cl->cursor);
-    pen[0] = cwidth * offc;
-    pen[1] = -tvc->lheight * offl;
+    pen[0] = char_width * offc;
+    pen[1] = -tvc->line_height * offl;
 
     console_cursor_wrap_offset(cl->line + cl->cursor, columns, &offl, &offc, nullptr);
-    pen[1] += tvc->lheight * offl;
+    pen[1] += tvc->line_height * offl;
 
     pen[0] += tvc->draw_rect.xmin;
     pen[1] += tvc->draw_rect.ymin;
@@ -160,7 +160,7 @@ static void console_textview_draw_cursor(TextViewContext *tvc, int cwidth, int c
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformThemeColor(TH_CONSOLE_CURSOR);
 
-  immRectf(pos, pen[0] - U.pixelsize, pen[1], pen[0] + U.pixelsize, pen[1] + tvc->lheight);
+  immRectf(pos, pen[0] - U.pixelsize, pen[1], pen[0] + U.pixelsize, pen[1] + tvc->line_height);
 
   immUnbindProgram();
 }
@@ -216,7 +216,7 @@ static int console_textview_main__internal(SpaceConsole *sc,
   /* view */
   tvc.sel_start = sc->sel_start;
   tvc.sel_end = sc->sel_end;
-  tvc.lheight = sc->lheight * UI_SCALE_FAC;
+  tvc.line_height = sc->line_height * UI_SCALE_FAC;
   tvc.scroll_ymin = v2d->cur.ymin;
   tvc.scroll_ymax = v2d->cur.ymax;
 
@@ -226,7 +226,7 @@ static int console_textview_main__internal(SpaceConsole *sc,
   int m_pos[2] = {mval[0], mval[1]};
   /* Mouse position is initialized with max int. */
   if (m_pos[0] != INT_MAX) {
-    m_pos[0] += tvc.lheight / 4;
+    m_pos[0] += tvc.line_height / 4;
   }
 
   console_scrollback_prompt_begin(sc, &cl_dummy);
