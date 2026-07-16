@@ -566,7 +566,7 @@ static void image_proxy_builder_process(ProxyBuildContext &context,
   const char *base_path = ID_BLEND_PATH_FROM_GLOBAL(&context.scene->id);
   const int tot_views = BKE_scene_multiview_num_views_get(&context.scene->r);
 
-  for (int elem_index = 0; elem_index < strip.len; elem_index++) {
+  for (int elem_index = 0; elem_index < strip.content_length(); elem_index++) {
     const StripElem &s_elem = strip.data->stripdata[elem_index];
 
     char filepath[FILE_MAX];
@@ -633,7 +633,7 @@ static void image_proxy_builder_process(ProxyBuildContext &context,
       }
 
       if (set_progress_fn) {
-        float progress = float(elem_index) / float(strip.len);
+        float progress = float(elem_index) / float(strip.content_length());
         set_progress_fn(progress);
       }
 

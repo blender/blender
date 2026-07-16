@@ -352,7 +352,8 @@ struct Strip {
 
   eStripFlag flag = SEQ_FLAG_NONE;
   StripType type = STRIP_TYPE_IMAGE;
-  /** The length of the contents of this strip before handles are applied. */
+  /** The length of the contents of this strip before handles are applied. To be used with
+   * #content_length() and #content_length_set(). */
   int len = 0;
   /**
    * Start frame of contents of strip in absolute frame coordinates.
@@ -544,6 +545,18 @@ struct Strip {
    * Returns 0 for unsupported strip or if media can't be loaded.
    */
   float media_fps(Scene *scene);
+
+  /**
+   * Raw frame count before any handles are applied.
+   * */
+  int content_length() const;
+  void content_length_set(int new_length);
+
+  /**
+   * Frame distance from the right handle to the content end.
+   */
+  float end_offset() const;
+  void end_offset_set(float new_end_offset);
 
 #endif
 };

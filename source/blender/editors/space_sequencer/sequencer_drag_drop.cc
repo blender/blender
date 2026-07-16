@@ -238,7 +238,7 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
   Strip dummy_strip{};
   dummy_strip.channel_set(coords->channel);
   dummy_strip.start = coords->start_frame;
-  dummy_strip.len = coords->strip_length;
+  dummy_strip.content_length_set(coords->strip_length);
   dummy_strip.speed_factor = 1.0f;
   dummy_strip.media_playback_rate = coords->playback_rate;
   dummy_strip.flag = SEQ_AUTO_PLAYBACK_RATE;

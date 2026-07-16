@@ -611,11 +611,11 @@ static StripElem *rna_StripElements_append(ID *id, Strip *strip, const char *fil
   Scene *scene = id_cast<Scene *>(id);
   StripElem *se;
 
-  strip->data->stripdata = se = static_cast<StripElem *>(
-      MEM_realloc_uninitialized(strip->data->stripdata, sizeof(StripElem) * (strip->len + 1)));
-  se += strip->len;
+  strip->data->stripdata = se = static_cast<StripElem *>(MEM_realloc_uninitialized(
+      strip->data->stripdata, sizeof(StripElem) * (strip->content_length() + 1)));
+  se += strip->content_length();
   STRNCPY(se->filename, filename);
-  strip->len++;
+  strip->content_length_set(strip->content_length() + 1);
 
   strip->flag &= ~SEQ_SINGLE_FRAME_CONTENT;
 
@@ -629,25 +629,25 @@ static void rna_StripElements_pop(ID *id, Strip *strip, ReportList *reports, int
   Scene *scene = id_cast<Scene *>(id);
   StripElem *new_se, *se;
 
-  if (strip->len == 1) {
+  if (strip->content_length() == 1) {
     BKE_report(reports, RPT_ERROR, "StripElements.pop: cannot pop the last element");
     return;
   }
 
   /* python style negative indexing */
   if (index < 0) {
-    index += strip->len;
+    index += strip->content_length();
   }
 
-  if (strip->len <= index || index < 0) {
+  if (strip->content_length() <= index || index < 0) {
     BKE_report(reports, RPT_ERROR, "StripElements.pop: index out of range");
     return;
   }
 
-  new_se = MEM_new_array<StripElem>((strip->len - 1), "StripElements_pop");
-  strip->len--;
+  new_se = MEM_new_array<StripElem>((strip->content_length() - 1), "StripElements_pop");
+  strip->content_length_set(strip->content_length() - 1);
 
-  if (strip->len == 1) {
+  if (strip->content_length() == 1) {
     strip->flag |= SEQ_SINGLE_FRAME_CONTENT;
   }
 
@@ -656,8 +656,8 @@ static void rna_StripElements_pop(ID *id, Strip *strip, ReportList *reports, int
     memcpy(new_se, se, sizeof(StripElem) * index);
   }
 
-  if (index < strip->len) {
-    memcpy(&new_se[index], &se[index + 1], sizeof(StripElem) * (strip->len - index));
+  if (index < strip->content_length()) {
+    memcpy(&new_se[index], &se[index + 1], sizeof(StripElem) * (strip->content_length() - index));
   }
 
   MEM_delete(strip->data->stripdata);
