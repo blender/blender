@@ -23,14 +23,26 @@ enum class Mode : int8_t {
   Fill = 1,
 };
 
+static const EnumPropertyItem mode_items[] = {
+    {int(Mode::Stroke),
+     "STROKE",
+     ICON_GP_DRAW_STROKE,
+     "Stroke",
+     "Set the color and opacity for the points of the stroke"},
+    {int(Mode::Fill),
+     "FILL",
+     ICON_GP_DRAW_FILL,
+     "Fill",
+     "Set the color and opacity for the stroke fills"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
-  b.add_default_layout();
   b.add_input<decl::Geometry>("Grease Pencil"_ustr)
       .supported_type(GeometryComponent::Type::GreasePencil)
-      .align_with_previous()
       .description("Grease Pencil to change the color of");
   b.add_output<decl::Geometry>("Grease Pencil"_ustr)
       .propagate_all_geometry()
@@ -39,6 +51,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(true)
       .hide_value()
       .evaluated_geometry_field();
+  b.add_input<decl::Menu>("Mode"_ustr).static_items(mode_items).optional_label();
   b.add_input<decl::Color>("Color"_ustr)
       .default_value(ColorGeometry4f(1.0f, 1.0f, 1.0f, 1.0f))
       .evaluated_geometry_field()
@@ -50,10 +63,6 @@ static void node_declare(NodeDeclarationBuilder &b)
       .evaluated_geometry_field();
 }
 
-static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  layout.prop(ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
-}
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   node->custom1 = int(Mode::Stroke);
@@ -61,9 +70,9 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const bNode &node = params.node();
-  const AttrDomain domain = Mode(node.custom1) == Mode::Stroke ? AttrDomain::Point :
-                                                                 AttrDomain::Curve;
+  const auto mode = params.get_input<Mode>("Mode"_ustr);
+
+  const AttrDomain domain = mode == Mode::Stroke ? AttrDomain::Point : AttrDomain::Curve;
 
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Grease Pencil"_ustr);
   const Field<bool> selection = params.extract_input<Field<bool>>("Selection"_ustr);
@@ -107,25 +116,6 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Grease Pencil"_ustr, std::move(geometry_set));
 }
 
-static void node_rna(StructRNA *srna)
-{
-  static const EnumPropertyItem mode_items[] = {
-      {int(Mode::Stroke),
-       "STROKE",
-       ICON_NONE,
-       "Stroke",
-       "Set the color and opacity for the points of the stroke"},
-      {int(Mode::Fill),
-       "FILL",
-       ICON_NONE,
-       "Fill",
-       "Set the color and opacity for the stroke fills"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  RNA_def_node_enum(srna, "mode", "Mode", "", mode_items, NOD_inline_enum_accessors(custom1));
-}
-
 static void node_register()
 {
   static bke::bNodeType ntype;
@@ -137,11 +127,8 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
-  ntype.draw_buttons = node_layout;
   ntype.default_width = bke::NodeWidth::_180;
   bke::node_register_type(ntype);
-
-  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 

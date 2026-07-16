@@ -473,6 +473,50 @@ void version_node_socket_index_animdata(Main *bmain,
   }
 }
 
+void version_node_socket_index_animdata(Main *bmain,
+                                        const int node_tree_type,
+                                        const char *node_idname,
+                                        const int socket_index_orig,
+                                        const int socket_index_offset,
+                                        const int total_number_of_sockets)
+{
+
+  /* See preceeding definition of `version_node_socket_index_animdata` for the reasoning of why the
+   * input ids for loop is at the top level.*/
+  for (int input_index = total_number_of_sockets - 1; input_index >= socket_index_orig;
+       input_index--)
+  {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, owner_id) {
+      if (ntree->type != node_tree_type) {
+        continue;
+      }
+
+      for (bNode *node : ntree->all_nodes()) {
+        if (!STREQ(node->idname, node_idname)) {
+          continue;
+        }
+
+        char node_name_escaped[sizeof(node->name) * 2];
+        BLI_str_escape(node_name_escaped, node->name, sizeof(node_name_escaped));
+        char *rna_path_prefix = BLI_sprintfN("nodes[\"%s\"].inputs", node_name_escaped);
+
+        const int new_index = input_index + socket_index_offset;
+        BKE_animdata_fix_paths_rename_all_ex(bmain,
+                                             owner_id,
+                                             rna_path_prefix,
+                                             nullptr,
+                                             nullptr,
+                                             input_index,
+                                             new_index,
+                                             /*verify_paths=*/false,
+                                             /*infix_is_name=*/true);
+        MEM_delete(rna_path_prefix);
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+}
+
 void version_socket_update_is_used(bNodeTree *ntree)
 {
   for (bNode *node : ntree->all_nodes()) {
