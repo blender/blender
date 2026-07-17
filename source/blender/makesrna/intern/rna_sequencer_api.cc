@@ -537,6 +537,12 @@ static Strip *rna_Strips_new_effect(ID *id,
   Scene *scene = id_cast<Scene *>(id);
   Strip *strip = seq::add_effect_strip(scene, seqbase, &load_data);
 
+  if (load_data.effect.type == STRIP_TYPE_COLOR) {
+    SolidColorVars *colvars = static_cast<SolidColorVars *>(strip->effectdata);
+    colvars->width = scene->r.xsch;
+    colvars->height = scene->r.ysch;
+  }
+
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
