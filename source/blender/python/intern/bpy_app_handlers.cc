@@ -324,7 +324,7 @@ static PyObject *make_app_cb_info()
   }
 
   /* custom function */
-  PyStructSequence_SET_ITEM(app_cb_info, pos++, (PyObject *)&BPyPersistent_Type);
+  PyStructSequence_SET_ITEM(app_cb_info, pos++, Py_NewRef((PyObject *)&BPyPersistent_Type));
 
   return app_cb_info;
 }
