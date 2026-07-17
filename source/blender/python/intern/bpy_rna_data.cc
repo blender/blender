@@ -169,6 +169,7 @@ static PyObject *bpy_rna_data_temp_data(PyObject * /*self*/, PyObject *args, PyO
   }
 
   ret = PyObject_GC_New(BPy_DataContext, &bpy_rna_data_context_Type);
+  ret->data_rna = nullptr;
 
   STRNCPY(ret->filepath, filepath_data.value ? filepath_data.value : G_MAIN->filepath);
   Py_XDECREF(filepath_data.value_coerce);
@@ -178,6 +179,11 @@ static PyObject *bpy_rna_data_temp_data(PyObject * /*self*/, PyObject *args, PyO
 
 static PyObject *bpy_rna_data_context_enter(BPy_DataContext *self)
 {
+  if (self->data_rna != nullptr) {
+    PyErr_SetString(PyExc_RuntimeError, "Context manager already entered");
+    return nullptr;
+  }
+
   Main *bmain_temp = BKE_main_new();
   STRNCPY(bmain_temp->filepath, self->filepath);
 
@@ -193,6 +199,12 @@ static PyObject *bpy_rna_data_context_enter(BPy_DataContext *self)
 
 static PyObject *bpy_rna_data_context_exit(BPy_DataContext *self, PyObject * /*args*/)
 {
+  /* Only possible when `__exit__` is called directly instead of via a `with` statement. */
+  if (self->data_rna == nullptr) {
+    PyErr_SetString(PyExc_RuntimeError, "Context manager not entered");
+    return nullptr;
+  }
+
   BKE_main_free(static_cast<Main *>(self->data_rna->ptr->data));
   self->data_rna->ptr->invalidate();
   Py_RETURN_NONE;
