@@ -215,7 +215,7 @@ def report_personal_weekly_get(
                     assert isinstance(content_json, dict)
                     repo = activity["repo"]
                     repo_fullname = repo["full_name"]
-                    content_json_commits: list[dict[str, Any]] = content_json["Commits"]
+                    content_json_commits: list[dict[str, Any]] = content_json.get("Commits", [])
                     for commit_json in content_json_commits:
                         # Skip commits that were not made by this user. Using email doesn't seem to
                         # be possible unfortunately.
