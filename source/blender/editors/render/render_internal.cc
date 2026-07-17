@@ -880,7 +880,7 @@ static wmOperatorStatus screen_render_invoke(bContext *C, wmOperator *op, const 
   WM_cursor_wait(true);
 
   /* flush sculpt and editmode changes */
-  ED_editors_flush_edits_ex(bmain, true, false);
+  ED_editors_flush_edits(bmain);
 
   /* store spare
    * get view3d layer, local layer, make this nice API call to render

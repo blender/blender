@@ -2062,10 +2062,6 @@ void BKE_sculptsession_bm_to_me(Object *ob)
 {
   if (ob && ob->runtime->sculpt_session) {
     sculptsession_bm_to_me_update_data_only(ob);
-
-    /* Ensure the objects evaluated mesh doesn't hold onto arrays
-     * now realloc'd in the mesh #34473. */
-    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
 }
 
@@ -2093,28 +2089,6 @@ void BKE_sculptsession_free_pbvh(Object &object)
   ss->clear_active_elements(false);
 }
 
-void BKE_sculptsession_bm_to_me_for_render(Object *object)
-{
-  if (object && object->runtime->sculpt_session) {
-    if (object->runtime->sculpt_session->bm) {
-      /* Ensure no points to old arrays are stored in DM
-       *
-       * Apparently, we could not use DEG_id_tag_update
-       * here because this will lead to the while object
-       * surface to disappear, so we'll release DM in place.
-       */
-      BKE_object_free_derived_caches(object);
-
-      sculptsession_bm_to_me_update_data_only(object);
-
-      /* In contrast with sculptsession_bm_to_me no need in
-       * DAG tag update here - derived mesh was freed and
-       * old pointers are nowhere stored.
-       */
-    }
-  }
-}
-
 void BKE_sculptsession_free(Object *ob)
 {
   if (ob && ob->runtime->sculpt_session) {
@@ -2122,6 +2096,7 @@ void BKE_sculptsession_free(Object *ob)
 
     if (ss->bm) {
       BKE_sculptsession_bm_to_me(ob);
+      DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
       BM_mesh_free(ss->bm);
     }
 
