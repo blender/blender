@@ -558,14 +558,13 @@ static void *view3d_main_region_duplicate(void *poin)
 }
 
 #ifdef WITH_INPUT_IME
-static std::optional<rcti> view3d_main_region_cursor_ime(wmWindow *win,
-                                                         const ScrArea * /*area*/,
-                                                         const ARegion *region)
+static std::optional<ARegionIMECursorState> view3d_main_region_cursor_ime(
+    wmWindow *win, const ScrArea * /*area*/, const ARegion *region, ARegionIMECursor *r_cursor)
 {
-  /* Defer during viewport navigation (orbit, pan, zoom, fly, walk). */
+  /* The position is pending during viewport navigation (orbit, pan, zoom, fly, walk). */
   const RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   if (rv3d->rflag & RV3D_NAVIGATING) {
-    return std::nullopt;
+    return ARegionIMECursorState::PositionPending;
   }
 
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
@@ -584,8 +583,8 @@ static std::optional<rcti> view3d_main_region_cursor_ime(wmWindow *win,
     return std::nullopt;
   }
 
-  /* Lower-left corner of the caret; returned as a zero-size rectangle since the caret may be
-   * rotated by the object transform, where an axis-aligned size would not represent it well. */
+  /* Use the lower-left corner of the cursor with a zero width, since the object transform may
+   * rotate it, where an axis-aligned width wouldn't represent it. */
   const float3 cursor_local = {ef->textcurs[0].x, ef->textcurs[0].y, 0.0f};
   /* Transform to world space, then project to region coordinates. */
   const float3 cursor_world = math::transform_point(ob->object_to_world(), cursor_local);
@@ -593,13 +592,20 @@ static std::optional<rcti> view3d_main_region_cursor_ime(wmWindow *win,
   if (ED_view3d_project_float_global(
           region, cursor_world, cursor_screen, V3D_PROJ_TEST_CLIP_NEAR) != V3D_PROJ_RET_OK)
   {
-    /* Cursor is behind the view (near-plane clipped), no usable position. */
-    return std::nullopt;
+    /* Behind the view, so pending since editing is still active and the view may move back. */
+    return ARegionIMECursorState::PositionPending;
   }
 
   const int x = int(cursor_screen[0]);
   const int y = int(cursor_screen[1]);
-  return rcti{x, x, y, y};
+  r_cursor->rect = {
+      .xmin = x,
+      .xmax = x,
+      .ymin = y,
+      .ymax = y + int(UI_UNIT_Y),
+  };
+  r_cursor->font_size = UI_UNIT_Y;
+  return ARegionIMECursorState::PositionSet;
 }
 
 #endif

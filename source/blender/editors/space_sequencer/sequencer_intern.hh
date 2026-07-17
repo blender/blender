@@ -425,8 +425,31 @@ bool retiming_overlay_enabled(const SpaceSeq *sseq);
 
 /* `sequencer_text_edit.cc` */
 bool sequencer_text_editing_active_poll(bContext *C);
+
+/**
+ * Return the strip used for text editing.
+ *
+ * \note intended to be used with #sequencer_text_editing_cursor_region_xy_get,
+ * where the functionality is split across two functions for the purpose
+ * of detecting of IME text should be enabled but is currently isn't visible.
+ */
+const Strip *sequencer_text_editing_cursor_strip_get(const Scene *scene);
+/**
+ * Return the text cursor of the active text strip, in region pixels.
+ *
+ * \param strip: The result of #sequencer_text_editing_cursor_strip_get.
+ *
+ * \note when \a strip is non-null this function may still return null.
+ * The \a strip may be non-null even when no position is found below:
+ * - The current-frame may be off the strip.
+ * - The runtime not built until the strip renders.
+ *
+ * In both recover while editing stays active.
+ */
 std::optional<int2> sequencer_text_editing_cursor_region_xy_get(const Scene *scene,
-                                                                const ARegion *region);
+                                                                const ARegion *region,
+                                                                const Strip *strip);
+
 void SEQUENCER_OT_text_cursor_move(wmOperatorType *ot);
 void SEQUENCER_OT_text_insert(wmOperatorType *ot);
 void SEQUENCER_OT_text_delete(wmOperatorType *ot);

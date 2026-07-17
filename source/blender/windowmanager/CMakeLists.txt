@@ -53,6 +53,7 @@ set(SRC
   intern/wm_uilist_type.cc
   intern/wm_utils.cc
   intern/wm_window.cc
+  intern/wm_window_ime_draw.cc
   gizmo/intern/wm_gizmo.cc
   gizmo/intern/wm_gizmo_group.cc
   gizmo/intern/wm_gizmo_group_type.cc

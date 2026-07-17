@@ -1613,6 +1613,7 @@ void draw_text_main(SpaceText *st, ARegion *region)
 
   tdc.char_width_px = max_ii(int(BLF_fixed_width(tdc.font_id)), 1);
   st->runtime->char_width_px = tdc.char_width_px;
+  st->runtime->descender_px = BLF_descender(tdc.font_id);
 
   /* Draw line numbers background. */
   if (st->showlinenrs) {
@@ -1827,6 +1828,40 @@ void space_text_update_cursor_moved(bContext *C)
   space_text_scroll_to_cursor_with_area(st, area, true);
 }
 
+/**
+ * Return the position of \a char_ofs in \a line (at \a line_index in the text),
+ * region-relative: X the left of the character, Y the top of its wrapped line.
+ * Note that !126720 provides a useful interactive test-case for this logic.
+ */
+static int2 space_text_region_xy_from_cursor(const SpaceText *st,
+                                             const ARegion *region,
+                                             TextLine *line,
+                                             const int line_index,
+                                             const int char_ofs)
+{
+  int offl, offc;
+  space_text_wrap_offset(st, region, line, char_ofs, &offl, &offc);
+  /* Handle tabs as well! */
+  const int char_pos = space_text_get_char_pos(st, line->line, char_ofs);
+
+  const int x = TXT_BODY_LEFT(st) + ((char_pos + offc - st->left) * st->runtime->char_width_px);
+  const int y = region->winy - ((line_index + offl - st->top) * TXT_LINE_HEIGHT(st));
+  return int2{x, y};
+}
+
+std::optional<int2> space_text_cursor_region_xy_get(const SpaceText *st, const ARegion *region)
+{
+  const Text *text = st->text;
+  if (text == nullptr) {
+    return std::nullopt;
+  }
+  const int line_index = txt_get_span(static_cast<TextLine *>(text->lines.first), text->sell);
+  /* NOTE: `ST_SCROLL_SELECT` doesn't need to be checked (offsetting by `scroll_ofs_px` the way
+   * #draw_text_decoration does), since the caller treats the position as pending while
+   * dragging. */
+  return space_text_region_xy_from_cursor(st, region, text->sell, line_index, text->selc);
+}
+
 bool ED_space_text_region_location_from_cursor(const SpaceText *st,
                                                const ARegion *region,
                                                const int cursor_co[2],
@@ -1848,17 +1883,10 @@ bool ED_space_text_region_location_from_cursor(const SpaceText *st,
     return false;
   }
 
-  /* All values are in-range, calculate the pixel offset.
-   * Note that !126720 provides a useful interactive test-case for this logic. */
-  const int line_height = TXT_LINE_HEIGHT(st);
-  const int linenr_offset = TXT_BODY_LEFT(st);
-  /* Handle tabs as well! */
-  const int char_pos = space_text_get_char_pos(st, line->line, char_ofs);
-
-  int offl, offc;
-  space_text_wrap_offset(st, region, line, char_ofs, &offl, &offc);
-  r_pixel_co[0] = (char_pos + offc - st->left) * st->runtime->char_width_px + linenr_offset;
-  r_pixel_co[1] = (region->winy - ((cursor_co[0] + offl - st->top) * line_height)) - line_height;
+  /* All values are in-range, calculate the pixel offset. */
+  const int2 xy = space_text_region_xy_from_cursor(st, region, line, cursor_co[0], char_ofs);
+  r_pixel_co[0] = xy[0];
+  r_pixel_co[1] = xy[1] - TXT_LINE_HEIGHT(st);
   return true;
 }
 

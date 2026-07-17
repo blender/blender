@@ -3639,7 +3639,7 @@ static void textedit_ime_begin(wmWindow *win, Button *but)
   /* flip y and move down a bit, prevent the IME panel cover the edit button */
   y = win->runtime->eventstate->xy[1] - 12;
 
-  WM_window_IME_begin(win, x, y, 0, 0, true);
+  WM_window_IME_begin(win, x, y, 0, 0, bke::wmIMEOwnerType::Button);
 }
 
 /* Disable IME, and clear #Button IME data. */
@@ -3651,7 +3651,7 @@ static void textedit_ime_end(wmWindow *win, Button *but)
   WM_window_IME_end(win);
 }
 
-void button_ime_reposition(Button *but, int x, int y, bool complete)
+void button_ime_reposition(Button *but, int x, int y)
 {
   if (ELEM(but->type, ButtonType::Num, ButtonType::NumSlider)) {
     return;
@@ -3660,14 +3660,28 @@ void button_ime_reposition(Button *but, int x, int y, bool complete)
   HandleButtonData *data = but->semi_modal_state ? but->semi_modal_state : but->active;
 
   region_to_window(data->region, &x, &y);
-  WM_window_IME_begin(data->window, x, y - 4, 0, 0, complete);
+  y -= 4;
+  wmWindow *win = data->window;
+  if (win->runtime->ime_owner == bke::wmIMEOwnerType::Button) {
+    WM_window_IME_reposition(win, x, y, 0, 0);
+  }
+  else {
+    /* The session ended or a region took it while editing, e.g. because a popup opened.
+     * Begin again for IME to recover, ending first as #textedit_ime_begin does. */
+    WM_window_IME_end(win);
+    WM_window_IME_begin(win, x, y, 0, 0, bke::wmIMEOwnerType::Button);
+  }
 }
 
 const wmIMEData *button_ime_data_get(Button *but)
 {
   HandleButtonData *data = but->semi_modal_state ? but->semi_modal_state : but->active;
 
-  if (data && data->window && data->window->runtime->ime_data_is_composing) {
+  /* The IME state is per-window, so don't use a composition a region owns,
+   * see #wmIMEOwnerType. */
+  if (data && data->window && data->window->runtime->ime_data_is_composing &&
+      (data->window->runtime->ime_owner == bke::wmIMEOwnerType::Button))
+  {
     return data->window->runtime->ime_data;
   }
   return nullptr;

@@ -1934,6 +1934,11 @@ std::optional<wmOperatorStatus> WM_operator_IME_insert_maybe(bContext *C,
   if (win == nullptr) {
     return std::nullopt;
   }
+  if (IS_EVENT_IME_ANY(event->type)) {
+    /* Keep the composition preview current, including #WM_IME_COMPOSITE_END which must
+     * erase it (canceling inserts no text so nothing else redraws). */
+    ED_region_tag_redraw(CTX_wm_region(C));
+  }
   if (event->type == WM_IME_COMPOSITE_EVENT) {
     const wmIMEData *ime_data = win->runtime->ime_data;
     if (ime_data && !ime_data->result.empty()) {

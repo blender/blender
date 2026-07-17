@@ -885,23 +885,35 @@ static void sequencer_preview_region_view2d_changed(const bContext *C, ARegion *
 }
 
 #ifdef WITH_INPUT_IME
-static std::optional<rcti> sequencer_preview_region_cursor_ime(wmWindow *win,
-                                                               const ScrArea * /*area*/,
-                                                               const ARegion *region)
+static std::optional<ARegionIMECursorState> sequencer_preview_region_cursor_ime(
+    wmWindow *win, const ScrArea * /*area*/, const ARegion *region, ARegionIMECursor *r_cursor)
 {
   const WorkSpace *workspace = WM_window_get_active_workspace(win);
   const Scene *scene = workspace->sequencer_scene;
   if (!scene) {
     return std::nullopt;
   }
-  const std::optional<blender::int2> xy = sequencer_text_editing_cursor_region_xy_get(scene,
-                                                                                      region);
-  if (!xy) {
+  const Strip *strip = sequencer_text_editing_cursor_strip_get(scene);
+  if (strip == nullptr) {
     return std::nullopt;
   }
-  /* Zero-size rectangle: the caret may be rotated by the strip transform,
-   * where an axis-aligned size would not properly represent the caret. */
-  return rcti{xy->x, xy->x, xy->y, xy->y};
+  const std::optional<blender::int2> xy = sequencer_text_editing_cursor_region_xy_get(
+      scene, region, strip);
+  if (!xy) {
+    /* Text editing can be active without a position,
+     * e.g. the current-frame moved outside the strip.
+     * Keep the session pending rather than canceling the composition. */
+    return ARegionIMECursorState::PositionPending;
+  }
+
+  r_cursor->rect = {
+      .xmin = xy->x,
+      .xmax = xy->x,
+      .ymin = xy->y,
+      .ymax = xy->y + int(UI_UNIT_Y),
+  };
+  r_cursor->font_size = UI_UNIT_Y;
+  return ARegionIMECursorState::PositionSet;
 }
 #endif
 

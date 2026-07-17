@@ -82,4 +82,11 @@ int textview_draw(TextViewContext *tvc,
                   void **r_mval_pick_item,
                   int *r_mval_pick_offset);
 
+/**
+ * Return the byte offset each wrapped row starts at, matching the layout #textview_draw uses.
+ * \warning Allocated memory for \a r_offsets must be freed by the caller.
+ * \return The length in bytes.
+ */
+int textview_wrap_offsets(const char *str, int str_len, int width, int *r_lines, int **r_offsets);
+
 }  // namespace blender
