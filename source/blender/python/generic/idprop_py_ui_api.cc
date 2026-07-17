@@ -146,7 +146,7 @@ static IDPropertyUIDataEnumItem *idprop_enum_items_from_py(PyObject *seq_fast, i
       items[i].identifier = nullptr;
     }
     else {
-      MEM_delete(items);
+      IDP_EnumItemsFree(items, i);
       PyErr_SetString(PyExc_TypeError,
                       "expected a tuple containing "
                       "(identifier, name, description) and optionally an "
@@ -306,6 +306,8 @@ static bool idprop_ui_data_update_int(IDProperty *idprop, PyObject *args, PyObje
     PyObject *items_fast;
     if (!(items_fast = PySequence_Fast(items, "expected a sequence of tuples for the enum items")))
     {
+      IDP_ui_data_free_unique_contents(
+          &ui_data.base, IDP_ui_data_type(idprop), &ui_data_orig->base);
       return false;
     }
 

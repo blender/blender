@@ -520,15 +520,21 @@ void IDP_FreeString(IDProperty *prop)
 /** \name Enum Type (IDProperty Enum API)
  * \{ */
 
-static void IDP_int_ui_data_free_enum_items(IDPropertyUIDataInt *ui_data)
+void IDP_EnumItemsFree(IDPropertyUIDataEnumItem *items, const int items_num)
 {
-  for (const int64_t i : IndexRange(ui_data->enum_items_num)) {
-    IDPropertyUIDataEnumItem &item = ui_data->enum_items[i];
+  for (const int64_t i : IndexRange(items_num)) {
+    IDPropertyUIDataEnumItem &item = items[i];
     MEM_SAFE_DELETE(item.identifier);
     MEM_SAFE_DELETE(item.name);
     MEM_SAFE_DELETE(item.description);
   }
-  MEM_SAFE_DELETE(ui_data->enum_items);
+  MEM_SAFE_DELETE(items);
+}
+
+static void IDP_int_ui_data_free_enum_items(IDPropertyUIDataInt *ui_data)
+{
+  IDP_EnumItemsFree(ui_data->enum_items, ui_data->enum_items_num);
+  ui_data->enum_items = nullptr;
 }
 
 const IDPropertyUIDataEnumItem *IDP_EnumItemFind(const IDProperty *prop)
