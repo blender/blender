@@ -6,17 +6,18 @@
 # -----------------------------------------------------------------------------
 # Build `shader_tool` executable.
 set(SRC
+  ast.cc
   attribute.cc
   enum.cc
   flow_control.cc
   function.cc
   grammar.cc
+  grammar_bsl.cc
   intermediate.cc
   metadata.cc
   namespace.cc
   processor.cc
   resource_table.cc
-  shader_tool.cc
   string.cc
   struct.cc
   template.cc
@@ -47,6 +48,34 @@ if(WITH_GPU_SHADER_ASSERT)
   add_definitions(-DWITH_GPU_SHADER_ASSERT)
 endif()
 
-# `SRC_DNA_INC` is defined in the parent directory.
-add_executable(shader_tool ${SRC})
+add_executable(shader_tool shader_tool.cc ${SRC})
 optimize_debug_target(shader_tool)
+
+if(WITH_GTESTS)
+  set(TEST_SRC
+    tests/shader_tool_testing.hh
+    tests/expression_test.cc
+    tests/syntax_test.cc
+    tests/parser_test.cc
+    tests/metadata_test.cc
+    tests/templates_test.cc
+    tests/flow_control_test.cc
+    tests/resource_table_test.cc
+    tests/function_test.cc
+    tests/namespace_test.cc
+    tests/struct_test.cc
+  )
+
+  set(TEST_INC
+    .
+  )
+
+  blender_add_test_suite_executable(
+    shader_tool
+    "${TEST_SRC};${SRC}"
+    "${TEST_INC}"
+    ""
+    ""
+    ""
+  )
+endif()

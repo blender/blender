@@ -37,7 +37,9 @@ enum [[host_shared]] PassCategory : uint32_t {
   PASS_CATEGORY_CRYPTOMATTE = 1u << 5,
   PASS_CATEGORY_DENOISE = 1u << 6,
 };
+#ifndef GPU_SHADER
 ENUM_OPERATORS(PassCategory)
+#endif
 
 struct [[host_shared]] FilmSample {
   int2 texel;

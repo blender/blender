@@ -82,7 +82,9 @@ struct [[host_shared]] DrawGroup {
   uint _cpu_reserved_6;
 #endif
 };
+#ifndef GPU_SHADER
 BLI_STATIC_ASSERT_ALIGN(DrawGroup, 16)
+#endif
 
 /**
  * Representation of a future draw call inside a DrawGroup. This #DrawPrototype is then

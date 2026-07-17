@@ -16,7 +16,7 @@
 
 namespace blender::gpu::shader::parser {
 
-static std::string to_string(TokenType type)
+std::string to_str(TokenType type)
 {
   switch (type) {
     case Word:
@@ -234,7 +234,7 @@ struct ScopeParser {
         case BracketClose:
           return;
         default:
-          error("Unexpected token \"" + to_string(peek()) + "\": Expecting declaration");
+          error("Unexpected token \"" + to_str(peek()) + "\": Expecting declaration");
           break;
       }
     }
@@ -347,7 +347,7 @@ struct ScopeParser {
           next();
           break;
         default:
-          error("Unexpected token \"" + to_string(peek()) + "\"");
+          error("Unexpected token \"" + to_str(peek()) + "\"");
           return;
       }
     }
@@ -398,7 +398,7 @@ struct ScopeParser {
           next();
           break;
         default:
-          error("Unexpected token \"" + to_string(peek()) + "\"");
+          error("Unexpected token \"" + to_str(peek()) + "\"");
           return;
       }
     }
@@ -498,7 +498,7 @@ struct ScopeParser {
           next();
           break;
         default:
-          error("Unexpected token \"" + to_string(peek()) + "\"");
+          error("Unexpected token \"" + to_str(peek()) + "\"");
           return;
       }
     }
@@ -565,7 +565,7 @@ struct ScopeParser {
           next();
           break;
         default:
-          error("Unexpected token \"" + to_string(peek()) + "\"");
+          error("Unexpected token \"" + to_str(peek()) + "\"");
           return;
       }
     }
@@ -643,7 +643,7 @@ struct ScopeParser {
           next();
           break;
         default:
-          error("Unexpected token \"" + to_string(peek()) + "\"");
+          error("Unexpected token \"" + to_str(peek()) + "\"");
           return;
       }
     }
@@ -752,7 +752,7 @@ struct ScopeParser {
           next();
           break;
         default:
-          error("Unexpected token \"" + to_string(peek()) + "\"");
+          error("Unexpected token \"" + to_str(peek()) + "\"");
           return;
       }
     }
@@ -843,7 +843,7 @@ struct ScopeParser {
           next();
           break;
         default:
-          error("Unexpected token \"" + to_string(peek()) + "\"");
+          error("Unexpected token \"" + to_str(peek()) + "\"");
           return;
       }
     }
@@ -890,7 +890,7 @@ struct ScopeParser {
           next();
           break;
         default:
-          error("Unexpected token \"" + to_string(peek()) + "\"");
+          error("Unexpected token \"" + to_str(peek()) + "\"");
           return;
       }
     }
@@ -954,7 +954,7 @@ struct ScopeParser {
           next();
           break;
         default:
-          error("Unexpected token \"" + to_string(peek()) + "\"");
+          error("Unexpected token \"" + to_str(peek()) + "\"");
           return;
       }
     }
@@ -1003,7 +1003,7 @@ struct ScopeParser {
           next();
           break;
         default:
-          error("Unexpected token \"" + to_string(peek()) + "\"");
+          error("Unexpected token \"" + to_str(peek()) + "\"");
           return;
       }
     }
@@ -1051,7 +1051,7 @@ struct ScopeParser {
           next();
           break;
         default:
-          error("Unexpected token \"" + to_string(peek()) + "\"");
+          error("Unexpected token \"" + to_str(peek()) + "\"");
           return;
       }
     }
@@ -1160,8 +1160,8 @@ struct ScopeParser {
   void match(char expected)
   {
     if (curr != TokenType(expected)) {
-      error("Syntax Error: Expected token \"" + to_string(TokenType(expected)) + "\" but got \"" +
-            to_string(curr.type()) + "\"");
+      error("Syntax Error: Expected token \"" + to_str(TokenType(expected)) + "\" but got \"" +
+            to_str(curr.type()) + "\"");
     }
     next();
   }
@@ -1169,8 +1169,8 @@ struct ScopeParser {
   void match(char expected, char expected2)
   {
     if (curr != TokenType(expected) && curr != TokenType(expected2)) {
-      error("Syntax Error: Expected token \"" + to_string(TokenType(expected)) + "\" or \"" +
-            to_string(TokenType(expected2)) + "\" but got \"" + to_string(curr.type()) + "\"");
+      error("Syntax Error: Expected token \"" + to_str(TokenType(expected)) + "\" or \"" +
+            to_str(TokenType(expected2)) + "\" but got \"" + to_str(curr.type()) + "\"");
     }
     next();
   }

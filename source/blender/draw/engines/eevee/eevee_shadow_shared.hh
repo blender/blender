@@ -216,15 +216,17 @@ static inline uint shadow_page_pack(uint3 page)
 static inline uint3 shadow_page_unpack(uint data)
 {
   uint3 page;
-  /* clang-format off */ /* Multi-line macros breaks shader error lines. */
-  BLI_STATIC_ASSERT(SHADOW_PAGE_PER_ROW <= 8 && SHADOW_PAGE_PER_COL <= 8 && SHADOW_PAGE_MAX_LAYER <= 128, "Update page packing")
-  /* clang-format on */
   page.x = (data >> 0u) & 7u;
   page.y = (data >> 3u) & 7u;
   page.z = (data >> 6u) & 127u;
-  /* clang-format off */ /* Multi-line macros breaks shader error lines. */
-  BLI_STATIC_ASSERT(SHADOW_MAX_PAGE == (SHADOW_PAGE_PER_ROW * SHADOW_PAGE_PER_COL * SHADOW_PAGE_MAX_LAYER), "Update page packing")
-  /* clang-format on */
+#ifndef GPU_SHADER
+  BLI_STATIC_ASSERT(SHADOW_PAGE_PER_ROW <= 8 && SHADOW_PAGE_PER_COL <= 8 &&
+                        SHADOW_PAGE_MAX_LAYER <= 128,
+                    "Update page packing")
+  BLI_STATIC_ASSERT(SHADOW_MAX_PAGE ==
+                        (SHADOW_PAGE_PER_ROW * SHADOW_PAGE_PER_COL * SHADOW_PAGE_MAX_LAYER),
+                    "Update page packing")
+#endif
   return page;
 }
 
@@ -232,10 +234,12 @@ static inline ShadowTileData shadow_tile_unpack(ShadowTileDataPacked data)
 {
   ShadowTileData tile;
   tile.page = shadow_page_unpack(data);
-  /* -- 13 bits -- */
-  /* Unused bits. */
-  /* -- 14 bits -- */
+/* -- 13 bits -- */
+/* Unused bits. */
+/* -- 14 bits -- */
+#ifndef GPU_SHADER
   BLI_STATIC_ASSERT(SHADOW_MAX_PAGE <= 8192, "Update page packing")
+#endif
   tile.cache_index = (data >> 14u) & 8191u;
   /* -- 27 bits -- */
   tile.is_used = (data & SHADOW_IS_USED) != 0;
@@ -252,7 +256,9 @@ static inline ShadowTileDataPacked shadow_tile_pack(ShadowTileData tile)
   /* NOTE: Page might be set to invalid values for tracking invalid usages.
    * So we have to mask the result. */
   data = shadow_page_pack(tile.page) & uint(SHADOW_MAX_PAGE - 1);
+#ifndef GPU_SHADER
   BLI_STATIC_ASSERT(SHADOW_MAX_PAGE <= 8192, "Update page packing")
+#endif
   data |= (tile.cache_index & 8191u) << 14u;
   data |= (tile.is_used ? uint(SHADOW_IS_USED) : 0);
   data |= (tile.is_allocated ? uint(SHADOW_IS_ALLOCATED) : 0);
@@ -286,7 +292,9 @@ struct ShadowSamplingTile {
  * Result fits into SHADOW_TILEMAP_MAX_CLIPMAP_LOD * 2 bits. */
 static inline uint shadow_lod_offset_pack(uint2 ofs)
 {
+#ifndef GPU_SHADER
   BLI_STATIC_ASSERT(SHADOW_TILEMAP_MAX_CLIPMAP_LOD <= 8, "Update page packing")
+#endif
   return ofs.x | (ofs.y << SHADOW_TILEMAP_MAX_CLIPMAP_LOD);
 }
 static inline uint2 shadow_lod_offset_unpack(uint data)
@@ -301,8 +309,10 @@ static inline ShadowSamplingTile shadow_sampling_tile_unpack(ShadowSamplingTileP
   tile.page = shadow_page_unpack(data);
   /* -- 13 bits -- */
   /* Max value is actually SHADOW_TILEMAP_MAX_CLIPMAP_LOD but we mask the bits. */
-  BLI_STATIC_ASSERT(SHADOW_TILEMAP_MAX_CLIPMAP_LOD <= 8u, "Update lod packing")
   tile.lod = (data >> 13u) & 7u;
+#ifndef GPU_SHADER
+  BLI_STATIC_ASSERT(SHADOW_TILEMAP_MAX_CLIPMAP_LOD <= 8u, "Update lod packing")
+#endif
   /* -- 16 bits -- */
   tile.lod_offset = shadow_lod_offset_unpack(data >> 16u);
   /* -- 32 bits -- */

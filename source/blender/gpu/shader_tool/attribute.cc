@@ -13,6 +13,7 @@
 namespace blender::gpu::shader {
 using namespace std;
 using namespace shader::parser;
+using namespace shader::parser::ast;
 using namespace metadata;
 
 void SourceProcessor::lower_maybe_unused(Parser &parser)
@@ -175,6 +176,17 @@ void SourceProcessor::lower_attribute_sequences(Parser &parser)
       parser.erase(toks[4], toks[7]);
     });
   } while (parser.apply_mutations());
+}
+
+void SourceProcessor::lower_attribute_sequences_ast(Parser &parser)
+{
+  parser.root().foreach_recursive<AttrList>([&](AttrList list) {
+    if (list.parent().type() == NodeType::AttrList) {
+      Token front = list.front().prev(2);
+      parser.replace(front, ",");
+      parser.erase(front.next(1), front.next(3));
+    }
+  });
 }
 
 }  // namespace blender::gpu::shader

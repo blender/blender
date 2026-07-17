@@ -183,7 +183,7 @@ int main(int argc, char **argv)
 
   metadata::Source external_symbols;
   std::vector<std::string> visited_files{input_file_name};
-  if (language == Language::BLENDER_GLSL) {
+  if (language == Language::BLENDER_GLSL || language == Language::BSL) {
     external_symbols = scan_external_symbols(file_list, visited_files, buffer.str(), filename);
   }
 

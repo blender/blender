@@ -11,6 +11,27 @@
 
 #include "lexit/lexit.hh"
 
+namespace blender::gpu::shader {
+
+enum class Language {
+  UNKNOWN = 0,
+  /* Shared header. */
+  CPP,
+  /* Metal Shading Language. */
+  MSL,
+  /* OpenGL Shading Language. */
+  GLSL,
+  /* Blender Shading Language. */
+  BSL,
+  /* Legacy Create Info files. */
+  INFO,
+  /* Same as GLSL but enable partial C++ feature support like template, references,
+   * include system, etc ... */
+  BLENDER_GLSL,
+};
+
+}
+
 namespace blender::gpu::shader::parser {
 
 using namespace lexit;
