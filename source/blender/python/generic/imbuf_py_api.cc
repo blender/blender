@@ -1493,6 +1493,28 @@ static PyObject *imbuf_write_impl(ImBuf *ibuf, const char *filepath)
   Py_RETURN_NONE;
 }
 
+static PyObject *py_imbuf_write_impl(Py_ImBuf *py_imb, const char *filepath_or_null)
+{
+  if (py_imbuf_valid_check(py_imb) == -1) [[unlikely]] {
+    return nullptr;
+  }
+
+  if ((IMB_ftype_capability_write(py_imb->ibuf->ftype) & eImFileTypeCapability::File) ==
+      eImFileTypeCapability::Zero)
+  {
+    const char *id = py_imbuf_ftype_to_id_with_fallback(py_imb->ibuf->ftype);
+    PyErr_Format(
+        PyExc_ValueError, "write: file type '%.200s' does not support writing to a file", id);
+    return nullptr;
+  }
+
+  if (filepath_or_null == nullptr) {
+    /* Argument omitted, use images path. */
+    filepath_or_null = py_imb->ibuf->filepath.c_str();
+  }
+  return imbuf_write_impl(py_imb->ibuf, filepath_or_null);
+}
+
 PyDoc_STRVAR(
     /* Wrap. */
     M_imbuf_write_doc,
@@ -1533,23 +1555,7 @@ static PyObject *M_imbuf_write(PyObject * /*self*/, PyObject *args, PyObject *kw
     return nullptr;
   }
 
-  PY_IMBUF_CHECK_OBJ(py_imb);
-
-  if ((IMB_ftype_capability_write(py_imb->ibuf->ftype) & eImFileTypeCapability::File) ==
-      eImFileTypeCapability::Zero)
-  {
-    const char *id = py_imbuf_ftype_to_id_with_fallback(py_imb->ibuf->ftype);
-    PyErr_Format(
-        PyExc_ValueError, "write: file type '%.200s' does not support writing to a file", id);
-    return nullptr;
-  }
-
-  const char *filepath = filepath_data.value;
-  if (filepath == nullptr) {
-    /* Argument omitted, use images path. */
-    filepath = py_imb->ibuf->filepath.c_str();
-  }
-  PyObject *result = imbuf_write_impl(py_imb->ibuf, filepath);
+  PyObject *result = py_imbuf_write_impl(py_imb, filepath_data.value);
   Py_XDECREF(filepath_data.value_coerce);
   return result;
 }
