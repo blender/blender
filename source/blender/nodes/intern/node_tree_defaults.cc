@@ -138,11 +138,10 @@ void node_tree_composit_default_init(const bContext *C, bNodeTree *ntree)
    * visible area.*/
   composite->location[1] = 100.0f;
 
-  bNode *in = bke::node_add_static_node(C, *ntree, CMP_NODE_R_LAYERS);
+  bNode *in = bke::node_add_node(C, *ntree, "NodeGroupInput"_ustr);
   in->location[0] = -150.0f - in->width;
   in->location[1] = 100.0f;
   bke::node_set_active(*ntree, *in);
-  in->flag &= ~NODE_PREVIEW;
 
   bke::node_add_link(*ntree,
                      *in,
