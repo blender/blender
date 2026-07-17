@@ -27,6 +27,7 @@ ExternalProject_Add(external_epoxy
       --prefix ${LIBDIR}/epoxy
       --libdir lib
       --default-library ${EPOXY_LIB_TYPE}
+      ${MESON_CROSSFILE_ARG}
       ${MESON_BUILD_TYPE}
       ${EPOXY_EXTRA_OPTIONS}
       ${BUILD_DIR}/epoxy/src/external_epoxy-build

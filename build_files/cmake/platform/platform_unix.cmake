@@ -176,12 +176,7 @@ find_package_wrapper(JPEG REQUIRED)
 find_package_wrapper(PNG REQUIRED)
 find_package_wrapper(ZLIB REQUIRED)
 find_package_wrapper(Zstd REQUIRED)
-
-if(NOT ANDROID)
-  # Android only supports Vulkan.
-  find_package_wrapper(Epoxy REQUIRED)
-endif()
-
+find_package_wrapper(Epoxy REQUIRED)
 find_package_wrapper(fmt REQUIRED)
 if(DEFINED fmt_DIR)
   # Hide the fmt_DIR from the standard user settings to be consistent with our
