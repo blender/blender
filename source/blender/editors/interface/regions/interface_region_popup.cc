@@ -1049,6 +1049,10 @@ void popup_block_free(bContext *C, PopupBlockHandle *handle)
   popup_block_remove(C, handle);
 
   MEM_delete(handle);
+
+#ifdef WITH_INPUT_IME
+  WM_window_IME_region_refresh(CTX_wm_window(C), CTX_wm_area(C), CTX_wm_region(C));
+#endif
 }
 
 struct AlertData {

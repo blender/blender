@@ -81,6 +81,32 @@ bool sequencer_text_editing_active_poll(bContext *C)
   return (strip->flag & SEQ_FLAG_TEXT_EDITING_ACTIVE) != 0;
 }
 
+std::optional<int2> sequencer_text_editing_cursor_region_xy_get(const Scene *scene,
+                                                                const ARegion *region)
+{
+  if (const Strip *strip = seq::select_active_get(scene)) {
+    if (strip->type == STRIP_TYPE_TEXT && (strip->flag & SEQ_FLAG_TEXT_EDITING_ACTIVE) &&
+        strip->intersects_frame(scene, BKE_scene_frame_get(scene)))
+    {
+      const TextVars *data = static_cast<const TextVars *>(strip->effectdata);
+      if (data && data->runtime && !data->runtime->lines.is_empty()) {
+        const seq::TextVarsRuntime *runtime = data->runtime;
+        const int2 cursor_pos = strip_text_cursor_offset_to_position(runtime, data->cursor_offset);
+        float2 co = runtime->lines[cursor_pos.y].characters[cursor_pos.x].position;
+        co += float2(0.0f, float(runtime->font_descender));
+        co += float2(-scene->r.xsch / 2.0f, -scene->r.ysch / 2.0f);
+        co = math::transform_point(seq::image_transform_matrix_get(scene, strip), co);
+        co.x *= scene->r.xasp / scene->r.yasp;
+
+        int2 r;
+        ui::view2d_view_to_region(&region->v2d, co.x, co.y, &r.x, &r.y);
+        return r;
+      }
+    }
+  }
+  return std::nullopt;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -647,6 +673,12 @@ static void delete_character(const seq::CharInfo character, TextVars *data)
 
 static wmOperatorStatus sequencer_text_delete_exec(bContext *C, wmOperator *op)
 {
+#ifdef WITH_INPUT_IME
+  if (const std::optional<wmOperatorStatus> status = WM_operator_IME_edit_maybe(C)) {
+    return *status;
+  }
+#endif
+
   const Strip *strip = seq::select_active_get(CTX_data_sequencer_scene(C));
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
   const seq::TextVarsRuntime *runtime = data->runtime;
@@ -760,6 +792,14 @@ static wmOperatorStatus sequencer_text_insert_invoke(bContext *C,
                                                      wmOperator *op,
                                                      const wmEvent *event)
 {
+#ifdef WITH_INPUT_IME
+  if (const std::optional<wmOperatorStatus> status = WM_operator_IME_insert_maybe(
+          C, op, event, "string"))
+  {
+    return *status;
+  }
+#endif
+
   char str[6];
   BLI_strncpy_utf8(str, event->utf8_buf, BLI_str_utf8_size_safe(event->utf8_buf) + 1);
   RNA_string_set(op->ptr, "string", str);

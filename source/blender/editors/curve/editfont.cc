@@ -1731,6 +1731,12 @@ static const EnumPropertyItem delete_type_items[] = {
 
 static wmOperatorStatus delete_exec(bContext *C, wmOperator *op)
 {
+#ifdef WITH_INPUT_IME
+  if (const std::optional<wmOperatorStatus> status = WM_operator_IME_edit_maybe(C)) {
+    return *status;
+  }
+#endif
+
   Object *obedit = CTX_data_edit_object(C);
   Curve *cu = id_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
@@ -1929,6 +1935,14 @@ static wmOperatorStatus insert_text_invoke(bContext *C, wmOperator *op, const wm
     }
     return OPERATOR_PASS_THROUGH;
   }
+
+#ifdef WITH_INPUT_IME
+  if (const std::optional<wmOperatorStatus> status = WM_operator_IME_insert_maybe(
+          C, op, event, "text"))
+  {
+    return *status;
+  }
+#endif
 
   /* Tab typically exit edit-mode, but we allow it to be typed using modifier keys. */
   if (event->type == EVT_TABKEY) {

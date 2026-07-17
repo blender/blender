@@ -50,6 +50,8 @@ static SpaceLink *console_create(const ScrArea * /*area*/, const Scene * /*scene
 
   sconsole->line_height = 14;
 
+  sconsole->runtime = MEM_new<SpaceConsole_Runtime>(__func__);
+
   /* header */
   region = BKE_area_region_new();
 
@@ -89,6 +91,8 @@ static void console_free(SpaceLink *sl)
   while (sc->history.first) {
     console_history_free(sc, static_cast<ConsoleLine *>(sc->history.first));
   }
+
+  MEM_delete(sc->runtime);
 }
 
 /* spacetype; init callback */
@@ -103,6 +107,9 @@ static SpaceLink *console_duplicate(SpaceLink *sl)
   /* TODO: duplicate?, then we also need to duplicate the py namespace. */
   sconsolen->scrollback.clear_no_delete();
   sconsolen->history.clear_no_delete();
+
+  /* Add its own runtime data. */
+  sconsolen->runtime = MEM_new<SpaceConsole_Runtime>(__func__);
 
   return reinterpret_cast<SpaceLink *>(sconsolen);
 }
@@ -212,6 +219,36 @@ static void console_dropboxes()
 
 /* ************* end drop *********** */
 
+#ifdef WITH_INPUT_IME
+static std::optional<rcti> console_main_region_cursor_ime(wmWindow * /*win*/,
+                                                          const ScrArea *area,
+                                                          const ARegion *region)
+{
+  /* Defer during View2D navigation (pan, zoom, scroll). */
+  if (region->v2d.flag & V2D_IS_NAVIGATING) {
+    return std::nullopt;
+  }
+  SpaceConsole *sc = static_cast<SpaceConsole *>(area->spacedata.first);
+  /* Font metrics are cached during draw; zero means the region hasn't been drawn yet. */
+  const int line_height = sc->runtime->line_height_px;
+  if (line_height == 0) {
+    return std::nullopt;
+  }
+  const ConsoleLine *cl = static_cast<const ConsoleLine *>(sc->history.last);
+  if (cl == nullptr) {
+    return std::nullopt;
+  }
+  const std::optional<blender::int2> xy = console_cursor_region_xy_get(sc, region, cl->cursor);
+  if (!xy) {
+    return std::nullopt;
+  }
+  /* Extend the caret position upward by the line height; the caller clamps to the region
+   * bounds (the cursor may be scrolled out of view). */
+  return rcti{xy->x, xy->x, xy->y, xy->y + line_height};
+}
+
+#endif
+
 static void console_main_region_draw(const bContext *C, ARegion *region)
 {
   /* draw entirely, view changes should be handled here */
@@ -318,6 +355,8 @@ static void console_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   SpaceConsole *sconsole = reinterpret_cast<SpaceConsole *>(sl);
 
+  sconsole->runtime = MEM_new<SpaceConsole_Runtime>(__func__);
+
   BLO_read_struct_list(reader, ConsoleLine, &sconsole->scrollback);
   BLO_read_struct_list(reader, ConsoleLine, &sconsole->history);
 
@@ -376,6 +415,9 @@ void ED_spacetype_console()
   art->cursor = console_cursor;
   art->event_cursor = true;
   art->listener = console_main_region_listener;
+#ifdef WITH_INPUT_IME
+  art->cursor_ime = console_main_region_cursor_ime;
+#endif
 
   BLI_addhead(&st->regiontypes, art);
 

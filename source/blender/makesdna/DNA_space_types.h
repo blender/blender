@@ -53,6 +53,7 @@ class AssetRepresentation;
 
 /** Defined in `buttons_intern.hh`. */
 struct SpaceProperties_Runtime;
+struct SpaceConsole_Runtime;
 
 namespace ed::space_node {
 struct SpaceNode_Runtime;
@@ -956,6 +957,9 @@ struct SpaceConsole {
   /** Selection offset in bytes. */
   int sel_start = 0;
   int sel_end = 0;
+
+  /** Keep last. */
+  SpaceConsole_Runtime *runtime = nullptr;
 };
 
 /** \} */

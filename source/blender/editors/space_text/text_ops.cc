@@ -2487,6 +2487,12 @@ static const EnumPropertyItem delete_type_items[] = {
 
 static wmOperatorStatus text_delete_exec(bContext *C, wmOperator *op)
 {
+#ifdef WITH_INPUT_IME
+  if (const std::optional<wmOperatorStatus> status = WM_operator_IME_edit_maybe(C)) {
+    return *status;
+  }
+#endif
+
   SpaceText *st = CTX_wm_space_text(C);
   Text *text = CTX_data_edit_text(C);
   int type = RNA_enum_get(op->ptr, "type");
@@ -3572,6 +3578,14 @@ static wmOperatorStatus text_insert_exec(bContext *C, wmOperator *op)
 
   str = RNA_string_get_alloc(op->ptr, "text", nullptr, 0, &str_len);
 
+  /* NOTE: we rely on this check to ensure `done` will never be false,
+   * this area of code should be refactored not to depend on `done`
+   * being set as a side-effect of a successful insert. */
+  if (*str == '\0' || text->curl == nullptr) {
+    MEM_delete(str);
+    return OPERATOR_CANCELLED;
+  }
+
   ED_text_undo_push_init(C);
 
   if (st && st->overwrite) {
@@ -3589,9 +3603,8 @@ static wmOperatorStatus text_insert_exec(bContext *C, wmOperator *op)
 
   MEM_delete(str);
 
-  if (!done) {
-    return OPERATOR_CANCELLED;
-  }
+  BLI_assert(done);
+  UNUSED_VARS_NDEBUG(done);
 
   text_update_line_edited(text->curl);
 
@@ -3619,6 +3632,14 @@ static wmOperatorStatus text_insert_invoke(bContext *C, wmOperator *op, const wm
     int selc;
     int curc;
   } auto_close_select = {nullptr}, auto_close_select_backup = {nullptr};
+
+#ifdef WITH_INPUT_IME
+  if (const std::optional<wmOperatorStatus> status = WM_operator_IME_insert_maybe(
+          C, op, event, "text"))
+  {
+    return *status;
+  }
+#endif
 
   /* NOTE: the "text" property is always set from key-map,
    * so we can't use #RNA_struct_property_is_set, check the length instead. */

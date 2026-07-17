@@ -73,6 +73,10 @@ set(LIB
   PRIVATE bf::intern::clog
 )
 
+if(WITH_INPUT_IME)
+  add_definitions(-DWITH_INPUT_IME)
+endif()
+
 blender_add_lib(bf_editor_space_sequencer "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 # RNA_prototypes.hh dna_type_offsets.h

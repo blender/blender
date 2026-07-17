@@ -353,6 +353,22 @@ bool WM_window_is_main_top_level(const wmWindow *win);
 bool WM_window_is_fullscreen(const wmWindow *win);
 bool WM_window_is_maximized(const wmWindow *win);
 
+#ifdef WITH_INPUT_IME
+/**
+ * Start and end an IME composition session for a window.
+ */
+void WM_window_IME_begin(wmWindow *win, int x, int y, int w, int h, bool complete);
+void WM_window_IME_end(wmWindow *win);
+
+/**
+ * Re-evaluate the IME status for regions with IME positioning (a `cursor_ime` callback).
+ * Ensures:
+ * - IME is enabled for regions that accept it.
+ * - IME is disabled if the region no longer accepts it.
+ */
+void WM_window_IME_region_refresh(wmWindow *win, const ScrArea *area, const ARegion *region);
+#endif
+
 /**
  * Support for wide gamut and HDR colors.
  */
@@ -964,6 +980,32 @@ wmOperatorStatus WM_enum_search_invoke(bContext *C, wmOperator *op, const wmEven
  */
 wmOperatorStatus WM_operator_confirm(bContext *C, wmOperator *op, const wmEvent *event);
 wmOperatorStatus WM_operator_confirm_or_exec(bContext *C, wmOperator *op, const wmEvent *event);
+
+#ifdef WITH_INPUT_IME
+/**
+ * IME support for the invoke function of text insertion operators.
+ *
+ * A null return means the event is not IME related,
+ * the caller must handle the event as usual.
+ * Otherwise the caller must return the resulting status:
+ * - The result of the operators `exec` function when the IME text is committed
+ *   (set as the operators string property \a prop_id).
+ * - #OPERATOR_CANCELLED for other IME events while composing,
+ *   see #bke::WindowRuntime::ime_data_is_composing for details.
+ */
+std::optional<wmOperatorStatus> WM_operator_IME_insert_maybe(bContext *C,
+                                                             wmOperator *op,
+                                                             const wmEvent *event,
+                                                             const char *prop_id);
+/**
+ * Prevent text editing operators (delete... etc) from running while IME composing,
+ * see #bke::WindowRuntime::ime_data_is_composing for details.
+ *
+ * A null return means the operator may run as usual,
+ * otherwise the caller must return the resulting status (#OPERATOR_CANCELLED).
+ */
+std::optional<wmOperatorStatus> WM_operator_IME_edit_maybe(const bContext *C);
+#endif
 
 /**
  * Like WM_operator_confirm, but with more options and can't be used as an invoke directly.
