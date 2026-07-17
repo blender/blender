@@ -63,7 +63,6 @@ void PyC_StackSpit();
  */
 bool PyC_Err_CaptureSystemExitCode();
 
-[[nodiscard]] PyObject *PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...);
 [[nodiscard]] PyObject *PyC_FrozenSetFromStrings(const char **strings);
 
 /**

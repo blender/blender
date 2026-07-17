@@ -836,41 +836,6 @@ void PyC_FileAndNum_Safe(const char **r_filename, int *r_lineno)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Object Access Utilities
- * \{ */
-
-PyObject *PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...)
-{
-  /* NOTE: Would be nice if python had this built in. */
-
-  Py_ssize_t i;
-  PyObject *item = o;
-  const char *attr;
-
-  va_list vargs;
-
-  va_start(vargs, n);
-  for (i = 0; i < n; i++) {
-    attr = va_arg(vargs, char *);
-    item = PyObject_GetAttrString(item, attr);
-
-    if (item) {
-      Py_DECREF(item);
-    }
-    else {
-      /* python will set the error value here */
-      break;
-    }
-  }
-  va_end(vargs);
-
-  Py_XINCREF(item); /* final value has is increfed, to match PyObject_GetAttrString */
-  return item;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Frozen Set Creation
  * \{ */
 
