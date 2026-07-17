@@ -274,12 +274,11 @@ static PyModuleDef BPy_BM_ops_module_def = {
 
 PyObject *BPyInit_bmesh_ops()
 {
-  PyObject *submodule = PyModule_Create(&BPy_BM_ops_module_def);
-
   if (PyType_Ready(&bmesh_op_Type) < 0) {
     return nullptr;
   }
 
+  PyObject *submodule = PyModule_Create(&BPy_BM_ops_module_def);
   return submodule;
 }
 

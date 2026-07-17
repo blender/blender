@@ -814,11 +814,11 @@ static PyModuleDef BLF_types_module_def = {
 
 static PyObject *BPyInit_blf_types()
 {
-  PyObject *submodule = PyModule_Create(&BLF_types_module_def);
-
   if (PyType_Ready(&BPyBLFImBufContext_Type) < 0) {
     return nullptr;
   }
+
+  PyObject *submodule = PyModule_Create(&BLF_types_module_def);
 
   PyModule_AddType(submodule, &BPyBLFImBufContext_Type);
 

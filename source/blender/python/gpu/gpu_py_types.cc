@@ -35,10 +35,6 @@ static PyModuleDef pygpu_types_module_def = {
 
 PyObject *bpygpu_types_init()
 {
-  PyObject *submodule;
-
-  submodule = PyModule_Create(&pygpu_types_module_def);
-
   if (PyType_Ready(&BPyGPU_BufferType) < 0) {
     return nullptr;
   }
@@ -84,6 +80,8 @@ PyObject *bpygpu_types_init()
   if (PyType_Ready(&BPyGPU_DeviceType) < 0) {
     return nullptr;
   }
+
+  PyObject *submodule = PyModule_Create(&pygpu_types_module_def);
 
   PyModule_AddType(submodule, &BPyGPU_BufferType);
   PyModule_AddType(submodule, &BPyGPUVertFormat_Type);

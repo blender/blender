@@ -506,16 +506,17 @@ static PyModuleDef kdtree_moduledef = {
 
 PyMODINIT_FUNC PyInit_mathutils_kdtree()
 {
+  /* Register the 'KDTree' class */
+  if (PyType_Ready(&PyKDTree_Type)) {
+    return nullptr;
+  }
+
   PyObject *m = PyModule_Create(&kdtree_moduledef);
 
   if (m == nullptr) {
     return nullptr;
   }
 
-  /* Register the 'KDTree' class */
-  if (PyType_Ready(&PyKDTree_Type)) {
-    return nullptr;
-  }
   PyModule_AddType(m, &PyKDTree_Type);
 
   return m;

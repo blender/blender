@@ -5889,6 +5889,10 @@ PyObject *BPY_rna_props()
   PyObject *submodule;
   PyObject *submodule_dict;
 
+  if (PyType_Ready(&bpy_prop_deferred_Type) < 0) {
+    return nullptr;
+  }
+
   submodule = PyModule_Create(&props_module);
   PyDict_SetItemString(PyImport_GetModuleDict(), props_module.m_name, submodule);
 
@@ -5909,9 +5913,6 @@ PyObject *BPY_rna_props()
   ASSIGN_STATIC(CollectionProperty);
   ASSIGN_STATIC(RemoveProperty);
 
-  if (PyType_Ready(&bpy_prop_deferred_Type) < 0) {
-    return nullptr;
-  }
   PyModule_AddType(submodule, &bpy_prop_deferred_Type);
 
   /* Run this when properties are freed. */

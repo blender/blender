@@ -1767,6 +1767,10 @@ static PyModuleDef IMB_module_def = {
 
 PyObject *BPyInit_imbuf()
 {
+  if (PyType_Ready(&Py_ImBufFileType_Type) < 0) {
+    return nullptr;
+  }
+
   PyObject *mod;
   PyObject *submodule;
   PyObject *sys_modules = PyImport_GetModuleDict();
@@ -1779,9 +1783,6 @@ PyObject *BPyInit_imbuf()
 
   /* `imbuf.file_types` (read-only dict of supported file type identifiers). */
   {
-    if (PyType_Ready(&Py_ImBufFileType_Type) < 0) {
-      return nullptr;
-    }
     PyObject *dict = _PyDict_NewPresized(IMB_FTYPE_LAST + 1);
     for (int ftype = 0; ftype <= IMB_FTYPE_LAST; ftype++) {
       const char *id = (ftype != IMB_FTYPE_NONE) ? IMB_ftype_to_id(eImbFileType(ftype)) :
@@ -1833,11 +1834,11 @@ static PyModuleDef IMB_types_module_def = {
 
 PyObject *BPyInit_imbuf_types()
 {
-  PyObject *submodule = PyModule_Create(&IMB_types_module_def);
-
   if (PyType_Ready(&Py_ImBuf_Type) < 0) {
     return nullptr;
   }
+
+  PyObject *submodule = PyModule_Create(&IMB_types_module_def);
 
   PyModule_AddType(submodule, &Py_ImBuf_Type);
   PyModule_AddType(submodule, &Py_ImBufBuffer_Type);

@@ -1375,14 +1375,14 @@ static PyModuleDef bvhtree_moduledef = {
 
 PyMODINIT_FUNC PyInit_mathutils_bvhtree()
 {
-  PyObject *m = PyModule_Create(&bvhtree_moduledef);
-
-  if (m == nullptr) {
+  /* Register classes */
+  if (PyType_Ready(&PyBVHTree_Type) < 0) {
     return nullptr;
   }
 
-  /* Register classes */
-  if (PyType_Ready(&PyBVHTree_Type) < 0) {
+  PyObject *m = PyModule_Create(&bvhtree_moduledef);
+
+  if (m == nullptr) {
     return nullptr;
   }
 
