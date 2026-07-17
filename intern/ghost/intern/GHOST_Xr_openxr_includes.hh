@@ -16,6 +16,9 @@
 #ifdef XR_USE_PLATFORM_WIN32
 #  include <windows.h>
 #endif
+#ifdef XR_USE_PLATFORM_ANDROID
+#  include <jni.h>
+#endif
 
 /* Graphics headers */
 #ifdef XR_USE_GRAPHICS_API_D3D10
