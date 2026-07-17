@@ -61,12 +61,25 @@ class Axes : Overlay {
                                         (state.scene->toolsettings->transform_flag &
                                          SCE_XFORM_DATA_ORIGIN) &&
                                         (ob->base_flag & BASE_SELECTED);
-    if (!use_display_axis && !use_xform_origins_axis) {
+    const bool use_xform_sculpt_pivot_axis = state.ctx_mode == CTX_MODE_SCULPT &&
+                                             ob == state.object_active &&
+                                             ob->runtime->sculpt_session != nullptr &&
+                                             (state.scene->toolsettings->transform_flag &
+                                              SCE_XFORM_SCULPT_PIVOT);
+    if (!use_display_axis && !use_xform_origins_axis && !use_xform_sculpt_pivot_axis) {
       return;
     }
+    float4x4 target = ob->object_to_world();
 
-    ExtraInstanceData data(ob->object_to_world(), res.object_wire_color(ob_ref, state), 1.0f);
-    if (use_xform_origins_axis) {
+    if (use_xform_sculpt_pivot_axis) {
+      const SculptSession *ss = ob->runtime->sculpt_session;
+      const float4x4 local_pivot_orientation = math::from_loc_rot<float4x4>(
+          ss->pivot_pos, math::Quaternion(ss->pivot_rot));
+      target = target * local_pivot_orientation;
+    }
+
+    ExtraInstanceData data(target, res.object_wire_color(ob_ref, state), 1.0f);
+    if (use_xform_origins_axis || use_xform_sculpt_pivot_axis) {
       data.color_ = float4(0.15f, 0.15f, 0.15f, 0.7f);
       xform_origins_buf.append(data, select::SelectMap::select_invalid_id());
     }
