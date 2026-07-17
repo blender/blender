@@ -3696,8 +3696,7 @@ PyObject *Vector_CreatePyObject_cb(PyObject *cb_user, int vec_num, uchar cb_type
   VectorObject *self = reinterpret_cast<VectorObject *>(
       Vector_CreatePyObject(nullptr, vec_num, nullptr));
   if (self) {
-    Py_INCREF(cb_user);
-    self->cb_user = cb_user;
+    self->cb_user = Py_NewRef(cb_user);
     self->cb_type = cb_type;
     self->cb_subtype = cb_subtype;
     BLI_assert(!PyObject_GC_IsTracked((PyObject *)self));
