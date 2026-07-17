@@ -236,12 +236,14 @@ static wmOperatorStatus collection_new_exec(bContext *C, wmOperator *op)
   if (RNA_boolean_get(op->ptr, "nested")) {
     outliner_build_tree(bmain, workspace, scene, view_layer, space_outliner, region);
 
-    TreeElement *active_te = outliner_find_element_with_flag(&space_outliner->runtime->tree,
-                                                             TSE_ACTIVE);
-    collection = outliner_collection_from_tree_element(active_te);
-    if (active_te->idcode == ID_OB) {
-      collection = BKE_collection_object_find(
-          bmain, scene, nullptr, reinterpret_cast<Object *>(active_te->store_elem->id));
+    if (TreeElement *active_te = outliner_find_element_with_flag(&space_outliner->runtime->tree,
+                                                                 TSE_ACTIVE))
+    {
+      collection = outliner_collection_from_tree_element(active_te);
+      if (active_te->idcode == ID_OB) {
+        collection = BKE_collection_object_find(
+            bmain, scene, nullptr, reinterpret_cast<Object *>(active_te->store_elem->id));
+      }
     }
   }
 
