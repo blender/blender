@@ -60,7 +60,7 @@ void vert_tris_from_corner_tris(Span<int> corner_verts,
                                 Span<int3> corner_tris,
                                 MutableSpan<int3> vert_tris);
 
-/** Return the triangle's three edge indices they are real edges, otherwise -1. */
+/** Return the triangle's three edge indices if they are real edges, otherwise -1. */
 int3 corner_tri_get_real_edges(Span<int2> edges,
                                Span<int> corner_verts,
                                Span<int> corner_edges,
