@@ -2883,13 +2883,6 @@ Block *region_block_find_mouse_over(const ARegion *region, const int xy[2], bool
  */
 ARegion *region_searchbox_region_get(const ARegion *button_region);
 
-/** #uiFontStyle.align */
-enum FontStyleAlign {
-  UI_STYLE_TEXT_LEFT = 0,
-  UI_STYLE_TEXT_CENTER = 1,
-  UI_STYLE_TEXT_RIGHT = 2,
-};
-
 struct FontStyleDrawParams {
   FontStyleAlign align;
   uint word_wrap : 1;

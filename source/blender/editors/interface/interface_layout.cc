@@ -46,6 +46,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "buttons/interface_label.hh"
 #include "buttons/interface_textbox.hh"
 #include "interface_intern.hh"
 
@@ -92,6 +93,8 @@ struct LayoutRoot {
   const uiStyle *style;
   Block *block;
   Layout *layout;
+  LayoutDirection direction;
+  bool use_dynamic_height;
 };
 
 /* Item */
@@ -180,6 +183,7 @@ struct LayoutInternal {
   static Layout *item_prop_split_layout_hack(Layout *layout_parent, Layout *layout_split);
   static void layout_offset_size_set(Layout *layout, int x, int y, int w, int h);
   static void layout_move(Layout *layout, int delta_xmin, int delta_xmax);
+  static void layout_translate_y(Layout *layout, int delta);
   static void layout_space_set(Layout *layout, int space);
   static int layout_space_get(Layout *layout);
 };
@@ -277,20 +281,25 @@ struct LayoutItemBx : public LayoutColumn {
 
   void estimate_impl() override;
   void resolve_impl() override;
+  void resolve_dynamic_height() override;
 };
 
 struct LayoutItemPanelHeader : public Layout {
   PointerRNA open_prop_owner;
   std::string open_prop_name;
+  int index = 0;
   LayoutItemPanelHeader() : Layout(ItemType::LayoutPanelHeader, nullptr) {}
 
   void estimate_impl() override;
   void resolve_impl() override;
+  void resolve_dynamic_height() override;
 };
 
 struct LayoutItemPanelBody : public LayoutColumn {
+  int index = 0;
   LayoutItemPanelBody() : LayoutColumn(ItemType::LayoutPanelBody, nullptr) {}
   void resolve_impl() override;
+  void resolve_dynamic_height() override;
 };
 
 struct LayoutItemSplit : public LayoutRow {
@@ -518,6 +527,31 @@ void LayoutInternal::layout_offset_size_set(Layout *layout, int x, int y, int w,
   layout->h_ = h;
 }
 
+void LayoutInternal::layout_translate_y(Layout *layout, int delta)
+{
+  layout->y_ += delta;
+}
+
+static void item_translate_y(Item *item, const int delta)
+{
+  if (delta == 0) {
+    /* Early return for recursive calls. */
+    return;
+  }
+  if (item->type() == ItemType::Button) {
+    const auto *bitem = static_cast<const ButtonItem *>(item);
+    bitem->but->rect.ymin += delta;
+    bitem->but->rect.ymax += delta;
+  }
+  else {
+    auto *layout = static_cast<Layout *>(item);
+    LayoutInternal::layout_translate_y(layout, delta);
+    for (Item *sub : layout->items()) {
+      item_translate_y(sub, delta);
+    }
+  }
+}
+
 static void item_move(Item *item, const int delta_xmin, const int delta_xmax)
 {
   if (item->type() == ItemType::Button) {
@@ -562,8 +596,9 @@ int LayoutInternal::layout_space_get(Layout *layout)
 LayoutDirection Layout::local_direction() const
 {
   switch (this->type()) {
-    case ItemType::LayoutRow:
     case ItemType::LayoutRoot:
+      return this->root_->direction;
+    case ItemType::LayoutRow:
     case ItemType::LayoutOverlap:
     case ItemType::LayoutPanelHeader:
     case ItemType::LayoutGridFlow:
@@ -3307,6 +3342,45 @@ void Layout::label(const StringRef name, int icon)
   uiItem_simple(this, name, icon);
 }
 
+void Layout::label_multiline(StringRefNull text, int icon, FontStyleAlign align, int max_lines)
+{
+  block_layout_set_current(this->block(), this);
+  Button *button = nullptr;
+  /* Use a dummy string, let the layout system to be resolved and then do text wrap. */
+  const int width = text_icon_width_ex(
+      this, "non-empty text", icon, text_pad_none, UI_FSTYLE_WIDGET);
+  if (icon) {
+    button = uiDefIconTextBut(this->block(),
+                              ButtonType::Label,
+                              icon,
+                              text,
+                              0,
+                              0,
+                              width,
+                              UI_UNIT_Y,
+                              nullptr,
+                              std::nullopt);
+  }
+  else {
+    button = uiDefBut(this->block(),
+                      ButtonType::Label,
+                      text,
+                      0,
+                      0,
+                      width,
+                      UI_UNIT_Y,
+                      nullptr,
+                      0,
+                      0,
+                      std::nullopt);
+  }
+  this->root_->use_dynamic_height = true;
+  ButtonLabel *label = static_cast<ButtonLabel *>(button);
+  label->text_align = align;
+  label->is_multiline = true;
+  label->max_lines = max_lines;
+}
+
 void Layout::link(const StringRef url, const StringRef name, int icon)
 {
   wmOperatorType *ot = WM_operatortype_find("WM_OT_url_open", false); /* print error next */
@@ -3770,6 +3844,9 @@ void LayoutInternal::layout_estimate(Layout *layout)
 void LayoutInternal::layout_resolve(Layout *layout)
 {
   layout->resolve();
+  if (layout->root_->use_dynamic_height) {
+    layout->resolve_dynamic_height();
+  }
 }
 
 /* single-row layout */
@@ -4228,8 +4305,18 @@ void LayoutItemPanelHeader::resolve_impl()
   const int2 size = item->size();
   y_ -= size.y;
   item_position(item, x_, y_, w_, size.y);
+  this->index = panel->runtime->layout_panels.headers.size();
   panel->runtime->layout_panels.headers.append(
       {float(y_), float(y_ + h_), open_prop_owner, open_prop_name});
+}
+
+void LayoutItemPanelHeader::resolve_dynamic_height()
+{
+  Layout::resolve_dynamic_height();
+  const Panel *panel = this->root_panel();
+  LayoutPanelHeader &header = panel->runtime->layout_panels.headers[this->index];
+  header.start_y = float(y_);
+  header.end_y = float(y_ + h_);
 }
 
 /* panel body layout */
@@ -4238,10 +4325,21 @@ void LayoutItemPanelBody::resolve_impl()
   Panel *panel = this->root_panel();
   LayoutColumn::resolve_impl();
   const int space = LayoutInternal::layout_space_get(this->parent_);
+  this->index = panel->runtime->layout_panels.bodies.size();
   panel->runtime->layout_panels.bodies.append({
       float(y_ - space),
       float(y_ + h_ + space),
   });
+}
+
+void LayoutItemPanelBody::resolve_dynamic_height()
+{
+  Layout::resolve_dynamic_height();
+  const Panel *panel = this->root_panel();
+  LayoutPanelBody &body = panel->runtime->layout_panels.bodies[this->index];
+  const int space = LayoutInternal::layout_space_get(this->parent_);
+  body.start_y = float(y_ - space);
+  body.end_y = float(y_ + h_ + space);
 }
 
 /* box layout */
@@ -4298,6 +4396,15 @@ void LayoutItemBx::resolve_impl()
   but->rect.xmin = x_;
   but->rect.ymin = y_;
   but->rect.xmax = x_ + w_;
+  but->rect.ymax = y_ + h_;
+}
+
+void LayoutItemBx::resolve_dynamic_height()
+{
+  Layout::resolve_dynamic_height();
+  /* roundbox around the sublayout */
+  Button *but = this->roundbox;
+  but->rect.ymin = y_;
   but->rect.ymax = y_ + h_;
 }
 
@@ -5610,6 +5717,95 @@ void Layout::resolve()
   }
 }
 
+static void resolve_label_multiline(ButtonLabel *button)
+{
+  int icon_pad = 0;
+  if (button->flag & UI_HAS_ICON) {
+    icon_pad = UI_UNIT_X * (text_pad_none.icon + text_pad_none.text);
+  }
+  label_multiline_wrap_lines(button, icon_pad);
+  const float line_height = ui::fontstyle_height_max(UI_FSTYLE_WIDGET);
+  /* Top and bottom Text text padding. */
+  const float padding = std::max(UI_UNIT_Y - line_height, 0.0f);
+  int lines = button->wrap_cache->wrapped_lines.size();
+  if (button->max_lines > 0) {
+    lines = std::min(button->max_lines, lines);
+  }
+  const float height = padding + line_height * lines;
+  button->rect.ymin = button->rect.ymax - std::max<float>(UI_UNIT_Y, height);
+}
+
+void Layout::resolve_dynamic_height()
+{
+  if (this->items().is_empty()) {
+    return;
+  }
+  /* Extra vertical offsset. */
+  int y_offs = 0;
+
+  /* For simplicity a column is a grid of n rows and 1 columns, and a row is a grid of 1 rows and n
+   * columns. */
+  int rows = this->local_direction() == LayoutDirection::Vertical ? this->items().size() : 1;
+  int cols = this->local_direction() == LayoutDirection::Horizontal ? this->items().size() : 1;
+  bool row_major = this->local_direction() == LayoutDirection::Vertical;
+
+  if (const LayoutItemGridFlow *flow = this->type() == ItemType::LayoutGridFlow ?
+                                           static_cast<const LayoutItemGridFlow *>(this) :
+                                           nullptr)
+  {
+    row_major = flow->row_major;
+    rows = flow->tot_rows;
+    cols = flow->tot_columns;
+  }
+  if (const LayoutItemFlow *flow = this->type() == ItemType::LayoutColumnFlow ?
+                                       static_cast<const LayoutItemFlow *>(this) :
+                                       nullptr)
+  {
+    row_major = false;
+    cols = flow->totcol;
+    rows = std::ceil(float(flow->items().size() / float(std::max(cols, 1))));
+  }
+  /* Dynamic height is resolved row by row, and each row pushes down following rows. */
+  for (const int row : IndexRange(rows)) {
+    /* Maximun sub-item heigth in the row before resolving its dynamic heigth. */
+    int max_row_subitem_heigth = 0;
+    /* Maximun sub-item heigth in the row after resolving its dynamic heigth. */
+    int max_row_subitem_heigth_new = 0;
+
+    for (const int col : IndexRange(cols)) {
+      const int i = (row_major ? (row * cols + col) : (col * rows + row));
+      if (i >= this->items_.size()) {
+        continue;
+      }
+      Item *subitem = this->items_[i];
+      const int2 size = subitem->size();
+      max_row_subitem_heigth = std::max(max_row_subitem_heigth, size.y);
+
+      /* Apply acumulated offset from previous rows. */
+      item_translate_y(subitem, -y_offs);
+
+      /* Resolve sub-item dynamic heigth. */
+      if (subitem->type() == ItemType::Button) {
+        const auto *sub_bitem = static_cast<const ButtonItem *>(subitem);
+        if (button_label_is_multiline(sub_bitem->but)) {
+          resolve_label_multiline(static_cast<ButtonLabel *>(sub_bitem->but));
+        }
+      }
+      else {
+        static_cast<Layout *>(subitem)->resolve_dynamic_height();
+      }
+      const int2 new_size = subitem->size();
+      max_row_subitem_heigth_new = std::max(max_row_subitem_heigth_new, new_size.y);
+    }
+    /* Apply this row's extra height as offset to following rows. */
+    y_offs += std::max(max_row_subitem_heigth_new - max_row_subitem_heigth, 0);
+  }
+
+  /* Apply change in heigth to this layout. */
+  this->y_ -= y_offs;
+  this->h_ += y_offs;
+}
+
 static int2 layout_end(Layout *layout)
 {
   LayoutInternal::layout_estimate(layout);
@@ -5665,6 +5861,7 @@ Layout &block_layout(Block *block,
   root->block = block;
   root->padding = padding;
   root->opcontext = wm::OpCallContext::InvokeRegionWin;
+  root->direction = dir;
   const char *func = __func__;
   Layout *layout = [&]() -> Layout * {
     switch (type) {

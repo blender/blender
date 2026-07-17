@@ -39,6 +39,7 @@
 #include "UI_interface_icons.hh"
 #include "UI_view2d.hh"
 
+#include "buttons/interface_label.hh"
 #include "buttons/interface_textbox.hh"
 #include "interface_intern.hh"
 
@@ -2751,6 +2752,83 @@ static void widget_draw_text(const uiFontStyle *fstyle,
   }
 }
 
+static void widget_draw_multiline_text(const uiFontStyle *fstyle,
+                                       const uiWidgetColors *wcol,
+                                       Button *but,
+                                       rcti *rect)
+{
+  /* Draw multiline text. */
+  ButtonLabel *multiline_label = static_cast<ButtonLabel *>(but);
+  const int total_lines = multiline_label->wrap_cache->wrapped_lines.size();
+  const int lines = multiline_label->max_lines > 0 ?
+                        std::min(multiline_label->max_lines, total_lines) :
+                        total_lines;
+
+  const float line_height = ui::fontstyle_height_max(UI_FSTYLE_WIDGET) / but->block->aspect;
+  const float padding = (std::max(UI_UNIT_Y - line_height, 0.0f) / 2.0f) / but->block->aspect;
+
+  FontStyleDrawParams params{};
+  params.align = multiline_label->text_align;
+  params.word_clip = false;
+
+  float ymax = rect->ymax - padding;
+  rcti line_rect = *rect;
+  int sccissors[4];
+  GPU_scissor_get(sccissors);
+  int sccisors_ymin = sccissors[1];
+  int sccisors_ymax = sccisors_ymin + sccissors[3];
+
+  for (const int i : multiline_label->wrap_cache->wrapped_lines.index_range().take_front(lines)) {
+    StringRef line = multiline_label->wrap_cache->wrapped_lines[i];
+    line_rect.ymax = ymax;
+    ymax -= line_height;
+    line_rect.ymin = ymax;
+    /* Break when there is not more space to draw. */
+    if (line_rect.ymax < sccisors_ymin) {
+      break;
+    }
+    /* Skip the line if the line is not in visible bounds. */
+    if (line_rect.ymin > sccisors_ymax) {
+      continue;
+    }
+    if (i < (lines - 1) || total_lines == lines) {
+      fontstyle_draw_ex(fstyle,
+                        &line_rect,
+                        line.begin(),
+                        line.size(),
+                        wcol->text,
+                        &params,
+                        nullptr,
+                        nullptr,
+                        nullptr);
+      continue;
+    }
+    /* Add ellipsis when not all lines are drawn.  */
+    float strwidth = BLF_width(fstyle->uifont_id, line.begin(), line.size(), nullptr);
+
+    const int border = UI_TEXT_CLIP_MARGIN + 1;
+    const int okwidth = max_ii(BLI_rcti_size_x(&line_rect) - border, 0);
+    std::string str = line;
+    if (strwidth > okwidth) {
+      int drawstr_len = BLF_width_to_strlen(
+          fstyle->uifont_id, line.begin(), line.size(), okwidth, &strwidth);
+      str = str.substr(0, drawstr_len);
+    }
+    StringRef ellipsis = BLI_STR_UTF8_HORIZONTAL_ELLIPSIS;
+    str += ellipsis;
+    fontstyle_draw_ex(fstyle,
+                      &line_rect,
+                      str.data(),
+                      str.size(),
+                      wcol->text,
+                      &params,
+                      nullptr,
+                      nullptr,
+                      nullptr);
+    break;
+  }
+}
+
 static void widget_draw_extra_icons(const uiWidgetColors *wcol,
                                     Button *but,
                                     rcti *rect,
@@ -3014,11 +3092,14 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
   if (ELEM(but->text_direction, TextDirection::Down, TextDirection::Up)) {
     widget_draw_vertical_text(fstyle, wcol, but, rect);
   }
-  else if (but->type != ButtonType::TextBox) {
-    widget_draw_text(fstyle, wcol, but, rect);
+  else if (button_label_is_multiline(but)) {
+    widget_draw_multiline_text(fstyle, wcol, but, rect);
+  }
+  else if (but->type == ButtonType::TextBox) {
+    widget_draw_textbox(fstyle, wcol, but, rect);
   }
   else {
-    widget_draw_textbox(fstyle, wcol, but, rect);
+    widget_draw_text(fstyle, wcol, but, rect);
   }
 
   button_text_password_hide(password_str, but, true);

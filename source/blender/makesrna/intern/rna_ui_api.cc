@@ -596,6 +596,24 @@ static void rna_uiItemL(Layout *layout,
   layout->label(text.value_or(""), icon);
 }
 
+static void rna_layout_label_multiline(Layout *layout,
+                                       const char *name,
+                                       const char *text_ctxt,
+                                       bool translate,
+                                       int icon,
+                                       int icon_value,
+                                       int alignment,
+                                       int max_lines)
+{
+  /* Get translated name (label). */
+  std::optional<StringRefNull> text = rna_translate_ui_text(
+      name, text_ctxt, nullptr, nullptr, translate);
+  if (icon_value && !icon) {
+    icon = icon_value;
+  }
+  layout->label_multiline(text.value_or(""), icon, ui::FontStyleAlign(alignment), max_lines);
+}
+
 static void rna_layout_link(Layout *layout,
                             const char *url,
                             const char *name,
@@ -1386,6 +1404,12 @@ void RNA_api_ui_layout(StructRNA *srna)
        "Replace the selected nodes with the specified type."},
       {0, nullptr, 0, nullptr, nullptr},
   };
+  static const EnumPropertyItem rna_enum_text_align[] = {
+      {int(ui::UI_STYLE_TEXT_LEFT), "LEFT", 0, "LEFT", ""},
+      {int(ui::UI_STYLE_TEXT_RIGHT), "RIGHT", 0, "RIGHT", ""},
+      {int(ui::UI_STYLE_TEXT_CENTER), "CENTER", 0, "CENTER", ""},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
 
   static const float node_socket_color_default[] = {0.0f, 0.0f, 0.0f, 1.0f};
 
@@ -1778,6 +1802,16 @@ void RNA_api_ui_layout(StructRNA *srna)
   api_ui_item_common(func);
   parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_ui_text(parm, "Icon Value", "Override automatic icon of the item");
+
+  func = RNA_def_function(srna, "label_multiline", "rna_layout_label_multiline");
+  RNA_def_function_ui_description(func, "Displays multiline text in the layout.");
+  api_ui_item_common(func);
+  parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_ui_text(parm, "Icon Value", "Override automatic icon of the item");
+  parm = RNA_def_enum(func, "alignment", rna_enum_text_align, 0, "", "");
+  parm = RNA_def_property(func, "max_lines", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_range(parm, 0, INT_MAX);
+  RNA_def_property_ui_text(parm, "", "Maximum number of lines to display, 0 means all");
 
   func = RNA_def_function(srna, "link", "rna_layout_link");
   RNA_def_function_ui_description(func, "Item. Displays a url that can be clicked in the layout.");
