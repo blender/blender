@@ -2300,7 +2300,7 @@ if(WITH_PYTHON)
     )
   endif()
 
-  if(WIN32 OR CMAKE_CROSSCOMPILING)
+  if(WIN32)
     # Always use numpy bundled in precompiled libs.
   elseif((WITH_PYTHON_INSTALL AND WITH_PYTHON_INSTALL_NUMPY) OR WITH_PYTHON_NUMPY)
     if(("${PYTHON_NUMPY_PATH}" STREQUAL "") OR (${PYTHON_NUMPY_PATH} MATCHES NOTFOUND))
