@@ -10,6 +10,7 @@
 
 #  include <cerrno>
 #  include <cstdlib>
+#  include <mutex>
 
 #  if defined(__linux__) && defined(__GNUC__)
 #    ifndef _GNU_SOURCE
@@ -156,10 +157,17 @@ static void sig_cleanup_and_terminate(int signum)
 #  if !defined(WIN32)
 static void sig_handle_crash_fn(int signum)
 {
-  char filepath_crashlog[FILE_MAX];
-  BKE_blender_globals_crash_path_get(filepath_crashlog);
-  crashlog_file_generate(filepath_crashlog, nullptr);
-  sig_cleanup_and_terminate(signum);
+  auto crash_func = [&]() {
+    char filepath_crashlog[FILE_MAX];
+    BKE_blender_globals_crash_path_get(filepath_crashlog);
+    crashlog_file_generate(filepath_crashlog, nullptr);
+    sig_cleanup_and_terminate(signum);
+  };
+
+  /* The use of `std::call_once` ensures that the crash handling function is only executed once,
+   * even if multiple crashes occur simultaneously. */
+  static std::once_flag crash_func_once;
+  std::call_once(crash_func_once, crash_func);
 }
 #  else
 extern LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS *ExceptionInfo)
@@ -177,29 +185,40 @@ extern LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS *ExceptionInfo)
         fprintf(stderr, "Module  : %s\n", modulename);
       }
     }
+
+    sig_cleanup_and_terminate(SIGSEGV);
   }
   else {
-    char filepath_crashlog[FILE_MAX];
-    BLI_windows_exception_print_message(ExceptionInfo);
-    BKE_blender_globals_crash_path_get(filepath_crashlog);
-    crashlog_file_generate(filepath_crashlog, ExceptionInfo);
+    auto crash_func = [&]() {
+      char filepath_crashlog[FILE_MAX];
+      BLI_windows_exception_print_message(ExceptionInfo);
+      BKE_blender_globals_crash_path_get(filepath_crashlog);
+      crashlog_file_generate(filepath_crashlog, ExceptionInfo);
 
-    /* Disable popup in background mode to avoid blocking automation.
-     * (e.g., when used by a render farm; see #142314). */
-    if ((!G.background) && (!app_state.signal.use_console_crash_handler)) {
-      std::string version;
+      /* Disable popup in background mode to avoid blocking automation.
+       * (e.g., when used by a render farm; see #142314). */
+      if ((!G.background) && (!app_state.signal.use_console_crash_handler)) {
+        std::string version;
 #    ifndef BUILD_DATE
-      const char *build_hash = G_MAIN ? G_MAIN->build_hash : "unknown";
-      version = std::string(BKE_blender_version_string()) + ", hash: `" + build_hash + "`";
+        const char *build_hash = G_MAIN ? G_MAIN->build_hash : "unknown";
+        version = std::string(BKE_blender_version_string()) + ", hash: `" + build_hash + "`";
 #    else
-      version = std::string(BKE_blender_version_string()) + ", Commit date: " + build_commit_date +
-                " " + build_commit_time + ", hash: `" + build_hash + "`";
+        version = std::string(BKE_blender_version_string()) +
+                  ", Commit date: " + build_commit_date + " " + build_commit_time + ", hash: `" +
+                  build_hash + "`";
 #    endif
 
-      BLI_windows_exception_show_dialog(
-          filepath_crashlog, G.filepath_last_blend, GPU_platform_gpu_name(), version.c_str());
-    }
-    sig_cleanup_and_terminate(SIGSEGV);
+        BLI_windows_exception_show_dialog(
+            filepath_crashlog, G.filepath_last_blend, GPU_platform_gpu_name(), version.c_str());
+
+        sig_cleanup_and_terminate(SIGSEGV);
+      }
+    };
+
+    /* The use of `std::call_once` ensures that the crash handling function is only executed once,
+     * even if multiple crashes occur simultaneously. */
+    static std::once_flag crash_func_once;
+    std::call_once(crash_func_once, crash_func);
   }
 
   return EXCEPTION_EXECUTE_HANDLER;
