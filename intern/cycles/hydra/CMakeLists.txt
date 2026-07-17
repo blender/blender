@@ -147,7 +147,7 @@ if(WITH_CYCLES_HYDRA_RENDER_DELEGATE)
       TARGET
       ${HdCyclesPluginName}
       APPEND_STRING PROPERTY LINK_FLAGS
-      " -Wl,--version-script='${CMAKE_CURRENT_SOURCE_DIR}/resources/linux_symbols.map'"
+      " -Wl,--version-script='${CMAKE_CURRENT_SOURCE_DIR}/resources/unix_symbols.map'"
     )
   endif()
 
