@@ -265,6 +265,8 @@ if(WIN32)
 		file(GLOB LIBRARY_DIRS ${LIBRARY_PATH}/*)
 		list(APPEND CMAKE_PREFIX_PATH ${LIBRARY_DIRS})
 	endif()
+elseif(ANDROID)
+	# Pass.
 else()
 	set(LIBRARIES ${CMAKE_DL_LIBS} -lpthread)
 endif()
