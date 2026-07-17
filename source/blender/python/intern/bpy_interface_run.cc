@@ -312,7 +312,6 @@ static bool bpy_run_string_impl(bContext *C,
     py_dict = PyC_DefaultNameSpace("<blender string>");
 
     if (imports && !PyC_NameSpace_ImportArray(py_dict, imports)) {
-      Py_DECREF(py_dict);
       retval = nullptr;
     }
     else {
