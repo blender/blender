@@ -578,6 +578,9 @@ ccl_device Spectrum bsdf_microfacet_estimate_albedo(KernelGlobals kg,
     }
     return reflectance;
   }
+  else if (bsdf->type == CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID) {
+    return eval_transmission ? one_spectrum() : zero_spectrum();
+  }
 
   /* Simpler case without the lookup tables. */
   Spectrum reflectance;
