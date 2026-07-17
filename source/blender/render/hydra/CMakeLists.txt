@@ -16,8 +16,9 @@ endif()
 
 # Pre-compiled Linux libraries are made with GCC, and USD uses some extensions
 # which lead to an incompatible ABI for Clang. Using those extensions with
-# Clang as well works around the issue.
-if(UNIX AND NOT APPLE)
+# Clang as well works around the issue. Skip this workaround on Android whose
+# libs are compiled with the NDK's Clang.
+if(UNIX AND NOT APPLE AND NOT ANDROID)
   if(CMAKE_C_COMPILER_ID MATCHES "Clang")
     if(DEFINED LIBDIR)
       add_definitions(-DARCH_HAS_GNU_STL_EXTENSIONS)
