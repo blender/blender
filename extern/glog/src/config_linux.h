@@ -14,7 +14,9 @@
 #define HAVE_DLFCN_H
 
 /* Define to 1 if you have the <execinfo.h> header file. */
+#if !defined(ANDROID)
 #define HAVE_EXECINFO_H
+#endif
 
 /* Define if you have the `fcntl' function */
 #define HAVE_FCNTL
