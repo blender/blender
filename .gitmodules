@@ -18,3 +18,6 @@
 	path = lib/windows_arm64
 	url = https://projects.blender.org/blender/lib-windows_arm64.git
 	branch = main
+[submodule "lib/android_arm64"]
+	path = lib/android_arm64
+	url = git@git.blender.org:Brainzman/lib-android_arm64.git
