@@ -318,6 +318,7 @@ struct PaintOperationExecutor {
                             const bContext &C,
                             const InputSample &start_sample,
                             const int material_index,
+                            const bool use_stroke,
                             const bool use_fill)
   {
     const float2 start_coords = start_sample.mouse_position;
@@ -412,7 +413,7 @@ struct PaintOperationExecutor {
         "material_index", bke::AttrDomain::Curve);
     bke::SpanAttributeWriter<bool> cyclic = attributes.convert_or_add_for_write_span<bool>(
         "cyclic", bke::AttrDomain::Curve);
-    cyclic.span[active_curve] = use_fill;
+    cyclic.span[active_curve] = use_fill && !use_stroke;
     materials.span[active_curve] = material_index;
     curve_attributes_to_skip.add_multiple({"material_index", "cyclic"});
     cyclic.finish();
@@ -434,7 +435,7 @@ struct PaintOperationExecutor {
     curve_attributes_to_skip.add("aspect_ratio");
     aspect_ratio.finish();
 
-    if ((settings_->flag2 & GP_BRUSH_USE_STROKE) == 0) {
+    if (!use_stroke) {
       bke::SpanAttributeWriter<bool> hide_stroke = attributes.convert_or_add_for_write_span<bool>(
           "hide_stroke", bke::AttrDomain::Curve);
       hide_stroke.span[active_curve] = true;
@@ -1212,6 +1213,7 @@ void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start
   Material *material = BKE_grease_pencil_object_material_ensure_from_brush(
       CTX_data_main(&C), object_, brush);
   const int material_index = BKE_object_material_index_get(object_, material);
+  const bool use_stroke = (settings->flag2 & GP_BRUSH_USE_STROKE) != 0;
   const bool use_fill = (settings->flag2 & GP_BRUSH_USE_FILL) != 0;
 
   frame_number_ = scene_->r.cfra;
@@ -1228,7 +1230,7 @@ void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start
   delta_time_ = 0.0f;
 
   PaintOperationExecutor executor{*scene_};
-  executor.process_start_sample(*this, C, start_sample, material_index, use_fill);
+  executor.process_start_sample(*this, C, start_sample, material_index, use_stroke, use_fill);
 
   DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(&C, NC_GEOM | ND_DATA, grease_pencil);
