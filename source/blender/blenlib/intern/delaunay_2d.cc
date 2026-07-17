@@ -962,22 +962,6 @@ static bool id_range_in_list(const VectorSet<uint32_t> &id_list,
                              uint32_t range_end)
 {
   PRF_scope(ProfileCategory::Core);
-  // if (id_list.is_empty()) {
-  //   return false;
-  // }
-  // printf("Check {");
-  // for (uint32_t id : id_list) {
-  //   printf("%u, ", id);
-  // }
-  // printf("} against [%u, %u]\n", range_start, range_end);
-  // if (id_list.is_empty()) {
-  //   return false;
-  // }
-  // for (uint32_t id = range_start; id <= range_end; id++) {
-  //   if (id_list.contains(id)) {
-  //     return true;
-  //   }
-  // }
   for (uint32_t id : id_list) {
     if (id >= range_start && id <= range_end) {
       return true;
