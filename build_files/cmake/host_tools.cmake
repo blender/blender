@@ -30,6 +30,29 @@ if(CMAKE_CROSSCOMPILING)
   endforeach()
   unset(_host_tools_all_cache_vars)
 
+  set(_host_tools_targets
+    --target makesdna
+    --target makesrna
+    --target datatoc
+    --target shader_tool
+  )
+  set(_host_tools_byproducts
+    ${HOST_TOOLS_BIN_DIR}/makesdna
+    ${HOST_TOOLS_BIN_DIR}/makesrna
+    ${HOST_TOOLS_BIN_DIR}/datatoc
+    ${HOST_TOOLS_BIN_DIR}/shader_tool
+  )
+
+  # Unlike other targets, msgfmt depends on WITH_INTERNATIONAL
+  if(WITH_INTERNATIONAL)
+    list(APPEND _host_tools_targets
+      --target msgfmt
+    )
+    list(APPEND _host_tools_byproducts
+      ${HOST_TOOLS_BIN_DIR}/msgfmt
+    )
+  endif()
+
   ExternalProject_Add(host_tools
     SOURCE_DIR ${CMAKE_SOURCE_DIR}
     BINARY_DIR ${HOST_TOOLS_BUILD_DIR}
@@ -40,26 +63,18 @@ if(CMAKE_CROSSCOMPILING)
 
     # Ensure the target is always checked for incremental compilation / tool rebuild on file changes.
     BUILD_ALWAYS TRUE
-    BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR>
-                  --target makesdna
-                  --target makesrna
-                  --target datatoc
-                  --target shader_tool
-                  --target msgfmt
+    BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> ${_host_tools_targets}
+    BUILD_BYPRODUCTS ${_host_tools_byproducts}
     INSTALL_COMMAND ""
 
     # Nicer build output on ninja: hide verbose configure, show build steps
     USES_TERMINAL_CONFIGURE FALSE
     USES_TERMINAL_BUILD TRUE
-
-    BUILD_BYPRODUCTS
-      ${HOST_TOOLS_BIN_DIR}/makesdna
-      ${HOST_TOOLS_BIN_DIR}/makesrna
-      ${HOST_TOOLS_BIN_DIR}/datatoc
-      ${HOST_TOOLS_BIN_DIR}/shader_tool
-      ${HOST_TOOLS_BIN_DIR}/msgfmt
   )
+
   unset(_host_tools_forwarded_args)
+  unset(_host_tools_targets)
+  unset(_host_tools_byproducts)
 
   set(MAKESDNA_EXECUTABLE     ${HOST_TOOLS_BIN_DIR}/makesdna)
   set(MAKESRNA_EXECUTABLE     ${HOST_TOOLS_BIN_DIR}/makesrna)
