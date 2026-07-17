@@ -445,9 +445,10 @@ static PyObject *bpy_bmlayeritem_copy_from(BPy_BMLayerItem *self, BPy_BMLayerIte
 
   if ((self->htype != value->htype) || (self->type != value->type)) {
     PyErr_Format(PyExc_ValueError, "%s: layer type mismatch", error_prefix);
+    return nullptr;
   }
 
-  else if (self->index == value->index) {
+  if (self->index == value->index) {
     Py_RETURN_NONE;
   }
 
@@ -577,6 +578,7 @@ static PyObject *bpy_bmlayercollection_remove(BPy_BMLayerCollection *self, BPy_B
 
   if ((self->bm != value->bm) || (self->type != value->type) || (self->htype != value->htype)) {
     PyErr_SetString(PyExc_ValueError, "layers.remove(x): x not in layers");
+    return nullptr;
   }
 
   data = bpy_bm_customdata_get(self->bm, self->htype);
