@@ -471,6 +471,15 @@ void rna_collection_search_update_fn(
 
       char *name;
       if (is_id) {
+        const ID *id = static_cast<ID *>(itemptr.data);
+
+        /* Hide dot prefixed data-blocks, but only if filter does not force them visible. */
+        if (U.flag & USER_HIDE_DOT_DATABLOCK) {
+          if ((id->name[2] == '.') && (str[0] != '.')) {
+            continue;
+          }
+        }
+
         iconid = id_icon_get(C, static_cast<ID *>(itemptr.data), false);
         if (!ELEM(iconid, 0, ICON_BLANK1)) {
           has_id_icon = true;
@@ -480,7 +489,6 @@ void rna_collection_search_update_fn(
           name = RNA_struct_name_get_alloc(&itemptr, name_buf, sizeof(name_buf), nullptr);
         }
         else {
-          const ID *id = static_cast<ID *>(itemptr.data);
           BKE_id_full_name_ui_prefix_get(name_buf, id, true, UI_SEP_CHAR, &name_prefix_offset);
           BLI_STATIC_ASSERT(sizeof(name_buf) >= MAX_ID_FULL_NAME_UI,
                             "Name string buffer should be big enough to hold full UI ID name");
