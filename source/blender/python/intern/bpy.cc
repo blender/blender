@@ -644,7 +644,7 @@ static PyObject *bpy_wm_capabilities(PyObject *self)
       const eWM_CapabilitiesFlag flag = WM_capabilities_flag();
 
 #define SetFlagItem(x) \
-  PyDict_SetItemString(result, STRINGIFY(x), PyBool_FromLong((WM_CAPABILITY_##x) & flag));
+  PyDict_SetItemString(result, STRINGIFY(x), ((WM_CAPABILITY_##x) & flag) ? Py_True : Py_False);
 
       /* Only exposed flags which are used, by Blender's built-in scripts
        * since this is a private API. */
