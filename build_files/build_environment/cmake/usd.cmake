@@ -125,8 +125,9 @@ endif()
 set(ANDROID_PATCH_CMD true)
 if(ANDROID)
   list(APPEND USD_EXTRA_ARGS
+    # Enabling graphics backend support would require a patch to mimick what USD does for iOS
+    # by skipping finding OpenGL and still building Storm. (see PXR_APPLE_EMBEDDED)
     -DPXR_ENABLE_GL_SUPPORT=OFF
-    # TODO: Enabling Vulkan support would (at least) require a patch for USD to recognize the Android Vulkan Loader.
     -DPXR_ENABLE_VULKAN_SUPPORT=OFF
     # Android CMake Toolchain option to allow undefined Python symbols, which would then be resolved at runtime.
     -DANDROID_ALLOW_UNDEFINED_SYMBOLS=TRUE

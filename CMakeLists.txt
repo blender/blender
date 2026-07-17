@@ -455,8 +455,7 @@ option(WITH_USD "Enable Universal Scene Description (USD) Support" ON)
 option(WITH_MATERIALX "Enable MaterialX Support" ON)
 
 # Hydra render engine.
-# TODO (Android): Hydra depends on USD's hdx, which requires a graphic backend. Currently USD is compiled with
-#                 both GL and Vulkan disabled, see build_environment/cmake/usd.cmake.
+# Not supported on Android due to the lack of USD graphics backend (see build_environment/cmake/usd.cmake).
 if(NOT ANDROID)
   option(WITH_HYDRA "Enable Hydra render engine" ON)
 else()
