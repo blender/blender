@@ -93,7 +93,8 @@ static PyMethodDef meth_bpy_atexit = {
 #  endif
 #endif
 
-static PyObject *func_bpy_atregister = nullptr; /* borrowed reference, `atexit` holds. */
+/** Owned reference, `atexit` holds its own. */
+static PyObject *func_bpy_atregister = nullptr;
 
 static void atexit_func_call(const char *func_name, PyObject *atexit_func_arg)
 {
@@ -124,7 +125,6 @@ static void atexit_func_call(const char *func_name, PyObject *atexit_func_arg)
 
 void BPY_atexit_register()
 {
-  /* atexit module owns this new function reference */
   BLI_assert(func_bpy_atregister == nullptr);
 
   func_bpy_atregister = static_cast<PyObject *>(PyCFunction_New(&meth_bpy_atexit, nullptr));
@@ -136,7 +136,7 @@ void BPY_atexit_unregister()
   BLI_assert(func_bpy_atregister != nullptr);
 
   atexit_func_call("unregister", func_bpy_atregister);
-  func_bpy_atregister = nullptr; /* don't really need to set but just in case */
+  Py_CLEAR(func_bpy_atregister);
 }
 
 }  // namespace blender
