@@ -332,6 +332,11 @@ endif()
 if(WITH_OPENAL)
   find_package_wrapper(OpenAL)
   set_and_warn_library_found("OpenAL" OPENAL_FOUND WITH_OPENAL)
+
+  if(ANDROID AND OPENAL_FOUND)
+    # Android NDK OpenSL ES library required by OpenAL
+    list(APPEND PLATFORM_LINKLIBS -lopensles)
+  endif()
 endif()
 
 if(WITH_SDL)
@@ -376,6 +381,11 @@ if(WITH_CODEC_FFMPEG)
     set(FFMPEG_ROOT_DIR ${FFMPEG})
   endif()
   find_package(FFmpeg)
+
+  if(ANDROID AND FFMPEG_FOUND)
+    # Android NDK libraries required by libavdevices
+    list(APPEND PLATFORM_LINKLIBS -landroid -lcamera2ndk -lmediandk)
+  endif()
 
   set_and_warn_library_found("FFmpeg" FFMPEG_FOUND WITH_CODEC_FFMPEG)
 endif()
