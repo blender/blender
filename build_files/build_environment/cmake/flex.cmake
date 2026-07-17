@@ -11,8 +11,8 @@ if (ANDROID)
     # Override the ac cache variables to yes to skip these checks.
     ac_cv_func_malloc_0_nonnull=yes
     ac_cv_func_realloc_0_nonnull=yes
-    # Bionic with API > 29 declares reallocarray() in <malloc.h> rather than <stdlib.h>, causing
-    # a compile error. Workaround this by forcing the fallback path.
+    # Bionic with API > 29 declares reallocarray() in <malloc.h> rather than <stdlib.h>, and the host
+    # compiled stage1flex tool doesn't have it at all. Workaround this by forcing the fallback path for both.
     ac_cv_func_reallocarray=no
   )
 endif()
