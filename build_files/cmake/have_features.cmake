@@ -23,12 +23,13 @@ if(NOT DEFINED HAVE_FEENABLEEXCEPT)
   set(HAVE_FEENABLEEXCEPT 0)
 endif()
 
-# Used for: `source/blender/blenlib/intern/system.c`.
-# `execinfo` is not available on non-GLIBC systems (at least not on MUSL-LIBC),
-# so check the presence of the header before including it and using it for back-trace.
+# Used for: `source/blender/blenlib/intern/system.cc`.
+# `execinfo` is not available on non-GLIBC systems (at least not on MUSL-LIBC).
+# On Android the header exists for every API level while `backtrace` is only
+# available in Bionic since API level 33, so check for the symbol instead of
+# only the presence of the header.
 if(NOT MSVC)
-  include(CheckIncludeFiles)
-  check_include_files("execinfo.h" HAVE_EXECINFO_H)
+  check_symbol_exists(backtrace "execinfo.h" HAVE_EXECINFO_H)
   if(HAVE_EXECINFO_H)
     add_definitions(-DHAVE_EXECINFO_H)
   endif()
