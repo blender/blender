@@ -510,7 +510,7 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
   if (pyrna_struct_keyframe_parse(&self->ptr.value(),
                                   args,
                                   kw,
-                                  "s|$iO&sOs!:bpy_struct.keyframe_delete()",
+                                  "s|$iO&sO!s:bpy_struct.keyframe_delete()",
                                   "bpy_struct.keyframe_delete()",
                                   &path_full,
                                   &index,
