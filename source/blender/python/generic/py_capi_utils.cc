@@ -1377,16 +1377,15 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
     fclose(fp);
 
     if (py_result) {
+      /* don't use the result */
+      Py_DECREF(py_result);
+      py_result = nullptr;
 
       /* we could skip this but then only slice assignment would work
        * better not be so strict */
       values = PyDict_GetItemString(py_dict, "values");
 
       if (values && PyList_Check(values)) {
-
-        /* don't use the result */
-        Py_DECREF(py_result);
-        py_result = nullptr;
 
         /* now get the values back */
         va_start(vargs, n);
