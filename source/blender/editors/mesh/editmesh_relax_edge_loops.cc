@@ -86,7 +86,8 @@ static wmOperatorStatus edbm_relax_edge_loops_exec(bContext *C, wmOperator *op)
 
   if (!changed_multi) {
     if (has_faces_selected) {
-      BKE_report(op->reports, RPT_WARNING, "Operator requires separate edge loops");
+      BKE_report(
+          op->reports, RPT_WARNING, "Operator requires separate edge loops, selected faces found");
     }
     else if (!has_edges_selected) {
       BKE_report(op->reports, RPT_WARNING, "No edges selected");

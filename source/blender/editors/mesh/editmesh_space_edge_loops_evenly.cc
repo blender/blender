@@ -74,6 +74,7 @@ static wmOperatorStatus edbm_space_edge_loops_evenly_exec(bContext *C, wmOperato
   bool lock[3];
   RNA_boolean_get_array(op->ptr, "lock", lock);
   bool has_edges_selected = false;
+  bool has_faces_selected = false;
   bool changed_multi = false;
 
   for (Object *obedit : objects) {
@@ -81,6 +82,10 @@ static wmOperatorStatus edbm_space_edge_loops_evenly_exec(bContext *C, wmOperato
     BMesh *bm = em->bm;
     if (bm->totedgesel > 0) {
       has_edges_selected = true;
+    }
+    if (bm->totfacesel > 0) {
+      has_faces_selected = true;
+      continue;
     }
     /* At least 2 connected edges are needed to form a chain.
      * This check isn't fool-proof since edges may be disconnected. */
@@ -113,7 +118,11 @@ static wmOperatorStatus edbm_space_edge_loops_evenly_exec(bContext *C, wmOperato
   }
 
   if (!changed_multi) {
-    if (!has_edges_selected) {
+    if (has_faces_selected) {
+      BKE_report(
+          op->reports, RPT_WARNING, "Operator requires separate edge loops, selected faces found");
+    }
+    else if (!has_edges_selected) {
       BKE_report(op->reports, RPT_WARNING, "No edges selected");
     }
     else {
