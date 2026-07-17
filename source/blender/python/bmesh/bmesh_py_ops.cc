@@ -209,8 +209,10 @@ static PyObject *bpy_bmesh_ops_module_getattro(PyObject * /*self*/, PyObject *py
 {
   const char *opname = PyUnicode_AsUTF8(pyname);
 
-  if (BMO_opcode_from_opname(opname) != -1) {
-    return bpy_bmesh_op_CreatePyObject(opname);
+  const int opcode = BMO_opcode_from_opname(opname);
+  if (opcode != -1) {
+    /* Use the static name as `pyname` may be freed once this call returns. */
+    return bpy_bmesh_op_CreatePyObject(bmo_opdefines[opcode]->opname);
   }
 
   PyErr_Format(PyExc_AttributeError, "BMeshOpsModule: operator \"%.200s\" doesn't exist", opname);
