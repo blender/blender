@@ -5767,13 +5767,13 @@ static PyObject *pyrna_prop_collection_find(BPy_PropertyRNA *self, PyObject *key
     name_ptr = RNA_struct_name_get_alloc(&itemptr, name, sizeof(name), &name_len);
 
     if (name_ptr) {
-      if ((key_len == name_len) && memcmp(name_ptr, key, key_len) == 0) {
-        index = i;
-        break;
-      }
-
+      const bool found = (key_len == name_len) && (memcmp(name_ptr, key, key_len) == 0);
       if (name != name_ptr) {
         MEM_delete(name_ptr);
+      }
+      if (found) {
+        index = i;
+        break;
       }
     }
 
