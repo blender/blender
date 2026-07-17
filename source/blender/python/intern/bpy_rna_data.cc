@@ -188,7 +188,7 @@ static PyObject *bpy_rna_data_context_enter(BPy_DataContext *self)
   BLI_assert(!PyObject_GC_IsTracked((PyObject *)self));
   PyObject_GC_Track(self);
 
-  return reinterpret_cast<PyObject *>(self->data_rna);
+  return Py_NewRef(reinterpret_cast<PyObject *>(self->data_rna));
 }
 
 static PyObject *bpy_rna_data_context_exit(BPy_DataContext *self, PyObject * /*args*/)
