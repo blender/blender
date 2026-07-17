@@ -604,14 +604,14 @@ static PyObject *pygpu_shader_info_fragment_out(BPyGPUShaderCreateInfo *self,
 {
   int slot;
   PyC_StringEnum pygpu_type = {pygpu_attrtype_items};
-  const char *name;
+  PyObject *py_name;
   PyC_StringEnum blend_type = {pygpu_dualblend_items, int(DualBlend::NONE)};
 
   static const char *_keywords[] = {"slot", "type", "name", "blend", nullptr};
   static _PyArg_Parser _parser = {
       "i"  /* `slot` */
       "O&" /* `type` */
-      "s"  /* `name` */
+      "U"  /* `name` */
       "|$" /* Optional keyword only arguments. */
       "O&" /* `blend` */
       ":fragment_out",
@@ -624,15 +624,18 @@ static PyObject *pygpu_shader_info_fragment_out(BPyGPUShaderCreateInfo *self,
                                         &slot,
                                         PyC_ParseStringEnum,
                                         &pygpu_type,
-                                        &name,
+                                        &py_name,
                                         PyC_ParseStringEnum,
                                         &blend_type))
   {
     return nullptr;
   }
+  const char *name = PyUnicode_AsUTF8(py_name);
+  if (name == nullptr) [[unlikely]] {
+    return nullptr;
+  }
 
 #ifdef USE_GPU_PY_REFERENCES
-  PyObject *py_name = PyTuple_GET_ITEM(args, 2);
   PyList_Append(self->references, py_name);
 #endif
 
@@ -748,7 +751,7 @@ static PyObject *pygpu_shader_info_image(BPyGPUShaderCreateInfo *self,
   int slot;
   PyC_StringEnum pygpu_texformat = {pygpu_textureformat_items};
   PyC_StringEnum pygpu_imagetype = {pygpu_imagetype_items};
-  const char *name;
+  PyObject *py_name;
   PyObject *py_qualifiers = nullptr;
   Qualifier qualifier = Qualifier::no_restrict;
 
@@ -757,7 +760,7 @@ static PyObject *pygpu_shader_info_image(BPyGPUShaderCreateInfo *self,
       "i"  /* `slot` */
       "O&" /* `format` */
       "O&" /* `type` */
-      "s"  /* `name` */
+      "U"  /* `name` */
       "|$" /* Optional keyword only arguments. */
       "O"  /* `qualifiers` */
       ":image",
@@ -772,9 +775,13 @@ static PyObject *pygpu_shader_info_image(BPyGPUShaderCreateInfo *self,
                                         &pygpu_texformat,
                                         PyC_ParseStringEnum,
                                         &pygpu_imagetype,
-                                        &name,
+                                        &py_name,
                                         &py_qualifiers))
   {
+    return nullptr;
+  }
+  const char *name = PyUnicode_AsUTF8(py_name);
+  if (name == nullptr) [[unlikely]] {
     return nullptr;
   }
 
@@ -799,7 +806,7 @@ static PyObject *pygpu_shader_info_image(BPyGPUShaderCreateInfo *self,
   }
 
 #  ifdef USE_GPU_PY_REFERENCES
-  PyList_Append(self->references, PyTuple_GET_ITEM(args, 3)); /* name */
+  PyList_Append(self->references, py_name);
 #  endif
 
   ShaderCreateInfo *info = reinterpret_cast<ShaderCreateInfo *>(self->info);
@@ -956,13 +963,13 @@ static PyObject *pygpu_shader_info_push_constant(BPyGPUShaderCreateInfo *self,
                                                  PyObject *kwds)
 {
   PyC_StringEnum pygpu_type = {pygpu_attrtype_items};
-  const char *name = nullptr;
+  PyObject *py_name = nullptr;
   int array_size = 0;
 
   static const char *_keywords[] = {"type", "name", "size", nullptr};
   static _PyArg_Parser _parser = {
       "O&" /* `type` */
-      "s"  /* `name` */
+      "U"  /* `name` */
       "|"  /* Optional arguments. */
       "I"  /* `size` */
       ":push_constant",
@@ -970,13 +977,16 @@ static PyObject *pygpu_shader_info_push_constant(BPyGPUShaderCreateInfo *self,
       nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kwds, &_parser, PyC_ParseStringEnum, &pygpu_type, &name, &array_size))
+          args, kwds, &_parser, PyC_ParseStringEnum, &pygpu_type, &py_name, &array_size))
   {
+    return nullptr;
+  }
+  const char *name = PyUnicode_AsUTF8(py_name);
+  if (name == nullptr) [[unlikely]] {
     return nullptr;
   }
 
 #ifdef USE_GPU_PY_REFERENCES
-  PyObject *py_name = PyTuple_GET_ITEM(args, 1);
   PyList_Append(self->references, py_name);
 #endif
 
