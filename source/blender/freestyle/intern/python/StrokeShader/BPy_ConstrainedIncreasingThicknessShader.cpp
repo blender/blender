@@ -49,7 +49,16 @@ static int ConstrainedIncreasingThicknessShader___init__(
   static const char *kwlist[] = {"thickness_min", "thickness_max", "ratio", nullptr};
   float f1, f2, f3;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "fff", (char **)kwlist, &f1, &f2, &f3)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "f" /* `thickness_min` */
+                                   "f" /* `thickness_max` */
+                                   "f" /* `ratio` */,
+                                   (char **)kwlist,
+                                   &f1,
+                                   &f2,
+                                   &f3))
+  {
     return -1;
   }
   self->py_ss.ss = new StrokeShaders::ConstrainedIncreasingThicknessShader(f1, f2, f3);

@@ -129,7 +129,7 @@ static PyObject *bpy_blend_paths(PyObject * /*self*/, PyObject *args, PyObject *
 
   static const char *_keywords[] = {"absolute", "packed", "local", nullptr};
   static _PyArg_Parser _parser = {
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O&" /* `absolute` */
       "O&" /* `packed` */
       "O&" /* `local` */
@@ -236,7 +236,7 @@ static PyObject *bpy_user_resource(PyObject * /*self*/, PyObject *args, PyObject
   static const char *_keywords[] = {"type", "path", nullptr};
   static _PyArg_Parser _parser = {
       "O&" /* `type` */
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O&" /* `path` */
       ":user_resource",
       _keywords,
@@ -289,7 +289,7 @@ static PyObject *bpy_system_resource(PyObject * /*self*/, PyObject *args, PyObje
   static const char *_keywords[] = {"type", "path", nullptr};
   static _PyArg_Parser _parser = {
       "O&" /* `type` */
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O&" /* `path` */
       ":system_resource",
       _keywords,
@@ -352,7 +352,7 @@ static PyObject *bpy_resource_path(PyObject * /*self*/, PyObject *args, PyObject
   static const char *_keywords[] = {"type", "major", "minor", nullptr};
   static _PyArg_Parser _parser = {
       "O&" /* `type` */
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O&" /* `major` */
       "O&" /* `minor` */
       ":resource_path",
@@ -406,8 +406,8 @@ static PyObject *bpy_driver_secure_code_test(PyObject * /*self*/, PyObject *args
   bool verbose = false;
   static const char *_keywords[] = {"code", "namespace", "verbose", nullptr};
   static _PyArg_Parser _parser = {
-      "O!" /* `expression` */
-      "|$" /* Optional keyword only arguments. */
+      "O!" /* `code` */
+      "|$" /* Optional, keyword only arguments. */
       "O&" /* `namespace` */
       "O&" /* `verbose` */
       ":driver_secure_code_test",

@@ -519,7 +519,12 @@ static PyObject *bpy_bmlayercollection_new(BPy_BMLayerCollection *self, PyObject
 
   BPY_BM_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "|s:new", &name)) {
+  if (!PyArg_ParseTuple(args,
+                        "|" /* Optional arguments. */
+                        "s" /* `name` */
+                        ":new",
+                        &name))
+  {
     return nullptr;
   }
 
@@ -717,7 +722,14 @@ static PyObject *bpy_bmlayercollection_get(BPy_BMLayerCollection *self, PyObject
 
   BPY_BM_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "s|O:get", &key, &def)) {
+  if (!PyArg_ParseTuple(args,
+                        "s" /* `key` */
+                        "|" /* Optional arguments. */
+                        "O" /* `default` */
+                        ":get",
+                        &key,
+                        &def))
+  {
     return nullptr;
   }
 

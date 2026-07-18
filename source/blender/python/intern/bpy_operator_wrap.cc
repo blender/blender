@@ -129,7 +129,13 @@ PyObject *PYOP_wrap_macro_define(PyObject * /*self*/, PyObject *args)
   const char *idname_py;
   char idname[OP_MAX_TYPENAME];
 
-  if (!PyArg_ParseTuple(args, "Os:_bpy.ops.macro_define", &macro, &idname_py)) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `macro` */
+                        "s" /* `idname` */
+                        ":_bpy.ops.macro_define",
+                        &macro,
+                        &idname_py))
+  {
     return nullptr;
   }
 

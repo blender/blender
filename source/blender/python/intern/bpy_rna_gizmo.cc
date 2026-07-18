@@ -348,7 +348,7 @@ static PyObject *bpy_gizmo_target_set_handler(PyObject * /*self*/, PyObject *arg
   static _PyArg_Parser _parser = {
       "O&" /* `self` */
       "O&" /* `target` */
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O"  /* `get` */
       "O"  /* `set` */
       "O"  /* `range` */

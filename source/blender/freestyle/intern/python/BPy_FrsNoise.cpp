@@ -54,7 +54,13 @@ static int FrsNoise_init(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
   static const char *kwlist[] = {"seed", nullptr};
   long seed = -1;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|l", (char **)kwlist, &seed)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "|" /* Optional arguments. */
+                                   "l" /* `seed` */,
+                                   (char **)kwlist,
+                                   &seed))
+  {
     return -1;
   }
   self->n = new Noise(seed);
@@ -95,7 +101,13 @@ static PyObject *FrsNoise_drand(BPy_FrsNoise * /*self*/, PyObject *args, PyObjec
 {
   static const char *kwlist[] = {"seed", nullptr};
   long seed = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|I", (char **)kwlist, &seed)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "|" /* Optional arguments. */
+                                   "I" /* `seed` */,
+                                   (char **)kwlist,
+                                   &seed))
+  {
     PyErr_SetString(PyExc_TypeError, "optional argument 1 must be of type int");
     return nullptr;
   }
@@ -112,7 +124,15 @@ static PyObject *FrsNoise_turbulence_smooth(BPy_FrsNoise *self, PyObject *args, 
   double x;  // NOTE: this has to be a double (not float)
   uint nbOctaves = 8;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "d|I", (char **)kwlist, &x, &nbOctaves)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "d" /* `v` */
+                                   "|" /* Optional arguments. */
+                                   "I" /* `oct` */,
+                                   (char **)kwlist,
+                                   &x,
+                                   &nbOctaves))
+  {
     return nullptr;
   }
   return PyFloat_FromDouble(self->pn->turbulenceSmooth(x, nbOctaves));
@@ -124,7 +144,19 @@ static PyObject *FrsNoise_turbulence1(BPy_FrsNoise *self, PyObject *args, PyObje
   float f1, f2, f3;
   uint i = 4;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "fff|I", (char **)kwlist, &f1, &f2, &f3, &i)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "f" /* `v` */
+                                   "f" /* `freq` */
+                                   "f" /* `amp` */
+                                   "|" /* Optional arguments. */
+                                   "I" /* `oct` */,
+                                   (char **)kwlist,
+                                   &f1,
+                                   &f2,
+                                   &f3,
+                                   &i))
+  {
     return nullptr;
   }
   return PyFloat_FromDouble(self->n->turbulence1(f1, f2, f3, i));
@@ -155,7 +187,19 @@ static PyObject *FrsNoise_turbulence2(BPy_FrsNoise *self, PyObject *args, PyObje
   uint i = 4;
   Vec2f vec;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "Off|I", (char **)kwlist, &obj1, &f2, &f3, &i)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "O" /* `v` */
+                                   "f" /* `freq` */
+                                   "f" /* `amp` */
+                                   "|" /* Optional arguments. */
+                                   "I" /* `oct` */,
+                                   (char **)kwlist,
+                                   &obj1,
+                                   &f2,
+                                   &f3,
+                                   &i))
+  {
     return nullptr;
   }
   if (!Vec2f_ptr_from_PyObject(obj1, vec)) {
@@ -192,7 +236,19 @@ static PyObject *FrsNoise_turbulence3(BPy_FrsNoise *self, PyObject *args, PyObje
   uint i = 4;
   Vec3f vec;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "Off|I", (char **)kwlist, &obj1, &f2, &f3, &i)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "O" /* `v` */
+                                   "f" /* `freq` */
+                                   "f" /* `amp` */
+                                   "|" /* Optional arguments. */
+                                   "I" /* `oct` */,
+                                   (char **)kwlist,
+                                   &obj1,
+                                   &f2,
+                                   &f3,
+                                   &i))
+  {
     return nullptr;
   }
   if (!Vec3f_ptr_from_PyObject(obj1, vec)) {
@@ -220,7 +276,7 @@ static PyObject *FrsNoise_smoothNoise1(BPy_FrsNoise *self, PyObject *args, PyObj
   static const char *kwlist[] = {"v", nullptr};
   float f;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "f", (char **)kwlist, &f)) {
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "f" /* `v` */, (char **)kwlist, &f)) {
     return nullptr;
   }
   return PyFloat_FromDouble(self->n->smoothNoise1(f));
@@ -243,7 +299,7 @@ static PyObject *FrsNoise_smoothNoise2(BPy_FrsNoise *self, PyObject *args, PyObj
   PyObject *obj;
   Vec2f vec;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &obj)) {
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O" /* `v` */, (char **)kwlist, &obj)) {
     return nullptr;
   }
   if (!Vec2f_ptr_from_PyObject(obj, vec)) {
@@ -272,7 +328,7 @@ static PyObject *FrsNoise_smoothNoise3(BPy_FrsNoise *self, PyObject *args, PyObj
   PyObject *obj;
   Vec3f vec;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &obj)) {
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O" /* `v` */, (char **)kwlist, &obj)) {
     return nullptr;
   }
   if (!Vec3f_ptr_from_PyObject(obj, vec)) {

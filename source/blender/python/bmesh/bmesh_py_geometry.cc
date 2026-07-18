@@ -39,7 +39,14 @@ static PyObject *bpy_bm_geometry_intersect_face_point(BPy_BMFace * /*self*/, PyO
   float point[3];
   bool ret;
 
-  if (!PyArg_ParseTuple(args, "O!O:intersect_face_point", &BPy_BMFace_Type, &py_face, &py_point)) {
+  if (!PyArg_ParseTuple(args,
+                        "O!" /* `face` */
+                        "O"  /* `point` */
+                        ":intersect_face_point",
+                        &BPy_BMFace_Type,
+                        &py_face,
+                        &py_point))
+  {
     return nullptr;
   }
 

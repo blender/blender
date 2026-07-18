@@ -86,7 +86,7 @@ static PyObject *UnaryFunction0DEdgeNature___call__(BPy_UnaryFunction0DEdgeNatur
   PyObject *obj;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj))
+          args, kwds, "O!" /* `it` */, (char **)kwlist, &Interface0DIterator_Type, &obj))
   {
     return nullptr;
   }

@@ -80,8 +80,13 @@ static int FrsMaterial_init(BPy_FrsMaterial *self, PyObject *args, PyObject *kwd
   float line[4], diffuse[4], ambient[4], specular[4], emission[4], shininess;
   int priority;
 
-  if (PyArg_ParseTupleAndKeywords(
-          args, kwds, "|O!", (char **)kwlist_1, &FrsMaterial_Type, &brother))
+  if (PyArg_ParseTupleAndKeywords(args,
+                                  kwds,
+                                  "|" /* Optional arguments. */
+                                  "O!" /* `brother` */,
+                                  (char **)kwlist_1,
+                                  &FrsMaterial_Type,
+                                  &brother))
   {
     if (!brother) {
       self->m = new FrsMaterial();
@@ -98,7 +103,13 @@ static int FrsMaterial_init(BPy_FrsMaterial *self, PyObject *args, PyObject *kwd
   else if ((void)PyErr_Clear(),
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
-                                       "O&O&O&O&O&fi",
+                                       "O&" /* `line` */
+                                       "O&" /* `diffuse` */
+                                       "O&" /* `ambient` */
+                                       "O&" /* `specular` */
+                                       "O&" /* `emission` */
+                                       "f"  /* `shininess` */
+                                       "i" /* `priority` */,
                                        (char **)kwlist_2,
                                        convert_v4,
                                        line,

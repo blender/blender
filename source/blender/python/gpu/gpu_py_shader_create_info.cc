@@ -268,7 +268,14 @@ static PyObject *pygpu_interface_info_smooth(BPyGPUStageInterfaceInfo *self, PyO
 {
   Type type;
   const char *name;
-  if (!pygpu_interface_info_get_args(self, args, "O&O:smooth", &type, &name)) {
+  if (!pygpu_interface_info_get_args(self,
+                                     args,
+                                     "O&" /* `type` */
+                                     "O"  /* `name` */
+                                     ":smooth",
+                                     &type,
+                                     &name))
+  {
     return nullptr;
   }
 
@@ -293,7 +300,14 @@ static PyObject *pygpu_interface_info_flat(BPyGPUStageInterfaceInfo *self, PyObj
 {
   Type type;
   const char *name;
-  if (!pygpu_interface_info_get_args(self, args, "O&O:flat", &type, &name)) {
+  if (!pygpu_interface_info_get_args(self,
+                                     args,
+                                     "O&" /* `type` */
+                                     "O"  /* `name` */
+                                     ":flat",
+                                     &type,
+                                     &name))
+  {
     return nullptr;
   }
 
@@ -319,7 +333,14 @@ static PyObject *pygpu_interface_info_no_perspective(BPyGPUStageInterfaceInfo *s
 {
   Type type;
   const char *name;
-  if (!pygpu_interface_info_get_args(self, args, "O&O:no_perspective", &type, &name)) {
+  if (!pygpu_interface_info_get_args(self,
+                                     args,
+                                     "O&" /* `type` */
+                                     "O"  /* `name` */
+                                     ":no_perspective",
+                                     &type,
+                                     &name))
+  {
     return nullptr;
   }
 
@@ -387,7 +408,11 @@ static PyObject *pygpu_interface_info__tp_new(PyTypeObject * /*type*/,
   }
 
   const char *name;
-  if (!PyArg_ParseTuple(args, "s:GPUStageInterfaceInfo.__new__*", &name)) {
+  if (!PyArg_ParseTuple(args,
+                        "s" /* `name` */
+                        ":GPUStageInterfaceInfo.__new__*",
+                        &name))
+  {
     return nullptr;
   }
 
@@ -540,7 +565,16 @@ static PyObject *pygpu_shader_info_vertex_in(BPyGPUShaderCreateInfo *self, PyObj
   PyC_StringEnum pygpu_type = {pygpu_attrtype_items};
   const char *param;
 
-  if (!PyArg_ParseTuple(args, "iO&s:vertex_in", &slot, PyC_ParseStringEnum, &pygpu_type, &param)) {
+  if (!PyArg_ParseTuple(args,
+                        "i"  /* `slot` */
+                        "O&" /* `type` */
+                        "s"  /* `name` */
+                        ":vertex_in",
+                        &slot,
+                        PyC_ParseStringEnum,
+                        &pygpu_type,
+                        &param))
+  {
     return nullptr;
   }
 
@@ -612,7 +646,7 @@ static PyObject *pygpu_shader_info_fragment_out(BPyGPUShaderCreateInfo *self,
       "i"  /* `slot` */
       "O&" /* `type` */
       "U"  /* `name` */
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O&" /* `blend` */
       ":fragment_out",
       _keywords,
@@ -708,7 +742,15 @@ static PyObject *pygpu_shader_info_uniform_buf(BPyGPUShaderCreateInfo *self, PyO
   const char *type_name;
   const char *name;
 
-  if (!PyArg_ParseTuple(args, "iss:uniform_buf", &slot, &type_name, &name)) {
+  if (!PyArg_ParseTuple(args,
+                        "i" /* `slot` */
+                        "s" /* `type_name` */
+                        "s" /* `name` */
+                        ":uniform_buf",
+                        &slot,
+                        &type_name,
+                        &name))
+  {
     return nullptr;
   }
 
@@ -761,7 +803,7 @@ static PyObject *pygpu_shader_info_image(BPyGPUShaderCreateInfo *self,
       "O&" /* `format` */
       "O&" /* `type` */
       "U"  /* `name` */
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O"  /* `qualifiers` */
       ":image",
       _keywords,
@@ -840,8 +882,15 @@ static PyObject *pygpu_shader_info_sampler(BPyGPUShaderCreateInfo *self, PyObjec
   PyC_StringEnum pygpu_samplertype = {pygpu_imagetype_items};
   const char *name;
 
-  if (!PyArg_ParseTuple(
-          args, "iO&s:sampler", &slot, PyC_ParseStringEnum, &pygpu_samplertype, &name))
+  if (!PyArg_ParseTuple(args,
+                        "i"  /* `slot` */
+                        "O&" /* `type` */
+                        "s"  /* `name` */
+                        ":sampler",
+                        &slot,
+                        PyC_ParseStringEnum,
+                        &pygpu_samplertype,
+                        &name))
   {
     return nullptr;
   }
@@ -1197,7 +1246,14 @@ static PyObject *pygpu_shader_info_define(BPyGPUShaderCreateInfo *self, PyObject
   const char *name;
   const char *value = nullptr;
 
-  if (!PyArg_ParseTuple(args, "s|s:define", &name, &value)) {
+  if (!PyArg_ParseTuple(args,
+                        "s" /* `name` */
+                        "|" /* Optional arguments. */
+                        "s" /* `value` */
+                        ":define",
+                        &name,
+                        &value))
+  {
     return nullptr;
   }
 
@@ -1236,7 +1292,16 @@ static PyObject *pygpu_shader_info_local_group_size(BPyGPUShaderCreateInfo *self
 {
   int x = -1, y = 1, z = 1;
 
-  if (!PyArg_ParseTuple(args, "i|ii:local_group_size", &x, &y, &z)) {
+  if (!PyArg_ParseTuple(args,
+                        "i" /* `x` */
+                        "|" /* Optional arguments. */
+                        "i" /* `y` */
+                        "i" /* `z` */
+                        ":local_group_size",
+                        &x,
+                        &y,
+                        &z))
+  {
     return nullptr;
   }
 

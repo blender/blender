@@ -367,7 +367,7 @@ static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *k
   };
   static _PyArg_Parser _parser = {
       "O&" /* `filepath` */
-      /* Optional keyword only arguments. */
+      /* Optional, keyword only arguments. */
       "|$"
       "O&" /* `link` */
       "O&" /* `pack` */

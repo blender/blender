@@ -665,7 +665,14 @@ static PyObject *bpy_bmdeformvert_get(BPy_BMDeformVert *self, PyObject *args)
   int key;
   PyObject *def = Py_None;
 
-  if (!PyArg_ParseTuple(args, "i|O:get", &key, &def)) {
+  if (!PyArg_ParseTuple(args,
+                        "i" /* `key` */
+                        "|" /* Optional arguments. */
+                        "O" /* `default` */
+                        ":get",
+                        &key,
+                        &def))
+  {
     return nullptr;
   }
 

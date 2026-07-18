@@ -345,7 +345,7 @@ static PyObject *pygpu_max_work_group_count_get(PyObject * /*self*/, PyObject *a
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
 
   int index;
-  if (!PyArg_ParseTuple(args, "i", &index)) {
+  if (!PyArg_ParseTuple(args, "i" /* `index` */, &index)) {
     return nullptr;
   }
 
@@ -370,7 +370,7 @@ static PyObject *pygpu_max_work_group_size_get(PyObject * /*self*/, PyObject *ar
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
 
   int index;
-  if (!PyArg_ParseTuple(args, "i", &index)) {
+  if (!PyArg_ParseTuple(args, "i" /* `index` */, &index)) {
     return nullptr;
   }
 

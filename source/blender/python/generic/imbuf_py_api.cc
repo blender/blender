@@ -265,7 +265,7 @@ static PyObject *py_imbuf_resize(Py_ImBuf *self, PyObject *args, PyObject *kw)
   };
   static _PyArg_Parser _parser = {
       "(ii)" /* `size` */
-      "|$"   /* Optional keyword only arguments. */
+      "|$"   /* Optional, keyword only arguments. */
       "O&"   /* `method` */
       ":resize",
       _keywords,
@@ -413,7 +413,7 @@ static PyObject *py_imbuf_with_buffer(Py_ImBuf *self, PyObject *args, PyObject *
       nullptr,
   };
   static _PyArg_Parser _parser = {
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O&" /* `write` */
       "O&" /* `region` */
       ":with_buffer",
@@ -1310,7 +1310,7 @@ static PyObject *M_imbuf_new(PyObject * /*self*/, PyObject *args, PyObject *kw)
   };
   static _PyArg_Parser _parser = {
       "(ii)" /* `size` */
-      "|$"   /* Optional keyword only arguments. */
+      "|$"   /* Optional, keyword only arguments. */
       "i"    /* `planes` */
       "O&"   /* `buffer_type` */
       ":new",
@@ -1538,7 +1538,7 @@ static PyObject *M_imbuf_write(PyObject * /*self*/, PyObject *args, PyObject *kw
   };
   static _PyArg_Parser _parser = {
       "O!" /* `image` */
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O&" /* `filepath` */
       ":write",
       _keywords,

@@ -214,7 +214,11 @@ static PyObject *bpy_app_handlers_persistent_new(PyTypeObject * /*type*/,
 {
   PyObject *value;
 
-  if (!PyArg_ParseTuple(args, "O:bpy.app.handlers.persistent", &value)) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `func` */
+                        ":bpy.app.handlers.persistent",
+                        &value))
+  {
     return nullptr;
   }
 

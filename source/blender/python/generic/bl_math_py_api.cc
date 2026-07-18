@@ -42,12 +42,24 @@ static PyObject *py_bl_math_clamp(PyObject * /*self*/, PyObject *args)
   double x, minv = 0.0, maxv = 1.0;
 
   if (PyTuple_Size(args) <= 1) {
-    if (!PyArg_ParseTuple(args, "d:clamp", &x)) {
+    if (!PyArg_ParseTuple(args,
+                          "d" /* `value` */
+                          ":clamp",
+                          &x))
+    {
       return nullptr;
     }
   }
   else {
-    if (!PyArg_ParseTuple(args, "ddd:clamp", &x, &minv, &maxv)) {
+    if (!PyArg_ParseTuple(args,
+                          "d" /* `value` */
+                          "d" /* `min` */
+                          "d" /* `max` */
+                          ":clamp",
+                          &x,
+                          &minv,
+                          &maxv))
+    {
       return nullptr;
     }
   }
@@ -75,7 +87,15 @@ PyDoc_STRVAR(
 static PyObject *py_bl_math_lerp(PyObject * /*self*/, PyObject *args)
 {
   double a, b, x;
-  if (!PyArg_ParseTuple(args, "ddd:lerp", &a, &b, &x)) {
+  if (!PyArg_ParseTuple(args,
+                        "d" /* `from_value` */
+                        "d" /* `to_value` */
+                        "d" /* `factor` */
+                        ":lerp",
+                        &a,
+                        &b,
+                        &x))
+  {
     return nullptr;
   }
 
@@ -102,7 +122,15 @@ PyDoc_STRVAR(
 static PyObject *py_bl_math_smoothstep(PyObject * /*self*/, PyObject *args)
 {
   double a, b, x;
-  if (!PyArg_ParseTuple(args, "ddd:smoothstep", &a, &b, &x)) {
+  if (!PyArg_ParseTuple(args,
+                        "d" /* `from_value` */
+                        "d" /* `to_value` */
+                        "d" /* `value` */
+                        ":smoothstep",
+                        &a,
+                        &b,
+                        &x))
+  {
     return nullptr;
   }
 

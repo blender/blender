@@ -71,7 +71,7 @@ static PyObject *Operators_select(BPy_Operators * /*self*/, PyObject *args, PyOb
   PyObject *obj = nullptr;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist, &UnaryPredicate1D_Type, &obj))
+          args, kwds, "O!" /* `pred` */, (char **)kwlist, &UnaryPredicate1D_Type, &obj))
   {
     return nullptr;
   }
@@ -123,7 +123,10 @@ static PyObject *Operators_chain(BPy_Operators * /*self*/, PyObject *args, PyObj
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
-                                   "O!O!|O!",
+                                   "O!" /* `it` */
+                                   "O!" /* `pred` */
+                                   "|"  /* Optional arguments. */
+                                   "O!" /* `modifier` */,
                                    (char **)kwlist,
                                    &ChainingIterator_Type,
                                    &obj1,
@@ -211,7 +214,9 @@ static PyObject *Operators_bidirectional_chain(BPy_Operators * /*self*/,
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
-                                   "O!|O!",
+                                   "O!" /* `it` */
+                                   "|"  /* Optional arguments. */
+                                   "O!" /* `pred` */,
                                    (char **)kwlist,
                                    &ChainingIterator_Type,
                                    &obj1,
@@ -300,7 +305,10 @@ static PyObject *Operators_sequential_split(BPy_Operators * /*self*/,
 
   if (PyArg_ParseTupleAndKeywords(args,
                                   kwds,
-                                  "O!O!|f",
+                                  "O!" /* `starting_pred` */
+                                  "O!" /* `stopping_pred` */
+                                  "|"  /* Optional arguments. */
+                                  "f" /* `sampling` */,
                                   (char **)kwlist_1,
                                   &UnaryPredicate0D_Type,
                                   &obj1,
@@ -332,8 +340,15 @@ static PyObject *Operators_sequential_split(BPy_Operators * /*self*/,
   }
   else if ((void)PyErr_Clear(),
            (void)(f = 0.0f),
-           PyArg_ParseTupleAndKeywords(
-               args, kwds, "O!|f", (char **)kwlist_2, &UnaryPredicate0D_Type, &obj1, &f))
+           PyArg_ParseTupleAndKeywords(args,
+                                       kwds,
+                                       "O!" /* `pred` */
+                                       "|"  /* Optional arguments. */
+                                       "f" /* `sampling` */,
+                                       (char **)kwlist_2,
+                                       &UnaryPredicate0D_Type,
+                                       &obj1,
+                                       &f))
   {
     if (!((BPy_UnaryPredicate0D *)obj1)->up0D) {
       PyErr_SetString(
@@ -406,7 +421,10 @@ static PyObject *Operators_recursive_split(BPy_Operators * /*self*/,
 
   if (PyArg_ParseTupleAndKeywords(args,
                                   kwds,
-                                  "O!O!|f",
+                                  "O!" /* `func` */
+                                  "O!" /* `pred_1d` */
+                                  "|"  /* Optional arguments. */
+                                  "f" /* `sampling` */,
                                   (char **)kwlist_1,
                                   &UnaryFunction0DDouble_Type,
                                   &obj1,
@@ -440,7 +458,11 @@ static PyObject *Operators_recursive_split(BPy_Operators * /*self*/,
            (void)(f = 0.0f),
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
-                                       "O!O!O!|f",
+                                       "O!" /* `func` */
+                                       "O!" /* `pred_0d` */
+                                       "O!" /* `pred_1d` */
+                                       "|"  /* Optional arguments. */
+                                       "f" /* `sampling` */,
                                        (char **)kwlist_2,
                                        &UnaryFunction0DDouble_Type,
                                        &obj1,
@@ -502,7 +524,7 @@ static PyObject *Operators_sort(BPy_Operators * /*self*/, PyObject *args, PyObje
   PyObject *obj = nullptr;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist, &BinaryPredicate1D_Type, &obj))
+          args, kwds, "O!" /* `pred` */, (char **)kwlist, &BinaryPredicate1D_Type, &obj))
   {
     return nullptr;
   }
@@ -538,8 +560,15 @@ static PyObject *Operators_create(BPy_Operators * /*self*/, PyObject *args, PyOb
   static const char *kwlist[] = {"pred", "shaders", nullptr};
   PyObject *obj1 = nullptr, *obj2 = nullptr;
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!O!", (char **)kwlist, &UnaryPredicate1D_Type, &obj1, &PyList_Type, &obj2))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "O!" /* `pred` */
+                                   "O!" /* `shaders` */,
+                                   (char **)kwlist,
+                                   &UnaryPredicate1D_Type,
+                                   &obj1,
+                                   &PyList_Type,
+                                   &obj2))
   {
     return nullptr;
   }
@@ -591,7 +620,14 @@ static PyObject *Operators_reset(BPy_Operators * /*self*/, PyObject *args, PyObj
 {
   static const char *kwlist[] = {"delete_strokes", nullptr};
   PyObject *obj1 = nullptr;
-  if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &PyBool_Type, &obj1)) {
+  if (PyArg_ParseTupleAndKeywords(args,
+                                  kwds,
+                                  "|" /* Optional arguments. */
+                                  "O!" /* `delete_strokes` */,
+                                  (char **)kwlist,
+                                  &PyBool_Type,
+                                  &obj1))
+  {
     // true is the default
     Operators::reset(obj1 ? bool_from_PyBool(obj1) : true);
   }
@@ -620,7 +656,7 @@ static PyObject *Operators_get_viewedge_from_index(BPy_Operators * /*self*/,
   static const char *kwlist[] = {"i", nullptr};
   uint i;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "I", (char **)kwlist, &i)) {
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "I" /* `i` */, (char **)kwlist, &i)) {
     return nullptr;
   }
   if (i >= Operators::getViewEdgesSize()) {
@@ -648,7 +684,7 @@ static PyObject *Operators_get_chain_from_index(BPy_Operators * /*self*/,
   static const char *kwlist[] = {"i", nullptr};
   uint i;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "I", (char **)kwlist, &i)) {
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "I" /* `i` */, (char **)kwlist, &i)) {
     return nullptr;
   }
   if (i >= Operators::getChainsSize()) {
@@ -676,7 +712,7 @@ static PyObject *Operators_get_stroke_from_index(BPy_Operators * /*self*/,
   static const char *kwlist[] = {"i", nullptr};
   uint i;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "I", (char **)kwlist, &i)) {
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "I" /* `i` */, (char **)kwlist, &i)) {
     return nullptr;
   }
   if (i >= Operators::getStrokesSize()) {

@@ -66,7 +66,14 @@ static int CurvePoint_init(BPy_CurvePoint *self, PyObject *args, PyObject *kwds)
   PyObject *obj1 = nullptr, *obj2 = nullptr;
   float t2d;
 
-  if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &CurvePoint_Type, &obj1)) {
+  if (PyArg_ParseTupleAndKeywords(args,
+                                  kwds,
+                                  "|" /* Optional arguments. */
+                                  "O!" /* `brother` */,
+                                  (char **)kwlist_1,
+                                  &CurvePoint_Type,
+                                  &obj1))
+  {
     if (!obj1) {
       self->cp = new CurvePoint();
     }
@@ -77,7 +84,9 @@ static int CurvePoint_init(BPy_CurvePoint *self, PyObject *args, PyObject *kwds)
   else if ((void)PyErr_Clear(),
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
-                                       "O!O!f",
+                                       "O!" /* `first_vertex` */
+                                       "O!" /* `second_vertex` */
+                                       "f" /* `t2d` */,
                                        (char **)kwlist_2,
                                        &SVertex_Type,
                                        &obj1,
@@ -90,7 +99,9 @@ static int CurvePoint_init(BPy_CurvePoint *self, PyObject *args, PyObject *kwds)
   else if ((void)PyErr_Clear(),
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
-                                       "O!O!f",
+                                       "O!" /* `first_point` */
+                                       "O!" /* `second_point` */
+                                       "f" /* `t2d` */,
                                        (char **)kwlist_3,
                                        &CurvePoint_Type,
                                        &obj1,

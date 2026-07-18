@@ -93,7 +93,7 @@ static PyObject *bpy_lib_write(BPy_PropertyRNA *self, PyObject *args, PyObject *
   static _PyArg_Parser _parser = {
       "O&" /* `filepath` */
       "O!" /* `datablocks` */
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O&" /* `path_remap` */
       "O&" /* `fake_user` */
       "O&" /* `compress` */

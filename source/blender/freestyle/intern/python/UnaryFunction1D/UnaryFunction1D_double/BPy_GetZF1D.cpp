@@ -45,8 +45,13 @@ static int GetZF1D___init__(BPy_GetZF1D *self, PyObject *args, PyObject *kwds)
   static const char *kwlist[] = {"integration_type", nullptr};
   PyObject *obj = nullptr;
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "|O!", (char **)kwlist, &IntegrationType_Type, &obj))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "|" /* Optional arguments. */
+                                   "O!" /* `integration_type` */,
+                                   (char **)kwlist,
+                                   &IntegrationType_Type,
+                                   &obj))
   {
     return -1;
   }

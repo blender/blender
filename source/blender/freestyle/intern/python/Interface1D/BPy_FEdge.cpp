@@ -57,7 +57,14 @@ static int FEdge_init(BPy_FEdge *self, PyObject *args, PyObject *kwds)
   static const char *kwlist_2[] = {"first_vertex", "second_vertex", nullptr};
   PyObject *obj1 = nullptr, *obj2 = nullptr;
 
-  if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &FEdge_Type, &obj1)) {
+  if (PyArg_ParseTupleAndKeywords(args,
+                                  kwds,
+                                  "|" /* Optional arguments. */
+                                  "O!" /* `brother` */,
+                                  (char **)kwlist_1,
+                                  &FEdge_Type,
+                                  &obj1))
+  {
     if (!obj1) {
       self->fe = new FEdge();
     }
@@ -66,8 +73,15 @@ static int FEdge_init(BPy_FEdge *self, PyObject *args, PyObject *kwds)
     }
   }
   else if ((void)PyErr_Clear(),
-           PyArg_ParseTupleAndKeywords(
-               args, kwds, "O!O!", (char **)kwlist_2, &SVertex_Type, &obj1, &SVertex_Type, &obj2))
+           PyArg_ParseTupleAndKeywords(args,
+                                       kwds,
+                                       "O!" /* `first_vertex` */
+                                       "O!" /* `second_vertex` */,
+                                       (char **)kwlist_2,
+                                       &SVertex_Type,
+                                       &obj1,
+                                       &SVertex_Type,
+                                       &obj2))
   {
     self->fe = new FEdge(((BPy_SVertex *)obj1)->sv, ((BPy_SVertex *)obj2)->sv);
   }

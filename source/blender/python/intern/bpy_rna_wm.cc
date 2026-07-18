@@ -173,7 +173,7 @@ static PyObject *bpy_rna_window_screenshot(PyObject *self, PyObject *args, PyObj
 
   static const char *_keywords[] = {"region", "use_alpha", nullptr};
   static _PyArg_Parser _parser = {
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O&" /* `region` */
       "O&" /* `use_alpha` */
       ":screenshot",

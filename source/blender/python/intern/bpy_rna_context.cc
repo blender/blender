@@ -542,7 +542,7 @@ static PyObject *bpy_rna_context_temp_override_logging_set(BPyContextTempOverrid
   };
   static _PyArg_Parser _parser = {
       "O&" /* `enable` */
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O&" /* `hide_missing` */
       ":logging_set",
       _keywords,

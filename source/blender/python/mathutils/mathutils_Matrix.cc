@@ -696,7 +696,11 @@ static PyObject *C_Matrix_Identity(PyObject *cls, PyObject *args)
 {
   int matSize;
 
-  if (!PyArg_ParseTuple(args, "i:Matrix.Identity", &matSize)) {
+  if (!PyArg_ParseTuple(args,
+                        "i" /* `size` */
+                        ":Matrix.Identity",
+                        &matSize))
+  {
     return nullptr;
   }
 
@@ -736,7 +740,16 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
   double angle; /* Use double because of precision problems at high values. */
   float mat[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
 
-  if (!PyArg_ParseTuple(args, "di|O:Matrix.Rotation", &angle, &matSize, &vec)) {
+  if (!PyArg_ParseTuple(args,
+                        "d" /* `angle` */
+                        "i" /* `size` */
+                        "|" /* Optional arguments. */
+                        "O" /* `axis` */
+                        ":Matrix.Rotation",
+                        &angle,
+                        &matSize,
+                        &vec))
+  {
     return nullptr;
   }
 
@@ -886,7 +899,16 @@ static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
   int matSize;
   float mat[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
 
-  if (!PyArg_ParseTuple(args, "fi|O:Matrix.Scale", &factor, &matSize, &vec)) {
+  if (!PyArg_ParseTuple(args,
+                        "f" /* `factor` */
+                        "i" /* `size` */
+                        "|" /* Optional arguments. */
+                        "O" /* `axis` */
+                        ":Matrix.Scale",
+                        &factor,
+                        &matSize,
+                        &vec))
+  {
     return nullptr;
   }
   if (!ELEM(matSize, 2, 3, 4)) {
@@ -975,7 +997,13 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
   float norm = 0.0f;
   float mat[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
 
-  if (!PyArg_ParseTuple(args, "Oi:Matrix.OrthoProjection", &axis, &matSize)) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `axis` */
+                        "i" /* `size` */
+                        ":Matrix.OrthoProjection",
+                        &axis,
+                        &matSize))
+  {
     return nullptr;
   }
   if (!ELEM(matSize, 2, 3, 4)) {
@@ -1099,7 +1127,15 @@ static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
   PyObject *fac;
   float mat[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
 
-  if (!PyArg_ParseTuple(args, "siO:Matrix.Shear", &plane, &matSize, &fac)) {
+  if (!PyArg_ParseTuple(args,
+                        "s" /* `plane` */
+                        "i" /* `size` */
+                        "O" /* `factor` */
+                        ":Matrix.Shear",
+                        &plane,
+                        &matSize,
+                        &fac))
+  {
     return nullptr;
   }
   if (!ELEM(matSize, 2, 3, 4)) {
@@ -1200,7 +1236,15 @@ static PyObject *C_Matrix_LocRotScale(PyObject *cls, PyObject *args)
   PyObject *loc_obj, *rot_obj, *scale_obj;
   float mat[4][4], loc[3];
 
-  if (!PyArg_ParseTuple(args, "OOO:Matrix.LocRotScale", &loc_obj, &rot_obj, &scale_obj)) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `location` */
+                        "O" /* `rotation` */
+                        "O" /* `scale` */
+                        ":Matrix.LocRotScale",
+                        &loc_obj,
+                        &rot_obj,
+                        &scale_obj))
+  {
     return nullptr;
   }
 
@@ -2024,7 +2068,14 @@ static PyObject *Matrix_lerp(MatrixObject *self, PyObject *args)
   MatrixObject *mat2 = nullptr;
   float fac, mat[MATRIX_MAX_DIM * MATRIX_MAX_DIM];
 
-  if (!PyArg_ParseTuple(args, "O!f:lerp", &matrix_Type, &mat2, &fac)) {
+  if (!PyArg_ParseTuple(args,
+                        "O!" /* `other` */
+                        "f"  /* `factor` */
+                        ":lerp",
+                        &matrix_Type,
+                        &mat2,
+                        &fac))
+  {
     return nullptr;
   }
 

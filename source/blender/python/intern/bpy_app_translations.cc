@@ -322,7 +322,9 @@ static PyObject *app_translations_py_messages_register(BlenderAppTranslations *s
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
-                                   "O!O!:bpy.app.translations.register",
+                                   "O!" /* `module_name` */
+                                   "O!" /* `translations_dict` */
+                                   ":bpy.app.translations.register",
                                    (char **)kwlist,
                                    &PyUnicode_Type,
                                    &module_name,
@@ -378,7 +380,8 @@ static PyObject *app_translations_py_messages_unregister(BlenderAppTranslations 
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
-                                   "O!:bpy.app.translations.unregister",
+                                   "O!" /* `module_name` */
+                                   ":bpy.app.translations.unregister",
                                    (char **)kwlist,
                                    &PyUnicode_Type,
                                    &module_name))
@@ -563,8 +566,15 @@ static PyObject *_py_pgettext(PyObject *args,
 #ifdef WITH_INTERNATIONAL
   char *msgid, *msgctxt = nullptr;
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kw, "s|z:bpy.app.translations.pgettext", (char **)kwlist, &msgid, &msgctxt))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kw,
+                                   "s" /* `msgid` */
+                                   "|" /* Optional arguments. */
+                                   "z" /* `msgctxt` */
+                                   ":bpy.app.translations.pgettext",
+                                   (char **)kwlist,
+                                   &msgid,
+                                   &msgctxt))
   {
     return nullptr;
   }
@@ -576,7 +586,10 @@ static PyObject *_py_pgettext(PyObject *args,
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
-                                   "O|O:bpy.app.translations.pgettext",
+                                   "O" /* `msgid` */
+                                   "|" /* Optional arguments. */
+                                   "O" /* `msgctxt` */
+                                   ":bpy.app.translations.pgettext",
                                    const_cast<char **>(kwlist),
                                    &msgid,
                                    &msgctxt))
@@ -654,7 +667,10 @@ static PyObject *app_translations_pgettext_n(BlenderAppTranslations * /*self*/,
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
-                                   "O|O:bpy.app.translations.pgettext",
+                                   "O" /* `msgid` */
+                                   "|" /* Optional arguments. */
+                                   "O" /* `msgctxt` */
+                                   ":bpy.app.translations.pgettext",
                                    const_cast<char **>(kwlist),
                                    &msgid,
                                    &msgctxt))
@@ -791,8 +807,12 @@ static PyObject *app_translations_locale_explode(BlenderAppTranslations * /*self
   const char *locale;
   char *language, *country, *variant, *language_country, *language_variant;
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kw, "s:bpy.app.translations.locale_explode", const_cast<char **>(kwlist), &locale))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kw,
+                                   "s" /* `locale` */
+                                   ":bpy.app.translations.locale_explode",
+                                   const_cast<char **>(kwlist),
+                                   &locale))
   {
     return nullptr;
   }

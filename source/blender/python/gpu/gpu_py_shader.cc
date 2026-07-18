@@ -197,8 +197,17 @@ static bool pygpu_shader_uniform_vector_impl(PyObject *args,
   PyObject *buffer;
 
   *r_count = 1;
-  if (!PyArg_ParseTuple(
-          args, "iOi|i:GPUShader.uniform_vector_*", r_location, &buffer, r_length, r_count))
+  if (!PyArg_ParseTuple(args,
+                        "i" /* `location` */
+                        "O" /* `buffer` */
+                        "i" /* `length` */
+                        "|" /* Optional arguments. */
+                        "i" /* `count` */
+                        ":GPUShader.uniform_vector_*",
+                        r_location,
+                        &buffer,
+                        r_length,
+                        r_count))
   {
     return false;
   }
@@ -317,7 +326,13 @@ static PyObject *pygpu_shader_uniform_bool(BPyGPUShader *self, PyObject *args)
     PyObject *seq;
   } params;
 
-  if (!PyArg_ParseTuple(args, "sO:GPUShader.uniform_bool", &params.id, &params.seq)) {
+  if (!PyArg_ParseTuple(args,
+                        "s" /* `name` */
+                        "O" /* `value` */
+                        ":GPUShader.uniform_bool",
+                        &params.id,
+                        &params.seq))
+  {
     return nullptr;
   }
 
@@ -392,7 +407,13 @@ static PyObject *pygpu_shader_uniform_float(BPyGPUShader *self, PyObject *args)
     PyObject *seq;
   } params;
 
-  if (!PyArg_ParseTuple(args, "sO:GPUShader.uniform_float", &params.id, &params.seq)) {
+  if (!PyArg_ParseTuple(args,
+                        "s" /* `name` */
+                        "O" /* `value` */
+                        ":GPUShader.uniform_float",
+                        &params.id,
+                        &params.seq))
+  {
     return nullptr;
   }
 
@@ -464,7 +485,13 @@ static PyObject *pygpu_shader_uniform_int(BPyGPUShader *self, PyObject *args)
     PyObject *seq;
   } params;
 
-  if (!PyArg_ParseTuple(args, "sO:GPUShader.uniform_int", &params.id, &params.seq)) {
+  if (!PyArg_ParseTuple(args,
+                        "s" /* `name` */
+                        "O" /* `seq` */
+                        ":GPUShader.uniform_int",
+                        &params.id,
+                        &params.seq))
+  {
     return nullptr;
   }
 
@@ -533,8 +560,13 @@ static PyObject *pygpu_shader_uniform_sampler(BPyGPUShader *self, PyObject *args
 {
   const char *name;
   BPyGPUTexture *py_texture;
-  if (!PyArg_ParseTuple(
-          args, "sO!:GPUShader.uniform_sampler", &name, &BPyGPUTexture_Type, &py_texture))
+  if (!PyArg_ParseTuple(args,
+                        "s"  /* `name` */
+                        "O!" /* `texture` */
+                        ":GPUShader.uniform_sampler",
+                        &name,
+                        &BPyGPUTexture_Type,
+                        &py_texture))
   {
     return nullptr;
   }
@@ -562,7 +594,14 @@ static PyObject *pygpu_shader_image(BPyGPUShader *self, PyObject *args)
 {
   const char *name;
   BPyGPUTexture *py_texture;
-  if (!PyArg_ParseTuple(args, "sO!:GPUShader.image", &name, &BPyGPUTexture_Type, &py_texture)) {
+  if (!PyArg_ParseTuple(args,
+                        "s"  /* `name` */
+                        "O!" /* `texture` */
+                        ":GPUShader.image",
+                        &name,
+                        &BPyGPUTexture_Type,
+                        &py_texture))
+  {
     return nullptr;
   }
 
@@ -593,8 +632,13 @@ static PyObject *pygpu_shader_uniform_block(BPyGPUShader *self, PyObject *args)
 {
   const char *name;
   BPyGPUUniformBuf *py_ubo;
-  if (!PyArg_ParseTuple(
-          args, "sO!:GPUShader.uniform_block", &name, &BPyGPUUniformBuf_Type, &py_ubo))
+  if (!PyArg_ParseTuple(args,
+                        "s"  /* `name` */
+                        "O!" /* `ubo` */
+                        ":GPUShader.uniform_block",
+                        &name,
+                        &BPyGPUUniformBuf_Type,
+                        &py_ubo))
   {
     return nullptr;
   }
@@ -973,7 +1017,7 @@ static PyObject *pygpu_shader_from_builtin(PyObject * /*self*/, PyObject *args, 
   static const char *_keywords[] = {"shader_name", "config", nullptr};
   static _PyArg_Parser _parser = {
       "O&" /* `shader_name` */
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O&" /* `config` */
       ":from_builtin",
       _keywords,

@@ -49,7 +49,11 @@ static PyObject *bpy_utils_previews_new(PyObject * /*self*/, PyObject *args)
   char *name;
   PreviewImage *prv;
 
-  if (!PyArg_ParseTuple(args, "s:new", &name)) {
+  if (!PyArg_ParseTuple(args,
+                        "s" /* `name` */
+                        ":new",
+                        &name))
+  {
     return nullptr;
   }
 
@@ -104,7 +108,7 @@ static PyObject *bpy_utils_previews_load(PyObject * /*self*/, PyObject *args)
   if (!PyArg_ParseTuple(args,
                         "s"  /* `name` */
                         "O&" /* `filepath` */
-                        "O&" /* `filetype` */
+                        "O&" /* `file_type` */
                         "|"  /* Optional arguments. */
                         "p"  /* `force_reload` */
                         ":load",
@@ -141,7 +145,11 @@ static PyObject *bpy_utils_previews_release(PyObject * /*self*/, PyObject *args)
 {
   char *name;
 
-  if (!PyArg_ParseTuple(args, "s:release", &name)) {
+  if (!PyArg_ParseTuple(args,
+                        "s" /* `name` */
+                        ":release",
+                        &name))
+  {
     return nullptr;
   }
 

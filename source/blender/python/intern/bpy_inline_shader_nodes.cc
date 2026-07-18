@@ -60,7 +60,9 @@ static BPy_InlineShaderNodes *BPy_InlineShaderNodes_static_from_material(PyObjec
 {
   static const char *kwlist[] = {"material", nullptr};
   PyObject *py_material;
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", const_cast<char **>(kwlist), &py_material)) {
+  if (!PyArg_ParseTupleAndKeywords(
+          args, kwds, "O" /* `material` */, const_cast<char **>(kwlist), &py_material))
+  {
     return nullptr;
   }
   ID *material_id = nullptr;
@@ -98,7 +100,9 @@ static BPy_InlineShaderNodes *BPy_InlineShaderNodes_static_from_light(PyObject *
 {
   static const char *kwlist[] = {"light", nullptr};
   PyObject *py_light;
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", const_cast<char **>(kwlist), &py_light)) {
+  if (!PyArg_ParseTupleAndKeywords(
+          args, kwds, "O" /* `light` */, const_cast<char **>(kwlist), &py_light))
+  {
     return nullptr;
   }
   ID *light_id = nullptr;
@@ -135,7 +139,9 @@ static BPy_InlineShaderNodes *BPy_InlineShaderNodes_static_from_world(PyObject *
 {
   static const char *kwlist[] = {"world", nullptr};
   PyObject *py_world;
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", const_cast<char **>(kwlist), &py_world)) {
+  if (!PyArg_ParseTupleAndKeywords(
+          args, kwds, "O" /* `world` */, const_cast<char **>(kwlist), &py_world))
+  {
     return nullptr;
   }
   ID *world_id = nullptr;

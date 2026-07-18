@@ -61,8 +61,13 @@ static int UnaryFunction1DFloat___init__(BPy_UnaryFunction1DFloat *self,
   static const char *kwlist[] = {"integration", nullptr};
   PyObject *obj = nullptr;
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "|O!", (char **)kwlist, &IntegrationType_Type, &obj))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "|" /* Optional arguments. */
+                                   "O!" /* `integration` */,
+                                   (char **)kwlist,
+                                   &IntegrationType_Type,
+                                   &obj))
   {
     return -1;
   }
@@ -97,7 +102,9 @@ static PyObject *UnaryFunction1DFloat___call__(BPy_UnaryFunction1DFloat *self,
   static const char *kwlist[] = {"inter", nullptr};
   PyObject *obj = nullptr;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &Interface1D_Type, &obj)) {
+  if (!PyArg_ParseTupleAndKeywords(
+          args, kwds, "O!" /* `inter` */, (char **)kwlist, &Interface1D_Type, &obj))
+  {
     return nullptr;
   }
 

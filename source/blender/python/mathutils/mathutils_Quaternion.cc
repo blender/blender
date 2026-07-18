@@ -555,7 +555,13 @@ static PyObject *Quaternion_slerp(QuaternionObject *self, PyObject *args)
   PyObject *value;
   float tquat[QUAT_SIZE], quat[QUAT_SIZE], fac;
 
-  if (!PyArg_ParseTuple(args, "Of:slerp", &value, &fac)) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `other` */
+                        "f" /* `factor` */
+                        ":slerp",
+                        &value,
+                        &fac))
+  {
     PyErr_SetString(PyExc_TypeError,
                     "quat.slerp(): "
                     "expected Quaternion types and float");

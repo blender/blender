@@ -248,7 +248,7 @@ static PyObject *bpy_msgbus_subscribe_rna(PyObject * /*self*/, PyObject *args, P
       "O"  /* `owner` */
       "O!" /* `args` */
       "O"  /* `notify` */
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O!" /* `options` */
       ":subscribe_rna",
       _keywords,

@@ -401,8 +401,16 @@ static PyObject *pygpu_buffer__tp_new(PyTypeObject * /*type*/, PyObject *args, P
   }
 
   PyC_StringEnum pygpu_dataformat = {bpygpu_dataformat_items, GPU_DATA_FLOAT};
-  if (!PyArg_ParseTuple(
-          args, "O&O|O: Buffer", PyC_ParseStringEnum, &pygpu_dataformat, &length_ob, &init))
+  if (!PyArg_ParseTuple(args,
+                        "O&" /* `format` */
+                        "O"  /* `dimensions` */
+                        "|"  /* Optional arguments. */
+                        "O"  /* `data` */
+                        ": Buffer",
+                        PyC_ParseStringEnum,
+                        &pygpu_dataformat,
+                        &length_ob,
+                        &init))
   {
     return nullptr;
   }
@@ -497,15 +505,35 @@ static int pygpu_buffer__sq_ass_item(BPyGPUBuffer *self, Py_ssize_t i, PyObject 
 
   switch (self->format) {
     case GPU_DATA_FLOAT:
-      return PyArg_Parse(v, "f:Expected floats", &self->buf.as_float[i]) ? 0 : -1;
+      return PyArg_Parse(v,
+                         "f" /* `value` */
+                         ":Expected floats",
+                         &self->buf.as_float[i]) ?
+                 0 :
+                 -1;
     case GPU_DATA_INT:
-      return PyArg_Parse(v, "i:Expected ints", &self->buf.as_int[i]) ? 0 : -1;
+      return PyArg_Parse(v,
+                         "i" /* `value` */
+                         ":Expected ints",
+                         &self->buf.as_int[i]) ?
+                 0 :
+                 -1;
     case GPU_DATA_UBYTE:
-      return PyArg_Parse(v, "b:Expected ints", &self->buf.as_byte[i]) ? 0 : -1;
+      return PyArg_Parse(v,
+                         "b" /* `value` */
+                         ":Expected ints",
+                         &self->buf.as_byte[i]) ?
+                 0 :
+                 -1;
     case GPU_DATA_UINT:
     case GPU_DATA_UINT_24_8_DEPRECATED:
     case GPU_DATA_10_11_11_REV:
-      return PyArg_Parse(v, "I:Expected unsigned ints", &self->buf.as_uint[i]) ? 0 : -1;
+      return PyArg_Parse(v,
+                         "I" /* `value` */
+                         ":Expected unsigned ints",
+                         &self->buf.as_uint[i]) ?
+                 0 :
+                 -1;
     default:
       return 0; /* should never happen */
   }

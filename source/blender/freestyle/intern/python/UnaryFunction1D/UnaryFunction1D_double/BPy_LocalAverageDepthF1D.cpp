@@ -55,8 +55,15 @@ static int LocalAverageDepthF1D___init__(BPy_LocalAverageDepthF1D *self,
   PyObject *obj = nullptr;
   double d;
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "d|O!", (char **)kwlist, &d, &IntegrationType_Type, &obj))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "d" /* `sigma` */
+                                   "|" /* Optional arguments. */
+                                   "O!" /* `integration_type` */,
+                                   (char **)kwlist,
+                                   &d,
+                                   &IntegrationType_Type,
+                                   &obj))
   {
     return -1;
   }

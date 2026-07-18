@@ -44,7 +44,13 @@ static int BackboneStretcherShader___init__(BPy_BackboneStretcherShader *self,
   static const char *kwlist[] = {"amount", nullptr};
   float f = 2.0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|f", (char **)kwlist, &f)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "|" /* Optional arguments. */
+                                   "f" /* `amount` */,
+                                   (char **)kwlist,
+                                   &f))
+  {
     return -1;
   }
   self->py_ss.ss = new StrokeShaders::BackboneStretcherShader(f);

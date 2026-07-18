@@ -1366,7 +1366,10 @@ static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
 
   BPY_BM_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "O:to_mesh", &py_mesh) ||
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `mesh` */
+                        ":to_mesh",
+                        &py_mesh) ||
       !(mesh = static_cast<Mesh *>(PyC_RNA_AsPointer(py_mesh, "Mesh"))))
   {
     return nullptr;
@@ -1440,7 +1443,13 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
-                                   "OO|$O&O&O&:from_object",
+                                   "O"  /* `object` */
+                                   "O"  /* `depsgraph` */
+                                   "|$" /* Optional, keyword only arguments. */
+                                   "O&" /* `cage` */
+                                   "O&" /* `face_normals` */
+                                   "O&" /* `vertex_normals` */
+                                   ":from_object",
                                    const_cast<char **>(kwlist),
                                    &py_object,
                                    &py_depsgraph,
@@ -1550,7 +1559,13 @@ static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
-                                   "O|$O&O&O&i:from_mesh",
+                                   "O"  /* `mesh` */
+                                   "|$" /* Optional, keyword only arguments. */
+                                   "O&" /* `face_normals` */
+                                   "O&" /* `vertex_normals` */
+                                   "O&" /* `use_shape_key` */
+                                   "i"  /* `shape_key_index` */
+                                   ":from_mesh",
                                    const_cast<char **>(kwlist),
                                    &py_mesh,
                                    PyC_ParseBool,
@@ -1602,7 +1617,7 @@ static PyObject *bpy_bmesh_select_flush_mode(BPy_BMesh *self, PyObject *args, Py
   };
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
-                                   "|$"
+                                   "|$" /* Optional, keyword only arguments. */
                                    "O&" /* `flush_down` */
                                    ":select_flush_mode",
                                    const_cast<char **>(kwlist),
@@ -1670,7 +1685,7 @@ static PyObject *bpy_bmesh_uv_select_flush_mode(BPy_BMesh *self, PyObject *args,
   };
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
-                                   "|$"
+                                   "|$" /* Optional, keyword only arguments. */
                                    "O&" /* `flush_down` */
                                    ":uv_select_flush_mode",
                                    const_cast<char **>(kwlist),
@@ -1784,7 +1799,7 @@ static PyObject *bpy_bmesh_uv_select_sync_from_mesh(BPy_BMesh *self, PyObject *a
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
-                                   "|$" /* Optional keyword only arguments. */
+                                   "|$" /* Optional, keyword only arguments. */
                                    "O&" /* `sticky_select_mode` */
                                    ":uv_select_sync_from_mesh",
                                    const_cast<char **>(kwlist),
@@ -1886,7 +1901,7 @@ static PyObject *bpy_bmesh_uv_select_foreach_set(BPy_BMesh *self, PyObject *args
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
                                    "O&" /* `select` */
-                                   "|$" /* Optional keyword only arguments. */
+                                   "|$" /* Optional, keyword only arguments. */
                                    "O"  /* `loop_verts` */
                                    "O"  /* `loop_edges` */
                                    "O"  /* `faces` */
@@ -2034,7 +2049,7 @@ static PyObject *bpy_bmesh_uv_select_foreach_set_from_mesh(BPy_BMesh *self,
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
                                    "O&" /* `select` */
-                                   "|$" /* Optional keyword only arguments. */
+                                   "|$" /* Optional, keyword only arguments. */
                                    "O"  /* `verts` */
                                    "O"  /* `edges` */
                                    "O"  /* `faces` */
@@ -2172,7 +2187,7 @@ static PyObject *bpy_bmesh_transform(BPy_BMElem *self, PyObject *args, PyObject 
   static const char *_keywords[] = {"matrix", "filter", nullptr};
   static _PyArg_Parser _parser = {
       "O!" /* `matrix` */
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O&" /* `filter` */
       ":transform",
       _keywords,
@@ -2239,8 +2254,14 @@ static PyObject *bpy_bmesh_calc_volume(BPy_BMElem *self, PyObject *args, PyObjec
 
   BPY_BM_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kw, "|$O&:calc_volume", const_cast<char **>(kwlist), PyC_ParseBool, &is_signed))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kw,
+                                   "|$" /* Optional, keyword only arguments. */
+                                   "O&" /* `signed` */
+                                   ":calc_volume",
+                                   const_cast<char **>(kwlist),
+                                   PyC_ParseBool,
+                                   &is_signed))
   {
     return nullptr;
   }
@@ -2429,7 +2450,13 @@ static PyObject *bpy_bmvert_copy_from_vert_interp(BPy_BMVert *self, PyObject *ar
 
   BPY_BM_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "Of:BMVert.copy_from_vert_interp", &vert_seq, &fac)) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `vert_pair` */
+                        "f" /* `fac` */
+                        ":BMVert.copy_from_vert_interp",
+                        &vert_seq,
+                        &fac))
+  {
     return nullptr;
   }
 
@@ -2466,7 +2493,12 @@ static PyObject *bpy_bmvert_copy_from_face_interp(BPy_BMVert *self, PyObject *ar
 
   BPY_BM_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "O!:BMVert.copy_from_face_interp", &BPy_BMFace_Type, &py_face)) {
+  if (!PyArg_ParseTuple(args,
+                        "O!" /* `face` */
+                        ":BMVert.copy_from_face_interp",
+                        &BPy_BMFace_Type,
+                        &py_face))
+  {
     return nullptr;
   }
 
@@ -2499,7 +2531,12 @@ static PyObject *bpy_bmvert_calc_edge_angle(BPy_BMVert *self, PyObject *args)
 
   BPY_BM_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "|O:calc_edge_angle", &fallback)) {
+  if (!PyArg_ParseTuple(args,
+                        "|" /* Optional arguments. */
+                        "O" /* `fallback` */
+                        ":calc_edge_angle",
+                        &fallback))
+  {
     return nullptr;
   }
 
@@ -2596,7 +2633,12 @@ static PyObject *bpy_bmedge_calc_face_angle(BPy_BMEdge *self, PyObject *args)
 
   BPY_BM_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "|O:calc_face_angle", &fallback)) {
+  if (!PyArg_ParseTuple(args,
+                        "|" /* Optional arguments. */
+                        "O" /* `fallback` */
+                        ":calc_face_angle",
+                        &fallback))
+  {
     return nullptr;
   }
 
@@ -2638,7 +2680,12 @@ static PyObject *bpy_bmedge_calc_face_angle_signed(BPy_BMEdge *self, PyObject *a
 
   BPY_BM_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "|O:calc_face_angle_signed", &fallback)) {
+  if (!PyArg_ParseTuple(args,
+                        "|" /* Optional arguments. */
+                        "O" /* `fallback` */
+                        ":calc_face_angle_signed",
+                        &fallback))
+  {
     return nullptr;
   }
 
@@ -2677,7 +2724,12 @@ static PyObject *bpy_bmedge_calc_tangent(BPy_BMEdge *self, PyObject *args)
   BPy_BMLoop *py_loop;
   BPY_BM_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "O!:BMEdge.calc_face_tangent", &BPy_BMLoop_Type, &py_loop)) {
+  if (!PyArg_ParseTuple(args,
+                        "O!" /* `loop` */
+                        ":BMEdge.calc_face_tangent",
+                        &BPy_BMLoop_Type,
+                        &py_loop))
+  {
     return nullptr;
   }
 
@@ -2767,7 +2819,10 @@ static PyObject *bpy_bmface_copy_from_face_interp(BPy_BMFace *self, PyObject *ar
   BPY_BM_CHECK_OBJ(self);
 
   if (!PyArg_ParseTuple(args,
-                        "O!|O&:BMFace.copy_from_face_interp",
+                        "O!" /* `face` */
+                        "|"  /* Optional arguments. */
+                        "O&" /* `vert` */
+                        ":BMFace.copy_from_face_interp",
                         &BPy_BMFace_Type,
                         &py_face,
                         PyC_ParseBool,
@@ -2811,7 +2866,10 @@ static PyObject *bpy_bmface_copy(BPy_BMFace *self, PyObject *args, PyObject *kw)
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
-                                   "|$O&O&:BMFace.copy",
+                                   "|$" /* Optional, keyword only arguments. */
+                                   "O&" /* `verts` */
+                                   "O&" /* `edges` */
+                                   ":BMFace.copy",
                                    const_cast<char **>(kwlist),
                                    PyC_ParseBool,
                                    &do_verts,
@@ -3076,7 +3134,11 @@ static PyObject *bpy_bmloop_copy_from_face_interp(BPy_BMLoop *self, PyObject *ar
   BPY_BM_CHECK_OBJ(self);
 
   if (!PyArg_ParseTuple(args,
-                        "O!|O&O&:BMLoop.copy_from_face_interp",
+                        "O!" /* `face` */
+                        "|"  /* Optional arguments. */
+                        "O&" /* `vert` */
+                        "O&" /* `multires` */
+                        ":BMLoop.copy_from_face_interp",
                         &BPy_BMFace_Type,
                         &py_face,
                         PyC_ParseBool,
@@ -3561,7 +3623,14 @@ static PyObject *bpy_bmedgeseq_get__method(BPy_BMElemSeq *self, PyObject *args)
 
   BPY_BM_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "O|O:edges.get", &vert_seq, &fallback)) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `verts` */
+                        "|" /* Optional arguments. */
+                        "O" /* `fallback` */
+                        ":edges.get",
+                        &vert_seq,
+                        &fallback))
+  {
     return nullptr;
   }
 
@@ -3610,7 +3679,14 @@ static PyObject *bpy_bmfaceseq_get__method(BPy_BMElemSeq *self, PyObject *args)
 
   BPY_BM_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "O|O:faces.get", &vert_seq, &fallback)) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `verts` */
+                        "|" /* Optional arguments. */
+                        "O" /* `fallback` */
+                        ":faces.get",
+                        &vert_seq,
+                        &fallback))
+  {
     return nullptr;
   }
 
@@ -3812,7 +3888,10 @@ static PyObject *bpy_bmelemseq_sort(BPy_BMElemSeq *self, PyObject *args, PyObjec
   if (args != nullptr) {
     if (!PyArg_ParseTupleAndKeywords(args,
                                      kw,
-                                     "|$OO&:BMElemSeq.sort",
+                                     "|$" /* Optional, keyword only arguments. */
+                                     "O"  /* `key` */
+                                     "O&" /* `reverse` */
+                                     ":BMElemSeq.sort",
                                      const_cast<char **>(kwlist),
                                      &keyfunc,
                                      PyC_ParseBool,

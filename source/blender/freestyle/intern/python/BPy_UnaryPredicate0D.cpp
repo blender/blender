@@ -98,7 +98,7 @@ static PyObject *UnaryPredicate0D___call__(BPy_UnaryPredicate0D *self,
   PyObject *py_if0D_it;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &py_if0D_it))
+          args, kwds, "O!" /* `it` */, (char **)kwlist, &Interface0DIterator_Type, &py_if0D_it))
   {
     return nullptr;
   }

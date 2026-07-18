@@ -50,8 +50,13 @@ static int CurvePointIterator_init(BPy_CurvePointIterator *self, PyObject *args,
   PyObject *brother = nullptr;
   float step;
 
-  if (PyArg_ParseTupleAndKeywords(
-          args, kwds, "|O!", (char **)kwlist_1, &CurvePointIterator_Type, &brother))
+  if (PyArg_ParseTupleAndKeywords(args,
+                                  kwds,
+                                  "|" /* Optional arguments. */
+                                  "O!" /* `brother` */,
+                                  (char **)kwlist_1,
+                                  &CurvePointIterator_Type,
+                                  &brother))
   {
     if (!brother) {
       self->cp_it = new CurveInternal::CurvePointIterator();
@@ -62,7 +67,7 @@ static int CurvePointIterator_init(BPy_CurvePointIterator *self, PyObject *args,
     }
   }
   else if ((void)PyErr_Clear(),
-           PyArg_ParseTupleAndKeywords(args, kwds, "f", (char **)kwlist_2, &step))
+           PyArg_ParseTupleAndKeywords(args, kwds, "f" /* `step` */, (char **)kwlist_2, &step))
   {
     self->cp_it = new CurveInternal::CurvePointIterator(step);
   }

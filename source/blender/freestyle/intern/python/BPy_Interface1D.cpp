@@ -171,7 +171,13 @@ static PyObject *Interface1D_points_begin(BPy_Interface1D *self, PyObject *args,
   static const char *kwlist[] = {"t", nullptr};
   float f = 0.0f;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|f", (char **)kwlist, &f)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "|" /* Optional arguments. */
+                                   "f" /* `t` */,
+                                   (char **)kwlist,
+                                   &f))
+  {
     return nullptr;
   }
   Interface0DIterator if0D_it(self->if1D->pointsBegin(f));
@@ -198,7 +204,13 @@ static PyObject *Interface1D_points_end(BPy_Interface1D *self, PyObject *args, P
   static const char *kwlist[] = {"t", nullptr};
   float f = 0.0f;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|f", (char **)kwlist, &f)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "|" /* Optional arguments. */
+                                   "f" /* `t` */,
+                                   (char **)kwlist,
+                                   &f))
+  {
     return nullptr;
   }
   Interface0DIterator if0D_it(self->if1D->pointsEnd(f));
