@@ -1064,17 +1064,17 @@ static void panel_title_color_get(const Panel *panel,
                                   const bool region_search_filter_active,
                                   uchar r_color[4])
 {
+  bTheme *btheme = theme::theme_get();
+
   if (!show_background) {
     /* Use menu colors for floating panels. */
-    bTheme *btheme = theme::theme_get();
     const uiWidgetColors *wcol = &btheme->tui.wcol_menu_back;
     copy_v4_v4_uchar(r_color, static_cast<const uchar *>(wcol->text));
     return;
   }
 
   const bool search_match = panel_matches_search_filter(panel);
-
-  theme::get_color_4ubv(TH_TITLE, r_color);
+  copy_v4_v4_uchar(r_color, static_cast<const uchar *>(btheme->tui.panel_title));
   if (region_search_filter_active && !search_match) {
     r_color[0] *= 0.5;
     r_color[1] *= 0.5;
