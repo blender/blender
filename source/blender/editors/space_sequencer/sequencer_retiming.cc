@@ -482,7 +482,7 @@ void SEQUENCER_OT_retiming_transition_add(wmOperatorType *ot)
               0,
               INT_MAX,
               "Duration",
-              "Duration of freeze frame segment",
+              "Duration of speed transition segment",
               0,
               INT_MAX);
 }
