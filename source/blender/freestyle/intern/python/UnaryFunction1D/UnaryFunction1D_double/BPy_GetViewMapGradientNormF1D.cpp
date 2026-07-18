@@ -65,7 +65,8 @@ static int GetViewMapGradientNormF1D___init__(BPy_GetViewMapGradientNormF1D *sel
                                    "i"  /* `level` */
                                    "|"  /* Optional arguments. */
                                    "O!" /* `integration_type` */
-                                   "f" /* `sampling` */,
+                                   "f"  /* `sampling` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &i,
                                    &IntegrationType_Type,

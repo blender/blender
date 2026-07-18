@@ -95,7 +95,8 @@ static int ChainPredicateIterator_init(BPy_ChainPredicateIterator *self,
 
   if (PyArg_ParseTupleAndKeywords(args,
                                   kwds,
-                                  "O!" /* `brother` */,
+                                  "O!" /* `brother` */
+                                  ":__init__",
                                   (char **)kwlist_1,
                                   &ChainPredicateIterator_Type,
                                   &obj1))
@@ -116,7 +117,8 @@ static int ChainPredicateIterator_init(BPy_ChainPredicateIterator *self,
                                        "O!" /* `restrict_to_selection` */
                                        "O!" /* `restrict_to_unvisited` */
                                        "O&" /* `begin` */
-                                       "O!" /* `orientation` */,
+                                       "O!" /* `orientation` */
+                                       ":__init__",
                                        (char **)kwlist_2,
                                        &UnaryPredicate1D_Type,
                                        &obj1,

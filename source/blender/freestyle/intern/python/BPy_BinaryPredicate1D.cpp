@@ -121,7 +121,8 @@ static PyObject *BinaryPredicate1D___call__(BPy_BinaryPredicate1D *self,
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
                                    "O!" /* `inter1` */
-                                   "O!" /* `inter2` */,
+                                   "O!" /* `inter2` */
+                                   ":__call__",
                                    (char **)kwlist,
                                    &Interface1D_Type,
                                    &obj1,

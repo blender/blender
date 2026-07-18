@@ -50,7 +50,8 @@ static int QuantitativeInvisibilityUP1D___init__(BPy_QuantitativeInvisibilityUP1
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
                                    "|" /* Optional arguments. */
-                                   "i" /* `qi` */,
+                                   "i" /* `qi` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &i))
   {

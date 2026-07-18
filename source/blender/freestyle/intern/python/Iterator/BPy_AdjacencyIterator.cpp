@@ -57,8 +57,9 @@ static int AdjacencyIterator_init(BPy_AdjacencyIterator *self, PyObject *args, P
 
   if (PyArg_ParseTupleAndKeywords(args,
                                   kwds,
-                                  "|" /* Optional arguments. */
-                                  "O!" /* `brother` */,
+                                  "|"  /* Optional arguments. */
+                                  "O!" /* `brother` */
+                                  ":__init__",
                                   (char **)kwlist_1,
                                   &AdjacencyIterator_Type,
                                   &obj1))
@@ -79,7 +80,8 @@ static int AdjacencyIterator_init(BPy_AdjacencyIterator *self, PyObject *args, P
                                        "O!" /* `vertex` */
                                        "|"  /* Optional arguments. */
                                        "O!" /* `restrict_to_selection` */
-                                       "O!" /* `restrict_to_unvisited` */,
+                                       "O!" /* `restrict_to_unvisited` */
+                                       ":__init__",
                                        (char **)kwlist_2,
                                        &ViewVertex_Type,
                                        &obj1,

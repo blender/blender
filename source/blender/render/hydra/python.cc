@@ -36,7 +36,8 @@ static PyObject *engine_create_func(PyObject * /*self*/, PyObject *args)
   if (!PyArg_ParseTuple(args,
                         "O" /* `engine` */
                         "s" /* `engine_type` */
-                        "s" /* `render_delegate_id` */,
+                        "s" /* `render_delegate_id` */
+                        ":engine_create",
                         &pyengine,
                         &engine_type,
                         &render_delegate_id))
@@ -70,7 +71,11 @@ static PyObject *engine_create_func(PyObject * /*self*/, PyObject *args)
 static PyObject *engine_free_func(PyObject * /*self*/, PyObject *args)
 {
   PyObject *pyengine;
-  if (!PyArg_ParseTuple(args, "O" /* `engine` */, &pyengine)) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `engine` */
+                        ":engine_free",
+                        &pyengine))
+  {
     return nullptr;
   }
 
@@ -87,7 +92,8 @@ static PyObject *engine_update_func(PyObject * /*self*/, PyObject *args)
   if (!PyArg_ParseTuple(args,
                         "O" /* `engine` */
                         "O" /* `depsgraph` */
-                        "O" /* `context` */,
+                        "O" /* `context` */
+                        ":engine_update",
                         &pyengine,
                         &pydepsgraph,
                         &pycontext))
@@ -108,7 +114,11 @@ static PyObject *engine_update_func(PyObject * /*self*/, PyObject *args)
 static PyObject *engine_render_func(PyObject * /*self*/, PyObject *args)
 {
   PyObject *pyengine;
-  if (!PyArg_ParseTuple(args, "O" /* `engine` */, &pyengine)) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `engine` */
+                        ":engine_render",
+                        &pyengine))
+  {
     return nullptr;
   }
 
@@ -129,7 +139,8 @@ static PyObject *engine_view_draw_func(PyObject * /*self*/, PyObject *args)
   PyObject *pyengine, *pycontext;
   if (!PyArg_ParseTuple(args,
                         "O" /* `engine` */
-                        "O" /* `context` */,
+                        "O" /* `context` */
+                        ":engine_view_draw",
                         &pyengine,
                         &pycontext))
   {
@@ -174,7 +185,8 @@ static PyObject *engine_set_render_setting_func(PyObject * /*self*/, PyObject *a
   if (!PyArg_ParseTuple(args,
                         "O" /* `engine` */
                         "s" /* `key` */
-                        "O" /* `value` */,
+                        "O" /* `value` */
+                        ":engine_set_render_setting",
                         &pyengine,
                         &key,
                         &pyval))
@@ -195,7 +207,8 @@ static PyObject *cache_or_get_image_file_func(PyObject * /*self*/, PyObject *arg
   PyObject *pycontext, *pyimage;
   if (!PyArg_ParseTuple(args,
                         "O" /* `context` */
-                        "O" /* `image` */,
+                        "O" /* `image` */
+                        ":cache_or_get_image_file",
                         &pycontext,
                         &pyimage))
   {

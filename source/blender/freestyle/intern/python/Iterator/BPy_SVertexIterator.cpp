@@ -59,8 +59,9 @@ static int SVertexIterator_init(BPy_SVertexIterator *self, PyObject *args, PyObj
 
   if (PyArg_ParseTupleAndKeywords(args,
                                   kwds,
-                                  "|" /* Optional arguments. */
-                                  "O!" /* `brother` */,
+                                  "|"  /* Optional arguments. */
+                                  "O!" /* `brother` */
+                                  ":__init__",
                                   (char **)kwlist_1,
                                   &SVertexIterator_Type,
                                   &obj1))
@@ -79,7 +80,8 @@ static int SVertexIterator_init(BPy_SVertexIterator *self, PyObject *args, PyObj
                                        "O!" /* `begin` */
                                        "O!" /* `previous_edge` */
                                        "O!" /* `next_edge` */
-                                       "f" /* `t` */,
+                                       "f"  /* `t` */
+                                       ":__init__",
                                        (char **)kwlist_2,
                                        &SVertex_Type,
                                        &obj1,

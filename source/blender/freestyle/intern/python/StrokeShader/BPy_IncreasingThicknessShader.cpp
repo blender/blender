@@ -52,7 +52,8 @@ static int IncreasingThicknessShader___init__(BPy_IncreasingThicknessShader *sel
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
                                    "f" /* `thickness_A` */
-                                   "f" /* `thickness_B` */,
+                                   "f" /* `thickness_B` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &f1,
                                    &f2))

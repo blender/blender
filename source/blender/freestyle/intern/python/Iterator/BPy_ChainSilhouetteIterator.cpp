@@ -76,7 +76,8 @@ static int ChainSilhouetteIterator_init(BPy_ChainSilhouetteIterator *self,
 
   if (PyArg_ParseTupleAndKeywords(args,
                                   kwds,
-                                  "O!" /* `brother` */,
+                                  "O!" /* `brother` */
+                                  ":__init__",
                                   (char **)kwlist_1,
                                   &ChainSilhouetteIterator_Type,
                                   &obj1))
@@ -90,7 +91,8 @@ static int ChainSilhouetteIterator_init(BPy_ChainSilhouetteIterator *self,
                                        "|"  /* Optional arguments. */
                                        "O!" /* `restrict_to_selection` */
                                        "O&" /* `begin` */
-                                       "O!" /* `orientation` */,
+                                       "O!" /* `orientation` */
+                                       ":__init__",
                                        (char **)kwlist_2,
                                        &PyBool_Type,
                                        &obj1,

@@ -65,7 +65,8 @@ static int CalligraphicShader___init__(BPy_CalligraphicShader *self,
                                    "d"  /* `thickness_min` */
                                    "d"  /* `thickness_max` */
                                    "O&" /* `orientation` */
-                                   "O!" /* `clamp` */,
+                                   "O!" /* `clamp` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &d1,
                                    &d2,

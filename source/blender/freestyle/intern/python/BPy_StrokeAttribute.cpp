@@ -85,8 +85,9 @@ static int StrokeAttribute_init(BPy_StrokeAttribute *self, PyObject *args, PyObj
 
   if (PyArg_ParseTupleAndKeywords(args,
                                   kwds,
-                                  "|" /* Optional arguments. */
-                                  "O!" /* `brother` */,
+                                  "|"  /* Optional arguments. */
+                                  "O!" /* `brother` */
+                                  ":__init__",
                                   (char **)kwlist_1,
                                   &StrokeAttribute_Type,
                                   &obj1))
@@ -103,7 +104,8 @@ static int StrokeAttribute_init(BPy_StrokeAttribute *self, PyObject *args, PyObj
                                        kwds,
                                        "O!" /* `attribute1` */
                                        "O!" /* `attribute2` */
-                                       "f" /* `t` */,
+                                       "f"  /* `t` */
+                                       ":__init__",
                                        (char **)kwlist_2,
                                        &StrokeAttribute_Type,
                                        &obj1,
@@ -122,7 +124,8 @@ static int StrokeAttribute_init(BPy_StrokeAttribute *self, PyObject *args, PyObj
                                        "f" /* `blue` */
                                        "f" /* `alpha` */
                                        "f" /* `thickness_right` */
-                                       "f" /* `thickness_left` */,
+                                       "f" /* `thickness_left` */
+                                       ":__init__",
                                        (char **)kwlist_3,
                                        &red,
                                        &green,
@@ -177,7 +180,13 @@ static PyObject *StrokeAttribute_get_attribute_real(BPy_StrokeAttribute *self,
   static const char *kwlist[] = {"name", nullptr};
   char *attr;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "s" /* `name` */, (char **)kwlist, &attr)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "s" /* `name` */
+                                   ":get_attribute_real",
+                                   (char **)kwlist,
+                                   &attr))
+  {
     return nullptr;
   }
   double a = self->sa->getAttributeReal(attr);
@@ -202,7 +211,13 @@ static PyObject *StrokeAttribute_get_attribute_vec2(BPy_StrokeAttribute *self,
   static const char *kwlist[] = {"name", nullptr};
   char *attr;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "s" /* `name` */, (char **)kwlist, &attr)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "s" /* `name` */
+                                   ":get_attribute_vec2",
+                                   (char **)kwlist,
+                                   &attr))
+  {
     return nullptr;
   }
   Vec2f a = self->sa->getAttributeVec2f(attr);
@@ -227,7 +242,13 @@ static PyObject *StrokeAttribute_get_attribute_vec3(BPy_StrokeAttribute *self,
   static const char *kwlist[] = {"name", nullptr};
   char *attr;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "s" /* `name` */, (char **)kwlist, &attr)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "s" /* `name` */
+                                   ":get_attribute_vec3",
+                                   (char **)kwlist,
+                                   &attr))
+  {
     return nullptr;
   }
   Vec3f a = self->sa->getAttributeVec3f(attr);
@@ -252,7 +273,13 @@ static PyObject *StrokeAttribute_has_attribute_real(BPy_StrokeAttribute *self,
   static const char *kwlist[] = {"name", nullptr};
   char *attr;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "s" /* `name` */, (char **)kwlist, &attr)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "s" /* `name` */
+                                   ":has_attribute_real",
+                                   (char **)kwlist,
+                                   &attr))
+  {
     return nullptr;
   }
   return PyBool_from_bool(self->sa->isAttributeAvailableReal(attr));
@@ -277,7 +304,13 @@ static PyObject *StrokeAttribute_has_attribute_vec2(BPy_StrokeAttribute *self,
   static const char *kwlist[] = {"name", nullptr};
   char *attr;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "s" /* `name` */, (char **)kwlist, &attr)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "s" /* `name` */
+                                   ":has_attribute_vec2",
+                                   (char **)kwlist,
+                                   &attr))
+  {
     return nullptr;
   }
   return PyBool_from_bool(self->sa->isAttributeAvailableVec2f(attr));
@@ -302,7 +335,13 @@ static PyObject *StrokeAttribute_has_attribute_vec3(BPy_StrokeAttribute *self,
   static const char *kwlist[] = {"name", nullptr};
   char *attr;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "s" /* `name` */, (char **)kwlist, &attr)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "s" /* `name` */
+                                   ":has_attribute_vec3",
+                                   (char **)kwlist,
+                                   &attr))
+  {
     return nullptr;
   }
   return PyBool_from_bool(self->sa->isAttributeAvailableVec3f(attr));
@@ -332,7 +371,8 @@ static PyObject *StrokeAttribute_set_attribute_real(BPy_StrokeAttribute *self,
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
                                    "s" /* `name` */
-                                   "d" /* `value` */,
+                                   "d" /* `value` */
+                                   ":set_attribute_real",
                                    (char **)kwlist,
                                    &s,
                                    &d))
@@ -368,7 +408,8 @@ static PyObject *StrokeAttribute_set_attribute_vec2(BPy_StrokeAttribute *self,
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
                                    "s" /* `name` */
-                                   "O" /* `value` */,
+                                   "O" /* `value` */
+                                   ":set_attribute_vec2",
                                    (char **)kwlist,
                                    &s,
                                    &obj))
@@ -409,7 +450,8 @@ static PyObject *StrokeAttribute_set_attribute_vec3(BPy_StrokeAttribute *self,
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
                                    "s" /* `name` */
-                                   "O" /* `value` */,
+                                   "O" /* `value` */
+                                   ":set_attribute_vec3",
                                    (char **)kwlist,
                                    &s,
                                    &obj))

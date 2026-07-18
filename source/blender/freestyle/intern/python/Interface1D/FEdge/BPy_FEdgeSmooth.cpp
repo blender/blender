@@ -53,8 +53,9 @@ static int FEdgeSmooth_init(BPy_FEdgeSmooth *self, PyObject *args, PyObject *kwd
 
   if (PyArg_ParseTupleAndKeywords(args,
                                   kwds,
-                                  "|" /* Optional arguments. */
-                                  "O!" /* `brother` */,
+                                  "|"  /* Optional arguments. */
+                                  "O!" /* `brother` */
+                                  ":__init__",
                                   (char **)kwlist_1,
                                   &FEdgeSmooth_Type,
                                   &obj1))
@@ -70,7 +71,8 @@ static int FEdgeSmooth_init(BPy_FEdgeSmooth *self, PyObject *args, PyObject *kwd
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
                                        "O!" /* `first_vertex` */
-                                       "O!" /* `second_vertex` */,
+                                       "O!" /* `second_vertex` */
+                                       ":__init__",
                                        (char **)kwlist_2,
                                        &SVertex_Type,
                                        &obj1,

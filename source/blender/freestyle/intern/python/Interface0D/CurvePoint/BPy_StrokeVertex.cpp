@@ -69,8 +69,9 @@ static int StrokeVertex_init(BPy_StrokeVertex *self, PyObject *args, PyObject *k
 
   if (PyArg_ParseTupleAndKeywords(args,
                                   kwds,
-                                  "|" /* Optional arguments. */
-                                  "O!" /* `brother` */,
+                                  "|"  /* Optional arguments. */
+                                  "O!" /* `brother` */
+                                  ":__init__",
                                   (char **)kwlist_1,
                                   &StrokeVertex_Type,
                                   &obj1))
@@ -91,7 +92,8 @@ static int StrokeVertex_init(BPy_StrokeVertex *self, PyObject *args, PyObject *k
                                        kwds,
                                        "O!" /* `first_vertex` */
                                        "O!" /* `second_vertex` */
-                                       "f" /* `t3d` */,
+                                       "f"  /* `t3d` */
+                                       ":__init__",
                                        (char **)kwlist_2,
                                        &StrokeVertex_Type,
                                        &obj1,
@@ -112,8 +114,13 @@ static int StrokeVertex_init(BPy_StrokeVertex *self, PyObject *args, PyObject *k
     self->sv = new StrokeVertex(sv1, sv2, t3d);
   }
   else if ((void)PyErr_Clear(),
-           PyArg_ParseTupleAndKeywords(
-               args, kwds, "O!" /* `point` */, (char **)kwlist_3, &CurvePoint_Type, &obj1))
+           PyArg_ParseTupleAndKeywords(args,
+                                       kwds,
+                                       "O!" /* `point` */
+                                       ":__init__",
+                                       (char **)kwlist_3,
+                                       &CurvePoint_Type,
+                                       &obj1))
   {
     CurvePoint *cp = ((BPy_CurvePoint *)obj1)->cp;
     if (!cp || cp->A() == nullptr || cp->B() == nullptr) {
@@ -128,7 +135,8 @@ static int StrokeVertex_init(BPy_StrokeVertex *self, PyObject *args, PyObject *k
                                        kwds,
                                        "O!" /* `svertex` */
                                        "|"  /* Optional arguments. */
-                                       "O!" /* `attribute` */,
+                                       "O!" /* `attribute` */
+                                       ":__init__",
                                        (char **)kwlist_4,
                                        &SVertex_Type,
                                        &obj1,

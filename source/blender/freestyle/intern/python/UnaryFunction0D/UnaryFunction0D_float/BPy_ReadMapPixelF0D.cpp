@@ -49,7 +49,8 @@ static int ReadMapPixelF0D___init__(BPy_ReadMapPixelF0D *self, PyObject *args, P
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
                                    "s" /* `map_name` */
-                                   "i" /* `level` */,
+                                   "i" /* `level` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &s,
                                    &i))

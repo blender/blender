@@ -163,7 +163,8 @@ static PyObject *Freestyle_blendRamp(PyObject * /*self*/, PyObject *args)
                         "s" /* `type` */
                         "O" /* `color1` */
                         "f" /* `fac` */
-                        "O" /* `color2` */,
+                        "O" /* `color2` */
+                        ":blendRamp",
                         &s,
                         &obj1,
                         &fac,
@@ -219,7 +220,8 @@ static PyObject *Freestyle_evaluateColorRamp(PyObject * /*self*/, PyObject *args
 
   if (!PyArg_ParseTuple(args,
                         "O!" /* `ramp` */
-                        "f" /* `in` */,
+                        "f"  /* `in` */
+                        ":evaluateColorRamp",
                         &blender::pyrna_struct_Type,
                         &py_srna,
                         &in))
@@ -265,7 +267,8 @@ static PyObject *Freestyle_evaluateCurveMappingF(PyObject * /*self*/, PyObject *
   if (!PyArg_ParseTuple(args,
                         "O!" /* `cumap` */
                         "i"  /* `cur` */
-                        "f" /* `value` */,
+                        "f"  /* `value` */
+                        ":evaluateCurveMappingF",
                         &blender::pyrna_struct_Type,
                         &py_srna,
                         &cur,

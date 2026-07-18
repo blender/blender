@@ -52,7 +52,8 @@ static int DensityF0D___init__(BPy_DensityF0D *self, PyObject *args, PyObject *k
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
                                    "|" /* Optional arguments. */
-                                   "d" /* `sigma` */,
+                                   "d" /* `sigma` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &d))
   {

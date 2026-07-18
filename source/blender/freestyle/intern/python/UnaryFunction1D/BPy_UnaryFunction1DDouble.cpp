@@ -153,8 +153,9 @@ static int UnaryFunction1DDouble___init__(BPy_UnaryFunction1DDouble *self,
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
-                                   "|" /* Optional arguments. */
-                                   "O!" /* `integration` */,
+                                   "|"  /* Optional arguments. */
+                                   "O!" /* `integration` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &IntegrationType_Type,
                                    &obj))
@@ -192,8 +193,13 @@ static PyObject *UnaryFunction1DDouble___call__(BPy_UnaryFunction1DDouble *self,
   static const char *kwlist[] = {"inter", nullptr};
   PyObject *obj = nullptr;
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!" /* `inter` */, (char **)kwlist, &Interface1D_Type, &obj))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "O!" /* `inter` */
+                                   ":__call__",
+                                   (char **)kwlist,
+                                   &Interface1D_Type,
+                                   &obj))
   {
     return nullptr;
   }

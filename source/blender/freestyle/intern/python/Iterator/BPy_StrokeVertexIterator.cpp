@@ -57,7 +57,8 @@ static int StrokeVertexIterator_init(BPy_StrokeVertexIterator *self,
 
   if (PyArg_ParseTupleAndKeywords(args,
                                   kwds,
-                                  "O!" /* `brother` */,
+                                  "O!" /* `brother` */
+                                  ":__init__",
                                   (char **)kwlist_1,
                                   &StrokeVertexIterator_Type,
                                   &brother))
@@ -71,8 +72,9 @@ static int StrokeVertexIterator_init(BPy_StrokeVertexIterator *self,
   else if ((void)PyErr_Clear(),
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
-                                       "|" /* Optional arguments. */
-                                       "O!" /* `stroke` */,
+                                       "|"  /* Optional arguments. */
+                                       "O!" /* `stroke` */
+                                       ":__init__",
                                        (char **)kwlist_2,
                                        &Stroke_Type,
                                        &stroke))

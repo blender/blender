@@ -68,7 +68,8 @@ static int GetCompleteViewMapDensityF1D___init__(BPy_GetCompleteViewMapDensityF1
                                    "i"  /* `level` */
                                    "|"  /* Optional arguments. */
                                    "O!" /* `integration_type` */
-                                   "f" /* `sampling` */,
+                                   "f"  /* `sampling` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &i,
                                    &IntegrationType_Type,

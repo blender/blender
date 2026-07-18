@@ -611,7 +611,8 @@ int PyC_ParseRectI(PyObject *o, void *p)
   rcti *rect = static_cast<rcti *>(p);
   if (!PyArg_ParseTuple(o,
                         "(ii)" /* `min` */
-                        "(ii)" /* `max` */,
+                        "(ii)" /* `max` */
+                        ":rect",
                         &rect->xmin,
                         &rect->ymin,
                         &rect->xmax,

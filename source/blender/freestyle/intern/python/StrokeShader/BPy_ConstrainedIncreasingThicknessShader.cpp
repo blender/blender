@@ -53,7 +53,8 @@ static int ConstrainedIncreasingThicknessShader___init__(
                                    kwds,
                                    "f" /* `thickness_min` */
                                    "f" /* `thickness_max` */
-                                   "f" /* `ratio` */,
+                                   "f" /* `ratio` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &f1,
                                    &f2,

@@ -65,7 +65,8 @@ static int GetSteerableViewMapDensityF1D___init__(BPy_GetSteerableViewMapDensity
                                    "i"  /* `level` */
                                    "|"  /* Optional arguments. */
                                    "O!" /* `integration_type` */
-                                   "f" /* `sampling` */,
+                                   "f"  /* `sampling` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &i,
                                    &IntegrationType_Type,

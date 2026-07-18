@@ -112,7 +112,8 @@ static PyObject *ContextFunctions_load_map(PyObject * /*self*/, PyObject *args, 
                                    "s" /* `map_name` */
                                    "|" /* Optional arguments. */
                                    "I" /* `num_levels` */
-                                   "f" /* `sigma` */,
+                                   "f" /* `sigma` */
+                                   ":load_map",
                                    (char **)kwlist,
                                    &fileName,
                                    &mapName,
@@ -159,7 +160,8 @@ static PyObject *ContextFunctions_read_map_pixel(PyObject * /*self*/,
                                    "s" /* `map_name` */
                                    "i" /* `level` */
                                    "I" /* `x` */
-                                   "I" /* `y` */,
+                                   "I" /* `y` */
+                                   ":read_map_pixel",
                                    (char **)kwlist,
                                    &mapName,
                                    &level,
@@ -201,7 +203,8 @@ static PyObject *ContextFunctions_read_complete_view_map_pixel(PyObject * /*self
                                    kwds,
                                    "i" /* `level` */
                                    "I" /* `x` */
-                                   "I" /* `y` */,
+                                   "I" /* `y` */
+                                   ":read_complete_view_map_pixel",
                                    (char **)kwlist,
                                    &level,
                                    &x,
@@ -246,7 +249,8 @@ static PyObject *ContextFunctions_read_directional_view_map_pixel(PyObject * /*s
                                    "i" /* `orientation` */
                                    "i" /* `level` */
                                    "I" /* `x` */
-                                   "I" /* `y` */,
+                                   "I" /* `y` */
+                                   ":read_directional_view_map_pixel",
                                    (char **)kwlist,
                                    &orientation,
                                    &level,

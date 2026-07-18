@@ -62,7 +62,8 @@ static int SpatialNoiseShader___init__(BPy_SpatialNoiseShader *self,
                                    "f"  /* `scale` */
                                    "i"  /* `num_octaves` */
                                    "O!" /* `smooth` */
-                                   "O!" /* `pure_random` */,
+                                   "O!" /* `pure_random` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &f1,
                                    &f2,

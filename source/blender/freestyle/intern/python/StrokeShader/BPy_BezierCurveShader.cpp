@@ -47,7 +47,8 @@ static int BezierCurveShader___init__(BPy_BezierCurveShader *self, PyObject *arg
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
                                    "|" /* Optional arguments. */
-                                   "f" /* `error` */,
+                                   "f" /* `error` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &f))
   {

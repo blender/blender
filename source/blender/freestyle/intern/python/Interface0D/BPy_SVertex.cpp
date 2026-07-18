@@ -54,8 +54,9 @@ static int SVertex_init(BPy_SVertex *self, PyObject *args, PyObject *kwds)
 
   if (PyArg_ParseTupleAndKeywords(args,
                                   kwds,
-                                  "|" /* Optional arguments. */
-                                  "O!" /* `brother` */,
+                                  "|"  /* Optional arguments. */
+                                  "O!" /* `brother` */
+                                  ":__init__",
                                   (char **)kwlist_1,
                                   &SVertex_Type,
                                   &obj))
@@ -71,7 +72,8 @@ static int SVertex_init(BPy_SVertex *self, PyObject *args, PyObject *kwds)
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
                                        "O&" /* `point_3d` */
-                                       "O!" /* `id` */,
+                                       "O!" /* `id` */
+                                       ":__init__",
                                        (char **)kwlist_2,
                                        convert_v3,
                                        v,
@@ -106,7 +108,13 @@ static PyObject *SVertex_add_normal(BPy_SVertex *self, PyObject *args, PyObject 
   PyObject *py_normal;
   Vec3r n;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O" /* `normal` */, (char **)kwlist, &py_normal)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "O" /* `normal` */
+                                   ":add_normal",
+                                   (char **)kwlist,
+                                   &py_normal))
+  {
     return nullptr;
   }
   if (!Vec3r_ptr_from_PyObject(py_normal, n)) {
@@ -132,8 +140,13 @@ static PyObject *SVertex_add_fedge(BPy_SVertex *self, PyObject *args, PyObject *
   static const char *kwlist[] = {"fedge", nullptr};
   PyObject *py_fe;
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!" /* `fedge` */, (char **)kwlist, &FEdge_Type, &py_fe))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "O!" /* `fedge` */
+                                   ":add_fedge",
+                                   (char **)kwlist,
+                                   &FEdge_Type,
+                                   &py_fe))
   {
     return nullptr;
   }

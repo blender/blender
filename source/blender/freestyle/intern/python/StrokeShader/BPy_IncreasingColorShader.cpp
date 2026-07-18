@@ -79,7 +79,8 @@ static int IncreasingColorShader___init__(BPy_IncreasingColorShader *self,
                                    "f" /* `red_max` */
                                    "f" /* `green_max` */
                                    "f" /* `blue_max` */
-                                   "f" /* `alpha_max` */,
+                                   "f" /* `alpha_max` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &f1,
                                    &f2,

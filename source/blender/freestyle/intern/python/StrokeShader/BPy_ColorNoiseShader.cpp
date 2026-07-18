@@ -46,7 +46,8 @@ static int ColorNoiseShader___init__(BPy_ColorNoiseShader *self, PyObject *args,
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
                                    "f" /* `amplitude` */
-                                   "f" /* `period` */,
+                                   "f" /* `period` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &f1,
                                    &f2))

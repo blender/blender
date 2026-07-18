@@ -54,7 +54,8 @@ static int ReadSteerableViewMapPixelF0D___init__(BPy_ReadSteerableViewMapPixelF0
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
                                    "I" /* `orientation` */
-                                   "i" /* `level` */,
+                                   "i" /* `level` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &u,
                                    &i))

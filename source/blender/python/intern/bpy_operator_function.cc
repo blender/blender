@@ -829,7 +829,8 @@ PyObject *pyop_create_function(PyObject * /*self*/, PyObject *args)
 
   if (!PyArg_ParseTuple(args,
                         "s" /* `module` */
-                        "s" /* `operator` */,
+                        "s" /* `operator` */
+                        ":create_function",
                         &op_mod_str,
                         &op_fn_str))
   {

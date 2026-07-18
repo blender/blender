@@ -60,7 +60,8 @@ static PyObject *Integrator_integrate(PyObject * /*self*/, PyObject *args, PyObj
                                    "O!" /* `it` */
                                    "O!" /* `it_end` */
                                    "|"  /* Optional arguments. */
-                                   "O!" /* `integration_type` */,
+                                   "O!" /* `integration_type` */
+                                   ":integrate",
                                    (char **)kwlist,
                                    &UnaryFunction0D_Type,
                                    &obj1,

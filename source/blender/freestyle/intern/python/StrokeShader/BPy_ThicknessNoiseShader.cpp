@@ -48,7 +48,8 @@ static int ThicknessNoiseShader___init__(BPy_ThicknessNoiseShader *self,
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
                                    "f" /* `amplitude` */
-                                   "f" /* `period` */,
+                                   "f" /* `period` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &f1,
                                    &f2))

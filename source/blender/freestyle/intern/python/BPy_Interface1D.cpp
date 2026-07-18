@@ -174,7 +174,8 @@ static PyObject *Interface1D_points_begin(BPy_Interface1D *self, PyObject *args,
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
                                    "|" /* Optional arguments. */
-                                   "f" /* `t` */,
+                                   "f" /* `t` */
+                                   ":points_begin",
                                    (char **)kwlist,
                                    &f))
   {
@@ -207,7 +208,8 @@ static PyObject *Interface1D_points_end(BPy_Interface1D *self, PyObject *args, P
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
                                    "|" /* Optional arguments. */
-                                   "f" /* `t` */,
+                                   "f" /* `t` */
+                                   ":points_end",
                                    (char **)kwlist,
                                    &f))
   {

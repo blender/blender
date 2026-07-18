@@ -49,8 +49,9 @@ static int Curvature2DAngleF1D___init__(BPy_Curvature2DAngleF1D *self,
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
-                                   "|" /* Optional arguments. */
-                                   "O!" /* `integration_type` */,
+                                   "|"  /* Optional arguments. */
+                                   "O!" /* `integration_type` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &IntegrationType_Type,
                                    &obj))

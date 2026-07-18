@@ -47,7 +47,8 @@ static int BackboneStretcherShader___init__(BPy_BackboneStretcherShader *self,
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
                                    "|" /* Optional arguments. */
-                                   "f" /* `amount` */,
+                                   "f" /* `amount` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &f))
   {

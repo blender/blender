@@ -5446,7 +5446,8 @@ static PyObject *pyrna_prop_collection_idprop_move(BPy_PropertyRNA *self, PyObje
 
   if (!PyArg_ParseTuple(args,
                         "i" /* `src_index` */
-                        "i" /* `dst_index` */,
+                        "i" /* `dst_index` */
+                        ":move",
                         &key,
                         &pos))
   {

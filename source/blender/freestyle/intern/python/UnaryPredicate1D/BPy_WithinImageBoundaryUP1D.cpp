@@ -52,7 +52,8 @@ static int WithinImageBoundaryUP1D___init__(BPy_WithinImageBoundaryUP1D *self,
                                    "d" /* `xmin` */
                                    "d" /* `ymin` */
                                    "d" /* `xmax` */
-                                   "d" /* `ymax` */,
+                                   "d" /* `ymax` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &xmin,
                                    &ymin,

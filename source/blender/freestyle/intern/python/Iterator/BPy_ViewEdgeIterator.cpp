@@ -61,8 +61,13 @@ static int ViewEdgeIterator_init(BPy_ViewEdgeIterator *self, PyObject *args, PyO
   static const char *kwlist_2[] = {"begin", "orientation", nullptr};
   PyObject *obj1 = nullptr, *obj2 = nullptr;
 
-  if (PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!" /* `brother` */, (char **)kwlist_1, &ViewEdgeIterator_Type, &obj1))
+  if (PyArg_ParseTupleAndKeywords(args,
+                                  kwds,
+                                  "O!" /* `brother` */
+                                  ":__init__",
+                                  (char **)kwlist_1,
+                                  &ViewEdgeIterator_Type,
+                                  &obj1))
   {
     self->ve_it = new ViewEdgeInternal::ViewEdgeIterator(*(((BPy_ViewEdgeIterator *)obj1)->ve_it));
   }
@@ -72,7 +77,8 @@ static int ViewEdgeIterator_init(BPy_ViewEdgeIterator *self, PyObject *args, PyO
                                        kwds,
                                        "|"  /* Optional arguments. */
                                        "O&" /* `begin` */
-                                       "O!" /* `orientation` */,
+                                       "O!" /* `orientation` */
+                                       ":__init__",
                                        (char **)kwlist_2,
                                        check_begin,
                                        &obj1,

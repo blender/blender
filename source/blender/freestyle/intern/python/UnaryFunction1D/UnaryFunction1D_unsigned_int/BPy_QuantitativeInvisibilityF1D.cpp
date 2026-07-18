@@ -53,8 +53,9 @@ static int QuantitativeInvisibilityF1D___init__(BPy_QuantitativeInvisibilityF1D 
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
-                                   "|" /* Optional arguments. */
-                                   "O!" /* `integration_type` */,
+                                   "|"  /* Optional arguments. */
+                                   "O!" /* `integration_type` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &IntegrationType_Type,
                                    &obj))

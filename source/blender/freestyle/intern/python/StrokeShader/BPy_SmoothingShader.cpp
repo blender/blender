@@ -82,7 +82,8 @@ static int SmoothingShader___init__(BPy_SmoothingShader *self, PyObject *args, P
                                    "d" /* `aniso_point` */
                                    "d" /* `aniso_normal` */
                                    "d" /* `aniso_curvature` */
-                                   "d" /* `carricature_factor` */,
+                                   "d" /* `carricature_factor` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &i1,
                                    &d2,

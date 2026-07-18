@@ -64,7 +64,8 @@ static int DensityF1D___init__(BPy_DensityF1D *self, PyObject *args, PyObject *k
                                    "|"  /* Optional arguments. */
                                    "d"  /* `sigma` */
                                    "O!" /* `integration_type` */
-                                   "f" /* `sampling` */,
+                                   "f"  /* `sampling` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &d,
                                    &IntegrationType_Type,

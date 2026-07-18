@@ -49,7 +49,8 @@ static int ShapeUP1D___init__(BPy_ShapeUP1D *self, PyObject *args, PyObject *kwd
                                    kwds,
                                    "I" /* `first` */
                                    "|" /* Optional arguments. */
-                                   "I" /* `second` */,
+                                   "I" /* `second` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &u1,
                                    &u2))

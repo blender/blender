@@ -66,7 +66,8 @@ static int ViewMapGradientNormBP1D___init__(BPy_ViewMapGradientNormBP1D *self,
                                    "i"  /* `level` */
                                    "|"  /* Optional arguments. */
                                    "O!" /* `integration_type` */
-                                   "f" /* `sampling` */,
+                                   "f"  /* `sampling` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &i,
                                    &IntegrationType_Type,

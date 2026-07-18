@@ -52,7 +52,8 @@ static int DensityLowerThanUP1D___init__(BPy_DensityLowerThanUP1D *self,
                                    kwds,
                                    "d" /* `threshold` */
                                    "|" /* Optional arguments. */
-                                   "d" /* `sigma` */,
+                                   "d" /* `sigma` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &d1,
                                    &d2))

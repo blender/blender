@@ -85,7 +85,8 @@ static PyObject *ViewMap_get_closest_viewedge(BPy_ViewMap *self, PyObject *args,
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
                                    "d" /* `x` */
-                                   "d" /* `y` */,
+                                   "d" /* `y` */
+                                   ":get_closest_viewedge",
                                    (char **)kwlist,
                                    &x,
                                    &y))
@@ -120,7 +121,8 @@ static PyObject *ViewMap_get_closest_fedge(BPy_ViewMap *self, PyObject *args, Py
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
                                    "d" /* `x` */
-                                   "d" /* `y` */,
+                                   "d" /* `y` */
+                                   ":get_closest_fedge",
                                    (char **)kwlist,
                                    &x,
                                    &y))

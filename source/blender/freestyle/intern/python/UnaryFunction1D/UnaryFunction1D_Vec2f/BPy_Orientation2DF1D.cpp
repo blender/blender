@@ -47,8 +47,9 @@ static int Orientation2DF1D___init__(BPy_Orientation2DF1D *self, PyObject *args,
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
-                                   "|" /* Optional arguments. */
-                                   "O!" /* `integration_type` */,
+                                   "|"  /* Optional arguments. */
+                                   "O!" /* `integration_type` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &IntegrationType_Type,
                                    &obj))

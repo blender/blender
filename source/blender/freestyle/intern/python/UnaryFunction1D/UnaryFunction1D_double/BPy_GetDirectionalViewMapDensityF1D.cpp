@@ -77,7 +77,8 @@ static int GetDirectionalViewMapDensityF1D___init__(BPy_GetDirectionalViewMapDen
                                    "I"  /* `level` */
                                    "|"  /* Optional arguments. */
                                    "O!" /* `integration_type` */
-                                   "f" /* `sampling` */,
+                                   "f"  /* `sampling` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &u1,
                                    &u2,

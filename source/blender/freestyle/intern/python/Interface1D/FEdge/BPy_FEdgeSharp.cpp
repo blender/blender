@@ -56,8 +56,9 @@ static int FEdgeSharp_init(BPy_FEdgeSharp *self, PyObject *args, PyObject *kwds)
 
   if (PyArg_ParseTupleAndKeywords(args,
                                   kwds,
-                                  "|" /* Optional arguments. */
-                                  "O!" /* `brother` */,
+                                  "|"  /* Optional arguments. */
+                                  "O!" /* `brother` */
+                                  ":__init__",
                                   (char **)kwlist_1,
                                   &FEdgeSharp_Type,
                                   &obj1))
@@ -73,7 +74,8 @@ static int FEdgeSharp_init(BPy_FEdgeSharp *self, PyObject *args, PyObject *kwds)
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
                                        "O!" /* `first_vertex` */
-                                       "O!" /* `second_vertex` */,
+                                       "O!" /* `second_vertex` */
+                                       ":__init__",
                                        (char **)kwlist_2,
                                        &SVertex_Type,
                                        &obj1,

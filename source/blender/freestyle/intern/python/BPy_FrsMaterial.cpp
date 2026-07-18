@@ -82,8 +82,9 @@ static int FrsMaterial_init(BPy_FrsMaterial *self, PyObject *args, PyObject *kwd
 
   if (PyArg_ParseTupleAndKeywords(args,
                                   kwds,
-                                  "|" /* Optional arguments. */
-                                  "O!" /* `brother` */,
+                                  "|"  /* Optional arguments. */
+                                  "O!" /* `brother` */
+                                  ":__init__",
                                   (char **)kwlist_1,
                                   &FrsMaterial_Type,
                                   &brother))
@@ -109,7 +110,8 @@ static int FrsMaterial_init(BPy_FrsMaterial *self, PyObject *args, PyObject *kwd
                                        "O&" /* `specular` */
                                        "O&" /* `emission` */
                                        "f"  /* `shininess` */
-                                       "i" /* `priority` */,
+                                       "i"  /* `priority` */
+                                       ":__init__",
                                        (char **)kwlist_2,
                                        convert_v4,
                                        line,

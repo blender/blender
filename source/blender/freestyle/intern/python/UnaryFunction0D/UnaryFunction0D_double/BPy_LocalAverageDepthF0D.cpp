@@ -50,7 +50,8 @@ static int LocalAverageDepthF0D___init__(BPy_LocalAverageDepthF0D *self,
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
                                    "|" /* Optional arguments. */
-                                   "d" /* `mask_size` */,
+                                   "d" /* `mask_size` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &d))
   {

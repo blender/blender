@@ -68,8 +68,9 @@ static int ViewShape_init(BPy_ViewShape *self, PyObject *args, PyObject *kwds)
 
   if (PyArg_ParseTupleAndKeywords(args,
                                   kwds,
-                                  "|" /* Optional arguments. */
-                                  "O!" /* `brother` */,
+                                  "|"  /* Optional arguments. */
+                                  "O!" /* `brother` */
+                                  ":__init__",
                                   (char **)kwlist_1,
                                   &ViewShape_Type,
                                   &obj))
@@ -84,8 +85,13 @@ static int ViewShape_init(BPy_ViewShape *self, PyObject *args, PyObject *kwds)
     }
   }
   else if ((void)PyErr_Clear(),
-           PyArg_ParseTupleAndKeywords(
-               args, kwds, "O!" /* `sshape` */, (char **)kwlist_2, &SShape_Type, &obj))
+           PyArg_ParseTupleAndKeywords(args,
+                                       kwds,
+                                       "O!" /* `sshape` */
+                                       ":__init__",
+                                       (char **)kwlist_2,
+                                       &SShape_Type,
+                                       &obj))
   {
     BPy_SShape *py_ss = (BPy_SShape *)obj;
     self->vs = new ViewShape(py_ss->ss);
@@ -131,8 +137,13 @@ static PyObject *ViewShape_add_edge(BPy_ViewShape *self, PyObject *args, PyObjec
   static const char *kwlist[] = {"edge", nullptr};
   PyObject *py_ve = nullptr;
 
-  if (PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!" /* `edge` */, (char **)kwlist, &ViewEdge_Type, &py_ve))
+  if (PyArg_ParseTupleAndKeywords(args,
+                                  kwds,
+                                  "O!" /* `edge` */
+                                  ":add_edge",
+                                  (char **)kwlist,
+                                  &ViewEdge_Type,
+                                  &py_ve))
   {
     return nullptr;
   }
@@ -154,8 +165,13 @@ static PyObject *ViewShape_add_vertex(BPy_ViewShape *self, PyObject *args, PyObj
   static const char *kwlist[] = {"vertex", nullptr};
   PyObject *py_vv = nullptr;
 
-  if (PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!" /* `vertex` */, (char **)kwlist, &ViewVertex_Type, &py_vv))
+  if (PyArg_ParseTupleAndKeywords(args,
+                                  kwds,
+                                  "O!" /* `vertex` */
+                                  ":add_vertex",
+                                  (char **)kwlist,
+                                  &ViewVertex_Type,
+                                  &py_vv))
   {
     return nullptr;
   }

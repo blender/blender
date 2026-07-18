@@ -55,7 +55,8 @@ static int ConstantColorShader___init__(BPy_ConstantColorShader *self,
                                    "f" /* `green` */
                                    "f" /* `blue` */
                                    "|" /* Optional arguments. */
-                                   "f" /* `alpha` */,
+                                   "f" /* `alpha` */
+                                   ":__init__",
                                    (char **)kwlist,
                                    &f1,
                                    &f2,

@@ -58,8 +58,13 @@ static int py_parse_optional_region(PyObject *o, void *p)
     return 1;
   }
   TextRegion region;
-  if (!PyArg_Parse(
-          o, "((ii)(ii))" /* `range` */, &region.curl, &region.curc, &region.sell, &region.selc))
+  if (!PyArg_Parse(o,
+                   "((ii)(ii))" /* `range` */
+                   ":range",
+                   &region.curl,
+                   &region.curc,
+                   &region.sell,
+                   &region.selc))
   {
     return 0;
   }

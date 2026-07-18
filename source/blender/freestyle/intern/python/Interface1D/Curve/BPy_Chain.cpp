@@ -50,8 +50,9 @@ static int Chain_init(BPy_Chain *self, PyObject *args, PyObject *kwds)
 
   if (PyArg_ParseTupleAndKeywords(args,
                                   kwds,
-                                  "|" /* Optional arguments. */
-                                  "O!" /* `brother` */,
+                                  "|"  /* Optional arguments. */
+                                  "O!" /* `brother` */
+                                  ":__init__",
                                   (char **)kwlist_1,
                                   &Chain_Type,
                                   &obj))
@@ -64,8 +65,13 @@ static int Chain_init(BPy_Chain *self, PyObject *args, PyObject *kwds)
     }
   }
   else if ((void)PyErr_Clear(),
-           PyArg_ParseTupleAndKeywords(
-               args, kwds, "O!" /* `id` */, (char **)kwlist_2, &Id_Type, &obj))
+           PyArg_ParseTupleAndKeywords(args,
+                                       kwds,
+                                       "O!" /* `id` */
+                                       ":__init__",
+                                       (char **)kwlist_2,
+                                       &Id_Type,
+                                       &obj))
   {
     self->c = new Chain(*(((BPy_Id *)obj)->id));
   }
@@ -98,7 +104,8 @@ static PyObject *Chain_push_viewedge_back(BPy_Chain *self, PyObject *args, PyObj
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
                                    "O!" /* `viewedge` */
-                                   "O!" /* `orientation` */,
+                                   "O!" /* `orientation` */
+                                   ":push_viewedge_back",
                                    (char **)kwlist,
                                    &ViewEdge_Type,
                                    &obj1,
@@ -133,7 +140,8 @@ static PyObject *Chain_push_viewedge_front(BPy_Chain *self, PyObject *args, PyOb
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
                                    "O!" /* `viewedge` */
-                                   "O!" /* `orientation` */,
+                                   "O!" /* `orientation` */
+                                   ":push_viewedge_front",
                                    (char **)kwlist,
                                    &ViewEdge_Type,
                                    &obj1,
