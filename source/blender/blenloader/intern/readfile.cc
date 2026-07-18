@@ -1571,6 +1571,10 @@ struct BLOCacheStorageValue {
 static void blo_cache_storage_entry_register(
     ID *id, const IDCacheKey *key, void **cache_p, uint /*flags*/, void *cache_storage_v)
 {
+  if (*cache_p == nullptr) {
+    return;
+  }
+
   BLI_assert(key->id_session_uid == id->session_uid);
   UNUSED_VARS_NDEBUG(id);
 
