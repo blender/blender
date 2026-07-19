@@ -1678,8 +1678,18 @@ class WM_OT_properties_edit(Operator):
     # For `DATA_BLOCK` types, return the `id_type` or an empty string for non data-block types.
     @staticmethod
     def get_property_id_type(item, property_name):
-        ui_data = item.id_properties_ui(property_name)
-        rna_data = ui_data.as_dict()
+        # FIXME: the Python API has no convenient way to detect if UI properties are supported.
+        # It *may* also return None, support both with exception handling.
+        try:
+            ui_data = item.id_properties_ui(property_name)
+        except TypeError:
+            ui_data = None
+
+        if ui_data is not None:
+            rna_data = ui_data.as_dict()
+        else:
+            rna_data = {}
+
         # For non `DATA_BLOCK` types, the `id_type` wont exist.
         return rna_data.get("id_type", "")
 
