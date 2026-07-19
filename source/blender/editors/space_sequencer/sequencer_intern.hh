@@ -174,6 +174,7 @@ void channel_draw_context_init(const bContext *C,
 
 void slip_modal_keymap(wmKeyConfig *keyconf);
 VectorSet<Strip *> strip_effect_get_new_inputs(const Scene *scene,
+                                               StripType effect_type,
                                                int num_inputs,
                                                bool ignore_active = false);
 StringRef effect_inputs_validate(const VectorSet<Strip *> &inputs, int num_inputs);
