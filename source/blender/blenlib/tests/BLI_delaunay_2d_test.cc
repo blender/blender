@@ -107,6 +107,7 @@ CDT_input<T> fill_input_from_string(const char *spec, InputStorage<T> &r_storage
 /* Find an original index in a table mapping new to original.
  * Return -1 if not found.
  */
+[[maybe_unused]]
 static int get_orig_index(const Span<Vector<uint32_t>> out_to_orig, int orig_index)
 {
   int n = int(out_to_orig.size());
@@ -4189,8 +4190,12 @@ TEST(delaunay_m, IntersectionSquaresEdgeIds)
 
 #if DO_TEXT_TESTS
 template<typename T>
-void text_test(
-    int arc_points_num, int lets_per_line_num, int lines_num, CDT_output_type otype, bool need_ids)
+void text_test(int arc_points_num,
+               int lets_per_line_num,
+               int lines_num,
+               CDT_output_type otype,
+               bool need_ids,
+               bool invert = false)
 {
   constexpr bool print_timing = true;
   /*
@@ -4234,14 +4239,21 @@ void text_test(
   10 9 12 11
   )";
 
-  CDT_input<T> b_before_arcs_in = fill_input_from_string<T>(b_before_arcs);
+  InputStorage<T> b_store;
+  CDT_input<T> b_before_arcs_in = fill_input_from_string<T>(b_before_arcs, b_store);
   constexpr int narcs = 4;
-  int b_npts = b_before_arcs_in.vert.size() + narcs * arc_points_num;
+  int b_npts = b_store.vert.size() + narcs * arc_points_num;
   constexpr int b_nfaces = 3;
   Array<VecBase<T, 2>> b_vert(b_npts);
   Array<Vector<int>> b_face(b_nfaces);
-  std::copy(b_before_arcs_in.vert.begin(), b_before_arcs_in.vert.end(), b_vert.begin());
-  std::copy(b_before_arcs_in.face.begin(), b_before_arcs_in.face.end(), b_face.begin());
+  std::copy(b_store.vert.begin(), b_store.vert.end(), b_vert.begin());
+  for (const int f : IndexRange(b_nfaces)) {
+    IndexRange fspan = b_before_arcs_in.face_offsets[f];
+    b_face[f] = Vector<int>(fspan.size());
+    for (const int i : fspan.index_range()) {
+      b_face[f][i] = b_before_arcs_in.face_vert_indices[fspan[i]];
+    }
+  }
   if (arc_points_num > 0) {
     b_face[0].pop_last(); /* We'll add center point back between arcs for outer face. */
     for (int arc = 0; arc < narcs; ++arc) {
@@ -4271,6 +4283,7 @@ void text_test(
           break;
         default:
           BLI_assert(false);
+          return;
       }
       VecBase<T, 2> start_co = b_vert[arc_origin_vert];
       VecBase<T, 2> end_co = b_vert[arc_terminal_vert];
@@ -4294,40 +4307,76 @@ void text_test(
     }
   }
 
-  CDT_input<T> in;
+  InputStorage<T> store;
   int tot_instances = lets_per_line_num * lines_num;
-  if (tot_instances == 1) {
-    in.vert = b_vert;
-    in.face = b_face;
-  }
-  else {
-    in.vert = Array<VecBase<T, 2>>(tot_instances * b_vert.size());
-    in.face = Array<Vector<int>>(tot_instances * b_face.size());
-    T cur_x = T(0);
-    T cur_y = T(0);
-    T delta_x = T(2);
-    T delta_y = T(3.25);
-    int instance = 0;
-    for (int line = 0; line < lines_num; ++line) {
-      for (int let = 0; let < lets_per_line_num; ++let) {
-        VecBase<T, 2> co_offset(cur_x, cur_y);
-        int in_v_offset = instance * b_vert.size();
-        for (int v = 0; v < b_vert.size(); ++v) {
-          in.vert[in_v_offset + v] = b_vert[v] + co_offset;
-        }
-        int in_f_offset = instance * b_face.size();
-        for (int f : b_face.index_range()) {
-          for (int fv : b_face[f]) {
-            in.face[in_f_offset + f].append(in_v_offset + fv);
-          }
-        }
-        cur_x += delta_x;
-        ++instance;
+  BLI_assert(b_nfaces == 3);
+  int b_tot_face_verts = b_face[0].size() + b_face[1].size() + b_face[2].size();
+  int tot_face_verts = tot_instances * b_tot_face_verts + (invert ? 4 : 0);
+  int tot_faces = tot_instances * b_nfaces + (invert ? 1 : 0);
+  store.vert.reinitialize(tot_face_verts);
+  store.face_offsets.reinitialize(tot_faces + 1);
+  store.face_vert_indices.reinitialize(tot_face_verts);
+
+  T cur_x = T(0);
+  T cur_y = T(0);
+  T delta_x = T(2);
+  T delta_y = T(3.25);
+  int instance = 0;
+  store.face_offsets[0] = 0;
+  for (int line = 0; line < lines_num; ++line) {
+    for (int let = 0; let < lets_per_line_num; ++let) {
+      VecBase<T, 2> co_offset(cur_x, cur_y);
+      int in_v_offset = instance * b_vert.size();
+      for (const int v : b_vert.index_range()) {
+        store.vert[in_v_offset + v] = b_vert[v] + co_offset;
       }
-      cur_y += delta_y;
-      cur_x = T(0);
+      for (const int f : IndexRange(b_nfaces)) {
+        const int inst_off = instance * b_nfaces;
+        const int fsize = b_face[f].size();
+        const int foff_start = store.face_offsets[inst_off + f];
+        store.face_offsets[inst_off + f + 1] = foff_start + fsize;
+        for (int i = store.face_offsets[inst_off + f]; i < store.face_offsets[inst_off + f + 1];
+             i++)
+        {
+          store.face_vert_indices[i] = b_face[f][i - store.face_offsets[inst_off + f]] +
+                                       in_v_offset;
+        }
+      }
+      cur_x += delta_x;
+      ++instance;
     }
+    cur_y += delta_y;
+    cur_x = T(0);
   }
+  if (invert) {
+    for (const int f : IndexRange(tot_faces - 1)) {
+      const int fstart = store.face_offsets[f];
+      const int fend = store.face_offsets[f + 1];
+      std::reverse(store.face_vert_indices.begin() + fstart,
+                   store.face_vert_indices.begin() + fend);
+    }
+    constexpr double margin = 0.25;
+    T xmin = T(-margin);
+    T ymin = T(-margin);
+    T xmax = T(lets_per_line_num * delta_x + margin);
+    T ymax = T(lines_num * delta_y + margin);
+    const int rect_base = tot_face_verts - 4;
+    store.vert[rect_base] = VecBase<T, 2>(xmin, ymin);
+    store.vert[rect_base + 1] = VecBase<T, 2>(xmax, ymin);
+    store.vert[rect_base + 2] = VecBase<T, 2>(xmax, ymax);
+    store.vert[rect_base + 3] = VecBase<T, 2>(xmin, ymax);
+    store.face_vert_indices[tot_face_verts - 4] = rect_base;
+    store.face_vert_indices[tot_face_verts - 3] = rect_base + 1;
+    store.face_vert_indices[tot_face_verts - 2] = rect_base + 2;
+    store.face_vert_indices[tot_face_verts - 1] = rect_base + 3;
+    store.face_offsets[tot_faces] = store.face_offsets[tot_faces - 1] + 4;
+  }
+
+  CDT_input<T> in;
+  in.vert = store.vert;
+  in.face_offsets = store.face_offsets.as_span();
+  in.face_vert_indices = store.face_vert_indices;
+  in.edge = store.edge;
   in.epsilon = b_before_arcs_in.epsilon;
   in.need_ids = need_ids;
   double tstart = BLI_time_now_seconds();
@@ -4349,14 +4398,25 @@ void text_test(
     if (lines_num > 1) {
       label += " lines=" + std::to_string(lines_num);
     }
+    if (invert) {
+      label += " inverted";
+    }
     if (!need_ids) {
       label += " no_ids";
     }
     if (otype != CDT_INSIDE_WITH_HOLES) {
       label += " otype=" + std::to_string(otype);
     }
+    if (invert) {
+      label += " invert";
+    }
     graph_draw<T>(label, out.vert, out.edge, out.face);
   }
+}
+
+TEST(delaunay_d, TextB1)
+{
+  text_test<double>(1, 1, 1, CDT_INSIDE_WITH_HOLES, true);
 }
 
 TEST(delaunay_d, TextB10)
@@ -4424,7 +4484,34 @@ TEST(delaunay_d, TextB10_10_10_noids)
   text_test<double>(10, 10, 10, CDT_INSIDE_WITH_HOLES, false);
 }
 
-#  ifdef WITH_GMP
+TEST(delaunay_d, TextB1_inverted)
+{
+  /* Single B letter with inverted contours inside an outer rectangle.
+   * The letter faces are wound CW (holes) inside the CCW outer rectangle. */
+  text_test<double>(1, 1, 1, CDT_INSIDE_WITH_HOLES, true, true);
+}
+
+TEST(delaunay_d, TextB10_inverted)
+{
+  text_test<double>(10, 1, 1, CDT_INSIDE_WITH_HOLES, true, true);
+}
+
+TEST(delaunay_d, TextB10_inverted_nonzero)
+{
+  text_test<double>(10, 1, 1, CDT_INSIDE_WITH_HOLES_NONZERO, true, true);
+}
+
+TEST(delaunay_d, TextB10_10_10_inverted_noids)
+{
+  text_test<double>(10, 10, 10, CDT_INSIDE_WITH_HOLES, false, true);
+}
+
+TEST(delaunay_d, TextB10_20_20_inverted)
+{
+  text_test<double>(10, 20, 20, CDT_INSIDE_WITH_HOLES, false, true);
+}
+
+#ifdef WITH_GMP
 TEST(delaunay_m, TextB10)
 {
   text_test<mpq_class>(10, 1, 1, CDT_INSIDE_WITH_HOLES, true);
@@ -4444,8 +4531,7 @@ TEST(delaunay_m, TextB10_10_10_noids)
 {
   text_test<mpq_class>(10, 10, 10, CDT_INSIDE_WITH_HOLES, false);
 }
-#  endif
-
+#endif
 #endif
 
 #if DO_RANDOM_TESTS
@@ -4554,13 +4640,13 @@ void rand_delaunay_test(int test_kind,
         }
       }
 
-      CDT_input<T> in;
-      in.vert = Array<VecBase<T, 2>>(npts);
+      InputStorage<T> store;
+      store.vert.reinitialize(npts);
       if (nedges > 0) {
-        in.edge = Array<int2>(nedges);
+        store.edge.reinitialize(nedges);
       }
       if (nfaces > 0) {
-        in.face = Array<Vector<int>>(nfaces);
+        store.face_offsets.reinitialize(nfaces + 1);
       }
 
       /* Make vertices and edges or faces. */
@@ -4569,49 +4655,54 @@ void rand_delaunay_test(int test_kind,
         case RANDOM_SEGS:
         case RANDOM_POLY: {
           for (int i = 0; i < size; i++) {
-            in.vert[i][0] = T(BLI_rng_get_double(rng)); /* will be in range in [0,1) */
-            in.vert[i][1] = T(BLI_rng_get_double(rng));
+            store.vert[i][0] = T(BLI_rng_get_double(rng)); /* will be in range in [0,1) */
+            store.vert[i][1] = T(BLI_rng_get_double(rng));
             if (test_kind != RANDOM_PTS) {
               if (i > 0) {
-                in.edge[i - 1][0] = i - 1;
-                in.edge[i - 1][1] = i;
+                store.edge[i - 1][0] = i - 1;
+                store.edge[i - 1][1] = i;
               }
             }
           }
           if (test_kind == RANDOM_POLY) {
-            in.edge[size - 1][0] = size - 1;
-            in.edge[size - 1][1] = 0;
+            store.edge[size - 1][0] = size - 1;
+            store.edge[size - 1][1] = 0;
           }
           break;
         }
         case RANDOM_TILTED_GRID: {
           for (int i = 0; i < size; ++i) {
             for (int j = 0; j < size; ++j) {
-              in.vert[i * size + j][0] = T(i * param + j);
-              in.vert[i * size + j][1] = T(i);
+              store.vert[i * size + j][0] = T(i * param + j);
+              store.vert[i * size + j][1] = T(i);
             }
           }
           for (int i = 0; i < size; ++i) {
             /* Horizontal edges: connect `p(i,0)` to `p(i,size-1)`. */
-            in.edge[i][0] = i * size;
-            in.edge[i][1] = i * size + size - 1;
+            store.edge[i][0] = i * size;
+            store.edge[i][1] = i * size + size - 1;
             /* Vertical edges: connect `p(0,i)` to `p(size-1,i)`. */
-            in.edge[size + i][0] = i;
-            in.edge[size + i][1] = (size - 1) * size + i;
+            store.edge[size + i][0] = i;
+            store.edge[size + i][1] = (size - 1) * size + i;
           }
           break;
         }
         case RANDOM_CIRCLE: {
           double start_angle = BLI_rng_get_double(rng) * 2.0 * M_PI;
           double angle_delta = 2.0 * M_PI / size;
+          store.face_vert_indices.reinitialize(size);
           for (int i = 0; i < size; i++) {
-            in.vert[i][0] = T(cos(start_angle + i * angle_delta));
-            in.vert[i][1] = T(sin(start_angle + i * angle_delta));
-            in.face[0].append(i);
+            store.vert[i][0] = T(cos(start_angle + i * angle_delta));
+            store.vert[i][1] = T(sin(start_angle + i * angle_delta));
+            store.face_vert_indices[i] = i;
           }
+          store.face_offsets[0] = 0;
+          store.face_offsets[1] = size;
           break;
         }
         case RANDOM_TRI_BETWEEN_CIRCLES: {
+          store.face_vert_indices.reinitialize(3 * size);
+          store.face_offsets[0] = 0;
           for (int i = 0; i < size; i++) {
             /* Get three random angles in [0, 2pi). */
             double angle1 = BLI_rng_get_double(rng) * 2.0 * M_PI;
@@ -4620,27 +4711,28 @@ void rand_delaunay_test(int test_kind,
             int ia = 3 * i;
             int ib = 3 * i + 1;
             int ic = 3 * i + 2;
-            in.vert[ia][0] = T(cos(angle1));
-            in.vert[ia][1] = T(sin(angle1));
-            in.vert[ib][0] = T(cos(angle2));
-            in.vert[ib][1] = T(sin(angle2));
-            in.vert[ic][0] = T((param * cos(angle3)));
-            in.vert[ic][1] = T((param * sin(angle3)));
+            store.vert[ia][0] = T(cos(angle1));
+            store.vert[ia][1] = T(sin(angle1));
+            store.vert[ib][0] = T(cos(angle2));
+            store.vert[ib][1] = T(sin(angle2));
+            store.vert[ic][0] = T((param * cos(angle3)));
+            store.vert[ic][1] = T((param * sin(angle3)));
             /* Put the coordinates in CCW order. */
-            in.face[i].append(ia);
-            int orient = orient2d(in.vert[ia], in.vert[ib], in.vert[ic]);
-            if (orient >= 0) {
-              in.face[i].append(ib);
-              in.face[i].append(ic);
-            }
-            else {
-              in.face[i].append(ic);
-              in.face[i].append(ib);
-            }
+            store.face_vert_indices[ia] = ia;
+            int orient = orient2d(store.vert[ia], store.vert[ib], store.vert[ic]);
+            store.face_vert_indices[ib] = orient >= 0 ? ib : ic;
+            store.face_vert_indices[ic] = orient >= 0 ? ic : ib;
+            store.face_offsets[i + 1] = store.face_offsets[i] + 3;
           }
           break;
         }
       }
+
+      CDT_input<T> in;
+      in.vert = store.vert;
+      in.edge = store.edge;
+      in.face_offsets = store.face_offsets.as_span();
+      in.face_vert_indices = store.face_vert_indices;
 
       /* Run the test. */
       double tstart = BLI_time_now_seconds();
