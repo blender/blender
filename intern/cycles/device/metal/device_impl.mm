@@ -1300,7 +1300,7 @@ void MetalDevice::image_free(device_image &mem)
   image_info_id_map[image_info_id] = nil;
 }
 
-bool MetalDevice::has_unified_memory() const
+bool MetalDevice::has_unified_memory_any() const
 {
   return true;
 }

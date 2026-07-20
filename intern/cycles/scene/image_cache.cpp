@@ -412,7 +412,7 @@ device_image &ImageCache::alloc_tile(Device &device,
     }
   }
 
-  if (alloc_image && device.has_unified_memory()) {
+  if (alloc_image && device.has_unified_memory_any()) {
     /* If we allocated a new image and one of the devices is CPU or Metal
      * that uses unified memory, we need to allocate the image immediately
      * as the tile descriptor will be updated and rendering kernels can start
@@ -650,7 +650,7 @@ KernelTileDescriptor ImageCache::load_tile(Device &device,
 
   if (ok) {
     /* Mark image for deferred GPU update, after pixels have been loaded to all devices. */
-    if (!device.has_unified_image_memory()) {
+    if (!device.has_unified_image_memory_all()) {
       const thread_scoped_lock device_lock(device_mutex);
       if (for_cpu_cache_miss) {
         if (device.info.type == DEVICE_MULTI) {
