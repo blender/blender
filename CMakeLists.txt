@@ -2464,6 +2464,52 @@ include(build_files/cmake/testing.cmake)
 
 include(build_files/cmake/host_tools.cmake)
 
+# ----------------------------------------------------------------------------
+# Platform independent cross-compilation environment setup
+
+set(HOST_LIBDIR ${LIBDIR})
+
+if(CMAKE_CROSSCOMPILING)
+  # When cross-compiling, certain tools (like Python) need to be accessed from
+  # the *host* pre-compiled libraries to then be executed.
+  if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Darwin")
+    set(HOST_LIBDIR ${CMAKE_SOURCE_DIR}/lib/macos_arm64)
+  elseif("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
+    if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
+      set(HOST_LIBDIR ${CMAKE_SOURCE_DIR}/lib/linux_arm64)
+    elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
+      set(HOST_LIBDIR ${CMAKE_SOURCE_DIR}/lib/linux_x64)
+    endif()
+  else()
+    message(FATAL_ERROR "Unsupported cross-compilation host.")
+  endif()
+
+
+  # When cross-compiling, override PLATFORM_ENV_BUILD for host tools (either compiled
+  # in host_tools.cmake or fetched from ${HOST_LIBDIR}) ran during compilation to use
+  # the host platform's own libraries. Glob all available libraries in this case as we
+  # cannot rely on the target specific libraries from PLATFORM_BUNDLED_LIBRARY_DIRS.
+  file(GLOB _host_library_dirs "${HOST_LIBDIR}/*/lib")
+  list(JOIN _host_library_dirs ":" _host_library_paths)
+
+  if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Darwin")
+    set(PLATFORM_ENV_BUILD
+      "DYLD_LIBRARY_PATH=\"${_host_library_paths}:$$DYLD_LIBRARY_PATH\""
+    )
+  else()
+    set(PLATFORM_ENV_BUILD
+      "LD_LIBRARY_PATH=\"${_host_library_paths}:$$LD_LIBRARY_PATH\""
+    )
+  endif()
+
+  unset(_host_library_dirs)
+  unset(_host_library_paths)
+
+  # Override the Python executable for cross-compilation, fetching it from the host pre-compiled library directory.
+  file(GLOB PYTHON_EXECUTABLE "${HOST_LIBDIR}/python/bin/python3.[0-9]*")
+endif()
+
+
 # -----------------------------------------------------------------------------
 # Add Sub-Directories
 

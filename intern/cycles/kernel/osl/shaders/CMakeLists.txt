@@ -174,7 +174,7 @@ set(SRC_OSO
 )
 
 if(CMAKE_CROSSCOMPILING)
-  # Override the OSL compiler using the one from the host pre-compiled library directory.
+  # Override the OSL compiler for cross-compilation, fetching it from the host pre-compiled library directory.
   set(OSL_COMPILER ${HOST_LIBDIR}/osl/bin/oslc)
 endif()
 
