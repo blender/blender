@@ -314,9 +314,9 @@ static void file_draw_tooltip_custom_func(bContext & /*C*/,
     }
 
     const time_t file_time = (time_t)file->time;
-    const std::tm mod_time = *std::localtime(&file_time);
+    const std::tm mod_time = date_string::localtime_safe(file_time);
     const time_t ts_now = time(nullptr);
-    const std::tm now = *std::localtime(&ts_now);
+    const std::tm now = date_string::localtime_safe(ts_now);
     const char *lang = BLT_lang_get();
     std::string modified_s = blender::date_string::datetime(mod_time,
                                                             lang,
@@ -1311,9 +1311,9 @@ static const char *filelist_get_details_column_string(
       if (!(file->typeflag & FILE_TYPE_BLENDERLIB) && !FILENAME_IS_CURRPAR(file->relpath)) {
         if (file->draw_data.datetime_str[0] == '\0' || update_stat_strings) {
           const time_t file_time = (time_t)file->time;
-          const std::tm mod_time = *std::localtime(&file_time);
+          const std::tm mod_time = date_string::localtime_safe(file_time);
           const time_t ts_now = time(nullptr);
-          const std::tm now = *std::localtime(&ts_now);
+          const std::tm now = date_string::localtime_safe(ts_now);
           const char *lang = BLT_lang_get();
           std::string modified_s =
               compact ? date_string::date(mod_time, lang, date_string::DateFormat(U.date_format)) :
