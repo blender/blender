@@ -72,8 +72,7 @@ void foreach_fcurve_in_action_slot_editable(Action &action,
  * returned `false`, and `true` otherwise.
  */
 bool foreach_action_slot_use(
-    const ID &animated_id,
-    FunctionRef<bool(const Action &action, slot_handle_t slot_handle)> callback);
+    const ID &animated_id, FunctionRef<bool(Action &action, slot_handle_t slot_handle)> callback);
 
 /**
  * Essentially the same as foreach_action_slot_use(), except that it provides

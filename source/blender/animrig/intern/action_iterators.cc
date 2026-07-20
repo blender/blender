@@ -88,9 +88,8 @@ void foreach_fcurve_in_action_slot(Action &action,
   }
 }
 
-bool foreach_action_slot_use(
-    const ID &animated_id,
-    FunctionRef<bool(const Action &action, slot_handle_t slot_handle)> callback)
+bool foreach_action_slot_use(const ID &animated_id,
+                             FunctionRef<bool(Action &action, slot_handle_t slot_handle)> callback)
 {
 
   const auto forward_to_callback = [&](ID & /* animated_id */,
@@ -100,7 +99,7 @@ bool foreach_action_slot_use(
     if (!action_ptr_ref) {
       return true;
     }
-    return callback(const_cast<const Action &>(action_ptr_ref->wrap()), slot_handle_ref);
+    return callback(action_ptr_ref->wrap(), slot_handle_ref);
   };
 
   return foreach_action_slot_use_with_references(const_cast<ID &>(animated_id),

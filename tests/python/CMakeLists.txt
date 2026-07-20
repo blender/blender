@@ -785,6 +785,13 @@ if(TEST_SRC_DIR_EXISTS)
   )
 
   add_blender_test(
+    bl_animation_convert
+    --python ${CMAKE_CURRENT_LIST_DIR}/bl_animation_convert.py
+    --
+    --testdir "${TEST_SRC_DIR}/animation"
+  )
+
+  add_blender_test(
     bl_animation_keyframing
     --python ${CMAKE_CURRENT_LIST_DIR}/bl_animation_keyframing.py
     --

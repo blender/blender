@@ -19,6 +19,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_anim_data.hh"
+#include "BKE_armature.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_lib_id.hh"
@@ -38,11 +39,13 @@
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "ED_anim_api.hh"
+#include "ED_anim_transformable.hh"
 #include "ED_keyframes_keylist.hh"
 #include "ED_markers.hh"
 #include "ED_screen.hh"
@@ -59,6 +62,7 @@
 #include "SEQ_time.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_action_iterators.hh"
 #include "ANIM_animdata.hh"
 
 #include "anim_intern.hh"
@@ -1634,6 +1638,206 @@ static void ANIM_OT_replace_action_new(wmOperatorType *ot)
 }
 
 /** \} */
+/* -------------------------------------------------------------------- */
+/** \name Convert
+ * \{ */
+
+static Vector<ed::AnimTransformable> selected_transformables_from_context(bContext *C)
+{
+  Vector<ed::AnimTransformable> transformables;
+  Vector<PointerRNA> pointers;
+  switch (CTX_data_mode_enum(C)) {
+    case CTX_MODE_OBJECT: {
+      CTX_data_selected_objects(C, &pointers);
+      for (PointerRNA &ptr : pointers) {
+        transformables.append(ed::AnimTransformable(*id_cast<Object *>(ptr.owner_id)));
+      }
+      break;
+    }
+    case CTX_MODE_POSE: {
+      CTX_data_selected_pose_bones(C, &pointers);
+      for (PointerRNA &ptr : pointers) {
+        transformables.append(
+            {*id_cast<Object *>(ptr.owner_id), *static_cast<bPoseChannel *>(ptr.data)});
+      }
+      break;
+    }
+
+    default:
+      break;
+  }
+  return transformables;
+}
+
+/* Uniquely identifies an AnimTransformable for a Slot. The StringRefNull is the `rna_path()` of
+ * the AnimTransformable.  */
+using SlotTransformableID = std::pair<const animrig::Slot *, StringRefNull>;
+
+static std::string visited_slot_users_to_message(
+    const Map<SlotTransformableID, int> &num_slot_users_to_visit)
+{
+  int unmodified_count = 0;
+  std::string unmodified_message;
+  for (const auto &[identifier, value] : num_slot_users_to_visit.items()) {
+    if (value <= 0) {
+      continue;
+    }
+    if (!unmodified_message.empty()) {
+      unmodified_message.append(", ");
+    }
+    if (identifier.second.is_empty()) {
+      /* Objects don't have an rna path. Use the slot display name. */
+      unmodified_message.append(identifier.first->identifier_without_prefix());
+    }
+    else {
+      unmodified_message.append(identifier.second);
+    }
+    unmodified_count++;
+    if (unmodified_count == 3) {
+      /* The user may modify a lot of transformables at once. More than 3 names will probably
+       * be just noise. */
+      unmodified_message.append(", ...");
+      break;
+    }
+  }
+  return unmodified_message;
+}
+
+static wmOperatorStatus rotation_mode_convert_exec(bContext *C, wmOperator *op)
+{
+
+  const eRotationModes mode = eRotationModes(RNA_enum_get(op->ptr, "mode"));
+  const bool bake = RNA_boolean_get(op->ptr, "bake");
+  ID *prev_id = nullptr;
+
+  /* A map built per action+slot to make it quicker to find the FCurves by RNA path. */
+  Map<std::pair<animrig::Action *, animrig::slot_handle_t>, ChannelbagFCurveMap> data_map;
+  int skipped_datablocks = 0;
+
+  /* We need to keep track of the modified rna paths per Slot. That is to
+   * avoid modifying the same data twice if two transformables with the same rna path share an
+   * action and slot. The integer value is used to warn the artist that they modified only a subset
+   * of all users for an rna path in a slot. We store the slot user count when adding elements and
+   * decrement for each user we visit. */
+  Map<SlotTransformableID, int> num_slot_users_to_visit;
+  Set<animrig::Action *> skipped_actions;
+
+  Main *bmain = CTX_data_main(C);
+
+  Vector<ed::AnimTransformable> selected_transformables = selected_transformables_from_context(C);
+  for (ed::AnimTransformable &transformable : selected_transformables) {
+    /* We cannot skip transformables based on their current rotation mode since that may be
+     * animated. So `transformable.get_rotation_mode() == mode -> continue` won't work.*/
+    ID *owner_id = transformable.owner_id();
+    if (!BKE_id_is_editable(bmain, owner_id)) {
+      skipped_datablocks++;
+      continue;
+    }
+    animrig::foreach_action_slot_use(
+        *owner_id, [&](animrig::Action &action, const animrig::slot_handle_t slot_handle) {
+          if (!BKE_id_is_editable(bmain, &action.id)) {
+            skipped_actions.add(&action);
+            return true;
+          }
+          const animrig::Slot *slot = action.slot_for_handle(slot_handle);
+          BLI_assert(slot != nullptr);
+          SlotTransformableID identifier = {slot, transformable.rna_path()};
+          int *unmodified_count = num_slot_users_to_visit.lookup_ptr(identifier);
+          if (unmodified_count) {
+            (*unmodified_count)--;
+            BLI_assert((*unmodified_count) >= 0);
+            /* We already modified the given rna path for the slot. Don't do it twice! */
+            return true;
+          }
+          else {
+            const int slot_user_count = slot->users(*bmain).size();
+            num_slot_users_to_visit.add(identifier, slot_user_count - 1);
+          }
+
+          if (!data_map.contains({&action, slot_handle})) {
+            ChannelbagFCurveMap fcurve_map = build_rotation_fcurve_map(action, slot_handle);
+            data_map.add({&action, slot_handle}, std::move(fcurve_map));
+          }
+          ChannelbagFCurveMap &channelbag_fcurve_map = data_map.lookup({&action, slot_handle});
+          if (bake) {
+            bake_rotation_fcurves(channelbag_fcurve_map, transformable);
+          }
+          convert_rotation_keys(transformable, channelbag_fcurve_map, mode);
+          DEG_id_tag_update(&action.id, ID_RECALC_ANIMATION);
+          return true;
+        });
+
+    /* Convert the property values themselves, regardless of whether they're animated or not. */
+    ed::Rotation current_rotation = transformable.get_rotation();
+    transformable.set_rotation_mode(mode);
+    transformable.set_rotation(current_rotation.converted_to_mode(mode));
+
+    if (prev_id != owner_id) {
+      DEG_id_tag_update(owner_id, ID_RECALC_GEOMETRY);
+      WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_ADDED, nullptr);
+      prev_id = owner_id;
+    }
+  }
+
+  std::string unmodified_message = visited_slot_users_to_message(num_slot_users_to_visit);
+  if (!unmodified_message.empty()) {
+    BKE_reportf(op->reports,
+                RPT_WARNING,
+                "Multiple users of an action and not all were selected: %s",
+                unmodified_message.data());
+  }
+
+  if (skipped_datablocks > 0) {
+    BKE_reportf(op->reports,
+                RPT_WARNING,
+                "Skipped animated data-blocks because they cannot be edited: %d",
+                skipped_datablocks);
+  }
+
+  if (skipped_actions.size() > 0) {
+    BKE_reportf(op->reports,
+                RPT_WARNING,
+                "Skipped actions because they cannot be edited: %ld",
+                skipped_actions.size());
+  }
+
+  /* Update the 3d viewport so gizmos are correct. */
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
+  return OPERATOR_FINISHED;
+}
+
+static bool rotation_mode_convert_poll(bContext *C)
+{
+  return ELEM(CTX_data_mode_enum(C), CTX_MODE_OBJECT, CTX_MODE_POSE);
+}
+
+static void ANIM_OT_rotation_mode_convert(wmOperatorType *ot)
+{
+  ot->name = "Convert Rotation Mode";
+  ot->idname = "ANIM_OT_rotation_mode_convert";
+  ot->description =
+      "On all selected, change the rotation mode and convert any existing animation into that new "
+      "mode";
+
+  ot->invoke = WM_menu_invoke;
+  ot->exec = rotation_mode_convert_exec;
+  ot->poll = rotation_mode_convert_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  ot->prop = RNA_def_enum(ot->srna,
+                          "mode",
+                          rna_enum_object_rotation_mode_items,
+                          ROT_MODE_QUAT,
+                          "Rotation Mode",
+                          "The rotation mode to convert the selection to");
+  RNA_def_boolean(ot->srna,
+                  "bake",
+                  false,
+                  "Bake",
+                  "Creates a key on every frame before conversion so interpolation is preserved "
+                  "in the new mode");
+}
 
 /* -------------------------------------------------------------------- */
 /** \name Registration
@@ -1690,6 +1894,8 @@ void ED_operatortypes_anim()
   WM_operatortype_append(ANIM_OT_replace_action);
   WM_operatortype_append(ANIM_OT_replace_action_new);
   WM_operatortype_append(ANIM_OT_replace_action_duplicate);
+
+  WM_operatortype_append(ANIM_OT_rotation_mode_convert);
 
   WM_operatortype_append(ed::animrig::POSELIB_OT_create_pose_asset);
   WM_operatortype_append(ed::animrig::POSELIB_OT_asset_modify);

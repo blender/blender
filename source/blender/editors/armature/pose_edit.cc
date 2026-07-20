@@ -583,6 +583,9 @@ void POSE_OT_autoside_names(wmOperatorType *ot)
 
 static wmOperatorStatus pose_bone_rotmode_exec(bContext *C, wmOperator *op)
 {
+  BKE_report(op->reports,
+             RPT_WARNING,
+             "pose.rotation_mode_set is deprecated. Use anim.rotation_mode_convert instead");
   const eRotationModes mode = eRotationModes(RNA_enum_get(op->ptr, "type"));
   Object *prev_ob = nullptr;
 

@@ -10,6 +10,7 @@
 
 #include "BKE_nla.hh"
 
+#include "BKE_action.hh"
 #include "BLI_enum_flags.hh"
 #include "BLI_sys_types.hh"
 
@@ -56,6 +57,10 @@ namespace ui {
 struct Block;
 }
 
+namespace ed {
+class AnimTransformable;
+}
+
 struct PointerRNA;
 struct PropertyRNA;
 
@@ -64,6 +69,7 @@ struct MPathTarget;
 namespace animrig {
 class Action;
 class Slot;
+class Channelbag;
 }  // namespace animrig
 
 /* Motion path needing to be baked (target). */
@@ -1315,5 +1321,60 @@ void animviz_motionpath_compute_range(Object *ob, Scene *scene);
 void animviz_build_motionpath_targets(Object *ob, Vector<MPathTarget> &r_targets);
 
 /** \} */
+
+/**
+ * A non owning storage buffer for FCurves where they are sorted by `FCurve.array_index`.
+ */
+class SortedFCurveBuffer {
+  Vector<FCurve *> fcurves_;
+
+ public:
+  void insert_fcurve(FCurve &fcurve);
+  void clear();
+  Span<FCurve *> fcurves() const;
+  /**
+   * Returns the first FCurve with the given array index from the buffer or a nullptr if that index
+   * does not exist.
+   */
+  FCurve *get_fcurve_by_array_index(int array_index) const;
+};
+
+/* FCurves grouped by their RNA path. */
+using RNAFCurveMap = Map<StringRefNull, SortedFCurveBuffer>;
+/* For each Channelbag FCurves grouped by their RNA path. */
+using ChannelbagFCurveMap = Map<animrig::Channelbag *, RNAFCurveMap>;
+
+/**
+ * Convert any keyframe data for the given transformable to the given rotation mode.
+ * This will correctly react to an animated rotation mode.
+ *
+ * \returns true if any animation data was modified.
+ */
+bool convert_rotation_keys(const ed::AnimTransformable &transformable,
+                           ChannelbagFCurveMap &channelbag_fcurve_map,
+                           eRotationModes to_mode);
+
+/**
+ * Creates a map of RNA paths and the rotation FCurves associated with that rna path.
+ * That means `rotation_euler` and `rotation_quaternion` will have different entries in the map.
+ */
+ChannelbagFCurveMap build_rotation_fcurve_map(animrig::Action &action,
+                                              animrig::slot_handle_t slot_handle);
+
+/**
+ * Bake all existing rotation fcurves for the given `transformable`.
+ */
+void bake_rotation_fcurves(const ChannelbagFCurveMap &channelbag_fcurve_map,
+                           const ed::AnimTransformable &transformable);
+
+/**
+ * A high level function that converts the given transformable and the animation on its rotation
+ * channels into a different rotation mode. In contrast to the lower level functions like
+ * `convert_rotation_keys`, this tags the dependency graph for updates and sends WM notifiers.
+ */
+void convert_to_rotation_mode(bContext &C,
+                              ed::AnimTransformable &transformable,
+                              eRotationModes to_mode,
+                              bool bake);
 
 }  // namespace blender

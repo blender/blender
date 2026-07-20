@@ -19,6 +19,7 @@ set(SRC
   anim_asset_ops.cc
   anim_channels_defines.cc
   anim_channels_edit.cc
+  anim_convert.cc
   anim_deps.cc
   anim_draw.cc
   anim_filter.cc

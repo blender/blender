@@ -241,6 +241,7 @@ class POSE_OT_convert_rotation(bpy.types.Operator):
         layout.prop(self, 'target_rotation_mode')
 
     def execute(self, context):
+        self.report({'WARNING'}, "This operator is deprecated. Use anim.rotation_mode_convert instead")
         obj = context.active_object
 
         assigned_action = obj.animation_data and obj.animation_data.action
@@ -281,11 +282,6 @@ class POSE_OT_convert_rotation(bpy.types.Operator):
         return {'FINISHED'}
 
 
-def draw_convert_rotation(self, _context):
-    self.layout.separator()
-    self.layout.operator(POSE_OT_convert_rotation.bl_idname)
-
-
 classes = [
     POSE_OT_convert_rotation
 ]
@@ -298,8 +294,6 @@ def register():
     for cls in classes:
         register_class(cls)
 
-    bpy.types.VIEW3D_MT_pose.append(draw_convert_rotation)
-
 
 def unregister():
     from bpy.utils import unregister_class
@@ -307,5 +301,3 @@ def unregister():
     # Classes.
     for cls in classes:
         unregister_class(cls)
-
-    bpy.types.VIEW3D_MT_pose.remove(draw_convert_rotation)
