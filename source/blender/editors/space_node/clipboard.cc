@@ -253,8 +253,6 @@ void NODE_OT_clipboard_copy(wmOperatorType *ot)
 
   ot->exec = node_clipboard_copy_exec;
   ot->poll = ED_operator_node_active;
-
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /** \} */
