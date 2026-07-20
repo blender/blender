@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Release Candidate (b'3d8c46ac31f4')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-13 07:34+0000\n"
+"POT-Creation-Date: 2026-07-20 07:29+0000\n"
 "PO-Revision-Date: 2026-07-08 11:12+0000\n"
 "Last-Translator: Timo Hoetmer <timo@timohoetmer.nl>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -5836,8 +5836,24 @@ msgid "Dots"
 msgstr "Stippen"
 
 
+msgid "Quick Effects"
+msgstr "Snelle Effecten"
+
+
 msgid "Show/Hide"
 msgstr "Toon/Verberg"
+
+
+msgid "Convert"
+msgstr "Converteer"
+
+
+msgid "Hooks"
+msgstr "Haken"
+
+
+msgid "Clear Transform"
+msgstr "Maak Transformatie Leeg"
 
 
 msgid "Names"
@@ -5864,6 +5880,14 @@ msgid "Select Similar"
 msgstr "Selecteer Vergelijkbaar"
 
 
+msgid "Linked"
+msgstr "Gekoppeld"
+
+
+msgid "Layout"
+msgstr "Indeling"
+
+
 msgid "Select Linked"
 msgstr "Selecteer Aaneengesloten"
 
@@ -5882,30 +5906,6 @@ msgstr "Relaties"
 
 msgid "Rigid Body"
 msgstr "Star Lichaam"
-
-
-msgid "Quick Effects"
-msgstr "Snelle Effecten"
-
-
-msgid "Linked"
-msgstr "Gekoppeld"
-
-
-msgid "Layout"
-msgstr "Indeling"
-
-
-msgid "Convert"
-msgstr "Converteer"
-
-
-msgid "Hooks"
-msgstr "Haken"
-
-
-msgid "Clear Transform"
-msgstr "Maak Transformatie Leeg"
 
 
 msgctxt "MovieClip"
@@ -5956,6 +5956,10 @@ msgid "Generate"
 msgstr "Genereer"
 
 
+msgid "Save & Load"
+msgstr "Opslaan & Laden"
+
+
 msgid "Select Handle"
 msgstr "Selecteer Handle"
 
@@ -5994,10 +5998,6 @@ msgstr "Herstellen"
 
 msgid "Help"
 msgstr "Help"
-
-
-msgid "Save & Load"
-msgstr "Opslaan & Laden"
 
 
 msgctxt "Operator"
@@ -8954,6 +8954,10 @@ msgid "Select Handles"
 msgstr "Selecteer Handles"
 
 
+msgid "Movie"
+msgstr "Film"
+
+
 msgctxt "Operator"
 msgid "Select Handle"
 msgstr "Selecteer Handle"
@@ -10309,10 +10313,6 @@ msgstr "Geselecteerde Markering"
 
 msgid "Summary"
 msgstr "Overzicht"
-
-
-msgid "Selected File"
-msgstr "Geselecteerde Bestand"
 
 
 msgid "Background Type"
@@ -12005,10 +12005,6 @@ msgid "OK"
 msgstr "OK"
 
 
-msgid "Movie"
-msgstr "Film"
-
-
 msgid "Zoom in"
 msgstr "Zoom in"
 
@@ -12215,6 +12211,10 @@ msgid "Close"
 msgstr "Sluit"
 
 
+msgid "No edges selected"
+msgstr "Geen randen geselecteerd"
+
+
 msgid "No face selected"
 msgstr "Geen vlakken geselecteerd"
 
@@ -12225,10 +12225,6 @@ msgstr "Geen randen geselecteerd"
 
 msgid "No vertex selected"
 msgstr "Geen punten geselecteerd"
-
-
-msgid "No edges selected"
-msgstr "Geen randen geselecteerd"
 
 
 msgid "Use mouse"

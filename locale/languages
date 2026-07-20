@@ -10,12 +10,12 @@
 # Highest ID currently in use: 59
 0:Automatic:DEFAULT:100%
 45:Abkhaz - Аԥсуа бызшәа:ab:0%
-21:Arabic - ﺔﻴﺑﺮﻌﻟﺍ:ar_EG:23%
+21:Arabic - ﺔﻴﺑﺮﻌﻟﺍ:ar_EG:22%
 42:Basque - Euskara:eu_EU:1%
 52:Belarusian - Беларуская:be:0%
 22:Bulgarian - Български:bg_BG:1%
-10:Catalan - Català:ca_AD:100%
-13:Chinese (Simplified) - 简体中文:zh_HANS:100%
+10:Catalan - Català:ca_AD:99%
+13:Chinese (Simplified) - 简体中文:zh_HANS:99%
 14:Chinese (Traditional) - 繁體中文:zh_HANT:60%
 16:Croatian - Hrvatski:hr:1%
 11:Czech - Čeština:cs_CZ:26%
@@ -25,37 +25,37 @@
 1:English (US):en_US:100%
 35:Esperanto - Esperanto:eo:0%
 6:Finnish - Suomi:fi_FI:11%
-8:French - Français:fr_FR:100%
-48:Georgian - ქართული:ka:100%
+8:French - Français:fr_FR:99%
+48:Georgian - ქართული:ka:99%
 5:German - Deutsch:de_DE:35%
 23:Greek - Ελληνικά:el_GR:1%
 33:Hebrew - תירִבְעִ:he_IL:2%
 40:Hindi - हिन्दी:hi_IN:4%
 31:Hungarian - Magyar:hu_HU:10%
 27:Indonesian - Bahasa indonesia:id_ID:21%
-4:Italian - Italiano:it_IT:43%
-2:Japanese - 日本語:ja_JP:100%
-24:Korean - 한국어:ko_KR:94%
+4:Italian - Italiano:it_IT:42%
+2:Japanese - 日本語:ja_JP:99%
+24:Korean - 한국어:ko_KR:93%
 29:Kyrgyz - Кыргыз тили:ky_KG:2%
 56:Lithuanian - Lietuviškai:lt:3%
 58:Malayalam - മലയാളം:ml:0%
 59:Norwegian (Bokmål) - Norsk bokmål:nb:4%
 26:Persian - ﯽﺳﺭﺎﻓ:fa_IR:3%
-19:Polish - Polski:pl_PL:100%
+19:Polish - Polski:pl_PL:99%
 32:Portuguese (Brazil) - Português brasileiro:pt_BR:41%
-12:Portuguese (Portugal) - Português europeu:pt_PT:79%
+12:Portuguese (Portugal) - Português europeu:pt_PT:80%
 20:Romanian - Român:ro_RO:2%
-15:Russian - Русский:ru_RU:100%
+15:Russian - Русский:ru_RU:99%
 17:Serbian (Cyrillic) - Српски:sr_RS:15%
 28:Serbian (Latin) - Srpski latinica:sr_RS@latin:15%
-47:Slovak - Slovenčina:sk_SK:100%
-54:Slovenian - Slovenščina:sl:50%
-9:Spanish - Español:es:100%
+47:Slovak - Slovenčina:sk_SK:99%
+54:Slovenian - Slovenščina:sl:51%
+9:Spanish - Español:es:99%
 51:Swahili - Kiswahili:sw:69%
-7:Swedish - Svenska:sv_SE:96%
-49:Tamil - தமிழ்:ta:96%
+7:Swedish - Svenska:sv_SE:95%
+49:Tamil - தமிழ்:ta:95%
 46:Thai - ภาษาไทย:th_TH:5%
 30:Turkish - Türkçe:tr_TR:75%
-18:Ukrainian - Українська:uk_UA:55%
-55:Urdu - وُدرُا:ur:83%
+18:Ukrainian - Українська:uk_UA:54%
+55:Urdu - وُدرُا:ur:82%
 41:Vietnamese - Tiếng Việt:vi_VN:96%

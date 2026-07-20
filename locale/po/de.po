@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Release Candidate (b'3d8c46ac31f4')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-13 07:34+0000\n"
+"POT-Creation-Date: 2026-07-20 07:29+0000\n"
 "PO-Revision-Date: 2025-12-02 20:06+0000\n"
 "Last-Translator: Bastitron <bastitronhd@gmail.com>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -1728,16 +1728,8 @@ msgid "Point"
 msgstr "Punkt"
 
 
-msgid "Attribute on point"
-msgstr "Einstellungen auf Punkt"
-
-
 msgid "Edge"
 msgstr "Kante"
-
-
-msgid "Attribute on mesh edge"
-msgstr "Einstellungen auf Maschenkante"
 
 
 msgid "Face"
@@ -2392,6 +2384,10 @@ msgid "Point cloud data-blocks"
 msgstr "Punkt Wolken Datenblöcke"
 
 
+msgid "Project"
+msgstr "Projekt"
+
+
 msgid "Scene data-blocks"
 msgstr "Szenen-Datenblöcke"
 
@@ -2751,6 +2747,10 @@ msgstr "Sammlung von Welten"
 msgctxt "ID"
 msgid "ID Type"
 msgstr "ID-Typ"
+
+
+msgid "Dirty"
+msgstr "Schmutz"
 
 
 msgid "Blender RNA"
@@ -6984,10 +6984,6 @@ msgstr "Nächster Oberflächenpunkt"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "Zwischen ausgewählten Markierungen"
-
-
-msgid "Project"
-msgstr "Projekt"
 
 
 msgid "Nearest Vertex"
@@ -11278,10 +11274,6 @@ msgid "Pass Index"
 msgstr "Durchgangsindex"
 
 
-msgid "Index number for the \"Layer Index\" pass"
-msgstr "Indexnummer für den \"Layer Index\"-Durchgang"
-
-
 msgid "Translation"
 msgstr "Übersetzung"
 
@@ -13204,10 +13196,6 @@ msgstr "Generierte Bildbreite"
 
 msgid "Has Data"
 msgstr "Besitzt Daten"
-
-
-msgid "Dirty"
-msgstr "Schmutz"
 
 
 msgid "Image has changed and is not saved"
@@ -18647,10 +18635,6 @@ msgid "Dots"
 msgstr "Punkte"
 
 
-msgid "Index number for the \"Color Index\" pass"
-msgstr "Indexnummer für den \"Farbindex\"-Pass"
-
-
 msgid "UV Factor"
 msgstr "UV Faktor"
 
@@ -18687,20 +18671,108 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Face Data"
-msgstr "Flächendaten"
+msgid "Apply"
+msgstr "Anwenden"
+
+
+msgid "Track"
+msgstr "Spur"
+
+
+msgid "Quick Effects"
+msgstr "Schnelle Effekte"
+
+
+msgid "Show/Hide"
+msgstr "Zeigen/Verbergen"
 
 
 msgid "Clean Up"
 msgstr "Aufräumen"
 
 
+msgid "Asset"
+msgstr "Asset"
+
+
+msgid "Make Single User"
+msgstr "Einfachen Benutzer erzeugen"
+
+
+msgid "Convert"
+msgstr "Konvertieren"
+
+
+msgid "Hooks"
+msgstr "Haken"
+
+
+msgid "Vertex Group Locks"
+msgstr "Punktgruppen sperren"
+
+
+msgid "Random Mask"
+msgstr "Zufällige Maske"
+
+
+msgid "Math"
+msgstr "Mathematisch"
+
+
+msgid "Clear Transform"
+msgstr "Transformation löschen"
+
+
+msgid "In-Betweens"
+msgstr "Dazwischen"
+
+
+msgid "Names"
+msgstr "Namen"
+
+
+msgid "Toggle Bone Options"
+msgstr "Knochen-Optionen umschalten"
+
+
+msgid "Enable Bone Options"
+msgstr "Knochen-Optionen einschalten"
+
+
+msgid "Disable Bone Options"
+msgstr "Knochen-Optionen ausschalten"
+
+
+msgid "Mesh Select Mode"
+msgstr "Maschenauswahlmodus"
+
+
+msgid "Face Data"
+msgstr "Flächendaten"
+
+
+msgid "Read"
+msgstr "Lesen"
+
+
+msgid "Sample"
+msgstr "Beispiel"
+
+
+msgid "Write"
+msgstr "Schreiben"
+
+
+msgid "Primitives"
+msgstr "Grundkörper"
+
+
 msgid "Merge"
 msgstr "Zusammenführen"
 
 
-msgid "Show/Hide"
-msgstr "Zeigen/Verbergen"
+msgid "Instances"
+msgstr "Instanzen"
 
 
 msgid "Special Characters"
@@ -18715,36 +18787,20 @@ msgid "Metaball"
 msgstr "Metaball"
 
 
-msgid "Math"
-msgstr "Mathematisch"
+msgid "Import"
+msgstr "Importieren"
 
 
-msgid "Names"
-msgstr "Namen"
-
-
-msgid "Read"
-msgstr "Lesen"
-
-
-msgid "Sample"
-msgstr "Beispiel"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Pivot Point"
 msgstr "Drehpunkt"
 
 
-msgid "Write"
-msgstr "Schreiben"
-
-
 msgid "Snap"
 msgstr "Einrasten"
-
-
-msgid "Primitives"
-msgstr "Grundkörper"
 
 
 msgid "Proportional Editing Falloff"
@@ -18753,18 +18809,6 @@ msgstr "Proportionaler Bearbeitungsabfall"
 
 msgid "Mask Edit"
 msgstr "Maskenbearbeitung"
-
-
-msgid "Vertex Group Locks"
-msgstr "Punktgruppen sperren"
-
-
-msgid "Instances"
-msgstr "Instanzen"
-
-
-msgid "Import"
-msgstr "Importieren"
 
 
 msgid "Mirror"
@@ -18799,16 +18843,20 @@ msgid "Select More/Less"
 msgstr "Mehr/weniger anzeigen"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Select Similar"
 msgstr "Ähnliche auswählen"
 
 
 msgid "Select All by Trait"
 msgstr "Alles nach Merkmal auswählen"
+
+
+msgid "Linked"
+msgstr "Verknüpft"
+
+
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Select Linked"
@@ -18821,6 +18869,14 @@ msgstr "Schleifen auswählen"
 
 msgid "Assign Material"
 msgstr "Material zuweisen"
+
+
+msgid "Keying"
+msgstr "Schlüsselbilder"
+
+
+msgid "Tracking"
+msgstr "Verfolgen"
 
 
 msgid "Light"
@@ -18841,78 +18897,6 @@ msgstr "Beziehungen"
 
 msgid "Rigid Body"
 msgstr "Rigid Body"
-
-
-msgid "Apply"
-msgstr "Anwenden"
-
-
-msgid "Track"
-msgstr "Spur"
-
-
-msgid "Quick Effects"
-msgstr "Schnelle Effekte"
-
-
-msgid "Linked"
-msgstr "Verknüpft"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Asset"
-msgstr "Asset"
-
-
-msgid "Make Single User"
-msgstr "Einfachen Benutzer erzeugen"
-
-
-msgid "Convert"
-msgstr "Konvertieren"
-
-
-msgid "Hooks"
-msgstr "Haken"
-
-
-msgid "Keying"
-msgstr "Schlüsselbilder"
-
-
-msgid "Random Mask"
-msgstr "Zufällige Maske"
-
-
-msgid "Tracking"
-msgstr "Verfolgen"
-
-
-msgid "Clear Transform"
-msgstr "Transformation löschen"
-
-
-msgid "In-Betweens"
-msgstr "Dazwischen"
-
-
-msgid "Toggle Bone Options"
-msgstr "Knochen-Optionen umschalten"
-
-
-msgid "Enable Bone Options"
-msgstr "Knochen-Optionen einschalten"
-
-
-msgid "Disable Bone Options"
-msgstr "Knochen-Optionen ausschalten"
-
-
-msgid "Mesh Select Mode"
-msgstr "Maschenauswahlmodus"
 
 
 msgid "Assets"
@@ -19058,6 +19042,10 @@ msgid "Particle Specials"
 msgstr "Partikelbesonderheiten"
 
 
+msgid "Save & Load"
+msgstr "Speichern & Laden"
+
+
 msgid "Frame Rate Presets"
 msgstr "Bildraten-Voreinstellungen"
 
@@ -19072,10 +19060,6 @@ msgstr "Übergang"
 
 msgid "Change"
 msgstr "Ändern"
-
-
-msgid "Set Color Tag"
-msgstr "Setze Farb-Tags"
 
 
 msgid "Sequencer"
@@ -19096,10 +19080,6 @@ msgstr "Eingaben"
 
 msgid "Lock/Mute"
 msgstr "Sperren/Stummschalten"
-
-
-msgid "Movie Strip"
-msgstr "Filmstreifen"
 
 
 msgid "Text to 3D Object"
@@ -19168,10 +19148,6 @@ msgstr "Voreinstellungen"
 
 msgid "KeyPresets"
 msgstr "Tastenbelegung"
-
-
-msgid "Save & Load"
-msgstr "Speichern & Laden"
 
 
 msgctxt "Operator"
@@ -23421,6 +23397,10 @@ msgstr "Primär"
 
 msgid "Secondary"
 msgstr "Sekundär"
+
+
+msgid "Grease Pencil Opacity"
+msgstr "Wachsstiftdeckkraft"
 
 
 msgid "Linear interpolation"
@@ -27830,10 +27810,6 @@ msgstr "Backzeit"
 
 msgid "Edge Slide"
 msgstr "Kante schieben"
-
-
-msgid "Grease Pencil Opacity"
-msgstr "Wachsstiftdeckkraft"
 
 
 msgid "Set type of handles for selected control points"
@@ -35990,6 +35966,10 @@ msgid "Set Render Size"
 msgstr "Rendergröße setzen"
 
 
+msgid "Markers"
+msgstr "Marker"
+
+
 msgid "Use mouse to sample color in current frame"
 msgstr "Maus benutzen, um eine Farbe im Bild abzutasten"
 
@@ -36019,28 +35999,24 @@ msgid "Select Handles"
 msgstr "Griffe auswählen"
 
 
-msgid "Select all strips grouped by various properties"
-msgstr "Alle Streifen gruppiert nach diversen Eigenschaften auswählen"
+msgid "Movie"
+msgstr "Film"
 
 
-msgid "All strips of same basic type (graphical or sound)"
-msgstr "Alle Streifen des gleichen Basistyps (grafisch oder sound)"
+msgid "Compositor"
+msgstr "Setzer"
 
 
 msgid "Effect"
 msgstr "Effekt"
 
 
-msgid "Overlap"
-msgstr "Überlappung"
-
-
-msgid "Overlapping time"
-msgstr "Überlappende Zeit"
-
-
 msgid "Same Channel"
 msgstr "Gleicher Kanal"
+
+
+msgid "Select all strips grouped by various properties"
+msgstr "Alle Streifen gruppiert nach diversen Eigenschaften auswählen"
 
 
 msgctxt "Operator"
@@ -38736,6 +38712,10 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
+msgid "VR"
+msgstr "VR"
+
+
 msgid "Active Tool"
 msgstr "Aktives Werkzeug"
 
@@ -38758,10 +38738,6 @@ msgstr "Hohlraum"
 
 msgid "Render Pass"
 msgstr "Renderdurchgänge"
-
-
-msgid "Compositor"
-msgstr "Setzer"
 
 
 msgid "Overlays"
@@ -38810,10 +38786,6 @@ msgstr "Stereoskopie"
 
 msgid "Auto-Masking"
 msgstr "Automatisches Maskieren"
-
-
-msgid "VR"
-msgstr "VR"
 
 
 msgid "Chain Scaling"
@@ -43855,10 +43827,6 @@ msgid "Snap to current frame"
 msgstr "Am aktuellen Einzelbild einrasten"
 
 
-msgid "Markers"
-msgstr "Marker"
-
-
 msgid "Effect name"
 msgstr "Effektname"
 
@@ -44037,14 +44005,6 @@ msgstr "Name des Formschlüssels"
 
 msgid "Relative Key"
 msgstr "Relativer Schlüssel"
-
-
-msgid "Maximum for slider"
-msgstr "Maximalwert für Schieberegler"
-
-
-msgid "Minimum for slider"
-msgstr "Minimalwert für Schieberegler"
 
 
 msgid "Value of shape key at the current frame"
@@ -45545,6 +45505,10 @@ msgid "Undistort Clip"
 msgstr "Verlauf rückgängig machen"
 
 
+msgid "Movie Strip"
+msgstr "Filmstreifen"
+
+
 msgid "Scene Strip"
 msgstr "Szenenstreifen"
 
@@ -46118,10 +46082,6 @@ msgstr "Dateibrowser Thema"
 
 msgid "Theme settings for the File Browser"
 msgstr "Themeneinstellungen für den Dateibrowser"
-
-
-msgid "Selected File"
-msgstr "Ausgewählte Datei"
 
 
 msgid "Font Style"
@@ -47521,6 +47481,10 @@ msgid "Material Override"
 msgstr "Material überschreiben"
 
 
+msgid "Denoising Data"
+msgstr "Rauschreduzierungsdaten"
+
+
 msgid "Volume Light"
 msgstr "Lichtintensität"
 
@@ -48454,10 +48418,6 @@ msgid "AO Factor"
 msgstr "AO Faktor"
 
 
-msgid "Denoising Data"
-msgstr "Rauschreduzierungsdaten"
-
-
 msgid "Portal"
 msgstr "Portal"
 
@@ -48712,10 +48672,6 @@ msgstr "Bildpfad nicht gesetzt"
 
 msgid "Could not make new image"
 msgstr "Neues Bild konnte nicht erstellt werden"
-
-
-msgid "Image editor could not be launched, ensure that the path in User Preferences > File is valid, and Blender has rights to launch it"
-msgstr "Bildeditor konnte nicht gestartet werden, stelle sicher das der Pfad unter Benutzereinstellungen > Datei gültig ist und Blender die Rechte besitzt um diesen zu öffnen"
 
 
 msgid "Context incorrect, image not found"
@@ -49431,6 +49387,10 @@ msgstr "Schlüssel entfernen"
 msgctxt "Operator"
 msgid "Square"
 msgstr "Viereck"
+
+
+msgid "Overlap"
+msgstr "Überlappung"
 
 
 msgid "Holes"
@@ -51143,6 +51103,11 @@ msgstr "Sequenzer/Vorschau umschalten"
 
 
 msgctxt "Operator"
+msgid "Select All by Type"
+msgstr "Alle nach Typ auswählen"
+
+
+msgctxt "Operator"
 msgid "Path/Files"
 msgstr "Pfad/Datei"
 
@@ -51324,6 +51289,11 @@ msgid "Stretch To Fill"
 msgstr "Strecken zum füllen"
 
 
+msgctxt "Operator"
+msgid "Clear Fade"
+msgstr "Ausblendung löschen"
+
+
 msgid "Resolutions"
 msgstr "Auflösung"
 
@@ -51338,17 +51308,12 @@ msgid "Move/Extend from Current Frame"
 msgstr "Bewege/Strecke von aktuellem Einzelbild"
 
 
-msgctxt "Operator"
-msgid "Clear Fade"
-msgstr "Ausblendung löschen"
+msgid "Add Transition"
+msgstr "Übergang hinzufügen"
 
 
 msgid "Custom Proxy"
 msgstr "Benutzerdefinierter Proxy"
-
-
-msgid "Add Transition"
-msgstr "Übergang hinzufügen"
 
 
 msgctxt "Text"
@@ -51992,11 +51957,6 @@ msgstr "Kinder erweitern"
 msgctxt "Operator"
 msgid "Select Active Camera"
 msgstr "Aktive Kamera auswählen"
-
-
-msgctxt "Operator"
-msgid "Select All by Type"
-msgstr "Alle nach Typ auswählen"
 
 
 msgctxt "Operator"
@@ -54146,10 +54106,6 @@ msgid "(Shift-Click/Drag to select multiple)"
 msgstr "(Umschalt-Klick/Ziehen um mehreres zu selektieren)"
 
 
-msgid "Movie"
-msgstr "Film"
-
-
 msgctxt "Operator"
 msgid "Click"
 msgstr "Klicken"
@@ -54679,6 +54635,10 @@ msgid "Select Ring"
 msgstr "Ringauswahl"
 
 
+msgid "No edges selected"
+msgstr "Keine Kante ausgewählt"
+
+
 msgid "Vertex select - Shift-Click for multiple modes, Ctrl-Click contracts selection"
 msgstr "Knotenauswahl - Umschalt-Klick für Mehrfachmodus, Strg-Klick erweitert die Auswahl"
 
@@ -54717,10 +54677,6 @@ msgstr "Keine Kante ausgewählt"
 
 msgid "No vertex selected"
 msgstr "Keine Ecke ausgewählt"
-
-
-msgid "No edges selected"
-msgstr "Keine Kante ausgewählt"
 
 
 msgid "Invalid selection order"

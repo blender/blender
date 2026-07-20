@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Release Candidate (b'3d8c46ac31f4')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-13 07:34+0000\n"
+"POT-Creation-Date: 2026-07-20 07:29+0000\n"
 "PO-Revision-Date: 2025-07-23 15:19+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -523,6 +523,18 @@ msgid "Screen"
 msgstr "Οθόνη"
 
 
+msgid "Apply"
+msgstr "Εφαρμογή"
+
+
+msgid "Track"
+msgstr "Ανίχνευση"
+
+
+msgid "Make Single User"
+msgstr "Ορισμός Ενός Χρήστη"
+
+
 msgid "Merge"
 msgstr "Συγχώνευση"
 
@@ -531,16 +543,20 @@ msgid "Metaball"
 msgstr "Μετα-σφαίρα"
 
 
-msgid "Snap"
-msgstr "Προσκόλληση"
-
-
 msgid "Import"
 msgstr "Εισαγωγή"
 
 
+msgid "Snap"
+msgstr "Προσκόλληση"
+
+
 msgid "Mirror"
 msgstr "Καθρέφτισμα"
+
+
+msgid "Linked"
+msgstr "Συνδεδεμένο/α"
 
 
 msgid "Select Linked"
@@ -553,22 +569,6 @@ msgstr "Φως"
 
 msgid "Rigid Body"
 msgstr "Rigid Body"
-
-
-msgid "Apply"
-msgstr "Εφαρμογή"
-
-
-msgid "Track"
-msgstr "Ανίχνευση"
-
-
-msgid "Linked"
-msgstr "Συνδεδεμένο/α"
-
-
-msgid "Make Single User"
-msgstr "Ορισμός Ενός Χρήστη"
 
 
 msgid "Cache"
@@ -855,6 +855,10 @@ msgid "Join"
 msgstr "Ένωσε"
 
 
+msgid "Movie"
+msgstr "Βίντεο"
+
+
 msgctxt "Operator"
 msgid "Save"
 msgstr "Αποθήκευση"
@@ -1000,10 +1004,6 @@ msgstr "Ανάθεση"
 
 msgid "Esc"
 msgstr "Esc"
-
-
-msgid "Movie"
-msgstr "Βίντεο"
 
 
 msgid "Fields"

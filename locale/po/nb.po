@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Release Candidate (b'3d8c46ac31f4')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-13 07:34+0000\n"
+"POT-Creation-Date: 2026-07-20 07:29+0000\n"
 "PO-Revision-Date: 2026-01-30 13:12+0000\n"
 "Last-Translator: Martin Hansen <martini-141@users.noreply.translate.blender.org>\n"
 "Language-Team: Norwegian Bokmål <https://translate.blender.org/projects/blender-ui/ui/nb_NO/>\n"
@@ -2505,56 +2505,28 @@ msgid "Point"
 msgstr "Punkt"
 
 
-msgid "Attribute on point"
-msgstr "Egenskapen på punkt"
-
-
 msgid "Edge"
 msgstr "Kant"
-
-
-msgid "Attribute on mesh edge"
-msgstr "Egenskap på maskenett kanten"
 
 
 msgid "Face"
 msgstr "Sideflate"
 
 
-msgid "Attribute on mesh faces"
-msgstr "Egenskap på maskenett sideflata"
-
-
 msgid "Face Corner"
 msgstr "Sideflate kanter"
-
-
-msgid "Attribute on mesh face corner"
-msgstr "Egenskap på maskenett sideflate kanter"
 
 
 msgid "Spline"
 msgstr "Spline"
 
 
-msgid "Attribute on spline"
-msgstr "Egenskap på spline"
-
-
 msgid "Instance"
 msgstr "Instans"
 
 
-msgid "Attribute on instance"
-msgstr "Egenskap på instans"
-
-
 msgid "Layer"
 msgstr "Lag"
-
-
-msgid "Attribute on Grease Pencil layer"
-msgstr "Egenskap på Grease Pencil lag"
 
 
 msgid "Is Internal"

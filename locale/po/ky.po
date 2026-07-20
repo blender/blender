@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Release Candidate (b'3d8c46ac31f4')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-13 07:34+0000\n"
+"POT-Creation-Date: 2026-07-20 07:29+0000\n"
 "PO-Revision-Date: 2025-07-23 15:20+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Kyrgyz <https://translate.blender.org/projects/blender-ui/ui/ky/>\n"
@@ -1298,20 +1298,20 @@ msgid "Mask Layers"
 msgstr "Маска каттары"
 
 
+msgid "Apply"
+msgstr "Колдонуу"
+
+
 msgid "Import"
 msgstr "Импорттоо"
-
-
-msgid "Mirror"
-msgstr "Чагылтуу"
 
 
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Apply"
-msgstr "Колдонуу"
+msgid "Mirror"
+msgstr "Чагылтуу"
 
 
 msgid "Tracking"
@@ -2339,6 +2339,10 @@ msgid "Refresh Sequencer"
 msgstr "Секвенсорду жаңылоо"
 
 
+msgid "Movie"
+msgstr "Тасма"
+
+
 msgid "Effect"
 msgstr "Эффект"
 
@@ -2849,10 +2853,6 @@ msgid "Selected Marker"
 msgstr "Тандалган маркер"
 
 
-msgid "Selected File"
-msgstr "Тандалган файл"
-
-
 msgid "Font Style"
 msgstr "Арип стили"
 
@@ -3326,10 +3326,6 @@ msgstr "Hex"
 
 msgid "OK"
 msgstr "ООБА"
-
-
-msgid "Movie"
-msgstr "Тасма"
 
 
 msgid "Zoom in"

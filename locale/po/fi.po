@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Release Candidate (b'3d8c46ac31f4')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-13 07:34+0000\n"
+"POT-Creation-Date: 2026-07-20 07:29+0000\n"
 "PO-Revision-Date: 2026-04-06 09:16+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -1339,56 +1339,28 @@ msgid "Point"
 msgstr "Piste"
 
 
-msgid "Attribute on point"
-msgstr "Attribuutti pisteessä"
-
-
 msgid "Edge"
 msgstr "Reuna"
-
-
-msgid "Attribute on mesh edge"
-msgstr "Attribuutti muodon reunalla"
 
 
 msgid "Face"
 msgstr "Tahko"
 
 
-msgid "Attribute on mesh faces"
-msgstr "Attribuutti muodon tahkolla"
-
-
 msgid "Face Corner"
 msgstr "Tahkon kulma"
-
-
-msgid "Attribute on mesh face corner"
-msgstr "Attribuutti muodon tahkon kulmalla"
 
 
 msgid "Spline"
 msgstr "Splini"
 
 
-msgid "Attribute on spline"
-msgstr "Attribuutti splinillä"
-
-
 msgid "Instance"
 msgstr "Instanssi"
 
 
-msgid "Attribute on instance"
-msgstr "Attribuutti instanssissa"
-
-
 msgid "Layer"
 msgstr "Taso"
-
-
-msgid "Attribute on Grease Pencil layer"
-msgstr "Attribuutti öljykynätasolla"
 
 
 msgid "Is Internal"
@@ -7236,24 +7208,36 @@ msgid "ID Type"
 msgstr "ID-tyyppi"
 
 
+msgid "Track"
+msgstr "Raide"
+
+
 msgid "Show/Hide"
 msgstr "Näytä/Piilota"
 
 
-msgid "Metaball"
-msgstr "Metapallo"
+msgid "Hooks"
+msgstr "Koukut"
+
+
+msgid "Random Mask"
+msgstr "Satunnainen maski"
 
 
 msgid "Math"
 msgstr "Matematiikka"
 
 
+msgid "Utilities"
+msgstr "Työkalut"
+
+
 msgid "Names"
 msgstr "Nimet"
 
 
-msgid "Utilities"
-msgstr "Työkalut"
+msgid "Mesh Select Mode"
+msgstr "Muodon valintatila"
 
 
 msgid "Read"
@@ -7268,8 +7252,16 @@ msgid "Instances"
 msgstr "Instanssit"
 
 
+msgid "Metaball"
+msgstr "Metapallo"
+
+
 msgid "Import"
 msgstr "Tuo"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "UV Mapping"
@@ -7280,16 +7272,16 @@ msgid "Select More/Less"
 msgstr "Valitse enemmän/vähemmän"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Select Similar"
 msgstr "Valitse samankaltainen"
 
 
 msgid "Select All by Trait"
 msgstr "Valitse kaikki piirteen mukaan"
+
+
+msgid "Linked"
+msgstr "Linkitetyt"
 
 
 msgid "Select Loops"
@@ -7306,26 +7298,6 @@ msgstr "Valoluotain"
 
 msgid "Add Image"
 msgstr "Lisää kuva"
-
-
-msgid "Track"
-msgstr "Raide"
-
-
-msgid "Linked"
-msgstr "Linkitetyt"
-
-
-msgid "Hooks"
-msgstr "Koukut"
-
-
-msgid "Random Mask"
-msgstr "Satunnainen maski"
-
-
-msgid "Mesh Select Mode"
-msgstr "Muodon valintatila"
 
 
 msgid "Basic"
@@ -7373,6 +7345,10 @@ msgid "Generate"
 msgstr "Luo"
 
 
+msgid "Save & Load"
+msgstr "Tallenna & lataa"
+
+
 msgid "Change"
 msgstr "Muuta"
 
@@ -7403,10 +7379,6 @@ msgstr "Uusi tiedosto"
 
 msgid "Help"
 msgstr "Auta"
-
-
-msgid "Save & Load"
-msgstr "Tallenna & lataa"
 
 
 msgctxt "Operator"
@@ -11146,10 +11118,6 @@ msgid "Summary"
 msgstr "Yhteenveto"
 
 
-msgid "Selected File"
-msgstr "Valittu Tiedosto"
-
-
 msgid "Font Style"
 msgstr "Fontin Tyyli"
 
@@ -14177,6 +14145,10 @@ msgid "Close"
 msgstr "Sulje"
 
 
+msgid "No edges selected"
+msgstr "Ei valittuja reunoja"
+
+
 msgid "No face selected"
 msgstr "Ei valittua tahkoa"
 
@@ -14187,10 +14159,6 @@ msgstr "Ei valittua reunaa"
 
 msgid "No vertex selected"
 msgstr "Ei valittua kärkeä"
-
-
-msgid "No edges selected"
-msgstr "Ei valittuja reunoja"
 
 
 msgid "No selected vertex"
@@ -15951,6 +15919,18 @@ msgid "Element"
 msgstr "Elementti"
 
 
+msgid "Delta Time"
+msgstr "Delta-aika"
+
+
+msgid "Grid 1"
+msgstr "Ruudukko 1"
+
+
+msgid "Grid 2"
+msgstr "Ruudukko 2"
+
+
 msgid "Texture coordinates from 0 to 1"
 msgstr "Tekstuurikoordinaatit välillä 0 ja 1"
 
@@ -16192,20 +16172,8 @@ msgid "Scale Mode"
 msgstr "Skaalaustila"
 
 
-msgid "Grid 1"
-msgstr "Ruudukko 1"
-
-
-msgid "Grid 2"
-msgstr "Ruudukko 2"
-
-
 msgid "Skip"
 msgstr "Ohita"
-
-
-msgid "Delta Time"
-msgstr "Delta-aika"
 
 
 msgid "Strings"

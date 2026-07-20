@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Release Candidate (b'3d8c46ac31f4')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-13 07:34+0000\n"
+"POT-Creation-Date: 2026-07-20 07:29+0000\n"
 "PO-Revision-Date: 2026-01-20 15:20+0000\n"
 "Last-Translator: golden dragon <trmhtk2@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
@@ -2237,6 +2237,14 @@ msgid "Grease Pencil Color"
 msgstr "Grease Pencil יאבצ"
 
 
+msgid "Apply"
+msgstr "לחה"
+
+
+msgid "Convert"
+msgstr "רמה"
+
+
 msgid "Face Data"
 msgstr "האפ ינותנ"
 
@@ -2245,16 +2253,8 @@ msgid "Mirror"
 msgstr "הארמ"
 
 
-msgid "Apply"
-msgstr "לחה"
-
-
 msgid "Layout"
 msgstr "הסירפ"
-
-
-msgid "Convert"
-msgstr "רמה"
 
 
 msgid "Proxy"
@@ -2275,10 +2275,6 @@ msgstr "הנשמ ףסוה"
 
 msgid "Effect Strip"
 msgstr "טקפא תעוצר"
-
-
-msgid "Movie Strip"
-msgstr "ואידיו תעוצר"
 
 
 msgid "Retiming"
@@ -2737,6 +2733,10 @@ msgid "To Current Frame"
 msgstr "תיחכונה תרגסמל"
 
 
+msgid "Movie"
+msgstr "טרס"
+
+
 msgctxt "Operator"
 msgid "Replace"
 msgstr "ףילחהל"
@@ -2972,6 +2972,10 @@ msgid "Movie"
 msgstr "טרס"
 
 
+msgid "Movie Strip"
+msgstr "ואידיו תעוצר"
+
+
 msgid "Lift"
 msgstr "יוליע"
 
@@ -3157,10 +3161,6 @@ msgstr ":לוחכ"
 
 msgid "Saturation:"
 msgstr ":היוור"
-
-
-msgid "Movie"
-msgstr "טרס"
 
 
 msgid "Sort By:"

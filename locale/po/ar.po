@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Release Candidate (b'3d8c46ac31f4')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-13 07:34+0000\n"
+"POT-Creation-Date: 2026-07-20 07:29+0000\n"
 "PO-Revision-Date: 2025-07-23 14:53+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -1400,6 +1400,10 @@ msgid "Particles"
 msgstr "ﺕﺎﺌﻳﺰﺟ"
 
 
+msgid "Project"
+msgstr "ﻂﻘﺳﺍ"
+
+
 msgid "Screens"
 msgstr "ﺕﺎﺷﺎﺸﻟﺍ"
 
@@ -1418,6 +1422,10 @@ msgstr "ﺔﺨﺴﻧ"
 
 msgid "Window Managers"
 msgstr "ﺓﺬﻓﺎﻨﻟﺍ ءﺍﺭﺪﻣ"
+
+
+msgid "Dirty"
+msgstr "ﺔﺨﺳﻭ"
 
 
 msgid "Blender RNA"
@@ -4551,10 +4559,6 @@ msgstr "ﺢﻄﺳ ﺔﻄﻘﻧ ﺏﺮﻗﺍ"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "ﻑﺪﻬﻠﻟ ﺢﻄﺳ ﺏﺮﻗﻻ﻿ ﻊﻗﻮﻤﻟﺍ ﺺﻠﻗ"
-
-
-msgid "Project"
-msgstr "ﻂﻘﺳﺍ"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -10445,10 +10449,6 @@ msgid "Generated image width"
 msgstr "ﺪﻟّﻮﻣ ﺓﺭﻮﺻ ﺽﺮﻋ"
 
 
-msgid "Dirty"
-msgstr "ﺔﺨﺳﻭ"
-
-
 msgid "Image has changed and is not saved"
 msgstr "ﺔﻇﻮﻔﺤﻣ ﺮﻴﻏ ﻭ ﺔﻟﺪﻌﻣ ﺓﺭﻮﺼﻟﺍ"
 
@@ -15656,6 +15656,42 @@ msgid "Material slot name"
 msgstr "ﺔﻣﺎﺨﻟﺍ ﺔﺤﺘﻓ ﻢﺳﺇ"
 
 
+msgid "Apply"
+msgstr "ﻖﺒﻃ"
+
+
+msgid "Track"
+msgstr "ﺐﻘّﻌﺗ"
+
+
+msgid "Quick Effects"
+msgstr "ﺔﻌﻳﺮﺳ ﺕﺍﺮﻴﺛﺄﺗ"
+
+
+msgid "Make Single User"
+msgstr "ﻡﺪﺨﺘﺴﻤﻟﺍ ﺪﻴﺣﻭ ﻪﻠﻌﺟﺍ"
+
+
+msgid "Hooks"
+msgstr "ﺕﺎﻓﺎﻄﺧ"
+
+
+msgid "Math"
+msgstr "ﺏﺎﺴﺣ"
+
+
+msgid "In-Betweens"
+msgstr "ﻦﻴﺑ ﺎﻣ"
+
+
+msgid "Propagate"
+msgstr "ﻢﻤﻋ"
+
+
+msgid "Names"
+msgstr "ءﺎﻤﺳﺃ"
+
+
 msgid "Face Data"
 msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
 
@@ -15672,16 +15708,16 @@ msgid "Metaball"
 msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
 
 
-msgid "Math"
-msgstr "ﺏﺎﺴﺣ"
-
-
-msgid "Names"
-msgstr "ءﺎﻤﺳﺃ"
+msgid "Import"
+msgstr "ﺩﺭﻮﺘﺳﺇ"
 
 
 msgid "Bone Roll"
 msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
+
+
+msgid "UV"
+msgstr "ﺭﻭﺎﺤﻣ"
 
 
 msgid "Snap"
@@ -15690,10 +15726,6 @@ msgstr "ﻱﺫﺎﺣ"
 
 msgid "Proportional Editing Falloff"
 msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
-
-
-msgid "Import"
-msgstr "ﺩﺭﻮﺘﺳﺇ"
 
 
 msgid "Mirror"
@@ -15720,10 +15752,6 @@ msgid "Select More/Less"
 msgstr "ﻞﻗﺍ/ﺮﺜﻛﺍ ﺭﺎﻴﺘﺧﺍ"
 
 
-msgid "UV"
-msgstr "ﺭﻭﺎﺤﻣ"
-
-
 msgid "Select Similar"
 msgstr "ﻞﺛﺎﻤﻤﻟﺍ ﺮﺘﺧﺇ"
 
@@ -15732,8 +15760,20 @@ msgid "Select All by Trait"
 msgstr "ﺔﻤﺴﻟﺍ ﺐﺴﺣ ﻞﻛ ﺭﺎﻴﺘﺧﺍ"
 
 
+msgid "Layout"
+msgstr "ﻖﻴﺴﻨﺗ"
+
+
 msgid "Select Linked"
 msgstr "ﺔﻄﺒﺗﺮﻤﻟﺍ ﺭﺎﺘﺧﺇ"
+
+
+msgid "Keying"
+msgstr "ﺺﺤﻔﻟﺍ"
+
+
+msgid "Tracking"
+msgstr "ﺔﻘﺣﻼ﻿ﻤﻟﺍ"
 
 
 msgid "Light"
@@ -15746,46 +15786,6 @@ msgstr "ﺕﺎﻗﻼ﻿ﻌﻟﺍ"
 
 msgid "Rigid Body"
 msgstr "ﻞﻋﺎﻔﺘﻣ ﻢﺴﺟ"
-
-
-msgid "Apply"
-msgstr "ﻖﺒﻃ"
-
-
-msgid "Track"
-msgstr "ﺐﻘّﻌﺗ"
-
-
-msgid "Quick Effects"
-msgstr "ﺔﻌﻳﺮﺳ ﺕﺍﺮﻴﺛﺄﺗ"
-
-
-msgid "Layout"
-msgstr "ﻖﻴﺴﻨﺗ"
-
-
-msgid "Make Single User"
-msgstr "ﻡﺪﺨﺘﺴﻤﻟﺍ ﺪﻴﺣﻭ ﻪﻠﻌﺟﺍ"
-
-
-msgid "Hooks"
-msgstr "ﺕﺎﻓﺎﻄﺧ"
-
-
-msgid "Keying"
-msgstr "ﺺﺤﻔﻟﺍ"
-
-
-msgid "Tracking"
-msgstr "ﺔﻘﺣﻼ﻿ﻤﻟﺍ"
-
-
-msgid "In-Betweens"
-msgstr "ﻦﻴﺑ ﺎﻣ"
-
-
-msgid "Propagate"
-msgstr "ﻢﻤﻋ"
 
 
 msgctxt "MovieClip"
@@ -26308,8 +26308,8 @@ msgid "Linked Time"
 msgstr "ﻂﺒﺗﺮﻤﻟﺍ ﻦﻣﺰﻟﺍ"
 
 
-msgid "Shared strip effect type (if active strip is not an effect one, select all non-effect strips)"
-msgstr "(ﺕﺍﺮﺛﺆﻤﻟﺍ ﺮﻴﻏ ﻂﺋﺍﺮﺸﻟﺍ ﻞﻛ ﺮﺘﺧﺍ ,ﺕﺍﺮﺛﺆﻣ ﻂﻳﺮﺷ ﺲﻴﻟ ﻝﺎﻌﻔﻟﺍ ﻂﻳﺮﺸﻟﺍ ﻥﺎﻛ ﺍﺫﺍ) ﻙﺮﺘﺸﻤﻟﺍ ﻂﻳﺮﺸﻟﺍ ﺮﻴﺛﺄﺗ ﻉﻮﻧ"
+msgid "Movie"
+msgstr "ﻢﻠﻔﻟﺍ"
 
 
 msgctxt "Operator"
@@ -30997,10 +30997,6 @@ msgid "Slider Max"
 msgstr "ﺔﻘﻟﺰﻤﻟﺍ ﻰﺼﻗﺍ"
 
 
-msgid "Maximum for slider"
-msgstr "ﺔﻘﻟﺰﻤﻟﺍ ﻰﺼﻗﺍ"
-
-
 msgid "Value of shape key at the current frame"
 msgstr "ﻲﻟﺎﺤﻟﺍ ﺭﺎﻃﻹ﻿ﺍ ﺪﻨﻋ ﻞﻜﺸﻟﺍ ﺡﺎﺘﻔﻣ ﺔﻤﻴﻗ"
 
@@ -32146,10 +32142,6 @@ msgstr "ﺔﺼﺨﻠﻤﻟﺍ ﺓﺎﻨﻗ ﻥﻮﻟ"
 
 msgid "Theme settings for the File Browser"
 msgstr "ﺕﺎﻔﻠﻤﻟﺍ ﺢﻔﺼﺘﻤﻟ ﻂﻤﻨﻟﺍ ﺕﺍﺩﺍﺪﻋﺇ"
-
-
-msgid "Selected File"
-msgstr "ﺭﺎﺘﺨﻤﻟﺍ ﻒﻠﻤﻟﺍ"
 
 
 msgid "Font Style"
@@ -35304,10 +35296,6 @@ msgid "OK"
 msgstr "ﺎﻨﺴﺣ"
 
 
-msgid "Movie"
-msgstr "ﻢﻠﻔﻟﺍ"
-
-
 msgid "Delete the active position"
 msgstr "ﻲﻟﺎﺤﻟﺍ ﻊﻗﻮﻤﻟﺍ ﻑﺬﺣﺍ"
 
@@ -35631,12 +35619,12 @@ msgid "You have to select a string of connected vertices too"
 msgstr "ﺔﻠﺼﺘﻤﻟﺍ UV ـﻟﺍ ﻂﻘﻧ ﻦﻣ ﻞﺴﻠﺴﺗ ﺮﺘﺧﺇ"
 
 
-msgid "Must be in vertex selection mode"
-msgstr "ﺔﻄﻘﻨﻟﺍ ﺭﺎﻴﺘﺧﺍ ﻊﺿﻭ ﻲﻓ ﻥﻮﻜﺗ ﻥﺍ ﺐﺠﻳ"
-
-
 msgid "No edges selected"
 msgstr "ﺓﺭﺎﺘﺨﻣ ﻑﺍﻮﺣ ﺪﺟﻮﻳ ﻻ﻿"
+
+
+msgid "Must be in vertex selection mode"
+msgstr "ﺔﻄﻘﻨﻟﺍ ﺭﺎﻴﺘﺧﺍ ﻊﺿﻭ ﻲﻓ ﻥﻮﻜﺗ ﻥﺍ ﺐﺠﻳ"
 
 
 msgid "Invalid selection order"

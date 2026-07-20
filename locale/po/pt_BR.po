@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Release Candidate (b'3d8c46ac31f4')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-07-13 07:34+0000\n"
+"POT-Creation-Date: 2026-07-20 07:29+0000\n"
 "PO-Revision-Date: 2026-04-13 10:12+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -1981,56 +1981,28 @@ msgid "Point"
 msgstr "Pontos"
 
 
-msgid "Attribute on point"
-msgstr "Atributo no ponto"
-
-
 msgid "Edge"
 msgstr "Arestas"
-
-
-msgid "Attribute on mesh edge"
-msgstr "Atributo na aresta da malha"
 
 
 msgid "Face"
 msgstr "Faces"
 
 
-msgid "Attribute on mesh faces"
-msgstr "Atributo em faces de malha"
-
-
 msgid "Face Corner"
 msgstr "Canto da Face"
-
-
-msgid "Attribute on mesh face corner"
-msgstr "Atributo no canto da face da malha"
 
 
 msgid "Spline"
 msgstr "Spline"
 
 
-msgid "Attribute on spline"
-msgstr "Atributo na curva"
-
-
 msgid "Instance"
 msgstr "Instância"
 
 
-msgid "Attribute on instance"
-msgstr "Atributo na instância"
-
-
 msgid "Layer"
 msgstr "Camadas"
-
-
-msgid "Attribute on Grease Pencil layer"
-msgstr "Atributo na camada Grease Pencil"
 
 
 msgid "Is Internal"
@@ -2745,6 +2717,10 @@ msgid "Point cloud data-blocks"
 msgstr "Blocos de dados na nuvem de pontos"
 
 
+msgid "Project"
+msgstr "Projetar"
+
+
 msgid "Scene data-blocks"
 msgstr "Blocos de dados de cenas"
 
@@ -3044,6 +3020,10 @@ msgstr "Coleção de mundos"
 msgctxt "ID"
 msgid "ID Type"
 msgstr "Tipo de identificador"
+
+
+msgid "Dirty"
+msgstr "Incongruente"
 
 
 msgid "Blender RNA"
@@ -6645,10 +6625,6 @@ msgstr "Pontos mais próximos da superfície"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "Encolhe a localização para as superfícies mais próximas do alvo."
-
-
-msgid "Project"
-msgstr "Projetar"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -13786,10 +13762,6 @@ msgstr "Possui dados"
 
 msgid "True if the image data is loaded into memory"
 msgstr "Verdadeiro caso os dados da imagem estejam carregados na memória."
-
-
-msgid "Dirty"
-msgstr "Incongruente"
 
 
 msgid "Image has changed and is not saved"
@@ -21188,20 +21160,88 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Face Data"
-msgstr "Dados das faces"
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Track"
+msgstr "Rastrear"
+
+
+msgid "Quick Effects"
+msgstr "Efeitos instantâneos"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
 
 
 msgid "Clean Up"
 msgstr "Limpeza"
 
 
+msgid "Make Single User"
+msgstr "Tornar usuário único"
+
+
+msgid "Convert"
+msgstr "Converter"
+
+
+msgid "Hooks"
+msgstr "Ganchos"
+
+
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
+
+
+msgid "Math"
+msgstr "Matemática"
+
+
+msgid "Clear Transform"
+msgstr "Limpar transformações"
+
+
+msgid "In-Betweens"
+msgstr "Entre as continuidades"
+
+
+msgid "Propagate"
+msgstr "Propagar"
+
+
+msgid "Names"
+msgstr "Nomes"
+
+
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
+
+
+msgid "Enable Bone Options"
+msgstr "Habilitar opções de ossos"
+
+
+msgid "Disable Bone Options"
+msgstr "Desabilitar as opções de ossos"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de seleção de malhas"
+
+
+msgid "Face Data"
+msgstr "Dados das faces"
+
+
 msgid "Merge"
 msgstr "Fundir"
 
 
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
+msgid "Instances"
+msgstr "Instâncias"
 
 
 msgid "Special Characters"
@@ -21212,16 +21252,16 @@ msgid "Metaball"
 msgstr "Meta-esfera"
 
 
-msgid "Math"
-msgstr "Matemática"
-
-
-msgid "Names"
-msgstr "Nomes"
+msgid "Import"
+msgstr "Importar"
 
 
 msgid "Bone Roll"
 msgstr "Rolagem dos ossos"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Pivot Point"
@@ -21234,14 +21274,6 @@ msgstr "Atrair"
 
 msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Instances"
-msgstr "Instâncias"
-
-
-msgid "Import"
-msgstr "Importar"
 
 
 msgid "Mirror"
@@ -21280,10 +21312,6 @@ msgid "Select More/Less"
 msgstr "Selecionar mais ou menos"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Select Similar"
 msgstr "Selecionar por similaridades"
 
@@ -21292,12 +21320,28 @@ msgid "Select All by Trait"
 msgstr "Selecionar todos por características..."
 
 
+msgid "Linked"
+msgstr "Vinculando"
+
+
+msgid "Layout"
+msgstr "Organizar"
+
+
 msgid "Select Linked"
 msgstr "Selecionar vinculados(as)"
 
 
 msgid "Select Loops"
 msgstr "Selecionar anéis"
+
+
+msgid "Keying"
+msgstr "Inserção de chaves"
+
+
+msgid "Tracking"
+msgstr "Rastreamento"
 
 
 msgid "Light"
@@ -21318,78 +21362,6 @@ msgstr "Relações"
 
 msgid "Rigid Body"
 msgstr "Corpo rígido"
-
-
-msgid "Apply"
-msgstr "Aplicar"
-
-
-msgid "Track"
-msgstr "Rastrear"
-
-
-msgid "Quick Effects"
-msgstr "Efeitos instantâneos"
-
-
-msgid "Linked"
-msgstr "Vinculando"
-
-
-msgid "Layout"
-msgstr "Organizar"
-
-
-msgid "Make Single User"
-msgstr "Tornar usuário único"
-
-
-msgid "Convert"
-msgstr "Converter"
-
-
-msgid "Hooks"
-msgstr "Ganchos"
-
-
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
-
-
-msgid "Tracking"
-msgstr "Rastreamento"
-
-
-msgid "Clear Transform"
-msgstr "Limpar transformações"
-
-
-msgid "In-Betweens"
-msgstr "Entre as continuidades"
-
-
-msgid "Propagate"
-msgstr "Propagar"
-
-
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
-
-
-msgid "Enable Bone Options"
-msgstr "Habilitar opções de ossos"
-
-
-msgid "Disable Bone Options"
-msgstr "Desabilitar as opções de ossos"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de seleção de malhas"
 
 
 msgid "Basic"
@@ -21545,10 +21517,6 @@ msgstr "Entradas"
 
 msgid "Lock/Mute"
 msgstr "Bloquear ou tornar mudo"
-
-
-msgid "Movie Strip"
-msgstr "Faixa de filme"
 
 
 msgid "Texture Specials"
@@ -40260,10 +40228,6 @@ msgid "From Mix"
 msgstr "A partir da mistura"
 
 
-msgid "Create the new shape key from the existing mix of keys"
-msgstr "Cria a nova chave de formato a partir da mistura de chaves existentes."
-
-
 msgctxt "Operator"
 msgid "Clear Shape Keys"
 msgstr "Limpar chave de formato"
@@ -40278,10 +40242,6 @@ msgid "Mirror Shape Key"
 msgstr "Espelhar chave de formato"
 
 
-msgid "Mirror the current shape key along the local X axis"
-msgstr "Espelha a chave de formato atual ao longo do eixo local X."
-
-
 msgctxt "Operator"
 msgid "Move Shape Key"
 msgstr "Mover chave de formato"
@@ -40290,10 +40250,6 @@ msgstr "Mover chave de formato"
 msgctxt "Operator"
 msgid "Remove Shape Key"
 msgstr "Remover chave de formato"
-
-
-msgid "Remove shape key from the object"
-msgstr "Remove a chave de formato a partir do objeto."
 
 
 msgid "Remove all shape keys"
@@ -44101,6 +44057,10 @@ msgid "Set Render Size"
 msgstr "Configurar tamanho de renderização"
 
 
+msgid "Markers"
+msgstr "Marcadores"
+
+
 msgid "Use mouse to sample color in current frame"
 msgstr "Usa o mouse para obter uma amostra de cor no quadro atual."
 
@@ -44134,56 +44094,20 @@ msgid "Select or deselect all strips"
 msgstr "Seleciona ou de-seleciona todas as faixas."
 
 
-msgid "Select all strips grouped by various properties"
-msgstr "Seleciona todas as faixas agrupadas por diversas propriedades."
-
-
-msgid "Shared strip type"
-msgstr "Seleciona as faixas que compartilham a mesma trilha."
-
-
-msgid "Global Type"
-msgstr "Tipo global"
-
-
-msgid "Shared strip effect type (if active strip is not an effect one, select all non-effect strips)"
-msgstr "Seleciona faixas que compartilhem o mesmo efeito (caso a faixa ativa não seja do tipo efeito, seleciona todas as faixas que não são referentes a efeitos)."
-
-
-msgid "Shared data (scene, image, sound, etc.)"
-msgstr "Faixas que possuam dados compartilhados (cenas, imagens, sons, etc.)"
+msgid "Movie"
+msgstr "Filme"
 
 
 msgid "Effect"
 msgstr "Efeitos"
 
 
-msgid "Shared effects"
-msgstr "Faixas que possuam efeitos compartilhados"
-
-
-msgid "Effect/Linked"
-msgstr "Efeitos e vínculos"
-
-
-msgid "Other strips affected by the active one (sharing some time, and below or effect-assigned)"
-msgstr "Outras faixas afetadas pela que está ativa, compartilhando algum tempo, que estejam abaixo desta ou com efeito atribuído."
-
-
-msgid "Overlap"
-msgstr "Interposições"
-
-
-msgid "Overlapping time"
-msgstr "Seleciona as faixas em que haja espaços de tempos interpostos."
-
-
 msgid "Same Channel"
 msgstr "Mesmos canais "
 
 
-msgid "Only consider strips on the same channel as the active one"
-msgstr "Considera somente as faixas que estão no mesmo canal que a faixa ativa."
+msgid "Select all strips grouped by various properties"
+msgstr "Seleciona todas as faixas agrupadas por diversas propriedades."
 
 
 msgctxt "Operator"
@@ -53625,10 +53549,6 @@ msgid "Individual Origins"
 msgstr "Origens individuais"
 
 
-msgid "Markers"
-msgstr "Marcadores"
-
-
 msgid "Factor of Blur"
 msgstr "Fator de Desfoque"
 
@@ -53693,16 +53613,8 @@ msgid "Slider Max"
 msgstr "Máximo do deslizador"
 
 
-msgid "Maximum for slider"
-msgstr "Máximo para o deslizador."
-
-
 msgid "Slider Min"
 msgstr "Mínimo do deslizador"
-
-
-msgid "Minimum for slider"
-msgstr "Mínimo para o deslizador."
 
 
 msgid "Value of shape key at the current frame"
@@ -55925,6 +55837,10 @@ msgid "Use the undistorted version of the clip"
 msgstr "Usa a versão não distorcida do clipe."
 
 
+msgid "Movie Strip"
+msgstr "Faixa de filme"
+
+
 msgid "Sequence strip to load a video"
 msgstr "Faixa de sequência para carregar um vídeo."
 
@@ -56959,10 +56875,6 @@ msgstr "Tema - Navegador de arquivos"
 
 msgid "Theme settings for the File Browser"
 msgstr "Configurações de tema para o navegador de arquivos."
-
-
-msgid "Selected File"
-msgstr "Arquivo selecionado"
 
 
 msgid "Font Style"
@@ -59510,6 +59422,10 @@ msgid "Square"
 msgstr "Quadrado"
 
 
+msgid "Overlap"
+msgstr "Interposições"
+
+
 msgid "Holes"
 msgstr "Aberturas"
 
@@ -60519,6 +60435,11 @@ msgstr "Atualizar Tudo"
 
 
 msgctxt "Operator"
+msgid "Select All by Type"
+msgstr "Selecionar Todos por Tipo"
+
+
+msgctxt "Operator"
 msgid "Path/Files"
 msgstr "Caminho/Arquivos"
 
@@ -60581,11 +60502,6 @@ msgstr "Alterar caminhos e / ou arquivos"
 msgctxt "Operator"
 msgid "Swap Data"
 msgstr "Trocar dados"
-
-
-msgctxt "Operator"
-msgid "Slip Strip Contents"
-msgstr "Deslizar os conteúdos da faixa"
 
 
 msgid "Raw"
@@ -60679,6 +60595,11 @@ msgstr "Incandescência"
 msgctxt "Operator"
 msgid "Gaussian Blur"
 msgstr "Desfoque gaussiano"
+
+
+msgctxt "Operator"
+msgid "Slip Strip Contents"
+msgstr "Deslizar os conteúdos da faixa"
 
 
 msgctxt "Operator"
@@ -61219,11 +61140,6 @@ msgstr "Estender às crianças"
 msgctxt "Operator"
 msgid "Select Active Camera"
 msgstr "Seleciona a Câmera Ativa"
-
-
-msgctxt "Operator"
-msgid "Select All by Type"
-msgstr "Selecionar Todos por Tipo"
 
 
 msgctxt "Operator"
@@ -63267,10 +63183,6 @@ msgid "(Shift-Click/Drag to select multiple)"
 msgstr "(Use Shift + clique ou arraste para múltipla seleção)"
 
 
-msgid "Movie"
-msgstr "Filme"
-
-
 msgctxt "Operator"
 msgid "Click"
 msgstr "Clicar"
@@ -63728,6 +63640,10 @@ msgid "Path selection requires two matching elements to be selected"
 msgstr "Seleção de caminho requer que dois elementos que combinem sejam selecionados."
 
 
+msgid "No edges selected"
+msgstr "Sem arestas selecionadas."
+
+
 msgid "Cannot rip multiple disconnected vertices"
 msgstr "Não é possível romper múltiplos vértices desconectados."
 
@@ -63758,10 +63674,6 @@ msgstr "Necessário estar no modo de seleção de vértices para esta operação
 
 msgid "No weights/vertex groups on object"
 msgstr "Sem grupos de vértices ou grupos de pesos de influência no objeto."
-
-
-msgid "No edges selected"
-msgstr "Sem arestas selecionadas."
 
 
 msgid "Invalid selection order"

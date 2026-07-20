@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Release Candidate (b'3d8c46ac31f4')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-13 07:34+0000\n"
+"POT-Creation-Date: 2026-07-20 07:29+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -1148,6 +1148,22 @@ msgid "ID Type"
 msgstr "ID тип"
 
 
+msgid "Apply"
+msgstr "Прилагане"
+
+
+msgid "Make Single User"
+msgstr "Направи с Единствен Потребител"
+
+
+msgid "Hooks"
+msgstr "Куки"
+
+
+msgid "In-Betweens"
+msgstr "Междинни Кадри"
+
+
 msgid "Merge"
 msgstr "Слей"
 
@@ -1166,22 +1182,6 @@ msgstr "Светлина"
 
 msgid "Rigid Body"
 msgstr "Твърдо тяло"
-
-
-msgid "Apply"
-msgstr "Прилагане"
-
-
-msgid "Make Single User"
-msgstr "Направи с Единствен Потребител"
-
-
-msgid "Hooks"
-msgstr "Куки"
-
-
-msgid "In-Betweens"
-msgstr "Междинни Кадри"
 
 
 msgid "Cache"
@@ -1830,6 +1830,10 @@ msgid "Copy"
 msgstr "Копиране"
 
 
+msgid "Movie"
+msgstr "Преместване"
+
+
 msgctxt "Operator"
 msgid "Add Surface Circle"
 msgstr "Добави Повърхностен Кръг"
@@ -2290,10 +2294,6 @@ msgstr "Запълненост:"
 
 msgid "OK"
 msgstr "ОК"
-
-
-msgid "Movie"
-msgstr "Преместване"
 
 
 msgid "Stop this job"

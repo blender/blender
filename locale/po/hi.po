@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Release Candidate (b'3d8c46ac31f4')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-13 07:34+0000\n"
+"POT-Creation-Date: 2026-07-20 07:29+0000\n"
 "PO-Revision-Date: 2025-12-04 22:18+0000\n"
 "Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -554,6 +554,10 @@ msgstr "चित्रपट"
 
 msgid "Window Managers"
 msgstr "खिडकी प्रबंधक"
+
+
+msgid "Dirty"
+msgstr "गंदे"
 
 
 msgid "Goal"
@@ -1909,10 +1913,6 @@ msgid "Generated image width"
 msgstr "उत्पन्न छवि चौड़ाई"
 
 
-msgid "Dirty"
-msgstr "गंदे"
-
-
 msgid "Single image file"
 msgstr "एक छवि संचिका"
 
@@ -2586,50 +2586,6 @@ msgid "Placement"
 msgstr "नियोजन"
 
 
-msgid "Merge"
-msgstr "विलय करें"
-
-
-msgid "Show/Hide"
-msgstr "छुपाएँ / दिखाएँ"
-
-
-msgid "Math"
-msgstr "गणित"
-
-
-msgid "Names"
-msgstr "नाम"
-
-
-msgid "Bone Roll"
-msgstr "हड्डी पंजी"
-
-
-msgid "Snap"
-msgstr "स्नैप"
-
-
-msgid "Import"
-msgstr "आयात करें"
-
-
-msgid "Mirror"
-msgstr "दर्पण"
-
-
-msgid "UV"
-msgstr "यूवी"
-
-
-msgid "Light"
-msgstr "प्रकाश"
-
-
-msgid "Rigid Body"
-msgstr "कठोर-पदार्थ"
-
-
 msgid "Apply"
 msgstr "लागू करें"
 
@@ -2642,6 +2598,10 @@ msgid "Quick Effects"
 msgstr "त्वरित प्रभाव"
 
 
+msgid "Show/Hide"
+msgstr "छुपाएँ / दिखाएँ"
+
+
 msgid "Make Single User"
 msgstr "एकल प्रयोक्ता बनाएँ"
 
@@ -2650,8 +2610,12 @@ msgid "Hooks"
 msgstr "खूँटी"
 
 
-msgid "Keying"
-msgstr "कुंजीयन"
+msgid "Math"
+msgstr "गणित"
+
+
+msgid "Names"
+msgstr "नाम"
 
 
 msgid "Toggle Bone Options"
@@ -2660,6 +2624,42 @@ msgstr "हड्डी विकल्प बंद/बुझ"
 
 msgid "Enable Bone Options"
 msgstr "हड्डी विकल्प को सक्षम करें"
+
+
+msgid "Merge"
+msgstr "विलय करें"
+
+
+msgid "Import"
+msgstr "आयात करें"
+
+
+msgid "Bone Roll"
+msgstr "हड्डी पंजी"
+
+
+msgid "UV"
+msgstr "यूवी"
+
+
+msgid "Snap"
+msgstr "स्नैप"
+
+
+msgid "Mirror"
+msgstr "दर्पण"
+
+
+msgid "Keying"
+msgstr "कुंजीयन"
+
+
+msgid "Light"
+msgstr "प्रकाश"
+
+
+msgid "Rigid Body"
+msgstr "कठोर-पदार्थ"
 
 
 msgid "Basic"
@@ -4109,6 +4109,10 @@ msgstr "प्रतिलिपि"
 msgctxt "Operator"
 msgid "Paste"
 msgstr "चिपकाएँ"
+
+
+msgid "Movie"
+msgstr "चलचित्र"
 
 
 msgid "Effect"
@@ -5870,10 +5874,6 @@ msgstr "हेक्स"
 
 msgid "OK"
 msgstr "ठीक है"
-
-
-msgid "Movie"
-msgstr "चलचित्र"
 
 
 msgid "Pos"
