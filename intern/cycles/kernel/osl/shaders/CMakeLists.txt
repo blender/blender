@@ -173,6 +173,11 @@ set(SRC_OSO
 
 )
 
+if(CMAKE_CROSSCOMPILING)
+  # Override the OSL compiler using the one from the host pre-compiled library directory.
+  set(OSL_COMPILER ${HOST_LIBDIR}/osl/bin/oslc)
+endif()
+
 # TODO, add a module to compile OSL
 foreach(_file ${SRC_OSL})
   set(_OSL_FILE ${CMAKE_CURRENT_SOURCE_DIR}/${_file})
