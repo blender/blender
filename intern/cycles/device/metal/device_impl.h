@@ -203,7 +203,7 @@ class MetalDevice : public Device {
   void image_copy_to(device_image &mem);
   void image_free(device_image &mem);
 
-  bool has_unified_memory() const override;
+  bool has_unified_memory_any() const override;
 
   void flush_delayed_free_list();
 
