@@ -93,6 +93,8 @@ struct LayoutRoot {
   const uiStyle *style;
   Block *block;
   Layout *layout;
+  /** Direction of #ItemType::LayoutRoot layouts, used for resolving the height of multi-line
+   * labels. */
   LayoutDirection direction;
   bool use_dynamic_height;
 };
@@ -597,7 +599,6 @@ LayoutDirection Layout::local_direction() const
 {
   switch (this->type()) {
     case ItemType::LayoutRoot:
-      return this->root_->direction;
     case ItemType::LayoutRow:
     case ItemType::LayoutOverlap:
     case ItemType::LayoutPanelHeader:
@@ -5745,9 +5746,11 @@ void Layout::resolve_dynamic_height()
 
   /* For simplicity a column is a grid of n rows and 1 columns, and a row is a grid of 1 rows and n
    * columns. */
-  int rows = this->local_direction() == LayoutDirection::Vertical ? this->items().size() : 1;
-  int cols = this->local_direction() == LayoutDirection::Horizontal ? this->items().size() : 1;
-  bool row_major = this->local_direction() == LayoutDirection::Vertical;
+  const LayoutDirection direction = this->type() == ItemType::LayoutRoot ? this->root_->direction :
+                                                                           this->local_direction();
+  int rows = direction == LayoutDirection::Vertical ? this->items().size() : 1;
+  int cols = direction == LayoutDirection::Horizontal ? this->items().size() : 1;
+  bool row_major = direction == LayoutDirection::Vertical;
 
   if (const LayoutItemGridFlow *flow = this->type() == ItemType::LayoutGridFlow ?
                                            static_cast<const LayoutItemGridFlow *>(this) :
