@@ -29,9 +29,7 @@
 
 #include "osd_patch_basis.glsl"
 
-/* Runtime create info. */
-GPU_SHADER_CREATE_INFO(osd_eval_stencils_comp)
-GPU_SHADER_CREATE_END()
+#include "infos/osd_eval_infos.hh"
 
 //------------------------------------------------------------------------------
 

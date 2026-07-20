@@ -60,8 +60,20 @@ static int CalligraphicShader___init__(BPy_CalligraphicShader *self,
   float f3[2];
   PyObject *obj4 = nullptr;
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "ddO&O!", (char **)kwlist, &d1, &d2, convert_v2, f3, &PyBool_Type, &obj4))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "d"  /* `thickness_min` */
+                                   "d"  /* `thickness_max` */
+                                   "O&" /* `orientation` */
+                                   "O!" /* `clamp` */
+                                   ":__init__",
+                                   (char **)kwlist,
+                                   &d1,
+                                   &d2,
+                                   convert_v2,
+                                   f3,
+                                   &PyBool_Type,
+                                   &obj4))
   {
     return -1;
   }

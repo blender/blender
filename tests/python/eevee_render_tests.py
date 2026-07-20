@@ -344,7 +344,7 @@ def main():
     elif args.gpu_backend == "opengl":
         blocklist += BLOCKLIST_OPENGL
 
-    gpu_vendor = render_report.get_gpu_device_vendor(args.blender)
+    gpu_vendor = render_report.get_gpu_device_vendor(args.blender, args.gpu_backend)
     if os.getenv("BLENDER_TEST_IGNORE_VENDOR_BLOCKLIST") is None:
         if gpu_vendor == "INTEL":
             blocklist += BLOCKLIST_INTEL

@@ -179,4 +179,5 @@ struct ShaderTestOutput {
   [[storage(0, write)]] TestOutput (&out_test)[];
 };
 
-#define TEST(a, b) if (true)
+/* Must be followed by semicolon to not confuse the BSL parser. */
+#define TEST(a, b)

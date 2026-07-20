@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'b2d38940ccd4')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-06 08:37+0000\n"
+"POT-Creation-Date: 2026-07-20 07:29+0000\n"
 "PO-Revision-Date: 2025-07-23 15:19+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -523,10 +523,6 @@ msgid "Screen"
 msgstr "Οθόνη"
 
 
-msgid "Rigid Body"
-msgstr "Rigid Body"
-
-
 msgid "Apply"
 msgstr "Εφαρμογή"
 
@@ -543,12 +539,12 @@ msgid "Merge"
 msgstr "Συγχώνευση"
 
 
-msgid "Import"
-msgstr "Εισαγωγή"
-
-
 msgid "Metaball"
 msgstr "Μετα-σφαίρα"
+
+
+msgid "Import"
+msgstr "Εισαγωγή"
 
 
 msgid "Snap"
@@ -569,6 +565,10 @@ msgstr "Επιλογή Συνδεδεμένων"
 
 msgid "Light"
 msgstr "Φως"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
 
 
 msgid "Cache"
@@ -855,6 +855,10 @@ msgid "Join"
 msgstr "Ένωσε"
 
 
+msgid "Movie"
+msgstr "Βίντεο"
+
+
 msgctxt "Operator"
 msgid "Save"
 msgstr "Αποθήκευση"
@@ -1000,10 +1004,6 @@ msgstr "Ανάθεση"
 
 msgid "Esc"
 msgstr "Esc"
-
-
-msgid "Movie"
-msgstr "Βίντεο"
 
 
 msgid "Fields"

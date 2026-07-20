@@ -154,7 +154,7 @@ bool retiming_keys_are_selected(const Scene *scene)
 bool retiming_is_allowed(const Strip *strip)
 {
   /* Note that this disallows non-sequence image strips. */
-  if (strip->len <= 1) {
+  if (strip->content_length() <= 1) {
     return false;
   }
 
@@ -209,7 +209,7 @@ float retiming_key_speed_get(const Strip *strip, const SeqRetimingKey *key)
 
   BLI_assert(retiming_key_index_get(strip, key) > 0);
   const SeqRetimingKey *key_prev = key - 1;
-  const int frame_index_max = strip->len;
+  const int frame_index_max = strip->content_length();
   const float frame_index_start = round_fl_to_int(key_prev->retiming_factor * frame_index_max);
   const float frame_index_end = round_fl_to_int(key->retiming_factor * frame_index_max);
   const float segment_content_frame_count = frame_index_end - frame_index_start;
@@ -229,7 +229,7 @@ static std::optional<float> retiming_key_new_frame_from_speed_get(const Scene *s
 
   const SeqRetimingKey *key_prev = key - 1;
 
-  const int frame_index_max = strip->len;
+  const int frame_index_max = strip->content_length();
   const float frame_index_prev = round_fl_to_int(key_prev->retiming_factor * frame_index_max);
   const float frame_index = round_fl_to_int(key->retiming_factor * frame_index_max);
 
@@ -360,7 +360,7 @@ void retiming_data_ensure(Strip *strip)
 
   strip->retiming_keys = MEM_new_array<SeqRetimingKey>(2, __func__);
   SeqRetimingKey *key = strip->retiming_keys + 1;
-  key->strip_frame_index = strip->len;
+  key->strip_frame_index = strip->content_length();
   key->retiming_factor = 1.0f;
   strip->retiming_keys_num = 2;
 }
@@ -1094,7 +1094,7 @@ class RetimingRange {
   {
     for (int frame = start; frame <= end; frame++) {
       /* We need number actual number of frames here. */
-      const double normal_step = 1 / double(strip->len - 1);
+      const double normal_step = 1 / double(strip->content_length() - 1);
 
       const int frame_index = frame - strip->content_start();
       /* Who needs calculus, when you can have slow code? */
@@ -1225,7 +1225,7 @@ void retiming_sound_animation_data_set(const Scene *scene, const Strip *strip)
   if (correct_pitch) {
     sound_handle = BKE_sound_ensure_time_stretch_effect(strip, scene_fps);
     BKE_sound_set_scene_sound_pitch_constant_range(
-        strip->runtime->scene_sound, 0, strip->start + strip->len, 1.0f);
+        strip->runtime->scene_sound, 0, strip->start + strip->content_length(), 1.0f);
   }
   else {
     strip->runtime->clear_sound_time_stretch();

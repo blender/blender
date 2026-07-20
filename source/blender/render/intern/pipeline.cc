@@ -74,6 +74,7 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 #include "IMB_metadata.hh"
+#include "IMB_partial_update.hh"
 
 #include "MOV_write.hh"
 
@@ -182,7 +183,7 @@ static bool do_write_image_or_movie(Render *re,
                                     const bool write_anim_or_still);
 
 /* default callbacks, set in each new render */
-static void result_rcti_nothing(void * /*arg*/, RenderResult * /*rr*/, rcti * /*rect*/) {}
+static void result_rcti_nothing(void * /*arg*/, RenderResult * /*rr*/) {}
 static void current_scene_nothing(void * /*arg*/, Scene * /*scene*/) {}
 static void float_nothing(void * /*arg*/, float /*val*/) {}
 static bool default_break(void * /*arg*/)
@@ -887,9 +888,7 @@ void RE_InitState(Render *re,
   RE_init_threadcount(re);
 }
 
-void RE_display_update_cb(Render *re,
-                          void *handle,
-                          void (*f)(void *handle, RenderResult *rr, rcti *rect))
+void RE_display_update_cb(Render *re, void *handle, void (*f)(void *handle, RenderResult *rr))
 {
   re->display->display_update_cb = f;
   re->display->duh = handle;
@@ -1041,7 +1040,7 @@ static void render_result_uncrop(Render *re)
 
       BLI_rw_mutex_unlock(&re->resultmutex);
 
-      re->display->display_update(re->result, nullptr);
+      re->display->display_update(re->result);
 
       /* restore the disprect from border */
       re->disprect = orig_disprect;
@@ -1303,7 +1302,7 @@ static void do_render_compositor(Render *re)
   /* Weak: the display callback wants an active render-layer pointer. */
   if (re->result != nullptr) {
     re->result->renlay = render_get_single_layer(re, re->result);
-    re->display->display_update(re->result, nullptr);
+    re->display->display_update(re->result);
   }
 }
 
@@ -1460,7 +1459,7 @@ static void do_render_sequencer(Render *re)
 
     /* would mark display buffers as invalid */
     RE_SetActiveRenderView(re, rv->name);
-    re->display->display_update(re->result, nullptr);
+    re->display->display_update(re->result);
   }
 
   recurs_depth--;
@@ -1504,7 +1503,7 @@ static void do_render_full_pipeline(Render *re)
     }
 
     re->display->stats_draw(&re->i);
-    re->display->display_update(re->result, nullptr);
+    re->display->display_update(re->result);
   }
   else {
     do_render_compositor(re);
@@ -1527,7 +1526,7 @@ static void do_render_full_pipeline(Render *re)
     /* stamp image info here */
     if ((re->scene->r.stamp & R_STAMP_ALL) && (re->scene->r.stamp & R_STAMP_DRAW)) {
       renderresult_stampinfo(re);
-      re->display->display_update(re->result, nullptr);
+      re->display->display_update(re->result);
     }
   }
 }
@@ -2751,6 +2750,7 @@ void RE_layer_load_from_file(
       }
 
       rpass->ibuf->float_buffer = ibuf->float_buffer;
+      IMB_partial_update_mark_full(rpass->ibuf);
     }
     else {
       if ((ibuf->x - x >= layer->rectx) && (ibuf->y - y >= layer->recty)) {
@@ -2758,6 +2758,7 @@ void RE_layer_load_from_file(
           IMB_float_from_byte(ibuf);
         }
         IMB_copy_rect(rpass->ibuf, ibuf, int2(x, y), int2(0, 0), int2(layer->rectx, layer->recty));
+        IMB_partial_update_mark_full(rpass->ibuf);
       }
       else {
         BKE_reportf(reports,

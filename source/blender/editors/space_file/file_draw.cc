@@ -1508,6 +1508,10 @@ void file_draw_list(const bContext *C, ARegion *region)
 
   BLF_batch_draw_begin();
 
+  /* Default text color, used for the empty/not-ready message and column headers when the
+   * per-file loop below does not run (empty directory, no search matches, still loading). */
+  ui::theme::get_color_4ubv(TH_TEXT, text_col);
+
   const bool filelist_loading = !filelist_is_ready(files);
 
   for (i = offset; (i < numfiles) && (i < offset + numfiles_layout); i++) {

@@ -47,6 +47,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
+#include "RNA_prototypes.hh"
 
 namespace blender {
 
@@ -422,9 +423,12 @@ bool ED_undo_is_memfile_compatible(const bContext *C)
   return true;
 }
 
-bool ED_undo_is_legacy_compatible_for_property(bContext *C, ID *id, PointerRNA &ptr)
+bool ED_undo_is_legacy_compatible_for_property(bContext *C,
+                                               ID *id,
+                                               const PointerRNA &ptr,
+                                               const PropertyRNA &prop)
 {
-  if (!RNA_struct_undo_check(ptr.type)) {
+  if (!RNA_property_undo_check(&prop, ptr.type)) {
     return false;
   }
   /* If the whole ID type doesn't support undo there is no need to check the current context. */
@@ -449,9 +453,20 @@ bool ED_undo_is_legacy_compatible_for_property(bContext *C, ID *id, PointerRNA &
         if ((id == nullptr) || (obact->data == nullptr) ||
             (GS(id->name) != GS(((ID *)obact->data)->name)))
         {
-          /* No undo push on id type mismatch in edit-mode. */
-          CLOG_DEBUG(&LOG, "skipping undo for edit-mode");
-          return false;
+          bool skip_undo = true;
+          /* Make a special exception for mesh and tool-settings
+           * because the undo steps store some tool-settings. */
+          if (obact->type == OB_MESH) {
+            if (RNA_struct_is_a(ptr.type, RNA_ToolSettings)) {
+              skip_undo = false;
+            }
+          }
+
+          if (skip_undo) {
+            /* No undo push on id type mismatch in edit-mode. */
+            CLOG_DEBUG(&LOG, "skipping undo for edit-mode");
+            return false;
+          }
         }
       }
     }

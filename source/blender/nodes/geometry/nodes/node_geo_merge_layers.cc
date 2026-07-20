@@ -23,11 +23,25 @@ enum class MergeLayerMode {
   ByID = 1,
 };
 
+static const EnumPropertyItem mode_items[] = {
+    {int(MergeLayerMode::ByName),
+     "MERGE_BY_NAME",
+     0,
+     "By Name",
+     "Combine all layers which have the same name"},
+    {int(MergeLayerMode::ByID),
+     "MERGE_BY_ID",
+     0,
+     "By Group ID",
+     "Provide a custom group ID for each layer and all layers with the same ID will be merged "
+     "into one"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
-  b.add_default_layout();
   b.add_input<decl::Geometry>("Grease Pencil"_ustr)
       .supported_type(GeometryComponent::Type::GreasePencil)
       .description("Grease Pencil data to merge layers of");
@@ -38,31 +52,17 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(true)
       .hide_value()
       .evaluated_geometry_field();
-  auto &group_id = b.add_input<decl::Int>("Group ID"_ustr)
-                       .hide_value()
-                       .evaluated_geometry_field()
-                       .make_available([](bNode &node) {
-                         node_storage(node).mode = int8_t(MergeLayerMode::ByID);
-                       });
-
-  const bNode *node = b.node_or_null();
-  if (node) {
-    const NodeGeometryMergeLayers &storage = node_storage(*node);
-    const MergeLayerMode mode = MergeLayerMode(storage.mode);
-    group_id.available(mode == MergeLayerMode::ByID);
-  }
+  b.add_input<decl::Menu>("Mode"_ustr).static_items(mode_items).optional_label();
+  b.add_input<decl::Int>("Group ID"_ustr)
+      .hide_value()
+      .evaluated_geometry_field()
+      .usage_by_single_menu(int(MergeLayerMode::ByID));
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  auto *data = MEM_new<NodeGeometryMergeLayers>(__func__);
-  data->mode = int8_t(MergeLayerMode::ByName);
-  node->storage = data;
-}
-
-static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  layout.prop(ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
+  /* Still used for forward compatibility. */
+  node->storage = MEM_new<NodeGeometryMergeLayers>(__func__);
 }
 
 static GreasePencil *merge_by_name(const GreasePencil &src_grease_pencil,
@@ -117,7 +117,6 @@ static GroupedSpan<int> get_layers_map_by_id(const GreasePencil &src_grease_penc
 }
 
 static void merge_layers(GeometrySet &geometry,
-                         const NodeGeometryMergeLayers &storage,
                          const GeoNodeExecParams &params,
                          const AttributeFilter &attribute_filter)
 {
@@ -130,7 +129,7 @@ static void merge_layers(GeometrySet &geometry,
   const int old_layers_num = src_grease_pencil->layers().size();
 
   GreasePencil *new_grease_pencil;
-  switch (MergeLayerMode(storage.mode)) {
+  switch (MergeLayerMode(params.get_input<MergeLayerMode>("Mode"_ustr))) {
     case MergeLayerMode::ByName: {
       new_grease_pencil = merge_by_name(*src_grease_pencil, params, attribute_filter);
       break;
@@ -155,13 +154,10 @@ static void merge_layers(GeometrySet &geometry,
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet main_geometry = params.extract_input<GeometrySet>("Grease Pencil"_ustr);
-  const bNode &node = params.node();
-  const NodeGeometryMergeLayers &storage = node_storage(node);
-
   const NodeAttributeFilter attribute_filter = params.get_attribute_filter("Grease Pencil"_ustr);
 
   geometry::foreach_real_geometry(main_geometry, [&](GeometrySet &geometry) {
-    merge_layers(geometry, storage, params, attribute_filter);
+    merge_layers(geometry, params, attribute_filter);
   });
 
   params.set_output("Grease Pencil"_ustr, std::move(main_geometry));
@@ -169,21 +165,6 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_rna(StructRNA *srna)
 {
-  static const EnumPropertyItem mode_items[] = {
-      {int(MergeLayerMode::ByName),
-       "MERGE_BY_NAME",
-       0,
-       "By Name",
-       "Combine all layers which have the same name"},
-      {int(MergeLayerMode::ByID),
-       "MERGE_BY_ID",
-       0,
-       "By Group ID",
-       "Provide a custom group ID for each layer and all layers with the same ID will be merged "
-       "into one"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   RNA_def_node_enum(srna,
                     "mode",
                     "Mode",
@@ -205,13 +186,10 @@ static void node_register()
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
-  ntype.draw_buttons = node_layout;
   ntype.geometry_node_execute = node_geo_exec;
   bke::node_type_storage(
       ntype, "NodeGeometryMergeLayers", node_free_standard_storage, node_copy_standard_storage);
   bke::node_register_type(ntype);
-
-  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 

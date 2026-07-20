@@ -29,6 +29,7 @@
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
+#include "IMB_partial_update.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -196,11 +197,9 @@ class Context : public compositor::Context {
 
       /* Free outdated GPU texture. */
       IMB_free_gpu_textures(image_buffer);
+      IMB_partial_update_mark_full(image_buffer);
     }
     RE_ReleaseResult(render);
-
-    Image *image = BKE_image_ensure_viewer(G.main, IMA_TYPE_R_RESULT, "Render Result");
-    BKE_image_partial_update_mark_full_update(image);
   }
 
   void write_output(compositor::Result &result)
@@ -332,7 +331,6 @@ class Context : public compositor::Context {
                     viewer_result.cpu_data().data(),
                     size.x * size.y * 4 * sizeof(float));
       }
-      image_buffer->userflags |= IB_DISPLAY_BUFFER_INVALID;
     }
 
     if (!viewer_result.is_single_value()) {
@@ -379,7 +377,7 @@ class Context : public compositor::Context {
           this->get_frame_number(), view_identifier, cached_buffer);
     }
 
-    BKE_image_partial_update_mark_full_update(image);
+    IMB_partial_update_mark_full(image_buffer);
     BKE_image_release_ibuf(image, image_buffer, lock);
     BLI_thread_unlock(LOCK_DRAW_IMAGE);
   }
@@ -702,7 +700,7 @@ class Context : public compositor::Context {
       image->flag |= IMA_VIEW_AS_RENDER;
     }
 
-    BKE_image_partial_update_mark_full_update(image);
+    IMB_partial_update_mark_full(image_buffer);
     BKE_image_release_ibuf(image, image_buffer, lock);
     BLI_thread_unlock(LOCK_DRAW_IMAGE);
 

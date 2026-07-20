@@ -17,22 +17,24 @@
 
 namespace blender::nodes::node_geo_grease_pencil_set_depth_mode {
 
+enum class Mode : int8_t {
+  Layers2D = 0,
+  Location3D = GREASE_PENCIL_STROKE_ORDER_3D,
+};
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
-  b.add_default_layout();
   b.add_input<decl::Geometry>("Grease Pencil"_ustr)
       .supported_type(GeometryComponent::Type::GreasePencil)
       .description("Grease Pencil to set the depth order of");
   b.add_output<decl::Geometry>("Grease Pencil"_ustr)
       .propagate_all_geometry()
       .align_with_previous();
-}
-
-static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  layout.prop(ptr, "depth_order", UI_ITEM_NONE, "", ICON_NONE);
+  b.add_input<decl::Menu>("Depth Order"_ustr)
+      .static_items(rna_enum_stroke_depth_order_items)
+      .optional_label();
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -42,27 +44,17 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
+  const auto depth_order = params.get_input<Mode>("Depth Order"_ustr);
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Grease Pencil"_ustr);
 
   geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry) {
     if (GreasePencil *grease_pencil = geometry.get_grease_pencil_for_write()) {
-      SET_FLAG_FROM_TEST(grease_pencil->flag,
-                         params.node().custom1 == GREASE_PENCIL_STROKE_ORDER_3D,
-                         GREASE_PENCIL_STROKE_ORDER_3D);
+      SET_FLAG_FROM_TEST(
+          grease_pencil->flag, depth_order == Mode::Location3D, GREASE_PENCIL_STROKE_ORDER_3D);
     }
   });
 
   params.set_output("Grease Pencil"_ustr, std::move(geometry_set));
-}
-
-static void node_rna(StructRNA *srna)
-{
-  RNA_def_node_enum(srna,
-                    "depth_order",
-                    "Depth Order",
-                    "",
-                    rna_enum_stroke_depth_order_items,
-                    NOD_inline_enum_accessors(custom1));
 }
 
 static void node_register()
@@ -76,11 +68,8 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
-  ntype.draw_buttons = node_layout;
   ntype.default_width = bke::NodeWidth::_180;
   bke::node_register_type(ntype);
-
-  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register);
 

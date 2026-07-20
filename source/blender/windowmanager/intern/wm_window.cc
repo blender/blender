@@ -3427,9 +3427,9 @@ bool WM_window_is_temp_screen(const wmWindow *win)
  * \{ */
 
 #ifdef WITH_INPUT_IME
-void wm_window_IME_begin(wmWindow *win, int x, int y, int w, int h, bool complete)
+void WM_window_IME_begin(wmWindow *win, int x, int y, int w, int h, bool complete)
 {
-  /* NOTE: Keep in mind #wm_window_IME_begin is also used to reposition the IME window. */
+  /* NOTE: Keep in mind #WM_window_IME_begin is also used to reposition the IME window. */
 
   BLI_assert(win);
   if ((WM_capabilities_flag() & WM_CAPABILITY_INPUT_IME) == 0) {
@@ -3444,7 +3444,7 @@ void wm_window_IME_begin(wmWindow *win, int x, int y, int w, int h, bool complet
   ghost_window->beginIME(x, win->sizey - y, w, h, complete);
 }
 
-void wm_window_IME_end(wmWindow *win)
+void WM_window_IME_end(wmWindow *win)
 {
   if ((WM_capabilities_flag() & WM_CAPABILITY_INPUT_IME) == 0) {
     return;
@@ -3455,7 +3455,12 @@ void wm_window_IME_end(wmWindow *win)
    * Even if no IME events were generated (which assigned `ime_data`).
    * TODO: check if #GHOST_EndIME can run on APPLE without causing problems. */
 #  ifdef __APPLE__
-  BLI_assert(win->runtime->ime_data);
+  /* Null when no IME events occurred since the last "end",
+   * common as callers end without checking an IME editor exists,
+   * see #WM_window_IME_region_refresh. */
+  if (win->runtime->ime_data == nullptr) {
+    return;
+  }
 #  endif
 
   GHOST_IWindow *ghost_window = static_cast<GHOST_IWindow *>(win->runtime->ghostwin);
@@ -3464,6 +3469,29 @@ void wm_window_IME_end(wmWindow *win)
   MEM_delete(win->runtime->ime_data);
   win->runtime->ime_data = nullptr;
   win->runtime->ime_data_is_composing = false;
+}
+
+void WM_window_IME_region_refresh(wmWindow *win, const ScrArea *area, const ARegion *region)
+{
+  WM_window_IME_end(win);
+
+  if (!region || !region->runtime->type->cursor_ime) {
+    return;
+  }
+
+  const std::optional<rcti> rect = region->runtime->type->cursor_ime(win, area, region);
+  if (rect) {
+    /* Clamp the caret origin to the region bounds so a cursor scrolled out of view keeps the
+     * IME window at the region edge instead of placing it outside the region. */
+    const int x = region->winrct.xmin +
+                  std::clamp(rect->xmin, 0, BLI_rcti_size_x(&region->winrct));
+    const int y = region->winrct.ymin +
+                  std::clamp(rect->ymin, 0, BLI_rcti_size_y(&region->winrct));
+    const int w = BLI_rcti_size_x(&*rect);
+    const int h = BLI_rcti_size_y(&*rect);
+    /* `WM_window_IME_end` above always ends any session, so this is always a fresh begin. */
+    WM_window_IME_begin(win, x, y, w, h, true);
+  }
 }
 #endif /* WITH_INPUT_IME */
 

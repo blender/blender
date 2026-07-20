@@ -47,8 +47,18 @@ static int WithinImageBoundaryUP1D___init__(BPy_WithinImageBoundaryUP1D *self,
   static const char *kwlist[] = {"xmin", "ymin", "xmax", "ymax", nullptr};
   double xmin, ymin, xmax, ymax;
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "dddd", (char **)kwlist, &xmin, &ymin, &xmax, &ymax))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "d" /* `xmin` */
+                                   "d" /* `ymin` */
+                                   "d" /* `xmax` */
+                                   "d" /* `ymax` */
+                                   ":__init__",
+                                   (char **)kwlist,
+                                   &xmin,
+                                   &ymin,
+                                   &xmax,
+                                   &ymax))
   {
     return -1;
   }

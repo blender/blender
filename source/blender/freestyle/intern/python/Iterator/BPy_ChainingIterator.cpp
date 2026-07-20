@@ -73,8 +73,13 @@ static int ChainingIterator___init__(BPy_ChainingIterator *self, PyObject *args,
       "restrict_to_selection", "restrict_to_unvisited", "begin", "orientation", nullptr};
   PyObject *obj1 = nullptr, *obj2 = nullptr, *obj3 = nullptr, *obj4 = nullptr;
 
-  if (PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist_1, &ChainingIterator_Type, &obj1))
+  if (PyArg_ParseTupleAndKeywords(args,
+                                  kwds,
+                                  "O!" /* `brother` */
+                                  ":__init__",
+                                  (char **)kwlist_1,
+                                  &ChainingIterator_Type,
+                                  &obj1))
   {
     self->c_it = new ChainingIterator(*(((BPy_ChainingIterator *)obj1)->c_it));
   }
@@ -82,7 +87,12 @@ static int ChainingIterator___init__(BPy_ChainingIterator *self, PyObject *args,
            (void)(obj1 = obj2 = obj3 = obj4 = nullptr),
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
-                                       "|O!O!O&O!",
+                                       "|"  /* Optional arguments. */
+                                       "O!" /* `restrict_to_selection` */
+                                       "O!" /* `restrict_to_unvisited` */
+                                       "O&" /* `begin` */
+                                       "O!" /* `orientation` */
+                                       ":__init__",
                                        (char **)kwlist_2,
                                        &PyBool_Type,
                                        &obj1,
@@ -156,8 +166,13 @@ static PyObject *ChainingIterator_traverse(BPy_ChainingIterator *self,
     PyErr_SetString(PyExc_TypeError, "traverse() method not properly overridden");
     return nullptr;
   }
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist, &AdjacencyIterator_Type, &py_a_it))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "O!" /* `it` */
+                                   ":traverse",
+                                   (char **)kwlist,
+                                   &AdjacencyIterator_Type,
+                                   &py_a_it))
   {
     return nullptr;
   }

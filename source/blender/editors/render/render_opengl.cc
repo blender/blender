@@ -477,8 +477,6 @@ static void screen_opengl_render_apply(const bke::BlenderProject *project, OGLRe
   RenderResult *rr;
   RenderView *rv;
   int view_id;
-  ImBuf *ibuf;
-  void *lock;
 
   if (oglrender->is_sequencer) {
     Scene *scene = oglrender->scene;
@@ -516,13 +514,6 @@ static void screen_opengl_render_apply(const bke::BlenderProject *project, OGLRe
   }
 
   RE_ReleaseResult(oglrender->re);
-
-  ibuf = BKE_image_acquire_ibuf(oglrender->ima, &oglrender->iuser, &lock);
-  if (ibuf) {
-    ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-  }
-  BKE_image_release_ibuf(oglrender->ima, ibuf, lock);
-  BKE_image_partial_update_mark_full_update(oglrender->ima);
 
   if (oglrender->write_still) {
     screen_opengl_render_write(project, oglrender);

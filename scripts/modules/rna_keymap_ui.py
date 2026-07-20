@@ -66,9 +66,8 @@ def draw_km(display_keymaps, kc, km, children, layout, level):
 
     layout.context_pointer_set("keymap", km)
 
-    col = _indented_layout(layout, level)
-
-    row = col.row(align=True)
+    subcol = _indented_layout(layout, level)
+    row = subcol.row(align=True)
     row.prop(km, "show_expanded_children", text="", emboss=False)
     row.label(text=km.name, text_ctxt=i18n_contexts.id_windowmanager)
 
@@ -85,6 +84,7 @@ def draw_km(display_keymaps, kc, km, children, layout, level):
         del subrow
 
     if km.show_expanded_children:
+        col = layout.column()
         if children:
             # Put the Parent key map's entries in a 'global' sub-category
             # equal in hierarchy to the other children categories
@@ -100,7 +100,7 @@ def draw_km(display_keymaps, kc, km, children, layout, level):
 
         # Key Map items
         if km.show_expanded_items:
-            kmi_level = level + 3 if children else level + 1
+            kmi_level = level + 2 if children else level + 1
             for kmi in km.keymap_items:
                 draw_kmi(display_keymaps, kc, km, kmi, col, kmi_level)
 

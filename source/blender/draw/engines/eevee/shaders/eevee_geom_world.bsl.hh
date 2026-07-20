@@ -11,8 +11,6 @@
 #include "infos/eevee_geom_infos.hh"
 #include "infos/eevee_nodetree_infos.hh"
 
-VERTEX_SHADER_CREATE_INFO(eevee_nodetree)
-
 #include "draw_model.bsl.hh"
 #include "draw_view.bsl.hh"
 #include "eevee_lightprobe_shared.hh" /* TODO(fclem): Remove. Needed because of fragment shader. */

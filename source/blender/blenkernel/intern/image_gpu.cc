@@ -13,22 +13,23 @@
 #include "BLI_boxpack_2d.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_base.hh"
+#include "BLI_math_base_c.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_rect.hh"
 #include "BLI_string.hh"
 #include "BLI_time.hh"
 
 #include "DNA_image_types.h"
 
 #include "IMB_cache.hh"
-#include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "BKE_image.hh"
 #include "BKE_image_gpu.hh"
-#include "BKE_image_partial_update.hh"
 #include "BKE_main.hh"
+
+#include "IMB_partial_update.hh"
 
 #include "GPU_capabilities.hh"
 #include "GPU_texture.hh"
@@ -41,11 +42,7 @@ namespace blender {
 
 static CLG_LogRef LOG = {"image.gpu"};
 
-using namespace blender::bke::image::partial_update;
-
-/* Prototypes. */
-static void image_update_gputexture_ex(
-    Image *ima, ImageTile *tile, ImBuf *ibuf, int x, int y, int w, int h);
+using blender::imbuf::partial_update::Changes;
 
 /* -------------------------------------------------------------------- */
 /** \name UDIM image buffers for atlas and tile mapping
@@ -440,51 +437,82 @@ void BKE_image_free_gpu_fallback()
 /** \name Get GPU texture from Image
  * \{ */
 
-static void image_gpu_texture_partial_update_changes_available(
-    Image *image, PartialUpdateChecker<ImageTileData>::CollectResult &changes)
+static void image_gpu_atlas_try_partial_update(Image *image, ImageUser *iuser)
 {
-  while (changes.get_next_change() == ePartialUpdateIterResult::ChangeAvailable) {
-    /* Calculate the clipping region with the tile buffer.
-     * TODO(jbakker): should become part of ImageTileData to deduplicate with image engine. */
-    rcti buffer_rect;
-    BLI_rcti_init(
-        &buffer_rect, 0, changes.tile_data.tile_buffer->x, 0, changes.tile_data.tile_buffer->y);
-    rcti clipped_update_region;
-    const bool has_overlap = BLI_rcti_isect(
-        &buffer_rect, &changes.changed_region.region, &clipped_update_region);
-    if (!has_overlap) {
-      continue;
-    }
-
-    image_update_gputexture_ex(image,
-                               changes.tile_data.tile,
-                               changes.tile_data.tile_buffer,
-                               clipped_update_region.xmin,
-                               clipped_update_region.ymin,
-                               BLI_rcti_size_x(&clipped_update_region),
-                               BLI_rcti_size_y(&clipped_update_region));
+  if (image->source != IMA_SRC_TILED) {
+    return;
   }
-}
+  ImBuf *atlas_ibuf = image_udim_gpu_ibuf_get(image, IMA_INDEX_UDIM_ATLAS);
+  if (atlas_ibuf == nullptr) {
+    return;
+  }
+  gpu::Texture *atlas_tex = atlas_ibuf->gpu.texture;
 
-static void image_gpu_texture_try_partial_update(Image *image, ImageUser *iuser)
-{
-  PartialUpdateChecker<ImageTileData> checker(image, iuser, image->runtime->partial_update_user);
-  PartialUpdateChecker<ImageTileData>::CollectResult changes = checker.collect_changes();
-  switch (changes.get_result_code()) {
-    case ePartialUpdateCollectResult::FullUpdateNeeded: {
-      BKE_image_free_gpu_texture_caches(image);
+  /* A resized tile invalidates the atlas packing and forces a rebuild of all tiles. */
+  bool need_full_rebuild = false;
+
+  bool need_mipmap_update = false;
+
+  ImageUser tile_user = {};
+  if (iuser != nullptr) {
+    tile_user = *iuser;
+  }
+  else {
+    tile_user.framenr = image->lastframe;
+  }
+
+  /* Get changeset ID that we will update to, and last changeset ID. */
+  const int64_t new_changeset_id = BKE_image_partial_update_flush(image, &tile_user);
+  const int64_t last_changeset_id = atlas_ibuf->gpu.partial_update_changeset;
+
+  for (ImageTile &tile : image->tiles) {
+    tile_user.tile = tile.tile_number;
+    void *lock;
+    ImBuf *ibuf = BKE_image_acquire_ibuf(image, &tile_user, &lock);
+    if (ibuf != nullptr) {
+      Changes changes = IMB_partial_update_collect(ibuf, last_changeset_id);
+      switch (changes.kind) {
+        case Changes::Kind::Resized:
+          need_full_rebuild = true;
+          break;
+        case Changes::Kind::Full:
+          changes.set_all_chunks_modified();
+          [[fallthrough]];
+        case Changes::Kind::Partial:
+          if (atlas_tex != nullptr) {
+            const bool store_premultiplied = BKE_image_has_gpu_texture_premultiplied_alpha(image,
+                                                                                           ibuf);
+            IMB_gpu_texture_apply_partial_update(atlas_tex,
+                                                 ibuf,
+                                                 store_premultiplied,
+                                                 changes,
+                                                 tile.runtime.tilearray_layer,
+                                                 int2(tile.runtime.tilearray_offset),
+                                                 int2(tile.runtime.tilearray_size));
+            need_mipmap_update |= !(ibuf->gpu.flag & IMB_GPU_DISABLE_MIPMAP_UPDATE);
+          }
+          break;
+        case Changes::Kind::None:
+          break;
+      }
+    }
+    BKE_image_release_ibuf(image, ibuf, lock);
+
+    if (need_full_rebuild) {
       break;
     }
+  }
 
-    case ePartialUpdateCollectResult::PartialChangesDetected: {
-      image_gpu_texture_partial_update_changes_available(image, changes);
-      break;
-    }
+  if (need_mipmap_update && !need_full_rebuild) {
+    GPU_texture_update_mipmap_chain(atlas_tex);
+    atlas_ibuf->gpu.flag |= IMB_GPU_MIPMAP_COMPLETE;
+  }
 
-    case ePartialUpdateCollectResult::NoChangesDetected: {
-      /* GPUTextures are up to date. */
-      break;
-    }
+  atlas_ibuf->gpu.partial_update_changeset = new_changeset_id;
+  IMB_freeImBuf(atlas_ibuf);
+
+  if (need_full_rebuild) {
+    BKE_image_free_gpu_texture_caches(image);
   }
 }
 
@@ -529,6 +557,9 @@ static ImageGPUTextures image_get_gpu_texture_tiled(Image *ima,
     GPU_texture_free(result.tile_mapping);
     result.tile_mapping = nullptr;
   }
+
+  /* Get changeset ID that we will update to. */
+  const int64_t new_changeset_id = BKE_image_partial_update_flush(ima, nullptr);
 
   /* Acquire image buffer. */
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, nullptr);
@@ -580,6 +611,9 @@ static ImageGPUTextures image_get_gpu_texture_tiled(Image *ima,
   /* Assign to the image buffers, which takes the reference from creation. */
   IMB_assign_gpu_texture(atlas_ibuf, atlas_tex);
   IMB_assign_gpu_texture(mapping_ibuf, mapping_tex);
+
+  atlas_ibuf->gpu.partial_update_changeset = new_changeset_id;
+  mapping_ibuf->gpu.partial_update_changeset = new_changeset_id;
 
   IMB_freeImBuf(atlas_ibuf);
   IMB_freeImBuf(mapping_ibuf);
@@ -667,11 +701,7 @@ static ImageGPUTextures image_get_gpu_texture(Image *ima,
     return {};
   }
 
-  if (ima->runtime->partial_update_user == nullptr) {
-    ima->runtime->partial_update_user = BKE_image_partial_update_create(ima);
-  }
-
-  image_gpu_texture_try_partial_update(ima, iuser);
+  image_gpu_atlas_try_partial_update(ima, iuser);
 
   const bool tiled = (use_tile_mapping && ima->source == IMA_SRC_TILED);
   return tiled ?
@@ -818,292 +848,6 @@ void BKE_image_free_anim_gpu_texture_caches(Main *bmain)
 /** \name Paint Update
  * \{ */
 
-static ImBuf *update_do_scale(const uchar *rect,
-                              const float *rect_float,
-                              int *x,
-                              int *y,
-                              int *w,
-                              int *h,
-                              int limit_w,
-                              int limit_h,
-                              int full_w,
-                              int full_h)
-{
-  /* Partial update with scaling. */
-  float xratio = limit_w / float(full_w);
-  float yratio = limit_h / float(full_h);
-
-  int part_w = *w, part_h = *h;
-
-  /* Find sub coordinates in scaled image. Take ceiling because we will be
-   * losing 1 pixel due to rounding errors in x,y. */
-  *x *= xratio;
-  *y *= yratio;
-  *w = int(ceil(xratio * (*w)));
-  *h = int(ceil(yratio * (*h)));
-
-  /* ...but take back if we are over the limit! */
-  if (*x + *w > limit_w) {
-    (*w)--;
-  }
-  if (*y + *h > limit_h) {
-    (*h)--;
-  }
-
-  /* Scale pixels. */
-  ImBuf *ibuf = IMB_allocFromBuffer(rect, rect_float, part_w, part_h, 4);
-  IMB_scale(ibuf, *w, *h, IMBScaleFilter::Box, false);
-
-  return ibuf;
-}
-
-static void gpu_texture_update_scaled(gpu::Texture *tex,
-                                      const uchar *rect,
-                                      const float *rect_float,
-                                      int full_w,
-                                      int full_h,
-                                      int x,
-                                      int y,
-                                      int layer,
-                                      const int *tile_offset,
-                                      const int *tile_size,
-                                      int w,
-                                      int h)
-{
-  ImBuf *ibuf;
-  if (layer > -1) {
-    ibuf = update_do_scale(
-        rect, rect_float, &x, &y, &w, &h, tile_size[0], tile_size[1], full_w, full_h);
-
-    /* Shift to account for tile packing. */
-    x += tile_offset[0];
-    y += tile_offset[1];
-  }
-  else {
-    /* Partial update with scaling. */
-    int limit_w = GPU_texture_width(tex);
-    int limit_h = GPU_texture_height(tex);
-
-    ibuf = update_do_scale(rect, rect_float, &x, &y, &w, &h, limit_w, limit_h, full_w, full_h);
-  }
-
-  const void *data = ibuf->float_data() ? static_cast<const void *>(ibuf->float_data()) :
-                                          static_cast<const void *>(ibuf->byte_data());
-  eGPUDataFormat data_format = ibuf->float_data() ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
-
-  GPU_texture_update_sub(tex, data_format, data, x, y, math::max(layer, 0), w, h, 1);
-
-  IMB_freeImBuf(ibuf);
-}
-
-static void gpu_texture_update_unscaled(gpu::Texture *tex,
-                                        uchar *rect,
-                                        float *rect_float,
-                                        int x,
-                                        int y,
-                                        int layer,
-                                        const int tile_offset[2],
-                                        int w,
-                                        int h,
-                                        int tex_stride,
-                                        int tex_offset)
-{
-  if (layer > -1) {
-    /* Shift to account for tile packing. */
-    x += tile_offset[0];
-    y += tile_offset[1];
-  }
-
-  void *data = (rect_float) ? static_cast<void *>(rect_float + tex_offset) :
-                              static_cast<void *>(rect + tex_offset);
-  eGPUDataFormat data_format = (rect_float) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
-
-  /* Partial update without scaling. Stride and offset are used to copy only a
-   * subset of a possible larger buffer than what we are updating. */
-
-  GPU_texture_update_sub(tex, data_format, data, x, y, math::max(layer, 0), w, h, 1, tex_stride);
-}
-
-static void gpu_texture_update_from_ibuf(
-    gpu::Texture *tex, Image *ima, ImBuf *ibuf, ImageTile *tile, int x, int y, int w, int h)
-{
-  bool scaled;
-  if (tile != nullptr) {
-    ImageTile_Runtime *tile_runtime = &tile->runtime;
-    int *tilesize = tile_runtime->tilearray_size;
-    scaled = (ibuf->x != tilesize[0]) || (ibuf->y != tilesize[1]);
-  }
-  else {
-    scaled = (GPU_texture_width(tex) != ibuf->x) || (GPU_texture_height(tex) != ibuf->y);
-  }
-
-  if (scaled) {
-    /* Extra padding to account for bleed from neighboring pixels. */
-    const int padding = 4;
-    const int xmax = min_ii(x + w + padding, ibuf->x);
-    const int ymax = min_ii(y + h + padding, ibuf->y);
-    x = max_ii(x - padding, 0);
-    y = max_ii(y - padding, 0);
-    w = xmax - x;
-    h = ymax - y;
-  }
-
-  /* Get texture data pointers. */
-  float *rect_float = ibuf->float_data_for_write();
-  uchar *rect = ibuf->byte_data_for_write();
-  int tex_stride = ibuf->x;
-  int tex_offset = ibuf->channels * (y * ibuf->x + x);
-
-  const bool store_premultiplied = BKE_image_has_gpu_texture_premultiplied_alpha(ima, ibuf);
-  if (rect_float) {
-    /* Float image is already in scene linear colorspace or non-color data by
-     * convention, no colorspace conversion needed. But we do require 4 channels
-     * currently. */
-    if (ibuf->channels != 4 || scaled || !store_premultiplied) {
-      rect_float = MEM_new_array_uninitialized<float>(4 * size_t(w) * size_t(h), __func__);
-      if (rect_float == nullptr) {
-        return;
-      }
-
-      tex_stride = w;
-      tex_offset = 0;
-
-      IMB_colormanagement_imbuf_to_float_texture(
-          rect_float, x, y, w, h, ibuf, store_premultiplied);
-    }
-  }
-  else {
-    /* Byte image is in original colorspace from the file, and may need conversion. */
-    if (IMB_colormanagement_space_is_data(ibuf->byte_buffer.colorspace) && !scaled) {
-      /* Not scaled Non-color data, just store buffer as is. */
-    }
-    else if (IMB_colormanagement_space_is_scene_linear_srgb(ibuf->byte_buffer.colorspace) ||
-             IMB_colormanagement_space_is_scene_linear(ibuf->byte_buffer.colorspace) ||
-             IMB_colormanagement_space_is_data(ibuf->byte_buffer.colorspace))
-    {
-      /* scene linear + sRGB transfer function or scene linear or scaled down non-color data,
-       * store as byte texture that the GPU can decode directly. */
-      rect = MEM_new_array_uninitialized<uchar>(4 * size_t(w) * size_t(h), __func__);
-      if (rect == nullptr) {
-        return;
-      }
-
-      tex_stride = w;
-      tex_offset = 0;
-
-      /* Convert to scene linear with sRGB compression, and premultiplied for
-       * correct texture interpolation. */
-      IMB_colormanagement_imbuf_to_byte_texture(rect, x, y, w, h, ibuf, store_premultiplied);
-    }
-    else {
-      /* Other colorspace, store as float texture to avoid precision loss. */
-      rect_float = MEM_new_array_uninitialized<float>(4 * size_t(w) * size_t(h), __func__);
-      if (rect_float == nullptr) {
-        return;
-      }
-
-      tex_stride = w;
-      tex_offset = 0;
-
-      IMB_colormanagement_imbuf_to_float_texture(
-          rect_float, x, y, w, h, ibuf, store_premultiplied);
-    }
-  }
-
-  if (scaled) {
-    /* Slower update where we first have to scale the input pixels. */
-    if (tile != nullptr) {
-      ImageTile_Runtime *tile_runtime = &tile->runtime;
-      int *tileoffset = tile_runtime->tilearray_offset;
-      int *tilesize = tile_runtime->tilearray_size;
-      int tilelayer = tile_runtime->tilearray_layer;
-      gpu_texture_update_scaled(
-          tex, rect, rect_float, ibuf->x, ibuf->y, x, y, tilelayer, tileoffset, tilesize, w, h);
-    }
-    else {
-      gpu_texture_update_scaled(
-          tex, rect, rect_float, ibuf->x, ibuf->y, x, y, -1, nullptr, nullptr, w, h);
-    }
-  }
-  else {
-    /* Fast update at same resolution. */
-    if (tile != nullptr) {
-      ImageTile_Runtime *tile_runtime = &tile->runtime;
-      int *tileoffset = tile_runtime->tilearray_offset;
-      int tilelayer = tile_runtime->tilearray_layer;
-      gpu_texture_update_unscaled(
-          tex, rect, rect_float, x, y, tilelayer, tileoffset, w, h, tex_stride, tex_offset);
-    }
-    else {
-      gpu_texture_update_unscaled(
-          tex, rect, rect_float, x, y, -1, nullptr, w, h, tex_stride, tex_offset);
-    }
-  }
-
-  /* Free buffers if needed. */
-  if (rect && rect != ibuf->byte_data()) {
-    MEM_delete(rect);
-  }
-  if (rect_float && rect_float != ibuf->float_data()) {
-    MEM_delete(rect_float);
-  }
-
-  if (!(ibuf->gpu.flag & IMB_GPU_DISABLE_MIPMAP_UPDATE)) {
-    GPU_texture_update_mipmap_chain(tex);
-    if (ibuf->gpu.texture == tex) {
-      ibuf->gpu.flag |= IMB_GPU_MIPMAP_COMPLETE;
-    }
-  }
-
-  GPU_texture_unbind(tex);
-}
-
-static void image_update_gputexture_ex(
-    Image *ima, ImageTile *tile, ImBuf *ibuf, int x, int y, int w, int h)
-{
-  /* Regular GPU texture. */
-  if (ibuf != nullptr && ibuf->gpu.texture != nullptr && tile == ima->tiles.first) {
-    gpu_texture_update_from_ibuf(ibuf->gpu.texture, ima, ibuf, nullptr, x, y, w, h);
-  }
-
-  /* UDIM atlas texture. */
-  if (ImBuf *atlas_ibuf = image_udim_gpu_ibuf_get(ima, IMA_INDEX_UDIM_ATLAS)) {
-    if (atlas_ibuf->gpu.texture != nullptr) {
-      gpu_texture_update_from_ibuf(atlas_ibuf->gpu.texture, ima, ibuf, tile, x, y, w, h);
-    }
-    IMB_freeImBuf(atlas_ibuf);
-  }
-}
-
-void BKE_image_update_gputexture(Image *ima, ImageUser *iuser, int x, int y, int w, int h)
-{
-  ImageTile *image_tile = BKE_image_get_tile_from_iuser(ima, iuser);
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, nullptr);
-  BKE_image_update_gputexture_delayed(ima, image_tile, ibuf, x, y, w, h);
-  BKE_image_release_ibuf(ima, ibuf, nullptr);
-}
-
-void BKE_image_update_gputexture_delayed(
-    Image *ima, ImageTile *image_tile, ImBuf *ibuf, int x, int y, int w, int h)
-{
-  if (ibuf) {
-    /* Retry creating GPU texture if it failed before. */
-    IMB_clear_gpu_load_failed(ibuf);
-  }
-
-  /* Check for full refresh. */
-  if (ibuf != nullptr && ima->source != IMA_SRC_TILED && x == 0 && y == 0 && w == ibuf->x &&
-      h == ibuf->y)
-  {
-    BKE_image_partial_update_mark_full_update(ima);
-  }
-  else {
-    rcti dirty_region;
-    BLI_rcti_init(&dirty_region, x, x + w, y, y + h);
-    BKE_image_partial_update_mark_region(ima, image_tile, ibuf, &dirty_region);
-  }
-}
-
 void BKE_image_paint_set_mipmap(Main *bmain, bool mipmap)
 {
   for (Image &ima : bmain->images) {
@@ -1133,5 +877,26 @@ void BKE_image_paint_set_mipmap(Main *bmain, bool mipmap)
 }
 
 /** \} */
+
+int64_t BKE_image_partial_update_flush(Image *ima, const ImageUser *iuser)
+{
+  ImageUser tile_user;
+  BKE_imageuser_default(&tile_user);
+  if (iuser != nullptr) {
+    tile_user = *iuser;
+  }
+
+  for (ImageTile &tile : ima->tiles) {
+    tile_user.tile = tile.tile_number;
+    void *lock;
+    ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &tile_user, &lock);
+    if (ibuf != nullptr) {
+      IMB_partial_update_flush(ibuf);
+    }
+    BKE_image_release_ibuf(ima, ibuf, lock);
+  }
+
+  return IMB_partial_update_changeset_id_current();
+}
 
 }  // namespace blender

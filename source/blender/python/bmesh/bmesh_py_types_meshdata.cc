@@ -405,9 +405,10 @@ int BPy_BMLoopColor_AssignPyObject(MLoopCol *mloopcol, PyObject *value)
 
 PyObject *BPy_BMLoopColor_CreatePyObject(MLoopCol *mloopcol)
 {
-  PyObject *color_capsule;
-  color_capsule = PyCapsule_New(mloopcol, nullptr, nullptr);
-  return Vector_CreatePyObject_cb(color_capsule, 4, mathutils_bmloopcol_cb_index, 0);
+  PyObject *color_capsule = PyCapsule_New(mloopcol, nullptr, nullptr);
+  PyObject *ret = Vector_CreatePyObject_cb(color_capsule, 4, mathutils_bmloopcol_cb_index, 0);
+  Py_DECREF(color_capsule);
+  return ret;
 }
 
 #undef MLOOPCOL_FROM_CAPSULE
@@ -664,7 +665,14 @@ static PyObject *bpy_bmdeformvert_get(BPy_BMDeformVert *self, PyObject *args)
   int key;
   PyObject *def = Py_None;
 
-  if (!PyArg_ParseTuple(args, "i|O:get", &key, &def)) {
+  if (!PyArg_ParseTuple(args,
+                        "i" /* `key` */
+                        "|" /* Optional arguments. */
+                        "O" /* `default` */
+                        ":get",
+                        &key,
+                        &def))
+  {
     return nullptr;
   }
 

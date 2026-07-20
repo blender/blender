@@ -113,7 +113,7 @@ def main():
     if args.gpu_backend == "vulkan":
         blocklist += BLOCKLIST_VULKAN
 
-    gpu_vendor = render_report.get_gpu_device_vendor(args.blender)
+    gpu_vendor = render_report.get_gpu_device_vendor(args.blender, args.gpu_backend)
     if os.getenv("BLENDER_TEST_IGNORE_VENDOR_BLOCKLIST") is None:
         if gpu_vendor == "AMD" and args.gpu_backend == "vulkan":
             blocklist += BLOCKLIST_AMD_VK

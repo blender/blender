@@ -600,7 +600,7 @@ float2 image_transform_mirror_factor_get(const Strip *strip)
   return mirror;
 }
 
-float2 image_transform_raw_size_get(const Scene *scene, const Strip *strip)
+float2 image_transform_box_size_get(const Scene *scene, const Strip *strip)
 {
   float2 scene_render_size(scene->r.xsch, scene->r.ysch);
 
@@ -635,11 +635,11 @@ float2 image_transform_raw_size_get(const Scene *scene, const Strip *strip)
 }
 
 /* Convert origin from a 0->1 range (where (0,0) is the bottom left of the image)
- * to the offset in view-space pixels from an image's center. */
+ * to the offset in image-space pixels from an image's center. */
 static float2 convert_origin_to_image_offset(const Scene *scene, const Strip *strip, float2 origin)
 {
-  const float2 image_size = image_transform_raw_size_get(scene, strip);
-  return image_size * origin - (image_size / 2.0f);
+  const float2 box_size = image_transform_box_size_get(scene, strip);
+  return box_size * origin - (box_size / 2.0f);
 }
 
 float2 image_transform_origin_get(const Scene *scene, const Strip *strip)
@@ -650,9 +650,9 @@ float2 image_transform_origin_get(const Scene *scene, const Strip *strip)
     return tr->origin;
   }
 
-  /* Text strips 'fake' smaller bounds but their true image size is the size of the render. We must
+  /* Text strips are the only type where their box is not the size of the rendered image. We must
    * convert from an origin relative to the text box -> an origin relative to the whole render. */
-  const float2 text_size = image_transform_raw_size_get(scene, strip);
+  const float2 text_size = image_transform_box_size_get(scene, strip);
   const float2 render_size(scene->r.xsch, scene->r.ysch);
 
   /* Before we scale the text origin down to produce the render origin, we must offset the origin
@@ -662,14 +662,21 @@ float2 image_transform_origin_get(const Scene *scene, const Strip *strip)
   return render_origin;
 }
 
+static float2 image_transform_viewport_scale_get(const Scene *scene, const Strip *strip)
+{
+  const float2 viewport_pixel_aspect(scene->r.xasp / scene->r.yasp, 1.0f);
+  return image_transform_mirror_factor_get(strip) * viewport_pixel_aspect;
+}
+
 float2 image_transform_origin_preview_offset_get(const Scene *scene, const Strip *strip)
 {
   const StripTransform *tr = strip->data->transform;
-  const float2 origin_offset = convert_origin_to_image_offset(scene, strip, tr->origin);
+  const float2 origin_offset_imgpx = convert_origin_to_image_offset(scene, strip, tr->origin);
 
-  const float2 viewport_pixel_aspect(scene->r.xasp / scene->r.yasp, 1.0f);
-  const float2 mirror = image_transform_mirror_factor_get(strip);
-  return (origin_offset + float2(tr->xofs, tr->yofs)) * mirror * viewport_pixel_aspect;
+  /* Note that we do not have to consider the strip's rotation or scaling here, since they always
+   * act with respect to the origin, and thus do not change the origin's position. */
+  return (float2(tr->xofs, tr->yofs) + origin_offset_imgpx) *
+         image_transform_viewport_scale_get(scene, strip);
 }
 
 float3x3 image_transform_matrix_get(const Scene *scene, const Strip *strip)
@@ -677,15 +684,16 @@ float3x3 image_transform_matrix_get(const Scene *scene, const Strip *strip)
   const StripTransform *tr = strip->data->transform;
   const float3x3 matrix = math::from_loc_rot_scale<float3x3>(
       float2(tr->xofs, tr->yofs), tr->rotation, float2(tr->scale_x, tr->scale_y));
+  const float2 origin_offset_imgpx = convert_origin_to_image_offset(scene, strip, tr->origin);
 
-  const float2 origin_offset = convert_origin_to_image_offset(scene, strip, tr->origin);
-  return math::from_origin_transform(matrix, origin_offset);
+  return math::from_scale<float3x3>(image_transform_viewport_scale_get(scene, strip)) *
+         math::from_origin_transform(matrix, origin_offset_imgpx);
 }
 
 Array<float2> image_transform_quad_get(const Scene *scene, const Strip *strip)
 {
   constexpr int num_corners = 4;
-  const float2 image_size = image_transform_raw_size_get(scene, strip);
+  const float2 box_size = image_transform_box_size_get(scene, strip);
 
   /* Raw quad before any rotation/scaling or text anchoring is applied.
    *
@@ -694,10 +702,10 @@ Array<float2> image_transform_quad_get(const Scene *scene, const Strip *strip)
   const StripCrop no_crop{};
   const StripCrop *crop = (strip->type == STRIP_TYPE_TEXT) ? &no_crop : strip->data->crop;
   float2 quad[num_corners]{
-      {(image_size.x / 2) - crop->right, (image_size.y / 2) - crop->top},     /* Top right. */
-      {(image_size.x / 2) - crop->right, (-image_size.y / 2) + crop->bottom}, /* Bottom right. */
-      {(-image_size.x / 2) + crop->left, (-image_size.y / 2) + crop->bottom}, /* Bottom left. */
-      {(-image_size.x / 2) + crop->left, (image_size.y / 2) - crop->top},     /* Top left. */
+      {(box_size.x / 2) - crop->right, (box_size.y / 2) - crop->top},     /* Top right. */
+      {(box_size.x / 2) - crop->right, (-box_size.y / 2) + crop->bottom}, /* Bottom right. */
+      {(-box_size.x / 2) + crop->left, (-box_size.y / 2) + crop->bottom}, /* Bottom left. */
+      {(-box_size.x / 2) + crop->left, (box_size.y / 2) - crop->top},     /* Top left. */
   };
 
   if (strip->type == STRIP_TYPE_TEXT) {
@@ -706,24 +714,24 @@ Array<float2> image_transform_quad_get(const Scene *scene, const Strip *strip)
 
     switch (data->anchor_x) {
       case SEQ_TEXT_ANCHOR_X_LEFT:
-        offset.x += image_size.x / 2.0f;
+        offset.x += box_size.x / 2.0f;
         break;
       case SEQ_TEXT_ANCHOR_X_CENTER:
         break;
       case SEQ_TEXT_ANCHOR_X_RIGHT:
-        offset.x += -image_size.x / 2.0f;
+        offset.x += -box_size.x / 2.0f;
         break;
       default:
         break;
     }
     switch (data->anchor_y) {
       case SEQ_TEXT_ANCHOR_Y_BOTTOM:
-        offset.y += image_size.y / 2.0f;
+        offset.y += box_size.y / 2.0f;
         break;
       case SEQ_TEXT_ANCHOR_Y_CENTER:
         break;
       case SEQ_TEXT_ANCHOR_Y_TOP:
-        offset.y += -image_size.y / 2.0f;
+        offset.y += -box_size.y / 2.0f;
         break;
       default:
         break;
@@ -735,13 +743,10 @@ Array<float2> image_transform_quad_get(const Scene *scene, const Strip *strip)
   }
 
   const float3x3 matrix = image_transform_matrix_get(scene, strip);
-  const float2 viewport_pixel_aspect(scene->r.xasp / scene->r.yasp, 1.0f);
-  const float2 mirror = image_transform_mirror_factor_get(strip);
 
   Array<float2> quad_final(num_corners);
   for (const int i : IndexRange(num_corners)) {
-    const float2 point = math::transform_point(matrix, quad[i]);
-    quad_final[i] = point * mirror * viewport_pixel_aspect;
+    quad_final[i] = math::transform_point(matrix, quad[i]);
   }
   return quad_final;
 }
@@ -763,15 +768,15 @@ static Bounds<float2> negative_bounds()
 
 Bounds<float2> image_transform_bounding_box_from_strips_get(Scene *scene, Span<Strip *> strips)
 {
-  Bounds<float2> box = negative_bounds();
+  Bounds<float2> bounding_box = negative_bounds();
 
   for (Strip *strip : strips) {
     const Array<float2> quad = image_transform_quad_get(scene, strip);
-    const Bounds<float2> strip_box = *bounds::min_max(quad.as_span());
-    box = bounds::merge(box, strip_box);
+    const Bounds<float2> strip_bounding_box = *bounds::min_max(quad.as_span());
+    bounding_box = bounds::merge(bounding_box, strip_bounding_box);
   }
 
-  return box;
+  return bounding_box;
 }
 
 /** \} */

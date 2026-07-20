@@ -193,6 +193,7 @@ bool sequencer_editing_initialized_and_active(bContext *C);
 /* UNUSED */
 // bool sequencer_strip_poll( bContext *C);
 bool sequencer_strip_editable_poll(bContext *C);
+bool sequencer_strip_editable_and_selected_poll(bContext *C);
 bool sequencer_strip_has_path_poll(bContext *C);
 bool sequencer_view_has_preview_poll(bContext *C);
 bool sequencer_view_preview_only_poll(const bContext *C);
@@ -283,7 +284,6 @@ rctf strip_bounds_get(const Scene *scene, const Strip *strip);
 rcti strip_int_bounds_get(const Scene *scene, const Strip *strip);
 
 Strip *find_neighboring_strip(const Scene *scene, const Strip *test, const int lr, int sel);
-void recurs_sel_strip(Strip *strip_meta);
 
 void SEQUENCER_OT_select_all(wmOperatorType *ot);
 void SEQUENCER_OT_select(wmOperatorType *ot);
@@ -424,6 +424,8 @@ bool retiming_overlay_enabled(const SpaceSeq *sseq);
 
 /* `sequencer_text_edit.cc` */
 bool sequencer_text_editing_active_poll(bContext *C);
+std::optional<int2> sequencer_text_editing_cursor_region_xy_get(const Scene *scene,
+                                                                const ARegion *region);
 void SEQUENCER_OT_text_cursor_move(wmOperatorType *ot);
 void SEQUENCER_OT_text_insert(wmOperatorType *ot);
 void SEQUENCER_OT_text_delete(wmOperatorType *ot);

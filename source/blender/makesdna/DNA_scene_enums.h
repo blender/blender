@@ -158,6 +158,12 @@ ENUM_OPERATORS(eScenePassType)
 
 #define RE_PASSNAME_GREASE_PENCIL "Grease Pencil"
 
+#define RE_PASSNAME_DENOISING_DEPTH "Denoising Depth"
+#define RE_PASSNAME_DENOISING_NORMAL "Denoising Normal"
+#define RE_PASSNAME_DENOISING_ROUGHNESS "Denoising Roughness"
+#define RE_PASSNAME_DENOISING_DIFFUSE_ALBEDO "Denoising Diffuse Albedo"
+#define RE_PASSNAME_DENOISING_SPECULAR_ALBEDO "Denoising Specular Albedo"
+
 /** #SceneRenderLayer::layflag */
 enum eSceneLayer_Flag : int {
   SCE_LAY_SOLID = 1 << 0,

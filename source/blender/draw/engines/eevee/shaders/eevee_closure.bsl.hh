@@ -143,7 +143,7 @@ ClosureLight closure_light_new_ex([[resource_table]] const UtilityTexture &util_
       case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
       case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
       case CLOSURE_NONE_ID:
-        cl_light = bxdf_diffuse_light(cl);
+        cl_light = bxdf_diffuse_light(cl, V);
         break;
     }
   }

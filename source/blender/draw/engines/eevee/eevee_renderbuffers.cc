@@ -48,6 +48,11 @@ void RenderBuffers::init()
   data.shadow_id = pass_index_get(EEVEE_RENDER_PASS_SHADOW);
   data.ambient_occlusion_id = pass_index_get(EEVEE_RENDER_PASS_AO);
   data.transparent_id = pass_index_get(EEVEE_RENDER_PASS_TRANSPARENT);
+  data.denoising_depth_id = (enabled_passes & EEVEE_RENDER_PASS_DENOISING_DEPTH) ? 0 : -1;
+  data.denoising_normal_id = pass_index_get(EEVEE_RENDER_PASS_DENOISING_NORMAL);
+  data.denoising_roughness_id = pass_index_get(EEVEE_RENDER_PASS_DENOISING_ROUGHNESS);
+  data.denoising_diffuse_albedo_id = pass_index_get(EEVEE_RENDER_PASS_DENOISING_DIFFUSE_ALBEDO);
+  data.denoising_specular_albedo_id = pass_index_get(EEVEE_RENDER_PASS_DENOISING_SPECULAR_ALBEDO);
 
   data.aovs = inst_.film.aovs_info;
 }

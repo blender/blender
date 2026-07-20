@@ -58,6 +58,7 @@
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
+#include "IMB_partial_update.hh"
 
 #include "MOV_read.hh"
 
@@ -2959,12 +2960,10 @@ static wmOperatorStatus image_flip_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-  BKE_image_mark_dirty(ima, ibuf);
-
   ED_image_undo_push_end();
 
-  BKE_image_partial_update_mark_full_update(ima);
+  IMB_partial_update_mark_full(ibuf);
+  IMB_mark_dirty(ibuf);
 
   DEG_id_tag_update(&ima->id, ID_RECALC_EDITORS);
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
@@ -3029,12 +3028,10 @@ static wmOperatorStatus image_rotate_orthogonal_exec(bContext *C, wmOperator *op
     return OPERATOR_CANCELLED;
   }
 
-  ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-  BKE_image_mark_dirty(ima, ibuf);
-
   ED_image_undo_push_end();
 
-  BKE_image_partial_update_mark_full_update(ima);
+  IMB_partial_update_mark_full(ibuf);
+  IMB_mark_dirty(ibuf);
 
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
 
@@ -3290,12 +3287,10 @@ static wmOperatorStatus image_invert_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-  BKE_image_mark_dirty(ima, ibuf);
-
   ED_image_undo_push_end();
 
-  BKE_image_partial_update_mark_full_update(ima);
+  IMB_partial_update_mark_full(ibuf);
+  IMB_mark_dirty(ibuf);
 
   DEG_id_tag_update(&ima->id, ID_RECALC_EDITORS);
 
@@ -3387,9 +3382,9 @@ static wmOperatorStatus image_scale_exec(bContext *C, wmOperator *op)
     }
 
     ED_image_undo_push_begin_with_image(op->type->name, ima, ibuf, &iuser);
-    ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
     IMB_scale(ibuf, size[0], size[1], IMBScaleFilter::Box, false);
-    BKE_image_mark_dirty(ima, ibuf);
+    IMB_partial_update_mark_full(ibuf);
+    IMB_mark_dirty(ibuf);
     BKE_image_release_ibuf(ima, ibuf, nullptr);
     ED_image_undo_push_end();
   }
@@ -3425,15 +3420,13 @@ static wmOperatorStatus image_scale_exec(bContext *C, wmOperator *op)
         RNA_property_int_set_array(op->ptr, prop, size);
       }
 
-      ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
       IMB_scale(ibuf, size[0], size[1], IMBScaleFilter::Box, false);
-      BKE_image_mark_dirty(ima, ibuf);
+      IMB_partial_update_mark_full(ibuf);
+      IMB_mark_dirty(ibuf);
       BKE_image_release_ibuf(ima, ibuf, nullptr);
     }
     ED_image_undo_push_end();
   }
-
-  BKE_image_partial_update_mark_full_update(ima);
 
   DEG_id_tag_update(&ima->id, 0);
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);

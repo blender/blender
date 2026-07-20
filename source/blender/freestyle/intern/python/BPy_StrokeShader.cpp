@@ -205,7 +205,14 @@ static PyObject *StrokeShader_shade(BPy_StrokeShader *self, PyObject *args, PyOb
   static const char *kwlist[] = {"stroke", nullptr};
   PyObject *py_s = nullptr;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &Stroke_Type, &py_s)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "O!" /* `stroke` */
+                                   ":shade",
+                                   (char **)kwlist,
+                                   &Stroke_Type,
+                                   &py_s))
+  {
     return nullptr;
   }
 

@@ -667,7 +667,7 @@ static void rna_Strip_right_handle_offset_set(PointerRNA *ptr, float value)
   Scene *scene = id_cast<Scene *>(ptr->owner_id);
 
   seq::relations_invalidate_cache(scene, strip);
-  strip->endofs = value;
+  strip->end_offset_set(value);
 }
 
 static void rna_Strip_content_trim_start_set(PointerRNA *ptr, int value)
@@ -701,7 +701,7 @@ static void rna_Strip_content_trim_end_range(
   Strip *strip = static_cast<Strip *>(ptr->data);
 
   *min = 0;
-  *max = strip->len + strip->anim_endofs - strip->startofs - strip->endofs - 1;
+  *max = strip->content_length() + strip->anim_endofs - strip->startofs - strip->end_offset() - 1;
 }
 
 static void rna_Strip_content_trim_start_range(
@@ -710,7 +710,8 @@ static void rna_Strip_content_trim_start_range(
   Strip *strip = static_cast<Strip *>(ptr->data);
 
   *min = 0;
-  *max = strip->len + strip->anim_startofs - strip->startofs - strip->endofs - 1;
+  *max = strip->content_length() + strip->anim_startofs - strip->startofs - strip->end_offset() -
+         1;
 }
 
 static void rna_Strip_left_handle_range(
@@ -751,7 +752,7 @@ static void rna_Strip_left_handle_offset_range(
 {
   Strip *strip = static_cast<Strip *>(ptr->data);
   *min = INT_MIN;
-  *max = strip->len - strip->endofs - 1;
+  *max = strip->content_length() - strip->end_offset() - 1;
 }
 
 static void rna_Strip_right_handle_offset_range(
@@ -759,7 +760,7 @@ static void rna_Strip_right_handle_offset_range(
 {
   Strip *strip = static_cast<Strip *>(ptr->data);
   *min = INT_MIN;
-  *max = strip->len - strip->startofs - 1;
+  *max = strip->content_length() - strip->startofs - 1;
 }
 
 static void rna_Strip_duration_set(PointerRNA *ptr, int value)
@@ -2021,7 +2022,7 @@ static void rna_CompositorModifier_node_group_update(Main *bmain, Scene *scene, 
   seq::strip_lookup_invalidate(ed);
 
   auto *cmd = ptr->data_as<SequencerCompositorModifierData>();
-  seq::compositor_nodes_update_interface(*sequencer_scene, *cmd);
+  seq::compositor_nodes_update_interface(*bmain, *sequencer_scene, *cmd);
 }
 
 static StructRNA *rna_SequencerCompositorModifierProperties_refine(PointerRNA *ptr)

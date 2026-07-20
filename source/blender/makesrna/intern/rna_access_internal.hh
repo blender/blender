@@ -16,6 +16,18 @@ struct IDProperty;
 struct PropertyRNAOrID;
 
 /**
+ * Check if the given property should be allowed to access/use the given PointerRNA data.
+ *
+ * This is usually the case, but e.g. during bpy introspection, code can use a meta-type PointerRNA
+ * (like a Struct or Property one) with a property from the actual type.
+ *
+ * This function simply checks that the `StructFlag::STRUCT_RNA_DEFINITION` of the PointerRNA's
+ * type, and the `PropertyFlagIntern::PROP_INTERN_RNA_DEFINITION` of the PropertyRNA's definition,
+ * are either both set, or both unset.
+ */
+bool rna_property_can_access_pointer_data(PointerRNA &ptr, PropertyRNA &prop);
+
+/**
  * This function initializes a #PropertyRNAOrID with all required info, from a given #PropertyRNA
  * and #PointerRNA data. It deals properly with the three cases
  * (static RNA, runtime RNA, and #IDProperty).

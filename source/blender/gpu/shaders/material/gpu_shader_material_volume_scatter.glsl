@@ -17,9 +17,8 @@ void node_volume_scatter(float4 color,
   density = max(density, 0.0f);
 
   ClosureVolumeScatter volume_scatter_data;
-  volume_scatter_data.weight = weight;
-  volume_scatter_data.scattering = color.rgb * density;
-  volume_scatter_data.anisotropy = anisotropy;
+  volume_scatter_data.scattering = color.rgb * (density * weight);
+  volume_scatter_data.anisotropy = anisotropy * weight;
 
   result = closure_eval(volume_scatter_data);
 }

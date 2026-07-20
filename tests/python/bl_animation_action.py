@@ -895,6 +895,20 @@ class ReplaceAction(unittest.TestCase):
         self.assertEqual(self.obj_nla.animation_data.action, None)
         self.assertEqual(self.obj_nla.animation_data.nla_tracks[0].strips[0].action, self.initial_action)
 
+    def test_action_remap_duplicate(self):
+        self.assertEqual(self.obj_animated.animation_data.action, self.initial_action)
+
+        bpy.ops.anim.replace_action_duplicate(old_session_uid=self.initial_action.session_uid)
+
+        self.assertNotEqual(self.initial_action, self.obj_animated.animation_data.action)
+        duplicate_action = self.obj_animated.animation_data.action
+        self.assertEqual(len(self.initial_action.layers), len(duplicate_action.layers))
+        self.assertEqual(len(self.initial_action.slots), len(duplicate_action.slots))
+
+        self.assertEqual(self.obj_no_slot_after.animation_data.action, duplicate_action)
+        self.assertEqual(self.obj_no_slot_before.animation_data.action, duplicate_action)
+        self.assertEqual(self.armature.animation_data.action, duplicate_action)
+
 
 def main():
     global args

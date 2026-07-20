@@ -350,6 +350,7 @@ void VKBackend::supported_devices_print(FILE *fp)
     fprintf(fp, "Unable to initialize a Vulkan 1.2 instance.\n");
     return;
   }
+  volkLoadInstanceOnly(vk_instance);
 
   uint32_t physical_devices_count = 0;
   vkEnumeratePhysicalDevices(vk_instance, &physical_devices_count, nullptr);

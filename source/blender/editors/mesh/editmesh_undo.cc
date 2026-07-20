@@ -1277,6 +1277,12 @@ static void mesh_undosys_step_decode(
   /* Check after setting active (unless undoing into another scene). */
   BLI_assert(mesh_undosys_poll(C) || (scene != CTX_data_scene(C)));
 
+  /* NOTE: Changes here must be accounted for:
+   * - With properties flags, since tool-settings disables undo for all members by default,
+   *   #PROP_FORCE_UNDO needs to be enabled for these settings.
+   * - #ED_undo_is_legacy_compatible_for_property
+   *   which disables undo for all non-mesh ID's in edit-mode.
+   */
   {
     /* Follow settings related to selection.
      * While other flags could be included too: it's important the user doesn't

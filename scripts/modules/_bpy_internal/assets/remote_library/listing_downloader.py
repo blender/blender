@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from __future__ import absolute_import, annotations
-import shutil
 
 __all__ = (
     'RemoteAssetListingLocator',
@@ -16,6 +15,7 @@ import copy
 import enum
 import functools
 import logging
+import shutil
 import unicodedata
 import urllib.parse
 from pathlib import Path, PurePosixPath, PurePath, PureWindowsPath
@@ -877,6 +877,7 @@ class RemoteAssetListingBackupper:
     def restore(self) -> None:
         """Restore a backup of the asset library's listing."""
         if not self.has_backup():
+            backup_path = self._locator.listing_backup_path
             logger.warning("Asset Listing backup did not exist, cannot restore: %s", backup_path)
             return
         self._restore()

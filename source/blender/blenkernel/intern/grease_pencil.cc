@@ -558,38 +558,39 @@ static void update_triangle_and_offsets_cache(const Span<float3> positions,
               continue;
             }
 
-            meshintersect::CDT_input<double> input;
-            input.vert.reinitialize(num_points);
-            input.face.reinitialize(fill.size());
-            input.need_ids = true;
-
+            Array<double2, 64> verts(num_points);
             threading::parallel_for(IndexRange(num_points), 512, [&](const IndexRange range) {
               for (const int i : range) {
-                input.vert[i] = double2(projverts[i]);
+                verts[i] = double2(projverts[i]);
               }
             });
 
             const Span<float2> projverts_span = Span(reinterpret_cast<float2 *>(projverts),
                                                      num_points);
 
-            fill.foreach_index(
-                [&](const int64_t curve_i, const int64_t pos) {
-                  const IndexRange fill_points = fill_points_by_curve[pos];
-                  const IndexRange points = points_by_curve[curve_i];
-                  input.face[pos].resize(points.size());
-                  MutableSpan<int> face = input.face[pos].as_mutable_span();
+            Array<int, 64> face_vert_indices(fill_points_by_curve.total_size());
+            threading::parallel_for(fill.index_range(), 256, [&](const IndexRange range) {
+              for (const int i : range) {
+                const IndexRange fill_points = fill_points_by_curve[i];
+                MutableSpan<int> face = face_vert_indices.as_mutable_span().slice(fill_points);
 
-                  array_utils::fill_index_range<int>(face, fill_points.first());
-                  const Span<float2> projpoints = projverts_span.slice(fill_points);
+                array_utils::fill_index_range<int>(face, fill_points.first());
+                const Span<float2> projpoints = projverts_span.slice(fill_points);
 
-                  /* Curve have to be in a counterclockwise order, so check if a flip is need. */
-                  if (cross_poly_v2(reinterpret_cast<const float (*)[2]>(projpoints.data()),
-                                    projpoints.size()) < 0.0)
-                  {
-                    face.reverse();
-                  }
-                },
-                exec_mode::grain_size(256));
+                /* Curve have to be in a counterclockwise order, so check if a flip is need. */
+                if (cross_poly_v2(reinterpret_cast<const float (*)[2]>(projpoints.data()),
+                                  projpoints.size()) < 0.0)
+                {
+                  face.reverse();
+                }
+              }
+            });
+
+            meshintersect::CDT_input<double> input;
+            input.vert = verts;
+            input.face_offsets = fill_points_by_curve;
+            input.face_vert_indices = face_vert_indices;
+            input.need_ids = true;
 
             meshintersect::CDT_result<double> result = delaunay_2d_calc(input,
                                                                         CDT_INSIDE_WITH_HOLES);

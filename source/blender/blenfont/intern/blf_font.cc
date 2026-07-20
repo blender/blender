@@ -619,13 +619,16 @@ void blf_font_draw(FontBLF *font, const char *str, const size_t str_len, ResultB
   blf_glyph_cache_release(font);
 }
 
-int blf_font_draw_mono(
-    FontBLF *font, const char *str, const size_t str_len, const int cwidth, const int tab_columns)
+int blf_font_draw_mono(FontBLF *font,
+                       const char *str,
+                       const size_t str_len,
+                       const int char_width,
+                       const int tab_columns)
 {
   GlyphBLF *g;
   int columns = 0;
   ft_pix pen_x = 0, pen_y = 0;
-  ft_pix cwidth_fpx = ft_pix_from_int(cwidth);
+  ft_pix char_width_fpx = ft_pix_from_int(char_width);
 
   size_t i = 0;
 
@@ -645,7 +648,7 @@ int blf_font_draw_mono(
     const int col = UNLIKELY(g->c == '\t') ? (tab_columns - (columns % tab_columns)) :
                                              BLI_wcwidth_safe(char32_t(g->c));
     columns += col;
-    pen_x += cwidth_fpx * col;
+    pen_x += char_width_fpx * col;
   }
 
   blf_batch_draw_end();

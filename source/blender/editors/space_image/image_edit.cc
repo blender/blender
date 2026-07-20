@@ -425,9 +425,6 @@ bool ED_image_slot_cycle(Image *image, int direction)
     image->render_slot = ((cur == 1) ? 0 : 1);
   }
 
-  if (cur != image->render_slot) {
-    BKE_image_partial_update_mark_full_update(image);
-  }
   return (cur != image->render_slot);
 }
 

@@ -37,6 +37,8 @@
 
 namespace blender::ed::vse {
 
+static bool text_insert(TextVars *data, const char *buf, size_t buf_len);
+
 /* -------------------------------------------------------------------- */
 /** \name Text Edit Polls
  * \{ */
@@ -77,6 +79,32 @@ bool sequencer_text_editing_active_poll(bContext *C)
   const Strip *strip = seq::select_active_get(scene);
 
   return (strip->flag & SEQ_FLAG_TEXT_EDITING_ACTIVE) != 0;
+}
+
+std::optional<int2> sequencer_text_editing_cursor_region_xy_get(const Scene *scene,
+                                                                const ARegion *region)
+{
+  if (const Strip *strip = seq::select_active_get(scene)) {
+    if (strip->type == STRIP_TYPE_TEXT && (strip->flag & SEQ_FLAG_TEXT_EDITING_ACTIVE) &&
+        strip->intersects_frame(scene, BKE_scene_frame_get(scene)))
+    {
+      const TextVars *data = static_cast<const TextVars *>(strip->effectdata);
+      if (data && data->runtime && !data->runtime->lines.is_empty()) {
+        const seq::TextVarsRuntime *runtime = data->runtime;
+        const int2 cursor_pos = strip_text_cursor_offset_to_position(runtime, data->cursor_offset);
+        float2 co = runtime->lines[cursor_pos.y].characters[cursor_pos.x].position;
+        co += float2(0.0f, float(runtime->font_descender));
+        co += float2(-scene->r.xsch / 2.0f, -scene->r.ysch / 2.0f);
+        co = math::transform_point(seq::image_transform_matrix_get(scene, strip), co);
+        co.x *= scene->r.xasp / scene->r.yasp;
+
+        int2 r;
+        ui::view2d_view_to_region(&region->v2d, co.x, co.y, &r.x, &r.y);
+        return r;
+      }
+    }
+  }
+  return std::nullopt;
 }
 
 /** \} */
@@ -358,7 +386,6 @@ static wmOperatorStatus sequencer_text_edit_paste_exec(bContext *C, wmOperator *
 {
   const Strip *strip = seq::select_active_get(CTX_data_sequencer_scene(C));
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
-  const seq::TextVarsRuntime *runtime = data->runtime;
 
   int buf_len;
   char *buf = WM_clipboard_text_get(false, true, &buf_len);
@@ -367,26 +394,10 @@ static wmOperatorStatus sequencer_text_edit_paste_exec(bContext *C, wmOperator *
     return OPERATOR_CANCELLED;
   }
 
-  delete_selected_text(data);
-  size_t needed_size = data->text_len_bytes + buf_len + 1;
-  char *new_text = MEM_new_array_uninitialized<char>(needed_size, "text");
-
-  const seq::CharInfo cur_char = character_at_cursor_offset_get(runtime, data->cursor_offset);
-  BLI_assert(cur_char.offset >= 0 && cur_char.offset <= data->text_len_bytes);
-  std::memcpy(new_text, data->text_ptr, cur_char.offset);
-  std::memcpy(new_text + cur_char.offset, buf, buf_len);
-  std::memcpy(new_text + cur_char.offset + buf_len,
-              data->text_ptr + cur_char.offset,
-              data->text_len_bytes - cur_char.offset + 1);
-  data->text_len_bytes += buf_len;
-  MEM_delete(data->text_ptr);
-  data->text_ptr = new_text;
-
-  data->cursor_offset += BLI_strlen_utf8(buf);
+  text_insert(data, buf, buf_len);
 
   MEM_delete(buf);
 
-  text_runtime_update(*data);
   text_editing_update(C);
   return OPERATOR_FINISHED;
 }
@@ -662,6 +673,12 @@ static void delete_character(const seq::CharInfo character, TextVars *data)
 
 static wmOperatorStatus sequencer_text_delete_exec(bContext *C, wmOperator *op)
 {
+#ifdef WITH_INPUT_IME
+  if (const std::optional<wmOperatorStatus> status = WM_operator_IME_edit_maybe(C)) {
+    return *status;
+  }
+#endif
+
   const Strip *strip = seq::select_active_get(CTX_data_sequencer_scene(C));
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
   const seq::TextVarsRuntime *runtime = data->runtime;
@@ -744,7 +761,7 @@ static bool text_insert(TextVars *data, const char *buf, const size_t buf_len)
   MEM_delete(data->text_ptr);
   data->text_ptr = new_text;
 
-  data->cursor_offset += 1;
+  data->cursor_offset += BLI_strlen_utf8(buf);
 
   text_runtime_update(*data);
   return true;
@@ -775,6 +792,14 @@ static wmOperatorStatus sequencer_text_insert_invoke(bContext *C,
                                                      wmOperator *op,
                                                      const wmEvent *event)
 {
+#ifdef WITH_INPUT_IME
+  if (const std::optional<wmOperatorStatus> status = WM_operator_IME_insert_maybe(
+          C, op, event, "string"))
+  {
+    return *status;
+  }
+#endif
+
   char str[6];
   BLI_strncpy_utf8(str, event->utf8_buf, BLI_str_utf8_size_safe(event->utf8_buf) + 1);
   RNA_string_set(op->ptr, "string", str);
@@ -874,13 +899,9 @@ static void cursor_set_by_mouse_position(const bContext *C, const wmEvent *event
 
   /* Convert cursor coordinates to domain of CharInfo::position. */
   const float2 view_offs{-scene->r.xsch / 2.0f, -scene->r.ysch / 2.0f};
-  const float view_aspect = scene->r.xasp / scene->r.yasp;
   float3x3 transform_mat = seq::image_transform_matrix_get(CTX_data_sequencer_scene(C), strip);
-  // MSVC 2019 can't decide here for some reason, pick the template for it.
-  transform_mat = math::invert<float, 3>(transform_mat);
 
-  mouse_loc.x /= view_aspect;
-  mouse_loc = math::transform_point(transform_mat, mouse_loc);
+  mouse_loc = math::transform_point(math::invert(transform_mat), mouse_loc);
   mouse_loc -= view_offs;
   data->cursor_offset = find_closest_cursor_offset(data, float2(mouse_loc));
 }

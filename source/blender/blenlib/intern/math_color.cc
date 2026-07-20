@@ -9,7 +9,9 @@
 #include "BLI_math_color.hh"
 #include "BLI_math_color_c.hh"
 #include "BLI_math_matrix.hh"
+#include "BLI_math_matrix_c.hh"
 #include "BLI_math_vector.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_simd.hh"
 #include "BLI_utildefines.hh"
 
@@ -509,13 +511,25 @@ float linearrgb_to_srgb(float c)
  *
  * We hope that exp and e2coeff gets properly inlined.
  */
+
+/** Fast version of _mm_cvtps_epi32 for arm64, as sse2neon must set the rounding
+ * mode each time while we can assume it is already set to nearest for Blender. */
+MALWAYS_INLINE __m128i _bli_float_to_int_nearest(const __m128 a)
+{
+#  if BLI_HAVE_ARM_NEON
+  return vreinterpretq_m128i_s32(vcvtnq_s32_f32(a));
+#  else
+  return _mm_cvtps_epi32(a);
+#  endif
+}
+
 MALWAYS_INLINE __m128 _bli_math_fastpow(const int exp, const int e2coeff, const __m128 arg)
 {
   __m128 ret;
   ret = _mm_mul_ps(arg, _mm_castsi128_ps(_mm_set1_epi32(e2coeff)));
   ret = _mm_cvtepi32_ps(_mm_castps_si128(ret));
   ret = _mm_mul_ps(ret, _mm_castsi128_ps(_mm_set1_epi32(exp)));
-  ret = _mm_castsi128_ps(_mm_cvtps_epi32(ret));
+  ret = _mm_castsi128_ps(_bli_float_to_int_nearest(ret));
   return ret;
 }
 
@@ -635,6 +649,54 @@ void linearrgb_to_srgb_v3_v3(float srgb[3], const float linear[3])
   srgb[2] = r[2];
 }
 
+/** Convert float pixels values into byte range, matching #rgba_float_to_uchar rounding. */
+MALWAYS_INLINE __m128i _bli_float_to_uchar_simd(const __m128 v)
+{
+  const __m128 clamped = _mm_min_ps(_mm_max_ps(v, _mm_setzero_ps()), _mm_set1_ps(1.0f));
+  const __m128 scaled = _mm_add_ps(_mm_mul_ps(clamped, _mm_set1_ps(255.0f)), _mm_set1_ps(0.5f));
+  return _mm_cvttps_epi32(scaled);
+}
+
+/** Convert block of 4 RGBA pixels with SIMD. */
+MALWAYS_INLINE __m128i linearrgb_to_srgb_uchar4_block(const float (*linear)[4],
+                                                      const float (*matrix)[3])
+{
+  __m128 c0 = _mm_loadu_ps(linear[0]);
+  __m128 c1 = _mm_loadu_ps(linear[1]);
+  __m128 c2 = _mm_loadu_ps(linear[2]);
+  __m128 c3 = _mm_loadu_ps(linear[3]);
+
+  /* Transpose from AoS to SoA. */
+  _MM_TRANSPOSE4_PS(c0, c1, c2, c3);
+
+  if (matrix) {
+    /* Apply matrix to RGB channels. */
+    const __m128 r = c0, g = c1, b = c2;
+    c0 = _mm_add_ps(_mm_add_ps(_mm_mul_ps(_mm_set1_ps(matrix[0][0]), r),
+                               _mm_mul_ps(_mm_set1_ps(matrix[1][0]), g)),
+                    _mm_mul_ps(_mm_set1_ps(matrix[2][0]), b));
+    c1 = _mm_add_ps(_mm_add_ps(_mm_mul_ps(_mm_set1_ps(matrix[0][1]), r),
+                               _mm_mul_ps(_mm_set1_ps(matrix[1][1]), g)),
+                    _mm_mul_ps(_mm_set1_ps(matrix[2][1]), b));
+    c2 = _mm_add_ps(_mm_add_ps(_mm_mul_ps(_mm_set1_ps(matrix[0][2]), r),
+                               _mm_mul_ps(_mm_set1_ps(matrix[1][2]), g)),
+                    _mm_mul_ps(_mm_set1_ps(matrix[2][2]), b));
+  }
+
+  /* Convert RGB channels. */
+  c0 = linearrgb_to_srgb_v4_simd(c0);
+  c1 = linearrgb_to_srgb_v4_simd(c1);
+  c2 = linearrgb_to_srgb_v4_simd(c2);
+
+  /* Transpose from SoA to AoS. */
+  _MM_TRANSPOSE4_PS(c0, c1, c2, c3);
+
+  /* Float to byte. */
+  const __m128i lo = _mm_packs_epi32(_bli_float_to_uchar_simd(c0), _bli_float_to_uchar_simd(c1));
+  const __m128i hi = _mm_packs_epi32(_bli_float_to_uchar_simd(c2), _bli_float_to_uchar_simd(c3));
+  return _mm_packus_epi16(lo, hi);
+}
+
 #else /* BLI_HAVE_SSE2 */
 
 /* Non-SIMD code path, with the same pow approximations as SIMD one. */
@@ -733,6 +795,49 @@ void linearrgb_to_srgb_v3_v3(float srgb[3], const float linear[3])
 }
 
 #endif /* BLI_HAVE_SSE2 */
+
+void linearrgb_to_srgb_uchar4_n(uchar (*__restrict srgb)[4],
+                                const float (*__restrict linear)[4],
+                                const int size,
+                                const float (*__restrict matrix)[3])
+{
+#if BLI_HAVE_SSE2
+  if (size >= 4) {
+    /* Process 4 pixels per SIMD operation. */
+    int i = 0;
+    for (; i + 4 <= size; i += 4) {
+      const __m128i bytes = linearrgb_to_srgb_uchar4_block(&linear[i], matrix);
+      _mm_storeu_si128(reinterpret_cast<__m128i *>(srgb[i]), bytes);
+    }
+    /* Remainder with SIMD too, knowing we can safely overwrite already processed pixels again. */
+    if (i < size) {
+      const int remainder = size - 4;
+      const __m128i bytes = linearrgb_to_srgb_uchar4_block(&linear[remainder], matrix);
+      _mm_storeu_si128(reinterpret_cast<__m128i *>(srgb[remainder]), bytes);
+    }
+    return;
+  }
+#endif
+
+  /* Scalar path. */
+  if (matrix) {
+    for (int i = 0; i < size; i++) {
+      float s[4];
+      mul_v3_m3v3(s, matrix, linear[i]);
+      linearrgb_to_srgb_v3_v3(s, s);
+      s[3] = linear[i][3];
+      rgba_float_to_uchar(srgb[i], s);
+    }
+  }
+  else {
+    for (int i = 0; i < size; i++) {
+      float s[4];
+      linearrgb_to_srgb_v3_v3(s, linear[i]);
+      s[3] = linear[i][3];
+      rgba_float_to_uchar(srgb[i], s);
+    }
+  }
+}
 
 /** \} */
 

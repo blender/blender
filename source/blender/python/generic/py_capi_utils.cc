@@ -609,7 +609,15 @@ int PyC_ParseOptionalBool(PyObject *o, void *p)
 int PyC_ParseRectI(PyObject *o, void *p)
 {
   rcti *rect = static_cast<rcti *>(p);
-  if (!PyArg_ParseTuple(o, "(ii)(ii)", &rect->xmin, &rect->ymin, &rect->xmax, &rect->ymax)) {
+  if (!PyArg_ParseTuple(o,
+                        "(ii)" /* `min` */
+                        "(ii)" /* `max` */
+                        ":rect",
+                        &rect->xmin,
+                        &rect->ymin,
+                        &rect->xmax,
+                        &rect->ymax))
+  {
     return 0;
   }
   return 1;
@@ -671,7 +679,12 @@ const char *PyC_StringEnum_FindIDFromValue(const PyC_StringEnumItems *items, con
 int PyC_CheckArgs_DeepCopy(PyObject *args)
 {
   PyObject *dummy_pydict;
-  return PyArg_ParseTuple(args, "|O!:__deepcopy__", &PyDict_Type, &dummy_pydict) != 0;
+  return PyArg_ParseTuple(args,
+                          "|"  /* Optional arguments. */
+                          "O!" /* `memo` */
+                          ":__deepcopy__",
+                          &PyDict_Type,
+                          &dummy_pydict) != 0;
 }
 
 /** \} */
@@ -831,41 +844,6 @@ void PyC_FileAndNum_Safe(const char **r_filename, int *r_lineno)
   }
 
   PyC_FileAndNum(r_filename, r_lineno);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Object Access Utilities
- * \{ */
-
-PyObject *PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...)
-{
-  /* NOTE: Would be nice if python had this built in. */
-
-  Py_ssize_t i;
-  PyObject *item = o;
-  const char *attr;
-
-  va_list vargs;
-
-  va_start(vargs, n);
-  for (i = 0; i < n; i++) {
-    attr = va_arg(vargs, char *);
-    item = PyObject_GetAttrString(item, attr);
-
-    if (item) {
-      Py_DECREF(item);
-    }
-    else {
-      /* python will set the error value here */
-      break;
-    }
-  }
-  va_end(vargs);
-
-  Py_XINCREF(item); /* final value has is increfed, to match PyObject_GetAttrString */
-  return item;
 }
 
 /** \} */
@@ -1412,16 +1390,15 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
     fclose(fp);
 
     if (py_result) {
+      /* don't use the result */
+      Py_DECREF(py_result);
+      py_result = nullptr;
 
       /* we could skip this but then only slice assignment would work
        * better not be so strict */
       values = PyDict_GetItemString(py_dict, "values");
 
       if (values && PyList_Check(values)) {
-
-        /* don't use the result */
-        Py_DECREF(py_result);
-        py_result = nullptr;
 
         /* now get the values back */
         va_start(vargs, n);

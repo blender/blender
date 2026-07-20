@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.2.0 LTS Beta (b'b2d38940ccd4')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-06 08:37+0000\n"
+"POT-Creation-Date: 2026-07-20 07:29+0000\n"
 "PO-Revision-Date: 2026-03-19 12:41+0000\n"
 "Last-Translator: Banditer1483 <pleum.wongvarit@gmail.com>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -2335,56 +2335,28 @@ msgid "Point"
 msgstr "จุด"
 
 
-msgid "Attribute on point"
-msgstr "ลักษณะประจำบนจุด"
-
-
 msgid "Edge"
 msgstr "ขอบ"
-
-
-msgid "Attribute on mesh edge"
-msgstr "ลักษณะประจำบนขอบตาข่าย"
 
 
 msgid "Face"
 msgstr "หน้า"
 
 
-msgid "Attribute on mesh faces"
-msgstr "ลักษณะประจำบนหน้าตาข่าย"
-
-
 msgid "Face Corner"
 msgstr "มุมหน้า"
-
-
-msgid "Attribute on mesh face corner"
-msgstr "ลักษณะประจำที่มุมของหน้าตาข่าย"
 
 
 msgid "Spline"
 msgstr "ร่องสลัก"
 
 
-msgid "Attribute on spline"
-msgstr "ลักษณะประจำบนร่องสลัก"
-
-
 msgid "Instance"
 msgstr "กรณีตัวอย่าง"
 
 
-msgid "Attribute on instance"
-msgstr "ลักษณะประจำบนกรณีตัวอย่าง"
-
-
 msgid "Layer"
 msgstr "ชั้นภาพ"
-
-
-msgid "Attribute on Grease Pencil layer"
-msgstr "ลักษณะประจำบนชั้นภาพดินสอไขมัน"
 
 
 msgid "Is Internal"
@@ -4937,10 +4909,6 @@ msgid "Mix Color"
 msgstr "ผสมสี"
 
 
-msgid "Add Image"
-msgstr "เพิ่มภาพ"
-
-
 msgid "Apply"
 msgstr "นำไปใช้"
 
@@ -4969,12 +4937,12 @@ msgid "Merge"
 msgstr "ผสาน"
 
 
-msgid "Import"
-msgstr "นำเข้า"
-
-
 msgid "Metaball"
 msgstr "เมตาบอล"
+
+
+msgid "Import"
+msgstr "นำเข้า"
 
 
 msgid "UV"
@@ -5013,10 +4981,6 @@ msgid "Navigation"
 msgstr "การนำทาง"
 
 
-msgid "Layout"
-msgstr "เค้าโครง"
-
-
 msgid "Align View"
 msgstr "จัดมุมมอง"
 
@@ -5029,12 +4993,20 @@ msgid "View Regions"
 msgstr "ขอบเขตมุมมอง"
 
 
+msgid "Layout"
+msgstr "เค้าโครง"
+
+
 msgid "Keying"
 msgstr "คีย์"
 
 
 msgid "Light"
 msgstr "แสง"
+
+
+msgid "Add Image"
+msgstr "เพิ่มภาพ"
 
 
 msgid "Zoom"
@@ -5060,6 +5032,10 @@ msgstr "จุดต่อ"
 
 msgid "Add Modifier"
 msgstr "เพิ่มการปรับแต่ง"
+
+
+msgid "Save & Load"
+msgstr "บันทึกและโหลด"
 
 
 msgid "Blender"
@@ -5104,10 +5080,6 @@ msgstr "ช่วยเหลือ"
 
 msgid "Presets"
 msgstr "รูปแบบล่วงหน้า"
-
-
-msgid "Save & Load"
-msgstr "บันทึกและโหลด"
 
 
 msgctxt "Operator"
@@ -6123,6 +6095,10 @@ msgstr "คัดลอก"
 msgctxt "Operator"
 msgid "Paste"
 msgstr "วาง"
+
+
+msgid "Movie"
+msgstr "ภาพยนตร์"
 
 
 msgid "Sound Name"
@@ -7824,10 +7800,6 @@ msgstr "ทำอีกครั้ง"
 
 msgid "OK"
 msgstr "ตกลง"
-
-
-msgid "Movie"
-msgstr "ภาพยนตร์"
 
 
 msgctxt "Operator"

@@ -69,6 +69,7 @@ static const EnumPropertyItem image_source_items[] = {
 
 #  include "IMB_imbuf.hh"
 #  include "IMB_imbuf_types.hh"
+#  include "IMB_partial_update.hh"
 
 #  include "MOV_read.hh"
 
@@ -211,7 +212,6 @@ static void rna_Image_generated_update(Main *bmain, Scene * /*scene*/, PointerRN
 {
   Image *ima = id_cast<Image *>(ptr->owner_id);
   BKE_image_signal(bmain, ima, nullptr, IMA_SIGNAL_FREE);
-  BKE_image_partial_update_mark_full_update(ima);
   DEG_id_tag_update(&ima->id, ID_RECALC_EDITORS | ID_RECALC_SOURCE);
 }
 
@@ -251,7 +251,6 @@ static void rna_Image_views_format_update(Main *bmain, Scene *scene, PointerRNA 
   }
 
   BKE_image_release_ibuf(ima, ibuf, lock);
-  BKE_image_partial_update_mark_full_update(ima);
   DEG_id_tag_update(&ima->id, ID_RECALC_EDITORS | ID_RECALC_SOURCE);
 }
 
@@ -461,7 +460,6 @@ static void rna_UDIMTile_generated_update(Main * /*bmain*/, Scene * /*scene*/, P
   /* If the tile is still marked as generated, then update the tile as requested. */
   if ((tile->gen_flag & IMA_GEN_TILE) != 0) {
     BKE_image_fill_tile(ima, tile);
-    BKE_image_partial_update_mark_full_update(ima);
   }
 }
 
@@ -681,11 +679,8 @@ static void rna_Image_pixels_set(PointerRNA *ptr, const float *values)
     /* NOTE: Do update from the set() because typically pixels.foreach_set() is used to update
      * the values, and it does not invoke the update(). */
 
-    ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-    IMB_free_gpu_textures(ibuf);
-    BKE_image_mark_dirty(ima, ibuf);
-
-    BKE_image_partial_update_mark_full_update(ima);
+    IMB_partial_update_mark_full(ibuf);
+    IMB_mark_dirty(ibuf);
     WM_main_add_notifier(NC_IMAGE | ND_DISPLAY, &ima->id);
   }
 
@@ -764,7 +759,6 @@ static void rna_render_slots_active_set(PointerRNA *ptr,
     int index = BLI_findindex(&image->renderslots, slot);
     if (index != -1) {
       image->render_slot = index;
-      BKE_image_partial_update_mark_full_update(image);
     }
   }
 }
@@ -780,7 +774,6 @@ static void rna_render_slots_active_index_set(PointerRNA *ptr, int value)
   Image *image = id_cast<Image *>(ptr->owner_id);
   int num_slots = image->renderslots.count();
   image->render_slot = value;
-  BKE_image_partial_update_mark_full_update(image);
   CLAMP(image->render_slot, 0, num_slots - 1);
 }
 

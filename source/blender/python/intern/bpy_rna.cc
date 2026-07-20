@@ -3850,7 +3850,7 @@ static PyObject *pyrna_struct_is_property_set(BPy_StructRNA *self, PyObject *arg
   static const char *_keywords[] = {"", "ghost", nullptr};
   static _PyArg_Parser _parser = {
       "s"  /* `name` (positional). */
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O&" /* `ghost` */
       ":is_property_set",
       _keywords,
@@ -3887,7 +3887,11 @@ static PyObject *pyrna_struct_property_unset(BPy_StructRNA *self, PyObject *args
 
   PYRNA_STRUCT_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "s:property_unset", &name)) {
+  if (!PyArg_ParseTuple(args,
+                        "s" /* `property` */
+                        ":property_unset",
+                        &name))
+  {
     return nullptr;
   }
 
@@ -3922,7 +3926,11 @@ static PyObject *pyrna_struct_is_property_hidden(BPy_StructRNA *self, PyObject *
 
   PYRNA_STRUCT_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "s:is_property_hidden", &name)) {
+  if (!PyArg_ParseTuple(args,
+                        "s" /* `property` */
+                        ":is_property_hidden",
+                        &name))
+  {
     return nullptr;
   }
 
@@ -3955,7 +3963,11 @@ static PyObject *pyrna_struct_is_property_readonly(BPy_StructRNA *self, PyObject
 
   PYRNA_STRUCT_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "s:is_property_readonly", &name)) {
+  if (!PyArg_ParseTuple(args,
+                        "s" /* `property` */
+                        ":is_property_readonly",
+                        &name))
+  {
     return nullptr;
   }
 
@@ -3988,7 +4000,11 @@ static PyObject *pyrna_struct_is_property_overridable_library(BPy_StructRNA *sel
 
   PYRNA_STRUCT_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "s:is_property_overridable_library", &name)) {
+  if (!PyArg_ParseTuple(args,
+                        "s" /* `property` */
+                        ":is_property_overridable_library",
+                        &name))
+  {
     return nullptr;
   }
 
@@ -4024,7 +4040,13 @@ static PyObject *pyrna_struct_property_overridable_library_set(BPy_StructRNA *se
 
   PYRNA_STRUCT_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "sp:property_overridable_library_set", &name, &is_overridable)) {
+  if (!PyArg_ParseTuple(args,
+                        "s" /* `property` */
+                        "p" /* `overridable` */
+                        ":property_overridable_library_set",
+                        &name,
+                        &is_overridable))
+  {
     return nullptr;
   }
 
@@ -4064,7 +4086,15 @@ static PyObject *pyrna_struct_path_resolve(BPy_StructRNA *self, PyObject *args)
 
   PYRNA_STRUCT_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "s|O!:path_resolve", &path, &PyBool_Type, &coerce)) {
+  if (!PyArg_ParseTuple(args,
+                        "s"  /* `path` */
+                        "|"  /* Optional arguments. */
+                        "O!" /* `coerce` */
+                        ":path_resolve",
+                        &path,
+                        &PyBool_Type,
+                        &coerce))
+  {
     return nullptr;
   }
 
@@ -4129,7 +4159,14 @@ static PyObject *pyrna_struct_path_from_module(BPy_StructRNA *self, PyObject *ar
 
   PYRNA_STRUCT_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "|si:path_from_module", &name, &index)) {
+  if (!PyArg_ParseTuple(args,
+                        "|" /* Optional arguments. */
+                        "s" /* `property` */
+                        "i" /* `index` */
+                        ":path_from_module",
+                        &name,
+                        &index))
+  {
     return nullptr;
   }
   if (index < -1) {
@@ -4251,7 +4288,12 @@ static PyObject *pyrna_struct_path_from_id(BPy_StructRNA *self, PyObject *args)
 
   PYRNA_STRUCT_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "|s:path_from_id", &name)) {
+  if (!PyArg_ParseTuple(args,
+                        "|" /* Optional arguments. */
+                        "s" /* `property` */
+                        ":path_from_id",
+                        &name))
+  {
     return nullptr;
   }
 
@@ -4449,7 +4491,14 @@ static PyObject *pyrna_struct_bl_rna_get_subclass_py(PyObject *cls, PyObject *ar
   char *id;
   PyObject *ret_default = Py_None;
 
-  if (!PyArg_ParseTuple(args, "s|O:bl_rna_get_subclass_py", &id, &ret_default)) {
+  if (!PyArg_ParseTuple(args,
+                        "s" /* `id` */
+                        "|" /* Optional arguments. */
+                        "O" /* `default` */
+                        ":bl_rna_get_subclass_py",
+                        &id,
+                        &ret_default))
+  {
     return nullptr;
   }
   PyObject *ret = pyrna_struct_bl_rna_find_subclass_recursive(cls, id);
@@ -4475,7 +4524,14 @@ static PyObject *pyrna_struct_bl_rna_get_subclass(PyObject *cls, PyObject *args)
   const char *id;
   PyObject *ret_default = Py_None;
 
-  if (!PyArg_ParseTuple(args, "s|O:bl_rna_get_subclass", &id, &ret_default)) {
+  if (!PyArg_ParseTuple(args,
+                        "s" /* `id` */
+                        "|" /* Optional arguments. */
+                        "O" /* `default` */
+                        ":bl_rna_get_subclass",
+                        &id,
+                        &ret_default))
+  {
     return nullptr;
   }
 
@@ -4708,7 +4764,11 @@ static PyObject *pyrna_struct_id_properties_ui(BPy_StructRNA *self, PyObject *ar
   }
 
   const char *key;
-  if (!PyArg_ParseTuple(args, "s:ui_data", &key)) {
+  if (!PyArg_ParseTuple(args,
+                        "s" /* `key` */
+                        ":ui_data",
+                        &key))
+  {
     return nullptr;
   }
 
@@ -5384,7 +5444,13 @@ static PyObject *pyrna_prop_collection_idprop_move(BPy_PropertyRNA *self, PyObje
   }
 #endif /* USE_PEDANTIC_WRITE */
 
-  if (!PyArg_ParseTuple(args, "ii", &key, &pos)) {
+  if (!PyArg_ParseTuple(args,
+                        "i" /* `src_index` */
+                        "i" /* `dst_index` */
+                        ":move",
+                        &key,
+                        &pos))
+  {
     PyErr_SetString(PyExc_TypeError, "bpy_prop_collection.move(): expected two ints as arguments");
     return nullptr;
   }
@@ -5585,7 +5651,14 @@ static PyObject *pyrna_struct_get(BPy_StructRNA *self, PyObject *args)
 
   PYRNA_STRUCT_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "s|O:get", &key, &def)) {
+  if (!PyArg_ParseTuple(args,
+                        "s" /* `key` */
+                        "|" /* Optional arguments. */
+                        "O" /* `default` */
+                        ":get",
+                        &key,
+                        &def))
+  {
     return nullptr;
   }
 
@@ -5632,7 +5705,14 @@ static PyObject *pyrna_struct_pop(BPy_StructRNA *self, PyObject *args)
 
   PYRNA_STRUCT_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "s|O:get", &key, &def)) {
+  if (!PyArg_ParseTuple(args,
+                        "s" /* `key` */
+                        "|" /* Optional arguments. */
+                        "O" /* `default` */
+                        ":get",
+                        &key,
+                        &def))
+  {
     return nullptr;
   }
 
@@ -5706,7 +5786,14 @@ static PyObject *pyrna_prop_collection_get(BPy_PropertyRNA *self, PyObject *args
 
   PYRNA_PROP_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "O|O:get", &key_ob, &def)) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `key` */
+                        "|" /* Optional arguments. */
+                        "O" /* `default` */
+                        ":get",
+                        &key_ob,
+                        &def))
+  {
     return nullptr;
   }
 
@@ -5767,13 +5854,13 @@ static PyObject *pyrna_prop_collection_find(BPy_PropertyRNA *self, PyObject *key
     name_ptr = RNA_struct_name_get_alloc(&itemptr, name, sizeof(name), &name_len);
 
     if (name_ptr) {
-      if ((key_len == name_len) && memcmp(name_ptr, key, key_len) == 0) {
-        index = i;
-        break;
-      }
-
+      const bool found = (key_len == name_len) && (memcmp(name_ptr, key, key_len) == 0);
       if (name != name_ptr) {
         MEM_delete(name_ptr);
+      }
+      if (found) {
+        index = i;
+        break;
       }
     }
 
@@ -5836,7 +5923,13 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
   *r_attr_signed = false;
   *r_raw_type = PROP_RAW_UNSET;
 
-  if (!PyArg_ParseTuple(args, "sO:foreach_get/set", r_attr, r_seq)) {
+  if (!PyArg_ParseTuple(args,
+                        "s" /* `attr` */
+                        "O" /* `seq` */
+                        ":foreach_get/set",
+                        r_attr,
+                        r_seq))
+  {
     return -1;
   }
 
@@ -6255,7 +6348,11 @@ static PyObject *pyprop_array_foreach_getset(BPy_PropertyArrayRNA *self,
     return nullptr;
   }
 
-  if (!PyArg_ParseTuple(args, "O:foreach_get/set", &seq)) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `seq` */
+                        ":foreach_get/set",
+                        &seq))
+  {
     return nullptr;
   }
 

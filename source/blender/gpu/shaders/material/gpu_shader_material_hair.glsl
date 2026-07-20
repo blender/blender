@@ -18,15 +18,13 @@ void node_bsdf_hair(float4 color,
    * closure yet. For now fall back to a simpler diffuse surface so that we have at least a color
    * feedback. */
   ClosureHair hair_data;
-  hair_data.weight = weight;
-  hair_data.color = color.rgb;
+  hair_data.color = color.rgb * weight;
   hair_data.offset = offset;
   hair_data.roughness = float2(roughness_u, roughness_v);
   hair_data.T = T;
 #else
   ClosureDiffuse hair_data;
-  hair_data.weight = weight;
-  hair_data.color = color.rgb;
+  hair_data.color = color.rgb * weight;
   hair_data.N = g_data.N;
 #endif
   result = closure_eval(hair_data);
@@ -58,15 +56,13 @@ void node_bsdf_hair_principled(float4 color,
    * For now fall back to a simpler diffuse surface so that we have at least a color feedback. */
 #if 0
   ClosureHair hair_data;
-  hair_data.weight = weight;
-  hair_data.color = color.rgb;
+  hair_data.color = color.rgb * weight;
   hair_data.offset = offset;
   hair_data.roughness = float2(0.0f);
   hair_data.T = g_data.curve_B;
 #else
   ClosureDiffuse hair_data;
-  hair_data.weight = weight;
-  hair_data.color = color.rgb;
+  hair_data.color = color.rgb * weight;
   hair_data.N = g_data.N;
 #endif
   result = closure_eval(hair_data);

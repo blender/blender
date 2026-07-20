@@ -47,7 +47,15 @@ static int ViewEdge_init(BPy_ViewEdge *self, PyObject *args, PyObject *kwds)
   static const char *kwlist[] = {"brother", nullptr};
   PyObject *brother = nullptr;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &ViewEdge_Type, &brother)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "|"  /* Optional arguments. */
+                                   "O!" /* `brother` */
+                                   ":__init__",
+                                   (char **)kwlist,
+                                   &ViewEdge_Type,
+                                   &brother))
+  {
     return -1;
   }
   if (!brother) {

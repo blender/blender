@@ -161,7 +161,7 @@ ccl_device_forceinline bool bvh_shadow_all_anyhit_filter(
 
 #if !defined(__TRANSPARENT_SHADOWS__)
   /* No transparent shadows in the scene, all light is blocked and we can stop immediately. */
-  payload.throughput = 0.0f;
+  payload.throughput = zero_float3();
   return false;
 #else
   /* Detect if this surface has a shader with transparent shadows. */

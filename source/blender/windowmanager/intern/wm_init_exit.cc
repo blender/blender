@@ -146,12 +146,20 @@ void WM_init_state_start_with_console_set(bool value)
  */
 static bool gpu_is_init = false;
 
-void WM_init_gpu()
+void WM_init_gpu_backend()
+{
+  GPU_backend_type_selection_detect();
+}
+
+void WM_init_gpu_offscreen()
 {
   /* Must be called only once. */
   BLI_assert(gpu_is_init == false);
 
   if (G.background) {
+    /* Init on demand for background mode, already done for foreground mode. */
+    WM_init_gpu_backend();
+
     /* Ghost is still not initialized elsewhere in background mode. */
     wm_ghost_init_background();
   }
@@ -312,7 +320,7 @@ void WM_init(bContext *C, int argc, const char **argv)
     /* Sets 3D mouse dead-zone. */
     WM_ndof_deadzone_set(U.ndof_deadzone);
 #endif
-    WM_init_gpu();
+    WM_init_gpu_offscreen();
 
     if (!WM_platform_support_perform_checks()) {
       WM_exit(C, -1);

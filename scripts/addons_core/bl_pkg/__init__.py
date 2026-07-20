@@ -577,14 +577,13 @@ def _remote_asset_library_restore_backups() -> None:
     if not bpy.context.preferences.experimental.use_remote_asset_libraries:
         return
 
-    from _bpy_internal.assets.remote_library import listing_downloader
-
     for asset_lib in bpy.context.preferences.filepaths.asset_libraries:
         if not asset_lib.enabled:
             continue
         if not asset_lib.use_remote_url:
             continue
 
+        from _bpy_internal.assets.remote_library import listing_downloader
         listing_downloader.restore_backup_if_exists_locked(asset_lib.remote_url, Path(asset_lib.path))
 
 

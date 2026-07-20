@@ -19,7 +19,6 @@
 #include "DNA_space_types.h"
 
 #include "BLI_threads.hh"
-#include "BLI_vector_set.hh"
 
 #include "IMB_imbuf.hh"
 
@@ -431,99 +430,124 @@ void seq_prefetch_free(Scene *scene)
   MEM_delete(pfjob);
 }
 
-static VectorSet<Strip *> query_scene_strips(Editing *ed)
+static bool strip_renders_scene_strip(const Scene *scene,
+                                      ListBaseT<SeqTimelineChannel> *channels,
+                                      ListBaseT<Strip> *seqbase,
+                                      Strip *strip,
+                                      int frame,
+                                      SeqRenderState state);
+
+/* Find whether any strip shown in `seqbase` renders a camera-input scene strip. */
+static bool seqbase_renders_scene_strip(const Scene *scene,
+                                        ListBaseT<SeqTimelineChannel> *channels,
+                                        ListBaseT<Strip> *seqbase,
+                                        int frame,
+                                        SeqRenderState state)
 {
-  Map<const Scene *, VectorSet<Strip *>> &strips_by_scene = lookup_strips_by_scene_map_get(ed);
-
-  VectorSet<Strip *> scene_strips;
-  for (const VectorSet<Strip *> &strips : strips_by_scene.values()) {
-    scene_strips.add_multiple(strips);
-  }
-  return scene_strips;
-}
-
-/* Find whether any scene strips are indirectly rendered, e.g. as mask or effect inputs. */
-static bool seq_prefetch_scene_strip_is_rendered(const Scene *scene,
-                                                 ListBaseT<SeqTimelineChannel> *channels,
-                                                 ListBaseT<Strip> *seqbase,
-                                                 Span<Strip *> scene_strips,
-                                                 int timeline_frame,
-                                                 SeqRenderState state)
-{
-  Vector<Strip *> rendered_strips = query_rendered_strips_sorted(
-      scene, channels, seqbase, timeline_frame, 0);
-
-  /* Iterate over rendered strips. */
-  for (Strip *strip : rendered_strips) {
-    if (strip->type == STRIP_TYPE_META &&
-        seq_prefetch_scene_strip_is_rendered(
-            scene, &strip->channels, &strip->seqbase, scene_strips, timeline_frame, state))
-    {
+  for (Strip *strip : query_rendered_strips_sorted(scene, channels, seqbase, frame, 0)) {
+    if (strip_renders_scene_strip(scene, channels, seqbase, strip, frame, state)) {
       return true;
-    }
-
-    /* Recursive "sequencer-type" scene strip detected, no point in attempting to render it. */
-    if (state.strips_in_progress.contains(strip)) {
-      return true;
-    }
-
-    if (strip->type == STRIP_TYPE_SCENE && (strip->flag & SEQ_SCENE_STRIPS) != 0 &&
-        strip->scene != nullptr && editing_get(strip->scene))
-    {
-      state.strips_in_progress.add(strip);
-
-      const Scene *target_scene = strip->scene;
-      Editing *target_ed = editing_get(target_scene);
-      if (target_ed == nullptr) {
-        continue;
-      }
-
-      VectorSet<Strip *> target_scene_strips = query_scene_strips(target_ed);
-      int target_timeline_frame = give_frame_index(scene, strip, timeline_frame) +
-                                  target_scene->r.sfra;
-
-      if (seq_prefetch_scene_strip_is_rendered(target_scene,
-                                               target_ed->current_channels(),
-                                               target_ed->current_strips(),
-                                               target_scene_strips,
-                                               target_timeline_frame,
-                                               state))
-      {
-        return true;
-      }
-    }
-
-    for (Strip *strip_scene : scene_strips) {
-      /* Check if the strip is an effect of the scene strip or uses it as modifier.
-       * This also checks if `strip == strip_scene`. */
-      if (relations_render_loop_check(strip, strip_scene)) {
-        return true;
-      }
-      /* Adjustment strips with 'replace' blending can use scene strips in channels below it.
-       * See #151629. */
-      if (strip->type == STRIP_TYPE_ADJUSTMENT && strip->blend_mode == STRIP_BLEND_REPLACE &&
-          strip_scene->intersects_frame(scene, timeline_frame) &&
-          strip_scene->channel < strip->channel)
-      {
-        return true;
-      }
     }
   }
   return false;
 }
 
-/* Prefetch must avoid rendering scene strips, because rendering in background locks UI and can
- * make it unresponsive for long time periods. */
-static bool seq_prefetch_must_skip_frame(PrefetchJob *pfjob,
-                                         ListBaseT<SeqTimelineChannel> *channels,
-                                         ListBaseT<Strip> *seqbase)
+/* Find whether rendering `strip` directly or indirectly renders a camera-input scene strip. */
+static bool strip_renders_scene_strip(const Scene *scene,
+                                      ListBaseT<SeqTimelineChannel> *channels,
+                                      ListBaseT<Strip> *seqbase,
+                                      Strip *strip,
+                                      int frame,
+                                      SeqRenderState state)
 {
+  /* Recursive sequencer-input scene strip detected, no point in attempting to render it. */
+  if (state.strips_in_progress.contains(strip)) {
+    return true;
+  }
+
+  /* Camera-input scene strip detected. */
+  if (strip->type == STRIP_TYPE_SCENE && (strip->flag & SEQ_SCENE_STRIPS) == 0 &&
+      strip->scene != nullptr)
+  {
+    return true;
+  }
+
+  /* Recurse on effect input strips. */
+  if ((strip->input1 &&
+       strip_renders_scene_strip(scene, channels, seqbase, strip->input1, frame, state)) ||
+      (strip->input2 &&
+       strip_renders_scene_strip(scene, channels, seqbase, strip->input2, frame, state)))
+  {
+    return true;
+  }
+
+  /* Recurse on mask modifier strips. */
+  for (StripModifierData &smd : strip->modifiers) {
+    if (smd.mask_strip &&
+        strip_renders_scene_strip(scene, channels, seqbase, smd.mask_strip, frame, state))
+    {
+      return true;
+    }
+  }
+
+  /* Adjustment strips with 'replace' blending indirectly render all strips in channels below them.
+   * See #151629. */
+  if (strip->type == STRIP_TYPE_ADJUSTMENT && strip->blend_mode == STRIP_BLEND_REPLACE &&
+      strip->channel > 1)
+  {
+    for (Strip *below :
+         query_rendered_strips_sorted(scene, channels, seqbase, frame, strip->channel - 1))
+    {
+      if (strip_renders_scene_strip(scene, channels, seqbase, below, frame, state)) {
+        return true;
+      }
+    }
+  }
+
+  /* Recurse on all strips in the meta strip `seqbase`. */
+  if (strip->type == STRIP_TYPE_META &&
+      seqbase_renders_scene_strip(scene, &strip->channels, &strip->seqbase, frame, state))
+  {
+    return true;
+  }
+
+  /* Recurse on all strips in the sequencer-input scene strip `seqbase`. */
+  if (strip->type == STRIP_TYPE_SCENE && (strip->flag & SEQ_SCENE_STRIPS) != 0 &&
+      strip->scene != nullptr && editing_get(strip->scene))
+  {
+    state.strips_in_progress.add(strip);
+
+    const Scene *target_scene = strip->scene;
+    Editing *target_ed = editing_get(target_scene);
+    int target_timeline_frame = give_frame_index(scene, strip, frame) + target_scene->r.sfra;
+
+    if (seqbase_renders_scene_strip(target_scene,
+                                    target_ed->current_channels(),
+                                    target_ed->current_strips(),
+                                    target_timeline_frame,
+                                    state))
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/* Prefetch must avoid rendering scene strips because they are not supported yet
+ * and this will lead to crashes.  */
+static bool seq_prefetch_must_skip_frame(PrefetchJob *pfjob)
+{
+  const Scene *scene = pfjob->scene_eval;
+  const Editing *ed = editing_get(pfjob->scene_eval);
+  ListBaseT<Strip> *seqbase = active_seqbase_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = channels_displayed_get(ed);
+  int timeline_frame = seq_prefetch_cfra(pfjob);
+
   /* Pass in state to check for infinite recursion of "sequencer-type" scene strips. */
   SeqRenderState state = {};
 
-  VectorSet<Strip *> scene_strips = query_scene_strips(editing_get(pfjob->scene_eval));
-  return seq_prefetch_scene_strip_is_rendered(
-      pfjob->scene_eval, channels, seqbase, scene_strips, seq_prefetch_cfra(pfjob), state);
+  return seqbase_renders_scene_strip(scene, channels, seqbase, timeline_frame, state);
 }
 
 static bool seq_prefetch_need_suspend(PrefetchJob *pfjob)
@@ -571,10 +595,7 @@ static void *seq_prefetch_frames(void *job)
      */
     pfjob->scene_eval->ed->runtime->prefetch_job = pfjob;
 
-    ListBaseT<Strip> *seqbase = active_seqbase_get(editing_get(pfjob->scene_eval));
-    ListBaseT<SeqTimelineChannel> *channels = channels_displayed_get(
-        editing_get(pfjob->scene_eval));
-    if (seq_prefetch_must_skip_frame(pfjob, channels, seqbase)) {
+    if (seq_prefetch_must_skip_frame(pfjob)) {
       pfjob->num_frames_prefetched++;
       /* Break instead of keep looping if the job should be terminated. */
       if (!(pfjob->scene->ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) ||

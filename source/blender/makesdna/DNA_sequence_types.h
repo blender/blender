@@ -267,7 +267,10 @@ struct StripTransform {
   float scale_x = 0;
   float scale_y = 0;
   float rotation = 0;
-  /** 0-1 range, `seq::image_transform_origin_offset_pixelspace_get` to convert to pixel-space. */
+  /** Relative 0-1 range, where (0,0) is the bottom-left of the image.
+   * NOTE: Do not access directly outside of internal transform code!
+   * Either call #image_transform_origin_get, or convert to absolute viewspace pixel offset from
+   * the preview center with #image_transform_origin_preview_offset_get. */
   float origin[2] = {};
   eStripTransformFilter filter = SEQ_TRANSFORM_FILTER_AUTO;
 };
@@ -352,7 +355,8 @@ struct Strip {
 
   eStripFlag flag = SEQ_FLAG_NONE;
   StripType type = STRIP_TYPE_IMAGE;
-  /** The length of the contents of this strip before handles are applied. */
+  /** The length of the contents of this strip before handles are applied. To be used with
+   * #content_length() and #content_length_set(). */
   int len = 0;
   /**
    * Start frame of contents of strip in absolute frame coordinates.
@@ -544,6 +548,18 @@ struct Strip {
    * Returns 0 for unsupported strip or if media can't be loaded.
    */
   float media_fps(Scene *scene);
+
+  /**
+   * Raw frame count before any handles are applied.
+   * */
+  int content_length() const;
+  void content_length_set(int new_length);
+
+  /**
+   * Frame distance from the right handle to the content end.
+   */
+  float end_offset() const;
+  void end_offset_set(float new_end_offset);
 
 #endif
 };

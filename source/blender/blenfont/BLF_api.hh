@@ -189,7 +189,7 @@ void BLF_batch_discard();
  */
 void BLF_draw(int fontid, const char *str, size_t str_len, ResultBLF *r_info = nullptr)
     ATTR_NONNULL(2);
-int BLF_draw_mono(int fontid, const char *str, size_t str_len, int cwidth, int tab_columns)
+int BLF_draw_mono(int fontid, const char *str, size_t str_len, int char_width, int tab_columns)
     ATTR_NONNULL(2);
 
 void BLF_draw_svg_icon(uint icon_id,

@@ -54,7 +54,15 @@ static int FEdgeSharp_init(BPy_FEdgeSharp *self, PyObject *args, PyObject *kwds)
   static const char *kwlist_2[] = {"first_vertex", "second_vertex", nullptr};
   PyObject *obj1 = nullptr, *obj2 = nullptr;
 
-  if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &FEdgeSharp_Type, &obj1)) {
+  if (PyArg_ParseTupleAndKeywords(args,
+                                  kwds,
+                                  "|"  /* Optional arguments. */
+                                  "O!" /* `brother` */
+                                  ":__init__",
+                                  (char **)kwlist_1,
+                                  &FEdgeSharp_Type,
+                                  &obj1))
+  {
     if (!obj1) {
       self->fes = new FEdgeSharp();
     }
@@ -63,8 +71,16 @@ static int FEdgeSharp_init(BPy_FEdgeSharp *self, PyObject *args, PyObject *kwds)
     }
   }
   else if ((void)PyErr_Clear(),
-           PyArg_ParseTupleAndKeywords(
-               args, kwds, "O!O!", (char **)kwlist_2, &SVertex_Type, &obj1, &SVertex_Type, &obj2))
+           PyArg_ParseTupleAndKeywords(args,
+                                       kwds,
+                                       "O!" /* `first_vertex` */
+                                       "O!" /* `second_vertex` */
+                                       ":__init__",
+                                       (char **)kwlist_2,
+                                       &SVertex_Type,
+                                       &obj1,
+                                       &SVertex_Type,
+                                       &obj2))
   {
     self->fes = new FEdgeSharp(((BPy_SVertex *)obj1)->sv, ((BPy_SVertex *)obj2)->sv);
   }

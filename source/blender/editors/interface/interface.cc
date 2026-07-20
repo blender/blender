@@ -74,6 +74,7 @@
 
 #include "CLG_log.h"
 
+#include "buttons/interface_label.hh"
 #include "interface_intern.hh"
 
 namespace blender::ui {
@@ -854,6 +855,10 @@ static bool but_equals_old(const Button *but, const Button *oldbut)
     }
   }
 
+  if (but->type == ButtonType::Label) {
+    return button_label_is_multiline(but) == button_label_is_multiline(oldbut);
+  }
+
   return true;
 }
 
@@ -989,6 +994,12 @@ static void but_update_old_active_from_new(Button *oldbut, Button *but)
 
     std::swap(search_oldbut->arg_free_fn, search_but->arg_free_fn);
     std::swap(search_oldbut->arg, search_but->arg);
+  }
+  if (oldbut->type == ButtonType::Label) {
+    auto *label_oldbut = static_cast<ButtonLabel *>(oldbut);
+    auto *label_but = static_cast<ButtonLabel *>(but);
+    std::swap(label_oldbut->wrap_cache, label_but->wrap_cache);
+    std::swap(label_oldbut->max_lines, label_but->max_lines);
   }
 
   /* copy hardmin for list rows to prevent 'sticking' highlight to mouse position
@@ -1269,7 +1280,8 @@ static bool but_is_rna_undo(const Button *but)
     return false;
   }
 
-  return ID_CHECK_UNDO(but->rnapoin.owner_id) && RNA_struct_undo_check(but->rnapoin.type);
+  return ID_CHECK_UNDO(but->rnapoin.owner_id) &&
+         RNA_property_undo_check(but->rnaprop, but->rnapoin.type);
 }
 
 /* assigns automatic keybindings to menu items for fast access

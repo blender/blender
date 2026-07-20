@@ -1657,6 +1657,7 @@ elseif(WIN32)
         ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_debug_gpu_glitchworkaround.cmd
         ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_debug_log.cmd
         ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_factory_startup.cmd
+        ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_factory_startup_opengl.cmd
         ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_factory_startup_vulkan.cmd
         ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_startup_opengl.cmd
         ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_startup_vulkan.cmd

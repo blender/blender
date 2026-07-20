@@ -849,10 +849,13 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Noise Scale", "Scale the noise frequency");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
 
-  /* pass index for future compositing and editing tools */
+  /* Pass index for modifiers. */
   prop = RNA_def_property(srna, "pass_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, nullptr, "index");
-  RNA_def_property_ui_text(prop, "Pass Index", "Index number for the \"Color Index\" pass");
+  RNA_def_property_ui_text(prop,
+                           "Pass Index",
+                           "Identifier that can be used with some modifiers to restrict their "
+                           "influence to only certain materials");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
 
   /* mode type */

@@ -208,6 +208,9 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
       if (id_type == ID_NT) {
         flag |= ID_RECALC_NTREE_OUTPUT;
       }
+      if (id_type == ID_SCE) {
+        flag |= ID_RECALC_COMPOSITOR;
+      }
     }
     else {
       if (id_type == ID_GR) {

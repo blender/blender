@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "BKE_node_tree_update.hh"
 #include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"
@@ -311,7 +312,12 @@ void BKE_blendfile_link_append_context_item_newid_set(BlendfileLinkAppendContext
   BLI_assert(lapp_context->process_stage != BlendfileLinkAppendContext::ProcessStage::Init);
   BLI_assert(item->new_id);
   BLI_assert(!item->liboverride_id);
-  BLI_assert(new_id->lib == item->new_id->lib);
+  /* The only cases where library pointers should be different is when:
+   * - A linked ID is replaced by a matching local ID (append case).
+   * - A linked ID is replaced by a matching linked packed ID. */
+  BLI_assert(new_id->lib == item->new_id->lib ||
+             (ID_IS_LINKED(item->new_id) && !ID_IS_LINKED(new_id)) ||
+             (ID_IS_PACKED(new_id) && new_id->lib->archive_parent_library == item->new_id->lib));
   BLI_assert(!lapp_context->new_id_to_item.contains(new_id));
 
   lapp_context->new_id_to_item.remove(item->new_id);
@@ -373,6 +379,16 @@ void BKE_blendfile_link_append_context_finalize(BlendfileLinkAppendContext *lapp
                   BlendfileLinkAppendContext::ProcessStage::Appending,
                   BlendfileLinkAppendContext::ProcessStage::Instantiating));
   lapp_context->process_stage = BlendfileLinkAppendContext::ProcessStage::Done;
+
+  /* Tag node trees to update generated RNA with potentially updated session uid values from
+   * data-block defaults in interfaces. This is only necessary because RNA types were already
+   * generated before these data-blocks were local; theoretically that shouldn't be necessary. */
+  for (ID *id : lapp_context->new_id_to_item.keys()) {
+    if (GS(id->name) == ID_NT) {
+      bNodeTree *ntree = id_cast<bNodeTree *>(id);
+      BKE_ntree_update_tag_all(ntree);
+    }
+  }
 
   BKE_main_ensure_invariants(*lapp_context->params->bmain);
 
@@ -1108,7 +1124,7 @@ void BKE_blendfile_link_pack(BlendfileLinkAppendContext *lapp_context, ReportLis
     /* Calling code may want to access newly packed embedded IDs from the link/append context
      * items. */
     if (id->newid) {
-      item.new_id = id->newid;
+      BKE_blendfile_link_append_context_item_newid_set(lapp_context, &item, id->newid);
     }
 
     /* If packing failed for a linked ID, do not delete its linked version. */
@@ -1598,7 +1614,7 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
     BLI_assert(id->newid != nullptr);
 
     /* Calling code may want to access newly appended IDs from the link/append context items. */
-    item.new_id = id->newid;
+    BKE_blendfile_link_append_context_item_newid_set(lapp_context, &item, id->newid);
 
     /* Only the 'reuse local' action should leave unused newly linked data behind. */
     if (item.action != LINK_APPEND_ACT_REUSE_LOCAL) {

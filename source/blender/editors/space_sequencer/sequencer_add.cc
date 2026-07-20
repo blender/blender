@@ -1230,7 +1230,7 @@ static void sequencer_add_movie_sync_strip(Scene *scene,
   /* Expand missing sound data in the underlying container to fill the movie strip's length. To the
    * user, this missing data is the same as complete silence, so we pretend like it is. */
   if (strip->type == STRIP_TYPE_SOUND) {
-    strip->len = std::max(anchor->len, strip->len);
+    strip->content_length_set(std::max(anchor->content_length(), strip->content_length()));
   }
 
   /* Match the strip length to the anchor to have all streams align on the timeline. */

@@ -565,6 +565,21 @@ static const EnumPropertyItem rna_enum_view3dshading_render_pass_type_items[] = 
     {EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET, "CryptoAsset", 0, "CryptoAsset", ""},
     {EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL, "CryptoMaterial", 0, "CryptoMaterial", ""},
 
+    RNA_ENUM_ITEM_HEADING(CTX_N_(BLT_I18NCONTEXT_RENDER_LAYER, "Denoising Data"), nullptr),
+    {EEVEE_RENDER_PASS_DENOISING_DEPTH, "DENOISING_DEPTH", 0, "Denoising Depth", ""},
+    {EEVEE_RENDER_PASS_DENOISING_NORMAL, "DENOISING_NORMAL", 0, "Denoising Normal", ""},
+    {EEVEE_RENDER_PASS_DENOISING_ROUGHNESS, "DENOISING_ROUGHNESS", 0, "Denoising Roughness", ""},
+    {EEVEE_RENDER_PASS_DENOISING_DIFFUSE_ALBEDO,
+     "DIFFUSE_ALBEDO",
+     0,
+     "Denoising Diffuse Albedo",
+     ""},
+    {EEVEE_RENDER_PASS_DENOISING_SPECULAR_ALBEDO,
+     "SPECULAR_ALBEDO",
+     0,
+     "Denoising Specular Albedo",
+     ""},
+
     RNA_ENUM_ITEM_HEADING(CTX_N_(BLT_I18NCONTEXT_RENDER_LAYER, "Shader AOV"), nullptr),
     {EEVEE_RENDER_PASS_AOV, "AOV", 0, "AOV", ""},
 
@@ -3071,9 +3086,7 @@ static void rna_SpaceNodeEditor_show_backdrop_update(Main * /*bmain*/,
                                                      Scene *scene,
                                                      PointerRNA * /*ptr*/)
 {
-  if (scene->compositing_node_group) {
-    DEG_id_tag_update(&scene->compositing_node_group->id, ID_RECALC_NTREE_OUTPUT);
-  }
+  DEG_id_tag_update(&scene->id, ID_RECALC_COMPOSITOR);
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
   WM_main_add_notifier(NC_SCENE | ND_NODES, nullptr);
 }
@@ -7097,7 +7110,7 @@ static void rna_def_space_text(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TEXT, "rna_SpaceTextEditor_updateEdited");
 
   prop = RNA_def_property(srna, "font_size", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "lheight");
+  RNA_def_property_int_sdna(prop, nullptr, "line_height");
   RNA_def_property_range(prop, 1, 256); /* Large range since Hi-DPI scales down size. */
   RNA_def_property_ui_text(prop, "Font Size", "Font size to use for displaying the text");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TEXT, nullptr);
@@ -7605,7 +7618,7 @@ static void rna_def_space_console(BlenderRNA *brna)
 
   /* display */
   prop = RNA_def_property(srna, "font_size", PROP_INT, PROP_NONE); /* copied from text editor */
-  RNA_def_property_int_sdna(prop, nullptr, "lheight");
+  RNA_def_property_int_sdna(prop, nullptr, "line_height");
   RNA_def_property_range(prop, 1, 256); /* Large range since Hi-DPI scales down size. */
   RNA_def_property_ui_text(prop, "Font Size", "Font size to use for displaying the text");
   RNA_def_property_update(prop, 0, "rna_SpaceConsole_rect_update");

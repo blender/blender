@@ -574,21 +574,6 @@ static void bm_edgeloop_flag_set(BMEdgeLoopStore *estore, char hflag, bool set)
   }
 }
 
-static bool bm_edge_test_cb(BMEdge *e, void *bm_v)
-{
-  return BMO_edge_flag_test_bool((BMesh *)bm_v, e, EDGE_MARK);
-}
-
-static bool bm_edge_test_rail_cb(BMEdge *e, void * /*bm_v*/)
-{
-  /* Normally operators don't check for hidden state
-   * but alternative would be to pass slot of rail edges. */
-  if (BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
-    return false;
-  }
-  return BM_edge_is_wire(e) || BM_edge_is_boundary(e);
-}
-
 void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
 {
   ListBaseT<BMEdgeLoopStore> eloops = {nullptr, nullptr};
@@ -604,9 +589,20 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
 
   int count;
   bool changed = false;
+
+  const auto edge_test_rail_fn = [](BMEdge *e) {
+    /* Normally operators don't check for hidden state
+     * but alternative would be to pass slot of rail edges. */
+    if (BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+      return false;
+    }
+    return BM_edge_is_wire(e) || BM_edge_is_boundary(e);
+  };
+
   BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, EDGE_MARK);
 
-  count = BM_mesh_edgeloops_find(bm, &eloops, bm_edge_test_cb, static_cast<void *>(bm));
+  count = BM_mesh_edgeloops_find(
+      bm, &eloops, [&](BMEdge *e) { return BMO_edge_flag_test(bm, e, EDGE_MARK); });
 
   if (count != 2) {
     /* Note that this error message has been adjusted to make sense when called
@@ -644,9 +640,8 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
   bm_edgeloop_flag_set(estore_a, BM_ELEM_HIDDEN, true);
   bm_edgeloop_flag_set(estore_b, BM_ELEM_HIDDEN, true);
 
-  if (BM_mesh_edgeloops_find_path(
-          bm, &eloops_rail, bm_edge_test_rail_cb, bm, v_a_first, v_b_first) &&
-      BM_mesh_edgeloops_find_path(bm, &eloops_rail, bm_edge_test_rail_cb, bm, v_a_last, v_b_last))
+  if (BM_mesh_edgeloops_find_path(bm, &eloops_rail, edge_test_rail_fn, v_a_first, v_b_first) &&
+      BM_mesh_edgeloops_find_path(bm, &eloops_rail, edge_test_rail_fn, v_a_last, v_b_last))
   {
     estore_rail_a = static_cast<BMEdgeLoopStore *>(eloops_rail.first);
     estore_rail_b = static_cast<BMEdgeLoopStore *>(eloops_rail.last);
@@ -654,10 +649,8 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
   else {
     BM_mesh_edgeloops_free(&eloops_rail);
 
-    if (BM_mesh_edgeloops_find_path(
-            bm, &eloops_rail, bm_edge_test_rail_cb, bm, v_a_first, v_b_last) &&
-        BM_mesh_edgeloops_find_path(
-            bm, &eloops_rail, bm_edge_test_rail_cb, bm, v_a_last, v_b_first))
+    if (BM_mesh_edgeloops_find_path(bm, &eloops_rail, edge_test_rail_fn, v_a_first, v_b_last) &&
+        BM_mesh_edgeloops_find_path(bm, &eloops_rail, edge_test_rail_fn, v_a_last, v_b_first))
     {
       estore_rail_a = static_cast<BMEdgeLoopStore *>(eloops_rail.first);
       estore_rail_b = static_cast<BMEdgeLoopStore *>(eloops_rail.last);

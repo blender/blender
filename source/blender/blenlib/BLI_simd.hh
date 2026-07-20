@@ -24,12 +24,15 @@
 #  endif
 #  include <sse2neon.h>
 #  define BLI_HAVE_SSE2 1
+#  define BLI_HAVE_ARM_NEON 1
 #elif defined(__SSE2__)
 /* Native SSE2 on Intel/AMD. */
 #  include <emmintrin.h>
 #  define BLI_HAVE_SSE2 1
+#  define BLI_HAVE_ARM_NEON 0
 #else
 #  define BLI_HAVE_SSE2 0
+#  define BLI_HAVE_ARM_NEON 0
 #endif
 
 #if (defined(__ARM_NEON) || (defined(_M_ARM64) && defined(_MSC_VER))) && \

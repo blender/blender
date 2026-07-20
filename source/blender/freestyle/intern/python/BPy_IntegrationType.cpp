@@ -56,7 +56,12 @@ static PyObject *Integrator_integrate(PyObject * /*self*/, PyObject *args, PyObj
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwds,
-                                   "O!O!O!|O!",
+                                   "O!" /* `func` */
+                                   "O!" /* `it` */
+                                   "O!" /* `it_end` */
+                                   "|"  /* Optional arguments. */
+                                   "O!" /* `integration_type` */
+                                   ":integrate",
                                    (char **)kwlist,
                                    &UnaryFunction0D_Type,
                                    &obj1,

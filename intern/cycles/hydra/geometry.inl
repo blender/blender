@@ -163,7 +163,7 @@ void HdCyclesGeometry<Base, CyclesBase>::Sync(HdSceneDelegate *sceneDelegate,
 
   if (HdChangeTracker::IsVisibilityDirty(*dirtyBits, id)) {
     for (Object *instance : _instances) {
-      instance->set_visibility(Base::IsVisible() ? ~0 : 0);
+      instance->set_visibility(Base::IsVisible() ? PATH_RAY_VISIBILITY_ALL : 0);
     }
   }
 
@@ -193,16 +193,17 @@ void HdCyclesGeometry<Base, CyclesBase>::Finalize(HdRenderParam *renderParam)
   const SceneLock lock(renderParam);
   const bool keep_nodes = static_cast<const HdCyclesSession *>(renderParam)->keep_nodes;
 
-  if (!keep_nodes) {
-    lock.scene->delete_node(_geom);
-  }
-  _geom = nullptr;
-
+  /* Delete the instances before the geometry, since the objects reference the geometry. */
   if (!keep_nodes) {
     lock.scene->delete_nodes(set<Object *>(_instances.begin(), _instances.end()));
   }
   _instances.clear();
   _instances.shrink_to_fit();
+
+  if (!keep_nodes) {
+    lock.scene->delete_node(_geom);
+  }
+  _geom = nullptr;
 }
 
 template<typename Base, typename CyclesBase>

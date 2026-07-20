@@ -43,7 +43,13 @@ static int ConstantThicknessShader___init__(BPy_ConstantThicknessShader *self,
   static const char *kwlist[] = {"thickness", nullptr};
   float f;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "f", (char **)kwlist, &f)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "f" /* `thickness` */
+                                   ":__init__",
+                                   (char **)kwlist,
+                                   &f))
+  {
     return -1;
   }
   self->py_ss.ss = new StrokeShaders::ConstantThicknessShader(f);

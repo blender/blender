@@ -70,8 +70,26 @@ static int IncreasingColorShader___init__(BPy_IncreasingColorShader *self,
   };
   float f1, f2, f3, f4, f5, f6, f7, f8;
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "ffffffff", (char **)kwlist, &f1, &f2, &f3, &f4, &f5, &f6, &f7, &f8))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "f" /* `red_min` */
+                                   "f" /* `green_min` */
+                                   "f" /* `blue_min` */
+                                   "f" /* `alpha_min` */
+                                   "f" /* `red_max` */
+                                   "f" /* `green_max` */
+                                   "f" /* `blue_max` */
+                                   "f" /* `alpha_max` */
+                                   ":__init__",
+                                   (char **)kwlist,
+                                   &f1,
+                                   &f2,
+                                   &f3,
+                                   &f4,
+                                   &f5,
+                                   &f6,
+                                   &f7,
+                                   &f8))
   {
     return -1;
   }

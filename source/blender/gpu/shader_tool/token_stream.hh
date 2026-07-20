@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "ast.hh"
 #include "enums.hh"
 #include "utils.hh"
 
@@ -93,17 +94,21 @@ struct ParserBase : LexerBase {
   /** Index of bottom most scope per token. */
   std::vector<int> token_scope;
 
+  std::vector<ast::NodeData> ast_nodes;
+
   /* Return the i'th token. */
   Token operator[](int i) const;
 
   void build_scope_tree(ErrorHandler &err_handler);
   void build_token_to_scope_map();
+  void parse_bsl(ErrorHandler &err_handler);
+
+  ast::Namespace root() const;
+  void print_ast() const;
 
  private:
   void update_string_view();
 };
-
-;
 
 /* Don't do anything. No access to scopes is allowed. */
 struct NullParser {

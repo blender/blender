@@ -64,6 +64,12 @@ void ED_outliner_select_sync_from_sequence_tag(const bContext *C)
   wm->outliner_sync_select_dirty |= WM_OUTLINER_SYNC_SELECT_FROM_SEQUENCE;
 }
 
+void ED_outliner_select_sync_from_collection_tag(bContext *C)
+{
+  wmWindowManager *wm = CTX_wm_manager(C);
+  wm->outliner_sync_select_dirty |= WM_OUTLINER_SYNC_SELECT_FROM_COLLECTION;
+}
+
 void ED_outliner_select_sync_from_all_tag(bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -111,6 +117,7 @@ struct SyncSelectTypes {
   bool edit_bone;
   bool pose_bone;
   bool seq_strip;
+  bool collection;
 };
 
 /**
@@ -153,9 +160,11 @@ static bool outliner_sync_select_to_outliner_set_types(const TreeViewContext &tv
                            WM_OUTLINER_SYNC_SELECT_FROM_POSE_BONE);
   sync_types->seq_strip = sequence_view && (space_outliner->sync_select_dirty &
                                             WM_OUTLINER_SYNC_SELECT_FROM_SEQUENCE);
+  sync_types->collection = !sequence_view && (space_outliner->sync_select_dirty &
+                                              WM_OUTLINER_SYNC_SELECT_FROM_COLLECTION);
 
   return sync_types->object || sync_types->edit_bone || sync_types->pose_bone ||
-         sync_types->seq_strip;
+         sync_types->seq_strip || sync_types->collection;
 }
 
 /**
@@ -472,11 +481,13 @@ struct SyncSelectActiveData {
 static void outliner_sync_selection_to_outliner(const Main &bmain,
                                                 const Scene *scene,
                                                 ViewLayer *view_layer,
+                                                LayerCollection *layer_collection,
                                                 SpaceOutliner *space_outliner,
                                                 ListBaseT<TreeElement> *tree,
                                                 SyncSelectActiveData *active_data,
                                                 const SyncSelectTypes *sync_types,
-                                                bool *r_any_new_active)
+                                                bool *r_any_new_active,
+                                                short &idcode)
 {
   for (TreeElement &te : *tree) {
     TreeStoreElem *tselem = TREESTORE(&te);
@@ -503,20 +514,37 @@ static void outliner_sync_selection_to_outliner(const Main &bmain,
         outliner_select_sync_from_strip(active_data->strip, &te);
       }
     }
+    else if (outliner_is_collection_tree_element(&te)) {
+      if (sync_types->collection) {
+        Collection *collection = outliner_collection_from_tree_element(&te);
+        if (layer_collection && (layer_collection->collection == collection)) {
+          tselem->flag |= TSE_ACTIVE | TSE_SELECTED;
+          *r_any_new_active = true;
+        }
+        else {
+          tselem->flag &= ~(TSE_ACTIVE | TSE_SELECTED);
+        }
+      }
+    }
     else {
       tselem->flag &= ~(TSE_SELECTED | TSE_ACTIVE);
     }
     const bool is_active_new = (tselem->flag & TSE_ACTIVE) && (tselem->flag & TSE_SELECTED);
-    *r_any_new_active |= is_active_new && !is_active_old;
+    if (is_active_new && !is_active_old) {
+      *r_any_new_active = true;
+      idcode = te.idcode;
+    }
     /* Sync subtree elements */
     outliner_sync_selection_to_outliner(bmain,
                                         scene,
                                         view_layer,
+                                        layer_collection,
                                         space_outliner,
                                         &te.subtree,
                                         active_data,
                                         sync_types,
-                                        r_any_new_active);
+                                        r_any_new_active,
+                                        idcode);
   }
 }
 
@@ -536,7 +564,8 @@ static void get_sync_select_active_data(const bContext *C, SyncSelectActiveData 
 
 bool outliner_sync_selection(const bContext *C,
                              const TreeViewContext &tvc,
-                             SpaceOutliner *space_outliner)
+                             SpaceOutliner *space_outliner,
+                             short &idcode)
 {
   /* Set which types of data to sync from sync dirty flag and outliner display mode */
   SyncSelectTypes sync_types;
@@ -552,11 +581,13 @@ bool outliner_sync_selection(const bContext *C,
     outliner_sync_selection_to_outliner(*tvc.bmain,
                                         tvc.scene,
                                         tvc.view_layer,
+                                        tvc.layer_collection,
                                         space_outliner,
                                         &space_outliner->runtime->tree,
                                         &active_data,
                                         &sync_types,
-                                        &r_any_new_active);
+                                        &r_any_new_active,
+                                        idcode);
 
     /* Keep any un-synced data in the dirty flag. */
     if (sync_types.object) {
@@ -570,6 +601,9 @@ bool outliner_sync_selection(const bContext *C,
     }
     if (sync_types.seq_strip) {
       space_outliner->sync_select_dirty &= ~WM_OUTLINER_SYNC_SELECT_FROM_SEQUENCE;
+    }
+    if (sync_types.collection) {
+      space_outliner->sync_select_dirty &= ~WM_OUTLINER_SYNC_SELECT_FROM_COLLECTION;
     }
   }
 

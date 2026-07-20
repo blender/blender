@@ -159,7 +159,17 @@ static PyObject *Freestyle_blendRamp(PyObject * /*self*/, PyObject *args)
   int type;
   float a[4], fac, b[4];
 
-  if (!PyArg_ParseTuple(args, "sOfO", &s, &obj1, &fac, &obj2)) {
+  if (!PyArg_ParseTuple(args,
+                        "s" /* `type` */
+                        "O" /* `color1` */
+                        "f" /* `fac` */
+                        "O" /* `color2` */
+                        ":blendRamp",
+                        &s,
+                        &obj1,
+                        &fac,
+                        &obj2))
+  {
     return nullptr;
   }
   type = ramp_blend_type(s);
@@ -208,7 +218,14 @@ static PyObject *Freestyle_evaluateColorRamp(PyObject * /*self*/, PyObject *args
   blender::ColorBand *coba;
   float in, out[4];
 
-  if (!PyArg_ParseTuple(args, "O!f", &blender::pyrna_struct_Type, &py_srna, &in)) {
+  if (!PyArg_ParseTuple(args,
+                        "O!" /* `ramp` */
+                        "f"  /* `in` */
+                        ":evaluateColorRamp",
+                        &blender::pyrna_struct_Type,
+                        &py_srna,
+                        &in))
+  {
     return nullptr;
   }
   if (!RNA_struct_is_a(py_srna->ptr->type, blender::RNA_ColorRamp)) {
@@ -247,7 +264,16 @@ static PyObject *Freestyle_evaluateCurveMappingF(PyObject * /*self*/, PyObject *
   int cur;
   float value;
 
-  if (!PyArg_ParseTuple(args, "O!if", &blender::pyrna_struct_Type, &py_srna, &cur, &value)) {
+  if (!PyArg_ParseTuple(args,
+                        "O!" /* `cumap` */
+                        "i"  /* `cur` */
+                        "f"  /* `value` */
+                        ":evaluateCurveMappingF",
+                        &blender::pyrna_struct_Type,
+                        &py_srna,
+                        &cur,
+                        &value))
+  {
     return nullptr;
   }
   if (!RNA_struct_is_a(py_srna->ptr->type, blender::RNA_CurveMapping)) {

@@ -68,6 +68,7 @@
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh" /* #BKE_ST_MAXNAME. */
+#include "BKE_wm_runtime.hh"
 
 #include "BKE_idtype.hh"
 
@@ -824,7 +825,7 @@ bool WM_operator_properties_default(PointerRNA *ptr, const bool do_update)
       }
       default:
         if ((do_update == false) || (RNA_property_is_set(ptr, prop) == false)) {
-          if (RNA_property_reset(ptr, prop, -1)) {
+          if (RNA_property_reset(nullptr, ptr, prop, -1)) {
             changed = true;
           }
         }
@@ -1916,6 +1917,45 @@ wmOperatorStatus WM_operator_redo_popup(bContext *C, wmOperator *op)
 
   return OPERATOR_CANCELLED;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name IME Operator Helpers
+ * \{ */
+
+#ifdef WITH_INPUT_IME
+std::optional<wmOperatorStatus> WM_operator_IME_insert_maybe(bContext *C,
+                                                             wmOperator *op,
+                                                             const wmEvent *event,
+                                                             const char *prop_id)
+{
+  const wmWindow *win = CTX_wm_window(C);
+  if (win == nullptr) {
+    return std::nullopt;
+  }
+  if (event->type == WM_IME_COMPOSITE_EVENT) {
+    const wmIMEData *ime_data = win->runtime->ime_data;
+    if (ime_data && !ime_data->result.empty()) {
+      RNA_string_set(op->ptr, prop_id, ime_data->result.c_str());
+      return op->type->exec(C, op);
+    }
+  }
+  if (win->runtime->ime_data_is_composing) {
+    return OPERATOR_CANCELLED;
+  }
+  return std::nullopt;
+}
+
+std::optional<wmOperatorStatus> WM_operator_IME_edit_maybe(const bContext *C)
+{
+  const wmWindow *win = CTX_wm_window(C);
+  if (win && win->runtime->ime_data_is_composing) {
+    return OPERATOR_CANCELLED;
+  }
+  return std::nullopt;
+}
+#endif /* WITH_INPUT_IME */
 
 /** \} */
 
@@ -3523,7 +3563,7 @@ static wmOperatorStatus radial_control_modal(bContext *C, wmOperator *op, const 
     wmWindowManager *wm = CTX_wm_manager(C);
     if (wm->op_undo_depth == 0) {
       ID *id = rc->ptr.owner_id;
-      if (ED_undo_is_legacy_compatible_for_property(C, id, rc->ptr)) {
+      if (ED_undo_is_legacy_compatible_for_property(C, id, rc->ptr, *rc->prop)) {
         ED_undo_push(C, op->type->name);
       }
     }

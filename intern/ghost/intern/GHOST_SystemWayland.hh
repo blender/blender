@@ -348,7 +348,8 @@ class GHOST_SystemWayland : public GHOST_System {
                               const GHOST_Rect *wrap_bounds,
                               GHOST_TAxisFlag wrap_axis,
                               wl_surface *wl_surface,
-                              const struct GWL_WindowScaleParams &scale_params);
+                              const struct GWL_WindowScaleParams &scale_params,
+                              const GHOST_TDrawingContextType context_type);
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
   /* NOTE: allocate mutex so `const` functions can lock the mutex. */

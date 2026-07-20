@@ -262,7 +262,6 @@ template<size_t Divisions> class ScreenTileTextures : public BaseTextureMethod {
   }
 };
 
-using namespace blender::bke::image::partial_update;
 using namespace blender::bke::image;
 
 class ScreenSpaceDrawingMode : public AbstractDrawingMode {
@@ -291,11 +290,15 @@ class ScreenSpaceDrawingMode : public AbstractDrawingMode {
   void update_textures(blender::Image *image, blender::ImageUser *image_user) const;
 
   /**
-   * Update the float buffer in the region given by the partial update checker.
+   * Update the cached float buffer from \a src in the given changed \a region.
    */
-  void do_partial_update_float_buffer(
-      ImBuf *float_buffer, PartialUpdateChecker<ImageTileData>::CollectResult &iterator) const;
-  void do_partial_update(PartialUpdateChecker<ImageTileData>::CollectResult &iterator) const;
+  void do_partial_update_float_buffer(ImBuf *float_buffer, ImBuf *src, const rcti &region) const;
+  /**
+   * Upload one changed \a region of a tile's \a src_buffer into the screen-space texture slots.
+   */
+  void apply_partial_change(ImBuf *src_buffer,
+                            const ImageTileWrapper &image_tile,
+                            const rcti &region) const;
   void do_full_update_for_dirty_textures(const blender::ImageUser *image_user) const;
   void do_full_update_gpu_texture(TextureInfo &info, const blender::ImageUser *image_user) const;
   /**

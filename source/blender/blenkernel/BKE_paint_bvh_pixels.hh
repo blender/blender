@@ -9,7 +9,10 @@
 #pragma once
 
 #include "BLI_array.hh"
+#include "BLI_function_ref.hh"
 #include "BLI_map.hh"
+#include "BLI_math_base_c.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_rect.hh"
 #include "BLI_vector.hh"
@@ -21,6 +24,7 @@
 #include "BKE_paint_bvh.hh"
 
 #include "IMB_imbuf_types.hh"
+#include "IMB_partial_update.hh"
 
 namespace blender::bke::pbvh::pixels {
 
@@ -28,19 +32,10 @@ namespace blender::bke::pbvh::pixels {
  * Encode sequential pixels to reduce memory footprint.
  */
 struct PackedPixelRow {
-  /** Barycentric coordinate of the first pixel. */
-  float2 start_barycentric_coord;
-  /** Image coordinate starting of the first pixel. */
-  ushort2 start_image_coordinate;
   /** Number of sequential pixels encoded in this package. */
   ushort num_pixels;
   /** Reference to the pbvh triangle index. */
   ushort uv_primitive_index;
-};
-
-struct PackedPixelRowPosition {
-  float3 start;
-  float3 delta;
 };
 
 /**
@@ -59,12 +54,11 @@ struct UDIMTilePixels {
 
   Vector<PackedPixelRow> pixel_rows;
 
-  /**
-   * Encoded 3D position data corresponding to each element of `pixel_rows`.
-   *
-   * Needs to be re-calculated when underlying mesh position data changes.
-   */
-  Vector<PackedPixelRowPosition> pixel_row_positions;
+  /** Offsets into #pixel_rows grouping it into contiguous runs for batch processing. */
+  Vector<int> pixel_row_run_starts;
+
+  /** Image coordinate of the first pixel of each run. */
+  Vector<ushort2> pixel_row_run_start_coords;
 
   UDIMTilePixels()
   {
@@ -86,13 +80,6 @@ struct UDIMTilePixels {
   }
 };
 
-struct UDIMTileUndo {
-  short tile_number;
-  rcti region;
-
-  UDIMTileUndo(short tile_number, rcti &region) : tile_number(tile_number), region(region) {}
-};
-
 /**
  * Contains triangle/pixel data used during texture painting.
  */
@@ -106,18 +93,16 @@ struct PixelNode {
   } flags;
 
   Vector<UDIMTilePixels, 0> tiles;
-  Vector<UDIMTileUndo, 0> undo_regions;
 
   struct {
     /** Corresponding index into triangles */
-    Vector<int, 0> tri_indices;
+    Array<int, 0> tri_indices;
 
     /**
-     * Delta barycentric coordinates between 2 neighboring UVs in the U direction.
-     *
-     * Only the first two coordinates are stored. The third should be recalculated
+     * Per primitive affine map from image pixel coordinate to object space position:
+     * P = pixel_to_position * (pixel_x, pixel_y, 1)
      */
-    Vector<float2, 0> delta_barycentric_coords;
+    Array<float3x3, 0> pixel_to_position;
   } uv_primitives;
 
   PixelNode()
@@ -136,41 +121,17 @@ struct PixelNode {
     return nullptr;
   }
 
-  void rebuild_undo_regions()
-  {
-    undo_regions.clear();
-    for (UDIMTilePixels &tile : tiles) {
-      if (tile.pixel_rows.is_empty()) {
-        continue;
-      }
-
-      rcti region;
-      BLI_rcti_init_minmax(&region);
-      for (PackedPixelRow &pixel_row : tile.pixel_rows) {
-        BLI_rcti_do_minmax_v(
-            &region, int2(pixel_row.start_image_coordinate.x, pixel_row.start_image_coordinate.y));
-        BLI_rcti_do_minmax_v(&region,
-                             int2(pixel_row.start_image_coordinate.x + pixel_row.num_pixels + 1,
-                                  pixel_row.start_image_coordinate.y + 1));
-      }
-      undo_regions.append(UDIMTileUndo(tile.tile_number, region));
-    }
-  }
-
-  void mark_region(UDIMTilePixels &tile,
-                   Image &image,
-                   const image::ImageTileWrapper &image_tile,
-                   ImBuf &image_buffer)
+  void mark_region(UDIMTilePixels &tile, ImBuf &image_buffer)
   {
     if (tile.flags.dirty) {
       if (image_buffer.color_mode == ImColorMode::BW) {
         image_buffer.color_mode = ImColorMode::RGBA;
-        BKE_image_partial_update_mark_full_update(&image);
+        IMB_partial_update_mark_full(&image_buffer);
       }
       else {
-        BKE_image_partial_update_mark_region(
-            &image, image_tile.image_tile, &image_buffer, &tile.dirty_region);
+        IMB_partial_update_mark_region(&image_buffer, tile.dirty_region);
       }
+      IMB_mark_dirty(&image_buffer);
       tile.clear_dirty();
     }
   }
@@ -187,15 +148,22 @@ struct PixelNode {
   void clear_data()
   {
     tiles.clear();
-    uv_primitives.tri_indices.clear();
-    uv_primitives.delta_barycentric_coords.clear();
-    undo_regions.clear();
+    uv_primitives.tri_indices.reinitialize(0);
+    uv_primitives.pixel_to_position.reinitialize(0);
   }
 };
 
 /* -------------------------------------------------------------------- */
 /** \name Fix non-manifold edge bleeding.
  * \{ */
+
+/**
+ * Each UDIM tile is split into smaller (64x64) seam tiles for which we can
+ * do seam bleeding. These are tagged as modified during painting, and only
+ * the modified subset will be processed.
+ */
+constexpr int SEAM_TILE_BITS = 6;
+constexpr int SEAM_TILE_SIZE = 1 << SEAM_TILE_BITS;
 
 struct DeltaCopyPixelCommand {
   char2 delta_source_1;
@@ -280,7 +248,18 @@ struct CopyPixelTile {
   Vector<CopyPixelGroup> groups;
   Vector<DeltaCopyPixelCommand> command_deltas;
 
+  /** The groups used by each seam tile, as an index range into #groups which is
+   * sorted by seam tile. */
+  Map<int, IndexRange> seam_tile_to_groups;
+
   CopyPixelTile(image::TileNumber tile_number) : tile_number(tile_number) {}
+
+  static int seam_tile_index(const int2 source, const int seam_tiles_x)
+  {
+    return (source.x >> SEAM_TILE_BITS) + (source.y >> SEAM_TILE_BITS) * seam_tiles_x;
+  }
+
+  void build_seam_tile_map(const int2 resolution);
 
   void copy_pixels(ImBuf &tile_buffer, IndexRange group_range) const
   {
@@ -352,9 +331,6 @@ struct PixelData {
     bool dirty : 1;
   } flags;
 
-  /* Per UVPRimitive contains the paint data. */
-  Array<int3> vert_tris;
-
   /** Per ImageTile the pixels to copy to fix non-manifold bleeding. */
   CopyPixelTiles tiles_copy_pixels;
 
@@ -370,6 +346,8 @@ void collect_dirty_tiles(PixelNode &pixel_node, Vector<image::TileNumber> &r_dir
 
 void copy_pixels(bke::pbvh::Tree &pbvh,
                  Map<image::TileNumber, ImBuf *> &buffers,
-                 image::TileNumber tile_number);
+                 image::TileNumber tile_number,
+                 Span<uint8_t> seam_tiles_modified,
+                 FunctionRef<void(int x_start, int x_end, int y)> push_undo_tiles);
 
 }  // namespace blender::bke::pbvh::pixels

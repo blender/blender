@@ -269,12 +269,6 @@ static MeshEditHints &geometry_mesh_edit_hints_ensure(GeometrySet &geometry)
   return *edit_data.mesh_edit_hints_;
 }
 
-static void save_deform_mesh(GeometrySet &geometry)
-{
-  MeshEditHints &edit_data = geometry_mesh_edit_hints_ensure(geometry);
-  edit_data.mesh_deform = geometry.get_component_ptr(GeometryComponent::Type::Mesh);
-}
-
 static GeometrySet mesh_calc_modifiers(Depsgraph &depsgraph,
                                        const Scene &scene,
                                        Object &ob,
@@ -283,6 +277,9 @@ static GeometrySet mesh_calc_modifiers(Depsgraph &depsgraph,
                                        const CustomData_MeshMasks &dataMask,
                                        const bool use_cache)
 {
+  /* Add the deform mesh to the geometry set after evaluating all modifiers in case
+   * it's removed. */
+  GeometryComponentPtr mesh_deform;
   const Mesh &mesh_input = *id_cast<const Mesh *>(ob.data);
 
   GeometrySet geometry_set = GeometrySet::from_mesh(const_cast<Mesh *>(&mesh_input),
@@ -366,7 +363,7 @@ static GeometrySet mesh_calc_modifiers(Depsgraph &depsgraph,
     /* Result of all leading deforming modifiers is cached for
      * places that wish to use the original mesh but with deformed
      * coordinates (like vertex paint). */
-    save_deform_mesh(geometry_set);
+    mesh_deform = geometry_set.get_component_ptr(GeometryComponent::Type::Mesh);
   }
 
   /* Apply all remaining constructive and deforming modifiers. */
@@ -592,6 +589,11 @@ static GeometrySet mesh_calc_modifiers(Depsgraph &depsgraph,
     }
   }
 
+  if (mesh_deform) {
+    MeshEditHints &edit_data = geometry_mesh_edit_hints_ensure(geometry_set);
+    edit_data.mesh_deform = std::move(mesh_deform);
+  }
+
   BLI_linklist_free(reinterpret_cast<LinkNode *>(datamasks), nullptr);
 
   for (md = firstmd; md; md = md->next) {
@@ -672,15 +674,12 @@ static MutableSpan<float3> mesh_wrapper_vert_coords_ensure_for_write(Mesh *mesh)
   return {};
 }
 
-static void save_cage_mesh(Object &ob,
-                           const GeometrySet &geometry,
-                           const Mesh &mesh_input,
-                           GeometryComponentPtr &saved_component)
+static GeometryComponentPtr cage_mesh_or_fallback(Object &ob,
+                                                  const GeometrySet &geometry,
+                                                  const Mesh &mesh_input,
+                                                  const CustomData_MeshMasks &cd_mask_extra)
 {
   const Mesh *mesh = geometry.get_mesh();
-  if (!mesh) {
-    return;
-  }
   /* NOTE(@ideasman42): Workaround for geometry-nodes where the cage mesh may not have
    * the mapping data needed to relate it back to the original elements,
    * causing problems with transform & selection. See: !160540.
@@ -689,7 +688,7 @@ static void save_cage_mesh(Object &ob,
    * the user sees an editable mesh (with no modifiers applied). Ideally it would be
    * possible to know which modifier index is guaranteed to produce a usable cage
    * instead of this place-holder. */
-  if (!BKE_editmesh_eval_orig_map_available(*mesh, &mesh_input) &&
+  if ((mesh != nullptr) && !BKE_editmesh_eval_orig_map_available(*mesh, &mesh_input) &&
       !(CustomData_has_layer(&mesh->vert_data, CD_ORIGINDEX) &&
         CustomData_has_layer(&mesh->edge_data, CD_ORIGINDEX) &&
         CustomData_has_layer(&mesh->face_data, CD_ORIGINDEX)))
@@ -698,20 +697,19 @@ static void save_cage_mesh(Object &ob,
     BLI_assert(BKE_modifiers_findby_type(&ob, eModifierType_Nodes));
     UNUSED_VARS_NDEBUG(ob);
 
+    Mesh *mesh_cage = BKE_mesh_wrapper_from_editmesh(
+        mesh_input.runtime->edit_mesh, &cd_mask_extra, &mesh_input);
+
     /* A non-empty `positions` array is needed because #BKE_mesh_wrapper_vert_coords
      * is expected to be able to return vertex coordinates.
      * Otherwise crazy-space calculation crashes, see: #160540. */
-    const Mesh &mesh_cage = *static_cast<const MeshComponent *>(saved_component.get())->get();
-    if (mesh_cage.runtime->edit_mesh->bm->totvert &&
-        mesh_cage.runtime->edit_data->vert_positions.is_empty())
-    {
-      mesh_cage.runtime->edit_data->vert_positions = BM_mesh_vert_coords_alloc(
+    if (mesh_cage->runtime->edit_mesh->bm->totvert) {
+      mesh_cage->runtime->edit_data->vert_positions = BM_mesh_vert_coords_alloc(
           mesh_input.runtime->edit_mesh->bm);
     }
-    return;
+    return GeometryComponentPtr(new MeshComponent(mesh_cage));
   }
-
-  saved_component = geometry.get_component_ptr(GeometryComponent::Type::Mesh);
+  return geometry.get_component_ptr(GeometryComponent::Type::Mesh);
 }
 
 static GeometrySet editbmesh_calc_modifiers(Depsgraph &depsgraph,
@@ -755,8 +753,11 @@ static GeometrySet editbmesh_calc_modifiers(Depsgraph &depsgraph,
 
   int cageIndex = BKE_modifiers_get_cage_index(&scene, &ob, nullptr, true);
 
-  /* Add the cage mesh to the geometry set after evaluating all modifiers in case it's removed. */
-  GeometryComponentPtr cage_mesh = geometry_set.get_component_ptr(GeometryComponent::Type::Mesh);
+  /* Mesh before evaluation, to detect if a modifier replaces it (only use for comparison). */
+  const Mesh *mesh_geometry_set_init = cageIndex == -1 ? geometry_set.get_mesh() : nullptr;
+
+  /* Cage mesh, set by a cage modifier or from the final mesh below. */
+  GeometryComponentPtr cage_mesh;
 
   /* The mesh from edit mode should not have any original index layers already, since those
    * are added during evaluation when necessary and are redundant on an original mesh. */
@@ -775,6 +776,7 @@ static GeometrySet editbmesh_calc_modifiers(Depsgraph &depsgraph,
   }
 
   bool non_deform_modifier_applied = false;
+  bool deform_modifier_applied = false;
   for (int i = 0; md; i++, md = md->next, md_datamask = md_datamask->next) {
     const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
     if (!editbmesh_modifier_is_enabled(&scene, &ob, md, non_deform_modifier_applied)) {
@@ -795,6 +797,7 @@ static GeometrySet editbmesh_calc_modifiers(Depsgraph &depsgraph,
     }
 
     if (mti->type == ModifierTypeType::OnlyDeform) {
+      deform_modifier_applied = true;
       if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
         if (mti->deform_verts_EM) {
           BKE_modifier_deform_vertsEM(
@@ -864,7 +867,7 @@ static GeometrySet editbmesh_calc_modifiers(Depsgraph &depsgraph,
     }
 
     if (i == cageIndex) {
-      save_cage_mesh(ob, geometry_set, mesh_input, cage_mesh);
+      cage_mesh = cage_mesh_or_fallback(ob, geometry_set, mesh_input, final_datamask);
     }
   }
 
@@ -882,6 +885,22 @@ static GeometrySet editbmesh_calc_modifiers(Depsgraph &depsgraph,
 
   if (mesh_orco) {
     BKE_id_free(nullptr, mesh_orco);
+  }
+
+  /* In all likelihood, when `cageIndex == -1`. */
+  if (!cage_mesh) {
+    /* It's important to reuse the `geometry_set` mesh when not deformed
+     * so the overlay engine sees these as the same mesh (pointer compassing is used).
+     * Otherwise there are subtle artifacts from the mesh Z-fighting with itself, See: !161224. */
+    if ((deform_modifier_applied == false) && (non_deform_modifier_applied == false) &&
+        (mesh_geometry_set_init && mesh_geometry_set_init == geometry_set.get_mesh()))
+    {
+      cage_mesh = geometry_set.get_component_ptr(GeometryComponent::Type::Mesh);
+    }
+    else {
+      cage_mesh = GeometryComponentPtr(new MeshComponent(BKE_mesh_wrapper_from_editmesh(
+          mesh_input.runtime->edit_mesh, &final_datamask, &mesh_input)));
+    }
   }
 
   MeshEditHints &edit_data = geometry_mesh_edit_hints_ensure(geometry_set);

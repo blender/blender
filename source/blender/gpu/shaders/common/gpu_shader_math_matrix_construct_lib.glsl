@@ -343,4 +343,26 @@ float3x3 from_up_axis(float3 up)
   basis[2] = up;
   return basis;
 }
+
+/**
+ * Create a rotation matrix from an up axis, and an incident vector I.
+ * The other axes are chosen to always be orthogonal. The resulting matrix is a basis matrix.
+ * \note `forward` and `up` must be normalized.
+ * \note This can be used to create a tangent basis from a normal vector and a light/view vector.
+ */
+float3x3 from_incident_vector(float3 up, float3 forward)
+{
+  float cos_theta = dot(up, forward);
+  if (cos_theta > 0.999999f) {
+    /* Mostly for orthographic view and surfel light eval. */
+    return from_up_axis(up);
+  }
+
+  /* Construct orthonormal basis around N. */
+  float3x3 basis;
+  basis[0] = normalize(forward - up * cos_theta);
+  basis[1] = cross(up, basis[0]);
+  basis[2] = up;
+  return basis;
+}
 /** \} */

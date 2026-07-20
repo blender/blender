@@ -1254,7 +1254,8 @@ static void maskrasterize_layer_init_cdt(MaskRasterHandle *mr_handle,
 
   /* CDT input buffers. */
   Vector<double2> cdt_verts;
-  Vector<Vector<int>> cdt_faces;
+  Vector<int> cdt_face_offsets;
+  Vector<int> cdt_face_vert_indices;
   Vector<float2> feather_coords;
   Vector<FeatherRange> feather_ranges;
 
@@ -1353,9 +1354,10 @@ static void maskrasterize_layer_init_cdt(MaskRasterHandle *mr_handle,
 
         /* Polygon for CDT. */
         const int poly_num = int(tot_diff_point);
-        Vector<int> poly(poly_num);
-        std::iota(poly.begin(), poly.end(), spline_vert_start);
-        cdt_faces.append(std::move(poly));
+        cdt_face_offsets.append(int(cdt_face_vert_indices.size()));
+        for (const int64_t i : IndexRange(int64_t(poly_num))) {
+          cdt_face_vert_indices.append(int(spline_vert_start + i));
+        }
 
         /* Feather: only when feather points exist. */
         if (diff_feather_points) {
@@ -1499,6 +1501,8 @@ static void maskrasterize_layer_init_cdt(MaskRasterHandle *mr_handle,
     }
   }
 
+  cdt_face_offsets.append(int(cdt_face_vert_indices.size()));
+
   /* CDT filling call (if there is anything to fill). */
 
   uint cdt_tri_num = 0;
@@ -1508,12 +1512,13 @@ static void maskrasterize_layer_init_cdt(MaskRasterHandle *mr_handle,
 
   meshintersect::CDT_result<double> result;
 
-  if (!cdt_faces.is_empty()) {
+  if (!cdt_face_vert_indices.is_empty()) {
     const bool has_feather = !feather_ranges.is_empty();
 
     meshintersect::CDT_input<double> cdt_in;
     cdt_in.vert = Array<double2>(cdt_verts.as_span());
-    cdt_in.face = Array<Vector<int>>(cdt_faces.as_span());
+    cdt_in.face_offsets = cdt_face_offsets.as_span();
+    cdt_in.face_vert_indices = cdt_face_vert_indices.as_span();
     cdt_in.epsilon = 1e-8;
     cdt_in.need_ids = has_feather;
 

@@ -1175,9 +1175,12 @@ static void rna_def_grease_pencil_layer(BlenderRNA *brna)
       prop, "Use Lights", "Enable the use of lights on stroke and fill materials");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
 
-  /* pass index for compositing and modifiers */
+  /* Pass index for modifiers. */
   prop = RNA_def_property(srna, "pass_index", PROP_INT, PROP_UNSIGNED);
-  RNA_def_property_ui_text(prop, "Pass Index", "Index number for the \"Layer Index\" pass");
+  RNA_def_property_ui_text(prop,
+                           "Pass Index",
+                           "Identifier that can be used with some modifiers to restrict their "
+                           "influence to only certain layers");
   RNA_def_property_int_funcs(prop,
                              "rna_GreasePencilLayer_pass_index_get",
                              "rna_GreasePencilLayer_pass_index_set",

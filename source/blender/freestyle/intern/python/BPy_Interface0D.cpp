@@ -123,7 +123,13 @@ static PyObject *Interface0D_get_fedge(BPy_Interface0D *self, PyObject *args, Py
   static const char *kwlist[] = {"inter", nullptr};
   PyObject *py_if0D;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &Interface0D_Type, &py_if0D))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "O!" /* `inter` */
+                                   ":get_fedge",
+                                   (char **)kwlist,
+                                   &Interface0D_Type,
+                                   &py_if0D))
   {
     return nullptr;
   }

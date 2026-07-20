@@ -183,7 +183,7 @@ static PyObject *bpy_user_map(PyObject *self, PyObject *args, PyObject *kwds)
 
   static const char *_keywords[] = {"subset", "key_types", "value_types", nullptr};
   static _PyArg_Parser _parser = {
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O"  /* `subset` */
       "O&" /* `key_types` */
       "O&" /* `value_types` */
@@ -407,7 +407,7 @@ static PyObject *bpy_file_path_map(PyObject *self, PyObject *args, PyObject *kwd
 
   static const char *_keywords[] = {"subset", "key_types", "include_libraries", nullptr};
   static _PyArg_Parser _parser = {
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O"  /* `subset` */
       "O&" /* `key_types` */
       "O!" /* `include_libraries` */
@@ -875,7 +875,7 @@ static PyObject *bpy_file_path_foreach(PyObject *self, PyObject *args, PyObject 
   static const char *_keywords[] = {"visit_path_fn", "subset", "visit_types", "flags", nullptr};
   static _PyArg_Parser _parser = {
       "O!" /* `visit_path_fn` */
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O"  /* `subset` */
       "O&" /* `visit_types` */
       "O!" /* `flags` */

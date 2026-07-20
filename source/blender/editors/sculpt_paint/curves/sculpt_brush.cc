@@ -373,6 +373,12 @@ void move_last_point_and_resample(MoveAndResampleBuffers &buffer,
                                   MutableSpan<float3> positions,
                                   const float3 &new_last_position)
 {
+  if (positions.size() <= 2) {
+    /* Curve does not need to be resampled if there are zero points between the start and end. */
+    positions.last() = new_last_position;
+    return;
+  }
+
   /* Find the accumulated length of each point in the original curve,
    * treating it as a poly curve for performance reasons and simplicity. */
   buffer.orig_lengths.resize(length_parameterize::segments_num(positions.size(), false));
@@ -441,6 +447,11 @@ void report_missing_uv_map_on_evaluated_surface(ReportList *reports)
 void report_invalid_uv_map(ReportList *reports)
 {
   BKE_report(reports, RPT_WARNING, "Invalid UV map: UV islands must not overlap");
+}
+
+void report_cyclic_not_supported(ReportList *reports)
+{
+  BKE_report(reports, RPT_WARNING, "Cyclic curves are not supported");
 }
 
 void CurvesConstraintSolver::initialize(const bke::CurvesGeometry &curves,

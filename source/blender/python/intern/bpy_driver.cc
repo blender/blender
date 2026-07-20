@@ -433,11 +433,11 @@ float BPY_driver_exec(PathResolvedRNA *anim_rna,
 
   if (driver_orig->flag & DRIVER_FLAG_RENAMEVAR) {
     /* May not be set. */
-    expr_vars = PyTuple_GET_ITEM(((PyObject *)driver_orig->expr_comp), 1);
-    Py_XDECREF(expr_vars);
+    PyObject *expr_vars_prev = PyTuple_GET_ITEM(((PyObject *)driver_orig->expr_comp), 1);
 
     expr_vars = PyTuple_New(driver_orig->variables.count());
     PyTuple_SET_ITEM(((PyObject *)driver_orig->expr_comp), 1, expr_vars);
+    Py_XDECREF(expr_vars_prev);
 
     for (dvar = static_cast<DriverVar *>(driver_orig->variables.first), i = 0; dvar;
          dvar = dvar->next)

@@ -13,6 +13,7 @@
 
 #include "BLI_enum_flags.hh"
 #include "BLI_math_matrix_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 
@@ -26,6 +27,10 @@ struct rcti;
 
 struct ImageFormatData;
 struct Stereo3dFormat;
+
+namespace imbuf::partial_update {
+struct Changes;
+}
 
 /**
  * Module init/exit.
@@ -364,13 +369,15 @@ void IMB_scale_box(const float *src_buffer,
                    int channels,
                    float *dst_buffer,
                    int2 dst_size,
-                   bool threaded);
+                   bool threaded,
+                   int src_stride = 0);
 void IMB_scale_box(const uchar *src_buffer,
                    int2 src_size,
                    int channels,
                    uchar *dst_buffer,
                    int2 dst_size,
-                   bool threaded);
+                   bool threaded,
+                   int src_stride = 0);
 
 /**
  * Scale/resize image to new dimensions.
@@ -553,11 +560,6 @@ void IMB_free_all_data(ImBuf *ibuf);
 void IMB_free_gpu_textures(ImBuf *ibuf);
 
 /**
- * Clear #IMB_GPU_LOAD_FAILED flag, to retry failed GPU texture creation.
- */
-void IMB_clear_gpu_load_failed(ImBuf *ibuf);
-
-/**
  * \brief Transform modes to use for IMB_transform function.
  *
  * These are not flags as the combination of cropping and repeat can lead to different expectation.
@@ -664,6 +666,20 @@ void IMB_update_gpu_texture_sub(gpu::Texture *tex,
                                 int h,
                                 bool use_grayscale,
                                 bool use_premult);
+
+/**
+ * Update GPU texture from host buffer, changing just the subset that was modified.
+ *
+ * When #layer is specified, the corresponding layered texture is updated at the
+ * specified #tile_offset and #tile_size, for multiple tiles packed into one layer.
+ */
+void IMB_gpu_texture_apply_partial_update(gpu::Texture *tex,
+                                          ImBuf *ibuf,
+                                          bool store_premultiplied,
+                                          const imbuf::partial_update::Changes &changes,
+                                          int layer = -1,
+                                          int2 tile_offset = int2(0),
+                                          int2 tile_size = int2(0));
 
 void IMB_stereo3d_write_dimensions(
     char mode, bool is_squeezed, size_t width, size_t height, size_t *r_width, size_t *r_height);

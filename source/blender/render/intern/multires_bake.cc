@@ -98,6 +98,7 @@
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
+#include "IMB_partial_update.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -441,7 +442,6 @@ class MultiresBaker {
       rrgbf[1] = value[1];
       rrgbf[2] = value[2];
       rrgbf[3] = 1.0f;
-      ibuf.userflags |= IB_RECT_INVALID;
     }
 
     if (ibuf.byte_data()) {
@@ -449,8 +449,6 @@ class MultiresBaker {
       unit_float_to_uchar_clamp_v3(rrgb, value);
       rrgb[3] = 255;
     }
-
-    ibuf.userflags |= IB_DISPLAY_BUFFER_INVALID;
   }
 };
 
@@ -1631,12 +1629,8 @@ static void finish_images(MultiresBakeRender &bake,
                      bake.bake_margin_type,
                      baked_ibuf.uv_offset);
 
-    ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-    BKE_image_mark_dirty(image, ibuf);
-
-    if (ibuf->float_data()) {
-      ibuf->userflags |= IB_RECT_INVALID;
-    }
+    IMB_partial_update_mark_full(ibuf);
+    IMB_mark_dirty(ibuf);
 
     BKE_image_release_ibuf(image, ibuf, nullptr);
     DEG_id_tag_update(&image->id, 0);

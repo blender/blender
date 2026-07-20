@@ -92,27 +92,24 @@ enum class ResampleQuality
 	HIGH         /// JOS resample at high quality preset.
 };
 
+/// Sample rate type.
+typedef double SampleRate;
+
 /**
  * The sample rate tells how many samples are played back within one second.
  * Some exotic formats may use other sample rates than provided here.
  */
-enum DefaultSampleRate
-{
-	RATE_INVALID = 0,			/// Invalid sample rate.
-	RATE_8000    = 8000,		/// 8000 Hz.
-	RATE_16000   = 16000,		/// 16000 Hz.
-	RATE_11025   = 11025,		/// 11025 Hz.
-	RATE_22050   = 22050,		/// 22050 Hz.
-	RATE_32000   = 32000,		/// 32000 Hz.
-	RATE_44100   = 44100,		/// 44100 Hz.
-	RATE_48000   = 48000,		/// 48000 Hz.
-	RATE_88200   = 88200,		/// 88200 Hz.
-	RATE_96000   = 96000,		/// 96000 Hz.
-	RATE_192000  = 192000		/// 192000 Hz.
-};
-
-/// Sample rate type.
-typedef double SampleRate;
+constexpr SampleRate RATE_INVALID = 0;			/// Invalid sample rate.
+constexpr SampleRate RATE_8000    = 8000;		/// 8000 Hz.
+constexpr SampleRate RATE_16000   = 16000;		/// 16000 Hz.
+constexpr SampleRate RATE_11025   = 11025;		/// 11025 Hz.
+constexpr SampleRate RATE_22050   = 22050;		/// 22050 Hz.
+constexpr SampleRate RATE_32000   = 32000;		/// 32000 Hz.
+constexpr SampleRate RATE_44100   = 44100;		/// 44100 Hz.
+constexpr SampleRate RATE_48000   = 48000;		/// 48000 Hz.
+constexpr SampleRate RATE_88200   = 88200;		/// 88200 Hz.
+constexpr SampleRate RATE_96000   = 96000;		/// 96000 Hz.
+constexpr SampleRate RATE_192000  = 192000;		/// 192000 Hz.
 
 /// Specification of a sound source.
 struct Specs

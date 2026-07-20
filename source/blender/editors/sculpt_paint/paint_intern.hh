@@ -452,8 +452,7 @@ struct ImagePaintPartialRedraw {
 
 bool image_texture_paint_poll(bContext *C);
 bool image_paint_poll_ignore_tool(bContext *C);
-void imapaint_image_update(
-    SpaceImage *sima, Image *image, ImBuf *ibuf, ImageUser *iuser, short texpaint);
+void imapaint_image_update(ImBuf *ibuf);
 ImagePaintPartialRedraw *get_imapaintpartial();
 void set_imapaintpartial(ImagePaintPartialRedraw *ippr);
 void imapaint_region_tiles(

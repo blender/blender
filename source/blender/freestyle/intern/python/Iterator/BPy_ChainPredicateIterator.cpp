@@ -93,8 +93,13 @@ static int ChainPredicateIterator_init(BPy_ChainPredicateIterator *self,
   PyObject *obj1 = nullptr, *obj2 = nullptr, *obj3 = nullptr, *obj4 = nullptr, *obj5 = nullptr,
            *obj6 = nullptr;
 
-  if (PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist_1, &ChainPredicateIterator_Type, &obj1))
+  if (PyArg_ParseTupleAndKeywords(args,
+                                  kwds,
+                                  "O!" /* `brother` */
+                                  ":__init__",
+                                  (char **)kwlist_1,
+                                  &ChainPredicateIterator_Type,
+                                  &obj1))
   {
     self->cp_it = new ChainPredicateIterator(*(((BPy_ChainPredicateIterator *)obj1)->cp_it));
     self->upred = ((BPy_ChainPredicateIterator *)obj1)->upred;
@@ -106,7 +111,14 @@ static int ChainPredicateIterator_init(BPy_ChainPredicateIterator *self,
            (void)(obj3 = obj4 = obj5 = obj6 = nullptr),
            PyArg_ParseTupleAndKeywords(args,
                                        kwds,
-                                       "O!O!|O!O!O&O!",
+                                       "O!" /* `upred` */
+                                       "O!" /* `bpred` */
+                                       "|"  /* Optional arguments. */
+                                       "O!" /* `restrict_to_selection` */
+                                       "O!" /* `restrict_to_unvisited` */
+                                       "O&" /* `begin` */
+                                       "O!" /* `orientation` */
+                                       ":__init__",
                                        (char **)kwlist_2,
                                        &UnaryPredicate1D_Type,
                                        &obj1,

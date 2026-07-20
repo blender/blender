@@ -71,8 +71,20 @@ static int GetDirectionalViewMapDensityF1D___init__(BPy_GetDirectionalViewMapDen
   uint u1, u2;
   float f = 2.0;
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "II|O!f", (char **)kwlist, &u1, &u2, &IntegrationType_Type, &obj, &f))
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "I"  /* `orientation` */
+                                   "I"  /* `level` */
+                                   "|"  /* Optional arguments. */
+                                   "O!" /* `integration_type` */
+                                   "f"  /* `sampling` */
+                                   ":__init__",
+                                   (char **)kwlist,
+                                   &u1,
+                                   &u2,
+                                   &IntegrationType_Type,
+                                   &obj,
+                                   &f))
   {
     return -1;
   }

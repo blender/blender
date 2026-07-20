@@ -13,6 +13,7 @@
 #include <cmath>
 #include <cstring>
 
+#include "IMB_imbuf_types.hh"
 #include "MEM_guardedalloc.h"
 
 #ifdef WIN32
@@ -41,6 +42,7 @@
 
 #include "IMB_imbuf.hh"
 #include "IMB_interp.hh"
+#include "IMB_partial_update.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
@@ -1841,9 +1843,7 @@ static int project_paint_undo_subtiles(const TileInfo *tinf, int tx, int ty)
                                                        tx,
                                                        ty,
                                                        &pjIma->maskRect[tile_index],
-                                                       &pjIma->valid[tile_index],
-                                                       true,
-                                                       false))
+                                                       &pjIma->valid[tile_index]))
       {
         if (ibuf->float_data()) {
           undorect = ibuf->float_data();
@@ -1861,9 +1861,7 @@ static int project_paint_undo_subtiles(const TileInfo *tinf, int tx, int ty)
                                                        tx,
                                                        ty,
                                                        nullptr,
-                                                       &pjIma->valid[tile_index],
-                                                       true,
-                                                       false))
+                                                       &pjIma->valid[tile_index]))
       {
         if (ibuf->float_data()) {
           undorect = ibuf->float_data();
@@ -1874,7 +1872,7 @@ static int project_paint_undo_subtiles(const TileInfo *tinf, int tx, int ty)
       }
     }
 
-    BKE_image_mark_dirty(pjIma->ima, pjIma->ibuf);
+    IMB_mark_dirty(pjIma->ibuf);
     /* tile ready, publish */
     if (tinf->lock) {
       BLI_spin_lock(tinf->lock);
@@ -3995,8 +3993,6 @@ static void proj_paint_state_thread_init(ProjPaintState *ps, const bool reset_th
       ps->tile_lock = MEM_new_uninitialized<SpinLock>("projpaint_tile_lock");
       BLI_spin_init(ps->tile_lock);
     }
-
-    ED_image_paint_tile_lock_init();
   }
 
   for (int a = 0; a < ps->thread_tot; a++) {
@@ -4773,8 +4769,6 @@ static void project_paint_end(ProjPaintState *ps)
       MEM_delete_void((void *)ps->tile_lock);
     }
 
-    ED_image_paint_tile_lock_end();
-
 #ifndef PROJ_DEBUG_NOSEAMBLEED
     if (ps->seam_bleed_px > 0.0f) {
       MEM_delete(ps->vertFaces);
@@ -4854,7 +4848,7 @@ static bool project_image_refresh_tagged(ProjPaintState *ps)
         pr = &(projIma->partRedrawRect[i]);
         if (BLI_rcti_is_valid(&pr->dirty_region)) {
           set_imapaintpartial(pr);
-          imapaint_image_update(nullptr, projIma->ima, projIma->ibuf, &projIma->iuser, true);
+          imapaint_image_update(projIma->ibuf);
           redraw = true;
         }
 
@@ -6373,7 +6367,7 @@ static wmOperatorStatus texture_paint_camera_project_exec(bContext *C, wmOperato
   project_image_refresh_tagged(&ps);
 
   for (a = 0; a < ps.image_tot; a++) {
-    BKE_image_partial_update_mark_full_update(ps.projImages[a].ima);
+    IMB_partial_update_mark_full(ps.projImages[a].ibuf);
     WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ps.projImages[a].ima);
   }
 

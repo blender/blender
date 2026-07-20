@@ -54,7 +54,7 @@ static bool bpy_gizmotype_target_property_def(wmGizmoType *gzt, PyObject *item)
 
   static const char *const _keywords[] = {"id", "type", "array_length", nullptr};
   static _PyArg_Parser _parser = {
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "s"  /* `id` */
       "O&" /* `type` */
       "i"  /* `array_length` */

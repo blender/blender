@@ -50,7 +50,13 @@ static int BlenderTextureShader___init__(BPy_BlenderTextureShader *self,
   blender::MTex *_mtex;
   blender::bNodeTree *_nodetree;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &obj)) {
+  if (!PyArg_ParseTupleAndKeywords(args,
+                                   kwds,
+                                   "O" /* `texture` */
+                                   ":__init__",
+                                   (char **)kwlist,
+                                   &obj))
+  {
     return -1;
   }
   _mtex = (blender::MTex *)blender::PyC_RNA_AsPointer(obj, "LineStyleTextureSlot");

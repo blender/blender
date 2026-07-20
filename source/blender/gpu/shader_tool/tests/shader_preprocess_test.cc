@@ -2,10 +2,10 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "shader_tool/expression.hh"
-#include "shader_tool/processor.hh"
+#include "testing/testing.h"
 
-#include "gpu_testing.hh"
+#include "expression.hh"
+#include "processor.hh"
 
 namespace blender::gpu::tests {
 
@@ -48,7 +48,7 @@ static std::string process_test_local(std::string str,
   return result;
 }
 
-static void test_preprocess_array()
+TEST(shader_tool, Array)
 {
   using namespace shader;
   using namespace std;
@@ -100,9 +100,8 @@ float2 c[2] = {{0, 1}, {0, 1}};
     EXPECT_EQ(error, "Nested initializer list is not supported.");
   }
 }
-GPU_TEST(preprocess_array);
 
-static void test_preprocess_comma_declaration()
+TEST(shader_tool, CommaDeclaration)
 {
   using namespace shader;
   using namespace std;
@@ -127,9 +126,8 @@ struct A {
     EXPECT_EQ(error, "");
   }
 }
-GPU_TEST(preprocess_comma_declaration);
 
-static void test_preprocess_include()
+TEST(shader_tool, Include)
 {
   using namespace shader;
   using namespace std;
@@ -161,9 +159,8 @@ static void test_preprocess_include()
     EXPECT_EQ(error, "");
   }
 }
-GPU_TEST(preprocess_include);
 
-static void test_preprocess_union()
+TEST(shader_tool, Union)
 {
   using namespace shader;
   using namespace std;
@@ -496,9 +493,8 @@ struct [[host_shared]] T {
               "All union members must have their type wrapped using the union_t<T> template.");
   }
 }
-GPU_TEST(preprocess_union);
 
-static void test_preprocess_unroll()
+TEST(shader_tool, Unroll)
 {
   using namespace shader;
   using namespace std;
@@ -668,9 +664,8 @@ for (; i < j;) [[unroll_n(2)]] { for (; j < k;) {break;continue;} })";
     EXPECT_EQ(error, "Unsupported condition in unrolled loop.");
   }
 }
-GPU_TEST(preprocess_unroll);
 
-static void test_preprocess_template()
+TEST(shader_tool, Template)
 {
   using namespace shader;
   using namespace std;
@@ -860,9 +855,8 @@ template<> A<f> fn(A<f> a) {}
     EXPECT_EQ(error, "");
   }
 }
-GPU_TEST(preprocess_template);
 
-static void test_preprocess_template_struct()
+TEST(shader_tool, TemplateStruct)
 {
   using namespace shader;
   using namespace std;
@@ -1021,9 +1015,8 @@ void N_fn(N_ATint a)
     EXPECT_EQ(error, "");
   }
 }
-GPU_TEST(preprocess_template_struct);
 
-static void test_preprocess_reference()
+TEST(shader_tool, Reference)
 {
   using namespace shader;
   using namespace std;
@@ -1094,9 +1087,8 @@ static void test_preprocess_reference()
     EXPECT_EQ(error, "Unexpected token \"&\": Expecting declaration");
   }
 }
-GPU_TEST(preprocess_reference);
 
-static void test_preprocess_cleanup()
+TEST(shader_tool, Cleanup)
 {
   using namespace shader;
   using namespace std;
@@ -1130,9 +1122,8 @@ int a = 0;
     EXPECT_EQ(error, "");
   }
 }
-GPU_TEST(preprocess_cleanup);
 
-static void test_preprocess_default_arguments()
+TEST(shader_tool, DefaultArguments)
 {
   using namespace shader;
   using namespace std;
@@ -1240,9 +1231,8 @@ void func()
     EXPECT_EQ(error, "");
   }
 }
-GPU_TEST(preprocess_default_arguments);
 
-static void test_preprocess_srt_template_wrapper()
+TEST(shader_tool, SrtTemplateWrapper)
 {
   using namespace shader;
   using namespace std;
@@ -1329,9 +1319,8 @@ struct SRT {
     EXPECT_EQ(error, "[[resource_table]] members cannot be arrays.");
   }
 }
-GPU_TEST(preprocess_srt_template_wrapper);
 
-static void test_preprocess_srt_method()
+TEST(shader_tool, SrtMethod)
 {
   using namespace shader;
   using namespace std;
@@ -1396,9 +1385,8 @@ SRT SRT_new_();
     EXPECT_EQ(error, "");
   }
 }
-GPU_TEST(preprocess_srt_method);
 
-static void test_preprocess_static_branch()
+TEST(shader_tool, StaticBranch)
 {
   using namespace shader;
   using namespace std;
@@ -1622,9 +1610,8 @@ void func([[resource_table]] Resources &srt)
     EXPECT_EQ(error, "Expecting single condition.");
   }
 }
-GPU_TEST(preprocess_static_branch);
 
-static void test_preprocess_namespace()
+TEST(shader_tool, Namespace)
 {
   using namespace shader;
   using namespace std;
@@ -2037,9 +2024,8 @@ NS_B NS_fn() { return NS_B_C(); }
     EXPECT_EQ(error, "");
   }
 }
-GPU_TEST(preprocess_namespace);
 
-static void test_preprocess_swizzle()
+TEST(shader_tool, Swizzle)
 {
   using namespace shader;
   using namespace std;
@@ -2053,9 +2039,8 @@ static void test_preprocess_swizzle()
     EXPECT_EQ(error, "");
   }
 }
-GPU_TEST(preprocess_swizzle);
 
-static void test_preprocess_binary_literals()
+TEST(shader_tool, BinaryLiterals)
 {
   using namespace shader;
   using namespace std;
@@ -2069,9 +2054,8 @@ static void test_preprocess_binary_literals()
     EXPECT_EQ(error, "");
   }
 }
-GPU_TEST(preprocess_binary_literals);
 
-static void test_preprocess_enum()
+TEST(shader_tool, Enum)
 {
   using namespace shader;
   using namespace std;
@@ -2163,10 +2147,9 @@ enum class enum_class {
     EXPECT_EQ(error, "enum declaration must explicitly use an underlying type");
   }
 }
-GPU_TEST(preprocess_enum);
 
 #ifdef __APPLE__ /* This processing is only done for metal compatibility. */
-static void test_preprocess_matrix_constructors()
+TEST(shader_tool, MatrixConstructors)
 {
   using namespace shader;
   using namespace std;
@@ -2180,10 +2163,9 @@ static void test_preprocess_matrix_constructors()
     EXPECT_EQ(error, "");
   }
 }
-GPU_TEST(preprocess_matrix_constructors);
 #endif
 
-static void test_preprocess_resource_guard()
+TEST(shader_tool, ResourceGuard)
 {
   using namespace shader;
   using namespace std;
@@ -2333,9 +2315,8 @@ template<> uint my_func<uint>(uint i) {
     EXPECT_EQ(error, "");
   }
 }
-GPU_TEST(preprocess_resource_guard);
 
-static void test_preprocess_empty_struct()
+TEST(shader_tool, EmptyStruct)
 {
   using namespace shader;
   using namespace std;
@@ -2374,9 +2355,8 @@ void U_fn();
     EXPECT_EQ(error, "");
   }
 }
-GPU_TEST(preprocess_empty_struct);
 
-static void test_preprocess_structured_bindings()
+TEST(shader_tool, StructuredBindings)
 {
   using namespace shader;
   using namespace std;
@@ -2444,9 +2424,8 @@ void fn(S u, _ref(S ,v))
     EXPECT_EQ(error, "");
   }
 }
-GPU_TEST(preprocess_structured_bindings);
 
-static void test_preprocess_struct_methods()
+TEST(shader_tool, StructMethods)
 {
   using namespace shader;
   using namespace std;
@@ -2627,9 +2606,8 @@ class S {
     EXPECT_EQ(error, "Method name matching swizzles accessor are forbidden.");
   }
 }
-GPU_TEST(preprocess_struct_methods);
 
-static void test_preprocess_srt_mutations()
+TEST(shader_tool, SrtMutations)
 {
   using namespace std;
   using namespace shader::parser;
@@ -2691,9 +2669,8 @@ float fn(SRT  srt) {
     EXPECT_EQ(error, "");
   }
 }
-GPU_TEST(preprocess_srt_mutations);
 
-static void test_preprocess_entry_point_resources()
+TEST(shader_tool, EntryPointResources)
 {
   using namespace std;
   using namespace shader::parser;
@@ -2935,9 +2912,8 @@ GPU_SHADER_CREATE_END()
     EXPECT_EQ(error, "");
   }
 }
-GPU_TEST(preprocess_entry_point_resources);
 
-static void test_preprocess_pipeline_description()
+TEST(shader_tool, PipelineDescription)
 {
   using namespace std;
   using namespace shader::parser;
@@ -3000,9 +2976,8 @@ GPU_SHADER_CREATE_END()
     EXPECT_EQ(error, "");
   }
 }
-GPU_TEST(preprocess_pipeline_description);
 
-static void test_preprocess_initializer_list()
+TEST(shader_tool, InitializerList)
 {
   using namespace std;
   using namespace shader::parser;
@@ -3106,14 +3081,14 @@ void fn() {
         "Aggregate is error prone for built-in vector and matrix types, use constructors instead");
   }
 }
-GPU_TEST(preprocess_initializer_list);
 
-static void test_preprocess_parser()
+TEST(shader_tool, Parser)
 {
   using namespace std;
   using namespace shader::parser;
 
-  using IntermediateForm = IntermediateForm<FullLexer, FullParser>;
+  using Parser = IntermediateForm<FullLexer, FullParser>;
+  using Lexer = IntermediateForm<FullLexer, DummyParser>;
 
   ErrorHandler err_handler;
 
@@ -3133,7 +3108,7 @@ static void test_preprocess_parser()
 )";
     string expect = R"(
 1;1;1;1;1;1;1;1;1;1;1+1;)";
-    EXPECT_EQ(IntermediateForm(input, err_handler).token_types_str(), expect);
+    EXPECT_EQ(Lexer(input, err_handler).token_types_str(), expect);
   }
   {
     string input = R"(
@@ -3142,8 +3117,8 @@ static void test_preprocess_parser()
     string expect = R"(
 [[A(1,1,A),A,A(A)]])";
     string scopes = R"(GABbcmmmbbcm)";
-    EXPECT_EQ(IntermediateForm(input, err_handler).token_types_str(), expect);
-    EXPECT_EQ(IntermediateForm(input, err_handler).scope_types_str, scopes);
+    EXPECT_EQ(Parser(input, err_handler).token_types_str(), expect);
+    EXPECT_EQ(Parser(input, err_handler).scope_types_str, scopes);
   }
   {
     string input = R"(
@@ -3156,7 +3131,7 @@ class B {
 )";
     string expect = R"(
 sA{AA=1;};SA{AA;};)";
-    EXPECT_EQ(IntermediateForm(input, err_handler).token_types_str(), expect);
+    EXPECT_EQ(Lexer(input, err_handler).token_types_str(), expect);
   }
   {
     string input = R"(
@@ -3171,7 +3146,7 @@ a
 )";
     string expect = R"(
 AZZAZAZA)";
-    EXPECT_EQ(IntermediateForm(input, err_handler).token_types_str(), expect);
+    EXPECT_EQ(Lexer(input, err_handler).token_types_str(), expect);
   }
   {
     string input = R"(
@@ -3181,8 +3156,8 @@ namespace T::U::V {}
     string expect = R"(
 nA{}nA::A::A{})";
     string expect_scopes = R"(GNN)";
-    EXPECT_EQ(IntermediateForm(input, err_handler).token_types_str(), expect);
-    EXPECT_EQ(IntermediateForm(input, err_handler).scope_types_str, expect_scopes);
+    EXPECT_EQ(Parser(input, err_handler).token_types_str(), expect);
+    EXPECT_EQ(Parser(input, err_handler).scope_types_str, expect_scopes);
   }
   {
     string input = R"(
@@ -3198,10 +3173,10 @@ void f(int t = 0) {
 )";
     string expect = R"(
 AA(AA=1){AA=1,A=1,A={1};{A=A=A,AP;i(AEA){r;}}})";
-    EXPECT_EQ(IntermediateForm(input, err_handler).token_types_str(), expect);
+    EXPECT_EQ(Lexer(input, err_handler).token_types_str(), expect);
   }
   {
-    IntermediateForm parser("float i;", err_handler);
+    Parser parser("float i;", err_handler);
     parser.insert_after(Token(parser, 0), "A ");
     parser.insert_after(Token(parser, 0), "B  ");
     EXPECT_EQ(parser.result_get(), "float A B  i;");
@@ -3212,7 +3187,7 @@ A
 #line 100
 B
 )";
-    IntermediateForm parser(input, err_handler);
+    Parser parser(input, err_handler);
     string expect = R"(
 A#A1A)";
     EXPECT_EQ(parser.token_types_str(), expect);
@@ -3236,7 +3211,7 @@ match(, const, bool, , foo, , ;)
 match([a], , int, , bar, [0], ;)
 )";
 
-    IntermediateForm parser(input, err_handler);
+    Parser parser(input, err_handler);
 
     string result = "\n";
     parser().foreach_declaration([&](Scope attributes,
@@ -3259,7 +3234,6 @@ match([a], , int, , bar, [0], ;)
     EXPECT_EQ(expect, result);
   }
 }
-GPU_TEST(preprocess_parser);
 
 static int test_expression(std::string str)
 {
@@ -3275,7 +3249,7 @@ static int test_expression(std::string str)
   }
 }
 
-static void test_preprocess_expression_parser()
+TEST(shader_tool, ExpressionParser)
 {
   using namespace std;
   using namespace shader::parser;
@@ -3363,6 +3337,5 @@ static void test_preprocess_expression_parser()
   /* --- The Kitchen Sink --- */
   EXPECT_EQ(test_expression("(10 - 2 * 3 == 4) ? 50 : 100 + !0"), 50);
 }
-GPU_TEST(preprocess_expression_parser);
 
 }  // namespace blender::gpu::tests

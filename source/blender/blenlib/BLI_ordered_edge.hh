@@ -34,6 +34,11 @@ struct OrderedEdge {
   OrderedEdge(const int2 edge) : OrderedEdge(edge[0], edge[1]) {}
   OrderedEdge(const uint v1, const uint v2) : OrderedEdge(int(v1), int(v2)) {}
 
+  operator int2() const
+  {
+    return int2(v_low, v_high);
+  }
+
   uint64_t hash() const
   {
     return (this->v_low << 8) ^ this->v_high;

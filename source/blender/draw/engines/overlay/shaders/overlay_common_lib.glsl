@@ -30,7 +30,7 @@ float4x4 extract_matrix_packed_data(float4x4 mat, float4 &dataA, float4 &dataB)
 /**
  * Pack overlay line data to float4.
  * Note: edge_start, edge_pos need to be in the range [0..uniform_buf.size_viewport].
- * Note: returns float4 for fbo output; only the first two components store data.
+ * Note: returns float4 for FBO output; only the first two components store data.
  */
 float4 pack_line_data(float2 frag_co, float2 edge_start, float2 edge_pos)
 {

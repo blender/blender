@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <algorithm>
+
 #include "BLI_array.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_listbase.hh"
@@ -14,6 +16,7 @@
 #include "IMB_imbuf_types.hh"
 
 #include "BKE_image_wrappers.hh"
+#include "BKE_mesh.hh"
 #include "BKE_paint_bvh.hh"
 #include "BKE_paint_bvh_pixels.hh"
 
@@ -105,16 +108,18 @@ class NonManifoldUVEdges : public Vector<Edge<CoordSpace::UV>> {
     int num_non_manifold_edges = count_non_manifold_edges(mesh_data);
     reserve(num_non_manifold_edges);
     for (const int primitive_id : mesh_data.corner_tris.index_range()) {
-      for (const int edge_id : mesh_data.primitive_to_edge_map[primitive_id]) {
-        if (mesh_data.is_edge_manifold(edge_id)) {
+      const int3 tri = mesh_data.corner_tris[primitive_id];
+      const int3 real_edges = mesh::corner_tri_get_real_edges(
+          mesh_data.mesh_edges, mesh_data.corner_verts, mesh_data.corner_edges, tri);
+      for (int j = 0; j < 3; j++) {
+        const int edge_id = real_edges[j];
+        /* -1 means internal edge in face, which is always manifold. */
+        if (edge_id == -1 || mesh_data.is_edge_manifold(edge_id)) {
           continue;
         }
-        const int3 &tri = mesh_data.corner_tris[primitive_id];
-        const int2 mesh_edge = mesh_data.edges[edge_id];
         Edge<CoordSpace::UV> edge;
-
-        edge.vertex_1.coordinate = find_uv(mesh_data, tri, mesh_edge[0]);
-        edge.vertex_2.coordinate = find_uv(mesh_data, tri, mesh_edge[1]);
+        edge.vertex_1.coordinate = mesh_data.uv_map[tri[j]];
+        edge.vertex_2.coordinate = mesh_data.uv_map[tri[(j + 1) % 3]];
         append(edge);
       }
     }
@@ -139,27 +144,19 @@ class NonManifoldUVEdges : public Vector<Edge<CoordSpace::UV>> {
   {
     int64_t result = 0;
     for (const int primitive_id : mesh_data.corner_tris.index_range()) {
-      for (const int edge_id : mesh_data.primitive_to_edge_map[primitive_id]) {
-        if (mesh_data.is_edge_manifold(edge_id)) {
-          continue;
+      const int3 real_edges = mesh::corner_tri_get_real_edges(mesh_data.mesh_edges,
+                                                              mesh_data.corner_verts,
+                                                              mesh_data.corner_edges,
+                                                              mesh_data.corner_tris[primitive_id]);
+      for (int j = 0; j < 3; j++) {
+        const int edge_id = real_edges[j];
+        /* -1 means internal edge in face, which is always manifold. */
+        if (!(edge_id == -1 || mesh_data.is_edge_manifold(edge_id))) {
+          result += 1;
         }
-        result += 1;
       }
     }
     return result;
-  }
-
-  static float2 find_uv(const uv_islands::MeshData &mesh_data, const int3 &tri, int vertex_i)
-  {
-    for (int i = 0; i < 3; i++) {
-      const int loop_i = tri[i];
-      const int vert = mesh_data.corner_verts[loop_i];
-      if (vert == vertex_i) {
-        return mesh_data.uv_map[loop_i];
-      }
-    }
-    BLI_assert_unreachable();
-    return float2(0.0f);
   }
 };
 
@@ -206,7 +203,7 @@ class PixelNodesTileData : public Vector<std::reference_wrapper<UDIMTilePixels>>
  */
 
 struct Rows {
-  enum class PixelType {
+  enum class PixelType : uint8_t {
     Undecided,
     /** This pixel is directly affected by a brush and doesn't need to be solved. */
     Brush,
@@ -216,62 +213,29 @@ struct Rows {
   };
 
   struct Pixel {
-    PixelType type;
-    float distance;
-    CopyPixelCommand copy_command;
+    float distance = std::numeric_limits<float>::max();
     /**
      * Index of the edge in the list of non-manifold edges.
      *
      * The edge is kept to calculate the mix factor between the two pixels that have chosen to
      * be mixed.
      */
-    int64_t edge_index;
-
-    Pixel() = default;
-
-    void init(int2 coordinate)
-    {
-      copy_command.destination = coordinate;
-      copy_command.source_1 = coordinate;
-      copy_command.source_2 = coordinate;
-      copy_command.mix_factor = 0.0f;
-      type = PixelType::Undecided;
-      distance = std::numeric_limits<float>::max();
-      edge_index = -1;
-    }
+    int edge_index = -1;
+    PixelType type = PixelType::Undecided;
   };
 
   int2 resolution;
   int margin;
   Array<Pixel> pixels;
 
-  struct RowView {
-    int row_number = 0;
-    /** Not owning pointer into Row.pixels starts at the start of the row. */
-    MutableSpan<Pixel> pixels;
-    RowView() = delete;
-    RowView(Rows &rows, int64_t row_number)
-        : row_number(row_number),
-          pixels(
-              MutableSpan<Pixel>(&rows.pixels[row_number * rows.resolution.x], rows.resolution.x))
-    {
-    }
-  };
-
   Rows(int2 resolution, int margin)
       : resolution(resolution), margin(margin), pixels(resolution.x * resolution.y)
   {
   }
 
-  void init_pixels()
+  int2 coordinate_of(const int64_t index) const
   {
-    int64_t index = 0;
-    for (int y : IndexRange(resolution.y)) {
-      for (int64_t x : IndexRange(resolution.x)) {
-        int2 position(x, y);
-        pixels[index++].init(position);
-      }
-    }
+    return int2(int(index % resolution.x), int(index / resolution.x));
   }
 
   /**
@@ -281,17 +245,23 @@ struct Rows {
   void mark_pixels_effected_by_brush(const PixelNodesTileData &nodes_tile_pixels)
   {
     for (const UDIMTilePixels &tile_pixels : nodes_tile_pixels) {
-      threading::parallel_for_each(
-          tile_pixels.pixel_rows, [&](const PackedPixelRow &encoded_pixels) {
-            for (int x = encoded_pixels.start_image_coordinate.x;
-                 x < encoded_pixels.start_image_coordinate.x + encoded_pixels.num_pixels;
-                 x++)
-            {
-              int64_t index = encoded_pixels.start_image_coordinate.y * resolution.x + x;
+      const int num_runs = tile_pixels.pixel_row_run_starts.size() - 1;
+      threading::parallel_for(IndexRange(num_runs), 64, [&](const IndexRange range) {
+        for (const int run_i : range) {
+          int x = tile_pixels.pixel_row_run_start_coords[run_i].x;
+          const int y = tile_pixels.pixel_row_run_start_coords[run_i].y;
+          const int run_begin = tile_pixels.pixel_row_run_starts[run_i];
+          const int run_end = tile_pixels.pixel_row_run_starts[run_i + 1];
+          for (int k = run_begin; k < run_end; k++) {
+            const int num_pixels = tile_pixels.pixel_rows[k].num_pixels;
+            for (int px = 0; px < num_pixels; px++, x++) {
+              int64_t index = int64_t(y) * resolution.x + x;
               pixels[index].type = PixelType::Brush;
               pixels[index].distance = 0.0f;
             }
-          });
+          }
+        }
+      });
     }
   }
 
@@ -361,16 +331,16 @@ struct Rows {
         (destination_lambda - source_1_lambda) / (source_2_lambda - source_1_lambda), 0.0f, 1.0f);
   }
 
-  void find_copy_source(Pixel &pixel, const NonManifoldTileEdges &tile_edges)
+  void find_copy_source(const int64_t index,
+                        CopyPixelCommand &r_command,
+                        const NonManifoldTileEdges &tile_edges)
   {
+    Pixel &pixel = pixels[index];
     BLI_assert(pixel.type == PixelType::SelectedForCloserExamination);
+    const int2 destination = coordinate_of(index);
 
     rcti bounds;
-    BLI_rcti_init(&bounds,
-                  pixel.copy_command.destination.x,
-                  pixel.copy_command.destination.x,
-                  pixel.copy_command.destination.y,
-                  pixel.copy_command.destination.y);
+    BLI_rcti_init(&bounds, destination.x, destination.x, destination.y, destination.y);
     add_margin(bounds, margin);
     clamp(bounds, resolution);
 
@@ -384,8 +354,7 @@ struct Rows {
         if (source.type != PixelType::Brush) {
           continue;
         }
-        float new_distance = math::distance(float2(sx, sy),
-                                            float2(pixel.copy_command.destination));
+        float new_distance = math::distance(float2(sx, sy), float2(destination));
         if (new_distance < found_distance) {
           found_source = int2(sx, sy);
           found_distance = new_distance;
@@ -398,30 +367,28 @@ struct Rows {
     }
     pixel.type = PixelType::CopyFromClosestEdge;
     pixel.distance = found_distance;
-    pixel.copy_command.source_1 = found_source;
-    pixel.copy_command.source_2 = find_second_source(pixel.copy_command.destination, found_source);
-    pixel.copy_command.mix_factor = determine_mix_factor(pixel.copy_command.destination,
-                                                         pixel.copy_command.source_1,
-                                                         pixel.copy_command.source_2,
-                                                         tile_edges[pixel.edge_index]);
+    r_command.destination = destination;
+    r_command.source_1 = found_source;
+    r_command.source_2 = find_second_source(destination, found_source);
+    r_command.mix_factor = determine_mix_factor(
+        destination, found_source, r_command.source_2, tile_edges[pixel.edge_index]);
   }
 
-  void find_copy_source(Vector<std::reference_wrapper<Pixel>> &selected_pixels,
+  void find_copy_source(const Span<int64_t> selected_pixels,
+                        MutableSpan<CopyPixelCommand> r_commands,
                         const NonManifoldTileEdges &tile_edges)
   {
     threading::parallel_for(
-        IndexRange(selected_pixels.size()), THREADING_GRAIN_SIZE, [&](IndexRange range) {
-          for (int selected_pixel_index : range) {
-            Pixel &current_pixel = selected_pixels[selected_pixel_index];
-            find_copy_source(current_pixel, tile_edges);
+        selected_pixels.index_range(), THREADING_GRAIN_SIZE, [&](IndexRange range) {
+          for (const int64_t i : range) {
+            find_copy_source(selected_pixels[i], r_commands[i], tile_edges);
           }
         });
   }
 
-  Vector<std::reference_wrapper<Pixel>> filter_pixels_for_closer_examination(
-      const NonManifoldTileEdges &tile_edges)
+  Vector<int64_t> filter_pixels_for_closer_examination(const NonManifoldTileEdges &tile_edges)
   {
-    Vector<std::reference_wrapper<Pixel>> selected_pixels;
+    Vector<int64_t> selected_pixels;
     selected_pixels.reserve(10000);
 
     for (int tile_edge_index : tile_edges.index_range()) {
@@ -450,7 +417,7 @@ struct Rows {
           float distance_to_edge = math::distance(closest_edge_point, point);
           if (distance_to_edge < margin && distance_to_edge < pixel.distance) {
             if (pixel.type != PixelType::SelectedForCloserExamination) {
-              selected_pixels.append(std::reference_wrapper<Pixel>(pixel));
+              selected_pixels.append(index);
             }
             pixel.type = PixelType::SelectedForCloserExamination;
             pixel.distance = distance_to_edge;
@@ -462,32 +429,65 @@ struct Rows {
     return selected_pixels;
   }
 
-  void pack_into(const Span<std::reference_wrapper<Pixel>> selected_pixels,
+  void pack_into(const Span<int64_t> selected_pixels,
+                 const Span<CopyPixelCommand> commands,
                  CopyPixelTile &copy_tile) const
   {
     std::optional<std::reference_wrapper<CopyPixelGroup>> last_group = std::nullopt;
     std::optional<CopyPixelCommand> last_command = std::nullopt;
+    const int seam_tilex_x = (resolution.x + SEAM_TILE_SIZE - 1) >> SEAM_TILE_BITS;
+    int last_seam_tile = -1;
 
-    for (const Pixel &elem : selected_pixels) {
-      if (elem.type == PixelType::CopyFromClosestEdge) {
-        if (!last_command.has_value() || !last_command->can_be_extended(elem.copy_command)) {
-          CopyPixelGroup new_group = {elem.copy_command.destination - int2(1, 0),
-                                      elem.copy_command.source_1,
+    for (const int64_t i : selected_pixels.index_range()) {
+      if (pixels[selected_pixels[i]].type == PixelType::CopyFromClosestEdge) {
+        const CopyPixelCommand &command = commands[i];
+
+        /* Split group when it cross into another seam tile, so we can cleanly
+         * sort each group into a seam tile later. */
+        const int seam_tile = CopyPixelTile::seam_tile_index(command.source_1, seam_tilex_x);
+        if (!last_command.has_value() || !last_command->can_be_extended(command) ||
+            seam_tile != last_seam_tile)
+        {
+          CopyPixelGroup new_group = {command.destination - int2(1, 0),
+                                      command.source_1,
                                       copy_tile.command_deltas.size(),
                                       0};
+          last_seam_tile = seam_tile;
           copy_tile.groups.append(new_group);
           last_group = copy_tile.groups.last();
           last_command = CopyPixelCommand(*last_group);
         }
 
-        DeltaCopyPixelCommand delta_command = last_command->encode_delta(elem.copy_command);
+        DeltaCopyPixelCommand delta_command = last_command->encode_delta(command);
         copy_tile.command_deltas.append(delta_command);
         last_group->get().num_deltas++;
-        last_command = elem.copy_command;
+        last_command = command;
       }
     }
   }
 };
+
+void CopyPixelTile::build_seam_tile_map(const int2 resolution)
+{
+  /* Sort the groups by the seam tile their source pixels fall in and
+   * store the index range into the group array for each seam tile. */
+  const int tiles_x = (resolution.x + SEAM_TILE_SIZE - 1) >> SEAM_TILE_BITS;
+  std::ranges::stable_sort(groups, std::less<>{}, [tiles_x](const CopyPixelGroup &group) {
+    return seam_tile_index(group.start_source_1, tiles_x);
+  });
+
+  seam_tile_to_groups.clear();
+  int64_t start = 0;
+  while (start < groups.size()) {
+    const int tile = seam_tile_index(groups[start].start_source_1, tiles_x);
+    int64_t end = start + 1;
+    while (end < groups.size() && seam_tile_index(groups[end].start_source_1, tiles_x) == tile) {
+      end++;
+    }
+    seam_tile_to_groups.add(tile, IndexRange(start, end - start));
+    start = end;
+  }
+}
 
 void copy_update(bke::pbvh::Tree &pbvh,
                  Image &image,
@@ -522,15 +522,15 @@ void copy_update(bke::pbvh::Tree &pbvh,
     CopyPixelTile copy_tile(image_tile.get_tile_number());
 
     Rows rows(tile_resolution, image.seam_margin);
-    rows.init_pixels();
     rows.mark_pixels_effected_by_brush(nodes_tile_pixels);
 
-    Vector<std::reference_wrapper<Rows::Pixel>> selected_pixels =
-        rows.filter_pixels_for_closer_examination(tile_edges);
-    rows.find_copy_source(selected_pixels, tile_edges);
-    rows.pack_into(selected_pixels, copy_tile);
+    Vector<int64_t> selected_pixels = rows.filter_pixels_for_closer_examination(tile_edges);
+    Array<CopyPixelCommand> selected_commands(selected_pixels.size());
+    rows.find_copy_source(selected_pixels, selected_commands, tile_edges);
+    rows.pack_into(selected_pixels, selected_commands, copy_tile);
+    copy_tile.build_seam_tile_map(tile_resolution);
 
-    copy_tile.print_compression_rate();
+    // copy_tile.print_compression_rate();
     pbvh_data.tiles_copy_pixels.tiles.append(copy_tile);
   }
 }
@@ -539,7 +539,9 @@ void copy_update(bke::pbvh::Tree &pbvh,
  * bke namespace. */
 void copy_pixels(bke::pbvh::Tree &pbvh,
                  Map<image::TileNumber, ImBuf *> &buffers,
-                 image::TileNumber tile_number)
+                 image::TileNumber tile_number,
+                 const Span<uint8_t> seam_tiles_modified,
+                 const FunctionRef<void(int x_start, int x_end, int y)> push_undo_tiles)
 {
   PixelData &pbvh_data = data_get(pbvh);
   std::optional<std::reference_wrapper<CopyPixelTile>> pixel_tile =
@@ -556,9 +558,24 @@ void copy_pixels(bke::pbvh::Tree &pbvh,
   }
 
   CopyPixelTile &tile = pixel_tile->get();
-  threading::parallel_for(tile.groups.index_range(), THREADING_GRAIN_SIZE, [&](IndexRange range) {
-    tile.copy_pixels(*tile_buffer, range);
-  });
+
+  /* Apply the pixel copies for groups whose seam tile was modified. */
+  for (const auto item : tile.seam_tile_to_groups.items()) {
+    BLI_assert(item.key < seam_tiles_modified.size());
+    if (!seam_tiles_modified[item.key]) {
+      continue;
+    }
+    const IndexRange group_range = item.value;
+
+    /* Push undo tiles affected by these groups before editing, just like painting. */
+    for (const CopyPixelGroup &group : tile.groups.as_span().slice(group_range)) {
+      push_undo_tiles(group.start_destination.x + 1,
+                      group.start_destination.x + group.num_deltas,
+                      group.start_destination.y);
+    }
+
+    tile.copy_pixels(*tile_buffer, group_range);
+  }
 }
 
 }  // namespace blender::bke::pbvh::pixels

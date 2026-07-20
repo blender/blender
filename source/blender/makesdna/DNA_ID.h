@@ -1106,8 +1106,8 @@ enum IDRecalcFlag {
    */
   ID_RECALC_SYNC_TO_EVAL = (1 << 13),
 
-  /* Sequences in the sequencer did change.
-   * Use this tag with a scene ID which owns the sequences. */
+  /* Strips in the sequencer changed.
+   * Use this tag with a scene ID which owns the strips. */
   ID_RECALC_SEQUENCER_STRIPS = (1 << 14),
 
   /* Runs on frame-change (used for seeking audio too). */
@@ -1146,11 +1146,13 @@ enum IDRecalcFlag {
   /* Hierarchy of collection and object within collection changed. */
   ID_RECALC_HIERARCHY = (1 << 26),
 
+  /* The scene has changed in a way that affects the compositor. */
+  ID_RECALC_COMPOSITOR = (1 << 27),
+
   /* Provisioned flags.
    *
    * Not for actual use. The idea of them is to have all bits of the `IDRecalcFlag` defined to a
    * known value, silencing sanitizer warnings when checking bits of the ID_RECALC_ALL. */
-  ID_RECALC_PROVISION_27 = (1 << 27),
   ID_RECALC_PROVISION_28 = (1 << 28),
   ID_RECALC_PROVISION_29 = (1 << 29),
   ID_RECALC_PROVISION_30 = (1 << 30),

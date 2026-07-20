@@ -26,6 +26,7 @@
 
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_vector_c.hh"
+#include "BLI_offset_indices.hh"
 #include "BLI_utildefines.hh"
 
 #include "../generic/py_capi_utils.hh"
@@ -69,7 +70,14 @@ static PyObject *M_Geometry_intersect_ray_tri(PyObject * /*self*/, PyObject *arg
   int i;
 
   if (!PyArg_ParseTuple(args,
-                        "OOOOO|O&:intersect_ray_tri",
+                        "O"  /* `v1` */
+                        "O"  /* `v2` */
+                        "O"  /* `v3` */
+                        "O"  /* `ray` */
+                        "O"  /* `orig` */
+                        "|"  /* Optional arguments. */
+                        "O&" /* `clip` */
+                        ":intersect_ray_tri",
                         UNPACK3_EX(&, py_tri, ),
                         &py_ray,
                         &py_ray_off,
@@ -174,7 +182,14 @@ static PyObject *M_Geometry_intersect_line_line(PyObject * /*self*/, PyObject *a
   int ix_vec_num;
   int result;
 
-  if (!PyArg_ParseTuple(args, "OOOO:intersect_line_line", UNPACK4_EX(&, py_lines, ))) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `v1` */
+                        "O" /* `v2` */
+                        "O" /* `v3` */
+                        "O" /* `v4` */
+                        ":intersect_line_line",
+                        UNPACK4_EX(&, py_lines, )))
+  {
     return nullptr;
   }
 
@@ -255,7 +270,16 @@ static PyObject *M_Geometry_intersect_sphere_sphere_2d(PyObject * /*self*/, PyOb
   float v_ab[2];
   float dist;
 
-  if (!PyArg_ParseTuple(args, "OfOf:intersect_sphere_sphere_2d", &py_v_a, &rad_a, &py_v_b, &rad_b))
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `p_a` */
+                        "f" /* `radius_a` */
+                        "O" /* `p_b` */
+                        "f" /* `radius_b` */
+                        ":intersect_sphere_sphere_2d",
+                        &py_v_a,
+                        &rad_a,
+                        &py_v_b,
+                        &rad_b))
   {
     return nullptr;
   }
@@ -331,7 +355,13 @@ static PyObject *M_Geometry_intersect_tri_tri_2d(PyObject * /*self*/, PyObject *
   float tri_pair[2][3][2];
 
   if (!PyArg_ParseTuple(args,
-                        "OOOOOO:intersect_tri_tri_2d",
+                        "O" /* `tri_a1` */
+                        "O" /* `tri_a2` */
+                        "O" /* `tri_a3` */
+                        "O" /* `tri_b1` */
+                        "O" /* `tri_b2` */
+                        "O" /* `tri_b3` */
+                        ":intersect_tri_tri_2d",
                         &tri_pair_py[0][0],
                         &tri_pair_py[0][1],
                         &tri_pair_py[0][2],
@@ -421,7 +451,13 @@ static PyObject *M_Geometry_area_tri(PyObject * /*self*/, PyObject *args)
   float tri[3][3];
   int len;
 
-  if (!PyArg_ParseTuple(args, "OOO:area_tri", UNPACK3_EX(&, py_tri, ))) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `v1` */
+                        "O" /* `v2` */
+                        "O" /* `v3` */
+                        ":area_tri",
+                        UNPACK3_EX(&, py_tri, )))
+  {
     return nullptr;
   }
 
@@ -460,7 +496,14 @@ static PyObject *M_Geometry_volume_tetrahedron(PyObject * /*self*/, PyObject *ar
   float tet[4][3];
   int i;
 
-  if (!PyArg_ParseTuple(args, "OOOO:volume_tetrahedron", UNPACK4_EX(&, py_tet, ))) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `v1` */
+                        "O" /* `v2` */
+                        "O" /* `v3` */
+                        "O" /* `v4` */
+                        ":volume_tetrahedron",
+                        UNPACK4_EX(&, py_tet, )))
+  {
     return nullptr;
   }
 
@@ -501,7 +544,14 @@ static PyObject *M_Geometry_intersect_line_line_2d(PyObject * /*self*/, PyObject
   float vi[2];
   int i;
 
-  if (!PyArg_ParseTuple(args, "OOOO:intersect_line_line_2d", UNPACK4_EX(&, py_lines, ))) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `lineA_p1` */
+                        "O" /* `lineA_p2` */
+                        "O" /* `lineB_p1` */
+                        "O" /* `lineB_p2` */
+                        ":intersect_line_line_2d",
+                        UNPACK4_EX(&, py_lines, )))
+  {
     return nullptr;
   }
 
@@ -547,7 +597,13 @@ static PyObject *M_Geometry_intersect_line_plane(PyObject * /*self*/, PyObject *
   const bool no_flip = false;
 
   if (!PyArg_ParseTuple(args,
-                        "OOOO|O&:intersect_line_plane",
+                        "O"  /* `line_a` */
+                        "O"  /* `line_b` */
+                        "O"  /* `plane_co` */
+                        "O"  /* `plane_no` */
+                        "|"  /* Optional arguments. */
+                        "O&" /* `no_flip` */
+                        ":intersect_line_plane",
                         &py_line_a,
                         &py_line_b,
                         &py_plane_co,
@@ -606,7 +662,11 @@ static PyObject *M_Geometry_intersect_plane_plane(PyObject * /*self*/, PyObject 
   float isect_no[3];
 
   if (!PyArg_ParseTuple(args,
-                        "OOOO:intersect_plane_plane",
+                        "O" /* `plane_a_co` */
+                        "O" /* `plane_a_no` */
+                        "O" /* `plane_b_co` */
+                        "O" /* `plane_b_no` */
+                        ":intersect_plane_plane",
                         &py_plane_a_co,
                         &py_plane_a_no,
                         &py_plane_b_co,
@@ -679,7 +739,13 @@ static PyObject *M_Geometry_intersect_line_sphere(PyObject * /*self*/, PyObject 
   float isect_b[3];
 
   if (!PyArg_ParseTuple(args,
-                        "OOOf|O&:intersect_line_sphere",
+                        "O"  /* `line_a` */
+                        "O"  /* `line_b` */
+                        "O"  /* `sphere_co` */
+                        "f"  /* `sphere_radius` */
+                        "|"  /* Optional arguments. */
+                        "O&" /* `clip` */
+                        ":intersect_line_sphere",
                         &py_line_a,
                         &py_line_b,
                         &py_sphere_co,
@@ -773,7 +839,13 @@ static PyObject *M_Geometry_intersect_line_sphere_2d(PyObject * /*self*/, PyObje
   float isect_b[2];
 
   if (!PyArg_ParseTuple(args,
-                        "OOOf|O&:intersect_line_sphere_2d",
+                        "O"  /* `line_a` */
+                        "O"  /* `line_b` */
+                        "O"  /* `sphere_co` */
+                        "f"  /* `sphere_radius` */
+                        "|"  /* Optional arguments. */
+                        "O&" /* `clip` */
+                        ":intersect_line_sphere_2d",
                         &py_line_a,
                         &py_line_b,
                         &py_sphere_co,
@@ -965,7 +1037,15 @@ static PyObject *M_Geometry_intersect_point_tri(PyObject * /*self*/, PyObject *a
   float vi[3];
   int i;
 
-  if (!PyArg_ParseTuple(args, "OOOO:intersect_point_tri", &py_pt, UNPACK3_EX(&, py_tri, ))) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `pt` */
+                        "O" /* `tri_p1` */
+                        "O" /* `tri_p2` */
+                        "O" /* `tri_p3` */
+                        ":intersect_point_tri",
+                        &py_pt,
+                        UNPACK3_EX(&, py_tri, )))
+  {
     return nullptr;
   }
 
@@ -1013,7 +1093,15 @@ static PyObject *M_Geometry_closest_point_on_tri(PyObject * /*self*/, PyObject *
   float vi[3];
   int i;
 
-  if (!PyArg_ParseTuple(args, "OOOO:closest_point_on_tri", &py_pt, UNPACK3_EX(&, py_tri, ))) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `pt` */
+                        "O" /* `tri_p1` */
+                        "O" /* `tri_p2` */
+                        "O" /* `tri_p3` */
+                        ":closest_point_on_tri",
+                        &py_pt,
+                        UNPACK3_EX(&, py_tri, )))
+  {
     return nullptr;
   }
 
@@ -1060,7 +1148,15 @@ static PyObject *M_Geometry_intersect_point_tri_2d(PyObject * /*self*/, PyObject
   float pt[2], tri[3][2];
   int i;
 
-  if (!PyArg_ParseTuple(args, "OOOO:intersect_point_tri_2d", &py_pt, UNPACK3_EX(&, py_tri, ))) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `pt` */
+                        "O" /* `tri_p1` */
+                        "O" /* `tri_p2` */
+                        "O" /* `tri_p3` */
+                        ":intersect_point_tri_2d",
+                        &py_pt,
+                        UNPACK3_EX(&, py_tri, )))
+  {
     return nullptr;
   }
 
@@ -1106,7 +1202,16 @@ static PyObject *M_Geometry_intersect_point_quad_2d(PyObject * /*self*/, PyObjec
   float pt[2], quad[4][2];
   int i;
 
-  if (!PyArg_ParseTuple(args, "OOOOO:intersect_point_quad_2d", &py_pt, UNPACK4_EX(&, py_quad, ))) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `pt` */
+                        "O" /* `quad_p1` */
+                        "O" /* `quad_p2` */
+                        "O" /* `quad_p3` */
+                        "O" /* `quad_p4` */
+                        ":intersect_point_quad_2d",
+                        &py_pt,
+                        UNPACK4_EX(&, py_quad, )))
+  {
     return nullptr;
   }
 
@@ -1145,7 +1250,15 @@ static PyObject *M_Geometry_distance_point_to_plane(PyObject * /*self*/, PyObjec
   float pt[3], plane_co[3], plane_no[3];
   float plane[4];
 
-  if (!PyArg_ParseTuple(args, "OOO:distance_point_to_plane", &py_pt, &py_plane_co, &py_plane_no)) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `pt` */
+                        "O" /* `plane_co` */
+                        "O" /* `plane_no` */
+                        ":distance_point_to_plane",
+                        &py_pt,
+                        &py_plane_co,
+                        &py_plane_no))
+  {
     return nullptr;
   }
 
@@ -1193,7 +1306,14 @@ static PyObject *M_Geometry_barycentric_transform(PyObject * /*self*/, PyObject 
   int i;
 
   if (!PyArg_ParseTuple(args,
-                        "OOOOOOO:barycentric_transform",
+                        "O" /* `point` */
+                        "O" /* `tri_a1` */
+                        "O" /* `tri_a2` */
+                        "O" /* `tri_a3` */
+                        "O" /* `tri_b1` */
+                        "O" /* `tri_b2` */
+                        "O" /* `tri_b3` */
+                        ":barycentric_transform",
                         &py_pt_src,
                         UNPACK3_EX(&, py_tri_src, ),
                         UNPACK3_EX(&, py_tri_dst, )))
@@ -1258,7 +1378,16 @@ static PyObject *M_Geometry_points_in_planes(PyObject * /*self*/, PyObject *args
   float eps_isect = 1e-6f;
   uint planes_len;
 
-  if (!PyArg_ParseTuple(args, "O|ff:points_in_planes", &py_planes, &eps_coplanar, &eps_isect)) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `planes` */
+                        "|" /* Optional arguments. */
+                        "f" /* `epsilon_coplanar` */
+                        "f" /* `epsilon_isect` */
+                        ":points_in_planes",
+                        &py_planes,
+                        &eps_coplanar,
+                        &eps_isect))
+  {
     return nullptr;
   }
 
@@ -1332,7 +1461,16 @@ static PyObject *M_Geometry_interpolate_bezier(PyObject * /*self*/, PyObject *ar
   float *coord_array, *fp;
   PyObject *list;
 
-  if (!PyArg_ParseTuple(args, "OOOOi:interpolate_bezier", UNPACK4_EX(&, py_data, ), &resolu)) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `knot1` */
+                        "O" /* `handle1` */
+                        "O" /* `handle2` */
+                        "O" /* `knot2` */
+                        "i" /* `resolution` */
+                        ":interpolate_bezier",
+                        UNPACK4_EX(&, py_data, ),
+                        &resolu))
+  {
     return nullptr;
   }
 
@@ -1762,7 +1900,14 @@ static PyObject *M_Geometry_delaunay_2d_cdt(PyObject * /*self*/, PyObject *args)
   PyObject *ret_value = nullptr;
 
   if (!PyArg_ParseTuple(args,
-                        "OOOif|O&:delaunay_2d_cdt",
+                        "O"  /* `vert_coords` */
+                        "O"  /* `edges` */
+                        "O"  /* `faces` */
+                        "i"  /* `output_type` */
+                        "f"  /* `epsilon` */
+                        "|"  /* Optional arguments. */
+                        "O&" /* `need_ids` */
+                        ":delaunay_2d_cdt",
                         &vert_coords,
                         &edges,
                         &faces,
@@ -1795,8 +1940,9 @@ static PyObject *M_Geometry_delaunay_2d_cdt(PyObject * /*self*/, PyObject *args)
     return nullptr;
   }
 
-  Array<Vector<int>> in_faces;
-  if (!mathutils_array_parse_alloc_viseq(faces, error_prefix, in_faces)) {
+  Array<int> face_offsets;
+  Array<int> face_vert_indices;
+  if (!mathutils_array_parse_alloc_viseq(faces, error_prefix, face_offsets, face_vert_indices)) {
     return nullptr;
   }
 
@@ -1806,9 +1952,10 @@ static PyObject *M_Geometry_delaunay_2d_cdt(PyObject * /*self*/, PyObject *args)
   }
 
   meshintersect::CDT_input<double> in;
-  in.vert = std::move(verts);
-  in.edge = Span(reinterpret_cast<std::pair<int, int> *>(in_edges), edges_len);
-  in.face = std::move(in_faces);
+  in.vert = verts;
+  in.edge = Span(reinterpret_cast<int2 *>(in_edges), edges_len);
+  in.face_offsets = face_offsets.as_span();
+  in.face_vert_indices = face_vert_indices;
   in.epsilon = epsilon;
   in.need_ids = need_ids;
 
@@ -1833,8 +1980,8 @@ static PyObject *M_Geometry_delaunay_2d_cdt(PyObject * /*self*/, PyObject *args)
   out_edges = PyList_New(res.edge.size());
   for (const int i : res.edge.index_range()) {
     PyObject *item = PyTuple_New(2);
-    PyTuple_SET_ITEM(item, 0, PyLong_FromLong(long(res.edge[i].first)));
-    PyTuple_SET_ITEM(item, 1, PyLong_FromLong(long(res.edge[i].second)));
+    PyTuple_SET_ITEM(item, 0, PyLong_FromLong(long(res.edge[i][0])));
+    PyTuple_SET_ITEM(item, 1, PyLong_FromLong(long(res.edge[i][1])));
     PyList_SET_ITEM(out_edges, i, item);
   }
   PyTuple_SET_ITEM(ret_value, 1, out_edges);

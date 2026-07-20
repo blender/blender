@@ -126,7 +126,7 @@ enum TokenType : uint8_t {
   // Unused = 'W',
   // Unused = 'x',
   // Unused = 'X',
-  // Unused = 'y',
+  Default = 'y',
   TemplateOpen = 'Y',
   TemplateClose = 'z',
   Comment = 'Z',

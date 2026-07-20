@@ -29,12 +29,55 @@ packed_float3 g_volume_absorption;
 #ifndef CLOSURE_BIN_COUNT
 #  define CLOSURE_BIN_COUNT 1
 #endif
-/* Sampled closure parameters. */
-ClosureUndetermined g_closure_bins[CLOSURE_BIN_COUNT];
-/* Random number per sampled closure type. */
-float g_closure_rand[CLOSURE_BIN_COUNT];
 
-ClosureUndetermined g_closure_get(uchar i)
+template<typename T> struct Reservoir {
+  T data;
+  float rand;
+  float chosen_weight;
+  float total_weight;
+
+  void reset(float rng)
+  {
+    this->rand = rng;
+    this->chosen_weight = 0.0f;
+    this->total_weight = 0.0f;
+    data = T{};
+  }
+
+  void add(T candidate, float candidate_weight)
+  {
+    if (candidate_weight < 1e-5f) {
+      return;
+    }
+    total_weight += candidate_weight;
+
+    float x = candidate_weight / total_weight;
+    bool chosen = (rand < x);
+
+    if (chosen) {
+      data = candidate;
+      chosen_weight = candidate_weight;
+    }
+    /* Assuming that if r is in the interval [0,x] or [x,1], it's still uniformly distributed
+     * within that interval, so remapping to [0,1] again to explore this space of probability. */
+    rand = (chosen) ? (rand / x) : ((rand - x) / (1.0f - x));
+  }
+
+  float get_final_weight() const
+  {
+    if (chosen_weight <= 0.0f) {
+      return 0.0f;
+    }
+    return total_weight / chosen_weight;
+  }
+};
+
+template struct Reservoir<ClosureUndetermined>;
+
+/* Sampled closure parameters. */
+Reservoir<ClosureUndetermined> g_closure_bins[CLOSURE_BIN_COUNT];
+
+Reservoir<ClosureUndetermined> g_closure_get(uchar i)
 {
   switch (i) {
     case 0:
@@ -53,10 +96,11 @@ ClosureUndetermined g_closure_get(uchar i)
   return g_closure_bins[0];
 }
 
-ClosureUndetermined g_closure_get_resolved(uchar i, float weight_fac)
+ClosureUndetermined g_closure_get_resolved(uchar i, float additional_weight)
 {
-  ClosureUndetermined cl = g_closure_get(i);
-  cl.color *= cl.weight * weight_fac;
+  Reservoir<ClosureUndetermined> r = g_closure_get(i);
+  ClosureUndetermined cl = r.data;
+  cl.color *= r.get_final_weight() * additional_weight;
   return cl;
 }
 
@@ -91,57 +135,21 @@ ClosureType closure_type_get(ClosureThinRefraction /*cl*/)
 }
 
 /**
- * Returns true if the closure is to be selected based on the input weight.
- */
-bool closure_select_check(float weight, float &total_weight, float &r)
-{
-  if (weight < 1e-5f) {
-    return false;
-  }
-  total_weight += weight;
-  float x = weight / total_weight;
-  bool chosen = (r < x);
-  /* Assuming that if r is in the interval [0,x] or [x,1], it's still uniformly distributed within
-   * that interval, so remapping to [0,1] again to explore this space of probability. */
-  r = (chosen) ? (r / x) : ((r - x) / (1.0f - x));
-  return chosen;
-}
-
-/**
  * Assign `candidate` to `destination` based on a random value and the respective weights.
  */
-void closure_select(ClosureUndetermined &destination, float &random, ClosureUndetermined candidate)
+void closure_select(Reservoir<ClosureUndetermined> &reservoir, ClosureUndetermined candidate)
 {
-  float candidate_color_weight = average(abs(candidate.color));
-  if (closure_select_check(candidate.weight * candidate_color_weight, destination.weight, random))
-  {
-    float total_weight = destination.weight;
-    destination = candidate;
-    destination.color /= candidate_color_weight;
-    destination.weight = total_weight;
-  }
+  reservoir.add(candidate, candidate.weight());
 }
 
 void closure_weights_reset(float closure_rand)
 {
-  g_closure_rand[0] = closure_rand;
-  g_closure_bins[0].color = float3(0.0f);
-  g_closure_bins[0].weight = 0.0f;
-  g_closure_bins[0].N = float3(0.0f);
-  g_closure_bins[0].type = CLOSURE_NONE_ID;
+  g_closure_bins[0].reset(closure_rand);
 #if CLOSURE_BIN_COUNT > 1
-  g_closure_rand[1] = closure_rand;
-  g_closure_bins[1].color = float3(0.0f);
-  g_closure_bins[1].weight = 0.0f;
-  g_closure_bins[1].N = float3(0.0f);
-  g_closure_bins[1].type = CLOSURE_NONE_ID;
+  g_closure_bins[1].reset(closure_rand);
 #endif
 #if CLOSURE_BIN_COUNT > 2
-  g_closure_rand[2] = closure_rand;
-  g_closure_bins[2].color = float3(0.0f);
-  g_closure_bins[2].weight = 0.0f;
-  g_closure_bins[2].N = float3(0.0f);
-  g_closure_bins[2].type = CLOSURE_NONE_ID;
+  g_closure_bins[2].reset(closure_rand);
 #endif
 
   g_volume_scattering = float3(0.0f);

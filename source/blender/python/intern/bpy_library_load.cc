@@ -367,13 +367,13 @@ static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *k
   };
   static _PyArg_Parser _parser = {
       "O&" /* `filepath` */
-      /* Optional keyword only arguments. */
+      /* Optional, keyword only arguments. */
       "|$"
       "O&" /* `link` */
       "O&" /* `pack` */
       "O&" /* `relative` */
-      "O&" /* `recursive` */
       "O&" /* `set_fake` */
+      "O&" /* `recursive` */
       "O&" /* `reuse_local_id` */
       "O&" /* `assets_only` */
       "O&" /* `clear_asset_data` */
@@ -396,9 +396,9 @@ static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *k
                                         PyC_ParseBool,
                                         &flag_vars.is_relative,
                                         PyC_ParseBool,
-                                        &flag_vars.recursive,
-                                        PyC_ParseBool,
                                         &flag_vars.set_fake,
+                                        PyC_ParseBool,
+                                        &flag_vars.recursive,
                                         PyC_ParseBool,
                                         &flag_vars.reuse_local_id,
                                         PyC_ParseBool,

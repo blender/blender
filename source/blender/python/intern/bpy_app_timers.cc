@@ -21,11 +21,6 @@ namespace blender {
 
 static double handle_returned_value(PyObject *function, PyObject *ret)
 {
-  if (ret == nullptr) {
-    PyErr_PrintEx(0);
-    return -1;
-  }
-
   if (ret == Py_None) {
     return -1;
   }
@@ -50,8 +45,15 @@ static double py_timer_execute(uintptr_t /*uuid*/, void *user_data)
 
   PyObject *function = static_cast<PyObject *>(user_data);
 
-  PyObject *py_ret = PyObject_CallObject(function, nullptr);
-  const double ret = handle_returned_value(function, py_ret);
+  double ret;
+  if (PyObject *py_ret = PyObject_CallObject(function, nullptr)) {
+    ret = handle_returned_value(function, py_ret);
+    Py_DECREF(py_ret);
+  }
+  else {
+    PyErr_PrintEx(0);
+    ret = -1;
+  }
 
   PyGILState_Release(gilstate);
 
@@ -94,7 +96,7 @@ static PyObject *bpy_app_timers_register(PyObject * /*self*/, PyObject *args, Py
   static const char *_keywords[] = {"function", "first_interval", "persistent", nullptr};
   static _PyArg_Parser _parser = {
       "O"  /* `function` */
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "d"  /* `first_interval` */
       "p"  /* `persistent` */
       ":register",

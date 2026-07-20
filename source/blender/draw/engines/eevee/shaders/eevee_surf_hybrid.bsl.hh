@@ -15,9 +15,6 @@
 #include "infos/eevee_geom_infos.hh"
 #include "infos/eevee_nodetree_infos.hh"
 
-FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree)
-FRAGMENT_SHADER_CREATE_INFO(eevee_geom_iface_info)
-
 #include "draw_curves_lib.glsl" /* IWYU pragma: export. For nodetree functions. */
 #include "eevee_forward_lib.bsl.hh"
 #include "eevee_gbuffer_write.bsl.hh"
@@ -30,6 +27,9 @@ Thickness g_thickness;
 
 float4 closure_to_rgba_hybrid(Closure /*cl*/)
 {
+  /* Workaround for gl_FragCoord. */
+  FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree);
+
   [[resource_table]] const draw::View &views = resource_table_get(draw::View);
   [[resource_table]] const eevee::Sampling &sampling = resource_table_get(eevee::Sampling);
   [[resource_table]] const UtilityTexture &util_tx = resource_table_get(UtilityTexture);

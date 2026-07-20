@@ -20,8 +20,6 @@
 #include "overlay_common_lib.glsl"
 #include "overlay_shader_shared.hh"
 
-SHADER_LIBRARY_CREATE_INFO(draw_globals)
-
 namespace overlay::antialiasing {
 
 /* Per-pixel line data, unpacked as its perpendicular direction, and distance to origin. */
@@ -187,7 +185,7 @@ void neighbor_kernel(TexelData &target,
   float4 under = target_over_neighbor ? neighbor.color : target.color;
 
   if (background.color.a == 0.0) {
-    /* Without background, we do additive alpha on the current framebuffer. */
+    /* Without background, we do additive alpha on the current frame-buffer. */
     target.color = over + under * (1.0f - over.a);
   }
   else {
@@ -214,6 +212,8 @@ struct FragOut {
                             [[resource_table]] Resources &srt,
                             [[out]] FragOut &frag)
 {
+  SHADER_LIBRARY_CREATE_INFO(draw_globals);
+
   const int2 texel = int2(frag_coord.xy);
 
   /* Fetch center pixel. */
@@ -240,7 +240,7 @@ struct FragOut {
   /* Blend center color over background. */
   const float kernel_size = theme.sizes.pixel * 0.5f - 0.5f;
   center_kernel(center, background, kernel_size, srt.do_smooth_lines);
-  /* We don't order fragments; intsead blending neighbors alpha-over/alpha-under based on
+  /* We don't order fragments; instead blending neighbors alpha-over/alpha-under based on
    * a tracked depth for each neighbor, using the center pixel as starting reference. */
   neighbor_kernel(center, neighbors[0], background, kernel_size, srt.do_smooth_lines);
   neighbor_kernel(center, neighbors[1], background, kernel_size, srt.do_smooth_lines);

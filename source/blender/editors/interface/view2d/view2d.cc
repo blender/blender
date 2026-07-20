@@ -821,6 +821,9 @@ void view2d_curRect_changed(const bContext *C, View2D *v2d)
   if (region->runtime->type->on_view2d_changed != nullptr) {
     region->runtime->type->on_view2d_changed(C, region);
   }
+
+  /* Tag IME cursor refresh after the view changes (pan, zoom, etc). */
+  region->runtime->do_ime = true;
 }
 
 void view2d_curRect_clamp_y(View2D *v2d)

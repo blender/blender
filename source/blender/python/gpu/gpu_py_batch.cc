@@ -63,7 +63,7 @@ static PyObject *pygpu_batch__tp_new(PyTypeObject * /*type*/, PyObject *args, Py
 
   static const char *_keywords[] = {"type", "buf", "elem", nullptr};
   static _PyArg_Parser _parser = {
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "O&" /* `type` */
       "O!" /* `buf` */
       "O&" /* `elem` */
@@ -428,7 +428,7 @@ static PyObject *pygpu_batch_draw_instanced(BPyGPUBatch *self, PyObject *args, P
   static const char *_keywords[] = {"program", "instance_start", "instance_count", nullptr};
   static _PyArg_Parser _parser = {
       "O!" /* `program` */
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "i"  /* `instance_start` */
       "i"  /* `instance_count` */
       ":GPUBatch.draw_instanced",
@@ -472,7 +472,7 @@ static PyObject *pygpu_batch_draw_range(BPyGPUBatch *self, PyObject *args, PyObj
   static const char *_keywords[] = {"program", "elem_start", "elem_count", nullptr};
   static _PyArg_Parser _parser = {
       "O!" /* `program` */
-      "|$" /* Optional keyword only arguments. */
+      "|$" /* Optional, keyword only arguments. */
       "i"  /* `elem_start` */
       "i"  /* `elem_count` */
       ":GPUBatch.draw_range",

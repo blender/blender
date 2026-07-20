@@ -23,6 +23,7 @@
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
+#include "IMB_partial_update.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_material_types.h"
@@ -117,7 +118,7 @@ void imapaint_region_tiles(
 }
 
 void ED_imapaint_dirty_region(
-    Image *ima, ImBuf *ibuf, ImageUser *iuser, int x, int y, int w, int h, bool find_old)
+    Image *ima, ImBuf *ibuf, ImageUser *iuser, int x, int y, int w, int h)
 {
   int tilex, tiley, tilew, tileh, tx, ty;
   int srcx = 0, srcy = 0;
@@ -138,18 +139,16 @@ void ED_imapaint_dirty_region(
 
   for (ty = tiley; ty <= tileh; ty++) {
     for (tx = tilex; tx <= tilew; tx++) {
-      ED_image_paint_tile_push(
-          undo_tiles, ima, ibuf, iuser, tx, ty, nullptr, nullptr, false, find_old);
+      ED_image_paint_tile_push(undo_tiles, ima, ibuf, iuser, tx, ty, nullptr, nullptr);
     }
   }
 
-  BKE_image_mark_dirty(ima, ibuf);
+  IMB_mark_dirty(ibuf);
 }
 
-void imapaint_image_update(
-    SpaceImage *sima, Image *image, ImBuf *ibuf, ImageUser *iuser, short texpaint)
+void imapaint_image_update(ImBuf *ibuf)
 {
-  if (BLI_rcti_is_empty(&imapaintpartial.dirty_region)) {
+  if (ibuf == nullptr || BLI_rcti_is_empty(&imapaintpartial.dirty_region)) {
     return;
   }
 
@@ -157,20 +156,13 @@ void imapaint_image_update(
    * make sure that partial updating is working but uses more GPU memory as the gpu texture will
    * have 4 channels. When so the whole texture needs to be re-uploaded to the GPU using the new
    * texture format. */
-  if (ibuf != nullptr && ibuf->color_mode == ImColorMode::BW) {
+  if (ibuf->color_mode == ImColorMode::BW) {
     ibuf->color_mode = ImColorMode::RGBA;
-    BKE_image_partial_update_mark_full_update(image);
+    IMB_partial_update_mark_full(ibuf);
     return;
   }
 
-  /* TODO: should set_tpage create ->rect? */
-  if (texpaint || (sima && sima->lock)) {
-    const int w = BLI_rcti_size_x(&imapaintpartial.dirty_region);
-    const int h = BLI_rcti_size_y(&imapaintpartial.dirty_region);
-    /* Testing with partial update in uv editor too. */
-    BKE_image_update_gputexture(
-        image, iuser, imapaintpartial.dirty_region.xmin, imapaintpartial.dirty_region.ymin, w, h);
-  }
+  IMB_partial_update_mark_region(ibuf, imapaintpartial.dirty_region);
 }
 
 /** \} */

@@ -403,6 +403,14 @@ struct Layout : public Item, NonCopyable, NonMovable {
 
   /** Adds a label item that will display text and/or icon in the layout. */
   void label(StringRef name, int icon);
+  /**
+   * Adds a multi-line label that will display wrapped text and/or icon in the layout.
+   * \param max_lines: Number of maximum lines to display in the layout, 0 means all.
+   */
+  void label_multiline(StringRefNull label,
+                       int icon,
+                       FontStyleAlign align = UI_STYLE_TEXT_LEFT,
+                       int max_lines = 0);
 
   /**
    * Adds link item, displays a url that can be clicked in the layout.
@@ -739,6 +747,11 @@ struct Layout : public Item, NonCopyable, NonMovable {
   virtual void estimate_impl();
   void resolve();
   virtual void resolve_impl();
+  /**
+   * Resolve layouts containing items whose heights depends on their resolved width.
+   * Currently only for layouts containing multi-line labels.
+   */
+  virtual void resolve_dynamic_height();
 };
 
 inline bool Layout::active() const

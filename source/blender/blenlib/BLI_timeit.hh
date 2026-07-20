@@ -54,16 +54,7 @@ class ScopedTimerAveraged {
                       Nanoseconds &total_time,
                       Nanoseconds &min_time,
                       const std::optional<int64_t> window_size,
-                      const std::optional<int64_t> nth_samples_report)
-      : name_(std::move(name)),
-        total_count_(total_count),
-        total_time_(total_time),
-        min_time_(min_time),
-        window_size_(window_size),
-        nth_samples_report_(nth_samples_report)
-  {
-    start_ = Clock::now();
-  }
+                      const std::optional<int64_t> nth_samples_report);
 
   ~ScopedTimerAveraged();
 };

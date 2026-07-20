@@ -10,10 +10,6 @@
 #include "infos/eevee_geom_infos.hh"
 #include "infos/eevee_nodetree_infos.hh"
 
-FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree)
-FRAGMENT_SHADER_CREATE_INFO(eevee_clip_plane)
-FRAGMENT_SHADER_CREATE_INFO(eevee_geom_iface_info)
-
 #include "draw_curves_lib.glsl" /* IWYU pragma: export. For nodetree functions. */
 #include "eevee_nodetree_frag_lib.glsl"
 #include "eevee_sampling_lib.bsl.hh"
@@ -68,6 +64,10 @@ void surf_depth([[resource_table]] PipelineConstants &pipe,
                 [[out]] SurfaceDepthFragOut<with_velocity> &frag_out,
                 [[front_facing]] const bool front_face)
 {
+  FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree);
+  FRAGMENT_SHADER_CREATE_INFO(eevee_clip_plane);
+  FRAGMENT_SHADER_CREATE_INFO(eevee_geom_iface_info);
+
   if (pipe.use_transparency) [[static_branch]] {
     const ViewMatrices view = views.get(0);
 

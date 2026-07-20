@@ -3544,7 +3544,8 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
   fprintf(f, "\t\t%d, ", prop->magic);
   rna_print_c_string(f, prop->identifier);
   fprintf(f,
-          ", %d, %d, %d, %d, %d, ",
+          ", PropertyFlag(%u), PropertyOverrideFlag(%d), ParameterFlag(%d), "
+          "PropertyFlagIntern(%d), %d, ",
           prop->flag,
           prop->flag_override,
           prop->flag_parameter,
@@ -3779,11 +3780,12 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
     case PROP_POINTER: {
       PointerPropertyRNA *pprop = reinterpret_cast<PointerPropertyRNA *>(prop);
       fprintf(f,
-              "\t\t%s, %s, %s, %s,",
+              "\t\t%s, %s, %s, %s, %d,",
               rna_function_string(pprop->get),
               rna_function_string(pprop->set),
               rna_function_string(pprop->type_fn),
-              rna_function_string(pprop->poll));
+              rna_function_string(pprop->poll),
+              0);
       if (pprop->pointer_type) {
         fprintf(f, "RNA_%s\n", reinterpret_cast<const char *>(pprop->pointer_type));
       }
@@ -3879,7 +3881,7 @@ static void rna_generate_struct_register_func(BlenderRNA * /*brna*/, StructRNA *
   rna_print_c_string(f, srna->identifier);
   fprintf(f,
           ";\n"
-          "\tsrna->flag = %d;\n",
+          "\tsrna->flag = StructFlag(%d);\n",
           srna->flag);
   fprintf(f, "\tsrna->name = ");
   rna_print_c_string(f, srna->name);
@@ -3970,7 +3972,7 @@ static void rna_generate_struct_register_func(BlenderRNA * /*brna*/, StructRNA *
     rna_print_c_string(f, func->identifier);
     fprintf(f, ";\n");
     if (func->flag != 0) {
-      fprintf(f, "\t\tfunc->flag = %d;\n", func->flag);
+      fprintf(f, "\t\tfunc->flag = FunctionFlag(%d);\n", func->flag);
     }
     fprintf(f, "\t\tfunc->description = ");
     rna_print_c_string(f, func->description);

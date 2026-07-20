@@ -131,9 +131,7 @@ def __gather_intensity(blender_lamp, blender_lamp_world_matrix, export_settings)
                 path_['lamp_type'] = blender_lamp.type
                 export_settings['current_paths']["energy"] = path_
 
-                emission_strength = blender_lamp.energy
-                if not blender_lamp.normalize:
-                    emission_strength *= blender_lamp.area(matrix_world=blender_lamp_world_matrix)
+                emission_strength = 1.0
         else:
             emission_strength = emission_node.inputs["Strength"].default_value
 
@@ -146,15 +144,19 @@ def __gather_intensity(blender_lamp, blender_lamp_world_matrix, export_settings)
                                              ".default_value"] = path_
 
     else:
-        emission_strength = blender_lamp.energy
-        if not blender_lamp.normalize:
-            emission_strength *= blender_lamp.area(matrix_world=blender_lamp_world_matrix)
+        emission_strength = 1.0
 
         path_ = {}
         path_['length'] = 1
         path_['path'] = "/extensions/KHR_lights_punctual/lights/XXX/intensity"
         path_['lamp_type'] = blender_lamp.type
         export_settings['current_paths']["energy"] = path_
+
+    lamp_energy = blender_lamp.energy
+    if not blender_lamp.normalize:
+        lamp_energy *= blender_lamp.area(matrix_world=blender_lamp_world_matrix)
+
+    emission_strength *= lamp_energy
 
     if export_settings['gltf_lighting_mode'] == 'RAW':
         # TODO: Detect exposure animation and add it to the path, for KRH_animation_pointer

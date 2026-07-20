@@ -921,6 +921,7 @@ StructRNA *RNA_def_struct_ptr(BlenderRNA *brna, const char *identifier, StructRN
 
     prop = RNA_def_property(&srna->cont, "rna_type", PROP_POINTER, PROP_NONE);
     RNA_def_property_flag(prop, PROP_HIDDEN);
+    prop->flag_internal |= PROP_INTERN_RNA_DEFINITION;
     RNA_def_property_ui_text(prop, "RNA", "RNA type definition");
 
 #ifndef RNA_RUNTIME
@@ -1032,12 +1033,12 @@ void RNA_def_struct_nested(BlenderRNA *brna, StructRNA *srna, const char *struct
   srna->nested = srnafrom;
 }
 
-void RNA_def_struct_flag(StructRNA *srna, int flag)
+void RNA_def_struct_flag(StructRNA *srna, StructFlag flag)
 {
   srna->flag |= flag;
 }
 
-void RNA_def_struct_clear_flag(StructRNA *srna, int flag)
+void RNA_def_struct_clear_flag(StructRNA *srna, StructFlag flag)
 {
   srna->flag &= ~flag;
 }
@@ -1176,7 +1177,6 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
                               int type,
                               int subtype)
 {
-  // StructRNA *srna = DefRNA.laststruct; /* Invalid for Python defined props. */
   ContainerRNA *cont = static_cast<ContainerRNA *>(cont_);
   PropertyRNA *prop;
 
@@ -1332,6 +1332,11 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
 #ifndef RNA_RUNTIME
   if (DefRNA.make_overridable) {
     RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  }
+
+  StructRNA *srna = DefRNA.laststruct;
+  if (srna->flag & STRUCT_RNA_DEFINITION) {
+    prop->flag_internal |= PROP_INTERN_RNA_DEFINITION;
   }
 
   switch (type) {
@@ -3539,6 +3544,12 @@ void RNA_def_property_pointer_funcs_runtime(PropertyRNA *prop,
   }
 }
 
+void RNA_def_property_pointer_default_runtime(PropertyRNA *prop, uint32_t id_session_uid)
+{
+  PointerPropertyRNA *pprop = reinterpret_cast<PointerPropertyRNA *>(prop);
+  pprop->id_default_session_uid = id_session_uid;
+}
+
 #ifndef RNA_RUNTIME
 void RNA_def_property_pointer_funcs(
     PropertyRNA *prop, const char *get, const char *set, const char *type_fn, const char *poll)
@@ -4628,7 +4639,7 @@ void RNA_def_function_output(FunctionRNA * /*func*/, PropertyRNA *ret)
   ret->flag_parameter |= PARM_OUTPUT;
 }
 
-void RNA_def_function_flag(FunctionRNA *func, int flag)
+void RNA_def_function_flag(FunctionRNA *func, FunctionFlag flag)
 {
   func->flag |= flag;
 

@@ -6,17 +6,18 @@
 # -----------------------------------------------------------------------------
 # Build `shader_tool` executable.
 set(SRC
+  ast.cc
   attribute.cc
   enum.cc
   flow_control.cc
   function.cc
   grammar.cc
+  grammar_bsl.cc
   intermediate.cc
   metadata.cc
   namespace.cc
   processor.cc
   resource_table.cc
-  shader_tool.cc
   string.cc
   struct.cc
   template.cc
@@ -47,13 +48,40 @@ if(WITH_GPU_SHADER_ASSERT)
   add_definitions(-DWITH_GPU_SHADER_ASSERT)
 endif()
 
-# `SRC_DNA_INC` is defined in the parent directory.
-
 # When cross-compiling the executable is separately compiled for the host architecture
 # in a sub-build defined in host_tools.cmake. As this is a build-time code-gen tool
 # that must run on the host build machine, the executable is then provided by the
 # SHADER_TOOL_EXECUTABLE variable.
 if(NOT CMAKE_CROSSCOMPILING)
-  add_executable(shader_tool ${SRC})
+  add_executable(shader_tool shader_tool.cc ${SRC})
   optimize_debug_target(shader_tool)
+endif()
+
+if(WITH_GTESTS)
+  set(TEST_SRC
+    tests/shader_tool_testing.hh
+    tests/expression_test.cc
+    tests/syntax_test.cc
+    tests/parser_test.cc
+    tests/metadata_test.cc
+    tests/templates_test.cc
+    tests/flow_control_test.cc
+    tests/resource_table_test.cc
+    tests/function_test.cc
+    tests/namespace_test.cc
+    tests/struct_test.cc
+  )
+
+  set(TEST_INC
+    .
+  )
+
+  blender_add_test_suite_executable(
+    shader_tool
+    "${TEST_SRC};${SRC}"
+    "${TEST_INC}"
+    ""
+    ""
+    ""
+  )
 endif()

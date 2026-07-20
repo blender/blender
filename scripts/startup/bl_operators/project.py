@@ -121,11 +121,17 @@ def save_project(project, report=None):
         config_dir_path.mkdir(parents=True, exist_ok=True)
     except FileExistsError:
         if report:
-            report({'ERROR'}, rpt_("A file named '{:s}' already exists, but it needs to be a directory.").format(PROJECT_DIR))
+            report(
+                {'ERROR'},
+                rpt_("A file named '{:s}' already exists, but it needs to be a directory.").format(PROJECT_DIR),
+            )
         raise ProjectSaveException
     except PermissionError:
         if report:
-            report({'ERROR'}, rpt_("Cannot create '{:s}' directory due to file-system permissions.").format(PROJECT_DIR))
+            report(
+                {'ERROR'},
+                rpt_("Cannot create '{:s}' directory due to file-system permissions.").format(PROJECT_DIR),
+            )
         raise ProjectSaveException
     except Exception as e:
         if report:
@@ -330,8 +336,11 @@ class PROJECT_OT_NewProject(Operator):
         # happen.
         if blend_file_is_in_valid_project(Path(bpy.data.filepath)):
             self.report(
-                {'ERROR'},
-                "New project directory is already inside of an existing project. Try reloading the current blend file to open the existing project.")
+                {'ERROR'}, (
+                    "New project directory is already inside of an existing project. "
+                    "Try reloading the current blend file to open the existing project."
+                )
+            )
             return {'CANCELLED'}
 
         # Get the initial project name based on the folder name.

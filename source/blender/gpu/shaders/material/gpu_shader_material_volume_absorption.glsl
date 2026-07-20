@@ -9,8 +9,7 @@ void node_volume_absorption(float4 color, float density, float weight, Closure &
   density = max(density, 0.0f);
 
   ClosureVolumeAbsorption volume_absorption_data;
-  volume_absorption_data.weight = weight;
-  volume_absorption_data.absorption = (1.0f - color.rgb) * density;
+  volume_absorption_data.absorption = (1.0f - color.rgb) * density * weight;
 
   result = closure_eval(volume_absorption_data);
 }

@@ -28,15 +28,10 @@ class BVHHIPRT : public BVH {
   hiprtAABBListPrimitive custom_prim_aabb;
   hiprtGeometryBuildInput geom_input;
 
-  vector<int2> custom_prim_info; /* x: prim_id, y: prim_type */
-  vector<float2> prims_time;
-
   /* Custom primitives. */
   device_vector<BoundBox> custom_primitive_bound;
   device_vector<int> triangle_index;
   device_vector<float> vertex_data;
-
-  float aabb_overlap_ratio;
 
   BVHHIPRT(const BVHParams &params,
            const vector<Geometry *> &geometry,

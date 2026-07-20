@@ -94,8 +94,7 @@ static TransData *SeqToTransData(
   float vertex[2] = {origin[0], origin[1]};
 
   /* Add control vertex, so rotation and scale can be calculated.
-   * All three vertices will form a "L" shape that is aligned to the local strip axis.
-   */
+   * All three vertices will form a "L" shape that is aligned to the local strip axis. */
   if (vert_index == 1) {
     vertex[0] += cosf(transform->rotation);
     vertex[1] += sinf(transform->rotation);
@@ -177,7 +176,7 @@ static void createTransSeqImageData(bContext *C, TransInfo *t)
                                                                       "TransSeq TransData2D");
 
   for (Strip *strip : strips) {
-    /* One `Sequence` needs 3 `TransData` entries - center point placed in image origin, then 2
+    /* One `Strip` needs 3 `TransData` entries - center point placed at the image origin, then 2
      * points offset by 1 in X and Y direction respectively, so rotation and scale can be
      * calculated from these points. */
     SeqToTransData(scene, strip, td++, td2d++, 0);
@@ -342,18 +341,17 @@ static float2 calculate_new_origin_position(TransInfo *t, TransDataSeq *tdseq, T
   Scene *scene = CTX_data_sequencer_scene(t->context);
   Strip *strip = tdseq->strip;
 
-  const float2 image_size = seq::image_transform_raw_size_get(scene, strip);
+  const float2 box_size = seq::image_transform_box_size_get(scene, strip);
 
   const float2 viewport_pixel_aspect = {scene->r.xasp / scene->r.yasp, 1.0f};
   const float2 mirror = seq::image_transform_mirror_factor_get(strip);
 
   const float2 origin = tdseq->orig_origin_pixelspace;
   const float2 translation = transform_result_get(t, tdseq, td2d, strip).translation;
-  const float2 origin_pixelspace_unscaled = origin / viewport_pixel_aspect * mirror;
-  const float2 origin_translated = origin_pixelspace_unscaled - translation;
+  const float2 origin_translated = origin - translation * viewport_pixel_aspect * mirror;
   const float2 origin_raw_space = math::transform_point(tdseq->orig_matrix, origin_translated);
-  const float2 origin_abs = origin_raw_space + image_size / 2;
-  const float2 origin_rel = origin_abs / image_size;
+  const float2 origin_abs = origin_raw_space + box_size / 2;
+  const float2 origin_rel = origin_abs / box_size;
   return origin_rel;
 }
 

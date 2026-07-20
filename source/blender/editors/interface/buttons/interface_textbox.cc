@@ -23,13 +23,17 @@ namespace blender::ui {
 void invalidate_text_wrap_cache(const ARegion &region)
 {
   for (Block &block : region.runtime->uiblocks) {
+    block.text_wrap_cache.clear();
     for (Button &button : block.buttons()) {
-      if (button.type != ButtonType::TextBox) {
-        continue;
+      if (button.type == ButtonType::TextBox) {
+        auto &textbox = static_cast<ButtonTextBox &>(button);
+        textbox.wrap_cache.reset();
+        textbox.placeholder_wrap_cache.reset();
       }
-      ButtonTextBox &textbox = static_cast<ButtonTextBox &>(button);
-      textbox.wrap_cache.reset();
-      textbox.placeholder_wrap_cache.reset();
+      if (button.type == ButtonType::Label) {
+        auto &label = static_cast<ButtonLabel &>(button);
+        label.wrap_cache.reset();
+      }
     }
   }
 }
@@ -110,9 +114,8 @@ void textbox_textedit_set_cursor_pos(ButtonTextBox *textbox,
       fstyle.uifont_id, line.data(), line.size(), int(xy.x - start.x));
   int position = line.begin() - lines[0].data() + offset;
 #ifdef WITH_INPUT_IME
-  /* Textbox text wrap includes the IME composition string, remove the ime string pad from the
-   * selection.
-   */
+  /* Text-box text wrap includes the IME composition string, remove the IME string pad from the
+   * selection. */
   const wmIMEData *ime_data = button_ime_data_get(textbox);
   if (ime_data && position > int(textbox->pos)) {
     position = std::max<int>(int(textbox->pos), position - int(ime_data->composite.size()));
@@ -248,8 +251,8 @@ Vector<StringRef> textbox_wrap_lines(ButtonTextBox *textbox)
   }
   textbox->last_total_lines = lines.size();
 
-  /* WORKAROUND: Textbox event handling and drawing requires lines to not include line breaks, but
-   * sometimes text wrap adds them and other times not. */
+  /* WORKAROUND: Text-box event handling and drawing requires lines to not include line breaks,
+   * but sometimes text wrap adds them and other times not. */
   for (int i : lines.index_range()) {
     if (lines[i].endswith("\n")) {
       lines[i] = lines[i].drop_suffix(1);

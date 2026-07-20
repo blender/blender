@@ -1168,6 +1168,12 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
       }
     }
   }
+
+#ifdef WITH_INPUT_IME
+  if (region_prev != screen->active_region) {
+    WM_window_IME_region_refresh(win, area, screen->active_region);
+  }
+#endif
 }
 
 int ED_screen_area_active(const bContext *C)

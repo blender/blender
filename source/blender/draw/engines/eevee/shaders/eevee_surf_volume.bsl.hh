@@ -16,8 +16,6 @@
 #  define MAT_VOLUME
 #endif
 
-FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree)
-
 #include "eevee_volume_lib.bsl.hh"
 
 /* Needed includes for shader nodes. */

@@ -3796,10 +3796,11 @@ void draw_outliner(const bContext *C, bool do_rebuild)
                 SO_DATA_API,
                 SO_ID_ORPHANS))
       {
-        if (outliner_sync_selection(C, tvc, space_outliner) &&
+        short idcode = 0;
+        if (outliner_sync_selection(C, tvc, space_outliner, idcode) &&
             (space_outliner->flag & SO_SCROLL_TO_ACTIVE))
         {
-          outliner_scroll_to_active(C, space_outliner, region, &tvc);
+          outliner_scroll_to_active(space_outliner, region, idcode);
         }
       }
     }

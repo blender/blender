@@ -10,9 +10,15 @@
 #include "metadata.hh"
 #include "processor.hh"
 
+#include <ranges>
+#include <string>
+#include <utility>
+#include <vector>
+
 namespace blender::gpu::shader {
 using namespace std;
 using namespace shader::parser;
+using namespace shader::parser::ast;
 using namespace metadata;
 
 /**
@@ -699,28 +705,91 @@ void SourceProcessor::lower_resource_table(Parser &parser)
       ctor += "}\n";
       parser.insert_after(end_of_srt, ctor);
 
-      string access_macros;
-      for (const auto &member : srt) {
-        if (member.res_type == "resource_table") {
-          access_macros += "#define access_" + srt.name + "_" + member.var_name + "() ";
-          access_macros += member.var_type + "::new_()\n";
+      if (parser.language == Language::BSL) {
+        string access_macros = "#pragma resource_access ";
+        for (const auto &member : srt) {
+          if (member.res_type == "resource_table") {
+            access_macros += " access_" + srt.name + "_" + member.var_name + "()";
+            access_macros += " " + member.var_type + "::new_()";
+          }
+          else {
+            access_macros += " access_" + srt.name + "_" + member.var_name + "()";
+            access_macros += " " + member.var_name + "";
+          }
         }
-        else {
-          access_macros += "#define access_" + srt.name + "_" + member.var_name + "() ";
-          access_macros += member.var_name + "\n";
-        }
-      }
-      parser.insert_before(struct_tok, access_macros);
-      parser.insert_before(struct_tok, get_create_info_placeholder(srt.name));
 
-      parser.insert_before(struct_tok, "\n");
-      parser.insert_line_number(struct_tok.str_index_start() - 1, struct_tok.line_number());
+        string placeholder = "#pragma resource_defines " + srt.name + "\n";
+        parser.insert_before(struct_tok, access_macros + "\n");
+        parser.insert_before(struct_tok, placeholder);
+        parser.insert_line_number(struct_tok.str_index_start() - 1, struct_tok.line_number());
+      }
+      else {
+        string access_macros;
+        for (const auto &member : srt) {
+          if (member.res_type == "resource_table") {
+            access_macros += "#define access_" + srt.name + "_" + member.var_name + "() ";
+            access_macros += member.var_type + "::new_()\n";
+          }
+          else {
+            access_macros += "#define access_" + srt.name + "_" + member.var_name + "() ";
+            access_macros += member.var_name + "\n";
+          }
+        }
+        parser.insert_before(struct_tok, access_macros);
+        parser.insert_before(struct_tok, get_create_info_placeholder(srt.name));
+
+        parser.insert_before(struct_tok, "\n");
+        parser.insert_line_number(struct_tok.str_index_start() - 1, struct_tok.line_number());
+      }
 
       /* Insert attribute so that method mutations know that this struct is an SRT. */
-      parser.insert_before(struct_tok, "[[resource_table]] ");
+      if (parser.language == Language::BSL) {
+        parser.insert_after(struct_tok, "[[resource_table]] ");
+      }
+      else {
+        parser.insert_before(struct_tok, "[[resource_table]] ");
+      }
     }
   });
-  parser.apply_mutations();
+
+  parser.parse(error_handler);
+}
+
+void SourceProcessor::lower_resource_macro_placeholder_ast(Parser &parser)
+{
+  auto split_into_pairs = [](const string &str) {
+    vector<pair<string, string>> result;
+    /* Split by spaces. */
+    auto words_view = str | std::views::split(' ');
+
+    string first_of_pair;
+    for (auto &&word_range : words_view) {
+      string word(word_range.begin(), word_range.end());
+      if (first_of_pair.empty()) {
+        first_of_pair = std::move(word);
+      }
+      else {
+        result.emplace_back(std::move(first_of_pair), std::move(word));
+      }
+    }
+    return result;
+  };
+
+  parser.root().foreach_recursive<Preprocessor>([&](Preprocessor directive) {
+    string_view dir_str = directive.str();
+    if (dir_str.starts_with("#pragma resource_access ")) {
+      auto pairs = split_into_pairs(string(dir_str));
+      for (auto pair : pairs) {
+        parser.insert_before(directive.front(),
+                             "#define " + pair.first + " " + pair.second + "\n");
+      }
+      parser.erase(directive);
+    }
+    else if (dir_str.starts_with("#pragma resource_defines ")) {
+      string_view str_name = directive.back().str();
+      parser.replace(directive, get_create_info_placeholder(string(str_name)));
+    }
+  });
 }
 
 }  // namespace blender::gpu::shader

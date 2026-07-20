@@ -385,7 +385,7 @@ static void update_bakes_from_node_group(NodesModifierData &nmd)
   remove_outdated_bake_caches(nmd);
 }
 
-static void update_system_properties(Object &object, NodesModifierData &nmd)
+static void update_system_properties(Main &bmain, Object &object, NodesModifierData &nmd)
 {
   if (!nmd.modifier.system_properties) {
     nmd.modifier.system_properties =
@@ -396,12 +396,12 @@ static void update_system_properties(Object &object, NodesModifierData &nmd)
   }
   PointerRNA properties_ptr = RNA_pointer_create_discrete(
       &object.id, RNA_NodesModifierProperties, &nmd);
-  RNA_ensure_and_sync_system_properties(properties_ptr, *nmd.modifier.system_properties);
+  RNA_ensure_and_sync_system_properties(bmain, properties_ptr, *nmd.modifier.system_properties);
 }
 
-void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
+void MOD_nodes_update_interface(Main &bmain, Object *object, NodesModifierData *nmd)
 {
-  update_system_properties(*object, *nmd);
+  update_system_properties(bmain, *object, *nmd);
   update_bakes_from_node_group(*nmd);
   nmd->runtime->usage_cache.reset();
 

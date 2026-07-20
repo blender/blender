@@ -2505,6 +2505,36 @@ const animrig::Channelbag *channelbag_for_action_slot(const Action &action,
   return nullptr;
 }
 
+Vector<Channelbag *> channelbags_for_action_slot(Action &action, const slot_handle_t slot_handle)
+{
+  if (slot_handle == Slot::unassigned) {
+    return {};
+  }
+
+  /* To avoid adding the same channelbag multiple times which can happen with strip instances. */
+  Set<Channelbag *> visited_channelbags;
+  Vector<Channelbag *> channelbags;
+  for (animrig::Layer *layer : action.layers()) {
+    for (animrig::Strip *strip : layer->strips()) {
+      switch (strip->type()) {
+        case animrig::Strip::Type::Keyframe: {
+          animrig::StripKeyframeData &strip_data = strip->data<animrig::StripKeyframeData>(action);
+          animrig::Channelbag *bag = strip_data.channelbag_for_slot(slot_handle);
+          if (!bag) {
+            continue;
+          }
+          if (!visited_channelbags.add(bag)) {
+            continue;
+          }
+          channelbags.append(bag);
+        }
+      }
+    }
+  }
+
+  return channelbags;
+}
+
 animrig::Channelbag *channelbag_for_action_slot(Action &action, const slot_handle_t slot_handle)
 {
   const animrig::Channelbag *const_bag = channelbag_for_action_slot(

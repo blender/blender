@@ -261,7 +261,7 @@ static int pyrna_struct_keyframe_parse(PointerRNA *ptr,
   char *keytype_name = nullptr;
   const char *path;
 
-  /* NOTE: `parse_str` MUST start with `s|iO&sO!`.
+  /* NOTE: `parse_str` MUST start with `s|$iO&sO!s`.
    * `frame` accepts `None` (meaning "current frame") via `PyC_ParseOptionalFloat`. */
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
@@ -368,7 +368,14 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
   if (pyrna_struct_keyframe_parse(&self->ptr.value(),
                                   args,
                                   kw,
-                                  "s|$iO&sO!s:bpy_struct.keyframe_insert()",
+                                  "s"  /* `data_path` */
+                                  "|$" /* Optional, keyword only arguments. */
+                                  "i"  /* `index` */
+                                  "O&" /* `frame` */
+                                  "s"  /* `group` */
+                                  "O!" /* `options` */
+                                  "s"  /* `keytype` */
+                                  ":bpy_struct.keyframe_insert()",
                                   "bpy_struct.keyframe_insert()",
                                   &path_full,
                                   &index,
@@ -510,7 +517,14 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
   if (pyrna_struct_keyframe_parse(&self->ptr.value(),
                                   args,
                                   kw,
-                                  "s|$iO&sOs!:bpy_struct.keyframe_delete()",
+                                  "s"  /* `data_path` */
+                                  "|$" /* Optional, keyword only arguments. */
+                                  "i"  /* `index` */
+                                  "O&" /* `frame` */
+                                  "s"  /* `group` */
+                                  "O!" /* `options` */
+                                  "s"  /* `keytype` */
+                                  ":bpy_struct.keyframe_delete()",
                                   "bpy_struct.keyframe_delete()",
                                   &path_full,
                                   &index,
@@ -619,7 +633,14 @@ PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
 
   PYRNA_STRUCT_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "s|i:driver_add", &path, &index)) {
+  if (!PyArg_ParseTuple(args,
+                        "s" /* `path` */
+                        "|" /* Optional arguments. */
+                        "i" /* `index` */
+                        ":driver_add",
+                        &path,
+                        &index))
+  {
     return nullptr;
   }
 
@@ -696,7 +717,14 @@ PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args)
 
   PYRNA_STRUCT_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "s|i:driver_remove", &path, &index)) {
+  if (!PyArg_ParseTuple(args,
+                        "s" /* `path` */
+                        "|" /* Optional arguments. */
+                        "i" /* `index` */
+                        ":driver_remove",
+                        &path,
+                        &index))
+  {
     return nullptr;
   }
 

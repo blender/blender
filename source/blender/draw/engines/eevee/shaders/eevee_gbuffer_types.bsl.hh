@@ -145,7 +145,7 @@ bool color_is_grayscale(float3 color)
 
 bool closure_is_empty(ClosureUndetermined cl)
 {
-  return cl.weight <= CLOSURE_WEIGHT_CUTOFF || cl.type == CLOSURE_NONE_ID;
+  return cl.weight() <= CLOSURE_WEIGHT_CUTOFF || cl.type == CLOSURE_NONE_ID;
 }
 
 /** \} */

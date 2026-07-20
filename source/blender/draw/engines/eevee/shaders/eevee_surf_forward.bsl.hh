@@ -12,9 +12,6 @@
 #include "infos/eevee_geom_infos.hh"
 #include "infos/eevee_nodetree_infos.hh"
 
-FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree)
-FRAGMENT_SHADER_CREATE_INFO(eevee_geom_iface_info)
-
 #include "draw_curves_lib.glsl" /* IWYU pragma: export. For nodetree functions. */
 #include "draw_view.bsl.hh"
 #include "eevee_forward_lib.bsl.hh"
@@ -29,6 +26,9 @@ Thickness g_thickness_forward;
 
 float4 closure_to_rgba_forward(Closure /*cl_unused*/)
 {
+  /* Workaround for gl_FragCoord. */
+  FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree);
+
   [[resource_table]] const draw::View &views = resource_table_get(draw::View);
   [[resource_table]] const eevee::Sampling &sampling = resource_table_get(eevee::Sampling);
   [[resource_table]] const UtilityTexture &util_tx = resource_table_get(UtilityTexture);
@@ -122,6 +122,8 @@ void surf_forward([[resource_table]] PipelineConstants & /*pipe*/,
                   [[out]] SurfaceForwardFragOut &frag_out,
                   [[front_facing]] const bool front_face)
 {
+  FRAGMENT_SHADER_CREATE_INFO(eevee_geom_iface_info);
+
   auto &interp_flat = interface_get(eevee_geom_iface_info, interp_flat);
   draw::ID id{interp_flat.resource_id_raw};
   const uint resource_id = id.resource_id<1>();

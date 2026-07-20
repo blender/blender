@@ -214,7 +214,11 @@ static PyObject *bpy_app_handlers_persistent_new(PyTypeObject * /*type*/,
 {
   PyObject *value;
 
-  if (!PyArg_ParseTuple(args, "O:bpy.app.handlers.persistent", &value)) {
+  if (!PyArg_ParseTuple(args,
+                        "O" /* `func` */
+                        ":bpy.app.handlers.persistent",
+                        &value))
+  {
     return nullptr;
   }
 
@@ -324,7 +328,7 @@ static PyObject *make_app_cb_info()
   }
 
   /* custom function */
-  PyStructSequence_SET_ITEM(app_cb_info, pos++, (PyObject *)&BPyPersistent_Type);
+  PyStructSequence_SET_ITEM(app_cb_info, pos++, Py_NewRef((PyObject *)&BPyPersistent_Type));
 
   return app_cb_info;
 }

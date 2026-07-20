@@ -1129,7 +1129,7 @@ static void scene_preview_render(const PreviewImage *prv_img,
  * \{ */
 
 /* inside thread, called by renderer, sets job update value */
-static void shader_preview_update(void *spv, RenderResult * /*rr*/, rcti * /*rect*/)
+static void shader_preview_update(void *spv, RenderResult * /*rr*/)
 {
   ShaderPreview *sp = static_cast<ShaderPreview *>(spv);
 

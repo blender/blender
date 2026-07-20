@@ -3,14 +3,15 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import bpy
-from ..joints import gather_joint_vnode
+from .. import joints as gltf2_blender_gather_joints
 
 
 def gather_animated_node(type_element, elem_uuid, bone, export_settings):
     if type_element == 'OBJECT':
 
         if bone is not None:
-            return gather_joint_vnode(export_settings['vtree'].nodes[elem_uuid].bones[bone], export_settings)
+            return gltf2_blender_gather_joints.gather_joint_vnode(
+                export_settings['vtree'].nodes[elem_uuid].bones[bone], export_settings)
         else:
             return export_settings['vtree'].nodes[elem_uuid].node
 

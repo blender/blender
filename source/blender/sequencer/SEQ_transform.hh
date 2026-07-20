@@ -90,25 +90,39 @@ bool transform_is_locked(const ListBaseT<SeqTimelineChannel> *channels, const St
 float2 image_transform_mirror_factor_get(const Strip *strip);
 
 /**
- * Get the image-relative \a strip origin. This value lies in the range (0,0) to (1,1), where
- * (0,0) corresponds to the bottom left of the image, and (1,1) the top left.
+ * Get the \a strip origin as a fraction of its rendered image. This origin can be anywhere, but
+ * (0,0) corresponds to the bottom left of the image, and (1,1) the top right.
  *
- * NOTE: Normally, you can get this value from `StripTransform::origin`; this function is only
- * needed for text strips, whose origin must be converted to be relative to the render size.
+ * NOTE: #StripTransform::origin is stored relative to the strip box
+ * (#image_transform_box_size_get), which for text strips is smaller than their rendered image.
+ * This function properly converts it to be relative to the rendered image for the render pipeline
+ * to use. Being a fraction, it is independent of proxy render size.
  */
 float2 image_transform_origin_get(const Scene *scene, const Strip *strip);
 
 /**
- * Get the \a strip origin's offset in view-space pixels from the preview's center.
- * NOTE: This function does not apply axis mirror.
+ * Get the \a strip origin's offset in view-space pixels from the preview's center, including axis
+ * mirror and viewport pixel aspect.
  */
 float2 image_transform_origin_preview_offset_get(const Scene *scene, const Strip *strip);
 
 /**
- * Get the original size of the \a strip image without any scaling or transformation.
+ * Get \a strip image transformation matrix relative to its origin in view-space, including axis
+ * mirror and viewport pixel aspect.
+ */
+float3x3 image_transform_matrix_get(const Scene *scene, const Strip *strip);
+
+/**
+ * Get the size of the drawn \a strip quad before any cropping, scaling, or transformation.
+ * This is the size of the rendered `ImBuf` for every type but text strips, where it is the tighter
+ * bounding box of the text glyphs.
+ *
+ * For the fully-processed quad, see #image_transform_quad_get.
+ * For the bounding box of the quad, see #image_transform_bounding_box_from_strips_get.
+ *
  * \return float2 with (width, height) in view-space pixels
  */
-float2 image_transform_raw_size_get(const Scene *scene, const Strip *strip);
+float2 image_transform_box_size_get(const Scene *scene, const Strip *strip);
 
 /**
  * Get 4 corner points of strip image. Corner vectors are in viewport space.
@@ -130,11 +144,6 @@ float2 image_preview_unit_from_px(const Scene *scene, float2 co_src);
  * \param strips: Span of strips to calculate the bounding box for
  */
 Bounds<float2> image_transform_bounding_box_from_strips_get(Scene *scene, Span<Strip *> strips);
-
-/**
- * Get \a strip image transformation matrix relative to its origin in view-space.
- */
-float3x3 image_transform_matrix_get(const Scene *scene, const Strip *strip);
 
 }  // namespace seq
 }  // namespace blender

@@ -119,6 +119,9 @@ bool IDP_EnumItemsValidate(const IDPropertyUIDataEnumItem *items,
                            int items_num,
                            void (*error_fn)(const char *));
 
+/** Free the items and their allocated strings. */
+void IDP_EnumItemsFree(IDPropertyUIDataEnumItem *items, int items_num);
+
 /*-------- ID Type -------*/
 
 using IDPWalkFunc = void (*)(void *user_data, IDProperty *idp);

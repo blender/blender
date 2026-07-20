@@ -22,10 +22,6 @@
 #include "draw_view_infos.hh"
 #include "gpu_index_load_infos.hh"
 
-SHADER_LIBRARY_CREATE_INFO(gpu_index_buffer_load)
-SHADER_LIBRARY_CREATE_INFO(draw_view)
-SHADER_LIBRARY_CREATE_INFO(draw_modelmat)
-
 #include "draw_model_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "gpu_shader_attribute_load_lib.glsl"

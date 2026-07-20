@@ -680,6 +680,10 @@ void popup_block_invoke_ex(bContext *C,
 {
   wmWindow *window = CTX_wm_window(C);
 
+#ifdef WITH_INPUT_IME
+  WM_window_IME_end(window);
+#endif
+
   PopupBlockHandle *handle = popup_block_create(
       C, nullptr, nullptr, func, nullptr, arg, arg_free, can_refresh);
   handle->popup = true;
