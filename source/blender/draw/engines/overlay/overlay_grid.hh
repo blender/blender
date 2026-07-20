@@ -317,8 +317,12 @@ class Grid : Overlay {
                          1.0f - abs(drw_view_forward.z));
     }
     else if (bool(grid_flag_ & GRID_ALIGNED) || bool(axis_flag_ & GRID_ALIGNED)) {
-      /* #155497: mirror `ED_view3d_grid_view_scale` for axis-aligned orthographic views. */
+      /* #155497: use the same zoom-derived distance as `ED_view3d_grid_view_scale()` for
+       * axis-aligned orthographic views. */
       dist = 10.0f * 12.0f / (state.region->sizex * rv3d->winmat[0][0]);
+      /* Keep the selected level from going below the smallest available grid step. */
+      const float min_step = std::min(grid_ubo_.steps[0].x, grid_ubo_.steps[0].y);
+      dist = std::max(dist, min_step);
     }
     else {
       /* Scale is simply specified by orthographic view. */
