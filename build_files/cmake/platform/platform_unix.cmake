@@ -1168,6 +1168,28 @@ if(PLATFORM_BUNDLED_LIBRARIES)
     "LD_LIBRARY_PATH=${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/lib/;$$LD_LIBRARY_PATH"
   )
   unset(_library_paths)
+
+  if(CMAKE_CROSSCOMPILING)
+    # When cross-compiling, override PLATFORM_ENV_BUILD for host tools (either compiled
+    # in host_tools.cmake or fetched from ${HOST_LIBDIR}) ran during compilation to use
+    # the host platform's own libraries. Glob all available libraries in this case as we
+    # cannot rely on the target specific libraries from PLATFORM_BUNDLED_LIBRARY_DIRS.
+    file(GLOB _host_library_dirs "${HOST_LIBDIR}/*/lib")
+    list(JOIN _host_library_dirs ":" _host_library_paths)
+
+    if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Darwin")
+      set(PLATFORM_ENV_BUILD
+        "DYLD_LIBRARY_PATH=\"${_host_library_paths}:$$DYLD_LIBRARY_PATH\""
+      )
+    else()
+      set(PLATFORM_ENV_BUILD
+        "LD_LIBRARY_PATH=\"${_host_library_paths}:$$LD_LIBRARY_PATH\""
+      )
+    endif()
+
+    unset(_host_library_dirs)
+    unset(_host_library_paths)
+  endif()
 else()
   # Quiet unused variable warnings, unfortunately this can't be empty.
   set(PLATFORM_ENV_BUILD "_DUMMY_ENV_VAR_=1")
