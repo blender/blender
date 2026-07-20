@@ -165,7 +165,7 @@ static void sig_handle_crash_fn(int signum)
   };
 
   /* The use of `std::call_once` ensures that the crash handling function is only executed once,
-   * even if multiple crashes occur simultaneously. */
+   * even if multiple crashes occur simultaneously on different threads. */
   static std::once_flag crash_func_once;
   std::call_once(crash_func_once, crash_func);
 }
@@ -216,7 +216,7 @@ extern LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS *ExceptionInfo)
     };
 
     /* The use of `std::call_once` ensures that the crash handling function is only executed once,
-     * even if multiple crashes occur simultaneously. */
+     * even if multiple crashes occur simultaneously on different threads. */
     static std::once_flag crash_func_once;
     std::call_once(crash_func_once, crash_func);
   }
