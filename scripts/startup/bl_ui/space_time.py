@@ -40,7 +40,6 @@ class TIME_PT_playhead_snapping(Panel):
 def playback_controls(layout, context):
     st = context.space_data
     is_sequencer = st.type == 'SEQUENCE_EDITOR'
-    is_timeline = st.type == 'DOPESHEET_EDITOR' and st.mode == 'TIMELINE'
 
     scene = context.scene if not is_sequencer else context.sequencer_scene
     tool_settings = scene.tool_settings if scene else None
@@ -53,16 +52,6 @@ def playback_controls(layout, context):
         panel="TIME_PT_playback",
         text="Playback",
     )
-
-    if tool_settings and not is_timeline:
-        # The Keyframe settings are not exposed in the Timeline view.
-        icon_keytype = 'KEYTYPE_{:s}_VEC'.format(tool_settings.keyframe_type)
-        layout.popover(
-            panel="TIME_PT_keyframing_settings",
-            text_ctxt=i18n_contexts.id_windowmanager,
-            icon=icon_keytype,
-        )
-
     if is_sequencer:
         layout.prop(context.workspace, "use_scene_time_sync")
 
@@ -72,10 +61,11 @@ def playback_controls(layout, context):
         row = layout.row(align=True)
         row.prop(tool_settings, "use_keyframe_insert_auto", text="", toggle=True)
         sub = row.row(align=True)
-        sub.active = tool_settings.use_keyframe_insert_auto
+        icon_keytype = 'KEYTYPE_{:s}_VEC'.format(tool_settings.keyframe_type)
         sub.popover(
-            panel="TIME_PT_auto_keyframing",
+            panel="TIME_PT_keyframing",
             text="",
+            icon=icon_keytype,
         )
 
     row = layout.row(align=True)
@@ -267,68 +257,74 @@ class TIME_PT_playback(TimelinePanelButtons, Panel):
         row.operator("anim.end_frame_set")
 
 
+class TIME_PT_keyframing(TimelinePanelButtons, Panel):
+    bl_label = "Keyframing"
+    bl_region_type = 'HEADER'
+    bl_ui_units_x = 13
+
+    # The actual content is within child sub-panels.
+    def draw(self, _context):
+        pass
+
+
 class TIME_PT_keyframing_settings(TimelinePanelButtons, Panel):
-    bl_label = "Keyframing Settings"
-    bl_options = {'HIDE_HEADER'}
+    bl_label = "Keyframing"
     bl_region_type = 'HEADER'
     bl_description = "Active keying set and keyframing settings"
+    bl_parent_id = 'TIME_PT_keyframing'
 
-    def draw_header(self, context):
+    @classmethod
+    def poll(cls, context):
+        # The keyframe settings are not exposed in the Timeline.
         st = context.space_data
-        is_sequencer = st.type == 'SEQUENCE_EDITOR' and st.view_type == 'SEQUENCER'
+        is_sequencer = st.type == 'SEQUENCE_EDITOR'
+
         scene = context.scene if not is_sequencer else context.sequencer_scene
-        if scene.keying_sets_all.active:
-            self.bl_label = scene.keying_sets_all.active.bl_label
-            if scene.keying_sets_all.active.bl_label in scene.keying_sets:
-                # Do not translate, this keying set is user-defined.
-                self.bl_translation_context = i18n_contexts.no_translation
-            else:
-                # Use the keying set's translation context (default).
-                self.bl_translation_context = scene.keying_sets_all.active.bl_rna.translation_context
-        else:
-            # Use a custom translation context to differentiate from compositing keying.
-            self.bl_label = n_("Keying", i18n_contexts.id_windowmanager)
-            self.bl_translation_context = i18n_contexts.id_windowmanager
+        tool_settings = scene.tool_settings if scene else None
+
+        return tool_settings
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
 
         st = context.space_data
         is_sequencer = st.type == 'SEQUENCE_EDITOR' and st.view_type == 'SEQUENCER'
         scene = context.scene if not is_sequencer else context.sequencer_scene
         tool_settings = context.tool_settings
 
-        col = layout.column(align=True)
-        col.label(text="Active Keying Set")
+        col = layout.column()
         row = col.row(align=True)
         row.prop_search(scene.keying_sets_all, "active", scene, "keying_sets_all", text="")
         row.operator("anim.keyframe_insert", text="", icon='KEY_HLT')
         row.operator("anim.keyframe_delete", text="", icon='KEY_DEHLT')
 
-        col = layout.column(align=True)
-        col.label(text="New Keyframe Type")
-        col.prop(tool_settings, "keyframe_type", text="")
+        col.separator()
 
-        layout.prop(tool_settings, "use_keyframe_cycle_aware")
+        layout.prop(tool_settings, "keyframe_type", text="New Keyframes")
+        layout.prop(tool_settings, "use_keyframe_cycle_aware", text="Cycle Aware")
 
 
 class TIME_PT_auto_keyframing(TimelinePanelButtons, Panel):
-    bl_label = "Auto Keyframing"
-    bl_options = {'HIDE_HEADER'}
+    bl_label = "Auto Keying"
     bl_region_type = 'HEADER'
-    bl_ui_units_x = 9
+    bl_parent_id = 'TIME_PT_keyframing'
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
 
         tool_settings = context.tool_settings
         prefs = context.preferences
 
         layout.active = tool_settings.use_keyframe_insert_auto
 
-        layout.prop(tool_settings, "auto_keying_mode", expand=True)
+        col = layout.column()
+        col.prop(tool_settings, "auto_keying_mode", expand=True, text="Mode")
 
-        col = layout.column(align=True)
+        col = layout.column()
         col.prop(tool_settings, "use_keyframe_insert_keyingset", text="Only Active Keying Set", toggle=False)
         if not prefs.edit.use_keyframe_insert_available:
             col.prop(tool_settings, "use_record_with_nla", text="Layered Recording")
@@ -358,6 +354,7 @@ class TIME_PT_jump(TimelinePanelButtons, Panel):
 classes = (
     TIME_MT_view,
     TIME_PT_playback,
+    TIME_PT_keyframing,
     TIME_PT_keyframing_settings,
     TIME_PT_auto_keyframing,
     TIME_PT_jump,
