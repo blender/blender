@@ -703,6 +703,89 @@ void MESH_OT_primitive_monkey_add(wmOperatorType *ot)
   ed::object::add_generic_props(ot, true);
 }
 
+static const EnumPropertyItem quadsphere_method_items[] = {
+    {QUADSPHERE_METHOD_EQUI_ANGULAR_EVEN_AREA,
+     "EVEN_AREA",
+     0,
+     "Even Area",
+     "Distribute the area evenly between faces"},
+    {QUADSPHERE_METHOD_EQUI_ANGULAR,
+     "EVEN_ANGLE",
+     0,
+     "Even Angle",
+     "Distribute vertices at an even angle, spacing each axis as an exact circle"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static wmOperatorStatus add_primitive_quadsphere_exec(bContext *C, wmOperator *op)
+{
+  MakePrimitiveData creation_data;
+  Object *obedit;
+  float loc[3], rot[3], scale[3];
+  bool enter_editmode;
+  ushort local_view_bits;
+  const bool calc_uvs = RNA_boolean_get(op->ptr, "calc_uvs");
+
+  WM_operator_view3d_unit_defaults(C, op);
+  ed::object::add_generic_get_opts(
+      C, op, 'Z', loc, rot, scale, &enter_editmode, &local_view_bits, nullptr);
+  obedit = make_prim_init(C,
+                          op,
+                          CTX_DATA_(BLT_I18NCONTEXT_ID_MESH, "Quadsphere"),
+                          loc,
+                          rot,
+                          scale,
+                          local_view_bits,
+                          &creation_data);
+
+  if (!make_prim_from_bmo_args(C,
+                               op,
+                               obedit,
+                               &creation_data,
+                               calc_uvs,
+                               "create_quadsphere segments=%i method=%i "
+                               "radius=%f matrix=%m4 calc_uvs=%b",
+                               RNA_int_get(op->ptr, "segments"),
+                               RNA_enum_get(op->ptr, "method"),
+                               RNA_float_get(op->ptr, "radius"),
+                               creation_data.mat,
+                               calc_uvs))
+  {
+    return OPERATOR_CANCELLED;
+  }
+
+  make_prim_finish(C, obedit, &creation_data, enter_editmode);
+
+  return OPERATOR_FINISHED;
+}
+
+void MESH_OT_primitive_quad_sphere_add(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Add Quad Sphere";
+  ot->description =
+      "Construct a spherical mesh from a subdivided cube, consisting entirely of four-sided faces";
+  ot->idname = "MESH_OT_primitive_quad_sphere_add";
+  /* API callbacks. */
+  ot->exec = add_primitive_quadsphere_exec;
+  ot->poll = ED_operator_scene_editable;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* props */
+  RNA_def_int(ot->srna, "segments", 4, 1, 500, "Segments", "", 1, 200);
+  RNA_def_enum(ot->srna,
+               "method",
+               quadsphere_method_items,
+               QUADSPHERE_METHOD_EQUI_ANGULAR_EVEN_AREA,
+               "Method",
+               "Mapping from the cube onto the sphere");
+  ed::object::add_unit_props_radius(ot);
+  ed::object::add_mesh_props(ot);
+  ed::object::add_generic_props(ot, true);
+}
+
 static wmOperatorStatus add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 {
   MakePrimitiveData creation_data;

@@ -9,9 +9,11 @@
  */
 
 #include <algorithm>
+#include <cmath>
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.hh"
 #include "BLI_math_base_safe.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_rotation_c.hh"
@@ -842,6 +844,262 @@ void BM_mesh_calc_uvs_grid(BMesh *bm,
   }
 }
 
+/* Rotation order set to match `BM_mesh_calc_uvs_cube`. */
+static const char cube_faces[6][4] = {
+    {0, 1, 3, 2},
+    {2, 3, 7, 6},
+    {6, 7, 5, 4},
+    {4, 5, 1, 0},
+    {2, 6, 4, 0},
+    {7, 3, 1, 5},
+};
+/* The lower left corner of each face of `cube_faces` in the UV layout from
+ * `BM_mesh_calc_uvs_cube`. */
+static const float cube_faces_uv[6][2] = {
+    {0.375f, 0.0f},
+    {0.375f, 0.25f},
+    {0.375f, 0.5f},
+    {0.375f, 0.75f},
+    {0.125f, 0.5f},
+    {0.625f, 0.5f},
+};
+
+/**
+ * Map a location on the surface of a cube (each axis in [-1, 1]) onto a sphere,
+ * with an equal `angle` between vertices.
+ *
+ * Each vertex steps by `angle` about the axis it's measured from,
+ * the tangent converts that angle back into a location on the cube face.
+ * Scaling by `angle_scale` (`1 / tan(angle)`) keeps one mapping to itself,
+ * without this adjacent faces would not meet.
+ *
+ * Each axis depends only on itself, so a single pass is exact.
+ *
+ * \param co: The location on the cube, at least one axis must be on a face.
+ * \param on_face: For each axis, true when `co` is on the face perpendicular to it.
+ * \param angle: The angle between vertices.
+ * \param angle_scale: `1 / tan(angle)`, passed in so it isn't recalculated per vertex.
+ * \return The direction on the sphere, the caller scales it to the radius.
+ */
+static float3 quadsphere_co_from_cube_equi_angular(const float3 &co,
+                                                   const bool on_face[3],
+                                                   const float angle,
+                                                   const float angle_scale)
+{
+  BLI_assert(on_face[0] || on_face[1] || on_face[2]);
+  BLI_assert(std::abs(angle_scale - (1.0f / std::tan(angle))) < 1e-6f);
+  float3 co_sphere;
+  for (int axis = 0; axis < 3; axis++) {
+    /* An axis on a face maps to itself, take it directly rather than relying on
+     * the warp returning exactly one, so vertices shared between faces stay exact. */
+    co_sphere[axis] = on_face[axis] ? co[axis] : (std::tan(co[axis] * angle) * angle_scale);
+  }
+  return co_sphere;
+}
+
+/**
+ * Map a location on the surface of a cube onto a sphere using `method`.
+ *
+ * \note Arguments & return match #quadsphere_co_from_cube_equi_angular.
+ */
+static float3 quadsphere_co_from_cube(const float3 &co,
+                                      const bool on_face[3],
+                                      const QuadSphereMethod method)
+{
+  switch (method) {
+    case QUADSPHERE_METHOD_EQUI_ANGULAR_EVEN_AREA: {
+      /* Around 49.7728 degrees, solved to minimize area distortion,
+       * see #QUADSPHERE_METHOD_EQUI_ANGULAR_EVEN_AREA. */
+      const float angle = 0.8687f;
+      /* `1 / tan(angle)`. */
+      const float angle_scale = 0.845878184f;
+      return quadsphere_co_from_cube_equi_angular(co, on_face, angle, angle_scale);
+    }
+    case QUADSPHERE_METHOD_EQUI_ANGULAR: {
+      const float angle = float(M_PI_4);
+      /* `tan(M_PI_4)` is one. */
+      const float angle_scale = 1.0f;
+      return quadsphere_co_from_cube_equi_angular(co, on_face, angle, angle_scale);
+    }
+  }
+  BLI_assert_unreachable();
+  return co;
+}
+
+void bmo_create_quadsphere_exec(BMesh *bm, BMOperator *op)
+{
+  BMOpSlot *slot_verts_out = BMO_slot_get(op->slots_out, "verts.out");
+
+  const float rad = BMO_slot_float_get(op->slots_in, "radius");
+  /* Quads along each cube edge. */
+  const int seg = max_ii(1, BMO_slot_int_get(op->slots_in, "segments"));
+  /* Vertices along each cube edge. */
+  const int seg_vert = seg + 1;
+  /* Mapping from the cube onto the sphere. */
+  const QuadSphereMethod method = QuadSphereMethod(BMO_slot_int_get(op->slots_in, "method"));
+  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
+  const bool calc_uvs = (cd_loop_uv_offset != -1) && BMO_slot_bool_get(op->slots_in, "calc_uvs");
+
+  float mat[4][4];
+  BMO_slot_mat4_get(op->slots_in, "matrix", mat);
+
+  /* Vertices are stored as Z layers, only the cube surface is used
+   * so the first & last are full, those between are a ring. */
+  const int layer_full_len = seg_vert * seg_vert;
+  const int layer_ring_len = seg * 4;
+
+  BMO_slot_buffer_alloc(
+      op, op->slots_out, "verts.out", (layer_full_len * 2) + (layer_ring_len * (seg - 1)));
+  BMVert **varr = reinterpret_cast<BMVert **>(slot_verts_out->data.buf);
+
+  /* Vertex index for a grid index, each axis in [0, seg], one at an extreme. */
+  auto vert_index_from_grid_index_fn =
+      [seg, seg_vert, layer_full_len, layer_ring_len](const int3 &grid_index) -> int {
+    if (grid_index.z == 0) {
+      return (grid_index.y * seg_vert) + grid_index.x;
+    }
+    if (grid_index.z == seg) {
+      return layer_full_len + (layer_ring_len * (seg - 1)) + (grid_index.y * seg_vert) +
+             grid_index.x;
+    }
+    /* Walk around the ring, starting at the (0, 0) corner. */
+    int ring_index;
+    if (grid_index.y == 0) {
+      ring_index = grid_index.x;
+    }
+    else if (grid_index.x == seg) {
+      ring_index = seg + grid_index.y;
+    }
+    else if (grid_index.y == seg) {
+      ring_index = (seg * 3) - grid_index.x;
+    }
+    else {
+      BLI_assert(grid_index.x == 0);
+      ring_index = (seg * 4) - grid_index.y;
+    }
+    return layer_full_len + (layer_ring_len * (grid_index.z - 1)) + ring_index;
+  };
+
+  /* Location on the cube for a single axis, in [-1, 1]. */
+  auto cube_co_from_grid_fn = [seg](const int i) { return float((i * 2) - seg) / float(seg); };
+
+  /* Warp for each axis spanning a cube face, shared by every axis & face.
+   * Only the first spanning axis is read, each depends only on itself. */
+  Array<float> wrap_table(seg_vert);
+  {
+    bool on_face[3] = {true, false, false};
+    float3 co = {1.0f, 0.0f, 0.0f};
+    for (int i = 0; i <= seg; i++) {
+      on_face[1] = ELEM(i, 0, seg);
+      co[1] = cube_co_from_grid_fn(i);
+      wrap_table[i] = quadsphere_co_from_cube(co, on_face, method)[1];
+    }
+  }
+
+  /* Direction on the sphere, the caller scales it to the radius. */
+  auto sphere_co_from_grid_index_fn =
+      [seg, &wrap_table, &cube_co_from_grid_fn](const int3 &grid_index) -> float3 {
+    /* The axis on a cube face, maps to itself (exactly -1 or 1). */
+    const int axis_face = ELEM(grid_index.x, 0, seg) ? 0 : (ELEM(grid_index.y, 0, seg) ? 1 : 2);
+    BLI_assert(ELEM(grid_index[axis_face], 0, seg));
+    const int axis_a = (axis_face + 1) % 3;
+    const int axis_b = (axis_face + 2) % 3;
+    float3 co_sphere;
+    co_sphere[axis_face] = cube_co_from_grid_fn(grid_index[axis_face]);
+    co_sphere[axis_a] = wrap_table[grid_index[axis_a]];
+    co_sphere[axis_b] = wrap_table[grid_index[axis_b]];
+    return co_sphere;
+  };
+
+  int v_index = 0;
+  auto vert_add_fn = [&](const int3 &grid_index) {
+    BLI_assert(v_index == vert_index_from_grid_index_fn(grid_index));
+    UNUSED_VARS_NDEBUG(vert_index_from_grid_index_fn);
+    float3 co = sphere_co_from_grid_index_fn(grid_index);
+    normalize_v3_length(co, rad);
+    mul_m4_v3(mat, co);
+    varr[v_index++] = BM_vert_create(bm, co, nullptr, BM_CREATE_NOP);
+  };
+
+  /* Create vertices in the order `vert_index_from_grid_index_fn` expects. */
+  for (int z = 0; z <= seg; z++) {
+    if (ELEM(z, 0, seg)) {
+      for (int y = 0; y <= seg; y++) {
+        for (int x = 0; x <= seg; x++) {
+          vert_add_fn({x, y, z});
+        }
+      }
+    }
+    else {
+      for (int x = 0; x <= seg; x++) {
+        vert_add_fn({x, 0, z});
+      }
+      for (int y = 1; y <= seg; y++) {
+        vert_add_fn({seg, y, z});
+      }
+      for (int x = seg - 1; x >= 0; x--) {
+        vert_add_fn({x, seg, z});
+      }
+      for (int y = seg - 1; y >= 1; y--) {
+        vert_add_fn({0, y, z});
+      }
+    }
+  }
+  BLI_assert(v_index == slot_verts_out->len);
+
+  /* A `cube_faces` vertex as its cube corner, each axis 0 or 1. */
+  auto corner_from_cube_vert_fn = [](const int cube_vert) -> int3 {
+    return int3((cube_vert >> 2) & 1, (cube_vert >> 1) & 1, cube_vert & 1);
+  };
+
+  /* Size of a quad in the UV layout, each cube face takes a quarter. */
+  const float uv_step = 0.25f / float(seg);
+
+  /* Create the quads (edges as needed), one grid per cube face. */
+  for (int f_index = 0; f_index < 6; f_index++) {
+    const int3 corner = corner_from_cube_vert_fn(cube_faces[f_index][0]);
+    /* Step one vertex along each axis of the face. */
+    const int3 step_u = corner_from_cube_vert_fn(cube_faces[f_index][1]) - corner;
+    const int3 step_v = corner_from_cube_vert_fn(cube_faces[f_index][3]) - corner;
+    const int3 grid_index_corner = corner * seg;
+
+    for (int v = 0; v < seg; v++) {
+      for (int u = 0; u < seg; u++) {
+        const int3 grid_index = grid_index_corner + (step_u * u) + (step_v * v);
+        BMVert *vquad[4] = {
+            varr[vert_index_from_grid_index_fn(grid_index)],
+            varr[vert_index_from_grid_index_fn(grid_index + step_u)],
+            varr[vert_index_from_grid_index_fn(grid_index + step_u + step_v)],
+            varr[vert_index_from_grid_index_fn(grid_index + step_v)],
+        };
+        BMFace *f = BM_face_create_verts(bm, vquad, 4, nullptr, BM_CREATE_NOP, true);
+
+        if (calc_uvs) {
+          /* Calculate each corner from its own index so quads share UVs exactly. */
+          const float uv_min[2] = {
+              cube_faces_uv[f_index][0] + (uv_step * float(u)),
+              cube_faces_uv[f_index][1] + (uv_step * float(v)),
+          };
+          const float uv_max[2] = {
+              cube_faces_uv[f_index][0] + (uv_step * float(u + 1)),
+              cube_faces_uv[f_index][1] + (uv_step * float(v + 1)),
+          };
+          const float uvs[4][2] = {
+              {uv_min[0], uv_min[1]},
+              {uv_max[0], uv_min[1]},
+              {uv_max[0], uv_max[1]},
+              {uv_min[0], uv_max[1]},
+          };
+          BMLoop *l = BM_FACE_FIRST_LOOP(f);
+          for (int i = 0; i < 4; i++, l = l->next) {
+            copy_v2_v2(BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset), uvs[i]);
+          }
+        }
+      }
+    }
+  }
+}
+
 void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 {
   const float rad = BMO_slot_float_get(op->slots_in, "radius");
@@ -1623,16 +1881,6 @@ void bmo_create_cube_exec(BMesh *bm, BMOperator *op)
   const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
   const bool calc_uvs = (cd_loop_uv_offset != -1) && BMO_slot_bool_get(op->slots_in, "calc_uvs");
 
-  /* rotation order set to match 'BM_mesh_calc_uvs_cube' */
-  const char faces[6][4] = {
-      {0, 1, 3, 2},
-      {2, 3, 7, 6},
-      {6, 7, 5, 4},
-      {4, 5, 1, 0},
-      {2, 6, 4, 0},
-      {7, 3, 1, 5},
-  };
-
   BMO_slot_mat4_get(op->slots_in, "matrix", mat);
 
   if (!off) {
@@ -1652,13 +1900,13 @@ void bmo_create_cube_exec(BMesh *bm, BMOperator *op)
     }
   }
 
-  for (i = 0; i < ARRAY_SIZE(faces); i++) {
+  for (i = 0; i < ARRAY_SIZE(cube_faces); i++) {
     BMFace *f;
     BMVert *quad[4] = {
-        verts[faces[i][0]],
-        verts[faces[i][1]],
-        verts[faces[i][2]],
-        verts[faces[i][3]],
+        verts[cube_faces[i][0]],
+        verts[cube_faces[i][1]],
+        verts[cube_faces[i][2]],
+        verts[cube_faces[i][3]],
     };
 
     f = BM_face_create_verts(bm, quad, 4, nullptr, BM_CREATE_NOP, true);

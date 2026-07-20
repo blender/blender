@@ -64,6 +64,7 @@ enum ePlace_PrimType {
   PLACE_PRIMITIVE_TYPE_CONE = 3,
   PLACE_PRIMITIVE_TYPE_SPHERE_UV = 4,
   PLACE_PRIMITIVE_TYPE_SPHERE_ICO = 5,
+  PLACE_PRIMITIVE_TYPE_SPHERE_QUAD = 6,
 };
 
 enum ePlace_Origin {
@@ -613,7 +614,8 @@ static void draw_primitive_view_impl(const bContext *C,
   }
   else if (ELEM(ipd->primitive_type,
                 PLACE_PRIMITIVE_TYPE_SPHERE_UV,
-                PLACE_PRIMITIVE_TYPE_SPHERE_ICO))
+                PLACE_PRIMITIVE_TYPE_SPHERE_ICO,
+                PLACE_PRIMITIVE_TYPE_SPHERE_QUAD))
   {
     /* See bound-box diagram for reference. */
 
@@ -875,6 +877,9 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
       }
       else if (tref && STREQ(tref->idname, "builtin.primitive_ico_sphere_add")) {
         ipd->primitive_type = PLACE_PRIMITIVE_TYPE_SPHERE_ICO;
+      }
+      else if (tref && STREQ(tref->idname, "builtin.primitive_quad_sphere_add")) {
+        ipd->primitive_type = PLACE_PRIMITIVE_TYPE_SPHERE_QUAD;
       }
       else {
         /* If the user runs this as an operator they should set the 'primitive_type',
@@ -1173,7 +1178,9 @@ static wmOperatorStatus view3d_interactive_add_modal(bContext *C,
         else if (ipd->primitive_type == PLACE_PRIMITIVE_TYPE_SPHERE_ICO) {
           ot = WM_operatortype_find("MESH_OT_primitive_ico_sphere_add", false);
         }
-
+        else if (ipd->primitive_type == PLACE_PRIMITIVE_TYPE_SPHERE_QUAD) {
+          ot = WM_operatortype_find("MESH_OT_primitive_quad_sphere_add", false);
+        }
         if (ot != nullptr) {
           PointerRNA op_props = WM_operator_properties_create_ptr(ot);
 
@@ -1197,7 +1204,8 @@ static wmOperatorStatus view3d_interactive_add_modal(bContext *C,
           if (ELEM(ipd->primitive_type,
                    PLACE_PRIMITIVE_TYPE_CYLINDER,
                    PLACE_PRIMITIVE_TYPE_SPHERE_UV,
-                   PLACE_PRIMITIVE_TYPE_SPHERE_ICO))
+                   PLACE_PRIMITIVE_TYPE_SPHERE_ICO,
+                   PLACE_PRIMITIVE_TYPE_SPHERE_QUAD))
           {
             RNA_float_set(&op_props, "radius", 1.0f);
           }
@@ -1343,6 +1351,7 @@ void VIEW3D_OT_interactive_add(wmOperatorType *ot)
       {PLACE_PRIMITIVE_TYPE_CONE, "CONE", 0, "Cone", ""},
       {PLACE_PRIMITIVE_TYPE_SPHERE_UV, "SPHERE_UV", 0, "UV Sphere", ""},
       {PLACE_PRIMITIVE_TYPE_SPHERE_ICO, "SPHERE_ICO", 0, "ICO Sphere", ""},
+      {PLACE_PRIMITIVE_TYPE_SPHERE_QUAD, "SPHERE_QUAD", 0, "Quad Sphere", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
