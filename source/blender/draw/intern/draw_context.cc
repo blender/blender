@@ -976,6 +976,9 @@ static void foreach_obref_in_scene(
       /* Should use DrawInstances data instead. */
       tmp_object.runtime->object_to_world = float4x4();
       tmp_object.runtime->world_to_object = float4x4();
+#ifndef NDEBUG
+      tmp_object.runtime->is_draw_dupli_reference_tmp_object = true;
+#endif
 
       draw::ObjectRef ob_ref(tmp_object, ob, instances);
       draw_object_cb(ob_ref);

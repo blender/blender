@@ -5698,10 +5698,12 @@ void BKE_object_replace_data_on_shallow_copy(Object *ob, ID *new_data)
 
 const float4x4 &Object::object_to_world() const
 {
+  BLI_assert(!this->runtime->is_draw_dupli_reference_tmp_object);
   return this->runtime->object_to_world;
 }
 const float4x4 &Object::world_to_object() const
 {
+  BLI_assert(!this->runtime->is_draw_dupli_reference_tmp_object);
   return this->runtime->world_to_object;
 }
 
