@@ -1142,6 +1142,20 @@ void BLI_rctf_rotate_expand(rctf *dst, const rctf *src, const float angle)
 
 #undef ROTATE_SINCOS
 
+void BLI_rctf_rotate_expand_around(rctf *dst,
+                                   const rctf *src,
+                                   const float pivot[2],
+                                   const float angle)
+{
+  const float cent[2] = {BLI_rctf_cent_x(src) - pivot[0], BLI_rctf_cent_y(src) - pivot[1]};
+  const float sin_a = sinf(angle);
+  const float cos_a = cosf(angle);
+  const float cent_rot[2] = {cent[0] * cos_a - cent[1] * sin_a, cent[0] * sin_a + cent[1] * cos_a};
+
+  BLI_rctf_rotate_expand(dst, src, angle);
+  BLI_rctf_translate(dst, cent_rot[0] - cent[0], cent_rot[1] - cent[1]);
+}
+
 bool BLI_rctf_clamp_segment(const rctf *rect, float s1[2], float s2[2])
 {
   const bool p1_inside = BLI_rctf_isect_pt_v(rect, s1);

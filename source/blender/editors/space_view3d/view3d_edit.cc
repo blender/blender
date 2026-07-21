@@ -295,18 +295,8 @@ static wmOperatorStatus render_border_exec(bContext *C, wmOperator *op)
 
   /* Remove the roll to put the border in view border space, expanding to fully cover the box. */
   if (rv3d->persp == RV3D_CAMOB && rv3d->camroll != 0.0f) {
-    const float2 view_center(region->winx / 2, region->winy / 2);
-    BLI_rctf_translate(&border, -view_center.x, -view_center.y);
-
-    float2 cent(BLI_rctf_cent_x(&border), BLI_rctf_cent_y(&border));
-    BLI_rctf_translate(&border, -cent.x, -cent.y);
-
-    const float2x2 rot_invert = math::from_rotation<float2x2>(math::AngleRadian(-rv3d->camroll));
-    cent = rot_invert * cent;
-
-    BLI_rctf_rotate_expand(&border, &border, rv3d->camroll);
-    BLI_rctf_translate(&border, cent.x, cent.y);
-    BLI_rctf_translate(&border, view_center.x, view_center.y);
+    const float pivot[2] = {region->winx / 2.0f, region->winy / 2.0f};
+    BLI_rctf_rotate_expand_around(&border, &border, pivot, -rv3d->camroll);
   }
 
   border.xmin = (border.xmin - vb.xmin) / BLI_rctf_size_x(&vb);
