@@ -62,6 +62,8 @@ class ConvertColorSpaceOperation : public NodeOperation {
 
   void execute() override
   {
+    BLI_SCOPED_DEFER([&]() { this->populate_meta_data(); });
+
     const Result &input_image = this->get_input("Image");
     if (this->is_identity()) {
       Result &output_image = this->get_result("Image");
@@ -70,15 +72,16 @@ class ConvertColorSpaceOperation : public NodeOperation {
     }
 
     if (input_image.is_single_value()) {
-      execute_single();
+      this->execute_single();
       return;
     }
+
     if (this->context().use_gpu()) {
-      execute_gpu();
+      this->execute_gpu();
+      return;
     }
-    else {
-      execute_cpu();
-    }
+
+    this->execute_cpu();
   }
 
   void execute_gpu()
@@ -155,6 +158,14 @@ class ConvertColorSpaceOperation : public NodeOperation {
     Result &output_image = get_result("Image");
     output_image.allocate_single_value();
     output_image.set_single_value(color);
+  }
+
+  void populate_meta_data()
+  {
+    Result &output_image = this->get_result("Image");
+    if (IMB_colormanagement_space_name_is_data(node_storage(this->node()).to_color_space)) {
+      output_image.meta_data.is_non_color_data = true;
+    }
   }
 
   bool is_identity()
