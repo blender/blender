@@ -92,7 +92,15 @@ void setup_main([[resource_table]] Setup &srt,
     }
   }
   else {
-    /* No need to write radiance_img since the radiance won't be used at all. */
+    if (srt.use_split_radiance) {
+      /* The indirect radiance is not part of the convolve stage shared memory cache. A cache hit
+       * and a similar indirect radiance texture fetch can differ slightly and lead to
+       * uninitialized reads that are not masked by the object ID. To avoid this, we clear the
+       * indirect radiance to 0. */
+      imageStoreFast(srt.radiance_img, int3(texel, 1), float4(0));
+    }
+    /* No need to write radiance_img (except for the case above) since the radiance won't be used
+     * at all. */
     imageStore(srt.object_id_img, texel, uint4(0));
   }
 
