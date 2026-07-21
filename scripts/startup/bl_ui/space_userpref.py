@@ -681,10 +681,13 @@ class USERPREF_PT_animation_timeline_advanced(AnimationPanel, CenterAlignMixIn, 
         edit = prefs.edit
 
         layout.prop(edit, "use_negative_frames")
-        row = layout.row(align=False)
-        row.active = edit.use_negative_frames
-        row.alignment = 'RIGHT'
-        row.label(icon='STATUS_WARNING', text="Negative frames can cause issues with audio playback and exporters.")
+        split = layout.split(factor=0.4)
+        split.active = edit.use_negative_frames
+        split.separator()
+        split.label_multiline(
+            icon='STATUS_WARNING_FILLED',
+            text="Negative frames can cause issues with audio playback and exporters.",
+            alignment='LEFT')
 
 
 # -----------------------------------------------------------------------------
