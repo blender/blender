@@ -556,8 +556,6 @@
             text="#000000"
             text_hi="#ffffff"
             header="#99999900"
-            header_text="#000000"
-            header_text_hi="#ffffff"
             >
             <gradients>
               <ThemeGradientColors
@@ -585,8 +583,6 @@
             text="#272727"
             text_hi="#ffffff"
             header="#adadadff"
-            header_text="#000000"
-            header_text_hi="#ffffff"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -602,8 +598,6 @@
             text="#000000"
             text_hi="#ffffff"
             header="#adadadff"
-            header_text="#000000"
-            header_text_hi="#ffffff"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -633,8 +627,6 @@
             text="#272727"
             text_hi="#ffffff"
             header="#adadadff"
-            header_text="#000000"
-            header_text_hi="#ffffff"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -658,8 +650,6 @@
             text="#272727"
             text_hi="#ffffff"
             header="#adadadff"
-            header_text="#000000"
-            header_text_hi="#ffffff"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -696,8 +686,6 @@
             text="#000000"
             text_hi="#ffffff"
             header="#b3b3b3ff"
-            header_text="#000000"
-            header_text_hi="#ffffff"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -734,8 +722,6 @@
             text="#747474"
             text_hi="#ffffff"
             header="#b3b3b3ff"
-            header_text="#000000"
-            header_text_hi="#ffffff"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -751,8 +737,6 @@
             text="#000000"
             text_hi="#ffffff"
             header="#b3b3b3ff"
-            header_text="#000000"
-            header_text_hi="#ffffff"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -779,8 +763,6 @@
             text="#e6e6e6"
             text_hi="#ffffff"
             header="#b3b3b3ff"
-            header_text="#000000"
-            header_text_hi="#ffffff"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -826,8 +808,6 @@
             text="#e6e6e6"
             text_hi="#ffffff"
             header="#b3b3b3ff"
-            header_text="#eeeeee"
-            header_text_hi="#ffffff"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -849,8 +829,6 @@
             text="#000000"
             text_hi="#ffffff"
             header="#b3b3b3ff"
-            header_text="#000000"
-            header_text_hi="#ffffff"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -876,8 +854,6 @@
             text="#000000"
             text_hi="#ffffff"
             header="#b3b3b3ff"
-            header_text="#1a1a1a"
-            header_text_hi="#ffffff"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -893,8 +869,6 @@
             text="#000000"
             text_hi="#ffffff"
             header="#b3b3b3ff"
-            header_text="#000000"
-            header_text_hi="#ffffff"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -915,8 +889,6 @@
             text="#e6e6e6"
             text_hi="#ffffff"
             header="#b3b3b3ff"
-            header_text="#000000"
-            header_text_hi="#ffffff"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -944,8 +916,6 @@
             text="#000000"
             text_hi="#ffffff"
             header="#b3b3b3ff"
-            header_text="#000000"
-            header_text_hi="#ffffff"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -959,8 +929,6 @@
             text="#ffffff"
             text_hi="#ffffff"
             header="#999999ff"
-            header_text="#eeeeee"
-            header_text_hi="#ffffff"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -974,8 +942,6 @@
             text="#ffffff"
             text_hi="#ffffff"
             header="#999999ff"
-            header_text="#1a1a1a"
-            header_text_hi="#ffffff"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -991,8 +957,6 @@
             text="#000000"
             text_hi="#ffffff"
             header="#adadadff"
-            header_text="#000000"
-            header_text_hi="#ffffff"
             >
           </ThemeSpaceGeneric>
         </space>

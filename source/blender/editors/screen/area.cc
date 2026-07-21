@@ -4467,7 +4467,7 @@ void ED_region_cache_draw_curfra_label(const int framenr, const float x, const f
       &rect, bg_color, nullptr, 1.0f, outline_color, U.pixelsize, 3 * UI_SCALE_FAC);
 
   /* Text label. */
-  ui::theme::font_theme_color_set(fontid, TH_HEADER_TEXT_HI);
+  ui::theme::font_theme_color_set(fontid, TH_TEXT_HI);
   BLF_position(fontid, x - text_dims.x * 0.5f, y + padding, 0.0f);
   BLF_draw(fontid, numstr, sizeof(numstr));
 }

@@ -185,7 +185,7 @@ static void draw_playhead_box(const float region_x,
   /* Frame number text. */
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
   uchar text_color[4];
-  ui::theme::get_color_4ubv(TH_HEADER_TEXT_HI, text_color);
+  ui::theme::get_color_4ubv(TH_TEXT_HI, text_color);
   const int y = BLI_rcti_cent_y(scrub_region_rect) - int(fstyle->points * UI_SCALE_FAC * 0.38f);
   ui::fontstyle_draw_simple(
       fstyle, region_x - (dimensions.text_width / 2.0f), y, frame_str, text_color);
