@@ -19,7 +19,9 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.use_custom_socket_order();
   b.allow_any_socket_order();
   b.add_input<decl::Geometry>("Geometry"_ustr)
-      .supported_type({GeometryComponent::Type::Mesh, GeometryComponent::Type::GreasePencil})
+      .supported_type({GeometryComponent::Type::Mesh,
+                       GeometryComponent::Type::Curve,
+                       GeometryComponent::Type::GreasePencil})
       .description("Geometry to update the material indices on");
   b.add_output<decl::Geometry>("Geometry"_ustr).propagate_all_geometry().align_with_previous();
   b.add_input<decl::Bool>("Selection"_ustr)
@@ -61,6 +63,15 @@ static void node_geo_exec(GeoNodeExecParams params)
                                          bke::MeshFieldContext(*mesh, AttrDomain::Face),
                                          "material_index",
                                          AttrDomain::Face,
+                                         selection,
+                                         material_index);
+    }
+    if (Curves *curves_id = geometry_set.get_curves_for_write()) {
+      bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+      bke::try_capture_field_on_geometry(curves.attributes_for_write(),
+                                         bke::CurvesFieldContext(curves, AttrDomain::Curve),
+                                         "material_index",
+                                         AttrDomain::Curve,
                                          selection,
                                          material_index);
     }
