@@ -476,6 +476,7 @@ struct ProjPaintState {
    * so a loop indirection is needed as well.
    */
   const float2 **poly_to_loop_uv;
+  std::optional<float2> poly_to_loop_uv_single;
   /** other UV map, use for cloning between layers. */
   const float2 **poly_to_loop_uv_clone;
 
@@ -770,14 +771,24 @@ static bool project_paint_PickColor(
   }
 
   const int3 &tri = ps->corner_tris_eval[tri_index];
-  PS_CORNER_TRI_ASSIGN_UV_3(
-      tri_uv, ps->poly_to_loop_uv, ps->corner_tri_faces_eval[tri_index], tri);
-
-  interp_v2_v2v2v2(uv, UNPACK3(tri_uv), w);
+  if (ps->poly_to_loop_uv_single) {
+    copy_v2_v2(uv, ps->poly_to_loop_uv_single.value());
+  }
+  else {
+    PS_CORNER_TRI_ASSIGN_UV_3(
+        tri_uv, ps->poly_to_loop_uv, ps->corner_tri_faces_eval[tri_index], tri);
+    interp_v2_v2v2v2(uv, UNPACK3(tri_uv), w);
+  }
 
   ima = project_paint_face_paint_image(ps, tri_index);
   /** we must have got the imbuf before getting here. */
-  int tile_number = project_paint_face_paint_tile(ima, tri_uv[0]);
+  int tile_number;
+  if (ps->poly_to_loop_uv_single) {
+    tile_number = project_paint_face_paint_tile(ima, ps->poly_to_loop_uv_single.value());
+  }
+  else {
+    tile_number = project_paint_face_paint_tile(ima, tri_uv[0]);
+  }
   /* XXX get appropriate ImageUser instead */
   ImageUser iuser;
   BKE_imageuser_default(&iuser);
@@ -1134,8 +1145,17 @@ static void project_face_winding_init(const ProjPaintState *ps, const int tri_in
   /* detect the winding of faces in uv space */
   const int3 &tri = ps->corner_tris_eval[tri_index];
   const int face_i = ps->corner_tri_faces_eval[tri_index];
-  const float *tri_uv[3] = {PS_CORNER_TRI_AS_UV_3(ps->poly_to_loop_uv, face_i, tri)};
-  float winding = cross_tri_v2(tri_uv[0], tri_uv[1], tri_uv[2]);
+  float winding;
+  if (ps->poly_to_loop_uv_single) {
+    /* Could also just init this to 0 */
+    winding = cross_tri_v2(ps->poly_to_loop_uv_single.value(),
+                           ps->poly_to_loop_uv_single.value(),
+                           ps->poly_to_loop_uv_single.value());
+  }
+  else {
+    const float *tri_uv[3] = {PS_CORNER_TRI_AS_UV_3(ps->poly_to_loop_uv, face_i, tri)};
+    winding = cross_tri_v2(tri_uv[0], tri_uv[1], tri_uv[2]);
+  }
 
   if (winding > 0) {
     ps->faceWindingFlags[tri_index] |= PROJ_FACE_WINDING_CW;
@@ -1155,8 +1175,10 @@ static bool check_seam(const ProjPaintState *ps,
 {
   const int3 &orig_tri = ps->corner_tris_eval[orig_face];
   const int orig_poly_i = ps->corner_tri_faces_eval[orig_face];
-  const float *orig_tri_uv[3] = {
-      PS_CORNER_TRI_AS_UV_3(ps->poly_to_loop_uv, orig_poly_i, orig_tri)};
+  const float *orig_tri_uv[3];
+  if (!ps->poly_to_loop_uv_single) {
+    PS_CORNER_TRI_ASSIGN_UV_3(orig_tri_uv, ps->poly_to_loop_uv, orig_poly_i, orig_tri);
+  }
   /* vert indices from face vert order indices */
   const uint i1 = ps->corner_verts_eval[orig_tri[orig_i1_fidx]];
   const uint i2 = ps->corner_verts_eval[orig_tri[orig_i2_fidx]];
@@ -1182,11 +1204,23 @@ static bool check_seam(const ProjPaintState *ps,
       /* Only need to check if 'i2_fidx' is valid because
        * we know i1_fidx is the same vert on both faces. */
       if (i2_fidx != -1) {
-        const float *tri_uv[3] = {PS_CORNER_TRI_AS_UV_3(ps->poly_to_loop_uv, face_i, tri)};
+        const float *tri_uv[3];
+        if (!ps->poly_to_loop_uv_single) {
+          PS_CORNER_TRI_ASSIGN_UV_3(tri_uv, ps->poly_to_loop_uv, face_i, tri);
+        }
         Image *tpage = project_paint_face_paint_image(ps, tri_index);
         Image *orig_tpage = project_paint_face_paint_image(ps, orig_face);
-        int tile = project_paint_face_paint_tile(tpage, tri_uv[0]);
-        int orig_tile = project_paint_face_paint_tile(orig_tpage, orig_tri_uv[0]);
+        int tile;
+        int orig_tile;
+        if (ps->poly_to_loop_uv_single) {
+          tile = project_paint_face_paint_tile(tpage, ps->poly_to_loop_uv_single.value());
+          orig_tile = project_paint_face_paint_tile(orig_tpage,
+                                                    ps->poly_to_loop_uv_single.value());
+        }
+        else {
+          tile = project_paint_face_paint_tile(tpage, tri_uv[0]);
+          orig_tile = project_paint_face_paint_tile(orig_tpage, orig_tri_uv[0]);
+        }
 
         BLI_assert(i1_fidx != -1);
 
@@ -1203,11 +1237,18 @@ static bool check_seam(const ProjPaintState *ps,
           project_face_winding_init(ps, tri_index);
         }
 
+        bool has_same_image;
+        if (ps->poly_to_loop_uv_single) {
+          has_same_image = (orig_tpage == tpage) && (orig_tile == tile);
+        }
+        else {
+          has_same_image = (orig_tpage == tpage) && (orig_tile == tile) &&
+                           cmp_uv(orig_tri_uv[orig_i1_fidx], tri_uv[i1_fidx]) &&
+                           cmp_uv(orig_tri_uv[orig_i2_fidx], tri_uv[i2_fidx]);
+        }
+
         /* first test if they have the same image */
-        if ((orig_tpage == tpage) && (orig_tile == tile) &&
-            cmp_uv(orig_tri_uv[orig_i1_fidx], tri_uv[i1_fidx]) &&
-            cmp_uv(orig_tri_uv[orig_i2_fidx], tri_uv[i2_fidx]))
-        {
+        if (has_same_image) {
           /* if faces don't have the same winding in uv space,
            * they are on the same side so edge is boundary */
           if ((ps->faceWindingFlags[tri_index] & PROJ_FACE_WINDING_CW) !=
@@ -1405,7 +1446,10 @@ static void insert_seam_vert_array(const ProjPaintState *ps,
 {
   const int3 &tri = ps->corner_tris_eval[tri_index];
   const int face_i = ps->corner_tri_faces_eval[tri_index];
-  const float *tri_uv[3] = {PS_CORNER_TRI_AS_UV_3(ps->poly_to_loop_uv, face_i, tri)};
+  const float *tri_uv[3];
+  if (!ps->poly_to_loop_uv_single) {
+    PS_CORNER_TRI_ASSIGN_UV_3(tri_uv, ps->poly_to_loop_uv, face_i, tri);
+  }
   const int fidx[2] = {fidx1, ((fidx1 + 1) % 3)};
   float vec[2];
 
@@ -1417,7 +1461,13 @@ static void insert_seam_vert_array(const ProjPaintState *ps,
   vseam->tri = tri_index;
   vseam->loop = tri[fidx[0]];
 
-  sub_v2_v2v2(vec, tri_uv[fidx[1]], tri_uv[fidx[0]]);
+  if (ps->poly_to_loop_uv_single) {
+    copy_v2_v2(vec, ps->poly_to_loop_uv_single.value());
+  }
+  else {
+    sub_v2_v2v2(vec, tri_uv[fidx[1]], tri_uv[fidx[0]]);
+  }
+
   vec[0] *= ibuf_x;
   vec[1] *= ibuf_y;
   vseam->angle = atan2f(vec[1], vec[0]);
@@ -1426,12 +1476,22 @@ static void insert_seam_vert_array(const ProjPaintState *ps,
   BLI_assert((ps->faceWindingFlags[tri_index] & PROJ_FACE_WINDING_INIT) != 0);
   vseam->normal_cw = (ps->faceWindingFlags[tri_index] & PROJ_FACE_WINDING_CW);
 
-  copy_v2_v2(vseam->uv, tri_uv[fidx[0]]);
+  if (ps->poly_to_loop_uv_single) {
+    copy_v2_v2(vseam->uv, ps->poly_to_loop_uv_single.value());
+  }
+  else {
+    copy_v2_v2(vseam->uv, tri_uv[fidx[0]]);
+  }
 
   vseam[1] = vseam[0];
   vseam[1].angle += vseam[1].angle > 0.0f ? -M_PI : M_PI;
   vseam[1].normal_cw = !vseam[1].normal_cw;
-  copy_v2_v2(vseam[1].uv, tri_uv[fidx[1]]);
+  if (ps->poly_to_loop_uv_single) {
+    copy_v2_v2(vseam->uv, ps->poly_to_loop_uv_single.value());
+  }
+  else {
+    copy_v2_v2(vseam[1].uv, tri_uv[fidx[1]]);
+  }
 
   for (uint i = 0; i < 2; i++) {
     const int vert = ps->corner_verts_eval[tri[fidx[i]]];
@@ -3042,7 +3102,10 @@ static void project_paint_face_init(const ProjPaintState *ps,
   const int3 &tri = ps->corner_tris_eval[tri_index];
   const int face_i = ps->corner_tri_faces_eval[tri_index];
   const int vert_tri[3] = {PS_CORNER_TRI_AS_VERT_INDEX_3(ps, tri)};
-  const float *tri_uv[3] = {PS_CORNER_TRI_AS_UV_3(ps->poly_to_loop_uv, face_i, tri)};
+  const float *tri_uv[3];
+  if (!ps->poly_to_loop_uv_single) {
+    PS_CORNER_TRI_ASSIGN_UV_3(tri_uv, ps->poly_to_loop_uv, face_i, tri);
+  }
 
   /* UV/pixel seeking data */
   /* Image X/Y-Pixel */
@@ -3102,14 +3165,22 @@ static void project_paint_face_init(const ProjPaintState *ps,
    * but since the first thing most people try is painting onto a quad- better make it work.
    */
 
-  tri_uv_pxoffset[0][0] = tri_uv[0][0] - xhalfpx;
-  tri_uv_pxoffset[0][1] = tri_uv[0][1] - yhalfpx;
+  if (ps->poly_to_loop_uv_single) {
+    float2 offset = ps->poly_to_loop_uv_single.value() - float2(xhalfpx, yhalfpx);
+    copy_v2_v2(tri_uv_pxoffset[0], offset);
+    copy_v2_v2(tri_uv_pxoffset[1], offset);
+    copy_v2_v2(tri_uv_pxoffset[2], offset);
+  }
+  else {
+    tri_uv_pxoffset[0][0] = tri_uv[0][0] - xhalfpx;
+    tri_uv_pxoffset[0][1] = tri_uv[0][1] - yhalfpx;
 
-  tri_uv_pxoffset[1][0] = tri_uv[1][0] - xhalfpx;
-  tri_uv_pxoffset[1][1] = tri_uv[1][1] - yhalfpx;
+    tri_uv_pxoffset[1][0] = tri_uv[1][0] - xhalfpx;
+    tri_uv_pxoffset[1][1] = tri_uv[1][1] - yhalfpx;
 
-  tri_uv_pxoffset[2][0] = tri_uv[2][0] - xhalfpx;
-  tri_uv_pxoffset[2][1] = tri_uv[2][1] - yhalfpx;
+    tri_uv_pxoffset[2][0] = tri_uv[2][0] - xhalfpx;
+    tri_uv_pxoffset[2][1] = tri_uv[2][1] - yhalfpx;
+  }
 
   {
     uv1co = tri_uv_pxoffset[0]; /* Was `tri_uv[i1];`. */
@@ -4049,13 +4120,20 @@ static void project_paint_bleed_add_face_user(const ProjPaintState *ps,
   /* annoying but we need to add all faces even ones we never use elsewhere */
   if (ps->seam_bleed_px > 0.0f) {
     const int face_i = ps->corner_tri_faces_eval[tri_index];
-    const float *tri_uv[3] = {PS_CORNER_TRI_AS_UV_3(ps->poly_to_loop_uv, face_i, corner_tri)};
+    const float *tri_uv[3];
+    if (!ps->poly_to_loop_uv_single) {
+      PS_CORNER_TRI_ASSIGN_UV_3(tri_uv, ps->poly_to_loop_uv, face_i, corner_tri);
+    }
 
     /* Check for degenerate triangles. Degenerate faces cause trouble with bleed computations.
      * Ideally this would be checked later, not to add to the cost of computing non-degenerate
      * triangles, but that would allow other triangles to still find adjacent seams on degenerate
      * triangles, potentially causing incorrect results. */
-    if (area_tri_v2(UNPACK3(tri_uv)) > 0.0f) {
+    const float area_tri = 0.0f;
+    if (!ps->poly_to_loop_uv_single) {
+      area_tri_v2(UNPACK3(tri_uv));
+    }
+    if (area_tri > 0.0f) {
       const int vert_tri[3] = {PS_CORNER_TRI_AS_VERT_INDEX_3(ps, corner_tri)};
       void *tri_index_p = POINTER_FROM_INT(tri_index);
 
@@ -4413,6 +4491,8 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
   const Span<int3> corner_tris = ps->corner_tris_eval;
   const Span<int> tri_faces = ps->corner_tri_faces_eval;
 
+  std::optional<float2> single_value;
+
   BLI_assert(ps->image_tot == 0);
 
   for (tri_index = 0; tri_index < ps->corner_tris_eval.size(); tri_index++) {
@@ -4430,6 +4510,9 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
             if (attr.varray.is_span()) {
               uv_map_base = attr.varray.get_internal_span().typed<float2>().data();
             }
+            else if (attr.varray.is_single()) {
+              single_value = attr.varray.typed<float2>().get_internal_single();
+            }
           }
         }
         tpage = ps->canvas_ima;
@@ -4442,6 +4525,9 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
                 if (attr.varray.is_span()) {
                   uv_map_base = attr.varray.get_internal_span().typed<float2>().data();
                 }
+                else if (attr.varray.is_single()) {
+                  single_value = attr.varray.typed<float2>().get_internal_single();
+                }
               }
             }
           }
@@ -4451,6 +4537,9 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
               if (attr.domain == bke::AttrDomain::Corner && attr.varray.type().is<float2>()) {
                 if (attr.varray.is_span()) {
                   uv_map_base = attr.varray.get_internal_span().typed<float2>().data();
+                }
+                else if (attr.varray.is_single()) {
+                  single_value = attr.varray.typed<float2>().get_internal_single();
                 }
               }
             }
@@ -4483,10 +4572,16 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
     else {
       tpage = ps->stencil_ima;
     }
+    BLI_assert(uv_map_base != nullptr || single_value.has_value());
 
-    ps->poly_to_loop_uv[tri_faces[tri_index]] = uv_map_base;
-
-    tile = project_paint_face_paint_tile(tpage, uv_map_base[corner_tris[tri_index][0]]);
+    if (single_value.has_value()) {
+      ps->poly_to_loop_uv_single = single_value;
+      tile = project_paint_face_paint_tile(tpage, single_value.value());
+    }
+    else {
+      ps->poly_to_loop_uv[tri_faces[tri_index]] = uv_map_base;
+      tile = project_paint_face_paint_tile(tpage, uv_map_base[corner_tris[tri_index][0]]);
+    }
 
 #ifndef PROJ_DEBUG_NOSEAMBLEED
     project_paint_bleed_add_face_user(ps, arena, corner_tris[tri_index], tri_index);
@@ -4495,9 +4590,6 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
     if (skip_tri || project_paint_clone_face_skip(ps, layer_clone, slot, tri_index)) {
       continue;
     }
-
-    BLI_assert(uv_map_base != nullptr);
-
     if (is_face_paintable && tpage) {
       ProjPaintFaceCoSS coSS;
       proj_paint_face_coSS_init(ps, corner_tris[tri_index], &coSS);
@@ -4755,7 +4847,7 @@ static void project_paint_end(ProjPaintState *ps)
     }
 
     /* must be set for non-shared */
-    BLI_assert(ps->poly_to_loop_uv || ps->is_shared_user);
+    BLI_assert(ps->poly_to_loop_uv || ps->poly_to_loop_uv_single || ps->is_shared_user);
     if (ps->poly_to_loop_uv) {
       MEM_delete(ps->poly_to_loop_uv);
     }
