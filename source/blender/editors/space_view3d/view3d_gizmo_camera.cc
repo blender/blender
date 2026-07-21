@@ -557,8 +557,8 @@ static void WIDGETGROUP_camera_view_draw_prepare(const bContext *C, wmGizmoGroup
   if (rv3d->persp == RV3D_CAMOB) {
     Scene *scene = CTX_data_scene(C);
     View3D *v3d = CTX_wm_view3d(C);
-    ED_view3d_calc_camera_border(
-        scene, depsgraph, region, v3d, rv3d, false, true, &viewgroup->state.view_border);
+    viewgroup->state.view_border = BKE_camera_view_border(
+        scene, depsgraph, v3d, rv3d, region->winx, region->winy, false, false, true);
     viewgroup->state.roll = rv3d->camroll;
   }
   else {

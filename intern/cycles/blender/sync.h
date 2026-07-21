@@ -80,7 +80,8 @@ class BlenderSync {
                    const int width,
                    const int height,
                    const char *viewname);
-  void sync_view(blender::View3D *b_v3d,
+  void sync_view(const blender::Depsgraph *b_depsgraph,
+                 blender::View3D *b_v3d,
                  blender::RegionView3D *b_rv3d,
                  const int width,
                  const int height);

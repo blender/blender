@@ -29,6 +29,7 @@
 #include "BLI_rect.hh"
 #include "BLI_time.hh" /* Smooth-view. */
 
+#include "BKE_camera.h"
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
@@ -235,8 +236,15 @@ static void drawFlyPixel(const bContext * /*C*/, ARegion * /*region*/, void *arg
   int xoff, yoff;
 
   if (ED_view3d_cameracontrol_object_get(fly->v3d_camera_control)) {
-    ED_view3d_calc_camera_border(
-        fly->scene, fly->depsgraph, fly->region, fly->v3d, fly->rv3d, false, false, &viewborder);
+    viewborder = BKE_camera_view_border(fly->scene,
+                                        fly->depsgraph,
+                                        fly->v3d,
+                                        fly->rv3d,
+                                        fly->region->winx,
+                                        fly->region->winy,
+                                        false,
+                                        false,
+                                        false);
     xoff = int(viewborder.xmin);
     yoff = int(viewborder.ymin);
   }
@@ -402,8 +410,15 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
 
   /* Calculate center. */
   if (ED_view3d_cameracontrol_object_get(fly->v3d_camera_control)) {
-    ED_view3d_calc_camera_border(
-        fly->scene, fly->depsgraph, fly->region, fly->v3d, fly->rv3d, false, false, &viewborder);
+    viewborder = BKE_camera_view_border(fly->scene,
+                                        fly->depsgraph,
+                                        fly->v3d,
+                                        fly->rv3d,
+                                        fly->region->winx,
+                                        fly->region->winy,
+                                        false,
+                                        false,
+                                        false);
 
     fly->viewport_size[0] = BLI_rctf_size_x(&viewborder);
     fly->viewport_size[1] = BLI_rctf_size_y(&viewborder);

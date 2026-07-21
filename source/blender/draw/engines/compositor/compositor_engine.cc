@@ -14,6 +14,7 @@
 #include "DNA_vec_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_camera.h"
 #include "BKE_compositor.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
@@ -101,16 +102,15 @@ class Context : public compositor::Context {
       return compositor::Domain(int2(draw_ctx->viewport_size_get()));
     }
 
-    rctf camera_border;
-    ED_view3d_calc_camera_border(draw_ctx->scene,
-                                 draw_ctx->depsgraph,
-                                 draw_ctx->region,
-                                 draw_ctx->v3d,
-                                 draw_ctx->rv3d,
-                                 false,
-                                 true,
-                                 &camera_border);
-
+    const rctf camera_border = BKE_camera_view_border(draw_ctx->scene,
+                                                      draw_ctx->depsgraph,
+                                                      draw_ctx->v3d,
+                                                      draw_ctx->rv3d,
+                                                      draw_ctx->region->winx,
+                                                      draw_ctx->region->winy,
+                                                      false,
+                                                      false,
+                                                      true);
     const Bounds<int2> camera_region = Bounds<int2>(
         int2(int(camera_border.xmin), int(camera_border.ymin)),
         int2(int(camera_border.xmax), int(camera_border.ymax)));
@@ -137,16 +137,15 @@ class Context : public compositor::Context {
       return render_region;
     }
 
-    rctf camera_border;
-    ED_view3d_calc_camera_border(draw_ctx->scene,
-                                 draw_ctx->depsgraph,
-                                 draw_ctx->region,
-                                 draw_ctx->v3d,
-                                 draw_ctx->rv3d,
-                                 false,
-                                 true,
-                                 &camera_border);
-
+    const rctf camera_border = BKE_camera_view_border(draw_ctx->scene,
+                                                      draw_ctx->depsgraph,
+                                                      draw_ctx->v3d,
+                                                      draw_ctx->rv3d,
+                                                      draw_ctx->region->winx,
+                                                      draw_ctx->region->winy,
+                                                      false,
+                                                      false,
+                                                      true);
     const Bounds<int2> camera_region = Bounds<int2>(
         int2(int(camera_border.xmin), int(camera_border.ymin)),
         int2(int(camera_border.xmax), int(camera_border.ymax)));

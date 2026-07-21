@@ -29,6 +29,7 @@
 #include "BLI_rect.hh"
 #include "BLI_time.hh" /* Smooth-view. */
 
+#include "BKE_camera.h"
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
@@ -364,8 +365,15 @@ static void drawWalkPixel(const bContext * /*C*/, ARegion *region, void *arg)
   rctf viewborder;
 
   if (ED_view3d_cameracontrol_object_get(walk->v3d_camera_control)) {
-    ED_view3d_calc_camera_border(
-        walk->scene, walk->depsgraph, region, walk->v3d, walk->rv3d, false, false, &viewborder);
+    viewborder = BKE_camera_view_border(walk->scene,
+                                        walk->depsgraph,
+                                        walk->v3d,
+                                        walk->rv3d,
+                                        region->winx,
+                                        region->winy,
+                                        false,
+                                        false,
+                                        false);
     xoff = viewborder.xmin + BLI_rctf_size_x(&viewborder) * 0.5f;
     yoff = viewborder.ymin + BLI_rctf_size_y(&viewborder) * 0.5f;
   }

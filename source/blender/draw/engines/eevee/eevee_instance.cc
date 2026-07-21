@@ -10,6 +10,7 @@
 
 #include "CLG_log.h"
 
+#include "BKE_camera.h"
 #include "BKE_global.hh"
 #include "BKE_object.hh"
 #include "BKE_scene.hh"
@@ -86,38 +87,34 @@ void Instance::init()
       camera = v3d->camera;
     }
 
-    if (camera) {
-      if (scene->r.mode & R_BORDER) {
-        if (draw_ctx->is_viewport_image_render() || draw_ctx->is_viewport_xr()) {
+    if (draw_ctx->is_viewport_image_render() || draw_ctx->is_viewport_xr()) {
+      if (camera) {
+        if (scene->r.mode & R_BORDER) {
           rect.xmin = scene->r.border.xmin * size[0];
           rect.ymin = scene->r.border.ymin * size[1];
           rect.xmax = scene->r.border.xmax * size[0];
           rect.ymax = scene->r.border.ymax * size[1];
         }
-        else {
-          rctf viewborder;
-          /* TODO(fclem) Might be better to get it from DRW. */
-          ED_view3d_calc_camera_border(
-              scene, depsgraph, region, v3d, rv3d, false, true, &viewborder);
-          float viewborder_sizex = BLI_rctf_size_x(&viewborder);
-          float viewborder_sizey = BLI_rctf_size_y(&viewborder);
-          rect.xmin = floorf(viewborder.xmin + (scene->r.border.xmin * viewborder_sizex));
-          rect.ymin = floorf(viewborder.ymin + (scene->r.border.ymin * viewborder_sizey));
-          rect.xmax = floorf(viewborder.xmin + (scene->r.border.xmax * viewborder_sizex));
-          rect.ymax = floorf(viewborder.ymin + (scene->r.border.ymax * viewborder_sizey));
-          /* Clamp it to the viewport area. */
-          rect.xmin = max(rect.xmin, 0);
-          rect.ymin = max(rect.ymin, 0);
-          rect.xmax = min(rect.xmax, size.x);
-          rect.ymax = min(rect.ymax, size.y);
-        }
+      }
+      else if (v3d->flag2 & V3D_RENDER_BORDER) {
+        rect.xmin = v3d->render_border.xmin * size[0];
+        rect.ymin = v3d->render_border.ymin * size[1];
+        rect.xmax = v3d->render_border.xmax * size[0];
+        rect.ymax = v3d->render_border.ymax * size[1];
       }
     }
-    else if (v3d->flag2 & V3D_RENDER_BORDER) {
-      rect.xmin = v3d->render_border.xmin * size[0];
-      rect.ymin = v3d->render_border.ymin * size[1];
-      rect.xmax = v3d->render_border.xmax * size[0];
-      rect.ymax = v3d->render_border.ymax * size[1];
+    else {
+      rctf border;
+      if (rv3d && BKE_camera_view_render_border(
+                      scene, depsgraph, v3d, rv3d, size[0], size[1], &border, nullptr))
+      {
+        BLI_rcti_rctf_copy_floor(&rect, &border);
+        /* Clamp it to the viewport area. */
+        rect.xmin = max(rect.xmin, 0);
+        rect.ymin = max(rect.ymin, 0);
+        rect.xmax = min(rect.xmax, size.x);
+        rect.ymax = min(rect.ymax, size.y);
+      }
     }
 
     if (draw_ctx->is_viewport_image_render() || draw_ctx->is_viewport_xr()) {
@@ -211,10 +208,16 @@ void Instance::init(const int2 &output_res,
   if (is_viewport() && v3d && rv3d && rv3d->persp == RV3D_CAMOB && v3d->camera &&
       !draw_ctx->is_viewport_image_render() && !draw_ctx->is_viewport_xr())
   {
-    rctf camera_border;
     /* Anchor reference spheres to camera border. */
-    ED_view3d_calc_camera_border(
-        scene, depsgraph, draw_ctx->region, v3d, rv3d, false, false, &camera_border);
+    const rctf camera_border = BKE_camera_view_border(scene,
+                                                      depsgraph,
+                                                      v3d,
+                                                      rv3d,
+                                                      draw_ctx->region->winx,
+                                                      draw_ctx->region->winy,
+                                                      false,
+                                                      false,
+                                                      false);
     BLI_rcti_rctf_copy(&lookdev_rect, &camera_border);
   }
 

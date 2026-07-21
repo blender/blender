@@ -181,7 +181,6 @@ static wmOperatorStatus view3d_center_camera_exec(bContext *C, wmOperator * /*op
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   float xfac, yfac;
-  float size[2];
 
   View3D *v3d;
   ARegion *region;
@@ -194,7 +193,9 @@ static wmOperatorStatus view3d_center_camera_exec(bContext *C, wmOperator * /*op
   rv3d->camdx = rv3d->camdy = 0.0f;
   rv3d->camroll = 0.0f;
 
-  ED_view3d_calc_camera_border_size(scene, depsgraph, region, v3d, rv3d, size);
+  const rctf viewborder = BKE_camera_view_border(
+      scene, depsgraph, v3d, rv3d, region->winx, region->winy, true, true, false);
+  const float2 size = {BLI_rctf_size_x(&viewborder), BLI_rctf_size_y(&viewborder)};
 
   /* 4px is just a little room from the edge of the area */
   xfac = float(region->winx) / float(size[0] + 4);
@@ -279,7 +280,8 @@ static wmOperatorStatus render_border_exec(bContext *C, wmOperator *op)
 
   if (rv3d->persp == RV3D_CAMOB) {
     const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-    ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, false, true, &vb);
+    vb = BKE_camera_view_border(
+        scene, depsgraph, v3d, rv3d, region->winx, region->winy, false, false, true);
   }
   else {
     vb.xmin = 0;
@@ -440,14 +442,14 @@ static void view3d_set_1_to_1_viewborder(Scene *scene,
                                          View3D *v3d)
 {
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-  float size[2];
 
   int im_width, im_height;
   BKE_render_resolution(&scene->r, false, &im_width, &im_height);
 
-  ED_view3d_calc_camera_border_size(scene, depsgraph, region, v3d, rv3d, size);
+  const rctf viewborder = BKE_camera_view_border(
+      scene, depsgraph, v3d, rv3d, region->winx, region->winy, true, true, false);
 
-  rv3d->camzoom = BKE_screen_view3d_zoom_from_fac(float(im_width) / size[0]);
+  rv3d->camzoom = BKE_screen_view3d_zoom_from_fac(float(im_width) / BLI_rctf_size_x(&viewborder));
   CLAMP(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
 }
 

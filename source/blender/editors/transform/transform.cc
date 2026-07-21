@@ -11,6 +11,7 @@
 #include "BLI_math_vector_c.hh"
 #include "BLI_rect.hh"
 
+#include "BKE_camera.h"
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_global.hh"
@@ -264,8 +265,15 @@ void projectFloatViewCenterFallback(TransInfo *t, float adr[2])
              * for a 3D point that couldn't be projected. */
             const bool no_shift = true;
             rctf viewborder = {0};
-            ED_view3d_calc_camera_border(
-                t->scene, t->depsgraph, region, v3d, rv3d, no_shift, true, &viewborder);
+            viewborder = BKE_camera_view_border(t->scene,
+                                                t->depsgraph,
+                                                v3d,
+                                                rv3d,
+                                                region->winx,
+                                                region->winy,
+                                                no_shift,
+                                                false,
+                                                true);
             adr[0] = BLI_rctf_cent_x(&viewborder);
             adr[1] = BLI_rctf_cent_y(&viewborder);
             changed = true;
