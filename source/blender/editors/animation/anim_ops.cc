@@ -7,6 +7,7 @@
  */
 
 #include <algorithm>
+#include <cinttypes>
 #include <cmath>
 #include <cstdlib>
 
@@ -1797,7 +1798,7 @@ static wmOperatorStatus rotation_mode_convert_exec(bContext *C, wmOperator *op)
   if (skipped_actions.size() > 0) {
     BKE_reportf(op->reports,
                 RPT_WARNING,
-                "Skipped actions because they cannot be edited: %lld",
+                "Skipped actions because they cannot be edited: %" PRId64,
                 skipped_actions.size());
   }
 
