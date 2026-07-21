@@ -653,6 +653,12 @@ static PyObject *py_blf_bind_imbuf_enter(BPyBLFImBufContext *self)
 
 static PyObject *py_blf_bind_imbuf_exit(BPyBLFImBufContext *self, PyObject * /*args*/)
 {
+  if (self->buffer_state == nullptr) [[unlikely]] {
+    PyErr_SetString(PyExc_ValueError,
+                    "BLFImBufContext.__exit__: called without a matching __enter__");
+    return nullptr;
+  }
+
   BLF_buffer_state_pop(self->buffer_state);
   self->buffer_state = nullptr;
 
