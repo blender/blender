@@ -208,7 +208,7 @@ struct SpaceText_Runtime {
 
   /**
    * Run-time for scroll increments smaller than a line (smooth scroll).
-   * Values must be between zero and the line, column width: (cwidth, TXT_LINE_HEIGHT(st)).
+   * Values must be between zero and the line, column width: (char_width, TXT_LINE_HEIGHT(st)).
    */
   int scroll_ofs_px[2]{0, 0};
 

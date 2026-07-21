@@ -320,7 +320,7 @@ void ZstdWriteWrap::compress_task_run(TaskPool *pool, void *taskdata)
 
   frame->compressed_data = out_buf;
   /* Do not store 'error code' size, as its value will be out of uint32_t range. The size value
-   * is not used in case an error has occured anyway (compressed frames are not written, and
+   * is not used in case an error has occurred anyway (compressed frames are not written, and
    * neither is the final seek table). */
   if (ZSTD_isError(out_size)) [[unlikely]] {
     ww->write_error = true;

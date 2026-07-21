@@ -481,7 +481,7 @@ void version_node_socket_index_animdata(Main *bmain,
                                         const int total_number_of_sockets)
 {
   const DriverMap driver_map = BKE_animdata_build_driver_target_map(*bmain);
-  /* See preceeding definition of `version_node_socket_index_animdata` for the reasoning of why the
+  /* See preceding definition of `version_node_socket_index_animdata` for the reasoning of why the
    * input ids for loop is at the top level.*/
   for (int input_index = total_number_of_sockets - 1; input_index >= socket_index_orig;
        input_index--)

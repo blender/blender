@@ -114,7 +114,7 @@ struct MutableString {
 #ifndef NDEBUG
         last_substitution_failure = "Trying to substitute \n\"" +
                                     str_.substr(range.start, range.size) + "\"\nwith \n\"" +
-                                    replacement + "\"\nbut it overlaps with subsituting \n\"" +
+                                    replacement + "\"\nbut it overlaps with substituting \n\"" +
                                     str_.substr(mut.src_range.start, mut.src_range.size) +
                                     "\"\nwith \n\"" + mut.replacement + "\"";
 #endif

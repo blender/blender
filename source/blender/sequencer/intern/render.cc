@@ -443,7 +443,7 @@ static float3x3 calc_strip_transform_matrix(const Scene *scene,
   /* Step 4: Map input image center to output canvas center, where (0,0) is canvas bottom-left. */
   /* TODO(@john): Existing tests expect no interpolation of untransformed images that cannot
    * cleanly center themselves in the canvas. However, this is arguably incorrect as it results in
-   * positional error (decentering). Uncomment this line for future PR that updates tests, and for
+   * positional error (de-centering). Uncomment this line for future PR that updates tests, and for
    * now, use a workaround that should pixel-perfect reproduce old behavior.  */
 
   /* const float3x3 center_in_canvas = math::from_location<float3x3>(float2(out_size) / 2.0f); */
