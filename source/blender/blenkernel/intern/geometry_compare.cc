@@ -280,8 +280,8 @@ static bool values_different(const T value1,
     return compare_threshold_relative(value1, value2, threshold);
   }
 
-  /* GCC 15.x triggers an array-bounds warning unless `component_i` is assumed to be in range. */
-#if (defined(__GNUC__) && (__GNUC__ >= 15) && !defined(__clang__))
+  /* GCC 14.x and newer trigger an array-bounds warning unless `component_i` is in range. */
+#if (defined(__GNUC__) && (__GNUC__ >= 14) && !defined(__clang__))
 #  define ASSERT_AND_ASSUME(expr) \
     BLI_assert(expr); \
     [[assume(expr)]];

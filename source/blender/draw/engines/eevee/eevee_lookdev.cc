@@ -222,8 +222,8 @@ gpu::Batch *LookdevModule::sphere_get(const SphereLOD level_of_detail)
 {
   BLI_assert(level_of_detail >= SphereLOD::LOW && level_of_detail < SphereLOD::MAX);
 
-  /* GCC 15.x triggers an array-bounds warning without this. */
-#if (defined(__GNUC__) && (__GNUC__ >= 15) && !defined(__clang__))
+  /* GCC 14.x and newer trigger an array-bounds warning without this. */
+#if (defined(__GNUC__) && (__GNUC__ >= 14) && !defined(__clang__))
   [[assume((level_of_detail >= 0) && (level_of_detail < SphereLOD::MAX))]];
 #endif
 
