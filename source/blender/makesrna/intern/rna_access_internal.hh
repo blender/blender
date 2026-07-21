@@ -25,7 +25,7 @@ struct PropertyRNAOrID;
  * type, and the `PropertyFlagIntern::PROP_INTERN_RNA_DEFINITION` of the PropertyRNA's definition,
  * are either both set, or both unset.
  */
-bool rna_property_can_access_pointer_data(PointerRNA &ptr, PropertyRNA &prop);
+bool rna_property_can_access_pointer_data(const blender::PointerRNA &ptr, PropertyRNA &prop);
 
 /**
  * This function initializes a #PropertyRNAOrID with all required info, from a given #PropertyRNA
