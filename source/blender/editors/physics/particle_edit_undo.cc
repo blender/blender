@@ -248,6 +248,11 @@ static void particle_undosys_step_decode(
       CTX_wm_manager(C), us->scene_ref.ptr, &scene, &view_layer);
 
   Object *ob = us->object_ref.ptr;
+  if (ob->mode != OB_MODE_PARTICLE_EDIT) {
+    /* Exit the current mode before restoring Particle Edit to clean up its runtime data and avoid
+     * combining incompatible mode bits. */
+    ed::object::mode_generic_exit(bmain, depsgraph, scene, ob);
+  }
   ED_object_particle_edit_mode_enter_ex(depsgraph, scene, ob);
 
   PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
