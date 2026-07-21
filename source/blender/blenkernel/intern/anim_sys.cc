@@ -4183,7 +4183,7 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph, ID *id, int driver_index, FCu
           animsys_write_orig_anim_rna(&id_ptr, fcu->rna_path, fcu->array_index, curval);
 
           /* curval is displayed in the UI, and flag contains error-status codes */
-          fcu_orig->curval = fcu->curval;
+          fcu_orig->runtime->curval = fcu->runtime->curval;
           driver_orig->curval = fcu->driver->curval;
           driver_orig->flag = fcu->driver->flag;
 

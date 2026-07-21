@@ -36,6 +36,15 @@ struct StructRNA;
 struct bAction;
 struct bContext;
 
+namespace bke {
+
+struct FCurveRuntime {
+  /** Value stored from last time curve was evaluated (not threadsafe, debug display only!). */
+  float curval = 0;
+};
+
+}  // namespace bke
+
 /* ************** F-Curve Modifiers *************** */
 
 /**

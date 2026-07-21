@@ -66,6 +66,7 @@ static CLG_LogRef LOG = {"anim.fcurve"};
 FCurve *BKE_fcurve_create()
 {
   FCurve *fcu = MEM_new<FCurve>(__func__);
+  fcu->runtime = MEM_new<FCurveRuntime>(__func__);
   return fcu;
 }
 
@@ -93,6 +94,7 @@ void BKE_fcurve_free(FCurve *fcu)
   free_fmodifiers(&fcu->modifiers);
 
   /* Free the f-curve itself. */
+  MEM_delete(fcu->runtime);
   MEM_delete(fcu);
 }
 
@@ -130,6 +132,7 @@ FCurve *BKE_fcurve_copy(const FCurve *fcu)
 
   /* Make a copy. */
   FCurve *fcu_d = MEM_dupalloc(fcu);
+  fcu_d->runtime = MEM_new<bke::FCurveRuntime>(__func__, *fcu->runtime);
 
   fcu_d->next = fcu_d->prev = nullptr;
   fcu_d->grp = nullptr;
@@ -2486,7 +2489,7 @@ float calculate_fcurve(PathResolvedRNA *anim_rna,
   else {
     curval = evaluate_fcurve(fcu, anim_eval_context->eval_time);
   }
-  fcu->curval = curval; /* Debug display only, not thread safe! */
+  fcu->runtime->curval = curval; /* Debug display only, not thread safe! */
   return curval;
 }
 
@@ -2620,7 +2623,9 @@ void BKE_fcurve_blend_write_data(BlendWriter *writer, FCurve *fcu)
 
 void BKE_fcurve_blend_write_listbase(BlendWriter *writer, ListBaseT<FCurve> *fcurves)
 {
-  writer->write_struct_list(fcurves);
+  writer->write_struct_list(fcurves, [](BlendStructWriter &struct_writer) {
+    struct_writer.runtime_ptr(offsetof(FCurve, runtime));
+  });
   for (FCurve &fcu : *fcurves) {
     BKE_fcurve_blend_write_data(writer, &fcu);
   }
@@ -2630,6 +2635,7 @@ void BKE_fcurve_blend_read_data(BlendDataReader *reader, FCurve *fcu)
 {
   /* Curve data: only one of `bezt`/`fpt` is set, so guard validation to avoid clobbering
    * `totvert` when reading the unset pointer. */
+  fcu->runtime = MEM_new<bke::FCurveRuntime>(__func__);
   if (fcu->bezt) {
     BLO_read_array_and_validate_size(reader, &fcu->bezt, &fcu->totvert);
   }
