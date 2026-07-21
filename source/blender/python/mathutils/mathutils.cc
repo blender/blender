@@ -267,6 +267,8 @@ int mathutils_array_parse_alloc_v(float **array,
   const int array_dim_flag = array_dim;
   int i, num;
 
+  *array = nullptr;
+
   /* non list/tuple cases */
   if (!(value_fast = PySequence_Fast(value, error_prefix))) {
     /* PySequence_Fast sets the error */
@@ -341,6 +343,8 @@ int mathutils_array_parse_alloc_vi(int **array,
 {
   PyObject *value_fast;
   int i, size;
+
+  *array = nullptr;
 
   if (!(value_fast = PySequence_Fast(value, error_prefix))) {
     /* PySequence_Fast sets the error */
