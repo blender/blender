@@ -181,7 +181,7 @@ void ED_editors_init(bContext *C)
     else {
       /* TODO(@ideasman42): avoid operator calls. */
       if (obact == ob) {
-        object::mode_set(C, eObjectMode(mode));
+        object::mode_set_ex(C, eObjectMode(mode), true, reports);
       }
     }
   }
