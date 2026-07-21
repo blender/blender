@@ -27,18 +27,6 @@ struct wmWindow;
 struct wmWindowManager;
 struct Main;
 
-struct wmPaintCursor {
-  wmPaintCursor *next, *prev;
-
-  void *customdata;
-
-  bool (*poll)(bContext *C);
-  void (*draw)(bContext *C, const int2 &xy, const float2 &tilt, void *customdata);
-
-  short space_type;
-  short region_type;
-};
-
 /**
  * Cause a delayed #WM_exit()
  * call to avoid leaking memory when trying to exit from within operators.

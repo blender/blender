@@ -1250,10 +1250,23 @@ struct wmIMEData {
 
 /* **************** Paint Cursor ******************* */
 
+using wmPaintCursorPoll = bool (*)(bContext *C);
 using wmPaintCursorDraw = void (*)(bContext *C,
                                    const int2 &xy,
                                    const float2 &tilt,
                                    void *customdata);
+
+struct wmPaintCursor {
+  wmPaintCursor *next, *prev;
+
+  void *customdata;
+
+  wmPaintCursorPoll poll;
+  wmPaintCursorDraw draw;
+
+  short space_type;
+  short region_type;
+};
 
 /* *************** Drag and drop *************** */
 
