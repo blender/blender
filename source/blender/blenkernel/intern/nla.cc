@@ -1844,7 +1844,7 @@ void BKE_nlastrip_validate_fcurves(NlaStrip *strip)
       fcu->auto_smoothing = U.auto_smoothing_new;
 
       /* store path - make copy, and store that */
-      fcu->rna_path = BLI_strdupn("influence", 9);
+      fcu->rna_path_ptr = BLI_strdupn("influence", 9);
 
       /* insert keyframe to ensure current value stays on first refresh */
       fcu->bezt = MEM_new_zeroed<BezTriple>("nlastrip influence bezt");
@@ -1875,7 +1875,7 @@ void BKE_nlastrip_validate_fcurves(NlaStrip *strip)
       fcu->auto_smoothing = U.auto_smoothing_new;
 
       /* store path - make copy, and store that */
-      fcu->rna_path = BLI_strdupn("strip_time", 10);
+      fcu->rna_path_ptr = BLI_strdupn("strip_time", 10);
 
       /* TODO: insert a few keyframes to ensure default behavior? */
     }
@@ -1884,10 +1884,10 @@ void BKE_nlastrip_validate_fcurves(NlaStrip *strip)
 
 bool BKE_nlastrip_controlcurve_remove(NlaStrip *strip, FCurve *fcurve)
 {
-  if (STREQ(fcurve->rna_path, "strip_time")) {
+  if (STREQ(fcurve->rna_path_ptr, "strip_time")) {
     strip->flag &= ~NLASTRIP_FLAG_USR_TIME;
   }
-  else if (STREQ(fcurve->rna_path, "influence")) {
+  else if (STREQ(fcurve->rna_path_ptr, "influence")) {
     strip->flag &= ~NLASTRIP_FLAG_USR_INFLUENCE;
   }
   else {

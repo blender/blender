@@ -939,16 +939,16 @@ static void fcurve_path_rename(const char *orig_rna_path,
     if (processed_fcurves.contains(fcu)) {
       continue;
     }
-    if (!STREQLEN(fcu->rna_path, orig_rna_path, len)) {
+    if (!STREQLEN(fcu->rna_path_ptr, orig_rna_path, len)) {
       continue;
     }
 
     processed_fcurves.add(fcu);
 
-    const char *suffix = fcu->rna_path + len;
+    const char *suffix = fcu->rna_path_ptr + len;
     char *new_rna_path = BLI_sprintfN("%s%s", rna_path, suffix);
-    MEM_SAFE_DELETE(fcu->rna_path);
-    fcu->rna_path = new_rna_path;
+    MEM_SAFE_DELETE(fcu->rna_path_ptr);
+    fcu->rna_path_ptr = new_rna_path;
   }
 }
 
@@ -1062,8 +1062,8 @@ static void fcurve_path_rename(const char *orig_rna_path,
       continue;
     }
 
-    if (STRPREFIX(fcu->rna_path, "splines")) {
-      const char *ch = strchr(fcu->rna_path, '.');
+    if (STRPREFIX(fcu->rna_path_ptr, "splines")) {
+      const char *ch = strchr(fcu->rna_path_ptr, '.');
 
       if (ch && (STRPREFIX(ch, ".bezier_points") || STRPREFIX(ch, ".points"))) {
         fcurves_to_remove.append(fcu);
@@ -1096,7 +1096,7 @@ static void fcurve_path_rename(const char *orig_rna_path,
     if (processed_fcurves.contains(fcu)) {
       continue;
     }
-    if (STRPREFIX(fcu->rna_path, "splines")) {
+    if (STRPREFIX(fcu->rna_path_ptr, "splines")) {
       fcurves_to_remove.append(fcu);
       /* Not strictly necessary, because `orig_curves` shouldn't contain any duplicates, and this
        * is the last loop that can add anything to `fcurves_to_remove`. However, the line below

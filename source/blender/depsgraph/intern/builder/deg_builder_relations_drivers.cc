@@ -87,26 +87,26 @@ OperationKey DriverDescriptor::depsgraph_key() const
   return OperationKey(id_ptr_->owner_id,
                       NodeType::PARAMETERS,
                       OperationCode::DRIVER,
-                      fcu_->rna_path,
+                      fcu_->rna_path_ptr,
                       fcu_->array_index);
 }
 
 void DriverDescriptor::split_rna_path()
 {
-  const char *last_dot = strrchr(fcu_->rna_path, '.');
+  const char *last_dot = strrchr(fcu_->rna_path_ptr, '.');
   if (last_dot == nullptr || last_dot[1] == '\0') {
     rna_prefix = StringRef();
-    rna_suffix = StringRef(fcu_->rna_path);
+    rna_suffix = StringRef(fcu_->rna_path_ptr);
     return;
   }
 
-  rna_prefix = StringRef(fcu_->rna_path, last_dot);
+  rna_prefix = StringRef(fcu_->rna_path_ptr, last_dot);
   rna_suffix = StringRef(last_dot + 1);
 }
 
 bool DriverDescriptor::resolve_rna()
 {
-  return RNA_path_resolve_property(id_ptr_, fcu_->rna_path, &pointer_rna_, &property_rna_);
+  return RNA_path_resolve_property(id_ptr_, fcu_->rna_path_ptr, &pointer_rna_, &property_rna_);
 }
 
 static bool is_reachable(const Node *const from, const Node *const to)
@@ -173,7 +173,7 @@ void DepsgraphRelationBuilder::build_driver_relations(IDNode *id_node)
   PointerRNA id_ptr = RNA_id_pointer_create(id_orig);
 
   for (FCurve &fcu : adt->drivers) {
-    if (fcu.rna_path == nullptr) {
+    if (fcu.rna_path_ptr == nullptr) {
       continue;
     }
 

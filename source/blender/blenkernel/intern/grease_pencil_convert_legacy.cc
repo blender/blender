@@ -235,10 +235,10 @@ class AnimDataConvertor {
   /* Basic common check to decide whether a legacy fcurve should be processed or not. */
   bool legacy_fcurves_is_valid_for_root_path(FCurve &fcurve, StringRefNull legacy_root_path) const
   {
-    if (!fcurve.rna_path) {
+    if (!fcurve.rna_path_ptr) {
       return false;
     }
-    StringRefNull rna_path = fcurve.rna_path;
+    StringRefNull rna_path = fcurve.rna_path_ptr;
     if (!rna_path.startswith(legacy_root_path)) {
       return false;
     }
@@ -419,7 +419,7 @@ class AnimDataConvertor {
         has_animation = true;
         return false;
       }
-      StringRefNull rna_path = fcurve.rna_path;
+      StringRefNull rna_path = fcurve.rna_path_ptr;
       for (const AnimDataFCurveConvertor &fcurve_convertor : this->fcurve_convertors) {
         const std::string rna_path_src = fmt::format(
             "{}{}", this->root_path_src, fcurve_convertor.relative_rna_path_src);
@@ -451,8 +451,8 @@ class AnimDataConvertor {
                                  bAction *owner_action,
                                  FCurve &fcurve,
                                  const std::string &rna_path_dst) {
-      MEM_delete(fcurve.rna_path);
-      fcurve.rna_path = BLI_strdupn(rna_path_dst.c_str(), rna_path_dst.size());
+      MEM_delete(fcurve.rna_path_ptr);
+      fcurve.rna_path_ptr = BLI_strdupn(rna_path_dst.c_str(), rna_path_dst.size());
       if (fcurve_convertor && fcurve_convertor->convert_cb) {
         fcurve_convertor->convert_cb(fcurve);
       }
@@ -480,7 +480,7 @@ class AnimDataConvertor {
         if (!legacy_fcurves_is_valid_for_root_path(fcurve, this->root_path_src)) {
           return false;
         }
-        StringRefNull rna_path = fcurve.rna_path;
+        StringRefNull rna_path = fcurve.rna_path_ptr;
         const std::string rna_path_dst = fmt::format(
             "{}{}", this->root_path_dst, rna_path.substr(int64_t(this->root_path_src.size())));
         fcurve_convert_cb(nullptr, owner_action, fcurve, rna_path_dst);
@@ -497,7 +497,7 @@ class AnimDataConvertor {
       if (!animation_fcurve_is_valid(owner_action, fcurve)) {
         return false;
       }
-      StringRefNull rna_path = fcurve.rna_path;
+      StringRefNull rna_path = fcurve.rna_path_ptr;
       for (const AnimDataFCurveConvertor &fcurve_convertor : this->fcurve_convertors) {
         const std::string rna_path_src = fmt::format(
             "{}{}", this->root_path_src, fcurve_convertor.relative_rna_path_src);

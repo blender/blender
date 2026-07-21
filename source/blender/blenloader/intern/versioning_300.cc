@@ -488,9 +488,9 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene,
             }
           }
           if (substr) {
-            char *new_path = BLI_string_replaceN(fcu->rna_path, "speed_factor", substr);
-            MEM_delete(fcu->rna_path);
-            fcu->rna_path = new_path;
+            char *new_path = BLI_string_replaceN(fcu->rna_path_ptr, "speed_factor", substr);
+            MEM_delete(fcu->rna_path_ptr);
+            fcu->rna_path_ptr = new_path;
           }
         }
       }
@@ -649,8 +649,9 @@ static void strip_speed_factor_fix_rna_path(Strip *strip, ListBaseT<FCurve> *fcu
   char *path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].pitch", name_esc);
   FCurve *fcu = BKE_fcurve_find(fcurves, path, 0);
   if (fcu != nullptr) {
-    MEM_delete(fcu->rna_path);
-    fcu->rna_path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].speed_factor", name_esc);
+    MEM_delete(fcu->rna_path_ptr);
+    fcu->rna_path_ptr = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].speed_factor",
+                                     name_esc);
   }
   MEM_delete(path);
 }
@@ -1461,7 +1462,7 @@ static void do_version_bbone_len_scale_fcurve_fix(FCurve *fcu)
   }
 
   /* Update F-Curve's path. */
-  replace_bbone_len_scale_rnapath(&fcu->rna_path, &fcu->array_index);
+  replace_bbone_len_scale_rnapath(&fcu->rna_path_ptr, &fcu->array_index);
 }
 
 static void do_version_bones_bbone_len_scale(ListBaseT<Bone> *lb)

@@ -66,14 +66,14 @@ void AnimatedPropertyStorage::initializeFromID(DepsgraphBuilderCache *builder_ca
 {
   PointerRNA own_pointer_rna = RNA_id_pointer_create(const_cast<ID *>(id));
   BKE_fcurves_id_cb(const_cast<ID *>(id), [&](ID * /*id*/, FCurve *fcurve) {
-    if (fcurve->rna_path == nullptr || fcurve->rna_path[0] == '\0') {
+    if (fcurve->rna_path_ptr == nullptr || fcurve->rna_path_ptr[0] == '\0') {
       return;
     }
     /* Resolve property. */
     PointerRNA pointer_rna;
     PropertyRNA *property_rna = nullptr;
     if (!RNA_path_resolve_property(
-            &own_pointer_rna, fcurve->rna_path, &pointer_rna, &property_rna))
+            &own_pointer_rna, fcurve->rna_path_ptr, &pointer_rna, &property_rna))
     {
       return;
     }

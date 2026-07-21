@@ -620,8 +620,8 @@ static void rna_FCurve_RnaPath_get(PointerRNA *ptr, char *value)
 {
   FCurve *fcu = static_cast<FCurve *>(ptr->data);
 
-  if (fcu->rna_path) {
-    strcpy(value, fcu->rna_path);
+  if (fcu->rna_path_ptr) {
+    strcpy(value, fcu->rna_path_ptr);
   }
   else {
     value[0] = '\0';
@@ -632,8 +632,8 @@ static int rna_FCurve_RnaPath_length(PointerRNA *ptr)
 {
   FCurve *fcu = static_cast<FCurve *>(ptr->data);
 
-  if (fcu->rna_path) {
-    return strlen(fcu->rna_path);
+  if (fcu->rna_path_ptr) {
+    return strlen(fcu->rna_path_ptr);
   }
   return 0;
 }
@@ -642,16 +642,16 @@ static void rna_FCurve_RnaPath_set(PointerRNA *ptr, const char *value)
 {
   FCurve *fcu = static_cast<FCurve *>(ptr->data);
 
-  if (fcu->rna_path) {
-    MEM_delete(fcu->rna_path);
+  if (fcu->rna_path_ptr) {
+    MEM_delete(fcu->rna_path_ptr);
   }
 
   if (value[0]) {
-    fcu->rna_path = BLI_strdup(value);
+    fcu->rna_path_ptr = BLI_strdup(value);
     fcu->flag &= ~FCURVE_DISABLED;
   }
   else {
-    fcu->rna_path = nullptr;
+    fcu->rna_path_ptr = nullptr;
   }
 }
 
@@ -711,7 +711,7 @@ static void rna_FCurve_group_set(PointerRNA *ptr, PointerRNA value, ReportList *
     printf(
         "ERROR: F-Curve (datapath: '%s') doesn't belong to the same channel bag as "
         "channel group '%s'\n",
-        fcu->rna_path,
+        fcu->rna_path_ptr,
         group->name);
     return;
   }

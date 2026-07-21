@@ -1857,7 +1857,7 @@ Vector<FCurve *> Channelbag::fcurve_create_many(Main *bmain,
   unique_curves.reserve(prev_fcurve_num);
   for (FCurve *fcurve : this->fcurves()) {
     CurvePathIndex path_index;
-    path_index.rna_path = StringRefNull(fcurve->rna_path ? fcurve->rna_path : "");
+    path_index.rna_path = StringRefNull(fcurve->rna_path_ptr ? fcurve->rna_path_ptr : "");
     path_index.array_index = fcurve->array_index;
     unique_curves.add(path_index);
   }
@@ -1943,8 +1943,8 @@ FCurve &Channelbag::fcurve_clone(const FCurve &old_fcurve,
   }
   else {
     new_fcurve = BKE_fcurve_copy(&old_fcurve);
-    MEM_delete(new_fcurve->rna_path);
-    new_fcurve->rna_path = BLI_strdup(new_path.data());
+    MEM_delete(new_fcurve->rna_path_ptr);
+    new_fcurve->rna_path_ptr = BLI_strdup(new_path.data());
     new_fcurve->array_index = new_array_index;
     this->fcurve_append(*new_fcurve);
   }
@@ -2621,12 +2621,12 @@ bool fcurve_matches_collection_path(const FCurve &fcurve,
   const size_t quoted_name_size = data_name.size() + 1;
   char *quoted_name = static_cast<char *>(alloca(quoted_name_size));
 
-  if (!fcurve.rna_path) {
+  if (!fcurve.rna_path_ptr) {
     return false;
   }
   /* Skipping names longer than `quoted_name_size` is OK since we're after an exact match. */
   if (!BLI_str_quoted_substr(
-          fcurve.rna_path, collection_rna_path.c_str(), quoted_name, quoted_name_size))
+          fcurve.rna_path_ptr, collection_rna_path.c_str(), quoted_name, quoted_name_size))
   {
     return false;
   }
@@ -2783,7 +2783,7 @@ void action_fcurve_attach(Action &action,
     printf("Cannot find slot handle %d on Action %s, unable to attach F-Curve %s[%d] to it!\n",
            action_slot,
            action.id.name + 2,
-           fcurve_to_attach.rna_path,
+           fcurve_to_attach.rna_path_ptr,
            fcurve_to_attach.array_index);
     return;
   }

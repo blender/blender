@@ -520,9 +520,9 @@ static void refresh_node_sockets_animation_inout(Main &bmain,
      * sockets swap their position, the same fcurve may be modified twice and ends up with its
      * original rna path. */
     animrig::foreach_fcurve_in_action_slot(
-        action, slot.handle, [&](FCurve &fcurve) { handle_rna_path(&fcurve.rna_path); });
+        action, slot.handle, [&](FCurve &fcurve) { handle_rna_path(&fcurve.rna_path_ptr); });
     for (FCurve &driver_fcurve : ntree.adt->drivers) {
-      handle_rna_path(&driver_fcurve.rna_path);
+      handle_rna_path(&driver_fcurve.rna_path_ptr);
     }
   }
 

@@ -396,7 +396,7 @@ struct FCurve {
    *
    * \note String look-ups for collection and custom-properties are escaped using #BLI_str_escape.
    */
-  char *rna_path = nullptr;
+  char *rna_path_ptr = nullptr;
 
   /* curve coloring (for editor) */
   /** Coloring method to use. */

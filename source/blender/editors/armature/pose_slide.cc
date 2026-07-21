@@ -217,7 +217,7 @@ static Vector<FCurve *> fcurves_filtered_by_path(const Span<FCurve *> input_fcur
 {
   Vector<FCurve *> fcurves;
   for (FCurve *fcurve : input_fcurves) {
-    if (StringRefNull(fcurve->rna_path) != path) {
+    if (StringRefNull(fcurve->rna_path_ptr) != path) {
       continue;
     }
     fcurves.append(fcurve);

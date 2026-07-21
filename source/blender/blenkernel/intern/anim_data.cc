@@ -531,14 +531,14 @@ static void animpath_update_basepath(FCurve *fcu,
                                      const StringRef old_basepath,
                                      const StringRef new_basepath)
 {
-  BLI_assert(animpath_matches_basepath(fcu->rna_path, old_basepath));
+  BLI_assert(animpath_matches_basepath(fcu->rna_path_ptr, old_basepath));
   if (old_basepath == new_basepath) {
     return;
   }
 
-  std::string new_rna_path = new_basepath + StringRefNull(fcu->rna_path + old_basepath.size());
-  MEM_delete(fcu->rna_path);
-  fcu->rna_path = BLI_strdup(new_rna_path.c_str());
+  std::string new_rna_path = new_basepath + StringRefNull(fcu->rna_path_ptr + old_basepath.size());
+  MEM_delete(fcu->rna_path_ptr);
+  fcu->rna_path_ptr = BLI_strdup(new_rna_path.c_str());
 }
 
 /* Copy or move F-Curves in src action to dst action if their base path matches. */
@@ -563,7 +563,7 @@ static bool action_copy_fcurves_by_basepath(const animrig::Action &src_action,
    * We only use the fcurve as a const ref, there's no risk of modifying the data. */
   animrig::foreach_fcurve_in_action_slot(
       const_cast<animrig::Action &>(src_action), src_slot_handle, [&](const FCurve &fcurve) {
-        if (animpath_matches_basepath(fcurve.rna_path, src_basepath)) {
+        if (animpath_matches_basepath(fcurve.rna_path_ptr, src_basepath)) {
           fcurves_to_copy.append(&fcurve);
           result = true;
         }
@@ -587,7 +587,7 @@ static bool animdata_copy_drivers_by_basepath(AnimData &src_adt,
 {
   bool result = false;
   for (const FCurve &fcurve : src_adt.drivers) {
-    if (animpath_matches_basepath(fcurve.rna_path, src_basepath)) {
+    if (animpath_matches_basepath(fcurve.rna_path_ptr, src_basepath)) {
       FCurve *fcurve_copy = BKE_fcurve_copy(&fcurve);
       animpath_update_basepath(fcurve_copy, src_basepath, dst_basepath);
       BLI_addtail(&dst_adt.drivers, fcurve_copy);
@@ -778,17 +778,17 @@ static bool fcurves_path_rename_fix(ID &owner_id,
   bool is_changed = false;
   /* We need to check every curve. */
   for (FCurve *fcu : curves) {
-    if (fcu->rna_path == nullptr) {
+    if (fcu->rna_path_ptr == nullptr) {
       continue;
     }
     /* Firstly, handle the F-Curve's own path. */
     std::optional<std::string> new_path = rna_path_rename_fix(
-        owner_id, prefix, old_infix, new_infix, fcu->rna_path, verify_paths);
+        owner_id, prefix, old_infix, new_infix, fcu->rna_path_ptr, verify_paths);
     if (!new_path.has_value()) {
       continue;
     }
-    MEM_delete(fcu->rna_path);
-    fcu->rna_path = BLI_strdup(new_path->c_str());
+    MEM_delete(fcu->rna_path_ptr);
+    fcu->rna_path_ptr = BLI_strdup(new_path->c_str());
     is_changed = true;
 
     /* If the path changed and the FCurve is grouped, check if its group also needs renaming
@@ -797,7 +797,7 @@ static bool fcurves_path_rename_fix(ID &owner_id,
     PointerRNA ptr = RNA_id_pointer_create(&owner_id);
     PointerRNA resolved_ptr;
     PropertyRNA *resolved_prop;
-    if (!RNA_path_resolve(&ptr, fcu->rna_path, &resolved_ptr, &resolved_prop)) {
+    if (!RNA_path_resolve(&ptr, fcu->rna_path_ptr, &resolved_ptr, &resolved_prop)) {
       /* This can happen in versioning code. */
       continue;
     }
@@ -1033,12 +1033,12 @@ void BKE_animdata_fix_paths(ID &id,
   }
   for (FCurve &fcurve : adt->drivers) {
     std::optional<std::string> fixed_path = rna_path_rename_fix(
-        id, prefix, old_infix, new_infix, fcurve.rna_path, verify_paths);
+        id, prefix, old_infix, new_infix, fcurve.rna_path_ptr, verify_paths);
     if (!fixed_path.has_value()) {
       continue;
     }
-    MEM_delete(fcurve.rna_path);
-    fcurve.rna_path = BLI_strdup(fixed_path->c_str());
+    MEM_delete(fcurve.rna_path_ptr);
+    fcurve.rna_path_ptr = BLI_strdup(fixed_path->c_str());
     is_changed = true;
   }
   if (is_changed) {
@@ -1072,8 +1072,8 @@ static bool fcurves_path_remove_from_listbase(const char *prefix, ListBaseT<FCur
   for (fcu = static_cast<FCurve *>(curves->first); fcu; fcu = fcn) {
     fcn = fcu->next;
 
-    if (fcu->rna_path) {
-      if (STRPREFIX(fcu->rna_path, prefix)) {
+    if (fcu->rna_path_ptr) {
+      if (STRPREFIX(fcu->rna_path_ptr, prefix)) {
         BLI_remlink(curves, fcu);
         BKE_fcurve_free(fcu);
         any_removed = true;
@@ -1377,7 +1377,7 @@ bool prop_is_animated(const AnimData *adt, const StringRefNull rna_path, const i
   const bool looped_until_end = adt_apply_all_fcurves_cb(
       nullptr, const_cast<AnimData *>(adt), [&](const ID *, const FCurve *fcurve) {
         /* Looping should stop (so return false) when the F-Curve was found. */
-        return !(array_index == fcurve->array_index && rna_path == fcurve->rna_path);
+        return !(array_index == fcurve->array_index && rna_path == fcurve->rna_path_ptr);
       });
 
   return !looped_until_end;

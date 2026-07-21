@@ -1704,7 +1704,7 @@ static void remove_sequencer_fcurves(Scene *sce)
   Vector<FCurve *> fcurves = channelbag->fcurves();
 
   for (FCurve *fcurve : fcurves) {
-    if ((fcurve->rna_path) && strstr(fcurve->rna_path, "sequence_editor.strips_all")) {
+    if ((fcurve->rna_path_ptr) && strstr(fcurve->rna_path_ptr, "sequence_editor.strips_all")) {
       channelbag->fcurve_remove(*fcurve);
     }
   }

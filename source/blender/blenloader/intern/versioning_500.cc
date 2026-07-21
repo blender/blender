@@ -2716,12 +2716,12 @@ static void version_bone_hide_property_driver(AnimData *arm_adt, Vector<Object *
 
   Vector<FCurve *> drivers_to_fix;
   for (FCurve &fcurve : arm_adt->drivers) {
-    const StringRef rna_path(fcurve.rna_path);
+    const StringRef rna_path(fcurve.rna_path_ptr);
     int quoted_bone_name_start = 0;
     int quoted_bone_name_end = 0;
     const bool is_prefix_found = BLI_str_quoted_substr_range(
-        fcurve.rna_path, hide_prop_prefix, &quoted_bone_name_start, &quoted_bone_name_end);
-    if (is_prefix_found && STREQ(fcurve.rna_path + quoted_bone_name_end, hide_prop_suffix)) {
+        fcurve.rna_path_ptr, hide_prop_prefix, &quoted_bone_name_start, &quoted_bone_name_end);
+    if (is_prefix_found && STREQ(fcurve.rna_path_ptr + quoted_bone_name_end, hide_prop_suffix)) {
       drivers_to_fix.append(&fcurve);
     }
   }
@@ -2735,9 +2735,9 @@ static void version_bone_hide_property_driver(AnimData *arm_adt, Vector<Object *
     for (FCurve *original : drivers_to_fix) {
       /* Has to be a copy in case there is more than 1 object using the armature. */
       FCurve *copy = BKE_fcurve_copy(original);
-      char *fixed_path = BLI_string_joinN("pose.", copy->rna_path);
-      MEM_SAFE_DELETE(copy->rna_path);
-      copy->rna_path = fixed_path;
+      char *fixed_path = BLI_string_joinN("pose.", copy->rna_path_ptr);
+      MEM_SAFE_DELETE(copy->rna_path_ptr);
+      copy->rna_path_ptr = fixed_path;
       BLI_addtail(&ob_adt->drivers, copy);
     }
   }

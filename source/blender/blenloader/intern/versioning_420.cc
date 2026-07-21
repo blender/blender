@@ -60,15 +60,15 @@ namespace blender {
  */
 static void version_bonecollection_anim(FCurve *fcurve)
 {
-  const StringRef rna_path(fcurve->rna_path);
+  const StringRef rna_path(fcurve->rna_path_ptr);
   constexpr char const *rna_path_prefix = "collections[";
   if (!rna_path.startswith(rna_path_prefix)) {
     return;
   }
 
   const std::string path_remainder(rna_path.drop_known_prefix(rna_path_prefix));
-  MEM_delete(fcurve->rna_path);
-  fcurve->rna_path = BLI_sprintfN("collections_all[%s", path_remainder.c_str());
+  MEM_delete(fcurve->rna_path_ptr);
+  fcurve->rna_path_ptr = BLI_sprintfN("collections_all[%s", path_remainder.c_str());
 }
 
 static void versioning_eevee_shadow_settings(Object *object)

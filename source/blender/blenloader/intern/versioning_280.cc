@@ -571,11 +571,11 @@ static void do_version_bbone_scale_fcurve_fix(ListBaseT<FCurve> *curves, FCurve 
   }
 
   /* Update F-Curve's path. */
-  if (replace_bbone_scale_rnapath(&fcu->rna_path)) {
+  if (replace_bbone_scale_rnapath(&fcu->rna_path_ptr)) {
     /* If matched, duplicate the curve and tweak name. */
     FCurve *second = BKE_fcurve_copy(fcu);
 
-    second->rna_path[strlen(second->rna_path) - 1] = 'y';
+    second->rna_path_ptr[strlen(second->rna_path_ptr) - 1] = 'y';
 
     BLI_insertlinkafter(curves, fcu, second);
 
@@ -1693,34 +1693,36 @@ static void update_mapping_node_fcurve_rna_path_callback(FCurve *fcurve,
                                                          const bNode *minimumNode,
                                                          const bNode *maximumNode)
 {
-  if (!STRPREFIX(fcurve->rna_path, nodePath) ||
-      BLI_str_endswith(fcurve->rna_path, "default_value"))
+  if (!STRPREFIX(fcurve->rna_path_ptr, nodePath) ||
+      BLI_str_endswith(fcurve->rna_path_ptr, "default_value"))
   {
     return;
   }
-  char *old_fcurve_rna_path = fcurve->rna_path;
+  char *old_fcurve_rna_path = fcurve->rna_path_ptr;
 
   if (BLI_str_endswith(old_fcurve_rna_path, "translation")) {
-    fcurve->rna_path = BLI_sprintfN("%s.%s", nodePath, "inputs[1].default_value");
+    fcurve->rna_path_ptr = BLI_sprintfN("%s.%s", nodePath, "inputs[1].default_value");
   }
   else if (BLI_str_endswith(old_fcurve_rna_path, "rotation")) {
-    fcurve->rna_path = BLI_sprintfN("%s.%s", nodePath, "inputs[2].default_value");
+    fcurve->rna_path_ptr = BLI_sprintfN("%s.%s", nodePath, "inputs[2].default_value");
   }
   else if (BLI_str_endswith(old_fcurve_rna_path, "scale")) {
-    fcurve->rna_path = BLI_sprintfN("%s.%s", nodePath, "inputs[3].default_value");
+    fcurve->rna_path_ptr = BLI_sprintfN("%s.%s", nodePath, "inputs[3].default_value");
   }
   else if (minimumNode && BLI_str_endswith(old_fcurve_rna_path, "max")) {
     char node_name_esc[sizeof(minimumNode->name) * 2];
     BLI_str_escape(node_name_esc, minimumNode->name, sizeof(node_name_esc));
-    fcurve->rna_path = BLI_sprintfN("nodes[\"%s\"].%s", node_name_esc, "inputs[1].default_value");
+    fcurve->rna_path_ptr = BLI_sprintfN(
+        "nodes[\"%s\"].%s", node_name_esc, "inputs[1].default_value");
   }
   else if (maximumNode && BLI_str_endswith(old_fcurve_rna_path, "min")) {
     char node_name_esc[sizeof(maximumNode->name) * 2];
     BLI_str_escape(node_name_esc, maximumNode->name, sizeof(node_name_esc));
-    fcurve->rna_path = BLI_sprintfN("nodes[\"%s\"].%s", node_name_esc, "inputs[1].default_value");
+    fcurve->rna_path_ptr = BLI_sprintfN(
+        "nodes[\"%s\"].%s", node_name_esc, "inputs[1].default_value");
   }
 
-  if (fcurve->rna_path != old_fcurve_rna_path) {
+  if (fcurve->rna_path_ptr != old_fcurve_rna_path) {
     MEM_delete(old_fcurve_rna_path);
   }
 }
@@ -2920,12 +2922,12 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
      * removed, and reintroduced in 5e968a996a53 as "Object.hide_viewport". */
     for (Object &ob : bmain->objects) {
       animrig::versioning::fcurves_id_cb(&ob.id, [&](ID * /*id*/, FCurve *fcu) {
-        if (fcu->rna_path == nullptr || !STREQ(fcu->rna_path, "hide")) {
+        if (fcu->rna_path_ptr == nullptr || !STREQ(fcu->rna_path_ptr, "hide")) {
           return;
         }
 
-        MEM_delete(fcu->rna_path);
-        fcu->rna_path = BLI_strdupn("hide_viewport", 13);
+        MEM_delete(fcu->rna_path_ptr);
+        fcu->rna_path_ptr = BLI_strdupn("hide_viewport", 13);
       });
     }
 

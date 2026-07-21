@@ -154,44 +154,52 @@ static void do_version_glare_node_options_to_inputs(const Scene *scene,
   BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
     /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
      * path. */
-    if (!StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+    if (!StringRef(fcurve->rna_path_ptr).startswith(node_rna_path)) {
       return;
     }
 
     /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
      * values of the FCurves frames when needed. */
-    char *old_rna_path = fcurve->rna_path;
-    if (BLI_str_endswith(fcurve->rna_path, "threshold")) {
-      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[1].default_value");
+    char *old_rna_path = fcurve->rna_path_ptr;
+    if (BLI_str_endswith(fcurve->rna_path_ptr, "threshold")) {
+      fcurve->rna_path_ptr = BLI_sprintfN(
+          "%s.%s", node_rna_path.c_str(), "inputs[1].default_value");
     }
-    else if (BLI_str_endswith(fcurve->rna_path, "mix")) {
-      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
+    else if (BLI_str_endswith(fcurve->rna_path_ptr, "mix")) {
+      fcurve->rna_path_ptr = BLI_sprintfN(
+          "%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
       adjust_fcurve_key_frame_values(
           fcurve, PROP_FLOAT, [&](const float value) { return mix_to_strength(value); });
     }
-    else if (BLI_str_endswith(fcurve->rna_path, "size")) {
-      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[3].default_value");
+    else if (BLI_str_endswith(fcurve->rna_path_ptr, "size")) {
+      fcurve->rna_path_ptr = BLI_sprintfN(
+          "%s.%s", node_rna_path.c_str(), "inputs[3].default_value");
       adjust_fcurve_key_frame_values(
           fcurve, PROP_FLOAT, [&](const float value) { return size_to_linear(value); });
     }
-    else if (BLI_str_endswith(fcurve->rna_path, "streaks")) {
-      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[4].default_value");
+    else if (BLI_str_endswith(fcurve->rna_path_ptr, "streaks")) {
+      fcurve->rna_path_ptr = BLI_sprintfN(
+          "%s.%s", node_rna_path.c_str(), "inputs[4].default_value");
     }
-    else if (BLI_str_endswith(fcurve->rna_path, "angle_offset")) {
-      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[5].default_value");
+    else if (BLI_str_endswith(fcurve->rna_path_ptr, "angle_offset")) {
+      fcurve->rna_path_ptr = BLI_sprintfN(
+          "%s.%s", node_rna_path.c_str(), "inputs[5].default_value");
     }
-    else if (BLI_str_endswith(fcurve->rna_path, "iterations")) {
-      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[6].default_value");
+    else if (BLI_str_endswith(fcurve->rna_path_ptr, "iterations")) {
+      fcurve->rna_path_ptr = BLI_sprintfN(
+          "%s.%s", node_rna_path.c_str(), "inputs[6].default_value");
     }
-    else if (BLI_str_endswith(fcurve->rna_path, "fade")) {
-      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[7].default_value");
+    else if (BLI_str_endswith(fcurve->rna_path_ptr, "fade")) {
+      fcurve->rna_path_ptr = BLI_sprintfN(
+          "%s.%s", node_rna_path.c_str(), "inputs[7].default_value");
     }
-    else if (BLI_str_endswith(fcurve->rna_path, "color_modulation")) {
-      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[8].default_value");
+    else if (BLI_str_endswith(fcurve->rna_path_ptr, "color_modulation")) {
+      fcurve->rna_path_ptr = BLI_sprintfN(
+          "%s.%s", node_rna_path.c_str(), "inputs[8].default_value");
     }
 
     /* The RNA path was changed, free the old path. */
-    if (fcurve->rna_path != old_rna_path) {
+    if (fcurve->rna_path_ptr != old_rna_path) {
       MEM_delete(old_rna_path);
     }
   });
@@ -295,7 +303,7 @@ static void do_version_glare_node_bloom_strength(const Scene *scene,
 
   /* Scale F-Curve. */
   BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
-    if (strength_rna_path == fcurve->rna_path) {
+    if (strength_rna_path == fcurve->rna_path_ptr) {
       adjust_fcurve_key_frame_values(
           fcurve, PROP_FLOAT, [&](const float value) { return scale_strength(value); });
     }
@@ -493,14 +501,14 @@ void do_versions_after_linking_440(FileData *fd, Main *bmain)
       }
       auto replace_rna_path_prefix =
           [](FCurve &fcurve, const StringRef old_prefix, const StringRef new_prefix) {
-            const StringRef rna_path = fcurve.rna_path;
+            const StringRef rna_path = fcurve.rna_path_ptr;
             if (!rna_path.startswith(old_prefix)) {
               return;
             }
             const StringRef tail = rna_path.drop_prefix(old_prefix.size());
             char *new_rna_path = BLI_strdupcat(new_prefix.data(), tail.data());
-            MEM_delete(fcurve.rna_path);
-            fcurve.rna_path = new_rna_path;
+            MEM_delete(fcurve.rna_path_ptr);
+            fcurve.rna_path_ptr = new_rna_path;
           };
       if (scene.adt->action) {
         animrig::foreach_fcurve_in_action(scene.adt->action->wrap(), [&](FCurve &fcurve) {

@@ -103,7 +103,7 @@ FCurve *alloc_driver_fcurve(const char rna_path[],
 
   /* store path - make copy, and store that */
   if (rna_path) {
-    fcu->rna_path = BLI_strdup(rna_path);
+    fcu->rna_path_ptr = BLI_strdup(rna_path);
   }
   fcu->array_index = array_index;
 
@@ -596,14 +596,14 @@ bool ANIM_copy_driver(
      * F-Curve temporarily so that we don't end up wasting memory storing the path
      * which won't get used ever.
      */
-    char *tmp_path = fcu->rna_path;
-    fcu->rna_path = nullptr;
+    char *tmp_path = fcu->rna_path_ptr;
+    fcu->rna_path_ptr = nullptr;
 
     /* make a copy of the F-Curve with */
     channeldriver_copypaste_buf = BKE_fcurve_copy(fcu);
 
     /* restore the path */
-    fcu->rna_path = tmp_path;
+    fcu->rna_path_ptr = tmp_path;
 
     /* copied... */
     return true;
