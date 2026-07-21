@@ -50,6 +50,7 @@ const EnumPropertyItem rna_enum_keyblock_type_items[] = {
 #  include "BLI_string_utf8.hh"
 #  include "BLI_string_utils.hh"
 
+#  include "BKE_global.hh"
 #  include "BKE_key.hh"
 #  include "BKE_main.hh"
 
@@ -84,8 +85,8 @@ static void rna_ShapeKey_name_set(PointerRNA *ptr, const char *value)
 
   BLI_assert(ptr->owner_id);
   /* make sure the name is truly unique */
-  const Key *key = rna_ShapeKey_find_key(ptr->owner_id);
-  BKE_keyblock_rename(key, kb, value);
+  Key *key = rna_ShapeKey_find_key(ptr->owner_id);
+  BKE_keyblock_rename(*G_MAIN, key, kb, value);
 }
 
 static float rna_ShapeKey_frame_get(PointerRNA *ptr)

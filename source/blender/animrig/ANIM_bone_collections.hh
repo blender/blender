@@ -204,7 +204,10 @@ BoneCollection *ANIM_armature_bonecoll_get_by_name(bArmature *armature,
 int ANIM_armature_bonecoll_get_index_by_name(bArmature *armature,
                                              const char *name) ATTR_WARN_UNUSED_RESULT;
 
-void ANIM_armature_bonecoll_name_set(bArmature *armature, BoneCollection *bcoll, const char *name);
+void ANIM_armature_bonecoll_name_set(Main &bmain,
+                                     bArmature *armature,
+                                     BoneCollection *bcoll,
+                                     const char *name);
 
 /**
  * Show this bone collection.

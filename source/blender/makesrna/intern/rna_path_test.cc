@@ -60,4 +60,32 @@ TEST_F(RNAPathTest, RNA_generate_keys_for_path_rename)
   }
 }
 
+TEST_F(RNAPathTest, RNA_path_name_to_infix)
+{
+  {
+    const std::string infix = RNA_path_name_to_infix("simple");
+    EXPECT_EQ("[\"simple\"]", infix);
+  }
+
+  {
+    const std::string infix = RNA_path_name_to_infix("\"quotes\"");
+    /* Expected result without double escaping: ["\"quotes\""] */
+    EXPECT_EQ("[\"\\\"quotes\\\"\"]", infix);
+  }
+}
+
+TEST_F(RNAPathTest, RNA_path_number_to_infix)
+{
+  {
+    const std::string infix = RNA_path_number_to_infix(1);
+    EXPECT_EQ("[1]", infix);
+  }
+
+  {
+    /* Negative numbers also work. */
+    const std::string infix = RNA_path_number_to_infix(-1);
+    EXPECT_EQ("[-1]", infix);
+  }
+}
+
 }  // namespace blender::bke::tests

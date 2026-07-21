@@ -43,6 +43,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
+#include "BKE_global.hh"
 #include "BKE_idtype.hh"
 #include "BKE_key.hh"
 #include "BKE_lattice.hh"
@@ -1909,7 +1910,7 @@ std::optional<Array<bool>> BKE_keyblock_get_dependent_keys(const Key *key, const
   return marked;
 }
 
-void BKE_keyblock_rename(const Key *key, KeyBlock *kb, const char *newname)
+void BKE_keyblock_rename(Main &bmain, Key *key, KeyBlock *kb, const char *newname)
 {
   char oldname[sizeof(kb->name)];
 
@@ -1927,6 +1928,11 @@ void BKE_keyblock_rename(const Key *key, KeyBlock *kb, const char *newname)
                  sizeof(kb->name));
 
   /* Fix all the animation data which may link to this. */
-  BKE_animdata_fix_paths_rename_all(nullptr, "key_blocks", oldname, kb->name);
+  BKE_animdata_fix_paths(key->id,
+                         "key_blocks",
+                         RNA_path_name_to_infix(oldname),
+                         RNA_path_name_to_infix(kb->name),
+                         /*verify_paths=*/true,
+                         bmain);
 }
 }  // namespace blender

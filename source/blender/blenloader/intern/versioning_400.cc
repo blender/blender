@@ -27,6 +27,8 @@
 
 #undef DNA_GENFILE_VERSIONING_MACROS
 
+#include "RNA_path.hh"
+
 #include "BLI_listbase.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_string.hh"
@@ -231,10 +233,10 @@ static void version_bonegroups_to_bonecollections(Main *bmain)
   }
 }
 
-static void version_principled_bsdf_update_animdata(ID *owner_id, bNodeTree *ntree)
+static void version_principled_bsdf_update_animdata(Main *bmain, bNodeTree *ntree)
 {
   ID *id = &ntree->id;
-  AnimData *adt = BKE_animdata_from_id(id);
+  DriverMap driver_map = BKE_animdata_build_driver_target_map(*bmain);
 
   for (bNode &node : ntree->nodes) {
     if (node.type_legacy != SH_NODE_BSDF_PRINCIPLED) {
@@ -279,16 +281,12 @@ static void version_principled_bsdf_update_animdata(ID *owner_id, bNodeTree *ntr
         {21, 4}   /* Alpha */
     };
     for (const auto &entry : remap_table) {
-      BKE_animdata_fix_paths_rename(id,
-                                    adt,
-                                    owner_id,
-                                    prefix.c_str(),
-                                    nullptr,
-                                    nullptr,
-                                    entry.first,
-                                    entry.second,
-                                    /*verify_paths=*/false,
-                                    /*infix_is_name=*/true);
+      BKE_animdata_fix_paths(*id,
+                             prefix,
+                             RNA_path_number_to_infix(entry.first),
+                             RNA_path_number_to_infix(entry.second),
+                             /* verify_paths=*/false,
+                             driver_map);
     }
   }
 }
@@ -392,7 +390,7 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_SHADER) {
         /* Convert animdata on the Principled BSDF sockets. */
-        version_principled_bsdf_update_animdata(id, ntree);
+        version_principled_bsdf_update_animdata(bmain, ntree);
       }
     }
     FOREACH_NODETREE_END;

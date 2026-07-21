@@ -468,7 +468,7 @@ Strip *edit_strip_split(Main *bmain,
    * strips to seqbase, for lookup cache to work correctly. */
   Strip *strip_rename = right_strip;
   for (; strip_rename; strip_rename = strip_rename->next) {
-    ensure_unique_name(strip_rename, scene);
+    ensure_unique_name(*bmain, strip_rename, scene);
   }
 
   /* Split strips. */

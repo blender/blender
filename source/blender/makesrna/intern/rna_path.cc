@@ -1359,6 +1359,17 @@ std::string RNA_path_property_py(const PointerRNA *ptr, PropertyRNA *prop, int i
   return RNA_path_from_ptr_to_property_index(ptr, prop, index_dim, index);
 }
 
+std::string RNA_path_name_to_infix(const StringRefNull string)
+{
+  const std::string old_name_esc = BLI_str_escape(string);
+  return fmt::format("[\"{}\"]", old_name_esc);
+}
+
+std::string RNA_path_number_to_infix(const int number)
+{
+  return fmt::format("[{}]", number);
+}
+
 std::pair<std::string, std::string> RNA_generate_keys_for_path_rename(
     const StringRefNull old_infix,
     const StringRefNull new_infix,
@@ -1372,10 +1383,8 @@ std::pair<std::string, std::string> RNA_generate_keys_for_path_rename(
 
   if (!old_infix.is_empty() && !new_infix.is_empty()) {
     if (infix_is_name) {
-      std::string old_name_esc = BLI_str_escape(old_infix);
-      std::string new_name_esc = BLI_str_escape(new_infix);
-      old_key = fmt::format("[\"{}\"]", old_name_esc);
-      new_key = fmt::format("[\"{}\"]", new_name_esc);
+      old_key = RNA_path_name_to_infix(old_infix);
+      new_key = RNA_path_name_to_infix(new_infix);
     }
     else {
       old_key = old_infix;
@@ -1383,8 +1392,8 @@ std::pair<std::string, std::string> RNA_generate_keys_for_path_rename(
     }
   }
   else {
-    old_key = fmt::format("[{}]", old_subscript);
-    new_key = fmt::format("[{}]", new_subscript);
+    old_key = RNA_path_number_to_infix(old_subscript);
+    new_key = RNA_path_number_to_infix(new_subscript);
   }
 
   return {old_key, new_key};

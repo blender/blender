@@ -392,7 +392,7 @@ static void rna_BoneCollection_name_set(PointerRNA *ptr, const char *name)
   bArmature *arm = id_cast<bArmature *>(ptr->owner_id);
   BoneCollection *bcoll = static_cast<BoneCollection *>(ptr->data);
 
-  ANIM_armature_bonecoll_name_set(arm, bcoll, name);
+  ANIM_armature_bonecoll_name_set(*G_MAIN, arm, bcoll, name);
 }
 
 static void rna_BoneCollection_is_visible_set(PointerRNA *ptr, const bool is_visible)

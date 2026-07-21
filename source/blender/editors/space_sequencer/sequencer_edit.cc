@@ -2510,7 +2510,7 @@ static wmOperatorStatus sequencer_add_duplicate_exec(bContext *C, wmOperator *op
     strip->runtime->flag |= seq::StripRuntimeFlag::IgnoreChannelLock;
 
     seq::animation_duplicate_backup_to_scene(scene, strip, &animation_backup);
-    seq::ensure_unique_name(strip, scene);
+    seq::ensure_unique_name(*bmain, strip, scene);
   }
 
   /* Special case for duplicating strips in preview: handle overlap, because strips won't be
@@ -3627,7 +3627,7 @@ static wmOperatorStatus sequencer_change_effect_type_exec(bContext *C, wmOperato
   BLI_string_split_name_number(strip->name + 2, '.', name_base, &name_num);
   if (STREQ(name_base, seq::get_default_stripname_by_type(old_type))) {
     seq::edit_strip_name_set(scene, strip, seq::strip_give_name(strip));
-    seq::ensure_unique_name(strip, scene);
+    seq::ensure_unique_name(*CTX_data_main(C), strip, scene);
   }
 
   /* Init new effect. */
