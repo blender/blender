@@ -65,6 +65,12 @@ std::string ParsedResource::serialize() const
     ss << ", Frequency::" << res_frequency;
     ss << res_condition_lambda << ")";
   }
+  else if (res_type == "acceleration_structure") {
+    ss << ".acceleration_structure(" << res_slot;
+    ss << ", \"" << var_name << "\"";
+    ss << ", Frequency::" << res_frequency;
+    ss << res_condition_lambda << ")";
+  }
   else if (res_type == "shared") {
     ss << "GROUP_SHARED(" << var_type << ", " << var_name << var_array << ")";
   }

@@ -9,6 +9,7 @@ Use this script as `blender --background --python gpu_info.py`.
 """
 import bpy
 import sys
+import json
 
 # Render with workbench to initialize the GPU backend otherwise it would fail when running in
 # background mode as the GPU backend won't be initialized.
@@ -21,9 +22,14 @@ bpy.ops.render.render(animation=False, write_still=False)
 # Import GPU module only after GPU backend has been initialized.
 import gpu
 
-print('GPU_VENDOR:' + gpu.platform.vendor_get())
-print('GPU_RENDERER:' + gpu.platform.renderer_get())
-print('GPU_VERSION:' + gpu.platform.version_get())
-print('GPU_DEVICE_TYPE:' + gpu.platform.device_type_get())
+print('<GPU_INFO>')
+print(json.dumps({
+    "VENDOR": gpu.platform.vendor_get(),
+    "RENDERER": gpu.platform.renderer_get(),
+    "VERSION": gpu.platform.version_get(),
+    "DEVICE_TYPE": gpu.platform.device_type_get(),
+    "RAY_QUERY_SUPPORT": gpu.capabilities.ray_query_support_get(),
+}))
+print('</GPU_INFO>')
 
 sys.exit(0)

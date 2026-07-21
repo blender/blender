@@ -292,6 +292,16 @@ PassMain::Sub *&ShadowPass::get_pass_ptr(PassType type, bool manifold, bool cap 
 void ShadowPass::init(const SceneState &scene_state, SceneResources &resources)
 {
   enabled_ = scene_state.draw_shadows;
+  use_raytracing_ = enabled_ && (U.gpu_flag & USER_GPU_FLAG_WORKBENCH_RT_SHADOWS) &&
+                    GPU_ray_query_support();
+  needs_rt_update_ = use_raytracing_ && (!shadow_as_ || scene_state.updated);
+  if (!use_raytracing_) {
+    shadow_as_ = nullptr;
+  }
+  else if (needs_rt_update_) {
+    shadow_as_ = gpu::TopLevelASPtr(GPU_ray_tracing_tlas_alloc("WorkbenchShadowTLAS"));
+  }
+
   if (!enabled_) {
     resources.world_buf.shadow_mul = 0.0f;
     resources.world_buf.shadow_add = 1.0f;
@@ -323,7 +333,7 @@ void ShadowPass::init(const SceneState &scene_state, SceneResources &resources)
   resources.world_buf.shadow_add = 1.0f - resources.world_buf.shadow_mul;
 }
 
-void ShadowPass::sync()
+void ShadowPass::sync(SceneResources &resources)
 {
   if (!enabled_) {
     return;
@@ -338,6 +348,21 @@ void ShadowPass::sync()
   DRWState depth_pass_state = state | DRW_STATE_WRITE_STENCIL_SHADOW_PASS;
   DRWState depth_fail_state = state | DRW_STATE_WRITE_STENCIL_SHADOW_FAIL;
 #endif
+
+  if (use_raytracing_) {
+    raytrace_ps_.init();
+    raytrace_ps_.state_set(DRW_STATE_DEPTH_ALWAYS | DRW_STATE_STENCIL_ALWAYS |
+                           DRW_STATE_WRITE_STENCIL);
+    raytrace_ps_.state_stencil(0xFF, 0xFF, 0xFF);
+    raytrace_ps_.shader_set(ShaderCache::get().shadow_raytrace.get());
+    raytrace_ps_.bind_texture("depth_tx", &resources.depth_tx);
+    raytrace_ps_.bind_texture("normal_tx", &gbuffer_normal_ref);
+    raytrace_ps_.bind_ubo("pass_data", pass_data_);
+    raytrace_ps_.bind_tlas("shadow_as", shadow_as_.get());
+    raytrace_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+
+    return;
+  }
 
   pass_ps_.init();
   pass_ps_.state_set(depth_pass_state);
@@ -384,6 +409,17 @@ void ShadowPass::object_sync(SceneState &scene_state,
   }
 
   Object *ob = ob_ref.object;
+  if (use_raytracing_) {
+    if (needs_rt_update_) {
+      if (blender::gpu::BottomLevelAS *blas = DRW_cache_object_surface_blas_get(ob)) {
+        for (int i : IndexRange(ob_ref.instances_count())) {
+          shadow_as_->add_instance(*blas, ob_ref.object_to_world(i));
+        }
+      }
+    }
+    return;
+  }
+
   bool is_manifold;
   gpu::Batch *geom_shadow = DRW_cache_object_edge_detection_get(ob, &is_manifold);
   if (geom_shadow == nullptr) {
@@ -422,13 +458,32 @@ void ShadowPass::object_sync(SceneState &scene_state,
   get_pass_ptr(fail_type, is_manifold, false)->draw_expand(geom_shadow, prim, tri_len, 1, handle);
 }
 
+void ShadowPass::end_sync()
+{
+  if (use_raytracing_) {
+    shadow_as_->build();
+  }
+}
+
 void ShadowPass::draw(Manager &manager,
                       View &view,
                       SceneResources &resources,
                       gpu::Texture &depth_stencil_tx,
+                      gpu::Texture &normal_tx,
+                      int2 resolution,
                       bool force_fail_method)
 {
   if (!enabled_) {
+    return;
+  }
+
+  if (use_raytracing_) {
+    gbuffer_normal_ref = &normal_tx;
+    pass_data_.pixel_size = view.screen_pixel_radius(resolution);
+    pass_data_.push_update();
+    fb_.ensure(GPU_ATTACHMENT_TEXTURE(&depth_stencil_tx));
+    fb_.bind();
+    manager.submit(raytrace_ps_, view);
     return;
   }
 

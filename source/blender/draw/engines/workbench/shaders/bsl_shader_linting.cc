@@ -15,6 +15,7 @@
 #include "workbench_material.bsl.hh"          /* IWYU pragma: export */
 #include "workbench_prepass.bsl.hh"           /* IWYU pragma: export */
 #include "workbench_shadow.bsl.hh"            /* IWYU pragma: export */
+#include "workbench_shadow_raytrace.bsl.hh"   /* IWYU pragma: export */
 #include "workbench_shadow_visibility.bsl.hh" /* IWYU pragma: export */
 #include "workbench_volume.bsl.hh"            /* IWYU pragma: export */
 #include "workbench_world_light.bsl.hh"       /* IWYU pragma: export */

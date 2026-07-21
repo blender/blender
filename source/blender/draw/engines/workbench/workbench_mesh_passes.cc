@@ -197,8 +197,13 @@ void OpaquePass::draw(Manager &manager,
     clear_fb.bind();
     GPU_framebuffer_clear_stencil(clear_fb, 0);
 
-    shadow_pass->draw(
-        manager, view, resources, **&shadow_depth_stencil_tx, !gbuffer_in_front_ps_.is_empty());
+    shadow_pass->draw(manager,
+                      view,
+                      resources,
+                      *shadow_depth_stencil_tx.gpu_texture(),
+                      *gbuffer_normal_tx.gpu_texture(),
+                      resolution,
+                      !gbuffer_in_front_ps_.is_empty());
     deferred_ps_stencil_tx = shadow_depth_stencil_tx.stencil_view();
   }
   else {

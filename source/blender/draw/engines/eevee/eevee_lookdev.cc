@@ -378,7 +378,7 @@ void LookdevModule::sync()
   const Camera &cam = inst_.camera;
   float sphere_distance = cam.data_get().clip_near;
   int2 display_extent = inst_.film.display_extent_get();
-  float pixel_radius = ShadowModule::screen_pixel_radius(
+  float pixel_radius = View::screen_pixel_radius(
       cam.data_get().wininv, cam.is_perspective(), display_extent);
 
   if (cam.is_perspective()) {

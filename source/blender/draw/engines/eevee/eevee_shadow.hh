@@ -382,11 +382,6 @@ class ShadowModule {
     do_full_update_ = true;
   }
 
-  /** Compute approximate screen pixel space radius (as world space radius). */
-  static float screen_pixel_radius(const float4x4 &wininv,
-                                   bool is_perspective,
-                                   const int2 &extent);
-
  private:
   void remove_unused();
   bool shadow_update_finished(int loop_count);

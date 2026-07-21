@@ -117,7 +117,7 @@ class Instance : public DrawEngine {
     transparent_ps_.sync(scene_state_, resources_);
     transparent_depth_ps_.sync(scene_state_, resources_);
 
-    shadow_ps_.sync();
+    shadow_ps_.sync(resources_);
     volume_ps_.sync(resources_);
     outline_ps_.sync(resources_);
     dof_ps_.sync(resources_, this->draw_ctx);
@@ -129,6 +129,7 @@ class Instance : public DrawEngine {
   void end_sync() final
   {
     resources_.material_buf.push_update();
+    shadow_ps_.end_sync();
   }
 
   Material get_material(ObjectRef ob_ref, eV3DShadingColorType color_type, int slot = 0)

@@ -96,6 +96,7 @@ void SceneState::init(const DRWContext *context,
                       bool scene_updated,
                       Object *camera_ob /*=nullptr*/)
 {
+  updated = scene_updated;
   bool reset_taa = reset_taa_next_sample || scene_updated;
   reset_taa_next_sample = false;
 

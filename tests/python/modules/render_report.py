@@ -18,6 +18,7 @@ import time
 import multiprocessing
 import traceback
 import re
+import json
 
 from pathlib import Path
 
@@ -229,7 +230,7 @@ def diff_output(test, oiiotool, fail_threshold, fail_percent, verbose, update):
     return test
 
 
-def get_gpu_device_vendor(blender, gpu_backend):
+def get_gpu_device_info(blender, gpu_backend):
     command = [
         blender,
         "--background",
@@ -239,15 +240,28 @@ def get_gpu_device_vendor(blender, gpu_backend):
         "--python",
         str(pathlib.Path(__file__).parent / "gpu_info.py")
     ]
-    try:
-        completed_process = subprocess.run(command, stdout=subprocess.PIPE, universal_newlines=True)
-        for line in completed_process.stdout.splitlines():
-            if line.startswith("GPU_DEVICE_TYPE:"):
-                vendor = line.split(':')[1].upper()
-                return vendor
-    except Exception:
-        return None
-    return None
+
+    completed_process = subprocess.run(command, stdout=subprocess.PIPE, universal_newlines=True)
+    info = completed_process.stdout.split("<GPU_INFO>")[1].split("</GPU_INFO>")[0]
+    return json.loads(info)
+
+
+def get_gpu_device_vendor(blender, gpu_backend):
+    return get_gpu_device_info(blender, gpu_backend)["DEVICE_TYPE"]
+
+
+def get_gpu_device_ray_queries_support(blender, gpu_backend):
+    command = [
+        blender,
+        "--background",
+        "--factory-startup",
+        "--gpu-backend",
+        gpu_backend,
+        "--python-expr",
+        'import gpu; gpu.init(); print("GPU_RAY_QUERIES_SUPPORT:", gpu.capabilities.ray_query_support_get())'
+    ]
+    completed_process = subprocess.run(command, stdout=subprocess.PIPE, universal_newlines=True)
+    return "GPU_RAY_QUERIES_SUPPORT: True" in completed_process.stdout
 
 
 class Report:
