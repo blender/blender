@@ -1077,7 +1077,9 @@ static void scene_blend_write_compositor_forward_compat(Scene &scene,
                                                  "Final render output",
                                                  "COMPOSITE",
                                                  NODE_CLASS_OUTPUT,
-                                                 false);
+                                                 140.0f,
+                                                 100.0f,
+                                                 true);
       composite_input = &version_node_add_socket(
           *temp_nodetree_copy, *composite_node, SOCK_IN, "NodeSocketColor", "Image");
 
