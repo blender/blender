@@ -1948,7 +1948,9 @@ void ED_screen_animation_stop(Main *bmain,
 
 void ED_screen_animation_timer_remove(wmWindowManager *wm, wmWindow *win)
 {
-  bScreen *stopscreen = ED_screen_animation_playing(wm);
+  /* `ED_screen_animation_playing` isn't used, as it also checks for screens with
+   *  scrubbing enabled*/
+  bScreen *stopscreen = ED_screen_animation_no_scrub(wm);
   if (!stopscreen) {
     return;
   }
