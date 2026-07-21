@@ -337,11 +337,13 @@ static PyObject *bpy_bmeditselseq_subscript(BPy_BMEditSelSeq *self, PyObject *ke
 
 static int bpy_bmeditselseq_contains(BPy_BMEditSelSeq *self, PyObject *value)
 {
-  BPy_BMElem *value_bm_ele;
-
   BPY_BM_CHECK_INT(self);
 
-  value_bm_ele = reinterpret_cast<BPy_BMElem *>(value);
+  if (!BPy_BMElem_Check(value)) {
+    return 0;
+  }
+
+  BPy_BMElem *value_bm_ele = reinterpret_cast<BPy_BMElem *>(value);
   if (value_bm_ele->bm == self->bm) {
     return BM_select_history_check(self->bm, value_bm_ele->ele);
   }
