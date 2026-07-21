@@ -348,6 +348,16 @@ inline MTLInterfaceDataType gpu_type_to_mtl_type(GPUType type)
       return MTL_DATATYPE_FLOAT3x3;
     case GPU_MAT4:
       return MTL_DATATYPE_FLOAT4x4;
+    case GPU_INT:
+      return MTL_DATATYPE_INT;
+    case GPU_INT2:
+      return MTL_DATATYPE_INT2;
+    case GPU_INT3:
+      return MTL_DATATYPE_INT3;
+    case GPU_INT4:
+      return MTL_DATATYPE_INT4;
+    case GPU_BOOL:
+      return MTL_DATATYPE_BOOL;
     default:
       BLI_assert(false && "Other types unsupported");
       return MTL_DATATYPE_FLOAT;

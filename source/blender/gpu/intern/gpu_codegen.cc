@@ -92,12 +92,46 @@ static std::ostream &operator<<(std::ostream &stream, const Span<float> &span)
   return stream;
 }
 
+/* Print data constructor (i.e: int2(1, 1)). */
+static std::ostream &operator<<(std::ostream &stream, const Span<int> &span)
+{
+  stream << gpu_int_type_from_element_count(span.size()) << "(";
+  for (const int &element : span) {
+    stream << element;
+    if (&element != &span.last()) {
+      stream << ", ";
+    }
+  }
+  stream << ")";
+  return stream;
+}
+
 /* Trick type to change overload and keep a somewhat nice syntax. */
 struct GPUConstant : public GPUInput {};
 
 static std::ostream &operator<<(std::ostream &stream, const GPUConstant *input)
 {
-  stream << Span<float>(input->vec, gpu_type_element_count(input->type));
+  switch (input->type) {
+    case GPU_FLOAT:
+    case GPU_VEC2:
+    case GPU_VEC3:
+    case GPU_VEC4:
+    case GPU_MAT3:
+    case GPU_MAT4:
+      return stream << gpu_constant_to_float_span(input->constant_data, input->type);
+    case GPU_INT:
+    case GPU_INT2:
+    case GPU_INT3:
+    case GPU_INT4:
+      return stream << gpu_constant_to_int_span(input->constant_data, input->type);
+    case GPU_BOOL:
+      return stream << "bool(" << (gpu_constant_to_bool(input->constant_data) ? "true" : "false")
+                    << ")";
+    default:
+      break;
+  }
+
+  BLI_assert_unreachable();
   return stream;
 }
 
@@ -471,7 +505,7 @@ GPUGraphOutput GPUCodegen::graph_serialize(GPUNodeTag tree_tag)
 
 void GPUCodegen::generate_cryptomatte()
 {
-  cryptomatte_input_ = MEM_new_zeroed<GPUInput>(__func__);
+  cryptomatte_input_ = MEM_new<GPUInput>(__func__);
   cryptomatte_input_->type = GPU_FLOAT;
   cryptomatte_input_->source = GPU_SOURCE_CRYPTOMATTE;
 
@@ -482,7 +516,7 @@ void GPUCodegen::generate_cryptomatte()
                                            BLI_strnlen(material->id.name + 2, MAX_NAME - 2));
     material_hash = hash.float_encoded();
   }
-  cryptomatte_input_->vec[0] = material_hash;
+  cryptomatte_input_->constant_data = material_hash;
 
   BLI_addtail(&ubo_inputs_, BLI_genericNodeN(cryptomatte_input_));
 }

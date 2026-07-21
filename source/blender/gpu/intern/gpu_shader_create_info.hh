@@ -356,10 +356,28 @@ static inline Type to_type(const GPUType type)
       return Type::float3x3_t;
     case GPU_MAT4:
       return Type::float4x4_t;
-    default:
-      BLI_assert_msg(0, "Error: Cannot convert GPUType to shader::Type.");
-      return Type::float_t;
+    case GPU_INT:
+      return Type::int_t;
+    case GPU_INT2:
+      return Type::int2_t;
+    case GPU_INT3:
+      return Type::int3_t;
+    case GPU_INT4:
+      return Type::int4_t;
+    case GPU_BOOL:
+      return Type::bool_t;
+    case GPU_NONE:
+    case GPU_TEX1D_ARRAY:
+    case GPU_TEX2D:
+    case GPU_TEX2D_ARRAY:
+    case GPU_TEX3D:
+    case GPU_CLOSURE:
+    case GPU_ATTR:
+      break;
   }
+
+  BLI_assert_msg(0, "Error: Cannot convert GPUType to shader::Type.");
+  return Type::float_t;
 }
 
 static inline std::ostream &operator<<(std::ostream &stream, const Type type)
