@@ -1678,7 +1678,7 @@ void DepsgraphRelationBuilder::build_animdata_fcurve_target(
   PointerRNA ptr;
   PropertyRNA *prop;
   int index;
-  if (!RNA_path_resolve_full(&id_ptr, fcu->rna_path_ptr, &ptr, &prop, &index)) {
+  if (!RNA_path_resolve_full(&id_ptr, fcu->rna_path().c_str(), &ptr, &prop, &index)) {
     return;
   }
   Node *node_to = rna_node_query_.find_node(&ptr, prop, RNAPointerSource::ENTRY);
@@ -1783,11 +1783,8 @@ void DepsgraphRelationBuilder::build_animdata_drivers(ID *id)
   OperationKey driver_unshare_key(id, NodeType::PARAMETERS, OperationCode::DRIVER_UNSHARE);
 
   for (FCurve &fcu : adt->drivers) {
-    OperationKey driver_key(id,
-                            NodeType::PARAMETERS,
-                            OperationCode::DRIVER,
-                            fcu.rna_path_ptr ? fcu.rna_path_ptr : "",
-                            fcu.array_index);
+    OperationKey driver_key(
+        id, NodeType::PARAMETERS, OperationCode::DRIVER, fcu.rna_path().c_str(), fcu.array_index);
 
     /* create the driver's relations to targets */
     build_driver(id, &fcu);
@@ -1797,7 +1794,7 @@ void DepsgraphRelationBuilder::build_animdata_drivers(ID *id)
       add_relation(adt_key, driver_key, "AnimData Before Drivers");
     }
 
-    if (data_path_maybe_shared(*id, fcu.rna_path_ptr)) {
+    if (data_path_maybe_shared(*id, fcu.rna_path())) {
       add_relation(driver_unshare_key, driver_key, "Un-share shared data before drivers");
     }
   }
@@ -1879,11 +1876,8 @@ void DepsgraphRelationBuilder::build_action(bAction *dna_action)
 void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 {
   ChannelDriver *driver = fcu->driver;
-  OperationKey driver_key(id,
-                          NodeType::PARAMETERS,
-                          OperationCode::DRIVER,
-                          fcu->rna_path_ptr ? fcu->rna_path_ptr : "",
-                          fcu->array_index);
+  OperationKey driver_key(
+      id, NodeType::PARAMETERS, OperationCode::DRIVER, fcu->rna_path().c_str(), fcu->array_index);
   /* Driver -> data components (for interleaved evaluation
    * bones/constraints/modifiers). */
   build_driver_data(id, fcu);
@@ -1901,12 +1895,12 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
 {
   /* Validate the RNA path pointer just in case. */
-  const char *rna_path = fcu->rna_path_ptr;
-  if (rna_path == nullptr || rna_path[0] == '\0') {
+  const StringRefNull rna_path = fcu->rna_path();
+  if (rna_path.is_empty()) {
     return;
   }
   /* Parse the RNA path to find the target property pointer. */
-  RNAPathKey property_entry_key(id, rna_path, RNAPointerSource::ENTRY);
+  RNAPathKey property_entry_key(id, rna_path.c_str(), RNAPointerSource::ENTRY);
   if (RNA_pointer_is_null(&property_entry_key.ptr)) {
     /* TODO(sergey): This would only mean that driver is broken.
      * so we can't create relation anyway. However, we need to avoid
@@ -1915,7 +1909,7 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
     return;
   }
   OperationKey driver_key(
-      id, NodeType::PARAMETERS, OperationCode::DRIVER, rna_path, fcu->array_index);
+      id, NodeType::PARAMETERS, OperationCode::DRIVER, rna_path.c_str(), fcu->array_index);
   /* If the target of the driver is a Bone property, find the Armature data,
    * and then link the driver to all pose bone evaluation components that use
    * it. This is necessary to provide more granular dependencies specifically for
@@ -1933,7 +1927,8 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
      * which will affect the evaluation of corresponding pose bones. */
     Bone *bone = static_cast<Bone *>(property_entry_key.ptr.data);
     if (bone == nullptr) {
-      fprintf(stderr, "Couldn't find armature bone name for driver path - '%s'\n", rna_path);
+      fprintf(
+          stderr, "Couldn't find armature bone name for driver path - '%s'\n", rna_path.c_str());
       return;
     }
 
@@ -1985,7 +1980,7 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
     {
       PointerRNA id_ptr = RNA_id_pointer_create(id);
       PointerRNA ptr;
-      if (RNA_path_resolve_full(&id_ptr, fcu->rna_path_ptr, &ptr, nullptr, nullptr)) {
+      if (RNA_path_resolve_full(&id_ptr, rna_path.c_str(), &ptr, nullptr, nullptr)) {
         if (id_ptr.owner_id != ptr.owner_id) {
           ComponentKey cow_key(ptr.owner_id, NodeType::COPY_ON_EVAL);
           add_relation(
@@ -2020,14 +2015,11 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
 void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
 {
   ChannelDriver *driver = fcu->driver;
-  OperationKey driver_key(id,
-                          NodeType::PARAMETERS,
-                          OperationCode::DRIVER,
-                          fcu->rna_path_ptr ? fcu->rna_path_ptr : "",
-                          fcu->array_index);
-  const char *rna_path = fcu->rna_path_ptr ? fcu->rna_path_ptr : "";
+  const StringRefNull rna_path = fcu->rna_path();
+  OperationKey driver_key(
+      id, NodeType::PARAMETERS, OperationCode::DRIVER, rna_path.c_str(), fcu->array_index);
 
-  const RNAPathKey self_key(id, rna_path, RNAPointerSource::ENTRY);
+  const RNAPathKey self_key(id, rna_path.c_str(), RNAPointerSource::ENTRY);
 
   DriverTargetContext driver_target_context;
   driver_target_context.scene = graph_->scene;

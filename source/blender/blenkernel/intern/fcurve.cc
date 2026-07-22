@@ -171,10 +171,21 @@ void BKE_fcurves_copy(ListBaseT<FCurve> *dst, ListBaseT<FCurve> *src)
   }
 }
 
-void BKE_fcurve_rnapath_set(FCurve &fcu, StringRef rna_path)
+void FCurve::rna_path_set(const StringRef path)
 {
-  MEM_SAFE_DELETE(fcu.rna_path_ptr);
-  fcu.rna_path_ptr = BLI_strdupn(rna_path.data(), rna_path.size());
+  MEM_SAFE_DELETE(this->rna_path_ptr);
+  this->rna_path_ptr = BLI_strdupn(path.data(), path.size());
+}
+
+void FCurve::rna_path_set_move(char *path)
+{
+  MEM_SAFE_DELETE(this->rna_path_ptr);
+  this->rna_path_ptr = path;
+}
+
+StringRefNull FCurve::rna_path() const
+{
+  return this->rna_path_ptr ? StringRefNull(this->rna_path_ptr) : StringRefNull("");
 }
 
 void BKE_fmodifier_name_set(FModifier *fcm, const char *name)
@@ -1858,8 +1869,10 @@ void BKE_fcurve_merge_duplicate_keys(FCurve *fcu, const int sel_flag, const bool
   if (retained_keys.is_empty()) {
     /* This may happen if none of the points were selected... */
     if (G.debug & G_DEBUG) {
-      printf(
-          "%s: nothing to do for FCurve %p (rna_path = '%s')\n", __func__, fcu, fcu->rna_path_ptr);
+      printf("%s: nothing to do for FCurve %p (rna_path = '%s')\n",
+             __func__,
+             fcu,
+             fcu->rna_path().c_str());
     }
     return;
   }
@@ -2560,7 +2573,7 @@ void BKE_fmodifiers_blend_read_data(BlendDataReader *reader,
       BLO_reportf_wrap(BLO_read_data_reports(reader),
                        RPT_WARNING,
                        RPT_("F-Curve modifier lost on '%s[%d]' because it has an unknown type"),
-                       curve->rna_path_ptr,
+                       curve->rna_path().c_str(),
                        curve->array_index);
       fcm.data = nullptr;
     }

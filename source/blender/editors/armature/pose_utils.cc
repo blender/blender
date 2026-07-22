@@ -93,11 +93,7 @@ static eAction_TransformFlags get_item_transform_flags_and_fcurves(ID &id,
   }
 
   animrig::foreach_fcurve_in_action_slot(action, adt->slot_handle, [&](FCurve &fcurve) {
-    if (fcurve.rna_path_ptr == nullptr) {
-      return;
-    }
-    StringRefNull fcurve_path(fcurve.rna_path_ptr);
-
+    const StringRefNull fcurve_path = fcurve.rna_path();
     if (!base_path.is_empty() && !fcurve_path.startswith(base_path)) {
       return;
     }

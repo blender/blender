@@ -5806,14 +5806,15 @@ static void join_object_with_active(Main &bmain,
 
   /* Rename animation paths to layers. */
   BKE_fcurves_main_cb(&bmain, [&](ID *id, FCurve *fcu) {
-    if (id == &grease_pencil_src.id && fcu->rna_path_ptr && strstr(fcu->rna_path_ptr, "layers[")) {
+    const StringRefNull rna_path = fcu->rna_path();
+    if (id == &grease_pencil_src.id && strstr(rna_path.c_str(), "layers[")) {
       /* Have to use linear search, the layer name map only contains sub-strings of RNA paths. */
       for (auto [name_src, name_dst] : layer_name_map.items()) {
         if (name_dst != name_src) {
-          const char *old_path = fcu->rna_path_ptr;
-          fcu->rna_path_ptr = BKE_animsys_fix_rna_path_rename(
-              id, fcu->rna_path_ptr, "layers", name_src, name_dst);
-          if (old_path != fcu->rna_path_ptr) {
+          if (char *new_path = BKE_animsys_fix_rna_path_rename(
+                  id, rna_path.c_str(), "layers", name_src, name_dst))
+          {
+            fcu->rna_path_set_move(new_path);
             /* Stop after first match. */
             break;
           }
@@ -5833,10 +5834,11 @@ static void join_object_with_active(Main &bmain,
           if (dtar->rna_path && strstr(dtar->rna_path, "layers[")) {
             for (auto [name_src, name_dst] : layer_name_map.items()) {
               if (name_dst != name_src) {
-                const char *old_path = dtar->rna_path;
-                dtar->rna_path = BKE_animsys_fix_rna_path_rename(
-                    id, dtar->rna_path, "layers", name_src, name_dst);
-                if (old_path != dtar->rna_path) {
+                if (char *new_path = BKE_animsys_fix_rna_path_rename(
+                        id, dtar->rna_path, "layers", name_src, name_dst))
+                {
+                  MEM_delete(dtar->rna_path);
+                  dtar->rna_path = new_path;
                   break;
                 }
               }

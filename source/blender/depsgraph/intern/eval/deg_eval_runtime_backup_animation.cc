@@ -47,7 +47,8 @@ void AnimationBackup::init_from_id(ID *id)
 
   PointerRNA id_pointer_rna = RNA_id_pointer_create(id);
   BKE_fcurves_id_cb(id, [&](ID *cb_id, FCurve *fcurve) {
-    if (fcurve->rna_path_ptr == nullptr || fcurve->rna_path_ptr[0] == '\0') {
+    const StringRefNull rna_path = fcurve->rna_path();
+    if (rna_path.is_empty()) {
       return;
     }
     if (id != cb_id) {
@@ -57,7 +58,7 @@ void AnimationBackup::init_from_id(ID *id)
     /* Resolve path to the property. */
     PathResolvedRNA resolved_rna;
     if (!BKE_animsys_rna_path_resolve(
-            &id_pointer_rna, fcurve->rna_path_ptr, fcurve->array_index, &resolved_rna))
+            &id_pointer_rna, rna_path.c_str(), fcurve->array_index, &resolved_rna))
     {
       return;
     }
@@ -68,7 +69,7 @@ void AnimationBackup::init_from_id(ID *id)
       return;
     }
 
-    this->values_backup.append({fcurve->rna_path_ptr, fcurve->array_index, value});
+    this->values_backup.append({rna_path, fcurve->array_index, value});
   });
 }
 

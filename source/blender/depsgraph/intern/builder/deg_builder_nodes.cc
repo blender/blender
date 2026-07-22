@@ -1337,7 +1337,7 @@ void DepsgraphNodeBuilder::build_animdata_drivers(ID *id, AnimData *adt)
 
   for (const auto [driver_index, fcu] : adt->drivers.enumerate()) {
     build_driver(id, &fcu, driver_index);
-    needs_unshare = needs_unshare || data_path_maybe_shared(*id, fcu.rna_path_ptr);
+    needs_unshare = needs_unshare || data_path_maybe_shared(*id, fcu.rna_path());
   }
 
   if (!needs_unshare) {
@@ -1369,7 +1369,7 @@ void DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcurve, int driver_index
       [id_cow, driver_index, fcurve](blender::Depsgraph *depsgraph) {
         BKE_animsys_eval_driver(depsgraph, id_cow, driver_index, fcurve);
       },
-      fcurve->rna_path_ptr ? fcurve->rna_path_ptr : "",
+      fcurve->rna_path().c_str(),
       fcurve->array_index);
   build_driver_variables(id, fcurve);
 }
@@ -1378,7 +1378,7 @@ void DepsgraphNodeBuilder::build_driver_variables(ID *id, FCurve *fcurve)
 {
   PointerRNA id_ptr = RNA_id_pointer_create(id);
 
-  build_driver_id_property(id_ptr, fcurve->rna_path_ptr);
+  build_driver_id_property(id_ptr, fcurve->rna_path().c_str());
 
   DriverTargetContext driver_target_context;
   driver_target_context.scene = graph_->scene;

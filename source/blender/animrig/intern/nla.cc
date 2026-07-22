@@ -188,7 +188,7 @@ bool insert_keyframe_direct(ReportList *reports,
   if (prop == nullptr) {
     PointerRNA tmp_ptr;
 
-    if (RNA_path_resolve_property(&ptr, fcu->rna_path_ptr, &tmp_ptr, &prop) == false) {
+    if (RNA_path_resolve_property(&ptr, fcu->rna_path().c_str(), &tmp_ptr, &prop) == false) {
       const char *idname = (ptr.owner_id) ? ptr.owner_id->name : RPT_("<No ID pointer>");
 
       BKE_reportf(reports,
@@ -196,7 +196,7 @@ bool insert_keyframe_direct(ReportList *reports,
                   "Could not insert keyframe, as RNA path is invalid for the given ID (ID = %s, "
                   "path = %s)",
                   idname,
-                  fcu->rna_path_ptr);
+                  fcu->rna_path().c_str());
       return false;
     }
 
@@ -242,7 +242,7 @@ bool insert_keyframe_direct(ReportList *reports,
                 RPT_ERROR,
                 "Failed to insert keys on F-Curve with path '%s[%d]', ensure that it is not "
                 "locked or sampled, and try removing F-Modifiers",
-                fcu->rna_path_ptr,
+                fcu->rna_path().c_str(),
                 fcu->array_index);
   }
   return result == SingleKeyingResult::SUCCESS;

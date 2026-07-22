@@ -96,7 +96,7 @@ void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, Poin
   }
 
   /* try to get property we should be affecting */
-  if (RNA_path_resolve_property(ptr, fcu->rna_path_ptr, &tmp_ptr, &prop) == false) {
+  if (RNA_path_resolve_property(ptr, fcu->rna_path().c_str(), &tmp_ptr, &prop) == false) {
     /* property not found... */
     const char *idname = (ptr->owner_id) ? ptr->owner_id->name : RPT_("<No ID pointer>");
 
@@ -105,7 +105,7 @@ void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, Poin
                 "Could not update flags for this F-curve, as RNA path is invalid for the given ID "
                 "(ID = %s, path = %s)",
                 idname,
-                fcu->rna_path_ptr);
+                fcu->rna_path().c_str());
     return;
   }
 
@@ -725,18 +725,17 @@ static bool can_delete_fcurve(FCurve *fcu, Object *ob)
   bool can_delete = false;
   /* in pose mode, only delete the F-Curve if it belongs to a selected bone */
   if (ob->mode & OB_MODE_POSE) {
-    if (fcu->rna_path_ptr) {
-      /* Get bone-name, and check if this bone is selected. */
-      bPoseChannel *pchan = nullptr;
-      char bone_name[sizeof(pchan->name)];
-      if (BLI_str_quoted_substr(fcu->rna_path_ptr, "pose.bones[", bone_name, sizeof(bone_name))) {
-        pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
-        /* Delete if bone is selected. */
-        if ((pchan) && (pchan->bone_get(*ob))) {
-          /* TODO(Sybren): use bone_is_selected() to avoid treating invisible bone as selected. */
-          if (pchan->flag & POSE_SELECTED) {
-            can_delete = true;
-          }
+    const StringRefNull rna_path = fcu->rna_path();
+    /* Get bone-name, and check if this bone is selected. */
+    bPoseChannel *pchan = nullptr;
+    char bone_name[sizeof(pchan->name)];
+    if (BLI_str_quoted_substr(rna_path.c_str(), "pose.bones[", bone_name, sizeof(bone_name))) {
+      pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
+      /* Delete if bone is selected. */
+      if ((pchan) && (pchan->bone_get(*ob))) {
+        /* TODO(Sybren): use bone_is_selected() to avoid treating invisible bone as selected. */
+        if (pchan->flag & POSE_SELECTED) {
+          can_delete = true;
         }
       }
     }
@@ -847,8 +846,7 @@ static void invalidate_strip_caches(Vector<PointerRNA> selection, Scene *scene)
 
 static bool fcurve_belongs_to_strip(const FCurve &fcurve, const std::string &strip_path)
 {
-  return fcurve.rna_path_ptr &&
-         std::strncmp(fcurve.rna_path_ptr, strip_path.c_str(), strip_path.length()) == 0;
+  return std::strncmp(fcurve.rna_path().c_str(), strip_path.c_str(), strip_path.length()) == 0;
 }
 
 static wmOperatorStatus clear_anim_vse_exec(bContext *C, wmOperator *op)
@@ -945,7 +943,7 @@ static bool can_delete_key(FCurve *fcu, Object *ob, ReportList *reports)
     BKE_reportf(reports,
                 RPT_WARNING,
                 "Not deleting keyframe for locked F-Curve '%s', object '%s'",
-                fcu->rna_path_ptr,
+                fcu->rna_path().c_str(),
                 ob->id.name + 2);
     return false;
   }
@@ -961,7 +959,9 @@ static bool can_delete_key(FCurve *fcu, Object *ob, ReportList *reports)
 
     /* Get bone-name, and check if this bone is selected. */
     char bone_name[sizeof(pchan->name)];
-    if (!BLI_str_quoted_substr(fcu->rna_path_ptr, "pose.bones[", bone_name, sizeof(bone_name))) {
+    if (!BLI_str_quoted_substr(
+            fcu->rna_path().c_str(), "pose.bones[", bone_name, sizeof(bone_name)))
+    {
       return false;
     }
     pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
@@ -987,7 +987,7 @@ static bool can_delete_scene_key(FCurve *fcu, Scene *scene, wmOperator *op)
     BKE_reportf(op->reports,
                 RPT_WARNING,
                 "Not deleting keyframe for locked F-Curve '%s', scene '%s'",
-                fcu->rna_path_ptr,
+                fcu->rna_path().c_str(),
                 scene->id.name + 2);
     return false;
   }

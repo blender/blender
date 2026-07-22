@@ -94,7 +94,7 @@ void evaluate_and_apply_action(PointerRNA &animated_id_ptr,
 /* Copy of the same-named function in anim_sys.cc, with the check on action groups removed. */
 static bool is_fcurve_evaluatable(const FCurve *fcu)
 {
-  if (fcu->rna_path_ptr == nullptr) {
+  if (fcu->rna_path().is_empty()) {
     return false;
   }
 
@@ -171,7 +171,7 @@ static EvaluationResult evaluate_keyframe_data(PointerRNA &animated_id_ptr,
        * and store the result for later. */
       PathResolvedRNA &anim_rna = resolved_rna[i];
       if (!BKE_animsys_rna_path_resolve(
-              &animated_id_ptr, fcu->rna_path_ptr, fcu->array_index, &anim_rna))
+              &animated_id_ptr, fcu->rna_path().c_str(), fcu->array_index, &anim_rna))
       {
         continue;
       }
@@ -191,7 +191,7 @@ static EvaluationResult evaluate_keyframe_data(PointerRNA &animated_id_ptr,
     FCurve *fcu = fcurves[i];
     PathResolvedRNA &anim_rna = resolved_rna[i];
     /* This part is not threadsafe. */
-    evaluation_result.store(fcu->rna_path_ptr, fcu->array_index, results[i], anim_rna);
+    evaluation_result.store(fcu->rna_path(), fcu->array_index, results[i], anim_rna);
   }
 
   return evaluation_result;

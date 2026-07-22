@@ -1773,7 +1773,7 @@ int paste_property_drivers(Span<FCurve *> src_drivers,
 
     /* Create the new driver. */
     FCurve *new_driver = BKE_fcurve_copy(src_drivers[i]);
-    BKE_fcurve_rnapath_set(*new_driver, dst_path.value());
+    new_driver->rna_path_set(dst_path.value());
     BLI_addtail(&dst_adt->drivers, new_driver);
 
     paste_count++;

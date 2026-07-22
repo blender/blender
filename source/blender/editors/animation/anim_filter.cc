@@ -1026,8 +1026,8 @@ static bool skip_fcurve_selected_data(bAnimContext *ac,
     char bone_name[sizeof(pchan->name)];
 
     /* Only consider if F-Curve involves `pose.bones`. */
-    if (fcu->rna_path_ptr &&
-        BLI_str_quoted_substr(fcu->rna_path_ptr, "pose.bones[", bone_name, sizeof(bone_name)))
+    if (BLI_str_quoted_substr(
+            fcu->rna_path().c_str(), "pose.bones[", bone_name, sizeof(bone_name)))
     {
       /* Get bone-name, and check if this bone is selected. */
       pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
@@ -1060,8 +1060,8 @@ static bool skip_fcurve_selected_data(bAnimContext *ac,
     char strip_name[sizeof(strip->name)];
 
     /* Only consider if F-Curve involves `sequence_editor.strips`. */
-    if (fcu->rna_path_ptr &&
-        BLI_str_quoted_substr(fcu->rna_path_ptr, "strips_all[", strip_name, sizeof(strip_name)))
+    if (BLI_str_quoted_substr(
+            fcu->rna_path().c_str(), "strips_all[", strip_name, sizeof(strip_name)))
     {
       /* Get strip name, and check if this strip is selected. */
       Editing *ed = seq::editing_get(scene);
@@ -1103,9 +1103,7 @@ static bool skip_fcurve_selected_data(bAnimContext *ac,
     char node_name[sizeof(node->name)];
 
     /* Check for selected nodes. */
-    if (fcu->rna_path_ptr &&
-        BLI_str_quoted_substr(fcu->rna_path_ptr, "nodes[", node_name, sizeof(node_name)))
-    {
+    if (BLI_str_quoted_substr(fcu->rna_path().c_str(), "nodes[", node_name, sizeof(node_name))) {
       /* Get strip name, and check if this strip is selected. */
       node = bke::node_find_node_by_name(*ntree, node_name);
 
@@ -2019,8 +2017,8 @@ static size_t animdata_filter_shapekey(bAnimContext *ac,
 
       Vector<FCurve *> key_fcurves;
       for (FCurve *fcurve : fcurves_for_action_slot(action, key->adt->slot_handle)) {
-        if (STREQ(fcurve->rna_path_ptr, "eval_time") ||
-            BLI_str_endswith(fcurve->rna_path_ptr, ".interpolation"))
+        if (fcurve->rna_path() == "eval_time" ||
+            BLI_str_endswith(fcurve->rna_path().c_str(), ".interpolation"))
         {
           key_fcurves.append(fcurve);
         }

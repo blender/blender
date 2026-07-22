@@ -392,9 +392,9 @@ struct FCurve {
    */
   int array_index = 0;
   /**
-   * RNA-path to resolve data-access, see: #RNA_path_resolve_property.
-   *
-   * \note String look-ups for collection and custom-properties are escaped using #BLI_str_escape.
+   * Storage for #FCurve::rna_path(), which should be used to access this value instead, even via
+   * `rna_path().c_str()`, except for very specific cases where the overhead of StringRefNull
+   * construction must be avoided. Value should be set via #rna_path_set() or rna_path_set_move()
    */
   char *rna_path_ptr = nullptr;
 
@@ -407,6 +407,24 @@ struct FCurve {
   float prev_norm_factor = 0, prev_offset = 0;
 
   bke::FCurveRuntime *runtime = nullptr;
+
+#ifdef __cplusplus
+  /**
+   * RNA-path to resolve data-access, see: #RNA_path_resolve_property.
+   *
+   * \note String look-ups for collection and custom-properties are escaped using #BLI_str_escape.
+   */
+  StringRefNull rna_path() const;
+
+  /** Set the RNA path for this F-Curve, copying the given string. */
+  void rna_path_set(StringRef path);
+
+  /**
+   * Set the RNA path for this F-Curve, taking ownership of the C-string, which must be allocated
+   * by the guarded allocator.
+   */
+  void rna_path_set_move(char *path);
+#endif
 };
 
 /* ************************************************ */

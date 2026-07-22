@@ -244,11 +244,6 @@ void BKE_fcurves_free(ListBaseT<FCurve> *list);
  */
 void BKE_fcurves_copy(ListBaseT<FCurve> *dst, ListBaseT<FCurve> *src);
 
-/**
- * Set the RNA path of a F-Curve.
- */
-void BKE_fcurve_rnapath_set(FCurve &fcu, StringRef rna_path);
-
 /* Set fcurve modifier name and ensure uniqueness.
  * Pass new name string when it's been edited otherwise pass empty string. */
 void BKE_fmodifier_name_set(FModifier *fcm, const char *name);

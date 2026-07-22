@@ -493,10 +493,9 @@ static void refresh_node_sockets_animation_inout(Main &bmain,
     }
   }
   if (!moved_indices.is_empty()) {
-    auto handle_rna_path = [&](char **path_ptr) {
-      const StringRef old_path = *path_ptr;
+    auto construct_new_rna_path = [&](const StringRef old_path) -> char * {
       if (!old_path.startswith(node_path)) {
-        return;
+        return nullptr;
       }
       for (const IndexMove &index_move : moved_indices) {
         const std::string old_path_prefix = fmt::format(
@@ -509,20 +508,24 @@ static void refresh_node_sockets_animation_inout(Main &bmain,
                                                  inout_str,
                                                  index_move.new_i,
                                                  old_path.substr(old_path_prefix.size()));
-        MEM_SAFE_DELETE(*path_ptr);
-        *path_ptr = BLI_strdup(new_path.c_str());
         animation_changed = true;
-        return;
+        return BLI_strdup(new_path.c_str());
       }
+      return nullptr;
     };
 
     /* All index changes have to be applied in a single pass over the fcurves. Otherwise, when
      * sockets swap their position, the same fcurve may be modified twice and ends up with its
      * original rna path. */
-    animrig::foreach_fcurve_in_action_slot(
-        action, slot.handle, [&](FCurve &fcurve) { handle_rna_path(&fcurve.rna_path_ptr); });
+    animrig::foreach_fcurve_in_action_slot(action, slot.handle, [&](FCurve &fcurve) {
+      if (char *new_path = construct_new_rna_path(fcurve.rna_path())) {
+        fcurve.rna_path_set_move(new_path);
+      }
+    });
     for (FCurve &driver_fcurve : ntree.adt->drivers) {
-      handle_rna_path(&driver_fcurve.rna_path_ptr);
+      if (char *new_path = construct_new_rna_path(driver_fcurve.rna_path())) {
+        driver_fcurve.rna_path_set_move(new_path);
+      }
     }
   }
 
