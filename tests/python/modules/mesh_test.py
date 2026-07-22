@@ -823,39 +823,22 @@ class BlendFileTest(MeshTest):
             self.allow_index_change = True
 
     def apply_operations(self, evaluated_test_object_name):
-
         BlendFileTest.apply_operations.__doc__ = MeshTest.apply_operations.__doc__
+
         evaluated_test_object = bpy.data.objects[evaluated_test_object_name]
         modifiers_list = evaluated_test_object.modifiers
         if not modifiers_list:
             raise Exception("No modifiers are added to test object.")
-        for modifier in modifiers_list:
-            bpy.ops.object.modifier_apply(modifier=modifier.name)
-
-
-class GeoNodesSimulationTest(MeshTest):
-    """
-    A mesh test that works similar to BlendFileTest but evaluates the scene at multiple
-    frames so that simulations can run.
-    """
-
-    def __init__(self, test_object_name, exp_object_name, *, frames_num, **kwargs):
-        super().__init__(test_object_name, exp_object_name, **kwargs)
-        self.frames_num = frames_num
-
-    def apply_operations(self, evaluated_test_object_name):
-        GeoNodesSimulationTest.apply_operations.__doc__ = MeshTest.apply_operations.__doc__
-
-        evaluated_test_object = bpy.data.objects[evaluated_test_object_name]
-        modifiers_list = evaluated_test_object.modifiers
-        if not modifiers_list:
-            raise Exception("The object has no modifiers.")
 
         scene = bpy.context.scene
-        for frame in range(1, self.frames_num + 1):
-            scene.frame_set(frame)
+        if scene.get("use_playback"):
+            frame_start = scene.frame_start
+            frame_end = scene.frame_end
+            for frame in range(frame_start, frame_end + 1):
+                scene.frame_set(frame)
 
         for modifier in modifiers_list:
+            print(modifier.name)
             bpy.ops.object.modifier_apply(modifier=modifier.name)
 
 

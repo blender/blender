@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <algorithm>
+#include <iostream>
 #include <numeric>
 
 #include "BLI_array.hh"
@@ -328,7 +329,8 @@ static bool values_different(const T value1,
  * \returns false if the attributes don't line up.
  */
 template<typename T>
-static bool update_set_ids(MutableSpan<int> set_ids,
+static bool update_set_ids(StringRef name,
+                           MutableSpan<int> set_ids,
                            const Span<T> values1,
                            const Span<T> values2,
                            const Span<int> sorted_to_values1,
@@ -348,6 +350,9 @@ static bool update_set_ids(MutableSpan<int> set_ids,
     const T value2 = values2[sorted_to_values2[i]];
     if (values_different(value1, value2, value_threshold, component_i)) {
       /* They should be the same after sorting. */
+      std::cout << "Attribute different: " << name << "\n";
+      std::cout << "  1: " << value1 << "\n";
+      std::cout << "  2: " << value2 << "\n";
       return false;
     }
     if ((values_different(previous, value1, value_threshold, component_i) &&
@@ -452,7 +457,8 @@ static bool sort_edges(const Span<int2> edges1,
                                    ordered_edges1.as_span(),
                                    ordered_edges2.as_span(),
                                    0);
-  const bool edges_match = update_set_ids(edges.set_ids,
+  const bool edges_match = update_set_ids("ORDERED_EDGES",
+                                          edges.set_ids,
                                           ordered_edges1.as_span(),
                                           ordered_edges2.as_span(),
                                           edges.from_sorted1,
@@ -536,7 +542,8 @@ static bool sort_faces_based_on_corners(const IndexMapping &corners,
                                    smallest_corner_ids1.as_span(),
                                    smallest_corner_ids2.as_span(),
                                    0);
-  const bool faces_line_up = update_set_ids(faces.set_ids,
+  const bool faces_line_up = update_set_ids("CORNER_IDS",
+                                            faces.set_ids,
                                             smallest_corner_ids1.as_span(),
                                             smallest_corner_ids2.as_span(),
                                             faces.from_sorted1,
@@ -666,7 +673,8 @@ static std::optional<GeoMismatch> sort_domain_using_attributes(
       for (const int component_i : IndexRange(num_loops)) {
         sort_per_set_based_on_attributes(
             maps.set_sizes, maps.from_sorted1, maps.from_sorted2, values1, values2, component_i);
-        const bool attributes_line_up = update_set_ids(maps.set_ids,
+        const bool attributes_line_up = update_set_ids(name,
+                                                       maps.set_ids,
                                                        values1,
                                                        values2,
                                                        maps.from_sorted1,
@@ -1019,7 +1027,8 @@ static bool sort_curves(const OffsetIndices<int> offset_indices1,
                                    curve_point_counts1.as_span(),
                                    curve_point_counts2.as_span(),
                                    0);
-  const bool curves_sizes_match = update_set_ids(curves.set_ids,
+  const bool curves_sizes_match = update_set_ids("CURVE_IDS",
+                                                 curves.set_ids,
                                                  curve_point_counts1.as_span(),
                                                  curve_point_counts2.as_span(),
                                                  curves.from_sorted1,
