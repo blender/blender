@@ -1389,7 +1389,8 @@ bool BVHMetal::build(Progress &progress,
         refit = false;
       }
       else if (!accel_struct) {
-        assert(!"Can't refit non-existing Metal BVH");
+        /* It is possible that the acceleration structure does not exist here: for example, when
+         * new points were added to a previously empty geometry. */
         refit = false;
       }
     }
