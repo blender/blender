@@ -1365,16 +1365,12 @@ static void write_libraries(WriteData *wd, Main *bmain)
 
   /* Gather IDs coming from each library. */
   MultiValueMap<Library *, ID *> linked_ids_by_library;
-  {
-    ID *id;
-    FOREACH_MAIN_ID_BEGIN (bmain, id) {
-      if (!ID_IS_LINKED(id)) {
-        continue;
-      }
-      BLI_assert(id->lib);
-      linked_ids_by_library.add(id->lib, id);
+  for (ID &id : MainAllIDsIterator(*bmain)) {
+    if (!ID_IS_LINKED(&id)) {
+      continue;
     }
-    FOREACH_MAIN_ID_END;
+    BLI_assert(id.lib);
+    linked_ids_by_library.add(id.lib, &id);
   }
 
   Set<Library *> written_libraries;
@@ -1689,27 +1685,26 @@ static void write_blend_file_header(WriteData *wd)
 static Vector<ID *> gather_local_ids_to_write(Main *bmain, const bool is_undo)
 {
   Vector<ID *> local_ids_to_write;
-  ID *id;
-  FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    if (GS(id->name) == ID_LI) {
+  for (ID &id : MainAllIDsIterator(*bmain)) {
+    if (GS(id.name) == ID_LI) {
       /* Libraries are handled separately below. */
       continue;
     }
-    if (ID_IS_LINKED(id)) {
+    if (ID_IS_LINKED(&id)) {
       /* Linked data-blocks are handled separately below. */
       continue;
     }
-    const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
+    const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(&id);
     UNUSED_VARS_NDEBUG(id_type);
     /* We should never attempt to write non-regular IDs
      * (i.e. all kind of temp/runtime ones). */
-    BLI_assert((id->tag & (ID_TAG_NO_MAIN | ID_TAG_NO_USER_REFCOUNT | ID_TAG_NOT_ALLOCATED)) == 0);
+    BLI_assert((id.tag & (ID_TAG_NO_MAIN | ID_TAG_NO_USER_REFCOUNT | ID_TAG_NOT_ALLOCATED)) == 0);
     /* We only write unused IDs in undo case. */
     if (!is_undo) {
       /* NOTE: All 'never unused' local IDs (Scenes, WindowManagers, ...) should always be
        * written to disk, so their user-count should never be zero currently. Note that
        * libraries have already been skipped above, as they need a specific handling. */
-      if (id->us == 0) {
+      if (id.us == 0) {
         /* FIXME: #124857: Some old files seem to cause incorrect handling of their temp
          * screens.
          *
@@ -1728,26 +1723,25 @@ static Vector<ID *> gather_local_ids_to_write(Main *bmain, const bool is_undo)
        * NOTE: Since ShapeKeys are conceptually embedded IDs (like root node trees e.g.), this
        * behavior actually makes sense anyway. This remains more of a temp hack until topic of
        * how to handle unused data on save is properly tackled. */
-      if (GS(id->name) == ID_KE) {
-        Key *shape_key = reinterpret_cast<Key *>(id);
+      if (GS(id.name) == ID_KE) {
+        Key &shape_key = id_cast<Key &>(id);
         /* NOTE: Here we are accessing the real owner ID data, not it's 'proxy' shallow copy
          * generated for its file-writing. This is not expected to be an issue, but is worth
          * noting. */
-        if (shape_key->from == nullptr || shape_key->from->us == 0) {
+        if (shape_key.from == nullptr || shape_key.from->us == 0) {
           continue;
         }
       }
     }
 
-    if ((id->tag & ID_TAG_RUNTIME) != 0 && !is_undo) {
+    if ((id.tag & ID_TAG_RUNTIME) != 0 && !is_undo) {
       /* Runtime IDs are never written to .blend files, and they should not influence
        * (in)direct status of linked IDs they may use. */
       continue;
     }
 
-    local_ids_to_write.append(id);
+    local_ids_to_write.append(&id);
   }
-  FOREACH_MAIN_ID_END;
   return local_ids_to_write;
 }
 
@@ -1757,10 +1751,9 @@ static Vector<ID *> gather_local_ids_to_write(Main *bmain, const bool is_undo)
  */
 static void prepare_stable_data_block_ids(WriteData &wd, Main &bmain)
 {
-  ID *id;
-  FOREACH_MAIN_ID_BEGIN (&bmain, id) {
+  for (ID &id : MainAllIDsIterator(bmain)) {
     /* Ensure no other stable pointer has been created before. */
-    BLI_assert(!wd.stable_address_ids.pointer_map.contains(id));
+    BLI_assert(!wd.stable_address_ids.pointer_map.contains(&id));
 
     /* IDs themselves never need to get stable addresses in undo case. */
     if (wd.use_memfile) {
@@ -1769,14 +1762,13 @@ static void prepare_stable_data_block_ids(WriteData &wd, Main &bmain)
 
     /* Derive the stable pointer from the id/library name which is independent of the write-order
      * of data-blocks. */
-    uint64_t hint = get_stable_pointer_hint_for_id(*id, wd.use_memfile);
+    uint64_t hint = get_stable_pointer_hint_for_id(id, wd.use_memfile);
     const uint64_t address_id = get_next_stable_address_id(wd, hint);
 
     /* Store the computed stable pointer so that it is used whenever the data-block is written or
      * referenced. */
-    wd.stable_address_ids.pointer_map.add(id, address_id);
+    wd.stable_address_ids.pointer_map.add(&id, address_id);
   }
-  FOREACH_MAIN_ID_END;
 }
 
 /**
