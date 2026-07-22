@@ -912,6 +912,7 @@ void ShadowModule::end_sync()
         /* Clear usage bits. Tag update from the tile-map for sun shadow clip-maps shifting. */
         PassSimple::Sub &sub = pass.sub("Init");
         sub.shader_set(inst_.shaders.static_shader_get(SHADOW_TILEMAP_INIT));
+        sub.push_constant("reset_used_flag", &run_tagging_);
         sub.bind_ssbo("tilemaps_buf", tilemap_pool.tilemaps_data);
         sub.bind_ssbo("tilemaps_clip_buf", tilemap_pool.tilemaps_clip);
         sub.bind_ssbo("tiles_buf", tilemap_pool.tiles_data);
@@ -1309,18 +1310,20 @@ void ShadowModule::render(View &view, int2 extent)
     {
       GPU_uniformbuf_clear_to_zero(shadow_multi_view_.matrices_ubo_get());
 
+      run_tagging_ = (loop_count == 0);
+
       inst_.manager->submit(tilemap_setup_ps_, view);
       if (loop_count == 0) {
         if (assign_if_different(update_casters_, false)) {
           /* Run caster update only once. */
-          /* TODO(fclem): There is an optimization opportunity here where we can
+          /* TODO(fclem): There is an  optimization opportunity here where we can
            * test casters only against the static tile-maps instead of all of them. */
           inst_.manager->submit(caster_update_ps_, view);
         }
         inst_.manager->submit(jittered_transparent_caster_update_ps_, view);
         inst_.manager->submit(update_propagate_ps_, view);
+        inst_.manager->submit(tilemap_usage_ps_, view);
       }
-      inst_.manager->submit(tilemap_usage_ps_, view);
       inst_.manager->submit(tilemap_update_ps_, view);
 
       shadow_multi_view_.compute_procedural_bounds();
