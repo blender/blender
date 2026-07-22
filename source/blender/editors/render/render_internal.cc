@@ -431,7 +431,9 @@ static void image_renderinfo_cb(void *rjv, RenderStats *rs)
 
   RE_ReleaseResult(rj->re);
 
-  BKE_callback_exec_string(G_MAIN, rs->infostr, BKE_CB_EVT_RENDER_STATS);
+  if (rs->infostr != nullptr) {
+    BKE_callback_exec_string(G_MAIN, rs->infostr, BKE_CB_EVT_RENDER_STATS);
+  }
 
   /* make jobs timer to send notifier */
   *(rj->do_update) = true;
