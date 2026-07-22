@@ -490,10 +490,10 @@ static MovieProxyBuilder *proxy_builder_create(MovieReader *anim,
 
   streamcount = anim->streamindex;
 
-  /* Find the video stream */
+  /* Find the video stream. */
   context->videoStream = -1;
   for (i = 0; i < context->iFormatCtx->nb_streams; i++) {
-    if (context->iFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+    if (ffmpeg_stream_counts_as_video(context->iFormatCtx, context->iFormatCtx->streams[i])) {
       if (streamcount > 0) {
         streamcount--;
         continue;

@@ -307,10 +307,10 @@ static AVFormatContext *init_format_context(const char *filepath,
 
   av_dump_format(format_ctx, 0, filepath, 0);
 
-  /* Find the video stream */
+  /* Find the video stream. */
   r_stream_index = -1;
   for (int i = 0; i < format_ctx->nb_streams; i++) {
-    if (format_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+    if (ffmpeg_stream_counts_as_video(format_ctx, format_ctx->streams[i])) {
       if (video_stream_index > 0) {
         video_stream_index--;
         continue;
@@ -1454,7 +1454,7 @@ int MOV_get_video_stream_count(MovieReader *anim)
   }
   int count = 0;
   for (int i = 0; i < anim->pFormatCtx->nb_streams; i++) {
-    if (anim->pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+    if (ffmpeg_stream_counts_as_video(anim->pFormatCtx, anim->pFormatCtx->streams[i])) {
       count++;
     }
   }
