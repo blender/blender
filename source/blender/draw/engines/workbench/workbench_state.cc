@@ -232,14 +232,6 @@ void SceneState::init(const DRWContext *context,
     reset_taa = true;
   }
 
-  if (reset_taa || samples_len <= 1) {
-    sample = 0;
-  }
-  else {
-    sample++;
-  }
-  render_finished = sample >= samples_len && samples_len > 1;
-
   /* TODO(@pragma37): volumes_do */
 
   draw_cavity = shading.flag & V3D_SHADING_CAVITY &&
@@ -254,10 +246,25 @@ void SceneState::init(const DRWContext *context,
 
   draw_object_id = (draw_outline || draw_curvature);
 
+  const bool shadows_use_rt_new = draw_shadows &&
+                                  (U.gpu_flag & USER_GPU_FLAG_WORKBENCH_RT_SHADOWS) &&
+                                  GPU_ray_query_support();
+  if (assign_if_different(shadows_use_rt, shadows_use_rt_new)) {
+    reset_taa = true;
+  }
+
   show_paint_bvh_debug = scene->toolsettings->sculpt ?
                              (scene->toolsettings->sculpt->paint.debug_flags &
                               PAINT_DEBUG_SHOW_BVH_NODES) != 0 :
                              false;
+
+  if (reset_taa || samples_len <= 1) {
+    sample = 0;
+  }
+  else {
+    sample++;
+  }
+  render_finished = sample >= samples_len && samples_len > 1;
 };
 
 static bool mesh_has_color_attribute(const Mesh &mesh)

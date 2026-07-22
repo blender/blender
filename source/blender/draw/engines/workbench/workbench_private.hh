@@ -175,6 +175,8 @@ struct SceneState {
 
   bool draw_object_id = false;
 
+  bool shadows_use_rt = false;
+
   int sample = 0;
   int samples_len = 0;
   bool reset_taa_next_sample = false;
