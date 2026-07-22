@@ -17,11 +17,20 @@ extern "C" {
 #  include "DNA_scene_types.h"
 
 struct AVFrame;
+struct AVStream;
+struct AVFormatContext;
 
 namespace blender {
 
 int ffmpeg_deinterlace(
     AVFrame *dst, const AVFrame *src, enum AVPixelFormat pix_fmt, int width, int height);
+
+/**
+ * Whether `stream` should be treated as a loadable video stream. Only count attached pictures
+ * (cover art / embedded thumbnails) if there are no other "real" video streams in the container as
+ * a fallback.
+ */
+bool ffmpeg_stream_counts_as_video(const AVFormatContext *format_ctx, const AVStream *stream);
 
 const char *ffmpeg_last_error();
 AVCodecID mov_av_codec_id_get(IMB_Ffmpeg_Codec_ID id);
