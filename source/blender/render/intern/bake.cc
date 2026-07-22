@@ -692,7 +692,7 @@ static void bake_differentials(BakeDataZSpan *bd,
   A = (uv2[0] - uv1[0]) * (uv3[1] - uv1[1]) - (uv3[0] - uv1[0]) * (uv2[1] - uv1[1]);
 
   if (fabsf(A) > FLT_EPSILON) {
-    A = 0.5f / A;
+    A = 1.0f / A;
 
     bd->du_dx = (uv2[1] - uv3[1]) * A;
     bd->dv_dx = (uv3[1] - uv1[1]) * A;
