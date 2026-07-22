@@ -838,6 +838,11 @@ def register_rna_properties() -> None:
     coll_store = bpy.types.BoneCollection
 
     coll_store.rigify_uid = IntProperty(name="Unique ID", default=-1)
+    coll_store.rigify_ui_row = IntProperty(
+        name="Button Row", default=0, min=0,
+        description="The row in the UI panel where the button for this collection is shown. (0 = hidden)")
+    coll_store.rigify_ui_title = StringProperty(
+        name="Button Text", description="Text to use on the UI panel button instead of the collection name")
     coll_store.rigify_sel_set = BoolProperty(
         name="Add Selection Set", default=False, description='Add Selection Set for this collection')
     coll_store.rigify_color_set_id = IntProperty(name="Color Set ID", default=0, min=0)
@@ -849,7 +854,7 @@ def register_rna_properties() -> None:
         coll.rigify_ui_title = "" if new_val == coll.name else new_val
 
     coll_store.rigify_ui_title_name = StringProperty(
-        name="UI Title", description="Text to use on the UI panel button (does not edit the collection name)",
+        name="Button Text", description="Text to use on the UI panel button (does not edit the collection name)",
         get=ui_title_get, set=ui_title_set
     )
 

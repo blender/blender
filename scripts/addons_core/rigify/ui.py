@@ -342,7 +342,10 @@ class DATA_PT_rigify_collection_list(bpy.types.Panel):
             col.operator("armature.collection_move", icon='TRIA_UP', text="").direction = 'UP'
             col.operator("armature.collection_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
-        layout.operator(operator='armature.rigify_validate_layers')
+        row = layout.row()
+        split = row.split(factor=0.4)
+        split.label(text="")
+        split.operator(operator='armature.rigify_validate_layers')
 
         if active_coll:
             col = layout.column()
@@ -451,7 +454,7 @@ class DATA_PT_rigify_collection_ui(bpy.types.Panel):
 
         if 0 in row_table:
             box = layout.box()
-            box.label(text="Permanently hidden collections:")
+            box.label(text="Permanently Hidden Collections:")
 
             grid = box.grid_flow(row_major=True, columns=2, even_columns=True)
 
@@ -486,7 +489,7 @@ class DATA_OT_rigify_collection_select(bpy.types.Operator):
 # noinspection PyPep8Naming
 class DATA_OT_rigify_collection_set_ui_row(bpy.types.Operator):
     bl_idname = "armature.rigify_collection_set_ui_row"
-    bl_label = "Move Between UI Rows"
+    bl_label = "Move/Delete Button"
     bl_options = {'UNDO'}
 
     index: IntProperty(name="Index")
@@ -1139,8 +1142,8 @@ class ValidateMetarigLayers(bpy.types.Operator):
     bl_idname = "armature.rigify_validate_layers"
     bl_label = "Validate Collection References"
     bl_description = (
-        "Validate references from rig component settings to bone collections.\n"
-        "Always run this both before and after joining two metarig armature objects into one to avoid glitches"
+        "Ensure that the settings on each component in this armature refer to a bone collection that actually exists.\n"
+        "Run this both before and after joining two metarig armature objects to avoid glitches."
     )
     bl_options = {'UNDO'}
 
