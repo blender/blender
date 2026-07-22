@@ -623,8 +623,8 @@ source_archive: .FORCE
 source_archive_complete: .FORCE
 	@cmake \
 	    -S "$(BLENDER_DIR)/build_files/build_environment" -B"$(BUILD_DIR)/source_archive" \
-	    -DCMAKE_BUILD_TYPE_INIT:STRING=$(BUILD_TYPE) -DPACKAGE_USE_UPSTREAM_SOURCES=OFF
-# This assumes CMake is still using a default `PACKAGE_DIR` variable:
+	    -DCMAKE_BUILD_TYPE_INIT:STRING=$(BUILD_TYPE) -DPACKAGE_USE_UPSTREAM_SOURCES=OFF -DPACKAGE_DOWNLOAD_ONLY=ON
+# This assumes the CMake build_environment `PACKAGE_DIR` variable wasn't modified:
 	@$(PYTHON) ./build_files/utils/make_source_archive.py --include-packages "$(BUILD_DIR)/source_archive/packages"
 # We assume that the tests will not change for minor releases so only package them for major versions
 	@$(PYTHON) ./build_files/utils/make_source_archive.py --package-test-data
