@@ -160,15 +160,26 @@ def _animation_rendering_and_player(temp_dir):
     rd.filepath = str(Path(temp_dir) / "final_")
     start_path = Path(bpy.path.abspath(rd.frame_path(frame=scene.frame_start)))
 
-    bpy.ops.render.render('INVOKE_DEFAULT', animation=True)
-    yield
-    yield from ui.idle_until(
-        lambda: start_path.exists() and scene.frame_current > 2,
-        timeout=20.0)
-    yield e.esc()
-    yield from ui.idle_until(
-        lambda: not bpy.app.is_job_running('RENDER'),
-        timeout=20.0)
+    render_stats = []
+
+    def render_stats_handler(stats):
+        render_stats.append(stats)
+
+    bpy.app.handlers.render_stats.append(render_stats_handler)
+    try:
+        bpy.ops.render.render('INVOKE_DEFAULT', animation=True)
+        yield
+        yield from ui.idle_until(
+            lambda: start_path.exists() and scene.frame_current > 2,
+            timeout=20.0)
+        yield e.esc()
+        yield from ui.idle_until(
+            lambda: not bpy.app.is_job_running('RENDER'),
+            timeout=20.0)
+
+        t.assertTrue(render_stats, "Render stats handler was not called")
+    finally:
+        bpy.app.handlers.render_stats.remove(render_stats_handler)
 
     t.assertTrue(start_path.exists(), "Start frame was not rendered")
 
