@@ -304,7 +304,7 @@ static void file_draw_tooltip_custom_func(bContext & /*C*/,
     }
     else if (file->typeflag & FILE_TYPE_FTFONT) {
       float color[4];
-      bTheme *btheme = ui::theme::theme_get();
+      const bTheme *btheme = ui::theme::theme_get();
       rgba_uchar_to_float(color, btheme->tui.wcol_tooltip.text);
       thumb = IMB_font_preview(file->redirection_path ? file->redirection_path : full_path,
                                512 * UI_SCALE_FAC,

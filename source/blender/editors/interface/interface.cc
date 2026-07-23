@@ -5195,7 +5195,7 @@ Button *uiDefButAlert(Block *block, AlertIcon icon, int x, int y, short width, s
       theme::get_color_4ubv(TH_ERROR, color);
       return uiDefButImage(block, ibuf, x, y, ibuf->x, ibuf->y, color);
     }
-    bTheme *btheme = theme::theme_get();
+    const bTheme *btheme = theme::theme_get();
     return uiDefButImage(block, ibuf, x, y, ibuf->x, ibuf->y, btheme->tui.wcol_menu_back.text);
   }
   return nullptr;

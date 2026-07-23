@@ -1583,7 +1583,7 @@ bool ED_region_is_overlap(const int spacetype, const int regiontype)
     case SPACE_VIEW3D:
       if (regiontype == RGN_TYPE_HEADER) {
         /* Only treat as overlapped if there is transparency. */
-        bTheme *theme = ui::theme::theme_get();
+        const bTheme *theme = ui::theme::theme_get();
         return theme->space_view3d.header[3] != 255;
       }
       return ELEM(regiontype,

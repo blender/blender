@@ -2695,7 +2695,7 @@ static bool tselem_draw_icon(ui::Block *block,
     float aspect = (0.8f * UI_UNIT_Y) / ICON_DEFAULT_HEIGHT;
     x += 2.0f * aspect;
     y += 2.0f * aspect;
-    bTheme *btheme = ui::theme::theme_get();
+    const bTheme *btheme = ui::theme::theme_get();
 
     if (is_collection) {
       Collection *collection = outliner_collection_from_tree_element(te);
@@ -3357,7 +3357,7 @@ static void outliner_draw_hierarchy_lines_recursive(uint pos,
                                                     bool draw_grayed_out,
                                                     int *starty)
 {
-  bTheme *btheme = ui::theme::theme_get();
+  const bTheme *btheme = ui::theme::theme_get();
   int y = *starty;
 
   /* Draw vertical lines between collections */

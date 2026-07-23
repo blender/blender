@@ -377,7 +377,7 @@ namespace ui::theme {
 /* Specific defines per space should have higher define values. */
 
 struct bThemeState {
-  bTheme *theme;
+  const bTheme *theme;
   int spacetype, regionid;
 };
 
@@ -507,7 +507,7 @@ void theme_set(int spacetype, int regionid);
 /**
  * Get current theme.
  */
-bTheme *theme_get();
+const bTheme *theme_get();
 
 /**
  * For the rare case we need to temp swap in a different theme (off-screen render).
@@ -523,7 +523,7 @@ int get_menu_shadow_width();
 /**
  * Only for buttons in theme editor!
  */
-const unsigned char *get_color_ptr(bTheme *btheme, int spacetype, int colorid);
+const unsigned char *get_color_ptr(const bTheme *btheme, int spacetype, int colorid);
 
 void make_axis_color(const unsigned char col[3], char axis, unsigned char r_col[3]);
 
