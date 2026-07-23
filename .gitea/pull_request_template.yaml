@@ -6,7 +6,7 @@ body:
       value: |
         ### Instructions
 
-        Guides to [contributing code](https://developer.blender.org/docs/handbook/contributing/) and effective [code review](https://developer.blender.org/docs/handbook/contributing/pull_requests/).
+        Guides to [contributing code](https://developer.blender.org/docs/handbook/contributing/), effective [code review](https://developer.blender.org/docs/handbook/contributing/pull_requests/), and [AI assisted contributions](https://developer.blender.org/docs/handbook/contributing/ai_contributions/).
 
         By submitting code here, you agree that the code is (compatible with) GNU GPL v2 or later.
 
