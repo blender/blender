@@ -1961,13 +1961,14 @@ void simulation_limits_draw(const uint gpuattr,
 }
 
 void plane_falloff_preview_draw(const uint gpuattr,
+                                Brush &brush,
                                 SculptSession &ss,
                                 const float outline_col[3],
                                 float outline_alpha)
 {
   float4x4 local_mat = ss.cache->stroke_local_mat;
 
-  if (ss.cache->brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB) {
+  if (brush.cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB) {
     add_v3_v3v3(local_mat[3], ss.cache->location, ss.cache->grab_delta);
   }
 
