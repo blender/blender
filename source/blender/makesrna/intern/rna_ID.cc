@@ -2425,6 +2425,14 @@ static void rna_def_ID(BlenderRNA *brna)
       "same across renames and internal reallocations, unchanged when reloading the file");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
+  prop = RNA_def_property(srna, "deep_hash", PROP_STRING, PROP_BYTESTRING);
+  RNA_def_property_string_sdna(prop, nullptr, "deep_hash.data");
+  RNA_def_property_ui_text(
+      prop,
+      "Linked Packed Deep Hash",
+      "Hash representing a unique version of a packed linked data and all of its dependencies");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
   prop = RNA_def_property(srna, "is_evaluated", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(
       prop,
