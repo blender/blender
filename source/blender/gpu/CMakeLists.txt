@@ -667,6 +667,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_clamp.glsl
   shaders/material/gpu_shader_material_compare.glsl
   shaders/material/gpu_shader_material_combine_color.glsl
+  shaders/material/gpu_shader_material_combine_transform.glsl
   shaders/material/gpu_shader_material_combine_xyz.glsl
   shaders/material/gpu_shader_material_diffuse.glsl
   shaders/material/gpu_shader_material_displacement.glsl
@@ -722,6 +723,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_rotation_to_quaternion.glsl
   shaders/material/gpu_shader_material_scene_time.glsl
   shaders/material/gpu_shader_material_separate_color.glsl
+  shaders/material/gpu_shader_material_separate_transform.glsl
   shaders/material/gpu_shader_material_separate_xyz.glsl
   shaders/material/gpu_shader_material_set.glsl
   shaders/material/gpu_shader_material_shader_to_rgba.glsl
