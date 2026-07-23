@@ -294,6 +294,18 @@ def view3d_simple():
     yield e.ctrl.shift.z(12)            # Redo until end.
     t.assertEqual(len(window.view_layer.objects.active.data.polygons), 16)
 
+# Utility to extract current mesh coordinates (used to ensure undo/redo steps are applied properly).
+
+
+def _extract_mesh_positions(window):
+    # TODO: Find/add a way to get that info when there is a multires active in Sculpt mode.
+    window.view_layer.update()
+    tmp_mesh = window.view_layer.objects.active.to_mesh(preserve_all_data_layers=True)
+    tmp_cos = [0.0] * len(tmp_mesh.vertices) * 3
+    tmp_mesh.vertices.foreach_get("co", tmp_cos)
+    window.view_layer.objects.active.to_mesh_clear()
+    return tmp_cos
+
 
 def view3d_sculpt_with_memfile_step():
     e, t, window = ui.test_window()
@@ -316,49 +328,39 @@ def view3d_sculpt_with_memfile_step():
     # available from python anymore while in sculpt mode, so we cannot test/check if undo/redo steps apply properly.
     # yield e.ctrl.two()                  # Add multires modifier.
 
-    # Utility to extract current mesh coordinates (used to ensure undo/redo steps are applied properly).
-    def extract_mesh_cos(window):
-        # TODO: Find/add a way to get that info when there is a multires active in Sculpt mode.
-        window.view_layer.update()
-        tmp_mesh = window.view_layer.objects.active.to_mesh(preserve_all_data_layers=True)
-        tmp_cos = [0.0] * len(tmp_mesh.vertices) * 3
-        tmp_mesh.vertices.foreach_get("co", tmp_cos)
-        window.view_layer.objects.active.to_mesh_clear()
-        return tmp_cos
-
-    mesh_verts_cos_before_sculpt = extract_mesh_cos(window)
+    mesh_verts_cos_before_sculpt = _extract_mesh_positions(window)
 
     # Add a first sculpt stroke.
     yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
-    mesh_verts_cos_sculpt_stroke1 = extract_mesh_cos(window)
+    mesh_verts_cos_sculpt_stroke1 = _extract_mesh_positions(window)
     t.assertNotEqual(mesh_verts_cos_before_sculpt, mesh_verts_cos_sculpt_stroke1)
 
     # Add a second sculpt stroke.
     yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_y(window))
-    mesh_verts_cos_sculpt_stroke2 = extract_mesh_cos(window)
+    mesh_verts_cos_sculpt_stroke2 = _extract_mesh_positions(window)
     t.assertNotEqual(mesh_verts_cos_sculpt_stroke1, mesh_verts_cos_sculpt_stroke2)
 
     # Undo to first sculpt stroke.
     yield e.ctrl.z()
-    mesh_verts_cos = extract_mesh_cos(window)
+    mesh_verts_cos = _extract_mesh_positions(window)
     t.assertEqual(mesh_verts_cos, mesh_verts_cos_sculpt_stroke1)
 
     # Undo to memfile step (add constraint), fine here (T82532),
     # but would fail if we had added a Multires modifier instead (T82851).
     yield e.ctrl.z()
-    mesh_verts_cos = extract_mesh_cos(window)
+    mesh_verts_cos = _extract_mesh_positions(window)
     t.assertEqual(mesh_verts_cos, mesh_verts_cos_before_sculpt)
 
     # Redo first sculpt stroke, would now be undone (in Multires case, T82851),
     # or not redone (in constraint case, T82532).
     yield e.ctrl.shift.z()
-    mesh_verts_cos = extract_mesh_cos(window)
+    mesh_verts_cos = _extract_mesh_positions(window)
     t.assertEqual(mesh_verts_cos, mesh_verts_cos_sculpt_stroke1)
 
     # Redo second sculpt stroke, would redo properly,
     # as well as part of the first one that affects the same nodes (T82851, T82532).
     yield e.ctrl.shift.z()
-    mesh_verts_cos = extract_mesh_cos(window)
+    mesh_verts_cos = _extract_mesh_positions(window)
     t.assertEqual(mesh_verts_cos, mesh_verts_cos_sculpt_stroke2)
 
 
@@ -419,28 +421,18 @@ def view3d_sculpt_trim():
     yield from ui.call_operator(e, "Remove UV Map")
     yield e.ctrl.tab().s()              # Sculpt via pie menu.
 
-    # Utility to extract current mesh coordinates (used to ensure undo/redo steps are applied properly).
-    def extract_mesh_positions(window):
-        # TODO: Find/add a way to get that info when there is a multires active in Sculpt mode.
-        window.view_layer.update()
-        tmp_mesh = window.view_layer.objects.active.to_mesh(preserve_all_data_layers=True)
-        tmp_cos = [0.0] * len(tmp_mesh.vertices) * 3
-        tmp_mesh.vertices.foreach_get("co", tmp_cos)
-        window.view_layer.objects.active.to_mesh_clear()
-        return tmp_cos
-
-    beginning_positions = extract_mesh_positions(window)
+    beginning_positions = _extract_mesh_positions(window)
     yield from ui.call_operator(e, "Box Trim")
     yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_xy(window))  # Perform the trim
-    after_trim_positions = extract_mesh_positions(window)
+    after_trim_positions = _extract_mesh_positions(window)
     t.assertNotEqual(beginning_positions, after_trim_positions)
 
     yield e.ctrl.z()                                                        # Undo Trim
-    after_undo_positions = extract_mesh_positions(window)
+    after_undo_positions = _extract_mesh_positions(window)
     t.assertEqual(beginning_positions, after_undo_positions)
 
     yield e.ctrl.shift.z()                                                  # Redo Trim
-    after_redo_positions = extract_mesh_positions(window)
+    after_redo_positions = _extract_mesh_positions(window)
     t.assertEqual(after_trim_positions, after_redo_positions)
 
 
@@ -453,48 +445,55 @@ def view3d_sculpt_dyntopo_stroke_toggle():
     yield from ui.call_operator(e, "Remove UV Map")
     yield e.ctrl.tab().s()              # Sculpt via pie menu.
 
-    # Utility to extract current mesh coordinates (used to ensure undo/redo steps are applied properly).
-    def extract_mesh_positions(window):
-        # TODO: Find/add a way to get that info when there is a multires active in Sculpt mode.
-        window.view_layer.update()
-        tmp_mesh = window.view_layer.objects.active.to_mesh(preserve_all_data_layers=True)
-        tmp_cos = [0.0] * len(tmp_mesh.vertices) * 3
-        tmp_mesh.vertices.foreach_get("co", tmp_cos)
-        window.view_layer.objects.active.to_mesh_clear()
-        return tmp_cos
-
-    original_positions = extract_mesh_positions(window)
+    original_positions = _extract_mesh_positions(window)
     yield from ui.call_operator(e, "Dynamic Topology")  # On
 
     yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_x(window))
 
     yield from ui.call_operator(e, "Dynamic Topology")  # Off
-    after_toggle_off = extract_mesh_positions(window)
+    after_toggle_off = _extract_mesh_positions(window)
     t.assertNotEqual(original_positions, after_toggle_off)
 
     yield from e.leftmouse.cursor_motion(ui.cursor_motion_data_y(window))
-    after_normal_stroke = extract_mesh_positions(window)
+    after_normal_stroke = _extract_mesh_positions(window)
     t.assertNotEqual(after_toggle_off, after_normal_stroke)
 
     yield e.ctrl.z()                          # Undo Stroke
-    after_first_undo = extract_mesh_positions(window)
+    after_first_undo = _extract_mesh_positions(window)
     t.assertEqual(after_first_undo, after_toggle_off)
 
     yield e.ctrl.z()                          # Undo Toggle Off
     yield e.ctrl.z()                          # Undo Dyntopo Stroke
     yield e.ctrl.z()                          # Undo Toggle On
-    after_full_undo = extract_mesh_positions(window)
+    after_full_undo = _extract_mesh_positions(window)
     t.assertEqual(after_full_undo, original_positions)
 
     yield e.ctrl.shift.z()                    # Redo Toggle On
     yield e.ctrl.shift.z()                    # Redo Dyntopo Stroke
     yield e.ctrl.shift.z()                    # Redo Toggle Off
-    after_toggle_off_redo = extract_mesh_positions(window)
+    after_toggle_off_redo = _extract_mesh_positions(window)
     t.assertEqual(after_toggle_off_redo, after_toggle_off)
 
     yield e.ctrl.shift.z()                    # Redo Normal Stroke
-    after_normal_stroke_redo = extract_mesh_positions(window)
+    after_normal_stroke_redo = _extract_mesh_positions(window)
     t.assertEqual(after_normal_stroke, after_normal_stroke_redo)
+
+
+def view3d_sculpt_with_empty_memfile_step():
+    e, t, window = ui.test_window()
+    yield from _view3d_startup_area_maximized(e)
+    yield from ui.call_menu(e, "Add -> Mesh -> Torus")
+    yield e.ctrl.tab().s()              # Sculpt via pie menu.
+
+    original_positions = _extract_mesh_positions(window)
+
+    yield e.ctrl.one()                  # Add and set multires level 1
+    yield e.ctrl.one()                  # Effective no-op that creates undo step
+    # Previously, this would crash due to improper `SculptSession` management, see #152087
+    yield e.ctrl.z()
+
+    after_undo_positions = _extract_mesh_positions(window)
+    t.assertEqual(original_positions, after_undo_positions)
 
 
 def view3d_texture_paint_simple():

@@ -1727,6 +1727,7 @@ if(WITH_UI_TESTS)
     test_undo.view3d_sculpt_dyntopo_simple
     test_undo.view3d_sculpt_dyntopo_stroke_toggle
     test_undo.view3d_sculpt_with_memfile_step
+    test_undo.view3d_sculpt_with_empty_memfile_step
     test_undo.view3d_sculpt_trim
     test_undo.view3d_simple
     test_undo.view3d_texture_paint_complex
