@@ -184,7 +184,7 @@ TEST(math_geom_hh, ClosestToPlane)
 
 TEST(math_geom_hh, DistSquaredToPlane)
 {
-  /* Unit-normal plane at z = 0; point at z = 2 → distance² = 4. */
+  /* Unit-normal plane at z = 0; point at z = 2 -> distance^2 = 4. */
   const float4 unit_plane(0, 0, 1, 0);
   const float3 pt(0, 0, 2);
   EXPECT_NEAR(dist_squared_to_plane_v3(&pt.x, reinterpret_cast<const float *>(&unit_plane)),
@@ -436,7 +436,7 @@ TEST(math_geom_hh, InterpBilinearQuad)
 
 TEST(math_geom_hh, MapToSphere)
 {
-  /* +Z should give v = 0 (north pole) — check C vs. new API agree. */
+  /* +Z should give v = 0 (north pole) - check C vs. new API agree. */
   const float3 up(0, 0, 1);
   float c_u, c_v;
   blender::map_to_sphere(&c_u, &c_v, up.x, up.y, up.z);

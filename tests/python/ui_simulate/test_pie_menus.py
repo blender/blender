@@ -8,13 +8,13 @@ This file does not run anything, its methods are accessed for tests by ``run_ble
 Pie menu interaction tests driven by event simulation.
 
 For example, these pie menus are covered:
-  - Object Mode pie → Edit Mode
-  - Snap pie → Cursor to World Origin
-  - Pivot pie → Cursor
-  - Transform Orientation pie → Cursor
-  - Shading pie → Solid
-  - View pie → Camera
-  - Weight Paint lock pie → Lock All
+  - Object Mode pie -> Edit Mode
+  - Snap pie -> Cursor to World Origin
+  - Pivot pie -> Cursor
+  - Transform Orientation pie -> Cursor
+  - Shading pie -> Solid
+  - View pie -> Camera
+  - Weight Paint lock pie -> Lock All
 """
 
 import os

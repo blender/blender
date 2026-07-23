@@ -722,11 +722,11 @@ void DiagSplit::split_ngon(const Mesh::SubdFace &face,
     /*         v_prev        .
      *           .           .
      *           .   edge2   .
-     *          v3 ←------- v2 . . .
-     *           |           ↑
+     *          v3 <------- v2 . . .
+     *           |           ^
      *    edge3  |           | edge1
-     *           ↓           |
-     *           v0 ------→ v1 . . v_next
+     *           v           |
+     *           v0 ------> v1 . . v_next
      *              edge0
      */
     SubPatch::Edge &edge3 = edges[mod(corner + face.num_corners - 1, face.num_corners)];

@@ -14,7 +14,7 @@ Tests for search/filter functionality in:
 
 Requires: tests/files/ui_tests/test_search_in_editors.blend
   Objects expected in that file:
-    __search_test_cube__  — mesh with a Subdivision Surface modifier
+    __search_test_cube__  - mesh with a Subdivision Surface modifier
 """
 
 import os
@@ -46,7 +46,7 @@ def _load_blend():
 
 def test_properties_search():
     """
-    Properties editor — Ctrl+F → 'subdivision'.
+    Properties editor - Ctrl+F -> 'subdivision'.
     Verifies the search filter matches the Subdivision Surface modifier on
     __search_test_cube__ and that clearing the field resets it.
     """
@@ -78,7 +78,7 @@ def test_properties_search():
 
 def test_outliner_search():
     """
-    Outliner — Ctrl+F → '__search_test_cube__'.
+    Outliner - Ctrl+F -> '__search_test_cube__'.
     Verifies filter_text is set and cleared correctly.
     """
     import bpy
@@ -105,7 +105,7 @@ def test_outliner_search():
 
 def test_dopesheet_search():
     """
-    Dope Sheet — Ctrl+F → 'location'.
+    Dope Sheet - Ctrl+F -> 'location'.
     """
     import bpy
 
@@ -135,7 +135,7 @@ def test_dopesheet_search():
 
 def test_graph_editor_search():
     """
-    Graph Editor — Ctrl+F → 'location'.
+    Graph Editor - Ctrl+F -> 'location'.
     """
     import bpy
 
@@ -162,7 +162,7 @@ def test_graph_editor_search():
 
 def test_file_browser_search():
     """
-    File Browser — Ctrl+F → 'search_target'.
+    File Browser - Ctrl+F -> 'search_target'.
     """
     import bpy
 
