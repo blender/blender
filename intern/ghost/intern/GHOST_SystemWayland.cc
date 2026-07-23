@@ -10563,6 +10563,7 @@ bool GHOST_SystemWayland::window_surface_unref(const wl_surface *wl_surface)
   for (GWL_Seat *seat : display_->seats) {
     SURFACE_CLEAR_PTR(seat->pointer.wl.surface_window);
     SURFACE_CLEAR_PTR(seat->tablet.wl.surface_window);
+    SURFACE_CLEAR_PTR(seat->touch.wl.surface_window);
     SURFACE_CLEAR_PTR(seat->keyboard.wl.surface_window);
     SURFACE_CLEAR_PTR(seat->wl.surface_window_focus_dnd);
 #ifdef WITH_INPUT_IME
