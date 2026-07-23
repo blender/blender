@@ -18,6 +18,7 @@ from bpy.props import (
     FloatVectorProperty,
     IntVectorProperty,
 )
+import array
 import unittest
 import numpy as np
 import math
@@ -571,6 +572,32 @@ class TestPropArrayForeach(unittest.TestCase):
                     for j in range(prop_size[1]):
                         self.do_test_foreach_getset_current_dimension(prop_array[i][j], *test_args)
 
+    def test_foreach_get_readonly_buffer(self):
+        # `foreach_get` writes into the buffer, read-only buffers must be rejected.
+        id_inst.test_array_f_1d.foreach_set([float(i) for i in range(100, 100 + self.size_1d)])
+
+        values = array.array('f', [float(i) for i in range(self.size_1d)])
+        with self.assertRaises(TypeError):
+            id_inst.test_array_f_1d.foreach_get(memoryview(values).toreadonly())
+
+        self.assertEqual(tuple(values), tuple(float(i) for i in range(self.size_1d)))
+
+    def test_foreach_set_readonly_buffer(self):
+        # `foreach_set` only reads from the buffer, read-only buffers are supported.
+        values = array.array('f', [float(i) for i in range(self.size_1d)])
+        id_inst.test_array_f_1d.foreach_set(memoryview(values).toreadonly())
+        self.assertEqual(tuple(id_inst.test_array_f_1d), tuple(values))
+
+    def test_foreach_get_writable_buffer(self):
+        # A `memoryview` doesn't support item assignment, so this only passes
+        # when the buffer is written into directly.
+        values = array.array('f', [float(i) for i in range(self.size_1d)])
+        id_inst.test_array_f_1d.foreach_set(values)
+
+        buf = array.array('f', [-1.0] * self.size_1d)
+        id_inst.test_array_f_1d.foreach_get(memoryview(buf))
+        self.assertEqual(tuple(buf), tuple(values))
+
     def test_foreach_getset_i_1d(self):
         self.do_test_foreach_getset(id_inst.test_array_i_1d, 'INT', self.size_1d)
 
@@ -831,6 +858,39 @@ class TestPropArrayInvalidForeachGetSet(unittest.TestCase):
         invalid_3f_list = [1.0] * (len(me.vertices) * 3 - 1)
         with self.assertRaises(RuntimeError):
             me.vertices.foreach_set("co", invalid_3f_list)
+
+    def test_foreach_get_readonly_buffer(self):
+        # `foreach_get` writes into the buffer, read-only buffers must be rejected.
+        me = self.me
+
+        me.vertices.foreach_set("co", [float(i) for i in range(100, 100 + (len(me.vertices) * 3))])
+
+        values = array.array('f', [float(i) for i in range(len(me.vertices) * 3)])
+        with self.assertRaises(TypeError):
+            me.vertices.foreach_get("co", memoryview(values).toreadonly())
+
+        self.assertEqual(tuple(values), tuple(float(i) for i in range(len(me.vertices) * 3)))
+
+    def test_foreach_set_readonly_buffer(self):
+        # `foreach_set` only reads from the buffer, read-only buffers are supported.
+        me = self.me
+
+        values = array.array('f', [float(i) for i in range(len(me.vertices) * 3)])
+        me.vertices.foreach_set("co", memoryview(values).toreadonly())
+        for i, v in enumerate(me.vertices):
+            self.assertEqual(tuple(v.co), tuple(values[i * 3:(i + 1) * 3]))
+
+    def test_foreach_get_writable_buffer(self):
+        # A `memoryview` doesn't support item assignment, so this only passes
+        # when the buffer is written into directly.
+        me = self.me
+
+        values = array.array('f', [float(i) for i in range(len(me.vertices) * 3)])
+        me.vertices.foreach_set("co", values)
+
+        writable_3f = array.array('f', [-1.0] * (len(me.vertices) * 3))
+        me.vertices.foreach_get("co", memoryview(writable_3f))
+        self.assertEqual(tuple(writable_3f), tuple(values))
 
 
 def main():
