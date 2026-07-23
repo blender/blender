@@ -5685,7 +5685,15 @@ float geodesic_distance_propagate_across_triangle(
          * the edge between v1 and v2. */
         const float x_intercept = S_[0] + h * (v0_[0] - S_[0]) / (v0_[1] + h);
         if (x_intercept >= 0.0f && x_intercept <= d12) {
-          return len_v2v2(S_, v0_);
+          const float dist0 = len_v2v2(S_, v0_);
+
+          /* Only valid if the wavefront reaches v0 after both v1 and v2, as it has to
+           * travel through the edge between them. Otherwise dist1 and dist2 did not
+           * originate from a common source, and the virtual source point is bogus and
+           * can give a distance much shorter than the actual one. */
+          if (dist0 >= std::max(dist1, dist2)) {
+            return dist0;
+          }
         }
       }
     }
