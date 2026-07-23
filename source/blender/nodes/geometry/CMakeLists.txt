@@ -38,8 +38,8 @@ set(SRC
   nodes/node_geo_boolean.cc
   nodes/node_geo_bounding_box.cc
   nodes/node_geo_camera_info.cc
-  nodes/node_geo_closure_to_list.cc
   nodes/node_geo_closure.cc
+  nodes/node_geo_closure_to_list.cc
   nodes/node_geo_cluster_by_connected.cc
   nodes/node_geo_cluster_by_distance.cc
   nodes/node_geo_collection_children.cc
@@ -94,8 +94,8 @@ set(SRC
   nodes/node_geo_field_min_and_max.cc
   nodes/node_geo_field_to_grid.cc
   nodes/node_geo_field_to_list.cc
-  nodes/node_geo_filter_list.cc
   nodes/node_geo_field_variance.cc
+  nodes/node_geo_filter_list.cc
   nodes/node_geo_flip_faces.cc
   nodes/node_geo_foreach_geometry_element.cc
   nodes/node_geo_geometry_to_instance.cc
@@ -295,9 +295,9 @@ set(SRC
   nodes/node_geo_tool_selection.cc
   nodes/node_geo_tool_set_face_set.cc
   nodes/node_geo_tool_set_selection.cc
+  nodes/node_geo_transfer_attributes.cc
   nodes/node_geo_transform_geometry.cc
   nodes/node_geo_translate_instances.cc
-  nodes/node_geo_transfer_attributes.cc
   nodes/node_geo_triangulate.cc
   nodes/node_geo_uv_pack_islands.cc
   nodes/node_geo_uv_tangent.cc
