@@ -6154,16 +6154,17 @@ static void rna_def_userdef_system(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Memory Cache Limit", "Memory cache limit (in megabytes)");
   RNA_def_property_update(prop, 0, "rna_Userdef_memcache_update");
 
-  /* Geometry Nodes. */
+  /* Nodes. */
 
-  prop = RNA_def_property(srna, "geometry_nodes_stack_limit", PROP_INT, PROP_NONE);
+  prop = RNA_def_property(srna, "nodes_stack_limit", PROP_INT, PROP_NONE);
   RNA_def_property_range(prop, 1, INT32_MAX);
-  RNA_def_property_ui_text(prop,
-                           "Geometry Nodes Stack Limit",
-                           "Approximate maximum size of the call stack used by Geometry Nodes. "
-                           "For example, this corresponds to the number of allowed nested node "
-                           "groups. Setting this too high can result in crashes caused by "
-                           "running out of stack memory.");
+  RNA_def_property_ui_text(
+      prop,
+      "Nodes Stack Limit",
+      "Approximate maximum size of the call stack used by node group evaluation. "
+      "For example, this corresponds to the number of allowed nested node "
+      "groups. Setting this too high can result in crashes caused by "
+      "running out of stack memory.");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
   /* Sequencer proxy setup */

@@ -880,7 +880,7 @@ class USERPREF_PT_system_memory(SystemPanel, CenterAlignMixIn, Panel):
         layout.separator()
 
         col = layout.column()
-        col.prop(system, "geometry_nodes_stack_limit")
+        col.prop(system, "nodes_stack_limit")
 
 
 class USERPREF_PT_system_video_sequencer(SystemPanel, CenterAlignMixIn, Panel):

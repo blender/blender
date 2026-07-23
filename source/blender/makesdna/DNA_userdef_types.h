@@ -1105,7 +1105,11 @@ struct UserDef {
   short vbotimeout = 120, vbocollectrate = 60;
   short textimeout = 120, texcollectrate = 60;
   int memcachelimit = 4096;
-  int geometry_nodes_stack_limit = 100;
+  /**
+   * Maximum evaluation depth of node trees (e.g. number of nested node groups, not how many nodes
+   * are in a chain).
+   */
+  int nodes_stack_limit = 100;
   /** Unused. */
   int prefetchframes = 0;
   /** Control the rotation step of the view when PAD2, PAD4, PAD6&PAD8 is use. */
