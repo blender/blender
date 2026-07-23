@@ -957,7 +957,7 @@ static bool driver_target_path_fix(ID &owner_id,
       /* This cannot verify paths because driver paths are not always valid rna paths. They can end
        * in e.g. ".location[0]" while "location" + array index integer would be correct. */
       std::optional<std::string> fixed_path = rna_path_rename_fix(
-          owner_id, prefix, old_infix, new_infix, target->rna_path, /* verify_paths=*/false);
+          owner_id, prefix, old_infix, new_infix, target->rna_path, /*verify_paths=*/false);
       if (fixed_path.has_value()) {
         MEM_delete(target->rna_path);
         target->rna_path = BLI_strdup(fixed_path->c_str());

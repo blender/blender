@@ -285,7 +285,7 @@ static void version_principled_bsdf_update_animdata(Main *bmain, bNodeTree *ntre
                              prefix,
                              RNA_path_number_to_infix(entry.first),
                              RNA_path_number_to_infix(entry.second),
-                             /* verify_paths=*/false,
+                             /*verify_paths=*/false,
                              driver_map);
     }
   }

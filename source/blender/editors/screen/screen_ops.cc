@@ -7245,6 +7245,8 @@ static void SCREEN_OT_userpref_show(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Show Project Setup Operator
  * \{ */

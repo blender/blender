@@ -423,14 +423,14 @@ void IMB_saturation(ImBuf *ibuf, float sat);
 
 /**
  * Convert float pixels to byte pixels.
- * \param dest Destination, always 4 channel RGBA, non-premultiplied.
- * \param src Source.
- * \param src_channels Source channels (1, 3, 4).
- * \param dither Amount of dithering to apply to destination.
- * \param predivide Is source alpha premultiplied.
- * \param width Width in pixels.
- * \param height Height in pixels.
- * \param stride Row stride in pixels.
+ * \param dest: Destination, always 4 channel RGBA, non-premultiplied.
+ * \param src: Source.
+ * \param src_channels: Source channels (1, 3, 4).
+ * \param dither: Amount of dithering to apply to destination.
+ * \param predivide: Is source alpha premultiplied.
+ * \param width: Width in pixels.
+ * \param height: Height in pixels.
+ * \param stride: Row stride in pixels.
  */
 void IMB_buffer_byte_from_float(unsigned char *dest,
                                 const float *src,
@@ -454,23 +454,23 @@ void IMB_buffer_byte_from_float_mask(unsigned char *dest,
                                      const char *mask);
 /**
  * Convert byte pixels to float pixels.
- * \param dest Destination, always 4 channel RGBA, non-premultiplied.
- * \param src Source, always 4 channel RGBA, non-premultiplied.
- * \param width Width in pixels.
- * \param height Height in pixels.
- * \param dest_stride Destination row stride in pixels.
- * \param src_stride Source row stride in pixels.
+ * \param dest: Destination, always 4 channel RGBA, non-premultiplied.
+ * \param src: Source, always 4 channel RGBA, non-premultiplied.
+ * \param width: Width in pixels.
+ * \param height: Height in pixels.
+ * \param dest_stride: Destination row stride in pixels.
+ * \param src_stride: Source row stride in pixels.
  */
 void IMB_buffer_float_from_byte(
     float *dest, const unsigned char *src, int width, int height, int dest_stride, int src_stride);
 
 /**
  * Convert 1/3/4 channel float pixels to 4 channel (RGBA) float pixels.
- * \param dest Destination, always 4 channel.
- * \param src Source.
- * \param src_channels Source channels (1, 3, 4).
- * \param width Width in pixels.
- * \param height Height in pixels.
+ * \param dest: Destination, always 4 channel.
+ * \param src: Source.
+ * \param src_channels: Source channels (1, 3, 4).
+ * \param width: Width in pixels.
+ * \param height: Height in pixels.
  */
 void IMB_buffer_float_rgba_from_float(
     float *dest, const float *src, int src_channels, int width, int height);

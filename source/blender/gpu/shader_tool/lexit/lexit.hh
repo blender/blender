@@ -186,7 +186,7 @@ struct TokenBuffer {
    * If the input string contains characters that are not inside the ASCII range, the result of
    * the operation is undefined and might cause segmentation fault.
    *
-   * \param char_class_table  A lookup table mapping ASCII values (0-127) to an 8-bit CharClass.
+   * \param char_class_table: A lookup table mapping ASCII values (0-127) to an 8-bit CharClass.
    */
   void tokenize(const CharClass char_class_table[128]);
 
@@ -216,7 +216,7 @@ struct TokenBuffer {
   /**
    * \brief Return the substring between the start and end tokens (included).
    *
-   * \param with_trailing_whitespaces If true, include the trailing whitespaces.
+   * \param with_trailing_whitespaces: If true, include the trailing whitespaces.
    */
   std::string_view substr(const Token &start,
                           const Token &end,

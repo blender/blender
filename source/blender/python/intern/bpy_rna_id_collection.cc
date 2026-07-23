@@ -596,13 +596,14 @@ const EnumPropertyItem rna_enum_file_path_foreach_flag_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-/* Metadata for path visited by `file_path_foreach.
+/**
+ * Metadata for path visited by `file_path_foreach`.
  *
  * In the future it may be useful to extend this:
  *  - Is the path intended to reference a directory or a file.
  *  - Does the path support templates.
- *  - Is the path referring to input or output (the render output, or file output nodes). */
-
+ *  - Is the path referring to input or output (the render output, or file output nodes).
+ */
 struct BPy_FilePathMeta {
   PyObject_HEAD
   bool is_expanded;

@@ -1847,6 +1847,8 @@ static void ANIM_OT_rotation_mode_convert(wmOperatorType *ot)
                   "in the new mode");
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Registration
  * \{ */

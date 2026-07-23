@@ -193,7 +193,7 @@ static void format_draw_color(const TextDrawContext *tdc, char formatchar)
  *             draw_end = pos+1
  *         pos += 1
  *     print line[draw_start:]
- * \encode
+ * \endcode
  *
  * \{ */
 

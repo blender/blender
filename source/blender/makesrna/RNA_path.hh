@@ -341,11 +341,11 @@ std::string RNA_path_number_to_infix(int number);
  * Typically used by code updating RNA paths after some sub-data (modifier, bone...) has been
  * renamed or re-arranged inside a collection.
  *
- * \param old_infix Old string form of the renamed item identifier.
- * \param new_infix New string form of the renamed item identifier.
- * \param old_subscript Old numeric index of the renamed item identifier.
- * \param new_subscript New numeric index of the renamed item identifier.
- * \param infix_is_name Whether the given infixes are actual item names (need to be escaped and
+ * \param old_infix: Old string form of the renamed item identifier.
+ * \param new_infix: New string form of the renamed item identifier.
+ * \param old_subscript: Old numeric index of the renamed item identifier.
+ * \param new_subscript: New numeric index of the renamed item identifier.
+ * \param infix_is_name: Whether the given infixes are actual item names (need to be escaped and
  * quoted) or not.
  * \return A pair of old & new std::string keys.
  */

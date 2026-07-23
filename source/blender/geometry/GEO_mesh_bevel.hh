@@ -67,7 +67,7 @@ struct BevelParameters {
   Array<bool> miter;
   /** Per corner float saying how much to spread arc miters. */
   Array<float> spread;
-  /** Which output attributes are needed.*/
+  /** Which output attributes are needed. */
   geometry::BevelAttributeOutputs attribute_outputs;
 };
 

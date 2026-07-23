@@ -124,8 +124,8 @@ class KeyframeIterator {
 
  public:
   /**
-   * \param fcurves is allowed to have nullptr entries.
-   * \param range is interpreted as inclusive/exclusive.
+   * \param fcurves: Allowed to have nullptr entries.
+   * \param range: Interpreted as inclusive/exclusive.
    */
   KeyframeIterator(Span<const FCurve *> fcurves, const Bounds<float> range) : range_(range)
   {
@@ -231,13 +231,13 @@ class KeyframeIterator {
  * For all keyframes in the `evaluation_buffer` in the given range, insert values into
  * `insertion_buffer` that represent the same rotation but in the given rotation mode.
  *
- * \param evaluation_buffer It is assumed that those FCurves match the rotation mode `from_mode`.
+ * \param evaluation_buffer: It is assumed that those FCurves match the rotation mode `from_mode`.
  * They will be read for keyframe values. It is allowed to have nullptr FCurves in here.
- * \param insertion_buffer The FCurves relating to `to_mode`. Keyframes for the converted rotation
+ * \param insertion_buffer: The FCurves relating to `to_mode`. Keyframes for the converted rotation
  * mode will be inserted here. None of the FCurves shall be a nullptr.
- * \param range Start and end frames to limit the range in which to convert and insert rotation
+ * \param range: Start and end frames to limit the range in which to convert and insert rotation
  * keys. Interpreted inclusive at the start and exclusive at the end and in FCurve time.
- * \param ensure_range_start_key if set to true a key will be set at `range.min` regardless of a
+ * \param ensure_range_start_key: If set to true a key will be set at `range.min` regardless of a
  * key existing on that frame in the evaluation buffer.
  */
 static void convert_rotation_mode_range(const Span<const FCurve *> evaluation_buffer,

@@ -21,7 +21,7 @@ namespace blender {
 void userpref_panels_register(ARegionType &region_type)
 {
   PanelType *panel_type = MEM_new_zeroed<PanelType>(__func__);
-  /* TODO panel should be renamed to just "USERPREF_PT_asset_libraries, it's not contained in the
+  /* TODO panel should be renamed to just `USERPREF_PT_asset_libraries`, it's not contained in the
    * file paths section anymore. This is a compatibility breaking change though. */
   STRNCPY_UTF8(panel_type->idname, "USERPREF_PT_file_paths_asset_libraries");
   STRNCPY_UTF8(panel_type->label, N_("Asset Libraries"));

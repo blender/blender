@@ -58,7 +58,7 @@ enum {
   ANIMPLAY_FLAG_USE_NEXT_FRAME = (1 << 4),
 };
 
-/**Matching the mode argument of #ED_screen_animation_play. */
+/** Matching the mode argument of #ED_screen_animation_play. */
 enum class PlaybackDirection : int8_t {
   BACKWARDS = -1,
   FORWARDS = 1,
