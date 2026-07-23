@@ -314,6 +314,8 @@ struct LayoutItemSplit : public LayoutRow {
 
 /** \} */
 
+static void item_disabled(Layout *layout, const char *name);
+
 /* -------------------------------------------------------------------- */
 /** \name Item
  * \{ */
@@ -994,6 +996,10 @@ static void item_enum_expand_exec(Layout *layout,
   }
   else {
     block_layout_set_current(block, item_local_sublayout(layout, layout, true));
+  }
+
+  if (!item_array->identifier) {
+    item_disabled(layout, IFACE_("Empty list"));
   }
 
   for (const EnumPropertyItem *item = item_array; item->identifier; item++) {
