@@ -839,7 +839,7 @@ bool AbstractHierarchyIterator::should_visit_dupli_object(const DupliObject *dup
                                                           const Object *duplicator) const
 {
   /* Do not visit dupli objects that the depsgraph iterator would hide for this evaluation mode
-   * (covers the `no_draw` flag, metaball instance data and originals hidden behind their duplis),
+   * (covers the `no_draw` flag, meta-ball instance data and originals hidden behind their duplis),
    * so the exported instances match what Cycles and the Hydra delegate render. */
   if (!DEG_iterator_dupli_is_visible(dupli_object, DEG_get_mode(depsgraph_))) {
     return false;

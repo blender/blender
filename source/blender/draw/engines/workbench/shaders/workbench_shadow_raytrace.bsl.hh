@@ -44,14 +44,14 @@ struct Resources {
     return;
   }
 
-  /* Offset depth to compensate for depth buffer precission. */
+  /* Offset depth to compensate for depth buffer precision. */
   float3 P = drw_point_screen_to_world(
       float3(screen_uv, intBitsToFloat(floatBitsToInt(depth) - 2)));
 
   const float pixel_size = srt.pass_data.pixel_size *
                            (drw_view_is_perspective() ? drw_view_z_distance(P) : 1.0f);
 
-  /* Offset by pixel sife to compensate for floating point precission. */
+  /* Offset by pixel size to compensate for floating point precision. */
   const float tMin = pixel_size / max(dot(N, -srt.pass_data.light_direction_ws), 0.1f);
 
   rayQueryEXT query;
