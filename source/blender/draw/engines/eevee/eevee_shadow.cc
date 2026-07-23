@@ -1041,7 +1041,7 @@ void ShadowModule::end_sync()
         sub.bind_ssbo("pages_infos_buf", pages_infos_data_);
         sub.bind_ssbo("pages_free_buf", pages_free_data_);
         sub.bind_ssbo("pages_cached_buf", pages_cached_data_);
-        sub.bind_ssbo("statistics_buf", statistics_buf_.current());
+        sub.bind_ssbo("statistics_buf", &statistics_buf_.current());
         sub.bind_ssbo("clear_dispatch_buf", clear_dispatch_buf_);
         sub.bind_ssbo("tile_draw_buf", tile_draw_buf_);
         sub.dispatch(int3(1, 1, 1));
@@ -1053,7 +1053,7 @@ void ShadowModule::end_sync()
         sub.shader_set(inst_.shaders.static_shader_get(SHADOW_PAGE_ALLOCATE));
         sub.bind_ssbo("tilemaps_buf", tilemap_pool.tilemaps_data);
         sub.bind_ssbo("tiles_buf", tilemap_pool.tiles_data);
-        sub.bind_ssbo("statistics_buf", statistics_buf_.current());
+        sub.bind_ssbo("statistics_buf", &statistics_buf_.current());
         sub.bind_ssbo("pages_infos_buf", pages_infos_data_);
         sub.bind_ssbo("pages_free_buf", pages_free_data_);
         sub.bind_ssbo("pages_cached_buf", pages_cached_data_);
@@ -1185,27 +1185,40 @@ bool ShadowModule::shadow_update_finished(int loop_count)
   }
 
   int max_updated_view_count = tilemap_pool.tilemaps_data.size() * SHADOW_TILEMAP_LOD;
-  if (max_updated_view_count <= SHADOW_VIEW_MAX) {
+  if (max_updated_view_count <= SHADOW_VIEW_MAX * loop_count) {
     /* There is enough shadow views to cover all tile-map updates.
      * No read-back needed as it is guaranteed that all of them will be updated. */
     return true;
   }
 
-  /* Read back and check if there is still tile-map to update. */
-  statistics_buf_.current().async_flush_to_host();
-  statistics_buf_.current().read();
-  ShadowStatistics stats = statistics_buf_.current();
-
-  if (stats.page_used_count > shadow_page_len_) {
-    inst_.info_append_i18n(
-        "Error: Shadow buffer full, may result in missing shadows and lower "
-        "performance. ({} / {})",
-        stats.page_used_count,
-        shadow_page_len_);
+  if (loop_count == 1) {
+    /* Do not reedback for only 1 loop iter. It's cheaper to just resubmit. */
+    return false;
   }
 
-  /* Rendering is finished if we rendered all the remaining pages. */
-  return stats.view_needed_count <= SHADOW_VIEW_MAX;
+  if (loop_count == 2) {
+    /* Read back and check if there is still tile-map to update. */
+    /* TODO: Only the first loop should call `async_flush_to_host()`, but we need to fix the VK and
+     * Metal implementations first. */
+    statistics_buf_.current().async_flush_to_host();
+    statistics_buf_.current().read();
+    ShadowStatistics stats = statistics_buf_.current();
+
+    if (stats.page_used_count > shadow_page_len_) {
+      inst_.info_append_i18n(
+          "Error: Shadow buffer full, may result in missing shadows and lower "
+          "performance. ({} / {})",
+          stats.page_used_count,
+          shadow_page_len_);
+    }
+
+    needed_views_ = stats.view_needed_count;
+  }
+
+  /* Subtract the amount rendered during this iteration. */
+  needed_views_ -= SHADOW_VIEW_MAX;
+  /* We are finished if there is no view left to render. */
+  return needed_views_ <= 0;
 }
 
 int ShadowModule::max_view_per_tilemap()
@@ -1304,6 +1317,7 @@ void ShadowModule::render(View &view, int2 extent)
 
   inst_.hiz_buffer.update();
 
+  needed_views_ = 0;
   int loop_count = 0;
   do {
     GPU_debug_group_begin("Shadow");

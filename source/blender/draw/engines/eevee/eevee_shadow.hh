@@ -207,6 +207,9 @@ class ShadowModule {
    * In this case `run_tagging_` is set to false after the first iteration. */
   bool32_t run_tagging_ = false;
 
+  /* Number of shadow view needed until we have finished the shadow updates. Render only. */
+  int needed_views_ = 0;
+
   /* -------------------------------------------------------------------- */
   /** \name Tile-map Management
    * \{ */
