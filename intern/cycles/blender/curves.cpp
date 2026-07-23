@@ -1152,7 +1152,7 @@ void BlenderSync::sync_hair(BObjectInfo &b_ob_info, Hair *hair)
   new_hair.set_used_shaders(used_shaders);
 
   if (view_layer.use_hair) {
-    if (GS(b_ob_info.object_data->name) == blender::ID_CV) {
+    if (blender::GS(b_ob_info.object_data->name) == blender::ID_CV) {
       /* Hair object. */
       sync_hair(&new_hair, b_ob_info, false);
     }
@@ -1215,7 +1215,7 @@ void BlenderSync::sync_hair_motion(BObjectInfo &b_ob_info, Hair *hair, const int
 
   /* Export deformed coordinates. */
   if (ccl::BKE_object_is_deform_modified(b_ob_info, *b_scene, preview)) {
-    if (GS(b_ob_info.object_data->name) == blender::ID_CV) {
+    if (blender::GS(b_ob_info.object_data->name) == blender::ID_CV) {
       /* Hair object. */
       sync_hair(hair, b_ob_info, true, motion_step);
       return;
