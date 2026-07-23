@@ -497,19 +497,30 @@ if(WITH_PYTHON)
   endif()
   unset(FREESTYLE_EXCLUDE_CONDITIONAL)
 
+  # The glTF add-on's draco & meshopt bridge libraries, loaded at run-time by `io_scene_gltf2`.
+  # Portable Linux builds place them in `lib` beside their bundled dependencies (found via each
+  # target's `$ORIGIN` RPATH); otherwise beside the add-on where `library.py` looks for them.
+  if(UNIX AND NOT APPLE AND WITH_INSTALL_PORTABLE)
+    set(GLTF_BRIDGE_INSTALL_DIR "${TARGETDIR_LIB}")
+  else()
+    set(GLTF_BRIDGE_INSTALL_DIR "${TARGETDIR_VER_LIBS}/scripts/addons_core/io_scene_gltf2")
+  endif()
+
   if(WITH_DRACO)
     install(
       PROGRAMS $<TARGET_FILE:bf_intern_draco_bridge>
-      DESTINATION ${TARGETDIR_VER_LIBS}/scripts/addons_core/io_scene_gltf2
+      DESTINATION ${GLTF_BRIDGE_INSTALL_DIR}
     )
   endif()
 
   if(WITH_MESHOPTIMIZER)
     install(
       PROGRAMS $<TARGET_FILE:bf_intern_meshopt_bridge>
-      DESTINATION ${TARGETDIR_VER_LIBS}/scripts/addons_core/io_scene_gltf2
+      DESTINATION ${GLTF_BRIDGE_INSTALL_DIR}
     )
   endif()
+
+  unset(GLTF_BRIDGE_INSTALL_DIR)
 
 endif()
 
