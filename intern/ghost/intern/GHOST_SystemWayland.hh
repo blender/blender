@@ -31,6 +31,12 @@ class GHOST_WindowWayland;
 
 bool ghost_wl_display_report_error_if_set(wl_display *display);
 
+/**
+ * Create a 1x1 transparent buffer, intended for up-scaling via #wp_viewport_set_destination.
+ * The caller owns the returned buffer, null on allocation failure.
+ */
+struct wl_buffer *ghost_wl_buffer_create_transparent_pixel(struct wl_shm *shm);
+
 bool ghost_wl_output_own(const struct wl_output *wl_output);
 void ghost_wl_output_tag(struct wl_output *wl_output);
 struct GWL_Output *ghost_wl_output_user_data(struct wl_output *wl_output);
@@ -52,6 +58,16 @@ void ghost_wl_surface_tag_cursor_pointer(struct wl_surface *wl_surface);
 
 bool ghost_wl_surface_own_cursor_tablet(const struct wl_surface *wl_surface);
 void ghost_wl_surface_tag_cursor_tablet(struct wl_surface *wl_surface);
+
+#ifdef WITH_GHOST_CSD
+/**
+ * Tag for the invisible resize margin around the window
+ * (see #GWL_WindowCSD::margin_surface). Kept distinct from #ghost_wl_surface_tag
+ * so input paths without margin support ignore it as any other foreign surface.
+ */
+bool ghost_wl_surface_own_csd_margin(const struct wl_surface *wl_surface);
+void ghost_wl_surface_tag_csd_margin(struct wl_surface *wl_surface);
+#endif
 
 /* Scaling to: translates from WAYLAND into GHOST (viewport local) coordinates.
  * Scaling from: performs the reverse translation.
@@ -267,6 +283,7 @@ class GHOST_SystemWayland : public GHOST_System {
 
   struct wl_display *wl_display_get();
   struct wl_compositor *wl_compositor_get();
+  struct wl_subcompositor *wl_subcompositor_get();
   struct zwp_primary_selection_device_manager_v1 *wp_primary_selection_manager_get();
   struct xdg_activation_v1 *xdg_activation_manager_get();
   struct zwp_pointer_gestures_v1 *wp_pointer_gestures_get();

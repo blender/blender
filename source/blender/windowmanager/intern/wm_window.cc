@@ -2259,6 +2259,7 @@ void WM_window_csd_params_update()
 
       /*cursor_drag_threshold*/ U.drag_threshold_mouse,
       /*cursor_double_click_ms*/ U.dbl_click_time,
+      /*resize_margin_size*/ WM_WINDOW_CSD_RESIZE_MARGIN_SIZE,
   };
   g_system->setWindowCSD(csd_params);
 }

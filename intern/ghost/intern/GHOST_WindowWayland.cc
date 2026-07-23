@@ -85,6 +85,28 @@ struct GWL_WindowCSD {
   GHOST_TCSD_Type active_type = GHOST_kCSDTypeBody;
   /** For tracking double click/drag. */
   GHOST_CSD_EventState event_state = {{0}};
+
+  /**
+   * A small invisible surface positioned outside the main surface (`GWL_Window.wl.surface`)
+   * used only to extend the CSD resize border past the visible window, matching the behavior of
+   * other CSD toolkits on WAYLAND.
+   *
+   * Created lazily the first time it's needed (once `wl_subcompositor`/`wp_viewporter` are known
+   * to be available) and left in place afterwards: hidden (buffer detached) rather than
+   * destroyed while full-screen/maximized, since no border exists in those states either.
+   */
+  wl_surface *margin_surface = nullptr;
+  wl_subsurface *margin_subsurface = nullptr;
+  wp_viewport *margin_viewport = nullptr;
+  wl_buffer *margin_buffer = nullptr;
+
+  /**
+   * The margin & window size in surface local coordinates, as last applied to the
+   * margin surface. Hit-testing must use the exact values the compositor routes
+   * input by, see #gwl_window_csd_margin_elem_motion.
+   */
+  int32_t margin_size_local = 0;
+  int32_t margin_window_size_local[2] = {0, 0};
 };
 
 #endif /* WITH_GHOST_CSD */
@@ -554,6 +576,20 @@ static int gwl_window_fractional_from_viewport_round(const GWL_WindowFrame &fram
   return lroundf(double(value * FRACTIONAL_DENOMINATOR) / double(frame.fractional_scale));
 }
 
+/**
+ * Convert a value in physical pixels (as used by #GWL_WindowFrame.size) into the window's
+ * surface-local (logical) coordinate space, as needed for WAYLAND requests that operate in
+ * surface-local coordinates (#wl_subsurface_set_position, #wp_viewport_set_destination,
+ * #xdg_surface_set_window_geometry in particular).
+ */
+static int32_t gwl_window_physical_to_surface_local(const GWL_Window *win, const int32_t value)
+{
+  if (win->frame.fractional_scale) {
+    return gwl_window_fractional_from_viewport_round(win->frame, value);
+  }
+  return value / win->frame.buffer_scale;
+}
+
 static bool gwl_window_viewport_set(GWL_Window *win,
                                     bool *r_surface_needs_commit,
                                     bool *r_surface_needs_buffer_scale)
@@ -826,6 +862,107 @@ static void gwl_window_pending_actions_handle(GWL_Window *win)
 
 #endif /* USE_EVENT_BACKGROUND_THREAD */
 
+#ifdef WITH_GHOST_CSD
+/**
+ * Keep the XDG "window geometry" in sync with the window's visible rectangle.
+ * Without this the compositors default (bounding-box) geometry includes the
+ * invisible margin, throwing off snapping, maximize/restore, and previews.
+ *
+ * Must run every time #GWL_Window.frame is updated
+ * (see #gwl_window_frame_update_from_pending_no_lock).
+ */
+static void gwl_window_csd_geometry_update(GWL_Window *win)
+{
+  if (win->xdg_decor == nullptr) {
+    return;
+  }
+  xdg_surface_set_window_geometry(win->xdg_decor->surface,
+                                  0,
+                                  0,
+                                  gwl_window_physical_to_surface_local(win, win->frame.size[0]),
+                                  gwl_window_physical_to_surface_local(win, win->frame.size[1]));
+}
+
+/**
+ * Keep #GWL_WindowCSD.margin_surface in sync with the window's current size & state.
+ *
+ * Must run every time #GWL_Window.frame is updated: on size, DPI or maximized/full-screen
+ * changes (see #gwl_window_frame_update_from_pending_no_lock).
+ */
+static void gwl_window_csd_margin_update(GWL_Window *win)
+{
+  GWL_WindowCSD *xdg_csd = win->xdg_csd;
+  GHOST_SystemWayland *system = win->ghost_system;
+
+  /* Zero hides the margin: no border exists for full-screen & maximized windows,
+   * a zero size means it's disabled (also accounting for rounding at extreme scales). */
+  int32_t margin_local = 0;
+  if (!ELEM(gwl_window_state_get(win), GHOST_kWindowStateFullScreen, GHOST_kWindowStateMaximized))
+  {
+    const GHOST_CSD_Params &params = system->getWindowCSD();
+    const int32_t margin_physical = (params.resize_margin_size * win->ghost_window->getDPIHint()) /
+                                    GHOST_CSD_DPI_FRACTIONAL_BASE;
+    margin_local = gwl_window_physical_to_surface_local(win, margin_physical);
+  }
+
+  if (margin_local <= 0) {
+    if (xdg_csd->margin_surface) {
+      /* Unmap: detach the buffer so the (otherwise unused) surface stops accepting input. */
+      wl_surface_attach(xdg_csd->margin_surface, nullptr, 0, 0);
+      wl_surface_commit(xdg_csd->margin_surface);
+    }
+    return;
+  }
+
+  if (xdg_csd->margin_surface == nullptr) {
+    wl_subcompositor *subcompositor = system->wl_subcompositor_get();
+    wp_viewporter *viewporter = system->wp_viewporter_get();
+    if (subcompositor == nullptr || viewporter == nullptr) {
+      /* No support for the invisible margin on this compositor, in that case there is no way to
+       * resize from the window borders. Very unlikely in practice, resizing remains possible via
+       * the compositor's own shortcuts, so accept the limitation. */
+      return;
+    }
+
+    xdg_csd->margin_buffer = ghost_wl_buffer_create_transparent_pixel(system->wl_shm_get());
+    if (xdg_csd->margin_buffer == nullptr) [[unlikely]] {
+      return;
+    }
+
+    xdg_csd->margin_surface = wl_compositor_create_surface(system->wl_compositor_get());
+    ghost_wl_surface_tag_csd_margin(xdg_csd->margin_surface);
+    wl_surface_set_user_data(xdg_csd->margin_surface, win->ghost_window);
+
+    xdg_csd->margin_subsurface = wl_subcompositor_get_subsurface(
+        subcompositor, xdg_csd->margin_surface, win->wl.surface);
+    /* De-synchronize so the margin's state (buffer & viewport) applies on its own
+     * commit, it's not tied to the main surface's frame timing. The position is the
+     * exception, #wl_subsurface_set_position only applies on the parents commit,
+     * in practice the parent commits on every size & state change. */
+    wl_subsurface_set_desync(xdg_csd->margin_subsurface);
+    wl_subsurface_place_below(xdg_csd->margin_subsurface, win->wl.surface);
+
+    xdg_csd->margin_viewport = wp_viewporter_get_viewport(viewporter, xdg_csd->margin_surface);
+  }
+
+  const int32_t window_size_local[2] = {
+      gwl_window_physical_to_surface_local(win, win->frame.size[0]),
+      gwl_window_physical_to_surface_local(win, win->frame.size[1]),
+  };
+
+  xdg_csd->margin_size_local = margin_local;
+  xdg_csd->margin_window_size_local[0] = window_size_local[0];
+  xdg_csd->margin_window_size_local[1] = window_size_local[1];
+
+  wl_surface_attach(xdg_csd->margin_surface, xdg_csd->margin_buffer, 0, 0);
+  wl_subsurface_set_position(xdg_csd->margin_subsurface, -margin_local, -margin_local);
+  wp_viewport_set_destination(xdg_csd->margin_viewport,
+                              window_size_local[0] + (margin_local * 2),
+                              window_size_local[1] + (margin_local * 2));
+  wl_surface_commit(xdg_csd->margin_surface);
+}
+#endif /* WITH_GHOST_CSD */
+
 /**
  * Update the window's #GWL_WindowFrame.
  * The caller must handle locking & run from the main thread.
@@ -991,6 +1128,9 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
        * sure that the decor gets redrawn to correctly show the new state we are in. */
       win->ghost_window->notify_decor_redraw();
     }
+
+    gwl_window_csd_geometry_update(win);
+    gwl_window_csd_margin_update(win);
   }
 #endif /* WITH_GHOST_CSD */
 }
@@ -1947,6 +2087,20 @@ GHOST_WindowWayland::~GHOST_WindowWayland()
 
 #ifdef WITH_GHOST_CSD
   if (window_->xdg_csd) {
+    GWL_WindowCSD &xdg_csd = *window_->xdg_csd;
+    if (xdg_csd.margin_buffer) {
+      wl_buffer_destroy(xdg_csd.margin_buffer);
+    }
+    if (xdg_csd.margin_viewport) {
+      wp_viewport_destroy(xdg_csd.margin_viewport);
+    }
+    if (xdg_csd.margin_subsurface) {
+      wl_subsurface_destroy(xdg_csd.margin_subsurface);
+    }
+    if (xdg_csd.margin_surface) {
+      system_->window_surface_unref(xdg_csd.margin_surface);
+      wl_surface_destroy(xdg_csd.margin_surface);
+    }
     delete window_->xdg_csd;
     window_->xdg_csd = nullptr;
   }
@@ -2699,6 +2853,16 @@ GHOST_CSD_EventState &GHOST_WindowWayland::csd_eventstate_get()
 {
   GHOST_ASSERT(this->system_->use_window_frame_csd_get(), "caller must ensure");
   return window_->xdg_csd->event_state;
+}
+
+void GHOST_WindowWayland::csd_margin_geometry_get(int32_t &r_margin_size,
+                                                  int32_t r_window_size[2]) const
+{
+  GHOST_ASSERT(this->system_->use_window_frame_csd_get(), "caller must ensure");
+  const GWL_WindowCSD *xdg_csd = window_->xdg_csd;
+  r_margin_size = xdg_csd->margin_size_local;
+  r_window_size[0] = xdg_csd->margin_window_size_local[0];
+  r_window_size[1] = xdg_csd->margin_window_size_local[1];
 }
 
 #endif /* WITH_GHOST_CSD */

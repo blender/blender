@@ -733,6 +733,14 @@ struct GWL_SeatStatePointer {
      * (events with this pointing device will be sent here).
      */
     wl_surface *surface_window = nullptr;
+#ifdef WITH_GHOST_CSD
+    /**
+     * The pointer is over #GWL_WindowCSD::margin_surface, mutually exclusive with
+     * `surface_window`. Only margin handling uses this (the resize cursor & border
+     * resize), never generating window events, see #pointer_handle_frame_csd_margin.
+     */
+    wl_surface *surface_window_csd_margin = nullptr;
+#endif
   } wl;
 
   /**
@@ -1318,6 +1326,19 @@ static GWL_SeatStatePointer *gwl_seat_state_pointer_from_cursor_surface(
   return nullptr;
 }
 
+/**
+ * Set the window surface receiving this device's input,
+ * clearing the mutually exclusive CSD margin surface (null clears both).
+ */
+static void gwl_seat_state_pointer_surface_window_set(GWL_SeatStatePointer *seat_state_pointer,
+                                                      wl_surface *wl_surface)
+{
+  seat_state_pointer->wl.surface_window = wl_surface;
+#ifdef WITH_GHOST_CSD
+  seat_state_pointer->wl.surface_window_csd_margin = nullptr;
+#endif
+}
+
 #ifdef USE_NON_LATIN_KB_WORKAROUND
 static xkb_layout_index_t xkb_keymap_get_fallback_layout(xkb_keymap *keymap,
                                                          const xkb_layout_index_t layout_active);
@@ -1529,6 +1550,7 @@ struct GWL_Display {
     wl_registry *registry = nullptr;
     wl_display *display = nullptr;
     wl_compositor *compositor = nullptr;
+    wl_subcompositor *subcompositor = nullptr;
     wl_shm *shm = nullptr;
 
     /* Managers. */
@@ -2842,6 +2864,21 @@ static wl_buffer *ghost_wl_buffer_create_for_image(wl_shm *shm,
   return buffer;
 }
 
+wl_buffer *ghost_wl_buffer_create_transparent_pixel(wl_shm *shm)
+{
+  const int32_t size_xy[2] = {1, 1};
+  void *buffer_data = nullptr;
+  size_t buffer_data_size = 0;
+  wl_buffer *buffer = ghost_wl_buffer_create_for_image(
+      shm, size_xy, WL_SHM_FORMAT_ARGB8888, &buffer_data, &buffer_data_size);
+  if (buffer == nullptr) [[unlikely]] {
+    return nullptr;
+  }
+  memset(buffer_data, 0, buffer_data_size);
+  munmap(buffer_data, buffer_data_size);
+  return buffer;
+}
+
 /**
  * A version of `read` which will read `nbytes` or as many bytes as possible,
  * useful as the LIBC version may `read` less than requested.
@@ -3390,67 +3427,22 @@ static int32_t gwl_window_dpi_scale_value(GHOST_WindowWayland *win, const int32_
 }
 
 /**
- * Pointer motion or pointer "enter".
- *
- * Return true if an active region was found (and the cursor is set).
+ * Set `type` as the active CSD element, updating the cursor.
+ * Return true if the element changed (and the cursor was set).
  */
-static bool gwl_window_csd_active_elem_motion(GWL_Seat *seat,
-                                              GHOST_WindowWayland *win,
-                                              const int event_xy[2])
+static bool gwl_window_csd_active_elem_type_apply(GWL_Seat *seat,
+                                                  GHOST_WindowWayland *win,
+                                                  const GHOST_TCSD_Type type)
 {
-  /* Caller must lock `server_mutex`. */
-
-  const GHOST_TCSD_Type active_type_curr = win->csd_elem_active_type_get();
-  GHOST_TCSD_Type active_type_next = GHOST_kCSDTypeBody;
-  int elems_num = 0;
-  const GHOST_CSD_Elem *csd_elems = win->csd_layout(&elems_num);
-
-  int i;
-  for (i = 0; i < elems_num; i++) {
-    const GHOST_CSD_Elem &elem = csd_elems[i];
-
-    if ((event_xy[0] >= elem.bounds[0][0] && event_xy[0] <= elem.bounds[0][1]) &&
-        (event_xy[1] >= elem.bounds[1][0] && event_xy[1] <= elem.bounds[1][1]))
-    {
-      active_type_next = elem.type;
-      break;
-    }
-  }
-  /* Ignore this function if the event doesn't overlap anything. */
-  if (i == elems_num) [[unlikely]] {
+  if (type == win->csd_elem_active_type_get()) {
     return false;
   }
-
-  /* Update motion. */
-  GHOST_CSD_EventState &event_state = win->csd_eventstate_get();
-  event_state.event_xy[0] = event_xy[0];
-  event_state.event_xy[1] = event_xy[1];
-
-  {
-    /* Detect press-drag. */
-    GHOST_CSD_EventState_Button &event_button = event_state.buttons[GHOST_kButtonMaskLeft];
-    if (event_button.action_history_num > 0) {
-      GHOST_CSD_EventState_ButtonAction &press = event_button.action_history[0];
-      if (press.is_press && (press.type == GHOST_kCSDTypeTitlebar)) {
-        const GHOST_CSD_Params &params = seat->system->getWindowCSD();
-        if ((std::abs(press.xy[0] - event_xy[0]) + std::abs(press.xy[1] - event_xy[1])) >
-            gwl_window_dpi_scale_value(win, params.cursor_drag_threshold))
-        {
-          xdg_toplevel_move(win->xdg_toplevel_get(), seat->wl.seat, press.serial);
-        }
-      }
-    }
-  }
-
-  if (active_type_next == active_type_curr) {
-    return false;
-  }
-  win->csd_elem_active_type_set(active_type_next);
+  win->csd_elem_active_type_set(type);
 
   /* Set the cursor unless grabbed. */
   if (win->getCursorGrabMode() == GHOST_kGrabDisable) {
     GHOST_TStandardCursor cursor = GHOST_kStandardCursorCustom;
-    switch (active_type_next) {
+    switch (type) {
       case GHOST_kCSDTypeBody: {
         win->cursor_shape_refresh();
         break;
@@ -3515,6 +3507,61 @@ static bool gwl_window_csd_active_elem_motion(GWL_Seat *seat,
     }
   }
   return false;
+}
+
+/**
+ * Pointer motion or pointer "enter".
+ *
+ * Return true if an active region was found (and the cursor is set).
+ */
+static bool gwl_window_csd_active_elem_motion(GWL_Seat *seat,
+                                              GHOST_WindowWayland *win,
+                                              const int event_xy[2])
+{
+  /* Caller must lock `server_mutex`. */
+
+  GHOST_TCSD_Type active_type_next = GHOST_kCSDTypeBody;
+  int elems_num = 0;
+  const GHOST_CSD_Elem *csd_elems = win->csd_layout(&elems_num);
+
+  int i;
+  for (i = 0; i < elems_num; i++) {
+    const GHOST_CSD_Elem &elem = csd_elems[i];
+
+    if ((event_xy[0] >= elem.bounds[0][0] && event_xy[0] <= elem.bounds[0][1]) &&
+        (event_xy[1] >= elem.bounds[1][0] && event_xy[1] <= elem.bounds[1][1]))
+    {
+      active_type_next = elem.type;
+      break;
+    }
+  }
+  /* Ignore this function if the event doesn't overlap anything. */
+  if (i == elems_num) [[unlikely]] {
+    return false;
+  }
+
+  /* Update motion. */
+  GHOST_CSD_EventState &event_state = win->csd_eventstate_get();
+  event_state.event_xy[0] = event_xy[0];
+  event_state.event_xy[1] = event_xy[1];
+
+  {
+    /* Detect press-drag. */
+    GHOST_CSD_EventState_Button &event_button = event_state.buttons[GHOST_kButtonMaskLeft];
+    if (event_button.action_history_num > 0) {
+      GHOST_CSD_EventState_ButtonAction &press = event_button.action_history[0];
+      if (press.is_press && (press.type == GHOST_kCSDTypeTitlebar)) {
+        const GHOST_CSD_Params &params = seat->system->getWindowCSD();
+        if ((std::abs(press.xy[0] - event_xy[0]) + std::abs(press.xy[1] - event_xy[1])) >
+            gwl_window_dpi_scale_value(win, params.cursor_drag_threshold))
+        {
+          xdg_toplevel_move(win->xdg_toplevel_get(), seat->wl.seat, press.serial);
+        }
+      }
+    }
+  }
+
+  return gwl_window_csd_active_elem_type_apply(seat, win, active_type_next);
 }
 
 /**
@@ -3774,6 +3821,118 @@ static void gwl_window_csd_active_elem_button(GWL_Seat *seat,
       }
     }
   }
+}
+
+/**
+ * True when `wl_surface` is the invisible resize margin around the window,
+ * see #GWL_WindowCSD::margin_surface.
+ */
+static bool ghost_wl_surface_own_csd_margin_with_null_check(const wl_surface *wl_surface)
+{
+  return wl_surface && ghost_wl_surface_own_csd_margin(wl_surface);
+}
+
+/**
+ * Like #ghost_wl_surface_user_data, but for a `wl_surface` already known to be
+ * #GWL_WindowCSD::margin_surface (tagged separately, see #ghost_wl_surface_own_csd_margin).
+ */
+static GHOST_WindowWayland *ghost_wl_surface_csd_margin_user_data(wl_surface *wl_surface)
+{
+  GHOST_ASSERT(wl_surface, "wl_surface must not be nullptr");
+  GHOST_ASSERT(ghost_wl_surface_own_csd_margin(wl_surface),
+               "wl_surface is not the CSD margin surface");
+  return static_cast<GHOST_WindowWayland *>(wl_surface_get_user_data(wl_surface));
+}
+
+/**
+ * Set the margin surface as this input device's focus & reset the CSD state,
+ * shared between pointer "enter", tablet "proximity_in" & touch "down" handling.
+ */
+static GHOST_WindowWayland *gwl_window_csd_margin_focus_set(
+    GWL_Seat *seat,
+    GWL_SeatStatePointer *seat_state_pointer,
+    const uint32_t serial,
+    wl_surface *wl_surface)
+{
+  GHOST_WindowWayland *win = ghost_wl_surface_csd_margin_user_data(wl_surface);
+
+  seat->cursor_source_serial = serial;
+  seat_state_pointer->serial = serial;
+  seat_state_pointer->wl.surface_window = nullptr;
+  seat_state_pointer->wl.surface_window_csd_margin = wl_surface;
+
+  seat->system->seat_active_set(seat);
+
+  /* On enter there is logically no prior state that needs to be taken into account.
+   * Note that this is mostly likely cleared when leaving, setting here to account
+   * for badly behaved compositors. */
+  win->csd_elem_active_type_set(GHOST_kCSDTypeBody);
+  gwl_window_csd_buttons_clear(win);
+
+  return win;
+}
+
+/**
+ * Clear the state set by #gwl_window_csd_margin_focus_set,
+ * shared between pointer "leave", tablet "proximity_out" & touch "up"/"cancel" handling.
+ */
+static void gwl_window_csd_margin_focus_clear(GWL_SeatStatePointer *seat_state_pointer,
+                                              wl_surface *wl_surface)
+{
+  GHOST_WindowWayland *win = ghost_wl_surface_csd_margin_user_data(wl_surface);
+  gwl_window_csd_active_elem_clear(win);
+  gwl_window_csd_buttons_clear(win);
+  seat_state_pointer->wl.surface_window_csd_margin = nullptr;
+}
+
+/**
+ * Hit-test `xy` (margin surface local coordinates), setting the active element & cursor.
+ * Return true if the active element changed.
+ *
+ * Resolve the border from the surface's own geometry instead of the CSD elements:
+ * the compositor routes input by logical geometry so using the same values is exact,
+ * translating into the window's physical space rounds,
+ * leaving dead-zones at the margin boundaries.
+ */
+static bool gwl_window_csd_margin_elem_motion(GWL_Seat *seat,
+                                              GHOST_WindowWayland *win,
+                                              const wl_fixed_t xy[2])
+{
+  int32_t margin_size = 0;
+  int32_t window_size[2] = {0, 0};
+  win->csd_margin_geometry_get(margin_size, window_size);
+
+  /* The window rectangle in margin surface local coordinates. */
+  const wl_fixed_t xy_min = wl_fixed_from_int(margin_size);
+  const wl_fixed_t xy_max[2] = {
+      wl_fixed_from_int(margin_size + window_size[0]),
+      wl_fixed_from_int(margin_size + window_size[1]),
+  };
+
+  GHOST_TCSD_Type type;
+  if (xy[1] < xy_min) {
+    type = (xy[0] < xy_min)     ? GHOST_kCSDTypeBorderTopLeft :
+           (xy[0] >= xy_max[0]) ? GHOST_kCSDTypeBorderTopRight :
+                                  GHOST_kCSDTypeBorderTop;
+  }
+  else if (xy[1] >= xy_max[1]) {
+    type = (xy[0] < xy_min)     ? GHOST_kCSDTypeBorderBottomLeft :
+           (xy[0] >= xy_max[0]) ? GHOST_kCSDTypeBorderBottomRight :
+                                  GHOST_kCSDTypeBorderBottom;
+  }
+  else if (xy[0] < xy_min) {
+    type = GHOST_kCSDTypeBorderLeft;
+  }
+  else if (xy[0] >= xy_max[0]) {
+    type = GHOST_kCSDTypeBorderRight;
+  }
+  else {
+    /* Points within the window rectangle are handled by the window surface above,
+     * should practically never happen. */
+    return false;
+  }
+
+  return gwl_window_csd_active_elem_type_apply(seat, win, type);
 }
 
 #endif /* WITH_GHOST_CSD */
@@ -4549,6 +4708,36 @@ static const wl_surface_listener cursor_surface_listener = {
 static CLG_LogRef LOG_WL_POINTER = {"ghost.wl.handle.pointer"};
 #define LOG (&LOG_WL_POINTER)
 
+#ifdef WITH_GHOST_CSD
+/**
+ * A version of #pointer_handle_enter for #GWL_WindowCSD::margin_surface.
+ *
+ * The margin isn't part of the window: only margin actions apply
+ * (the resize cursor & border resize), window events are never generated,
+ * as if the pointer were just outside the window.
+ */
+static void pointer_handle_enter_csd_margin(GWL_Seat *seat,
+                                            const uint32_t serial,
+                                            wl_surface *wl_surface,
+                                            const wl_fixed_t surface_x,
+                                            const wl_fixed_t surface_y)
+{
+  GHOST_WindowWayland *win = gwl_window_csd_margin_focus_set(
+      seat, &seat->pointer, serial, wl_surface);
+
+  seat->pointer.xy[0] = surface_x;
+  seat->pointer.xy[1] = surface_y;
+
+  /* Resetting scroll events is likely unnecessary,
+   * do this to avoid any possible problems as it's harmless. */
+  seat->pointer_scroll = GWL_SeatStatePointerScroll{};
+
+  if (!gwl_window_csd_margin_elem_motion(seat, win, seat->pointer.xy)) {
+    win->cursor_shape_refresh();
+  }
+}
+#endif /* WITH_GHOST_CSD */
+
 static void pointer_handle_enter(void *data,
                                  wl_pointer * /*wl_pointer*/,
                                  const uint32_t serial,
@@ -4557,6 +4746,15 @@ static void pointer_handle_enter(void *data,
                                  const wl_fixed_t surface_y)
 {
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+
+#ifdef WITH_GHOST_CSD
+  if (ghost_wl_surface_own_csd_margin_with_null_check(wl_surface)) {
+    CLOG_DEBUG(LOG, "enter (csd margin)");
+    pointer_handle_enter_csd_margin(seat, serial, wl_surface, surface_x, surface_y);
+    return;
+  }
+#endif
+
   const uint64_t event_ms = seat->system->getMilliSeconds();
 
   /* Null when just destroyed. */
@@ -4577,7 +4775,7 @@ static void pointer_handle_enter(void *data,
    * do this to avoid any possible problems as it's harmless. */
   seat->pointer_scroll = GWL_SeatStatePointerScroll{};
 
-  seat->pointer.wl.surface_window = wl_surface;
+  gwl_seat_state_pointer_surface_window_set(&seat->pointer, wl_surface);
 
   seat->system->seat_active_set(seat);
 
@@ -4612,7 +4810,16 @@ static void pointer_handle_leave(void *data,
 {
   /* First clear the `pointer.wl_surface`, since the window won't exist when closing the window. */
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
-  seat->pointer.wl.surface_window = nullptr;
+  gwl_seat_state_pointer_surface_window_set(&seat->pointer, nullptr);
+
+#ifdef WITH_GHOST_CSD
+  if (ghost_wl_surface_own_csd_margin_with_null_check(wl_surface)) {
+    CLOG_DEBUG(LOG, "leave (csd margin)");
+    gwl_window_csd_margin_focus_clear(&seat->pointer, wl_surface);
+    return;
+  }
+#endif
+
   if (!ghost_wl_surface_own_with_null_check(wl_surface)) {
     CLOG_DEBUG(LOG, "leave (skipped)");
     return;
@@ -4720,11 +4927,78 @@ static void pointer_handle_axis(void *data,
       &seat->pointer_events, GWL_Pointer_EventTypes::Scroll, WL_SERIAL_NONE, 0);
 }
 
+#ifdef WITH_GHOST_CSD
+/**
+ * A version of #pointer_handle_frame for #GWL_WindowCSD::margin_surface,
+ * see #pointer_handle_enter_csd_margin.
+ *
+ * Only motion & button events apply, others (scroll for example) are ignored,
+ * as they would be just outside the window.
+ */
+static void pointer_handle_frame_csd_margin(GWL_Seat *seat, wl_surface *wl_surface)
+{
+  GHOST_WindowWayland *win = ghost_wl_surface_csd_margin_user_data(wl_surface);
+
+  for (int ty_index = 0; ty_index < seat->pointer_events.frame_pending.frame_types_num; ty_index++)
+  {
+    const GWL_Pointer_EventTypes ty = seat->pointer_events.frame_pending.frame_types[ty_index];
+    const uint64_t event_ms = seat->pointer_events.frame_pending.frame_event_ms[ty_index];
+    const uint32_t serial = seat->pointer_events.frame_pending.frame_serial[ty_index];
+    switch (ty) {
+      using enum GWL_Pointer_EventTypes;
+      case Motion: {
+        gwl_window_csd_margin_elem_motion(seat, win, seat->pointer.xy);
+        break;
+      }
+      case Scroll: {
+        break;
+      }
+#  ifdef NDEBUG
+      default:
+#  else /* Warn when any events aren't handled (in debug builds). */
+      case Button0_Down:
+      case Button0_Up:
+      case Button1_Down:
+      case Button1_Up:
+      case Button2_Down:
+      case Button2_Up:
+      case Button3_Down:
+      case Button3_Up:
+      case Button4_Down:
+      case Button4_Up:
+      case Button5_Down:
+      case Button5_Up:
+      case Button6_Down:
+      case Button6_Up:
+#  endif
+      {
+        const int button_enum_offset = int(ty) - int(Button0_Down);
+        const int button_index = button_enum_offset / 2;
+        const bool button_down = (button_index * 2) == button_enum_offset;
+        const GHOST_TButton ebutton = gwl_pointer_events_ebutton[button_index];
+        GHOST_ASSERT(serial != WL_SERIAL_NONE || !button_down,
+                     "Button down events must have a serial");
+        gwl_window_csd_active_elem_button(seat, win, ebutton, button_down, serial, event_ms);
+        break;
+      }
+    }
+  }
+}
+#endif /* WITH_GHOST_CSD */
+
 static void pointer_handle_frame(void *data, wl_pointer * /*wl_pointer*/)
 {
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
 
   CLOG_DEBUG(LOG, "frame");
+
+#ifdef WITH_GHOST_CSD
+  if (wl_surface *wl_surface_focus = seat->pointer.wl.surface_window_csd_margin) {
+    pointer_handle_frame_csd_margin(seat, wl_surface_focus);
+    gwl_pointer_handle_frame_event_reset(&seat->pointer_events);
+    return;
+  }
+#endif
 
   if (wl_surface *wl_surface_focus = seat->pointer.wl.surface_window) {
     GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
@@ -5279,6 +5553,37 @@ static const zwp_pointer_gesture_swipe_v1_listener gesture_swipe_listener = {
 static CLG_LogRef LOG_WL_TOUCH = {"ghost.wl.handle.touch"};
 #define LOG (&LOG_WL_TOUCH)
 
+#ifdef WITH_GHOST_CSD
+/**
+ * A version of #touch_seat_handle_down for #GWL_WindowCSD::margin_surface,
+ * see #pointer_handle_enter_csd_margin.
+ * Actions run on the next frame event, see #touch_seat_handle_frame_csd_margin.
+ */
+static void touch_seat_handle_down_csd_margin(GWL_Seat *seat,
+                                              const uint32_t serial,
+                                              const uint32_t time,
+                                              const int32_t id,
+                                              wl_surface *wl_surface,
+                                              const wl_fixed_t x,
+                                              const wl_fixed_t y)
+{
+  const uint64_t event_ms = seat->system->ms_from_input_time(time);
+
+  gwl_window_csd_margin_focus_set(seat, &seat->touch, serial, wl_surface);
+  seat->touch.xy[0] = x;
+  seat->touch.xy[1] = y;
+
+  /* Set touch-tracking state. */
+  seat->touch_state.is_touching = true;
+  seat->touch_state.down_id = id;
+  seat->touch_state.motion_pending = true;
+  seat->touch_state.motion_event_time_ms = event_ms;
+  seat->touch_state.down_pending = true;
+  seat->touch_state.down_event_time_ms = event_ms;
+  seat->touch_state.down_event_serial = serial;
+}
+#endif /* WITH_GHOST_CSD */
+
 static void touch_seat_handle_down(void *data,
                                    wl_touch * /*touch*/,
                                    const uint32_t serial,
@@ -5292,6 +5597,18 @@ static void touch_seat_handle_down(void *data,
 
   CLOG_DEBUG(LOG, "down");
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+
+#ifdef WITH_GHOST_CSD
+  if (ghost_wl_surface_own_csd_margin_with_null_check(surface)) {
+    /* Only track one point at a time. */
+    if (seat->touch_state.is_touching) {
+      return;
+    }
+    CLOG_DEBUG(LOG, "down (csd margin)");
+    touch_seat_handle_down_csd_margin(seat, serial, time, id, surface, x, y);
+    return;
+  }
+#endif
 
   /* Null when just destroyed. */
   if (!ghost_wl_surface_own_with_null_check(surface)) {
@@ -5311,7 +5628,7 @@ static void touch_seat_handle_down(void *data,
   seat->touch.xy[0] = x;
   seat->touch.xy[1] = y;
   seat->touch.serial = serial;
-  seat->touch.wl.surface_window = surface;
+  gwl_seat_state_pointer_surface_window_set(&seat->touch, surface);
 
   /* Set the active pointer. */
   seat->cursor_source_serial = serial;
@@ -5375,10 +5692,60 @@ static void touch_seat_handle_motion(void *data,
   seat->touch_state.motion_pending = true;
 }
 
+#ifdef WITH_GHOST_CSD
+/**
+ * A version of #touch_seat_handle_frame for #GWL_WindowCSD::margin_surface,
+ * see #pointer_handle_frame_csd_margin.
+ */
+static void touch_seat_handle_frame_csd_margin(GWL_Seat *seat, wl_surface *wl_surface)
+{
+  GHOST_WindowWayland *win = ghost_wl_surface_csd_margin_user_data(wl_surface);
+
+  /* Run before the "down" handling so pressing resolves to a border element. */
+  if (seat->touch_state.motion_pending == true) {
+    gwl_window_csd_margin_elem_motion(seat, win, seat->touch.xy);
+
+    seat->touch_state.motion_pending = false;
+    seat->touch_state.motion_event_time_ms = 0;
+  }
+
+  if (seat->touch_state.down_pending == true) {
+    const uint32_t serial = seat->touch_state.down_event_serial;
+    GHOST_ASSERT(serial != WL_SERIAL_NONE, "Button down events must have a serial");
+    gwl_window_csd_active_elem_button(
+        seat, win, GHOST_kButtonMaskLeft, true, serial, seat->touch_state.down_event_time_ms);
+
+    seat->touch_state.down_pending = false;
+    seat->touch_state.down_event_time_ms = 0;
+    seat->touch_state.down_event_serial = WL_SERIAL_NONE;
+  }
+
+  if (seat->touch_state.up_pending == true) {
+    const uint32_t serial = seat->touch_state.up_event_serial;
+    GHOST_ASSERT(serial != WL_SERIAL_NONE, "Button up events must have a serial");
+    gwl_window_csd_active_elem_button(
+        seat, win, GHOST_kButtonMaskLeft, false, serial, seat->touch_state.up_event_time_ms);
+    gwl_window_csd_margin_focus_clear(&seat->touch, wl_surface);
+
+    seat->touch_state.up_pending = false;
+    seat->touch_state.up_event_time_ms = 0;
+    seat->touch_state.up_event_serial = WL_SERIAL_NONE;
+  }
+}
+#endif /* WITH_GHOST_CSD */
+
 static void touch_seat_handle_frame(void *data, wl_touch * /*touch*/)
 {
   CLOG_DEBUG(LOG, "frame");
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+
+#ifdef WITH_GHOST_CSD
+  if (wl_surface *wl_surface_focus = seat->touch.wl.surface_window_csd_margin) {
+    touch_seat_handle_frame_csd_margin(seat, wl_surface_focus);
+    return;
+  }
+#endif
+
   if (wl_surface *wl_surface_focus = seat->touch.wl.surface_window) {
     GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
 
@@ -5472,10 +5839,23 @@ static void touch_seat_handle_frame(void *data, wl_touch * /*touch*/)
   }
 }
 
-static void touch_seat_handle_cancel(void * /*data*/, wl_touch * /*wl_touch*/)
+static void touch_seat_handle_cancel(void *data, wl_touch * /*wl_touch*/)
 {
-
   CLOG_DEBUG(LOG, "cancel");
+
+#ifdef WITH_GHOST_CSD
+  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  /* Starting a border resize cancels the touch (no further events arrive),
+   * reset tracking so new contact points aren't ignored.
+   * Cancellation with a window surface focused is left as-is,
+   * it would involve generating a button release for the window. */
+  if (wl_surface *wl_surface_focus = seat->touch.wl.surface_window_csd_margin) {
+    gwl_window_csd_margin_focus_clear(&seat->touch, wl_surface_focus);
+    seat->touch_state = {};
+  }
+#else
+  (void)data;
+#endif
 }
 
 static void touch_seat_handle_shape(void * /*data*/,
@@ -5577,25 +5957,55 @@ static void tablet_tool_handle_removed(void *data, zwp_tablet_tool_v2 *zwp_table
 
   delete tablet_tool;
 }
+#ifdef WITH_GHOST_CSD
+/**
+ * A version of #tablet_tool_handle_proximity_in for #GWL_WindowCSD::margin_surface,
+ * see #pointer_handle_enter_csd_margin.
+ * Hit-testing runs on the first motion as proximity events carry no coordinates.
+ */
+static void tablet_tool_handle_proximity_in_csd_margin(GWL_TabletTool *tablet_tool,
+                                                       const uint32_t serial,
+                                                       wl_surface *wl_surface)
+{
+  GWL_Seat *seat = tablet_tool->seat;
+
+  tablet_tool->proximity = true;
+  tablet_tool->serial = serial;
+
+  gwl_window_csd_margin_focus_set(seat, &seat->tablet, serial, wl_surface);
+
+  seat->data_source_serial = serial;
+}
+#endif /* WITH_GHOST_CSD */
+
 static void tablet_tool_handle_proximity_in(void *data,
                                             zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
                                             const uint32_t serial,
                                             zwp_tablet_v2 * /*tablet*/,
                                             wl_surface *wl_surface)
 {
+  GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(data);
+
+#ifdef WITH_GHOST_CSD
+  if (ghost_wl_surface_own_csd_margin_with_null_check(wl_surface)) {
+    CLOG_DEBUG(LOG, "proximity_in (csd margin)");
+    tablet_tool_handle_proximity_in_csd_margin(tablet_tool, serial, wl_surface);
+    return;
+  }
+#endif
+
   if (!ghost_wl_surface_own_with_null_check(wl_surface)) {
     CLOG_DEBUG(LOG, "proximity_in (skipped)");
     return;
   }
   CLOG_DEBUG(LOG, "proximity_in");
 
-  GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(data);
   tablet_tool->proximity = true;
   tablet_tool->serial = serial;
 
   GWL_Seat *seat = tablet_tool->seat;
   seat->cursor_source_serial = serial;
-  seat->tablet.wl.surface_window = wl_surface;
+  gwl_seat_state_pointer_surface_window_set(&seat->tablet, wl_surface);
   seat->tablet.serial = serial;
 
   seat->data_source_serial = serial;
@@ -5785,6 +6195,67 @@ static void tablet_tool_handle_button(void *data,
     gwl_tablet_tool_frame_event_add(tablet_tool, ty, serial);
   }
 }
+#ifdef WITH_GHOST_CSD
+/**
+ * A version of #tablet_tool_handle_frame for #GWL_WindowCSD::margin_surface,
+ * see #pointer_handle_frame_csd_margin.
+ * Only motion & button events apply, pressure, tilt & wheel are ignored.
+ */
+static void tablet_tool_handle_frame_csd_margin(GWL_TabletTool *tablet_tool,
+                                                wl_surface *wl_surface,
+                                                const uint64_t event_ms)
+{
+  GWL_Seat *seat = tablet_tool->seat;
+  GHOST_WindowWayland *win = ghost_wl_surface_csd_margin_user_data(wl_surface);
+
+  for (int ty_index = 0; ty_index < tablet_tool->frame_pending.frame_types_num; ty_index++) {
+    const GWL_TabletTool_EventTypes ty = tablet_tool->frame_pending.frame_types[ty_index];
+    const uint32_t serial = tablet_tool->frame_pending.frame_serial[ty_index];
+    switch (ty) {
+      using enum GWL_TabletTool_EventTypes;
+      case Motion: {
+        /* Can happen when there is pressure/tilt without motion. */
+        if (tablet_tool->has_xy == false) {
+          break;
+        }
+        seat->tablet.xy[0] = tablet_tool->xy[0];
+        seat->tablet.xy[1] = tablet_tool->xy[1];
+
+        gwl_window_csd_margin_elem_motion(seat, win, tablet_tool->xy);
+        break;
+      }
+      case Pressure:
+      case Tilt:
+      case Wheel: {
+        break;
+      }
+#  ifdef NDEBUG
+      default:
+#  else /* Warn when any events aren't handled (in debug builds). */
+      case Stylus0_Down:
+      case Stylus0_Up:
+      case Stylus1_Down:
+      case Stylus1_Up:
+      case Stylus2_Down:
+      case Stylus2_Up:
+      case Stylus3_Down:
+      case Stylus3_Up:
+#  endif
+      {
+        const int button_enum_offset = int(ty) - int(Stylus0_Down);
+        const int button_index = button_enum_offset / 2;
+        const bool button_down = (button_index * 2) == button_enum_offset;
+        const GHOST_TButton ebutton = gwl_tablet_tool_ebutton[button_index];
+        GHOST_ASSERT(serial != WL_SERIAL_NONE || !button_down,
+                     "Button down events must have a serial");
+        gwl_window_csd_active_elem_button(seat, win, ebutton, button_down, serial, event_ms);
+        break;
+      }
+    }
+  }
+}
+#endif /* WITH_GHOST_CSD */
+
 static void tablet_tool_handle_frame(void *data,
                                      zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
                                      const uint32_t time)
@@ -5794,6 +6265,17 @@ static void tablet_tool_handle_frame(void *data,
   const uint64_t event_ms = seat->system->ms_from_input_time(time);
 
   CLOG_DEBUG(LOG, "frame");
+
+#ifdef WITH_GHOST_CSD
+  if (wl_surface *wl_surface_focus = seat->tablet.wl.surface_window_csd_margin) {
+    tablet_tool_handle_frame_csd_margin(tablet_tool, wl_surface_focus, event_ms);
+    if (tablet_tool->proximity == false) {
+      gwl_window_csd_margin_focus_clear(&seat->tablet, wl_surface_focus);
+    }
+    gwl_tablet_tool_frame_event_reset(tablet_tool);
+    return;
+  }
+#endif
 
   /* No need to check the surfaces origin, it's already known to be owned by GHOST. */
   if (wl_surface *wl_surface_focus = seat->tablet.wl.surface_window) {
@@ -7499,6 +7981,26 @@ static void gwl_registry_compositor_remove(GWL_Display *display,
   *value_p = nullptr;
 }
 
+/* #GWL_Display.wl_subcompositor */
+
+static void gwl_registry_subcompositor_add(GWL_Display *display,
+                                           const GWL_RegisteryAdd_Params &params)
+{
+  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 1u, 1u);
+
+  display->wl.subcompositor = static_cast<wl_subcompositor *>(
+      wl_registry_bind(display->wl.registry, params.name, &wl_subcompositor_interface, version));
+  gwl_registry_entry_add(display, params, nullptr);
+}
+static void gwl_registry_subcompositor_remove(GWL_Display *display,
+                                              void * /*user_data*/,
+                                              const bool /*on_exit*/)
+{
+  wl_subcompositor **value_p = &display->wl.subcompositor;
+  wl_subcompositor_destroy(*value_p);
+  *value_p = nullptr;
+}
+
 /* #GWL_Display.xdg_decor.shell */
 
 static void gwl_registry_xdg_wm_base_add(GWL_Display *display,
@@ -8171,6 +8673,12 @@ static const GWL_RegistryHandler gwl_registry_handlers[] = {
         /*add_fn*/ gwl_registry_compositor_add,
         /*update_fn*/ nullptr,
         /*remove_fn*/ gwl_registry_compositor_remove,
+    },
+    {
+        /*interface_p*/ &wl_subcompositor_interface.name,
+        /*add_fn*/ gwl_registry_subcompositor_add,
+        /*update_fn*/ nullptr,
+        /*remove_fn*/ gwl_registry_subcompositor_remove,
     },
     {
         /*interface_p*/ &wl_shm_interface.name,
@@ -10084,6 +10592,9 @@ static const char *ghost_wl_output_tag_id = "GHOST-output";
 static const char *ghost_wl_surface_tag_id = "GHOST-window";
 static const char *ghost_wl_surface_cursor_pointer_tag_id = "GHOST-cursor-pointer";
 static const char *ghost_wl_surface_cursor_tablet_tag_id = "GHOST-cursor-tablet";
+#ifdef WITH_GHOST_CSD
+static const char *ghost_wl_surface_csd_margin_tag_id = "GHOST-csd-margin";
+#endif
 
 bool ghost_wl_output_own(const wl_output *wl_output)
 {
@@ -10115,6 +10626,14 @@ bool ghost_wl_surface_own_cursor_tablet(const wl_surface *wl_surface)
   return wl_proxy_get_tag(const_cast<wl_proxy *>(proxy)) == &ghost_wl_surface_cursor_tablet_tag_id;
 }
 
+#ifdef WITH_GHOST_CSD
+bool ghost_wl_surface_own_csd_margin(const wl_surface *wl_surface)
+{
+  const wl_proxy *proxy = reinterpret_cast<const wl_proxy *>(wl_surface);
+  return wl_proxy_get_tag(const_cast<wl_proxy *>(proxy)) == &ghost_wl_surface_csd_margin_tag_id;
+}
+#endif
+
 void ghost_wl_output_tag(wl_output *wl_output)
 {
   wl_proxy *proxy = reinterpret_cast<wl_proxy *>(wl_output);
@@ -10139,6 +10658,14 @@ void ghost_wl_surface_tag_cursor_tablet(wl_surface *wl_surface)
   wl_proxy_set_tag(proxy, &ghost_wl_surface_cursor_tablet_tag_id);
 }
 
+#ifdef WITH_GHOST_CSD
+void ghost_wl_surface_tag_csd_margin(wl_surface *wl_surface)
+{
+  wl_proxy *proxy = reinterpret_cast<wl_proxy *>(wl_surface);
+  wl_proxy_set_tag(proxy, &ghost_wl_surface_csd_margin_tag_id);
+}
+#endif
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -10155,6 +10682,11 @@ wl_display *GHOST_SystemWayland::wl_display_get()
 wl_compositor *GHOST_SystemWayland::wl_compositor_get()
 {
   return display_->wl.compositor;
+}
+
+wl_subcompositor *GHOST_SystemWayland::wl_subcompositor_get()
+{
+  return display_->wl.subcompositor;
 }
 
 zwp_primary_selection_device_manager_v1 *GHOST_SystemWayland::wp_primary_selection_manager_get()
@@ -10564,6 +11096,11 @@ bool GHOST_SystemWayland::window_surface_unref(const wl_surface *wl_surface)
     SURFACE_CLEAR_PTR(seat->pointer.wl.surface_window);
     SURFACE_CLEAR_PTR(seat->tablet.wl.surface_window);
     SURFACE_CLEAR_PTR(seat->touch.wl.surface_window);
+#ifdef WITH_GHOST_CSD
+    SURFACE_CLEAR_PTR(seat->pointer.wl.surface_window_csd_margin);
+    SURFACE_CLEAR_PTR(seat->tablet.wl.surface_window_csd_margin);
+    SURFACE_CLEAR_PTR(seat->touch.wl.surface_window_csd_margin);
+#endif
     SURFACE_CLEAR_PTR(seat->keyboard.wl.surface_window);
     SURFACE_CLEAR_PTR(seat->wl.surface_window_focus_dnd);
 #ifdef WITH_INPUT_IME

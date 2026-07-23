@@ -249,6 +249,12 @@ class GHOST_WindowWayland : public GHOST_Window {
 
   GHOST_TCSD_Type csd_elem_active_type_get() const;
   void csd_elem_active_type_set(GHOST_TCSD_Type type);
+
+  /**
+   * The margin & window size in surface local coordinates,
+   * as last applied to the margin surface (see #GWL_WindowCSD).
+   */
+  void csd_margin_geometry_get(int32_t &r_margin_size, int32_t r_window_size[2]) const;
 #endif
 
  private:

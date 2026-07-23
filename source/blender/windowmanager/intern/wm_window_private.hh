@@ -66,6 +66,12 @@ void WM_window_csd_draw_titlebar(const wmWindow *win);
 /* wm_window_csd_layout.cc */
 
 /**
+ * Extra margin (in points) outside the visible window where the pointer still resizes the main
+ * window. Not applied when maximized or full-screen.
+ */
+#define WM_WINDOW_CSD_RESIZE_MARGIN_SIZE 10
+
+/**
  * Apply fractional scale for client side decorations.
  */
 int WM_window_csd_fracitonal_scale_apply(int value, const int fractional_scale[2]);

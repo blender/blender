@@ -58,6 +58,8 @@ WAYLAND_DYNLOAD_IFACE(wl_registry_interface)
 WAYLAND_DYNLOAD_IFACE(wl_seat_interface)
 WAYLAND_DYNLOAD_IFACE(wl_shm_interface)
 WAYLAND_DYNLOAD_IFACE(wl_shm_pool_interface)
+WAYLAND_DYNLOAD_IFACE(wl_subcompositor_interface)
+WAYLAND_DYNLOAD_IFACE(wl_subsurface_interface)
 WAYLAND_DYNLOAD_IFACE(wl_surface_interface)
 WAYLAND_DYNLOAD_IFACE(wl_touch_interface)
 #else

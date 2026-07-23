@@ -36,28 +36,23 @@ int WM_window_csd_layout_callback(const int window_size[2],
                                   GHOST_CSD_Elem *csd_elems)
 {
   constexpr int csd_title_height = 25;
-  constexpr int csd_border_size = 5;
-  constexpr int csd_border_corner_size = csd_title_height + csd_border_size;
 
   const int title = WM_window_csd_fracitonal_scale_apply(csd_title_height, fractional_scale);
 
   /* The caller is expected not to run the callback for full screen windows. */
   BLI_assert(window_state != GHOST_kWindowStateFullScreen);
+  UNUSED_VARS_NDEBUG(window_state);
   int decor_num = 0;
 
-  const int32_t border = (window_state == GHOST_kWindowStateMaximized) ?
-                             0 :
-                             WM_window_csd_fracitonal_scale_apply(csd_border_size,
-                                                                  fractional_scale);
   GHOST_CSD_Elem *elem;
 
   /* Window contents. */
   elem = &csd_elems[decor_num++];
   elem->type = GHOST_kCSDTypeBody;
-  elem->bounds[0][0] = border;
-  elem->bounds[0][1] = window_size[0] - border;
-  elem->bounds[1][0] = border + title;
-  elem->bounds[1][1] = window_size[1] - border;
+  elem->bounds[0][0] = 0;
+  elem->bounds[0][1] = window_size[0];
+  elem->bounds[1][0] = title;
+  elem->bounds[1][1] = window_size[1];
 
   /* Allow this to be null for callers that only need to know about
    * the "title" & "body" regions. */
@@ -76,10 +71,10 @@ int WM_window_csd_layout_callback(const int window_size[2],
         GHOST_TCSD_Type type = GHOST_TCSD_Type(csd_layout->buttons[i]);
         elem = &csd_elems[decor_num++];
         elem->type = type;
-        elem->bounds[0][0] = border + (title * button_index);
-        elem->bounds[0][1] = border + title + (title * button_index);
-        elem->bounds[1][0] = border;
-        elem->bounds[1][1] = border + title;
+        elem->bounds[0][0] = title * button_index;
+        elem->bounds[0][1] = title + (title * button_index);
+        elem->bounds[1][0] = 0;
+        elem->bounds[1][1] = title;
 
         button_index++;
       }
@@ -92,10 +87,10 @@ int WM_window_csd_layout_callback(const int window_size[2],
         GHOST_TCSD_Type type = csd_layout->buttons[i];
         elem = &csd_elems[decor_num++];
         elem->type = type;
-        elem->bounds[0][0] = (window_size[0] - (border + title)) - (title * button_index);
-        elem->bounds[0][1] = (window_size[0] - (border)) - (title * button_index);
-        elem->bounds[1][0] = border;
-        elem->bounds[1][1] = border + title;
+        elem->bounds[0][0] = (window_size[0] - title) - (title * button_index);
+        elem->bounds[0][1] = window_size[0] - (title * button_index);
+        elem->bounds[1][0] = 0;
+        elem->bounds[1][1] = title;
         button_index++;
       }
     }
@@ -104,73 +99,14 @@ int WM_window_csd_layout_callback(const int window_size[2],
   /* Title bar. */
   elem = &csd_elems[decor_num++];
   elem->type = GHOST_kCSDTypeTitlebar;
-  elem->bounds[0][0] = border;
-  elem->bounds[0][1] = window_size[0] - border;
-  elem->bounds[1][0] = border;
-  elem->bounds[1][1] = border + title;
+  elem->bounds[0][0] = 0;
+  elem->bounds[0][1] = window_size[0];
+  elem->bounds[1][0] = 0;
+  elem->bounds[1][1] = title;
 
-  if (window_state != GHOST_kWindowStateMaximized) {
-    const int32_t border_corner = WM_window_csd_fracitonal_scale_apply(csd_border_corner_size,
-                                                                       fractional_scale);
-
-    /* Border: corners. */
-    elem = &csd_elems[decor_num++];
-    elem->type = GHOST_kCSDTypeBorderTopLeft;
-    elem->bounds[0][0] = 0;
-    elem->bounds[0][1] = border_corner;
-    elem->bounds[1][0] = 0;
-    elem->bounds[1][1] = border_corner;
-
-    elem = &csd_elems[decor_num++];
-    elem->type = GHOST_kCSDTypeBorderTopRight;
-    elem->bounds[0][0] = window_size[0] - border_corner;
-    elem->bounds[0][1] = window_size[0];
-    elem->bounds[1][0] = 0;
-    elem->bounds[1][1] = border_corner;
-
-    elem = &csd_elems[decor_num++];
-    elem->type = GHOST_kCSDTypeBorderBottomLeft;
-    elem->bounds[0][0] = 0;
-    elem->bounds[0][1] = border_corner;
-    elem->bounds[1][0] = window_size[1] - border_corner;
-    elem->bounds[1][1] = window_size[1];
-
-    elem = &csd_elems[decor_num++];
-    elem->type = GHOST_kCSDTypeBorderBottomRight;
-    elem->bounds[0][0] = window_size[0] - border_corner;
-    elem->bounds[0][1] = window_size[0];
-    elem->bounds[1][0] = window_size[1] - border_corner;
-    elem->bounds[1][1] = window_size[1];
-
-    /* Border: axis aligned. */
-    elem = &csd_elems[decor_num++];
-    elem->type = GHOST_kCSDTypeBorderTop;
-    elem->bounds[0][0] = 0;
-    elem->bounds[0][1] = window_size[0];
-    elem->bounds[1][0] = 0;
-    elem->bounds[1][1] = border;
-
-    elem = &csd_elems[decor_num++];
-    elem->type = GHOST_kCSDTypeBorderBottom;
-    elem->bounds[0][0] = 0;
-    elem->bounds[0][1] = window_size[0];
-    elem->bounds[1][0] = window_size[1] - border;
-    elem->bounds[1][1] = window_size[1];
-
-    elem = &csd_elems[decor_num++];
-    elem->type = GHOST_kCSDTypeBorderLeft;
-    elem->bounds[0][0] = 0;
-    elem->bounds[0][1] = border;
-    elem->bounds[1][0] = 0;
-    elem->bounds[1][1] = window_size[1];
-
-    elem = &csd_elems[decor_num++];
-    elem->type = GHOST_kCSDTypeBorderRight;
-    elem->bounds[0][0] = window_size[0] - border;
-    elem->bounds[0][1] = window_size[0];
-    elem->bounds[1][0] = 0;
-    elem->bounds[1][1] = window_size[1];
-  }
+  /* Border elements are intentionally not included, resizing runs via the invisible
+   * margin outside the window which resolves borders from its own geometry,
+   * see #GHOST_CSD_Params::resize_margin_size. */
 
   return decor_num;
 }

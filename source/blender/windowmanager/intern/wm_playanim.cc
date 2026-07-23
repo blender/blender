@@ -377,6 +377,7 @@ static void playanim_window_csd_params_update(GhostData &ghost_data)
 
       /*cursor_drag_threshold*/ 6 /* NOTE: `U.drag_threshold_mouse` isn't initialized. */,
       /*cursor_double_click_ms*/ 350 /* NOTE: `U.dbl_click_time` isn't initialized. */,
+      /*resize_margin_size*/ WM_WINDOW_CSD_RESIZE_MARGIN_SIZE,
   };
   ghost_data.system->setWindowCSD(csd_params);
 }
