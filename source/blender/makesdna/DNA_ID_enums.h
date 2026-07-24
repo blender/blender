@@ -105,6 +105,10 @@ ENUM_OPERATORS(eIDPropertyFlag)
 enum LibraryFlag {
   /** The library is an 'archive' that only contains embedded linked data. */
   LIBRARY_FLAG_IS_ARCHIVE = 1 << 0,
+  /**
+   * The library is an 'external' (non-blend file) archive that only contains embedded linked data.
+   */
+  LIBRARY_FLAG_IS_EXTERNAL = 1 << 1,
 };
 
 /**
