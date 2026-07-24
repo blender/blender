@@ -5202,8 +5202,7 @@ struct SculptPaintStroke final : public PaintStroke {
   /* Needed to tag other viewports */
   wmWindowManager *wm_;
 
-  SculptPaintStroke(bContext *C, wmOperator *op, const int event_type)
-      : PaintStroke(C, op, event_type)
+  SculptPaintStroke(bContext *C, wmOperator *op, const wmEvent *event) : PaintStroke(C, op, event)
   {
     bmain_ = CTX_data_main(C);
 
@@ -6221,7 +6220,10 @@ static wmOperatorStatus sculpt_brush_stroke_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  stroke = MEM_new<SculptPaintStroke>(__func__, C, op, event->type);
+  bool pen_flip;
+  WM_event_tablet_data(event, &pen_flip, nullptr);
+
+  stroke = MEM_new<SculptPaintStroke>(__func__, C, op, event);
   brush_stroke_init(C, op);
 
   Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
@@ -6302,7 +6304,7 @@ static wmOperatorStatus sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 {
   brush_stroke_init(C, op);
 
-  SculptPaintStroke *stroke = MEM_new<SculptPaintStroke>(__func__, C, op, 0);
+  SculptPaintStroke *stroke = MEM_new<SculptPaintStroke>(__func__, C, op, nullptr);
   op->customdata = stroke;
 
   stroke->exec(C, op);
