@@ -32,12 +32,12 @@
 #include "BLI_map.hh"
 #include "BLI_mutex.hh"
 #include "BLI_rect.hh"
-#include "BLI_set.hh"
 #include "BLI_string_utf8.hh"
 #include "BLI_threads.hh"
 #include "BLI_time.hh"
 #include "BLI_timecode.hh"
 #include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
 
 #include "BLT_translation.hh"
 
@@ -1104,51 +1104,113 @@ static void do_render_compositor_scene(Render *re, Scene *sce, int cfra)
   RE_display_free(resc);
 }
 
-/* Get the scene referenced by the given node if the node uses its render. The main pipeline scene
- * is given. Returns nullptr otherwise. */
-static Scene *get_scene_referenced_by_node(const bNode *node, Scene *pipeline_scene)
+/* Get the set of all scenes that needs to be rendered by the given compositor node group in the
+ * given pipeline scene. If the node group is the root one, is_root_node_group will be true. */
+static VectorSet<Scene *> get_scenes_that_needs_render_by_node_group(
+    Scene &pipeline_scene,
+    const bNodeTree &node_group,
+    const bool is_root_node_group,
+    VectorSet<const bNodeTree *> &node_trees_already_searched)
 {
-  if (node->is_muted()) {
-    return nullptr;
-  }
+  VectorSet<Scene *> needed_scenes_to_render;
+  node_group.ensure_topology_cache();
 
-  if (node->type_legacy == CMP_NODE_R_LAYERS) {
-    return reinterpret_cast<Scene *>(node->id);
-  }
-  if (node->type_legacy == CMP_NODE_CRYPTOMATTE &&
-      node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER)
-  {
-    return reinterpret_cast<Scene *>(node->id);
-  }
-  if (node->type_legacy == NODE_GROUP_INPUT) {
-    return pipeline_scene;
-  }
-
-  return nullptr;
-}
-
-/* Returns true if the given scene needs a render, either because it doesn't use the compositor
- * pipeline and thus needs a simple render, or that its compositor node tree requires the scene to
- * be rendered. */
-static bool compositor_needs_render(Scene *scene)
-{
-  bNodeTree *ntree = scene->compositing_node_group;
-
-  if (ntree == nullptr) {
-    return true;
-  }
-  if ((scene->r.scemode & R_DOCOMP) == 0) {
-    return true;
-  }
-
-  for (const bNode *node : ntree->all_nodes()) {
-    Scene *node_scene = get_scene_referenced_by_node(node, scene);
-    if (node_scene && node_scene == scene) {
-      return true;
+  /* Group Input nodes. */
+  if (is_root_node_group) {
+    for (const bNode *node : node_group.group_input_nodes()) {
+      if (!node->is_muted()) {
+        needed_scenes_to_render.add(&pipeline_scene);
+      }
     }
   }
 
-  return false;
+  /* Render Layers nodes. */
+  for (const bNode *node : node_group.nodes_by_type("CompositorNodeRLayers"_ustr)) {
+    if (!node->is_muted() && node->id) {
+      needed_scenes_to_render.add(id_cast<Scene *>(node->id));
+    }
+  }
+
+  /* Cryptomatte nodes. */
+  for (const bNode *node : node_group.nodes_by_type("CompositorNodeCryptomatteV2"_ustr)) {
+    if (!node->is_muted() && node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER && node->id) {
+      needed_scenes_to_render.add(id_cast<Scene *>(node->id));
+    }
+  }
+
+  /* Group nodes. */
+  for (const bNode *node : node_group.group_nodes()) {
+    if (node->is_muted() || !node->id) {
+      continue;
+    }
+
+    const bNodeTree &child_node_group = *id_cast<const bNodeTree *>(node->id);
+    if (node_trees_already_searched.contains(&child_node_group)) {
+      continue;
+    }
+    node_trees_already_searched.add_new(&child_node_group);
+
+    needed_scenes_to_render.add_multiple(get_scenes_that_needs_render_by_node_group(
+        pipeline_scene, child_node_group, false, node_trees_already_searched));
+  }
+
+  return needed_scenes_to_render;
+}
+
+static bool is_compositor_enabled(Scene &pipeline_scene)
+{
+  bNodeTree *node_group = pipeline_scene.compositing_node_group;
+  if (!node_group) {
+    return false;
+  }
+
+  if (!(pipeline_scene.r.scemode & R_DOCOMP)) {
+    return false;
+  }
+
+  return true;
+}
+
+/* Get the set of all scenes that needs to be rendered by the compositor of the given pipeline
+ * scene. */
+static VectorSet<Scene *> get_scenes_that_needs_render_by_compositor(Scene &pipeline_scene)
+{
+  if (!is_compositor_enabled(pipeline_scene)) {
+    return VectorSet<Scene *>();
+  }
+
+  VectorSet<const bNodeTree *> node_trees_already_searched;
+  return get_scenes_that_needs_render_by_node_group(
+      pipeline_scene, *pipeline_scene.compositing_node_group, true, node_trees_already_searched);
+}
+
+/* Render all scenes needed by the compositor. */
+static void do_render_compositor_scenes(Render *re, VectorSet<Scene *> &needed_scenes_to_render)
+{
+  bool a_scene_was_rendered = false;
+  for (Scene *scene : needed_scenes_to_render) {
+    /* The provided needed_scenes_to_render might contain evaluated scenes, so get the original
+     * scene instead, because we will be doing raw pointer comparison below and the render function
+     * expects original scenes. */
+    Scene *original_scene = DEG_get_original(scene);
+
+    /* The pipeline scene was already rendered. */
+    if (original_scene == re->scene) {
+      continue;
+    }
+
+    if (!render_scene_has_layers_to_render(scene, nullptr)) {
+      continue;
+    }
+
+    do_render_compositor_scene(re, original_scene, re->scene->r.cfra);
+    a_scene_was_rendered = true;
+  }
+
+  /* If a scene was rendered, switch back to the current scene. */
+  if (a_scene_was_rendered) {
+    re->display->current_scene_update(re->scene);
+  }
 }
 
 /** Returns true if the node tree has a group output node. */
@@ -1168,46 +1230,6 @@ static bool node_tree_has_group_output(const bNodeTree *node_tree)
   return false;
 }
 
-/* Render all scenes references by the compositor of the given render's scene. */
-static void do_render_compositor_scenes(Render *re)
-{
-  if (re->scene->compositing_node_group == nullptr) {
-    return;
-  }
-
-  /* For each node that requires a scene we do a full render. Results are stored in a way
-   * compositor will find it. */
-  Set<Scene *> scenes_rendered;
-  for (bNode *node : re->scene->compositing_node_group->all_nodes()) {
-    Scene *node_scene = get_scene_referenced_by_node(node, re->scene);
-    if (!node_scene) {
-      continue;
-    }
-
-    /* References the current scene, which was already rendered. */
-    if (node_scene == re->scene) {
-      continue;
-    }
-
-    /* Scene already rendered as required by another node. */
-    if (scenes_rendered.contains(node_scene)) {
-      continue;
-    }
-
-    if (!render_scene_has_layers_to_render(node_scene, nullptr)) {
-      continue;
-    }
-
-    scenes_rendered.add_new(node_scene);
-    do_render_compositor_scene(re, node_scene, re->scene->r.cfra);
-  }
-
-  /* If another scene was rendered, switch back to the current scene. */
-  if (!scenes_rendered.is_empty()) {
-    re->display->current_scene_update(re->scene);
-  }
-}
-
 /* Render compositor nodes, along with any scenes required for them.
  * The result will be output into a compositing render layer in the render result. */
 static void do_render_compositor(Render *re)
@@ -1215,7 +1237,14 @@ static void do_render_compositor(Render *re)
   bNodeTree *ntree = re->pipeline_scene_eval->compositing_node_group;
   bool update_newframe = false;
 
-  if (compositor_needs_render(re->pipeline_scene_eval)) {
+  VectorSet<Scene *> needed_scenes_to_render = get_scenes_that_needs_render_by_compositor(
+      *re->pipeline_scene_eval);
+
+  /* Render the pipeline scene because the compositor is disabled and thus we do a simple render,
+   * or the compositor is enabled and requires the scene to be rendered. */
+  if (!is_compositor_enabled(*re->pipeline_scene_eval) ||
+      needed_scenes_to_render.contains(re->pipeline_scene_eval))
+  {
     /* render the frames
      * it could be optimized to render only the needed view
      * but what if a scene has a different number of views
@@ -1257,7 +1286,7 @@ static void do_render_compositor(Render *re)
     if (ntree && re->r.scemode & R_DOCOMP) {
       /* checks if there are render-result nodes that need scene */
       if ((re->r.scemode & R_SINGLE_LAYER) == 0) {
-        do_render_compositor_scenes(re);
+        do_render_compositor_scenes(re, needed_scenes_to_render);
       }
 
       if (!re->display->test_break()) {
