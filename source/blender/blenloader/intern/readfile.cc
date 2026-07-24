@@ -4825,6 +4825,27 @@ static Main *blo_find_main_for_library_and_idname(FileData *fd,
           UNUSED_VARS_NDEBUG(packed_id, id_bhead);
           continue;
         }
+        if (main_it->curlib->runtime->filedata) {
+          /* If this Main was already used to read and store some packed data, it will have an
+           * assigned (non-owned) FileData pointer.
+           *
+           * Even though that Main does not contain any version of the linked packed ID being
+           * read, it cannot be used as its container if the FileData does not match.
+           *
+           * Otherwise, in complex cases, code can end up putting some packed IDs from libC, used
+           * in (and read from) libA, into the same Main as other packed IDs from libC, read from
+           * libB.
+           *
+           * This would result in 'stealing' the FileData of this Main, which will likely result in
+           * liblink failure later on in reading process, as the old addresses of some packed data
+           * in that Main will not be found anymore in the libmap of the currently assigned
+           * FileData.
+           */
+          BLI_assert(main_it->curlib->runtime->is_filedata_owner == false);
+          if (main_it->curlib->runtime->filedata != fd) {
+            continue;
+          }
+        }
         /* Since an archive library is an abstract, local storage for packed data, in complex
          * production files with many layers of libraries, a single archive library may end up
          * 'containing' packed IDs from _different_ sources (reminder, packed IDs are stored in
