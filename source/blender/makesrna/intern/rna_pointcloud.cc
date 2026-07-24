@@ -6,6 +6,8 @@
  * \ingroup RNA
  */
 
+#include "DNA_pointcloud_types.h"
+
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
@@ -164,6 +166,12 @@ static void rna_def_point(BlenderRNA *brna)
 
 static void rna_def_pointcloud(BlenderRNA *brna)
 {
+  static const EnumPropertyItem render_as_items[] = {
+      {PT_RENDER_AS_POINTS, "POINTS", 0, "Points", ""},
+      {PT_RENDER_AS_SPLATS, "SPLATS", 0, "Splats", ""},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   StructRNA *srna;
   PropertyRNA *prop;
   FunctionRNA *func;
@@ -208,6 +216,18 @@ static void rna_def_pointcloud(BlenderRNA *brna)
                                     "rna_IDMaterials_assign_int");
 
   rna_def_attributes_common(srna, AttributeOwnerType::PointCloud);
+
+  /* Render As. */
+  prop = RNA_def_property(srna, "render_as", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, render_as_items);
+  RNA_def_property_ui_text(prop, "Render As", "How points of the point cloud are rendered");
+  RNA_def_property_update(prop, 0, "rna_PointCloud_update_data");
+
+  /* Spherical harmonics order. */
+  prop = RNA_def_property(srna, "spherical_harmonics_degree", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Spherical Harmonics Degree", "Degree of spherical harmonics");
+  RNA_def_property_range(prop, 0, 4);
+  RNA_def_property_update(prop, 0, "rna_PointCloud_update_data");
 
   /* common */
   rna_def_animdata_common(srna);

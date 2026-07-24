@@ -130,6 +130,9 @@ PointCloud *convert_gsplat_ply_to_point_cloud(const PlyData &data,
 
   accessor.finish();
 
+  point_cloud->render_as = PT_RENDER_AS_SPLATS;
+  point_cloud->spherical_harmonics_degree = sh_degree;
+
   // TODO(sergey): Handle params.import_attributes.
 
   return point_cloud;

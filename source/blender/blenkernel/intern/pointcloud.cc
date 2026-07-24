@@ -243,10 +243,15 @@ void BKE_pointcloud_nomain_to_pointcloud(PointCloud *pointcloud_src, PointCloud 
 
   pointcloud_dst->totpoint = pointcloud_src->totpoint;
   pointcloud_dst->attribute_storage.wrap() = std::move(pointcloud_src->attribute_storage.wrap());
+
+  pointcloud_dst->render_as = pointcloud_src->render_as;
+  pointcloud_dst->spherical_harmonics_degree = pointcloud_src->spherical_harmonics_degree;
+
   pointcloud_dst->runtime->bounds_cache = pointcloud_src->runtime->bounds_cache;
   pointcloud_dst->runtime->bounds_with_radius_cache =
       pointcloud_src->runtime->bounds_with_radius_cache;
   pointcloud_dst->runtime->bvh_cache = pointcloud_src->runtime->bvh_cache;
+
   BKE_id_free(nullptr, pointcloud_src);
 }
 

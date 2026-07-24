@@ -116,6 +116,27 @@ class POINTCLOUD_UL_attributes(UIList):
         sub.label(text=data_type.name)
 
 
+class DATA_PT_pointcloud_render(DataButtonsPanel, Panel):
+    bl_label = "Render"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_WORKBENCH',
+    }
+
+    def draw(self, context):
+        pointcloud = context.pointcloud
+
+        layout = self.layout
+
+        layout.prop(pointcloud, "render_as")
+
+        row = layout.row()
+        row.active = (pointcloud.render_as == 'SPLATS')
+        row.prop(pointcloud, "spherical_harmonics_degree")
+
+
 class DATA_PT_pointcloud_attributes(DataButtonsPanel, Panel):
     bl_label = "Attributes"
     COMPAT_ENGINES = {
@@ -162,6 +183,7 @@ class DATA_PT_custom_props_pointcloud(DataButtonsPanel, PropertyPanel, Panel):
 
 classes = (
     DATA_PT_context_pointcloud,
+    DATA_PT_pointcloud_render,
     DATA_PT_pointcloud_attributes,
     DATA_PT_custom_props_pointcloud,
     POINTCLOUD_MT_add_attribute,
