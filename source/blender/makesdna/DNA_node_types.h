@@ -1404,6 +1404,16 @@ enum NodeGeometryTransformMode {
   GEO_NODE_TRANSFORM_MODE_MATRIX = 1,
 };
 
+enum NodeGeometryMergeLayersMode {
+  GEO_NODE_MERGE_LAYERS_BY_NAME = 0,
+  GEO_NODE_MERGE_LAYERS_BY_ID = 1,
+};
+
+enum NodeGeometryGreasePencilStrokeType : int8_t {
+  GEO_NODE_GREASE_PENCIL_STROKE = 0,
+  GEO_NODE_GREASE_PENCIL_FILL = 1,
+};
+
 struct bNodeStack {
   float vec[4] = {};
   float min = 0, max = 0;
@@ -3425,7 +3435,7 @@ struct NodeGeometryMergeLayers {
   DNA_DEFINE_CXX_METHODS(NodeGeometryMergeLayers)
 
   /** #MergeLayerMode. */
-  int8_t mode = 0;
+  DNA_DEPRECATED int8_t mode = 0;
 };
 
 struct NodeGeometrySeparateGeometry {

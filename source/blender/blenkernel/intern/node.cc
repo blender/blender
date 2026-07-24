@@ -724,8 +724,17 @@ static void write_legacy_properties(bNodeTree &ntree, Map<ID **, ID *> &r_ids_to
                                        ->default_value_typed<bNodeSocketValueFont>()
                                        ->value);
         }
+        else if (node->is_type("GeometryNodeMergeLayers"_ustr)) {
+          auto &storage = *static_cast<NodeGeometryMergeLayers *>(node->storage);
+          const bNodeSocket *socket = node_find_socket(*node, SOCK_IN, "Mode"_ustr);
+          storage.mode = socket->default_value_typed<bNodeSocketValueMenu>()->value;
+        }
         else if (node->is_type("GeometryNodeSetGreasePencilColor"_ustr)) {
           const bNodeSocket *socket = node_find_socket(*node, SOCK_IN, "Mode"_ustr);
+          node->custom1 = socket->default_value_typed<bNodeSocketValueMenu>()->value;
+        }
+        else if (node->is_type("GeometryNodeSetGreasePencilDepth"_ustr)) {
+          const bNodeSocket *socket = node_find_socket(*node, SOCK_IN, "Depth Order"_ustr);
           node->custom1 = socket->default_value_typed<bNodeSocketValueMenu>()->value;
         }
       }
