@@ -3774,11 +3774,11 @@ static void do_brush_action(const Depsgraph &depsgraph,
   if (!ELEM(brush.sculpt_brush_type, SCULPT_BRUSH_TYPE_SMOOTH, SCULPT_BRUSH_TYPE_MASK) &&
       brush.autosmooth_factor > 0)
   {
-    if (bke::brush::supports_auto_smooth_pressure(brush) &&
-        brush.flag & BRUSH_INVERSE_SMOOTH_PRESSURE)
-    {
-      brushes::do_smooth_brush(
-          depsgraph, sd, ob, node_mask, brush.autosmooth_factor * (1.0f - ss.cache->pressure));
+    if (bke::brush::supports_auto_smooth_pressure(brush) && brush.flag & BRUSH_SMOOTH_PRESSURE) {
+      const float auto_smooth_factor = brush.autosmooth_factor *
+                                       BKE_curvemapping_evaluateF(
+                                           brush.curve_auto_smooth, 0, ss.cache->pressure);
+      brushes::do_smooth_brush(depsgraph, sd, ob, node_mask, auto_smooth_factor);
     }
     else {
       brushes::do_smooth_brush(depsgraph, sd, ob, node_mask, brush.autosmooth_factor);
@@ -4512,9 +4512,7 @@ static void cache_paint_invariants_update(StrokeCache &cache, const Brush &brush
   if (bke::brush::supports_hardness_pressure(brush) &&
       brush.paint_flags & BRUSH_PAINT_HARDNESS_PRESSURE)
   {
-    cache.hardness *= brush.paint_flags & BRUSH_PAINT_HARDNESS_PRESSURE_INVERT ?
-                          1.0f - cache.pressure :
-                          cache.pressure;
+    cache.hardness *= BKE_curvemapping_evaluateF(brush.curve_hardness, 0, cache.pressure);
   }
 
   cache.paint_brush.flow = brush.flow;

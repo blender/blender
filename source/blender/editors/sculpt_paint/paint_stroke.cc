@@ -630,7 +630,8 @@ static float paint_space_stroke_spacing(const ViewContext &vc,
 
   /* apply spacing pressure */
   if (brush->stroke_method == BRUSH_STROKE_SPACE && brush->flag & BRUSH_SPACING_PRESSURE) {
-    spacing = spacing * (1.5f - pressure);
+    const float spacing_factor = BKE_curvemapping_evaluateF(brush->curve_spacing, 0, pressure);
+    spacing = spacing * (1.5f - spacing_factor);
   }
 
   if (cloth::is_cloth_deform_brush(*brush)) {

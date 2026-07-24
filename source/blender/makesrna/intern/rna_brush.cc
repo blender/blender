@@ -3039,6 +3039,30 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+  prop = RNA_def_property(srna, "curve_hardness", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, nullptr, "curve_hardness");
+  RNA_def_property_struct_type(prop, "CurveMapping");
+  RNA_def_property_ui_text(
+      prop, "Pressure Hardness Mapping", "Curve used to map pressure to brush hardness");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "curve_auto_smooth", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, nullptr, "curve_auto_smooth");
+  RNA_def_property_struct_type(prop, "CurveMapping");
+  RNA_def_property_ui_text(
+      prop, "Pressure Auto-Smooth Mapping", "Curve used to map pressure to brush auto-smooth");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "curve_spacing", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, nullptr, "curve_spacing");
+  RNA_def_property_struct_type(prop, "CurveMapping");
+  RNA_def_property_ui_text(
+      prop, "Pressure Spacing Mapping", "Curve used to map pressure to brush spacing");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "smooth_stroke_radius", PROP_INT, PROP_PIXEL);
   RNA_def_property_range(prop, 10, 200);
   RNA_def_property_ui_text(
@@ -3138,6 +3162,7 @@ static void rna_def_brush(BlenderRNA *brna)
       prop, "Invert Pressure for Hardness", "Invert the modulation of pressure in hardness");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, 0, "rna_Brush_update");
+  RNA_def_property_deprecated(prop, "Replaced by pressure curves.", 503, 600);
 
   prop = RNA_def_property(srna, "use_flow_pressure", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "paint_flags", BRUSH_PAINT_FLOW_PRESSURE);
@@ -3735,11 +3760,10 @@ static void rna_def_brush(BlenderRNA *brna)
       prop, "Mask Pressure Mode", "Pen pressure makes texture influence smaller");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
-  prop = RNA_def_property(srna, "use_inverse_smooth_pressure", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", BRUSH_INVERSE_SMOOTH_PRESSURE);
+  prop = RNA_def_property(srna, "use_smooth_pressure", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", BRUSH_SMOOTH_PRESSURE);
   RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
-  RNA_def_property_ui_text(
-      prop, "Inverse Smooth Pressure", "Lighter pressure causes more smoothing to be applied");
+  RNA_def_property_ui_text(prop, "Smooth Pressure", "Use pressure to modulate auto-smoothing.");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "use_plane_trim", PROP_BOOLEAN, PROP_NONE);
