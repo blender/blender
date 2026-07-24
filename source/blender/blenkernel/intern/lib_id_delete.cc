@@ -385,7 +385,9 @@ static size_t id_delete(Main *bmain, Set<ID *> &ids_to_delete, const BKEIDDelete
   BKE_main_unlock(bmain);
   BKE_layer_collection_resync_allow(*bmain);
   BKE_main_collection_sync_remap(bmain);
-  BKE_main_ensure_invariants(*bmain);
+  if (!options.prevent_invariants_update) {
+    BKE_main_ensure_invariants(*bmain);
+  }
 
   if (has_deleted_library) {
     BKE_library_main_rebuild_hierarchy(bmain);
