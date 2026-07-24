@@ -397,13 +397,17 @@ constexpr int64_t StringRefBase::find_last_not_of(char c, int64_t pos) const
   return index_or_npos_to_int64(std::string_view(*this).find_last_not_of(c, size_t(pos)));
 }
 
+/**
+ * Return a new StringRef that does not contain leading and trailing white-space.
+ */
 constexpr StringRef StringRefBase::trim() const
 {
   return this->trim(" \t\r\n");
 }
 
 /**
- * Return a new StringRef that does not contain leading and trailing white-space.
+ * Return a new StringRef that does not contain leading and trailing `character_to_remove`
+ * characters.
  */
 constexpr StringRef StringRefBase::trim(const char character_to_remove) const
 {
