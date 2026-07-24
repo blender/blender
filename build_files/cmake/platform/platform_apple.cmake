@@ -324,6 +324,7 @@ endif()
 if(WITH_XR_OPENXR)
   find_package(XR_OpenXR_SDK REQUIRED)
 endif()
+add_bundled_libraries(xr_openxr_sdk/lib)
 
 if(WITH_GMP)
   find_package(GMP REQUIRED)
