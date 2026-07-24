@@ -229,7 +229,7 @@ struct PaintStroke : NonCopyable, NonMovable {
 
  protected:
   ~PaintStroke() = default;
-  PaintStroke(bContext *C, wmOperator *op, int event_type);
+  PaintStroke(bContext *C, wmOperator *op, const wmEvent *event);
 
   /**
    * Callback function to retrieve the object space coordinates based on screen space coordinates.

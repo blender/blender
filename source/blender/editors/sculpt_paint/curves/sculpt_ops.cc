@@ -175,8 +175,8 @@ static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(
 }
 
 struct SculptCurvesBrushStroke final : public PaintStroke {
-  SculptCurvesBrushStroke(bContext *C, wmOperator *op, const int event_type)
-      : PaintStroke(C, op, event_type)
+  SculptCurvesBrushStroke(bContext *C, wmOperator *op, const wmEvent *event)
+      : PaintStroke(C, op, event)
   {
   }
 
@@ -251,8 +251,7 @@ static wmOperatorStatus sculpt_curves_stroke_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  SculptCurvesBrushStroke *op_data = MEM_new<SculptCurvesBrushStroke>(
-      __func__, C, op, event->type);
+  SculptCurvesBrushStroke *op_data = MEM_new<SculptCurvesBrushStroke>(__func__, C, op, event);
   op->customdata = op_data;
 
   const wmOperatorStatus retval = op->type->modal(C, op, event);

@@ -81,8 +81,8 @@ namespace ed::sculpt_paint {
  * \{ */
 
 struct GreasePencilPaintStroke final : public PaintStroke {
-  GreasePencilPaintStroke(bContext *C, wmOperator *op, const int event_type)
-      : PaintStroke(C, op, event_type)
+  GreasePencilPaintStroke(bContext *C, wmOperator *op, const wmEvent *event)
+      : PaintStroke(C, op, event)
   {
   }
 
@@ -293,7 +293,7 @@ static wmOperatorStatus grease_pencil_brush_stroke_invoke(bContext *C,
     return retval;
   }
 
-  GreasePencilPaintStroke *stroke = MEM_new<GreasePencilPaintStroke>(__func__, C, op, event->type);
+  GreasePencilPaintStroke *stroke = MEM_new<GreasePencilPaintStroke>(__func__, C, op, event);
   op->customdata = stroke;
 
   retval = op->type->modal(C, op, event);
@@ -402,7 +402,7 @@ static wmOperatorStatus grease_pencil_sculpt_paint_invoke(bContext *C,
   }
   WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
 
-  GreasePencilPaintStroke *stroke = MEM_new<GreasePencilPaintStroke>(__func__, C, op, event->type);
+  GreasePencilPaintStroke *stroke = MEM_new<GreasePencilPaintStroke>(__func__, C, op, event);
   op->customdata = stroke;
 
   const wmOperatorStatus retval = op->type->modal(C, op, event);
@@ -504,7 +504,7 @@ static wmOperatorStatus grease_pencil_weight_brush_stroke_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  GreasePencilPaintStroke *stroke = MEM_new<GreasePencilPaintStroke>(__func__, C, op, event->type);
+  GreasePencilPaintStroke *stroke = MEM_new<GreasePencilPaintStroke>(__func__, C, op, event);
   op->customdata = stroke;
 
   const wmOperatorStatus retval = op->type->modal(C, op, event);
@@ -613,7 +613,7 @@ static wmOperatorStatus grease_pencil_vertex_brush_stroke_invoke(bContext *C,
   }
   WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
 
-  GreasePencilPaintStroke *stroke = MEM_new<GreasePencilPaintStroke>(__func__, C, op, event->type);
+  GreasePencilPaintStroke *stroke = MEM_new<GreasePencilPaintStroke>(__func__, C, op, event);
   op->customdata = stroke;
 
   const wmOperatorStatus retval = op->type->modal(C, op, event);
