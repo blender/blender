@@ -48,6 +48,7 @@ struct CameraParams {
   float lens = 0.0f;
   float ortho_scale = 1.0f;
   float zoom = 1.0f;
+  float roll = 0.0f;
 
   float shiftx = 0.0f;
   float shifty = 0.0f;

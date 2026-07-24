@@ -16,6 +16,7 @@
 
 #include "BLI_listbase.hh"
 #include "BLI_math_geom_c.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector_c.hh"
@@ -191,6 +192,7 @@ static wmOperatorStatus view3d_center_camera_exec(bContext *C, wmOperator * /*op
   rv3d = static_cast<RegionView3D *>(region->regiondata);
 
   rv3d->camdx = rv3d->camdy = 0.0f;
+  rv3d->camroll = 0.0f;
 
   ED_view3d_calc_camera_border_size(scene, depsgraph, region, v3d, rv3d, size);
 
@@ -277,7 +279,7 @@ static wmOperatorStatus render_border_exec(bContext *C, wmOperator *op)
 
   if (rv3d->persp == RV3D_CAMOB) {
     const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-    ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, false, &vb);
+    ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, false, true, &vb);
   }
   else {
     vb.xmin = 0;
@@ -286,10 +288,31 @@ static wmOperatorStatus render_border_exec(bContext *C, wmOperator *op)
     vb.ymax = region->winy;
   }
 
-  border.xmin = (float(rect.xmin) - vb.xmin) / BLI_rctf_size_x(&vb);
-  border.ymin = (float(rect.ymin) - vb.ymin) / BLI_rctf_size_y(&vb);
-  border.xmax = (float(rect.xmax) - vb.xmin) / BLI_rctf_size_x(&vb);
-  border.ymax = (float(rect.ymax) - vb.ymin) / BLI_rctf_size_y(&vb);
+  border.xmin = float(rect.xmin);
+  border.ymin = float(rect.ymin);
+  border.xmax = float(rect.xmax);
+  border.ymax = float(rect.ymax);
+
+  /* Remove the roll to put the border in view border space, expanding to fully cover the box. */
+  if (rv3d->persp == RV3D_CAMOB && rv3d->camroll != 0.0f) {
+    const float2 view_center(region->winx / 2, region->winy / 2);
+    BLI_rctf_translate(&border, -view_center.x, -view_center.y);
+
+    float2 cent(BLI_rctf_cent_x(&border), BLI_rctf_cent_y(&border));
+    BLI_rctf_translate(&border, -cent.x, -cent.y);
+
+    const float2x2 rot_invert = math::from_rotation<float2x2>(math::AngleRadian(-rv3d->camroll));
+    cent = rot_invert * cent;
+
+    BLI_rctf_rotate_expand(&border, &border, rv3d->camroll);
+    BLI_rctf_translate(&border, cent.x, cent.y);
+    BLI_rctf_translate(&border, view_center.x, view_center.y);
+  }
+
+  border.xmin = (border.xmin - vb.xmin) / BLI_rctf_size_x(&vb);
+  border.ymin = (border.ymin - vb.ymin) / BLI_rctf_size_y(&vb);
+  border.xmax = (border.xmax - vb.xmin) / BLI_rctf_size_x(&vb);
+  border.ymax = (border.ymax - vb.ymin) / BLI_rctf_size_y(&vb);
 
   /* actually set border */
   CLAMP(border.xmin, 0.0f, 1.0f);

@@ -521,6 +521,9 @@ struct RegionView3D {
   float ofs[3] = {};
   /** Viewport zoom on the camera frame, see BKE_screen_view3d_zoom_to_fac. */
   float camzoom = 0;
+  /** Camera view roll. */
+  float camroll = 0.0f;
+  char _pad9[4] = {};
   /**
    * Check if persp/ortho view, since 'persp' can't be used for this since
    * it can have cameras assigned as well. (only set in #view3d_winmatrix_set)

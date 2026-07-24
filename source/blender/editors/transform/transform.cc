@@ -265,7 +265,7 @@ void projectFloatViewCenterFallback(TransInfo *t, float adr[2])
             const bool no_shift = true;
             rctf viewborder = {0};
             ED_view3d_calc_camera_border(
-                t->scene, t->depsgraph, region, v3d, rv3d, no_shift, &viewborder);
+                t->scene, t->depsgraph, region, v3d, rv3d, no_shift, true, &viewborder);
             adr[0] = BLI_rctf_cent_x(&viewborder);
             adr[1] = BLI_rctf_cent_y(&viewborder);
             changed = true;

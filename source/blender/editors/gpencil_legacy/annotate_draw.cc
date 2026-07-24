@@ -910,7 +910,7 @@ void ED_annotation_draw_view3d(
    * deal with the camera border, otherwise map the coords to the camera border. */
   if ((rv3d->persp == RV3D_CAMOB) && !(G.f & G_FLAG_RENDER_VIEWPORT)) {
     rctf rectf;
-    ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, true, &rectf);
+    ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, true, true, &rectf);
 
     offsx = round_fl_to_int(rectf.xmin);
     offsy = round_fl_to_int(rectf.ymin);

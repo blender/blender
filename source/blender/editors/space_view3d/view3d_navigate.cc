@@ -97,6 +97,7 @@ void ViewOpsData::state_backup()
   this->init.camdx = rv3d->camdx;
   this->init.camdy = rv3d->camdy;
   this->init.camzoom = rv3d->camzoom;
+  this->init.camroll = rv3d->camroll;
   this->init.dist = rv3d->dist;
   copy_qt_qt(this->init.quat, rv3d->viewquat);
 
@@ -159,6 +160,7 @@ void ViewOpsData::state_restore()
   {
     /* Note this does not remove auto-keys on locked cameras. */
     copy_qt_qt(this->rv3d->viewquat, this->init.quat);
+    this->rv3d->camroll = this->init.camroll;
   }
 
   /* ROTATE. */
