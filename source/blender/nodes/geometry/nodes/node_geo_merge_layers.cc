@@ -11,6 +11,8 @@
 
 #include "NOD_rna_define.hh"
 
+#include "RNA_enum_types.hh"
+
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
