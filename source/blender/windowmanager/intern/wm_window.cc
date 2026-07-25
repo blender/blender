@@ -3442,6 +3442,8 @@ void WM_window_IME_begin(wmWindow *win, int x, int y, int w, int h, bool complet
   const float fac = ghost_window->getNativePixelSize();
   x /= fac;
   y /= fac;
+  w /= fac;
+  h /= fac;
   ghost_window->beginIME(x, win->sizey - y, w, h, complete);
 }
 
