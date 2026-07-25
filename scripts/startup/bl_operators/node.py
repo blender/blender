@@ -654,7 +654,7 @@ class NODE_OT_swap_node(NodeSwapOperator, Operator):
                 self.apply_node_settings(old_node)
 
                 if self.visible_output:
-                    self.swap_visible_output(tree, node, output_name=self.visible_output)
+                    self.swap_visible_output(tree, old_node, output_name=self.visible_output)
 
                 continue
 
