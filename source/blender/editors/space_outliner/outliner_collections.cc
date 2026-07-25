@@ -1479,6 +1479,7 @@ struct OutlinerHideEditData {
   SpaceOutliner *space_outliner;
   Set<LayerCollection *> collections_to_edit;
   Set<Base *> bases_to_edit;
+  bool hide_unselected;
 };
 
 /** \} */
@@ -1503,23 +1504,25 @@ static TreeTraversalAction outliner_hide_collect_data_to_edit(TreeElement *te, v
       /* Skip - showing warning/error message might be misleading
        * when deleting multiple collections, so just do nothing. */
     }
-    else {
+    else if (tselem->flag & TSE_SELECTED) {
       /* Delete, duplicate and link don't edit children,
        * those will come along with the parents. */
       data->collections_to_edit.add(lc);
     }
   }
   else if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
-    Object *ob = id_cast<Object *>(tselem->id);
-    BKE_view_layer_synced_ensure(*data->bmain, data->scene, data->view_layer);
-    Base *base = BKE_view_layer_base_find(data->view_layer, ob);
-    data->bases_to_edit.add(base);
+    if (data->hide_unselected != bool(tselem->flag & TSE_SELECTED)) {
+      Object *ob = id_cast<Object *>(tselem->id);
+      BKE_view_layer_synced_ensure(*data->bmain, data->scene, data->view_layer);
+      Base *base = BKE_view_layer_base_find(data->view_layer, ob);
+      data->bases_to_edit.add(base);
+    }
   }
 
   return TRAVERSE_CONTINUE;
 }
 
-static wmOperatorStatus outliner_hide_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus outliner_hide_exec(bContext *C, wmOperator *op)
 {
   const Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -1530,11 +1533,12 @@ static wmOperatorStatus outliner_hide_exec(bContext *C, wmOperator * /*op*/)
   data.scene = scene;
   data.view_layer = view_layer;
   data.space_outliner = space_outliner;
+  data.hide_unselected = RNA_boolean_get(op->ptr, "unselected");
 
   outliner_tree_traverse(space_outliner,
                          &space_outliner->runtime->tree,
                          0,
-                         TSE_SELECTED,
+                         0,
                          outliner_hide_collect_data_to_edit,
                          &data);
 
@@ -1566,6 +1570,10 @@ void OUTLINER_OT_hide(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  ot->prop = RNA_def_boolean(
+      ot->srna, "unselected", false, "Unselected", "Hide unselected objects");
+  RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 }
 
 static wmOperatorStatus outliner_unhide_all_exec(bContext *C, wmOperator * /*op*/)
