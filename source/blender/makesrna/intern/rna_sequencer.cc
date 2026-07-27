@@ -795,6 +795,13 @@ static int rna_Strip_time_editable(const PointerRNA *ptr, const char ** /*r_info
   return strip->is_effect_with_inputs() ? PropertyFlag(0) : PROP_EDITABLE;
 }
 
+static int rna_Strip_retimable(const PointerRNA *ptr, const char ** /*r_info*/)
+{
+  Strip *strip = static_cast<Strip *>(ptr->data);
+  /* Effect strips' start frame and length must be readonly! */
+  return seq::retiming_is_allowed(strip) ? PROP_EDITABLE : PropertyFlag(0);
+}
+
 static void rna_Strip_channel_set(PointerRNA *ptr, int value)
 {
   Strip *strip = static_cast<Strip *>(ptr->data);
@@ -2823,6 +2830,7 @@ static void rna_def_strip(BlenderRNA *brna)
   rna_def_strip_modifiers(brna, prop);
 
   prop = RNA_def_property(srna, "show_retiming_keys", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_editable_func(prop, "rna_Strip_retimable");
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", SEQ_SHOW_RETIMING);
   RNA_def_property_ui_text(prop, "Show Retiming Keys", "Show retiming keys, so they can be moved");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, nullptr);
