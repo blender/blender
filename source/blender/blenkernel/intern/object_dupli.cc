@@ -1766,6 +1766,14 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
     }
   }
 
+  /* Collection instances could also use #gen_dupli_geometry_set but since it is more general, it
+   * has an additional instance layer compared to #gen_dupli_collection. For
+   * backward-compatibility, use #gen_dupli_collection when there are no modifiers. */
+  if (ctx->object->type == OB_EMPTY && (transflag & OB_DUPLICOLLECTION) &&
+      ctx->object->modifiers.is_empty())
+  {
+    return &gen_dupli_collection;
+  }
   if (ctx->object->runtime->geometry_set_eval != nullptr) {
     if (bke::object_has_geometry_set_instances(*ctx->object)) {
       return &gen_dupli_geometry_set;
