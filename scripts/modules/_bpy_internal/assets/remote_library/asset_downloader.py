@@ -71,6 +71,7 @@ def download_asset_file(
             asset_library_local_path,
             reporter=AssetReporter(asset_library_url=asset_library_url),
             on_queue_empty_callback=on_asset_download_queue_empty,
+            queue_side=http_dl.QueueSide.BACK,  # FIFO queue.
         )
         downloader.start()
         _asset_downloaders[asset_library_url] = downloader
@@ -138,6 +139,7 @@ def download_preview(
             asset_library_local_path,
             reporter=PreviewReporter(),
             on_queue_empty_callback=None,
+            queue_side=http_dl.QueueSide.FRONT,  # LIFO queue.
         )
         downloader.start()
         _preview_downloaders[asset_library_url] = downloader
@@ -251,6 +253,9 @@ class AssetDownloader:
 
     _HTTP_METHOD = "GET"
 
+    _queue_side: http_dl.QueueSide
+    """Previews are queued at the front (LIFO), and assets at the back (FIFO)."""
+
     def __init__(
         self,
         remote_url: str,
@@ -258,6 +263,7 @@ class AssetDownloader:
         *,
         reporter: http_dl.DownloadReporter,
         on_queue_empty_callback: QueueEmptyCallback | None,
+        queue_side: http_dl.QueueSide,
     ) -> None:
         """Create a downloader for assets of a specific asset library.
 
@@ -285,6 +291,7 @@ class AssetDownloader:
         )
 
         self._bg_downloader = None
+        self._queue_side = queue_side
 
     def _create_bg_downloader(self) -> None:
         self._bg_downloader = http_dl.BackgroundDownloader(
@@ -415,6 +422,7 @@ class AssetDownloader:
             remote_url,
             download_to_path,
             http_method=self._HTTP_METHOD,
+            queue_side=self._queue_side,
         )
         return request_descr.url
 

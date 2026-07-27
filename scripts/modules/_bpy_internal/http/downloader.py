@@ -464,6 +464,13 @@ class DownloaderOptions:
         self.http_headers['user-agent'] = user_agent
 
 
+class QueueSide(enum.Enum):
+    BACK = 'back'
+    """Download goes to the back of the queue."""
+    FRONT = 'front'
+    """Download goes to the front of the queue."""
+
+
 class BackgroundDownloader:
     """Wrapper for a ConditionalDownloader + reporters.
 
@@ -539,6 +546,7 @@ class BackgroundDownloader:
                        on_download_done: DownloadDoneCallback | None = None,
                        *,
                        http_method: str = 'GET',
+                       queue_side: QueueSide = QueueSide.BACK,
                        ) -> RequestDescription:
         """Queue up a download of some URL to a location on disk.
 
@@ -566,13 +574,21 @@ class BackgroundDownloader:
         # looking at this dict.
         self._on_download_done_callbacks[http_req_descr].append(on_download_done)
 
-        if not is_already_queued:
+        if is_already_queued:
             # Only queue a download once.
-            self._num_pending_downloads += 1
-            self._connection.send(PipeMessage(
-                msgtype=PipeMsgType.QUEUE_DOWNLOAD,
-                payload=(http_req_descr, local_path),
-            ))
+            return http_req_descr
+
+        match queue_side:
+            case QueueSide.BACK:
+                msgtype = PipeMsgType.QUEUE_DOWNLOAD
+            case QueueSide.FRONT:
+                msgtype = PipeMsgType.QUEUE_DOWNLOAD_FRONT
+
+        self._num_pending_downloads += 1
+        self._connection.send(PipeMessage(
+            msgtype=msgtype,
+            payload=(http_req_descr, local_path),
+        ))
 
         return http_req_descr
 
@@ -846,7 +862,14 @@ class PipeMsgType(enum.Enum):
     """Payload: BackgroundDownloader.QueuedDownload
 
     Main -> Background process.
-    Queue a HTTP request for downloading.
+    Queue a HTTP request for downloading. It will be put at the end of the queue.
+    """
+
+    QUEUE_DOWNLOAD_FRONT = 'queue-front'
+    """Payload: BackgroundDownloader.QueuedDownload
+
+    Main -> Background process.
+    Queue a HTTP request for downloading. It will be put at the front of the queue.
     """
 
     CANCEL_DOWNLOAD = 'cancel'
@@ -963,11 +986,9 @@ def _download_queued_items(
     tx_thread.start()
 
     def unqueue_request(http_req_descr: RequestDescription) -> None:
-        """Remove the given HTTP request from the download queue."""
-
         # Reconstruct the download queue, skipping the given HTTP request.
         # We can't use deque.remove() here, because the RequestDescription
-        # is only part of the objects in the queue.
+        # is only _part_ of the objects in the queue.
         new_queue = [
             (queued_req, queued_path)
             for (queued_req, queued_path) in download_queue
@@ -1000,6 +1021,8 @@ def _download_queued_items(
                     do_shutdown.set()
                 case PipeMsgType.QUEUE_DOWNLOAD:
                     download_queue.append(received_msg.payload)
+                case PipeMsgType.QUEUE_DOWNLOAD_FRONT:
+                    download_queue.appendleft(received_msg.payload)
                 case PipeMsgType.CANCEL_DOWNLOAD:
                     assert isinstance(received_msg.payload, RequestDescription)
                     request_to_cancel: RequestDescription = received_msg.payload
