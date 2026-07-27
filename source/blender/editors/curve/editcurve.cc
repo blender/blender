@@ -595,6 +595,12 @@ static void calc_keyHandles(ListBaseT<Nurb> *nurb, float *key)
 
   for (Nurb &nu : *nurb) {
     if (nu.bezt) {
+      if (nu.pntsu < 2) {
+        /* Single point, no need to calculat handles, proceed to th next Nurb. */
+        fp += nu.pntsu * KEYELEM_FLOAT_LEN_BEZTRIPLE;
+        continue;
+      }
+
       BezTriple *prevp, *nextp;
       BezTriple cur, prev, next;
       float *startfp, *prevfp, *nextfp;
@@ -612,14 +618,8 @@ static void calc_keyHandles(ListBaseT<Nurb> *nurb, float *key)
         prevfp = nullptr;
       }
 
-      if (nu.pntsu > 1) {
-        nextp = bezt + 1;
-        nextfp = fp + KEYELEM_FLOAT_LEN_BEZTRIPLE;
-      }
-      else {
-        nextp = nullptr;
-        nextfp = nullptr;
-      }
+      nextp = bezt + 1;
+      nextfp = fp + KEYELEM_FLOAT_LEN_BEZTRIPLE;
 
       while (a--) {
         key_to_bezt(fp, bezt, &cur);
