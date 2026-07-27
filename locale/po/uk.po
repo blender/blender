@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-20 07:29+0000\n"
-"PO-Revision-Date: 2026-06-19 12:12+0000\n"
+"POT-Creation-Date: 2026-07-27 09:52+0000\n"
+"PO-Revision-Date: 2026-07-22 11:12+0000\n"
 "Last-Translator: Gamfid <gamfid@users.noreply.translate.blender.org>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
 "Language: uk\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
-"X-Generator: Weblate 5.16.2"
+"X-Generator: Weblate 2026.6.1"
 
 
 msgid "Shader AOV"
@@ -15547,14 +15547,6 @@ msgid "Use pressure to modulate hardness"
 msgstr "Вжити натиск для модулювання жорсткості"
 
 
-msgid "Inverse Smooth Pressure"
-msgstr "Обернути тиск згладження"
-
-
-msgid "Lighter pressure causes more smoothing to be applied"
-msgstr "Менший тиск викликає більше згладжування"
-
-
 msgid "Measure brush size relative to the view or the scene"
 msgstr "Міряти розмір пензля відносно огляду або сцени"
 
@@ -26364,80 +26356,16 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
-msgid "Apply"
-msgstr "Застосувати"
-
-
-msgid "Track"
-msgstr "Стеження"
-
-
-msgid "Quick Effects"
-msgstr "Швидкі ефекти"
+msgid "Names"
+msgstr "Назви"
 
 
 msgid "Show/Hide"
 msgstr "Показати/приховати"
 
 
-msgid "Clean Up"
-msgstr "Вичищення"
-
-
-msgid "Asset"
-msgstr "Актив"
-
-
-msgid "Make Single User"
-msgstr "Зробити однокористувацьким"
-
-
-msgid "Convert"
-msgstr "Конвертування"
-
-
-msgid "Link/Transfer Data"
-msgstr "Пов'язати/Перенести Дані"
-
-
-msgid "Hooks"
-msgstr "Гачки"
-
-
-msgid "Vertex Group Locks"
-msgstr "Блокування Груп Вершин"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Ліплення Задати Опертя"
-
-
-msgid "Face Sets Init"
-msgstr "Ініціація Наборів Граней"
-
-
-msgid "Math"
-msgstr "Математика"
-
-
-msgid "Clear Transform"
-msgstr "Зчистити трансформації"
-
-
-msgid "Utilities"
-msgstr "Утиліти"
-
-
-msgid "In-Betweens"
-msgstr "У проміжках"
-
-
-msgid "Propagate"
-msgstr "Поширити"
-
-
-msgid "Names"
-msgstr "Назви"
+msgid "Apply"
+msgstr "Застосувати"
 
 
 msgid "Toggle Bone Options"
@@ -26460,10 +26388,6 @@ msgid "Face Data"
 msgstr "Дані граней"
 
 
-msgid "Sample"
-msgstr "Вибірка"
-
-
 msgid "Select by Face Strength"
 msgstr "Вибрати за Силою Грані"
 
@@ -26472,8 +26396,8 @@ msgid "Set Face Strength"
 msgstr "Задати Силу Грані"
 
 
-msgid "Primitives"
-msgstr "Примітиви"
+msgid "Clean Up"
+msgstr "Вичищення"
 
 
 msgid "Merge"
@@ -26488,20 +26412,28 @@ msgid "Kerning"
 msgstr "Кернінг"
 
 
+msgid "Math"
+msgstr "Математика"
+
+
 msgid "Metaball"
 msgstr "Метакуля"
 
 
-msgid "Import"
-msgstr "Імпортувати"
+msgid "Utilities"
+msgstr "Утиліти"
 
 
 msgid "Bone Roll"
 msgstr "Прокручення Кістки"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Sample"
+msgstr "Вибірка"
+
+
+msgid "Primitives"
+msgstr "Примітиви"
 
 
 msgid "Pivot Point"
@@ -26528,6 +26460,14 @@ msgid "Face Sets Edit"
 msgstr "Редагування Наборів Граней"
 
 
+msgid "Vertex Group Locks"
+msgstr "Блокування Груп Вершин"
+
+
+msgid "Import"
+msgstr "Імпортувати"
+
+
 msgid "Mirror"
 msgstr "Дзеркалення"
 
@@ -26552,6 +26492,10 @@ msgid "Align View"
 msgstr "Вирівняти Огляд"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Align View to Active"
 msgstr "Вирівняти Огляд за Активним"
 
@@ -26572,14 +26516,6 @@ msgid "Select All by Trait"
 msgstr "Вибрати все за рисою"
 
 
-msgid "Linked"
-msgstr "Пов'язане"
-
-
-msgid "Layout"
-msgstr "Розстановка"
-
-
 msgid "Select Linked"
 msgstr "Виділити пов'язане"
 
@@ -26590,14 +26526,6 @@ msgstr "Виділити петлі"
 
 msgid "Assign Material"
 msgstr "Призначити Матеріал"
-
-
-msgid "Keying"
-msgstr "Ключування"
-
-
-msgid "Tracking"
-msgstr "Стеження"
 
 
 msgid "Light"
@@ -26618,6 +26546,70 @@ msgstr "Зв'язки"
 
 msgid "Rigid Body"
 msgstr "Тверде тіло"
+
+
+msgid "Track"
+msgstr "Стеження"
+
+
+msgid "Linked"
+msgstr "Пов'язане"
+
+
+msgid "Layout"
+msgstr "Розстановка"
+
+
+msgid "Quick Effects"
+msgstr "Швидкі ефекти"
+
+
+msgid "Asset"
+msgstr "Актив"
+
+
+msgid "Make Single User"
+msgstr "Зробити однокористувацьким"
+
+
+msgid "Convert"
+msgstr "Конвертування"
+
+
+msgid "Link/Transfer Data"
+msgstr "Пов'язати/Перенести Дані"
+
+
+msgid "Hooks"
+msgstr "Гачки"
+
+
+msgid "Keying"
+msgstr "Ключування"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Ліплення Задати Опертя"
+
+
+msgid "Tracking"
+msgstr "Стеження"
+
+
+msgid "Face Sets Init"
+msgstr "Ініціація Наборів Граней"
+
+
+msgid "Clear Transform"
+msgstr "Зчистити трансформації"
+
+
+msgid "In-Betweens"
+msgstr "У проміжках"
+
+
+msgid "Propagate"
+msgstr "Поширити"
 
 
 msgid "Basic"
@@ -60638,10 +60630,6 @@ msgid "Panel containing UI elements"
 msgstr "Панель, що містить елементи Інтерфейсу Користувача"
 
 
-msgid "VR"
-msgstr "ВР"
-
-
 msgid "Active Tool"
 msgstr "Активний Засіб"
 
@@ -60720,6 +60708,10 @@ msgstr "Багато Кадр"
 
 msgid "Auto-Masking"
 msgstr "Авто-Маскування"
+
+
+msgid "VR"
+msgstr "ВР"
 
 
 msgid "Chain Scaling"
@@ -61424,8 +61416,8 @@ msgid "Find & Replace"
 msgstr "Знаходження та Заміна"
 
 
-msgid "Auto Keyframing"
-msgstr "Авто Ключкадрування"
+msgid "Auto Keying"
+msgstr "Автоключування"
 
 
 msgid "Playback"
@@ -72893,10 +72885,6 @@ msgid "Window Background"
 msgstr "Фон вікна"
 
 
-msgid "Header Text Highlight"
-msgstr "Підсвітка Тексту Заголовка"
-
-
 msgid "Text Highlight"
 msgstr "Підсвітка Тексту"
 
@@ -73688,10 +73676,6 @@ msgstr "Додати дані вагомостей для новий штрих�
 
 msgid "Cycle-Aware Keying"
 msgstr "Ключування з Обізнаністю про Зацикленість"
-
-
-msgid "Auto Keying"
-msgstr "Автоключування"
 
 
 msgid "Auto Keyframe Insert Keying Set"
@@ -76237,11 +76221,6 @@ msgstr "Документація"
 
 msgid "File:"
 msgstr "Файл:"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Застосувати"
 
 
 msgid "Options:"
@@ -79586,10 +79565,6 @@ msgid "Active Editor"
 msgstr "Активний Редактор"
 
 
-msgid "New Keyframe Type"
-msgstr "Тип нового ключового кадру"
-
-
 msgid "Only Active Keying Set"
 msgstr "Лише Активний Набір Ключування"
 
@@ -81512,6 +81487,11 @@ msgstr "Мульти-Малювання"
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "Швидке Редагування"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Застосувати"
 
 
 msgctxt "Operator"
@@ -88543,4 +88523,28 @@ msgstr "Усі додатки, встановлені користувачем"
 
 msgid "Import-Export"
 msgstr "Імпорт-експорт"
+
+
+msgid "Apple"
+msgstr "Apple"
+
+
+msgid "ARRI"
+msgstr "ARRI"
+
+
+msgid "Canon"
+msgstr "Canon"
+
+
+msgid "DJI"
+msgstr "DJI"
+
+
+msgid "Panasonic"
+msgstr "Panasonic"
+
+
+msgid "Sony"
+msgstr "Sony"
 

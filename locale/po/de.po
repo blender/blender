@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-20 07:29+0000\n"
+"POT-Creation-Date: 2026-07-27 09:52+0000\n"
 "PO-Revision-Date: 2025-12-02 20:06+0000\n"
 "Last-Translator: Bastitron <bastitronhd@gmail.com>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -18671,64 +18671,16 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Apply"
-msgstr "Anwenden"
-
-
-msgid "Track"
-msgstr "Spur"
-
-
-msgid "Quick Effects"
-msgstr "Schnelle Effekte"
+msgid "Names"
+msgstr "Namen"
 
 
 msgid "Show/Hide"
 msgstr "Zeigen/Verbergen"
 
 
-msgid "Clean Up"
-msgstr "Aufräumen"
-
-
-msgid "Asset"
-msgstr "Asset"
-
-
-msgid "Make Single User"
-msgstr "Einfachen Benutzer erzeugen"
-
-
-msgid "Convert"
-msgstr "Konvertieren"
-
-
-msgid "Hooks"
-msgstr "Haken"
-
-
-msgid "Vertex Group Locks"
-msgstr "Punktgruppen sperren"
-
-
-msgid "Random Mask"
-msgstr "Zufällige Maske"
-
-
-msgid "Math"
-msgstr "Mathematisch"
-
-
-msgid "Clear Transform"
-msgstr "Transformation löschen"
-
-
-msgid "In-Betweens"
-msgstr "Dazwischen"
-
-
-msgid "Names"
-msgstr "Namen"
+msgid "Apply"
+msgstr "Anwenden"
 
 
 msgid "Toggle Bone Options"
@@ -18751,6 +18703,30 @@ msgid "Face Data"
 msgstr "Flächendaten"
 
 
+msgid "Clean Up"
+msgstr "Aufräumen"
+
+
+msgid "Merge"
+msgstr "Zusammenführen"
+
+
+msgid "Special Characters"
+msgstr "Sonderzeichen"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Math"
+msgstr "Mathematisch"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
 msgid "Read"
 msgstr "Lesen"
 
@@ -18767,34 +18743,6 @@ msgid "Primitives"
 msgstr "Grundkörper"
 
 
-msgid "Merge"
-msgstr "Zusammenführen"
-
-
-msgid "Instances"
-msgstr "Instanzen"
-
-
-msgid "Special Characters"
-msgstr "Sonderzeichen"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Import"
-msgstr "Importieren"
-
-
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Pivot Point"
 msgstr "Drehpunkt"
 
@@ -18809,6 +18757,18 @@ msgstr "Proportionaler Bearbeitungsabfall"
 
 msgid "Mask Edit"
 msgstr "Maskenbearbeitung"
+
+
+msgid "Vertex Group Locks"
+msgstr "Punktgruppen sperren"
+
+
+msgid "Instances"
+msgstr "Instanzen"
+
+
+msgid "Import"
+msgstr "Importieren"
 
 
 msgid "Mirror"
@@ -18831,6 +18791,10 @@ msgid "Align View"
 msgstr "Ansicht ausrichten"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Align View to Active"
 msgstr "Ansicht auf Aktiv ausrichten"
 
@@ -18851,14 +18815,6 @@ msgid "Select All by Trait"
 msgstr "Alles nach Merkmal auswählen"
 
 
-msgid "Linked"
-msgstr "Verknüpft"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
 msgid "Select Linked"
 msgstr "Verknüpfte auswählen"
 
@@ -18869,14 +18825,6 @@ msgstr "Schleifen auswählen"
 
 msgid "Assign Material"
 msgstr "Material zuweisen"
-
-
-msgid "Keying"
-msgstr "Schlüsselbilder"
-
-
-msgid "Tracking"
-msgstr "Verfolgen"
 
 
 msgid "Light"
@@ -18897,6 +18845,58 @@ msgstr "Beziehungen"
 
 msgid "Rigid Body"
 msgstr "Rigid Body"
+
+
+msgid "Track"
+msgstr "Spur"
+
+
+msgid "Linked"
+msgstr "Verknüpft"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Quick Effects"
+msgstr "Schnelle Effekte"
+
+
+msgid "Asset"
+msgstr "Asset"
+
+
+msgid "Make Single User"
+msgstr "Einfachen Benutzer erzeugen"
+
+
+msgid "Convert"
+msgstr "Konvertieren"
+
+
+msgid "Hooks"
+msgstr "Haken"
+
+
+msgid "Keying"
+msgstr "Schlüsselbilder"
+
+
+msgid "Tracking"
+msgstr "Verfolgen"
+
+
+msgid "Random Mask"
+msgstr "Zufällige Maske"
+
+
+msgid "Clear Transform"
+msgstr "Transformation löschen"
+
+
+msgid "In-Betweens"
+msgstr "Dazwischen"
 
 
 msgid "Assets"
@@ -38712,10 +38712,6 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
-msgid "VR"
-msgstr "VR"
-
-
 msgid "Active Tool"
 msgstr "Aktives Werkzeug"
 
@@ -38786,6 +38782,10 @@ msgstr "Stereoskopie"
 
 msgid "Auto-Masking"
 msgstr "Automatisches Maskieren"
+
+
+msgid "VR"
+msgstr "VR"
 
 
 msgid "Chain Scaling"
@@ -39339,8 +39339,8 @@ msgid "Find & Replace"
 msgstr "Suchen & Ersetzen"
 
 
-msgid "Auto Keyframing"
-msgstr "Auto-Schlüsselbilder"
+msgid "Auto Keying"
+msgstr "Automatische Schlüsselbilder"
 
 
 msgid "Playback"
@@ -46444,10 +46444,6 @@ msgid "Window Background"
 msgstr "Fensterhintergrund"
 
 
-msgid "Header Text Highlight"
-msgstr "Kopfleistentext-Hervorhebung"
-
-
 msgid "Text Highlight"
 msgstr "Texthervorhebung"
 
@@ -46855,10 +46851,6 @@ msgstr "Maskenselektion"
 
 msgid "Compact List"
 msgstr "Kompakte Liste"
-
-
-msgid "Auto Keying"
-msgstr "Automatische Schlüsselbilder"
 
 
 msgid "Auto Merge Vertices"
@@ -48492,11 +48484,6 @@ msgstr "Dokumentation"
 
 msgid "File:"
 msgstr "Datei:"
-
-
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Anwenden"
 
 
 msgid "Options:"
@@ -51455,10 +51442,6 @@ msgid "Active Editor"
 msgstr "Aktiver Editor"
 
 
-msgid "New Keyframe Type"
-msgstr "Neuer Schlüsselbildtyp"
-
-
 msgid "Only Active Keying Set"
 msgstr "Nur aktiver Schlüsselbildsatz"
 
@@ -53135,6 +53118,11 @@ msgstr "Mehrfach malen"
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "Schnell bearbeiten"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Anwenden"
 
 
 msgctxt "Operator"

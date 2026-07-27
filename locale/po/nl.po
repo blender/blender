@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Alpha (b'96294be75080')\n"
+"Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-20 07:29+0000\n"
+"POT-Creation-Date: 2026-07-27 09:52+0000\n"
 "PO-Revision-Date: 2026-07-08 11:12+0000\n"
 "Last-Translator: Timo Hoetmer <timo@timohoetmer.nl>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -5836,28 +5836,12 @@ msgid "Dots"
 msgstr "Stippen"
 
 
-msgid "Quick Effects"
-msgstr "Snelle Effecten"
+msgid "Names"
+msgstr "Namen"
 
 
 msgid "Show/Hide"
 msgstr "Toon/Verberg"
-
-
-msgid "Convert"
-msgstr "Converteer"
-
-
-msgid "Hooks"
-msgstr "Haken"
-
-
-msgid "Clear Transform"
-msgstr "Maak Transformatie Leeg"
-
-
-msgid "Names"
-msgstr "Namen"
 
 
 msgid "Import"
@@ -5880,14 +5864,6 @@ msgid "Select Similar"
 msgstr "Selecteer Vergelijkbaar"
 
 
-msgid "Linked"
-msgstr "Gekoppeld"
-
-
-msgid "Layout"
-msgstr "Indeling"
-
-
 msgid "Select Linked"
 msgstr "Selecteer Aaneengesloten"
 
@@ -5906,6 +5882,30 @@ msgstr "Relaties"
 
 msgid "Rigid Body"
 msgstr "Star Lichaam"
+
+
+msgid "Linked"
+msgstr "Gekoppeld"
+
+
+msgid "Layout"
+msgstr "Indeling"
+
+
+msgid "Quick Effects"
+msgstr "Snelle Effecten"
+
+
+msgid "Convert"
+msgstr "Converteer"
+
+
+msgid "Hooks"
+msgstr "Haken"
+
+
+msgid "Clear Transform"
+msgstr "Maak Transformatie Leeg"
 
 
 msgctxt "MovieClip"
@@ -10603,11 +10603,6 @@ msgid "File:"
 msgstr "Bestand:"
 
 
-msgctxt "Operator"
-msgid "Apply"
-msgstr "Toevoegen"
-
-
 msgid "Options:"
 msgstr "Opties:"
 
@@ -11816,6 +11811,11 @@ msgstr "Locaties"
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "Snel Bewerken"
+
+
+msgctxt "Operator"
+msgid "Apply"
+msgstr "Toevoegen"
 
 
 msgid "User Library"
