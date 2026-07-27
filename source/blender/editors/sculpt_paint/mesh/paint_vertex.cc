@@ -2327,7 +2327,7 @@ static bool fill_active_color(Object &ob,
 
 bool object_active_color_init(Object &ob, const float fill_color[4])
 {
-  return fill_active_color(ob, ColorPaint4f(fill_color), false, false);
+  return fill_active_color(ob, ColorPaint4f(fill_color), false, true, false);
 }
 
 }  // namespace ed::sculpt_paint
