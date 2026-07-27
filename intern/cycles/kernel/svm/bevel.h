@@ -287,7 +287,7 @@ ccl_device float3 svm_bevel(
 
   /* Normalize. */
   const float3 N = safe_normalize(sum_N);
-  return is_zero(N) ? sd->N : (sd->flag & SD_BACKFACING) ? -N : N;
+  return is_zero(N) ? sd->N : (sd->runtime_flag & SR_BACKFACING) ? -N : N;
 }
 
 template<uint node_feature_mask, typename ConstIntegratorGenericState>

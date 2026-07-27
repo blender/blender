@@ -102,8 +102,8 @@ ccl_device float4 volume_attribute_float4(KernelGlobals kg,
      * common case where transform is translation/scale only. */
     float3 P = sd->P;
     object_inverse_position_transform(kg, sd, &P);
-    const InterpolationType interp = (sd->flag & SD_VOLUME_CUBIC) ? INTERPOLATION_CUBIC :
-                                                                    INTERPOLATION_NONE;
+    const InterpolationType interp = (sd->shader_flag & SD_VOLUME_CUBIC) ? INTERPOLATION_CUBIC :
+                                                                           INTERPOLATION_NONE;
     const float4 value = kernel_image_interp_3d(kg, sd, desc.offset, P, interp, stochastic);
     if (value.w > 1e-6f && value.w != 1.0f) {
       /* For RGBA colors, unpremultiply after interpolation. */

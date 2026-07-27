@@ -123,7 +123,7 @@ ccl_device_inline float bump_shadowing_term(const ccl_private ShaderData *sd,
   }
 
   /* When bump map correction is not used do skip the smoothing. */
-  if ((sd->flag & SD_USE_BUMP_MAP_CORRECTION) == 0) {
+  if ((sd->shader_flag & SD_USE_BUMP_MAP_CORRECTION) == 0) {
     return 1.0f;
   }
 

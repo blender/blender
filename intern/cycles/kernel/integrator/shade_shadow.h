@@ -111,10 +111,10 @@ integrate_transparent_surface_shadow(KernelGlobals kg,
   shader_setup_from_ray(kg, shadow_sd, &ray, &isect);
 
   /* Evaluate shader. */
-  if (!(shadow_sd->flag & SD_HAS_ONLY_VOLUME)) {
+  if (!(shadow_sd->shader_flag & SD_HAS_ONLY_VOLUME)) {
     surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW>(
         kg, state, shadow_sd, nullptr, PATH_RAY_VISIBILITY_SHADOW, PATH_RAY_FLAG_NONE);
-    if (shadow_sd->flag & SD_CACHE_MISS) {
+    if (shadow_sd->runtime_flag & SR_CACHE_MISS) {
       result = SHADER_EVAL_CACHE_MISS;
       return zero_spectrum();
     }
@@ -129,7 +129,7 @@ integrate_transparent_surface_shadow(KernelGlobals kg,
 #  endif
 
   /* Disable transparent shadows for ray portals */
-  if (shadow_sd->flag & SD_RAY_PORTAL) {
+  if (shadow_sd->runtime_flag & SR_RAY_PORTAL) {
     result = SHADER_EVAL_EMPTY;
     return zero_spectrum();
   }
@@ -176,7 +176,7 @@ ccl_device_inline bool integrate_transparent_volume_shadow(KernelGlobals kg,
     volume_shadow_null_scattering(kg, state, &ray, shadow_sd, throughput);
   }
 
-  return shadow_sd->flag & SD_CACHE_MISS;
+  return shadow_sd->runtime_flag & SR_CACHE_MISS;
 }
 #  endif
 

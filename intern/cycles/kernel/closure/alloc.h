@@ -52,7 +52,7 @@ ccl_device ccl_private void *closure_alloc_extra(ccl_private ShaderData *sd, con
   return (ccl_private void *)(sd->closure + sd->num_closure + sd->num_closure_left);
 }
 
-ccl_device_inline float closure_sample_weight(const int flag, ccl_private Spectrum &weight)
+ccl_device_inline float closure_sample_weight(const int runtime_flag, ccl_private Spectrum &weight)
 {
   kernel_assert(isfinite_safe(weight));
 
@@ -66,7 +66,7 @@ ccl_device_inline float closure_sample_weight(const int flag, ccl_private Spectr
    * the cutoff. */
   /* Use comparison this way to help dealing with non-finite weight: if the average is not finite
    * we will not allocate new closure. */
-  if ((sample_weight >= CLOSURE_WEIGHT_CUTOFF) || (flag & SD_IS_VOLUME_SHADER_EVAL)) {
+  if ((sample_weight >= CLOSURE_WEIGHT_CUTOFF) || (runtime_flag & SR_IS_VOLUME_SHADER_EVAL)) {
     return sample_weight;
   }
 
@@ -77,7 +77,7 @@ ccl_device_inline ccl_private ShaderClosure *bsdf_alloc(ccl_private ShaderData *
                                                         const int size,
                                                         Spectrum weight)
 {
-  const float sample_weight = closure_sample_weight(sd->flag, weight);
+  const float sample_weight = closure_sample_weight(sd->runtime_flag, weight);
   if (!(sample_weight > 0.0f)) {
     return nullptr;
   }
@@ -102,7 +102,7 @@ ccl_device_inline ccl_private Bsdf *bsdf_alloc_maybe_emission(ccl_private Shader
   if (path_flag & PATH_RAY_EMISSION) {
     /* When evaluating emission we don't allocate closures, but we still need a valid closure to
      * compute the weight. */
-    const float sample_weight = closure_sample_weight(sd->flag, weight);
+    const float sample_weight = closure_sample_weight(sd->runtime_flag, weight);
     if (!(sample_weight > 0.0f)) {
       return nullptr;
     }

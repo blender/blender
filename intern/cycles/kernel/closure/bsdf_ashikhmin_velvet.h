@@ -29,7 +29,7 @@ ccl_device int bsdf_ashikhmin_velvet_setup(ccl_private VelvetBsdf *bsdf)
 
   bsdf->type = CLOSURE_BSDF_ASHIKHMIN_VELVET_ID;
 
-  return SD_BSDF | SD_BSDF_HAS_EVAL;
+  return SR_BSDF | SR_BSDF_HAS_EVAL;
 }
 
 ccl_device Spectrum bsdf_ashikhmin_velvet_eval(const ccl_private ShaderClosure *sc,

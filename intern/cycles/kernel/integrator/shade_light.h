@@ -194,7 +194,7 @@ ccl_device ShaderEvalResult integrate_light_nee(KernelGlobals kg, IntegratorShad
   surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT>(
       kg, state, emission_sd, nullptr, PATH_RAY_VISIBILITY_NONE, PATH_RAY_EMISSION);
 
-  if (emission_sd->flag & SD_CACHE_MISS) {
+  if (emission_sd->runtime_flag & SR_CACHE_MISS) {
     return SHADER_EVAL_CACHE_MISS;
   }
 

@@ -126,7 +126,7 @@ ccl_device bool shadow_linking_shade_surface_emission(KernelGlobals kg,
   integrate_surface_shader_setup(kg, state, emission_sd);
 
 #  ifdef __VOLUME__
-  if (emission_sd->flag & SD_HAS_ONLY_VOLUME) {
+  if (emission_sd->shader_flag & SD_HAS_ONLY_VOLUME) {
     return SHADER_EVAL_EMPTY;
   }
 #  endif

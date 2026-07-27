@@ -110,7 +110,7 @@ ccl_device_inline void path_state_init_integrator(KernelGlobals kg,
 ccl_device_inline void path_state_next(KernelGlobals kg,
                                        IntegratorState state,
                                        const int label,
-                                       const int shader_flag)
+                                       const int runtime_flag)
 {
   PathRayVisibility visibility = INTEGRATOR_STATE(state, path, visibility);
   uint32_t flag = INTEGRATOR_STATE(state, path, flag);
@@ -127,7 +127,7 @@ ccl_device_inline void path_state_next(KernelGlobals kg,
       flag |= PATH_RAY_TERMINATE_ON_NEXT_SURFACE;
     }
 
-    if (shader_flag & SD_RAY_PORTAL) {
+    if (runtime_flag & SR_RAY_PORTAL) {
       flag |= PATH_RAY_MIS_SKIP;
       INTEGRATOR_STATE_WRITE(
           state, path, portal_bounce) = INTEGRATOR_STATE(state, path, portal_bounce) + 1;
@@ -223,7 +223,7 @@ ccl_device_inline void path_state_next(KernelGlobals kg,
     }
 
     /* Flag for consistent MIS weights with light tree. */
-    if (shader_flag & SD_BSDF_HAS_TRANSMISSION) {
+    if (runtime_flag & SR_BSDF_HAS_TRANSMISSION) {
       flag |= PATH_RAY_MIS_HAD_TRANSMISSION;
     }
 

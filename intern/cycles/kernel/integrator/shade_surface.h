@@ -100,7 +100,7 @@ ccl_device_forceinline bool integrate_surface_holdout(KernelGlobals kg,
   /* Write holdout transparency to render buffer and stop if fully holdout. */
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
-  if (((sd->flag & SD_HOLDOUT) || (sd->object_flag & SD_OBJECT_HOLDOUT_MASK)) &&
+  if (((sd->runtime_flag & SR_HOLDOUT) || (sd->object_flag & SD_OBJECT_HOLDOUT_MASK)) &&
       (path_flag & PATH_RAY_TRANSPARENT_BACKGROUND))
   {
     const Spectrum holdout_weight = surface_shader_apply_holdout(sd);
@@ -194,7 +194,7 @@ ccl_device int integrate_surface_ray_portal(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(state, path, throughput) *= pc->weight / pick_pdf;
 
   const int label = LABEL_TRANSMIT | LABEL_RAY_PORTAL;
-  path_state_next(kg, state, label, sd->flag);
+  path_state_next(kg, state, label, sd->runtime_flag);
 
   return label;
 }
@@ -322,7 +322,7 @@ ccl_device
                                    const ccl_private RNGState *rng_state)
 {
   /* Test if there is a light or BSDF that needs direct light. */
-  if (!(kernel_data.integrator.use_direct_light && (sd->flag & SD_BSDF_HAS_EVAL))) {
+  if (!(kernel_data.integrator.use_direct_light && (sd->runtime_flag & SR_BSDF_HAS_EVAL))) {
     return SHADER_EVAL_EMPTY;
   }
 
@@ -350,7 +350,7 @@ ccl_device
                                     sd->P,
                                     sd->N,
                                     light_link_receiver_nee(kg, sd),
-                                    sd->flag,
+                                    sd->runtime_flag,
                                     bounce,
                                     path_flag,
                                     &ls))
@@ -494,7 +494,7 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
     const ccl_private RNGState *rng_state)
 {
   /* Sample BSDF or BSSRDF. */
-  if (!(sd->flag & (SD_BSDF | SD_BSSRDF))) {
+  if (!(sd->runtime_flag & (SR_BSDF | SR_BSSRDF))) {
     return LABEL_NONE;
   }
 
@@ -618,7 +618,7 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
 #endif
   }
 
-  path_state_next(kg, state, label, sd->flag);
+  path_state_next(kg, state, label, sd->runtime_flag);
 
   guiding_record_surface_bounce(kg,
                                 state,
@@ -775,11 +775,11 @@ ccl_device int integrate_surface(KernelGlobals kg,
 
   /* Skip most work for volume bounding surface. */
 #ifdef __VOLUME__
-  if (!(sd.flag & SD_HAS_ONLY_VOLUME)) {
+  if (!(sd.shader_flag & SD_HAS_ONLY_VOLUME)) {
 #endif
 #ifdef __SUBSURFACE__
     /* Can skip shader evaluation for BSSRDF exit point without bump mapping. */
-    if (!(path_flag & PATH_RAY_SUBSURFACE) || ((sd.flag & SD_HAS_BSSRDF_BUMP)))
+    if (!(path_flag & PATH_RAY_SUBSURFACE) || ((sd.shader_flag & SD_HAS_BSSRDF_BUMP)))
 #endif
     {
       /* Evaluate shader. */
@@ -788,7 +788,7 @@ ccl_device int integrate_surface(KernelGlobals kg,
           kg, state, &sd, render_buffer, path_visibility, path_flag);
     }
 
-    if (sd.flag & SD_CACHE_MISS) {
+    if (sd.runtime_flag & SR_CACHE_MISS) {
       return LABEL_CACHE_MISS;
     }
 
@@ -814,7 +814,7 @@ ccl_device int integrate_surface(KernelGlobals kg,
       }
 
       /* Write emission. */
-      if (sd.flag & SD_EMISSION) {
+      if (sd.runtime_flag & SR_EMISSION) {
         integrate_surface_emission(kg, state, &sd, render_buffer);
       }
 
