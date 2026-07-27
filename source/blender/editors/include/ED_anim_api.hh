@@ -1340,7 +1340,7 @@ class SortedFCurveBuffer {
 };
 
 /* FCurves grouped by their RNA path. */
-using RNAFCurveMap = Map<StringRefNull, SortedFCurveBuffer>;
+using RNAFCurveMap = Map<std::string, SortedFCurveBuffer>;
 /* For each Channelbag FCurves grouped by their RNA path. */
 using ChannelbagFCurveMap = Map<animrig::Channelbag *, RNAFCurveMap>;
 

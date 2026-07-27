@@ -314,6 +314,7 @@ static void remove_rotation_fcurves(const ed::AnimTransformable &transformable,
     channelbag.fcurve_remove(*fcurve);
   }
   rotation_fcurves->clear();
+  fcu_map.remove(rna_path);
 }
 
 static bool convert_rotation_mode_channelbag(animrig::Channelbag &channelbag,
