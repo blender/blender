@@ -52,8 +52,6 @@ def playback_controls(layout, context):
         panel="TIME_PT_playback",
         text="Playback",
     )
-    if is_sequencer:
-        layout.prop(context.workspace, "use_scene_time_sync")
 
     layout.separator_spacer()
 
@@ -221,34 +219,56 @@ class TIME_PT_playback(TimelinePanelButtons, Panel):
         is_sequencer = st.type == 'SEQUENCE_EDITOR' and st.view_type == 'SEQUENCER'
         scene = context.scene if not is_sequencer else context.sequencer_scene
 
-        layout.prop(scene, "sync_mode", text="Sync")
-        col = layout.column(heading="Audio")
-        col.prop(scene, "use_audio_scrub", text="Scrubbing")
-        col.prop(scene, "use_audio")
+        # Timeline settings.
+        header, panel = layout.panel("TIME_PT_playback_timeline")
+        header.label(text="Timeline")
+        if panel:
+            panel.prop(scene, "sync_mode", text="Sync")
 
-        col = layout.column(heading="Playback")
-        col.prop(scene, "lock_frame_selection_to_range", text="Limit to Frame Range")
-        row = col.row()
-        row.active = not scene.lock_frame_selection_to_range
-        row.prop(scene, "allow_preroll")
-        col.prop(screen, "use_follow", text="Follow Current Frame")
-        col.prop(scene, "playback_loop_mode", text="Loop")
+            col = panel.column(heading="Playback")
+            col.prop(scene, "lock_frame_selection_to_range", text="Limit to Frame Range")
+            row = col.row()
+            row.active = not scene.lock_frame_selection_to_range
+            row.prop(scene, "allow_preroll")
+            col.prop(screen, "use_follow", text="Follow Current Frame")
 
-        col = layout.column(heading="Play In")
-        col.prop(screen, "use_play_top_left_3d_editor", text="Active Editor")
-        col.prop(screen, "use_play_3d_editors", text="3D Viewport")
-        col.prop(screen, "use_play_animation_editors", text="Animation Editors")
-        col.prop(screen, "use_play_image_editors", text="Image Editor")
-        col.prop(screen, "use_play_properties_editors", text="Properties and Sidebars")
-        col.prop(screen, "use_play_clip_editors", text="Movie Clip Editor")
-        col.prop(screen, "use_play_node_editors", text="Node Editors")
-        col.prop(screen, "use_play_sequence_editors", text="Video Sequencer")
-        col.prop(screen, "use_play_spreadsheet_editors", text="Spreadsheet")
+            col = panel.column()
+            col.prop(scene, "playback_loop_mode", text="Loop")
+            col.separator()
 
-        col = layout.column(heading="Show")
+            col = panel.column(heading="Show")
+            col.prop(scene, "show_subframe", text="Subframes")
+
+        # Audio settings.
+        header, panel = layout.panel("TIME_PT_playback_audio")
+        header.label(text="Audio")
+        if panel:
+            col = panel.column()
+            col.prop(scene, "use_audio")
+            col.prop(scene, "use_audio_scrub", text="Scrubbing")
+
+        # Region playback settings.
+        header, panel = layout.panel("TIME_PT_playback_editors", default_closed=True)
+        header.label(text="Editors")
+        if panel:
+            col = panel.column(heading="Play In")
+            col.prop(screen, "use_play_top_left_3d_editor", text="Active Editor")
+            col.prop(screen, "use_play_3d_editors", text="3D Viewport")
+            col.prop(screen, "use_play_animation_editors", text="Animation Editors")
+            col.prop(screen, "use_play_image_editors", text="Image Editor")
+            col.prop(screen, "use_play_properties_editors", text="Properties and Sidebars")
+            col.prop(screen, "use_play_clip_editors", text="Movie Clip Editor")
+            col.prop(screen, "use_play_node_editors", text="Node Editors")
+            col.prop(screen, "use_play_sequence_editors", text="Video Sequencer")
+            col.prop(screen, "use_play_spreadsheet_editors", text="Spreadsheet")
+
+        # Sequencer settings.
         if st.type == 'SEQUENCE_EDITOR':
-            col.prop(st, "show_scrubbing_region", text="Scrubbing Region")
-        col.prop(scene, "show_subframe", text="Subframes")
+            header, panel = layout.panel("TIME_PT_playback_sequencer")
+            header.label(text="Sequencer")
+            if panel:
+                col = panel.column(heading="Sync")
+                col.prop(context.workspace, "use_scene_time_sync", text="Scene Time")
 
         layout.separator()
 
