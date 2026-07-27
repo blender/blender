@@ -2119,7 +2119,7 @@ static int id_indirect_linked_update_fn(LibraryIDLinkCallbackData *cb_data)
 
 void BKE_main_id_indirect_linked_update(Main &bmain, std::optional<Span<ID *>> local_ids)
 {
-  for (ID &id : MainAllIDsIterator(bmain)) {
+  auto reset_linked_status_cb = [](ID &id) -> void {
     if (ID_IS_LINKED(&id) && BKE_idtype_idcode_is_linkable(GS(id.name))) {
       if (USER_DEVELOPER_TOOL_TEST(&U, use_all_linked_data_direct)) {
         /* Forces all linked data to be considered as directly linked.
@@ -2147,6 +2147,19 @@ void BKE_main_id_indirect_linked_update(Main &bmain, std::optional<Span<ID *>> l
         id.tag |= ID_TAG_INDIRECT;
         id.tag &= ~ID_TAG_EXTERN;
       }
+    }
+  };
+  for (ID &id : MainAllIDsIterator(bmain)) {
+    reset_linked_status_cb(id);
+    if (GS(id.name) == ID_SCE) {
+      Scene &scene = id_cast<Scene &>(id);
+      if (scene.master_collection) {
+        reset_linked_status_cb(scene.master_collection->id);
+      }
+    }
+    bNodeTree *node_tree = bke::node_tree_from_id(&id);
+    if (node_tree) {
+      reset_linked_status_cb(node_tree->id);
     }
   }
 
