@@ -5895,8 +5895,8 @@ static wmOperatorStatus uv_select_overlap(bContext *C, const bool extend, const 
       *bmain, scene, view_layer, nullptr);
 
   struct ChangedInfo {
-    uint has_changed : 1;
-    uint has_overlap : 1;
+    uint has_changed : 1 = 0;
+    uint has_overlap : 1 = 0;
   };
 
   struct UVOverlapData {
@@ -5913,7 +5913,7 @@ static wmOperatorStatus uv_select_overlap(bContext *C, const bool extend, const 
     bool found_overlap;
   };
 
-  Array<ChangedInfo> objects_tag(objects.size(), {false, false});
+  Array<ChangedInfo> objects_tag(objects.size());
 
   /* Calculate maximum number of tree nodes and prepare initial selection. */
   uint uv_tri_len = 0;
