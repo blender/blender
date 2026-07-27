@@ -201,6 +201,7 @@ static void calculate_circle_best_fit(Span<CircleVert> verts,
   /* Initial guesses. */
   float2 initial_center = float2(0.0f);
   float initial_radius = 1.0f;
+  bool converged = false;
 
   for (int iter = 0; iter < NON_LINEAR_LEAST_SQUARES_MAX_ITERATIONS; iter++) {
     float3x3 normal_matrix = float3x3::zero();
@@ -239,8 +240,20 @@ static void calculate_circle_best_fit(Span<CircleVert> verts,
     if (std::abs(delta.x) < CIRCULARIZE_EPSILON && std::abs(delta.y) < CIRCULARIZE_EPSILON &&
         std::abs(delta.z) < CIRCULARIZE_EPSILON)
     {
+      converged = true;
       break;
     }
+  }
+
+  if (!converged) {
+    /* Fallback for the best fit circle in the scenario that the Gauss-Newton solver
+     * fails to converge. */
+    initial_center = float2(0.0f);
+    initial_radius = 0.0f;
+    for (const CircleVert &cv : verts) {
+      initial_radius += math::length(cv.co_2d);
+    }
+    initial_radius /= verts.size();
   }
 
   r_center = initial_center;
