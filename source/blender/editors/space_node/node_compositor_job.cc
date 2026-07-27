@@ -253,6 +253,16 @@ static compositor::NodeGroupOutputTypes get_compositor_needed_outputs(
   return needed_outputs;
 }
 
+static eWM_JobFlag get_job_flags(const bool triggered_by_user)
+{
+  /* Of the job is triggered by the user, report progress. */
+  if (triggered_by_user) {
+    return WM_JOB_EXCL_RENDER | WM_JOB_PROGRESS;
+  }
+
+  return WM_JOB_EXCL_RENDER;
+}
+
 void ED_node_compositor_job(Main *bmain,
                             Scene *scene,
                             ViewLayer *view_layer,
@@ -279,7 +289,7 @@ void ED_node_compositor_job(Main *bmain,
                            window,
                            scene,
                            "Compositing...",
-                           WM_JOB_EXCL_RENDER | WM_JOB_PROGRESS,
+                           get_job_flags(triggered_by_user),
                            WM_JOB_TYPE_COMPOSITE);
 
   CompositorJob *compositor_job = MEM_new<CompositorJob>("Compositor Job");
