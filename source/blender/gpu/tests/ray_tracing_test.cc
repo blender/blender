@@ -6,17 +6,22 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "GPU_batch.hh"
 #include "GPU_capabilities.hh"
 #include "GPU_compute.hh"
+#include "GPU_context.hh"
+#include "GPU_framebuffer.hh"
 #include "GPU_index_buffer.hh"
 #include "GPU_ray_tracing.hh"
 #include "GPU_shader.hh"
 #include "GPU_state.hh"
+#include "GPU_texture.hh"
 #include "GPU_vertex_buffer.hh"
 
 #include "gpu_testing.hh"
 
 #include "BLI_math_matrix.hh"
+#include "BLI_math_vector.hh"
 namespace blender::gpu::tests {
 
 #define SUPPORTS_RAY_QUERY() \
@@ -359,5 +364,160 @@ static void test_ray_tracing_instance_update()
   hit_test(*tlas, rays);
 }
 GPU_TEST(ray_tracing_instance_update)
+
+/* Trace one ray per fragment, proving ray queries work outside compute shaders.
+ * First ray-query test to use a render pass: under Xcode with GPU Frame Capture
+ * enabled the suite-level capture (gpu_testing.cc) surfaces a frame here. */
+static void test_ray_tracing_fragment()
+{
+  SUPPORTS_RAY_QUERY()
+
+  GPU_render_begin();
+
+  VertBufPtr vertex_buf = build_vertices();
+  IndexBufPtr index_buf = build_indices();
+
+  BottomLevelASPtr blas(GPU_ray_tracing_blas_alloc(__func__));
+  blas->add_geometry(*index_buf, *vertex_buf);
+  blas->build();
+
+  TopLevelASPtr tlas(GPU_ray_tracing_tlas_alloc(__func__));
+  tlas->add_instance(*blas, float4x4::identity());
+  tlas->build();
+
+  /* Rays from the cube centre hit; rays outside pointing away miss. */
+  Vector<Ray> rays;
+  rays.append({float3(0.0f, 0.0f, 0.0f), float3(-1.0f, 0.0f, 0.0f), true});
+  rays.append({float3(0.0f, 0.0f, 0.0f), float3(1.0f, 0.0f, 0.0f), true});
+  rays.append({float3(0.0f, 0.0f, 0.0f), float3(0.0f, -1.0f, 0.0f), true});
+  rays.append({float3(0.0f, 0.0f, 0.0f), float3(0.0f, 1.0f, 0.0f), true});
+  rays.append({float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, -1.0f), true});
+  rays.append({float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, 1.0f), true});
+  rays.append({float3(5.0f, 5.0f, 5.0f), float3(1.0f, 0.0f, 0.0f), false});
+  rays.append({float3(5.0f, 5.0f, 5.0f), float3(0.0f, 1.0f, 0.0f), false});
+
+  const int ray_count = rays.size();
+  Array<float4> ray_pos(ray_count);
+  Array<float4> ray_dir(ray_count);
+  Array<int32_t> expected(ray_count);
+  for (int index : rays.index_range()) {
+    ray_pos[index] = float4(rays[index].pos, 0.0f);
+    ray_dir[index] = float4(rays[index].dir, 0.0f);
+    expected[index] = rays[index].expected_hit;
+  }
+
+  gpu::StorageBuf *ray_pos_buf = GPU_storagebuf_create(ray_count * sizeof(float4));
+  gpu::StorageBuf *ray_dir_buf = GPU_storagebuf_create(ray_count * sizeof(float4));
+  GPU_storagebuf_update(ray_pos_buf, ray_pos.data());
+  GPU_storagebuf_update(ray_dir_buf, ray_dir.data());
+
+  /* One fragment per ray: a `ray_count` x 1 attachment covered by a full-screen triangle. */
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
+  gpu::Texture *hit_tex = GPU_texture_create_2d(
+      __func__, ray_count, 1, 1, TextureFormat::SINT_32, usage, nullptr);
+
+  gpu::FrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
+  GPU_framebuffer_ensure_config(&framebuffer,
+                                {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(hit_tex)});
+  GPU_framebuffer_bind(framebuffer);
+  /* Sentinel so a column whose fragment never ran can't masquerade as a valid miss (0). */
+  GPU_framebuffer_clear_color(framebuffer, double4(-1.0));
+
+  gpu::Shader *shader = GPU_shader_create_from_info_name("gpu_ray_query_raster_test");
+  EXPECT_NE(shader, nullptr);
+
+  GPU_storagebuf_bind(ray_pos_buf, 0);
+  GPU_storagebuf_bind(ray_dir_buf, 1);
+  tlas->bind(0);
+
+  Batch *batch = GPU_batch_create_procedural(GPU_PRIM_TRIS, 3);
+  GPU_batch_set_shader(batch, shader);
+  GPU_batch_draw(batch);
+  GPU_batch_discard(batch);
+
+  GPU_finish();
+
+  int32_t *result = static_cast<int32_t *>(GPU_texture_read(hit_tex, GPU_DATA_INT, 0));
+  EXPECT_EQ_SPAN(expected.as_span(), Span<int32_t>(result, ray_count));
+  MEM_delete(result);
+
+  GPU_shader_unbind();
+  GPU_storagebuf_free(ray_pos_buf);
+  GPU_storagebuf_free(ray_dir_buf);
+  GPU_framebuffer_free(framebuffer);
+  GPU_texture_free(hit_tex);
+  GPU_shader_free(shader);
+
+  GPU_render_end();
+}
+GPU_TEST(ray_tracing_fragment)
+
+/* Verify the per-instance custom index (Metal userID) is readable and 0 for a default instance. */
+static void test_ray_tracing_instance_custom_index()
+{
+  SUPPORTS_RAY_QUERY()
+
+  VertBufPtr vertex_buf = build_vertices();
+  IndexBufPtr index_buf = build_indices();
+
+  BottomLevelASPtr blas(GPU_ray_tracing_blas_alloc(__func__));
+  blas->add_geometry(*index_buf, *vertex_buf);
+  blas->build();
+
+  TopLevelASPtr tlas(GPU_ray_tracing_tlas_alloc(__func__));
+  tlas->add_instance(*blas, float4x4::identity());
+  tlas->build();
+
+  /* All rays start at the cube centre and hit it. */
+  Vector<Ray> rays;
+  rays.append({float3(0.0f, 0.0f, 0.0f), float3(-1.0f, 0.0f, 0.0f), true});
+  rays.append({float3(0.0f, 0.0f, 0.0f), float3(1.0f, 0.0f, 0.0f), true});
+  rays.append({float3(0.0f, 0.0f, 0.0f), float3(0.0f, -1.0f, 0.0f), true});
+  rays.append({float3(0.0f, 0.0f, 0.0f), float3(0.0f, 1.0f, 0.0f), true});
+  rays.append({float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, -1.0f), true});
+  rays.append({float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, 1.0f), true});
+
+  const int ray_count = rays.size();
+  Array<float4> ray_pos(ray_count);
+  Array<float4> ray_dir(ray_count);
+  for (int index : rays.index_range()) {
+    ray_pos[index] = float4(rays[index].pos, 0.0f);
+    ray_dir[index] = float4(rays[index].dir, 0.0f);
+  }
+
+  gpu::StorageBuf *ray_pos_buf = GPU_storagebuf_create(ray_count * sizeof(float4));
+  gpu::StorageBuf *ray_dir_buf = GPU_storagebuf_create(ray_count * sizeof(float4));
+  gpu::StorageBuf *custom_index_buf = GPU_storagebuf_create(ray_count * sizeof(uint32_t));
+  GPU_storagebuf_update(ray_pos_buf, ray_pos.data());
+  GPU_storagebuf_update(ray_dir_buf, ray_dir.data());
+
+  /* Sentinel so an unwritten entry can't masquerade as the expected 0. */
+  Array<uint32_t> sentinel(ray_count, 0xFFFFFFFFu);
+  GPU_storagebuf_update(custom_index_buf, sentinel.data());
+
+  gpu::Shader *shader = GPU_shader_create_from_info_name("gpu_ray_query_custom_index_test");
+  EXPECT_NE(shader, nullptr);
+  GPU_shader_bind(shader);
+  GPU_storagebuf_bind(ray_pos_buf, 0);
+  GPU_storagebuf_bind(ray_dir_buf, 1);
+  GPU_storagebuf_bind(custom_index_buf, 2);
+  tlas->bind(0);
+
+  GPU_compute_dispatch(shader, ray_count, 1, 1);
+  GPU_shader_unbind();
+
+  Array<uint32_t> result(ray_count, 0xFFFFFFFFu);
+  GPU_storagebuf_read(custom_index_buf, result.data());
+
+  GPU_storagebuf_free(ray_pos_buf);
+  GPU_storagebuf_free(ray_dir_buf);
+  GPU_storagebuf_free(custom_index_buf);
+  GPU_shader_free(shader);
+
+  /* Each hit returns the instance userID, hardcoded to 0. */
+  Array<uint32_t> expected(ray_count, 0);
+  EXPECT_EQ_SPAN(expected.as_span(), result.as_span());
+}
+GPU_TEST(ray_tracing_instance_custom_index)
 
 }  // namespace blender::gpu::tests

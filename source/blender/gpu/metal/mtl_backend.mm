@@ -20,6 +20,7 @@
 #include "mtl_immediate.hh"
 #include "mtl_index_buffer.hh"
 #include "mtl_query.hh"
+#include "mtl_ray_tracing.hh"
 #include "mtl_shader.hh"
 #include "mtl_storage_buffer.hh"
 #include "mtl_texture_pool.hh"
@@ -120,6 +121,16 @@ StorageBuf *MTLBackend::storagebuf_alloc(size_t size, GPUUsageType usage, const 
 VertBuf *MTLBackend::vertbuf_alloc()
 {
   return new MTLVertBuf();
+}
+
+TopLevelAS *MTLBackend::tlas_alloc(const char *name)
+{
+  return new MTLTopLevelAS(name);
+}
+
+BottomLevelAS *MTLBackend::blas_alloc(const char *name)
+{
+  return new MTLBottomLevelAS(name);
 }
 
 void MTLBackend::render_begin()
@@ -480,6 +491,15 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
     MTLBackend::capabilities.supports_texture_atomics = true;
   }
 #endif
+
+  /* Ray queries require macOS 13. */
+  MTLBackend::capabilities.supports_ray_tracing = false;
+#if defined(MAC_OS_VERSION_13_0)
+  if (@available(macOS 13.0, *)) {
+    MTLBackend::capabilities.supports_ray_tracing = [device supportsRaytracing];
+  }
+#endif
+  GCaps.ray_query_support = MTLBackend::capabilities.supports_ray_tracing;
 
   /** Identify support for tile inputs. */
   const bool is_tile_based_arch = (GPU_platform_architecture() == GPU_ARCHITECTURE_TBDR);

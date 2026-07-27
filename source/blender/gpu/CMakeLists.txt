@@ -397,6 +397,7 @@ set(METAL_SRC
   metal/mtl_memory.mm
   metal/mtl_push_constant.cc
   metal/mtl_query.mm
+  metal/mtl_ray_tracing.mm
   metal/mtl_shader.mm
   metal/mtl_shader_generate.cc
   metal/mtl_shader_interface.mm
@@ -424,6 +425,7 @@ set(METAL_SRC
   metal/mtl_pso_descriptor_state.hh
   metal/mtl_push_constant.hh
   metal/mtl_query.hh
+  metal/mtl_ray_tracing.hh
   metal/mtl_shader.hh
   metal/mtl_shader_generate.hh
   metal/mtl_shader_interface.hh
@@ -796,6 +798,8 @@ set(GLSL_TEST_SRC
   tests/shaders/gpu_framebuffer_subpass_input_test.glsl
   tests/shaders/gpu_push_constants_test.glsl
   tests/shaders/gpu_ray_query_test.glsl
+  tests/shaders/gpu_ray_query_raster_test.glsl
+  tests/shaders/gpu_ray_query_custom_index_test.glsl
   tests/shaders/gpu_texture_test.glsl
   tests/shaders/gpu_texture_atomic_test.glsl
 )
@@ -817,6 +821,7 @@ set(MTL_BACKEND_GLSL_SRC
   shaders/gpu_shader_msl_image.msl
   shaders/gpu_shader_msl_matrix_legacy.msl
   shaders/gpu_shader_msl_matrix.msl
+  shaders/gpu_shader_msl_ray_query.msl
   shaders/gpu_shader_msl_sampler.msl
   shaders/gpu_shader_msl_string.msl
   shaders/gpu_shader_msl_types.msl

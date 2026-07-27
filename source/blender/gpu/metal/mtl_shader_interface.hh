@@ -81,6 +81,9 @@ class MTLShaderInterface : public ShaderInterface {
    * This references the Metal Buffer bind space, not the GPU one. */
   uint32_t vertex_buffer_mask_ = ~(0xFFFFFFFFu << MTL_MAX_BUFFER_BINDINGS);
 
+  /* Bit mask of bound top-level acceleration structure slots. */
+  uint32_t enabled_accel_mask_ = 0;
+
   shader::BuiltinBits shader_builtins_ = shader::BuiltinBits::NONE;
 
   /* Used for texture atomic workaround. */
@@ -99,6 +102,11 @@ class MTLShaderInterface : public ShaderInterface {
   uint32_t vertex_buffer_mask() const
   {
     return vertex_buffer_mask_;
+  }
+
+  uint32_t enabled_accel_mask() const
+  {
+    return enabled_accel_mask_;
   }
 
   bool use_layer() const
