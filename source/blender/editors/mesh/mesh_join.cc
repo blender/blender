@@ -745,6 +745,23 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
     }
   }
 
+  /* Copy skin data to the out-of-main mesh. */
+  if (std::any_of(objects_to_join.begin(), objects_to_join.end(), [](const Object *object) {
+        const Mesh &src_mesh = *id_cast<const Mesh *>(object->data);
+        return CustomData_has_layer(&src_mesh.vert_data, CD_MVERT_SKIN);
+      }))
+  {
+    MVertSkin *dst = static_cast<MVertSkin *>(CustomData_add_layer(
+        &dst_mesh->vert_data, CD_MVERT_SKIN, CD_SET_DEFAULT, dst_mesh->verts_num));
+    for (const int i : objects_to_join.index_range()) {
+      const Mesh &src_mesh = *id_cast<const Mesh *>(objects_to_join[i]->data);
+      if (const void *src = CustomData_get_layer(&src_mesh.vert_data, CD_MVERT_SKIN)) {
+        CustomData_copy_elements(
+            CD_MVERT_SKIN, src, &dst[vert_ranges[i].first()], src_mesh.verts_num);
+      }
+    }
+  }
+
   BKE_mesh_nomain_to_mesh(dst_mesh, active_mesh, active_object, false);
 
   for (Object *object : objects_to_join.as_span().drop_front(1)) {
