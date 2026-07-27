@@ -24,6 +24,7 @@
 #include "gl_backend.hh"
 #include "gl_debug.hh"
 #include "gl_state.hh"
+#include "gpu_texture_private.hh"
 
 #include "gl_texture.hh"
 
@@ -275,10 +276,10 @@ void GLTexture::update_sub(int mip,
     }
   }
 
-  /* TextureFormat::SINT_16_16 formats with integer data does not seem to work correctly in all GPU
-   * drivers, so convert to short and use GL_SHORT. */
+  /* 16-bit integer formats with integer data does not seem to work correctly in all GPU drivers,
+   * so convert to short and use GL_SHORT. */
   std::unique_ptr<int16_t, MEM_smart_ptr_deleter<int16_t>> short_buffer = nullptr;
-  if (type == GPU_DATA_INT && format_ == TextureFormat::SINT_16_16) {
+  if (type == GPU_DATA_INT && is_half_integer(format_)) {
     size_t dst_pixel_count = max_ii(extent[0], 1) * max_ii(extent[1], 1) * max_ii(extent[2], 1);
     size_t dst_total_count = to_component_len(format_) * dst_pixel_count;
 
