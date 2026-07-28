@@ -477,11 +477,16 @@ class BackgroundDownloader:
     The downloader will run in a separate process, and the reporters will receive
     updates on the main process (or whatever process runs
     BackgroundDownloader.update()).
+
+    BackgroundDownloader assumes that a given request (method+URL) maps to
+    exactly one local path; downloads are deduplicated on the request alone.
+    Instead of downloading the same URL twice, to different locations, the
+    caller should download it once, and copy/link it to the other location once
+    the download is done.
     """
 
     num_downloads_ok: int
     num_downloads_error: int
-    _num_pending_downloads: int
 
     _logger: logging.Logger = logger.getChild("BackgroundDownloader")
 
@@ -511,6 +516,15 @@ class BackgroundDownloader:
     _shutdown_event: EventClass
     _shutdown_complete_event: EventClass
 
+    _cancelled_awaiting_report: set[RequestDescription]
+    """Requests that were cancelled, but whose terminal report has not arrived yet.
+
+    The subprocess will still send exactly one terminal report for each of
+    these (`already_downloaded`, `download_error`, or `download_finished`).
+    That report is absorbed, so it cannot interfere with a subsequent queueing
+    of the same request.
+    """
+
     def __init__(self,
                  options: DownloaderOptions,
                  on_callback_error: OnCallbackErrorCallback,
@@ -525,9 +539,9 @@ class BackgroundDownloader:
 
         self.num_downloads_ok = 0
         self.num_downloads_error = 0
-        self._num_pending_downloads = 0
         self._on_download_done_callbacks = collections.defaultdict(list)
         self._on_callback_error = on_callback_error
+        self._cancelled_awaiting_report = set()
 
         self._queueing_reporter = QueueingReporter()
         self._options = options
@@ -584,7 +598,6 @@ class BackgroundDownloader:
             case QueueSide.FRONT:
                 msgtype = PipeMsgType.QUEUE_DOWNLOAD_FRONT
 
-        self._num_pending_downloads += 1
         self._connection.send(PipeMessage(
             msgtype=msgtype,
             payload=(http_req_descr, local_path),
@@ -608,6 +621,12 @@ class BackgroundDownloader:
         if self._downloader_process is None:
             return
 
+        # Drop the callbacks now, so that a re-queue of this same request starts
+        # with a clean slate. The background process still owes us exactly one
+        # terminal report for this request; remember to absorb it.
+        if self._on_download_done_callbacks.pop(http_req_descr, None) is not None:
+            self._cancelled_awaiting_report.add(http_req_descr)
+
         self._connection.send(PipeMessage(
             msgtype=PipeMsgType.CANCEL_DOWNLOAD,
             payload=http_req_descr,
@@ -615,11 +634,11 @@ class BackgroundDownloader:
 
     @property
     def all_downloads_done(self) -> bool:
-        return self._num_pending_downloads == 0
+        return not self._on_download_done_callbacks
 
     @property
     def num_pending_downloads(self) -> int:
-        return self._num_pending_downloads
+        return len(self._on_download_done_callbacks)
 
     def clear_download_counts(self) -> None:
         """Resets the number of ok/error downloads."""
@@ -758,8 +777,9 @@ class BackgroundDownloader:
 
         Keeps track of internal bookkeeping.
         """
+        if self._absorb_cancelled_report(http_req_descr):
+            return
         self._logger.debug("Local file is fresh, no need to re-download %s: %s", http_req_descr.url, local_file)
-        self._mark_download_done()
         self.num_downloads_ok += 1
         self._call_on_downloaded_callback(http_req_descr, local_file)
 
@@ -773,9 +793,14 @@ class BackgroundDownloader:
 
         Keeps track of internal bookkeeping.
         """
+        if self._absorb_cancelled_report(http_req_descr):
+            return
         self._logger.error("Error downloading %s: (%r)", http_req_descr.url, error)
-        self._mark_download_done()
         self.num_downloads_error += 1
+
+        # The download will never be finished, so the 'on downloaded' callbacks need
+        # to be removed. Otherwise re-queueing the same download will fail.
+        self._on_download_done_callbacks.pop(http_req_descr, None)
 
     def download_progress(
         self,
@@ -810,15 +835,11 @@ class BackgroundDownloader:
 
         Keeps track of internal bookkeeping.
         """
+        if self._absorb_cancelled_report(http_req_descr):
+            return
         self._logger.debug("Download finished, stored at %s", local_file)
-        self._mark_download_done()
         self.num_downloads_ok += 1
         self._call_on_downloaded_callback(http_req_descr, local_file)
-
-    def _mark_download_done(self) -> None:
-        """Reduce the number of pending downloads."""
-        self._num_pending_downloads -= 1
-        assert self._num_pending_downloads >= 0, "downloaded more files than were queued"
 
     def _call_on_downloaded_callback(self, http_req_descr: RequestDescription, local_file: Path) -> None:
         """Call the 'on-download-done' callback for this request."""
@@ -855,6 +876,19 @@ class BackgroundDownloader:
                     self._logger.exception(
                         "exception while handling an error in {!r}({!r}, {!r})".format(
                             callback, http_req_descr, local_file))
+
+    def _absorb_cancelled_report(self, http_req_descr: RequestDescription) -> bool:
+        """Absorb the terminal report of a cancelled download.
+
+        Returns True when this report belongs to a cancelled download, and thus
+        should be ignored. Note that a cancelled download can still report
+        success, when it completed before the cancellation was processed.
+        """
+        if http_req_descr not in self._cancelled_awaiting_report:
+            return False
+        self._cancelled_awaiting_report.discard(http_req_descr)
+        self._logger.debug("Ignoring report of cancelled download %s", http_req_descr.url)
+        return True
 
 
 class PipeMsgType(enum.Enum):
@@ -985,20 +1019,32 @@ def _download_queued_items(
     rx_thread.start()
     tx_thread.start()
 
-    def unqueue_request(http_req_descr: RequestDescription) -> None:
+    def unqueue_request(http_req_descr: RequestDescription) -> list[BackgroundDownloader.QueuedDownload]:
+        """Remove the request from the download queue.
+
+        Thread-unsafe, caller should lock download_cancel_queue_lock.
+
+        Returns the un-queued requests.
+        """
+        unqueued: list[BackgroundDownloader.QueuedDownload] = []
+        new_queue: list[BackgroundDownloader.QueuedDownload] = []
+
         # Reconstruct the download queue, skipping the given HTTP request.
         # We can't use deque.remove() here, because the RequestDescription
         # is only _part_ of the objects in the queue.
-        new_queue = [
-            (queued_req, queued_path)
-            for (queued_req, queued_path) in download_queue
-            if queued_req != http_req_descr
-        ]
+        for queued_download in download_queue:
+            queued_req, _ = queued_download
+            if queued_req == http_req_descr:
+                unqueued.append(queued_download)
+            else:
+                new_queue.append(queued_download)
 
         # Do a replacement without changing the deque instance. This ensures that
         # lingering references to download_queue remain valid.
         download_queue.clear()
         download_queue.extend(new_queue)
+
+        return unqueued
 
     def periodic_check(http_req_descr: RequestDescription | None) -> bool:
         """Handle received messages, and return whether we can keep running.
@@ -1030,7 +1076,8 @@ def _download_queued_items(
                         is_cancelled = True
                     # If this request was queued multiple times, it's not enough to
                     # just cancel the currently-downloading one.
-                    unqueue_request(request_to_cancel)
+                    for (req, path) in unqueue_request(request_to_cancel):
+                        reporter.download_error(req, path, DownloadCancelled(req))
                 case PipeMsgType.REPORT:
                     # Reports are sent by us, not by the other side.
                     pass
@@ -1139,6 +1186,10 @@ class DownloadReporter(Protocol):
 
         For HTTP errors, the 'error' parameter will be a requests.HTTPError
         instance.
+
+        This function can be called without a corresponding `download_starts()`
+        call, when the download was queued and subsequently cancelled before
+        the actual download could start.
         """
 
     def download_progress(
@@ -1451,6 +1502,10 @@ class RequestDescription:
     `response_headers` will contain a copy of the HTTP response headers. The
     header names (i.e. the keys of the dictionary) will be converted to lower
     case.
+
+    This class is also used as a deduplication key for downloads, and
+    deliberately excludes the local path the download should be saved to.
+    See BackgroundDownloader for more info.
     """
 
     http_method: str
