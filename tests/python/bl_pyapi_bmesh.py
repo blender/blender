@@ -805,9 +805,6 @@ class TestBMeshOperators(unittest.TestCase):
 
                 unique_coords_pair[do_dupli] = {v.co[:] for v in bm.verts}
 
-                if not do_dupli:
-                    save_to_blend_file_for_testing(bm)
-
                 bm.free()
 
         # Both paths should produce the same set of unique vertex positions.
