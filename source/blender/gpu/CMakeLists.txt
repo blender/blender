@@ -689,6 +689,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_holdout.glsl
   shaders/material/gpu_shader_material_hue_sat_val.glsl
   shaders/material/gpu_shader_material_implicit_defaults.glsl
+  shaders/material/gpu_shader_material_integer_math.glsl
   shaders/material/gpu_shader_material_invert.glsl
   shaders/material/gpu_shader_material_invert_rotation.glsl
   shaders/material/gpu_shader_material_layer_weight.glsl
