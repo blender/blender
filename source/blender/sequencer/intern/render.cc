@@ -1659,6 +1659,7 @@ static SeqResult do_render_strip_uncached(const RenderData *context,
   float frame_index = give_frame_index(context->scene, strip, timeline_frame);
   if (strip->type == STRIP_TYPE_META) {
     out = do_render_strip_seqbase(context, state, strip, frame_index);
+    out.is_opaque_before_transform = out.image && !out.image->can_contain_alpha();
   }
   else if (strip->type == STRIP_TYPE_SCENE) {
     /* Recursive check. */
