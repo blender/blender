@@ -938,28 +938,6 @@ ccl_device void bsdf_microfacet_setup_fresnel_conductor(KernelGlobals kg,
   }
 }
 
-ccl_device void bsdf_microfacet_setup_fresnel_dielectric_tint(
-    KernelGlobals kg,
-    ccl_private MicrofacetBsdf *bsdf,
-    const float3 wi,
-    ccl_private FresnelDielectricTint *fresnel,
-    const bool preserve_energy)
-{
-  bsdf->fresnel_type = MicrofacetFresnel::DIELECTRIC_TINT;
-  bsdf->fresnel = fresnel;
-  bsdf->sample_weight *= average(bsdf_microfacet_estimate_albedo(kg, wi, bsdf, true, true));
-
-  if (preserve_energy) {
-    /* Assume that the transmissive tint makes up most of the overall color. */
-    Spectrum Fss = fresnel->transmission_tint;
-    if (is_zero(fresnel->transmission_tint)) {
-      /* For purely reflective closures, use the reflection component. */
-      Fss = fresnel_dielectric_Fss(bsdf->ior) * fresnel->reflection_tint;
-    }
-    microfacet_ggx_preserve_energy(kg, bsdf, wi, Fss);
-  }
-}
-
 ccl_device void bsdf_microfacet_setup_fresnel_generalized_schlick(
     KernelGlobals kg,
     ccl_private MicrofacetBsdf *bsdf,
@@ -1190,6 +1168,54 @@ ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals kg,
 {
   return bsdf_microfacet_sample<MicrofacetType::BECKMANN>(
       kg, sc, Ng, wi, rand, eval, wo, pdf, sampled_roughness, eta);
+}
+
+ccl_device void bsdf_dielectric_tint_setup(KernelGlobals kg,
+                                           ccl_private MicrofacetBsdf *bsdf,
+                                           ccl_private ShaderData *sd,
+                                           ccl_private FresnelDielectricTint *fresnel,
+                                           const Spectrum reflection_tint,
+                                           const Spectrum transmission_tint,
+                                           const bool is_beckmann = false,
+                                           const bool preserve_energy = true)
+{
+  const bool has_reflection = !is_zero(reflection_tint);
+  const bool has_transmission = !is_zero(transmission_tint);
+
+  if (has_reflection && has_transmission) {
+    sd->runtime_flag |= is_beckmann ? bsdf_microfacet_beckmann_glass_setup(bsdf) :
+                                      bsdf_microfacet_ggx_glass_setup(bsdf);
+  }
+  else if (has_transmission) {
+    sd->runtime_flag |= is_beckmann ? bsdf_microfacet_beckmann_refraction_setup(bsdf) :
+                                      bsdf_microfacet_ggx_refraction_setup(bsdf);
+  }
+  else {
+    sd->runtime_flag |= is_beckmann ? bsdf_microfacet_beckmann_setup(bsdf) :
+                                      bsdf_microfacet_ggx_setup(bsdf);
+  }
+
+  bsdf->fresnel_type = MicrofacetFresnel::DIELECTRIC_TINT;
+  fresnel->reflection_tint = reflection_tint;
+  fresnel->transmission_tint = transmission_tint;
+  bsdf->fresnel = fresnel;
+  bsdf->sample_weight *= average(bsdf_microfacet_estimate_albedo(kg, sd->wi, bsdf, true, true));
+
+  if (!preserve_energy) {
+    return;
+  }
+
+  Spectrum Fss;
+  if (has_transmission) {
+    /* Assume that the transmissive tint makes up most of the overall color. */
+    Fss = fresnel->transmission_tint;
+  }
+  else {
+    /* For purely reflective closures, use the reflection component. */
+    Fss = fresnel_dielectric_Fss(bsdf->ior) * fresnel->reflection_tint;
+  }
+
+  microfacet_ggx_preserve_energy(kg, bsdf, sd->wi, Fss);
 }
 
 /* ------------------------------------------------------------------------------------------ */

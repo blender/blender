@@ -280,9 +280,6 @@ ccl_device void osl_closure_dielectric_bsdf_setup(KernelGlobals kg,
 {
   osl_zero_albedo(layer_albedo);
 
-  const bool has_reflection = !is_zero(closure->reflection_tint);
-  const bool has_transmission = !is_zero(closure->transmission_tint);
-
   if (osl_closure_skip(kg, path_visibility, LABEL_GLOSSY | LABEL_REFLECT)) {
     return;
   }
@@ -314,43 +311,17 @@ ccl_device void osl_closure_dielectric_bsdf_setup(KernelGlobals kg,
   bsdf->ior = closure->ior;
   bsdf->T = closure->T;
 
-  bool preserve_energy = false;
+  const bool beckmann = closure->distribution == make_string("beckmann", 14712237670914973463ull);
+  const bool multiggx = closure->distribution == make_string("multi_ggx", 16842698693386468366ull);
 
-  /* Beckmann */
-  if (closure->distribution == make_string("beckmann", 14712237670914973463ull)) {
-    if (has_reflection && has_transmission) {
-      sd->runtime_flag |= bsdf_microfacet_beckmann_glass_setup(bsdf);
-    }
-    else if (has_transmission) {
-      sd->runtime_flag |= bsdf_microfacet_beckmann_refraction_setup(bsdf);
-    }
-    else {
-      sd->runtime_flag |= bsdf_microfacet_beckmann_setup(bsdf);
-    }
-  }
-  /* GGX (either single- or multi-scattering). */
-  else {
-    if (has_reflection && has_transmission) {
-      sd->runtime_flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
-    }
-    else if (has_transmission) {
-      sd->runtime_flag |= bsdf_microfacet_ggx_refraction_setup(bsdf);
-    }
-    else {
-      sd->runtime_flag |= bsdf_microfacet_ggx_setup(bsdf);
-    }
-
-    preserve_energy = (closure->distribution == make_string("multi_ggx", 16842698693386468366ull));
-  }
-
-  fresnel->reflection_tint = rgb_to_spectrum(closure->reflection_tint);
-  fresnel->transmission_tint = rgb_to_spectrum(closure->transmission_tint);
-  fresnel->thin_film.thickness = closure->thinfilm_thickness;
-  fresnel->thin_film.ior = closure->thinfilm_ior;
-  bsdf_microfacet_setup_fresnel_dielectric_tint(kg, bsdf, sd->wi, fresnel, preserve_energy);
+  fresnel->thin_film = {closure->thinfilm_thickness, closure->thinfilm_ior};
+  const Spectrum reflection_tint = rgb_to_spectrum(closure->reflection_tint);
+  const Spectrum transmission_tint = rgb_to_spectrum(closure->transmission_tint);
+  bsdf_dielectric_tint_setup(
+      kg, bsdf, sd, fresnel, reflection_tint, transmission_tint, beckmann, multiggx);
 
   if (layer_albedo != nullptr) {
-    if (has_reflection && !has_transmission) {
+    if (!(sd->runtime_flag & SR_BSDF_HAS_TRANSMISSION)) {
       *layer_albedo = bsdf_albedo(kg, sd, (ccl_private ShaderClosure *)bsdf, true, false);
     }
     else {
