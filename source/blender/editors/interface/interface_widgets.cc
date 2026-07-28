@@ -1526,8 +1526,8 @@ static void text_clip_right_ex(const uiFontStyle *fstyle,
   /* How many BYTES (not characters) of this UTF8 string can fit, along with appended ellipsis. */
   int l_end = BLF_width_to_strlen(
       fstyle->uifont_id, str, max_len, okwidth - sep_strwidth, nullptr);
-
   if (l_end > 0) {
+    l_end = StringRef(str, l_end).trim_right().end() - str;
     /* At least one character, so clip and add the ellipsis. */
     memcpy(str + l_end, sep, sep_len + 1); /* +1 for trailing '\0'. */
     if (r_final_len) {
@@ -1597,8 +1597,7 @@ float text_clip_middle_ex(const uiFontStyle *fstyle,
       rpart = rpart_buf;
     }
 
-    const size_t l_end = BLF_width_to_strlen(
-        fstyle->uifont_id, str, max_len, parts_strwidth, nullptr);
+    size_t l_end = BLF_width_to_strlen(fstyle->uifont_id, str, max_len, parts_strwidth, nullptr);
     if (clip_right_if_tight &&
         (l_end < 10 || min_ff(parts_strwidth, strwidth - okwidth) < minwidth))
     {
@@ -1609,10 +1608,13 @@ float text_clip_middle_ex(const uiFontStyle *fstyle,
           fstyle, str, max_len, okwidth, sep, sep_len, sep_strwidth, &final_lpart_len);
     }
     else {
-      size_t r_offset, r_len;
+      l_end = StringRef(str, l_end).trim_right().end() - str;
 
+      size_t r_offset, r_len;
       r_offset = BLF_width_to_rstrlen(fstyle->uifont_id, str, max_len, parts_strwidth, nullptr);
-      r_len = strlen(str + r_offset) + 1; /* +1 for the trailing '\0'. */
+      const StringRef r_trimmed = StringRef(str + r_offset).trim_left();
+      r_offset = r_trimmed.data() - str;
+      r_len = r_trimmed.size() + 1; /* +1 for the trailing '\0'. */
 
       if (l_end + sep_len + r_len + rpart_len > max_len) {
         /* Corner case, the str already takes all available mem,
@@ -2814,6 +2816,9 @@ static void widget_draw_multiline_text(const uiFontStyle *fstyle,
           fstyle->uifont_id, line.begin(), line.size(), okwidth, &strwidth);
       str = str.substr(0, drawstr_len);
     }
+    /* Trim trailing whitespace. */
+    str = StringRef(str).trim_right();
+
     StringRef ellipsis = BLI_STR_UTF8_HORIZONTAL_ELLIPSIS;
     str += ellipsis;
     fontstyle_draw_ex(fstyle,
