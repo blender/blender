@@ -388,12 +388,13 @@ wmOperatorStatus sequencer_clipboard_paste_invoke(bContext *C,
 
 wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain_dst = CTX_data_main(C);
+
   char filepath[FILE_MAX];
   sequencer_copybuffer_filepath_get(filepath, sizeof(filepath));
-  Main *bmain_src = BKE_main_new();
-  if (!BKE_copybuffer_read(bmain_src, filepath, op->reports, FILTER_ID_SCE)) {
+  Main *bmain_src = BKE_copybuffer_read(*bmain_dst, filepath, op->reports, FILTER_ID_SCE);
+  if (!bmain_src) {
     BKE_report(op->reports, RPT_ERROR, "No data to paste");
-    BKE_main_free(bmain_src);
     return OPERATOR_CANCELLED;
   }
 
@@ -454,7 +455,6 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
   /* Make sure we have all data IDs we need in bmain_dst. Remap the IDs if we already have them.
    * This has to happen BEFORE we move the strip over to scene_dst. their ID mapping will not be
    * correct otherwise. */
-  Main *bmain_dst = CTX_data_main(C);
   MainMergeReport merge_reports = {};
   /* We need to ensure that the source 'clipboard marked' main Scene is always merged into
    * destination Main, even in case there would be a name collision with an existing ID (see also

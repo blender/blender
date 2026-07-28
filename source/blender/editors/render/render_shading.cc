@@ -27,7 +27,6 @@
 #include "BLI_listbase.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.hh"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.hh"
 
@@ -2835,10 +2834,6 @@ static wmOperatorStatus paste_material_exec(bContext *C, wmOperator *op)
 
   /* Read copy buffer .blend file. */
   char filepath[FILE_MAX];
-  Main *temp_bmain = BKE_main_new();
-
-  STRNCPY(temp_bmain->filepath, BKE_main_blendfile_path_from_global());
-
   material_copybuffer_filepath_get(filepath, sizeof(filepath));
 
   /* NOTE(@ideasman42) The node tree might reference different kinds of ID types.
@@ -2858,9 +2853,9 @@ static wmOperatorStatus paste_material_exec(bContext *C, wmOperator *op)
        * Note that object data is *not* included. */
       FILTER_ID_OB);
 
-  if (!BKE_copybuffer_read(temp_bmain, filepath, op->reports, ntree_filter)) {
+  Main *temp_bmain = BKE_copybuffer_read(*bmain, filepath, op->reports, ntree_filter);
+  if (!temp_bmain) {
     BKE_report(op->reports, RPT_ERROR, "Internal clipboard is empty");
-    BKE_main_free(temp_bmain);
     return OPERATOR_CANCELLED;
   }
 

@@ -20,7 +20,6 @@
 #include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.hh"
 #include "BLI_string_utf8.hh"
 #include "BLI_string_utils.hh"
 
@@ -869,13 +868,13 @@ static wmOperatorStatus pose_paste_exec(bContext *C, wmOperator *op)
 
   /* Read copy buffer .blend file. */
   char filepath[FILE_MAX];
-  Main *temp_bmain = BKE_main_new();
-  STRNCPY(temp_bmain->filepath, BKE_main_blendfile_path_from_global());
-
   pose_copybuffer_filepath_get(filepath, sizeof(filepath));
-  if (!BKE_copybuffer_read(temp_bmain, filepath, op->reports, FILTER_ID_OB)) {
+
+  Main *bmain = CTX_data_main(C);
+  Main *temp_bmain = BKE_copybuffer_read(*bmain, filepath, op->reports, FILTER_ID_OB);
+
+  if (!temp_bmain) {
     BKE_report(op->reports, RPT_ERROR, "Internal clipboard is empty");
-    BKE_main_free(temp_bmain);
     return OPERATOR_CANCELLED;
   }
   /* Make sure data from this file is usable for pose paste. */
