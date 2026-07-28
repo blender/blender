@@ -643,7 +643,9 @@ class PreviewReporter:
         error: Exception,
     ) -> None:
         # TODO: create an empty file in the correct `.../_thumbs/failed` directory.
-        self.download_finished(http_req_descr, local_file)
+
+        # Poke Blender so it knows there's a thumbnail update.
+        bpy.types.WindowManager.asset_library_status_ping_loaded_new_preview(str(local_file))
 
     def download_progress(
         self,
