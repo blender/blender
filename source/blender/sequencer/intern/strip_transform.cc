@@ -429,7 +429,7 @@ static void strip_transform_handle_overwrite_split(Scene *scene,
   {
     return;
   }
-  edit_flag_for_removal(scene, seqbasep, split_strip);
+  edit_flag_for_removal(scene, split_strip);
   edit_remove_flagged_strips(scene, seqbasep);
 }
 
@@ -499,7 +499,7 @@ static void strip_transform_handle_overwrite(Scene *scene,
    * `SEQ_edit_strip_split()` also uses `SEQ_edit_remove_flagged_sequences()`. See #91096. */
   if (!strips_to_delete.is_empty()) {
     for (Strip *strip : strips_to_delete) {
-      edit_flag_for_removal(scene, seqbasep, strip);
+      edit_flag_for_removal(scene, strip);
     }
     edit_remove_flagged_strips(scene, seqbasep);
   }
