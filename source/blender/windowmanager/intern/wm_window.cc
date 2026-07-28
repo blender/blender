@@ -833,13 +833,10 @@ void WM_window_decoration_style_flags_set(const wmWindow *win,
       static_cast<GHOST_TWindowDecorationStyleFlags>(ghost_style_flags));
 }
 
-static void wm_window_decoration_style_set_from_theme(const wmWindow *win, const bScreen *screen)
+void wm_window_titlebar_theme_context_set(const wmWindow *win, const bScreen *screen)
 {
-  /* Set the decoration style settings from the current theme colors.
-   * NOTE: screen may be null. In which case, only the window is used as a theme provider. */
-  GHOST_WindowDecorationStyleSettings decoration_settings = {};
+  /* NOTE: screen may be null. In which case, only the window is used as a theme provider. */
 
-  /* Colored TitleBar Decoration. */
   /* For main windows, use the top-bar color. */
   if (WM_window_is_main_top_level(win)) {
     ui::theme::theme_set(SPACE_TOPBAR, RGN_TYPE_HEADER);
@@ -853,6 +850,15 @@ static void wm_window_decoration_style_set_from_theme(const wmWindow *win, const
   else {
     ui::theme::theme_set(0, RGN_TYPE_WINDOW);
   }
+}
+
+static void wm_window_decoration_style_set_from_theme(const wmWindow *win, const bScreen *screen)
+{
+  /* Set the decoration style settings from the current theme colors. */
+  GHOST_WindowDecorationStyleSettings decoration_settings = {};
+
+  /* Colored TitleBar Decoration. */
+  wm_window_titlebar_theme_context_set(win, screen);
 
   float titlebar_bg_color[3];
   ui::theme::get_color_3fv(TH_BACK, titlebar_bg_color);
