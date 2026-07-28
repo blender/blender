@@ -114,7 +114,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .short_label("Weight")
+      .short_label("Weight"_ustr)
       .description(
           "Blend between diffuse surface and subsurface scattering. "
           "Typically should be zero or one (either fully diffuse or subsurface)");
@@ -123,7 +123,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value({1.0f, 0.2f, 0.1f})
       .min(0.0f)
       .max(100.0f)
-      .short_label("Radius")
+      .short_label("Radius"_ustr)
       .description("Scattering radius per color channel (RGB), multiplied with Scale")
       .usage_by_bool("Thin Wall"_ustr, false);
 #define SOCK_SUBSURFACE_RADIUS_ID 10
@@ -132,7 +132,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(10.0f)
       .subtype(PROP_DISTANCE)
-      .short_label("Scale")
+      .short_label("Scale"_ustr)
       .description("Scale factor of the subsurface scattering radius")
       .usage_by_bool("Thin Wall"_ustr, false);
 #define SOCK_SUBSURFACE_SCALE_ID 11
@@ -141,7 +141,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(1.01f)
       .max(3.8f)
       .subtype(PROP_FACTOR)
-      .short_label("IOR")
+      .short_label("IOR"_ustr)
       .description("Index of Refraction (IOR) used for rays that enter the subsurface component")
       .make_available([](bNode &node) { node.custom2 = SHD_SUBSURFACE_RANDOM_WALK_SKIN; });
 #define SOCK_SUBSURFACE_IOR_ID 12
@@ -150,7 +150,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(-1.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .short_label("Anisotropy")
+      .short_label("Anisotropy"_ustr)
       .description(
           "Directionality of volume scattering within the subsurface medium. "
           "Zero scatters uniformly in all directions, positive values scatter more in the forward "
@@ -174,7 +174,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .short_label("IOR Level")
+      .short_label("IOR Level"_ustr)
       .description(
           "Adjustment to the Index of Refraction (IOR) to increase or decrease specular intensity "
           "(0.5 means no adjustment, 0 removes all reflections, 1 doubles them at normal "
@@ -182,7 +182,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 #define SOCK_SPECULAR_ID 14
   spec.add_input<decl::Color>("Specular Tint"_ustr)
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .short_label("Tint")
+      .short_label("Tint"_ustr)
       .description(
           "Tint dielectric reflection at normal incidence for artistic control, and metallic "
           "reflection at near-grazing incidence to simulate complex index of refraction")
@@ -193,7 +193,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .short_label("Anisotropy")
+      .short_label("Anisotropy"_ustr)
       .description(
           "Amount of anisotropy for specular reflection. "
           "Higher values give elongated highlights along the tangent direction");
@@ -217,7 +217,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .short_label("Weight")
+      .short_label("Weight"_ustr)
       .description("Blend between transmission and other base layer components");
 #define SOCK_TRANSMISSION_WEIGHT_ID 19
 
@@ -228,7 +228,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .short_label("Weight")
+      .short_label("Weight"_ustr)
       .description(
           "Controls the intensity of the coat layer, both the reflection and the tinting. "
           "Typically should be zero or one for physically-based materials");
@@ -238,28 +238,28 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .short_label("Roughness")
+      .short_label("Roughness"_ustr)
       .description("The roughness of the coat layer");
 #define SOCK_COAT_ROUGHNESS_ID 21
   coat.add_input<decl::Float>("Coat IOR"_ustr)
       .default_value(1.5f)
       .min(1.0f)
       .max(4.0f)
-      .short_label("IOR")
+      .short_label("IOR"_ustr)
       .description(
           "The Index of Refraction (IOR) of the coat layer "
           "(affects its reflectivity as well as the falloff of coat tinting)");
 #define SOCK_COAT_IOR_ID 22
   coat.add_input<decl::Color>("Coat Tint"_ustr)
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .short_label("Tint")
+      .short_label("Tint"_ustr)
       .description(
           "Adds a colored tint to the coat layer by modeling absorption in the layer. "
           "Saturation increases at shallower angles, as the light travels farther "
           "through the medium (depending on the Coat IOR)")
       .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
 #define SOCK_COAT_TINT_ID 23
-  coat.add_input<decl::Vector>("Coat Normal"_ustr).short_label("Normal").hide_value();
+  coat.add_input<decl::Vector>("Coat Normal"_ustr).short_label("Normal"_ustr).hide_value();
 #define SOCK_COAT_NORMAL_ID 24
 
   /* Panel for Sheen settings. */
@@ -269,7 +269,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .short_label("Weight")
+      .short_label("Weight"_ustr)
       .description(
           "Intensity of the sheen layer, which simulates very small fibers on the surface");
 #define SOCK_SHEEN_WEIGHT_ID 25
@@ -278,7 +278,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .short_label("Roughness")
+      .short_label("Roughness"_ustr)
       .description(
           "Roughness of the sheen layer. Low and high roughness values produce fuzzy or dusty "
           "appearance, respectively");
@@ -286,7 +286,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   sheen.add_input<decl::Color>("Sheen Tint"_ustr)
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .translation_context(BLT_I18NCONTEXT_ID_NODETREE)
-      .short_label("Tint")
+      .short_label("Tint"_ustr)
       .description("Color of the sheen reflection");
 #define SOCK_SHEEN_TINT_ID 27
 
@@ -294,14 +294,14 @@ static void node_declare(NodeDeclarationBuilder &b)
   PanelDeclarationBuilder &emis = b.add_panel("Emission"_ustr).default_closed(true);
   emis.add_input<decl::Color>("Emission Color"_ustr)
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .short_label("Color")
+      .short_label("Color"_ustr)
       .description("Color of light emission from the surface");
 #define SOCK_EMISSION_ID 28
   emis.add_input<decl::Float>("Emission Strength"_ustr)
       .default_value(0.0)
       .min(0.0f)
       .max(1000000.0f)
-      .short_label("Strength")
+      .short_label("Strength"_ustr)
       .description(
           "Strength of the emitted light. A value of 1.0 ensures "
           "that the object in the image has the exact same color as the Emission Color")
