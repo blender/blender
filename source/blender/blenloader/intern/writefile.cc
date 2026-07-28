@@ -1358,11 +1358,131 @@ static void write_id_placeholder(WriteData *wd, ID *id)
   mywrite_id_end(wd, id);
 }
 
-/** Keep it last of `write_*_data` functions. */
-static void write_libraries(WriteData *wd, Main *bmain)
+/**
+ * Write a single library and its content, if needed.
+ *
+ * \return `true` if the library was written, false if it did not need to be written.
+ */
+static bool write_library_if_needed(WriteData *wd,
+                                    MultiValueMap<Library *, ID *> &linked_ids_by_library,
+                                    Set<Library *> &written_libraries,
+                                    Library &library)
 {
   const bool is_undo = wd->use_memfile;
 
+  const Span<ID *> ids = linked_ids_by_library.lookup(&library);
+
+  /* Gather IDs that are somehow directly referenced by data in the current blend file. */
+  Vector<ID *> ids_used_from_library;
+  if (is_undo) {
+    /* Always write placeholders for all linked IDs in undo case. This allows to properly remove
+     * linked data that should not exist on undo/redo. See also #read_undo_move_libmain_data,
+     * #read_libblock_undo_restore_linked and #read_undo_libraries_cleanup_unused_ids. */
+    ids_used_from_library = ids;
+  }
+  else {
+    for (ID *id : ids) {
+      if (id->us == 0) {
+        continue;
+      }
+      if (id->tag & ID_TAG_EXTERN) {
+        ids_used_from_library.append(id);
+        continue;
+      }
+      if ((id->tag & ID_TAG_INDIRECT) && (id->flag & ID_FLAG_INDIRECT_WEAK_LINK)) {
+        ids_used_from_library.append(id);
+        continue;
+      }
+    }
+  }
+
+  bool should_write_library = false;
+  if (library.packedfile) {
+    should_write_library = true;
+  }
+  else if (!library.runtime->archived_libraries.is_empty()) {
+    /* Reference 'real' blendfile library of archived 'copies' of it containing packed linked
+     * IDs should always be written. */
+    /* FIXME: A bit weak, as it could be that all archive libs are now empty (if all related
+     * packed linked IDs have been deleted e.g.)...
+     * Could be fixed by either adding more checks here, or ensuring empty archive libs are
+     * deleted when no ID uses them anymore? */
+    should_write_library = true;
+  }
+  else if (is_undo) {
+    /* When writing undo step we always write all existing libraries. That makes reading undo
+     * step much easier when dealing with purely indirectly used libraries. */
+    should_write_library = true;
+  }
+  else {
+    should_write_library = !ids_used_from_library.is_empty();
+  }
+
+  if (!should_write_library) {
+    /* Nothing from the library is used, so it does not have to be written. */
+    return false;
+  }
+
+  /* Since code below checking that archive libraries' parents have already been written, may
+   * forcefully write that parent library in some cases, also double-check here that current
+   * library has not yet been written.
+   *
+   * Note: In theory this should never be the case, as a parent library is always expected to be
+   * written before its archives. */
+  if (written_libraries.contains(&library)) {
+    CLOG_ERROR(
+        &LOG, "Attempt to re-write already written library '%s', skipping", library.id.name);
+    return false;
+  }
+
+  if (library.flag & LIBRARY_FLAG_IS_ARCHIVE) {
+    if (!library.archive_parent_library) {
+      CLOG_ERROR(
+          &LOG, "Written archive library '%s' has no parent library, skipping", library.id.name);
+      return false;
+    }
+    if (!written_libraries.contains(library.archive_parent_library)) {
+      CLOG_ERROR(
+          &LOG,
+          "Written archive library '%s', while its parent library '%s' has not been written",
+          library.id.name,
+          library.archive_parent_library->id.name);
+
+      /* Only write the parent library itself, if it was not written so far, none of its IDs was
+       * to be written either. */
+      write_id(wd, &library.archive_parent_library->id);
+      written_libraries.add(library.archive_parent_library);
+    }
+  }
+
+  write_id(wd, &library.id);
+  written_libraries.add(&library);
+
+  /* Write placeholders for linked data-blocks that are used, and real IDs for the packed linked
+   * ones. */
+  for (ID *id : ids_used_from_library) {
+    if (ID_IS_PACKED(id)) {
+      write_id(wd, id);
+    }
+    else {
+      /* In undo case, all existing linked IDs get a placeholder, even the ones not directly
+       * linkable. */
+      if (!is_undo && !BKE_idtype_idcode_is_linkable(GS(id->name))) {
+        CLOG_ERROR(&LOG,
+                   "Data-block '%s' from lib '%s' is not linkable, but is flagged as "
+                   "directly linked",
+                   id->name,
+                   library.runtime->filepath_abs);
+      }
+      write_id_placeholder(wd, id);
+    }
+  }
+  return true;
+}
+
+/** Keep it last of `write_*_data` functions. */
+static void write_libraries(WriteData *wd, Main *bmain)
+{
   /* Gather IDs coming from each library. */
   MultiValueMap<Library *, ID *> linked_ids_by_library;
   for (ID &id : MainAllIDsIterator(*bmain)) {
@@ -1374,117 +1494,23 @@ static void write_libraries(WriteData *wd, Main *bmain)
   }
 
   Set<Library *> written_libraries;
-  for (Library &library_ptr : bmain->libraries) {
-    Library &library = library_ptr;
-    const Span<ID *> ids = linked_ids_by_library.lookup(&library);
-
-    /* Gather IDs that are somehow directly referenced by data in the current blend file. */
-    Vector<ID *> ids_used_from_library;
-    if (is_undo) {
-      /* Always write placeholders for all linked IDs in undo case. This allows to properly remove
-       * linked data that should not exist on undo/redo. See also #read_undo_move_libmain_data,
-       * #read_libblock_undo_restore_linked and #read_undo_libraries_cleanup_unused_ids. */
-      ids_used_from_library = ids;
-    }
-    else {
-      for (ID *id : ids) {
-        if (id->us == 0) {
-          continue;
-        }
-        if (ID_IS_PACKED(id)) {
-          BLI_assert(library.flag & LIBRARY_FLAG_IS_ARCHIVE);
-          ids_used_from_library.append(id);
-          continue;
-        }
-        if (id->tag & ID_TAG_EXTERN) {
-          ids_used_from_library.append(id);
-          continue;
-        }
-        if ((id->tag & ID_TAG_INDIRECT) && (id->flag & ID_FLAG_INDIRECT_WEAK_LINK)) {
-          ids_used_from_library.append(id);
-          continue;
-        }
-      }
-    }
-
-    bool should_write_library = false;
-    if (library.packedfile) {
-      should_write_library = true;
-    }
-    else if (!library.runtime->archived_libraries.is_empty()) {
-      /* Reference 'real' blendfile library of archived 'copies' of it containing packed linked
-       * IDs should always be written. */
-      /* FIXME: A bit weak, as it could be that all archive libs are now empty (if all related
-       * packed linked IDs have been deleted e.g.)...
-       * Could be fixed by either adding more checks here, or ensuring empty archive libs are
-       * deleted when no ID uses them anymore? */
-      should_write_library = true;
-    }
-    else if (is_undo) {
-      /* When writing undo step we always write all existing libraries. That makes reading undo
-       * step much easier when dealing with purely indirectly used libraries. */
-      should_write_library = true;
-    }
-    else {
-      should_write_library = !ids_used_from_library.is_empty();
-    }
-
-    if (!should_write_library) {
-      /* Nothing from the library is used, so it does not have to be written. */
-      continue;
-    }
-
-    /* Since code below checking that archive libraries' parents have already been written, may
-     * forcefully write that parent library in some cases, also double-check here that current
-     * library has not yet been written.
-     *
-     * Note: In theory this should never be the case, as a parent library is always expected to be
-     * written before its archives. */
-    if (written_libraries.contains(&library)) {
-      CLOG_ERROR(
-          &LOG, "Attempt to re-write already written library '%s', skipping", library.id.name);
-      continue;
-    }
-
+  for (Library &library : bmain->libraries) {
+    /* This ensures parent regular library is always written immediately before all of its archive
+     * 'children'. Due to ID naming, actual order of these libraries in Main is unknown. */
     if (library.flag & LIBRARY_FLAG_IS_ARCHIVE) {
-      if (!library.archive_parent_library) {
-        CLOG_ERROR(&LOG, "Written archive library '%s' has no parent library", library.id.name);
-      }
-      if (!written_libraries.contains(library.archive_parent_library)) {
-        CLOG_ERROR(
-            &LOG,
-            "Written archive library '%s', while its parent library '%s' has not been written",
-            library.id.name,
-            library.archive_parent_library->id.name);
-
-        /* Only write the parent library itself, if it was not written so far, none of its IDs was
-         * to be written either. */
-        write_id(wd, &library.archive_parent_library->id);
-        written_libraries.add(library.archive_parent_library);
-      }
+      continue;
     }
-
-    write_id(wd, &library.id);
-    written_libraries.add(&library);
-
-    /* Write placeholders for linked data-blocks that are used, and real IDs for the packed linked
-     * ones. */
-    for (ID *id : ids_used_from_library) {
-      if (ID_IS_PACKED(id)) {
-        write_id(wd, id);
-      }
-      else {
-        /* In undo case, all existing linked IDs get a placeholder, even the ones not directly
-         * linkable. */
-        if (!is_undo && !BKE_idtype_idcode_is_linkable(GS(id->name))) {
-          CLOG_ERROR(&LOG,
-                     "Data-block '%s' from lib '%s' is not linkable, but is flagged as "
-                     "directly linked",
-                     id->name,
-                     library.runtime->filepath_abs);
-        }
-        write_id_placeholder(wd, id);
-      }
+    const bool is_mainlib_written = write_library_if_needed(
+        wd, linked_ids_by_library, written_libraries, library);
+    UNUSED_VARS_NDEBUG(is_mainlib_written);
+    for (Library *archive_library : library.runtime->archived_libraries) {
+      BLI_assert(archive_library->flag & LIBRARY_FLAG_IS_ARCHIVE);
+      const bool is_archivelib_written = write_library_if_needed(
+          wd, linked_ids_by_library, written_libraries, *archive_library);
+      BLI_assert_msg(
+          is_mainlib_written || !is_archivelib_written,
+          "Archive libraries should never be written if their owner 'parent' library is not");
+      UNUSED_VARS_NDEBUG(is_archivelib_written);
     }
   }
 
