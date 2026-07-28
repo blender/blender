@@ -3463,6 +3463,7 @@ static BHead *read_libblock(FileData *fd,
     if (!ID_IS_PACKED(&id)) {
       return;
     }
+    UNUSED_VARS_NDEBUG(main);
     BLI_assert(main->curlib);
     if ((id.lib->flag & LIBRARY_FLAG_IS_EXTERNAL) != 0) {
       /* External libraries should have a null deep hash. */
