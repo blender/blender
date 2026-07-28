@@ -9,8 +9,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_string.h"
-
 #include "BKE_main.hh"
 
 #include "DNA_ID.h"
@@ -27,8 +25,8 @@ TempLibraryContext *BLO_library_temp_load_id(Main *real_main,
   temp_lib_ctx->bmain_base = BKE_main_new();
   temp_lib_ctx->bf_reports.reports = reports;
 
-  /* Copy the file path so any path remapping is performed properly. */
-  STRNCPY(temp_lib_ctx->bmain_base->filepath, real_main->filepath);
+  /* Copy the file path and colorspace so any remapping is performed properly. */
+  BKE_main_init_from_reference(*temp_lib_ctx->bmain_base, *real_main);
 
   BlendHandle *blendhandle = BLO_blendhandle_from_file(blend_file_path, &temp_lib_ctx->bf_reports);
 

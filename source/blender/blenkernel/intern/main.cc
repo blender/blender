@@ -95,6 +95,12 @@ Main *BKE_main_new()
   return bmain;
 }
 
+void BKE_main_init_from_reference(Main &bmain, const Main &reference)
+{
+  STRNCPY(bmain.filepath, reference.filepath);
+  bmain.colorspace = reference.colorspace;
+}
+
 void BKE_main_clear(Main &bmain)
 {
   /* Also call when reading a file, erase all, etc */

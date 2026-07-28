@@ -276,13 +276,13 @@ static StringRef scene_lib_filepath(const Scene &scene)
 static wmOperatorStatus node_clipboard_paste_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
+  Main *bmain_dst = CTX_data_main(C);
 
   char filepath[FILE_MAX];
   node_copybuffer_filepath_get(filepath, sizeof(filepath));
-  Main *bmain_src = BKE_main_new();
-  if (!BKE_copybuffer_read(bmain_src, filepath, op->reports, FILTER_ID_NT)) {
+  Main *bmain_src = BKE_copybuffer_read(*bmain_dst, filepath, op->reports, FILTER_ID_NT);
+  if (!bmain_src) {
     BKE_report(op->reports, RPT_ERROR, "No data to paste");
-    BKE_main_free(bmain_src);
     return OPERATOR_CANCELLED;
   }
 
@@ -290,7 +290,6 @@ static wmOperatorStatus node_clipboard_paste_exec(bContext *C, wmOperator *op)
 
   /* We don't want to paste scenes referenced by the Render Layers node if they don't exist in the
    * destination bmain. */
-  Main *bmain_dst = CTX_data_main(C);
   Set<std::pair<StringRef, StringRef>> dst_scenes;
   for (Scene &scene : bmain_dst->scenes) {
     /* Packed scenes are currently not needed so they are skipped.

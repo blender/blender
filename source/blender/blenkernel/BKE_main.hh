@@ -457,6 +457,11 @@ struct Main : NonCopyable, NonMovable {
  */
 Main *BKE_main_new();
 /**
+ * Initialize a new Main data-base, based on a reference for relative path and colorspace
+ * conversions.
+ */
+void BKE_main_init_from_reference(Main &bmain, const Main &reference);
+/**
  * Make given \a bmain empty again, and free all runtime mappings.
  *
  * This is similar to deleting and re-creating the Main, however the internal #Main::lock is kept
