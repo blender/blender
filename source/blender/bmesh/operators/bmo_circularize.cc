@@ -50,6 +50,8 @@ struct VertChain {
   Vector<BMVert *> verts;
   /** This is true if the path forms a closed chain, for open chains it's false. */
   bool is_closed;
+  /** True if the chain is formed entirely from wire edges. */
+  bool is_wire;
 };
 
 /**
@@ -57,16 +59,19 @@ struct VertChain {
  * edge for circularization.
  * Valid boundary edges are edges that are selected, not hidden
  * and are not interior. They lie on the boundary between a selected
- * face and an unselected face and do not lie on the mirror plane.
+ * face and an unselected face, or they are only wire edges.
+ * Valid boundary edges also must not lie on the mirror plane.
  */
-static bool is_valid_boundary_edge(BMEdge *e, const char hflag, const bool check_axis[3])
+static bool is_valid_boundary_edge(BMEdge *e,
+                                   const char hflag,
+                                   const bool check_axis[3],
+                                   bool extract_wire_edges)
 {
   if (!BM_elem_flag_test(e, hflag) || BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
     return false;
   }
 
-  /* Wire edges are not valid boundary edges. */
-  if (!e->l) {
+  if (extract_wire_edges ? e->l != nullptr : e->l == nullptr) {
     return false;
   }
 
@@ -104,7 +109,8 @@ static bool is_valid_boundary_edge(BMEdge *e, const char hflag, const bool check
 static void bm_vert_chain_extract_from_boundary_edges(BMesh *bm,
                                                       Vector<VertChain> &r_chains,
                                                       const char hflag,
-                                                      const bool check_axis[3])
+                                                      const bool check_axis[3],
+                                                      bool extract_wire_edges)
 {
   ListBaseT<BMEdgeLoopStore> eloops = {nullptr};
   const BMEdgeLoopFind_Params params = {
@@ -114,15 +120,39 @@ static void bm_vert_chain_extract_from_boundary_edges(BMesh *bm,
   BM_mesh_edgeloops_find(
       bm,
       &eloops,
-      [&](BMEdge *e) { return is_valid_boundary_edge(e, hflag, check_axis); },
+      [&](BMEdge *e) { return is_valid_boundary_edge(e, hflag, check_axis, extract_wire_edges); },
       &params);
 
   for (BMEdgeLoopStore &el_store : eloops) {
     VertChain chain;
     chain.is_closed = BM_edgeloop_is_closed(&el_store);
+    chain.is_wire = extract_wire_edges;
     for (LinkData &node : *BM_edgeloop_verts_get(&el_store)) {
       chain.verts.append(static_cast<BMVert *>(node.data));
     }
+
+    /* Reject wire edge chains that touch a face region. Wire edges are only circularized if they
+     * are completely isolated. */
+    if (extract_wire_edges) {
+      bool touches_face_region = false;
+      for (BMVert *v : chain.verts) {
+        BMIter eiter;
+        BMEdge *e_other;
+        BM_ITER_ELEM (e_other, &eiter, v, BM_EDGES_OF_VERT) {
+          if (BM_elem_flag_test(e_other, hflag) && e_other->l != nullptr) {
+            touches_face_region = true;
+            break;
+          }
+        }
+        if (touches_face_region) {
+          break;
+        }
+      }
+      if (touches_face_region) {
+        continue;
+      }
+    }
+
     if (chain.verts.size() >= 3) {
       r_chains.append(std::move(chain));
     }
@@ -543,7 +573,16 @@ void bmo_circularize_exec(BMesh *bm, BMOperator *op)
       bm, op->slots_in, "geom", BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
 
   Vector<VertChain> chains;
-  bm_vert_chain_extract_from_boundary_edges(bm, chains, BM_ELEM_TAG, check_axis);
+
+  /* Uses two passes to detect if edges are wire edges or they have face regions.
+   * Wire edges are rejected in the first pass but included in the second pass. */
+  for (const bool extract_wire_edges : {false, true}) {
+    if (!extract_wire_edges && bm->totface == 0) {
+      continue;
+    }
+    bm_vert_chain_extract_from_boundary_edges(
+        bm, chains, BM_ELEM_TAG, check_axis, extract_wire_edges);
+  }
 
   /* Builds a BVH tree when flatten is disabled. Without this we would have to iterate
    * over every face in the mesh for every vertex which is too slow.
@@ -556,7 +595,7 @@ void bmo_circularize_exec(BMesh *bm, BMOperator *op)
   NearestTriUserData bvh_data = {};
   FaceTessellationCache tess_cache;
 
-  if (flatten < 1.0f) {
+  if ((flatten < 1.0f) && (bm->totface > 0)) {
     const int tot_tri = poly_to_tri_count(bm->totface, bm->totloop);
     looptris.reinitialize(tot_tri);
     BM_mesh_calc_tessellation(bm, looptris);
@@ -655,7 +694,9 @@ void bmo_circularize_exec(BMesh *bm, BMOperator *op)
       const float3 target_local(cv.target_2d.x, cv.target_2d.y, 0.0f);
       float3 final_pos = center_3d + mat * target_local;
 
-      if (flatten < 1.0f) {
+      /* Projecting the circle onto the mesh only makes sense for edge chains
+       * that have faces attached. */
+      if (flatten < 1.0f && !chain_data.is_wire) {
         float3 projected_pos;
         project_on_mesh(
             bvh_tree, &bvh_data, cv.v, final_pos, mat.z_axis(), projected_pos, tess_cache);
