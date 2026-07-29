@@ -2484,7 +2484,8 @@ GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType 
 void GHOST_WindowWayland::beginIME(
     const int32_t x, const int32_t y, const int32_t w, const int32_t h, const bool completed)
 {
-  system_->ime_begin(this, x, y, w, h, completed);
+  /* WAYLAND anchors the rectangle at its top-left. */
+  system_->ime_begin(this, x, y - h, w, h, completed);
 }
 
 void GHOST_WindowWayland::endIME()
