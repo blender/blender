@@ -59,8 +59,7 @@ class VKBuildAccelerationStructureNode
     for (const VKResourceWithHandle<VkBuffer> &buffer : create_info.src_buffers) {
       BLI_assert(buffer != VK_NULL_HANDLE);
       ResourceWithStamp src_buffer = resources.get_buffer(buffer);
-      links.buffers.append(
-          {src_buffer, VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR | VK_ACCESS_SHADER_READ_BIT});
+      links.buffers.append({src_buffer, VK_ACCESS_SHADER_READ_BIT});
     }
 
     ResourceWithStamp dst_acceleration_structure = resources.get_buffer_and_increase_stamp(
@@ -68,7 +67,6 @@ class VKBuildAccelerationStructureNode
     links.buffers.append(
         {dst_acceleration_structure, VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_KHR});
 
-    /* TODO: Check with Jeroen if this is really needed. */
     ResourceWithStamp scratch_buffer = resources.get_buffer_and_increase_stamp(
         create_info.scratch_buffer);
     links.buffers.append({scratch_buffer,
