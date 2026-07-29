@@ -185,7 +185,11 @@ class Attribute {
 
   static bool same_storage(const TypeDesc a, const TypeDesc b);
   static const char *standard_name(AttributeStandard std);
-  static AttributeStandard name_standard(const char *name);
+  static AttributeStandard name_standard(ustring name);
+  static AttributeStandard name_volume_standard(ustring name);
+
+  static ustring osl_name(AttributeStandard std);
+  static ustring osl_name(ustring name);
 
   static AttrKernelDataType kernel_type(const Attribute &attr);
 
@@ -288,10 +292,16 @@ class AttributeRequestSet {
   AttributeRequestSet();
   ~AttributeRequestSet();
 
+  /* Request the attribute with this specific name or standard. */
   void add(ustring name);
   void add(AttributeStandard std);
+
+  /* Request the attribute with this name, or the standard attribute that this
+   * is the name of. This is used by e.g. the Attribute node, which accepts
+   * both even if this sometimes ambiguous. */
+  void add_name_or_standard(ustring name);
+
   void add(const AttributeRequestSet &reqs);
-  void add_standard(ustring name);
 
   bool find(ustring name) const;
   bool find(AttributeStandard std) const;

@@ -1400,8 +1400,6 @@ class AttributeNode : public ShaderNode {
   }
   ShaderNodeType shader_node_type() const override;
 
-  static void add_named_attribute_request(AttributeRequestSet *attributes, ustring attribute);
-
   NODE_SOCKET_API(ustring, attribute)
 
   bool stochastic_sample = true;

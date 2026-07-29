@@ -583,9 +583,7 @@ uint64_t OSLShaderManager::get_attribute_id(ustring name)
 
 uint64_t OSLShaderManager::get_attribute_id(AttributeStandard std)
 {
-  /* if standard attribute, use geom: name convention */
-  const ustring stdname(string("geom:") + string(Attribute::standard_name(std)));
-  return stdname.hash();
+  return Attribute::osl_name(std).hash();
 }
 
 void OSLShaderManager::device_update_specific(Device *device,
@@ -1402,12 +1400,7 @@ void OSLCompiler::parameter_string_array(const char *name, const array<ustring> 
 
 void OSLCompiler::parameter_attribute(const char *name, ustring s)
 {
-  if (Attribute::name_standard(s.c_str())) {
-    parameter(name, (string("geom:") + s.c_str()).c_str());
-  }
-  else {
-    parameter(name, s.c_str());
-  }
+  parameter(name, Attribute::osl_name(s));
 }
 
 void OSLCompiler::find_dependencies(ShaderNodeSet &dependencies, ShaderInput *input)

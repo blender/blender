@@ -545,7 +545,7 @@ uint SVMCompiler::attribute(AttributeStandard std)
 
 uint SVMCompiler::attribute_standard(ustring name)
 {
-  const AttributeStandard std = Attribute::name_standard(name.c_str());
+  const AttributeStandard std = Attribute::name_standard(name);
   return (std) ? attribute(std) : attribute(name);
 }
 

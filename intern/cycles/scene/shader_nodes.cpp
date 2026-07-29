@@ -3557,12 +3557,12 @@ void PrincipledVolumeNode::attributes(Shader *shader, AttributeRequestSet *attri
   if (shader->has_volume) {
 
     if (input("Density")->link || density > 0.0f) {
-      attributes->add_standard(density_attribute);
-      attributes->add_standard(color_attribute);
+      attributes->add_name_or_standard(density_attribute);
+      attributes->add_name_or_standard(color_attribute);
     }
 
     if (input("Blackbody Intensity")->link || blackbody_intensity > 0.0f) {
-      attributes->add_standard(temperature_attribute);
+      attributes->add_name_or_standard(temperature_attribute);
     }
 
     attributes->add(ATTR_STD_GENERATED_TRANSFORM);
@@ -3611,15 +3611,9 @@ void PrincipledVolumeNode::compile(SVMCompiler &compiler)
 
 void PrincipledVolumeNode::compile(OSLCompiler &compiler)
 {
-  if (Attribute::name_standard(density_attribute.c_str())) {
-    density_attribute = ustring("geom:" + density_attribute.string());
-  }
-  if (Attribute::name_standard(color_attribute.c_str())) {
-    color_attribute = ustring("geom:" + color_attribute.string());
-  }
-  if (Attribute::name_standard(temperature_attribute.c_str())) {
-    temperature_attribute = ustring("geom:" + temperature_attribute.string());
-  }
+  density_attribute = Attribute::osl_name(density_attribute);
+  color_attribute = Attribute::osl_name(color_attribute);
+  temperature_attribute = Attribute::osl_name(temperature_attribute);
 
   compiler.add(this, "node_principled_volume");
 }
@@ -5154,7 +5148,7 @@ void VertexColorNode::attributes(Shader *shader, AttributeRequestSet *attributes
 {
   if (!(output("Color")->links.empty() && output("Alpha")->links.empty())) {
     if (!layer_name.empty()) {
-      attributes->add_standard(layer_name);
+      attributes->add(layer_name);
     }
     else {
       attributes->add(ATTR_STD_VERTEX_COLOR);
@@ -5208,12 +5202,7 @@ void VertexColorNode::compile(OSLCompiler &compiler)
     compiler.parameter("layer_name", ustring("geom:vertex_color"));
   }
   else {
-    if (Attribute::name_standard(layer_name.c_str()) != ATTR_STD_NONE) {
-      compiler.parameter("name", (string("geom:") + layer_name.c_str()).c_str());
-    }
-    else {
-      compiler.parameter("layer_name", layer_name.c_str());
-    }
+    compiler.parameter("layer_name", layer_name);
   }
 
   compiler.add(this, "node_vertex_color");
@@ -6186,7 +6175,7 @@ void AttributeNode::attributes(Shader *shader, AttributeRequestSet *attributes)
   if (!output("Color")->links.empty() || !output("Vector")->links.empty() ||
       !output("Fac")->links.empty() || !output("Alpha")->links.empty())
   {
-    add_named_attribute_request(attributes, attribute);
+    attributes->add_name_or_standard(attribute);
   }
 
   if (shader->has_volume) {
@@ -6194,30 +6183,6 @@ void AttributeNode::attributes(Shader *shader, AttributeRequestSet *attributes)
   }
 
   ShaderNode::attributes(shader, attributes);
-}
-
-void AttributeNode::add_named_attribute_request(AttributeRequestSet *attributes,
-                                                const ustring attribute)
-{
-  attributes->add_standard(attribute);
-
-  /* Request UV if we asked for one of the attributes computed from it.
-   * Ideally, this would be handled at a more generic level. */
-  const AttributeStandard std = Attribute::name_standard(attribute.c_str());
-  if (std == ATTR_STD_UV_TANGENT || std == ATTR_STD_UV_TANGENT_SIGN ||
-      std == ATTR_STD_UV_TANGENT_UNDISPLACED || std == ATTR_STD_UV_TANGENT_SIGN_UNDISPLACED)
-  {
-    attributes->add(ATTR_STD_UV);
-  }
-  else {
-    const char *suffixes[] = {
-        ".tangent_sign", ".tangent", ".undisplaced_tangent", ".undisplaced_tangent_sign"};
-    for (const char *suffix : suffixes) {
-      if (string_endswith(attribute, suffix)) {
-        attributes->add(attribute.substr(0, attribute.size() - strlen(suffix)));
-      }
-    }
-  }
 }
 
 ShaderNodeType AttributeNode::shader_node_type() const
@@ -6310,12 +6275,7 @@ void AttributeNode::compile(OSLCompiler &compiler)
   }
   compiler.parameter("bump_filter_width", bump_filter_width);
 
-  if (Attribute::name_standard(attribute.c_str()) != ATTR_STD_NONE) {
-    compiler.parameter("name", (string("geom:") + attribute.c_str()).c_str());
-  }
-  else {
-    compiler.parameter("name", attribute.c_str());
-  }
+  compiler.parameter_attribute("name", attribute);
 
   compiler.add(this, "node_attribute");
 }
@@ -8244,7 +8204,7 @@ RaycastNode::RaycastNode(const RaycastNode &other)
 void RaycastNode::global_attributes(Shader *shader, AttributeRequestSet *attributes)
 {
   for (const AttributeOutput &attribute_output : attribute_outputs_) {
-    AttributeNode::add_named_attribute_request(attributes, attribute_output.attribute_name);
+    attributes->add_name_or_standard(attribute_output.attribute_name);
   }
 
   ShaderNode::global_attributes(shader, attributes);
