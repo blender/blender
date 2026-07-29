@@ -5796,7 +5796,7 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
       projPixel = static_cast<ProjPixel *>(node->link);
       uint8_t *data = ps->projImages[projPixel->image_index].byte_data_mut +
                       projPixel->pixel_offset;
-      *data = (reinterpret_cast<ProjPixelClone *>(projPixel))->clonepx.uint_;
+      copy_v4_v4_uchar(data, reinterpret_cast<ProjPixelClone *>(projPixel)->clonepx.ch);
       if (lock_alpha) {
         copy_original_alpha_channel(ps, projPixel, false);
       }
@@ -5820,7 +5820,7 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
       projPixel = static_cast<ProjPixel *>(node->link);
       uint8_t *data = ps->projImages[projPixel->image_index].byte_data_mut +
                       projPixel->pixel_offset;
-      *data = projPixel->newColor.uint_;
+      copy_v4_v4_uchar(data, projPixel->newColor.ch);
       if (lock_alpha) {
         copy_original_alpha_channel(ps, projPixel, false);
       }
