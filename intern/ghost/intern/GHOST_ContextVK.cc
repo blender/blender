@@ -1758,21 +1758,17 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     if (use_window_surface) {
       instance_vk.extensions.enable(VK_KHR_SURFACE_EXTENSION_NAME);
 #if defined(WITH_GHOST_SDL)
-      if (platform_ == GHOST_kVulkanPlatformSDL) {
-        /* SDL provides the set of instance extensions its window backend requires. */
-        Uint32 sdl_extension_count = 0;
-        const char *const *sdl_extensions = SDL_Vulkan_GetInstanceExtensions(&sdl_extension_count);
-        for (Uint32 i = 0; i < sdl_extension_count; i++) {
-          if (!instance_vk.extensions.is_enabled(sdl_extensions[i])) {
-            instance_vk.extensions.enable(sdl_extensions[i]);
-          }
+      /* SDL provides the set of instance extensions its window backend requires. */
+      Uint32 sdl_extension_count = 0;
+      const char *const *sdl_extensions = SDL_Vulkan_GetInstanceExtensions(&sdl_extension_count);
+      for (Uint32 i = 0; i < sdl_extension_count; i++) {
+        if (!instance_vk.extensions.is_enabled(sdl_extensions[i])) {
+          instance_vk.extensions.enable(sdl_extensions[i]);
         }
       }
-      else
+#else
+      instance_vk.extensions.enable(getPlatformSpecificSurfaceExtension());
 #endif
-      {
-        instance_vk.extensions.enable(getPlatformSpecificSurfaceExtension());
-      }
       /* X11 doesn't use the correct swapchain offset, flipping can squash the first frames. */
       const bool use_vk_ext_swapchain_maintenance1 =
 #ifdef WITH_GHOST_X11
