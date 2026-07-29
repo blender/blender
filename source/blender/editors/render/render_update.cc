@@ -65,6 +65,20 @@ namespace blender {
 /** \name Render Engines
  * \{ */
 
+static bContext *render_view3d_context_create(
+    Main *bmain, wmWindow *window, ScrArea *area, ARegion *region, Scene *scene)
+{
+  bContext *C = CTX_create();
+  CTX_data_main_set(C, bmain);
+  CTX_data_scene_set(C, scene);
+  CTX_wm_manager_set(C, static_cast<wmWindowManager *>(bmain->wm.first));
+  CTX_wm_window_set(C, window);
+  CTX_wm_screen_set(C, WM_window_get_active_screen(window));
+  CTX_wm_area_set(C, area);
+  CTX_wm_region_set(C, region);
+  return C;
+}
+
 void ED_render_view3d_update(Depsgraph *depsgraph,
                              wmWindow *window,
                              ScrArea *area,
@@ -81,27 +95,57 @@ void ED_render_view3d_update(Depsgraph *depsgraph,
     RegionView3D *rv3d = static_cast<RegionView3D *>(region.regiondata);
     RenderEngine *engine = rv3d->view_render ? RE_view_engine_get(rv3d->view_render) : nullptr;
 
-    /* call update if the scene changed, or if the render engine
-     * tagged itself for update (e.g. because it was busy at the
-     * time of the last update) */
     if (engine && (updated || (engine->flag & RE_ENGINE_DO_UPDATE))) {
-      /* Create temporary context to execute callback in. */
-      bContext *C = CTX_create();
-      CTX_data_main_set(C, bmain);
-      CTX_data_scene_set(C, scene);
-      CTX_wm_manager_set(C, static_cast<wmWindowManager *>(bmain->wm.first));
-      CTX_wm_window_set(C, window);
-      CTX_wm_screen_set(C, WM_window_get_active_screen(window));
-      CTX_wm_area_set(C, area);
-      CTX_wm_region_set(C, &region);
+      bContext *C = render_view3d_context_create(bmain, window, area, &region, scene);
 
       engine->flag &= ~RE_ENGINE_DO_UPDATE;
-      /* NOTE: Important to pass non-updated depsgraph, This is because this function is called
-       * from inside dependency graph evaluation. Additionally, if we pass fully evaluated one
-       * we will lose updates stored in the graph. */
       engine->type->view_update(engine, C, CTX_data_depsgraph_pointer(C));
 
       CTX_free(C);
+    }
+  }
+}
+
+void ED_render_view3d_pause_resume(Main *bmain, const bool pause)
+{
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+  if (!wm) {
+    return;
+  }
+  for (wmWindow &win : wm->windows) {
+    Scene *scene = WM_window_get_active_scene(&win);
+    const bScreen *screen = WM_window_get_active_screen(&win);
+    if (!screen) {
+      continue;
+    }
+    for (ScrArea &area : screen->areabase) {
+      if (area.spacetype != SPACE_VIEW3D) {
+        continue;
+      }
+      for (ARegion &region : area.regionbase) {
+        if (region.regiontype != RGN_TYPE_WINDOW) {
+          continue;
+        }
+        RegionView3D *rv3d = static_cast<RegionView3D *>(region.regiondata);
+        if (!rv3d || !rv3d->view_render) {
+          continue;
+        }
+        RenderEngine *engine = RE_view_engine_get(rv3d->view_render);
+        if (!engine) {
+          continue;
+        }
+
+        bContext *C = render_view3d_context_create(bmain, &win, &area, &region, scene);
+
+        if (pause) {
+          RE_engine_view_pause(engine, C);
+        }
+        else {
+          RE_engine_view_resume(engine, C);
+        }
+
+        CTX_free(C);
+      }
     }
   }
 }

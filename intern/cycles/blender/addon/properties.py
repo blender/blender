@@ -380,7 +380,8 @@ def update_world(self, context):
 
 
 def update_pause(self, context):
-    context.area.tag_redraw()
+    if context.area:
+        context.area.tag_redraw()
 
 
 class CyclesRenderSettings(bpy.types.PropertyGroup):

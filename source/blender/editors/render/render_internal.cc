@@ -23,8 +23,11 @@
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BKE_callbacks.hh"
 #include "BKE_colortools.hh"
@@ -680,6 +683,9 @@ static void render_endjob(void *rjv)
     WM_locked_interface_set(static_cast<wmWindowManager *>(G_MAIN->wm.first), false);
     DEG_tag_on_visible_update(G_MAIN, false);
   }
+
+  /* Resume viewport render engines now that the final render is complete. */
+  ED_render_view3d_pause_resume(G_MAIN, false);
 }
 
 /* called by render, check job 'stop' value or the global */
@@ -990,6 +996,9 @@ static wmOperatorStatus screen_render_invoke(bContext *C, wmOperator *op, const 
    * the reason of this is that active scene could change when rendering
    * several layers from compositor #31800. */
   op->customdata = scene;
+
+  /* Pause viewport render engines for the duration of the final render. */
+  ED_render_view3d_pause_resume(bmain, true);
 
   WM_jobs_start(CTX_wm_manager(C), wm_job);
 

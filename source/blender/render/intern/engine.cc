@@ -1447,6 +1447,25 @@ void RE_engine_gpu_context_unlock(RenderEngine *engine)
   }
 }
 
+void RE_engine_view_pause(RenderEngine *engine, const bContext *context)
+{
+  if (engine->type->view_pause) {
+    engine->type->view_pause(engine, context);
+    engine->auto_paused = true;
+  }
+}
+
+void RE_engine_view_resume(RenderEngine *engine, const bContext *context)
+{
+  if (!engine->auto_paused) {
+    return;
+  }
+  if (engine->type->view_resume) {
+    engine->type->view_resume(engine, context);
+  }
+  engine->auto_paused = false;
+}
+
 /** \} */
 
 }  // namespace blender
