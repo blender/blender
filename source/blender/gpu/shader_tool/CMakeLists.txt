@@ -72,10 +72,10 @@ if(WITH_GTESTS)
 
   blender_add_test_suite_executable(
     shader_tool
-    "${TEST_SRC};${SRC}"
+    "${TEST_SRC}"
     "${TEST_INC}"
     ""
     ""
-    ""
+    "${SRC}"
   )
 endif()
