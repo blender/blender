@@ -169,7 +169,7 @@ GHOST_IContext *GHOST_SystemSDL::createOffscreenContext(GHOST_GPUSettings gpu_se
     case GHOST_kDrawingContextTypeVulkan: {
       GHOST_Context *context = new GHOST_ContextVK(context_params_offscreen,
                                                    GHOST_kVulkanPlatformHeadless,
-                                                   0,
+                                                   nullptr,
                                                    nullptr,
                                                    nullptr,
                                                    nullptr,

@@ -125,15 +125,15 @@ class GHOST_SystemHeadless : public GHOST_System {
       case GHOST_kDrawingContextTypeVulkan: {
 #  ifdef _WIN32
         GHOST_Context *context = new GHOST_ContextVK(
-            context_params_offscreen, (HWND)0, 1, 2, gpu_settings.preferred_device);
+            context_params_offscreen, (HWND)0, nullptr, 1, 2, gpu_settings.preferred_device);
 #  elif defined(__APPLE__)
         GHOST_Context *context = new GHOST_ContextVK(
-            context_params_offscreen, nullptr, 1, 2, gpu_settings.preferred_device);
+            context_params_offscreen, nullptr, nullptr, 1, 2, gpu_settings.preferred_device);
 #  else
         GHOST_Context *context = new GHOST_ContextVK(context_params_offscreen,
                                                      GHOST_kVulkanPlatformHeadless,
-                                                     0,
-                                                     0,
+                                                     nullptr,
+                                                     nullptr,
                                                      nullptr,
                                                      nullptr,
                                                      nullptr,

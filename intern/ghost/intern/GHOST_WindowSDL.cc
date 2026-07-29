@@ -109,9 +109,16 @@ GHOST_Context *GHOST_WindowSDL::newDrawingContext(GHOST_TDrawingContextType type
 
 #ifdef WITH_VULKAN_BACKEND
     case GHOST_kDrawingContextTypeVulkan: {
+#  ifdef _WIN32
+      GHOST_Context *context = new GHOST_ContextVK(
+          want_context_params_, (HWND)0, sdl_win_, 1, 2, preferred_device_, &hdr_info_);
+#  elif defined(__APPLE__)
+      GHOST_Context *context = new GHOST_ContextVK(
+          want_context_params_, nullptr, sdl_win_, 1, 2, preferred_device_, &hdr_info_);
+#  else
       GHOST_Context *context = new GHOST_ContextVK(want_context_params_,
-                                                   GHOST_kVulkanPlatformSDL,
-                                                   0,
+                                                   GHOST_kVulkanPlatformHeadless,
+                                                   nullptr,
                                                    nullptr,
                                                    nullptr,
                                                    nullptr,
@@ -121,6 +128,7 @@ GHOST_Context *GHOST_WindowSDL::newDrawingContext(GHOST_TDrawingContextType type
                                                    2,
                                                    preferred_device_,
                                                    &hdr_info_);
+#  endif
       if (context->initializeDrawingContext()) {
         return context;
       }

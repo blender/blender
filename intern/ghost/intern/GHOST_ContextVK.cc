@@ -1685,7 +1685,8 @@ const char *GHOST_ContextVK::getPlatformSpecificSurfaceExtension() const
 #  endif
 #  ifdef WITH_GHOST_SDL
     case GHOST_kVulkanPlatformSDL:
-      /* SDL provides the required instance extensions itself, see #GHOST_ContextVK::initializeDrawingContext. */
+      /* SDL provides the required instance extensions itself, see
+       * #GHOST_ContextVK::initializeDrawingContext. */
       break;
 #  endif
     case GHOST_kVulkanPlatformHeadless:

@@ -130,9 +130,9 @@ class GHOST_ContextVK : public GHOST_Context {
                   wl_surface *wayland_surface,
                   wl_display *wayland_display,
                   const GHOST_ContextVK_WindowInfo *wayland_window_info,
+#endif
                   /* SDL */
                   SDL_Window *sdl_window,
-#endif
                   int contextMajorVersion,
                   int contextMinorVersion,
                   const GHOST_GPUDevice &preferred_device,

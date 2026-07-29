@@ -313,7 +313,7 @@ GHOST_IContext *GHOST_SystemWin32::createOffscreenContext(GHOST_GPUSettings gpu_
 #ifdef WITH_VULKAN_BACKEND
     case GHOST_kDrawingContextTypeVulkan: {
       GHOST_Context *context = new GHOST_ContextVK(
-          context_params_offscreen, (HWND)0, 1, 2, gpu_settings.preferred_device);
+          context_params_offscreen, (HWND)0, nullptr, 1, 2, gpu_settings.preferred_device);
       if (context->initializeDrawingContext()) {
         return context;
       }
