@@ -852,9 +852,9 @@ GHOST_ContextVK::GHOST_ContextVK(const GHOST_ContextParams &context_params,
                                  wl_surface *wayland_surface,
                                  wl_display *wayland_display,
                                  const GHOST_ContextVK_WindowInfo *wayland_window_info,
+#endif
                                  /* SDL */
                                  SDL_Window *sdl_window,
-#endif
                                  int contextMajorVersion,
                                  int contextMinorVersion,
                                  const GHOST_GPUDevice &preferred_device,
@@ -873,9 +873,9 @@ GHOST_ContextVK::GHOST_ContextVK(const GHOST_ContextParams &context_params,
       wayland_surface_(wayland_surface),
       wayland_display_(wayland_display),
       wayland_window_info_(wayland_window_info),
+#endif
       /* SDL */
       sdl_window_(sdl_window),
-#endif
       context_major_version_(contextMajorVersion),
       context_minor_version_(contextMinorVersion),
       preferred_device_(preferred_device),

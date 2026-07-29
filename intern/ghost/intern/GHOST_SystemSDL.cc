@@ -169,10 +169,10 @@ GHOST_IContext *GHOST_SystemSDL::createOffscreenContext(GHOST_GPUSettings gpu_se
     case GHOST_kDrawingContextTypeVulkan: {
 #  ifdef _WIN32
       GHOST_Context *context = new GHOST_ContextVK(
-          context_params_offscreen, (HWND)0, sdl_win_, 1, 2, gpu_settings.preferred_device);
+          context_params_offscreen, (HWND)0, nullptr, 1, 2, gpu_settings.preferred_device);
 #  elif defined(__APPLE__)
       GHOST_Context *context = new GHOST_ContextVK(
-          context_params_offscreen, nullptr, sdl_win_, 1, 2, gpu_settings.preferred_device);
+          context_params_offscreen, nullptr, nullptr, 1, 2, gpu_settings.preferred_device);
 #  else
       GHOST_Context *context = new GHOST_ContextVK(context_params_offscreen,
                                                    GHOST_kVulkanPlatformSDL,

@@ -263,9 +263,10 @@ class GHOST_ContextVK : public GHOST_Context {
   wl_surface *wayland_surface_;
   wl_display *wayland_display_;
   const GHOST_ContextVK_WindowInfo *wayland_window_info_;
+#endif
+
   /* SDL */
   SDL_Window *sdl_window_;
-#endif
 
   const int context_major_version_;
   const int context_minor_version_;
