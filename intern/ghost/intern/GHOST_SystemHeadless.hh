@@ -132,8 +132,8 @@ class GHOST_SystemHeadless : public GHOST_System {
 #  else
         GHOST_Context *context = new GHOST_ContextVK(context_params_offscreen,
                                                      GHOST_kVulkanPlatformHeadless,
-                                                     nullptr,
-                                                     nullptr,
+                                                     0,
+                                                     0,
                                                      nullptr,
                                                      nullptr,
                                                      nullptr,

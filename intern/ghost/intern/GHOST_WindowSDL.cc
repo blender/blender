@@ -118,8 +118,8 @@ GHOST_Context *GHOST_WindowSDL::newDrawingContext(GHOST_TDrawingContextType type
 #  else
       GHOST_Context *context = new GHOST_ContextVK(want_context_params_,
                                                    GHOST_kVulkanPlatformHeadless,
-                                                   nullptr,
-                                                   nullptr,
+                                                   0,
+                                                   0,
                                                    nullptr,
                                                    nullptr,
                                                    nullptr,
