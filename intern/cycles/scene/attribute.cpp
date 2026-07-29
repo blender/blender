@@ -905,6 +905,17 @@ static bool standard_type_element(const Geometry *geometry,
   return false;
 }
 
+bool Attribute::matches_standard(const Geometry *geometry, const AttributeStandard std) const
+{
+  TypeDesc std_type;
+  AttributeElement std_element;
+  if (!standard_type_element(geometry, std, std_type, std_element)) {
+    return false;
+  }
+
+  return type == std_type && element == std_element;
+}
+
 Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 {
   Attribute *attr = nullptr;
@@ -1010,10 +1021,32 @@ void AttributeSet::remove(AttributeStandard std)
 
 Attribute *AttributeSet::find(AttributeRequest &req)
 {
-  if (req.std == ATTR_STD_NONE) {
-    return find(req.name);
+  if (!req.name.empty()) {
+    /* Name has priority if requested. */
+    Attribute *attr = find(req.name);
+    if (attr) {
+      return attr;
+    }
   }
-  return find(req.std);
+
+  if (req.std != ATTR_STD_NONE) {
+    /* Next try standard attribute. */
+    Attribute *attr = find(req.std);
+    if (attr) {
+      return attr;
+    }
+
+    if (req.name.empty()) {
+      /* Attribute not marked standard with matching name, data type and
+       * domain is accepted as well. */
+      attr = find(ustring(Attribute::standard_name(req.std)));
+      if (attr && attr->matches_standard(geometry, req.std)) {
+        return attr;
+      }
+    }
+  }
+
+  return nullptr;
 }
 
 void AttributeSet::remove(Attribute *attribute)
@@ -1131,6 +1164,17 @@ AttributeRequest::AttributeRequest(AttributeStandard std_)
   desc.type = NODE_ATTR_FLOAT;
 }
 
+AttributeRequest::AttributeRequest(ustring name_, AttributeStandard std_)
+{
+  name = name_;
+  std = std_;
+
+  type = TypeFloat;
+  desc.element = ATTR_ELEMENT_NONE;
+  desc.offset = 0;
+  desc.type = NODE_ATTR_FLOAT;
+}
+
 /* AttributeRequestSet */
 
 AttributeRequestSet::AttributeRequestSet() = default;
@@ -1163,7 +1207,7 @@ bool AttributeRequestSet::modified(const AttributeRequestSet &other) const
 void AttributeRequestSet::add(ustring name)
 {
   for (const AttributeRequest &req : requests) {
-    if (req.name == name) {
+    if (req.name == name && req.std == ATTR_STD_NONE) {
       return;
     }
   }
@@ -1173,8 +1217,11 @@ void AttributeRequestSet::add(ustring name)
 
 void AttributeRequestSet::add(AttributeStandard std)
 {
-  for (const AttributeRequest &req : requests) {
+  for (AttributeRequest &req : requests) {
     if (req.std == std) {
+      /* Clear the name so that std is preferred if available, and name
+       * is only used as a last restort in #AttributeSet::find. */
+      req.name = ustring();
       return;
     }
   }
@@ -1185,11 +1232,14 @@ void AttributeRequestSet::add(AttributeStandard std)
 void AttributeRequestSet::add(const AttributeRequestSet &reqs)
 {
   for (const AttributeRequest &req : reqs.requests) {
-    if (req.std == ATTR_STD_NONE) {
+    if (req.name.empty()) {
+      add(req.std);
+    }
+    else if (req.std == ATTR_STD_NONE) {
       add(req.name);
     }
     else {
-      add(req.std);
+      add_name_or_standard(req.name);
     }
   }
 }
@@ -1202,11 +1252,11 @@ void AttributeRequestSet::add_name_or_standard(ustring name)
 
   const AttributeStandard std = Attribute::name_standard(name);
 
-  if (std != ATTR_STD_NONE) {
-    add(std);
-  }
-  else {
+  if (std == ATTR_STD_NONE) {
     add(name);
+  }
+  else if (!find(std)) {
+    requests.push_back(AttributeRequest(name, std));
   }
 
   /* Request the UV map that a tangent is computed from. */

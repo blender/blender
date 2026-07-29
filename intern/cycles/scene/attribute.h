@@ -191,6 +191,8 @@ class Attribute {
   static ustring osl_name(AttributeStandard std);
   static ustring osl_name(ustring name);
 
+  bool matches_standard(const Geometry *geometry, AttributeStandard std) const;
+
   static AttrKernelDataType kernel_type(const Attribute &attr);
 
   void get_uv_tiles(Geometry *geom, AttributePrimitive prim, unordered_set<int> &tiles) const;
@@ -266,7 +268,8 @@ class AttributeSet {
  *
  * Request from a shader to use a certain attribute, so we can figure out
  * which ones we need to export from the host app end store for the kernel.
- * The attribute is found either by name or by standard attribute type. */
+ *
+ * The attribute is found by name, by standard attribute type, or by both. */
 
 class AttributeRequest {
  public:
@@ -278,7 +281,8 @@ class AttributeRequest {
   AttributeDescriptor desc;
 
   explicit AttributeRequest(ustring name_);
-  explicit AttributeRequest(AttributeStandard std);
+  explicit AttributeRequest(AttributeStandard std_);
+  AttributeRequest(ustring name_, AttributeStandard std_);
 };
 
 /* AttributeRequestSet
@@ -298,7 +302,7 @@ class AttributeRequestSet {
 
   /* Request the attribute with this name, or the standard attribute that this
    * is the name of. This is used by e.g. the Attribute node, which accepts
-   * both even if this sometimes ambiguous. */
+   * both even if this sometimes ambiguous. If both exist, the name has priority. */
   void add_name_or_standard(ustring name);
 
   void add(const AttributeRequestSet &reqs);
