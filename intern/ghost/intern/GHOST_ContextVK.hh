@@ -65,9 +65,6 @@ enum GHOST_TVulkanPlatformType {
 #ifdef WITH_GHOST_WAYLAND
   GHOST_kVulkanPlatformWayland = 2,
 #endif
-#ifdef WITH_GHOST_SDL
-  GHOST_kVulkanPlatformSDL = 3,
-#endif
 };
 
 struct GHOST_ContextVK_WindowInfo {

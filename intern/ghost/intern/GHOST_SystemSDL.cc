@@ -175,7 +175,7 @@ GHOST_IContext *GHOST_SystemSDL::createOffscreenContext(GHOST_GPUSettings gpu_se
           context_params_offscreen, nullptr, nullptr, 1, 2, gpu_settings.preferred_device);
 #  else
       GHOST_Context *context = new GHOST_ContextVK(context_params_offscreen,
-                                                   GHOST_kVulkanPlatformSDL,
+                                                   GHOST_kVulkanPlatformHeadless,
                                                    nullptr,
                                                    nullptr,
                                                    nullptr,

@@ -1683,12 +1683,6 @@ const char *GHOST_ContextVK::getPlatformSpecificSurfaceExtension() const
       return VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME;
       break;
 #  endif
-#  ifdef WITH_GHOST_SDL
-    case GHOST_kVulkanPlatformSDL:
-      /* SDL provides the required instance extensions itself, see
-       * #GHOST_ContextVK::initializeDrawingContext. */
-      break;
-#  endif
     case GHOST_kVulkanPlatformHeadless:
       break;
   }
@@ -1699,7 +1693,9 @@ const char *GHOST_ContextVK::getPlatformSpecificSurfaceExtension() const
 GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 {
   bool use_vk_ext_swapchain_colorspace = false;
-#ifdef _WIN32
+#if defined(WITH_GHOST_SDL)
+  const bool use_window_surface = (sdl_window_ != nullptr);
+#elif defined(_WIN32)
   const bool use_window_surface = (hwnd_ != nullptr);
 #elif defined(__APPLE__)
   const bool use_window_surface = (metal_layer_ != nullptr);
@@ -1714,11 +1710,6 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 #  ifdef WITH_GHOST_WAYLAND
     case GHOST_kVulkanPlatformWayland:
       use_window_surface = (wayland_display_ != nullptr) && (wayland_surface_ != nullptr);
-      break;
-#  endif
-#  ifdef WITH_GHOST_SDL
-    case GHOST_kVulkanPlatformSDL:
-      use_window_surface = (sdl_window_ != nullptr);
       break;
 #  endif
     case GHOST_kVulkanPlatformHeadless:
@@ -1801,7 +1792,12 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 
   /* Initialize VkSurface */
   if (use_window_surface) {
-#ifdef _WIN32
+#if defined(WITH_GHOST_SDL)
+    if (!SDL_Vulkan_CreateSurface(sdl_window_, instance_vk.vk_instance, nullptr, &surface_)) {
+      CLOG_ERROR(&LOG, "SDL_Vulkan_CreateSurface failed: %s", SDL_GetError());
+      return GHOST_kFailure;
+    }
+#elif defined(_WIN32)
     VkWin32SurfaceCreateInfoKHR surface_create_info = {};
     surface_create_info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
     surface_create_info.hinstance = GetModuleHandle(nullptr);
@@ -1840,15 +1836,6 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
         VK_CHECK(vkCreateWaylandSurfaceKHR(
                      instance_vk.vk_instance, &surface_create_info, nullptr, &surface_),
                  GHOST_kFailure);
-        break;
-      }
-#  endif
-#  ifdef WITH_GHOST_SDL
-      case GHOST_kVulkanPlatformSDL: {
-        if (!SDL_Vulkan_CreateSurface(sdl_window_, instance_vk.vk_instance, nullptr, &surface_)) {
-          CLOG_ERROR(&LOG, "SDL_Vulkan_CreateSurface failed: %s", SDL_GetError());
-          return GHOST_kFailure;
-        }
         break;
       }
 #  endif
