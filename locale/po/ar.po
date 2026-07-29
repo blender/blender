@@ -35001,10 +35001,6 @@ msgid "Plane Track"
 msgstr "ﺢﻄﺴﻤﻟﺍ ﺭﺎﺴﻣ"
 
 
-msgid "unknown error reading file"
-msgstr ".\"%s‬‪\" :ﻞﻴﻤﺤﺗ ءﺎﻨﺛﺃ ﻑﻭﺮﻌﻣ ﺮﻴﻏ ﺄﻄﺧ"
-
-
 msgid "Unable to read"
 msgstr "ﻒﻠﻤﻟﺍ ﺢﺘﻓ ﻰﻠﻋ ﺭﺩﺎﻗ ﺮﻴﻏ"
 
@@ -35801,10 +35797,6 @@ msgid "Cannot apply to a multi user armature"
 msgstr "ﻞﻜﻴﻫ ﺊﺸﻧﺍ"
 
 
-msgid "Editmode lattice is not supported yet"
-msgstr ".\"%s‬‪\" :ﻒﻠﻤﻟﺍ ﻲﻓ ﻡﻮﻋﺪﻣ ﺮﻴﻏ ﻖﻴﺴﻨﺘﻟﺍ"
-
-
 msgid "Vertex group is locked"
 msgstr "ﺔﻠﻔﻘﻣ ﺙﺪﺤﻟﺍ ﺔﻋﻮﻤﺠﻣ"
 
@@ -36173,10 +36165,6 @@ msgid "Make text internal"
 msgstr "ﻲﻠﺧﺍﺩ ﺺﻨﻟﺍ ﻞﻌﺟﺍ"
 
 
-msgid "unknown error writing file"
-msgstr ".\"%s‬‪\" :ﻞﻴﻤﺤﺗ ءﺎﻨﺛﺃ ﻑﻭﺮﻌﻣ ﺮﻴﻏ ﺄﻄﺧ"
-
-
 msgid "No Recent Files"
 msgstr "ﺔﺜﻳﺪﺣ ﺕﺎﻔﻠﻣ ﻻ﻿"
 
@@ -36396,10 +36384,6 @@ msgstr "ﺔﺌﻴﺑ ﺔﻄﻳﺮﺧ"
 
 msgid "No valid formats found"
 msgstr "ﻝﻮﺤﺗ ﻥﻭﺪﺑ"
-
-
-msgid "Could not open file for writing"
-msgstr ".%s‬\", ‪%s‬‪\" :ﻒﻠﻤﻟﺍ ﺓءﺍﺮﻗ ﻦﻜﻤﻳ ﻻ﻿"
 
 
 msgid "Keying set path could not be added"

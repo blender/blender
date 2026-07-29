@@ -4,8 +4,8 @@ msgstr ""
 "Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-27 09:52+0000\n"
-"PO-Revision-Date: 2026-07-27 09:59+0000\n"
-"Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
+"PO-Revision-Date: 2026-07-28 20:12+0000\n"
+"Last-Translator: Matic <matic.jelen2002@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
 "Language: sl\n"
 "MIME-Version: 1.0\n"
@@ -54145,6 +54145,14 @@ msgid "Connect Movie Strips by Default"
 msgstr "Privzeto poveži video trakove"
 
 
+msgid "Annotation Default Color"
+msgstr "Privzeta barva zaznamkov"
+
+
+msgid "Grease Pencil Eraser Radius"
+msgstr "Polmer Grease Pencil radirke"
+
+
 msgid "Default Key Channels"
 msgstr "Privzeti kanali ključev"
 
@@ -54160,6 +54168,10 @@ msgstr "Samodejno odmikanje"
 
 msgid "Auto-offset"
 msgstr "Samodejni odmik"
+
+
+msgid "The default alignment for objects added from a 3D viewport menu"
+msgstr "Privzeta poravnava za predmete dodane iz menija v 3D pogledu"
 
 
 msgid "Align newly added objects to the 3D Cursor's rotation"
@@ -54210,6 +54222,10 @@ msgid "Duplicate Light"
 msgstr "Podvoji luč"
 
 
+msgid "Duplicate Light Probe"
+msgstr "Podvoji svetlobno sondo"
+
+
 msgid "Duplicate Material"
 msgstr "Podvoji material"
 
@@ -54224,6 +54240,10 @@ msgstr "Podvoji metažogo"
 
 msgid "Duplicate Particle"
 msgstr "Podvoji delec"
+
+
+msgid "Duplicate Point Cloud"
+msgstr "Podvoji oblak točk"
 
 
 msgid "Duplicate Speaker"
@@ -60014,6 +60034,10 @@ msgstr "Leča"
 
 msgid "Viewport lens angle"
 msgstr "Krivina glediščne leče v 3D pogledu"
+
+
+msgid "Lock to Cursor"
+msgstr "Prikleni na kazalec"
 
 
 msgid "3D View center is locked to the cursor's position"

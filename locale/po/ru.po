@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-27 09:52+0000\n"
-"PO-Revision-Date: 2026-07-25 11:12+0000\n"
+"PO-Revision-Date: 2026-07-29 08:00+0000\n"
 "Last-Translator: Alexandr Fatih <radix83@rambler.ru>\n"
 "Language-Team: Russian <https://translate.blender.org/projects/blender-ui/ui/ru/>\n"
 "Language: ru\n"
@@ -5353,6 +5353,18 @@ msgstr "Добавить \"набор выделения\""
 
 msgid "Add Selection Set for this collection"
 msgstr "Добавить \"набор выделения\" для этой коллекции"
+
+
+msgid "Button Row"
+msgstr "Строка кнопки"
+
+
+msgid "The row in the UI panel where the button for this collection is shown. (0 = hidden)"
+msgstr "Строка на панели интерфейса, где будет отображаться кнопка для этой коллекции (\"0\" = скрыто)"
+
+
+msgid "Button Text"
+msgstr "Текст кнопки"
 
 
 msgid "Text to use on the UI panel button instead of the collection name"
@@ -19159,6 +19171,14 @@ msgid "Additional data for an asset data-block"
 msgstr "Дополнительные данные для блока данных ассета"
 
 
+msgid "Linked Packed Deep Hash"
+msgstr "Связанный упакованный глубокий хэш"
+
+
+msgid "Hash representing a unique version of a packed linked data and all of its dependencies"
+msgstr "Хэш, представляющий уникальную версию упакованных связанных данных и всех их зависимостей"
+
+
 msgctxt "ID"
 msgid "Type"
 msgstr "Тип"
@@ -19497,27 +19517,139 @@ msgstr "Завершить скрипт"
 
 
 msgid "Run this script after generation to apply user-specific changes"
-msgstr "Запустить этот скрипт после генерации, чтобы применить изменения настроенные пользователем"
+msgstr "Запускать этот скрипт после генерации, чтобы применить изменения настроенные пользователем"
+
+
+msgid "Overwrite Widgets"
+msgstr "Перезаписать виджеты"
+
+
+msgid "Forces Rigify to delete and rebuild all of the generated widget objects. If disabled, widgets that already exist when regenerating will not be replaced to facilitate manual editing"
+msgstr "Заставляет Rigify удалить и заново создать все сгенерированные виджеты. Если отключено, – уже существующие при повторной генерации виджеты заменяться не будут, чтобы облегчить ручное редактирование"
 
 
 msgid "Mirror Widgets"
 msgstr "Отзеркалить виджеты"
 
 
+msgid "Generate symmetrical left/right widgets as linked duplicates. Widgets on the Right side will be scaled by -1 on the x axis"
+msgstr "Сгенерировать симметричные левые/правые виджеты в качестве связанных дубликатов. Виджеты \"справа\" будут масштабированы по оси X с коэффициентом \"-1\""
+
+
 msgid "Rigify Rig Name"
 msgstr "Имя рига Rigify"
+
+
+msgid "If specified, this name will be used for the newly generated armature object, widget collection and script. Otherwise, a name is generated based on the name of the metarig object by either replacing... - 'metarig' with 'rig'- 'META' with 'RIG'- or prefixing with 'RIG-' When updating an already generated rig its name is never changed"
+msgstr "Если указано, – данное имя будет использоваться для вновь создаваемого объекта арматуры, коллекции виджетов и скрипта. В противном случае имя генерируется на основе имени метарига путём замены: \"metarig\" на \"rig\", \"META\" на \"RIG\" либо добавления префикса \"RIG-\". При обновлении уже созданного рига его имя никогда не меняется"
 
 
 msgid "Rigify Target Rig UI"
 msgstr "ПИ целевого рига Rigify"
 
 
+msgid "Defines the text data-block to overwrite. If unset, a new one will be created and named based on the name of the rig"
+msgstr "Определяет текстовый блок данных для перезаписи. Если не установлено, – будет создан новый, названный на основе имени рига"
+
+
 msgid "Rigify Target Rig"
 msgstr "Целевой риг Rigify"
 
 
+msgid "Defines which armature object to overwrite. If unset, a new one will be created with a name based on the Rig Name option or the name of the metarig"
+msgstr "Определяет, какой объект арматуры нужно перезаписать. Если не установлено, – будет создан новый объект, имя которого будет зависеть от параметра \"Имя рига (rig name)\" или имени метарига"
+
+
 msgid "Theme"
 msgstr "Тема"
+
+
+msgid "Theme 01"
+msgstr "Тема 01"
+
+
+msgid "Theme 02"
+msgstr "Тема 02"
+
+
+msgid "Theme 03"
+msgstr "Тема 03"
+
+
+msgid "Theme 04"
+msgstr "Тема 04"
+
+
+msgid "Theme 05"
+msgstr "Тема 05"
+
+
+msgid "Theme 06"
+msgstr "Тема 06"
+
+
+msgid "Theme 07"
+msgstr "Тема 07"
+
+
+msgid "Theme 08"
+msgstr "Тема 08"
+
+
+msgid "Theme 09"
+msgstr "Тема 09"
+
+
+msgid "Theme 10"
+msgstr "Тема 10"
+
+
+msgid "Theme 11"
+msgstr "Тема 11"
+
+
+msgid "Theme 12"
+msgstr "Тема 12"
+
+
+msgid "Theme 13"
+msgstr "Тема 13"
+
+
+msgid "Theme 14"
+msgstr "Тема 14"
+
+
+msgid "Theme 15"
+msgstr "Тема 15"
+
+
+msgid "Theme 16"
+msgstr "Тема 16"
+
+
+msgid "Theme 17"
+msgstr "Тема 17"
+
+
+msgid "Theme 18"
+msgstr "Тема 18"
+
+
+msgid "Theme 19"
+msgstr "Тема 19"
+
+
+msgid "Theme 20"
+msgstr "Тема 20"
+
+
+msgid "Widget Collection"
+msgstr "Коллекция виджетов"
+
+
+msgid "Defines which collection to place widget objects in. If unset, a new collection will be created based on the name of the rig"
+msgstr "Определяет, в какую коллекцию помещать объекты-виджеты. Если не задана, – новая коллекция будет создана на основе имени рига"
 
 
 msgid "Display Axes"
@@ -19977,6 +20109,14 @@ msgid "Mask Texture Overlay Alpha"
 msgstr "Альфа-наложение текстуры маски"
 
 
+msgid "Pressure Auto-Smooth Mapping"
+msgstr "Сопоставление автосглаживания с давлением"
+
+
+msgid "Curve used to map pressure to brush auto-smooth"
+msgstr "Кривая, используемая для сопоставления давления с автосглаживанием кисти"
+
+
 msgid "Falloff Curve"
 msgstr "Кривая затухания"
 
@@ -20040,6 +20180,14 @@ msgid "Constant"
 msgstr "Неизменный"
 
 
+msgid "Pressure Hardness Mapping"
+msgstr "Сопоставление жёсткости с давлением"
+
+
+msgid "Curve used to map pressure to brush hardness"
+msgstr "Кривая, используемая для сопоставления давления с жёсткостью кисти"
+
+
 msgid "Pressure Jitter Mapping"
 msgstr "Сопоставление колебаний с давлением"
 
@@ -20054,6 +20202,14 @@ msgstr "Сопоставление размера с давлением"
 
 msgid "Curve used to map pressure to brush size"
 msgstr "Кривая, используемая для сопоставления давления с размером кисти"
+
+
+msgid "Pressure Spacing Mapping"
+msgstr "Сопоставление интервалов с давлением"
+
+
+msgid "Curve used to map pressure to brush spacing"
+msgstr "Кривая, используемая для сопоставления давления с интервалами кисти"
 
 
 msgid "Pressure Strength Mapping"
@@ -21572,6 +21728,14 @@ msgid "Calculate brush spacing relative to the scene using the stroke location"
 msgstr "Вычислять интервалы кисти относительно размеров сцены"
 
 
+msgid "Smooth Pressure"
+msgstr "Давление для сглаживания"
+
+
+msgid "Use pressure to modulate auto-smoothing."
+msgstr "Позволяет использовать силу нажатия для регулирования степени автосглаживания."
+
+
 msgid "Smooth Stroke"
 msgstr "Сглаживать штрихи"
 
@@ -21597,7 +21761,7 @@ msgstr "Использовать давление для влажного сме
 
 
 msgid "Use pressure to modulate wet mix"
-msgstr "Позволяет использовать давление для регулирования влажного смеше́ния краски на кисти"
+msgstr "Позволяет использовать силу нажатия для регулирования влажного смеше́ния краски на кисти"
 
 
 msgid "Use Pressure for Wet Persistence"
@@ -23145,6 +23309,10 @@ msgstr "Домен выделения"
 
 msgid "Mesh object that the curves can be attached to"
 msgstr "Меш-объект, к которому можно прикрепить кривые"
+
+
+msgid "Collision Distance"
+msgstr "Расстояние столкновений"
 
 
 msgid "Distance to keep the curves away from the surface"
@@ -33394,7 +33562,7 @@ msgstr "NdofB11"
 
 msgctxt "UI_Events_KeyMaps"
 msgid "NDOF Button 12"
-msgstr "3D-Манип.: Кнопка 12"
+msgstr "NDOF кнопка 12"
 
 
 msgid "NdofB12"
@@ -49523,6 +49691,22 @@ msgid "Join groups of Grease Pencil layers into one"
 msgstr "Объединить группы слоёв Grease Pencil в один"
 
 
+msgid "Determines how to choose which layers are merged"
+msgstr "Определяет способ выбора объединяемых слоёв"
+
+
+msgid "Combine all layers which have the same name"
+msgstr "Объединить все слои, имеющие одинаковые имена"
+
+
+msgid "By Group ID"
+msgstr "По ID группы"
+
+
+msgid "Provide a custom group ID for each layer and all layers with the same ID will be merged into one"
+msgstr "Задать пользовательский ID группы для каждого слоя. Все слои с одинаковым ID будут объединены в один"
+
+
 msgid "Merge Points"
 msgstr "Объединить точки"
 
@@ -50169,6 +50353,18 @@ msgstr "Установить цвет Grease Pencil"
 
 msgid "Set color and opacity attributes on Grease Pencil geometry"
 msgstr "Установить атрибуты цвета и непрозрачности для геометрии Grease Pencil"
+
+
+msgid "Set the color and opacity for strokes or fills"
+msgstr "Задать цвет и значение непрозрачности для штрихов или заполнений"
+
+
+msgid "Set the color and opacity for the points of the stroke"
+msgstr "Задать цвет и значение непрозрачности для точек штриха"
+
+
+msgid "Set the color and opacity for the stroke fills"
+msgstr "Задать цвет и значение непрозрачности для заполнений штриха"
 
 
 msgid "Set Grease Pencil Depth"
@@ -54737,6 +54933,16 @@ msgstr "Сделать коллекцию активной"
 
 
 msgctxt "Operator"
+msgid "Move/Delete Button"
+msgstr "Кнопка перемещения/удаления"
+
+
+msgctxt "Operator"
+msgid "Add Color Set"
+msgstr "Добавить цветовой набор"
+
+
+msgctxt "Operator"
 msgid "Rigify Add Color Set from Theme"
 msgstr "Rigify - Добавить набор цветов из темы"
 
@@ -54776,6 +54982,11 @@ msgstr "Модернизирует метариг от слоёв костей �
 msgctxt "Operator"
 msgid "Rigify Upgrade Metarig Layers"
 msgstr "Rigify - Обновить слои метарига"
+
+
+msgctxt "Operator"
+msgid "Get active/selected colors from current Blender theme"
+msgstr "Получить активные/выделенные цвета из текущей темы Blender'а"
 
 
 msgid "Validates references from rig component settings to bone collections"
@@ -55189,7 +55400,7 @@ msgstr "Включить эту тему"
 
 msgctxt "Operator"
 msgid "Enable theme extension"
-msgstr "Включить расширение-тему"
+msgstr "Включить расширение темы"
 
 
 msgid "Disable and uninstall the extension"
@@ -58959,6 +59170,23 @@ msgstr "Перенести всех пользователей с одного �
 
 
 msgctxt "Operator"
+msgid "Convert Rotation Mode"
+msgstr "Преобразовать режим вращения"
+
+
+msgid "On all selected, change the rotation mode and convert any existing animation into that new mode"
+msgstr "Для всех выделенных объектов, – изменить режим вращения и конвертировать всю существующую анимацию в этот новый режим"
+
+
+msgid "Creates a key on every frame before conversion so interpolation is preserved in the new mode"
+msgstr "Создать ключ на каждом кадре перед конвертацией, чтобы сохранить интерполяцию в новом режиме"
+
+
+msgid "The rotation mode to convert the selection to"
+msgstr "Режим вращения, в который нужно преобразовать выделение"
+
+
+msgctxt "Operator"
 msgid "Frame Scene/Preview Range"
 msgstr "Кадрироваться на сцене/диапазоне превью"
 
@@ -59575,6 +59803,14 @@ msgid "Reveal all bones hidden in Edit Mode"
 msgstr "Отобразить все скрытые кости в режиме редактирования"
 
 
+msgid "Add the predefined color sets included with Rigify"
+msgstr "Добавить предопределённые наборы цветов, поставляемые с Rigify"
+
+
+msgid "Apply the active/selected colors above to all color sets below"
+msgstr "Применить активные/выделенные выше цвета ко всем наборам ниже"
+
+
 msgid "(undocumented operator)"
 msgstr "(недокументированый оператор)"
 
@@ -59587,8 +59823,36 @@ msgid "Make this collection active"
 msgstr "Сделать эту коллекцию активной"
 
 
+msgid "Add New Rigify Color Set"
+msgstr "Добавить новый цветовой набор Rigify"
+
+
+msgid "Add the color set from the bone theme on the left"
+msgstr "Добавить цветовой набор из темы костей слева"
+
+
+msgid "Remove the active color set from the list"
+msgstr "Удалить активный цветовой набор из списка"
+
+
+msgid "Remove All Color Sets"
+msgstr "Удалить все цветовые наборы"
+
+
 msgid "Upgrade the metarig from bone layers to bone collections"
 msgstr "Модернизировать метариг от слоёв костей до коллекций костей"
+
+
+msgid "Set the color palette to match Blender's active theme for selected and active bones"
+msgstr "Установить цветовую палитру в соответствии с активной темой Blender'а для выделенных и активных костей"
+
+
+msgid ""
+"Ensure that the settings on each component in this armature refer to a bone collection that actually exists.\n"
+"Run this both before and after joining two metarig armature objects to avoid glitches."
+msgstr ""
+"Убедитесь, что настройки каждого компонента в этой арматуре ссылаются на реально существующую коллекцию костей.\n"
+"Запускайте это действие как до, так и после объединения двух объектов арматур метаригов во избежание сбоев."
 
 
 msgctxt "Operator"
@@ -61535,6 +61799,15 @@ msgstr "Добавить импортёр"
 
 msgid "Add Importer"
 msgstr "Добавить импортёр"
+
+
+msgctxt "Operator"
+msgid "Import"
+msgstr "Импортировать"
+
+
+msgid "Invoke the import operation"
+msgstr "Вызов операции импорта"
 
 
 msgctxt "Operator"
@@ -79571,6 +79844,10 @@ msgid "Hide selected objects and collections"
 msgstr "Скрыть выбранные объекты и коллекции"
 
 
+msgid "Hide unselected objects"
+msgstr "Скрыть невыделенные объекты"
+
+
 msgctxt "Operator"
 msgid "Update Highlight"
 msgstr "Обновить подсвеченное"
@@ -90616,11 +90893,11 @@ msgstr "Способ расчёта угла крена"
 
 
 msgid "Roll Angle"
-msgstr "Крен на угол"
+msgstr "Угол крена"
 
 
 msgid "Roll the view using an angle value"
-msgstr "Накрентить вид на заданный угол"
+msgstr "Накренить вид на заданный угол"
 
 
 msgid "Roll Left"
@@ -93922,6 +94199,10 @@ msgid "Active Palette"
 msgstr "Активная палитра"
 
 
+msgid "Show Auto-Smooth Curve"
+msgstr "Отображать кривую автосглаживания"
+
+
 msgid "Show Brush"
 msgstr "Показывать кисть"
 
@@ -93938,6 +94219,10 @@ msgid "Show the underlying BVH nodes as differently colored faces"
 msgstr "Отобразить внутренние узлы BVH в виде граней разных цветов"
 
 
+msgid "Show Hardness Curve"
+msgstr "Отображать кривую жёсткости"
+
+
 msgid "Show Jitter Curve"
 msgstr "Отображать кривую колебания"
 
@@ -93952,6 +94237,10 @@ msgstr "Отображать в низком разрешении в облас�
 
 msgid "Show Size Curve"
 msgstr "Отображать кривую размера"
+
+
+msgid "Show Spacing Curve"
+msgstr "Отображать кривую интервалов"
 
 
 msgid "Show Strength Curve"
@@ -99415,6 +99704,14 @@ msgid "The time in seconds to wait for online operations before a connection may
 msgstr "Время в секундах для ожидания онлайн-операций, прежде чем соединение может прерваться с ошибкой тайм-аута. Ноль использует системное значение по умолчанию."
 
 
+msgid "Nodes Stack Limit"
+msgstr "Лимит стека нод"
+
+
+msgid "Approximate maximum size of the call stack used by node group evaluation. For example, this corresponds to the number of allowed nested node groups. Setting this too high can result in crashes caused by running out of stack memory."
+msgstr "Приблизительный максимальный размер стека вызовов, используемого при вычислении нодовых групп. Например, это соответствует количеству разрешённых уровней вложения для нодовых групп. Слишком высокое значение может привести к аварийному завершению работы из-за нехватки памяти стека."
+
+
 msgid "Register for All Users"
 msgstr "Регистрация для всех пользователей"
 
@@ -99553,6 +99850,14 @@ msgstr "Разрешить перекрытие регионов"
 
 msgid "Display tool/property regions over the main region"
 msgstr "Отображать области инструментов/свойств поверх основной области"
+
+
+msgid "Raytraced Shadows"
+msgstr "Трассировка теней"
+
+
+msgid "Enable raytraced shadows. Requires Vulkan and a GPU with hardware raytracing support"
+msgstr "Включить тени на основе трассировки лучей. Требуется Vulkan и графический процессор с аппаратной поддержкой трассировки лучей"
 
 
 msgid "Edit Studio Light"
@@ -99891,6 +100196,10 @@ msgid "Arabic - ﺔﻴﺑﺮﻌﻟﺍ"
 msgstr "Арабский - ﺔﻴﺑﺮﻌﻟﺍ"
 
 
+msgid "Locale code: ar_EG. Translation progress: 22%"
+msgstr "Код локали: ar_EG. Прогресс перевода: 22%"
+
+
 msgid "Basque - Euskara"
 msgstr "Баскский - Euskara"
 
@@ -99919,8 +100228,16 @@ msgid "Catalan - Català"
 msgstr "Каталонский - Català"
 
 
+msgid "Locale code: ca_AD. Translation progress: 99%"
+msgstr "Код локали: ca_AD. Прогресс перевода: 99%"
+
+
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "Китайский (упрощённый) - 简体中文"
+
+
+msgid "Locale code: zh_HANS. Translation progress: 99%"
+msgstr "Код локали: zh_HANS. Прогресс перевода: 99%"
 
 
 msgid "Chinese (Traditional) - 繁體中文"
@@ -99999,8 +100316,16 @@ msgid "French - Français"
 msgstr "Французский - Français"
 
 
+msgid "Locale code: fr_FR. Translation progress: 99%"
+msgstr "Код локали: fr_FR. Прогресс перевода: 99%"
+
+
 msgid "Georgian - ქართული"
 msgstr "Грузинский - ქართული"
+
+
+msgid "Locale code: ka. Translation progress: 99%"
+msgstr "Код локали: ka. Прогресс перевода: 99%"
 
 
 msgid "German - Deutsch"
@@ -100055,12 +100380,24 @@ msgid "Italian - Italiano"
 msgstr "Итальянский - Italiano"
 
 
+msgid "Locale code: it_IT. Translation progress: 42%"
+msgstr "Код локали: it_IT. Прогресс перевода: 42%"
+
+
 msgid "Japanese - 日本語"
 msgstr "Японский - 日本語"
 
 
+msgid "Locale code: ja_JP. Translation progress: 99%"
+msgstr "Код локали: ja_JP. Прогресс перевода: 99%"
+
+
 msgid "Korean - 한국어"
 msgstr "Корейский - 한국어"
+
+
+msgid "Locale code: ko_KR. Translation progress: 93%"
+msgstr "Код локали: ko_KR. Прогресс перевода: 93%"
 
 
 msgid "Kyrgyz - Кыргыз тили"
@@ -100107,6 +100444,10 @@ msgid "Polish - Polski"
 msgstr "Польский - Polski"
 
 
+msgid "Locale code: pl_PL. Translation progress: 99%"
+msgstr "Код локали: pl_PL. Прогресс перевода: 99%"
+
+
 msgid "Portuguese (Brazil) - Português brasileiro"
 msgstr "Португальский (Бразилия) - Português Brasileiro"
 
@@ -100119,6 +100460,10 @@ msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Португальский (Португалия) - Português europeu"
 
 
+msgid "Locale code: pt_PT. Translation progress: 80%"
+msgstr "Код локали: pt_PT. Прогресс перевода: 80%"
+
+
 msgid "Romanian - Român"
 msgstr "Румынский - Român"
 
@@ -100129,6 +100474,10 @@ msgstr "Код локали: ro_RO. Прогресс перевода: 2%"
 
 msgid "Russian - Русский"
 msgstr "Русский - Русский"
+
+
+msgid "Locale code: ru_RU. Translation progress: 99%"
+msgstr "Код локали: ru_RU. Прогресс перевода: 99%"
 
 
 msgid "Serbian (Cyrillic) - Српски"
@@ -100151,12 +100500,24 @@ msgid "Slovak - Slovenčina"
 msgstr "Словацкий - Slovenčina"
 
 
+msgid "Locale code: sk_SK. Translation progress: 99%"
+msgstr "Код локали: sk_SK. Прогресс перевода: 99%"
+
+
 msgid "Slovenian - Slovenščina"
 msgstr "Словенский - Slovenščina"
 
 
+msgid "Locale code: sl. Translation progress: 51%"
+msgstr "Код локали: sl. Прогресс перевода: 51%"
+
+
 msgid "Spanish - Español"
 msgstr "Испанский - Español"
+
+
+msgid "Locale code: es. Translation progress: 99%"
+msgstr "Код локали: es. Прогресс перевода: 99%"
 
 
 msgid "Swahili - Kiswahili"
@@ -100171,8 +100532,16 @@ msgid "Swedish - Svenska"
 msgstr "Шведский - Svenska"
 
 
+msgid "Locale code: sv_SE. Translation progress: 95%"
+msgstr "Код локали: sv_SE. Прогресс перевода: 95%"
+
+
 msgid "Tamil - தமிழ்"
 msgstr "Тамильский - தமிழ்"
+
+
+msgid "Locale code: ta. Translation progress: 95%"
+msgstr "Код локали: ta. Прогресс перевода: 95%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -100195,8 +100564,16 @@ msgid "Ukrainian - Українська"
 msgstr "Украинский - Українська"
 
 
+msgid "Locale code: uk_UA. Translation progress: 54%"
+msgstr "Код локали: uk_UA. Прогресс перевода: 54%"
+
+
 msgid "Urdu - وُدرُا"
 msgstr "Урду - وُدرُا"
+
+
+msgid "Locale code: ur. Translation progress: 82%"
+msgstr "Код локали: ur. Прогресс перевода: 82%"
 
 
 msgid "Vietnamese - Tiếng Việt"
@@ -100913,10 +101290,6 @@ msgstr "Свойство — это путь, который поддержив�
 
 msgid "Variable Expression Support"
 msgstr "Поддержка выражений с переменными"
-
-
-msgid "Property is a path which supports the \"{variable_name}\" variable expression syntax, which substitutes the value of the referenced variable in place of the expression"
-msgstr "Свойство — это путь, который поддерживает синтаксис выражения переменной \"{имя_переменной}\", который подставляет значение указанной переменной вместо самого выражения"
 
 
 msgid "Read Only"
@@ -102926,6 +103299,10 @@ msgid "Denoising Depth"
 msgstr "Глубина шумоподавления"
 
 
+msgid "Depth pass used by denoiser"
+msgstr "Проход глубины, используемый шумоподавителем"
+
+
 msgid "Denoising Backward Motion"
 msgstr "Обратное движение шумоподавления"
 
@@ -102936,6 +103313,10 @@ msgstr "Проход обратного движения, используемы
 
 msgid "Denoising Specular Motion"
 msgstr "Зеркальное движение шумоподавления"
+
+
+msgid "Specular motion pass used by denoiser"
+msgstr "Проход движения бликов, используемый шумоподавителем"
 
 
 msgid "Sample Count"
@@ -103264,6 +103645,26 @@ msgstr "Имя коллекции"
 
 msgid "Name of the referenced bone collection"
 msgstr "Имя коллекции костей из ссылки"
+
+
+msgid "Color of bone when active"
+msgstr "Цвет активной кости"
+
+
+msgid "Normal Color"
+msgstr "Обычный цвет"
+
+
+msgid "Color of bone when not selected or active"
+msgstr "Цвет невыделенных и неактивных костей"
+
+
+msgid "Selected Color"
+msgstr "Цвет выделения"
+
+
+msgid "Color of bone when selected"
+msgstr "Цвет выделенной кости"
 
 
 msgid "Whether this feature-set is registered or not"
@@ -104392,6 +104793,14 @@ msgstr "Смещение камеры"
 
 msgid "View shift in camera view"
 msgstr "Видовое смещение при виде из камеры"
+
+
+msgid "Camera Roll"
+msgstr "Крен камеры"
+
+
+msgid "Roll angle in camera view"
+msgstr "Угол крена в режиме вида из камеры"
 
 
 msgid "Camera Zoom"
@@ -118402,6 +118811,10 @@ msgid "Open window"
 msgstr "Открыть окно"
 
 
+msgid "Areas at the edges of the window that are not part of the flexible screen layout (such as top and status bar)"
+msgstr "Области по краям окна, не являющиеся частью гибкого макета экрана (например, верхняя панель и строка состояния)"
+
+
 msgid "Window height"
 msgstr "Высота окна"
 
@@ -124802,9 +125215,26 @@ msgid "Rig UI Script"
 msgstr "Скрипт ПИ рига"
 
 
+msgid "Post Generation"
+msgstr "Постгенерация"
+
+
 msgctxt "Operator"
 msgid "Add sample"
 msgstr "Добавить образец"
+
+
+msgid "Lock Selected/Active Colors"
+msgstr "Заблокировать выделенные/активные цвета"
+
+
+msgctxt "Operator"
+msgid "Apply Colors"
+msgstr "Применить цвета"
+
+
+msgid "Bone Theme:"
+msgstr "Тема кости:"
 
 
 msgctxt "Operator"
@@ -124846,6 +125276,10 @@ msgstr "Сгенерировать риг"
 
 msgid "Click a button to select a collection:"
 msgstr "Нажмите кнопку, чтобы выделить коллекцию:"
+
+
+msgid "Permanently Hidden Collections:"
+msgstr "Постоянно скрытые коллекции:"
 
 
 msgctxt "Operator"
@@ -130938,6 +131372,10 @@ msgid "Properties and Sidebars"
 msgstr "Свойства и боковые панели"
 
 
+msgid "New Keyframes"
+msgstr "Новые ключевые кадры"
+
+
 msgid "Only Active Keying Set"
 msgstr "Только активный набор ключей"
 
@@ -131536,6 +131974,10 @@ msgstr "Оси 3D-вьюпорта"
 
 msgid "Smooth Wires"
 msgstr "Гладкие провода"
+
+
+msgid "Hardware Raytracing"
+msgstr "Аппаратная трассировка лучей"
 
 
 msgid "Limit Size"
@@ -136046,6 +136488,10 @@ msgid "Found IDs flagged as copy/paste clipboard data while writing a regular bl
 msgstr "При сохранении blend-файла были обнаружены идентификаторы с флагом данных буфера обмена. Этот флаг у идентификаторов был снят"
 
 
+msgid "Failed to write blendfile"
+msgstr "Не удалось сохранить blend-файл"
+
+
 msgid "Version backup failed (file saved with @)"
 msgstr "Ошибка создания резервной копии версии (файл сохранён с @)"
 
@@ -136060,6 +136506,10 @@ msgstr "Невозможно сохранить обычный файл (%s) к�
 
 msgid "Cannot open file %s for writing: %s"
 msgstr "Ошибка открытия файла %s для записи: %s"
+
+
+msgid "Failed to write blendfile: %s"
+msgstr "Не удалось сохранить blend-файл: %s"
 
 
 msgctxt "Time"
@@ -140699,6 +141149,10 @@ msgid "Active object contains no collections"
 msgstr "Активный объект не содержит коллекций"
 
 
+msgid "No filepath set"
+msgstr "Путь к файлу не задан"
+
+
 msgid "Could not add the collection because of dependency cycle detected"
 msgstr "Не удалось добавить коллекцию из-за обнаруженной циклической зависимости"
 
@@ -140717,6 +141171,14 @@ msgstr "Оператор обработчика файлов \"%s\" не най�
 
 msgid "File path '%s' is not a valid file"
 msgstr "Путь к файлу \"%s\" не является допустимым файлом"
+
+
+msgid "Collection '%s' has already been imported from '%s'"
+msgstr "Коллекция \"%s\" уже была импортирована из \"%s\""
+
+
+msgid "Imported '%s'"
+msgstr "Импортировано \"%s\""
 
 
 msgid "Exported '%s'"
@@ -140969,6 +141431,10 @@ msgstr "Невозможно отсоединить из коллекции пр
 
 msgid "Unable to execute '%s', error changing modes"
 msgstr "Не удалось выполнить \"%s\", ошибка смены режимов"
+
+
+msgid "Unable to set invalid object mode %d"
+msgstr "Невозможно установить недопустимый режим объекта \"%d\""
 
 
 msgid "The '%s' %s data-block is packed and not editable. Use \"Make Local\" to make it editable."
@@ -143419,6 +143885,10 @@ msgstr "Отслеживание маркеров..."
 
 msgid "New lines unsupported, call this operator multiple times"
 msgstr "Новые линии не поддерживаются, вызывайте этот оператор несколько раз"
+
+
+msgid "Context changed during paste, console execution may be incomplete"
+msgstr "Контекст изменился в процессе вставки, выполнение в консоли может быть неполным"
 
 
 msgid "New Catalog"
@@ -154989,7 +155459,7 @@ msgstr "Определяет выводимые рёбра, которые об�
 
 
 msgid "Identifies output edges that are in the middle of new mesh parts of edges and continued through vertices (round down if odd number of segments)"
-msgstr "Определяет выводимые рёбра, которые образуются посередине новых частей меша для рёбер, и проходят через вершины (округляется в меньшую сторону, если количество сегментов будет нечётным)"
+msgstr "Определяет выводимые рёбра, которые образуются посередине новых частей меша для рёбер и проходят через вершины (округляется в меньшую сторону, если количество сегментов будет нечётным)"
 
 
 msgid "Selections"
@@ -156743,6 +157213,10 @@ msgstr "Неизвестный"
 
 msgid "Output node must not be in zone"
 msgstr "Нода вывода не должна находиться внутри зоны"
+
+
+msgid "Nodes stack limit reached (too many levels of nested nodes)"
+msgstr "Предел стека нод исчерпан (слишком много уровней вложенности нод)"
 
 
 msgid "Iterations input has to be a constant value"

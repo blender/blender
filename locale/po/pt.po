@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
 "POT-Creation-Date: 2026-07-27 09:52+0000\n"
-"PO-Revision-Date: 2026-07-27 06:12+0000\n"
+"PO-Revision-Date: 2026-07-28 20:12+0000\n"
 "Last-Translator: Duarte Ramos <duarte@duarteramos.pt>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -5356,6 +5356,18 @@ msgstr "Adicionar Conjunto de Selecção"
 
 msgid "Add Selection Set for this collection"
 msgstr "Adicionar Conjunto de Selecção para esta colecção"
+
+
+msgid "Button Row"
+msgstr "Linha do Botão"
+
+
+msgid "The row in the UI panel where the button for this collection is shown. (0 = hidden)"
+msgstr "A linha no painel do interface do utilizador onde o botão para esta colecção é mostrado. (0 = escondido)"
+
+
+msgid "Button Text"
+msgstr "Texto do Botão"
 
 
 msgid "Text to use on the UI panel button instead of the collection name"
@@ -19162,6 +19174,14 @@ msgid "Additional data for an asset data-block"
 msgstr "Dados adicionais para um data-block de recurso"
 
 
+msgid "Linked Packed Deep Hash"
+msgstr "Chave de Aferição Profunda Vinculada Integrada"
+
+
+msgid "Hash representing a unique version of a packed linked data and all of its dependencies"
+msgstr "Chave de Aferição"
+
+
 msgctxt "ID"
 msgid "Type"
 msgstr "Tipo"
@@ -19501,6 +19521,10 @@ msgstr "Finalizar Scripts"
 
 msgid "Run this script after generation to apply user-specific changes"
 msgstr "Correr este script após geração, para aplicar alterações específicas do utilizador"
+
+
+msgid "Overwrite Widgets"
+msgstr "Substituir Malhas dos Manipuladores"
 
 
 msgid "Mirror Widgets"

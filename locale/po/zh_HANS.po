@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: Blender 5.3.0 Alpha (b'bf67fb078da0')\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-27 09:52+0000\n"
-"PO-Revision-Date: 2026-07-27 09:59+0000\n"
+"PO-Revision-Date: 2026-07-29 08:00+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
@@ -5357,6 +5357,18 @@ msgid "Add Selection Set for this collection"
 msgstr "为此集合添加选择集"
 
 
+msgid "Button Row"
+msgstr "按钮行"
+
+
+msgid "The row in the UI panel where the button for this collection is shown. (0 = hidden)"
+msgstr "UI 面板中显示该集合按钮的那一行。（0 = 隐藏）"
+
+
+msgid "Button Text"
+msgstr "按钮文本"
+
+
 msgid "Text to use on the UI panel button instead of the collection name"
 msgstr "要在UI面板按钮上使用的文本，代替集合名称"
 
@@ -8880,7 +8892,7 @@ msgstr "目标的变换是相对于自定义物体/骨骼/顶点组进行计算�
 
 
 msgid "The transformation of the target is only evaluated in the Pose Space, the target armature object transformation is ignored"
-msgstr "目标的变换仅在姿态空间中进行计算，目标骨骼物体的变换将被忽略"
+msgstr "目标的变换仅在姿态空间中进行计算，目标骨架物体的变换将被忽略"
 
 
 msgid "The transformation of the target bone is evaluated relative to its rest pose local coordinate system, thus including the parent-induced transformation"
@@ -18066,7 +18078,7 @@ msgstr "投射笔画到平面锁定为 X"
 
 
 msgid "Top (X-Y)"
-msgstr "顶部 (X-Y)"
+msgstr "顶面 (X-Y)"
 
 
 msgid "Project strokes to plane locked to Z"
@@ -19161,6 +19173,14 @@ msgid "Additional data for an asset data-block"
 msgstr "资产数据块的其他数据"
 
 
+msgid "Linked Packed Deep Hash"
+msgstr "关联打包深度哈希"
+
+
+msgid "Hash representing a unique version of a packed linked data and all of its dependencies"
+msgstr "表示打包关联数据及其所有依赖项的唯一版本的哈希值"
+
+
 msgctxt "ID"
 msgid "Type"
 msgstr "类型"
@@ -19495,31 +19515,143 @@ msgstr "绘制从父级头部到子级头部的关系线"
 
 
 msgid "Finalize Script"
-msgstr "即可运行脚本"
+msgstr "完成脚本"
 
 
 msgid "Run this script after generation to apply user-specific changes"
 msgstr "生成后运行此脚本以应用特定于用户的更改"
 
 
+msgid "Overwrite Widgets"
+msgstr "覆盖小部件"
+
+
+msgid "Forces Rigify to delete and rebuild all of the generated widget objects. If disabled, widgets that already exist when regenerating will not be replaced to facilitate manual editing"
+msgstr "强制 Rigify 删除并重建所有生成的部件物体。如果禁用，在重新生成时已存在的部件将不会被替换，以便于手动编辑"
+
+
 msgid "Mirror Widgets"
 msgstr "镜像小部件"
+
+
+msgid "Generate symmetrical left/right widgets as linked duplicates. Widgets on the Right side will be scaled by -1 on the x axis"
+msgstr "将左右对称的小部件生成为关联副本。右侧部件将在 x 轴上按 -1 的比例进行缩放"
 
 
 msgid "Rigify Rig Name"
 msgstr "Rigify 绑定名称"
 
 
+msgid "If specified, this name will be used for the newly generated armature object, widget collection and script. Otherwise, a name is generated based on the name of the metarig object by either replacing... - 'metarig' with 'rig'- 'META' with 'RIG'- or prefixing with 'RIG-' When updating an already generated rig its name is never changed"
+msgstr "如果指定了名称，则会将其用于新生成的骨架物体、部件集合与脚本。否则，系统将根据元骨骼物体的名称生成名称，具体方式是将... - 'metarig' 替换为 'rig'- 将 'META' 替换为 'RIG'- 或在名称前添加前缀 'RIG-'．更新已生成的骨骼时，其名称绝不会被更改"
+
+
 msgid "Rigify Target Rig UI"
 msgstr "Rigify 目标绑定 UI"
+
+
+msgid "Defines the text data-block to overwrite. If unset, a new one will be created and named based on the name of the rig"
+msgstr "定义要覆盖的文本数据块，如果未设置，将创建一个新的，并根据绑定的名称进行命名"
 
 
 msgid "Rigify Target Rig"
 msgstr "Rigify 目标绑定"
 
 
+msgid "Defines which armature object to overwrite. If unset, a new one will be created with a name based on the Rig Name option or the name of the metarig"
+msgstr "定义要覆盖的骨架物体。如果未设置，将创建一个新的绑定，其名称基于绑定名称选项或元骨骼的名称"
+
+
 msgid "Theme"
 msgstr "主题"
+
+
+msgid "Theme 01"
+msgstr "主题 01"
+
+
+msgid "Theme 02"
+msgstr "主题 02"
+
+
+msgid "Theme 03"
+msgstr "主题 03"
+
+
+msgid "Theme 04"
+msgstr "主题 04"
+
+
+msgid "Theme 05"
+msgstr "主题 05"
+
+
+msgid "Theme 06"
+msgstr "主题 06"
+
+
+msgid "Theme 07"
+msgstr "主题 07"
+
+
+msgid "Theme 08"
+msgstr "主题 08"
+
+
+msgid "Theme 09"
+msgstr "主题 09"
+
+
+msgid "Theme 10"
+msgstr "主题 10"
+
+
+msgid "Theme 11"
+msgstr "主题 11"
+
+
+msgid "Theme 12"
+msgstr "主题 12"
+
+
+msgid "Theme 13"
+msgstr "主题 13"
+
+
+msgid "Theme 14"
+msgstr "主题 14"
+
+
+msgid "Theme 15"
+msgstr "主题 15"
+
+
+msgid "Theme 16"
+msgstr "主题 16"
+
+
+msgid "Theme 17"
+msgstr "主题 17"
+
+
+msgid "Theme 18"
+msgstr "主题 18"
+
+
+msgid "Theme 19"
+msgstr "主题 19"
+
+
+msgid "Theme 20"
+msgstr "主题 20"
+
+
+msgid "Widget Collection"
+msgstr "小部件集合"
+
+
+msgid "Defines which collection to place widget objects in. If unset, a new collection will be created based on the name of the rig"
+msgstr "定义要放置小部件物体的集合。如果未设置，将根据绑定的名称创建一个新集合"
 
 
 msgid "Display Axes"
@@ -19979,6 +20111,14 @@ msgid "Mask Texture Overlay Alpha"
 msgstr "遮罩纹理图的叠加 Alpha"
 
 
+msgid "Pressure Auto-Smooth Mapping"
+msgstr "压力自动平滑映射"
+
+
+msgid "Curve used to map pressure to brush auto-smooth"
+msgstr "用于将压力映射到笔刷自动平滑的曲线"
+
+
 msgid "Falloff Curve"
 msgstr "衰减曲线"
 
@@ -20042,6 +20182,14 @@ msgid "Constant"
 msgstr "常值"
 
 
+msgid "Pressure Hardness Mapping"
+msgstr "压力硬度映射"
+
+
+msgid "Curve used to map pressure to brush hardness"
+msgstr "用于将压力映射到笔刷硬度的曲线"
+
+
 msgid "Pressure Jitter Mapping"
 msgstr "压力抖动映射"
 
@@ -20056,6 +20204,14 @@ msgstr "压力大小映射"
 
 msgid "Curve used to map pressure to brush size"
 msgstr "用于将压力映射到笔刷大小的曲线"
+
+
+msgid "Pressure Spacing Mapping"
+msgstr "压力间隔映射"
+
+
+msgid "Curve used to map pressure to brush spacing"
+msgstr "用于将压力映射到笔刷间隔的曲线"
 
 
 msgid "Pressure Strength Mapping"
@@ -21572,6 +21728,14 @@ msgstr "计算相对于视图的笔刷间隔"
 
 msgid "Calculate brush spacing relative to the scene using the stroke location"
 msgstr "使用笔画位置计算相对于场景的笔刷间隔"
+
+
+msgid "Smooth Pressure"
+msgstr "平滑压感"
+
+
+msgid "Use pressure to modulate auto-smoothing."
+msgstr "使用压力调制自动平滑。"
 
 
 msgid "Smooth Stroke"
@@ -23147,6 +23311,10 @@ msgstr "选中项域"
 
 msgid "Mesh object that the curves can be attached to"
 msgstr "曲线可以附着到的网格物体"
+
+
+msgid "Collision Distance"
+msgstr "碰撞距离"
 
 
 msgid "Distance to keep the curves away from the surface"
@@ -32068,7 +32236,7 @@ msgstr "Hyper 键被按下，Linux 上可以配置的附加修饰键，通常替
 
 
 msgid "ID of the item"
-msgstr "对象ID"
+msgstr "对象 ID"
 
 
 msgid "Identifier of operator to call on input event"
@@ -33405,38 +33573,38 @@ msgstr "Ndof键12"
 
 msgctxt "UI_Events_KeyMaps"
 msgid "ActionZone Area"
-msgstr "动作区 区域"
+msgstr "动作区区域"
 
 
 msgid "AZone Area"
-msgstr "AZone 区域"
+msgstr "动作区区域"
 
 
 msgctxt "UI_Events_KeyMaps"
 msgid "ActionZone Region"
-msgstr "动作区 区块"
+msgstr "动作区区块"
 
 
 msgid "AZone Region"
-msgstr "AZone 区块"
+msgstr "动作区区块"
 
 
 msgctxt "UI_Events_KeyMaps"
 msgid "ActionZone Quad"
-msgstr "动作区 四格"
+msgstr "动作区四格"
 
 
 msgid "AZone Quad"
-msgstr "AZone 四格"
+msgstr "动作区四格"
 
 
 msgctxt "UI_Events_KeyMaps"
 msgid "ActionZone Fullscreen"
-msgstr "动作区 全屏"
+msgstr "动作区全屏"
 
 
 msgid "AZone FullScr"
-msgstr "AZone 全屏"
+msgstr "动作区全屏"
 
 
 msgctxt "UI_Events_KeyMaps"
@@ -49525,6 +49693,22 @@ msgid "Join groups of Grease Pencil layers into one"
 msgstr "将蜡笔层组合并成一个"
 
 
+msgid "Determines how to choose which layers are merged"
+msgstr "确定如何选择要合并的层"
+
+
+msgid "Combine all layers which have the same name"
+msgstr "合并所有名称相同的层"
+
+
+msgid "By Group ID"
+msgstr "按群组 ID"
+
+
+msgid "Provide a custom group ID for each layer and all layers with the same ID will be merged into one"
+msgstr "为每个层指定一个自定义组 ID，所有 ID 相同的层将被合并为一个"
+
+
 msgid "Merge Points"
 msgstr "合并点"
 
@@ -50171,6 +50355,18 @@ msgstr "设置蜡笔颜色"
 
 msgid "Set color and opacity attributes on Grease Pencil geometry"
 msgstr "为蜡笔几何体设置颜色和不透明度属性"
+
+
+msgid "Set the color and opacity for strokes or fills"
+msgstr "设置笔画或填充的颜色和不透明度"
+
+
+msgid "Set the color and opacity for the points of the stroke"
+msgstr "设置笔画的点颜色和不透明度"
+
+
+msgid "Set the color and opacity for the stroke fills"
+msgstr "设置笔画填充的颜色和不透明度"
 
 
 msgid "Set Grease Pencil Depth"
@@ -54739,6 +54935,16 @@ msgstr "使集合为活动"
 
 
 msgctxt "Operator"
+msgid "Move/Delete Button"
+msgstr "移动/删除按钮"
+
+
+msgctxt "Operator"
+msgid "Add Color Set"
+msgstr "添加配色集"
+
+
+msgctxt "Operator"
 msgid "Rigify Add Color Set from Theme"
 msgstr "Rigify 从主题中添加配色集"
 
@@ -54778,6 +54984,11 @@ msgstr "将元骨骼的骨骼层升级到骨骼集合"
 msgctxt "Operator"
 msgid "Rigify Upgrade Metarig Layers"
 msgstr "Rigify 升级元骨骼层"
+
+
+msgctxt "Operator"
+msgid "Get active/selected colors from current Blender theme"
+msgstr "从当前 Blender 主题中获取活动的/选中的颜色"
 
 
 msgid "Validates references from rig component settings to bone collections"
@@ -58961,6 +59172,23 @@ msgstr "将所有使用某个动作的用户切换到新的动作。此操作忽
 
 
 msgctxt "Operator"
+msgid "Convert Rotation Mode"
+msgstr "转换旋转模式"
+
+
+msgid "On all selected, change the rotation mode and convert any existing animation into that new mode"
+msgstr "对所有选中项，更改旋转模式，并将任何现有动画转换为该新模式"
+
+
+msgid "Creates a key on every frame before conversion so interpolation is preserved in the new mode"
+msgstr "在转换前，每帧都会创建一个关键帧，以便在新模式下保留插值效果"
+
+
+msgid "The rotation mode to convert the selection to"
+msgstr "选中项要转换的旋转模式"
+
+
+msgctxt "Operator"
 msgid "Frame Scene/Preview Range"
 msgstr "框显场景/预览范围"
 
@@ -59577,6 +59805,14 @@ msgid "Reveal all bones hidden in Edit Mode"
 msgstr "显示所有编辑模式下隐藏的骨骼"
 
 
+msgid "Add the predefined color sets included with Rigify"
+msgstr "添加 Rigify 自带的预定义配色集"
+
+
+msgid "Apply the active/selected colors above to all color sets below"
+msgstr "将上方的活动/选定颜色应用到下方的所有配色集"
+
+
 msgid "(undocumented operator)"
 msgstr "(无文档记载的操作项)"
 
@@ -59589,8 +59825,36 @@ msgid "Make this collection active"
 msgstr "使此集合为活动"
 
 
+msgid "Add New Rigify Color Set"
+msgstr "添加新的 Rigify 配色集"
+
+
+msgid "Add the color set from the bone theme on the left"
+msgstr "从左侧的骨骼主题中添加配色集"
+
+
+msgid "Remove the active color set from the list"
+msgstr "移除列表中的活动配色集"
+
+
+msgid "Remove All Color Sets"
+msgstr "移除所有配色集"
+
+
 msgid "Upgrade the metarig from bone layers to bone collections"
 msgstr "升级元骨骼层为骨骼集合"
+
+
+msgid "Set the color palette to match Blender's active theme for selected and active bones"
+msgstr "将配色方案设置为与 Blender 的当前主题匹配，以适应所选和活动骨骼"
+
+
+msgid ""
+"Ensure that the settings on each component in this armature refer to a bone collection that actually exists.\n"
+"Run this both before and after joining two metarig armature objects to avoid glitches."
+msgstr ""
+"请确保该骨架中每个组件的设置所引用的骨骼集合确实存在。\n"
+"在将两个元骨骼物体合并前后，请分别运行此操作，以避免出现异常。"
 
 
 msgctxt "Operator"
@@ -61537,6 +61801,15 @@ msgstr "添加导入器"
 
 msgid "Add Importer"
 msgstr "添加导入器"
+
+
+msgctxt "Operator"
+msgid "Import"
+msgstr "导入"
+
+
+msgid "Invoke the import operation"
+msgstr "调用导入操作"
 
 
 msgctxt "Operator"
@@ -79573,6 +79846,10 @@ msgid "Hide selected objects and collections"
 msgstr "隐藏选中的物体与集合"
 
 
+msgid "Hide unselected objects"
+msgstr "隐藏未选中的物体"
+
+
 msgctxt "Operator"
 msgid "Update Highlight"
 msgstr "更新高亮"
@@ -93912,6 +94189,10 @@ msgid "Active Palette"
 msgstr "活动调色板"
 
 
+msgid "Show Auto-Smooth Curve"
+msgstr "显示自动平滑曲线"
+
+
 msgid "Show Brush"
 msgstr "显示笔刷"
 
@@ -93928,6 +94209,10 @@ msgid "Show the underlying BVH nodes as differently colored faces"
 msgstr "将底层 BVH 节点显示为不同颜色的面"
 
 
+msgid "Show Hardness Curve"
+msgstr "显示硬度曲线"
+
+
 msgid "Show Jitter Curve"
 msgstr "显示抖动曲线"
 
@@ -93942,6 +94227,10 @@ msgstr "对于多级精度, 在操纵视图时显示低精度"
 
 msgid "Show Size Curve"
 msgstr "显示尺寸曲线"
+
+
+msgid "Show Spacing Curve"
+msgstr "显示间隔曲线"
 
 
 msgid "Show Strength Curve"
@@ -99405,6 +99694,14 @@ msgid "The time in seconds to wait for online operations before a connection may
 msgstr "在连接出现超时错误之前，在线操作的等待秒数。零值表示使用系统默认。"
 
 
+msgid "Nodes Stack Limit"
+msgstr "节点堆栈限制"
+
+
+msgid "Approximate maximum size of the call stack used by node group evaluation. For example, this corresponds to the number of allowed nested node groups. Setting this too high can result in crashes caused by running out of stack memory."
+msgstr "节点组解算调用堆栈的最大使用规模近似值。例如，这对应于允许的嵌套节点组数量。若设置值过高，可能导致堆栈内存不足引发系统崩溃。"
+
+
 msgid "Register for All Users"
 msgstr "为所有用户注册"
 
@@ -99543,6 +99840,14 @@ msgstr "区块重叠"
 
 msgid "Display tool/property regions over the main region"
 msgstr "在主区块上方显示工具栏/属性栏"
+
+
+msgid "Raytraced Shadows"
+msgstr "光线追踪阴影"
+
+
+msgid "Enable raytraced shadows. Requires Vulkan and a GPU with hardware raytracing support"
+msgstr "启用光线追踪阴影。需要 Vulkan 以及支持硬件光线追踪的 GPU"
 
 
 msgid "Edit Studio Light"
@@ -99881,6 +100186,10 @@ msgid "Arabic - ﺔﻴﺑﺮﻌﻟﺍ"
 msgstr "阿拉伯语 - ﺔﻴﺑﺮﻌﻟﺍ"
 
 
+msgid "Locale code: ar_EG. Translation progress: 22%"
+msgstr "区域代码: ar_EG. 翻译进度: 22%"
+
+
 msgid "Basque - Euskara"
 msgstr "巴斯克语 - Euskara"
 
@@ -99909,8 +100218,16 @@ msgid "Catalan - Català"
 msgstr "加泰罗尼亚语 - Català"
 
 
+msgid "Locale code: ca_AD. Translation progress: 99%"
+msgstr "区域代码: ca_AD. 翻译进度: 99%"
+
+
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "简体中文"
+
+
+msgid "Locale code: zh_HANS. Translation progress: 99%"
+msgstr "区域代码: zh_HANS. 翻译进度: 99%"
 
 
 msgid "Chinese (Traditional) - 繁體中文"
@@ -99989,8 +100306,16 @@ msgid "French - Français"
 msgstr "法语 - Français"
 
 
+msgid "Locale code: fr_FR. Translation progress: 99%"
+msgstr "区域代码: fr_FR. 翻译进度: 99%"
+
+
 msgid "Georgian - ქართული"
 msgstr "格鲁吉亚语 - ქართული"
+
+
+msgid "Locale code: ka. Translation progress: 99%"
+msgstr "区域代码: ka. 翻译进度: 99%"
 
 
 msgid "German - Deutsch"
@@ -100045,12 +100370,24 @@ msgid "Italian - Italiano"
 msgstr "意大利语 - Italiano"
 
 
+msgid "Locale code: it_IT. Translation progress: 42%"
+msgstr "区域代码: it_IT. 翻译进度: 42%"
+
+
 msgid "Japanese - 日本語"
 msgstr "日语 - 日本語"
 
 
+msgid "Locale code: ja_JP. Translation progress: 99%"
+msgstr "区域代码: ja_JP. 翻译进度: 99%"
+
+
 msgid "Korean - 한국어"
 msgstr "韩语 - 한국어"
+
+
+msgid "Locale code: ko_KR. Translation progress: 93%"
+msgstr "区域代码: ko_KR. 翻译进度: 93%"
 
 
 msgid "Kyrgyz - Кыргыз тили"
@@ -100097,6 +100434,10 @@ msgid "Polish - Polski"
 msgstr "波兰语 - Polski"
 
 
+msgid "Locale code: pl_PL. Translation progress: 99%"
+msgstr "区域代码: pl_PL. 翻译进度: 99%"
+
+
 msgid "Portuguese (Brazil) - Português brasileiro"
 msgstr "葡萄牙语 (巴西) - Português brasileiro"
 
@@ -100109,6 +100450,10 @@ msgid "Portuguese (Portugal) - Português europeu"
 msgstr "葡萄牙语 (葡萄牙) - Português europeu"
 
 
+msgid "Locale code: pt_PT. Translation progress: 80%"
+msgstr "区域代码: pt_PT. 翻译进度: 80%"
+
+
 msgid "Romanian - Român"
 msgstr "罗马尼亚语 - Român"
 
@@ -100119,6 +100464,10 @@ msgstr "区域代码: ro_RO. 翻译进度: 2%"
 
 msgid "Russian - Русский"
 msgstr "俄语 - Русский"
+
+
+msgid "Locale code: ru_RU. Translation progress: 99%"
+msgstr "区域代码: ru_RU. 翻译进度: 99%"
 
 
 msgid "Serbian (Cyrillic) - Српски"
@@ -100141,12 +100490,24 @@ msgid "Slovak - Slovenčina"
 msgstr "斯洛伐克语 - Slovenčina"
 
 
+msgid "Locale code: sk_SK. Translation progress: 99%"
+msgstr "区域代码: sk_SK. 翻译进度: 99%"
+
+
 msgid "Slovenian - Slovenščina"
 msgstr "斯洛文尼亚语 - Slovenščina"
 
 
+msgid "Locale code: sl. Translation progress: 51%"
+msgstr "区域代码: sl. 翻译进度: 51%"
+
+
 msgid "Spanish - Español"
 msgstr "西班牙语 - Español"
+
+
+msgid "Locale code: es. Translation progress: 99%"
+msgstr "区域代码: es. 翻译进度: 99%"
 
 
 msgid "Swahili - Kiswahili"
@@ -100161,8 +100522,16 @@ msgid "Swedish - Svenska"
 msgstr "瑞典语 - Svenska"
 
 
+msgid "Locale code: sv_SE. Translation progress: 95%"
+msgstr "区域代码: sv_SE. 翻译进度: 95%"
+
+
 msgid "Tamil - தமிழ்"
 msgstr "泰米尔语 - தமிழ்"
+
+
+msgid "Locale code: ta. Translation progress: 95%"
+msgstr "区域代码: ta. 翻译进度: 95%"
 
 
 msgid "Thai - ภาษาไทย"
@@ -100185,8 +100554,16 @@ msgid "Ukrainian - Українська"
 msgstr "乌克兰语 - Українська"
 
 
+msgid "Locale code: uk_UA. Translation progress: 54%"
+msgstr "区域代码: uk_UA. 翻译进度: 54%"
+
+
 msgid "Urdu - وُدرُا"
 msgstr "乌尔都语 - وُدرُا"
+
+
+msgid "Locale code: ur. Translation progress: 82%"
+msgstr "区域代码: ur. 翻译进度: 82%"
 
 
 msgid "Vietnamese - Tiếng Việt"
@@ -102916,6 +103293,10 @@ msgid "Denoising Depth"
 msgstr "降噪深度"
 
 
+msgid "Depth pass used by denoiser"
+msgstr "用于降噪的深度通道"
+
+
 msgid "Denoising Backward Motion"
 msgstr "降噪逆向运动"
 
@@ -102926,6 +103307,10 @@ msgstr "用于降噪的逆向运动通道"
 
 msgid "Denoising Specular Motion"
 msgstr "降噪高光运动"
+
+
+msgid "Specular motion pass used by denoiser"
+msgstr "用于降噪的高光运动通道"
 
 
 msgid "Sample Count"
@@ -103254,6 +103639,26 @@ msgstr "集合名称"
 
 msgid "Name of the referenced bone collection"
 msgstr "引用骨骼集合的名称"
+
+
+msgid "Color of bone when active"
+msgstr "激活时的骨骼颜色"
+
+
+msgid "Normal Color"
+msgstr "常规颜色"
+
+
+msgid "Color of bone when not selected or active"
+msgstr "未选中或未激活时的骨骼颜色"
+
+
+msgid "Selected Color"
+msgstr "选中颜色"
+
+
+msgid "Color of bone when selected"
+msgstr "选中时骨骼的颜色"
 
 
 msgid "Whether this feature-set is registered or not"
@@ -104382,6 +104787,14 @@ msgstr "摄像机偏移"
 
 msgid "View shift in camera view"
 msgstr "摄像机视图转换"
+
+
+msgid "Camera Roll"
+msgstr "摄像机滚转"
+
+
+msgid "Roll angle in camera view"
+msgstr "摄像机视图中的滚转角"
 
 
 msgid "Camera Zoom"
@@ -118392,6 +118805,10 @@ msgid "Open window"
 msgstr "打开窗口"
 
 
+msgid "Areas at the edges of the window that are not part of the flexible screen layout (such as top and status bar)"
+msgstr "窗口边缘不属于可变屏幕布局的区域（例如顶栏和状态栏）"
+
+
 msgid "Window height"
 msgstr "窗口高度"
 
@@ -124772,6 +125189,10 @@ msgid "Note: this combined rig is deprecated."
 msgstr "注意：此组合绑定已弃用。"
 
 
+msgid "This operator is deprecated. Use anim.rotation_mode_convert instead"
+msgstr "此操作已弃用。以 anim.rotation_mode_convert 代替"
+
+
 msgid "Warning: Some features may change after generation"
 msgstr "警告：生成后某些功能可能会更改"
 
@@ -124792,9 +125213,26 @@ msgid "Rig UI Script"
 msgstr "绑定 UI 脚本"
 
 
+msgid "Post Generation"
+msgstr "后生成"
+
+
 msgctxt "Operator"
 msgid "Add sample"
 msgstr "添加范例"
+
+
+msgid "Lock Selected/Active Colors"
+msgstr "锁定所选/活动颜色"
+
+
+msgctxt "Operator"
+msgid "Apply Colors"
+msgstr "应用颜色"
+
+
+msgid "Bone Theme:"
+msgstr "骨骼主题："
 
 
 msgctxt "Operator"
@@ -124836,6 +125274,10 @@ msgstr "生成绑定"
 
 msgid "Click a button to select a collection:"
 msgstr "单击按钮以选择集合:"
+
+
+msgid "Permanently Hidden Collections:"
+msgstr "永久隐藏的集合:"
 
 
 msgctxt "Operator"
@@ -130928,6 +131370,14 @@ msgid "Properties and Sidebars"
 msgstr "属性与侧栏"
 
 
+msgid "New Keyframes"
+msgstr "新关键帧"
+
+
+msgid "Cycle Aware"
+msgstr "循环感知"
+
+
 msgid "Only Active Keying Set"
 msgstr "仅活动插帧集"
 
@@ -131526,6 +131976,10 @@ msgstr "3D 视图坐标轴"
 
 msgid "Smooth Wires"
 msgstr "平滑线框"
+
+
+msgid "Hardware Raytracing"
+msgstr "硬件光线追踪"
 
 
 msgid "Limit Size"
@@ -136036,6 +136490,10 @@ msgid "Found IDs flagged as copy/paste clipboard data while writing a regular bl
 msgstr "在写入常规 blend 文件时，发现部分 ID 被标记为复制/粘贴剪贴板数据，现已清除这些 ID 上的标记"
 
 
+msgid "Failed to write blendfile"
+msgstr "未能写入 blend 文件"
+
+
 msgid "Version backup failed (file saved with @)"
 msgstr "版本备份失败 (文件以@保存)"
 
@@ -136050,6 +136508,10 @@ msgstr "无法保存常规文件 (%s) 作为资产系统文件"
 
 msgid "Cannot open file %s for writing: %s"
 msgstr "无法打开文件 %s 以写入数据: %s"
+
+
+msgid "Failed to write blendfile: %s"
+msgstr "未能写入 blend 文件: %s"
 
 
 msgctxt "Time"
@@ -136563,6 +137025,14 @@ msgid "Invalid old/new Action pair ('%s' / '%s')"
 msgstr "无效的旧/新动作对 ('%s' / '%s')"
 
 
+msgid "Multiple users of an action and not all were selected: %s"
+msgstr "某操作有多个用户，但并非所有用户都被选中：%s"
+
+
+msgid "Skipped animated data-blocks because they cannot be edited: %d"
+msgstr "跳过了动画数据块，因为它们无法编辑：%d"
+
+
 msgid "Expected an animation area to be active"
 msgstr "期望一个活动的动画区域"
 
@@ -136982,7 +137452,7 @@ msgstr "固定的骨架在 3D 视图中为非活动物体"
 
 
 msgid "Cannot edit bone collections on linked Armatures without override"
-msgstr "无法编辑无库重写的关联的骨骼集合"
+msgstr "无法编辑无库重写的关联骨架上的骨骼集合"
 
 
 msgid "Cannot edit bone collections on a linked Armature with a system override; explicitly create an override on the Armature Data"
@@ -137031,6 +137501,10 @@ msgstr "清除所有骨骼的运动路径"
 
 msgid "Cannot pose libdata"
 msgstr "无法调整库数据"
+
+
+msgid "pose.rotation_mode_set is deprecated. Use anim.rotation_mode_convert instead"
+msgstr "pose.rotation_mode_set 已弃用。以 anim.rotation_mode_convert 代替"
 
 
 msgid "Show Original Pose"
@@ -138416,6 +138890,10 @@ msgstr "暂停"
 msgctxt "UI_Events_KeyMaps"
 msgid "Space"
 msgstr "空格"
+
+
+msgid "Empty list"
+msgstr "空白列表"
 
 
 msgid "Animate property"
@@ -140689,6 +141167,10 @@ msgid "Active object contains no collections"
 msgstr "活动物体未包含任何集合"
 
 
+msgid "No filepath set"
+msgstr "未设置文件路径"
+
+
 msgid "Could not add the collection because of dependency cycle detected"
 msgstr "无法添加集合, 因为检测到从属循环"
 
@@ -140707,6 +141189,14 @@ msgstr "未找到文件句柄操作符 '%s'"
 
 msgid "File path '%s' is not a valid file"
 msgstr "文件路径 '%s' 不是有效的文件"
+
+
+msgid "Collection '%s' has already been imported from '%s'"
+msgstr "集合 '%s' 已经从 '%s' 导入"
+
+
+msgid "Imported '%s'"
+msgstr "已导入 '%s'"
 
 
 msgid "Exported '%s'"
@@ -140959,6 +141449,10 @@ msgstr "无法取消灯光链接集合 '%s' 的关联，由场景 '%s' 所使用
 
 msgid "Unable to execute '%s', error changing modes"
 msgstr "无法执行 '%s', 改变模式时出错"
+
+
+msgid "Unable to set invalid object mode %d"
+msgstr "无法设置无效的物体模式 %d"
 
 
 msgid "The '%s' %s data-block is packed and not editable. Use \"Make Local\" to make it editable."
@@ -143409,6 +143903,10 @@ msgstr "正在追踪标记..."
 
 msgid "New lines unsupported, call this operator multiple times"
 msgstr "不支持新行, 调用此操作多次"
+
+
+msgid "Context changed during paste, console execution may be incomplete"
+msgstr "粘贴过程中上下文发生了变化，控制台执行可能不完整"
 
 
 msgid "New Catalog"
@@ -156733,6 +157231,10 @@ msgstr "未知"
 
 msgid "Output node must not be in zone"
 msgstr "输出节点不得位于区域内"
+
+
+msgid "Nodes stack limit reached (too many levels of nested nodes)"
+msgstr "节点堆栈限制已达上限（嵌套节点层级过多）"
 
 
 msgid "Iterations input has to be a constant value"
