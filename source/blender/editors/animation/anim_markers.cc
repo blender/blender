@@ -833,6 +833,21 @@ static bool ed_markers_poll_markers_exist_visible(bContext *C)
   return ed_markers_poll_markers_exist(C);
 }
 
+static bool ed_markers_poll_no_locked_markers(bContext *C)
+{
+  if (!operator_markers_region_active(C)) {
+    return false;
+  }
+
+  ToolSettings *ts = CTX_data_tool_settings(C);
+  if (ts->lock_markers) {
+    CTX_wm_operator_poll_msg_set(C, "Markers are locked");
+    return false;
+  }
+
+  return true;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -887,7 +902,7 @@ static void MARKER_OT_add(wmOperatorType *ot)
 
   /* API callbacks. */
   ot->exec = ed_marker_add_exec;
-  ot->poll = operator_markers_region_active;
+  ot->poll = ed_markers_poll_no_locked_markers;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2118,7 +2133,7 @@ static void MARKER_OT_camera_bind(wmOperatorType *ot)
 
   /* API callbacks. */
   ot->exec = ed_marker_camera_bind_exec;
-  ot->poll = operator_markers_region_active;
+  ot->poll = ed_markers_poll_no_locked_markers;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
