@@ -1356,7 +1356,7 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBaseT<ModifierDat
 {
   BLO_read_struct_list(reader, ModifierData, lb);
 
-  for (ModifierData &md_iter : *lb) {
+  for (ModifierData &md_iter : lb->items_mutable()) {
     ModifierData *md = &md_iter;
     md->error = nullptr;
     md->runtime = nullptr;
