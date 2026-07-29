@@ -137,6 +137,7 @@ class GHOST_SystemHeadless : public GHOST_System {
                                                      nullptr,
                                                      nullptr,
                                                      nullptr,
+                                                     nullptr,
                                                      1,
                                                      2,
                                                      gpu_settings.preferred_device);

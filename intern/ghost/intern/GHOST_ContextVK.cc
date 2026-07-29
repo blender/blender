@@ -25,6 +25,10 @@
 #endif
 #include "volk.h"
 
+#ifdef WITH_GHOST_SDL
+#  include <SDL3/SDL_vulkan.h>
+#endif
+
 #include "GHOST_ContextVK.hh"
 #include "GHOST_Types.hh"
 
@@ -848,6 +852,8 @@ GHOST_ContextVK::GHOST_ContextVK(const GHOST_ContextParams &context_params,
                                  wl_surface *wayland_surface,
                                  wl_display *wayland_display,
                                  const GHOST_ContextVK_WindowInfo *wayland_window_info,
+                                 /* SDL */
+                                 SDL_Window *sdl_window,
 #endif
                                  int contextMajorVersion,
                                  int contextMinorVersion,
@@ -867,6 +873,8 @@ GHOST_ContextVK::GHOST_ContextVK(const GHOST_ContextParams &context_params,
       wayland_surface_(wayland_surface),
       wayland_display_(wayland_display),
       wayland_window_info_(wayland_window_info),
+      /* SDL */
+      sdl_window_(sdl_window),
 #endif
       context_major_version_(contextMajorVersion),
       context_minor_version_(contextMinorVersion),
@@ -1675,6 +1683,11 @@ const char *GHOST_ContextVK::getPlatformSpecificSurfaceExtension() const
       return VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME;
       break;
 #  endif
+#  ifdef WITH_GHOST_SDL
+    case GHOST_kVulkanPlatformSDL:
+      /* SDL provides the required instance extensions itself, see #GHOST_ContextVK::initializeDrawingContext. */
+      break;
+#  endif
     case GHOST_kVulkanPlatformHeadless:
       break;
   }
@@ -1700,6 +1713,11 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 #  ifdef WITH_GHOST_WAYLAND
     case GHOST_kVulkanPlatformWayland:
       use_window_surface = (wayland_display_ != nullptr) && (wayland_surface_ != nullptr);
+      break;
+#  endif
+#  ifdef WITH_GHOST_SDL
+    case GHOST_kVulkanPlatformSDL:
+      use_window_surface = (sdl_window_ != nullptr);
       break;
 #  endif
     case GHOST_kVulkanPlatformHeadless:
@@ -1738,9 +1756,23 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 #endif
 
     if (use_window_surface) {
-      const char *native_surface_extension_name = getPlatformSpecificSurfaceExtension();
       instance_vk.extensions.enable(VK_KHR_SURFACE_EXTENSION_NAME);
-      instance_vk.extensions.enable(native_surface_extension_name);
+#if defined(WITH_GHOST_SDL)
+      if (platform_ == GHOST_kVulkanPlatformSDL) {
+        /* SDL provides the set of instance extensions its window backend requires. */
+        Uint32 sdl_extension_count = 0;
+        const char *const *sdl_extensions = SDL_Vulkan_GetInstanceExtensions(&sdl_extension_count);
+        for (Uint32 i = 0; i < sdl_extension_count; i++) {
+          if (!instance_vk.extensions.is_enabled(sdl_extensions[i])) {
+            instance_vk.extensions.enable(sdl_extensions[i]);
+          }
+        }
+      }
+      else
+#endif
+      {
+        instance_vk.extensions.enable(getPlatformSpecificSurfaceExtension());
+      }
       /* X11 doesn't use the correct swapchain offset, flipping can squash the first frames. */
       const bool use_vk_ext_swapchain_maintenance1 =
 #ifdef WITH_GHOST_X11
@@ -1811,6 +1843,15 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
         VK_CHECK(vkCreateWaylandSurfaceKHR(
                      instance_vk.vk_instance, &surface_create_info, nullptr, &surface_),
                  GHOST_kFailure);
+        break;
+      }
+#  endif
+#  ifdef WITH_GHOST_SDL
+      case GHOST_kVulkanPlatformSDL: {
+        if (!SDL_Vulkan_CreateSurface(sdl_window_, instance_vk.vk_instance, nullptr, &surface_)) {
+          CLOG_ERROR(&LOG, "SDL_Vulkan_CreateSurface failed: %s", SDL_GetError());
+          return GHOST_kFailure;
+        }
         break;
       }
 #  endif

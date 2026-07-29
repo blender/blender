@@ -1229,6 +1229,7 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
                                                    nullptr,
                                                    nullptr,
                                                    nullptr,
+                                                   nullptr,
                                                    1,
                                                    2,
                                                    preferred_device_,
