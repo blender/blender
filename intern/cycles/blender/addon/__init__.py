@@ -1,6 +1,6 @@
-# SPDX - FileCopyrightText : 2011 - 2022 Blender Foundation
+# SPDX-FileCopyrightText: 2011-2022 Blender Foundation
 #
-# SPDX - License - Identifier : Apache - 2.0
+# SPDX-License-Identifier: Apache-2.0
 
 from __future__ import annotations
 
@@ -57,7 +57,7 @@ class CyclesRender(bpy.types.RenderEngine):
     def __del__(self):
         engine.free(self)
 
-# final render
+    # final render
     def update(self, data, depsgraph):
         if not self.session:
             if self.is_preview:
@@ -82,14 +82,14 @@ class CyclesRender(bpy.types.RenderEngine):
     def bake(self, depsgraph, obj, pass_type, pass_filter, width, height):
         engine.bake(self, depsgraph, obj, pass_type, pass_filter, width, height)
 
-# viewport render
+    # viewport render
     def view_update(self, context, depsgraph):
         if not self.session:
-            # When starting a new render session in viewport(by switching
-            # viewport to Rendered shading) unpause the render.The way to think
-            # of it is : artist requests render, so we start to render.
+            # When starting a new render session in viewport (by switching
+            # viewport to Rendered shading) unpause the render. The way to think
+            # of it is: artist requests render, so we start to render.
             # Do it for both original and evaluated scene so that Cycles
-            # immediately reacts to un - paused render.
+            # immediately reacts to un-paused render.
             cscene = context.scene.cycles
             cscene_eval = depsgraph.scene_eval.cycles
             if cscene.preview_pause or cscene_eval.preview_pause:
@@ -157,7 +157,7 @@ def register():
     from .maketx import maketx_command
     import atexit
 
-# Make sure we only registered the callback once.
+    # Make sure we only registered the callback once.
     atexit.unregister(engine_exit)
     atexit.register(engine_exit)
 
