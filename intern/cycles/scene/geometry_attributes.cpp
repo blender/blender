@@ -17,7 +17,9 @@
 #include "scene/shader.h"
 #include "scene/shader_nodes.h"
 
+#include "util/map.h"
 #include "util/progress.h"
+#include "util/set.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -626,8 +628,13 @@ void GeometryManager::device_update_attributes(Device *device,
   for (size_t i = 0; i < scene->geometry.size(); i++) {
     Geometry *geom = scene->geometry[i];
     AttributeRequestSet &attributes = geom_attributes[i];
+    unordered_set<const Attribute *> reserved;
     for (AttributeRequest &req : attributes.requests) {
       Attribute *attr = geom->attributes.find(req);
+      if (attr && !reserved.insert(attr).second) {
+        /* Store attribute requested in different ways once. */
+        continue;
+      }
       if (attr && (geom->is_hair() || geom->is_pointcloud())) {
         /* Special cases for packed position + radius. */
         if (attr->std == ATTR_STD_POSITION) {
@@ -667,12 +674,21 @@ void GeometryManager::device_update_attributes(Device *device,
     Geometry *geom = scene->geometry[i];
     AttributeRequestSet &attributes = geom_attributes[i];
 
-    /* todo: we now store std and name attributes from requests even if
-     * they actually refer to the same mesh attributes, optimize */
+    unordered_map<const Attribute *, const AttributeRequest *> added;
+
     for (AttributeRequest &req : attributes.requests) {
       Attribute *attr = geom->attributes.find(req);
 
       if (attr) {
+        const auto it = added.find(attr);
+        if (it != added.end()) {
+          /* Store attribute requested in different ways once. */
+          req.type = it->second->type;
+          req.desc = it->second->desc;
+          continue;
+        }
+        added[attr] = &req;
+
         /* force a copy if we need to reallocate all the data */
         attr->modified |= attributes_need_realloc[Attribute::kernel_type(*attr)];
       }
@@ -690,10 +706,21 @@ void GeometryManager::device_update_attributes(Device *device,
     AttributeRequestSet &attributes = object_attributes[i];
     AttributeSet &values = object_attribute_values[i];
 
+    unordered_map<const Attribute *, const AttributeRequest *> added;
+
     for (AttributeRequest &req : attributes.requests) {
       Attribute *attr = values.find(req);
 
       if (attr) {
+        const auto it = added.find(attr);
+        if (it != added.end()) {
+          /* Store attribute requested in different ways once. */
+          req.type = it->second->type;
+          req.desc = it->second->desc;
+          continue;
+        }
+        added[attr] = &req;
+
         attr->modified |= attributes_need_realloc[Attribute::kernel_type(*attr)];
       }
 
