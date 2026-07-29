@@ -300,7 +300,7 @@ float int2_to_float(int2 value)
 
 int int2_to_int(int2 value)
 {
-  return int(int2_to_float(value));
+  return midpoint(value.x, value.y);
 }
 
 int3 int2_to_int3(int2 value)
