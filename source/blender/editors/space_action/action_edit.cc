@@ -145,9 +145,9 @@ static wmOperatorStatus act_markers_make_local_exec(bContext *C, wmOperator * /*
 void ACTION_OT_markers_make_local(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Make Markers Local";
+  ot->name = "Convert to Pose Markers";
   ot->idname = "ACTION_OT_markers_make_local";
-  ot->description = "Move selected scene markers to the active Action as local 'pose' markers";
+  ot->description = "Move selected scene markers to the active action as pose markers";
 
   /* callbacks */
   ot->exec = act_markers_make_local_exec;
