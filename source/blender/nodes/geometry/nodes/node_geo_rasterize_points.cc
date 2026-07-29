@@ -203,14 +203,6 @@ static void node_layout_ex(ui::Layout &layout, bContext *C, PointerRNA *ptr)
         C, panel, ntree, node);
     socket_items::ui::draw_active_item_props<RasterizePointsItemsAccessor>(
         ntree, node, [&](PointerRNA *item_ptr) {
-          const NodeGeometryRasterizePointsItem &item =
-              *item_ptr->data_as<NodeGeometryRasterizePointsItem>();
-          const geometry::PointRasterizeType rasterize_type = get_rasterize_item_type(
-              NodeGeometryRasterizePointsItemType(item.type));
-          const CPPType &grid_type = geometry::points_rasterize_grid_type(rasterize_type);
-          const eNodeSocketDatatype output_type = *bke::geo_nodes_base_cpp_type_to_socket_type(
-              grid_type);
-
           panel->use_property_split_set(true);
           panel->use_property_decorate_set(false);
           panel->prop(item_ptr, "type", UI_ITEM_NONE, std::nullopt, ICON_NONE);

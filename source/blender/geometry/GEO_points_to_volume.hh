@@ -24,6 +24,31 @@ struct Volume;
 
 namespace geometry {
 
+/** Supported rasterization types. */
+enum class PointRasterizeType {
+  /** Rasterize a float attribute into a float grid. */
+  Scalar = 0,
+  /** Rasterize a vector attribute into a vector grid. */
+  Vector = 1,
+};
+
+/** Kernel functions for weighting point influence on surrounding voxels. */
+enum class KernelType {
+  /** Only the nearest voxel is affected. */
+  NearestPoint = 0,
+  /** Linear falloff over 1 voxel. */
+  Linear = 1,
+  /** Quadratic falloff over 1.5 voxels with a continuous derivative. */
+  Quadratic = 2,
+  /** Cubic falloff over 2 voxels with a continuous and smooth derivative. */
+  Cubic = 3,
+};
+
+/** Attribute type required for the given rasterization type. */
+const CPPType &points_rasterize_attribute_type(const PointRasterizeType rasterize_type);
+/** Grid type produced by the given rasterization type. */
+const CPPType &points_rasterize_grid_type(const PointRasterizeType rasterize_type);
+
 #ifdef WITH_OPENVDB
 
 /**
@@ -88,35 +113,10 @@ MappedPointDataGrid points_to_point_data_grid(const VArray<float3> positions,
                                               const bke::AttributeFilter &attribute_filter,
                                               const float4x4 &transform);
 
-/** Supported rasterization types. */
-enum class PointRasterizeType {
-  /** Rasterize a float attribute into a float grid. */
-  Scalar,
-  /** Rasterize a vector attribute into a vector grid. */
-  Vector,
-};
-
-/** Attribute type required for the given rasterization type. */
-const CPPType &points_rasterize_attribute_type(const PointRasterizeType rasterize_type);
-/** Grid type produced by the given rasterization type. */
-const CPPType &points_rasterize_grid_type(const PointRasterizeType rasterize_type);
-
 /** Rasterization settings for a single attribute. */
 struct PointRasterizeAttributeInfo {
   StringRef name;
   PointRasterizeType type;
-};
-
-/** Kernel functions for weighting point influence on surrounding voxels. */
-enum class KernelType {
-  /** Only the nearest voxel is affected. */
-  NearestPoint,
-  /** Linear falloff over 1 voxel. */
-  Linear,
-  /** Quadratic falloff over 1.5 voxels with a continuous derivative. */
-  Quadratic,
-  /** Cubic falloff over 2 voxels with a continuous and smooth derivative. */
-  Cubic,
 };
 
 /**

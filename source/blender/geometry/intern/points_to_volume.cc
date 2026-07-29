@@ -32,8 +32,35 @@
 #  include <openvdb/tools/Morphology.h>
 #  include <openvdb/tools/ParticlesToLevelSet.h>
 #  include <openvdb/tools/PointIndexGrid.h>
+#endif
 
 namespace blender::geometry {
+
+const CPPType &points_rasterize_attribute_type(const PointRasterizeType rasterize_type)
+{
+  switch (rasterize_type) {
+    case PointRasterizeType::Scalar:
+      return CPPType::get<float>();
+    case PointRasterizeType::Vector:
+      return CPPType::get<float3>();
+  }
+  BLI_assert_unreachable();
+  return CPPType::get<float>();
+}
+
+const CPPType &points_rasterize_grid_type(const PointRasterizeType rasterize_type)
+{
+  switch (rasterize_type) {
+    case PointRasterizeType::Scalar:
+      return CPPType::get<float>();
+    case PointRasterizeType::Vector:
+      return CPPType::get<float3>();
+  }
+  BLI_assert_unreachable();
+  return CPPType::get<float>();
+}
+
+#ifdef WITH_OPENVDB
 
 /* Implements the interface required by #openvdb::tools::ParticlesToLevelSet. */
 class OpenVDBParticleList {
@@ -306,30 +333,6 @@ MappedPointDataGrid points_to_point_data_grid(const VArray<float3> positions,
   });
 
   return result;
-}
-
-const CPPType &points_rasterize_attribute_type(const PointRasterizeType rasterize_type)
-{
-  switch (rasterize_type) {
-    case PointRasterizeType::Scalar:
-      return CPPType::get<float>();
-    case PointRasterizeType::Vector:
-      return CPPType::get<float3>();
-  }
-  BLI_assert_unreachable();
-  return CPPType::get<float>();
-}
-
-const CPPType &points_rasterize_grid_type(const PointRasterizeType rasterize_type)
-{
-  switch (rasterize_type) {
-    case PointRasterizeType::Scalar:
-      return CPPType::get<float>();
-    case PointRasterizeType::Vector:
-      return CPPType::get<float3>();
-  }
-  BLI_assert_unreachable();
-  return CPPType::get<float>();
 }
 
 namespace kernel_functions {
@@ -723,5 +726,6 @@ void points_rasterize(const MappedPointDataGrid &point_data_grid,
   }
 }
 
-}  // namespace blender::geometry
 #endif
+
+}  // namespace blender::geometry
