@@ -464,15 +464,13 @@ void debug_markers_print_list(ListBaseT<TimeMarker> *markers)
 /** \name Marker Drawing
  * \{ */
 
-static void marker_color_get(const TimeMarker *marker, uchar *r_text_color, uchar *r_line_color)
+static void marker_color_get(const TimeMarker *marker, uchar *r_color)
 {
   if (marker->flag & SELECT) {
-    ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE_SELECTED, r_text_color);
-    ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE_SELECTED, r_line_color);
+    ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE_SELECTED, r_color);
   }
   else {
-    ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE, r_text_color);
-    ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE, r_line_color);
+    ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE, r_color);
   }
 }
 
@@ -548,23 +546,15 @@ static int marker_get_icon_id(TimeMarker *marker, int flag)
 static void draw_marker(
     const uiFontStyle *fstyle, TimeMarker *marker, int xpos, int xmax, int flag, int region_height)
 {
-  uchar line_color[4], text_color[4];
+  uchar marker_color[4];
 
-  marker_color_get(marker, text_color, line_color);
+  marker_color_get(marker, marker_color);
 
   GPU_blend(GPU_BLEND_ALPHA);
 
-  draw_marker_line(line_color, xpos, UI_SCALE_FAC * 22, region_height);
+  draw_marker_line(marker_color, xpos, UI_SCALE_FAC * 22, region_height);
 
   int icon_id = marker_get_icon_id(marker, flag);
-
-  uchar marker_color[4];
-  if (marker->flag & SELECT) {
-    ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE_SELECTED, marker_color);
-  }
-  else {
-    ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE, marker_color);
-  }
 
   constexpr int marker_y = 10;
 
@@ -586,7 +576,7 @@ static void draw_marker(
   if (marker->flag & TIME_MARKER_ELEVATED_TEMP) {
     name_y += UI_SCALE_FAC * 6;
   }
-  draw_marker_name(text_color, fstyle, marker, xpos, xmax, name_y);
+  draw_marker_name(marker_color, fstyle, marker, xpos, xmax, name_y);
 }
 
 static void draw_markers_background(const rctf *rect)
