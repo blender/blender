@@ -134,13 +134,6 @@ set(LLVM_LIBRARIES "${_osl_llvm_libs}" CACHE STRING "" FORCE)
     -DGENLUTS_EXECUTABLE=${OSL_GENLUTS_PATH}
     -DOSLC_EXECUTABLE=${OSL_OSLC_PATH}
   )
-
-  if(ANDROID)
-    # Python bindings: Link against Android logging library to satisfy Python library requesting __android_log_write,
-    list(APPEND OSL_EXTRA_ARGS
-      -DCMAKE_MODULE_LINKER_FLAGS=-llog
-    )
-  endif()
 endif()
 
 ExternalProject_Add(external_osl
