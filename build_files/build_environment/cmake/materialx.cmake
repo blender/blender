@@ -36,15 +36,13 @@ endif()
 
 if(ANDROID)
   list(APPEND MATERIALX_EXTRA_ARGS
-    # We want to disable the MaterialXRenderGlsl module due to it requiring OpenGL/X11 on UNIX.
-    # It's controlled by GEN_GLSL, which (unintuitively) gets forced to ON if GEN_MSL is ON, set both to OFF in that sense.
+    # Disable the MaterialXRenderGlsl module due to it requiring OpenGL/X11 on UNIX. It's controlled by GEN_GLSL,
+    # which gets forced to ON if GEN_MSL is ON (even if unused), set both to OFF in this sense.
     -DMATERIALX_BUILD_GEN_MSL=OFF
     -DMATERIALX_BUILD_GEN_GLSL=OFF
 
-    # Python bindings: Explicitly link against the Python static Python lib, link against Android logging library to
-    #                  satisfy Python library requesting __android_log_write.
-    -DPYTHON_LIBRARY=${LIBDIR}/python/lib/libpython${PYTHON_SHORT_VERSION}.a
-    -DCMAKE_SHARED_LINKER_FLAGS=-llog
+    # Python bindings: Explicitly link against the shared Python lib.
+    -DPYTHON_LIBRARY=${LIBDIR}/python/lib/libpython${PYTHON_SHORT_VERSION}${SHAREDLIBEXT}
   )
 endif()
 
