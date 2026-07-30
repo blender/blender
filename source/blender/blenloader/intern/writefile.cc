@@ -1981,7 +1981,7 @@ static void write_file_main_validate_post(Main *bmain, ReportList *reports)
 
   if (G.debug & G_DEBUG_IO) {
     BKE_report(
-        reports, RPT_DEBUG, "Checking validity of current .blend file *BEFORE* save to disk");
+        reports, RPT_DEBUG, "Checking validity of current .blend file *AFTER* save to disk");
     BLO_main_validate_libraries(bmain, reports);
   }
 }

@@ -206,6 +206,7 @@ bool BLO_main_validate_shapekeys(Main *bmain, ReportList *reports)
                 "ShapeKey %s has an invalid 'from' pointer (%p), it will be deleted",
                 shapekey.id.name,
                 shapekey.from);
+    is_valid = false;
 
     BKE_id_delete(bmain,
                   &shapekey,
