@@ -238,7 +238,13 @@ enum PropertySubType {
   PROP_FILEPATH = 1,
   PROP_DIRPATH = 2,
   PROP_FILENAME = 3,
-  /** A string which should be represented as bytes in python, NULL terminated though. */
+  /**
+   * A string which should be represented as bytes in python, NULL terminated though.
+   *
+   * WARNING: Default generated RNA accessor code will treat the underlying data as a regular
+   * C string (using `strlen` e.g. to get its length). If the bytes array may contain null chars,
+   * the RNA property _must_ have custom accessors defined (through
+   * #RNA_def_property_string_funcs). */
   PROP_BYTESTRING = 4,
   /* 5 was used by "PROP_TRANSLATE" sub-type, which is now a flag. */
   /** A string which should not be displayed in UI. */
