@@ -1675,6 +1675,10 @@ static SeqResult do_render_strip_uncached(const RenderData *context,
           local_context.skip_cache = true;
 
           out = do_render_strip_seqbase(&local_context, state, strip, frame_index);
+
+          /* We have just rendered timeline of another scene; make sure movie decoding
+           * contexts no longer needed by the current frame are freed. */
+          relations_free_all_anim_ibufs(local_context.scene, frame_index);
         }
       }
       else {
