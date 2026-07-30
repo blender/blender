@@ -172,6 +172,49 @@ static PyObject *pygpu_batch_vertbuf_add(BPyGPUBatch *self, BPyGPUVertBuf *py_bu
   Py_RETURN_NONE;
 }
 
+/**
+ * Hold a reference to `py_shader` in the batch `references` list,
+ * replacing any previously referenced shader.
+ */
+static void pygpu_batch_shader_set_reference_only(BPyGPUBatch *self, BPyGPUShader *py_shader)
+{
+#ifdef USE_GPU_PY_REFERENCES
+  /* Remove existing user (if any), hold new user. */
+  int i = PyList_GET_SIZE(self->references);
+  while (--i != -1) {
+    PyObject *py_shader_test = PyList_GET_ITEM(self->references, i);
+    if (BPyGPUShader_Check(py_shader_test)) {
+      PyList_SET_ITEM(self->references, i, reinterpret_cast<PyObject *>(py_shader));
+      Py_INCREF(py_shader);
+      Py_DECREF(py_shader_test);
+      /* Only ever reference one shader. */
+      break;
+    }
+  }
+  if (i == -1) {
+    /* No references set in the loop, so add it here. */
+    PyList_Append(self->references, reinterpret_cast<PyObject *>(py_shader));
+  }
+#else
+  UNUSED_VARS(self, py_shader);
+#endif
+}
+
+/**
+ * A safe version of #GPU_batch_set_shader that holds a reference to keep the shader alive.
+ */
+static void pygpu_batch_shader_set(BPyGPUBatch *self, BPyGPUShader *py_shader)
+{
+  /* Assign & bind even when unchanged as scripts may rely on the bind side-effect. */
+  const bool shader_changed = self->batch->shader != py_shader->shader;
+
+  GPU_batch_set_shader(self->batch, py_shader->shader);
+
+  if (shader_changed) {
+    pygpu_batch_shader_set_reference_only(self, py_shader);
+  }
+}
+
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_batch_program_set_doc,
@@ -203,27 +246,7 @@ static PyObject *pygpu_batch_program_set(BPyGPUBatch *self, BPyGPUShader *py_sha
     return nullptr;
   }
 
-  gpu::Shader *shader = py_shader->shader;
-  GPU_batch_set_shader(self->batch, shader);
-
-#ifdef USE_GPU_PY_REFERENCES
-  /* Remove existing user (if any), hold new user. */
-  int i = PyList_GET_SIZE(self->references);
-  while (--i != -1) {
-    PyObject *py_shader_test = PyList_GET_ITEM(self->references, i);
-    if (BPyGPUShader_Check(py_shader_test)) {
-      PyList_SET_ITEM(self->references, i, (PyObject *)py_shader);
-      Py_INCREF(py_shader);
-      Py_DECREF(py_shader_test);
-      /* Only ever reference one shader. */
-      break;
-    }
-  }
-  if (i == -1) {
-    /* No references set in the loop, so add it here. */
-    PyList_Append(self->references, reinterpret_cast<PyObject *>(py_shader));
-  }
-#endif
+  pygpu_batch_shader_set(self, py_shader);
 
   Py_RETURN_NONE;
 }
@@ -329,8 +352,8 @@ static PyObject *pygpu_batch_draw(BPyGPUBatch *self, PyObject *args, PyObject *k
       return nullptr;
     }
   }
-  else if (self->batch->shader != py_shader->shader) {
-    GPU_batch_set_shader(self->batch, py_shader->shader);
+  else {
+    pygpu_batch_shader_set(self, py_shader);
   }
 
   /* Emit a warning when trying to draw wide lines as it is too late to automatically switch to a
@@ -441,7 +464,7 @@ static PyObject *pygpu_batch_draw_instanced(BPyGPUBatch *self, PyObject *args, P
     return nullptr;
   }
 
-  GPU_batch_set_shader(self->batch, py_program->shader);
+  pygpu_batch_shader_set(self, py_program);
   GPU_batch_draw_instance_range(self->batch, instance_start, instance_count);
   Py_RETURN_NONE;
 }
@@ -485,7 +508,7 @@ static PyObject *pygpu_batch_draw_range(BPyGPUBatch *self, PyObject *args, PyObj
     return nullptr;
   }
 
-  GPU_batch_set_shader(self->batch, py_program->shader);
+  pygpu_batch_shader_set(self, py_program);
   GPU_batch_draw_range(self->batch, elem_start, elem_count);
   Py_RETURN_NONE;
 }
